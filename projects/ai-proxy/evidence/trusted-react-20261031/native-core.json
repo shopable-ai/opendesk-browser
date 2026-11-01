@@ -1,0 +1,99 @@
+{
+  "format": "ai-proxy-native-core.v1",
+  "at": "2026-10-31T13:30:46.801518+00:00",
+  "runtime": {
+    "kind": "development serve; CFT155 existing profile; not production",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "revision": "1ea74bc3e058f44edb8776a11e04aea52775c40045f5631b75350ea2f329320a",
+    "toolShellSha256": "97b04a865693e4d39d6cdaa2ae01586d1f8dbee1fd7fe77b9541f3a5eea80acb",
+    "publishedToolShellSha256": "97b04a865693e4d39d6cdaa2ae01586d1f8dbee1fd7fe77b9541f3a5eea80acb",
+    "sourceInputs": 57
+  },
+  "officialVersion": "0.3.8",
+  "packageSha256": "2199ca3b9c2efeff2b8a96779a0d883c7c410a0e0c829653627df6d734b274ca",
+  "checks": [
+    "原官方审阅链0.3.5→0.3.7→0.3.8，权限未变化；0.3.7的JSX错误已保留并修正",
+    "0.3.8直接呈现在Side Panel的AX树，无sandbox.html子文档；同源码组件DOM另有iframe数量为0的断言",
+    "管理全部→添加代理：初始主机焦点；展开认证字段后标题、保存/取消/继续添加可见",
+    "空白草稿Escape直接关闭，焦点回添加代理",
+    "输入proxy.example.com后Escape→取消：内容保留，焦点回主机；再Escape→确认放弃：回添加按钮",
+    "本地HTTP名称改为布局验证→保存→重新编辑回读→恢复原名再保存；始终未应用代理",
+    "两次返回列表重开及Debug往返后再次打开，保留原一条本地配置和一条规则，无空白或残留对话框",
+    "当前网页ip111.cn→既有市场127.0.0.1→ip111.cn，当前网站通过事件触发异步重读",
+    "原生Debug显示开发服务已连接，完整revision与development-update及tool-shell字节哈希一致"
+  ],
+  "proxyEffect": "NO_APPLY; original local endpoint/name restored; browser reports unmanaged/system",
+  "nativeUiLease": "released",
+  "rawEvidence": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/official-update.ax.txt",
+      "sha256": "a961d1f01c1278aa909980e608b05f4160d5170cdb57a5742151adb127e76b9c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/before-dialog.ax.txt",
+      "sha256": "2c028a85409201585b9d03ea2096a60a56e4986b77181a2d3ba44156f2f55f17"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/after-dialog.ax.txt",
+      "sha256": "0eb00741c8776c39befb13b365551e3875c96a3d665aaef4dfcae787b438ae8c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-ready-0.3.8.ax.txt",
+      "sha256": "7e5cee74fdcd7cd6f345282a4d6f2cf8e13c9c33e53dbfd9a3874bf15a8359db"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-classic-jsx-error.ax.txt",
+      "sha256": "53d169097beaf878d3e6dff05a44b28fdccf6af8a3e1d7ada00460bfcee4fc8b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-save-readback.ax.txt",
+      "sha256": "8b6d603fe8c777eef8b7c5ed79a80e93ad2edf29aa6bfb323acd48286848258a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-draft-kept.ax.txt",
+      "sha256": "00dfc58bd1b37dfdbe9783fc9833012c38973c3d3272587c369fb76e1362c609"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-reopened.ax.txt",
+      "sha256": "7e5cee74fdcd7cd6f345282a4d6f2cf8e13c9c33e53dbfd9a3874bf15a8359db"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-repeated-mount.ax.txt",
+      "sha256": "7e5cee74fdcd7cd6f345282a4d6f2cf8e13c9c33e53dbfd9a3874bf15a8359db"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-page-change.ax.txt",
+      "sha256": "aad4e36b5f90af4578aea72b6b7562edc42054447132f6f22e5278ec84279c1d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/dev-connection-final.ax.txt",
+      "sha256": "98dc04a3653a09da1df97520d7432110c5174d7f4c58c5bf8c88374cc01b9b42"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/native-final.ax.txt",
+      "sha256": "7e5cee74fdcd7cd6f345282a4d6f2cf8e13c9c33e53dbfd9a3874bf15a8359db"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/core-node.txt",
+      "sha256": "4a24b5c6dcb2649304217269171091a532148605cf1f673f40b4639a90a55c25"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/provenance-ai-node.txt",
+      "sha256": "5c97f66edf10ac23bf83cdae7e2f9439c66b1e72dabae5cc065c383e528eea2f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy-trusted-react-20261031/provenance-node.txt",
+      "sha256": "432f4be172d1f05742ff92def33b0ac0655dd23b172311e95da1c7ab8cde49e6"
+    }
+  ],
+  "notTested": [
+    "production",
+    "full CI",
+    "full typecheck",
+    "network proxy traffic/auth/PAC/subscription",
+    "native full wrong-package/revocation race chain",
+    "zoom and width matrix",
+    "fresh console audit after fix"
+  ]
+}

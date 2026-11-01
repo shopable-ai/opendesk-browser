@@ -1,5 +1,7 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+唯一正式项目为 `projects/bookmark-manager/`，预览在本目录的 `preview/`；旧 `examples/sidebar-tools/bookmark-manager/` 已退役，不再生成或维护副本。日常 React 预览从仓库根运行 `npm --prefix projects/bookmark-manager/preview/react run preview:build`，候选输出到 `projects/bookmark-manager/preview/dev.html`；`preview/index.html` 继续保留为历史预览与构建模板。
+
 ## AI Chat 右上操作修复（2026-10-31，源码与离线预览）
 
 共享 Dock 为配置与收起按钮保留完整点击区，避免 12px 分隔条搭配 30px 按钮和负偏移导致裁切；可信 Host 的 raw CSS 显式包含布局，不留运行时相对 CSS import。离线预览接回原共享 AI 设置面板，修复未传回调而不渲染配置按钮的问题；面板只演示开合与焦点，不配置真实 Provider。
@@ -214,7 +216,7 @@ Node VM 证据。后续真实 Native 已通过市场正式升级 0.3.3，授权�
 ```sh
 node --test tests/environment/bookmark-manager-r2.test.mjs
 node --test tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
-npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+npm run build:sidebar-tool -- projects/bookmark-manager
 # 依据 tool.config.json 当前版本查询 artifacts/sidebar-tools/bookmark-manager/ 产物
 npm run check
 npm run build

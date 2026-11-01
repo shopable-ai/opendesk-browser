@@ -67,18 +67,10 @@ test('R1.4 async verifier checks exact UTF-8 background bytes independently of U
   }
 });
 
-test('R1.4 background retains source limits and consumes the existing complete-package budget',()=>{
-  assert.doesNotThrow(()=>packages.validateSidebarToolPackage(tool({background:background('x'.repeat(220000))})));
-  assert.throws(()=>packages.validateSidebarToolPackage(tool({background:background('x'.repeat(220001))})),{code:'E_TOOL_LIMIT'});
-  assert.throws(()=>packages.validateSidebarToolPackage(tool({js:'x'.repeat(220001)})),{code:'E_TOOL_LIMIT'});
-  assert.throws(()=>packages.validateSidebarToolPackage(tool({js:'x'.repeat(160000),background:background('x'.repeat(160000))})),{code:'E_TOOL_LIMIT'});
-  // Non-ASCII source can fit the character limit while exceeding the UTF-8 package limit.
-  assert.throws(()=>packages.validateSidebarToolPackage(tool({background:background('中'.repeat(110000))})),{code:'E_TOOL_LIMIT'});
-  const candidate=tool({js:'x'.repeat(150000)}),base=Buffer.byteLength(packages.serializeSidebarToolPackage(candidate));
-  candidate.background=background(candidate.background.js+'x'.repeat(320000-base));
-  assert.equal(encodeSidebarToolPackage(candidate).length,320000);
-  candidate.background=background(candidate.background.js+'x');
-  assert.throws(()=>encodeSidebarToolPackage(candidate),/320 KB/);
+test('R1.4 large UI and background source round-trip with SHA verification',async()=>{
+  const candidate=tool({js:';'.repeat(1100000),background:background('/*'+'中'.repeat(750000)+'*/')});
+  assert.ok(encodeSidebarToolPackage(candidate).length>2*1024*1024);
+  assert.deepEqual(await packages.verifySidebarToolBackground(JSON.parse(encodeSidebarToolPackage(candidate))),candidate);
 });
 
 test('R1.4 canonical identity includes background and ignores its property order',async()=>{
@@ -116,7 +108,7 @@ test('R1.4 async hash consumers retain canonical digests and reject bad backgrou
   }),{code:'E_TOOL_BACKGROUND_SHA'});
 });
 
-test('R1.4 packer reads separate files.background, pins SHA, rejects v1 and source path/size escapes',async t=>{
+test('R1.4 packer reads large separate files.background, pins SHA, rejects v1 and path escapes',async t=>{
   const root=await mkdtemp(join(tmpdir(),'opendesk-service-package-'));
   const outside=await mkdtemp(join(tmpdir(),'opendesk-service-outside-'));
   t.after(()=>Promise.all([rm(root,{recursive:true,force:true}),rm(outside,{recursive:true,force:true})]));
@@ -136,8 +128,9 @@ test('R1.4 packer reads separate files.background, pins SHA, rejects v1 and sour
   await writeFile(join(outside,'escape.js'),'void 0;');await symlink(join(outside,'escape.js'),join(root,'escape.js'));
   await config({...meta,files:{...meta.files,background:'escape.js'}});
   await assert.rejects(createSidebarToolPackage(root),/symlink escaped/);
-  await config(meta);await writeFile(join(root,'service.js'),'中'.repeat(73334));
-  await assert.rejects(createSidebarToolPackage(root),/source file exceeds budget/);
+  const large='/*'+'中'.repeat(750000)+'*/';
+  await config(meta);await writeFile(join(root,'service.js'),large);
+  assert.equal((await createSidebarToolPackage(root)).background.sha256,digest(large));
   await writeFile(join(root,'service.js'),candidate.background.js);
   const v1={id:meta.id,version:meta.version,title:meta.title,description:meta.description,capabilities:[],files:meta.files};
   await config(v1);await assert.rejects(createSidebarToolPackage(root),/v2/);

@@ -1,5 +1,10 @@
 /* Shared UI owns tokens and buttons; these rules only arrange result content. */
-.scrapy-results{display:grid;gap:var(--space-2);min-width:0}
+.scrapy-results{display:grid;gap:var(--space-3);min-width:0}
+.scrapy-results>.toolbar:first-child{min-height:32px}.result-count{font-variant-numeric:tabular-nums}
+.scrapy-results #export-actions{gap:var(--space-2)}
+.scrapy-results .result-tools{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;justify-content:space-between}
+.scrapy-results .result-tools details[open]{flex-basis:100%}
+.scrapy-results #run-profile{font-size:12px}.scrapy-results #table-help{font-size:12px}
 .scrapy-results .scrapy-cell{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.6;max-height:3.2em}
 .scrapy-results .scrapy-empty{color:var(--od-sub)}
 .scrapy-results .scrapy-kind{display:block;font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub)}
@@ -9,12 +14,32 @@
 .scrapy-results th.scrapy-col-price,.scrapy-results td.scrapy-col-price{min-width:100px;max-width:140px;width:110px;font-variant-numeric:tabular-nums}
 .scrapy-results th.scrapy-col-url,.scrapy-results td.scrapy-col-url{min-width:220px;max-width:280px;width:240px}
 .scrapy-results th.scrapy-col-description,.scrapy-results td.scrapy-col-description{min-width:280px;max-width:360px;width:320px}
-.scrapy-results .scrapy-record-action{min-width:100px;max-width:120px;width:100px}
-.scrapy-results .scrapy-column-list{display:grid;gap:var(--space-3);padding-left:var(--space-4)}
-.scrapy-results .scrapy-column-list li{display:grid;gap:var(--space-2);border-bottom:1px solid var(--od-line);padding-bottom:var(--space-2)}
+.scrapy-results .scrapy-record-action{min-width:48px;max-width:48px;width:48px;text-align:center}
+/* A short two-field result should fit; rich URL/description tables keep local scrolling. */
+.scrapy-results .table-scroll[data-fit=true] table{table-layout:fixed}
+.scrapy-results .table-scroll[data-fit=true] :is(th,td){min-width:0;max-width:none;width:auto}
+.scrapy-results .table-scroll[data-fit=true] .scrapy-record-action{width:48px}
+.scrapy-results .scrapy-download-icon{width:16px;height:16px;flex-shrink:0}
+.scrapy-results .scrapy-download-help,.scrapy-results .scrapy-download-status{flex-basis:100%;margin:0;overflow-wrap:anywhere}
 .scrapy-results-dialog{color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);width:min(640px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto}
-.scrapy-results-dialog[open]{display:grid;gap:var(--space-2)}
+.scrapy-results-dialog[open]{display:grid;gap:var(--space-3)}
 .scrapy-results-dialog::backdrop{background:rgb(0 0 0 / .4)}
 .scrapy-results-dialog textarea{width:100%;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .scrapy-results-dialog h2,.scrapy-results-dialog p{margin:0;overflow-wrap:anywhere}
 .scrapy-results-dialog h2{font-size:14px;flex:1}
+
+/* One optional name per field; CSV preview preserves the actual export order. */
+.csv-export-settings{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.csv-export-settings h3{font-size:13px;line-height:1.5;margin:0}
+.csv-export-settings p{margin:0;font-size:12px;line-height:1.6}
+.csv-header-editor,.csv-name-list{display:grid;gap:var(--space-2);min-width:0}
+.csv-name-head,.csv-name-row{display:grid;grid-template-columns:minmax(64px,.75fr) minmax(0,1.25fr);gap:var(--space-3);align-items:center;min-width:0}
+.csv-name-head{font-size:12px;color:var(--od-sub)}
+.csv-name-row label{font-size:12px;overflow-wrap:anywhere;min-width:0}
+.scrapyjs-workspace .csv-name-row .od-field{width:100%;min-width:0;height:36px;box-sizing:border-box;padding-inline:var(--space-2);font-size:13px}
+.csv-header-preview{overflow:auto;max-width:100%;border:1px solid var(--od-line);border-radius:var(--radius-sm)}
+.csv-header-preview table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+.csv-header-preview caption{text-align:left;padding:var(--space-2);color:var(--od-sub)}
+.csv-header-preview th{padding:var(--space-2);border-top:1px solid var(--od-line);background:var(--od-soft);white-space:nowrap}
+.csv-header-preview th+th{border-left:1px solid var(--od-line)}
+#csv-preset .csv-export-settings{border:0;border-radius:0;padding:var(--space-3) 0 0}

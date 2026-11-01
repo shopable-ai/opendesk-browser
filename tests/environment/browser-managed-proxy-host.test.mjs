@@ -6,6 +6,8 @@ import {createBrowserManagedProxy,MANAGED_PROXY_STORE,reconcileManagedProxy}
   from '../../src/platform/chrome/browser-managed-proxy.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
+import {BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
+import {requestManagedProxyIntent} from '../../src/ui/sidebar-tools/managed-proxy-consent.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
   from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE}
@@ -64,9 +66,9 @@ async function fixture(){
       identity,
       sdk:createBrowserSdk({request:(operation,args)=>host.handleTool(
         {...identity,operation,args,...(approvalRef?{approvalRef}:{})},sender)}),
-      async approve(operation,args={}){
+      async approve(operation,args={},options={}){
         const data=await host.handleHost({...identity,operation:'browser.intent.confirm',
-          targetOperation:operation,targetArgs:args},sender);
+          targetOperation:operation,targetArgs:args,...options},sender);
         approvalRef=data.approvalRef;
         return approvalRef;
       },clearApproval(){approvalRef=undefined;}
@@ -75,6 +77,93 @@ async function fixture(){
   return {first,second,data,host,user,effects,api,locks,
     setProxyPermission:next=>{proxyPermission=next;}};
 }
+test('remembered exact proxy consent reuses review while issuing fresh one-use intents',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  const operation='browser.proxy.managed.requestEnable';
+  await assert.rejects(actor.approve(operation,config,{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+  await actor.approve(operation,config,{proxyConsent:'remember'});
+  assert.equal((await actor.sdk.proxy.managed.requestEnable(config)).state,'enabled');
+  await actor.approve('browser.proxy.managed.requestDisable');
+  await actor.sdk.proxy.managed.requestDisable();
+  const second=await actor.approve(operation,config,{proxyConsent:'reuse'});
+  assert.equal((await actor.sdk.proxy.managed.requestEnable(config)).state,'enabled');
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable(config),code('E_USER_GESTURE_REQUIRED'));
+  assert.equal(typeof second,'string');assert.equal(f.effects.set,2);
+  const peer=await f.user('proxy-peer');
+  await assert.rejects(peer.approve(operation,config,{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+  for(const changed of [{mode:'direct'},{...config.config,domains:['example.org']},
+    {...config.config,endpoint:{...config.config.endpoint,port:1081}}])
+    await assert.rejects(actor.approve(operation,{config:changed},{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+});
+
+test('revoking remembered proxy consent retires pending enable and releases only its owned PAC',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner'),operation='browser.proxy.managed.requestEnable';
+  await actor.approve(operation,config,{proxyConsent:'remember'});
+  await actor.sdk.proxy.managed.requestEnable(config);
+  const stale=await actor.approve(operation,config,{proxyConsent:'reuse'});
+  await f.host.handleHost({...actor.identity,operation:'browser.proxy.managed.revokeConsent'},sender);
+  assert.equal(f.effects.clear,1);
+  await assert.rejects(f.host.handleTool({...actor.identity,operation,args:config,approvalRef:stale},sender));
+  await assert.rejects(actor.approve(operation,config,{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+  assert.equal(f.effects.set,1);
+});
+
+test('remembering a route preserves independently bound menu restrictions without rebinding stale grants',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  const contextMenu={version:actor.identity.toolVersion,packageHash:actor.identity.packageHash,
+    installEpoch:'epoch-1',defaults:false,origins:[],activeActions:[],disabledOrigins:['https://example.com']};
+  for(const old of [{contextMenu},{version:'0.0.0',packageHash:'stale',installEpoch:'old',
+    bookmarkFull:true,cookieSites:{'https://example.com':{read:true}},contextMenu},
+    {contextMenu:{...contextMenu,version:'0.9.0',packageHash:'interrupted-update'}}]){
+    f.data.set(BROWSER_MENU_GRANTS_STORE,{[f.first.id]:old});
+    await actor.approve('browser.proxy.managed.requestEnable',config,{proxyConsent:'remember'});
+    const saved=f.data.get(BROWSER_MENU_GRANTS_STORE)[f.first.id];
+    assert.deepEqual(saved.contextMenu,old.contextMenu);
+    assert.equal(saved.bookmarkFull,undefined);assert.equal(saved.cookieSites,undefined);
+  }
+});
+
+test('remembered proxy consent is rechecked inside Driver before a native write',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner'),operation='browser.proxy.managed.requestEnable';
+  await actor.approve(operation,config,{proxyConsent:'remember'});
+  const original=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{
+    await original(values);
+    if(values[MANAGED_PROXY_STORE]?.phase==='applying')f.data.delete(BROWSER_MENU_GRANTS_STORE);
+  };
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable(config),code('E_PROXY_CONSENT_REQUIRED'));
+  assert.equal(f.effects.set,0);
+});
+
+test('real UI to Host and Driver applies, stops and reapplies with only the initial route review',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');let reviews=0;
+  f.api.runtime.sendMessage=async request=>{
+    try{return {ok:true,data:await f.host.handleHost(request,sender)}}
+    catch(error){return {ok:false,error:{code:error.code,message:error.message}}}
+  };
+  const sdk=createBrowserSdk({request:async(operation,args)=>{
+    const approvalRef=await requestManagedProxyIntent({api:f.api,identity:actor.identity,
+      title:'Proxy owner',operation,payload:args,hasUserActivation:true,assertCurrent(){},
+      requestReview:review=>{reviews++;return review.run({isTrusted:true})}});
+    return f.host.handleTool({...actor.identity,operation,args,approvalRef},sender);
+  }});
+  await sdk.proxy.managed.requestEnable({config:{mode:'direct'}});
+  await sdk.proxy.managed.requestDisable();
+  await sdk.proxy.managed.requestEnable({config:{mode:'direct'}});
+  assert.equal(reviews,1);assert.deepEqual(f.effects,{set:2,clear:1});
+  // Restart drops action tokens but retains the exact installation's consent.
+  const restarted=createContextMenuHost({api:f.api,lockManager:f.locks,logger:{warn(){}}});
+  await restarted.handleHost({...actor.identity,operation:'browser.intent.confirm',
+    targetOperation:'browser.proxy.managed.requestDisable',targetArgs:{}},sender);
+  assert.equal(typeof (await restarted.handleHost({...actor.identity,operation:'browser.intent.confirm',
+    targetOperation:'browser.proxy.managed.requestEnable',targetArgs:{config:{mode:'direct'}},
+    proxyConsent:'reuse'},sender)).approvalRef,'string');
+  // Reinstall identity cannot inherit consent by claiming the old package hash.
+  f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[actor.identity.toolId]:'epoch-2'});
+  await assert.rejects(restarted.handleHost({...actor.identity,installEpoch:'epoch-2',
+    operation:'browser.intent.confirm',targetOperation:'browser.proxy.managed.requestEnable',
+    targetArgs:{config:{mode:'direct'}},proxyConsent:'reuse'},sender),code('E_PROXY_CONSENT_REQUIRED'));
+});
 test('unpinned installed package ENABLE and STOP use exact Host intent with static profiles empty',async()=>{
   const f=await fixture(),actor=await f.user('proxy-owner');
   assert.equal((await actor.sdk.proxy.managed.getStatus()).state,'disabled');
@@ -91,6 +180,48 @@ test('unpinned installed package ENABLE and STOP use exact Host intent with stat
   await actor.approve('browser.proxy.managed.requestDisable',{});
   assert.equal((await actor.sdk.proxy.managed.requestDisable()).state,'disabled');
   assert.equal(f.effects.clear,1);
+});
+
+test('explicit direct, single endpoint and loopback rules require exact intent and remain stoppable',async()=>{
+  const routes=[{mode:'direct'},
+    {mode:'fixed_servers',endpoint:{scheme:'http',host:'127.0.0.1',port:7897}},
+    {mode:'fixed_servers',endpoint:{scheme:'socks5',host:'proxy.example.com',port:1080}},
+    {mode:'rules',endpoint:{scheme:'socks5',host:'127.0.0.1',port:7897},domains:['ip111.cn']}];
+  for(const route of routes){
+    const f=await fixture(),actor=await f.user('proxy-owner'),peer=await f.user('proxy-peer');
+    const args={config:route};
+    await assert.rejects(actor.sdk.proxy.managed.requestEnable(args));
+    assert.equal(f.effects.set,0);
+    await actor.approve('browser.proxy.managed.requestEnable',args);
+    assert.equal((await actor.sdk.proxy.managed.requestEnable(args)).state,'enabled');
+    const native=(await f.api.proxy.settings.get({})).value;
+    assert.equal(native.mode,'pac_script');
+    assert.match(native.pacScript.data,/OpenDesk Managed Proxy owner/);
+    assert.equal((await peer.sdk.proxy.managed.getStatus()).state,'conflict');
+    await peer.approve('browser.proxy.managed.requestDisable',{});
+    await assert.rejects(peer.sdk.proxy.managed.requestDisable(),code('E_PROXY_OWNERSHIP'));
+    assert.equal(f.effects.clear,0);
+    await actor.approve('browser.proxy.managed.requestDisable',{});
+    assert.equal((await actor.sdk.proxy.managed.requestDisable()).state,'disabled');
+    assert.equal(f.effects.clear,1);
+  }
+});
+
+test('new routing modes reject broader local networks, raw PAC and changed intent',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  const operation='browser.proxy.managed.requestEnable';
+  const args={config:{mode:'fixed_servers',endpoint:{scheme:'http',host:'127.0.0.1',port:7897}}};
+  await actor.approve(operation,args);
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable({config:{mode:'direct'}}),code('E_USER_GESTURE_REQUIRED'));
+  for(const route of [
+    {mode:'direct',endpoint:args.config.endpoint},
+    {mode:'pac_script',pacScript:{data:'return "DIRECT"'}},
+    ...['localhost','127.0.0.2','192.168.1.1','10.0.0.1','::1','proxy.local'].map(host=>
+      ({mode:'fixed_servers',endpoint:{scheme:'http',host,port:7897}})),
+    {mode:'rules',endpoint:args.config.endpoint,domains:['*.ip111.cn']},
+    {mode:'rules',endpoint:args.config.endpoint,domains:[]}
+  ])await assert.rejects(actor.approve(operation,{config:route}));
+  assert.equal(f.effects.set,0);
 });
 
 test('exact Host proxy approval rejects parameter, operation, instance, host and tool substitution',async()=>{

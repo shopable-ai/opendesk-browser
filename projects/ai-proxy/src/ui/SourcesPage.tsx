@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {getEnvironment} from '../environment';
 import {Button} from '@opendesk/ui';
 import { useI18n } from '../i18n/LocaleProvider';
@@ -72,7 +73,8 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
   const detailTitle = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<string | null>(null);
   const [official,setOfficial] = useState<OfficialSnapshot | null>(null);
-  const routeKey = route.kind === 'source' ? 'source:' + route.id : route.kind;
+  const routeKey = route.kind === 'source' || route.kind === 'local'
+    ? route.kind + ':' + (route.id ?? '') : route.kind;
   useEffect(() => {
     let live = true;
     async function loadOfficial() {
@@ -90,7 +92,8 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     const last = previousRoute.current;
     previousRoute.current = routeKey;
     // Editor drafts belong to their original source, not the next route.
-    if (last && last !== routeKey && editor && quickEntry === null) closeEditor(true);
+    if (last && last !== routeKey && editor && quickEntry === null &&
+      !getEnvironment().isDraftDirty('source-editor')) closeEditor(true);
     const frame = requestAnimationFrame(() => {
       if (route.kind === 'list') {
         const id = last?.startsWith('source:') ? last.slice('source:'.length) : null;
@@ -115,9 +118,11 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
   const subscriptions = config.sources.filter(source => source.kind === 'subscription');
 
   useEffect(() => {
+    // Navigation guards own dirty route changes; never replace their pending draft here.
+    if (getEnvironment().isDraftDirty('source-editor')) return;
     if (quickEntry === 'local') {
+      openLocal(route.kind === 'local' ? route.id : undefined);
       routeEditorOpened.current = true;
-      openLocal();
     } else if (quickEntry === 'subscription') {
       routeEditorOpened.current = true;
       openSubscription();
@@ -125,9 +130,9 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
       routeEditorOpened.current = false;
       closeEditor(true);
     }
-  }, [quickEntry]);
-  function closeEditor(preserveRoute = false) {
-    getEnvironment().setDraftDirty(false,'source-editor');
+  }, [quickEntry, routeKey]);
+  function closeEditor(preserveRoute = false, expectedRevision?: number) {
+    if (!getEnvironment().setDraftDirty(false,'source-editor',expectedRevision)) return;
     const fromRoute = routeEditorOpened.current;
     if (!preserveRoute) routeEditorOpened.current = false;
     returnFocus.current = editor;
@@ -138,15 +143,25 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     setSub(emptySubscription);
     setSubId('');
     setError('');
-    if (!preserveRoute && fromRoute && /^#\/subscriptions\/(?:new|local)$/.test(getEnvironment().navigation.getRoute())) {
-      navigate('subscriptions');
+    if (!preserveRoute && fromRoute && (route.kind === 'new' || route.kind === 'local')) {
+      navigate(route.kind === 'local' && route.id !== undefined ? 'profiles' : 'subscriptions');
     }
+  }
+  async function requestCloseEditor() {
+    if (busy) return;
+    const environment = getEnvironment();
+    const revision = environment.getDraftRevision('source-editor');
+    if (environment.isDraftDirty('source-editor') &&
+      !await environment.confirm(t('apDiscardHelp'))) return;
+    closeEditor(false, revision);
   }
   function openLocal(id?: string) {
     editorOpener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body
       ? document.activeElement : null;
     closeEditor(true);
     const endpoint = locals.find(candidate => candidate.id === id);
+    // An obsolete edit link must never become an add form for a different entity.
+    if (id !== undefined && !endpoint) return;
     if (endpoint) {
       setLocalId(endpoint.id);
       setLocal({ name:endpoint.name, scheme:endpoint.scheme, port:String(endpoint.port) });
@@ -171,7 +186,7 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     const displayName = local.name.trim() || (local.scheme.toUpperCase() + ' · 127.0.0.1:' + local.port);
     if (await act({ type:'SAVE_LOCAL_CLIENT', client:{
       id:localId || crypto.randomUUID(), name:displayName, scheme:local.scheme, port:Number(local.port)
-    }})) {if(getEnvironment().setDraftDirty(false,'source-editor',revision))closeEditor();}
+    }})) closeEditor(false, revision);
   }
   async function saveSubscription(event: FormEvent<HTMLFormElement>) {
     const revision=getEnvironment().getDraftRevision('source-editor');
@@ -206,13 +221,13 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
   }
   const editorMarkup = <>{editor && <section id="source-editor" className="sourceInlineEditor"
       aria-labelledby="source-editor-title" onKeyDown={event => {
-        if (event.key === 'Escape' && !busy) { event.preventDefault(); closeEditor(); }
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); void requestCloseEditor(); }
       }}>
       <div className="sourceEditorHead">
         <h2 id="source-editor-title">{editor==='local'
           ? (localId?t('editLocalClientEndpoint'):t('addLocalClientEndpoint'))
           : (subId?t('editSubscriptionSource'):t('recordThirdPartySubscriptionSource'))}</h2>
-        <Button type="button" disabled={busy} onClick={() => closeEditor()}>{t('cancel')}</Button>
+        <Button type="button" disabled={busy} onClick={() => requestCloseEditor()}>{t('cancel')}</Button>
       </div>
       {editor==='local'
         ? <form data-draft-scope="source-editor" className="sourceForm" onSubmit={e => void saveLocal(e)}>
@@ -324,7 +339,8 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     if (!await getEnvironment().confirm(t('confirmDeleteSubscription',{name}))) return;
     if (await act({type:'DELETE_SUBSCRIPTION',id})) navigateSubscription({kind:'list'});
   }
-  const back = () => navigateSubscription({kind:'list'});
+  const back = () => route.kind === 'local' && route.id !== undefined
+    ? navigate('profiles') : navigateSubscription({kind:'list'});
 
   if (route.kind === 'official') return <div className="sourcesPage subscriptionDetailPage">
     <nav aria-label={t('subscriptionNavigation')} className="subscriptionBreadcrumb">
@@ -382,7 +398,8 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
 
   if (route.kind === 'new' || route.kind === 'local') return <div className="sourcesPage subscriptionDetailPage">
     <nav aria-label={t('subscriptionNavigation')} className="subscriptionBreadcrumb">
-      <Button type="button" onClick={back}>{t('subscriptionBackToList')}</Button>
+      <Button type="button" onClick={back}>{t(route.kind === 'local' && route.id !== undefined
+        ? 'backToProxyProfiles' : 'subscriptionBackToList')}</Button>
     </nav>
     {editorMarkup}
   </div>;

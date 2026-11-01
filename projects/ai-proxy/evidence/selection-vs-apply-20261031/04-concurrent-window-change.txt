@@ -1,0 +1,129 @@
+Window: "显示查询自己的IP地址", App: Google Chrome for Testing.
+0 标准窗口 显示查询自己的IP地址 - Google Chrome for Testing, URL: ip111.cn/, Secondary Actions: Raise
+	1 container 显示查询自己的IP地址 - Google Chrome for Testing, URL: ip111.cn/
+		2 container
+			3 工具栏
+				4 滚动区
+					5 工具栏
+						6 按钮 返回, Help: 点击后退，长按查看历史记录
+						7 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+						8 按钮 重新加载, Help: 停止加载此页
+				9 container
+					10 弹出式按钮 查看网站信息
+					11 文本栏 (settable) 地址和搜索栏, Value: ip111.cn, Placeholder: 问问 Google 或输入网址
+					12 按钮 为此标签页添加书签
+				13 container
+					14 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					15 按钮 关闭侧边栏
+				16 按钮 您
+				17 弹出式按钮 Chromium
+			18 container
+			19 container 信息栏容器
+				20 container 信息栏
+					21 文本 Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					22 链接 下载 Chrome
+			23 滚动区
+				24 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=1782ea8e-01e2-4991-801f-80805fecb18b
+					25 container
+						26 标签组 工作台
+							27 标签 (settable, integer) 我的, Value: 0
+							28 标签 (selected) 扩展, Value: 1
+							29 标签 (settable, integer) 工作流, Value: 0
+							30 标签 (settable, integer) 开发, Value: 0
+							31 标签 (settable, integer) 云控, Value: 0
+							32 标签 (settable, integer) 调试, Value: 0
+						33 container 扩展
+							34 container 自定义工具
+								35 container 确认当前工具操作
+									36 文本 「AI Proxy」请求停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）；确认仅批准这一次操作。
+									37 按钮 允许本次操作
+									38 按钮 取消
+								39 container 当前工具界面
+									40 container
+										41 按钮 返回扩展列表
+										42 标题 AI Proxy, Help: AI Proxy · v0.3.5, Value: 2
+											43 文本 AI Proxy
+										44 container 工具管理
+											45 按钮 工具设置
+											46 按钮 卸载「AI Proxy」及其本地数据
+									47 container AI Proxy（独立受限界面）
+										48 HTML 内容 AI Proxy — 浏览器代理管理器, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html
+											49 container 代理面板
+												50 container
+													51 标题 连接方式, Value: 2
+														52 文本 连接方式
+													53 按钮 添加代理
+													54 按钮 打开设置
+													55 container 代理模式
+														56 切换按钮 (disabled) 指定代理, Help: 自己的代理或本地 PAC, Value: 0
+														57 切换按钮 (disabled) 网站规则, Help: 按域名自动分流, Value: 0
+														58 切换按钮 (disabled) 直连, Help: 忽略代理直连网络, Value: 1
+														59 切换按钮 (disabled) 跟随系统, Help: 浏览器使用系统策略, Value: 0
+													60 container 浏览器状态
+														61 container
+															62 文本 浏览器已应用当前选择
+															63 开合三角标记 技术详情
+																64 文本 技术详情
+														65 按钮 (disabled) 暂停
+														66 文本 Chrome 已使用直连。请刷新已打开的网站后检查出口 IP。
+													67 container 代理快捷选择
+														68 标题 我的代理 1, Value: 2
+															69 text 我的代理 1
+														70 按钮 管理全部
+														71 切换按钮 (disabled) 本地 HTTP HTTP · 127.0.0.1:7897 使用, Help: 本地 HTTP, Value: 0
+															72 文本 本地 HTTP
+															73 文本 HTTP · 127.0.0.1:7897
+															74 文本 使用
+													75 container 当前网站
+														76 标题 当前网站, Value: 2
+															77 文本 当前网站
+														78 按钮 管理规则
+														79 文本 当前网站不可读取
+														80 文本 可手动输入域名添加规则
+														81 定义列表
+															82 container 浏览器设置
+																83 文本 浏览器设置
+															84 文本 直连（绕过系统代理）
+															85 container 已保存选择
+																86 文本 已保存选择
+															87 文本 网站未知，无法预览匹配
+														88 文本 选择仅供配置参考，不代表此网站的实际流量或可达性。
+														89 按钮 添加规则
+														90 按钮 重新识别
+													91 文本 仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。
+													92 container 打开设置
+														93 按钮 订阅来源
+														94 按钮 网络诊断 ↗
+			95 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			96 container
+				97 文本 OD
+				98 复选框 固定到工具栏, Value: 0
+				99 按钮 关闭侧边栏
+			100 弹出式按钮 标签页搜索
+			101 container
+				102 标签组
+					103 标签 (settable, boolean) 扩展程序 - OpenDesk Browser Developer, Value: off
+						104 按钮 关闭
+					105 标签 (settable, boolean) 阅读目录 R23 · 交互设计模拟 · OpenDesk 交互预览, Value: off
+						106 按钮 关闭
+					107 标签 (settable, boolean) ChatGPT: Chat, Work, Create & Code with AI, Value: off
+						108 按钮 关闭
+					109 标签 (settable, boolean) 应用 · OpenDesk 应用市场, Value: off
+						110 按钮 关闭
+					111 标签 (selected, settable, boolean) 显示查询自己的IP地址, Value: on
+						112 按钮 关闭
+			113 按钮 新标签页
+	114 关闭按钮
+	115 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	116 最小化按钮
+117 menu bar
+	118 Google Chrome for Testing
+	119 文件
+	120 编辑
+	121 显示
+	122 历史记录
+	123 书签
+	124 个人资料
+	125 标签页
+	126 窗口
+	127 帮助

@@ -315,7 +315,7 @@ finally{
  const failed=checks.filter(c=>c.status==='FAIL');
  const report={kind:'CONVERSATION_R13_CHROMIUM_MOCK_PREVIEW_NOT_NATIVE',status:failed.length?'FAIL':'PASS',nativeVerified:false,installed:false,
   zoomMethod:'DOCUMENT_CSS_ZOOM_WITH_MEASURED_LAYOUT_AND_PHYSICAL_VIEWPORT; NOT_NATIVE_BROWSER_MENU_ZOOM',browser:browser?.product,sourceHashes:before,
-  commands:{runner:'CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" BOOKMARK_REACT_EVIDENCE_DIR=artifacts/conversation-r13-local/ui node examples/sidebar-tools/bookmark-manager/preview/react/run-chrome.mjs --conversation-r13'},
+  commands:{runner:'CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" BOOKMARK_REACT_EVIDENCE_DIR=artifacts/conversation-r13-local/ui node projects/bookmark-manager/preview/react/run-chrome.mjs --conversation-r13'},
   knownActionGaps:[{status:'FAIL_OUTSIDE_UI_WRITE_SCOPE',operation:'Send default sample without selecting an editable folder',observed:'bookmark-actions rejects protected default root as target'},
    {status:'FAIL_OUTSIDE_UI_WRITE_SCOPE',operation:'Send sample with non-canonical https://example.com after selecting editable folder',observed:'Folder verified; bookmark URL normalized to trailing slash by Service, action readback rejects expected non-canonical URL; E_OUTCOME_UNKNOWN blocks replay'}],
   checks,matrix,exceptions,network};

@@ -1,0 +1,245 @@
+{
+  "format": "ai-proxy.follow-system-core.v1",
+  "recordedAt": "2026-10-31T10:56:01Z",
+  "timezone": "Asia/Shanghai",
+  "threadId": "01a1916e-f45c-7682-8e22-17e13692fab5",
+  "owner": "projects/ai-proxy",
+  "phase": "CORE_DEVELOPMENT_AND_TARGETED_NATIVE_VERIFICATION",
+  "result": "CORE_OPERATIONS_VERIFIED_WITH_DECLARED_LIMITATIONS",
+  "recordingMethod": "Agent-authored record of native accessibility/screenshot observations displayed in this chat, targeted command results and local package checks. No raw native capture or screenshot file was persisted for this round; this JSON is not a machine-generated native trace.",
+  "repository": {
+    "branch": "main",
+    "headLastRead": "d2f89afe4d74143ef6e16fe1124d19dec75bbcb0",
+    "sharedDirtyTree": true,
+    "headMayAdvanceThroughOtherOwners": true,
+    "committedByThisThread": false,
+    "pushedByThisThread": false,
+    "newBranchWorktreeOrPullRequest": false
+  },
+  "package": {
+    "path": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "id": "ai-proxy",
+    "version": "0.3.5",
+    "bytes": 923085,
+    "sha256": "db0ba7e9d80af0d37b326b22e9db539df0ac7e5891fe851a8d0cce0d7781a582",
+    "capabilities": ["storage.local", "currentPage.read", "browser.proxy.managed"],
+    "workflow": "Original project Vite compile, original build-sidebar-tool candidate, targeted validation, promote-from with source comparison, check-project: PROJECT_PACKAGE_MATCH.",
+    "candidatePath": "artifacts/sidebar-tools/ai-proxy/candidate.opendesk-tool.json",
+    "buildReceipt": {
+      "buildId": "651eb9ca-e709-46bb-92f4-a3104e40e44a",
+      "jsBytes": 768594,
+      "jsSha256": "78629911f56850849fd152568afb4476099734f7c8cd54ab574393d122f578a0",
+      "cssBytes": 105398,
+      "cssSha256": "7699e0468a3f6fac9b1d94bc0006988aac99ccee462205aa6dda5bc42c4df0ef"
+    },
+    "installedVersionObservedInNativeTitle": "0.3.5",
+    "nativeDigestIndependentlyExpandedAndVerified": false,
+    "digestQualification": "Digest is the checked local canonical JSON selected through the original native import flow. The native title and update review were observed; the native technical digest was not independently expanded in this round."
+  },
+  "runtime": {
+    "product": "Google Chrome for Testing",
+    "version": "155.0.8059.39",
+    "visibleMacOSWindow": true,
+    "reusedExistingProcessAndProfile": true,
+    "profile": "artifacts/locale-packs-r21/native-restart-20261025-b/codex-cft-locale-r21-retained",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "initialServeConnectionObserved": "CONNECTED",
+    "initialObservedBuildFingerprint": "fe141e79bd5661b40c64ebd80c9e67ab5124874922bcc66f419539a0ff1e39ca",
+    "finalBuildFingerprint": "NOT_RECHECKED_AFTER_PARALLEL_SAFE_RELOAD",
+    "qualification": "Parallel Browser changes caused a safe reload. The initial fingerprint does not identify the final loaded Browser revision. AI Proxy was reopened after that reload and its actual direct state was independently observed. No Browser build, copied extension or second output writer was created by this thread."
+  },
+  "nativeOperations": [
+    {
+      "version": "0.3.3",
+      "operation": "Select follow-system, save and enable through the existing installed tool",
+      "result": "REPRODUCED_E_UNSUPPORTED_BEFORE_APPLY",
+      "changedProxy": false
+    },
+    {
+      "version": "0.3.4",
+      "operation": "Original native import update from 0.3.3",
+      "result": "PASS",
+      "review": "Permissions unchanged; existing configuration preserved",
+      "localPackageSha256": "cbe94c252e791eba8e89a7c0f6145abd1902ecbfa95afca85ef2e43e5227d00e",
+      "localPackageBytes": 922565
+    },
+    {
+      "version": "0.3.4",
+      "operation": "Enable follow-system while Chrome already reports system",
+      "result": "PASS_READBACK_ONLY",
+      "observedLabel": "正在跟随系统（未接管代理）",
+      "nativeEnableConsent": "NOT_REQUESTED_NO_ROUTE_WRITE"
+    },
+    {
+      "version": "0.3.4",
+      "operation": "Select direct, save, enable with exact Host review, close tool and reopen",
+      "result": "PASS",
+      "observedLabelAfterReopen": "浏览器已应用当前选择",
+      "traffic": "Fresh ip111 domestic observation: 61.157.71.204, Chengdu. Other two observations did not complete within the bounded check."
+    },
+    {
+      "version": "0.3.4",
+      "operation": "Save follow-system while direct remains active, then apply with owned STOP review",
+      "result": "PASS",
+      "saveAloneAppliedProxy": false,
+      "afterApply": "Follow-system, not managed; ip111 three observations returned Tokyo 43.167.193.251"
+    },
+    {
+      "version": "0.3.4",
+      "operation": "Enable saved HTTP 127.0.0.1:7897, save direct and apply while that local route is active",
+      "result": "REPRODUCED_EXISTING_ENABLE_JOURNAL_REJECTION",
+      "observed": "Host direct review appeared but the original Driver refused to overwrite its live journal. Tool showed a generic operation failure and the local profile remained active.",
+      "cleanupBeforeEditing": "Original owned STOP was reviewed and system fallback confirmed. Driver overwrite protection was retained."
+    },
+    {
+      "version": "0.3.5",
+      "operation": "Original native import update from 0.3.4",
+      "result": "PASS",
+      "review": "Permissions unchanged",
+      "existingConfiguration": "PRESERVED",
+      "title": "AI Proxy · v0.3.5"
+    },
+    {
+      "version": "0.3.5",
+      "operation": "Enable saved local HTTP profile through exact endpoint Host review",
+      "result": "PASS",
+      "endpoint": "127.0.0.1:7897",
+      "observed": "Browser applied current selection; local profile marked applied"
+    },
+    {
+      "version": "0.3.5",
+      "operation": "Save direct without applying, return to extension list and reopen tool",
+      "result": "PASS",
+      "observed": {
+        "selectedRoute": "direct",
+        "selectedState": "待应用",
+        "browserSetting": "指定代理",
+        "localProfileState": "已应用",
+        "button": "应用选择"
+      },
+      "qualification": "Actual active local profile was reconstructed from verified SDK state, separately from the saved direct selection."
+    },
+    {
+      "version": "0.3.5",
+      "operation": "Apply direct while local profile remains active",
+      "result": "PASS",
+      "consentSequence": ["Review and confirm STOP of this installation's old route", "Separately review and confirm direct Enable"],
+      "afterParallelSafeBrowserReload": "Reopened tool independently showed direct applied with no unknown result",
+      "traffic": {
+        "refresh": "Fresh ip111 page refresh bypassing cache",
+        "domestic": {"ip": "61.157.71.204", "location": "中国 四川 成都", "result": "OBSERVED"},
+        "foreign": {"result": "NOT_COMPLETED_IN_BOUNDED_OBSERVATION"},
+        "google": {"result": "NOT_COMPLETED_IN_BOUNDED_OBSERVATION"}
+      }
+    },
+    {
+      "version": "0.3.5",
+      "operation": "Save follow-system while direct remains active, then apply",
+      "result": "PASS",
+      "saveAloneAppliedProxy": false,
+      "consentSequence": ["Review and confirm STOP of this installation's direct route"],
+      "explicitNativeSystemOverride": false,
+      "observedLabel": "正在跟随系统（未接管代理）",
+      "observedDetails": "控制权：尚未接管 · Chrome 模式：system；代理权限：已获准"
+    }
+  ],
+  "finalObservedState": {
+    "managed": false,
+    "chromeMode": "system",
+    "levelOfControl": "controllable_by_this_extension",
+    "permission": "granted",
+    "ip111AfterFreshRefresh": {
+      "domestic": {"ip": "43.167.193.251", "location": "日本 东京"},
+      "foreign": {"ip": "43.167.193.251", "location": "日本 东京", "frame": "http://us.ip111.cn/ip.php"},
+      "google": {"ip": "43.167.193.251", "location": "日本 东京", "frame": "http://sspanel.net/ip.php"}
+    },
+    "attribution": "Released this installation's managed route and observed the existing system egress again. This does not prove AI Proxy supplied or configured that system proxy.",
+    "nativeUiLock": "RELEASED",
+    "nativeUiOwnerReadback": null,
+    "browserAndOtherTabs": "LEFT_OPEN",
+    "existingBrowserWatcher": "PRESERVED_NOT_RESTARTED_OR_OVERWRITTEN",
+    "otherServices": "NOT_STOPPED_BY_THIS_THREAD"
+  },
+  "minimalSdkGap": {
+    "classification": "PROVEN_READ_ONLY_GENERIC_STATUS_GAP",
+    "existingPublicEntry": "Original browser.proxy.managed status, enable and STOP operations",
+    "failure": "A sandbox cannot read Chrome proxy settings directly. The old status response lacked the verified active route and native mode needed to distinguish saved intent from actual state after reopening, or to confirm system fallback after owned STOP.",
+    "whyToolOnlyCouldNotResolve": "Persisting the selected route would misrepresent native state after pending edits, foreign changes, permission loss or unknown outcomes. Tool storage cannot certify exact PAC ownership or native mode.",
+    "crossToolValue": "Any independently installed consumer of the original managed-proxy SDK can show verified state after reopening without new privileged access.",
+    "publicChange": "Optional read-only browserMode and activeConfig fields on existing status output; no new write API or Driver replacement bypass.",
+    "activeConfigBoundary": "Return declarative configuration only for enabled, permission-valid, same-installation journal and exact PAC ownership with verified control. Unknown, foreign ownership, revoked or conflicting states return no active configuration.",
+    "consumerBoundary": "Match the verified declarative route to current user configuration exactly. Do not infer actual state from saved selection. Preflight replacement, owned STOP, confirmed-disabled status, concurrent configuration check and separately reviewed Enable remain sequential.",
+    "security": "Original capability, exact one-use Host review, global lock, installation identity, permission/revocation, PAC marker and unknown-outcome fences retained. No arbitrary PAC, authenticated route or general private endpoint approval added.",
+    "officialReferences": [
+      "https://developer.chrome.com/docs/extensions/reference/api/proxy#proxy-modes",
+      "https://developer.chrome.com/docs/extensions/reference/api/types#precedence",
+      "https://developer.chrome.com/docs/extensions/reference/api/types#type-LevelOfControl"
+    ],
+    "systemSemantics": "Clearing this extension's setting can expose another underlying setting. System success therefore requires native system readback; no unmarked explicit system override is installed. Chrome levelOfControl identifies extension control, not individual tool ownership."
+  },
+  "validation": {
+    "finalTargetedServiceAndEnvironment": {
+      "command": "node --test projects/ai-proxy/tests/service.test.mjs projects/ai-proxy/tests/environment-runtime.test.mjs",
+      "total": 99,
+      "passed": 99,
+      "failed": 0,
+      "logAtExecution": "/tmp/ai-proxy-switch-tests.txt",
+      "covered": "System readback/release, verified reopen state, sequential replacement, unsupported preflight, Host cancellation, unknown STOP, storage finalization and concurrent configuration changes"
+    },
+    "earlierCombinedRun": {
+      "command": "node --test tests/environment/browser-managed-proxy.test.mjs tests/environment/browser-managed-proxy-host.test.mjs tests/environment/browser-managed-proxy-development.test.mjs tests/environment/browser-sdk-managed-proxy-r54.test.mjs projects/ai-proxy/tests/service.test.mjs projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-proxy/tests/managed-config.test.mjs projects/ai-proxy/tests/status-runtime.test.mjs",
+      "total": 150,
+      "passed": 146,
+      "failed": 4,
+      "logAtExecution": "/tmp/ai-proxy-core-follow-system-tests.txt",
+      "chronology": "Before the final two review-driven service regressions; not a final aggregate total.",
+      "failedFile": "tests/environment/browser-managed-proxy-development.test.mjs",
+      "failedCases": [
+        "trusted development MODE and reviewed source pin emit fixed HTTP PAC for website/API hosts",
+        "installed development SDK requires real Host intent and owner, preserves STOP race and reopen",
+        "development ENABLE retains installation revocation and permission/foreign-owner STOP fences",
+        "production can release an exact previous development journal without authorizing a new HTTP route"
+      ],
+      "classification": "DEFERRED_LEGACY_AI_VIP_SHARE_DEVELOPMENT_PACKAGE_PIN_MISMATCH",
+      "expectedPin": "4a96ffbe5b308a2022e192b5abdd4a8cedec98e974a7e774ad777d5dbca34bd2",
+      "observedRepackedAiVipShareSha256": "7fc44e9fc8c8141124a883ec497808cb10c3c69f0753012ca352c222b533b976",
+      "observedAiVipShareVersion": "1.4.8",
+      "action": "Recorded without changing the legacy pin or AI VIP Share. AI Proxy's public exact-review path does not use this legacy development exception."
+    },
+    "activeRouteMatching": {"passed": 6, "result": "PASS", "testFile": "projects/ai-proxy/tests/managed-config.test.mjs"},
+    "schemaAndGeneratedSignatures": "PASS_TARGETED_PROXY_OUTPUT_PARITY",
+    "packageCompilePromoteAndProjectMatch": "PASS",
+    "independentReview": {
+      "agentId": "01a1917f-b919-74a0-bd2a-890a40658d8c",
+      "initialReadOnlyStateAndSystemReview": "NO_FINDINGS",
+      "replacementFinding": "HIGH: storage-only STOP finalization could leave unknown or foreign native state and replacement could continue to Enable.",
+      "fix": "Require confirmed disabled native state after nested STOP, including storage finalization; reject unknown and foreign/conflicting status before Enable.",
+      "regression": "Two new service cases observed failing before the guard and passing after it.",
+      "finalReview": "Independent probes confirmed failed/foreign finalization never enables or repeats STOP, while confirmed release permits replacement; no new findings.",
+      "fullSemanticTypeDiagnostics": "NOT_TESTED_LSP_UNAVAILABLE"
+    }
+  },
+  "remainingAndScope": {
+    "authenticatedProxy": "NOT_IMPLEMENTED",
+    "arbitraryPac": "NOT_IMPLEMENTED",
+    "onlineSubscriptionRuntime": "NOT_IMPLEMENTED",
+    "allThreeDirectTrafficChecks": "NOT_COMPLETE",
+    "productionAcceptance": "NOT_TESTED",
+    "fullCi": "NOT_TESTED",
+    "fullSemanticTypecheck": "NOT_TESTED",
+    "ime": "NOT_TESTED",
+    "pressureAndCrossBrowserMatrix": "NOT_TESTED",
+    "physicalWidthAndZoomMatrix": "OUT_OF_SCOPE",
+    "newUiScore": "NOT_SCORED",
+    "priorEvidence": "Existing ip111-core-smoke-20261031.json and earlier UI/install evidence remain unchanged historical records; their earlier failures or limited scope are not rewritten as current PASS."
+  },
+  "coordination": {
+    "sourceWritesFinished": true,
+    "releasedSharedFiles": ["src/ui/sidebar-tools.js", "docs/api/browser-sdk.zh-CN.md"],
+    "releasedTo": "AI VIP Share Cookie gate owner 01a1918d-9b22-7f91-bcd1-fec2da8b80f0",
+    "sharedIndex": "No git add/commit by this thread; serial index/HEAD use left to the Cookie gate owner",
+    "preserved": "Parallel UI source, focus fixes, README history, Browser output writer and all unrelated working-tree changes"
+  }
+}

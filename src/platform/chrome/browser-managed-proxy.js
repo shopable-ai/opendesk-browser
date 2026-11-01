@@ -1,6 +1,7 @@
 // Browser-wide, audited Managed Proxy Driver. No AI site, membership, Provider,
 // license or product knowledge belongs here. Never expose raw ProxyConfig/PAC.
 import {writeVerifiedLocalValue,sameStorageValue} from '../../ui/sidebar-tools/storage-state.js';
+import {normalizeManagedProxyConfig} from './browser-managed-proxy-config.js';
 import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig,
   getDevelopmentManagedProxyProfile} from './browser-managed-proxy-profiles.js';
 
@@ -16,12 +17,6 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,names)=>plain(value)&&
   Object.keys(value).sort().join(',')===[...names].sort().join(',');
-const hostname=value=>typeof value==='string'&&value.length<=253&&
-  value===value.toLowerCase()&&!value.endsWith('.')&&value.includes('.')&&
-  !/^(?:localhost|.*\.localhost|.*\.local|.*\.internal)$/.test(value)&&
-  !/^[0-9.]+$/.test(value)&&!value.includes(':')&&
-  value.split('.').every(label=>label.length>0&&label.length<=63&&
-    /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label));
 
 export function validateManagedProxyConfig(config){
   return validateConfig(config,false);
@@ -29,18 +24,7 @@ export function validateManagedProxyConfig(config){
 function validateConfig(config,recovery){
   if((MANAGED_PROXY_DEVELOPMENT_ENABLED||recovery)&&isFixedDevelopmentManagedProxyConfig(config))
     return {endpoint:{...config.endpoint},domains:[...config.domains].sort()};
-  if(!exact(config,['endpoint','domains'])||
-     !exact(config.endpoint,['scheme','host','port'])||
-     !['https','socks5'].includes(config.endpoint.scheme)||
-     !hostname(config.endpoint.host)||
-     !Number.isInteger(config.endpoint.port)||config.endpoint.port<1||
-     config.endpoint.port>65535||
-     !Array.isArray(config.domains)||config.domains.length<1||
-     config.domains.length>16||new Set(config.domains).size!==config.domains.length||
-     config.domains.some(domain=>!hostname(domain)))
-    throw fail('E_PROXY_CONFIG','Only finite HTTPS/SOCKS5 endpoints and public ASCII domains are admitted');
-  return {endpoint:{scheme:config.endpoint.scheme,host:config.endpoint.host,
-      port:config.endpoint.port},domains:[...config.domains].sort()};
+  return normalizeManagedProxyConfig(config);
 }
 function ownerOf(context){
   const owner={toolId:context?.toolId,packageHash:context?.packageHash,
@@ -92,11 +76,16 @@ export function compileManagedProxyPac(config,owner){
 function compilePac(config,owner,recovery){
   const safe=validateConfig(config,recovery);
   const identity=ownerOf({...owner,epoch:owner?.installEpoch});
-  const directive=({socks5:'SOCKS5 ',https:'HTTPS ',http:'PROXY '}[safe.endpoint.scheme])+
-    safe.endpoint.host+':'+safe.endpoint.port;
+  const directive=safe.mode==='direct'?'DIRECT':
+    ({socks5:'SOCKS5 ',https:'HTTPS ',http:'PROXY '}[safe.endpoint.scheme])+
+      safe.endpoint.host+':'+safe.endpoint.port;
   const lines=['// OpenDesk Managed Proxy owner '+JSON.stringify(identity),
     'function FindProxyForURL(url, host) {',
     '  host = String(host).toLowerCase().replace(/\\.$/, "");'];
+  if(safe.mode==='direct'||safe.mode==='fixed_servers'){
+    lines.push('  return '+JSON.stringify(directive)+';','}');
+    return lines.join('\n');
+  }
   for(const domain of safe.domains)lines.push(
     '  if (host === '+JSON.stringify(domain)+' || dnsDomainIs(host, '+
     JSON.stringify('.'+domain)+')) return '+JSON.stringify(directive)+';');
@@ -205,7 +194,12 @@ async function getState(api,owner){
     try{await legacyHold(api);}
     catch{state='conflict';reason='Historical proxy configuration requires explicit STOP';}
   }
-  return {state,control,permission,canStop,reason,...(MANAGED_PROXY_DEVELOPMENT_ENABLED?
+  // Expose only the native mode and this exact installation's verified route.
+  // Never expose another owner's endpoint/PAC or infer a route from saved intent.
+  const browserMode=['system','direct','auto_detect','fixed_servers','pac_script'].includes(snapshot?.value?.mode)
+    ?snapshot.value.mode:null;
+  const activeConfig=state==='enabled'&&owns?validateConfig(saved.config,true):null;
+  return {state,control,permission,canStop,reason,browserMode,activeConfig,...(MANAGED_PROXY_DEVELOPMENT_ENABLED?
     {developmentProfile:getDevelopmentManagedProxyProfile(owner)}:{})};
 }
 export function createBrowserManagedProxy({api=globalThis.chrome,

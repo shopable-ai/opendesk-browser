@@ -1,0 +1,263 @@
+{
+  "date": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a19198-7e89-7f20-a2cd-96dfef927fbd",
+  "phase": "simple-core-development-test",
+  "status": "PASS_REAL_CHROME_CORE_CHAIN",
+  "package": {
+    "id": "cookie-editor",
+    "version": "2.0.58",
+    "bytes": 305459,
+    "sha256": "5a92289ff556f097068b9e85cbf5d6f43dc39e935c9a8e227cce014a4a625637",
+    "installed": "Real existing installer confirmed update 2.0.57 -> 2.0.58; 3 added capabilities reviewed; original data retained",
+    "runningVersion": "Real sidepanel heading Help: Cookie Editor · Cookie 管理 · v2.0.58"
+  },
+  "environment": {
+    "mode": "continuous-development",
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "browserPidAtStart": 90742,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "devConnection": "Real debug tab: 开发服务已连接",
+    "buildFingerprintAtStart": "0f9f8c3f426e29c306381ccd589e9ddd5f38ca160eacb14da5a897bf2dd96d8a",
+    "watcherRetained": [
+      11682,
+      11774
+    ],
+    "uiLock": "Released successfully after final visible v2.0.59 企业 page confirmed both configurations 已断开/已解绑; native_ui_owner null",
+    "uiDriver": "cua_repl native Chrome UI; no storage injection or installer bypass",
+    "buildFingerprintAtFinish": "311299080ee88a5b063d6bf101048e2dc2f0bd4379c1d5e7dda68efbd5f68424",
+    "devConnectionAtFinish": "Real debug tab: 开发服务已连接; same extension ID"
+  },
+  "syntheticService": {
+    "pidAtTest": 77053,
+    "cli": "manage.mjs serve --config /Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-http-simple-01a19198/accounts.json --data-dir /Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-http-simple-01a19198/state --port 0",
+    "native": false,
+    "origin": "http://usage-491000299620e0c9a3a0bf84.localhost:61282",
+    "site": "http://cookie-http-01a19198.localhost:61283/",
+    "resource": "simple_demo",
+    "displayName": "简单测试资源（虚构）",
+    "credentialSource": "Nonexistent file in task-private test directory; no default real auth.json",
+    "observationCountAtFinish": 0,
+    "upstreamRefresh": "NOT_EXECUTED"
+  },
+  "realUiObservations": [
+    {
+      "action": "Installer update",
+      "result": "已安装「Cookie Editor · Cookie 管理」。无需再次启用，可直接打开应用界面"
+    },
+    {
+      "action": "Site permission via real authorization dialog",
+      "result": "Cookie list 0; no personal Cookie accessed"
+    },
+    {
+      "action": "Account -> 添加账号 -> 保存账号",
+      "result": "HTTP; 账号已保存，尚未关联 Cookie。"
+    },
+    {
+      "action": "企业 -> 添加服务 -> 保存配置",
+      "result": "HTTP Simple Demo; exact origin; 未连接"
+    },
+    {
+      "action": "Admin Cookie 同步设置 -> 生成新应用连接码; sidepanel 连接服务 -> 确认连接",
+      "result": "HTTP 服务已连接，不会上传 Cookie。"
+    },
+    {
+      "action": "读取资源",
+      "result": "简单测试资源（虚构）; codex; UNVERIFIED"
+    },
+    {
+      "action": "读取缓存用量",
+      "result": "已读取缓存用量，没有查询上游。缓存状态：状态未知；观测时间：暂无；暂无用量窗口摘要。"
+    },
+    {
+      "action": "绑定账号 -> select HTTP and synthetic resource -> 核对绑定 -> 确认绑定",
+      "result": "关联已确认，登录身份仍未核验。已绑定 / UNVERIFIED"
+    },
+    {
+      "action": "打开资源管理页; real network and tab prompts approved",
+      "result": "Exact /opendesk/admin/accounts/simple_demo; title 简单测试资源（虚构）; fragment consumed; manual refresh disabled"
+    },
+    {
+      "action": "Return to test site -> 解绑 -> 确认解绑",
+      "result": "已解绑; local account not deleted"
+    },
+    {
+      "action": "断开 -> 确认断开",
+      "result": "服务已确认断开。已断开"
+    },
+    {
+      "action": "Resource page 关闭详情 -> 返回本机管理入口",
+      "result": "Returned to existing admin session via page's own control after revocation; no storage edits"
+    },
+    {
+      "action": "Admin reload -> Cookie 同步设置",
+      "result": "HTTP Simple Demo: 设备已撤销 · 授权代际 3"
+    }
+  ],
+  "backendReadOnlyCrossCheck": {
+    "deviceRevoked": true,
+    "deviceAuthEpoch": 3,
+    "bindingRevoked": true,
+    "verificationState": "UNVERIFIED",
+    "source": "Only sanitized projection from task-private service-binding-v1.json"
+  },
+  "notes": [
+    "2.0.58 used per-operation host network prompts. Later 2.0.59 run verified these no longer appeared; browser tab-open permission remained. Neither run exercised a missing Chrome origin grant.",
+    "After unbind/disconnect, reloading an old resource URL before returning to admin produced RESOURCE_SESSION_EXPIRED as expected. Explicit page control restored admin mode; resource detail and admin settings were then left open.",
+    "No product code changed by this task. Concurrent framework/package and form/layout edits were preserved; separate version/hash observations prevent treating their source as tested by the earlier package.",
+    "App and admin pairing values stayed ephemeral; no codes, sessions, Cookies or Tokens included in this evidence."
+  ],
+  "retained": [
+    "Daily Chrome and all pre-existing windows/tabs",
+    "Cookie Editor sidebar",
+    "Synthetic test site",
+    "Admin settings page",
+    "Synthetic resource detail page",
+    "Ordinary HTTP service and site server",
+    "Existing dev watcher"
+  ],
+  "notTested": [
+    "Same-configuration reconnect after disconnect",
+    "New Chrome optional-origin prompt",
+    "Company HTTPS/SSO or verified identity",
+    "Real upstream credentials or quota",
+    "Production, full acceptance, rating or stress tests"
+  ],
+  "automaticChecks": "Prior service-http-core-20261031.json evidence reused; no implementation changes or full test reruns",
+  "currentInstalledPackage": {
+    "id": "cookie-editor",
+    "version": "2.0.59",
+    "bytes": 305489,
+    "sha256": "3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c",
+    "installer": "Real update 2.0.58 -> 2.0.59; 权限未变化; data retained",
+    "runningVersion": "Real sidepanel heading v2.0.59"
+  },
+  "followUpRealUiRun": {
+    "version": "2.0.59",
+    "status": "PASS_REAL_CHROME_CORE_CHAIN",
+    "reason": "Concurrent official package/dev framework update invalidated old installed official hash on reopening. Updated via original installer; no bypass. Existing 2.0.58 evidence retained.",
+    "configuration": "HTTP Simple Demo 59; same task-private synthetic service; separate configuration preserves old receipts",
+    "actions": [
+      {
+        "action": "添加服务 -> 保存配置",
+        "result": "未连接"
+      },
+      {
+        "action": "Admin new app code -> 连接服务 -> 确认连接",
+        "result": "HTTP 服务已连接，不会上传 Cookie。"
+      },
+      {
+        "action": "读取资源 -> 读取缓存用量",
+        "result": "simple_demo; 已读取缓存用量，没有查询上游。状态未知 / 暂无 / 暂无用量窗口摘要。"
+      },
+      {
+        "action": "Select existing HTTP and simple_demo -> 核对绑定 -> 确认绑定",
+        "result": "已绑定 / UNVERIFIED; 关联已确认，登录身份仍未核验。"
+      },
+      {
+        "action": "打开资源管理页 -> real tabs.create permission",
+        "result": "Exact /opendesk/admin/accounts/simple_demo, selected synthetic resource, fragment consumed; manual refresh disabled"
+      },
+      {
+        "action": "Return to synthetic site -> 解绑 -> 确认解绑",
+        "result": "已解绑"
+      },
+      {
+        "action": "断开 -> 确认断开",
+        "result": "服务已确认断开。已断开"
+      },
+      {
+        "action": "Resource 关闭详情 -> 返回本机管理入口; original admin reload -> Cookie 同步设置",
+        "result": "Both HTTP Simple Demo and HTTP Simple Demo 59: 设备已撤销 / 授权代际 3"
+      }
+    ],
+    "networkApproval": "No per-operation HTTP POST approval appeared in this run. Business confirmations and real open-tab permission remained. Chrome already covered test host; first missing-origin prompt NOT_TESTED.",
+    "bindingId": "21791f03-d905-4b1b-90dc-98980237eb28",
+    "backendReadOnlyCrossCheck": {
+      "deviceRevoked": true,
+      "deviceAuthEpoch": 3,
+      "bindingRevoked": true,
+      "verificationState": "UNVERIFIED",
+      "observationCount": 0
+    },
+    "finalServiceStatus": "Ordinary HTTP child PID 77053 still running, synthetic site listening; no shutdown"
+  },
+  "finalVisibleState": "Synthetic site active; installed v2.0.59; 企业 selected; both test configurations 已断开 and 已解绑. Existing windows/tabs/services retained.",
+  "handoffStateRecheck": {
+    "owner": "01a191c3-59f2-70d3-9009-22d4fdbc35e8",
+    "observedAt": "2026-10-31T19:44:00+08:00",
+    "timestampPrecision": "minute; observed during 19:42-19:44 Asia/Shanghai",
+    "status": "PASS_CURRENT_STATE_RECHECK",
+    "scope": "Reuse same-package historical full-chain observations; read-only current-state check plus normal tool reopen. No new pairing or mutation replay.",
+    "diskPackage": {
+      "id": "cookie-editor",
+      "version": "2.0.59",
+      "bytes": 305489,
+      "sha256": "3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c"
+    },
+    "environment": {
+      "browser": "/Users/shopme/Applications/Google Chrome.app",
+      "browserPid": 90742,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "identitySource": "Native Chrome extensions details page: enabled, ID, and unpacked loaded-from directory; sidepanel URL confirms same ID",
+      "runningToolVersion": "Real sidepanel Help: Cookie Editor · Cookie 管理 · v2.0.59, before and after normal reopen",
+      "mode": "Retained daily development build; serve connection currently unavailable, not a production acceptance package",
+      "debugVisibleText": "开发输出暂不可用；保留当前宿主与任务。",
+      "buildFingerprint": "311299080ee88a5b063d6bf101048e2dc2f0bd4379c1d5e7dda68efbd5f68424",
+      "previousWatcherPids": [
+        11682,
+        11774
+      ],
+      "previousWatcherPidsPresent": false,
+      "devConnection": "UNAVAILABLE_AT_RECHECK; differs from previous connected observation; no service restart or build performed"
+    },
+    "realUiObservations": [
+      {
+        "action": "Existing synthetic-site tab -> Cookie Editor 企业",
+        "result": "v2.0.59; HTTP Simple Demo and HTTP Simple Demo 59 both 已断开 / 已解绑 / 未核验（UNVERIFIED）; account version 1; resource simple_demo; revoked actions disabled"
+      },
+      {
+        "action": "Existing resource-detail tab",
+        "url": "http://usage-491000299620e0c9a3a0bf84.localhost:61282/opendesk/admin/accounts/simple_demo",
+        "result": "简单测试资源（虚构）; 邮箱未知; 暂无窗口; 已识别 0 次; 手动刷新当前额度 disabled. Existing rendered page is not proof of active resource authorization."
+      },
+      {
+        "action": "Existing administrator tab -> Cookie 同步设置 -> 重新读取状态",
+        "result": "HTTP Simple Demo and HTTP Simple Demo 59 both 设备已撤销 · 授权代际 3; no new code generated"
+      },
+      {
+        "action": "Return to synthetic site -> 扩展 -> 打开 Cookie Editor -> 企业; wait for service-state read",
+        "result": "v2.0.59 reopened successfully; both 已断开 / 已解绑 persisted; 0 Cookies on synthetic site; final 企业 page retained"
+      }
+    ],
+    "urlChecks": [
+      {
+        "url": "http://cookie-http-01a19198.localhost:61283/",
+        "status": 200
+      },
+      {
+        "url": "http://usage-491000299620e0c9a3a0bf84.localhost:61282/",
+        "status": 200
+      }
+    ],
+    "reuseDecision": "Unchanged official package version, bytes and SHA; same running version, extension ID, loaded directory and build fingerprint; fresh sidebar/backend states match historical receipts. No evidence invalidating the earlier core chain; do not repeat it.",
+    "limitations": "No new connection or cache read after revocation. Historical cache observation and no-per-operation-POST-prompt behavior are reused, not newly exercised. Same-configuration reconnect, missing-origin permission, company HTTPS/SSO, verified identity, real quota, production and scoring remain NOT_TESTED. Concurrent source/preview layout is not covered.",
+    "uiLock": "Acquired with this new owner; released successfully to native_ui_owner=null after final 企业 page; no browser/context closed",
+    "retained": "All existing tabs/windows, admin settings, resource detail, daily sidebar and necessary services; ordinary HTTP service PID 77053 retained",
+    "implementationChanged": false,
+    "automaticTestReruns": false,
+    "documentValidation": {
+      "status": "PASS_OWNED_EDITS",
+      "checks": [
+        "Evidence JSON parses; historical versions and core records retained",
+        "Official package exact identity unchanged",
+        "QUICKSTART and README HTTP-test/recheck local links resolve",
+        "Edited files have no trailing whitespace; README git diff --check passes"
+      ],
+      "parallelReadmeMissingTargetsAtCheck": [],
+      "parallelScope": "Source-layout preservation evidence belongs to the parallel owner; not a core HTTP-flow blocker."
+    }
+  }
+}

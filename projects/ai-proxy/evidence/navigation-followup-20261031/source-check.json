@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-31T10:26:58.793934+00:00",
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+  "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+  "htmlSha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277",
+  "httpStatus": 200,
+  "httpSha256": "fd04da08800b1e18173d2cc21453b40ccea614c4783c21f6759497e7edb02067",
+  "transportTransformation": {
+    "description": "Existing Vite serve injects its module client after <head>. Removing this exact single 55-byte insertion produces the frozen local HTML byte for byte.",
+    "insertion": "\n  <script type=\"module\" src=\"/@vite/client\"></script>\n",
+    "normalizedSha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277"
+  },
+  "sourceCount": 65,
+  "drift": [],
+  "sourceVerification": "Every input matches the final frozen manifest. HTTP response is verified separately from local HTML; no product change was needed.",
+  "nodeEvidence": {
+    "file": "projects/ai-proxy/evidence/configuration-actions-20261031/node-tests.txt",
+    "sha256": "bbcd85aea9b0dd1e9b18ed7627f27bf10309e69923a8c2304ade8fefc5dad363",
+    "tests": 72,
+    "pass": 72,
+    "fail": 0,
+    "reuse": "Executed by single source writer after integration; this session read the full log and verified the new cases are included. Not rerun."
+  },
+  "files": {
+    "projects/ai-proxy/src/Settings.tsx": {
+      "bytes": 59270,
+      "sha256": "c75a232199a443772d410d414674091fa26984c56c69a1c9963cb2bafa057783"
+    },
+    "projects/ai-proxy/tests/settings-credentials.test.mjs": {
+      "bytes": 6868,
+      "sha256": "98fa4f470362417fc2074f052399a067f23eb78e46167fccb57e4e9feabb9da8"
+    },
+    "projects/ai-proxy/evidence/configuration-actions-20261031/node-tests.txt": {
+      "bytes": 7455,
+      "sha256": "bbcd85aea9b0dd1e9b18ed7627f27bf10309e69923a8c2304ade8fefc5dad363"
+    }
+  },
+  "screenshots": {
+    "rules.png": {
+      "bytes": 47725,
+      "sha256": "3d15ea6b6ae464bce4db16d3b8e5682d1927b7e8bb22620790a9663a155ae517"
+    },
+    "save-and-add-focus.png": {
+      "bytes": 68468,
+      "sha256": "287d866943ce5a07d2da02340f3c112a78199ee0e7b8ddc5a6f01fd0bd0a6667"
+    },
+    "add-proxy.png": {
+      "bytes": 65609,
+      "sha256": "b84bcedac9d1340bf4f86681ba574e62329db918ec75e14a9640e4c29408d826"
+    },
+    "final-profiles.png": {
+      "bytes": 70070,
+      "sha256": "00ddb34d8027b603ee8adf4ca3e3bbcde4edb7bf5b1cb476de188f063285ed1b"
+    },
+    "save-and-add-before.png": {
+      "bytes": 67101,
+      "sha256": "1c9c28cd7ebb5772261074db9c9f9b73a24639dc7757f687af71fc5132574f66"
+    },
+    "profiles.png": {
+      "bytes": 67757,
+      "sha256": "0c9bb78ef116a1eb98e3bf003e5c0db429e064bc3b419bf7d7f6c1228df6b14c"
+    }
+  }
+}

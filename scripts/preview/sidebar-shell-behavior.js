@@ -73,6 +73,7 @@
   });
   activateTab(byId('tab-tools'));
   back.addEventListener('click',()=>{
+    if(!back.dispatchEvent(new CustomEvent('opendesk-preview-back',{cancelable:true})))return;
     extensionPage='list';activateTab(byId('tab-tools'));
     byId('od-preview-reopen').focus();
   });

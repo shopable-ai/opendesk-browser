@@ -4,6 +4,7 @@ import {runInNewContext} from 'node:vm';
 import {createRequire} from 'node:module';
 import {buildSync} from 'esbuild';
 import {parseHTML} from 'linkedom';
+import {createHash} from 'node:crypto';
 import {initSidebarToolSandbox,sidebarToolRequestTimeout,ADBLOCK_CONFIRM_OPERATIONS,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL,BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
@@ -12,7 +13,6 @@ import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import {officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 
@@ -47,7 +47,7 @@ class Events {
 
 // Node cannot manufacture Chromium trusted clicks. This double models the
 // unforgeable WebIDL getters and dispatch lifetime; native Chrome is NOT_TESTED.
-function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool},port=new Port(),send=()=>{},timers={setTimeout,clearTimeout},clock={now:()=>performance.now()},draftRoot}={}){
+function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool},port=new Port(),send=()=>{},timers={setTimeout,clearTimeout},clock={now:()=>performance.now()},draftRoot,autoLoad=false}={}){
   if(!port.peer){port.peer=new Port();port.peer.peer=port;}
   const states=new WeakMap();let eventSequence=0;
   class NativeEvent {
@@ -60,16 +60,18 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   const win=new Events(),root=new Events(),status={dataset:{}},publicMessages=[];
   Object.assign(root,{replaceChildren(){},querySelectorAll:selector=>draftRoot?.querySelectorAll(selector)||[],getBoundingClientRect:()=>({top:0,bottom:100})});
   const parent={postMessage(message){publicMessages.push(message);send(message);}};
-  const node=()=>({append(){},addEventListener(){}});
+  const blobs=[];
+  const node=()=>({listeners:{},append(child){if(autoLoad)queueMicrotask(()=>child.listeners?.load?.());},
+    addEventListener(type,fn){this.listeners[type]=fn;}});
   // Run the real timeout lookup in the tool's realm: passing an outer-realm
   // function would hide mutations to Object.hasOwn used by browserOperation.
   const realm=runInNewContext(`const browserOperation=(${browserOperation.toString()});
     const sidebarToolRequestTimeout=(${sidebarToolRequestTimeout.toString()});
     (${initSidebarToolSandbox.toString()})(); ({Reflect,Function,Promise,Object,Map,Set,Number,globalThis})`,{
-    SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_LIMITS,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,
+    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,crypto:globalThis.crypto,
     window:win,parent,Event:NativeEvent,MessagePort:Port,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:{},head:node(),body:node(),createElement:node},
-    Blob,TextEncoder,URL:{createObjectURL:()=> 'blob:export-fixture',revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
+    Blob,TextEncoder,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:export-fixture';},revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
   });
   let leaked=false;
   win.addEventListener('message',event=>{if(event.ports?.length)leaked=true;});
@@ -89,7 +91,7 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     const state=states.get(event);state.currentTarget=win;
     try{win.emit('click',event);return run(event);}finally{state.currentTarget=null;}
   };
-  return {win,port,publicMessages,request,NativeEvent,realm,get leaked(){return leaked;},
+  return {win,port,publicMessages,request,NativeEvent,realm,blobs,root,get leaked(){return leaked;},
     prepare:factory=>track(win.OpenDeskSDK.browser.downloads.prepareText(factory)),
     click(run,timeStamp){const event=new NativeEvent('click');states.get(event).trusted=true;
       if(timeStamp!==undefined)states.get(event).timeStamp=timeStamp;return dispatch(event,run);},
@@ -102,6 +104,26 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     async dispose(){win.emit('pagehide',{});await Promise.all(pending);}
   };
 }
+
+test('sandbox loads large UI and fixed dependencies while rejecting a changed dependency SHA',async()=>{
+  const code='/*'+'界'.repeat(750000)+'*/',sha256=createHash('sha256').update(code).digest('hex');
+  for(const valid of [true,false]){
+    const large={...tool,html:'<main>'+'x'.repeat(70000)+'</main>',css:'/*'+'x'.repeat(130000)+'*/',js:code,
+      scripts:[{name:'large.js',code,sha256:valid?sha256:'0'.repeat(64)}]};
+    const b=sandbox({autoLoad:true,loaded:{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'large',tool:large}});
+    try{
+      await settle(()=>b.publicMessages.some(row=>row.kind==='status'&&['ready','error'].includes(row.state)));
+      if(valid){
+        assert.equal(b.publicMessages.some(row=>row.kind==='status'&&row.state==='ready'),true);
+        assert.equal(b.root.innerHTML,large.html);
+        assert.deepEqual(b.blobs.map(blob=>blob.size),[Buffer.byteLength(code),Buffer.byteLength(code)]);
+      }else{
+        assert.equal(b.blobs.length,0,'bad dependency SHA must prevent all script loads');
+        assert.match(b.publicMessages.find(row=>row.kind==='status'&&row.state==='error').message,/E_TOOL_SHA/);
+      }
+    }finally{await b.dispose();}
+  }
+});
 
 for(const operation of ['browser.bookmarks.createOwned','browser.downloads.download']){
   test(`ordinary ${operation}: a native permission/save prompt may complete after eight seconds`,async()=>{

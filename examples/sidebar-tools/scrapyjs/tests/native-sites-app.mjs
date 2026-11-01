@@ -20,9 +20,9 @@ export function parseCsv(text){
 // Field names come from the column controls, independently of display labels/type hints.
 export async function readRecordPreview(frame){
  return frame.read(`(()=>{const table=document.querySelector('#record-table');return {
-  keys:[...document.querySelectorAll('.scrapy-column-list > li')]
-   .filter(e=>e.querySelector('input[type="checkbox"]').checked)
-   .map(e=>e.querySelector('input[aria-label]').getAttribute('aria-label').replace(/ 显示名称$/,'')),
+  keys:[...document.querySelectorAll('#field-list .rule-entry[data-field-key]')]
+   .filter(e=>e.querySelector('button[aria-label="显示列 '+e.dataset.fieldKey+'"]')?.getAttribute('aria-pressed')==='true')
+   .map(e=>e.dataset.fieldKey),
   rows:[...table.querySelectorAll('tbody tr')].map(row=>[...row.querySelectorAll('td:not(.scrapy-record-action)')].map(e=>e.textContent))
  };})()`);
 }

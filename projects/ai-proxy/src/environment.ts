@@ -1,7 +1,7 @@
 // Project service boundary. No chrome global or privileged implementation is imported here.
 import {createProxyService} from './service';
 import {freshConfig,validateConfig} from './domain/config';
-import {toManagedConfig} from './model.js';
+import {toManagedRoute,configForManagedRoute} from './domain/managed-config';
 import {createNavigation} from './ui/navigation';
 let environment:any;
 const fail=(code:string,message:string):never=>{throw Object.assign(Error(message),{code});};
@@ -55,23 +55,21 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   emit({[key]:{newValue:committed}});
  };
  const managed=()=>{assertLive();return sdk?.browser?.proxy?.managed??fail('E_NOT_CONNECTED','OpenDesk 受管代理服务未接入');};
+ let loadedConfig:any=null;
+ const observedStatus=(value:any,config=loadedConfig)=>{
+  assertLive();
+  if(!value||!Object.hasOwn(value,'activeConfig'))return value;
+  return {...value,activeConfig:value.state==='enabled'&&value.control==='controlled_by_this_extension'&&
+   value.permission!==false&&config?configForManagedRoute(config,value.activeConfig):null};
+ };
  const service=createProxyService(preview?preview.service:{
-  async load(){const raw=await read(configKey);return {config:raw==null?freshConfig():validateConfig(raw),etag:entries.get(configKey)};},
+  async load(){const raw=await read(configKey);loadedConfig=raw==null?freshConfig():validateConfig(raw);return {config:loadedConfig,etag:entries.get(configKey)};},
   async save(config:any,etag:string){if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');await write(configKey,config);return entries.get(configKey);},
-  status:()=>managed().getStatus(),
+  status:async()=>observedStatus(await managed().getStatus()),
+  validateApply:toManagedRoute,
   async apply(config:any){
-   // The public SDK only represents one public HTTPS/SOCKS5 endpoint and 1–16 inclusive domains.
-   // Never turn an all-site profile, PAC, exact-host rule or alternate target into this subset.
-   if(config.selection.mode!=='rules'||config.defaultTarget.action!=='direct')fail('E_UNSUPPORTED','此模式不在公开代理服务范围；配置已保留，未更改浏览器路由。');
-   const rules=config.rules.filter((r:any)=>r.enabled);
-   const endpointIds=new Set(rules.map((r:any)=>r.endpointId));
-   if(!rules.length||rules.length>16||endpointIds.size!==1||rules.some((r:any)=>r.action!=='endpoint'||!r.includeSubdomains))fail('E_UNSUPPORTED','当前公开服务仅支持同一代理的 1–16 个含子域规则；没有降级或应用。');
-   const endpoint=config.endpoints.find((e:any)=>e.id===rules[0].endpointId);
-   if(!endpoint||endpoint.credentialRef)fail('E_UNSUPPORTED','代理认证尚未接入。');
-   const {id,name,scheme,host,port}=endpoint;
-   const canonical=toManagedConfig({id,name,scheme,host,port,domains:rules.map((r:any)=>r.domain)});
-   return managed().requestEnable({config:canonical});
-  },stop:()=>managed().requestDisable()
+   return observedStatus(await managed().requestEnable({config:toManagedRoute(config)}),config);
+  },stop:async()=>observedStatus(await managed().requestDisable())
  });
  const storage={onChanged:changed,local:{
   async get(key:string){return {[key]:await read(key)};},

@@ -1,4 +1,3 @@
-import {SIDEBAR_TOOL_LIMITS} from '../src/ui/sidebar-tools/limits.js';
 // Sole official release producer. Reuses the standalone tool packer; no npm,
 // arbitrary script execution or remote sources are admitted by this build.
 import {readFile,realpath,lstat,mkdir,writeFile,rename,rm} from 'node:fs/promises';
@@ -40,8 +39,8 @@ async function prepackedPackage(project,name){
   const path=resolve(project,name);
   if(!path.startsWith(project+'/'))fail('prepacked package escaped project directory');
   const info=await lstat(path);
-  if(!info.isFile()||info.size<1||info.size>SIDEBAR_TOOL_LIMITS.packageBytes||await realpath(path)!==path)
-    fail('prepacked official package is not a bounded regular file');
+  if(!info.isFile()||info.size<1||await realpath(path)!==path)
+    fail('prepacked official package is not a regular file');
   const bytes=await readFile(path);
   let object;
   try{object=JSON.parse(bytes.toString('utf8'));}

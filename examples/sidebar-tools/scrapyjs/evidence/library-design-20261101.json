@@ -1,0 +1,31 @@
+{
+  "scope": "CONFIG_LIBRARY_OFFLINE_DESIGN",
+  "htmlSha256": "70e32655996821464b72e2940a8b9621ae1a7665fa02892a8d3de7947448fea7",
+  "baseline": 76,
+  "independentScores": [
+    98,
+    96
+  ],
+  "acceptedScore": 96,
+  "checks": {
+    "design": 22,
+    "controls": 51,
+    "states": 11,
+    "overlap": true,
+    "nodeAppModel": 29,
+    "nodeProfilesAndView": 16
+  },
+  "sourceLockInputs": 1373,
+  "sourceDrift": 0,
+  "readme": "../../../../artifacts/scrapyjs/library-redesign-20261101/README.md",
+  "notTested": [
+    "installedChrome",
+    "realAI",
+    "realCapture",
+    "production",
+    "realIME",
+    "screenReader"
+  ],
+  "commit": "NOT_PERFORMED",
+  "packagePromotion": "NOT_PERFORMED"
+}

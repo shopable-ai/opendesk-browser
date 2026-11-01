@@ -178,7 +178,12 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   await writeFile(resolve('artifacts/reading-toc-r41',file),bytes);
   return createHash('sha256').update(bytes).digest('hex');
  }
- const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
+ const side=await open('index.html');
+ await select(side.page,'od-toc-surface','side-panel');
+ const panel=await until(async()=>{
+  const frame=await child(browser,side.page);
+  return await evaluate(frame,'Boolean(document.querySelector("#tool-root"))')?frame:null;
+ },'Single preview did not switch to the real Side Panel sandbox',10);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
  const gutters=await evaluate(panel, '(()=>{const rect=document.querySelector(".toc-panel").getBoundingClientRect();return {left:rect.left,right:document.documentElement.clientWidth-rect.right};})()');
  assert(gutters.left>=7&&gutters.right>=7,

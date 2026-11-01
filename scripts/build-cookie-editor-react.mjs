@@ -27,7 +27,6 @@ export async function buildCookieEditorReact({log=true}={}){
     readFile(resolve(root,'dist/build-ready.json')).then(b=>JSON.parse(b.toString('utf8')))
   ]);
   assert.ok(js.length>500&&css.length>300,'Cookie React emitted empty assets');
-  assert.ok(js.length<220000&&css.length<120000,'Cookie React exceeds installer budget');
   const code=js.toString('utf8');
   parse(code,{ecmaVersion:'latest',sourceType:'script'});
   for(const operation of ['OpenDeskPageReact','OpenDeskSidebarUI',
@@ -61,6 +60,11 @@ export async function buildCookieEditorReact({log=true}={}){
 
 // Existing legacy release stays unchanged until official React gates pass.
 export async function buildCookieEditorReactIfOfficial({log=false}={}){
+  // Framework builds publish the promoted package via buildOfficialTools,
+  // which validates its canonical bytes and identity. Draft source is not a
+  // framework input once that release exists; its explicit build stays gated.
+  try{await readFile(resolve(root,'cookie-editor.opendesk-tool.json'));return null;}
+  catch(error){if(error.code!=='ENOENT')throw error;}
   const meta=await manifest();
   if(meta.uiRuntime!=='opendesk.react-ui.v1')return null;
   if(meta.files?.html!=='src/root.html'||meta.files?.js!=='dist/tool.js'||

@@ -49,6 +49,15 @@ function fixture(t){
     assert.equal(blob(bytes),pin);
     mkdirSync(dirname(file),{recursive:true});writeFileSync(file,bytes);
   }
+  // The legal tool-shell target also checks the independent AI Proxy closure.
+  // Supply its locked Git bytes without approving working-tree drift or code execution.
+  const proxyPins=JSON.parse(readFileSync(new URL('../../projects/ai-proxy/trusted/source-lock.json',import.meta.url),'utf8'));
+  for(const [path,pin] of Object.entries(proxyPins)){
+    const bytes=execFileSync('git',['cat-file','blob',pin]);
+    assert.equal(blob(bytes),pin);
+    const file=resolve(root,path);
+    mkdirSync(dirname(file),{recursive:true});writeFileSync(file,bytes);
+  }
   return root;
 }
 
@@ -195,7 +204,13 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
     walk(ast);assert.equal(dynamic.length,0,name+' must not import dynamic code');
     return ast.body.filter(row=>row.source).map(row=>row.source.value);
   };
+  for(const name of Object.keys(pins))deps(name);
   assert.deepEqual(deps(contract),[]);
+  assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
+    './account-session-crypto.js','../../../../src/platform/protocol.js']);
+  assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
+    '../../../../src/platform/protocol.js']);
+  assert.deepEqual(deps('trusted/account-session-crypto.js'),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
   assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);

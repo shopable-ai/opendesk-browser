@@ -4252,7 +4252,6 @@ function normalizeConfig(config) {
             throw fault('E_ITEMLOADER_CONFIG', key, `${key} must be a nonempty CSS selector`);
         }
     }
-    if (config._listItem !== undefined && config._listContainer === undefined) throw fault('E_ITEMLOADER_CONFIG', '_listItem', '_listItem requires _listContainer');
     return { listSelector: config._listContainer ?? null, itemSelector: config._listItem ?? null, fields };
 }
 
@@ -4261,6 +4260,7 @@ function normalizeConfig(config) {
 function extractRecords(config, $, context) {
     const dom = !$;
     const root = dom ? document : context || $.root();
+    const listMode = !!(config.listSelector || config.itemSelector);
     const fail = (code, path, message) => { const error = new Error(`${code} (${path}): ${message}`); error.code = code; error.path = path; throw error; };
     const css = (context, selector, path) => {
         try { return dom ? Array.from(context.querySelectorAll(selector)) : context.find(selector).toArray(); }
@@ -4268,10 +4268,10 @@ function extractRecords(config, $, context) {
     };
     const xpathQuery = field => {
         if (!dom) fail('E_ITEMLOADER_CAPABILITY', field.path, 'XPath requires a DOM evaluate backend');
-        if (config.listSelector && field.selector.startsWith('/') && !field.selector.startsWith('//')) {
+        if (listMode && field.selector.startsWith('/') && !field.selector.startsWith('//')) {
             fail('E_ITEMLOADER_XPATH_SCOPE', field.path, 'Absolute XPath is not allowed in list records; use .//');
         }
-        return config.listSelector && field.selector.startsWith('//') ? '.' + field.selector : field.selector;
+        return listMode && field.selector.startsWith('//') ? '.' + field.selector : field.selector;
     };
     const query = (context, field) => {
         if (!field.selector) return [];
@@ -4325,9 +4325,10 @@ function extractRecords(config, $, context) {
     };
     try {
         const containers = config.listSelector ? css(root, config.listSelector, '_listContainer') : [];
-        if (config.itemSelector) css(root, config.itemSelector, '_listItem');
+        const selectedItems = config.itemSelector ? css(root, config.itemSelector, '_listItem') : [];
         validate(config.fields);
-        if (!config.listSelector) return { records: [item(root, config.fields)] };
+        if (!listMode) return { records: [item(root, config.fields)] };
+        if (!config.listSelector) return { records: selectedItems.map(node => item(dom ? node : $(node), config.fields)) };
         const seen = new Set(), records = [];
         for (const container of containers) {
             const children = dom ? Array.from(container.children) : $(container).children().toArray();
@@ -4357,6 +4358,7 @@ module.exports = { fault, selectorParts, fieldRule, normalizeConfig, extractReco
 const { validateTaskSpec, validateCandidate, fault } = __webpack_require__(1973);
 const { inspectPage } = __webpack_require__(1952);
 const ScopedDownloader = __webpack_require__(3642);
+const { fieldRule } = __webpack_require__(4849);
 
 // Adapt ordinary CSS declarations to the existing constrained executor.
 module.exports = function parsePage(response, options = {}) {
@@ -4382,18 +4384,29 @@ module.exports = function parsePage(response, options = {}) {
     const reads = {};
     for (const name of names) {
       const rule = itemConfig[name];
-      if (typeof rule !== 'string') throw fault('FIELD_SCHEMA');
-      const parts = rule.split('::').map(part => part.trim());
-      if (parts.length !== 2 || !parts[0] || !['text', 'href', 'src'].includes(parts[1])) throw fault('FIELD_SCHEMA');
+      // Reuse suffix parsing, but expose only this executor's CSS/text/href/src subset.
+      if (typeof rule !== 'string' && (!rule || typeof rule !== 'object' || Array.isArray(rule) ||
+          Object.keys(rule).some(key => !['selector', 'read', 'attr'].includes(key)) ||
+          !['text', 'attr'].includes(rule.read) ||
+          (rule.read === 'attr' && !['href', 'src'].includes(rule.attr)))) throw fault('FIELD_SCHEMA');
+      let parsed;
+      try { parsed = fieldRule(rule, name); } catch (_) { throw fault('FIELD_SCHEMA'); }
+      const attr = parsed.attr === null ? 'text' : parsed.attr;
+      if (parsed.xpath || !parsed.selector || !['text', 'href', 'src'].includes(attr)) throw fault('FIELD_SCHEMA');
       const isUrl = urlFields.includes(name);
       fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
-      reads[name] = parts[1] === 'text' ? { selector: parts[0], read: 'text' } : { selector: parts[0], read: 'attr', attr: parts[1] };
+      reads[name] = attr === 'text' ? { selector: parsed.selector, read: 'text' } : { selector: parsed.selector, read: 'attr', attr };
     }
     if (!options.states || options.states.allowEmpty !== false || !options.pagination) throw fault('TASK_SCHEMA');
     for (const key of ['ready', 'empty', 'login', 'error']) {
       if (typeof options.states[key] !== 'string' || !options.states[key].trim()) throw fault('CSS_SYNTAX');
     }
-    if (options.pagination.kind !== 'nextHref' || options.pagination.attr !== 'href' || typeof options.pagination.missingNextIsEnd !== 'boolean') throw fault('TASK_SCHEMA');
+    const pagination = {
+      ...options.pagination,
+      kind: options.pagination.kind === undefined ? 'nextHref' : options.pagination.kind,
+      attr: options.pagination.attr === undefined ? 'href' : options.pagination.attr,
+    };
+    if (pagination.kind !== 'nextHref' || pagination.attr !== 'href' || typeof pagination.missingNextIsEnd !== 'boolean') throw fault('TASK_SCHEMA');
     for (const key of ['selector', 'disabledSelector', 'endSelector']) {
       if (typeof options.pagination[key] !== 'string' || !options.pagination[key].trim()) throw fault('CSS_SYNTAX');
     }
@@ -4403,7 +4416,7 @@ module.exports = function parsePage(response, options = {}) {
       schemaVersion: 1, profile: 'http-cheerio', mode: 'list',
       goal: 'Extract the explicitly configured CSS fields from this page',
       seedUrls: [response?.url], identity, list: { fields },
-      states: options.states, pagination: options.pagination,
+      states: options.states, pagination,
       allowedOrigins: scope.allowedOrigins, allowedProtocols: scope.allowedProtocols, allowedPathPrefixes: scope.allowedPathPrefixes,
       excludedRegions: options.excludedRegions ?? [],
       limits: { maxListPages: 1, maxDetailPages: 0, maxItems: 20000, maxRequests: 1, maxMs: 600000, requestTimeoutMs: 10000, maxBodyBytes },
@@ -4412,7 +4425,7 @@ module.exports = function parsePage(response, options = {}) {
     const candidate = validateCandidate({
       schemaVersion: 1, profile: 'http-cheerio',
       list: { container: itemConfig._listContainer, record: { selector: itemConfig._listItem, relation: 'directChildren' }, fields: reads },
-      states: options.states, pagination: options.pagination,
+      states: options.states, pagination,
     }, spec);
     const source = { kind: 'http', url: response.url, status: response.status, html: response.text };
     const context = { deadline: options.deadline, signal: options.signal };

@@ -1,0 +1,216 @@
+{
+  "scope": "Cookie Editor 2.0.60 日常开发测试续接：R134 fixture 与实际服务入口",
+  "checkedAt": "2026-11-01T02:49:43+08:00",
+  "owner": "examples/sidebar-tools/cookie-editor",
+  "chatId": "01a1933e-bc2a-70f2-88c9-a4ce7d528b81",
+  "branch": "main",
+  "phase": "DEVELOPMENT_ONLY",
+  "goal": {
+    "createdAndReadBack": true,
+    "statusAtLastRead": "complete",
+    "nativeDetailRequiresExistingLegalConfiguration": false,
+    "latestUserDirection": "你作为相关专家，合理设计和完善；",
+    "completionDecision": "CURRENT_CORE_SCOPE_VERIFIED",
+    "completionElapsedSeconds": 944,
+    "completeScope": "R134 fixture、开发环境及安装身份核对、真实空账号本机服务卡片/详情/焦点/重开；不含真实账号连接或正式验收"
+  },
+  "entry": "Chrome 工具栏 → OpenDesk Browser → 扩展 → Cookie Editor → 企业 → 服务连接",
+  "browser": {
+    "app": "/Users/shopme/Applications/Google Chrome.app",
+    "profileWindowTitle": "Video SVIP R031 Accept",
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadedPathEvidence": "沿用上轮 Chrome 管理页实读；本轮不抢占其他 owner 管理页",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "serve": "CONNECTED_FRESH_DEBUG_UI",
+    "revision": "0efe67b706936e7a5b441c3e8de6425a07999234895a82abd66ea3118acfe412",
+    "diskRevisionMatches": true,
+    "writerPids": [
+      14612,
+      14632
+    ],
+    "writerPorts": [
+      43119,
+      43120
+    ],
+    "writerStillAlive": true,
+    "previewPids": [
+      36790,
+      36822
+    ],
+    "previewPort": 43134,
+    "previewHttpStatus": 200,
+    "writerRestarted": false,
+    "profileOrNativePairingChanged": false
+  },
+  "identity": {
+    "installedVersionReopenedFromExtensionList": "2.0.60",
+    "formalCandidateAndServedOfficial": {
+      "version": "2.0.60",
+      "bytes": 339836,
+      "sha256": "0f7965d16e21f1715c4a85ddf3c23b74e33ca04a5ae64c4ba87adc626cf1147b",
+      "allThreeBytesMatch": true
+    },
+    "buildId": "7beb85c7017fc591be5ad0e6d3d21fad1363bab46a5a46e1650e1b7069c03d6d",
+    "sourceAndCompiledFilesChecked": 26,
+    "receiptMismatches": [],
+    "installedAgain": false,
+    "buildOrPromotionExecuted": false,
+    "priorPromoter": "UNKNOWN"
+  },
+  "native": {
+    "overview": "PASS_COMPLETE_OVERVIEW_WITH_LABELLED_STATIC_EXAMPLES",
+    "initialRealServiceCount": 0,
+    "realServiceCount": 1,
+    "emptyState": "PASS_INITIAL_OBSERVATION_REUSED",
+    "serviceEntryFocus": "PASS_AX_FOCUSED_SERVICE_HEADING",
+    "serviceCards": "PASS_REAL_INSTALLED_2.0.60_WITH_ISOLATED_REAL_EMPTY_ACCOUNT_SERVICE",
+    "detailEntry": "PASS_OVERVIEW_HIDDEN_AND_DETAIL_HEADING_FOCUSED",
+    "detailReturnAndFocus": "PASS_RETURNED_TO_SAME_SERVICE_DETAIL_BUTTON",
+    "overviewReturnAndFocus": "PASS_SERVICE_ENTRY_BUTTON_FOCUSED",
+    "refresh": "PASS_SAME_ONE_UNCONNECTED_SERVICE",
+    "reopenFromExtensionList": "PASS_2.0.60_SAME_SERVICE_PERSISTED_UNCONNECTED_ZERO_BINDINGS",
+    "disabledBeforeConnection": [
+      "读取资源",
+      "绑定账号",
+      "打开设备管理页",
+      "读取策略",
+      "断开服务"
+    ],
+    "newDefectsReproduced": false,
+    "serviceConfigsSaved": 1,
+    "connectionsOrBindingsCreated": 0,
+    "cookiePermissionGranted": false,
+    "unexpectedPermissionAccepted": false,
+    "serviceName": "本机额度服务（开发测试）",
+    "source": "REAL_MANAGE_MJS_SERVE_EMPTY_ACCOUNTS_NOT_PREVIEW_MOCK",
+    "screenshot": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-reopened.png",
+    "detailScreenshot": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-detail.png",
+    "accessibilityState": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-reopened-ax.txt",
+    "detailAccessibilityState": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-detail-ax.txt",
+    "returnFocusEvidence": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-return-ax.txt",
+    "overviewReturnFocusEvidence": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-overview-return-ax.txt",
+    "refreshEvidence": "artifacts/cookie-service-react-runtime-20261101/followup/live-service-refresh-ax.txt",
+    "priorEmptyFormDraftAndReturnTests": "REUSED_FROM_service-install-runtime-20261101.json_NOT_REPEATED"
+  },
+  "r134": {
+    "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+    "executor": "Codex native executor Halley / 01a1933f-a464-7482-8110-f1b76f97c8e3",
+    "before": {
+      "passed": 0,
+      "failed": 6,
+      "classification": "STALE_EXACT_FIXTURE_PINS"
+    },
+    "after": {
+      "exitCode": 0,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 3082.720584
+    },
+    "runAbsoluteTimestamp": "UNKNOWN; 本对话内运行，未补造精确时刻",
+    "stdout": "artifacts/cookie-service-react-runtime-20261101/followup/r134.stdout.txt",
+    "changes": [
+      "测试 fixture 对齐生产已经批准的 contract/service 精确 Git blob",
+      "纳入生产已经批准的三个 share/session/crypto helper",
+      "检查全部九个 Cookie 源文件没有动态 import，保持精确静态依赖",
+      "为合法 ui/tool-shell.js 提供 source-lock 指定的 AI Proxy Git blob，仍执行原生产闭包校验"
+    ],
+    "safetyRetained": [
+      "精确来源/目标限制",
+      "所有允许组合的字节漂移拒绝",
+      "文件及祖先目录 symlink 拒绝",
+      "同 ID 包及异路径相同字节拒绝",
+      "历史源码拒绝"
+    ],
+    "productionPinsOrValidationChanged": false,
+    "review": "父任务已审阅完整 diff 与当前生产准入/无条件 AI Proxy 闭包检查；保留子 agent 原始 stdout，未无变化重复测试",
+    "fixtureDoesNotProve": "当前 AI Proxy 工作树可构建、Chrome/Native 运行、安装晋升或 production 通过"
+  },
+  "reusedEvidence": {
+    "sourcePreview": {
+      "url": "http://127.0.0.1:43134/dev.html",
+      "result": "9/9 PASS_SOURCE_PREVIEW_ONLY",
+      "report": "artifacts/cookie-service-react-runtime-20261101/interactions.json",
+      "detailScreenshot": "artifacts/cookie-service-react-runtime-20261101/detail.png"
+    },
+    "packageAndHttpUi": "32/32 PASS 上轮证据",
+    "httpAppIntegration": "1/1 PASS 上轮证据",
+    "sourceAndPreviewAreNativeServiceEvidence": false
+  },
+  "changesThisChat": [
+    "tests/environment/cookie-account-provenance-r134.test.mjs",
+    "examples/sidebar-tools/cookie-editor/README.zh-CN.md",
+    "examples/sidebar-tools/cookie-editor/evidence/service-test-followup-20261101.json",
+    "docs/framework/workstreams/cookie-service-react-runtime-20261101.md"
+  ],
+  "remainingNotTested": [
+    "真实账号连接与公司 HTTPS/SSO",
+    "旧数据逐项迁移",
+    "Cookie 读取上传与持续同步",
+    "production、全量 CI、发布、评分"
+  ],
+  "preserved": "业务组件、CSS、Domain、服务实现、Browser SDK/Host/Authority、生产 provenance、版本、正式 JSON、Profile、Native 配对及 watcher 未由本轮修改；所有并行改动保留。新增仅为隔离真实空账号服务及其一个未连接本机配置。",
+  "commitsOrPushes": false,
+  "nativeInitialObservation": {
+    "overview": "PASS_REOPENED_COMPLETE_OVERVIEW_WITH_LABELLED_STATIC_EXAMPLES",
+    "realServiceCount": 0,
+    "emptyState": "PASS_ONE_PRIMARY_ADD",
+    "serviceEntryFocus": "PASS_AX_FOCUSED_SERVICE_HEADING",
+    "existingServiceCards": "NOT_TESTED_NO_EXISTING_CONFIG_IN_CURRENT_PROFILE",
+    "detailReturnAndFocus": "NOT_TESTED_NO_EXISTING_CONFIG_IN_CURRENT_PROFILE",
+    "newDefectsReproduced": false,
+    "serviceConfigsSaved": 0,
+    "connectionsOrBindingsCreated": 0,
+    "cookiePermissionGranted": false,
+    "screenshot": "artifacts/cookie-service-react-runtime-20261101/followup/native-current-empty.png",
+    "accessibilityState": "artifacts/cookie-service-react-runtime-20261101/followup/native-current-empty-ax.txt",
+    "priorEmptyFormDraftAndReturnTests": "REUSED_FROM_service-install-runtime-20261101.json_NOT_REPEATED",
+    "requiredInformation": "已有合法真实服务的 Chrome 窗口/Profile 和现存配置名称；若没有现存记录，该原生分支继续 NOT_TESTED"
+  },
+  "localService": {
+    "implementation": "examples/sidebar-tools/cookie-editor/ai-account-usage/manage.mjs serve",
+    "implementationChanged": false,
+    "origin": "http://usage-a9bed51afb70495fe43423ec.localhost:60646",
+    "pid": 62088,
+    "ptySession": 30685,
+    "startedAt": "2026-10-31T18:44:29.080Z",
+    "listeningAddress": "127.0.0.1",
+    "listeningPorts": [
+      60645,
+      60646
+    ],
+    "accounts": 0,
+    "native": false,
+    "descriptorHttpStatus": 200,
+    "serviceInstanceId": "3738ccb3-a0a3-4efd-9f50-ff79e6511049",
+    "protocolVersion": 1,
+    "config": "artifacts/cookie-service-react-runtime-20261101/live-service/accounts.json",
+    "isolatedStateDirectory": "artifacts/cookie-service-react-runtime-20261101/live-service/state",
+    "persistedStateFiles": 0,
+    "nodeFilePermissionRestricted": true,
+    "guard": "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/fixtures/standalone-guard.mjs",
+    "audit": "artifacts/cookie-service-react-runtime-20261101/live-service/audit.txt",
+    "auditContents": [
+      "guard-ready"
+    ],
+    "privateStartupLogMode": "0600",
+    "privateStartupLogShared": false,
+    "upstreamOrCredentialAccessObserved": false,
+    "pairingOrLoginPerformed": false,
+    "portScanPerformed": false,
+    "previewServicesImported": false,
+    "realCompanyDataUsed": false,
+    "lifetime": "TEMPORARY_PROCESS_LEFT_RUNNING_FOR_INSPECTION",
+    "owner": "01a1933e-bc2a-70f2-88c9-a4ce7d528b81",
+    "publicMetadata": "artifacts/cookie-service-react-runtime-20261101/live-service/service-public.json",
+    "descriptor": "artifacts/cookie-service-react-runtime-20261101/live-service/descriptor.json",
+    "browserEntry": "Chrome Video SVIP R031 Accept → OpenDesk Browser → 扩展 → Cookie Editor → 企业 → 服务连接",
+    "browserTabId": "560069462",
+    "entryLeftOpen": true
+  },
+  "driverObservations": [
+    "First launcher failed parsing stdout before ready; exited process had no remaining listener. Corrected launch driver buffering only; service implementation unchanged.",
+    "Extension-driven navigation received SITE_REJECTED for cross-site Fetch Metadata. Normal native address bar navigation opened /pair without fragment. Security validation unchanged."
+  ]
+}

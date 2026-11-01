@@ -194,7 +194,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         throw Error('E_AI_PROXY_REACT_OWNER');
       const managed=Object.freeze(Object.fromEntries(['getStatus','requestEnable','requestDisable']
         .map(name=>[name,payload=>request('browser.proxy.managed.'+name,payload||{})])));
-      const environment=configureAIProxyEnvironment({request,locale,setState:onStateChange},
+      const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange},
         {browser:{proxy:{managed}}},{trusted:true});
       aiProxyPilot={container,environment};container.dataset.opendeskReactOwner='ai-proxy';
       const release=()=>{

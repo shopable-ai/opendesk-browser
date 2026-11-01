@@ -1,0 +1,259 @@
+{
+  "reviewer": "independent code/spec/security review lane",
+  "reviewedAt": "2026-10-31T10:03:05.199417+00:00",
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-4c318c55-7203-44ad-aa64-c93034e3099b/preview.html",
+  "sha256": "0d763a8e2a1be52ceb9004cecc8de5aa829cea59573e03c569e6deb1d2bb71f1",
+  "evidenceLevel": {
+    "level": "SOURCE_BOUND_CHROMIUM_MEMORY_UI + INDEPENDENT_DIFF_SOURCE_AND_ARTIFACT_REVIEW",
+    "scope": "仅评本轮导航、代理配置、规则、按钮、表单和CSS实现；非真实代理或发布验收。",
+    "browserInteractions": "主agent提供的最终候选Chromium交互记录；评审独立检查驱动、断言、源码、截图及哈希，没有控制浏览器或重跑浏览器。",
+    "sourceFingerprint": {
+      "verifiedIndependently": true,
+      "sourceCount": 65,
+      "drift": [],
+      "reportManifestMatchesFrozenManifest": true
+    },
+    "screenshots": {
+      "allRecordedHashesVerified": true,
+      "finalPacVisuallyReviewed": true,
+      "correctedEmptyProfilesAndPanelVisuallyReviewed": true
+    },
+    "nodeTests": {
+      "reportedPass": 60,
+      "reportedFail": 0,
+      "independentlyRerun": false,
+      "reuseReason": "复用现有定向60/60日志；最终相对前候选仅Settings PAC class/title和sidebar CSS改变，未改被测handler、导航或草稿协议。不是60项真实浏览器用例。"
+    },
+    "syntax": {
+      "status": "PASS",
+      "method": "Babel TSX/JS AST + esbuild transform(write-free, in memory)，CSS parser；最终Settings/CSS变化另行复核",
+      "semanticTypes": "NOT_TESTED"
+    },
+    "lspDiagnostics": {
+      "status": "UNAVAILABLE",
+      "reason": "本会话无lsp_diagnostics工具，项目也无可用TypeScript编译器。未安装工具、未用语法检查冒充语义类型通过。",
+      "modifiedTypeScriptFiles": [
+        "projects/ai-proxy/src/Settings.tsx",
+        "projects/ai-proxy/src/QuickPanel.tsx",
+        "projects/ai-proxy/src/ui/FormField.tsx",
+        "projects/ai-proxy/src/ui/ProxyIcon.tsx"
+      ]
+    },
+    "astPatterns": {
+      "status": "CHECKED_WITH_BABEL_AST",
+      "astGrepTool": "UNAVAILABLE",
+      "result": "未发现本轮新增硬编码秘密、空catch或广义失败兜底。原有无效预览输入catch有明确语义；驱动console.log只输出测试摘要。"
+    }
+  },
+  "scope": {
+    "branch": "main",
+    "productFilesChangedByReviewer": [],
+    "modifiedFilesReviewed": [
+      "projects/ai-proxy/src/Settings.tsx",
+      "projects/ai-proxy/src/QuickPanel.tsx",
+      "projects/ai-proxy/src/ui/FormField.tsx",
+      "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "projects/ai-proxy/src/i18n/locales/en.json",
+      "projects/ai-proxy/scripts/navigation-density-preview.mjs"
+    ],
+    "supportingContext": [
+      "src/App.jsx",
+      "src/ui/navigation.ts",
+      "src/ui/optionsRoute.ts",
+      "src/ui/ProxyEntry.tsx",
+      "src/ui/OptionsShell.tsx",
+      "src/style.css",
+      "src/styles/style.css",
+      "src/styles/options.css",
+      "tests/drafts.test.mjs",
+      "tests/form-submit.test.mjs",
+      "tests/settings-rules-runtime.test.mjs"
+    ],
+    "excluded": "environment/managed-config并行实现、正式JSON/package/tool.config、平台代码不在本轮变更裁决范围；只读引用environment草稿接口。"
+  },
+  "stage1SpecCompliance": {
+    "status": "PASS_WITH_LOW_RISK_FEEDBACK_NOTE",
+    "findings": [
+      {
+        "requirement": "取消业务Tabs，齿轮进入七区设置",
+        "evidence": "Settings.tsx:34-41,474-494；App.jsx:74；驱动35-46实际进入设置、无tablist、七个option、导入/订阅/本地表单到达。"
+      },
+      {
+        "requirement": "选择、保存和应用语义分离",
+        "evidence": "Settings.tsx:294-306只SAVE_ENDPOINT/SAVE_PROFILE；524仅SELECT；261-264才APPLY；规则327-356只SAVE_RULE。截图显示选择态与未管理状态并存，关键保存/应用仍为文字。"
+      },
+      {
+        "requirement": "草稿、busy与表单语义保持",
+        "evidence": "requestCloseEditor:163-170、savePac:320-325、saveRule:351-355保留revision/generation检查；PAC/名称FormField保留id、label关联和ClearableInput传参；草稿scope未更改。驱动执行代理取消/X/Escape和PAC/规则关闭Keep/discard。"
+      },
+      {
+        "requirement": "保留四模式、三语、PAC、订阅、客户端及导入",
+        "evidence": "Settings.tsx:29-32,541-645；所有三语1008 keys相等，本轮改名key及占位符一致、无旧key残留。修正后的空态确有0条记录、添加/导入/来源入口。"
+      },
+      {
+        "requirement": "常见操作title/aria/焦点/危险态，关键操作保留文字",
+        "evidence": "导入、关闭、PAC编辑/删除均有本地化title/aria-label；ProxyIcon为装饰图标；最终PAC两列布局与title保留长文。34px/2px焦点有实际computed数据；危险hover尚有I1。"
+      }
+    ]
+  },
+  "rootCauseGuard": {
+    "status": "PASS",
+    "maskingFallbackIntroduced": false,
+    "cssOwnershipConclusion": "本轮主要是在现有sidebar-settings.css布局owner中修复结构，非靠新增文件/!important/嵌套补丁掩盖旧布局。删去无消费者settingsAddWays规则；父gap负责节奏，直接子margin清零；FormField新增稳定语义类，PAC编辑字段和记录有明确结构。最终代理配置各相邻章节实际16px且margin=0；PAC父16、字段组12、label8、操作区前16；代理表单单16px gutter，规则表单16/12。",
+    "cssOwnershipLimit": "基础style.css及options.css前半仍提供共享组件默认几何，历史PC布局位于proxy-legacy层；这是增量owner收敛，不是宣称全量历史CSS已清除。结构选择器与proxyFormField语义规则仍有重叠，但本轮未发现冲突性声明。",
+    "finalPacFix": "最终pacRecord两列grid直接修复通用record纵排原因；截图确认两行文字同行右侧图标，长文title与ellipsis保留。"
+  },
+  "scores": {
+    "correctness": {
+      "score": 97,
+      "basis": [
+        "新增入口调用现有合法路由；七区和四模式没有删减。",
+        "名称/PAC字段语义关联正确，保存与应用调用保持分离。",
+        "最终空态和PAC修正均与源码及截图相符。"
+      ],
+      "deductions": [
+        {
+          "points": 3,
+          "reason": "PAC新增图标的编辑回填/删除确认链未在最终浏览器驱动执行；仅能以源码/既有handler测试支撑，保守限制该分的置信度（I2），未断言产品存在相应功能故障。"
+        }
+      ]
+    },
+    "reliability": {
+      "score": 96,
+      "basis": [
+        "导航守卫、busy锁、独立draft scope、迟到save revision/generation检查保留。",
+        "浏览器真实执行代理取消/X/Escape、规则与PAC关闭的Keep/discard，焦点恢复亦有断言。"
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "reason": "最终浏览器记录主要覆盖成功/取消路径；保存失败与迟到响应主要由抽取handler/模拟hooks的Node证据覆盖，并未完整通过浏览器渲染链验证。此为本阶段证据上限，不要求恢复全CI或Native验收。"
+        }
+      ]
+    },
+    "security": {
+      "score": 97,
+      "basis": [
+        "本轮没有增加Host权限、网络、外部脚本、动态HTML或代理执行路径。",
+        "PAC保存仍不应用；删除仍走原confirm和managed/busy限制；认证拒写原合同未改。",
+        "最终预览sandbox=allow-scripts，记录无外部HTTP请求/页面错误。"
+      ],
+      "deductions": [
+        {
+          "points": 3,
+          "reason": "受影响PAC删除图标确认链尚无最终候选实际DOM执行证据（I2）；未由本评审运行语义类型或运行时授权验证，不外推为真实Chrome安全通过。"
+        }
+      ]
+    },
+    "maintainability": {
+      "score": 96,
+      "basis": [
+        "业务仍在projects/ai-proxy；复用Shared Button、ProxyIcon、FormField和原导航/草稿层，无新依赖。",
+        "删除混合添加菜单及对应CSS，最终合并重复primary选择器；新增pacRecord直接表达布局意图。",
+        "关键间距结论同时来自结构、computed和截图，不以token引用量评分。"
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "reason": "字段布局仍同时存在proxyFormField语义规则与proxyNameField/:has(label)等结构规则，且基础组件CSS仍有旧几何默认；当前未见冲突，但下一次字段修改需同步注意多处选择器。保持同owner逐步收敛即可，不要求全量CSS重构。"
+        }
+      ]
+    },
+    "userFeedback": {
+      "score": 95,
+      "basis": [
+        "添加/保存/应用/确认均保留文字；订阅与客户端入口含义清楚，空态标题已准确命名。",
+        "选择有aria-pressed，应用状态独立，字段标签、错误提示和图标title/aria均保留。",
+        "规则域名/范围与长目标title可辨，代理/规则/导入焦点有DOM证据。"
+      ],
+      "deductions": [
+        {
+          "points": 5,
+          "reason": "I1：通用hover覆盖quietDanger的红色，删除按钮悬停时变成普通accent操作反馈。确认合同仍有效，属低风险反馈缺陷。"
+        }
+      ]
+    },
+    "evidenceSufficiency": {
+      "score": 94,
+      "basis": [
+        "评审独立核实最终HTML SHA、65源码hash、报告manifest与截图hash一致。",
+        "11组浏览器检查确实含实际点击、键盘、填表、提交和确认，不只是源码字符串断言。",
+        "错误空态证据已撤回，改为外部场景select真实change、等待标题、0记录断言；最终截图复核有效。",
+        "三语keys/占位符与改名引用独立核验；60/60仅作为分层补充。"
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "reason": "I2：新PAC图标未纳入展开后的label/title/焦点核验，也未实际执行编辑/删除取消及确认；最终两列布局目前是源码+截图证据，没有对应行对齐回归断言。"
+        },
+        {
+          "points": 2,
+          "reason": "浏览器“未应用”断言主要检查proxyApplied标记，未记录完整命令序列以直接证明0次APPLY；本次另以源码和handler测试交叉核对，仍不将UI标记等同副作用审计。"
+        }
+      ]
+    }
+  },
+  "issues": [
+    {
+      "id": "I1",
+      "severity": "LOW",
+      "category": "user-feedback",
+      "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "line": 92,
+      "relatedLocations": [
+        "projects/ai-proxy/src/styles/sidebar-settings.css:95",
+        "projects/ai-proxy/src/Settings.tsx:630"
+      ],
+      "title": "删除图标悬停时丢失危险色",
+      "evidence": "同一scope内.proxyIconButton:hover:not(:disabled)的specificity高于.quietDanger，即使后者更靠后，color仍由--bad变为--accent。本轮将PAC删除按钮也改为这两个class组合。该覆盖由CSS可确定，未伪称已执行hover computed取证。",
+      "risk": "指针靠近删除按钮时危险操作反馈变为普通操作颜色；不会绕过确认或自动删除。",
+      "fix": "在现有owner内让通用hover排除.quietDanger，并显式为危险hover保留--bad/危险底色；不在其他CSS文件叠加!important。随后仅核验正常/hover/focus/disabled颜色与原确认仍有效。",
+      "introduced": "通用规则已存在，本轮新PAC图标继承该残留缺陷；作为受影响操作反馈问题报告。",
+      "blocking": false
+    },
+    {
+      "id": "I2",
+      "severity": "LOW",
+      "category": "evidence-gap",
+      "file": "projects/ai-proxy/scripts/navigation-density-preview.mjs",
+      "line": 69,
+      "relatedLocations": [
+        "projects/ai-proxy/scripts/navigation-density-preview.mjs:63",
+        "projects/ai-proxy/scripts/navigation-density-preview.mjs:80",
+        "projects/ai-proxy/src/Settings.tsx:626"
+      ],
+      "title": "PAC新图标和最终记录布局缺少直接交互回归证据",
+      "evidence": "icons的34px/title/aria/焦点采集在展开PAC之前；后续PAC段只测表单间距、关闭草稿及截图，没有点击PAC编辑/删除。最终截图已证明两列可见，但驱动不会因操作回填或删除确认链失效而失败。",
+      "risk": "本轮新增PAC图标可在布局或接线退化时仍得到11组PASS。不是已证实的产品功能失败。",
+      "fix": "在现有同源内存驱动PAC段补一条编辑回填→保留/放弃草稿和删除Cancel/confirm链，并在展开后核验图标title/aria/焦点与文字/操作同行；仅使用内存fixture，不引入真实代理/Native/新测试框架。",
+      "blocking": false
+    }
+  ],
+  "limitations": [
+    "未执行Native/真实代理启停或流量/正式安装/production/全CI/完整语义类型/IME/尺寸或缩放矩阵，均NOT_TESTED，按最新阶段不恢复为P0。",
+    "本评审未重跑60项Node或浏览器交互；复用主agent最终同候选日志，并独立读驱动、源代码、截图和哈希。模拟handler或hooks测试不能替代实际浏览器动作，内存Chromium不能替代Mac原生扩展。",
+    "未运行lsp_diagnostics，无法给出无类型错误批准；syntax PASS仅证明可解析/转换。",
+    "仅给code/spec/security实现lane结论，不代替architect或另一个UI维度评审，也不提供合并/发布批准。",
+    "旧source-034f候选、未生效scenario参数生成的旧空态截图以及所有历史评分均不作为本轮最终结论。",
+    "未审查或改写并行environment/managed-config、正式JSON/package/tool.config及平台修改。"
+  ],
+  "conclusion": {
+    "recommendation": "COMMENT",
+    "blockingProductDefectsFound": false,
+    "issueCounts": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 2
+    },
+    "allSixDimensionsAtLeast95": false,
+    "belowTarget": [
+      "evidenceSufficiency:94"
+    ],
+    "summary": "本轮实现总体覆盖导航、配置、规则及按钮优化，CSS有实际结构收敛，最终PAC与空态纠正有效。保留删除hover反馈和PAC取证缺口；不因目标≥95抬分，不把内存预览、测试数量或旧评分当正式通过。",
+    "stopCondition": "本只读独立实现评审已完成，仅写指定review JSON；产品代码、服务、浏览器、分支、正式包和提交均未操作。"
+  }
+}

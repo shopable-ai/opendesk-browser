@@ -1,0 +1,163 @@
+{
+  "status": "PASS_SCOPED_UI_REVIEW",
+  "candidateSha256": "3b77fca0a318e5453bc7fd6836328f2b527e76db06c164e6ca66fdb1825ad5dd",
+  "scope": "本轮离线浅色 React UI 的独立只读定向复评。各项评分仅适用于已审源码、截图和模拟交互证据。",
+  "verification": {
+    "readOnly": true,
+    "environmentStarted": false,
+    "browserOperated": false,
+    "testsRerun": false,
+    "htmlAndManifestShaMatch": true,
+    "contextBuildIdMatches": true,
+    "sourceLockInputsChecked": 1369,
+    "sourceLockMismatches": [],
+    "screenshotHashesMatched": 5,
+    "integratedAndBrowserReportsConsistent": true,
+    "imageReview": "已用 view_image 实际查看新 ai-applied.png；其余四图哈希与上轮已实际查看的图片完全一致。",
+    "reportedValidation": "工具构建、22 项定向 Node、4 项来源检查及22项浏览器切片报告为 PASS；本次未重新运行。"
+  },
+  "premises": [
+    {
+      "name": "AI 就地展开共享 Chat",
+      "status": "PASS",
+      "observation": "AiPanel 继续稳定挂载并通过 open/hidden 开合，复用 SharedConversationFrame/session；配置、目标、页签和业务编辑器没有被独立 AI 页面替代。",
+      "evidence": [
+        "src/App.jsx:209",
+        "src/AiPanel.jsx:108",
+        "最终浏览器报告中的工作区、草稿、结果及开合保留检查"
+      ]
+    },
+    {
+      "name": "风格与模板来源正确",
+      "status": "PASS",
+      "observation": "仍沿用 R27、公开 preview kit、公共组件及 canonical 外壳链路。来源锁无漂移；B1 修复没有新增样式体系、宿主注入或权限。",
+      "evidence": [
+        "preview/preview.manifest.json",
+        "preview/build-preview.mjs",
+        "preview/runtime-source.mjs",
+        "本轮与上轮一致的四张截图及新保存反馈截图"
+      ]
+    }
+  ],
+  "b1Resolution": {
+    "status": "RESOLVED",
+    "observation": "新图中上方保存成功状态与 Chat 当前反馈一致，显示“此提案的配置已保存；采集仍需单独点击「开始采集」”。历史助手消息继续作为历史内容保留，不再与当前状态混淆。",
+    "sourceVerification": [
+      "App.jsx:134 的 saveConfiguration 等待实际 save/copyProfile 返回成功。",
+      "app-model.js:222 的 commit 只有在写入并完整读回匹配后才返回 true。",
+      "App.jsx:139 核对原应用回执仍相同、待保存配置精确匹配，并排除 renameProfile。",
+      "AiPanel.jsx:107 仅在 appliedRequestId 与 savedRequestId 对应时显示已保存；下一轮 generate 清除 appliedRequestId。",
+      "未通过匹配提示文案推断业务状态。"
+    ],
+    "behaviorEvidence": [
+      "重复名称失败后保留命名界面和未保存指引。",
+      "成功保存后移除当前反馈中的未保存/命名保存指引。",
+      "保存副本清除旧结果归属，不自动开始采集。"
+    ],
+    "evidenceBoundary": "失败命名和成功保存有定向断言及浏览器报告；真实持久化不在本轮证明范围。"
+  },
+  "dimensions": [
+    {
+      "name": "需求符合度",
+      "score": 100,
+      "observation": "就地 Chat、业务状态保留、显式应用、命名保存及独立采集形成一致闭环；原 B1 扣分依据已消除。",
+      "deductions": [],
+      "applicability": "本轮 AI 开合、提案审阅、应用与模拟保存闭环。"
+    },
+    {
+      "name": "样式一致性",
+      "score": 98,
+      "observation": "共享按钮、浅色 tokens、边框、圆角及禁用态保持一致，反馈修复未改变视觉体系。",
+      "deductions": [
+        {
+          "points": 2,
+          "issue": "AI 入口仍使用 Unicode ✧，与邻近 SVG 图标的笔画和基线稳定性略有差异。",
+          "action": "后续可改用同规格装饰 SVG；不阻断当前操作。"
+        }
+      ],
+      "applicability": "当前浅色截图及对应样式源码。"
+    },
+    {
+      "name": "信息层级可读性",
+      "score": 96,
+      "observation": "配置、目标、AI 和业务页签分层明确，保存反馈已消除矛盾。",
+      "deductions": [
+        {
+          "points": 4,
+          "issue": "默认展开的资料区占据输入前的阅读路径；AI、消息和 JSON 分别滚动，审阅时仍有一定定位成本。",
+          "action": "后续可用紧凑资料摘要并减少非必要嵌套滚动。"
+        }
+      ],
+      "applicability": "正常窗口中的既有展开、审阅与保存状态；不包含宽度或缩放专项。"
+    },
+    {
+      "name": "操作效率反馈",
+      "score": 100,
+      "observation": "失败继续提示未保存，成功明确确认对应提案已保存，同时强调采集仍需单独开始。B1 的当前反馈矛盾已修复。",
+      "deductions": [],
+      "applicability": "已有模拟命名失败、保存成功和独立采集操作证据。"
+    },
+    {
+      "name": "键盘焦点",
+      "score": 97,
+      "observation": "开合、Escape 返回入口、放弃返回输入及发送保护保留；B1 未改变焦点结构。",
+      "deductions": [
+        {
+          "points": 3,
+          "issue": "重新展开仍定位标题，继续输入需经过关闭和资料控件，键盘路径略长。",
+          "action": "后续可增加继续输入的明确焦点入口，保留首次展开的标题定位。"
+        }
+      ],
+      "applicability": "源码及既有浏览器键盘证据；不包含屏幕阅读器、物理 IME。"
+    },
+    {
+      "name": "组件复用隔离",
+      "score": 99,
+      "observation": "保存回执留在工具业务层，Frame/session 仍只承担公共展示和内存会话；opaque iframe 与公开 AI 边界保持。",
+      "deductions": [
+        {
+          "points": 1,
+          "issue": "工具高度规则仍依赖公共 Frame 的 .od-conversation-log 类，存在轻微样式耦合。",
+          "action": "共享组件结构调整时保留该消费者检查。"
+        }
+      ],
+      "applicability": "本轮源码与离线 iframe，不代表原生权限验收。"
+    },
+    {
+      "name": "可维护性",
+      "score": 100,
+      "observation": "通过 requestId、应用回执及实际保存结果衔接状态，复用原模型写入读回合同，无文案匹配、额外存储或第二状态机；原 B1 状态脱节已消除。",
+      "deductions": [],
+      "applicability": "本轮保存反馈实现与既有业务模型边界。"
+    },
+    {
+      "name": "证据充分性",
+      "score": 100,
+      "observation": "新 SHA、manifest/context、源码锁、报告和截图一致；新增失败及成功反馈断言补齐上轮明确缺口，事件模拟边界仍如实说明。",
+      "deductions": [],
+      "applicability": "本轮定向复评证据。未执行项不被折算为通过或额外扣分。"
+    }
+  ],
+  "blockers": [],
+  "eventEvidence": {
+    "send": "Playwright 浏览器鼠标输入。",
+    "immediateCollapse": "同步 DOM click，用于确定性立即收起场景。",
+    "ordinaryCloseReopenAndEnter": "另有独立浏览器输入覆盖。",
+    "ime": "合成 CompositionEvent，不是物理 IME。"
+  },
+  "notTested": [
+    "Native 与当前已安装扩展",
+    "真实 AI、真实模型恢复",
+    "真实网站采集",
+    "安装、升级与 production",
+    "暗色",
+    "屏幕阅读器",
+    "物理 IME"
+  ],
+  "outOfScope": [
+    "物理宽度专项",
+    "浏览器缩放矩阵"
+  ],
+  "historicalUnknown": "UNTOUCHED",
+  "conclusion": "两项前提通过，B1 已解决，八维分别大于95，无本轮阻断项。本次离线浅色 UI 定向复评完成，不构成原生或正式发布验收。"
+}

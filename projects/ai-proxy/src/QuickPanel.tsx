@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {getEnvironment} from './environment';
 import {Button} from '@opendesk/ui';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
@@ -559,7 +560,7 @@ export default function App() {
       {savedHint&&<p className="r86Notice" role="status">{t('sideProxySavedNotApplied')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
         <div className="r86Head">
-          <h2>{t(profiles.length ? 'sideSavedProxies' : 'sideProxyOtherMethods')}{profiles.length>0&&<span className="countTag">{profiles.length}</span>}</h2>
+          <h2>{t(profiles.length ? 'sideSavedProxies' : 'sideProxySources')}{profiles.length>0&&<span className="countTag">{profiles.length}</span>}</h2>
           {profiles.length>0&&<Button id="quick-manage-profiles" className="textAction" onClick={()=>void openOptions('profiles')}>
             {t('sideManageAll')}
           </Button>}

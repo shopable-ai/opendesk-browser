@@ -12,7 +12,8 @@ const compile=async(path,replacements={})=>{
   for(const [from,to] of Object.entries(replacements))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
   return 'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 };
-const button=await compile('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
+const button=await compile('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react'),
+  'react-aria-components':import.meta.resolve('react-aria-components')});
 const toggle=await compile('../../src/ui/react/components/ui/switch.tsx',{
   'react':import.meta.resolve('react'),
   'react-aria-components':import.meta.resolve('react-aria-components')
@@ -63,7 +64,9 @@ export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props=
   const dispatch=function(type,extra={}){
     activate();
     const event=new window.Event(type,{bubbles:true,cancelable:true});
-    Object.assign(event,{isTrusted:true,key:'',...extra});
+    // A programmatic click has detail/button zero. React Aria distinguishes
+    // virtual activation from pointer sequences using these native fields.
+    Object.assign(event,{isTrusted:true,key:'',...(type==='click'?{detail:0,button:0}:{}),...extra});
     const target=extra.target||this;
     // Synthetic trusted values exercise controller guards only. They do not
     // establish native Chrome gestures or browser inert/focus behavior.

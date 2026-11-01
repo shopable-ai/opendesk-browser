@@ -111,7 +111,7 @@ test('R5.4 a wholly independent tool performs scoped PAC and owned STOP via SDK'
   const f=fixture();
   assert.deepEqual(await f.sdk.proxy.managed.getStatus(),{
     state:'disabled',control:'controllable_by_this_extension',
-    permission:true,canStop:false,reason:null
+    permission:true,canStop:false,reason:null,browserMode:null,activeConfig:null
   });
   const live=await f.sdk.proxy.managed.requestEnable({config:CONFIG});
   assert.equal(live.state,'enabled');

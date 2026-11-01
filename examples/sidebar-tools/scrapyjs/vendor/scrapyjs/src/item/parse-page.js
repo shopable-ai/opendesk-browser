@@ -3,6 +3,7 @@
 const { validateTaskSpec, validateCandidate, fault } = require('../ai/TaskSpec');
 const { inspectPage } = require('../ai/ConfigExecutor');
 const ScopedDownloader = require('../middleware/ScopedDownloader');
+const { fieldRule } = require('./item-loader-extraction');
 
 // Adapt ordinary CSS declarations to the existing constrained executor.
 module.exports = function parsePage(response, options = {}) {
@@ -28,18 +29,29 @@ module.exports = function parsePage(response, options = {}) {
     const reads = {};
     for (const name of names) {
       const rule = itemConfig[name];
-      if (typeof rule !== 'string') throw fault('FIELD_SCHEMA');
-      const parts = rule.split('::').map(part => part.trim());
-      if (parts.length !== 2 || !parts[0] || !['text', 'href', 'src'].includes(parts[1])) throw fault('FIELD_SCHEMA');
+      // Reuse suffix parsing, but expose only this executor's CSS/text/href/src subset.
+      if (typeof rule !== 'string' && (!rule || typeof rule !== 'object' || Array.isArray(rule) ||
+          Object.keys(rule).some(key => !['selector', 'read', 'attr'].includes(key)) ||
+          !['text', 'attr'].includes(rule.read) ||
+          (rule.read === 'attr' && !['href', 'src'].includes(rule.attr)))) throw fault('FIELD_SCHEMA');
+      let parsed;
+      try { parsed = fieldRule(rule, name); } catch (_) { throw fault('FIELD_SCHEMA'); }
+      const attr = parsed.attr === null ? 'text' : parsed.attr;
+      if (parsed.xpath || !parsed.selector || !['text', 'href', 'src'].includes(attr)) throw fault('FIELD_SCHEMA');
       const isUrl = urlFields.includes(name);
       fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
-      reads[name] = parts[1] === 'text' ? { selector: parts[0], read: 'text' } : { selector: parts[0], read: 'attr', attr: parts[1] };
+      reads[name] = attr === 'text' ? { selector: parsed.selector, read: 'text' } : { selector: parsed.selector, read: 'attr', attr };
     }
     if (!options.states || options.states.allowEmpty !== false || !options.pagination) throw fault('TASK_SCHEMA');
     for (const key of ['ready', 'empty', 'login', 'error']) {
       if (typeof options.states[key] !== 'string' || !options.states[key].trim()) throw fault('CSS_SYNTAX');
     }
-    if (options.pagination.kind !== 'nextHref' || options.pagination.attr !== 'href' || typeof options.pagination.missingNextIsEnd !== 'boolean') throw fault('TASK_SCHEMA');
+    const pagination = {
+      ...options.pagination,
+      kind: options.pagination.kind === undefined ? 'nextHref' : options.pagination.kind,
+      attr: options.pagination.attr === undefined ? 'href' : options.pagination.attr,
+    };
+    if (pagination.kind !== 'nextHref' || pagination.attr !== 'href' || typeof pagination.missingNextIsEnd !== 'boolean') throw fault('TASK_SCHEMA');
     for (const key of ['selector', 'disabledSelector', 'endSelector']) {
       if (typeof options.pagination[key] !== 'string' || !options.pagination[key].trim()) throw fault('CSS_SYNTAX');
     }
@@ -49,7 +61,7 @@ module.exports = function parsePage(response, options = {}) {
       schemaVersion: 1, profile: 'http-cheerio', mode: 'list',
       goal: 'Extract the explicitly configured CSS fields from this page',
       seedUrls: [response?.url], identity, list: { fields },
-      states: options.states, pagination: options.pagination,
+      states: options.states, pagination,
       allowedOrigins: scope.allowedOrigins, allowedProtocols: scope.allowedProtocols, allowedPathPrefixes: scope.allowedPathPrefixes,
       excludedRegions: options.excludedRegions ?? [],
       limits: { maxListPages: 1, maxDetailPages: 0, maxItems: 20000, maxRequests: 1, maxMs: 600000, requestTimeoutMs: 10000, maxBodyBytes },
@@ -58,7 +70,7 @@ module.exports = function parsePage(response, options = {}) {
     const candidate = validateCandidate({
       schemaVersion: 1, profile: 'http-cheerio',
       list: { container: itemConfig._listContainer, record: { selector: itemConfig._listItem, relation: 'directChildren' }, fields: reads },
-      states: options.states, pagination: options.pagination,
+      states: options.states, pagination,
     }, spec);
     const source = { kind: 'http', url: response.url, status: response.status, html: response.text };
     const context = { deadline: options.deadline, signal: options.signal };

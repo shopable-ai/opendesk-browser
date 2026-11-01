@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { localizedBackendError } from '../i18n/errors';
 import { useI18n } from '../i18n/LocaleProvider';
 import type { TranslationKey } from '../i18n/locale';
@@ -23,6 +24,8 @@ export function statusLabelKey(status: RuntimeStatus): TranslationKey {
     return 'proxyControlConflict';
   if (status.proxyError) return 'proxyOperationFailedShort';
   if (status.managedIntent && status.pendingChanges) return 'proxyPendingShort';
+  if (!status.managedIntent && status.desired.mode === 'system' && status.browserMode === 'system' &&
+      status.control === 'controllable_by_this_extension' && !status.outcomeUnknown) return 'apFollowingSystem';
   if (status.applied) return 'appliedToChrome';
   return status.managedIntent ? 'proxyPendingShort' : 'browserProxyNotManaged';
 }

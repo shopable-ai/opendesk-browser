@@ -130,7 +130,7 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
           </div><p class="muted" style="margin-top:12px">页面只允许一个 gutter 负责人，避免 Card 套 Card。</p></div>
           <div class="card"><h3>Radius</h3><div class="radius"><div class="control">Control · 8px</div><div class="surface">Surface · 12px</div></div></div>
           <div class="card"><h3>Typography</h3><p><strong>13px · 正文与操作</strong></p><p class="muted">12px · 注释与辅助信息</p><p style="font-size:11px;color:var(--od-sub)">11px · 技术元数据，不承载主要错误修复说明</p></div>
-          <div class="card"><h3>Light / Dark</h3><p>Atlas 外壳跟随系统，使用正式 Tokens；Components 内的真实 React 构建预览可单独切换深浅主题。对比度、200% 缩放和原生行为仍需当前候选实测。</p></div>
+          <div class="card"><h3>Light / Dark</h3><p>Atlas 外壳跟随系统，使用正式 Tokens；Components 内的真实 React 构建预览可单独切换深浅主题。对比度与原生行为仍需当前候选实测；本轮不做缩放或物理宽度专项。</p></div>
         </div>
         <div class="note">源码：<a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-tokens.css">design-tokens.css</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-system.css">design-system.css</a>。独立 Tool iframe 不可直接继承宿主私有 stylesheet。</div>
       </section>
@@ -173,20 +173,20 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
         <details class="archived-example"><summary>业务专项参考：P05 / P06 Bookmark Tree（历史构建，非设计规范 P0）</summary><div class="archive-body">
         <div class="card" id="p05-real-bookmark">
           <div class="bar"><div><h3>P05 · Bookmark Manager React Tree（历史业务参考）</h3><p>只用于验证业务级 Tree / Inspector；不作为通用 UI 规范 P0</p></div>
-            <a href="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" target="_blank" rel="noopener noreferrer">独立打开实际 React Tree 预览</a></div>
+            <a href="../../../projects/bookmark-manager/preview/index.html" target="_blank" rel="noopener noreferrer">独立打开实际 React Tree 预览</a></div>
           <div class="note" style="margin:10px 0"><strong>HISTORICAL_REAL_REACT · CURRENT_SOURCE_NOT_VERIFIED</strong>：预览最后批准于 2026-10-17，正式 <code>App.jsx</code> 于 2026-10-26 更新。预览包含真实 React Tree + Bookmark Model/Service 的内存 SDK Mock，但不是最新正式业务构建，且不连接 Chrome 书签或 Host。不得据此将 R2.8 的 P0 标记通过。</div>
           <div class="chips" aria-label="真实 React Tree 源码能力" style="margin-bottom:10px">
             <span class="chip">层级与文件夹</span><span class="chip">直接子项数量</span><span class="chip">展开 / 折叠 / 选中</span>
             <span class="chip">路径搜索</span><span class="chip">方向键 / Home / End / F2</span><span class="chip">超过 120 行虚拟化</span>
           </div>
-          <iframe class="full-frame" id="bookmark-real-react" title="Bookmark Manager 已编译真实 React Tree：历史来源、内存 SDK Mock" src="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" loading="lazy"></iframe>
+          <iframe class="full-frame" id="bookmark-real-react" title="Bookmark Manager 已编译真实 React Tree：历史来源、内存 SDK Mock" src="../../../projects/bookmark-manager/preview/index.html" loading="lazy"></iframe>
           <details style="margin-top:10px"><summary>核对原始源码与真实渲染证据</summary>
             <div class="link-list" style="margin-top:8px">
-              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx" target="_blank" rel="noopener noreferrer">App.jsx · Tree / row count / keyboard / virtualization / Inspector</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/style.css" target="_blank" rel="noopener noreferrer">style.css · 正式 React Tree 样式（非 Classic 样式）</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx" target="_blank" rel="noopener noreferrer">离线入口 · import 正式 App.jsx 与 CSS</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs" target="_blank" rel="noopener noreferrer">同源候选构建器 · 需要新的 CI/Chromium 晋升证据</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/run-chrome.mjs" target="_blank" rel="noopener noreferrer">当前 Chromium 驱动入口 → r304-chrome.mjs（不是历史 r3041 PASS 证据，也不代表本轮 PASS）</a>
+              <a href="../../../projects/bookmark-manager/src/react/App.jsx" target="_blank" rel="noopener noreferrer">App.jsx · Tree / row count / keyboard / virtualization / Inspector</a>
+              <a href="../../../projects/bookmark-manager/src/react/style.css" target="_blank" rel="noopener noreferrer">style.css · 正式 React Tree 样式（非 Classic 样式）</a>
+              <a href="../../../projects/bookmark-manager/preview/react/src/main.jsx" target="_blank" rel="noopener noreferrer">离线入口 · import 正式 App.jsx 与 CSS</a>
+              <a href="../../../projects/bookmark-manager/preview/react/build-preview.mjs" target="_blank" rel="noopener noreferrer">同源候选构建器 · 需要新的 CI/Chromium 晋升证据</a>
+              <a href="../../../projects/bookmark-manager/preview/react/run-chrome.mjs" target="_blank" rel="noopener noreferrer">当前 Chromium 驱动入口 → r304-chrome.mjs（不是历史 r3041 PASS 证据，也不代表本轮 PASS）</a>
             </div>
           </details>
         </div>
@@ -195,6 +195,16 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
 
       <section class="panel" id="pane-patterns" role="tabpanel" aria-labelledby="tab-patterns" hidden>
         <div class="panel-head"><div><h2>Patterns · P01–P16</h2><p>复用 R2.5 已保存的布局/Group 互动参考，避免重复开发。</p></div><a href="r25-layout-patterns.html" target="_blank" rel="noopener noreferrer">独立打开 R2.5</a></div>
+        <div class="card" id="mature-pattern-sources"><h3>成熟应用提炼 · 2026-11-01</h3>
+          <p>先复用信息层级与交互组合，再评估公共 API。以下是当前源码参照，不是已发布通用 Tree / Field 组件。</p>
+          <div class="link-list">
+            <a href="../../../examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx">搜索与筛选、摘要行、渐进表单 · CookieSearch / CookieRows / CookieAdvancedFields</a>
+            <a href="../../../projects/bookmark-manager/src/react/App.jsx">层级浏览、只读详情与显式编辑 · Tree / PreviewPane / Inspector</a>
+            <a href="../../../examples/sidebar-tools/cookie-editor/app/components/CookieHttpConnections.jsx">分组服务列表、文字状态与就地恢复</a>
+            <a href="../../../docs/api/sidebar-preview-kit.zh-CN.md#从样板提炼标准tokens控件组合分别处理">提炼规则、候选预览与评审条件</a>
+          </div>
+          <p class="muted">完整组合由原 sidebar-preview-kit.mjs 生成 components.html：资源工作台 / 偏好设置 / 基础控件。直接操作搜索、详情、编辑、高级属性和取消；已有工具仍用各自的同源预览。业务权限、数据处理与局部主题继续归原 owner。</p>
+        </div>
         
         <div class="card" id="r28-pattern-proof">
           <h3>R2.8 · P01–P16 实际运行分级</h3>
@@ -339,12 +349,12 @@ input{width:100%;min-width:0;min-height:36px;border-radius:8px}
             <tr><td>Menu / Popover / Tooltip / Tabs</td><td>PREVIEW_REACT_ARIA · NOT_SHARED_COMPONENT</td><td><a href="../../../src/ui/react/preview/extension-ui-showcase.tsx">preview/extension-ui-showcase.tsx</a></td></tr>
             <tr><td>Dialog / Confirmation</td><td>EXISTING_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tools.tsx">tabs/tools.tsx</a></td></tr>
             <tr><td>Search / List / Empty / Loading</td><td>EXISTING_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tools.tsx">tabs/tools.tsx</a></td></tr>
-            <tr><td>Tree / Detail / Dirty Draft / Error</td><td>SANDBOX_TOOL_REACT</td><td><a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx">bookmark-manager/App.jsx</a></td></tr>
+            <tr><td>Tree / Detail / Dirty Draft / Error</td><td>SANDBOX_TOOL_REACT</td><td><a href="../../../projects/bookmark-manager/src/react/App.jsx">bookmark-manager/App.jsx</a></td></tr>
             <tr><td>Code Editor / Execution / Notice</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/develop-editor.tsx">tabs/develop-editor.tsx</a></td></tr>
             <tr><td>Import / Permission / Revoke</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tool-host.tsx">tabs/tool-host.tsx</a></td></tr>
             <tr><td>Locale / Translation Pack</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/locale-manager.tsx">tabs/locale-manager.tsx</a></td></tr>
-            <tr><td>Prompt Input &amp; Save</td><td>SANDBOX_TOOL_HTML</td><td><a href="../../../examples/sidebar-tools/prompt-shortcuts/src/index.html">prompt-shortcuts/index.html</a></td></tr>
-            <tr><td>Cookie Fields &amp; Sensitive Values</td><td>SANDBOX_TOOL_HTML</td><td><a href="../../../examples/sidebar-tools/cookie-editor/src/index.html">cookie-editor/index.html</a></td></tr>
+            <tr><td>Prompt Input &amp; Save</td><td>SANDBOX_TOOL_HTML</td><td><a href="../../../projects/prompt-shortcuts/src/index.html">prompt-shortcuts/index.html</a></td></tr>
+            <tr><td>Cookie Fields &amp; Sensitive Values</td><td>TOOL_REACT · BUSINESS_OWNER</td><td><a href="../../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx">CookieEditorApp.jsx</a></td></tr>
           </tbody></table></div><p id="source-count" role="status" aria-live="polite" class="muted" style="margin-top:9px">15 类来源映射</p>
         </div>
         <div class="grid">
@@ -443,7 +453,7 @@ input{width:100%;min-width:0;min-height:36px;border-radius:8px}
   document.getElementById('clear-source').addEventListener('click',function(){query.value='';filter();query.focus()});
   filter();
 
-  const catalogEntries=[["Button / IconButton","SHARED_REACT","src/ui/react/components/ui/button.tsx","主要/次要/危险/图标操作；图标必须有可访问名称","不要自行创建新的按钮色板"],["Card / CardContent","SHARED_REACT","src/ui/react/components/ui/card.tsx","必要时一层信息容器","禁止每行套 Card 与重复 padding"],["Switch","SHARED_REACT","src/ui/react/components/ui/switch.tsx","单一持久设置的开关，依真实回读显示","不将启用与权限授权混为一谈"],["Input / Textarea / Select","HOST_CSS_PRIMITIVE","src/ui/design-system.css","有 label、帮助与错误文本的完整字段","不是可导入的共享 React Field"],["Checkbox / Radio / Segmented","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","多选、单选、少量分段选择","不能声称已共享或绕过焦点"],["Menu / Popover / Tooltip","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","低频操作与上下文说明","主要动作不可藏入菜单"],["Toolbar / Page Header","HOST_CSS_PRIMITIVE","src/ui/design-system.css","一个页首、单组高频动作","同一视图不重复页面标题"],["Settings Group / Section","LAYOUT_PATTERN","docs/framework/extension-ui-layout-recipes-r25.zh-CN.md","同目的设置聚合，一层边界","不为每字段单造 Card"],["Search / Filter","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","搜索、清除、过滤、空态恢复","不用重复双工具栏"],["List Row / More","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","标题、两行摘要、次级操作","行内部不放多个高亮按钮"],["Dialog / Confirmation","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","删除、撤权与高风险确认","不能模拟 Host 授权成功"],["Sheet / Import","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","中断式高价值操作、导入审查","宽度很窄时不塞大型 Drawer"],["Status / Loading / Error","LAYOUT_PATTERN","src/ui/design-system.css","可恢复、明确结果及下一步","不把 UNKNOWN 写成成功"],["Empty / No Results","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","提供清除条件或重试操作","不能只有空白卡片"],["Tree","SANDBOX_TOOL","examples/sidebar-tools/bookmark-manager/src/react/App.jsx","层级浏览：仅业务专项参考","不是共享 Tree 组件"],["Inspector / Detail / Dirty Draft","SANDBOX_TOOL","examples/sidebar-tools/bookmark-manager/src/react/App.jsx","详情、编辑和离开保护","历史离线预览不能替代最新业务证明"],["Prompt Form / Edit","SANDBOX_TOOL","examples/sidebar-tools/prompt-shortcuts/src/index.html","正文优先、选填折叠、保存恢复","不能把沙箱 UI 冒充 Host 原语"],["Cookie Dense Data","SANDBOX_TOOL","examples/sidebar-tools/cookie-editor/src/index.html","敏感字段、密集列表与眼睛按钮","不可明文显示真实 Cookie"],["Code Workbench / Run","BUSINESS_REACT","src/ui/react/tabs/develop-editor.tsx","编辑、Run/Stop、结果分层","点击按钮不代表运行成功"],["Locale / Translation","BUSINESS_REACT","src/ui/react/tabs/locale-manager.tsx","日常语言与语言包管理拆分","不暴露冗余高级字段"],["Permission / Revoke","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","真实权限状态与撤销后果","不从参考页请求权限"],["Disclosure / Advanced","HOST_CSS_PRIMITIVE","src/ui/design-system.css","低频诊断折叠、键盘可操作","不能隐藏主要保存动作"]];
+  const catalogEntries=[["Button / IconButton","SHARED_REACT","src/ui/react/components/ui/button.tsx","主要/次要/危险/图标操作；图标必须有可访问名称","不要自行创建新的按钮色板"],["Card / CardContent","SHARED_REACT","src/ui/react/components/ui/card.tsx","必要时一层信息容器","禁止每行套 Card 与重复 padding"],["Switch","SHARED_REACT","src/ui/react/components/ui/switch.tsx","单一持久设置的开关，依真实回读显示","不将启用与权限授权混为一谈"],["Input / Textarea / Select","HOST_CSS_PRIMITIVE","src/ui/design-system.css","有 label、帮助与错误文本的完整字段","不是可导入的共享 React Field"],["Checkbox / Radio / Segmented","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","多选、单选、少量分段选择","不能声称已共享或绕过焦点"],["Menu / Popover / Tooltip","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","低频操作与上下文说明","主要动作不可藏入菜单"],["Toolbar / Page Header","HOST_CSS_PRIMITIVE","src/ui/design-system.css","一个页首、单组高频动作","同一视图不重复页面标题"],["Settings Group / Section","LAYOUT_PATTERN","docs/framework/extension-ui-layout-recipes-r25.zh-CN.md","同目的设置聚合，一层边界","不为每字段单造 Card"],["Search / Filter","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","搜索、清除、过滤、空态恢复","不用重复双工具栏"],["List Row / More","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","标题、两行摘要、次级操作","行内部不放多个高亮按钮"],["Dialog / Confirmation","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","删除、撤权与高风险确认","不能模拟 Host 授权成功"],["Sheet / Import","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","中断式高价值操作、导入审查","宽度很窄时不塞大型 Drawer"],["Status / Loading / Error","LAYOUT_PATTERN","src/ui/design-system.css","可恢复、明确结果及下一步","不把 UNKNOWN 写成成功"],["Empty / No Results","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","提供清除条件或重试操作","不能只有空白卡片"],["Tree","SANDBOX_TOOL","projects/bookmark-manager/src/react/App.jsx","层级浏览：仅业务专项参考","不是共享 Tree 组件"],["Inspector / Detail / Dirty Draft","SANDBOX_TOOL","projects/bookmark-manager/src/react/App.jsx","详情、编辑和离开保护","历史离线预览不能替代最新业务证明"],["Prompt Form / Edit","SANDBOX_TOOL","projects/prompt-shortcuts/src/index.html","正文优先、选填折叠、保存恢复","不能把沙箱 UI 冒充 Host 原语"],["Cookie Dense Data","SANDBOX_TOOL","examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx","敏感字段、密集列表与眼睛按钮","不可明文显示真实 Cookie"],["Code Workbench / Run","BUSINESS_REACT","src/ui/react/tabs/develop-editor.tsx","编辑、Run/Stop、结果分层","点击按钮不代表运行成功"],["Locale / Translation","BUSINESS_REACT","src/ui/react/tabs/locale-manager.tsx","日常语言与语言包管理拆分","不暴露冗余高级字段"],["Permission / Revoke","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","真实权限状态与撤销后果","不从参考页请求权限"],["Disclosure / Advanced","HOST_CSS_PRIMITIVE","src/ui/design-system.css","低频诊断折叠、键盘可操作","不能隐藏主要保存动作"]];
   const catalog=document.getElementById('component-catalog');
   const cards=catalogEntries.map(function(item){
     const article=document.createElement('article');article.className='component-item';

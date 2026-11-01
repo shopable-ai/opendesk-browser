@@ -1,0 +1,138 @@
+{
+  "date": "2026-11-01",
+  "request": "删除字段更改未应用/应用字段步骤，有效输入直接进入配置草稿",
+  "branch": "main",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "evidenceLevel": "SOURCE_COMPONENT_PREVIEW",
+  "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e",
+  "candidate": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/fields-immediate-20261101/candidate6",
+  "preview": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.html",
+  "behavior": [
+    "合法字段名、规则、列表范围及点选回填即时更新配置草稿",
+    "错误/重复/不完整输入原位提示并阻止保存与运行，Escape恢复最后合法值",
+    "新增完整化和连续重命名保持同一输入节点",
+    "字段改名保留自定义CSV名称和并行排序元数据",
+    "保留显式保存配置、删除确认、身份/草稿/忙态与UNKNOWN保护"
+  ],
+  "validation": {
+    "node": {
+      "passed": 16,
+      "failed": 0,
+      "files": [
+        "tests/inline-rules.test.mjs",
+        "tests/inline-draft.test.mjs"
+      ]
+    },
+    "browser": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/fields-immediate-20261101/candidate6/interactions/report.json",
+        "status": "PASS",
+        "checks": 167,
+        "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/fields-immediate-20261101/candidate6/picker-interactions/report.json",
+        "status": "PASS",
+        "checks": 27,
+        "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/fields-immediate-20261101/candidate6/scope-interactions/report.json",
+        "status": "PASS",
+        "checks": 40,
+        "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/fields-immediate-20261101/candidate6/order-interactions/report.json",
+        "status": "PASS",
+        "checks": 20,
+        "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e"
+      }
+    ],
+    "totalBrowserAssertions": 254,
+    "toolBuild": "PASS: original Vite builder in isolated source snapshot",
+    "sourceVerification": {
+      "sourceCount": 1387,
+      "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e",
+      "manifestHashMatches": true,
+      "sourceDrift": [],
+      "missing": [],
+      "liveToolSourceDrift": [
+        "preview/rule-selection.js"
+      ]
+    },
+    "fixedTripleSync": {
+      "status": "PASS",
+      "files": {
+        "preview.html": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e",
+        "preview.manifest.json": "209240f09700d777c118a19a91365322512ae323bbd54d9a6df2bd67d5a5758f",
+        "preview.context.json": "36a092e14013cc12baa0ae68ea7d96a246458c5d2a3295c17a7c9b7fac2e1923"
+      },
+      "sourceCandidate": "candidate6",
+      "native": "NOT_TESTED"
+    },
+    "syntaxAndDiffCheck": "PASS"
+  },
+  "review": {
+    "status": "PASS",
+    "initial": {
+      "candidate": "candidate2",
+      "overall": 94.5,
+      "decision": "REQUEST_CHANGES",
+      "issue": "字段改名后output.fieldNames未迁移",
+      "resolution": "回归先失败后修复，兼容并行fieldOrder并保持输入节点"
+    },
+    "intermediate": {
+      "candidate": "candidate5",
+      "overall": 92.25,
+      "decision": "REQUEST_CHANGES",
+      "issue": "按位置复用排序节点后连续键盘移动丢失焦点，旧驱动重复聚焦掩盖",
+      "resolution": "useLayoutEffect在DOM重排后同步聚焦逻辑字段，回放改为初始聚焦后的连续page.keyboard"
+    },
+    "reviewer": "独立 Codex native code-reviewer AI 子Agent",
+    "candidate": "candidate6",
+    "htmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e",
+    "overall": 96.5,
+    "requiredOverall": ">95",
+    "decision": "COMMENT: 当前离线范围无未解决阻断项",
+    "dimensions": {
+      "需求": 98,
+      "简洁": 95,
+      "反馈": 96,
+      "键盘焦点": 98,
+      "正确性": 97,
+      "安全": 98,
+      "复用维护": 95,
+      "证据": 95
+    },
+    "confirmed": "独立连续键盘补查：仅初始聚焦后Space→End→Enter/Esc均保留逻辑字段焦点，确认提交/取消正确",
+    "scope": "仅candidate6离线同源预览，不代表人类认证或Native验收",
+    "nonBlockingNotes": [
+      "位置身份与业务键的关系须谨慎维护",
+      "LSP/真实IME/Native/真实网站/改名字段实际CSV下载/浏览器UNKNOWN恢复未测"
+    ]
+  },
+  "notTested": [
+    "安装或升级后的真实扩展",
+    "真实网站采集/点选",
+    "真实AI/Native/production",
+    "系统IME与屏幕阅读器专项",
+    "真实UNKNOWN恢复（Node状态保护有定向覆盖）",
+    "改名字段的真实CSV下载",
+    "LSP诊断（未提供可用工具；本轮使用真实Vite构建和定向行为检查）"
+  ],
+  "boundaries": {
+    "formalPackageChanged": false,
+    "installedExtensionChanged": false,
+    "sharedDistChanged": false,
+    "commit": false,
+    "push": false
+  },
+  "history": "candidate1-4原始失败/驱动诊断及并行来源差异保留，不沿用历史评分",
+  "postFreezeParallelChanges": {
+    "files": [
+      "preview/rule-selection.js"
+    ],
+    "scope": "并行调整无容器且指定列表项时的模拟枚举，保留当前工作区变更，最终离线HTML只绑定candidate6快照"
+  }
+}

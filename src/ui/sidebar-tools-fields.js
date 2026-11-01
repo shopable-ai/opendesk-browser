@@ -457,6 +457,9 @@ export const SIDEBAR_TOOL_FIELDS = {
   "sidebar-tool-bookmark-heading": {},
   "sidebar-tool-bookmark-info": {},
   "sidebar-tool-bookmark-grant": {},
+  "sidebar-tool-proxy-consent": {"hidden":true},
+  "sidebar-tool-proxy-consent-info": {},
+  "sidebar-tool-proxy-consent-revoke": {},
   "sidebar-tool-generic-site-binary": {
     "className": "sidebar-toc-settings-binary",
     "attributes": {

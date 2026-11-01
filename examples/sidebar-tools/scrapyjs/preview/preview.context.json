@@ -1,0 +1,22 @@
+{
+  "tool": "scrapyjs",
+  "view": "side-panel",
+  "scenario": "success",
+  "source": {
+    "commit": "54daec0b85e45557ae6bde86b3b9c17951456f9f",
+    "buildId": "4c94c11d54c95c9dd8c034b398864f74ecb8136c64066c596a5f55037546a6c8",
+    "evidenceLevel": "PREVIEW_COMPONENTS_COMPILED",
+    "runtime": "PREVIEW_COMPONENTS_COMPILED"
+  },
+  "simulation": {
+    "mock": true,
+    "memoryOnly": true,
+    "network": false,
+    "installed": false,
+    "ai": "PRESENTATION_PLACEHOLDER_ONLY",
+    "realCapture": false,
+    "export": "Blob download of simulated results only",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "usage": "打开 preview.html；场景选择位于 iframe 外，切换和重载重置内存。"
+}

@@ -19,13 +19,25 @@
 
 > **更新：2026-10-31。** 对安装工具的开发者，优先使用易理解的高层写法；下方方法状态已按当前实现校正，R1.3 / 2026-10-12 小节的数量仍是历史快照。当前接口数与可调用状态应直接查询 [唯一运行时注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
-## 有限公共代理：用户审阅精确路由（2026-10-30）
+## 受管代理：用户审阅精确路由（2026-10-31）
 
-已安装 Sidebar Tool 声明 `browser.proxy.managed` 后，使用原 `browser.proxy.managed.getStatus()`、`requestEnable({config:{endpoint:{scheme,host,port},domains}})` 和 `requestDisable()`。普通路由仅接受 HTTPS/SOCKS5、有效公共 ASCII 主机名及 1–16 个不重复目标域名；不接受 IP、私网/本地域名、原始 ProxyConfig 或用户 PAC。目标域名规则包含该域名及其全部子域，其他域名直连；匹配路由不附加 DIRECT 故障回退。
+已安装 Sidebar Tool 声明 `browser.proxy.managed` 后，使用原 `browser.proxy.managed.getStatus()`、`requestEnable({config:{endpoint:{scheme,host,port},domains}})` 和 `requestDisable()`。普通路由仅接受 HTTPS/SOCKS5、有效公共 ASCII 主机名及 1–16 个不重复目标域名；原有规则格式不接受 IP、私网/本地域名、原始 ProxyConfig 或用户 PAC。目标域名规则包含该域名及其全部子域，其他域名直连；匹配路由不附加 DIRECT 故障回退。
 
-**普通网络代理管理不再要求维护者预审并静态 pin 每个端点、域名或工具包。** 用户必须在原可信界面明确审阅并批准本次精确代理协议、主机、端口及目标域名（含子域）；用户自选代理不代表维护者背书其安全、隐私或服务质量。授权仍绑定操作、规范化参数、当前包 SHA、安装代际、工具及实例和 Host，短期单次使用；参数或身份变化、撤权及重放均拒绝。沙箱自报 `approved` / `validated` 不能授权，安装或 capability 声明也不能替代本次确认与 Chrome proxy 权限。
+只读状态现返回 `browserMode`（有效 Chrome 原生模式或 null）和 `activeConfig`（本安装精确 PAC/Journal 已确认的声明式配置或 null）。其他安装、未知结果、未确认控制权或缺失权限不返回线路配置；不得用保存的选择替代它。该扩展补齐了沙箱无法读取 Chrome 代理设置的公共缺口，也供其他代理管理工具复用；未新增写权限、后台或任意 PAC。
 
-Host 消费原 `browser.intent.confirm` 引用后，仅在本次分派的私有 context 作用域保存配置凭据，结束即清除。Driver 的可选可信 `authorizeConfig(context,config)` 必须明确返回 `true`，在全局锁内及第二次身份/权限复核前验证同一 context 和配置；有此回调时不得回退静态表绕过失败。未配置回调的底层消费者继续要求原 source-reviewed profile。固定 development HTTP 特例始终只按原构建模式、固定配置及 source-reviewed package pin 批准，不进入普通用户审阅路径，也不开放其他 HTTP/IP 路由。
+“跟随系统”消费者可通过原 `requestDisable()` 释放自己的精确代理覆盖，再确认 `state:disabled`、`control:controllable_by_this_extension` 和 `browserMode:system`。`clear` 与显式原生 `mode:system` 不等价；本 SDK 不开放无法携带安装标记的 system 覆盖。回读其他模式、控制冲突或 unknown 时不得宣称系统模式成功。参考 [Chrome 代理模式](https://developer.chrome.com/docs/extensions/reference/api/proxy#proxy-modes) 与 [ChromeSetting 优先级](https://developer.chrome.com/docs/extensions/reference/api/types#precedence)。
+
+新增显式配置：`{mode:"direct"}` 让全部标签页直连；`{mode:"fixed_servers",endpoint}` 为全部网站使用同一端点；`{mode:"rules",endpoint,domains}` 按有限域名分流。显式端点允许原 HTTPS/SOCKS5 公共 DNS，或 HTTP/SOCKS5 的精确 `127.0.0.1:1–65535` 本机客户端；其他 IP、localhost 别名、认证与任意 PAC 继续拒绝。三种模式仍编译为带安装身份的受管 PAC；STOP 只清除可验证的自有配置，恢复 Chrome 继承的系统设置。
+
+**普通网络代理管理不再要求维护者预审并静态 pin 每个端点、域名或工具包。** 用户首次在可信界面审阅精确线路（模式、协议、主机、端口和目标域名，含子域），点击「允许并记住此线路」。同一安装在用户点击应用后复用相同线路授权，不再逐次确认；新增线路或扩大范围重新审阅。无有效浏览器用户激活时仍需可信点击，不能通过页面加载或计时器静默启用。用户自选代理不代表维护者背书其安全、隐私或服务质量。
+
+持久线路授权存于原 `BROWSER_MENU_GRANTS_STORE[toolId].proxyConfigs`，绑定当前版本、包 SHA、安装代际及规范化配置，最多 16 条；升级、重新安装或撤权不继承旧记录。工具设置提供「撤销线路授权并停止代理」，清除本工具记住的线路和待执行 ENABLE，并通过原 Driver 释放精确自有 PAC。普通 STOP 不重复确认，也不清除其他工具或扩展的代理。主动停用/恢复依原安装器合同处理；Chrome 权限每次仍实时核验。
+
+每次调用仍签发短期、单次使用的原 `browser.intent.confirm` 引用，绑定操作、参数、包 SHA、安装代际、工具实例和 Host；STOP 使此前尚未消费的 ENABLE 引用失效。记住线路不等于重用指令、安装后自动启用或未知效果重放。沙箱自报 `approved` / `validated` 不能授权，capability 声明也不能替代首次精确线路审阅与 Chrome proxy 权限。
+
+同一工具界面还在请求入口捕获私有操作代际：STOP/撤权先使旧 ENABLE 失效，覆盖准入等待、沙箱排队和审阅期间的请求；提交原生操作后仍由原 Host/Driver 串行及 unknown 合同处理。此本地代际不宣称覆盖其他 Host 窗口尚未提交的请求。更新共享记录时保留身份仍有效的独立 `contextMenu` 限制，不将旧 Cookie/书签授权重新绑定。
+
+Host 消费原 `browser.intent.confirm` 引用后，仅在本次分派的私有 context 作用域保存配置凭据，结束即清除。Driver 的可选可信 `authorizeConfig(context,config)` 必须明确返回 `true`，在全局锁内及第二次身份/权限复核前验证同一 context、配置和仍有效的线路授权代际；有此回调时不得回退静态表绕过失败。未配置回调的底层消费者继续要求原 source-reviewed profile。固定 development HTTP 特例始终只按原构建模式、固定配置及 source-reviewed package pin 批准，不进入普通用户审阅路径，不放宽旧格式。新的显式模式通过普通精确审阅提供独立的本机线路合同。
 
 原两次安装身份/权限复核、全局代理锁、持久 unknown 栅栏、精确自有 PAC 读回及显式 STOP/撤权恢复合同保留；未知结果不自动重放。此处为源码与定向 Node 合同，真实 Chrome 安装、代理流量与原生生命周期验证为 `NOT_TESTED`。
 

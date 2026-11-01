@@ -1,0 +1,595 @@
+{
+  "date": "2026-10-31",
+  "stage": "DESIGN_PREVIEW_ONLY",
+  "candidateSha256": "f4d1ccafa639a6374d9a94f5511c5e0218f868ee4f51f7a9d6e542c7c9456658",
+  "previewURL": "http://127.0.0.1:58626/cookie-editor.html?view=enterprise",
+  "candidateDirectory": "artifacts/cookie-enterprise-add-service-20261031/candidate-5",
+  "nextUserAction": "企业 → 服务连接 → 添加服务；实验台填入演示信息可体验完整离线流程",
+  "problemObserved": {
+    "mode": "CHROME_EXISTING_OFFLINE_PREVIEW",
+    "originalSHA256": "b9b7793bb89a9b69be814e4e26175a00ec405c5137147e69c77b3116f3212b60",
+    "steps": [
+      "打开现有企业预览；关闭交接遗留演示草稿",
+      "点击添加图标，实际查看本机表单及公司切换"
+    ],
+    "finding": "本机仅有名称，类型写连接这台设备，下一页选登记进程；无法据此知道连接对象、启动要求或地址来源。"
+  },
+  "readOnlyContractEvidence": [
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/README.zh-CN.md：普通serve的有界HTTP应用接入",
+    "examples/sidebar-tools/cookie-editor/app/domain/http-services.js：cookieServiceOrigin",
+    "examples/sidebar-tools/cookie-editor/app/components/CookieHttpConnections.jsx：精确来源与64hex码校验"
+  ],
+  "decision": {
+    "layout": "两类统一服务名称＋服务地址",
+    "localLabel": "此电脑上的服务",
+    "localTarget": "此电脑上已启动的账号额度服务，需保持运行",
+    "initialAddress": "空；真实主机名/端口随启动生成，无可靠固定默认值",
+    "addressSource": "服务管理页 → Cookie同步设置 → 生成新应用连接码；终端Application pairing也提供精确origin与code",
+    "localValidation": "HTTP(S)仅localhost、*.localhost、127.0.0.1、[::1]；精确origin，拒绝路径、尾斜杠、参数、凭据",
+    "companyValidation": "非本机HTTPS精确来源，向管理员获取；公司授权尚未接入",
+    "connection": "保存不连接；本机单独填写一次性应用连接码并审阅；演示不验证真实服务或码生命周期",
+    "drafts": "类型切换分别保留地址；取消/返回保护；失败不丢输入",
+    "safety": "关联与同步审阅分开；连接地址只读，更换接收方使旧关联和授权失效；unknown只核对原操作"
+  },
+  "verification": {
+    "mode": "OFFLINE_HTML_CHROMIUM",
+    "checkCount": 12,
+    "pass": 12,
+    "pageErrors": [],
+    "realServiceRequests": [],
+    "report": "artifacts/cookie-enterprise-add-service-20261031/candidate-5/interactions.json",
+    "focusAssertions": [
+      "详情重新核对后active=svc-connect",
+      "连接页重新核对后active=svcCode且在视口内"
+    ],
+    "sourceVerification": "artifacts/cookie-enterprise-add-service-20261031/candidate-5/source-verification.json",
+    "manifest": "artifacts/cookie-enterprise-add-service-20261031/candidate-5/manifest.json",
+    "syntax": "PASS",
+    "patchWhitespace": "PASS",
+    "contentPreservation": "原企业模板逐字保留，六横排Tab及原Cookie/账号入口实际检查",
+    "httpBytes": "HTTP预览与最终源码一致"
+  },
+  "reviews": {
+    "type": "两位独立AI的同候选看图/源码/报告复评，不是人工或正式无障碍验收",
+    "ui": {
+      "candidateSha256": "f4d1ccafa639a6374d9a94f5511c5e0218f868ee4f51f7a9d6e542c7c9456658",
+      "reviewerRole": "独立视觉/UI评审：层级、布局密度、文案可读性、控件一致性、状态/表单可理解性",
+      "imagesViewed": [
+        {
+          "file": "add-local-empty.png",
+          "method": "tools.view_image",
+          "observation": "此电脑上的服务选中，名称和地址留空；管理页复制路径具体；保存与取消完整可见。"
+        },
+        {
+          "file": "add-local-help.png",
+          "method": "tools.view_image",
+          "observation": "启动和复制地址帮助展开，操作区完整；两步仍连在一段，更多正文需滚动。未凭该静帧推断后文永久被遮挡。"
+        },
+        {
+          "file": "add-local-invalid.png",
+          "method": "tools.view_image",
+          "observation": "字段红框、蓝色焦点环及红色地址错误明确；保存配置仍完整可见。"
+        },
+        {
+          "file": "add-code-invalid.png",
+          "method": "tools.view_image",
+          "observation": "64hex格式说明准确；输入遮蔽；底部操作按钮仅露顶部，标签不可见。"
+        },
+        {
+          "file": "add-code-review.png",
+          "method": "tools.view_image",
+          "observation": "名称、精确地址、一次性连接码及本次连接范围清楚；正常态取消/确认连接·演示可见。"
+        },
+        {
+          "file": "add-connected.png",
+          "method": "tools.view_image",
+          "observation": "已连接·演示与同步尚未授权分开；选择账号提示与已连接状态一致。"
+        },
+        {
+          "file": "unavailable-connect-review.png",
+          "method": "tools.view_image",
+          "observation": "未启动连接页出现就地警示、启动和地址变化说明、重新核对服务状态按钮。"
+        },
+        {
+          "file": "unavailable-recovered-focus.png",
+          "method": "tools.view_image",
+          "observation": "恢复后警示消失，连接码输入框出现完整蓝色焦点环；下方连接范围及确认按钮可见。静帧不独立证明完整键盘顺序。"
+        }
+      ],
+      "comparison": {
+        "baseline": "candidate-4/cookie-editor.html",
+        "baselineSha256": "80c906fd6175fb947d2768026a431563b1d604b72969ac6433e3bf9480d7c87d",
+        "method": "完整HTML逐行diff及内联style逐字比较，仅只读分析；未执行候选JS或测试。",
+        "changedLines": 2,
+        "changes": [
+          {
+            "line": 482,
+            "function": "serviceRender",
+            "finding": "请求的焦点选择器无匹配时，回退至 svcTitle，随后通过 serviceFocusVisible 聚焦并调整可见性。"
+          },
+          {
+            "line": 633,
+            "function": "serviceAction refresh",
+            "finding": "connect页重新核对后指向 svcCode；detail页指向 svc-connect；其他页指向 svc-refresh。"
+          }
+        ],
+        "cssIdentical": true,
+        "layoutMarkupIdentical": true,
+        "copyIdentical": true,
+        "conclusion": "确认仅两行焦点逻辑差异；未发现布局、文案或CSS变更。比较用于核对变更范围，分数依据本候选新截图与HTML重新计算。"
+      },
+      "rubric": [
+        {
+          "dimension": "视觉层级与分组",
+          "max": 20,
+          "score": 20,
+          "deductionIds": [],
+          "evidence": [
+            "add-local-empty.png",
+            "add-code-review.png",
+            "add-connected.png"
+          ],
+          "assessment": "标题、字段、次级说明和主操作层级明确；连接、账号关联、同步范围分组清楚，没有可据当前画面扣分的层级冲突。"
+        },
+        {
+          "dimension": "布局密度与操作可见性",
+          "max": 20,
+          "score": 18,
+          "deductionIds": [
+            "D1"
+          ],
+          "evidence": [
+            "add-local-empty.png",
+            "add-local-help.png",
+            "add-local-invalid.png",
+            "add-code-invalid.png"
+          ],
+          "assessment": "配置表单紧凑但可读，正常/帮助/地址错误画面保存按钮均完整；连接码错误画面仍只露底部操作顶边。"
+        },
+        {
+          "dimension": "文案可读性与服务理解",
+          "max": 20,
+          "score": 19,
+          "deductionIds": [
+            "D2"
+          ],
+          "evidence": [
+            "add-local-empty.png",
+            "add-local-help.png",
+            "add-code-invalid.png",
+            "cookie-editor.html:522"
+          ],
+          "assessment": "连接对象、先启动服务、地址来源、保存不连接和64hex说明清楚；展开帮助的连续步骤及终端术语仍有轻微扫读负担。"
+        },
+        {
+          "dimension": "控件一致性与输入核对",
+          "max": 20,
+          "score": 19,
+          "deductionIds": [
+            "D3"
+          ],
+          "evidence": [
+            "add-local-invalid.png",
+            "add-code-review.png",
+            "unavailable-recovered-focus.png",
+            "cookie-editor.html:537"
+          ],
+          "assessment": "选择、输入、错误、焦点和主次操作样式一致；连接码输入可见焦点正确，仍缺少主动显隐核对。"
+        },
+        {
+          "dimension": "状态与表单流程可理解性",
+          "max": 20,
+          "score": 20,
+          "deductionIds": [],
+          "evidence": [
+            "add-connected.png",
+            "unavailable-connect-review.png",
+            "unavailable-recovered-focus.png",
+            "cookie-editor.html:482",
+            "cookie-editor.html:529-540",
+            "cookie-editor.html:633"
+          ],
+          "assessment": "未启动时给出就地恢复说明，恢复后的下一输入目标有焦点环；已连接、账号关联和同步授权边界明确。当前证据未见新增状态理解扣分。"
+        }
+      ],
+      "score": 96,
+      "scoreMaximum": 100,
+      "blockers": [],
+      "blockerAssessment": "在本轮限定的冻结HTML与截图证据中无视觉/UI阻断项；不宣称实际操作、人工可用性、正式a11y、Native或production验收通过。",
+      "deductions": [
+        {
+          "id": "D1",
+          "severity": "nonblocking",
+          "points": 2,
+          "dimension": "布局密度与操作可见性",
+          "evidence": [
+            "add-code-invalid.png",
+            "add-code-review.png",
+            "cookie-editor.html:300",
+            "cookie-editor.html:535-540"
+          ],
+          "finding": "新截图的连接码错误态中，取消/确认按钮仅露顶部且标签不可见；正常态则可见。sticky规则仅命中 .svc-form>.svc-form-footer，连接审阅页操作区不是该结构。纠错用户仍需额外滚动找到确认按钮。",
+          "limit": "存在纵向滚动，未认定按钮不可达或流程阻断；不把配置页帮助滚动与此问题混为同一扣分。",
+          "minimalFix": "为连接审阅页操作区提供局部的底部可见策略并预留正文空间，使错误提示出现后按钮仍完整可见；无需全局固定详情按钮。"
+        },
+        {
+          "id": "D2",
+          "severity": "nonblocking",
+          "points": 1,
+          "dimension": "文案可读性与服务理解",
+          "evidence": [
+            "add-local-help.png",
+            "cookie-editor.html:522"
+          ],
+          "finding": "新帮助画面里①启动与②复制地址仍为同一连续段落；HTML后文仍混用 Application pairing、origin、code，对找不到服务地址的新用户增加扫读成本。后文术语判断来自HTML，未冒称截图已显示全部文字。",
+          "minimalFix": "将启动、打开管理页复制地址分行；终端说明降为可选次级信息，主路径统一使用服务地址/连接码。"
+        },
+        {
+          "id": "D3",
+          "severity": "nonblocking",
+          "points": 1,
+          "dimension": "控件一致性与输入核对",
+          "evidence": [
+            "add-code-review.png",
+            "add-code-invalid.png",
+            "cookie-editor.html:537"
+          ],
+          "finding": "连接码持续遮蔽且无显示/隐藏控件，出现格式错误时无法主动核对误贴的内容。重新粘贴和格式校验仍可完成流程，因此非阻断。",
+          "minimalFix": "保留默认遮蔽，增加有明确可访问名称的主动显隐入口；不默认明文、不持久保存连接码。"
+        }
+      ],
+      "scope": {
+        "mode": "READ_ONLY_FROZEN_HTML_AND_NEW_SCREENSHOTS",
+        "candidateHtml": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-enterprise-add-service-20261031/candidate-5/cookie-editor.html",
+        "hashVerified": true,
+        "independentRescore": true,
+        "previousScoreUsedAsInput": false,
+        "targetScoreUsed": false,
+        "focusFixEvidence": {
+          "missingSelectorFallback": "源码482行确认存在；无专门截图可独立触发该回退分支。",
+          "detailRefreshTarget": "源码633行确认详情页转向连接按钮；未查看该分支专属焦点截图，未亲自执行。",
+          "connectRefreshTarget": "源码633行与 unavailable-recovered-focus.png 相互支持：恢复画面焦点环位于连接码输入。",
+          "limit": "仅静态源码和提供方截图证据，不等同完整键盘或屏幕阅读器验收。"
+        },
+        "contractReview": [
+          {
+            "item": "本机地址留空、服务启动与地址来源",
+            "evidence": [
+              "add-local-empty.png",
+              "add-local-help.png",
+              "cookie-editor.html:518-524"
+            ],
+            "status": "SCREENSHOT_AND_SOURCE_SUPPORTED"
+          },
+          {
+            "item": "保存不连接、已连接地址只读、关联与同步分开",
+            "evidence": [
+              "add-local-empty.png",
+              "add-connected.png",
+              "cookie-editor.html:521",
+              "cookie-editor.html:531-532",
+              "cookie-editor.html:583-599"
+            ],
+            "status": "SOURCE_SUPPORTED_WITH_PARTIAL_SCREENSHOT_EVIDENCE"
+          },
+          {
+            "item": "本机精确HTTP(S) origin、公司HTTPS",
+            "evidence": [
+              "cookie-editor.html:588-591"
+            ],
+            "status": "SOURCE_SUPPORTED_ONLY"
+          },
+          {
+            "item": "未知结果只核对、不重发",
+            "evidence": [
+              "cookie-editor.html:530",
+              "cookie-editor.html:555-556",
+              "cookie-editor.html:604-605",
+              "cookie-editor.html:621"
+            ],
+            "status": "SOURCE_SUPPORTED_ONLY_FOR_THIS_REVIEW"
+          }
+        ],
+        "auxiliaryRecords": {
+          "interactionsJson": {
+            "read": true,
+            "candidateSha256Matches": true,
+            "reportedChecks": 12,
+            "reportedPass": 12,
+            "reportedPageErrors": [],
+            "reportedNetworkRequests": [],
+            "independentlyExecuted": false,
+            "interpretation": "随候选提供的12项结果报告PASS，只作辅助；不是评审者重跑证据或正式验收。"
+          },
+          "sourceVerificationJson": {
+            "read": true,
+            "candidateSha256Matches": true,
+            "independentlyExecuted": false,
+            "reportedMode": "DESIGN_PREVIEW_ONLY",
+            "interpretation": "仅作为提供方记录；本评审独立核对本地候选SHA、完整两行diff及所列新截图。"
+          }
+        },
+        "constraintsObserved": [
+          "仅写candidate-5/ui-review.json",
+          "未修改候选、其他文件或并行工作",
+          "未操作浏览器",
+          "未运行产品构建或测试",
+          "未真实连接服务"
+        ],
+        "writeScope": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-enterprise-add-service-20261031/candidate-5/ui-review.json"
+      },
+      "notTested": [
+        "未独立执行12项相关检查、浏览器交互或产品构建。",
+        "未实际触发serviceRender选择器失配回退、详情页核对后焦点转移或完整键盘Tab顺序。",
+        "未亲自验证帮助滚动到底的不遮挡断言及连接码错误后滚动确认操作。",
+        "未开展人工可用性研究、正式a11y审计或屏幕阅读器验收。",
+        "未验证Native、真实Chrome扩展、实际服务启动、网络连接、真实连接码生命周期或公司授权。",
+        "未开展production验收、暗色、多浏览器、缩放或Side Panel物理宽度矩阵。"
+      ],
+      "summary": "96/100，无视觉/UI阻断项。完整diff确认仅两行焦点修复；8张本候选新截图支持当前评分，恢复画面显示码输入焦点。仍有连接码错误态按钮未完整可见（2分）、帮助扫读负担（1分）、码输入缺少主动显隐（1分）。",
+      "stopCondition": "已完成指定候选的只读对比、实际截图复评与唯一授权JSON报告，不扩展为实现或运行验收。"
+    },
+    "ux": {
+      "candidateSha256": "f4d1ccafa639a6374d9a94f5511c5e0218f868ee4f51f7a9d6e542c7c9456658",
+      "actualSha256": "f4d1ccafa639a6374d9a94f5511c5e0218f868ee4f51f7a9d6e542c7c9456658",
+      "hashVerified": true,
+      "candidatePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-enterprise-add-service-20261031/candidate-5/cookie-editor.html",
+      "reviewerRole": "independent-ux-reviewer",
+      "verdict": "OKAY",
+      "score": 100,
+      "maxScore": 100,
+      "summary": "在本次离线原型UX评审范围内未发现需扣分问题。重新阅读当前源码并实际查看新目录16张截图后独立评分；没有继承旧99分或按目标调整。",
+      "comparison": {
+        "baselineCandidate": "candidate-4",
+        "baselineSha256": "80c906fd6175fb947d2768026a431563b1d604b72969ac6433e3bf9480d7c87d",
+        "method": "只读diff",
+        "exactlyTwoChangedLines": true,
+        "changes": [
+          {
+            "line": 482,
+            "verified": "serviceRender找不到指定焦点目标时，使用svcTitle兜底。"
+          },
+          {
+            "line": 631,
+            "verified": "重新核对后，连接页聚焦svcCode，详情页聚焦连接服务，列表保留刷新按钮目标。"
+          }
+        ],
+        "assessment": "两行差异与用户描述一致，未发现其他HTML变化。"
+      },
+      "rubric": [
+        {
+          "dimension": "首次使用理解",
+          "score": 20,
+          "max": 20,
+          "assessment": "此电脑上的服务与公司服务区分明确。帮助解释先启动账号额度服务，再打开管理页获取地址；未准备服务时可通过外部实验台体验。",
+          "evidence": [
+            "add-local-empty.png",
+            "add-local-help.png",
+            "add-company.png",
+            "cookie-editor.html:518",
+            "cookie-editor.html:522"
+          ]
+        },
+        {
+          "dimension": "输入与地址取得",
+          "score": 20,
+          "max": 20,
+          "assessment": "本机地址初始为空，取址路径明确；公司要求HTTPS，连接码错误明确64位及允许字符。源码保留精确本机origin校验和两类地址草稿。",
+          "evidence": [
+            "add-local-empty.png",
+            "add-company.png",
+            "add-code-invalid.png",
+            "cookie-editor.html:521",
+            "cookie-editor.html:588",
+            "cookie-editor.html:617"
+          ]
+        },
+        {
+          "dimension": "保存与连接连贯性",
+          "score": 20,
+          "max": 20,
+          "assessment": "配置页保存按钮可见，明确保存不会连接；保存后保持未连接，再单独审阅连接。连接页保留名称、地址、访问范围及返回修改入口。",
+          "evidence": [
+            "add-local-empty.png",
+            "add-local-help.png",
+            "add-local-saved.png",
+            "add-code-review.png",
+            "add-connected.png"
+          ]
+        },
+        {
+          "dimension": "恢复、草稿与焦点",
+          "score": 20,
+          "max": 20,
+          "assessment": "未启动详情与连接页均有说明及手动核对入口；新恢复截图显示连接码输入框获得可见焦点。源码补齐详情页下一步焦点和标题兜底。草稿确认、保存失败保留输入清楚。",
+          "evidence": [
+            "unavailable.png",
+            "unavailable-connect-review.png",
+            "unavailable-recovered-focus.png",
+            "unsaved-draft.png",
+            "save-failure.png",
+            "cookie-editor.html:482",
+            "cookie-editor.html:631"
+          ]
+        },
+        {
+          "dimension": "身份、授权与诚实边界",
+          "score": 20,
+          "max": 20,
+          "assessment": "演示连接、账号关联及同步授权分离，身份未核验提示明确；同步审阅列明资源、接收方、数据类别及保留时间。已连接地址只读，未知结果仅核对。",
+          "evidence": [
+            "add-connected.png",
+            "association-review.png",
+            "scope-review.png",
+            "unknown-detail.png",
+            "cookie-editor.html:521",
+            "cookie-editor.html:547",
+            "cookie-editor.html:605",
+            "cookie-editor.html:621"
+          ]
+        }
+      ],
+      "blockers": [],
+      "deductions": [],
+      "imagesViewed": [
+        "add-local-empty.png",
+        "add-local-help.png",
+        "add-company.png",
+        "add-code-invalid.png",
+        "add-code-review.png",
+        "add-connected.png",
+        "add-local-saved.png",
+        "unsaved-draft.png",
+        "save-failure.png",
+        "scope-review.png",
+        "association-review.png",
+        "unavailable.png",
+        "unavailable-recovered-focus.png",
+        "unknown-overview.png",
+        "unavailable-connect-review.png",
+        "unknown-detail.png"
+      ],
+      "imageInspectionMethod": "上述16张均实际使用view_image查看，未沿用旧目录截图代替。",
+      "interactionEvidence": {
+        "source": "candidate-5/interactions.json",
+        "readByReviewer": true,
+        "sha256MatchesCandidate": true,
+        "mode": "OFFLINE_HTML_CHROMIUM",
+        "pass": 12,
+        "fail": 0,
+        "pageErrors": [],
+        "networkRequests": [],
+        "focusEvidenceLimit": "报告汇总恢复路径为PASS，但未单独列出恢复焦点断言详情。焦点修复另由当前源码与unavailable-recovered-focus.png相互支持。",
+        "testsRunByReviewer": false,
+        "nativeChrome": "NOT_TESTED"
+      },
+      "scope": {
+        "assessment": "冻结离线HTML原型的UX静态复评，结合已有同SHA自动检查记录。",
+        "scoreMeaning": "100分表示本轮已审范围没有发现扣分问题，不表示真实产品或所有运行环境完美。",
+        "realServiceStartup": "原型外范围，不以未实现真实启动扣分。",
+        "filesWritten": [],
+        "browserOperated": false,
+        "buildsRun": false,
+        "stopCondition": "当前源码、差异、新截图及检查摘要已核对，评审完成。"
+      },
+      "notTested": [
+        "评审者亲自操作浏览器、键盘或重跑自动检查",
+        "详情页恢复后焦点的独立运行复现及标题兜底分支的动态验证",
+        "帮助全文与sticky保存栏在完整滚动过程中的遮挡验证",
+        "真实服务启动、HTTP或HTTPS接入、服务身份和权限验证",
+        "连接码真实有效期与一次性消费",
+        "Chrome扩展、Native、正式安装和实际同步",
+        "人工首次用户测试、正式无障碍审计及屏幕阅读器验证",
+        "缩放与物理宽度专项"
+      ]
+    },
+    "history": {
+      "candidate1": {
+        "ui": 92,
+        "ux": 93,
+        "directory": "artifacts/cookie-enterprise-add-service-20261031/candidate-1"
+      },
+      "candidate4": {
+        "ui": 96,
+        "ux": 99,
+        "directory": "artifacts/cookie-enterprise-add-service-20261031/candidate-4"
+      },
+      "inheritance": "最终评分重新查看candidate-5，未继承历史分数"
+    }
+  },
+  "failuresPreserved": [
+    {
+      "directory": "candidate-1",
+      "kind": "旧驱动按钮名称",
+      "classification": "恢复入口改动后驱动仍找已移除按钮，已更新；同时修复实际unavailable恢复缺口"
+    },
+    {
+      "directory": "candidate-2",
+      "kind": "过快fill与rAF焦点竞争",
+      "classification": "驱动先等返回焦点再填写；不放宽用户行为或保护"
+    },
+    {
+      "directory": "candidate-3",
+      "kind": "实现者视觉复核",
+      "classification": "sticky保存区遮住帮助，最终仅收紧配置间距与文案后重新取证"
+    }
+  ],
+  "liveBrowser": {
+    "earlierManualChain": "焦点修复前同外观候选，实际添加/填写/保存，观察到未连接",
+    "finalReload": "BLOCKED_POLICY",
+    "reason": "浏览器URL策略拒绝取得frame authority，未使用其他界面或控制通道绕过",
+    "impact": "未宣称现有Chrome标签已刷新到最终SHA；可点击HTTP预览返回最终源码，同候选离线截图及检查有效"
+  },
+  "remainingNonblocking": [
+    {
+      "id": "D1",
+      "severity": "nonblocking",
+      "points": 2,
+      "dimension": "布局密度与操作可见性",
+      "evidence": [
+        "add-code-invalid.png",
+        "add-code-review.png",
+        "cookie-editor.html:300",
+        "cookie-editor.html:535-540"
+      ],
+      "finding": "新截图的连接码错误态中，取消/确认按钮仅露顶部且标签不可见；正常态则可见。sticky规则仅命中 .svc-form>.svc-form-footer，连接审阅页操作区不是该结构。纠错用户仍需额外滚动找到确认按钮。",
+      "limit": "存在纵向滚动，未认定按钮不可达或流程阻断；不把配置页帮助滚动与此问题混为同一扣分。",
+      "minimalFix": "为连接审阅页操作区提供局部的底部可见策略并预留正文空间，使错误提示出现后按钮仍完整可见；无需全局固定详情按钮。"
+    },
+    {
+      "id": "D2",
+      "severity": "nonblocking",
+      "points": 1,
+      "dimension": "文案可读性与服务理解",
+      "evidence": [
+        "add-local-help.png",
+        "cookie-editor.html:522"
+      ],
+      "finding": "新帮助画面里①启动与②复制地址仍为同一连续段落；HTML后文仍混用 Application pairing、origin、code，对找不到服务地址的新用户增加扫读成本。后文术语判断来自HTML，未冒称截图已显示全部文字。",
+      "minimalFix": "将启动、打开管理页复制地址分行；终端说明降为可选次级信息，主路径统一使用服务地址/连接码。"
+    },
+    {
+      "id": "D3",
+      "severity": "nonblocking",
+      "points": 1,
+      "dimension": "控件一致性与输入核对",
+      "evidence": [
+        "add-code-review.png",
+        "add-code-invalid.png",
+        "cookie-editor.html:537"
+      ],
+      "finding": "连接码持续遮蔽且无显示/隐藏控件，出现格式错误时无法主动核对误贴的内容。重新粘贴和格式校验仍可完成流程，因此非阻断。",
+      "minimalFix": "保留默认遮蔽，增加有明确可访问名称的主动显隐入口；不默认明文、不持久保存连接码。"
+    }
+  ],
+  "notTested": [
+    "真实本机/公司服务接入",
+    "Native",
+    "正式React",
+    "安装与production",
+    "完整无障碍及人工首次用户测试",
+    "真实连接码一次性与有效期"
+  ],
+  "outOfScope": [
+    "宽度/缩放矩阵",
+    "Browser构建及全量CI"
+  ],
+  "changedFiles": [
+    "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+    "examples/sidebar-tools/cookie-editor/preview/README.zh-CN.md",
+    "examples/sidebar-tools/cookie-editor/preview/SERVICE-CONNECTIONS-DESIGN.md",
+    "examples/sidebar-tools/cookie-editor/tests/service-preview-interactions.mjs",
+    "examples/sidebar-tools/cookie-editor/evidence/service-add-form-review-20261031.json"
+  ],
+  "git": {
+    "branch": "main",
+    "commit": "NOT_REQUESTED_NOT_DONE",
+    "push": "NOT_REQUESTED_NOT_DONE"
+  },
+  "preservation": [
+    "原58626静态服务保留，未停止或重启",
+    "未修改正式app/trusted/SDK/Browser src/正式JSON/根DESIGN.md",
+    "其他Agent未提交改动保留"
+  ],
+  "recordedAt": "2026-10-31T11:01:29.948496+00:00"
+}

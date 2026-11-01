@@ -1,0 +1,115 @@
+{
+  "scope": "ScrapyJS unified capture-rule and display-column preview",
+  "date": "2026-11-01",
+  "preview": "examples/sidebar-tools/scrapyjs/preview/preview.html",
+  "htmlSha256": "c5fb5016aea7b71734dbb3cb7b96eb1a4d38af7249350da16f67effe40439fdc",
+  "sourceInputsAtSync": 1386,
+  "sourceDriftAtSync": 0,
+  "designReview": {
+    "reviewer": {
+      "agent": "Turing",
+      "role": "designer",
+      "independent": true,
+      "kind": "AI_DESIGN_REVIEW"
+    },
+    "candidate": 12,
+    "previewSha256": "c5fb5016aea7b71734dbb3cb7b96eb1a4d38af7249350da16f67effe40439fdc",
+    "score": 96,
+    "target": ">95",
+    "meetsTarget": true,
+    "dimensions": [
+      {
+        "name": "视觉层级与一致性",
+        "score": 18,
+        "maximum": 20,
+        "remaining": [
+          "移动矩形描边与圆角控件略显生硬",
+          "结果页记录表头两行"
+        ]
+      },
+      {
+        "name": "字段管理整体性",
+        "score": 25,
+        "maximum": 25
+      },
+      {
+        "name": "操作效率与可发现性",
+        "score": 18,
+        "maximum": 20,
+        "remaining": [
+          "HTTP显示控制位于长表单之后",
+          "独立详情图标直观性弱于文字入口"
+        ]
+      },
+      {
+        "name": "语义与状态可理解性",
+        "score": 20,
+        "maximum": 20
+      },
+      {
+        "name": "操作提示与可访问性设计",
+        "score": 15,
+        "maximum": 15
+      }
+    ],
+    "evidence": [
+      "visual12/report.json",
+      "browser12/report.json",
+      "candidate12/preview.html",
+      "candidate12/preview.manifest.json"
+    ],
+    "verifiedByReviewer": {
+      "screenshots": 9,
+      "sourceInputs": 1386,
+      "sourceDrift": 0,
+      "unchangedScreenshotsFromCandidate11": 7
+    },
+    "scope": "Offline real React + simulated SDK UI only; not native installation, real capture/AI, or human certification."
+  },
+  "verification": {
+    "unifiedColumnBrowserChecks": {
+      "status": "PASS",
+      "count": 39,
+      "candidate": 12,
+      "errors": []
+    },
+    "relatedModelAndDraftChecks": {
+      "status": "PASS",
+      "count": 24
+    },
+    "originalInlineRulesAndColumns": {
+      "status": "PASS",
+      "count": 56,
+      "candidate": 10,
+      "note": "Prior candidate10 verification before final active guidance/CSS and concurrent result/scope updates; not claimed as same-SHA12."
+    },
+    "fixtureImports": "PASS: real App and shared Switch",
+    "toolBuild": "PASS",
+    "scopedDiffCheck": "PASS"
+  },
+  "changes": [
+    "Single 显示名称 switch replaces selector slot with header alias",
+    "Removed name tabs, field/column counts, redundant hints and stacked name rows",
+    "Field list owns visibility/order/alias, including result-only columns",
+    "Presentation settings isolated per profile epoch; exports retain full original records",
+    "Shared Switch and existing Input/IconButton, no new dependency"
+  ],
+  "codeReview": {
+    "reviewer": "Carson",
+    "independent": true,
+    "scope": "candidate9 and targeted source follow-up",
+    "blockingFindings": 0,
+    "fixed": "React UI fixture now compiles and exports real shared Switch"
+  },
+  "limitations": [
+    "Source-component preview with memory-only simulated SDK; real website capture/AI/installation/Native/production NOT_TESTED",
+    "CDP single-step escape across opaque iframe may omit child exit/up events; physical immediate boundary cancellation NOT_TESTED; normal exit, Escape and no-buttons return recovery PASS",
+    "Display settings are temporary and not persisted with configurations",
+    "VIP AI/program target-language name matching is planning only",
+    "Concurrent result error/empty-state updates were preserved; their full scenario matrix was not replayed in this column-management task."
+  ],
+  "delivery": "artifacts/scrapyjs/unified-rules-20261101/delivery.json",
+  "commit": "NOT_REQUESTED",
+  "packagePromotion": "OUT_OF_SCOPE",
+  "deliveryStatus": "SYNCED_BYTE_IDENTICAL_CANDIDATE12"
+}

@@ -1,0 +1,422 @@
+{
+  "status": "PASS_SCOPED_UI_REVIEW",
+  "candidateSha256": "273baa41081a07ceec7d18db18539cfa52211ebc6893475d046cb131cd26f7c3",
+  "scope": "离线浅色同源React预览；本次两组关联间距与disclosure圆角定向复评",
+  "reviewMode": "独立只读；未编辑、启动产品、浏览器或服务；未自行重跑测试",
+  "verification": {
+    "htmlAndManifestShaMatch": true,
+    "sourceInputsIndependentlyChecked": 1369,
+    "sourceInputMismatches": 0,
+    "currentScreenshotHashesChecked": 12,
+    "currentScreenshotHashMismatches": 0,
+    "currentScreenshotsActuallyViewed": 12,
+    "currentComputedStatesReviewed": 6,
+    "currentComputedAssertionsReported": 14,
+    "currentAiBrowserChecksReported": 25,
+    "currentNodeTestsReported": 11,
+    "toolBuild": "PASS_REPORTED",
+    "sourceDeltaFromPreviousCandidate": {
+      "addedInputs": [],
+      "removedInputs": [],
+      "changedInputs": [
+        "examples/sidebar-tools/scrapyjs/src/App.jsx",
+        "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+        "examples/sidebar-tools/scrapyjs/src/style.css",
+        "examples/sidebar-tools/scrapyjs/dist/tool.js",
+        "examples/sidebar-tools/scrapyjs/dist/tool.css",
+        "examples/sidebar-tools/scrapyjs/dist/build-ready.json"
+      ],
+      "assessment": "与申报范围一致；Results、业务模型、SDK适配、公共组件和生成器输入未变化。当前源码中的两处包装与CSS规则符合定向修复目的。"
+    },
+    "measurements": {
+      "pageConsentToAddressActualGapPx": 4,
+      "fieldListToHintActualGapPx": 4,
+      "relatedGroupMargins": "0px",
+      "borderedFieldDisclosureRadiusPx": 12,
+      "flatDisclosure": "源码仍为border:0、border-radius:0；新截图无外框",
+      "targetHeightPx": 183,
+      "chatAfterProposalHeightPx": 206.25,
+      "chatLogHeightPx": 111.25,
+      "chatFeedbackHeightPx": 34,
+      "chatComposerHeightPx": 59,
+      "documentHorizontalOverflow": false
+    }
+  },
+  "evidence": {
+    "aggregate": "examples/sidebar-tools/scrapyjs/evidence/ui-spacing-browser-20261031.json",
+    "layout": "artifacts/scrapyjs/spacing-20261031/layout-refined/spacing.json",
+    "computedChecks": "artifacts/scrapyjs/spacing-20261031/layout-refined/computed-checks.json",
+    "aiBrowser": "artifacts/scrapyjs/spacing-20261031/browser-refined-final/report.json",
+    "currentScreenshots": [
+      "layout-refined/ready.png",
+      "layout-refined/rules.png",
+      "layout-refined/ai-empty.png",
+      "layout-refined/ai-review.png",
+      "layout-refined/results.png",
+      "layout-refined/columns.png",
+      "browser-refined-final/ai-expanded.png",
+      "browser-refined-final/ai-review.png",
+      "browser-refined-final/ai-json.png",
+      "browser-refined-final/ai-naming.png",
+      "browser-refined-final/ai-applied.png",
+      "browser-refined-final/ai-collapsed.png"
+    ],
+    "screenshotRoot": "artifacts/scrapyjs/spacing-20261031/",
+    "priorWorkspaceValidation": {
+      "candidateSha256": "173c21231304bf12353e604c8ad3be18b4aea9b68de90cec2d1a3fbc83638c76",
+      "checks": 62,
+      "status": "PASS_ON_PREVIOUS_CANDIDATE_NOT_RERUN",
+      "report": "artifacts/scrapyjs/spacing-20261031/workspace/report.json",
+      "reuseAssessment": "仅作为未改变业务语义的既有证据。当前六状态、25项AI操作及定向Node覆盖本轮包装与样式修改；不将旧62项标为当前SHA重新通过。"
+    }
+  },
+  "premises": [
+    {
+      "name": "AI就地共享Chat",
+      "status": "PASS_SCOPED",
+      "observation": "新截图与新操作报告确认原工作区保持挂载，提案后Chat和输入未压缩，开合保留草稿、结果及实际消息滚动。"
+    },
+    {
+      "name": "规范与模板来源正确",
+      "status": "PASS_SCOPED",
+      "observation": "canonical外壳和公共组件来源保持一致；本轮原扣分点均有实际截图及computed修复证据，并非仅引用token。"
+    }
+  ],
+  "rubric": {
+    "dimensions": 8,
+    "itemsPerDimension": 5,
+    "maximumPerItem": 20,
+    "passingRule": "每维严格大于95，且无功能阻断",
+    "scoreBoundary": "满分仅指本轮范围内该细项未发现扣分点，不覆盖未测试环境"
+  },
+  "dimensions": [
+    {
+      "name": "需求符合度",
+      "score": 100,
+      "items": [
+        {
+          "name": "就地Chat",
+          "score": 20,
+          "deduction": 0,
+          "observation": "当前截图及25项新操作确认就地展开，未替代业务页面。"
+        },
+        {
+          "name": "业务草稿保留",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新操作覆盖字段节点、草稿、坏JSON和原结果保留。"
+        },
+        {
+          "name": "提案完整审阅",
+          "score": 20,
+          "deduction": 0,
+          "observation": "差异可见，JSON实际展开；开合后仍保留审阅状态。"
+        },
+        {
+          "name": "显式应用/保存",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新命名截图及操作覆盖显式应用、重名失败与对应保存成功。"
+        },
+        {
+          "name": "采集独立",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新报告确认应用和保存不启动采集，副本清除旧结果归属。"
+        }
+      ]
+    },
+    {
+      "name": "样式一致性",
+      "score": 100,
+      "items": [
+        {
+          "name": "单gutter",
+          "score": 20,
+          "deduction": 0,
+          "observation": "当前computed与六状态保持单一12px工具gutter、16px章节节奏。"
+        },
+        {
+          "name": "4/8/12/16间距",
+          "score": 20,
+          "deduction": 0,
+          "observation": "两处关联说明实际间隔均为4px；组间12px、标签8px及目标关联8px保持正确。原扣3分依据已消除。"
+        },
+        {
+          "name": "公共按钮/图标",
+          "score": 20,
+          "deduction": 0,
+          "observation": "仍复用公共Button、34px刷新图标及Frame专用发送按钮；未因压缩间距缩小控件。"
+        },
+        {
+          "name": "表单/disclosure层级",
+          "score": 20,
+          "deduction": 0,
+          "observation": "带边框字段disclosure实测12px圆角，flat仍无外框；字段、列设置分组保持正确。原扣2分依据已消除。"
+        },
+        {
+          "name": "对比与字级",
+          "score": 20,
+          "deduction": 0,
+          "observation": "当前computed字级与颜色保持原值：正文13px、辅助12px；已核对正文及辅助文字对白色和目标浅底的对比，不宣称全状态对比度认证。"
+        }
+      ]
+    },
+    {
+      "name": "信息层级可读性",
+      "score": 99,
+      "items": [
+        {
+          "name": "目标密度",
+          "score": 20,
+          "deduction": 0,
+          "observation": "目标卡183px，标题与名称紧密分组，刷新和运行入口清楚。"
+        },
+        {
+          "name": "输入可发现",
+          "score": 19,
+          "deduction": 1,
+          "observation": "输入可见；空Chat提示与placeholder仍重复引导同一需求，保留轻微冗余扣分。"
+        },
+        {
+          "name": "差异动作邻近",
+          "score": 20,
+          "deduction": 0,
+          "observation": "两张新审阅截图均显示差异与三个操作同屏。"
+        },
+        {
+          "name": "JSON/诊断渐进展开",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新图确认JSON按需展开，样本和技术详情后置。"
+        },
+        {
+          "name": "滚动职责清楚且内容不压缩",
+          "score": 20,
+          "deduction": 0,
+          "observation": "Chat高206.25px，消息、反馈和composer完整容纳；页面负责上下文与审阅滚动。"
+        }
+      ]
+    },
+    {
+      "name": "操作效率反馈",
+      "score": 98,
+      "items": [
+        {
+          "name": "主动作",
+          "score": 18,
+          "deduction": 2,
+          "observation": "当前正常状态主动作清楚；上一候选权限拒绝原因多区重复的P3问题未修，相关文案及分支未变化，保留扣分，未冒称本次重测该状态。"
+        },
+        {
+          "name": "必要发送勾选",
+          "score": 20,
+          "deduction": 0,
+          "observation": "当前空态仍为真实未勾选且发送禁用；4px包装未隐藏或代选授权选项。"
+        },
+        {
+          "name": "保存失败/成功",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新25项操作验证失败保留草稿指引，成功确认对应提案且不暗示已采集。"
+        },
+        {
+          "name": "收起不取消",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新报告确认关闭保留pending保护、提案、输入和消息滚动。"
+        },
+        {
+          "name": "UNKNOWN不重放",
+          "score": 20,
+          "deduction": 0,
+          "observation": "本次11项定向Node报告及未改变的围栏实现支撑组件层判断；真实历史UNKNOWN恢复未测试。"
+        }
+      ]
+    },
+    {
+      "name": "键盘焦点",
+      "score": 97,
+      "items": [
+        {
+          "name": "页签",
+          "score": 20,
+          "deduction": 0,
+          "observation": "沿用上一候选方向键及焦点证据；页签实现未改变，不记为当前重跑。"
+        },
+        {
+          "name": "发送/换行/IME",
+          "score": 19,
+          "deduction": 1,
+          "observation": "本次Enter、Shift+Enter及合成IME事件检查通过；物理IME未测，保留证据强度扣分。"
+        },
+        {
+          "name": "关闭返回",
+          "score": 20,
+          "deduction": 0,
+          "observation": "新操作验证Escape、普通关闭及命名期间关闭返回AI按钮。"
+        },
+        {
+          "name": "错误焦点",
+          "score": 20,
+          "deduction": 0,
+          "observation": "沿用原字段错误聚焦与取消恢复证据；当前改动未改变处理函数，AI命名失败另有新操作覆盖。"
+        },
+        {
+          "name": "审阅与详情可达",
+          "score": 18,
+          "deduction": 2,
+          "observation": "本次JSON展开和审阅动作可操作，详情Escape证据沿用；完整审阅区纯键盘Tab路径仍无记录。"
+        }
+      ]
+    },
+    {
+      "name": "组件复用隔离",
+      "score": 100,
+      "items": [
+        {
+          "name": "原模板",
+          "score": 20,
+          "deduction": 0,
+          "observation": "来源差异确认模板和生成器输入未变，未另造预览壳。"
+        },
+        {
+          "name": "Button/Frame/session",
+          "score": 20,
+          "deduction": 0,
+          "observation": "公共组件输入未变，新操作验证共享Chat行为。"
+        },
+        {
+          "name": "工具CSS归属",
+          "score": 20,
+          "deduction": 0,
+          "observation": "本次源码修改仅限工具App、AiPanel和style.css。"
+        },
+        {
+          "name": "公开ai边界",
+          "score": 20,
+          "deduction": 0,
+          "observation": "公开请求入口和Mock边界保持原实现，没有新增Provider或宿主权限路径。"
+        },
+        {
+          "name": "opaque/CSP",
+          "score": 20,
+          "deduction": 0,
+          "observation": "本次报告确认opaque sandbox；CSP与生成器来源未变，仅评价离线预览隔离。"
+        }
+      ]
+    },
+    {
+      "name": "可维护性",
+      "score": 100,
+      "items": [
+        {
+          "name": "单布局owner",
+          "score": 20,
+          "deduction": 0,
+          "observation": "布局仍归工具源码，两处related-note表达同一种紧邻说明关系。"
+        },
+        {
+          "name": "无margin叠加",
+          "score": 20,
+          "deduction": 0,
+          "observation": "related-note实测margin0、gap4px，正文组继续单独管理间距。"
+        },
+        {
+          "name": "状态回执明确",
+          "score": 20,
+          "deduction": 0,
+          "observation": "保存回执语义未变，新操作再次覆盖失败和成功。"
+        },
+        {
+          "name": "无新依赖/第二状态机",
+          "score": 20,
+          "deduction": 0,
+          "observation": "来源集合无新增删除，依赖、模型和公共组件输入均未改变。"
+        },
+        {
+          "name": "原生成链",
+          "score": 20,
+          "deduction": 0,
+          "observation": "沿用工具构建和原预览生成链，产物及来源哈希匹配。"
+        }
+      ]
+    },
+    {
+      "name": "证据充分性",
+      "score": 99,
+      "items": [
+        {
+          "name": "新操作链",
+          "score": 19,
+          "deduction": 1,
+          "observation": "25项AI为当前候选新证据，旧62项明确限定原SHA；pending瞬间关闭仍用同步DOM click，保留证据缺口扣分。"
+        },
+        {
+          "name": "computed间距/Chat高度",
+          "score": 20,
+          "deduction": 0,
+          "observation": "本次14项断言补齐两组4px及12px圆角，实际子元素rect差值与声明一致；原扣分依据已消除。"
+        },
+        {
+          "name": "多状态截图",
+          "score": 20,
+          "deduction": 0,
+          "observation": "本次12图全部实际查看并核对哈希，覆盖六布局状态与AI展开、审阅、JSON、命名、保存、收起。"
+        },
+        {
+          "name": "同SHA来源锁",
+          "score": 20,
+          "deduction": 0,
+          "observation": "当前HTML、manifest及报告绑定新SHA，1369项来源独立核对零差异。"
+        },
+        {
+          "name": "未测边界如实",
+          "score": 20,
+          "deduction": 0,
+          "observation": "旧工作区验证单列，驱动失败、合成IME及原生未测范围均披露，未混充当前原生PASS。"
+        }
+      ]
+    }
+  ],
+  "blockers": [],
+  "thresholdFailures": [],
+  "remainingNonBlocking": [
+    {
+      "priority": "P3",
+      "issue": "空Chat提示与输入placeholder有轻微重复",
+      "status": "仍存在；保留层级可读性扣分"
+    },
+    {
+      "priority": "P3",
+      "issue": "权限拒绝原因在多个区域重复",
+      "status": "沿用上一候选观察，相关分支未改变；本次未重测，保留操作效率扣分"
+    },
+    {
+      "priority": "P3",
+      "issue": "完整审阅区纯键盘Tab路径及pending瞬间真实指针关闭缺少证据",
+      "status": "保留键盘与证据扣分，不判为已发现功能故障"
+    }
+  ],
+  "NOT_TESTED": [
+    "当前候选完整62项工作区操作重新执行",
+    "当前候选权限拒绝、失败及详情交互完整重跑",
+    "完整审阅区纯键盘Tab路径",
+    "pending瞬间真实指针关闭",
+    "物理IME",
+    "屏幕阅读器",
+    "暗色",
+    "真实AI及Provider调用",
+    "真实网站采集",
+    "Native",
+    "当前候选安装与升级",
+    "production",
+    "已安装扩展与预览一致性",
+    "历史真实UNKNOWN请求恢复"
+  ],
+  "OUT_OF_SCOPE": [
+    "物理宽度与缩放矩阵"
+  ],
+  "conclusion": "两项明确样式差异已由新截图、computed及来源核对证实修复。固定八维分别为100、100、99、98、97、100、100、99，均严格大于95，无当前布局阻断。本次定向离线UI复评通过；非阻断扣分及旧证据范围保留，不升级为真实AI、安装或production验收通过。",
+  "stopConditionMet": true
+}

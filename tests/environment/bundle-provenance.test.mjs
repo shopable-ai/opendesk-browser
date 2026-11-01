@@ -2,11 +2,60 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,readFile,rm,mkdir,realpath,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
-import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle} from '../../scripts/bundle-provenance.mjs';
+import {join,resolve,relative,sep,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {readFileSync,realpathSync} from 'node:fs';
+import postcss from 'postcss';
+import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle,verifyTrustedAIProxySources} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
+
+test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.modules',async t=>{
+ const project=await realpath(await mkdtemp(join(tmpdir(),'ai-proxy-inputs-')));
+ t.after(()=>rm(project,{recursive:true,force:true}));
+ const pins=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));
+ for(const path of Object.keys(pins)){
+  await mkdir(join(project,path,'..'),{recursive:true});
+  await writeFile(join(project,path),await readFile(resolve(path)));
+ }
+ assert.doesNotThrow(()=>verifyTrustedAIProxySources(project));
+ const path='projects/ai-proxy/src/styles/sidebar-settings.css',bytes=await readFile(join(project,path));
+ await writeFile(join(project,path),Buffer.concat([bytes,Buffer.from('\n.proxy-app{display:none}') ]));
+ // No AI Proxy module is enumerated: the whole trusted entry still refuses drift.
+ assert.throws(()=>describeBundle({chunk:{fileName:'ui/tool-shell.js',modules:{}},root:project,lock:{packages:{}}}),/Trusted AI Proxy source changed/);
+ await rm(join(project,path));await symlink(resolve(path),join(project,path));
+ assert.throws(()=>verifyTrustedAIProxySources(project),/must not be a symlink/);
+});
+
+test('trusted AI Proxy rejects missing CSS pins, remote imports and project escapes',async t=>{
+ const project=await realpath(await mkdtemp(join(tmpdir(),'ai-proxy-css-closure-')));
+ t.after(()=>rm(project,{recursive:true,force:true}));
+ const rootCss='projects/ai-proxy/src/style.css',leaf='projects/ai-proxy/src/styles/leaf.css';
+ await mkdir(join(project,leaf,'..'),{recursive:true});
+ const pins={},pin=async(path,text)=>{
+  await writeFile(join(project,path),text);
+  const bytes=Buffer.from(text);pins[path]=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ };
+ // Run the production helper/traversal with fixture pins. The real exported
+ // API never accepts caller-supplied lock overrides.
+ const source=await readFile(resolve('scripts/bundle-provenance.mjs'),'utf8');
+ const helper=source.slice(source.indexOf('function reviewedAIProxyInput('),source.indexOf('function reviewedCompiledAIProxy(')).replace('export function','function');
+ const verify=new Function('compiledAIProxyInputs','readFileSync','realpathSync','createHash','postcss','resolve','relative','sep','dirname',
+  helper+';return verifyTrustedAIProxySources;')(pins,readFileSync,realpathSync,createHash,postcss,resolve,relative,sep,dirname);
+ await pin(rootCss,"@import './styles/leaf.css';");
+ await writeFile(join(project,leaf),'.proxy-app{color:blue}');
+ assert.throws(()=>verify(project),/Unreviewed trusted AI Proxy input/);
+ await pin(leaf,'.proxy-app{color:blue}');assert.doesNotThrow(()=>verify(project));
+ await pin(leaf,"@import './grandchild.css';");
+ await writeFile(join(project,'projects/ai-proxy/src/styles/grandchild.css'),'.proxy-app{color:red}');
+ assert.throws(()=>verify(project),/Unreviewed trusted AI Proxy input/);
+ await pin(leaf,'.proxy-app{color:blue}');
+ await pin(rootCss,'@import url("https://example.com/remote.css");');
+ assert.throws(()=>verify(project),/Unreviewed trusted AI Proxy CSS import/);
+ await pin(rootCss,"@import '../../../outside.css';");
+ assert.throws(()=>verify(project),/CSS import outside project/);
+});
 
 test('migration: unpinned projects cannot enter fixed trusted outputs',()=>{
   for(const path of [

@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-01",
+  "stage": "CORE_FUNCTIONS_AND_TARGETED_PRELIMINARY_TEST",
+  "scope": "OFFLINE_SOURCE_COMPONENT_PREVIEW",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "appVersion": "1.8.0",
+  "delegatedTaskVersion": "0.6.0",
+  "preview": "examples/sidebar-tools/scrapyjs/preview/preview.html",
+  "candidate": "artifacts/scrapyjs/buttons-20261101/final",
+  "previewSha256": "660485a4ca43d25a5057e56df14f2ccf820eaf35e2c4197f19e63014aa09af33",
+  "buildId": "75d0ce09ad20c2182d3908e51bb180681353b022def88f9575d956bd892d30b4",
+  "sourceLock": {
+    "inputs": 1371,
+    "drift": []
+  },
+  "previousFixedPreview": {
+    "preview.html": "7563501d4bd2d81b95317e8fcef7b167ea96884c899d45cc41bbe55db685643d",
+    "preview.manifest.json": "27aef372c43fe8e637db3fc4663ff7c02fd43b57170f9fe593d0a2cbc6de937f",
+    "preview.context.json": "a68de5d02a0b3b014a6925a31b1f0050f6304dc7b0dac5a004b8cef439914cea"
+  },
+  "changes": [
+    "AiPanel: 待发送完整资料包含 HTML 样本，字段与实际发送一致，保留原发送/取消/UNKNOWN 状态机",
+    "App: 字段应用及删除、分页与详情应用给出就近反馈；最后字段删除失败在规则区显示并保留原字段",
+    "App: 配置导出错误与下载回执在 JSON 页单独显示，失败保留原配置",
+    "app-model/App: 新任务准备失败或派发前停止保留上次退休结果/身份；准备期间 Stop 可用"
+  ],
+  "verification": {
+    "toolBuild": "PASS: npm run build --prefix examples/sidebar-tools/scrapyjs",
+    "node": {
+      "status": "PASS",
+      "passed": 49,
+      "failed": 0,
+      "files": [
+        "ai-panel.test.mjs",
+        "ai-app.test.mjs",
+        "ai-request.test.mjs",
+        "ai-pending.test.mjs",
+        "app-model.test.mjs"
+      ],
+      "log": "artifacts/scrapyjs/buttons-20261101/final/node-tests.log"
+    },
+    "browser": {
+      "buttons": {
+        "status": "PASS_SIMULATED_UI",
+        "checks": 27,
+        "report": "artifacts/scrapyjs/buttons-20261101/final/buttons-detail/report.json",
+        "previewSha256": "660485a4ca43d25a5057e56df14f2ccf820eaf35e2c4197f19e63014aa09af33"
+      },
+      "chat": {
+        "status": "PASS_SIMULATED_UI",
+        "checks": 42,
+        "report": "artifacts/scrapyjs/buttons-20261101/final/chat/report.json",
+        "previewSha256": "660485a4ca43d25a5057e56df14f2ccf820eaf35e2c4197f19e63014aa09af33"
+      },
+      "workspace": {
+        "status": "PASS_SIMULATED_UI",
+        "checks": 62,
+        "report": "artifacts/scrapyjs/buttons-20261101/final/workspace/report.json",
+        "previewSha256": "660485a4ca43d25a5057e56df14f2ccf820eaf35e2c4197f19e63014aa09af33"
+      }
+    },
+    "browserChecks": 131
+  },
+  "boundaries": {
+    "browser": "Headless Chromium 156.0.8078.4 on macOS, actual React UI + simulated SDK",
+    "ai": "Fixed simulated proposal, no real inference",
+    "capture": "Memory fixture, including 51-record pagination case, no website collected",
+    "clipboard": "Simulated copied receipt only; system clipboard NOT_TESTED",
+    "downloads": "Actual browser downloads read back and compared for current configuration, AI proposal, 51-row JSON and CSV",
+    "nativeChrome": "NOT_TESTED",
+    "realAi": "NOT_TESTED",
+    "realCapture": "NOT_TESTED",
+    "installation": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "scoring": "OUT_OF_SCOPE"
+  },
+  "environment": {
+    "reusedMockVite": "http://127.0.0.1:43127/preview/dev.html",
+    "browserLoadDirectory": "dist/development not modified",
+    "browserServe": "No WXT serve process observed at start; actual Chrome connection NOT_VERIFIED",
+    "services": "No existing service restarted or stopped"
+  },
+  "safety": [
+    "UNKNOWN 原 requestId/Provider generation/迟到回包/CAS 围栏保留，定向 Node 验证",
+    "未清理历史 UNKNOWN，未发送真实 AI，未安装或晋升正式包",
+    "仅 main，本轮未提交/推送、建分支/worktree/PR，保留并行改动"
+  ],
+  "reproducedFailures": [
+    {
+      "issue": "最后字段删除失败提示藏在折叠目标区",
+      "evidence": "artifacts/scrapyjs/buttons-20261101/red/report.json",
+      "resolution": "Fixed, visible editor error and data retention passed"
+    },
+    {
+      "issue": "发送前完整资料预览遗漏 HTML 样本",
+      "evidence": "ai-panel next-send sample assertion failed before fix",
+      "resolution": "Fixed, component and browser payload equality passed"
+    },
+    {
+      "issue": "任务派发前失败清空上次结果",
+      "evidence": "app-model regression: previous result null before fix",
+      "resolution": "Fixed, preparation failure and Stop clicked in final browser candidate"
+    }
+  ],
+  "next": [
+    "先只读恢复历史 AI 原请求可信终态，不能通过清会话/换 ID/重载绕过",
+    "终态允许且安装条件具备后，在真实安装态执行 AI 提案→审阅→应用→命名保存→用户单独开始；此流程本轮 NOT_TESTED"
+  ],
+  "oldGoalState": "UNKNOWN; this task did not pause, migrate or complete other goals",
+  "testedFilesSha256": {
+    "src/App.jsx": "7ed8ccd0ff4418ce63f159e0ad5264388fe957ca4865b1a74e2d0783c1dffd8d",
+    "src/AiPanel.jsx": "ac64a9814201806904cf31250e403893dde575a54eb684cf40d253a883ae1637",
+    "src/app-model.js": "cf05224f8d83b1a0a32063734bdb1106acd8a9bf09e4d1d99cab72eb956691e6",
+    "tests/ai-panel.test.mjs": "907dd97c149f74e6f2e1b0474558482e8441dc331eab2fe3d8ce9523e0bf1abf",
+    "tests/ai-app.test.mjs": "35e023f8766dc984a0567576f887cdec5cb3bebb96cc25b729662dd74102933b",
+    "tests/ai-request.test.mjs": "9f957f74686f3a797cc624dbf9dba4a2df894f8f1421fb5ded63654e9bad42eb",
+    "tests/ai-pending.test.mjs": "6bf101d3bbc06ced4ba7834aab8e1fed4bfa4373fa9f8d603352d37269dd5447",
+    "tests/app-model.test.mjs": "4def6e43ce81b6545567ffc4bbb70ad369dac83743d2aae16c4d362e110a0665",
+    "tests/preview-interactions.mjs": "7471abc9dcb45e10e0fdcae8840c2dfc5b39d704381c968a7ad9272e296f5641",
+    "tests/ai-dock-interactions.mjs": "9b92576d9fd0729bc3f1baf3eba7c816566d1b9586a82228bae07a0f5f65d3cb",
+    "tests/run-preview.mjs": "01132213d7e9c3e44c5126db0c2bf586caf4ed87c2d8021f65048ed68082af87"
+  },
+  "delivery": {
+    "sourceDrift": [],
+    "fixedPreview": "BYTE_IDENTICAL",
+    "nativeEnvironment": "NOT_TESTED",
+    "knownFailuresInTestedScope": []
+  }
+}

@@ -827,3 +827,78 @@ test('pendingChanges compares effective rule ordering rather than array order or
   assert.equal((await ok(f.service, { type: 'SAVE_RULE', rule: { ...routeRule, priority: 0 } })).state.runtime.pendingChanges, true);
   assert.equal(operations(f, 'apply').length, 1);
 });
+
+
+test('system Apply confirms fallback without Enable or pretending to own the browser',async()=>{
+  const f=fixture({config:empty()});
+  f.setNative({...disabled,browserMode:'system'});
+  const result=await ok(f.service,{type:'APPLY'});
+  assert.equal(operations(f,'apply').length,0);
+  assert.equal(operations(f,'stop').length,0);
+  assert.equal(result.state.runtime.browserMode,'system');
+  assert.equal(result.state.runtime.applied,false);
+  assert.equal(result.state.runtime.pendingChanges,false);
+  assert.equal(result.state.config.managed,false);
+});
+test('system Apply releases only own route, requires system readback, and never sets system',async()=>{
+  const f=fixture();
+  await ok(f.service,{type:'APPLY'});
+  await ok(f.service,{type:'SELECT',selection:{mode:'system'}});
+  f.options.stop=async()=>{f.calls.push(['stop']);return {...disabled,browserMode:'system'};};
+  const result=await ok(f.service,{type:'APPLY'});
+  assert.equal(operations(f,'apply').length,1);
+  assert.equal(operations(f,'stop').length,1);
+  assert.equal(result.state.config.managed,false);
+  assert.equal(result.state.runtime.browserMode,'system');
+  assert.equal(result.state.runtime.pendingChanges,false);
+});
+test('system Apply never certifies a different underlying mode or unknown release',async()=>{
+  for(const browserMode of [null,'direct','fixed_servers']){
+    const f=fixture({config:empty()});f.setNative({...disabled,browserMode});
+    const result=await f.service.request({type:'APPLY'});
+    assert.equal(result.ok,false);
+    assert.equal(operations(f,'apply').length,0);
+    assert.equal(operations(f,'stop').length,0);
+    assert.equal(f.stored().managed,false);
+  }
+  const f=fixture();await ok(f.service,{type:'APPLY'});
+  await ok(f.service,{type:'SELECT',selection:{mode:'system'}});
+  f.options.stop=async()=>{f.calls.push(['stop']);throw Object.assign(Error('lost ack'),{code:'E_OUTCOME_UNKNOWN'});};
+  assert.equal((await f.service.request({type:'APPLY'})).errorCode,'E_OUTCOME_UNKNOWN');
+  assert.equal((await f.service.request({type:'APPLY'})).errorCode,'E_OUTCOME_UNKNOWN');
+  assert.equal(operations(f,'stop').length,1);
+});
+test('verified adapter active snapshot restores selected route while saved drafts stay pending',async()=>{
+  const c=populated();c.managed=true;c.selection={mode:'direct'};
+  const f=fixture({config:c});
+  f.setNative({...enabled,browserMode:'pac_script',activeConfig:populated()});
+  const result=await ok(f.service,{type:'GET_STATE'});
+  assert.equal(result.state.runtime.applied,true);
+  assert.equal(result.state.runtime.pendingChanges,true);
+  assert.deepEqual(result.state.runtime.activeSelection,profile.id?{mode:'profile',profileId:profile.id}:null);
+  assert.equal(result.state.runtime.browserMode,'profile');
+});
+
+for (const observation of ['failed','conflict']) {
+ test(`replacement rechecks ${observation} native status after storage-only STOP finalization`,async()=>{
+  const f=fixture();
+  await ok(f.service,{type:'APPLY'});
+  const save=f.options.save,status=f.options.status;
+  f.options.save=async()=>{throw Error('Storage unavailable');};
+  assert.equal((await f.service.request({type:'STOP'})).ok,false);
+  f.options.save=save;
+  let reads=0;
+  f.options.status=async()=>{
+   if(++reads===2){
+    if(observation==='failed')throw Error('Native status unavailable');
+    return {...disabled,state:'conflict',control:'controlled_by_other_extensions'};
+   }
+   return status();
+  };
+  const result=await f.service.request({type:'APPLY'});
+  assert.equal(result.ok,false);
+  assert.equal(operations(f,'stop').length,1,'Do not replay the already confirmed STOP');
+  assert.equal(operations(f,'apply').length,1,'Do not Enable across a new native uncertainty/conflict');
+  assert.equal(f.stored().managed,false,'Storage-only finalization is preserved');
+ });
+}

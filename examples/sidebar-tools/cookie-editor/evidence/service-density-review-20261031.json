@@ -1,0 +1,177 @@
+{
+  "mode": "DESIGN_PREVIEW_ONLY",
+  "date": "2026-10-31",
+  "scope": "Cookie Editor 企业页服务连接离线 HTML 密度与子页排版",
+  "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+  "sha256": "0f86e4ab2b6ef2f18f3b42958e6dd90638ba110a1cc9498c7964da02dc4fd4c9",
+  "previewURL": "http://127.0.0.1:58626/cookie-editor.html?view=enterprise",
+  "rubric": {
+    "信息层级": 20,
+    "密度排版": 20,
+    "操作可发现": 20,
+    "可读性与焦点": 20,
+    "状态语义": 20
+  },
+  "history": [
+    {
+      "candidate": "baseline",
+      "sha256": "8a17860e9f07bd483d3b0acd2ae4fc5f63ca718d85ff4f4751bf430dbc6d020a",
+      "designer": 85
+    },
+    {
+      "candidate": 1,
+      "sha256": "17969d82810defcc9fb37525ae5da3671c02ca91f578f0677e479ce58d223f99",
+      "designer": 94,
+      "critic": 96,
+      "decision": "Revise actual visual findings; do not use passing critic score to override designer."
+    }
+  ],
+  "finalReviews": [
+    {
+      "role": "designer",
+      "agent": "01a1916d-ac01-7fb0-8d17-b75d09be6f61",
+      "total": 98,
+      "scores": {
+        "信息层级": 19,
+        "密度排版": 20,
+        "操作可发现": 20,
+        "可读性与焦点": 19,
+        "状态语义": 20
+      },
+      "verdict": {
+        "score": 98,
+        "verdict": "本轮离线UI/UX评审通过，达到95分要求",
+        "category_match": "符合紧凑企业服务连接管理界面",
+        "differences": [
+          "服务列表消除重复卡片与主色按钮竞争",
+          "子页按钮宽度、编辑提示和审阅区分隔已改善",
+          "最终原内容检查及其余三项必要检查均有同SHA通过报告"
+        ],
+        "suggestions": [
+          "剩余两处为非阻断细节，无需继续压缩列表或扩大本轮范围"
+        ],
+        "reasoning": "依据最终列表及四张子页截图独立评分，并核对冻结字节、清单和报告哈希；不将候选1的16项结果计为最终候选重跑。",
+        "blocking": false,
+        "scope": "DESIGN_PREVIEW_ONLY"
+      },
+      "rawResponse": "**最终独立评分：98/100。本轮离线HTML UI/UX评审达到95分要求，无阻断问题，可以收尾。**\n\n| 固定维度 | 得分 | 扣分 |\n|---|---:|---|\n| 信息层级 | 19/20 | 详情页“解除关联”仍比旁侧身份说明更醒目，扣1分 |\n| 密度排版 | 20/20 | 无；共享列表紧凑，子页按钮与分隔已修正 |\n| 操作可发现 | 20/20 | 无；详情持续可见，编辑有文字，操作主次明确 |\n| 可读性与焦点 | 19/20 | 底栏及状态小字仍偏细小，扣1分；所测焦点路径报告通过 |\n| 状态语义 | 20/20 | 无；演示、连接、关联、范围审阅及数据未验证区分明确 |\n\n```json\n{\n  \"score\": 98,\n  \"verdict\": \"本轮离线UI/UX评审通过，达到95分要求\",\n  \"category_match\": \"符合紧凑企业服务连接管理界面\",\n  \"differences\": [\n    \"服务列表消除重复卡片与主色按钮竞争\",\n    \"子页按钮宽度、编辑提示和审阅区分隔已改善\",\n    \"最终原内容检查及其余三项必要检查均有同SHA通过报告\"\n  ],\n  \"suggestions\": [\n    \"剩余两处为非阻断细节，无需继续压缩列表或扩大本轮范围\"\n  ],\n  \"reasoning\": \"依据最终列表及四张子页截图独立评分，并核对冻结字节、清单和报告哈希；不将候选1的16项结果计为最终候选重跑。\",\n  \"blocking\": false,\n  \"scope\": \"DESIGN_PREVIEW_ONLY\"\n}\n```\n\n证据核对完成：\n\n- 当前源码与冻结HTML均为 `0f86e4ab…dc4fd4c9`。\n- 清单实际为 **13张截图、4份报告**，所有文件哈希匹配。\n- 四份报告均绑定最终SHA、结果PASS，`pageErrors`、`networkRequests`均为空。\n- 原企业区报告确认：移除新增跳转及焦点属性后内容一致，最终可见性检查PASS。\n\n本次实际复看 `overview-final/service-region.png`，以及候选2的 `connected-detail`、`association-review`、`scope-review`、`management-preview` 四张截图。交互依据报告，未独立重跑；结论不涵盖真实服务、扩展安装或正式无障碍审计。"
+    },
+    {
+      "role": "critic",
+      "agent": "01a19170-0486-70b1-9ede-21995ff960da",
+      "verdict": "OKAY",
+      "candidate": 2,
+      "candidateSHA": "0f86e4ab2b6ef2f18f3b42958e6dd90638ba110a1cc9498c7964da02dc4fd4c9",
+      "scope": "本轮离线HTML候选UX审阅",
+      "scores": {
+        "信息层级": 20,
+        "密度排版": 20,
+        "操作可发现": 20,
+        "可读性与焦点": 20,
+        "状态语义": 19
+      },
+      "total": 99,
+      "visualFindings": [
+        "最终服务列表紧凑，类型、地址、状态和操作层次清楚，详情持续可见。",
+        "管理页次要按钮已按内容宽度显示。",
+        "编辑入口增加可见文字，身份说明字号及换行得到改善。",
+        "同步审阅底部重复分隔已消除，服务与接收位置仍紧邻确认操作。",
+        "企业footer清晰可读，未发现本轮可见遮挡或布局阻断。"
+      ],
+      "deductions": [
+        {
+          "dimension": "状态语义",
+          "points": 1,
+          "finding": "“打开管理页”实际进入离线管理页预览，点击前仍有轻微预期偏差。",
+          "suggestion": "后续可统一入口与目标页的预览措辞。",
+          "blocking": false
+        }
+      ],
+      "blockers": [],
+      "actuallyViewed": {
+        "baseDirectory": "artifacts/cookie-enterprise-density-20261031/candidate-2/",
+        "files": [
+          "overview-final/service-region.png",
+          "connected-detail.png",
+          "association-review.png",
+          "scope-review.png",
+          "management-preview.png",
+          "overview-final/original-resource-overview.png",
+          "theme/overview-dark.png"
+        ]
+      },
+      "reportEvidence": {
+        "reportsRead": [
+          "interactions.json",
+          "navigation/interactions.json",
+          "theme/interactions.json",
+          "overview-final/interactions.json"
+        ],
+        "result": "最终同SHA四项必要检查均PASS，各报告pageErrors和networkRequests为空。",
+        "coverage": "连接关联同步管理链、键盘触屏及焦点恢复、主题、原内容与列表。",
+        "priorFailure": "诊断记录显示资源块下边界超出滚动区1.17px；驱动改为居中取景，完整可见断言保留，最终重跑PASS。",
+        "historicalEvidence": "候选1的16项PASS仅为历史证据，不计为候选2重跑结果。"
+      },
+      "integrity": {
+        "frozenSourceSHA": "匹配",
+        "manifestScreenshotHashes": "13/13匹配",
+        "manifestReportHashes": "4/4匹配",
+        "note": "哈希核对不等于逐张看图；实际看图仅为上述7张。"
+      },
+      "notTested": [
+        "本人未执行测试或操作浏览器；动态交互结论来自报告及驱动审查。",
+        "未逐张查看其余6张manifest截图。",
+        "未进行正式无障碍审计、Native Chrome、真实服务、安装或正式React/SDK验收。",
+        "缩放及宽度矩阵不在范围。"
+      ],
+      "stopCondition": "99分且无阻断，本轮离线UX复评通过；不代表正式运行或发布验收。"
+    }
+  ],
+  "validation": {
+    "currentCandidate": {
+      "passed": 4,
+      "reportRoot": "artifacts/cookie-enterprise-density-20261031/candidate-2/",
+      "reports": [
+        "interactions.json",
+        "navigation/interactions.json",
+        "theme/interactions.json",
+        "overview-final/interactions.json"
+      ],
+      "manifest": "candidate-manifest.json",
+      "screenshotCount": 13,
+      "pageErrors": [],
+      "realServiceNetworkRequests": []
+    },
+    "initialCandidate": {
+      "passed": 16,
+      "report": "artifacts/cookie-enterprise-density-20261031/candidate-1/interactions.json",
+      "note": "No claim that all sixteen checks reran against final SHA."
+    },
+    "originalEnterpriseTemplate": "Bytes unchanged against this turn's baseline; rendered original block matches Git HEAD after removing added jump/focus attributes.",
+    "sourceScopeAudit": "artifacts/cookie-enterprise-density-20261031/candidate-2/source-scope-audit.json",
+    "failedAttempt": {
+      "report": "artifacts/cookie-enterprise-density-20261031/candidate-2/overview/interactions.json",
+      "diagnosis": "Chromium nearest scrolling left 1.17 CSS px beneath fixed footer; driver explicitly centers documentary screenshot regions while retaining the original whole-visibility assertion.",
+      "evidence": "artifacts/cookie-enterprise-density-20261031/diagnostics/resource-overview.json"
+    },
+    "defaultPanelMeasurements": {
+      "rowHeights": [
+        108.796875,
+        109.796875
+      ],
+      "buttonHeight": 36,
+      "approximatePriorRowHeight": 174,
+      "approximateDensityReduction": "37%",
+      "horizontalOverflow": false
+    }
+  },
+  "decision": "Both final independent AI reviewers scored above 95; no blockers within offline HTML UI/UX scope.",
+  "notTested": [
+    "Real service integration",
+    "Native Chrome extension",
+    "installation or production integration",
+    "formal accessibility audit",
+    "width/zoom matrix"
+  ],
+  "reviewLimit": "AI role reviewers independently inspected final screenshots and verified source/report/manifest hashes; did not independently rerun browser interactions."
+}

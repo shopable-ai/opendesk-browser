@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "扩展程序 - OpenDesk Browser Developer".
+The focused UI element is 110 点击此按钮即可离开“opendesk browser developer details page”子页面。 “OpenDesk Browser Developer”详情页面上的返回按钮

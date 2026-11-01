@@ -1,0 +1,31 @@
+{
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/manifest.json",
+  "sha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277",
+  "sources": 65,
+  "sourceDrift": [],
+  "locales": {
+    "count": 1010,
+    "equal": true
+  },
+  "css": {
+    "compiledCharacters": 115603,
+    "limit": 120000
+  },
+  "delta": {
+    "from": "projects/ai-proxy/.opendesk-preview/source-539f71f3-09a8-4e12-9e8c-0f1a4171df27/manifest.json",
+    "changed": [
+      "projects/ai-proxy/src/service.ts",
+      "projects/ai-proxy/src/domain/managed-config.ts",
+      "projects/ai-proxy/src/environment.ts",
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "projects/ai-proxy/src/i18n/locales/en.json",
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "projects/ai-proxy/src/i18n/errors.ts",
+      "projects/ai-proxy/src/ui/Status.tsx",
+      "projects/ai-proxy/src/Settings.tsx"
+    ],
+    "uiWriterChange": "Settings saveAnother success focus only",
+    "parallelOwnerChanges": "Other listed files changed concurrently; preserved, not attributed to this UI work"
+  },
+  "boundary": "Source-bound preview compilation, not package build/install or proxy mutation"
+}

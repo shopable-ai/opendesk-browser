@@ -1,0 +1,83 @@
+{
+  "reviewer": "Dirac",
+  "reviewerAgentId": "01a1915a-a225-7850-9055-51e734348e64",
+  "recordedAt": "2026-10-31T10:26:58.341Z",
+  "recommendation": "COMMENT",
+  "conclusion": "本焦点修复的限定实现评审达标，六维均≥95，无阻断；此前LOW已解决。不代表全产品或发布批准。",
+  "scope": "仅评审saveAnother成功后的同步聚焦，以及保存失败、草稿revision变化和ref脱挂保护；同文件其他并行变更不在本次结论内。",
+  "blocking": false,
+  "issues": [],
+  "scores": {
+    "正确性": {
+      "score": 99,
+      "reason": "聚焦仅发生在保存成功、revision校验通过及字段重置后；最终浏览器记录证明焦点回到ep-host，并可继续输入、保存第二条。"
+    },
+    "可靠性": {
+      "score": 98,
+      "reason": "同步执行避免新增延迟回调；两阶段保存失败、真实异步revision变化及空ref均有定向覆盖，不清空较新草稿或错误抢焦点。"
+    },
+    "安全性": {
+      "score": 99,
+      "reason": "查询限定于当前dialog，无权限、网络或代理应用调用；原凭据拒绝及保存不应用语义保留。"
+    },
+    "可维护性": {
+      "score": 98,
+      "reason": "复用现有dialog ref与输入ID，仅增加一行，和打开编辑器时的聚焦方式一致，无新增状态、依赖或替代路径。"
+    },
+    "用户反馈": {
+      "score": 98,
+      "reason": "截图及记录共同证明清空后主机字段有3px可见焦点；Tab留在dialog，支持连续键盘录入，普通保存正常关闭。"
+    },
+    "证据充分性": {
+      "score": 97,
+      "reason": "最终源码handler和测试与已审拟议版本一致；65项输入独立哈希核对无漂移，HTML指纹匹配，已有RED、最终浏览器GREEN及72/72测试日志相互支持。"
+    }
+  },
+  "sourceAnchors": {
+    "implementation": {
+      "file": "projects/ai-proxy/src/Settings.tsx",
+      "line": 319,
+      "sha256": "c75a232199a443772d410d414674091fa26984c56c69a1c9963cb2bafa057783"
+    },
+    "tests": {
+      "file": "projects/ai-proxy/tests/settings-credentials.test.mjs",
+      "lines": {
+        "successFocus": 83,
+        "failedSave": 101,
+        "asyncRevision": 114,
+        "detachedRef": 135
+      },
+      "sha256": "98fa4f470362417fc2074f052399a067f23eb78e46167fccb57e4e9feabb9da8"
+    }
+  },
+  "evidenceAnchors": {
+    "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+    "htmlSha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277",
+    "sourceInputsChecked": 65,
+    "sourceDrift": [],
+    "browserRecord": "projects/ai-proxy/evidence/navigation-followup-20261031/interactions.json",
+    "authoritativeRecordSection": "final",
+    "browser": "154.0.8037.92，独立headless内存预览",
+    "observed": [
+      "afterSave.active=ep-host，value为空，dialogOpen=true",
+      "outline为3px，afterTab.inside=true",
+      "记录确认Shift+Tab返回主机字段、键盘录入第二条、两条保存保留且未应用代理"
+    ],
+    "imagesInspected": [
+      "projects/ai-proxy/evidence/navigation-followup-20261031/save-and-add-focus.png",
+      "projects/ai-proxy/evidence/navigation-followup-20261031/final-profiles.png"
+    ],
+    "testLog": "projects/ai-proxy/evidence/configuration-actions-20261031/node-tests.txt",
+    "testLogResult": "72通过、0失败，包含本项8个用例；本次只读取日志，未重跑"
+  },
+  "validationBoundary": {
+    "lspDiagnostics": "工具不可用，未执行；因此保留COMMENT，不作正式APPROVE",
+    "notClaimed": [
+      "全量语义类型检查",
+      "可见macOS原生UI验收",
+      "真实代理路由验收",
+      "安装或production验收"
+    ],
+    "actionsPerformed": "仅只读源码、测试、记录、截图及哈希核对；未写文件、启动浏览器或重复测试。"
+  }
+}

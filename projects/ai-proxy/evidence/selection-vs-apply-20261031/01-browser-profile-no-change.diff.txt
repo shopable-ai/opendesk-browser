@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "关于版本".
+The focused UI element is 82 HTML 内容 关于版本, URL: chrome://version/

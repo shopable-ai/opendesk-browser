@@ -1,0 +1,623 @@
+{
+  "reviewer": "Independent UI reviewer; read-only review, no historical scores reused",
+  "reviewedAt": "2026-10-31T10:03:39.027890+00:00",
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-4c318c55-7203-44ad-aa64-c93034e3099b/preview.html",
+  "sha256": "0d763a8e2a1be52ceb9004cecc8de5aa829cea59573e03c569e6deb1d2bb71f1",
+  "evidenceLevel": {
+    "level": "SOURCE_BOUND_MEMORY_CHROMIUM_UI",
+    "framework": "React 19.2.0; existing project components and scoped CSS",
+    "basis": "Actual view_image inspection of final screenshots, computed-style evidence, source review, independent ephemeral headless user actions.",
+    "suppliedBrowser": "155.0.8059.39",
+    "independentBrowser": "156.0.8078.4",
+    "independentContext": "New ephemeral headless Playwright process/context, memory preview only; closed after diagnostics. No existing browser/profile/service controlled.",
+    "sourceBinding": {
+      "sources": 65,
+      "sourceDrift": [],
+      "htmlShaIndependentlyVerified": true
+    },
+    "screenshotsViewed": [
+      {
+        "file": "profiles.png",
+        "sha256": "803e8568de8a470c60b3b67daa5eea2b4e295ed39592463f993d26bd4966b3fd"
+      },
+      {
+        "file": "add-proxy.png",
+        "sha256": "591121d5b4cbb31354ac3e5cc45d69058dc04d2e093b252242e240f4e574eb6a"
+      },
+      {
+        "file": "rules.png",
+        "sha256": "26502ec20d88c6191ee118d04da0e7861bf736cce437b6f30794f4e338737c6f"
+      },
+      {
+        "file": "rule-editor.png",
+        "sha256": "cbce7fd64ff01ba0252dbd07db2df5617e345fd0cb43c3edd836571ff375acd3"
+      },
+      {
+        "file": "pac.png",
+        "sha256": "4f074da34b08fb0ea10b26cfc6f3759d150359d847aea70ca420026f51f00dd7"
+      },
+      {
+        "file": "empty-profiles.png",
+        "sha256": "8e824cc13c5db5dce62b631534f9099a67d0253a96614724c5b1679c4d91afc5"
+      },
+      {
+        "file": "empty-panel.png",
+        "sha256": "10d35714c81c202065d33a54dc9adcc00db26d2697ca13656ffa0e8e417a98cf"
+      },
+      {
+        "file": "profiles-en.png",
+        "sha256": "ad6f81f81300ba133d16ccba7e158bfe25809273c7d3f58e709e928984b6400a"
+      },
+      {
+        "file": "add-en.png",
+        "sha256": "d99facec3dc3d7227116de3711dc8eaff8707d101542f4331c03b91fa5d93f37"
+      },
+      {
+        "file": "profiles-zh-TW.png",
+        "sha256": "628148331510087b79b03a0c91f0b1f0d75482ad290cbe15a1397b258a03751c"
+      },
+      {
+        "file": "add-zh-TW.png",
+        "sha256": "64d19dfd78d3183acf255e9c9ef7517cd6cc6300ab5fb7e6447ca31e7c854b2d"
+      },
+      {
+        "file": "long-rule-target.png",
+        "sha256": "434354f87d61a7705563adef5be080dfc25616222de8d85925bf13c8b3a299d8"
+      },
+      {
+        "file": "import-focus.png",
+        "sha256": "75a09469cd478f3c2b5aa56c34ee13287cf44d886f68f4a62fdc6b5d85c859f5"
+      }
+    ],
+    "emptyEvidenceCorrection": "Earlier mislabeled configured-state empty screenshots explicitly excluded. Final empty screenshots were viewed after replacement; final driver selects the external scenario control, waits for the empty title and asserts zero proxy records.",
+    "providedEvidence": [
+      "source-check.json",
+      "interactions.json",
+      "node-tests.txt"
+    ],
+    "testStatus": "Provided targeted Node log says 60/60; not independently rerun. Source mapping accepted for unchanged behavioral code after final PAC presentation change. Test quantity does not determine scores."
+  },
+  "scoringPolicy": {
+    "scale": 100,
+    "thresholdPerDimension": 95,
+    "basis": "Current sidebar navigation/configuration/rules/button design goals; no historical pixel matching, no historical score inheritance, no averaging to mask a failed dimension.",
+    "deductions": "Each deduction below names observable residual behavior or presentation. Deferred Native/production/IME/size-matrix work is not promoted into this phase or treated as a current P0."
+  },
+  "dimensions": [
+    {
+      "id": "layoutDensity",
+      "name": "布局与密度",
+      "score": 96,
+      "basis": [
+        "Final profiles/rules use stable two-line rows: 66px first row and 67px divided rows, 12px vertical padding, 8px item/action gaps.",
+        "Computed settings content has one 12px gutter, 16px section gaps and zero child margins. Proxy modal has one 16px gutter, 12px field-group gaps and 8px label gaps.",
+        "Final PAC card independently measures grid columns 240px/76px, 67.4375px height, 34px actions; third action row is fixed. PAC content/form follows 16/12/8 spacing."
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "issue": "UI-04",
+          "reason": "Rule editor source context and first field label touch at a measured 0px boundary; this remaining group boundary lacks the intended spacing rhythm."
+        }
+      ]
+    },
+    {
+      "id": "hierarchyDiscoverability",
+      "name": "信息层级与可发现性",
+      "score": 92,
+      "basis": [
+        "No proxy-panel/manage business Tabs; gear opens settings, native selector exposes seven sections, separate close returns to panel.",
+        "Removing the mixed add menu did not remove subscription/local-client creation: persistent named shortcuts open the respective URL/port forms. Corrected empty state retains Add, import and both shortcuts.",
+        "PAC remains a named, counted advanced disclosure under routing, keyboard-expandable; it requires scrolling with configured records, but is not deleted or inaccessible."
+      ],
+      "deductions": [
+        {
+          "points": 5,
+          "issue": "UI-02",
+          "reason": "A named local-client Edit action loses entity context and lands on the general sources overview."
+        },
+        {
+          "points": 3,
+          "issue": "UI-03",
+          "reason": "Unlabeled tray/down-arrow import affordance is also the conventional download symbol; first-use visual intent depends on hover/title."
+        }
+      ]
+    },
+    {
+      "id": "visualReadability",
+      "name": "视觉与可读性",
+      "score": 98,
+      "basis": [
+        "Actual final Simplified Chinese, Traditional Chinese and English profiles/add screenshots retain readable hierarchy and action labels; user-defined Chinese names in English are data, not untranslated chrome.",
+        "Muted text/icons independently compute rgb(83,100,126), body rgb(27,44,73), actions rgb(54,94,218), destructive icons rgb(174,61,75), with white/soft surfaces; icon focus ring is visibly distinct.",
+        "Primary Add/Save/Apply actions use explicit words. Profile/rule names and metadata have separate weight/size; long names truncate without pushing edit/delete outside their rows."
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "issue": "UI-04",
+          "reason": "The zero-gap rule-context/field transition weakens otherwise clear grouping."
+        }
+      ]
+    },
+    {
+      "id": "operationDraftFeedback",
+      "name": "操作/草稿/反馈",
+      "score": 88,
+      "basis": [
+        "Supplied final interaction driver exercises proxy dirty Cancel/X/Escape Keep/discard, PAC dirty navigation, rule editing/deletion and return focus; final screenshots visibly distinguish saving/selection from applying.",
+        "Independent final-candidate diagnostics confirmed local-source and subscription entry routes open real forms; no real proxy actions were performed.",
+        "Success/error labels and invalid-port handling have targeted evidence; existing generation/revision safeguards were read without expanding backend review."
+      ],
+      "deductions": [
+        {
+          "points": 9,
+          "issue": "UI-01",
+          "reason": "Source-editor Escape/Cancel clears entered subscription/local-client drafts without the Keep/discard flow used elsewhere."
+        },
+        {
+          "points": 3,
+          "issue": "UI-02",
+          "reason": "Local-client row Edit requires finding the same item again in another view instead of editing the selected record."
+        }
+      ]
+    },
+    {
+      "id": "keyboardFocus",
+      "name": "键盘与焦点",
+      "score": 92,
+      "basis": [
+        "Supplied computed data shows visible icon controls at 34x34px with title and accessible name; focused import has a solid 2px outline, corroborated by final import-focus.png.",
+        "Proxy uses a native modal dialog, labeled fields and initial host focus; supplied interactions verify Enter save and return focus after dismissal. Rule action labels retain domain/scope and deletion restores a surviving neighbor.",
+        "Independent final diagnostics used real keyboard Escape; PAC summary remains a native keyboard-operable disclosure."
+      ],
+      "deductions": [
+        {
+          "points": 6,
+          "issue": "UI-01",
+          "reason": "Escape on a populated source form discards the draft immediately, contradicting the protected Escape path in other editors."
+        },
+        {
+          "points": 2,
+          "issue": "UI-05",
+          "reason": "Truncated routing-target detail exposes its full value through title only for sighted users; no focus-triggered visual disclosure is provided."
+        }
+      ]
+    },
+    {
+      "id": "componentReuseBoundary",
+      "name": "组件复用与边界",
+      "score": 96,
+      "basis": [
+        "Settings retains canonical Button, OptionsPageHeader, FormField, ClearableInput and shared ProxyIcon; semantic FormField class is added without a second renderer or host API.",
+        "Scoped sidebar-settings.css owns affected layout above isolated legacy CSS; real computed spacing supports the single-owner claim. Final PAC uses a narrow project-owned class.",
+        "Business changes remain in projects/ai-proxy. Runtime/environment/managed-config and formal package changes were excluded from this UI change attribution; no permission or execution-world expansion observed in reviewed UI changes."
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "issue": "UI-01",
+          "reason": "Newly promoted source-entry flows still use their separate unconditional closeEditor lifecycle instead of the existing revision-aware draft-close pattern."
+        }
+      ]
+    }
+  ],
+  "independentDiagnostics": {
+    "pageErrors": [],
+    "localClientEdit": {
+      "action": "Click 编辑 本地客户端 from profiles",
+      "sectionAfter": "subscriptions",
+      "localPortFormVisible": false
+    },
+    "subscriptionDraftEscape": {
+      "steps": [
+        "Open 记录订阅来源",
+        "Fill name Unsaved subscription review",
+        "Fill URL https://example.net/unsaved-review",
+        "Press Escape in name input",
+        "Reopen via profile shortcut"
+      ],
+      "editorClosed": true,
+      "confirmationVisible": false,
+      "draftConfirmationVisible": false,
+      "reopenedName": ""
+    },
+    "localClientDraftCancel": {
+      "steps": [
+        "Open 添加本地客户端",
+        "Fill name Unsaved local review and port 8123",
+        "Click source-editor Cancel",
+        "Reopen via profile shortcut"
+      ],
+      "editorClosed": true,
+      "confirmationVisible": false,
+      "reopenedName": ""
+    },
+    "ruleContextFieldGapPx": 0,
+    "finalPacRecord": {
+      "display": "grid",
+      "height": 67.4375,
+      "gridTemplateColumns": "240px 76px",
+      "textHeight": 41.4375,
+      "actionHeight": 34
+    },
+    "computedStyleReference": {
+      "profiles": {
+        "content": {
+          "height": 1016.84375,
+          "margin": "0px",
+          "padding": "12px",
+          "gap": "16px",
+          "borderTop": "0px"
+        },
+        "header": {
+          "height": 59.1875,
+          "margin": "0px",
+          "padding": "0px",
+          "gap": "12px",
+          "borderTop": "0px"
+        },
+        "list": {
+          "height": 200,
+          "margin": "0px",
+          "padding": "0px",
+          "gap": "0px",
+          "borderTop": "0px"
+        },
+        "rows": [
+          {
+            "height": 66,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "0px"
+          },
+          {
+            "height": 67,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "1px"
+          },
+          {
+            "height": 67,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "1px"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "class": "panelHead optionsPageHead profilePanelHead",
+          "margin": "0px",
+          "before": null
+        },
+        {
+          "class": "listSection",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "optionsModeBar",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "pacDetails",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "r83RotationSettings",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "serviceNote",
+          "margin": "0px",
+          "before": 16
+        }
+      ],
+      "icons": [
+        {
+          "label": "返回代理面板",
+          "title": "返回代理面板",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "导入配置",
+          "title": "导入配置",
+          "width": 34,
+          "height": 34,
+          "focus": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        {
+          "label": "选择 工作代理",
+          "title": "选择 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 工作代理",
+          "title": "编辑 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 工作代理",
+          "title": "删除 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "选择 本地客户端",
+          "title": "选择 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 本地客户端",
+          "title": "编辑 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 本地客户端",
+          "title": "删除 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "选择 备用 SOCKS",
+          "title": "选择 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 备用 SOCKS",
+          "title": "编辑 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 备用 SOCKS",
+          "title": "删除 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        }
+      ],
+      "pac": {
+        "gap": "16px",
+        "children": [
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          }
+        ],
+        "fieldsGap": "12px",
+        "fieldGaps": [
+          "8px",
+          "8px",
+          "8px",
+          "8px"
+        ],
+        "actionsGap": 16
+      },
+      "form": {
+        "display": "grid",
+        "gap": "16px",
+        "padding": "16px",
+        "dialogPadding": "0px",
+        "fieldsGap": "12px",
+        "actionsMargin": "0px",
+        "actionsBefore": 16,
+        "fieldGaps": [
+          "8px",
+          "8px",
+          "8px",
+          "8px"
+        ],
+        "childMargins": [
+          {
+            "class": "proxyEditorFields",
+            "margin": "0px"
+          },
+          {
+            "class": "editorActions",
+            "margin": "0px"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "height": 66,
+          "gap": "8px",
+          "state": "已启用"
+        },
+        {
+          "height": 67,
+          "gap": "8px",
+          "state": "已启用"
+        }
+      ],
+      "ruleForm": {
+        "gap": "16px",
+        "fieldsGap": "12px",
+        "actionsMargin": "0px",
+        "actionsBefore": 16
+      }
+    }
+  },
+  "issues": [
+    {
+      "id": "UI-01",
+      "severity": "P1",
+      "status": "REPRODUCED_FINAL_CANDIDATE",
+      "title": "订阅/本地客户端表单的 Escape 与取消绕过草稿保护",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "line": 129
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "line": 207
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "line": 215
+        }
+      ],
+      "risk": "已输入的名称、端口和订阅 URL 无提示丢失；来源表单与代理、规则、PAC 的保留/放弃交互不一致。该实现原已存在，本轮常驻来源入口直接抵达，不能据其他表单的保护推断它也受保护。",
+      "reproduction": "最终冻结候选中，经记录订阅来源填写名称与URL，按Escape；或经添加本地客户端填写名称与8123端口，点取消。两者均关闭且无确认，重开名称为空。",
+      "fix": "在项目 owner 内复用 revision-aware request-close 模式；显式取消、Escape及其他关闭入口共同检查 source-editor dirty，Keep保留全部输入，确认放弃后再 closeEditor；内部保存成功清理与路由同步清理保留独立语义。不要通过移除入口修复。",
+      "verification": "分别验证订阅及本地表单的 Escape/Cancel：Keep仍打开且值不变；确认放弃才清理；干净关闭不确认；保存成功不重复确认。"
+    },
+    {
+      "id": "UI-02",
+      "severity": "P2",
+      "status": "REPRODUCED_FINAL_CANDIDATE",
+      "title": "本地客户端行的编辑图标没有直达所选记录",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 533
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "line": 145
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "line": 285
+        }
+      ],
+      "risk": "图标及accessible name承诺编辑具体客户端，实际仅跳来源总览，端口表单不可见；多客户端时需要重新寻找对象。",
+      "fix": "将目标endpoint身份传入已有SourcesPage本地编辑流程，复用openLocal(id)与现有dirty guard；如本轮不做直达，至少将文案/图标语义明确为管理本地客户端，避免冒充实体编辑。现有/local路由当前是新增，不能只改为该路由而丢失编辑身份。",
+      "verification": "点击任一本地客户端行编辑，出现对应名称/协议/端口；取消返回原行并恢复焦点，多客户端不串身份。"
+    },
+    {
+      "id": "UI-03",
+      "severity": "P2",
+      "status": "VISUAL_AND_SOURCE_CONFIRMED",
+      "title": "导入入口仅显示易被理解为下载的图标",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 508
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+          "line": 19
+        }
+      ],
+      "risk": "截图中导入按钮没有可见文字，下箭头入托盘也常用于下载/导出；title/aria提供了辅助语义，但不解决首次扫视的辨识问题。它实际跳转导入与备份区，并非立即打开文件选择器。",
+      "fix": "优先增加短文字“导入”/“Import”并保留title/aria；若坚持icon-only，使用更明确的文件导入造型并提供focus/hover可见的tooltip。无需恢复混合添加菜单。",
+      "verification": "中英繁文字均清楚，键盘焦点可解释按钮目的，点击仍到既有导入区，不改变权限或立即覆盖配置。"
+    },
+    {
+      "id": "UI-04",
+      "severity": "P3",
+      "status": "COMPUTED_STYLE_CONFIRMED",
+      "title": "规则编辑来源说明紧贴第一字段标签",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 677
+        },
+        {
+          "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "line": 146
+        }
+      ],
+      "risk": "rule-editor.png中“正在编辑已保存的规则”与网站字段标题挤在一起。独立测得说明底部到首label顶部为0px，容器为block，两者margin均0。",
+      "fix": "在rulesEditor这一owner上设置grid和8px或12px gap分隔来源说明与form；保留form margin:0，不用子元素margin再次叠加。",
+      "verification": "computed source-to-first-field gap为所选8/12px，规则内部12/16px节奏不变。"
+    },
+    {
+      "id": "UI-05",
+      "severity": "P3",
+      "status": "SOURCE_AND_SCREENSHOT_CONFIRMED",
+      "title": "省略的规则目标详情没有供明眼键盘用户查看的完整提示",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 669
+        },
+        {
+          "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "line": 84
+        }
+      ],
+      "risk": "长目标名称与优先级被省略；完整title在small上，small不可聚焦。屏幕阅读器可读完整DOM文本，故不声称文本对辅助技术消失，但明眼键盘用户需额外进入编辑器查找。",
+      "fix": "在现有可聚焦动作或记录上提供关联的focus/hover完整详情浮层，或允许选中/聚焦记录时展开第二行；保持两行默认密度并避免新增无意义Tab站点。",
+      "verification": "不用鼠标也可查看完整目标和优先级，Escape可关闭提示，编辑/删除焦点及布局不受影响。"
+    }
+  ],
+  "limitations": [
+    "本评审只写指定ui-review.json；不修改产品、README、DESIGN或其他证据，不提交、安装、构建正式包、切分支、运行真实代理或控制现有浏览器/服务。",
+    "内存预览交互不证明真实配置持久化、Chrome代理启停、PAC实际执行、订阅同步、Native或流量可达；均NOT_TESTED。",
+    "可见macOS Chrome、production、全CI、完整语义类型、IME、宽度/缩放矩阵未执行；按本阶段边界不恢复为当前P0。",
+    "颜色/焦点判断来自实际截图和选定控件的computed styles；没有执行全应用WCAG对比度、读屏或暗色审计。",
+    "供应的11组交互证据与独立探查互补，不能因其PASS或Node60/60宣称所有来源关闭路径已覆盖；UI-01正是现有检查未覆盖的真实用户路径。",
+    "独立诊断Chromium156与供应截图Chromium155版本不同；它是额外memory UI交互证据，不冒充同版本Native或production验收。"
+  ],
+  "conclusion": {
+    "status": "CHANGES_REQUESTED",
+    "allSixAtLeast95": false,
+    "minimumScore": 88,
+    "blockingIssues": [
+      "UI-01"
+    ],
+    "summary": "最终候选在密度、三语可读性、PAC左右布局和公开边界上有充分改进；来源表单草稿会无提示丢失，本地编辑与导入可发现性仍有缺口，不能诚实宣布六维≥95。",
+    "nextActions": [
+      "先修复UI-01来源表单统一关闭保护。",
+      "修复UI-02实体编辑直达、UI-03导入可见语义；UI-04/05为局部视觉/键盘改进。",
+      "将复核绑定新冻结候选，只运行上述路径及受影响草稿/焦点检查；无需恢复延期的正式验收。"
+    ],
+    "stopCondition": "本次独立只读评审已完成并写入唯一指定JSON；实现/重冻结/后续复核归主agent。"
+  }
+}

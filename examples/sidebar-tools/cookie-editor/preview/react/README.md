@@ -1,3 +1,9 @@
+## 2026-10-31 · 服务列表与添加表单保留
+
+继续使用 [43134/dev.html](http://127.0.0.1:43134/dev.html) 的现有 Vite 服务。默认 `serviceConnections` 场景从企业页开始，原介绍后的「服务连接 · 2 个」进入两条虚构未连接配置；实验台提供独立 `serviceConnectionsEmpty` 真正空列表场景。已有账号等场景含义不变，重置只重建当前场景；同一 Mock 内刷新服务、添加保存与 Tab 往返不会清除配置，整页刷新会重建内存数据。
+
+正式 App／Domain 使用同一业务源码，场景数据仅在 `mock-sdk.js`。定向交互入口为 `node examples/sidebar-tools/cookie-editor/tests/service-form-source-interactions.mjs`（仓库根运行）；证据见 [保留修正记录](../../evidence/service-list-preservation-20261031.json)。类型选择、独立草稿、列表往返、就近错误与字段布局是源码开发结果，未打包、安装、发布或评分。下方为既有 dev 机制和历史记录。
+
 ## R3.7 当前阶段：仅 dev，不构建（2026-10-27）
 
 在本目录使用 Node 24 运行 `npm run dev`，固定监听 `127.0.0.1:43134`，端口占用直接失败。

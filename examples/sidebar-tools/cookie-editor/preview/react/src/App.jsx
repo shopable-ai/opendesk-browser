@@ -5,7 +5,7 @@ import {createMockSdk,demoSite,demoSites} from './mock-sdk.js';
 // The shared product App owns compact editor copy, attribute/storage disclosures and the site header.
 // Scene controls live outside that App. Only SDK responses are fictional.
 export default function App(){
- const [scene,setScene]=React.useState('accountsDemo');
+ const [scene,setScene]=React.useState('serviceConnections');
  const [width,setWidth]=React.useState(380);
  const [revision,setRevision]=React.useState(0);
  const [dark,setDark]=React.useState(false);
@@ -38,7 +38,9 @@ export default function App(){
    <summary className="lab-title"><span>Cookie Editor · React 同源预览</span><span>交互预览 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
-     <option value="accountsDemo">3 个虚构账号（默认）</option>
+     <option value="serviceConnections">虚构服务（默认）</option>
+     <option value="serviceConnectionsEmpty">虚构服务 · 空列表</option>
+     <option value="accountsDemo">3 个虚构账号</option>
      <option value="approvedParity">认可 HTML A/B 数据（保留分区身份）</option>
      <option value="accountsFirst">首次保存账号</option>
      <option value="accountSwitchFail">账号切换失败</option>
@@ -60,7 +62,7 @@ export default function App(){
      <option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option>
     </select></label>
     <button className="lab-button" type="button" onClick={()=>setDark(x=>!x)}>{dark?'浅色':'深色'}</button>
-    <button className="lab-button" type="button" onClick={()=>useScene('ready')}>重置</button>
+    <button className="lab-button" type="button" onClick={()=>useScene(scene)}>重置</button>
    </div>
   </details>
   <div className="preview-host-controls">
@@ -80,7 +82,8 @@ export default function App(){
    {hostRoot&&(granted
     ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}
       previewMode initialSection={['accountsFirst','accountSwitchFail',
-        'accountSwitchUnknown'].includes(scene)?'accounts':'cookie'}/>
+        'accountSwitchUnknown'].includes(scene)?'accounts':
+        ['serviceConnections','serviceConnectionsEmpty'].includes(scene)?'enterprise':'cookie'}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
       <h2 id="preview-grant-title">Cookie 访问授权</h2>
       <p>允许管理普通 HTTP/HTTPS 网站的 Cookie；敏感值单独授权。</p>

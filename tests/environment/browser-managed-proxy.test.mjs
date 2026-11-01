@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import {validateManagedProxyConfig,compileManagedProxyPac,createBrowserManagedProxy,
   stopManagedProxyForTool,reconcileManagedProxy,MANAGED_PROXY_STORE}
   from '../../src/platform/chrome/browser-managed-proxy.js';
@@ -10,6 +11,24 @@ const owner=(id='first-tool')=>({toolId:id,packageHash:(id==='first-tool'?'a':'b
 const input={config:{endpoint:{scheme:'socks5',host:'proxy.example.com',port:1080},
   domains:['chatgpt.com','claude.ai']}};
 const code=value=>error=>error?.code===value;
+
+test('owned direct and fixed routes compile the reviewed routing behavior without fallback',()=>{
+  const identity={toolId:'first-tool',packageHash:'a'.repeat(64),installEpoch:'epoch-1'};
+  for(const [config,expected] of [
+    [{mode:'direct'},'DIRECT'],
+    [{mode:'fixed_servers',endpoint:{scheme:'http',host:'127.0.0.1',port:7897}},'PROXY 127.0.0.1:7897'],
+    [{mode:'fixed_servers',endpoint:{scheme:'socks5',host:'proxy.example.com',port:1080}},'SOCKS5 proxy.example.com:1080']
+  ]){
+    const context=vm.createContext({});
+    vm.runInContext(compileManagedProxyPac(config,identity),context);
+    assert.equal(context.FindProxyForURL('http://ip111.cn/','ip111.cn'),expected);
+    assert.equal(context.FindProxyForURL('https://unrelated.example/','unrelated.example'),expected);
+  }
+  const context=vm.createContext({dnsDomainIs:(host,suffix)=>host.endsWith(suffix)});
+  vm.runInContext(compileManagedProxyPac({mode:'rules',endpoint:{scheme:'http',host:'127.0.0.1',port:7897},domains:['ip111.cn']},identity),context);
+  assert.equal(context.FindProxyForURL('http://us.ip111.cn/','us.ip111.cn'),'PROXY 127.0.0.1:7897');
+  assert.equal(context.FindProxyForURL('https://unrelated.example/','unrelated.example'),'DIRECT');
+});
 const REVIEWED_FIXTURE_PROFILE={reviewId:'FIXTURE-PROXY-REVIEW-0001',
   reviewedAt:'2026-10-15',reviewedBy:'node-fixture',toolId:'first-tool',
   packageHash:'a'.repeat(64),config:input.config};
@@ -224,4 +243,24 @@ test('previously approved ownership can STOP with the production profile list em
   const production=createBrowserManagedProxy({api:f.api,lockManager:f.locks});
   assert.equal((await production.requestDisable({},owner())).state,'disabled');
   assert.equal(f.calls.clear.length,1);
+});
+
+
+test('status reports native mode and only exact owned active configuration, including after reopen',async()=>{
+  const f=fixture();
+  f.api.proxy.settings.get=async()=>({levelOfControl:'controllable_by_this_extension',value:{mode:'system'}});
+  const idle=await f.driver.getStatus({},owner());
+  assert.equal(idle.browserMode,'system');
+  assert.equal(idle.activeConfig,null);
+  const g=fixture();
+  await g.driver.requestEnable(input,owner());
+  const reopened=createBrowserManagedProxy({api:g.api,lockManager:g.locks});
+  const active=await reopened.getStatus({},owner());
+  assert.equal(active.browserMode,'pac_script');
+  assert.deepEqual(active.activeConfig,validateManagedProxyConfig(input.config));
+  assert.equal((await reopened.getStatus({},owner('other-tool'))).activeConfig,null);
+  g.setPermission(false);
+  const revoked=await reopened.getStatus({},owner());
+  assert.equal(revoked.activeConfig,null);
+  assert.equal(revoked.browserMode,null);
 });

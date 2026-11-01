@@ -240,6 +240,50 @@ test('invalid backup files and late valid reads preserve the existing backup dra
   await pending;assert.deepEqual(writes,[]);assert.equal(env.isDraftDirty('settings-backup'),true);
  }finally{env.dispose();}
 });
+test('late backup file reads cannot attach a draft to a replacement trusted environment',async()=>{
+ const {env:original}=fixture();let current=original,complete;
+ const writes=[],errors=[];
+ const load=await handler('../src/Settings.tsx','  async function loadBackupFile(','  async function importBackup(',{
+  getEnvironment:()=>{if(!current)throw Error('environment missing');return current;},
+  BACKUP_MAX_BYTES:8192,parseBackupForImport:JSON.parse,BackupImportValidationError:class extends Error{},
+  backup:'',backupReadGeneration:{current:0},t:key=>key,
+  setBackup:value=>writes.push(value),setBackupImported(){},setError(){},setErrorKey:value=>errors.push(value)
+ });
+ const pending=load({size:2,text:()=>new Promise(resolve=>complete=resolve)});
+ original.dispose();current=fixture().env;
+ try{
+  complete('{}');await pending;
+  assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);assert.equal(current.hasDrafts(),false);
+ }finally{current.dispose();}
+});
+test('backup cleanup, late failure and pending confirmation stay inside their original component',async()=>{
+ const source=await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8');
+ const start=source.indexOf('  const backupReadGeneration =');
+ const effect=source.slice(start,source.indexOf('\n',source.indexOf('useEffect(',start)));
+ for(const boundary of ['unmount','failure','confirmation']){
+  const {env:original}=fixture();let current=original,complete,failRead,confirm,cleanup;
+  const generation={current:0},writes=[],errors=[];
+  // Invoke the real component cleanup rather than simulating a generation bump.
+  new Function('useRef','useEffect',effect)(()=>generation,fn=>{cleanup=fn();});
+  original.setConfirmHandler(()=>new Promise(resolve=>confirm=resolve));
+  const load=await handler('../src/Settings.tsx','  async function loadBackupFile(','  async function importBackup(',{
+   getEnvironment:()=>current,BACKUP_MAX_BYTES:8192,parseBackupForImport:JSON.parse,
+   BackupImportValidationError:class extends Error{},backup:boundary==='confirmation'?'existing':'',
+   backupReadGeneration:generation,t:key=>key,setBackup:value=>writes.push(value),
+   setBackupImported(){},setError(){},setErrorKey:value=>errors.push(value)
+  });
+  const pending=load({size:2,text:()=>new Promise((resolve,reject)=>{complete=resolve;failRead=reject;})});
+  if(boundary==='confirmation'){complete('{}');await new Promise(resolve=>setImmediate(resolve));assert.equal(typeof confirm,'function');}
+  if(boundary==='unmount')cleanup();
+  else{original.dispose();current=fixture().env;}
+  try{
+   if(boundary==='confirmation')confirm(true);
+   else if(boundary==='failure')failRead(Error('late file failure'));
+   else complete('{}');
+   await pending;assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);assert.equal(current.hasDrafts(),false);
+  }finally{current.dispose();}
+ }
+});
 test('successful parsed paste marks QuickPanel and Settings drafts even with prevented default input',async()=>{
  for(const [file,scope,setter] of [['QuickPanel.tsx','quick-server','setServer'],['Settings.tsx','settings-proxy','setProxy']]){
   const {env}=fixture();

@@ -28,7 +28,7 @@
         if (!task) throw new Error('固定 Task 尚未确认安装身份');
         const configJson = JSON.stringify(config.itemConfig);
         if (bytes(configJson) > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
-        const {url:configuredUrl,itemConfig,waitForSelector,timeoutMs,...options}=config;
+        const {url:configuredUrl,itemConfig,waitForSelector,timeoutMs,output,...options}=config;
         const optionsJson=JSON.stringify(options);
         if(bytes(optionsJson)>4096)throw new Error('分页、详情与处理配置超过 4096 字节');
         const params = {url: configuredUrl, configJson, optionsJson, waitForSelector: waitForSelector || '', timeoutMs: timeoutMs ?? 30000};
@@ -44,7 +44,7 @@
         if (result?.saved !== true) throw new Error('保存结果未知，请保留草稿并重新读取');
         return result;
       },
-      async download(value, format = 'json') {
+      async download(value, format = 'json', output) {
         if (!['json','csv'].includes(format)) throw new Error('不支持的导出格式');
         let text = JSON.stringify(value, null, 2);
         if (format === 'csv') {
@@ -56,7 +56,13 @@
             if(typeof v==='string' && (/^[\s\u0000-\u001f]*[=+@-]/u.test(value)||/^[\t\r\n]/u.test(value)))value="'"+value;
             return '"'+value.replaceAll('"','""')+'"';
           };
-          text = [keys.map(cell).join(','), ...data.map(row => keys.map(key => cell(row[key])).join(','))].join('\r\n');
+          const headers = keys.map(key => {
+            const name = output?.fieldNames && Object.hasOwn(output.fieldNames,key) ? output.fieldNames[key] : undefined;
+            if (name !== undefined && (typeof name !== 'string' || Array.from(name).length > 80 || bytes(name) > 240 || /[\u0000-\u001f\u007f]/.test(name))) throw new Error('CSV 表头名称无效');
+            return typeof name === 'string' && name.trim() ? name.normalize('NFC').trim() : key;
+          });
+          if (output && new Set(headers).size !== headers.length) throw new Error('CSV 表头名称重复，请使用不同名称');
+          text = [headers.map(cell).join(','), ...data.map(row => keys.map(key => cell(row[key])).join(','))].join('\r\n');
           if (!keys.length) throw new Error('没有可导出的字段');
         }
         if (bytes(text) > 150000) throw new Error('完整导出超过 150000 字节，不能导出；未截断结果');

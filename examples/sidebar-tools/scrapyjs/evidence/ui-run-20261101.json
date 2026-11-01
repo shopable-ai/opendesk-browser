@@ -1,0 +1,311 @@
+{
+  "date": "2026-11-01",
+  "recordedAt": "2026-11-01T06:47:56.414Z",
+  "status": "INSTALLED_CORE_CAPTURE_AND_EXPORT_PASS",
+  "phase": "CORE_DEVELOPMENT",
+  "branch": "main",
+  "sourceCommit": "541209958e8daaea4bf032f4f3413edd040eedc9",
+  "runtime": {
+    "browser": "Google Chrome for Testing 149.0.7827.55",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "existing development artifact",
+    "serveFreshness": "NOT_PROVEN",
+    "browserRebuilt": false,
+    "profileSwitched": false
+  },
+  "app": {
+    "id": "scrapyjs",
+    "version": "1.8.2",
+    "bytes": 153665,
+    "sha256": "f030a59537840529cd6f79b458b15da22fb46d55078d466375f8e9ba36332889",
+    "buildId": "cefc7b9d238778e4ad50a4a022cb14f779a786d6b64f9bbd7e33d6cbcfac170b",
+    "sources": {
+      "adapters/app-sdk.js": {
+        "bytes": 4152,
+        "sha256": "32bbd92d4198d5f0bfb3da8013157c8656a6cb3e651fd93bdc9c8e9e5b67a66e"
+      },
+      "package.json": {
+        "bytes": 1975,
+        "sha256": "2471cae385b8404109a7dfb68410f62223fc4696bdefe1cb4be3bba976c1c5c1"
+      },
+      "src/AiPanel.jsx": {
+        "bytes": 19079,
+        "sha256": "63165d71777b771bcda26d8be6c25ac6ccc362abcde3b738bce1386a301728a9"
+      },
+      "src/App.jsx": {
+        "bytes": 48306,
+        "sha256": "64fc58fe7e0754ffb20d37e5a96cb33f3fdcd702b36f4fded28595081bcd99ae"
+      },
+      "src/Results.jsx": {
+        "bytes": 17352,
+        "sha256": "878fa1685a037272889dab3e24723c6e31d0189e8c229a8014a940cd6ba419bd"
+      },
+      "src/ai-config.js": {
+        "bytes": 3179,
+        "sha256": "83b2d382f6c65781d3f8fd7e7efa68ecc3f8eacc9e09672ed41cabfdae5288cd"
+      },
+      "src/ai-pending.js": {
+        "bytes": 1343,
+        "sha256": "a696f8b15c60b02fbb81a6ff59b40c80fca8c0d56b0640dd79102ef5f85c7e2e"
+      },
+      "src/ai-request.js": {
+        "bytes": 3013,
+        "sha256": "0efa573de942f66036f6044112aa20c3b96dfc96bed6109a2ae227c45df8d6b1"
+      },
+      "src/app-model.js": {
+        "bytes": 28146,
+        "sha256": "09170b9f1fa54529222756bbfbaeb2a13fc38b8ad21d12ae4b64a5d49870a98f"
+      },
+      "src/editor.js": {
+        "bytes": 2813,
+        "sha256": "53e544af0cbfc867523873c20c4b399ca4d962cf0add8ff3e1d245b3e1dbceda"
+      },
+      "src/index.html": {
+        "bytes": 26,
+        "sha256": "8eaf427812eabbe6e47fbbb159c1d9e7a2dd68d544332fca1a2cea7a8e19d5cc"
+      },
+      "src/main.jsx": {
+        "bytes": 425,
+        "sha256": "ca02c029a2fc6c22819dd90b80ea3e8e8479507d6f95c7e60396e2b47084aaf9"
+      },
+      "src/results-model.js": {
+        "bytes": 2822,
+        "sha256": "7de50a46caeb24f72a34b64e732d140fdfe7b28201ba8d292b323032c103671c"
+      },
+      "src/results.css": {
+        "bytes": 3899,
+        "sha256": "5882afefdbb67c3affd4eea120a068eb0cd008b1d7cb7d1fad03a7f4c4d5d3e6"
+      },
+      "src/style.css": {
+        "bytes": 15626,
+        "sha256": "b1009ba7d356f7f090e1ff51aafdb8a0d640720ddcb33dd704f386b2051e7170"
+      },
+      "tool.config.json": {
+        "bytes": 985,
+        "sha256": "7943519becdfcf7bfc798df1ab68806b14f6d92cc6bad719df033b33fb16dec6"
+      },
+      "vite.config.mjs": {
+        "bytes": 4672,
+        "sha256": "dd551df27885cdceb2bc78c631ae2b91a2331dc40fa1a32f4121ca38a7410396"
+      }
+    },
+    "publicDesignSources": {
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 5526,
+        "sha256": "852b72482237595c88aae05e1e624728332ecc380d2d4fbc6fe6273f328ffe91"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 17758,
+        "sha256": "3db2a5db8cc7b59bd4e51207f7d4a2ce29dfa7f0dd3061d0af2ac3aecd1da11b"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      }
+    }
+  },
+  "task": {
+    "taskId": "scrapyjs.capture",
+    "version": "0.6.1",
+    "manifestHash": "853c5d2e2f6027ffd9b0ff69c587a99e17b98e9cf8b50c2bb3d70d5a14c97ef8",
+    "contentHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+    "verificationRunId": "25de94e9-ac50-4473-b54f-b899d72e7e71",
+    "installed": true,
+    "sourceAndPermissionsUnchanged": true
+  },
+  "native": {
+    "status": "PASS",
+    "runId": "d853b2bf-65c0-4ad4-b462-f2d2f39c147b",
+    "resultId": "7d02f85d-3e46-4a08-8594-5f56f9bfb5fe",
+    "clientRequestId": "d931c145-e5ff-41b6-8861-807dcb994398",
+    "state": "completed",
+    "retirementState": "released",
+    "rows": 20,
+    "columns": 12,
+    "websiteCompared": [
+      "title",
+      "url",
+      "publication",
+      "rating"
+    ],
+    "websiteRowsCompared": 20,
+    "csvCellsCompared": 240,
+    "hiddenColumnDownloadUnchanged": true,
+    "files": {
+      "json": {
+        "path": "result.json",
+        "sha256": "dababf84f179914e375682e67ad168b1642895c4309a1a87dde51e16bb65a2f8"
+      },
+      "csv": {
+        "path": "result.csv",
+        "sha256": "0249763e0008ef7f4093e443718224ed9fcd340668851ac988c0e8a5ead668f6"
+      }
+    },
+    "config": "真实核验-20261031-手工",
+    "retainedConfigurations": 8,
+    "checks": [
+      "real Start and completed/released persistent result",
+      "record details",
+      "hide column",
+      "Space/Down/Enter column reorder",
+      "restore default columns",
+      "library search/clear/back preserving results",
+      "JSON/CSV actual download",
+      "hidden-column JSON remains complete"
+    ]
+  },
+  "automatedChecks": [
+    {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/{app-model,profiles,app-view,results-model}.test.mjs",
+      "pass": 53,
+      "role": "independent native subagent; UI source then advanced, final installed UI separately verified"
+    },
+    {
+      "command": "SCRAPYJS_CANDIDATE=artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/package.test.mjs tests/environment/sidebar-tools.test.mjs",
+      "pass": 9
+    },
+    {
+      "command": "node --test examples/sidebar-tools/scrapyjs/preview/runtime-source.test.mjs",
+      "pass": 4
+    },
+    {
+      "command": "node --test --test-name-pattern='local preview keeps' examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs",
+      "pass": 1
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-project",
+      "status": "PROJECT_PACKAGE_MATCH"
+    },
+    {
+      "command": "node examples/sidebar-tools/scrapyjs/preview/build-preview.mjs --out artifacts/scrapyjs/ui-run-20261101/preview-1.8.2",
+      "status": "SOURCE_COMPONENT_PREVIEW"
+    }
+  ],
+  "repairs": [
+    "Separate offline placeholder entry from production App entry",
+    "Republish identical capture source as Task0.6.1 after actual current-runtime verification; App1.8.2 fixed identity binding"
+  ],
+  "priorUnknown": {
+    "clientRequestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+    "status": "UNRESOLVED_UNTOUCHED",
+    "generate": 0,
+    "cancel": 0,
+    "replay": 0
+  },
+  "notTested": [
+    "current-version Stop",
+    "real AI inference",
+    "CSDN",
+    "HTTP",
+    "human IME",
+    "production/CWS/revoke/full CI/independent score",
+    "current-version native Chat interaction"
+  ],
+  "outOfScope": [
+    "width/zoom matrix",
+    "root serve restoration",
+    "prior UNKNOWN recovery"
+  ],
+  "changesOwnedThisRun": [
+    "tool.config.json",
+    "package.json",
+    "controller/scrapyjs.opendesk-task.json",
+    "scrapyjs.opendesk-tool.json",
+    "preview/entry.jsx",
+    "preview/build-preview.mjs (in-memory preview entry portions)",
+    "README.zh-CN.md (new current section)",
+    "evidence/ui-run-20261101.json"
+  ],
+  "commit": {
+    "status": "NOT_COMMITTED",
+    "reason": "Related tool UI and public design tokens already contain parallel uncommitted input; preserve ownership, no unrelated staging or push"
+  },
+  "report": "artifacts/scrapyjs/ui-run-20261101/README.md",
+  "artifacts": {
+    "artifacts/scrapyjs/ui-run-20261101/01-update-review.ax.txt": {
+      "bytes": 157,
+      "sha256": "e5623cec9ef31018cb7c0236a92080077edcf7d899201c4801f9f72b27e196c6"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/02-installed-ui.ax.txt": {
+      "bytes": 131,
+      "sha256": "d153038b12999b978034c977f4bc9c67c7fc53d9581ce81a7f96e91058fec3ce"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/03-target-before-run.ax.txt": {
+      "bytes": 171,
+      "sha256": "880b8418569b208882cad32c685db6af148d3e6451c3bd8a30ec427681e466b7"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/04-capture-runtime-blocked.ax.txt": {
+      "bytes": 172,
+      "sha256": "a3dd5f64d7e1e9c33effbaf74949b76013a515616d1e49112685afb09d7260f5"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/05-task-verification-run.ax.txt": {
+      "bytes": 142,
+      "sha256": "fcba0dae739610f4c5b94da5b262cc780e254df6e0354ab0dac8999e399e2492"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/06-task-installed.ax.txt": {
+      "bytes": 23825,
+      "sha256": "68e0d91eb21591f81a43d7f6ac8a0a5eeef2b5ceaed359a6d8142bfe692cb29e"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/07-app-update-review.ax.txt": {
+      "bytes": 8798,
+      "sha256": "25f3ff076cc794795032905eee68c20146836aae8e8291570d135f1d36257084"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/08-app-capture-completed.ax.txt": {
+      "bytes": 54644,
+      "sha256": "59f1f3a9e03f32a95106148dbb1872bd2b517cefe64ccae0344360a031d27974"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/08-app-capture-completed.png": {
+      "bytes": 988197,
+      "sha256": "d14adaf546ae7ebaaa54a3ac639cac5bcab70ce54a4ae85a1fc5792f48ef4092"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/09-record-details.ax.txt": {
+      "bytes": 1179,
+      "sha256": "9d22052b3ac9a66d2d85bd9dc1dc79b8012117631ca8981d5eb451ae7327f8ad"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/10-columns-reordered.ax.txt": {
+      "bytes": 4110,
+      "sha256": "58583a02705909cdaecb508f1753fef436798693d9bb24e1b33e2b11e135a3b3"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/10-columns.ax.txt": {
+      "bytes": 2555,
+      "sha256": "7c96ed2b13ec631bdec3abda69a36452f2b1cd2bee0b47063426d17548e0566a"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/11-config-library.ax.txt": {
+      "bytes": 4456,
+      "sha256": "86b92b25433d62ba464dfb3ede9b3205ff5ac86d458e63460138f7f4def7a741"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/README.md": {
+      "bytes": 4534,
+      "sha256": "b986b9dcae1598daa8b6993e37cf3cd348aeca0a9f66fb4f06831aaa76648d25"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/exports-verification.json": {
+      "bytes": 739,
+      "sha256": "1244e5e875df253f863c695bf4231cec47407c003aebd1dbe59240f7e917d592"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/result-hidden-column.json": {
+      "bytes": 104819,
+      "sha256": "dababf84f179914e375682e67ad168b1642895c4309a1a87dde51e16bb65a2f8"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/result.csv": {
+      "bytes": 7824,
+      "sha256": "0249763e0008ef7f4093e443718224ed9fcd340668851ac988c0e8a5ead668f6"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/result.json": {
+      "bytes": 104819,
+      "sha256": "dababf84f179914e375682e67ad168b1642895c4309a1a87dde51e16bb65a2f8"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/task-build.json": {
+      "bytes": 5618,
+      "sha256": "3bbf9e079d0b7adc5c235ad4785d6d9142733caff9a6b243a843bc2bc54cabdc"
+    },
+    "artifacts/scrapyjs/ui-run-20261101/verify-exports.mjs": {
+      "bytes": 3168,
+      "sha256": "3d36792e10284d1bde44e3d7405d844d85b4bf6d1ce0ac1899e10ba5d55a7b49"
+    }
+  }
+}

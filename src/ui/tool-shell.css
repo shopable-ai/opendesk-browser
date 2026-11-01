@@ -392,9 +392,10 @@
 .sidebar-tool-inline-remove-actions{display:flex;gap:8px;flex-wrap:wrap}
 .sidebar-tool-inline-remove-actions button{min-height:34px;padding:6px 10px;font-size:12px;font-weight:650}
 #sidebar-tool-inline-remove-confirm{background:var(--od-negative);color:var(--od-paper)}
-.sidebar-tool-action-review{position:sticky;top:0;z-index:3;margin:0 0 10px;padding:10px 12px;border:1px solid #d2ddeb;background:var(--od-paper,#fff);border-radius:var(--radius-surface)}
+.sidebar-tool-action-review{position:sticky;top:0;z-index:3;min-width:0;margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);background:var(--od-paper);border-radius:var(--radius-surface)}
 .sidebar-tool-action-review[hidden]{display:none!important}
-.sidebar-tool-action-review p{margin:0 0 8px;color:var(--od-ink,#213854);font-size:12px;line-height:1.5}
+.sidebar-tool-action-title{margin:0 0 var(--space-2);font-size:14px;font-weight:600;line-height:1.5;color:var(--od-ink)}
+.sidebar-tool-action-review p{margin:0 0 var(--space-3);color:var(--od-ink);font-size:13px;line-height:1.6}
 #sidebar-tool-action-summary{white-space:pre-wrap;overflow-wrap:anywhere;max-height:min(44vh,360px);overflow-y:auto;overscroll-behavior:contain}
 .sidebar-tool-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
@@ -558,8 +559,9 @@
   justify-content:center;padding:16px;background:rgba(16,26,42,.35)
 }
 .sidebar-tool-cookie-consent-dialog{
-  box-sizing:border-box;display:grid;gap:18px;width:min(100%,310px);min-width:0;
-  padding:16px;background:var(--od-paper);color:var(--od-ink);
+  box-sizing:border-box;display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+  gap:var(--space-3);width:min(100%,360px);min-width:0;max-height:calc(100dvh - 32px);
+  padding:var(--space-4);background:var(--od-paper);color:var(--od-ink);
   border:1px solid var(--od-line);border-radius:var(--radius-surface);
   box-shadow:0 16px 44px rgba(16,26,42,.2)
 }
@@ -572,40 +574,44 @@
   height:28px;min-height:28px;padding:3px;background:transparent;border:0
 }
 .sidebar-tool-cookie-consent-close svg{width:17px;height:17px}
+.sidebar-tool-cookie-consent-description{
+  min-height:0;margin:0;overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere;
+  font-size:13px;line-height:1.6;white-space:pre-wrap
+}
 .sidebar-tool-cookie-consent-allow{width:100%;min-height:38px;justify-content:center}
 .sidebar-tool-cookie-consent-overlay button:focus-visible,
 .sidebar-tool-cookie-grant-compact:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
 
-/* Verified full-height chain: admitted Bookmark React or catalog-verified official
+/* Verified full-height chain: admitted first-party React or catalog-verified official
  * sandbox workspace. Ordinary user tools/settings retain content-height flow. */
-#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex-direction:column;
   overflow:hidden;
   padding-bottom:0;
 }
-#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools,
-#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host,
-#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
+#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools,
+#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host,
+#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-view-head{
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-view-head{
   flex:none;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
   flex:0 1 auto;
   min-height:0;
   max-height:min(38%,280px);
@@ -615,6 +621,7 @@
 
 /* The verified official iframe owns its scroll; the Host never adds a second
  * scrollbar or guesses fixed viewport offsets for workspace applications. */
+#sidebar-tool-frame[data-ai-proxy-trusted="true"],
 #sidebar-tool-frame[data-official-workspace="true"]{
   display:flex;flex:1 1 0;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
 }

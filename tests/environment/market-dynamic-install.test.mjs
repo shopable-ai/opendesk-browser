@@ -35,6 +35,14 @@ test('a nonbundled fixed release loads only through the compiled channel and can
   const wrong=distribution();await assert.rejects(loadMarketTool(subject,{...wrong,origin:'http://127.0.0.1:43133'}),{code:'E_PACKAGE_SOURCE'});
   assert.equal(wrong.calls.length,1,'wrong origin is rejected before downloading a descriptor');
 });
+test('large fixed market releases retain exact byte and SHA checks without a package size cap',async()=>{
+  const packageTool={...tool,js:'/*'+'界'.repeat(750000)+'*/'};
+  const h=distribution({packageTool});
+  assert.ok(h.release.bytes>2*1024*1024);
+  assert.deepEqual((await loadMarketTool(subject,{...h,origin})).tool,packageTool);
+  const changed=distribution({packageTool,mutateBytes:bytes=>Buffer.concat([bytes,Buffer.from(' ')])});
+  await assert.rejects(loadMarketTool(subject,{...changed,origin}),{code:'E_PACKAGE_INTEGRITY'});
+});
 test('digest, fixed identity, arbitrary paths and byte limits cannot substitute a package',async()=>{
   for(const options of [
     {mutateRelease:r=>r.sha256='0'.repeat(64)},

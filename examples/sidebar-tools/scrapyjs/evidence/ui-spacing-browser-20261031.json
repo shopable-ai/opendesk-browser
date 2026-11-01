@@ -1,0 +1,147 @@
+{
+  "status": "PASS_SIMULATED_UI",
+  "candidateSha256": "273baa41081a07ceec7d18db18539cfa52211ebc6893475d046cb131cd26f7c3",
+  "scope": "Offline light source React UI; spacing and affected workspace/Chat interactions",
+  "browser": {
+    "version": "149.0.7827.55",
+    "platform": "darwin",
+    "headless": true
+  },
+  "validation": {
+    "toolBuild": "PASS",
+    "node": {
+      "checks": 11,
+      "status": "PASS",
+      "files": [
+        "tests/app-view.test.mjs",
+        "tests/ai-app.test.mjs",
+        "tests/ai-panel.test.mjs"
+      ]
+    },
+    "aiBrowserChecks": [
+      "AI expands beside the mounted workspace, target and selected rules tab",
+      "AI toggle exposes its expanded region",
+      "opening focuses the AI region heading",
+      "unapplied field blocks AI sending without discarding either draft",
+      "Escape collapses Chat and returns focus to its toggle",
+      "collapse preserves the exact editor node, field draft and config",
+      "reopening retains the Chat input",
+      "AI opening and closing preserves malformed JSON, its active tab and Run guard",
+      "Shift+Enter and IME Enter do not dispatch",
+      "hidden pending Chat retains business and external reset guards",
+      "shared Chat leaves the existing result and selected result tab intact",
+      "reply and complete proposal differences stay in the shared Chat context",
+      "complete JSON is available on demand while differences and application stay together",
+      "returned proposal cannot compress the shared Chat or composer",
+      "collapsing keeps the reviewed proposal",
+      "discarding the proposal returns focus to Chat input",
+      "the multi-message transcript has a real scroll position to preserve",
+      "reopening preserves the existing transcript scroll position",
+      "explicit application opens inline naming while Chat remains in the workspace",
+      "closing during naming still returns focus to the available AI toggle",
+      "failed naming keeps the draft instruction and never acknowledges a saved proposal",
+      "named copy clears old result ownership and never starts another capture",
+      "successful proposal save replaces the pending AI status without implying capture",
+      "Chat remains in its opaque sandbox",
+      "no page runtime errors"
+    ],
+    "computedStyleChecks": [
+      "one 12px tool gutter and 16px section rhythm",
+      "8px related target rhythm",
+      "target actions do not add padding on top of parent gap",
+      "12px between field groups",
+      "8px from field label to input",
+      "column list has no browser default margins",
+      "column display-name label has its own 8px input gap",
+      "proposal keeps Chat at readable content height instead of 2px",
+      "the page owns context/review scrolling",
+      "checkbox is 16px with no native margins",
+      "six observed states have no document horizontal overflow",
+      "4px from page consent to its address",
+      "4px from field list to its editing hint",
+      "bordered disclosure uses canonical 12px surface radius"
+    ],
+    "sourceInputsChecked": 1369,
+    "sourceParity": "PASS",
+    "layoutBrowserStates": [
+      "ready",
+      "rules",
+      "ai-empty",
+      "ai-review",
+      "results",
+      "columns"
+    ]
+  },
+  "layout": {
+    "before": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/before/spacing.json",
+    "after": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/spacing.json",
+    "beforeSha256": "3b77fca0a318e5453bc7fd6836328f2b527e76db06c164e6ca66fdb1825ad5dd",
+    "targetHeight": {
+      "before": 214.5,
+      "after": 183
+    },
+    "chatHeightAfterProposal": {
+      "before": 2,
+      "after": 206.25
+    },
+    "relatedNotesGap": 4,
+    "borderedDisclosureRadius": 12
+  },
+  "reports": {
+    "ai": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/report.json",
+    "layout": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/spacing.json"
+  },
+  "screenshotHashes": {
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-expanded.png": "1880c6cfce8dcd6457d18dd8e3cf33b1a8927e2f3fb37f8913727db0bcd44a76",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-review.png": "8aa72bde3fa0038be5f2db475109948c70eb8de83c70207afe4a06844c716fb3",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-json.png": "42ab1020d202e1f32acf96b372b4e0260fd6423a526bba32728faec9ac193ad9",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-naming.png": "c92522bdb9e790c053fae2bb6940ff1eb7c572f85f68bf72f98d8eb3f5c2972d",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-applied.png": "3a26a59d430a7105051aa2b447dc3443b0475a0778ce9978504e5ba87500ed25",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/browser-refined-final/ai-collapsed.png": "30bbb3c4ee3c4cec0c5cc4c4000c865bdbc02c49a3230e5a987ebc07c44460fc",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/ready.png": "3f63a64f4fa27991c5ac34d3f591cbdc9472ddac1c5731cd157ea4c0355c502d",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/rules.png": "5bcb0c3c68723bdaee163a59f333c7901ac0672469f8582ec310cb29b0ed8c5c",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/ai-empty.png": "cf12eef7054241c3ca395e5b1a73be2728ac0d95ee83af9d4ab3049a9da68f36",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/ai-review.png": "ededf5fc0ae5d65e08bd83074590705456b8a5fe34d418aa256ce2bb23cd0c75",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/results.png": "21db7c3900b060330c708c6732672d154401b59273fb53ebfaa4439e299bc5bd",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/layout-refined/columns.png": "92ec8a3b30253ed3e58b18c69da3ed35aa9fd9036c33c2d16eaa9f931ce0b9d9"
+  },
+  "source": {
+    "manifest": "preview/preview.manifest.json",
+    "context": "preview/preview.context.json"
+  },
+  "boundaries": {
+    "installedExtension": "NOT_TESTED",
+    "realAI": "NOT_TESTED",
+    "realCapture": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "physicalIME": "NOT_TESTED",
+    "screenReader": "NOT_TESTED",
+    "dark": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "historicalUnknown": "UNTOUCHED"
+  },
+  "notes": [
+    "Send uses browser mouse; immediate pending collapse uses synchronous DOM click; ordinary keyboard close/reopen is separately tested.",
+    "IME uses CompositionEvent fixtures, not physical IME.",
+    "Three simulated conversation turns create a real transcript scroll position; the first driver attempt had too few rows and failed that fixture precondition, retained in artifacts/browser.",
+    "Only tool UI was built; no Browser output, formal package, install, commit or push.",
+    "Initial independent review found style=95, so 4px related notes and 12px bordered disclosure radius were fixed; initial review/candidate retained. Current AI 25, Node 11 and computed 14 checks were freshly rerun; 62 workspace checks retain their previous-candidate scope.",
+    "First refined browser command used a relative URL and failed before any UI action; retained in browser-refined/report.json. Correct file URL passed in browser-refined-final."
+  ],
+  "priorWorkspaceValidation": {
+    "candidateSha256": "173c21231304bf12353e604c8ad3be18b4aea9b68de90cec2d1a3fbc83638c76",
+    "checks": 62,
+    "status": "PASS_ON_PREVIOUS_CANDIDATE_NOT_RERUN",
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/workspace/report.json",
+    "reason": "Final refinement only wraps two related hints and changes tool CSS gaps/radius; current six-state browser chain and focused AI/Node checks cover affected operations. Configuration/result semantics and tests unchanged.",
+    "changedSourceInputs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/style.css",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.css",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js"
+    ],
+    "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/spacing-20261031/review-initial-candidate/browser-evidence.json"
+  }
+}

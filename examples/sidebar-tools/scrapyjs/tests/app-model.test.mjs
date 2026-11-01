@@ -9,6 +9,40 @@ const {createApp, validateConfig, DEFAULT_CONFIG} = context.ScrapyAppModel;
 const plain = v => JSON.parse(JSON.stringify(v));
 const deferred = () => {let resolve, reject; const promise = new Promise((a,b) => {resolve=a;reject=b;}); return {promise,resolve,reject};};
 const page = {status:'available', url:'http://127.0.0.1:43111/demo-form.html', title:'Demo'};
+test('output field names accept multilingual metadata without widening capture grammar',()=>{
+  const config={...plain(DEFAULT_CONFIG),output:{fieldNames:{title:'标题',source:'来源'}}};
+  assert.deepEqual(plain(validateConfig(config)),config);
+  for(const output of [{script:'run()'},{fieldNames:[]},{fieldNames:{title:'a\nb'}},{fieldNames:{title:1}},{fieldNames:JSON.parse('{"__proto__":"x"}')}])
+    assert.throws(()=>validateConfig({...config,output}),/表头|名称|输出/);
+});
+test('explicit field order survives codec key sorting without changing rules or engine options',async()=>{
+ const config={...plain(DEFAULT_CONFIG),itemConfig:{...plain(DEFAULT_CONFIG.itemConfig),source:'a::href'},output:{fieldNames:{title:'标题'},fieldOrder:['source','title']}};
+ const normalized=plain(validateConfig(config));
+ assert.deepEqual(Object.keys(normalized.itemConfig),['_listContainer','_listItem','source','title']);
+ assert.equal(normalized.itemConfig.title,config.itemConfig.title);assert.equal(normalized.itemConfig.source,config.itemConfig.source);
+ const reordered=JSON.parse(JSON.stringify(normalized,(_key,value)=>value&&typeof value==='object'&&!Array.isArray(value)?Object.fromEntries(Object.keys(value).sort().map(key=>[key,value[key]])):value));
+ assert.deepEqual(Object.keys(validateConfig(reordered).itemConfig),['_listContainer','_listItem','source','title']);
+ for(const fieldOrder of [['title','title'],['__proto__'],['bad\nkey'],'title'])assert.throws(()=>validateConfig({...config,output:{fieldOrder}}),/排序|顺序/);
+});
+test('CSV custom headers preserve raw export, JSON, complete values and formula defenses',async()=>{
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push(plain(payload));return {started:true};});
+  const snapshot={result:{data:[{title:'=1+1',source:'网站',nested:{ok:true}},{title:'另一个',extra:0}]}};
+  const original=JSON.stringify(snapshot),output={fieldNames:{title:'标题',source:'来源',nested:'=公式'}};
+  await sdk.download(snapshot,'csv',output);
+  assert.ok(calls.at(-1).text.startsWith('"标题","来源","\'=公式","extra"\r\n'));
+  assert.ok(calls.at(-1).text.includes('"\'=1+1"'));
+  await sdk.download(snapshot,'csv');assert.ok(calls.at(-1).text.startsWith('"title","source","nested","extra"'));
+  await sdk.download(snapshot,'json',output);assert.equal(calls.at(-1).text,JSON.stringify(snapshot,null,2));
+  assert.equal(JSON.stringify(snapshot),original);
+  const count=calls.length;
+  await assert.rejects(sdk.download(snapshot,'csv',{fieldNames:{title:'重复',source:'重复'}}),/重复/);
+  assert.equal(calls.length,count);
+});
+test('output names never enter the fixed task execution options',async()=>{
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push({op,payload:plain(payload)});return payload.taskId?{task:{taskId:'scrapyjs.capture'}}:{state:'running'};});
+  await sdk.prepare();await sdk.start({...plain(DEFAULT_CONFIG),output:{fieldNames:{title:'标题'}}},page.url,'header-test');
+  assert.deepEqual(JSON.parse(calls.at(-1).payload.params.optionsJson),{});
+});
 function setup(overrides = {}) {
   const calls = [];
   const sdk = {prepare: async()=>{}, currentPage: async () => page, start: async (config,url,clientRequestId) => ({clientRequestId,runId:'original',status:'running'}),
@@ -22,6 +56,54 @@ test('bounded list detail run exposes partial list outcome alongside detail comp
     result:{data:[{id:'A'}],engine:{status:'completed'},list:{engine:{status:'partial',stopReason:'page_limit'}}}})});
   await app.refreshTarget();await app.start(page.url);await app.refresh();
   assert.match(app.state.engine,/列表 partial \(page_limit\)/);assert.deepEqual(plain(app.state.result.data),[{id:'A'}]);
+});
+for (const failure of ['prepare', 'currentPage', 'changedPage', 'pageGeneration', 'cancel']) {
+  test(`restart before dispatch preserves retired results on ${failure}`,async()=>{
+    let starts=0;
+    const {app,sdk,calls}=setup({
+      start:async(config,url,clientRequestId)=>{starts++;return {clientRequestId,runId:'original',status:'running'};},
+      read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',retired:true,
+        result:{data:[{title:'previous result'}],engine:{status:'completed'}}})
+    });
+    await app.refreshTarget();await app.start(page.url);
+    const fields=['result','snapshot','runProfile','runId','clientRequestId','retired','engine','phase','stopRequested','stopAccepted'];
+    const previous=Object.fromEntries(fields.map(key=>[key,app.state[key]]));
+    const pending=deferred();sdk.prepare=()=>pending.promise;
+    if(failure==='currentPage')sdk.currentPage=async()=>{throw Error('page failed');};
+    if(failure==='changedPage')sdk.currentPage=async()=>({...page,url:page.url+'?changed'});
+    if(failure==='pageGeneration')sdk.currentPage=async()=>{
+      sdk.currentPage=async()=>page;await app.refreshTarget();return page;
+    };
+    const restarting=app.start(page.url);
+    assert.equal(app.state.phase,'starting');
+    await app.start(page.url);assert.equal(starts,1);
+    assert.throws(()=>app.edit(DEFAULT_CONFIG),/运行期间/);
+    if(failure==='cancel'){await app.stop();await app.stop();}
+    if(failure==='prepare')pending.reject(Error('prepare failed'));else pending.resolve();
+    await restarting;
+    assert.equal(starts,1);assert.equal(calls.length,0);
+    for(const key of fields)assert.strictEqual(app.state[key],previous[key],key);
+    if(failure==='cancel')assert.match(app.state.notice,/未发起任务/);
+    else assert.match(app.state.error,/failed|当前网页已变化/);
+  });
+}
+test('dispatched restart replaces retired ownership and an unknown send cannot replay',async()=>{
+  const {app,sdk}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',retired:true,
+    result:{data:[{title:'previous result'}]}})});
+  await app.refreshTarget();await app.start(page.url);
+  const previousId=app.state.clientRequestId,previousProfile=app.state.runProfile;
+  let starts=0;
+  sdk.start=async(config,url,clientRequestId)=>{
+    starts++;
+    assert.notEqual(clientRequestId,previousId);
+    assert.notEqual(app.state.runProfile,previousProfile);
+    assert.equal(app.state.result,null);assert.equal(app.state.snapshot,null);
+    assert.equal(app.state.runId,null);assert.equal(app.state.retired,false);
+    throw Error('send outcome unknown');
+  };
+  await app.start(page.url);await app.start(page.url);
+  assert.equal(starts,1);assert.equal(app.state.phase,'unknown');
+  assert.match(app.state.error,/send outcome unknown/);
 });
 test('input only accepts bounded declarative configuration', () => {
   assert.deepEqual(plain(validateConfig(DEFAULT_CONFIG)),plain(DEFAULT_CONFIG));
@@ -68,6 +150,28 @@ test('host terminal status alone cannot confirm retirement or fabricate engine s
   const {app}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',result:{items:[{text:'real'}]}})});
   await app.refreshTarget(); await app.start(page.url);
   assert.equal(app.state.retired,false); assert.equal(app.state.engine,'未报告'); assert.equal(app.state.result.items[0].text,'real');
+});
+test('confirmed retirement clears only the obsolete waiting-for-retirement notice',async()=>{
+  let retired=false;
+  const {app}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',retired,
+    result:{data:[],engine:{status:'completed'}}})});
+  await app.refreshTarget();await app.start(page.url);await app.refresh();
+  assert.match(app.state.notice,/等待/);assert.equal(app.state.retired,false);
+  retired=true;await app.refresh();
+  assert.equal(app.state.retired,true);assert.equal(app.state.notice,'');
+});
+test('read permission failures remain classified without discarding drafts or inventing a storage conflict',async()=>{
+  const denied=()=>{throw Object.assign(Error('权限不足'),{code:'E_PERMISSION_DENIED'});};
+  const {app,sdk}=setup({load:denied,currentPage:denied});
+  app.edit({...DEFAULT_CONFIG,timeoutMs:8000});
+  await app.load();await app.refreshTarget();
+  assert.equal(app.state.storageError?.code,'E_PERMISSION_DENIED');
+  assert.equal(app.state.targetError?.code,'E_PERMISSION_DENIED');
+  assert.equal(app.state.config.timeoutMs,8000);assert.equal(app.state.conflict,null);
+  sdk.load=async()=>({value:null,etag:'recovered'});sdk.currentPage=async()=>page;
+  await app.load();await app.refreshTarget();
+  assert.equal(app.state.storageError,null);assert.equal(app.state.targetError,null);
+  assert.equal(app.state.config.timeoutMs,8000);
 });
 test('conditional storage survives reopen and preserves edited draft during initial load', async () => {
   let record={value:null,etag:'a'}; const writes=[];
@@ -212,4 +316,25 @@ test('pagination/detail grammar reaches exact Task params without executable str
   const params=calls.at(-1)[1].params;
   assert.deepEqual(JSON.parse(params.configJson),listDetail.itemConfig);
   assert.deepEqual(JSON.parse(params.optionsJson).detail,listDetail.detail);
+});
+
+test('download feedback retires previous success before a pending or failed request',async()=>{
+  const {app,sdk}=setup();app.state.snapshot={result:{data:[{title:'完整'}]}};app.state.result=app.state.snapshot.result;
+  await app.download();assert.match(app.state.notice,/已请求下载完整 JSON/);
+  const next=deferred();sdk.download=()=>next.promise;const request=app.download('csv');
+  assert.equal(app.state.notice,'');assert.equal(app.state.error,'');
+  next.reject(Error('下载被拒绝'));await request;
+  assert.equal(app.state.notice,'');assert.equal(app.state.error,'下载被拒绝');
+  assert.deepEqual(plain(app.state.result.data),[{title:'完整'}]);
+});
+
+test('editing a saved copy clears the previous success receipt while retaining its saved identity',async()=>{
+  let record={value:null,etag:'initial'};
+  const {app}=setup({load:async()=>plain(record),save:async value=>{record={value:plain(value),etag:'copied'};}});await app.load();
+  assert.equal(await app.copyProfile('独立副本'),true);
+  const id=app.state.selectedId,saved=plain(app.state.records);
+  assert.match(app.state.notice,/保存为独立副本/);
+  app.edit({...plain(app.state.config),maxPages:3});
+  assert.equal(app.state.notice,'');assert.equal(app.state.dirty,true);
+  assert.equal(app.state.selectedId,id);assert.deepEqual(plain(app.state.records),saved);
 });

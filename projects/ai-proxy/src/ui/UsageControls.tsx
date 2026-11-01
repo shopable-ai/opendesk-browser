@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {getEnvironment} from '../environment';
 import {Button} from '@opendesk/ui';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';

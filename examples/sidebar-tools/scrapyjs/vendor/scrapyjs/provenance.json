@@ -2,8 +2,8 @@
   "format": "scrapyjs-source-pin.v1",
   "sourceRepository": "/Users/shopme/Documents/workspace/scrapyJs",
   "sourceHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
-  "browserSha256": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
-  "authorization": "Owner authorized migration in the current task; third-party notices retained.",
+  "browserSha256": "42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c",
+  "authorization": "User authorized scrapyJs parameter simplification and consumer updates in this task; third-party notices retained.",
   "inputs": [
     {
       "file": "src/ai/BrowserValidation.js",
@@ -142,13 +142,13 @@
     },
     {
       "file": "src/item/item-loader-extraction.js",
-      "sha256": "104335b009fd9c7436c6e4b9a0351d545b65c6db83c719306a2e8e31eb0df8b1",
-      "bytes": 9917
+      "sha256": "5a1724ef84bc67031e8ee9301eb9d7d0ce20722ba4a396432e6cf8e1d332f222",
+      "bytes": 9936
     },
     {
       "file": "src/item/parse-page.js",
-      "sha256": "f670afac5fc6e2b81138cc1f17ae4f6d21b72810addace91c604a38e4c10d30a",
-      "bytes": 5625
+      "sha256": "2fa1e29d06a7abb2e69214ce8c4f71fd7a43262db8bc2cb309e03152c7eb67df",
+      "bytes": 6328
     },
     {
       "file": "src/link/LinkExtractor.js",
@@ -201,6 +201,6 @@
       "bytes": 1614
     }
   ],
-  "sourceHash": "4aab93d0bfa384bcc7a6502318cd365ecbab6f15c6cd3620f5c7d63bb83c5daf",
-  "upstreamBuildReceiptSha256": "1c3d217b15827b835b2814118ef9cc0ca8372b60351971d40c6191c63b82c77e"
+  "sourceHash": "a2ea653145cdf1e9da70cba2b30e917f6e6e83daa32d04118448897e98272314",
+  "upstreamBuildReceiptSha256": "afef9cf57f250edea7f2818c3cca4d107049c19f9feb86c821579d553876e4c1"
 }

@@ -15,8 +15,8 @@
   const douban = {url: 'https://book.douban.com/top250',
     itemConfig: {_listContainer: '.grid_view', _listItem: 'tr.item', title: '.pl2 a::text', rating: '.rating_nums::text'}};
   let value = scenario === 'empty' ? null : {schemaVersion: 1, selectedId: 'demo', records: [
-    {id: 'demo', name: scenario === 'untrusted' ? '<img src=x onerror=alert(1)> 默认 demo' : '默认 demo', config: demo},
-    {id: 'douban', name: '豆瓣图书', config: douban}
+    {id: 'demo', name: scenario === 'untrusted' ? '<img src=x onerror=alert(1)> 默认 demo' : '示例 · 列表采集', config: demo},
+    {id: 'douban', name: '示例 · 豆瓣图书', config: douban}
   ]};
   let revision = 1, sequence = 0;
   let aiPending = null, aiRevision = 1;
@@ -31,8 +31,8 @@
       run.state = scenario === 'error' ? 'failed' : 'completed';
       run.value = scenario === 'error' ? {data: [], engine: {status: 'failed', message: '模拟采集失败'}} : {
         data: scenario === 'empty' ? [] : [{title: scenario === 'untrusted'
-          ? '<script>alert("仅文本")</script>' : '模拟记录 A', source: '纯模拟结果，不来自网站'},
-        {title: '模拟记录 B', source: '纯模拟结果，不来自网站'}], engine: {status: 'completed'}};
+          ? '<script>alert("仅文本")</script>' : '示例记录 A · 浏览器自动化指南', source: '演示数据，不来自网站'},
+        {title: '示例记录 B · 可重复的数据工作流', source: '演示数据，不来自网站'}], engine: {status: 'completed'}};
     }
     // A terminal response precedes retirement; keep the original run identity.
     if (terminal.has(run.state)) run.terminalReads++;
@@ -121,7 +121,7 @@
   }
   const request = async (operation, payload = {}) => {
     const allowed = ['storage.get', 'storage.set', 'currentPage.info', 'tasks.read',
-      'tasks.start', 'tasks.stop', 'browser.downloads.text','ai.info','ai.generate','ai.cancel','localTasks.request','localTasks.export'];
+      'tasks.start', 'tasks.stop', 'browser.downloads.text','browser.clipboard.writeText','ai.info','ai.generate','ai.cancel','localTasks.request','localTasks.export'];
     if (!allowed.includes(operation)) throw error('E_PREVIEW_UNSUPPORTED', '不支持此操作');
     if (scenario === 'permission-denied') throw error('E_PERMISSION_DENIED', '模拟权限不足；不能申请真实权限');
     if(operation==='ai.info')return clone(aiInfo);
@@ -176,7 +176,13 @@
     }
     if (operation === 'currentPage.info') return {status: 'available',
       url: value?.records?.find(row => row.id === value.selectedId)?.config.url || demo.url,
-      title: scenario === 'untrusted' ? '<img src=x onerror=alert(1)>' : '离线模拟 demo 网页（未连接真实页面）'};
+      title: scenario === 'untrusted' ? '<img src=x onerror=alert(1)>' : '示例列表 · 网页采集'};
+    if (operation === 'browser.clipboard.writeText') {
+      if (typeof payload.text !== 'string' || new TextEncoder().encode(payload.text).length > 150000)
+        throw error('E_PREVIEW_LIMIT', '仅支持有界的完整记录');
+      // Simulated receipt only; never overwrite the user's system clipboard.
+      return {copied: true};
+    }
     if (operation === 'tasks.read' && payload.taskId === task.taskId && !payload.clientRequestId)
       return {task: clone(task)};
     if (operation === 'tasks.start') {
@@ -206,10 +212,10 @@
       if(payload.filename==='scrapyjs-ai-config.json'&&typeof payload.text==='string'&&new TextEncoder().encode(payload.text).byteLength<=150000)
         return downloadSimulated(payload.text,payload.filename);
       const exportable = [...runs.values()].some(run => run.value !== null);
-      const configExport = /^scrapyjs-ai-config\.json$/.test(payload.filename);
+      const configExport = /^scrapyjs-(?:ai-)?config\.json$/.test(payload.filename);
       if ((!exportable && !configExport) || typeof payload.text !== 'string' ||
           new TextEncoder().encode(payload.text).byteLength > 150000 ||
-          !/^scrapyjs-(?:result\.(json|csv)|ai-config\.json)$/.test(payload.filename))
+          !/^scrapyjs-(?:result\.(json|csv)|(?:ai-)?config\.json)$/.test(payload.filename))
         throw error('E_PREVIEW_EXPORT', '仅允许下载有界的模拟结果');
       const url = URL.createObjectURL(new Blob([payload.text], {type: 'text/plain;charset=utf-8'}));
       const link = document.createElement('a'); link.href = url; link.download = 'SIMULATED-' + payload.filename;
@@ -224,6 +230,9 @@
     type: 'scrapyjs-preview-state', dirty: Boolean(dirty), busy: Boolean(busy)
   }, '*');
   let conversation={visible:false,open:false};
+  let navigation={page:'home',title:'scrapyjs 采集',canBack:false,primary:null};
+  const publishNavigation=()=>parent.postMessage({type:'scrapyjs-preview-navigation-state',state:navigation},'*');
+  const setNavigation=value=>{navigation=value;publishNavigation();return true;};
   const publishConversation=()=>parent.postMessage({type:'scrapyjs-preview-conversation-state',...conversation},'*');
   const setConversationState=value=>{
     if(!value||typeof value.visible!=='boolean'||typeof value.open!=='boolean'||Object.keys(value).some(key=>!['visible','open'].includes(key)))throw error('E_PREVIEW_CONVERSATION_STATE','无效展示状态');
@@ -231,9 +240,14 @@
   };
   window.addEventListener('message',event=>{
     if(event.source!==parent)return;
+    if(event.data?.type==='scrapyjs-preview-navigation-sync')return publishNavigation();
+    if(event.data?.type==='scrapyjs-preview-navigation-action'&&event.data.action==='back'){
+      if(navigation.canBack)root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:'back'}}));
+      return;
+    }
     if(event.data?.type==='scrapyjs-preview-conversation-sync')return publishConversation();
     if(event.data?.type!=='scrapyjs-preview-conversation-action'||event.data.action!=='toggle'||!conversation.visible)return;
     root.dispatchEvent(new CustomEvent('opendesk:conversation-action',{detail:{action:'toggle'}}));
   });
-  Object.defineProperty(globalThis, 'OpenDeskTool', {value: Object.freeze({root, request, setState,setConversationState})});
+  Object.defineProperty(globalThis, 'OpenDeskTool', {value: Object.freeze({root, request, setState,setConversationState,setNavigation})});
 })();

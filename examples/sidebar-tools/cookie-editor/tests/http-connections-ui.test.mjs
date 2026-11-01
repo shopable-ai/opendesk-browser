@@ -6,7 +6,9 @@ import {buildSync} from 'esbuild';
 // No SDK, browser, persistence or remote service is substituted into the component.
 let active;
 const React={
-  createElement:(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity)}),
+  createElement:(type,props,...children)=>typeof type==='function'
+    ?type({...props,children:children.flat(Infinity)})
+    :({type,props:props||{},children:children.flat(Infinity)}),
   useState(initial){const h=active,i=h.index++;if(!(i in h.slots))h.slots[i]=typeof initial==='function'?initial():initial;
     return [h.slots[i],value=>{h.slots[i]=typeof value==='function'?value(h.slots[i]):value;h.changed=true;}];},
   useRef(initial){const h=active,i=h.index++;return h.slots[i]??= {current:initial};},
@@ -15,7 +17,8 @@ const React={
   useLayoutEffect(fn,deps){React.useEffect(fn,deps);}
 };
 const built=buildSync({entryPoints:[new URL('../app/components/CookieHttpConnections.jsx',import.meta.url).pathname],
-  bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform'});
+  bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform',
+  alias:{'@opendesk/ui':new URL('../../../../src/ui/react/components/ui/button.tsx',import.meta.url).pathname}});
 const module={exports:{}};
 new Function('require','module','exports',built.outputFiles[0].text)(name=>{
   assert.equal(name,'react');return React;
@@ -27,7 +30,7 @@ const resource={remoteAccountId:'r1',providerKey:'codex',displayName:'远端账�
 const account={origin:'https://chatgpt.com',alias:'acct_1',version:4,displayName:'本地账号',storeId:'0',partitionKey:null};
 const binding={bindingId:'b1',localAccount:account,remoteAccountId:'r1',verificationState:'UNVERIFIED',revoked:false,revision:1,authEpoch:1};
 const connection={id:'c1',label:'HTTP 服务',origin:'http://localhost:8787',status:'CONNECTED',resources:[resource],bindings:[binding],pending:null};
-function mount(overrides={}){
+function mount(overrides={}, {details=true}={}){
   const h={slots:[],index:0,effects:[],changed:false,tree:null,focus:null,calls:[],dirty:[],
     props:{origin:'https://chatgpt.com',accounts:[account],accountReady:true,busy:false,
       state:{revision:7,connections:[connection]},
@@ -44,11 +47,98 @@ function mount(overrides={}){
   h.change=(label,value)=>{const n=h.find(n=>n.props['aria-label']===label);assert.ok(n,'field '+label);n.props.onChange({target:{value}});h.render();};
   h.submit=async()=>{const n=h.find(n=>n.type==='form');assert.ok(n);await n.props.onSubmit({preventDefault(){}});h.render();};
   h.update=patch=>{Object.assign(h.props,patch);h.render();};
-  h.render();return h;
+  h.render();
+  // Existing security checks exercise the real details page, where these actions live.
+  if(details && !h.props.busy && typeof h.props.onAction==='function' && Number.isSafeInteger(h.props.state?.revision) &&
+    h.props.state.connections.some(c=>c.id==='c1'))h.click('服务详情：HTTP 服务');
+  return h;
 }
 const invoke=async(h,label)=>{await h.click(label);h.render();};
 const configure=h=>{h.click('添加服务');h.change('服务名称','测试 HTTP');};
 const choose=h=>{h.click('绑定账号：HTTP 服务');h.change('本站点账号','acct_1');h.change('远端资源','r1');};
+
+test('service list uses the existing connected, unknown and inactive actions without implicit writes',async()=>{
+  const connected=mount({}, {details:false});
+  assert.deepEqual(connected.calls,[]);
+  assert.equal(connected.find(n=>n.props['aria-label']==='已关联账号：1 个').props.title.includes('不代表身份已核验'),true);
+  await invoke(connected,'打开设备管理页：HTTP 服务');
+  assert.deepEqual(connected.calls,[['serviceOpen',{revision:7,connectionId:'c1',bindingId:''}]]);
+  const pending=mount({state:{revision:7,connections:[{...connection,status:'OUTCOME_UNKNOWN',pending:{action:'serviceOpen',operationId:'op1'}}]}},{details:false});
+  assert.equal(pending.button('添加服务').props.disabled,true);
+  await invoke(pending,'核对原操作：HTTP 服务');
+  assert.deepEqual(pending.calls,[['serviceReconcile',{revision:7,connectionId:'c1'}]]);
+  for(const status of ['SESSION_EXPIRED','INVALIDATED','RETIRED','RECEIPTS_ONLY']){
+    const inactive=mount({state:{revision:7,connections:[{...connection,status}]}},{details:false});
+    inactive.click('查看连接状态：HTTP 服务');
+    assert.match(text(inactive.tree),/服务详情/);assert.deepEqual(inactive.calls,[]);
+    inactive.click('返回服务列表');assert.equal(inactive.focus,'查看连接状态：HTTP 服务');
+  }
+});
+
+test('empty list has one visible add action; service cards label address scope and exclude revoked bindings',()=>{
+  const empty=mount({state:{revision:0,connections:[]}},{details:false});
+  assert.match(text(empty.tree),/连接你的第一个服务/);
+  assert.equal(nodes(empty.tree).filter(n=>n.type==='button'&&n.props['aria-label']==='添加服务').length,1);
+  empty.click('添加服务');empty.click('取消');assert.equal(empty.focus,'添加服务');
+  const h=mount({state:{revision:7,connections:[{...connection,bindings:[binding,{...binding,bindingId:'old',revoked:true}]}]}},{details:false});
+  assert.ok(h.find(n=>n.props['aria-label']==='已关联账号：1 个'));
+  assert.match(text(h.tree),/此电脑 ·/);
+  assert.equal(h.button('服务详情：HTTP 服务').props.title,'服务详情：HTTP 服务');
+});
+
+test('the list retains real metadata across refresh, details and cancelled configuration',async()=>{
+  const state={revision:7,connections:[connection,{...connection,id:'c2',label:'第二服务',origin:'https://team.example.com',bindings:[]}]};
+  const h=mount({state},{details:false});
+  const names=()=>nodes(h.tree).filter(n=>n.type==='article').map(n=>n.props['aria-label']);
+  assert.deepEqual(names(),['服务：HTTP 服务','服务：第二服务']);
+  assert.equal(text(h.find(n=>n.props['aria-label']==='服务数量')),'2');
+  await invoke(h,'刷新服务列表');
+  assert.deepEqual(h.calls,[['serviceStatus',{revision:7}]]);
+  assert.deepEqual(names(),['服务：HTTP 服务','服务：第二服务']);
+  h.click('服务详情：第二服务');assert.deepEqual(names(),['服务：第二服务']);
+  h.click('返回服务列表');assert.equal(h.focus,'服务详情：第二服务');
+  assert.deepEqual(names(),['服务：HTTP 服务','服务：第二服务']);
+  h.click('添加服务');h.click('取消');
+  assert.deepEqual(names(),['服务：HTTP 服务','服务：第二服务']);assert.equal(h.focus,'添加服务');
+  assert.equal(h.props.state,state,'Presentation never replaces domain state');
+});
+
+test('service type changes preserve separate drafts and submit only the existing configuration payload',async()=>{
+  const h=mount({}, {details:false});
+  const type=value=>{h.find(n=>n.type==='input'&&n.props.type==='radio'&&n.props.value===value).props.onChange();h.render();};
+  configure(h);h.change('服务地址','http://usage.localhost:43121');type('company');
+  assert.equal(h.find(n=>n.props['aria-label']==='服务地址').props.value,'');
+  h.change('服务名称','公司草稿');h.change('服务地址','https://team.example.com');type('local');
+  assert.equal(h.find(n=>n.props['aria-label']==='服务名称').props.value,'测试 HTTP');
+  assert.equal(h.find(n=>n.props['aria-label']==='服务地址').props.value,'http://usage.localhost:43121');
+  type('company');assert.equal(h.find(n=>n.props['aria-label']==='服务名称').props.value,'公司草稿');
+  h.change('服务名称','');h.change('服务地址','');type('local');
+  assert.equal(h.dirty.at(-1),true,'The inactive local draft still needs protection');
+  h.change('服务名称','');h.change('服务地址','');
+  assert.equal(h.dirty.at(-1),false,'Clearing both drafts does not retain a stale active snapshot');
+  type('company');h.change('服务名称','公司草稿');h.change('服务地址','https://team.example.com');
+  assert.deepEqual(h.calls,[]);await invoke(h,'保存配置');
+  assert.deepEqual(h.calls,[['serviceSave',{revision:7,label:'公司草稿',serviceOrigin:'https://team.example.com'}]]);
+});
+
+test('leaving an edited configuration uses the existing discard review and preserves inputs when continued',()=>{
+  let review, cancel;
+  const h=mount({onDiscardRequest:(accept,keep)=>{review=accept;cancel=keep;}});
+  h.click('添加服务');h.click('取消');
+  assert.equal(review,undefined,'An untouched configuration closes directly');
+  configure(h);h.change('服务地址','http://usage-draft.localhost:43121');
+  h.click('取消');
+  assert.equal(typeof review,'function');
+  assert.equal(h.find(n=>n.props['aria-label']==='服务名称').props.value,'测试 HTTP');
+  h.update({busy:true});cancel();h.render();
+  h.update({busy:false});
+  assert.equal(h.find(n=>n.props['aria-label']==='服务地址').props.value,'http://usage-draft.localhost:43121');
+  assert.equal(h.focus,'服务名称');
+  h.click('取消');h.update({busy:true});review();h.render();
+  assert.equal(h.find(n=>n.type==='form'),undefined);
+  assert.equal(h.focus,'添加服务');
+  assert.deepEqual(h.calls,[],'Leaving never saves or connects');
+});
 
 test('configuration accepts only exact HTTPS or HTTP loopback origins; sandbox uses explicit buttons',async()=>{
   const h=mount();configure(h);
@@ -113,10 +203,13 @@ test('unknown freezes all services, allows receipts and cached usage, and archiv
   const h=mount({state:{revision:7,connections:[{...connection,status:'OUTCOME_UNKNOWN',pending:{action:'serviceOpen',operationId:'op1',canArchive:true}},
     {...connection,id:'c2',label:'另一个服务',resources:[{...resource,remoteAccountId:'r2'}]}]}});
   assert.equal(h.button('添加服务').props.disabled,true);
+  h.click('返回服务列表');h.click('服务详情：另一个服务');
   assert.equal(h.button('打开设备管理页：另一个服务').props.disabled,true);
-  await invoke(h,'读取回执：HTTP 服务');await invoke(h,'读取缓存用量：r2');
+  await invoke(h,'读取缓存用量：r2');
+  h.click('返回服务列表');h.click('服务详情：HTTP 服务');
+  await invoke(h,'读取回执：HTTP 服务');
   h.click('核对并归档未知打开');assert.equal(h.calls.length,2);await invoke(h,'确认归档');
-  assert.deepEqual(h.calls.map(call=>call[0]),['serviceReconcile','serviceUsage','serviceArchiveOpen']);
+  assert.deepEqual(h.calls.map(call=>call[0]),['serviceUsage','serviceReconcile','serviceArchiveOpen']);
   assert.match(text(h.tree),/所有服务写入已暂停/); // Parent still reports unknown.
 });
 test('false open outcome immediately blocks duplicate writes until receipt; never shows retry-open',async()=>{

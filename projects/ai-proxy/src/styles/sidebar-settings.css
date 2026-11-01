@@ -23,7 +23,7 @@
   :scope .options .settingsMore { position: relative; flex: none; }
   :scope .options .settingsMore > summary {
     display: flex; align-items: center; justify-content: center; list-style: none;
-    min-width: 36px; min-height: 36px; border-radius: 8px; cursor: pointer;
+    width: var(--od-icon-size); height: var(--od-icon-size); border-radius: 8px; cursor: pointer;
   }
   :scope .options .settingsMore > summary::-webkit-details-marker { display: none; }
   :scope .options .settingsMore > summary:hover { background: var(--soft); }
@@ -34,7 +34,7 @@
     box-shadow: 0 4px 12px #0002;
   }
   :scope .options .optionsHeadActions button {
-    display: inline-flex; align-items: center; justify-content: center;
+    display: inline-flex; align-items: center; justify-content: flex-start; gap: var(--space-2);
     width: 100%; min-width: 0; min-height: 36px; padding: 8px; text-align: start;
     border-color: transparent; background: transparent;
   }
@@ -44,34 +44,25 @@
     display: flex; flex-direction: column; gap: var(--space-4);
     width: 100%; min-height: 0; padding: var(--space-3); border: 0; border-radius: 0;
   }
+  :scope .options .panel.optionsContent > * { margin: 0; }
   :scope .options .optionsPageHead {
     display: flex; flex-direction: column; align-items: stretch; gap: 12px;
     margin: 0; padding: 0; border: 0;
   }
-  :scope .options .panelHeadIntro { flex: none; }
+  :scope .options .panelHeadIntro { display: grid; gap: var(--space-1); flex: none; }
   :scope .options .optionsTitleRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
   :scope .options .optionsTitleRow h2 { margin: 0; flex: none; }
   :scope .options .optionsPageHead h2 { font-size: 16px; line-height: 1.5; letter-spacing: -.02em; }
-  :scope .options .optionsPageHead .hint { margin-top: 4px; font-size: 12px; line-height: 1.6; }
+  :scope .options .optionsPageHead .hint { margin: 0; font-size: 12px; line-height: 1.6; }
   :scope .options .optionsPageHead .panelHeadActions {
     display: flex; align-items: center; justify-content: flex-start;
     width: auto; gap: var(--space-2); flex-wrap: wrap;
   }
-  :scope .options .panelHeadActions > .primary { flex: none; }
-  :scope .options .panelHeadActions button { min-height: 36px; padding: 7px 12px; }
-  :scope .options .settingsAddWays { position: relative; min-width: 0; }
-  :scope .options .settingsAddWays summary {
-    min-height: 36px; padding: 8px; color: var(--muted); cursor: pointer;
-    font-size: 12px; text-align: center; border-radius: 8px;
-  }
-  :scope .options .settingsAddWays summary:hover { background: var(--soft); color: var(--ink); }
-  :scope .options .settingsAddWayActions {
-    position: absolute; top: 100%; inset-inline-end: 0; z-index: 2;
-    display: grid; width: 200px; gap: var(--space-1); padding: var(--space-2); margin-top: var(--space-1);
-    border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: 0 4px 12px #0002;
-  }
-  :scope .options .settingsAddWayActions button { width: 100%; text-align: start; }
+  :scope .options .panelHeadActions > .primary { flex: none; min-height: 36px; padding: 7px 12px; }
+  :scope .options .settingsImport { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 7px 12px; }
   :scope .options .listSection { display: grid; gap: var(--space-3); margin: 0; }
+  :scope .options .profileSourceLinks { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  :scope .options .profileSourceLinks .textAction { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 4px; font-size: 12px; }
   :scope .options .sectionHeading { gap: 8px; align-items: flex-start; margin-bottom: 8px; }
   :scope .options .sectionHeading h2 { font-size: 14px; }
   :scope .options .sectionHeading .hint { margin-top: 4px; }
@@ -99,10 +90,11 @@
     width: var(--od-icon-size); height: var(--od-icon-size); min-height: var(--od-icon-size);
     padding: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted);
   }
-  :scope .options .proxyIconButton:hover:not(:disabled) { color: var(--accent); background: var(--soft); border-color: var(--line); }
+  :scope .options .proxyIconButton:hover:not(:disabled):not(.quietDanger) { color: var(--accent); background: var(--soft); border-color: var(--line); }
   :scope .options .proxyIconButton:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   :scope .options .proxySelect[aria-pressed='true'] { color: var(--accent); }
   :scope .options .quietDanger { color: var(--bad); }
+  :scope .options .proxyIconButton.quietDanger:hover:not(:disabled) { color: var(--bad); background: var(--badBg); border-color: var(--line); }
   :scope .options .optionsModeBar { display: grid; gap: var(--space-3); margin: 0; padding: var(--space-3); border-radius: 8px; }
   :scope .options .settingsRuntimeStatus { margin: 0; }
   :scope .options .settingsRuntimeStatus .controlChip { display: inline-flex; white-space: normal; font-size: 12px; }
@@ -113,8 +105,20 @@
   :scope .options .modeActions small { flex-basis: 100%; font-size: 12px; }
   :scope .options .pacDetails { margin: 0; border-radius: 8px; }
   :scope .options .pacDetails > summary { padding: 12px; gap: 8px; }
-  :scope .options .pacContent { padding: 12px; }
-  :scope .options .pacStarterFields { grid-template-columns: minmax(0,1fr); }
+  :scope .options .pacContent { display: grid; gap: var(--space-4); padding: var(--space-3); }
+  :scope .options .pacContent > *, :scope .options .pacEditorForm > *,
+  :scope .options .pacEditorFields > *, :scope .options .pacStarterGuide > * { margin: 0; }
+  :scope .options .pacContent .records { overflow: visible; }
+  :scope .options .pacRecord { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-2); padding: var(--space-3); }
+  :scope .options .pacRecord > div:first-child { display: grid; min-width: 0; gap: var(--space-1); }
+  :scope .options .pacRecord :is(strong,small) { display: block; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :scope .options .pacStarterGuide { gap: var(--space-3); padding: var(--space-3); }
+  :scope .options .pacStarterFields { grid-template-columns: minmax(0,1fr); gap: var(--space-3); }
+  :scope .options .pacEditorForm { display: grid; gap: var(--space-4); }
+  :scope .options .pacEditorFields { display: grid; gap: var(--space-3); }
+  :scope .options .r83RotationSettings { border-radius: 8px; overflow: visible; }
+  :scope .options .r83RotationSettings > summary { padding: var(--space-3); gap: var(--space-2); font-size: 13px; }
+  :scope .options .r83RotationBody { padding: var(--space-3); }
   :scope .options .rulesGrid, :scope .options .backupGrid, :scope .options .generalGrid,
   :scope .options .diagnosticOverview, :scope .options .officialStateGrid, :scope .options .officialPlanGrid {
     grid-template-columns: minmax(0,1fr); gap: 12px;
@@ -137,13 +141,16 @@
   :scope .options .ruleRecordText { display: grid; gap: var(--space-1); min-width: 0; }
   :scope .options .ruleRecordText strong { line-height: 20px; }
   :scope .options .ruleRecordText small { line-height: 18px; }
-  :scope .options .ruleRecord .actions { display: flex; flex-wrap: nowrap; gap: var(--space-2); margin: 0; }
+  :scope .options .ruleRecord:not([data-details-dismissed]):is(:focus-within,:hover) .ruleRecordText small {
+    white-space: normal; overflow-wrap: anywhere; overflow: visible;
+  }
+  :scope .options .ruleRecord .actions { display: flex; flex-wrap: nowrap; align-self: start; gap: var(--space-2); margin: 0; }
   :scope .options .ruleStateIcon { display: inline-flex; color: var(--muted); }
   :scope .options .ruleStateIcon.isEnabled { color: var(--accent); }
   :scope .options .rulesList > .subtleTag { justify-self: start; }
-  :scope .options .rulesEditor { scroll-margin-top: 68px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  :scope .options .rulesEditor { display: grid; gap: var(--space-3); scroll-margin-top: 68px; padding: 0; border: 0; border-radius: 0; background: transparent; }
   :scope .options .rulesPage > .ruleEditorHeader { min-height: 0; margin: 0; padding: 0; }
-  :scope .options .ruleEditorForm { margin: 12px 0 0; }
+  :scope .options .ruleEditorForm { margin: 0; }
   :scope .options .rulesEditorFields {
     display: grid; gap: var(--space-4); min-width: 0; margin: 0; padding: 0; border: 0;
   }
@@ -187,25 +194,28 @@
   :scope .options :where(.hint,small,.summaryAction) { overflow-wrap: anywhere; }
   :scope .options .proxyEditorDialog {
     width: calc(100% - 24px); max-height: calc(100dvh - 24px);
-    padding: 0; border-radius: 12px;
+    padding: 0; border-radius: 12px; overflow: hidden;
   }
   /* Parent gaps own vertical rhythm; legacy child margins must not add to it. */
   :scope .options :is(.optionsModeBar,.rulesDefault) > *,
   :scope .options :is(.proxyEditorForm,.proxyEditorFields,.rulesEditorFields,.ruleInputFields) > * { margin: 0; }
-  :scope .options .proxyEditorForm { display: grid; gap: var(--space-4); padding: var(--space-4); }
-  :scope .options .proxyEditorFields { display: grid; gap: var(--space-3); min-width: 0; }
+  :scope .options .proxyEditorForm { display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: calc(100dvh - 24px); gap: 0; padding: 0; }
+  :scope .options .proxyEditorFields { display: grid; gap: var(--space-3); min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 0 var(--space-4) var(--space-4); }
   :scope .options .proxyEditorForm .eyebrow { display: none; }
-  :scope .options .proxyEditorForm .editorHead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0; border: 0; }
+  :scope .options .proxyEditorForm .editorHead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-4); border: 0; }
   :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) { display: grid; align-content: start; gap: var(--space-2); }
   :scope .options .proxyEditorForm label, :scope .options .rulesEditorFields label { margin: 0; }
   :scope .options .ruleInputFields > div:has(>label) { display: grid; gap: var(--space-2); }
   :scope .options .ruleInputFields > div > .hint { margin: 0; }
+  :scope .options .proxyFormField,
+  :scope .options .pacStarterFields > div { display: grid; align-content: start; gap: var(--space-2); min-width: 0; }
+  :scope .options .proxyFormField > *, :scope .options .pacStarterFields > div > * { margin: 0; }
   :scope .options .proxyEditorForm :is(.hint,.proxyEntryError) { margin: 0; }
   :scope .options .proxyEditorForm .proxyQuickPicks { margin: 0; gap: var(--space-1); }
   :scope .options .proxyEditorForm .proxyAuthDetails { padding: var(--space-3); }
   :scope .options .proxyEditorForm .proxyAuthDetails[open] { display: grid; gap: var(--space-3); }
   :scope .options .proxyAuthDetails > :is(.notice,.proxyAuthFields) { margin: 0; }
-  :scope .options .proxyEditorForm .editorActions { display: flex; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+  :scope .options .proxyEditorForm .editorActions { display: flex; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-4); border: 0; border-top: 1px solid var(--line); background: var(--surface); }
 
   :scope .options .editorActions [data-add-another] { flex-basis: 100%; border-color: transparent; color: var(--accent); background: transparent; }
   :scope .options .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }

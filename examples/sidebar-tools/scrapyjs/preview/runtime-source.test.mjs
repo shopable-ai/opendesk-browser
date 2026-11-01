@@ -5,7 +5,37 @@ import {createHash} from 'node:crypto';
 import vm from 'node:vm';
 import {loadPreviewRuntime} from './runtime.mjs';
 import {compilePreviewRuntime} from './runtime-source.mjs';
+import {installPreviewNavigationHeader} from './navigation-header.js';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+
+test('offline navigation accepts current opaque frame only and delegates Back without losing root guards',t=>{
+  const listeners={},backListeners={},loadListeners={},sent=[];
+  const previous={window:globalThis.window,document:globalThis.document};
+  t.after(()=>{for(const [key,value] of Object.entries(previous))value===undefined?delete globalThis[key]:globalThis[key]=value;});
+  const guard={textContent:''};
+  globalThis.document={getElementById:id=>id==='od-preview-extension-detail'?{}:guard};
+  globalThis.window={addEventListener:(name,listener)=>{listeners[name]=listener;}};
+  const frame={contentWindow:{postMessage:message=>sent.push(message)},addEventListener:(name,listener)=>{loadListeners[name]=listener;}};
+  const title={textContent:'scrapyjs 采集',setAttribute(){}};
+  const back={setAttribute(){},addEventListener:(name,listener)=>{backListeners[name]=listener;}};
+  installPreviewNavigationHeader(frame,back,title);
+  const state={type:'scrapyjs-preview-navigation-state',state:{page:'library',title:'配置库',canBack:true,primary:null}};
+  const notify=(data,source=frame.contentWindow,origin='null')=>listeners.message({data,source,origin});
+  notify(state,{});notify(state,frame.contentWindow,'https://example.invalid');
+  notify({...state,state:{...state.state,title:'<b>Library</b>',canBack:'true'}});
+  assert.equal(title.textContent,'scrapyjs 采集');
+  notify(state);assert.equal(title.textContent,'scrapyjs 采集/配置库');
+  const backEvent=()=>{const event={prevented:false,preventDefault(){this.prevented=true;}};backListeners['opendesk-preview-back'](event);return event;};
+  assert.equal(backEvent().prevented,true);assert.equal(sent.at(-1).action,'back');
+  loadListeners.load();assert.equal(title.textContent,'scrapyjs 采集');
+  assert.equal(sent.at(-1).type,'scrapyjs-preview-navigation-sync');
+  notify({type:'scrapyjs-preview-state',dirty:true,busy:false});
+  assert.equal(backEvent().prevented,true);assert.match(guard.textContent,/未保存/);
+  notify({type:'scrapyjs-preview-state',dirty:false,busy:true});
+  assert.equal(backEvent().prevented,true);assert.match(guard.textContent,/任务/);
+  notify({type:'scrapyjs-preview-state',dirty:false,busy:false});
+  assert.equal(backEvent().prevented,false);
+});
 
 test('default runtime compiles canonical source, fingerprints actual inputs and executes pinned React', async () => {
   const {react, shared, provenance} = await loadPreviewRuntime();
@@ -13,7 +43,7 @@ test('default runtime compiles canonical source, fingerprints actual inputs and 
   assert.equal(provenance.wxtPassed, false);
   assert.equal(provenance.compiler.write, false);
   for (const name of ['src/entrypoints/sidebar-shared-ui.js', 'src/ui/react/components/ui/button.tsx',
-    'src/ui/react/components/ui/switch.tsx', 'src/ui/react/components/ui/card.tsx',
+    'src/ui/react/components/ui/switch.tsx', 'src/ui/react/components/ui/card.tsx', 'src/ui/react/components/ui/input.tsx',
     'src/ui/design-tokens.css', 'src/ui/design-system.css']) {
     assert.equal(provenance.inputs[name].sha256, sha(await readFile(new URL('../../../../' + name, import.meta.url))));
   }
@@ -28,7 +58,7 @@ test('default runtime compiles canonical source, fingerprints actual inputs and 
   vm.runInContext(react.toString(), context);
   try { vm.runInContext(shared.toString(), context); } catch (error) { throw new Error(error.message); }
   assert.equal(context.OpenDeskPageReact.version, '19.2.0');
-  for (const key of ['Button', 'IconButton', 'Card', 'CardContent', 'Switch', 'SharedConversationFrame', 'SharedConversationDock', 'createConversationSession'])
+  for (const key of ['Button', 'IconButton', 'Card', 'CardContent', 'Switch', 'Input', 'Textarea', 'SharedConversationFrame', 'SharedConversationDock', 'createConversationSession'])
     assert.equal(typeof context.OpenDeskSidebarUI[key], 'function');
   assert.equal(styles.length, 1);
   assert.ok(styles[0].textContent.includes('.od-icon-button{'));

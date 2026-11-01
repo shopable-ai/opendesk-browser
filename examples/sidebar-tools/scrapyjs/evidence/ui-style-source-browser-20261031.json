@@ -1,0 +1,443 @@
+{
+  "scope": "OFFLINE_SOURCE_COMPONENTS_SIMULATED_SDK",
+  "previewSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5",
+  "screenshots": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-expanded.png",
+      "sha256": "f7e7ec9e55036a739f7f6f2233af9625341aa1ae4b7bcf079e929961089a4f60"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-review.png",
+      "sha256": "a1b828a4f3a50ad3da305e1bdfa6eb797286e1db74f4d20fcf0e66cf28593c49"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-json.png",
+      "sha256": "0675e634cede487ea855ebc0f924025ae2ab7d785c5ac99822f6eb5de93a43ef"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-naming.png",
+      "sha256": "9bb3a104aa6692295ebec161cb5ff4dae75bcd38dd359c7940d9919f2068f260"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-applied.png",
+      "sha256": "cd6038aa0ae08f87e255649def4e3ff3fab921cc95d88036096be5b622cf6a07"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-collapsed.png",
+      "sha256": "30f389fd3b4563b1b877dcb323d7596241eb159a17decc31cd15a41991b1c7fa"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ready.png",
+      "sha256": "b1bde54a5d5db91697310a275a1c247b00540e0c153e9707bffb555b9ced58ba"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/rules.png",
+      "sha256": "0a70ceeacfaa4dc935fcb421b46b31c4486fe9d1403d078294d989bace72ff8c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-empty.png",
+      "sha256": "7127293c01fafe17bc9910361d479c3af2f443c917a67201c7a4e58c47a4b12d"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/ai-returned.png",
+      "sha256": "499c8ca76acc791c16093dde8abefb3063d3538ed544edf24b7ed8f3c2c92ce2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/style-source-20261031/candidate3/review-actions.png",
+      "sha256": "1c261d81253b0fdb12a81cb319edae60c94ab118c64dcb4d19777d9de2009a53"
+    }
+  ],
+  "nativeChrome": "NOT_TESTED",
+  "realAI": "NOT_TESTED",
+  "ai": {
+    "status": "PASS_SIMULATED_UI",
+    "checks": [
+      "AI expands beside the mounted workspace, target and selected rules tab",
+      "AI toggle exposes its expanded region",
+      "opening focuses the AI region heading",
+      "unapplied field blocks AI sending without discarding either draft",
+      "Escape collapses Chat and returns focus to its toggle",
+      "collapse preserves the exact editor node, field draft and config",
+      "reopening retains the Chat input",
+      "AI opening and closing preserves malformed JSON, its active tab and Run guard",
+      "the persistent visible input label focuses the shared composer",
+      "Shift+Enter and IME Enter do not dispatch",
+      "hidden pending Chat retains business and external reset guards",
+      "shared Chat leaves the existing result and selected result tab intact",
+      "reply and complete proposal differences stay in the shared Chat context",
+      "a current proposal keeps Send disabled and Enter cannot replace its review",
+      "correcting the requirement enables a new request and invalidates application of the old proposal",
+      "complete JSON is available on demand while differences and application stay together",
+      "returned proposal cannot compress the shared Chat or composer",
+      "collapsing keeps the reviewed proposal",
+      "discarding the proposal returns focus to Chat input",
+      "the multi-message transcript has a real scroll position to preserve",
+      "reopening preserves the existing transcript scroll position",
+      "explicit application opens inline naming while Chat remains in the workspace",
+      "closing during naming still returns focus to the available AI toggle",
+      "failed naming keeps the draft instruction and never acknowledges a saved proposal",
+      "named copy clears old result ownership and never starts another capture",
+      "successful proposal save replaces the pending AI status without implying capture",
+      "Chat remains in its opaque sandbox",
+      "no page runtime errors"
+    ],
+    "errors": [],
+    "realModel": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "workspace": {
+    "status": "PASS_SIMULATED_UI",
+    "checks": [
+      "ready to run through existing adapter",
+      "disabled Stop is visibly distinct from available actions",
+      "mode change preserves rules until explicit confirmation",
+      "cancel mode replacement preserves rules and restores focus",
+      "loads the selected field",
+      "selected field has persistent accessible state",
+      "invalid field keeps its draft, announces a local error and focuses correction",
+      "failed field application never changes the configuration",
+      "pagination edits preserve the unresolved field error",
+      "field correction preserves the unrelated pagination error",
+      "unapplied field blocks Run and Save",
+      "preview scenario cannot discard an active draft",
+      "tabs preserve field draft",
+      "dirty switch displays actual selected profile",
+      "Escape cancels switch without discarding draft",
+      "applied field reaches real App Model config",
+      "rename followed by edit keeps one field identity",
+      "new field can be renamed without leaving a duplicate",
+      "cancel field deletion preserves rule",
+      "confirmed field deletion updates config",
+      "unapplied pagination blocks Run",
+      "pagination form applies to the original config",
+      "invalid JSON survives tabs and blocks run",
+      "target edit cannot overwrite malformed JSON",
+      "cancel new preserves malformed JSON",
+      "new clears accepted drafts",
+      "named config stored in preview memory",
+      "rename updates selected configuration",
+      "duplicate name keeps name form for correction",
+      "copy selects an independent named configuration",
+      "cancel configuration deletion preserves selection",
+      "confirmed configuration deletion removes only the copy",
+      "workspace tabs support arrow-key selection and focus",
+      "run renders simulated returned rows only after retirement",
+      "single-page results do not show redundant pagination controls",
+      "short two-field results fit without clipping the last column",
+      "retired run clears the obsolete wait message",
+      "record details preserve the complete value",
+      "record detail Escape restores its origin focus",
+      "download explicitly identifies simulated data",
+      "column visibility updates its count",
+      "restore columns retains every original field",
+      "switch clears old result ownership",
+      "empty result is not invented",
+      "failed result is not shown as success",
+      "failed run shows a consistent failed heading and inline engine reason",
+      "failed empty run has error treatment and cannot export nonexistent CSV fields",
+      "busy run locks profile changes",
+      "preview scenario cannot reset a running task",
+      "stop waits for original request retirement",
+      "permission denied blocks Run",
+      "permission denial preserves the draft and gives the matching recovery guidance",
+      "untrusted title/records are text",
+      "untrusted record text remains visible",
+      "offline fixed AI proposal renders in the real review UI",
+      "AI changes are explicit before application",
+      "AI apply names a copy without starting capture",
+      "complex field routing reveals its explanation in the JSON destination and focuses the editor",
+      "complex field remains lossless",
+      "confirmed HTTP example replacement stays a draft and requires the matching target",
+      "preview stays opaque",
+      "no React runtime errors"
+    ],
+    "errors": [],
+    "realCapture": "NOT_TESTED",
+    "evidenceReused": true,
+    "previewSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+    "reason": "Only AI composer label, proposal resend guard and redundant ready notice changed; 62 workspace operations retain candidate2 scope."
+  },
+  "styles": {
+    "page": {
+      "class": "capture-app",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 400,
+        "height": 1131.1875,
+        "top": 0,
+        "right": 400,
+        "bottom": 1131.1875,
+        "left": 0
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "12px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "16px",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "card": {
+      "class": "od-shared-card target-section",
+      "rect": {
+        "x": 12,
+        "y": 620.640625,
+        "width": 376,
+        "height": 181.078125,
+        "top": 620.640625,
+        "right": 388,
+        "bottom": 801.71875,
+        "left": 12
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "0px",
+      "border": "1px solid rgb(225, 232, 241)",
+      "borderRadius": "12px",
+      "gap": "normal",
+      "background": "rgb(255, 255, 255)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "content": {
+      "class": "od-shared-card-content target-content",
+      "rect": {
+        "x": 13,
+        "y": 621.640625,
+        "width": 374,
+        "height": 179.078125,
+        "top": 621.640625,
+        "right": 387,
+        "bottom": 800.71875,
+        "left": 13
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "12px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "heading": {
+      "class": "od-page-title",
+      "rect": {
+        "x": 12,
+        "y": 21.421875,
+        "width": 203.0625,
+        "height": 18,
+        "top": 21.421875,
+        "right": 215.0625,
+        "bottom": 39.421875,
+        "left": 12
+      },
+      "font": "600 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "0px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "normal",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "field": {
+      "class": "od-field",
+      "rect": {
+        "x": 12,
+        "y": 57.265625,
+        "width": 290,
+        "height": 36,
+        "top": 57.265625,
+        "right": 302,
+        "bottom": 93.265625,
+        "left": 12
+      },
+      "font": "13px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "8px 12px",
+      "border": "1px solid rgb(127, 141, 161)",
+      "borderRadius": "8px",
+      "gap": "normal",
+      "background": "rgb(255, 255, 255)",
+      "overflow": "clip",
+      "flexShrink": "1"
+    },
+    "disclosure": {
+      "class": "od-disclosure od-disclosure--flat",
+      "rect": {
+        "x": 25,
+        "y": 682.484375,
+        "width": 350,
+        "height": 36,
+        "top": 682.484375,
+        "right": 375,
+        "bottom": 718.484375,
+        "left": 25
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "0px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "normal",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "summary": {
+      "class": "",
+      "rect": {
+        "x": 25,
+        "y": 682.484375,
+        "width": 350,
+        "height": 36,
+        "top": 682.484375,
+        "right": 375,
+        "bottom": 718.484375,
+        "left": 25
+      },
+      "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "8px 0px",
+      "border": "0px none rgb(83, 100, 126)",
+      "borderRadius": "0px",
+      "gap": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "visible",
+      "flexShrink": "1"
+    },
+    "chat": {
+      "class": "ai-chat",
+      "rect": {
+        "x": 25,
+        "y": 307.640625,
+        "width": 350,
+        "height": 152,
+        "top": 307.640625,
+        "right": 375,
+        "bottom": 459.640625,
+        "left": 25
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "0px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "normal",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "hidden",
+      "flexShrink": "1"
+    },
+    "input": {
+      "class": "od-conversation-input",
+      "rect": {
+        "x": 35,
+        "y": 396.640625,
+        "width": 330,
+        "height": 55,
+        "top": 396.640625,
+        "right": 365,
+        "bottom": 451.640625,
+        "left": 35
+      },
+      "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "10px 52px 9px 10px",
+      "border": "1px solid rgb(127, 141, 161)",
+      "borderRadius": "12px",
+      "gap": "normal",
+      "background": "rgb(255, 255, 255)",
+      "overflow": "auto",
+      "flexShrink": "1"
+    },
+    "log": {
+      "class": "od-conversation-log",
+      "rect": {
+        "x": 25,
+        "y": 307.640625,
+        "width": 350,
+        "height": 52,
+        "top": 307.640625,
+        "right": 375,
+        "bottom": 359.640625,
+        "left": 25
+      },
+      "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+      "padding": "13px 10px 6px",
+      "border": "0px none rgb(27, 44, 73)",
+      "borderRadius": "0px",
+      "gap": "7px",
+      "background": "rgba(0, 0, 0, 0)",
+      "overflow": "auto",
+      "flexShrink": "0"
+    },
+    "horizontalOverflow": false,
+    "stylesheets": [
+      {
+        "owner": "LINK",
+        "frame": false,
+        "ruleCount": 199
+      },
+      {
+        "owner": "STYLE",
+        "shared": "v1",
+        "frame": false,
+        "ruleCount": 35
+      },
+      {
+        "owner": "STYLE",
+        "frame": true,
+        "ruleCount": 24
+      }
+    ]
+  },
+  "returned": {
+    "height": 200,
+    "inputHeight": 42,
+    "logHeight": 111
+  },
+  "status": "PASS",
+  "sourceLock": {
+    "checked": 1369,
+    "mismatches": []
+  },
+  "reviewFixes": [
+    "persistent visible associated input label",
+    "unchanged current proposal blocks duplicate send; corrections enable replacement",
+    "removed duplicate proposal-ready notice"
+  ],
+  "causes": [
+    "TOOL_MISSING_CANONICAL_FORM_DISCLOSURE_CSS",
+    "COMPONENT_REFERENCE_MISSING_CHAT_CONTAINER_EXAMPLE"
+  ],
+  "sources": {
+    "host": "scripts/templates/sidebar-tool-preview-shell.html",
+    "extractor": "scripts/preview/shared-tool-design.mjs",
+    "components": "src/entrypoints/sidebar-shared-ui.js",
+    "frameStyle": "src/ui/react/components/conversation-frame.css",
+    "business": "examples/sidebar-tools/scrapyjs/src/",
+    "reference": "artifacts/scrapyjs/style-source-20261031/components/components.html"
+  },
+  "componentReference": {
+    "htmlSha256": "7f60ebb328ca3e4158135c4b757531653568f998103dedfad63da5683e053f14",
+    "status": "SOURCE_COMPONENT_PREVIEW",
+    "checkedBy": "independent executor",
+    "cases": [
+      "send",
+      "stop",
+      "reply",
+      "error",
+      "blocked",
+      "review",
+      "theme retains session",
+      "reset"
+    ]
+  },
+  "nodeChecks": {
+    "related": 6,
+    "status": "PASS",
+    "scope": "AI app/panel, original request UNKNOWN and CAS fences, current-proposal send guard",
+    "priorSourceStage": {
+      "count": 11,
+      "previewSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+      "status": "PASS"
+    }
+  }
+}

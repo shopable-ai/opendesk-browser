@@ -11,7 +11,7 @@
     const pageLimit = runtime === 'local' ? 50 : 10;
     const object = v => v && typeof v === 'object' && !Array.isArray(v);
     if (!object(value)) throw new Error('配置必须是 JSON 对象');
-    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing', 'executionMode', 'http'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
+    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing', 'executionMode', 'http', 'output'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
     targetUrl(value.url);
     const httpLocal = value.executionMode === 'http-local';
     if (value.executionMode !== undefined && !httpLocal) throw new Error('executionMode 仅支持 http-local；DOM 模式请省略此字段');
@@ -38,6 +38,22 @@
           names.add(name);
         }
       }
+    }
+    // Export metadata stays in the profile, never in capture-engine options.
+    if (value.output !== undefined) {
+      const output = value.output, names = output?.fieldNames;
+      if (!object(output) || Object.keys(output).some(key => !['fieldNames','fieldOrder'].includes(key)) || (names !== undefined && (!object(names) || Object.keys(names).length > 64)))
+        throw new Error('输出表头仅接受 fieldNames 名称对象，最多 64 个字段');
+      for (const [key, label] of Object.entries(names || {})) {
+        if (!key.trim() || key.length > 128 || ['__proto__','constructor','prototype'].includes(key) ||
+            typeof label !== 'string' || Array.from(label).length > 80 || new TextEncoder().encode(label).byteLength > 240 ||
+            /[\u0000-\u001f\u007f]/.test(key + label)) throw new Error('输出表头名称最多 80 字符、240 字节，不能含控制字符或保留字段名');
+      }
+      const order = output.fieldOrder;
+      if (order !== undefined && (!Array.isArray(order) || order.length > 64 || new Set(order).size !== order.length ||
+          order.some(key => typeof key !== 'string' || !key.trim() || key.length > 128 || ['__proto__','constructor','prototype'].includes(key) || /[\u0000-\u001f\u007f]/.test(key))))
+        throw new Error('字段排序必须是不重复的字段名数组，最多 64 个字段');
+      if (new TextEncoder().encode(JSON.stringify(output)).byteLength > 2048) throw new Error('输出表头名称配置超过 2048 字节');
     }
     if (!object(value.itemConfig) || !Object.keys(value.itemConfig).length) throw new Error('itemConfig 必须是非空对象');
     // Preserve native SDK selector/descriptor/nested-field grammar. Engine owns CSS/XPath parsing.
@@ -71,7 +87,6 @@
       for (const key of ['_listContainer', '_listItem']) {
         if (value.itemConfig[key] !== undefined && (typeof value.itemConfig[key] !== 'string' || !value.itemConfig[key].trim())) throw new Error(key + ' 必须是选择器');
       }
-      if (value.itemConfig._listItem !== undefined && value.itemConfig._listContainer === undefined) throw new Error('_listItem 需要 _listContainer');
       if (!Object.keys(value.itemConfig).some(key => !['_listContainer', '_listItem'].includes(key))) throw new Error('至少需要一个采集字段');
     }
     if (value.waitForSelector !== undefined && (typeof value.waitForSelector !== 'string' || !value.waitForSelector.trim())) throw new Error('waitForSelector 必须是非空选择器');
@@ -93,11 +108,18 @@
     if (value.validation !== undefined && (!object(value.validation)||Object.keys(value.validation).some(k=>!['version','rowShape'].includes(k))||value.validation.version!==1||typeof value.validation.rowShape!=='string')) throw new Error('校验需要 version:1 与 rowShape');
     if (value.fieldRequirements !== undefined && (!value.validation||!Array.isArray(value.fieldRequirements)||value.fieldRequirements.length>20||value.fieldRequirements.some(r=>!object(r)||Object.keys(r).some(k=>!['key','required','valueType'].includes(k))||!Object.hasOwn(value.itemConfig,r.key)||typeof r.required!=='boolean'||!['text','number','date','url','image'].includes(r.valueType)))) throw new Error('字段校验配置无效');
     if (value.processing !== undefined && (!object(value.processing)||Object.keys(value.processing).some(k=>!['version','rules'].includes(k))||value.processing.version!==1||!Array.isArray(value.processing.rules)||value.processing.rules.length>8||value.processing.rules.some(r=>!object(r)||Object.keys(r).some(k=>!['op','field'].includes(k))||r.op!=='splitPublication'||!Object.hasOwn(value.itemConfig,r.field)))) throw new Error('仅支持原引擎 splitPublication 处理规则');
-    const {url,itemConfig,waitForSelector,timeoutMs,...options}=value;
+    const {url,itemConfig,waitForSelector,timeoutMs,output,...options}=value;
     if(new TextEncoder().encode(JSON.stringify(options)).byteLength>4096) throw new Error('分页、详情与处理配置超过 4096 字节');
     if (new TextEncoder().encode(JSON.stringify(value.itemConfig)).byteLength > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
     if (new TextEncoder().encode(JSON.stringify(value)).byteLength > 8192) throw new Error('配置超过 8192 字节');
     const config = copy(value);
+    // Storage codecs can sort object keys; an explicit array preserves the user's order.
+    if (config.output?.fieldOrder) {
+      const fields = Object.keys(config.itemConfig).filter(key => !key.startsWith('_'));
+      const order = [...config.output.fieldOrder.filter(key => fields.includes(key)), ...fields.filter(key => !config.output.fieldOrder.includes(key))];
+      let index = 0;
+      config.itemConfig = Object.fromEntries(Object.entries(config.itemConfig).map(([key,rule]) => key.startsWith('_') ? [key,rule] : [order[index],config.itemConfig[order[index++]]]));
+    }
     if (httpLocal && config.timeoutMs !== undefined) config.timeoutMs = Math.min(config.timeoutMs, 15000);
     return config;
   }
@@ -144,16 +166,31 @@
   function createApp(sdk, onChange = () => {}) {
     const state = {config: copy(DEFAULT_CONFIG), target: null, phase: 'idle', host: '尚未连接', engine: '尚未运行', runId: null,
       clientRequestId: null, result: null, snapshot: null, error: '', notice: '', stopRequested: false, stopAccepted: false, retired: false,
-      dirty: false, saving: false, storageReady: false, conflict: null,
+      dirty: false, saving: false, storageReady: false, storageError: null, targetError: null, conflict: null,
       records: [], selectedId: null, profileEpoch: 0, pendingAction: null, runProfile: null};
     let etag, revision = 0, loadGeneration = 0, pageGeneration = 0, disposed = false, stopping = false, reading = false;
     let catalog = readCatalog(null);
     const emit = () => { if (!disposed) onChange(state); };
     const active = () => Boolean(state.clientRequestId) && !state.retired;
     const busy = () => state.saving || state.phase === 'starting' || state.phase === 'unknown' || active();
+    const draftCheckpoints = new WeakSet();
+    // UI-only dirty bookkeeping; never restore configuration or runtime state.
+    function checkpointDraft() {
+      const checkpoint = Object.freeze({config: state.config, profileEpoch: state.profileEpoch,
+        selectedId: state.selectedId, dirty: state.dirty});
+      draftCheckpoints.add(checkpoint);
+      return checkpoint;
+    }
+    function cancelDraft(checkpoint, {keepDirty = false} = {}) {
+      if (!draftCheckpoints.has(checkpoint) || keepDirty || busy() || state.pendingAction || disposed ||
+          checkpoint.config !== state.config || checkpoint.profileEpoch !== state.profileEpoch ||
+          checkpoint.selectedId !== state.selectedId) return false;
+      state.dirty = checkpoint.dirty; revision++; emit();
+      return true;
+    }
     function touch() {
       if (busy() || state.pendingAction || disposed) throw new Error('保存或运行期间不能修改配置');
-      state.dirty = true; revision++; emit();
+      state.dirty = true; state.notice = ''; revision++; emit();
     }
     function edit(value) {
       if (busy() || state.pendingAction || disposed) throw new Error('保存或运行期间不能修改配置');
@@ -171,7 +208,7 @@
     }
     function adopt(next) {
       catalog = copy(next); state.records = copy(next.records); selectLocal(next.selectedId);
-      state.storageReady = true; state.conflict = null;
+      state.storageReady = true; state.storageError = null; state.conflict = null;
     }
     function writable() {
       if (busy() || disposed || state.pendingAction) return false;
@@ -186,10 +223,10 @@
       try {
         const info = await sdk.currentPage();
         if (generation !== pageGeneration || disposed) return;
-        if (info?.status !== 'available') throw new Error(info?.message || '当前网页不可用');
+        if (info?.status !== 'available') throw Object.assign(new Error(info?.message || '当前网页不可用'),{code:info?.code||''});
         state.target = {title: String(info.title || ''), url: targetUrl(info.url)};
-        state.host = '当前网页已连接';
-      } catch (error) {if (generation === pageGeneration) {state.target = null; state.host = error.message;}}
+        state.host = '当前网页已连接'; state.targetError = null;
+      } catch (error) {if (generation === pageGeneration) {state.target = null; state.host = error.message;state.targetError={code:error.code||'',message:error.message};}}
       emit();
     }
     async function load({preserve = false} = {}) {
@@ -200,6 +237,7 @@
         if (disposed || generation !== loadGeneration) return;
         if (!record || !(record.etag === null || typeof record.etag === 'string')) throw new Error('存储未返回 ETag，禁止覆盖');
         const saved = readCatalog(record.value);
+        state.storageError = null;
         if (preserve || busy() || before !== revision || state.dirty) {
           state.conflict = {catalog: saved, config: copy(saved.records.find(row => row.id === saved.selectedId)?.config ?? DEFAULT_CONFIG), etag: record.etag};
           state.notice = '已读到保存版本；草稿仍保留';
@@ -207,7 +245,7 @@
           etag = record.etag; adopt(saved); state.error = '';
           state.notice = '已读取保存配置';
         }
-      } catch (error) {if (generation === loadGeneration && !disposed) {state.storageReady = false; state.error = error.message;}}
+      } catch (error) {if (generation === loadGeneration && !disposed) {state.storageReady = false;state.storageError={code:error.code||'',message:error.message};state.error = error.message;}}
       emit();
     }
     function useSaved() {
@@ -309,6 +347,7 @@
       // Terminal host state is not evidence that the original runtime has retired.
       state.phase = state.retired ? 'retired' : (state.stopRequested ? 'stopping' : 'running');
       if (terminal.has(snapshot.status) && !state.retired) state.notice = '宿主已终结，等待原运行实例退休确认';
+      else if (state.retired && state.notice === '宿主已终结，等待原运行实例退休确认') state.notice = '';
     }
     async function refresh() {
       if (!active() || reading || disposed) return;
@@ -337,21 +376,26 @@
       if (busy() || state.pendingAction || disposed) return;
       state.error = ''; state.notice = '';
       let sent = false;
+      const previous = {phase: state.phase, stopRequested: state.stopRequested, stopAccepted: state.stopAccepted};
       try {
         const expected = targetUrl(url), config = validateConfig({...state.config, url: expected});
         if (!state.target || new URL(expected).origin !== new URL(state.target.url).origin) throw new Error('目标 URL 必须与可信当前网页同源，请刷新当前网页');
         state.phase = 'starting'; state.stopRequested = false; state.stopAccepted = false;
         // A read begun before this run must not clear its identity/result, even after retirement.
         revision++;
-        state.runProfile = {id: state.selectedId, name: state.records.find(row => row.id === state.selectedId)?.name ?? '未保存配置',url:expected,startedAt:new Date().toISOString(),config:copy(config)};
-        state.retired = false; state.runId = null; state.clientRequestId = null; state.result = null; state.snapshot = null; state.engine = '等待引擎'; emit();
+        emit();
         await sdk.prepare();
         const generation = pageGeneration;
         const info = await sdk.currentPage();
         if (generation !== pageGeneration || info?.status !== 'available' || targetUrl(info.url) !== state.target?.url) throw new Error('当前网页已变化，请重新确认目标');
-        if (state.stopRequested || disposed) {state.phase = 'idle'; state.notice = '已取消，未发起任务'; return;}
-        sent = true;
-        state.clientRequestId = crypto.randomUUID(); emit();
+        if (state.stopRequested || disposed) {state.notice = '已取消，未发起任务'; return;}
+        const clientRequestId = crypto.randomUUID();
+        const runProfile = {id: state.selectedId, name: state.records.find(row => row.id === state.selectedId)?.name ?? '未保存配置',url:expected,startedAt:new Date().toISOString(),config:copy(config)};
+        // Replace the retired run only when dispatching its successor.
+        state.runProfile = runProfile;
+        state.retired = false; state.runId = null; state.clientRequestId = clientRequestId;
+        state.result = null; state.snapshot = null; state.engine = '等待引擎';
+        sent = true; emit();
         const receipt = await sdk.start({...config, url: expected}, state.target.url, state.clientRequestId);
         if (receipt?.clientRequestId !== state.clientRequestId) throw new Error('开始响应身份不匹配');
         if (!receipt || typeof receipt.runId !== 'string' || !receipt.runId) {
@@ -361,21 +405,25 @@
         if (state.stopRequested && !state.stopAccepted) await stop();
         if (!disposed) await refresh();
       } catch (error) {
-        if (state.phase === 'starting') state.phase = sent ? 'unknown' : 'idle';
+        if (state.phase === 'starting' && sent) state.phase = 'unknown';
         state.error = error.message;
         if (sent && state.stopRequested && !disposed) await refresh();
-      } finally {emit();}
+      } finally {
+        if (!sent && state.phase === 'starting') Object.assign(state, previous);
+        emit();
+      }
     }
-    async function download(format = 'json') {
+    async function download(format = 'json', output) {
+      state.notice = ''; state.error = ''; emit();
       try {
         if (!state.snapshot || state.result == null) throw new Error('尚无可导出的真实结果');
-        const receipt = await sdk.download(state.snapshot, format);
+        const receipt = await sdk.download(state.snapshot, format, output);
         if (receipt?.started !== true) throw new Error('下载请求结果未知');
         state.notice = '已请求下载完整 ' + format.toUpperCase() + '，请在浏览器下载列表确认'; state.error = '';
       } catch (error) {state.error = error.message;}
       emit();
     }
-    return {state, edit, touch, refreshTarget, load, useSaved, save, copyProfile, renameProfile, newProfile, selectProfile, deleteProfile,
+    return {state, edit, touch, checkpointDraft, cancelDraft, refreshTarget, load, useSaved, save, copyProfile, renameProfile, newProfile, selectProfile, deleteProfile,
       cancelAction, confirmAction, start, stop, refresh, download,
       dispose() {disposed = true; pageGeneration++;}};
   }

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {getEnvironment} from './environment';
 import {Button} from '@opendesk/ui';
 import { useI18n } from './i18n/LocaleProvider';
@@ -50,13 +51,20 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const pageLinkCopyRequest = useRef(0);
   const sectionContent=useRef<HTMLElement>(null);
   const lastSection=useRef(tab);
+  const localEditOrigin=useRef<{top:number;focusId:string}|null>(null);
   const pacDetails=useRef<HTMLDetailsElement>(null);
   // The native selector keeps all seven sections discoverable without a
   // horizontally scrolling desktop navigation. Reset only on section changes.
   useEffect(() => {
     if(lastSection.current===tab)return;
     lastSection.current=tab;
-    sectionContent.current?.closest('.proxy-route')?.scrollTo({top:0});
+    const scroller=sectionContent.current?.closest('.proxy-route');
+    const origin=tab==='profiles'?localEditOrigin.current:null;
+    scroller?.scrollTo({top:origin?.top??0});
+    if(origin){
+      localEditOrigin.current=null;
+      requestAnimationFrame(()=>document.getElementById(origin.focusId)?.focus({preventScroll:true}));
+    }
   },[tab]);
   useEffect(() => {
     const syncLocation = () => {
@@ -71,6 +79,11 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }, [navigation]);
   function navigate(section: Page) { getEnvironment().navigate(optionsHash(section)); }
   function navigateSubscription(route: SubscriptionRoute) { getEnvironment().navigate(subscriptionRouteHash(route)); }
+  function editLocal(endpoint: ProxyEndpoint) {
+    localEditOrigin.current={top:sectionContent.current?.closest('.proxy-route')?.scrollTop??0,
+      focusId:'settings-proxy-'+endpoint.id};
+    navigateSubscription({kind:'local',id:endpoint.id});
+  }
   function navigateAction(section: 'profiles' | 'subscriptions', action: 'add' | 'local' | 'new' | 'pac') { getEnvironment().navigate(optionsHash(section)+'/'+action); }
   async function copyCurrentPageLink() {
     const request = ++pageLinkCopyRequest.current;
@@ -117,6 +130,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const [ruleSaved,setRuleSaved]=useState(false);
   const [editingRuleId,setEditingRuleId] = useState('');
   const [ruleEditorOpen,setRuleEditorOpen] = useState(false);
+  const [dismissedRuleDetail,setDismissedRuleDetail] = useState('');
   const ruleEditorGeneration=useRef(0);
   const ruleListPosition=useRef({top:0,focusId:'settings-rule-add'});
   useEffect(()=>()=>{ruleEditorGeneration.current++;},[]);
@@ -130,6 +144,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const [backup,setBackup] = useState('');
   const [backupImported,setBackupImported] = useState(false);
   const backupReadGeneration = useRef(0);
+  useEffect(()=>()=>{backupReadGeneration.current++;},[]);
   const [editorOpen,setEditorOpen] = useState(false);
   const editorDialog = useRef<HTMLDialogElement>(null);
   const editorReturnFocus = useRef<HTMLElement | null>(null);
@@ -303,6 +318,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       setProxy(emptyEndpoint);
       setUsername('');
       setPassword('');
+      editorDialog.current?.querySelector<HTMLInputElement>('#ep-host')?.focus();
     } else closeEditor();
   }
   async function editPac(profile: Profile) {
@@ -420,8 +436,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     }
   }
   async function loadBackupFile(file: File) {
+    const environment = getEnvironment();
     const generation = ++backupReadGeneration.current;
-    const revision = getEnvironment().getDraftRevision('settings-backup');
+    const revision = environment.getDraftRevision('settings-backup');
+    const current = () => {
+      try { return generation === backupReadGeneration.current &&
+        getEnvironment() === environment && environment.getDraftRevision('settings-backup') === revision; }
+      catch { return false; } // The trusted portal may have been disposed while reading.
+    };
     setBackupImported(false);
     setError('');
     if (file.size > BACKUP_MAX_BYTES) {
@@ -430,16 +452,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     }
     try {
       const text = await file.text();
-      if (generation !== backupReadGeneration.current ||
-        getEnvironment().getDraftRevision('settings-backup') !== revision) return;
+      if (!current()) return;
       parseBackupForImport(text);
-      if (backup.trim() && !await getEnvironment().confirm(t('apReplaceBackupDraft'))) return;
-      if (generation !== backupReadGeneration.current ||
-        getEnvironment().getDraftRevision('settings-backup') !== revision) return;
+      if (backup.trim() && !await environment.confirm(t('apReplaceBackupDraft'))) return;
+      if (!current()) return;
       setBackup(text);
-      getEnvironment().setDraftDirty(true,'settings-backup');
+      environment.setDraftDirty(true,'settings-backup');
     } catch (cause) {
-      if (generation !== backupReadGeneration.current) return;
+      if (!current()) return;
       setErrorKey(cause instanceof BackupImportValidationError ? cause.key : 'backupFileFailed');
     }
   }
@@ -481,13 +501,13 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <optgroup label={t('optionalServices')}><option value="official">{t('officialNetwork')} · {t('officialOptional')}</option></optgroup>
         </select>
       </nav>
-      <details className="settingsMore"><summary aria-label={t('copyPageLink')+' / '+t('refreshStatus')}>⋯</summary><div className="optionsHeadActions">
+      <details className="settingsMore"><summary title={t('copyPageLink')+' / '+t('refreshStatus')} aria-label={t('copyPageLink')+' / '+t('refreshStatus')}><ProxyIcon name="more"/></summary><div className="optionsHeadActions">
         <Button type="button" className="optionsCopyLink" aria-label={copiedPageLink?t('pageLinkCopied'):t('copyPageLink')}
           title={t('copyPageLink')} onClick={() => void copyCurrentPageLink()}>
-          {t('copyPageLink')}
+          <ProxyIcon name="copy"/>{t('copyPageLink')}
         </Button>
         <Button className="settingsRefresh" disabled={busy} aria-label={t('refreshStatus')} title={t('refreshStatus')} onClick={() => void refresh()}>
-          {t('refreshStatus')}
+          <ProxyIcon name="refresh"/>{t('refreshStatus')}
         </Button>
       </div></details>
       <Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
@@ -503,24 +523,16 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           title={tabs.find(item=>item.id===tab)?.name ?? ''}
           description={tab==='profiles'?t('apProfileIntro'):tabs.find(item=>item.id===tab)?.caption ?? ''}
           className={tab==='profiles'?'profilePanelHead':''}
-          actions={tab==='profiles' && endpoints.length>0?<>
+          actions={tab==='profiles'?<>
             <Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addProxy2')}</Button>
-            <details className="settingsAddWays"><summary>{t('apMoreSetup')}</summary><div className="settingsAddWayActions">
-              <Button onClick={()=>navigate('subscriptions')}>{t('alreadyHaveAProxySubscription')}</Button>
-              <Button onClick={()=>navigate('backup')}>{t('importSettings')}</Button>
-              <Button onClick={()=>navigateAction('subscriptions','local')}>{t('addLocalProxyClient')}</Button>
-              <Button type="button" onClick={()=>{sectionContent.current?.querySelector<HTMLDetailsElement>('.settingsAddWays')?.removeAttribute('open');navigateAction('profiles','pac');}}>{t('localPac')}</Button>
-            </div></details>
+            <Button id="settings-import" className="settingsImport" title={t('importSettings')} aria-label={t('importSettings')}
+              onClick={()=>navigate('backup')}><ProxyIcon name="import"/>{t('importSettings')}</Button>
           </>:undefined}
           badge={tab==='profiles'?endpoints.length:undefined}
         />}
         {tab==='profiles' && <>
           <section className="listSection">
-            {endpoints.length===0 ? <div className="emptyState">
-               <div className="actions"><Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addYourProxy2')}</Button>
-                 <Button onClick={()=>navigateAction('subscriptions','new')}>{t('recordSubscriptionSource')}</Button>
-                 <Button onClick={()=>navigateAction('subscriptions','local')}>{t('addLocalProxyClient')}</Button></div>
-             </div> : <div className="records profileRecords">{endpoints.map(p=>{
+            {endpoints.length===0 ? <p className="hint">{t('sideNoProxiesHelp')}</p> : <div className="records profileRecords">{endpoints.map(p=>{
               const profile=endpointRefs(p.id)[0];
               const source=config.sources.find(s=>s.id===p.sourceId);
               const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
@@ -538,7 +550,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                   </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
                 </div>
                 <div className="recordActions">
-                  <Button className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?navigate('subscriptions'):openEditor(p)}
+                  <Button id={'settings-proxy-'+p.id} className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?editLocal(p):openEditor(p)}
                     title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
                   <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
                     onClick={async()=>{if(await getEnvironment().confirm(t('confirmDeleteProxy',{name:p.name})))void act({type:'DELETE_ENDPOINT',id:p.id});}}
@@ -546,6 +558,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 </div>
               </article>;
             })}</div>}
+            <div className="profileSourceLinks">
+              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="link"/>{t('recordSubscriptionSource')}</Button>
+              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','local')}><ProxyIcon name="system"/>{t('addLocalProxyClient')}</Button>
+            </div>
           </section>
           <section className="optionsModeBar" aria-label={t('browserRoutingMode')}>
             <div className="settingsRuntimeStatus" role="status"><span className={'controlChip ' + (statusTone(state.runtime) === 'ok' ? 'isApplied' : statusTone(state.runtime) === 'danger' ? 'isError' : statusTone(state.runtime) === 'pending' ? 'isPending' : '')}>{t(statusLabelKey(state.runtime))}</span></div>
@@ -627,20 +643,21 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 <p className="hint">{t('pacStarterNoAutoApply')}</p>
                 <p className="hint">{t('pacStarterPreferRules')}</p>
               </section>
-              <div className="records">{profiles.filter(p=>p.kind==='pac-inline').map(p=><article className="record" key={p.id}>
-                <div><strong>{p.name}</strong><small>{t('localPacScriptConnectivityUnverified')}</small></div>
+              <div className="records">{profiles.filter(p=>p.kind==='pac-inline').map(p=><article className="record pacRecord" key={p.id}>
+                <div><strong title={p.name}>{p.name}</strong><small title={t('localPacScriptConnectivityUnverified')}>{t('localPacScriptConnectivityUnverified')}</small></div>
                 <div className="recordActions">
-                  <Button onClick={()=>void editPac(p)}>{t('edit')}</Button>
-                  <Button disabled={busy||config.managed} onClick={async()=>{
+                  <Button className="proxyIconButton" disabled={busy} title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})} onClick={()=>void editPac(p)}><ProxyIcon name="edit"/></Button>
+                  <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})} aria-label={t('deleteNamedProxy',{name:p.name})} onClick={async()=>{
                     if (await getEnvironment().confirm(t('confirmDeletePac',{name:p.name}))) void act({type:'DELETE_PROFILE',id:p.id});
-                  }}>{t('delete')}</Button>
+                  }}><ProxyIcon name="trash"/></Button>
                 </div>
               </article>)}</div>
-              <form data-draft-scope="settings-pac" onSubmit={e=>void savePac(e)}>
-                <label htmlFor="pac-name">{t('pacName')}</label><ClearableInput id="pac-name" fieldLabel={t('pacName')} required value={pacName} onValueChange={setPacName} placeholder={t('myLocalPac')}/>
-                <label htmlFor="pac-text" className="fieldSpacing">{t('findproxyforurlScript')}</label>
-                <textarea id="pac-text" required spellCheck={false} value={pacText} onChange={e=>setPacText(e.target.value)}
-                  placeholder={'function FindProxyForURL(url, host) { return "DIRECT"; }'}/>
+              <form className="pacEditorForm" data-draft-scope="settings-pac" onSubmit={e=>void savePac(e)}>
+                <div className="pacEditorFields">
+                  <FormField id="pac-name" label={t('pacName')}>{controlProps=><ClearableInput {...controlProps} fieldLabel={t('pacName')} required value={pacName} onValueChange={setPacName} placeholder={t('myLocalPac')}/>}</FormField>
+                  <FormField id="pac-text" label={t('findproxyforurlScript')}>{controlProps=><textarea {...controlProps} required spellCheck={false} value={pacText} onChange={e=>setPacText(e.target.value)}
+                    placeholder={'function FindProxyForURL(url, host) { return "DIRECT"; }'}/>}</FormField>
+                </div>
                 <div className="actions"><Button variant="primary" className="primary" disabled={busy} type="submit">{editingPacId?t('savePacChanges'):t('saveLocalPac')}</Button>
                   {editingPacId&&<Button type="button" onClick={()=>{getEnvironment().setDraftDirty(false,'settings-pac');setEditingPacId('');setPacName('');setPacText('')}}>{t('cancelEditing')}</Button>}</div>
               </form>
@@ -666,13 +683,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               {config.rules.length === 0 ? <div className="sourceEmpty rulesEmpty">{t('rulesEmpty')}</div> :
                 <div className="records">{config.rules.map(r=>{
               const detail=(r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2'))+' · '+t('priority')+' '+r.priority;
-              return <article className="record ruleRecord" key={r.id}>
+              return <article className="record ruleRecord" key={r.id} data-details-dismissed={dismissedRuleDetail===r.id||undefined}
+                onFocusCapture={()=>setDismissedRuleDetail('')} onMouseEnter={()=>setDismissedRuleDetail('')}
+                onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setDismissedRuleDetail(r.id);}}}>
             <span className={'ruleStateIcon '+(r.enabled?'isEnabled':'')} role="img" title={t(r.enabled?'apRuleEnabled':'apRuleDisabled')} aria-label={t(r.enabled?'apRuleEnabled':'apRuleDisabled')}><ProxyIcon name={r.enabled?'selected':'pause'}/></span>
             <div className="ruleRecordText"><strong title={r.domain+t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')}>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
-            <small title={detail}>{detail}</small></div>
-            <div className="actions"><Button className="proxyIconButton" id={'settings-rule-'+r.id} disabled={busy} title={t('editNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('editNamedRule',{domain:r.domain,
+            <small id={'settings-rule-detail-'+r.id} title={detail}>{detail}</small></div>
+            <div className="actions"><Button className="proxyIconButton" id={'settings-rule-'+r.id} aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('editNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('editNamedRule',{domain:r.domain,
               scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>editRule(r)}><ProxyIcon name="edit"/></Button>
-              <Button className="proxyIconButton quietDanger" disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
+              <Button className="proxyIconButton quietDanger" aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
                 scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>void removeRule(r)}><ProxyIcon name="trash"/></Button></div></article>;})}</div>}
             </section>:
             <section className="rulesEditor" aria-label={editingRuleId?t('editRule'):t('addRule')}
@@ -761,7 +780,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         {tab==='subscriptions' && <SourcesPage config={config} runtime={state.runtime}
           busy={busy} act={act} setError={setError} setErrorKey={setErrorKey} navigate={navigate}
           route={parseSubscriptionRoute(locationHash)} navigateSubscription={navigateSubscription}
-          quickEntry={locationHash==='#/subscriptions/local'?'local':locationHash==='#/subscriptions/new'?'subscription':null}/>}
+          quickEntry={parseSubscriptionRoute(locationHash).kind==='local'?'local':locationHash==='#/subscriptions/new'?'subscription':null}/>}
         {tab==='backup' && <div className="backupPage">
           <div className="backupGrid">
             <section className="backupCard backupExport">
@@ -839,11 +858,11 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         editorReturnFocus.current?.focus();
       }}>
       <form onSubmit={e=>void saveProxy(e)} data-draft-scope="settings-proxy" className="proxyEditorForm">
-        <div className="proxyEditorFields">
         <header className="editorHead"><div><p className="eyebrow">{t('localProxyConfiguration')}</p>
           <h2 id="proxy-editor-title">{editingId?t('editProxy'):t('addProxy')}</h2></div>
-          <Button type="button" className="iconButton" disabled={busy} onClick={()=>void requestCloseEditor()} aria-label={t('closeProxyEditor')}>×</Button>
+          <Button type="button" className="proxyIconButton" disabled={busy} onClick={()=>void requestCloseEditor()} title={t('closeProxyEditor')} aria-label={t('closeProxyEditor')}><ProxyIcon name="close"/></Button>
         </header>
+        <div className="proxyEditorFields">
         <p className="hint">{t('proxyEditorIntro')}</p>
         <div className="proxyPrimaryFields">
           <div><label htmlFor="ep-host">{t('host')}</label>
@@ -876,9 +895,9 @@ const tabs: {id:Page; name:string; caption:string}[] = [
            </div>
         </div>
         <p className="hint">{t('proxyEditorProtocolHelp')}</p>
-        <div className="proxyNameField"><label htmlFor="ep-name">{t('nameOptional')}</label>
-          <ClearableInput id="ep-name" fieldLabel={t('name')} maxLength={80} value={proxy.name}
-             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/></div>
+        <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
+          {controlProps=><ClearableInput {...controlProps} fieldLabel={t('name')} maxLength={80} value={proxy.name}
+             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
         <details className="proxyAuthDetails">
           <summary>{t('proxyEditorAuthOptions')}</summary>
           <p className="notice">{t('apAuthHelp')}</p>

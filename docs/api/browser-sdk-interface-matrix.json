@@ -9768,6 +9768,243 @@
                 "type": "null"
               }
             ]
+          },
+          "browserMode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "system",
+                  "direct",
+                  "auto_detect",
+                  "fixed_servers",
+                  "pac_script"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "activeConfig": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "endpoint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "https",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "type": "string",
+                            "maxLength": 253,
+                            "pattern": "^[a-z0-9.-]+$"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "endpoint",
+                      "domains"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "direct"
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "fixed_servers"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "rules"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint",
+                      "domains"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -9870,6 +10107,243 @@
                 "type": "null"
               }
             ]
+          },
+          "browserMode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "system",
+                  "direct",
+                  "auto_detect",
+                  "fixed_servers",
+                  "pac_script"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "activeConfig": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "endpoint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "https",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "type": "string",
+                            "maxLength": 253,
+                            "pattern": "^[a-z0-9.-]+$"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "endpoint",
+                      "domains"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "direct"
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "fixed_servers"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "rules"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint",
+                      "domains"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -9934,51 +10408,217 @@
         "additionalProperties": false,
         "properties": {
           "config": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "endpoint": {
+            "anyOf": [
+              {
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
-                  "scheme": {
-                    "enum": [
-                      "https",
-                      "socks5"
+                  "endpoint": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "scheme": {
+                        "enum": [
+                          "https",
+                          "socks5"
+                        ]
+                      },
+                      "host": {
+                        "type": "string",
+                        "maxLength": 253,
+                        "pattern": "^[a-z0-9.-]+$"
+                      },
+                      "port": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 65535
+                      }
+                    },
+                    "required": [
+                      "scheme",
+                      "host",
+                      "port"
                     ]
                   },
-                  "host": {
-                    "type": "string",
-                    "maxLength": 253,
-                    "pattern": "^[a-z0-9.-]+$"
-                  },
-                  "port": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 65535
+                  "domains": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 16,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 253,
+                      "pattern": "^[a-z0-9.-]+$"
+                    }
                   }
                 },
                 "required": [
-                  "scheme",
-                  "host",
-                  "port"
+                  "endpoint",
+                  "domains"
                 ]
               },
-              "domains": {
-                "type": "array",
-                "minItems": 1,
-                "maxItems": 16,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "maxLength": 253,
-                  "pattern": "^[a-z0-9.-]+$"
-                }
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "const": "direct"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "const": "fixed_servers"
+                  },
+                  "endpoint": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "https",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "type": "string",
+                            "maxLength": 253,
+                            "pattern": "^[a-z0-9.-]+$"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "http",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "const": "127.0.0.1"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "mode",
+                  "endpoint"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "const": "rules"
+                  },
+                  "endpoint": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "https",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "type": "string",
+                            "maxLength": 253,
+                            "pattern": "^[a-z0-9.-]+$"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "http",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "const": "127.0.0.1"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      }
+                    ]
+                  },
+                  "domains": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 16,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 253,
+                      "pattern": "^[a-z0-9.-]+$"
+                    }
+                  }
+                },
+                "required": [
+                  "mode",
+                  "endpoint",
+                  "domains"
+                ]
               }
-            },
-            "required": [
-              "endpoint",
-              "domains"
             ]
           }
         },
@@ -10023,6 +10663,243 @@
                 "type": "null"
               }
             ]
+          },
+          "browserMode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "system",
+                  "direct",
+                  "auto_detect",
+                  "fixed_servers",
+                  "pac_script"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "activeConfig": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "endpoint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "scheme": {
+                            "enum": [
+                              "https",
+                              "socks5"
+                            ]
+                          },
+                          "host": {
+                            "type": "string",
+                            "maxLength": 253,
+                            "pattern": "^[a-z0-9.-]+$"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          }
+                        },
+                        "required": [
+                          "scheme",
+                          "host",
+                          "port"
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "endpoint",
+                      "domains"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "direct"
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "fixed_servers"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "mode": {
+                        "const": "rules"
+                      },
+                      "endpoint": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "https",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "type": "string",
+                                "maxLength": 253,
+                                "pattern": "^[a-z0-9.-]+$"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "scheme": {
+                                "enum": [
+                                  "http",
+                                  "socks5"
+                                ]
+                              },
+                              "host": {
+                                "const": "127.0.0.1"
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              }
+                            },
+                            "required": [
+                              "scheme",
+                              "host",
+                              "port"
+                            ]
+                          }
+                        ]
+                      },
+                      "domains": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253,
+                          "pattern": "^[a-z0-9.-]+$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "endpoint",
+                      "domains"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -10043,7 +10920,7 @@
         "build": "NOT_TESTED",
         "native": "NOT_TESTED"
       },
-      "approvalReason": "Finite declarative PAC and verified browser-wide owner via existing Host; no raw proxy DIRECT.",
+      "approvalReason": "Declarative direct, single endpoint or finite website routing with exact user-reviewed Host intent and verified browser-wide PAC ownership; no raw ProxyConfig or user PAC.",
       "sdkFile": "src/framework/sdk/browser.js",
       "registryFile": "src/framework/sdk/browser-contract.js",
       "schemaFile": "src/framework/sdk/browser-schemas.js",

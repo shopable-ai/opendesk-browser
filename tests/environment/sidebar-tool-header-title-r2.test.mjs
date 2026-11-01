@@ -10,6 +10,8 @@ const read=p=>readFile(new URL('../../'+p,import.meta.url),'utf8');
 test('root names and concise child actions keep complete semantic context',()=>{
   const cases=[
     [{toolTitle:'书签管理'},'书签管理','书签管理'],
+    [{toolTitle:'scrapyjs 采集',pageTitle:'配置库'},'配置库','scrapyjs 采集 / 配置库'],
+    [{toolTitle:'scrapyjs 采集',pageTitle:'scrapyjs 采集',isHome:true},'scrapyjs 采集','scrapyjs 采集'],
     [{toolTitle:'书签管理',isSettings:true},'设置','书签管理 / 设置'],
     [{toolTitle:'书签管理',pageTitle:'编辑书签'},'编辑','书签管理 / 编辑书签'],
     [{toolTitle:'书签管理',pageTitle:'书签管理 / 编辑文件夹'},'编辑','书签管理 / 编辑文件夹'],
@@ -28,7 +30,8 @@ test('root names and concise child actions keep complete semantic context',()=>{
     [{toolTitle:'网页笔记 · React',readOnlyLabel:'只读预览'},
       '网页笔记 · React','网页笔记 · React · 只读预览']
   ];
-  for(const [options,visible,context] of cases){
+  for(const [options,leaf,context] of cases){
+    const visible=leaf===options.toolTitle?leaf:options.toolTitle+'/'+leaf;
     assert.deepEqual(formatSidebarToolHeading(options),{visible,context});
     assert.equal(formatSidebarToolTitle(options),visible);
     assert.equal(formatSidebarToolTitleContext(options),context);
@@ -39,7 +42,7 @@ test('root names and concise child actions keep complete semantic context',()=>{
     {visible:'',context:''});
   for(const pageTitle of ['toString','constructor','__proto__','valueOf','hasOwnProperty']){
     assert.deepEqual(formatSidebarToolHeading({toolTitle:'扩展',pageTitle}),
-      {visible:pageTitle,context:'扩展 / '+pageTitle},
+      {visible:'扩展/'+pageTitle,context:'扩展 / '+pageTitle},
       'unknown page names must never resolve inherited dictionary members');
   }
 });
@@ -52,8 +55,8 @@ test('long or unknown titles do not get arbitrarily truncated before CSS overflo
     {tool,page:'设置'});
   assert.deepEqual(sidebarToolTitleParts({toolTitle:tool,pageTitle:tool+' / '+leaf}),
     {tool,page:leaf});
-  assert.equal(formatSidebarToolTitle({toolTitle:tool,pageTitle:leaf}),leaf);
-  assert.equal(formatSidebarToolTitle({toolTitle:tool,pageTitle:tool+' / 文件夹 / '+leaf}),leaf);
+  assert.equal(formatSidebarToolTitle({toolTitle:tool,pageTitle:leaf}),tool+'/'+leaf);
+  assert.equal(formatSidebarToolTitle({toolTitle:tool,pageTitle:tool+' / 文件夹 / '+leaf}),tool+'/'+leaf);
   assert.equal(formatSidebarToolTitleContext({toolTitle:tool,pageTitle:leaf}),tool+' / '+leaf);
   assert.equal(formatSidebarToolTitleContext({toolTitle:tool,pageTitle:tool+' / 文件夹 / '+leaf}),
     tool+' / 文件夹 / '+leaf);
@@ -63,7 +66,7 @@ test('Host uses trusted navigation and one accessible heading, not a nested path
   const [host,bridge,react,prompt]=await Promise.all([
     read('src/ui/sidebar-tools.js'),read('src/sidebar-tools/bridge.js'),
     read('src/ui/react/tabs/tool-host.tsx'),
-    read('examples/sidebar-tools/prompt-shortcuts/src/main.js')
+    read('projects/prompt-shortcuts/src/main.js')
   ]);
   assert.ok(host.includes('const {visible:resolvedTitle,context:fullTitle}=formatSidebarToolHeading(labelOptions)'));
   assert.ok(!host.includes('formatSidebarToolTitleContext(labelOptions)'),

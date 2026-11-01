@@ -1,4 +1,3 @@
-import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,9 +18,9 @@ test('tool contract is independent of Task v1 and is closed by default',()=>{
   assert.throws(()=>validateSidebarToolPackage({...example,html:'<img src="x" onerror="alert(1)">' }),/HTML/);
   assert.throws(()=>validateSidebarToolPackage({...example,css:'@import url(https://evil.example/x.css)'}),/样式/);
   assert.throws(()=>validateSidebarToolPackage({...example,id:'../other'}),/格式/);
-  assert.throws(()=>validateSidebarToolPackage({...example,js:'x'.repeat(SIDEBAR_TOOL_LIMITS.js+1)}),/过大/);
+  assert.throws(()=>validateSidebarToolPackage({...example,js:null}),/源码字段无效/);
 });
-test('tool packer rejects traversal, symlink escape, oversized assets and duplicate assets',async()=>{
+test('tool packer rejects traversal, symlink escape and duplicate assets, and accepts large images',async()=>{
   const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-boundary-'));
   const outside=await mkdtemp(join(tmpdir(),'opendesk-tool-outside-'));
   try{
@@ -33,7 +32,9 @@ test('tool packer rejects traversal, symlink escape, oversized assets and duplic
     await writeFile(join(outside,'external.js'),'void 0;');await symlink(join(outside,'external.js'),join(temp,'escape.js'));
     await config({...meta,files:{...meta.files,js:'escape.js'}});await assert.rejects(buildSidebarTool(temp),/symlink escaped/);
     await writeFile(join(temp,'huge.png'),Buffer.alloc(96*1024+1));
-    await config({...meta,assets:['huge.png']});await assert.rejects(buildSidebarTool(temp),/exceeds budget/);
+    await config({...meta,assets:['huge.png']});
+    const output=join(temp,'candidate.json');await buildSidebarTool(temp,{out:output});
+    assert.ok(JSON.parse(await readFile(output,'utf8')).html.includes('data:image/png;base64,'));
     await config({...meta,assets:['huge.png','huge.png']});await assert.rejects(buildSidebarTool(temp),/invalid asset list/);
   }finally{await rm(temp,{recursive:true,force:true});await rm(outside,{recursive:true,force:true});}
 });

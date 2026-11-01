@@ -1,0 +1,689 @@
+{
+  "reviewer": "Independent UI reviewer",
+  "reviewedAt": "2026-10-31T10:27:22.076832+00:00",
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+  "sha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277",
+  "evidenceLevel": {
+    "level": "SOURCE_BOUND_MEMORY_CHROMIUM_UI",
+    "framework": "React 19.2.0; existing components and scoped CSS",
+    "htmlShaIndependentlyVerified": true,
+    "sourceCount": 65,
+    "initialSourceVerification": "All65 current inputs independently hashed:zero drift. Embedded interaction manifest matches final manifest; manifest outputs additionally binds HTML SHA.",
+    "sourceDriftAtCompletion": [],
+    "sourceDriftInterpretation": "Final workspace and candidate match. Candidate includes parallel core changes listed in delta; not only a one-line change.",
+    "suppliedBrowser": "155.0.8059.39",
+    "independentBrowser": "156.0.8078.4",
+    "scope": "Final screenshots actually inspected with view_image, final computed-style report reviewed, UI source read. New isolated headless actions on7460 verify repeated-add focus and PAC deletion. Earlier broad independent actions attributed to539 below.",
+    "screenshotsViewed": [
+      {
+        "file": "profiles.png",
+        "sha256": "8592f903bff01080a38cce139fa867607e5c681258e9a5f102536c393ec6fe7c"
+      },
+      {
+        "file": "add-proxy.png",
+        "sha256": "74767b7a57c0b55cb9db5dae97c98a2e5a95506bb8b7fd72bb4dc38c525d0de4"
+      },
+      {
+        "file": "rule-editor.png",
+        "sha256": "908d93270e08088a7bcb8da7bc4d8ba20a75a4f63bbb83b634d5e67f32f2b410"
+      },
+      {
+        "file": "pac.png",
+        "sha256": "4f074da34b08fb0ea10b26cfc6f3759d150359d847aea70ca420026f51f00dd7"
+      },
+      {
+        "file": "empty-profiles.png",
+        "sha256": "be08f6ff33cac1ac2dc20f8fb9542a715ac816e7b4c977baa37e2ef1c8484825"
+      },
+      {
+        "file": "empty-panel.png",
+        "sha256": "10d35714c81c202065d33a54dc9adcc00db26d2697ca13656ffa0e8e417a98cf"
+      },
+      {
+        "file": "profiles-en.png",
+        "sha256": "7a73ee1c7d71e2e41e4bbc1af2ff8ee3fe4fa380ef2d063230506550e1e35f6c"
+      },
+      {
+        "file": "add-en.png",
+        "sha256": "a6563a6954dd745da6e30ddc7be812155d09b241381abfda35a14ab59ea6334a"
+      },
+      {
+        "file": "long-rule-keyboard.png",
+        "sha256": "782a119cd79d45219e0c9f6f8fe077e6eeb5f1ef17739c605f1b053ec76e887c"
+      },
+      {
+        "file": "save-another-focus.png",
+        "sha256": "7fdcdec96599db96f7ac6ab48495bfe7d10152434e53d3defac3ec240bf9eebe"
+      },
+      {
+        "file": "profiles-zh-TW.png",
+        "sha256": "b6a28d85632df084dcebb8f5d41405656977be46ce2c8198945bebc535d24c7e"
+      },
+      {
+        "file": "import-focus.png",
+        "sha256": "9336fa5a0dc68b482eb3f6438453e032e3284f6dfb84d88dba68bed410163d97"
+      }
+    ],
+    "providedInteractions": {
+      "groups": 15,
+      "result": "PASS",
+      "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+      "at": "2026-10-31T10:20:39.643Z",
+      "checks": [
+        "Subscription/local Cancel and Escape both Keep every draft field or discard only after confirmation",
+        "Local-client edit opens the selected endpoint; discard/save return to its original row and focus without adding or applying",
+        "No mixed add menu; import opens backup, subscription opens its URL form, local client opens its port form",
+        "No business Tabs; seven settings sections; zero stacked margins; uniform two-line rows; inline local-client status",
+        "Expanded PAC icons have labels, 34px targets, keyboard focus and same-row layout; edit refills, replacement Keep/discard and delete Cancel/confirm work; save remains unapplied",
+        "PAC uses shared 16/12/8 rhythm; closing settings keeps or discards its independent draft",
+        "Selection is exposed with aria-pressed and does not claim applied routing",
+        "Single form gutter; 12px group/8px label rhythm; invalid port rejected; Enter saves without applying",
+        "Proxy dirty Escape preserves on Keep, discards on confirmation and returns focus to edit icon",
+        "Proxy footer Cancel, X and Escape share dirty Keep/discard confirmation and return focus",
+        "Icon rules preserve domain/scope labels; keyboard opens editor; closing settings keeps/discards draft; panel restores gear focus",
+        "Long rule target retains full title and actions; rule save, delete Cancel/confirm, stale receipt clearing and surviving neighbor focus work",
+        "Chinese, English and Traditional Chinese retain list/actions and add form",
+        "Save and add another clears the clean draft and focuses Host; Tab follows host presets/protocol to Port, saved record exists without applying",
+        "Empty panel names subscriptions/local clients; empty settings keeps one Add action, import and both source shortcuts"
+      ],
+      "errors": [],
+      "externalHTTP": []
+    },
+    "nodeTests": "Provided node-tests.txt72/72 PASS. Independently ran node --test projects/ai-proxy/tests/settings-credentials.test.mjs:8/8 PASS, including failed save, stale revision and detached ref. Test count is not a scoring basis.",
+    "emptyEvidence": "Only corrected final empty screenshots adopted. Final driver changes external scenario select, waits for empty heading and asserts zero proxy rows.",
+    "candidateDelta": {
+      "from": "projects/ai-proxy/.opendesk-preview/source-539f71f3-09a8-4e12-9e8c-0f1a4171df27/manifest.json",
+      "changed": [
+        "projects/ai-proxy/src/service.ts",
+        "projects/ai-proxy/src/domain/managed-config.ts",
+        "projects/ai-proxy/src/environment.ts",
+        "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+        "projects/ai-proxy/src/i18n/locales/en.json",
+        "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+        "projects/ai-proxy/src/i18n/errors.ts",
+        "projects/ai-proxy/src/ui/Status.tsx",
+        "projects/ai-proxy/src/Settings.tsx"
+      ],
+      "uiWriterChange": "Settings saveAnother success focus only",
+      "parallelOwnerChanges": "Other listed files changed concurrently; preserved, not attributed to this UI work"
+    },
+    "screenshotHashVerification": {
+      "checked": 17,
+      "mismatches": []
+    }
+  },
+  "scoringPolicy": {
+    "thresholdPerDimension": 95,
+    "historicalScoresReused": false,
+    "method": "Fresh scoped UI assessment from actual presentation and behavior. Deductions identify residual minor defects or accepted design tradeoffs. No averaging to hide a failed dimension. Deferred Native/release/IME/size-matrix work is not reinstated as current P0. Scoped scores do not certify WCAG AA or production readiness."
+  },
+  "dimensions": [
+    {
+      "id": "layoutDensity",
+      "name": "布局与密度",
+      "score": 98,
+      "basis": [
+        "Measured profiles/rules have two-line 66/67px rows, 12px vertical padding, 8px gaps. Settings children have zero margins and 16px section gaps; one 12px page gutter.",
+        "Modal has one 16px gutter, 12px field-group gaps and 8px label gaps. Rule context-to-field now measures12px.",
+        "PAC remains two-line text with right-side34px actions; measured record67.4375px, columns240px/76px. Long-rule disclosure does not move its delete target on hover."
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "kind": "accepted_tradeoff",
+          "reason": "English Add/Import actions wrap below title in profiles-en.png, increasing header height and reducing first-screen density; full visible labels are preferable to shrinking or truncating them."
+        }
+      ]
+    },
+    {
+      "id": "hierarchyDiscoverability",
+      "name": "信息层级与可发现性",
+      "score": 97,
+      "basis": [
+        "No panel/manage business Tabs; gear opens settings and close returns to panel. Native selector exposes seven sections.",
+        "Add/Import have visible words; persistent subscription/local-client shortcuts open actual forms in both configured and empty states.",
+        "Local edit now opens the exact endpoint and returns to its profiles row, preserving context."
+      ],
+      "deductions": [
+        {
+          "points": 3,
+          "kind": "accepted_tradeoff",
+          "reason": "PAC remains a clearly named/counted advanced disclosure after the routing block. Configured lists push it below the first viewport; scrolling is required, though the feature is retained and keyboard reachable."
+        }
+      ]
+    },
+    {
+      "id": "visualReadability",
+      "name": "视觉与可读性",
+      "score": 96,
+      "basis": [
+        "Final Simplified Chinese, Traditional Chinese and English screenshots retain readable hierarchy, names, metadata and complete action labels; English wrap stays contained.",
+        "Primary Add/Save/Apply use explicit text, with saved selection separated from applied status.",
+        "Final supplied danger hover remains negative foreground/background, matching earlier independent checks. Final long-rule screenshot exposes full target. Final independent placeholder computed styles reconfirm UI-07."
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "issue": "UI-07",
+          "reason": "13px host-placeholder text uses muted color at opacity.83 on white, approximately 4.1:1 contrast, below4.5:1. Visible labels/help remain, limiting the impact."
+        }
+      ]
+    },
+    {
+      "id": "operationDraftFeedback",
+      "name": "操作/草稿/反馈",
+      "score": 97,
+      "basis": [
+        "Earlier source539 independent actions; final7460 supplied same-candidate15 groups reconfirm unchanged UI paths: Independent execution verified subscription/local Cancel and Escape: Keep retains all entered fields; confirmation discards.",
+        "Earlier source539 independent actions; final7460 supplied same-candidate15 groups reconfirm unchanged UI paths: Exact local edit preserves identity and restores original row focus after discard/save, without duplicate endpoint or application. Supplied source tests additionally cover late confirmation/revision and missing IDs.",
+        "Earlier source539 independent actions; final7460 supplied same-candidate15 groups reconfirm unchanged UI paths: Independently exercised PAC edit/refill, dirty replacement Keep/discard, delete Cancel/confirm and save without applying. Final supplied evidence also covers proxy/rule draft and save-only semantics.",
+        "Final7460 independent actual save-and-add-another clears Host/Port and focuses ep-host. Next Tab:127.0.0.1 preset, localhost preset, protocol, Port; all inside form. Real-handler8/8 independently confirms failed/superseded saves do not reset or refocus, and detached ref is safe."
+      ],
+      "deductions": [
+        {
+          "points": 3,
+          "issue": "UI-06",
+          "reason": "Confirmed last-PAC deletion leaves no explicit visible focus/continuation target. Next Tab reaches pac-name, so the operation remains recoverable."
+        }
+      ]
+    },
+    {
+      "id": "keyboardFocus",
+      "name": "键盘与焦点",
+      "score": 96,
+      "basis": [
+        "Common icons measure34x34px with title and accessible names. Final import screenshot visibly shows focus ring.",
+        "Independent long-rule keyboard focus produces a solid2px ring, full wrapped text and a resolving aria-describedby. Escape collapses; hover keeps delete x/y fixed.",
+        "Source dismissal now protects drafts. Local edit returns focus to exact original button. PAC icons have actual keyboard/interaction evidence.",
+        "Final7460 independent actual repeated-add resets fields and returns Host focus; next4 Tab stops stay in form. UI-08 deduction removed only after actual frozen-candidate verification."
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "issue": "UI-06",
+          "reason": "After keyboard confirmation of last-PAC deletion, activeElement is BODY with no visible focus; no surviving control is selected automatically."
+        }
+      ]
+    },
+    {
+      "id": "componentReuseBoundary",
+      "name": "组件复用与边界",
+      "score": 98,
+      "basis": [
+        "Retains canonical Button, OptionsPageHeader, FormField, ClearableInput and ProxyIcon; source forms reuse existing scope revision/confirmation contract.",
+        "Safe local/<id> reuses project parser/navigation and existing editor, with no second Host/SDK/permission layer.",
+        "Affected layout stays scoped to sidebar-settings.css; supplied candidate CSS115603/120000. Business owner remains projects/ai-proxy; unrelated runtime/formal-package changes are not attributed to this UI work."
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "issue": "UI-06",
+          "reason": "Post-delete focus behavior remains inconsistent: rules have an explicit surviving-target fallback, PAC relies on the removed opener/native fallback. A small local fallback suffices; no new abstraction is needed."
+        }
+      ]
+    }
+  ],
+  "previousIssues": [
+    {
+      "id": "UI-01",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Source close checks busy and scope revision before dirty confirmation. Independent subscription/local Cancel/Escape Keep/discard passed; new supplied tests cover late confirmation and newer drafts."
+    },
+    {
+      "id": "UI-02",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Exact local/<id> edit, discard/save return and original-row focus independently passed; row count stays3."
+    },
+    {
+      "id": "UI-03",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Actual final screenshots show visible 导入配置/Import settings/匯入設定; Enter opens existing import area."
+    },
+    {
+      "id": "UI-04",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Final screenshot shows separated context/field; supplied and independent computed gap12px."
+    },
+    {
+      "id": "UI-05",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Final long-rule-keyboard screenshot and independent keyboard probe expose full target, description association and Escape collapse. Hover keeps actions stationary."
+    },
+    {
+      "id": "I1",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "evidence": "Danger hover keeps negative foreground/background in supplied PAC and independent rule/PAC actions."
+    },
+    {
+      "id": "I2",
+      "status": "STATED_EVIDENCE_GAP_CLOSED",
+      "evidence": "Final driver and independent actions exercise actual PAC edit/refill, replacement Keep/discard, delete Cancel/confirm, save not applying, dimensions/title/aria/focus. Separate post-delete focus weakness is UI-06."
+    },
+    {
+      "id": "UI-08",
+      "status": "RESOLVED_IN_CURRENT_CANDIDATE",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 319
+        }
+      ],
+      "evidence": "Final7460 independently executed successful save-and-add-another:host/port empty,dialog open,activeId ep-host. Tab follows both host presets then protocol/Port within form. Real saveProxy handler8/8 PASS includes endpoint/profile failure,stale revision,detached ref. Previous539 failure preserved as historical, not current."
+    }
+  ],
+  "issues": [
+    {
+      "id": "UI-06",
+      "severity": "P3",
+      "status": "REPRODUCED_FINAL_CANDIDATE",
+      "title": "删除最后一条PAC后没有主动恢复可见焦点",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/Settings.tsx",
+          "line": 643
+        }
+      ],
+      "risk": "键盘确认删除后activeElement为BODY、focus-visible=false。下一次Tab进入pac-name，未形成键盘陷阱，也未发现数据/应用状态错误。",
+      "reproduction": "设置→展开PAC→聚焦最后一条PAC删除按钮并Enter→确认按钮Enter→等记录消失→检查activeElement；再Tab。",
+      "fix": "仅在删除成功后聚焦存活相邻PAC动作；空列表聚焦pac-name或PAC summary。保留取消/失败原焦点，复用项目已有规则删除的目标存活/generation检查习惯。",
+      "verification": "键盘删除最后一条及多条中的一条，均落在仍连接的可见目标；Cancel/失败不跳错目标。",
+      "blockingForCurrentDesignThreshold": false
+    },
+    {
+      "id": "UI-07",
+      "severity": "P3",
+      "status": "COMPUTED_STYLE_CONFIRMED",
+      "title": "主机示例占位文字对比度偏低",
+      "locations": [
+        {
+          "file": "projects/ai-proxy/src/styles/style.css",
+          "line": 34
+        }
+      ],
+      "risk": "既有样式中13px占位为rgb(83,100,126)、opacity.83，白底合成约rgb(112,126,148)，对比度约4.1:1。标签和帮助仍在，主流程未阻断；不得据此宣称该文字WCAG AA通过。",
+      "fix": "在项目样式owner内取消占位透明度或使用足够深的占位token，不减小字体。",
+      "verification": "由实际computed占位前景/opacity/背景重新计算，普通文字≥4.5:1；只检查受影响表单。",
+      "blockingForCurrentDesignThreshold": false
+    }
+  ],
+  "independentDiagnostics": {
+    "browser": "156.0.8078.4",
+    "isolation": "New temporary headless contexts; memory-only. Closed after diagnostics.",
+    "sourceAndPacAssertionsCompleted": [
+      "subscription/local x Cancel/Escape Keep retains entered name+URL/name+port; confirmed discard closes",
+      "exact local edit loads selected record; discard/save restores original row focus; no duplicate",
+      "visible Import Enter opens backup-file area",
+      "PAC icons actual dimensions/title/aria/focus inspected; negative hover preserved",
+      "PAC edit refills name/script; replacement Keep retains draft/discard refills original",
+      "PAC delete Cancel retains record/confirm removes; save restores record without applied icon",
+      "rule source-to-first-label12px"
+    ],
+    "longRule": {
+      "result": "PASS",
+      "fixtureLength": 72,
+      "whiteSpace": "normal",
+      "fullTextVisible": true,
+      "focusVisible": true,
+      "outline": "rgb(54,94,218) solid2px",
+      "describedByResolves": true,
+      "escapeCollapses": true,
+      "actionsAlign": "start",
+      "deletePositionStable": true,
+      "deleteCancelRetainsRecord": true
+    },
+    "pacDeleteFocus": {
+      "activeTag": "BODY",
+      "activeId": "",
+      "focusVisible": false,
+      "nextTabId": "pac-name",
+      "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html"
+    },
+    "dangerHover": {
+      "color": "rgb(174,61,75)",
+      "background": "rgb(255,240,241)"
+    },
+    "placeholder": {
+      "color": "rgb(83,100,126)",
+      "opacity": 0.83,
+      "fontSizePx": 13,
+      "background": "white",
+      "computedContrast": 4.1,
+      "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html"
+    },
+    "driverIncident": "Initial combined diagnostic completed source/PAC assertions then timed out selecting an expected long-name option because its fixture exceeded the real maxLength80. A separate corrected72-character run passed keyboard/hover assertions. This was a review-driver fixture error, not a product failure; no product/evidence files were changed.",
+    "suppliedFinalComputedStyles": {
+      "profiles": {
+        "content": {
+          "height": 1016.84375,
+          "margin": "0px",
+          "padding": "12px",
+          "gap": "16px",
+          "borderTop": "0px"
+        },
+        "header": {
+          "height": 59.1875,
+          "margin": "0px",
+          "padding": "0px",
+          "gap": "12px",
+          "borderTop": "0px"
+        },
+        "list": {
+          "height": 200,
+          "margin": "0px",
+          "padding": "0px",
+          "gap": "0px",
+          "borderTop": "0px"
+        },
+        "rows": [
+          {
+            "height": 66,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "0px"
+          },
+          {
+            "height": 67,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "1px"
+          },
+          {
+            "height": 67,
+            "margin": "0px",
+            "padding": "12px 0px",
+            "gap": "8px",
+            "borderTop": "1px"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "class": "panelHead optionsPageHead profilePanelHead",
+          "margin": "0px",
+          "before": null
+        },
+        {
+          "class": "listSection",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "optionsModeBar",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "pacDetails",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "r83RotationSettings",
+          "margin": "0px",
+          "before": 16
+        },
+        {
+          "class": "serviceNote",
+          "margin": "0px",
+          "before": 16
+        }
+      ],
+      "icons": [
+        {
+          "label": "返回代理面板",
+          "title": "返回代理面板",
+          "width": 34,
+          "height": 34,
+          "focus": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        {
+          "label": "选择 工作代理",
+          "title": "选择 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 工作代理",
+          "title": "编辑 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 工作代理",
+          "title": "删除 工作代理",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "选择 本地客户端",
+          "title": "选择 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 本地客户端",
+          "title": "编辑 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 本地客户端",
+          "title": "删除 本地客户端",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "选择 备用 SOCKS",
+          "title": "选择 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "编辑 备用 SOCKS",
+          "title": "编辑 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        },
+        {
+          "label": "删除 备用 SOCKS",
+          "title": "删除 备用 SOCKS",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "none",
+          "outlineWidth": "3px"
+        }
+      ],
+      "pac": {
+        "gap": "16px",
+        "children": [
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          },
+          {
+            "margin": "0px"
+          }
+        ],
+        "fieldsGap": "12px",
+        "fieldGaps": [
+          "8px",
+          "8px",
+          "8px",
+          "8px"
+        ],
+        "actionsGap": 16
+      },
+      "pacRecord": {
+        "height": 67.4375,
+        "columns": "240px 76px",
+        "sameRow": true,
+        "icons": [
+          {
+            "label": "编辑 PAC 示例",
+            "title": "编辑 PAC 示例",
+            "width": 34,
+            "height": 34,
+            "focus": true,
+            "outline": "2px"
+          },
+          {
+            "label": "删除 PAC 示例",
+            "title": "删除 PAC 示例",
+            "width": 34,
+            "height": 34,
+            "focus": false,
+            "outline": "3px"
+          }
+        ]
+      },
+      "dangerHover": {
+        "color": "rgb(174, 61, 75)",
+        "background": "rgb(255, 240, 241)"
+      },
+      "form": {
+        "display": "grid",
+        "gap": "16px",
+        "padding": "16px",
+        "dialogPadding": "0px",
+        "fieldsGap": "12px",
+        "actionsMargin": "0px",
+        "actionsBefore": 16,
+        "fieldGaps": [
+          "8px",
+          "8px",
+          "8px",
+          "8px"
+        ],
+        "childMargins": [
+          {
+            "class": "proxyEditorFields",
+            "margin": "0px"
+          },
+          {
+            "class": "editorActions",
+            "margin": "0px"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "height": 66,
+          "gap": "8px",
+          "state": "已启用"
+        },
+        {
+          "height": 67,
+          "gap": "8px",
+          "state": "已启用"
+        }
+      ],
+      "ruleForm": {
+        "gap": "16px",
+        "fieldsGap": "12px",
+        "actionsMargin": "0px",
+        "actionsBefore": 16,
+        "originBefore": 12
+      }
+    },
+    "saveAndAddAnother": {
+      "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+      "result": "PASS",
+      "browser": "156.0.8078.4",
+      "afterSave": {
+        "host": "",
+        "port": "",
+        "activeId": "ep-host",
+        "dialogOpen": true
+      },
+      "tabOrder": [
+        "127.0.0.1 preset",
+        "localhost preset",
+        "ep-scheme",
+        "ep-port"
+      ],
+      "allTabStopsInsideForm": true,
+      "isolation": "New ephemeral headless contexts closed afterwards. No shared browser/service controlled."
+    },
+    "earlierBroadDiagnosticsCandidate": "projects/ai-proxy/.opendesk-preview/source-539f71f3-09a8-4e12-9e8c-0f1a4171df27/preview.html",
+    "earlierBroadDiagnosticsScope": "sourceAndPacAssertionsCompleted and longRule describe source539 real actions, not independently rerun wholesale on7460. Final15 supplied groups reconfirm same UI paths.",
+    "targetedNodeTests": {
+      "command": "node --test projects/ai-proxy/tests/settings-credentials.test.mjs",
+      "pass": 8,
+      "fail": 0,
+      "independentlyRun": true,
+      "covers": [
+        "failed endpoint/profile save retains input/focus",
+        "stale revision retains newer draft/focus",
+        "detached editor ref safe",
+        "successful save/reset/focus",
+        "existing credentials validation"
+      ]
+    }
+  },
+  "limitations": [
+    "Only ui-review.json written; no product/docs/other evidence edits,commit,branch switch,formal build/install,real proxy or shared browser/service control.",
+    "Parallel service/managed-config/environment/errors/Status/locale changes included in candidate are explicitly listed by source-check delta. They are preserved and not independently implementation-reviewed/certified by these UI scores.",
+    "Memory UI does not prove Native,real Chrome traffic/PAC execution,subscription synchronization,production or persistence:NOT_TESTED.",
+    "Full semantic type checks,fullCI,visible macOS UI,IME,size/zoom matrices remain outside phase; not reinstated as P0.",
+    "Independent Chromium156 supplements supplied Chromium155; neither is Native/production acceptance.",
+    "No complete screen-reader,dark-mode or application-wide contrast audit. UI-07 remains; scores do not certify WCAG AA.",
+    "Broad independent source/local/PAC/long-rule diagnostics were on539. Final7460 supplied15 same-candidate groups plus independent repeated-add/PAC-delete/placeholder checks do not imply every broad action was independently repeated.",
+    "Intermediate interaction-failure-focus-reflow.json and direct-to-Port driver assumption remain historical failures; corrected final evidence governs. Host presets legitimately precede protocol/Port.",
+    "README17/Design/AGENTS completion text is not acceptance evidence.",
+    "UI-06/07 remain minor known defects; no claim of zero known product issues."
+  ],
+  "conclusion": {
+    "status": "PASS_WITH_MINOR_ISSUES",
+    "allSixAtLeast95": true,
+    "minimumScore": 96,
+    "blockingIssues": [],
+    "summary": "最终7460六维98/97/96/97/96/98。UI-08由同冻结候选独立实际操作和处理函数测试证明修复，移除对应扣分；UI-06 PAC末项删除后焦点、UI-07占位对比度继续扣分保留。本次限定UI范围无阻断，不代表全产品零问题或正式验收通过。",
+    "recommendedFollowUp": [
+      "UI-06：删除成功后恢复至存活相邻动作，空列表落到PAC名称或summary。",
+      "UI-07：取消占位透明度或加深token，实际合成对比度至少4.5:1。"
+    ],
+    "stopCondition": "指定唯一UI JSON完成；不接管Settings，不进入延期Native/production/完整验收。"
+  },
+  "supplementalReview": {
+    "reason": "Final single-writer refocus integration independently reverified on7460 after15 final interaction groups completed.",
+    "candidateChanged": true,
+    "previousCandidate": "projects/ai-proxy/.opendesk-preview/source-539f71f3-09a8-4e12-9e8c-0f1a4171df27/preview.html",
+    "uiDelta": "Settings saveAnother成功分支Host refocus与定向测试；整个候选另有并行核心owner差异，见candidateDelta。",
+    "independentResult": "UI-08 resolved; final source real actions confirm reset/Host focus/Tab chain. Actual-handler8/8 PASS includes failure/stale revision/detached ref. UI-06/07 independently reconfirmed.",
+    "ownerCoordination": "Read-only review complete; no Settings writes or implicit takeover by reviewer."
+  }
+}

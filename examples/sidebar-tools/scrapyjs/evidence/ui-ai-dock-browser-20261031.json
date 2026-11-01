@@ -1,0 +1,99 @@
+{
+  "url": "file:///Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.html",
+  "kind": "OFFLINE_REACT_UI_SIMULATED_SDK",
+  "scope": "AI_DOCK_CHANGE_ONLY",
+  "browserVersion": "149.0.7827.55",
+  "platform": "darwin",
+  "nativeChrome": "NOT_TESTED",
+  "screenshots": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-expanded.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-review.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-naming.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-applied.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-collapsed.png"
+  ],
+  "interactions": {
+    "status": "PASS_SIMULATED_UI",
+    "checks": [
+      "AI expands beside the mounted workspace, target and selected rules tab",
+      "AI toggle exposes its expanded region",
+      "opening focuses the AI region heading",
+      "unapplied field blocks AI sending without discarding either draft",
+      "Escape collapses Chat and returns focus to its toggle",
+      "collapse preserves the exact editor node, field draft and config",
+      "reopening retains the Chat input",
+      "AI opening and closing preserves malformed JSON, its active tab and Run guard",
+      "Shift+Enter and IME Enter do not dispatch",
+      "hidden pending Chat retains business and external reset guards",
+      "shared Chat leaves the existing result and selected result tab intact",
+      "reply and complete proposal differences stay in the shared Chat context",
+      "collapsing keeps the reviewed proposal",
+      "reopening preserves the proposal scroll position",
+      "discarding the proposal returns focus to Chat input",
+      "explicit application opens inline naming while Chat remains in the workspace",
+      "closing during naming still returns focus to the available AI toggle",
+      "failed naming keeps the draft instruction and never acknowledges a saved proposal",
+      "named copy clears old result ownership and never starts another capture",
+      "successful proposal save replaces the pending AI status without implying capture",
+      "Chat remains in its opaque sandbox",
+      "no page runtime errors"
+    ],
+    "errors": [],
+    "realModel": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "status": "PASS_SIMULATED_UI",
+  "previewSha256": "3b77fca0a318e5453bc7fd6836328f2b527e76db06c164e6ca66fdb1825ad5dd",
+  "screenshotHashes": {
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-expanded.png": "d1e7fffc70b0bb34727585b066d8b35b616fac1ff6e20843d1f93a84d2b281fe",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-review.png": "f933db14dd6058f0e8d507f54c4927f9a63320f46fe1d1f9a8703dcc8adaf97a",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-naming.png": "bc592c74ef56874ead5ad4915ac036d38ca77cc36d6ac3d1503270695b0e7acb",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-applied.png": "88f59da22ae0ab47881efc99c44528f4c378fd19ee1b1253c1d3a2cf0d35c00c",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ai-dock-20261031/browser-feedback/ai-collapsed.png": "6959014e83f7c286b5eed6df2cf9f847b94a346943e2811aaeeb735fe63bf0cc"
+  },
+  "validation": {
+    "toolBuild": "PASS",
+    "targetedNode": {
+      "status": "PASS",
+      "checks": 22,
+      "files": [
+        "tests/ai-app.test.mjs",
+        "tests/ai-panel.test.mjs",
+        "tests/ai-request.test.mjs",
+        "tests/ai-pending.test.mjs",
+        "../../../../tests/environment/shared-conversation-send.test.mjs"
+      ]
+    },
+    "previewRuntime": {
+      "status": "PASS",
+      "checks": 4,
+      "file": "preview/runtime-source.test.mjs"
+    },
+    "sourceParity": "PASS",
+    "diffWhitespace": "PASS",
+    "sourceInputs": 1369
+  },
+  "boundary": {
+    "realAI": "NOT_TESTED",
+    "installedExtension": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "historicalUnknown": "UNTOUCHED"
+  },
+  "evidenceNotes": [
+    "Browser IME checks use CompositionEvent fixtures; no physical IME validation claimed.",
+    "Playwright browser mouse click exercises Send; only the immediate hide uses synchronous DOM click to avoid the fixed 700ms reply race. Ordinary keyboard Send and close/reopen input are independently covered.",
+    "AI stop/unknown/provider late delivery protections are DOM/Node fixtures, not real model recovery.",
+    "Old 97-point review remains historical and is not reused."
+  ],
+  "sources": {
+    "manifest": "preview/preview.manifest.json",
+    "context": "preview/preview.context.json",
+    "browserReport": "artifacts/scrapyjs/ai-dock-20261031/browser-feedback/report.json"
+  },
+  "iteration": {
+    "priorCandidateSha256": "17462b314a6ada0cb33650f8be8e650344b7fe388b945c11bcbdba1774f2e365",
+    "priorReview": "artifacts/scrapyjs/ai-dock-20261031/review-initial.json",
+    "fix": "B1: acknowledge only a successful write/readback of the corresponding applied proposal; failed naming stays pending."
+  }
+}

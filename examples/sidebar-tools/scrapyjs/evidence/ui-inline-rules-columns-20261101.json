@@ -1,0 +1,60 @@
+{
+  "scope": "Offline inline rule and display-column UI",
+  "candidate": "artifacts/scrapyjs/rules-inline-20261101/candidate5",
+  "htmlSha256": "4fa5650f2d1125ef07237e45b3a2d5ee24d5e76270f924e4cdc856a8eb1e232f",
+  "designReview": {
+    "reviewer": "Boyle / independent designer subagent",
+    "agentId": "01a195f7-77f6-7a70-ad9a-5da5c7739e1f",
+    "candidate": "candidate5",
+    "htmlSha256": "4fa5650f2d1125ef07237e45b3a2d5ee24d5e76270f924e4cdc856a8eb1e232f",
+    "reviewType": "INDEPENDENT_AI_DESIGN_REVIEW",
+    "overall": 97.0,
+    "scoring": "equal-weight mean of eight dimensions",
+    "dimensions": {
+      "需求简化": 98,
+      "层级可读": 96,
+      "编辑效率": 97,
+      "错误与反馈": 97,
+      "键盘焦点": 97,
+      "复杂规则与数据安全": 98,
+      "复用维护": 96,
+      "证据边界": 97
+    },
+    "priorCandidate4": {
+      "overall": 94.75,
+      "requiredFixes": [
+        "Prevent cross field/pagination drafts",
+        "Place deletion failure by field",
+        "Show one download receipt"
+      ],
+      "allClosedInCandidate5": true
+    },
+    "remainingNonBlocking": [
+      "Complex readonly state mainly conveyed by its JSON icon",
+      "Original-field identifier is small secondary text",
+      "Shared draft-lock coupling remains",
+      "IME evidence uses synthetic events"
+    ],
+    "evidence": "browser5/report.json and seven same-candidate screenshots",
+    "excluded": [
+      "Parallel preview assistant open flow",
+      "Native Chrome extension installation/capture/AI",
+      "Human expert certification"
+    ]
+  },
+  "nodeChecks": {
+    "passed": 33,
+    "failed": 0,
+    "report": "artifacts/scrapyjs/rules-inline-20261101/node-validation.json"
+  },
+  "browserChecks": {
+    "passed": 53,
+    "failed": 0,
+    "pageConsoleErrors": 0,
+    "report": "artifacts/scrapyjs/rules-inline-20261101/browser5/report.json"
+  },
+  "delivery": "artifacts/scrapyjs/rules-inline-20261101/delivery.json",
+  "installedChrome": "NOT_TESTED",
+  "packagePromoted": false,
+  "committedOrPushed": false
+}

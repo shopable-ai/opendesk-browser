@@ -1,0 +1,116 @@
+{
+  "scope": "服务列表与类型选择保留优先；添加页头和字段分组定向修正",
+  "phase": "CURRENT_SOURCE_PREVIEW_VERIFIED_NOT_PACKAGED_OR_INSTALLED",
+  "supersedes": "service-header-layout-review-20261031.json for current list/type preservation claims; historical scores are not inherited",
+  "diagnosis": {
+    "actualBefore": "43134 accountsDemo → 企业 → 添加服务 → 取消；前后均为0条配置，before.json记录内容相同",
+    "causes": [
+      "原Mock没有预置服务数据；未发现此取消操作删除配置",
+      "正式React尚未迁移原HTML紧凑列表与本机/公司类型选择",
+      "完整概览恢复后只恢复焦点，服务列表仍在视口外；本轮补齐滚动恢复"
+    ],
+    "baseline": "artifacts/cookie-service-preservation-20261031/before.json"
+  },
+  "outcomes": [
+    "完整企业概览、团队场景、四项资源、官方席位、定制与六Tab保留，原介绍后的服务入口跳转列表",
+    "列表保留名称/地址/状态/关联数、刷新/添加及详情/连接；高级资源/绑定/策略/断开/回执仍在详情",
+    "返回/取消/Escape使用原丢弃保护，继续保留两类草稿，返回恢复原列表的可见位置与焦点",
+    "成功保存只追加1条UNCONNECTED；刷新/详情/跨Tab均保留原配置",
+    "外部serviceConnections演示2条，serviceConnectionsEmpty真正空态；产品组件无演示数据",
+    "类型选择只影响UI；正式保存payload仍仅revision/label/serviceOrigin；无新协议、权限和持久化类型",
+    "复用@opendesk/ui Button、CookieIconButton、canonical原生字段CSS；错误就近关联、帮助不遮挡操作"
+  ],
+  "preview": {
+    "url": "http://127.0.0.1:43134/dev.html",
+    "mode": "CURRENT_SOURCE_DEV",
+    "entry": "preview/react/src/main.jsx",
+    "generatedHtmlUsed": false,
+    "sourceHash": "631396e21c4b59262f5b8220fd011e0c81cd59b7443d49c76d7199772d9b46e2",
+    "existingSharedUIArtifact": true,
+    "sourceBuildProof": false,
+    "sharedUINote": "Existing dist/development artifact reused; current source hashes are recorded but no build correspondence is claimed.",
+    "scenarios": {
+      "serviceConnections": "两条虚构、未连接、零关联",
+      "serviceConnectionsEmpty": "无存储配置"
+    },
+    "lifecycle": "同一Mock内保留；整页刷新/实验台重置会重建内存数据",
+    "old58626": "先前观察不可达，本轮未重启或替换",
+    "oldChromeTab": "BLOCKED_POLICY retained; no alternate-channel retry"
+  },
+  "verification": [
+    {
+      "command": "node examples/sidebar-tools/cookie-editor/tests/service-form-source-interactions.mjs",
+      "result": "9/9 PASS",
+      "report": "artifacts/cookie-service-preservation-20261031/final/interactions.json",
+      "pageErrors": [],
+      "nonPreviewNetwork": [],
+      "purpose": "同数据列表与添加前后对照；列表/详情/添加往返、两类草稿、就近错误、可见位置、独立配对与空态"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "23/23 PASS",
+      "purpose": "新列表/类型展示、原权限来源/身份/陈旧确认/并发/未知结果不重放/策略边界及六Tab消费者"
+    },
+    {
+      "command": "node --test --test-name-pattern='service preview scenarios|mock scoped storage|real adapter saves a fictional enterprise service|fictional transport has no real' examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs",
+      "result": "5/5 PASS",
+      "purpose": "真实adapter读取两条/空态、刷新与新adapter不清配置、保存仅追加、Mock隔离和无真实网络"
+    },
+    {
+      "result": "PASS",
+      "purpose": "PostCSS解析工具CSS；相关git diff --check；本轮脚本/Mock语法与文档路径检查"
+    }
+  ],
+  "sourceInputs": {
+    "app/CookieEditorApp.jsx": "37bd573b2fc83380b062e8830310126bed237295a7e37551ccf0cb508a9900db",
+    "app/components/CookieBusinessPanels.jsx": "e585f7c1cb7f4610676dea027ab68d6d84cbe38d2fa516d03a55a2326ae61012",
+    "app/components/CookieHttpConnections.jsx": "369046d1aff06105a3b202c3b5c39de914537254ae9c515ccd6a220268b4d58b",
+    "src/react.css": "97b65cf369b12625bb1b1c9b5abe2c3ae869790cf0c7177803ea9083b38a5015",
+    "preview/react/src/App.jsx": "18e9a2e984682e1193baf4a67161263f6e1a1f8a0c13b33c37febf227da8b6d3",
+    "preview/react/src/mock-sdk.js": "c70b41c2d2a475c95d0dfb3f09549fdea4b4d0dac4bad049f919bd8bc029a10f",
+    "preview/cookie-editor.html": "95dd1c9163a1d603b375244127f64690d7211f92b49e1b1d06c1fb57573792ff"
+  },
+  "comparison": {
+    "context": "1000x900正常窗口、既有380px预览；同本机/公司两条虚构未连接配置，不做宽度或缩放矩阵",
+    "originalList": "artifacts/cookie-service-preservation-20261031/final/original-list.png",
+    "currentList": "artifacts/cookie-service-preservation-20261031/final/list.png",
+    "originalAdd": "artifacts/cookie-service-preservation-20261031/final/original-add.png",
+    "currentAdd": "artifacts/cookie-service-preservation-20261031/final/add-local.png",
+    "company": "artifacts/cookie-service-preservation-20261031/final/add-company.png",
+    "help": "artifacts/cookie-service-preservation-20261031/final/help.png",
+    "empty": "artifacts/cookie-service-preservation-20261031/final/empty.png"
+  },
+  "review": {
+    "role": "independent code-reviewer",
+    "result": "No concrete must-fix findings in bounded current source review; no scoring",
+    "limits": "只读审查与既有交互证据，不冒充独立原生验收"
+  },
+  "unchangedPackage": {
+    "version": "2.0.59",
+    "sha256": "3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c",
+    "note": "现有正式包未重打包，未包含本轮UI修正"
+  },
+  "notTested": [
+    "安装版Chrome中的本轮UI",
+    "真实公司HTTPS/SSO及真实额度",
+    "production/正式发布验收",
+    "完整可访问性验收"
+  ],
+  "outOfScope": [
+    "root Browser/SDK/Host/Native修改",
+    "打包/版本/安装/发布/提交/推送",
+    "全量CI/宽度缩放/评分"
+  ],
+  "checkedAt": "2026-10-31T11:46:39.229Z",
+  "verificationScript": {
+    "path": "tests/service-form-source-interactions.mjs",
+    "sha256": "a787a597ba9cfdb9bbc31dd52cb9ce16c107bb4b59093376efcb1d9b454b11a5",
+    "note": "原源码交互检查扩充复用，未按轮次复制测试文件"
+  },
+  "observedNonProductFailure": {
+    "classification": "TEST_DRIVER_ASSERTION_SCOPE",
+    "description": "初版比较全部SDK调用时将丢弃确认后的Cookie元数据重读误算为服务分发；改为仅比较服务storage/network调用，未改产品配合断言",
+    "history": "artifacts/cookie-service-preservation-20261031/final/failed-browser-history.json",
+    "limitation": "原失败报告已被先前迭代覆盖；该文件明确是重建元数据，非原始失败字节"
+  }
+}

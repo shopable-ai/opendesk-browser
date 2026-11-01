@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {getEnvironment} from '../environment';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { isUiLocalePreference, resolveUiLocale, translate, type SupportedLocale, type UiLocalePreference, type TranslationKey, type TranslationParameters } from './locale';

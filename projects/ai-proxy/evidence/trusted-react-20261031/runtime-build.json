@@ -1,0 +1,9 @@
+{
+  "kind": "development serve; CFT155 existing profile; not production",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "revision": "1ea74bc3e058f44edb8776a11e04aea52775c40045f5631b75350ea2f329320a",
+  "toolShellSha256": "97b04a865693e4d39d6cdaa2ae01586d1f8dbee1fd7fe77b9541f3a5eea80acb",
+  "publishedToolShellSha256": "97b04a865693e4d39d6cdaa2ae01586d1f8dbee1fd7fe77b9541f3a5eea80acb",
+  "sourceInputs": 57
+}

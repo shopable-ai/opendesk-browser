@@ -10,6 +10,7 @@ import {normalizeManagedSiteV3Commit} from './site-budget-v3-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig}
   from '../../platform/chrome/browser-managed-proxy-profiles.js';
+import {normalizeManagedProxyConfig} from '../../platform/chrome/browser-managed-proxy-config.js';
 const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
 const COMPILED_SERVICE_METHODS=new Set(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
@@ -408,16 +409,7 @@ export function normalizeBrowserOperation(operation,args={}){
       // and Driver still check the installed hash, one-use intent and Chrome.
       if(MANAGED_PROXY_DEVELOPMENT_ENABLED&&isFixedDevelopmentManagedProxyConfig(checked.config))
         return checked;
-      const safeHost=value=>typeof value==='string'&&value.length<=253&&
-        value===value.toLowerCase()&&!value.endsWith('.')&&value.includes('.')&&
-        !/^(?:localhost|.*\.localhost|.*\.local|.*\.internal)$/.test(value)&&
-        !/^[0-9.]+$/.test(value)&&!value.includes(':')&&
-        value.split('.').every(label=>label.length>0&&label.length<=63&&
-          /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label));
-      if(!safeHost(checked.config.endpoint.host)||
-         checked.config.domains.some(domain=>!safeHost(domain)))
-        throw fail('E_PROXY_CONFIG','Only public ASCII proxy and target hostnames allowed');
-      return checked;
+      return {config:normalizeManagedProxyConfig(checked.config)};
     }
     case 'browser.network.request': {
       fields(args,['method','url','data','config'],['method','url']);

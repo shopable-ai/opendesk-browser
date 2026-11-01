@@ -12,6 +12,7 @@ import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
   from '../framework/host/managed-site-reviewed-scopes.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
+import {requestManagedProxyIntent,createManagedProxyActionGate} from './sidebar-tools/managed-proxy-consent.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 import {readingTocHostText} from './reading-toc-settings-localization.js';
@@ -28,7 +29,6 @@ import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolRevocationEpochs,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
-import {SIDEBAR_TOOL_LIMITS} from './sidebar-tools/limits.js';
 import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
@@ -263,6 +263,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const cookieWriteGate=createCookieWriteIntentGate();
   const cookieClearGate=createCookieClearIntentGate();
   const cookieExportGate=createCookieExportIntentGate();
+  const proxyActionGate=createManagedProxyActionGate();
   const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
   const pageInstallStatus=view.fields["page-install-import-status"];
   const pageInstallReceipt=view.fields["page-install-import-receipt"];
@@ -432,7 +433,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
     'adblock.control':'经可信 Chrome 授权启停第三方广告过滤，仅管理本工具规则',
     'ai.access':'仅由可信按钮管理 AI 网站自动代理，需要 Chrome 代理权限；其余网站直连',
-    'browser.proxy.managed':'经可信确认管理浏览器级独占代理；仅提交有限域名及 HTTPS/SOCKS5 端点',
+    'browser.proxy.managed':'经可信确认管理浏览器级独占代理；直连、单个公网或本机端点、有限网站规则',
     'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'安装后在声明的网站显示 Chrome 右键菜单（最多三项，需 Chrome 允许）',
@@ -544,6 +545,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const fullBookmarkInfo=view.fields['sidebar-tool-bookmark-info'];patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
   patchToolField(view,fullBookmarkInfo,{textContent:'',hidden:true});
   const fullBookmarkButton=view.fields['sidebar-tool-bookmark-grant'];
+  const proxyConsentSettings=view.fields['sidebar-tool-proxy-consent'];
+  const proxyConsentInfo=view.fields['sidebar-tool-proxy-consent-info'];
+  const proxyConsentRevoke=view.fields['sidebar-tool-proxy-consent-revoke'];
   patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
   // The permission surface is generic to any installed tool that declares
@@ -1141,15 +1145,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
       (nativePending||nativeUI?.kind==='ai-proxy');
     if(!current())throw Object.assign(new Error('AI Proxy 可信界面已关闭'),{code:'E_TOOL_CHANGED'});
-    if(!['storage.get','storage.set','browser.proxy.managed.getStatus',
+    if(!['storage.get','storage.set','currentPage.info','browser.proxy.managed.getStatus',
       'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation))
       throw Object.assign(new Error('不支持此 AI Proxy 操作'),{code:'E_OPERATION'});
+    const proxyAction=proxyActionGate.begin(tool.id,operation);
     if(!await admittedNativeAIProxy(tool,epoch)||!current()){
       if(current()){destroyFrame();tocSettingsOpen=true;render();
         notice('AI Proxy 官方安装身份或授权已变化，可信界面已关闭。',true);}
       throw Object.assign(new Error('AI Proxy 可信准入已失效'),{code:'E_TOOL_CHANGED'});
     }
-    return dispatch(operation,payload,tool,trustedAIProxySource,token,epoch);
+    proxyAction.assertCurrent();
+    return dispatch(operation,payload,tool,trustedAIProxySource,token,epoch,false,null,null,null,proxyAction);
   }
 
   async function admittedNativeBookmark(tool,expectedEpoch){
@@ -1364,6 +1370,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||legacyAdblock;
     renderCookieSettings(show);
     patchToolField(view,fullBookmarkSettings,{hidden:!(show&&managed&&isFullBookmarkTool(active))});
+    const proxyTool=managed&&active.capabilities.includes('browser.proxy.managed');
+    const proxyGrant=menuGrants?.[id];
+    const proxyCount=proxyGrant&&proxyGrant.version===active?.version&&
+      proxyGrant.installEpoch===(revocationEpochs[id]??null)&&Array.isArray(proxyGrant.proxyConfigs)
+      ?proxyGrant.proxyConfigs.length:0;
+    patchToolField(view,proxyConsentSettings,{hidden:!(show&&proxyTool)});
+    patchToolField(view,proxyConsentInfo,{textContent:proxyCount?
+      '已记住 '+proxyCount+' 条精确线路。同一线路的应用无需再次确认；新端点或网站范围需重新审阅。':
+      '首次应用线路时审阅并记住授权。停止自有代理无需再次确认。'});
+    patchToolField(view,proxyConsentRevoke,{disabled:busy||sitePending||!enabled,
+      textContent:'撤销线路授权并停止代理'});
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
     const hasFullBookmarkConsent=Boolean(fullGrant?.bookmarkFull===true&&
       fullGrant.version===active?.version&&fullGrant.installEpoch===currentEpoch);
@@ -2109,7 +2126,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
         message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null,assertWrite=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null,assertWrite=null,proxyAction=null) {
+    proxyAction??=proxyActionGate.begin(tool.id,operation);
+    proxyAction.assertCurrent();
     const videoEnableEpoch=videoShortcutEpoch;
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
@@ -2855,7 +2874,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }
           }
         }
-        if(needsReview){
+        if(operation.startsWith('browser.proxy.managed.')){
+          envelope.approvalRef=await requestManagedProxyIntent({api,
+            identity:{toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
+              packageHash,toolInstance:token,hostInstanceId},title:tool.title,operation,payload,
+            hasUserActivation:proxyAction.hasUserActivation,assertCurrent:()=>{
+              assertSession(source,token);proxyAction.assertCurrent();
+            },
+            requestReview:requestBrowserClick});
+          assertSession(source,token);
+        }else if(needsReview){
           const needsWebRequest=operation==='browser.network.observe.start'&&
             !await api.permissions.contains({permissions:['webRequest']});
           assertSession(source,token);
@@ -2865,13 +2893,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             operation==='browser.bookmarks.remove'?'删除 Chrome 书签或空文件夹 '+payload.id:
             operation==='browser.bookmarks.removeTree'?'递归删除 Chrome 非空文件夹 '+payload.id+' 及其全部子项（不可撤销）':
             operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
-            operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
-            operation==='browser.proxy.managed.requestEnable'?'启用 Chrome 浏览器级分流代理；端点 '+payload.config.endpoint.scheme+'://'+payload.config.endpoint.host+':'+payload.config.endpoint.port+'；目标域名 '+payload.config.domains.join('、')+'；将影响匹配网站的所有标签页':
-            '停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）';
+            '清空本工具保存的数据（不影响其他工具）';
           const confirmAction=async event=>{
-            if(operation.startsWith('browser.proxy.managed.')&&!event?.isTrusted)
-              throw Object.assign(new Error('代理操作需要可信 Side Panel 的真实点击'),
-                {code:'E_USER_GESTURE_REQUIRED'});
             assertSession(source,token);
             if(needsWebRequest){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
@@ -3040,6 +3063,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       try{
         const bookmarkWrite=['browser.bookmarks.create','browser.bookmarks.update',
           'browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree'].includes(operation);
+        proxyAction.assertCurrent();
         try{reply=await api.runtime.sendMessage(envelope);}
         catch(error){
           if(bookmarkWrite)throw Object.assign(new Error('书签写入回执丢失，请先核对原生数据，勿重复提交'),
@@ -3727,6 +3751,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
+    const proxyAction=proxyActionGate.begin(tool.id,message.operation);
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
     const videoEnableEpoch=videoShortcutEpoch;
@@ -3737,7 +3762,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     };
     const work=previous.catch(()=>{}).then(()=>{
       checkVideoEnable();
-      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch,exportPort);
+      proxyAction.assertCurrent();
+      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch,exportPort,null,proxyAction);
     });
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
@@ -4479,20 +4505,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, pageInstallStatus, {textContent:'正在核验安装包…',hidden:false});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'reviewing');
     try{
-      if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
       const text=await file.text();
       if(disposed||selection!==fileSelection)return;
-      const byteLength=new TextEncoder().encode(text).byteLength;
-      if(byteLength>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
       const parsed=JSON.parse(text);
+      if([PAGE_INSTALL_FORMAT,PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)&&
+          (file.size>PROGRAM_DRAFT_INPUT_LIMIT||new TextEncoder().encode(text).byteLength>PROGRAM_DRAFT_INPUT_LIMIT))
+        throw new Error('文件超过程序草稿包大小上限');
       if(parsed?.format===PAGE_INSTALL_FORMAT){
         await reviewPagePackage(parsed,file,selection);return;
       }
       if([PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)){
         throw new Error('这是开发草稿，不是网页增强安装包。编辑源码请到「开发」导入草稿；安装请选择 .opendesk-page.json 安装包。');
       }
-      if(file.size>SIDEBAR_TOOL_LIMITS.packageBytes||byteLength>SIDEBAR_TOOL_LIMITS.packageBytes)
-        throw new Error('工具包超过 '+Math.floor(SIDEBAR_TOOL_LIMITS.packageBytes/1024)+' KB');
       // Compare loaded worlds before classifying a capability as unsupported.
       await assertSidebarToolRuntime(api);
       if(disposed||selection!==fileSelection)return;
@@ -4782,6 +4806,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   });
   // Optional Chrome permission must be requested in this real extension-owned
   // click, before any await. Package/epoch-bound Full consent is distinct.
+  listen(proxyConsentRevoke,'click',event=>{
+    if(!event?.isTrusted||!active||readOnlyPreview||busy||siteTogglePending.has(active.id)||
+       !active.capabilities.includes('browser.proxy.managed'))return;
+    const tool=active,epoch=revocationEpochs[tool.id]??null;
+    proxyActionGate.stop(tool.id);
+    siteTogglePending.add(tool.id);render();
+    void (async()=>{
+      const packageHash=await sidebarToolPackageHash(tool);
+      const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+        operation:'browser.proxy.managed.revokeConsent',toolId:tool.id,toolVersion:tool.version,
+        installEpoch:epoch,packageHash,
+        hostInstanceId:new URL(globalThis.location.href).searchParams.get('hostInstanceId')});
+      if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'代理撤权未确认'),
+        {code:reply?.error?.code||'E_BROWSER'});
+      menuGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]||{};
+      notice('已撤销线路授权并停止本工具的代理；下次启用需重新审阅。');
+    })().catch(error=>notice((error?.code||'E_BROWSER')+'：'+String(error?.message||error),true))
+      .finally(()=>{siteTogglePending.delete(tool.id);render();});
+  });
   listen(fullBookmarkButton,'click',event=>{
     if(!event?.isTrusted||!active||readOnlyPreview||busy||enableReadError||
       !isFullBookmarkTool(active)||!sidebarToolEnabled(enableRecords,active.id))return;
@@ -5236,6 +5279,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      // Only signal invalidation; the tool re-reads through its admitted Host request.
+      if(nativeUI?.kind==='ai-proxy')
+        frameRoot.dispatchEvent(new Event('opendesk-page-changed'));
       // A navigated document must never reuse a previous key capability.
       videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate();
        cookieImportGate.revoke();

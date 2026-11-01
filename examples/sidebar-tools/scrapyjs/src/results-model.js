@@ -25,8 +25,15 @@ export function pageRows(rows, page) {
 export function resultIdentity(state) {
   return JSON.stringify([state.profileEpoch,state.selectedId,state.clientRequestId,state.runId,state.snapshot?.resultId]);
 }
-export function emptyMessage(state, busy) {
-  if (busy) return '采集中，记录将在任务返回后显示。';
-  if (state.error || ['failed','error'].includes(state.snapshot?.status) || state.result?.engine?.status === 'failed') return '采集失败，尚无记录；请查看错误信息与运行详情。';
-  return state.result == null ? '开始采集后，在这里查看记录和下载结果。' : '本次结果没有记录，可展开运行详情查看原因。';
+export const accessDenied=state=>[state.storageError,state.targetError].some(error=>error?.code==='E_PERMISSION_DENIED');
+export function resultFeedback(state,busy){
+  if(busy)return {kind:'running',heading:'正在收集记录',message:'采集中，记录将在任务返回后显示。'};
+  if(accessDenied(state))return {kind:'blocked',heading:'访问受限，尚未开始采集',message:'配置或网页信息读取被拒绝。请先处理上方权限提示，当前草稿保留。'};
+  if(state.error||['failed','error'].includes(state.snapshot?.status)||state.result?.engine?.status==='failed'){
+    const reason=state.error||state.result?.engine?.message||state.snapshot?.message;
+    return {kind:'error',heading:'本次采集失败',message:typeof reason==='string'&&reason.trim()?'失败原因：'+reason:'任务返回失败，尚无记录；请展开运行详情查看原始回执。'};
+  }
+  return state.result==null?{kind:'initial',heading:'让网页内容成为可用数据',message:'开始采集后，在这里查看记录和下载结果。'}:
+    {kind:'empty',heading:'本次没有匹配的记录',message:'本次结果没有记录，请核对字段选择器；原始回执在运行详情中。'};
 }
+export const emptyMessage=(state,busy)=>resultFeedback(state,busy).message;

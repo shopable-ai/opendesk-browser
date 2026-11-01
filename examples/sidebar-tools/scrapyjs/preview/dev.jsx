@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import App from '../src/App.jsx';
+import RuleAssistant from './RuleAssistant.jsx';
 import '../src/style.css';
 import '../adapters/app-sdk.js';
 import '../src/app-model.js';
@@ -10,5 +11,5 @@ Object.defineProperty(globalThis,'__opendeskPreviewScenario',{value:new URLSearc
 Object.defineProperty(globalThis,'__opendeskPreviewTask',{value:config.delegatedTasks[0]});
 await import('./mock-host.js');
 const root=createRoot(document.getElementById('tool-app'));
-root.render(<App/>);
-if(import.meta.hot){import.meta.hot.accept('../src/App.jsx',module=>root.render(React.createElement(module.default)));import.meta.hot.dispose(()=>root.unmount());}
+root.render(<App previewAiPlaceholder RuleAssistant={RuleAssistant}/>);
+if(import.meta.hot){import.meta.hot.accept('../src/App.jsx',module=>root.render(React.createElement(module.default,{previewAiPlaceholder:true,RuleAssistant})));import.meta.hot.dispose(()=>root.unmount());}

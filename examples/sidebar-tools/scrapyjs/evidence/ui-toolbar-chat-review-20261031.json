@@ -1,0 +1,121 @@
+{
+  "reviewedSha": "9f313a12ef254dd025f2dfee050ed0b9459f3318f41d9d44211df88e0490a70b",
+  "verdict": "COMMENT",
+  "scopeResult": "PASS_SCOPED_OFFLINE_REVIEW",
+  "conclusion": "本轮源码与离线UI纠偏可收尾，无阻断问题。Host顶栏卸载旁的小AI入口与bottom split符合要求；最新书签配置、收起双按钮完整可用；公共示例与原Skill已同步完整组合。COMMENT仅保留语义类型诊断缺口，不要求扩大到真实安装或Provider验收。",
+  "dimensions": [
+    {
+      "dimension": "需求符合度",
+      "itemScores": [
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "score": 100,
+      "rationale": "按就地Chat、业务草稿保留、完整审阅、显式应用保存、采集独立五项评分。源码、截图及同SHA报告一致，无需求缺失。"
+    },
+    {
+      "dimension": "样式一致性",
+      "itemScores": [
+        20,
+        19,
+        20,
+        19,
+        18
+      ],
+      "score": 96,
+      "rationale": "单gutter、公共按钮与字级一致；computed确认12px gutter、16px主间距和1px分隔线。扣分来自局部间距实测不完整、折叠入口较密及辅助文字对比未量化。"
+    },
+    {
+      "dimension": "信息层级可读性",
+      "itemScores": [
+        20,
+        20,
+        19,
+        19,
+        19
+      ],
+      "score": 97,
+      "rationale": "目标与输入清楚，JSON及诊断渐进展开，业务与Chat各自滚动且输入不压缩。扣分来自审阅内容与动作需滚动串联、折叠入口密度和上半区操作的滚动成本。"
+    },
+    {
+      "dimension": "操作效率反馈",
+      "itemScores": [
+        20,
+        19,
+        20,
+        20,
+        20
+      ],
+      "score": 99,
+      "rationale": "主动作、保存回执、收起不取消及UNKNOWN不重放均有源码和报告支持。发送资料折叠后仍需展开核对完整范围，扣1分。"
+    },
+    {
+      "dimension": "键盘焦点",
+      "itemScores": [
+        20,
+        20,
+        20,
+        19,
+        19
+      ],
+      "score": 98,
+      "rationale": "页签、发送/换行/IME、关闭返回均有定向证据；新版公共示例已验证打开聚焦。全部审阅折叠内容的连续Tab顺序及AI错误焦点未逐项独立回放，各扣1分。"
+    },
+    {
+      "dimension": "组件复用隔离",
+      "itemScores": [
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "score": 100,
+      "rationale": "沿用原模板、Button/Dock/Frame/session、工具CSS归属和公开ai边界；保持opaque/CSP。Host仅通知固定toggle，不授予权限或转交用户手势，未发现新增掩盖失败的fallback。"
+    },
+    {
+      "dimension": "可维护性",
+      "itemScores": [
+        20,
+        19,
+        19,
+        19,
+        20
+      ],
+      "score": 97,
+      "rationale": "共享Dock拥有布局，保存回执明确，继续使用原生成链。扣分来自分散CSS覆盖、压缩表达式的审读成本及生产/mock展示协议的同步维护成本。"
+    },
+    {
+      "dimension": "证据充分性",
+      "itemScores": [
+        19,
+        18,
+        19,
+        20,
+        20
+      ],
+      "score": 96,
+      "rationale": "已实际查看指定截图并读取报告；两份候选报告同SHA，1371项来源锁无漂移，截图哈希匹配。固定三件套逐字节等于candidate4。扣分来自交互主要复核已有报告、局部computed覆盖有限及部分状态未独立回放。"
+    }
+  ],
+  "blockingIssues": [],
+  "verification": {
+    "fixedDelivery": "preview.html、preview.manifest.json、preview.context.json均与candidate4逐字节一致。",
+    "sourceLock": "1371项，当前漂移0。",
+    "candidateBrowserReports": "Chat 34项、业务62项PASS_SIMULATED_UI。",
+    "publicExample": "components-delivery SHA256 2d98be6dd37aafe343b7b3146a6bcf50a1f3f5c5e0f507440d16cfbe6e0ec3ab；6项实际离线浏览器操作PASS。",
+    "bookmark": "7项离线操作PASS；配置与收起按钮均30×30、完整位于Dock内且中心命中。",
+    "node": "新增工具证据记录18/18 PASS；本审查未重复运行。",
+    "syntax": "22个相关代码/样式文件只读内存语法检查无错误。",
+    "documentation": "已核对新增工具及书签自有证据、README/GOAL/DESIGN和原Skill的当前阶段记录。"
+  },
+  "limits": [
+    "本轮独立审查只读完成，未修改文件、回滚并行改动或操作现有服务。",
+    "lsp_diagnostics与ast_grep_search不可用；语法检查和定向rg不能替代语义类型诊断，因此不作合并批准。",
+    "真实安装、原Provider、Browser build、真实采集及原UNKNOWN恢复仍为NOT_TESTED，均不作为本轮离线范围阻断。",
+    "不恢复全面架构审查、生产验收、缩放或物理宽度矩阵。"
+  ]
+}

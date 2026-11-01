@@ -1,0 +1,51 @@
+// Row-local progressive controls and automatic checks; offline DOM only.
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+const source=resolve(process.argv[2]),out=resolve(process.argv[3]);await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true,...(process.env.CHROME_BIN?{executablePath:process.env.CHROME_BIN}:{})});
+const page=await browser.newPage({viewport:{width:1200,height:1120},reducedMotion:'reduce'});page.setDefaultTimeout(6000);
+const report={scope:'FOCUSED_ROW_CLEAR_AND_PICKER',checks:[],screenshots:[],errors:[],nativeChrome:'NOT_TESTED',realWebsite:'NOT_TESTED',previewSha256:createHash('sha256').update(await readFile(source)).digest('hex')};
+page.on('pageerror',e=>report.errors.push(e.message));page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});
+const f=page.frameLocator('#opendesk-preview-frame'),get=id=>f.locator('#'+id),modal=f.locator('dialog.rule-picker-dialog[open]');
+const row=key=>f.locator('.rule-entry[data-field-key="'+key+'"]'),pick=key=>row(key).getByRole('button',{name:'点选生成选择器 '+key,exact:true});
+const input=key=>f.getByRole('textbox',{name:'采集规则 '+key,exact:true});
+const check=(ok,text)=>{if(!ok)throw Error(text);report.checks.push(text);};
+const shot=async name=>{const path=join(out,name+'.png');await page.locator('.preview-device').screenshot({path});report.screenshots.push(path);};
+const config=async()=>JSON.parse(await get('config-json').inputValue());
+const choose=()=>modal.getByRole('button',{name:'使用此内容',exact:true});
+try{
+ await page.goto(pathToFileURL(source).href);await get('profile-list').locator('option[value="demo"]').waitFor({state:'attached'});await get('tab-rules').click();await f.locator('#tab-rules[aria-selected="true"]').waitFor();await get('tab-rules').focus();
+ check(!await pick('title').isVisible(),'unfocused rows do not show picker icons');
+ check(await get('apply-field').count()===0&&await get('cancel-field').count()===0,'field apply/cancel controls are absent');
+ check(await f.locator('#pick-rule,#validate-rules').count()===0,'no technical picker or validation toolbar');await shot('01-clean');
+ await input('title').focus();check(await pick('title').isVisible()&&await row('title').getByRole('button',{name:'清空采集规则 title',exact:true}).isVisible(),'focused input reveals Clear and Pick');
+ report.iconLayout=await row('title').locator('.rule-input-group').evaluate(el=>{const r=el.querySelector('input').getBoundingClientRect();return [...el.querySelectorAll('.rule-input-icon')].map(b=>{const p=b.getBoundingClientRect();return {label:b.getAttribute('aria-label'),inside:p.left>=r.left&&p.right<=r.right&&p.top>=r.top&&p.bottom<=r.bottom};});});
+ check(report.iconLayout.every(b=>b.inside),'both icons sit inside the input on the right');await shot('02-focused');
+ await row('title').getByRole('button',{name:'清空采集规则 title',exact:true}).click();check(await get('field-rule').inputValue()===''&&await get('save-config').isDisabled()&&await get('start').isDisabled(),'Clear retains invalid empty input and locks save/start');
+ check(await row('title').count()===1&&await row('title').getByRole('button',{name:'清空采集规则 title',exact:true}).count()===0,'Clear does not delete the field and disappears when empty');await input('title').press('Escape');
+ await input('title').focus();await pick('title').click();await modal.waitFor();check(await modal.getByRole('button',{name:'关闭点选',exact:true}).evaluate(e=>e===e.ownerDocument.activeElement),'native modal starts with safe focus');
+ await page.waitForFunction(()=>document.querySelector('#scrapyjs-preview-reset').disabled);check(await page.locator('#sidebar-tool-remove').isDisabled(),'outer reset/uninstall guarded while picking');
+ check(await modal.locator('input,select').count()===0&&!(await modal.innerText()).includes('验证规则'),'nontechnical picker has no field-selection, CSS form or manual validation');
+ await modal.getByRole('button',{name:'点选标题 设计心理学',exact:true}).click();check(await choose().isEnabled(),'automatic checks enable Use after matching an element');
+ check((await modal.locator('.picker-preview').innerText()).includes('看不见的城市'),'preview shows values from equivalent records');
+ await modal.getByRole('button',{name:'链接地址',exact:true}).click();check((await modal.locator('.picker-preview').innerText()).includes('/books/design')&&await choose().isEnabled(),'link extraction rechecks automatically without user validation');
+ check(await modal.locator('[data-selected=true]').count()===1,'selection remains highlighted after extraction switch');await shot('03-selected-link');await choose().click();
+ check(await input('title').inputValue()==='a.book-title::href'&&await get('save-config').isEnabled(),'picker immediately updates the same field and enables explicit save');check(await get('profile-current').getAttribute('data-dirty')==='true','selection remains an unsaved configuration draft');
+ await get('tab-json').click();check((await config()).itemConfig.title==='a.book-title::href','picker selection immediately appears in configuration JSON');await get('tab-rules').click();
+ await input('title').focus();await pick('title').click();await modal.getByRole('button',{name:'点选价格 设计心理学',exact:true}).click();check(await choose().isDisabled()&&(await modal.locator('.picker-footer').innerText()).includes('1 条记录'),'missing content is explained next to disabled Use without a validation task');await shot('04-missing');
+ await modal.getByRole('button',{name:'点选封面 设计心理学',exact:true}).focus();await modal.getByRole('button',{name:'点选封面 设计心理学',exact:true}).press('Enter');check(await choose().isEnabled()&&(await modal.locator('.picker-preview').innerText()).includes('/covers/design.jpg'),'keyboard image selection automatically generates values');
+ await modal.getByRole('button',{name:'关闭点选',exact:true}).evaluate(e=>e.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',isComposing:true,bubbles:true})));check(await modal.count()===1,'IME Escape cannot accidentally cancel');
+ await modal.getByRole('button',{name:'关闭点选',exact:true}).press('Escape');check(await input('title').evaluate(e=>e===e.ownerDocument.activeElement)&&await input('title').inputValue()==='a.book-title::href','cancel restores focus without changing the latest legal rule');
+ await get('new-field').click();await get('field-key').fill('book_url');await get('field-rule').focus();await f.getByRole('button',{name:'点选生成选择器 book_url',exact:true}).click();await modal.getByRole('button',{name:'点选标题 看不见的城市',exact:true}).click();await modal.getByRole('button',{name:'链接地址',exact:true}).click();await choose().click();
+ check(await input('book_url').inputValue()==='a.book-title::href','new-field picker immediately creates its own configured row');
+ await get('tab-json').click();let c=await config();c.itemConfig={complex:{selector:'p',read:'innerHTML'},...c.itemConfig};await get('config-json').fill(JSON.stringify(c));await get('tab-rules').click();
+ await input('book_url').focus();await pick('book_url').click();await modal.getByRole('button',{name:'点选标题 设计心理学',exact:true}).click();await choose().click();check(await input('book_url').inputValue()==='a.book-title::text','complex first field cannot redirect picker import into another row');await get('tab-json').click();check((await config()).itemConfig.book_url==='a.book-title::text','picker updates the intended configuration key');await get('tab-rules').click();
+ check(await row('complex').locator('.rule-pick-trigger').count()===0,'complex rules keep original JSON path without misleading picker');
+ await get('tab-json').click();c=await config();c.itemConfig._listItem='a.book-title';await get('config-json').fill(JSON.stringify(c));await get('tab-rules').click();await input('title').focus();await pick('title').click();await modal.getByRole('button',{name:'点选标题 设计心理学',exact:true}).click();check(await choose().isDisabled(),'engine-incompatible list scope never reports false success');await modal.getByRole('button',{name:'取消',exact:true}).click();
+ await get('tab-json').click();c=await config();c.itemConfig._listItem='li';await get('config-json').fill(JSON.stringify(c));await get('tab-rules').click();await get('save-config').click();await get('profile-current[data-dirty="false"]').waitFor();await get('tab-results').click();await get('start').click();await get('run-summary').filter({hasText:'采集完成'}).waitFor();
+ check(report.errors.length===0,'original save/run still works; zero page/console errors');report.status='PASS';
+}catch(e){report.status='FAIL';report.failure=e.stack;process.exitCode=1;await shot('failure');}
+finally{await writeFile(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');await browser.close();console.log(JSON.stringify(report,null,2));}

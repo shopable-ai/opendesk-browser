@@ -114,6 +114,102 @@ function fixture(scenario='ready'){
  return {mock,adapter,controller,snapshots,close(){controller.dispose();mock.dispose();}};
 }
 
+test('mock scoped storage selects exact keys and merges cloned items per instance',async()=>{
+ const first=createMockSdk(),second=createMockSdk();
+ const get=(sdk,input)=>sdk.request('browser.storage.local.get',input);
+ const set=items=>first.request('browser.storage.local.set',{items});
+ try{
+  assert.deepEqual(await get(first,{keys:['missing']}),{items:{}});
+  const items={service:{nested:{label:'Fictional'}},'service.extra':false};
+  assert.deepEqual(await set(items),{written:2});
+  items.service.nested.label='caller mutation';
+  const selected=await get(first,{keys:['service','missing']});
+  assert.deepEqual(selected,{items:{service:{nested:{label:'Fictional'}}}});
+  selected.items.service.nested.label='reader mutation';
+  assert.deepEqual(await get(first,{keys:[]}),{items:{}});
+  assert.deepEqual(await get(first),{items:{service:{nested:{label:'Fictional'}},'service.extra':false}});
+  assert.deepEqual(await set({service:null}),{written:1});
+  assert.deepEqual(await set({}),{written:0});
+  assert.deepEqual(await get(first,{}),{items:{service:null,'service.extra':false}});
+  assert.deepEqual(await get(second,{}),{items:{}});
+  assert.deepEqual(await set(JSON.parse('{"__proto__":{"fictional":true}}')),{written:1});
+  assert.deepEqual(await get(first,{keys:['__proto__']}),{items:JSON.parse('{"__proto__":{"fictional":true}}')});
+ }finally{first.dispose();second.dispose();}
+});
+
+test('real adapter saves a fictional enterprise service using only mock scoped storage',async()=>{
+ const f=fixture();
+ try{
+  assert.deepEqual(await f.adapter.httpServiceRequest('serviceStatus'),{revision:0,connections:[]});
+  const saved=await f.adapter.httpServiceRequest('serviceSave',{
+   revision:0,label:'Fictional preview',serviceOrigin:'https://service.example.invalid'
+  });
+  assert.equal(saved.revision,1);
+  assert.equal(saved.connections.length,1);
+  assert.equal(saved.connections[0].label,'Fictional preview');
+  assert.equal(saved.connections[0].status,'UNCONNECTED');
+  const reloaded=createCookieSdkAdapter({getBrowser:()=>f.mock.browser,request:f.mock.request});
+  assert.deepEqual(await reloaded.httpServiceRequest('serviceStatus'),saved);
+  assert.ok(f.mock.inspect().calls.every(call=>[
+   'browser.storage.local.get','browser.storage.local.set'
+  ].includes(call.op)));
+  await assert.rejects(f.mock.request('browser.network.request',{}),{code:'E_PERMISSION'});
+ }finally{f.close();}
+});
+
+test('service preview scenarios load durable fictional configurations through the real adapter',async()=>{
+ const {version}=JSON.parse(await read('../../package.json'));
+ const mock=createMockSdk({scenario:'serviceConnections'});
+ const adapter=()=>createCookieSdkAdapter({getBrowser:()=>mock.browser,request:mock.request,version});
+ const key='cookie-http-services.v1';
+ try{
+  const stored=await mock.request('browser.storage.local.get',{keys:[key]});
+  assert.equal(stored.items[key].format,1);
+  assert.ok(stored.items[key].connections.every(item=>item.version===version));
+  const first=await adapter().httpServiceRequest('serviceStatus');
+  assert.deepEqual(first.connections.map(item=>[item.label,item.origin,item.status]),[
+   ['本机额度服务','http://usage-demo.localhost:43121','UNCONNECTED'],
+   ['示例公司','https://team.example.com','UNCONNECTED']
+  ]);
+  for(const item of first.connections){
+   assert.deepEqual(item.resources,[]);assert.deepEqual(item.bindings,[]);
+   assert.equal(item.pending,null);
+   assert.equal('serviceType' in item,false);assert.equal('transport' in item,false);
+  }
+  // Repeated refresh and a fresh adapter (as after section navigation) share storage.
+  const active=adapter();
+  assert.deepEqual(await active.httpServiceRequest('serviceStatus'),first);
+  assert.deepEqual(await active.httpServiceRequest('serviceStatus'),first);
+  assert.deepEqual(await adapter().httpServiceRequest('serviceStatus'),first);
+  assert.deepEqual(await mock.request('browser.storage.local.get',{keys:[key]}),stored);
+  const saved=await active.httpServiceRequest('serviceSave',{
+   revision:first.revision,label:'新增虚构服务',serviceOrigin:'https://another.example.com'
+  });
+  assert.equal(saved.connections.length,3);
+  assert.deepEqual(saved.connections.slice(0,2),first.connections);
+  assert.deepEqual(await adapter().httpServiceRequest('serviceStatus'),saved);
+  assert.ok(mock.inspect().calls.every(call=>[
+   'browser.storage.local.get','browser.storage.local.set'
+  ].includes(call.op)));
+  const reset=createMockSdk({scenario:'serviceConnections'});
+  try{
+   const fresh=createCookieSdkAdapter({getBrowser:()=>reset.browser,request:reset.request,version});
+   assert.deepEqual(await fresh.httpServiceRequest('serviceStatus'),first);
+  }finally{reset.dispose();}
+ }finally{mock.dispose();}
+});
+
+test('service preview scenarios leave empty and existing account scenes without service seeds',async()=>{
+ for(const scenario of ['serviceConnectionsEmpty','accountsDemo','ready']){
+  const mock=createMockSdk({scenario});
+  try{
+   const adapter=createCookieSdkAdapter({getBrowser:()=>mock.browser,request:mock.request});
+   assert.deepEqual(await adapter.httpServiceRequest('serviceStatus'),{revision:0,connections:[]});
+   assert.deepEqual(await mock.request('browser.storage.local.get'),{items:{}});
+  }finally{mock.dispose();}
+ }
+});
+
 test('real Controller loads only redacted fictional metadata and renames with verified receipts',async()=>{
  const f=fixture();try{
   await f.controller.load();
@@ -387,7 +483,7 @@ test('R3.2 market and account invite share one formal App but never create produ
  assert.match(product,/<CookieAccountMarket\b/);
  assert.match(product,/initialSection='cookie'/);
  assert.match(product,/\['cookie','Cookie'\],\['accounts','账号'\],\['enterprise','企业'\]/);
- assert.match(preview,/React\.useState\('accountsDemo'\)/);
+ assert.match(preview,/React\.useState\('serviceConnections'\)/);
  assert.match(preview,/initialSection=\{\['accountsFirst'/);
  assert.doesNotMatch(preview,/initialSection=\{\['accountsDemo'/);
  assert.match(preview,/<CookieEditorApp\b/);

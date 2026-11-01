@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Cookie Editor · 保存后返回账号列表 R2.5.4 · 交互预览</title>
+<title>Cookie Editor · 企业服务连接 · 交互预览</title>
 <style>
 :root{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#27354a;background:#f3f5f9}
 *{box-sizing:border-box}html,body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #5e8ff2;outline-offset:2px}[hidden]{display:none!important}
@@ -264,18 +264,71 @@
 .snapshot-account-description{margin:0 0 10px;font-size:11px;line-height:1.55;color:var(--fg);overflow-wrap:anywhere}
 @media(max-width:340px){.account-title .account-description{font-size:10.5px}.account-title small.account-meta{font-size:9px}}
 </style>
+<style id="cookie-service-design">
+/* Enterprise connection prototype. Business layout reuses the existing tokens and controls. */
+.svc-page{padding:16px 12px 24px;display:grid;gap:16px;font-size:13px;line-height:1.6;--muted:var(--od-sub,#53647e)}
+.dark .svc-page{--muted:var(--od-dark-sub,#aabbd2)}.svc-workspace{padding:16px 0 0;margin:0 12px 24px;gap:12px;border-top:1px solid var(--line)}.svc-page h2,.svc-page h3,.svc-page p{margin:0}.svc-page h2{font-size:18px;letter-spacing:-.025em;line-height:1.45}.svc-page h3{font-size:13px;font-weight:730}.svc-page .textbtn{font-size:12px;min-height:36px;padding:7px 10px;display:inline-flex;align-items:center;justify-content:center;gap:5px}.svc-page .iconbtn{width:34px;height:34px;min-width:34px}.svc-page .field{font-size:12px;gap:8px}.svc-page .field input,.svc-page .field select{font-size:13px;min-height:38px}.svc-page .field-note{font-size:12px;line-height:1.6}.svc-head,.svc-section-head,.svc-card-head,.svc-actions,.svc-subhead{display:flex;align-items:center;gap:8px;min-width:0}.svc-head,.svc-section-head{justify-content:space-between}.svc-section-head h3{display:flex;align-items:center;gap:6px}.svc-count{font-size:11px;color:var(--muted);font-weight:500}.svc-kicker{font-size:10px;font-weight:750;letter-spacing:.13em;color:var(--brand);margin-bottom:5px}.svc-lead p{color:var(--muted);font-size:12px;margin-top:6px}.svc-list{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.svc-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);display:grid;gap:8px}.svc-symbol{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;color:var(--brand);background:var(--soft);flex:none}.svc-symbol.company{color:var(--fg)}.svc-card-title{min-width:0;flex:1}.svc-card-title strong{display:block;font-size:13px;overflow-wrap:anywhere}.svc-card-title small{font-size:12px;color:var(--muted);display:block;overflow-wrap:anywhere;line-height:1.5;margin-top:2px}.svc-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;padding:2px 7px;border-radius:99px;background:var(--soft)}.svc-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}.svc-badge.ok{color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--bg))}.svc-badge.warn{color:var(--amber);background:var(--warn-bg)}.svc-badge.fail{color:var(--red);background:color-mix(in srgb,var(--red) 7%,var(--bg))}.svc-origin{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.svc-card-bottom{display:flex;justify-content:space-between;gap:8px;align-items:center;min-width:0}.svc-card-bottom>span{font-size:11px;color:var(--muted)}.svc-card-bottom .svc-actions{gap:8px}.svc-inline-note{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.65}.svc-inline-note .icon{width:16px;height:16px;margin-top:2px;color:var(--green)}.svc-about{border-top:1px solid var(--line);padding-top:12px}.svc-about>summary{display:flex;justify-content:space-between;cursor:pointer;color:var(--muted);font-size:12px;list-style:none}.svc-about>summary::-webkit-details-marker{display:none}.svc-about .custom-content{padding:16px 0 0}.svc-about .custom-hero h2{font-size:16px}.svc-subhead{border-bottom:1px solid var(--line);padding-bottom:12px}.svc-subhead .iconbtn{margin-left:-6px}.svc-subhead h2{font-size:16px;flex:1}.svc-subhead small{font-size:11px;color:var(--muted)}.svc-form{display:grid;gap:16px}.svc-types{border:0;padding:0;margin:0;display:grid;gap:8px}.svc-types legend{font-size:12px;font-weight:650;margin-bottom:8px}.svc-type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.svc-type{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;gap:8px;cursor:pointer;align-items:flex-start;background:var(--bg);position:relative}.svc-type:has(:checked){border-color:var(--brand);background:var(--brand-bg)}.svc-type input{accent-color:var(--brand);width:14px;height:14px;margin:3px 0 0;flex:none}.svc-type strong{font-size:12px;display:block}.svc-type small{font-size:11px;display:block;color:var(--muted);margin-top:2px}.svc-hint{padding:10px 12px;border-radius:9px;background:var(--soft);font-size:12px;color:var(--muted);line-height:1.65}.svc-hint strong{color:var(--fg)}.svc-alert{border:1px solid color-mix(in srgb,var(--amber) 25%,var(--line));padding:10px 12px;border-radius:9px;background:var(--warn-bg);font-size:12px;color:var(--fg)}.svc-alert strong{display:block;margin-bottom:3px}.svc-alert p{font-size:12px;color:var(--muted)}.svc-alert.error{border-color:color-mix(in srgb,var(--red) 30%,var(--line));background:color-mix(in srgb,var(--red) 5%,var(--bg))}.svc-field-error{font-size:12px;color:var(--red)}.svc-page [aria-invalid=true]{border-color:var(--red)}.svc-form-footer{border-top:1px solid var(--line);padding-top:12px;display:flex;justify-content:flex-end;gap:8px}.svc-form-footer .primary{min-width:100px}.svc-detail-intro{display:flex;gap:10px;align-items:center}.svc-detail-intro h3{font-size:15px}.svc-detail-intro .svc-badge{margin-top:4px}.svc-meta{margin:0;display:grid;gap:10px}.svc-meta>div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;font-size:12px}.svc-meta dt{color:var(--muted)}.svc-meta dd{margin:0;overflow-wrap:anywhere}.svc-block{display:grid;gap:10px}.svc-block+.svc-block{border-top:1px solid var(--line);padding-top:16px}.svc-empty{border:1px dashed var(--line);border-radius:10px;padding:16px 12px;color:var(--muted);font-size:12px;display:grid;gap:8px}.svc-empty strong{color:var(--fg);font-size:13px}.svc-empty .textbtn{justify-self:start}.svc-connection-state{display:flex;align-items:flex-start;gap:9px}.svc-connection-state .svc-symbol{width:32px;height:32px}.svc-connection-state strong{display:block;font-size:12px}.svc-connection-state p{font-size:12px;color:var(--muted);margin-top:2px}.svc-scope{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:12px;color:var(--muted)}.svc-scope li{display:flex;align-items:center;gap:7px}.svc-scope .icon{width:15px;height:15px;color:var(--green)}.svc-scope li:last-child .icon{color:var(--muted)}.svc-danger{color:var(--red)}.svc-review{display:grid;gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px}.svc-check{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.7}.svc-check input{width:15px;height:15px;margin:3px 0 0;accent-color:var(--brand);flex:none}.svc-row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:12px}.svc-row strong{font-weight:650;overflow-wrap:anywhere}.svc-row small{display:block;color:var(--muted);font-size:12px;overflow-wrap:anywhere}.svc-row>div{min-width:0}.svc-row>.textbtn{flex:none}.svc-row .iconbtn{flex:none}.svc-primary-wide{justify-self:start}.svc-step-label{color:var(--muted);font-size:11px}.svc-dialog{position:absolute;inset:0;background:#09182b70;z-index:42;display:flex;align-items:flex-end;padding:8px}.svc-dialog-card{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 -8px 28px #14233d1a;display:grid;gap:12px;font-size:13px}.svc-dialog-card h3{margin:0;font-size:15px}.svc-dialog-card p{margin:0;font-size:12px;line-height:1.7;color:var(--muted)}.svc-dialog-actions{display:flex;gap:8px;justify-content:flex-end}.svc-dialog-actions .textbtn{font-size:12px;min-height:36px}.svc-screen-title:focus-visible{outline:2px solid var(--brand);outline-offset:4px;border-radius:4px}.svc-management{display:grid;gap:12px}.svc-stat-line{display:flex;gap:10px;align-items:center}.svc-stat-line strong{font-size:22px;letter-spacing:-.03em}.svc-stat-line span{font-size:12px;color:var(--muted)}
+.panel.dark .host-preview,.panel.dark .footer{--fg:#26364a;--muted:#53647e;--soft:#f6f8fc;--line:#e5eaf1;background:#fff;color:var(--muted)}
+/* Improve contrast without changing the retained original content or control layout. */
+#viewEnterprise .custom-content{--muted:var(--od-sub,#53647e)}
+.dark #viewEnterprise .custom-content{--muted:var(--od-dark-sub,#aabbd2)}
+/* Local layout only: button visuals continue to use the existing iconbtn/textbtn. */
+.svc-page .svc-detail-link{border-color:transparent;background:transparent;color:var(--muted);padding:4px;gap:2px}
+.svc-detail-link:hover{color:var(--brand);text-decoration:underline}.svc-workspace .svc-section-head{flex-wrap:wrap}.svc-workspace .svc-section-head>div:first-child{display:grid;gap:4px}
+.svc-workspace .svc-section-head p{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}.svc-jump{margin-top:8px;font-size:12px;min-height:36px}.svc-overview-return{justify-self:start;color:var(--brand)}
+.svc-detail-intro .svc-edit{margin-left:auto}.svc-block .svc-section-head>.textbtn{flex:none}
+/* One list surface, content-sized actions and no clipped keyboard focus. */
+.svc-list>.svc-card{border:0;border-radius:0;padding:12px;gap:8px;background:transparent}
+.svc-list>.svc-card+.svc-card{border-top:1px solid var(--line)}
+.svc-list .svc-symbol{width:32px;height:32px;border:0;border-radius:8px}
+.svc-list .svc-card-head{align-items:flex-start}
+.svc-list .svc-badge{margin-top:2px;padding:2px 4px}.svc-badge:has(>.icon)::before{display:none}.svc-badge>.icon{width:13px;height:13px}
+.svc-account-count{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.svc-account-count strong{font-weight:650;color:var(--fg);font-variant-numeric:tabular-nums}.svc-account-count .icon{width:15px;height:15px}
+.svc-card-bottom .svc-actions{flex:none;gap:4px}
+.svc-icon-action{position:relative}
+.svc-icon-action.svc-accent{color:var(--brand);background:var(--brand-bg)}
+.svc-icon-action.svc-warning{color:var(--amber);background:var(--warn-bg)}
+.svc-tooltip{position:absolute;z-index:26;right:0;top:calc(100% + 4px);width:max-content;max-width:230px;padding:6px 8px;border-radius:6px;background:var(--fg);color:var(--bg);font-size:12px;font-weight:500;line-height:1.5;text-align:left;white-space:normal;overflow-wrap:anywhere;visibility:hidden;opacity:0}
+.svc-tooltip::before{content:'';position:absolute;inset:-4px 0 auto;height:4px}
+.svc-icon-action:not(:disabled):not([data-tooltip-dismissed]):is(:hover,:focus-visible) .svc-tooltip{visibility:visible;opacity:1}
+.svc-preview-label{font-size:11px;padding-left:8px;border-left:1px solid var(--line);white-space:nowrap}
+.svc-block>.textbtn,.svc-card>.textbtn{justify-self:start}
+.svc-confirm-context{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;overflow-wrap:anywhere}
+.svc-confirm-context strong{color:var(--fg);font-weight:650}
+.svc-confirm-context+.svc-form-footer{border-top:0;padding-top:0}
+/* Configuration has one navigation row and explicit 8/12/16px groups.
+   Actions stay in document flow; expanded help must never be hidden underneath. */
+.svc-page:has(#svcConfigForm){padding-top:var(--space-3,12px);gap:var(--space-3,12px)}
+.svc-page:has(#svcConfigForm) .svc-subhead{border:0;padding:0;min-height:34px}
+.svc-page:has(#svcConfigForm) .svc-subhead .iconbtn{margin:0}
+#svcConfigForm{gap:var(--space-3,12px)}
+#svcConfigForm .field{gap:var(--space-2,8px)}
+#svcConfigForm .svc-types{display:block}
+#svcConfigForm .svc-types legend{padding:0;margin-bottom:var(--space-2,8px)}
+#svcConfigForm .svc-type{padding:var(--space-2,8px);min-height:44px;align-items:center}
+#svcConfigForm .svc-type input{margin:0}
+#svcConfigForm .svc-types>.field-note{margin-top:var(--space-2,8px)}
+#svcConfigForm .svc-hint{padding:0;background:transparent;border-radius:0}
+#svcConfigForm .svc-hint summary{min-height:36px;align-content:center;cursor:pointer}
+#svcConfigForm .svc-hint p{margin-top:var(--space-2,8px)}
+#svcConfigForm .svc-form-footer{padding-top:var(--space-3,12px)}
+.panel:has(#viewEnterprise:not([hidden])) .footer{font-size:11px;color:var(--od-sub,#53647e)}
+@media(pointer:coarse){.svc-page .iconbtn,.svc-page .textbtn,.svc-jump{min-height:44px;min-width:44px}}
+@media(prefers-reduced-motion:reduce){.svc-page *{transition:none}}
+</style>
 </head>
 <body>
 <div class="laboratory" id="labRoot">
-  <div class="intro"><h1>Cookie Editor · 账号管理 R2.5.4</h1><p>沿用原六大入口。额度图标仅在已接入额度能力的 AI 账号网站出现；请选 chatgpt.com → 账号查看对照。</p></div>
+  <div class="intro"><h1>Cookie Editor · 企业服务连接</h1><p>离线交互设计 · 六个入口保持原位 · 服务、账号与用量均为虚构数据</p></div>
   <div class="controls" aria-label="预览实验台">
     <label>宽度 <select id="labWidth"><option>320</option><option>360</option><option selected>380</option><option>400</option><option>440</option><option>520</option></select></label>
+    <label>服务场景（重置） <select id="labService"><option value="default">未连接</option><option value="connected">已连接</option><option value="empty">空列表</option><option value="error">连接失败</option><option value="unavailable">服务未启动</option><option value="expired">会话过期</option><option value="unknown">结果未知</option></select></label>
     <label>故障 <select id="labFault"><option value="none">正常</option><option value="unknown">切换结果未知</option><option value="write">写入失败</option><option value="reload">刷新失败</option></select></label>
-    <button id="labTheme" aria-pressed="false">深色</button><button id="labRenewCookie" title="演示同一账号的会话 Cookie 自动续期（仅虚构数据）">模拟会话续期</button><button id="labReset">重置</button>
+    <button id="labServiceExample" disabled title="仅填入虚构地址或连接码，不联系服务">填入演示信息</button><button id="labTheme" aria-pressed="false">深色</button><button id="labRenewCookie" title="演示同一账号的会话 Cookie 自动续期（仅虚构数据）">模拟会话续期</button><button id="labReset">重置</button>
   </div>
   <div class="panel" id="panel" data-width="380">
     <div class="host-preview"><strong>Cookie Editor</strong><span class="pill">React UI 布局参考 · HTML 原型</span></div>
-    <div class="sitebar"><div class="site-select"><select id="sitePick" aria-label="选择模拟网站"><option value="shop.example.com">shop.example.com</option><option value="docs.example.org">docs.example.org</option><option value="chatgpt.com">chatgpt.com · 会员示例</option><option value="empty.example.net">empty.example.net · 无 Cookie 测试</option></select><svg class="icon small" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></div><span class="sitehint">● 已授权</span><button id="refreshCookies" class="iconbtn" title="重新读取 Cookie，不刷新网页" aria-label="重新读取 Cookie"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg></button></div>
+    <div class="sitebar"><div class="site-select"><select id="sitePick" aria-label="选择模拟网站"><option value="shop.example.com">shop.example.com</option><option value="docs.example.org">docs.example.org</option><option value="chatgpt.com">chatgpt.com · 会员示例</option><option value="empty.example.net">empty.example.net · 无 Cookie 测试</option></select><svg class="icon small" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></div><span class="sitehint" title="当前网站 Cookie 访问权限；不代表服务连接或同步授权">● 网站已授权</span><button id="refreshCookies" class="iconbtn" title="重新读取 Cookie，不刷新网页" aria-label="重新读取 Cookie"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg></button></div>
     <div role="tablist" class="tabs" id="mainTabs" aria-label="Cookie Editor 功能"><button id="tabCookies" class="tab" type="button" role="tab" aria-controls="viewCookies" aria-selected="true" tabindex="0">Cookie</button><button id="tabAccounts" class="tab" type="button" role="tab" aria-controls="viewAccounts" aria-selected="false" tabindex="-1">账号</button><button id="tabEnterprise" class="tab" type="button" role="tab" aria-controls="viewEnterprise" aria-selected="false" tabindex="-1">企业</button><button id="tabMarket" class="tab" type="button" role="tab" aria-controls="viewMarket" aria-selected="false" tabindex="-1">市场</button><button id="tabCustom" class="tab" type="button" role="tab" aria-controls="viewCustom" aria-selected="false" tabindex="-1">定制</button><button id="tabCircle" class="tab" type="button" role="tab" aria-controls="viewCircle" aria-selected="false" tabindex="-1">圈子</button></div>
     <div class="panel-scroll" id="panelScroll">
       <section id="viewCookies" role="tabpanel" aria-labelledby="tabCookies"></section>
@@ -285,7 +338,7 @@
       <section id="viewCustom" role="tabpanel" aria-labelledby="tabCustom" hidden></section>
       <section id="viewCircle" role="tabpanel" aria-labelledby="tabCircle" hidden></section>
     </div>
-    <div class="footer"><span>Cookie 不含真实凭据 · 本机演示</span><span>Preview R2.5.4</span></div>
+    <div class="footer"><span>Cookie 不含真实凭据 · 本机演示</span><span>交互设计 · 离线演示</span></div>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
     <div id="backdrop" class="backdrop" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheet" tabindex="-1"><h2 id="sheetTitle"></h2><div id="sheetContent"></div><div class="actions"><button type="button" class="textbtn" id="cancelSheet">取消</button><button type="button" class="textbtn primary" id="confirmSheet">确认</button></div></div></div>
   </div>
@@ -394,8 +447,15 @@ function renderMarket(){if(tab!=='market')return;
  <p class="note">这里仅演示现有功能的使用入口，不提供账号交易、登录 Cookie 共享、申请或审批。未来接入真实内容须单独验证来源和授权。</p>
  <button class="link-btn" type="button" data-action="enterprise-from-market">需要团队管理？看看企业方案 ${icon('right')}</button></div>`;
 }
-function renderEnterprise(){if(tab!=='enterprise')return;
- $('viewEnterprise').innerHTML=`<div class="custom-content">
+
+// All service states below are fictional and memory-only. No SDK, fetch or storage access.
+const serviceSeed=()=>[
+ {id:'local-usage',name:'本机额度服务',type:'local',origin:'http://usage-demo.localhost:43121',status:'idle',associations:[],policy:false},
+ {id:'company-demo',name:'示例公司',type:'company',origin:'https://team.example.com',status:'idle',associations:[],policy:false}
+];
+let services=serviceSeed(),servicePage='list',serviceId='',serviceDraft=null,serviceReturn='list',serviceListScroll=0,serviceFocus='',serviceDialog=null,serviceSerial=0,servicePending=false,serviceLastField='';
+const servicePositions=new Map(),serviceTriggers=new Map();
+const serviceInfoHTML=()=>`<div class="custom-content">
  <div class="custom-hero"><div class="market-eyebrow">ENTERPRISE · 企业工作区</div><h2>让团队 AI 账号更好管理</h2><p>集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。</p></div>
  <div class="custom-section-head"><h3>团队常见场景</h3></div>
  <div class="custom-features">
@@ -414,7 +474,176 @@ function renderEnterprise(){if(tab!=='enterprise')return;
  <div class="enterprise-cta"><strong>需要更多企业席位？</strong><p>查看服务商提供的官方企业订阅，按实际人数选择席位；定制工作流程另在「定制」咨询，不引入审批系统。</p><div class="enterprise-actions"><a class="textbtn primary" href="https://chatgpt.com/pricing/" target="_blank" rel="noopener noreferrer">官方会员 / 席位 ${icon('right','small')}</a><button type="button" class="textbtn" data-action="enterprise-custom">了解企业定制 ${icon('right','small')}</button></div></div>
  <p class="note">目前仅为企业功能交互演示，未接入真实企业账号、后台或用量数据。</p>
  </div>`;
+const serviceStatus={idle:'未连接',connected:'已连接 · 演示',disconnected:'已断开',error:'连接失败',unknown:'结果待核对',unavailable:'服务未启动',expired:'会话已过期'};
+const serviceById=()=>services.find(x=>x.id===serviceId);
+const serviceTime=()=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+const serviceScope=x=>JSON.stringify({origin:x.origin,bindings:x.associations.map(a=>({account:a.account,version:a.version,site:a.site,resourceId:a.resourceId})).sort((a,b)=>a.account.localeCompare(b.account))});
+const svcButton=(action,label,id='',kind='')=>`<button type="button" class="textbtn ${kind}" data-action="svc-${action}" data-id="${htmlEscape(id)}">${label}</button>`;
+const serviceGlyphs={info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',plug:'<path d="M9 3v5m6-5v5M7 8h10v3a5 5 0 0 1-10 0V8Zm5 8v5"/>',unplug:'<path d="m3 3 18 18M9 3v3m6-3v5M7 8v3a5 5 0 0 0 8.5 3.5M17 11V8h-4M12 16v5"/>',alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',question:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .5c0 1.5-2.5 2-2.5 3.5m0 4h.01"/>'};
+const svcGlyph=name=>serviceGlyphs[name]?`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${serviceGlyphs[name]}</svg>`:icon(name);
+const svcIconButton=(action,label,glyph,id='',kind='')=>{const tipId='svc-tip-'+action+'-'+(id||'list');return `<button type="button" class="iconbtn svc-icon-action ${kind}" data-action="svc-${action}" data-id="${htmlEscape(id)}" aria-label="${htmlEscape(label)}" aria-describedby="${htmlEscape(tipId)}" title="${htmlEscape(label)}">${svcGlyph(glyph)}<span class="svc-tooltip" id="${htmlEscape(tipId)}" role="tooltip">${htmlEscape(label)}</span></button>`;};
+const svcBadge=x=>`<span class="svc-badge ${x.status==='connected'?'ok':x.status==='unknown'?'warn':x.status==='error'?'fail':''}">${svcGlyph(x.status==='connected'?'check':x.status==='unknown'?'question':x.status==='error'?'alert':x.status==='expired'?'clock':'unplug')}<span>${serviceStatus[x.status]}</span></span>`;
+const svcSubhead=(title,step='')=>`<div class="svc-subhead"><button type="button" class="iconbtn" data-action="svc-back" aria-label="返回${servicePage==='association-review'?'关联账号':servicePage==='detail'||servicePage==='config'&&!serviceDraft?.edit?'服务列表':serviceReturn==='management'?'管理页预览':'服务详情'}" title="返回">${icon('back')}</button><h2 id="svcTitle" class="svc-screen-title" tabindex="-1">${title}</h2>${step?`<small>${step}</small>`:''}</div>`;
+function serviceLabLock(){for(const el of document.querySelectorAll('.controls button,.controls select,#sitePick,#refreshCookies'))el.disabled=Boolean(serviceDraft)||servicePending||Boolean(serviceDialog);$('labServiceExample').disabled=servicePending||Boolean(serviceDialog)||!(servicePage==='config'||servicePage==='connect'&&serviceById()?.type==='local');for(const el of $('mainTabs').querySelectorAll('button'))el.disabled=servicePending;}
+function serviceFocusVisible(el){
+ if(!el)return;el.focus({preventScroll:true});
+ const box=el.getBoundingClientRect(),viewport=$('panelScroll').getBoundingClientRect();
+ if(box.top<viewport.top+4)$('panelScroll').scrollTop+=box.top-viewport.top-4;
+ else if(box.bottom>viewport.bottom-4)$('panelScroll').scrollTop+=box.bottom-viewport.bottom+4;
 }
+function serviceRender(focus=''){
+ const scroll=$('panelScroll').scrollTop;render();serviceLabLock();$('panelScroll').scrollTop=scroll;
+ if(focus)requestAnimationFrame(()=>serviceFocusVisible($('viewEnterprise').querySelector(focus)||$('svcTitle')));
+}
+const servicePageKey=(page,id)=>page==='list'?'list':page+':'+id;
+function serviceNavigate(page,id='',focus='#svcTitle',restore=false){
+ const key=servicePageKey(servicePage,serviceId),active=document.activeElement;
+ servicePositions.set(key,$('panelScroll').scrollTop);
+ if(active?.dataset.action?.startsWith('svc-'))serviceTriggers.set(key,'[data-action="'+active.dataset.action+'"]'+(active.dataset.id?'[data-id="'+CSS.escape(active.dataset.id)+'"]':'')+(active.dataset.index?'[data-index="'+active.dataset.index+'"]':''));
+ if(servicePage==='list'){serviceLastField='';serviceListScroll=$('panelScroll').scrollTop;serviceFocus=active?.dataset.action||'';}
+ servicePage=page;serviceId=id;render();serviceLabLock();
+ const destination=servicePageKey(page,id);$('panelScroll').scrollTop=restore?(servicePositions.get(destination)||0):0;
+ const target=restore?serviceTriggers.get(destination)||focus:focus;
+ requestAnimationFrame(()=>serviceFocusVisible($('viewEnterprise').querySelector(target)||$('viewEnterprise').querySelector(focus)));
+}
+function serviceReconcileBindings(){
+ for(const connection of services){
+  const valid=connection.associations.filter(binding=>{
+   const account=db[binding.site]?.accounts.find(item=>item.id===binding.account);
+   if(binding.site!==site||!account||account.snapshotVersion!==binding.version)return false;
+   binding.name=account.name;return true;
+  });
+  if(valid.length!==connection.associations.length){connection.associations=valid;connection.policy=false;connection.bindingNotice='网站、账号或快照已变化，相关关联已失效。请重新关联并审阅同步范围。';}
+ }
+}
+function renderEnterprise(){
+ if(tab!=='enterprise')return;
+ serviceReconcileBindings();
+ const x=serviceById(),d=serviceDraft;
+ let content='';
+ if(servicePage==='list'){
+  const online=services.filter(v=>v.status==='connected').length;
+  content=`<section class="svc-block" aria-label="服务连接"><div class="svc-section-head"><div><h3 id="svcConnections" class="svc-screen-title" tabindex="-1">服务连接 <span class="svc-count">${services.length}${online?' · '+online+' 个已连接':''}</span></h3><p>本机与公司服务<span class="svc-preview-label">离线演示</span></p></div><div class="svc-actions">${svcIconButton('refresh','重新读取服务状态','refresh')}${services.length?svcIconButton('add','添加服务','plus','','svc-accent'):''}</div></div>
+  <div class="svc-list">${services.length?services.map(v=>`<article class="svc-card" aria-label="服务：${htmlEscape(v.name)}"><div class="svc-card-head"><span class="svc-symbol ${v.type==='company'?'company':''}" aria-hidden="true">${icon(v.type==='local'?'chart':'users')}</span><div class="svc-card-title"><strong>${htmlEscape(v.name)}</strong><small>${v.type==='local'?'此电脑':'公司'} · ${htmlEscape(v.origin)}</small></div>${svcBadge(v)}</div>${v.status==='unknown'?'<p class="svc-field-error">原操作结果尚未确认，请先核对。</p>':''}<div class="svc-card-bottom"><span class="svc-account-count" role="img" aria-label="已关联账号：${v.associations.length} 个" title="已关联账号数；不代表身份已核验或同步已授权"><span aria-hidden="true">${icon('users','small')}</span><span aria-hidden="true">关联 <strong>${v.associations.length}</strong></span></span><div class="svc-actions" role="group" aria-label="${htmlEscape(v.name)}的操作">${svcIconButton('detail','服务详情：'+v.name,'info',v.id)}${v.status==='connected'?svcIconButton('management','打开管理页预览：'+v.name,'chart',v.id,'svc-accent'):svcIconButton('connect',(v.status==='unknown'?'核对原操作：':'连接服务：')+v.name,v.status==='unknown'?'search':'plug',v.id,v.status==='unknown'?'svc-warning':'svc-accent')}</div></div></article>`).join(''):`<div class="svc-empty"><span class="svc-symbol">${icon('link')}</span><strong>连接你的第一个服务</strong><p>先添加配置，再选择要连接的本机或公司服务。</p>${svcButton('add','添加服务','','primary')}</div>`}</div></section>
+  <div class="svc-inline-note">${icon('shield')}<span>连接只建立服务入口。账号需单独关联，Cookie 不会自动上传。</span></div><button type="button" class="link-btn svc-overview-return" data-action="svc-overview">返回企业概览</button>
+  `;
+ }else if(servicePage==='config'&&d){
+  const company=d.type==='company';
+  content=svcSubhead(d.edit?'编辑服务':'添加服务')+`<form id="svcConfigForm" class="svc-form" novalidate><fieldset class="svc-types"><legend>服务类型</legend><div class="svc-type-grid"><label class="svc-type"><input type="radio" name="svcType" value="local" ${!company?'checked':''} ${d.edit?'disabled':''}><span><strong>此电脑上的服务</strong></span></label><label class="svc-type"><input type="radio" name="svcType" value="company" ${company?'checked':''} ${d.edit?'disabled':''}><span><strong>公司服务</strong></span></label></div><p class="field-note">${company?'连接公司提供的账号与额度管理服务，向管理员获取服务地址。':'连接此电脑上已启动的账号额度服务。请保持服务运行。'}</p></fieldset>
+  <label class="field" for="svcName">服务名称<input id="svcName" name="name" maxlength="64" autocomplete="off" placeholder="${company?'例如：设计团队':'例如：我的额度服务'}" value="${htmlEscape(d.name)}" aria-describedby="svcNameError"><span id="svcNameError" class="svc-field-error" role="alert" hidden></span></label>
+  <label class="field" for="svcOrigin">服务地址<input id="svcOrigin" name="origin" type="url" inputmode="url" spellcheck="false" autocomplete="off" maxlength="320" placeholder="${company?'https://team.example.com':'粘贴本地服务提供的完整地址'}" value="${htmlEscape(d.origin)}" ${d.edit&&x?.status==='connected'?'readonly':''} aria-describedby="svcOriginHelp svcOriginError"><span id="svcOriginHelp" class="field-note">${d.edit&&x?.status==='connected'?'连接期间只能修改名称；更换地址请先断开连接。':company?'填写管理员提供的 HTTPS 地址，不含路径、账号或参数。':'打开服务管理页 → Cookie 同步设置 → 生成新应用连接码，复制其中的服务地址（含端口）。'}</span><span id="svcOriginError" class="svc-field-error" role="alert" hidden></span></label>
+  ${company?'':`<details class="svc-hint"><summary>服务还没启动，或找不到地址？</summary><p>① 启动此电脑上的「AI 账号额度服务」，保持运行。② 打开服务管理页，在「Cookie 同步设置」中生成应用连接码，复制服务地址。</p><p>地址随启动可能改变，因此不预填端口。请复制完整服务地址，不要粘贴管理页链接。终端的 Application pairing 也会提供 origin（地址）与 code（连接码）。</p><p>尚未准备服务？本预览不安装或启动服务；可用上方实验台的「填入演示信息」体验。</p></details>`}
+  <div class="svc-inline-note">${icon('shield')}<span>${d.edit?(x?.status==='connected'?'修改名称保留现有连接；接收地址需先断开后更换。':'配置更改后仍需单独连接并审阅访问范围。'):'保存配置不会连接；下一步再确认连接。'}</span></div>
+  <p id="svcConfigError" class="svc-field-error" role="alert" hidden></p><div class="svc-form-footer">${svcButton('back','取消')}<button type="submit" class="textbtn primary">保存配置</button></div></form>`;
+ }else if(servicePage==='detail'&&x){
+  content=svcSubhead('服务详情')+`<div class="svc-detail-intro"><span class="svc-symbol ${x.type==='company'?'company':''}">${icon(x.type==='local'?'chart':'users')}</span><div><h3>${htmlEscape(x.name)}</h3>${svcBadge(x)}</div>${svcIconButton('edit','编辑服务配置','edit',x.id,'svc-edit')}</div>
+  <dl class="svc-meta"><div><dt>服务类型</dt><dd>${x.type==='local'?'此电脑上的账号额度服务':'公司账号与额度服务'}</dd></div><div><dt>连接地址</dt><dd>${htmlEscape(x.origin)}</dd></div><div><dt>最近确认</dt><dd>${x.lastConfirmed?htmlEscape(x.lastConfirmed)+' · 演示':x.status==='unknown'?'连接结果尚未确认':'尚未确认成功'}</dd></div></dl>
+  ${x.bindingNotice?`<div class="svc-alert" role="status"><strong>账号关联已失效</strong><p>${htmlEscape(x.bindingNotice)}</p></div>`:''}
+  ${x.status==='error'?'<div class="svc-alert error" role="status"><strong>连接未成功，配置已保留</strong><p>请确认服务正在运行，并核对服务地址。可编辑配置后手动连接；没有自动重试。</p></div>':x.status==='expired'?'<div class="svc-alert" role="status"><strong>服务会话已过期</strong><p>历史配置保留。请重新连接并审阅当前服务。</p></div>':x.status==='unavailable'?`<div class="svc-alert" role="status"><strong>服务尚未启动</strong><p>先启动「AI 账号额度服务」，再从管理页复制当前地址与新连接码；地址变化时请编辑配置。</p>${svcButton('refresh','重新核对服务状态',x.id)}</div>`:''}
+  ${x.status==='unknown'?`<div class="svc-alert" role="status"><strong>原连接操作结果待核对</strong><p>不会重复连接或重新发送。请先查询原操作的结果。</p></div>${svcButton('reconcile','核对原操作',x.id,'primary')}`:x.status!=='connected'?`<div class="svc-hint">配置已保存在此预览中。${x.type==='company'?'公司授权尚未接入；可演示界面流程。':'下一步填写服务提供的一次性应用连接码，再确认连接。'}</div>${svcButton('connect','连接服务',x.id,'primary svc-primary-wide')}`:`${svcButton('management','打开管理页 '+icon('right','small'),x.id,'primary svc-primary-wide')}`}
+  <section class="svc-block"><div class="svc-section-head"><h3>账号关联</h3><span class="svc-count">${x.associations.length} 个</span></div>${x.associations.length?x.associations.map((a,i)=>`<div class="svc-row"><div><strong>${htmlEscape(a.name)}</strong><small>${htmlEscape(a.site)} → ${htmlEscape(a.resource)}</small><small>手动关联 · 身份未核验${x.status!=='connected'?' · 连接后可用':''}</small></div><button type="button" class="textbtn" data-action="svc-unlink" data-index="${i}" aria-label="解除${htmlEscape(a.name)}的关联" title="解除关联">解除关联</button></div>`).join(''):`<p class="svc-origin">还没有关联账号。${x.status==='connected'?'选择当前网站已保存的账号进行关联。':'连接后选择当前网站已保存的账号。'}</p>`}${svcButton('associate','关联账号',x.id,x.status==='connected'?'':'svc-disabled')}</section>
+  <section class="svc-block"><div class="svc-section-head"><h3>同步范围</h3><span class="svc-badge ${x.policy?'ok':''}">${x.policy?'已审阅 · 演示':'尚未授权'}</span></div><p class="svc-origin">${x.policy?'账号元数据、用量摘要 · 手动 · 保留 7 天':'只在你审阅并接受后生效；连接不等于同步授权。'}</p>${svcButton('policy','审阅同步范围',x.id,x.status==='connected'?'':'svc-disabled')}</section>
+  <div class="svc-form-footer">${x.status==='connected'?svcButton('disconnect','断开连接',x.id,'danger'):x.status!=='unknown'?svcButton('remove','移除配置',x.id,'danger'):''}</div>`;
+ }else if(servicePage==='connect'&&x){
+  const company=x.type==='company';
+  content=svcSubhead('连接服务','审阅连接')+`<div class="svc-lead"><h3>${htmlEscape(x.name)}</h3><p class="svc-origin">${htmlEscape(x.origin)}</p></div>
+  ${company?`<div class="svc-alert"><strong>公司授权尚未接入</strong><p>此处仅演示审阅与连接结果，不会登录公司账号或发送请求。</p></div>`:`<label class="field" for="svcCode">一次性应用连接码<input id="svcCode" type="password" autocomplete="off" spellcheck="false" maxlength="64" placeholder="粘贴服务提供的连接码" value="${htmlEscape(serviceDraft?.code||'')}" aria-describedby="svcCodeHelp svcConnectError"><span id="svcCodeHelp" class="field-note">从同一服务的「Cookie 同步设置 → 生成新应用连接码」复制。5 分钟内有效，使用一次；过期后生成新码。仅在此处填写，不要分享。</span></label><div class="svc-hint">请核对上方地址与连接码来自同一服务。${svcButton('edit-from-connect','返回修改配置',x.id)}</div>`}
+  ${x.status==='unavailable'?`<div class="svc-alert" role="status"><strong>请先启动账号额度服务</strong><p>服务尚未运行，暂不能连接。启动后核对地址；地址已变化时返回修改配置。</p>${svcButton('refresh','重新核对服务状态',x.id)}</div>`:''}
+  <section class="svc-block"><h3>本次连接范围</h3><ul class="svc-scope"><li>${icon('check')}读取服务信息与已授权资源列表</li><li>${icon('check')}在独立页面打开服务管理后台</li><li>${icon('shield')}不读取或上传 Cookie、密码、Token</li></ul></section>
+  <p id="svcConnectError" class="svc-field-error" role="alert" hidden></p><div class="svc-form-footer">${svcButton('back','取消')}${svcButton('confirm-connect','确认连接 · 演示',x.id,'primary')}</div>`;
+ }else if(servicePage==='associate'&&x){
+  const rows=data().accounts.filter(a=>!a.shared);
+  content=svcSubhead('关联账号','选择 → 核对')+`<form id="svcAssociateForm" class="svc-form"><div class="svc-hint">当前网站 <strong>${htmlEscape(site)}</strong><br>本次只关联所选账号与服务资源，不传输 Cookie。</div>${rows.length?`<label class="field" for="svcAccount">本地已保存账号<select id="svcAccount" required><option value="">请选择账号</option>${rows.map(a=>`<option value="${htmlEscape(a.id)}" ${d?.account===a.id?'selected':''}>${htmlEscape(a.name)}</option>`).join('')}</select></label><label class="field" for="svcResource">服务中的账号资源<select id="svcResource" required><option value="">请选择资源</option><option value="codex-demo" ${d?.resource?'selected':''} ${x.associations.some(a=>a.resourceId==='codex-demo')?'disabled':''}>Codex · 演示工作区${x.associations.some(a=>a.resourceId==='codex-demo')?'（已关联）':''}</option></select><span class="field-note">${x.associations.some(a=>a.resourceId==='codex-demo')?'该资源已有账号关联。请先在服务详情解除原关联，再选择其他账号。':'来自所选服务的资源列表，仅为虚构数据。'}</span></label><div class="svc-alert"><strong>手动关联，身份尚未核验</strong><p>名称相同不代表同一登录账号。关联后仅提供所选资源的管理入口。</p></div><p id="svcAssociationError" role="alert" class="svc-field-error" hidden></p><div class="svc-form-footer">${svcButton('back','取消')}<button type="submit" class="textbtn primary" ${x.associations.some(a=>a.resourceId==='codex-demo')?'disabled':''}>核对关联</button></div>`:`<div class="svc-empty"><strong>当前网站还没有已保存账号</strong><p>请先到「账号」保存当前网站账号，再返回关联。</p>${svcButton('accounts','前往账号')}</div>${svcButton('back','返回服务详情')}`}</form>`;
+ }else if(servicePage==='association-review'&&x&&d){
+  content=svcSubhead('核对关联','最后一步')+`<div class="svc-review"><h3>本地账号</h3><div><strong>${htmlEscape(d.name)}</strong><p class="svc-origin">${htmlEscape(d.site)}</p></div></div><div class="svc-review"><h3>目标服务与资源</h3><div><strong>${htmlEscape(x.name)}</strong><p class="svc-origin">${htmlEscape(x.origin||'此设备 · 本机服务')}</p><p class="svc-origin">Codex · 演示工作区</p></div></div><div class="svc-alert"><strong>手动关联 · 身份未核验</strong><p>这不是网站登录确认，也不会授予 Cookie 上传权限。</p></div><div class="svc-form-footer">${svcButton('cancel-association','取消')}${svcButton('save-association','确认关联',x.id,'primary')}</div>`;
+ }else if(servicePage==='policy'&&x){
+  content=svcSubhead('审阅同步范围')+`<div class="svc-lead"><h3>${htmlEscape(x.name)}</h3><p>后台期望范围 · 版本 1（演示）</p></div><section class="svc-review"><h3>本次授权的账号与资源</h3>${x.associations.length?x.associations.map(a=>`<div class="svc-row"><div><strong>${htmlEscape(a.name)}</strong><small>${htmlEscape(a.site)}</small><small>${htmlEscape(a.resource)} · ${htmlEscape(a.resourceId)}</small><small>手动关联 · 身份未核验</small></div></div>`).join(''):'<p class="svc-origin">尚未关联资源，无法接受范围。请先返回详情关联账号。</p>'}</section><div class="svc-review"><dl class="svc-meta"><div><dt>数据类别</dt><dd>账号元数据、用量摘要</dd></div><div><dt>触发方式</dt><dd>仅手动</dd></div><div><dt>保留时间</dt><dd>7 天</dd></div><div><dt>接收位置</dt><dd>${htmlEscape(x.origin||'此设备 · 本机服务')}</dd></div></dl></div><div class="svc-inline-note">${icon('shield')}<span>不包含 Cookie、密码与 Token。Cookie 备份与上传尚未提供。</span></div><label class="svc-check"><input type="checkbox" id="svcAcceptScope" ${serviceDraft?.accepted?'checked':''} ${!x.associations.length?'disabled':''}>我已核对接收方、所列资源和数据范围</label><p class="svc-confirm-context">本次审阅 · <strong>${htmlEscape(x.name)}</strong><br>${htmlEscape(x.origin||'此设备 · 本机服务')}</p><div class="svc-form-footer">${svcButton('back','取消')}<button type="button" class="textbtn primary" data-action="svc-accept-policy" ${serviceDraft?.accepted&&x.associations.length?'':'disabled'}>接受此范围</button></div>`;
+ }else if(servicePage==='management'&&x){
+  content=svcSubhead('管理页预览')+`<div class="svc-hint" role="note"><strong>独立管理页的离线示意</strong><p>正式入口会在独立标签页打开。这里不请求服务，也不创建真实管理会话。</p></div><div class="svc-detail-intro"><span class="svc-symbol">${icon('chart')}</span><div><h3>${htmlEscape(x.name)}</h3><p class="svc-origin">${htmlEscape(x.origin||'此设备 · 本机服务')}</p></div></div><section class="svc-card"><h3>账号与额度</h3><div class="svc-stat-line"><strong>${x.associations.length}</strong><span>个手动关联资源 · 身份未核验</span></div><p class="svc-origin">${x.associations.length?'当前仅展示关联配置；没有已验证的真实额度。':'返回服务详情，先关联当前网站已保存的账号。'}</p></section><section class="svc-card"><div class="svc-section-head"><h3>同步设置</h3><span class="svc-badge">${x.policy?'已审阅 · 演示':'尚未授权'}</span></div><p class="svc-origin">${x.policy?'账号元数据与用量摘要 · 手动 · 7 天':'期望策略需回到本机审阅后才可接受。'}</p>${svcButton('policy','查看同步范围',x.id)}</section><div class="svc-inline-note">${icon('shield')}<span>没有真实额度或同步回执时，保留未验证状态。</span></div>`;
+ }
+ const overview=serviceInfoHTML().replace('<h2>让团队 AI 账号更好管理</h2>','<h2 id="svcTitle" class="svc-screen-title" tabindex="-1">让团队 AI 账号更好管理</h2>').replace('</p></div>',`</p><button type="button" class="link-btn svc-jump" data-action="svc-jump">服务连接 · ${services.length} 个 ${icon('chevron','small')}</button></div>`);
+ const pageHTML=servicePage==='list'?overview+`<div class="svc-page svc-workspace" aria-busy="${servicePending}">${content}</div>`:`<div class="svc-page" aria-busy="${servicePending}">${content}</div>`;
+ $('viewEnterprise').innerHTML=pageHTML;
+ for(const el of $('viewEnterprise').querySelectorAll('.svc-disabled')){el.disabled=true;el.title='请先连接服务';}
+ if(services.some(v=>v.status==='unknown'))for(const el of $('viewEnterprise').querySelectorAll('[data-action="svc-add"],[data-action="svc-edit"],[data-action="svc-associate"],[data-action="svc-policy"],[data-action="svc-remove"],[data-action="svc-disconnect"],[data-action="svc-unlink"]')){el.disabled=true;el.title='请先核对原操作';}
+ if(services.some(v=>v.status==='unknown'))for(const el of $('viewEnterprise').querySelectorAll('[data-action="svc-connect"]')){if(services.find(v=>v.id===el.dataset.id)?.status!=='unknown'){el.disabled=true;el.title='请先核对原操作';}}
+ if(x?.status==='unavailable'&&servicePage==='connect')$('viewEnterprise').querySelector('[data-action="svc-confirm-connect"]').disabled=true;
+ if(servicePending)for(const el of $('viewEnterprise').querySelectorAll('button,input,select'))el.disabled=true;
+}
+function serviceDirty(){const d=serviceDraft;if(!d)return false;if(d.kind==='connect')return Boolean(d.code);if(d.kind==='policy')return Boolean(d.accepted);if(d.kind==='associate')return Boolean(d.account||d.resource);return JSON.stringify([d.name,d.type,d.origin])!==d.baseline||Boolean(d.origins&&Object.values(d.origins).some(Boolean));}
+function serviceShowDialog(kind,proceed){
+ if(serviceDialog)return;
+ const x=serviceById();
+ const text=kind==='discard'?['放弃未保存的更改？','已保存的服务配置不受影响。离开后，本次输入不会保留。','继续编辑','放弃更改']:kind==='disconnect'?['断开「'+x.name+'」？','将停止新操作并使同步授权失效。账号快照和关联配置保留；重新连接后需再次审阅。','取消','断开连接']:kind==='unlink'?['解除这个账号关联？','只移除服务关联，不删除本地账号，也不会退出网站。','取消','解除关联']:['移除「'+x.name+'」配置？','只移除此预览中的服务配置，不删除本地账号。','取消','移除配置'];
+ const active=kind==='discard'?($(serviceLastField)||$('viewEnterprise').querySelector('input,select')||document.activeElement):document.activeElement;
+ serviceDialog={proceed,active,scroll:$('panelScroll').scrollTop};
+ const layer=document.createElement('div');layer.id='svcDialog';layer.className='svc-dialog';layer.innerHTML=`<div class="svc-dialog-card" role="dialog" aria-modal="true" aria-labelledby="svcDialogTitle" aria-describedby="svcDialogDesc" tabindex="-1"><h3 id="svcDialogTitle">${htmlEscape(text[0])}</h3><p id="svcDialogDesc">${htmlEscape(text[1])}</p><div class="svc-dialog-actions"><button type="button" class="textbtn" data-svc-dialog="cancel">${text[2]}</button><button type="button" class="textbtn danger" data-svc-dialog="confirm">${text[3]}</button></div></div>`;
+ $('panel').append(layer);$('panelScroll').inert=true;$('mainTabs').inert=true;serviceLabLock();
+ layer.querySelector('[data-svc-dialog="cancel"]').focus();
+ layer.addEventListener('click',e=>{const b=e.target.closest('[data-svc-dialog]');if(b)serviceCloseDialog(b.dataset.svcDialog==='confirm');});
+ layer.addEventListener('keydown',e=>{if(e.key==='Tab'){const a=[...layer.querySelectorAll('button')];if(e.shiftKey&&document.activeElement===a[0]){e.preventDefault();a.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===a.at(-1)){e.preventDefault();a[0].focus();}}});
+}
+function serviceCloseDialog(confirm=false){const q=serviceDialog;if(!q)return;serviceDialog=null;$('svcDialog').remove();$('panelScroll').inert=false;$('mainTabs').inert=false;serviceLabLock();if(confirm)q.proceed();else{$('panelScroll').scrollTop=q.scroll;serviceFocusVisible(q.active);}}
+function serviceLeave(proceed){if(servicePending)return;if(serviceDirty())serviceShowDialog('discard',()=>{serviceDraft=null;proceed();});else{serviceDraft=null;proceed();}}
+function serviceBack(){
+ const editing=Boolean(serviceDraft?.edit),id=serviceId;
+ if(servicePage==='association-review'){serviceNavigate('associate',id,'#svcAccount',true);return;}
+ const dest=serviceReturn==='management'?'management':servicePage==='detail'?'list':servicePage==='config'&&!editing?'list':'detail';
+ const focus=dest==='list'?(serviceFocus==='svc-add'?'[data-action="svc-add"]':'[data-action="'+(serviceFocus||'svc-detail')+'"][data-id="'+id+'"]'):'#svcTitle';
+ serviceLeave(()=>{serviceReturn='list';serviceNavigate(dest,id,focus,true);});
+}
+function serviceConfigError(id,message){const field=$(id),err=$(id+'Error');field.setAttribute('aria-invalid','true');err.textContent=message;err.hidden=false;serviceFocusVisible(field);}
+function serviceSaveConfig(e){
+ e.preventDefault();const d=serviceDraft;if(!d)return;
+ const name=d.name.trim(),origin=d.origin.trim();
+ if(!name||name.length>64||/[\x00-\x1f\x7f]/.test(name))return serviceConfigError('svcName','请填写 1–64 字的服务名称。');
+ let u;try{u=new URL(origin);}catch{}
+ const local=u&&(u.hostname==='localhost'||u.hostname.endsWith('.localhost')||u.hostname==='127.0.0.1'||u.hostname==='[::1]');
+ if(!u||origin.length>320||/[\x00-\x1f\x7f]/.test(d.origin)||u.origin!==origin||u.username||u.password||
+   (d.type==='local'?(!local||!['http:','https:'].includes(u.protocol)):(u.protocol!=='https:'||local)))
+  return serviceConfigError('svcOrigin',d.type==='local'?'请粘贴本地服务给出的完整 HTTP(S) 地址（localhost、*.localhost 或回环地址），不含路径、尾斜杠、参数或连接码。':'请输入公司提供的 HTTPS 地址，不使用本机地址，不含路径、尾斜杠、参数或账号密码。');
+ const current=d.edit?serviceById():null;
+ if(current?.status==='connected'&&current.origin!==origin)return serviceConfigError('svcOrigin','请先断开连接，再更换服务地址。');
+ const existing=services.find(x=>x.id!==(d.edit?serviceId:'')&&x.origin===origin);
+ if(existing){$('svcConfigError').hidden=false;$('svcConfigError').innerHTML='该服务已有配置，避免重复建立连接。 '+svcButton('existing','查看已有服务',existing.id);return;}
+ if($('labFault').value==='write'){$('labFault').value='none';$('svcConfigError').hidden=false;$('svcConfigError').textContent='配置保存失败，输入已保留。你可以手动再次保存。';return;}
+ if(d.edit){const x=serviceById();x.name=name;if(x.origin!==origin){x.origin=origin;x.status='idle';x.associations=[];x.policy=false;x.lastConfirmed='';}}
+ else{serviceId='service-'+(++serviceSerial);services.push({id:serviceId,name,type:d.type,origin,status:'idle',associations:[],policy:false});}
+ const connected=serviceById()?.status==='connected';serviceDraft=null;serviceNavigate('detail',serviceId);toast(connected?'配置已保存 · 保留现有演示连接':'配置已保存 · 尚未连接');
+}
+function serviceAction(action,b){
+ const id=b.dataset.id||serviceId;
+ if(servicePending||serviceDialog)return;
+ if(action==='connect'&&services.some(x=>x.status==='unknown')&&services.find(x=>x.id===id)?.status!=='unknown'){toast('请先核对原操作；未发起新的连接');return;}
+ if(services.some(x=>x.status==='unknown')&&['add','edit','edit-from-connect','associate','policy','accept-policy','confirm-connect','disconnect','remove','unlink'].includes(action)){toast('请先核对原操作；未执行新的写入');return;}
+ if(action==='jump'){const heading=$('svcConnections');serviceFocusVisible(heading);$('panelScroll').scrollTop+=heading.getBoundingClientRect().top-$('panelScroll').getBoundingClientRect().top-4;}
+ else if(action==='overview'){serviceFocusVisible($('svcTitle'));$('panelScroll').scrollTop=0;}
+ else if(action==='add'){serviceDraft={name:'',type:'local',origin:'',origins:{local:'',company:''},baseline:JSON.stringify(['','local',''])};serviceReturn='list';serviceNavigate('config','','#svcName');}
+ else if(action==='existing'){serviceLeave(()=>{serviceReturn='list';serviceNavigate('detail',id);});}
+ else if(action==='detail'){serviceReturn='list';serviceNavigate('detail',id);}
+ else if(action==='edit-from-connect'){serviceLeave(()=>serviceAction('edit',b));}
+ else if(action==='edit'){const x=serviceById();serviceDraft={name:x.name,type:x.type,origin:x.origin,edit:true,baseline:JSON.stringify([x.name,x.type,x.origin])};serviceReturn='detail';serviceNavigate('config',id,'#svcName');}
+ else if(action==='back')serviceBack();
+ else if(action==='cancel-association')serviceLeave(()=>serviceNavigate('detail',id,'#svcTitle',true));
+ else if(action==='connect'){serviceDraft={kind:'connect',code:''};serviceId=id;const x=serviceById();if(x.status==='unknown'){serviceDraft=null;serviceAction('reconcile',b);return;}serviceReturn='detail';serviceNavigate('connect',id);}
+ else if(action==='confirm-connect'){
+  const x=serviceById();if(x.type==='local'&&!/^[a-fA-F0-9]{64}$/.test(serviceDraft?.code||'')){$('svcConnectError').hidden=false;$('svcConnectError').textContent='请粘贴完整连接码（64 位字符，仅含 0–9、a–f）；过期后在原服务生成新码。';$('svcCode').setAttribute('aria-invalid','true');serviceFocusVisible($('svcCode'));return;}
+  servicePending=true;serviceRender();const submit=$('viewEnterprise').querySelector('[data-action="svc-confirm-connect"]');if(submit)submit.textContent='正在连接…';toast('正在演示连接…');
+  setTimeout(()=>{const fault=$('labService').value;servicePending=false;serviceDraft=null;x.status=fault==='unknown'?'unknown':fault==='error'?'error':fault==='unavailable'?'unavailable':'connected';if(x.status==='connected')x.lastConfirmed=serviceTime();serviceNavigate('detail',x.id);toast(x.status==='connected'?'演示连接已建立 · 未接入真实服务':x.status==='unknown'?'原操作结果待核对，未自动重试':'演示连接失败，配置已保留');},450);
+ }
+ else if(action==='reconcile'){const x=services.find(v=>v.id===id);toast('演示查询：结果仍待核对，未重发原操作');serviceNavigate('detail',x.id);}
+ else if(action==='management'){serviceReturn='detail';serviceNavigate('management',id);}
+ else if(action==='associate'){serviceReturn='detail';serviceDraft={kind:'associate',account:'',resource:''};serviceNavigate('associate',id,'#svcAccount');}
+ else if(action==='accounts'){serviceDraft=null;changeTab('accounts');}
+ else if(action==='save-association'){const x=serviceById(),d=serviceDraft;if(d.site!==site||!data().accounts.some(a=>a.id===d.account&&a.snapshotVersion===d.version)){toast('站点或账号版本已变化，请重新选择');return;}if(x.associations.some(a=>a.resourceId===d.resourceId)){toast('所选资源已有关联，请先解除原关联');return;}if(!x.associations.some(a=>a.account===d.account)){x.associations.push({...d});x.policy=false;x.bindingNotice='';}serviceDraft=null;serviceNavigate('detail',x.id);toast('关联已保存 · 身份尚未核验');}
+ else if(action==='policy'){serviceDraft={kind:'policy',accepted:false,scope:serviceScope(services.find(v=>v.id===id))};serviceReturn=servicePage==='management'?'management':'detail';serviceNavigate('policy',id);}
+ else if(action==='accept-policy'){const x=serviceById();if(!$('svcAcceptScope').checked||!x.associations.length)return;if(serviceDraft?.scope!==serviceScope(x)){toast('关联或接收方已变化，请重新审阅');return;}x.policy={revision:1,scope:serviceScope(x),dataCategories:['ACCOUNT_METADATA','USAGE_SUMMARY'],retentionDays:7};serviceDraft=null;const destination=serviceReturn==='management'?'management':'detail';serviceReturn='detail';serviceNavigate(destination,id);toast('演示范围已接受 · 不含 Cookie');}
+ else if(action==='disconnect')serviceShowDialog('disconnect',()=>{const x=serviceById();x.status='disconnected';x.policy=false;serviceRender('#svcTitle');toast('演示连接已断开 · 本地账号仍保留');});
+ else if(action==='remove')serviceShowDialog('remove',()=>{services=services.filter(v=>v.id!==id);serviceNavigate('list','', '[data-action="svc-add"]');toast('服务配置已移除');});
+ else if(action==='unlink')serviceShowDialog('unlink',()=>{serviceById().associations.splice(Number(b.dataset.index),1);serviceById().policy=false;serviceRender('[data-action="svc-associate"]');toast('演示关联已解除 · 本地账号仍保留');});
+ else if(action==='refresh'){const unavailable=services.filter(x=>x.status==='unavailable');for(const x of unavailable)x.status='idle';serviceRender(servicePage==='connect'?'#svcCode':servicePage==='detail'?'[data-action="svc-connect"]':'[data-action="svc-refresh"]');toast(unavailable.length?'演示状态已更新 · 请核对当前地址后手动连接':'已重新读取演示状态 · 未请求真实服务');}
+}
+
 let customForm={need:'一套 AI 资源覆盖更多工作场景',note:'',brief:''};
 function renderCustomize(){if(tab!=='custom')return;
  $('viewCustom').innerHTML=`<div class="custom-content">
@@ -603,7 +832,7 @@ function createShareLink(audience,recipient,validity,uses){const a=account(sheet
 // This is a visibly limited metadata-only preview. Real invitations must be opaque, server-minted, audience-bound and revocable.
 const u=new URL(location.href);u.search='';u.hash='od-share='+encodeURIComponent(JSON.stringify(invite));generatedLink=u.href;modal('share-ready');}
 function parseInvite(){if(!location.hash.startsWith('#od-share='))return;try{const txt=decodeURIComponent(location.hash.slice('#od-share='.length));if(txt.length>3000)throw Error('too long');const o=JSON.parse(txt);if(![1,2].includes(o.v)||o.kind!=='opendesk-profile-preview'||typeof o.site!=='string'||!['shop.example.com','docs.example.org'].includes(o.site)||typeof o.name!=='string'||o.name.length>28||typeof o.alias!=='string'||!/^[-a-z0-9_]{1,40}$/i.test(o.alias)||!Number.isFinite(o.exp)||!(o.audience==='link'||o.audience==='named'||(o.v===1&&typeof o.to==='string'))||(o.audience!=='link'&&(!o.to||!/^@[a-z0-9_-]{2,30}$/i.test(o.to))))throw Error('bad');if(o.exp<Date.now())throw Error('expired');pendingInvite=o;site=o.site;tab='accounts';route='main';receiverMode=true;render();modal('receive');}catch{toast('邀请链接无效或过期，未添加任何账号');}}
-function handleAction(action,button){const id=button.dataset.id;
+function handleAction(action,button){if(action.startsWith('svc-')){serviceAction(action.slice(4),button);return;}const id=button.dataset.id;
 if(action==='back-account'){route='main';render();$('panelScroll').scrollTop=previousScroll;requestAnimationFrame(()=>$('viewAccounts').querySelector('[data-action="auto-toggle"]')?.focus({preventScroll:true}));return;}
 if(action==='market-filter'){marketFilter=button.dataset.value;renderMarket();return;}
 if(action==='market-try'){
@@ -724,7 +953,7 @@ $('viewCookies').addEventListener('submit',e=>{
 $('tabCookies').onclick=()=>changeTab('cookies');$('tabAccounts').onclick=()=>changeTab('accounts');$('tabEnterprise').onclick=()=>changeTab('enterprise');$('tabMarket').onclick=()=>changeTab('market');$('tabCustom').onclick=()=>changeTab('custom');$('tabCircle').onclick=()=>changeTab('circle');
 $('mainTabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)||busy)return;const tabs=['cookies','accounts','enterprise','market','custom','circle'];const at=tabs.indexOf(tab);const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(at+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;e.preventDefault();changeTab(tabs[next]);$('mainTabs').querySelector('[aria-selected="true"]')?.focus();});
 $('refreshCookies').onclick=()=>toast('已重新读取模拟 Cookie；未刷新目标网页');
-$('sitePick').onchange=e=>{site=e.target.value;membershipOpen=false;menuOpen='';exportOpen=false;importOpen=false;profileForm=null;cookieOpened='';search='';filter='all';route='main';testUrl='';autoResult='';$('panelScroll').scrollTop=0;render();};
+$('sitePick').onchange=e=>{site=e.target.value;serviceReconcileBindings();membershipOpen=false;menuOpen='';exportOpen=false;importOpen=false;profileForm=null;cookieOpened='';search='';filter='all';route='main';testUrl='';autoResult='';$('panelScroll').scrollTop=0;render();};
 $('labWidth').onchange=e=>$('panel').dataset.width=e.target.value;
 $('labTheme').onclick=e=>{let on=$('panel').classList.toggle('dark');e.currentTarget.textContent=on?'浅色':'深色';e.currentTarget.setAttribute('aria-pressed',String(on));};
 $('labReset').onclick=()=>{db=seed();site='shop.example.com';tab='cookies';search='';filter='all';filtersOpen=false;cookieOpened='';editingNew=false;menuOpen='';exportOpen=false;importOpen=false;route='main';marketFilter='all';marketQuery='';testUrl='';autoResult='';profileForm=null;pendingInvite=null;receiverMode=false;redeemedNonces=new Set();membershipOpen=false;customContactOpen=false;communitySelected='';customForm={need:'一套 AI 资源覆盖更多工作场景',note:'',brief:''};busy=false;$('labFault').value='none';if(sheet)closeModal();render();toast('场景已重置');};
@@ -965,6 +1194,7 @@ document.addEventListener('pointerdown',e=>{if(menuOpen&&!e.target.closest('.acc
    target={id:'new'+Date.now(),name,description,alias:'profile_'+n,color:'mint',updated:'刚刚',shared:false,authenticated:false};d.accounts.push(target);
   }
   if(!target){errorFeedback(err,'目标账号不存在');return;}
+  target.snapshotVersion=Number(target.snapshotVersion||0)+1;
   target.snapshot=snapshot;target.site=site;target.scope=!snapshot.length?'unlinked':profileForm.source==='file'?'offline':chosen.length===available.length?'full':'partial';target.count=snapshot.length;target.updated='刚刚';target.shared=false;
   if(target.scope!=='offline'&&target.scope!=='unlinked'){d.active=target.scope==='full'?target.id:null;d.previewOwner=d.active;d.phase=target.scope==='full'?'ready':'edited';}lastQuickUpdate=null;
   const savedId=target.id,savedName=target.name,savedCount=snapshot.length,savedScope=target.scope;
@@ -1039,6 +1269,39 @@ document.addEventListener('pointerdown',e=>{if(menuOpen&&!e.target.closest('.acc
   $('labReset').onclick=function(e){prevReset.call(this,e);seedProfiles();lastQuickUpdate=null;renewSerial=0;render();};
  seedProfiles();
 })();
+
+
+// Enterprise preview lifecycle: protect drafts and restore the exact trigger focus.
+$('viewEnterprise').addEventListener('focusin',e=>{if(e.target.matches('input,select')&&e.target.id)serviceLastField=e.target.id;});
+const servicePriorChangeTab=changeTab;
+changeTab=function(next){if(tab==='enterprise'&&next!==tab){serviceLeave(()=>{servicePage='list';servicePriorChangeTab(next);serviceLabLock();requestAnimationFrame(()=>$('mainTabs').querySelector('[aria-selected="true"]')?.focus({preventScroll:true}));});return;}servicePriorChangeTab(next);};
+$('viewEnterprise').addEventListener('input',e=>{const d=serviceDraft;if(!d)return;if(e.target.id==='svcName')d.name=e.target.value;if(e.target.id==='svcOrigin'){d.origin=e.target.value;if(d.origins)d.origins[d.type]=d.origin;}if(e.target.id==='svcCode'){d.code=e.target.value;$('svcConnectError').hidden=true;e.target.removeAttribute('aria-invalid');}const err=$(e.target.id+'Error');if(err){err.hidden=true;e.target.removeAttribute('aria-invalid');}if(e.target.matches('#svcName,#svcOrigin')&&$('svcConfigError'))$('svcConfigError').hidden=true;});
+$('viewEnterprise').addEventListener('change',e=>{
+ if(e.target.name==='svcType'&&serviceDraft){const d=serviceDraft;d.origins||={local:'',company:''};d.origins[d.type]=d.origin;d.type=e.target.value;d.origin=d.origins[d.type];serviceRender('[name="svcType"]:checked');}
+ if(e.target.id==='svcAcceptScope'){if(serviceDraft)serviceDraft.accepted=e.target.checked;$('viewEnterprise').querySelector('[data-action="svc-accept-policy"]').disabled=!e.target.checked;}
+ if(e.target.id==='svcAccount'&&serviceDraft)serviceDraft.account=e.target.value;
+ if(e.target.id==='svcResource'&&serviceDraft)serviceDraft.resource=e.target.value;
+});
+$('viewEnterprise').addEventListener('submit',e=>{
+ if(e.target.id==='svcConfigForm'){serviceSaveConfig(e);return;}
+ if(e.target.id==='svcAssociateForm'){
+  e.preventDefault();const a=data().accounts.find(v=>v.id===$('svcAccount').value);if(!a||!$('svcResource').value)return;
+  serviceDraft={...serviceDraft,account:a.id,name:a.name,version:a.snapshotVersion,site,resource:'Codex · 演示工作区',resourceId:$('svcResource').value};serviceNavigate('association-review',serviceId);
+ }
+});
+$('viewEnterprise').addEventListener('focusout',e=>{const b=e.target.closest('.svc-icon-action');if(b)delete b.dataset.tooltipDismissed;});
+$('viewEnterprise').addEventListener('pointerout',e=>{const b=e.target.closest('.svc-icon-action');if(b&&!b.contains(e.relatedTarget))delete b.dataset.tooltipDismissed;});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||tab!=='enterprise')return;e.preventDefault();e.stopImmediatePropagation();if(serviceDialog){serviceCloseDialog();return;}const b=e.target.closest('.svc-icon-action')||$('viewEnterprise').querySelector('.svc-icon-action:hover');if(b&&!b.hasAttribute('data-tooltip-dismissed')&&b.matches(':hover,:focus-visible')){b.dataset.tooltipDismissed='true';return;}if(servicePage!=='list')serviceBack();},true);
+$('labServiceExample').onclick=()=>{if(servicePending||serviceDialog)return;if(servicePage==='config'&&serviceDraft){const company=serviceDraft.type==='company';const values={svcName:company?'演示团队':'我的额度服务',svcOrigin:company?'https://demo.example.com':'http://usage-example.localhost:43121'};for(const [id,value]of Object.entries(values)){const field=$(id);if(field&&!field.readOnly){field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));}}serviceFocusVisible($('svcOrigin'));}else if(servicePage==='connect'&&$('svcCode')){$('svcCode').value='d'.repeat(64);$('svcCode').dispatchEvent(new Event('input',{bubbles:true}));serviceFocusVisible($('svcCode'));}toast('仅填入虚构演示信息，未联系服务');};
+$('labService').onchange=e=>{
+ services=serviceSeed();const state=e.target.value;
+ if(state==='empty')services=[];
+ else if(state!=='default'){services[0].status=state;if(['connected','expired'].includes(state))services[0].lastConfirmed=serviceTime();}
+ serviceDraft=null;servicePage='list';serviceId='';tab='enterprise';route='main';serviceRender('#svcTitle');$('panelScroll').scrollTop=0;
+};
+const servicePriorReset=$('labReset').onclick;
+$('labReset').onclick=function(e){services=serviceSeed();serviceDraft=null;servicePage='list';serviceId='';$('labService').value='default';servicePriorReset.call(this,e);serviceLabLock();};
+if(new URLSearchParams(location.search).get('view')==='enterprise')tab='enterprise';
 
 render();parseInvite();
 })();

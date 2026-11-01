@@ -1,0 +1,162 @@
+{
+  "url": "file:///Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.html",
+  "kind": "OFFLINE_REACT_UI_SIMULATED_SDK",
+  "nativeChrome": "NOT_TESTED",
+  "screenshots": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ready.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/results.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/record-detail.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/rules.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/json.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ai-review.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/empty.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/error.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/loading.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/permission-denied.png",
+    "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/untrusted.png"
+  ],
+  "presentation": {
+    "gutter": "12px",
+    "gap": "16px",
+    "font": "13px / 19.5px system-ui, sans-serif",
+    "horizontalOverflow": false,
+    "unlabeledControls": []
+  },
+  "interactions": {
+    "status": "PASS_SIMULATED_UI",
+    "checks": [
+      "ready to run through existing adapter",
+      "disabled Stop is visibly distinct from available actions",
+      "mode change preserves rules until explicit confirmation",
+      "cancel mode replacement preserves rules and restores focus",
+      "loads the selected field",
+      "selected field has persistent accessible state",
+      "invalid field keeps its draft, announces a local error and focuses correction",
+      "failed field application never changes the configuration",
+      "pagination edits preserve the unresolved field error",
+      "field correction preserves the unrelated pagination error",
+      "unapplied field blocks Run and Save",
+      "preview scenario cannot discard an active draft",
+      "tabs preserve field draft",
+      "dirty switch displays actual selected profile",
+      "Escape cancels switch without discarding draft",
+      "applied field reaches real App Model config",
+      "rename followed by edit keeps one field identity",
+      "new field can be renamed without leaving a duplicate",
+      "cancel field deletion preserves rule",
+      "confirmed field deletion updates config",
+      "unapplied pagination blocks Run",
+      "pagination form applies to the original config",
+      "invalid JSON survives tabs and blocks run",
+      "target edit cannot overwrite malformed JSON",
+      "cancel new preserves malformed JSON",
+      "new clears accepted drafts",
+      "named config stored in preview memory",
+      "rename updates selected configuration",
+      "duplicate name keeps name form for correction",
+      "copy selects an independent named configuration",
+      "cancel configuration deletion preserves selection",
+      "confirmed configuration deletion removes only the copy",
+      "workspace tabs support arrow-key selection and focus",
+      "run renders simulated returned rows only after retirement",
+      "single-page results do not show redundant pagination controls",
+      "short two-field results fit without clipping the last column",
+      "retired run clears the obsolete wait message",
+      "record details preserve the complete value",
+      "record detail Escape restores its origin focus",
+      "download explicitly identifies simulated data",
+      "column visibility updates its count",
+      "restore columns retains every original field",
+      "switch clears old result ownership",
+      "empty result is not invented",
+      "failed result is not shown as success",
+      "failed run shows a consistent failed heading and inline engine reason",
+      "failed empty run has error treatment and cannot export nonexistent CSV fields",
+      "busy run locks profile changes",
+      "preview scenario cannot reset a running task",
+      "stop waits for original request retirement",
+      "permission denied blocks Run",
+      "permission denial preserves the draft and gives the matching recovery guidance",
+      "untrusted title/records are text",
+      "untrusted record text remains visible",
+      "offline fixed AI proposal renders in the real review UI",
+      "AI changes are explicit before application",
+      "AI apply names a copy without starting capture",
+      "complex field routing reveals its explanation in the JSON destination and focuses the editor",
+      "complex field remains lossless",
+      "confirmed HTTP example replacement stays a draft and requires the matching target",
+      "preview stays opaque",
+      "no React runtime errors"
+    ],
+    "errors": [],
+    "realCapture": "NOT_TESTED"
+  },
+  "status": "PASS_SIMULATED_UI",
+  "previewSha256": "9eb4bd8f7cca98f84cd076be98bdfd99999845a7b582e364f17cfcd7a5c3b5d6",
+  "screenshotFingerprints": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ready.png",
+      "sha256": "e81d6737f325b138e6f9ea8c351c8ee53388d5899c8c93183bd02d1633c14e2e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/results.png",
+      "sha256": "2bd158342ffa6113c6673fde23a52955c0991bd71ecc619e84dfacf4900e48b2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/record-detail.png",
+      "sha256": "202a6c194dc1d6489f073fb76ffc88d81586777147a1015518b0dcc417c9c8c9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/rules.png",
+      "sha256": "c2028ed706593713341456e32e8e4757b382beb678adfa86aaacf167b3a6fb64"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/json.png",
+      "sha256": "a47291ba3adf6eedd762915faa589d4a40ed997221fdf41fc764065abdc4eb38"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ai-review.png",
+      "sha256": "64d6cfa1646ec3ebacae32297645df636c5f40f991d08f5c72978ac62101d696"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/empty.png",
+      "sha256": "9e5a60d0477e120541860d473e7cea9c5c74466d6b711c5aac51016008af24f9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/error.png",
+      "sha256": "f93f66b1c2bb8e757d0fc640fedf01da8bb30ed2156a911ec3d03a3dcd10f73a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/loading.png",
+      "sha256": "16eab94b1357564f4b2ed1ed3d25addbb5e565d23b2c34f4699756ac70291bee"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/permission-denied.png",
+      "sha256": "97fecee441b8ec03ac600c62a5355c4f597e9d0a1a8635edf6e3cf546e885444"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/untrusted.png",
+      "sha256": "d0aa12753b5193b76cc24ce2392e3c5f2a9d0fe32a89dde3106a720511fd8c00"
+    }
+  ],
+  "validation": {
+    "nodeTests": {
+      "passed": 41,
+      "failed": 0
+    },
+    "sharedUICompilation": {
+      "passed": 1,
+      "write": false
+    },
+    "toolViteBuild": "PASS",
+    "sourceLock": {
+      "inputs": 1369,
+      "drift": []
+    },
+    "browserBuild": "NOT_TESTED",
+    "installation": "NOT_TESTED",
+    "realModel": "NOT_TESTED",
+    "realCapture": "NOT_TESTED"
+  },
+  "boundary": "Offline simulated SDK with actual React UI only; no native extension acceptance or score of installed ScrapyJS."
+}

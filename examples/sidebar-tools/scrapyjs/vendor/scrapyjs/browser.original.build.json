@@ -3,7 +3,7 @@
   "packageName": "scrapyjs",
   "packageVersion": "1.0.0",
   "protocolVersion": "1.0",
-  "sourceHash": "4aab93d0bfa384bcc7a6502318cd365ecbab6f15c6cd3620f5c7d63bb83c5daf",
+  "sourceHash": "a2ea653145cdf1e9da70cba2b30e917f6e6e83daa32d04118448897e98272314",
   "inputs": {
     "src/ai/BrowserValidation.js": "5489bc47f6d44a6248db682b113265315324fa72d37f5f13deef565aa7e3b954",
     "src/ai/ConfigExecutor.js": "bd7103d3e1c4cbb6f08c96eea02fe8217833afde0f6a94f0811ff6cfb1228aa2",
@@ -32,8 +32,8 @@
     "src/index.js": "48ca3165403c5a35139a107e6470f3b383ded0ee87fe8f60900536e944cb613b",
     "src/item/Item.js": "098542af571a3f7787c4756a14b8da17def05943207464e36a92027274c71ec9",
     "src/item/ItemLoader.js": "6d6d0b1769c44ac79460242f8abc6ed00740edd8c2bb2256a50b5dcac11fd48c",
-    "src/item/item-loader-extraction.js": "104335b009fd9c7436c6e4b9a0351d545b65c6db83c719306a2e8e31eb0df8b1",
-    "src/item/parse-page.js": "f670afac5fc6e2b81138cc1f17ae4f6d21b72810addace91c604a38e4c10d30a",
+    "src/item/item-loader-extraction.js": "5a1724ef84bc67031e8ee9301eb9d7d0ce20722ba4a396432e6cf8e1d332f222",
+    "src/item/parse-page.js": "2fa1e29d06a7abb2e69214ce8c4f71fd7a43262db8bc2cb309e03152c7eb67df",
     "src/link/LinkExtractor.js": "e93bc0452622b52bc74c775b46b984c5605ecd265a77d685a7ebbee209315ddb",
     "src/middleware/ChromeDownloaderMiddleware.js": "402d97770ce043479996e9946751188e57477993a502b2305b7ebc1a4ea93c3a",
     "src/middleware/DownloaderMiddleware.js": "54e42929cecd0c682727f7dab04798e2729f3d383bae5fb2265a8d7a2a535196",
@@ -51,17 +51,17 @@
     "packages/recipe-contract/index.js": "09c91d19c4b25e9902fe50e342f24dc9a75881dc7c85f17d2c228f120880620c"
   },
   "gitHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
-  "gitStatus": "M docs/api/codegen.md\n M docs/api/spiders.md\n M src/core/ChromeSpider.js\n M src/middleware/ChromeDownloaderMiddleware.js\n?? .DS_Store\n?? artifacts/\n?? coverage/\n?? docs/.DS_Store\n?? docs/devflow-evidence/\n?? docs/evidence/\n?? examples/.DS_Store\n?? examples/douban-books/.DS_Store\n?? output/\n?? project/.DS_Store\n?? src/.DS_Store\n?? temp/\n?? test/.DS_Store\n?? test/chrome-modern-page.spec.js",
+  "gitStatus": "M docs/api/ai-config.md\n M docs/api/codegen.md\n M docs/api/items-pipelines-exports.md\n M docs/api/spiders.md\n M src/core/ChromeSpider.js\n M src/item/item-loader-extraction.js\n M src/item/parse-page.js\n M src/middleware/ChromeDownloaderMiddleware.js\n?? .DS_Store\n?? artifacts/\n?? coverage/\n?? docs/.DS_Store\n?? docs/devflow-evidence/\n?? docs/evidence/\n?? examples/.DS_Store\n?? examples/douban-books/.DS_Store\n?? output/\n?? project/.DS_Store\n?? src/.DS_Store\n?? temp/\n?? test/.DS_Store\n?? test/chrome-modern-page.spec.js\n?? test/list-item-only.spec.js\n?? test/manual-page-ergonomics.spec.js",
   "webpackVersion": "5.95.0",
   "buildFingerprint": {
     "schemaVersion": 2,
     "contract": "http-cheerio-v1",
-    "sourceHash": "211500fc4ed9abb91ac457c90fa7c60413047da8827a53fd3e7dc1f3be59be55",
+    "sourceHash": "f3696f96fbf2d0b68175726bbcb18c8176970d7a42488428fab0733dc3e3fe26",
     "dependencyHash": "4823775c43784c1c91c749d7d281a308894c0fc7f0b398cd8036ed19ab800d10",
     "buildContractHash": "bb20b67bf9ad85c94b1178a6ff51cf4b83e997e0247549aa1f85290130c4af99"
   },
-  "sdkHash": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
-  "builtAt": "2026-10-29T15:37:35.522Z",
+  "sdkHash": "42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c",
+  "builtAt": "2026-11-01T08:53:15.681Z",
   "nodeVersion": "v26.3.1",
   "npmVersion": "11.16.0"
 }

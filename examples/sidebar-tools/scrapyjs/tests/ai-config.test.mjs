@@ -66,3 +66,11 @@ test('local capture rejects unsupported user rules intact while original browser
  const local={url:base.url,itemConfig:{title:'h2::text'},maxPages:50};
  assert.equal(validateLocalCapture(local,validateConfig).maxPages,50);
 });
+
+test('preconfigured CSV labels survive AI proposals but never enter local capture requests',async()=>{
+ const {validateLocalCapture}=await import('../src/capture-trials.js');
+ const config={url:base.url,itemConfig:{title:'h2::text'},output:{fieldNames:{title:'标题'}}};
+ assert.deepEqual(JSON.parse(JSON.stringify(parseProposal(config,validateConfig,base.url))),config);
+ assert.deepEqual(JSON.parse(JSON.stringify(validateLocalCapture(config,validateConfig))),{url:base.url,itemConfig:{title:'h2::text'}});
+ assert.equal(config.output.fieldNames.title,'标题');
+});

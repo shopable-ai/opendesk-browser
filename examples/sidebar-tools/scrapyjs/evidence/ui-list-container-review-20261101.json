@@ -1,0 +1,122 @@
+{
+  "scope": "OFFLINE_LIST_CONTAINER_AND_RECORD_INFO",
+  "candidateHtmlSha256": "c04dc23203af7406d611f0a1265f4758033cede179d79350cddd57a64658a0f4",
+  "design": {
+    "candidate": "candidate3",
+    "scope": "新离线预览方案：直接切换容器、独立点选、结果info详情及详情复制",
+    "htmlSha256": "c04dc23203af7406d611f0a1265f4758033cede179d79350cddd57a64658a0f4",
+    "evidence": {
+      "htmlHashVerified": true,
+      "manifestOutputMatches": true,
+      "scopeReport": "32项PASS，同SHA，零错误",
+      "fieldReport": "25项PASS，同SHA，零错误",
+      "sourceParity": "1386输入PASS，零漂移，同SHA",
+      "screenshotsActuallyViewed": [
+        "scope/01-container-icons.png",
+        "scope/02-direct-switch.png",
+        "scope/03-pick-whole-list.png",
+        "scope/04-incompatible-filter.png",
+        "scope/05-result-info.png"
+      ],
+      "sourceReviewed": [
+        "src/Results.jsx",
+        "preview/ListScopeAssistant.jsx"
+      ],
+      "independentBrowserReplay": false
+    },
+    "dimensions": [
+      {
+        "name": "语义清晰度",
+        "score": 19,
+        "max": 20,
+        "finding": "直接切换无选择弹窗；列表名、条数与草稿状态清楚，点选保持独立。",
+        "deduction": "扣1分：点选列表的视觉选中状态主要依赖蓝色边框，缺少勾选或“已选”文字；源码已有aria-pressed。"
+      },
+      {
+        "name": "发现性与视觉层级",
+        "score": 20,
+        "max": 20,
+        "finding": "双图标常驻输入框内；结果行仅留info。截图确认列头折行已消除，源码保留sr-only表头及按钮完整名称。",
+        "deduction": "无扣分。"
+      },
+      {
+        "name": "草稿与取消",
+        "score": 20,
+        "max": 20,
+        "finding": "报告覆盖循环切换、范围草稿、显式应用、取消恢复、保留过滤条件、忙态锁定及跨容器字段点选。",
+        "deduction": "无扣分。"
+      },
+      {
+        "name": "键盘与焦点",
+        "score": 19,
+        "max": 20,
+        "finding": "报告覆盖Tab顺序、Space点选、模态焦点约束、IME Escape保护及关闭返回焦点；源码具备Enter点选处理。",
+        "deduction": "扣1分：报告未明确记录Enter点选及键盘激活直接切换后的焦点结果；属于证据缺口，未认定功能失败。"
+      },
+      {
+        "name": "反馈与候选证据一致性",
+        "score": 19,
+        "max": 20,
+        "finding": "截图确认切换反馈仅显示列表名和条数，未应用提示只保留一次。不兼容过滤提示明确；HTML、manifest、两份报告及来源核对绑定同SHA。",
+        "deduction": "扣1分：详情展开和复制反馈未提供截图，相关行为由回放报告支持，视觉证据尚不完整。"
+      }
+    ],
+    "total": 97,
+    "max": 100,
+    "target": ">95",
+    "passed": true,
+    "verdict": "candidate3离线方案独立设计终评通过",
+    "mustFixBlockers": [],
+    "limitations": {
+      "interactionEvidence": "交互结论依据同候选报告，本次未独立重跑浏览器。",
+      "realWebsiteLegacyApi": "仍在查证，未接公开SDK；离线切换不证明真实网页接口已恢复。",
+      "native": "NOT_TESTED",
+      "realWebsite": "NOT_TESTED",
+      "installation": "NOT_TESTED",
+      "production": "NOT_TESTED",
+      "fixedPreviewSynchronization": "未核验，不属于本候选评分结论。"
+    }
+  },
+  "engineering": {
+    "score": 93,
+    "blockers": [],
+    "report": "artifacts/scrapyjs/list-container-20261101/candidate3/engineering-review.md",
+    "limitations": [
+      "No LSP type diagnostics",
+      "IME evidence is limited to replayed paths"
+    ]
+  },
+  "verification": {
+    "scopeReport": "artifacts/scrapyjs/list-container-20261101/candidate3/scope-final/report.json",
+    "scopeChecks": 33,
+    "fieldReport": "artifacts/scrapyjs/list-container-20261101/candidate3/field/report.json",
+    "fieldChecks": 25,
+    "targetedNodeChecks": 22,
+    "toolBuild": "PASS",
+    "sourceParityInputs": 1386,
+    "fixedPreviewReadback": "PASS",
+    "sourceParityAtGeneration": "PASS",
+    "currentWorktreeSourceParity": "DRIFT",
+    "currentWorktreeDrift": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/Results.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/RuleEditor.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/results.css",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/style.css"
+    ],
+    "finalDeliveryReport": "artifacts/scrapyjs/list-container-20261101/candidate3/final-delivery.json"
+  },
+  "legacyApi": {
+    "call": "window.selector.next(customSelectors = null)",
+    "currentSelection": "window.selector.getCurrentSelector()",
+    "executionWorld": "target webpage MAIN",
+    "evidence": "artifacts/scrapyjs/list-container-20261101/candidate3/legacy-api.md",
+    "sidebarSdkBinding": "NOT_CONNECTED"
+  },
+  "notTested": [
+    "real website",
+    "installed extension",
+    "Native",
+    "production"
+  ]
+}

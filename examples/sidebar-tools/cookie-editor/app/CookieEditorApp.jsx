@@ -273,6 +273,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       const rejected=action==='serviceReconcile'&&result.connections.some(c=>c.history.at(-1)?.outcome==='REJECTED');
       setHttpServiceNotice(unknown?'原操作结果未知，已保留记录；请核对原回执，不要重复发送。':
         rejected?'服务已确认此配对码无效或过期，未创建设备。请获取新应用配对码后重新审阅连接。':
+        action==='serviceSave'?'配置已保存，尚未连接。下一步填写应用一次性连接码并确认连接。':
         action==='serviceOpen'?'已打开对应管理页。':action==='serviceConnect'?'HTTP 服务已连接，不会上传 Cookie。':
         action==='serviceBind'?'关联已确认，登录身份仍未核验。':action==='serviceDisconnect'?'服务已确认断开。':
         action==='serviceUsage'?'已读取缓存用量，没有查询上游。':'服务状态已更新。');
@@ -925,6 +926,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         httpServiceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
           accountReady:accountState?.unlocked===true,state:httpServiceState,busy:locked,
           notice:httpServiceNotice,onAction:httpServiceAction,onDirtyChange:setHttpServiceDirty,formRevision:serviceFormRevision,
+          onDiscardRequest:(action,onCancel)=>ask('放弃未保存修改？',()=>{
+            setHttpServiceDirty(false);action();
+          },onCancel),
           onAccounts:()=>chooseSection('accounts')}}
         serviceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
           accountReady:accountState?.unlocked===true,state:serviceState,

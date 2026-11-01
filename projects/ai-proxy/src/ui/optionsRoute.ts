@@ -33,10 +33,12 @@ export function parseOptionsHash(hash: string): OptionsSection {
 }
 
 export type SubscriptionRoute =
-  | { kind: 'list' | 'new' | 'local' | 'official' | 'invalid' }
+  | { kind: 'list' | 'new' | 'official' | 'invalid' }
+  | { kind: 'local'; id?: string }
   | { kind: 'source'; id: string };
 
-const SOURCE_ID = /^[a-zA-Z0-9_-]{1,80}$/;
+// Strict end of input: `$` alone also accepts a trailing newline.
+const SOURCE_ID = /^[a-zA-Z0-9_-]{1,80}$(?![\s\S])/;
 
 /** Do not reflect untrusted fragments or subscription credentials into navigable URLs. */
 export function parseSubscriptionRoute(hash: string): SubscriptionRoute {
@@ -44,15 +46,15 @@ export function parseSubscriptionRoute(hash: string): SubscriptionRoute {
   if (hash === '#/subscriptions/new') return { kind: 'new' };
   if (hash === '#/subscriptions/local') return { kind: 'local' };
   if (hash === '#/subscriptions/official') return { kind: 'official' };
-  const match = /^#\/subscriptions\/source\/([^/?#]+)$/.exec(hash);
-  if (match && SOURCE_ID.test(match[1]!)) return { kind: 'source', id: match[1]! };
+  const match = /^#\/subscriptions\/(source|local)\/([^/?#]+)$/.exec(hash);
+  if (match && SOURCE_ID.test(match[2]!)) return { kind: match[1] as 'source' | 'local', id: match[2]! };
   return { kind: 'invalid' };
 }
 
 export function subscriptionRouteHash(route: SubscriptionRoute): string {
-  if (route.kind === 'source') {
+  if (route.kind === 'source' || (route.kind === 'local' && route.id !== undefined)) {
     if (!SOURCE_ID.test(route.id)) throw new Error('Invalid subscription source ID');
-    return '#/subscriptions/source/' + route.id;
+    return '#/subscriptions/' + route.kind + '/' + route.id;
   }
   return route.kind === 'invalid' || route.kind === 'list'
     ? '#/subscriptions' : '#/subscriptions/' + route.kind;

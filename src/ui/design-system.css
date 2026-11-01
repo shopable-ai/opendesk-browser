@@ -117,6 +117,56 @@ details>section{margin-top:var(--space-3)}
 /* Collapsible rows are interactive controls, including nested technical details. */
 @media(pointer:coarse){.od-disclosure>summary{min-height:44px}}
 
+/* Opt-in shadcn/ui aria-nova classes translated to canonical selectors.
+ * Palette/mapped semantic values remain in design-tokens.css. No Preflight. */
+.od-theme-shadcn :is(.od-button,.od-icon-button){box-sizing:border-box}
+.od-theme-shadcn .od-button{min-height:32px;padding:0 10px;gap:6px;font-size:14px;font-weight:500;line-height:20px;border:1px solid transparent;box-shadow:none;outline:none;cursor:default;transition:background-color .1s,box-shadow .1s}
+.od-theme-shadcn .od-button:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
+.od-theme-shadcn .od-button--primary{background:var(--primary);color:var(--primary-foreground)}
+.od-theme-shadcn .od-button--primary:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
+.od-theme-shadcn .od-button--secondary{background:var(--secondary);color:var(--secondary-foreground)}
+.od-theme-shadcn .od-button--secondary:hover:not(:disabled){background:color-mix(in oklch,var(--secondary) 95%,var(--foreground))}
+.od-theme-shadcn .od-button--outline{background:var(--background);border-color:var(--border);color:var(--foreground);box-shadow:0 1px 2px #0000000d}
+.od-theme-shadcn .od-button--quiet{background:transparent;color:var(--foreground)}
+.od-theme-shadcn .od-button--danger{background:var(--od-negative-bg);color:var(--destructive)}
+.od-theme-shadcn .od-button--danger:hover:not(:disabled){background:color-mix(in oklch,var(--destructive) 20%,transparent)}
+.od-theme-shadcn .od-button--link{background:transparent;color:var(--primary);text-underline-offset:4px}
+.od-theme-shadcn .od-button--link:hover:not(:disabled){background:transparent;text-decoration:underline}
+.od-theme-shadcn :is(.od-button--quiet,.od-button--outline,.od-icon-button):hover:not(:disabled){background:var(--muted)}
+.od-theme-shadcn :is(.od-button,.od-icon-button):hover:not(:disabled){filter:none}
+.od-theme-shadcn .od-button[data-size="xs"]{min-height:24px;padding:0 8px;font-size:12px}
+.od-theme-shadcn .od-button[data-size="sm"]{min-height:28px;padding:0 10px;font-size:12.8px}
+.od-theme-shadcn .od-button[data-size="lg"]{min-height:36px;padding:0 10px}
+.od-theme-shadcn :is(.od-button,.od-icon-button):disabled{opacity:.5;cursor:default}
+.od-theme-shadcn :is(input,select,textarea).od-field{box-sizing:border-box;width:100%;min-width:0;min-height:32px;padding:4px 10px;font-family:inherit;font-size:14px;line-height:22px;color:var(--foreground);background:transparent;border:1px solid var(--input);border-radius:var(--radius);box-shadow:0 1px 2px #0000000d;outline:none}
+.od-theme-shadcn :is(input,select,textarea).od-field::placeholder{color:var(--muted-foreground)}
+.od-theme-shadcn :is(input,select,textarea).od-field:disabled{background:var(--muted);opacity:.5;cursor:not-allowed}
+.od-theme-shadcn :is(input,textarea).od-field[readonly]{color:var(--foreground);background:var(--muted)}
+.od-theme-shadcn :is(.od-button,.od-icon-button,.od-field):focus-visible{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
+.od-theme-shadcn .od-field[aria-invalid="true"]{border-color:var(--destructive);box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 20%,transparent)}
+.od-theme-shadcn .od-field-label{font-size:14px;font-weight:500;line-height:20px}
+.od-theme-shadcn .od-form-field{gap:8px}
+.od-theme-shadcn :is(.od-title,.od-page-title){font-size:14px;font-weight:600;line-height:20px}
+.od-theme-shadcn .od-disclosure>summary{font-weight:500;min-height:36px}
+.od-theme-shadcn :is(strong,b){font-weight:500}
+.od-theme-shadcn .od-shared-card{background:var(--card);border-color:var(--border);box-shadow:none}
+.od-theme-shadcn .od-shared-switch{width:32px;height:18.4px;background:var(--input)}
+.od-theme-shadcn .od-shared-switch[data-selected]{background:var(--primary)}
+.od-theme-shadcn .od-shared-switch-thumb{width:16px;height:16px;margin-left:1px;background:var(--background)}
+.od-theme-shadcn .od-shared-switch[data-selected] .od-shared-switch-thumb{transform:translateX(14px)}
+.od-theme-shadcn .od-shared-switch[data-focus-visible]{outline:none;box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
+.od-theme-shadcn .od-shared-switch[data-size="sm"]{width:24px;height:14px}
+.od-theme-shadcn .od-shared-switch[data-size="sm"] .od-shared-switch-thumb{width:12px;height:12px}
+.od-theme-shadcn .od-shared-switch[data-size="sm"][data-selected] .od-shared-switch-thumb{transform:translateX(10px)}
+.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field{background:color-mix(in oklch,var(--input) 30%,transparent)}
+.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field[aria-invalid="true"]{box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 40%,transparent)}
+.od-theme-shadcn [role="tablist"]{gap:4px}
+.od-theme-shadcn [role="tab"]{font-size:14px;font-weight:500}
+.od-theme-shadcn [role="tab"][aria-selected="true"]{color:var(--foreground)}
+.od-theme-shadcn .od-button--tab{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;box-shadow:none}
+.od-theme-shadcn .od-button--tab[aria-selected="true"]{border-bottom-color:var(--foreground)}
+@media(prefers-reduced-motion:reduce){.od-theme-shadcn .od-button{transition:none}}
+
 /* Keep the trusted tool host aligned with tools that follow the OS theme. */
 @media(prefers-color-scheme:dark){
   :root{color-scheme:dark}

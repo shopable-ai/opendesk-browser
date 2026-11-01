@@ -15,7 +15,7 @@ __pycache__/
 opendesk-tool-preview/
 
 # Generated Bookmark Manager acceptance screenshots and run reports stay local.
-/examples/sidebar-tools/bookmark-manager/preview/evidence/
+/projects/bookmark-manager/preview/evidence/
 
 # Reproducible tool caches and local coverage output
 .vite/

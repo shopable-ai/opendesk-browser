@@ -1,0 +1,393 @@
+{
+  "reviewPass": 3,
+  "reviewer": "independent implementation/code/spec/security lane",
+  "reviewedAt": "2026-10-31T10:23:29.594101+00:00",
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html",
+  "sha256": "68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277",
+  "evidenceLevel": {
+    "level": "SOURCE_BOUND_CHROMIUM_MEMORY_UI + INDEPENDENT_SOURCE_ARTIFACT_REVIEW + TARGETED_NODE_EXECUTION",
+    "scope": "只评冻结候选及本轮UI，不是Native/代理流量/安装/production或当前完整源码树批准。",
+    "fingerprint": {
+      "frozenInputs": 65,
+      "initialIndependentCheck": {
+        "matches": 65,
+        "drift": []
+      },
+      "preWriteTreeDrift": [],
+      "htmlAndReportManifestStillMatch": true,
+      "interpretation": "最终source-7460已将并行owner八项来源变化纳入快照，独立逐项核验65项当前同源。此前539f审查时漂移记录仅作历史；本次不声称新快照仅变一行。UI增量及并行核心变化分别披露，不对后者作独立代码批准。",
+      "previous539fTreeDriftAtReview": [
+        {
+          "file": "projects/ai-proxy/src/service.ts",
+          "frozenSha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7",
+          "currentSha256": "edbd99499b2744f0e2af9ba4f9cd964755d5a65c493d81ea1ab0e0ec0835c5e7"
+        },
+        {
+          "file": "projects/ai-proxy/src/domain/managed-config.ts",
+          "frozenSha256": "04c73fe07f65b00dfdeb8269383f24fd0e23fad67b9aeff5975e6a24cc8ec2dc",
+          "currentSha256": "f017290414f44a6803b1ea781fa643afbfadb8fbdbf46c03b0c6bbf0e4166d64"
+        },
+        {
+          "file": "projects/ai-proxy/src/environment.ts",
+          "frozenSha256": "7398c4432ce51dab9b9715b284ef6d1a985f4a2fe654e8c715c094ff64d6760f",
+          "currentSha256": "57accce511481ce403b087523f2fd7006dcac71df5dec981caf8116550655a40"
+        },
+        {
+          "file": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "frozenSha256": "2f0562a318e968c35a971f624f9d7992921d7e9a639465762a1998742b56082a",
+          "currentSha256": "a09a2b163f5f22e03427e6829c2fd346f2eeb9c55017c5d061ef78c4848438a9"
+        },
+        {
+          "file": "projects/ai-proxy/src/i18n/locales/en.json",
+          "frozenSha256": "c1dba86c228ffd1a8a7276f3230279e649046db092bd537bbc05b213120ea9ef",
+          "currentSha256": "79c821a419c13311efe44e301d51218830320d2a8aa243767b1e68e74eba6ecd"
+        },
+        {
+          "file": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "frozenSha256": "8a46555da7c46ec52c1c7484d758a03bc21201f37cd203d939b18419593774f9",
+          "currentSha256": "2df26652b349945de6c23a84b45c6f9c473a9731de92d6eb4f0e1d4e05c29481"
+        },
+        {
+          "file": "projects/ai-proxy/src/i18n/errors.ts",
+          "frozenSha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129",
+          "currentSha256": "92bb9cdeca944475676dcc93193da064febabb00366cd5b88f06241bf84d2f8e"
+        },
+        {
+          "file": "projects/ai-proxy/src/ui/Status.tsx",
+          "frozenSha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661",
+          "currentSha256": "cec69f75924ca576e4331c0ac793bf9929233d4d72213d6c71ab7b39ca5cc395"
+        }
+      ],
+      "deltaFrom539f": {
+        "changed": [
+          "projects/ai-proxy/src/service.ts",
+          "projects/ai-proxy/src/domain/managed-config.ts",
+          "projects/ai-proxy/src/environment.ts",
+          "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "projects/ai-proxy/src/i18n/locales/en.json",
+          "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "projects/ai-proxy/src/i18n/errors.ts",
+          "projects/ai-proxy/src/ui/Status.tsx",
+          "projects/ai-proxy/src/Settings.tsx"
+        ],
+        "uiWriterSourceDelta": "Settings.tsx saveAnother成功分支新增host focus一行；移除此行后文件sha与539f完全一致。",
+        "parallelOwnerSourceDelta": [
+          "projects/ai-proxy/src/service.ts",
+          "projects/ai-proxy/src/domain/managed-config.ts",
+          "projects/ai-proxy/src/environment.ts",
+          "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "projects/ai-proxy/src/i18n/locales/en.json",
+          "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "projects/ai-proxy/src/i18n/errors.ts",
+          "projects/ai-proxy/src/ui/Status.tsx"
+        ],
+        "otherNonFrozenReviewInputs": [
+          "projects/ai-proxy/tests/settings-credentials.test.mjs",
+          "projects/ai-proxy/scripts/navigation-density-preview.mjs"
+        ]
+      }
+    },
+    "browser": {
+      "version": "155.0.8059.39",
+      "at": "2026-10-31T10:20:39.643Z",
+      "groups": 15,
+      "result": "PASS",
+      "errors": [],
+      "external": [],
+      "reviewerReran": false,
+      "method": "独立核对真实动作驱动、最终15组记录、全部17张截图hash及manifest；查看新save-another-focus/pac/修正empty-profiles截图，其他UI源码/截图结论按未变输入映射。未控制浏览器。",
+      "screenshotsHashVerified": 17,
+      "interactionsSha256": "c41e4367b30239a23a461a464addc3233b1ca06e3e81bb14890c52570e60fdf0"
+    },
+    "node": {
+      "providedPass": 72,
+      "providedFail": 0,
+      "independentlyRunPass": 45,
+      "independentlyRunFail": 0,
+      "command": "node --test projects/ai-proxy/tests/sources-editor-runtime.test.mjs projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs",
+      "meaning": "最终7460输入同源时独立运行45项；真实转译组件/handler配模拟hooks/依赖，导航运行createNavigation，不是45条真实DOM流程。提供方72项日志另读，不声称自行运行全部72项。",
+      "inputHashes": {
+        "projects/ai-proxy/tests/settings-credentials.test.mjs": "98fa4f470362417fc2074f052399a067f23eb78e46167fccb57e4e9feabb9da8",
+        "projects/ai-proxy/tests/sources-editor-runtime.test.mjs": "98aedbe1ed0f667bd46cb9e1ff588fcc22a61efbe93fde5c49dc0cb998e07981",
+        "projects/ai-proxy/tests/navigation.test.mjs": "aa598e6ed9676d1717eac86870a830ee9928290eb8e32d8687fa10b921013d0e",
+        "projects/ai-proxy/tests/settings-rules-runtime.test.mjs": "ca33abebd269503ca7df18cd28eade33b10db0880d958d311a6b56590d67b01e"
+      },
+      "redEvidence": "提供方报告修复前actual-handler 7/8，缺host focus；评审未自行回退源码复现RED。最终8项含失败/stale revision/empty ref保护独立GREEN。"
+    },
+    "syntax": {
+      "status": "PASS",
+      "method": "Babel AST/esbuild内存transform，无文件输出或正式包构建",
+      "warnings": 0,
+      "files": [
+        "Settings.tsx",
+        "QuickPanel.tsx",
+        "ui/FormField.tsx",
+        "ui/ProxyIcon.tsx",
+        "ui/SourcesPage.tsx",
+        "ui/optionsRoute.ts",
+        "scripts/navigation-density-preview.mjs",
+        "tests/sources-editor-runtime.test.mjs",
+        "styles/sidebar-settings.css"
+      ]
+    },
+    "locales": {
+      "candidateKeysEach": 1010,
+      "initialSetsEqual": true,
+      "independentFinalSetsEqual": true,
+      "initialMissingLiteralReferencesInReviewedFiles": [],
+      "currentTree": "三语各新增2项属于并行核心owner，保留且三套key集合相等；本轮UI字面key引用仍有定义，不将计数当翻译质量证明。"
+    },
+    "lspDiagnostics": {
+      "status": "UNAVAILABLE",
+      "semanticTypes": "NOT_TESTED",
+      "reason": "会话无lsp_diagnostics、ast_grep工具，项目无可用TypeScript编译器；未安装工具。语法/AST检查不替代语义类型。",
+      "modifiedTypeScriptFiles": [
+        "projects/ai-proxy/src/Settings.tsx",
+        "projects/ai-proxy/src/QuickPanel.tsx",
+        "projects/ai-proxy/src/ui/FormField.tsx",
+        "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+        "projects/ai-proxy/src/ui/SourcesPage.tsx",
+        "projects/ai-proxy/src/ui/optionsRoute.ts"
+      ]
+    },
+    "astPatterns": "Babel AST未发现本轮新增硬编码秘密、产品空catch或广义掩错fallback。驱动失败截图catch不覆盖原始错误stack。"
+  },
+  "scope": {
+    "branch": "main",
+    "modifiedFilesReviewed": [
+      "projects/ai-proxy/src/Settings.tsx",
+      "projects/ai-proxy/src/QuickPanel.tsx",
+      "projects/ai-proxy/src/ui/FormField.tsx",
+      "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "projects/ai-proxy/src/i18n/locales/en.json",
+      "projects/ai-proxy/scripts/navigation-density-preview.mjs",
+      "projects/ai-proxy/tests/sources-editor-runtime.test.mjs",
+      "projects/ai-proxy/tests/settings-credentials.test.mjs"
+    ],
+    "excluded": "新快照包含并行environment/managed-config/service/errors/Status及三语各2项新增；仅核对来源与UI调用边界，不对并行核心实现评分。正式JSON/package/tool.config、平台及README/Design/AGENTS回填不作通过依据。",
+    "productWrites": []
+  },
+  "evidenceReuse": {
+    "pass1": "projects/ai-proxy/evidence/configuration-actions-20261031/code-review-pass-1.json",
+    "pass1Sha256": "17420015e06ffdee0b3e4541796fae5430bca5f2675f198e1f3f577a22da587d",
+    "preserved": true,
+    "changedFrozenInputsSincePass1": [
+      "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "projects/ai-proxy/src/service.ts",
+      "projects/ai-proxy/src/domain/managed-config.ts",
+      "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "projects/ai-proxy/src/environment.ts",
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "projects/ai-proxy/src/i18n/locales/en.json",
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "projects/ai-proxy/src/i18n/errors.ts",
+      "projects/ai-proxy/src/ui/Status.tsx",
+      "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "projects/ai-proxy/src/Settings.tsx"
+    ],
+    "unchangedFrozenInputs": 53,
+    "mapping": [
+      {
+        "area": "QuickPanel key/FormField语义类/ProxyIcon/原三语内容",
+        "use": "QuickPanel/FormField/ProxyIcon及本轮旧UI语言key按未变来源复用；三语文件因核心owner各加2key已变，最终重核1010 key集合与UI操作。"
+      },
+      {
+        "area": "Settings/CSS/SourcesPage/optionsRoute",
+        "use": "Settings/CSS/SourcesPage/optionsRoute重新读diff与主合同；最终15组DOM及45项独立检查绑定7460；Settings相对539f只一行回焦，其余三项hash未变。"
+      },
+      {
+        "area": "既有凭据、表单提交与draft handler",
+        "use": "提供方最终72项日志与独立45项分级记录；新增焦点保护8项独立通过，旧数据保存/凭据/草稿合同未绕过。"
+      },
+      {
+        "area": "失败中间候选",
+        "use": "interaction-failure-focus-reflow.json保留FAIL。最终动作align-self:start修复展开引起的点击目标位移，正常点击Cancel/confirm通过，未用force点击或删失败记录。"
+      },
+      {
+        "area": "source-539f到source-7460",
+        "use": "9个冻结输入变化=Settings回焦+8项并行核心owner变化；source-check delta与独立hash核对相符。未把核心实现归入UI改动或独立评分。"
+      },
+      {
+        "area": "保存并继续添加取证驱动",
+        "use": "interaction-failure-driver-tab-order.json保留。原直接Tab到Port断言忽略HostQuickPick和protocol，最终驱动按现有可聚焦顺序检查，未改产品Tab顺序。"
+      }
+    ]
+  },
+  "stage1SpecCompliance": {
+    "status": "PASS_FOR_FROZEN_UI_STAGE",
+    "evidence": [
+      "无业务Tabs、齿轮七区、四模式、三语、PAC/订阅/客户端/导入保留；导入有可见文字。",
+      "Settings.tsx:81-85,546按endpoint.id直达；SourcesPage.tsx:115-116限定local-client来源，157-168精确查实体，缺失ID不开Add；181-188保存同一ID。",
+      "SourcesPage.tsx:149-155统一Cancel/Escape，busy先拒绝；133-146仅同revision成功清理才重置/导航。Keep不碰字段；晚确认不清新稿。routeKey包含kind/id，dirty时effects不覆盖。",
+      "optionsRoute.ts:40-57受限ID拒绝路径/query/fragment/编码斜线/换行；navigation在guard前拒绝非法路由，无订阅秘密反射。",
+      "Settings.tsx:56-66恢复原本地记录滚动/焦点；浏览器61-76确认保存/放弃返回原ID、记录数3、端口更新且未应用。",
+      "长规则title/aria-describedby、focus/hover展开、Escape收起保留焦点；actions align-self:start稳定指针目标。",
+      "PAC/规则/代理保存未新增APPLY，关键保存/应用/确认仍为文字。",
+      "Settings.tsx:314-320回焦仅在SAVE_ENDPOINT/SAVE_PROFILE成功且revision清稿获准后执行；最终真实点击保存并继续添加，字段清空、Host焦点、Tab经HostQuickPick/protocol到Port、记录4且未应用均有断言。"
+    ]
+  },
+  "rootCauseGuard": {
+    "status": "PASS",
+    "maskingFallbackIntroduced": false,
+    "cssOwnership": "原sidebar-settings.css owner内修通用/危险hover；pacRecord明确两列，父gap与子margin清零；长规则直接修重排原因，无跨文件!important叠补丁。基础组件旧几何仍存在，不宣称全量CSS已清除。",
+    "draftOwnership": "scope revision收紧关闭主合同；迟到确认拒绝清稿，没有best-effort清理或绕过guard。"
+  },
+  "resolvedIssues": [
+    {
+      "id": "I1",
+      "status": "RESOLVED",
+      "location": "projects/ai-proxy/src/styles/sidebar-settings.css:93",
+      "evidence": "普通hover排除quietDanger，危险hover使用bad/badBg；真实hover保持rgb(174,61,75)，背景rgb(255,240,241)。"
+    },
+    {
+      "id": "I2",
+      "status": "RESOLVED",
+      "location": "projects/ai-proxy/scripts/navigation-density-preview.mjs:108",
+      "evidence": "PAC展开后实测34px/title/aria/focus/同行；122-130执行编辑回填、替换Keep/discard、删除Cancel/confirm及再保存，未显示应用。"
+    },
+    {
+      "id": "I4",
+      "status": "RESOLVED_IN_SOURCE_7460",
+      "severityWhenPresent": "LOW",
+      "location": "projects/ai-proxy/src/Settings.tsx:319",
+      "title": "保存并继续添加成功后焦点停在底部按钮",
+      "evidence": "最终新增一行在成功/revision校验之后聚焦#ep-host；独立8项验证成功聚焦及failure/stale revision/empty ref保护；15组浏览器同候选含真实保存、字段清空和Tab顺序。该缺陷曾明确存在，不能将隔离修复GREEN冒充旧539f已修。"
+    }
+  ],
+  "scores": {
+    "correctness": {
+      "score": 98,
+      "basis": [
+        "最终候选PAC编辑/删除/保存、本地原ID编辑与缺失ID安全拒绝成立。",
+        "独立45项通过；连续添加只在写入成功且revision匹配时清稿回焦，不触发APPLY。"
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "reason": "完整语义类型未验证；复杂来源跨路由组合仅定向覆盖，不外推所有状态。"
+        }
+      ]
+    },
+    "reliability": {
+      "score": 97,
+      "basis": [
+        "Cancel/Escape遵守busy/revision；Keep与晚确认保护成立。",
+        "本地保存/放弃恢复原行焦点；最终PAC/规则动作重跑。",
+        "新增回焦没有抢走失败或较新草稿的焦点；空ref安全，最终浏览器连续添加链通过。"
+      ],
+      "deductions": [
+        {
+          "points": 3,
+          "reason": "失败/迟到响应较多依赖模拟hooks/handler，浏览器主要覆盖成功/取消链，非完整渲染链故障验证。"
+        }
+      ]
+    },
+    "security": {
+      "score": 98,
+      "basis": [
+        "ID路由不反射订阅URL/秘密；local-client实体与保存原ID边界明确。",
+        "无新增Host权限/网络/动态HTML/代理路径，sandbox仍仅allow-scripts。"
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "reason": "只证明UI身份及调用边界，真实Chrome Authority/代理安全未验证。"
+        }
+      ]
+    },
+    "maintainability": {
+      "score": 96,
+      "basis": [
+        "复用原来源/路由/草稿/共享组件，无新依赖。",
+        "同owner修hover、PAC记录及规则动作位置，无绕过主合同fallback。"
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "reason": "基础组件旧几何与语义/结构字段选择器仍有重复；SourcesPage继续兼任路由、编辑和多来源状态。当前无冲突，但有后续维护成本；不要求本轮全量重构。"
+        }
+      ]
+    },
+    "userFeedback": {
+      "score": 98,
+      "basis": [
+        "危险hover修复，导入可见文字；规则来源到字段实际12px。",
+        "长目标键盘展开/Escape/aria描述和PAC图标焦点/同行有证据。",
+        "保存并继续添加现清字段并回Host，Tab按现有快捷项/协议到Port；历史焦点缺陷已明确关闭。"
+      ],
+      "deductions": [
+        {
+          "points": 2,
+          "reason": "I3：缺失本地实体安全拒绝开Add，但无专门可见状态说明。"
+        }
+      ]
+    },
+    "evidenceSufficiency": {
+      "score": 96,
+      "basis": [
+        "最终HTML、manifest、65来源及全部17张截图hash独立一致；source-check九项delta与owner边界明确。",
+        "最终15组DOM补齐PAC和连续添加焦点；45项独立执行与提供方72项分级；失败中间记录保留，未据测试数量/token引用打分。"
+      ],
+      "deductions": [
+        {
+          "points": 4,
+          "reason": "2分：LSP/语义类型缺失；2分：未应用主要检查UI标记，无完整命令序列计数，以源码和handler交叉核对而非副作用审计。此分只针对本轮冻结UI证据，不评分并行核心实现。"
+        }
+      ]
+    }
+  },
+  "issues": [
+    {
+      "id": "I3",
+      "severity": "LOW",
+      "category": "user-feedback",
+      "file": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "line": 163,
+      "relatedLocations": [
+        "projects/ai-proxy/src/ui/SourcesPage.tsx:398"
+      ],
+      "title": "失效本地实体链接缺少可见状态说明",
+      "evidence": "openLocal缺失ID直接return；local分支仅breadcrumb和空editorMarkup。missing-ID测试证明拒绝Add正确，但没有显示失效原因。",
+      "risk": "已删除/不存在的local/<id>只剩返回入口，用户不能区分加载中与实体已失效；正常编辑不受影响。",
+      "fix": "在现有local分支显示本地化status说明配置不存在/已变化，保留返回profiles；不要自动转Add或其他实体。扩展现有missing-ID用例核验反馈。",
+      "blocking": false
+    }
+  ],
+  "limitations": [
+    "仅绑定source-7460最终冻结HTML及本轮UI；并行核心来源变化纳入快照但不属于本lane独立核心代码审查，不外推全产品零已知问题。",
+    "LSP/完整语义类型NOT_TESTED；语法转译不能替代语义诊断，结论COMMENT，不批准无类型错误或merge-ready。",
+    "Native、真实代理/流量、正式安装、production、全CI、IME、尺寸/缩放矩阵NOT_TESTED，按阶段不恢复为P0。",
+    "未自行控制或重跑浏览器、未自行运行全部72项；独立执行45项，其他采用提供方最终记录及源码/断言/截图/hash交叉检查。",
+    "修复前actual-handler RED采用提供方观察；未修改或回退产品代码重现。保存回焦成功及失败/stale/空ref最终GREEN已独立执行。",
+    "I3低风险失效实体反馈仍存在；不是全产品零问题声明。仅实现lane，不代替architect/UI lane或合并发布审批。"
+  ],
+  "conclusion": {
+    "recommendation": "COMMENT",
+    "blockingProductDefectsFound": false,
+    "resolvedPriorIssues": [
+      "I1",
+      "I2",
+      "I4"
+    ],
+    "issueCounts": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 1
+    },
+    "allSixDimensionsAtLeast95": true,
+    "scoreScope": "仅冻结source-7460本轮UI及其调用/身份边界；并行核心实现、Native及发布不在评分范围",
+    "summary": "I1/I2及连续添加焦点I4关闭；最终15组同源Chromium记录与独立45项支持当前UI合同，保留I3低风险失效实体反馈。六维评分98/97/98/96/98/96，仅为限定范围评审，COMMENT且不是全产品零已知问题或Native/发布/类型通过。",
+    "stopCondition": "已完成本轮独立复评，仅覆盖指定code-review.json；pass1保留，未改产品/docs、分支、服务、浏览器、正式包或提交。"
+  },
+  "previousReviewedCandidate": {
+    "candidate": "projects/ai-proxy/.opendesk-preview/source-539f71f3-09a8-4e12-9e8c-0f1a4171df27/preview.html",
+    "sha256": "11167b73b9c3e2fae40f1157a8d57167904f2ef5df40fe9961b899aa471363a7",
+    "status": "SUPERSEDED_BY_SOURCE_7460"
+  }
+}

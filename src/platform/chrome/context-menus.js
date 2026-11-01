@@ -12,7 +12,7 @@ import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createBrowserFullBookmarksHost} from './bookmarks-full.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
-import {createBrowserManagedProxy,validateManagedProxyConfig} from './browser-managed-proxy.js';
+import {createBrowserManagedProxy,validateManagedProxyConfig,stopManagedProxyForTool} from './browser-managed-proxy.js';
 import {REVIEWED_MANAGED_PROXY_PROFILES} from './browser-managed-proxy-profiles.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from '../tasks/schedule-contract.js';
@@ -237,6 +237,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Host-only, exact-context evidence of a consumed one-use proxy intent.
   // No package field or serialized credential can populate this dispatch scope.
   const proxyConfigApprovals=new WeakMap();
+  function proxyConsentRow(source,identity){
+    const row=source.grants[identity.toolId];
+    return row?.version===identity.toolVersion&&row.packageHash===identity.packageHash&&
+      row.installEpoch===(identity.epoch??null)?row:null;
+  }
+  function findProxyConsent(source,identity,config){
+    const rows=proxyConsentRow(source,identity)?.proxyConfigs;
+    return Array.isArray(rows)&&rows.length<=16?rows.find(row=>
+      typeof row?.grantId==='string'&&row.grantId.length===36&&
+      canonicalJSON(row.config)===canonicalJSON(config)):null;
+  }
+  async function requireProxyConsent(identity,config,grantId){
+    const grant=findProxyConsent(await readSources(api),identity,config);
+    if(!grant||grant.grantId!==grantId)
+      throw failure('E_PROXY_CONSENT_REQUIRED','This exact proxy route needs trusted review');
+  }
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
   // The approved Registry, not a second handwritten Host list, defines which
@@ -480,7 +496,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     downloads:downloadHost,
     'proxy.managed':createBrowserManagedProxy({api,lockManager,
       reviewedProfiles:reviewedProxyProfiles,
-      authorizeConfig:(context,config)=>proxyConfigApprovals.get(context)===canonicalJSON(config),
+      authorizeConfig:async(context,config)=>{
+        const approval=proxyConfigApprovals.get(context);
+        if(approval?.config!==canonicalJSON(config))return false;
+        if(approval.grantId)await requireProxyConsent(context,config,approval.grantId);
+        return true;
+      },
       authorizeEnable:owner=>verifyBrowserOwner(owner,'browser.proxy.managed.requestEnable')}),
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
       api,operation,toolId:owner.toolId,input,
@@ -934,7 +955,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           return {authorized:true};
         if(scopedBindings.has(operation)){
           if(operation==='browser.proxy.managed.requestEnable'){
-            proxyConfigApprovals.set(context,canonicalJSON(validateManagedProxyConfig(checked.config)));
+            if(intent.proxyGrantId)await requireProxyConsent(context,checked.config,intent.proxyGrantId);
+            proxyConfigApprovals.set(context,{config:canonicalJSON(validateManagedProxyConfig(checked.config)),
+              grantId:intent.proxyGrantId});
             try{return await dispatchScoped(operation,checked,context);}
             finally{proxyConfigApprovals.delete(context);}
           }
@@ -1127,7 +1150,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,args},sender){
+  async function handleHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,proxyConsent,args},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
@@ -1377,6 +1400,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         trustedCookies.revoke();
         return {origin:site,capability:siteCapability,enabled,storeId:next.storeId??null};
       }
+      if(operation==='browser.proxy.managed.revokeConsent'){
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null};
+        await verifyBrowserOwner(identity,'browser.proxy.managed.requestDisable');
+        for(const [ref,intent] of browserIntents)
+          if(intent.toolId===toolId&&intent.operation==='browser.proxy.managed.requestEnable')browserIntents.delete(ref);
+        const row=source.grants[toolId];
+        if(row)await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+          ...source.grants,[toolId]:{...row,proxyConfigs:[]}});
+        // The original Driver persists STOP and clears only this tool's exact PAC.
+        // A failed/unknown release stays fenced; the grant is already revoked.
+        await stopManagedProxyForTool(api,tool.id,{lockManager});
+        return {revoked:true};
+      }
       if(operation==='browser.intent.confirm'){
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
            !/^[0-9a-f-]{36}$/i.test(toolInstance))throw failure('E_SCHEMA','Invalid trusted action');
@@ -1385,14 +1422,40 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!sidebarToolEnabled(source.enabled,toolId))throw failure('E_TOOL_DISABLED');
         if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
-        const packageHash=await digestTool(tool);
+        const requestedPackageHash=packageHash;
+        const currentPackageHash=await digestTool(tool);
         const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(targetOperation)
             ?new URL(args.url).origin:null;
-        const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+        const identity={toolId,toolVersion,packageHash:currentPackageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
         await verifyBrowserOwner(identity,targetOperation,origin);
+        let proxyGrantId=null;
+        if(proxyConsent!==undefined){
+          if(targetOperation!=='browser.proxy.managed.requestEnable'||
+             !['remember','reuse'].includes(proxyConsent))throw failure('E_SCHEMA','Invalid proxy consent decision');
+          // Never let a stale trusted document transfer consent to a new package.
+          if(requestedPackageHash!==currentPackageHash)throw failure('E_TOOL_CHANGED');
+          const config=validateManagedProxyConfig(args.config);
+          let grant=findProxyConsent(source,identity,config);
+          if(!grant&&proxyConsent==='reuse')throw failure('E_PROXY_CONSENT_REQUIRED','Review this exact route first');
+          if(!grant){
+            const old=proxyConsentRow(source,identity);
+            const menu=source.grants[toolId]?.contextMenu;
+            // Like effectiveMenuState, preserve same-install restrictions even
+            // after an interrupted update. Keep their identity; never rebind old rights.
+            const preserveMenu=menu&&menu.installEpoch===(installEpoch??null);
+            const rows=Array.isArray(old?.proxyConfigs)?old.proxyConfigs:[];
+            if(rows.length>=16)throw failure('E_LIMIT','Revoke remembered proxy routes before adding more');
+            grant={config,grantId:crypto.randomUUID()};
+            await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+              ...source.grants,[toolId]:{...(old||{}),...(preserveMenu?{contextMenu:menu}:{}),
+                version:toolVersion,packageHash:currentPackageHash,
+                installEpoch:installEpoch??null,proxyConfigs:[...rows,grant]}});
+          }
+          proxyGrantId=grant.grantId;
+        }
         if(cookieImportSource!==undefined){
            if(targetOperation!=='browser.cookies.setMany'||toolId!=='cookie-editor')
              throw failure('E_OWNER','Import scope cannot authorize other Browser operations');
@@ -1449,7 +1512,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            await verifyCookieImportDocument(document,cookieImportSource);
          const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
          browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
-          packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
+          packageHash:currentPackageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
+          ...(proxyGrantId?{proxyGrantId}:{}),
           cookieGrantEpoch:cookieGrant?.grantEpoch??null,
           ...(cookieImportSource!==undefined?{cookieImportSource,
              cookieImportDocument:Object.fromEntries(['tabId','windowId','documentId','url','origin']

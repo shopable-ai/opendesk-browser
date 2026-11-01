@@ -46,16 +46,17 @@ function FeatureList({items}){
   </div>;
 }
 export function CookieEnterprisePanel({onCustomize=()=>{},serviceProps,httpServiceProps}){
-  return <Page id="enterprise"><div className="cookie-business-content">
-    {httpServiceProps&&<CookieHttpConnections key={httpServiceProps.formRevision} {...httpServiceProps}/>}
-    {serviceProps&&(!httpServiceProps||serviceProps.state?.connections?.length>0)&&<details>
-      <summary>旧 Native 连接记录</summary>
-      <p>保留原关联与未知操作供核对、解绑和断开。新服务请使用上方 HTTP 连接；旧授权不会迁移。</p>
-      <CookieServiceConnections key={serviceProps.formRevision} {...serviceProps} legacyOnly={Boolean(httpServiceProps)}/>
-    </details>}
+  const serviceEntry=React.useRef(null);
+  return <Page id="enterprise"><div className="cookie-business-content cookie-enterprise-content">
+    <div className="cookie-enterprise-overview">
     <Hero eyebrow="ENTERPRISE · 企业工作区" title="让团队 AI 账号更好管理">
       集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。
     </Hero>
+    {httpServiceProps&&<button ref={serviceEntry} type="button" className="od-button od-button--quiet cookie-http-entry"
+      disabled={!httpServiceProps.state} onClick={event=>{
+        const title=event.currentTarget.closest('.cookie-enterprise-content')?.querySelector('.cookie-http-list-header h3');
+        title?.scrollIntoView({block:'start'});title?.focus({preventScroll:true});
+      }}>服务连接 · {httpServiceProps.state?.connections?.length??'—'} 个 <CookieIcon name="right"/></button>}
     <div className="cookie-business-heading"><h3>团队常见场景</h3></div>
     <FeatureList items={enterpriseFeatures}/>
     <div className="cookie-business-heading"><h3>企业资源概览</h3>
@@ -88,6 +89,14 @@ export function CookieEnterprisePanel({onCustomize=()=>{},serviceProps,httpServi
       </div>
     </section>
     <p className="cookie-business-muted">目前仅为企业功能布局演示，未接入真实企业账号、后台或用量数据。</p>
+    </div>
+    {httpServiceProps&&<CookieHttpConnections key={httpServiceProps.formRevision} {...httpServiceProps}
+      onOverview={()=>{serviceEntry.current?.scrollIntoView({block:'start'});serviceEntry.current?.focus({preventScroll:true});}}/>}
+    {serviceProps&&(!httpServiceProps||serviceProps.state?.connections?.length>0)&&<details>
+      <summary>旧 Native 连接记录</summary>
+      <p>保留原关联与未知操作供核对、解绑和断开。新服务请使用上方 HTTP 连接；旧授权不会迁移。</p>
+      <CookieServiceConnections key={serviceProps.formRevision} {...serviceProps} legacyOnly={Boolean(httpServiceProps)}/>
+    </details>}
   </div></Page>;
 }
 export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onCopyBrief,previewMode=false}){

@@ -1,0 +1,245 @@
+{
+  "date": "2026-11-01",
+  "scope": "OFFLINE_SOURCE_COMPONENT_PREVIEW",
+  "candidate": "artifacts/scrapyjs/design-20261101/candidate4",
+  "previewSha256": "078926cbb2df2c51ac1ddc9e350b9368c5aaf9143b1fe492b5b15111377af3fc",
+  "buildId": "e0eb6f4d53e499bfa3f1b56317641beb8334cbf638c963ba8c548b9a53f87a9b",
+  "sourceLock": {
+    "inputs": 1371,
+    "drift": []
+  },
+  "changes": [
+    "工具内Dock标题与阶段",
+    "局部审阅落点和保留阅读位置",
+    "变更优先/完整保留字段可展开",
+    "低频资料和诊断归组",
+    "输入附近发送阻断原因",
+    "独立审阅操作底栏消除新值遮挡"
+  ],
+  "reports": {
+    "chat": "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+    "design": "artifacts/scrapyjs/design-20261101/candidate4/design/report.json"
+  },
+  "verification": {
+    "toolBuild": "PASS: npm run build --prefix examples/sidebar-tools/scrapyjs",
+    "chat": {
+      "status": "PASS_SIMULATED_UI",
+      "checks": 42
+    },
+    "workspace": {
+      "status": "PASS_SIMULATED_UI",
+      "checks": 62
+    },
+    "design": {
+      "status": "PASS_SIMULATED_UI",
+      "checks": 11
+    },
+    "node": {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-config.test.mjs",
+      "passed": 10,
+      "failed": 0,
+      "nodeVersion": "v24.16.0"
+    },
+    "contrast": [
+      {
+        "text": "AI 配置",
+        "foreground": "rgb(27, 44, 73)",
+        "background": "rgb(255, 255, 255)",
+        "ratio": 13.97,
+        "font": "12px"
+      },
+      {
+        "text": "待确认资料",
+        "foreground": "rgb(83, 100, 126)",
+        "background": "rgb(255, 255, 255)",
+        "ratio": 6.01,
+        "font": "11px"
+      },
+      {
+        "text": "采集需求 / 纠正要求请先在「发送资料」确认当前网页。",
+        "foreground": "rgb(83, 100, 126)",
+        "background": "rgb(255, 255, 255)",
+        "ratio": 6.01,
+        "font": "11px"
+      },
+      {
+        "text": "请先在「发送资料」确认当前网页。",
+        "foreground": "rgb(83, 100, 126)",
+        "background": "rgb(255, 255, 255)",
+        "ratio": 6.01,
+        "font": "11px"
+      }
+    ],
+    "networkRequests": 0,
+    "runtimeErrors": 0,
+    "reviewGeometry": {
+      "valueBottom": 653.078125,
+      "textBottom": 641.6875,
+      "scrollBottom": 666.65625,
+      "actionsTop": 666.65625,
+      "actionsBottom": 720.5,
+      "overlap": 0,
+      "actionsOutsideScroll": true
+    }
+  },
+  "screenshots": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/ready.png",
+      "sha256": "84df6365f3a00e39c6f5dd04909010d1381daea73165113555ef96163b6c46f1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/chat-consent.png",
+      "sha256": "1435ff4eb40a337e1a4639507b1e4c652f05be2214cee0e876b54f02aee780de"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/review-arrival.png",
+      "sha256": "e6c4f942b0f7f547596e0ac0d291328878262883afc27e70018be6d011cdf45b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/full-json.png",
+      "sha256": "81b2b14076bb911d450f6ccbed78bbf8005bb101cf94bbab58fa381410e37ce2"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/advanced-materials.png",
+      "sha256": "c66b9eca212d82c5a1a5090acf46c2dd3c5d89a593d166c1f61c57565b0e9471"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/design/shared-chat-recipe.png",
+      "sha256": "cba0597f52be772dddffc9588218437487e970dbddea2b5e875a6e188de953bf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-expanded.png",
+      "sha256": "6a0985b4f27df13ef33409c22657a848d8b5573e535e013f8e886f47bb9092d8"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-review-arrival.png",
+      "sha256": "36820ca43ead95c84af050ff748710b422953b252ad9964367c5ed174e176d0c"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-review.png",
+      "sha256": "a0bdd9325fead686409c11095a7d3beb3091fcae0c04ff9d1814965f88585e9e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-json.png",
+      "sha256": "e58da3b784f8816764b78c415ccf5f7943cf7e59b7187f1da038a3223a38b823"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-naming.png",
+      "sha256": "2aaf4035cfa3401fe0d48d64215bb227033c321345fa0fdadbb602737bd3055e"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-applied.png",
+      "sha256": "2e4e6c31c4343b39ba3fd9ea6e6e16ef08e21d1475c7671eccf47cc592304ee9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/design-20261101/candidate4/chat/ai-collapsed.png",
+      "sha256": "71ef86366f6b856e615158fb715d3dab8a384da1efbf349b434051bd39e084b6"
+    }
+  ],
+  "canonicalComponents": {
+    "html": "artifacts/scrapyjs/design-20261101/components/components.html",
+    "sha256": "4d449977c1e91c5c5697364fd17782bd034780b77298467e93d9f97381916b93",
+    "generator": "scripts/sidebar-preview-kit.mjs"
+  },
+  "limits": {
+    "realAI": "NOT_TESTED",
+    "nativeInstalledChrome": "NOT_TESTED",
+    "realCapture": "NOT_TESTED",
+    "browserBuild": "NOT_TESTED",
+    "productionAcceptance": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE"
+  },
+  "notes": [
+    "基线与candidate1保留为历史，不作为最终候选PASS。",
+    "原浏览器驱动两次Host点击未等待跨frame消息；现等待真实aria状态和焦点，产品未增加延时。",
+    "现有43127 Vite服务保持；本轮未提交/推送/包晋升/安装。",
+    "candidate2独立评审层级94未通过；2.53px文字遮挡已由独立底栏修复，原评审和截图不覆盖。",
+    "candidate3设计复评PASS后发现3项并行源码漂移；保留其冻结评审，candidate4纳入当前源码重新构建、生成和回放，未覆盖并行改动。"
+  ],
+  "fixedDelivery": {
+    "path": "examples/sidebar-tools/scrapyjs/preview/",
+    "status": "PRESERVED_PARALLEL_OWNER_OUTPUT",
+    "previewSha256": "660485a4ca43d25a5057e56df14f2ccf820eaf35e2c4197f19e63014aa09af33",
+    "modifiedByThisFinalDelivery": false,
+    "reason": "compare-before-write guard found another owner had replaced the prior preview; no fixed file was written",
+    "reviewApplies": false
+  },
+  "sourceLockAtVerification": {
+    "inputs": 1371,
+    "drift": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js"
+    ]
+  },
+  "delivery": {
+    "path": "artifacts/scrapyjs/design-20261101/candidate4",
+    "files": [
+      "preview.html",
+      "preview.manifest.json",
+      "preview.context.json"
+    ],
+    "previewSha256": "078926cbb2df2c51ac1ddc9e350b9368c5aaf9143b1fe492b5b15111377af3fc",
+    "status": "PASS_FROZEN_OFFLINE_DESIGN",
+    "manifestAndContextIdentityMatch": true,
+    "currentWorkspaceParity": "NOT_CLAIMED_PARALLEL_SOURCE_EDITS",
+    "workspaceDriftAtDelivery": [
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+        "expectedSha256": "94083f94a88256d3d180c123bc23643a1a0b11f312eec2740898baa7dd399518",
+        "currentSha256": "3c6b80a04fb5474c387572052c02abe13caee73137b848e5c7d616052570a709"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+        "expectedSha256": "15a6c49f316a27979afc13e64b2b82ba9ae64b046a0d151dd071f7ab46fb64b0",
+        "currentSha256": "7ed8ccd0ff4418ce63f159e0ad5264388fe957ca4865b1a74e2d0783c1dffd8d"
+      },
+      {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js",
+        "expectedSha256": "b56df36c96e43d54bb6ab7ef41ec6b309588d3680dcf41d9703400448ea141d1",
+        "currentSha256": "f0798a93623a9709b163173c64b0a554ebec8b96df2333f574c025fccac4b520"
+      }
+    ]
+  },
+  "independentReview": {
+    "path": "examples/sidebar-tools/scrapyjs/evidence/ui-design-review-20261101.json",
+    "previewSha256": "078926cbb2df2c51ac1ddc9e350b9368c5aaf9143b1fe492b5b15111377af3fc",
+    "status": "PASS_OFFLINE_DESIGN",
+    "scores": [
+      {
+        "dimension": "需求符合度",
+        "score": 100
+      },
+      {
+        "dimension": "样式一致性",
+        "score": 98
+      },
+      {
+        "dimension": "信息层级可读性",
+        "score": 100
+      },
+      {
+        "dimension": "操作效率反馈",
+        "score": 99
+      },
+      {
+        "dimension": "键盘焦点",
+        "score": 99
+      },
+      {
+        "dimension": "组件复用隔离",
+        "score": 100
+      },
+      {
+        "dimension": "可维护性",
+        "score": 98
+      },
+      {
+        "dimension": "证据充分性",
+        "score": 99
+      }
+    ],
+    "minimum": 98,
+    "blockers": []
+  }
+}

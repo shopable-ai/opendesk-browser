@@ -1,4 +1,4 @@
-// Display only. A shortened title never grants navigation or Host authority.
+// Display only. A title path never grants navigation or Host authority.
 // The owning tool keeps its full page label and existing Back/dirty-state policy.
 const COMPACT_PAGE_LABELS=Object.freeze({
   '提示词详情':'详情',
@@ -34,7 +34,7 @@ export function formatSidebarToolHeading(options={}){
   const readOnly=typeof options.readOnlyLabel==='string'?options.readOnlyLabel.trim():'';
   const suffix=readOnly?` · ${readOnly}`:'';
   return {
-    visible:page||tool,
+    visible:page?`${tool}/${page}`:tool,
     context:`${tool}${fullPage?' / '+fullPage:''}${suffix}`
   };
 }

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { ReactNode } from 'react';
 
 export interface FormFieldControlProps {
@@ -21,7 +22,7 @@ export function FormField({ id, label, hint, error, className, children }: FormF
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
-  return <div className={className}>
+  return <div className={['proxyFormField', className].filter(Boolean).join(' ')}>
     <label htmlFor={id}>{label}</label>
     {children({ id, 'aria-describedby': describedBy, 'aria-invalid': Boolean(error) })}
     {hint && <p id={hintId} className="hint">{hint}</p>}

@@ -1,0 +1,117 @@
+{
+  "scope": "Cookie Editor 企业服务连接：扩展内与现有 React 参照核对",
+  "phase": "SOURCE_PREVIEW_VERIFIED_EXTENSION_RUNTIME_BLOCKED",
+  "owner": "examples/sidebar-tools/cookie-editor",
+  "entry": "http://127.0.0.1:43134/dev.html",
+  "source": {
+    "app/CookieEditorApp.jsx": "c9ff4e2b6f57eb0e5ddeb7164c9113ff92eba1876e3e06f56e01cc2bc9fe8d18",
+    "app/components/CookieBusinessPanels.jsx": "e585f7c1cb7f4610676dea027ab68d6d84cbe38d2fa516d03a55a2326ae61012",
+    "app/components/CookieHttpConnections.jsx": "bf01ba413e7940784dbf22ce0513c80c604e7ddfd65d1ebb6da96375ea034d4b",
+    "src/react.css": "9201d5687202dbe0dc26bcbddd3d3c9f2c5e9c726086e3d2daada821ecc9f3aa",
+    "preview/react/src/App.jsx": "18e9a2e984682e1193baf4a67161263f6e1a1f8a0c13b33c37febf227da8b6d3",
+    "preview/react/src/mock-sdk.js": "c70b41c2d2a475c95d0dfb3f09549fdea4b4d0dac4bad049f919bd8bc029a10f",
+    "app/components/CookieEditorView.jsx": "86a13620b85bbbf43a9700c104d2581d0aad47b77f0e467bbe1fd53092cb3e3f",
+    "preview/cookie-editor.html": "95dd1c9163a1d603b375244127f64690d7211f92b49e1b1d06c1fb57573792ff"
+  },
+  "preview": {
+    "mode": "CURRENT_SOURCE_PREVIEW_ONLY",
+    "sourceHash": "32e184f8765e7628ef2b5380d8df92e6b1371f7e0202f6eecf05c1ab6a240fe6",
+    "generatedHtmlUsed": false,
+    "mockOnly": true
+  },
+  "compiled": {
+    "status": "EXISTING_ARTIFACT_SOURCE_AND_BYTES_MATCH",
+    "buildId": "7beb85c7017fc591be5ad0e6d3d21fad1363bab46a5a46e1650e1b7069c03d6d",
+    "version": "2.0.60",
+    "builtThisTurn": false,
+    "files": {
+      "dist/tool.js": {
+        "bytes": 244188,
+        "sha256": "5bc2217c4ef8c61e9f1c554d8eccb07e3d11cc92ce84d5f57e8e5f1a62f97889"
+      },
+      "dist/tool.css": {
+        "bytes": 70042,
+        "sha256": "9201d5687202dbe0dc26bcbddd3d3c9f2c5e9c726086e3d2daada821ecc9f3aa"
+      }
+    }
+  },
+  "formalPackage": {
+    "version": "2.0.59",
+    "sha256": "3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c",
+    "unchanged": true
+  },
+  "runtimeObservation": {
+    "surface": "Chrome 当前 Cookie 服务连接测试窗口；Profile 与历史 2.0.59 窗口关系未知",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "visibleToolVersion": "2.0.55",
+    "actions": [
+      "从工具栏打开正常侧栏",
+      "在扩展列表打开 Cookie Editor",
+      "关闭本站 Cookie 授权弹窗，未授予权限"
+    ],
+    "nativeWindowInterference": "企业页操作前前台被并行任务切换至 ScrapyJS，停止共享窗口操作",
+    "urlPolicyBlock": {
+      "action": "使用本聊天独立扩展页面核对 UI",
+      "protocol": "chrome-extension:",
+      "reason": "URL policy only allows http: and https:",
+      "workaroundAttempted": false
+    },
+    "loadedPath": "NOT_VERIFIED",
+    "serveConnection": "NOT_VERIFIED",
+    "enterpriseFlow": "NOT_TESTED"
+  },
+  "verification": [
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "1/1 PASS",
+      "purpose": "App 改动后的六 Tab 与 HTTP 企业接线"
+    },
+    {
+      "command": "COOKIE_SOURCE_EVIDENCE=artifacts/cookie-service-react-runtime-20261101 node examples/sidebar-tools/cookie-editor/tests/service-form-source-interactions.mjs",
+      "result": "9/9 PASS",
+      "report": "artifacts/cookie-service-react-runtime-20261101/interactions.json",
+      "pageErrors": [],
+      "nonPreviewNetwork": [],
+      "purpose": "列表、详情返回、焦点、双草稿、取消、保存追加、非法连接码与真空态"
+    },
+    {
+      "result": "PASS",
+      "purpose": "编译回执源码及 JS/CSS SHA/字节数、buildId、未变正式包 SHA、当前截图来源和相关 diff 格式"
+    }
+  ],
+  "screenshots": {
+    "overview": "artifacts/cookie-service-react-runtime-20261101/overview.png",
+    "list": "artifacts/cookie-service-react-runtime-20261101/list.png",
+    "detail": "artifacts/cookie-service-react-runtime-20261101/detail.png",
+    "add-local": "artifacts/cookie-service-react-runtime-20261101/add-local.png",
+    "add-company": "artifacts/cookie-service-react-runtime-20261101/add-company.png",
+    "empty": "artifacts/cookie-service-react-runtime-20261101/empty.png"
+  },
+  "changesThisTurn": [
+    "恢复原空闲 43134 预览服务",
+    "仅增补 README、此证据与本轮工作记录；业务 UI 无新缺陷不重复编辑"
+  ],
+  "remaining": [
+    "在可控正常开发侧栏中打开当前本地项目候选，核对企业服务列表、新增/详情及返回",
+    "当前候选的真实状态列表/空态和焦点未在扩展内验证"
+  ],
+  "notPerformed": [
+    "业务组件或 HTTP Domain 修改",
+    "Browser SDK/Host/Registry/Authority 修改",
+    "版本调整/构建/stage/打包/晋升/安装",
+    "提交/推送/分支/worktree/PR",
+    "旧拒绝目标或 URL 策略绕过",
+    "production/Native/完整验收/评分/宽度缩放矩阵"
+  ],
+  "resources": {
+    "sourcePreview": {
+      "port": 43134,
+      "ptySession": 76281,
+      "retainedForUser": true
+    },
+    "browserWriter": "既有 npm run dev PID 14612，未更改；进程存在不证明 Chrome serve 已连接",
+    "nativeWindow": "本轮已停止操作",
+    "headlessChecks": "exited"
+  },
+  "checkedAt": "2026-10-31T17:53:20.337Z"
+}

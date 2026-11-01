@@ -9,11 +9,13 @@ export function fieldForm(key, rule) {
 }
 export function applyField(config, form) {
   const key=form.key.trim(),selector=form.selector.trim(),attr=form.attr.trim();
+  const invalid=(message,fieldId)=>{throw Object.assign(Error(message),{fieldId});};
+  if (form.originalKey && !key) invalid('字段名不能为空；删除请使用删除字段','field-key');
   if ((key || selector) && (!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(key) ||
-      ['constructor','prototype','__proto__'].includes(key) || !selector)) throw Error('请填写有效字段名与 CSS 选择器');
-  if (form.originalKey && !key) throw Error('字段名不能为空；删除请使用删除字段');
-  if (key && form.read==='attr' && !/^[\w:-]+$/.test(attr)) throw Error('请填写有效属性名');
-  if (form.originalKey && key!==form.originalKey && Object.hasOwn(config.itemConfig,key)) throw Error('已有同名字段，请使用不同名称');
+      ['constructor','prototype','__proto__'].includes(key))) invalid('请填写有效字段名与 CSS 选择器','field-key');
+  if(key&&!selector)invalid('请填写有效字段名与 CSS 选择器','field-selector');
+  if (key && form.read==='attr' && !/^[\w:-]+$/.test(attr)) invalid('请填写有效属性名','field-attr');
+  if (form.originalKey && key!==form.originalKey && Object.hasOwn(config.itemConfig,key)) invalid('已有同名字段，请使用不同名称','field-key');
   const itemConfig={...config.itemConfig};
   for (const [value,name] of [[form.container,'_listContainer'],[form.item,'_listItem']]) {
     if (value.trim()) itemConfig[name]=value.trim(); else delete itemConfig[name];
@@ -21,6 +23,37 @@ export function applyField(config, form) {
   if (form.originalKey && key!==form.originalKey) delete itemConfig[form.originalKey];
   if (key) itemConfig[key]=selector+'::'+(form.read==='attr' ? attr : 'text');
   return {...config,itemConfig};
+}
+// The inline editor keeps the engine's complete rule string. Field edits never
+// write a stale copy of the collection-wide scope; that is a separate action.
+export function applyInlineField(config, form) {
+  const invalid=(message,fieldId)=>{throw Object.assign(Error(message),{fieldId});};
+  if(form.scopeOnly)return applyField(config,{...form,key:'',originalKey:'',selector:'',read:'text',attr:''});
+  const key=form.key.trim(),rule=form.rule.trim();
+  if(!key)invalid('字段名不能为空；删除请使用删除字段','field-key');
+  if(!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(key))invalid('字段名须以字母开头，仅含字母、数字或下划线','field-key');
+  if(!rule)invalid('请填写采集规则，例如 .title::text','field-rule');
+  const parsed=fieldForm(key,rule);
+  if(!parsed)invalid('此规则需要在「配置 JSON」中编辑，当前输入已保留','field-rule');
+  if(key!==form.originalKey&&Object.hasOwn(config.itemConfig,key))invalid('已有同名字段，请使用不同名称','field-key');
+  let next;
+  try{next=applyField(config,{...parsed,originalKey:form.originalKey,
+    container:config.itemConfig._listContainer||'',item:config.itemConfig._listItem||''});}
+  catch(error){if(['field-selector','field-attr'].includes(error.fieldId))error.fieldId='field-rule';throw error;}
+  // Do not normalize a valid no-suffix rule merely because its name was edited.
+  next.itemConfig[key]=rule;
+  // A rename keeps its row (and keyboard focus) in the original position.
+  if(form.originalKey&&key!==form.originalKey)next.itemConfig=Object.fromEntries(
+    Object.entries(config.itemConfig).map(([name,value])=>name===form.originalKey?[key,rule]:[name,value]));
+  if(form.originalKey&&key!==form.originalKey&&Object.hasOwn(config.output?.fieldNames||{},form.originalKey)){
+    const fieldNames={...config.output.fieldNames};
+    // The renamed field keeps its own label, replacing a stale destination map.
+    fieldNames[key]=fieldNames[form.originalKey];delete fieldNames[form.originalKey];
+    next.output={...config.output,fieldNames};
+  }
+  if(form.originalKey && key!==form.originalKey && config.output?.fieldOrder)
+    next.output={...next.output,fieldOrder:config.output.fieldOrder.map(name=>name===form.originalKey?key:name)};
+  return next;
 }
 export function crawlForm(config) {
   const d=config.detail;

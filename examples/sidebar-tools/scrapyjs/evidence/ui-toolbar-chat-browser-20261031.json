@@ -1,0 +1,104 @@
+{
+  "status": "PASS_SCOPED_OFFLINE_SOURCE_AND_BROWSER",
+  "date": "2026-10-31",
+  "previewSha256": "9f313a12ef254dd025f2dfee050ed0b9459f3318f41d9d44211df88e0490a70b",
+  "evidenceLevel": "SOURCE_COMPONENT_PREVIEW",
+  "sourceLock": {
+    "checked": 1371,
+    "drift": []
+  },
+  "fixedDelivery": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.html",
+    "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.manifest.json",
+    "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.context.json"
+  ],
+  "chat": {
+    "checks": 34,
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/toolbar-chat-20261031/candidate4/chat-browser/report.json"
+  },
+  "business": {
+    "checks": 62,
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/toolbar-chat-20261031/candidate4/workspace-browser/report.json"
+  },
+  "publicCombination": {
+    "status": "PASS_PUBLIC_COMBINATION_OFFLINE",
+    "htmlSha256": "2d98be6dd37aafe343b7b3146a6bcf50a1f3f5c5e0f507440d16cfbe6e0ec3ab",
+    "checks": [
+      "public example starts closed at the actual Host toolbar",
+      "opening the public example focuses its shared composer",
+      "public collapse returns focus to its header AI control",
+      "public reopen preserves its session draft",
+      "public Send and Stop use only the same in-memory session",
+      "public Escape collapses the same bottom split"
+    ],
+    "realAI": "NOT_TESTED",
+    "nativeInstalled": "NOT_TESTED",
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/toolbar-chat-20261031/components-delivery/browser-report.json"
+  },
+  "bookmarkControls": {
+    "status": "PASS_OFFLINE_BOOKMARK_CONTROLS",
+    "source": "projects/bookmark-manager/preview/dev.html",
+    "previewSha256": "216067325366cc198322dd6d2c885144f0453ae38253252cb1156b28b518a655",
+    "geometry": [
+      {
+        "name": "AI Provider 设置",
+        "width": 30,
+        "height": 30,
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "name": "收起对话",
+        "width": 30,
+        "height": 30,
+        "fullyInside": true,
+        "hit": true
+      }
+    ],
+    "checks": [
+      "settings and collapse are fully visible, unobscured and clickable",
+      "settings sheet opens without hiding the Chat or bookmark business",
+      "closing settings restores its icon focus",
+      "settings keeps existing Chat draft",
+      "collapse icon closes bottom Chat",
+      "collapse returns focus to the header AI button",
+      "reopening restores the same draft"
+    ],
+    "nativeInstalled": "NOT_TESTED",
+    "realProvider": "NOT_TESTED",
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/toolbar-chat-20261031/bookmark-controls/report.json"
+  },
+  "node": {
+    "passed": 18,
+    "failed": 0,
+    "files": [
+      "tests/environment/shared-conversation-layout.test.mjs",
+      "tests/environment/shared-conversation-send.test.mjs",
+      "tests/environment/sidebar-conversation-header.test.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/runtime-source.test.mjs",
+      "examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs",
+      "examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs"
+    ]
+  },
+  "publicGap": {
+    "proved": true,
+    "missing": "opaque tool could not place a presentation-only AI toggle in Host header through existing public API; trusted HeaderSlot is not a sandbox API",
+    "change": "fixed Host AI button + strict visible/open state + verified fixed toggle event; shared pure Dock layout",
+    "security": "no Provider, authority, trusted React mounting, capability, request or permission added; sender/origin/instance/toolId and teardown reset verified"
+  },
+  "notTested": [
+    "installed Chrome extension and Browser build",
+    "real Provider or native/site capture",
+    "production acceptance and package promotion",
+    "original UNKNOWN request recovery"
+  ],
+  "operations": {
+    "commit": false,
+    "push": false,
+    "install": false,
+    "reload": false,
+    "browserBuild": false
+  },
+  "independentReview": "ui-toolbar-chat-review-20261031.json",
+  "independentReviewResult": "PASS_SCOPED_OFFLINE_REVIEW; scores 100/96/97/99/98/100/97/96; no blockers; semantic type diagnostics not run"
+}

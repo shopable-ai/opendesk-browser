@@ -1,6 +1,10 @@
 # AI Proxy · 真实 OpenDesk 扩展代码
 
-**最新导航与排版纠偏见[第 15.2 节](#152-取消重复tabs与统一排版节奏2026-10-31)。** 已取消业务Tabs，复用齿轮进入设置；代理/规则列表和表单按R27统一间距。第15/15.1节的旧方案与评分只作历史依据，第14节安装证据不覆盖本轮源码。
+**2026-10-31 官方可信 React 核心完成（0.3.8）：** 官方安装使用工作台唯一 React Root 和 Shared UI；录入弹窗、长表单滚动、焦点与草稿保护已在保留的 CFT155 验证，并附本轮增量对照。查看[本轮审阅入口](evidence/trusted-react-20261031/README.md)，其中分开记录组件验证、包验证及实际 Browser 运行证据；下文旧阶段记录不替代本轮结果。
+
+**最新核心运行结果见[第 18 节](#18-035-跟随系统运行中切换与重开状态2026-10-31)：0.3.5 已在保留的可见 CFT155 原位更新；跟随系统、指定本地代理→直连切换、重开回读及最终释放已验证。** 第17节独立UI评分仍只覆盖它的冻结预览；本轮没有重新评分。
+
+**最新添加入口、按钮与间距续作见[第 17 节](#17-添加入口按钮与共享表单节奏2026-10-31)。** 保留无业务Tabs的齿轮导航；移除“其他添加方式”混合菜单，区分添加、导入、订阅/客户端与PAC。第15节旧评分和第14/16节历史安装均不覆盖本轮设计。
 
 **历史安装记录（2026-10-31，第14节）：`0.3.0` 正式 JSON 曾编译、晋升并在日常 Chrome 实际安装。** 当时验证了添加/保存代理配置、当前网站识别、规则保存、草稿保护、关闭重开回读及管理/返回路径；配置保存与实际代理应用始终分开。该候选范围、安装证据与尚未完成的功能见[第 14 节](#14-030-安装交付与实际完成情况2026-10-31)。第 12–13 节保留上次开发记录，F1–F10 与长期 K1–K13 不删减；旧安装通过不表示最新设计或全部迁移功能完成。
 
@@ -29,9 +33,9 @@ opendesk browser dev .
 
 随后在日常 OpenDesk「开发 → 本地项目 → ai-proxy → 独立本地项目 → 在侧栏调试」。保存只写本浏览器 session 的隔离开发数据，停止调试后重开可以回读；浏览器 session 结束后的保留由宿主合同决定，不能当作正式 local 持久化证明。已安装工具的同一源码使用原受管 `storage.local`。本地调试没有借用正式安装身份取得浏览器独占代理权限。
 
-真实代理公开接线只表达：**默认直连，同一无认证 HTTPS/SOCKS5 公共节点，1–16 条含子域的域名规则**。启停仍经原 SDK、安装身份、可信手势、精确路由审阅与权限链。不支持的四模式语义、认证、任意 PAC、多节点、精确域及本地客户端保留配置/入口并明确拒绝应用，不静默降级。
+当前公开接线支持：受管直连、单个无认证 HTTPS/SOCKS5 公共端点、经用户保存的精确 127.0.0.1 HTTP/SOCKS5 本地客户端，以及同节点 1–16 条含子域的域名规则；“跟随系统”释放自有设置后必须回读 system。运行中切换先独立审阅停止旧线路，再独立审阅启用新线路。认证、任意 PAC、多节点和精确域规则仍明确拒绝应用，不静默降级；保存选择不改变运行线路。
 
-`dist/tool.js`、`dist/tool.css`、`dist/build-ready.json` 是编译输出；原生调试使用 stage watcher 的不可变快照。项目只有一个正式 `ai-proxy.opendesk-tool.json`；第14节记录的是历史 `0.3.0` 安装。当前目录的并行版本及JSON由其owner维护，本轮没有晋升或验证新设计安装，不能再把旧包称为与最新源码同源。`preview/` 是单独的内存模拟入口；`trusted/` 和 Browser 专用portal仍是历史候选，不是本轮授权捷径。
+`dist/tool.js`、`dist/tool.css`、`dist/build-ready.json` 是编译输出；原生调试使用 stage watcher 的不可变快照。项目只有一个正式 `ai-proxy.opendesk-tool.json`；当前 `0.3.5` 的原打包器晋升、同源检查和可见 CFT155 更新记录见第18节。第14/16节及第17节各自的历史安装/预览证据保留，不能混作本轮完整验收。`preview/` 是单独的内存模拟入口；`trusted/` 和 Browser 专用portal仍是历史候选，不是本轮授权捷径。
 
 以下第 1–11 节保留历史来源、产品需求与 UI 证据；其中“当前阶段”“只做原型”和历史 PID/SHA 不覆盖上文及第 12 节。
 
@@ -443,3 +447,99 @@ node --test projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/
 68项导航／规则／草稿／表单／凭据与包门禁通过，另6项useProxy错误与single-flight检查通过。busy及迟到revision保护是同源码组件测试证据，未伪称浏览器延迟注入测试。驱动曾持有旧沙箱会话、误用隐藏输入是否移除作等待条件，以及在外层滚动时未命中确认；均先读取实际状态，再修正定位／使用原生Tab恢复可见焦点，没有重复安装、保存或代理副作用，没有为驱动失败修改产品。
 
 结构化原始步骤、包／源码哈希、构建回执和截图见 [本次安装证据](evidence/install-0.3.2-20261031.json)。独立浏览器已正常关闭；隔离Profile保留为本机证据，日常Chrome、系统代理和Browser dev未启停。收尾发现原43263 Preview已退出，原因未知，使用原命令恢复同一入口；未停止共享服务或覆盖Browser输出。真实代理启停／流量、认证／PAC／完整四模式、可见macOS原生UI、production、全CI及完整语义类型诊断仍为NOT_TESTED；宽度／缩放矩阵OUT_OF_SCOPE。没有推送或线上发布。
+
+
+## 17. 添加入口、按钮与共享表单节奏（2026-10-31）
+
+本轮只做设计开发及独立逐维复评，不接管并行0.3.3 metadata、正式JSON、环境适配或平台接线。先在既有43263同源内存入口运行“主面板齿轮 → 代理配置”，确认旧菜单混合订阅记录、配置备份导入、本地客户端与PAC；实测采集代理子margin 22px叠加父gap 16px，章节空隙变成38px。
+
+- “添加代理”始终为文字主按钮，空态和已有配置复用同一入口；相邻“导入配置”为图标加可见文字，有准确title/ARIA，直接进入导入与备份。订阅记录和本地客户端分别打开其真实表单；七区中的“订阅与客户端”及主面板空态标题三语同步，不再用“其他添加方式”概括不同职责。PAC保留独立折叠管理。
+- 来源表单的取消/Escape统一复用原确认和revision保护；继续编辑保留所有字段，晚到确认不能清理新草稿或其他scope。本地客户端编辑使用固定安全ID直达原记录；保存/确认放弃返回代理列表及原编辑按钮，新增仍返回来源总览。路由拒绝查询、令牌和非法ID；失效ID不会误开新增或其他实体。
+- 代理、规则和PAC记录使用两行文本及行内图标操作；PAC编辑/删除与表单关闭复用现有ProxyIcon/Shared Button，危险态有准确名称，悬停保留危险色及底色。复制/刷新菜单保留易识别文字和图标，添加/保存/应用/确认继续可见文字。
+- 受影响布局只归sidebar-settings.css；父gap负责节奏、子margin归零。FormField增加稳定语义类，代理名称、PAC字段及原规则字段复用；删除失去消费者的菜单CSS，消除采集代理和规则表单的叠加间距，取消编辑器页脚的独立底色。规则来源说明到首字段12px；长目标在现有编辑/删除获得焦点或悬停时展开完整第二行，Escape收起，动作固定在行顶避免指针目标移动。未增加依赖、Tokens、组件体系或!important。
+
+| 最终同源Chromium测量 | 结果 |
+| --- | --- |
+| 配置页各章节实际距离／子margin | 16px／0；采集代理此前38px已消除 |
+| 代理编辑／规则编辑／PAC操作区 | 16px；分组12px、标签到字段8px |
+| 代理及规则两行内容间隔／同行操作 | 4px／8px |
+| 可见图标按钮 | 34×34px，title/ARIA完整；键盘focus-visible有实线描边 |
+| CSS静态编译＋原共享视觉提取 | 115603/120000字符，未调整容量 |
+| 三语词条 | 各1010，同key集合；本轮删除旧菜单词条、空态语义key同步重命名，另2key由并行核心owner新增 |
+
+最终冻结候选为[可交互同源预览](http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-7460fe96-edde-49ed-acf0-4b3922fdfa3c/preview.html)，HTML SHA-256 `68ab25a50f58a6953988e4c089d9633f8e7b189cfbfb1593ea64a0e26a68b277`。冻结时65项源码／共享运行时输入逐项校验无漂移；复评等待期间核心owner的service/environment/managed-config/Status及三语增量保留并单列来源差异，不归本轮UI改动，见[source-check.json](evidence/configuration-actions-20261031/source-check.json)。原serve进程保持运行；本轮只创建不可变预览，不覆盖Browser watcher或正式包。
+
+[交互与computed styles](evidence/configuration-actions-20261031/interactions.json)记录15组真实内存UI操作：各添加入口、来源表单Cancel/Escape保留或放弃、本地记录编辑/保存及返回焦点、代理保存不应用、非法端口、取消/X/Escape继续编辑或放弃、规则身份/保存/删除/焦点、长目标键盘完整展开和Escape收起、PAC图标回填/替换草稿/删除取消与确认/保存及独立草稿、危险hover、设置返回、保存并继续添加的清空/地址焦点/表单内Tab顺序、三语和空态。PAC展开后额外测量34px按钮和文字/操作同行，未以折叠时不可见的按钮代替。无页面错误、无外部请求，iframe仍为allow-scripts。空态通过同一冻结HTML外部场景控件真实change，断言记录数为0；未使用不能初始化iframe的URL参数。测量只检查可见图标，先进入键盘模态；隐藏dialog的0尺寸不当作产品失败。
+
+[定向Node日志](evidence/configuration-actions-20261031/node-tests.txt)72/72：导航、规则、草稿/迟到revision、表单submit、认证拒绝、QuickPanel以及新增来源关闭、safe local ID、精确编辑身份与忙碌/迟到确认保护。新来源回归已先观察旧实现失败，再实现修复；协调后续UI owner后，由本轮单一writer集成saveAnother成功分支的一行地址框聚焦及其3项新增测试，实际handler已观察7/8 RED到8/8 GREEN，失败/迟到revision/空ref不抢焦点；最终行为和对应浏览器交互已重新执行。编译由现有同源预览入口及CSS静态编译完成，没有执行Vite正式包构建或晋升。本轮复跑命令：
+
+```sh
+node --test projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/sources-editor-runtime.test.mjs projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/quick-panel-runtime.test.mjs
+```
+
+截图：[代理配置](evidence/configuration-actions-20261031/profiles.png)、[添加表单](evidence/configuration-actions-20261031/add-proxy.png)、[规则编辑](evidence/configuration-actions-20261031/rule-editor.png)、[PAC](evidence/configuration-actions-20261031/pac.png)、[长规则键盘完整详情](evidence/configuration-actions-20261031/long-rule-keyboard.png)、[空态](evidence/configuration-actions-20261031/empty-profiles.png)、[英文](evidence/configuration-actions-20261031/profiles-en.png)、[导入键盘焦点](evidence/configuration-actions-20261031/import-focus.png)、[连续添加焦点](evidence/configuration-actions-20261031/save-another-focus.png)。
+
+首轮独立评审未达标，UI最低88、实现最低94，原报告保留为[UI首评](evidence/configuration-actions-20261031/ui-review-pass-1.json)和[实现首评](evidence/configuration-actions-20261031/code-review-pass-1.json)。已按实际发现修复来源草稿丢失、本地编辑上下文、导入可发现性、规则间距及完整详情，并补PAC交互证据。长目标展开最初导致按钮移动，[失败取证](evidence/configuration-actions-20261031/interaction-failure-focus-reflow.json)保留；最终直接固定动作布局，完整同候选检查通过。连续添加Tab最初错误断言为地址后直接到端口；实际应先经过快捷地址和协议，已只修驱动并[保留失败记录](evidence/configuration-actions-20261031/interaction-failure-driver-tab-order.json)，未为断言更改产品顺序。最新逐维独立复评写入各自review JSON，旧分数不自动覆盖新候选。
+
+最终[独立UI复评](evidence/configuration-actions-20261031/ui-review.json)和[独立实现复评](evidence/configuration-actions-20261031/code-review.json)均绑定唯一746候选及上述SHA，逐维≥95且无当前范围阻断。UI评审实际复核连续添加及8/8定向测试；代码评审另独立执行45/45定向测试。
+
+| UI维度 | 分数 | 实现维度 | 分数 |
+| --- | ---: | --- | ---: |
+| 布局与密度 | 98 | 正确性 | 98 |
+| 信息层级与可发现性 | 97 | 可靠性 | 97 |
+| 视觉与可读性 | 96 | 安全 | 98 |
+| 操作／草稿／反馈 | 97 | 可维护性 | 96 |
+| 键盘与焦点 | 96 | 用户反馈 | 98 |
+| 组件复用与边界 | 98 | 证据充分性 | 96 |
+
+中间539候选的[UI补充复评](evidence/configuration-actions-20261031/ui-review-pass-2.json)为93/91（操作/键盘），明确阻断连续添加焦点；没有将旧评分改成最终PASS。集成后由独立评审确认UI-08关闭，UI-06/07继续按真实证据扣分。
+
+独立代码复评已关闭危险hover、PAC取证和连续添加焦点问题。保留的低优先级建议：失效本地实体链接增加可见原因说明；删除最后一条PAC后主动聚焦存活字段；主机占位文字对比度约4.1:1，尚不满足4.5:1。它们不阻断已测正常操作，不写成全产品零已知问题；不据此恢复正式验收。
+
+后续UI owner的同一746候选独立CFT154补充验证见[final字段](evidence/navigation-followup-20261031/interactions.json)：连续添加自动回Host、可见3px环、Tab经快捷项留在表单、直接键盘录入第二条并正常保存，两条配置均保留且未应用。顶层URL和baseline是其历史输入，只有final.url/manifest对应本轮746，不混用为当前来源。该owner已释放Settings/tests/README/DESIGN并明确不再重复写入。
+
+本轮未安装、未提交/推送、未更新版本或正式JSON；真实代理启停／流量、production、全CI、完整语义类型诊断、IME为NOT_TESTED，物理宽度×缩放专项OUT_OF_SCOPE。第16节0.3.2历史升级事实继续有效，但不提升为本设计已安装。
+
+
+## 18. 0.3.5 跟随系统、运行中切换与重开状态（2026-10-31）
+
+本轮从已有真实入口复现0.3.3“跟随系统→启用”被拒绝，以及0.3.4运行中“指定代理→直连→应用选择”被旧Enable独占保护拒绝。修复复用原服务、公开SDK和可信审阅，不新增代理后台、任意PAC或系统覆盖接口。配置、规则和选择的保存仍不应用代理。
+
+| 用户操作 | 当前结果 |
+| --- | --- |
+| 跟随系统→启用 | 已有system时只确认回读；持有自有线路时先按原STOP释放，再确认system。状态为“正在跟随系统（未接管代理）”；其他原生模式或未知结果明确拒绝成功。 |
+| 本地HTTP运行→保存直连→关闭重开 | 本地127.0.0.1:7897仍显示“已应用”，直连显示“待应用”，浏览器设置仍为指定代理；不再丢失实际线路快照。 |
+| 运行中点击应用选择 | 先校验新路由，再分别审阅停止旧线路、启用新线路；0.3.5在原生CFT实际切换成功。取消、未知STOP、未完成存储收尾、并行配置变化均不能自动重放或跨越状态保护。 |
+| 切换后的直连流量 | ip111.cn国内出口为成都61.157.71.204；本轮直连的另外两项未完成，不记全站流量PASS。 |
+| 最终应用跟随系统 | 只审阅停止自有设置，回读control=controllable_by_this_extension、Chrome模式system；刷新ip111.cn后国内、国外、谷歌三项均为东京43.167.193.251。已释放原生UI占用，保留浏览器和watcher。 |
+
+沙箱无法直接读取Chrome代理设置，原状态接口也缺少重开所需的已确认线路。最小通用SDK修复在原getStatus增加可选只读browserMode/activeConfig；只有本安装精确PAC/Journal、权限和控制权均核实时返回声明式线路，其他安装/冲突/unknown不返回配置。UI适配器仅与现有用户配置精确匹配，不用保存意图假造运行事实。原写权限、全局锁、精确审阅、撤权和STOP归属保持原合同。Chrome的clear可能暴露其他底层设置，不能等同于显式system；官方依据、最小范围和独立复审见[本轮证据](evidence/follow-system-core-0.3.5-20261031.json)。
+
+正式包0.3.5：923085字节，SHA-256 `db0ba7e9d80af0d37b326b22e9db539df0ac7e5891fe851a8d0cce0d7781a582`。原Vite编译→原打包器候选校验→同打包器promote-from→check-project均通过；权限仍为storage.local/currentPage.read/browser.proxy.managed。保留的可见macOS CFT155通过原导入审阅从0.3.4原位更新到0.3.5，配置保留。Browser继续使用已连接serve的dist/development；并行源码触发过安全重载，重开后独立确认直连成功，未复制/重装Browser或新增输出writer。
+
+最终服务/环境定向检查99/99通过，新增回归均先见失败再修复；独立代码复审发现的停止收尾后二次状态未知缺口已修复并独立复核。此前组合检查146通过、4失败；4项属于AI VIP Share历史development固定包pin与当前重打包SHA不一致（4a96…与7fc4…），不属于本工具公开审阅路径，记录延期且未更新其pin。接口矩阵/生成签名与当前代理输出Schema定向同源核对通过。未跑全CI、完整语义类型诊断、production、IME、压力或缩放矩阵；未重评分，认证/任意PAC/订阅联网仍未接入。
+
+本轮未提交或推送；main上的其他owner提交和未提交改动均保留。src/ui/sidebar-tools.js与docs/api/browser-sdk.zh-CN.md本轮写入已结束，并在协调消息中释放给后续Cookie gate owner；不重复接管。第17节UI owner源码已结束后才编译，保留其源码、焦点修复和独立证据。
+
+## 19. “只选直连仍是日本”的实际操作复核（2026-10-31）
+
+用户确认操作发生在测试浏览器，只有选择直连、没有点启用。本轮在同一保留CFT155、已安装0.3.5中重新执行，结论是**选择只保存配置；启用／应用选择及可信确认完成后才切换线路**，未复现直连绕不过系统代理的缺陷。
+
+| 本轮真实操作 | 回读与新请求结果 |
+| --- | --- |
+| 只选直连→关闭工具→重开→带新查询参数访问ip111 | “直连尚未启用”、浏览器设置为跟随系统、控制权尚未接管、技术模式system；国内／国外／谷歌三项仍为东京43.167.193.251。 |
+| 明确启用直连→允许本次操作 | “浏览器已应用当前选择”、AI Proxy正在控制、已确认线路direct。此前同轮新页面的国内／国外两项均为成都61.157.71.204；最后另用带新参数的us.ip111.cn/ip.php独立回显再次确认成都。 |
+| 直连运行时只选跟随系统 | 显示“待应用”，技术详情明确浏览器仍采用上次确认的直连；选择不会自动释放线路。 |
+| 应用跟随系统→批准原STOP | 只释放当前安装自有线路，回读system、controllable_by_this_extension、“正在跟随系统（未接管代理）”；新请求三项均为东京。 |
+
+操作时看状态区：未管理时选直连后点击**启用**，已有线路且显示待应用时点击**应用选择**，再完成原可信审阅。看到“浏览器已应用当前选择／Chrome已使用直连”后，刷新网站或发起新请求检查出口。不能把蓝色选中按钮、已保存选择或未刷新的IP文字当成应用成功；“暂停”会释放自有设置，可能重新出现系统代理出口。
+
+最终保留**已应用直连**和成都独立回显页，原系统HTTP／HTTPS／SOCKS设置仍为127.0.0.1:7897，浏览器、其他标签页和watcher均保留，原生UI锁已释放。本轮没有业务／平台源码变更、构建、重新安装、提交或推送；唯一正式包仍为第18节0.3.5和原SHA。当前安装版本由真实工具标题回读，本轮未独立展开安装字节摘要。
+
+Browser实际加载dist/development，ID为ccfcjegpkdlgbclopjmadlcjedelidmf；调试页显示serve已连接，构建revision为311299080ee88a5b063d6bf101048e2dc2f0bd4379c1d5e7dda68efbd5f68424。直连技术模式是工具依据原SDK已验证activeConfig呈现的声明式线路，本轮没有另读原生ProxyConfig；不以PAC必须字面为direct作判断。
+
+原生占用交接前窗口曾在只读期间变化，从直连审阅变成已直连、随后出现STOP审阅；未把该变化归因于单击选择。取得用户明确临时独占后，原待确认STOP已消失并显示通用失败，未重放它；重开只读确认直连仍有效。后续由本轮明确发起的操作与新请求才作为上述复现证据。两次旧AX索引输入被驱动拒绝，没有据此修改产品；最后根页面的新导航未完成，停止该页面加载后改用独立回显请求完成核对。
+
+边界：本轮直连的谷歌测试iframe显示加载错误，最后根页面导航未完成，均不记全站可达PASS；只确认实际返回的国内／国外出口及最终独立回显。没有新增代码，因此不重复历史99项或全CI；原4项AI VIP Share development包pin失败继续延期，未放宽来源锁。production、认证／任意PAC／订阅联网、完整矩阵与评分仍未执行。
+
+原始AX／截图、请求URL、来源与失败分类见[本轮结果](evidence/selection-vs-apply-20261031/result.json)；核心截图：[只选直连仍为系统／东京](evidence/selection-vs-apply-20261031/09-direct-selected-system-still-active.jpg)、[跟随系统／东京](evidence/selection-vs-apply-20261031/08-follow-system-new-request.jpg)、[直连／最终成都](evidence/selection-vs-apply-20261031/11-final-direct-echo.jpg)。这些是原生UI观察，未伪称CDP网络trace或完整设备VPN证明。

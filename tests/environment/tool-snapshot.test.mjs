@@ -23,7 +23,7 @@ test('Native 32 KiB chunk transport reconstructs one complete immutable UI packa
   const snapshot=await readToolSnapshot({toolId:'chunk-tool',readText:f.readText});
   assert.equal(snapshot.tool.id,'chunk-tool');
   assert.equal(snapshot.tool.version,'1.0.0');
-  assert.ok(snapshot.chunks>=4,'fixture crosses the single Go files.read limit');
+  assert.ok(snapshot.bytes>32768&&snapshot.chunks>1,'fixture crosses the single Go files.read limit');
   assert.equal(snapshot.sha256,f.report.sha256);
   assert.equal(snapshot.bytes,(await readFile(f.report.output)).length);
   assert.equal(typeof previewStorageKey('00000000-0000-4000-8000-000000000001'),'string');

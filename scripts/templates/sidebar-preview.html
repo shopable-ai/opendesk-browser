@@ -4,7 +4,8 @@
     #od-preview-app{padding:var(--space-3);background:var(--od-bg);color:var(--od-ink);min-width:0;overflow-wrap:anywhere}
     .preview-controls{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
     .preview-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
-    .preview-row>span{min-width:0;overflow-wrap:anywhere}
+    .preview-row>span{flex:1;min-width:0;overflow-wrap:anywhere}
+    .preview-row>.preview-actions{flex:none}
     .preview-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
     .preview-heading{display:grid;gap:var(--space-2)}
     .preview-sections{display:grid;gap:var(--space-4);min-width:0}
@@ -49,10 +50,10 @@
   </div>
 <div class="preview-controls"><label for="od-design-theme">工具主题<select id="od-design-theme" class="od-field"><option value="light">浅色</option><option value="dark">深色</option></select></label><button id="reset-items" type="button" class="od-button od-button--secondary">恢复初始预览</button></div><p class="od-note">宿主外壳始终为浅色。未授权和撤权仅演示界面状态，不申请真实权限。</p></details></aside>
   <section id="od-preview-app" class="preview-sections" aria-label="工具交互预览">
-    <p id="app-status" class="od-note" role="status" aria-live="polite">示例内容已就绪。</p>
+    <p id="app-status" class="od-note" role="status" aria-live="polite" hidden></p>
     <section id="list-view" class="od-stack" data-view="list">
       <div class="od-page-head"><h2 class="od-page-title">我的条目</h2><div class="od-page-actions"><button id="refresh-items" type="button" class="od-icon-button" aria-label="刷新条目" title="刷新条目"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg></button><button id="create-item" type="button" class="od-button">新建</button></div></div>
-      <div id="item-list" class="od-stack"></div>
+      <div id="item-collection" class="od-shared-card"><div class="od-shared-card-content"><div id="item-list" class="od-stack" role="list" aria-label="条目"></div></div></div>
     </section>
     <form id="form-view" class="od-shared-card" data-view="form" hidden novalidate><div class="od-shared-card-content preview-sections">
       <h2 id="form-title" class="od-title" tabindex="-1">新建条目</h2>
@@ -74,7 +75,7 @@
   const stateButtons = [...state.querySelectorAll('[data-state]')];
   const initial = () => [{id:1,title:'示例记录'}, {id:2,title:'准备下一次操作'}];
   let items = initial(), nextId = 3, editing = null, removing = null, returnFocus = 'create-item', returnScroll = 0, previewState = 'ready';
-  const status = text => { get('app-status').textContent = text; };
+  const status = text => { get('app-status').textContent = text; get('app-status').hidden = !text; };
   function show(view) {
     for (const panel of root.querySelectorAll('[data-view]')) panel.hidden = panel.dataset.view !== view;
     for (const button of stateButtons) button.disabled = view !== 'list';
@@ -86,32 +87,33 @@
     const target = document.getElementById(returnFocus) || get('create-item');
     target.focus({preventScroll:true}); target.scrollIntoView({block:'nearest'});
   }
-  function button(text, id, action, dangerous = false) {
+  function button(text, id, action, target) {
     const el = document.createElement('button'); el.type = 'button'; el.id = id;
-    el.className = 'od-button ' + (dangerous ? 'od-button--quiet' : 'od-button--secondary');
+    el.className = 'od-button od-button--quiet';
+    el.setAttribute('aria-label', text + '：' + target); el.title = text + '：' + target;
     el.textContent = text; el.addEventListener('click', action); return el;
   }
   function render() {
     const list = get('item-list'); list.replaceChildren();
     const blocked = ['error','denied','revoked','busy'].includes(previewState);
+    get('item-collection').hidden = blocked || !items.length;
     get('create-item').disabled = blocked;
     get('refresh-items').disabled = blocked;
     get('app-status').setAttribute('role', ['error','revoked'].includes(previewState) ? 'alert' : 'status');
     get('app-status').className = blocked ? 'od-alert ' + (previewState === 'error' ? 'od-alert--error' : ['denied','revoked'].includes(previewState) ? 'od-alert--warning' : '') : items.length ? 'od-note' : 'od-alert';
     root.setAttribute('aria-busy', String(previewState === 'busy'));
     const messages = {error:'读取失败，请切回正常状态重试。',denied:'尚未授权，当前内容不可读取。',revoked:'授权已撤销，当前操作已停止。',busy:'正在处理模拟操作…'};
-    status(previewState === 'long' ? '这是一条用于演示自然换行的长状态提示，保留完整说明及恢复路径：https://example.invalid/' + 'long-context-'.repeat(16) : blocked ? messages[previewState] : items.length ? '示例内容已就绪。' : '暂无条目，可点击新建。');
+    status(previewState === 'long' ? '这是一条用于演示自然换行的长状态提示，保留完整说明及恢复路径：https://example.invalid/' + 'long-context-'.repeat(16) : blocked ? messages[previewState] : items.length ? '' : '暂无条目，可点击新建。');
     if (blocked) return;
     for (const item of items) {
-      const row = document.createElement('div'); row.className = 'od-shared-card';
-      const content = document.createElement('div'); content.className = 'od-shared-card-content preview-row';
+      const row = document.createElement('div'); row.className = 'preview-row'; row.setAttribute('role', 'listitem');
       const title = document.createElement('span'); title.className = 'od-body'; title.textContent = item.title;
       const actions = document.createElement('div'); actions.className = 'preview-actions';
       const editId = 'edit-' + item.id, removeId = 'remove-' + item.id;
-      actions.append(button('编辑', editId, () => openForm(item, editId)), button('删除', removeId, () => {
+      actions.append(button('编辑', editId, () => openForm(item, editId), item.title), button('删除', removeId, () => {
         removing = item.id; returnFocus = removeId; returnScroll = window.scrollY; get('confirm-copy').textContent = item.title;
         show('confirm'); get('cancel-delete').focus();
-      }, true)); content.append(title, actions); row.append(content); list.append(row);
+      }, item.title)); row.append(title, actions); list.append(row);
     }
   }
   function openForm(item, origin) {
@@ -134,7 +136,7 @@
   get('cancel-form').addEventListener('click', () => { show('list'); restoreFocus(); });
   get('cancel-delete').addEventListener('click', () => { show('list'); restoreFocus(); });
   root.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && (!get('form-view').hidden || !get('confirm-view').hidden)) {
+    if (event.key === 'Escape' && !event.isComposing && event.keyCode !== 229 && (!get('form-view').hidden || !get('confirm-view').hidden)) {
       event.preventDefault(); show('list'); restoreFocus();
     }
   });

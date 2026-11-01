@@ -685,6 +685,94 @@
 .cookie-editor-react .cookie-business-disclosure p{
   margin:var(--space-2) 0 0;line-height:1.6;color:var(--od-sub);font-size:var(--od-note-size);
 }
+/* HTTP editor owns its groups; the enclosing enterprise page owns the gutter.
+   Keep actions in flow so expanded setup instructions cannot sit underneath them. */
+.cookie-editor-react .cookie-http-connections,
+.cookie-editor-react .cookie-http-form,
+.cookie-editor-react .cookie-http-fields{
+  display:grid;min-width:0;gap:var(--space-3);
+}
+.cookie-editor-react .cookie-http-connections{gap:var(--space-2)}
+.cookie-editor-react .cookie-enterprise-overview{display:grid;gap:11px;min-width:0}
+.cookie-editor-react .cookie-http-connections[data-view="list"]{border-top:1px solid var(--od-line);padding-top:var(--space-3)}
+.cookie-editor-react .cookie-http-entry,
+.cookie-editor-react .cookie-http-overview{justify-self:start;color:var(--od-brand)}
+.cookie-editor-react .cookie-http-list-header{display:flex;align-items:center;gap:var(--space-2)}
+.cookie-editor-react .cookie-http-heading-copy{flex:1;min-width:0;display:grid;gap:4px}
+.cookie-editor-react .cookie-http-heading-copy p{margin:0;font-size:var(--od-note-size);line-height:1.5;color:var(--od-sub)}
+.cookie-editor-react .cookie-http-list-header h3{flex:1;margin:0;font-size:13px;line-height:1.5}
+.cookie-editor-react .cookie-http-list-header h3 small{font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub);margin-left:4px}
+.cookie-editor-react .cookie-http-header-actions{display:flex;gap:var(--space-2);margin-left:auto}
+.cookie-editor-react .cookie-http-add,
+.cookie-editor-react .cookie-http-connect{background:var(--od-brand-bg);color:var(--od-brand)}
+.cookie-editor-react .cookie-http-list{display:grid;border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
+.cookie-editor-react .cookie-http-list:empty{display:none}
+.cookie-editor-react .cookie-http-card{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-http-card+.cookie-http-card{border-top:1px solid var(--od-line)}
+.cookie-editor-react .cookie-http-card-top{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-http-symbol{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub)}
+.cookie-editor-react .cookie-http-symbol svg{width:16px;height:16px}
+.cookie-editor-react .cookie-http-symbol--local{background:var(--od-brand-bg);color:var(--od-brand)}
+.cookie-editor-react .cookie-http-card-name{flex:1;min-width:0}
+.cookie-editor-react .cookie-http-card-name h4{margin:0;font-size:13px;line-height:1.5}
+.cookie-editor-react .cookie-http-card-name p{margin:2px 0 0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.5;overflow-wrap:anywhere}
+.cookie-editor-react .cookie-http-status{display:inline-flex;align-items:center;gap:4px;flex:none;max-width:40%;margin-top:2px;padding:2px 4px;border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.5}
+.cookie-editor-react .cookie-http-status svg{width:12px;height:12px}
+.cookie-editor-react .cookie-http-status[data-status="CONNECTED"]{color:var(--od-positive)}
+.cookie-editor-react .cookie-http-status[data-status="OUTCOME_UNKNOWN"],
+.cookie-editor-react .cookie-http-review{color:var(--od-warning);background:var(--od-warning-bg)}
+.cookie-editor-react .cookie-http-pending-note{margin:0;font-size:var(--od-note-size);line-height:1.5;color:var(--od-warning)}
+.cookie-editor-react .cookie-http-card-actions{display:flex;align-items:center;gap:var(--space-2)}
+.cookie-editor-react .cookie-http-row-actions{display:flex;align-items:center;gap:4px}
+.cookie-editor-react .cookie-http-associations{display:flex;align-items:center;gap:4px;margin-right:auto;color:var(--od-sub);font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-http-associations strong{color:var(--od-ink);font-variant-numeric:tabular-nums}
+.cookie-editor-react .cookie-http-associations svg,
+.cookie-editor-react .cookie-http-safety svg{width:16px;height:16px;flex:none}
+.cookie-editor-react .cookie-http-safety{display:flex;align-items:flex-start;gap:var(--space-2);padding:4px 0}
+.cookie-editor-react .cookie-http-safety svg{color:var(--od-positive)}
+.cookie-editor-react .cookie-http-empty{display:grid;justify-items:center;gap:var(--space-2);padding:24px var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);text-align:center}
+.cookie-editor-react .cookie-http-empty p{margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub)}
+.cookie-editor-react .cookie-http-connections>p{
+  margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub);
+}
+.cookie-editor-react .cookie-enterprise-content:has(>.cookie-http-connections[data-view="config"]),
+.cookie-editor-react .cookie-enterprise-content:has(>.cookie-http-connections[data-view="detail"]){gap:0}
+.cookie-editor-react .cookie-enterprise-content:has(>.cookie-http-connections[data-view="config"])>:not(.cookie-http-connections),
+.cookie-editor-react .cookie-enterprise-content:has(>.cookie-http-connections[data-view="detail"])>:not(.cookie-http-connections){display:none}
+.cookie-editor-react .cookie-http-form-header{
+  display:flex;align-items:center;gap:var(--space-2);min-width:0;margin-bottom:4px;
+}
+.cookie-editor-react .cookie-http-back svg{transform:rotate(180deg)}
+.cookie-editor-react .cookie-http-form-header h3{
+  margin:0;font-size:16px;line-height:1.5;
+}
+.cookie-editor-react .cookie-http-form p{
+  margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub);
+}
+.cookie-editor-react .cookie-http-form label{
+  display:grid;gap:var(--space-2);min-width:0;
+  font-size:var(--od-note-size);line-height:1.5;font-weight:650;
+}
+.cookie-editor-react .cookie-http-types{display:grid;gap:var(--space-2);min-width:0;margin:0;padding:0;border:0}
+.cookie-editor-react .cookie-http-types legend{margin-bottom:var(--space-2);padding:0;font-size:var(--od-note-size);font-weight:650}
+.cookie-editor-react .cookie-http-type-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.cookie-editor-react .cookie-http-form .cookie-http-type-option{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);cursor:pointer}
+.cookie-editor-react .cookie-http-type-option:has(:checked){border-color:var(--od-brand);background:var(--od-brand-bg)}
+.cookie-editor-react .cookie-http-form .cookie-http-type-option input{width:14px;min-width:14px;height:14px;min-height:14px;margin:0;padding:0;flex:none;accent-color:var(--od-brand)}
+.cookie-editor-react .cookie-http-form .od-field{width:100%;min-width:0;min-height:36px;font-size:13px;font-weight:400}
+.cookie-editor-react .cookie-http-field-help{font-size:var(--od-note-size);font-weight:400;color:var(--od-sub);line-height:1.6}
+.cookie-editor-react .cookie-http-setup{padding:0;border:0;border-radius:0;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-http-setup summary{display:list-item;min-height:36px;align-content:center;color:var(--od-sub)}
+.cookie-editor-react .cookie-http-setup p+p{margin-top:var(--space-2)}
+.cookie-editor-react .cookie-http-form-footer{display:grid;gap:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-3)}
+.cookie-editor-react .cookie-http-form-footer .cookie-business-actions{justify-content:flex-end}
+.cookie-editor-react .cookie-http-form-footer button{min-height:36px}
+.cookie-editor-react .cookie-http-form-footer .od-button--primary{min-width:100px}
+.cookie-editor-react .cookie-http-form .od-field-error{color:var(--od-negative)}
+@media(pointer:coarse){
+ .cookie-editor-react .cookie-http-form-footer button,
+ .cookie-editor-react .cookie-http-setup summary{min-height:44px}
+}
 .cookie-editor-react #cookie-product-panel-circle .cookie-business-features{gap:9px}
 .cookie-editor-react #cookie-product-panel-circle .cookie-business-hero,
 .cookie-editor-react #cookie-product-panel-market .cookie-business-hero{gap:5px;padding-bottom:12px}

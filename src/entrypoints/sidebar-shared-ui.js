@@ -2,6 +2,7 @@ import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {Button,IconButton} from '../ui/react/components/ui/button.tsx';
 import {Card,CardContent} from '../ui/react/components/ui/card.tsx';
 import {Switch} from '../ui/react/components/ui/switch.tsx';
+import {Input,Textarea} from '../ui/react/components/ui/input.tsx';
 import {SharedConversationFrame,SharedConversationDock} from '../ui/react/components/conversation.tsx';
 import {createConversationSession} from '../ui/conversation/session.js';
 import tokensCSS from '../ui/design-tokens.css?raw';
@@ -14,20 +15,24 @@ export default defineUnlistedScript(()=>{
     throw Error('E_TOOL_SHARED_REACT_VERSION');
   if(Object.hasOwn(globalThis,'OpenDeskSidebarUI'))
     throw Error('E_TOOL_SHARED_UI_COLLISION');
-  // Publish official Button/IconButton styles without defining a second palette.
-  // Only the canonical button rules travel with the fixed sandbox resource.
+  // Publish canonical baseline buttons plus the explicit theme's controls.
+  // Layout, help/errors and form composition stay in the consumer's CSS.
   const buttonStart=designSystemCSS.indexOf('.od-button{');
   const buttonEnd=designSystemCSS.indexOf(':is(input,select,textarea).od-field{');
   if(buttonStart<0||buttonEnd<=buttonStart||
     !designSystemCSS.slice(buttonStart,buttonEnd).includes('.od-icon-button{'))
     throw Error('E_TOOL_SHARED_UI_CSS_DRIFT');
   const buttonCSS=designSystemCSS.slice(buttonStart,buttonEnd);
+  const themeStart=designSystemCSS.indexOf('/* Opt-in shadcn/ui aria-nova');
+  const themeEnd=designSystemCSS.indexOf('/* Keep the trusted tool host',themeStart);
+  if(themeStart<0||themeEnd<=themeStart)throw Error('E_TOOL_SHARED_UI_THEME_DRIFT');
+  const themeCSS=designSystemCSS.slice(themeStart,themeEnd);
   const style=document.createElement('style');
   style.dataset.opendeskSharedUi='v1';
-  style.textContent=tokensCSS+'\n'+componentCSS+'\n'+buttonCSS;
+  style.textContent=tokensCSS+'\n'+componentCSS+'\n'+buttonCSS+'\n'+themeCSS;
   document.head.append(style);
   Object.defineProperty(globalThis,'OpenDeskSidebarUI',{
-    value:Object.freeze({Button,IconButton,Card,CardContent,Switch,
+    value:Object.freeze({Button,IconButton,Card,CardContent,Switch,Input,Textarea,
       SharedConversationFrame,SharedConversationDock,createConversationSession}),
     enumerable:false,configurable:false,writable:false
   });

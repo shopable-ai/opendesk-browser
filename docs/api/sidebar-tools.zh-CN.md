@@ -55,16 +55,16 @@
 | id | `^[a-z][a-z0-9-]{1,39}$`，稳定且安装时按 ID 区分 |
 | version | 数字 `major.minor.patch`，没有前缀/预发布标签 |
 | title / description | 最长 80 / 300 字符 |
-| HTML / CSS / JS | 最长 64,000 / 120,000 / 1,048,576 字符（源文件还有相应字节预算） |
-| 完整包 | 最大 2,097,152 UTF-8 bytes（2 MiB，包含 JSON 转义与规范序列化开销） |
-| 安装数量 | 最多 12 个 |
-| 图片 assets | 最多 16 个；每张 ≤96 KiB；PNG/JPEG/WebP，本地预嵌入 |
+| HTML / CSS / JS | 不设固定字符或字节大小上限；仍校验类型、内容与执行世界 |
+| 完整包 | 不设固定大小上限；导入、打包、下载和沙箱加载使用同一合同 |
+| 安装数量 | 框架不设数量硬限制 |
+| 图片 assets | 最多 16 个；PNG/JPEG/WebP，本地预嵌入，不设单张大小上限 |
 
 HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联事件、`javascript:` 等；CSS 不允许远程 `@import`、HTTP/JS 资源；主 JS 及 v2 所选固定依赖必须是 Classic；原始 ESM/JSX/SFC 先按项目构建，不能直接保留顶层 `import/export`。校验器不能代替 CSP、安全审计或真实浏览器验收。
 
 ### R1.4 可选 App Service 包合同
 
-只有 v2 可声明 `tool.config.json.files.background`，值为项目内本地 JS 相对路径，与 `files.js` 的 UI 源码分别读取。打包器复用原路径、符号链接和源文件预算检查，计算最终 `background.js` UTF-8 字节的固定 SHA-256。配置不接受手写顶层 `background` 或作者自报摘要。输出包的可选顶层字段严格为：
+只有 v2 可声明 `tool.config.json.files.background`，值为项目内本地 JS 相对路径，与 `files.js` 的 UI 源码分别读取。打包器复用原路径与符号链接检查，计算最终 `background.js` UTF-8 字节的固定 SHA-256。配置不接受手写顶层 `background` 或作者自报摘要。输出包的可选顶层字段严格为：
 
 ```text
 background: {
@@ -74,9 +74,9 @@ background: {
 }
 ```
 
-必须同时声明既有 `browser.storage` 和 `browser.scheduler` capabilities；`storage.local` 不能替代 `browser.storage`。UI `js` 保持独立，后台源码不合并到 UI 或依赖资产，也不由安装器执行。后台源码沿用 JS 的 **1,048,576 UTF-16 字符及 UTF-8 字节**限制；所有 UI、依赖、后台、数据及 JSON 开销共同占用**2,097,152 UTF-8 bytes** 包预算，没有新增容量。v1 拒绝 `background/files.background`，未声明后台的既有 v1/v2 包保持兼容。
+必须同时声明既有 `browser.storage` 和 `browser.scheduler` capabilities；`storage.local` 不能替代 `browser.storage`。UI `js` 保持独立，后台源码不合并到 UI 或依赖资产，也不由安装器执行。UI、固定依赖、后台源码及完整包均不设固定大小上限。工具运行数据仍受各自配额约束。v1 拒绝 `background/files.background`，未声明后台的既有 v1/v2 包保持兼容。
 
-`validateSidebarToolPackage` 同步校验形状、能力、源码及完整包预算；`verifySidebarToolBackground(tool)` 异步返回验证后的工具快照，并核对后台源码 SHA（不匹配为 `E_TOOL_BACKGROUND_SHA`）。后台缺失时仍验证原包，随后直接返回。`serializeSidebarToolPackage` 和 `sidebarToolPackageHash` 包含 `background` 的 kind/js/sha256，以固定字段顺序序列化，不受存储重排字段影响；源码或摘要变化都会改变包身份。`sidebarToolPackageHash` 自身也先调用异步后台校验，拒绝错误的源码摘要；同步序列化仅校验形状，不能代替该检查。
+`validateSidebarToolPackage` 同步校验形状、能力及源码；`verifySidebarToolBackground(tool)` 异步返回验证后的工具快照，并核对后台源码 SHA（不匹配为 `E_TOOL_BACKGROUND_SHA`）。后台缺失时仍验证原包，随后直接返回。`serializeSidebarToolPackage` 和 `sidebarToolPackageHash` 包含 `background` 的 kind/js/sha256，以固定字段顺序序列化，不受存储重排字段影响；源码或摘要变化都会改变包身份。`sidebarToolPackageHash` 自身也先调用异步后台校验，拒绝错误的源码摘要；同步序列化仅校验形状，不能代替该检查。
 
 本地审阅安装、市场单项及批量安装沿用同一 `installReviewedSidebarTool`，在任何安装写入和市场意图消费前执行异步 SHA 校验；市场未知结果恢复也验证实际安装的后台源码。来源沿用用户明确本地审阅（`local-reviewed` 语义）或可信调用方核实的既有市场来源记录。后台 SHA 只证明内容一致，**不是发行者签名或信任声明**；包不能自报 publisher/official 来源。
 
@@ -160,6 +160,10 @@ OpenDeskTool.root.addEventListener('opendesk:conversation-action', ({detail}) =>
 Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent，不包含原始点击事件、HTML 或任意动作名，也不提供 AI 授权或用户手势。沿用 opaque origin、真实 event.source、protocol、instance 和 toolId 校验；销毁时隐藏并清空状态，旧实例消息失效。open 从 true 变 false 且焦点在 iframe 或入口时，宿主请求将焦点恢复到入口；工具通常保持 visible 为 true。模型调用仍走原权限与 Authority。
 
 需要关闭保护的编辑器可调用 `OpenDeskTool.setState({dirty, busy})`，两个字段必须是布尔值，并且通过一个对象传递。输入后标记未保存；写入期间保持 `busy: true`；只有持久保存确认后才清除 dirty，完成后再清除 busy。宿主据此保护关闭与切换；该消息不提供能力或网站授权，也不能阻止用户明确卸载。
+
+### 受限页头导航发现入口
+
+`OpenDeskTool.setNavigation` 是可选的受限导航能力，仅获准入的完整官方包具备；先用 `typeof OpenDeskTool.setNavigation === 'function'` 做特性检测，方法存在本身不替代完整包、来源、实例与安装代际核验。接入与返回层级见[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)。工具上报当前导航展示状态，由宿主统一呈现页头；返回/主操作交回工具处理，并保留草稿、忙态和结果未知保护。未准入或未接入的工具不能直接移除唯一可用的内部导航；此入口不授予宿主 DOM 或额外权限。
 
 ### 普通第三方小工具的基础操作
 
@@ -266,7 +270,7 @@ App 在 `tool.config.json` 声明 `format: "opendesk.sidebar-tool.v2"`、capabil
 
 宿主空间与工具数量分别处理（2026-10-29）：**框架不设置安装总数上限**。导入、更换安装包、市场批量安装和迁移均读取完整有效注册表，不因超过旧 12/13 项而拒绝或截断。未来 VIP 等数量权益属于独立产品策略，本轮未实现；不得再用存储或沙箱预算冒充安装名额。仍保留以下实际资源保护：
 
-- 单工具包最大 **2,097,152 UTF-8 字节（2 MiB）**。容量策略与旧数量预算的替代关系见 [R32.3](../architecture/browser-ui-r23.zh-CN.md#2026-10-29取消框架安装数量限制)。安装多少工具不等于同时启动多少沙箱。
+- 单工具包不设固定大小上限。容量策略与旧数量预算的替代关系见 [R32.3](../architecture/browser-ui-r23.zh-CN.md#2026-10-29取消框架安装数量限制)。安装多少工具不等于同时启动多少沙箱。
 - 普通工具的单项数据最多 **8,192 字节**、全工具最多 **32,768 字节**，每个工具最多 **32** 个字段。
 - 知识收件箱独立保留 **200 条 / 总数据 4 MiB**；不得用普通工具 32 KiB 限制替代。
 - `E_TOOL_LIMIT` / `E_TOOL_DATA_LIMIT` 是单包/工具数据资源保护；`E_MANAGED_DNR_CAPACITY` 仅表示受管网站原生规则槽位不足或待清理，不限制工具安装总数；`E_HOST_STORAGE_QUOTA` / `E_HOST_STORAGE_WRITE` 属于宿主写入/设备环境问题；`E_STORAGE_CONFLICT` 是版本核对失败；`E_OUTCOME_UNKNOWN` 是读回不足以判断已发生的效果。旧安装错误 `E_TOOL_CAPACITY` 已移除。

@@ -1,0 +1,168 @@
+Window: "显示查询自己的IP地址", App: Google Chrome for Testing.
+0 标准窗口 显示查询自己的IP地址 - Google Chrome for Testing, URL: ip111.cn/?ai-proxy-core=1793446387101-direct, Secondary Actions: Raise
+	1 container 显示查询自己的IP地址 - Google Chrome for Testing, URL: ip111.cn/?ai-proxy-core=1793446387101-direct
+		2 container
+			3 工具栏
+				4 滚动区
+					5 工具栏
+						6 按钮 返回, Help: 点击后退，长按查看历史记录
+						7 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+						8 按钮 重新加载, Help: 重新加载此页
+				9 container
+					10 弹出式按钮 查看网站信息
+					11 文本栏 (settable) 地址和搜索栏, Value: ip111.cn/?ai-proxy-core=1793446387101-direct, Placeholder: 问问 Google 或输入网址
+					12 按钮 为此标签页添加书签
+				13 container
+					14 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					15 按钮 关闭侧边栏
+				16 按钮 您
+				17 弹出式按钮 Chromium
+			18 container
+				19 滚动区
+					20 HTML 内容 显示查询自己的IP地址, URL: ip111.cn/?ai-proxy-core=1793446387101-direct
+						21 标题 ip111.cn 全方位查询您的IP地址, Value: 5
+							22 文本 ip111.cn 全方位查询您的IP地址
+						23 container
+							24 text 从国内测试 61.157.71.204 中国 成都 这是您访问国内网站所使用的IP
+						25 container
+							26 文本 从国外测试
+							27 HTML 内容 us.ip111.cn/ip.php
+								28 container
+									29 text 61.157.71.204 中国 成都
+							30 文本 您访问没有被封的国外网站所使用的IP
+						31 container
+							32 文本 从谷歌测试
+							33 HTML 内容 sspanel.net, URL: chrome-error://chromewebdata/
+							34 文本 这是您访问谷歌，Facebook，Twitter等网站所使用的IP
+						35 文本 本站仅提供IP地址查询的功能，不提供其它任何服务，也不与别的网站有任何合作。
+						36 link 京ICP备13004995号-8, Value: beian.miit.gov.cn/
+						37 container 网页目录
+							38 按钮 拖动阅读目录；方向键移动，Home 归位, Help: 拖动目录；方向键调整位置，Shift 加速，Home 归位
+							39 container 目录视图
+								40 切换按钮 主要章节（内容较少时自动补充子章节）, Help: 主要章节, Value: 1
+									41 图像
+								42 切换按钮 当前章节, Value: 0
+									43 图像
+								44 切换按钮 完整目录, Value: 0
+									45 图像
+								46 切换按钮 AI 整理, Value: 0
+							47 内容列表
+								48 按钮 ip111.cn 全方位查询您的IP地址
+			49 container 信息栏容器
+				50 container 信息栏
+					51 文本 Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					52 链接 下载 Chrome
+			53 滚动区
+				54 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=1782ea8e-01e2-4991-801f-80805fecb18b
+					55 container
+						56 标签组 工作台
+							57 标签 (settable, integer) 我的, Value: 0
+							58 标签 (selected) 扩展, Value: 1
+							59 标签 (settable, integer) 工作流, Value: 0
+							60 标签 (settable, integer) 开发, Value: 0
+							61 标签 (settable, integer) 云控, Value: 0
+							62 标签 (settable, integer) 调试, Value: 0
+						63 container 扩展
+							64 container 自定义工具
+								65 container 当前工具界面
+									66 container
+										67 按钮 返回扩展列表
+										68 标题 AI Proxy, Help: AI Proxy · v0.3.5, Value: 2
+											69 文本 AI Proxy
+										70 container 工具管理
+											71 按钮 工具设置
+											72 按钮 卸载「AI Proxy」及其本地数据
+									73 container AI Proxy（独立受限界面）
+										74 HTML 内容 AI Proxy — 浏览器代理管理器, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html
+											75 container 代理面板
+												76 container
+													77 标题 连接方式, Value: 2
+														78 文本 连接方式
+													79 按钮 添加代理
+													80 按钮 打开设置
+													81 container 代理模式
+														82 切换按钮 指定代理, Help: 自己的代理或本地 PAC, Value: 0
+														83 切换按钮 网站规则, Help: 按域名自动分流, Value: 0
+														84 切换按钮 直连, Help: 忽略代理直连网络, Value: 0
+														85 切换按钮 跟随系统, Help: 浏览器使用系统策略, Value: 1
+													86 container 浏览器状态
+														87 container
+															88 文本 待应用
+															89 开合三角标记 技术详情
+																90 文本 技术详情
+															91 container controlled_by_this_extension
+																92 text 控制权：AI Proxy 正在控制  · Chrome 模式：direct
+															93 文本 代理权限：已获准
+															94 container
+																95 text 已选：跟随系统。 浏览器仍采用上次确认的「直连」设置。 如需切换，请明确点击「应用选择」；如需释放代理，请点击「停止管理」。
+														96 按钮 暂停
+														97 按钮 应用选择
+													98 container 代理快捷选择
+														99 标题 我的代理 1, Value: 2
+															100 text 我的代理 1
+														101 按钮 管理全部
+														102 切换按钮 本地 HTTP HTTP · 127.0.0.1:7897 使用, Help: 本地 HTTP, Value: 0
+															103 文本 本地 HTTP
+															104 文本 HTTP · 127.0.0.1:7897
+															105 文本 使用
+													106 container 当前网站
+														107 标题 当前网站, Value: 2
+															108 文本 当前网站
+														109 按钮 管理规则
+														110 文本 ip111.cn
+														111 文本 来自当前网页
+														112 定义列表
+															113 container 浏览器设置
+																114 文本 浏览器设置
+															115 文本 直连（绕过系统代理）
+															116 container 待应用选择
+																117 文本 待应用选择
+															118 文本 由系统网络设置决定
+														119 文本 选择仅供配置参考，不代表此网站的实际流量或可达性。
+														120 按钮 编辑命中规则
+														121 按钮 重新识别
+													122 文本 仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。
+													123 container 打开设置
+														124 按钮 订阅来源
+														125 按钮 网络诊断 ↗
+			126 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			127 container
+				128 文本 OD
+				129 复选框 固定到工具栏, Value: 0
+				130 按钮 关闭侧边栏
+			131 弹出式按钮 标签页搜索
+			132 container
+				133 标签组
+					134 标签 (settable, boolean) 扩展程序 - OpenDesk Browser Developer, Value: off
+						135 按钮 关闭
+					136 标签 (settable, boolean) 阅读目录 R23 · 交互设计模拟 · OpenDesk 交互预览, Value: off
+						137 按钮 关闭
+					138 标签 (settable, boolean) ChatGPT: Chat, Work, Create & Code with AI, Value: off
+						139 按钮 关闭
+					140 标签 (settable, boolean) 应用 · OpenDesk 应用市场, Value: off
+						141 按钮 关闭
+					142 标签 (settable, boolean) 显示查询自己的IP地址, Value: off
+						143 按钮 关闭
+					144 标签 (selected, settable, boolean) 显示查询自己的IP地址, Value: on
+						145 按钮 关闭
+			146 按钮 新标签页
+	147 关闭按钮
+	148 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	149 最小化按钮
+150 menu bar
+	151 Google Chrome for Testing
+	152 文件
+	153 编辑
+	154 显示
+	155 历史记录
+	156 书签
+	157 个人资料
+	158 标签页
+	159 窗口
+	160 帮助
+
+Selected text: ```
+已选：跟随系统。浏览器仍采用上次确认的「直连」设置。如需切换，请明确点击「应用选择」；如需释放代理，请点击「停止管理」。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

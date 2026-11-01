@@ -71,9 +71,7 @@ jobs:
           node --test --test-name-pattern='R5 newest fixed reading kit|R5 immutable archive conflicts' tests/environment/app-market-r5.test.mjs
           node scripts/build-sidebar-tool.mjs projects/reading-toc --check-project
           npm run build:sidebar-tool -- projects/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
-          node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12.html
-          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html
-          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/index.html
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/index.html
           npm run check
       - name: Production and development bundles with unchanged strict packaging
         id: production_build
@@ -122,7 +120,7 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
-            artifacts/previews/reading-toc/
+            projects/reading-toc/preview/index.html
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             artifacts/reading-toc-r41/

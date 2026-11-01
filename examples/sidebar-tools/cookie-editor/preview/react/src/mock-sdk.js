@@ -1,6 +1,7 @@
 // Fictional transport only. Policy and parsing belong to the real app/ Controller and Domain.
 import {key,sameNativeSlot} from '../../../app/domain/cookie-model.js';
 import {normalizeAccountDescription} from '../../../trusted/account-contract.js';
+import cookiePackage from '../../../package.json' with {type:'json'};
 export const demoSite='shop.example.com';
 export const demoSites=Object.freeze([demoSite,'docs.example.org','store.example.net']);
 const partitionKey={topLevelSite:'https://partner.example.net',hasCrossSiteAncestor:false};
@@ -42,6 +43,17 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let rows=scenario==='empty'?[]:parity?approvedParityCookies():fictionalCookies(),failure='',clearPlan=null,releaseLoading;
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
+ const storedItems=new Map();
+ // Only this explicit preview scene seeds fictional saved configurations.
+ // Match the real service adapter's durable format; no session or remote data.
+ if(scenario==='serviceConnections')storedItems.set('cookie-http-services.v1',{
+  format:1,revision:0,connections:[
+   {id:'preview_local_service',label:'本机额度服务',origin:'http://usage-demo.localhost:43121'},
+   {id:'preview_company_service',label:'示例公司',origin:'https://team.example.com'}
+  ].map(item=>({...item,version:cookiePackage.version,status:'UNCONNECTED',session:null,
+   expiresAt:0,serviceInstanceId:'',deviceId:'',authEpoch:0,resources:[],resourceCursor:null,
+   usageCache:{},bindings:[],policy:null,pending:null,history:[]}))
+ });
  // Preview-only account fixture. No real account, Cookie, Host or storage.
  const accountDemo=parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown'].includes(scenario);
  const fictionalAccounts=parity?[
@@ -161,6 +173,18 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {started:true};
    }}},
   request:async(operation,payload)=>{
+   if(operation==='browser.storage.local.get'){
+    record(operation,payload??{});
+    const keys=payload?.keys??[...storedItems.keys()];
+    return {items:clone(Object.fromEntries(keys.filter(key=>storedItems.has(key))
+      .map(key=>[key,storedItems.get(key)])))};
+   }
+   if(operation==='browser.storage.local.set'){
+    record(operation,payload);
+    const entries=Object.entries(clone(payload.items));
+    for(const [key,value] of entries)storedItems.set(key,value);
+    return {written:entries.length};
+   }
    if(operation.startsWith('cookieAccount.')){
     if(scenario==='hostClosed')throw error('E_HOST_CLOSED');
     const action=operation.slice('cookieAccount.'.length);

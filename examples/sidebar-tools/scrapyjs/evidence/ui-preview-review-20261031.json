@@ -1,0 +1,94 @@
+{
+  "format": "scrapyjs.ui-preview-review.v1",
+  "date": "2026-10-31",
+  "candidate": "preview/preview.html",
+  "sha256": "9eb4bd8f7cca98f84cd076be98bdfd99999845a7b582e364f17cfcd7a5c3b5d6",
+  "reviewer": {
+    "kind": "independent_native_subagent",
+    "role": "designer",
+    "writeAccess": "read-only review",
+    "implementationByReviewer": false
+  },
+  "scope": "Offline light-theme React UI with simulated SDK; scores are expert review judgments, not production acceptance.",
+  "verdict": "PASS_SCOPED_UI_UX",
+  "minimumRequired": 95,
+  "allDimensionsAbove95": true,
+  "overallMean": 97,
+  "dimensions": [
+    {
+      "name": "布局与密度",
+      "score": 97,
+      "deduction": "AI 资料区仍使提案审阅位置偏下，扣3。"
+    },
+    {
+      "name": "层级与功能发现",
+      "score": 97,
+      "deduction": "权限建议在多个区域重复，扣3。"
+    },
+    {
+      "name": "视觉与可读性",
+      "score": 98,
+      "deduction": "目标卡内失败状态仍偏低调，扣2。"
+    },
+    {
+      "name": "操作与反馈",
+      "score": 97,
+      "deduction": "恢复指引分散在不同区域，扣3。"
+    },
+    {
+      "name": "键盘与焦点",
+      "score": 97,
+      "deduction": "HTTP User-Agent / 页数错误的逐字段无效状态仍可完善，扣3。"
+    },
+    {
+      "name": "组件复用与隔离",
+      "score": 96,
+      "deduction": "工具局部文档级表单/表格选择器仍存在样式耦合，扣4。"
+    }
+  ],
+  "unresolvedBlockers": [],
+  "confirmedEvidence": {
+    "browserReport": "ui-preview-browser-20261031.json",
+    "status": "PASS_SIMULATED_UI",
+    "browserChecks": 62,
+    "errors": [],
+    "screenshots": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ready.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/results.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/record-detail.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/rules.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/json.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/ai-review.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/empty.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/error.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/loading.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/permission-denied.png",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/ui-preview-20261031/untrusted.png"
+    ],
+    "sourceLockInputs": 1369,
+    "sourceDrift": []
+  },
+  "mainReportedSupportingEvidence": {
+    "nodeTests": 41,
+    "sharedCompilationChecks": 1,
+    "toolBuild": "PASS"
+  },
+  "resolvedReviewFindings": [
+    "Send 的原生 form submit 在 opaque sandbox 被阻止，改为原事件受控 click 回调。",
+    "压缩编辑上下文、空态、短记录详情；简单结果完整显示列；单页隐藏分页。",
+    "示例替换需确认，字段错误就近提示/聚焦，复杂规则转到 JSON 的说明可见。",
+    "无效字段和分页错误互不清除；真实退休确认后清除过期待待提示。",
+    "失败标题、原因、图示、CSV 禁用一致；权限拒绝不再提示存储冲突或打开网页。"
+  ],
+  "notTested": [
+    "real model inference",
+    "Native integration",
+    "website capture for this candidate",
+    "installed tool update",
+    "production acceptance",
+    "dark theme acceptance",
+    "screen-reader-specific testing",
+    "width/zoom matrix (OUT_OF_SCOPE)"
+  ],
+  "notes": "Designer reread the exact-SHA browser report and final screenshots. Node and compilation counts were supplied by the implementer. Earlier candidates were rejected; only this exact candidate received the passing verdict."
+}

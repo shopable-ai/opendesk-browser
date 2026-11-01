@@ -18,7 +18,7 @@
 
 1. **需求与分类**：明确用户实际操作场景、P0/P1、动态沙箱还是经审计的第一方可信功能；需要全量 Chrome 私人数据的需求不得直接给任意动态工具赋权。
 2. **独立项目事实核对**：优先读取 AGENTS、对应 Skill、公开 SDK 与当前工具源码；只有已证实的通用平台缺口才由平台维护者检查 Host。界面规范可查 [R27](../architecture/ui-layout-conventions-r27.zh-CN.md) 和 [R28](../architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，列出可复用能力、缺口及写入文件所有权。
-3. **信息架构与用户旅程**：先确定 Index → Detail / Form / Management / Confirm 的视图和空态、失败态、撤权态、返回路径；**独立工具页标题默认只有一个标题**，不要跟静态用途描述、重复面包屑；集合“＋ 新建”贴近集合标题。
+3. **信息架构与用户旅程**：先确定 Index → Detail / Form / Management / Confirm 的视图和空态、失败态、撤权态、返回路径；先核对宿主已有返回、标题与主操作，按[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)发现公开导航能力、真实消费者及受信准入；同一宿主页头显示工具/子页路径，内容不重复标题、用途说明、返回或同一主操作；集合“＋ 新建”贴近集合标题。
 4. **需要交互原型时**：创建独立、可打开、无网络/无真实权限副作用的 HTML + 模拟数据；在客户端支持时直接呈现可交互预览，同时提供完整 HTML 文件。不支持嵌入时说明限制，不谎称已经显示；已有明确需求的修复不以重画原型为前置条件。
 5. **要求独立设计评分时**：按当前要求/正式合同选择功能、可发现性、层级、可访问性、安全/隔离、解耦与验证等维度；适用 ≥95/100 目标时仍逐项达标，未达标修订。宽度/缩放专项须用户针对当前任务明确要求；原型评分不得冒充原生 Chrome 产品通过。普通开发不启动评分。
 6. **源码实施**：交互要求明确后以既有 Host/权限/注册与生命周期最小增量实现；沿用已批准设计，不额外要求重复确认，不另建通用安装器或 Browser SDK。
@@ -118,8 +118,8 @@
 - `id` 必须匹配源码中的 `^[a-z][a-z0-9-]{1,39}$`，发布后保持稳定；更改 ID 会形成另一个工具及数据命名空间。
 - `version` 使用非负整数的 `major.minor.patch`（例如 `1.0.1`，不能带 `v`、预发布标签）；更新用户可见功能/权限/数据结构时明确升级版本、审查兼容性。版本号与代码哈希是不同维度。
 - `title/description/capabilities/files/assets` 属于 **tool.config.json 源清单**；最终包的基础字段为 `format/id/version/title/description/capabilities/html/css/js`；v2 的 `requires/contributes/scripts`、显式 `uiRuntime` 等受限字段按 [公开工具 API](sidebar-tools.zh-CN.md) 及当前 Schema 校验，不能将这份基础列表当作全部版本的字段全集。不要给严格 JSON 加 `permissions`、`native`、`packageUrl`、`marketId` 等未实现的字段。
-- `files` 的 html/css/js 三个源路径均为项目根下的相对路径；v2 可选 dependencies 按上文受限顺序构建，v1 不接受该字段。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个、每张不超过 96 KiB，允许 PNG/JPEG/WebP。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
-- 当前合同：最终包最大 **2,097,152 UTF-8 字节（2 MiB）**；HTML ≤64,000、CSS ≤120,000、JS ≤1,048,576 **UTF-16 字符**，主/后台 JS 同时受 1,048,576 UTF-8 字节预算约束，编译回执最多 64 个 source 并逐项验证 SHA/字节。框架无安装数量硬限制；依据和容量链集成状态见 [R32.3 容量政策](../architecture/browser-ui-r23.zh-CN.md#r323-容量政策可调整的产品预算)。以统一容量常量和真实校验为准，不跳过来源、权限或沙箱检查。
+- `files` 的 html/css/js 三个源路径均为项目根下的相对路径；v2 可选 dependencies 按上文受限顺序构建，v1 不接受该字段。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个，允许 PNG/JPEG/WebP，不设单张大小上限。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
+- 当前合同：最终包、HTML/CSS/JS、固定依赖及后台源码不设固定大小上限；编译回执最多 64 个 source 并逐项验证 SHA/字节。框架无安装数量硬限制；依据见 [容量政策](../architecture/browser-ui-r23.zh-CN.md#2026-11-01取消安装包与源码大小上限)。官方与市场下载仍必须匹配固定发行声明的实际字节和 SHA，Native 单次读取仍受原传输合同约束；来源、权限、沙箱检查与工具运行数据配额继续生效。
 - 改代码但不改变版本时可以生成不同的**开发快照**；正式包内容变化时，晋升要求版本高于已有正式包，同版本不同字节与降级都会拒绝。正式安装/更新仍审查新包字节、所申请能力和升级策略，不把“相同版本”当“已审批”。
 
 ## 4. 唯一编程入口与能力规则
@@ -327,14 +327,28 @@ npm run verify
 
 ## 6. 统一 UI/UX 与代码质量规范
 
+### 获批官方风格试点（2026-11-01）
+
+本轮按 [DESIGN 的当前试点](../../DESIGN.md#当前获批官方风格试点2026-11-01)与[唯一官方风格合同](sidebar-preview-kit.zh-CN.md#官方风格试点合同2026-11-01)执行。官方 [create?base=aria&preset=b0](https://ui.shadcn.com/create?base=aria&preset=b0) 默认为 Nova + Neutral + Inter + Lucide，base 显式选 aria，生成配置 style 为 `aria-nova`；命名 preset `Nova (Aria)` 使用 Geist，不与 URL 默认混称。出处、六类组件 registry 与最小 normal/hover/focus/disabled/invalid/loading、标签/帮助/错误状态在上述合同集中维护。
+
+- 可执行值唯一来源是 `src/ui/design-tokens.css` 的显式 `.od-theme-shadcn` Neutral 变量/`od-*` 映射，以及 `src/ui/design-system.css` 的组件规范；不创建 Markdown 数值真相、主题引擎或工具私有公共样式副本。系统字体替代远程 Inter；字段统一14px属于侧栏密度偏离，不能冒称官方 md 前16px的原样输出。
+- Button 显式 `base='aria'` 才用 RAC，默认 native 路径不变；Input/Textarea 新增 RAC，Switch 为真实 RAC。原生 select、保留原生键盘语义的按钮式 Tabs、inline confirmation 仅适配官方外观，不称 RAC Select/Tabs/Dialog，不假定存在对应 Shared UI 导出。语义、键盘、焦点、草稿与未知写入保护继续保留。
+- 公开导入使用 `@opendesk/ui` 的 `Button/Input/Textarea`。Aria Button 动作优先 `onPress`，本地包装接受 `disabled/isDisabled`；Input/Textarea 使用 `disabled/readOnly` 和事件式 `onChange(event)`，以 `event.target.value` 取值，标签/帮助/错误由调用方关联。不要套用 TextField 的值式回调或 `isDisabled`，也不要把原生 IconButton、Card、Chat 展示组件称为 RAC。
+- 本轮 public runtime only 路径已补齐显式主题内 Input/Textarea 完整字段外观；不要求作者为此另抄字段 CSS。标签/帮助/错误关联及工具布局仍由调用方持有。指南示例和 Skill 段已由原 owner 更新，本节只同步合同，不替代新候选验收。
+- 作用域显式接入；公共组件参考浅/深、工具内容浅色，可信宿主/辅助区浅色。Portal 留在同一 ownerDocument 的主题容器；沙箱/ShadowRoot 在自身样式边界接入，不跨文档提升到 Host，不导入整套宿主 CSS/特权代码。
+- 复用既有生成器完整五件套，不手修生成 HTML。ScrapyJS 保持原 owner、业务与权限；样式试点不触发其迁移，也不批量升级已安装 HTML/Vue/React 工具。
+- `official-neutral-20261101-v1` 与 v3 保留历史身份。v3 独立评审未放行；最新 v7 的离线评审/交付结果见[当前证据索引](../../artifacts/sidebar-preview-kit/official-neutral-20261101-v7-evidence/README.md)，不由历史分数覆盖，也不外推为用户视觉终验。
+- 当前候选为 `artifacts/sidebar-preview-kit/official-neutral-20261101-reviewed-v5/` 与 `artifacts/sidebar-preview-kit/official-scrapyjs-20261101-reviewed-v7/`。工具复用原 Button/IconButton，使用浅灰主要操作和白底选中按钮式 Tabs；配置标题视觉隐藏但保留区域名称，新建/保存图标保留 ID、title、禁用与反馈；明确的配置库入口打开保存配置列表与当前配置操作，命名/删除/草稿确认与焦点沿用原状态。公共按钮真实尺寸、系统深色下显式浅色语义色、导航当前态和JSON等宽已定向验证。
+
 **推荐标准，不表示现有框架替你自动实现**：
 
-- **直接复用入口**：[组件与组合用法](sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)随原预览套件生成可操作 `components.html` 和 HTML/JSX 片段。React 复用实际 `@opendesk/ui`；HTML 的原共享样式构建器输出同源 Card 子集。当前字段/状态采用 canonical CSS 与原生语义，不假定存在 Field/Select/Dialog 导出。
-- **信息架构**：单一主操作，必要的次级操作；标题/表单/反馈/内容分区明确；避免重复标题、重复状态文本和密集按钮。宿主已有返回/工具标题时，工具不要再复制一套宿主导航。
+- **直接复用入口**：[组件与组合用法](sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)随原预览套件生成可操作 `components.html` 和 HTML/JSX 片段。React 复用实际 `@opendesk/ui`；HTML 的原共享样式构建器输出同源 Card 子集。控件按上方试点区分 RAC 与原生适配，不假定存在 Field/Select/Dialog 导出。
+- **先选页面组合**：按[风格来源与页面组合](sidebar-preview-kit.zh-CN.md#风格来源与页面组合2026-11-01)选择列表/表单/详情/设置；Shared UI 不自动决定业务布局。紧凑列表不逐条套 Card，不复制 Cookie/书签的局部主题和业务 CSS。模板变化选来源保护与受影响离线交互，纯文档变化只检查内容/链接；具体通过条件在同节维护。
+- **信息架构**：单一主操作，必要的次级操作；标题/表单/反馈/内容分区明确；避免重复标题、重复状态文本和密集按钮。宿主已有返回/工具标题时，按[导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)接入同一页头，不复制导航。scrapyjs 根页标题“scrapyjs 采集”，配置库标题“scrapyjs 采集/配置库”；唯一返回按配置库→采集根页→扩展列表，内容只保留业务。能力已存在，先区分工具/预览未接入与真实平台缺陷，旧候选接入根因见同一导航合同的根因与修复记录；正式 scrapyjs 导航准入不得放宽，实际安装接入仍为 `NOT_TESTED`。验证使用同候选完整宿主视图，覆盖唯一返回、层级与草稿/忙态及未知保护；评分适用时明确扣重复导航与冗余，不以同源 PASS 抵消。
 - **内容区与状态行**：当主体已明确操作对象且没有可切换目标时，不额外常驻「当前网页／对象类型／已检测」说明行。刷新等区域动作放在所属内容区标题右上角，保留可访问名称、焦点与忙碌禁用，不为按钮保留一整行。删除说明行时同步移除对应 DOM 查询与渲染分支，加载、空态、权限和失败仍由实际状态区告知。状态文案自然换行，不用固定高度、`min-height` 或纵向均分制造底部留白；默认复用 8px 分隔间距、12px 卡片内边距，并同步交互 HTML 的位置与状态排版。
-- **可信工具栏操作归属（R1.9.5）**：正式 Side Panel 工具详情应保持「返回图标 — 工具标题 — 设置图标 — 卸载图标」的同一水平行。返回到标题建议使用共享 8px 间距，标题不额外缩进；工具专属设置优先复用既有 `#sidebar-tool-settings-open`，由可信宿主调用工具已有设置视图，不在内容区增建一行浮动齿轮或 Logo 标题。侧边栏 320/360/400/480px 验证同排、可点击和焦点返回，不能用绝对定位覆盖。自定义 HTML/Vue/React 沙箱工具不因此取得 Host DOM 或新的权限。
+- **可信工具栏操作归属（R1.9.5）**：正式 Side Panel 工具详情应保持「返回图标 — 工具标题 — 设置图标 — 卸载图标」的同一水平行。返回到标题建议使用共享 8px 间距，标题不额外缩进；工具专属设置优先复用既有 `#sidebar-tool-settings-open`，由可信宿主调用工具已有设置视图，不在内容区增建一行浮动齿轮或 Logo 标题。正常窗口验证受影响的同排、点击和焦点返回，不能用绝对定位覆盖；历史 320/360/400/480px 专项仅在当前任务明确要求时执行。自定义 HTML/Vue/React 沙箱工具不因此取得 Host DOM 或新的权限。
 - **紧凑一致**：优先复用项目现有语义、圆角、间距、字体等级与浅色/深色方案；但沙箱 CSS 不自动继承宿主样式，需在工具自己的 CSS 显式定义统一 token 或使用本地构建出的静态样式。不新建第三套共享设计系统。
-- **尺寸**：在侧栏约 360/400/600 CSS px 和窄屏/滚动、200% 缩放条件测试；不可依赖固定宽度。Chrome 的实际最小侧栏宽度以实测为准，不能声称所有设备能达到 320px。
+- **尺寸**：正常窗口默认缩放，验证当前受影响的自然换行、内容滚动和可见操作；不可依赖固定宽度。历史 360/400/600 CSS px、200% 缩放及物理宽度专项仅在当前任务明确要求时执行。Chrome 的实际最小侧栏宽度以实测为准，不能声称所有设备能达到 320px。
 - **无障碍**：表单 `label`，图标按钮 `aria-label`，键盘焦点/Enter/Escape，动态状态 `role=status`，足够对比度，不仅凭颜色表示状态；加载中、错误、无数据、权限不足、只读预览、保存成功都需明确反馈。
 - **数据与性能**：不反复对整页做昂贵扫描，不在主工具 iframe 里执行持续后台任务；页面监听、定时器、Observer 应有销毁策略。处理长文本、超额/并发冲突时给错误和恢复路径，不静默截断或覆盖。
 - **安全**：页面内容通过 `textContent` 或明确净化的数据模型展示；不要把不可信 HTML 直接插入。不能借助 DOM 字符串过滤代替真实 CSP、授权与消息校验。

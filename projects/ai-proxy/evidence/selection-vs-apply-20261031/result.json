@@ -1,0 +1,226 @@
+{
+  "format": "ai-proxy.selection-vs-apply.core.v1",
+  "recordedAt": "2026-10-31T11:42:09Z",
+  "timezone": "Asia/Shanghai",
+  "owner": "projects/ai-proxy",
+  "threadId": "01a191ae-8dcc-7b63-91c7-bfa218cd738b",
+  "result": "CORE_ROUTE_AND_SELECTION_BEHAVIOR_VERIFIED_WITH_REACHABILITY_LIMITS",
+  "reportedOperation": {
+    "userConfirmed": "测试浏览器，只选择了直连",
+    "finding": "Selecting a route saves intent. Until Enable/Apply and the original exact trusted approval complete, the current route remains active. No direct-bypass implementation defect reproduced.",
+    "uiAlreadyPresent": [
+      "直连尚未启用。点击「启用」才会绕过系统代理；暂停会恢复原有代理设置。",
+      "待应用选择",
+      "浏览器已应用当前选择",
+      "Chrome 已使用直连。请刷新已打开的网站后检查出口 IP。"
+    ]
+  },
+  "package": {
+    "canonicalPath": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "id": "ai-proxy",
+    "version": "0.3.5",
+    "bytes": 923085,
+    "sha256": "db0ba7e9d80af0d37b326b22e9db539df0ac7e5891fe851a8d0cce0d7781a582",
+    "installedVersionObserved": "0.3.5",
+    "installedDigestIndependentlyReadThisRun": false,
+    "installedDigestQualification": "The title identifies the installed version; the SHA identifies the unchanged local canonical JSON. This run did not reinstall or independently expand the installed byte digest."
+  },
+  "browser": {
+    "product": "Google Chrome for Testing",
+    "version": "155.0.8059.39",
+    "pidObserved": 64677,
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/locale-packs-r21/native-restart-20261025-b/codex-cft-locale-r21-retained/Default",
+    "profileEvidence": "Read chrome://version in the bound native window; executable and profile matched the retained process. The temporary version tab was then closed.",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionVersion": "0.1.0",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadEvidence": "Native chrome://extensions details showed enabled extension, exact ID and unpacked load path.",
+    "mode": "continuous development",
+    "serveConnection": "CONNECTED_NATIVE_DIAGNOSTICS",
+    "loadedBuildRevisionObserved": "311299080ee88a5b063d6bf101048e2dc2f0bd4379c1d5e7dda68efbd5f68424",
+    "browserWatcherPidsObserved": [
+      11682,
+      11774
+    ],
+    "browserWatcherPortsObserved": [
+      43119,
+      43120
+    ],
+    "newBrowserStarted": false,
+    "dailyChromeOperated": false
+  },
+  "observationMethod": {
+    "nativeUi": "cua_repl bound to the exact existing CFT155 app; native AX snapshots and screenshots",
+    "routeStatus": "Existing installed tool's original SDK status/control and verified activeConfig presentation. UI direct is a normalized declarative route; raw Chrome ProxyConfig was not independently evaluated this run.",
+    "traffic": "New navigation URLs carry unique query parameters. Root-page domestic/foreign/Google results are reported individually. Final proof uses a separate IP echo request.",
+    "cdpNetworkTrace": "NOT_CAPTURED",
+    "ipQualification": "Addresses are observations from this run, not hard-coded acceptance values or a claim about all future traffic."
+  },
+  "networkBaseline": {
+    "at": "2026-10-31T11:20:33Z",
+    "directCurl": {
+      "route": "--noproxy *",
+      "url": "http://ip111.cn/?ai-proxy-baseline=20261031T112033Z-explicit-network-direct",
+      "exitCode": 0,
+      "ip": "61.157.71.204",
+      "location": "中国 成都"
+    },
+    "existingSystemEndpointCurl": {
+      "route": "--noproxy '' --proxy http://127.0.0.1:7897",
+      "url": "http://ip111.cn/?ai-proxy-baseline=20261031T112033Z-existing-system-endpoint",
+      "exitCode": 0,
+      "ip": "43.167.193.251",
+      "location": "日本 东京"
+    },
+    "qualification": "Independent host-network baseline; not substituted for browser traffic proof."
+  },
+  "operations": [
+    {
+      "action": "Reopen actual direct route and issue a new root-page request",
+      "url": "http://ip111.cn/?ai-proxy-core=1793446387101-direct",
+      "result": "PASS_FOR_RETURNED_DOMESTIC_AND_FOREIGN_RESULTS",
+      "control": "controlled_by_this_extension",
+      "verifiedRouteDisplayed": "direct",
+      "domestic": "61.157.71.204 中国 成都",
+      "foreign": "61.157.71.204 中国 成都",
+      "google": "FAILED_IFRAME_LOAD_NO_SUCCESS_CLAIM",
+      "evidence": [
+        "06-direct-new-request.txt",
+        "06-direct-new-request.jpg"
+      ]
+    },
+    {
+      "action": "Select system while direct remains active, without applying",
+      "result": "PASS_SELECTION_ONLY",
+      "selected": "system",
+      "actualVerifiedRoute": "direct",
+      "visibleStatus": "待应用",
+      "visibleAdvice": "已选：跟随系统。浏览器仍采用上次确认的「直连」设置。",
+      "evidence": [
+        "07-system-selected-not-applied.txt",
+        "07-system-selected-not-applied.jpg"
+      ]
+    },
+    {
+      "action": "Apply system through original owned STOP review, approve, then issue a new root-page request",
+      "review": "停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）",
+      "url": "http://ip111.cn/?ai-proxy-core=1793446583827-system",
+      "result": "PASS",
+      "control": "controllable_by_this_extension",
+      "browserMode": "system",
+      "visibleStatus": "正在跟随系统（未接管代理）",
+      "domestic": "43.167.193.251 日本 东京",
+      "foreign": "43.167.193.251 日本 东京",
+      "google": "43.167.193.251 日本 东京",
+      "evidence": [
+        "08-follow-system-new-request.txt",
+        "08-follow-system-new-request.jpg"
+      ]
+    },
+    {
+      "action": "Select direct only, close tool to list, reopen, issue new request before Enable",
+      "url": "http://ip111.cn/?ai-proxy-core=1793446690645-selected-direct-not-enabled",
+      "result": "REPORTED_BEHAVIOR_REPRODUCED_AND_EXPLAINED",
+      "selected": "direct",
+      "control": "controllable_by_this_extension",
+      "browserMode": "system",
+      "visibleStatus": "尚未管理浏览器代理",
+      "visibleHint": "直连尚未启用。点击「启用」才会绕过系统代理；暂停会恢复原有代理设置。",
+      "domestic": "43.167.193.251 日本 东京",
+      "foreign": "43.167.193.251 日本 东京",
+      "google": "43.167.193.251 日本 东京",
+      "evidence": [
+        "09-direct-selected-system-still-active.txt",
+        "09-direct-selected-system-still-active.jpg"
+      ]
+    },
+    {
+      "action": "Click Enable and approve original exact direct review",
+      "review": "启用 Chrome 浏览器级直连；所有标签页将绕过系统代理直接连接网络；确认仅批准这一次操作。",
+      "result": "PASS",
+      "control": "controlled_by_this_extension",
+      "verifiedRouteDisplayed": "direct",
+      "visibleStatus": "浏览器已应用当前选择",
+      "rootNavigation": {
+        "url": "http://ip111.cn/?ai-proxy-core=1793446804598-direct-final",
+        "result": "NOT_COMPLETED_BEFORE_CANCELLING_PAGE_NAVIGATION",
+        "evidence": [
+          "10-final-root-navigation-pending.txt",
+          "10-final-root-navigation-pending.jpg"
+        ]
+      },
+      "finalIndependentEcho": {
+        "url": "http://us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final",
+        "result": "PASS",
+        "ip": "61.157.71.204",
+        "location": "中国 成都",
+        "evidence": [
+          "11-final-direct-echo.txt",
+          "11-final-direct-echo.jpg"
+        ]
+      },
+      "qualification": "Escape stopped only the incomplete page navigation; it did not STOP proxy management. The independent echo returned immediately under the confirmed direct route."
+    }
+  ],
+  "concurrencyAndDriverEvents": {
+    "initialUiLease": "Waited for the other active owner to release; did not steal or clear its lease.",
+    "beforeExclusiveHandoff": "The window changed during observation from a direct approval request to applied direct and then a STOP approval request. No claim is made that selecting a mode alone caused these changes.",
+    "userHandoff": "用户答复：暂时交给你操作",
+    "pendingStop": "After handoff the prior STOP review disappeared and a generic operation failure was visible, while verified direct control remained. Exact error code/cause was not independently read. No STOP approval or mutation from that request is attributed to this agent; reopening read the active direct route without replay.",
+    "staleAxActions": "Two attempted old-index Cancel clicks were rejected by the driver as invalid/stale. Fresh state was read; no product code was changed for these driver events.",
+    "rawCaptureQualification": "01 and 02 are small AX diff/no-change captures, not full identity trees. Identity facts above were read in full native tool results. Both 03 and 04 saved snapshots already show the subsequent STOP review, not the earlier transient direct review.",
+    "nativeUiLeaseReleased": true,
+    "releaseResult": {
+      "native_ui_owner": null
+    },
+    "captureFormatCorrection": "Capture bytes were JPEG although initially named .png. Local evidence validation caught the mismatch; filenames and references were corrected to .jpg without modifying image bytes."
+  },
+  "finalObservedState": {
+    "at": "2026-10-31T11:42:09Z",
+    "installedToolVersion": "0.3.5",
+    "selectedRoute": "direct",
+    "actualVerifiedRoute": "direct",
+    "control": "controlled_by_this_extension",
+    "proxyPermission": "granted",
+    "visibleStatus": "浏览器已应用当前选择",
+    "freshEchoIp": "61.157.71.204",
+    "freshEchoLocation": "中国 成都",
+    "systemProxy": {
+      "http": "127.0.0.1:7897",
+      "https": "127.0.0.1:7897",
+      "socks": "127.0.0.1:7897",
+      "modified": false
+    },
+    "browserLeftOpen": true,
+    "preexistingTabsPreserved": true,
+    "additionalTestTab": "One task-owned tab left showing final IP echo and AI Proxy applied-direct status",
+    "servicesPreserved": true
+  },
+  "changesAndValidation": {
+    "businessOrPlatformCodeChanged": false,
+    "filesChangedThisRun": [
+      "projects/ai-proxy/AGENTS.md",
+      "projects/ai-proxy/README.zh-CN.md",
+      "projects/ai-proxy/evidence/selection-vs-apply-20261031/"
+    ],
+    "build": "NOT_RUN_NO_CODE_CHANGE",
+    "nodeTests": "NOT_RERUN_NO_CODE_CHANGE_OR_NEW_IMPLEMENTATION_FAILURE",
+    "packageRebuiltOrPromoted": false,
+    "reinstalled": false,
+    "committed": false,
+    "pushed": false,
+    "priorFourAiVipSharePinFailures": "DEFERRED_UNRELATED_NOT_RERUN_OR_WEAKENED",
+    "fullCiProductionAuthenticationArbitraryPacSubscriptionsScore": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "evidenceValidation": {
+      "result": "PASS",
+      "scope": "JSON parsing; core claims against raw AX; actual JPEG headers; README section 19 links; unchanged canonical 0.3.5 byte count and SHA-256; scoped git diff --check",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "artifactManifest": "artifact-hashes.json",
+      "initialCaptureFormatCheck": "Failed on PNG header expectation; corrected JPEG filenames/references, reran and passed. No image bytes or product code changed."
+    }
+  }
+}

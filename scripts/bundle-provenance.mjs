@@ -4,7 +4,8 @@ import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
 import {readFileSync,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import {transformSync} from 'esbuild';
-import {resolve,relative,sep,isAbsolute} from 'node:path';
+import postcss from 'postcss';
+import {resolve,relative,sep,isAbsolute,dirname} from 'node:path';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {FIXED_OUTPUTS} from './build-contract.mjs';
 
@@ -543,16 +544,41 @@ const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row
 // bytes remain opaque; source drift requires a separate reviewed lock update.
 const compiledAIProxyInputs=Object.freeze(JSON.parse(readFileSync(
   new URL('../projects/ai-proxy/trusted/source-lock.json',import.meta.url),'utf8')));
-function reviewedCompiledAIProxy(target,path,root){
-  if(!Object.hasOwn(compiledAIProxyInputs,path)||
-    !(target==='ui/tool-shell.js'||target==='ui/sidebar-tool-host.js'&&
-      path==='projects/ai-proxy/trusted/admission.js'))return null;
+function reviewedAIProxyInput(path,root){
+  if(!Object.hasOwn(compiledAIProxyInputs,path))
+    throw Error('Unreviewed trusted AI Proxy input: '+path);
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted AI Proxy source must not be a symlink: '+path);
   const bytes=readFileSync(file);
   const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledAIProxyInputs[path])throw Error('Trusted AI Proxy source changed; review and re-pin: '+path);
-  return hash;
+  return {bytes,hash};
+}
+// Vite can flatten CSS @imports before Rollup enumerates modules. Validate the
+// whole reviewed set for the trusted shell, plus every recursive local import;
+// neither a missing module record nor a newly added unpinned leaf can bypass it.
+export function verifyTrustedAIProxySources(root=process.cwd()){
+  for(const path of Object.keys(compiledAIProxyInputs))reviewedAIProxyInput(path,root);
+  const seen=new Set();
+  const visit=path=>{
+    if(seen.has(path))return;
+    seen.add(path);
+    const {bytes}=reviewedAIProxyInput(path,root);
+    postcss.parse(bytes.toString(),{from:resolve(root,path)}).walkAtRules(/^import$/i,rule=>{
+      const match=rule.params.match(/^(['"])(\.\.?\/[^'"\\]+\.css)\1$/);
+      if(!match)throw Error('Unreviewed trusted AI Proxy CSS import: '+rule.params);
+      const next=relative(root,resolve(root,dirname(path),match[2])).split(sep).join('/');
+      if(!next.startsWith('projects/ai-proxy/src/'))throw Error('Trusted AI Proxy CSS import outside project: '+next);
+      visit(next);
+    });
+  };
+  visit('projects/ai-proxy/src/style.css');
+}
+function reviewedCompiledAIProxy(target,path,root){
+  if(!Object.hasOwn(compiledAIProxyInputs,path)||
+    !(target==='ui/tool-shell.js'||target==='ui/sidebar-tool-host.js'&&
+      path==='projects/ai-proxy/trusted/admission.js'))return null;
+  return reviewedAIProxyInput(path,root).hash;
 }
 export function assertLibraryModuleBoundary(target,path,npmName) {
   const embeddedPackage=[...npmOwners].find(([name])=>npmName===name||path.includes('node_modules/'+name+'/'));
@@ -614,6 +640,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     }
     return row;
   }).sort((a,b)=>a.path.localeCompare(b.path));
+  if(chunk.fileName==='ui/tool-shell.js')verifyTrustedAIProxySources(root);
   return {target:chunk.fileName,modules,
     ...(typeof chunk.code==='string'?{bytes:Buffer.byteLength(chunk.code),
       sha256:createHash('sha256').update(chunk.code).digest('hex')} : {}),

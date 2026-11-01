@@ -118,11 +118,13 @@ test('unknown permits next-input edits but fences generation/application and pre
   const check=(id,value)=>{get(id).checked=value;get(id).dispatch('click');};
   const preview=()=>JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>node.querySelector('summary').textContent.includes('配置与错误资料')).querySelector('pre').textContent);
   edit('ai-requirement','original requirement');edit('chat-ai-sample','<h2>sent sample</h2>');check('chat-ai-use-page',true);
+  assert.equal(preview().sample,'<h2>sent sample</h2>','next-send review must disclose the sample before sending');
   send(ui.doc);await settle();
   assert.equal(get('ai-requirement').disabled,true,'pending requests still lock edits');
   assert.equal(get('chat-ai-use-page').closest('fieldset').hasAttribute('disabled'),true);
   const sent=calls.find(call=>call.operation==='ai.generate').payload;
   const sentPreview=preview();
+  assert.deepEqual(sentPreview,sent.context,'reviewed materials must include the exact HTML sample sent to the Provider');
   rejectRequest(Object.assign(Error('fixture outcome unknown'),{code:'E_AI_OUTCOME_UNKNOWN'}));await settle();
   assert.equal(get('ai-requirement').disabled,false,'unknown must allow preparing the next requirement');
   assert.equal(get('chat-ai-use-page').closest('fieldset').hasAttribute('disabled'),false,'unknown must allow sample and selection edits');

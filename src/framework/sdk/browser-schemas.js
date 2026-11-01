@@ -105,13 +105,20 @@ const developmentManagedProxyConfig=obj({endpoint:obj({scheme:{const:'http'},
   host:{const:'127.0.0.1'},port:{const:7897}},['scheme','host','port']),
   domains:{type:'array',minItems:7,maxItems:7,uniqueItems:true,
     items:{enum:[...DEVELOPMENT_MANAGED_PROXY_CONFIG.domains]}}},['endpoint','domains']);
-const managedProxyConfig=MANAGED_PROXY_DEVELOPMENT_ENABLED?
-  {anyOf:[standardManagedProxyConfig,developmentManagedProxyConfig]}:standardManagedProxyConfig;
+const explicitManagedProxyEndpoint={anyOf:[managedProxyEndpoint,
+  obj({scheme:{enum:['http','socks5']},host:{const:'127.0.0.1'},port:num(1,65535)},['scheme','host','port'])]};
+const managedProxyConfig={anyOf:[standardManagedProxyConfig,
+  obj({mode:{const:'direct'}},['mode']),
+  obj({mode:{const:'fixed_servers'},endpoint:explicitManagedProxyEndpoint},['mode','endpoint']),
+  obj({mode:{const:'rules'},endpoint:explicitManagedProxyEndpoint,domains:standardManagedProxyConfig.properties.domains},['mode','endpoint','domains']),
+  ...(MANAGED_PROXY_DEVELOPMENT_ENABLED?[developmentManagedProxyConfig]:[])]};
 const managedProxyStatus=obj({
   state:{enum:['enabled','disabled','unavailable','conflict']},
   control:{enum:['not_controllable','controlled_by_other_extensions',
     'controllable_by_this_extension','controlled_by_this_extension','unknown']},
   permission:bool,canStop:bool,reason:nullableString,
+  browserMode:{anyOf:[{enum:['system','direct','auto_detect','fixed_servers','pac_script']},{type:'null'}]},
+  activeConfig:{anyOf:[managedProxyConfig,{type:'null'}]},
   ...(MANAGED_PROXY_DEVELOPMENT_ENABLED?{developmentProfile:
     {anyOf:[developmentManagedProxyConfig,{type:'null'}]}}:{})
 },['state','control','permission','canStop','reason']);

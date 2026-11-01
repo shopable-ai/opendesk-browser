@@ -48,7 +48,7 @@ test('shared Switch source is a hashed canonical input and cannot drift silently
 test('reading design frame adds layout only, without replacing canonical components', () => {
   const $ = load(kit.html);
   const frame = $('#od-preview-frame').text();
-  const readingRules = frame.slice(frame.indexOf('/* Reading design only:'),frame.indexOf('#od-preview-app[data-preview-theme='));
+  const readingRules = frame.slice(frame.indexOf('/* Reading design only:'),frame.indexOf('#od-preview-app:not(.od-theme-shadcn)[data-preview-theme='));
   assert.match(readingRules,/\.preview-reading-overlay\{position:absolute/);
   assert.match(readingRules,/\.preview-reading-article\{height:680px;overflow:auto/);
   assert.doesNotMatch(readingRules,/(?:^|[;{])\s*(?:color|background|border|font|box-shadow|transition)[\w-]*\s*:/);
@@ -75,7 +75,7 @@ test('component recipe output compiles the real shared sources and keeps diagnos
   assert.ok(Object.keys(reference.inputs).some(name=>name.includes('react-aria-components')));
   assert.equal($('#od-preview-app #od-preview-recipe-controls').length,0);
   assert.equal($('#od-preview-controls #od-preview-recipe-controls').length,1);
-  assert.match(reference.guide,/import \{Button, IconButton, Card, CardContent, Switch\} from '@opendesk\/ui'/);
+  assert.match(reference.guide,/import \{Button, IconButton, Card, CardContent, Switch, Input, Textarea\} from '@opendesk\/ui'/);
   assert.match(reference.guide,/没有共享 Field\/Select\/Dialog/);
   assert.equal(reference.evidence,'SOURCE_COMPONENT_PREVIEW');
 });

@@ -2,6 +2,8 @@
 
 > [阅读目录现行功能需求与验收规格（源码反向整理）](REQUIREMENTS.zh-CN.md)：按实际代码区分已完成的「主要章节」文案修改与仍待真实浏览器验收的功能。
 
+> 预览唯一入口：[preview/index.html](preview/index.html)。2026-10-31 已清理 R12/R17/R183 的六份旧 HTML，侧栏/网页浮层、文章/多回答及语言切换均在同一入口中操作；生成与来源说明见 [预览 README](preview/README.md)。下文提到的旧原型和预览成绩仅为历史记录，原文件可从 Git 找回，不作为当前 UI 依据。
+
 「阅读目录」是 OpenDesk Browser 内**可安装的 Side Panel 工具**，不是第二个 Chrome 扩展。UI 包继续使用 `opendesk.sidebar-tool.v1`；导入的经典 JS 只在 opaque sandbox 中运行，网页内容索引/滚动/浮动 TOC 则由扩展内置可信 Content Script 执行。
 
 ## 未上线阶段的运行校验（2026-10-26）
@@ -143,11 +145,11 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 网页可信 `src/reading-toc/view.js` 已补齐与 Side Panel 同顺序的第四个 AI 星芒图标，普通短文章和多条 ChatGPT 回答都保留四个图标；保留原有拖动与 Home / 双击归位。
 - **彻底移除**网页悬浮目录的冗余“还有 N 个章节 · 查看完整目录”按钮及其 DOM。短目录（≤12 条）概览直接显示全部有效标题；长目录仍允许选择顶部“完整目录”，ChatGPT 完整视图保持回答之间的分隔线。
 - AI 模式仅显示已经审核的未开放会员卡和合作招募卡；没有模型请求、额度、支付操作或假 AI 章节。切回免费模式保留原快照和标题跳转，撤权、SPA、DOM 自动更新均仍由现有可信 Content Script 管理。
-- `reading-toc-r183-inpage-preview.html` 是历史离线快照，不再作为最新 UI 证据。以唯一正式生成器输出的 [preview/index.html](preview/index.html) 为默认主入口；原同源 HTML 暂保留 CI 追溯。离线预览与真实 Chrome 安装升级分别验收。
+- `reading-toc-r183-inpage-preview.html` 是历史离线快照，不再作为最新 UI 证据。以唯一正式生成器输出的 [preview/index.html](preview/index.html) 为默认主入口；旧版本同源 HTML 已于 2026-10-31 清理，CI 改用唯一入口。离线预览与真实 Chrome 安装升级分别验收。
 
 ## R1.8.6 · 主预览与正式版隔离
 
-默认预览入口为 `preview/index.html`，显示模拟文章和可信网页悬浮目录，仍保留 Side Panel 历史同源验证页。正式工具的手柄支持双击与 Home 归位；本轮原生测试采用真实 Home 键检查存储清除，不能在 CI 完成前声称测试通过，且不恢复网页独立归位图标。正式 `reading-toc.opendesk-tool.json` 为唯一可安装包（`1.0.8`）；离线 HTML、Linux Chromium 与 hosted macOS 均不能冒充用户本机 Mac 的 1.0.7→1.0.8 主动升级结果。
+默认预览入口为 `preview/index.html`，显示模拟文章和可信网页悬浮目录；Side Panel 直接在同一入口切换，不再保留历史同源验证页。以下为 R1.8.6 历史证据边界：正式工具的手柄支持双击与 Home 归位；当时原生测试采用真实 Home 键检查存储清除，不能在 CI 完成前声称测试通过，且不恢复网页独立归位图标。当时正式 `reading-toc.opendesk-tool.json` 为唯一可安装包（`1.0.8`）；离线 HTML、Linux Chromium 与 hosted macOS 均不能冒充用户本机 Mac 的 1.0.7→1.0.8 主动升级结果。
 
 ## R1.9 · 主要章节短 tooltip（2026-10-18）
 

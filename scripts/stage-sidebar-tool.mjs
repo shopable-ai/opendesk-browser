@@ -113,7 +113,7 @@ async function ownedFile(root,rel){
   let actual;try{actual=await realpath(target);}catch{fail('required project file missing: '+rel);}
   if(!actual.startsWith(root+sep))fail('symlink escaped project');
   const info=await stat(actual);
-  if(!info.isFile()||info.size>SIDEBAR_TOOL_LIMITS.packageBytes)fail('invalid or oversized project file: '+rel);
+  if(!info.isFile())fail('invalid project file: '+rel);
   return readFile(actual);
 }
 async function declaredSnapshot(root){

@@ -1,0 +1,237 @@
+{
+  "date": "2026-11-01",
+  "threadId": "01a193b6-d729-7d12-83be-07b7a5a3c7ae",
+  "status": "CORE_UI_VERIFIED_STAGED_NOT_INSTALLED",
+  "branch": "main",
+  "startHead": "541209958e8daaea4bf032f4f3413edd040eedc9",
+  "scope": [
+    "examples/sidebar-tools/scrapyjs/README.zh-CN.md",
+    "examples/sidebar-tools/scrapyjs/evidence/actual-ui-20261101.json",
+    "examples/sidebar-tools/scrapyjs/src/style.css",
+    "examples/sidebar-tools/scrapyjs/INTERACTIONS.zh-CN.md"
+  ],
+  "runtime": "Original CFT149 /Applications/Google Chrome.app; ccfcjegpkdlgbclopjmadlcjedelidmf; original Native instance scrapyjs-react-01a186cc",
+  "initialBlocker": "E_DEV_PROVIDER_UNAVAILABLE; original directory offline; debug button disabled",
+  "resourceOwnership": "ScrapyJS ownership transferred from source thread; original CFT used after read-only inventory. Other recent browser tasks idle; no active shared writer observed. No root Browser or existing mock/static writer modified.",
+  "boundaries": [
+    "No installation, promotion, commit or push",
+    "No real AI generate, cancel or replay; prior UNKNOWN untouched",
+    "No real capture or successful configuration writes; isolated expired save refused",
+    "No modification of installed user configurations or Native pairing",
+    "No Framework source, root build, branch or worktree changes"
+  ],
+  "observations": [
+    "Native doctor authenticated connected true; local/response extensionId matches manifest allowed_origins",
+    "UI reports dev connected revision 128e04700d0036f12135955014246057e95f68b5b7eedd0ab87d4a3a6a516f1e; matches disk, but no current root writer or listening 43119/43120 observed; live connection freshness not proven",
+    "Existing app build receipt validated by inspectSidebarToolProject; buildId a726a09f428da73c01356b288bd9839bf8c9a4a0923d9dbf51514d85b6044603; no rebuild necessary",
+    "Actual full AI before fix: native screenshot 07-ai-overflow-before.png shows business and Host toolbar scrolled outside viewport. Shared Dock reported 608px; percentage root follows auto-sized iframe. Existing bridge height hint and tool consumers confirm tool-local sizing path; SDK gap not required.",
+    "First height-hint candidate 84f6730e33e3 still visually failed. Read-only native DevTools probe: hint empty string; root/workspace 1600px; business overflow auto. Use fixed 660px fallback as already used by independent tool consumers, not percentage of auto-sized iframe.",
+    "Old isolated debug session expired during verification. Save of UI debug check 20261101 was refused as expired; cancelled naming, no successful write. Closed and reopened only this task-created read-only debug Side Panel after preserving test evidence; installed unknown AI session not opened."
+  ],
+  "startedResources": [
+    {
+      "kind": "directoryProvider",
+      "execSession": 56389,
+      "instance": "scrapyjs-react-01a186cc",
+      "workspaceId": "workspace-68299749-e4bf-ddf3-fa63-c22109726a7a",
+      "sourceId": "source-a7f47ad5b7ea71ce48c45070",
+      "project": "examples/sidebar-tools/scrapyjs",
+      "state": "LEFT_RUNNING",
+      "result": "File workspace connected and Sidebar debug verified; Controller Provider errors outside current UI scope"
+    },
+    {
+      "kind": "toolViteCompilerWatcher",
+      "execSession": 60501,
+      "state": "LEFT_RUNNING",
+      "command": "npm run dev --prefix examples/sidebar-tools/scrapyjs"
+    },
+    {
+      "kind": "toolSnapshotWatcher",
+      "execSession": 85773,
+      "state": "LEFT_RUNNING",
+      "command": "node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/scrapyjs"
+    }
+  ],
+  "completedAt": "2026-10-31T21:11:52.741827+00:00",
+  "result": "Actual source debug sidebar shows latest design and full Chat; fixed tool-local iframe height feedback and business overflow. No release or installed-state validation.",
+  "runtimeMode": "Existing dist/development Browser, tool source snapshot via original Native directory Provider. Root serve connection freshness NOT_PROVEN.",
+  "finalCandidate": {
+    "appVersion": "1.8.0",
+    "taskVersion": "0.6.0",
+    "buildId": "c1e429b334eb6bb5221f24041854b9b2a27ba4e259c37f4f019ba213580cf4b7",
+    "fingerprint": "291e12449c966c9c90c247181f7282e626fe42e4d50ba3870d1e07f47837135d",
+    "sha256": "aec0c11df99f149308cd5c8597eb316816f07f0dd000cd6dcbb3ca895849dda3",
+    "manifestSha256": "a9b1b88050606dce83580bde73aaed5b5fc960302e8bc324bfa4bb2b6ee3cb84",
+    "nativeLatest": "examples/sidebar-tools/scrapyjs/opendesk-tool-preview/scrapyjs/latest.json",
+    "state": "STAGED_NOT_INSTALLED",
+    "nativeUiEvidence": "artifacts/scrapyjs/actual-ui-20261101/15-final-ui.ax.txt"
+  },
+  "ownChanges": {
+    "src/style.css": [
+      "Bound tool root with existing Host height hint and 660px fallback",
+      "Scope capture-business flex/overflow rule to scrapyjs-workspace"
+    ],
+    "README.zh-CN.md": "Add current actual UI result and boundaries; preserve prior design evidence as history",
+    "evidence/actual-ui-20261101.json": "Record native actions, current snapshot identity, resource ownership and gaps",
+    "INTERACTIONS.zh-CN.md": "Document actual source debug entry and replace stale next-chat guidance; preserve historical preview record"
+  },
+  "nativeChecks": [
+    {
+      "behavior": "Latest source debug entry and snapshot identity",
+      "result": "PASS",
+      "evidence": [
+        "15-final-ui.png",
+        "15-final-ui.ax.txt",
+        "14-loaded-extension.ax.txt"
+      ]
+    },
+    {
+      "behavior": "Icon library open/back and focus; malformed JSON draft retained",
+      "result": "PASS",
+      "evidence": [
+        "02-library.ax.txt",
+        "12-cancel-final.ax.txt"
+      ]
+    },
+    {
+      "behavior": "Fields / pagination / advanced order",
+      "result": "PASS",
+      "evidence": [
+        "11-rules-final.png"
+      ]
+    },
+    {
+      "behavior": "JSON title/help/compact export; local parse error blocks save/export",
+      "result": "PASS",
+      "evidence": [
+        "04-json.png",
+        "04-json.ax.txt",
+        "12-cancel-final.ax.txt"
+      ]
+    },
+    {
+      "behavior": "Export in read-only debug is refused with local feedback",
+      "result": "EXPECTED_DENIAL",
+      "download": "NOT_TESTED"
+    },
+    {
+      "behavior": "Native controlled alertdialog defaults cancel; Tab wraps; Escape preserves draft/focus",
+      "result": "PASS",
+      "confirmedDestructiveAction": false,
+      "evidence": [
+        "12-confirm-final.png",
+        "12-cancel-final.ax.txt"
+      ]
+    },
+    {
+      "behavior": "Actual full Chat open/close and exact unsent draft retention; draft then cleared",
+      "result": "PASS",
+      "draft": "UI draft retention check (not sent)",
+      "generateCalls": 0,
+      "cancelCalls": 0,
+      "evidence": [
+        "10-ai-draft.png",
+        "10-ai-draft.ax.txt",
+        "15-final-ui.ax.txt"
+      ]
+    },
+    {
+      "behavior": "Final independent business scroll and bounded full Chat/composer",
+      "result": "PASS_AT_NORMAL_WINDOW",
+      "dockHeight": 251,
+      "evidence": [
+        "09-ai-bounded.png",
+        "15-final-ui.png"
+      ]
+    },
+    {
+      "behavior": "Original JSON text restored; fresh clean debug instance opened through product route",
+      "result": "PASS",
+      "evidence": [
+        "13-json-restored.ax.txt",
+        "15-final-ui.ax.txt"
+      ]
+    }
+  ],
+  "automatedChecks": [
+    {
+      "command": "node --test --test-name-pattern='local preview keeps' examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 400.553584,
+      "scope": "Full Chat fixture preserves draft and material state; zero real generate/cancel. Not native layout evidence."
+    },
+    {
+      "command": "npm run dev --prefix examples/sidebar-tools/scrapyjs",
+      "result": "WATCH_BUILD_PASS",
+      "durationMs": 97,
+      "scope": "Tool IIFE/CSS only; no Browser build"
+    },
+    {
+      "command": "inspectSidebarToolProject(examples/sidebar-tools/scrapyjs)",
+      "result": "PASS",
+      "scope": "Existing compiler receipt matches source and staged build identity"
+    },
+    {
+      "command": "node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/scrapyjs",
+      "result": "STAGED_NOT_INSTALLED",
+      "scope": "Temporary source debug snapshot only"
+    }
+  ],
+  "visualReview": {
+    "method": "Native CFT screenshots inspected directly; no independent numerical score",
+    "iterations": [
+      {
+        "state": "FAIL",
+        "evidence": "07-ai-overflow-before.png",
+        "reason": "Auto-sized iframe/percentage root pushes business and input outside viewport"
+      },
+      {
+        "state": "FAIL",
+        "evidence": "08-ai-fixed.png",
+        "reason": "Host height hint absent; read-only probe root/workspace 1600px. Filename is not a pass claim."
+      },
+      {
+        "state": "PASS_FOR_CORE_UI",
+        "evidence": [
+          "09-ai-bounded.png",
+          "15-final-ui.png"
+        ],
+        "reason": "Fixed fallback and scoped overflow keep business and full Chat visible"
+      }
+    ],
+    "score": "NOT_SCORED",
+    "limitation": "No multi-height, zoom or width matrix; fixed fallback only verified at current normal window"
+  },
+  "sessionBoundary": {
+    "expiredSave": "Refused; no successful write; isolated name UI debug check 20261101 cancelled",
+    "recovery": "Preserved evidence, closed/reopened only own read-only debug Side Panel, restored own JSON text; stopped clean instance and reopened latest source through normal UI",
+    "installedUnknownSession": "UNTOUCHED",
+    "finalDraft": "No unsent test Chat draft"
+  },
+  "notTested": [
+    "Real AI generation/cancellation/replay",
+    "Real capture and stop",
+    "Successful configuration save",
+    "Real export download",
+    "Install/upgrade/revoke/CWS/production",
+    "Full CI or independent score",
+    "Human IME"
+  ],
+  "outOfScope": [
+    "Width and zoom matrix",
+    "Multi-height/browser-version/stress matrix",
+    "Prior UNKNOWN recovery or replay",
+    "Unrelated Stay Focus catalog 404",
+    "Root Browser serve connection restoration"
+  ],
+  "report": "artifacts/scrapyjs/actual-ui-20261101/README.md",
+  "artifactIntegrity": "artifacts/scrapyjs/actual-ui-20261101/verification.json",
+  "documentationValidation": {
+    "diffCheck": "PASS",
+    "candidateSourceBuildStageIdentity": "MATCH",
+    "artifactHashesVerified": 24,
+    "localLinksVerifiedBeforeFinalInteractionDoc": 15
+  }
+}

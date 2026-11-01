@@ -15,7 +15,7 @@ const named={
  'react/jsx-runtime':'Fragment,jsx,jsxs',
  'react/jsx-dev-runtime':'Fragment',
  'react-dom/client':'createRoot,hydrateRoot',
- '@opendesk/ui':'Button,IconButton,Card,CardContent,Switch,SharedConversationFrame,SharedConversationDock,createConversationSession'
+ '@opendesk/ui':'Button,IconButton,Card,CardContent,Switch,Input,Textarea,SharedConversationFrame,SharedConversationDock,createConversationSession'
 };
 export default defineConfig({root,base:'./',esbuild:{jsx:'automatic',jsxDev:false},
  optimizeDeps:{noDiscovery:true,include:[]},

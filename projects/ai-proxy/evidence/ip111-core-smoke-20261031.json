@@ -1,0 +1,279 @@
+{
+  "format": "ai-proxy.ip111-core-smoke.v1",
+  "recordedAt": "2026-10-31T07:45:18Z",
+  "timezone": "Asia/Shanghai",
+  "owner": "projects/ai-proxy",
+  "scope": "Existing Chrome for Testing window; package installation, current-site detection, direct-mode enable, ip111.cn baseline and refresh. No implementation or platform changes.",
+  "result": "CORE_NOT_COMPLETE_DIRECT_ENABLE_REJECTED",
+  "browser": {
+    "product": "Google Chrome for Testing",
+    "version": "155.0.8059.39",
+    "reusedExistingWindow": true,
+    "createdBrowserProcess": false,
+    "newTestTab": "http://ip111.cn/",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionVersion": "0.1.0",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "buildMode": "DEVELOPMENT",
+    "serveConnection": "NOT_VERIFIED",
+    "loadedBuildFingerprint": "NOT_VERIFIED"
+  },
+  "package": {
+    "id": "ai-proxy",
+    "version": "0.3.1",
+    "sha256": "bed14a78ea94b97b1dda048d35fd0a4a8b895a5e870ccf4d57aec347cd06a821",
+    "bytes": 914983,
+    "source": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "digestVerifiedInTrustedInstallReview": true,
+    "installedUsing": "Extensions → Filter and manage → Import extension → select canonical JSON → review capabilities and digest → Confirm install → Open",
+    "note": "Parallel source/config was already 0.3.2. These native results bind the reviewed 0.3.1 bytes, not newer source or a later package. Existing Browser and project outputs were not rebuilt or overwritten."
+  },
+  "operations": [
+    {
+      "name": "Open ip111.cn in new tab in existing CFT155",
+      "result": "PASS"
+    },
+    {
+      "name": "Review and install existing project package",
+      "result": "PASS",
+      "nativeTitle": "AI Proxy · v0.3.1",
+      "runtime": "opaque-origin Sidebar Tool sandbox"
+    },
+    {
+      "name": "Read current ordinary website",
+      "result": "PASS",
+      "hostname": "ip111.cn",
+      "afterPageReload": "ip111.cn"
+    },
+    {
+      "name": "Read managed proxy status",
+      "result": "PASS",
+      "permission": "granted",
+      "levelOfControl": "controllable_by_this_extension",
+      "managed": false,
+      "chromeMode": "UI_REPORTED_UNKNOWN"
+    },
+    {
+      "name": "Select direct mode",
+      "result": "PASS_SELECTION_ONLY",
+      "visibleSelection": "DIRECT 直连",
+      "doesNotProveRouteChanged": true
+    },
+    {
+      "name": "Enable direct mode",
+      "result": "REJECTED_UNSUPPORTED",
+      "beforeClick": "直连尚未启用。点击「启用」才会绕过系统代理；暂停会恢复原有代理设置。",
+      "afterClick": "此路由超出公开服务范围。仅支持默认直连、同一无认证 HTTPS/SOCKS5 公共节点和 1–16 条含子域规则；未降级应用。",
+      "afterStatus": "尚未管理浏览器代理"
+    },
+    {
+      "name": "Reload ip111.cn after rejected apply",
+      "result": "PASS_PAGE_LOAD_SAME_OBSERVED_EGRESS",
+      "doesNotProveAllRoutingUnchanged": true
+    }
+  ],
+  "ip111": {
+    "baseline": {
+      "domestic": {
+        "ip": "43.167.193.251",
+        "location": "日本 东京"
+      },
+      "foreign": {
+        "ip": "43.167.193.251",
+        "location": "日本 东京",
+        "frame": "http://us.ip111.cn/ip.php"
+      },
+      "google": {
+        "ip": "43.167.193.251",
+        "location": "日本 东京",
+        "frame": "http://sspanel.net/ip.php"
+      }
+    },
+    "afterRejectedDirectEnableAndReload": {
+      "domestic": "43.167.193.251",
+      "foreign": "43.167.193.251",
+      "google": "43.167.193.251"
+    },
+    "attribution": "Existing egress baseline. Not evidence that AI Proxy supplied a working proxy."
+  },
+  "diagnosis": {
+    "sourceAnchors": [
+      "projects/ai-proxy/src/environment.ts:63-73",
+      "projects/ai-proxy/src/model.js:22-29"
+    ],
+    "finding": "Current apply adapter requires rules selection, default DIRECT and 1–16 inclusive domain rules sharing one unauthenticated HTTPS/SOCKS5 public DNS endpoint. Direct mode is rejected before requesting a Chrome route change.",
+    "systemProxyReadOnly": {
+      "http": "127.0.0.1:7897",
+      "https": "127.0.0.1:7897",
+      "socks": "127.0.0.1:7897"
+    },
+    "localProxyCompatibility": "Not supported by current public-DNS-only tool adapter. System proxy settings were read only.",
+    "usablePublicEndpoint": "NOT_AVAILABLE_IN_TEST_WINDOW"
+  },
+  "remaining": {
+    "supportedRuleProxyEnableDisableAndTraffic": "NOT_TESTED_NO_USABLE_PUBLIC_ENDPOINT",
+    "fullFourModeApply": "NOT_COMPLETE",
+    "authenticationArbitraryPacOnlineSubscriptions": "NOT_COMPLETE",
+    "production": "NOT_TESTED",
+    "nativeStopAfterSuccessfulEnable": "NOT_TESTED"
+  },
+  "sideEffects": {
+    "installedTestPackage": "ai-proxy 0.3.1 in reused CFT profile",
+    "savedToolSelection": "direct",
+    "proxyEnableRequestedInUi": true,
+    "managedRequestEnableReached": "NO_PER_INSPECTED_ADAPTER_AND_NATIVE_REJECTION",
+    "successfulProxyMutationObserved": false,
+    "systemProxyModified": false,
+    "dailyChromeTouched": false,
+    "sourceModified": false,
+    "buildsRun": false,
+    "nodeTestsRun": false,
+    "parallelChangesPreserved": true,
+    "browserLeftOpen": true,
+    "finalVisibleState": "ip111.cn with unchanged observed egress and AI Proxy direct-mode rejection."
+  },
+  "priorEvidence": "projects/ai-proxy/evidence/install-0.3.0-20261031.json records earlier real installed configuration save/rule save/close-reopen validation; not rerun as proxy traffic proof.",
+  "savedLineFollowUp": {
+    "recordedAt": "2026-10-31T09:25:28Z",
+    "userChoice": "使用测试窗口中已保存的可用线路",
+    "reusedWindowTitle": "显示查询自己的IP地址",
+    "url": "http://ip111.cn/",
+    "installedToolVersion": "0.3.1",
+    "settingsObservations": {
+      "proxyServers": 0,
+      "websiteRules": 0,
+      "localPacProfiles": 0,
+      "managed": false,
+      "stopButton": "disabled"
+    },
+    "result": "NO_SAVED_LINE_IN_SELECTED_TEST_WINDOW",
+    "currentVisibleIp": "43.167.193.251",
+    "currentVisibleLocation": "日本 东京",
+    "ipObservation": "Existing page content only; no new line was applied and no new traffic claim is made.",
+    "clarification": "Requested the intended test-window title or saved-line name. No arbitrary endpoint was substituted.",
+    "sideEffects": "Opened the existing CFT sidepanel and read proxy settings only; no configuration, routing, package, Browser source, service or build output changed.",
+    "nativeUiLock": "Acquired for this follow-up and released after the settings inspection."
+  },
+  "historyNote": "Original top-level 0.3.1 result is historical. latestCoreRun records the later 0.3.3 implementation and real native traffic test; later source edits are not covered by its package.",
+  "latestCoreRun": {
+    "recordedAt": "2026-10-31T10:06:46.015940+00:00",
+    "result": "CORE_DIRECT_SINGLE_LOCAL_ENDPOINT_FINITE_RULES_AND_STOP_NATIVE_PASS_WITH_LIMITATIONS",
+    "authorization": "User requested existing CFT ip111.cn test, then delegated expert choice when no saved route existed; chose the existing machine Clash listener.",
+    "browser": {
+      "version": "155.0.8059.39",
+      "reusedExistingWindow": true,
+      "url": "http://ip111.cn/",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "mode": "continuous development",
+      "watcherPidLastObserved": 11774,
+      "servePortsObserved": [
+        43119,
+        43120
+      ],
+      "connectionEvidence": "Existing server listening and automatic native Side Panel reload observed; real UI reflected the newly compiled exact mode review. WebSocket connection and exact loaded revision were not independently introspected."
+    },
+    "package": {
+      "id": "ai-proxy",
+      "version": "0.3.3",
+      "sha256": "e195f914e28d7b14fb5ad7585b4381b9ad2ec7ea32f5241b2ce992f979c7c548",
+      "bytes": 915441,
+      "upgrade": "Original official Review new version UI, current0.3.1 to0.3.3; permission unchanged; confirm update, title readback0.3.3",
+      "formalPromotionAndSourceMatchAtBuild": "PASS",
+      "laterSourceMatch": "STALE: compiled UI source changed: src/QuickPanel.tsx. Parallel UI edits are outside this native package evidence."
+    },
+    "implementation": {
+      "tool": "environment.ts uses pure domain/managed-config.ts for direct, endpoint profile, finite rules; local route requires trusted local-client source and exact127.0.0.1. System/PAC/auth remain refused.",
+      "platform": "Existing managed SDK/Host/Driver admits explicit direct/fixed_servers/rules with exact user review; public DNS HTTPS/SOCKS5 or explicit127.0.0.1 HTTP/SOCKS5 only. All variants retain identity-tagged PAC ownership, locks, durable unknown fence, one-use intent and owned STOP. Legacy pinned development shape unchanged by this owner."
+    },
+    "operations": [
+      {
+        "action": "Save local client HTTP127.0.0.1:7897 and select",
+        "result": "PASS",
+        "observed": "Saved and selected, not applied; Enable button; no automatic route"
+      },
+      {
+        "action": "Explicit direct Enable and trusted review",
+        "result": "PASS",
+        "observed": "Chrome direct readback; review states all tabs bypass system proxy"
+      },
+      {
+        "action": "Reload ip111 under confirmed direct; stop only unfinished page loading while route remained enabled",
+        "result": "PASS_PARTIAL_SITE",
+        "domestic": "61.157.71.204 中国 成都",
+        "foreignSubdomain": "61.157.71.204 中国 成都",
+        "googleFrame": "No result; third-party direct request did not finish. Browser loading was stopped, not a proxy STOP."
+      },
+      {
+        "action": "Enable saved local endpoint profile after trusted all-sites endpoint review",
+        "result": "PASS",
+        "observed": "Chrome applied current selection, designated proxy; exacthttp://127.0.0.1:7897"
+      },
+      {
+        "action": "Reload ip111 under local endpoint",
+        "result": "PASS",
+        "domestic": "43.167.193.251 日本 东京",
+        "foreign": "43.167.193.251 日本 东京",
+        "google": "43.167.193.251 日本 东京"
+      },
+      {
+        "action": "Close application to extension list, reopen",
+        "result": "PASS_WITH_CONSERVATIVE_STATUS",
+        "observed": "Saved endpoint and selected profile retained; real control controlled_by_this_extension and Pause available. Active selection snapshot is not restored, so UI says pending and Chrome mode unknown rather than claiming same saved route is confirmed."
+      },
+      {
+        "action": "Save ip111.cn inclusive-subdomain rule, choose website rules, explicitly enable after finite-scope review",
+        "result": "PASS",
+        "observed": "Save did not apply. Trusted review exact endpoint/domain, other sites direct; applied website rules"
+      },
+      {
+        "action": "Reload under ip111.cn rule and stop unfinished third-party page loading without stopping proxy",
+        "result": "PASS_MATCHED_DOMAINS",
+        "domestic": "43.167.193.251 日本 东京",
+        "foreignSubdomain": "43.167.193.251 日本 东京",
+        "googleFrame": "Outside rule scope, no result before page loading was stopped; no claim of full third-party reachability"
+      },
+      {
+        "action": "Explicit owned Pause after successful enables",
+        "result": "PASS",
+        "observed": "Trusted STOP then no managed browser proxy; inherited system settings restored"
+      },
+      {
+        "action": "Final reload after final direct STOP",
+        "result": "PASS",
+        "domestic": "43.167.193.251 日本 东京",
+        "foreign": "43.167.193.251 日本 东京",
+        "google": "43.167.193.251 日本 东京"
+      }
+    ],
+    "checks": {
+      "platformAndAdapterTargeted": "59/59 PASS at implementation check; Driver, real SDK+Host fixture, development fixed-profile protection, SDK r54, project environment",
+      "projectEnvironmentServicePackage": "86/86 PASS",
+      "syntaxAndDiff": "node --check five touched platform JS files and git diff --check PASS",
+      "proxyMatrixSchema": "MATCH runtime input schema",
+      "fullSdkGeneratedDocs": "Generator blocked by existing Public SDK binding count drift; only proxy signature updated using existing schema renderer; unrelated count not repaired",
+      "production": "NOT_TESTED",
+      "typecheck": "Full TypeScript check NOT_TESTED; project environment compiled/executed by esbuild tests"
+    },
+    "finalState": {
+      "managed": false,
+      "selectedMode": "direct",
+      "savedEndpoint": "http://127.0.0.1:7897",
+      "savedRule": "ip111.cn including subdomains to same endpoint",
+      "browserLeftOpen": true,
+      "systemProxyModified": false,
+      "nativeUiLock": "released; native_ui_owner null",
+      "dailyChromeTouched": false,
+      "existingServicesPreserved": true,
+      "committed": false
+    },
+    "remaining": [
+      "System mode actual Apply",
+      "Authentication, arbitrary PAC, online subscriptions and remaining full product requirements",
+      "Reopen UI cannot confirm exact active selection from current status schema",
+      "Latest parallel UI source/package reconciliation and scoped checks",
+      "SDK global generated binding count drift, separate from native proxy results",
+      "Production/formal matrix/score NOT_TESTED"
+    ]
+  }
+}

@@ -1,0 +1,148 @@
+Window: "us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final", App: Google Chrome for Testing.
+0 标准窗口 us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final - Google Chrome for Testing, URL: us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final, Secondary Actions: Raise
+	1 container us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final - Google Chrome for Testing, URL: us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final
+		2 container
+			3 工具栏
+				4 滚动区
+					5 工具栏
+						6 按钮 返回, Help: 点击后退，长按查看历史记录
+						7 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+						8 按钮 重新加载, Help: 重新加载此页
+				9 container
+					10 弹出式按钮 不安全
+					11 文本栏 (settable) 地址和搜索栏, Value: us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final, Placeholder: 问问 Google 或输入网址
+					12 按钮 为此标签页添加书签
+				13 container
+					14 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					15 按钮 关闭侧边栏
+				16 按钮 您
+				17 弹出式按钮 Chromium
+			18 container
+				19 滚动区
+					20 HTML 内容 us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final
+						21 container
+							22 text 61.157.71.204 中国 成都
+						23 container 网页目录
+							24 按钮 拖动阅读目录；方向键移动，Home 归位, Help: 拖动目录；方向键调整位置，Shift 加速，Home 归位
+							25 container 目录视图
+								26 切换按钮 主要章节（内容较少时自动补充子章节）, Help: 主要章节, Value: 1
+									27 图像
+								28 切换按钮 当前章节, Value: 0
+									29 图像
+								30 切换按钮 完整目录, Value: 0
+									31 图像
+								32 切换按钮 AI 整理, Value: 0
+							33 container
+								34 文本 暂无章节
+			35 container 信息栏容器
+				36 container 信息栏
+					37 文本 Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					38 链接 下载 Chrome
+			39 滚动区
+				40 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=1782ea8e-01e2-4991-801f-80805fecb18b
+					41 container
+						42 标签组 工作台
+							43 标签 (settable, integer) 我的, Value: 0
+							44 标签 (selected) 扩展, Value: 1
+							45 标签 (settable, integer) 工作流, Value: 0
+							46 标签 (settable, integer) 开发, Value: 0
+							47 标签 (settable, integer) 云控, Value: 0
+							48 标签 (settable, integer) 调试, Value: 0
+						49 container 扩展
+							50 container 自定义工具
+								51 container 当前工具界面
+									52 container
+										53 按钮 返回扩展列表
+										54 标题 AI Proxy, Help: AI Proxy · v0.3.5, Value: 2
+											55 文本 AI Proxy
+										56 container 工具管理
+											57 按钮 工具设置
+											58 按钮 卸载「AI Proxy」及其本地数据
+									59 container AI Proxy（独立受限界面）
+										60 HTML 内容 AI Proxy — 浏览器代理管理器, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html
+											61 container 代理面板
+												62 container
+													63 标题 连接方式, Value: 2
+														64 文本 连接方式
+													65 按钮 添加代理
+													66 按钮 打开设置
+													67 container 代理模式
+														68 切换按钮 指定代理, Help: 自己的代理或本地 PAC, Value: 0
+														69 切换按钮 网站规则, Help: 按域名自动分流, Value: 0
+														70 切换按钮 直连, Help: 忽略代理直连网络, Value: 1
+														71 切换按钮 跟随系统, Help: 浏览器使用系统策略, Value: 0
+													72 container 浏览器状态
+														73 container
+															74 文本 浏览器已应用当前选择
+															75 开合三角标记 技术详情
+																76 文本 技术详情
+															77 container controlled_by_this_extension
+																78 text 控制权：AI Proxy 正在控制  · Chrome 模式：direct
+															79 文本 代理权限：已获准
+														80 按钮 暂停
+														81 文本 Chrome 已使用直连。请刷新已打开的网站后检查出口 IP。
+													82 container 代理快捷选择
+														83 标题 我的代理 1, Value: 2
+															84 text 我的代理 1
+														85 按钮 管理全部
+														86 切换按钮 本地 HTTP HTTP · 127.0.0.1:7897 使用, Help: 本地 HTTP, Value: 0
+															87 文本 本地 HTTP
+															88 文本 HTTP · 127.0.0.1:7897
+															89 文本 使用
+													90 container 当前网站
+														91 标题 当前网站, Value: 2
+															92 文本 当前网站
+														93 按钮 管理规则
+														94 文本 us.ip111.cn
+														95 文本 来自当前网页
+														96 定义列表
+															97 container 浏览器设置
+																98 文本 浏览器设置
+															99 文本 直连（绕过系统代理）
+															100 container 已保存选择
+																101 文本 已保存选择
+															102 文本 DIRECT 直连
+														103 文本 选择仅供配置参考，不代表此网站的实际流量或可达性。
+														104 按钮 编辑命中规则
+														105 按钮 重新识别
+													106 文本 仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。
+													107 container 打开设置
+														108 按钮 订阅来源
+														109 按钮 网络诊断 ↗
+			110 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			111 container
+				112 文本 OD
+				113 复选框 固定到工具栏, Value: 0
+				114 按钮 关闭侧边栏
+			115 弹出式按钮 标签页搜索
+			116 container
+				117 标签组
+					118 标签 (settable, boolean) 扩展程序 - OpenDesk Browser Developer, Value: off
+						119 按钮 关闭
+					120 标签 (settable, boolean) 阅读目录 R23 · 交互设计模拟 · OpenDesk 交互预览, Value: off
+						121 按钮 关闭
+					122 标签 (settable, boolean) ChatGPT: Chat, Work, Create & Code with AI, Value: off
+						123 按钮 关闭
+					124 标签 (settable, boolean) 应用 · OpenDesk 应用市场, Value: off
+						125 按钮 关闭
+					126 标签 (settable, boolean) 显示查询自己的IP地址, Value: off
+						127 按钮 关闭
+					128 标签 (selected, settable, boolean) us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final, Value: on
+						129 按钮 关闭
+			130 按钮 新标签页
+	131 关闭按钮
+	132 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	133 最小化按钮
+134 menu bar
+	135 Google Chrome for Testing
+	136 文件
+	137 编辑
+	138 显示
+	139 历史记录
+	140 书签
+	141 个人资料
+	142 标签页
+	143 窗口
+	144 帮助
+
+The focused UI element is 20 HTML 内容 us.ip111.cn/ip.php?ai-proxy-core=1793446906459-direct-final

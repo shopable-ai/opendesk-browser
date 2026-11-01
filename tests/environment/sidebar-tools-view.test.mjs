@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 import {settingsModuleURL} from '../helpers/trusted-settings-react-fixture.mjs';
-import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
+import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -214,10 +214,11 @@ test('real React header uses plain escaped text with complete accessible context
   view.patch('sidebar-tool-display',{hidden:false});
   for(const [visible,context] of [
     ['书签管理','书签管理'],
-    ['设置','书签管理 / 设置'],
-    ['编辑','书签管理 / 编辑书签'],
-    ['详情','提示词快捷按钮 / 提示词详情'],
-    ['<img src=x onerror=alert(1)>','扩展 / <img src=x onerror=alert(1)>']
+    ['书签管理/设置','书签管理 / 设置'],
+    ['书签管理/编辑','书签管理 / 编辑书签'],
+    ['提示词快捷按钮/详情','提示词快捷按钮 / 提示词详情'],
+    ['scrapyjs 采集/配置库','scrapyjs 采集 / 配置库'],
+    ['扩展/<img src=x onerror=alert(1)>','扩展 / <img src=x onerror=alert(1)>']
   ]){
     view.patch('sidebar-tool-title',{textContent:visible,
       attributes:{'aria-label':context},title:context+' · v0.3.12'});
@@ -271,13 +272,31 @@ test('Cookie first-use and everyday settings each mount one permission control w
       data:{mode,isCookieEditor:true}});
     view.patch('sidebar-tool-settings-view',{hidden:mode!=='settings'});
     const {document}=parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view})));
-    assert.equal(document.querySelectorAll('#sidebar-tool-cookie-permissions').length,1,mode);
+    assert.equal(document.querySelectorAll('#sidebar-tool-cookie-permissions').length,mode==='settings'?1:0,mode);
     assert.equal(document.querySelectorAll('#sidebar-tool-enable').length,1,mode);
     assert.equal(document.querySelector('#sidebar-tool-enable').getAttribute('role'),'switch',mode);
     view.dispose();
   }
 });
  
+test('Cookie first-use discloses the current Host scope before enabling consent',()=>{
+  const view=createSidebarToolsView();
+  view.patch('sidebar-tool-display',{hidden:false});
+  view.patch('sidebar-tool-cookie-permissions',{hidden:false,data:{mode:'first-use',
+    isCookieEditor:true,needsAuthorization:true,hasOrigin:true,identity:'cookie-test:1'}});
+  const description='允许管理当前网站 https://example.test 的 Cookie，包括查看 Cookie 值、修改、删除。授权可随时撤销。';
+  view.patch('sidebar-tool-cookie-help',{textContent:description});
+  const render=()=>parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view}))).document;
+  const doc=render(),dialog=doc.querySelector('[role="dialog"][aria-labelledby="sidebar-tool-cookie-consent-title"]');
+  assert.ok(dialog);
+  assert.equal(doc.getElementById(dialog.getAttribute('aria-describedby'))?.textContent,description,
+    'the actual scope and sensitive Cookie access must be visible and announced');
+  view.patch('sidebar-tool-cookie-help',{textContent:''});
+  assert.equal(render().getElementById('sidebar-tool-cookie-consent-allow').hasAttribute('disabled'),true,
+    'missing scope must not offer a blank approval');
+  view.dispose();
+});
+
 test('React layout supplies real runtime refs, preserves opaque children, dispatches native events and cleans up', async t => {
   const {window, document} = parseHTML('<html><body><div id="mount"></div></body></html>');
   const previous = {window: globalThis.window, document: globalThis.document, act: globalThis.IS_REACT_ACT_ENVIRONMENT};
@@ -555,6 +574,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.deepEqual(fetched, [api.runtime.getURL('official-tools/catalog.json'), OFFICIAL_FOCUS_LATEST_URL],
     'only local catalog and fixed Focus metadata load without the retired list DOM; no tool packages');
   assert.equal(view.fields['sidebar-tool-status'].textContent, '', 'ready cannot hide a caught initialization failure');
+  assert.equal(view.fields['sidebar-tool-proxy-consent'].hidden, true, 'an unopened tool has no proxy settings or consent record');
   assert.equal(document.getElementById('sidebar-tool-list'), null);
 
   await React.act(async () => {assert.equal(facade.openSettings(tool.id), true);});

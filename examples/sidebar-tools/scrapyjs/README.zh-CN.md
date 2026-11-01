@@ -1,5 +1,142 @@
 # scrapyJs 采集应用
 
+## 框架增量：列表容器可省略（2026-11-01）
+
+普通浏览器采集可以只指定记录选择器，例如 `itemConfig: {_listItem: '.book-list > li', title: 'h2::text', url: 'a::href'}`。在「列表范围」中将容器留空、列表项填写 `.book-list > li` 即可；配置校验、Controller 使用的完整 SDK 和离线规则预览采用相同语义。已有容器配置继续仅选直接子项；两者都留空按单页提取，不根据字段数组猜测行关系。显式 `validation` / `fieldRequirements` 的严格容器与身份合同保持不变。
+
+本次同步上游唯一构建产物及完整来源快照，仅两个提取源码文件发生变化。核心 `scrapyjs@1.0.0`、扩展 `3.15.0`、协议 `1.0` 不变；browser SDK SHA-256 为 `42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c`，精确输入见 `vendor/scrapyjs/provenance.json`。历史 SDK 哈希不代表本次产物。
+
+验证：Node v26.3.1 下核心六文件 239 项检查、语法检查、API 文档检查和 Node/browser 构建通过；Node v24.16.0 下本工具七文件 67 项检查通过，Chrome 扩展协议 42 项通过。隔离 Chromium `156.0.8078.4` 使用真实 SDK / Controller / Scheduler 验证跨父节点记录、缺失字段关联、旧直接子项规则及 XPath 边界，并在内存中编译受影响 JSX；[可重放脚本](../../../artifacts/scrapyjs/list-item-only-20261101/check.mjs)及[结果](../../../artifacts/scrapyjs/list-item-only-20261101/report.json)保存于本地临时产物。
+
+仅更新源码、SDK 及其来源记录；未覆盖并行工具 dist、冻结预览或正式安装包。已安装 UI、OpenDesk 权限链、真实网站与 production 为 `NOT_TESTED`，未安装、提交或推送。下方历史预览不代表本次源码已加载。
+
+## 当前：规则排序、显示排序与自定义 CSV（2026-11-01）
+
+[打开完整交互预览](../../../artifacts/scrapyjs/light-20261101/candidate15-field-order/preview.html) · [本地入口](http://127.0.0.1:49870/candidate15-field-order/preview.html) · [源码、截图和验证](../../../artifacts/scrapyjs/light-20261101/candidate15-field-order/README.md)。
+
+「采集规则」行首手柄可拖动排序，顺序随配置保存；字段名与选择器原样保留。结果区「显示设置」也保留独立拖动，仅调整当前表格，不改变规则与下载顺序。两处共用鼠标/键盘交互：空格拾起、方向键或 Home/End 移动、Enter 放下、Esc 取消。保留字段即时编辑、清空、点选、列表范围和原忙态/UNKNOWN保护。
+
+原 CSV、JSON 下载保留，新增「自定义 CSV 表头」；展开后每字段只有一个名称输入框和简单表头预览，留空使用原名、重名提示。临时名称只用于这次 CSV 第一行；规则页「CSV 表头（可选）」可预填并随配置保存。AI/人工也可写 `output.fieldNames`，例如 `{"title":"标题"}`；JSON 的原始字段 key 不改，未启用自动语言识别。
+
+同一冻结候选通过 69 项相关 Node 检查、52 项离线交互检查，页面/控制台错误 0。真实网站、真实 AI、Native、安装及 production 仍为 `NOT_TESTED`；未晋升包、提交或推送。以下旧候选只保留各自历史，旧名称/显隐入口不作为当前设计。
+
+## 当前：字段修改直接生效（2026-11-01）
+
+[打开更新后的交互预览](preview/preview.html)。删除「字段更改未应用 / 取消 / 应用字段」以及列表范围的应用栏。字段名、规则和点选结果合法后立即进入配置草稿，可直接保存或采集；保存配置仍负责持久化。无效输入就近提示并拦住保存/运行，修正后恢复，Esc 返回最后合法值。新增和连续重命名保持输入焦点；字段改名保留自定义 CSV 表头与排序。
+
+真实工具源码同步，原构建器在独立快照生成预览，固定 HTML / manifest / context 三件套逐字节一致。独立 AI 专家复评 **96.5/100**，达到本轮 >95；评分仅绑定当前离线候选。未更新正式包或安装态，真实网站、Native、AI、production 与系统 IME 未测。[本轮验证与独立 AI 评审](evidence/fields-immediate-20261101.json)。下文涉及未应用字段的操作与分数属于历史候选。
+
+## 历史：从结果进入显示设置（candidate11）
+
+[打开完整亮色交互预览](../../../artifacts/scrapyjs/light-20261101/candidate11-result-display/preview.html) · [本地交互入口](http://127.0.0.1:49870/candidate11-result-display/preview.html) · [交付与来源记录](../../../artifacts/scrapyjs/light-20261101/candidate11-result-display/README.md)。先点击「开始采集」获得模拟结果，再从结果下载区右侧进入「显示设置」。无记录时不显示该入口。
+
+显示名称是结果表头别名，和顺序、显隐一起在结果区原位编辑；不再放在采集规则的开关中。改名即时预览，原 key 始终可见；Enter/失焦完成当前输入，Esc 撤销当前改名。完成收起设置并恢复入口焦点，设置区域内非编辑状态 Esc 也可收起。显示设置仅本次使用，切换配置或关闭工具后重置，不随配置保存；完整记录及 CSV/JSON 保留原始 key、隐藏字段和全部记录。规则页专注字段/选择器，保留框内清空、点选、列表范围和复杂 JSON。
+
+真实源码为 `src/App.jsx`、`src/Results.jsx`、`src/ColumnSettings.jsx`、`src/RuleEditor.jsx` 及原局部样式；列控制器由旧规则组件移入结果组件，沿用原 `resolveColumns`，未新增模型、依赖或 SDK。25 项相关 Node 检查、27 项本轮离线交互及同候选宿主截图检查通过，页面/控制台错误 0。HTML SHA `c843d74ec2f77a9b4f7553ff7197cf8f78cdb03517ea62327d5c1f5b5dc189eb`。构建在独立源码快照中使用原构建器完成，未覆盖工具 dist、固定预览三件套或正式包。
+
+仅 `SOURCE_COMPONENT_PREVIEW`；真实网站/AI/Native/安装/production 为 `NOT_TESTED`，未提交、推送或晋升包。本轮不评分，未声称用户已认可审美。下方旧“当前”和候选均保留其历史范围；candidate9 的名称开关已由本节取代。
+
+
+## 当前亮色交互预览（2026-11-01）
+
+[打开本轮冻结的亮色HTML](../../../artifacts/scrapyjs/light-20261101/candidate9-neutral/preview.html)。内容导航改为浅灰轨道、白色选中面与深灰文字，去掉淡蓝按钮底与蓝色底线的混合；蓝色主要用于开始/保存和键盘焦点。保留并行的行内规则、清空/点选及显示名称开关，JSON 继续按原缩进横向滚动。
+
+本轮为真实组件与模拟 SDK 的离线设计迭代。已回放导航/草稿、显示名/显隐、完整下载和配置库返回；尚未取得用户审美认可，不使用 AI 分数作为完成条件。源码快照、同候选完整宿主截图、来源差异与未测边界见[预览说明](preview/README.zh-CN.md)和[交付记录](../../../artifacts/scrapyjs/light-20261101/README.md)。固定预览与工具 dist 归并行 owner，未覆盖；本轮未安装、晋升、提交或推送。
+
+## 本轮离线 UI：规则与显示列一行编辑（2026-11-01）
+
+[打开同源交互预览](preview/preview.html)。采集字段输入兼展示，去掉重复标题，“＋ 添加字段”在字段底部居中；公共列表范围独立应用。显示列直接勾选、改名和拖动，复杂规则无损保留到JSON。取消不再误报新改动，旧校验错误指向当前输入；原始下载保持完整。
+
+当前candidate5的53项浏览器操作、33项相关Node检查通过，真实安装/采集/AI未测；未晋升、提交或推送。设计决定、截图、来源与独立评审见[本轮预览说明](preview/README.zh-CN.md)。其余历史候选分数与原生记录不外推到本轮。
+
+## 本次增量：配置库与宿主页头整合（2026-11-01）
+
+已接入导航能力的实例使用同一宿主页头显示 `scrapyjs 采集/配置库`，返回按配置库 → 采集根页 → 扩展列表逐级执行。内容删除重复返回、页标题与用途说明，保留配置计数、新建、搜索和管理；选中配置的名称/保存字段数不再在操作区重复。搜索隐藏当前项时仍明确操作对象，编辑后清除旧保存反馈。草稿、未应用字段、命名、忙态、身份与原有焦点/滚动保护保持。
+
+沿用已有 `OpenDeskTool.setNavigation`，不新建 Router/Header/Host。**正式 scrapyjs 尚不在导航能力的完整官方包准入目录内**，当前实际安装接入 `NOT_TESTED`；未获此能力的实例保留工具内返回，避免进入配置库后失去退出路径。离线 Mock 的接入不构成准入或安装证明。未修改目录准入、权限、正式包或既有安装。
+
+本次候选、同 SHA 完整宿主截图、定向操作、独立分维评分与固定入口同步状态统一见[本轮证据索引](../../../artifacts/scrapyjs/library-navigation-20261101/README.md)。历史评分只属于原候选，后续并行主题与规则编辑亦须按新快照理解。
+
+## 当前：新版实际安装 UI 已跑通采集与下载（2026-11-01）
+
+App **1.8.2** / 固定 Task **0.6.1** 已通过原安装器更新到原 CFT149 扩展。实际从「扩展 → scrapyjs 采集」选择原保存配置，在豆瓣编程列表点击开始，成功返回 **20 条、12 列**，持久运行状态为 `completed / released`。JSON / CSV 均实际下载；20 条的标题、链接、出版信息、评分与当前网页核对一致，CSV 的 240 个单元格与 JSON 一致。详情弹窗、列显隐、键盘列排序、恢复默认及配置库搜索/往返正常；8 份原配置保留，隐藏列后的原始下载内容不变。
+
+本轮修复两个当前入口阻塞：离线 AI 占位使用独立 preview entry，正式入口继续挂载完整 Chat；旧 Task 的运行时身份过期，使用**相同采集源码哈希、相同权限与站点**的新版本，经真实草稿运行 → 原生回执核对 → 本地可用 → 安装后，更新 App 的精确绑定。未放宽验证，也未重建 Browser。
+
+相关模型53项、包与沙箱9项、预览来源4项、Chat草稿保留1项通过。正式 JSON 与当前源码逐字节匹配。原 Browser 仍为 `dist/development`，本次没有恢复或证明根 serve 的实时连接；不把本机安装态结果当作 production 验收。真实 AI 推理、当前版本 Stop/CSDN/HTTP/production 未测；原 UNKNOWN 请求保留、未取消或重放。[本轮完整证据](../../../artifacts/scrapyjs/ui-run-20261101/README.md)；[机器记录](evidence/ui-run-20261101.json)。本轮未提交或推送，保留并行未提交源码及共享样式的归属；下文结论均按各自历史候选理解。
+
+## 历史：配置库交互预览重新设计（2026-11-01）
+
+[打开新版交互预览](http://127.0.0.1:56347/artifacts/scrapyjs/library-redesign-20261101/candidate2/preview.html)，点击配置库图标进入；固定 [preview.html](preview/preview.html) 已同步。返回导航、标题、新建和搜索分层；列表明确当前使用；编辑规则突出，保存仅在有更改时出现；复制/重命名/导出/删除收进更多操作。搜索可按名称或网站筛选，支持清空、无匹配恢复；保存版与草稿字段数明确区分，切换确认点名目标，原草稿/身份/CAS/忙态与UNKNOWN保护保留。
+
+旧版独立评分 **76/100**，最终同候选两位独立设计评审 **98/100、96/100**，以较低分96达到本轮 >95 目标。[分维评审、截图与交付证据](../../../artifacts/scrapyjs/library-redesign-20261101/README.md)。配置库22项、原控件51项、状态11项定向离线回放通过（覆盖有重叠）；1373项来源核对零漂移。评分只针对本次离线配置库，不外推到真实安装。源码同步到原工具，未安装/升级或晋升正式包，真实AI/采集/production未测，未提交推送。下文为各自历史候选。
+
+## 历史：实际侧栏 UI 与完整 Chat（2026-11-01）
+
+已通过真实 Chrome 的「开发 → 本地项目 scrapyjs → 在侧栏调试」加载源码快照 `aec0c11df99f`（App 1.8.0 / Task 0.6.0，未安装）。实际侧栏保留文字采集按钮、紧凑停止、图标配置库、规则末尾高级设置、JSON 标题/说明/紧凑导出，以及默认取消的受控确认。原生操作核对了配置库往返、无效 JSON 保护、确认框 Tab / Escape / 焦点返回与完整 Chat 开合后的未发送草稿保留；AI 占位仍仅用于离线预览。
+
+本轮只修工具局部高度和业务滚动：实际调试 iframe 未收到宿主高度提示时，百分比高度使 Chat 撑到屏幕外；现在优先使用既有 Host 高度提示，缺失时采用固定 660px 回退，并提高业务滚动规则的局部优先级。真实侧栏已看到业务区、Chat 和输入框同时可用；未执行宽度/缩放或多屏幕高度矩阵。[本轮证据](evidence/actual-ui-20261101.json)；[实际截图、检查与未测边界](../../../artifacts/scrapyjs/actual-ui-20261101/README.md)。
+
+真实 AI 请求/取消/重放、采集、成功保存配置、真实下载、安装升级及 production 均未由本轮验证；原 UNKNOWN 未处理，既有用户配置未改写。调试预览隔离权限，当前非目标页提示与写入/下载拒绝符合该入口边界。原目录 Provider 与本工具编译/快照 watcher 保留供继续调试；Browser 本体仍加载原 `dist/development`，未重建、重装、晋升包、提交或推送。下方记录按各自历史候选解读。
+
+## 历史离线预览：文字采集按钮、图标配置库与 AI 占位（2026-11-01）
+
+[打开最终交互预览](http://127.0.0.1:56346/official-scrapyjs-20261101-preview-handoff-v2/preview.html)。宽按钮保留播放图标与「开始采集」文字，停止保持紧凑图标；配置库入口只显示图标，保留 tooltip / 无障碍名称及原有子视图操作。
+
+仅在离线预览中，右上角 AI 打开底部简洁窗口，说明「这里是 AI 对话的预览占位」，并指出实际入口「OpenDesk → 扩展 → scrapyjs 采集 → 右上角 AI」。支持关闭、再次打开、Escape 与入口焦点恢复，不显示发送表单、不调用 AI adapter。实际扩展仍默认使用完整 AiPanel / 公共 Chat，不能把占位开关带入实际工具。工具工作区显式持有 flex / 业务滚动布局，避免占位分支缺少 Chat 动态样式后超出可见区域。
+
+最终 HTML SHA `c083b39a6dfe32b1128032c59df11b30d9c357a04bd9cb03562fb7e9be0d2e12`；同候选 52 项离线交互通过，页面/控制台错误 0，默认完整 Chat 的定向保留检查及本工具构建通过。[交付与截图](../../../artifacts/sidebar-preview-kit/scrapyjs-preview-handoff-20261101-evidence/README.md)。首轮布局失败和旧候选保留，历史评分不外推，本轮 NOT_SCORED。固定三件套来源核对与同步见交付记录。
+
+该离线预览不证明安装态已更新；后续实际侧栏 UI 的核心开发结果见本页首节。真实 AI / 采集 / 安装升级 / production 仍未由本轮验证，旧 UNKNOWN 不处理、不重放；不恢复全量测试、评分或宽度缩放专项。未晋升正式包、提交或推送。
+
+## 历史离线 UI：规则、JSON、新建确认与采集图标（2026-11-01）
+
+[打开完整交互预览](http://127.0.0.1:56346/official-scrapyjs-20261101-controls-v2/preview.html)。规则中的「高级设置」移到常用字段/分页组之后，使用相同折叠样式与间距；完整 JSON 配置采用标题说明、右侧紧凑下载动作和编辑区，错误及导出反馈就近显示。开始/停止改为同尺寸播放/方块图标，保留 tooltip、无障碍名称和运行状态文字。
+
+新建/切换/删除仍使用原 pendingAction 模型，确认以工具沙箱内 React 受控原生 `dialog` + `alertdialog` 呈现：默认取消、Tab 首尾约束、Escape/取消保留草稿并返回对应触发入口，确认才执行。公开 Shared UI 无 Dialog 导出；未新增依赖或改 Framework。中文输入组合仅通过合成事件保护检查，真人 IME 未测。
+
+候选 HTML SHA `2348b53038ce37fcbcce90e8839684c72e0325e3d1dee770b113d41829a8d705`；45 项定向离线交互、40 项相关模型检查和本工具构建通过，页面/控制台错误 0。1372 项来源锁无漂移，HTTP/文件一致，固定三件套经原 guard 核对后逐字节同步。[交付记录与截图](../../../artifacts/sidebar-preview-kit/scrapyjs-controls-20261101-evidence/README.md)；可用 `tests/run-preview.mjs --controls <URL> <证据目录>` 回放本轮切片（Playwright 使用既有本机环境）。前轮评分不外推，本轮 NOT_SCORED。
+
+当前仅离线真实 React + 模拟 SDK；真实 AI、网站采集、Native、安装/升级和 production 未由本轮证明。旧 UNKNOWN 未处理/取消/重放，停止截图仅证明受理与等待原实例退出。复用原 43127/56346 服务；未晋升包、提交或推送。
+
+## 历史离线 UI：配置库子视图与紧凑列管理（2026-11-01）
+
+[打开完整预览](http://127.0.0.1:56346/official-scrapyjs-20261101-library-final/preview.html)。配置库成为工具内部子视图，可返回原采集界面；保留规则草稿、Chat、结果页码和滚动位置，继续复用原配置身份、CAS 与忙态保护。结果列以紧凑列表整理，支持鼠标拖动、键盘拾起/移动/确认/取消、按需改名、显隐和恢复默认。CSV / JSON 使用共用下载图标，下载始终包含全部原始字段与记录。
+
+当前冻结 HTML SHA `826b3e2bc59404a17ca418952a74d742927aa6877406d2e976087575270c4b3d`；[交付记录](../../../artifacts/sidebar-preview-kit/scrapyjs-library-columns-20261101-evidence/README.md)记录同候选的 42 项交互、11 项状态检查、37 项模型测试、独立分维评审与固定三件套同步结果。旧候选和失败证据保留，下方旧“当前/最新”只属于其历史阶段。源文件仍由本工具持有，未修改 Framework 或新增依赖。
+
+这是离线真实 React + 模拟 SDK；真实 AI、网站采集、Native、安装与 production 为 NOT_TESTED，旧 UNKNOWN 未处理或重放。持续迭代复用 [43127 Mock Vite](http://127.0.0.1:43127/preview/dev.html)，不写 Browser 的 `dist/development`；未晋升安装包、提交或推送。[设计决定](preview/DESIGN.md)与[操作说明](INTERACTIONS.zh-CN.md)以各自首节为准。
+
+## 历史 v7：官方 React Aria 风格试点（2026-11-01）
+
+本次在原真实 React UI 中选入公共 `od-theme-shadcn`：官网 aria-nova / Neutral 的主次按钮、柔和字段边界、焦点和字阶；系统字体与14px字段是明确的离线/侧栏适配。业务仍归本目录，复用公开 Input/Textarea、显式 Aria Button 与原 Dock/Frame/session；工作区页签保留原生键盘语义。规则、JSON、结果及完整 Chat 均保留，不修改采集算法或 AI 请求围栏。
+
+[完整离线页面](../../../artifacts/sidebar-preview-kit/official-scrapyjs-20261101-reviewed-v7/preview.html)为当前v7候选：浅灰开始/应用/发送按钮、白底选中页签及中性消息气泡。“配置库”展示网站、字段数和当前标记，复用原模型支持切换、复制为新配置、重命名、编辑规则、导出JSON和删除；键盘切换后恢复焦点，草稿/确认/CAS不放宽。技术哈希和构建状态长段从可见页面移除，manifest保留来源与未测边界。[当前交付索引](../../../artifacts/sidebar-preview-kit/official-neutral-20261101-v7-evidence/README.md)维护本候选回放、独立评审和固定三件套同步状态；旧候选与失败评审保留，不沿用旧评分。
+
+[设计与范围](preview/DESIGN.md#官方-react-aria-风格试点2026-11-01)；[模板、规范与提示词](../../../docs/api/sidebar-preview-kit.zh-CN.md#官方风格试点合同2026-11-01)。继续迭代复用 [Mock Vite](http://127.0.0.1:43127/preview/dev.html)，不写 Browser 的 `dist/development`。当前仅源码组件离线验证；真实 AI/网站/Native/安装/production/系统剪贴板保持 NOT_TESTED，UNKNOWN 未处理且不得重放。未晋升包、提交或推送。
+
+## 核心按钮与定向初测（2026-11-01，本次）
+
+已在真实 React UI + 模拟 SDK 中跑通「Host AI → 输入发送 → 差异/完整 JSON → 显式应用 → 命名保存」，不会自动采集。继续复用公开 Dock、Frame、session 和原 ai.info/generate/cancel；没有改 Browser Framework 或旧 scrapyJs/scrapyJsChrome。
+
+本次修复：最后字段删除失败的原因在规则区可见；字段/分页/详情应用给出就近反馈；配置导出错误直接显示在 JSON 页；待发送资料预览补齐实际发送的 HTML 样本；再次开始的准备失败或派发前停止保留上次退休结果，准备期间 Stop 可用。配置 CRUD、取消/禁用、Chat 开合与草稿、无效 JSON、结果分页/列设置/详情、复制模拟回执及下载内容均有定向初测。
+
+打开[最新同源预览](preview/preview.html)。[本次记录](evidence/buttons-core-20261101.json)绑定最终 HTML SHA `660485a4…`、构建身份、测试原件与未测边界；按钮清单见 [INTERACTIONS](INTERACTIONS.zh-CN.md)。源码版本仍为 App 1.8.0 / Task 0.6.0，本次未晋升、安装、提交或推送。
+
+真实 Chrome、真实 AI、真实采集、系统剪贴板均为 **NOT_TESTED**；浏览器下载的模拟配置、提案、51 条结果 JSON/CSV 已读回核对。历史 UNKNOWN 未清除、未换 ID、未重放。下一优先事项是只读恢复原请求可信终态；具备合法发送条件后，才在真实安装态验证同一条 AI→保存→用户单独采集链。本次到核心功能和初测停止，后面的历史评分/完整验收要求不自动恢复，其他目标状态仍未知。
+
+## 离线界面设计增量（2026-11-01）
+
+本轮只完善共享 Chat 与 ScrapyJS 同源离线界面：可见标题/阶段、输入旁的发送条件、新提案定位审阅、变更优先与按需展开完整资料；审阅操作使用独立底栏，避免覆盖配置新值。真实 AI 未决请求、CSDN 验证码与已安装产品状态仍以下节核心结论为准，离线修改不表示这些问题已恢复。
+
+打开 [本轮受评的冻结离线预览](../../../artifacts/scrapyjs/design-20261101/candidate4/preview.html)，设计决定见 [工具设计合同](preview/DESIGN.md)；本轮候选与截图/操作/来源记录见 [设计验证](evidence/ui-design-browser-20261101.json)。[独立设计子Agent复评](evidence/ui-design-review-20261101.json)八维为100 / 98 / 100 / 99 / 99 / 100 / 98 / 99，均>95，仅覆盖该冻结HTML。沿用 [原预览 Skill](../../../.agents/skills/opendesk-ui-preview/SKILL.md)、唯一宿主模板及公共 Dock / Frame / session；未晋升或安装正式工具包。
+
+`preview/preview.html` 及其manifest/context在交付前已被并行任务更新，本轮来源guard阻止覆盖，保留其新输出；该位置不沿用上述冻结快照评分。本轮三个冻结文件均位于上方candidate4目录，当前工作区同源状态不作通过声明。
+
+## 历史：本机采集 / 任务工作线与集成记录
+
+以下为原工作线的历史记录，版本、环境和未测状态仅适用于其原候选。恢复合并后的组合源码没有重新构建或验证；保留的正式 JSON 为用户草稿 1.8.2，不代表当前组合源码的同源包。
+
 **2026-10-31 Git 集成边界：** 合并源码配置为 App 1.8.0，保留本机试采与远端 HTTP/Task 0.6.0；本地原正式 App 1.7.4 JSON 逐字节保留，仍委托 Task 0.4.1。组合源码尚未重新编译、晋升或安装；下文两端证据只证明各自原候选，不相互提升。
 
 ## R1.7 当前状态与亲手测试（2026-10-30）
@@ -84,13 +221,33 @@
 | AI 修改→差异→应用→保存→执行 | 未完成；旧请求终态 UNKNOWN，无可用恢复句柄，本次续接零新请求 |
 | CSDN 专栏采集及导出 | 未完成；固定目标页出现验证码，页面替换触发任务安全停止，无本次业务数据 |
 
-**版本已收敛到 App 1.8.0 / scrapyjs.capture 0.6.0。** 正式文件摘要与最近原 Chrome 安装态核验对应，前序 1.7.0 / Task 0.4.1 的运行时失配不再是这组候选的当前阻塞。最近续接没有新增功能或修改代码；此次仅整理文档，没有重跑产品或构建。详见 [核心功能结论、验证范围与证据身份](docs/CORE-STATUS-20261031.zh-CN.md)。
+**版本已收敛到 App 1.8.0 / scrapyjs.capture 0.6.0。** 正式文件摘要与最近原 Chrome 安装态核验对应，前序 1.7.0 / Task 0.4.1 的运行时失配不再是这组候选的当前阻塞。该次核心核验续接仅整理文档，未重跑产品或构建；本轮另有下节所列同源 UI 修改和离线预览验证，尚未晋升或安装。详见 [核心功能结论、验证范围与证据身份](docs/CORE-STATUS-20261031.zh-CN.md)。
 
 实际使用入口：**扩展 → 已安装的 scrapyjs 采集**。源码 owner 为本目录；配置选择 `src/index.html`、`dist/tool.js/css`，React 入口 `src/main.jsx → App.jsx`，结果组件 `Results.jsx`，AI 组件 `AiPanel.jsx`。
 
 源码迭代继续复用 **开发 → 本地项目 scrapyjs → 在侧栏调试**。最近观察目录连接离线、源码 Provider 为 `E_DEV_PROVIDER_UNAVAILABLE`；需要该入口时重查连接，不代表已安装工具不可用。原 Browser 使用仓库 `dist/development`，最近观察 serve connected；不重装扩展或启动第二个输出 writer。开发预览与安装态的数据、权限分开，预览空列表不代表已保存配置丢失。
 
-后续先处理 AI 原请求的合法恢复阻塞；可信终态和发送条件具备后，再分别验证提案、差异、应用、命名保存、重开和单独 Task 执行。CSDN 仅在固定目标页合法可用后继续。production、完整验收/CI/矩阵、压力、宽度/缩放与 95+ 评分继续延期。
+后续先处理 AI 原请求的合法恢复阻塞；可信终态和发送条件具备后，再分别验证提案、差异、应用、命名保存、重开和单独 Task 执行。CSDN 仅在固定目标页合法可用后继续。production、完整验收/CI/矩阵、压力、宽度/缩放继续延期；用户本轮重新要求的离线 UI/UX 评分单独见下节，不恢复上述正式验收。
+
+## 当前工具栏 Chat 交付（2026-10-31）
+
+已从实际 Host 标题栏的卸载旁 AI 按钮开合底部 split；业务区独立滚动，Chat 草稿、消息、提案与业务编辑保持挂载。当前固定预览 SHA256 为 `9f313a12ef254dd025f2dfee050ed0b9459f3318f41d9d44211df88e0490a70b`。同 SHA 的 34 项 Chat 操作、62 项工作区操作及 17 张截图通过；18 项定向 Node 检查通过，1371 项来源锁无漂移。详见[本轮证据](evidence/ui-toolbar-chat-browser-20261031.json)。
+
+公共完整组合示例位于仓库 `artifacts/scrapyjs/toolbar-chat-20261031/components-delivery/components.html`，已实际验证入口、聚焦、收起/重开草稿、Send/Stop 与 Escape。书签参照另验证右上配置及收起两个完整可点击按钮、设置面板与焦点返回；不是只看旧截图。当前证据仅为离线真实 React / 模拟 SDK；未重载已安装扩展，未连接真实 AI、处理原 UNKNOWN、提交推送或晋升安装包。[独立八维复评](evidence/ui-toolbar-chat-review-20261031.json)为 100 / 96 / 97 / 99 / 98 / 100 / 97 / 96，均 >95，无本轮阻断；语义类型诊断未执行，不构成合并或原生验收批准。
+
+## 本轮离线交互预览（2026-10-31 纠偏）
+
+离线入口为 [preview/preview.html](preview/preview.html)，来源与操作见 [preview/README.zh-CN.md](preview/README.zh-CN.md)，目标见 [preview/GOAL.zh-CN.md](preview/GOAL.zh-CN.md)。旧 ScrapyJS 的“内容区 AI 配置 + 嵌大 Frame”不是本轮完整 Chat 标准。
+
+完整工具栏 Chat 组合是 **Host 公共入口 + workspace/business + SharedConversationDock + SharedConversationFrame/session**。工具通过 `OpenDeskTool.setConversationState({visible:boolean,open:boolean})` 声明展示状态，从 `OpenDeskTool.root` 接收 `opendesk:conversation-action`，其 `detail` 为 `{action:'toggle'}`，再受控更新 open。这些能力仅控制展示，不授予权限、不自动发送。`SharedConversationDock` 是纯展示组件，使用受控 `open/onClose`；消息、输入和会话继续使用原 Frame/session。Host 实际安装入口为 NOT_TESTED；本轮验证层级是工具源码与 preview 模拟。
+
+实际参照为 `projects/bookmark-manager/preview/react`，它消费真实 App + TrustedWorkspace：HeaderSlot 中小字 AI 按钮紧挨卸载；展开后业务在上、Chat 在下，以细分隔条形成底部 split，支持拖动及键盘调整；收起回到按钮，重开保留草稿。此处只复用公开组合与交互，不导出 TrustedWorkspace/HeaderSlot，不跨 iframe DOM，也不复制书签业务。
+
+Frame 示例只是消息/输入片段，不能作为完整工具栏 Chat 范例。公共 `components.html` 顶栏的小 AI 按钮也必须能够实际开合底部 Chat，不能只有内容区 Frame。业务节点、当前页签、编辑与 Chat 草稿、消息和提案保持挂载；收起不取消请求、不清除 busy/UNKNOWN 围栏、不自动重发。
+
+已实际回放书签参照的入口、底部 split、配置/收起和草稿保留；当前工具源码与 preview 模拟证据见下方交付记录。历史 [风格来源评审](evidence/ui-style-source-review-20261031.json)、[间距评审](evidence/ui-spacing-review-20261031.json) 与更早评分仅属于各自旧候选，不能证明新入口或新组合通过。八维分别 >95 的用户要求保留，但先验证实际入口和参照前提，证据不足时 NOT_SCORED，不沿用 100/99 或强行给分。
+
+保存/任务仅内存模拟、AI 固定提案、复制模拟回执及 SIMULATED- 下载继续如实标注。不开真实 AI、不处理或重放原 UNKNOWN，不安装、晋升包、构建 Browser、提交推送或恢复完整验收。
 
 <details>
 <summary>历史开发记录与证据（以下不是当前版本、运行状态或待执行授权）</summary>
@@ -418,3 +575,8 @@ Task v0.3.0 sourceHash `12668947ef0f99851986891b911ee3d32deca993e42066b48f496691
 上轮 v0.1.0 六项单页核心证据保留在 `migration-status.json.coreEvidence`，包括正常 Stop、回包前取消和 JSON/CSV 文件下载。它们是旧候选证据，不提升为新候选的全量验收。旧 `k3-sandbox-error-forwarding.test.mjs` 的过时 Worker URL 夹具缺口继续保留，未放宽来源校验。本轮延期 production、升级/撤权正式验收、完整 32 项验收、宽度/缩放矩阵及压力测试。独立 95+ 评分按本轮要求执行。Node 文件/CLI 专用功能本轮不迁。
 
 </details>
+
+
+### 2026-10-31 · 风格来源与共享 Chat 预览修订
+
+当前离线入口为 [preview/preview.html](preview/preview.html)，来源、操作和后续维护步骤见[预览 README](preview/README.zh-CN.md)。本次将工具字段/折叠区接入原 canonical CSS 提取器，目标卡使用共享 Card，当时 AI 在内容区组合 Frame/session；这只是历史消息/输入片段，未满足本轮 Host 工具栏 + workspace/business + Dock + Frame/session 标准。公共 `components.html` 顶栏小 AI 按钮也须实际开合。没有晋升正式安装包、提交/推送、更新已安装 Browser 或操作真实未决请求。旧评分仅保留历史范围。

@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="opendesk-preview-source-commit" content="{{SOURCE_COMMIT}}">
+<meta name="opendesk-preview-design-sha256" content="{{DESIGN_SHA}}">
+<meta name="opendesk-preview-shell-sha256" content="{{SHELL_SHA}}">
+<meta name="opendesk-preview-ui-sha256" content="{{UI_SHA}}">
 <title>{{PAGE_TITLE}}</title>
 <!-- Generated from real Side Panel markup/styles; no separately maintained design palette. -->
 <style id="od-preview-production-css">
@@ -55,7 +59,6 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 <aside class="preview-meta" aria-label="预览来源和安全范围">
   <p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>
   <p class="preview-provenance">工具：{{TOOL_NAME}} · 初始场景：{{SCENARIO}} · 初始工具主题：{{TOOL_THEME}} · 预览外壳：浅色</p>
-  <p class="preview-provenance">Source: {{SOURCE_COMMIT}} · Design SHA-256: {{DESIGN_SHA}} · Shell SHA-256: {{SHELL_SHA}} · UI SHA-256: {{UI_SHA}}</p>
 </aside>
 <div class="preview-stage">
   <section class="preview-device" aria-label="OpenDesk Browser Side Panel 真实布局来源的离线预览">

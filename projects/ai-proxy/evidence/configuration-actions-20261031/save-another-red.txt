@@ -1,0 +1,40 @@
+✔ authenticated add/edit/save-another reject before writes or draft resets in every locale (8.632208ms)
+✔ partial credentials and SOCKS authentication retain existing validation with no effects (1.03825ms)
+✔ editing an existing HTTP credential reference also rejects before changing the endpoint (0.301291ms)
+✖ unauthenticated add/edit/save-another keep the existing save sequence and payload (1.319625ms)
+✔ failed unauthenticated endpoint write keeps the draft and does not save a profile (0.340041ms)
+✔ save-another never moves focus or resets fields after a failed save (0.651917ms)
+✔ save-another retains a draft edited while the save was pending (0.677916ms)
+✔ save-another safely skips focus when the editor ref is detached (0.483667ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82.091875
+
+✖ failing tests:
+
+test at projects/ai-proxy/tests/settings-credentials.test.mjs:72:1
+✖ unauthenticated add/edit/save-another keep the existing save sequence and payload (1.319625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'host'
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/tests/settings-credentials.test.mjs:83:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'host' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

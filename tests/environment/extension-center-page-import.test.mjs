@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {parseHTML} from 'linkedom';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_STORE,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from '../../src/ui/program-source.js';
 import {createPageBundle} from '../../src/scripting/user-scripts/page-bundle.js';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
@@ -59,7 +59,13 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
   const lockManager={request(name,work){
     const next=(queues.get(name)||Promise.resolve()).catch(()=>{}).then(work);queues.set(name,next);return next;
   }};
-  const api={permissions:{contains:async()=>true,request:async()=>{assert.fail('existing permissions must not prompt');}},runtime:{getURL:path=>'chrome-extension://test/'+path},storage:{
+  const api={permissions:{contains:async()=>true,request:async()=>{assert.fail('existing permissions must not prompt');}},runtime:{
+    id:'test',getManifest:()=>({version:'0.1.0'}),getURL:path=>'chrome-extension://test/'+path,
+    async sendMessage(message){
+      if(message.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
+      assert.fail('unexpected runtime message '+message.kind);
+    }
+  },storage:{
     onChanged:{addListener:fn=>changed.add(fn),removeListener:fn=>changed.delete(fn)},
     session:{async get(){return {};},async remove(){}},
     local:{async get(keys){
@@ -163,6 +169,23 @@ test('Page install reviews permissions and calls the existing Authority only aft
 });
 function unchangedAuthoring(f){assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
   assert.equal(f.get('script-source').value,'');assert.equal(f.get('sidebar-tool-frame').childElementCount,0);}
+
+test('large Sidebar Tool files reach review without package or source size caps',async t=>{
+  const candidate={...app,html:'<main>'+'界'.repeat(70000)+'</main>',
+    css:'/*'+'x'.repeat(130000)+'*/',js:'/*'+'界'.repeat(750000)+'*/'};
+  const text=JSON.stringify(candidate)+' '.repeat(PROGRAM_DRAFT_INPUT_LIMIT+1);
+  const f=await fixture(t);
+  f.select(candidate,{text:()=>Promise.resolve(text),size:Buffer.byteLength(text)});
+  await settle(()=>!f.get('sidebar-tool-preview').hidden||!f.get('sidebar-tool-file-error').hidden);
+  assert.equal(f.get('sidebar-tool-file-error').hidden,true,f.get('sidebar-tool-file-error').textContent);
+  assert.equal(f.get('sidebar-tool-preview').hidden,false);
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+  assert.equal(f.writes.length,0,'review must not install or execute the package');
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[candidate]);
+  assert.equal(f.get('sidebar-tool-frame').childElementCount,0,'installation must not execute the package');
+});
 
 test('same identity review carries the existing installation CAS and keeps the original receipt',async t=>{
   const pkg=await installPackage(),original=receipt(pkg);
@@ -308,9 +331,7 @@ test('malformed JSON, wrong kinds, hashes and budgets never reach either importe
     ['bad build hash',{...draft,build:{...draft.build,sourceHash:'0'.repeat(64)}}, {},/开发草稿/],
     ['bad source hash',{...draft,authoring:{files:[{...draft.authoring.files[0],sha256:'0'.repeat(64)}]}}, {},/开发草稿/],
     ['unknown field',{...draft,extra:true}, {},/开发草稿/],
-    ['oversize app',app,{size:320001},/320 KB/],
-    ['oversize Page',draft,{size:PROGRAM_DRAFT_INPUT_LIMIT+1,text:()=>{assert.fail('oversize file must not be read');}},/大小上限/],
-    ['oversize UTF-8 app',{...app,html:'中'.repeat(110000)}, {},/320 KB/],
+    ['oversize Page',draft,{size:PROGRAM_DRAFT_INPUT_LIMIT+1},/大小上限/],
     ['unsupported app capability',{...app,capabilities:['privileged.unknown']}, {},/能力/],
   ];
   for(const [name,value,options,error] of cases)await t.test(name,async t=>{

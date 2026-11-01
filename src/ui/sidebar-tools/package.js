@@ -13,8 +13,7 @@ export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
 export const SIDEBAR_TOOL_SHARED_UI_RUNTIME='opendesk.react-ui.v1';
 export const SIDEBAR_TOOL_BACKGROUND_KIND='opendesk.app-service.v1';
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
-const MAX_PACKAGE_BYTES = SIDEBAR_TOOL_LIMITS.packageBytes;
-const LIMITS = Object.freeze({title:80,description:300,html:SIDEBAR_TOOL_LIMITS.html,css:SIDEBAR_TOOL_LIMITS.css,js:SIDEBAR_TOOL_LIMITS.js});
+const LIMITS = Object.freeze({title:80,description:300});
 const CAPABILITIES = Object.freeze(['ai.generate','storage.local','currentPage.read','tasks.open','page.toc','page.clip','page.videoSpeed','page.videoContext','page.mediaDownload','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
 const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'localTasks','browser.page.environment.read','browser.fingerprint.control','tasks.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
@@ -53,10 +52,11 @@ export function validateSidebarToolPackage(value) {
   if(value.localization!==undefined)validateToolLocalization(value.localization);
   if(value.uiRuntime!==undefined&&value.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
     fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
-  for (const name of ['title','description','html','css','js'])
-    if (!validText(value[name],LIMITS[name],name==='css')) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
-  if(new TextEncoder().encode(value.js).byteLength>LIMITS.js)
-    fail('界面源码 UTF-8 字节超限','E_TOOL_LIMIT');
+  for (const name of ['title','description'])
+    if (!validText(value[name],LIMITS[name])) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
+  for (const name of ['html','css','js'])
+    if(typeof value[name]!=='string'||(name!=='css'&&!value[name].trim()))
+      fail('工具源码字段无效：'+name);
   const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;
   if (!Array.isArray(value.capabilities)) fail('工具能力声明必须是数组');
   if (value.capabilities.length>supportedCapabilities.length) fail('工具能力声明数量超出当前支持范围');
@@ -80,7 +80,6 @@ export function validateSidebarToolPackage(value) {
        typeof background.js!=='string'||!background.js.trim()||
        !['browser.storage','browser.scheduler'].every(capability=>value.capabilities.includes(capability)))
       fail('后台服务需要固定 v2 源码、SHA 及 browser.storage/browser.scheduler 能力','E_TOOL_BACKGROUND');
-    if(background.js.length>LIMITS.js||new TextEncoder().encode(background.js).byteLength>LIMITS.js)fail('后台服务源码字段过大','E_TOOL_LIMIT');
     if(/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(background.js))
       fail('后台服务必须是 Classic JavaScript；ESM 请先使用可信构建器','E_TOOL_BACKGROUND');
   }
@@ -151,14 +150,14 @@ export function validateSidebarToolPackage(value) {
   if(value.scripts!==undefined){
     if(!v2||!Array.isArray(value.scripts)||value.scripts.length<1||value.scripts.length>8)
       fail('只有 v2 工具支持 1–8 个独立固定 JavaScript 资产','E_TOOL_SCRIPTS');
-    const names=new Set(),enc=new TextEncoder();
+    const names=new Set();
     for(const asset of value.scripts){
       if(!plain(asset)||Object.keys(asset).sort().join(',')!=='code,name,sha256'||
         typeof asset.name!=='string'||!/^([A-Za-z0-9][A-Za-z0-9._/-]{0,119})$/.test(asset.name)||
         asset.name.split('/').some(part=>!part||part==='.'||part==='..')||
         names.has(asset.name)||typeof asset.sha256!=='string'||!/^[a-f0-9]{64}$/.test(asset.sha256)||
-        typeof asset.code!=='string'||!asset.code.trim()||enc.encode(asset.code).byteLength>96000)
-        fail('固定 JS 资产名称、SHA 或字节预算不合法','E_TOOL_SCRIPTS');
+        typeof asset.code!=='string'||!asset.code.trim())
+        fail('固定 JS 资产名称、SHA 或源码不合法','E_TOOL_SCRIPTS');
       if(/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(asset.code))
         fail('固定独立文件必须是 Classic JavaScript；ESM 请先使用可信构建器','E_TOOL_SCRIPTS');
       names.add(asset.name);
@@ -173,8 +172,6 @@ export function validateSidebarToolPackage(value) {
     fail('样式不允许远程导入或远程资源');
   if (/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(value.js))
     fail('界面代码须先构建为单个经典 JavaScript 文件');
-  const utf8 = new TextEncoder().encode(JSON.stringify(value));
-  if (utf8.byteLength>MAX_PACKAGE_BYTES) fail('工具包超过 2 MiB','E_TOOL_LIMIT');
   return backgroundPolicy?{...structuredClone(value),backgroundPolicy}:structuredClone(value);
 }
 

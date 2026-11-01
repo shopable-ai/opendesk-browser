@@ -1,4 +1,5 @@
-type ProxyIconName = 'profile' | 'rules' | 'direct' | 'system' | 'play' | 'pause' | 'settings' | 'plus' | 'link' | 'edit' | 'trash' | 'selected' | 'circle' | 'close' | 'lock';
+import * as React from 'react';
+type ProxyIconName = 'profile' | 'rules' | 'direct' | 'system' | 'play' | 'pause' | 'settings' | 'plus' | 'link' | 'edit' | 'trash' | 'selected' | 'circle' | 'close' | 'lock' | 'import' | 'refresh' | 'copy' | 'more';
 export function ProxyIcon({name}:{name:ProxyIconName}) {
   return <svg className="sideUiIcon" width="16" height="16" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
@@ -16,6 +17,10 @@ export function ProxyIcon({name}:{name:ProxyIconName}) {
     {name==='selected'&&<><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></>}
     {name==='circle'&&<circle cx="12" cy="12" r="9"/>}
     {name==='close'&&<path d="m6 6 12 12M6 18 18 6"/>}
+    {name==='import'&&<><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></>}
+    {name==='refresh'&&<><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></>}
+    {name==='copy'&&<><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></>}
+    {name==='more'&&<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>}
     {name==='lock'&&<><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>}
     {name==='link'&&<><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></>}
   </svg>;

@@ -112,7 +112,15 @@ R23 当时不引入 React/shadcn，是对当时宿主状态、缺少挂载边界
 
 官方参考：[扩展消息](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)、[Native Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)、[Sandbox](https://developer.chrome.com/docs/extensions/reference/manifest/sandbox)、[CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)。这些不是上述 R1 数字的来源，也不能混作同一安装包上限。
 
-#### 2026-10-30：1 MiB JS / 2 MiB 工具包的有界开发预算
+#### 2026-11-01：取消安装包与源码大小上限
+
+用户明确要求解除「导入扩展 → 选择安装包 → 工具包超过 320 KB」限制。320 KB 与后续 2 MiB 都是框架产品预算，并非 Chrome 安装要求。现取消完整 Sidebar Tool 包、HTML/CSS/主 JS、后台 JS、固定依赖及内嵌图片的固定大小上限；文件选择不再将 Sidebar Tool 套入程序草稿的大小预算。Page 安装包/程序草稿继续按原类型校验，不扩大到其他程序合同。
+
+导入、规范序列化/打包、官方/市场读取、Native staging/重组与 opaque sandbox 接收同步移除相应容量拦截。官方/市场仍按固定发行声明的字节数流式读取并核对精确长度和 SHA；Native 单次读取、manifest 与分片保持 32 KiB 合同，分片内容、合并长度/摘要、前后 pointer 仍验证。编译来源回执、路径边界、固定依赖数量、工具运行数据配额、权限/CSP/身份与撤权规则继续生效。取消产品大小上限不承诺绕过 Chrome/Native 传输或设备内存的实际限制。
+
+以下 2026-10-30 数值及临界测试记录仅保留为历史证据，不再定义当前大小上限。真实 Chrome 安装/运行本轮 `NOT_TESTED`。
+
+#### 2026-10-30：1 MiB JS / 2 MiB 工具包的有界开发预算（历史）
 
 用户明确授权恢复 AI Proxy 完整 UI 并通过正式 Sidebar 包路径运行，而非为预览便利放宽。唯一 owner 为 `projects/ai-proxy/`；原 `node scripts/build-sidebar-tool.mjs projects/ai-proxy --out artifacts/sidebar-tools/ai-proxy/capacity-candidate.opendesk-tool.json` 实际先返回 `E_TOOL_BUILD: source file exceeds budget: dist/tool.js`。该内部预算不是 Chrome 外部硬限制，工具自身无法修改读取/安装/sandbox 门槛，跨工具复用同一容量合同。
 

@@ -1,0 +1,166 @@
+{
+  "scope": "Cookie Editor 服务连接 UI：正常开发 Browser 内更新与空态核心操作",
+  "phase": "DEVELOPMENT_INSTALL_AND_EMPTY_FLOW_VERIFIED",
+  "checkedAt": "2026-10-31T18:23:51.202090+00:00",
+  "owner": "examples/sidebar-tools/cookie-editor",
+  "branch": "main",
+  "userAuthorization": "设置目标，确保浏览器正常运行，包含浏览器扩展 tab 里安装测试；用户在官方 2.0.55 → 2.0.60 审阅后明确回复：确认更新并继续安装测试",
+  "entry": "Chrome 工具栏 → OpenDesk Browser → 扩展 → Cookie Editor → 企业 → 服务连接",
+  "sourcePreview": {
+    "url": "http://127.0.0.1:43134/dev.html",
+    "httpStatusAtFinish": 200,
+    "ptySession": 76281,
+    "sameAppAndCss": true,
+    "mockServicesInPreviewOnly": true,
+    "priorEvidence": "examples/sidebar-tools/cookie-editor/evidence/service-runtime-parity-20261101.json"
+  },
+  "browser": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "loadedPathShownByChrome": "~/文稿/workspace/opendesk-browser/dist/development",
+    "workspacePath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "browserVersionShown": "OpenDesk Browser Developer 0.1.0",
+    "profileWindowTitle": "Video SVIP R031 Accept",
+    "serve": "CONNECTED_IN_DEBUG_UI",
+    "developmentRevision": "0efe67b706936e7a5b441c3e8de6425a07999234895a82abd66ea3118acfe412",
+    "diskRevisionMatches": true,
+    "existingWriterPids": [14612, 14632],
+    "existingWriterPorts": [43119, 43120],
+    "writerRestartedOrOverwritten": false,
+    "nativeDoctorConnected": true,
+    "doctorAndManifestExtensionIdMatch": true,
+    "nativeConfigurationChanged": false,
+    "workspaceTabsDisplayAndNavigation": {
+      "我的": "PASS",
+      "扩展": "PASS",
+      "工作流": "PASS",
+      "开发": "PASS",
+      "云控": "PASS"
+    },
+    "tabFeatureExecution": "NOT_TESTED_EXCEPT_COOKIE_EDITOR_INSTALL_AND_SERVICE_EMPTY_FLOW"
+  },
+  "compiled": {
+    "buildId": "7beb85c7017fc591be5ad0e6d3d21fad1363bab46a5a46e1650e1b7069c03d6d",
+    "sourceAndArtifactReceiptMatches": true,
+    "compiledThisChat": false
+  },
+  "package": {
+    "version": "2.0.60",
+    "bytes": 339836,
+    "sha256": "0f7965d16e21f1715c4a85ddf3c23b74e33ca04a5ae64c4ba87adc626cf1147b",
+    "candidate": "artifacts/sidebar-tools/cookie-editor/runtime-20261101/candidate.opendesk-tool.json",
+    "formal": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "servedOfficial": "dist/development/official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "allThreeBytesMatch": true,
+    "checkProject": "PROJECT_PACKAGE_MATCH",
+    "candidateCreatedUsingExistingPacker": true,
+    "promoteFromExecutedThisChat": false,
+    "formalPackagePromoter": "UNKNOWN",
+    "completePromotionGateClaimed": false,
+    "previewMockAddressesPackaged": false
+  },
+  "installation": {
+    "kind": "SAME_ID_OFFICIAL_UPDATE",
+    "beforeVersion": "2.0.55",
+    "afterVersion": "2.0.60",
+    "reviewedAddedCapabilities": ["network", "browser.storage", "browser.tabs"],
+    "reviewedPackageSha256Matches": true,
+    "confirmUpdateClicks": 1,
+    "receipt": "已安装「Cookie Editor · Cookie 管理」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。",
+    "versionVerifiedAfterReopenFromExtensionList": true,
+    "uninstalled": false,
+    "cookieSiteAuthorizationGranted": false,
+    "dataPreservation": "安装器保留原数据的同 ID 更新路径；旧版服务视图不可用，未逐项对比账号/服务数据，不能声称迁移已验证",
+    "resolvedEnvironmentBlocker": "旧侧栏目录缓存产生 E_TOOL_LIMIT；退出未提交审阅，经正常工具栏关闭/重开侧栏后可审阅当前官方包；未放宽大小或来源校验",
+    "reversibleOperatorIncident": "管理菜单未出现在 AX 时补发空格误触停用，已经可见菜单启用应用恢复；未卸载，后续使用可见菜单操作"
+  },
+  "nativeFlow": {
+    "enterpriseOverview": "PASS_FULL_OVERVIEW_PRESERVED",
+    "staticResources": ["ChatGPT 运营 6/10", "ChatGPT 设计 3/8", "AI API 客服 ¥1280/2000", "其他 AI 服务研发 未接入"],
+    "staticResourcesAreRealServiceEvidence": false,
+    "realServiceCount": 0,
+    "serviceEntryFocus": "PASS_SERVICE_HEADING",
+    "emptyStateSinglePrimaryAdd": "PASS",
+    "addViewHidesOverview": "PASS",
+    "emptyCancelReturnFocus": "PASS_ADD_SERVICE_BUTTON",
+    "separateLocalCompanyNameDrafts": "PASS",
+    "missingAddressInlineErrorAndNoSave": "PASS",
+    "backUnsavedGuard": "PASS",
+    "continueEditingPreservesDraft": "PASS",
+    "companyHelpDisclosure": "PASS",
+    "escapeUnsavedGuard": "PASS",
+    "discardReturnsToEmptyAndAddFocus": "PASS",
+    "returnOverviewFocus": "PASS_SERVICE_CONNECTIONS_0_BUTTON",
+    "reopenReadsEmptyAgain": "PASS",
+    "testDrafts": "仅临时本机/公司名称；地址均留空；最终全部放弃",
+    "serviceConfigsSaved": 0,
+    "connectionsOrBindingsCreated": 0,
+    "existingServiceCardAndDetailReturn": "NOT_TESTED_NATIVE_EMPTY_LIST",
+    "networkObservationBoundary": "没有提交服务地址、连接码、绑定或策略，也未触发服务连接；未通过 Native 网络抓包证明全局零请求"
+  },
+  "verification": [
+    {
+      "command": "node --test tests/environment/sidebar-tools.test.mjs examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs",
+      "result": "32/32 PASS",
+      "scope": "包/沙箱协议及 HTTP UI 来源、身份、未知结果不重放、策略子集与返回保护"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "1/1 PASS",
+      "scope": "当前 App 与企业 HTTP 接线"
+    },
+    {
+      "command": "COOKIE_SOURCE_EVIDENCE=artifacts/cookie-service-react-runtime-20261101 node examples/sidebar-tools/cookie-editor/tests/service-form-source-interactions.mjs",
+      "result": "9/9 PASS_SOURCE_PREVIEW_ONLY",
+      "report": "artifacts/cookie-service-react-runtime-20261101/interactions.json",
+      "pageErrors": [],
+      "nonPreviewNetwork": [],
+      "scope": "预览列表、详情返回/焦点、双草稿、校验、保存追加、非法连接码及真空态"
+    },
+    {
+      "command": "node --test tests/environment/cookie-editor-account-ui-receipt.test.mjs tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-account-provenance-r134.test.mjs",
+      "result": "PARTIAL_FAILURE",
+      "passed": "账号 UI 回执与 Host 切换检查",
+      "failed": "R134 六项在旧 fixture 第 43 行 account-contract.js pin 处失败，未进入对应生产断言",
+      "productionPinsChanged": false,
+      "independentReadOnlyDiagnostic": "当前 describeBundle 9 文件 × 45 目标：17 允许组合通过，388 禁止组合拒绝；17 允许组合字节漂移均拒绝",
+      "limitation": "该直接诊断不替代完整 R134 保护和晋升门禁"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project",
+      "result": "PROJECT_PACKAGE_MATCH"
+    }
+  ],
+  "screenshots": {
+    "review": "artifacts/cookie-service-react-runtime-20261101/native-install-review.png",
+    "installedReceipt": "artifacts/cookie-service-react-runtime-20261101/native-installed-list.png",
+    "overview": "artifacts/cookie-service-react-runtime-20261101/native-overview.png",
+    "fieldError": "artifacts/cookie-service-react-runtime-20261101/native-field-error.png",
+    "draftGuard": "artifacts/cookie-service-react-runtime-20261101/native-draft-guard.png",
+    "companyDraftAndHelp": "artifacts/cookie-service-react-runtime-20261101/native-add-company.png",
+    "finalEmpty": "artifacts/cookie-service-react-runtime-20261101/native-final-empty.png",
+    "finalAccessibilityState": "artifacts/cookie-service-react-runtime-20261101/native-final-ax.txt"
+  },
+  "changesThisChat": [
+    "恢复原端口源码预览",
+    "用原打包器生成 artifacts 候选",
+    "经用户明确确认在正常扩展 Tab 更新同 ID Cookie Editor 至 2.0.60",
+    "记录实际安装、企业空态、表单保护与焦点结果；无新 UI 缺陷，不重复修改组件/CSS",
+    "更新工具 README 与本轮 workstream/evidence"
+  ],
+  "remainingNotTested": [
+    "真实扩展内已有服务卡片及详情返回（当前真实列表为空）",
+    "真实服务连接、公司 HTTPS/SSO、资源/额度、Cookie 读取上传、策略或持续同步",
+    "旧数据逐项迁移核对",
+    "R134 旧 fixture pin 对齐后的完整检查及正式晋升完整门禁",
+    "production、完整 CI、正式验收、独立评分、宽度缩放矩阵"
+  ],
+  "notPerformed": [
+    "业务组件、HTTP Domain、SDK、Host、Registry、Authority 或来源 pin 修改",
+    "修改版本、重新编译工具、重启/覆盖 Browser watcher、执行正式包晋升",
+    "写入预览演示服务、授予本站 Cookie 权限、自动重放未知操作",
+    "浏览器 URL 策略或旧拒绝目标绕过",
+    "提交、推送、分支、worktree、PR"
+  ],
+  "handoffState": "正常侧栏留在企业服务空态；43134 源码预览与既有 Browser writer 保留"
+}

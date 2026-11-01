@@ -3,7 +3,6 @@
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
-import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 
 export const OFFICIAL_SOURCE_SCHEMA='opendesk.official-tools.sources.v1';
 export const OFFICIAL_RELEASE_SCHEMA='opendesk.official-tools.releases.v1';
@@ -75,7 +74,7 @@ export function validateOfficialReleaseCatalog(value){
        (row.toolId!=='stay-focus'||!gitSha(row.remoteCommit)))||
       typeof row.toolId!=='string'||!idPattern.test(row.toolId)||row.id!=='opendesk/'+row.toolId||
       row.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(row.installationPolicy)||seen.has(row.id)||
-      row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>SIDEBAR_TOOL_LIMITS.packageBytes||
+      row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||
       typeof row.sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.sha256))throw error('官方发行身份、策略、路径或摘要无效');
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
@@ -258,7 +257,7 @@ export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=gl
   }
   const bytes=await resourceBytes(api,fetcher,
     row.remoteCommit?immutableFocusPackage(row.remoteCommit):officialPackagePath(row),
-    SIDEBAR_TOOL_LIMITS.packageBytes,{external:Boolean(row.remoteCommit)});
+    row.bytes,{external:Boolean(row.remoteCommit)});
   const hash=await digest(bytes);
   if(bytes.length!==row.bytes||hash!==row.sha256)throw error('官方工具包大小或摘要不匹配','E_PACKAGE_INTEGRITY');
   const tool=validateSidebarToolPackage(json(bytes));

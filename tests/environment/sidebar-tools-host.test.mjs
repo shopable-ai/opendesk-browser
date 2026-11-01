@@ -137,6 +137,22 @@ test('R1.6 same-ID Clipper package cannot claim shared navigation or hijack back
  assert.equal(f.frame.contentWindow.sent.length,before,'unreviewed tool receives no trusted back action');
  assert.equal(f.runtime.frameRoot.children.length,0,'back returns to the extension list');
 });
+test('uncatalogued ScrapyJS cannot replace the shared title or intercept Host Back',async t=>{
+  const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json',import.meta.url),'utf8'));
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  assert.equal(f.loaded.navigationAllowed,false,'shared navigation requires a matching trusted release');
+  const before=f.frame.contentWindow.sent.length;
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,
+    kind:'navigation-state',state:{page:'library',title:'配置库',canBack:true}
+  }});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title);
+  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.frame.contentWindow.sent.length,before,'unadmitted packages receive no navigation action');
+  assert.equal(f.runtime.frameRoot.children.length,0);
+});
+
 test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remounting',async t=>{
   const official=await officialToolFixture('prompt-shortcuts');
   const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
@@ -162,22 +178,29 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
   verifyAction('sidebar-tool-primary-action','primary');
   send({page:'create',title:'新建提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'新建');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/新建');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 新建提示词');
   assert.equal(f.elements['sidebar-tool-back'].title,'返回上一级');
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
   verifyAction('sidebar-tool-back','back');
   send({page:'edit',title:'编辑提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/编辑');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 编辑提示词');
   verifyAction('sidebar-tool-back','back');
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/设置');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 设置');
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children[0],f.frame);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/编辑');
+  send({page:'index',title:official.title,canBack:false});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title);
+  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+  const beforeExit=f.frame.contentWindow.sent.length;
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.frame.contentWindow.sent.length,beforeExit,'root Back exits instead of dispatching business Back');
+  assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
 test('R1.7 same-ID manually altered Prompt Shortcuts cannot claim official Header actions',async t=>{
@@ -199,7 +222,7 @@ test('R1.6 generic tool settings has a single titled return without remounting',
  const f=await hostFixture(t),original=f.frame;
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
  f.emit(f.elements['sidebar-tool-settings-open'],'click');
- assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+ assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title+'/设置');
  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],sample.title+' / 设置');
  assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
  assert.equal(f.runtime.frameRoot.children[0],original,'settings retains the same tool instance');
@@ -219,7 +242,7 @@ for(const id of ['web-markdown-clipper','prompt-shortcuts'])test('R2.2 revoked '
   const navigate=()=>send('navigation-state',id==='web-markdown-clipper'?{page:'edit'}:
     {state:{page:'edit',title:'编辑提示词',canBack:true,primary:'save',secondary:'more'}});
   navigate();send('draft',{text:'可复制的未保存草稿'});send('edit-state',{dirty:true,busy:false});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/编辑');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / '+
     (id==='web-markdown-clipper'?'编辑摘录':'编辑提示词'));
   assert.equal(f.host.openTool(id),f.loaded.instance,'same package and epoch reuse the sandbox draft');
@@ -323,20 +346,20 @@ test('R2.2 admitted native Bookmark reuses its current page and keeps settings a
   const state={navigation:{page:'edit',title:'编辑书签',canBack:true},back:()=>{backs++;},
     dirty:true,saving:false,draft:'native draft'};
   mounts[0].onStateChange(state);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/编辑');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / 编辑书签');
   assert.equal(f.host.openTool(tool.id),token);
   assert.equal(mounts.length,1);assert.equal(disposals,0);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'reopening current native app does not leave its draft');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/编辑');
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(backs,1,'the retained page still owns Back');
   mounts[0].onStateChange({...state,dirty:false});
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/设置');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / 设置');
   f.emit(f.elements['sidebar-tool-back'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/编辑');
   assert.equal(mounts.length,1);assert.equal(disposals,0,'settings return preserves the native owner');
   // Opening from settings retains the existing explicit relaunch behavior.
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
@@ -348,7 +371,7 @@ test('R2.2 admitted native Bookmark reuses its current page and keeps settings a
   f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
   assert.equal(disposals,2,'epoch change retires trusted native UI');
   mounts[0].onStateChange(state);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置','stale callback cannot restore a subpage');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/设置','stale callback cannot restore a subpage');
   const fresh=f.host.openTool(tool.id);
   await settle(()=>mounts.length===3&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
   assert.notEqual(fresh,token);
@@ -1461,16 +1484,18 @@ test('tools switch as one mini-app, return to list, and revoke hidden frames',as
 });
 
 
-test('R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename',async t=>{
+test('R14 import accepts large packages, ignores stale asynchronous reads and preserves filename',async t=>{
   const f=await hostFixture(t);
   f.host.closeTool();
   f.emit(f.elements['sidebar-tool-import-trigger'],'click');
   const input=f.elements['sidebar-tool-file'];
   input.value='C:\\fakepath\\too-big.json';
-  f.selectFile({name:'too-big.json',size:2*1024*1024+1,text:async()=>JSON.stringify(sample)});await pause();
-  assert.match(f.elements['sidebar-tool-file-error'].textContent,/超过 320 KB/);
+  const large={...sample,js:'/*'+'界'.repeat(750000)+'*/'},text=JSON.stringify(large);
+  f.selectFile({name:'too-big.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
   assert.equal(input.value,'C:\\fakepath\\too-big.json','selected filename must remain in native picker');
-  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
   const gate=deferred();
   f.selectFile({name:'first.json',size:10,text:()=>gate.promise});
   f.selectFile({name:'second.json',size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)});await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
@@ -2272,7 +2297,7 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title+'/设置');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],toc.title+' / 设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});

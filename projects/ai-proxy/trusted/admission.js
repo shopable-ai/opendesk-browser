@@ -4,7 +4,7 @@ import {sameSidebarToolPackage} from '../../../src/ui/sidebar-tools/installation
 import {requireToolEnableRecords} from '../../../src/ui/sidebar-tools/lifecycle.js';
 
 export const TRUSTED_AI_PROXY_ID='ai-proxy';
-export const TRUSTED_AI_PROXY_VERSION='0.2.0';
+export const TRUSTED_AI_PROXY_VERSION='0.3.8';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
   ?value[TRUSTED_AI_PROXY_ID]:null;

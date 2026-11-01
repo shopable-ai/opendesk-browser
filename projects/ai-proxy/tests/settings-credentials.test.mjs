@@ -13,11 +13,12 @@ const bundled = await build({ entryPoints: [new URL('../src/domain/proxy-entry.t
 const { isValidProxyPort } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
 
 function fixture(overrides = {}) {
-  const effects = [], errors = [];
+  const effects = [], errors = [], focuses = [];
   const context = {
     getEnvironment:()=>({getDraftRevision:()=>0,setDraftDirty:()=>true}),
     editingId: '', proxy: { name: 'Draft', scheme: 'https', host: 'proxy.example.com', port: '443' },
     username: '', password: '', endpoints: [], locale: 'zh-CN', emptyEndpoint: {},
+    editorDialog: {current: {querySelector: selector => selector === '#ep-host' ? {focus: () => focuses.push('host')} : null}},
     crypto: { randomUUID: () => { effects.push('uuid'); return 'new'; } },
     isValidProxyPort,
     setError: value => errors.push(value), setErrorKey: value => errors.push(value),
@@ -26,7 +27,7 @@ function fixture(overrides = {}) {
     ...Object.fromEntries(['setEditingId', 'setProxy', 'setUsername', 'setPassword'].map(key => [key, value => effects.push([key, value])])),
     ...overrides
   };
-  return { context, effects, errors, submit: async (another = false) => {
+  return { context, effects, errors, focuses, submit: async (another = false) => {
     const fn = runInNewContext(`${code}; saveProxy`, context);
     await fn({ preventDefault() {}, nativeEvent: { submitter: { getAttribute: () => String(another) } } });
   } };
@@ -79,6 +80,7 @@ test('unauthenticated add/edit/save-another keep the existing save sequence and 
         const actions = f.effects.filter(item => item?.type);
         assert.deepEqual(actions.map(item => item.type), editingId ? ['SAVE_ENDPOINT'] : ['SAVE_ENDPOINT', 'SAVE_PROFILE']);
         assert.deepEqual(actions[0].endpoint, { id: editingId || 'new', name: 'Draft', scheme, host: 'proxy.example.com', port: 443, sourceId: 'manual' });
+        assert.deepEqual(f.focuses, another && !editingId ? ['host'] : []);
         if (another && !editingId) {
           assert.deepEqual(f.effects.slice(-4), [['setEditingId', ''], ['setProxy', {}], ['setUsername', ''], ['setPassword', '']]);
         } else assert.equal(f.effects.at(-1), 'close');
@@ -93,4 +95,45 @@ test('failed unauthenticated endpoint write keeps the draft and does not save a 
   await f.submit();
   assert.deepEqual(calls, ['SAVE_ENDPOINT']);
   assert.deepEqual(f.effects, ['uuid']);
+});
+
+// Failed or superseded saves must leave the user's current focus and draft alone.
+test('save-another never moves focus or resets fields after a failed save', async () => {
+  for (const overrides of [
+    {act: async () => false},
+    {act: async value => value.type !== 'SAVE_PROFILE'}
+  ]) {
+    const f = fixture(overrides);
+    await f.submit(true);
+    assert.deepEqual(f.focuses, []);
+    assert.equal(f.effects.some(item => Array.isArray(item)), false);
+    assert.equal(f.effects.includes('close'), false);
+  }
+});
+
+test('save-another retains a draft edited while the save was pending', async () => {
+  let revision = 3;
+  const checked = [];
+  const f = fixture({
+    getEnvironment: () => ({getDraftRevision: () => revision, setDraftDirty: (dirty, scope, expected) => {
+      checked.push([dirty, scope, expected]);
+      return expected === revision;
+    }}),
+    act: async value => {
+      await Promise.resolve();
+      if (value.type === 'SAVE_ENDPOINT') revision++;
+      return true;
+    }
+  });
+  await f.submit(true);
+  assert.deepEqual(checked, [[false, 'settings-proxy', 3]]);
+  assert.equal(revision, 4);
+  assert.deepEqual(f.focuses, []);
+  assert.equal(f.effects.some(item => Array.isArray(item)), false);
+});
+
+test('save-another safely skips focus when the editor ref is detached', async () => {
+  const f = fixture({editorDialog: {current: null}});
+  await assert.doesNotReject(() => f.submit(true));
+  assert.deepEqual(f.focuses, []);
 });

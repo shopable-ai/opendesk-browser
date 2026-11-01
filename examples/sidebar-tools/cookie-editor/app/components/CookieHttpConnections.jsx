@@ -1,12 +1,16 @@
 import * as React from 'react';
+import {Button} from '@opendesk/ui';
+import {CookieIcon, CookieIconButton} from './CookieEditorView.jsx';
 
 const secondary = 'od-button od-button--secondary cookie-button--compact';
 const primary = 'od-button od-button--primary cookie-button--compact';
 const statuses = {UNCONNECTED:'未连接', CONNECTED:'已连接', DISCONNECTED:'已断开',
-  SESSION_EXPIRED:'会话已过期', OUTCOME_UNKNOWN:'结果未知', INVALIDATED:'已失效', RETIRED:'已归档（远端状态未声明）'};
+  SESSION_EXPIRED:'会话已过期', OUTCOME_UNKNOWN:'结果未知', INVALIDATED:'已失效', RECEIPTS_ONLY:'仅可查回执', RETIRED:'已归档（远端状态未声明）'};
 const unresolved = connection => Boolean(connection.pending) || connection.status === 'OUTCOME_UNKNOWN';
 const openPending = connection => ['serviceOpen', 'open'].includes(connection?.pending?.action) && connection.pending.canArchive === true;
 const fingerprint = value => JSON.stringify(value);
+const loopbackHost = hostname => hostname === 'localhost' || hostname.endsWith('.localhost') ||
+  hostname === '[::1]' || hostname === '127.0.0.1';
 const observedTime = value => {
   if (typeof value !== 'string' && typeof value !== 'number') return '暂无';
   const time = new Date(value);
@@ -18,27 +22,34 @@ const usageStatus = value => ({OK:'读取成功', SUCCESS:'读取成功', READY:
 function exactOrigin(value) {
   try {
     const url = new URL(value);
-    const loopback = url.hostname === 'localhost' || url.hostname.endsWith('.localhost') ||
-      url.hostname === '[::1]' || url.hostname === '127.0.0.1';
     return !url.username && !url.password && url.origin === value &&
-      (url.protocol === 'https:' || url.protocol === 'http:' && loopback);
+      (url.protocol === 'https:' || url.protocol === 'http:' && loopbackHost(url.hostname));
   } catch { return false; }
 }
 
 // HTTP transport, persistence and trusted permission reviews belong to the caller.
 export function CookieHttpConnections({origin = '', accounts = [], accountReady = false, state,
-  busy = false, notice = '', onAction, onDirtyChange, onAccounts}) {
+  busy = false, notice = '', onAction, onDirtyChange, onAccounts, onDiscardRequest, onOverview}) {
   const [form, setForm] = React.useState(null);
   const [error, setError] = React.useState('');
   const [working, setWorking] = React.useState(false);
   const [uncertain, setUncertain] = React.useState(null);
+  const [resumeFocus, setResumeFocus] = React.useState(false);
+  const [detailId, setDetailId] = React.useState(null);
+  const [errorField, setErrorField] = React.useState('');
   const lock = React.useRef(false);
   const mounted = React.useRef(true);
   const latest = React.useRef(null);
   const trigger = React.useRef(null);
   const restore = React.useRef(false);
   const heading = React.useRef(null);
+  const addButton = React.useRef(null);
   const firstField = React.useRef(null);
+  const addressField = React.useRef(null);
+  const detailTrigger = React.useRef(null);
+  const detailSource = React.useRef(null);
+  const detailHeading = React.useRef(null);
+  const detailButtons = React.useRef({});
   const connections = state?.connections || [];
   latest.current = {origin, accounts, accountReady, state, busy, onAction, uncertain};
   const unknown = Boolean(uncertain) || connections.some(unresolved);
@@ -63,7 +74,8 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
       Array.isArray(scope.bindingIds) && scope.bindingIds.length > 0 &&
       scope.bindingIds.every(id => policyBindings(connection).some(binding => binding.bindingId === id));
   };
-  const dirty = Boolean(form && (form.kind !== 'config' || form.label || form.serviceOrigin));
+  const dirty = Boolean(form && (form.kind !== 'config' || form.label || form.serviceOrigin ||
+    Object.entries(form.drafts || {}).some(([type,draft]) => type !== form.type && (draft.label || draft.serviceOrigin))));
   React.useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
   React.useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
   React.useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -71,23 +83,52 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     if (form) firstField.current?.focus({preventScroll:true});
     else if (restore.current) {
       restore.current = false;
-      (trigger.current?.isConnected ? trigger.current : heading.current)?.focus({preventScroll:true});
+      const target = trigger.current?.isConnected ? trigger.current : addButton.current || heading.current;
+      (heading.current || detailHeading.current)?.scrollIntoView?.({block:'start'});
+      target?.focus({preventScroll:true});
     }
   }, [form?.kind, form?.connectionId]);
+  React.useLayoutEffect(() => {
+    if (resumeFocus && !busy) {
+      setResumeFocus(false);
+      firstField.current?.focus({preventScroll:true});
+    }
+  }, [resumeFocus, busy]);
+  React.useLayoutEffect(() => {
+    if (detailId) detailHeading.current?.focus({preventScroll:true});
+    else if (detailTrigger.current) {
+      const id = detailTrigger.current;
+      detailTrigger.current = null;
+      heading.current?.scrollIntoView?.({block:'start'});
+      detailButtons.current[id]?.current?.focus({preventScroll:true});
+    }
+  }, [detailId]);
 
   const close = () => {
     if (lock.current || latest.current.busy) return;
-    restore.current = true; setForm(null); setError('');
+    const finish = () => {
+      if (lock.current) return;
+      restore.current = true; setForm(null); setError(''); setErrorField('');
+    };
+    if (form?.kind === 'config' && dirty && onDiscardRequest) {
+      onDiscardRequest(finish, () => setResumeFocus(true));
+    } else finish();
   };
   const open = (event, kind, connection, extra = {}) => {
     if (lock.current || latest.current.busy) return;
     trigger.current = event.currentTarget;
-    setError('');
+    setError(''); setErrorField('');
     setForm({kind, revision:state.revision, origin, accounts:fingerprint(accounts), accountReady,
       connectionId:connection?.id, connection:fingerprint(connection), label:'', serviceOrigin:'',
-      alias:'', remoteAccountId:'', code:'', confirmed:false, ...extra});
+      alias:'', remoteAccountId:'', code:'', confirmed:false, type:'local', drafts:{}, ...extra});
   };
-  const update = patch => { setError(''); setForm(previous => ({...previous, ...patch, confirmed:false})); };
+  const update = patch => { setError(''); setErrorField(''); setForm(previous => ({...previous, ...patch, confirmed:false})); };
+  const switchType = type => {
+    setError(''); setErrorField('');
+    setForm(previous => ({...previous, type, confirmed:false,
+      drafts:{...previous.drafts, [previous.type]:{label:previous.label, serviceOrigin:previous.serviceOrigin}},
+      ...(previous.drafts[type] || {label:'', serviceOrigin:''})}));
+  };
   const fresh = draft => {
     const current = latest.current;
     return current.state?.revision === draft.revision && current.origin === draft.origin &&
@@ -111,7 +152,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
         if (action === 'serviceStatus' || action === 'serviceReconcile' || action === 'serviceArchiveOpen' || action === 'serviceRetire') {
           setUncertain(previous => previous?.connectionId === payload.connectionId ? null : previous);
         }
-        if (!read) { restore.current = true; setForm(null); }
+        if (!read) { restore.current = true; setForm(null); if (action==='serviceSave') setDetailId(null); }
       } else if (success?.rejected === true) {
         setError('操作未执行/已确认拒绝，请核对提示后重新审阅');
       } else {
@@ -134,8 +175,8 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     const connection = latest.current.state?.connections?.find(item => item.id === form.connectionId);
     if (form.kind === 'config') {
       const label = form.label.trim();
-      if (!label || label.length > 64 || /[\x00-\x1f\x7f]/.test(label)) { setError('请填写 1–64 字的服务名称，不含控制字符。'); return; }
-      if (!exactOrigin(form.serviceOrigin)) { setError('请输入完整服务来源地址：本机 HTTP localhost / 数字回环地址，或 HTTPS 地址；不含尾斜杠、路径、查询、片段或账号密码。'); return; }
+      if (!label || label.length > 64 || /[\x00-\x1f\x7f]/.test(label)) { setErrorField('name'); setError('请填写 1–64 字的服务名称，不含控制字符。'); firstField.current?.focus(); return; }
+      if (!exactOrigin(form.serviceOrigin)) { setErrorField('address'); setError('请输入完整服务来源地址：本机 HTTP localhost / 数字回环地址，或 HTTPS 地址；不含尾斜杠、路径、查询、片段或账号密码。'); addressField.current?.focus(); return; }
       return dispatch('serviceSave', {label, serviceOrigin:form.serviceOrigin}, form);
     }
     if (!connection) return;
@@ -179,22 +220,66 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   const formConnection = connections.find(item => item.id === form?.connectionId);
   const formBlocked = unavailable || unknown && form?.kind !== 'archive' && !(form?.kind === 'retire' && formConnection?.canRetire === true);
   const reconcile = connection => dispatch(connection.pending ? 'serviceReconcile' : 'serviceStatus', {connectionId:connection.id}, context(connection), true);
-  return <section className="cookie-business-content" aria-label="服务连接">
-    <header className="cookie-business-heading">
-      <h3 ref={heading} tabIndex={-1}>服务连接</h3>
-      <button type="button" className={primary} disabled={blocked || Boolean(form)}
-        onClick={event => open(event, 'config')}>添加服务</button>
+  const detail = connections.find(connection => connection.id === detailId);
+  const company = form?.type === 'company';
+  const empty = Boolean(state && !connections.length);
+  const needsReview = connection => unresolved(connection) || uncertain?.connectionId===connection.id;
+  const connectedCount = connections.filter(connection=>connection.status==='CONNECTED' && !needsReview(connection)).length;
+  const listAction = connection => {
+    if (needsReview(connection)) return <CookieIconButton name="search" label={'核对原操作：' + connection.label}
+      className="cookie-http-review" disabled={unavailable || Boolean(form)} onClick={()=>reconcile(connection)}/>;
+    if (connection.status==='CONNECTED') return <CookieIconButton name="chart" label={'打开设备管理页：' + connection.label}
+      className="cookie-http-connect" disabled={blocked || Boolean(form)}
+      onClick={()=>dispatch('serviceOpen', {connectionId:connection.id,bindingId:''}, context(connection))}/>;
+    if (['UNCONNECTED','DISCONNECTED'].includes(connection.status)) return <CookieIconButton name="plug" label={'连接服务：' + connection.label}
+      className="cookie-http-connect" disabled={blocked || Boolean(form)} onClick={event=>open(event,'connect',connection)}/>;
+    return <CookieIconButton name="search" label={'查看连接状态：' + connection.label} disabled={unavailable || Boolean(form)}
+      buttonRef={detailButtons.current[connection.id+':state'] ||= {current:null}}
+      onClick={()=>{detailSource.current=connection.id+':state';setDetailId(connection.id);}}/>;
+  };
+  return <section className="cookie-http-connections" aria-label="服务连接" data-view={form?.kind === 'config' ? 'config' : detail ? 'detail' : 'list'}>
+    {form?.kind !== 'config' && <>
+    <header className="cookie-http-list-header">
+      {detail ? <><CookieIconButton name="right" className="cookie-http-back" label="返回服务列表" disabled={unavailable || Boolean(form)} onClick={()=>{detailTrigger.current=detailSource.current||detail.id;setDetailId(null);}}/>
+        <h3 ref={detailHeading} tabIndex={-1}>服务详情</h3></> : <div className="cookie-http-heading-copy">
+          <h3 ref={heading} tabIndex={-1}>服务连接 <small aria-label="服务数量">{state ? connections.length : '—'}</small>
+            {connectedCount>0 && <small aria-label="已连接服务数量"> · {connectedCount} 个已连接</small>}</h3>
+          <p>本机与公司服务</p>
+        </div>}
+      <div className="cookie-http-header-actions">
+        <CookieIconButton name="refresh" label="刷新服务列表" appearance="quiet" disabled={unavailable || Boolean(form)}
+          onClick={()=>dispatch('serviceStatus', {}, {revision:state.revision, origin, accounts:fingerprint(accounts), accountReady}, true)}/>
+        {!empty && <CookieIconButton name="plus" label="添加服务" buttonRef={addButton} className="cookie-http-add" disabled={blocked || Boolean(form)} onClick={event => open(event, 'config')}/>}
+      </div>
     </header>
-    <p>填写普通 HTTP 服务的地址即可连接，无需安装本机辅助程序。不会扫描端口或自动连接。</p>
-    <p>会话有效期为 15 分钟。请求仅发往已确认的服务地址，复用安装时批准的网络能力和已有网站访问权限；缺少网站访问权限时，由宿主提示一次授权。</p>
     {notice && <p role="status" className="cookie-business-callout">{notice}</p>}
-    {error && <p role="alert" className="od-form-error">{error}</p>}
+    {error && !form && <p role="alert" className="od-field-error">{error}</p>}
     {!state && <p role="status">服务状态尚未就绪，请等待读取完成。</p>}
     {busy && <p role="status">正在处理服务请求…</p>}
-    {state && !connections.length && <p>尚未配置服务。先添加地址，再使用应用一次性配对码连接。</p>}
+    {empty && <div className="cookie-http-empty"><span className="cookie-http-symbol"><CookieIcon name="plug"/></span>
+      <strong>连接你的第一个服务</strong><p>尚未配置服务。先添加地址，再使用应用一次性配对码连接。</p>
+      <Button ref={addButton} aria-label="添加服务" variant="primary" disabled={blocked || Boolean(form)} onClick={event=>open(event,'config')}>添加服务</Button>
+    </div>}
     {unknown && <p role="alert" className="cookie-business-callout">存在未确认结果，所有服务写入已暂停。请读取回执；未知的管理页打开请手动核对后归档，不要重复打开。</p>}
     {uncertain && !uncertain.connectionId && <p>请重新读取应用的服务配置，核对刚才的保存结果后再操作。</p>}
-    {connections.map(connection => <article key={connection.id} className="cookie-business-inquiry" aria-label={'服务：' + connection.label}>
+    {!detail && <div className="cookie-http-list">{connections.map(connection => {
+      const local = loopbackHost(new URL(connection.origin).hostname);
+      const status = needsReview(connection) ? 'OUTCOME_UNKNOWN' : connection.status;
+      const count = (connection.bindings || []).filter(binding=>!binding.revoked).length;
+      return <article key={connection.id} className="cookie-http-card" aria-label={'服务：' + connection.label}>
+      <div className="cookie-http-card-top"><span className={'cookie-http-symbol'+(local?' cookie-http-symbol--local':'')}><CookieIcon name={local ? 'chart' : 'users'}/></span>
+        <div className="cookie-http-card-name"><h4>{connection.label}</h4><p><span>{local ? '此电脑' : '公司'} · </span><span>{connection.origin}</span></p></div>
+        <span className="cookie-http-status" data-status={status}><CookieIcon name={status==='CONNECTED' ? 'check' : status==='OUTCOME_UNKNOWN' ? 'clock' : status==='UNCONNECTED' || status==='DISCONNECTED' ? 'unplug' : 'info'}/>{statuses[status] || '状态未知'}</span>
+      </div>
+      {needsReview(connection) && <p className="cookie-http-pending-note">原操作结果尚未确认，请先核对。</p>}
+      <div className="cookie-http-card-actions"><span className="cookie-http-associations" role="img" aria-label={'已关联账号：'+count+' 个'} title="已关联账号数；不代表身份已核验或同步已授权"><CookieIcon name="users"/><span aria-hidden="true">关联 <strong>{count}</strong></span></span>
+        <div className="cookie-http-row-actions" role="group" aria-label={connection.label+'的操作'}>
+        <CookieIconButton name="info" appearance="quiet" label={'服务详情：' + connection.label} disabled={unavailable || Boolean(form)}
+          buttonRef={detailButtons.current[connection.id] ||= {current:null}} className="cookie-http-detail-action" onClick={()=>{detailSource.current=connection.id;setDetailId(connection.id);}}/>
+        {listAction(connection)}</div>
+      </div>
+    </article>;})}</div>}
+    {connections.filter(connection=>connection.id===detailId).map(connection=><article key={connection.id} className="cookie-business-inquiry" aria-label={'服务：' + connection.label}>
       <h4>{connection.label}</h4><p>{connection.origin}</p>
       <p>{statuses[connection.status] || '状态未知'}{connection.expiresAt ? ' · 会话到期：' + String(connection.expiresAt) : ''}</p>
       {['SESSION_EXPIRED', 'INVALIDATED'].includes(connection.status) && <p>旧记录保留；重新添加此地址并使用新应用配对码连接，不代表旧设备已撤销</p>}
@@ -265,19 +350,49 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
           onClick={event => open(event, 'unbind', connection, {bindingId:binding.bindingId})}>解绑</button>
       </div>)}
     </article>)}
-    {form && <form className="cookie-business-inquiry" aria-label="HTTP 服务连接编辑"
+    {!detail && <p className="cookie-http-safety"><CookieIcon name="shield"/><span>连接只建立服务入口。账号需单独关联，Cookie 不会自动上传。</span></p>}
+    <details className="cookie-business-disclosure"><summary>连接与权限说明</summary>
+      <p>填写普通 HTTP 服务的地址即可连接，无需安装本机辅助程序。不会扫描端口或自动连接。</p>
+      <p>会话有效期为 15 分钟。请求仅发往已确认的服务地址，复用安装时批准的网络能力和已有网站访问权限；缺少网站访问权限时，由宿主提示一次授权。</p>
+    </details>
+    {!detail && onOverview && <Button variant="quiet" className="cookie-http-overview" disabled={working || busy || Boolean(form)} onClick={onOverview}>返回企业概览</Button>}
+    </>}
+    {form && <form className={form.kind === 'config' ? 'cookie-http-form' : 'cookie-business-inquiry'} aria-label="HTTP 服务连接编辑"
       onSubmit={submit} onKeyDown={keyDown} autoComplete="off">
-      <h4>{({config:'配置服务', connect:'应用配对', bind:'绑定账号', unbind:'确认解绑', disconnect:'确认断开', archive:'归档未知打开', accept:'审阅同步策略', retire:'归档旧连接'})[form.kind]}</h4>
+      {form.kind === 'config' ? <header className="cookie-http-form-header">
+        <CookieIconButton name="right" className="cookie-http-back" label={detail ? '返回服务详情' : '返回服务列表'} disabled={working || busy} onClick={close}/>
+        <h3>添加服务</h3>
+      </header> : <h4>{({connect:'应用配对', bind:'绑定账号', unbind:'确认解绑', disconnect:'确认断开', archive:'归档未知打开', accept:'审阅同步策略', retire:'归档旧连接'})[form.kind]}</h4>}
       {formConnection && <p>{formConnection.label} · {formConnection.origin}</p>}
       {!fresh(form) && <p role="alert">站点、账号或状态版本已变化。请取消后重新核对，已有输入已保留。</p>}
-      {form.kind === 'config' && <div className="cookie-business-features">
-        <label>服务名称<input ref={firstField} className="od-field" aria-label="服务名称" maxLength={64}
-          value={form.label} disabled={formBlocked} onChange={event => update({label:event.target.value})}/></label>
-        <label>服务地址<input className="od-field" aria-label="服务地址" type="text" autoComplete="off" spellCheck={false}
-          placeholder="http://localhost:8787 或 https://service.example" value={form.serviceOrigin}
-          disabled={formBlocked} onChange={event => update({serviceOrigin:event.target.value})}/></label>
-        <p>仅填来源地址，不带尾斜杠、路径、查询或片段。保存配置不会自动连接。</p>
-      </div>}
+      {form.kind === 'config' && <>
+        <fieldset className="cookie-http-types"><legend>服务类型</legend>
+          <div className="cookie-http-type-options">{[['local','此电脑上的服务'],['company','公司服务']].map(([value,label])=><label key={value} className="cookie-http-type-option">
+            <input type="radio" name="cookie-http-service-type" value={value} checked={form.type===value} disabled={formBlocked} onChange={()=>switchType(value)}/><span>{label}</span>
+          </label>)}</div>
+          <p>{company ? '连接公司提供的账号与额度管理服务，向管理员获取服务地址。' : '连接此电脑上已启动的账号额度服务。请保持服务运行。'}</p>
+        </fieldset>
+        <div className="cookie-http-fields">
+        <label className="od-form-field"><span className="od-field-label">服务名称</span><input ref={firstField} className="od-field" aria-label="服务名称" maxLength={64}
+          placeholder={company ? '例如：设计团队' : '例如：我的额度服务'} aria-invalid={errorField==='name' || undefined} aria-describedby="cookie-http-name-error"
+          value={form.label} disabled={formBlocked} onChange={event => update({label:event.target.value})}/>
+          <span id="cookie-http-name-error" role="alert" className="od-field-error" hidden={errorField!=='name'}>{errorField==='name' ? error : ''}</span>
+        </label>
+        <label className="od-form-field"><span className="od-field-label">服务地址</span><input ref={addressField} className="od-field" aria-label="服务地址" type="text" autoComplete="off" spellCheck={false}
+          inputMode="url" placeholder={company ? '粘贴管理员提供的 HTTPS 服务地址' : '粘贴本地服务提供的完整地址'} value={form.serviceOrigin}
+          aria-invalid={errorField==='address' || undefined} aria-describedby="cookie-http-address-help cookie-http-address-error"
+          disabled={formBlocked} onChange={event => update({serviceOrigin:event.target.value})}/>
+          <span id="cookie-http-address-help" className="cookie-http-field-help od-field-help">{company ? '向管理员索取完整 HTTPS 服务地址；应用一次性连接码在保存后填写。' : '在服务管理页「Cookie 同步设置 → 生成新应用连接码」复制服务地址（含端口）。'}</span>
+          <span id="cookie-http-address-error" role="alert" className="od-field-error" hidden={errorField!=='address'}>{errorField==='address' ? error : ''}</span>
+        </label>
+        </div>
+        <details className="cookie-business-disclosure cookie-http-setup">
+          <summary>服务还没启动，或找不到地址？</summary>
+          <p>先启动此电脑上的账号额度服务，并保持运行。在管理页「Cookie 同步设置」生成新应用连接码，复制其中的完整服务地址。未准备好服务时，可先取消，稍后继续。</p>
+          <p>本机主机名和端口可能随启动改变，不要替换为 127.0.0.1 或猜测端口。公司服务使用管理员提供的 HTTPS 地址。</p>
+          <p>只填来源地址，不带尾斜杠、路径、查询或片段。管理页链接不是服务地址；应用一次性连接码在下一步填写。</p>
+        </details>
+      </>}
       {form.kind === 'connect' && <>
         <label>应用一次性配对码<input ref={firstField} className="od-field" aria-label="应用一次性配对码" type="password"
           autoComplete="off" spellCheck={false} maxLength={64} value={form.code} disabled={formBlocked}
@@ -325,10 +440,17 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
       {form.kind === 'disconnect' && <p>确认断开此服务？绑定将不可用，本地保存的账号保留。结果以服务回执为准。</p>}
       {form.kind === 'retire' && <p>仅归档旧连接；不表示远端撤销或未知操作失败，原记录保留。未知配对可能已创建设备，请先在后台核对。需新配置和新应用配对码。</p>}
       {form.kind === 'archive' && <p>请先手动核对管理页是否已打开。归档保留操作历史，不表示原打开失败，也不会再次打开管理页。</p>}
+      <p id="cookie-http-form-error" role="alert" className="od-field-error" hidden={!error || Boolean(errorField)}>{errorField ? '' : error}</p>
+      {error && notice && <p role="status">{notice}</p>}
+      <div className={form.kind === 'config' ? 'cookie-http-form-footer' : undefined}>
+      {form.kind === 'config' && <p>保存配置不会连接，也不会上传 Cookie。下一步再填写一次性连接码并审阅连接。</p>}
       <div className="cookie-business-actions">
+        {form.kind === 'config' && <Button variant="secondary" className="cookie-button--compact" disabled={working || busy} onClick={close}>取消</Button>}
+        {form.kind === 'config' ? <Button variant="primary" className="cookie-button--compact" disabled={formBlocked || !fresh(form)} onClick={submit}>保存配置</Button> :
         <button ref={['unbind', 'disconnect', 'archive', 'retire'].includes(form.kind) ? firstField : undefined} type="button" className={primary}
-          disabled={formBlocked || !fresh(form)} onClick={submit}>{({config:'保存配置', connect:'确认连接', bind:form.confirmed ? '确认绑定' : '核对绑定', unbind:'确认解绑', disconnect:'确认断开', archive:'确认归档', accept:'确认接受策略', retire:'确认归档旧连接'})[form.kind]}</button>
-        <button type="button" className={secondary} disabled={working || busy} onClick={close}>取消</button>
+          disabled={formBlocked || !fresh(form)} onClick={submit}>{({connect:'确认连接', bind:form.confirmed ? '确认绑定' : '核对绑定', unbind:'确认解绑', disconnect:'确认断开', archive:'确认归档', accept:'确认接受策略', retire:'确认归档旧连接'})[form.kind]}</button>}
+        {form.kind !== 'config' && <button type="button" className={secondary} disabled={working || busy} onClick={close}>取消</button>}
+      </div>
       </div>
     </form>}
     {state?.legacyAvailable && <p>检测到旧连接记录；旧记录不会自动转换或连接，请按当前服务地址重新配置。</p>}

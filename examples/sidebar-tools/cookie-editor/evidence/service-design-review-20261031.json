@@ -1,0 +1,694 @@
+{
+  "status": "DESIGN_PREVIEW_REVIEW_PASSED",
+  "scope": "Offline interactive HTML only; preserves original enterprise page and improves service UI/UX",
+  "date": "2026-10-31",
+  "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+  "sha256": "8a17860e9f07bd483d3b0acd2ae4fc5f63ca718d85ff4f4751bf430dbc6d020a",
+  "history": [
+    {
+      "status": "DESIGN_PREVIEW_APPROVED",
+      "scope": "Offline interactive HTML only",
+      "date": "2026-10-31",
+      "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+      "sha256": "ebc8f2983b0c87bfe2d8b12efd49ec1719ab1f8b93570f55bc972b85e527c1e5",
+      "preserved": [
+        "original enterprise introduction",
+        "team scenarios",
+        "resource overview",
+        "official seats and customization links",
+        "six horizontal tabs",
+        "Cookie and account UI"
+      ],
+      "added": [
+        "local/company configuration",
+        "validation and draft protection",
+        "connection review",
+        "service detail and management schematic",
+        "account/resource association",
+        "exact synchronization scope",
+        "error/expired/unavailable/unknown recovery"
+      ],
+      "verification": {
+        "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+        "sha256": "ebc8f2983b0c87bfe2d8b12efd49ec1719ab1f8b93570f55bc972b85e527c1e5",
+        "checkedAt": "2026-10-31T08:54:13.466Z",
+        "mode": "OFFLINE_HTML_CHROMIUM",
+        "results": [
+          {
+            "name": "Enterprise overview preserves six tabs and exposes service actions",
+            "status": "PASS"
+          },
+          {
+            "name": "Local/company configuration validates fields and saving stays unconnected",
+            "status": "PASS"
+          },
+          {
+            "name": "Dirty drafts survive tab navigation, Escape, and continue editing",
+            "status": "PASS"
+          },
+          {
+            "name": "Failed configuration save preserves input and supports an explicit retry",
+            "status": "PASS"
+          },
+          {
+            "name": "Connection review, resource association, scope review and management preview are coherent",
+            "status": "PASS"
+          },
+          {
+            "name": "Disconnect preserves association configuration and invalidates the reviewed grant",
+            "status": "PASS"
+          },
+          {
+            "name": "Duplicate service configuration is rejected without silently discarding its draft",
+            "status": "PASS"
+          },
+          {
+            "name": "Local account updates and deletion invalidate stale associations and authorization",
+            "status": "PASS"
+          },
+          {
+            "name": "Unchanged edit cancels to detail and connected receiver is read-only",
+            "status": "PASS"
+          },
+          {
+            "name": "Unknown outcome allows only reconciliation and does not create a new operation",
+            "status": "PASS"
+          },
+          {
+            "name": "Empty, unavailable, expired and error states have an honest recovery path",
+            "status": "PASS"
+          },
+          {
+            "name": "Dark tool theme keeps the laboratory light and main controls keyboard accessible",
+            "status": "PASS"
+          }
+        ],
+        "pageErrors": [],
+        "networkRequests": [],
+        "nativeChrome": "NOT_TESTED"
+      },
+      "independentReview": {
+        "role": "critic",
+        "agent": "01a1911e-0984-7e72-a3c2-852b5f4c621d",
+        "score": 99,
+        "maximum": 100,
+        "decision": "OKAY",
+        "breakdown": {
+          "entry": 15,
+          "configuration": 15,
+          "detailManagement": 15,
+          "truthRecovery": 20,
+          "draftNavigation": 15,
+          "visual": 15,
+          "accessibility": 4
+        },
+        "nonBlockingNotes": [
+          "After disconnect, preventScroll can focus a heading above the visible scroll area."
+        ]
+      },
+      "evidenceDirectory": "artifacts/cookie-enterprise-design-20261031",
+      "notTested": [
+        "Native service connection",
+        "real company authorization",
+        "installed extension",
+        "production integration"
+      ],
+      "committed": false,
+      "secondIndependentReview": {
+        "role": "designer",
+        "agent": "01a19112-e275-7b21-abc4-994ecf1f46fe",
+        "score": 99,
+        "maximum": 100,
+        "decision": "APPROVED",
+        "nonBlockingNotes": [
+          "Field focus calls do not all use preventScroll; no hidden-tab failure confirmed."
+        ]
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "sha256": "2654201a5a080b31c0f9e65943e9ae21e9eb1e6402c8b3569fcfee2098c5e276",
+      "evidenceDirectory": "artifacts/cookie-enterprise-preservation-20261031",
+      "independentReviews": [
+        {
+          "role": "designer",
+          "agent": "01a1915e-4583-7cf0-8d29-5e4f6157928d",
+          "score": 94,
+          "maximum": 100,
+          "breakdown": {
+            "preservation": 25,
+            "discoverability": 14,
+            "visual": 18,
+            "navigationAccessibility": 18,
+            "stateTruth": 19
+          },
+          "blockingIssues": [],
+          "deductions": [
+            {
+              "points": 1,
+              "reason": "解除关联叉号有关闭或删除歧义。"
+            },
+            {
+              "points": 2,
+              "reason": "原静态区小字 #718198 对比约3.97:1（白底）、3.73:1（浅灰底），低于4.5:1。"
+            },
+            {
+              "points": 1,
+              "reason": "范围审阅滚动到确认区后，标题和返回离开视口。"
+            },
+            {
+              "points": 1,
+              "reason": "解除后焦点回标题，中断连续管理。"
+            },
+            {
+              "points": 1,
+              "reason": "页头“已授权”未限定网站权限，易与服务授权混淆。"
+            }
+          ],
+          "scope": "离线HTML，实际查看14张截图、源码与13/13检查报告；未独立复跑全部交互，未测Native/真实公司/安装/生产/读屏或宽度缩放矩阵。"
+        },
+        {
+          "role": "critic",
+          "agent": "01a1915e-467f-7072-bc0b-c261eac5ec11",
+          "score": 88,
+          "maximum": 100,
+          "decision": "REJECT",
+          "blockingIssues": [
+            "普通更新关联Cookie后未撤销旧关联与授权",
+            "切站后旧关联与授权仍保留"
+          ],
+          "deductions": [
+            {
+              "points": 5,
+              "reason": "普通快照表单更新未递增版本"
+            },
+            {
+              "points": 3,
+              "reason": "切站缺少关联失效检查"
+            },
+            {
+              "points": 4,
+              "reason": "放弃草稿换Tab后焦点落到BODY"
+            }
+          ],
+          "scope": "离线HTML及独立最小复现；同类缺陷随后由主owner在a2a242候选再次复现，红证据见diagnostics。候选锁定细节待评审者补充。"
+        }
+      ],
+      "verification": {
+        "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+        "sha256": "2654201a5a080b31c0f9e65943e9ae21e9eb1e6402c8b3569fcfee2098c5e276",
+        "checkedAt": "2026-10-31T09:50:53.500Z",
+        "mode": "OFFLINE_HTML_CHROMIUM",
+        "preservation": [
+          {
+            "baselineHead": "2bac158e479bb069f51435f9e0450ac83f3bc769",
+            "renderedOriginalBlock": "IDENTICAL_AFTER_REMOVING_ADDED_JUMP_AND_FOCUS_ATTRIBUTES"
+          }
+        ],
+        "results": [
+          {
+            "name": "Enterprise overview preserves six tabs and exposes service actions",
+            "status": "PASS"
+          },
+          {
+            "name": "Persistent actions work without hover, with keyboard and touch, and return to visible triggers",
+            "status": "PASS"
+          },
+          {
+            "name": "Local/company configuration validates fields and saving stays unconnected",
+            "status": "PASS"
+          },
+          {
+            "name": "Dirty drafts survive tab navigation, Escape, and continue editing",
+            "status": "PASS"
+          },
+          {
+            "name": "Failed configuration save preserves input and supports an explicit retry",
+            "status": "PASS"
+          },
+          {
+            "name": "Connection review, resource association, scope review and management preview are coherent",
+            "status": "PASS"
+          },
+          {
+            "name": "Disconnect preserves association configuration and invalidates the reviewed grant",
+            "status": "PASS"
+          },
+          {
+            "name": "Duplicate service configuration is rejected without silently discarding its draft",
+            "status": "PASS"
+          },
+          {
+            "name": "Local account updates and deletion invalidate stale associations and authorization",
+            "status": "PASS"
+          },
+          {
+            "name": "Unchanged edit cancels to detail and connected receiver is read-only",
+            "status": "PASS"
+          },
+          {
+            "name": "Unknown outcome allows only reconciliation and does not create a new operation",
+            "status": "PASS"
+          },
+          {
+            "name": "Empty, unavailable, expired and error states have an honest recovery path",
+            "status": "PASS"
+          },
+          {
+            "name": "Dark tool theme keeps the laboratory light and main controls keyboard accessible",
+            "status": "PASS"
+          }
+        ],
+        "pageErrors": [],
+        "networkRequests": [],
+        "nativeChrome": "NOT_TESTED"
+      },
+      "decision": "BELOW_TARGET_REVISED"
+    }
+  ],
+  "evidenceDirectory": "artifacts/cookie-enterprise-preservation-20261031/final",
+  "notTested": [
+    "Native service connection",
+    "real company authorization",
+    "installed extension",
+    "production integration"
+  ],
+  "committed": false,
+  "intermediateCandidate": {
+    "sha256": "a2a24207e6abec49ddaac172bdb7c714192d3ccb00c2dd28244a0371f8ac588d",
+    "evidenceDirectory": "artifacts/cookie-enterprise-preservation-20261031/revised",
+    "verification": {
+      "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+      "sha256": "a2a24207e6abec49ddaac172bdb7c714192d3ccb00c2dd28244a0371f8ac588d",
+      "checkedAt": "2026-10-31T09:55:47.007Z",
+      "mode": "OFFLINE_HTML_CHROMIUM",
+      "preservation": [
+        {
+          "baselineHead": "2bac158e479bb069f51435f9e0450ac83f3bc769",
+          "renderedOriginalBlock": "IDENTICAL_AFTER_REMOVING_ADDED_JUMP_AND_FOCUS_ATTRIBUTES"
+        },
+        {
+          "originalExplanatoryContrast": [
+            {
+              "text": "集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。",
+              "ratio": 5.656219940753343
+            },
+            {
+              "text": "把企业已有的账号资源按团队整理，快速了解归属和负责人。",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "减少重复查找和切换；每个人只使用自己拥有权限的账号与工作区。",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "有可用官方数据时展示席位和预算；没有数据的服务保持「未接入」。",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "已分配席位 · 非对话次数额度",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "已分配席位 · 非对话次数额度",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "预算消耗模拟数据",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "暂无可用管理数据",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "示例席位和预算数据不代表 ChatGPT 的消息额度。真实数据取决于企业授权和服务商开放的接口。",
+              "ratio": 6.013848714840431
+            },
+            {
+              "text": "目前仅为企业功能交互演示，未接入真实企业账号、后台或用量数据。",
+              "ratio": 6.013848714840431
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "name": "Enterprise overview preserves six tabs and exposes service actions",
+          "status": "PASS"
+        },
+        {
+          "name": "Persistent actions work without hover, with keyboard and touch, and return to visible triggers",
+          "status": "PASS"
+        },
+        {
+          "name": "Local/company configuration validates fields and saving stays unconnected",
+          "status": "PASS"
+        },
+        {
+          "name": "Dirty drafts survive tab navigation, Escape, and continue editing",
+          "status": "PASS"
+        },
+        {
+          "name": "Failed configuration save preserves input and supports an explicit retry",
+          "status": "PASS"
+        },
+        {
+          "name": "Connection review, resource association, scope review and management preview are coherent",
+          "status": "PASS"
+        },
+        {
+          "name": "Disconnect preserves association configuration and invalidates the reviewed grant",
+          "status": "PASS"
+        },
+        {
+          "name": "Duplicate service configuration is rejected without silently discarding its draft",
+          "status": "PASS"
+        },
+        {
+          "name": "Local account updates and deletion invalidate stale associations and authorization",
+          "status": "PASS"
+        },
+        {
+          "name": "Unchanged edit cancels to detail and connected receiver is read-only",
+          "status": "PASS"
+        },
+        {
+          "name": "Unknown outcome allows only reconciliation and does not create a new operation",
+          "status": "PASS"
+        },
+        {
+          "name": "Empty, unavailable, expired and error states have an honest recovery path",
+          "status": "PASS"
+        },
+        {
+          "name": "Dark tool theme keeps the laboratory light and main controls keyboard accessible",
+          "status": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "networkRequests": [],
+      "nativeChrome": "NOT_TESTED"
+    },
+    "decision": "REVISED_AFTER_THREE_ADDITIONAL_REPRODUCTIONS",
+    "failingRegressionEvidence": [
+      "artifacts/cookie-enterprise-preservation-20261031/diagnostics/snapshot/interactions.json",
+      "artifacts/cookie-enterprise-preservation-20261031/diagnostics/site/interactions.json",
+      "artifacts/cookie-enterprise-preservation-20261031/diagnostics/focus/interactions.json"
+    ]
+  },
+  "verification": {
+    "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+    "sha256": "8a17860e9f07bd483d3b0acd2ae4fc5f63ca718d85ff4f4751bf430dbc6d020a",
+    "checkedAt": "2026-10-31T10:00:15.676Z",
+    "mode": "OFFLINE_HTML_CHROMIUM",
+    "preservation": [
+      {
+        "baselineHead": "2bac158e479bb069f51435f9e0450ac83f3bc769",
+        "renderedOriginalBlock": "IDENTICAL_AFTER_REMOVING_ADDED_JUMP_AND_FOCUS_ATTRIBUTES"
+      },
+      {
+        "originalExplanatoryContrast": [
+          {
+            "text": "集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。",
+            "ratio": 5.656219940753343
+          },
+          {
+            "text": "把企业已有的账号资源按团队整理，快速了解归属和负责人。",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "减少重复查找和切换；每个人只使用自己拥有权限的账号与工作区。",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "有可用官方数据时展示席位和预算；没有数据的服务保持「未接入」。",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "已分配席位 · 非对话次数额度",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "已分配席位 · 非对话次数额度",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "预算消耗模拟数据",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "暂无可用管理数据",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "示例席位和预算数据不代表 ChatGPT 的消息额度。真实数据取决于企业授权和服务商开放的接口。",
+            "ratio": 6.013848714840431
+          },
+          {
+            "text": "目前仅为企业功能交互演示，未接入真实企业账号、后台或用量数据。",
+            "ratio": 6.013848714840431
+          }
+        ]
+      }
+    ],
+    "results": [
+      {
+        "name": "Enterprise overview preserves six tabs and exposes service actions",
+        "status": "PASS"
+      },
+      {
+        "name": "Persistent actions work without hover, with keyboard and touch, and return to visible triggers",
+        "status": "PASS"
+      },
+      {
+        "name": "Local/company configuration validates fields and saving stays unconnected",
+        "status": "PASS"
+      },
+      {
+        "name": "Dirty drafts survive tab navigation, Escape, and continue editing",
+        "status": "PASS"
+      },
+      {
+        "name": "Failed configuration save preserves input and supports an explicit retry",
+        "status": "PASS"
+      },
+      {
+        "name": "Connection review, resource association, scope review and management preview are coherent",
+        "status": "PASS"
+      },
+      {
+        "name": "Disconnect preserves association configuration and invalidates the reviewed grant",
+        "status": "PASS"
+      },
+      {
+        "name": "Duplicate service configuration is rejected without silently discarding its draft",
+        "status": "PASS"
+      },
+      {
+        "name": "Local account updates and deletion invalidate stale associations and authorization",
+        "status": "PASS"
+      },
+      {
+        "name": "Unchanged edit cancels to detail and connected receiver is read-only",
+        "status": "PASS"
+      },
+      {
+        "name": "Ordinary snapshot form update invalidates the previous binding and reviewed scope",
+        "status": "PASS"
+      },
+      {
+        "name": "Website selection invalidates the old binding and grant without deleting local accounts",
+        "status": "PASS"
+      },
+      {
+        "name": "Discarding a service draft to change tabs focuses the selected destination tab",
+        "status": "PASS"
+      },
+      {
+        "name": "Unknown outcome allows only reconciliation and does not create a new operation",
+        "status": "PASS"
+      },
+      {
+        "name": "Empty, unavailable, expired and error states have an honest recovery path",
+        "status": "PASS"
+      },
+      {
+        "name": "Dark tool theme keeps the laboratory light and main controls keyboard accessible",
+        "status": "PASS"
+      }
+    ],
+    "pageErrors": [],
+    "networkRequests": [],
+    "nativeChrome": "NOT_TESTED"
+  },
+  "independentReviews": [
+    {
+      "sha256": "8a17860e9f07bd483d3b0acd2ae4fc5f63ca718d85ff4f4751bf430dbc6d020a",
+      "score": {
+        "total": 99,
+        "maximum": 100,
+        "保留": {
+          "score": 25,
+          "maximum": 25,
+          "reason": "原静态区域完整、顺序不变、连续展示；截图与原内容 DOM 比对证据一致。"
+        },
+        "发现性": {
+          "score": 15,
+          "maximum": 15,
+          "reason": "主要动作保留文字，刷新和编辑使用常见图标；解除关联已改为明确文字，核心操作均不依赖 hover。"
+        },
+        "视觉": {
+          "score": 20,
+          "maximum": 20,
+          "reason": "当前窄栏截图层级、间距及表单风格一致，无明显溢出或遮挡。原说明文字对比度检查为约 5.66–6.01:1，旧对比度问题已解决。"
+        },
+        "导航与可访问": {
+          "score": 19,
+          "maximum": 20,
+          "reason": "返回、草稿保护、解除关联后的可见焦点及放弃草稿后的目标 Tab 焦点均有对应证据；长审阅页仍有轻微上下文连续性问题。"
+        },
+        "状态真实性": {
+          "score": 20,
+          "maximum": 20,
+          "reason": "网站权限、服务连接、同步授权已区分；演示、身份未核验和未知结果表达明确。普通快照更新及切站后的旧关联、授权失效有真实界面路径回归支持。"
+        }
+      },
+      "blockingIssues": [],
+      "deductions": [
+        {
+          "category": "导航与可访问",
+          "points": 1,
+          "severity": "minor",
+          "evidence": "final/scope-review.png",
+          "reason": "滚动至确认区后，“审阅同步范围”标题和返回入口离开视口。服务名、接收位置及资源仍可见，操作可完成，但页面身份与返回路径需要向上滚动确认。",
+          "recommendation": "可在确认区补充简短审阅对象摘要或返回入口；不必改成固定标题。"
+        }
+      ],
+      "scope": {
+        "mode": "OFFLINE_HTML_UI_UX_REVIEW",
+        "conclusion": "本候选独立评分为99分，未发现离线主流程阻断；未引用历史99分或按旧94分机械加分。",
+        "validation": {
+          "sourceReportManifestSHA一致": true,
+          "截图文件哈希核对": "29/29一致",
+          "最终交互报告": "16/16 PASS",
+          "pageErrors": [],
+          "networkRequests": []
+        },
+        "regressionsReviewed": [
+          "普通关联 Cookie 更新后递增 snapshotVersion，旧关联及同步授权失效",
+          "切换网站后旧关联及授权失效，返回原站不恢复旧授权，本地账号保留",
+          "放弃草稿切换 Tab 后，焦点到目标 Tab",
+          "解除关联后，焦点到可见的“关联账号”"
+        ],
+        "driverTiming": "已查看保留的时序失败记录及 requestAnimationFrame 等待代码；最终报告通过，不将旧驱动过早读取作为当前产品缺陷。",
+        "notTested": [
+          "真实扩展、Native、公司授权、真实 Cookie 操作及生产集成",
+          "屏幕阅读器实际体验与完整无障碍验收",
+          "本评审独立复跑全部交互；交互结论依据最终报告及测试源码核查",
+          "宽度与缩放矩阵",
+          "深色主题全部子页；仅查看深色概览"
+        ],
+        "readOnly": "未编辑文件、未运行测试、未控制用户浏览器。"
+      },
+      "evidenceReviewed": {
+        "root": "artifacts/cookie-enterprise-preservation-20261031/final/",
+        "screenshotsActuallyViewed": [
+          "overview.png",
+          "original-team-scenarios.png",
+          "original-resource-overview.png",
+          "original-membership-and-custom.png",
+          "service-region.png",
+          "configuration.png",
+          "connected-detail.png",
+          "association-review.png",
+          "scope-review.png",
+          "management-preview.png",
+          "ordinary-snapshot-update-invalidates-scope.png",
+          "site-change-invalidates-scope.png",
+          "discard-to-market-focus.png",
+          "unknown-detail.png",
+          "overview-dark.png",
+          "unsaved-draft.png"
+        ],
+        "reports": [
+          "interactions.json",
+          "candidate-manifest.json",
+          "focus-driver-timing-failure.json"
+        ],
+        "source": [
+          "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+          "examples/sidebar-tools/cookie-editor/tests/service-preview-interactions.mjs"
+        ]
+      },
+      "role": "designer",
+      "agent": "01a1915e-4583-7cf0-8d29-5e4f6157928d"
+    },
+    {
+      "role": "critic",
+      "agent": "01a1915e-467f-7072-bc0b-c261eac5ec11",
+      "sha256": "8a17860e9f07bd483d3b0acd2ae4fc5f63ca718d85ff4f4751bf430dbc6d020a",
+      "score": {
+        "total": 98,
+        "maximum": 100,
+        "preservation": 25,
+        "discoverability": 15,
+        "visual": 18,
+        "navigationAccessibility": 20,
+        "stateTruth": 20
+      },
+      "decision": "OKAY",
+      "blockingIssues": [],
+      "deductions": [
+        {
+          "category": "visual",
+          "points": 2,
+          "severity": "minor",
+          "reason": "未选中Tab与底栏小字仍为原#718198，白底对比约3.97:1；企业正文已改善至5.66–6.01:1，属于遗留样式不足。"
+        }
+      ],
+      "independentVerification": {
+        "candidateLoadedAsFixedMemoryBytes": true,
+        "paths": [
+          {
+            "name": "普通更新关联Cookie，快照8→7后旧关联与授权失效",
+            "status": "PASS"
+          },
+          {
+            "name": "shop→docs后失效，返回shop不恢复旧授权",
+            "status": "PASS"
+          },
+          {
+            "name": "放弃草稿换Tab后焦点位于实际选中账号Tab",
+            "status": "PASS"
+          }
+        ],
+        "sourceUnchangedAtFinalReview": true
+      },
+      "evidenceReviewed": [
+        "final HTML SHA",
+        "final/interactions.json:16/16 PASS",
+        "final/candidate-manifest.json:29 screenshot hashes match; all actually viewed",
+        "tests/service-preview-interactions.mjs"
+      ],
+      "notTested": [
+        "真实Chrome扩展",
+        "Native",
+        "公司认证",
+        "真实发送与回执",
+        "远端资源真实身份变化"
+      ],
+      "scope": "离线HTML独立只读交互复评；不代表真实接入通过"
+    }
+  ],
+  "blockingIssues": [],
+  "previewURL": "http://127.0.0.1:58626/cookie-editor.html?view=enterprise",
+  "decision": "Both independent final-candidate scores >=95; no blocking issues. Not a Native or production approval.",
+  "originalContentComparison": {
+    "baselineHead": "2bac158e479bb069f51435f9e0450ac83f3bc769",
+    "renderedOriginalBlock": "IDENTICAL; only added jump and focus attributes omitted for comparison",
+    "originalContentDefaultVisible": true,
+    "serviceRegionPlacement": "after complete original static block"
+  }
+}

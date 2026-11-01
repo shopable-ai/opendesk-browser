@@ -1,0 +1,1556 @@
+{
+  "kind": "INDEPENDENT_OFFLINE_DESIGN_REVIEW",
+  "date": "2026-11-01",
+  "candidate": "artifacts/scrapyjs/design-20261101/candidate4",
+  "previewSha256": "078926cbb2df2c51ac1ddc9e350b9368c5aaf9143b1fe492b5b15111377af3fc",
+  "status": "PASS_OFFLINE_DESIGN",
+  "passesAllEightDimensions": true,
+  "historicalScoresUsed": false,
+  "rubric": {
+    "source": "examples/sidebar-tools/scrapyjs/preview/DESIGN.md",
+    "frozenSection": "Verification and independent review / 八维固定检查",
+    "dimensions": 8,
+    "itemsPerDimension": 5,
+    "maxPerItem": 20,
+    "passCondition": "每维严格>95且无本轮阻断",
+    "deductionBands": {
+      "minor": "1–3",
+      "affectsOperation": "4–10",
+      "unavailableOrMissing": "11–20"
+    },
+    "missingEvidencePolicy": "未验证项单列，不将缺证据自动当满分；分数仅适用于已说明的离线样本。"
+  },
+  "scope": {
+    "readOnlyExcept": "examples/sidebar-tools/scrapyjs/evidence/ui-design-review-20261101.json",
+    "sourceEdits": false,
+    "buildOrCommit": false,
+    "existingChromeControlled": false,
+    "port43127Used": false,
+    "reviewBrowser": "独立Chromium headless shell 156.0.8078.4；仅冻结candidate4 file预览，已关闭",
+    "runtimeModuleNote": "指定index.mjs导入失败，改用同一已安装Playwright包index.js，无安装或依赖修改。",
+    "verificationScope": "冻结来源差异、六张新图、五张关键图与candidate3字节相同性、默认几何及发送→审阅→应用→命名保存→关闭焦点主链；未重复完整测试组",
+    "evidenceLevel": "SOURCE_COMPONENT_PREVIEW",
+    "delivery": "FROZEN_DESIGN_SNAPSHOT",
+    "sourceParity": "NOT_CLAIMED_CURRENT_WORKSPACE_HAS_3_DRIFTS",
+    "installPackageSync": "NOT_CLAIMED"
+  },
+  "evidenceReports": [
+    "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+    "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+  ],
+  "screenshotsViewed": [
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/design/review-arrival.png",
+      "sha256": "e6c4f942b0f7f547596e0ac0d291328878262883afc27e70018be6d011cdf45b",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/design/full-json.png",
+      "sha256": "81b2b14076bb911d450f6ccbed78bbf8005bb101cf94bbab58fa381410e37ce2",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/design/advanced-materials.png",
+      "sha256": "c66b9eca212d82c5a1a5090acf46c2dd3c5d89a593d166c1f61c57565b0e9471",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/chat/ai-naming.png",
+      "sha256": "2aaf4035cfa3401fe0d48d64215bb227033c321345fa0fdadbb602737bd3055e",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/chat/ai-applied.png",
+      "sha256": "2e4e6c31c4343b39ba3fd9ea6e6e16ef08e21d1475c7671eccf47cc592304ee9",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate4/design/shared-chat-recipe.png",
+      "sha256": "cba0597f52be772dddffc9588218437487e970dbddea2b5e875a6e188de953bf",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate4"
+    }
+  ],
+  "independentReplay": {
+    "viewport": {
+      "width": 400,
+      "height": 800,
+      "description": "默认iframe；无宽度/缩放矩阵"
+    },
+    "sourceLock": {
+      "recordedInputs": 1371,
+      "reportedAtGenerationDrift": [],
+      "independentlyMatchedCurrentWorkspace": 1368,
+      "currentWorkspaceDrift": [
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+          "expectedSha256": "94083f94a88256d3d180c123bc23643a1a0b11f312eec2740898baa7dd399518",
+          "workspaceSha256": "3c6b80a04fb5474c387572052c02abe13caee73137b848e5c7d616052570a709"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+          "expectedSha256": "15a6c49f316a27979afc13e64b2b82ba9ae64b046a0d151dd071f7ab46fb64b0",
+          "workspaceSha256": "7ed8ccd0ff4418ce63f159e0ad5264388fe957ca4865b1a74e2d0783c1dffd8d"
+        },
+        {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js",
+          "expectedSha256": "b56df36c96e43d54bb6ab7ef41ec6b309588d3680dcf41d9703400448ea141d1",
+          "workspaceSha256": "f0798a93623a9709b163173c64b0a554ebec8b96df2333f574c025fccac4b520"
+        }
+      ],
+      "interpretation": "生成报告为1371/0；本次写报告前独立工作区核对存在列明的并行漂移，冻结HTML SHA与截图绑定有效。不得把生成时0漂移等同当前工作区0漂移。"
+    },
+    "reviewGeometry": {
+      "valueTop": 617.6875,
+      "valueBottom": 653.078125,
+      "textTop": 627.6875,
+      "textBottom": 641.6875,
+      "scrollTop": 529,
+      "scrollBottom": 666.65625,
+      "scrollHeight": 137.65625,
+      "actionsTop": 666.65625,
+      "actionsBottom": 720.5,
+      "overlap": 0,
+      "valueClearancePx": 13.578125,
+      "actionsOutsideScroll": true,
+      "dockHeight": 304,
+      "composerTop": 748,
+      "composerBottom": 792,
+      "composerHeight": 44,
+      "sameAsCandidate3": true
+    },
+    "keyboardActionOrder": [
+      "ai-apply",
+      "ai-export",
+      "ai-discard",
+      "ai-requirement"
+    ],
+    "mainUserChain": {
+      "EnterSendsFixedOfflineProposal": true,
+      "reviewPhase": "待审阅",
+      "namingVisible": true,
+      "namingFocus": "profile-name",
+      "namingPhase": "待保存配置",
+      "savedPhase": "配置已保存",
+      "savedFeedback": "此提案的配置已保存；采集仍需单独点击「开始采集」。",
+      "startEnabledAfterSave": true,
+      "resultsAfterSave": "尚无记录",
+      "didNotAutoStartCapture": true,
+      "EscapeReturnsToHostToggle": true,
+      "postSendActiveElement": "BODY"
+    },
+    "httpAttempts": 0,
+    "runtimeErrors": [],
+    "browserClosed": true,
+    "inheritedCandidate3LayoutReplay": {
+      "candidate": "candidate3",
+      "previewSha256": "faed6a4cc4a0f23881debd4fcd21aab235db4f7793369b1c4df497de6dd172a3",
+      "fullJSON": {
+        "readOnly": true,
+        "validJSON": true,
+        "mouseWheelAfterEventSettled": true,
+        "innerScrollTop": 80,
+        "clientHeight": 137,
+        "scrollHeight": 217,
+        "bottomReached": true,
+        "actionsOutsideScroll": true,
+        "note": "先前立即读取滚轮结果过早；等待实际scrollTop变化后确认末尾可达，没有要求产品增加延时。"
+      },
+      "sample": {
+        "editedValue": "<h2>必要结构</h2>",
+        "phaseAfterEdit": "提案已过期",
+        "applyDisabled": true,
+        "actionsOutsideScroll": true
+      },
+      "drag": {
+        "fromTitle": true,
+        "dockHeightBefore": 304,
+        "dockHeightAfter": 344,
+        "titleBlocksDragging": false
+      },
+      "keyboardSeparator": {
+        "key": "ArrowUp",
+        "dockHeightBefore": 344,
+        "dockHeightAfter": 360
+      },
+      "closeAndReopen": {
+        "EscapeReturnsToHostToggle": true,
+        "samplePreserved": true,
+        "requirementPreserved": true,
+        "discardReturnsTo": "ai-requirement"
+      },
+      "reuseBasis": "CSS和公开组件未变、五张当前关键图字节相同、candidate4新42项报告覆盖对应行为；未将旧独立回放改称candidate4实跑。"
+    }
+  },
+  "dimensions": [
+    {
+      "id": "requirements",
+      "name": "需求符合度",
+      "maxScore": 100,
+      "score": 100,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "就地Chat",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "新截图与独立回放仍为上业务/下Chat，原Host顶栏入口开合。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate3/chat/report.json",
+            "design/review-arrival.png"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "业务草稿保留",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新42项Chat与62项工作区报告通过；主链实际开合、审阅、应用和命名保存通过。由于App/model已变化，不再仅靠candidate2业务证据证明本项。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "提案完整审阅",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4独立测得完整新值框底653.08 < scroll/actions边界666.66，overlap0；完整JSON新图与candidate3字节一致，新报告覆盖按需查看。",
+          "deductionReason": "撤销candidate2遮挡扣4分：根因已修复，非靠跳过差异或扩大窗口规避。",
+          "evidence": [
+            "design/review-arrival.png",
+            "design/full-json.png",
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "independentReplay.reviewGeometry"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "显式应用/保存",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "独立实跑应用为草稿→配置名聚焦→命名保存，阶段从待审阅→待保存配置→配置已保存；原回执文案仍明确独立采集。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "independentReplay.mainUserChain",
+            "chat/ai-naming.png",
+            "chat/ai-applied.png",
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "采集独立",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "独立保存后结果仍尚无记录，开始采集按钮恢复可用，没有自动采集；新42项报告也覆盖此行为。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "independentReplay.mainUserChain",
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "style",
+      "name": "样式一致性",
+      "maxScore": 100,
+      "score": 98,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "单gutter",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "computed为12px，业务与Chat截图左右边缘一致；无横向溢出。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate2/design/report.json",
+            "design/ready.png",
+            "design/chat-consent.png"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "4/8/12/16间距",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "computed主分组16px，局部源码使用既有space tokens；无新间距体系。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate2/design/report.json",
+            "examples/sidebar-tools/scrapyjs/src/style.css"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "公共按钮/图标",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "沿用公共Button、发送/停止和收起图标，禁用Stop与主采集按钮可区分。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/ready.png",
+            "design/shared-chat-recipe.png",
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "表单/disclosure层级",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "资料、保留字段、JSON和低频诊断均沿用canonical disclosure与od-field；没有另造皮肤。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/chat-consent.png",
+            "design/full-json.png",
+            "design/advanced-materials.png",
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "对比与字级",
+          "maxScore": 20,
+          "score": 18,
+          "deducted": 2,
+          "observation": "新computed对比仍13.97/6.01；标题12px，阶段与阻断提示仍11px。",
+          "deductionReason": "维持扣2分：合同辅助文字12px，关键阻断提示11px偏小；无需为达标取消原扣分。",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate3/design/report.json",
+            "design/review-arrival.png",
+            "design/advanced-materials.png"
+          ],
+          "status": "VERIFIED_WITH_FINDING",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "name": "信息层级可读性",
+      "maxScore": 100,
+      "score": 100,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "目标密度",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "ready保留清楚的配置、目标、主动作、页签与空态，没有新增无关卡片。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/ready.png"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "输入可发现",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "固定输入区有可见标签及当前阻断原因，资料确认后对应提示消失。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/chat-consent.png",
+            "artifacts/scrapyjs/design-20261101/candidate2/chat/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "差异动作邻近",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新review图与candidate3字节相同；默认几何独立复算一致，固定栏位于scroll外，新值完整留13.58px空隙。",
+          "deductionReason": "撤销candidate2遮挡扣6分：默认高度无相交，动作保持固定。",
+          "evidence": [
+            "screenshotsViewed",
+            "independentReplay.reviewGeometry"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "JSON/诊断渐进展开",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "新截图保留完整JSON与单一高级资料入口；独立回放JSON末尾可达、样本可编辑且使旧提案失效。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/full-json.png",
+            "design/advanced-materials.png",
+            "independentReplay.fullJSON",
+            "independentReplay.sample"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "滚动职责清楚且内容不压缩",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "ai-scroll与独立动作/输入为相邻flex分区；默认Dock304px，滚动区137.66px，输入44px。拖动/键盘调高正常；使用既有expandedFeedback最低高度保护。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate3/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate3/chat/report.json",
+            "independentReplay.reviewGeometry",
+            "independentReplay.drag",
+            "independentReplay.keyboardSeparator"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "feedback",
+      "name": "操作效率反馈",
+      "maxScore": 100,
+      "score": 99,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "主动作",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "应用为配置草稿仍为独立栏唯一主动作，导出/放弃为次动作；stage未改变业务状态。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/review-arrival.png",
+            "chat/ai-applied.png"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "必要发送勾选",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "网页资料默认未勾选，输入旁解释原因，勾选后移除已解决提示；无自动读取正文/Cookie的暗示。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "design/chat-consent.png",
+            "artifacts/scrapyjs/design-20261101/candidate2/chat/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "保存失败/成功",
+          "maxScore": 20,
+          "score": 19,
+          "deducted": 1,
+          "observation": "candidate4命名及已保存截图与candidate3一致；新42项报告覆盖保存失败/成功，独立主链确认成功回执。命名输入旁的业务阻断说明仍泛化，维持扣1分。",
+          "deductionReason": "维持扣1分：可以明确指向完成或取消配置命名，现有文案略笼统。",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "chat/ai-naming.png",
+            "chat/ai-applied.png",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_WITH_FINDING",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "收起不取消",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "42项新报告覆盖hidden pending与外部reset锁；局部回放关闭/重开保留样本与需求。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate3/chat/report.json",
+            "independentReplay.closeAndReopen"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "UNKNOWN不重放",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新42项报告覆盖pending/busy/停止保护，Node10由用户报告通过；本轮不是对page身份安全更新的独立安全审计，不外推真实Provider恢复。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "evidenceLineage.node10"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "keyboard",
+      "name": "键盘焦点",
+      "maxScore": 100,
+      "score": 99,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "页签",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "工作区报告覆盖方向键选择与焦点，原tablist/roving tabindex保留。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate2/design/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "发送/换行/IME",
+          "maxScore": 20,
+          "score": 19,
+          "deducted": 1,
+          "observation": "candidate4独立Enter发送正常，提案到达后activeElement仍BODY；新报告覆盖换行和IME。原焦点续接扣1分保留。",
+          "deductionReason": "扣1分：Enter发起后焦点没有回到输入或明确续接点，键盘连续操作略有中断。",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_WITH_FINDING",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "关闭返回",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4实际Escape经原Host边界返回AI入口；新42项报告亦覆盖命名期间关闭。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "错误焦点",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新62项工作区报告覆盖字段错误与替换取消焦点，新42项Chat覆盖失败命名；独立命名聚焦profile-name正常。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "审阅与详情可达",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4独立Tab顺序应用→导出→放弃→输入正常；新42项覆盖分隔条/放弃焦点，新62项覆盖详情关闭返回。JSON滚动和拖动另保留candidate3独立证据谱系。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.keyboardActionOrder",
+            "independentReplay.inheritedCandidate3LayoutReplay"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reuse",
+      "name": "组件复用隔离",
+      "maxScore": 100,
+      "score": 100,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "原模板",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "冻结candidate3/4来源差异准确为5项（3源码+2产物）；模板、CSS和公开组件不变。当前工作区漂移单独记载。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "evidenceLineage.sourceManifestChanges",
+            "independentReplay.sourceLock"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "Button/Frame/session",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "动作栏仍为工具内原Button组，沿用Dock/Frame/session；expandedFeedback使用原Dock能力。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+            "artifacts/scrapyjs/design-20261101/candidate3/chat/report.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "工具CSS归属",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "工具style.css将sticky覆盖改为独立flex:none动作行，未修改公共组件或复制模板。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/style.css",
+            "independentReplay.reviewGeometry"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "公开ai边界",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "当前候选仍使用原公开ai请求边界；新增资料最小化/样本与context id属于业务参数变化。42项Chat和独立主链可用，不据此声明全部安全语义已独立审计。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.mainUserChain",
+            "unverified"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "opaque/CSP",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "独立查看iframe sandbox为allow-scripts allow-downloads，无allow-same-origin；CSP connect-src/form-action均none；独立离线回放0 HTTP尝试/运行错误。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate2/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate2/chat/report.json",
+            "independentReplay.isolation"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "maintenance",
+      "name": "可维护性",
+      "maxScore": 100,
+      "score": 98,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "单布局owner",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "工具拥有ai-scroll与独立动作栏，公共Dock继续负责split；源码仅局部展示调整，没有第二布局根。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+            "examples/sidebar-tools/scrapyjs/src/style.css"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "无margin叠加",
+          "maxScore": 20,
+          "score": 18,
+          "deducted": 2,
+          "observation": "主体仍用gap/token；但保留.capture-app .ai-workspace选择器与“document scrolls”旧注释，而Dock实际在capture-app外、滚动由ai-scroll负责。",
+          "deductionReason": "扣2分：残留失效选择器和过时布局说明会误导后续修改；非当前功能阻断。",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/style.css:43",
+            "examples/sidebar-tools/scrapyjs/src/style.css:44",
+            "examples/sidebar-tools/scrapyjs/src/style.css:60"
+          ],
+          "status": "VERIFIED_WITH_FINDING",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "状态回执明确",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "保存状态仍绑定requestId，阶段与阻断提示由已有状态派生，stale和generation保护保留。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+            "artifacts/scrapyjs/design-20261101/candidate2/chat/report.json",
+            "examples/sidebar-tools/scrapyjs/evidence/ui-design-browser-20261101.json"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "无新依赖/第二状态机",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "仍使用原state/请求/session，expandedFeedback由draft/error/unknown派生；独立栏未增加业务状态机或依赖。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "原生成链",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4冻结HTML SHA与报告相同，原生成链/1371来源清单保留；独立核对实际并行漂移另列，不能称当前源码零漂移。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "independentReplay.sourceLock"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "name": "证据充分性",
+      "maxScore": 100,
+      "score": 99,
+      "passesStrictGreaterThan95": true,
+      "items": [
+        {
+          "criterion": "新操作链",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新42Chat、11设计及62工作区报告均绑定本SHA；本人只独立复核主链和重排，不冒称重跑整组。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json",
+            "independentReplay.mainUserChain"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "computed间距/Chat高度",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "candidate4新报告与独立几何一致，valueBottom653.08、actionsTop666.66，overlap0；Chat304px与输入44px保持。",
+          "deductionReason": "撤销原证据扣2分：关键遮挡几何已有新同候选证据。",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "independentReplay.reviewGeometry"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "多状态截图",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "六张candidate4图均实际view_image，五张工具关键图与candidate3字节一致；公共配方图哈希不同但已查看，对应布局/模拟blocked状态一致。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "screenshotsViewed",
+            "evidenceLineage.screenshotComparison"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "同SHA来源锁",
+          "maxScore": 20,
+          "score": 19,
+          "deducted": 1,
+          "observation": "冻结HTML与6张图哈希匹配，生成报告1371/0；复评当前工作区1368匹配，3项漂移见明细。维持证据扣1分，不外推当前源码。",
+          "deductionReason": "扣1分：当前工作区无法完整重现冻结来源集合；不把该并行源码漂移冒称候选HTML错误，也不要求本轮重建。",
+          "evidence": [
+            "independentReplay.sourceLock",
+            "screenshotsViewed"
+          ],
+          "status": "VERIFIED_WITH_FINDING",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        },
+        {
+          "criterion": "未测边界如实",
+          "maxScore": 20,
+          "score": 20,
+          "deducted": 0,
+          "observation": "当前62项业务来自candidate4新报告，原candidate2/3证据保留谱系；长值/修改删除样本、辅助技术及真实Provider边界仍未验证。",
+          "deductionReason": "无扣分",
+          "evidence": [
+            "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+            "unverified",
+            "evidenceLineage"
+          ],
+          "status": "VERIFIED_IN_OFFLINE_SCOPE",
+          "evidenceScope": "CANDIDATE4_REPORTS_AND_REPLAY_WITH_EXPLICIT_CANDIDATE3_DESIGN_LINEAGE",
+          "evidenceScopeNote": "旧evidence路径保留作为原观察谱系；本候选的新证据见candidate4ReviewBasis、screenshotsViewed与independentReplay。",
+          "candidate4ReviewBasis": {
+            "scope": "当前candidate4报告+新截图/主链；未改设计细节复用本人candidate3观察",
+            "reports": [
+              "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+              "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+            ],
+            "scoreDecision": "原扣分维持；未改变冻结量表。"
+          }
+        }
+      ]
+    }
+  ],
+  "scoreOrder": [
+    "需求符合度",
+    "样式一致性",
+    "信息层级可读性",
+    "操作效率反馈",
+    "键盘焦点",
+    "组件复用隔离",
+    "可维护性",
+    "证据充分性"
+  ],
+  "scores": [
+    100,
+    98,
+    100,
+    99,
+    99,
+    100,
+    98,
+    99
+  ],
+  "blockers": [],
+  "specificJudgments": {
+    "defaultHeightNewValue": "完整可见，文本与值框均未被动作栏覆盖。",
+    "lowFrequencyMaterials": "仍按需展开；样本编辑使提案过期，应用禁用；完整JSON可滚至末尾。",
+    "titleAndDrag": "标题实际拖动304→344，键盘ArrowUp344→360，没有妨碍。",
+    "actionKeyboardOrder": "应用→导出→放弃→输入；反向Tab返回放弃；关闭与放弃焦点恢复可用。",
+    "candidate3Comparison": "五张工具关键图字节相同，默认审阅几何逐值一致；公共配方图已另看。",
+    "mainChain": "candidate4独立Enter→review→apply→命名保存→Escape通过，没有自动开始采集。"
+  },
+  "interactionProtectionsToKeep": [
+    "开合不卸载业务/Chat草稿，不取消原请求",
+    "busy/UNKNOWN保持身份、外部reset保护，不重放",
+    "明确资料同意，stale/Provider generation/原配置与网页校验",
+    "应用→命名保存→单独采集，保存回执绑定提案",
+    "IME/Shift+Enter、关闭返回、键盘separator、详情返回焦点",
+    "列设置不改变完整导出与原始记录"
+  ],
+  "unverified": [
+    {
+      "item": "长值/多行修改/删除差异的视觉布局",
+      "status": "未验证",
+      "reason": "本次独立截图与回放主要为单行新增字段；不能外推其余所有提案形态。"
+    },
+    {
+      "item": "屏幕阅读器实际播报与reduced-motion运行表现",
+      "status": "未验证",
+      "reason": "本轮未执行辅助技术运行验证。"
+    },
+    {
+      "item": "真实Provider、已安装Chrome、真实采集、production验收",
+      "status": "NOT_TESTED_OUTSIDE_OFFLINE_SCORE",
+      "reason": "不属于当前离线设计评分，不因此扣分或假报真实功能。"
+    },
+    {
+      "item": "宽度/缩放矩阵",
+      "status": "OUT_OF_SCOPE",
+      "reason": "用户已排除专项矩阵。"
+    },
+    {
+      "item": "新增同页target身份与最小化资料参数的完整安全语义",
+      "status": "NOT_INDEPENDENTLY_AUDITED",
+      "reason": "本轮为设计复评，仅据新报告与独立主链确认相关界面可用，不替代源码安全审计或真实Provider验证。"
+    }
+  ],
+  "conclusion": "candidate4在独立新截图、来源差异/哈希和主链复核后通过离线设计评审；五张工具关键图与candidate3字节相同，几何无退化，原全部扣分保留。评分只绑定本candidate4 SHA，不外推当前漂移源码、固定旧输出、真实Provider/安装/采集或完整安全验收。",
+  "previousReview": {
+    "path": "artifacts/scrapyjs/design-20261101/candidate3/independent-review.json",
+    "sha256": "ddc6144d1979fac60e0c5ca7d00c38f288f9b1c2ff2d3a642f463baeaf625b29",
+    "candidate": "candidate3",
+    "previewSha256": "faed6a4cc4a0f23881debd4fcd21aab235db4f7793369b1c4df497de6dd172a3",
+    "status": "PASS_OFFLINE_DESIGN",
+    "scores": [
+      100,
+      98,
+      100,
+      99,
+      99,
+      100,
+      98,
+      99
+    ],
+    "preservedUnchanged": true
+  },
+  "inheritedScreenshotsViewed": [
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/ready.png",
+      "sha256": "84df6365f3a00e39c6f5dd04909010d1381daea73165113555ef96163b6c46f1",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/chat-consent.png",
+      "sha256": "1435ff4eb40a337e1a4639507b1e4c652f05be2214cee0e876b54f02aee780de",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/review-arrival.png",
+      "sha256": "90a815cbbf55d116841a5256b11b15055d981f9d0b4bc574432fdd57cb4d8ef9",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/full-json.png",
+      "sha256": "7b9a2b56b77d71f73326bee40576ae4c8d63ba61eb1595b46e11753d6835ce36",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/advanced-materials.png",
+      "sha256": "0768e2095f9bd088a4355067ff8de2daeb036e8c89f502d30bec2bfacc6a140e",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/design/shared-chat-recipe.png",
+      "sha256": "36e25cc9b2abd77dd0efe57796d74d8c2f376e25857ea6d1dbc58167457ec900",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/chat/ai-naming.png",
+      "sha256": "99a92af5e5cc36cf1b6d66c5065d679c77ce43ea62a66f96b4a409d1a120538e",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/chat/ai-applied.png",
+      "sha256": "379ddc4b5bfa3fbe6602b8af5d94b8700377d95b2d1095a9b24ef45f9fcd720d",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/design/review-arrival.png",
+      "sha256": "e6c4f942b0f7f547596e0ac0d291328878262883afc27e70018be6d011cdf45b",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate3"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/design/full-json.png",
+      "sha256": "81b2b14076bb911d450f6ccbed78bbf8005bb101cf94bbab58fa381410e37ce2",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate3"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/design/advanced-materials.png",
+      "sha256": "c66b9eca212d82c5a1a5090acf46c2dd3c5d89a593d166c1f61c57565b0e9471",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate3"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/chat/ai-naming.png",
+      "sha256": "2aaf4035cfa3401fe0d48d64215bb227033c321345fa0fdadbb602737bd3055e",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate3"
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/chat/ai-applied.png",
+      "sha256": "2e4e6c31c4343b39ba3fd9ea6e6e16ef08e21d1475c7671eccf47cc592304ee9",
+      "viewedWith": "functions.view_image",
+      "hashMatchesReport": true,
+      "candidate": "candidate3"
+    }
+  ],
+  "evidenceLineage": {
+    "candidate4New": {
+      "chatChecks": 42,
+      "designChecks": 11,
+      "workspaceChecks": 62,
+      "reports": [
+        "artifacts/scrapyjs/design-20261101/candidate4/design/report.json",
+        "artifacts/scrapyjs/design-20261101/candidate4/chat/report.json"
+      ],
+      "status": "PASS_SIMULATED_UI",
+      "reviewerDidNotRerunFullDrivers": true
+    },
+    "candidate3Inherited": {
+      "review": "artifacts/scrapyjs/design-20261101/candidate3/independent-review.json",
+      "reviewSha256": "ddc6144d1979fac60e0c5ca7d00c38f288f9b1c2ff2d3a642f463baeaf625b29",
+      "scope": "仅CSS/公共组件不变的设计观察及先前滚动/样本/拖动检查；新截图和主链已独立复核，不将candidate3分直接冒称candidate4。",
+      "priorEvidenceLineage": {
+        "candidate3New": {
+          "chatChecks": 42,
+          "designChecks": 11,
+          "screenshotsViewed": 5,
+          "reports": [
+            "artifacts/scrapyjs/design-20261101/candidate3/design/report.json",
+            "artifacts/scrapyjs/design-20261101/candidate3/chat/report.json"
+          ]
+        },
+        "candidate2Inherited": {
+          "workspaceChecks": 62,
+          "report": "artifacts/scrapyjs/design-20261101/candidate2/design/report.json",
+          "status": "PASS_SIMULATED_UI_ON_PRIOR_CANDIDATE",
+          "notRelabeledAsCandidate3Run": true,
+          "basis": "冻结candidate2/3 manifest中App/model/Results与公共组件哈希未变化；变化仅AiPanel/style及相应工具dist产物。"
+        },
+        "sourceManifestChanges": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+          "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.css",
+          "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js",
+          "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+          "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/style.css"
+        ],
+        "priorObservationsReused": "只复用本评审者已查看的candidate2未改界面、公共配方、业务操作报告和已有轻微扣分；没有引用2026-10-31旧评分。",
+        "node10": "用户报告当前10项通过；本次未重跑、未将其充作新的独立执行。"
+      }
+    },
+    "sourceManifestChanges": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/build-ready.json",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/dist/tool.js",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/app-model.js"
+    ],
+    "unchangedSourceBoundary": "style.css、results.css、Results.jsx、公开共享组件与模板在candidate3/4来源清单中未变；App/model及AiPanel已变，因此本轮引用candidate4新62项工作区、42项Chat报告并独立验证主链。",
+    "screenshotComparison": [
+      {
+        "path": "design/review-arrival.png",
+        "candidate3Sha256": "e6c4f942b0f7f547596e0ac0d291328878262883afc27e70018be6d011cdf45b",
+        "candidate4Sha256": "e6c4f942b0f7f547596e0ac0d291328878262883afc27e70018be6d011cdf45b",
+        "byteIdentical": true,
+        "observation": "同状态截图字节一致，仍实际查看新图。"
+      },
+      {
+        "path": "design/full-json.png",
+        "candidate3Sha256": "81b2b14076bb911d450f6ccbed78bbf8005bb101cf94bbab58fa381410e37ce2",
+        "candidate4Sha256": "81b2b14076bb911d450f6ccbed78bbf8005bb101cf94bbab58fa381410e37ce2",
+        "byteIdentical": true,
+        "observation": "同状态截图字节一致，仍实际查看新图。"
+      },
+      {
+        "path": "design/advanced-materials.png",
+        "candidate3Sha256": "c66b9eca212d82c5a1a5090acf46c2dd3c5d89a593d166c1f61c57565b0e9471",
+        "candidate4Sha256": "c66b9eca212d82c5a1a5090acf46c2dd3c5d89a593d166c1f61c57565b0e9471",
+        "byteIdentical": true,
+        "observation": "同状态截图字节一致，仍实际查看新图。"
+      },
+      {
+        "path": "chat/ai-naming.png",
+        "candidate3Sha256": "2aaf4035cfa3401fe0d48d64215bb227033c321345fa0fdadbb602737bd3055e",
+        "candidate4Sha256": "2aaf4035cfa3401fe0d48d64215bb227033c321345fa0fdadbb602737bd3055e",
+        "byteIdentical": true,
+        "observation": "同状态截图字节一致，仍实际查看新图。"
+      },
+      {
+        "path": "chat/ai-applied.png",
+        "candidate3Sha256": "2e4e6c31c4343b39ba3fd9ea6e6e16ef08e21d1475c7671eccf47cc592304ee9",
+        "candidate4Sha256": "2e4e6c31c4343b39ba3fd9ea6e6e16ef08e21d1475c7671eccf47cc592304ee9",
+        "byteIdentical": true,
+        "observation": "同状态截图字节一致，仍实际查看新图。"
+      },
+      {
+        "path": "design/shared-chat-recipe.png",
+        "candidate3Sha256": "36e25cc9b2abd77dd0efe57796d74d8c2f376e25857ea6d1dbc58167457ec900",
+        "candidate4Sha256": "cba0597f52be772dddffc9588218437487e970dbddea2b5e875a6e188de953bf",
+        "byteIdentical": false,
+        "observation": "五张工具关键截图字节一致；公共配方图哈希不同，已实际查看，布局/组件及模拟blocked状态一致。"
+      }
+    ],
+    "node10": "用户报告candidate4当前10项PASS；本评审未独立重跑Node。"
+  },
+  "resolvedBlockers": [
+    {
+      "id": "REVIEW_VALUE_STICKY_OVERLAP",
+      "priorCandidate": "candidate2",
+      "priorScoreEffect": {
+        "requirements": -4,
+        "hierarchy": -6
+      },
+      "resolvedIn": "candidate3",
+      "proof": "独立动作栏不在scroll内；valueBottom653.078125 < actionsTop666.65625；overlap0；JSON末尾可达。"
+    }
+  ],
+  "remainingNonBlockingFindings": [
+    {
+      "dimension": "样式一致性",
+      "deduction": 2,
+      "issue": "重要辅助提示仍11px，冻结合同辅助字号12px。"
+    },
+    {
+      "dimension": "操作效率反馈",
+      "deduction": 1,
+      "issue": "命名期间发送阻断说明较泛化。"
+    },
+    {
+      "dimension": "键盘焦点",
+      "deduction": 1,
+      "issue": "原Enter发送后焦点落body现象维持；发送逻辑未改，未为新候选去除此扣分。"
+    },
+    {
+      "dimension": "可维护性",
+      "deduction": 2,
+      "issue": "旧.capture-app .ai-workspace选择器与document滚动说明仍残留。"
+    },
+    {
+      "dimension": "证据充分性",
+      "deduction": 1,
+      "issue": "当前工作区相对candidate4清单存在3项并行漂移：build-ready.json、App.jsx、tool.js；生成时零漂移不等于当前零漂移。"
+    }
+  ],
+  "previousReviews": [
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate2/independent-review.json",
+      "sha256": "c0cafbc6afb8141206483ca220fa1e5ec8a7e2c1ce9810ba74dfec8ddaf78903",
+      "candidate": "candidate2",
+      "previewSha256": "7563501d4bd2d81b95317e8fcef7b167ea96884c899d45cc41bbe55db685643d",
+      "status": "CHANGES_REQUIRED",
+      "scores": [
+        96,
+        98,
+        94,
+        99,
+        99,
+        100,
+        98,
+        98
+      ],
+      "preservedUnchanged": true
+    },
+    {
+      "path": "artifacts/scrapyjs/design-20261101/candidate3/independent-review.json",
+      "sha256": "ddc6144d1979fac60e0c5ca7d00c38f288f9b1c2ff2d3a642f463baeaf625b29",
+      "candidate": "candidate3",
+      "previewSha256": "faed6a4cc4a0f23881debd4fcd21aab235db4f7793369b1c4df497de6dd172a3",
+      "status": "PASS_OFFLINE_DESIGN",
+      "scores": [
+        100,
+        98,
+        100,
+        99,
+        99,
+        100,
+        98,
+        99
+      ],
+      "preservedUnchanged": true
+    }
+  ]
+}

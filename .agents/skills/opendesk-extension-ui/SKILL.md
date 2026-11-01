@@ -58,15 +58,13 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 独立运行页：使用同一 sidepanel.html React 应用及既有受信任运行 Host，不新增 SW/RunHost
 ```
 
-## 已安装应用的页内轻导航（R2.2，2026-10-26）
+## 已安装应用的页内轻导航（2026-11-01 修订）
 
-遇到「书签管理 / 设置」中间巨大空白，或「提示词快捷按钮 / 提示词详情」重复时，先查[现行 Sidebar Tool 导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，直接修共享正式业务页头，不另建 Nav、模拟 HTML 或第二套组件。**可见标题只保留当前层级**：工具根页「书签管理」，可信设置「设置」，书签编辑「编辑」，提示词详情「详情」，新建「新建」。完整应用/业务路径与实际版本放 `title`，完整上下文写入 `aria-label`；不使用两个 flex span 拉开父子文字。未知页名不可通过宽泛正则裁剪，确有溢出才使用 CSS 单次省略号。
+按[唯一 Sidebar Tool 导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)执行；R2.2“仅末级短标题、路径只放 title/ARIA”已被替代。先核对宿主已有返回、标题与主操作，再发现公开 `OpenDeskTool.setNavigation`、真实消费者及目标工具受信准入；能力存在，不能把未接入直接判成 API 缺失。
 
-职责：`src/ui/sidebar-tools/title-path.js` 一次返回 `{visible,context}` 两个字符串（特殊页名必须用 `Object.hasOwn` 核对映射，不能从原型继承），`src/ui/sidebar-tools.js` 由已安装元数据、真实业务导航及可信设置取得上下文，`src/ui/react/tabs/tool-host.tsx` 只渲染一个标题文本节点，不使用 `renderText` 子元素分支，并保留原返回操作，`src/ui/tool-shell.css` 仅处理可用宽度和按钮热区。设置区域保留 `aria-label`，移除重复「工具设置」H2。书签 React 的真实编辑 Sheet 可 Back 且继续脏草稿守卫；详情 PreviewPane、Dialog、菜单不可伪装路由。沙箱 `setNavigation` 必须沿原包字节、安装代际、实例和来源约束；显示缩写不改变权限、业务状态或 SDK。纯宿主改动无需重打未改动的书签及提示词 JSON 包。
+同一宿主页头连续显示工具/子页路径，scrapyjs 为根页“scrapyjs 采集”、子页“scrapyjs 采集/配置库”；唯一返回逐级走配置库→采集根页→扩展列表。内容仅业务，去掉重复标题、用途说明、返回及同一主操作；不恢复父子 flex span 分别占宽，不另建 Nav 或 Router。完整 title/ARIA 保留，但不替代可见路径。
 
-同步唯一产品/架构规范、相关工具 README 与定向回归，覆盖根页、设置、详情、新建/编辑、未知长标题、ARIA 完整路径、原 Back 安全边界和按钮空间。源码/CI 通过不等于本机已安装 Chrome 通过，未测标 `NOT_TESTED`。
-
-R2.2 生命周期检查：标题接收、呈现与动作发送都绑定当前完整包、安装代际及实例；撤销后清除旧导航，保留草稿不等于保留宿主控制权。重复打开同一有效可信 UI 不重建实例；延迟初始化/恢复失败不得销毁新工作区。书签编辑区 ARIA 复用同一业务页名。优先复用 `tests/environment/sidebar-tool-header-title-r2.test.mjs` 的纯字符串与静态契约、`sidebar-tools-view.test.mjs` 的真实 React SSR，以及 `sidebar-tool-hierarchical-back-r12.test.mjs` 的返回保护；没有可核查的同版本原生 Mac 证据时标 `NATIVE_NOT_TESTED`，不补跑无关矩阵凑分。
+实现沿原标题格式化、可信业务导航、ToolHost 与 CSS owner，只改本次授权范围。包字节、安装代际、实例/来源、撤权以及 dirty/busy/结果未知围栏保持；设置优先级、草稿与焦点恢复沿原生命周期。对同候选完整宿主视图验证唯一返回、正确层级和草稿/忙态保护，不能只截内容区。需要评分时明确扣除重复导航与冗余；未测原生项标 `NOT_TESTED`。旧候选工具/预览接入根因见同一导航合同的根因与修复记录；正式准入不得放宽，实际安装接入仍为 `NOT_TESTED`；纯文档修订只检查内容、链接与 Skill 格式。
 
 ## 共享 AI 设置与 Native Options 的两层交互（2026-10-26）
 

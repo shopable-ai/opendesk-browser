@@ -15,12 +15,17 @@ export interface ManagedStatus {
   reason: string | null;
   statusErrorCode?: string;
   permission?: boolean | null;
+  browserMode?: string | null;
+  /** Adapter resolves only the native-verified route; never saved intent alone. */
+  activeConfig?: ConfigState | null;
 }
 export interface ProxyServiceOptions {
   load(): Promise<{ config: ConfigState; etag: string }>;
   /** Return the confirmed new ETag (or {etag}); otherwise the service reloads. */
   save(config: ConfigState, etag: string): Promise<unknown>;
   status(): Promise<ManagedStatus>;
+  /** Pure adapter validation, before releasing a working route for replacement. */
+  validateApply?(config: ConfigState): void;
   apply(config: ConfigState): Promise<ManagedStatus>;
   stop(): Promise<ManagedStatus>;
   preview?: boolean;
@@ -66,7 +71,7 @@ function routeSignature(config: ConfigState): string {
   return JSON.stringify([mode]);
 }
 
-export function createProxyService({ load, save, status, apply, stop, preview = false }: ProxyServiceOptions) {
+export function createProxyService({ load, save, status, validateApply, apply, stop, preview = false }: ProxyServiceOptions) {
   let config: ConfigState;
   let etag: string;
   let active: ConfigState | null = null;
@@ -142,9 +147,19 @@ export function createProxyService({ load, save, status, apply, stop, preview = 
       unknown = true;
       fail('E_OUTCOME_UNKNOWN', 'Managed status was not confirmed');
     }
-    // Copy only public status fields; adapter extras must not enter service state.
+    const nativeModes = ['system','direct','auto_detect','fixed_servers','pac_script'];
+    if (value.browserMode != null && !nativeModes.includes(value.browserMode)) {
+      unknown = true; fail('E_OUTCOME_UNKNOWN', 'Native proxy mode was not confirmed');
+    }
+    if (Object.hasOwn(value, 'activeConfig')) {
+      active = value.state === 'enabled' && value.control === 'controlled_by_this_extension' &&
+        !value.statusErrorCode && value.permission !== false && value.activeConfig
+        ? clone(validateConfig(value.activeConfig)) : null;
+    }
+    // Copy only public observation fields; never expose adapter configuration extras.
     actual = { state: value.state, canStop: value.canStop && !['not_controllable', 'controlled_by_other_extensions'].includes(value.control), control: value.control,
       reason: typeof value.reason === 'string' ? value.reason : null,
+      ...(value.browserMode !== undefined ? { browserMode: value.browserMode } : {}),
       ...(value.permission !== undefined ? { permission: value.permission } : {}),
       ...(value.statusErrorCode !== undefined ? { statusErrorCode: value.statusErrorCode } : {}) };
     // A newly observed own route supersedes the historical release receipt.
@@ -168,14 +183,17 @@ export function createProxyService({ load, save, status, apply, stop, preview = 
   }
   function view(): ServiceState {
     const applied = actual.state === 'enabled' && actual.control === 'controlled_by_this_extension' && !!active && !unknown && !actual.statusErrorCode && actual.permission !== false;
+    const followingSystem = config.selection.mode === 'system' && !config.managed &&
+      confirmedDisabled(actual) && actual.browserMode === 'system' && !unknown;
     return clone({ config, runtime: {
       desired: config.selection, ...(active ? { activeSelection: active.selection } : {}),
+      ...actual,
       managedIntent: config.managed,
-      browserMode: active && actual.state === 'enabled' ? active.selection.mode : null,
+      browserMode: active && actual.state === 'enabled' ? active.selection.mode : actual.browserMode ?? null,
       applied,
-      pendingChanges: !applied || !active || routeSignature(active) !== routeSignature(config),
+      pendingChanges: !followingSystem && (!applied || !active || routeSignature(active) !== routeSignature(config)),
       proxyError: latestError ?? actual.reason, probe: null, credentialRequired: false,
-      ...actual, outcomeUnknown: unknown, stopFinalizationPending, preview
+      outcomeUnknown: unknown, stopFinalizationPending, preview
     } });
   }
   function notify() {
@@ -345,12 +363,34 @@ export function createProxyService({ load, save, status, apply, stop, preview = 
         if (actual.permission === false) fail('E_PERMISSION_DENIED', 'Managed proxy permission denied');
         if (unknown) fail('E_OUTCOME_UNKNOWN', 'Confirm STOP or disabled status before applying again');
         if (actual.state === 'conflict' || actual.state === 'unavailable') fail('E_NOT_CONNECTED', actual.reason ?? 'Managed proxy unavailable');
+        if (config.selection.mode === 'system') {
+          // Following the system releases only our exact owned preference. It is
+          // not an unmarked native system override, and never implies ownership.
+          if (actual.canStop || stopFinalizationPending) await dispatch({ type: 'STOP' });
+          if (!confirmedDisabled(actual)) fail('E_CONTROL_HELD', 'System fallback is not confirmed');
+          if (config.managed) await persist({ ...config, managed: false });
+          if (actual.browserMode !== 'system')
+            fail('E_SYSTEM_NOT_CONFIRMED', 'Released proxy does not report system mode');
+          latestError = null;
+          break;
+        }
         if (config.selection.mode === 'profile') {
           const selected = config.profiles.find(profile => profile.id === config.selection.profileId);
           if (!selected) throw new Error('请先选择要使用的配置');
           if (selected.kind === 'pac-inline' && message.approvedPac !== true) throw new Error('启用用户 PAC 必须明确确认');
         }
         const submitted = clone(config);
+        validateApply?.(clone(submitted));
+        if (actual.canStop || stopFinalizationPending) {
+          // Keep the original ownership protocol: release the exact old route,
+          // then ask the Host to review a new Enable. Never overwrite or replay.
+          await dispatch({ type: 'STOP' });
+          if (unknown || !confirmedDisabled(actual))
+            fail('E_OUTCOME_UNKNOWN', 'Confirm native release before enabling the replacement route');
+          const withoutIntent = (value: ConfigState) => JSON.stringify({ ...value, managed: false });
+          if (withoutIntent(config) !== withoutIntent(submitted))
+            fail('E_CONFLICT', 'Configuration changed while releasing the previous route');
+        }
         invalidate();
         // A new Enable attempt invalidates any previous release confirmation.
         stopFinalizationPending = false;
@@ -361,7 +401,7 @@ export function createProxyService({ load, save, status, apply, stop, preview = 
           const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
           // Only explicit preflight/authorization refusals prove no Enable effect.
           if (!['E_NOT_CONNECTED', 'E_UNSUPPORTED', 'E_PERMISSION_DENIED', 'E_REVOKED',
-            'E_TOOL_CHANGED', 'E_CONFLICT', 'E_PROXY_PROFILE_NOT_APPROVED'].includes(String(code))) unknown = true;
+            'E_TOOL_CHANGED', 'E_CONFLICT', 'E_CANCELLED', 'E_PROXY_PROFILE_NOT_APPROVED'].includes(String(code))) unknown = true;
           throw error;
         }
         const refusal = statusRefusal(actual);

@@ -115,6 +115,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
     view.dispatch('sidebar-tool-cookie-site-toggle','click',event.nativeEvent);
   };
   const permissionVisible=snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false||
+    snapshot.fields['sidebar-tool-proxy-consent']?.hidden===false||
     (snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&!cookieFirstUse);
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
@@ -200,8 +201,26 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
       }
     };
   },[importOpen,marketReview !== null,view]);
+  const actionReviewVisible=snapshot.fields['sidebar-tool-action-review']?.hidden===false;
+  React.useEffect(()=>{
+    if(!actionReviewVisible)return;
+    const panel=refs.current.get('sidebar-tool-action-review');
+    const doc=panel?.ownerDocument,prior=doc?.activeElement;
+    refs.current.get('sidebar-tool-action-cancel')?.focus({preventScroll:true});
+    return ()=>{
+      if(prior?.isConnected&&(panel?.contains(doc.activeElement)||doc.activeElement===doc.body))
+        prior.focus?.({preventScroll:true});
+    };
+  },[actionReviewVisible,view]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
-  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
+  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" aria-describedby="sidebar-tool-action-summary" hidden={true}
+  onKeyDown={event=>{
+    if(event.key==='Escape'){
+      event.preventDefault();event.stopPropagation();
+      view.dispatch('sidebar-tool-action-cancel','click',event.nativeEvent);
+    }
+  }}>
+<h2 className="sidebar-tool-action-title">确认操作</h2>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
 
 </ToolField>
@@ -657,6 +676,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </section>
 <section className="sidebar-tool-settings-permissions" aria-label="权限管理" hidden={!permissionVisible}>
 <BookmarkSettings/>
+<ToolField as="section" id="sidebar-tool-proxy-consent" className="od-surface od-surface--padded" aria-label="代理线路授权">
+<strong>代理线路授权</strong>
+<ToolField as="p" id="sidebar-tool-proxy-consent-info"/>
+<ToolField as="button" type="button" id="sidebar-tool-proxy-consent-revoke" className="od-button od-button--secondary"/>
+</ToolField>
 {!cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}
 </section>
 <section className="sidebar-tool-management" aria-label="应用管理">
@@ -716,23 +740,26 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </ToolField>
 </UninstallDialog>
 {cookieConsentVisible&&<CookieConsentDialog
-  disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true}
+  description={snapshot.fields['sidebar-tool-cookie-help']?.textContent||''}
+  disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true||
+    !snapshot.fields['sidebar-tool-cookie-help']?.textContent?.trim()}
   onClose={dismissCookieConsent} onAuthorize={requestCookieGrant}/>}
 </div></ToolContext.Provider>;
 }
 
-function CookieConsentDialog({disabled,onClose,onAuthorize}) {
+function CookieConsentDialog({description,disabled,onClose,onAuthorize}) {
   const closeRef=React.useRef(null),authorizeRef=React.useRef(null);
   React.useEffect(()=>{
     const prior=document.activeElement;
-    (disabled?closeRef.current:authorizeRef.current)?.focus({preventScroll:true});
+    closeRef.current?.focus({preventScroll:true});
     return ()=>{if(prior?.isConnected)prior.focus?.({preventScroll:true});};
   },[]);
   const content=<div className="sidebar-tool-cookie-consent-overlay">
     <section role="dialog" aria-modal="true" aria-labelledby="sidebar-tool-cookie-consent-title"
+      aria-describedby="sidebar-tool-cookie-consent-description"
       className="sidebar-tool-cookie-consent-dialog"
       onKeyDown={event=>{
-        if(event.key==='Escape'){event.preventDefault();onClose();return;}
+        if(event.key==='Escape'){event.preventDefault();event.stopPropagation();onClose();return;}
         if(event.key!=='Tab')return;
         const buttons=[closeRef.current,authorizeRef.current].filter(node=>node&&!node.disabled);
         if(!buttons.length)return;
@@ -751,6 +778,9 @@ function CookieConsentDialog({disabled,onClose,onAuthorize}) {
             strokeWidth="1.8" strokeLinecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg>
         </button>
       </div>
+      <p id="sidebar-tool-cookie-consent-description" className="sidebar-tool-cookie-consent-description">
+        {description||'正在读取授权范围，请稍候。'}
+      </p>
       <button type="button" id="sidebar-tool-cookie-consent-allow" ref={authorizeRef}
         data-cookie-grant-only="true"
         className="od-button od-button--primary sidebar-tool-cookie-consent-allow"

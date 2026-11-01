@@ -1,0 +1,93 @@
+{
+  "scope": "继续完善React企业服务列表，与原HTML静态展示保持相似",
+  "phase": "CURRENT_SOURCE_DEV_UI_VERIFIED_NOT_PACKAGED_OR_INSTALLED",
+  "owner": "examples/sidebar-tools/cookie-editor/",
+  "entry": "http://127.0.0.1:43134/dev.html",
+  "retained": [
+    "原两条虚构服务：本机额度服务、示例公司；正式UI仍只消费Domain状态",
+    "原四项席位/预算/未接入资源",
+    "完整企业介绍、团队场景、官方席位与定制入口、六Tab",
+    "添加/取消/返回/保存和原权限、未知结果保护"
+  ],
+  "changes": [
+    "标题与说明合组，刷新与添加靠右",
+    "类型前缀+来源、本机图表/公司图标、带图标状态、关联计数和详情/连接动作对齐HTML",
+    "已连接状态使用原serviceOpen；未知结果只serviceReconcile/serviceStatus，不重复写入；失效状态先进入详情",
+    "空态提供一个文字添加服务主操作",
+    "关联计数排除已撤销绑定，辅助说明不代表已核验或同步授权",
+    "图标复用CookieIcon注册表，按钮复用现有CookieIconButton及@opendesk/ui Button和canonicalTokens"
+  ],
+  "changedThisRound": [
+    "app/components/CookieHttpConnections.jsx",
+    "app/components/CookieEditorView.jsx",
+    "src/react.css",
+    "tests/http-connections-ui.test.mjs",
+    "tests/service-form-source-interactions.mjs",
+    "README.zh-CN.md",
+    "preview/README.zh-CN.md"
+  ],
+  "sourceInputs": {
+    "app/CookieEditorApp.jsx": "37bd573b2fc83380b062e8830310126bed237295a7e37551ccf0cb508a9900db",
+    "app/components/CookieBusinessPanels.jsx": "e585f7c1cb7f4610676dea027ab68d6d84cbe38d2fa516d03a55a2326ae61012",
+    "app/components/CookieHttpConnections.jsx": "bf01ba413e7940784dbf22ce0513c80c604e7ddfd65d1ebb6da96375ea034d4b",
+    "src/react.css": "9201d5687202dbe0dc26bcbddd3d3c9f2c5e9c726086e3d2daada821ecc9f3aa",
+    "preview/react/src/App.jsx": "18e9a2e984682e1193baf4a67161263f6e1a1f8a0c13b33c37febf227da8b6d3",
+    "preview/react/src/mock-sdk.js": "c70b41c2d2a475c95d0dfb3f09549fdea4b4d0dac4bad049f919bd8bc029a10f",
+    "app/components/CookieEditorView.jsx": "86a13620b85bbbf43a9700c104d2581d0aad47b77f0e467bbe1fd53092cb3e3f",
+    "preview/cookie-editor.html": "95dd1c9163a1d603b375244127f64690d7211f92b49e1b1d06c1fb57573792ff"
+  },
+  "verification": [
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "25/25 PASS",
+      "purpose": "新增列表动作/空态/计数/返回焦点及受影响来源、身份、未知结果、策略、六Tab消费者"
+    },
+    {
+      "command": "COOKIE_SOURCE_EVIDENCE=artifacts/cookie-enterprise-react-list-20261031/final node examples/sidebar-tools/cookie-editor/tests/service-form-source-interactions.mjs",
+      "result": "9/9 PASS",
+      "report": "artifacts/cookie-enterprise-react-list-20261031/final/interactions.json",
+      "pageErrors": [],
+      "nonPreviewNetwork": [],
+      "purpose": "同数据HTML/React对照，列表/详情/添加取消/独立类型草稿/保存追加/空态/配对保护"
+    },
+    {
+      "result": "PASS",
+      "purpose": "PostCSS解析、脚本语法、相关git diff --check、当前文档本地链接"
+    }
+  ],
+  "review": {
+    "role": "independent code-reviewer",
+    "result": "无必须修复项；只读审查当前源码",
+    "limits": "复用父任务测试；其观察的after/截图及首轮报告早于最后焦点修复；父任务随后final/9项重跑与8个当前源码SHA核对通过"
+  },
+  "preview": {
+    "mode": "CURRENT_SOURCE_DEV",
+    "entry": "preview/react/src/main.jsx",
+    "sourceHash": "12443feb80c6b3eb9c78946f3acd092440a2b840d6a07ab29f451ca839eac2a8",
+    "existingSharedUIArtifact": true,
+    "sourceBuildProof": false,
+    "dimensions": "既有1000x900普通窗口/380px预览，无宽度缩放矩阵"
+  },
+  "screenshots": {
+    "current": "artifacts/cookie-enterprise-react-list-20261031/final/list.png",
+    "region": "artifacts/cookie-enterprise-react-list-20261031/final/list-region.png",
+    "empty": "artifacts/cookie-enterprise-react-list-20261031/final/empty.png",
+    "html": "artifacts/cookie-enterprise-react-list-20261031/html-list.png"
+  },
+  "unchangedPackage": {
+    "version": "2.0.59",
+    "sha256": "3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c"
+  },
+  "notTested": [
+    "本轮UI的安装版Chrome",
+    "真实已连接管理页/公司服务及额度",
+    "production、完整无障碍、正式发布验收"
+  ],
+  "notPerformed": [
+    "版本/打包/安装/发布/提交/推送",
+    "Browser SDK/Host/Native修改",
+    "原58626与被策略拒绝的旧标签操作",
+    "评分、宽度缩放矩阵与全量CI"
+  ],
+  "checkedAt": "2026-10-31T11:58:27.268Z"
+}

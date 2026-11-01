@@ -19,6 +19,8 @@ node scripts/sidebar-preview-kit.mjs create --out artifacts/sidebar-preview-kit/
 
 这是**独立离线设计文档**。只修改 `#od-preview-app` 内部 HTML，以及 `#od-preview-behavior` 中 `/* DESIGN_APP_BEHAVIOR */` 标记之后的工具模拟逻辑；标记及之前的共享宿主交互受 check 保护；保护其他区域和全部 CSS。用 od-* 公共组件，不另造按钮视觉。应用外部辅助区支持模拟已授权/未授权/撤权/加载/空/失败/长文本与恢复；light/dark 仅改变应用，宿主始终 light；主操作、表单错误、取消、危险确认和焦点恢复要实际可演示。实际扩展、Host/SDK、安装包与网站权限不在本阶段调用。
 
+先核对完整宿主已有返回、标题和主操作，再查公开导航能力、真实消费者及受信准入；按[唯一导航合同的接入与验证顺序](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)对齐预览导航 Mock。能力存在，不直接判 API 缺失。同一页头显示工具/子页路径；scrapyjs 为“scrapyjs 采集/配置库”，唯一返回配置库→采集根页→扩展列表，内容只保留业务。对同候选完整宿主视图验证唯一返回、逐级目标、草稿/忙态及未知保护；只看内容或裁掉宿主页头不算通过。评分适用时显式扣重复导航、标题/说明/主操作冗余；旧候选接入根因见同一导航合同的根因与修复记录；正式 scrapyjs 尚无导航准入，实际安装接入为 `NOT_TESTED`，不得放宽。模型可编辑区不因导航需求扩权，受保护外壳需要适配时交原模板 owner，不在内容里补第二个返回或手改生成 HTML。
+
 设计稿应用区不放预览说明、状态/主题控件或“重置模拟数据”操作，不重复工具标题；这些辅助内容留在应用之外。顶部正式工具标题已有 `role="heading"`，应用内不放 `h1`；未保存表单期间禁用外部状态/主题/恢复，取消或 Escape 返回后恢复这些控件。
 
 已有工具精简界面时，依照[内容区与状态行规范](../../../docs/api/sidebar-tool-development.zh-CN.md#6-统一-uiux-与代码质量规范)同步正式源码与原交互 HTML：去掉重复对象/检测说明，区域刷新靠右上角，状态文案自然撑高且底部留白均衡；移除节点后也要移除模拟脚本中的对应访问。只检查本次移动按钮、状态换行与反馈间距；独立设计稿仍标为模拟，不宣称安装包同源或原生通过。
@@ -109,7 +111,9 @@ quick-notes 的 `--scenario` 值为 `success / permission-denied / revoked / loa
 
 模板完善与新设计先运行原 `sidebar-preview-kit.mjs create`，从同目录 `components.html` 实际操作真实共享 Button/IconButton/Card/Switch，读取 `component-recipes.md` 的 HTML/JSX 接入；设计稿外部有直接入口。不是另建 Atlas，完整参考仍用 `prototypes/sidebar/extension-ui-showcase/index.html`。具体支持、源码及边界见[组件与组合入口](../../../docs/api/sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)。
 
-默认复用 Card、od-form-field/label/field/help/error、od-alert 及各语义状态组合，不能只要求“遵守规范”。React 从现有 `@opendesk/ui` 导入，原生字段不是虚构的 Field/Select API；运行时不自动发布全套表单/布局 CSS，需要时由工具静态 CSS 显式编译 canonical 规则。HTML 原工具继续原生语义，原共享样式提取器现已输出同源 Card 子集，不手绘 React Aria Switch。组件示例为 SOURCE_COMPONENT_PREVIEW，单独保存源/依赖/产物 SHA，不能冒充安装包或 Native 验收。
+采用官方 React Aria 视觉时，应用根显式选入 `od-theme-shadcn`，复用现有 aria-nova / Neutral Tokens；Button 用 `base="aria"`，Input/Textarea/Switch 使用真实 React Aria。原 Button 默认 native 与旧工具皮肤保持。数值与明确偏离见[唯一规范](../../../docs/api/sidebar-tool-development.zh-CN.md#获批官方风格试点2026-11-01)。
+
+按任务组合 Card、od-form-field/label/field/help/error、od-alert，不逐项套卡。React 从现有 `@opendesk/ui` 导入；主题内已有控件外观，标签/帮助/错误和布局仍由工具静态 CSS 显式编译 canonical 规则。没有 Field/Select/Dialog 导出。HTML 原工具保留原生语义，同源 Card 子集由原提取器输出，不手绘 React Aria Switch。组件示例为 SOURCE_COMPONENT_PREVIEW，单独保存源/依赖/产物 SHA，不能冒充安装包或 Native 验收。
 
 
 共享 Chat 配方从同一 `components.html` 进入；先区分 Frame 消息/输入片段与完整工具栏 Chat 组合。Frame CSS 随同源组件编译；session 按挂载稳定创建、订阅并在卸载清理。有界 flex column 使用 min-height:0、overflow:hidden，消息区局部滚动，输入不被压缩；示例 360px 不是通用高度。外部 ready/busy/error/blocked/review 仅改本页内存。

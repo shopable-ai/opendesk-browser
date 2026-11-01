@@ -141,7 +141,7 @@ test('R1.3 both generated TOC preview entrypoints contain executable inline JS',
   }
 });
 
-test('R1.4 checked-in interactive previews are byte-reproducible from the current official UI and trusted overlay',async()=>{
+test('R1.4 the single saved preview is byte-reproducible from the current official UI and trusted overlay',async()=>{
  const root='projects/reading-toc/preview/';
  const packageData=await createSidebarToolPackage('projects/reading-toc');
  const pkgDigest=createHash('sha256').update(JSON.stringify([
@@ -157,18 +157,13 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
  const fixtures=await readFile('scripts/preview/reading-toc-mock.js','utf8');
  assert.match(fixtures,/id:'h-13',sourceId:'s-2',label:'重复标题'/,
   'offline AI answer reproduces the real duplicate-H2 native regression');
- for(const [surface,file] of [
-  ['side-panel','reading-toc-r12-interactive-preview.html'],
-  ['page-overlay','reading-toc-r12-overlay-preview.html'],
-  ['page-overlay','index.html']
- ]){
-  const saved=await readFile(root+file,'utf8');
-  const generated=await generatePreview({tool:'reading-toc',surface,
+  const saved=await readFile(root+'index.html','utf8');
+  const generated=await generatePreview({tool:'reading-toc',surface:'page-overlay',
    scenario:'success',theme:'light',width:360,height:760});
   const marker=saved.match(/<script type="application\/json" id="opendesk-preview-manifest">([\s\S]*?)<\/script>/);
   assert(marker,'offline interactive HTML must embed a provenance manifest');
   const metadata=JSON.parse(marker[1]);
-  assert.equal(metadata.surface,surface);
+  assert.equal(metadata.surface,'page-overlay');
   assert.equal(metadata.toolVersion,packageData.version);
   assert.equal(metadata.uiSha256,pkgDigest,'preview embeds the installed tool package bytes');
   assert.equal(metadata.trustedOverlaySourceSha256,trustedDigest,
@@ -182,6 +177,5 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
   // If any real UI, translated text, source adapter or test fixture drifts,
   // this assertion fails instead of silently shipping an outdated snapshot.
   assert.equal(saved.replaceAll(metadata.sourceCommit,generated.manifest.sourceCommit),
-    generated.html,'checked-in '+surface+' preview must exactly match the official builder');
- }
+    generated.html,'the single saved preview must exactly match the official builder');
 });

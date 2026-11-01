@@ -1,0 +1,325 @@
+{
+  "kind": "source-bound Chromium memory UI",
+  "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-3732d56d-f9e0-4c71-95d4-728229077021/preview.html",
+  "browser": "155.0.8059.39",
+  "at": "2026-10-31T10:09:15.005Z",
+  "checks": [
+    "Subscription/local Cancel and Escape both Keep every draft field or discard only after confirmation",
+    "Local-client edit opens the selected endpoint; discard/save return to its original row and focus without adding or applying",
+    "No mixed add menu; import opens backup, subscription opens its URL form, local client opens its port form",
+    "No business Tabs; seven settings sections; zero stacked margins; uniform two-line rows; inline local-client status",
+    "Expanded PAC icons have labels, 34px targets, keyboard focus and same-row layout; edit refills, replacement Keep/discard and delete Cancel/confirm work; save remains unapplied",
+    "PAC uses shared 16/12/8 rhythm; closing settings keeps or discards its independent draft",
+    "Selection is exposed with aria-pressed and does not claim applied routing",
+    "Single form gutter; 12px group/8px label rhythm; invalid port rejected; Enter saves without applying",
+    "Proxy dirty Escape preserves on Keep, discards on confirmation and returns focus to edit icon",
+    "Proxy footer Cancel, X and Escape share dirty Keep/discard confirmation and return focus",
+    "Icon rules preserve domain/scope labels; keyboard opens editor; closing settings keeps/discards draft; panel restores gear focus"
+  ],
+  "errors": [],
+  "external": [],
+  "screenshots": {
+    "profiles": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/profiles.png",
+      "sha256": "8592f903bff01080a38cce139fa867607e5c681258e9a5f102536c393ec6fe7c"
+    },
+    "import-focus": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/import-focus.png",
+      "sha256": "9336fa5a0dc68b482eb3f6438453e032e3284f6dfb84d88dba68bed410163d97"
+    },
+    "pac": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/pac.png",
+      "sha256": "4f074da34b08fb0ea10b26cfc6f3759d150359d847aea70ca420026f51f00dd7"
+    },
+    "add-proxy": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/add-proxy.png",
+      "sha256": "74767b7a57c0b55cb9db5dae97c98a2e5a95506bb8b7fd72bb4dc38c525d0de4"
+    },
+    "rules": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/rules.png",
+      "sha256": "26502ec20d88c6191ee118d04da0e7861bf736cce437b6f30794f4e338737c6f"
+    },
+    "rule-editor": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/rule-editor.png",
+      "sha256": "908d93270e08088a7bcb8da7bc4d8ba20a75a4f63bbb83b634d5e67f32f2b410"
+    },
+    "long-rule-target": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/long-rule-target.png",
+      "sha256": "d6baf4e826cfe133e575154959fa877faac791ccb3828957b0baf71b0e1d860a"
+    },
+    "long-rule-keyboard": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/configuration-actions-20261031/long-rule-keyboard.png",
+      "sha256": "930f7793377c993d1cf3eed7142a01da2516e1a2b966767d85990db951ab58c3"
+    }
+  },
+  "metrics": {
+    "profiles": {
+      "content": {
+        "height": 1016.84375,
+        "margin": "0px",
+        "padding": "12px",
+        "gap": "16px",
+        "borderTop": "0px"
+      },
+      "header": {
+        "height": 59.1875,
+        "margin": "0px",
+        "padding": "0px",
+        "gap": "12px",
+        "borderTop": "0px"
+      },
+      "list": {
+        "height": 200,
+        "margin": "0px",
+        "padding": "0px",
+        "gap": "0px",
+        "borderTop": "0px"
+      },
+      "rows": [
+        {
+          "height": 66,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "0px"
+        },
+        {
+          "height": 67,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "1px"
+        },
+        {
+          "height": 67,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "1px"
+        }
+      ]
+    },
+    "sections": [
+      {
+        "class": "panelHead optionsPageHead profilePanelHead",
+        "margin": "0px",
+        "before": null
+      },
+      {
+        "class": "listSection",
+        "margin": "0px",
+        "before": 16
+      },
+      {
+        "class": "optionsModeBar",
+        "margin": "0px",
+        "before": 16
+      },
+      {
+        "class": "pacDetails",
+        "margin": "0px",
+        "before": 16
+      },
+      {
+        "class": "r83RotationSettings",
+        "margin": "0px",
+        "before": 16
+      },
+      {
+        "class": "serviceNote",
+        "margin": "0px",
+        "before": 16
+      }
+    ],
+    "icons": [
+      {
+        "label": "返回代理面板",
+        "title": "返回代理面板",
+        "width": 34,
+        "height": 34,
+        "focus": true,
+        "outline": "solid",
+        "outlineWidth": "2px"
+      },
+      {
+        "label": "选择 工作代理",
+        "title": "选择 工作代理",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "编辑 工作代理",
+        "title": "编辑 工作代理",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "删除 工作代理",
+        "title": "删除 工作代理",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "选择 本地客户端",
+        "title": "选择 本地客户端",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "编辑 本地客户端",
+        "title": "编辑 本地客户端",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "删除 本地客户端",
+        "title": "删除 本地客户端",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "选择 备用 SOCKS",
+        "title": "选择 备用 SOCKS",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "编辑 备用 SOCKS",
+        "title": "编辑 备用 SOCKS",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      },
+      {
+        "label": "删除 备用 SOCKS",
+        "title": "删除 备用 SOCKS",
+        "width": 34,
+        "height": 34,
+        "focus": false,
+        "outline": "none",
+        "outlineWidth": "3px"
+      }
+    ],
+    "pac": {
+      "gap": "16px",
+      "children": [
+        {
+          "margin": "0px"
+        },
+        {
+          "margin": "0px"
+        },
+        {
+          "margin": "0px"
+        },
+        {
+          "margin": "0px"
+        }
+      ],
+      "fieldsGap": "12px",
+      "fieldGaps": [
+        "8px",
+        "8px",
+        "8px",
+        "8px"
+      ],
+      "actionsGap": 16
+    },
+    "pacRecord": {
+      "height": 67.4375,
+      "columns": "240px 76px",
+      "sameRow": true,
+      "icons": [
+        {
+          "label": "编辑 PAC 示例",
+          "title": "编辑 PAC 示例",
+          "width": 34,
+          "height": 34,
+          "focus": true,
+          "outline": "2px"
+        },
+        {
+          "label": "删除 PAC 示例",
+          "title": "删除 PAC 示例",
+          "width": 34,
+          "height": 34,
+          "focus": false,
+          "outline": "3px"
+        }
+      ]
+    },
+    "dangerHover": {
+      "color": "rgb(174, 61, 75)",
+      "background": "rgb(255, 240, 241)"
+    },
+    "form": {
+      "display": "grid",
+      "gap": "16px",
+      "padding": "16px",
+      "dialogPadding": "0px",
+      "fieldsGap": "12px",
+      "actionsMargin": "0px",
+      "actionsBefore": 16,
+      "fieldGaps": [
+        "8px",
+        "8px",
+        "8px",
+        "8px"
+      ],
+      "childMargins": [
+        {
+          "class": "proxyEditorFields",
+          "margin": "0px"
+        },
+        {
+          "class": "editorActions",
+          "margin": "0px"
+        }
+      ]
+    },
+    "rules": [
+      {
+        "height": 66,
+        "gap": "8px",
+        "state": "已启用"
+      },
+      {
+        "height": 67,
+        "gap": "8px",
+        "state": "已启用"
+      }
+    ],
+    "ruleForm": {
+      "gap": "16px",
+      "fieldsGap": "12px",
+      "actionsMargin": "0px",
+      "actionsBefore": 16,
+      "originBefore": 12
+    }
+  },
+  "result": "FAIL",
+  "failure": "locator.click: Timeout 7000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#opendesk-preview-frame').contentFrame().locator('#proxy-confirm-cancel')\u001b[22m\n\n    at /Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/scripts/navigation-density-preview.mjs:215:97"
+}

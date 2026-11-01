@@ -9,7 +9,7 @@ export function trialRequirement(config){
   return `仅采集 ${config.url} 及同源下一页的公开列表。保持当前配置字段、去重键及分页上限，生成本地静态 CSS 声明式规则；先试采 3 页。缺失字段保留空字符串，不进入详情、不登录、不执行代码，不保存或启动 full。`;
 }
 export function validateLocalCapture(value,validate){
-  const config=validate(value,{runtime:'local'});
+  const {output,...config}=validate(value,{runtime:'local'});
   const allowed=['url','itemConfig','nextPageSelector','maxPages','dedupeKey','timeoutMs','waitForSelector'];
   const unsupported=Object.keys(config).filter(key=>!allowed.includes(key));
   if(unsupported.length)throw Error('本机静态采集不支持 '+unsupported.join('、')+'；原配置已保留，可使用原浏览器采集。');

@@ -39,6 +39,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 **开发前发现与复用**：先执行[唯一工作流的发现与复用步骤](../../workflows/extension-creation.md#二-b发现与复用)，记录实际 owner/入口、下一条操作、已有消费者、公开边界及复用判断。新正式 Sidebar 产品默认 `projects/<id>/`，教学示例位于 `examples/sidebar-tools/<id>/`；已有正式项目服从自身 README/配置及实际消费者，不重建旧目录。AI Chat 先读[公共职责与最小接入](../../../docs/api/sidebar-tools-ai.zh-CN.md#独立-chat-的职责与最小接入)，复用业务无关展示/会话和受控推理；最小消费者片段仅作辅助，不复制书签 App，不把书签业务当成共享合同。业务 adapter 留工具，公共出口不足先按工作流取证再交 Runtime owner，不让普通作者先研究 Go。真实 Native/平台故障仍由对应 owner 处理，不能以此建立路径禁令。
 
+**页头与子页接入**：先核对完整宿主已有返回/标题/主操作，再查公开导航能力、真实消费者与受信准入，按[唯一导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)复用 `OpenDeskTool.setNavigation`，不把未接入当成 API 缺失。同一宿主页头显示工具/子页路径；scrapyjs 配置库返回采集根页，再回扩展列表，可见标题为“scrapyjs 采集/配置库”。内容仅业务，去掉重复标题/说明/返回和同一主操作。对同候选完整宿主视图验证唯一返回、层级、草稿/忙态及未知保护；评分适用时显式扣重复导航/冗余。旧候选工具/预览未接入及正式准入边界见同一导航合同的根因与修复记录；实际安装接入仍为 `NOT_TESTED`，不得放宽准入。
+
 ## 工具项目归属与演进顺序（2026-10-30 更新）
 
 **目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的当前限制与迁移顺序以该合同第 6–7 节为准，不能把目录设计说成 runner 已修复。
@@ -97,7 +99,7 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 **内容区精简与状态间距**：按[统一 UI 规范](../../../docs/api/sidebar-tool-development.zh-CN.md#6-统一-uiux-与代码质量规范)移除不提供目标选择的重复对象/检测说明，刷新放在所属区域右上角；不为刷新另留空行。同步删除失效的 DOM 查询和冗余渲染，保留实际状态、忙碌锁及可访问名称。状态行自然撑高，检查分隔线到文字、文字到卡片底部的留白，不用固定最小高度或纵向均分填充。正式源码与已有交互 HTML 同步修改，只验证受影响的操作与状态。
 
-**子视图标题同步（R2.2）**：业务通过原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 继续上报**完整**业务页名（例如「提示词详情」「编辑书签」）；已验真宿主的共享 Header **只显示当前短名称**（「详情」「编辑」；可信设置「设置」；根页仍为工具名）。完整工具/业务路径在可信 `title` / `aria-label` 中，不在沙箱里删业务含义，也不创建面包屑、第二条 Header 或父子 flex 拉伸留白。普通第三方或未验真的同 ID 包保留自己的内部导航，不能控制可信标题。书签 React 的新建/编辑 Sheet 有真实 `requestCloseSheet()` 和脏草稿 Back，允许显示短标题；详情 PreviewPane、菜单仍非子路由。权限、保存锁和返回操作不由标题字符串决定。详见[共享导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；纯 Browser Host 修复不必重打未改动的 JSON 包。
+**子视图标题同步**：业务沿原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 上报真实业务页名；共享 Header 按[现行导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)显示工具/子页路径，替代 R2.2 的末级短标题限制。未验真同 ID 包不能控制可信标题。书签新建/编辑 Sheet 仍走真实 `requestCloseSheet()` 与草稿 Back，详情 PreviewPane、菜单不伪装子路由；权限、保存锁和返回操作不由标题字符串决定。纯 Host 修复无需重打未改动的 JSON 包。
 
 R2.2 增量约束：新建/编辑表单的区域 ARIA 名称复用已有业务导航标题；不要另写一套状态映射。旧实例收到撤权后即使保留可复制草稿，也不能再更新可信标题或接收宿主导航动作；延迟恢复回调须绑定原实例。书签本轮已执行记录见[R2.2 本地证据](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)。只复验当前变更影响的操作；不重复已通过矩阵，不为静态可信 React/Host 修复重打未变化的 JSON。
 

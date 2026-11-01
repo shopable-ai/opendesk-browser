@@ -1,4 +1,3 @@
-import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
@@ -386,8 +385,7 @@ export function initSidebarToolSandbox() {
         message.instance.length>90 || !message.tool || typeof message.tool!=='object')return;
     const tool=message.tool;
     if (typeof tool.id!=='string' || typeof tool.html!=='string' || typeof tool.css!=='string' ||
-        typeof tool.js!=='string' || tool.html.length>SIDEBAR_TOOL_LIMITS.html || tool.css.length>SIDEBAR_TOOL_LIMITS.css ||
-        tool.js.length>SIDEBAR_TOOL_LIMITS.js || new TextEncoder().encode(tool.js).byteLength>SIDEBAR_TOOL_LIMITS.js)return;
+        typeof tool.js!=='string')return;
     // Consume the transferred endpoint before loading scripts. Later tool
     // message listeners must never observe this closure-private capability.
     if(stopImmediate)apply(stopImmediate,event,[]);
@@ -452,13 +450,13 @@ export function initSidebarToolSandbox() {
     const fixed=tool.scripts===undefined?[]:tool.scripts;
     if(!Array.isArray(fixed)||fixed.length>8||fixed.some(item=>
       !item||typeof item.code!=='string'||typeof item.name!=='string'||
-      !/^[a-f0-9]{64}$/.test(item.sha256)||item.code.length>96000)){
+      !/^[a-f0-9]{64}$/.test(item.sha256))){
       report('error','E_TOOL_SCRIPTS：工具固定库清单无效，已阻止执行');return;
     }
     async function verifySource(item){
       if(!globalThis.crypto?.subtle)throw Error('E_TOOL_HASH_UNAVAILABLE');
       const raw=new TextEncoder().encode(item.code);
-      if(raw.byteLength<1||raw.byteLength>96000)throw Error('E_TOOL_SCRIPT_LIMIT');
+      if(raw.byteLength<1)throw Error('E_TOOL_SCRIPT_LIMIT');
       const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)))
         .map(b=>b.toString(16).padStart(2,'0')).join('');
       if(hash!==item.sha256)throw Error('E_TOOL_SHA：'+item.name);

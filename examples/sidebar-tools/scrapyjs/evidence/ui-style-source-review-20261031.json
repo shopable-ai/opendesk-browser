@@ -1,0 +1,2608 @@
+{
+  "format": "opendesk.independent-ui-design-review.v1",
+  "reviewedAt": "2026-10-31T12:17:31.335839+00:00",
+  "reviewer": "independent designer, current-candidate observation only",
+  "verdict": "PASS_SCOPED_OFFLINE_DESIGN_REVIEW_WITH_MINOR_DEDUCTIONS",
+  "candidate": {
+    "path": "artifacts/scrapyjs/style-source-20261031/candidate3/preview.html",
+    "sha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5",
+    "expectedSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5",
+    "manifest": "artifacts/scrapyjs/style-source-20261031/candidate3/preview.manifest.json",
+    "browserReport": "artifacts/scrapyjs/style-source-20261031/candidate3/browser-report.json",
+    "browserReportSha256": "c42ad677e0e2c9b6fd8841beec7abcb64b9c9d81904750997c1c4c79684e2a01",
+    "framework": "React 19.2.0 + existing Vite/IIFE pipeline",
+    "evidenceLevel": "SOURCE_COMPONENT_PREVIEW / simulated SDK",
+    "manifestSha256": "5d1a5c140402745fc37c86c2d2d69f33a29cfe0ece04e91b7efebf30296e7317"
+  },
+  "rubric": {
+    "path": "examples/sidebar-tools/scrapyjs/preview/DESIGN.md",
+    "sha256": "9b32e27598a256db7f1d0f0bad0d301516a002a9d6c6b6063f4b9275c867fa81",
+    "dimensions": 8,
+    "itemsPerDimension": 5,
+    "maxPerItem": 20,
+    "thresholdPerDimension": 96,
+    "deductionPolicy": {
+      "minor": [
+        1,
+        3
+      ],
+      "operationImpact": [
+        4,
+        10
+      ],
+      "unavailable": [
+        11,
+        20
+      ]
+    },
+    "oldScoresUsed": false,
+    "missingEvidenceDoesNotImplyFullScore": true
+  },
+  "scope": {
+    "mode": "独立只读设计复评",
+    "productOrGeneratedFilesEdited": false,
+    "servicesStartedOrStopped": false,
+    "gitCommitOrPush": false,
+    "onlyWrittenFile": "examples/sidebar-tools/scrapyjs/evidence/ui-style-source-review-20261031.json",
+    "browser": "isolated ephemeral headless Chromium, file://, memory mock, outbound HTTP(S) aborted, no persistent product profile",
+    "noRealUnknownOperation": true,
+    "placement": "配置后 / 目标前",
+    "flowContract": "页面可流式；消息区有界；输入不得压缩；360px仅示例"
+  },
+  "attribution": {
+    "baselineChatFont": "原始基线computed已是比例字体；本次不重新评判基线截图。",
+    "migrationIntermediateRisk": "高特异性.capture-app textarea属于canonical迁移中间候选风险；candidate2以:not(.od-conversation-input)排除且computed证明比例字体。",
+    "originalCauses": [
+      "工具未接canonical字段/disclosure",
+      "工具容器/输入位置不合适"
+    ],
+    "sharedFrameCSSMissing": false,
+    "requestStateMachine": "ai-request.js / ai-pending.js / ai-config.js相对HEAD无diff；UI展示/保存反馈关联有改动。"
+  },
+  "prerequisites": {
+    "inPlaceSharedChat": "PASS_OFFLINE",
+    "canonicalContentBeyondShell": "PASS_SOURCE_DOM_COMPUTED",
+    "sourceAndScreenshotIdentity": "candidate3新HTML SHA、1369项sourceLock与11张当前截图匹配；原详细内嵌记录明确归属candidate2。",
+    "publicChatReference": "PASS_SOURCE_AND_MEMORY_ONLY"
+  },
+  "summaryScores": {
+    "需求符合度": 100,
+    "样式一致性": 99,
+    "信息层级可读性": 99,
+    "操作效率反馈": 99,
+    "键盘焦点": 98,
+    "组件复用隔离": 100,
+    "可维护性": 98,
+    "证据充分性": 98
+  },
+  "dimensions": [
+    {
+      "name": "需求符合度",
+      "items": [
+        {
+          "name": "就地Chat",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "AI 在配置后、目标前就地展开，配置、目标、页签与原编辑器保持挂载；位置以本轮最新文档为准。",
+          "evidence": [
+            "App.jsx:161-212",
+            "AI browser checks 1-3",
+            "ai-expanded.png"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "业务草稿保留",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "实测保留同一字段编辑节点、未应用字段、畸形 JSON、已有结果、对话输入与消息滚动位置。",
+          "evidence": [
+            "AI browser checks 4-8,11,15-18"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "提案完整审阅",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "差异包含保留/新增及前后值，完整 JSON 可显式展开；复杂嵌套配置保留由真实组件内存测试补证。",
+          "evidence": [
+            "ai-review.png",
+            "ai-json.png",
+            "ai-app.test.mjs"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "显式应用/保存",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "Apply 仅形成草稿并打开独立副本命名；重名失败不冒认保存，成功反馈按 requestId/config 回执绑定。",
+          "evidence": [
+            "ai-naming.png",
+            "ai-applied.png",
+            "AI browser checks 19-23",
+            "App.jsx:134-149"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "采集独立",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "应用和保存提案均不触发采集；副本清除旧结果身份，开始采集仍是独立动作。",
+          "evidence": [
+            "ai-collapsed.png",
+            "AI browser checks 22-23",
+            "ai-app.test.mjs"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 100,
+      "deduction": 0,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "样式一致性",
+      "items": [
+        {
+          "name": "单gutter",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "实测应用 padding=12px，Card 内部12px是表面内容内距；无额外页面 gutter。",
+          "evidence": [
+            "ready.png",
+            "independentComputed.ready.page",
+            "independentComputed.ready.targetContent"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "4/8/12/16间距",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "目标标题关联4px，同行与目标内容8px，字段分组/disclosure-body12px，页面章节16px；原生 checkbox margin=0。Frame 自有7px/13px等规则不误作工具漂移。",
+          "evidence": [
+            "style.css:3-24,41-50",
+            "independentComputed",
+            "browser-report.json.styles"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "公共按钮/图标",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "真实 Button/IconButton，主运行与禁用 Stop 区分明确；Stop opacity=.48，Frame Send/Stop 源码复用并经鼠标点击到达。",
+          "evidence": [
+            "ready.png",
+            "rules.png",
+            "button.tsx",
+            "independentComputed.ready.stop"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "表单/disclosure层级",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "内容区实际存在 od-field、od-form-field、od-field-label、od-disclosure 与真实 Card/CardContent；编译CSS及Frame CSS与manifest精确匹配。并非只统一外壳。",
+          "evidence": [
+            "rules.png",
+            "App.jsx:12-14,193",
+            "vite.config.mjs:33-39",
+            "embeddedIntegrity"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "对比与字级",
+          "maxScore": 20,
+          "score": 19,
+          "deduction": 1,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "浅色主要/辅助文字、边框和禁用态可辨；但章节标题实测12px/600，与字段标签同尺寸，低于本工具文档所写14px，视觉分级偏弱。此处不因canonical同源而免除成品观察扣分。",
+          "evidence": [
+            "ready.png",
+            "rules.png",
+            "ai-review.png",
+            "independentComputed.ready.configHeading"
+          ],
+          "finding": "F1",
+          "evidenceGaps": [
+            "未做逐像素完整对比度或屏幕阅读器专项；不宣称WCAG全量通过。"
+          ],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 99,
+      "deduction": 1,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "信息层级可读性",
+      "items": [
+        {
+          "name": "目标密度",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "目标卡约181px，标题/网址/模式摘要/主动作分组清楚；收起规则页的目标操作降低重复密度。AI位置符合最新指令，不因业务区自然下移扣分。",
+          "evidence": [
+            "ready.png",
+            "rules.png",
+            "independentComputed.ready.target"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "输入可发现",
+          "maxScore": 20,
+          "score": 19,
+          "deduction": 1,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "F2缺少持续可见标签部分已解决：“采集需求 / 纠正要求”位于共享输入前，htmlFor关联、点击聚焦及打开时唯一可访问名实测通过。资料区及首条说明仍在输入前，首次扫描路径稍长，保留轻微1分；必要同意本身不作为缺陷。",
+          "evidence": [
+            "ai-expanded.png",
+            "ai-returned.png",
+            "AiPanel.jsx:123-130",
+            "candidate3Evidence.computed"
+          ],
+          "finding": "F2",
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "差异动作邻近",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "当前非stale提案返回后Send禁用，Enter不能替换审阅；纠正需求启用新生成并阻止应用旧提案，恢复原输入回到审阅。重复就绪notice已删除，差异、完整JSON和三个审阅动作相邻。F3已解决。",
+          "evidence": [
+            "ai-returned.png",
+            "ai-review.png",
+            "review-actions.png",
+            "candidate3Evidence.ai",
+            "candidate3Evidence.nodeChecks"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "JSON/诊断渐进展开",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "完整JSON、HTML样本、Provider及错误资料默认折叠；完整值仍可打开，不以隐藏数据换取简洁。",
+          "evidence": [
+            "ai-json.png",
+            "ai-empty.png",
+            "review-actions.png"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "滚动职责清楚且内容不压缩",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "文档承担上下文/审阅滚动，消息区52-220px局部滚动，输入边框高度44-55px；多轮scrollTop=40在收起重开后保留。360px只属公共示例，无固定高度要求。",
+          "evidence": [
+            "ai-naming.png",
+            "independentComputed.states",
+            "AI browser checks 14,17-18"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 99,
+      "deduction": 1,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "操作效率反馈",
+      "items": [
+        {
+          "name": "主动作",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "有效未过期提案返回时Send禁用，Apply为明确主动作；命名保存也清楚。Apply后草稿清除可再次显式发送，不宣称全生命周期输入去重。",
+          "evidence": [
+            "ready.png",
+            "ai-returned.png",
+            "ai-naming.png",
+            "ai-applied.png",
+            "candidate3Evidence.ai"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "必要发送勾选",
+          "maxScore": 20,
+          "score": 19,
+          "deduction": 1,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "网页资料同意默认未选，发送被可靠阻止，必选文案明确；但仅因缺少同意而不可发送时没有就近的禁用原因提示，用户需自行把必选框与淡色箭头对应。",
+          "evidence": [
+            "ai-empty.png",
+            "AiPanel.jsx:114-128",
+            "independentComputed.ai.sendDisabled"
+          ],
+          "finding": "F4",
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "保存失败/成功",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "重名失败保留命名输入和未保存指引；成功替换为此提案已保存，仍明确采集独立。",
+          "evidence": [
+            "AI browser checks 21-23",
+            "ai-applied.png",
+            "App.jsx:134-149"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "收起不取消",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "busy收起保留业务与外部重置围栏；再次展开保留原提案、输入及消息位置。",
+          "evidence": [
+            "AI browser checks 10,15,17-18",
+            "AiPanel.jsx:106-110"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "UNKNOWN不重放",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "原ai-request/ai-pending/ai-config未改；本次AI app/panel6项内存测试再次覆盖UNKNOWN禁重放、原ID停止/重开及CAS清理失败关闭。未操作真实UNKNOWN。",
+          "evidence": [
+            "ai-panel.test.mjs:98-191",
+            "freshNodeChecks"
+          ],
+          "finding": null,
+          "evidenceGaps": [
+            "当前浏览器截图未展示模拟UNKNOWN；真实UNKNOWN恢复/停止明确未测且未操作。"
+          ],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 99,
+      "deduction": 1,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "键盘焦点",
+      "items": [
+        {
+          "name": "页签",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "工作区ArrowRight由原62项覆盖；本次独立补核Home、End及ArrowLeft循环，焦点与aria-selected同步。",
+          "evidence": [
+            "preview-interactions.mjs:105-110",
+            "independentKeyboard"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "发送/换行/IME",
+          "maxScore": 20,
+          "score": 19,
+          "deduction": 1,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "candidate3 AI28重新验证鼠标Send、Enter不得重发、Shift+Enter及合成IME Enter；原IME Escape证据复用。未执行Mac真实输入法组合候选操作，保留1分证据扣分。",
+          "evidence": [
+            "AI browser checks 9,19",
+            "independentKeyboard",
+            "conversation.tsx:57-88"
+          ],
+          "finding": null,
+          "evidenceGaps": [
+            "真实操作系统IME专项NOT_TESTED。"
+          ],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "关闭返回",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "关闭与Escape返回AI按钮，命名中也可关闭；即时同步读取曾早于requestAnimationFrame，按既有时序复核已通过，不记产品缺陷。",
+          "evidence": [
+            "AI browser checks 5,20",
+            "independentKeyboard"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "错误焦点",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "字段错误聚焦修正、重名失败保持名称输入、复杂规则路由聚焦JSON；源码关联aria-invalid/描述，现有工作区62项与当前AI链相互补证。",
+          "evidence": [
+            "browser-report.json.workspace.checks",
+            "App.jsx:119-127,144-149",
+            "AI browser check 21"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "审阅与详情可达",
+          "maxScore": 20,
+          "score": 19,
+          "deduction": 1,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "完整JSON可打开、放弃后返回输入，记录详情Escape恢复原按钮；当前证据未逐一记录全程仅键盘Tab顺序及滚动区键盘遍历，不能给满分。",
+          "evidence": [
+            "AI browser checks 13,16",
+            "browser-report.json.workspace.checks"
+          ],
+          "finding": null,
+          "evidenceGaps": [
+            "审阅三动作、所有disclosure与消息滚动区的完整纯键盘遍历未独立验证。"
+          ],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 98,
+      "deduction": 2,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "组件复用隔离",
+      "items": [
+        {
+          "name": "原模板",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "仍经唯一sidebar-tool-preview-shell、shell-source/behavior及原build-preview生成；同源输入哈希匹配。",
+          "evidence": [
+            "preview/build-preview.mjs:87-147",
+            "sourceIntegrity"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "Button/Frame/session",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "真实导入公开Button/Frame/session，session useState稳定创建、useSyncExternalStore订阅、卸载dispose；目标用真实Card。唯一components.html也实际执行相同Frame/session，8项内存行为通过。",
+          "evidence": [
+            "AiPanel.jsx:2,14-16,42",
+            "sidebar-component-recipes.jsx:99-149",
+            "componentReference",
+            "embeddedIntegrity.frameCSS"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "工具CSS归属",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "工具经canonical提取器编入公开切片，不复制可信宿主整表；工具CSS负责页面/消息容器与业务布局，Frame拥有气泡、输入与Send/Stop。字体排除明确生效。",
+          "evidence": [
+            "vite.config.mjs:33-39",
+            "style.css:19,47-50",
+            "embeddedIntegrity",
+            "rules.png"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "公开ai边界",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "工具仍走OpenDeskTool.request ai.*；公共Chat配方运行时OpenDeskTool/ai/Provider均undefined，仅内存session，无Host或真实网络。请求状态机文件未修改。",
+          "evidence": [
+            "AiPanel.jsx:11,57-58,78-102",
+            "preview/mock-host.js",
+            "componentReference.boundary",
+            "requestStateMachineDiff"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "opaque/CSP",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "iframe仅allow-scripts allow-downloads，无allow-same-origin/allow-forms；当前srcdoc CSP connect-src none、form-action none、default-src none。独立上下文网络尝试为空。离线data/unsafe-inline是本候选预览策略，不外推production。",
+          "evidence": [
+            "embeddedIntegrity.csp",
+            "independentBrowser.networkAttempts",
+            "AI browser check 24"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 100,
+      "deduction": 0,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "可维护性",
+      "items": [
+        {
+          "name": "单布局owner",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "App唯一业务布局owner；AiPanel稳定挂载并只改hidden，Frame和session职责清楚，无复制聊天UI。",
+          "evidence": [
+            "App.jsx:192",
+            "AiPanel.jsx:106-134",
+            "main.jsx"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "无margin叠加",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "工具移除全局details/summary皮肤，字段/关联组/disclosure-body分别由gap管理；现测章节16px、内容8px、标题4px，无旧目标动作padding叠加。",
+          "evidence": [
+            "style.css",
+            "independentComputed"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "状态回执明确",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "保存成功以应用requestId和对应config绑定，不以提示文本猜状态；消息与业务保存回执分开，失败不写成功。",
+          "evidence": [
+            "App.jsx:134-149",
+            "AiPanel.jsx:28,98-106",
+            "AI browser checks 21-23"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "无新依赖/第二状态机",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "沿用React19.2/Vite原链，无新依赖；候选2→3锁定输入仅AiPanel、工具CSS及对应生成物变化，公共Frame/session和请求状态机未改。",
+          "evidence": [
+            "package.json",
+            "vite.config.mjs",
+            "requestStateMachineDiff"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "原生成链",
+          "maxScore": 20,
+          "score": 18,
+          "deduction": 2,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "回执锁定工具和designSources并拒绝漂移，旧生成链保持；但sharedDesignPlugin只把空marker交给compileSharedToolCss，随后直接拼工具CSS，故assertLayoutOnly未检查实际工具CSS。当前候选未见因此造成不一致，未来回归预防仍有轻微缺口。",
+          "evidence": [
+            "vite.config.mjs:33-39",
+            "scripts/preview/shared-tool-design.mjs:74-117"
+          ],
+          "finding": "F5",
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 98,
+      "deduction": 2,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    },
+    {
+      "name": "证据充分性",
+      "items": [
+        {
+          "name": "新操作链",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "candidate3 AI28已独立复跑、AI app/panel新6项通过。工作区62项明确复用candidate2旧SHA；公共配方8项和附加键盘5项仍是前轮证据，未冒充本轮全量重跑。",
+          "evidence": [
+            "candidate3Evidence",
+            "reportedWorkspace",
+            "reviewUpdate.recordOrigins"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "computed间距/Chat高度",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "candidate3主要computed重新读取：12px gutter、16px章节gap、Card内容12px/8px、输入label margin8/8/4px、比例字体。可见输入border box44–55px，消息区52–220px有界；报告42px是clientHeight，不误判压缩。",
+          "evidence": [
+            "candidate3Evidence.computed",
+            "candidate3Evidence.computedNotes"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "多状态截图",
+          "maxScore": 20,
+          "score": 18,
+          "deduction": 2,
+          "observedDeductionRange": [
+            1,
+            3
+          ],
+          "observation": "已用view_image逐张查看候选全部11张PNG并核对哈希；涵盖初始/规则/空Chat/返回/JSON/命名/保存/收起。当前截图集合没有busy、error、blocked、UNKNOWN或长复杂差异的视觉证据；相应操作断言不替代其视觉判断。",
+          "evidence": [
+            "screenshotAudit"
+          ],
+          "finding": "G1",
+          "evidenceGaps": [
+            "上述缺图状态不宣称视觉通过；不扩展新截图矩阵。"
+          ],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        },
+        {
+          "name": "同SHA来源锁",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "candidate3 HTML SHA与manifest/browser-report一致，1369项sourceLock独立核对无差异，11张已查看截图哈希匹配。原公共示例及未变共享运行时证据复用；完整新内嵌逐项重建未收尾，不冒称完成。",
+          "evidence": [
+            "candidate",
+            "candidate3Evidence.sourceLock",
+            "screenshotAudit",
+            "reviewUpdate.recordOrigins"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "candidate3局部重新观察/验证"
+        },
+        {
+          "name": "未测边界如实",
+          "maxScore": 20,
+          "score": 20,
+          "deduction": 0,
+          "observedDeductionRange": [
+            0,
+            0
+          ],
+          "observation": "所有结论限定浅色离线真实组件/模拟SDK。真实模型/站点采集/安装/production/原UNKNOWN、暗色、屏幕阅读器等均未据此宣称；宽度缩放矩阵不纳入评分宣称。",
+          "evidence": [
+            "scope",
+            "notTested",
+            "outOfScope"
+          ],
+          "finding": null,
+          "evidenceGaps": [],
+          "evidenceOrigin": "未受影响部分沿用candidate2具名记录；candidate3局部新证据见candidate3Evidence和当前screenshotAudit。旧AI断言编号仅对应原独立记录。"
+        }
+      ],
+      "score": 98,
+      "deduction": 2,
+      "meetsThreshold": true,
+      "scope": "仅本轮浅色离线候选；不含真实模型/Native/production"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "minor",
+      "blocking": false,
+      "observation": "章节标题12px/600，字段标签同为12px，视觉层级偏弱；本工具文字规范写14px。",
+      "range": [
+        1,
+        3
+      ],
+      "recommendation": "后续优先核对成品标题层级与本工具规范；不建议在本轮只读评审中直接改公共CSS。",
+      "status": "OPEN_NON_BLOCKING"
+    },
+    {
+      "id": "F2",
+      "severity": "minor",
+      "blocking": false,
+      "observation": "缺少可见标签问题解决；仍保留输入前资料/说明使首次扫描路径稍长的轻微1分。",
+      "range": [
+        1,
+        3
+      ],
+      "recommendation": "后续可精简输入前重复说明；不删必要资料同意。本轮不追加修改。",
+      "status": "PARTIALLY_RESOLVED"
+    },
+    {
+      "id": "F3",
+      "severity": "minor",
+      "blocking": false,
+      "observation": "canSend与generate guard阻止有效当前提案原样重发；纠正可生成、恢复原输入回到审阅。重复就绪notice删除，审阅主动作清楚。",
+      "range": [
+        1,
+        3
+      ],
+      "recommendation": "当前范围不需追加修复。",
+      "status": "RESOLVED",
+      "currentDeduction": 0
+    },
+    {
+      "id": "F4",
+      "severity": "minor",
+      "blocking": false,
+      "observation": "必选资料未勾选时发送禁用正确，但缺少就近禁用原因。",
+      "range": [
+        1,
+        3
+      ],
+      "recommendation": "可考虑工具侧简短就近提示，保留默认未同意。",
+      "status": "OPEN_NON_BLOCKING"
+    },
+    {
+      "id": "F5",
+      "severity": "minor",
+      "blocking": false,
+      "observation": "提取器校验空marker后再拼工具CSS，未对真实工具CSS执行assertLayoutOnly；属未来一致性回归缺口，当前未见由此导致的产品错误。",
+      "range": [
+        1,
+        3
+      ],
+      "recommendation": "后续评估实际工具CSS的同源/允许覆盖检查；当前不扩大修复。",
+      "status": "OPEN_NON_BLOCKING"
+    },
+    {
+      "id": "G1",
+      "severity": "evidence_gap",
+      "blocking": false,
+      "observation": "11张候选PNG未覆盖busy/error/blocked/UNKNOWN/长复杂差异的视觉外观；操作通过不补齐截图证据。",
+      "status": "EVIDENCE_GAP_NOT_TESTED"
+    }
+  ],
+  "sourceIntegrity": {
+    "candidateInputs": {
+      "checked": 1369,
+      "mismatches": []
+    },
+    "componentInputs": {
+      "checked": 21,
+      "mismatches": []
+    },
+    "componentDependencies": {
+      "checked": 1331,
+      "mismatches": []
+    },
+    "candidateSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+    "componentHtmlSha256": "7f60ebb328ca3e4158135c4b757531653568f998103dedfad63da5683e053f14",
+    "componentGuideSha256": "ddb76f76f6892a9f848753aa80b4a261a1506a3557f6521c5f2538294620b51c"
+  },
+  "embeddedIntegrity": {
+    "frame": {
+      "actual": "a6cc691e69ab241d104d9d650c8351ad3d53bc6d8964bf40d689e17b5debe5ac",
+      "expected": "a6cc691e69ab241d104d9d650c8351ad3d53bc6d8964bf40d689e17b5debe5ac"
+    },
+    "css": {
+      "actual": "57f797bfebcb64a47e728d66c70a52c8865135309159e392401fa4678754eda5",
+      "expected": "57f797bfebcb64a47e728d66c70a52c8865135309159e392401fa4678754eda5"
+    },
+    "scripts": [
+      {
+        "index": 0,
+        "bytes": 9249,
+        "sha256": "a95f0445a7e041b064c09608ea41b3212035cb73c2aa26c8e24d9eae8433cace"
+      },
+      {
+        "index": 1,
+        "bytes": 193163,
+        "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+      },
+      {
+        "index": 2,
+        "bytes": 77246,
+        "sha256": "74825ef3036518f4193b0e673fc0ebe01e8ce6e16b38ba4497e030a0a783dbb8"
+      },
+      {
+        "index": 3,
+        "bytes": 4152,
+        "sha256": "32bbd92d4198d5f0bfb3da8013157c8656a6cb3e651fd93bdc9c8e9e5b67a66e"
+      },
+      {
+        "index": 4,
+        "bytes": 27775,
+        "sha256": "17e6d58fc67018205803ea6cbe0b32560ab4b29f4bd16c11f4e850751e8b314a"
+      },
+      {
+        "index": 5,
+        "bytes": 58547,
+        "sha256": "2038b36680ee4e29b3ef475650a62862494cb5a581909d4caf9a683c9d3e8dc0"
+      }
+    ],
+    "frameCSS": {
+      "actual": "dd9507fb6578e40ae23d19e3427c5d5ea0c499208424a701e35fbb5d2acc5c4a",
+      "current": "dd9507fb6578e40ae23d19e3427c5d5ea0c499208424a701e35fbb5d2acc5c4a"
+    },
+    "stylesheets": [
+      {
+        "owner": "LINK",
+        "frame": false,
+        "ruleCount": 198
+      },
+      {
+        "owner": "STYLE",
+        "shared": "v1",
+        "frame": false,
+        "ruleCount": 35
+      },
+      {
+        "owner": "STYLE",
+        "frame": true,
+        "ruleCount": 24
+      }
+    ],
+    "csp": "default-src 'none'; script-src data: 'unsafe-inline'; style-src data: 'unsafe-inline'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+  },
+  "screenshotAudit": [
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-expanded.png",
+      "sha256": "f7e7ec9e55036a739f7f6f2233af9625341aa1ae4b7bcf079e929961089a4f60",
+      "expectedSha256": "f7e7ec9e55036a739f7f6f2233af9625341aa1ae4b7bcf079e929961089a4f60",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-review.png",
+      "sha256": "a1b828a4f3a50ad3da305e1bdfa6eb797286e1db74f4d20fcf0e66cf28593c49",
+      "expectedSha256": "a1b828a4f3a50ad3da305e1bdfa6eb797286e1db74f4d20fcf0e66cf28593c49",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-json.png",
+      "sha256": "0675e634cede487ea855ebc0f924025ae2ab7d785c5ac99822f6eb5de93a43ef",
+      "expectedSha256": "0675e634cede487ea855ebc0f924025ae2ab7d785c5ac99822f6eb5de93a43ef",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-naming.png",
+      "sha256": "9bb3a104aa6692295ebec161cb5ff4dae75bcd38dd359c7940d9919f2068f260",
+      "expectedSha256": "9bb3a104aa6692295ebec161cb5ff4dae75bcd38dd359c7940d9919f2068f260",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-applied.png",
+      "sha256": "cd6038aa0ae08f87e255649def4e3ff3fab921cc95d88036096be5b622cf6a07",
+      "expectedSha256": "cd6038aa0ae08f87e255649def4e3ff3fab921cc95d88036096be5b622cf6a07",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-collapsed.png",
+      "sha256": "30f389fd3b4563b1b877dcb323d7596241eb159a17decc31cd15a41991b1c7fa",
+      "expectedSha256": "30f389fd3b4563b1b877dcb323d7596241eb159a17decc31cd15a41991b1c7fa",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ready.png",
+      "sha256": "b1bde54a5d5db91697310a275a1c247b00540e0c153e9707bffb555b9ced58ba",
+      "expectedSha256": "b1bde54a5d5db91697310a275a1c247b00540e0c153e9707bffb555b9ced58ba",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/rules.png",
+      "sha256": "0a70ceeacfaa4dc935fcb421b46b31c4486fe9d1403d078294d989bace72ff8c",
+      "expectedSha256": "0a70ceeacfaa4dc935fcb421b46b31c4486fe9d1403d078294d989bace72ff8c",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-empty.png",
+      "sha256": "7127293c01fafe17bc9910361d479c3af2f443c917a67201c7a4e58c47a4b12d",
+      "expectedSha256": "7127293c01fafe17bc9910361d479c3af2f443c917a67201c7a4e58c47a4b12d",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/ai-returned.png",
+      "sha256": "499c8ca76acc791c16093dde8abefb3063d3538ed544edf24b7ed8f3c2c92ce2",
+      "expectedSha256": "499c8ca76acc791c16093dde8abefb3063d3538ed544edf24b7ed8f3c2c92ce2",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate3/review-actions.png",
+      "sha256": "1c261d81253b0fdb12a81cb319edae60c94ab118c64dcb4d19777d9de2009a53",
+      "expectedSha256": "1c261d81253b0fdb12a81cb319edae60c94ab118c64dcb4d19777d9de2009a53",
+      "match": true,
+      "viewedWith": "functions.exec -> tools.view_image",
+      "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5"
+    }
+  ],
+  "independentComputed": {
+    "ready": {
+      "page": {
+        "class": "capture-app",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 400,
+          "height": 664.234375,
+          "top": 0,
+          "right": 400,
+          "bottom": 664.234375,
+          "left": 0
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "16px",
+        "padding": "12px",
+        "margin": "0px",
+        "border": "0px none rgb(27, 44, 73)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "configHeading": {
+        "class": "od-page-title",
+        "rect": {
+          "x": 12,
+          "y": 21.421875,
+          "width": 203.0625,
+          "height": 18,
+          "top": 21.421875,
+          "right": 215.0625,
+          "bottom": 39.421875,
+          "left": 12
+        },
+        "font": "600 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px",
+        "border": "0px none rgb(27, 44, 73)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "field": {
+        "class": "od-field",
+        "rect": {
+          "x": 12,
+          "y": 57.265625,
+          "width": 290,
+          "height": 36,
+          "top": 57.265625,
+          "right": 302,
+          "bottom": 93.265625,
+          "left": 12
+        },
+        "font": "13px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgb(255, 255, 255)",
+        "gap": "normal",
+        "padding": "8px 12px",
+        "margin": "0px",
+        "border": "1px solid rgb(127, 141, 161)",
+        "opacity": "1",
+        "overflow": "clip"
+      },
+      "target": {
+        "class": "od-shared-card target-section",
+        "rect": {
+          "x": 12,
+          "y": 153.6875,
+          "width": 376,
+          "height": 181.078125,
+          "top": 153.6875,
+          "right": 388,
+          "bottom": 334.765625,
+          "left": 12
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgb(255, 255, 255)",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px",
+        "border": "1px solid rgb(225, 232, 241)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "targetContent": {
+        "class": "od-shared-card-content target-content",
+        "rect": {
+          "x": 13,
+          "y": 154.6875,
+          "width": 374,
+          "height": 179.078125,
+          "top": 154.6875,
+          "right": 387,
+          "bottom": 333.765625,
+          "left": 13
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "8px",
+        "padding": "12px",
+        "margin": "0px",
+        "border": "0px none rgb(27, 44, 73)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "targetHeading": {
+        "class": "target-heading",
+        "rect": {
+          "x": 25,
+          "y": 166.6875,
+          "width": 308,
+          "height": 40.84375,
+          "top": 166.6875,
+          "right": 333,
+          "bottom": 207.53125,
+          "left": 25
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "4px",
+        "padding": "0px",
+        "margin": "0px",
+        "border": "0px none rgb(27, 44, 73)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "title": {
+        "class": "target-title",
+        "rect": {
+          "x": 25,
+          "y": 188.6875,
+          "width": 308,
+          "height": 18.84375,
+          "top": 188.6875,
+          "right": 333,
+          "bottom": 207.53125,
+          "left": 25
+        },
+        "font": "600 13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px",
+        "border": "0px none rgb(27, 44, 73)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "primary": {
+        "class": "od-button od-button--primary",
+        "rect": {
+          "x": 25,
+          "y": 284.921875,
+          "width": 290,
+          "height": 36.84375,
+          "top": 284.921875,
+          "right": 315,
+          "bottom": 321.765625,
+          "left": 25
+        },
+        "font": "650 13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(54, 94, 218)",
+        "gap": "4px",
+        "padding": "8px 12px",
+        "margin": "0px",
+        "border": "1px solid rgb(54, 94, 218)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "stop": {
+        "class": "od-button od-button--secondary",
+        "rect": {
+          "x": 323,
+          "y": 284.921875,
+          "width": 52,
+          "height": 36.84375,
+          "top": 284.921875,
+          "right": 375,
+          "bottom": 321.765625,
+          "left": 323
+        },
+        "font": "650 13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(27, 44, 73)",
+        "background": "rgb(245, 247, 251)",
+        "gap": "4px",
+        "padding": "8px 12px",
+        "margin": "0px",
+        "border": "1px solid rgb(127, 141, 161)",
+        "opacity": "0.48",
+        "overflow": "visible"
+      },
+      "summary": {
+        "class": "",
+        "rect": {
+          "x": 25,
+          "y": 215.53125,
+          "width": 350,
+          "height": 36,
+          "top": 215.53125,
+          "right": 375,
+          "bottom": 251.53125,
+          "left": 25
+        },
+        "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "color": "rgb(83, 100, 126)",
+        "background": "rgba(0, 0, 0, 0)",
+        "gap": "8px",
+        "padding": "8px 0px",
+        "margin": "0px",
+        "border": "0px none rgb(83, 100, 126)",
+        "opacity": "1",
+        "overflow": "visible"
+      },
+      "csp": "default-src 'none'; script-src data: 'unsafe-inline'; style-src data: 'unsafe-inline'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+      "domOrder": [
+        {
+          "tag": "SECTION",
+          "id": "",
+          "class": "config-section",
+          "hidden": false
+        },
+        {
+          "tag": "SECTION",
+          "id": "ai-panel",
+          "class": "ai-workspace od-surface od-surface--padded",
+          "hidden": true
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "class": "od-shared-card target-section",
+          "hidden": false
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "class": "view-tabs",
+          "hidden": false
+        },
+        {
+          "tag": "SECTION",
+          "id": "rules-editor",
+          "class": "",
+          "hidden": true
+        },
+        {
+          "tag": "SECTION",
+          "id": "json-panel",
+          "class": "",
+          "hidden": true
+        },
+        {
+          "tag": "SECTION",
+          "id": "results-panel",
+          "class": "",
+          "hidden": false
+        }
+      ]
+    },
+    "ai": {
+      "height": 419,
+      "heading": {
+        "rect": {
+          "x": 25,
+          "y": 176.109375,
+          "width": 264,
+          "height": 18,
+          "top": 176.109375,
+          "right": 289,
+          "bottom": 194.109375,
+          "left": 25
+        },
+        "font": "600 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px",
+        "overflow": "visible",
+        "minHeight": "auto",
+        "maxHeight": "none",
+        "flex": "1 1 0%"
+      },
+      "chat": {
+        "rect": {
+          "x": 25,
+          "y": 307.640625,
+          "width": 350,
+          "height": 122,
+          "top": 307.640625,
+          "right": 375,
+          "bottom": 429.640625,
+          "left": 25
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px",
+        "overflow": "hidden",
+        "minHeight": "auto",
+        "maxHeight": "none",
+        "flex": "0 1 auto"
+      },
+      "input": {
+        "rect": {
+          "x": 35,
+          "y": 366.640625,
+          "width": 330,
+          "height": 55,
+          "top": 366.640625,
+          "right": 365,
+          "bottom": 421.640625,
+          "left": 35
+        },
+        "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "normal",
+        "padding": "10px 52px 9px 10px",
+        "margin": "0px",
+        "overflow": "auto",
+        "minHeight": "44px",
+        "maxHeight": "min(112px, 100%)",
+        "flex": "0 1 auto"
+      },
+      "log": {
+        "rect": {
+          "x": 25,
+          "y": 307.640625,
+          "width": 350,
+          "height": 52,
+          "top": 307.640625,
+          "right": 375,
+          "bottom": 359.640625,
+          "left": 25
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "7px",
+        "padding": "13px 10px 6px",
+        "margin": "0px",
+        "overflow": "auto",
+        "minHeight": "52px",
+        "maxHeight": "220px",
+        "flex": "1 0 auto"
+      },
+      "fieldset": {
+        "rect": {
+          "x": 25,
+          "y": 211.53125,
+          "width": 350,
+          "height": 88.109375,
+          "top": 211.53125,
+          "right": 375,
+          "bottom": 299.640625,
+          "left": 25
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "8px",
+        "padding": "0px",
+        "margin": "0px",
+        "overflow": "visible",
+        "minHeight": "auto",
+        "maxHeight": "none",
+        "flex": "0 1 auto"
+      },
+      "legend": {
+        "rect": {
+          "x": 25,
+          "y": 211.53125,
+          "width": 88,
+          "height": 15.9375,
+          "top": 211.53125,
+          "right": 113,
+          "bottom": 227.46875,
+          "left": 25
+        },
+        "font": "11px / 15.95px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "normal",
+        "padding": "0px",
+        "margin": "0px 0px 8px",
+        "overflow": "visible",
+        "minHeight": "auto",
+        "maxHeight": "none",
+        "flex": "0 1 auto"
+      },
+      "context": {
+        "rect": {
+          "x": 25,
+          "y": 235.46875,
+          "width": 350,
+          "height": 38.78125,
+          "top": 235.46875,
+          "right": 375,
+          "bottom": 274.25,
+          "left": 25
+        },
+        "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "gap": "4px",
+        "padding": "0px",
+        "margin": "0px",
+        "overflow": "visible",
+        "minHeight": "auto",
+        "maxHeight": "none",
+        "flex": "0 1 auto"
+      },
+      "focused": "ai-heading",
+      "sendDisabled": true,
+      "visibleInputLabel": {
+        "x": 25,
+        "y": 360.640625,
+        "width": 1,
+        "height": 1,
+        "top": 360.640625,
+        "right": 26,
+        "bottom": 361.640625,
+        "left": 25
+      }
+    },
+    "states": {
+      "ai-expanded": {
+        "chatHeight": 111,
+        "inputBorderBoxHeight": 44,
+        "inputClientHeight": 42,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 52,
+        "logScrollHeight": 52,
+        "logScrollTop": 0,
+        "reviewY": null,
+        "applyY": null
+      },
+      "ai-review": {
+        "chatHeight": 214.640625,
+        "inputBorderBoxHeight": 55,
+        "inputClientHeight": 53,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 111.25,
+        "logScrollHeight": 111,
+        "logScrollTop": 0,
+        "reviewY": 479.28125,
+        "applyY": 719.34375
+      },
+      "ai-json": {
+        "chatHeight": 214.640625,
+        "inputBorderBoxHeight": 55,
+        "inputClientHeight": 53,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 111.25,
+        "logScrollHeight": 111,
+        "logScrollTop": 0,
+        "reviewY": 431.28125,
+        "applyY": 808.90625
+      },
+      "ai-naming": {
+        "chatHeight": 340.78125,
+        "inputBorderBoxHeight": 55,
+        "inputClientHeight": 53,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 220,
+        "logScrollHeight": 310,
+        "logScrollTop": 40,
+        "reviewY": null,
+        "applyY": null
+      },
+      "ai-applied": {
+        "chatHeight": 323.390625,
+        "inputBorderBoxHeight": 55,
+        "inputClientHeight": 53,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 220,
+        "logScrollHeight": 310,
+        "logScrollTop": 40,
+        "reviewY": null,
+        "applyY": null
+      },
+      "ai-collapsed": {
+        "chatHeight": 0,
+        "inputBorderBoxHeight": 0,
+        "inputClientHeight": 0,
+        "inputFont": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+        "logHeight": 0,
+        "logScrollHeight": 0,
+        "logScrollTop": 0,
+        "reviewY": null,
+        "applyY": null
+      }
+    }
+  },
+  "independentAi": {
+    "status": "PASS_SIMULATED_UI",
+    "checks": [
+      "AI expands beside the mounted workspace, target and selected rules tab",
+      "AI toggle exposes its expanded region",
+      "opening focuses the AI region heading",
+      "unapplied field blocks AI sending without discarding either draft",
+      "Escape collapses Chat and returns focus to its toggle",
+      "collapse preserves the exact editor node, field draft and config",
+      "reopening retains the Chat input",
+      "AI opening and closing preserves malformed JSON, its active tab and Run guard",
+      "Shift+Enter and IME Enter do not dispatch",
+      "hidden pending Chat retains business and external reset guards",
+      "shared Chat leaves the existing result and selected result tab intact",
+      "reply and complete proposal differences stay in the shared Chat context",
+      "complete JSON is available on demand while differences and application stay together",
+      "returned proposal cannot compress the shared Chat or composer",
+      "collapsing keeps the reviewed proposal",
+      "discarding the proposal returns focus to Chat input",
+      "the multi-message transcript has a real scroll position to preserve",
+      "reopening preserves the existing transcript scroll position",
+      "explicit application opens inline naming while Chat remains in the workspace",
+      "closing during naming still returns focus to the available AI toggle",
+      "failed naming keeps the draft instruction and never acknowledges a saved proposal",
+      "named copy clears old result ownership and never starts another capture",
+      "successful proposal save replaces the pending AI status without implying capture",
+      "Chat remains in its opaque sandbox",
+      "no page runtime errors"
+    ],
+    "errors": [],
+    "realModel": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED"
+  },
+  "reportedWorkspace": {
+    "count": 62,
+    "status": "PASS_SIMULATED_UI",
+    "errors": [],
+    "independentlyRerun": false,
+    "reviewedDriver": "examples/sidebar-tools/scrapyjs/tests/preview-interactions.mjs",
+    "driverSha256": "c54a6265161fb491924c21a5aa5ad5ba9e56521ace120da3c04797e64c8d027e",
+    "evidenceReused": true,
+    "previewSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+    "reason": "Only AI composer label, proposal resend guard and redundant ready notice changed; 62 workspace operations retain candidate2 scope.",
+    "boundary": "62项属于candidate2旧SHA范围，未冒充candidate3重跑。"
+  },
+  "freshNodeChecks": {
+    "command": "node --test examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs",
+    "passed": 6,
+    "failed": 0,
+    "compilation": "esbuild transform in memory, write:false",
+    "unknownScope": "fixture only; never contacted real unresolved request"
+  },
+  "independentKeyboard": [
+    {
+      "case": "End",
+      "pass": true
+    },
+    {
+      "case": "Home",
+      "pass": true
+    },
+    {
+      "case": "ArrowLeft wrap",
+      "pass": true
+    },
+    {
+      "case": "IME Escape",
+      "pass": true
+    },
+    {
+      "case": "Escape returns toggle after scheduled animation frame",
+      "pass": true,
+      "active": "open-ai",
+      "panelHidden": true
+    }
+  ],
+  "componentReference": {
+    "path": "artifacts/scrapyjs/style-source-20261031/components/components.html",
+    "manifest": "artifacts/scrapyjs/style-source-20261031/components/manifest.json",
+    "htmlSha256": "7f60ebb328ca3e4158135c4b757531653568f998103dedfad63da5683e053f14",
+    "recipeSource": "scripts/preview/sidebar-component-recipes.jsx:99-149",
+    "boundary": {
+      "tool": "undefined",
+      "ai": "undefined",
+      "provider": "undefined",
+      "frameStyles": 1,
+      "chatParent": {
+        "height": 360,
+        "display": "flex",
+        "minHeight": "0px",
+        "overflow": "hidden"
+      }
+    },
+    "checks": [
+      {
+        "case": "mouseSend",
+        "pass": true
+      },
+      {
+        "case": "reply",
+        "pass": true
+      },
+      {
+        "case": "stop",
+        "pass": true
+      },
+      {
+        "case": "error",
+        "pass": true
+      },
+      {
+        "case": "blocked",
+        "pass": true
+      },
+      {
+        "case": "review",
+        "pass": true
+      },
+      {
+        "case": "reviewResolveDoesNotSend",
+        "pass": true
+      },
+      {
+        "case": "reset",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "themeTested": "light only; dark and theme matrix NOT_TESTED",
+    "host": false
+  },
+  "independentBrowser": {
+    "networkAttempts": [],
+    "pageErrors": [],
+    "browserVersion": "156.0.8078.4"
+  },
+  "diagnosticClassification": [
+    {
+      "observation": "existing browser-report priorDiagnosticError was getComputedStyle(null)",
+      "classification": "历史诊断脚本选择器/作用域错误；当前computed独立读取成功，非产品故障。"
+    },
+    {
+      "observation": "extra Escape focus read was synchronous before scheduled requestAnimationFrame",
+      "classification": "驱动时序；等既有一帧后通过，不据此扣产品焦点分。"
+    },
+    {
+      "observation": "node_repl ESM Playwright import adapter failed before launch",
+      "classification": "工具导入环境；createRequire成功后验证正常，不计产品缺陷。"
+    }
+  ],
+  "notTested": [
+    "真实模型推理与原始AI产品闭环",
+    "真实站点DOM/HTTP采集",
+    "实际安装/升级及Native/Host",
+    "production/WXT构建与可信消费者原生验收",
+    "暗色视觉",
+    "屏幕阅读器专项",
+    "Mac真实IME组合候选操作",
+    "真实UNKNOWN恢复/查询/停止；未操作",
+    "candidate3工作区62项未重跑，仅复用candidate2旧SHA范围。",
+    "candidate3公共配方8项、附加键盘5项未重跑；不扩展完整键盘矩阵。",
+    "candidate3完整内嵌字节逐项重建未完成，NOT_TESTED；原记录归属candidate2。"
+  ],
+  "outOfScope": [
+    "Side Panel物理宽度与浏览器缩放矩阵",
+    "发布、正式包晋升、提交或推送"
+  ],
+  "conclusion": {
+    "functionalBlockingIssues": [],
+    "designThresholdBlockingDimensions": [],
+    "designThresholdMet": true,
+    "offlineCoreOperations": "PASS_SCOPED_WITH_MINOR_DEDUCTIONS",
+    "canonicalContentReuse": "沿用candidate2已确认的canonical字段/disclosure/真实Card/Frame/session复用；candidate3锁定源与主要DOM/computed相符。",
+    "nonBlocking": "F1标题字级、F2残余扫描路径、F4禁用原因提示、F5提取器空marker校验缺口保留；F3已解决。G1及键盘缺口不冒充通过。",
+    "stopCondition": "局部复评写入本JSON后停止；不追加检查、不修改产品或生成物、不启动停用服务、不提交。"
+  },
+  "previousReview": {
+    "path": "artifacts/scrapyjs/style-source-20261031/review-candidate2.json",
+    "sha256": "f1c4c952b16ed33b3ef20379e8da9692ab6e7afd9b1ce230e92c85873f7e5c60",
+    "candidateSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+    "usage": "沿用同一40细项；仅复用未受影响证据，不按门槛调整分数。"
+  },
+  "reviewUpdate": {
+    "scope": "candidate3局部复评；保留原独立记录及其旧候选归属，不重构验收矩阵。",
+    "freshEvidence": [
+      "全部11张candidate3 PNG已实际view_image查看",
+      "candidate3 AI28独立复跑通过",
+      "本次AI app/panel Node6通过",
+      "candidate3可见label点击聚焦，打开时精确可访问名唯一匹配",
+      "重新读取candidate3主要computed",
+      "candidate3 sourceLock 1369项与当前文件匹配，只有AiPanel、工具CSS及对应生成物锁定输入变化"
+    ],
+    "inheritedEvidenceSha256": "af532da06ab4214c665cf8dbd24d84e3c242c814c191ff936493c5d0ff6b7c48",
+    "recordOrigins": {
+      "sourceIntegrity": "原字段保留candidate2完整核验记录；新候选核对见candidate3Evidence",
+      "embeddedIntegrity": "原字段为candidate2内嵌字节/CSP核验，不宣称candidate3完整独立重建",
+      "independentComputed": "原字段为candidate2测量；新测量见candidate3Evidence",
+      "independentAi": "原字段为candidate2 AI25；新28项见candidate3Evidence",
+      "freshNodeChecks": "原字段为candidate2检查；本轮新6项见candidate3Evidence",
+      "independentKeyboard": "原字段为candidate2补充5项，未重跑；candidate3 AI28包含局部键盘验证",
+      "componentReference": "原公共配方8项行为证据复用，未重跑",
+      "independentBrowser": "原字段为candidate2浏览器记录；本轮见candidate3Evidence"
+    },
+    "unfinished": "candidate3完整内嵌字节逐项重建未收尾，NOT_TESTED；公共Frame/session与请求状态机锁定源未变化；不据此宣称新全量验证。"
+  },
+  "candidate3Evidence": {
+    "candidateSha256": "d2bc23d59a6bb563fbe576769f03b51dc09586d12dbdeace61e2f036860e51e5",
+    "ai": {
+      "status": "PASS_SIMULATED_UI",
+      "checks": [
+        "AI expands beside the mounted workspace, target and selected rules tab",
+        "AI toggle exposes its expanded region",
+        "opening focuses the AI region heading",
+        "unapplied field blocks AI sending without discarding either draft",
+        "Escape collapses Chat and returns focus to its toggle",
+        "collapse preserves the exact editor node, field draft and config",
+        "reopening retains the Chat input",
+        "AI opening and closing preserves malformed JSON, its active tab and Run guard",
+        "the persistent visible input label focuses the shared composer",
+        "Shift+Enter and IME Enter do not dispatch",
+        "hidden pending Chat retains business and external reset guards",
+        "shared Chat leaves the existing result and selected result tab intact",
+        "reply and complete proposal differences stay in the shared Chat context",
+        "a current proposal keeps Send disabled and Enter cannot replace its review",
+        "correcting the requirement enables a new request and invalidates application of the old proposal",
+        "complete JSON is available on demand while differences and application stay together",
+        "returned proposal cannot compress the shared Chat or composer",
+        "collapsing keeps the reviewed proposal",
+        "discarding the proposal returns focus to Chat input",
+        "the multi-message transcript has a real scroll position to preserve",
+        "reopening preserves the existing transcript scroll position",
+        "explicit application opens inline naming while Chat remains in the workspace",
+        "closing during naming still returns focus to the available AI toggle",
+        "failed naming keeps the draft instruction and never acknowledges a saved proposal",
+        "named copy clears old result ownership and never starts another capture",
+        "successful proposal save replaces the pending AI status without implying capture",
+        "Chat remains in its opaque sandbox",
+        "no page runtime errors"
+      ],
+      "errors": [],
+      "realModel": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    "aiIndependentlyRerun": true,
+    "nodeChecks": {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs",
+      "passed": 6,
+      "failed": 0,
+      "scope": "内存组件测试，覆盖Enter不得重发、纠正需求可生成、恢复原输入回到审阅、原UNKNOWN/CAS围栏；未操作真实UNKNOWN。"
+    },
+    "computed": {
+      "ready": {
+        "page": {
+          "class": "capture-app",
+          "height": 664.234375,
+          "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+          "gap": "16px",
+          "padding": "12px",
+          "margin": "0px"
+        },
+        "configHeading": {
+          "class": "od-page-title",
+          "height": 18,
+          "font": "600 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+          "gap": "normal",
+          "padding": "0px",
+          "margin": "0px"
+        },
+        "target": {
+          "class": "od-shared-card target-section",
+          "height": 181.078125,
+          "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+          "gap": "normal",
+          "padding": "0px",
+          "margin": "0px"
+        },
+        "targetContent": {
+          "class": "od-shared-card-content target-content",
+          "height": 179.078125,
+          "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+          "gap": "8px",
+          "padding": "12px",
+          "margin": "0px"
+        },
+        "field": {
+          "class": "od-field",
+          "height": 36,
+          "font": "13px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+          "gap": "normal",
+          "padding": "8px 12px",
+          "margin": "0px"
+        },
+        "domOrder": [
+          {
+            "class": "config-section",
+            "id": "",
+            "hidden": false
+          },
+          {
+            "class": "ai-workspace od-surface od-surface--padded",
+            "id": "ai-panel",
+            "hidden": true
+          },
+          {
+            "class": "od-shared-card target-section",
+            "id": "",
+            "hidden": false
+          },
+          {
+            "class": "view-tabs",
+            "id": "",
+            "hidden": false
+          },
+          {
+            "class": "",
+            "id": "rules-editor",
+            "hidden": true
+          },
+          {
+            "class": "",
+            "id": "json-panel",
+            "hidden": true
+          },
+          {
+            "class": "",
+            "id": "results-panel",
+            "hidden": false
+          }
+        ]
+      },
+      "states": {
+        "ai-expanded": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 141,
+            "top": 307.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 44,
+            "top": 396.640625,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 52,
+            "top": 307.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 18,
+            "top": 367.640625,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 32,
+            "top": 402.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": false
+          },
+          "apply": null,
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        },
+        "ai-review": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 211.25,
+            "top": 259.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 55,
+            "top": 407.890625,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 111.25,
+            "top": 259.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 18,
+            "top": 378.890625,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 32,
+            "top": 424.890625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": true
+          },
+          "apply": {
+            "class": "od-button od-button--primary",
+            "height": 36.84375,
+            "top": 718.953125,
+            "font": "650 13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "8px 12px",
+            "gap": "4px",
+            "overflow": "visible",
+            "minHeight": "36px",
+            "maxHeight": "none",
+            "disabled": false
+          },
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        },
+        "ai-json": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 211.25,
+            "top": 211.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 55,
+            "top": 359.890625,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 111.25,
+            "top": 211.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 18,
+            "top": 330.890625,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 32,
+            "top": 376.890625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": true
+          },
+          "apply": {
+            "class": "od-button od-button--primary",
+            "height": 36.84375,
+            "top": 808.515625,
+            "font": "650 13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "8px 12px",
+            "gap": "4px",
+            "overflow": "visible",
+            "minHeight": "36px",
+            "maxHeight": "none",
+            "disabled": false
+          },
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        },
+        "ai-naming": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 370.78125,
+            "top": 498.515625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 55,
+            "top": 806.296875,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 220,
+            "top": 498.515625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 18,
+            "top": 777.296875,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 32,
+            "top": 823.296875,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": true
+          },
+          "apply": null,
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        },
+        "ai-applied": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 353.390625,
+            "top": 307.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 55,
+            "top": 598.03125,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 220,
+            "top": 307.640625,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 18,
+            "top": 569.03125,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "auto",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 32,
+            "top": 615.03125,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": false
+          },
+          "apply": null,
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        },
+        "ai-collapsed": {
+          "chat": {
+            "class": "ai-chat",
+            "height": 0,
+            "top": 0,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "hidden",
+            "minHeight": "0px",
+            "maxHeight": "none",
+            "disabled": null
+          },
+          "input": {
+            "class": "od-conversation-input",
+            "height": 0,
+            "top": 0,
+            "font": "12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "10px 52px 9px 10px",
+            "gap": "normal",
+            "overflow": "auto",
+            "minHeight": "44px",
+            "maxHeight": "min(112px, 100%)",
+            "disabled": false
+          },
+          "log": {
+            "class": "od-conversation-log",
+            "height": 0,
+            "top": 0,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px",
+            "padding": "13px 10px 6px",
+            "gap": "7px",
+            "overflow": "auto",
+            "minHeight": "52px",
+            "maxHeight": "220px",
+            "disabled": null
+          },
+          "label": {
+            "class": "od-field-label ai-input-label",
+            "height": 0,
+            "top": 0,
+            "font": "650 12px / 18px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "8px 8px 4px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "0px",
+            "maxHeight": "none",
+            "disabled": null,
+            "text": "采集需求 / 纠正要求"
+          },
+          "send": {
+            "class": "od-icon-button od-conversation-action od-conversation-action--primary",
+            "height": 0,
+            "top": 0,
+            "font": "13px / 18.85px -apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", system-ui, sans-serif",
+            "margin": "0px 6px 6px 0px",
+            "padding": "0px",
+            "gap": "normal",
+            "overflow": "visible",
+            "minHeight": "32px",
+            "maxHeight": "none",
+            "disabled": false
+          },
+          "apply": null,
+          "labels": [
+            {
+              "text": "采集需求 / 纠正要求",
+              "for": "ai-requirement"
+            },
+            {
+              "text": "",
+              "for": "ai-requirement"
+            }
+          ],
+          "horizontalOverflow": false
+        }
+      },
+      "labelAccessibility": {
+        "exactRoleCount": 1,
+        "ariaSnapshot": "- textbox \"采集需求 / 纠正要求\":\n  - /placeholder: 例如：保留全部规则，增加与 title 相同的 column_title，只采当前页。",
+        "visibleLabels": 1
+      }
+    },
+    "sourceLock": {
+      "checked": 1369,
+      "mismatches": [],
+      "independentlyChecked": true,
+      "unchangedPublicSources": [
+        "conversation.tsx",
+        "conversation-frame.css",
+        "session.js",
+        "ai-request/ai-pending/ai-config"
+      ],
+      "changedLockedInputs": [
+        "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx",
+        "examples/sidebar-tools/scrapyjs/src/style.css",
+        "examples/sidebar-tools/scrapyjs/dist/tool.js",
+        "examples/sidebar-tools/scrapyjs/dist/tool.css",
+        "examples/sidebar-tools/scrapyjs/dist/build-ready.json"
+      ]
+    },
+    "browser": {
+      "networkAttempts": [],
+      "pageErrors": [],
+      "browserVersion": "156.0.8078.4"
+    },
+    "computedNotes": [
+      "新可见输入border box44–55px，消息区52–220px；报告42px为clientHeight，不当成压缩。",
+      "驱动结束收起后角色计数为0属于hidden；重新打开时精确名称唯一匹配1。",
+      "inputLabel空串仍生成空sr-only label；实际非空可访问名唯一，未见重复名称。"
+    ],
+    "scope": "仅离线浅色、真实组件、模拟SDK。",
+    "screenshotNote": "全部11张实际查看；ready/rules/ai-collapsed与旧图字节相同，未冒充新的界面变化。"
+  },
+  "screenshotAuditCandidate2ReusedRecord": [
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-applied.png",
+      "sha256": "f0de1ca77b63ada79c36c998c8445559dad9f5d04ea64b4658a91eb0fc6bf72c",
+      "expectedSha256": "f0de1ca77b63ada79c36c998c8445559dad9f5d04ea64b4658a91eb0fc6bf72c",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-collapsed.png",
+      "sha256": "30f389fd3b4563b1b877dcb323d7596241eb159a17decc31cd15a41991b1c7fa",
+      "expectedSha256": "30f389fd3b4563b1b877dcb323d7596241eb159a17decc31cd15a41991b1c7fa",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-empty.png",
+      "sha256": "33ee88195be20a75491de0e16141a80fd8ba5073b4adf694bc626a32c27e31d8",
+      "expectedSha256": "33ee88195be20a75491de0e16141a80fd8ba5073b4adf694bc626a32c27e31d8",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-expanded.png",
+      "sha256": "ced50241707fcb8f477ce94e5c2d090831645a292ba816bbfb4ddfa4c6605788",
+      "expectedSha256": "ced50241707fcb8f477ce94e5c2d090831645a292ba816bbfb4ddfa4c6605788",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-json.png",
+      "sha256": "4b62091447f7981c2b092bec0eec04f4f4eadc471ccef3ca357675c5308a14d1",
+      "expectedSha256": "4b62091447f7981c2b092bec0eec04f4f4eadc471ccef3ca357675c5308a14d1",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-naming.png",
+      "sha256": "116e4876ec3c48fe58a00eea83c74611cda201e189883d2b0e105fe255fa04fa",
+      "expectedSha256": "116e4876ec3c48fe58a00eea83c74611cda201e189883d2b0e105fe255fa04fa",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-returned.png",
+      "sha256": "699a405c4b9657c53ec40ee51c7c2a0bdca4b91f1d3e27d4578670c634bb4574",
+      "expectedSha256": "699a405c4b9657c53ec40ee51c7c2a0bdca4b91f1d3e27d4578670c634bb4574",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ai-review.png",
+      "sha256": "2c8e0be48994f2125b276ac1e3c00598a3d71082c428b5f9721f0fca5bf340aa",
+      "expectedSha256": "2c8e0be48994f2125b276ac1e3c00598a3d71082c428b5f9721f0fca5bf340aa",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/ready.png",
+      "sha256": "b1bde54a5d5db91697310a275a1c247b00540e0c153e9707bffb555b9ced58ba",
+      "expectedSha256": "b1bde54a5d5db91697310a275a1c247b00540e0c153e9707bffb555b9ced58ba",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/review-actions.png",
+      "sha256": "ede56576bac008d2594ada58ac0baa3fad6810632a5e0fb9442476aa90ee3b6b",
+      "expectedSha256": "ede56576bac008d2594ada58ac0baa3fad6810632a5e0fb9442476aa90ee3b6b",
+      "viewedWith": "functions.view_image",
+      "match": true
+    },
+    {
+      "path": "artifacts/scrapyjs/style-source-20261031/candidate2/rules.png",
+      "sha256": "0a70ceeacfaa4dc935fcb421b46b31c4486fe9d1403d078294d989bace72ff8c",
+      "expectedSha256": "0a70ceeacfaa4dc935fcb421b46b31c4486fe9d1403d078294d989bace72ff8c",
+      "viewedWith": "functions.view_image",
+      "match": true
+    }
+  ]
+}

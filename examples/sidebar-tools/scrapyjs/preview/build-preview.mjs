@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {resolve, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import {build} from 'vite';
 import {createSidebarToolPackage} from '../../../../scripts/build-sidebar-tool.mjs';
 import {officialDesignSources, canonicalThemeOverride} from '../../../../scripts/preview/shared-tool-design.mjs';
 import {sidebarPreviewShellSource} from '../../../../scripts/preview/sidebar-shell-source.mjs';
@@ -84,6 +85,17 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
   if (!same(pkg.js, ready.files?.['dist/tool.js']) || !same(pkg.css, ready.files?.['dist/tool.css']))
     fail('package bytes differ from current tool build receipt');
   if (ready.buildId !== sha(JSON.stringify({sources: ready.sources, files: ready.files,...(ready.designSources?{designSources:ready.designSources}:{})}))) fail('non-deterministic tool receipt');
+  // Reuse the tool's Vite configuration in memory; the installed entry always
+  // mounts full Chat. This entry alone opts into the offline placeholder.
+  await record(join(project, 'preview/entry.jsx'));
+  for(const name of ['RuleAssistant.jsx','ListScopeAssistant.jsx','rule-selection.js','rule-sample.js'])await record(join(project,'preview',name));
+  const previewBuild = await build({configFile: join(project, 'vite.config.mjs'),
+    logLevel: 'silent', build: {write: false, emptyOutDir: false,
+      lib: {entry: join(project, 'preview/entry.jsx')}}});
+  const previewChunks = (Array.isArray(previewBuild) ? previewBuild : [previewBuild])
+    .flatMap(row => row.output).filter(row => row.type === 'chunk');
+  if (previewChunks.length !== 1) fail('preview entry must emit one Classic JS chunk');
+  const previewApp = previewChunks[0].code;
   const task = pkg.delegatedTasks?.find(row => row.taskId === 'scrapyjs.capture');
   if (!task) fail('fixed delegated Task identity is missing');
   const mock = await record(join(project, 'preview/mock-host.js'));
@@ -98,55 +110,55 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
   const {tokens, components, digest} = await officialDesignSources();
   const shell = await sidebarPreviewShellSource({tool: 'scrapyjs'});
   const conversationCSS=(await record(join(repo,'src/ui/react/components/conversation-layout.css'))).toString('utf8');
-  const light = await canonicalThemeOverride('light');
+  const shellTheme = 'light';
+  const themeOverride = await canonicalThemeOverride(shellTheme);
   const shellBehavior = (await record(join(repo, 'scripts/preview/sidebar-shell-behavior.js'))).toString('utf8');
   const frameHtml = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">' +
     '<link rel="stylesheet" href="' + uri('text/css', pkg.css) + '"></head><body><div id="tool-root">' + pkg.html + '</div>' +
     '<script>' + bootstrap(scenario) + 'Object.defineProperty(globalThis,"__opendeskPreviewTask",{value:' + safeJS(task) + '});</script>' +
-    [mock, react, shared, ...(pkg.scripts || []).map(row => row.code), pkg.js]
+    [mock, react, shared, ...(pkg.scripts || []).map(row => row.code), previewApp]
       .map(code => '<script src="' + uri('text/javascript', code) + '"></script>').join('') + '</body></html>';
   const sourceCommit = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
   const manifest = {format: 'opendesk.ui-preview.v1', tool: pkg.id, toolVersion: pkg.version,
-    sourceCommit, evidenceLevel: sourcePreview ? 'SOURCE_COMPONENT_PREVIEW' : runtimeEvidence.receiptStatus, scenario, surface: 'side-panel', shellTheme: 'light', buildId: ready.buildId,
-    simulation: {mock: true, memoryOnly: true, network: false, installed: false,
+    sourceCommit, evidenceLevel: sourcePreview ? 'SOURCE_COMPONENT_PREVIEW' : runtimeEvidence.receiptStatus, scenario, surface: 'side-panel', shellTheme, buildId: ready.buildId,
+    simulation: {mock: true, memoryOnly: true, network: false, installed: false, ai: 'PRESENTATION_PLACEHOLDER_ONLY',
       realCapture: false, export: 'Blob download of simulated results only', nativeChrome: 'NOT_TESTED'},
     sourceLock: {algorithm: 'sha256', inputs: sources}, sources, runtime: {reactVersion: runtimeEvidence.reactVersion, react: fingerprint(react), shared: fingerprint(shared), provenance: runtimeEvidence},
     validatedBytes: {html: fingerprint(pkg.html), css: fingerprint(pkg.css), js: fingerprint(pkg.js),
       scripts: (pkg.scripts || []).map(row => ({name: row.name, ...fingerprint(row.code)}))},
-    task, frame: fingerprint(frameHtml), shellSha256: shell.digest, designSha256: digest};
+    task, previewApp: fingerprint(previewApp), frame: fingerprint(frameHtml), shellSha256: shell.digest, designSha256: digest};
   const uiSha = sha(JSON.stringify(manifest.validatedBytes));
   const controls = '<aside class="preview-meta" aria-label="离线场景控制（不属于正式工具）"><details class="od-disclosure">' +
     '<summary>纯模拟场景控制（切换会清空本次内存草稿与任务）</summary><label>场景 <select id="scrapyjs-preview-scenario">' +
     SCENARIOS.map(name => '<option value="' + name + '"' + (name === scenario ? ' selected' : '') + '>' + name + '</option>').join('') +
     '</select></label><button id="scrapyjs-preview-reset" type="button" class="od-button od-button--secondary">重置模拟数据</button><p id="scrapyjs-preview-guard" class="od-note" role="status" aria-live="polite"></p></details></aside>';
   await record(join(project,'preview/conversation-header.js'));
-  const controlsJS = previewControlsScript(frameHtml, scenario)+'\n('+installPreviewConversationHeader.toString()+')(document.getElementById("opendesk-preview-frame"),document.getElementById("sidebar-tool-conversation-toggle"));';
+  for(const name of ['examples/sidebar-tools/scrapyjs/preview/navigation-header.js','src/sidebar-tools/navigation-state.js','src/ui/sidebar-tools/title-path.js'])await record(join(repo,name));
+  const navigationBuild=await build({configFile:false,logLevel:'silent',build:{write:false,
+    lib:{entry:join(project,'preview/navigation-header.js'),name:'ScrapyjsPreviewNavigation',formats:['iife']}}});
+  const navigationJS=(Array.isArray(navigationBuild)?navigationBuild:[navigationBuild]).flatMap(row=>row.output).find(row=>row.type==='chunk').code;
+  const controlsJS = previewControlsScript(frameHtml, scenario)+'\n'+navigationJS+'\n('+installPreviewConversationHeader.toString()+')(document.getElementById("opendesk-preview-frame"),document.getElementById("sidebar-tool-conversation-toggle"));';
   const values = {
     APP_CONTENT: '<div id="sidebar-tool-frame" class="sidebar-tool-frame"><iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="scrapyjs 模拟 App" sandbox="allow-scripts allow-downloads" referrerpolicy="no-referrer"></iframe></div>',
     PREVIEW_CONTROLS: controls,
-    SHELL_DATA_JSON: safeJS({title: pkg.title, scenario, theme: 'light', frameBase64: base64(frameHtml)}),
+    SHELL_DATA_JSON: safeJS({title: pkg.title, scenario, theme: shellTheme, frameBase64: base64(frameHtml)}),
     SHELL_BEHAVIOR: shellBehavior,
     PAGE_TITLE: escape(pkg.title + ' · 纯模拟离线预览'), TOOL_NAME: escape(pkg.title), TOOL_NAME_JSON: safeJS(pkg.title),
-    SCENARIO: scenario, TOOL_THEME: 'light', TOKENS: tokens, COMPONENTS: components, SHELL_CSS: shell.css+'\n'+conversationCSS,
+    SCENARIO: scenario, TOOL_THEME: shellTheme, TOKENS: tokens, COMPONENTS: components, SHELL_CSS: shell.css+'\n'+conversationCSS,
     ADBLOCK_HOST_CSS: '', ADBLOCK_HOST: '', ADBLOCK_RESTORE_DIALOG: '', ADBLOCK_SNAPSHOTS_JSON: '{}',
-    ADBLOCK_PREVIEW_SCRIPT: controlsJS, LIGHT_CSS: light, WIDTH: '400', HEIGHT: '800', NAV: shell.nav, HEADER: shell.head,
+    ADBLOCK_PREVIEW_SCRIPT: controlsJS, LIGHT_CSS: themeOverride, WIDTH: '400', HEIGHT: '800', NAV: shell.nav, HEADER: shell.head,
     SOURCE_COMMIT: sourceCommit, DESIGN_SHA: digest, SHELL_SHA: shell.digest, UI_SHA: uiSha,
     MANIFEST_JSON: safeJS(manifest), FRAME_BASE64: base64(frameHtml)};
   let html = template.replace(/\{\{([A-Z0-9_]+)\}\}/g, (_, key) => {
     if (!Object.hasOwn(values, key)) fail('unknown template slot: ' + key);
     return values[key];
   });
-  html = html.replace('sandbox="allow-scripts"', 'sandbox="allow-scripts allow-downloads"')
-    .replace('<div class="preview-stage">',
-      '<aside class="preview-meta"><p class="preview-provenance">Shared UI 来源状态：' +
-      escape(runtimeEvidence.receiptStatus) + (sourcePreview ?
-        '；当前共享组件仅内存编译；WXT / 安装包 / Native 验收：NOT_TESTED' : snapshotVerified ?
-        '；原构建：' + escape(runtimeEvidence.normalBuildCommand) +
-        '；后续编译与包验证完成；WXT passed：false' : '；WXT passed：'+String(runtimeEvidence.wxtPassed)) +
-      '</p></aside><div class="preview-stage">')
-    .replace('模拟预览 · 非真实安装、权限或网络执行', '纯模拟 · 保存仅在内存 · 不采集网页 · AI 为固定提案 · 复制仅模拟确认 · 导出为模拟数据')
+  html = html.replace(':root{color-scheme:light}', ':root{color-scheme:'+shellTheme+'}')
+    .replace('预览外壳：浅色', '预览外壳：'+(shellTheme==='dark'?'深色':'浅色'))
+    .replace('sandbox="allow-scripts"', 'sandbox="allow-scripts allow-downloads"')
+    .replace('模拟预览 · 非真实安装、权限或网络执行', '纯模拟 · 保存仅在内存 · 不采集网页 · AI 仅为占位说明 · 复制仅模拟确认 · 导出为模拟数据')
     .replace('<meta charset="utf-8">', '<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; frame-src \'self\' about:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">');
   // Recheck all recorded inputs before saving a preview of concurrently edited sources.
   for (const [path, expected] of Object.entries(sources))

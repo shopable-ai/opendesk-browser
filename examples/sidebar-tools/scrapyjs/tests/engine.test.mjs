@@ -25,7 +25,8 @@ test('complete browser exports preserve processing, validation and rule migratio
   for(const name of ['Rule','LinkExtractor','AIConfig','Scheduler','FeedExport','ScriptOutput','runCheckpointTasks']) assert.ok(sdk[name],name);
   assert.ok(sdk.AIConfig.Processing);
   assert.ok(sdk.AIConfig.BrowserValidation);
-  assert.throws(()=>normalizeConfig({_listItem:'li',title:'h1::text'}),{code:'E_ITEMLOADER_CONFIG'});
+  assert.equal(normalizeConfig({_listItem:'li',title:'h1::text'}).itemSelector,'li');
+  assert.throws(()=>normalizeConfig({_listItem:'',title:'h1::text'}),{code:'E_ITEMLOADER_CONFIG'});
 });
 
 test('browser extraction callback executes outside the Worker/Webpack closure',async()=>{

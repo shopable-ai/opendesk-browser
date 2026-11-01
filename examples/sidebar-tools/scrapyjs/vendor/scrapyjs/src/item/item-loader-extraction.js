@@ -84,7 +84,6 @@ function normalizeConfig(config) {
             throw fault('E_ITEMLOADER_CONFIG', key, `${key} must be a nonempty CSS selector`);
         }
     }
-    if (config._listItem !== undefined && config._listContainer === undefined) throw fault('E_ITEMLOADER_CONFIG', '_listItem', '_listItem requires _listContainer');
     return { listSelector: config._listContainer ?? null, itemSelector: config._listItem ?? null, fields };
 }
 
@@ -93,6 +92,7 @@ function normalizeConfig(config) {
 function extractRecords(config, $, context) {
     const dom = !$;
     const root = dom ? document : context || $.root();
+    const listMode = !!(config.listSelector || config.itemSelector);
     const fail = (code, path, message) => { const error = new Error(`${code} (${path}): ${message}`); error.code = code; error.path = path; throw error; };
     const css = (context, selector, path) => {
         try { return dom ? Array.from(context.querySelectorAll(selector)) : context.find(selector).toArray(); }
@@ -100,10 +100,10 @@ function extractRecords(config, $, context) {
     };
     const xpathQuery = field => {
         if (!dom) fail('E_ITEMLOADER_CAPABILITY', field.path, 'XPath requires a DOM evaluate backend');
-        if (config.listSelector && field.selector.startsWith('/') && !field.selector.startsWith('//')) {
+        if (listMode && field.selector.startsWith('/') && !field.selector.startsWith('//')) {
             fail('E_ITEMLOADER_XPATH_SCOPE', field.path, 'Absolute XPath is not allowed in list records; use .//');
         }
-        return config.listSelector && field.selector.startsWith('//') ? '.' + field.selector : field.selector;
+        return listMode && field.selector.startsWith('//') ? '.' + field.selector : field.selector;
     };
     const query = (context, field) => {
         if (!field.selector) return [];
@@ -157,9 +157,10 @@ function extractRecords(config, $, context) {
     };
     try {
         const containers = config.listSelector ? css(root, config.listSelector, '_listContainer') : [];
-        if (config.itemSelector) css(root, config.itemSelector, '_listItem');
+        const selectedItems = config.itemSelector ? css(root, config.itemSelector, '_listItem') : [];
         validate(config.fields);
-        if (!config.listSelector) return { records: [item(root, config.fields)] };
+        if (!listMode) return { records: [item(root, config.fields)] };
+        if (!config.listSelector) return { records: selectedItems.map(node => item(dom ? node : $(node), config.fields)) };
         const seen = new Set(), records = [];
         for (const container of containers) {
             const children = dom ? Array.from(container.children) : $(container).children().toArray();

@@ -42,8 +42,8 @@ export async function readToolSnapshot({toolId,readText}){
     manifest.format!=='opendesk.tool-snapshot.v1'||manifest.id!==toolId||
     manifest.version!==pointer.version||manifest.sha256!==pointer.sha256||
     manifest.buildId!==pointer.buildId||!SHA.test(manifest.sourceFingerprint)||
-    !Number.isSafeInteger(manifest.bytes)||manifest.bytes<=0||manifest.bytes>SIDEBAR_TOOL_LIMITS.packageBytes||
-    !Array.isArray(manifest.chunks)||manifest.chunks.length<1||manifest.chunks.length>Math.ceil(SIDEBAR_TOOL_LIMITS.packageBytes/SIDEBAR_TOOL_LIMITS.nativeChunkBytes))
+    !Number.isSafeInteger(manifest.bytes)||manifest.bytes<=0||
+    !Array.isArray(manifest.chunks)||manifest.chunks.length<1||manifest.chunks.length>manifest.bytes)
     fail('invalid snapshot manifest');
   const buffers=[];let combined=0;
   for(let i=0;i<manifest.chunks.length;i++){

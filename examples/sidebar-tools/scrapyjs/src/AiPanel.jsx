@@ -1,11 +1,13 @@
 import * as React from 'react';
-import {Button,SharedConversationFrame,SharedConversationDock,createConversationSession} from '@opendesk/ui';
+import {Button,Textarea,SharedConversationFrame,SharedConversationDock,createConversationSession} from '@opendesk/ui';
 import {instructions,parseProposal,changes,sameConfig} from './ai-config.js';
 import {createAiRequest,requireGeneration} from './ai-request.js';
 import {createAiPending} from './ai-pending.js';
 
 const format=value=>value===undefined?'（无）':JSON.stringify(value,null,2);
-function Difference({row}){return <li><strong>{row.kind} · {row.key}</strong>{row.kind!=='保留'&&<div className="ai-before-after"><div>原值<pre>{format(row.before)}</pre></div><div>新值<pre>{format(row.after)}</pre></div></div>}</li>;}
+function Difference({row}){return <li><strong>{row.kind} · {row.key}</strong>{row.kind==='新增'||row.kind==='删除'
+  ?<pre className="ai-change-value" aria-label={row.kind==='新增'?'新值':'原值'}>{format(row.kind==='新增'?row.after:row.before)}</pre>
+  :row.kind!=='保留'&&<div className="ai-before-after"><div>原值<pre>{format(row.before)}</pre></div><div>新值<pre>{format(row.after)}</pre></div></div>}</li>;}
 
 export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onClose,onBusy,onDirty}){
   const tool=globalThis.OpenDeskTool;
@@ -36,10 +38,20 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   const [processedInput,setProcessedInput]=React.useState('');
   const active=React.useRef(null),alive=React.useRef(true);
   const log=React.useRef(null);
+  const review=React.useRef(null),revealedProposal=React.useRef(null);
+  const followMessages=React.useRef(true),lastRows=React.useRef(conversation.rows);
   const [transcriptTarget,setTranscriptTarget]=React.useState(null);
   const [composerTarget,setComposerTarget]=React.useState(null);
-  // New messages reveal themselves; opening an existing conversation keeps its scroll.
-  React.useLayoutEffect(()=>{if(open&&log.current)log.current.scrollTop=log.current.scrollHeight;},[conversation.rows]);
+  // Reveal a new proposal in this local scroller, without moving keyboard focus.
+  // Reopening an already reviewed proposal preserves the reader's position.
+  React.useLayoutEffect(()=>{
+    const node=log.current;if(!open||!node)return;
+    if(draft&&review.current&&revealedProposal.current!==draft.requestId){
+      node.scrollTop+=review.current.getBoundingClientRect().top-node.getBoundingClientRect().top;
+      revealedProposal.current=draft.requestId;
+    }else if(lastRows.current!==conversation.rows&&followMessages.current){node.scrollTop=node.scrollHeight;}
+    lastRows.current=conversation.rows;
+  },[open,draft,conversation.rows]);
   const blocked=locked||pending||!valid;
   React.useEffect(()=>()=>chat.dispose(),[chat]);
   React.useEffect(()=>{alive.current=true;tool.request('ai.info',{}).then(info=>{if(alive.current)setRecipient(info);}).catch(e=>{if(alive.current)setError(e.message);});return()=>{alive.current=false;active.current?.cancel({release:false}).catch(()=>{});};},[tool]);
@@ -104,14 +116,19 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   async function exportDraft(){if(exportPending.current)return;exportPending.current=true;setExporting(true);setError('');setNotice('');try{const r=await tool.request('browser.downloads.text',{text:JSON.stringify(draft.config,null,2),filename:'scrapyjs-ai-config.json'});if(r?.started!==true)throw Error('下载结果未知');setNotice('已请求下载配置 JSON，请在下载列表确认。');}catch(e){setNotice('');setError(e.message);}finally{exportPending.current=false;setExporting(false);}}
   const diff=draft?changes(draft.base,draft.config):null;
   const editingLocked=working&&!unknown;
-  const previewContext=working&&requestContext?requestContext:{page:state.target,currentConfig:useConfig?state.config:{url:state.target?.url,itemConfig:{title:'.::text'}},previousError:error||state.error||''};
+  const previewContext=working&&requestContext?requestContext:{page:state.target?{title:state.target.title,url:state.target.url}:null,currentConfig:useConfig?state.config:{url:state.target?.url,itemConfig:{title:'.::text'}},sample,previousError:error||state.error||''};
   const nextPage=editingLocked&&requestContext?requestContext.page:state.target;
   const feedback=appliedRequestId&&savedRequestId===appliedRequestId?'此提案的配置已保存；采集仍需单独点击「开始采集」。':notice;
-  return <SharedConversationDock id="chat-ai-panel" className="ai-workspace" aria-label="AI 配置对话" open={open} onClose={onClose} onKeyDown={event=>{
+  const phase=unknown?'原请求待确认':working?'生成中':draft?(stale?'提案已过期':'待审阅'):appliedRequestId?(savedRequestId===appliedRequestId?'配置已保存':'待保存配置'):!usePage?'待确认资料':'就绪';
+  const composerHint=unknown?'原请求结果待确认，请查询或停止原请求。':working?'正在生成，可停止原请求。':blocked?'请先处理业务中的未应用编辑、无效配置或正在进行的操作。':!pendingReady?'正在读取原请求状态…':!recipient?'共享 AI 尚未就绪，请查看资料与诊断。':!state.target?'请先刷新当前网页信息。':!usePage?'请先在「发送资料」确认当前网页。':'';
+  const changedFields=diff?.fields.filter(row=>row.kind!=='保留')||[];
+  const retainedFields=diff?.fields.filter(row=>row.kind==='保留')||[];
+  const changeCount=changedFields.length+(diff?.listChanged?1:0)+(diff?.optionChanges.length||0);
+  return <SharedConversationDock id="chat-ai-panel" className="ai-workspace" aria-label="AI 配置对话" open={open} onClose={onClose} expandedFeedback={Boolean(draft||error||unknown)}
+    toolbar={<div className="ai-dock-heading"><h2 id="chat-ai-heading">AI 配置</h2><span id="ai-phase" role="status">{phase}</span></div>} onKeyDown={event=>{
     if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();onClose();}
   }}>
-    <div className="ai-chat"><div className="ai-scroll" ref={log}>
-    <h2 className="sr-only" id="chat-ai-heading">AI 配置对话</h2>
+    <div className="ai-chat"><div className="ai-scroll" ref={log} onScroll={event=>{const node=event.currentTarget;followMessages.current=node.scrollHeight-node.clientHeight-node.scrollTop<32;}}>
     <details className="od-disclosure od-disclosure--flat ai-materials" open={!usePage||undefined}><summary>发送资料{usePage?' · 已选择当前网页':' · 请确认当前网页'}</summary><div className="disclosure-body">
     <fieldset className="ai-context" disabled={editingLocked}><legend>{editingLocked?'本次发送的资料':'下次待发送的资料'}</legend>
       <div className="related-note"><label className="check"><input type="checkbox" id="chat-ai-use-page" checked={usePage} onChange={e=>setUsePage(e.target.checked)}/>发送当前网页标题与网址（必选）</label>
@@ -122,26 +139,30 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     {blocked&&<p className="od-note secondary">请先处理未应用的编辑、无效 JSON 或正在进行的配置/采集操作。</p>}
     <div ref={setTranscriptTarget} className="od-conversation-log ai-transcript" role="log" aria-live="polite" aria-label="对话及已核实操作结果"/>
     <p id="chat-ai-feedback" role="status" hidden={!feedback}>{feedback}</p><p role="alert" className="error" hidden={!error}>{error}</p>
-    {unknown&&<Button id="chat-ai-cancel" onClick={cancel}>查询 / 停止原请求</Button>}
-    {draft&&<div id="chat-ai-review" className="ai-review stack" aria-label="生成配置审阅">
-      <h2 className="od-page-title">审阅配置</h2><p className="od-note secondary">目标：{draft.config.url}</p>
-      <ul className="ai-diff">{diff.fields.map(row=><Difference key={row.key} row={row}/>)}{diff.listChanged&&<Difference row={{key:'列表选择器',kind:'修改',before:diff.listBefore,after:diff.listAfter}}/>}{diff.optionChanges.map(row=><Difference key={row.key} row={row}/>)}</ul>
-      <details id="chat-ai-json" className="od-disclosure od-disclosure--flat"><summary>生成的完整 JSON（只读）</summary><div className="disclosure-body"><label className="sr-only" htmlFor="ai-config-preview">生成的完整 JSON</label><textarea className="od-field" id="chat-ai-config-preview" rows={6} readOnly value={JSON.stringify(draft.config,null,2)}/></div></details>
+    {unknown&&<Button base="aria" id="chat-ai-cancel" onClick={cancel}>查询 / 停止原请求</Button>}
+    {draft&&<div id="chat-ai-review" ref={review} className="ai-review stack" aria-label="生成配置审阅">
+      <div className="toolbar"><h2 className="od-page-title">审阅配置</h2><span className="secondary">{changeCount} 项变更 · 尚未应用</span></div><p className="od-note secondary">目标：{draft.config.url}</p>
+      <ul className="ai-diff">{changedFields.map(row=><Difference key={row.key} row={row}/>)}{diff.listChanged&&<Difference row={{key:'列表选择器',kind:'修改',before:diff.listBefore,after:diff.listAfter}}/>}{diff.optionChanges.map(row=><Difference key={row.key} row={row}/>)}</ul>
+      {retainedFields.length>0&&<details id="ai-retained-fields" className="od-disclosure od-disclosure--flat"><summary>保持不变的字段 · {retainedFields.length}</summary><ul className="ai-diff disclosure-body">{retainedFields.map(row=><Difference key={row.key} row={row}/>)}</ul></details>}
+      <details id="chat-ai-json" className="od-disclosure od-disclosure--flat"><summary>生成的完整 JSON（只读）</summary><div className="disclosure-body"><label className="sr-only" htmlFor="chat-ai-config-preview">生成的完整 JSON</label><Textarea className="od-field scrapy-code" id="chat-ai-config-preview" rows={6} readOnly value={JSON.stringify(draft.config,null,2)}/></div></details>
       {stale&&<p role="alert" className="error">需求、资料、原配置或当前网页已变化，请重新生成；不会覆盖新草稿。</p>}
-      <div className="toolbar"><Button id="chat-ai-apply" variant="primary" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||stale} onClick={apply}>应用为配置草稿</Button><Button id="chat-ai-export" disabled={working||exporting} onClick={exportDraft}>导出生成配置</Button><Button id="chat-ai-discard" disabled={working} onClick={()=>{setDraft(null);setProcessedInput(inputKey);setNotice('已放弃生成草稿；需求和样本仍保留。');tool.root.querySelector('#ai-requirement')?.focus({preventScroll:true});}}>放弃生成草稿</Button></div>
-      <details className="od-disclosure od-disclosure--flat"><summary>AI 调用记录</summary><div className="disclosure-body"><pre>{JSON.stringify({requestId:draft.requestId,providerGeneration:draft.generation,metadata:draft.metadata},null,2)}</pre></div></details>
     </div>}
-    <details className="od-disclosure od-disclosure--flat"><summary>可选 · 提供必要 HTML 样本</summary><div className="disclosure-body"><div className="od-form-field field"><label className="od-field-label" htmlFor="ai-sample">只提供必要结构，移除密码、Token 和私人数据</label><textarea className="od-field" id="chat-ai-sample" rows={5} maxLength={12000} disabled={editingLocked} value={sample} onChange={e=>setSample(e.target.value)}/></div><p className="od-note secondary">不会自动读取网页正文、Cookie 或表单值。</p></div></details>
+    <details id="ai-advanced" className="od-disclosure od-disclosure--flat"><summary>更多资料与诊断{sample?' · 含 HTML 样本':''}</summary><div className="disclosure-body">
+    <details className="od-disclosure od-disclosure--flat"><summary>可选 · 提供必要 HTML 样本</summary><div className="disclosure-body"><div className="od-form-field field"><label className="od-field-label" htmlFor="chat-ai-sample">只提供必要结构，移除密码、Token 和私人数据</label><Textarea className="od-field" id="chat-ai-sample" rows={5} maxLength={12000} disabled={editingLocked} value={sample} onChange={e=>setSample(e.target.value)}/></div><p className="od-note secondary">不会自动读取网页正文、Cookie 或表单值。</p></div></details>
     <details className="od-disclosure od-disclosure--flat"><summary>共享 AI · {recipient?[recipient.provider,recipient.model].filter(Boolean).join(' · '):'当前不可用'}</summary>
       <div className="disclosure-body"><p className="od-note secondary" id="chat-ai-recipient">接收方：{recipient?[recipient.provider,recipient.model,recipient.endpoint].filter(Boolean).join(' · '):'共享 Provider 未就绪。本地调试不开放真实 AI；推理仍需原安装授权。'}</p></div>
     </details>
-    <details className="od-disclosure od-disclosure--flat"><summary>查看{working&&requestContext?'本次':'下次'}配置与错误资料</summary><div className="disclosure-body"><pre>{JSON.stringify(previewContext,null,2)}</pre></div></details>
-    </div><label className="od-field-label ai-input-label" htmlFor="ai-requirement">采集需求 / 纠正要求</label><div className="ai-composer-target" ref={setComposerTarget}/>
+    <details className="od-disclosure od-disclosure--flat"><summary>查看{working&&requestContext?'本次':'下次'}配置与错误资料</summary><div className="disclosure-body"><pre id="ai-context-preview">{JSON.stringify(previewContext,null,2)}</pre></div></details>
+    {draft&&<details className="od-disclosure od-disclosure--flat"><summary>AI 调用记录</summary><div className="disclosure-body"><pre>{JSON.stringify({requestId:draft.requestId,providerGeneration:draft.generation,metadata:draft.metadata},null,2)}</pre></div></details>}
+    </div></details>
+    </div>
+    {draft&&<div className="toolbar ai-review-actions" role="group" aria-label="配置提案操作"><Button base="aria" id="chat-ai-apply" variant="secondary" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||stale} onClick={apply}>应用为配置草稿</Button><Button base="aria" id="chat-ai-export" variant="outline" disabled={working||exporting} onClick={exportDraft}>导出生成配置</Button><Button base="aria" id="chat-ai-discard" variant="quiet" disabled={working} onClick={()=>{setDraft(null);setProcessedInput(inputKey);setNotice('已放弃生成草稿；需求和样本仍保留。');tool.root.querySelector('#ai-requirement')?.focus({preventScroll:true});}}>放弃生成草稿</Button></div>}
+    <label className="od-field-label ai-input-label" htmlFor="ai-requirement"><span>采集需求 / 纠正要求{draft&&!stale?' · 修改需求可重新生成':''}</span>{composerHint&&<span id="ai-composer-hint" className="ai-composer-hint">{composerHint}</span>}</label><div className="ai-composer-target" ref={setComposerTarget}/>
       <SharedConversationFrame open={open} rows={conversation.rows} draft={requirement}
         focusOnOpen={true} autoScroll={false} splitTargets={true} transcriptTarget={transcriptTarget} composerTarget={composerTarget}
         busy={working&&!unknown} blocked={unknown||pendingId!==null||!pendingReady||blocked}
         inputDisabled={editingLocked} canSend={Boolean(recipient&&usePage&&state.target&&(!draft||stale))}
-        inputId="ai-requirement" inputLabel="" sendId="ai-generate" stopId="ai-cancel"
+        inputId="ai-requirement" inputLabel="" sendId="ai-generate" stopId="chat-ai-cancel"
         placeholder="例如：保留全部规则，增加与 title 相同的 column_title，只采当前页。"
         emptyPrompt="提案先审阅，再应用和保存。采集仍需单独开始。" onDraftChange={setRequirement}
         onSend={generate} onStop={cancel}

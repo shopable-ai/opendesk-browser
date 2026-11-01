@@ -1,0 +1,260 @@
+{
+  "task": "Cookie Editor企业页服务列表图标与中性账号计数",
+  "date": "2026-10-31",
+  "mode": "DESIGN_PREVIEW_ONLY",
+  "candidateSha256": "b9b7793bb89a9b69be814e4e26175a00ec405c5137147e69c77b3116f3212b60",
+  "source": "examples/sidebar-tools/cookie-editor/preview/cookie-editor.html",
+  "baselineSha256": "0f86e4ab2b6ef2f18f3b42958e6dd90638ba110a1cc9498c7964da02dc4fd4c9",
+  "manifest": "artifacts/cookie-enterprise-icons-20261031/candidate-2/manifest.json",
+  "evaluation": {
+    "method": "两名独立AI只读评审亲自查看8张当前候选截图、核对19张图片及5份报告哈希；动态结论依据主owner运行的定向检查，未独立重跑。固定五维各20分，重新评分。",
+    "target": 95,
+    "totals": [
+      {
+        "role": "designer",
+        "total": 97
+      },
+      {
+        "role": "critic",
+        "total": 96
+      }
+    ],
+    "blockers": []
+  },
+  "verification": {
+    "checks": 5,
+    "result": "PASS",
+    "pageErrors": 0,
+    "realServiceNetworkRequests": 0,
+    "sourceAndFrozenAndServedBytes": "IDENTICAL",
+    "originalEnterpriseTemplate": "BYTE_IDENTICAL_TO_SCOPE_BASELINE",
+    "sourceSyntax": "BrowserParsePASS",
+    "testScriptSyntax": "NODE_CHECK_PASS",
+    "patchWhitespace": "PASS",
+    "earlier16Checks": "HISTORICAL_NOT_RERUN_THIS_SCOPE"
+  },
+  "iterations": [
+    {
+      "candidate": "candidate-1",
+      "sha256": "511657fc6067de8751ae2989d5e099f9580e2f62669b8081522982caf7afe381",
+      "verdict": "NEEDS_TOOLTIP_FIX",
+      "failure": "鼠标悬停提示不能用Escape关闭，已复现后最小修复；提示持续悬停也已补齐。",
+      "report": "artifacts/cookie-enterprise-icons-20261031/candidate-1/tooltip-check/interactions.json"
+    },
+    {
+      "candidate": "candidate-2",
+      "intermediateDriverFailures": [
+        {
+          "path": "artifacts/cookie-enterprise-icons-20261031/candidate-2/icon-check/interactions.json",
+          "reason": "测试错误假设已连接seed含1个关联。改为实际确认关联后再验证1，产品不变。"
+        },
+        {
+          "path": "artifacts/cookie-enterprise-icons-20261031/candidate-2/icon-check-final/interactions.json",
+          "reason": "主题控件是button，驱动误用check；改为click，产品不变。"
+        }
+      ],
+      "finalReport": "artifacts/cookie-enterprise-icons-20261031/candidate-2/icon-check-pass/interactions.json"
+    }
+  ],
+  "remainingNonBlocking": [
+    "chart管理与search核对图标首次使用仍依赖提示",
+    "向下提示暂时覆盖下一条服务标题/状态",
+    "待核对琥珀徽标与红色补充说明警示级别略有差异"
+  ],
+  "boundaries": {
+    "actualService": "NOT_TESTED",
+    "native": "NOT_TESTED",
+    "productionApp": "OUT_OF_SCOPE",
+    "installation": "NOT_TESTED",
+    "formalAccessibility": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "parallelOwners": "正式app/http-services等并行文件未改动；保留原58626服务。"
+  },
+  "reviews": [
+    {
+      "agentId": "01a1916d-ac01-7fb0-8d17-b75d09be6f61",
+      "role": "designer",
+      "review": {
+        "role": "independent-ui-ux-reviewer",
+        "candidateSha256": "b9b7793bb89a9b69be814e4e26175a00ec405c5137147e69c77b3116f3212b60",
+        "scores": {
+          "信息层级": {
+            "score": 20,
+            "max": 20,
+            "deductions": "无。服务身份、状态、关联计数和操作层级清楚，图标化降低了按钮对内容的干扰。"
+          },
+          "密度排版": {
+            "score": 20,
+            "max": 20,
+            "deductions": "无。共享外框、连续服务行、统一图标操作区紧凑且对齐，没有以缩小点击区域换取密度。"
+          },
+          "操作可发现": {
+            "score": 18,
+            "max": 20,
+            "deductions": "扣2分：chart作为管理入口、search作为核对原操作的含义仍需要提示解释，尤其触屏首次使用缺少hover提示。服务上下文名称和键盘tooltip已降低这一问题。"
+          },
+          "可读性与焦点": {
+            "score": 19,
+            "max": 20,
+            "deductions": "扣1分：所见hover及键盘tooltip向下覆盖了下一行服务名称，暂时打断连续扫描。焦点环清楚，tooltip文字可读。"
+          },
+          "状态语义": {
+            "score": 20,
+            "max": 20,
+            "deductions": "无。关联0/1为中性计数；连接状态保留文字与语义图标；结果待核对同时有文字说明，未只依靠颜色表达。"
+          }
+        },
+        "total": 97,
+        "verdict": "本轮离线HTML图标化UI/UX终审通过，达到95分要求。独立重新评分，未继承历史分数；无阻断项。",
+        "blockers": [],
+        "strengths": [
+          "详情、连接、管理与核对操作视觉轻量，服务内容成为阅读主体。",
+          "关联计数取代负面的空状态表达，连接与关联保持独立语义。",
+          "亮色、暗色截图中的状态与操作均可辨认。",
+          "源码定义34px图标按钮及coarse下44px最小操作区域。",
+          "图标按钮具备可访问名称和tooltip；同SHA报告支持Escape关闭、键盘及触控相关路径。",
+          "五份当前候选报告均PASS，pageErrors及networkRequests均为空。"
+        ],
+        "limitations": [
+          {
+            "type": "非阻断设计问题",
+            "detail": "管理与核对图标的首次理解成本仍高于详情和连接图标。后续可优化图形隐喻，无需恢复整排文字按钮。"
+          },
+          {
+            "type": "非阻断设计问题",
+            "detail": "tooltip可优先向上定位，减少覆盖相邻服务名称；调整时保留持续悬停、Escape关闭和焦点行为。"
+          },
+          {
+            "type": "验证边界",
+            "detail": "亲自查看指定8张截图；其余11张仅核对文件哈希。交互结论依据现有报告，未操作浏览器或重跑测试。"
+          },
+          {
+            "type": "验证边界",
+            "detail": "原内容报告的一致性口径为移除新增跳转及焦点属性后相同，不将其扩大为原始DOM完全不变。"
+          },
+          {
+            "type": "范围边界",
+            "detail": "不涵盖真实服务、正式app、扩展安装、生产集成或正式无障碍审计；宽度与缩放矩阵不在本轮范围。"
+          }
+        ],
+        "reviewedEvidence": {
+          "root": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-enterprise-icons-20261031/candidate-2/",
+          "visuallyInspected": [
+            "icon-check-pass/icons-default.png",
+            "icon-check-pass/icons-connected.png",
+            "icon-check-pass/icons-keyboard-tooltip.png",
+            "icon-check-pass/icons-hover-tooltip.png",
+            "icon-check-pass/icons-unknown.png",
+            "icon-check-pass/icons-dark.png",
+            "icon-check-pass/icons-detail.png",
+            "preservation/service-region.png"
+          ],
+          "reportsRead": [
+            "icon-check-pass/interactions.json",
+            "preservation/interactions.json",
+            "keyboard/interactions.json",
+            "reconciliation/interactions.json",
+            "recovery/interactions.json"
+          ],
+          "integrity": {
+            "sourceAndFrozenHtmlMatchCandidateSha256": true,
+            "allReportsMatchCandidateSha256": true,
+            "screenshotHashesVerified": 19,
+            "reportHashesVerified": 5,
+            "hashMismatches": 0
+          }
+        }
+      }
+    },
+    {
+      "agentId": "01a19170-0486-70b1-9ede-21995ff960da",
+      "role": "critic",
+      "review": {
+        "role": "independent_ux_reviewer",
+        "candidateSha256": "b9b7793bb89a9b69be814e4e26175a00ec405c5137147e69c77b3116f3212b60",
+        "scores": {
+          "信息层级": 20,
+          "密度排版": 20,
+          "操作可发现": 18,
+          "可读性与焦点": 19,
+          "状态语义": 19
+        },
+        "total": 96,
+        "verdict": "OKAY",
+        "blockers": [],
+        "strengths": [
+          "图标操作持续可见、位置稳定，列表紧凑且服务名称、地址、状态层次清楚。",
+          "“关联 0/1”采用中性数量表达；连接状态、账号关联和同步授权保持分离。",
+          "实际截图显示清晰的键盘焦点环，以及包含服务名称的hover/focus提示。",
+          "驱动与报告覆盖tooltip的Escape关闭、持续悬停、重新聚焦恢复，以及明确关联后计数变1。",
+          "未知结果保留可见说明和核对入口；源码限制新写入，核对路径不重新发送连接。",
+          "浅色与深色截图均保持文字、图标和操作区域可辨认。"
+        ],
+        "limitations": [
+          {
+            "type": "non_blocking_deduction",
+            "dimension": "操作可发现",
+            "points": 2,
+            "finding": "i与chart分别表示详情、管理预览，首次使用仍需借助提示确认；chart尤其容易被理解为统计入口。",
+            "suggestion": "保持图标化方向，后续可选择更贴近管理入口语义的图形，并维持明确的tooltip。"
+          },
+          {
+            "type": "non_blocking_deduction",
+            "dimension": "可读性与焦点",
+            "points": 1,
+            "finding": "hover及键盘tooltip向下跨入下一服务条目的标题行，暂时覆盖其部分状态区域。",
+            "suggestion": "可调整提示位置以减少覆盖相邻状态；现有Escape关闭能力使其不构成阻断。"
+          },
+          {
+            "type": "non_blocking_deduction",
+            "dimension": "状态语义",
+            "points": 1,
+            "finding": "未知结果同时使用琥珀色待核对徽标和红色说明，警示级别略不一致。",
+            "suggestion": "待核对说明可统一采用琥珀色，红色保留给已确认失败。"
+          },
+          {
+            "type": "verification_boundary",
+            "finding": "本人未运行测试或操作浏览器。动态行为结论来自当前候选报告、驱动和源码审查。"
+          },
+          {
+            "type": "not_tested",
+            "finding": "未进行屏幕阅读器或正式无障碍审计；真实服务、正式app、生产及宽度缩放矩阵不在范围。"
+          },
+          {
+            "type": "verdict_scope",
+            "finding": "96分为本候选独立评分，仅通过本轮离线UX审阅，不继承旧评分或代表正式发布验收。"
+          }
+        ],
+        "reviewedEvidence": {
+          "baseDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-enterprise-icons-20261031/candidate-2/",
+          "source": {
+            "file": "cookie-editor.html",
+            "sha256Verified": true,
+            "reviewedAreas": "图标生成、辅助名称、关联计数、状态、tooltip样式与Escape处理、未知操作保护。"
+          },
+          "actuallyViewed": [
+            "icon-check-pass/icons-default.png",
+            "icon-check-pass/icons-connected.png",
+            "icon-check-pass/icons-keyboard-tooltip.png",
+            "icon-check-pass/icons-hover-tooltip.png",
+            "icon-check-pass/icons-unknown.png",
+            "icon-check-pass/icons-dark.png",
+            "icon-check-pass/icons-detail.png",
+            "preservation/service-region.png"
+          ],
+          "reportsRead": [
+            "icon-check-pass/interactions.json",
+            "preservation/interactions.json",
+            "keyboard/interactions.json",
+            "reconciliation/interactions.json",
+            "recovery/interactions.json"
+          ],
+          "reportedResults": "5项均PASS，均绑定当前SHA，pageErrors及networkRequests均为空。",
+          "driverRead": "examples/sidebar-tools/cookie-editor/tests/service-preview-interactions.mjs",
+          "integrity": "manifest所列19张截图及5份报告的哈希全部匹配。",
+          "imageCoverage": "实际查看8张；其余11张仅核对哈希，未逐张看图。"
+        }
+      }
+    }
+  ]
+}

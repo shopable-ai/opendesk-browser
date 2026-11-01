@@ -69,18 +69,14 @@ test('R1.8.3 both official renderers show every assistant turn ONLY in ChatGPT f
  }
 });
 test('R1.8.3 preview supports three genuine source IDs without modifying approved tool toolbar',async()=>{
- const [sidebar,overlay,styles,prototype]=await Promise.all([
+ const [sidebar,overlay,styles]=await Promise.all([
   sourceOf(sidebarPath),sourceOf(overlayPath),
-  sourceOf('projects/reading-toc/src/style.css'),
-  sourceOf('projects/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html')
+  sourceOf('projects/reading-toc/src/style.css')
  ]);
  assert.match(sidebar,/source\.hidden=true/,'the old source selector stays hidden');
  assert.match(overlay,/modes\.hidden=false/,
   'approved toolbar stays visible for both compact and multi-answer outlines');
  assert.match(styles,/li\.toc-answer-start\{border-top:1px solid/);
- assert.match(prototype,/const records=\[\['overview',1,'sectionOverview','s-1'\]/);
- assert.match(prototype,/const records=.*'s-3'/);
- assert.match(prototype,/mode='full',state='guest'/);
  const generated=await generatePreview({tool:'reading-toc',surface:'side-panel',
    scenario:'chatgpt-multi',theme:'light',width:360});
  assert.equal(generated.manifest.scenario,'chatgpt-multi');

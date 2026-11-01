@@ -1,4 +1,3 @@
-import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,rm,symlink,access} from 'node:fs/promises';
@@ -359,14 +358,22 @@ test('R4.5 runtime fetches only extension-owned bytes; catalog alone has no inst
   assert.equal(calls.length,2+catalog.apps.length);
   await assert.rejects(loadOfficialCatalog({api:{runtime:{getURL:()=> 'https://example.com/catalog'}},fetcher}),e=>e.code==='E_PACKAGE_SOURCE');
 });
+test('large official packages retain fixed release length and digest checks',async()=>{
+  const {catalog,resources}=await officialFixtures(),original=catalog.apps[0];
+  const tool={...JSON.parse(resources.get(original.packagePath)),js:'/*'+'界'.repeat(750000)+'*/'};
+  const bytes=Buffer.from(JSON.stringify(tool)),release={...original,bytes:bytes.length,sha256:hash(bytes)};
+  assert.ok(bytes.length>2*1024*1024);
+  assert.deepEqual((await loadOfficialTool(release,{api,fetcher:async()=>new Response(bytes)})).tool,tool);
+  await assert.rejects(loadOfficialTool(release,{api,fetcher:async()=>new Response(Buffer.concat([bytes,Buffer.from(' ')]))}));
+});
 test('R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official',async()=>{
   const {catalog,resources}=await officialFixtures(),release=catalog.apps[0],bytes=resources.get(release.packagePath);
   for(const fetcher of [
     async()=>new Response('missing',{status:404}),
     async()=>new Response(Buffer.concat([bytes,Buffer.from(' ')])),
-    async()=>new Response('x'.repeat(SIDEBAR_TOOL_LIMITS.packageBytes+1)),
+    async()=>new Response('x'.repeat(bytes.length+1)),
     async()=>({ok:true,url:'https://untrusted.example/package',arrayBuffer:async()=>bytes}),
-    async()=>new Response(bytes,{headers:{'content-length':String(SIDEBAR_TOOL_LIMITS.packageBytes+1)}})
+    async()=>new Response(bytes,{headers:{'content-length':String(bytes.length+1)}})
   ])await assert.rejects(loadOfficialTool(release,{api,fetcher}));
   await assert.rejects(loadOfficialTool({...release,sha256:'a'.repeat(64)},{api,fetcher:officialFixtureFetch}),e=>e.code==='E_PACKAGE_INTEGRITY');
   await assert.rejects(loadOfficialTool({...release,version:'99.0.0'},{api,fetcher:officialFixtureFetch}),e=>e.code==='E_PACKAGE_IDENTITY');
@@ -379,7 +386,7 @@ test('R4.5 generated catalog rejects forged paths, duplicate releases, persisted
   const {catalog}=await officialFixtures(),first=catalog.apps[0];
   for(const app of [{...first,packagePath:'../sw.js'}, {...first,packagePath:'https://example.com/tool.json'},
     {...first,installationPolicy:'default'}, {...first,kind:'page-program'}, {...first,sha256:'bad'},
-    {...first,bytes:SIDEBAR_TOOL_LIMITS.packageBytes+1}, {...first,sites:['https://example.com']}])
+    {...first,bytes:Number.MAX_SAFE_INTEGER+1}, {...first,sites:['https://example.com']}])
     assert.throws(()=>validateOfficialReleaseCatalog({...catalog,apps:[app]}));
   assert.throws(()=>validateOfficialReleaseCatalog({...catalog,apps:[first,first]}));
   assert.throws(()=>validateOfficialReleaseCatalog({...catalog,installed:[]}));

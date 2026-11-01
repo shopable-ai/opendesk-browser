@@ -1,0 +1,160 @@
+{
+  "scope": "添加服务header与垂直节奏，离线参考及正式React业务UI定向修复",
+  "phase": "SOURCE_DEV_VERIFIED_NOT_PACKAGED_OR_INSTALLED",
+  "changedProduction": [
+    "app/components/CookieHttpConnections.jsx",
+    "app/components/CookieBusinessPanels.jsx",
+    "app/CookieEditorApp.jsx",
+    "src/react.css"
+  ],
+  "sourceInputs": {
+    "preview/cookie-editor.html": "95dd1c9163a1d603b375244127f64690d7211f92b49e1b1d06c1fb57573792ff",
+    "app/components/CookieHttpConnections.jsx": "5ed30cc5734acdc4897ed5509d1aa54a365537a65f7df2e3d5dec0c67dd4c941",
+    "app/components/CookieBusinessPanels.jsx": "7ce0a645b8b37b641c755661dab3f702d70e8e1dd053565ace5d0b9d6b3ef450",
+    "app/CookieEditorApp.jsx": "37bd573b2fc83380b062e8830310126bed237295a7e37551ccf0cb508a9900db",
+    "src/react.css": "0942e9d57375cc1bd25c96378dcc6776daaff6181f91cb5cd1a5cd4bf5df7038",
+    "preview/react/src/mock-sdk.js": "cb263e06e51946ab5a9696652ac08d58c755c616e450b0ea0dc482f05f39fbb6",
+    "tests/service-form-source-interactions.mjs": "161e3f95fd4165bf6eb54b934cb7000c62f9250feb379ebc166d3a24678caeeb",
+    "tests/service-preview-interactions.mjs": "3a995f1fdeda4b9391f26a26d668b7a3df4e2b42dfa37c0c39edf4c178b1ba60"
+  },
+  "preview": {
+    "current": "http://127.0.0.1:43134/dev.html",
+    "path": "企业 → 添加服务",
+    "mode": "Vite current-source React; fictional SDK and per-instance in-memory storage",
+    "old58626": "UNREACHABLE; not restarted or replaced",
+    "oldLiveChromeFinalReload": "BLOCKED_POLICY; not retried by another channel",
+    "browserDevEnvironment": "Existing Browser watcher/output untouched; loaded Chrome path/ID/tool version/serve pairing not reread by this task",
+    "existingSharedUI": "Reused dist/development/sidebar-shared-ui.js; no new Browser build or current-source correspondence claimed"
+  },
+  "verification": [
+    {
+      "name": "Formal source React Chromium",
+      "purpose": "header alignment, help/no overlap, draft discard/focus, address error preservation, save unconnected, explicit pairing",
+      "result": "5/5 PASS",
+      "report": "artifacts/cookie-service-header-20261031/react/interactions.json",
+      "pageErrors": 0,
+      "realServiceRequests": 0
+    },
+    {
+      "name": "Offline reference Chromium",
+      "purpose": "retained enterprise/tabs, add local/company, help scroll, drafts/failure, connected receiver protection, unknown result",
+      "result": "8/8 PASS",
+      "report": "artifacts/cookie-service-header-20261031/after-html/interactions.json",
+      "pageErrors": 0,
+      "realServiceRequests": 0
+    },
+    {
+      "name": "HTTP component and installed-App render harness",
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "21/21 PASS",
+      "purpose": "JSX resolution, six tabs, affected cancel/dirty/focus and preexisting exact origin/identity/unknown protections"
+    },
+    {
+      "name": "Preview memory storage and real adapter",
+      "command": "node --test --test-name-pattern='mock scoped storage|real adapter saves a fictional' examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs",
+      "result": "2/2 PASS",
+      "purpose": "isolated cloned memory storage and saving without service requests"
+    },
+    {
+      "name": "Targeted syntax/CSS/diff",
+      "result": "PASS",
+      "checks": [
+        "Node --check for both interaction scripts and mock SDK",
+        "PostCSS parses tool react.css",
+        "git diff --check for owner"
+      ]
+    }
+  ],
+  "observedNonblockingFailures": [
+    {
+      "test": "R3.2 market and account invite share one formal App but never create production grants",
+      "detail": "preview.test.mjs:445 expects legacy 匿名邀请 source copy; unrelated invite area unchanged",
+      "disposition": "DEFERRED"
+    },
+    {
+      "test": "R3.7 dev comparison imports safely and pins approved bytes without generated HTML",
+      "detail": "build-a-b.mjs:14 approvedHtml() E_R35_APPROVED_HTML_CHANGED: 00570b37aae63e8573e5b8e4b0511bd93bc91313; historical approved HTML pin",
+      "disposition": "DEFERRED"
+    }
+  ],
+  "broadPreviewRun": "Child ran full preview suite once: 28/30; two unrelated failures above preserved, no full CI run",
+  "designDecisions": [
+    "Single centered back/title row; remove extra config divider and duplicate type subtitles",
+    "8/12/16px semantic spacing and one enterprise gutter owner",
+    "Normal-flow help/footer instead of sticky overlay",
+    "No persisted service type added to HTTP domain; no protocol change",
+    "Existing App discard review reused; focus deferred until confirmation unlock",
+    "Enterprise overview preserved and restored when exiting add view"
+  ],
+  "redGreen": [
+    {
+      "case": "Edited config cancellation",
+      "red": "new component regression failed because cancel closed without review",
+      "green": "component regression and actual source browser checks pass"
+    },
+    {
+      "case": "Help expansion",
+      "classification": "old sticky-based assertion required fixed save; replaced with actual scroll/read/no-overlap assertions without weakening endpoint validation"
+    },
+    {
+      "case": "Focus",
+      "red": "source browser found focus attempted while input was disabled and stale Add trigger after remount",
+      "green": "post-unlock focus and stable Add ref verified in source browser"
+    }
+  ],
+  "reviews": {
+    "UI": {
+      "score": 95,
+      "scale": 100,
+      "blockers": [],
+      "reviewer": "independent native subagent designer",
+      "evidence": "9 screenshots viewed; current source hashes match reports",
+      "deductions": [
+        "-1 repeated save/confirm explanation",
+        "-2 dense help paragraphs",
+        "-2 address error distant from input"
+      ],
+      "dimensions": {
+        "headerHierarchy": 25,
+        "verticalGrouping": 24,
+        "helpReadability": 18,
+        "errorAndSaveFeedback": 18,
+        "consistency": 10
+      }
+    },
+    "UX": {
+      "score": 95,
+      "scale": 100,
+      "blockers": [],
+      "reviewer": "independent native subagent critic",
+      "scope": "UX and narrow code risk review; not a merge approval",
+      "evidence": "9 specified screenshots viewed and 4 formal source diffs/hash match verified",
+      "deductions": [
+        "-2 no direct startup help entry",
+        "-1 pairing error can repeat stale save-success notice",
+        "-1 connection-code/pairing-code terms mixed",
+        "-1 centralized errors lack per-field aria-invalid"
+      ],
+      "codeRisk": "LOW; exact origin, revisions and unknown-result protections unchanged",
+      "caveat": "React cross-tab continue restores enterprise tab focus; this is distinct from the field restoration tested for form cancel/back/Escape. No native or full accessibility claim."
+    }
+  },
+  "notTested": [
+    "new layout installed Chrome",
+    "actual new layout service connection / SSO / quota",
+    "Native",
+    "production / publishing",
+    "formal accessibility audit",
+    "width or zoom matrices (OUT_OF_SCOPE)"
+  ],
+  "parallelBoundary": {
+    "branch": "main",
+    "noCommitOrPushByThisTask": true,
+    "noVersionPackagePromotionByThisTask": true,
+    "existingOfficialPackageObserved": "2.0.59 SHA256 3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c produced by another owner; excludes this UI",
+    "unrelatedChanges": "preserved; repository HEAD changed during parallel work"
+  },
+  "evidenceRoot": "artifacts/cookie-service-header-20261031",
+  "checkedAt": "2026-10-31T11:23:49.543541+00:00",
+  "reviewSummary": "UI 95/100; UX 95/100; no blockers within offline/reference and current-source React scope"
+}

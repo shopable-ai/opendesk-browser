@@ -1,0 +1,72 @@
+{
+  "scope": "ScrapyJS library / host heading navigation; frozen offline core development only",
+  "status": "PASS_OFFLINE_UI_REVIEW",
+  "candidate": "artifacts/scrapyjs/library-navigation-20261101/candidate6/preview.html",
+  "htmlSha256": "dbb5a6520ada0ba7d04c6767c4c000ef52210ad19d29907ffe0f694e0b0fa805",
+  "previewUrl": "http://127.0.0.1:56347/artifacts/scrapyjs/library-navigation-20261101/candidate6/preview.html",
+  "navigation": {
+    "visibleHeading": "scrapyjs 采集/配置库",
+    "back": [
+      "library -> capture home",
+      "capture home -> extensions list"
+    ],
+    "admittedInstance": "one host Back; no content heading/Back/purpose text",
+    "unadmittedInstance": "optional setNavigation absent: preserve protected internal return; actual official admission unchanged"
+  },
+  "review": {
+    "a": 98.5,
+    "b": 98.5,
+    "target": ">95",
+    "sameCandidate": true,
+    "independentReplay": false,
+    "reports": [
+      "artifacts/scrapyjs/library-navigation-20261101/review-a-final.json",
+      "artifacts/scrapyjs/library-navigation-20261101/review-b-final.json"
+    ]
+  },
+  "validation": {
+    "offlineUserChecks": 42,
+    "pageAndConsoleErrors": 0,
+    "modelAndProfilesTests": 41,
+    "previewAndSharedShellTests": 10,
+    "titleBackSecurityTargetedTests": 13,
+    "skillsValid": 3,
+    "sourceLockInputsAtSync": 1382,
+    "sourceDriftAtSync": 0,
+    "guardedSync": "2026-11-01T15:31:12+08:00",
+    "fixedReadbackMatchAt": "2026-11-01T15:34:19+08:00",
+    "laterParallelSourcesChanged": true
+  },
+  "rootCause": [
+    "App and offline Mock did not use the existing bounded navigation API",
+    "shared offline Back knew only the extensions list",
+    "legacy leaf-only heading rule hid visible tool context",
+    "review focused on content rather than a complete host view"
+  ],
+  "prevention": [
+    "public SDK discovery and admission check before changing navigation",
+    "canonical tool/page formatter and existing Back pipeline",
+    "same-candidate complete-host screenshots plus hierarchical Back and draft/busy/focus checks",
+    "explicit deductions for redundant navigation/titles/descriptions/actions",
+    "source-locked generation and guarded fixed-file sync; never inherit old scores"
+  ],
+  "notTested": [
+    "current installed ScrapyJS Host navigation admission and actual extension integration",
+    "real AI/capture/Native",
+    "IME/screen reader/full assistive technology audit",
+    "production/install/upgrade/revocation acceptance"
+  ],
+  "outOfScope": [
+    "browser zoom or physical width matrix",
+    "package promotion",
+    "commit/push",
+    "new branch/worktree/PR"
+  ],
+  "protected": [
+    "existing main and unrelated dirty files",
+    "existing Python HTTP server and Browser dev services",
+    "formal install packages and catalog admission",
+    "old evidence and UNKNOWN side effects"
+  ],
+  "evidenceIndex": "artifacts/scrapyjs/library-navigation-20261101/README.md"
+}
