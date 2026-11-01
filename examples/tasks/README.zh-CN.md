@@ -110,7 +110,7 @@
 
 ## 阅读目录（TOC）专项手工入口
 
-目录小工具的开发与安装不是本页 Task v1 的验证流程；详细说明见 [Side Panel 小工具 API](../../docs/api/sidebar-tools.zh-CN.md) 和 [官方阅读目录示例](../sidebar-tools/reading-toc/README.md)。
+目录小工具的开发与安装不是本页 Task v1 的验证流程；详细说明见 [Side Panel 小工具 API](../../docs/api/sidebar-tools.zh-CN.md) 和 [官方阅读目录示例](../../projects/reading-toc/README.md)。
 
 复用本目录的 HTTP 服务：在确认 `43111` 端口空闲后执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。浏览器访问：
 
