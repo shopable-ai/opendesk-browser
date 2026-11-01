@@ -29,6 +29,7 @@ export default function AiPanel({open=true,state,captureStatus,savedRequestId,lo
   const [error,setError]=React.useState('');
   const [notice,setNotice]=React.useState('');
   const [appliedRequestId,setAppliedRequestId]=React.useState(null);
+  const [appliedConfig,setAppliedConfig]=React.useState(null);
   const [unknown,setUnknown]=React.useState(false);
   const [exporting,setExporting]=React.useState(false);
   const [requestContext,setRequestContext]=React.useState(null);
@@ -161,7 +162,7 @@ export default function AiPanel({open=true,state,captureStatus,savedRequestId,lo
         if(requireGeneration(info.generation)!==requireGeneration(proposal.generation))throw Error('AI Provider 已变化，请重新生成。');
       }
       if(!stillCurrent(proposal)||latestContext.current.draft!==proposal)return;
-      onApply(proposal.config,proposal.base,proposal.epoch,proposal.page,proposal.requestId);setAppliedRequestId(proposal.requestId);setDraft(null);setProcessedInput(inputKey);setNotice('已应用为未保存草稿；请在采集配置中命名保存。采集仍需单独点击「开始采集」。');}
+      onApply(proposal.config,proposal.base,proposal.epoch,proposal.page,proposal.requestId);setAppliedRequestId(proposal.requestId);setAppliedConfig(structuredClone(proposal.config));setDraft(null);setProcessedInput(inputKey);setNotice('已应用为未保存草稿；请在采集配置中命名保存。采集仍需单独点击「开始采集」。');}
     catch(e){if(alive.current)setError(e.message);}finally{localOperation.current=null;if(alive.current&&!unresolved)busy(false);}
   }
   async function exportDraft(){if(exportPending.current)return;exportPending.current=true;setExporting(true);setError('');setNotice('');try{const r=await tool.request('browser.downloads.text',{text:JSON.stringify(draft.config,null,2),filename:'scrapyjs-ai-config.json'});if(r?.started!==true)throw Error('下载结果未知');setNotice('已请求下载配置 JSON，请在下载列表确认。');}catch(e){setNotice('');setError(e.message);}finally{exportPending.current=false;setExporting(false);}}
@@ -169,7 +170,8 @@ export default function AiPanel({open=true,state,captureStatus,savedRequestId,lo
   const editingLocked=working&&!unknown;
   const previewContext=working&&requestContext?requestContext:{page:state.target?{title:state.target.title,url:state.target.url}:null,currentConfig:useConfig?state.config:{url:state.config.url},sample,previousError:error||state.error||''};
   const nextPage=editingLocked&&requestContext?requestContext.page:state.target;
-  const feedback=appliedRequestId&&savedRequestId===appliedRequestId?'此提案的配置已保存；采集仍需单独点击「开始采集」。':notice;
+  const appliedStale=Boolean(appliedRequestId&&appliedConfig&&!sameConfig(appliedConfig,state.config));
+  const feedback=appliedStale?'应用后配置已被其他编辑修改，请核对当前规则再单独保存。':appliedRequestId&&savedRequestId===appliedRequestId?'此提案的配置已保存；采集仍需单独点击「开始采集」。':notice;
   const phase=unknown?'原请求待确认':working?'生成中':draft?(stale?'提案已过期':'待审阅'):appliedRequestId?(savedRequestId===appliedRequestId?'配置已保存':'待保存配置'):!state.target?'等待网页':'就绪';
   const composerHint=unknown?'原请求结果待确认，请查询或停止原请求。':working?'正在生成，可停止原请求。':blocked?'请先处理业务中的未应用编辑、无效配置或正在进行的操作。':!pendingReady?'正在读取原请求状态…':!recipient?'共享 AI 尚未就绪，请查看资料与诊断。':!state.target?'请先刷新当前网页信息。':'';
   const changedFields=diff?.fields.filter(row=>row.kind!=='保留')||[];
@@ -190,7 +192,7 @@ export default function AiPanel({open=true,state,captureStatus,savedRequestId,lo
     {blocked&&<p className="od-note secondary">请先处理未应用的编辑、无效 JSON 或正在进行的配置/采集操作。</p>}
     <div ref={setTranscriptTarget} className="od-conversation-log ai-transcript" role="log" aria-live="polite" aria-label="对话及已核实操作结果"/>
     <p id="chat-ai-feedback" role="status" hidden={!feedback}>{feedback}</p><p role="alert" className="error" hidden={!error}>{error}</p>
-    {unknown&&<Button base="aria" id="chat-ai-cancel" onClick={cancel}>查询 / 停止原请求</Button>}
+    {unknown&&<Button base="aria" id="chat-ai-query-original" onClick={cancel}>查询 / 停止原请求</Button>}
     {draft&&<div id="chat-ai-review" ref={review} className="ai-review stack" aria-label="生成配置审阅">
       <div className="toolbar"><h2 className="od-page-title">{draft.source==='local-list'?'本地列表准备 · 审阅配置':'审阅配置'}</h2><span className="secondary">{changeCount} 项变更 · 尚未应用</span></div><p className="od-note secondary">目标：{draft.config.url}</p>
       {(draft.warnings||[]).map((message,index)=><p key={index} role="status" className="od-note secondary ai-unverified">{message}</p>)}
@@ -222,7 +224,7 @@ export default function AiPanel({open=true,state,captureStatus,savedRequestId,lo
     </div></details>
     </div>
     {draft&&<div className="toolbar ai-review-actions" role="group" aria-label="配置提案操作"><Button base="aria" id="chat-ai-apply" variant="secondary" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||stale} onClick={apply}>应用为配置草稿</Button><Button base="aria" id="chat-ai-export" variant="outline" disabled={working||exporting} onClick={exportDraft}>导出生成配置</Button><Button base="aria" id="chat-ai-discard" variant="quiet" disabled={working} onClick={()=>{setDraft(null);setProcessedInput(inputKey);setNotice('已放弃生成草稿；需求和样本仍保留。');tool.root.querySelector('#ai-requirement')?.focus({preventScroll:true});}}>放弃生成草稿</Button></div>}
-    {appliedRequestId&&!draft&&<div className="toolbar ai-review-actions" role="group" aria-label="已应用配置的后续操作">
+    {appliedRequestId&&!appliedStale&&!draft&&<div className="toolbar ai-review-actions" role="group" aria-label="已应用配置的后续操作">
       <Button base="aria" id="chat-ai-save" variant="secondary" disabled={working||unknown||!pendingReady} onClick={()=>onNavigate?.('save')}>保存配置</Button>
       <Button base="aria" id="chat-ai-run" variant="outline" disabled={working||unknown} onClick={()=>onNavigate?.('run')}>前往试采</Button>
       <Button base="aria" id="chat-ai-results" variant="quiet" disabled={working||unknown} onClick={()=>onNavigate?.('export')}>查看结果与导出</Button>
