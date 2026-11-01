@@ -9,7 +9,7 @@ export async function runInspection(input,page) {
   if(!input||!['fields','lists'].includes(input.kind)||typeof input.url!=='string'||
     typeof input.container!=='string'||typeof input.item!=='string'||
     (input.mode!==undefined&&!['snapshot','click'].includes(input.mode)))fail('E_INSPECTION_CONFIG');
-  input={url:input.url,kind:input.kind,container:input.container,item:input.item};
+  input={url:input.url,kind:input.kind,container:input.container,item:input.item,mode:input.mode??'snapshot'};
   allowedUrl(input.url);
   if(await page.url()!==input.url)fail('E_INSPECTION_URL');
   if(input.mode==='click')return runClickedInspection(input,page);
