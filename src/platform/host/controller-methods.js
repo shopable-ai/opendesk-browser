@@ -429,9 +429,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const row={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
           generation:binding.generation,clientRequestId:request.clientRequestId,
           operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
+          preparedHost:{registrationId:host.registrationId,hostDocumentId:host.hostDocumentId,
+            namespace:namespace(host),browserSessionIncarnation:session},
           task:structuredClone(binding.task),paramsDigest:request.paramsDigest,
-          target:structuredClone(request.target),deadlineAt:request.deadlineAt,fingerprint,
-          prepared:true,cancelled:false,state:'prepared',runId:null,createdAt:now()};
+          target:structuredClone(request.target),targetPolicy:'borrowed-exact-document',
+          deadlineAt:request.deadlineAt,fingerprint,maxAdmissions:1,admissionCount:0,
+          prepared:true,cancelled:false,state:'prepared',runId:null,resultId:null,
+          ownerEpoch:0,createdAt:now()};
         await transaction.put(COMMAND_JOURNAL,row,key);
         return {operationRef:row.operationRef,state:row.state,runId:null,deadlineAt:row.deadlineAt};
       });
@@ -451,7 +455,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const run=step.runId?await transaction.get(RUN_STORE,step.runId):null;
         if(step.runId)invariant(run?.tag===CONTROLLER_RUN_TAG&&!run.tombstoned&&
           run.namespace===namespace(host)&&run.taskDelegationStep?.operationRef===step.operationRef&&
-          run.taskDelegationStep.clientRequestId===step.clientRequestId,'E_OWNER');
+          run.taskDelegationStep.clientRequestId===step.clientRequestId&&
+          run.resultId===step.resultId,'E_OWNER');
         const result=run?await transaction.get('results',run.resultId):null;
         return {step,run,result};
       });
@@ -476,7 +481,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const currentStep=await transaction.get(COMMAND_JOURNAL,key);
         const current=await transaction.get(RUN_STORE,run.runId);
         invariant(currentStep?.operationRef===step.operationRef&&currentStep.runId===run.runId&&
-          current?.tag===CONTROLLER_RUN_TAG&&!current.tombstoned&&
+          currentStep.resultId===run.resultId&&current?.tag===CONTROLLER_RUN_TAG&&!current.tombstoned&&
           current.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
         invariant(!current.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR);
         await assertRunTaskAuthorization(transaction,current);
@@ -511,7 +516,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           step={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
             generation:binding.generation,clientRequestId:request.clientRequestId,
             operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
-            prepared:false,cancelled:true,state:'cancelled',runId:null,createdAt:now()};
+            prepared:false,cancelled:true,state:'cancelled',runId:null,resultId:null,
+            maxAdmissions:1,admissionCount:0,ownerEpoch:0,createdAt:now()};
         }else{
           invariant(step.tag==='task-delegation-step'&&step.appId===binding.appId&&
             step.packageHash===binding.packageHash&&step.generation===binding.generation,'E_OWNER');
@@ -521,13 +527,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         if(step.runId){
           run=await transaction.get(RUN_STORE,step.runId);
           invariant(run?.tag===CONTROLLER_RUN_TAG&&run.namespace===namespace(host)&&
-            run.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
+            run.taskDelegationStep?.operationRef===step.operationRef&&
+            run.resultId===step.resultId,'E_OWNER');
           if(!run.cancelSeq&&!terminals.has(run.state)&&!run.retirementId){
             run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;
             run.state='stopping';run.terminalReason=CANCELLED_CODE;
             await transaction.put(RUN_STORE,run,run.runId);await lease(transaction,run);
           }
         }
+        if(run)step={...step,ownerEpoch:run.ownerEpoch,cancelSeq:run.cancelSeq};
         await transaction.put(COMMAND_JOURNAL,step,key);
         return {operationRef:step.operationRef,run,step};
       });
@@ -732,7 +740,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           invariant(step.runId===old.runId,'E_OWNER');
           const previousRun=await transaction.get(RUN_STORE,old.runId);
           invariant(previousRun?.tag===CONTROLLER_RUN_TAG&&
-            previousRun.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
+            previousRun.taskDelegationStep?.operationRef===step.operationRef&&
+            previousRun.resultId===step.resultId,'E_OWNER');
           // Do not transfer the previous Worker's ownership to this Host.
           return {run:previousRun,duplicate:true};
         }
@@ -742,7 +751,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         assertBuiltinIdentity(run.revision?.builtinIdentity,environment);
         return {run, duplicate: true};
       }
-      if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled,CANCELLED_CODE,
+      if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled&&
+        step.admissionCount===0&&step.maxAdmissions===1,CANCELLED_CODE,
         'Step is cancelled or already committed');
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
@@ -783,7 +793,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
       if(delegationStepKey)await transaction.put(COMMAND_JOURNAL,
-        {...step,state:'submitted',runId,submittedAt:now()},delegationStepKey);
+        {...step,state:'submitted',runId,resultId:run.resultId,ownerEpoch:run.ownerEpoch,
+          admissionCount:1,submittedAt:now()},delegationStepKey);
       if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
       return {run, pinned, duplicate: false};
     }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
