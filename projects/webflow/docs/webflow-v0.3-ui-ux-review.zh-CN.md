@@ -502,15 +502,15 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 
 ## 11. V0.3.4 运行入口与新旧 UI 功能对齐增量评审
 
-> 2026-11-02；Owner：**Web Flow 离线原型与设计审查**。**已提交 GitHub \`main\` 的 HTML 原型；未集成正式产品。** 唯一允许改动：\`preview/webflow-v0.3-preview.html\` 与本评审。实际 Mac 工作区、Chrome Side Panel、真实 Task SDK 不在本轮验收环境中。
+> 2026-11-02；Owner：**Web Flow 离线原型与设计审查**。**已提交 GitHub `main` 的 HTML 原型；未集成正式产品。** 唯一允许改动：`preview/webflow-v0.3-preview.html` 与本评审。实际 Mac 工作区、Chrome Side Panel、真实 Task SDK 不在本轮验收环境中。
 >
-> 本节的核对基于 Github 实际读取文件，而非根据上一轮总结猜测。原型 V0.3.4 HTML 的代码提交：\`4b9803683af81ccaa951058f68c3efd18fc5f0c7\`，跨脚本 UNKNOWN 修复：\`7716b2d7feb66d9a7ccb5c3668b1c3f8ad8190dc\`。两次提交只修改同一路径的原型 HTML。文档单独提交，避免触碰正式 UI Owner 的文件。
+> 本节的核对基于 Github 实际读取文件，而非根据上一轮总结猜测。原型 V0.3.4 HTML 的代码提交：`4b9803683af81ccaa951058f68c3efd18fc5f0c7`，跨脚本 UNKNOWN 修复：`7716b2d7feb66d9a7ccb5c3668b1c3f8ad8190dc`。两次提交只修改同一路径的原型 HTML。文档单独提交，避免触碰正式 UI Owner 的文件。
 
 ### 11.1 用户问题与唯一产品解法
 
 **原始目标：** 普通用户查看固定委托脚本 → 搜索/收藏/筛选 → 手动选择可运行脚本 → 输入本次关键词 → 明确确认 → 跟进执行 → 区分运行状态、网页证据、结果保存、聊天交付与 AI 续答 → 处理失败及 UNKNOWN；安装与固定委托始终是分开的权限域。
 
-**V0.3.3 的实际缺口：** 搜索列表每行只有详情箭头，缺少「运行」主操作；原型没有完整运行路径，历史页仅列安装模拟回执。**正式** \`src/ui/main.js\` 已经有运行按钮、\`wf-query\` 参数、\`tasks.start\`、\`tasks.read\` 查询原请求、\`tasks.stop\` 停止请求与 \`tasks.open\` 宿主管理入口；绝不能因原型外观较新而把真实功能消除或复制一个 Runner。
+**V0.3.3 的实际缺口：** 搜索列表每行只有详情箭头，缺少「运行」主操作；原型没有完整运行路径，历史页仅列安装模拟回执。**正式** `src/ui/main.js` 已经有运行按钮、`wf-query` 参数、`tasks.start`、`tasks.read` 查询原请求、`tasks.stop` 停止请求与 `tasks.open` 宿主管理入口；绝不能因原型外观较新而把真实功能消除或复制一个 Runner。
 
 **V0.3.4 实施：** 保持 V0.3.3 选中的搜索优先 A 方向与原列表布局；每一行仅增加一个语义明确的当前主操作，不改 Task 安装器、SDK、Chrome 权限或 Native。编辑模式不包含真实脚本执行能力。
 
@@ -518,58 +518,58 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 
 | 任务/请求状态 | 列表主操作 | 点击后的实际离线行为 | 正式接线必须满足 |
 | --- | --- | --- | --- |
-| 已委托、已安装、身份核验匹配且未停用 | **运行** | **先打开参数确认**；不会首次点击即发起执行 | \`tasks.read({taskId})\` 精确核对安装绑定、目标网站与实时许可 |
-| 正在模拟提交或运行 | **查看进度** | 返回同一个模拟请求；不重复提交 | 同一 \`clientRequestId\` 的可信原请求状态查询 |
-| UNKNOWN，存在原请求 ID | **核对结果** | 保留 \`clientRequestId\`，查询模拟状态不改变结论；不重试 | \`tasks.read({clientRequestId})\`，保留幂等、持久结果对账 |
+| 已委托、已安装、身份核验匹配且未停用 | **运行** | **先打开参数确认**；不会首次点击即发起执行 | `tasks.read({taskId})` 精确核对安装绑定、目标网站与实时许可 |
+| 正在模拟提交或运行 | **查看进度** | 返回同一个模拟请求；不重复提交 | 同一 `clientRequestId` 的可信原请求状态查询 |
+| UNKNOWN，存在原请求 ID | **核对结果** | 保留 `clientRequestId`，查询模拟状态不改变结论；不重试 | `tasks.read({clientRequestId})`，保留幂等、持久结果对账 |
 | UNKNOWN，仅存在异常场景标记 | **查看原因** | 解释不存在可用于对账的请求 ID | 不创建或假设原请求身份 |
 | 未安装、未委托、权限不足、已停用、固定版本变化、来源异常 | **查看原因** | 显示具体阻塞与可信宿主管理建议 | 不得绕过 Authority、安装审阅、精确委托或版本 pin |
 | 模拟流程完成/失败且无未结请求 | **运行**（下次新确认） | 旧记录留在独立的运行记录里 | 正式应区分可安全再次执行与需要单独确认的有副作用任务 |
 
-**运行路径：** 脚本列表 → 「运行」→ 当前脚本与目标域展示 → 1–120 字搜索关键词 → **确认模拟运行** → 请求提交模拟 → 执行中模拟 → 结果或 UNKNOWN → 返回列表、进入记录。表单空白不能确认；参数不会因脚本切换误绑定到上一个 \`taskId\`。
+**运行路径：** 脚本列表 → 「运行」→ 当前脚本与目标域展示 → 1–120 字搜索关键词 → **确认模拟运行** → 请求提交模拟 → 执行中模拟 → 结果或 UNKNOWN → 返回列表、进入记录。表单空白不能确认；参数不会因脚本切换误绑定到上一个 `taskId`。
 
-**同请求安全：** 运行状态使用 \`taskId + version + clientRequestId\` 关联。即使用户已查看或运行另一脚本，\`runHistory\` 中仍为 UNKNOWN 的请求保持锁定；同一任务不会因此自动出现新的「运行」主操作。原型的 ID 以 \`demo:webflow:\` 开头，只在当前页面内存内有效；不得将它当作真实 \`tasks.start\` 回执。离开页面或刷新后模拟数据不持久，不能把演示对账当作真实跨会话保证。
+**同请求安全：** 运行状态使用 `taskId + version + clientRequestId` 关联。即使用户已查看或运行另一脚本，`runHistory` 中仍为 UNKNOWN 的请求保持锁定；同一任务不会因此自动出现新的「运行」主操作。原型的 ID 以 `demo:webflow:` 开头，只在当前页面内存内有效；不得将它当作真实 `tasks.start` 回执。离开页面或刷新后模拟数据不持久，不能把演示对账当作真实跨会话保证。
 
-**停止：** 「请求停止」只是离线模拟，并转为 UNKNOWN；绝不宣称已经撤销网页副作用。正式 \`tasks.stop({clientRequestId})\` 的真实响应需由既有 Host 核验。
+**停止：** 「请求停止」只是离线模拟，并转为 UNKNOWN；绝不宣称已经撤销网页副作用。正式 `tasks.stop({clientRequestId})` 的真实响应需由既有 Host 核验。
 
-**结果证据：** 即使模拟状态为 \`completed\`，页面仍把「网页业务证据 / 原结果持久化 / 原 ChatGPT 对话交付 / AI 后续处理」四项逐个标记为 **未观察到**。安装回执不计入运行结果；记录页分别设「模拟运行」与「模拟安装」两个区域。
+**结果证据：** 即使模拟状态为 `completed`，页面仍把「网页业务证据 / 原结果持久化 / 原 ChatGPT 对话交付 / AI 后续处理」四项逐个标记为 **未观察到**。安装回执不计入运行结果；记录页分别设「模拟运行」与「模拟安装」两个区域。
 
-**添加边界：** 只有 \`baidu.search.top3@1.1.1\` 与 \`google.search.top3@1.0.0\` 是正式固定委托范围；20/100 条中的 fixture 和目录任务均是演示数据。不向未委托、已停用、权限不足或身份失配对象提供可用运行按钮。模拟安装以后不能自动提升为委托或可运行。
+**添加边界：** 只有 `baidu.search.top3@1.1.1` 与 `google.search.top3@1.0.0` 是正式固定委托范围；20/100 条中的 fixture 和目录任务均是演示数据。不向未委托、已停用、权限不足或身份失配对象提供可用运行按钮。模拟安装以后不能自动提升为委托或可运行。
 
 ### 11.3 正式源码 vs V0.3.4 原型：功能保留/退化表
 
-本轮再次读取的正式源码 SHA：\`src/ui/main.js\` = \`cd04d6fdd5c0a436e1d8e77a6b228392b2fc79f4\`、\`src/ui/model.js\` = \`c8ec6eb4adbbca2eee426029bd70d9d597d33f18\`、\`src/ui/style.css\` = \`77f893e67de5c7c9fa82d7745364a5157c58b06d\`，三者本轮**只读**。
+本轮再次读取的正式源码 SHA：`src/ui/main.js` = `cd04d6fdd5c0a436e1d8e77a6b228392b2fc79f4`、`src/ui/model.js` = `c8ec6eb4adbbca2eee426029bd70d9d597d33f18`、`src/ui/style.css` = `77f893e67de5c7c9fa82d7745364a5157c58b06d`，三者本轮**只读**。
 
 | 能力 | 正式源码事实 | 新原型现状 | 集成时的防退化要求 |
 | --- | --- | --- | --- |
-| 固定脚本列表 | 两个固定 pin，通过 \`tasks.read({taskId})\` 获取状态 | 同两项固定 pin，其他是明确标识的 fixture | 不把演示 20/100 项当真实已安装资产 |
-| 搜索、收藏、筛选 | 搜索/状态过滤/收藏；收藏偏好 \`storage.get/set\` 并读回 | 搜索、收藏、状态筛选、排序与演示分页 | 保留真实的持久收藏读取/更新回读，不能替换为临时内存 |
-| 单行运行按钮 | 已有「运行」按钮并打开参数区域 | **运行/查看进度/核对结果/查看原因** 的单主操作 | 正式 UI 采用新设计，但不丢掉原 \`runDisabled\` 和状态校验 |
-| 运行参数和确认 | \`wf-query\` 关键词及确认运行；限定 120 字符 | 独立参数确认页，空值禁用，明确目标网站 | 保留正式按钮同步触发 \`tasks.start\` 的受审用户手势与预检 |
-| 站点检查 | \`currentPage.info\`，\`sameSite(pageInfo.url,pin.site)\` | 仅展示目标网站，**未真实读取活动页面** | 正式运行前继续要求网站匹配及实时身份/权限判断 |
-| 请求生命周期 | \`tasks.start\`、轮询 \`tasks.read({clientRequestId})\` | 纯内存模拟提交/运行/失败/UNKNOWN/停止 | 对接现有 SDK；不拷贝模拟定时器到生产 |
-| 请求停止 | \`tasks.stop({clientRequestId})\` | 「请求停止」变 UNKNOWN，不谎称已终止副作用 | 真实停止回执与未定副作用须独立提示 |
-| 任务详情与 \`tasks.open\` | 详情展开：精确版本/源哈希/安装身份/授权代次；宿主管理 | 人类可读详情、技术详情折叠；只给宿主管理指引 | **保留**原始技术详情和 \`tasks.open\` 可信入口 |
-| 运行记录 | 最近 12 条本应用摘要，\`storage.set/get\` 并真实读回；\`M.projectRun\` 区分结果 | 仅当前页面内存记录，安装和运行严格分组 | **保留**正式最近记录持久化和权威 RunHost/Result 身份 |
-| 原聊天交付/AI 续答 | \`delivery: not_observed\` / \`aiReply: not_observed\` | 明示「未观察到」 | 不得用 \`completed\` 冒充交付或 AI 处理 |
+| 固定脚本列表 | 两个固定 pin，通过 `tasks.read({taskId})` 获取状态 | 同两项固定 pin，其他是明确标识的 fixture | 不把演示 20/100 项当真实已安装资产 |
+| 搜索、收藏、筛选 | 搜索/状态过滤/收藏；收藏偏好 `storage.get/set` 并读回 | 搜索、收藏、状态筛选、排序与演示分页 | 保留真实的持久收藏读取/更新回读，不能替换为临时内存 |
+| 单行运行按钮 | 已有「运行」按钮并打开参数区域 | **运行/查看进度/核对结果/查看原因** 的单主操作 | 正式 UI 采用新设计，但不丢掉原 `runDisabled` 和状态校验 |
+| 运行参数和确认 | `wf-query` 关键词及确认运行；限定 120 字符 | 独立参数确认页，空值禁用，明确目标网站 | 保留正式按钮同步触发 `tasks.start` 的受审用户手势与预检 |
+| 站点检查 | `currentPage.info`，`sameSite(pageInfo.url,pin.site)` | 仅展示目标网站，**未真实读取活动页面** | 正式运行前继续要求网站匹配及实时身份/权限判断 |
+| 请求生命周期 | `tasks.start`、轮询 `tasks.read({clientRequestId})` | 纯内存模拟提交/运行/失败/UNKNOWN/停止 | 对接现有 SDK；不拷贝模拟定时器到生产 |
+| 请求停止 | `tasks.stop({clientRequestId})` | 「请求停止」变 UNKNOWN，不谎称已终止副作用 | 真实停止回执与未定副作用须独立提示 |
+| 任务详情与 `tasks.open` | 详情展开：精确版本/源哈希/安装身份/授权代次；宿主管理 | 人类可读详情、技术详情折叠；只给宿主管理指引 | **保留**原始技术详情和 `tasks.open` 可信入口 |
+| 运行记录 | 最近 12 条本应用摘要，`storage.set/get` 并真实读回；`M.projectRun` 区分结果 | 仅当前页面内存记录，安装和运行严格分组 | **保留**正式最近记录持久化和权威 RunHost/Result 身份 |
+| 原聊天交付/AI 续答 | `delivery: not_observed` / `aiReply: not_observed` | 明示「未观察到」 | 不得用 `completed` 冒充交付或 AI 处理 |
 | 未委托与安装 | 正式没有通用动态委托 API | 演示安装后仍非委托，不可运行 | 不创建非授权的安装、升级、关联捷径 |
 
-**给正式 UI Owner 的最高优先级核查点：** \`src/ui/main.js\` 的 \`terminalReceipt()\`、\`observe()\` 和 \`readActive()\`。现有源码在部分终态会将 \`activeRef.current=null\` 并 \`setActive(null)\`；需要逐行确认 UNKNOWN（特别是 \`tasks.start\` 报错后）是否仍可以在不重跑的前提下，用**原** \`clientRequestId\` 对账。必须有原请求保存、入口恢复和授权/权限变更的测试证据，不能依赖新原型内存机制作为生产修复。
+**给正式 UI Owner 的最高优先级核查点：** `src/ui/main.js` 的 `terminalReceipt()`、`observe()` 和 `readActive()`。现有源码在部分终态会将 `activeRef.current=null` 并 `setActive(null)`；需要逐行确认 UNKNOWN（特别是 `tasks.start` 报错后）是否仍可以在不重跑的前提下，用**原** `clientRequestId` 对账。必须有原请求保存、入口恢复和授权/权限变更的测试证据，不能依赖新原型内存机制作为生产修复。
 
 ### 11.4 本轮测试记录、证据可信度与缺失项
 
 | 验收项 | 本轮证据 | 状态 |
 | --- | --- | --- |
-| HTML 内嵌 JavaScript 解析 | 直接从 GitHub 读取最新原文，通过 V8 \`new Function(script)\` 解析 | **PASS_STATIC** |
-| 列表→参数、空关键词阻止、关键词绑定、模拟进度/结果 | 以 GitHub HTML 的原始 JS 在 V8 中执行，stub \`document\` / RAF / timer 并检查 state 与生成的 HTML | **PASS_MOCKED** |
+| HTML 内嵌 JavaScript 解析 | 直接从 GitHub 读取最新原文，通过 V8 `new Function(script)` 解析 | **PASS_STATIC** |
+| 列表→参数、空关键词阻止、关键词绑定、模拟进度/结果 | 以 GitHub HTML 的原始 JS 在 V8 中执行，stub `document` / RAF / timer 并检查 state 与生成的 HTML | **PASS_MOCKED** |
 | 失败与 UNKNOWN、保持请求 ID、跨脚本未决请求锁定 | 同一 V8 模拟环境，实际推进 2 段定时回调并读取 state | **PASS_MOCKED** |
 | 未安装/权限不足/停用/版本变化/来源异常/未委托 | 模拟场景实际调用对应运行 action，确认未产生模拟请求 | **PASS_MOCKED** |
 | 搜索、收藏、20/100 fixtures、列表返回和新旧详情分支 | JS state/字符串逻辑断言 | **PASS_MOCKED** |
-| 重新评估后的交互断言 | 第二轮 27 项：**26 PASS，1 项断言误把当前 UNKNOWN 的 \`view-run\` 预期为历史 UNKNOWN 的 \`view-history-run\`；这两种路由均为针对同一请求的正确分支。该断言需纠正后独立重跑，不能声称 27/27。** | **PARTIAL** |
+| 重新评估后的交互断言 | 第二轮 27 项：**26 PASS，1 项断言误把当前 UNKNOWN 的 `view-run` 预期为历史 UNKNOWN 的 `view-history-run`；这两种路由均为针对同一请求的正确分支。该断言需纠正后独立重跑，不能声称 27/27。** | **PARTIAL** |
 | 原 HTML 在真实 Chromium 打开、点击、脚本报错监控、320/360/440/580 截图、深浅主题截图 | **本轮无真实 Chromium 运行截图/Playwright trace**；V0.3.3 旧轮截图不得冒充 V0.3.4 新界面截图 | **NOT_TESTED** |
 | Tab、Enter、Esc、焦点返回、320px 真实水平溢出 | 代码静态提供 form/键盘分支，但未在真实浏览器完成焦点及布局验证 | **NOT_TESTED** |
 | 真实 Chrome Side Panel、Authority、IME、VoiceOver/NVDA、触屏及真实任务执行 | 正式 UI 本轮只读，不曾以真实安装/权限环境运行 | **NOT_TESTED** |
 
-**审计约束：** \`PASS_MOCKED\` 只代表纯 JS 路径及模拟 DOM 条件满足断言，不等于有真实点击、键盘焦点或页面像素证据。截图产物未生成，不提供伪造路径、冒充 Chromium 的示意图或无依据的“截图通过”。
+**审计约束：** `PASS_MOCKED` 只代表纯 JS 路径及模拟 DOM 条件满足断言，不等于有真实点击、键盘焦点或页面像素证据。截图产物未生成，不提供伪造路径、冒充 Chromium 的示意图或无依据的“截图通过”。
 
 ### 11.5 六专业视角的独立 AI 自评（未通过 95 发布目标）
 
@@ -588,8 +588,8 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 
 ### 11.6 后续接入 Owner 的最小任务（不在本轮重复开发）
 
-**正式 \`projects/webflow/src/ui/\` Owner：** 只迁移 A 方案列表语义及三段运行/结果布局，复用已经存在的 \`tasks.read/start/stop/open\`、固定 \`PINNED\` 和真实 \`storage.get/set\`；检查 \`terminalReceipt/observe/readActive\` 的 UNKNOWN 对账，不丢 \`clientRequestId\`、不自动重试，不在 UI 内复制第二个 Task Runner；为每种失败方式加入可信证据级别。
+**正式 `projects/webflow/src/ui/` Owner：** 只迁移 A 方案列表语义及三段运行/结果布局，复用已经存在的 `tasks.read/start/stop/open`、固定 `PINNED` 和真实 `storage.get/set`；检查 `terminalReceipt/observe/readActive` 的 UNKNOWN 对账，不丢 `clientRequestId`、不自动重试，不在 UI 内复制第二个 Task Runner；为每种失败方式加入可信证据级别。
 
-**本地 Codex 验收 Owner：** 用 GitHub 当前 \`main\` 原文及真实 Chromium/Playwright 对 320/360/440/580 × 深浅主题的脚本列表、参数输入、进度、成功/失败/UNKNOWN、停用、权限及版本场景运行增量交互；输出有文件路径的实际截图、无页面 JS error 的 trace、焦点与实际滚动宽度指标。随后再在正式扩展授权环境中测试 SDK、原请求对账和持久结果。未经此 Gate，不升级本节的 NOT_TESTED 状态。
+**本地 Codex 验收 Owner：** 用 GitHub 当前 `main` 原文及真实 Chromium/Playwright 对 320/360/440/580 × 深浅主题的脚本列表、参数输入、进度、成功/失败/UNKNOWN、停用、权限及版本场景运行增量交互；输出有文件路径的实际截图、无页面 JS error 的 trace、焦点与实际滚动宽度指标。随后再在正式扩展授权环境中测试 SDK、原请求对账和持久结果。未经此 Gate，不升级本节的 NOT_TESTED 状态。
 
-**仓库并行安全：** 这次未修改正式 \`main.js/model.js/style.css\`，也没有触碰 Authority、RunHost、Bridge、Native、Installer、Manifest 或宿主共享 SDK。任何集成变化应由正式 Owner 分开审阅/提交。
+**仓库并行安全：** 这次未修改正式 `main.js/model.js/style.css`，也没有触碰 Authority、RunHost、Bridge、Native、Installer、Manifest 或宿主共享 SDK。任何集成变化应由正式 Owner 分开审阅/提交。
