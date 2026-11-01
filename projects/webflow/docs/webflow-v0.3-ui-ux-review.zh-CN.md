@@ -504,7 +504,7 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 
 > 2026-11-02；Owner：**Web Flow 离线原型与设计审查**。**已提交 GitHub `main` 的 HTML 原型；未集成正式产品。** 唯一允许改动：`preview/webflow-v0.3-preview.html` 与本评审。实际 Mac 工作区、Chrome Side Panel、真实 Task SDK 不在本轮验收环境中。
 >
-> 本节的核对基于 Github 实际读取文件，而非根据上一轮总结猜测。原型 V0.3.4 HTML 的代码提交：`4b9803683af81ccaa951058f68c3efd18fc5f0c7`，跨脚本 UNKNOWN 修复：`7716b2d7feb66d9a7ccb5c3668b1c3f8ad8190dc`。两次提交只修改同一路径的原型 HTML。文档单独提交，避免触碰正式 UI Owner 的文件。
+> 本节的核对基于 Github 实际读取文件，而非根据上一轮总结猜测。原型 V0.3.4 HTML 的代码提交：`4b9803683af81ccaa951058f68c3efd18fc5f0c7`，跨脚本 UNKNOWN 修复：`7716b2d7feb66d9a7ccb5c3668b1c3f8ad8190dc`，查询禁用与焦点返回修复：`85e3bba8875e6c1f0cbbbb014e8338bb721e5177`。这三次提交仅修改同一路径的原型 HTML。文档单独提交，避免触碰正式 UI Owner 的文件。
 
 ### 11.1 用户问题与唯一产品解法
 
@@ -564,10 +564,12 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 | 失败与 UNKNOWN、保持请求 ID、跨脚本未决请求锁定 | 同一 V8 模拟环境，实际推进 2 段定时回调并读取 state | **PASS_MOCKED** |
 | 未安装/权限不足/停用/版本变化/来源异常/未委托 | 模拟场景实际调用对应运行 action，确认未产生模拟请求 | **PASS_MOCKED** |
 | 搜索、收藏、20/100 fixtures、列表返回和新旧详情分支 | JS state/字符串逻辑断言 | **PASS_MOCKED** |
-| 重新评估后的交互断言 | 第二轮 27 项：**26 PASS，1 项断言误把当前 UNKNOWN 的 `view-run` 预期为历史 UNKNOWN 的 `view-history-run`；这两种路由均为针对同一请求的正确分支。该断言需纠正后独立重跑，不能声称 27/27。** | **PARTIAL** |
+| 重新评估后的交互断言 | 经修正测试断言后，新一轮从 GitHub 最新原型原文执行 **41/41 PASS**，覆盖当前 UNKNOWN 与历史 UNKNOWN 的不同路由、跨脚本未决身份保持、历史核对在其他任务执行期间禁用、表单提交及 Esc 等；此前一次 27 项测试中的错误预期未被计入本轮成功次数。 | **PASS_MOCKED** |
 | 原 HTML 在真实 Chromium 打开、点击、脚本报错监控、320/360/440/580 截图、深浅主题截图 | **本轮无真实 Chromium 运行截图/Playwright trace**；V0.3.3 旧轮截图不得冒充 V0.3.4 新界面截图 | **NOT_TESTED** |
 | Tab、Enter、Esc、焦点返回、320px 真实水平溢出 | 代码静态提供 form/键盘分支，但未在真实浏览器完成焦点及布局验证 | **NOT_TESTED** |
 | 真实 Chrome Side Panel、Authority、IME、VoiceOver/NVDA、触屏及真实任务执行 | 正式 UI 本轮只读，不曾以真实安装/权限环境运行 | **NOT_TESTED** |
+
+**最终模拟回归证据：** 最新原型 blob `11fd5c7e0e4bfbab3540f61d77384cce72163f71`，V8 解析和模拟 DOM 41/41；未使用真实 Chromium 布局引擎或真实 Chrome 扩展。
 
 **审计约束：** `PASS_MOCKED` 只代表纯 JS 路径及模拟 DOM 条件满足断言，不等于有真实点击、键盘焦点或页面像素证据。截图产物未生成，不提供伪造路径、冒充 Chromium 的示意图或无依据的“截图通过”。
 
