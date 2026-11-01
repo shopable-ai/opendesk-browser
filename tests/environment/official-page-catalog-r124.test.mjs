@@ -25,7 +25,7 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked
   ]);
   assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked','blocked']);
   assert.deepEqual(await officialPageInputs(),[
-    'projects/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH]);
+    OFFICIAL_PAGE_SOURCE_PATH,'projects/ai-send-queue/ai-send-queue.opendesk-page.json']);
   for(const row of source.programs)assert.match(row.blockedReason,/./);
 });
 
