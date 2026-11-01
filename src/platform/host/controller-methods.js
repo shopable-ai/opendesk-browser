@@ -527,7 +527,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const contexts=checked.result?null:await Promise.resolve(api.runtime?.getContexts?.({})).catch(()=>null);
       const hostPresent=Array.isArray(contexts)&&
         contexts.some(context=>context.documentId===checked.run.hostDocumentId);
-      const activeOriginal=checked.originalHostActive&&hostPresent&&
+      // Host-document presence is not a signed live Worker heartbeat. Do not
+      // promote a persisted 'running' bit to FOUND_RUNNING on that evidence.
+      // The existing Host/RunOwner must supply an authenticated worker liveness
+      // proof before that affirmative semantic is ever emitted.
+      const hostRunObserved=checked.originalHostActive&&hostPresent&&
         checked.run.browserSessionIncarnation===session&&
         checked.run.state==='running'&&!checked.run.cancelSeq&&
         !checked.run.workerRetired&&now()<checked.run.deadlineAt;
@@ -539,9 +543,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         cancelled:step.cancelled,continuationApproved:false,
         runOwnerEpoch:checked.run.ownerEpoch,cancelSeq:checked.run.cancelSeq,
         slotAvailable:checked.slotAvailable,
-        semantic:checked.result?'FOUND_RESULT':activeOriginal?'FOUND_RUNNING':'UNKNOWN',
+        semantic:checked.result?'FOUND_RESULT':'UNKNOWN',
         state:checked.run.state,result:checked.result??null,
-        hostObserved:checked.result?null:hostPresent,observedAt:now()};
+        hostObserved:checked.result?null:hostPresent,
+        hostRunObserved:checked.result?null:hostRunObserved,observedAt:now()};
     });
   }
   async function cancelDelegatedStep(request,sender){
