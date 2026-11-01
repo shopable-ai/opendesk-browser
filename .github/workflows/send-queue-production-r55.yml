@@ -63,6 +63,8 @@ jobs:
           done
           node scripts/validate-program-project.mjs projects/ai-send-queue
           node projects/ai-send-queue/scripts/sync-crown-preview.mjs --check
+      - name: Verify relocated official source catalogs and app update lookup
+        run: node --test tests/environment/official-page-catalog-r124.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/app-update-workflow.test.mjs
       - name: Build actual React Tool and fixed install candidate
         run: |
           npm run --prefix projects/ai-send-queue build
