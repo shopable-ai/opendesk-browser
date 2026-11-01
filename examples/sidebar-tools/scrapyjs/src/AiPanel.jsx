@@ -180,12 +180,6 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();onClose();}
   }}>
     <div className="ai-chat"><div className="ai-scroll" ref={log} onScroll={event=>{const node=event.currentTarget;followMessages.current=node.scrollHeight-node.clientHeight-node.scrollTop<32;}}>
-    <details className="od-disclosure od-disclosure--flat ai-materials" open={!usePage||undefined}><summary>发送资料{usePage?' · 已选择当前网页':' · 请确认当前网页'}</summary><div className="disclosure-body">
-    <fieldset className="ai-context" disabled={editingLocked}><legend>{editingLocked?'本次发送的资料':'下次待发送的资料'}</legend>
-      <div className="related-note"><label className="check"><input type="checkbox" id="chat-ai-use-page" checked={usePage} onChange={e=>setUsePage(e.target.checked)}/>发送当前网页标题与网址（必选）</label>
-      <p className="secondary ai-page-context" title={(nextPage?.title||'')+' · '+(nextPage?.url||'')}>{nextPage?.title||'请刷新当前网页'} · {nextPage?.url||''}</p></div>
-      <label className="check"><input type="checkbox" id="chat-ai-use-config" checked={useConfig} onChange={e=>setUseConfig(e.target.checked)}/>附上当前配置与规则</label>
-    </fieldset></div></details>
     {pendingId&&<p id="chat-ai-request-status" role="status">未决 requestId：{pendingId} · 状态：{unknown?'unknown':'pending'}</p>}
     {blocked&&<p className="od-note secondary">请先处理未应用的编辑、无效 JSON 或正在进行的配置/采集操作。</p>}
     <div ref={setTranscriptTarget} className="od-conversation-log ai-transcript" role="log" aria-live="polite" aria-label="对话及已核实操作结果"/>
@@ -193,12 +187,26 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     {unknown&&<Button base="aria" id="chat-ai-cancel" onClick={cancel}>查询 / 停止原请求</Button>}
     {draft&&<div id="chat-ai-review" ref={review} className="ai-review stack" aria-label="生成配置审阅">
       <div className="toolbar"><h2 className="od-page-title">{draft.source==='local-list'?'本地列表准备 · 审阅配置':'审阅配置'}</h2><span className="secondary">{changeCount} 项变更 · 尚未应用</span></div><p className="od-note secondary">目标：{draft.config.url}</p>
+      {(draft.warnings||[]).map((message,index)=><p key={index} role="status" className="od-note secondary ai-unverified">{message}</p>)}
+      <details id="ai-review-details" className="od-disclosure od-disclosure--flat">
+        <summary>查看具体差异与完整 JSON（{changeCount} 项）</summary>
+        <div className="disclosure-body">
       <ul className="ai-diff">{changedFields.map(row=><Difference key={row.key} row={row}/>)}{diff.listChanged&&<Difference row={{key:'列表选择器',kind:'修改',before:diff.listBefore,after:diff.listAfter}}/>}{diff.optionChanges.map(row=><Difference key={row.key} row={row}/>)}</ul>
       {retainedFields.length>0&&<details id="ai-retained-fields" className="od-disclosure od-disclosure--flat"><summary>保持不变的字段 · {retainedFields.length}</summary><ul className="ai-diff disclosure-body">{retainedFields.map(row=><Difference key={row.key} row={row}/>)}</ul></details>}
       <details id="chat-ai-json" className="od-disclosure od-disclosure--flat"><summary>生成的完整 JSON（只读）</summary><div className="disclosure-body"><label className="sr-only" htmlFor="chat-ai-config-preview">生成的完整 JSON</label><Textarea className="od-field scrapy-code" id="chat-ai-config-preview" rows={6} readOnly value={JSON.stringify(draft.config,null,2)}/></div></details>
+        </div>
+      </details>
       {stale&&<p role="alert" className="error">需求、资料、原配置或当前网页已变化，请重新生成；不会覆盖新草稿。</p>}
     </div>}
     <details id="ai-advanced" className="od-disclosure od-disclosure--flat"><summary>更多资料与诊断{sample?' · 含 HTML 样本':''}</summary><div className="disclosure-body">
+    <details className="od-disclosure od-disclosure--flat ai-materials" open={!usePage||undefined}><summary>发送资料{usePage?' · 已选择当前网页':' · 请确认当前网页'}</summary><div className="disclosure-body">
+    <fieldset className="ai-context" disabled={editingLocked}><legend>{editingLocked?'本次发送的资料':'下次待发送的资料'}</legend>
+      <div className="related-note"><label className="check"><input type="checkbox" id="chat-ai-use-page" checked={usePage} onChange={e=>setUsePage(e.target.checked)}/>发送当前网页标题与网址（必选）</label>
+      <p className="secondary ai-page-context" title={(nextPage?.title||'')+' · '+(nextPage?.url||'')}>{nextPage?.title||'请刷新当前网页'} · {nextPage?.url||''}</p></div>
+      <label className="check"><input type="checkbox" id="chat-ai-use-config" checked={useConfig} onChange={e=>setUseConfig(e.target.checked)}/>附上当前配置与规则</label>
+    </fieldset></div></details>
+    <Button base="aria" id="chat-list-prepare" variant="outline" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||!state.target||Boolean(draft&&!stale)} onClick={prepareList}>从完整字段准备列表</Button>
+
     <details className="od-disclosure od-disclosure--flat"><summary>可选 · 提供必要 HTML 样本</summary><div className="disclosure-body"><div className="od-form-field field"><label className="od-field-label" htmlFor="chat-ai-sample">只提供必要结构，移除密码、Token 和私人数据</label><Textarea className="od-field" id="chat-ai-sample" rows={5} maxLength={12000} disabled={editingLocked} value={sample} onChange={e=>setSample(e.target.value)}/></div><p className="od-note secondary">不会自动读取网页正文、Cookie 或表单值。</p></div></details>
     <details className="od-disclosure od-disclosure--flat"><summary>共享 AI · {recipient?[recipient.provider,recipient.model].filter(Boolean).join(' · '):'当前不可用'}</summary>
       <div className="disclosure-body"><p className="od-note secondary" id="chat-ai-recipient">接收方：{recipient?[recipient.provider,recipient.model,recipient.endpoint].filter(Boolean).join(' · '):'共享 Provider 未就绪。本地调试不开放真实 AI；推理仍需原安装授权。'}</p></div>
@@ -208,7 +216,11 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     </div></details>
     </div>
     {draft&&<div className="toolbar ai-review-actions" role="group" aria-label="配置提案操作"><Button base="aria" id="chat-ai-apply" variant="secondary" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||stale} onClick={apply}>应用为配置草稿</Button><Button base="aria" id="chat-ai-export" variant="outline" disabled={working||exporting} onClick={exportDraft}>导出生成配置</Button><Button base="aria" id="chat-ai-discard" variant="quiet" disabled={working} onClick={()=>{setDraft(null);setProcessedInput(inputKey);setNotice('已放弃生成草稿；需求和样本仍保留。');tool.root.querySelector('#ai-requirement')?.focus({preventScroll:true});}}>放弃生成草稿</Button></div>}
-    <Button base="aria" id="chat-list-prepare" variant="outline" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||!state.target||Boolean(draft&&!stale)} onClick={prepareList}>从完整字段准备列表</Button>
+    {appliedRequestId&&!draft&&<div className="toolbar ai-review-actions" role="group" aria-label="已应用配置的后续操作">
+      <Button base="aria" id="chat-ai-save" variant="secondary" disabled={working||unknown||!pendingReady} onClick={()=>onNavigate?.('save')}>保存配置</Button>
+      <Button base="aria" id="chat-ai-run" variant="outline" disabled={working||unknown} onClick={()=>onNavigate?.('run')}>前往试采</Button>
+      <Button base="aria" id="chat-ai-results" variant="quiet" disabled={working||unknown} onClick={()=>onNavigate?.('export')}>查看结果与导出</Button>
+    </div>}
     <label className="od-field-label ai-input-label" htmlFor="ai-requirement"><span>采集需求 / 纠正要求{draft&&!stale?' · 修改需求可重新生成':''}</span>{composerHint&&<span id="ai-composer-hint" className="ai-composer-hint">{composerHint}</span>}</label><div className="ai-composer-target" ref={setComposerTarget}/>
       <SharedConversationFrame open={open} rows={conversation.rows} draft={requirement}
         focusOnOpen={true} autoScroll={false} splitTargets={true} transcriptTarget={transcriptTarget} composerTarget={composerTarget}
