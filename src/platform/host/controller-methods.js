@@ -446,7 +446,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             !run.taskDelegationStep&&(!terminals.has(run.state)||
               run.retirementState!=='released'))),
           EFFECT_UNKNOWN,'Unlinked or unfinished original delegated run requires reconciliation');
-        const row={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
+        const row={tag:'task-delegation-step',schemaVersion:1,
+          issuerDomain:'manual-sidebar-delegation',securityPartition:namespace(host),
+          principalRef:host.principal,appId:binding.appId,packageHash:binding.packageHash,
           generation:binding.generation,clientRequestId:request.clientRequestId,
           operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
           preparedHost:{registrationId:host.registrationId,hostDocumentId:host.hostDocumentId,
@@ -529,6 +531,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         checked.run.browserSessionIncarnation===session&&
         checked.run.state==='running'&&!checked.run.cancelSeq&&
         !checked.run.workerRetired&&now()<checked.run.deadlineAt;
+      if(checked.result)invariant(new TextEncoder().encode(JSON.stringify(checked.result)).byteLength<=
+        BUDGETS.maxRawFrameBytes,'E_BUDGET','Delegated result exceeds one transport frame');
       return {...base,runId:checked.run.runId,resultId:checked.run.resultId,
         retirementState:checked.run.retirementState??null,workerRetired:checked.run.workerRetired,
         resourceReleased:checked.run.retirementState==='released',
@@ -550,7 +554,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         if(!step){
           // A pre-prepare stop fences future J06 submissions but cannot prove
           // absence of a legacy in-flight submission from an older Host.
-          step={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
+          step={tag:'task-delegation-step',schemaVersion:1,
+            issuerDomain:'manual-sidebar-delegation',securityPartition:namespace(host),
+            principalRef:host.principal,appId:binding.appId,packageHash:binding.packageHash,
             generation:binding.generation,clientRequestId:request.clientRequestId,
             operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
             prepared:false,cancelled:true,state:'cancelled',runId:null,resultId:null,
