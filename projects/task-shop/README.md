@@ -60,4 +60,4 @@ D1 已确定 Sidebar Tool v2 沙箱应用形态；源代码位于本项目的 `s
 
 两项成功后依原仓库打包 Skill 使用 --promote-from 与 --check-project 晋升唯一 task-shop.opendesk-tool.json；不得手写伪造正式包。
 
-本轮从 GitHub 已提交源码在独立 V8 JS 执行环境完成 30 项核心检查（PASS），包括语法、版本/Origin/租约/防重/UNKNOWN/业务验收；Node runner、原构建器、真实 Chrome 与 Native 仍为 NOT_TESTED。
+本轮从 GitHub 已提交源码在独立 V8 JS 执行环境完成 49 项核心检查（PASS），包括语法、版本/Origin/租约/防重/UNKNOWN/业务验收；Node runner、原构建器、真实 Chrome 与 Native 仍为 NOT_TESTED。

@@ -14,7 +14,7 @@
 | 执行内核 owner | Browser Framework / Native / Controller / Authority / RunHost，沿用原权限与安装合同 |
 | 本轮新增文件 | 本项目内 src/、tool.config.json、tests/、README 和唯一执行计划；不触碰 Web Flow/Native |
 | 共享环境 | 不使用用户 Mac、Chrome/Profile、端口、Native、dist、已有任务数据库、凭据或 watcher |
-| 当前证据 | GitHub 源码已提交，V8 30/30 定向断言通过；Node/构建器/Chrome/Native 未测，远程市场服务不存在 |
+| 当前证据 | GitHub 源码已提交，V8 49/49 定向断言通过；Node/构建器/Chrome/Native 未测，远程市场服务不存在 |
 
 任务市场后端部署位置、身份系统和正式可安装 Sidebar 包均尚未决定；**不要为建立目录而预建空项目源码或冒充真实配置**。
 
@@ -90,7 +90,7 @@
 | 市场订单和领取 | `src/core.js` 定义固定单任务、15 分钟租约、同安装 CAS 防重、leaseId fencing | 无跨设备原子调度、认证市场 |
 | 固定执行与证据 | `src/main.js` 仅用户点击 tasks.start，保存原 runId/resultId 与脱敏投影 | 原 iframe 销毁后无法直接跨会话查回 |
 | 商业验收/结算 | 原持久结果及业务规则与模拟验收独立；结算为 DEMO_POINTS | 非需求方实际签收、非真实资金 |
-| 核心检查 | V8 对当前 GitHub 源码 30 项断言 PASS；Node 测试/原 builder 检查文件已编写 | Node runner、原 build、Chrome、Native **NOT_TESTED** |
+| 核心检查 | V8 对当前 GitHub 源码 49 项断言 PASS；Node 测试/原 builder 检查文件已编写 | Node runner、原 build、Chrome、Native **NOT_TESTED** |
 | 可安装发布 | 已有 v2 `tool.config.json`，无多余 tasks.open 权限 | **PACKAGE_NOT_PROMOTED** |
 
 代码提交：`3a75dec7`（核心）、`9094579f`（UI/SDK 适配/测试）、`f3da5bc0`（绑定返回请求 ID 与原 builder 门禁）。文档与最小权限修改以本次最终 GitHub SHA 为准。
