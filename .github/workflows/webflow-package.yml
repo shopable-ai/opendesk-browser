@@ -46,16 +46,37 @@ jobs:
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --promote-from artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json
           node scripts/build-sidebar-tool.mjs projects/webflow --check-project
-      - name: Commit only generated Web Flow package to current main, never force-push
+      - name: Publish only the verified package via GitHub's file-conditional Contents API
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- projects/webflow/webflow.opendesk-tool.json
-          if git diff --cached --quiet; then
-            echo 'Canonical package already matches tested source'
-          else
-            git commit -m 'build(webflow): promote verified Sidebar app package'
-            git push origin HEAD:main
+          # A newer project UI source would make this tested candidate stale.
+          git fetch origin main
+          if ! git diff --quiet HEAD FETCH_HEAD -- projects/webflow/tool.config.json projects/webflow/src/ui; then
+            echo 'Web Flow sources advanced during packaging; reject stale package'
+            exit 1
           fi
+          path=projects/webflow/webflow.opendesk-tool.json
+          endpoint="repos/${GITHUB_REPOSITORY}/contents/${path}"
+          existing="$(gh api "${endpoint}" --jq .sha 2>/dev/null || true)"
+          expected="$(git hash-object "${path}")"
+          if [ "${existing}" = "${expected}" ]; then
+            echo 'Tested package already committed'
+          else
+            content="$(base64 -w0 "${path}")"
+            if [ -n "${existing}" ]; then
+              jq -n --arg message 'build(webflow): promote verified Sidebar app package' \
+                --arg content "${content}" --arg sha "${existing}" \
+                '{message:$message,content:$content,branch:"main",sha:$sha}' \
+                | gh api "${endpoint}" --method PUT --input - --jq '.commit.sha'
+            else
+              jq -n --arg message 'build(webflow): promote verified Sidebar app package' \
+                --arg content "${content}" \
+                '{message:$message,content:$content,branch:"main"}' \
+                | gh api "${endpoint}" --method PUT --input - --jq '.commit.sha'
+            fi
+          fi
+          test "$(gh api "${endpoint}" --jq .sha)" = "${expected}"
+          echo 'Committed tested package SHA matches local tested bytes'
       - name: Read back package status
         run: node scripts/build-sidebar-tool.mjs projects/webflow --check-project
