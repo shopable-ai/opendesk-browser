@@ -134,6 +134,18 @@ fieldset{display:grid;gap:var(--space-3);border:0;padding:0;margin:0;min-width:0
 /* Review content never paints behind the fixed actions or composer. */
 .ai-review-actions{flex:none;padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);background:var(--od-paper)}
 .ai-change-value{margin-top:var(--space-1);padding:var(--space-2)}
+/* Chat is the first surface; context and large diffs remain optional disclosures. */
+.ai-workspace .ai-review-details,.ai-workspace #ai-advanced{min-width:0}
+.ai-workspace #ai-advanced{margin-top:var(--space-2)}
+.ai-workspace #ai-review-details>.disclosure-body{padding:var(--space-2) 0}
+.ai-workspace .ai-unverified{line-height:1.55;overflow-wrap:anywhere}
+.ai-workspace .ai-review-actions{flex-wrap:wrap;gap:var(--space-2)}
+.ai-workspace .ai-review-actions>button{flex:1 1 112px;min-width:0;white-space:normal;line-height:1.3}
+.ai-workspace .ai-scroll :is(pre,textarea){max-width:100%;box-sizing:border-box;overflow:auto;overflow-wrap:anywhere}
+.ai-workspace .ai-scroll .ai-materials{min-width:0}
+.ai-workspace .ai-scroll .ai-review{min-width:0}
+@media(max-width:360px){.ai-workspace .ai-review-actions>button{flex-basis:100%}}
+
 @media(pointer:coarse){.ai-workspace .od-conversation-separator{right:48px}}
 
 .check input{accent-color:var(--od-brand)}
@@ -146,8 +158,6 @@ fieldset{display:grid;gap:var(--space-3);border:0;padding:0;margin:0;min-width:0
 .profile-confirm-content{display:grid;gap:var(--space-3)}.profile-confirm-content p{font-size:var(--od-note-size);line-height:1.6}.profile-confirm-actions{justify-content:flex-end;margin-top:var(--space-1)}
 .json-heading{display:flex;align-items:flex-start;gap:var(--space-3)}.json-heading>.related-note{flex:1;min-width:0}.json-heading #export-config{flex-shrink:0}
 #rules-editor{display:grid;gap:var(--space-2);min-width:0}
-.ai-preview-placeholder{flex:none;display:grid;gap:var(--space-2);padding:var(--space-3);border-top:1px solid var(--od-line);background:var(--od-paper)}
-.ai-preview-placeholder :is(h2,p){margin:0}.ai-preview-placeholder p{font-size:var(--od-note-size);line-height:1.6}
 
 /* Light workspace: keep the public component contract and map its semantic
  * tokens locally. Blue marks actions/selection; feedback keeps its own meaning. */
@@ -230,7 +240,7 @@ fieldset{display:grid;gap:var(--space-3);border:0;padding:0;margin:0;min-width:0
   .profile-library .profile-entry[aria-pressed="true"]:hover:not(:disabled) {background:var(--secondary)}
   .library-primary-actions #edit-profile-rules {background:var(--secondary);color:var(--secondary-foreground)}
   .library-primary-actions #edit-profile-rules:hover:not(:disabled) {background:color-mix(in srgb,var(--secondary) 92%,var(--primary))}
-  :is(.profile-confirm-dialog,.scrapy-results-dialog,.confirmation,.ai-preview-placeholder) {background:var(--card);color:var(--foreground)}
+  :is(.profile-confirm-dialog,.scrapy-results-dialog,.confirmation) {background:var(--card);color:var(--foreground)}
   :is(.profile-confirm-dialog,.scrapy-results-dialog)::backdrop {background:rgb(36 50 73 / .28)}
   .ai-preview-placeholder {gap:var(--space-3);padding:var(--space-3)}
   pre {background:var(--card)}
