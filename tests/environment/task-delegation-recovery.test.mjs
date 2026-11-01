@@ -95,6 +95,20 @@ test('J06: after a new iframe opens, read the original result without calling st
   assert.equal(f.inspects,1);
 });
 
+
+test('J06: original iframe preserves six-field pin for read and stop compatibility',async()=>{
+  const f=fixture(),one=f.create('iframe-live');
+  const started=await one.request('tasks.start',startInput('step-live'),{verifiedUserActivation:true});
+  assert.equal(started.runId,'run-1');
+  const read=await one.request('tasks.read',{clientRequestId:'step-live'});
+  assert.equal(read.semantic,'FOUND_RESULT');
+  const stopped=await one.request('tasks.stop',{clientRequestId:'step-live'});
+  assert.equal(stopped.runId,'run-1');
+  assert.equal(stopped.state,'stopping');
+  assert.equal(f.starts,1);
+  assert.equal(f.stops,1);
+});
+
 test('J06: new Host manual start with the same step cannot submit a second Run',async()=>{
   const f=fixture(),old=f.create('iframe-1');
   await old.request('tasks.start',startInput('step-b'),{verifiedUserActivation:true});
