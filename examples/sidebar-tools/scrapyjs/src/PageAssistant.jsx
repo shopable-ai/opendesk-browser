@@ -30,7 +30,7 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
     trigger.current=event.currentTarget;switching.current=next;openedIdentity.current=currentIdentity.current;
     setSelected(null);setError('');if(!next)setOpen(true);onOpenChange(true);
     session.begin({url:config.url,kind,container:scope?.container??config.itemConfig._listContainer??'',
-      item:scope?.item??config.itemConfig._listItem??''},openedIdentity.current);
+      item:scope?.item??config.itemConfig._listItem??'',mode:next?'snapshot':'click'},openedIdentity.current);
   }
   async function use(index){
     if(applying.current||disabled)return;
@@ -74,8 +74,8 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
       }}>
       <div className="picker-heading"><h2>{fields?'选择要采集的网页内容':'选择网页列表'}</h2><IconButton data-close-picker label="关闭点选" onClick={close}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></IconButton></div>
       <div className="picker-body">
-        <p className="picker-disclaimer">以下内容来自当前目标网页的只读快照。选择后填入规则草稿；网页变化后请重新读取。</p>
-        {state.phase!=='ready'&&<p role="status">{state.cancelled?'正在停止，等待原检查释放…':session.active()?'正在读取真实网页…':state.error||'未取得网页内容'}</p>}
+        <p className="picker-disclaimer">请在目标网页点击要采集的内容或列表。点选完成后可在这里核对内容并确认，表单输入不参与点选。</p>
+        {state.phase!=='ready'&&<p role="status">{state.cancelled?'正在停止，等待原检查释放…':session.active()?'请到目标网页点击需要采集的内容…':state.error||'未取得网页内容'}</p>}
         {state.phase==='ready'&&!choices.length&&<p role="status">当前范围没有可用内容，请取消后检查列表范围。</p>}
         <div className="scope-sample">{choices.map((choice,index)=><Button base="aria" variant="quiet" className="scope-list-card page-choice" key={index} aria-pressed={selected===index} disabled={state.phase!=='ready'} onClick={()=>{setSelected(index);setError('');}}>
           <strong>{choice.label}</strong><span className="secondary">{fields?(choice.read==='text'?'文字':choice.read==='href'?'链接地址':'图片地址')+' · '+choice.total+' 条记录':choice.count+' 条记录'}</span>

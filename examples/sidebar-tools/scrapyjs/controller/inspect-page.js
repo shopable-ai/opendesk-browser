@@ -1,4 +1,5 @@
 import {allowedUrl} from '../adapters/capture-policy.js';
+import {runClickedInspection} from './pick-page.js';
 
 const fail=code=>{throw Object.assign(new Error(code),{code});};
 
@@ -6,10 +7,12 @@ const fail=code=>{throw Object.assign(new Error(code),{code});};
 // remain with the original Task read; this module never navigates or installs UI.
 export async function runInspection(input,page) {
   if(!input||!['fields','lists'].includes(input.kind)||typeof input.url!=='string'||
-    typeof input.container!=='string'||typeof input.item!=='string')fail('E_INSPECTION_CONFIG');
+    typeof input.container!=='string'||typeof input.item!=='string'||
+    (input.mode!==undefined&&!['snapshot','click'].includes(input.mode)))fail('E_INSPECTION_CONFIG');
   input={url:input.url,kind:input.kind,container:input.container,item:input.item};
   allowedUrl(input.url);
   if(await page.url()!==input.url)fail('E_INSPECTION_URL');
+  if(input.mode==='click')return runClickedInspection(input,page);
   const result=await page.evaluate(input=>{
     const fail=code=>{throw Object.assign(new Error(code),{code});};
     if(location.href!==input.url)fail('E_INSPECTION_URL');
