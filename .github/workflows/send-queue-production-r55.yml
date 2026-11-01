@@ -78,6 +78,13 @@ jobs:
           cat artifacts/migration/legacy-path-references.txt
           echo "Active code/config references (review historical fixtures separately):"
           grep -E '^(scripts/|src/|tests/|\.github/workflows/|official-pages/|official-tools/|projects/)' artifacts/migration/legacy-path-references.txt || true
+          for id in ai-send-queue browser-fingerprint; do
+            if git grep -n -F "examples/sidebar-tools/$id" -- src scripts official-pages official-tools .github/workflows; then
+              echo "::error::E_MIGRATION_ACTIVE_OLD_PATH for $id"
+              exit 1
+            fi
+          done
+          echo "MIGRATION_ACTIVE_RUNTIME_PATHS_PASS"
       - name: Preserve complete tracked-file reference inventory
         if: always()
         uses: actions/upload-artifact@v4

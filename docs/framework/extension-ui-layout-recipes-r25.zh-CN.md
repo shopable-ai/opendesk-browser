@@ -191,7 +191,7 @@ function humanError(error){
 }
 ~~~
 
-**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 目前生产目录 `examples/sidebar-tools/browser-fingerprint/src/` 仍是只读检测实现；本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。
+**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 正式源码现位于 `projects/browser-fingerprint/src/`；真实功能与验收以该项目当前 README 为准，本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。
 
 
 ## 4. HTML、React、Vue 的复用边界

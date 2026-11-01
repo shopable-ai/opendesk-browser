@@ -125,3 +125,17 @@ GitHub PR 上自动执行的测试只根据具体 Workflow 运行详情标为 PA
 源码位置的安全门禁只允许 projects/ai-send-queue/ 单一既有 Page Program 被审阅，未向全部 projects/ 开放 Page 发布；App Tool 和 Page 的两个独立来源白名单均已更新，发布策略仍 blocked/原值。浏览器原生 installed UI / macOS Profile 实测、Web Flow 并行业务真实回归、Chrome 安装状态、形式化同源晋升：均 NOT_TESTED 或 BLOCKED，不能随 PR 创建自动推断为完成。
 
 本记录中的数字与 URL 是对应提交的 CI 结果，而不是最终合并后的 main 结果。后续若通过新 commit 修复，必须在同一个工作流追加新回执，不能悄悄覆盖失败记录。
+
+## 7. 追加迁移扫描、指向修复和非回归边界
+
+GitHub PR 的真实 `git grep -n -F` 对所有受版本控制文件运行（不是单靠代码搜索索引）。第一轮 45 处旧路径，修复 Host 集成测试、Web Flow 当前执行计划/产品合同及 Automation Lab 的活跃源码文字后，回执 https://github.com/shopable-ai/opendesk-browser/actions/runs/41348265764 确认剩余 **30** 处。已定位实际失败的 Page Catalog 输入排序问题，修复后回执明确相关定向检查 **33/33 PASS**；测试没有放宽目录信任范围。Browser Fingerprint 最新同一阶段专属 CI https://github.com/shopable-ai/opendesk-browser/actions/runs/41348265696 SUCCESS；72 项 Node 与构建/权限/源码级 Chrome 操作均在该运行通过。
+
+剩余旧引用主要分三类：
+
+1. **必须保留的原始证据**：`projects/browser-fingerprint/evidence/` 内 2026-10-30 之前的 source path、固定 SHA/Build receipt、原始执行命令。原证据被创建时旧目录真实存在。改成当前目录会篡改历史上下文，因此保留原文字，并在当前 README 中指向新目录。
+2. **有意测试非法来源**：`tests/environment/official-tools-catalog-r45.test.mjs` 中 `examples/sidebar-tools/ai-send-queue` 被当作应拒绝的旧/伪造 Catalog 位置；保持原负例，不把它改成已批准位置。
+3. **历史或待 owner 审阅的说明**：`docs/api/browser-sdk-interface-matrix.json` 中的历史 evidence 相对位置；`projects/webflow/docs/webflow-v0.3-ui-ux-review.zh-CN.md` 的旧 Queue owner 描述。后者在并行 main 中已被另一个任务修改，未为本迁移覆盖其文件；请 Web Flow owner 以当前 HEAD 审阅对应一处。普通设计引用 `DESIGN.md` 与现行 Recipe 已随迁移修正。
+
+专属 CI 新增只读门禁：全仓留下历史引用允许，但 **src/、scripts/、official-pages/、official-tools/、.github/workflows/** 出现旧两项目位置即失败；扫描结果继续作为原工作流的审计 artifact。它不删除文件、不更改任何 Host 授权、不声明 Mac Chrome PASS。
+
+**未关闭：** Queue 旧正式包与现开发候选字节不相同（安全门禁按原合同 FAIL），以及两个旧内联 HTML 断言与当前预览拆分实现不符；这是本轮原记录已知的独立接力，不能用修改 frozen JSON、pin、安装版本、放宽断言或造新预览来凑 PASS。若需要调整，交由正在维护 Queue 的 owner 和本地 Codex 与其当前工作同步，先核对原基线是否已失败。Browser Fingerprint 的原生 viewport 恢复在 https://github.com/shopable-ai/opendesk-browser/actions/runs/41347737281 有一次 FAIL，另有多次同源码 SUCCESS，不能删除该失败或把一次源码级 PASS 推断为 Mac 正式安装 PASS。
