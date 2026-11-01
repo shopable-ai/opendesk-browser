@@ -401,7 +401,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       :['binding','clientRequestId']);
     delegationId(request.clientRequestId);
     invariant(request.binding&&typeof request.binding.appId==='string','E_SCHEMA');
-    normalizeDelegatedTask(request.binding.task,mode==='prepare');
+    const taskPin=request.binding.task;
+    // In the originating iframe the live Task pin has six fields; after a
+    // reload the App review supplies four immutable package fields. Both may
+    // inspect/cancel; only a fresh PREPARE accepts six current installed fields.
+    normalizeDelegatedTask(taskPin,mode==='prepare'||
+      Object.hasOwn(taskPin||{},'installationId')||Object.hasOwn(taskPin||{},'generation'));
     if(mode==='prepare'){
       delegationHash(request.paramsDigest);
       selection(request.target);
