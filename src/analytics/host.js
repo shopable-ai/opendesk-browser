@@ -200,8 +200,10 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
           MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE
         ]);
         const epochs=requireToolRevocationEpochs(stored[TOOL_REVOCATION_EPOCHS_STORE]);
+        // B-grade analytics requires reviewed release provenance even though
+        // ordinary prelaunch heading access permits locally installed readers.
         const official=await verifyOfficialReadingToc(
-          stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE]);
+          stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE],true);
         authorityValid=official===true&&
           (epochs['reading-toc']??null)===message.installationEpoch&&
           tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],stored[READING_TOC_SITE_STORE],
