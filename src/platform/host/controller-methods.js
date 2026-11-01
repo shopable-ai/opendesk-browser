@@ -494,20 +494,37 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await assertRunTaskAuthorization(transaction,current);
         const result=await transaction.get('results',current.resultId);
         const slot=await transaction.get(RUN_STORE,'@slot');
+        const originalHost=await transaction.get(COMMAND_JOURNAL,`host:${current.registrationId}`);
+        const originalHostActive=Boolean(originalHost?.active&&!originalHost.revoked&&
+          originalHost.hostDocumentId===current.hostDocumentId&&
+          originalHost.hostInstanceId===current.hostInstanceId&&
+          originalHost.browserSessionIncarnation===session);
         invariant(!result||result.tag==='controller-result'&&result.runId===current.runId&&
           result.resultId===current.resultId&&result.namespace===namespace(host),'E_OWNER');
-        return {run:current,result,slotAvailable:!slot?.currentRunId&&!slot?.preview};
+        return {run:current,result,slotAvailable:!slot?.currentRunId&&!slot?.preview,
+          originalHostActive};
       },[RUN_STORE,COMMAND_JOURNAL,'results','frameworkKV']);
       invariant(!permissionRemovals.slice(observedPermissionEpoch).some(patterns=>
         removedRunGrant(checked.run,patterns)),CONTROLLER_PERMISSION_ERROR);
+      // A durable 'running' row alone cannot prove the old Host or Worker is
+      // alive after an iframe/service-worker restart. An unavailable context
+      // inventory is UNKNOWN, not FOUND_RUNNING.
+      const contexts=checked.result?null:await api.runtime?.getContexts?.({}).catch(()=>null);
+      const hostPresent=Array.isArray(contexts)&&
+        contexts.some(context=>context.documentId===checked.run.hostDocumentId);
+      const activeOriginal=checked.originalHostActive&&hostPresent&&
+        checked.run.browserSessionIncarnation===session&&
+        checked.run.state==='running'&&!checked.run.cancelSeq&&
+        !checked.run.workerRetired&&now()<checked.run.deadlineAt;
       return {...base,runId:checked.run.runId,resultId:checked.run.resultId,
         retirementState:checked.run.retirementState??null,workerRetired:checked.run.workerRetired,
         resourceReleased:checked.run.retirementState==='released',
         cancelled:step.cancelled,continuationApproved:false,
         runOwnerEpoch:checked.run.ownerEpoch,cancelSeq:checked.run.cancelSeq,
         slotAvailable:checked.slotAvailable,
-        semantic:checked.result?'FOUND_RESULT':'FOUND_RUNNING',
-        state:checked.run.state,result:checked.result??null};
+        semantic:checked.result?'FOUND_RESULT':activeOriginal?'FOUND_RUNNING':'UNKNOWN',
+        state:checked.run.state,result:checked.result??null,
+        hostObserved:checked.result?null:hostPresent,observedAt:now()};
     });
   }
   async function cancelDelegatedStep(request,sender){
