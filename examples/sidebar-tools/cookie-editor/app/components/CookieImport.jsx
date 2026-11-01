@@ -166,6 +166,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     if(!busy&&!disabled&&!uncertain)stageFile(event.dataTransfer?.files?.[0]);
   };
   const onBackdropClick=event=>{
+    // An internal click (including the programmatic hidden file input click)
+    // bubbles here with clientX/clientY=0. Only the native dialog backdrop
+    // dispatches an outside click that directly targets the dialog itself.
+    if(event.target!==event.currentTarget)return;
     const rect=event.currentTarget.getBoundingClientRect();
     if(event.clientX<rect.left||event.clientX>rect.right||
        event.clientY<rect.top||event.clientY>rect.bottom)close();

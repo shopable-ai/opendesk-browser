@@ -343,6 +343,8 @@ test('formal Cookie import is a native bottom sheet with a single trusted confir
  assert.match(component,/className="cookie-import-workspace od-surface" role="dialog" aria-modal="true"/);
  assert.match(component,/dialog\.showModal\(\)/);
  assert.match(component,/onCancel=\{event=>\{event\.preventDefault\(\);close\(\);\}\}/);
+ assert.match(component,/if\(event\.target!==event\.currentTarget\)return;/,
+  'programmatic file-input clicks must not dismiss the modal');
  assert.match(component,/onClick=\{onBackdropClick\}/);
  assert.match(component,/onDrop=\{dropFile\}/);
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
