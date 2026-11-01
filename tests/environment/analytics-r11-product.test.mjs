@@ -9,7 +9,7 @@ import {createAnalyticsGateway} from '../../services/analytics/worker.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
-import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE} from '../../projects/reading-toc/trusted/policy.js';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 
@@ -170,7 +170,7 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
   });
   const receiverURL=await listen(receiver);t.after(()=>close(receiver));
   const prompt=JSON.parse(await readFile(new URL(
-    '../../examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json',import.meta.url),'utf8'));
+    '../../projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json',import.meta.url),'utf8'));
   const {api,send,records}=chromeMock([prompt,{id:'cookie-editor'}]);
   const collector=installAnalyticsHost({api,endpoint:receiverURL+'/v1/events',allowLoopback:true,
     now:()=>now,newId:randomUUID,fetcher:globalThis.fetch});
