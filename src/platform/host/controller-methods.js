@@ -433,6 +433,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           return {operationRef:previous.operationRef,state:previous.state,runId:previous.runId,
             deadlineAt:previous.deadlineAt};
         }
+        // An IDB journal cleanup must never turn an old J06 Run into a new
+        // admissible step. During rollout, unretired legacy delegated Runs
+        // have no clientRequestId index, so reject instead of guessing absence.
+        const knownRuns=await transaction.all(RUN_STORE);
+        invariant(knownRuns.length<=2048,'E_BUDGET','Delegated history requires review');
+        invariant(!knownRuns.some(run=>run?.tag===CONTROLLER_RUN_TAG&&
+          run.taskDelegation?.appId===binding.appId&&
+          (run.taskDelegationStep?.clientRequestId===request.clientRequestId&&
+            run.taskDelegation?.packageHash===binding.packageHash&&
+            run.taskDelegation?.generation===binding.generation||
+            !run.taskDelegationStep&&(!terminals.has(run.state)||
+              run.retirementState!=='released'))),
+          EFFECT_UNKNOWN,'Unlinked or unfinished original delegated run requires reconciliation');
         const row={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
           generation:binding.generation,clientRequestId:request.clientRequestId,
           operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
