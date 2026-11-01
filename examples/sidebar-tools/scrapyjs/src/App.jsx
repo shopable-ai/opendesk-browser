@@ -431,16 +431,17 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
     </section>
     </div>
   </main></div>
-    <AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});}} onNavigate={action=>{
+    <AiPanel open={aiOpen} state={state} captureStatus={statusOf(state,matches,busy)} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});}} onNavigate={action=>{
       if(action==='save'){
         if(baseLocked||pending||!valid||!app.state.storageReady||app.state.conflict)return;
         closeAi();navigateManagement(false);
-        if(app.state.selectedId)void saveConfiguration('save');
-        else openName('save','save-config');
+        // Preserve the old AI workflow: an approved proposal creates a new
+        // named copy rather than silently overwriting an existing saved profile.
+        openName(current?'copy':'save','save-config');
       }else if(action==='run'){
         closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('start');
       }else if(action==='export'){
-        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('export-actions');
+        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('results-panel');
       }
     }}/>
   </div>;
