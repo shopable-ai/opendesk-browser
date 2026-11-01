@@ -9,7 +9,7 @@ import {BROWSER_OPERATIONS,BROWSER_MENU_GRANTS_STORE,BROWSER_MENU_LAUNCH_STORE,
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {installPageRelay} from '../../src/agents/page-relay.js';
 
-const readSample=async(name)=>JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/'+name,import.meta.url),'utf8'));
+const readSample=async(name)=>JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-context-menu-demo/'+name,import.meta.url),'utf8'));
 const uid='01234567-89ab-4def-8123-456789abcdef';
 const sender={id:'ext-r13',url:'chrome-extension://ext-r13/sidepanel.html?hostInstanceId='+uid,
   documentId:'host-document-A',documentLifecycle:'active',frameId:0};

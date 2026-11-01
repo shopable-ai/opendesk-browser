@@ -123,3 +123,7 @@ B1 的 SW 停止与双应用同到期、Browser 重启、timeout→queued B、�
 | MV3 与发布合规 | 78 | 否 | 实际隔离位置和 CSP、官方政策；缺商店对本候选的审核结论。下一步留到正式发布阶段核对候选并完成审核；不自动发布 |
 
 只读独立审查未发现 e478 清理协议的剩余 BLOCK，架构 CLEAR。最终独立复核及评分见本机 `b2-final-independent-review.md`、`b2-final-independent-scores.json`；来源负例的第二次独立完成审查见 `b2-source-final-independent-review.md`，确认最小来源缺口已补齐，维持 95/95/95/95/96/78，当前 LOCAL 可收尾。摘要保存这些证据的 SHA。旧评分与原始限制保留，不以未执行检查提高分数。最终复核 106 个构建文件路径、字节数和 SHA 全部相同，见 `b2-source-final-hash-verification.json`。本轮产品修复、A/B 源码与唯一正式包已推送；后续原生证据增补不改 Browser 或应用字节，最终 SHA 与推送状态以交付 Git 核对为准。
+
+## 2026-11-02 目录清理说明（不更改历史验收事实）
+
+本记录中的四个 `examples/sidebar-tools/app-primes-*` / `app-words-*` 是 B1/B2 冻结后创建的验收用输入，不是持续维护的产品。它们已在后续仓库目录整理中从 `main` 当前目录删除。原源码、`expected.json` 与唯一正式包仍可通过清理提交前的 Git 历史恢复，历史的 Run/Result、包哈希和 PASS/NOT_TESTED 结论保持原有时点与候选身份，不代表现版 SDK 已重新原生验收。当前测试驱动 `tests/native/dynamic-app-r14.mjs` 仍接受显式提供的 package 与 expected 路径，需复现时必须先恢复匹配的历史输入。

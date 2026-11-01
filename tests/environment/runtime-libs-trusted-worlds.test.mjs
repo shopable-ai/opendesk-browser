@@ -29,7 +29,7 @@ test('trusted SW and host ESM examples use pinned npm imports, not Controller gl
 });
 
 test('an installed Side Panel tool packages HTML/CSS/classic JS, and never gains page/_/dayjs',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/runtime-globals-demo');
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/minimal-html-starter');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v1');
   assert.equal(pkg.id,'runtime-globals-demo');
   assert.deepEqual(pkg.capabilities,['currentPage.read']);
@@ -73,7 +73,7 @@ test('public docs and single-file Page syntax distinguish globals from host impo
     readFile('docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md','utf8'),
     readFile('examples/programs/single-file/page-globals-zero-arg.js','utf8'),
     readFile('examples/programs/controller-globals-zero-arg/src/main.js','utf8'),
-    readFile('examples/sidebar-tools/runtime-globals-demo/src/main.js','utf8')
+    readFile('examples/sidebar-tools/minimal-html-starter/src/main.js','utf8')
   ]);
   for(const term of ['Background','Side Panel','USER_SCRIPT','export default async function main()',
     'OpenDeskTool','按需','examples/libs/trusted-imports','runtime-globals-demo'])

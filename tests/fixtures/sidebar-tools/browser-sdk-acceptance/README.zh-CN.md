@@ -2,6 +2,8 @@
 
 # Browser SDK Acceptance R10.6
 
+**测试归属**：这是公共 Browser SDK 原生验收 fixture，现位于 `tests/fixtures/sidebar-tools/browser-sdk-acceptance/`；不是用户正式产品。迁移仅修改源码路径，不修改可安装包中的 ID、版本或授权内容。
+
 这是 R10.6 真实 Chrome 驱动准备用的普通 `opendesk.sidebar-tool.v2` 工具源码。它不是新的 Chrome 扩展、不是第二套 Browser Host，也不直接调用 `chrome.*`。所有业务动作都从用户按钮触发，并只通过 `OpenDeskSDK.browser` 调用正式 Browser SDK。
 
 ## 覆盖范围
@@ -18,7 +20,7 @@
 ## 构建
 
 ```bash
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/browser-sdk-acceptance --out <evidence-dir>/browser-sdk-acceptance.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs tests/fixtures/sidebar-tools/browser-sdk-acceptance --out <evidence-dir>/browser-sdk-acceptance.opendesk-tool.json
 ```
 
 ## Native driver

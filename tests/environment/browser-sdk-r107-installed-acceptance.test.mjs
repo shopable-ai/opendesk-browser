@@ -7,7 +7,7 @@ import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SAMPLE_ARGS} from './browser-sdk-r107-samples.mjs';
 
-const project=new URL('../../examples/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
+const project=new URL('../fixtures/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
 const tool=await createSidebarToolPackage(project.pathname);
 
 test('R10.7 installed fixture retains legacy grants without inheriting Full Bookmarks',()=>{

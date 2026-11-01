@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-const file=new URL('../../examples/sidebar-tools/browser-sdk-r2/browser-operations.opendesk-tool.json',import.meta.url);
+const file=new URL('../../examples/sidebar-tools/browser-sdk-operations-demo/browser-operations.opendesk-tool.json',import.meta.url);
 
 test('Browser SDK R2–R4 demo is a valid installable v2 tool, not a fake privileged page',async()=>{
  const pkg=validateSidebarToolPackage(JSON.parse(await readFile(file,'utf8')));

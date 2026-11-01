@@ -61,7 +61,7 @@ on:
       - 'docs/api/browser-capability-universe.zh-CN.md'
       - 'scripts/check-browser-framework-ledger.mjs'
       - 'tests/environment/browser-framework-ledger.test.mjs'
-      - 'examples/sidebar-tools/browser-sdk-acceptance/**'
+      - 'tests/fixtures/sidebar-tools/browser-sdk-acceptance/**'
       - 'tests/framework/browser-sdk-r106-native.mjs'
       - 'tests/framework/browser-managed-proxy-chromium-pac.mjs'
       - 'tests/framework/browser-managed-proxy-installed-c1.mjs'

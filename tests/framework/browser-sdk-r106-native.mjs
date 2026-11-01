@@ -20,7 +20,7 @@ import {BOOKMARK_OWNED_STORE_PREFIX} from '../../src/framework/sdk/browser-contr
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const driverFile=fileURLToPath(import.meta.url);
-const toolRoot=path.join(root,'examples/sidebar-tools/browser-sdk-acceptance');
+const toolRoot=path.join(root,'tests/fixtures/sidebar-tools/browser-sdk-acceptance');
 const defaultEvidence=path.join(root,'docs/framework/workstreams/evidence/browser-sdk-r106-native-driver');
 const evidenceRoot=path.resolve(process.env.OPENDESK_R106_EVIDENCE||defaultEvidence);
 const chrome155=path.join(root,'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
@@ -1086,7 +1086,7 @@ if(args.has('--native')){
     const {receiptFile,receipt}=await prepareReceipt();
     assert.equal(receipt.status,'PREPARED_NOT_NATIVE_PASS');
     assert.match(receipt.toolPackage.sha256,/^[a-f0-9]{64}$/);
-    assert(receipt.sourceFiles.some(row=>row.path.endsWith('examples/sidebar-tools/browser-sdk-acceptance/src/main.js')));
+    assert(receipt.sourceFiles.some(row=>row.path.endsWith('tests/fixtures/sidebar-tools/browser-sdk-acceptance/src/main.js')));
     assert.equal((await stat(receiptFile)).isFile(),true);
   });
 }else{

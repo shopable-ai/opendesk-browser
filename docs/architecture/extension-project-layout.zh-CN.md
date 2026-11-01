@@ -139,7 +139,7 @@ projects/<id>/                         # 或已核实的现有项目根
 
 | 起点 | 用途与选择条件 | 不能直接继承的部分 |
 | --- | --- | --- |
-| [`runtime-globals-demo`](../../examples/sidebar-tools/runtime-globals-demo/) | 最小 HTML/CSS/Classic JS，配置直接选 src；适合不需组件编译的工具 | 演示 ID/版本/能力与业务；新项目按需求设置最小能力，不复制正式 JSON/预览快照 |
+| [`minimal-html-starter`](../../examples/sidebar-tools/minimal-html-starter/) | 最小 HTML/CSS/Classic JS，配置直接选 src；适合不需组件编译的工具 | 工具内部 ID 保持 `runtime-globals-demo` 以兼容旧安装；新项目另设 ID/版本/能力，不复制演示身份、正式包或预览快照 |
 | [`react-starter`](../../examples/sidebar-tools/react-starter/README.md)、[`vue-starter`](../../examples/sidebar-tools/vue-starter/README.md) | 用户选择该框架或确有组件需求时，复用已有源码与本地预编译模式，再走同一 Tool 打包器 | 先查各自配置和依赖/运行时模式；不把 Starter 的自带依赖等同于所有工具默认的 Shared UI，也不复制旧 dist/收据/包身份 |
 | [`scripts/templates/`](../../scripts/templates/) | `sidebar-preview.html` 由 [`sidebar-preview-kit.mjs`](../../scripts/sidebar-preview-kit.mjs) 消费；`sidebar-tool-preview-shell.html` 由 [`preview/build-preview.mjs`](../../scripts/preview/build-preview.mjs) 等原预览入口消费 | 设计稿/源码预览壳不是项目源码模板，不生成配置、安装身份或权限，不能替代正式 src/当前候选 |
 | 原有复杂/组合项目 | 已有功能迭代直接沿其唯一 owner 与命令；仅借鉴需要的结构 | 不复制 Stay Focus 的特权入口、私有能力、Controller 身份或整个 vendor/engine 树 |
@@ -246,7 +246,7 @@ CI 是提交后的回归保障，开发是定位本次变化，两者不使用�
 
 | 样本 | 核对到的边界 | 对本设计的约束 |
 | --- | --- | --- |
-| [最小 HTML Demo](../../examples/sidebar-tools/runtime-globals-demo/tool.config.json) | 直接选 src，无项目独立 npm/Vite | 不强制构建依赖、CI profile、空测试目录或项目 AGENTS |
+| [最小 HTML Demo](../../examples/sidebar-tools/minimal-html-starter/tool.config.json) | 直接选 src，无项目独立 npm/Vite | 不强制构建依赖、CI profile、空测试目录或项目 AGENTS |
 | [React Starter](../../examples/sidebar-tools/react-starter/tool.config.json) / [Vue Starter](../../examples/sidebar-tools/vue-starter/tool.config.json) | 配置 ID 与目录名不同；自带固定框架依赖，预编译 IIFE/CSS 与来源收据 | 不沿用示例身份，不复制旧产物，不把一方修改变成双 Starter 必跑，也不冒称 Shared UI |
 | [Stay Focus](../../projects/stay-focus/tool.config.json) | src UI、trusted 固定入口、preview 模拟与 dist 输入各有消费者 | 允许复杂目录，生成物可能是当前必要输入；旧预览不自动等于当前可安装 UI |
 | [Mindmap Page](../../projects/chatgpt-mindmap/package.json) | 正式 owner 在 projects，Page USER_SCRIPT 配置/站点与资源合同 | 不因新默认 examples 或最小 Sidebar 树搬家/改类型，不用 Tool JSON 与 App CI 代替 Page 安装链 |

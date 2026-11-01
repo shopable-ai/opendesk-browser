@@ -1,4 +1,6 @@
-# Side Panel 已安装工具：OpenDeskTool 全局桥 Demo
+# 最小 HTML Sidebar Tool 示例（OpenDeskTool）
+
+**目录只做命名整理，内部工具 ID `runtime-globals-demo` 保持不变，不影响旧安装及 `artifacts/sidebar-tools/runtime-globals-demo/` 候选输出。**
 
 这是**真正可打包、可经用户确认导入的** `opendesk.sidebar-tool.v1` 工具项目。运行在 opaque-origin iframe，**不是**可信 Side Panel 宿主、Controller Worker 或目标网页 USER_SCRIPT。
 
@@ -9,7 +11,7 @@
 本仓库依赖已就绪时，从根目录选择本次需要的步骤；新环境才按根锁文件安装依赖：
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/minimal-html-starter
 # 仅当本次修改涉及桥/运行世界时选择该检查，不把它当每次文案修改前置
 node --test tests/environment/runtime-libs-trusted-worlds.test.mjs
 ```

@@ -6,7 +6,7 @@
 
 | 入口 | 适用场景 | 示例/模板 |
 | --- | --- | --- |
-| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](runtime-globals-demo/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](cookie-editor/README.zh-CN.md) |
+| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](minimal-html-starter/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](cookie-editor/README.zh-CN.md) |
 | **React 预编译** | 组件较多，需要 React 状态/UI | [React Starter](react-starter/README.md)、[Quick Notes React 正式产品](../../projects/quick-notes-react/README.md) |
 | **Vue 预编译** | 组件较多，需要 Vue | [vue-starter](vue-starter/README.md) |
 | **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](../../projects/reading-toc/README.md) |
@@ -17,7 +17,7 @@
 
 **选择起点**：先选上表已有 HTML/React/Vue 示例；React/Vue Starter 自带框架依赖与演示业务，不等同于 Shared UI 或空白模板。复用时重设身份/最小能力，不复制 dist/收据/正式包。`scripts/templates` 只供预览生成器消费；目录存在条件与项目级 AGENTS 分工见目录合同第 2 节，简单项目不补空目录或无关 npm 依赖。
 
-**最小工具与全局变量区别**：`runtime-globals-demo/` 是可打包安装的独立小工具。它只能访问工具自身的 `OpenDeskTool`，没有 Controller 的词法 `page`，也不会继承 `_`、`dayjs`。可信 Side Panel Host 若要用 Day.js，应在[自己受信的入口](../libs/trusted-imports/README.zh-CN.md)静态 import，不是向用户工具 iframe 隐式注入。
+**最小工具与全局变量区别**：`minimal-html-starter/` 是可打包安装的独立小工具。它只能访问工具自身的 `OpenDeskTool`，没有 Controller 的词法 `page`，也不会继承 `_`、`dayjs`。可信 Side Panel Host 若要用 Day.js，应在[自己受信的入口](../libs/trusted-imports/README.zh-CN.md)静态 import，不是向用户工具 iframe 隐式注入。
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
 
@@ -43,8 +43,10 @@ Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](../.
 
 ## Browser SDK v2（R1.3）
 
-[Browser SDK 示例](browser-sdk-r13/README.zh-CN.md) 包含可直接导入的 v2 选区笔记、v1 能力查询工具和普通网页拒绝特权的 HTTP 测试页。v2 菜单内容须先在当前网站完成可信用户授权；R1.3 原生 Chrome 验收另行记录。
+[Browser SDK 示例](browser-sdk-context-menu-demo/README.zh-CN.md) 包含可直接导入的 v2 选区笔记、v1 能力查询工具和普通网页拒绝特权的 HTTP 测试页。v2 菜单内容须先在当前网站完成可信用户授权；R1.3 原生 Chrome 验收另行记录。
 
 ## Browser SDK R2–R4：可安装真实接口验证工具
 
-[Tabs、Side Panel、HTTP、网络观察、截图与操作管理验证工具](browser-sdk-r2/README.zh-CN.md) 提供一个直接导入的独立 v2 JSON 安装包。它使用 `OpenDeskSDK.browser`，不需要修改或重新构建扩展。安装前需审阅其 capability，执行敏感操作时还要在可信 Side Panel 点击单次确认。该示例不等于 Mac Chrome 原生验收 PASS。
+[Tabs、Side Panel、HTTP、网络观察、截图与操作管理验证工具](browser-sdk-operations-demo/README.zh-CN.md) 提供一个直接导入的独立 v2 JSON 安装包。它使用 `OpenDeskSDK.browser`，不需要修改或重新构建扩展。安装前需审阅其 capability，执行敏感操作时还要在可信 Side Panel 点击单次确认。该示例不等于 Mac Chrome 原生验收 PASS。
+
+**测试夹具位置**：Browser SDK 的自动化验收工具位于 [`tests/fixtures/sidebar-tools/browser-sdk-acceptance/`](../../tests/fixtures/sidebar-tools/browser-sdk-acceptance/)，不作为正式安装产品。2026-10-21/22 R14 的四个冻结应用已从当前示例目录清理，原始输入保留于清理前的 Git 历史；历史验收结果继续按当时的包与提交身份解读。
