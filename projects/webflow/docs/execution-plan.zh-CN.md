@@ -737,7 +737,7 @@ B 的新增价值是官方工具发现、结构化参数和工具响应，无需
 | --- | --- | --- |
 | [installed-task-mcp.mjs](../src/adapters/installed-task-mcp.mjs) | opendesk.webflow.start({operationKey,query}) 和 opendesk.webflow.result({operationKey}) 的严格工具参数与错误处理，主体/原会话命名空间、幂等、UNKNOWN、一次许可和持久记录接口，复用 serveMcp | 没有可信调用者 provider / 原子关联 store / Native 安装 CAS，默认 stdio 启动只能安全发现工具，不能实际派发 |
 | [native-installed-task.mjs](../src/adapters/native-installed-task.mjs) | 固定 baidu pin/schema，复用 requestAgent；验证 task.list、目标、Native envelope、request.get 和 run.get；Controller Codec 解码、结果身份/投影字段白名单 | 不扩展任意脚本/Native 方法；没有绕过 Authority；真实 Go 与安装包仍待核对 |
-| [installed-task-mcp.test.mjs](../../tests/installed-task-mcp.test.mjs) | 输入/冒充/重复/跨会话/撤权/丢 ACK/原生回复/结果白名单的定向离线测试 | 单测中的 mock store 和 mock CAS 只为测试，绝非可上线持久设施或可信身份来源 |
+| [installed-task-mcp.test.mjs](../tests/installed-task-mcp.test.mjs) | 输入/冒充/重复/跨会话/撤权/丢 ACK/原生回复/结果白名单的定向离线测试 | 单测中的 mock store 和 mock CAS 只为测试，绝非可上线持久设施或可信身份来源 |
 
 源码 GitHub 提交顺序：0ddf6edd（Native 适配），e10f7e8c（MCP 受限入口），c417a866（测试），862dea7a（MCP 侧效应声明和 pin 验证），fe756050（测试预期修正）。文件全部在 projects/webflow/，无其他 owner 代码修改。
 
