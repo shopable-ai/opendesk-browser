@@ -401,12 +401,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       :['binding','clientRequestId']);
     delegationId(request.clientRequestId);
     invariant(request.binding&&typeof request.binding.appId==='string','E_SCHEMA');
-    normalizeDelegatedTask(request.binding.task,true);
+    normalizeDelegatedTask(request.binding.task,mode==='prepare');
     if(mode==='prepare'){
       delegationHash(request.paramsDigest);
       selection(request.target);
       invariant(Number.isSafeInteger(request.deadlineAt)&&request.deadlineAt>now()&&
-        request.deadlineAt<=now()+120000,CONTROLLER_TIMEOUT_ERROR);
+        request.deadlineAt<=now()+3600000,CONTROLLER_TIMEOUT_ERROR);
     }
   }
   async function prepareDelegatedStep(request,sender){
@@ -459,7 +459,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const base={clientRequestId:request.clientRequestId,operationRef:step?.operationRef??null,
         runId:run?.runId??null,resultId:run?.resultId??null,retirementState:run?.retirementState??null,
         workerRetired:run?.workerRetired??false,resourceReleased:run?.retirementState==='released',
-        result:null};
+        result:null,cancelled:step?.cancelled??false,continuationApproved:false,
+        runOwnerEpoch:run?.ownerEpoch??null,cancelSeq:run?.cancelSeq??null,
+        slotAvailable:null};
       if(!step)return {...base,semantic:'UNKNOWN',state:'unknown'};
       if(!run){
         return {...base,semantic:step.cancelled&&step.prepared?'NOT_SUBMITTED_FENCED':'UNKNOWN',
@@ -479,15 +481,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         invariant(!current.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR);
         await assertRunTaskAuthorization(transaction,current);
         const result=await transaction.get('results',current.resultId);
+        const slot=await transaction.get(RUN_STORE,'@slot');
         invariant(!result||result.tag==='controller-result'&&result.runId===current.runId&&
           result.resultId===current.resultId&&result.namespace===namespace(host),'E_OWNER');
-        return {run:current,result};
+        return {run:current,result,slotAvailable:!slot?.currentRunId&&!slot?.preview};
       },[RUN_STORE,COMMAND_JOURNAL,'results','frameworkKV']);
       invariant(!permissionRemovals.slice(observedPermissionEpoch).some(patterns=>
         removedRunGrant(checked.run,patterns)),CONTROLLER_PERMISSION_ERROR);
       return {...base,runId:checked.run.runId,resultId:checked.run.resultId,
         retirementState:checked.run.retirementState??null,workerRetired:checked.run.workerRetired,
         resourceReleased:checked.run.retirementState==='released',
+        cancelled:step.cancelled,continuationApproved:false,
+        runOwnerEpoch:checked.run.ownerEpoch,cancelSeq:checked.run.cancelSeq,
+        slotAvailable:checked.slotAvailable,
         semantic:checked.result?'FOUND_RESULT':'FOUND_RUNNING',
         state:checked.run.state,result:checked.result??null};
     });
