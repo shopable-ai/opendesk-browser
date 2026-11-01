@@ -46,7 +46,9 @@ jobs:
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --promote-from artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json
           node scripts/build-sidebar-tool.mjs projects/webflow --check-project
+      # Push CI validates candidate bytes only; repo publication is an explicit manual action.
       - name: Publish only the verified package via GitHub's file-conditional Contents API
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
