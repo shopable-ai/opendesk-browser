@@ -10,7 +10,7 @@ function Difference({row}){return <li><strong>{row.kind} · {row.key}</strong>{r
   ?<pre className="ai-change-value" aria-label={row.kind==='新增'?'新值':'原值'}>{format(row.kind==='新增'?row.after:row.before)}</pre>
   :row.kind!=='保留'&&<div className="ai-before-after"><div>原值<pre>{format(row.before)}</pre></div><div>新值<pre>{format(row.after)}</pre></div></div>}</li>;}
 
-export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onNavigate,onClose,onBusy,onDirty}){
+export default function AiPanel({open=true,state,captureStatus,savedRequestId,locked,pending,valid,onApply,onNavigate,onClose,onBusy,onDirty}){
   const tool=globalThis.OpenDeskTool;
   // This is the same presentation store used by Chat, scoped to this sandbox.
   // Its labels are UI identity only; ai.* remains the sole authority boundary.
@@ -181,6 +181,12 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   }}>
     <div className="ai-chat"><div className="ai-scroll" ref={log} onScroll={event=>{const node=event.currentTarget;followMessages.current=node.scrollHeight-node.clientHeight-node.scrollTop<32;}}>
     {pendingId&&<p id="chat-ai-request-status" role="status">未决 requestId：{pendingId} · 状态：{unknown?'unknown':'pending'}</p>}
+    {state.clientRequestId&&<div id="chat-ai-capture-status" className="ai-capture-status" role="status">
+      <strong>采集任务实际状态</strong>
+      <p>{captureStatus||'正在等待采集任务的实际回执'}</p>
+      <p className="secondary">宿主：{state.snapshot?.status||state.host||'未报告'} · 引擎：{state.result?.engine?.status||state.snapshot?.engineStatus||state.engine||'未报告'}</p>
+      <p className="secondary">这里只显示原业务返回的状态；运行结束不等于已获得有效数据。完整结果请在「采集结果」核对。</p>
+    </div>}
     {blocked&&<p className="od-note secondary">请先处理未应用的编辑、无效 JSON 或正在进行的配置/采集操作。</p>}
     <div ref={setTranscriptTarget} className="od-conversation-log ai-transcript" role="log" aria-live="polite" aria-label="对话及已核实操作结果"/>
     <p id="chat-ai-feedback" role="status" hidden={!feedback}>{feedback}</p><p role="alert" className="error" hidden={!error}>{error}</p>
