@@ -377,6 +377,7 @@ function addFreshState(){
   if(!state.addOutcome)state.addOutcome='success';
   if(!state.addMockInstalled)state.addMockInstalled={};
   if(!state.addMockPermissions)state.addMockPermissions={};
+  if(!state.addUnknownIds)state.addUnknownIds={};
   if(!state.addPage)state.addPage=1;
 }
 function openAddScreen(){
@@ -397,11 +398,12 @@ function addCatalogRows(){
   const rest=addMockCatalog.map(y=>{
     const installed=state.addMockInstalled[y.id]===true || y.installed;
     return {...y,installed,permission:y.permission||state.addMockPermissions[y.id]===true,
-      kind:state.addMockInstalled[y.id]===true?'unbound':y.kind};
+      kind:state.addUnknownIds[y.id]===true?'unknown':state.addMockInstalled[y.id]===true?'unbound':y.kind};
   });
   return [...demoLinked,...rest];
 }
 function addRowStatus(x){
+  if(x.kind==='unknown')return {name:'回执未知 · 需对账',className:'bad',reason:'副作用可能已发生；须在可信任务目录核对，禁止继续发起同一安装'};
   if(x.kind==='linked')return {name:'已关联',className:'good',reason:'已在脚本列表，无需重复添加'};
   if(x.kind==='untrusted'||!x.verified)return {name:'来源未核验',className:'bad',reason:'无法验证发布者或固定源码，不可继续'};
   if(x.kind==='mismatch')return {name:'版本不匹配',className:'warn',reason:'需更新 Web Flow 的固定委托合同并重新审阅应用包'};
@@ -445,7 +447,7 @@ function renderAddScreen(){
 function renderAddReview(){
  const x=addCatalogRows().find(y=>y.id===state.addId);if(!x)return `<section class="add-panel"><p>未找到该演示任务。</p><button class="secondary" data-act="add-back" type="button">返回</button></section>`;
  const z=addRowStatus(x),linked=x.kind==='linked',canLink=x.installed&&x.futureEligible&&x.permission&&x.verified,
- canInstall=!x.installed&&x.verified;
+ canInstall=!x.installed&&x.verified&&x.kind!=='unknown';
  const fact=(k,v)=>`<dt>${e(k)}</dt><dd>${e(v)}</dd>`;
  let primary='';
  if(linked)primary=`<button type="button" class="primary" data-act="add-show-linked" data-id="${e(x.id)}">查看现有脚本</button>`;
@@ -464,8 +466,8 @@ function renderAddReceipt(){
  const r=state.addReceipt||{state:'unknown',title:'模拟任务',id:'—'};
  const ok=r.state==='installed'||r.state==='linked',bad=r.state==='failed';
  const title=r.state==='installed'?'模拟安装已完成':r.state==='linked'?'模拟关联已完成':bad?'模拟安装失败':'操作回执 UNKNOWN';
- const detail=r.state==='installed'?'从模拟任务权威列表重新读取到安装条目。但当前 Web Flow 未委托该 Task，不能直接在 Web Flow 运行。':r.state==='linked'?'仅模拟未来已具备动态关联 SDK 的产品路径；没有修改真实应用委托合同。':bad?'模拟安装器返回失败；候选仍未安装。可返回列表重新审阅。':'操作副作用可能已经发生，不能自动重试或把 UNKNOWN 当作未安装。请通过可信安装目录只读核对。';
- return `<section class="add-panel add-receipt" role="status" aria-live="polite"><div class="add-result-symbol ${ok?'success':bad?'failure':'unknown'}" aria-hidden="true">${ok?'✓':bad?'!':'?'}</div><h3>${title}</h3><p><strong>${e(r.title)}</strong></p><p class="note">${detail}</p><div class="add-readback"><strong>权威状态（仅模拟）</strong><span>${r.state==='installed'?'演示目录读回：已安装，未纳入正式委托':r.state==='linked'?'本页内存脚本清单读回：已关联':bad?'演示目录读回：未安装':'未取得确定安装/关联回执'}</span><span>实际 Chrome 权限、安装、脚本运行：均未执行</span></div><div class="add-review-actions"><button class="secondary" data-act="add-back" type="button">返回添加</button>${r.state==='linked'?'<button class="primary" data-act="add-done" type="button">查看脚本列表</button>':''}${r.state==='installed'?'<button class="primary" data-act="add-done" type="button">返回脚本列表</button>':''}</div></section>`;
+ const detail=r.state==='installed'?'从模拟任务目录重新读取到安装条目。可在宿主「我的 → 本地任务目录」找到；当前 Web Flow 未委托该 Task，因此不会出现在 Web Flow 的可运行脚本列表。':r.state==='linked'?'仅模拟未来已具备动态关联 SDK 的产品路径；没有修改真实应用委托合同。':bad?'模拟安装器返回失败；候选仍未安装。可返回列表重新审阅。':'操作副作用可能已经发生，不能自动重试或把 UNKNOWN 当作未安装。请通过可信安装目录只读核对。';
+ return `<section class="add-panel add-receipt" role="status" aria-live="polite"><div class="add-result-symbol ${ok?'success':bad?'failure':'unknown'}" aria-hidden="true">${ok?'✓':bad?'!':'?'}</div><h3>${title}</h3><p><strong>${e(r.title)}</strong></p><p class="note">${detail}</p><div class="add-readback"><strong>权威状态（仅模拟）</strong><span>${r.state==='installed'?'演示目录读回：已安装，未纳入正式委托':r.state==='linked'?'本页内存脚本清单读回：已关联':bad?'演示目录读回：未安装':'未取得确定安装/关联回执'}</span><span>实际 Chrome 权限、安装、脚本运行：均未执行</span></div><div class="add-review-actions"><button class="secondary" data-act="add-back" type="button">返回添加</button>${r.state==='linked'?'<button class="primary" data-act="add-done" type="button">查看脚本列表</button>':''}${r.state==='installed'?'<button class="primary" data-act="add-done" type="button">完成</button>':''}</div></section>`;
 }
 function onAddAction(btn){
  const a=btn.dataset.act,id=btn.dataset.id;
@@ -480,7 +482,7 @@ function onAddAction(btn){
  if(a==='add-show-linked'){
    const linked=scenScripts().find(y=>y.taskId===id);state.addScreen=null;state.details=linked?.id||null;render();focusAddHeading();return;
  }
- if(a==='add-stop-wait'){clearTimeout(state.addTimer);state.addTimer=null;const x=addCatalogRows().find(y=>y.id===state.addId);state.addReceipt={state:'unknown',id:state.addId,title:x?.title||'模拟任务'};state.addScreen='receipt';render();focusAddHeading();return}
+ if(a==='add-stop-wait'){clearTimeout(state.addTimer);state.addTimer=null;state.addUnknownIds[state.addId]=true;const x=addCatalogRows().find(y=>y.id===state.addId);state.addReceipt={state:'unknown',id:state.addId,title:x?.title||'模拟任务'};state.addScreen='receipt';render();focusAddHeading();return}
  if(a==='add-confirm'){
    if(!state.addAck||state.addScreen!=='review')return;
    const x=addCatalogRows().find(y=>y.id===state.addId);if(!x||!x.verified||x.kind==='linked')return;
@@ -495,6 +497,7 @@ function onAddAction(btn){
      if(state.addScreen!=='working')return;
      const result=outcome==='success'?'installed':outcome==='failed'?'failed':'unknown';
      if(result==='installed')state.addMockInstalled[x.id]=true;
+     if(result==='unknown')state.addUnknownIds[x.id]=true;
      // Explicitly reread the in-memory "authority" fixture; never infer from the timed callback alone.
      const reread=addCatalogRows().find(y=>y.id===x.id);
      const verifiedResult=result==='installed'&&reread?.installed?'installed':result==='installed'?'unknown':result;
