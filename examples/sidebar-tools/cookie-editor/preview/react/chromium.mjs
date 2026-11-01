@@ -73,6 +73,14 @@ const checkSheetBounds=async(sheet,width,height,stage)=>{
 };
 try{
  await page.goto(devUrl?.href||pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});
+ // A filtered import-only run is independently reproducible: the default
+ // enterprise demo scene is not the Cookie tab and cannot supply the toolbar.
+ if(testMatch&&/bottom sheet|short 420px|search clear, filter|dirty editor blocks import|one-click import|unchecked overwrite|invalid-domain errors|drag and drop|unknown import|reduced motion/.test(testMatch.source)){
+   await openLab();
+   await scene('ready');
+   await ready();
+ }
+
  await test('R2.6 defaults to three fictional accounts and product-owned share/market views',async()=>{
   // R3.4: open Cookie first to match the frozen baseline, then verify the
   // same three-account fixture is reachable without changing the SDK mock.

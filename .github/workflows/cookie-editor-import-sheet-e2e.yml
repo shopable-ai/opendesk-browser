@@ -1,0 +1,40 @@
+name: Cookie Editor - formal import sheet Chromium regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/cookie-editor/app/**'
+      - 'examples/sidebar-tools/cookie-editor/src/react.css'
+      - 'examples/sidebar-tools/cookie-editor/preview/react/chromium.mjs'
+      - 'examples/sidebar-tools/cookie-editor/preview/react/src/**'
+      - '.github/workflows/cookie-editor-import-sheet-e2e.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  import-sheet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked root and Cookie React preview dependencies
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/sidebar-tools/cookie-editor/preview/react --ignore-scripts --no-audit --no-fund
+      - name: Build existing shared React runtime and actual Cookie Editor React
+        run: |
+          OPENDESK_BUILD_MODE=development npx wxt build --mode development --filter-entrypoint sidebar-shared-ui
+          npm run build --prefix examples/sidebar-tools/cookie-editor/preview/react
+          npm run check --prefix examples/sidebar-tools/cookie-editor/preview/react
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Exercise native bottom sheet, staging and single trusted confirmation
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          node examples/sidebar-tools/cookie-editor/preview/react/chromium.mjs \
+            --test-match 'bottom sheet|short 420px|search clear, filter|dirty editor blocks import|one-click import|unchecked overwrite|invalid-domain errors|drag and drop|unknown import|reduced motion'
