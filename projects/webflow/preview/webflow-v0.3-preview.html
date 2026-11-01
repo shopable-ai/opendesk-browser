@@ -87,6 +87,7 @@ body.dark{background:#101722}body.dark .toolbar{background:var(--od-paper);color
 @media(max-width:700px){.stage{gap:12px;padding:12px 10px 30px}.toolbar{padding:10px 12px}}
 @media(max-width:360px){.app-body{padding:12px 10px 20px}.compact-app-bar{padding:8px}.demo-badge{display:none}.app-tab{min-width:59px}.script-card{padding:10px 8px}}
 @media(prefers-reduced-motion:reduce){.window{transition:none!important}}
+.window{position:relative}.window .modal-wrap{position:absolute;inset:0;padding:10px;z-index:15}.window .dialog{max-height:calc(100% - 12px);width:min(100%,440px);overflow:auto}.window .toast{position:absolute;bottom:12px;max-width:calc(100% - 24px)}
 </style>
 </head>
 <body>
@@ -111,11 +112,11 @@ body.dark{background:#101722}body.dark .toolbar{background:var(--od-paper);color
     <div id="appContent" class="app-body" role="tabpanel" tabindex="0" aria-labelledby="wf-tab-overview"></div>
     <div class="footnote">仅演示数据 · 不连接真实权限、执行链或原聊天</div>
    </section>
+   <div id="modalRoot"></div><div role="status" aria-live="polite" class="toast" id="toast" hidden></div>
   </div>
  </div>
  <aside class="note-panel last" aria-label="验收检查说明"><h2>评审重点</h2><p><strong>状态准确</strong>：运行完成不等于网页业务成功；结果持久化不等于已送回 ChatGPT。</p><div class="divider"></div><p><strong>授权分层</strong>：总开关、每条脚本授权、安装状态、Chrome 站点权限相互独立。</p><div class="divider"></div><p><strong>开发者字段按需展示</strong>：普通用户只看任务、网站和结果。taskId、requestId、runId、resultId 等放在“技术详情”。</p><div class="divider"></div><h2>键盘</h2><ul><li>Tab / Shift+Tab：操作控件</li><li>方向键 / Home / End：页签</li><li><code>/</code>：脚本页聚焦搜索</li><li>Esc：关闭对话框 / 退出详情</li><li>Enter / Space：操作按钮</li></ul></aside>
 </main>
-<div id="modalRoot"></div><div role="status" aria-live="polite" class="toast" id="toast" hidden></div>
 <script>
 (function(){'use strict';
 const $=(id)=>document.getElementById(id);
@@ -268,12 +269,15 @@ function runAction(btn){const act=btn.dataset.act,id=btn.dataset.id||null,x=curr
  }
 }
 $('dataset').addEventListener('change',ev=>{state.quantity=Number(ev.target.value);state.scripts=seed(state.quantity);state.search='';state.filter='all';state.pageIndex=1;state.details=null;state.scenario=$('scenario').value;render();toast('已切换为 '+state.quantity+' 条模拟脚本')});
-$('scenario').addEventListener('change',ev=>{state.scenario=ev.target.value;state.scripts=seed(state.quantity);state.details=null;state.page='overview';state.history=demoHistory();if(state.scenario==='running')state.scripts[0].run='running';if(state.scenario==='error')state.scripts[0].error='E_SELECTOR_NOT_FOUND';if(state.scenario==='unknown')state.scripts[0].unknown=true;render()});
+$('scenario').addEventListener('change',ev=>{state.scenario=ev.target.value;state.scripts=seed(state.quantity);state.details=null;state.page='overview';state.history=demoHistory();if(state.scenario==='running'){state.scripts[0].run='running';state.history.unshift({id:'demo-scenario-running',title:state.scripts[0].title,time:'模拟运行中',runtime:'running',business:'unverified',persistence:'not_saved',delivery:'not_sent',summary:'纯演示运行中：没有执行真实网页动作。',taskId:state.scripts[0].taskId,version:state.scripts[0].version,error:null})}
+if(state.scenario==='error'){state.scripts[0].error='E_SELECTOR_NOT_FOUND';state.history.unshift({id:'demo-scenario-error',title:state.scripts[0].title,time:'模拟错误',runtime:'failed',business:'failed',persistence:'unknown',delivery:'not_sent',summary:'演示：网页元素不存在，业务效果不成立。',taskId:state.scripts[0].taskId,version:state.scripts[0].version,error:'E_SELECTOR_NOT_FOUND'})}
+if(state.scenario==='unknown'){state.scripts[0].unknown=true;state.history.unshift({id:'demo-scenario-unknown',title:state.scripts[0].title,time:'模拟结果未知',runtime:'unknown',business:'unknown',persistence:'unknown',delivery:'unknown',summary:'演示：网页副作用与聊天交付回执均未确认。',taskId:state.scripts[0].taskId,version:state.scripts[0].version,error:'E_EFFECT_UNKNOWN'})}
+render()});
 $('viewport').addEventListener('change',ev=>{state.viewport=ev.target.value;render()});
 $('themeBtn').addEventListener('click',()=>{state.theme=!state.theme;render()});
 $('resetBtn').addEventListener('click',()=>{const width=state.viewport,theme=state.theme;state={page:'overview',quantity:20,scenario:'normal',viewport:width,scripts:seed(20),globalAuto:false,search:'',filter:'all',sort:'recommended',groupBy:'none',pageIndex:1,details:null,historyDetail:null,modal:null,ack:false,dev:false,historyFilter:'all',workflowDetail:null,history:demoHistory(),activeHost:'扩展',theme};$('dataset').value='20';$('scenario').value='normal';render();toast('模拟状态已重置')});
 document.body.addEventListener('click',ev=>{const host=ev.target.closest('[data-host]');if(host){if(host.dataset.host==='开发')state.page='developer',render(),toast('只模拟原有“开发”页的衔接，不复制编辑器');else toast('「'+host.dataset.host+'」是原有宿主 Tab，此原型只展示 Web Flow');return;}const tab=ev.target.closest('.app-tab');if(tab){navigate(tab.dataset.page);return;}const btn=ev.target.closest('[data-act]');if(btn)runAction(btn)});
-document.body.addEventListener('change',ev=>{if(ev.target.id==='ack')updateAck();if(ev.target.id==='scriptStatus'){state.filter=ev.target.value;state.pageIndex=1;render()}if(ev.target.id==='scriptSort'){state.sort=ev.target.value;state.pageIndex=1;render()}if(ev.target.id==='scriptGroup'){state.groupBy=ev.target.value;state.pageIndex=1;render()}});
+document.body.addEventListener('change',ev=>{if(ev.target.id==='ack')updateAck();if(['scriptStatus','scriptSort','scriptGroup'].includes(ev.target.id)){const field=ev.target.id,v=ev.target.value,open=$('filtersPanel')?.open===true;if(field==='scriptStatus')state.filter=v;else if(field==='scriptSort')state.sort=v;else state.groupBy=v;state.pageIndex=1;render();const panel=$('filtersPanel');if(panel&&open){panel.open=true;panel.querySelector('#'+field)?.focus()}}});
 function applySearchInput(t){const pos=t.selectionStart||0;state.search=t.value;state.pageIndex=1;render();const next=$('scriptSearch');next?.focus();try{next?.setSelectionRange(pos,pos)}catch{}}
 document.body.addEventListener('compositionstart',ev=>{if(ev.target.id==='scriptSearch')state.composingSearch=true});
 document.body.addEventListener('compositionend',ev=>{if(ev.target.id==='scriptSearch'){state.composingSearch=false;applySearchInput(ev.target)}});
