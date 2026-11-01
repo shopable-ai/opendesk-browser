@@ -24,6 +24,17 @@ on:
       - 'wxt.config.mjs'
       - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
       - '.github/workflows/send-queue-production-r55.yml'
+  pull_request:
+    paths:
+      - 'projects/ai-send-queue/**'
+      - 'official-pages/sources.json'
+      - 'official-tools/catalog.json'
+      - 'src/sidebar-tools/official-catalog.js'
+      - 'src/scripting/user-scripts/official-page-catalog.js'
+      - 'tests/environment/official-page-catalog-r124.test.mjs'
+      - 'tests/environment/official-tools-catalog-r45.test.mjs'
+      - 'tests/environment/send-queue-product-installation.test.mjs'
+      - '.github/workflows/send-queue-production-r55.yml'
   workflow_dispatch:
 permissions:
   contents: read
