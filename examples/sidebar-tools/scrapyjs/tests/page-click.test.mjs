@@ -18,9 +18,9 @@ const url='http://127.0.0.1:43111/inspection.html';
 const html='<ul id="books"><li><a class="title" href="/a">A</a></li><li><a class="title" href="/b">B</a></li></ul>';
 function fixture(){
   const {window}=new JSDOM('<html><body>'+html+'<input type="password"></body></html>',{url});
-  const page={evaluate:async(fn,input)=>vm.runInNewContext('('+fn.toString()+')(input)',{
+  const page={evaluate:async(fn,input)=>JSON.parse(JSON.stringify(await vm.runInNewContext('('+fn.toString()+')(input)',{
     input,document:window.document,location:window.location,window,Element:window.Element,setTimeout,clearTimeout
-  })};
+  })))};
   return {window,page,inspect:kind=>runClickedInspection({url,kind,container:'#books',item:'li'},page)};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
