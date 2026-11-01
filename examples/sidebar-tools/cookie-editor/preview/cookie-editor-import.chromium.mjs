@@ -80,6 +80,7 @@ try{
     assert.equal(await page.locator('#importFileName').isVisible(),true);
     assert.equal(await count(),8,'file selection is not a write');
     await page.getByRole('button',{name:'确认导入'}).click();
+    await sheet().waitFor({state:'hidden'});
     assert.equal(await sheet().isVisible(),false);
     assert.equal(await count(),9);
     assert.equal(await page.locator('#cookieRows').getByText('picker_imported').count(),1);
@@ -97,6 +98,7 @@ try{
     assert.equal(await page.locator('#importFileName').isVisible(),true);
     assert.equal(await count(),9,'drop alone is not a write');
     await page.locator('#importConfirm').click();
+    await sheet().waitFor({state:'hidden'});
     assert.equal(await count(),10);
     assert.equal(await page.locator('#cookieRows').getByText('drag_imported').count(),1);
   });
