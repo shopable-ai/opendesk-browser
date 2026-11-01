@@ -17,7 +17,7 @@
 | 交互基线 | 固定 `preview.html` 的 SHA-256 为 `8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e`，来源是字段即时编辑 candidate6；README 还引用排序/CSV 的其他冻结候选 | 先核对最新用户选择、真实组件和对应测试，冻结一个本轮候选及来源；不能拼接不同候选的通过结论 |
 | 正式入口 | `src/main.jsx` 挂载 `<App/>`；`preview/entry.jsx` 额外注入 `RuleAssistant`、`ListScopeAssistant` 并启用 AI 占位 | 真实采集、存储、下载和完整 Chat 保留正式入口；预览 mock 和占位不能带入正式包 |
 | 业务源码 | 字段即时编辑、排序与 CSV 接线已有实现或未提交增量，不能当作空白项目重写 | 优先复用 `App.jsx`、`RuleEditor.jsx`、`FieldOrder.jsx`、`Results.jsx`、`ColumnSettings.jsx`、`app-model.js`、`editor.js` 与 `adapters/app-sdk.js`；只修实测缺口 |
-| 结果交互差异 | 当前 `Results.jsx` 和 `result-display-interactions.mjs` 已采用「自定义 CSV 表头」及本次 CSV 排序，没有旧「显示设置」入口；历史 DESIGN/README 仍描述旧方案 | 实施前核对本轮 UI 基线；不根据旧章节自动恢复显隐/显示名称设置。表格显示、规则顺序、自定义 CSV 顺序分别验证 |
+| 结果交互差异 | 2026-11-02 GitHub main 中 `Results.jsx` 的独立「显示设置」已移入「自定义 CSV 表头」的可选折叠项；本次 CSV 与表格显示顺序仍分别管理；旧 preview/历史候选未同步新视觉 | 实施前核对本轮 UI 基线；不根据旧章节自动恢复显隐/显示名称设置。表格显示、规则顺序、自定义 CSV 顺序分别验证 |
 | 工具构建 | `dist/build-ready.json` 的来源记录与当前 11 个文件不符：adapter、App、Results、RuleEditor、ai-config、app-model、capture-trials、editor、results-model 及两份业务 CSS | 旧 dist 不能证明新 UI 已运行；复用原 watcher/构建器，相关源码稳定后再取得同源产物。不得覆盖并行输出 |
 | 真实点选 | 两个助手目前仅由 preview entry 注入，操作离线样例；正式 main 没有注入。旧网页 `window.selector.next()` 不是当前沙箱公开 SDK 证明 | 标记 `REAL_PAGE_ADAPTER_NOT_WIRED`。先查公开 SDK/真实消费者并走授权入口；无法在工具内解决时补齐公共缺口证据，再交 Runtime owner，不直接搬 mock 或在 Host 增加 scrapyjs 特例 |
 | 既有安装 | 仓库配置为 App `1.8.2`、Task `0.6.1`；旧证据记录 CFT149 上采集和下载成功 | 只是旧候选证据，本次未读取当前安装状态。开始运行时重新核对包、Task 身份及当前页；不据版本相同推断源码相同 |
