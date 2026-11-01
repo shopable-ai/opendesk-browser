@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {Button,Textarea,SharedConversationFrame,SharedConversationDock,createConversationSession} from '@opendesk/ui';
-import {instructions,parseProposal,prepareListProposal,changes,sameConfig} from './ai-config.js';
+import {instructions,prepareListProposal,changes,sameConfig} from './ai-config.js';
+import {resolveAiReply} from './ai-actions.js';
 import {createAiRequest,requireGeneration} from './ai-request.js';
 import {createAiPending} from './ai-pending.js';
 
@@ -9,7 +10,7 @@ function Difference({row}){return <li><strong>{row.kind} · {row.key}</strong>{r
   ?<pre className="ai-change-value" aria-label={row.kind==='新增'?'新值':'原值'}>{format(row.kind==='新增'?row.after:row.before)}</pre>
   :row.kind!=='保留'&&<div className="ai-before-after"><div>原值<pre>{format(row.before)}</pre></div><div>新值<pre>{format(row.after)}</pre></div></div>}</li>;}
 
-export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onClose,onBusy,onDirty}){
+export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onNavigate,onClose,onBusy,onDirty}){
   const tool=globalThis.OpenDeskTool;
   // This is the same presentation store used by Chat, scoped to this sandbox.
   // Its labels are UI identity only; ai.* remains the sole authority boundary.
@@ -20,7 +21,7 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   const setRequirement=value=>chat.update({draft:value});
   const append=(speaker,message)=>chat.append(speaker,message);
   const [sample,setSample]=React.useState('');
-  const [usePage,setUsePage]=React.useState(false);
+  const [usePage,setUsePage]=React.useState(true);
   const [useConfig,setUseConfig]=React.useState(true);
   const [recipient,setRecipient]=React.useState(null);
   const [working,setWorking]=React.useState(false);
@@ -92,10 +93,10 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     finally{if(localOperation.current===operation){localOperation.current=null;if(alive.current&&!unresolved)busy(false);}}
   }
   async function generate(){
-    if(working||active.current||localOperation.current||unknown||!pendingReady||pendingId||blocked||!recipient||!requirement.trim()||!usePage||!state.target||(draft&&!stale))return;
+    if(working||active.current||localOperation.current||unknown||!pendingReady||pendingId||blocked||!recipient||!requirement.trim()||!state.target||(draft&&!stale))return;
     const id=crypto.randomUUID(),base=structuredClone(state.config),epoch=state.profileEpoch;
     const page={title:state.target.title,url:state.target.url};
-    const context={page,currentConfig:useConfig?base:{url:page.url,itemConfig:{title:'.::text'}},sample,previousError:error||state.error||''};
+    const context={page:usePage?page:{url:base.url},currentConfig:useConfig?base:{url:base.url},sample,previousError:error||state.error||''};
     const operation=createAiRequest((op,args)=>tool.request(op,args),{requestId:id,request:requirement.trim(),instructions,
       context},setRecipient,pendingIdentity);
     append('你',requirement.trim());
@@ -106,10 +107,21 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
       const result=await operation.run();
       if(!alive.current||active.current!==operation)return;
       if(!result){setNotice('原 AI 请求已结束；停止后返回的内容未应用。');return;}
-      const config=parseProposal(result.proposal,globalThis.ScrapyAppModel.validateConfig,page.url);
-      setDraft({config,base,epoch,page,input:JSON.stringify({requirement,sample,usePage,useConfig}),requestId:id,generation:result.providerGeneration,metadata:result.metadata});
-      const summary=changes(base,config).fields.filter(row=>row.kind!=='保留').map(row=>row.kind+' '+row.key).join('、');
-      append('助手','配置提案已通过格式与目标校验'+(summary?'：'+summary:'')+'。请审阅完整差异后明确应用；尚未保存或采集。');
+      const reply=resolveAiReply(result.proposal,{base,expectedUrl:usePage?page.url:base.url,
+        validate:globalThis.ScrapyAppModel.validateConfig,changes,hasSample:Boolean(sample.trim()),allowFullConfig:useConfig});
+      if(reply.type!=='proposal'){
+        append('助手',reply.message+(reply.missing.length?'\n需要补充：'+reply.missing.join('、'):'')+'\n（未修改配置，未执行采集。）');
+        setProcessedInput(inputKey);setNotice('');return;
+      }
+      if(!reply.actions.length){
+        append('助手','提案与当前配置没有差异；未修改配置，也未运行采集。');
+        setProcessedInput(inputKey);setNotice('');return;
+      }
+      setDraft({config:reply.config,actions:reply.actions,warnings:reply.warnings,base,epoch,page,
+        input:JSON.stringify({requirement,sample,usePage,useConfig}),requestId:id,
+        generation:result.providerGeneration,metadata:result.metadata});
+      append('助手','已生成 '+reply.actions.length+' 项受控配置变更：'+reply.actions.join('、')+
+        '。请审阅并确认应用；规则尚未通过实际网页采集验证，也尚未保存或执行。');
       setNotice('');
     }catch(e){if(alive.current&&active.current===operation){setError(e.message);append('系统',e.message);if(operation.unknown){setUnknown(true);setNotice('原请求结果未知，暂不允许重新生成。可编辑下次需求；请查询 / 停止原请求。');
       if(!operation.dispatched){try{const {value}=await pendingIdentity.read();if(alive.current&&active.current===operation&&value&&value.requestId!==operation.id){active.current=null;setPendingId(value.requestId);}}catch{}}
@@ -155,16 +167,16 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   async function exportDraft(){if(exportPending.current)return;exportPending.current=true;setExporting(true);setError('');setNotice('');try{const r=await tool.request('browser.downloads.text',{text:JSON.stringify(draft.config,null,2),filename:'scrapyjs-ai-config.json'});if(r?.started!==true)throw Error('下载结果未知');setNotice('已请求下载配置 JSON，请在下载列表确认。');}catch(e){setNotice('');setError(e.message);}finally{exportPending.current=false;setExporting(false);}}
   const diff=draft?changes(draft.base,draft.config):null;
   const editingLocked=working&&!unknown;
-  const previewContext=working&&requestContext?requestContext:{page:state.target?{title:state.target.title,url:state.target.url}:null,currentConfig:useConfig?state.config:{url:state.target?.url,itemConfig:{title:'.::text'}},sample,previousError:error||state.error||''};
+  const previewContext=working&&requestContext?requestContext:{page:state.target?{title:state.target.title,url:state.target.url}:null,currentConfig:useConfig?state.config:{url:state.config.url},sample,previousError:error||state.error||''};
   const nextPage=editingLocked&&requestContext?requestContext.page:state.target;
   const feedback=appliedRequestId&&savedRequestId===appliedRequestId?'此提案的配置已保存；采集仍需单独点击「开始采集」。':notice;
-  const phase=unknown?'原请求待确认':working?'生成中':draft?(stale?'提案已过期':'待审阅'):appliedRequestId?(savedRequestId===appliedRequestId?'配置已保存':'待保存配置'):!usePage?'待确认资料':'就绪';
-  const composerHint=unknown?'原请求结果待确认，请查询或停止原请求。':working?'正在生成，可停止原请求。':blocked?'请先处理业务中的未应用编辑、无效配置或正在进行的操作。':!pendingReady?'正在读取原请求状态…':!recipient?'共享 AI 尚未就绪，请查看资料与诊断。':!state.target?'请先刷新当前网页信息。':!usePage?'请先在「发送资料」确认当前网页。':'';
+  const phase=unknown?'原请求待确认':working?'生成中':draft?(stale?'提案已过期':'待审阅'):appliedRequestId?(savedRequestId===appliedRequestId?'配置已保存':'待保存配置'):!state.target?'等待网页':'就绪';
+  const composerHint=unknown?'原请求结果待确认，请查询或停止原请求。':working?'正在生成，可停止原请求。':blocked?'请先处理业务中的未应用编辑、无效配置或正在进行的操作。':!pendingReady?'正在读取原请求状态…':!recipient?'共享 AI 尚未就绪，请查看资料与诊断。':!state.target?'请先刷新当前网页信息。':'';
   const changedFields=diff?.fields.filter(row=>row.kind!=='保留')||[];
   const retainedFields=diff?.fields.filter(row=>row.kind==='保留')||[];
   const changeCount=changedFields.length+(diff?.listChanged?1:0)+(diff?.optionChanges.length||0);
-  return <SharedConversationDock id="chat-ai-panel" className="ai-workspace" aria-label="AI 配置对话" open={open} onClose={onClose} expandedFeedback={Boolean(draft||error||unknown)}
-    toolbar={<div className="ai-dock-heading"><h2 id="chat-ai-heading">AI 配置</h2><span id="ai-phase" role="status">{phase}</span></div>} onKeyDown={event=>{
+  return <SharedConversationDock id="chat-ai-panel" className="ai-workspace" aria-label="AI 采集助手对话" open={open} onClose={onClose} expandedFeedback={Boolean(draft||error||unknown)}
+    toolbar={<div className="ai-dock-heading"><h2 id="chat-ai-heading">AI 采集助手</h2><span id="ai-phase" role="status">{phase}</span></div>} onKeyDown={event=>{
     if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();onClose();}
   }}>
     <div className="ai-chat"><div className="ai-scroll" ref={log} onScroll={event=>{const node=event.currentTarget;followMessages.current=node.scrollHeight-node.clientHeight-node.scrollTop<32;}}>
@@ -201,10 +213,10 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
       <SharedConversationFrame open={open} rows={conversation.rows} draft={requirement}
         focusOnOpen={true} autoScroll={false} splitTargets={true} transcriptTarget={transcriptTarget} composerTarget={composerTarget}
         busy={working&&!unknown} blocked={unknown||pendingId!==null||!pendingReady||blocked}
-        inputDisabled={editingLocked} canSend={Boolean(recipient&&usePage&&state.target&&(!draft||stale))}
+        inputDisabled={editingLocked} canSend={Boolean(recipient&&state.target&&(!draft||stale))}
         inputId="ai-requirement" inputLabel="" sendId="ai-generate" stopId="chat-ai-cancel"
-        placeholder="例如：保留全部规则，增加与 title 相同的 column_title，只采当前页。"
-        emptyPrompt="提案先审阅，再应用和保存。采集仍需单独开始。" onDraftChange={setRequirement}
+        placeholder="例如：采集商品名称、价格与链接，最多三页…"
+        emptyPrompt="描述想采集的字段或修改要求。AI 会结合已允许的资料提出可审阅的操作，不会自动采集。" onDraftChange={setRequirement}
         onSend={generate} onStop={cancel}
         />
 
