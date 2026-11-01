@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateChatGPTTaskRequest,baiduSearchTarget} from '../../src/native-agent/chatgpt-task-request.js';
+import {validateChatGPTTaskRequest,baiduSearchTarget,CHATGPT_TASK_INTENT_PROTOCOL,
+  validateChatGPTTaskIntent} from '../../src/native-agent/chatgpt-task-request.js';
 const valid={protocol:'opendesk.task.request.v1',kind:'opendesk.task.request',version:1,
 requestId:'request-2026-00001',taskId:'baidu.search.top3',args:{query:'ai自动化第一选择',limit:3}};
 const check=o=>validateChatGPTTaskRequest(JSON.stringify(o));
@@ -17,4 +18,26 @@ test('rejects malicious, wrong task, version, extra parameter, malformed JSON',(
  assert.throws(()=>validateChatGPTTaskRequest('{'),{code:'E_BRIDGE_FORMAT'});
  assert.throws(()=>validateChatGPTTaskRequest('a'.repeat(5000)),{code:'E_BRIDGE_LIMIT'});
  assert.throws(()=>check({...valid,...JSON.parse('{"__proto__":true}')}),{code:'E_BRIDGE_SCHEMA'});
+});
+
+test('ChatGPT Intent uses the existing OpenDesk v1 contract; Web Flow-specific alias is rejected',()=>{
+ assert.equal(CHATGPT_TASK_INTENT_PROTOCOL,'opendesk.task.intent.v1');
+ for(const [taskId,targetUrl] of [
+  ['baidu.search.top3','https://www.baidu.com/'],
+  ['google.search.top3','https://www.google.com/']
+ ]){
+  const candidate={protocol:CHATGPT_TASK_INTENT_PROTOCOL,candidateId:'protocol-regression-20261102',
+   taskId,targetUrl,args:{query:'OpenDesk Browser',limit:3}};
+  const accepted=validateChatGPTTaskIntent(JSON.stringify(candidate));
+  assert.deepEqual(Object.keys(accepted).sort(),['args','candidateId','protocol','targetUrl','taskId'].sort());
+  assert.equal(accepted.protocol,CHATGPT_TASK_INTENT_PROTOCOL);
+  assert.equal(accepted.taskId,taskId);
+  assert.equal(accepted.targetUrl,targetUrl);
+  assert.ok(Object.isFrozen(accepted));
+  for(const invalid of [
+   {...candidate,protocol:'webflow.task.intent.v1'},
+   {...candidate,requestId:'not-allowed'},
+   {...candidate,installation:{version:'1.0.0'}}
+  ]) assert.throws(()=>validateChatGPTTaskIntent(JSON.stringify(invalid)),{code:'E_BRIDGE_SCHEMA'});
+ }
 });
