@@ -398,7 +398,7 @@ export function CookieEditorView({
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='source',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
-  exportContent=null,onCloseExport,importOpen=false,importContent=null,
+  exportContent=null,onCloseExport,importOpen=false,
   editor=null,newEditor=null,busy=false,readonly=false,unavailable=false,
   page=1,pageSize=40,onPage=()=>{},showSiteBar=true
 }){
@@ -430,7 +430,7 @@ export function CookieEditorView({
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly}/>
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
-      beforeRows={importContent} newEditor={newEditor} unavailable={unavailable}
+      newEditor={newEditor} unavailable={unavailable}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
     {pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">

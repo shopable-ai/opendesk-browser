@@ -154,6 +154,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const hadDirty=dirtyRef.current;
     const hadImportDraft=importDirtyRef.current;
     const uncertain=controller.invalidate(reason);
+    finishImportIntent(activeImportRef.current);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
     if(siteChanged)appliedSite.current='';
     if(!uncertain){
@@ -588,12 +589,18 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
   const beginImportIntent=async()=>{
     const state=controller.snapshot();
-    if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target)
-      return false;
-    activeImportRef.current=null;
+    if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target||
+      activeImportRef.current!==null)return false;
+    // The adapter admission starts synchronously in the real Confirm click.
     const receipt=await adapter.beginImportIntent(state.target);
     if(receipt?.authorized!==true||!Number.isSafeInteger(receipt.ref)||receipt.ref<1)
       return false;
+    const current=controller.snapshot();
+    if(modeRef.current!=='browser'||syncGate.current.panel!=='import'||
+      current.epoch!==state.epoch||current.target?.url!==state.target.url){
+      void adapter.finishImportIntent(receipt.ref).catch(()=>{});
+      return false;
+    }
     activeImportRef.current=receipt.ref;
     return true;
   };
@@ -601,9 +608,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
-    if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
+    if(modeRef.current!=='browser'||initial.phase!=='ready'){
+      finishImportIntent(activeImportRef.current);return false;
+    }
     if(dirtyRef.current){
       noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
+      finishImportIntent(activeImportRef.current);
       return 'failed';
     }
     const sessionRef=activeImportRef.current;
@@ -633,7 +643,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       restoreImportFocus.current=true;
       noteImport('已导入 '+plan.accepted+' 条'+
         (plan.skipped?'，跳过 '+plan.skipped+' 条':'')+'。','success');
-      setPanel(null);setSelected(null);setDirty(false);
+      setPanel(null);
       return true;
     }
     const outcome=controller.snapshot();
@@ -791,22 +801,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {!pageUnavailable&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           importOpen={panel==='import'}
-          importContent={cookieReady&&panel==='import'?<CookieImport disabled={locked}
-            notice={importNotice} onImportText={importFromText} onNotice={noteImport}
-            onPendingChange={value=>{importDirtyRef.current=value;}}
-            onBeforeSubmit={()=>{
-              if(!dirtyRef.current)return true;
-              noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
-              return false;
-            }}
-            onBeginImport={beginImportIntent}
-            onClose={({committed=false}={})=>{
-              if(locked&&!committed)return;
-              restoreImportFocus.current=true;
-              importDirtyRef.current=false;
-              if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
-              setPanel(null);
-            }}/>:null}
           rows={cookieReady?snapshot.rows:[]} selected={cookieReady?selected:null} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
@@ -952,6 +946,24 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onCopyBrief={copyNonSecret} onCommunity={()=>chooseSection('circle')}/>}
       {section==='circle'&&<CookieCommunityPanel/>}
     </>}
+    {mode==='browser'&&section==='cookie'&&cookieReady&&panel==='import'&&
+      <CookieImport disabled={locked} notice={importNotice}
+        onImportText={importFromText} onNotice={noteImport}
+        onPendingChange={value=>{importDirtyRef.current=value;}}
+        onBeforeSubmit={()=>{
+          if(!dirtyRef.current)return true;
+          noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
+          return false;
+        }}
+        onBeginImport={beginImportIntent}
+        onAbandonIntent={()=>finishImportIntent(activeImportRef.current)}
+        onClose={({committed=false}={})=>{
+          if(locked&&!committed)return;
+          restoreImportFocus.current=true;
+          importDirtyRef.current=false;
+          if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
+          setPanel(null);
+        }}/>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
       ['error','warning'].includes(snapshot.messageType)&&
       <p role={snapshot.messageType==='error'?'alert':'status'}
