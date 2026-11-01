@@ -52,6 +52,26 @@
 .auto-refresh-setting input[type="checkbox"]:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
 /* Modal is reserved for destructive and share flows, never ordinary account switching. */
 .backdrop{position:absolute;inset:0;z-index:40;background:#09182b91;display:flex;align-items:flex-end;justify-content:center}.sheet{width:100%;max-height:92%;overflow-y:auto;background:var(--bg);border-radius:15px 15px 0 0;padding:15px;box-shadow:0 -8px 25px #101e3220}.sheet h2{margin:0;font-size:15px;line-height:1.35}.sheet .desc{font-size:11px;color:var(--muted);margin:8px 0 13px;line-height:1.65}.sheet .fields{display:grid;gap:10px}.sheet .actions{display:flex;gap:7px;justify-content:flex-end;margin-top:14px}.sheet .impact{padding:9px;border-radius:8px;background:var(--soft);font-size:10.5px;color:var(--muted);line-height:1.65;margin-top:10px}.sheet .impact strong{color:var(--fg)}.sheet a{color:var(--brand)}.sheet .error{color:var(--red);font-size:10.5px}.sheet input[readonly]{background:var(--soft)}.sheet textarea{width:100%;min-height:67px;resize:vertical;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px;font-size:11px}.sheet .tiny{font-size:10px;color:var(--muted);line-height:1.55}
+
+/* R5.34 / R5.36: offline HTML preview import drawer. All other sheets unchanged. */
+.import-backdrop{position:absolute;inset:0;z-index:42;display:flex;align-items:flex-end;background:#09182b91}
+.import-sheet{display:flex;flex-direction:column;width:100%;max-height:calc(100% - 8px);min-height:0;overflow:hidden;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -10px 28px #101e3230}
+.import-sheet-header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:9px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.import-sheet-header h2{margin:0;font-size:15px;line-height:1.35}
+.import-sheet-body{min-height:0;flex:0 1 auto;display:grid;gap:11px;overflow-y:auto;overscroll-behavior:contain;padding:12px 13px;scrollbar-width:thin}
+.import-sheet-body .field{min-width:0;font-weight:600}.import-sheet-body textarea{min-height:76px;max-height:180px;resize:vertical;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
+.import-dropzone{min-height:84px;min-width:0;padding:12px 10px;border:1px dashed var(--line);border-radius:9px;background:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;color:var(--fg)}
+.import-dropzone:hover,.import-dropzone.dragging,.import-dropzone:focus-visible{border-color:var(--brand);background:var(--brand-bg)}
+.import-dropzone strong{font-size:11px;font-weight:700}.import-dropzone small,.import-sheet-note{font-size:10px;line-height:1.6;color:var(--muted)}
+.import-file-name{font-size:10px;color:var(--green);margin:0;overflow-wrap:anywhere}.import-overwrite{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer}
+.import-overwrite input{accent-color:var(--brand);width:15px;height:15px;flex:none}.import-sheet-note{margin:0}
+.import-sheet-footer{flex:none;display:grid;gap:9px;border-top:1px solid var(--line);padding:10px 13px 12px;background:var(--bg)}
+.import-sheet-error{margin:0;color:var(--red);font-size:10.5px;line-height:1.5;overflow-wrap:anywhere;max-height:56px;overflow-y:auto}
+.import-sheet-actions{display:flex;justify-content:flex-end;gap:8px}.import-sheet-actions .textbtn{flex:0 1 auto;min-width:84px}
+.import-discard{display:grid;gap:8px}.import-discard p{margin:0;font-size:11px;color:var(--fg)}.import-discard .import-sheet-actions .textbtn{min-width:80px}
+@media(max-height:520px){.import-sheet{max-height:calc(100% - 4px)}.import-sheet-header{padding:7px 10px}.import-sheet-body{padding:8px 10px;gap:8px}.import-dropzone{min-height:62px;padding:6px}.import-sheet-body textarea{min-height:64px}.import-sheet-footer{padding:7px 10px}}
+@media(max-width:350px){.import-sheet-actions .textbtn{flex:1;min-width:0}}
+@media(prefers-reduced-motion:no-preference){.import-sheet{animation:import-sheet-enter .16s ease-out both}@keyframes import-sheet-enter{from{transform:translateY(4px);opacity:.92}to{transform:translateY(0);opacity:1}}}
 .toast{position:absolute;bottom:38px;left:10px;right:10px;z-index:35;background:#283b58;color:#fff;border-radius:7px;padding:10px 11px;font-size:11px;box-shadow:0 9px 20px #182b4429}.popover{position:absolute;z-index:17;top:calc(100% - 1px);right:9px;min-width:235px;max-width:calc(100vw - 34px);border-radius:9px;border:1px solid var(--line);box-shadow:0 12px 24px #16254023;background:var(--bg);padding:11px;display:grid;gap:9px}.popover h3{font-size:12px;margin:0}.popover .row{display:flex;gap:6px;align-items:center}
 @media(max-width:340px){.controls{gap:5px}.panel{border-radius:9px}.tabs{padding-inline:8px}.tab{padding-inline:11px}.searchbar{padding-inline:10px}.toolbar{padding-inline:10px}.accounts-content{padding-inline:10px}.account-row{gap:6px;padding-left:7px}.avatar{width:30px;height:30px}.cookie-trigger{padding-inline:10px}.sheet{padding:12px}.row2{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
@@ -341,6 +361,25 @@
     <div class="footer"><span>Cookie 不含真实凭据 · 本机演示</span><span>交互设计 · 离线演示</span></div>
     <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
     <div id="backdrop" class="backdrop" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheet" tabindex="-1"><h2 id="sheetTitle"></h2><div id="sheetContent"></div><div class="actions"><button type="button" class="textbtn" id="cancelSheet">取消</button><button type="button" class="textbtn primary" id="confirmSheet">确认</button></div></div></div>
+
+    <div id="importBackdrop" class="import-backdrop" hidden>
+      <section id="importDialog" class="import-sheet" role="dialog" aria-modal="true" aria-labelledby="importTitle" tabindex="-1">
+        <header class="import-sheet-header"><h2 id="importTitle">导入 Cookie</h2><button id="importClose" type="button" class="iconbtn" aria-label="关闭导入" title="关闭导入"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+        <div id="importBody" class="import-sheet-body">
+          <input id="importFile" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+          <div id="importDropzone" class="import-dropzone" role="button" tabindex="0" aria-label="选择或拖放 Cookie JSON 文件"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4"/></svg><strong>拖放文件到这里，或点击选择</strong><small>JSON / TXT · 最大 8 MiB</small></div>
+          <p id="importFileName" class="import-file-name" role="status" hidden></p>
+          <label class="field" for="importText">或粘贴 Cookie JSON 元数据<textarea id="importText" autocomplete="off" spellcheck="false" placeholder='[{"name":"theme","domain":"shop.example.com","path":"/"}]'></textarea></label>
+          <label class="import-overwrite" for="importOverwrite"><input id="importOverwrite" type="checkbox" checked><span>覆盖已有 Cookie</span></label>
+          <p class="import-sheet-note">仅供离线交互演示：只导入不含 Cookie 值的元数据，修改的是本页虚构列表，不写入 Chrome。不要使用真实账号凭据。</p>
+        </div>
+        <footer class="import-sheet-footer">
+          <p id="importError" class="import-sheet-error" role="alert" hidden></p>
+          <div id="importDiscard" class="import-discard" role="group" aria-label="放弃导入内容" hidden><p>放弃未导入的内容？</p><div class="import-sheet-actions"><button id="importKeep" type="button" class="textbtn">继续编辑</button><button id="importDiscardConfirm" type="button" class="textbtn danger">放弃内容</button></div></div>
+          <div id="importActions" class="import-sheet-actions"><button id="importCancel" type="button" class="textbtn">取消</button><button id="importConfirm" type="button" class="textbtn primary">确认导入</button></div>
+        </footer>
+      </section>
+    </div>
   </div>
   <p class="intro" style="font-size:10px;color:#8391a4;margin-top:11px">预览不操作真实网站、Cookie、服务器或其他用户账号；跨用户同步需要独立服务与可信身份验证。</p>
 </div>
@@ -365,6 +404,8 @@ const fixture=(host)=>[
 const profile=(id,name,alias,count,color='violet',description='')=>({id,name,alias,count,color,description,updated:'今天',shared:false,authenticated:true});
 const seed=()=>({'shop.example.com':{cookies:fixture('shop.example.com'),accounts:[profile('work','工作账号','work',8,'violet','运营团队与客户管理'),profile('personal','个人账号','personal',8,'coral','私人订阅与日常使用'),profile('backup','备用账号','backup',7,'mint')],active:'work',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''},'docs.example.org':{cookies:fixture('docs.example.org').slice(0,4),accounts:[profile('docswork','文档账号','docswork',4,'mint','项目文档与研发协作'),profile('docsprivate','私人账号','private',4,'coral')],active:'docswork',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''},'chatgpt.com':{cookies:fixture('chatgpt.com'),accounts:[profile('aiwork','团队工作区（模拟）','aiwork',8,'mint','团队项目与共享工作流'),profile('aipersonal','个人空间（模拟）','aipersonal',7,'violet')],active:'aiwork',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''},'empty.example.net':{cookies:[],accounts:[],active:null,phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''}});
 let db=seed(),site='shop.example.com',tab='cookies',search='',filter='all',filtersOpen=false,cookieOpened='',editingNew=false,draft=null,menuOpen='',exportOpen=false,exportFormat='json',includeValues=false,importOpen=false,route='main',previousScroll=0,marketQuery='',marketFilter='all',testUrl='',autoResult='',profileForm=null,pendingInvite=null,sheet=null,busy=false,toastText='',toastHandle=null,lastFocused=null,generatedLink='',pendingShare=null,receiverMode=false,redeemedNonces=new Set(),membershipOpen=false,customContactOpen=false,communitySelected='';
+// Import draft: ephemeral DOM / File only; no real Cookie values in the preview database.
+let importFile=null,importTrigger=null,importReading=false,importGeneration=0,importSequence=0;
 // Official plan pages are outbound links, not resale offers or an in-app payment processor.
 const memberServices=[
  {id:'chatgpt',name:'ChatGPT',initial:'G',kind:'当前网站示例',desc:'通用工作、写作与编程',url:'https://chatgpt.com/pricing/'},
@@ -713,7 +754,7 @@ function updateExpirationFields(){
  summary.textContent=(mode==='duration'?'保存后预计到期：':'到期时间：')+new Date(seconds*1000).toLocaleString('zh-CN')+'（本机时间）';
 }
 function renderCookies(){if(tab!=='cookies')return;let d=data(),visibleCookies=d.cookies.filter(c=>[c.name,c.domain,c.path].some(v=>v.toLowerCase().includes(search.toLowerCase()))&&(filter==='all'||filter==='secure'&&c.secure||filter==='httpOnly'&&c.httpOnly||filter==='session'&&c.session||filter==='partition'&&c.partition));
- $('viewCookies').innerHTML=`<div class="searchbar"><div class="searchbox">${icon('search')}<input id="searchCookie" type="search" aria-label="搜索 Cookie" placeholder="搜索名称、域名或路径" value="${htmlEscape(search)}"></div><button type="button" class="iconbtn" title="筛选与排序" aria-label="筛选与排序" aria-pressed="${filtersOpen}" data-action="filter-panel">${icon('filter')}</button></div>${filtersOpen?`<div class="filterbar">${[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],['session','会话'],['partition','分区']].map(([x,name])=>`<button class="chip ${filter===x?'on':''}" type="button" aria-pressed="${filter===x}" data-action="filter" data-filter="${x}">${name}</button>`).join('')}</div>`:''}<div class="toolbar"><strong>Cookie <span>${d.cookies.length}</span></strong><div class="actions">${btn('import','导入 Cookie','up')}${btn('export','导出 Cookie','down')}${btn('new-cookie','新建 Cookie','plus')}<div class="divider"></div>${btn('clear','安全清理本站 Cookie','trash','negative')}${exportOpen?renderExportPopover():''}</div></div>${importOpen?renderImport():''}<div class="cookie-list" id="cookieRows">${editingNew?renderEditor(null):''}${visibleCookies.length?visibleCookies.map(c=>{const parts=[formatExpiry(c)];if(c.domain!==site)parts.push(c.domain);if(c.path!=='/')parts.push(c.path);const subtle=parts.join(' · ');return `<div class="cookie-row ${cookieOpened===c.id?'expanded':''}"><button type="button" class="cookie-trigger" data-action="open-cookie" data-id="${htmlEscape(c.id)}" aria-expanded="${cookieOpened===c.id}"><div class="cookie-key"><strong>${htmlEscape(c.name)}</strong><small class="${!c.session&&c.expirationDate*1000<=Date.now()?'cookie-expiring':''}">${htmlEscape(subtle)}</small></div><span class="cookie-badges">${c.httpOnly?'<abbr title="HttpOnly">H</abbr>':''}${c.secure?'<abbr title="Secure">S</abbr>':''}${c.partition?'<abbr title="Partitioned">P</abbr>':''}</span>${icon('chevron','row-chev')}</button>${cookieOpened===c.id?renderEditor(c):''}</div>`;}).join(''):'<div class="empty">没有匹配的 Cookie</div>'}</div>`;
+ $('viewCookies').innerHTML=`<div class="searchbar"><div class="searchbox">${icon('search')}<input id="searchCookie" type="search" aria-label="搜索 Cookie" placeholder="搜索名称、域名或路径" value="${htmlEscape(search)}"></div><button type="button" class="iconbtn" title="筛选与排序" aria-label="筛选与排序" aria-pressed="${filtersOpen}" data-action="filter-panel">${icon('filter')}</button></div>${filtersOpen?`<div class="filterbar">${[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],['session','会话'],['partition','分区']].map(([x,name])=>`<button class="chip ${filter===x?'on':''}" type="button" aria-pressed="${filter===x}" data-action="filter" data-filter="${x}">${name}</button>`).join('')}</div>`:''}<div class="toolbar"><strong>Cookie <span>${d.cookies.length}</span></strong><div class="actions"><button type="button" class="iconbtn" title="导入 Cookie" aria-label="导入 Cookie" data-action="import" aria-haspopup="dialog" aria-controls="importDialog" aria-expanded="${importOpen}">${icon('up')}</button>${btn('export','导出 Cookie','down')}${btn('new-cookie','新建 Cookie','plus')}<div class="divider"></div>${btn('clear','安全清理本站 Cookie','trash','negative')}${exportOpen?renderExportPopover():''}</div></div><div class="cookie-list" id="cookieRows">${editingNew?renderEditor(null):''}${visibleCookies.length?visibleCookies.map(c=>{const parts=[formatExpiry(c)];if(c.domain!==site)parts.push(c.domain);if(c.path!=='/')parts.push(c.path);const subtle=parts.join(' · ');return `<div class="cookie-row ${cookieOpened===c.id?'expanded':''}"><button type="button" class="cookie-trigger" data-action="open-cookie" data-id="${htmlEscape(c.id)}" aria-expanded="${cookieOpened===c.id}"><div class="cookie-key"><strong>${htmlEscape(c.name)}</strong><small class="${!c.session&&c.expirationDate*1000<=Date.now()?'cookie-expiring':''}">${htmlEscape(subtle)}</small></div><span class="cookie-badges">${c.httpOnly?'<abbr title="HttpOnly">H</abbr>':''}${c.secure?'<abbr title="Secure">S</abbr>':''}${c.partition?'<abbr title="Partitioned">P</abbr>':''}</span>${icon('chevron','row-chev')}</button>${cookieOpened===c.id?renderEditor(c):''}</div>`;}).join(''):'<div class="empty">没有匹配的 Cookie</div>'}</div>`;
  updateExpirationFields();
 }
 function renderEditor(c){
@@ -736,9 +777,109 @@ function renderEditor(c){
  <div class="editor-actions">${isNew?'':`<button type="button" class="textbtn danger" data-action="remove-cookie" data-id="${htmlEscape(c.id)}">删除</button>`}<button type="button" class="textbtn" data-action="cancel-cookie">取消</button><button class="textbtn primary" type="submit">保存</button></div></form>`;
 }
 function renderExportPopover(){return `<div class="popover" role="dialog" aria-label="导出 Cookie"><h3>导出 Cookie</h3><div class="row"><button class="chip ${exportFormat==='json'?'on':''}" data-action="export-format" data-value="json">JSON</button><button class="chip ${exportFormat==='header'?'on':''}" data-action="export-format" data-value="header">Cookie Header</button></div><label class="toggleline"><input type="checkbox" id="exportValues" ${includeValues?'checked':''} disabled><span>包含 Cookie 值（真实功能需敏感授权；本原型禁用）</span></label><div class="row"><button class="textbtn" data-action="export-copy">${icon('copy')} 复制</button><button class="textbtn primary" data-action="export-download">${icon('down')} 下载</button></div></div>`;}
-function renderImport(){return `<div class="editor" style="margin:0 12px 10px"><strong>导入 Cookie</strong><label class="field">JSON 元数据<textarea id="importText" placeholder="粘贴 JSON 列表进行离线演示"></textarea></label><p class="field-note">仅支持虚构元数据演示；不接受真实账号凭据。</p><div class="editor-actions"><button type="button" class="textbtn" data-action="import-close">取消</button><button type="button" class="textbtn primary" data-action="import-apply">预览导入</button></div></div>`;}
+
+function importNotice(message){const el=$('importError');el.textContent=message||'';el.hidden=!message;}
+function importHasDraft(){return Boolean(importFile||$('importText').value.trim());}
+function importHideDiscard(){$('importDiscard').hidden=true;$('importActions').hidden=false;}
+function resetImportDraft(){
+  importGeneration++;importFile=null;$('importFile').value='';$('importText').value='';
+  $('importFileName').hidden=true;$('importFileName').textContent='';
+  $('importOverwrite').checked=true;importNotice('');importHideDiscard();
+  $('importDropzone').classList.remove('dragging');
+}
+function openImport(){
+  if(importOpen||busy||sheet||tab!=='cookies')return;
+  importTrigger=$('viewCookies').querySelector('[data-action="import"]');
+  exportOpen=false;$('viewCookies').querySelector('.popover')?.remove();
+  importOpen=true;resetImportDraft();$('importBackdrop').hidden=false;
+  $('panelScroll').inert=true;$('mainTabs').inert=true;
+  $('panel').querySelector('.sitebar').inert=true;$('panel').querySelector('.footer').inert=true;
+  importTrigger?.setAttribute('aria-expanded','true');
+  requestAnimationFrame(()=>$('importDialog').focus({preventScroll:true}));
+}
+function forceCloseImport(restoreFocus=true){
+  if(!importOpen)return;
+  importOpen=false;resetImportDraft();$('importBackdrop').hidden=true;
+  $('panelScroll').inert=false;$('mainTabs').inert=false;
+  $('panel').querySelector('.sitebar').inert=false;$('panel').querySelector('.footer').inert=false;
+  importTrigger?.setAttribute('aria-expanded','false');importTrigger=null;
+  if(restoreFocus)requestAnimationFrame(()=>$('viewCookies').querySelector('[data-action="import"]')?.focus({preventScroll:true}));
+}
+function requestCloseImport(){
+  if(!importOpen||importReading)return;
+  if(importHasDraft()){
+    $('importActions').hidden=true;$('importDiscard').hidden=false;
+    $('importDiscardConfirm').focus({preventScroll:true});
+  }else forceCloseImport();
+}
+function stageImportFile(file){
+  if(!file||!importOpen||importReading)return;
+  if(file.size>8*1024*1024){importNotice('文件超过 8 MiB，请选择较小的 JSON/TXT 文件。');return;}
+  importFile=file;$('importFileName').textContent='已选择 '+file.name.slice(0,100)+' · 点击「确认导入」后直接导入';
+  $('importFileName').hidden=false;$('importText').value='';importNotice('');importHideDiscard();
+}
+function parsePreviewImport(text){
+  let parsed;try{parsed=JSON.parse(text);}catch{throw Error('JSON 语法不正确，请粘贴数组或选择 JSON 文件。');}
+  const rows=Array.isArray(parsed)?parsed:Array.isArray(parsed?.cookies)?parsed.cookies:null;
+  if(!rows||rows.length<1||rows.length>200)throw Error('需要包含 1–200 条 Cookie 元数据。');
+  const current=site.toLowerCase(),keys=new Set();
+  return rows.map(item=>{
+    if(!item||Array.isArray(item)||typeof item!=='object'||typeof item.name!=='string'||
+      !item.name.trim()||item.name.length>128)throw Error('Cookie 名称不正确（最长 128 字符）。');
+    if(['value','encryptedValue','cookieValue'].some(key=>Object.hasOwn(item,key)))
+      throw Error('预览仅接受不含 Cookie 值的元数据；请勿导入真实凭据文件。');
+    const domain=typeof item.domain==='string'&&item.domain.trim()?item.domain.trim().toLowerCase():current;
+    const host=domain.replace(/^\./,'');
+    if(!/^[a-z0-9.-]+$/.test(host)||(current!==host&&!current.endsWith('.'+host)))
+      throw Error('包含不属于当前演示网站的 Cookie 域名。');
+    const path=typeof item.path==='string'?item.path:'/';
+    if(!path.startsWith('/')||path.length>256)throw Error('Cookie 路径格式不正确。');
+    const partition=item.partition===true;
+    const key=JSON.stringify([item.name,domain,path,partition]);
+    if(keys.has(key))throw Error('导入文件包含重复的 Cookie 身份；请先去重。');
+    keys.add(key);
+    const expirationDate=Number(item.expirationDate);
+    const session=typeof item.session==='boolean'?item.session:!Number.isFinite(expirationDate)||!expirationDate;
+    if(!session&&(!Number.isFinite(expirationDate)||expirationDate<=0||expirationDate>253402300799))
+      throw Error('Cookie 到期时间不正确。');
+    return {name:item.name,domain,path,secure:item.secure===true,httpOnly:item.httpOnly===true,
+      sameSite:['Lax','Strict','None'].includes(item.sameSite)?item.sameSite:'Lax',
+      session,partition,...(session?{}:{expirationDate})};
+  });
+}
+async function confirmImport(){
+  if(!importOpen||importReading)return;
+  if(data().phase==='unknown'){importNotice('Cookie 结果未确认，请先核对状态；未执行导入。');return;}
+  if(!importHasDraft()){importNotice('请先拖放文件、选择文件或粘贴 JSON 元数据。');return;}
+  const version=importGeneration,targetSite=site,selected=importFile;
+  importReading=true;$('importConfirm').disabled=true;$('importClose').disabled=true;
+  $('importCancel').disabled=true;$('importFile').disabled=true;importNotice('');
+  let text='';
+  try{
+    text=selected?await selected.text():$('importText').value;
+    if(!importOpen||version!==importGeneration||site!==targetSite)return;
+    const rows=parsePreviewImport(text);
+    const d=data(),cookies=d.cookies.slice(),overwrite=$('importOverwrite').checked;
+    let inserted=0,replaced=0,skipped=0;
+    for(const row of rows){
+      const index=cookies.findIndex(c=>c.name===row.name&&c.domain===row.domain&&c.path===row.path&&Boolean(c.partition)===row.partition);
+      if(index<0){cookies.push({...row,id:'preview-import-'+(++importSequence)});inserted++;}
+      else if(overwrite){cookies[index]={...cookies[index],...row};replaced++;}
+      else skipped++;
+    }
+    if(inserted+replaced){d.cookies=cookies;d.active=null;d.previewOwner=null;d.phase='edited';}
+    forceCloseImport();render();
+    toast('离线预览已导入 '+(inserted+replaced)+' 条（新增 '+inserted+'、覆盖 '+replaced+'、跳过 '+skipped+'）；未写入浏览器。');
+  }catch(error){
+    if(importOpen&&version===importGeneration)importNotice(error instanceof Error?error.message:'文件读取或导入失败；未修改 Cookie。');
+  }finally{
+    text='';importReading=false;
+    $('importConfirm').disabled=false;$('importClose').disabled=false;
+    $('importCancel').disabled=false;$('importFile').disabled=false;
+  }
+}
 function render(){const d=data();$('sitePick').value=site;$('mainTabs').hidden=route!=='main';for(const [name,id] of [['cookies','tabCookies'],['accounts','tabAccounts'],['enterprise','tabEnterprise'],['market','tabMarket'],['custom','tabCustom'],['circle','tabCircle']]){$(id).setAttribute('aria-selected',String(tab===name));$(id).tabIndex=tab===name?0:-1;$(id).disabled=busy;}$('sitePick').disabled=busy||Boolean(sheet)||route!=='main';$('viewCookies').hidden=tab!=='cookies';$('viewAccounts').hidden=tab!=='accounts';$('viewEnterprise').hidden=tab!=='enterprise';$('viewMarket').hidden=tab!=='market';$('viewCustom').hidden=tab!=='custom';$('viewCircle').hidden=tab!=='circle';if(tab==='cookies')renderCookies();else if(tab==='accounts')renderAccounts();else if(tab==='enterprise')renderEnterprise();else if(tab==='market')renderMarket();else if(tab==='custom')renderCustomize();else renderCircle();}
-function changeTab(next){if(busy)return;if(next===tab&&route==='main')return;tab=next;route='main';profileForm=null;menuOpen='';exportOpen=false;importOpen=false;cookieOpened='';editingNew=false;draft=null;$('panelScroll').scrollTop=0;render();}
+function changeTab(next){if(busy)return;if(importOpen){requestCloseImport();return;}if(next===tab&&route==='main')return;tab=next;route='main';profileForm=null;menuOpen='';exportOpen=false;importOpen=false;cookieOpened='';editingNew=false;draft=null;$('panelScroll').scrollTop=0;render();}
 function modal(kind,params={}){if(busy)return;lastFocused=document.activeElement;sheet={kind,...params};const a=sheet.id?account(sheet.id):null;let title='',content='',label='确认',danger=false;
 if(kind==='delete'){title='删除「'+htmlEscape(a.name)+'」？';content='<p class="desc">只删除本机保存的账号快照，不会退出网站，也不会清空浏览器 Cookie。</p>';label='删除';danger=true;}
 if(kind==='update'){title='更新「'+htmlEscape(a.name)+'」快照？';content='<p class="desc">使用当前页面 Cookie 替换所选快照。此处仅演示操作结果。</p>';label='更新';}
@@ -862,10 +1003,8 @@ if(action==='copy-auto-example'){copyText($('autoLinkInput')?.value||'','autoLin
 
 if(action==='filter-panel'){filtersOpen=!filtersOpen;render();return;}
 if(action==='filter'){filter=button.dataset.filter;render();return;}
-if(action==='import'){importOpen=!importOpen;exportOpen=false;render();return;}
-if(action==='import-close'){importOpen=false;render();return;}
-if(action==='import-apply'){const t=$('importText')?.value||'';try{const v=JSON.parse(t);if(!Array.isArray(v)||v.length>200||v.some(x=>!x||typeof x.name!=='string'))throw Error('schema');toast('已解析 '+v.length+' 条虚构元数据；不写入浏览器');}catch{toast('格式不正确：请输入 JSON 元数据列表');}return;}
-if(action==='export'){exportOpen=!exportOpen;importOpen=false;render();return;}
+if(action==='import'){openImport();return;}
+if(action==='export'){if(importOpen){requestCloseImport();return;}exportOpen=!exportOpen;render();return;}
 if(action==='export-format'){exportFormat=button.dataset.value;render();return;}
 if(action==='export-copy'||action==='export-download'){let s=data().cookies.map(c=>({name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite,session:c.session,...(c.session?{}:{expirationDate:c.expirationDate})}));let payload=exportFormat==='json'?JSON.stringify(s,null,2):s.map(c=>c.name+'=<not-included>').join('; ');if(action==='export-copy'){copyText(payload);return;}const blob=new Blob([payload],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='cookie-preview-metadata.'+(exportFormat==='json'?'json':'txt');a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('仅下载模拟 Cookie 元数据，不含值');return;}
 if(action==='new-cookie'){editingNew=true;cookieOpened='';render();return;}
@@ -890,6 +1029,38 @@ if(action==='copy-link'){copyText($('switchLink')?.value||'','switchLink');retur
 if(action==='preview-receiver'){pendingInvite=pendingShare;closeModal();receiverMode=true;modal('receive');return;}
 if(action==='go-auto'){closeModal();tab='accounts';previousScroll=$('panelScroll').scrollTop;route='auto';$('panelScroll').scrollTop=0;render();requestAnimationFrame(()=>$('viewAccounts .subhead .iconbtn')?.focus({preventScroll:true}));return;}
 }
+
+// Import dropzone stages the File; only the explicit Confirm click reads and applies metadata.
+$('importClose').onclick=requestCloseImport;
+$('importCancel').onclick=requestCloseImport;
+$('importConfirm').onclick=()=>{void confirmImport();};
+$('importKeep').onclick=()=>{importHideDiscard();$('importText').focus({preventScroll:true});};
+$('importDiscardConfirm').onclick=()=>forceCloseImport();
+$('importBackdrop').addEventListener('click',e=>{if(e.target===$('importBackdrop'))requestCloseImport();});
+$('importDropzone').addEventListener('click',()=>$('importFile').click());
+$('importDropzone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('importFile').click();}});
+$('importDropzone').addEventListener('dragenter',e=>{
+ if(!importReading&&Array.from(e.dataTransfer?.types||[]).includes('Files')){e.preventDefault();$('importDropzone').classList.add('dragging');}
+});
+$('importDropzone').addEventListener('dragover',e=>{
+ if(!importReading){e.preventDefault();e.dataTransfer.dropEffect='copy';$('importDropzone').classList.add('dragging');}
+});
+$('importDropzone').addEventListener('dragleave',e=>{if(!e.currentTarget.contains(e.relatedTarget))$('importDropzone').classList.remove('dragging');});
+$('importDropzone').addEventListener('drop',e=>{e.preventDefault();$('importDropzone').classList.remove('dragging');stageImportFile(e.dataTransfer?.files?.[0]);});
+$('importFile').addEventListener('change',e=>stageImportFile(e.target.files?.[0]));
+$('importText').addEventListener('input',()=>{
+ if(importFile){importFile=null;$('importFile').value='';$('importFileName').hidden=true;$('importFileName').textContent='';}
+ importNotice('');importHideDiscard();
+});
+$('importDialog').addEventListener('keydown',e=>{
+ if(e.key!=='Tab')return;
+ const items=Array.from($('importDialog').querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),[tabindex="0"]'))
+   .filter(el=>!el.hidden&&el.getClientRects().length>0);
+ if(!items.length)return;
+ const first=items[0],last=items[items.length-1];
+ if(e.shiftKey&&(document.activeElement===first||document.activeElement===$('importDialog'))){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===$('importDialog'))){e.preventDefault();first.focus();}
+});
 $('viewAccounts').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el||busy)return;handleAction(el.dataset.action,el);});
 $('viewAccounts').addEventListener('keydown',e=>{const menu=e.target.closest('[role="menu"]');if(!menu||!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;const els=[...menu.querySelectorAll('[role="menuitem"]')];if(!els.length)return;const i=els.indexOf(document.activeElement);let next=e.key==='Home'?0:e.key==='End'?els.length-1:e.key==='ArrowDown'?(i+1)%els.length:(i-1+els.length)%els.length;e.preventDefault();els[next].focus();});
 $('viewMarket').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el&&!busy)handleAction(el.dataset.action,el);});
@@ -956,7 +1127,7 @@ $('refreshCookies').onclick=()=>toast('已重新读取模拟 Cookie；未刷新�
 $('sitePick').onchange=e=>{site=e.target.value;serviceReconcileBindings();membershipOpen=false;menuOpen='';exportOpen=false;importOpen=false;profileForm=null;cookieOpened='';search='';filter='all';route='main';testUrl='';autoResult='';$('panelScroll').scrollTop=0;render();};
 $('labWidth').onchange=e=>$('panel').dataset.width=e.target.value;
 $('labTheme').onclick=e=>{let on=$('panel').classList.toggle('dark');e.currentTarget.textContent=on?'浅色':'深色';e.currentTarget.setAttribute('aria-pressed',String(on));};
-$('labReset').onclick=()=>{db=seed();site='shop.example.com';tab='cookies';search='';filter='all';filtersOpen=false;cookieOpened='';editingNew=false;menuOpen='';exportOpen=false;importOpen=false;route='main';marketFilter='all';marketQuery='';testUrl='';autoResult='';profileForm=null;pendingInvite=null;receiverMode=false;redeemedNonces=new Set();membershipOpen=false;customContactOpen=false;communitySelected='';customForm={need:'一套 AI 资源覆盖更多工作场景',note:'',brief:''};busy=false;$('labFault').value='none';if(sheet)closeModal();render();toast('场景已重置');};
+$('labReset').onclick=()=>{if(importOpen)forceCloseImport(false);db=seed();site='shop.example.com';tab='cookies';search='';filter='all';filtersOpen=false;cookieOpened='';editingNew=false;menuOpen='';exportOpen=false;importOpen=false;route='main';marketFilter='all';marketQuery='';testUrl='';autoResult='';profileForm=null;pendingInvite=null;receiverMode=false;redeemedNonces=new Set();membershipOpen=false;customContactOpen=false;communitySelected='';customForm={need:'一套 AI 资源覆盖更多工作场景',note:'',brief:''};busy=false;$('labFault').value='none';if(sheet)closeModal();render();toast('场景已重置');};
 $('cancelSheet').onclick=()=>closeModal();$('backdrop').onclick=e=>{if(e.target===$('backdrop')&&sheet?.kind!=='share-ready')closeModal();};
 $('confirmSheet').onclick=()=>{if(!sheet)return;const {kind,id}=sheet;
 if(kind==='share'){const audience=$('sheetContent').querySelector('input[name="shareAudience"]:checked')?.value||'link';const recipient=$('recipient')?.value.trim()||'',error=$('shareError');if(audience==='named'&&!/^@[a-z0-9_-]{2,30}$/i.test(recipient)){error.hidden=false;error.textContent='指定用户模式需输入有效的 @用户名';return;}const validity=$('shareValidity').value,uses=audience==='named'?1:Number($('shareUses').value);if(!shareValidityLabels[validity]||![1,3,5,10].includes(uses)){error.hidden=false;error.textContent='请选择有效期与领取次数';return;}createShareLink(audience,recipient,validity,uses);return;}
@@ -967,7 +1138,7 @@ if(kind==='remove-cookie'){data().cookies=data().cookies.filter(c=>c.id!==id);da
 if(kind==='clear'){data().cookies=[];data().active=null;data().previewOwner=null;data().phase='edited';closeModal();toast('模拟 Cookie 已清理；已保存快照不受影响');return;}
 closeModal();};
 $('sheet').addEventListener('keydown',e=>{if(e.key!=='Tab')return;const els=[...$('sheet').querySelectorAll('button:not([hidden]):not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')];if(!els.length)return;const first=els[0],last=els[els.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(sheet){e.preventDefault();closeModal();}else if(menuOpen){e.preventDefault();closeMenu();}else if(exportOpen){exportOpen=false;render();}else if(route==='auto'){route='main';render();}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(importOpen){e.preventDefault();if(!$('importDiscard').hidden){importHideDiscard();$('importText').focus({preventScroll:true});}else requestCloseImport();}else if(sheet){e.preventDefault();closeModal();}else if(menuOpen){e.preventDefault();closeMenu();}else if(exportOpen){exportOpen=false;render();}else if(route==='auto'){route='main';render();}}});
 document.addEventListener('pointerdown',e=>{if(menuOpen&&!e.target.closest('.account-pop,.account-row>.iconbtn'))closeMenu();if(exportOpen&&!e.target.closest('.popover,[data-action="export"]')){exportOpen=false;render();}});
 
 // Supplemental account linkage for this exported, self-contained preview.
@@ -1303,6 +1474,14 @@ const servicePriorReset=$('labReset').onclick;
 $('labReset').onclick=function(e){services=serviceSeed();serviceDraft=null;servicePage='list';serviceId='';$('labService').value='default';servicePriorReset.call(this,e);serviceLabLock();};
 if(new URLSearchParams(location.search).get('view')==='enterprise')tab='enterprise';
 
+
+ // Size the preview panel into short browser windows without changing normal sidebar size.
+ function fitShortPreview(){
+   const panel=$('panel');
+   if(window.innerHeight<=520)panel.style.height=Math.max(180,Math.floor(window.innerHeight-panel.getBoundingClientRect().top-8))+'px';
+   else panel.style.height='';
+ }
+ window.addEventListener('resize',fitShortPreview);fitShortPreview();
 render();parseInvite();
 })();
 </script>
