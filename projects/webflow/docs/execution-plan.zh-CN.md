@@ -537,3 +537,193 @@ Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/r
 - SOURCE_IMPLEMENTED = 已完成（本轮代码已入 main）；COMPONENT_TESTED = 专属 Node 及原委托包 9/9 PASS，主线 App CI success；BUILD_VERIFIED = 原唯一 builder 生成候选、晋升、check-project 及 GitHub 正式包读回均已通过（仅包级）；CHROME_TESTED = NOT_TESTED；BUSINESS_VERIFIED = NOT_TESTED；RELEASED = NOT_RELEASED（提交可安装 JSON 不等于用户安装或生产发布）。
 - 下一步在本机 npm run dev + Development Extension Center 审阅/安装/打开 Web Flow；安装对应固定 Task，在真实网站授权并手动运行，核对原 RunHost runId/resultId/结果与 UNKNOWN；实测键盘、320/360/440/580px、暗色/浅色、重载、权限撤销、两次快速点击；原 ChatGPT Bridge 的聊天交付独立取证。没有这些，不应给 95+ 实测验收分。
 - 后续才针对全局 Task 枚举、跨实例持久历史、逐任务自动授权和持久工作流补最小公共 SDK 能力评审，不复做 UI 原型或并行 Owner 的 Bridge 协议。
+
+## 12. ChatGPT 网页触发本地脚本：入口路线审计与最小增量（2026-11-02）
+
+> **性质：触发机制研究、已读源码事实与条件设计；不是新增入口已交付。** 本节继续使用 `OD-AI-WORKFLOW-BRIDGE`，不替换第 6 节当前产品断点，不接管 V0.1 持续授权、V0.2 编排恢复、V0.3 UI 或本地验收。审计基线为 GitHub `main@9b91ebb6a9ed54bad8ce9ca24382ed4fc3a858c4`；本轮未访问用户 Mac、Chrome、实际 Tunnel 或二进制。本节外链在 2026-11-02（Asia/Shanghai）检索并打开。
+
+### 12.1 结论与原始目标
+
+**可以触发。** 正确的关系是：ChatGPT 提出结构化请求，经已允许的入口交给 OpenDesk；OpenDesk 核对已安装任务、当前授权与参数，再执行并返回真实结果。打开 URL 只建立导航，不能直接赋予网页本地执行权。Native Messaging 与 MCP 是通信路径，不能替代 Task 授权。
+
+目标仍是“官方 ChatGPT 原对话 → 明确触发请求 → 已安装、已验证、已授权脚本 → 持久真实结果 → 正确的原对话”。当前可直接引用的执行类型是已安装 **Controller Task**；不能把“存在 Native Messaging”推成所有本机 .sh/.py、任意可执行文件、文件系统或桌面动作都已开放。另有受限 [localTasks](../../../docs/api/local-task-bridge.zh-CN.md) 合同，但不是通用 shell，也没有据此证明它已接到本轮 ChatGPT 入口。
+
+推荐分两层：
+
+1. **现有产品主线继续选 C。** 已有发现、安装核验、一次触发、防重和原聊天交付接线；持续授权缺口由 V0.1 owner 完成。本轮不复制调度/授权/执行系统。
+2. **新的工具调用入口优先验证 B。** 官方 Secure MCP Tunnel 可接本地 stdio/HTTP MCP，减少依赖 ChatGPT 回复 DOM 的发现与回填。但必须补齐/验证“仅调用已安装任务”的工具投影，以及调用者、会话与恢复边界。
+3. **A 仅作为可选的明确点击入口。** 复用现有候选和 gate。没有必要为它增加 URL 即执行、本地 HTTP 命令服务或新 Native host；当前也不新增 UI。
+
+### 12.2 真实仓库事实
+
+下面的“源码已核对”只代表当前基线存在该逻辑；不代表本轮运行成功。
+
+| 能力 | 实际文件与符号 | 已见事实与限制 |
+| --- | --- | --- |
+| 五字段候选 | [chatgpt-task-request.js](../../../src/native-agent/chatgpt-task-request.js)，`CHATGPT_TASK_INTENT_PROTOCOL`、`validateChatGPTTaskIntent` | 实际接受 `opendesk.task.intent.v1`，恰好 protocol/candidateId/taskId/targetUrl/args。没有 `webflow.task.intent.v1` 别名。后者是本轮用户提示中的称呼，不能直接用它测试当前 parser；如要迁移由 V0.1 契约 owner 决定，本轮不改。结果格式仍为 `opendesk.task.result.v1`。 |
+| 新回复发现 | [chatgpt-task-discovery.js](../../../src/native-agent/chatgpt-task-discovery.js)，`createChatGPTTaskDiscovery`；[chatgpt-bridge-site.js](../../../src/native-agent/chatgpt-bridge-site.js)；[workspace-chatgpt.js](../../../src/native-agent/workspace-chatgpt.js) | 核对新用户轮次、完整/空闲回答与 DOM 身份；历史加载、流式片段、重生成及错误上下文不直接准入。DOM 仍是不可信候选来源。 |
+| 网页入口 | [chatgpt-fixed-bridge-page.js](../../../src/native-agent/chatgpt-fixed-bridge-page.js)、[manifest.json](../../../manifest.json) | 已有手动/一次预批准与自动发现；manifest 在 chatgpt.com 主 frame 声明 ISOLATED Bridge 产物。构建可按市场渠道生成 externally_connectable，不能只看根 manifest 推断最终产物。 |
+| 已安装任务核验与执行 | [chatgpt-fixed-bridge-host.js](../../../src/native-agent/chatgpt-fixed-bridge-host.js)，`resolveSelection`、`normalizeSelection`、`handle` | 实读 Task Catalog/resolveInstalledTask、版本/hash/安装代次、单 Origin 和 paramsSchema；复用原 host.start。通用已安装任务路径不是仅限两项硬编码任务，也不天然等于只读。 |
+| 一次触发与撤销 | [chatgpt-bridge-trigger-gate.js](../../../src/native-agent/chatgpt-bridge-trigger-gate.js)，`preapproveNext`、`reserve`、`assertConsumed` | chrome.storage 持久触发账本，执行前标 consumed；下一候选预批准期限为 300000ms，绑定确切参数、目标、安装与回答基线。持久账本不是长期 auto-grant。新候选墓碑有上限，不能承诺无限后台工作。 |
+| 结果回原对话 | host 的 `verifyChatGPTTaskDurableResult`、`checkDelivery` 与 page 的 deliver 处理 | 核对 run/result/revision/hash、原 tab/document/会话与回答；发送未知不补发。结果持久化、用户消息送达、AI 续答各自有状态；completed 不证明业务成功。 |
+| Native 已安装任务入口 | [host-adapter.js](../../../src/native-agent/host-adapter.js) 的 `run.start` installed-task 分支；[native-installed-tasks](../../../docs/api/native-installed-tasks.zh-CN.md) | 已有 `source:{kind:'installed-task',taskId,version,sourceHash}`。可信端 resolve 后传原 expectedTaskGeneration/expectedTaskInstallationId 与 Authority；远端不得自报这两项取得权限。目标必须匹配该 Side Panel Host 当前真实文档，使用 borrowed target；不自动继承 Bridge 的 owned 新标签页行为。 |
+| 共同执行与安装授权 | [run-host.js](../../../src/run-host.js)、[authority.js](../../../src/platform/host/authority.js)、[Task service](../../../src/platform/tasks/service.js) | RunHost 转交安装预期身份；Authority 聚合原 Controller/Task 方法；Task service 已有安装、停用、撤销、代际与运行授权核验。这些是共同底座，不新增对应系统。 |
+| Native 防重与查询 | [service-worker.js](../../../src/native-agent/service-worker.js) 的 reserve/readAdmission/assertRun；[cli.mjs](../../../native-agent/cli.mjs) 的 `requestAgent` | 现有请求摘要、派发前 OUTCOME_UNKNOWN 记录、`request.get`/`run.get`、同注册 Host 归属。不是按 ChatGPT 用户/对话隔离的完整 MCP 账本。 |
+| 当前 MCP | [mcp.mjs](../../../native-agent/local-dev/mcp.mjs)，`serveMcp`、`MCP_TOOLS` | 七项 opendesk.dev.* 面向显式授权的本地开发源码；不等于已安装 Task 的远端产品入口。可注入 tools/dispatch 复用 stdio 包装，但自定义 dispatch 路径跳过内置 validateArgs，业务投影必须自行严格验证。 |
+| 已有 Tunnel Demo | [feasibility.mjs](../../../native-agent/local-dev/feasibility.mjs)、[MCP 文档 R1](../../../docs/api/mcp-local-development.zh-CN.md#r1面向-chatgpt-的受控投影开发候选) | 已有 probe/result/write_field 窄投影与 Tunnel 配置说明。它运行固定开发 Controller，不是已安装百度任务；状态文档仍把真实 Tunnel 闭环记为 NOT_TESTED，不能重复开发或提升证据等级。 |
+| 本机差异 | native-installed-tasks 文档中的 Go 实测记录 | 历史 installed-task run.start/run.get 有原生记录；历史 Go task.list 有 allowlist/连接关闭缺口。当前用户二进制是否已修复，本轮未知。不能把 Node 源码能力等同于已安装 Go 版本。 |
+
+**特别缺口：** `serveMcp` 目前只调用 `dispatch(name,args)`，未向投影传入工具请求的可信 caller/session 上下文；共享 stdio、JSON-RPC id、clientInfo.name、进程内 Map 和“约定只打开一个聊天”都不能证明用户/对话隔离。现有 feasibility.result 的进程内归属检查也不能充当多用户授权。独立投影不能通过模型自报 conversationId、approved 或 Host registration 来补这个缺口。
+
+### 12.3 三条路径比较
+
+| 维度 | A：网页交互/链接 | B：MCP + Secure MCP Tunnel | C：现有 Web Flow |
+| --- | --- | --- | --- |
+| 技术可行性 | 点击请求可行；URL 本身不能调用任意 Extension/本地脚本 | 官方接入路径可行；本仓库 installed-task 工具投影与身份接线待补 | 已有源码、历史脚本/Bridge 证据；当前候选仍按原 owner 验收 |
+| 复用 | 必须落回现有候选/gate/执行链 | 复用 serveMcp、requestAgent、Native installed-task、Authority/RunHost | 直接复用已有闭环 |
+| 是否需要点击 | 手动入口需要；链接展示/加载不算执行批准 | 安装/连接及适用确认需要；后续由工具权限/上下文决定 | 手动需要；当前一次预批准后的匹配候选可自动 |
+| 自动触发 | 需要扩展观察器和已批准触发范围，实质接近 C | 模型可发工具调用；不保证永远免确认或持续后台执行 | 已有新回复自动发现；持续 auto-grant 不在此快照完成 |
+| 安全授权 | 导航、isTrusted、origin 都不能替代 Authority | Tunnel 控制面、应用调用身份、Task 授权分别校验 | 原来源锁、安装 pin、一次消费及现有 Authority |
+| 实现复杂度 | 复用已有按钮低；自建 URL/localhost 服务反而增加范围 | 传输可复用；身份隔离、持久关联与本机差异是实质工作 | 新触发入口无需新增；V0.1 缺口归原任务 |
+| 维护成本 | 回复/页面交互和 DOM 变化；自定义协议还涉及 OS/浏览器 | 维护 MCP schema、账户政策、Tunnel 进程与版本；减少 ChatGPT DOM 接线 | 主要是 ChatGPT DOM、当前 Host 生命周期与原回填 |
+| 推荐程度 | 可选人工入口，不单独建执行通道 | 最值得独立验证的新入口；前置条件未满足时不派发 | 当前产品首选主线，不重复开发 |
+
+A 的边界依据：[Chrome content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[externally_connectable](https://developer.chrome.com/docs/extensions/reference/manifest/externally-connectable)、[Native Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)。普通 ChatGPT 回复/Markdown 不具备任意 JavaScript 或 chrome.* 执行权；宿主注册的交互组件只能使用宿主支持的能力，不能把某次浏览器工具动作推广为任意网页权限。Native Messaging 只在扩展页/service worker 可用，需注册 host 与精确 allowed_origins；没有“每次 Native 调用必需点击”的通用保证，是否自动执行由现有授权与 gate 决定。
+
+更具体地，[官方组件 API](https://developers.openai.com/plugins/reference) 提供 `window.openai.openExternal` 打开经审查的外部链接，也提供 `window.openai.callTool` 从已注册组件调用 MCP 工具；它们属于插件组件的宿主桥接能力，不能粘进普通 Markdown 就获得。若将来需要“ChatGPT 卡片按钮”，应优先让按钮调用同一个受限 MCP 工具，这只是 B 的交互入口，不新增第四条执行链；本轮不实现该 UI。
+
+**A 的参数传输建议：** 候选仍使用原结构化内容，入口只引用扩展已识别候选，不在 URL 放密钥、源码、授权标记或完整敏感参数。不使用 GET /run?command=...。GET 仅打开说明/候选预览，执行仍由现有受控消息和授权链完成；[HTTP safe method](https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP) 的预取/爬虫语义不能当执行意图。没有官方产品合同证明普通回复支持任意自定义 URL scheme、自动导航或直接 Extension API，故不以此作为产品前提。
+
+B 的官方依据与条件：
+
+- [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 支持本机出站 HTTPS，转发本地 stdio/HTTP MCP；不要求把现有 stdio 改成公网 HTTP。需要目标 Platform 组织与 ChatGPT workspace 关联及相应 Read/Use/Manage 权限。Tunnel 不授予任务权限，不等于公共插件分发方案。
+- [Add custom MCP server](https://developers.openai.com/api/docs/guides/custom-mcp-server) 支持网页接入读/写工具，无需把每个工具伪装为 search/fetch；写动作默认确认，记住批准受会话、刷新、账户与工作区策略影响。不得通过 readOnlyHint 虚报或 API 的 require_approval 配置规避网页确认。
+- [当前帮助页](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt) 区分完整 MCP 的 Business/Enterprise/Edu 与 Pro read/fetch；具体账号/灰度未验证。新 Plugins 流程不要求先开旧 Developer Mode；不要仅按过时 UI 路径承诺可用。
+- 默认 Tunnel 请求总预算为 120 秒（排队也计入），进度通知不续期；包络 10 MiB 不改变现有 Bridge 结果上限。必须以实际路径最小上限处理结果，不静默截断。
+- [Plugins reference](https://developers.openai.com/plugins/reference) 公开 openai/session 等关联 metadata；它不是权限凭据，也不是任意聊天写入地址。身份须来自已验证传输/应用认证，按 [认证文档](https://developers.openai.com/plugins/build/auth) 核查。网页不支持拿任意自定义 API key 直接替代 app 认证；Tunnel runtime key 不得进聊天或工具参数。
+
+### 12.4 推荐调用链与复用边界
+
+C 保持：原对话完整候选 → discovery/严格 parser → Bridge 安装核对与原一次触发账本 → 原 Authority/RunHost/Controller → 原 Durable Result → 原 conversation/document/answer 核对 → 单次交付 → 观察 AI 续答。
+
+B 的**条件设计**：原对话 MCP tools/call → 官方 Tunnel → 本机受限 MCP 投影 → 现有 Native requestAgent → 已登记 Side Panel Host → installed-task run.start → 原 Authority/RunHost/Controller → 原持久结果 → 原 MCP 响应。
+
+这两条路径共享任务与执行底座，现有入口账本仍不同；不能声称目前跨入口已有统一去重。**同一业务操作只选一个入口和一个交付通道。** 这目前是实施/验收前置，不是已存在的跨入口锁。B 演示前须在原可信 Bridge 入口撤销该测试对话中匹配的待执行/一次预批准请求并确认撤销回执；存在已准入、运行中或 UNKNOWN 的同一业务操作时先对账，不能启动 B。整个受协调 Demo 窗口不得重新批准匹配的 C 请求，B 运行中或结果未知时继续保持隔离，直到原操作终止并完成对账。只告诉模型不输出候选不算排他证据，也不能把一次撤销快照升级成产品级并发保证。不同时发可执行 Web Flow 候选和 MCP start；MCP 超时后不切到 C 再跑。未来跨入口接力需要原 owner 统一稳定操作身份与持久关联，本轮不另外建一套。
+
+B 的新增价值是官方工具发现、结构化参数和工具响应，无需把结果再次填入 ChatGPT composer。同步响应由原 MCP 调用返回；后续查询仍须验证调用者及会话。不能用 Responses API 的 conversation_id/previous_response_id 推断可以写入用户既有网页对话。MCP Events 等异步唤醒能力不进入本轮最小 Demo。
+
+### 12.5 最小 Demo、最少文件与前置缺口
+
+**第一步不写新代码：** 核对本机既有 MCP/Tunnel 配置与 tools/list、实际 Chrome/Native 版本、固定百度任务的安装回执及本轮目标。已有 feasibility Demo 只用于理解/复用传输结构，不能重新开发 probe/write_field，也不把其开发源码运行当成本轮 installed-task 验证。
+
+**最小新业务：** 一个窄 MCP 入口调用已有 `baidu.search.top3`，另一个只读入口读取它自己准入的原请求/结果。名称如 `opendesk.webflow.start`、`opendesk.webflow.result` 仅为拟定名称，当前不存在。首版 taskId 固定为此百度任务、limit 固定 3；query 使用该受审版本的窄参数 schema，最终仍由原 Host/Authority 按真实安装 manifest 校验。注意 Native task.list 不返回 paramsSchema：投影只能读取已核对 manifestHash 的正式任务包/安装审阅产物，或使用已被证明存在的公开 schema 接口；不能读宿主私有库、猜参数范围或把 task.list 说成已有该字段。包的版本/sourceHash/manifestHash 不匹配即拒绝，更新后需重新核验。版本/sourceHash/manifestHash/安装身份、registrationId、目标 tab/document 来自本机可信读取，模型不传源码、路径、Host、授权标记、任意 taskId 或 arbitrary native method。
+
+**审计包实例：** 当前仓库 [baidu.search.top3.v1.opendesk-task.json](../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json) 声明 taskId=baidu.search.top3、version=1.1.1、query 的 minLength=1/maxLength=120、limit enum=[3]、deadlineMs=60000。它提供可核对的窄 schema 来源；不能把仓库包版本当作用户本机已经安装的版本，现场仍须核对真实 manifestHash/sourceHash。
+
+**拟定工具参数和操作键：** start 只接受 `{operationKey,query}`，result 只接受 `{operationKey}`；operationKey 是一次有意操作的关联键，不是授权凭据，首次调用前确定，原 tools/call 转录保留它；同一次重试/查询必须复用，只有明确的新任务才产生新键。拟定 operationKey 为 16–80 位 ASCII，匹配 `^[A-Za-z0-9][A-Za-z0-9._:-]{15,79}$`，不作隐式裁剪或大小写转换。服务端对结构 `{projection:'webflow-installed-baidu.v1',principal:可信主体,conversation:可信原会话,operationKey}` 复用 `agentCanonical/agentDigest` 求 SHA-256，生成 `wf-mcp-v1:<64位摘要>` 的稳定 requestId，不能用含糊字符串拼接或模型自报会话。请求摘要继续按原 Native 合同计算，不以操作键摘要替代。派发前须在原获准元数据中原子保存完整规范化封套、摘要、Host/目标和交付归属，不能使用 requestAgent 的默认随机 UUID。相同键不同 query/封套拒绝；result 不接受任意 runId，而是从当前可信身份命名空间找到原封套，再 request.get/run.get。第一次 ACK 丢失仍以原 operationKey 查询；若该映射无法持久存储/恢复，则真实执行保持 BLOCKED，不能每次重新读取当前 target 重建请求。
+
+**本次许可上限：** 本机可信配置固定中性公开 query（示例“OpenDesk 浏览器自动化”）、任务/来源/目标、`expiresAt` 和 `maxAdmissions=1`；有效期建议为批准后 5 分钟，这是新 Demo 的拟定准入范围，不冒充现有 MCP grant。准入名额与原请求映射在获准元数据中原子消费后才派发；新 operationKey 不续期、不加名额。期限或名额用尽后，只允许仍具查询权限的原请求结果查询；后续执行需新的明确批准。若原有接口不能落实该原子预算，则实际派发保持 BLOCKED，不另建 Authority/授权库。query 不自动夹带聊天中的私密资料。
+
+**Native 响应到 MCP 的最小合同：** requestAgent 解析传输，并可能正常 resolve 一个含 error 的封套；Promise resolve 不代表准入或业务成功。投影先校验 v/kind/requestId 与 result/error 恰有一个，再分派正常值或受控错误。result 在披露前检查原调用归属、`resultDeliveryDenied`、原 run/revision/sourceHash、Authority 目标与受控导航身份、唯一 controller-result/resultId 和实际 outcome；复用原 Codec 解码，并按百度结果字段白名单和字节上限投影，不直接转发 snapshot、日志、路径或诊断。可参考既有 session.mjs 的校验模式，但不能复制其要求 sourceKind=draft 的开发会话来冒充 installed-task。
+
+| 返回类别 | 应表达的事实 | 禁止混淆 |
+| --- | --- | --- |
+| start 正常受理 | operationKey、原 requestId、已知 runId、准入状态与 PENDING/UNKNOWN | PENDING 不是业务完成或结果交付 |
+| result 正常读取 | 原准入状态、实际 run/outcome、校验后的有限业务值、结果是否完整和释放状态 | completed 不等于 outcome.ok，更不替代业务字段 |
+| 工具/Native 错误 | 受控 code/message/phase、原请求身份和诚实的 outcome；经原 serveMcp 错误通道标 isError:true | 不把含 error 的封套作为成功数据，也不透出本机诊断 |
+| 查询失败 | 本次查询失败；原操作状态按已有证据保留，未知则 OUTCOME_UNKNOWN | 查询的 NOT_DISPATCHED 不是原 run.start 未派发；无故障证据不得改写旧运行 |
+
+适配器须先将原始异常映射为安全的错误再交 serveMcp；其现有通用 catch 会输出 message/location，不能直接抛带路径的原始诊断。若共用包装不能表达必要状态，由原 MCP owner 审查最小投影接口，不复制一套 server。
+
+不改其他 owner 时，**预先在对应 Side Panel Host 选择已授权的真实百度页面**。Native 当前借用该精确文档，不能把该需求偷偷变成自动新建标签页/自动跨文档绑定。结果经 MCP 回原调用，不再调用 Bridge composer。
+
+| 拟定文件 | 最小职责 | 条件 |
+| --- | --- | --- |
+| `projects/webflow/src/adapters/installed-task-mcp.mjs` | 固定工具 schema、严格参数校验、MCP 结果投影，复用 serveMcp | 独立本机进程入口；不打包进沙箱 UI，不新增 MCP 传输实现 |
+| `projects/webflow/src/adapters/native-installed-task.mjs` | 仅封装原 requestAgent 的必要固定方法、可信任务/目标核验、原请求查询及安全结果/错误投影 | 不是 Runner、授权库、任务目录或原始数据库访问器 |
+| `projects/webflow/tests/installed-task-mcp.test.mjs` | 新入口的拒绝、重复、未知、归属与结果投影回归 | 只覆盖新边界，不重复 V0.1 核心测试 |
+| 现有本执行计划第 12 节 | 接线状态、依赖、证据、下一步 | 不按聊天再建总方案 |
+
+上述三项源码/测试路径仅为建议；实施时先查当前 main 是否已有同职责文件。**不能承诺只改这三文件就完成生产接入。** 下列缺口必须先证明满足；需要公共接口增量时由对应 owner 处理：
+
+1. **可信调用上下文。** 现有 serveMcp 未传 caller/session；如需要共享多对话入口，复用其唯一包装，由 MCP owner 审查最小的带上下文 dispatch 接口及定向测试，不能把模型参数作为补丁。必须证明实际传输/应用认证得到的主体、该主体到本机允许任务的绑定、宿主提供的原会话关联，以及缺失/伪造/冲突上下文拒绝执行和披露；单纯透传 _meta 不是完成证据。只有已验证传输来源的 metadata 才能用于关联；应用身份和原 Authority 继续独立。无法证明则拒绝执行/跨调用结果读取，不以“单用户约定”冒充隔离。
+2. **持久关联。** 原 Native ledger 已有 method/摘要/Host/run，但没有完整的 MCP principal/conversation/原请求封套映射。需要的少量关联数据应进入原有经批准持久元数据设施，只引用原 Run/Result；没有合法接口就记录能力缺口，不能另建任务数据库。进程内 Map 不证明重启恢复。
+3. **安装与撤销。** Native trusted resolver + Authority 负责最终准入；入口只能收窄范围，不能扩大。长期投影必须对原批准的安装代际变化失效。这里还有明确的原子性缺口：现有 installed-task RPC 只接受 taskId/version/sourceHash；先 task.list 比对旧代际再 run.start，不能封住中间同版本/同 hash 卸载重装的窗口。Host 会解析当前代际，Authority 保护的是这次解析之后的竞态，不能代表 MCP 的旧安装批准。若本次许可要求冻结原 generation/installationId 到最终准入，需要 Native/Authority owner 的最小原子比较合同；不能通过第二次读取或增加模型参数宣称解决，也不由本项目绕过。最小单次 Demo 只能按原 Native 当前合法安装授权和本次确认测试，不宣称跨会话持续 grant；严格冻结原安装代际的验收在该缺口解决前保持 BLOCKED。旧 Go task.list 不可用时，历史安装回执只证明历史 pin；无法可信复核当前身份则不开放长期自动执行。
+4. **实际账户/宿主。** Tunnel app 写调用资格、原 Native 配对与网站授权、真实 Host 存活和目标身份都要现场核对；不能通过更换扩展 ID、重装 Go、宽化来源或伪造 Bridge sender 来绕过。
+
+只有前置条件满足，才执行一次搜索；否则只交付工具发现/离线适配与准确缺口，不说闭环通过。**默认采用短 start 准入响应 + 原会话有限次 result 查询**，不等待整个脚本完成，也不承诺 ChatGPT 会持续后台轮询。每次本机调用设置显式短等待预算；例如准入 10 秒仍是待现场核验的配置，不是排队后还剩完整 120 秒的保证。Native requestAgent 默认 145 秒、service-worker 派发等待 135 秒均不能直接沿用作 Tunnel 的成功保证；本机等待超时且可能已派发时保留 UNKNOWN，后续只查原请求。同步最终结果若恰好在原 start 的预算内返回，才记为“原 start 最终交付”；默认异步路径的最终结果返回原会话内携带原 operationKey 的后续 result 调用，两者证据分开。当前 Native 消息上限 60 KiB，浏览器 Native admission ledger 上限 256 条（满额拒绝，没有在该入口自动清理）；MCP stdio 单请求上限 64 KiB。均来自原 protocol/wire/serveMcp，不能按 Tunnel 的 10 MiB 扩张既有边界；最小 Demo 不自动删除旧账本腾空间。
+
+### 12.6 安全、失败恢复与验收证据
+
+| 情形 | 要求/复用处理 | 不能声称 |
+| --- | --- | --- |
+| 伪造或篡改输入 | 入口严格 schema、上限、固定任务/站点；可信端重新解析安装与 paramsSchema | origin、clientInfo、nonce、runId 或 JSON 中 approved=true 本身是授权 |
+| 双击、重复 tools/call | 业务 requestId 与规范化原封套稳定；原 ledger 确定重复或冲突；并发不得第二次入场 | MCP JSON-RPC id 就是永久业务幂等键 |
+| 参数或目标变化 | 同操作键内容不同拒绝；首次派发前固定原 target/document/Host | 重试时重读“当前页面”后换 target 再提交仍是同一次操作 |
+| 丢启动 ACK/超时 | 保留原 requestId、requestDigest、registrationId；request.get 对账，拿原 runId 后 run.get | 超时表示没执行、NOT_FOUND 表示没副作用 |
+| MCP 断连或进程重启 | 从获准的持久关联读原请求；映射缺失则停止并人工核对，不创建新 ID 重跑 | 旧 Map、TTL 到期或 MCP 重启自动安全恢复 |
+| Side Panel/Chrome 重建 | request.get 可只读返回原 admission 与 hostAvailable；run.get 仍依赖原活 registrationId，原 Host 消失时交原恢复 owner 处理 | 查到 admission 就能让新 Host 接管旧运行或读回原结果 |
+| 撤权/停用/升级 | 原安装/Authority 与入口绑定再次检查；阻止后续准入及不允许的结果披露 | 已发生的点击/提交因撤权自动回滚 |
+| 原聊天变化 | C 重核 conversation+tab+document+answer；B 从可信请求上下文关联，结果只返回匹配原调用/查询 | tabId、同源或“最后打开聊天”可代替会话 |
+| 多入口 | 一操作只选 C 或 B，未知时不切换另一入口执行 | 两个现有独立账本已经跨入口 exactly-once |
+| 结果完成 | 真实 run/result/revision/hash + 原任务 value/业务证据；交付和 AI 续答另记 | completed、HTTP 200、工具无异常或 resultPreview 等于搜索业务成功 |
+| 结果里的网页文字 | 视为不可信数据、限定返回字段及长度；不执行其指令 | 回传内容可自动变成下一条授权任务 |
+
+防重目标是受控一次准入/一次交付及未知时停止，不承诺任意外部网站可提供数学意义的 exactly-once。重试必须查询原身份；停止请求也不能代替真实 retirement/released 证据。设备休眠、浏览器关闭或 Side Panel Host 消失会影响运行能力，MCP/Tunnel 不使原 Host 永驻。
+
+### 12.7 阶段任务与独立退出证据
+
+这些是本节新入口的阶段，**不是**重复接管 AWB-01–08。
+
+| 阶段 | 本节 owner 做什么 | 退出证据 |
+| --- | --- | --- |
+| 触发路线核验（本轮） | 固定 main、读实际源码和官方文档、明确 A/B/C 与责任边界 | 本节、准确源码链接、官方来源、独立 AI 评审；仅文档证据 |
+| 本机接入预检 | 本地 Codex 先核对已存在配置、当前工具和本机版本；不重装/重建/重复跑旧有效测试 | 实际 app/Tunnel 可见性、工具 schema、Native 状态、已安装百度 pin/目标；缺项明确 BLOCKED/NOT_TESTED |
+| 安全窄投影 | 只有必要时实现上表最小项目文件，公共 context/存储缺口交对应 owner | 严格 schema、错误 task/来源/权限拒绝、同键不同参数、跨会话拒绝、未知不重放的定向证据；无实际调用者隔离不能越级 |
+| 一次真实搜索 | 一份已授权候选从 MCP 入场，同安装任务操作百度 | MCP 调用、Native requestId、runId/resultId、实际 query/结果和业务状态；同步 final 回原 start 或异步 final 回原会话的 result 调用分别留证，另证资源释放；PENDING 与模型复述不算业务交付 |
+| 入口可靠性 | 只测新入口新增风险：重复调用、撤权、丢 ACK、错误会话、原目标漂移 | 原 run 查询、无第二次准入、错误会话无结果、原生拒绝回执；测试变化只复验受影响项 |
+| 交接 | 更新本节而非全局替换其他 owner 进度 | 明确 SOURCE/COMPONENT/CHROME/BUSINESS/DELIVERY 状态、仍有风险和唯一下一步 |
+
+本轮状态：SOURCE_REVIEWED；OFFICIAL_DOCS_REVIEWED；新增 MCP 投影 NOT_IMPLEMENTED；账号/Tunnel/本机 Native/百度新入口/跨会话隔离 CHROME_NOT_TESTED。既有用户提供的百度/Google 成功返回作为历史线索保留，不冒充本轮同候选闭环证据。
+
+### 12.8 给本地 Codex 的独立实施提示词（仅选择 B 的新入口时使用）
+
+> 原始目标：用户在官方 ChatGPT 对话调用 OpenDesk，本机只执行已经安装、验证并授权的自动化 Task，真实结果回同一工具调用/正确原对话。项目 shopable-ai/opendesk-browser；本机 /Users/shopme/Documents/workspace/opendesk-browser；唯一业务目录 projects/webflow/；检索词 OD-AI-WORKFLOW-BRIDGE。
+>
+> 本任务只做“已安装百度 Task 的受限 MCP 入口”。不要接管 Web Flow V0.1 持续授权、V0.2 工作流恢复、V0.3 UI/安装，也不要重做百度脚本、Controller、Authority、RunHost、Native host 或已有 Tunnel feasibility Demo。
+>
+> 先读根和项目 AGENTS、README、产品合同、本执行计划第 12 节，以及 docs/api/native-installed-tasks.zh-CN.md、docs/api/mcp-local-development.zh-CN.md。重新核对当前 main 与本机相关 diff/owner；9b91ebb6 只是历史审计基线，不能覆盖后续实现。按现行主分支规则工作，保留其他改动，不自行建分支/worktree/PR。
+>
+> 只读检查现有 Native/Go/MCP/Tunnel 与真实工具：native-agent/local-dev/mcp.mjs、feasibility.mjs、native-agent/cli.mjs、src/native-agent/host-adapter.js、service-worker.js、原 Task/Authority 入口。已有同职责投影就验证并复用。官方资料以 secure-mcp-tunnels 与 custom-mcp-server 当前正文为准；不假定用户账户有完整 MCP 写权限，不读出/复制密钥。
+>
+> 首先回答三个前置问题：是否已有安全 installed-task 工具？是否能可信绑定调用者和原对话？原 Native/持久接口是否能保存并恢复同一请求关联？现有 serveMcp 自定义 dispatch 不自动 validateArgs，也没有 caller/_meta 参数；不能以模型传 conversationId/approved 或共用内存 Map 代替。如果缺公共接口，提交准确文件/符号/可复现缺口给原 owner，仅继续无依赖的离线适配工作，禁止绕过或擅改核心。
+>
+> 确认确需新增后，将业务限制到 projects/webflow/src/adapters/installed-task-mcp.mjs、native-installed-task.mjs 与一个专属测试（实际已有路径优先）；复用 serveMcp 和 requestAgent，不复制传输。只暴露固定 baidu.search.top3 的 start({operationKey,query}) 与 result({operationKey})；limit 固定3。operationKey不是授权，由首次工具请求固定；服务端在可信主体/原会话命名空间派生稳定Native requestId，写入原获准关联记录，绝不使用requestAgent默认随机ID。query遵守已验证manifestHash的受审任务包窄schema及最终Authority校验；task.list不返回paramsSchema，不得猜测该能力；URL、版本/hash/安装代际、Host/tab/document由可信本机读取，不由模型指定。不得公开 dev.attach/dev.run、任意 shell/源码/路径、script.save、任意 Native method或批量任务目录。
+>
+> B启动前通过原可信入口撤销该测试对话匹配的C待执行/预批准并核对回执；同业务仍running/UNKNOWN则先对账，不能只靠提示词避免双入口。使用已有 Native run.start(source.kind=installed-task)，复用 Authority/RunHost/持久结果。Native当前要求borrowed精确目标：在原Host先选中已授权百度页面，不重做Bridge owned-tab逻辑。读取实际已安装身份，不能硬编码历史SHA；当前task.list不可用且无等价可信核验时，准确标阻塞，不更换配对/Host冒充修通。现Native source不接受旧generation/installationId，task.list后再run.start存在重装窗口；严格锁定原批准代际需要原owner最小原子合同，不能靠第二次读取修饰为已解决。一次Demo不等于跨会话持续grant。
+>
+> 业务请求在派发前固定操作键、规范化原封套、原Host/目标、身份和交付通道，并通过原获准持久设施关联；不建第二任务/权限/结果数据库。operationKey和稳定ID按12.5的有界ASCII/版本化结构/agentCanonical与agentDigest合同实现。本机许可固定中性公开query、expiresAt、maxAdmissions=1，名额与映射原子消费；接口缺失则BLOCKED。重复调用只读原请求；同键不同参数拒绝，新键不扩批准范围。超时、丢ACK、UNKNOWN、NOT_FOUND都不能换ID重跑；原request.get/run.get恢复，不用新的当前页面重建旧请求。原Host已销毁时，即使request.get返回admission，run.get仍可能因原registrationId不活跃而不可用；不让新Host接管。缺可信会话归属则拒绝执行/结果披露。B调用后不再发C候选或回填composer；整个受协调窗口及UNKNOWN期间不重新批准匹配C入口，不跨入口重试。
+>
+> 严格实现12.5的Native响应和安全结果投影：requestAgent可能resolve含error封套，核对身份后再解释；resultDeliveryDenied、revision/hash/目标/唯一result身份和outcome都要核验，复用Codec，业务字段白名单与字节上限，错误受控映射，不透出原始snapshot/路径。工具错误用isError，查询失败不得把原运行降级为NOT_DISPATCHED。默认短start加同会话原operationKey的有限result查询，不继承145秒默认等待，不承诺后台轮询；原start的PENDING不等于最终交付。
+>
+> 先运行新入口相关的离线边界检查；真实Chrome只占用已协调资源，复用现有dist/development和watcher，不启动全量测试、宽度矩阵、构建或重装。只有账户、授权、调用者隔离与原生前置均满足才从真实ChatGPT调用一次现有百度任务。写工具如实标注并遵守平台确认。
+>
+> 最后分别报告：实际工具调用与参数、原request/run/result身份、任务pin、网页实际结果、同步final回原start或异步final回原会话result调用的确切证据、AI是否基于真实结果续答、资源释放、重复/撤权/错误会话/未知回执检查。没有证据就标NOT_TESTED。只更新本计划第12节的本入口状态，不改其他owner完成度；不得以评分代替验收。
+
+### 12.9 独立评审与评分口径
+
+本轮以三个独立 AI 子评审覆盖六个专业视角；不是六位真人专家或外部认证。分数仅评价本节技术判断、复用边界与实施/验收设计。评审提出修改后分别只读复核当前稿，并各自给出下列实际分数；没有用评分代替产品验收。
+
+| 专业视角 | 证据准确 /20 | 边界安全 /20 | 复用最小增量 /20 | 实施可执行 /20 | 验收诚实 /20 | 总分 /100 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Chrome Extension / MV3 架构 | 20 | 20 | 20 | 17 | 20 | 97 |
+| Native Messaging | 20 | 20 | 20 | 17 | 20 | 97 |
+| MCP / AI Agent 集成 | 20 | 20 | 20 | 16 | 20 | 96 |
+| 浏览器自动化 | 20 | 20 | 20 | 16 | 20 | 96 |
+| 应用安全 | 20 | 19 | 20 | 17 | 20 | 96 |
+| 开发者工具产品架构 | 20 | 20 | 20 | 17 | 20 | 97 |
+
+算术平均：`(97 + 97 + 96 + 96 + 96 + 97) / 6 = 96.5 / 100`。这是文档设计分，达到本轮研究目标；不代表新增入口已实施、已通过 Chrome 或可上线。
+
+剩余扣分集中在尚未冻结的真实 caller/session dispatch、获准的原子持久关联/单次预算、严格安装代际比较，以及原会话交付接线与有限查询次数/间隔的实施配置。应用安全另保留一点：跨入口排他仍依赖受协调 Demo，不是产品内已实现的互斥合同。这些缺口继续保持相应 BLOCKED/NOT_IMPLEMENTED/NOT_TESTED，不能为提高分数改写为已完成。
+
