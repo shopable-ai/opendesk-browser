@@ -524,7 +524,17 @@ try{
   const file=JSON.stringify([{name:'import_file',value:'fictional'}]);
   await chooser.setFiles({
     name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
-  await workspace.getByText('已选择 cookies.json · 点击「确认导入」后才会写入',{exact:true}).waitFor();
+  const staged=workspace.locator('.cookie-import-selected');
+  const stageInfo=()=>workspace.evaluate(el=>({
+   file:el.querySelector('input[type=file]')?.files?.[0]?.name||null,
+   selected:el.querySelector('.cookie-import-selected')?.textContent?.trim()||null,
+   picker:el.querySelector('.cookie-import-file-picker')?.textContent?.trim()||null,
+   notice:el.querySelector('.cookie-import-inline-notice')?.textContent?.trim()||null
+  }));
+  try{await staged.waitFor({state:'visible'});}
+  catch{throw Error('E_COOKIE_FILE_STAGING: '+JSON.stringify(await stageInfo()));}
+  assert.match(await staged.innerText(),/已选择 cookies\.json.*点击「确认导入」后才会写入/);
+  assert.equal((await stageInfo()).file,'cookies.json');
   assert.equal(await row('import_file').count(),0,'choosing a file must not write before import');
   await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
