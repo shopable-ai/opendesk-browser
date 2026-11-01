@@ -68,11 +68,14 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts/migration
           {
-            git grep -n -F 'examples/sidebar-tools/ai-send-queue' -- . || true
-            git grep -n -F 'examples/sidebar-tools/browser-fingerprint' -- . || true
+            for id in ai-send-queue browser-fingerprint; do
+              git grep -n -F "examples/sidebar-tools/$id" -- . || true
+            done
           } | sort -u > artifacts/migration/legacy-path-references.txt
           echo "Full tracked-file legacy reference count:"
           wc -l < artifacts/migration/legacy-path-references.txt
+          echo "All remaining references (historic paths are valid evidence, not active entrypoints):"
+          cat artifacts/migration/legacy-path-references.txt
           echo "Active code/config references (review historical fixtures separately):"
           grep -E '^(scripts/|src/|tests/|\.github/workflows/|official-pages/|official-tools/|projects/)' artifacts/migration/legacy-path-references.txt || true
       - name: Preserve complete tracked-file reference inventory

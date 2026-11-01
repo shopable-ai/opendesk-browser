@@ -175,7 +175,7 @@ P1 需要**独立版本化**的 workflow/step 交接合同，明确 `workflowId`
 | 两个独立 Chrome 扩展 | 增加安装、版本、跨扩展消息、身份及状态一致性成本；现有仓库未证明需要这个隔离边界 | 当前不采用 |
 | 既有 Native / 远端执行节点承担持续运行 | 仅在要求用户浏览器关闭后仍实际操作网页时评估；必须另有可用浏览器、账号授权与真实部署证据 | 后续环境能力评估，不作为本轮前提 |
 
-“一个 Chrome 扩展”不等于把 Page Program、Sidebar Tool、Controller Task 的安装身份与权限合并。现有 AI Send Queue 已是组合产品：唯一 owner 为 `examples/sidebar-tools/ai-send-queue/`，Page 负责网页队列，Sidebar 当前仅提供使用提示。保留这些明确职责，不复制旧目录或重新建队列产品；本轮也不恢复已取消的 Sidebar 消息列表。
+“一个 Chrome 扩展”不等于把 Page Program、Sidebar Tool、Controller Task 的安装身份与权限合并。现有 AI Send Queue 已是组合产品：唯一 owner 为 `projects/ai-send-queue/`，Page 负责网页队列，Sidebar 当前仅提供使用提示。保留这些明确职责，不复制旧目录或重新建队列产品；本轮也不恢复已取消的 Sidebar 消息列表。
 
 另有 [ChatGPT 计算接力样例](../../../examples/tasks/chatgpt-relay-calculator-r1.README.zh-CN.md)：原 Controller 草稿结合公开 `AppStorage`，已经写出固定 A→新对话 B 及单记录检查点代码，当前说明仍为 `SOURCE_IMPLEMENTED / CHROME_NOT_TESTED`。遇到未完成检查点会拒绝新运行，不是自动恢复器。优先复用其任务相关性、原文保存和防重放思路；真实运行前先核对现行原生输入及跨 document 合同，不把它当通用跨对话能力已交付。公开 Controller `AppStorage` 也应纳入持久能力预检，不能把 Page 的内存限制推断为整个仓库没有持久化。
 
@@ -269,7 +269,7 @@ Chrome 官方依据：[Worker 生命周期](https://developer.chrome.com/docs/ex
 - 项目入口：[projects/webflow/README.md](../README.md)，集中发现产品文档、执行断点与代码归属。
 - 长期目标：本文件，维护 BR-01–BR-12、阶段与架构不变量。
 - 本轮唯一进度/执行入口：[执行计划](execution-plan.zh-CN.md)，维护实际源码基线、owner、当前阶段、下一条未完成操作、阻塞和证据引用；以后续接优先更新同一记录，不按聊天新增重复总 GOAL。
-- 页面队列唯一业务入口：[AI Send Queue README](../../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)，遵从现有目录与安装身份，不迁回已合并的旧项目。
+- 页面队列唯一业务入口：[AI Send Queue README](../../../projects/ai-send-queue/README.zh-CN.md)，遵从现有目录与安装身份，不迁回已合并的旧项目。
 - 运行时 P3：在既有任务/工作流查询入口提供项目、任务、关键词、状态与时间索引。索引指向单一持久记录，可重建；不建立第二个调度真相源。
 - 运行原文与日志：沿既有受控产物存储和 `artifacts/<用途>/<runId>/` 规则；仓库只保存必要的脱敏证据摘要与引用，不把每次运行的大段对话或截图默认提交公开仓库。
 
