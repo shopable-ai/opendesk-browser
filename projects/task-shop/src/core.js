@@ -102,7 +102,8 @@
     }
     if(action.type==='OBSERVE'){
       ensure(live.has(c.state)&&c.state!=='LEASED','E_RECONCILE_ONLY');
-      ensure(action.clientRequestId===c.clientRequestId,'E_REQUEST_CONFLICT');
+      ensure(action.clientRequestId===c.clientRequestId&&
+        action.snapshot?.clientRequestId===c.clientRequestId,'E_REQUEST_CONFLICT');
       const receipt=projectSnapshot(action.snapshot);
       const complete=receipt.persisted&&receipt.runtimeOk&&receipt.retired;
       let nextState;

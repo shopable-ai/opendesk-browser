@@ -4,6 +4,8 @@ import {readFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
+import {createSidebarToolPackage} from '../../../scripts/build-sidebar-tool.mjs';
+import {validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const script=readFileSync(resolve(root,'src/core.js'),'utf8');
 const config=JSON.parse(readFileSync(resolve(root,'tool.config.json'),'utf8'));
@@ -94,4 +96,19 @@ test('UNKNOWN, stop and cancel prevent a second dispatch, expiry cannot recover 
 });
 test('bad stored job identity is refused instead of silently overwritten',()=>{
   throwsCode(()=>M.validate({...published(),marketJobId:'other'}),'E_MARKET_STATE');
+});
+
+test('a returned snapshot for any other client request is never accepted',()=>{
+  throwsCode(()=>apply(prepared(),'OBSERVE',1004,{
+    leaseId:'l1',clientRequestId:'taskshop:aaaaaaaaaaaa',
+    snapshot:{...receipt,clientRequestId:'taskshop:other123456789'}}),'E_REQUEST_CONFLICT');
+});
+test('original builder and validator accept only the pinned v2 app source',async()=>{
+  const pkg=validateSidebarToolPackage(await createSidebarToolPackage(root));
+  assert.equal(pkg.id,'task-shop');assert.equal(pkg.version,'0.1.0');
+  assert.equal(pkg.delegatedTasks.length,1);
+  assert.equal(pkg.delegatedTasks[0].contentHash,M.PIN.contentHash);
+  assert.equal(pkg.scripts.length,1);
+  assert.match(pkg.js,/tasks\.start/);
+  assert.match(pkg.css,/\.ts-app/);
 });
