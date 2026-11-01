@@ -39,7 +39,7 @@
         if(!task)throw new Error('固定 Task 尚未确认安装身份');
         const {url,...inspection}=input;
         return project(await request('tasks.start',{task,clientRequestId,params:{url,configJson:'{}',
-          optionsJson:JSON.stringify({inspection}),waitForSelector:'',timeoutMs:10000}}));
+          optionsJson:JSON.stringify({inspection}),waitForSelector:'',timeoutMs:35000}}));
       },
       stop: async clientRequestId => project(await request('tasks.stop', {clientRequestId})),
       load: () => request('storage.get', {key: STORAGE_KEY, withEtag: true}),
