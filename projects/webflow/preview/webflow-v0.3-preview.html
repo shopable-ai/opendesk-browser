@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Web Flow V0.3.1 · 独立产品交互原型（仅模拟）</title>
+<title>Web Flow V0.3.2 · 独立产品交互原型（仅模拟）</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#f0f4fa;--od-warning:#80510d;--od-warning-bg:#fff9ec;--od-positive:#117a5d;--od-positive-bg:#e8f7f1;--od-negative:#ae3d4b;--od-negative-bg:#fff0f1;--od-focus:#365eda;--od-input-border:#7f8da1;--radius-control:8px;--radius-surface:12px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--od-body-size:13px;--od-note-size:12px;--od-meta-size:11px;color:var(--od-ink);background:#edf1f8}
 *{box-sizing:border-box}body{margin:0;min-width:300px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filter:brightness(.97)}:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}a{color:var(--od-brand)}[hidden]{display:none!important}p{margin:0;line-height:1.55}h1,h2,h3,h4{margin:0;letter-spacing:-.016em}h1{font-size:18px}h2{font-size:16px}h3{font-size:14px}small{font-size:11px}.muted{color:var(--od-sub)}.micro{font-size:11px;color:var(--od-sub)}.strong{font-weight:700}.mono{font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -27,7 +27,7 @@ input[type=search],input[type=text],textarea,select{border:1px solid var(--od-in
 body.dark{--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#5385e0;--od-paper:#151c28;--od-bg:#101722;--od-muted:#222d3e;--od-input-border:#6d809b;--od-focus:#9dc1ff;--od-positive:#a1f3cc;--od-positive-bg:#18382c;--od-warning:#ffd08a;--od-warning-bg:#392d21;--od-negative:#ff9ea6;--od-negative-bg:#442632;background:#101b30}body.dark .chrome-head{background:#1d293a;border-color:var(--od-line)}body.dark .script-icon{background:#23385a;color:#a9c2ff}body.dark .status.ready{color:#a1f3cc}body.dark .status.running{background:#23345d;color:#b6c7ff}body.dark .status.warn{color:#ffda9a}body.dark .status.error{color:#ff9ea6}body.dark .status.muted{background:#273447;color:#b3c1d3}body.dark .status.unknown{background:#3f3155;color:#e3c4ff}body.dark .banner{background:#1d2d49;color:#c3d6ff;border-color:#3d5585}body.dark .banner.warning{background:var(--od-warning-bg);border-color:#815f37;color:#ffdbad}body.dark .banner.error{background:var(--od-negative-bg);border-color:#7e4351;color:#ffb1bc}body.dark .banner.neutral{background:var(--od-paper);border-color:var(--od-line);color:var(--od-sub)}body.dark .chip[aria-pressed="true"]{background:#223b67;color:#a6c3ff}body.dark .step-num{background:#263b5d;color:#b8cfff}body.dark .empty{border-color:#536075}body.dark .dialog{background:var(--od-paper)}
 @media(max-width:1290px){.stage{grid-template-columns:minmax(200px,250px) minmax(300px,1fr)}.stage .last{display:none}}@media(max-width:700px){.toolbar{align-items:stretch;flex-direction:column}.toolbar-controls{justify-content:flex-start}.stage{display:flex;flex-direction:column;align-items:center;padding:15px 10px 35px;gap:12px}.note-panel{width:min(100%,580px);padding:13px}.simulator{order:-1;width:100%}.window{height:min(78vh,790px);min-height:520px}.stage .last{display:block}.note-panel p,.note-panel li{font-size:11px}}@media(max-width:360px){.app-head h2{font-size:16px}.app-tab{padding:10px 6px}.stat b{font-size:18px}.stat{padding:10px 6px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* V0.3.1: intentionally scoped preview overrides. Color primitives mirror the canonical OpenDesk design tokens. */
+/* V0.3.2: intentionally scoped preview overrides. Color primitives mirror the canonical OpenDesk design tokens. */
 body{background:#f4f6fa;font-size:var(--od-body-size)}
 .toolbar{background:#fff;color:#263751;border-bottom:1px solid #e1e8f1;box-shadow:none;padding:12px clamp(12px,2vw,28px)}
 .toolbar-brand{min-width:0}.toolbar-brand h1{font-size:14px;font-weight:680}.toolbar-brand p{color:#65748a;font-size:11px}
@@ -88,11 +88,59 @@ body.dark{background:#101722}body.dark .toolbar{background:var(--od-paper);color
 @media(max-width:360px){.app-body{padding:12px 10px 20px}.compact-app-bar{padding:8px}.demo-badge{display:none}.app-tab{min-width:59px}.script-card{padding:10px 8px}}
 @media(prefers-reduced-motion:reduce){.window{transition:none!important}}
 .window{position:relative}.window .modal-wrap{position:absolute;inset:0;padding:10px;z-index:15}.window .dialog{max-height:calc(100% - 12px);width:min(100%,440px);overflow:auto}.window .toast{position:absolute;bottom:12px;max-width:calc(100% - 24px)}
+
+/* V0.3.2 is a scoped extension of the existing 0.3.1 preview, not a new dashboard. */
+.filter-popover{position:relative;flex:0 0 34px;min-width:34px}
+button.wf-filter-icon{position:relative;display:grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-sub);border-radius:8px;transition:background .14s,border-color .14s}
+button.wf-filter-icon:hover,button.wf-filter-icon[aria-expanded="true"]{background:var(--od-muted);border-color:var(--od-input-border)}
+button.wf-filter-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wf-filter-dot{position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--od-brand);box-shadow:0 0 0 2px var(--od-paper)}
+.filter-sheet{z-index:20!important;right:0!important;width:min(250px,calc(var(--wf-side-width,440px) - 42px))!important;max-width:none!important;box-shadow:0 12px 30px #142f4b20;padding:12px!important}
+.filter-sheet[hidden]{display:none!important}
+.filter-sheet label{font-size:11px}.filter-sheet select{min-height:33px}
+.add-flow{gap:12px!important;min-width:0}.add-flow .note{line-height:1.55}
+.add-heading{display:grid;gap:3px}.add-heading h2{font-size:16px;line-height:1.4;outline:0}.add-heading .note{margin:0}
+.add-back{border:0;background:transparent;color:var(--od-sub);font-size:12px;min-height:30px;max-width:max-content;padding:4px 2px;text-align:left}
+.add-back:hover{color:var(--od-brand)}
+.add-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;background:var(--od-muted);padding:3px;border-radius:9px}
+.add-tab{border:0;background:transparent;border-radius:7px;font-size:11px;font-weight:600;min-width:0;min-height:34px;padding:5px 1px;color:var(--od-sub);white-space:nowrap}
+.add-tab[aria-selected="true"]{background:var(--od-paper);color:var(--od-ink);box-shadow:0 1px 3px #00000012}
+.add-boundary{background:var(--od-muted);border:1px solid var(--od-line);border-radius:9px;padding:10px 11px;color:var(--od-sub);font-size:11px;line-height:1.55}
+.add-boundary strong{display:block;color:var(--od-ink);font-size:11px;margin-bottom:3px}.add-boundary p{margin:0}
+.add-list-search{position:relative;min-width:0}.add-list-search input{padding-right:30px!important;width:100%;height:34px}
+.add-clear{position:absolute;right:4px;top:4px;min-width:26px;height:26px;border:0;background:transparent;color:var(--od-sub);border-radius:6px}
+.add-mini-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;color:var(--od-sub);font-size:10px;min-width:0;flex-wrap:wrap}
+.add-outcome{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:var(--od-sub)}.add-outcome select{height:31px;min-height:31px;width:auto;max-width:120px;font-size:11px}
+.add-results{display:grid;gap:0;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;overflow:hidden}
+.add-row{display:flex;gap:9px;align-items:flex-start;min-width:0;padding:10px 9px}.add-row+.add-row{border-top:1px solid var(--od-line)}
+.add-ico{flex:0 0 30px;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--od-muted);color:var(--od-brand);font-size:14px;font-weight:650}
+.add-row-main{min-width:0;display:grid;justify-items:start;gap:3px;flex:1}.add-row-main strong{font-size:12px;line-height:1.4;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.add-row-main p{margin:0;max-width:100%;font-size:11px;line-height:1.4;color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.add-site{font-size:10px;color:var(--od-sub);overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap}
+.add-state{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;line-height:1.25;max-width:100%;color:var(--od-sub)}.add-state:before{content:'';display:block;width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+.add-state.good{color:var(--od-positive)}.add-state.warn{color:var(--od-warning)}.add-state.bad{color:var(--od-negative)}
+.add-compact-btn{border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);padding:5px 8px;min-height:30px;font-size:11px;flex:none;color:var(--od-ink)}.add-compact-btn:hover{background:var(--od-muted)}
+.add-footer{font-size:10px;color:var(--od-sub);line-height:1.55;margin:0}.add-empty{padding:20px 12px;display:grid;gap:7px;justify-items:center;text-align:center}.add-empty strong{font-size:12px}.add-empty p{font-size:11px;color:var(--od-sub)}
+.add-panel{background:var(--od-paper);border:1px solid var(--od-line);border-radius:11px;padding:12px;display:grid;gap:11px;min-width:0}
+.add-panel h3{font-size:14px;line-height:1.5}.add-panel h4{font-size:12px;margin:4px 0 0}.add-panel p{margin:0}.add-create-symbol{display:grid;place-items:center;border-radius:12px;width:42px;height:42px;color:var(--od-brand);background:var(--od-muted);font-size:19px}
+.add-steps{padding-left:19px;margin:0;display:grid;gap:9px;font-size:11px;color:var(--od-sub)}
+.add-review-title{display:flex;gap:9px;min-width:0;align-items:start}.add-review-title>div:last-child{min-width:0}.add-review-title h3{overflow-wrap:anywhere;margin:0}
+.add-status-line{display:grid;gap:3px;border-bottom:1px solid var(--od-line);padding-bottom:10px;font-size:11px;color:var(--od-sub)}
+.add-purpose{font-size:12px;line-height:1.55}.add-facts{display:grid;grid-template-columns:minmax(65px,34%) minmax(0,1fr);gap:7px 8px;margin:0;font-size:11px;line-height:1.55;overflow-wrap:anywhere}.add-facts dt{color:var(--od-sub)}.add-facts dd{margin:0;overflow-wrap:anywhere}
+.add-tech{padding-top:9px;border-top:1px solid var(--od-line)}.add-tech summary{font-size:11px;color:var(--od-brand);cursor:pointer;font-weight:600}.add-tech .add-facts{margin-top:9px}
+.add-warning{background:var(--od-warning-bg);border:1px solid var(--od-line);border-radius:8px;padding:10px;display:grid;gap:7px;font-size:11px;color:var(--od-warning)}
+.add-consent{display:flex;align-items:flex-start;gap:9px;font-size:11px;line-height:1.6;color:var(--od-ink)}.add-consent input{flex:none;margin-top:3px;width:15px;height:15px;accent-color:var(--od-brand)}
+.add-review-actions{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}.add-review-actions button{min-width:0;max-width:100%}
+.add-loader{width:25px;height:25px;border:3px solid var(--od-line);border-top-color:var(--od-brand);border-radius:50%;animation:addspin .7s linear infinite}@keyframes addspin{to{transform:rotate(360deg)}}
+.add-result-symbol{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;font-size:18px;background:var(--od-muted);color:var(--od-sub)}.add-result-symbol.success{color:var(--od-positive)}.add-result-symbol.failure{color:var(--od-negative)}.add-result-symbol.unknown{color:var(--od-warning)}
+.add-readback{display:grid;gap:5px;background:var(--od-muted);border:1px solid var(--od-line);border-radius:8px;padding:10px;font-size:11px;color:var(--od-sub)}.add-readback strong{color:var(--od-ink)}
+body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);border-color:var(--od-line)}
+@media(max-width:360px){.add-row{gap:7px;padding:9px 8px}.add-compact-btn{padding:5px 6px}.add-panel{padding:10px}.add-review-actions{justify-content:stretch}.add-review-actions button{flex:1;white-space:normal}.add-tabs .add-tab{font-size:10.5px}}
+@media(prefers-reduced-motion:reduce){.add-loader{animation:none}.wf-filter-icon{transition:none!important}}
+
 </style>
 </head>
 <body>
 <header class="toolbar">
- <div class="toolbar-brand"><div class="brandbox">WF</div><div><h1>OpenDesk · Web Flow V0.3.1</h1><p>产品级侧栏体验 · 本页模拟数据，不调用网页/Chrome/ChatGPT</p></div></div>
+ <div class="toolbar-brand"><div class="brandbox">WF</div><div><h1>OpenDesk · Web Flow V0.3.2</h1><p>产品级侧栏体验 · 本页模拟数据，不调用网页/Chrome/ChatGPT</p></div></div>
  <div class="toolbar-controls">
   <label for="dataset">模拟脚本数量<select id="dataset"><option value="2">2 条</option><option value="20" selected>20 条</option><option value="100">100 条</option></select></label>
   <label for="scenario">模拟场景<select id="scenario"><option value="normal">混合状态</option><option value="empty">空状态</option><option value="permission">网站权限不足</option><option value="running">运行中</option><option value="error">运行错误</option><option value="unknown">结果未知</option></select></label>
@@ -173,7 +221,7 @@ function renderScripts(){
  const a=filtered(),per=20,pages=Math.max(1,Math.ceil(a.length/per)),idx=Math.min(state.pageIndex,pages);state.pageIndex=idx;const display=a.slice((idx-1)*per,idx*per),active=!!(state.search||state.filter!=='all'||state.sort!=='recommended'||state.groupBy!=='none');
  return `<div class="stack"><div class="page-heading"><div><h2>脚本</h2><p class="micro">${scenScripts().length} 条已关联的 Controller 任务</p></div><button class="secondary" type="button" data-act="catalog">＋ 添加</button></div>
  <div class="search-tools"><div class="search-wrap"><span class="search-glyph" aria-hidden="true">⌕</span><label class="sr-only" for="scriptSearch">搜索脚本、网站、开发者或触发名称</label><input id="scriptSearch" type="search" placeholder="搜索脚本或网站" value="${e(state.search)}" autocomplete="off" aria-controls="scriptResultList" spellcheck="false">${state.search?'<button type="button" class="search-clear" data-act="clear-search" aria-label="清空搜索">×</button>':''}</div>
- <details id="filtersPanel" class="filter-popover"><summary aria-label="筛选与排序">${active?'筛选 •':'筛选'} <span aria-hidden="true">⌄</span></summary><div class="filter-sheet"><label for="scriptStatus">状态<select id="scriptStatus">${[['all','全部'],['attention','需关注'],['active','已启用'],['disabled','已停用'],['favorites','收藏'],['updates','有更新']].map(([v,t])=>`<option value="${v}" ${state.filter===v?'selected':''}>${t}</option>`).join('')}</select></label><label for="scriptSort">排序<select id="scriptSort"><option value="recommended" ${state.sort==='recommended'?'selected':''}>收藏优先</option><option value="name" ${state.sort==='name'?'selected':''}>名称</option><option value="site" ${state.sort==='site'?'selected':''}>网站</option></select></label>${state.quantity>=20?`<label for="scriptGroup">分组<select id="scriptGroup"><option value="none" ${state.groupBy==='none'?'selected':''}>不分组</option><option value="site" ${state.groupBy==='site'?'selected':''}>按网站</option><option value="status" ${state.groupBy==='status'?'selected':''}>按状态</option></select></label>`:''}${active?'<button type="button" class="link-button" data-act="clear-filters">恢复默认条件</button>':''}</div></details></div>
+ <div id="filterPopover" class="filter-popover"><button type="button" id="filterToggle" data-act="filter-toggle" class="wf-filter-icon" aria-label="筛选与排序" aria-expanded="${!!state.filtersOpen}" aria-controls="filtersPanel" title="筛选与排序"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>${state.filter!=='all'||state.sort!=='recommended'||state.groupBy!=='none'?'<span class="wf-filter-dot" aria-hidden="true"></span>':''}</button><div id="filtersPanel" class="filter-sheet" ${state.filtersOpen?'':'hidden'}><label for="scriptStatus">状态<select id="scriptStatus">${[['all','全部'],['attention','需关注'],['active','已启用'],['disabled','已停用'],['favorites','收藏'],['updates','有更新']].map(([v,t])=>`<option value="${v}" ${state.filter===v?'selected':''}>${t}</option>`).join('')}</select></label><label for="scriptSort">排序<select id="scriptSort"><option value="recommended" ${state.sort==='recommended'?'selected':''}>收藏优先</option><option value="name" ${state.sort==='name'?'selected':''}>名称</option><option value="site" ${state.sort==='site'?'selected':''}>网站</option></select></label>${state.quantity>=20?`<label for="scriptGroup">分组<select id="scriptGroup"><option value="none" ${state.groupBy==='none'?'selected':''}>不分组</option><option value="site" ${state.groupBy==='site'?'selected':''}>按网站</option><option value="status" ${state.groupBy==='status'?'selected':''}>按状态</option></select></label>`:''}${active?'<button type="button" class="link-button" data-act="clear-filters">恢复默认条件</button>':''}</div></div></div>
  <div class="filter-note"><span>${a.length} 条结果${state.search?' · 搜索中':''}</span>${active?'<button class="link-button" type="button" data-act="clear-filters">清除条件</button>':''}</div>
  <div id="scriptResultList">${a.length?renderScriptGroups(display,false):`<div class="empty"><span class="empty-icon" aria-hidden="true">⌕</span><h3>${state.scenario==='empty'?'还没有安装脚本':'没有匹配的脚本'}</h3><p>${state.scenario==='empty'?'从原任务目录审阅候选并安装。':'修改关键词或清除筛选条件。'}</p><button class="secondary" type="button" data-act="${state.scenario==='empty'?'catalog':'clear-filters'}">${state.scenario==='empty'?'添加脚本':'清除条件'}</button></div>`}</div>
  ${pages>1?`<div class="pagination"><button class="secondary" type="button" data-act="page-prev" ${idx===1?'disabled':''}>上一页</button><span>第 ${idx}/${pages} 页 · 每页 20 条</span><button class="secondary" type="button" data-act="page-next" ${idx===pages?'disabled':''}>下一页</button></div>`:''}
@@ -225,7 +273,7 @@ function render(){
  const tab=state.page;document.querySelectorAll('.app-tab').forEach(x=>{const active=x.dataset.page===tab;x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1});
  const content=$('appContent');if(['overview','scripts','history'].includes(tab)){content.removeAttribute('aria-label');content.setAttribute('aria-labelledby','wf-tab-'+tab)}else{content.removeAttribute('aria-labelledby');content.setAttribute('aria-label',tab==='settings'?'Web Flow 设置':'开发者衔接演示')}
  content.innerHTML=tab==='overview'?renderOverview():tab==='scripts'?renderScripts():tab==='history'?renderHistory():tab==='settings'?renderSettings():renderDeveloper();
- $('window').dataset.width=state.viewport;$('currentWidth').textContent=state.viewport+'px';document.body.classList.toggle('dark',state.theme);
+ $('window').dataset.width=state.viewport;$('window').style.setProperty('--wf-side-width',state.viewport+'px');$('currentWidth').textContent=state.viewport+'px';document.body.classList.toggle('dark',state.theme);
  $('themeBtn').setAttribute('aria-pressed',String(state.theme));$('themeBtn').textContent=state.theme?'浅色模式':'深色模式';$('settingsButton').setAttribute('aria-pressed',String(tab==='settings'||tab==='developer'));renderModal();
 }
 function navigate(p){state.page=p;state.details=null;state.pageIndex=1;$('appContent').scrollTop=0;render();(document.querySelector(`.app-tab[data-page="${p}"]`)||(p==='settings'?$('settingsButton'):null))?.focus()}
@@ -277,7 +325,7 @@ $('viewport').addEventListener('change',ev=>{state.viewport=ev.target.value;rend
 $('themeBtn').addEventListener('click',()=>{state.theme=!state.theme;render()});
 $('resetBtn').addEventListener('click',()=>{const width=state.viewport,theme=state.theme;state={page:'overview',quantity:20,scenario:'normal',viewport:width,scripts:seed(20),globalAuto:false,search:'',filter:'all',sort:'recommended',groupBy:'none',pageIndex:1,details:null,historyDetail:null,modal:null,ack:false,dev:false,historyFilter:'all',workflowDetail:null,history:demoHistory(),activeHost:'扩展',theme};$('dataset').value='20';$('scenario').value='normal';render();toast('模拟状态已重置')});
 document.body.addEventListener('click',ev=>{const host=ev.target.closest('[data-host]');if(host){if(host.dataset.host==='开发')state.page='developer',render(),toast('只模拟原有“开发”页的衔接，不复制编辑器');else toast('「'+host.dataset.host+'」是原有宿主 Tab，此原型只展示 Web Flow');return;}const tab=ev.target.closest('.app-tab');if(tab){navigate(tab.dataset.page);return;}const btn=ev.target.closest('[data-act]');if(btn)runAction(btn)});
-document.body.addEventListener('change',ev=>{if(ev.target.id==='ack')updateAck();if(['scriptStatus','scriptSort','scriptGroup'].includes(ev.target.id)){const field=ev.target.id,v=ev.target.value,open=$('filtersPanel')?.open===true;if(field==='scriptStatus')state.filter=v;else if(field==='scriptSort')state.sort=v;else state.groupBy=v;state.pageIndex=1;render();const panel=$('filtersPanel');if(panel&&open){panel.open=true;panel.querySelector('#'+field)?.focus()}}});
+document.body.addEventListener('change',ev=>{if(ev.target.id==='ack')updateAck();if(['scriptStatus','scriptSort','scriptGroup'].includes(ev.target.id)){const field=ev.target.id,v=ev.target.value,open=state.filtersOpen===true;if(field==='scriptStatus')state.filter=v;else if(field==='scriptSort')state.sort=v;else state.groupBy=v;state.pageIndex=1;render();const panel=$('filtersPanel');if(panel&&open){panel.hidden=false;panel.querySelector('#'+field)?.focus()}}});
 function applySearchInput(t){const pos=t.selectionStart||0;state.search=t.value;state.pageIndex=1;render();const next=$('scriptSearch');next?.focus();try{next?.setSelectionRange(pos,pos)}catch{}}
 document.body.addEventListener('compositionstart',ev=>{if(ev.target.id==='scriptSearch')state.composingSearch=true});
 document.body.addEventListener('compositionend',ev=>{if(ev.target.id==='scriptSearch'){state.composingSearch=false;applySearchInput(ev.target)}});
@@ -288,6 +336,202 @@ document.addEventListener('keydown',ev=>{const modal=state.modal;const typing=ev
  if((ev.key==='/'&&!typing)||(ev.key.toLowerCase()==='k'&&(ev.ctrlKey||ev.metaKey)&&!typing)){ev.preventDefault();if(state.page!=='scripts')navigate('scripts');$('scriptSearch')?.focus();return;}
  const tab=ev.target.closest('[role="tab"]');if(tab&&['ArrowLeft','ArrowRight','Home','End'].includes(ev.key)){const parent=tab.parentElement,tabs=[...parent.querySelectorAll('[role="tab"]')],i=tabs.indexOf(tab);const next=ev.key==='Home'?0:ev.key==='End'?tabs.length-1:ev.key==='ArrowRight'?(i+1)%tabs.length:(i+tabs.length-1)%tabs.length;ev.preventDefault();tabs[next].focus();if(tabs[next].dataset.page)navigate(tabs[next].dataset.page);else toast('此处仅模拟宿主导航 '+tabs[next].textContent);return;}
 });
+/* Web Flow V0.3.2 — isolated add-task UX preview; deliberately memory-only. */
+const addMockCatalog = [
+  {id:'demo.future.ready', title:'已安装的网页摘录', site:'https://example.org', owner:'演示开发者', version:'1.0.0', purpose:'读取当前网站的公开段落', installed:true, futureEligible:true, verified:true, permission:true, kind:'ready'},
+  {id:'demo.future.permission', title:'站点权限需要恢复', site:'https://example.org', owner:'演示开发者', version:'1.0.0', purpose:'从获准网页读取文本', installed:true, futureEligible:true, verified:true, permission:false, kind:'permission'},
+  {id:'demo.unbound.task', title:'已安装但未关联的 Controller', site:'https://github.com', owner:'本地作者（模拟）', version:'2.3.0', purpose:'整理公开议题信息', installed:true, verified:true, permission:true, kind:'unbound'},
+  {id:'demo.version.mismatch', title:'固定版本发生变化', site:'https://www.google.com', owner:'本地作者（模拟）', version:'2.0.0', purpose:'检索公开结果', installed:true, verified:true, permission:true, kind:'mismatch'},
+  {id:'demo.disabled.task', title:'用户主动停用的任务', site:'https://example.org', owner:'本地作者（模拟）', version:'1.1.0', purpose:'读取公开页标题', installed:true, verified:true, permission:true, kind:'disabled'},
+  {id:'github.issue.read', title:'GitHub Issue 公开读取', site:'https://github.com', owner:'示例目录', version:'1.0.0', purpose:'读取指定公开 Issue 的标题及内容', installed:false, verified:true, permission:true, kind:'installable'},
+  {id:'demo.catalog.permission', title:'网页数据采集（权限待批）', site:'https://example.org', owner:'示例目录', version:'1.0.0', purpose:'读取指定公开页面的列表', installed:false, verified:true, permission:false, kind:'installable'},
+  {id:'demo.catalog.untrusted', title:'来源无法核验的候选', site:'https://unknown.example', owner:'未知发布者', version:'0.9.0', purpose:'示例：未能核对来源与源码', installed:false, verified:false, permission:false, kind:'untrusted'}
+];
+const oldNavigateV031 = navigate;
+navigate = function(page){
+  if(page!=='scripts'){
+    state.addScreen=null;
+    if(state.addTimer){clearTimeout(state.addTimer);state.addTimer=null;}
+  }
+  return oldNavigateV031(page);
+};
+const oldRenderScriptsV031 = renderScripts;
+renderScripts = function(){ return state.addScreen ? renderAddScreen() : oldRenderScriptsV031(); };
+const oldRunActionV031 = runAction;
+runAction = function(btn){
+  const act=btn.dataset.act;
+  if(act==='catalog'){ openAddScreen(); return; }
+  if(act==='filter-toggle'){
+    state.filtersOpen=!state.filtersOpen;
+    const panel=$('filtersPanel'),toggle=$('filterToggle');
+    if(panel)panel.hidden=!state.filtersOpen;
+    toggle?.setAttribute('aria-expanded',String(state.filtersOpen));
+    toggle?.focus();return;
+  }
+  if(act.startsWith('add-')){ onAddAction(btn); return; }
+  return oldRunActionV031(btn);
+};
+function addFreshState(){
+  if(!state.addTab)state.addTab='installed';
+  if(!state.addQuery)state.addQuery='';
+  if(!state.addOutcome)state.addOutcome='success';
+  if(!state.addMockInstalled)state.addMockInstalled={};
+  if(!state.addMockPermissions)state.addMockPermissions={};
+  if(!state.addPage)state.addPage=1;
+}
+function openAddScreen(){
+  addFreshState();state.addScreen='list';state.addId=null;state.addAck=false;state.addReceipt=null;
+  state.details=null;state.page='scripts';render();focusAddHeading();
+}
+function focusAddHeading(){queueMicrotask(()=>{$('addHeading')?.focus();$('appContent')?.scrollTo(0,0)})}
+function addBack(){
+  if(state.addScreen==='review'||state.addScreen==='receipt'||state.addScreen==='develop'){
+    state.addScreen='list';state.addId=null;state.addAck=false;state.addReceipt=null;render();focusAddHeading();
+  }else{state.addScreen=null;state.addId=null;render();queueMicrotask(()=>$('scriptSearch')?.focus())}
+}
+function addCatalogRows(){
+  addFreshState();
+  const demoLinked=scenScripts().map(x=>({id:x.taskId,title:x.title,site:x.site,owner:x.developer,
+    version:x.version,purpose:x.action,installed:true,verified:true,permission:x.siteAccess,
+    kind:'linked',fromList:true,enabled:x.enabled}));
+  const rest=addMockCatalog.map(y=>{
+    const installed=state.addMockInstalled[y.id]===true || y.installed;
+    return {...y,installed,permission:y.permission||state.addMockPermissions[y.id]===true,
+      kind:state.addMockInstalled[y.id]===true?'unbound':y.kind};
+  });
+  return [...demoLinked,...rest];
+}
+function addRowStatus(x){
+  if(x.kind==='linked')return {name:'已关联',className:'good',reason:'已在脚本列表，无需重复添加'};
+  if(x.kind==='untrusted'||!x.verified)return {name:'来源未核验',className:'bad',reason:'无法验证发布者或固定源码，不可继续'};
+  if(x.kind==='mismatch')return {name:'版本不匹配',className:'warn',reason:'需更新 Web Flow 的固定委托合同并重新审阅应用包'};
+  if(x.kind==='disabled')return {name:'已停用',className:'muted',reason:'先通过宿主已有任务管理入口恢复'};
+  if(!x.permission&&x.installed)return {name:'网站权限不足',className:'warn',reason:'需由可信宿主恢复网站权限'};
+  if(x.kind==='ready'&&x.installed)return {name:'可关联 · 未来模拟',className:'good',reason:'仅演示未来公开 SDK 具备动态关联时的路径'};
+  if(x.installed)return {name:'已安装 · 未获委托',className:'warn',reason:'当前 Web Flow 仅允许百度、Google 固定任务'};
+  if(!x.permission)return {name:'安装时需审阅网站',className:'warn',reason:'真实权限必须由原安装器审阅'};
+  return {name:'未安装',className:'muted',reason:'可查看安装前的固定网站与操作范围'};
+}
+function addCard(x){
+ const z=addRowStatus(x),host=(()=>{try{return new URL(x.site).hostname}catch{return x.site}})();
+ return `<article class="add-row"><div class="add-ico" aria-hidden="true">${x.site.includes('github')?'⌘':x.site.includes('google')?'G':x.site.includes('baidu')?'百':'⌁'}</div>
+ <div class="add-row-main"><strong title="${e(x.title)}">${e(x.title)}</strong><p title="${e(x.purpose)}">${e(x.purpose)}</p><span class="add-site">${e(host)}</span><span class="add-state ${z.className}">${e(z.name)}</span></div>
+ <button type="button" class="add-compact-btn" data-act="add-open" data-id="${e(x.id)}" aria-label="查看 ${e(x.title)}">查看</button></article>`;
+}
+function renderAddTabs(){return `<div class="add-tabs" role="tablist" aria-label="添加方式">${[['installed','已安装'],['catalog','任务目录'],['create','创建脚本']].map(([v,t])=>
+ `<button type="button" role="tab" aria-selected="${state.addTab===v}" tabindex="${state.addTab===v?0:-1}" class="add-tab" data-act="add-tab" data-id="${v}">${t}</button>`).join('')}</div>`}
+function renderAddScreen(){
+ addFreshState();
+ const head=`<header class="add-heading"><button type="button" class="add-back" data-act="add-back" aria-label="返回">← <span>${state.addScreen==='list'?'脚本列表':'添加脚本'}</span></button>
+ <h2 id="addHeading" tabindex="-1">${state.addScreen==='review'?'脚本详情与审阅':state.addScreen==='receipt'?'处理结果':state.addScreen==='develop'?'创建新脚本':'添加脚本'}</h2>
+ <p class="note">${state.addScreen==='list'?'选择关联、安装或创建；本页全部为交互模拟':'操作不改变 Chrome 权限、真实安装或 Web Flow 委托范围'}</p></header>`;
+ const truth=`<div class="add-boundary" role="note"><strong>正式应用边界</strong><p>当前应用仅能委托固定的百度与 Google 任务。下方的目录、来源标识、安装回执和“关联”均为演示；没有调用真实 SDK。</p></div>`;
+ if(state.addScreen==='review')return `<div class="stack add-flow">${head}${renderAddReview()}${truth}</div>`;
+ if(state.addScreen==='receipt')return `<div class="stack add-flow">${head}${renderAddReceipt()}${truth}</div>`;
+ if(state.addScreen==='working')return `<div class="stack add-flow">${head}<section class="add-panel" role="status" aria-live="polite"><div class="add-loader" aria-hidden="true"></div><h3>正在处理模拟请求</h3><p class="note">演示“提交 → 安装状态读回”，并未向安装器发送命令。</p><button class="secondary" data-act="add-stop-wait" type="button">停止等待并标记结果 UNKNOWN</button></section></div>`;
+ if(state.addScreen==='develop')return `<div class="stack add-flow">${head}<section class="add-panel"><h3>使用宿主现有「开发」工具</h3><p class="note">在宿主「开发」中创建和调试 Controller Task，使用原任务目录审阅安装，完成后仍需应用固定委托范围包含该身份。此预览无法直接跳转宿主。</p><ol class="add-steps"><li>打开宿主「开发」→ 选择 Controller Task</li><li>编辑并调试脚本，冻结版本、网站和源码身份</li><li>使用原任务目录完成安装审阅</li><li>确认 Web Flow 委托合同后，再考虑关联</li></ol><button class="secondary" data-act="add-back" type="button">返回添加</button></section>${truth}</div>`;
+ const all=addCatalogRows();let rows=state.addTab==='installed'?all.filter(x=>x.installed):all.filter(x=>!x.installed);
+ const q=state.addQuery.trim().toLocaleLowerCase();if(q)rows=rows.filter(x=>[x.title,x.purpose,x.id,x.owner,x.site].some(v=>String(v).toLocaleLowerCase().includes(q)));
+ const per=12,pages=Math.max(1,Math.ceil(rows.length/per));state.addPage=Math.min(state.addPage,pages);const slice=rows.slice((state.addPage-1)*per,state.addPage*per);
+ return `<div class="stack add-flow">${head}${renderAddTabs()}${truth}
+ ${state.addTab==='create'?`<section class="add-panel"><div class="add-create-symbol" aria-hidden="true">⌘</div><h3>创建适合自己的自动化脚本</h3><p class="note">不在 Web Flow 内复制开发编辑器。脚本需要先经过宿主调试、固定身份和安装审阅。</p><button class="primary" data-act="add-develop" type="button">查看创建步骤</button></section>`:
+ `<div class="add-list-search"><label class="sr-only" for="addSearch">搜索任务名称、用途、网站</label><input type="search" id="addSearch" autocomplete="off" spellcheck="false" placeholder="搜索名称、用途或网站" value="${e(state.addQuery)}" aria-controls="addResults">${state.addQuery?'<button type="button" class="add-clear" data-act="add-clear" aria-label="清除搜索">×</button>':''}</div>
+ <div class="add-mini-meta"><span>${rows.length} 条 · ${state.addTab==='installed'?'本地安装模拟清单':'模拟任务目录'}</span><span>搜索优先 · 按需查看详情</span></div>
+ ${state.addTab==='catalog'?`<label class="add-outcome">模拟安装回执 <select id="addOutcome"><option value="success" ${state.addOutcome==='success'?'selected':''}>成功</option><option value="failed" ${state.addOutcome==='failed'?'selected':''}>失败</option><option value="unknown" ${state.addOutcome==='unknown'?'selected':''}>UNKNOWN</option></select></label>`:''}
+ <div id="addResults" class="add-results">${rows.length?slice.map(addCard).join(''):`<div class="add-empty"><strong>没有找到匹配的任务</strong><p>更换关键词，或切换已安装 / 任务目录。</p><button class="secondary" data-act="add-clear" type="button">清除搜索</button></div>`}</div>
+ ${pages>1?`<div class="pagination"><button class="secondary" data-act="add-prev" type="button" ${state.addPage===1?'disabled':''}>上一页</button><span>${state.addPage} / ${pages}</span><button class="secondary" data-act="add-next" type="button" ${state.addPage>=pages?'disabled':''}>下一页</button></div>`:''}`}
+ <p class="add-footer">正式安装与权限恢复请使用原可信宿主。此预览不会运行任务。</p></div>`;
+}
+function renderAddReview(){
+ const x=addCatalogRows().find(y=>y.id===state.addId);if(!x)return `<section class="add-panel"><p>未找到该演示任务。</p><button class="secondary" data-act="add-back" type="button">返回</button></section>`;
+ const z=addRowStatus(x),linked=x.kind==='linked',canLink=x.installed&&x.futureEligible&&x.permission&&x.verified,
+ canInstall=!x.installed&&x.verified;
+ const fact=(k,v)=>`<dt>${e(k)}</dt><dd>${e(v)}</dd>`;
+ let primary='';
+ if(linked)primary=`<button type="button" class="primary" data-act="add-show-linked" data-id="${e(x.id)}">查看现有脚本</button>`;
+ else if(canLink)primary=`<button type="button" class="primary" data-act="add-confirm" ${state.addAck?'':'disabled'}>模拟关联（未来能力）</button>`;
+ else if(canInstall)primary=`<button type="button" class="primary" data-act="add-confirm" ${state.addAck?'':'disabled'}>模拟前往安装</button>`;
+ else primary=`<button type="button" class="primary" disabled title="${e(z.reason)}">当前不能添加</button>`;
+ return `<section class="add-panel"><div class="add-review-title"><div class="add-ico">⌁</div><div><h3>${e(x.title)}</h3><p class="note">${e(x.owner)} · v${e(x.version)}</p></div></div><div class="add-status-line"><span class="add-state ${z.className}">${e(z.name)}</span><span>${e(z.reason)}</span></div>
+ <h4>任务用途与网站</h4><p class="add-purpose">${e(x.purpose)}</p><dl class="add-facts">${fact('目标网站',x.site)}${fact('演示操作','读取公开网页信息；真实操作以安装审阅为准')}${fact('发布者',x.owner)}${fact('版本',x.version)}${fact('来源核验',x.verified?'仅本地模拟标记，未真实校验':'未核验，禁止继续')}${fact('当前安装',x.installed?'模拟已安装':'模拟未安装')}${fact('Web Flow 委托',linked?'模拟已关联':canLink?'仅未来动态关联演示':'当前固定合同未允许')}${fact('自动运行授权','尚未批准；本流程不会自动授予')}</dl>
+ <details class="add-tech"><summary>开发者技术详情</summary><dl class="add-facts">${fact('taskId',x.id)}${fact('manifestHash','此模拟候选无可信哈希读回')}${fact('contentHash','此模拟候选无可信源码读回')}</dl></details>
+ ${!x.permission&&x.installed&&x.futureEligible?`<div class="add-warning"><strong>缺少网站访问权限</strong><p>只有宿主可信授权窗口才能真正恢复。此处仅演示恢复后的界面。</p><button type="button" class="secondary" data-act="add-demo-permission" data-id="${e(x.id)}">模拟权限已由宿主恢复</button></div>`:''}
+ ${!x.verified?'<div class="add-warning">来源和固定源码不可核验：没有继续安装或关联按钮。</div>':''}
+ ${canInstall||canLink?`<label class="add-consent"><input id="addAck" type="checkbox" ${state.addAck?'checked':''}><span>我已查看网站、用途、发布者与版本，理解本操作只更新演示状态，正式安装和授权仍由宿主处理。</span></label>`:''}
+ <div class="add-review-actions"><button class="secondary" data-act="add-back" type="button">取消并返回</button>${primary}</div></section>`;
+}
+function renderAddReceipt(){
+ const r=state.addReceipt||{state:'unknown',title:'模拟任务',id:'—'};
+ const ok=r.state==='installed'||r.state==='linked',bad=r.state==='failed';
+ const title=r.state==='installed'?'模拟安装已完成':r.state==='linked'?'模拟关联已完成':bad?'模拟安装失败':'操作回执 UNKNOWN';
+ const detail=r.state==='installed'?'从模拟任务权威列表重新读取到安装条目。但当前 Web Flow 未委托该 Task，不能直接在 Web Flow 运行。':r.state==='linked'?'仅模拟未来已具备动态关联 SDK 的产品路径；没有修改真实应用委托合同。':bad?'模拟安装器返回失败；候选仍未安装。可返回列表重新审阅。':'操作副作用可能已经发生，不能自动重试或把 UNKNOWN 当作未安装。请通过可信安装目录只读核对。';
+ return `<section class="add-panel add-receipt" role="status" aria-live="polite"><div class="add-result-symbol ${ok?'success':bad?'failure':'unknown'}" aria-hidden="true">${ok?'✓':bad?'!':'?'}</div><h3>${title}</h3><p><strong>${e(r.title)}</strong></p><p class="note">${detail}</p><div class="add-readback"><strong>权威状态（仅模拟）</strong><span>${r.state==='installed'?'演示目录读回：已安装，未纳入正式委托':r.state==='linked'?'本页内存脚本清单读回：已关联':bad?'演示目录读回：未安装':'未取得确定安装/关联回执'}</span><span>实际 Chrome 权限、安装、脚本运行：均未执行</span></div><div class="add-review-actions"><button class="secondary" data-act="add-back" type="button">返回添加</button>${r.state==='linked'?'<button class="primary" data-act="add-done" type="button">查看脚本列表</button>':''}${r.state==='installed'?'<button class="primary" data-act="add-done" type="button">返回脚本列表</button>':''}</div></section>`;
+}
+function onAddAction(btn){
+ const a=btn.dataset.act,id=btn.dataset.id;
+ if(a==='add-back'){addBack();return}
+ if(a==='add-close'||a==='add-done'){state.addScreen=null;state.addId=null;render();queueMicrotask(()=>$('scriptSearch')?.focus());return}
+ if(a==='add-tab'){state.addTab=id;state.addScreen='list';state.addPage=1;state.addQuery='';render();queueMicrotask(()=>$('addSearch')?.focus()||$('addHeading')?.focus());return}
+ if(a==='add-open'){state.addId=id;state.addScreen='review';state.addAck=false;render();focusAddHeading();return}
+ if(a==='add-clear'){state.addQuery='';state.addPage=1;render();queueMicrotask(()=>$('addSearch')?.focus());return}
+ if(a==='add-prev'||a==='add-next'){state.addPage=Math.max(1,state.addPage+(a==='add-next'?1:-1));render();$('appContent')?.scrollTo(0,0);return}
+ if(a==='add-develop'){state.addScreen='develop';render();focusAddHeading();return}
+ if(a==='add-demo-permission'){state.addMockPermissions[id]=true;state.addAck=false;render();focusAddHeading();toast('仅模拟权限已恢复；未访问 Chrome 或 Authority');return}
+ if(a==='add-show-linked'){
+   const linked=scenScripts().find(y=>y.taskId===id);state.addScreen=null;state.details=linked?.id||null;render();focusAddHeading();return;
+ }
+ if(a==='add-stop-wait'){clearTimeout(state.addTimer);state.addTimer=null;const x=addCatalogRows().find(y=>y.id===state.addId);state.addReceipt={state:'unknown',id:state.addId,title:x?.title||'模拟任务'};state.addScreen='receipt';render();focusAddHeading();return}
+ if(a==='add-confirm'){
+   if(!state.addAck||state.addScreen!=='review')return;
+   const x=addCatalogRows().find(y=>y.id===state.addId);if(!x||!x.verified||x.kind==='linked')return;
+   if(x.installed){
+     if(!x.futureEligible||!x.permission)return;
+     if(!state.scripts.some(y=>y.taskId===x.id))state.scripts.unshift({id:'task:'+x.id,taskId:x.id,title:x.title,site:x.site,siteLabel:new URL(x.site).hostname,version:x.version,developer:x.owner,action:x.purpose,icon:'⌁',enabled:true,autoGranted:false,siteAccess:true,run:null,error:null,unknown:false,update:false,starred:false});
+     state.addReceipt={state:'linked',id:x.id,title:x.title};state.addScreen='receipt';render();focusAddHeading();return;
+   }
+   state.addScreen='working';state.addReceipt=null;render();focusAddHeading();
+   const outcome=state.addOutcome;
+   state.addTimer=setTimeout(()=>{
+     if(state.addScreen!=='working')return;
+     const result=outcome==='success'?'installed':outcome==='failed'?'failed':'unknown';
+     if(result==='installed')state.addMockInstalled[x.id]=true;
+     // Explicitly reread the in-memory "authority" fixture; never infer from the timed callback alone.
+     const reread=addCatalogRows().find(y=>y.id===x.id);
+     const verifiedResult=result==='installed'&&reread?.installed?'installed':result==='installed'?'unknown':result;
+     state.addReceipt={state:verifiedResult,id:x.id,title:x.title};state.addScreen='receipt';state.addTimer=null;render();focusAddHeading();
+   },460);return;
+ }
+}
+document.body.addEventListener('change',ev=>{
+ if(ev.target.id==='addAck'){state.addAck=ev.target.checked===true;const b=document.querySelector('[data-act="add-confirm"]');if(b)b.disabled=!state.addAck}
+ if(ev.target.id==='addOutcome')state.addOutcome=ev.target.value;
+});
+function addSearchInput(t){
+ const pos=t.selectionStart||0;state.addQuery=t.value;state.addPage=1;render();const next=$('addSearch');next?.focus();try{next?.setSelectionRange(pos,pos)}catch{}
+}
+document.body.addEventListener('compositionstart',ev=>{if(ev.target.id==='addSearch')state.addComposing=true});
+document.body.addEventListener('compositionend',ev=>{if(ev.target.id==='addSearch'){state.addComposing=false;addSearchInput(ev.target)}});
+document.body.addEventListener('input',ev=>{if(ev.target.id==='addSearch'&&!state.addComposing&&!ev.isComposing)addSearchInput(ev.target)});
+document.addEventListener('keydown',ev=>{
+ if(state.addScreen==='list'&&ev.target.matches('.add-tab')&&['ArrowLeft','ArrowRight','Home','End'].includes(ev.key)){
+   ev.preventDefault();ev.stopImmediatePropagation();
+   const tabs=[...document.querySelectorAll('.add-tab')],i=tabs.indexOf(ev.target);
+   const j=ev.key==='Home'?0:ev.key==='End'?tabs.length-1:ev.key==='ArrowRight'?(i+1)%tabs.length:(i+tabs.length-1)%tabs.length;
+   const id=tabs[j]?.dataset.id;
+   if(id){state.addTab=id;state.addPage=1;state.addQuery='';render();document.querySelector('.add-tab[data-id="'+id+'"]')?.focus()}
+   return;
+ }
+ if(state.modal)return;
+ if(ev.key==='Escape'&&state.filtersOpen){ev.preventDefault();state.filtersOpen=false;const p=$('filtersPanel');if(p)p.hidden=true;$('filterToggle')?.setAttribute('aria-expanded','false');$('filterToggle')?.focus();return}
+ if(ev.key==='Escape'&&state.addScreen){ev.preventDefault();if(state.addScreen==='working'){onAddAction({dataset:{act:'add-stop-wait'}})}else addBack();return}
+},true);
+document.addEventListener('pointerdown',ev=>{
+ if(state.filtersOpen&&!ev.target.closest('#filterPopover')){
+   state.filtersOpen=false;const p=$('filtersPanel');if(p)p.hidden=true;$('filterToggle')?.setAttribute('aria-expanded','false');
+ }
+},true);
+
+
 render();
 })();
 </script>
