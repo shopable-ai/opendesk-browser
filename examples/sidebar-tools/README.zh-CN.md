@@ -1,5 +1,10 @@
 # 「扩展」应用（Sidebar Tool）示例与统一开发入口
 
+[返回 examples 中文统一入口](../README.zh-CN.md) · [目录归属审计](../OWNERSHIP-AUDIT-2026-11-02.zh-CN.md)
+
+本目录既有教学 Starter/SDK 体验，也保留尚未完成目录迁移的正式业务。不要把 ai-send-queue、browser-fingerprint、cookie-editor、scrapyjs 或 ai-vip-share 当作可以删除的演示：真实 owner 与安装来源须以项目 README、official-tools/catalog.json 和当前并行迁移结果核对。dev-hot-preview-p0、import-max-probe、papaparse-csv-export、shared-ui-demo 各有明确验证或 SDK 演示职责，不是同一份重复源码。
+
+
 **正式产品入口**：Side Panel「扩展」中的「应用」类型；普通用户不必下载 `examples/` 源码。技术包、目录和宿主协议不因产品改名而迁移。与 Page「网页增强」的区别见 [R4 产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
 **同类工具的统一开发方法**：先读 [docs/api/sidebar-tool-development.zh-CN.md](../../docs/api/sidebar-tool-development.zh-CN.md)；查询当前工具包 schema、操作与权限读 [docs/api/sidebar-tools.zh-CN.md](../../docs/api/sidebar-tools.zh-CN.md)；交给 AI/Codex 编辑则读 [工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) 及根目录 [AGENTS.md](../../AGENTS.md)。

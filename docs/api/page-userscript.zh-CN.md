@@ -9,7 +9,7 @@
 1. **建项目**：网页回复栏按钮/DOM 增强优先使用独立 `examples/programs/<id>/` 的 USER_SCRIPT，调用网页 `document`、受管 `@opendesk/ui` 和本地已审阅资源；不将业务代码移入 Browser 框架。Controller Worker 的 `page`/Locator、Sidebar Tool iframe 的 `OpenDeskTool.request` 与 Page 世界彼此不同。
 2. **网站与权限**：在项目中声明正确网站范围，并另行取得 Chrome 的网站访问及“允许用户脚本”权限。`createPageUI({pageRules})` 是同文档 SPA 清理保护，不是网站授权，也不等于跨站自动注入。变更 Origin/权限应重新审核。
 3. **试运行和正式安装不是一回事**：「开发」显式 Run/Preview 得到 `previewId/sourceHash/documentId`，核对真正的网页 DOM 与 Stop；正式自动运行必须沿 Page Candidate → Verified → Available → 用户确认 Installed/启用的既有流程，另验新文档匹配、扩展重启、停用、撤权、升级与卸载。临时 Chrome 直接脚本注入、Node/离线 HTML 预览不能冒充 Installed PASS。
-4. **大型第三方 JS 与真实边界**：按公开项目构建预算、锁定资源许可、世界及生命周期设计评估，不保证几 MB 的 XMind 类 Runtime 能被普通 USER_SCRIPT 直接嵌入。现有 [ChatGPT Mind Map 项目事实](../../examples/programs/chatgpt-mindmap/README.zh-CN.md) 记录 `E_XMIND_RUNTIME_UNAVAILABLE`、资源大小/许可和隔离问题；这是项目证据，不代表全部第三方库均不支持。没有已验证的公共缺口先记 `SDK_GAP_NOT_PROVEN`，无法安全执行的特权请求记 `BLOCKED`，不要要求普通作者改 Host。
+4. **大型第三方 JS 与真实边界**：按公开项目构建预算、锁定资源许可、世界及生命周期设计评估，不保证几 MB 的 XMind 类 Runtime 能被普通 USER_SCRIPT 直接嵌入。现有 [ChatGPT Mind Map 项目事实](../../projects/chatgpt-mindmap/README.zh-CN.md) 记录 `E_XMIND_RUNTIME_UNAVAILABLE`、资源大小/许可和隔离问题；这是项目证据，不代表全部第三方库均不支持。没有已验证的公共缺口先记 `SDK_GAP_NOT_PROVEN`，无法安全执行的特权请求记 `BLOCKED`，不要要求普通作者改 Host。
 5. **证据**：公开规范支持 ≠ 本候选运行成功；SOURCE_WIRED/Node PASS/Browser Native/正式安装与网站自动运行须独立验证。没有最终安装证据记 `NOT_TESTED`，不能虚构 API 或已批准的权限。
 
 ## 普通 main 与项目 main

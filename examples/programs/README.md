@@ -1,4 +1,8 @@
-# OpenDesk Browser 多文件 Demo 总览
+# Page / Controller 程序示例（单文件与多文件）
+
+[返回 examples 中文统一入口](../README.zh-CN.md) · [目录归属审计](../OWNERSHIP-AUDIT-2026-11-02.zh-CN.md)
+
+这里的 Page USER_SCRIPT 与 Controller 使用不同执行世界；实际类型请看各项目 package.json 的 runtimeKind。目录中的 sidebar-page-demo、sidebar-controller-demo 是历史命名，并不代表 Sidebar Tool；冻结 ID 与源码不因此改动。可安装 Controller Task 包另见 [tasks/](../tasks/README.zh-CN.md)；独立侧栏工具另见 [sidebar-tools/](../sidebar-tools/README.zh-CN.md)。
 
 ## 优先选择零参数预装库 Demo（2026-10-12）
 

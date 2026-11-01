@@ -1,5 +1,10 @@
 # OpenDesk Task Package v1：本地任务与浏览器搜索示例
 
+[返回 examples 中文统一入口](../README.zh-CN.md) · [目录归属审计](../OWNERSHIP-AUDIT-2026-11-02.zh-CN.md)
+
+**目录边界：** 此处同时保留冻结 Controller Task JSON、对应 JS、Browser Test Lab HTML/HTTP 服务和历史 Node 测试。可安装 Task 不等于独立 Page/Controller 项目；本机 43111 演示服务仍以 examples/tasks 为根，未核对消费者前不要搬走 demo-form.html、workflow-search.html、scrapyjs-fixtures 符号链接或测试文件。Task ID、版本和来源哈希不因目录美化而重写。
+
+
 > R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
 
 这个目录提供 **真实源码、清单 SHA-256 和 HTML 演示页**。JSON 导入后的初始状态必须是 **待验证**，不是自动审核通过或直接安装。
