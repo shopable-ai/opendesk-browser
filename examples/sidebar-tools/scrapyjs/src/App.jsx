@@ -60,16 +60,7 @@ function statusOf(state,matches,busy){
   return '采集结束 · 请查看运行详情';
 }
 
-// Offline presentation only; the installed entry keeps the full AiPanel.
-function AiPreviewPlaceholder({open,onClose}){
-  return <aside id="ai-preview-placeholder" className="ai-preview-placeholder" hidden={!open} aria-labelledby="ai-preview-heading" onKeyDown={event=>{
-    if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();onClose();}
-  }}><div className="toolbar"><h2 id="ai-preview-heading" className="od-page-title">AI 助手</h2><IconButton label="收起 AI 占位窗口" onClick={onClose}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></IconButton></div>
-    <p>这里是 AI 对话的预览占位。</p><p className="secondary">实际使用：在 OpenDesk「扩展」中打开「scrapyjs 采集」，点击右上角 AI，使用完整配置助手。</p>
-  </aside>;
-}
-
-export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeAssistant}={}){
+export default function App({RuleAssistant,ListScopeAssistant}={}){
   const tool=globalThis.OpenDeskTool;
   const hostNavigation=typeof tool.setNavigation==='function';
   const [snapshot,setSnapshot]=React.useState(null);
@@ -440,6 +431,17 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
     </section>
     </div>
   </main></div>
-    {previewAiPlaceholder?<AiPreviewPlaceholder open={aiOpen} onClose={closeAi}/>:<AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});openName(current?'copy':'save',managementOpen?'library-current':'profile-current');}}/>}
+    <AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});}} onNavigate={action=>{
+      if(action==='save'){
+        if(baseLocked||pending||!valid||!app.state.storageReady||app.state.conflict)return;
+        closeAi();navigateManagement(false);
+        if(app.state.selectedId)void saveConfiguration('save');
+        else openName('save','save-config');
+      }else if(action==='run'){
+        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('start');
+      }else if(action==='export'){
+        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('export-actions');
+      }
+    }}/>}
   </div>;
 }
