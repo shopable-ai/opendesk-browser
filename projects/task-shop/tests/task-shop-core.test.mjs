@@ -27,7 +27,7 @@ const observed=(input=receipt)=>apply(prepared(),'OBSERVE',1004,{
 const throwsCode=(fn,code)=>assert.throws(fn,e=>e.code===code);
 test('source package binds a real reviewed Controller pin, never claims a Native or payments API',()=>{
   assert.equal(config.id,'task-shop');assert.equal(config.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(config.capabilities,['storage.local','currentPage.read','tasks.open','tasks.run']);
+  assert.deepEqual(config.capabilities,['storage.local','currentPage.read','tasks.run']);
   assert.equal(config.delegatedTasks.length,1);
   for(const key of ['taskId','version','manifestHash','contentHash'])
     assert.equal(config.delegatedTasks[0][key],M.PIN[key]);

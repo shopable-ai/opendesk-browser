@@ -7,7 +7,6 @@
   "capabilities": [
     "storage.local",
     "currentPage.read",
-    "tasks.open",
     "tasks.run"
   ],
   "requires": {

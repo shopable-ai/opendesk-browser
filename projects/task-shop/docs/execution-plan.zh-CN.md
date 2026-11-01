@@ -1,6 +1,6 @@
 # OpenDesk Task Shop · 唯一执行计划（2026-11-02）
 
-> **状态：D0 文档初始化已完成（GitHub 已核验）；`IMPLEMENTATION_NOT_STARTED / CHROME_NOT_TESTED / MARKET_NOT_DEPLOYED / PAYMENTS_NOT_LIVE`。**
+> **状态：D0 已完成；D1 `SOURCE_IMPLEMENTED / CORE_V8_SMOKE_PASS / NODE_NOT_TESTED / PACKAGE_NOT_PROMOTED / CHROME_NATIVE_NOT_TESTED / MARKET_LOCAL_DEMO / PAYMENTS_NOT_LIVE`。**
 >
 > 固定检索词 `OD-TASK-SHOP`。长期需求：[产品合同](product-contract.zh-CN.md)；职责与状态：[架构](architecture.zh-CN.md)；经济假设：[商业模式](business-model.zh-CN.md)。本文件唯一维护真实进度、责任和下一条操作。
 
@@ -9,12 +9,12 @@
 | 事项 | 归属和事实 |
 | --- | --- |
 | 仓库/主分支 | `shopable-ai/opendesk-browser` / `main` |
-| Task Shop 产品 owner | `projects/task-shop/`，本轮仅文档；无应用源码、配置或正式包 |
+| Task Shop 产品 owner | `projects/task-shop/`：本轮有正式 Sidebar 源码、配置和业务测试；尚无晋升的正式包 |
 | Web Flow owner | `projects/webflow/`，本轮只读；保留既有 BR/AWB 和历史证据 |
 | 执行内核 owner | Browser Framework / Native / Controller / Authority / RunHost，沿用原权限与安装合同 |
-| 本轮新增文件 | 本项目 README、AGENTS、五份 `docs/` 文档及新的独立 Task Shop 工作流记录 |
+| 本轮新增文件 | 本项目内 src/、tool.config.json、tests/、README 和唯一执行计划；不触碰 Web Flow/Native |
 | 共享环境 | 不使用用户 Mac、Chrome/Profile、端口、Native、dist、已有任务数据库、凭据或 watcher |
-| 当前证据 | GitHub 文档存在可核查时只记 `DOCS_ONLY`；没有真实产品执行或市场服务 |
+| 当前证据 | GitHub 源码已提交，V8 30/30 定向断言通过；Node/构建器/Chrome/Native 未测，远程市场服务不存在 |
 
 任务市场后端部署位置、身份系统和正式可安装 Sidebar 包均尚未决定；**不要为建立目录而预建空项目源码或冒充真实配置**。
 
@@ -23,7 +23,7 @@
 | 阶段 | 最小交付 | 退出标准 | 状态 |
 | --- | --- | --- | --- |
 | D0：文档基线 | 独立项目、产品/商业/架构/SEO/执行文件 | 文件真实可读、相互引用与职责清晰 | **已完成：DOCS_ONLY**（commit db5908f42） |
-| D1：V0.1 单任务闭环 | 模拟市场发布、手动领取、已安装本地脚本、结果对账、模拟验收 | 一条用户可观察的真实授权操作及原 run/result 验收；负例不越权/不重跑 | NOT_STARTED |
+| D1：V0.1 单任务闭环 | 模拟市场发布、手动领取、已安装本地脚本、结果对账、模拟验收 | 一条用户可观察的真实授权操作及原 run/result 验收；负例不越权/不重跑 | **SOURCE_IMPLEMENTED / CHROME_NOT_TESTED** |
 | D2：V0.2 受限托管 | 自动接单规则、限额、可撤销许可、有限 Pull、断网恢复 | 无 AI 对话也可按明确规则接单；超范围必拒绝 | NOT_STARTED |
 | D3：V0.3 B2B 试点 | 合法企业工单、发布者/节点审核、收费意愿实验 | 真实可验证的需求、质量与成本；无资金业务时仍模拟结算 | NOT_STARTED |
 | D4：V1.0 多节点商业化候选 | 稳定节点调度、Push、支付/争议/风控/合规 | 多节点原生及资金证据、适用市场审查完成 | NOT_STARTED |
@@ -32,20 +32,20 @@
 
 | ID | 工作与目标行为 | 依赖 | 状态 |
 | --- | --- | --- | --- |
-| TS-P01 | 只读核实真实已安装 Task 与 Native/Controller 可调用入口和脚本 pin | 现有公开 SDK、Native 文档 | NOT_STARTED |
-| TS-P02 | 定义市场任务 schema、领取 ID、权限/数据分类和验收合同 | 产品合同、TS-P01 的真实接口 | NOT_STARTED |
-| TS-P03 | 做一个本地测试任务服务/fixture，实现领取、幂等和租约（模拟金额） | TS-P02 | NOT_STARTED |
-| TS-P04 | 把订单映射到已安装的**固定脚本**，经原 Authority/RunHost 执行 | TS-P01–03，真实授权 | NOT_STARTED |
-| TS-P05 | 将原 runId/resultId 与业务订单 ID 对账，显示独立验收状态 | TS-P04 | NOT_STARTED |
-| TS-P06 | 校验重复领取、取消、断线、脚本升级、站点变更、UNKNOWN 无重放 | TS-P03–05 | NOT_STARTED |
-| TS-P07 | 普通用户任务列表、详情、领取、运行及验收 UI；按执行世界选择正式形态 | TS-P02–06，原 UI/安装合同 | NOT_STARTED |
+| TS-P01 | 只读核实真实已安装 Task 与 Native/Controller 可调用入口和脚本 pin | 现有公开 SDK、Native 文档 | **SDK_CONTRACT_REVIEWED（原生未测）** |
+| TS-P02 | 定义市场任务 schema、领取 ID、权限/数据分类和验收合同 | 产品合同、TS-P01 的真实接口 | **SOURCE_IMPLEMENTED** |
+| TS-P03 | 做一个本地测试任务服务/fixture，实现领取、幂等和租约（模拟金额） | TS-P02 | **SOURCE_IMPLEMENTED（同安装 CAS）** |
+| TS-P04 | 把订单映射到已安装的**固定脚本**，经原 Authority/RunHost 执行 | TS-P01–03，真实授权 | **ADAPTER_SOURCE_IMPLEMENTED（原生未测）** |
+| TS-P05 | 将原 runId/resultId 与业务订单 ID 对账，显示独立验收状态 | TS-P04 | **LOCAL_DEMO_SOURCE_IMPLEMENTED** |
+| TS-P06 | 校验重复领取、取消、断线、脚本升级、站点变更、UNKNOWN 无重放 | TS-P03–05 | **CORE_V8_CHECKS_PASS（Node 未测）** |
+| TS-P07 | 普通用户任务列表、详情、领取、运行及验收 UI；按执行世界选择正式形态 | TS-P02–06，原 UI/安装合同 | **UI_SOURCE_IMPLEMENTED（正式包未晋升）** |
 | TS-P08 | 自动接单规则与有限 Pull（不得默认启用） | D1 完成、风险评审 | NOT_STARTED |
 | TS-P09 | 商业试点：验证真实需求、支付意愿、每单成本和平台利润 | D1 可用、明确任务类目 | NOT_STARTED |
 | TS-P10 | 真实支付、AML/KYC/税务、申诉、跨节点公平调度、Push | D3 实证与合规评审 | DEFERRED |
 
 ### 当前唯一下一条动作
 
-**执行 TS-P01 的只读复用核查**：从 [Native installed tasks](../../../docs/api/native-installed-tasks.zh-CN.md)、[Web Flow README](../../webflow/README.md)、原安装的 Controller Task 和目标网站许可中核实“已安装脚本 → 单次执行 → 原持久结果”的真实可用接口。若无法取得本机 Chrome/已安装脚本，明确记录未测和最小适配缺口，再准备 TS-P02/P03，**绝不重做 Native/RunHost**。
+**下一步唯一操作：在本地仓库执行 Task Shop 定向 Node 测试，再用原 builder 生成并校验候选包；通过后依规范晋升唯一正式工具包。** 若失败只修本项目实际缺口。真实 Chrome/Native 领取→运行→原结果→演示验收留给后续本地验收 Owner；不接管 Web Flow/Native 的开发文件。
 
 ## 4. D1 最低验收清单
 
@@ -80,3 +80,19 @@
 | 日期 | 操作 | 实际证明 | 后续 |
 | --- | --- | --- | --- |
 | 2026-11-02 | D0 项目文档建立 | 已核验 GitHub 8 个新文件可读；提交 `db5908f42c8363a732187c91aeec6f2b0224023f`；仅 `DOCS_ONLY` | 从 TS-P01 开始，无已实现接单 UI、节点服务或支付 |
+
+
+## 8. D1 基础代码增量（2026-11-02）
+
+| 事项 | 最新证据 | 限制 |
+| --- | --- | --- |
+| SDK 复用 | 已读 Sidebar `tasks.read/start/stop` 和 storage ETag CAS 实际合同/源码 | 本轮没在 Chrome/Native 实测 |
+| 市场订单和领取 | `src/core.js` 定义固定单任务、15 分钟租约、同安装 CAS 防重、leaseId fencing | 无跨设备原子调度、认证市场 |
+| 固定执行与证据 | `src/main.js` 仅用户点击 tasks.start，保存原 runId/resultId 与脱敏投影 | 原 iframe 销毁后无法直接跨会话查回 |
+| 商业验收/结算 | 原持久结果及业务规则与模拟验收独立；结算为 DEMO_POINTS | 非需求方实际签收、非真实资金 |
+| 核心检查 | V8 对当前 GitHub 源码 30 项断言 PASS；Node 测试/原 builder 检查文件已编写 | Node runner、原 build、Chrome、Native **NOT_TESTED** |
+| 可安装发布 | 已有 v2 `tool.config.json`，无多余 tasks.open 权限 | **PACKAGE_NOT_PROMOTED** |
+
+代码提交：`3a75dec7`（核心）、`9094579f`（UI/SDK 适配/测试）、`f3da5bc0`（绑定返回请求 ID 与原 builder 门禁）。文档与最小权限修改以本次最终 GitHub SHA 为准。
+
+Owner 与交接：Task Shop D1 Owner 完成源码阶段；本地原仓库 Node/build/安装包验证尚缺，**目前不满足原生 Chrome 最终验收移交条件**。后续仅在该门禁通过后交给本地 Codex Chrome/Native Owner 运行授权测试；并行 Web Flow 与 Native Owner 不变。
