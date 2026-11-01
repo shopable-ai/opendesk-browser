@@ -522,7 +522,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       // A durable 'running' row alone cannot prove the old Host or Worker is
       // alive after an iframe/service-worker restart. An unavailable context
       // inventory is UNKNOWN, not FOUND_RUNNING.
-      const contexts=checked.result?null:await api.runtime?.getContexts?.({}).catch(()=>null);
+      const contexts=checked.result?null:await Promise.resolve(api.runtime?.getContexts?.({})).catch(()=>null);
       const hostPresent=Array.isArray(contexts)&&
         contexts.some(context=>context.documentId===checked.run.hostDocumentId);
       const activeOriginal=checked.originalHostActive&&hostPresent&&
