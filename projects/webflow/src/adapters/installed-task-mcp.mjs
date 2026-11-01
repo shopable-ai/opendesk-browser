@@ -23,7 +23,7 @@ export const INSTALLED_TASK_MCP_TOOLS=Object.freeze([
     description:'Attempt one explicitly authorized, installed Baidu top-3 search. Mutates a real page. Never replay an unknown admission. Requires server-verified caller, conversation and atomic local grant.',
     inputSchema:{type:'object',properties:{operationKey:operationKeySchema,query:querySchema},
       required:['operationKey','query'],additionalProperties:false},
-    annotations:{readOnlyHint:false,destructiveHint:false,idempotentHint:false,openWorldHint:false}},
+    annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false,openWorldHint:true}},
   {name:'opendesk.webflow.result',
     description:'Read only this caller/conversation original operationKey and its verified durable result; does not execute a task.',
     inputSchema:{type:'object',properties:{operationKey:operationKeySchema},
@@ -63,7 +63,7 @@ function confirmRecord(record,c,operationKey,requestId){
   if(!obj(record)||record.principal!==c.principal||record.conversation!==c.conversation||
     record.operationKey!==operationKey||record.requestId!==requestId||
     !string(record.query,120)||!string(record.registrationId,128)||!obj(record.target)||
-    !obj(record.installation)||record.installation.generation<1||
+    !obj(record.installation)||!Number.isSafeInteger(record.installation.generation)||record.installation.generation<1||
     !string(record.installation.installationId,64)||record.target.origin!==BAIDU_PIN.origin)
     rejectTask('E_CORRELATION','Stored operation binding failed verification','OUTCOME_UNKNOWN');
   return record;
