@@ -491,3 +491,49 @@ Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/r
 离线验收得到 11 个队列用例通过，加交接校验共 131/131；测试包括保存→中断→恢复→拒绝重领→原结果对账→唯一完成、依赖、失败/取消、写入后丢 ACK、读回不一致、陈旧写和单实例重入。它们证明应用数据行为，不证明真实 AppStorage、跨宿主并发、运行时安装、浏览器动作或队列派发。LEASED 仅单 owner 的逻辑状态，没有原子租约/TTL/fencing；busy 与读前检查不是多宿主锁。真实结果引用的真伪仍由后续原执行权威/适配器核验。
 
 用户要求“提示词触发后续队列”的最终手测目标已保留，但当前聊天只接已安装单任务；不把这两个离线模块冒称队列入口。P0 dev 复测完成后交付可复制的真实单任务提示词、安装审阅/一次预批准、预期动作/单次回传与故障排查。队列的两步集成仍需独立接线与有界验收，不在本轮暗中派发新 AI/仓库任务。最新指定 HR‑6.1 Sol/xhigh 的 dev 复测由既有 native owner 负责，不改全局配置、不编译 production。
+
+---
+
+## 11. Web Flow V0.3.1 正式应用代码与测试增量（2026-11-02）
+
+本节只记录本轮生产代码实施与证据，原 BR-01–12、AWB-01–08 和离线队列进度不重置。设计以并行线程已合入的 V0.3.1 为准：正式主导航为「概览 / 脚本 / 记录」，帮助和设置由顶部图标进入；流程不冒充已落地。当前 GitHub main 可读写，但不能查看用户 Mac 本地未提交改动，也未访问其 Chrome Development Tab。
+
+### 11.1 原型功能 → 可信接口 → 目标代码 → 状态
+
+| 用户交互 | 真实来源与映射 | 本轮实际状态 |
+| --- | --- | --- |
+| 在扩展中心打开应用 | 原 Sidebar Tool v2 沙箱、既有安装器；projects/webflow/tool.config.json + src/ui/index.html/main.js/style.css | SOURCE_IMPLEMENTED；需正式 JSON 经原安装器审阅安装才能打开 |
+| 概览统计 | 两个应用配置已审阅固定 pin，tasks.read 安装核验 | 固定 pin 子集的真实可用性统计，明确不是全部已安装脚本 |
+| 脚本管理列表 | 原 Task 安装身份 taskId/version/manifestHash/contentHash 与 installationId/generation；model.js + main.js | 两项固定 Task 实际读取状态；搜索、状态筛选、收藏、详情；未开放任意任务枚举 |
+| 手动运行 | tasks.read({taskId})、tasks.start({clientRequestId,task,params})；宿主验证用户手势、Origin、安装身份和 Authority | 正式调用已编码，不模拟网页成功；Chrome 实运行仍 NOT_TESTED |
+| 停止与对账 | tasks.read({clientRequestId}) / tasks.stop({clientRequestId}) / 原 RunHost | 绑定同 iframe 同请求，区分 running、unknown、result 和资源释放；UNKNOWN 不自动重试 |
+| 记录 | Controller result/outcome/value 由原委托快照投影；本工具 storage.local 写后读回最近 12 条摘要 | 区分运行完成、网页业务状态、持久结果与原聊天/AI 续答未观察；不冒充全局历史 |
+| 设置 | storage.get/set 仅持久化本应用收藏与主题 | 真实已接入；总自动授权/逐任务 Web Flow auto-grant 暂无合法公开 API，不展示假开关 |
+| 流程与原聊天交付 | 既有离线 queue/handoff 与 ChatGPT Bridge 分别保持唯一 owner | 未接真实多步骤执行与跨 iframe / AI 原聊天交付；未更改五字段 intent v1 |
+
+不复制 Task Catalog、Installer、Runner、Authority、Bridge、任务数据库，也不向沙箱引入宿主私有存储/React 代码。依赖仓库固定共享 React 19.2.0 Sandbox Runtime，工具自身根挂载于安全 iframe。
+
+### 11.2 文件与 Git commit 记录
+
+| 变更 | 直接提交到 main 的 commit |
+| --- | --- |
+| projects/webflow/tool.config.json：沙箱 v2 和百度/Google 两个固定任务 pin | 75b4a0309abce4e220a6cefd856023efd3153421 |
+| projects/webflow/src/ui/model.js：运行与结果纯投影 | f414bc25550650d30ae2c3396c25d158e9c20aef |
+| projects/webflow/src/ui/index.html：安全 UI 挂载 | b2c0eae6557cb016fe94984f40b1543b74b7669e |
+| projects/webflow/src/ui/style.css：窄侧栏、明暗主题、焦点 | 8d6ac942baff2e800cd38cbdcde52def96800163 |
+| projects/webflow/src/ui/main.js：主 UI 与业务委托 | 02dea96a4c9b091f7e6c2712c4703b410a33e1a3；修复语法 ab5ab463fc4cb845c4127ee084eb6da97f6d678a |
+| projects/webflow/tests/webflow-ui.test.mjs：pin/结果/筛选/原打包器测试 | d0314578e46cf7988ff5bc21dcca6f5c6938c956 |
+| projects/webflow/app.ci.json：接现有 App CI | 40f58b52cd48c10407e28ac0bcaa6058f3aed63a |
+| .github/workflows/webflow-package.yml：唯一正式工具包生成/晋升/提交门禁 | 21ee043a96adb1406c429505c49ffe06ba5559d5；处理并发写入 afebc899fe33271d739b6d20c899d6b722f7f3e5 |
+| projects/webflow/README.md：更新实际入口和功能限制 | 4fb89e39c25cda682ea80dd8035fe3539f30f744 |
+
+仅 Web Flow 自身与一份专属 CI 门禁发生修改；其他并行项目和原 V0.3.1 预览未覆盖。
+
+### 11.3 实测门禁、证据等级与剩余任务
+
+- 2026-11-02 项目 CI 第一次运行 41335824089 失败：node --check projects/webflow/src/ui/main.js 在第 342 行报 SyntaxError，exit 1；源码随即修复。
+- 第二次运行 41335988853：node --check model.js/main.js PASS；node --test projects/webflow/tests/webflow-ui.test.mjs tests/environment/task-delegation-package.test.mjs 实际 9/9 PASS、exit 0；原 build-sidebar-tool.mjs 生成 37,986 bytes candidate，原 --promote-from 与 --check-project 在 CI 工作区通过，SHA-256 为 869cd4bfd1986ed61dc519252c939d79d4be983835a9c9acdd13d7fff08e9411；但 GitHub main 被另一线程更新，非快进 git push 被拒，故这一次不能报告远程正式 JSON 已提交。门禁已改为通过文件级 CAS 提交，避免覆盖并行 main。
+- 原 OpenDesk App CI 在 commit ab5ab463fc4cb845c4127ee084eb6da97f6d678a 的 workflow 41335988885 为 success；它不构成真实 Chrome 安装、授权、网页或原聊天交付证据。
+- SOURCE_IMPLEMENTED = 已完成；COMPONENT_TESTED = 上述 9 项通过；BUILD_VERIFIED = 本地 CI 工作区已通过、远程正式包待实际读回；CHROME_TESTED、BUSINESS_VERIFIED、RELEASED = NOT_TESTED / NOT_RELEASED。
+- 下一步须确认正式单一包通过原 builder 和 GitHub 源码一致性读回；本机 npm run dev + Development Extension Center 审阅/安装/打开 Web Flow；安装对应固定 Task，在真实网站授权并手动运行，核对原 RunHost runId/resultId/结果与 UNKNOWN；实测键盘、320/360/440/580px、暗色/浅色、重载、权限撤销、两次快速点击；原 ChatGPT Bridge 的聊天交付独立取证。没有这些，不应给 95+ 实测验收分。
+- 后续才针对全局 Task 枚举、跨实例持久历史、逐任务自动授权和持久工作流补最小公共 SDK 能力评审，不复做 UI 原型或并行 Owner 的 Bridge 协议。
