@@ -4,13 +4,21 @@ const describe=node=>({node,text:node.textContent||'',id:
   node.getAttribute?.('data-message-id')||
   node.getAttribute?.('data-chatgpt-search-unit-key')||
   node.getAttribute?.('data-content-search-unit-key')||null});
-const same=(before,node)=>before.text===(node.textContent||'')&&
-  (before.node===node||Boolean(before.id&&before.id===describe(node).id));
+const sameIdentity=(before,node)=>before.node===node||Boolean(before.id&&before.id===describe(node).id);
+const same=(before,node)=>before.text===(node.textContent||'')&&sameIdentity(before,node);
 const appended=(before,nodes,multiple=false)=>{
   if(!before.length)return multiple?nodes.length>=1:nodes.length===1;
+  if(multiple){
+    // Earlier ChatGPT replies can hydrate after the latest reply is complete.
+    // The unchanged latest reply anchors this new answer; older placeholder
+    // text is not part of its identity. User history remains checked below.
+    const anchors=nodes.map((node,index)=>same(before.at(-1),node)?index:-1).filter(index=>index>=0);
+    return anchors.length===1&&anchors[0]<nodes.length-1&&
+      !before.some(item=>sameIdentity(item,nodes.at(-1)));
+  }
   const offset=before.findIndex(item=>same(item,nodes[0]||{}));
   const count=before.length-offset+1;
-  return offset>=0&&(multiple?nodes.length>=count:nodes.length===count)&&
+  return offset>=0&&nodes.length===count&&
     before.slice(offset).every((item,index)=>same(item,nodes[index]))&&
     !before.some(item=>same(item,nodes.at(-1)));
 };

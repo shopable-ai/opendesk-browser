@@ -4,7 +4,7 @@ import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent} from './chatgpt-task-request.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
-import {showChatGPTExecutionPage} from './chatgpt-execution-page.js';
+import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from './chatgpt-execution-page.js';
 
 export const FIXED_TASK_VERSION='1.0.0';
 export const FIXED_TASK_SOURCE_HASH='c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4';
@@ -519,7 +519,12 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       !active||message.requestId!==active.message.requestId||message.runId!==active.runId||
       !sameSource(message.source,active.source)||message.sourceUrl!==active.source.url)
       throw fail('E_BRIDGE_TARGET','没有与本次请求匹配的运行页面');
-    return showChatGPTExecutionPage({api,client,host,runId:active.runId,assertActive:async()=>{
+    return showChatGPTExecutionPage({api,client,host,runId:active.runId,
+      onActivation:()=>{
+        assertActive(active);
+        if(!sameEpoch(active.epoch,active.request?.taskId))throw fail('E_BRIDGE_REVOKED','切页前授权已改变');
+        active.returnToSource=true;
+      },assertActive:async()=>{
       assertActive(active);
       await assertSource(active.source,sender);
       if(!sameEpoch(active.epoch,active.request?.taskId)||!active.request||!active.installed)
@@ -550,6 +555,19 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw fail('E_BRIDGE_SENDER','来源与运行请求不匹配');
     busy=true;
     const active=operation={source,message,cancelled:false,runId:null,stopPromise:null,deliveryDispatched:false,epoch:captureEpoch()};
+    const returnToSource=async()=>{
+      if(!active.returnToSource)return;
+      active.returnToSource=false;
+      try{
+        await returnToChatGPTSourcePage({api,source,windowId:sender.tab.windowId,assertCurrent:()=>{
+          assertActive(active);
+          if(!sameEpoch(active.epoch,active.request?.taskId))throw fail('E_BRIDGE_REVOKED','返回前授权已改变');
+        },assertSource:async()=>{
+          if(disposed||operation!==active||!isVerifiedSidePanel())throw fail('E_BRIDGE_HOST','可信侧边栏已关闭');
+          await assertSource(source,sender);
+        }});
+      }catch{/* Observational cleanup never retries or changes the run/delivery outcome. */}
+    };
     let reserved=false,submitted=false;
     try{
       await assertSource(source,sender);
@@ -612,10 +630,16 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       submitted=true;
       if(!claim?.runId||claim.duplicate)throw fail('E_BRIDGE_RUN_UNKNOWN','任务运行身份未知或已提交过；禁止重放');
       active.runId=claim.runId;
+      const completion=host.completion;
       if(active.cancelled)await stopOwned(active);
       assertActive(active);
       progress('running',installed);
-      const terminal=await host.completion;
+      // Reuse the same authorized view path as the explicit button. A fast
+      // settlement/navigation or lost activation receipt must not replay a run.
+      try{await showExecutionPage({...message,kind:'show-execution-page',runId:claim.runId},sender);}
+      catch{/* Viewing cannot grant execution or invalidate a durable result. */}
+      const terminal=await completion;
+      await returnToSource();
       assertActive(active);
       if(terminal?.runId!==claim.runId||terminal.state!=='completed'||terminal.pendingSettlement||
         terminal.retirement?.state!=='released')
@@ -663,7 +687,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         if(!error.code)error.code='E_BRIDGE_OUTCOME_UNKNOWN';
       }
       throw error;
-    }finally{delivery=null;if(operation===active)operation=null;busy=false;}
+    }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
   return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,dispose(){
     disposed=true;invalidate();delivery=null;

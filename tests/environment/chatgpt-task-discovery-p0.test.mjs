@@ -34,6 +34,39 @@ test('P0 discovery does not mistake remounts or regeneration under an old user f
   snap.users=[message('unidentified-remount','u0')];snap.assistants=[message('old-answer')];
   assert.equal(probe.observe(snap),null);
 });
+test('P0 discovery tolerates lazy hydration of older replies behind an unchanged latest reply',()=>{
+  const probe=createChatGPTTaskDiscovery(),snap=snapshot();
+  const older=message('older-answer','ChatGPT 说：ChatGPT');
+  snap.assistants.unshift(older);probe.reset(snap);
+  snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
+  older.textContent='Earlier historical answer, now fully hydrated';
+  snap.assistants.push(message('a1','new complete answer'));
+  assert.equal(probe.observe(snap)?.answer,snap.assistants.at(-1));
+  assert.equal(probe.observe(snap),null);
+});
+test('P0 lazy history still requires the unchanged latest reply anchor',()=>{
+  for(const change of ['missing','edited','replaced','reused-answer','duplicate-anchor']){
+    const probe=createChatGPTTaskDiscovery(),snap=snapshot();
+    snap.assistants.unshift(message('older-answer'));probe.reset(snap);
+    snap.users.push(message('u1'));probe.observe(snap);
+    if(change==='missing')snap.assistants.pop();
+    if(change==='edited')snap.assistants.at(-1).textContent='edited prior reply';
+    if(change==='replaced')snap.assistants[1]=message('other-answer');
+    if(change==='duplicate-anchor')snap.assistants.unshift(message('a0'));
+    snap.assistants.push(change==='reused-answer'?snap.assistants[0]:message('a1'));
+    assert.equal(probe.observe(snap),null,change);
+  }
+});
+test('P0 discovery rejects hydrated historical replies reused after the latest anchor',()=>{
+  for(const remount of [false,true]){
+    const probe=createChatGPTTaskDiscovery(),snap=snapshot();
+    const older=message('older-answer','placeholder');snap.assistants.unshift(older);probe.reset(snap);
+    snap.users.push(message('u1'));probe.observe(snap);
+    older.textContent='hydrated historical answer';
+    snap.assistants=[snap.assistants[1],remount?message('older-answer',older.textContent):older];
+    assert.equal(probe.observe(snap),null,remount?'stable-ID remount':'same node');
+  }
+});
 test('P0 discovery resets on SPA navigation and will only observe a later new user turn',()=>{
   const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
   snap.users.push(message('u1'));probe.observe(snap);
@@ -164,6 +197,19 @@ test('P0 page automatically prepares a new five-field candidate and requires exa
   assert.equal(h.buttons[2].disabled,false);
   await h.click(2);await h.click(2);h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);h.page.dispose();
+});
+test('P0 preapproved new task executes once while an older reply hydrates',async()=>{
+  const h=pageHarness();
+  const older=message('older-answer','ChatGPT 说：ChatGPT');h.snap.assistants.unshift(older);
+  h.poll();await h.selectInstalled();await h.click(6);
+  assert.equal(h.sends.filter(msg=>msg.kind==='preapprove-next-task').length,1);
+  h.snap.users.push(message('u1'));h.poll();await flush();
+  older.textContent='Earlier historical answer, now fully hydrated';
+  h.snap.assistants.push(message('a1',JSON.stringify(h.intent)));
+  h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(msg=>msg.kind==='bind-preapproved-task').length,1);
+  assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);
+  h.page.dispose();
 });
 test('P0 discovered task replaces the old task, target and args shown before execution',async()=>{
   for(const taskId of ['page.read.fixed','custom.page.read']){

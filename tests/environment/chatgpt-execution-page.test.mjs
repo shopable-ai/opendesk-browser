@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {showChatGPTExecutionPage} from '../../src/native-agent/chatgpt-execution-page.js';
+import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from '../../src/native-agent/chatgpt-execution-page.js';
 
 function harness(){
   const target={tabId:42,frameId:0,documentId:'target-document',mode:'owned',
@@ -17,8 +17,8 @@ function harness(){
   const api={tabs:{get:async()=>({id:42,url:frame.url,incognito:false}),
     update:async(id,options)=>{updates.push({id,...options});return {id,url:frame.url,active:true};},
     onRemoved:event(),onDetached:event(),onReplaced:event()},
-    webNavigation:{getAllFrames:async()=>{onFrames();return [frame];},onBeforeNavigate:navigation,onCommitted:event()},
-    permissions:{contains:async()=>permission}};
+    webNavigation:{getAllFrames:async()=>{onFrames();return [frame];},onBeforeNavigate:navigation,onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event()},
+    permissions:{contains:async()=>permission,onRemoved:event()}};
   const client={controller:{snapshotControllerRun:async()=>({run})}};
   const args={api,client,host,runId:run.runId,assertActive:async()=>{
     if(!active)throw Object.assign(new Error('source revoked'),{code:'E_BRIDGE_REVOKED'});
@@ -68,4 +68,48 @@ test('same-URL reload during the final asynchronous authorization check cannot a
     assert.deepEqual(h.updates,[]);
     assert.ok(h.events.every(listeners=>listeners.size===0));
   }
+});
+
+function returnHarness(){
+  const h=harness(),source={tabId:7,documentId:'chat-document',url:'https://chatgpt.com/c/original'};
+  const tab={id:7,windowId:2,url:source.url,incognito:false};
+  h.args.api.tabs.get=async()=>({...tab});
+  h.args.api.tabs.update=async(id,options)=>{h.updates.push({id,...options});return {...tab,active:true};};
+  const args={api:h.args.api,source,windowId:2,assertSource:async()=>{}};
+  return {...h,args,source,tab};
+}
+test('return activates only the captured original conversation without creating or navigating',async()=>{
+  const h=returnHarness();
+  assert.equal((await returnToChatGPTSourcePage(h.args)).returned,true);
+  assert.deepEqual(h.updates,[{id:7,active:true}]);
+  assert.ok(h.events.every(listeners=>listeners.size===0));
+});
+test('return refuses changed or closed conversations, revoked access and navigation races',async()=>{
+  for(const kind of ['changed','closed','window','pending','permission','navigation','history','fragment','late-permission','late-host']){
+    const h=returnHarness();
+    if(kind==='changed')h.args.assertSource=async()=>{throw new Error('document replaced');};
+    if(kind==='closed')h.args.api.tabs.get=async()=>{throw new Error('closed');};
+    if(kind==='window')h.tab.windowId=3;
+    if(kind==='pending')h.tab.pendingUrl=h.source.url;
+    if(kind==='permission')h.deny();
+    if(kind==='navigation')h.args.assertSource=async()=>h.navigation.emit({tabId:7,frameId:0});
+    let disposed=false;h.args.assertCurrent=()=>{if(disposed)throw new Error('disposed');};
+    if(['history','fragment','late-permission','late-host'].includes(kind))h.args.api.tabs.get=async()=>{
+      if(kind==='history')h.args.api.webNavigation.onHistoryStateUpdated.emit({tabId:7,frameId:0});
+      if(kind==='fragment')h.args.api.webNavigation.onReferenceFragmentUpdated.emit({tabId:7,frameId:0});
+      if(kind==='late-permission')h.args.api.permissions.onRemoved.emit({origins:['https://chatgpt.com/*']});
+      if(kind==='late-host')disposed=true;
+      return {...h.tab};
+    };
+    await assert.rejects(returnToChatGPTSourcePage(h.args),undefined,kind);
+    assert.deepEqual(h.updates,[],kind);
+    assert.ok(h.events.every(listeners=>listeners.size===0));
+  }
+});
+
+test('view final dispatch callback fences cancellation during the last target read',async()=>{
+  const h=harness();let cancelled=false,reads=0;
+  h.onFrames(()=>{if(++reads===2)cancelled=true;});
+  h.args.onActivation=()=>{if(cancelled)throw new Error('cancelled at dispatch');};
+  await assert.rejects(showChatGPTExecutionPage(h.args));assert.deepEqual(h.updates,[]);
 });

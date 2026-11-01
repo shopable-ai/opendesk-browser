@@ -41,7 +41,7 @@ function harness({holdRun=false,clock}={}){
   let saved={},counter=0,losePrepare=false;
   const storage={get:async key=>({[key]:structuredClone(saved[key])}),set:async value=>{Object.assign(saved,structuredClone(value));}};
   const ledger=createChatGPTBridgeTriggerLedger({storage,clock,generateId:()=>`44444444-4444-4444-8444-${String(++counter).padStart(12,'0')}`});
-  const runningReady=Promise.withResolvers(),heldCompletion=Promise.withResolvers();
+  const runningReady=Promise.withResolvers(),viewReady=Promise.withResolvers(),heldCompletion=Promise.withResolvers();
   const target={mode:'owned',tabId:42,frameId:0,documentId:'article-target-document',
     allowedOrigin:'https://example.com',targetSessionId:'article-session',targetVersion:1};
   const targetFrame={tabId:target.tabId,frameId:0,documentId:target.documentId,
@@ -65,14 +65,14 @@ function harness({holdRun=false,clock}={}){
     tabs:{onRemoved:chromeEvent(),onDetached:chromeEvent(),onReplaced:chromeEvent(),
       get:async tabId=>tabId===target.tabId?{id:target.tabId,url:targetFrame.url,incognito:false}:{...sender.tab},
       update:async(tabId,options)=>{events.updates.push({tabId,options});
-        return {id:tabId,url:targetFrame.url,active:true,incognito:false};},
+        return {...(tabId===target.tabId?{id:tabId,url:targetFrame.url,windowId:2}:sender.tab),active:true,incognito:false};},
       async sendMessage(tab,msg,options){
       assert.equal(tab,source.tabId);assert.equal(options.documentId,source.documentId);
       if(msg.kind==='progress'){events.progress.push(msg);if(msg.stage==='running')runningReady.resolve();return {ok:true,data:{observed:true}};}
       onSend();events.deliveries.push(msg);
       await bridge.checkDelivery({...msg,kind:'check-delivery'},sender);
       return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};}},
-    webNavigation:{onBeforeNavigate:chromeEvent(),onCommitted:chromeEvent(),
+    webNavigation:{onBeforeNavigate:chromeEvent(),onCommitted:chromeEvent(),onHistoryStateUpdated:chromeEvent(),onReferenceFragmentUpdated:chromeEvent(),
       getFrame:async()=>({...source,documentLifecycle:'active'}),getAllFrames:async()=>[targetFrame]},
     permissions:{contains:async()=>permission,onRemoved:{addListener:fn=>permissionListeners.add(fn),
       removeListener:fn=>permissionListeners.delete(fn)}}};
@@ -85,7 +85,7 @@ function harness({holdRun=false,clock}={}){
       snapshot.run.retirementState='active';snapshot.run.target=structuredClone(target);}
     return {runId:'run-article'};
   },stop:async input=>{events.stops.push(input);return {stopped:true};},
-    completion:holdRun?heldCompletion.promise:Promise.resolve(terminal)};
+    get completion(){return holdRun?{then(...args){viewReady.resolve();return heldCompletion.promise.then(...args);}}:Promise.resolve(terminal);}};
   const finish=()=>{snapshot.run.state='completed';snapshot.run.retirementState='released';
     host.currentRun=null;heldCompletion.resolve(terminal);};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,currentPageTarget:{snapshot:{windowId:2}},
@@ -97,7 +97,7 @@ function harness({holdRun=false,clock}={}){
         structuredClone(observed);
     }});
   return {bridge,api,client,request,message,sender,installation,installed,resolved,candidate,events,snapshot,observed,intent,ledger,storage,host,target,finish,
-    unverify:()=>{verified=false;},onRead:fn=>{onRead=fn;},loseACK:kind=>lostACKs.add(kind),runningReady:runningReady.promise,
+    unverify:()=>{verified=false;},onRead:fn=>{onRead=fn;},loseACK:kind=>lostACKs.add(kind),runningReady:runningReady.promise,viewReady:viewReady.promise,
     revokePermission:()=>{permission=false;for(const listener of permissionListeners)listener();},losePrepare:()=>{losePrepare=true;},
     grant:()=>{permission=true;},deny:()=>{permission=false;},onSend:fn=>{onSend=fn;}};
 }
@@ -275,7 +275,11 @@ test('candidate prepare and authorize require a trusted sidepanel sender at the 
 async function runningHarness(t){
   const h=harness({holdRun:true}),message=await adopt(h);await approve(h,message);
   const execution=h.bridge.handle(message,h.sender).then(receipt=>({receipt}),error=>({error}));
-  await h.runningReady;
+  await h.runningReady;await h.viewReady;
+  // Automatic viewing has already passed the same owned-target checks. The
+  // assertions below measure additional explicit button calls only.
+  assert.deepEqual(h.events.updates,[{tabId:h.target.tabId,options:{active:true}}]);
+  h.events.updates.length=0;h.events.snapshots.length=0;
   assert.equal(h.events.starts.length,1);assert.equal(h.host.currentRun,'run-article');
   const show={protocol,kind:'show-execution-page',requestId:message.requestId,runId:h.host.currentRun,
     source:structuredClone(source),sourceUrl:source.url};
@@ -335,7 +339,7 @@ test('P3 Host cannot show an execution page after the admitted run completes',as
   const h=await runningHarness(t);h.finish();
   assert.equal((await h.execution).receipt.sent,true);assert.equal(h.host.currentRun,null);
   await assert.rejects(h.bridge.showExecutionPage(h.show,h.sender),{code:'E_BRIDGE_TARGET'});
-  assert.deepEqual(h.events.updates,[]);assert.equal(h.events.starts.length,1);
+  assert.deepEqual(h.events.updates,[{tabId:source.tabId,options:{active:true}}]);assert.equal(h.events.starts.length,1);
 });
 
 function capacityHarness(){
@@ -671,7 +675,11 @@ test('healthy full Gate restart retains a prepared candidate for its original au
   await approve(h,message);
   now+=31000;gate.restart();
   const execution=h.bridge.handle(message,h.sender);
-  await h.runningReady;
+  await h.runningReady;await h.viewReady;
+  // Automatic viewing has already passed the same owned-target checks. The
+  // assertions below measure additional explicit button calls only.
+  assert.deepEqual(h.events.updates,[{tabId:h.target.tabId,options:{active:true}}]);
+  h.events.updates.length=0;h.events.snapshots.length=0;
   assert.equal((await rowsOf(h))[message.requestId].status,'consumed');
   now+=31000;gate.restart();h.finish();
   assert.equal((await execution).sent,true);
