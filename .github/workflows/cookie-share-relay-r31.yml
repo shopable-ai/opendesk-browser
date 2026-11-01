@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'services/cookie-share-relay/**'
+      - 'examples/sidebar-tools/cookie-editor/trusted/account-share.js'
+      - 'examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
+      - 'examples/sidebar-tools/cookie-editor/trusted/account-vault.js'
+      - 'tests/environment/cookie-editor-account-share.test.mjs'
       - '.github/workflows/cookie-share-relay-r31.yml'
   workflow_dispatch:
 permissions:
@@ -19,10 +23,11 @@ jobs:
           node-version: '24'
       - name: Test real HTTP endpoints and SQLite persistence
         run: node --test services/cookie-share-relay/server.test.mjs
-      # Host suite cannot import until Time Review project migration repairs
-      # src/ui/sidebar-tools/installation.js -> examples/.../trusted/model.js.
-      # Keep that independent migration failure NOT_TESTED; do not mask with mocks.
-      - name: Verify existing URL contract and account Vault
+      # Full trusted Host remains in the existing Cookie Editor workflow.
+      # This dependency-free job checks the real Relay client and storage fences;
+      # it does not stand in for TLS, Chromium or two-device login validation.
+      - name: Verify configuration share integration, URL contract and account Vault
         run: |
           node --test tests/environment/cookie-editor-account-switch-url.test.mjs \
-            tests/environment/cookie-editor-account-vault.test.mjs
+            tests/environment/cookie-editor-account-vault.test.mjs \
+            tests/environment/cookie-editor-account-share.test.mjs

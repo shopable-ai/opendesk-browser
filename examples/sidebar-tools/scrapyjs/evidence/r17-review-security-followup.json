@@ -1,0 +1,474 @@
+{
+  "schema": "opendesk.independent-security-followup.v1",
+  "review_id": "r17-review-security-followup",
+  "review_date": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "parent_review": "examples/sidebar-tools/scrapyjs/evidence/r17-review-security.json",
+  "parent_review_sha256": "3d2b95ee7b3dabcb4ad0a0b85ac63240389103f241ec28e0c1327e4b8cc8db86",
+  "output": "examples/sidebar-tools/scrapyjs/evidence/r17-review-security-followup.json",
+  "scope": {
+    "source_read_allowlist": [
+      "src/platform/host/local-tasks.js",
+      "src/ui/sidebar-tools.js",
+      "src/ui/sidebar-tools/installation.js",
+      "tests/environment/local-task-bridge.test.mjs",
+      "docs/api/local-task-bridge.zh-CN.md"
+    ],
+    "restriction": "只审查原五个文件内本轮安全修复和关联接线；不扩展全仓，不读取其他任务或服务端/沙箱发送方源码。",
+    "source_changes": false,
+    "original_review_modified": false,
+    "branches_created": false,
+    "commits": false,
+    "real_services_contacted": false,
+    "browser_started": false,
+    "excluded": "Prompt/Cookie pin 基线失败、全量构建/验收、其他任务信息均不检查或修改。"
+  },
+  "source_snapshot": {
+    "sha256": {
+      "src/platform/host/local-tasks.js": "2f8b77e079972202c90fb18455f373b770d42f96fa5d29fc113e0bc5b0df5317",
+      "src/ui/sidebar-tools.js": "3a60a7f1915bb061c6dcbfb492b29bbdc7d40d8d6ec384a9a8b714acdb89bda1",
+      "src/ui/sidebar-tools/installation.js": "54cb50eed69feee23d25e06c41dea2f576adfebb66bc522cfaa7f8343e708eb4",
+      "tests/environment/local-task-bridge.test.mjs": "1c0fb1d6be18924d545c0179be8fb7c70c77052ffac3d7dc29ef0d74152ca0bf",
+      "docs/api/local-task-bridge.zh-CN.md": "09e834e6ba2937fb8c8e8bb1390f81e86893040c891b95e722027ef3d32f3502"
+    },
+    "note": "主 agent 在复核期间进一步加入 reply.requestId 与原请求匹配的硬性检查；诊断 fixture 已按新合同返回 requestId，指定7项测试也对该最新快照重新执行。 随后增加的 E_LOCAL_NOT_CREATED 预创建拒绝分类也已按最新摘要复核并重跑7项测试：409/422白名单拒绝释放栅栏而保留原ID，未知状态仍保持unknown。",
+    "applicability": "以下修复状态仅绑定本次快照；不是对后续代码或真实 Host/Chrome 的正式通过结论。",
+    "publication_drift": [],
+    "matches_current_files_at_publication": true
+  },
+  "decision": {
+    "status": "P1_FIXES_VERIFIED_AT_SOURCE_AND_NODE_LEVEL_WITH_P2_RESIDUALS",
+    "p0_found": 0,
+    "p1_residuals_found": 0,
+    "p2_residuals": 2,
+    "previous_p1_count": 4,
+    "previous_p1_direct_triggers_closed": 4,
+    "host_chrome_formal_acceptance": "NOT_TESTED",
+    "provisional_score": 81,
+    "formal_score": null,
+    "formal_95_plus_awarded": false
+  },
+  "previous_findings": [
+    {
+      "id": "R17-SEC-001",
+      "previous_priority": "P1",
+      "status": "FIXED_SOURCE_AND_NODE",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 5,
+          "end_line": 9
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 25,
+          "end_line": 29
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 97,
+          "end_line": 110
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 122,
+          "end_line": 127
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 137,
+          "end_line": 140
+        }
+      ],
+      "verified_change": "safeId 拒绝原型危险键，读 requests/runs 使用 own；写入改为展开对象的自有数据属性，返回 runId 同样校验 safeId。",
+      "evidence": "指定 prototype request/run 测试通过；原 __proto__ 留档缺失和继承属性取 scope 的直接路径被拒绝。",
+      "limit": "真实服务端身份隔离不由此项 Node 测试替代。"
+    },
+    {
+      "id": "R17-SEC-002",
+      "previous_priority": "P1",
+      "status": "FIXED_SOURCE_AND_NODE",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 8,
+          "end_line": 9
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 110,
+          "end_line": 121
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 132,
+          "end_line": 135
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 137,
+          "end_line": 151
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 939,
+          "end_line": 942
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 2020,
+          "end_line": 2023
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 96,
+          "end_line": 97
+        }
+      ],
+      "verified_change": "默认 Host 请求、导出与撤权均使用 navigator.locks 的 opendesk.sidebar-tools:local-tasks:<toolId>；UI 注入锁与此同名。安装路径仍 tool→catalog→local-tasks，Host 只取 local-tasks，不反向取安装锁。启动持久化后、发包前又调用 assertAuthorized。",
+      "evidence": "指定可控持久化竞争测试通过：停用中的启动无 POST，撤权最终清除 key。补充同进程 Node navigator.locks 诊断证明第二个 export 不并发进入 fetch。",
+      "limit": "Node 真实 LockManager 可用；跨 Chrome 文档/Worker 的锁与退役尚未原生实测。修复没有证明锁不受支持的环境也有保护。"
+    },
+    {
+      "id": "R17-SEC-003",
+      "previous_priority": "P1",
+      "status": "FIXED_SOURCE_AND_EXACT_HELPER_DIAGNOSTICS",
+      "locations": [
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 82,
+          "end_line": 90
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 223,
+          "end_line": 250
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 271,
+          "end_line": 279
+        }
+      ],
+      "verified_change": "local revoke 的异常先保存在 localFailure，其他原生 stop/卸载计划继续执行，最后仍报告失败；卸载在最终删除恢复 journal 之前重新抛出 localFailure。",
+      "evidence": "抽取允许文件的原 stop helper 与卸载 helper、注入模拟依赖：本地失败后5个其他stop全部调用；卸载继续 schedules/budget/focus/adblock/ai/proxy，保留失败journal并返回E_TOOL_UNINSTALL_CLEANUP。",
+      "limit": "只验证原 local-revoke 失败阻断其他收尾这一直接问题；没有扩展到其他既有原生 helper 自身同时失败的全组合验收。"
+    },
+    {
+      "id": "R17-SEC-004",
+      "previous_priority": "P1",
+      "status": "FIXED_SOURCE_AND_NODE",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 97,
+          "end_line": 127
+        },
+        {
+          "path": "tests/environment/local-task-bridge.test.mjs",
+          "start_line": 66,
+          "end_line": 74
+        }
+      ],
+      "verified_change": "先持久记录 row.unresolved，再允许发送启动。unresolved 存在时新 requestId 也被拒绝；只有原 by-request 路径返回匹配 requestId 与 safe runId，才能解除该原请求的栅栏。普通状态查询或别的请求不能清理。 新增的例外仅为409/422与明确预创建拒绝代码：解除unresolved但保留原requestId的防重放留档；未识别状态仍为unknown。",
+      "evidence": "指定丢回包/换ID测试通过；补充诊断确认404及错误requestId都保留unknown并阻止新启动，原requestId的正向匹配回执才清除。",
+      "limit": "真实未发送的启动也会保留unresolved，见FOLLOWUP-P2-002；真实服务的by-request持久身份仍需其owner提供证据。"
+    },
+    {
+      "id": "R17-SEC-005",
+      "previous_priority": "P2",
+      "status": "PARTIALLY_FIXED",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 61,
+          "end_line": 61
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 85,
+          "end_line": 92
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 115,
+          "end_line": 120
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 137,
+          "end_line": 143
+        }
+      ],
+      "verified_change": "request 路径将401分类为E_LOCAL_SESSION并退役该scope缓存；下一次只读请求可续建session，不新增范围确认，也不重新POST启动。",
+      "remaining": "export 的 boundedFetch 没有相同缓存退役逻辑。原始报告中的master/endpoint轮换无可信重配对路径也未见变更；该条件性问题保留，未扩大本轮诊断为真实服务重启。",
+      "evidence": "只读401续会话正例通过；export401残余已复现，见FOLLOWUP-P2-001。"
+    },
+    {
+      "id": "R17-SEC-006",
+      "previous_priority": "P2",
+      "status": "FIXED_SOURCE_AND_IN_MEMORY",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 96,
+          "end_line": 106
+        }
+      ],
+      "verified_change": "已用requestId在prepare/consent前拒绝。",
+      "evidence": "成功启动后用相同ID改为新目标，E_LOCAL_REPLAY且确认次数仍1，没有新增session或其他网络调用。正常进度/Stop不新增审阅。"
+    }
+  ],
+  "residual_findings": [
+    {
+      "id": "FOLLOWUP-P2-001",
+      "priority": "P2",
+      "title": "导出401未清除scope的旧session，下一次只读查询仍先失败一次",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 115,
+          "end_line": 120
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 137,
+          "end_line": 143
+        }
+      ],
+      "trigger": "任务已启动，服务使当前session失效；首先执行导出，再执行状态GET。",
+      "observed": "导出返回E_LOCAL_SESSION，但sessions缓存未退役；下一次状态GET仍使用同一旧token并返回E_LOCAL_SESSION。该GET清缓存后，后续查询才续会话成功。",
+      "impact": "服务重启后的导出/状态恢复多一次必败操作；没有复现越权或自动启动POST，优先级P2。",
+      "recommendation": "让export与request共用401缓存退役处理，仍不自动重放下载或启动；下一次明确的只读请求可以安全建立新session。",
+      "probe_id": "export_401_does_not_evict_session",
+      "status": "REPRODUCED_IN_MEMORY"
+    },
+    {
+      "id": "FOLLOWUP-P2-002",
+      "priority": "P2",
+      "title": "启动已证明未发包时关闭iframe，也会留下无法正常正向对账的unknown栅栏",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 98,
+          "end_line": 98
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 110,
+          "end_line": 127
+        }
+      ],
+      "trigger": "requestId与unresolved已持久化，启动POST尚未发送；原iframe关闭，使紧接着的assertAuthorized失败。",
+      "observed": "诊断中启动POST次数为0，但row.unresolved仍为原requestId。正常重新打开时新ID受阻；原by-request不存在，不可能得到解栅栏所需的正向runId，单纯重开或读取不能恢复。",
+      "impact": "保护保持安全地拒绝执行，但一次正常的页面生命周期取消可使当前安装后续启动停滞，需要额外生命周期清理/人工恢复；没有发现副作用重放，优先级P2。",
+      "recommendation": "在同一任务锁和owner校验下区分确定未派发与已派发未知。只有可证明从未调用启动fetch的取消路径才可结束该请求并安全解除unresolved；网络提交后或写入结果不明仍保留原unknown，禁止放宽404来解栅栏。",
+      "probe_id": "known_unsent_start_keeps_unknown_fence_after_frame_closes",
+      "status": "REPRODUCED_IN_MEMORY"
+    }
+  ],
+  "retained_limits": [
+    {
+      "id": "R17-COND-001",
+      "status": "SERVICE_SIDE_OWNER_AND_CROSS_ORIGIN_ISOLATION_NOT_INDEPENDENTLY_TESTED",
+      "detail": "泛型body的owner/scope/实际URL仍依赖服务端按可信session验证；原条件性边界没有新服务端证据。本轮不把它伪报为已越权，也不读取范围外实现。"
+    },
+    {
+      "id": "export_click_sender",
+      "status": "NOT_READ_OUT_OF_SCOPE",
+      "detail": "最新sidebar导出user.export/私有port/可信确认回退接线未改变，复用原Host半链审查；发送方点击发放、unknown标记及Chrome实际下载仍未独立验证。"
+    },
+    {
+      "id": "master_credential_rotation",
+      "status": "ORIGINAL_P2_CONDITIONAL_RECOVERY_GAP_REMAINS_SOURCE_ONLY",
+      "detail": "当前修改解决request的失效session，不等于增加master/endpoint变化后的安全重配对/旧owner清理路径；未实际重启服务或修改配对。"
+    },
+    {
+      "id": "request_ledger_limit_and_failed_upgrade",
+      "status": "PREVIOUS_OBSERVATIONS_NOT_EXPANDED",
+      "detail": "128条历史身份容量和失败升级前旧配对退役仍按原始观察保留，本轮未开展额外工程或验收。"
+    },
+    {
+      "id": "precreation_error_contract",
+      "status": "HOST_ALLOWLIST_VERIFIED_SERVICE_SEMANTICS_NOT_READ",
+      "detail": "本机服务的WORKER_BUSY等409/422白名单错误被Host当作确定未创建，从而允许新ID。已验证Host只对限定状态/代码释放栅栏；这些服务错误在真实实现中一定早于副作用的事实不在允许文件内，不能由模拟响应证明。"
+    }
+  ],
+  "verification": {
+    "requested_test_file": "tests/environment/local-task-bridge.test.mjs",
+    "command": "node --test tests/environment/local-task-bridge.test.mjs",
+    "result": "PASS",
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "count_clarification": "指定文件当前共7项：原4项加新增3项；本轮执行全部7项，未将其描述成另外新增7项。",
+    "node": "v24.15.0",
+    "navigator_locks_available": true,
+    "tests": [
+      {
+        "name": "reject arbitrary localhost URLs, traversal, unsupported endpoints and large inputs",
+        "status": "PASS"
+      },
+      {
+        "name": "one reviewed scope, private tokens, owned status and stop survive reopening",
+        "status": "PASS"
+      },
+      {
+        "name": "unknown POST saves request identity before dispatch and never retries",
+        "status": "PASS"
+      },
+      {
+        "name": "revoked identity cannot poll; durable cleanup revokes server owner",
+        "status": "PASS"
+      },
+      {
+        "name": "prototype request and run IDs cannot use inherited ownership or bypass replay checks",
+        "status": "PASS"
+      },
+      {
+        "name": "lost creation receipt durably fences new IDs until original by-request lookup",
+        "status": "PASS"
+      },
+      {
+        "name": "revocation waits behind pending identity writes and never resurrects credentials or starts work",
+        "status": "PASS"
+      }
+    ],
+    "additional_probes": [
+      {
+        "id": "replay_before_consent",
+        "status": "PASS_IN_MEMORY",
+        "approvals": 1,
+        "extraNetworkCalls": 0
+      },
+      {
+        "id": "readonly_401_renews_next_read_without_new_consent_or_start",
+        "status": "PASS_IN_MEMORY",
+        "sessionCount": 2,
+        "approvals": 1,
+        "startPosts": 1
+      },
+      {
+        "id": "export_401_does_not_evict_session",
+        "status": "P2_RESIDUAL_REPRODUCED_IN_MEMORY",
+        "exportError": "E_LOCAL_SESSION",
+        "nextReadError": "E_LOCAL_SESSION",
+        "sessionPostsBeforeExtraFailedRead": 1,
+        "subsequentReadRecovers": true
+      },
+      {
+        "id": "unknown_clears_only_after_matching_positive_lookup",
+        "status": "PASS_IN_MEMORY",
+        "negative404RetainsFence": true,
+        "mismatchedRequestRetainsFence": true,
+        "newRequestBlocked": true,
+        "matchingPositiveClearsFence": true
+      },
+      {
+        "id": "known_unsent_start_keeps_unknown_fence_after_frame_closes",
+        "status": "P2_RESIDUAL_REPRODUCED",
+        "startPosts": 0,
+        "unresolvedRetained": true,
+        "explanation": "原iframe在持久化后、启动POST前关闭；Host已证明没有发包，但unresolved保留，后续仅正向lookup可解。"
+      },
+      {
+        "id": "exports_share_task_lock",
+        "status": "PASS_IN_MEMORY_NODE_NAVIGATOR_LOCKS",
+        "concurrentExportFetches": 1,
+        "downloads": 0
+      },
+      {
+        "id": "local_revoke_failure_continues_other_stops",
+        "status": "PASS_EXACT_HELPER_WITH_STUBS",
+        "calls": [
+          "revokeLocalTasks",
+          "stopStayFocusForTool",
+          "stopAdblockForTool",
+          "stopAiAccessForTool",
+          "stopManagedSiteBudgetForTool",
+          "stopManagedProxyForTool"
+        ],
+        "errorRetained": true
+      },
+      {
+        "id": "uninstall_continues_cleanup_and_keeps_failed_journal",
+        "status": "PASS_EXACT_HELPER_WITH_STUBS",
+        "calls": [
+          "revoke",
+          "schedules",
+          "budget",
+          "focus",
+          "adblock",
+          "ai",
+          "proxy"
+        ],
+        "journalDeleted": false,
+        "error": "E_TOOL_UNINSTALL_CLEANUP"
+      },
+      {
+        "id": "explicit_precreation_rejection_releases_only_unknown_fence",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_NOT_CREATED",
+        "newRequestAllowed": true,
+        "originalRequestTombstoneRetained": true
+      },
+      {
+        "id": "unrecognized_rejection_status_keeps_unknown",
+        "status": "PASS_IN_MEMORY",
+        "status502DoesNotClearFence": true
+      }
+    ],
+    "probe_scope": "只执行当前修复的直接负例/正例。fetch/原生helper/存储均为合成依赖，无真实网络、下载或大对象分配；使用Node真实navigator.locks验证共享锁。",
+    "diagnostic_fixture_note": "主agent新增reply.requestId校验时，首轮补充fixture尚未携带该字段而被拒绝；这属于诊断驱动需同步新合同，不列为产品故障。已同步fixture并对最新摘要完成上述诊断和7项测试。",
+    "real_http": "NOT_EXECUTED_BY_THIS_REVIEW",
+    "main_agent_http_report": "前轮主agent报告的真实HTTP transport正常流程PASS仍属其证据，本轮没有独立读取原始报告，不冒充本审查执行。",
+    "real_host_chrome": "NOT_TESTED",
+    "builds_or_full_suite": "NOT_RUN_OUT_OF_SCOPE"
+  },
+  "scoring": {
+    "status": "PROVISIONAL_SOURCE_AND_NODE_ONLY",
+    "formal_score": null,
+    "formal_95_plus_awarded": false,
+    "dimensions": [
+      {
+        "dimension": "端点与loopback约束",
+        "score": 84
+      },
+      {
+        "dimension": "凭证隔离",
+        "score": 88
+      },
+      {
+        "dimension": "任务身份与owner/scope",
+        "score": 88
+      },
+      {
+        "dimension": "撤权与生命周期",
+        "score": 84
+      },
+      {
+        "dimension": "未知副作用与防重放",
+        "score": 84
+      },
+      {
+        "dimension": "服务与取消恢复",
+        "score": 65
+      },
+      {
+        "dimension": "可信意图与重复确认",
+        "score": 88
+      },
+      {
+        "dimension": "资源与导出收尾",
+        "score": 82
+      },
+      {
+        "dimension": "证据充分性",
+        "score": 65
+      }
+    ],
+    "overall_score": 81,
+    "method": "九项暂定维度非加权平均后四舍五入；真实Host/Chrome和服务端隔离缺证，不能给95+正式分。"
+  },
+  "next_action": "主agent按需修复两个P2恢复问题；P1原直接问题已在本轮快照的源码/Node层复核闭合。不得据此自动扩展为全仓、生产或Chrome正式验收。"
+}

@@ -1,6 +1,8 @@
-# Sidebar Tool 与 Browser Host 解耦合同：AdBlock / Stay Focus 源码审计
+# Sidebar Tool 与 Browser Host 解耦合同：固定可信模块源码审计
 
 > 状态：**CURRENT SOURCE AUDITED / RUNTIME DECOUPLING PARTIAL / NATIVE NOT_TESTED**。审计日期：2026-10-21；证据提交：`ba37bd6c69057402acc7f6130af6f6150b198ba1`（`main` 当时的代码快照）。本文件既记录事实，也制定下一阶段门禁；目标设计不是已实施功能。最新状态必须重新对照 `main`，不能由本文自动推断最新构建或 Mac Chrome PASS。
+
+2026-10-31 的 Cookie 固定后台与开发来源检查增量见第 9 节；不追溯提升上述 AdBlock / Stay Focus 的原生证据。
 
 ## 1. 核心决定
 
@@ -99,3 +101,41 @@ Browser main 已提交公共 `site-budget.v2` **源码候选**（首提交 `c6c9
 **尚未完成，不得冒称本轮已修复：** 旧 `focus.control → browser.siteBudget` Installer 安全迁移事务、隔离迁移算法入口、原生 DNR/Alarm 安全移交、正式 v3 包和旧 Service 退休、Browser 编译图去 Focus 私有依赖、可信 Ed25519 生产发行公钥/Marketplace 来源、B0 冻结及仅更换独立 Focus 包的 Chrome 原生行为差异证明。保留 `E_MIGRATION_REQUIRED` 安全拦截和旧 Service，不得为交付表面解耦而先删除。
 
 **下一处 P0 实施点：** 在同一 Installer 操作锁与事务日志内，取得有效旧安装的原始 `FOCUS_STORE`、旧包 Hash、撤权 Epoch、来源及原生规则快照，在既有隔离 Sandbox 中运行应用自有 `migrateFocusState`，用公共 v3 Schema 验证策略、用量、Clock、Checkpoint、Notices 并构建幂等升级检查点；完成真实新账本与 DNR/Alarm 交接及来源读回后才提交成功并退休旧服务。期间不在特权安装器执行候选应用 JS，不新增第二套 Runner。
+
+## 9. Cookie 固定后台与日常开发来源检查（2026-10-31）
+
+**结论：当前 Cookie Editor 是沙箱 App 与固定可信账号服务的组合，后台没有独立安装升级。** 在 `6743105031541a43ef00933b0ee17c2790ee8951` 的 `main` 实读，`src/entrypoints/background.js → src/sw.js:12 → examples/sidebar-tools/cookie-editor/trusted/account-service.js` 仍是静态依赖。后者导入 Vault、分享及设备会话加密、服务连接/会话、账号合同和 `app/domain/account-switch-url.js` 的纯 URL 校验；未导入 App 的 JSX、界面 CSS、配置或正式 Tool JSON。业务文件在应用目录，仍可属于共享编译图。
+
+### 引入目的与后续扩张
+
+- **2026-10-26 22:53:04 +08:00，`c3a29ea83`**：新增固定后台账号服务；**22:58:36，`43c74167a`** 将其接入现有 SW。初始代码已含账号快照、精确 Cookie 切换与导航事件，意图是 UI 关闭后仍由可信后台处理批准的自动切换，而非让普通 App 代码取得 Chrome 权限。这证明实现意图；本轮未读取原会话的完整批准记录，不把提交或 `trusted/` 名称当作全部业务均获授权的证据。
+- **同日 23:14:24，`f5f63ad4c`** 已修过账号服务导入安装器的耦合；因此初版并非没有架构问题，但静态注册本身不等于算法故障。
+- **2026-10-30，`6c80dec1e` / `d408faff4`** 加入配置分享和加密设备会话；**2026-10-31，`20b0d67d3`** 保存并合入服务连接/Native 消费者。这些模块扩大了固定可信代码范围，修改后仍需 Browser 更新，不能用“只改应用目录”宣称后台独立发行。额度采集/报表与 Node 管理服务仍归 Cookie 项目，不进入 SW。
+
+### 可信执行、后台生命周期与普通业务分别判断
+
+**需要可信执行不等于必须在 SW。** 是否需要后台应由关闭 UI 后仍须响应的事件、任务及收尾生命周期证明；权限、私有持久化、密钥和未知结果账本各有可信必要性，不能把它们当作整块前台业务必须 SW 的依据。展示、草稿与流程选择应逐步交还业务 App；静态可信 UI 搬迁只减少后台职责，不等于安装包可替换固定算法。Cookie 的逐模块判断与本轮实现只维护在[项目 README](../../../examples/sidebar-tools/cookie-editor/README.zh-CN.md#sw-职责精简展示模型已退出后台2026-10-31)。
+
+| 行为 | 当前边界与复用判断 |
+| --- | --- |
+| 普通 App 的打开、安装/升级、HTML/React/CSS、展示/交互模型和配置更新 | 原沙箱、工具打包/本地调试与安装器；不执行包内特权 JS，不要求为新 App 注册 SW。官方目录/JSON 数据发布和固定运行时代码发布分别处理 |
+| 已授权 Cookie 的列表、编辑、导入/导出、清理与有界观察 | 复用公开 `OpenDeskSDK.browser.cookies.*`；不为业务另加 Chrome Driver 或 Host 分支 |
+| 关闭 UI 后的自动切换、快照恢复、撤权、卸载与未知 Cookie 写入围栏 | 当前固定账号服务检查真实安装/来源、Host Document、Origin、Store/Partition、授权代际及读回；沙箱定时器或普通存储不能替代这些职责 |
+| 私有快照、设备密钥、邀请管理秘密、加密交付与未知网络结果账本 | 当前可信 Vault/设备密钥与固定分享消费者；不能为了移出编译图，把秘密交给 App 或把动态 JS 放入 SW |
+| Native 连接与受限管理页 | 固定消费者持有真实传输租约和未知操作账本；表单、显示模型与公司/额度业务留原应用/Node 项目。此处不是通用 Host 对任意 Cookie 业务的授权 |
+
+公开 [Sidebar Tool 合同](../../api/sidebar-tools.zh-CN.md) 与 `src/framework/sdk/browser-contract.js` 已有 Cookie CRUD/观察；`cookieAccount` 内部操作及 `trusted/account-contract.js` 不是公开 SDK。App Service 的 `files.background` 也不授予 Chrome/Vault/Native 特权。**完全替代固定账号服务的新公共能力仍为 `SDK_GAP_NOT_PROVEN`**：本轮没有证明可跨工具复用的新 Vault/自动切换 API，也没有批准新的权限/密钥、后台生命周期、撤权和 unknown 合同，故不新增 API、注册器或运行器。需要这类扩展时，须另给公开合同上的可复现缺口、跨工具消费者及最小权限/生命周期方案，不能仅凭“希望移除 import”放行。
+
+### 首轮来源守卫修复及证据边界
+
+`scripts/bundle-provenance.mjs` 的 `recordBundle()` 原来在没有 `OPENDESK_MODULE_EVIDENCE_DIR` 时直接返回；日常 serve 因而跳过其精确来源、目标和 pin 检查。**旧 pin 不能证明开发中间态一定被拦截。** 本轮将同一 `describeBundle()` 检查前移到可选证据写盘之前：现有 WXT `generateBundle` 在输出固定文件前检查，未审核字节、错误目标、应用源码越界、符号链接和缺失 npm 锁仍拒绝；正式构建继续独占写入原证据文件。没有修改任何来源 pin、Cookie/S3 实现或运行时刷新条件。
+
+回归位于根 `tests/environment/cookie-account-provenance-r134.test.mjs`，属于公共固定入口/来源边界：无证据目录的拒绝路径先复现 FAIL，修复后 10 项通过，并直接调用现有 WXT 输出钩子验证拒绝；该调用不是完整构建或 Chrome 发布。另定向执行 `bundle-provenance.test.mjs` 的模块/npm/失败回执/收集 6 项及 `wxt-official-resource-update.test.mjs` 的普通源码发布、正式包晋升 2 项，分别通过；不将它们合写为业务验收。业务测试仍归 Cookie 项目。本轮**未移除运行依赖，也未新增独立升级能力**；实际改进是让开发构建不再跳过既有可信来源检查。既有普通 App 的独立 UI/包更新路径继续使用原机制，共享纯 URL 合同与固定可信算法变更仍需 Browser 更新。
+
+源码级递归展开仅用于追踪 owner；它也会包含可能被 Rollup 摇树移除的导入分支。本轮这类展开中的 `prompt-shortcuts/trusted/asset-contract.js` 被 SW 目标拒绝；由于该诊断没有实际产物图，不能据此报告当前 WXT 构建失败、放宽白名单或修无关工具。固定入口准入仍使用真实 `chunk.modules`。
+
+未启停 watcher、未写 `dist/development`、未安装/重载 Chrome；`BUILD_PASS`、真实 serve 发布、Chrome 应用与原生账号流程均为 `NOT_TESTED`。2026-10-30 中间磁盘候选发布与侧栏关闭只有时间关联，缺少直接 `chrome.runtime.reload` 证据，不能据此认定构建发布导致关闭，更不能称两个普通已安装应用运行冲突。
+
+### 接续实现：将展示合成移出 SW（同日）
+
+Cookie 的两个固定服务现只返回经过核验和脱敏的内部事实 DTO，原可信 Host 用项目的 `trusted/service-view.js` 恢复原 App 返回形状。新展示模块只有该 Host 的精确来源准入，拒绝进入 SW；原后台权限、存储事务、租约、撤权、未知操作和受限管理 URL 校验保留。没有删除现有账号服务静态注册或 Vault/分享/Native 导入，**尚未实现 App 包独立升级**。五份受影响行为检查96项、公共来源边界10项通过，另1项原分享Host转发检查通过；隔离 Cookie 组件减少1151 B，不代表完整 SW/WXT 或 Chrome PASS。实施细节和模块必要性以项目 README 为准，执行边界见[本轮记录](../../framework/workstreams/cookie-editor-react-shared-ui-20261017.md#2026-10-31-增量sw-展示职责拆分)。

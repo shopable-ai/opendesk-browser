@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "review": "ScrapyJS R1.7 独立审查",
+  "reviewedAt": "2026-10-30T03:08:03.902493+08:00",
+  "verdict": "NEEDS_FIXES",
+  "scope": {
+    "businessDirectory": "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs",
+    "sourceFiles": [
+      {"path":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","lines":252,"bytes":26500,"sha256":"d0584b8cf2aa107125960539dce05fa91d408512dcfc2896780e4d93fded6d3d"},
+      {"path":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","lines":140,"bytes":9978,"sha256":"44856c7271b522f83c7be9039dce2047462b8fff8e0a943854056af118cfcc93"},
+      {"path":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner.css","lines":40,"bytes":3937,"sha256":"5e58c6302ea5570ee43ea745b398b203bd77d0a48b24f5935593dd61a958c15c"},
+      {"path":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/ai-request.js","lines":36,"bytes":1935,"sha256":"23e4418179f078a968a4cf65129bf7623c2065ffcc64be7fb9a626db6b2091a7"},
+      {"path":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","lines":208,"bytes":22240,"sha256":"3507cdeea912f2ea249934b6f7eec4116e96ab178d6e3d0bf7faac651bee89bb"}
+    ],
+    "onlyWritableFile": "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/evidence/r17-review-react-ai.json",
+    "sourceModified": false, "browserControlled": false, "branchCreated": false, "commitCreated": false
+  },
+  "scores": [
+    {"dimension":"React 交互 / 可访问性","provisional":72,"outOf":100,"basis":"Hooks 与基本语义稳定；隐藏面板影响原主链、存储未知恢复死锁，确认区展开状态关联不完整。"},
+    {"dimension":"AI 数据边界 / 纠错","provisional":74,"outOf":100,"basis":"无效结果提交顺序、绑定失效和显式 full 确认具备；首次回执 requestId 缺失仍可采用，存储未知恢复不闭合。"}
+  ],
+  "p1": [
+    {
+      "id": "R17-RA-001", "priority": "P1", "status": "OPEN",
+      "title": "存储回执未知后界面只能 refresh，无法解除 storageUncertain，已认证试采也不能继续 full",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":59,"end":87},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":100,"end":100},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":236,"end":236}],
+      "trigger": "任意运行指针 storage.set 超时、回执非 saved=true 或随后读回冲突；客户端此前已经 ready=true。",
+      "cause": "persist 的 catch 把 storageUncertain 设为 true；只有 restore 清除并重读 ETag。界面的恢复按钮在 ready=true 时永远调用 refresh，refresh 不重读存储，也不清除此状态。",
+      "impact": "用户按提示查询原 run 仍无法继续生成/试采/full。尤其 POST 已成功、adopt 写回 runId 的回执未知时，start 可经 GET 返回已认证 completed preview，但下一步 full 仍报 E_RUN_STORAGE。",
+      "evidence": "MOCK_REPRODUCED_AND_SOURCE_TRACE",
+      "reproduction": ["request 桩令首次 pointer storage.set 成功；创建 POST 返回合法且已完成的 preview。","第二次 storage.set 已写入，但抛 E_TOOL_TIMEOUT 模拟 runId 写回回执丢失；start 的 GET 补查返回原 preview。","previewCertified 返回 true。按界面同一 ready ? refresh : restore 分支恢复，没有新增 storage.get。","尝试 full，得到 E_RUN_STORAGE；POST 总数仍为 1。"],
+      "fix": "提供显式的原请求与存储重读/冲突协调路径，在确认身份与 ETag 后解除不确定状态；不要通过清空指针、忽略 CAS 或重放创建 POST 解决。",
+      "nativeStatus": "NOT_TESTED"
+    },
+    {
+      "id": "R17-RA-002", "priority": "P1", "status": "OPEN",
+      "title": "未打开 AI 面板时，旧 local runner 指针恢复失败仍会锁住原工作区",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":40,"end":43},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":61,"end":64},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":125,"end":125},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":158,"end":163},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":73,"end":80},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":97,"end":115},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":238,"end":241}],
+      "trigger": "曾保存过未确认结束的 local run 指针；重新进入工具时服务离线、run 不可查询或 GET 持续失败。",
+      "cause": "AiPanel 通过 hidden 隐藏，始终挂载并自动 restore。restore 读到 pointer 后即使 refresh 失败仍留下 pointer、ready=true 和 snapshot=null。runnerActive 为 true，onBusy 把它传到 App，locked/managementLocked 因而锁定原有工作区。",
+      "impact": "原本没有使用 AI 的用户也不能开始原采集、保存/新建配置或编辑；进入 AI 后只能反复查询，snapshot=null 时 Stop 按钮也不会渲染。实际是可选 runner 的恢复故障扩大到原主链。",
+      "evidence": "CLIENT_MOCK_REPRODUCED_PARENT_SOURCE_TRACE",
+      "reproduction": ["storage.get 返回含原 runId 的合法指针。","localTasks.request GET 原 run 抛 E_LOCAL_TASK_OFFLINE。","client 保持 ready=true、pointer 非空、snapshot=null；源码计算 runnerActive=true。","AiPanel 即使 hidden 也通知 onBusy(true)，原工作区受 locked 控制的操作禁用。"],
+      "fix": "将可选 AI/本地运行恢复故障限制在实际受影响操作，保留原工作区可用的独立操作，并明确展示原请求恢复入口。仍须禁止未知 local run 的重复创建；如确有共享互斥资源，应只锁住该资源对应的操作。",
+      "nativeStatus": "NOT_TESTED"
+    },
+    {
+      "id": "R17-RA-003", "priority": "P1", "status": "OPEN",
+      "title": "首次运行回执省略 requestId 时跳过原请求核对，可采用并停止不相干的 run",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":36,"end":40},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":69,"end":81},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":110,"end":125}],
+      "trigger": "创建或按原 requestId 查询的响应，含有效 runId 和指标，但缺少 requestId。",
+      "cause": "normalizeSnapshot 的条件 (key !== 'requestId' || value[key] !== undefined) 明确跳过缺失 requestId。首次 pointer.runId=null，也没有另一项可以绑定原请求身份的 runId 检查。",
+      "impact": "合法形状但不属于该请求的 run 会被写入原 pointer；之后 Stop、records、export 跟随误采用的 runId。破坏的是客户端身份确认；未声称真实 Host/服务端已发生串线或存在可利用越权。",
+      "evidence": "MOCK_REPRODUCED",
+      "reproduction": ["以 request-intended 创建 preview。","request 桩返回 runId=run-unrelated、合法 completed 指标，并省略 requestId。","客户端成功采用，存储 pointer 同时含 requestId=request-intended 与 runId=run-unrelated。","调用 stop，观察到 POST /v1/runs/run-unrelated/stop。"],
+      "fix": "首次创建及 by-request 回执必须携带并精确匹配原 requestId，缺失或不符时保留未知状态并只查询原请求；不要采用响应中的 runId。若已知 runId 的查询允许省略 requestId，按明确的不同回执合同区分。",
+      "nativeStatus": "NOT_TESTED"
+    }
+  ],
+  "p2": {"id":"R17-RA-004","title":"长任务确认区缺少 aria-expanded / aria-controls 关联","refs":[{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":245,"end":246},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner.css","start":34,"end":34}],"detail":"确认区可按后续 Tab 顺序进入，但展开/收起没有可编程状态关联或焦点公告；实际读屏表现未测。"},
+  "preservedSourceGuards": [
+    "parseProposal 与绑定检查先于 draft/preview 写入，失败路径未清空已有配置、run、记录；未读取解析器实现。",
+    "输入、配置、profileEpoch、目标变化撤销认证；应用和 full 前检查 Provider generation。",
+    "生成只启动 preview；full 要求有效认证、独立勾选与按钮确认，并复核当前配置。",
+    "创建回执异常只查询原 requestId，不自动重发；terminal 且 workerExited=true 才算停止完成。",
+    "hooks 无条件调用，client、onBusy、onDirty 的同实例身份稳定；记录读取有序号和 runId 围栏。"
+  ],
+  "evidenceLimits": [
+    "上述 P1 经指定源码追踪，存储未知和回执身份问题还经内存 request 桩复现；不作 mock PASS 或原生 PASS 结论。",
+    "React 未实际挂载验证；未控制浏览器、未运行真实 AI、未运行真实 runner、未构建或打包。",
+    "未读取 ai-config.js、Model、@opendesk/ui、可信 Host 或服务端，不能证明这些边界的完整实现。",
+    "审查中 UI Agent 修改了 AiPanel.jsx/client；已重读变化，三个 P1 仍存在；最终 SHA 见 scope.sourceFiles。",
+    "同实例隐藏/重开保留状态；销毁重开仅见 local runner 指针恢复，AI unknown 请求跨实例恢复未证明。"
+  ],
+  "native": {"chrome":"NOT_TESTED","realAi":"NOT_TESTED","realRunner":"NOT_TESTED","stopAndReopen":"NOT_TESTED","screenReader":"NOT_TESTED"}
+}

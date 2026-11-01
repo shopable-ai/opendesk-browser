@@ -13,6 +13,8 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
+import {createCookieAccountShare} from './account-share.js';
+import {createDeviceKeyStorage} from '../../../../src/platform/storage/device-keys.js';
 import {createCookieServiceConnections} from './service-connections.js';
 import {createCookieServiceSession} from './service-session.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY,
@@ -90,6 +92,24 @@ function validateRows(rows,host,storeId,partition,parents){
   });
   return checked.sort((a,b)=>cookieId(a).localeCompare(cookieId(b)));
 }
+// Receiving Store is a local live-Tab identity, never a sender-selected value.
+// Partition and domain authority are not broadened by an encrypted snapshot.
+export function mapReceivedAccountCookies(snapshot,context){
+  if(!object(snapshot)||snapshot.format!==1||snapshot.origin!==context.origin||
+    !Array.isArray(snapshot.cookies)||snapshot.cookies.length<1||snapshot.cookies.length>MAX_COOKIES)
+    throw fail('E_ACCOUNT_COOKIE_SCOPE');
+  const mapped=snapshot.cookies.map(row=>{
+    if(!object(row)||typeof row.storeId!=='string'||!row.storeId||row.storeId.length>128||
+      row.partitionKey&&!samePartition(row.partitionKey,context.partition))
+      throw fail('E_ACCOUNT_COOKIE_SCOPE');
+    return {...row,storeId:context.storeId,
+      ...(row.partitionKey?{partitionKey:{...context.partition}}:{})};
+  });
+  const rows=validateRows(mapped,context.host,context.storeId,context.partition,context.parents);
+  if(context.origin.startsWith('http:')&&rows.some(row=>row.secure))
+    throw fail('E_ACCOUNT_COOKIE_SCOPE');
+  return rows;
+}
 // Pure, deterministic operation plan. Every input row has already passed
 // authorized domain, Store and Partition checks; this never touches native Cookies.
 // A no-op must not advance vault versions, and a changed Cookie identity set
@@ -143,7 +163,8 @@ export function sameAccountAutoSwitchFence(actual,expected){
     fields.every(field=>Object.hasOwn(actual,field)&&Object.hasOwn(expected,field)&&
       actual[field]===expected[field]);
 }
-export function createCookieAccountService({api=globalThis.chrome,storage,serviceTransport=()=>null}={}){
+export function createCookieAccountService({api=globalThis.chrome,storage,serviceTransport=()=>null,
+  deviceKeyStorageFactory=createDeviceKeyStorage}={}){
   const vault=createCookieAccountVault({api,storage});
   const connections=createCookieServiceConnections({storage});
   const serviceSession=createCookieServiceSession({api,storage,transport:serviceTransport});
@@ -159,6 +180,13 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
     serial=run.catch(()=>{});
     return run;
   };
+  async function deviceKeys(owner,authorize){
+    if(typeof owner!=='string'||!owner||owner.length>512)throw fail('E_SHARE_STORAGE');
+    const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(owner));
+    const identity=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
+    await authorize();
+    return deviceKeyStorageFactory({owner:ID+':'+identity,authorize});
+  }
   async function hostSender(sender,expected=sender?.documentId){
     if(!isSidebarToolHostSender(api,sender,ID)||sender.tab?.incognito||
        sender.frameId!==undefined&&sender.frameId!==0||
@@ -449,6 +477,65 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       throw fail('E_USER_GESTURE_REQUIRED');
     const origin=originOf(payload.origin);
     if(operation==='status')return statusFor(origin);
+    if(operation.startsWith('share')){
+      let outgoingScope;
+      const authorize=async()=>{
+        await hostSender(sender,hostDocumentId);
+        const latest=await installed(message);
+        if(['shareClaim','sharePair','shareDeliver'].includes(operation)||
+          operation==='shareCreate'&&payload.mode==='session')
+          await validateDocument(payload.document,origin);
+        if(['sharePair','sharePairs','shareDeliver'].includes(operation)||
+          operation==='shareCreate'&&payload.mode==='session'||
+          operation==='shareClaim'&&payload.senderFingerprint!==undefined){
+          const before=grantFor(record.siteRecord,origin,true);
+          const grant=grantFor(latest.siteRecord,origin,true);
+          if((before===record.siteRecord.cookieAllSites)!==(grant===latest.siteRecord.cookieAllSites)||
+            before.grantEpoch!==grant.grantEpoch||before.storeId!==grant.storeId||
+            Boolean(before.partitionKey)!==Boolean(grant.partitionKey)||
+            before.partitionKey&&!samePartition(before.partitionKey,grant.partitionKey))
+            throw fail('E_SITE_GRANT_REQUIRED');
+          await permission(origin,grant,true);
+        }
+        if(outgoingScope)await assertScope(outgoingScope);
+      };
+      const share=createCookieAccountShare({api,storage,vault,authorize,
+        sessionKeys:owner=>deviceKeys(owner,authorize),
+        clearSessionKeys:async owner=>(await deviceKeys(owner,authorize)).clear(),
+        validateSnapshot:async snapshot=>{
+          await authorize();
+          if(snapshot.origin!==origin)throw fail('E_SITE_MISMATCH');
+          const context=outgoingScope||await scope(payload.document,origin,
+            grantFor(record.siteRecord,origin,true),false,record);
+          // A saved snapshot may outlive live Cookies, never its permissions.
+          // Include every saved parent domain so a missing grant rejects the
+          // complete snapshot instead of silently filtering it before transfer.
+          for(const row of snapshot.cookies){
+            const parent=parentDomain(context.host,row);
+            if(parent)context.parents.add(parent);
+          }
+          const rows=validateRows(snapshot.cookies,context.host,context.storeId,context.partition,context.parents);
+          if(origin.startsWith('http:')&&rows.some(row=>row.secure))throw fail('E_ACCOUNT_COOKIE_SCOPE');
+          await assertScope(context);
+          outgoingScope=context;
+          await authorize();
+        },
+        mapSnapshot:async snapshot=>{
+          await authorize();
+          const context=await scope(payload.document,origin,grantFor(record.siteRecord,origin,true),false,record);
+          // The original read path discovers only already-authorized ancestors.
+          // It does not apply the received snapshot or change the current login.
+          await cookiesFor(context);
+          const rows=mapReceivedAccountCookies(snapshot,context);
+          await assertScope(context);await authorize();
+          return rows;
+        }
+      });
+      const result=await share.dispatch(operation,payload,
+        JSON.stringify([message.packageHash,message.installEpoch]));
+      if(operation==='shareClaim')return {...result,...await statusFor(origin)};
+      return result;
+    }
     if(operation.startsWith('service')){
       const fields=COOKIE_SERVICE_FIELDS[operation];
       const documentAction=['serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(operation);
@@ -458,8 +545,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         operation==='serviceOpenManagement'&&payload.associationId!=='';
       if(needsDocument)await validateDocument(payload.document,origin);
       const {document:serviceDocument,...metadata}=payload;
-      const accounts=(await statusFor(origin)).accounts;
-      // Recheck installation/sender after storage awaits; no caller-provided
+      // Recheck installation/sender after document awaits; no caller-provided
       // account metadata, credentials, URL handoff or capabilities are trusted.
       await installed(message);await hostSender(sender,hostDocumentId);
       if(needsDocument)await validateDocument(serviceDocument,origin);
@@ -480,8 +566,14 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
             if(!latest||latest.version!==selectedAccount.version)throw fail('E_VAULT_CONFLICT');
           }
       };
+      const localState=await connections.dispatch({operation:'serviceStatus',payload:{origin},identity,assertCurrent});
+      // Service-only configuration and Native operations do not consume Cookie
+      // accounts. Load them only to create or verify this site's associations;
+      // an unrelated unavailable vault must not block connection management.
+      const accounts=operation==='serviceAssociate'||localState.associations.length>0
+        ?(await statusFor(origin)).accounts:[];
+      await assertCurrent();
       const context={identity,accounts,origin,assertCurrent};
-      const localState=await connections.dispatch({operation:'serviceStatus',payload:{origin},...context});
       if(operation==='serviceCommitAssociation'||operation==='serviceOpenManagement'&&metadata.associationId!==''){
         const association=localState.associations.find(item=>item.id===metadata.associationId);
         selectedAccount=accounts.find(item=>item.alias===association?.localAlias&&item.origin===origin);
@@ -514,8 +606,26 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         if(data.revision!==revision)throw fail('E_VAULT_CONFLICT');
         const account=data.accounts.find(x=>x.alias===payload.alias&&x.origin===origin);
         if(!account)throw fail('E_ACCOUNT_NOT_FOUND');
-        return runSwitch(account,record,payload.document,
+        const id=String(payload.document?.tabId);let priorFence=null;
+        try{
+          await api.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
+          const prior=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]?.[id];
+          if(prior?.phase==='in_flight'&&new URL(prior.url).origin===origin)priorFence=prior;
+        }catch{/* Manual switching does not depend on automatic session storage. */}
+        const result=await runSwitch(account,record,payload.document,
           {refresh:data.settings.autoRefresh});
+        if(priorFence)try{
+          const next=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
+          if(sameAccountAutoSwitchFence(next[id],priorFence)){
+            await hostSender(sender,hostDocumentId);await installed(message);
+            // A verified explicit recovery settles the global tab block, but
+            // retains the old intent identity: that old URL still cannot replay.
+            // Do not label the uncertain automatic write as successfully applied.
+            next[id]={...priorFence,phase:'recovered'};
+            await api.storage.session.set({[SEEN_KEY]:next});
+          }
+        }catch{/* Never retry recovery bookkeeping or the verified Cookie effects. */}
+        return result;
       }
     }
     let capture=null,captureScope=null;
@@ -713,7 +823,15 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
   return Object.freeze({
     dispatch:(message,sender)=>exclusive(()=>dispatch(message,sender)),
     navigation:event=>exclusive(()=>navigation(event)),
-    cleanup:()=>exclusive(async()=>{await serviceSession.clear();await connections.clear();return vault.clear();})
+    cleanup:()=>exclusive(async()=>{
+      await createCookieAccountShare({api,storage,vault,
+        // The original SW-only uninstall hook owns this cleanup, after normal
+        // handles have been revoked. This callback never enters the RPC surface.
+        clearSessionKeys:async owner=>(await deviceKeys(owner,async()=>{})).clear()
+      }).clear();
+      await serviceSession.clear();await connections.clear();
+      return vault.clear();
+    })
   });
 }
 export function installCookieAccountService({api=globalThis.chrome,storage,serviceTransport}={}){

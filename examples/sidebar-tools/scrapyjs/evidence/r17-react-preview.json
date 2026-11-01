@@ -1,0 +1,21 @@
+{
+  "level": "CHROMIUM",
+  "simulation": true,
+  "sourceHtml": "artifacts/scrapyjs/r17-preview-final/preview.html",
+  "screenshot": "artifacts/scrapyjs/r17-preview.png",
+  "dom": "artifacts/scrapyjs/r17-preview-dom.txt",
+  "checks": {
+    "simulation": true,
+    "beforeConfirmationStartEnabled": false,
+    "invalidatedAfterInputEdit": true
+  },
+  "observedPreviewRuns": [
+    "simulated-local-1 (3 pages,6 simulated records)",
+    "simulated-local-3 (1 page,2 simulated records)"
+  ],
+  "observedFullRun": "simulated-local-2",
+  "realAI": "NOT_TESTED",
+  "realPythonFromReact": "NOT_TESTED",
+  "nativeZoom200": "NOT_TESTED",
+  "fullWidthThemeMatrix": "NOT_TESTED"
+}

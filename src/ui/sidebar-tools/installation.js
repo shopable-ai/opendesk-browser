@@ -1,6 +1,7 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
 import {SIDEBAR_TOOL_STORE, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash,verifySidebarToolBackground} from './package.js';
+import {revokeLocalTasks} from '../../platform/host/local-tasks.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
 export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
@@ -79,11 +80,14 @@ export async function getInstalledSidebarTools(api) {
 }
 // Fixed product adapters only; never execute package JS or clear a peer rule range.
 async function stopInstalledToolOwnedServices(api,toolId){
+  let localFailure;
+  try{await revokeLocalTasks(api,toolId);}catch(cause){localFailure=cause;}
   await stopStayFocusForTool(api,toolId);
   await stopAdblockForTool(api,toolId);
   await stopAiAccessForTool(api,toolId);
   await stopManagedSiteBudgetForTool(api,toolId);
   await stopManagedProxyForTool(api,toolId);
+  if(localFailure)throw localFailure;
 }
 
 export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled}){
@@ -217,6 +221,8 @@ export async function cleanupUninstalledToolLocked(api,id){
   if(installed.some(row=>row.id===id))
     return {state:'still-installed',toolId:id};
   try{
+    let localFailure;
+    try{await revokeLocalTasks(api,id);}catch(cause){localFailure=cause;}
     // Keep the existing durable journal and install locks until the original
     // Scheduler confirms retirement. A same-ID reinstall cannot hide this intent.
     await retireUninstalledToolSchedules(api,id);
@@ -262,6 +268,7 @@ export async function cleanupUninstalledToolLocked(api,id){
       const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
       for(const key of keys)await removeVerifiedKey(api,key);
     }
+    if(localFailure)throw localFailure;
     const fresh=await getPendingToolCleanups(api);
     if(Object.hasOwn(fresh,id)){
       const updated={...fresh};delete updated[id];
@@ -688,6 +695,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       const adblockUpdate=await prepareReviewedAdblockUpdate(api,{
         existing,candidate:tool,oldEpoch:epochs[tool.id]??null,newEpoch:nextEpoch});
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
+      // A new installation epoch cannot inherit an old local service credential
+      // or leave its previous owner executing after replacement.
+      if(existing?.capabilities.includes('localTasks'))await revokeLocalTasks(api,tool.id);
       registryAttempted=true;
       const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate,adblockUpdate);
       registryCommitted=true;

@@ -3,6 +3,7 @@ import {Button} from '@opendesk/ui';
 import {fieldForm,applyField,crawlForm,applyCrawl} from './editor.js';
 import Results from './Results.jsx';
 import AiPanel from './AiPanel.jsx';
+import CaptureWorkspace from './CaptureWorkspace.jsx';
 
 const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',field:null,fieldPending:false,crawl:null,crawlPending:false,target:null,targetValid:true,http:null,httpValid:true,fieldHelp:'点击字段载入编辑；复杂规则在完整 JSON 中编辑。',removeField:false});
 const stringify=value=>JSON.stringify(value,null,2);
@@ -39,11 +40,16 @@ export default function App(){
   const [view,setView]=React.useState('results');
   const [naming,setNaming]=React.useState(null);
   const [aiOpen,setAiOpen]=React.useState(false);
+  const [workspaceAiBusy,setWorkspaceAiBusy]=React.useState(false);
+  const [workspaceOpen,setWorkspaceOpen]=React.useState(false);
+  const [localBusy,setLocalBusy]=React.useState(false);
+  const [localDirty,setLocalDirty]=React.useState(false);
   const [aiBusy,setAiBusy]=React.useState(false);
   const [aiDirty,setAiDirty]=React.useState(false);
   const [savedAiRequestId,setSavedAiRequestId]=React.useState(null);
   const aiApplication=React.useRef(null);
   const onAiDirty=React.useCallback(value=>setAiDirty(value),[]);
+  const [aiGenerating,setAiGenerating]=React.useState(false);
   const actionFocus=React.useRef('profile-list');
   const jsonDetails=React.useRef(null);
   const exportPending=React.useRef(false);
@@ -70,7 +76,7 @@ export default function App(){
   },[app,tool]);
   const busy=state.phase==='starting'||Boolean(state.clientRequestId)&&!state.retired;
   const baseLocked=busy||state.saving||Boolean(naming)||Boolean(state.pendingAction)||state.phase==='unknown';
-  const locked=baseLocked||aiBusy;
+  const locked=baseLocked||aiGenerating||aiBusy||localBusy;
   const managementLocked=locked||!state.storageReady||Boolean(state.conflict);
   const pending=ui.fieldPending||ui.crawlPending;
   const valid=ui.valid&&ui.targetValid&&ui.httpValid;
@@ -87,7 +93,7 @@ export default function App(){
     pending?'有未应用的'+[ui.fieldPending?'字段':'',ui.crawlPending?'分页与详情':''].filter(Boolean).join('、')+'编辑，请先点击对应的「应用」按钮。':
     !state.target?'请先打开目标网页，再刷新当前网页。':!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
     state.saving?'正在保存配置，请稍候。':naming||state.pendingAction?'请先完成或取消配置操作。':'';
-  React.useEffect(()=>{tool.setState?.({dirty:state.dirty||!valid||pending||Boolean(naming)||aiDirty,busy:busy||state.saving||aiBusy});},[tool,state.dirty,valid,pending,naming,busy,state.saving,aiBusy,aiDirty]);
+  React.useEffect(()=>{tool.setState?.({dirty:state.dirty||!valid||pending||Boolean(naming)||localDirty||aiDirty,busy:busy||state.saving||aiGenerating||aiBusy||workspaceAiBusy||localBusy});},[tool,state.dirty,valid,pending,naming,busy,state.saving,aiGenerating,aiBusy,workspaceAiBusy,localBusy,localDirty,aiDirty]);
   function guarded(action){try{action();}catch(error){update({error:error.message});}}
   function touch(change){guarded(()=>{app.touch();update({...change,error:''});});}
   function editJSON(text){
@@ -151,8 +157,8 @@ export default function App(){
     if(naming){event.preventDefault();closeName();}else if(state.pendingAction){event.preventDefault();cancelAction();}
     else if(ui.removeField){event.preventDefault();update({removeField:false});focusLater('remove-field');}
   }}>
-    <section className="config-section" aria-labelledby="config-heading">
-      <div className="toolbar"><h2 id="config-heading">采集配置</h2><Button id="new-profile" disabled={managementLocked} onClick={()=>requestAction('newProfile','new-profile')}>＋ 新建</Button></div>
+    <section className="config-section" aria-labelledby="config-heading" hidden={workspaceOpen}>
+      <div className="toolbar"><h2 id="config-heading">采集配置</h2><Button id="open-local-runner" variant="primary" disabled={baseLocked||aiBusy} onClick={()=>{setWorkspaceOpen(true);focusLater('capture-heading');}}>本机试采 / 任务</Button><Button id="new-profile" disabled={managementLocked} onClick={()=>requestAction('newProfile','new-profile')}>＋ 新建</Button></div>
       <p id="ai-toggle-status" className="secondary" role="status" hidden={!aiBusy}>AI 请求待处理；收起对话不会停止请求。展开后可查询或停止。</p>
       <div className="profile-choice"><label className="sr-only" htmlFor="profile-list">已保存配置</label>
         <select id="profile-list" aria-label="已保存配置" value={state.selectedId||''} disabled={managementLocked||!state.records.length} onChange={event=>{
@@ -182,7 +188,7 @@ export default function App(){
         <Button id="use-saved" hidden={!state.conflict} disabled={locked} onClick={()=>{actionFocus.current='use-saved';app.useSaved();if(app.state.pendingAction)focusLater('profile-confirm-cancel');}}>用保存版本替换草稿</Button>
       </div>
     </section>
-    <section className="target-section" aria-labelledby="target-heading">
+    <section className="target-section" aria-labelledby="target-heading" hidden={workspaceOpen}>
       <div className="toolbar"><h2 id="target-heading">采集目标</h2><Button id="refresh-target" disabled={busy||state.saving} onClick={()=>app.refreshTarget()}>刷新当前网页</Button></div>
       <p id="page-title" className="secondary">{state.target?.title||state.host}</p>
       <details id="target-settings" className="flat"><summary>目标网址 <span id="target-address" title={state.config.url}>{state.config.url}</span></summary>
@@ -196,7 +202,8 @@ export default function App(){
       <Message id="run-help">{help}</Message><Message id="app-error" alert>{state.error}</Message><Message id="app-notice">{state.notice}</Message>
       <div className="view-tabs" role="tablist" aria-label="采集工作区">{tabs.map(([name,label,panel])=><Button key={name} id={'tab-'+name} role="tab" variant="quiet" aria-selected={view===name} aria-controls={panel} tabIndex={view===name?0:-1} onClick={()=>setView(name)} onKeyDown={tabKey}>{label}</Button>)}</div>
     </section>
-    <section id="rules-editor" role="tabpanel" aria-labelledby="tab-rules" tabIndex={0} hidden={view!=='rules'}>
+    <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} state={state} locked={baseLocked||aiBusy} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setWorkspaceAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
+    <section id="rules-editor" role="tabpanel" aria-labelledby="tab-rules" tabIndex={0} hidden={workspaceOpen||view!=='rules'}>
       <div className="toolbar"><h2>采集规则</h2><p id="config-summary" className="secondary">{fields.length} 个字段 · {state.config.nextPageSelector?'分页':'当前页'}{state.config.detail?' + 详情':''}</p></div>
       <fieldset disabled={locked||pending||!valid}>
         <Field id="execution-mode" label="采集方式"><select id="execution-mode" value={httpLocal?'http-local':'dom'} onChange={event=>loadMode(event.target.value==='http-local'?httpExample():globalThis.ScrapyAppModel.DEFAULT_CONFIG)}><option value="dom">DOM 网页采集</option><option value="http-local">本机 HTTP（自有回显）</option></select></Field>
@@ -241,17 +248,17 @@ export default function App(){
         <p className="secondary">沿原导航授权，最多 10 页、100 条详情；身份不符或内容冲突会报错。</p>
       </fieldset></details>
     </section>
-    <section id="json-panel" role="tabpanel" aria-labelledby="tab-json" tabIndex={0} hidden={view!=='json'}>
+    <section id="json-panel" role="tabpanel" aria-labelledby="tab-json" tabIndex={0} hidden={workspaceOpen||view!=='json'}>
       <div id="json-editor" className="stack" ref={jsonDetails}><div className="toolbar"><h2>完整配置</h2><Button id="export-config" disabled={!valid||pending||exporting} onClick={async()=>{if(exportPending.current)return;exportPending.current=true;setExporting(true);update({error:'',notice:''});try{const result=await tool.request('browser.downloads.text',{text:stringify(state.config),filename:'scrapyjs-config.json'});if(result?.started!==true)throw Error('下载结果未知');update({error:'',notice:'已请求下载完整配置，请在下载列表确认。'});}catch(error){update({error:error.message,notice:''});}finally{exportPending.current=false;setExporting(false);}}}>导出配置 JSON</Button></div>
         <Message id="config-export-status">{ui.notice}</Message>
         <Field id="config-json" label="完整 JSON 配置"><textarea id="config-json" rows={12} spellCheck={false} disabled={locked||pending} value={ui.json??stringify(state.config)} aria-invalid={!ui.valid} aria-describedby="config-help config-error" onChange={event=>editJSON(event.target.value)}/></Field>
         <p id="config-help" className="secondary">{httpLocal?'本机 HTTP：itemConfig 每个字段为 JSON 点路径字符串，maxPages 最多 3；UA 留空继承，Headers 为普通字符串对象。':'保留复杂规则、validation / fieldRequirements / processing。_listContainer / _listItem 定义列表；.::text 读取当前项文本。'} itemConfig 最多 4096 字节，其他选项最多 4096 字节，配置总计最多 8192 字节。</p>
       </div>
     </section>
-    <section id="results-panel" role="tabpanel" aria-labelledby="tab-results" tabIndex={0} hidden={view!=='results'}>
+    <section id="results-panel" role="tabpanel" aria-labelledby="tab-results" tabIndex={0} hidden={workspaceOpen||view!=='results'}>
       <Results state={state} busy={busy} app={app}/>
     </section>
   </main></div>
-    <AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});openName(current?'copy':'save','profile-current');}}/>
+    <AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});openName(current?'copy':'save','profile-current');}}/>
   </div>;
 }

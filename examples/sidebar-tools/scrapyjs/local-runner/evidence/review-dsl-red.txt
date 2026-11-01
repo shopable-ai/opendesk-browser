@@ -1,0 +1,100 @@
+test_review_ancestor_qualified_css_keeps_only_current_row_descendants (test_dsl.ReviewScopeTests.test_review_ancestor_qualified_css_keeps_only_current_row_descendants) ... FAIL
+test_review_document_html_root_is_selectable (test_dsl.ReviewScopeTests.test_review_document_html_root_is_selectable) ... FAIL
+test_review_nested_field_named_selector_remains_nested (test_dsl.ReviewScopeTests.test_review_nested_field_named_selector_remains_nested) ... ERROR
+test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape (test_dsl.ReviewScopeTests.test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape) ... FAIL
+test_review_sibling_combinators_never_read_another_row (test_dsl.ReviewScopeTests.test_review_sibling_combinators_never_read_another_row) ... FAIL
+
+======================================================================
+ERROR: test_review_nested_field_named_selector_remains_nested (test_dsl.ReviewScopeTests.test_review_nested_field_named_selector_remains_nested)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 53, in test_review_nested_field_named_selector_remains_nested
+    self.assertEqual(self.parse('<html><body><b>A</b><b>B</b><p>P</p></body></html>',{'meta':{'selector':{'selector':'b','read':'text'},'value':'p'}}),[
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 35, in parse
+    return extract(html,compile_config({'url':'https://example.org/list','itemConfig':fields}))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py", line 103, in compile_config
+    fields = walk(item)
+             ^^^^^^^^^^
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py", line 100, in walk
+    fields[key] = walk(value, depth+1) if isinstance(value,dict) and 'selector' not in value else rule(value)
+                                                                                                  ^^^^^^^^^^^
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py", line 64, in rule
+    raise Fault('NOT_SUPPORTED', 'Unknown field descriptor property')
+scrapyjs_runner.errors.Fault: Unknown field descriptor property
+
+======================================================================
+FAIL: test_review_ancestor_qualified_css_keeps_only_current_row_descendants (test_dsl.ReviewScopeTests.test_review_ancestor_qualified_css_keeps_only_current_row_descendants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 42, in test_review_ancestor_qualified_css_keeps_only_current_row_descendants
+    self.assertEqual(self.parse('<html><body><ul><li><b>A</b></li><li><b>B</b></li></ul><b>OUTSIDE</b></body></html>',{'_listContainer':'ul','_listItem':'li','v':'ul li b::text','self':'li::text'}),[
+AssertionError: Lists differ: [{'v': '', 'self': ''}, {'v': '', 'self': ''}] != [{'v': 'A', 'self': ''}, {'v': 'B', 'self': ''}]
+
+First differing element 0:
+{'v': '', 'self': ''}
+{'v': 'A', 'self': ''}
+
+- [{'self': '', 'v': ''}, {'self': '', 'v': ''}]
++ [{'self': '', 'v': 'A'}, {'self': '', 'v': 'B'}]
+?                     +                       +
+
+
+======================================================================
+FAIL: test_review_document_html_root_is_selectable (test_dsl.ReviewScopeTests.test_review_document_html_root_is_selectable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 46, in test_review_document_html_root_is_selectable
+    self.assertEqual(self.parse('<html lang="en"><body><p>P</p></body></html>',{'html':'html::lang','body':'body::text'}),[{'html':'en','body':'P'}])
+AssertionError: Lists differ: [{'html': '', 'body': 'P'}] != [{'html': 'en', 'body': 'P'}]
+
+First differing element 0:
+{'html': '', 'body': 'P'}
+{'html': 'en', 'body': 'P'}
+
+- [{'body': 'P', 'html': ''}]
++ [{'body': 'P', 'html': 'en'}]
+?                         ++
+
+
+======================================================================
+FAIL: test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape (test_dsl.ReviewScopeTests.test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 49, in test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape
+    self.assertEqual(self.parse('<ul><li id="a"><b>A</b><section><b>NESTED</b></section></li><li id="b"><b>B</b></li></ul>',{'_listContainer':'ul','_listItem':'li','id':'.::id','direct':':scope > b::text','leak':':scope + li b::text','self':':scope::text'}),[
+AssertionError: Lists differ: [{'id[27 chars]k': 'B', 'self': ''}, {'id': 'b', 'direct': 'B[22 chars] ''}] != [{'id[27 chars]k': '', 'self': ''}, {'id': 'b', 'direct': 'B'[21 chars] ''}]
+
+First differing element 0:
+{'id': 'a', 'direct': 'A', 'leak': 'B', 'self': ''}
+{'id': 'a', 'direct': 'A', 'leak': '', 'self': ''}
+
+- [{'direct': 'A', 'id': 'a', 'leak': 'B', 'self': ''},
+?                                      -
+
++ [{'direct': 'A', 'id': 'a', 'leak': '', 'self': ''},
+   {'direct': 'B', 'id': 'b', 'leak': '', 'self': ''}]
+
+======================================================================
+FAIL: test_review_sibling_combinators_never_read_another_row (test_dsl.ReviewScopeTests.test_review_sibling_combinators_never_read_another_row)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py", line 38, in test_review_sibling_combinators_never_read_another_row
+    self.assertEqual(self.parse('<ul><li id="a">A</li><li id="b">B</li></ul>',{'_listContainer':'ul','_listItem':'li','id':'.::id','next':'li + li::text','following':'li ~ li::text'}),[
+AssertionError: Lists differ: [{'id': 'a', 'next': 'B', 'following': 'B'}, {'id': 'b', 'next'[18 chars] ''}] != [{'id': 'a', 'next': '', 'following': ''}, {'id': 'b', 'next': [16 chars] ''}]
+
+First differing element 0:
+{'id': 'a', 'next': 'B', 'following': 'B'}
+{'id': 'a', 'next': '', 'following': ''}
+
+- [{'following': 'B', 'id': 'a', 'next': 'B'},
+?                 -                       -
+
++ [{'following': '', 'id': 'a', 'next': ''},
+   {'following': '', 'id': 'b', 'next': ''}]
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.022s
+
+FAILED (failures=4, errors=1)

@@ -1,0 +1,57 @@
+{
+  "review":"ScrapyJS R1.7 lifecycle/evidence limited follow-up",
+  "reviewedAt":"2026-10-30",
+  "originalReport":"r17-review-lifecycle-evidence.json","originalPreserved":true,
+  "status":"PROVISIONAL_SOURCE_FIX_REVIEWED",
+  "method":"只读修复代码、测试定义和既有 JSON；不新增或执行测试、服务、浏览器或构建；仅新增本 follow-up。",
+  "dimensions":{
+    "architecture_lifecycle_maintainability":{
+      "previousScore":80,"provisionalScore":90,"scale":"0..100",
+      "reason":"原 P1 的确定拒绝/取消恢复、CAS、回执到达后禁止误回滚和 unknown 栅栏均已接通；保留单 worker、boot fence、持久记录与退出确认。",
+      "remaining":"NOT_CREATED 实际 HTTP 恢复待主 agent；当前指定文件未定位活跃重启/PID/撤权负向原始记录。"
+    },
+    "verification_evidence_delivery_reproducibility":{
+      "previousScore":78,"provisionalScore":88,"scale":"0..100",
+      "reason":"新增全字段导出、数据修复命令/环境/hash；最新 HTTP 报告具 sources/sourcesAfter/sourceStable=true，401 后恢复原 runId。",
+      "remaining":"正式包、依赖锁、完整运行命令/时间绑定尚不齐；部分生命周期记录未定位；真实 Chrome/AI 未验证。"
+    }
+  },
+  "p1Followup":{
+    "id":"R17-LC-P1-01","status":"SOURCE_FIX_REVIEWED_REAL_HTTP_PENDING",
+    "locations":["src/local-runner-client.js:120-137","src/local-runner-client.js:79-99","src/platform/host/local-tasks.js:55-60","src/platform/host/local-tasks.js:94-132"],
+    "reviewed":["POST 前保存 previous pointer/snapshot；仅 received=false 且可信 E_LOCAL_NOT_CREATED/E_CANCELLED 执行 CAS 恢复。","创建回执已到达后的 adoption/storage 失败不回滚为未创建；CAS 冲突/回执不明继续禁止新建。","Host 对准备阶段未派发，以及匹配已审服务创建前 409/422 白名单，明确标记未创建。","未知创建保留 row.unresolved；普通 404、超时或原始 409/422 不推断未创建，也不重放 POST。","可信 by-request 墓碑只 CAS 清理无 runId 指针，不清理已知 run 或覆盖并发窗口。"],
+    "testDefinitions":"local-runner-client.test.mjs:177-315 已定义拒绝/取消、preview 恢复、CAS、回滚回执丢失、unknown、adoption 取消与墓碑；本轮未执行。",
+    "acceptance":"源码层原 P1 已修；已读 HTTP 报告未记录 NOT_CREATED 恢复闭环，交由主 agent 复验，不标端到端 PASS。"
+  },
+  "evidenceReviewed":{
+    "service-proof.json":{"accepted":"记录 sameConfigHash、全字段导出读回、精确 preview、requestRecoveryNoReplay、同 owner session refresh、2000 条预算及分页负向。","missing":"当前顶层仅 credentialInit/full/recordBudget/review*/runtime；未找到 active restart/INTERRUPTED、worker PID 消失、active 撤权/token 拒绝/不再 HTTP 记录。"},
+    "review-data-proof.json":{"accepted":"10 项 DSL/6 项 review HTTP 命令 exitCode=0、Python 3.11.15/Scrapling 0.5、parserMocked=false、具体请求记录与 sourceSha256。","sourceMatch":"manager/storage/service/worker 四项实际 hash 均匹配；未扩展读取其他模块。","boundary":"数据修复来源可绑定，不自动证明正式包或真实 Host/Mac 验收。"},
+    "r17-local-host-integration.json":{"accepted":"1/2/3 页、同 hash full、原 run reopen、采一页后 Stop 无后续 HTTP、导出读回；401 后恢复原 runId、无重复批准或创建重放。","provenance":"sources==sourcesAfter，sourceStable=true；Host/client 与四个已审 Python 模块 hash 匹配观察。","boundary":"401 恢复的是已 Stop 的 run，不替代活跃重启/PID；安装/storage/授权/锁仍是替身。"}
+  },
+  "remainingIssues":[
+    {"id":"R17-EV-P2-01","priority":"P2","status":"PARTIALLY_IMPROVED","issue":"数据与 HTTP 报告已有源码绑定；正式包/依赖锁/运行命令与时间仍待同候选记录。"},
+    {"id":"R17-EV-P2-02","priority":"P2","status":"EVIDENCE_NOT_LOCATED","issue":"所述 active 重启/PID/撤权负向未在当前指定 JSON 留存；不判功能失败。","next":"补回已完成原始证据的引用或独立原报告即可；本轮不要求追加测试。"}
+  ],
+  "notTested":{
+    "NOT_CREATED_actual_HTTP_recovery":"主 agent 进行中；本轮未执行，已读报告未记录该闭环。",
+    "active_restart_PID_revocation_negative":"用户报告已完成；当前指定文件未定位，不能升级为独立已验证。",
+    "REAL_HOST":"NOT_TESTED","MAC_CHROME":"NOT_TESTED","AI_PROVIDER":"NOT_TESTED","productionInstallAndDownload":"NOT_TESTED",
+    "wallClock1800s_and_50pages":"review-data-proof 明确保留 NOT_TESTED，本轮不追加。"
+  },
+  "observedSha256":{
+    "examples/sidebar-tools/scrapyjs/src/local-runner-client.js":"196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779",
+    "src/platform/host/local-tasks.js":"4dde1635f0484dc52e511a96c8e33ec7ec0de7e62a176ab2f4f0c1d00da696c2",
+    "examples/sidebar-tools/scrapyjs/tests/local-runner-client.test.mjs":"a01a21ea52bec0b61faba94c59c7d402fceb362c18e1a12a374a98124a05b95b",
+    "examples/sidebar-tools/scrapyjs/tests/local-host-integration.mjs":"3000818f13488bbf177ffc5350b81f0e98701ef6c62eafd543e8e568668bfc37",
+    "artifacts/scrapyjs/r17-local-host-integration.json":"af77a7fc9eaa8361b6770488fa0258b45dce8cfa55b330942c08cebe36208253",
+    "examples/sidebar-tools/scrapyjs/evidence/r17-review-lifecycle-evidence.json":"6d72979a7e06c6f55e4a1326f2a6f62de110fe03eda40923ea1a4914668e6ce0",
+    "examples/sidebar-tools/scrapyjs/local-runner/evidence/service-proof.json":"7ea3da4422a2e56217b4ede72bacebcd035d7493ac6b20b38739ea88c9074008",
+    "examples/sidebar-tools/scrapyjs/local-runner/evidence/review-data-proof.json":"547e223de4ae4ac95d11ce28fede0757ef21f9c1c2d1c3ce59caea82e9dbe03d",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/manager.py":"ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py":"95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py":"7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/service.py":"45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330"
+  },
+  "hashBoundary":"hash 绑定本 follow-up 已读快照，不补造历史来源；读取后主 agent 产生的新结果不自动计入。",
+  "decision":"两维仅暂定，不宣布整体 PASS/95+；未新增已确认 P1，原始报告保持不变。"
+}

@@ -28,6 +28,7 @@ export function sidebarToolRequestTimeout(operation,toolId){
  // First-use exact-site review has a separate 90s budget. Native collection
  // still times out after 3s, and no late receipt is accepted.
  if(operation==='ai.generate')return 190000;
+ if(operation==='localTasks.request'||operation==='localTasks.export')return 180000;
  if(operation==='browser.page.readEnvironment')return 100000;
  // HTTP normally dispatches immediately, but its first missing Chrome origin
  // permission still needs time for the native prompt in the trusted parent.
@@ -152,7 +153,7 @@ export function initSidebarToolSandbox() {
   const consumeExportClick=operation=>{
     const clickTimeStamp=exportClick&&timeStampGetter?apply(timeStampGetter,exportClick,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export')&&
       exportClick&&apply(trustedGetter,exportClick,[])===true&&
       apply(currentTargetGetter,exportClick,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -166,7 +167,7 @@ export function initSidebarToolSandbox() {
     // Allocate only at delivery: unrelated reads may finish during preparation.
     const requestId=''+(++sequence);
     return new Carrier((resolve,reject)=>{
-      const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+      const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export';
       const browserWrite=exporting||browserOperation(operation)?.effectClass==='write';
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=later(()=>{

@@ -316,6 +316,7 @@ test('retired generation shares only in-flight cleanup and retries unknown on or
     runtime.updateSettings({model:'changed'});
     const first=lease.cancelInference(),same=lease.cancelInference();assert.equal(first,same);
     attempts[0].resolve({state:'OUTCOME_UNKNOWN'});await first;await Promise.resolve();
+    assert.equal(runtime.developmentIdle(),false,'unretired AI must veto development refresh after the transport settles');
     assert.deepEqual(released,[],'unknown must retain original planner');
     assert.equal(lease.planner.snapshot().sessionId,'s1');
     await assert.rejects(lease.requestStructured({request:'blocked'}),{code:'E_AI_OUTCOME_UNKNOWN'});
@@ -323,15 +324,52 @@ test('retired generation shares only in-flight cleanup and retries unknown on or
     const retry=lease.planner.cancel();assert.equal(attempts.length,2);assert.equal(attempts[1].id,1);
     attempts[1].reject(fail('E_DISCONNECTED'));await assert.rejects(retry,{code:'E_DISCONNECTED'});
     const idle=lease.cancelInference();attempts[2].resolve({state:'IDLE'});await idle;
+    assert.equal(runtime.developmentIdle(),false,'an uncorrelated IDLE cannot authorize refresh');
     assert.deepEqual(released,[],'IDLE cannot retire the submitted turn');
     runtime.updateSettings({source:'cloud_responses'});
     const cloudFence=lease.cancelInference();attempts[3].resolve({state:'OUTCOME_UNKNOWN'});await cloudFence;
     await assert.rejects(lease.requestStructured({request:'cloud must also wait'}),{code:'E_AI_OUTCOME_UNKNOWN'});
     const terminal=lease.cancelInference();assert.equal(attempts[4].id,1);
     attempts[4].resolve({state:'CANCELLED',terminalStatus:'interrupted'});await terminal;
+    assert.equal(runtime.developmentIdle(),true,'only the original terminal receipt releases this reload fence');
     assert.deepEqual(released,[1]);
     await lease.requestStructured({request:'fresh'});assert.equal(count,2);
   }finally{lease.dispose();runtime.dispose();for(const d of attempts)d.resolve({state:'CANCELLED',terminalStatus:'interrupted'});}
+});
+
+test('development refresh stays blocked throughout a structured request and releases after settlement',async()=>{
+  const r=setup(),lease=r.runtime.acquire({consumerId:'sidebar-tools',instanceId:'development'});
+  let work;
+  try{
+    assert.equal(r.runtime.developmentIdle(),true);
+    work=lease.requestStructured({request:'hold',instructions:'restricted'});
+    assert.equal(r.runtime.developmentIdle(),false,'AI remains busy between individual Native RPCs');
+    r.pending.resolve({ok:true});await work;
+    assert.equal(r.runtime.developmentIdle(),true);
+  }finally{r.pending.resolve({ok:true});await work?.catch(()=>{});lease.dispose();r.runtime.dispose();}
+});
+
+test('closing a consumer keeps its original unknown Native turn in the live Host reload fence',async()=>{
+  const attempts=[];let released=0,starts=0;
+  const runtime=createSharedAIProviderRuntime({hostInstanceId:'disposed-consumer-host',client:{requestWorkflowAI(){}},
+    plannerFactory:()=>({snapshot:()=>({busy:true,state:'OUTCOME_UNKNOWN'}),
+      planStructured:async()=>{starts++;throw fail('E_AI_OUTCOME_UNKNOWN');},
+      cancel(){const reply=deferred();attempts.push(reply);return reply.promise;},dispose(){released++;}}),
+    facadeFactory:({localPlanner})=>({generateStructured:()=>localPlanner.planStructured({})})});
+  const lease=runtime.acquire({consumerId:'sidebar-tools',instanceId:'original-consumer'});
+  try{
+    await assert.rejects(lease.requestStructured({request:'original'}),{code:'E_AI_OUTCOME_UNKNOWN'});
+    lease.dispose();
+    assert.equal(runtime.developmentIdle(),false,'removing UI ownership cannot retire the original inference');
+    attempts[0].resolve({state:'IDLE'});await lease.planner.cancel();
+    assert.equal(runtime.developmentIdle(),false);
+    assert.equal(released,0,'do not dispose the only original turn correlation on unknown');
+    const terminal=lease.planner.cancel();attempts[1].resolve({state:'CANCELLED',terminalStatus:'interrupted'});await terminal;
+    assert.equal(runtime.developmentIdle(),true);
+    assert.equal(released,1);
+    assert.equal(starts,1,'retirement never starts another inference');
+    await assert.rejects(lease.requestStructured({request:'cannot reuse closed consumer'}),{code:'E_TOOL_CHANGED'});
+  }finally{for(const reply of attempts)reply.resolve({state:'CANCELLED',terminalStatus:'interrupted'});runtime.dispose();}
 });
 
 test('a readiness-only planner can retire on provider change without inventing a pending turn',async()=>{

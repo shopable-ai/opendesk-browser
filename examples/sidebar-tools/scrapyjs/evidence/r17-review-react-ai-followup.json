@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "review": "ScrapyJS R1.7 RA1–4 限定 followup",
+  "reviewedAt": "2026-10-30T03:32:54.060428+08:00",
+  "originalReport": {"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/evidence/r17-review-react-ai.json","sha256":"8692dad331b7f61b41ffc2bc394cb56549f2fea17328be9b35879d86a6ef38bb"},
+  "verdict": "ORIGINAL_FINDING_TRIGGERS_CLOSED_IN_SOURCE",
+  "openP1WithinFollowup": 0,
+  "scope": {
+    "sourceFiles": [
+      {"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","lines":256,"sha256":"e53f72ce40a4fd266edf0a2f68abc4628b34f5306874c3e8cb13185c9763d569"},
+      {"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","lines":161,"sha256":"196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779"},
+      {"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","lines":208,"sha256":"3507cdeea912f2ea249934b6f7eec4116e96ab178d6e3d0bf7faac651bee89bb"}
+    ],
+    "onlyWritableFile": "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/evidence/r17-review-react-ai-followup.json",
+    "method": "限定源码控制流复核；无新增 mock、产品测试或浏览器操作",
+    "sourceModified": false, "originalReportModified": false
+  },
+  "scores": [
+    {"dimension":"React 交互 / 可访问性","previous":72,"provisional":90,"outOf":100,"basis":"原主链 busy 外溢、恢复入口、确认区关联与焦点的原报告问题已在源码修复；真实交互及读屏未测。"},
+    {"dimension":"AI 数据边界 / 纠错","previous":74,"provisional":91,"outOf":100,"basis":"requestId 严格验证与可达恢复路径已补齐，显式未创建分支保留未知结果不重放；可信 Host/真实 AI/runner 未验证。"}
+  ],
+  "findings": [
+    {
+      "id": "R17-RA-001", "originalPriority": "P1", "status": "SOURCE_TRIGGER_CLOSED",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":240,"end":240},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":93,"end":99},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":110,"end":113}],
+      "trace": "恢复按钮现在总调用 client.restore()；成功重读存储/ETag 后重置 storageUncertain，再按原身份查询。原 ready=true 只能 refresh 的死锁路径已移除；未知且未退出的 run 仍禁止新建。",
+      "nativeStatus": "NOT_TESTED"
+    },
+    {
+      "id": "R17-RA-002", "originalPriority": "P1", "status": "SOURCE_TRIGGER_CLOSED",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":74,"end":82},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":61,"end":64},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/App.jsx","start":163,"end":163}],
+      "trace": "onBusy 改为 foregroundBusy=working||runnerBusy；后台 runnerActive/recovering 不再传入原工作区锁。AiPanel 内部 busy 与 runnerActive 仍限制 AI/full 和重复创建，未直接取消原 run 的保护。",
+      "nativeStatus": "NOT_TESTED"
+    },
+    {
+      "id": "R17-RA-003", "originalPriority": "P1", "status": "SOURCE_TRIGGER_CLOSED",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":17,"end":22},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":37,"end":41},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":70,"end":77}],
+      "trace": "normalizeSnapshot 强制 identity(value.requestId)，并精确匹配 expected.requestId；缺失或不符会在 snapshot/pointer 写入前拒绝，原错误 runId 被采用并用于 Stop 的路径已封堵。",
+      "nativeStatus": "NOT_TESTED"
+    },
+    {
+      "id": "R17-RA-004", "originalPriority": "P2", "status": "SOURCE_TRIGGER_CLOSED",
+      "refs": [{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":67,"end":83},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":135,"end":135},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/AiPanel.jsx","start":249,"end":250}],
+      "trace": "触发按钮提供 aria-expanded/aria-controls；确认组有固定 id 与 hidden；展开 effect 聚焦复选框，取消/Escape 返回触发按钮。真实焦点时序与读屏结果未测。",
+      "nativeStatus": "NOT_TESTED"
+    }
+  ],
+  "notCreated": {"status":"SOURCE_PATH_REVIEWED_NO_NEW_P1_FOUND","refs":[{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":79,"end":91},{"file":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/src/local-runner-client.js","start":120,"end":139}],"post":"仅在未收到响应且错误为 E_LOCAL_NOT_CREATED/E_CANCELLED 时恢复 previous.pointer/snapshot；received=true 后的采用或持久化失败不进入该回滚分支。","lookup":"仅 E_LOCAL_NOT_CREATED 可退休尚无 runId 的原请求；已知 runId 或查询期间 pointer 被替换时不清除，persist(null) 仍使用 CAS。","unknown":"其他异常继续 GET 原请求；未确认时保持阻断，不自动重发 POST。确认未创建后抛提示，下一次创建仍需显式用户操作。","dependency":"依赖可信 Host 仅在确证未创建时返回这些错误码；本轮未审查 Host/daemon 映射，不能把此假设标成原生验证通过。"},
+  "retainedBoundaries": [
+    "本轮可见生成路径仍先 parseProposal 与绑定检查，再写 draft/previewContext 和启动 preview；失败不清空已有 run/记录。",
+    "binding 变化仍撤销认证/确认，full 仍要求 certified、confirmed 和重新核对 Provider generation/当前配置。",
+    "未改写原报告结论；本文件只补充这些特定修复在所列 SHA 的源码状态。"
+  ],
+  "limits": [
+    "0 个开放 P1 仅指原 RA1–3 与本次 notCreated 相关控制流，不是全工具无缺陷或可发布认证。",
+    "仅重读 AiPanel.jsx、local-runner-client.js 与 App.jsx 的相关段；未扩读框架、Host、daemon、解析器或其他业务源码。",
+    "未新建/控制浏览器，未执行新增 mock、真实 AI、Chrome、Python runner、构建、打包或全面回归。",
+    "评分为源码层暂评，不凭源码或 mock 宣称原生 PASS；AI unknown 跨销毁重开的恢复仍非本次复核结论。"
+  ],
+  "native": {"chrome":"NOT_TESTED","realAi":"NOT_TESTED","realRunner":"NOT_TESTED","stopAndReopen":"NOT_TESTED","screenReader":"NOT_TESTED"},
+  "writes": {"only":"/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/evidence/r17-review-react-ai-followup.json","sourceChanges":0,"branchesCreated":0,"commits":0}
+}

@@ -1,0 +1,11 @@
+test_20_full_requires_exact_preview_and_request_lookup_never_replays (test_service.ServiceTests.test_20_full_requires_exact_preview_and_request_lookup_never_replays) ... ok
+test_35_record_budget_stops_normally_and_preview_remains_usable (test_service.ServiceTests.test_35_record_budget_stops_normally_and_preview_remains_usable) ... ok
+test_60_review_base_uri_uses_first_href_and_final_response_url (test_service.ServiceTests.test_60_review_base_uri_uses_first_href_and_final_response_url) ... ok
+test_61_review_cross_scope_base_is_denied_before_following (test_service.ServiceTests.test_61_review_cross_scope_base_is_denied_before_following) ... ok
+test_62_review_redirect_to_visited_document_never_commits_twice (test_service.ServiceTests.test_62_review_redirect_to_visited_document_never_commits_twice) ... ok
+test_63_review_existing_disabled_classes_are_final_pages (test_service.ServiceTests.test_63_review_existing_disabled_classes_are_final_pages) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 23.365s
+
+OK

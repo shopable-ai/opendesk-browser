@@ -27,6 +27,19 @@ test('proposal rejects prototype keys, oversized fields and broken detail identi
  assert.throws(()=>parseProposal({...base,itemConfig:{huge:'a'.repeat(4100)}},validateConfig,base.url));
  assert.throws(()=>parseProposal({...base,detail:{urlField:'url',identityField:'title',itemConfig:{price:'.price'}}},validateConfig,base.url));
 });
+test('local runner AI accepts its 50-page budget without widening browser drafts or data validation',async()=>{
+ const local={url:'http://127.0.0.1:43233/page-1.html',itemConfig:{_listContainer:'#books',_listItem:'li',id:'.::data-id',title:'h2::text',price:'.price::text'},nextPageSelector:'a.next',maxPages:50,dedupeKey:'id'};
+ const validateLocal=value=>validateConfig(value,{runtime:'local'});
+ assert.equal(JSON.stringify(parseProposal(local,validateLocal,local.url)),JSON.stringify(local));
+ assert.throws(()=>validateConfig(local),/1–10/);
+ for(const maxPages of [0,51,1.5,'50'])assert.throws(()=>validateLocal({...local,maxPages}));
+ assert.throws(()=>validateLocal({...local,code:'alert(1)'}));
+ assert.throws(()=>validateLocal({...local,itemConfig:{id:{selector:'.',read:'execute'}}}));
+ assert.throws(()=>parseProposal({...local,url:'https://example.org/'},validateLocal,local.url));
+ const {localRunnerInstructions}=await import('../src/ai-config.js');
+ assert.match(localRunnerInstructions,/maxPages 1到50/);
+ assert.match(instructions,/maxPages 1到10/);
+});
 test('diff includes every validator-accepted underscore field and only separates the two list keys',()=>{
  const before={...base,itemConfig:{...base.itemConfig,_modified:'.old',_removed:'.remove',_kept:'.keep',_listItemLabel:'.label'}};
  const after={...base,itemConfig:{...base.itemConfig,_modified:{selector:'.new',read:'text'},_added:'.add',_kept:'.keep',_listItemLabel:'.label',_listItem:'article'}};
@@ -42,4 +55,14 @@ test('diff includes every validator-accepted underscore field and only separates
  assert.deepEqual(diff.fields.map(row=>row.key).sort(),['title','url','_modified','_removed','_added','_kept','_listItemLabel'].sort());
  assert.equal(diff.listChanged,true);assert.equal(diff.listAfter._listItem,'article');
  assert.deepEqual([JSON.stringify(before),JSON.stringify(after)],snapshots);
+});
+test('local capture rejects unsupported user rules intact while original browser configuration remains valid',async()=>{
+ const {validateLocalCapture}=await import('../src/capture-trials.js');
+ const before=JSON.stringify(base);
+ assert.throws(()=>validateLocalCapture(base,validateConfig),/不支持/);assert.equal(JSON.stringify(base),before);
+ validateConfig(base);
+ for(const rule of ['//a','a::innerHTML',{selector:'h2',read:'innerHTML'},{selector:'//a',read:'text'}])
+  assert.throws(()=>validateLocalCapture({url:base.url,itemConfig:{title:rule}},validateConfig));
+ const local={url:base.url,itemConfig:{title:'h2::text'},maxPages:50};
+ assert.equal(validateLocalCapture(local,validateConfig).maxPages,50);
 });

@@ -1,4 +1,5 @@
-// Build-only evidence. Never emitted into dist or imported by extension code.
+// Fixed-entry source admission and optional build evidence. Never emitted into
+// dist or imported by extension code; serve must enforce the same source gate.
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
 import {readFileSync,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
@@ -75,13 +76,24 @@ function reviewedCompiledVideoSVIP(target,path,root){
   return hash;
 }
 
-// R0.1 Video Downloader: only four reviewed first-party source blobs enter
-// the existing Side Panel Host. No sandbox, SW or Page Relay privilege.
+// R0.3 Video Downloader: eight exact reviewed inputs enter ONLY the existing
+// Side Panel Host. remux.js is pure H.264/AAC packaging, including explicit
+// source HE-AAC configuration and finite sample-derived durations. The fixed
+// mux.js 7.1.1 subset is SRI-verified, Apache-2.0, network/eval-free, reproducible
+// from its per-input SHA receipt. No wildcard vendor admission, new executable
+// target, privilege, remote dependency or dynamic package-code interpretation.
+// Existing document/source/installation checks fence every native save. R0.3.1
+// keeps old manifest records only for a blob video in the same bounded snapshot;
+// no observers, persistent URL collection, or new executable target is admitted.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'9b2082eed30c201b66535c7dbe97f06328848116',
-  'projects/video-downloader/trusted/hls.js':'ec5e6570884b5ef10371b3f3f20548743cea72a4',
-  'projects/video-downloader/trusted/host.js':'f4ea42f5fd4e152d892f9634b9d93ecbad097cbe',
-  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6'
+  'projects/video-downloader/trusted/policy.js':'22ff60adeb2746b0c2b3a7621323c78d7321a6c7',
+  'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
+  'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
+  'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
+  'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
+  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6',
+  'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',
+  'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'
 });
 function reviewedCompiledVideoDownloader(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoDownloaderInputs,path))return null;
@@ -145,13 +157,29 @@ function reviewedCompiledAdblock(target,path,root){
 // in the existing Foundation store. The fixed service consumer uses only the
 // original Native subprotocol; no Cookie transfer or sandbox Native authority.
 // Its exact reviewed bytes may enter only the fixed SW closure.
+// Display composition now consumes redacted facts only in the existing fixed
+// Sidebar Host. Its UI-only blob is explicitly rejected in the SW and all
+// other entries; no tool package or arbitrary trusted/ file gains admission.
 const compiledCookieAccountInputs=Object.freeze({
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'1b20551bef0c24cb31505960ba9d73f886b8c31c',
+  // S3 fixed Relay session transport: exact HTTPS paths, explicit fingerprints,
+  // nonexportable device identities and authenticated encrypted snapshots.
+  // The shared contract remains pure; session helpers may enter only the SW.
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'4bffffd2f4960fddea6d3375d5d78c25b6e13edb',
-  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'138391e1462cf48ec49b05399a1ffa16a6a9ec9b',
-  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'0c294fbf65d318c98e4506f720c836a45f01955d',
+  // Verified same-site manual recovery settles only the unchanged tab fence;
+  // its old URL remains blocked. Reopened shares use exact-owner local receipts.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'f5addf371f529393004d7f9c35c55d7d5cf04a4e',
+  // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
+  // dispatched requests and lost replies retain the durable unknown fence.
+  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
+  // Full saved-Cookie scope is checked before and after encryption and again
+  // before POST; durable unknown fences never replay a consumed request.
+  'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
+  'examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
+  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'fcba7f4eae2d3dcc43a066eedc0f0b6f7d284bd9',
+  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'a688d521257c7c3f686aaf4f1d7f33d65192e88c',
+  'examples/sidebar-tools/cookie-editor/trusted/service-view.js':'437172f359d0f9008fb81d932cce4ee179856515',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
@@ -164,7 +192,9 @@ const cookieAccountContractTargets=new Set([
 function reviewedCompiledCookieAccounts(target,path,root){
   if(!Object.hasOwn(compiledCookieAccountInputs,path))return null;
   if(path==='examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
-    ?!cookieAccountContractTargets.has(target):target!=='sw.js')return null;
+    ?!cookieAccountContractTargets.has(target):
+    path==='examples/sidebar-tools/cookie-editor/trusted/service-view.js'
+      ?target!=='ui/sidebar-tool-host.js':target!=='sw.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Cookie account source must not be a symlink: '+path);
@@ -418,6 +448,7 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
   'projects/web-markdown-clipper/trusted/page.js':'6bfc9eb7949659cbd645fe8285553c8fd4ef64ea',
+  // Relocation-only parent imports; exact note/site scopes and targets stay fixed.
   'projects/web-markdown-clipper/trusted/policy.js':'30b4c35933a813e394eb9173c034b1a21927f6d1',
   'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
 });
@@ -451,6 +482,9 @@ function reviewedCompiledWebClipper(target,path,root){
 // compile into EXISTING reviewed fixed outputs, never arbitrary JS, remote
 // packages or another privileged Host. Page algorithms/renderers are limited
 // to Page Relay; the policy and generated locale are fixed-host shared.
+// 2026-10-30 relocation review: four parent-depth import corrections resolve
+// to the same existing src modules after examples/ -> projects/. Business logic,
+// target ownership, permissions and fail-closed source/symlink guards are unchanged.
 const compiledReadingTocInputs=Object.freeze({
   'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'projects/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
@@ -564,6 +598,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
       reviewedCompiledAIProxy(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
+    // Moving an independent app into projects/ never grants privileged access.
+    // It must retain the same exact reviewed source/target admission as examples/.
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
@@ -584,10 +620,13 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     note:'Rollup module graph; renderedLength is pre-minification characters, not final bytes or browser execution proof.'};
 }
 export async function recordBundle(chunk) {
-  const directory=process.env.OPENDESK_MODULE_EVIDENCE_DIR;
-  if(!directory)return; // Direct WXT debugging is not a verified build receipt.
   const lock=JSON.parse(await readFile('package-lock.json','utf8'));
   const record=describeBundle({chunk,lock});
+  // Admission must precede WXT output in serve as well as verified builds.
+  // Omitting the evidence directory skips only the receipt, never source,
+  // target, symlink, npm or exact reviewed-blob checks.
+  const directory=process.env.OPENDESK_MODULE_EVIDENCE_DIR;
+  if(!directory)return; // Passing this gate alone is not a verified build receipt.
   await writeFile(resolve(directory,encodeURIComponent(chunk.fileName)+'.json'),
     JSON.stringify(record),{flag:'wx'});
 }

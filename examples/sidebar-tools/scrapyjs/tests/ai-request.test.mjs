@@ -56,3 +56,20 @@ test('preparation timeout is retryable while every dispatched unknown keeps the 
     assert.equal((await after.cancel()).state,'unknown');assert.deepEqual(afterCalls,['ai.info','ai.generate','ai.cancel']);
   }
 });
+test('unknown cancellation followed by a late response cannot clear the persisted request fence',async()=>{
+ const result=deferred(),cleared=[];
+ const op=createAiRequest(async name=>name==='ai.info'?{generation:1}:name==='ai.generate'?result.promise:{requestId:'original',state:'unknown'},payload,()=>{},
+  {claim:async()=>{},clear:async id=>cleared.push(id)});
+ const run=op.run();await new Promise(resolve=>setImmediate(resolve));await op.cancel();
+ result.resolve({requestId:'original',providerGeneration:1,proposal:{}});assert.equal(await run,null);
+ assert.equal(op.unknown,true);assert.deepEqual(cleared,[]);
+});
+test('failed or malformed cancellation preserves the original fence after a late response',async()=>{
+ for(const bad of [()=>{throw Error('offline cancel');},()=>({requestId:'other',state:'completed'})]){
+  const result=deferred(),cleared=[];
+  const op=createAiRequest(async name=>name==='ai.info'?{generation:1}:name==='ai.generate'?result.promise:bad(),payload,()=>{},
+   {claim:async()=>{},clear:async id=>cleared.push(id)});
+  const run=op.run();await new Promise(resolve=>setImmediate(resolve));await assert.rejects(op.cancel());
+  result.resolve({requestId:'original',providerGeneration:1});assert.equal(await run,null);assert.deepEqual(cleared,[]);assert.equal(op.unknown,true);
+ }
+});

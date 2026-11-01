@@ -1,9 +1,10 @@
 import * as React from 'react';
 import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
+import {CookieAccountShareLive} from './CookieAccountSharing.jsx';
 
 // Product-owned React presentation, shared by the official app and preview.
-// No Cookie value, credential, share token, network call or persistent grant
-// enters this component. Live invitation and marketplace backends do not exist.
+// Presentation stays metadata-only. Live configuration invitations delegate to
+// the existing trusted Host; the explicit preview keeps its isolated demo.
 const marketOffers=Object.freeze([
   {id:'account-kit',title:'多账号整理',category:'template',categoryLabel:'使用模板',
     audience:'个人 · 多账号',description:'把工作、个人与备用账号分开保存，常用账号一键定位。',
@@ -30,7 +31,10 @@ const mockOutcomes={
   failed:'模拟请求失败：结果未确认，不自动重试。'
 };
 
-export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
+export function CookieAccountShare(props){
+  return props.previewOnly?<CookieAccountShareDemo {...props}/>:<CookieAccountShareLive {...props}/>;
+}
+function CookieAccountShareDemo({account,previewOnly=false,onBack=()=>{}}){
   const heading=React.useRef(null);
   React.useLayoutEffect(()=>{heading.current?.focus({preventScroll:true});},[]);
   const [recipientType,setRecipientType]=React.useState('anonymous');

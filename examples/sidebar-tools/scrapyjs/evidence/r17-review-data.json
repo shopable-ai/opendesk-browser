@@ -1,0 +1,971 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "scrapyjs-r1.7-independent-data-semantics",
+  "reviewedAt": "2026-10-29T19:09:28.590077+00:00",
+  "localDate": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "reviewStatus": "CHANGES_REQUESTED",
+  "reviewerRole": "Independent read-only review; main agent owns fixes",
+  "scope": {
+    "writableFile": "examples/sidebar-tools/scrapyjs/evidence/r17-review-data.json",
+    "inspectedImplementation": [
+      "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py",
+      "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+      "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py"
+    ],
+    "referenceScope": "Existing original DSL/item loader/exporter/pagination source and existing tests only. security.target_url was called as an imported dependency without inspecting its source.",
+    "sourceCodeModified": false,
+    "branchesCreated": false,
+    "commitsCreated": false,
+    "serversStarted": false,
+    "portsBound": [],
+    "browserOrProductionTested": false,
+    "testSideEffects": "Python used -B/PYTHONDONTWRITEBYTECODE=1. Worker network, Store, lock and watchdog I/O were replaced in process. Storage SQL and JSONL sinks were in memory. No temporary test files were created.",
+    "scopeLimit": "Full HTTP service tests were deliberately not executed: their setup starts servers and their teardown/exports write files other than the allowed report."
+  },
+  "runtime": {
+    "python": "3.11.15",
+    "scrapling": "0.5",
+    "interpreter": "examples/sidebar-tools/scrapyjs/local-runner/.venv/bin/python",
+    "sourceRevisionBinding": "Content hashes below; local-runner is untracked working-tree content, not a committed release candidate."
+  },
+  "dataSemanticsScore": {
+    "provisional": 65,
+    "scale": {
+      "min": 0,
+      "max": 100
+    },
+    "dimension": "Data semantics only",
+    "method": "Reviewer judgment based on inspected code and the listed local component observations; not a release grade or a percentage of tests passed.",
+    "rationale": "Common text/attr values, one/many/auto shapes, direct-child rows and bounded storage round-trips work in the exercised cases. Three reproduced P1 issues can mix rows, visit the wrong next page, or persist duplicate page data; two P2 compatibility issues remain.",
+    "unknownItemsCountAsPass": false,
+    "actualHttpCsv": "NOT_TESTED",
+    "actualHttpJsonl": "NOT_TESTED",
+    "diskCrashRecovery": "NOT_TESTED",
+    "releaseAcceptance": "NOT_TESTED"
+  },
+  "summary": {
+    "p1": 3,
+    "p2": 2,
+    "confirmedFindings": 5,
+    "mainAgentFixRequired": true
+  },
+  "sourceSnapshot": [
+    {
+      "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py",
+      "sha256": "005d382cce55bea3b3425b9760ba7834edb293d700c03db16b00227e4c709f69",
+      "bytes": 8351
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+      "sha256": "cb5c584165da7203aab7d9fefd1b151250397c1d3a5ee0c3dd522e3bfb198ec6",
+      "bytes": 4450
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py",
+      "sha256": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+      "bytes": 6237
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/item/item-loader-extraction.js",
+      "sha256": "104335b009fd9c7436c6e4b9a0351d545b65c6db83c719306a2e8e31eb0df8b1",
+      "bytes": 9917
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/item/ItemLoader.js",
+      "sha256": "6d6d0b1769c44ac79460242f8abc6ed00740edd8c2bb2256a50b5dcac11fd48c",
+      "bytes": 4720
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/core/ChromeSpider.js",
+      "sha256": "3dcc8bba4be700ce1266091e521c9a70fbb5552994ab5f5b2b673b74ec13e25e",
+      "bytes": 15155
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py",
+      "sha256": "7a3fd2a22623ed0f89638cc92895afe0cec559a7f9df99c9920c06523537faa1",
+      "bytes": 2920
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py",
+      "sha256": "e723183fc8c4dcc590ab4c76c20c405455c92b620dbcca742bf0d82823f82032",
+      "bytes": 19196
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/tests/extraction-contract.test.mjs",
+      "sha256": "196d759085c9405fb0e9773ae942057c8d8568a92e65058d35596f0d08b560e8",
+      "bytes": 1836
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/tests/pagination-contract.test.mjs",
+      "sha256": "950f25e68525c36ef280d42d3df9de6be61690cc3cd80c212c7dbff553e6e6a9",
+      "bytes": 5132
+    }
+  ],
+  "findings": [
+    {
+      "id": "R17-DATA-001",
+      "priority": 1,
+      "severity": "HIGH",
+      "title": "Scrapling CSS scope can read a different row and miss valid ancestor-qualified fields",
+      "location": {
+        "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py",
+        "startLine": 124,
+        "endLine": 128
+      },
+      "status": "REPRODUCED_LOCAL_REAL_SCRAPLING",
+      "rootCause": "Filtering out context._root does not implement Element.querySelectorAll. Scrapling CSS can traverse following siblings outside the row, while selector chains that need ancestors outside the row fail. At document level the same filter also removes the html element, which a browser Document query can select.",
+      "reproductions": [
+        {
+          "html": "<ul><li id=\"a\">A</li><li id=\"b\">B</li></ul>",
+          "itemConfig": {
+            "_listContainer": "ul",
+            "_listItem": "li",
+            "id": ".::id",
+            "v": "li + li::text",
+            "v2": "li ~ li::text"
+          },
+          "actual": [
+            {
+              "id": "a",
+              "v": "B",
+              "v2": "B"
+            },
+            {
+              "id": "b",
+              "v": "",
+              "v2": ""
+            }
+          ],
+          "expectedFields": [
+            {
+              "v": "",
+              "v2": ""
+            },
+            {
+              "v": "",
+              "v2": ""
+            }
+          ],
+          "reference": "Original extractRecords executed in a linkedom DOM returns empty v/v2 in both rows. The . extension is not required to reproduce the leaking fields."
+        },
+        {
+          "html": "<html><body><ul><li><b>A</b></li><li><b>B</b></li></ul><p>P</p></body></html>",
+          "itemConfig": {
+            "_listContainer": "ul",
+            "_listItem": "li",
+            "v": "ul li b::text"
+          },
+          "actual": [
+            {
+              "v": ""
+            },
+            {
+              "v": ""
+            }
+          ],
+          "expected": [
+            {
+              "v": "A"
+            },
+            {
+              "v": "B"
+            }
+          ],
+          "reference": "Original normalizeConfig + extractRecords executed in a linkedom DOM."
+        },
+        {
+          "html": "<html lang=\"en\"><body><p>P</p></body></html>",
+          "itemConfig": {
+            "html": "html::lang",
+            "body": "body::text"
+          },
+          "actual": [
+            {
+              "html": "",
+              "body": "P"
+            }
+          ],
+          "expected": [
+            {
+              "html": "en",
+              "body": "P"
+            }
+          ],
+          "reference": "Original normalizeConfig + extractRecords executed in a linkedom DOM."
+        }
+      ],
+      "referenceLocations": [
+        {
+          "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/item/item-loader-extraction.js",
+          "startLine": 95,
+          "endLine": 99
+        }
+      ],
+      "impact": "Supported CSS can silently cross-contaminate records or report present values as missing. It can also affect waitForSelector and list containers that select the document html root.",
+      "recommendation": "Preserve the distinction between Document queries and row-element queries; implement descendant containment with browser-equivalent matching rather than only excluding the context node. Add sibling, external-ancestor and html-root cases.",
+      "notClaimed": "No real Chrome querySelectorAll comparison was run; the browser semantics reference here is the retained implementation executing in linkedom."
+    },
+    {
+      "id": "R17-DATA-002",
+      "priority": 1,
+      "severity": "HIGH",
+      "title": "Relative pagination ignores the page's base href and can commit data from the wrong URL",
+      "location": {
+        "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+        "startLine": 63,
+        "endLine": 66
+      },
+      "status": "REPRODUCED_LOCAL_WORKER_COMPONENT",
+      "rootCause": "The next link is always resolved against final_url; the HTML base element is never applied.",
+      "reproduction": {
+        "config": {
+          "url": "https://example.org/list",
+          "itemConfig": {
+            "_listContainer": "ul",
+            "_listItem": "li",
+            "id": "b::text",
+            "name": "p::text"
+          },
+          "nextPageSelector": "a.next",
+          "maxPages": 3
+        },
+        "firstPageHtml": "<base href=\"/catalog/\"><ul><li><b>1</b><p>FIRST</p></li></ul><a class=\"next\" href=\"2\">Next</a>",
+        "finalUrl": "https://example.org/list",
+        "expectedNextUrl": "https://example.org/catalog/2",
+        "actualNextUrl": "https://example.org/2",
+        "actualRecords": [
+          {
+            "id": "1",
+            "name": "FIRST"
+          },
+          {
+            "id": "WRONG",
+            "name": "wrong page"
+          }
+        ],
+        "outcome": {
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "errors": []
+        }
+      },
+      "referenceLocations": [
+        {
+          "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/core/ChromeSpider.js",
+          "startLine": 257,
+          "endLine": 264
+        }
+      ],
+      "impact": "A relative next link can silently visit a different in-scope document and report its records as a successful crawl.",
+      "recommendation": "Resolve the first applicable base href against the final response URL, then resolve the next href against that document base and apply the existing scope validation to the resulting URL.",
+      "evidenceLimit": "Real run_worker and real Scrapling parsing were exercised; downloader responses and Store were in-memory doubles. No HTTP server, actual redirect or real network was exercised."
+    },
+    {
+      "id": "R17-DATA-003",
+      "priority": 1,
+      "severity": "HIGH",
+      "title": "A redirect to an already visited document is extracted and persisted before pagination-loop detection",
+      "location": {
+        "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+        "startLine": 38,
+        "endLine": 42
+      },
+      "relatedLocations": [
+        {
+          "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+          "startLine": 55,
+          "endLine": 67
+        }
+      ],
+      "status": "REPRODUCED_LOCAL_WORKER_COMPONENT",
+      "rootCause": "seen_pages contains requested URLs only. The final_url returned by the downloader is not checked or recorded before extract/commit_page.",
+      "reproduction": {
+        "seedUrl": "https://example.org/list",
+        "firstPage": "<ul><li><b>1</b><p>FIRST</p></li></ul><a class=\"next\" href=\"/alias\">Next</a>",
+        "secondRequest": "https://example.org/alias",
+        "secondResponseFinalUrl": "https://example.org/list",
+        "secondResponseHtml": "same as firstPage",
+        "expected": "Stop before a second commit when the final document URL was already visited.",
+        "actualRecords": [
+          {
+            "id": "1",
+            "name": "FIRST"
+          },
+          {
+            "id": "1",
+            "name": "FIRST"
+          }
+        ],
+        "actualPagesVisited": 2,
+        "actualOutcome": {
+          "status": "FAILED",
+          "stopReason": "PAGINATION_LOOP",
+          "errors": [
+            {
+              "code": "PAGINATION_LOOP",
+              "message": "PAGINATION_LOOP"
+            }
+          ]
+        }
+      },
+      "impact": "The loop is eventually reported, but retained records, exports and completeness already contain a duplicate page. dedupeKey is optional and cannot repair page-count correctness.",
+      "recommendation": "Check and register the final response document URL before extraction/commit while handling the normal case final_url == current requested URL correctly. Keep existing loop and scope protections.",
+      "evidenceLimit": "The returned redirect target was supplied by a canned downloader. The worker's behavior for that returned URL is proven; actual HTTP redirect handling remains NOT_TESTED."
+    },
+    {
+      "id": "R17-DATA-004",
+      "priority": 2,
+      "severity": "MEDIUM",
+      "title": "A valid nested field named selector is incorrectly classified as a descriptor",
+      "location": {
+        "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py",
+        "startLine": 99,
+        "endLine": 100
+      },
+      "status": "REPRODUCED_LOCAL_REAL_SCRAPLING_AND_ORIGINAL_DSL",
+      "rootCause": "compile_config uses only the presence of a selector key to distinguish descriptors from nested objects. The original DSL requires that key's value to be a string.",
+      "reproduction": {
+        "html": "<html><body><ul><li><b>A</b></li><li><b>B</b></li></ul><p>P</p></body></html>",
+        "itemConfig": {
+          "meta": {
+            "selector": {
+              "selector": "b",
+              "read": "text"
+            },
+            "value": "p"
+          }
+        },
+        "expected": [
+          {
+            "meta": {
+              "selector": [
+                "A",
+                "B"
+              ],
+              "value": "P"
+            }
+          }
+        ],
+        "actual": {
+          "error": "NOT_SUPPORTED",
+          "message": "Unknown field descriptor property"
+        }
+      },
+      "referenceLocations": [
+        {
+          "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/item/item-loader-extraction.js",
+          "startLine": 70,
+          "endLine": 76
+        }
+      ],
+      "impact": "Existing valid nested configurations are rejected instead of preserving their object/list shape.",
+      "recommendation": "Use the original descriptor-versus-nested discriminator, including the string type check, while retaining normal descriptor validation."
+    },
+    {
+      "id": "R17-DATA-005",
+      "priority": 2,
+      "severity": "MEDIUM",
+      "title": "Static disabled next links using existing supported disabled classes are treated as live pagination",
+      "location": {
+        "path": "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py",
+        "startLine": 58,
+        "endLine": 59
+      },
+      "status": "REPRODUCED_LOCAL_WORKER_COMPONENT",
+      "rootCause": "The filter recognizes disabled but omits is-disabled and ant-pagination-disabled, both handled by the retained pagination source and both observable from static HTML.",
+      "reproduction": {
+        "url": "https://example.org/list",
+        "html": "<ul><li><b>1</b><p>FIRST</p></li></ul><a class=\"next is-disabled\" href=\"/list\">Next</a>",
+        "nextPageSelector": "a.next",
+        "expected": {
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "recordsCount": 1
+        },
+        "actual": {
+          "status": "FAILED",
+          "stopReason": "PAGINATION_LOOP",
+          "recordsCount": 1
+        }
+      },
+      "referenceLocations": [
+        {
+          "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/src/core/ChromeSpider.js",
+          "startLine": 179,
+          "endLine": 184
+        }
+      ],
+      "impact": "A normal final page is presented as a failed run; disabled controls with a different href can trigger an unnecessary next request.",
+      "recommendation": "Preserve the existing statically observable disabled classes. Do not claim computed-style/JS disabled-state equivalence without browser evidence.",
+      "evidenceLimit": "is-disabled was executed in the worker harness; omission of ant-pagination-disabled was confirmed by source comparison, not a separate executed case."
+    }
+  ],
+  "verification": {
+    "existingSingleTest": {
+      "cwd": "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner",
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest tests.test_dsl.DslTests.test_real_scrapling_preserves_original_itemloader_values_and_direct_children -v",
+      "status": "PASS",
+      "executedTests": 1,
+      "observedOutput": "Ran 1 test in 0.009s; OK",
+      "covers": "Real Scrapling common text/attr, nested fields, many arrays, missing empty values and direct-child row filtering on the existing fixture.",
+      "doesNotCover": "Query-scope counterexamples, base href, redirected document repetition or HTTP CSV."
+    },
+    "directDslProbes": {
+      "status": "EXECUTED",
+      "backend": "Real installed Scrapling 0.5; in-memory HTML only",
+      "executedObservations": [
+        {
+          "case": "text-tail",
+          "actual": [
+            {
+              "b": "Hello",
+              "i": "World",
+              "div": "HelloTAILWorldAFTER"
+            }
+          ],
+          "status": "PASS_FOR_CASE"
+        },
+        {
+          "case": "text-comment",
+          "actual": [
+            {
+              "div": "HelloTAILWorldAFTER"
+            }
+          ],
+          "status": "PASS_FOR_CASE"
+        },
+        {
+          "case": "text-whitespace",
+          "actual": [
+            {
+              "v": "A\n B  C"
+            }
+          ],
+          "status": "PASS_FOR_CASE"
+        },
+        {
+          "case": "text-script-style",
+          "actual": [
+            {
+              "v": "Aif(a<1){};B.foo{}C"
+            }
+          ],
+          "status": "PASS_FOR_CASE"
+        },
+        {
+          "case": "text-entities",
+          "actual": [
+            {
+              "v": "A <B>&🍎"
+            }
+          ],
+          "status": "PASS_FOR_CASE"
+        },
+        {
+          "case": "one-many-auto",
+          "actual": [
+            {
+              "auto": [
+                "A",
+                "B"
+              ],
+              "one": "P",
+              "many": [
+                "A",
+                "B"
+              ],
+              "missing": "",
+              "missingMany": []
+            }
+          ],
+          "status": "MATCHES_ORIGINAL_FOR_CASE"
+        },
+        {
+          "case": "empty-list",
+          "actual": [],
+          "status": "EXPECTED_COLLECTION_SHAPE"
+        }
+      ],
+      "originalDslExecution": {
+        "method": "node --input-type=module with existing linkedom and createRequire of vendor/scrapyjs/src/item/item-loader-extraction.js; no network or files",
+        "outputs": [
+          {
+            "case": "qualified-field",
+            "actual": {
+              "records": [
+                {
+                  "v": "A"
+                },
+                {
+                  "v": "B"
+                }
+              ]
+            }
+          },
+          {
+            "case": "nested-selector",
+            "actual": {
+              "records": [
+                {
+                  "meta": {
+                    "selector": [
+                      "A",
+                      "B"
+                    ],
+                    "value": "P"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "case": "many-zero-one-two",
+            "actual": {
+              "records": [
+                {
+                  "auto": [
+                    "A",
+                    "B"
+                  ],
+                  "one": "P",
+                  "many": [
+                    "A",
+                    "B"
+                  ],
+                  "missing": "",
+                  "missingMany": []
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "workerHarness": {
+      "status": "EXECUTED_COMPONENT_ONLY",
+      "implementation": "Real scrapyjs_runner.worker.run_worker, real compile_config/document/extract, and real target_url scope check.",
+      "doubles": [
+        "Downloader.html returns the explicitly listed HTML/final URL tuples without network",
+        "Store records pages and outcomes in memory",
+        "worker lock open/flock use an in-memory stand-in",
+        "watchdog Thread.start suppressed in this single-process component probe"
+      ],
+      "note": "Do not label these as real HTTP, multiprocessing lifecycle, service snapshot, or export tests.",
+      "outputs": [
+        {
+          "case": "base-href",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list",
+            "https://example.org/2"
+          ],
+          "snapshot": {
+            "recordsCount": 2,
+            "pagesVisited": 2
+          },
+          "records": [
+            {
+              "id": "1",
+              "name": "FIRST"
+            },
+            {
+              "id": "WRONG",
+              "name": "wrong page"
+            }
+          ],
+          "outcome": {
+            "status": "COMPLETED",
+            "stopReason": "NO_NEXT_PAGE",
+            "errors": []
+          }
+        },
+        {
+          "case": "redirect-cycle",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list",
+            "https://example.org/alias"
+          ],
+          "snapshot": {
+            "recordsCount": 2,
+            "pagesVisited": 2
+          },
+          "records": [
+            {
+              "id": "1",
+              "name": "FIRST"
+            },
+            {
+              "id": "1",
+              "name": "FIRST"
+            }
+          ],
+          "outcome": {
+            "status": "FAILED",
+            "stopReason": "PAGINATION_LOOP",
+            "errors": [
+              {
+                "code": "PAGINATION_LOOP",
+                "message": "PAGINATION_LOOP"
+              }
+            ]
+          }
+        },
+        {
+          "case": "disabled-link",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list"
+          ],
+          "snapshot": {
+            "recordsCount": 1,
+            "pagesVisited": 1
+          },
+          "records": [
+            {
+              "id": "1",
+              "name": "FIRST"
+            }
+          ],
+          "outcome": {
+            "status": "FAILED",
+            "stopReason": "PAGINATION_LOOP",
+            "errors": [
+              {
+                "code": "PAGINATION_LOOP",
+                "message": "PAGINATION_LOOP"
+              }
+            ]
+          }
+        },
+        {
+          "case": "dedupe-missing-identity",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list"
+          ],
+          "snapshot": {
+            "recordsCount": 1,
+            "pagesVisited": 1
+          },
+          "records": [
+            {
+              "id": "",
+              "name": "A"
+            }
+          ],
+          "outcome": {
+            "status": "COMPLETED",
+            "stopReason": "NO_NEXT_PAGE",
+            "errors": []
+          }
+        },
+        {
+          "case": "record-budget-prefix",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list"
+          ],
+          "snapshot": {
+            "recordsCount": 2000,
+            "pagesVisited": 1
+          },
+          "records": {
+            "length": 2000,
+            "first": {
+              "id": "0",
+              "name": "value"
+            },
+            "last": {
+              "id": "1999",
+              "name": "value"
+            }
+          },
+          "outcome": {
+            "status": "COMPLETED",
+            "stopReason": "RECORD_LIMIT",
+            "errors": []
+          }
+        },
+        {
+          "case": "page-budget",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list"
+          ],
+          "snapshot": {
+            "recordsCount": 1,
+            "pagesVisited": 1
+          },
+          "records": [
+            {
+              "id": "1",
+              "name": ""
+            }
+          ],
+          "outcome": {
+            "status": "COMPLETED",
+            "stopReason": "PAGE_LIMIT",
+            "errors": []
+          }
+        },
+        {
+          "case": "one-ambiguous",
+          "kind": "COMPONENT_REAL_WORKER_FAKE_IO_DOWNLOADER_STORE",
+          "requestedUrls": [
+            "https://example.org/list"
+          ],
+          "snapshot": {
+            "recordsCount": 0,
+            "pagesVisited": 0
+          },
+          "records": [],
+          "outcome": {
+            "status": "FAILED",
+            "stopReason": "CARDINALITY",
+            "errors": [
+              {
+                "code": "CARDINALITY",
+                "message": "Expected at most one match for v"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "storageHarness": {
+      "status": "EXECUTED_COMPONENT_ONLY",
+      "implementation": "Real Store.initialize/create/commit_page/get/values, canonical encoding and nonempty metrics with a real sqlite3 :memory: connection.",
+      "doubles": [
+        "Store.connect targets the in-memory connection",
+        "Store.mirror is suppressed during creation",
+        "Path.open returns a BytesIO JSONL sink",
+        "os.fsync is a no-op"
+      ],
+      "note": "No database or JSONL file was created. Serialization and transactions were tested; filesystem durability and HTTP export were not.",
+      "outputs": [
+        {
+          "case": "sqlite-jsonl-memory-roundtrip",
+          "kind": "REAL_STORAGE_SQL_IN_MEMORY_JSONL_IO_IN_MEMORY",
+          "recordsExact": true,
+          "jsonlExact": true,
+          "jsonlRaw": "{\"absent\":\"\",\"flag\":false,\"nested\":{\"items\":[1,false,null],\"value\":null},\"nil\":null,\"tags\":[\"A\",\"B\"],\"title\":\"第1行, \\\"甲\\\"\\n乙\",\"zero\":0}\n{\"absent\":\"\",\"flag\":false,\"nested\":{\"items\":[],\"value\":\"\"},\"nil\":null,\"tags\":[],\"title\":\"second\",\"zero\":0}\n",
+          "snapshot": {
+            "completeness": {
+              "absent": {
+                "nonEmpty": 0,
+                "ratio": 0,
+                "total": 2
+              },
+              "flag": {
+                "nonEmpty": 2,
+                "ratio": 1,
+                "total": 2
+              },
+              "nested": {
+                "nonEmpty": 1,
+                "ratio": 0.5,
+                "total": 2
+              },
+              "nil": {
+                "nonEmpty": 0,
+                "ratio": 0,
+                "total": 2
+              },
+              "tags": {
+                "nonEmpty": 1,
+                "ratio": 0.5,
+                "total": 2
+              },
+              "title": {
+                "nonEmpty": 2,
+                "ratio": 1,
+                "total": 2
+              },
+              "zero": {
+                "nonEmpty": 2,
+                "ratio": 1,
+                "total": 2
+              }
+            },
+            "pagesVisited": 1,
+            "recordsCount": 2,
+            "runId": "review",
+            "status": "RUNNING",
+            "workerExited": false
+          }
+        },
+        {
+          "case": "oversize-record",
+          "code": "RECORD_TOO_LARGE",
+          "snapshotUnchanged": true,
+          "recordsUnchanged": true,
+          "jsonlUnchanged": true
+        },
+        {
+          "case": "run-storage-budget",
+          "code": "STORAGE_LIMIT",
+          "snapshotUnchanged": true,
+          "recordsUnchanged": true,
+          "jsonlUnchanged": true
+        },
+        {
+          "case": "record-budget",
+          "code": "RECORD_LIMIT",
+          "snapshotUnchanged": true,
+          "recordsUnchanged": true,
+          "jsonlUnchanged": true
+        }
+      ]
+    },
+    "budgets": {
+      "workerRecordPrefix": {
+        "status": "PASS_FOR_LOCAL_COMPONENT_CASE",
+        "inputRows": 2101,
+        "retainedRows": 2000,
+        "lastRetainedId": "1999",
+        "stopReason": "RECORD_LIMIT",
+        "errors": []
+      },
+      "workerPageLimit": {
+        "status": "PASS_FOR_LOCAL_COMPONENT_CASE",
+        "maxPages": 1,
+        "downloadRequests": 1,
+        "stopReason": "PAGE_LIMIT"
+      },
+      "storageRecordLimit": {
+        "status": "PASS_FOR_IN_MEMORY_SQL_CASE",
+        "attemptedTotalRows": 2001,
+        "result": "RECORD_LIMIT",
+        "rollbackPreservedPriorData": true
+      },
+      "storagePerRecordBytes": {
+        "status": "PASS_FOR_IN_MEMORY_SQL_CASE",
+        "payloadCharacters": 17000,
+        "result": "RECORD_TOO_LARGE",
+        "rollbackPreservedPriorData": true
+      },
+      "storageRunBytes": {
+        "status": "PASS_FOR_IN_MEMORY_SQL_CASE",
+        "attemptedRows": 600,
+        "titleCharactersEach": 14000,
+        "result": "STORAGE_LIMIT",
+        "rollbackPreservedPriorData": true
+      },
+      "wallClock1800Seconds": "NOT_TESTED",
+      "aggregate64MiB": "NOT_TESTED"
+    },
+    "serialization": {
+      "jsonlCanonicalAndAppendBody": {
+        "status": "PASS_FOR_IN_MEMORY_COMPONENT_CASE",
+        "arraysNestedNullZeroFalseUnicodeQuotesAndNewlinePreserved": true
+      },
+      "jsonlHttpEndpoint": "NOT_TESTED",
+      "actualDiskJsonlAndRestartRepair": "NOT_TESTED",
+      "csvHttpEndpoint": "NOT_TESTED",
+      "csvRoundTrip": "NOT_TESTED",
+      "csvReason": "CSV serializer is outside the three implementation files authorized for inspection. Existing service tests assert round-trips but were read only; running them would start servers and write other evidence files."
+    }
+  },
+  "observationsNotCountedAsNewDefects": [
+    {
+      "topic": "Explicit attr read collides with legacy text aliases",
+      "status": "REPRODUCED_LEGACY_BEHAVIOR_NOT_NEW_REGRESSION",
+      "html": "<p text=\"stored\" innerText=\"raw\">CONTENT</p>",
+      "itemConfig": {
+        "value": {
+          "selector": "p",
+          "read": "attr",
+          "attr": "text"
+        },
+        "inner": {
+          "selector": "p",
+          "read": "attr",
+          "attr": "innerText"
+        }
+      },
+      "actual": [
+        {
+          "value": "CONTENT",
+          "inner": "CONTENT"
+        }
+      ],
+      "literalAttributeValues": {
+        "text": "stored",
+        "innerText": "raw"
+      },
+      "provenance": "Original fieldRule/read collapses the read mode into attr and produces the same CONTENT values. CurrentItemTests.test_dot_reads_current_item_without_losing_nested_or_suffix_rules explicitly expects this alias behavior.",
+      "ownerNote": "Do not advertise arbitrary literal attribute semantics for these reserved names. Any change requires an explicit DSL contract choice and synchronized upstream/runner tests."
+    },
+    {
+      "topic": "Missing dedupe identities merge distinct records",
+      "status": "REPRODUCED_POLICY_RISK_NOT_CLASSIFIED_WITHOUT_IDENTITY_CONTRACT",
+      "input": [
+        {
+          "id": "",
+          "name": "A"
+        },
+        {
+          "id": "",
+          "name": "B"
+        }
+      ],
+      "config": {
+        "dedupeKey": "id"
+      },
+      "actual": [
+        {
+          "id": "",
+          "name": "A"
+        }
+      ],
+      "outcome": {
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "errors": []
+      },
+      "ownerNote": "All empty IDs canonicalize to the same key. The permitted source/test scope does not establish whether missing identities must be preserved, rejected or merged; do not silently treat this as validated data correctness."
+    },
+    {
+      "topic": "Null explicit cardinality",
+      "status": "REPRODUCED_COMPATIBILITY_DIFFERENCE",
+      "descriptor": {
+        "selector": "p",
+        "read": "text",
+        "cardinality": null
+      },
+      "original": "Original fieldRule uses ?? and normalizes null to auto.",
+      "runner": "INVALID_CONFIG: Unknown cardinality",
+      "ownerNote": "Not counted as a supported-config defect because the runner's accepted cardinalities are explicitly auto/one/many. No claim of full null-descriptor compatibility."
+    },
+    {
+      "topic": "Empty-list null versus records collection",
+      "status": "NO_DEFECT_FOUND_IN_REVIEWED_LAYER",
+      "original": "ItemLoader.parse returns null when there are zero records; extractRecords returns {records:[]}.",
+      "runner": "extract returns []; no synthetic row is emitted for an unmatched list container.",
+      "ownerNote": "The runner uses an explicit records collection, so [] alone is not evidence of a null data-loss bug."
+    }
+  ],
+  "notTested": [
+    "Real HTTP one/two/three-page runner execution and HTTP JSONL/CSV export",
+    "Actual network redirect behavior, robots enforcement and downloader safety protections",
+    "Real CSV quoting and nested-array decoding through the service/client/download chain",
+    "Disk JSONL durability, fsync, hard-crash recovery and restart mirror repair",
+    "Real 1800-second timeout and aggregate 64 MiB storage exhaustion",
+    "Real spawned worker stop/revoke/restart lifecycle",
+    "Chromium/extension installation, Native Host and production candidate acceptance"
+  ],
+  "mainAgentHandoff": {
+    "suggestedFixOrder": [
+      "R17-DATA-001",
+      "R17-DATA-002",
+      "R17-DATA-003",
+      "R17-DATA-004",
+      "R17-DATA-005"
+    ],
+    "instruction": "Fixes belong to the main agent. Preserve the existing scope, cardinality, permission, budget and persistence protections; do not weaken checks to make tests pass.",
+    "reviewComplete": true,
+    "productFixed": false
+  }
+}

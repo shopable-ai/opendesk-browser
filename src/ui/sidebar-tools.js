@@ -1,4 +1,5 @@
 import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/sidebar-tool-adapter.js';
+import {createLocalTaskBridge,pickLocalTaskCredential,validateLocalTaskRequest} from '../platform/host/local-tasks.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
 import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
@@ -37,8 +38,10 @@ import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
-import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS,
+  COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
+import {presentCookieServiceState} from '../../examples/sidebar-tools/cookie-editor/trusted/service-view.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
@@ -92,6 +95,10 @@ export function checkSidebarToolRequestBudget(message){
   let serialized;
   try{serialized=JSON.stringify(message);}catch{return {ok:false,code:'E_SCHEMA'};}
   if(typeof serialized!=='string')return {ok:false,code:'E_SCHEMA'};
+  if(message?.operation==='localTasks.request'){
+    try{validateLocalTaskRequest(message.payload);return serialized.length-JSON.stringify(message.payload).length<=512?{ok:true}:{ok:false,code:'E_LIMIT'};}
+    catch{return {ok:false,code:'E_LOCAL_SCHEMA'};}
+  }
   if(message?.operation==='ai.generate'){
     try{validateSidebarToolAIRequest(message.payload);}
     catch{return {ok:false,code:'E_AI_REQUEST'};}
@@ -407,6 +414,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listeners.push(()=>doc.removeEventListener('click',clearNavigationNotice,true));
   const capabilities=Object.freeze({
     'ai.generate':'经可信确认向当前 AI Provider 发送本次请求与上下文（可能产生费用）',
+    'localTasks':'经首次可信配对和精确目标审阅，调用本机任务服务；读取、停止和导出自身任务',
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
@@ -1029,10 +1037,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     try{previous?.port?.disconnect();}catch{}
   }
   let sidebarAI=null;
+  let localTaskBridge=null;
   function destroyFrame() {
     setConversationState({visible:false,open:false});
     videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate();
     sidebarAI?.dispose();sidebarAI=null;
+    localTaskBridge=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
@@ -1888,7 +1898,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
           if(message?.kind!=='request'||
-             !['browser.clipboard.writeText','browser.downloads.text'].includes(message.operation)||
+             !['browser.clipboard.writeText','browser.downloads.text','localTasks.export'].includes(message.operation)||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -2127,6 +2137,31 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
     }
+    if(['localTasks.request','localTasks.export'].includes(operation)){
+      if(!tool.capabilities.includes('localTasks'))throw Object.assign(Error('缺少 localTasks 权限'),{code:'E_CAPABILITY'});
+      const authorized=async()=>{
+        assertSession(source,token);
+        await assertInstalledTool(tool,revocationEpoch,'本地任务安装身份已变化');
+        await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+      };
+      await authorized();
+      localTaskBridge ||= createLocalTaskBridge({api,toolId:tool.id,
+        owner:tool.id+':'+String(revocationEpoch)+':'+await sidebarToolPackageHash(tool),
+        assertAuthorized:authorized,fetcher,
+        lock:work=>locked('local-tasks:'+tool.id,work),
+        pickCredential:()=>pickLocalTaskCredential(doc),
+        confirm:({scope,paired,choose})=>requestBrowserClick({toolId:tool.id,
+          message:'允许「'+tool.title+'」通过本机任务服务访问 '+scope+'？配置及目标会发送到本机服务；任务可在关闭侧栏后继续。'+(paired?'':'请选择手动启动服务时生成的配对 JSON，凭证仅由可信宿主保管。'),
+          button:paired?'允许此目标范围':'选择配对文件并允许',run:()=>choose()})});
+      if(operation==='localTasks.export'){
+        if(!tool.capabilities.includes('user.export'))throw Object.assign(Error('缺少 user.export 权限'),{code:'E_CAPABILITY'});
+        if(directExportPort!==null&&directExportPort===frameExportPort)
+          return localTaskBridge.export(payload);
+        return requestBrowserClick({toolId:tool.id,button:'导出此任务结果',
+          message:'导出「'+tool.title+'」在本机服务保存的原任务结果？',run:()=>localTaskBridge.export(payload)});
+      }
+      return localTaskBridge.request(payload);
+    }
     if(['ai.info','ai.generate','ai.cancel'].includes(operation)){
       if(!tool.capabilities.includes('ai.generate'))throw Object.assign(new Error('缺少 ai.generate 权限'),{code:'E_CAPABILITY'});
       await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
@@ -2220,21 +2255,42 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         setAutoEnabled:['enabled','revision'],
         setAutoRefresh:['enabled','revision'],
         allowAlias:['alias','accountVersion','enabled','revision'],
+        ...COOKIE_ACCOUNT_SHARE_FIELDS,
         ...COOKIE_SERVICE_FIELDS
       }[action];
       // Description is optional for historic account clients. All other
       // caller-supplied fields remain strictly allowlisted.
-      const optionalFields=(action==='create'||action==='rename')?['description']:[];
+      const optionalFields=(action==='create'||action==='rename')?['description']:
+        COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS[action]||[];
       if(!fields||Object.keys(payload).some(field=>
         !fields.includes(field)&&!optionalFields.includes(field))||
          fields.some(field=>!Object.hasOwn(payload,field)))
         throw Object.assign(new Error('账号操作字段不符合协议'),{code:'E_ACCOUNT_REQUEST'});
+      if(['shareCreate','shareInspect','shareClaim','sharePair'].includes(action)){
+        let relay;
+        try{relay=new URL(action==='shareCreate'?payload.relayOrigin:payload.inviteUrl);}
+        catch{throw Object.assign(Error('请输入有效 HTTPS 邀请服务地址'),{code:'E_SHARE_URL'});}
+        if(relay.protocol!=='https:'||relay.username||relay.password||relay.search||relay.hash)
+          throw Object.assign(Error('分享仅允许可信 HTTPS 服务'),{code:'E_SHARE_HTTPS_REQUIRED'});
+        if(!await api.permissions.contains({origins:[relay.origin+'/*']})){
+          await requestBrowserClick({toolId:tool.id,
+            message:'允许 Cookie Editor 连接 '+relay.origin+' 以分享邀请、配对公钥或加密会话快照？明文 Cookie 不会发送给分享服务。',
+            button:'允许连接此分享服务',run:async()=>{
+              if(!await api.permissions.request({origins:[relay.origin+'/*']}))
+                throw Object.assign(Error('未允许连接分享服务'),{code:'E_SHARE_PERMISSION_REQUIRED'});
+            }});
+          assertSession(source,token);
+          await assertInstalledTool(tool,revocationEpoch,'分享期间安装身份已改变');
+        }
+      }
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
       if(!origin)throw Object.assign(new Error('当前没有活动的 HTTP(S) 网站'),
         {code:'E_DOCUMENT_CHANGED'});
       const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
-        ...(Object.hasOwn(payload,'description')?{description:payload.description}:{})};
-      if(['create','update','attach','switch','serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(action)){
+        ...Object.fromEntries(optionalFields.filter(field=>Object.hasOwn(payload,field))
+          .map(field=>[field,payload[field]]))};
+      if(['create','update','attach','switch','shareClaim','sharePair','shareDeliver','serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(action)||
+        action==='shareCreate'&&payload.mode==='session'){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
         assertSession(source,token);
@@ -2253,7 +2309,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error(response?.error?.message||'可信账号服务未确认操作'),
           {code:response?.error?.code||'E_ACCOUNT_HOST'});
       assertSession(source,token);
-      return response.data;
+      return Object.hasOwn(COOKIE_SERVICE_FIELDS,action)
+        ?presentCookieServiceState(response.data):response.data;
     }
     if(operation==='analytics.report'){
       // Legacy portable tool UI may only self-report its own bounded copy success.

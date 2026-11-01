@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCookieServiceConnections,COOKIE_SERVICE_CONNECTIONS_KEY}
+import {createCookieServiceConnections as createAuthority,COOKIE_SERVICE_CONNECTIONS_KEY}
   from '../trusted/service-connections.js';
+import {presentCookieServiceState} from '../trusted/service-view.js';
 
 const origin='https://shop.example.com';
 const identity={packageHash:'a'.repeat(64),installEpoch:'install-1'};
@@ -20,8 +21,10 @@ function fixture(){
     });queue=run.catch(()=>{});return run;
   }});
   return {records,storage,breakReadback:()=>{failReadback=true;},
-    run:(operation,payload={},overrides={})=>createCookieServiceConnections({storage}).dispatch({
-      operation,payload:{origin,...payload},identity,accounts:[account],...overrides})};
+    raw:(operation,payload={},overrides={})=>createAuthority({storage}).dispatch({
+      operation,payload:{origin,...payload},identity,accounts:[account],...overrides}),
+    run:async(operation,payload={},overrides={})=>presentCookieServiceState(await createAuthority({storage}).dispatch({
+      operation,payload:{origin,...payload},identity,accounts:[account],...overrides}))};
 }
 const save=(revision=0)=>({revision,label:'本机额度',mode:'local',serviceOrigin:''});
 
@@ -106,4 +109,13 @@ test('persisted null is corrupt storage, never a fresh connection configuration'
   await assert.rejects(f.run('serviceStatus'),{code:'E_SERVICE_STORE'});
   await assert.rejects(f.run('serviceSave',save()),{code:'E_SERVICE_STORE'});
   assert.equal(f.records.get(COOKIE_SERVICE_CONNECTIONS_KEY),null);
+});
+
+test('SW configuration returns scoped facts without presentation or installation secrets',async()=>{
+  const f=fixture(),saved=await f.raw('serviceSave',save());
+  assert.equal(saved.format,'opendesk.cookie-service-facts.v1');
+  assert.equal(saved.connections[0].ownerCurrent,true);
+  for(const key of ['status','reasonCode','canConnect','packageHash','installEpoch'])
+    assert.equal(Object.hasOwn(saved.connections[0],key),false,key);
+  assert.equal(Object.hasOwn(saved,'capabilities'),false);
 });

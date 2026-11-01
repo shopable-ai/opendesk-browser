@@ -1,5 +1,5 @@
 // Included only by WXT serve, never by a standalone development/production build.
-export function installDevelopmentPage({api,prepareReload,document:doc=globalThis.document,location:loc=globalThis.location,onStatus=()=>{}}) {
+export function installDevelopmentPage({api,prepareReload,canReload=()=>true,document:doc=globalThis.document,location:loc=globalThis.location,onStatus=()=>{}}) {
   let presentation={text:'',title:''};
   const report=values=>{presentation={...presentation,...values};onStatus(presentation);};
   let disposed=false,port,reconnectTimer,activeToken,preparations=Promise.resolve(),attempt=0;
@@ -31,7 +31,7 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
         preparations=preparations.then(async()=>{
           if(disposed||port!==current||activeToken!==token)return;
           let ready=false;
-          try {ready=await prepareReload();}catch(error){console.warn('[OpenDesk dev] Draft retained in editor; reload blocked',error);}
+          try {ready=canReload()&&await prepareReload()&&canReload();}catch(error){console.warn('[OpenDesk dev] Draft retained in editor; reload blocked',error);}
           if(disposed||port!==current||activeToken!==token)return;
           current.postMessage({type:'ready',token,ready});
           if(!ready)invalidate();

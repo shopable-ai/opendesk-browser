@@ -22,6 +22,8 @@ Standard/Developer edition 是另一个打包维度；当前 `npm run dev` 默�
 
 开发配置恢复时，WXT 本地模块 `modules/development-build.js` 重新读取同一代构建 hooks 及其仓库内传递依赖，避免 Node 原生 ESM 缓存继续使用旧入口白名单或旧发行生产者。增量源码编译复用这代 hooks，下次配置恢复才切换；生产静态构建不启用。该机制只刷新 hooks，不承诺 WXT 已重读其首次捕获的 Vite 基础配置，也不改变 runner、edition、输出目录或安全刷新条件。
 
+**固定可信来源检查（2026-10-31）：** 日常 serve 与验证构建共用 `recordBundle → describeBundle` 的精确来源/目标/pin 检查；`OPENDESK_MODULE_EVIDENCE_DIR` 只决定是否写构建证据，不再决定是否审计来源。未审核的可信文件修改会使对应固定入口构建失败，须完成原有审查才能重新编译；不自动刷新 pin。此检查不授予工具包特权，也不证明完整构建、Chrome 应用或安全重载已通过。普通 App 的 UI/包数据发布仍走原路径，见[固定模块与 App 独立更新边界](../architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md#9-cookie-固定后台与日常开发来源检查2026-10-31)。
+
 ## 第一次启动
 
 持续开发要求 Node.js >=22.15.0（推荐当前 Node 24），Chrome >=138。开发配置的传递模块刷新使用 Node 原生 `module.registerHooks`；生产静态构建不启用该刷新器。
@@ -73,6 +75,8 @@ npm run dev
 这里的 CSS 热加载、工具页面刷新和扩展重载是三种不同机制。经典 IIFE 入口使用增量构建与安全刷新；不会承诺所有模块都能保持内存状态热替换。
 
 正在执行的 Controller、未退出的 USER_SCRIPT 预览、Native 请求、未释放资源或未知效果会延后刷新。历史 Controller operation/navigation 的 `effect_unknown` 只有在精确关联失败、停止或中断的 Run，Worker 已退役、资源已 released，且匹配同 runId/retirementId、releaseCount=1 的正式退役回执后，才不再阻挡开发刷新；未知审计仍保留且不能重放。缺失或冲突的回执、SDK/Native 未知结果继续阻挡。先按原有 Stop/恢复流程处理；未知效果不要盲目重放。开发更新不会自动运行草稿、点击网页、提交表单、下载文件或重放任务。
+
+可信工具页在异步草稿保存前后还要核对共享 AI Provider 的整轮请求状态：两次 Native 事件轮询之间仍在推理，不能因单个 RPC 已返回而确认刷新；仍在对账的旧 Provider 代际也必须等待。消费者关闭后，未确认退休的原 Native lease 继续阻挡当前 Host 刷新，不能因移除 UI 而清除；取得原回合可信终态并收尾后才释放。该检查只覆盖当前 Host 保有的请求关联，不会替已销毁 Host 找回历史终态。原 AI 请求返回 unknown 时继续按原身份查询，不通过新请求、清锁、重载或无关联 IDLE 解除。
 
 工具页刷新前保存手工草稿到 `storage.session`，扩展重载前另存开发专用 `storage.local` 备份；只有编辑器仍为初始状态时才恢复，用户已经输入的新代码不会被覆盖。正式静态包不启用开发连接和备份。
 

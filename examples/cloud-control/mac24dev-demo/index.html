@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>OpenDesk · 云控表单演示</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="page stack">
+    <header>
+      <p class="eyebrow">OpenDesk Browser / mac24dev</p>
+      <h1>云控表单演示</h1>
+      <p class="muted">选择已授权设备，发送一次表单任务，按原请求键查看结果。</p>
+    </header>
+
+    <p id="notice" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+    <noscript>请启用 JavaScript。此页面不会在未登录时发送任务。</noscript>
+
+    <section class="surface stack" aria-labelledby="account-title">
+      <h2 id="account-title">业务账号</h2>
+      <form id="login-form" class="stack" method="post" autocomplete="off">
+        <div class="fields">
+          <label>用户名<input id="username" name="username" autocomplete="off" required></label>
+          <label>密码<input id="password" name="password" type="password" autocomplete="off" required></label>
+        </div>
+        <div class="toolbar"><button id="login" class="primary" type="submit" disabled>登录</button></div>
+        <p class="muted">登录凭据只用于同源业务接口。JWT 仅保存在本页内存，刷新后需重新登录。</p>
+      </form>
+      <div id="account" class="toolbar" hidden>
+        <span id="person"></span>
+        <button id="logout" type="button">退出登录</button>
+      </div>
+    </section>
+
+    <section class="surface stack" aria-labelledby="setup-title">
+      <h2 id="setup-title">首次准备</h2>
+      <ol>
+        <li><a href="/public/opendesk-cloud-demo/form-fill.v1.opendesk-task.json" download>下载表单任务安装包</a>，在扩展原有任务入口审阅并安装 <code>sample.form-fill@1.0.0</code>。</li>
+        <li>版本交付测试另有 <a href="/public/opendesk-cloud-demo/form-fill.v1.0.1.opendesk-task.json" download>1.0.1 待验证候选</a>；须审阅差异、试运行、验证安装并重新批准远程范围。下方目录显示后台当前选定的版本，下载不会切换或运行任务。</li>
+        <li>在执行设备打开标准测试页 <code>http://127.0.0.1:43111/demo-form.html</code>。</li>
+        <li>在扩展云控设置中手动完成配对、任务托管及必要的网站和结果回传授权。Provider 地址为 <code>http://127.0.0.1:43112</code>，ID 为 <code>9c4f182d-7a5f-403d-9b4d-c2144ef35e5b</code>。</li>
+      </ol>
+      <p class="muted">扩展端设置须在真实工作台完成。服务端绑定由维护者通过私有脚本完成，必须连接上述同一 Provider；本页不接收 Provider 凭据或配对密钥。安装包由后端维护者提供。</p>
+    </section>
+
+    <div id="workspace" class="stack" hidden>
+      <section class="surface stack" aria-labelledby="task-title">
+        <div class="toolbar spread">
+          <h2 id="task-title">发送表单任务</h2>
+          <button id="catalog-refresh" type="button">刷新设备</button>
+        </div>
+        <p id="task-label">目录尚未读取。</p>
+        <label>执行设备<select id="device" aria-describedby="device-status" disabled><option value="">请选择设备</option></select></label>
+        <p id="device-status" class="muted" role="status">请选择设备。只有 READY 设备可以提交。</p>
+
+        <div class="toolbar"><button id="new-request" type="button">新建请求</button></div>
+        <p>当前请求键：<code id="request-key">尚未新建</code></p>
+        <p id="request-hint" class="muted">点击「新建请求」生成 UUID，再明确点击「提交一次」。</p>
+        <form id="submit-form" class="stack" method="post">
+          <label>填写姓名<input id="name" name="name" minlength="1" maxlength="40" required disabled aria-describedby="name-hint"></label>
+          <p id="name-hint" class="muted">最多 40 个普通字符；大部分表情占两个位置。原样发送，发送后固定此请求的数据。</p>
+          <div class="toolbar"><button id="submit" class="primary" type="submit" disabled>提交一次</button></div>
+        </form>
+        <div id="switch-confirm" class="confirmation stack" role="group" aria-labelledby="switch-title" hidden>
+          <strong id="switch-title">原请求尚未确认收尾</strong>
+          <p id="switch-warning"></p>
+          <div class="toolbar">
+            <button id="switch-yes" type="button">确认继续</button>
+            <button id="switch-no" type="button">保留原请求</button>
+          </div>
+        </div>
+        <details>
+          <summary>任务与 Provider 详情</summary>
+          <pre id="catalog-details">尚未读取。</pre>
+        </details>
+      </section>
+
+      <section class="surface stack" aria-labelledby="status-title">
+        <div class="toolbar spread">
+          <h2 id="status-title">原请求状态</h2>
+          <button id="status-refresh" type="button" disabled>查询原请求</button>
+        </div>
+        <form id="lookup-form" class="stack" method="post">
+          <label>按请求键恢复<input id="lookup-key" spellcheck="false" autocapitalize="off" autocomplete="off" required placeholder="原 requestKey（UUID）"></label>
+          <div class="toolbar"><button id="lookup" type="submit">查询此键</button></div>
+        </form>
+        <p><strong id="state" class="badge" data-tone="neutral">尚未新建</strong></p>
+        <p id="state-note" role="status">状态查询只读取事实，不会再次提交任务。</p>
+        <dl class="facts">
+          <dt>回执确认</dt><dd id="receipt">未查询</dd>
+          <dt>资源释放</dt><dd id="retirement">未查询</dd>
+          <dt>取消登记</dt><dd id="cancel-state">未查询</dd>
+        </dl>
+        <div class="toolbar"><button id="cancel" type="button" disabled>请求取消</button></div>
+        <div id="cancel-confirm" class="confirmation stack" role="group" aria-labelledby="cancel-title" hidden>
+          <strong id="cancel-title">确认登记取消请求？</strong>
+          <p>取消登记不等于执行已停止，也不等于资源已释放；已发生的网页操作不会自动回滚。请继续查询原请求的状态、回执和释放事实。</p>
+          <div class="toolbar">
+            <button id="cancel-yes" class="danger" type="button">确认请求取消</button>
+            <button id="cancel-no" type="button">暂不取消</button>
+          </div>
+        </div>
+        <details>
+          <summary>原始状态、执行身份与结果</summary>
+          <pre id="request-details">尚未查询。</pre>
+        </details>
+      </section>
+
+      <section class="surface stack" aria-labelledby="history-title">
+        <div class="toolbar spread">
+          <h2 id="history-title">历史请求</h2>
+          <button id="history-refresh" type="button">读取历史</button>
+        </div>
+        <p class="muted">恢复历史只查询原请求。找不到记录或结果 UNKNOWN 时，请保留原键，不要为重试而另起任务。</p>
+        <p id="history-note">尚未读取。</p>
+        <ul id="history" class="history stack"></ul>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

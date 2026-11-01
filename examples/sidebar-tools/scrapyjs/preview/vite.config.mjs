@@ -8,7 +8,7 @@ import {sidebarPreviewShellSource} from '../../../../scripts/preview/sidebar-she
 import {officialDesignSources} from '../../../../scripts/preview/shared-tool-design.mjs';
 import {readFile} from 'node:fs/promises';
 const root=fileURLToPath(new URL('../',import.meta.url));
-let runtime=await loadPreviewRuntime({});
+let runtime=await loadPreviewRuntime({compilePreview:process.env.SCRAPYJS_PREVIEW_COMPILE==='1'});
 let runtimeError;
 const named={
  react:'Children,Component,Fragment,Profiler,PureComponent,StrictMode,Suspense,cloneElement,createContext,createElement,createRef,forwardRef,isValidElement,lazy,memo,startTransition,use,useActionState,useCallback,useContext,useDebugValue,useDeferredValue,useEffect,useEffectEvent,useId,useImperativeHandle,useInsertionEffect,useLayoutEffect,useMemo,useOptimistic,useReducer,useRef,useState,useSyncExternalStore,useTransition,version',
@@ -43,7 +43,7 @@ export default defineConfig({root,base:'./',esbuild:{jsx:'automatic',jsxDev:fals
    server.watcher.on('change',path=>{
     if(!runtimeInputs().includes(resolve(path)))return;
     rebuilding=rebuilding.then(async()=>{
-     runtime=await loadPreviewRuntime({});runtimeError=undefined;
+     runtime=await loadPreviewRuntime({compilePreview:process.env.SCRAPYJS_PREVIEW_COMPILE==='1'});runtimeError=undefined;
      server.watcher.add(runtimeInputs());
      server.ws.send({type:'full-reload'});
     }).catch(error=>{runtimeError=error;server.config.logger.error(error.message);});

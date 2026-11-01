@@ -1,0 +1,83 @@
+test_20_full_requires_exact_preview_and_request_lookup_never_replays (test_service.ServiceTests.test_20_full_requires_exact_preview_and_request_lookup_never_replays) ... ok
+test_35_record_budget_stops_normally_and_preview_remains_usable (test_service.ServiceTests.test_35_record_budget_stops_normally_and_preview_remains_usable) ... ok
+test_60_review_base_uri_uses_first_href_and_final_response_url (test_service.ServiceTests.test_60_review_base_uri_uses_first_href_and_final_response_url) ... FAIL
+test_61_review_cross_scope_base_is_denied_before_following (test_service.ServiceTests.test_61_review_cross_scope_base_is_denied_before_following) ... FAIL
+test_62_review_redirect_to_visited_document_never_commits_twice (test_service.ServiceTests.test_62_review_redirect_to_visited_document_never_commits_twice) ... FAIL
+test_63_review_existing_disabled_classes_are_final_pages (test_service.ServiceTests.test_63_review_existing_disabled_classes_are_final_pages) ... FAIL
+
+======================================================================
+FAIL: test_60_review_base_uri_uses_first_href_and_final_response_url (test_service.ServiceTests.test_60_review_base_uri_uses_first_href_and_final_response_url)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py", line 327, in test_60_review_base_uri_uses_first_href_and_final_response_url
+    self.assertEqual((snap['status'],snap['pagesVisited'],data['records']),('COMPLETED',2,[{'id':'FIRST'},{'id':'SECOND'}]),snap)
+AssertionError: Tuples differ: ('COMPLETED', 2, [{'id': 'FIRST'}, {'id': 'WRONG'}]) != ('COMPLETED', 2, [{'id': 'FIRST'}, {'id': 'SECOND'}])
+
+First differing element 2:
+[{'id': 'FIRST'}, {'id': 'WRONG'}]
+[{'id': 'FIRST'}, {'id': 'SECOND'}]
+
+- ('COMPLETED', 2, [{'id': 'FIRST'}, {'id': 'WRONG'}])
+?                                            ^^  ^
+
++ ('COMPLETED', 2, [{'id': 'FIRST'}, {'id': 'SECOND'}])
+?                                            ^^^  ^
+ : {'completeness': {'id': {'nonEmpty': 2, 'ratio': 1.0, 'total': 2}}, 'config': {'itemConfig': {'_listContainer': '#rows', '_listItem': 'li', 'id': 'b::text'}, 'maxPages': 3, 'nextPageSelector': 'a.next', 'url': 'http://127.0.0.1:57422/review/base/list'}, 'configHash': 'sha256:61646e7d384097c439218e2b4b14f8180ce34968d6ecc45d6ca9c7574d8ce892', 'errors': [], 'fields': ['id'], 'mode': 'preview', 'pagesVisited': 2, 'previewPassed': True, 'previewRunId': None, 'recordsCount': 2, 'requestId': '996cfed365acc89b', 'runId': '27b107b6-527d-42d7-8b28-bf7d3aaf60a8', 'scope': 'http://127.0.0.1:57422', 'status': 'COMPLETED', 'stopReason': 'NO_NEXT_PAGE', 'workerExited': True}
+
+======================================================================
+FAIL: test_61_review_cross_scope_base_is_denied_before_following (test_service.ServiceTests.test_61_review_cross_scope_base_is_denied_before_following)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py", line 335, in test_61_review_cross_scope_base_is_denied_before_following
+    self.assertEqual((snap['status'],snap['stopReason'],snap['pagesVisited']),('FAILED','SCOPE_MISMATCH',1),snap)
+AssertionError: Tuples differ: ('COMPLETED', 'NO_NEXT_PAGE', 2) != ('FAILED', 'SCOPE_MISMATCH', 1)
+
+First differing element 0:
+'COMPLETED'
+'FAILED'
+
+- ('COMPLETED', 'NO_NEXT_PAGE', 2)
++ ('FAILED', 'SCOPE_MISMATCH', 1) : {'completeness': {'id': {'nonEmpty': 2, 'ratio': 1.0, 'total': 2}}, 'config': {'itemConfig': {'_listContainer': '#rows', '_listItem': 'li', 'id': 'b::text'}, 'maxPages': 3, 'nextPageSelector': 'a.next', 'url': 'http://127.0.0.1:57422/review/cross-base'}, 'configHash': 'sha256:e960afe772a51f14b6cebf0aa240c43f9c44c78557cf67db2c51e5448da0f3f6', 'errors': [], 'fields': ['id'], 'mode': 'preview', 'pagesVisited': 2, 'previewPassed': True, 'previewRunId': None, 'recordsCount': 2, 'requestId': 'a16d0901cfcaaf1c', 'runId': 'c8fc88c5-14be-444a-9d1b-dc8230cf0004', 'scope': 'http://127.0.0.1:57422', 'status': 'COMPLETED', 'stopReason': 'NO_NEXT_PAGE', 'workerExited': True}
+
+======================================================================
+FAIL: test_62_review_redirect_to_visited_document_never_commits_twice (test_service.ServiceTests.test_62_review_redirect_to_visited_document_never_commits_twice)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py", line 342, in test_62_review_redirect_to_visited_document_never_commits_twice
+    self.assertEqual((snap['status'],snap['stopReason'],snap['pagesVisited'],snap['recordsCount']),('FAILED','PAGINATION_LOOP',1,1),snap)
+AssertionError: Tuples differ: ('FAILED', 'PAGINATION_LOOP', 2, 2) != ('FAILED', 'PAGINATION_LOOP', 1, 1)
+
+First differing element 2:
+2
+1
+
+- ('FAILED', 'PAGINATION_LOOP', 2, 2)
+?                               ^  ^
+
++ ('FAILED', 'PAGINATION_LOOP', 1, 1)
+?                               ^  ^
+ : {'completeness': {'id': {'nonEmpty': 2, 'ratio': 1.0, 'total': 2}}, 'config': {'itemConfig': {'_listContainer': '#rows', '_listItem': 'li', 'id': 'b::text'}, 'maxPages': 3, 'nextPageSelector': 'a.next', 'url': 'http://127.0.0.1:57422/review/loop/list'}, 'configHash': 'sha256:87f255570635652c9f908c40b3706efc9dba7e7c2c2db3bea8acd1d8e8b24e38', 'errors': [{'code': 'PAGINATION_LOOP', 'message': 'PAGINATION_LOOP'}], 'fields': ['id'], 'mode': 'preview', 'pagesVisited': 2, 'previewPassed': False, 'previewRunId': None, 'recordsCount': 2, 'requestId': '982b1144b4ae79e6', 'runId': 'e1ceb332-6a0a-40ce-93bd-84cb1d6750ef', 'scope': 'http://127.0.0.1:57422', 'status': 'FAILED', 'stopReason': 'PAGINATION_LOOP', 'workerExited': True}
+
+======================================================================
+FAIL: test_63_review_existing_disabled_classes_are_final_pages (test_service.ServiceTests.test_63_review_existing_disabled_classes_are_final_pages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py", line 357, in test_63_review_existing_disabled_classes_are_final_pages
+    self.assertEqual((snap['status'],snap['stopReason'],snap['pagesVisited'],snap['recordsCount']),('COMPLETED','NO_NEXT_PAGE',1,1),snap)
+AssertionError: Tuples differ: ('COMPLETED', 'NO_NEXT_PAGE', 2, 2) != ('COMPLETED', 'NO_NEXT_PAGE', 1, 1)
+
+First differing element 2:
+2
+1
+
+- ('COMPLETED', 'NO_NEXT_PAGE', 2, 2)
+?                               ^  ^
+
++ ('COMPLETED', 'NO_NEXT_PAGE', 1, 1)
+?                               ^  ^
+ : {'completeness': {'id': {'nonEmpty': 2, 'ratio': 1.0, 'total': 2}}, 'config': {'itemConfig': {'_listContainer': '#rows', '_listItem': 'li', 'id': 'b::text'}, 'maxPages': 3, 'nextPageSelector': 'a.next', 'url': 'http://127.0.0.1:57422/review/disabled-is'}, 'configHash': 'sha256:e771e2b1e89c91621545286ca7713899ef24a97bb0b6bddbcbb571f6899680e2', 'errors': [], 'fields': ['id'], 'mode': 'preview', 'pagesVisited': 2, 'previewPassed': True, 'previewRunId': None, 'recordsCount': 2, 'requestId': '8865fcdb89d22257', 'runId': '6b66fa6e-ba02-4f68-b1ec-18ce495b2300', 'scope': 'http://127.0.0.1:57422', 'status': 'COMPLETED', 'stopReason': 'NO_NEXT_PAGE', 'workerExited': True}
+
+----------------------------------------------------------------------
+Ran 6 tests in 25.849s
+
+FAILED (failures=4)

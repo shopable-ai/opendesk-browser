@@ -128,10 +128,13 @@ test('real planner retains original turn after failed cancellation and reconnect
  const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
  try{
    await assert.rejects(adapter.request('ai.generate',input),{code:'E_AI_UNKNOWN'});
+   assert.equal(runtime.developmentIdle(),false,'disconnected original Native inference must veto reload');
    assert.equal((await adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');
+   assert.equal(runtime.developmentIdle(),false,'unknown cancellation is not a reload acknowledgement');
    await assert.rejects(adapter.request('ai.generate',{...input,requestId:'two'}),{code:'E_AI_BUSY'});
    connected=true;
    assert.equal((await adapter.request('ai.cancel',{requestId:'one'})).state,'cancelled');
+   assert.equal(runtime.developmentIdle(),true,'the exact original terminal releases the Provider reload fence');
    assert.equal(starts,1);assert.ok(cancels>=2);
  }finally{adapter.dispose();runtime.dispose();}
 });

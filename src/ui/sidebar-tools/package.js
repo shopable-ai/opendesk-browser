@@ -16,7 +16,7 @@ export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:3
 const MAX_PACKAGE_BYTES = SIDEBAR_TOOL_LIMITS.packageBytes;
 const LIMITS = Object.freeze({title:80,description:300,html:SIDEBAR_TOOL_LIMITS.html,css:SIDEBAR_TOOL_LIMITS.css,js:SIDEBAR_TOOL_LIMITS.js});
 const CAPABILITIES = Object.freeze(['ai.generate','storage.local','currentPage.read','tasks.open','page.toc','page.clip','page.videoSpeed','page.videoContext','page.mediaDownload','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
-const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'browser.page.environment.read','browser.fingerprint.control','tasks.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
+const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'localTasks','browser.page.environment.read','browser.fingerprint.control','tasks.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);

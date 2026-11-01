@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
+import {createSidebarToolAIAdapter} from '../../src/ui/ai/sidebar-tool-adapter.js';
 import {createDevelopmentWorker,developmentChanges,developmentRunHostIdle} from '../../src/development/worker.js';
 import {installDevelopmentPage} from '../../src/development/page.js';
 const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),emit:async(...args)=>{for(const fn of [...listeners])await fn(...args);}};};
@@ -151,7 +153,7 @@ test('background waits for idle, freezes admissions, acknowledges draft and relo
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.worker.held,true);const reads=f.reads;await new Promise(resolve=>setTimeout(resolve,50));assert.equal(f.reloads,1);assert.equal(f.reads,reads);f.worker.dispose();
 });
-function pageFixture(prepareReload){
+function pageFixture(prepareReload,canReload=()=>true){
   const ports=[],statuses=[],body={inert:false},link={href:'chrome-extension://extension/ui/tool-shell.css'};
   const doc={body,documentElement:{dataset:{}},
     createElement:()=>assert.fail('development status belongs to React'),
@@ -163,11 +165,63 @@ function pageFixture(prepareReload){
     ports.push(port);return port;
   }}};
   const urls=[];
-  const dispose=installDevelopmentPage({api,prepareReload,document:doc,
+  const dispose=installDevelopmentPage({api,prepareReload,canReload,document:doc,
     onStatus:value=>statuses.push(value===null?null:{...value}),
     location:{href:'chrome-extension://extension/sidepanel.html?hostInstanceId=old&toolId=quick-notes',replace:url=>urls.push(url)}});
   return {ports,statuses,body,link,urls,dispose,get status(){return statuses.at(-1);},get navigations(){return urls.length;}};
 }
+
+test('AI inference vetoes reload before and after asynchronous draft preparation',async()=>{
+  let finish,save,preparations=0;
+  const runtime=createSharedAIProviderRuntime({hostInstanceId:'ai-dev-host',client:{requestWorkflowAI(){}},
+    facadeFactory:()=>({generateStructured:()=>new Promise(resolve=>{finish=resolve;})})});
+  const lease=runtime.acquire({consumerId:'sidebar-tools',instanceId:'ai-dev-tool'});
+  const f=pageFixture(()=>{preparations++;return new Promise(resolve=>{save=resolve;});},()=>runtime.developmentIdle()),p=f.ports[0];
+  let work=lease.requestStructured({request:'hold'});
+  try{
+    await p.onMessage.emit({type:'prepare',token:'inference'});
+    await until(()=>p.sent.length===1||preparations===1);
+    save?.(true);await until(()=>p.sent.length===1);
+    assert.deepEqual(p.sent[0],{type:'ready',token:'inference',ready:false});
+    assert.equal(preparations,0,'a busy Provider must not start draft/reload preparation');
+    finish({proposal:{ok:true}});await work;
+
+    await p.onMessage.emit({type:'prepare',token:'new-inference-during-save'});
+    await until(()=>preparations===1);
+    work=lease.requestStructured({request:'second'});
+    save(true);await until(()=>p.sent.length===2);
+    assert.deepEqual(p.sent[1],{type:'ready',token:'new-inference-during-save',ready:false});
+    finish({proposal:{ok:true}});await work;
+
+    await p.onMessage.emit({type:'prepare',token:'settled'});
+    await until(()=>preparations===2);save(true);await until(()=>p.sent.length===3);
+    assert.deepEqual(p.sent[2],{type:'ready',token:'settled',ready:true});
+  }finally{finish?.({proposal:{ok:true}});save?.(false);await work?.catch(()=>{});f.dispose();lease.dispose();runtime.dispose();}
+});
+
+test('closing an AI tool cannot acknowledge reload without the original Native terminal',async()=>{
+  let starts=0,cancels=0,prepared=0;
+  const sessionId='closed-tool-session',threadId='closed-tool-thread';
+  const client={async requestWorkflowAI(method){
+    if(method==='ai.session.open')return {sessionId,threadId,cursor:0,state:'READY_FOR_TURN'};
+    if(method==='ai.plan.start'){starts++;return {sessionId,threadId,turnId:'closed-tool-turn'};}
+    if(method==='ai.plan.cancel')cancels++;
+    throw Object.assign(Error('isolated offline transport'),{code:'E_AI_DISCONNECTED'});
+  }};
+  const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'closed-tool-host'});
+  const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'closed-tool',
+    installEpoch:'original-install',assertCurrent(){},confirm:async()=>{}});
+  const f=pageFixture(async()=>{prepared++;return true;},()=>runtime.developmentIdle()),p=f.ports[0];
+  try{
+    await assert.rejects(adapter.request('ai.generate',{requestId:'original-request',request:'generate',
+      instructions:'return JSON',context:{},providerGeneration:runtime.settingsSnapshot().generation}),{code:'E_AI_UNKNOWN'});
+    adapter.dispose();await until(()=>cancels>=2);
+    assert.equal(runtime.developmentIdle(),false,'the surviving Host retains the disposed consumer fence');
+    await p.onMessage.emit({type:'prepare',token:'unknown-after-close'});await until(()=>p.sent.length===1);
+    assert.deepEqual(p.sent[0],{type:'ready',token:'unknown-after-close',ready:false});
+    assert.equal(prepared,0);assert.equal(starts,1);
+  }finally{adapter.dispose();f.dispose();runtime.dispose();}
+});
 
 test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',async()=>{
   const resolutions=[];const f=pageFixture(()=>new Promise(resolve=>resolutions.push(resolve))),p=f.ports[0];

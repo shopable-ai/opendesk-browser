@@ -235,6 +235,58 @@ test('unknown results distinguish Cookie writes from account storage changes',as
   }
 });
 
+test('share request starts in the click stack, locks account actions and imports metadata without login proof',async()=>{
+  const app=mount();await app.flush();let finish;
+  const calls=[];
+  app.setResponse((action,payload)=>{calls.push({action,payload});return new Promise(resolve=>{finish=resolve;});});
+  const pending=app.accounts().onShareRequest('shareClaim',{inviteUrl:'https://relay.invalid/i/invitation'});
+  assert.equal(calls.length,1,'request must start before any async scheduling');
+  assert.equal(calls[0].payload.revision,1);
+  await app.flush();assert.equal(app.accounts().busy,true);
+  await assert.rejects(app.accounts().onShareRequest('shareClaim',{}),{code:'E_ACCOUNT_REQUEST'});
+  finish({status:'configuration_imported',configured:true,unlocked:true,revision:2,
+    accounts:[alpha,beta,{...createdAccount,cookieCount:0}],
+    cookieWriteVerified:false,websiteLoginConfirmed:false});
+  await pending;await app.flush();
+  assert.equal(app.accounts().accounts.length,3);assert.equal(app.accounts().currentAlias,null);
+  assert.equal(app.accounts().busy,false);
+});
+
+test('share callbacks discard receipts from a retired document and invitation copy keeps the existing one-use gate',async()=>{
+  const app=mount();await app.flush();let finish;
+  app.setResponse((action)=>action==='shareInspect'?new Promise(resolve=>{finish=resolve;}):
+    Promise.resolve({configured:true,unlocked:true,revision:1,accounts:[alpha,beta]}));
+  const pending=app.accounts().onShareRequest('shareInspect',{inviteUrl:'https://relay.invalid/i/invitation'});
+  const rejected=assert.rejects(pending,{code:'E_DOCUMENT_CHANGED'});
+  app.setUrl('https://example.com/other');await app.event('opendesk-page-changed');
+  finish({invite:{displayName:'retired'}});await rejected;await app.flush();
+  const copy=app.accounts().onShareCopy('https://relay.invalid/i/invitation');
+  assert.equal(app.copies[0][0],'begin');
+  await copy;
+  assert.deepEqual(app.copies.map(x=>x[0]),['begin','copy','finish']);
+});
+
+test('share conflict refreshes a competing revision and waits for an explicit local-save click',async()=>{
+  const app=mount();await app.flush();const calls=[];let claims=0;
+  app.setResponse(async(action,payload)=>{
+    calls.push({action,payload});
+    if(action==='shareClaim'&&++claims===1)
+      throw Object.assign(Error('competing revision'),{code:'E_VAULT_CONFLICT'});
+    if(action==='status')return {configured:true,unlocked:true,revision:2,accounts:[alpha,beta]};
+    if(action==='shareInspect')return {localSavePending:true,invite:{remainingClaims:0}};
+    return {status:'configuration_imported',configured:true,unlocked:true,revision:3,
+      accounts:[alpha,beta,{...createdAccount,cookieCount:0}],cookieWriteVerified:false,websiteLoginConfirmed:false};
+  });
+  await assert.rejects(app.accounts().onShareRequest('shareClaim',{inviteUrl:'https://relay.invalid/i/invitation'}),
+    {code:'E_SHARE_REVIEW_REQUIRED'});
+  await app.flush();assert.deepEqual(calls.map(x=>x.action),['shareClaim','status']);
+  await app.accounts().onShareRequest('shareInspect',{inviteUrl:'https://relay.invalid/i/invitation'});await app.flush();
+  assert.equal(claims,1,'status/inspection cannot automatically repeat a claim');
+  await app.accounts().onShareRequest('shareClaim',{inviteUrl:'https://relay.invalid/i/invitation'});await app.flush();
+  assert.deepEqual(calls.filter(x=>x.action==='shareClaim').map(x=>x.payload.revision),[1,2]);
+  assert.equal(app.accounts().currentAlias,null);
+});
+
 test('account links and custom briefs synchronously enter and finally finish the one-use copy gate',async()=>{
   for(const section of ['accounts','custom']){
     const app=mount(section);await app.flush();

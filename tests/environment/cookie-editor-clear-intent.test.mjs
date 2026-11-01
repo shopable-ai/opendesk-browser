@@ -7,7 +7,7 @@ const url='http://127.0.0.1:43111/account';
 const previewRef='12345678-1234-1234-1234-123456789abc';
 const doc={tabId:42,windowId:7,documentId:'document-one',url,origin:'http://127.0.0.1:43111'};
 const owner='official-cookie-editor|installed-instance|epoch';
-const request={owner,url,previewRef,expectedCount:2,grantEpoch:'grant-one',document};
+const request={owner,url,previewRef,expectedCount:2,grantEpoch:'grant-one',document:doc};
 const execution={...request,maxCookies:50};
 
 test('first real clear-confirmation click consumes one exact Host-only intent, not another dialog',()=>{

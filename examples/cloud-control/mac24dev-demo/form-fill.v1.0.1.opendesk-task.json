@@ -1,0 +1,42 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "sample.form-fill",
+    "version": "1.0.1",
+    "title": "示例：网页表单填写",
+    "description": "在同一本地演示页覆盖填写姓名、提交一次，并核对完成文字。",
+    "author": "OpenDesk Browser",
+    "source": "local-demo",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 2,
+      "sourceHash": "9e74a9e089dda18fadc495e9c90b6851ad686eb20b40159d36547d5326c56153"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "姓名",
+          "description": "将输入到演示表单中",
+          "minLength": 1,
+          "maxLength": 40,
+          "default": "Alice"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "8a39edc5ba519869ac5c74132b46830727d3ef8a8c2e4695bb2a0a995e1523c7",
+  "sourceUtf8": "async function main() {\n  await page.locator('#name').fill(params.name);\n  await page.click('#submit');\n  await page.waitForSelector('#done');\n  const submitted = await page.locator('#done').textContent();\n  if (submitted !== '已提交：' + params.name.trim()) {\n    throw new Error('E_FORM_READBACK');\n  }\n  return {ok: true, url: await page.url()};\n}\n"
+}

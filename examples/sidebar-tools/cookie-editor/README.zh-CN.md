@@ -1,5 +1,9 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 合并说明（2026-11-01）
+
+保留本地 2.0.59 与远端 S3/展示拆分源码；本次仅合并，未重建、晋升或安装。下列版本、运行环境与验收结果均对应各自历史候选，不证明合并后源码已运行。
+
 ## 普通 HTTP 请求免逐次审批 · 2.0.59（2026-10-31）
 
 已在日常 Chrome 的「企业 → 服务连接 → 确认解绑」看到框架再次要求允许 POST。外层 POST 是工具的普通服务 RPC；根因是公共 `browser.network.request` 被列入逐次手势/intent 审批，并非 Cookie Editor 业务又申请了 Cookie 权限。
@@ -72,7 +76,226 @@ npm start --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
 
 **当前入口是「企业 → 服务连接」**：新连接使用上述普通 HTTP 地址及应用配对码；旧 Native 登记链是 2.0.57 的历史证据。显式关联本站已保存账号与实际资源后可打开受限管理页，手动关联仍为 `UNVERIFIED`。账号页尚无经过证明的自动身份映射或直接额度入口；保存 Cookie 或同名 alias 不构成 Codex 授权。独立终端配对入口继续可用，Cookie/Token/一次性配对秘密不经过沙箱。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
 
+## 远端 S3 与可信展示拆分历史
+
+## 远端历史原生入口：2.0.57 已原位更新，产品流程由新 owner 接续（2026-10-31）
+
+已核实 `e002aa308` 的唯一[原生证据 JSON](evidence/r31-s3-finish-20261030.json)：`s3FinishNativeEntry20261031.resume01a19164.nativeControlExecution20261031`，对应原始记录为 `artifacts/cookie-editor-r31/native-control-01a19164/progress.json`，记录时间 **2026-10-31 11:56:18 UTC**。原生 SidePanel 控制缺口已解除：原工具栏 → SidePanel → 原安装审阅 **2.0.56 → 2.0.57** 已确认，安装详情独立读回官方来源 `opendesk/cookie-editor` 和完整 SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，未卸载或清数据。下方旧 blocked、待安装和全部八项未测的叙述只保留为各自历史，不再作为当前入口结论。
+
+该记录的环境是**持续开发**：期望目录为本仓库 `dist/development`，实际 UI 读回 extension ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`、连接及完整应用 revision `ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c`，与当时磁盘136项指纹一致；**Chrome 实际物理加载路径仍 NOT_TESTED**。这是该原候选的证据，不证明当前磁盘、后续源码或本次 SW 展示拆分候选已在 Chrome 运行，也不是 production 验收。
+
+原 A/B/test1 保留；A/B 白名单 ON、test1 OFF，自动切换及自动刷新 ON 已独立读回。虚构 B 值 `fiction-b-01a18c21` 仅作原 UI 只读核对，不等于 Cookie 恢复通过。**A 值独立确认、实际关闭侧栏的双向 A/B 切换与额外刷新、双机配对领取、独立保存、Cookie 恢复和真实网站登录仍 NOT_TESTED。**
+
+产品/原生新 owner 为 `01a191d5-511b-7330-9643-f4aa4d5f4891`（local/main）。旧 owner `01a19164-c087-76d1-a47f-b1a90732d898` 的原始 Goal 回执实读 **paused**，不是 blocked/complete，也未自动迁移；其源码、Chrome、服务和输出操作已停止。全局输入已释放给 Scrapy `01a1915b`，不自动归新 Cookie owner；writer、服务和历史 unknown 围栏保持。取得真实输入窗口后，下一步由产品 owner 在原 UI 先独立确认 A 值，再明确恢复并核对 B，随后验证闭侧栏双向切换；不重复安装或代替 owner 操作环境。
+
+## SW 职责精简：展示模型已退出后台（2026-10-31）
+
+本轮是独立的架构源码任务，**不把上方原候选的安装/原生结果提升为本次拆分候选通过**。企业页原来的连接/关联状态合成、reasonCode、按钮显示和 capabilities 展示投影已从 `trusted/service-connections.js` / `trusted/service-session.js` 移出，集中为固定可信 UI 的 `trusted/service-view.js`。原 `cookieAccount` Host 调用它后，仍向已安装 App 返回原字段；App、正式 JSON、存储键/schema、权限与安装身份均未变化。
+
+SW→可信 Host 只传版本化的最小事实 DTO：配置身份是否有效、账号版本是否匹配、租约/连接代际、可恢复性、脱敏绑定及原 pending 操作摘要。资源与策略在 SW 内就按有效身份/租约/pending 收口，私有 owner、Native 连接 ID、租约、完整账本、Cookie 和密钥不交给展示层。展示结果不回送为授权，Native dispatch 继续独立核验真实身份、配置/会话 revision、手势、权限与 unknown。
+
+| 模块/职责 | 必要执行边界与当前处理 |
+| --- | --- |
+| `account-service.js` 导航自动切换、撤权与卸载入口 | 关闭侧栏后仍要接收浏览器事件，这些事件入口需后台；不能因此推导整份模块都必须 SW |
+| `account-vault.js` 私有快照及写入核验 | 需可信权限和持久化；不因敏感就必须 SW。当前仍由原后台消费，未改数据合同 |
+| `service-connections.js` | 名称/地址草稿和交互属普通 App；持久安装身份、连接代际、关联账号版本需可信核验。此次仅保留可信事实和原事务，展示合成已移出 |
+| `service-session.js` | 真实 Native 租约、操作账本与响应核验需可信，但用户点击的连接/管理操作不天然要求 SW。当前仍复用原 SW Native client，展示合成已移出 |
+| `service-view.js` | 纯展示投影，已仅由原固定 Sidebar Host 编译消费，SW 不再消费；仍随 Browser 发布，**不是应用包独立升级** |
+| `account-share.js` | 邀请表单/流程选择属 App；管理秘密、权限/目标/网络结果核验需可信。手动分享不天然要求 SW，本轮未迁移其安全/生命周期边界 |
+| `account-session-share.js` / `account-session-crypto.js` | 私有快照、设备密钥与加密需可信；并非加密算法必须 SW。当前固定后台实现保留，未向沙箱交付秘密 |
+| `account-contract.js` / `app/domain/account-switch-url.js` | 纯合同可在各自世界消费，校验本身不授予权限；当前后台消费者仍固定编译 |
+| `app/` 与 `ai-account-usage/` | UI、表单和普通模型已在 App；额度采集、历史统计与管理服务已在独立 Node，未被迁入 SW |
+
+这是一次真实的 SW 展示职责减少，**没有移除现有 Vault/分享/Native 模块导入，没有完成账号后台独立升级**。原 `src/sw.js:12` 的账号服务注册仍存在。隔离 esbuild 账号组件对比为 284771 → 283620 B（压缩，减少 1151 B），新展示模块 2084 B、无依赖且不在账号组件实际编译图；这不是完整 SW/WXT 体积或 Browser 构建证据。
+
+五份相关配置/会话/Host/实际 Node 业务适配器/UI 检查 **96 PASS**，包括两个先红后绿的事实 DTO 回归、unknown/过期前脱敏、伪造显示状态不能替代安装身份，以及真实 `createSidebarTools` Host 的返回兼容和内部事实不外传。固定来源/目标/漂移/symlink 检查 **10 PASS**；新模块只准进入 `ui/sidebar-tool-host.js`，SW 与其他目标继续拒绝。另1项原分享Host转发检查通过。仅 Node/隔离组件证据；完整 Browser 构建、serve 应用与 Chrome 原生结果均 `NOT_TESTED`。源码架构主观复评 **74/100**（前任务约70）；主要扣分仍是前台 Native/分享编排留在 SW、私有合同及固定 Browser 发布耦合，非独立专家或产品验收评分。执行范围及命令见[本轮工作记录](../../../docs/framework/workstreams/cookie-editor-react-shared-ui-20261017.md#2026-10-31-增量sw-展示职责拆分)。
+
+### 继续审查：剩余优化与已修依赖（2026-10-31）
+
+本次修复了服务与账号仓库的不必要耦合：**没有本站账号关联时**，企业页读取状态、保存/改名/断开配置、手动 Native 连接、读取资源/策略和打开服务管理页，不再先读 Cookie 账号仓库。损坏的账号存储不再阻断这些服务操作，也不被修复或覆盖。创建关联、返回已有本站关联及打开关联资源仍读取真实账号并核对版本；账号损坏时继续拒绝，不把空账号列表当作授权。企业页本来就独立请求服务状态，账号读取失败不决定配置表单可用性；App 和正式 JSON 无需修改。
+
+| 优先级与真实操作 | 当前归属、必要性及候选位置 | 保留的约束 | App 包能否独立升级、最小下一动作 |
+| --- | --- | --- | --- |
+| 1．配置服务、未关联时连接/打开管理页 | 配置草稿/流程已在 App；持久身份在 `service-connections.js`，手动会话在 SW。无需 Cookie 账号的分支已解除仓库依赖；不是执行世界迁移 | 原安装/连接 epoch、revision、Native 租约、原操作账本与 unknown 保护 | 本次改固定可信服务仍需 Browser 更新。先复用原入口验证此分支；有本站关联时仍依赖账号仓库 |
+| 2．手动 Native 连接、资源/策略、管理页 | 操作需可信，未证明需要 SW 生命周期；但 `src/native-agent/transport.js → service-worker.js → managed-service-client.js` 的实际客户端只由 SW 持有。候选是已有固定可信 Host 的前台编排，不能直接把当前模块挪入 Host | 关闭文档后的原请求对账、SW 重启租约失效、撤权、精确管理目标及秘密不外传 | 当前仍需 Browser 发行。先核对可复用的前台传输/账本合同；本轮未发现同等入口，不新增桥。完全公开替代能力仍 `SDK_GAP_NOT_PROVEN` |
+| 3．填写邀请、选择配置/会话分享 | 表单、模式和发送/接收流程已在 `app/components/CookieAccountSharing.jsx`；`account-share.js` / session-share 保留可信秘密和响应核验。普通交互继续在原 App 维护，无需重复迁出 | 管理秘密、设备私钥、快照、原网络效果账本、权限/目标/签名核验不交给沙箱 | 原 App 的表单/交互可以随包升级；新特权分享算法仍需 Browser。下一步仅随具体用户缺陷修改相应 owner，不为减 import 移走安全边界 |
+| 4．连接名/地址、状态文案与展示 | 草稿和中文文案已在 App；持久配置与安装/连接/账号版本关联需可信，不因非秘密就交给 App 决定授权。`service-view.js` 只是固定 Host 的纯投影 | 展示结果不授予操作，旧 App 返回形状保持；未知结果不能被展示状态清除 | 草稿/文案可独立改包；现有事实→展示投影仍随 Browser。本轮保留一个投影，不继续增加固定适配层或第二模型；若转交 App，先解决真实旧消费者与包升级兼容 |
+
+关闭侧栏后的导航自动切换、撤权/卸载和未知 Cookie 效果围栏仍需要后台事件/收尾。Vault 与加密本身只证明可信必要性；本次没有迁移它们、删除 SW 导入或实现特权后台独立升级。上一轮 1.1 KB 的组件差异及主观分数只保留为历史，不据此次小改累加评分。
+
+新增四条账号仓库边界回归，其中两条正例先复现 `E_VAULT_CORRUPT` 后通过。受影响 Host/真实 Node 服务适配器与受限管理 HTTP 链 **15 PASS / 0 FAIL**，精确来源/目标/漂移守卫 **10 PASS / 0 FAIL**。只更新账号服务一个精确 pin，未放宽准入。真实 Chrome、Native Port、serve 发布/连接与完整 Browser 构建仍 `NOT_TESTED`；未安装/重载、提交或推送。
+
+## 历史接续：原开发服务恢复时，原生更新尚待确认（2026-10-31，01a19164）
+
+> 以下为当时记录；后续更新确认与旧 owner paused 状态以上方「当前原生入口」及同一 JSON 的 `nativeControlExecution20261031` 为准。
+
+本任务初读 goal 为 null，已按用户要求创建无预算完整目标，创建后实读 active；**最新工具实读为 blocked（2026-10-31 10:21:06 UTC）**。同一原生 SidePanel 控制缺口已连续原始轮及两次自动续跑共三轮，没有新安装或详情读回回执；无依赖的环境恢复与接收机诊断已完成，按目标生命周期规则标记阻塞，未缩小目标或声称完成。此前任务的 blocked／paused 状态均未改动。最新证据在同一 [JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031.resume01a19164.latestGoalAudit`，原始开发就绪记录保留其当时 active 状态。此前 blocked 后曾实读恢复为 active，恢复来源未知；恢复后的第三轮同一缺口仍未解除，已重新按严格条件标记 blocked，最新回执见同节 `resumedGoalAudit`。
+
+确认旧 writer PID73839 已退出、43119／43120 空闲，并与当前来源审计任务一次核对实际共享输入后，已恢复原 `npm run dev`，没有强制重载或清除 unknown 围栏。固定 `dist/development` 现为 **RUNNING**，writer PID12811，磁盘 revision `236bd2746e81c7dd4caea54be82d4c893ea47e4c281ce4ac4ab539153a85412e`，136 个产物指纹一致。唯一正式包仍为 2.0.57／245715 B／SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，新开发资源摘要一致；**Chrome 实际加载路径、serve 连接、应用 revision、安装版本及旧数据均 NOT_TESTED**，不能用本次服务恢复替代。
+
+严格 SSH 只读核对接收机：仍为企业功能工作线的不同 2.0.57 包，`account-service.js` 未接 `sharePair/shareDeliver`，设备密钥源不存在；未改远端仓库、Profile 或扩展。原 Relay／TLS 未重启，证书 SAN／有效期检查通过，Chrome 信任未测。当前 Chrome 接口仍无原生 SidePanel 控制，尚无更新确认回执。下一条操作仍是在已准备的独立窗口打开原 SidePanel，通过原「扩展 → Cookie Editor → 审阅新版」确认更新并保留安装详情；若已经更新或结果未知，只先读回详情。**八项产品验收结果仍全部 NOT_TESTED，完整目标未完成。**
+
+## 历史入口：独立窗口打开后，2.0.57 原位更新尚待执行（2026-10-31）
+
+**当时目标状态：blocked（2026-10-31 09:05:35 UTC 实读）**。原生 SidePanel 控制缺口连续三轮未解除，仍无安装回执，按目标生命周期规则标记阻塞，未完成或缩小完整目标。此前已请求一次具体手工更新动作，不重复请求或安装；等待该结果或合法可控的原生入口。下文 active 是创建时历史状态；本节不覆盖上方已解除缺口的当前结论。
+
+本任务 `01a19125-0a3e-7182-a77c-c44b378bc850` 初读 goal 为 null，已按用户要求创建无预算完整目标，实读 active；旧任务 paused 目标未迁移或改动。最新事实见唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031`，原始记录为 `artifacts/cookie-editor-r31/current-entry-01a19125.json`。
+
+已使用当前 Chrome Skill 官方窗口命令打开独立窗口，并在新标签页正常打开原 `http://127.0.0.1:43111/`。原服务 session `ea89e280-f720-48bb-9bcd-e3e43af1c2ad` 的 `seq=4` 是这次普通导航，不能算 A/B 切换或 SW 额外刷新。当前控制接口没有原生 SidePanel 操作入口，尚未执行原安装器更新审阅，不能声称 Chrome 已安装 2.0.57 或旧数据已读回。
+
+本机唯一正式包仍是 **2.0.57 / 245715 B / SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`**。固定 `dist/development` 的磁盘 revision 为 `cc24806c341794e9f5edeaa9f9495deac73e2ffd9888754dd9d6b70d609edb0e`，131 个指纹一致；原 writer PID73839 已不存在、43119/43120 无监听。这是保留的开发候选，实际加载路径、ID、serve 连接和 Chrome 应用 revision 均未核实。当前 Scrapling owner 已一次回告不持有 writer、无新增原生操作在途，但历史 AI unknown 的相关刷新围栏仍保留；本任务没有启动第二 writer、清围栏或重载。
+
+两台真实 Mac 的原 HTTPS `/health` 再次通过，仅证明传输可达。证书 SAN 仍是 `192.168.30.104`，有效期至 **2026-10-31 19:56:54 UTC（北京时间 11 月 1 日 03:56:54）**，Chrome 信任未测。接收机 `mac96 → shopme.local / 192.168.30.5` 的 Native 响应连接正常、ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；其磁盘 Cookie Editor 同为 2.0.57，但为 **264961 B / SHA-256 `829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b`**，JS/CSS 与本机不同，README 当前属于企业服务／额度管理工作线，不能由同版本号推断 S3 已部署。未覆盖接收机仓库、Profile 或日常扩展。 随后只读追踪原 `src/sw.js → trusted/account-service.js`：接收端账号服务、App 和对应磁盘 SW／Host 均无 S3 配对／交付接线，SW 无设备密钥库及 ECDH；已确认不只是文件改名。接收端须保留企业功能并合入本次 S3 后部署，不能直接覆盖为发送端候选。
+
+**原位更新、关闭侧栏 B→A、A→B、两方向自动刷新、双机配对领取、独立账号保存、Cookie 恢复读回和真实网站登录全部仍为 NOT_TESTED，完整目标未完成。** 下一条操作是在刚打开的新 Chrome 窗口，通过原 OpenDesk SidePanel「扩展 → Cookie Editor → 审阅新版」确认更新 2.0.57，并保留安装详情供核对；结果未知先读回，不能卸载清数据或重复安装。更新之后仍须分别验证可信 SW、旧 A/B／白名单／设置及两条真实主流程。
+
+## 本任务目标与关键测试条件已设置（2026-10-30，01a18d05）
+
+本接续任务按用户明确授权创建完整执行目标，创建后实读 **active**，无 token 预算；收到下述 writer 重启回执时再次实读为 **paused**，本任务未改写目标状态。旧任务的 blocked goal 没有迁移、暂停或完成。关键条件与逐项结果已写入唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishExecutionGoal20261030`：同候选原位安装并保留数据；侧栏实际关闭后的 A/B 双向自动切换、独立 Cookie 读回及额外刷新；双真实设备原分享入口配对、加密交付、独立账号保存、明确恢复及允许移交网站的独立登录。配置保存、Cookie 恢复与网站登录分别记录。
+
+本轮实际解除一个更新入口阻塞：合并后旧 dev 进程缓存的目录校验持续失败，15 个输出已与旧 ready 指纹不符。新进程只读校验通过后，经原 owner 移交与云控释放，正常停止旧 writer，再运行原 `npm run dev`。固定 `dist/development` 已恢复 **RUNNING**，revision `aeaed3ff1f268c733c71d8666429045e1aff66c86be9d60a8f8d593d1896b21a`，130 个文件指纹一致；未改 Cookie 源码或正式包。2.0.56→2.0.57 的 ID、权限、依赖与运行声明一致，仅证明包元数据，不证明 Chrome 已更新。
+
+随后已将同一 dev writer 的正常重启协调权移交视频任务，以载入其已验证的 `projects/` 监听修复。接收方回执：旧进程退出，新 node PID65804，日志 `artifacts/video-downloader/ui-core/dev-resumed.log` 已 RUNNING，完整 revision `967ea3877a191cbb1726471799304dc014d589fab10667ddf795a85894d30a30`；固定目录／ID／安全刷新栅栏保留。这是 owner 回执，Cookie 本轮未重复验证输出或 Chrome 实际应用；前一 revision 仅保留本轮恢复时范围。Cookie 不再启停或覆盖该输出，原 Relay／TLS／数据库未被此次移交触及。
+
+原 Relay／TLS 使用原数据库和证书恢复，两台 Mac 的 HTTPS 健康检查通过，仅属传输准备；没有创建邀请、配对或领取，也没有发送 Cookie。Chrome HTTPS 导航超时后仍为空白页，未推断证书信任或绕过保护。当前公开驱动没有独立窗口／原生侧栏操作入口；下一步需在独立 Chrome 窗口打开原 OpenDesk SidePanel，经原安装器审阅并更新 2.0.57，然后核对实际 ID、加载路径、连接和应用 revision。**真实安装、侧栏关闭 A/B、双机恢复和网站登录仍为 NOT_TESTED，完整目标未完成。**
+
+## 当前接续：S3 固定接线已落入，正式包 2.0.57 待原生更新（2026-10-30）
+
+已将受审的设备绑定密钥、配对／加密交付、认证领取恢复和有界清理接入原可信 SW；共享 Host 只增加严格字段及原 Document 捕获，两个新助手以精确来源锁限制为 SW 使用。合并后的 `projects/` 路径和视频消费者保留，没有复制旧共享文件覆盖新功能。
+
+原 `app:update` 自动 PATCH 并经候选门禁、原打包器晋升和同源核对，唯一正式包为 **2.0.57**，245715 B，SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，ID／权限不变。live 来源、发送授权与清理、React 组件及正式包检查分别通过；这些是 Node／包证据，**2.0.57 尚未在 Chrome 安装**。
+
+快捷 URL 的普通根入口已修复：原共享服务的空 404 改为无脚本普通 HTML 后，本任务 Chrome 专用标签页可正常打开根页面，不再显示 `ERR_BLOCKED_BY_CLIENT`。这次没有账号片段或 Cookie 操作，不能算作关闭侧栏 A/B 或自动刷新通过。
+
+旧开发服务缓存了合并前的工具路径规则，已在明确移交后正常停止；仅补齐阻塞启动的 AI VIP Share 原 Vite 产物，继续使用原 `npm run dev`、固定 `dist/development` 和原安全刷新栅栏。开发就绪及实际 Chrome 身份以唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3MergedIntegrationContinuation20261030` 为准。当前驱动仅创建了专用标签页，独立窗口和侧栏控制入口尚未获得支持；关闭侧栏 A/B、双机 HTTPS 加密恢复与独立网站登录仍未完成，完整目标保持未完成。
+
+## 最新接续：旧超额密钥可分批清理，离线来源锁已核对（2026-10-30）
+
+同 owner 超过 768 条旧密钥时，清理现在每次最多删除 768 条并独立读回余量；有余项返回待继续状态，未知回执仍保留未知围栏。原卸载链在两种情况下都保留分享／账号引用，下一次明确清理可继续，其他 owner 不受影响。密钥 13 项、卸载保引用 2 项、最新助手 hook 30 项及精确来源 6 项分别通过；均为 Node／离线证据。
+
+候选接线与精确 pin 尚未写入 live。落地前工作区发生外部 `origin/main` 合并，`scripts/bundle-provenance.mjs` 存在冲突且其他共享文件已改变；必须在合并后的文件上重放 Cookie 局部增量，不能整份复制旧候选。正式包仍为 2.0.56，关闭侧栏 A/B 与双机恢复／登录未完成。用户再次要求新任务继续，并允许新建独立 Chrome 窗口测试；本 owner 保存后停止写入。最新实据见唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3BoundedCleanupContinuation20261030`。
+
+## 最新接续：S3 离线恢复、容量与发送授权已修，按用户要求交接（2026-10-30）
+
+错误发送指纹可在认证同一密文并完整比较回执后本地修正，事务冲突保留未知结果错误码。正常较大快照不再被元数据的 16 KB 限制拒收；会话领取仍有独立上限，超限不重领。新增设备密钥上限和原卸载链的精确 owner 清理，只有已完全结束的旧 owner 可回收配额，待保存及未知围栏保留。发送快照也按原完整域／Store／Partition 授权校验，并在发送前重核父域授权代际。
+
+最新离线原分享分发 28 项、发送范围 6 项、卸载接线 1 项定向检查通过；其他日志及其输入变化限制已单列，不能宣称最新候选全量通过。最终增量独立审阅及精确来源 pin 尚未完成，接线仍在离线候选中，真实 SW 与正式包 2.0.56 未变。用户再次要求创建新任务继续，当前已停止新增业务，保存补丁与最新逐文件摘要。
+
+共享 writer 迟到审计已确认此前有中间开发态发布，取代旧记录的“未证发布”结论；18:43 的源码恢复已完成，不重复回写。当前原生窗口归新 Scrapy owner，Cookie 保持离线。关闭侧栏 A/B 及双机加密恢复、网站登录尚未通过，完整目标未完成。最新记录见唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3RecoveryContinuation20261030`。
+
+## 最新接续：白名单已配置，快捷 URL 被 Chrome 屏蔽；S3 离线修复待接手（2026-10-30）
+
+A/B 已保存，自动切换及刷新已开启，仅 A/B 在白名单，`test1` 未加入。侧栏关闭后首次打开 A 快捷 URL，Chrome 显示 `ERR_BLOCKED_BY_CLIENT`；没有重放，恢复标准 demo 后独立读回仍是 B 的虚构值。关闭侧栏快切及刷新未通过。
+
+S3 新增设备绑定密钥、加密信封和配对／交付助手的开发候选。共享原生窗口发生冲突后，已将 share/service/分享界面三处 live 源恢复到已审 HEAD，接线和新 UI 保存为离线候选；正式包仍为 2.0.56，未重编或晋升。独立审查的两项 P2 已有 4 条红色复现，尚待修复，不能宣称当前测试全绿。用户要求新任务接续，具体源、补丁、检查范围及资源归属见[工作记录](../../../docs/framework/workstreams/cookie-editor-r31-s3-finish-20261030.md)及唯一[证据 JSON](evidence/r31-s3-finish-20261030.json)的 `s3OfflineContinuation20261030`。
+
+## 真实账号保存接续：A/B 已保存，关闭侧栏切换待验证（2026-10-30）
+
+在已安装的 2.0.56 中，已明确保存 `R31-A-01a18c21` 与 `R31-B-01a18c21`，分别实见账号列表和当前快照「已核对」；列表从原有 1 条变为 3 条。B 仅修改此前创建的虚构 Cookie，原两条 Cookie 未编辑，未知来源的 `test1` 未改动。已明确开启「切换后自动刷新网页」并读回开启状态。
+
+当前输入路径已分类：PID 输入报 AX code 2；无 PID 输入虽然报告执行成功，但普通网页输入框也未出现文字。改用普通页可见输入框加原生复制／粘贴，先核对账号名再明确保存，已完成两次保存；没有据此修改产品源码。历史 `test1` 的来源仍未知。白名单、关闭侧栏 URL 切换和独立 Cookie 值读回尚未完成，双机加密恢复仍受原密钥合同阻断。新增事实与截图摘要见同一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `nativeAccountContinuation20261030`。
+
+## 真实 Chrome 接续：2.0.56 已原位更新，A/B 尚未完成（2026-10-30）
+
+在原持续开发SidePanel中，已从官方「审阅新版」将2.0.54原位更新至2.0.56；安装详情实见版本、官方来源和完整包SHA与本项目一致。正常tooltip的实际扩展ID及完整client revision也已匹配新磁盘候选 `ed52e7…`，实际加载路径仍未直接验证。当前站点授权及一条虚构Cookie创建已实际执行；**这只证明这些操作，不是关闭侧栏A/B快切或双机登录PASS**。
+
+账号保存尚未获得可归属的A/B证据：输入驱动未呈现预期名称，未点击保存时页面却显示已保存的 `test1`，来源仍待分类，不能当作测试账号A或擅自删除。用户要求新任务继续，完整现场、输入归属与下一步保留在同一[工作记录](../../../docs/framework/workstreams/cookie-editor-r31-s3-finish-20261030.md)及[证据JSON](evidence/r31-s3-finish-20261030.json)的 `nativeLocalContinuation20261030`；后续先解决当前输入步骤，不重复构建或重放未知操作。以下安装未测等记录保留其历史时间范围。
+
+### 同日后台续修：重新授权后继续领取（UI 包仍为 2.0.56）
+
+已复现并修复：领取 POST 发送前分享服务权限被撤销，原流程实际没有请求，却留下永久未知围栏。现在仅凭可信请求层的“尚未发送”回执保留未领取状态，用户重新授权并明确点击后重新核对邀请、复用原领取记录。若请求已发送、回执丢失或领取后才撤权，仍保留未知围栏，不再次领取。原 Relay 与实际服务17项检查通过；这是固定后台修复，不改 UI、权限或正式包字节，也没有自动重试或补发请求。真实 Chrome 仍待一致候选更新后验证。
+
+## R3.1-S3 接续：邀请重开与手动恢复 · 2.0.56（2026-10-30）
+
+本轮修复两个已先复现的业务缺口。配置领取保存后，重开原邀请会核对本机回执和对应账号，不再因远端名额用完或撤销而失去已保存状态；已删除账号明确报错，未知领取回执仍拒绝重试。待保存的配置继续支持显式完成本地保存，界面不把旧回执中的名额当成当前服务状态，也不重复领取。
+
+自动切换曾在未知 Cookie 写入后永久阻止该 Tab 的其他快捷 URL，即使用户已手动切换并核对成功也无法恢复。现在仅在**同站手动切换完整验证成功**、原围栏仍一致及 Host/安装身份有效时标记恢复；旧 URL 保留防重放，其他网站、撤权、未知结果、存储失败或更新的围栏均不被解除。Cookie 的 Domain/Path/Store/Partition 校验继续沿原服务执行。
+
+原更新器自动 PATCH、候选门禁、显式晋升及同源核对完成。唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json) 为 **2.0.56**，240710 B，SHA-256 `9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64`，ID／权限不变。两份可信源码经独立只读审查后精确重新锁定，仅进入 SW；没有目录白名单或新 Runtime。邀请/组件36项、账号及共享域96项、最后同站恢复7项、来源6项、React候选2项、原打包8项和正式同源2项检查分别通过（重叠检查不合计为独立总数）。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED / SYSTEM_CHROME_NOT_TESTED**。本轮只编译 Cookie React，未启动扩展构建或重启共享 watcher。JSON 不含可信 SW 修复，须与 Browser 固定后台更新配套；实际安装、关闭侧栏 A/B 快切与双机登录尚未验证。会话加密仍受原非导出设备私钥恢复合同阻断，未导出私钥或降级明文。完整目标未完成；最新分层事实见同一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `recoveryContinuation20261030`。
+
+以下 2.0.55 及更早记录保留各自历史范围。
+
+## R3.1-S3 续跑：2.0.55 安装包已准备（2026-10-30，完整目标未完成）
+
+唯一正式包现为 **2.0.55**，SHA-256 `70e398b10d40d1a93242f6dbc0d6d7d172faa9d2f6a1d236c7f43a576c91cb07`，包含当前配置分享入口。当前源码、Vite 编译回执与候选逐字节一致，原打包器 `--promote-from` 晋升后 `--check-project` 通过；先前延期的三条正式包同源检查也已通过。权限和依赖要求未变化。
+
+本轮修正三条过时 Host 测试：等待异步包身份/授权完成、为设置场景提供有效目标与 Chrome 权限，并按现行合同允许未授权的非特权界面可见；额外证明该界面仍不能发出 Cookie 写入。三条定向检查通过，产品权限代码未修改；其他未变的业务/来源/打包证据复用，全共享 Host 的其他失败保留，不宣称全套 Node PASS。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED**：可经原「扩展」安装审阅流程更新，尚未安装或在真实 Chrome 验证。本机关闭侧栏 A/B URL 快切仍未测；会话分享仍拒绝 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`，配置领取、Cookie 写入读回、网站登录三个结果继续分开。共享开发服务由云控 owner `01a18b96-4e45-7971-b993-28d6dde17f60` 协调，Browser 管理页拒绝与真实侧栏控制缺口未解除。本轮未运行扩展构建、未重启 watcher，未导出设备私钥。
+
+以下保留晋升前的开发与阻断记录；当前包状态以上述同源晋升及同一证据 JSON 的最新追加为准。
+
+## R3.1-S3 配置分享接线历史（2026-10-30，晋升前记录）
+
+**同日续跑：** 已修正 Analytics 的 Reading TOC 旧导入，复核并更新五项仅修正相对导入深度的迁移源码锁；`projects/` 中未经精确审查的源码现在与 `examples/` 一样拒绝进入可信包，迁移不再意外绕过准入。定向迁移与保护检查 10/10、Analytics 导入图 1/1、Cookie 来源保护 6/6 通过。另一台真实 Mac 已用显式证书信任经 LAN HTTPS 从原 Relay 领取一份无 Cookie 测试配置（创建 201、领取 200、次数归零），默认未信任证书则校验拒绝。**这只证明双机 HTTPS API 传输**，没有修改系统／Chrome 信任，也没有经过 OpenDesk 接收 Host、Cookie 恢复或网站登录。已有开发 watcher（PID 62841）仍报目录合同错误、疑似使用迁移前缓存，且由其他任务持有，未擅自停止或启动第二个 writer；最新开发产物和原生验收仍待恢复。详细续跑证据已追加到下述同一证据文件。
+
+**后续阻断核对：** watcher 已推进到 `preinstall-intent` 并暴露另一处 Reading TOC 旧导入，现已最小改为 `projects/reading-toc/trusted/existing-tabs.js`；语法和四项相对依赖解析通过。目录虽已有部分 SW，但仍缺 `manifest.json` 和开发发布指纹，不能视为完整可加载候选。原重启确认未获明确答复，没有停止其他任务服务。非导出私钥恢复阻断连续三轮未解除，目标仍未完成并等待所需协调；不重复宽回归或把 TLS API 领取提升为 OpenDesk／登录验收。
+
+**接续资源更新（同日）：** 原 watcher 的恢复 owner `01a188d9-a03e-78d1-b1d7-ccc12b4a8817` 已明确通知就绪，PID 62841 未重启，仍是固定 `dist/development` 的唯一 writer；manifest、sidepanel 和开发发布指纹已恢复。Cookie owner 独立核对四个相关文件与指纹一致（revision `1d1737183db0b8afb6da5809e9bcace3f31a423dcea2d03e3666552c772385b8`），构建恢复等待已解除。**当前阻断转为真实 Chrome 入口**：控制工具明确拒绝接管已有 `chrome://extensions/` 标签页，实际 OpenDesk ID、加载路径和 dev client 连接仍未知，本轮未操作 Cookie 或绕过保护。下一步先取得可访问的真实工作台和身份/连接证据，再做关闭侧栏 A/B URL 快切。非导出密钥恢复合同未变化，会话分享继续 BLOCKED。接续事实已追加到同一证据 JSON；工作流见 [`cookie-editor-r31-s3-finish-20261030.md`](../../../docs/framework/workstreams/cookie-editor-r31-s3-finish-20261030.md)。
+
+当前开发源码为 **2.0.55**，目录内唯一正式包仍为 **2.0.54**，没有覆盖或晋升。正式包与当前源码检查明确失败；本次源码提交不能当作用户已安装、已更新或跨设备登录成功。
+
+现有六 Tab 中「账号 → 更多操作 → 分享账号配置」已接入原 Relay：发送端输入真实可信 HTTPS 服务地址，创建配置邀请，查看真实 URL、到期时间、剩余领取数，复制、查询、撤销，并可重新查看已保存邀请。「账号 → 领取分享配置」支持粘贴邀请、检查网站和状态、保存独立 alias；空 Cookie 账号可分享，重名新增而不覆盖，原网站会话不变。接收页面需先打开邀请的网站。过期、撤销、安装身份、真实点击、Chrome 服务地址授权与未知结果继续拒绝；失败不自动重新领取。并发保存冲突只重新读取状态，已领取配置可由下一次明确点击继续本地保存。
+
+这次**只接通配置**。设备会话分享明确返回 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`：现有 Foundation `captureBackup` 对真实非导出 `CryptoKey` 拒绝 `E_VERSION / Unsupported backup value`，安全持久化与恢复合同尚未闭合。没有增加导出私钥、明文 Cookie 分享或第二套 Runtime。配置领取、Cookie 写入读回、网站真实登录分别记录，不能相互替代。
+
+最终定向 Node 158/158、React 候选编译和候选来源检查通过；独立审查发现的撤权窗口、已删除账号假成功、容量消耗领取及冲突后旧 revision 已修复。共享 Host 初次回归仍有失败，其中三条 Cookie 测试在 HEAD 原 Host 对照同样失败；完整 SW 编译被 `src/analytics/host.js` 的 Reading TOC 旧路径阻断。Cookie 服务组件 121492 B **不是完整 SW 体积通过**。因此保留旧正式包，不以候选或组件检查替代正式晋升。
+
+本机 Relay 曾在 `127.0.0.1:8713` 以开发 HTTP 启动并通过 `/health`，不是 LAN HTTPS。最新候选的 Mac Chrome 本机 A/B URL 切换、两 Profile、320/360/400/440/520px、200% 缩放、双设备 HTTPS、配对、会话恢复及网站登录均为 `NOT_TESTED`，不继承历史候选 PASS。本轮不评分，不宣称达到 95。证据、命令和下一步见 [`evidence/r31-s3-finish-20261030.json`](evidence/r31-s3-finish-20261030.json)。
+
+## 远端企业服务工作线 · 原候选历史
+
+以下为远端原候选的版本与验证记录。该历史合并保留 S3 与企业服务两条功能；当时本地正式包为 2.0.57，组合源码未重新编译、晋升或安装，不把下文原候选版本当作当前正式包身份。
+
+## 服务连接与同步策略：当前开发边界（2026-10-31）
+
+当前为**源码开发 / COMPILED_NOT_INSTALLED**，尚未完成「企业页 → 真实 Native 授权连接 → 对应管理页」闭环。未修改日常扩展加载目录、扩展 ID、Native 配对或已有 watcher；唯一正式 JSON 仍为下方的 2.0.54，不包含此次企业页增量。
+
+| 用户操作 | 当前结果 |
+| --- | --- |
+| 企业页添加、改名、断开服务配置 | 已实现本地可信元数据存储；本机配置不填端口，公司配置仅接受精确 HTTPS origin。保存后明确显示未连接 |
+| 从当前站点已保存账号建立关联 | 已实现本地草稿及固定可信消费者：连接后只选实际读取的 codex 资源，明确提交精确 origin/alias/version/Store/Partition；始终 `UNVERIFIED`，不会证明同一登录身份 |
+| 企业页连接本机服务、打开对应管理页 | 已实现注册服务选择、手动连接、远端解绑/断开及固定 SW 内部消费限定管理页；仅当前 Host 协商并登记真实服务后可用；通用 Go 转发已有源码及进程验证。真实 Native 操作 `NOT_TESTED`，不猜端口、不向沙箱交付一次性链接 |
+| 终端启动既有本机管理页 → Cookie 同步设置 | 普通 serve 无需 OpenDesk 即可启动，已用隔离假账号验证真实 CLI/一次性配对与浏览器设置页；后台保存只改变期望策略，未接入设备时显示空状态 |
+| 可信进程协议与指定资源管理页 | 已实现 Node 适配器、设备/关联/策略状态合同和一次性资源会话；已用真实 Node HTTP、虚构设备和临时 Chromium 操作验证，不代表 Native 已接通 |
+
+企业页仍沿用原六 Tab、原 `cookieAccount` Host、Foundation 存储与安装身份检查。账号关联绑定当前站点和账号版本；安装变化、断开、账号删除或版本变化不会继续显示有效关联。未确认写入只允许重新读取核对，不自动重试。管理页的未知期望策略保存保留原操作 ID 和正文，可查询原回执；用户明确留档后须 GET 核实当前版本并重新审阅，才能手动创建独立新操作。留档不代表原操作失败。
+
+**本轮通用接线已完成源码与隔离进程验证：** Browser 复用原 Native Port 客户端，Node 复用显式启动的 socket provider 和业务适配器，OpenDesk `internal/browserbridge` 只增加通用登记、协商、UUID→单调 `req_N` 转发与退出清理。真实 Go/Node 进程经原认证 socket 跑通连接、资源、关联、期望策略/显式接受及受限管理会话；Chrome 的 Port、权限与安装身份仍为合成环境，因此真实企业页链继续 `NOT_TESTED`。此前固定 Cookie 消费者的 Foundation/手势/撤权证据继续保留，未更改可信来源 pin。旧 CLI/项目文件/AI 协议不代用服务通道，业务和凭据留在独立 Node 项目；不把沙箱字段直接作为认证证明。[通用协议与定向验证入口](../../../native-agent/managed-services/README.md)。本轮在各仓库现有主分支（Browser `main`、OpenDesk `master`）工作并保留并行 socket 生命周期改动。公司 OAuth、DNS/SSRF 连接校验及真实公司部署继续未实现。
+
+`trusted/service-session.js` 仅随固定 SW 编译，另存有界非秘密会话和原操作账本。远端写入同时核对本地配置 revision 与可信 sessionRevision，重新连接和远端读取后，旧确认必须重新审阅。消费者重启或 provider 变化不能凭持久状态恢复连接权限；未知写入仅查询原 GET 回执，不能重发。管理页 URL 在 SW 内验证精确已注册 origin、资源路径和一次性 fragment 后直接打开，不进入 Tool DTO 或存储。已确认断开后的重新连接仍须用户独立审阅和点击，使用新连接/操作身份；未知管理页打开只能明确留档，不冒充原操作失败。账号已过期的远端关联仍可明确解绑，确认撤销后才能移除本地记录。
+
+本轮没有发送 Cookie、调用真实上游额度、自动轮询、增加 Chrome 权限或实现备份传输。同步只接受 `ACCOUNT_METADATA` / `USAGE_SUMMARY` 的手动策略状态；Cookie 备份、恢复和加密上传延期。运行入口和小型协议见[后端说明](ai-account-usage/README.zh-CN.md)；本次验证与未测项见[开发证据](evidence/service-binding-core-20261031.json)。旧设计评分只证明当时的设计审阅。
+
+## AI 账号额度模块：唯一业务归属与当前入口（2026-10-30）
+
+Cookie Editor 是本组合功能的唯一项目 owner。额度管理的唯一源码已从 `services/ai-account-usage/` 收拢到 [`ai-account-usage/`](ai-account-usage/README.zh-CN.md)，业务测试在 [`tests/ai-account-usage/`](tests/ai-account-usage/)。原服务目录不再持有实现或转发入口。
+
+| 位置 | 维护职责与执行边界 |
+| --- | --- |
+| `app/`、`src/root.html`、`tool.config.json` | 原六 Tab 沙箱 UI、Cookie Controller 与适配器；唯一正式 Tool JSON 仍是 Cookie Editor 自己的包 |
+| `trusted/` | 固定编译的 Cookie 账号服务与可信存储，随 Browser 交付；动态工具包不能替换 |
+| `ai-account-usage/*.mjs` | 独立本机 Node 采集、授权来源、历史和同源管理服务，不打入 Tool JSON、沙箱或 SW |
+| `ai-account-usage/web/` | 正式 React 管理页及同源构建；`preview/` 是虚构数据生成物，旧证据仅证明各自历史候选 |
+| `tests/ai-account-usage/` | 全部额度业务 Node 测试、旧设计原型测试和两条显式 Chromium 驱动；Node 自动发现不启动 Chromium |
+
+从仓库根运行，复用现有本地依赖：
+
+```sh
+npm test --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
+npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
+npm start --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
+```
+
+上面的 `npm start --prefix …/ai-account-usage` 命令仅开启本机管理服务并显示一次性连接链接，不查询上游。服务停止后会话失效；页面打开只读缓存，只有明确手动刷新才查询。代理、自定义授权配置、定向单项测试与独立 API 读回见[模块说明](ai-account-usage/README.zh-CN.md)。数据仍使用原 `~/.opendesk/ai-account-usage/`，认证文件不迁移、不复制。
+
+**正式账号入口尚未接通（NOT_IMPLEMENTED / SYSTEM_CHROME_NOT_TESTED）**：目前可用链是「本机启动命令 → 一次性配对 → 既有 React 管理页 → 已另行授权的 Codex alias → 缓存／手动刷新」。Cookie Editor「账号」页尚不能打开对应额度页；保存 Cookie 或同名 alias 不构成 Codex 授权和身份映射。原型额度图标不代表正式接线。缺少可信账号映射和管理会话发现时停止，不添加假成功入口，不经沙箱或账号按钮传递 Cookie/Token/配对秘密；现有本机终端的一次性配对链接保留原合同。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
+
+## 账号保存状态与分享配置排版 · 2.0.54（2026-10-29）
 ## 历史：账号保存状态与分享配置排版 · 2.0.54（2026-10-29）
+
 
 新建或首次关联账号后，固定可信服务在保存成功后按原文档、授权和完整 Cookie 快照再核对一次。确认相同时，账号页顶部显示账号名和「当前快照（保存时已核对）」，列表显示「已核对」；空快照、页面变化、撤权、版本变化或无法核对时只保留保存结果，不猜测当前账号，也不声称网站已登录。状态仅限当前应用会话，普通账号元数据不能建立这项确认。
 

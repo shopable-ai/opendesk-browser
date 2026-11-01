@@ -6,7 +6,7 @@ const root=new URL('../../../../',import.meta.url);
 const moduleURL=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function compile(path,replacements={}){
   let {code}=await transform(await readFile(new URL(path,root),'utf8'),{loader:'tsx',format:'esm',jsx:'transform'});
-  code=code.replace(/^import "\.\/results\.css";\n/m,'');
+  code=code.replace(/^import "\.\/(?:results|local-runner)\.css";\n/gm,'');
   for(const [from,to] of Object.entries({react:import.meta.resolve('react'),...replacements}))
     code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
   return moduleURL(code);
@@ -21,11 +21,12 @@ const card=await compile('src/ui/react/components/ui/card.tsx');
 const shared=moduleURL(`export {Card,CardContent} from ${JSON.stringify(card)};export {Button,IconButton} from ${JSON.stringify(button)};export {SharedConversationFrame,SharedConversationDock} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
 const sourceRoot='examples/sidebar-tools/scrapyjs/src/';
 const replacements={'@opendesk/ui':shared};
-for(const name of ['ai-config.js','ai-request.js','ai-pending.js','editor.js','results-model.js'])
+for(const name of ['ai-config.js','ai-request.js','ai-pending.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js'])
   replacements['./'+name]=new URL(sourceRoot+name,root).href;
 const panel=await compile(sourceRoot+'AiPanel.jsx',replacements);
 export const {default:AiPanel}=await import(panel);
+const workspace=await compile(sourceRoot+'CaptureWorkspace.jsx',replacements);
 const results=await compile(sourceRoot+'Results.jsx',replacements);
 export const {default:App}=await import(await compile(sourceRoot+'App.jsx',{
-  ...replacements,'./AiPanel.jsx':panel,'./Results.jsx':results
+  ...replacements,'./AiPanel.jsx':panel,'./CaptureWorkspace.jsx':workspace,'./Results.jsx':results
 }));
