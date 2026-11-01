@@ -814,7 +814,7 @@ function requestCloseImport(){
 }
 function stageImportFile(file){
   if(!file||!importOpen||importReading)return;
-  if(file.size>8*1024*1024){importNotice('文件超过 8 MiB，请选择较小的 JSON/TXT 文件。');return;}
+  if(file.size>8*1024*1024){importFile=null;$('importFile').value='';$('importFileName').hidden=true;$('importFileName').textContent='';importNotice('文件超过 8 MiB，请选择较小的 JSON/TXT 文件。');return;}
   importFile=file;$('importFileName').textContent='已选择 '+file.name.slice(0,100)+' · 点击「确认导入」后直接导入';
   $('importFileName').hidden=false;$('importText').value='';importNotice('');importHideDiscard();
 }
