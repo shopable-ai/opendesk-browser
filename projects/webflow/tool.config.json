@@ -1,0 +1,43 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "webflow",
+  "version": "0.3.0",
+  "title": "Web Flow",
+  "description": "固定任务手动执行与真实结果核对；自动触发、全局目录和跨会话记录仍取决于公开 SDK。",
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "tasks.open",
+    "tasks.run"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "delegatedTasks": [
+    {
+      "taskId": "baidu.search.top3",
+      "version": "1.1.1",
+      "manifestHash": "adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b",
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8"
+    },
+    {
+      "taskId": "google.search.top3",
+      "version": "1.0.0",
+      "manifestHash": "c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261",
+      "contentHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad"
+    }
+  ],
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {
+    "html": "src/ui/index.html",
+    "css": "src/ui/style.css",
+    "js": "src/ui/main.js",
+    "dependencies": [
+      "src/ui/model.js"
+    ]
+  },
+  "assets": []
+}
