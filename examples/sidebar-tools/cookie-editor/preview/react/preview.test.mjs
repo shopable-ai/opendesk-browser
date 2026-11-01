@@ -332,45 +332,53 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
 });
 
 
-test('one-source import previews then confirms inside the mounted list',async()=>{
- const [component,app,css]=await Promise.all([
+test('formal Cookie import is a native bottom sheet with a single trusted confirmation',async()=>{
+ const [component,app,view,css]=await Promise.all([
   read('../../app/components/CookieImport.jsx'),
   read('../../app/CookieEditorApp.jsx'),
+  read('../../app/components/CookieEditorView.jsx'),
   read('../../src/react.css')
  ]);
- assert.match(component,/className="cookie-import-workspace"/);
- assert.match(component,/role="region" aria-labelledby=\{headingId\}/);
- assert.match(component,/onKeyDown=\{cancelFromKeys\}/);
- assert.doesNotMatch(component,/role="dialog"|aria-modal|cookie-import-dismiss-layer/);
- assert.match(app,/importOpen=\{panel==='import'\}/);
- assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
+ assert.match(component,/return <dialog ref=\{dialogRef\} id="cookie-import-drawer"/);
+ assert.match(component,/className="cookie-import-workspace od-surface" role="dialog" aria-modal="true"/);
+ assert.match(component,/dialog\.showModal\(\)/);
+ assert.match(component,/onCancel=\{event=>\{event\.preventDefault\(\);close\(\);\}\}/);
+ assert.match(component,/onClick=\{onBackdropClick\}/);
+ assert.match(component,/onDrop=\{dropFile\}/);
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
- assert.doesNotMatch(component,/<dialog\b|showModal\(\)/);
- assert.match(component,/onImportText/);
- assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(true\)/);
+ assert.match(component,/onBeginImport\?\.\(\)/);
+ assert.match(component,/onAbandonIntent\?\.\(\)/);
  assert.match(component,/onImportText\?\.\(text,\{overwrite\}\)/);
- assert.match(component,/className="cookie-import-overwrite"/);
+ assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(true\)/);
  assert.match(component,/<span>覆盖已有 Cookie<\/span>/);
- assert.doesNotMatch(component,/默认不覆盖|\|\|overwrite/);
- assert.match(css,/position:relative;box-sizing:border-box;min-width:0/);
- assert.match(component,/previewRef\.current\)confirmImport\(\);else void preparePreview\(\)/);
- assert.match(component,/preview\?'确认导入':'预览导入'/);
- assert.match(component,/invalidatePreview\(\); \/\/ A confirmation is single use/);
- assert.doesNotMatch(css,/height:min\(510px|height:calc\(100% - 32px\)/);
- assert.match(css,/\.cookie-import-workspace\{\s*position:relative;box-sizing:border-box/);
- assert.match(css,/\.cookie-import-body\{\s*display:grid;gap:8px/);
- assert.match(css,/\.cookie-import-footer\{\s*display:grid;gap:8px/);
- assert.doesNotMatch(css,/cookie-import-dismiss-layer|cookie-sheet-enter/);
+ assert.match(component,/data-cookie-secret-input="true"/);
+ assert.match(component,/disabled=\{disabled\|\|busy\|\|uncertain\}/);
+ assert.match(component,/onClick=\{confirmImport\}/);
+ assert.match(component,/\{busy\?'处理中…':'确认导入'\}/);
+ assert.doesNotMatch(component,/preparePreview|previewRef|setPreview|导入预览|预览导入/);
+ const confirm=component.slice(component.indexOf('const confirmImport='),component.indexOf('const stageFile='));
+ assert.ok(confirm.indexOf('onBeforeSubmit?.()')<confirm.indexOf('beginIntent();'));
+ assert.ok(confirm.indexOf('beginIntent();')<confirm.indexOf('file.text()'),
+  'admission must start inside the real click, before async file read');
+ const stage=component.slice(component.indexOf('const stageFile='),component.indexOf('const hasDraggedFile='));
+ assert.doesNotMatch(stage,/onBeginImport|onImportText|beginIntent|executeImport/);
+ assert.match(app,/importOpen=\{panel==='import'\}/);
+ assert.match(app,/section==='cookie'&&cookieReady&&panel==='import'&&\s*<CookieImport/);
+ assert.match(app,/onAbandonIntent=\{\(\)=>finishImportIntent\(activeImportRef\.current\)\}/);
  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
+ assert.match(app,/restoreImportFocus\.current=true/);
  assert.match(app,/cookie-import-toast/);
- assert.match(css,/\.cookie-import-workspace/);
- assert.match(css,/\.cookie-import-footer/);
- assert.match(css,/\.cookie-import-body/);
- for(const legacy of ['cookie-import-summary','导入预检结果','新增 {plan.created}'])
-  assert.equal(component.includes(legacy),false);
+ assert.doesNotMatch(app,/importContent=/);
+ assert.doesNotMatch(view,/beforeRows=\{importContent\}/);
+ assert.match(css,/\.cookie-import-workspace\{\s*position:fixed;inset:auto 0 0/);
+ assert.match(css,/\.cookie-import-workspace::backdrop\{/);
+ assert.match(css,/grid-template-rows:auto minmax\(0,1fr\) auto/);
+ assert.match(css,/\.cookie-import-body\{[\s\S]*?overflow-y:auto/);
+ assert.match(css,/@keyframes cookie-sheet-enter/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+ assert.doesNotMatch(css,/\.cookie-import-workspace\{\s*position:relative/);
 });
-
 
 test('authorized subdomain imports valid parent-domain cookies without a domain editor',async()=>{
  const f=fixture();try{

@@ -61,9 +61,14 @@ const checkSheetBounds=async(sheet,width,height,stage)=>{
   sample.x>=0&&sample.x+sample.width<=width&&
   sample.y>=0&&sample.y+sample.height<=height,
   stage+' sheet overflows viewport: '+JSON.stringify(sample));
- check(await measure());
+ const initial=await measure();
+ assert.ok(initial.x>=0&&initial.x+initial.width<=width,
+  stage+' sheet horizontal overflow: '+JSON.stringify(initial));
+ // Entrance animation starts below the viewport; inspect its settled bounds.
  await sheet.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
  const settled=await measure();check(settled);
+ assert.ok(Math.abs(settled.y+settled.height-height)<=2,
+  stage+' sheet not bottom-anchored: '+JSON.stringify(settled));
  return settled;
 };
 try{
@@ -166,14 +171,17 @@ try{
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await button('导入 Cookie').click();
    const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
-   assert.equal(await page.locator('dialog:modal').count(),0);
+   assert.equal(await page.locator('dialog:modal').count(),1);
    assert.equal(await page.locator('.cookie-row').count(),8,'Cookie list must remain mounted');
    const hostBox=await page.locator('.cookie-app').boundingBox();
    assert.ok(hostBox.y>=0&&hostBox.y+hostBox.height<=760,
     width+'px preview Host frame must fit viewport: '+JSON.stringify(hostBox));
-   assert.equal(await page.locator('.cookie-react-view').getAttribute('inert'),'');
+   assert.equal(await sheet.evaluate(el=>el.matches(':modal')),true);
    const geom=await checkSheetBounds(sheet,width,760,width+'px list');
    assert.equal(await sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'}).isChecked(),true);
+    assert.equal(await sheet.getByRole('button',{name:'预览导入'}).count(),0);
+    assert.equal(await sheet.evaluate(el=>el.contains(el.getRootNode().activeElement)),true,
+     'native dialog should hold focus');
    const layout=await sheet.evaluate(el=>{
      const body=el.querySelector('.cookie-import-body');
      return {height:el.getBoundingClientRect().height,
@@ -185,7 +193,7 @@ try{
    await page.screenshot({path:join(output,width+'-sheet-light.png')});
    const field=await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).boundingBox();
    assert.ok(field.width>=190&&field.height>=72);
-   const action=await sheet.getByRole('button',{name:'导入',exact:true}).boundingBox();
+   const action=await sheet.getByRole('button',{name:'确认导入',exact:true}).boundingBox();
    assert.ok(action.y>=geom.y&&action.y+action.height<=geom.y+geom.height);
    await page.keyboard.press('Escape');await sheet.waitFor({state:'detached'});
    await ready();
@@ -202,7 +210,7 @@ try{
   await checkSheetBounds(sheet,320,420,'320x420 short viewport');
   await page.screenshot({path:join(output,'320x420-sheet-light.png')});
   const cancel=await sheet.getByRole('button',{name:'取消'}).boundingBox();
-  const save=await sheet.getByRole('button',{name:'导入',exact:true}).boundingBox();
+  const save=await sheet.getByRole('button',{name:'确认导入',exact:true}).boundingBox();
   assert.ok(cancel.y+cancel.height<=420&&save.y+save.height<=420);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await sheet.getByRole('button',{name:'取消'}).click();await sheet.waitFor({state:'detached'});
@@ -233,7 +241,7 @@ try{
   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
   const content=JSON.stringify([{name:'not_yet_written',value:'fictional'}]);
   await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(content);
-  await sheet.getByRole('button',{name:'导入',exact:true}).click();
+  await sheet.getByRole('button',{name:'确认导入',exact:true}).click();
   await sheet.getByRole('alert').filter({hasText:/请先保存或取消当前 Cookie 编辑草稿/}).waitFor();
   assert.equal(await page.locator('.cookie-inline-editor input[aria-label="名称"]').inputValue(),'unsaved_cookie_draft');
   assert.equal(await row('not_yet_written').count(),0);
@@ -241,7 +249,7 @@ try{
   await sheet.getByRole('group',{name:'放弃导入内容'}).waitFor();
   await sheet.getByRole('button',{name:'继续导入'}).click();
   assert.equal(await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).inputValue(),content);
-  await page.locator('.cookie-import-dismiss-layer').click({position:{x:3,y:3}});
+  await page.mouse.click(3,3);
   await sheet.getByRole('button',{name:'放弃内容'}).click();
   await sheet.waitFor({state:'detached'});
   assert.equal(await nameInput().inputValue(),'unsaved_cookie_draft');
@@ -436,10 +444,10 @@ try{
   await page.getByText(/E_OUTCOME_UNKNOWN/).waitFor();assert.equal(await nameInput().inputValue(),'unknown_sid');
   assert.equal(await row('unknown_sid').count(),0);await reset();
  });
- await test('one-click import uses the in-place sheet and real Controller',async()=>{
+ await test('one-click import uses the native bottom sheet and real Controller',async()=>{
   await button('导入 Cookie').click();
   const workspace=page.getByRole('dialog',{name:'导入 Cookie'});await workspace.waitFor();
-  assert.equal(await page.locator('dialog:modal').count(),0);
+  assert.equal(await page.locator('dialog:modal').count(),1);
   assert.equal(await page.locator('.cookie-row').count(),8);
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
@@ -450,7 +458,7 @@ try{
     {name:'theme',value:'overwrite existing'}]));
   assert.equal(await page.locator('.cookie-row').count(),8);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  await workspace.getByRole('button',{name:'导入',exact:true}).click();
+  await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('import_a').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),10);
   assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 3 条，跳过 1 条/);
@@ -478,7 +486,7 @@ try{
   await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
     JSON.stringify([{name:'unchecked_added',value:'added'},
       {name:'theme',value:'must not overwrite'}]));
-  await sheet.getByRole('button',{name:'导入',exact:true}).click();
+  await sheet.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('unchecked_added').waitFor();await sheet.waitFor({state:'detached'});
   assert.match(await page.locator('.cookie-import-toast').innerText(),/跳过 1 条/);
   await row('theme').click();await valueInput().waitFor();
@@ -492,11 +500,11 @@ try{
   const workspace=page.getByRole('dialog',{name:'导入 Cookie'});await workspace.waitFor();
   await workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
     JSON.stringify([{name:'invalid_domain',value:'fictional',domain:'https://elsewhere.invalid'}]));
-  await workspace.getByRole('button',{name:'导入',exact:true}).click();
+  await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   const alert=workspace.getByRole('alert');await alert.waitFor();
   assert.match(await alert.innerText(),/未导入 1 条/);
   assert.equal(await page.locator('.cookie-row').count(),8);
-  assert.equal(await page.locator('dialog:modal').count(),0);
+  assert.equal(await page.locator('dialog:modal').count(),1);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
   await page.keyboard.press('Escape');
   await workspace.getByRole('button',{name:'放弃内容'}).click();
@@ -508,13 +516,53 @@ try{
   const file=JSON.stringify([{name:'import_file',value:'fictional'}]);
   await chooser.setFiles({
     name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
-  await workspace.getByText('已选择 cookies.json · 点击导入即可写入',{exact:true}).waitFor();
+  await workspace.getByText('已选择 cookies.json · 点击「确认导入」后才会写入',{exact:true}).waitFor();
   assert.equal(await row('import_file').count(),0,'choosing a file must not write before import');
-  await workspace.getByRole('button',{name:'导入',exact:true}).click();
+  await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
- await test('export floats above the list, uses two tabs and closes on outside focus',async()=>{
+   await test('drag and drop stages a file, then one Confirm imports',async()=>{
+   await button('导入 Cookie').click();
+   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+   const data=await page.evaluateHandle(()=>{
+    const dt=new DataTransfer();
+    dt.items.add(new File([JSON.stringify([{name:'drag_staged',value:'fictional drag'}])],
+      'drag.json',{type:'application/json'}));
+    return dt;
+   });
+   await sheet.locator('.cookie-import-dropzone').dispatchEvent('dragenter',{dataTransfer:data});
+   await sheet.locator('.cookie-import-dropzone').dispatchEvent('drop',{dataTransfer:data});
+   await sheet.getByText('已选择 drag.json · 点击「确认导入」后才会写入',{exact:true}).waitFor();
+   assert.equal(await row('drag_staged').count(),0,'drop must not write before Confirm');
+   assert.equal(await sheet.getByRole('button',{name:'预览导入'}).count(),0);
+   await sheet.getByRole('button',{name:'确认导入',exact:true}).click();
+   await row('drag_staged').waitFor();await sheet.waitFor({state:'detached'});await reset();
+  });
+  await test('unknown import result blocks duplicate confirmation',async()=>{
+   await page.getByTestId('failure').selectOption('unknown');
+   await button('导入 Cookie').click();
+   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+   await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
+    JSON.stringify([{name:'unknown_import',value:'fictional'}]));
+   await sheet.getByRole('button',{name:'确认导入',exact:true}).click();
+   await sheet.getByRole('alert').filter({hasText:/未确认|未知|E_OUTCOME_UNKNOWN/}).waitFor();
+   assert.equal(await sheet.getByRole('button',{name:'确认导入',exact:true}).isDisabled(),true);
+   await sheet.getByRole('button',{name:'关闭导入'}).click();
+   await sheet.getByRole('group',{name:'放弃导入内容'}).waitFor();
+   await sheet.getByRole('button',{name:'放弃内容'}).click();
+   await sheet.waitFor({state:'detached'});await reset();
+  });
+  await test('reduced motion disables import entrance animation',async()=>{
+   await page.emulateMedia({reducedMotion:'reduce'});
+   await button('导入 Cookie').click();
+   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+   assert.equal(await sheet.evaluate(el=>getComputedStyle(el).animationName),'none');
+   await sheet.getByRole('button',{name:'取消'}).click();
+   await sheet.waitFor({state:'detached'});
+   await page.emulateMedia({reducedMotion:'no-preference'});
+  });
+await test('export floats above the list, uses two tabs and closes on outside focus',async()=>{
   for(const width of atWidths([320,360,400,440])){
    await page.setViewportSize({width,height:760});
    await button('导出 Cookie').click();
