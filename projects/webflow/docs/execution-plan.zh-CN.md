@@ -727,3 +727,37 @@ B 的新增价值是官方工具发现、结构化参数和工具响应，无需
 
 剩余扣分集中在尚未冻结的真实 caller/session dispatch、获准的原子持久关联/单次预算、严格安装代际比较，以及原会话交付接线与有限查询次数/间隔的实施配置。应用安全另保留一点：跨入口排他仍依赖受协调 Demo，不是产品内已实现的互斥合同。这些缺口继续保持相应 BLOCKED/NOT_IMPLEMENTED/NOT_TESTED，不能为提高分数改写为已完成。
 
+### 12.10 本轮 installed-task MCP 实施与真实证据（2026-11-02）
+
+**独占目标：** 官方 ChatGPT 通过 MCP 对本机已经安装并已授权的百度 baidu.search.top3@1.1.1 发起受限任务，原结果通过同一 MCP 调用或原会话 result(operationKey) 返回。本轮未接管 V0.1 Bridge、V0.2 编排队列、V0.3 UI、Task Shop 或现有 Task/Authority/RunHost。
+
+**已提交的增量源码：**
+
+| 路径 | 本轮已实施 | 实际边界 |
+| --- | --- | --- |
+| [installed-task-mcp.mjs](../src/adapters/installed-task-mcp.mjs) | opendesk.webflow.start({operationKey,query}) 和 opendesk.webflow.result({operationKey}) 的严格工具参数与错误处理，主体/原会话命名空间、幂等、UNKNOWN、一次许可和持久记录接口，复用 serveMcp | 没有可信调用者 provider / 原子关联 store / Native 安装 CAS，默认 stdio 启动只能安全发现工具，不能实际派发 |
+| [native-installed-task.mjs](../src/adapters/native-installed-task.mjs) | 固定 baidu pin/schema，复用 requestAgent；验证 task.list、目标、Native envelope、request.get 和 run.get；Controller Codec 解码、结果身份/投影字段白名单 | 不扩展任意脚本/Native 方法；没有绕过 Authority；真实 Go 与安装包仍待核对 |
+| [installed-task-mcp.test.mjs](../../tests/installed-task-mcp.test.mjs) | 输入/冒充/重复/跨会话/撤权/丢 ACK/原生回复/结果白名单的定向离线测试 | 单测中的 mock store 和 mock CAS 只为测试，绝非可上线持久设施或可信身份来源 |
+
+源码 GitHub 提交顺序：0ddf6edd（Native 适配），e10f7e8c（MCP 受限入口），c417a866（测试），862dea7a（MCP 侧效应声明和 pin 验证），fe756050（测试预期修正）。文件全部在 projects/webflow/，无其他 owner 代码修改。
+
+**当前定向测试证据：** 本轮通过 GitHub 连接读取已提交文件，在独立 V8 环境用注入 mock 的语法/行为检查，17/17 逻辑用例通过。V8 检查通过移除 ESM import 并以 stub 替代 Node/Native/Codec 的依赖，**不等于真实 Node 22 测试，更不等于 Chrome/Tunnel 验收**。实际仓库 node --check、node --test projects/webflow/tests/installed-task-mcp.test.mjs、stdio MCP Inspector、真实 ChatGPT MCP、Mac Chrome/Native 均未执行；因此不标 COMPONENT PASS。
+
+**三个正式接线 BLOCKED 及公共 Owner 最小接口：**
+
+1. MCP-CALLER-CONTEXT：native-agent/local-dev/mcp.mjs 的 serveMcp tools/call 当前只将 (tool.name,args) 传给业务 dispatch，不提供来自已认证传输的 caller 和原 conversation；clientInfo、_meta、模型自报会话和 JSON-RPC ID 都不能授予权限。由 MCP/Transport Owner 审核加入可验证调用身份/会话上下文（不允许直接信任原始参数），并给出跨会话与缺失身份回归。当前 getTrustedContext 没有合法生产 provider，start/result 均 fail-closed。
+2. MCP-DURABLE-ADMISSION：service-worker.js 已有 Native admission ledger，但没有 MCP principal/conversation/冻结原封套与批准预算的原子持久关联。由原批准的存储/Authority Owner 提供 read(scope)、reserveAndConsume({scope,fingerprint,proposed,grant})、attachAck({scope,runId,revision,executionTarget}) 的受审持久事务合同。reserveAndConsume 必须同一原子事务写完整原始请求和消费 maxAdmissions=1；attachAck 必须 CAS 检查原 requestId/run 身份。当前仅有调用方 port，没有真正实现，不用进程内 Map 或第二套数据库代替。
+3. NATIVE-INSTALLATION-CAS：src/native-agent/host-adapter.js 的 installed-task run.start 接受 taskId/version/sourceHash，解析当前安装后才把 expectedTaskGeneration/expectedTaskInstallationId 给 Authority，无法对 MCP grant 中冻结的旧 generation/installationId 做同一次 admission 的原子比较。由 Native/Authority Owner 提供最小可信 CAS（不能让模型自报授权代次），同版本/同 hash 的卸载重装也必须拒绝并测试。当前 Native adapter 没有声明 atomicInstalledTaskPin 能力，投影因此拒绝真实派发。假 CAS 仅用于离线逻辑测试。
+
+**附加现场前置：** 历史 Go Native task.list 有连接关闭/allowlist 缺口；需现场核验当前二进制或经批准等价安装核验。实际 ChatGPT/Tunnel 写工具资格、Native 配对和当前百度 Host/document/权限仍未知。B Demo 必须先与 C Bridge Owner 协调撤销匹配的待准入/一次预批准并核对回执；跨入口尚无共同去重锁，UNKNOWN 不允许切入口再执行。
+
+| 证据层 | 本次状态 | 含义 |
+| --- | --- | --- |
+| SOURCE_IMPLEMENTED | PARTIAL_COMMITTED | 三个新文件真实提交，安全调用方适配可复用；公共能力缺失导致真正执行 BLOCKED |
+| COMPONENT_TESTED | PARTIAL_OFFLINE | V8 shim 17/17；原始 Node 测试 / stdio 与真实集成 NOT_TESTED |
+| MCP_CONNECTED | NOT_TESTED | 无真实账户/Tunnel 调用 |
+| CHROME_NATIVE_VERIFIED | NOT_TESTED | 无本轮 run.start/run.get 原生回执 |
+| BUSINESS_VERIFIED | NOT_TESTED | 无本轮真实百度网页动作和自然结果 |
+| DELIVERY_VERIFIED | NOT_TESTED | 无原 ChatGPT 对话的正式 MCP 结果及 AI 续答 |
+
+**唯一下一步：** 本地 Codex Owner 先以现有 main 的三个新文件进行原生 Node syntax/test 验证、最小修复和只读能力检查；不得通过 fake caller/grant、放宽 Native CAS 或另起 Runner 取得绿色。公共三个 BLOCKED 项需要其原 Owner 独立完成并提供复现证据，才进入一次协调好的真实 ChatGPT → 百度任务 → 原会话交付验收。此安排不改变本计划其他阶段或其他 Owner 的验收等级。
