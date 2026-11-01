@@ -1,8 +1,18 @@
 # scrapyJs 采集应用
 
-## 框架增量：列表容器可省略（2026-11-01）
+**新版 UI 业务同步目标（2026-11-01）**：[当前目标、真实接入差异与关键测试条件](preview/GOAL.zh-CN.md#当前任务将新版交互接入实际扩展业务2026-11-01)。以实际侧栏的「编辑 → 保存/重开 → 采集 → 下载核对」为核心完成标准，点选/列表切换的离线模拟另列真实接入要求；历史预览分数和旧安装成功不替代本轮结果。
 
-普通浏览器采集可以只指定记录选择器，例如 `itemConfig: {_listItem: '.book-list > li', title: 'h2::text', url: 'a::href'}`。在「列表范围」中将容器留空、列表项填写 `.book-list > li` 即可；配置校验、Controller 使用的完整 SDK 和离线规则预览采用相同语义。已有容器配置继续仅选直接子项；两者都留空按单页提取，不根据字段数组猜测行关系。显式 `validation` / `fieldRequirements` 的严格容器与身份合同保持不变。
+**最新需求边界**：用户的列表目标是逐条关联记录，完整字段路径应作为便捷输入；下述底层独立字段能力不等于“自动准备记录规则”已经完成。当前通用准备链仍待完善，未自动改变 parse 语义或添加推断。
+
+**当前 JS 记录与字段模型（2026-11-01）**：完整 CSS 路径字段可省略 `_listItem` 和 `_listContainer`，返回页面对象中的独立字段/数组；一书一行等关联记录使用 `_listItem` 与相对字段，可选容器保留旧直接子项语义。插件的简单手工表单不改，高级 JSON 保留完整路径。parsePage、HTTP candidate 与浏览器 validation 已按真实记录验证，不要求唯一父容器；零匹配不扩大范围，字段、身份、URL、状态与分页保护保留。
+
+普通字段例：`{title: '.subject-list > li.subject-item .info h2 a::text'}`。关联记录例：`{_listItem: '.subject-list > li.subject-item', title: '.info h2 a::text', url: '.info h2 a::href'}`。完整路径不会按字段数组下标自动拼行；有缺失字段时使用关联记录模式。仅需一条整页对象时可用 `ItemLoader.parse(page, itemConfig, true)`；需要稳定字段数组可显式 `cardinality:'many'`。
+
+本轮只改 JS 核心、必要消费者和官方生成 SDK；Python runner 未修改、未测试。固定来源以 `vendor/scrapyjs/provenance.json` 为准，本地记录见 `artifacts/scrapyjs/record-model-20261101/REPORT.md`。真实网站在隔离 Chromium 中验证，未更新安装态、工具 dist、正式包或 Browser `dist/development`；下方旧 hash、测试与安装结论仅代表各自历史候选。
+
+## 历史增量：列表容器可省略（2026-11-01，已由上节完善）
+
+普通浏览器采集可以只指定记录选择器，例如 `itemConfig: {_listItem: '.book-list > li', title: 'h2::text', url: 'a::href'}`。在「列表范围」中将容器留空、列表项填写 `.book-list > li` 即可；配置校验、Controller 使用的完整 SDK 和离线规则预览采用相同语义。已有容器配置继续仅选直接子项；两者都留空按单页提取，不根据字段数组猜测行关系。此处原先的严格容器限制已由上节的实际记录验证取代，身份保护保留。
 
 本次同步上游唯一构建产物及完整来源快照，仅两个提取源码文件发生变化。核心 `scrapyjs@1.0.0`、扩展 `3.15.0`、协议 `1.0` 不变；browser SDK SHA-256 为 `42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c`，精确输入见 `vendor/scrapyjs/provenance.json`。历史 SDK 哈希不代表本次产物。
 
@@ -580,3 +590,15 @@ Task v0.3.0 sourceHash `12668947ef0f99851986891b911ee3d32deca993e42066b48f496691
 ### 2026-10-31 · 风格来源与共享 Chat 预览修订
 
 当前离线入口为 [preview/preview.html](preview/preview.html)，来源、操作和后续维护步骤见[预览 README](preview/README.zh-CN.md)。本次将工具字段/折叠区接入原 canonical CSS 提取器，目标卡使用共享 Card，当时 AI 在内容区组合 Frame/session；这只是历史消息/输入片段，未满足本轮 Host 工具栏 + workspace/business + Dock + Frame/session 标准。公共 `components.html` 顶栏小 AI 按钮也须实际开合。没有晋升正式安装包、提交/推送、更新已安装 Browser 或操作真实未决请求。旧评分仅保留历史范围。
+
+### 2026-11-01 · 列表容器与记录范围审计
+
+源码现保留四种明确模式：容器 + 列表项过滤容器直接子项；仅容器取直接子项；仅 `_listItem` 按整页 CSS 选择记录；均省略按单页。多个/嵌套容器按文档顺序、节点身份去重，内容相同的不同记录保留。空值、错误类型和不支持的范围选择器报错，不回退全页；相对顶层选择器、`:scope`、伪元素及 Cheerio/jQuery 扩展不能作为列表范围。字段仍相对每条记录读取。已有严格 validation / parsePage 合同不自动移除或放宽。
+
+本次同步核心、Chrome SDK、侧栏固定源码快照及 export-only 消费产物；命名配置四模式保存/重开与离线预览已验证。验收报告与命令见仓库 `artifacts/scrapyjs/container-audit-20261101/README.md`，正式安装版与工具包未更新。Chromium fixture/独立扩展证据不代表 OpenDesk 已安装 App/Task 升级，侧栏全套测试仍有独立 UI 与旧正式包失败，详见报告。
+
+### 2026-11-01 · 从完整字段准备列表（核心开发）
+
+原工具目录继续作为唯一业务 owner。当前配置可先填写 `title/url/price` 的完整 CSS 字段路径，无需填写 `_listItem/_listContainer`。在「AI 配置 → 更多资料与诊断 → 提供必要 HTML 样本」粘贴代表性 HTML，再点击「从完整字段准备列表」；成功后审阅差异、应用为未保存草稿，最后沿原命名保存链保存。准备在本地使用同源 `ItemLoader.prepareList`，无需 AI Provider，不自动抓正文或开始采集。已有明确列表规则和普通详情提案保留原路径。
+
+记录边界由真实节点和字段归属证明，歧义或未出现的字段会要求补足信息。缺可选标量沿用空字符串、缺 many 为 `[]`，相同标题不合并。未知/未决请求、忙态、目标/配置/输入变更和过期提案继续阻止应用。支持范围与严格重放的必填/身份合同见 [上游 API](../../../../scrapyJs/docs/api/items-pipelines-exports.md)。本轮只更新源码和来源锁定 SDK；没有构建工具 dist、晋升正式包、安装或操作日常 Chrome。最终候选行为与未测边界见仓库 `artifacts/scrapyjs/record-model-20261101/author-entry/` 的本轮报告。

@@ -49,12 +49,12 @@ test('container choice never accepts ambiguous selectors or loses a supplied fil
 });
 
 test('preview list coverage agrees with the original engine on current scope cases',async()=>{
- const {readFile}=await import('node:fs/promises'),{runInNewContext}=await import('node:vm');
- const source=await readFile(new URL('../vendor/scrapyjs/src/item/item-loader-extraction.js',import.meta.url),'utf8');
+ const {runInNewContext}=await import('node:vm');
+ const {ItemLoader}=await import('../engine/browser.js');
  for(const scope of [{_listItem:'#sample-list > li'},{_listContainer:'#sample-list',_listItem:'li'},{_listContainer:'#sample-list'},{_listContainer:'#sample-list',_listItem:'a.book-title'},{}]){
-  const document=dom(),context={module:{exports:{}},document};runInNewContext(source,context);
-  const engine=context.module.exports,actual=engine.extractRecords(engine.normalizeConfig({...scope,title:'a.book-title::href'}));
+  const document=dom(),page={evaluate:async(callback,...args)=>runInNewContext('('+callback.toString()+')(...args)',{document,args})};
+  const actual=await ItemLoader.extractData(page,{...scope,title:'a.book-title::href'});
   const preview=selection.probeRule(document,'a.book-title::href',scope._listContainer||'',scope._listItem||'');
-  assert.equal(preview.total,actual.records.length,JSON.stringify(scope));
+  assert.equal(preview.total,actual.length,JSON.stringify(scope));
  }
 });

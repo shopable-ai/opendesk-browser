@@ -1,6 +1,6 @@
 # OpenDesk Browser 现代 Page API（R13 核心升级 / R5.2 可靠性继承）
 
-当前现代 Locator 契约为 `1.1.0-r13`，继承 R5.2 的 `1.0.0-r5.1` 行为；仍不是完整 Playwright API。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
+当前现代 Locator 契约为 `1.2.0`，继承 R13 / R5.2 的行为，并增加显式点击导航交接；仍不是完整 Playwright API。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
 
 [R13.1 实际 WXT 安装验收与复用规则](workstreams/r131-acceptance-01a121da.md) 已记录两个原包的 13 次真实运行及 Codex observe→JS→普通 Sidebar 闭环，随 PR #57 合入 `f6a174e9`。这些是已记录包的限定原生 PASS；当前候选的相关输入变化须按机器索引影响核对，不能直接继承原包或最终 F3/ZIP/专家评分结论。
 
@@ -34,7 +34,7 @@ async function main() {
 | Locator | `first()/last()/nth(index)` | 显式选择第几个匹配；从零计数，负数从末尾起 |
 | Locator | `check()/uncheck()/selectOption(value)` | 原生 checkbox/radio 与 single select 的有限合成 DOM 操作 |
 | Locator | `innerText()/inputValue()/isVisible()/isEnabled()/isChecked()` | 即时状态读取，只有 isVisible 在零匹配时返回 false |
-| Locator | `click({timeout?})` | 单元素严格匹配；等待 attached/可见/尺寸/可用/稳定/无遮挡；离屏时最多一次经授权滚动，重新 prepare 后用 DOM `click()` |
+| Locator | `click({timeout?,waitUntil?})` | 单元素严格匹配；等待 attached/可见/尺寸/可用/稳定/无遮挡；离屏时最多一次经授权滚动，重新 prepare 后用 DOM `click()`。显式 waitUntil 等待同 Origin 顶层整页导航 |
 | Locator | `fill(value,{timeout?})` | 支持 textarea、text/search/email/url/tel/password input；替换/清空；focus、原生 setter、变更时合成 input 和 change |
 | Locator | `count()` | 立即获取当前匹配数；可以为零，不做隐式等待 |
 | Locator | `textContent()`、`getAttribute(name)` | 立即读取、严格单元素匹配，可能得到 null |
@@ -71,7 +71,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 - prepare 与 commit 之间撤权会阻止新动作；stop 撤销运行并隔离迟到回执，不能靠迟到结果恢复运行。同一 requestId 的已提交请求使用原有去重结果，不再次产生网页副作用。若权限、文档或停止状态在提交以后变化，已经送出的动作可能发生，不能据取消状态推断零副作用。
 - 局部 `E_TIMEOUT` 也可能发生在 commit 已派出后。应核对对应 Durable Result / 操作账本：`effect_unknown`、`deliveryState=fenced` 或已有 `commitIntent` 而没有确认回执时禁止重放；顶层错误码不一定直接显示 `E_EFFECT_UNKNOWN`。原生超时失败结果不证明网页没有提交。
 - 输入一律为 **ISOLATED DOM 合成操作（untrusted）**。这里的 click 不是可信鼠标输入，fill 不是键盘物理按键，也不具备复杂控件/框架的完整 Playwright 可操作性。未实现 `locator.press()`、拖拽、Shadow 穿透和完整浏览器 AX 树。遇到 CAPTCHA、安全输入、只能通过受信任事件操作的网站，不要声称已支持。
-- 点击若触发跨文档导航，不会自动赋予下一文档权限；应按既有受控导航及运行恢复语义处理。取消不能撤销已送出的网页动作。
+- 已知点击会发生顶层整页导航时，用 `await page.locator('button').click({waitUntil:'load',timeout:15000})`（也支持 `domcontentloaded`）。这会先登记原 Authority 导航意图，收到实际 Chrome commit 与加载事件、确认同 Origin 和有效权限后交接精确新 documentId；随后新建 Locator 读取结果。该选项要求发生新文档导航；同文档更新使用普通 `click()`。未声明导航的点击仍不得跨文档读取。跨站、Stop、撤权、超时或丢 ACK 均不自动重试。取消不能撤销已送出的网页动作。
 
 ## AI 最短使用规则
 

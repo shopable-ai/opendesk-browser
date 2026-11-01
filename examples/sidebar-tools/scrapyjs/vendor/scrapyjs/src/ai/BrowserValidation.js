@@ -41,11 +41,19 @@ function validateConfig(config) {
   const input = object(config.itemConfig, 'itemConfig');
   const keys = Object.keys(input).filter(key => key !== '_listContainer' && key !== '_listItem');
   if (!keys.length || keys.length > 20) invalid('itemConfig must contain 1–20 fields');
-  const itemConfig = { _listContainer: selector(input._listContainer) };
+  const itemConfig = {};
+  if (Object.hasOwn(input, '_listContainer')) itemConfig._listContainer = selector(input._listContainer);
   if (Object.hasOwn(input, '_listItem')) itemConfig._listItem = selector(input._listItem);
   for (const key of keys) {
     fieldKey(key);
-    if (typeof input[key] !== 'string') invalid('Fields must be CSS selector strings');
+    if (typeof input[key] !== 'string') {
+      const field = object(input[key], 'field descriptor', ['selector', 'read', 'attr', 'cardinality']);
+      if (!['text', 'attr'].includes(field.read) || !['one', 'many'].includes(field.cardinality)
+          || (field.read === 'attr' ? !ATTRIBUTES.includes(field.attr) || field.attr === 'text' : Object.hasOwn(field, 'attr'))) invalid('Unsupported field descriptor read, attribute or cardinality');
+      itemConfig[key] = { selector: selector(field.selector, true), read: field.read,
+        ...(field.read === 'attr' ? { attr: field.attr } : {}), cardinality: field.cardinality };
+      continue;
+    }
     const parts = input[key].trim().split('::');
     if (parts.length > 2 || (parts.length === 2 && !ATTRIBUTES.includes(parts[1]))) invalid('Unsupported field attribute');
     itemConfig[key] = selector(parts[0], true) + (parts.length === 2 ? `::${parts[1]}` : '');
@@ -64,7 +72,11 @@ function validateConfig(config) {
     seen.add(field.key);
     fieldRequirements.push({ key: field.key, required: field.required, valueType: field.valueType });
   }
-  return { validation: { version: 1, rowShape: validation.rowShape }, itemConfig, fieldRequirements };
+  if (!Object.hasOwn(itemConfig, '_listContainer') && !Object.hasOwn(itemConfig, '_listItem')) invalid('A record selector or explicit legacy scope is required');
+  let selection;
+  try { selection = require('../item/record-selection').recordSelection(itemConfig._listContainer, itemConfig._listItem); }
+  catch (_) { invalid('Invalid record selection'); }
+  return { validation: { version: 1, rowShape: validation.rowShape }, itemConfig, fieldRequirements, selection };
 }
 
 // This callback must remain self-contained: ChromePage serializes it into the page's DOM realm.
@@ -123,38 +135,39 @@ function inspectDOM(config) {
     return null;
   }
   try {
-    const containers = Array.from(document.querySelectorAll(config.itemConfig._listContainer));
-    if (containers.length !== 1) {
+    const plan = config.selection;
+    const containers = plan.listSelector === null ? [] : Array.from(document.querySelectorAll(plan.listSelector));
+    if (plan.listSelector !== null && !containers.length) {
       const title = String(document.title || '').trim();
       const denied = /^(?:401(?:\s+unauthorized)?|403(?:\s+forbidden)?|429(?:\s+too many requests)?|access denied|forbidden|Security Verification|请进行安全验证(?:\s*\(Security Verification\))?)$/i.test(title);
-      if (!containers.length && denied) issue('E_AI_PAGE_ACCESS', 'Target page requires access verification: ' + title, { key: '_listContainer', hits: 0 });
-      else issue('E_AI_STALE', 'List container must match exactly once', { key: '_listContainer', hits: containers.length });
+      issue(denied ? 'E_AI_PAGE_ACCESS' : 'E_AI_STALE', denied ? 'Target page requires access verification: ' + title : 'List scope no longer matches', {key:'_listContainer',hits:0});
       return result;
     }
-    const container = containers[0];
-    if (container.shadowRoot || !visible(container) || ['TABLE', 'THEAD', 'TR'].includes(container.tagName)) {
-      issue('E_AI_STALE', 'List container is hidden or unsupported');
+    if (containers.some(container => container.shadowRoot || !visible(container))) {
+      issue('E_AI_STALE', 'List scope is hidden or unsupported');
       return result;
     }
-    let rows = Array.from(container.children);
-    if (config.itemConfig._listItem !== undefined) {
-      try {
-        container.matches(config.itemConfig._listItem);
-        rows = rows.filter(row => row.matches(config.itemConfig._listItem));
-      } catch {
-        issue('E_AI_VALIDATION', 'Invalid list item CSS selector', { selector: config.itemConfig._listItem });
-        return result;
-      }
-    }
+    // A document query is already ordered and unique, even for overlapping scopes.
+    // For legacy container-only profiles, collect direct children by identity.
+    const admitted = new Set();
+    if (plan.listSelector !== null) for (const container of containers) for (const child of container.children) admitted.add(child);
+    let selected;
+    try { selected = Array.from(document.querySelectorAll(plan.itemSelector || '*')); }
+    catch { issue('E_AI_VALIDATION', 'Invalid record CSS selector', {selector:plan.itemSelector}); return result; }
+    const rows = selected.filter(row => plan.listSelector === null || admitted.has(row));
     if (!rows.length || rows.length > 500) {
-      issue('E_AI_STALE', 'List must contain 1–500 direct child rows', { hits: rows.length });
+      const title = String(document.title || '').trim();
+      const denied = /^(?:401(?:\s+unauthorized)?|403(?:\s+forbidden)?|429(?:\s+too many requests)?|access denied|forbidden|Security Verification|请进行安全验证(?:\s*\(Security Verification\))?)$/i.test(title);
+      issue(!rows.length && denied ? 'E_AI_PAGE_ACCESS' : 'E_AI_STALE', 'List must contain 1–500 selected records', {key:plan.listSelector === null ? '_listItem' : '_listContainer',hits:rows.length});
       return result;
     }
     result.rowShape = token(rows[0]);
     const fields = Object.entries(config.itemConfig).filter(([key]) => key !== '_listContainer' && key !== '_listItem').map(([key, source]) => {
-      const [selector, attribute] = source.split('::');
+      const descriptor = typeof source !== 'string';
+      const [selector, attribute] = descriptor
+        ? [source.selector, source.read === 'text' ? 'text' : source.attr] : source.split('::');
       const requirement = config.fieldRequirements.find(field => field.key === key);
-      return { key, selector, attribute, required: requirement?.required ?? false, valueType: requirement?.valueType };
+      return { key, selector, attribute, many: descriptor && source.cardinality === 'many', descriptor, required: requirement?.required ?? false, valueType: requirement?.valueType };
     });
     for (const [rowIndex, row] of rows.entries()) {
       result.checkedRows++;
@@ -165,25 +178,28 @@ function inspectDOM(config) {
         let matches;
         try { matches = Array.from(row.querySelectorAll(field.selector)); }
         catch { issue('E_AI_VALIDATION', 'Invalid field CSS selector', details); continue; }
-        if (matches.length > 1 || (!matches.length && field.required)) {
+        if ((!field.many && matches.length > 1) || (!matches.length && field.required)) {
           issue('E_AI_STALE', 'Field selector cardinality changed', { ...details, hits: matches.length });
           continue;
         }
-        if (!matches.length) continue;
-        const el = matches[0];
-        if (!visible(el) || el.shadowRoot) {
-          issue('E_AI_STALE', 'Field is hidden or uses Shadow DOM', details);
-          continue;
+        for (const el of matches) {
+          if (!visible(el) || el.shadowRoot) {
+            issue('E_AI_STALE', 'Field is hidden or uses Shadow DOM', details);
+            continue;
+          }
+          if (field.valueType === undefined) continue;
+          const value = valueOf(el, field.attribute);
+          if (!value || !String(value).trim()) {
+            // Explicit text reads preserve prepared optional empty cells. Legacy
+            // string profiles still reject matched empty nodes, as before.
+            if (!(field.descriptor && field.attribute === 'text' && !field.required && !['url', 'image'].includes(field.valueType))) {
+              issue('E_AI_STALE', 'Field is empty or its attribute is missing', details);
+            }
+            continue;
+          }
+          const error = semantic(value, el, field.attribute, field.valueType);
+          if (error) issue('E_AI_VALIDATION', error, details);
         }
-        if (field.valueType === undefined) continue;
-        const value = valueOf(el, field.attribute);
-        if (!value || !String(value).trim()) {
-          // Declared optional fields allow zero matches, but an empty matched node blocks.
-          issue('E_AI_STALE', 'Field is empty or its attribute is missing', details);
-          continue;
-        }
-        const error = semantic(value, el, field.attribute, field.valueType);
-        if (error) issue('E_AI_VALIDATION', error, details);
       }
     }
   } catch {
@@ -213,15 +229,26 @@ async function validateBrowserProfile(page, spiderConfig) {
 // Legacy ItemLoader callers retain their literal attribute behavior.
 function normalizeRecord(record, config, baseURL) {
   if (!Object.hasOwn(config, 'validation')) return record;
-  const { fieldRequirements } = validateConfig(config);
+  const { fieldRequirements, itemConfig } = validateConfig(config);
   const output = { ...record };
   for (const field of fieldRequirements) {
-    if (!['url', 'image'].includes(field.valueType) || output[field.key] === undefined || output[field.key] === '') continue;
-    if (typeof output[field.key] !== 'string') invalid('URL field must be a scalar string');
-    let url;
-    try { url = new URL(output[field.key], baseURL); } catch { invalid('URL field could not be resolved'); }
-    if (!['http:', 'https:'].includes(url.protocol)) invalid('URL field must use HTTP or HTTPS');
-    output[field.key] = url.href;
+    if (!['url', 'image'].includes(field.valueType) || output[field.key] === undefined) continue;
+    const many = itemConfig[field.key].cardinality === 'many';
+    if (!many && output[field.key] === '') continue;
+    const resolve = value => {
+      if (typeof value !== 'string' || (many && !value.trim())) invalid('URL field must be a nonempty string');
+      let url;
+      try { url = new URL(value, baseURL); } catch { invalid('URL field could not be resolved'); }
+      if (!['http:', 'https:'].includes(url.protocol)) invalid('URL field must use HTTP or HTTPS');
+      return url.href;
+    };
+    if (many) {
+      if (!Array.isArray(output[field.key])) invalid('URL many field must be an array');
+      output[field.key] = Array.from(output[field.key], resolve);
+    } else {
+      if (typeof output[field.key] !== 'string') invalid('URL field must be a scalar string');
+      output[field.key] = resolve(output[field.key]);
+    }
   }
   return output;
 }

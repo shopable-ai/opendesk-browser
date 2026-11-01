@@ -46,6 +46,21 @@ test('explicit history query keeps result and technical identity on the requeste
   assert.equal(f.view.fields['script-task-id'].textContent,'runId：cloud-write');
   assert.equal(f.owner.currentTask.runId,'cloud-write');
   assert.equal(f.view.fields['script-task-status'].textContent,'已完成 · 资源已释放');
+  const technical=f.view.fields['script-history'].textContent;
+  assert.match(technical,/"runId": "cloud-write"/);
+  assert.doesNotMatch(technical,/cloud-restore/);
+});
+
+test('an unknown selected run exposes its recorded reason without executing it',async t=>{
+  const run={runId:'unknown-click',state:'paused_unknown',retirementState:'not-started',
+    terminalReason:{code:'E_DOCUMENT_REPLACED',message:'Original document changed'}};
+  const f=fixture(t,async()=>({run,runs:[run],results:[],downloads:[]}));
+  await f.owner.read(run.runId,{reveal:true});
+  const technical=f.view.fields['script-history'].textContent;
+  assert.match(technical,/"runId": "unknown-click"/);
+  assert.match(technical,/"terminalReason"/);
+  assert.match(technical,/E_DOCUMENT_REPLACED/);
+  assert.equal(f.text,'本次运行尚无可查看的结果。');
 });
 
 test('history response started before a new run cannot replace its identity',async t=>{

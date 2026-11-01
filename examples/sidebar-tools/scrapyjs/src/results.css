@@ -35,6 +35,7 @@
 .csv-header-editor,.csv-name-list{display:grid;gap:var(--space-2);min-width:0}
 .csv-name-head,.csv-name-row{display:grid;grid-template-columns:minmax(64px,.75fr) minmax(0,1.25fr);gap:var(--space-3);align-items:center;min-width:0}
 .csv-name-head{font-size:12px;color:var(--od-sub)}
+.csv-header-editor[data-sortable=true] :is(.csv-name-head,.csv-name-row){grid-template-columns:24px minmax(64px,.75fr) minmax(0,1.25fr)}
 .csv-name-row label{font-size:12px;overflow-wrap:anywhere;min-width:0}
 .scrapyjs-workspace .csv-name-row .od-field{width:100%;min-width:0;height:36px;box-sizing:border-box;padding-inline:var(--space-2);font-size:13px}
 .csv-header-preview{overflow:auto;max-width:100%;border:1px solid var(--od-line);border-radius:var(--radius-sm)}

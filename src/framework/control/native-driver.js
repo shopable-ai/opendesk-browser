@@ -109,7 +109,12 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     const ready=await race(state, beforeEffect(state.envelope, {tabId, frameId, documentId, ...details, effectId}));
     // The trusted authority may wrap this final synchronous submission. No
     // await separates its deadline check, the local guard, and native dispatch.
-    const submit=()=>{guard(state);return dispatch();};
+    const submit=()=>{
+      guard(state);
+      if(details.method==='locatorCommit'&&details.action==='click'&&details.scrollOnly!==true)
+        state.armNavigation?.();
+      return dispatch();
+    };
     return typeof ready==='function'?ready(submit):submit();
   }
   async function step(state, dispatch, extra = {}, stage, effectDetails) {
@@ -172,10 +177,10 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     const reply = await native(state, api.tabs, 'sendMessage', [envelope.target.tabId,
       {type: MESSAGE, action: 'execute', envelope}, messageTarget(envelope.target)], {}, packagedReads.has(method) ? undefined :
       {kind: 'packaged', method, dispatchRequestId: envelope.requestId, ...commitDetails});
-    await verifyTarget(state);
     requireValue(reply?.requestId === envelope.requestId && reply.runId === envelope.identity.runId &&
       reply.ownerEpoch === envelope.identity.ownerEpoch, RESULT_FORMAT_CODE);
     if (reply.error) {
+      await verifyTarget(state);
       requireValue(typeof reply.error.code === 'string' && reply.error.code && typeof reply.error.message === 'string', RESULT_FORMAT_CODE);
       const failure = new PageError(reply.error.code, reply.error.message);
       // Only this admitted operation is complete. A derived packaged call may
@@ -186,7 +191,14 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
         documentId: envelope.target.documentId, runId: reply.runId, ownerEpoch: reply.ownerEpoch, error: projected});
       const marker = {}; finalFailures.set(marker, projected); return marker;
     }
-    return controlDecodeValue(reply.value);
+    const value = controlDecodeValue(reply.value);
+    // A confirmed navigation click can change the frame before Chrome delivers
+    // onCommitted. Its enclosing navigate() still requires exact native commit
+    // and readiness evidence before it returns or adopts the new document.
+    const navigationCommit = state.navigationPending && method === 'locatorCommit' &&
+      commitDetails.action === 'click' && commitDetails.scrollOnly !== true && value?.committed === true;
+    if (!navigationCommit) await verifyTarget(state);
+    return value;
   }
   async function userScriptsAvailable(state) {
     requireValue(!unavailable.has(ownerKey(state.envelope.identity)), 'E_USER_SCRIPTS_UNAVAILABLE');
@@ -235,14 +247,21 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     await permission(state, 'pre'); guard(state); event.addListener(listener);
     state.cleanups.push(() => event.removeListener(listener));
   }
-  async function navigate(state) {
+  async function navigate(state, trigger, clickConfig) {
     const {method} = state.envelope.operation, from = state.envelope.target;
-    const config = method === 'goto' ? state.args[1] : state.args[0];
+    const config = clickConfig || (method === 'goto' ? state.args[1] : state.args[0]);
     const startURL = await verifyTarget(state), url = method === 'goto' ? state.args[0] : startURL;
     let candidate, chain = Promise.resolve(), armed = false, resolve, reject;
     const completed = new Promise((yes, no) => { resolve = yes; reject = no; }); completed.catch(() => {});
     function observe(kind, details) {
-      if (!armed || details.tabId !== from.tabId || details.frameId !== 0) return;
+      if (details.tabId !== from.tabId || details.frameId !== 0) return;
+      if (!armed) {
+        // A different navigation before the final dispatch cannot belong to this click.
+        if(kind==='before'||kind==='commit'&&details.documentId!==from.documentId){
+          const cause=error('E_DOCUMENT_REPLACED');reject(cause);state.controller.abort(cause);
+        }
+        return;
+      }
       // Chrome supplies the new binding at commit, before the method's selected
       // readiness event. Pre-checks during the remaining wait use that binding.
       if (kind === 'commit' && typeof details.documentId === 'string' && details.documentId !== from.documentId) {
@@ -274,9 +293,19 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     }
     await verifyTarget(state); await permission(state, 'pre', {url});
     // The parent's durable intent MUST already be admitted by this pre-check.
-    armed = true; state.navigationPending = true;
-    await native(state, api.tabs, method === 'goto' ? 'update' : 'reload', method === 'goto' ? [from.tabId, {url}] : [from.tabId], {url}, {kind: 'browser', method, url});
-    await wait(state, completed, {url}); await verifyTarget(state); return undefined;
+    const arm = () => { armed = true; state.navigationPending = true; };
+    let outcome;
+    if (trigger) {
+      state.armNavigation = arm;
+      state.disarmNavigation = () => { armed = false; state.navigationPending = false; };
+      try { outcome = await trigger(); }
+      finally { delete state.armNavigation; delete state.disarmNavigation; }
+      if (finalFailures.has(outcome)) return outcome;
+    } else {
+      arm();
+      await native(state, api.tabs, method === 'goto' ? 'update' : 'reload', method === 'goto' ? [from.tabId, {url}] : [from.tabId], {url}, {kind: 'browser', method, url});
+    }
+    await wait(state, completed, {url}); await verifyTarget(state); return outcome;
   }
   async function screenshot(state) {
     let changed = false, windowId;
@@ -555,6 +584,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             // The selected document explicitly confirmed no focus, scroll,
             // setter or click happened. A fresh prepare is safe.
             await saveReceipt(state, 'locator.commitNoEffect', {documentId:state.envelope.target.documentId});
+            state.disarmNavigation?.();
             submitted = false; lastReason = outcome.reason || 'E_ELEMENT_DETACHED';
           } else lastReason = prepared.scrollOnly === true && scrollCommitted ?
             'E_ELEMENT_OUTSIDE_VIEWPORT' : prepared.reason || 'E_WAIT_CONDITION';
@@ -591,6 +621,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       else {
         requireValue(args.length === 2, ARG_TYPE_CODE); validateLocatorDescriptor(args[0]);
         const op = validateLocatorOperation(args[1]);
+        if (op.waitUntil !== undefined) requireValue(envelope.target.frameId === 0, 'E_TOP_FRAME_REQUIRED');
         requireValue(method === 'locatorAction' ? ['click','fill','check','uncheck','selectOption'].includes(op.action) :
           method === 'locatorWait' ? op.action === 'waitFor' : ['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
       }
@@ -641,8 +672,9 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     try {
       await permission(state, 'pre'); await verifyTarget(state);
       let result;
-      if (kind === 'packaged') result = method === 'locatorAction' || method === 'locatorWait' ?
-        await locatorStages(state) : await packaged(state);
+      if (kind === 'packaged') result = method === 'locatorAction' && args[1].waitUntil !== undefined ?
+        await navigate(state, () => locatorStages(state), args[1]) : method === 'locatorAction' || method === 'locatorWait' ?
+          await locatorStages(state) : await packaged(state);
       else if (kind === 'user-script') result = await userScript(state);
       else if (['goto', 'reload'].includes(method)) result = await navigate(state);
       else if (method === 'screenshot') result = await screenshot(state);

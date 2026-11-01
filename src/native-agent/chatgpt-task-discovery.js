@@ -16,18 +16,27 @@ const appended=(before,nodes,multiple=false)=>{
 };
 
 export function createChatGPTTaskDiscovery(){
-  let route=null,before=null,pending=null;
+  let route=null,before=null,pending=null,establishing=false;
   const capture=snapshot=>({users:snapshot.users.map(describe),assistants:snapshot.assistants.map(describe)});
   return {
     reset(snapshot){
       route=snapshot?.ok?snapshot.route:null;
       before=snapshot?.ok?capture(snapshot):null;pending=null;
+      establishing=Boolean(snapshot?.ok&&(!snapshot.users.length||snapshot.busy||
+        !snapshot.idle||!snapshot.answerComplete));
     },
     observe(snapshot){
-      if(!snapshot?.ok){this.reset(null);return null;}
+      if(!snapshot?.ok){
+        // A same-route editor remount pauses observation, not turn identity.
+        if(!route||snapshot?.route!==route)this.reset(null);
+        return null;
+      }
       if(snapshot.route!==route||!before){this.reset(snapshot);return null;}
       const users=snapshot.users,assistants=snapshot.assistants;
-      if(pending&&!same(pending.user,users.at(-1)||{})){
+      // Initial history can mount in several batches. Keep establishing the
+      // baseline until that load is complete, never adopting its final turn.
+      if(establishing){this.reset(snapshot);return null;}
+      if(pending&&(!same(pending.user,users.at(-1)||{})||!appended(before.users,users))){
         this.reset(snapshot);return null;
       }
       if(!pending){

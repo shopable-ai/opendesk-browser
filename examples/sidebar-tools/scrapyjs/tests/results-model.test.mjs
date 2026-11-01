@@ -6,6 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {transform} from 'esbuild';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {createExtensionCenterDOM} from '../../../../tests/helpers/extension-center-react-dom.mjs';
 import {valueText,columnKind,resultKeys,pageRows,resultIdentity,emptyMessage} from '../src/results-model.js';
 
 test('presentation preserves full values, zero, false, nested data and input records',()=>{
@@ -47,11 +48,11 @@ const helperUrl=new URL('../src/results-model.js',import.meta.url).href;
 const buttonUrl='data:text/javascript,'+encodeURIComponent(`import * as React from ${JSON.stringify(reactUrl)}; export function Button({variant,base,...props}){return React.createElement('button',props)};export function IconButton({label,...props}){return React.createElement('button',{'aria-label':label,...props})};export function Input(props){return React.createElement('input',props)};export function Textarea(props){return React.createElement('textarea',props)}`);
 const source=await readFile(new URL('../src/Results.jsx',import.meta.url),'utf8');
 const columnSource=await readFile(new URL('../src/ColumnSettings.jsx',import.meta.url),'utf8');
-const columnCompiled=await transform(columnSource.replace("'react'",JSON.stringify(reactUrl)).replace("'@opendesk/ui'",JSON.stringify(buttonUrl)),{loader:'jsx',format:'esm',jsx:'transform'});
-const columnUrl='data:text/javascript;base64,'+Buffer.from(columnCompiled.code).toString('base64');
 const orderSource=await readFile(new URL('../src/FieldOrder.jsx',import.meta.url),'utf8');
 const orderCompiled=await transform(orderSource.replace("'react'",JSON.stringify(reactUrl)).replace("'@opendesk/ui'",JSON.stringify(buttonUrl)),{loader:'jsx',format:'esm',jsx:'transform'});
 const orderUrl='data:text/javascript;base64,'+Buffer.from(orderCompiled.code).toString('base64');
+const columnCompiled=await transform(columnSource.replace("'react'",JSON.stringify(reactUrl)).replace("'@opendesk/ui'",JSON.stringify(buttonUrl)).replace("'./FieldOrder.jsx'",JSON.stringify(orderUrl)),{loader:'jsx',format:'esm',jsx:'transform'});
+const columnUrl='data:text/javascript;base64,'+Buffer.from(columnCompiled.code).toString('base64');
 const compiled=await transform(source.replace("import './results.css';",'').replace("'react'",JSON.stringify(reactUrl)).replace("'@opendesk/ui'",JSON.stringify(buttonUrl)).replace("'./results-model.js'",JSON.stringify(helperUrl)).replace("'./ColumnSettings.jsx'",JSON.stringify(columnUrl)).replace("'./FieldOrder.jsx'",JSON.stringify(orderUrl)),{loader:'jsx',format:'esm',jsx:'transform'});
 const {default:Results}=await import('data:text/javascript;base64,'+Buffer.from(compiled.code).toString('base64'));
 
@@ -100,4 +101,113 @@ test('changing only export names never claims the capture rules changed',()=>{
   const render=current=>renderToStaticMarkup(React.createElement(Results,{state:{config:current,runProfile:{config},result:{data:[{title:'A'}]},retired:true},busy:false,app:{}}));
   assert.doesNotMatch(render({...config,output:{fieldNames:{title:'标题'}}}),/当前规则已有更改/);
   assert.match(render({...config,itemConfig:{title:'h3'}}),/当前规则已有更改/);
+});
+
+test('CSV sorting is optional and locked controls preserve header preview order',async()=>{
+  const {default:ColumnSettings}=await import(columnUrl);
+  const render=locked=>renderToStaticMarkup(React.createElement(ColumnSettings,{keys:['source','title'],names:{title:'标题'},onNamesChange:()=>{},onOrderChange:()=>{},locked}));
+  const html=render(false);
+  assert.equal((html.match(/<input/g)||[]).length,2);
+  assert.equal((html.match(/<button/g)||[]).length,2);
+  assert.match(html,/data-sortable="true"/);
+  assert.match(html,/调整 CSV 列顺序：source/);
+  assert.match(html,/<th scope="col">source<\/th><th scope="col">标题<\/th>/);
+  assert.equal((render(true).match(/disabled=""/g)||[]).length,4);
+});
+
+// Use the existing in-memory DOM with actual Results/FieldOrder state transitions.
+function resultFixture(t){
+  const previous=globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame=callback=>{callback();return 0;};
+  const state={profileEpoch:1,selectedId:'a',clientRequestId:'r1',runId:'run1',
+    config:{itemConfig:{source:'a',title:'h2'},output:{fieldNames:{title:'标题'}}},
+    result:{data:[{source:'site',title:'Book'}]},snapshot:{resultId:'one'},retired:true};
+  const downloads=[];
+  const ui=createExtensionCenterDOM(t,{component:({show=true,...props})=>show?React.createElement(Results,props):null,
+    props:{state,active:true,busy:false,columnsLocked:false,app:{download:async(...args)=>downloads.push(args)}}});
+  ui.window.HTMLElement.prototype.scrollIntoView=function(){};
+  t.after(()=>{globalThis.requestAnimationFrame=previous;});
+  const get=id=>ui.doc.getElementById(id);
+  const headers=()=>[...get('record-table').querySelectorAll('thead th')].slice(1).map(node=>node.textContent);
+  const handle=(list,key)=>get(list).querySelector(`[data-field-key="${key}"] button`);
+  const move=(list,key,commit=true)=>{
+    handle(list,key).dispatch('keydown',{key:' '});
+    handle(list,key).dispatch('keydown',{key:'Home'});
+    handle(list,key).dispatch('keydown',{key:commit?'Enter':'Escape'});
+  };
+  const update=patch=>{ui.state.state={...ui.state.state,...patch};ui.paint();};
+  return {ui,get,headers,handle,move,update,state,downloads};
+}
+
+test('independent display sorting leaves rule order, custom CSV names/order and original exports intact',async t=>{
+  const f=resultFixture(t),before=JSON.stringify(f.state);
+  assert.ok(f.get('edit-result-columns'),'results must retain their independent display settings entry');
+  f.get('edit-result-columns').dispatch('click');
+  assert.ok(f.get('result-display-settings'));
+  assert.equal(f.get('result-display-settings').querySelectorAll('input').length,0);
+  assert.equal(f.get('result-display-settings').querySelectorAll('[role=switch]').length,0);
+  f.get('custom-csv').dispatch('click');
+  const csvHeaders=()=>[...f.get('custom-csv-settings').querySelectorAll('th')].map(node=>node.textContent);
+  assert.deepEqual(csvHeaders(),['source','标题']);
+  f.move('result-column-list','source');
+  assert.deepEqual(f.headers(),['source','title']);
+  assert.deepEqual(csvHeaders(),['source','标题']);
+  f.move('csv-column-list','title');
+  assert.deepEqual(csvHeaders(),['标题','source']);
+  assert.deepEqual(f.headers(),['source','title']);
+  f.get('download-custom-csv').dispatch('click');await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.downloads[0],['csv',{fieldNames:{title:'标题'},fieldOrder:['title','source']}]);
+  f.get('download-csv').dispatch('click');await new Promise(resolve=>setImmediate(resolve));
+  f.get('download-json').dispatch('click');await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.downloads.slice(1),[['csv',undefined],[]]);
+  assert.equal(JSON.stringify(f.state),before);
+  f.get('close-result-display').dispatch('click');
+  assert.equal(f.ui.doc.activeElement,f.get('edit-result-columns'));
+  f.get('edit-result-columns').dispatch('click');
+  assert.deepEqual(f.headers(),['source','title']);
+  f.get('reset-result-order').dispatch('click');
+  assert.deepEqual(f.headers(),['title','source']);
+  assert.deepEqual(csvHeaders(),['标题','source']);
+});
+
+test('display preference survives same-profile reruns and tab returns, merges result keys and resets with the session',t=>{
+  const f=resultFixture(t);
+  assert.ok(f.get('edit-result-columns'),'independent display settings are available');
+  f.get('edit-result-columns').dispatch('click');f.move('result-column-list','source');
+  f.ui.state.active=false;f.ui.paint();f.ui.state.active=true;f.ui.paint();
+  assert.deepEqual(f.headers(),['source','title']);
+  f.update({clientRequestId:'r2',runId:null,snapshot:null,result:null});
+  assert.equal(f.get('edit-result-columns'),null);
+  f.update({runId:'run2',snapshot:{resultId:'two'},result:{data:[{source:'new',title:'New',price:0}]}});
+  assert.deepEqual(f.headers(),['source','title','price']);
+  f.update({result:{data:[{title:'New',price:0,extra:false}]}});
+  assert.deepEqual(f.headers(),['title','price','extra']);
+  f.update({result:{data:[{source:'new',title:'New'}]}});
+  assert.deepEqual(f.headers(),['source','title']);
+  f.update({selectedId:'b'});assert.deepEqual(f.headers(),['title','source']);
+  f.get('edit-result-columns').dispatch('click');f.move('result-column-list','source');
+  f.update({profileEpoch:2});assert.deepEqual(f.headers(),['title','source']);
+  f.get('edit-result-columns').dispatch('click');f.move('result-column-list','source');
+  f.ui.state.show=false;f.ui.paint();f.ui.state.show=true;f.ui.paint();
+  assert.deepEqual(f.headers(),['title','source']);
+});
+
+test('display keyboard cancel and locking preserve the committed order without changing CSV controls',t=>{
+  const f=resultFixture(t);
+  assert.ok(f.get('edit-result-columns'),'independent display settings are available');
+  f.get('edit-result-columns').dispatch('click');
+  f.move('result-column-list','source',false);assert.deepEqual(f.headers(),['title','source']);
+  f.handle('result-column-list','source').dispatch('keydown',{key:' '});
+  f.handle('result-column-list','source').dispatch('keydown',{key:'Home'});
+  f.ui.state.columnsLocked=true;f.ui.paint();
+  assert.equal(f.get('edit-result-columns').disabled,true);
+  assert.equal(f.get('reset-result-order').disabled,true);
+  assert.equal(f.handle('result-column-list','source').disabled,true);
+  assert.deepEqual(f.headers(),['title','source']);
+  f.ui.state.columnsLocked=false;f.ui.paint();
+  f.get('display-settings-heading').dispatch('keydown',{key:'Escape',isComposing:true});
+  assert.ok(f.get('result-display-settings'));
+  f.get('display-settings-heading').dispatch('keydown',{key:'Escape'});
+  assert.equal(f.get('result-display-settings'),null);
+  assert.equal(f.ui.doc.activeElement,f.get('edit-result-columns'));
 });

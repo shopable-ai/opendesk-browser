@@ -48,25 +48,27 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
   function closeDisplay(){setDisplayOpen(false);requestAnimationFrame(()=>displayEntry.current?.focus({preventScroll:true}));}
   React.useEffect(()=>{if(displayOpen&&active)displayHeading.current?.focus({preventScroll:true});},[displayOpen,active]);
   const [names,setNames]=React.useState({});
-  const csvKeys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
+  const [csvOrder,setCsvOrder]=React.useState([]),[csvMoving,setCsvMoving]=React.useState(false);
+  const rawCsvKeys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
+  const csvKeys=[...csvOrder.filter(key=>rawCsvKeys.includes(key)),...rawCsvKeys.filter(key=>!csvOrder.includes(key))];
   const csvLabels=csvKeys.map(key=>(Object.hasOwn(names,key)?names[key].normalize('NFC').trim():'')||key);
   const duplicate=new Set(csvLabels).size!==csvLabels.length;
-  function openSettings(){setNames({...state.config?.output?.fieldNames});setDownloadError('');setSettingsOpen(true);}
+  function openSettings(){setNames({...state.config?.output?.fieldNames});setCsvOrder([]);setCsvMoving(false);setDownloadError('');setSettingsOpen(true);}
   const settingsEntry=React.useRef(null),settingsHeading=React.useRef(null);
-  function closeSettings(){setSettingsOpen(false);requestAnimationFrame(()=>settingsEntry.current?.focus({preventScroll:true}));}
+  function closeSettings(){setSettingsOpen(false);setNames({});setCsvOrder([]);setCsvMoving(false);requestAnimationFrame(()=>settingsEntry.current?.focus({preventScroll:true}));}
   React.useEffect(()=>{if(settingsOpen&&active)settingsHeading.current?.focus({preventScroll:true});},[settingsOpen,active]);
   const [detail,setDetail]=React.useState(null);
   const [downloading,setDownloading]=React.useState('');
   const downloadLock=React.useRef(false);
   const [downloadError,setDownloadError]=React.useState('');
 
-  const columns=(displayKeys||keys).filter(key=>keys.includes(key)).map(key=>({key,label:key}));
+  const columns=displayKeys.map(key=>({key,label:key}));
   const slice=pageRows(rows,page);
   const summary=React.useRef(null);
   const activeDetail=detail && detail.text===JSON.stringify(rows[detail.index],null,2)?detail:null;
   React.useEffect(()=>{if(detail&&!activeDetail)setDetail(null);},[detail,activeDetail]);
   async function download(format,output){
-    if(downloadLock.current)return;
+    if(downloadLock.current||(output&&(columnsLocked||csvMoving)))return;
     downloadLock.current=true;setDownloading(format);setDownloadError('');
     try{if(format==='csv')await app.download('csv',output);else await app.download();}
     catch(error){setDownloadError(error.message||'下载失败');}
@@ -85,15 +87,15 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
     {(downloading||downloadError||state.notice||state.error)&&<p className="scrapy-download-status" role={downloadError||state.error?'alert':'status'}>{downloading?'正在请求下载…':downloadError||state.error||state.notice}</p>}</div>
     {displayOpen&&rows.length>0&&<section id="result-display-settings" className="csv-export-settings" aria-labelledby="display-settings-heading" onKeyDown={event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();closeDisplay();}}}>
       <div className="toolbar"><h3 id="display-settings-heading" ref={displayHeading} tabIndex={-1}>显示设置</h3><Button base="aria" id="close-result-display" variant="quiet" onClick={closeDisplay}>完成</Button></div>
-      <p className="secondary">拖动调整当前表格列顺序。仅本次使用，下载保留原始字段顺序。</p>
-      <FieldOrder id="result-column-list" keys={columns.map(column=>column.key)} label="调整显示顺序：" locked={columnsLocked} active={active&&displayOpen} onOrderChange={onOrderChange}/>
+      <p className="secondary">拖动调整当前表格列顺序。同配置本次使用期间保留，不改变采集规则与下载顺序。</p>
+      <FieldOrder id="result-column-list" keys={displayKeys} label="调整显示顺序：" locked={columnsLocked} active={active&&displayOpen} onOrderChange={onOrderChange}/>
       <Button base="aria" id="reset-result-order" variant="quiet" disabled={columnsLocked} onClick={()=>onOrderChange([])}>恢复默认顺序</Button>
     </section>}
     {settingsOpen&&rows.length>0&&<section id="custom-csv-settings" className="csv-export-settings" aria-labelledby="csv-settings-heading" onKeyDown={event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();closeSettings();}}}>
       <h3 id="csv-settings-heading" tabIndex={-1} ref={settingsHeading}>自定义 CSV 表头</h3>
-      <p className="secondary">本次下载使用以下名称；只修改 CSV 第一行，数据内容和 JSON 保留原字段。</p>
-      <ColumnSettings keys={csvKeys} names={names} onNamesChange={setNames} locked={columnsLocked||Boolean(downloading)}/>
-      <div className="toolbar"><Button base="aria" id="download-custom-csv" variant="primary" disabled={columnsLocked||Boolean(downloading)||duplicate} onClick={()=>download('csv',{fieldNames:names})}><DownloadIcon/>下载 CSV</Button><Button base="aria" id="cancel-custom-csv" variant="quiet" disabled={Boolean(downloading)} onClick={closeSettings}>取消</Button></div>
+      <p className="secondary">拖动调整本次 CSV 的列顺序，并自定义表头。普通 CSV、JSON 和采集规则保持原样。</p>
+      <ColumnSettings keys={csvKeys} names={names} onNamesChange={setNames} onOrderChange={setCsvOrder} onMovingChange={setCsvMoving} active={active&&settingsOpen} locked={columnsLocked||Boolean(downloading)}/>
+      <div className="toolbar"><Button base="aria" id="download-custom-csv" variant="primary" disabled={columnsLocked||Boolean(downloading)||duplicate||csvMoving} onClick={()=>download('csv',{fieldNames:names,fieldOrder:csvKeys})}><DownloadIcon/>下载 CSV</Button><Button base="aria" id="cancel-custom-csv" variant="quiet" disabled={Boolean(downloading)} onClick={closeSettings}>取消</Button></div>
       <p className="secondary">常用名称可在「采集规则 → CSV 表头」中预设并保存。</p>
     </section>}
     <p id="table-help" className="od-note secondary" hidden={!rows.length}>ⓘ 查看完整记录 · 下载保留全部原始数据</p>
@@ -117,6 +119,14 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
   </div>;
 }
 
-export default function Results({state,busy,app,displayKeys,onOrderChange,columnsLocked,active}) {
-  return <ResultView key={resultIdentity(state)} state={state} busy={busy} app={app} displayKeys={displayKeys} onOrderChange={onOrderChange} columnsLocked={columnsLocked} active={active}/>;
+// Table preference belongs to the configuration session, not a single run or CSV export.
+function ResultSession({state,busy,app,columnsLocked,active}) {
+  const [displayOrder,setDisplayOrder]=React.useState([]);
+  const keys=resultKeys(Array.isArray(state.result?.data)?state.result.data:[]);
+  const displayKeys=[...displayOrder.filter(key=>keys.includes(key)),...keys.filter(key=>!displayOrder.includes(key))];
+  return <ResultView key={resultIdentity(state)} state={state} busy={busy} app={app} displayKeys={displayKeys} onOrderChange={setDisplayOrder} columnsLocked={columnsLocked} active={active}/>;
+}
+
+export default function Results({state,busy,app,columnsLocked,active}) {
+  return <ResultSession key={JSON.stringify([state.profileEpoch,state.selectedId])} state={state} busy={busy} app={app} columnsLocked={columnsLocked} active={active}/>;
 }

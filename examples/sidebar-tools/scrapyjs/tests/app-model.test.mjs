@@ -298,7 +298,7 @@ test('default list config uses native SDK XPath self context for direct-text li 
   const titles=[...list.matchAll(/<li>([^<]*)<\/li>/g)].map(match=>match[1]);
   const nodes=titles.map(textContent=>({textContent,nodeType:1,children:[],contains(node){return node===this;},matches:selector=>selector==='li',querySelectorAll:()=>[]}));
   const container={children:nodes};
-  const document={querySelectorAll:selector=>selector==='#sample-list'?[container]:selector==='li'?nodes:[],
+  const document={querySelectorAll:selector=>selector==='#sample-list'?[container]:selector==='li'?nodes:selector==='*'?[container,...nodes]:[],
     evaluate(selector,node){assert.equal(selector,'.');return {snapshotLength:1,snapshotItem:()=>node};}};
   const dom=vm.createContext({document,XPathResult:{ORDERED_NODE_SNAPSHOT_TYPE:7},config:normalized});
   const result=vm.runInContext('('+extractRecords.toString()+')(config)',dom);

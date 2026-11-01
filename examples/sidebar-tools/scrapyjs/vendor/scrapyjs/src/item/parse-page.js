@@ -4,6 +4,7 @@ const { validateTaskSpec, validateCandidate, fault } = require('../ai/TaskSpec')
 const { inspectPage } = require('../ai/ConfigExecutor');
 const ScopedDownloader = require('../middleware/ScopedDownloader');
 const { fieldRule } = require('./item-loader-extraction');
+const { recordSelection } = require('./record-selection');
 
 // Adapt ordinary CSS declarations to the existing constrained executor.
 module.exports = function parsePage(response, options = {}) {
@@ -14,7 +15,9 @@ module.exports = function parsePage(response, options = {}) {
     const scope = ScopedDownloader.validateScope(options.scope);
     const itemConfig = options.itemConfig;
     if (!itemConfig || typeof itemConfig !== 'object' || Array.isArray(itemConfig)) throw fault('FIELD_SCHEMA');
-    if (typeof itemConfig._listContainer !== 'string' || !itemConfig._listContainer.trim() || typeof itemConfig._listItem !== 'string' || !itemConfig._listItem.trim()) throw fault('CSS_SYNTAX');
+    if (typeof itemConfig._listItem !== 'string' || !itemConfig._listItem.trim()) throw fault('CSS_SYNTAX');
+    let selection;
+    try { selection = recordSelection(itemConfig._listContainer, itemConfig._listItem); } catch (_) { throw fault('CSS_SYNTAX'); }
     const names = Object.keys(itemConfig).filter(key => !['_listContainer', '_listItem'].includes(key));
     if (!names.length || names.some(key => key.startsWith('_') || ['constructor', 'prototype'].includes(key) || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key))) throw fault('FIELD_SCHEMA');
     const fieldsArray = (value, fallback, nonempty = false) => {
@@ -31,7 +34,8 @@ module.exports = function parsePage(response, options = {}) {
       const rule = itemConfig[name];
       // Reuse suffix parsing, but expose only this executor's CSS/text/href/src subset.
       if (typeof rule !== 'string' && (!rule || typeof rule !== 'object' || Array.isArray(rule) ||
-          Object.keys(rule).some(key => !['selector', 'read', 'attr'].includes(key)) ||
+          Object.keys(rule).some(key => !['selector', 'read', 'attr', 'cardinality'].includes(key)) ||
+          (Object.hasOwn(rule, 'cardinality') && !['one', 'many'].includes(rule.cardinality)) ||
           !['text', 'attr'].includes(rule.read) ||
           (rule.read === 'attr' && !['href', 'src'].includes(rule.attr)))) throw fault('FIELD_SCHEMA');
       let parsed;
@@ -39,7 +43,7 @@ module.exports = function parsePage(response, options = {}) {
       const attr = parsed.attr === null ? 'text' : parsed.attr;
       if (parsed.xpath || !parsed.selector || !['text', 'href', 'src'].includes(attr)) throw fault('FIELD_SCHEMA');
       const isUrl = urlFields.includes(name);
-      fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
+      fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: parsed.cardinality === 'many' ? 'many' : 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
       reads[name] = attr === 'text' ? { selector: parsed.selector, read: 'text' } : { selector: parsed.selector, read: 'attr', attr };
     }
     if (!options.states || options.states.allowEmpty !== false || !options.pagination) throw fault('TASK_SCHEMA');
@@ -69,7 +73,7 @@ module.exports = function parsePage(response, options = {}) {
     });
     const candidate = validateCandidate({
       schemaVersion: 1, profile: 'http-cheerio',
-      list: { container: itemConfig._listContainer, record: { selector: itemConfig._listItem, relation: 'directChildren' }, fields: reads },
+      list: { ...(selection.listSelector === null ? {} : {container: selection.listSelector}), record: { selector: selection.itemSelector, relation: selection.relation }, fields: reads },
       states: options.states, pagination,
     }, spec);
     const source = { kind: 'http', url: response.url, status: response.status, html: response.text };
@@ -78,7 +82,7 @@ module.exports = function parsePage(response, options = {}) {
     // A wrapper can hide excluded records from directChildren. Let the same
     // executor check their ancestry; never accept records from this safety probe.
     if (errorCode === 'PAGE_EMPTY' && spec.excludedRegions.length) {
-      const probe = inspectPage(source, { ...candidate, list: { ...candidate.list, container: candidate.list.container + ' ' + candidate.list.record.selector } }, spec, context);
+      const probe = inspectPage(source, { ...candidate, list: { ...candidate.list, record: { ...candidate.list.record, relation: 'descendants' } } }, spec, context);
       if (probe.errorCode === 'ERROR_REGION_SELECTED') throw fault(probe.errorCode);
     }
     return { records, next, errorCode };

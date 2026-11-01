@@ -39,12 +39,16 @@ function inspectPage(source, candidate, taskSpec, context = {}) {
     probe = { stage, selector: config.states.ready, count: ready };
     if (ready && empty) throw fault('PAGE_STATE_AMBIGUOUS');
     if (empty) pageState = 'empty'; else if (ready === 1) pageState = 'ready'; else throw fault('PAGE_NOT_READY');
-    const container = $(section.container);
-    evidence.container = { selector: section.container, matchCount: container.length };
+    const {recordSelection, selectCheerioRecords} = require('../item/record-selection');
+    const container = section.container === undefined ? $() : $(section.container);
+    evidence.container = section.container === undefined ? null : { selector: section.container, matchCount: container.length };
     probe = { stage, selector: section.container, count: container.length };
     if (container.toArray().some(excluded)) throw fault('ERROR_REGION_SELECTED');
-    if (container.length !== 1) throw fault('CONTAINER_CARDINALITY');
-    const nodes = stage === 'list' ? container.children(config.list.record.selector) : container;
+    if (stage === 'detail' && container.length !== 1) throw fault('CONTAINER_CARDINALITY');
+    const plan = stage === 'list' ? recordSelection(section.container, section.record.selector, section.record.relation) : null;
+    const nodes = stage === 'list' ? selectCheerioRecords($, plan) : container;
+    if (plan) evidence.selection = plan;
+    probe = {stage, selector: stage === 'list' ? section.record.selector : section.container, count: nodes.length};
     evidence.recordCount = nodes.length;
     if (nodes.toArray().some(excluded)) throw fault('ERROR_REGION_SELECTED');
     const readNext = () => {
@@ -77,7 +81,9 @@ function inspectPage(source, candidate, taskSpec, context = {}) {
         const matches = root.find(field.selector);
         probe = { stage, recordIndex, field: key, selector: field.selector, count: matches.length };
         if (Object.keys(detail.fields).length < 32) detail.fields[key] = { selector: field.selector, matchCount: matches.length };
-        if (matches.toArray().some(el => safetyRegions.some(sel => local(el).is(sel) || local(el).parents(sel).length))) throw fault('ERROR_REGION_SELECTED');
+        // Retain page ancestors for safety selectors while extraction stays record-local.
+        if ($(node).find(field.selector).toArray().some(excluded) ||
+          matches.toArray().some(el => safetyRegions.some(sel => local(el).is(sel) || local(el).parents(sel).length))) throw fault('ERROR_REGION_SELECTED');
         const count = matches.length;
         if (rules[key].cardinality === 'one' && count > 1) throw fault('FIELD_CARDINALITY');
         if (rules[key].required && count === 0) throw fault('FIELD_REQUIRED');

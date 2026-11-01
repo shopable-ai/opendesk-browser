@@ -196,19 +196,23 @@ class ChromeSpider extends CrawlSpider {
     // Legacy bridge only: heuristic content settling is not a modern completion guarantee.
     const region = this.config.itemConfig?._listContainer || null;
     const capture = () => page.evaluate(function transitionSnapshot(selector, xpath, itemSelector) {
-      const element = selector ? xpath ? document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue : document.querySelector(selector) : document.body;
-      let rows = element ? Array.from(element.children) : [];
-      if (itemSelector !== null) {
-        if (element) element.matches(itemSelector);
-        rows = rows.filter(row => row.matches(itemSelector));
-      }
-      let busy = false;
-      for (let node = element; node; node = node.parentElement) {
-        if (node.getAttribute('aria-busy') === 'true' || node.hidden) busy = true;
-      }
-      const style = element ? getComputedStyle(element) : null;
-      return { url: location.href, content: itemSelector === null ? element?.innerHTML || '' : JSON.stringify(rows.map(row => row.outerHTML)), records: rows.length,
-        visible: !!element && !busy && style?.display !== 'none' && style?.visibility !== 'hidden',
+      const elements = selector ? xpath
+        ? [document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue].filter(Boolean)
+        : Array.from(document.querySelectorAll(selector)) : [document.body].filter(Boolean);
+      const candidates = itemSelector !== null ? Array.from(document.querySelectorAll(itemSelector)) : null;
+      const children = new Set(elements.flatMap(element => Array.from(element.children)));
+      const rows = candidates ? candidates.filter(row => !selector || children.has(row)) : Array.from(children);
+      const visible = element => {
+        for (let node = element; node; node = node.parentElement) {
+          if (node.getAttribute('aria-busy') === 'true' || node.hidden) return false;
+        }
+        const style = getComputedStyle(element);
+        return style?.display !== 'none' && style?.visibility !== 'hidden';
+      };
+      return { url: location.href, content: JSON.stringify(itemSelector === null ? elements.map(element => element.innerHTML) : rows.map(row => row.outerHTML)), records: rows.length,
+        // Container mode historically permits hidden metadata children. In
+        // standalone mode require some visible record, not every optional row.
+        visible: elements.length > 0 && elements.every(visible) && (!!selector || itemSelector === null || rows.some(visible)),
         ready: document.readyState === 'complete' };
     }, region, !!region && this.isXPath(region), this.config.itemConfig?._listItem ?? null);
     const before = await capture();

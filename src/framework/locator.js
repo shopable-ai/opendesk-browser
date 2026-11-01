@@ -35,7 +35,8 @@ function timeoutOptions(opts = {}) {
 }
 function run(locator, method, operation) {
   const {context, descriptor, target} = captured(locator);
-  return context.request(method, [descriptor, validateLocatorOperation(operation)], {target});
+  const op = validateLocatorOperation(operation);
+  return context.request(method, [descriptor, op], {target, navigation:op.waitUntil !== undefined});
 }
 export function createLocator(context, kind, value, opts = {}) {
   return spawn({context, target:context.capture()}, kind, value, opts);
@@ -52,7 +53,10 @@ export class Locator {
   first() { return indexed(this, 0); }
   last() { return indexed(this, -1); }
   nth(index) { return indexed(this, index); }
-  async click(opts = {}) { await run(this, 'locatorAction', {action:'click', ...timeoutOptions(opts)}); }
+  async click(opts = {}) {
+    options(opts, ['timeout','waitUntil']);
+    await run(this, 'locatorAction', {action:'click', ...opts});
+  }
   async fill(value, opts = {}) { await run(this, 'locatorAction', {action:'fill', value, ...timeoutOptions(opts)}); }
   async check(opts = {}) { await run(this, 'locatorAction', {action:'check', ...timeoutOptions(opts)}); }
   async uncheck(opts = {}) { await run(this, 'locatorAction', {action:'uncheck', ...timeoutOptions(opts)}); }

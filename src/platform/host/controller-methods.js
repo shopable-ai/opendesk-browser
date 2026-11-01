@@ -19,6 +19,7 @@ import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
 import {requireCloudRunnerSender} from './cloud-observer.js';
 import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
+import {isControllerNavigation} from '../../framework/control/locator-contract.js';
 import {withRunAdmissionLock} from './run-admission-lock.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
@@ -716,7 +717,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const completion = perform(); pending.set(key, completion);
     try { return await completion; } finally { if (pending.get(key) === completion) pending.delete(key); }
     async function perform() {
-      const navigation = envelope.operation.kind === 'browser' && ['goto', 'reload'].includes(envelope.operation.method);
+      const navigation = isControllerNavigation(envelope.operation);
       // A trusted Dev Run may request any HTTP(S) Origin through axiosx, but the
       // browser grant must exist before it becomes this run's durable exact scope.
       const autoOrigin = serviceCall && priorRun.sourceKind === 'draft' &&
@@ -896,9 +897,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return await tx(RUN_WRITE, async transaction => {
           const current = await admittedOperation(transaction, envelope, host, sender, {post: true, handoff: reply.handoff});
           if (navigation) {
-            invariant(reply.handoff, DOC_REPLACED);
-            current.target = structuredClone(reply.handoff.to); current.identity.target = current.target;
-            boundTargets.set(current.runId, current.target);
+            if (!reply.error) {
+              invariant(reply.handoff, DOC_REPLACED);
+              current.target = structuredClone(reply.handoff.to); current.identity.target = current.target;
+              boundTargets.set(current.runId, current.target);
+            }
             delete current.navigationRequestId; current.runRevision++; current.eventSeq++;
             await transaction.put(RUN_STORE, current, current.runId);
           }

@@ -1,6 +1,6 @@
 {
   "name": "scrapyjs-capture",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
   "type": "module",
   "description": "scrapyJs controlled fields, pagination and list-detail capture",

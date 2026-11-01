@@ -188,7 +188,8 @@ function validateCandidate(raw, taskSpec) {
   if (s.mode === 'list' && c.detail) throw fault('UNSUPPORTED_CAPABILITY');
   for (const stage of ['list', ...(s.mode === 'list-detail' ? ['detail'] : [])]) {
     const section = c[stage]; keys(section, stage === 'list' ? ['container', 'record', 'fields'] : ['container', 'fields']);
-    section.container = selector(section.container); keys(section.fields, Object.keys(s[stage].fields));
+    if (stage === 'detail' || Object.hasOwn(section, 'container')) section.container = selector(section.container);
+    keys(section.fields, Object.keys(s[stage].fields));
     if (Object.keys(section.fields).length !== Object.keys(s[stage].fields).length) throw fault('FIELD_SCHEMA');
     for (const [name, f] of Object.entries(section.fields)) {
       keys(f, ['selector', 'read', 'attr']); f.selector = selector(f.selector, true);
@@ -197,7 +198,10 @@ function validateCandidate(raw, taskSpec) {
     }
   }
   keys(c.list.record, ['selector', 'relation']); c.list.record.selector = selector(c.list.record.selector);
-  if (c.list.record.relation !== 'directChildren') throw fault('UNSUPPORTED_CAPABILITY');
+  try {
+    const plan = require('../item/record-selection').recordSelection(c.list.container, c.list.record.selector, c.list.record.relation);
+    c.list.record.relation = plan.relation;
+  } catch (_) { throw fault('UNSUPPORTED_CAPABILITY'); }
   keys(c.states, ['ready', 'empty', 'login', 'error', 'allowEmpty']);
   if (c.states.allowEmpty !== s.states.allowEmpty) throw fault('CANDIDATE_CONSTRAINT');
   for (const k of ['ready', 'empty', 'login', 'error']) c.states[k] = selector(c.states[k]);

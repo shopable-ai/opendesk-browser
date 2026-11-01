@@ -45,8 +45,9 @@ test('P0 discovery resets on SPA navigation and will only observe a later new us
 
 const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
 function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbingo.org/html',
-  grantReply=value=>value,bindReply=value=>value}={}){
+  grantReply=value=>value,bindReply=value=>value,initialEmpty=false}={}){
   const nodes=[],sends=[],events=new Map(),snap=snapshot();let poll;
+  if(initialEmpty){snap.users=[];snap.assistants=[];}
   const element=tag=>{
     const node={tag,style:{},classList:{toggle(){}},listeners:{},setAttribute(){},append(){},remove(){},
       attachShadow:()=>element('shadow'),addEventListener(type,fn){this.listeners[type]=fn;}};
@@ -95,6 +96,66 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
       nodes.find(node=>node.tag==='textarea').value=JSON.stringify(intent.args);
     }};
 }
+test('P0 discovery delayed history from an empty shell never adopts, then adopts a real new turn once',async()=>{
+  for(const streaming of [false,true]){
+    const h=pageHarness({initialEmpty:true});h.poll();
+    h.snap.users.push(message('history-user'));
+    h.snap.assistants.push(message('history-answer',JSON.stringify(h.intent)));
+    h.snap.busy=streaming;h.snap.idle=!streaming;h.snap.answerComplete=!streaming;
+    h.poll();await flush();
+    assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,0);
+    h.snap.busy=false;h.snap.idle=true;h.snap.answerComplete=true;
+    h.poll();await flush();h.poll();await flush();
+    assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,0);
+    h.next();await flush();h.poll();await flush();
+    assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
+    assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);
+    h.page.dispose();
+  }
+});
+test('P0 discovery preserves a new turn across same-route editor absence and adopts once',async()=>{
+  const h=pageHarness();
+  h.snap.users.push(message('u1'));h.poll();
+  h.snap.ok=false;h.poll();
+  h.snap.ok=true;h.snap.assistants.push(message('a1','partial'));
+  h.snap.busy=true;h.snap.idle=false;h.snap.answerComplete=false;h.poll();await flush();
+  assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,0);
+  h.snap.assistants.at(-1).textContent=JSON.stringify(h.intent);
+  h.snap.busy=false;h.snap.idle=true;h.snap.answerComplete=true;
+  h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
+  assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);h.page.dispose();
+});
+test('P0 discovery keeps establishing history until staggered initial loading completes',async()=>{
+  const h=pageHarness({initialEmpty:true});h.poll();
+  h.snap.users.push(message('history-u0'));h.snap.assistants.push(message('history-a0'));
+  h.snap.busy=true;h.snap.idle=false;h.snap.answerComplete=false;h.poll();await flush();
+  h.snap.users.push(message('history-u1'));
+  h.snap.assistants.push(message('history-a1',JSON.stringify(h.intent)));
+  h.snap.busy=false;h.snap.idle=true;h.snap.answerComplete=true;
+  h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,0);
+  h.next();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
+  assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);h.page.dispose();
+});
+test('P0 discovery rejects interrupted turns after unknown or different routes and user anchor changes',()=>{
+  for(const change of ['unknown-route','different-route','user-id','user-text','prior-anchor','extra-user']){
+    const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+    snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
+    const failed={ok:false,route:snap.route};
+    if(change==='unknown-route')delete failed.route;
+    if(change==='different-route')failed.route='c/other-chat';
+    assert.equal(probe.observe(failed),null);
+    if(change==='user-id')snap.users[1]=message('replacement','u1');
+    if(change==='user-text')snap.users[1].textContent='edited';
+    if(change==='prior-anchor')snap.users[0]=message('replacement-anchor');
+    if(change==='extra-user')snap.users.splice(1,0,message('unexpected-user'));
+    snap.assistants.push(message('a1'));
+    assert.equal(probe.observe(snap),null,change);
+    assert.equal(probe.observe(snap),null,change);
+  }
+});
 test('P0 page automatically prepares a new five-field candidate and requires exactly one execute click',async()=>{
   const h=pageHarness();h.poll();assert.equal(h.sends.length,0);
   h.next();await flush();

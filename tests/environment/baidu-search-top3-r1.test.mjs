@@ -4,17 +4,17 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import vm from 'node:vm';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {canonical} from '../../src/platform/protocol.js';
 
 const src=await readFile(new URL('../../examples/tasks/baidu-search-top3.js',import.meta.url),'utf8');
 const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
 const sha=text=>createHash('sha256').update(text).digest('hex');
-const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):
-  Array.isArray(v)?'['+v.map(canonical).join(',')+']':
-  '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
-  assert.equal(pkg.manifest.version,'1.0.0');
+  assert.equal(pkg.manifest.version,'1.1.1');
+  assert.equal(pkg.manifest.program.revision,1);
+  assert.equal(pkg.manifest.deadlineMs,60000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
   assert.equal(pkg.sourceUtf8,src);
   assert.equal(pkg.manifest.program.sourceHash,sha(src));
@@ -25,24 +25,39 @@ const row=(n,ad=false)=>{
   const heading={isConnected:true,closest:()=>null};
   const a={isConnected:true,innerText:'标题 '+n,textContent:'标题 '+n,
     closest:s=>s==='h3'?heading:null,getAttribute:s=>s==='href'?'https://example.org/'+n:null};
-  const summary={isConnected:true,innerText:'摘要 '+n,closest:()=>null};
+  const summary={isConnected:true,innerText:'摘要 '+n,textContent:'摘要 '+n,closest:()=>null};
   const label={isConnected:true,textContent:'广告',closest:()=>null};
   return {isConnected:true,closest:()=>null,matches:()=>false,
+    innerText:'标题 '+n+' 摘要 '+n+(ad?'广告':''),
+    textContent:'标题 '+n+' 摘要 '+n+(ad?'广告':''),
     getAttribute:s=>s==='id'?String(n):s==='tpl'?'se_com_default':null,
     querySelector:s=>s.startsWith('.c-abstract')?summary:null,
-    querySelectorAll:s=>s==='h3 a'?[a]:s==='span,a,em,small'&&ad?[label]:[]};
+    querySelectorAll:s=>s==='h3 a'?[a]:s==='h3'?[heading]:s.startsWith('.c-abstract')?[summary]:s==='span,a,em,small'&&ad?[label]:[]};
 };
 async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAvailable=true}={}){
+ const locator=items=>{
+   const one=()=>{assert.equal(items.length,1,'Locator read must be strict');return items[0];};
+   return {
+     count:async()=>items.length,
+     nth:index=>locator(items.slice(index,index+1)),
+     first:()=>locator(items.slice(0,1)),
+     isVisible:async()=>items.length===1&&items[0].isConnected!==false&&items[0].visible!==false,
+     getAttribute:async name=>one().getAttribute?.(name)??null,
+     innerText:async()=>one().innerText??one().textContent??'',
+     textContent:async()=>one().textContent??one().innerText??'',
+     locator:selector=>locator(items.flatMap(node=>node.querySelectorAll(selector))),
+   };
+ };
  const page={url:async()=> 'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'),
-   locator:selector=>({waitFor:async()=>{
-     assert.equal(selector,'#content_left');
-     if(!searchAreaAvailable)throw new Error('Search area did not become visible');
-   },innerText:async()=>body}),
-   $$eval:async (selector,fn)=>{
+   locator:selector=>{
+     if(selector==='body')return locator([{innerText:body}]);
+     if(selector==='#content_left')return {waitFor:async()=>{
+       if(!searchAreaAvailable)throw Object.assign(new Error('Search area did not become visible'),{code:'E_TIMEOUT'});
+     }};
      assert.ok(searchAreaAvailable,'Unavailable search area must not be extracted');
-     assert.equal(selector,'#content_left .result.c-container');return fn(rows);
+     assert.equal(selector,'#content_left .result.c-container');return locator(rows);
    }};
- const ctx={page,params,URL,Date,Error,Object,Promise,getComputedStyle:()=>({display:'block',visibility:'visible'})};
+ const ctx={page,params,URL,Date,Error,Object,Promise,TextEncoder,setTimeout:fn=>{fn();return 0;}};
  vm.createContext(ctx);
  vm.runInContext(src+';globalThis.run=main;',ctx,{timeout:1000});
  return ctx.run();
@@ -103,4 +118,101 @@ test('conservatively excludes unknown Baidu templates',async()=>{
  const response=await run([promoted,row(1)]);
  assert.equal(response.count,1);
  assert.equal(response.results[0].title,'标题 1');
+});
+
+test('returns only the visible abstract and preserves safe direct URLs',async()=>{
+ const node=row(1),attr=node.getAttribute;
+ node.innerText='标题 1 网站导航 无关模块文字 摘要 1';
+ node.getAttribute=name=>name==='mu'?'https://example.org/direct':attr(name);
+ const response=await run([node]);
+ assert.equal(response.results[0].summary,'摘要 1');
+ assert.equal(response.results[0].directUrl,'https://example.org/direct');
+});
+
+test('omits missing or hidden abstracts instead of synthesizing summaries from the card',async()=>{
+ const missing=row(1),hidden=row(2);
+ const query=missing.querySelectorAll;
+ missing.querySelectorAll=s=>s.startsWith('.c-abstract')?[]:query(s);
+ hidden.querySelector('.c-abstract').visible=false;
+ const response=await run([missing,hidden,row(3)]);
+ assert.equal(response.count,1);
+ assert.equal(response.results[0].title,'标题 3');
+});
+
+test('filters self ad classes, empty ad attributes and exact visible labels without rejecting prose',async()=>{
+ const self=row(1),attr=self.getAttribute;
+ self.getAttribute=name=>name==='class'?'result c-container ec-tuiguang':attr(name);
+ const marked=row(2),markedAttr=marked.getAttribute;
+ marked.getAttribute=name=>name==='data-ad'?'':markedAttr(name);
+ const prose=row(4);
+ prose.innerText=prose.textContent='标题 4 介绍广告技术的自然网页';
+ const response=await run([self,marked,row(3,true),prose,row(5)]);
+ assert.deepEqual(Array.from(response.results,x=>x.title),['标题 4','标题 5']);
+});
+
+test('ignores hidden title anchors and hidden ad labels',async()=>{
+ const node=row(1,true),query=node.querySelectorAll;
+ query('span,a,em,small')[0].visible=false;
+ const hidden={...query('h3 a')[0],visible:false};
+ node.querySelectorAll=s=>s==='h3 a'?[hidden,...query(s)]:query(s);
+ const response=await run([node]);
+ assert.equal(response.count,1);
+ assert.equal(response.results[0].title,'标题 1');
+});
+
+test('rejects unsafe and credentialed result URLs and never exposes unsafe direct URLs',async()=>{
+ const badHref=['javascript:alert(1)','data:text/html,bad','https://user:pass@example.org/'];
+ const rows=badHref.map((href,i)=>{
+   const node=row(i),anchor=node.querySelectorAll('h3 a')[0],attr=anchor.getAttribute;
+   anchor.getAttribute=name=>name==='href'?href:attr(name);return node;
+ });
+ for(const [i,mu] of ['javascript:alert(1)','https://user:pass@example.org/','/relative'].entries()){
+   const node=row(i+10),attr=node.getAttribute;
+   node.getAttribute=name=>name==='mu'?mu:attr(name);rows.push(node);
+ }
+ const response=await run(rows);
+ assert.equal(response.count,3);
+ assert.ok(response.results.every(item=>!Object.hasOwn(item,'directUrl')));
+ assert.deepEqual(Array.from(response.results,x=>x.url),['https://example.org/10','https://example.org/11','https://example.org/12']);
+});
+
+test('preserves English challenge and unavailable-DOM status classification',async()=>{
+ assert.equal((await run([],undefined,'Security verification required')).status,'blocked');
+ assert.equal((await run([],undefined,'结果加载中',{searchAreaAvailable:false})).status,'dom_unavailable');
+});
+
+test('caps Unicode result samples and serialized UTF-8 output for the existing Bridge budget',async()=>{
+ const rows=[1,2,3].map(n=>{
+   const node=row(n),attr=node.getAttribute,anchor=node.querySelectorAll('h3 a')[0];
+   anchor.innerText='标题😀'.repeat(100);
+   anchor.getAttribute=name=>name==='href'?'https://example.org/'+n+'a'.repeat(1100):null;
+   node.querySelector('.c-abstract').innerText='摘要😀'.repeat(300);
+   node.getAttribute=name=>name==='mu'?'https://direct.example.org/'+n+'b'.repeat(1100):attr(name);
+   return node;
+ });
+ const response=await run(rows);
+ assert.equal(response.status,'success');
+ assert.ok(response.count>0&&response.count<=3);
+ for(const item of response.results){
+   assert.ok([...item.title].length<=96);
+   assert.ok([...item.summary].length<=200);
+   assert.equal(item.title.isWellFormed(),true);
+   assert.equal(item.summary.isWellFormed(),true);
+   assert.ok(item.url.length<1200);
+   assert.ok(!item.directUrl||item.directUrl.length<1200);
+ }
+ assert.ok(Buffer.byteLength(JSON.stringify(response),'utf8')<=6144);
+ assert.equal(response.truncated,true);
+ if(response.count<3)assert.equal(response.observedCount,3);
+});
+
+test('skips oversized result URLs and omits oversized direct URLs rather than truncating link identities',async()=>{
+ const oversized=row(1),anchor=oversized.querySelectorAll('h3 a')[0];
+ anchor.getAttribute=name=>name==='href'?'https://example.org/'+'a'.repeat(1200):null;
+ const safe=row(2),attr=safe.getAttribute;
+ safe.getAttribute=name=>name==='mu'?'https://direct.example.org/'+'a'.repeat(1200):attr(name);
+ const response=await run([oversized,safe]);
+ assert.equal(response.count,1);
+ assert.equal(response.results[0].url,'https://example.org/2');
+ assert.equal(Object.hasOwn(response.results[0],'directUrl'),false);
 });

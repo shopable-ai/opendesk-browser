@@ -26,7 +26,7 @@ export function applyField(config, form) {
 }
 // The inline editor keeps the engine's complete rule string. Field edits never
 // write a stale copy of the collection-wide scope; that is a separate action.
-export function applyInlineField(config, form) {
+export function applyInlineField(config, form, selectorDocument=globalThis.document) {
   const invalid=(message,fieldId)=>{throw Object.assign(Error(message),{fieldId});};
   if(form.scopeOnly)return applyField(config,{...form,key:'',originalKey:'',selector:'',read:'text',attr:''});
   const key=form.key.trim(),rule=form.rule.trim();
@@ -35,6 +35,11 @@ export function applyInlineField(config, form) {
   if(!rule)invalid('请填写采集规则，例如 .title::text','field-rule');
   const parsed=fieldForm(key,rule);
   if(!parsed)invalid('此规则需要在「配置 JSON」中编辑，当前输入已保留','field-rule');
+  // The engine's "." means the current item, rather than a CSS selector.
+  if(parsed.selector!=='.'&&selectorDocument){
+    try{selectorDocument.createDocumentFragment().querySelector(parsed.selector);}
+    catch{invalid('字段 CSS 选择器格式有误，请检查括号或使用点选。','field-rule');}
+  }
   if(key!==form.originalKey&&Object.hasOwn(config.itemConfig,key))invalid('已有同名字段，请使用不同名称','field-key');
   let next;
   try{next=applyField(config,{...parsed,originalKey:form.originalKey,
@@ -52,8 +57,18 @@ export function applyInlineField(config, form) {
     next.output={...config.output,fieldNames};
   }
   if(form.originalKey && key!==form.originalKey && config.output?.fieldOrder)
-    next.output={...next.output,fieldOrder:config.output.fieldOrder.map(name=>name===form.originalKey?key:name)};
+    next.output={...next.output,fieldOrder:config.output.fieldOrder.filter(name=>name!==key).map(name=>name===form.originalKey?key:name)};
   return next;
+}
+// Detail fields share export metadata, so only remove an exclusively list key.
+export function removeInlineField(config, key) {
+  const itemConfig={...config.itemConfig};delete itemConfig[key];
+  const next={...config,itemConfig};
+  if(!config.output||Object.hasOwn(config.detail?.itemConfig||{},key))return next;
+  const output={...config.output};
+  if(output.fieldNames){output.fieldNames={...output.fieldNames};delete output.fieldNames[key];}
+  if(output.fieldOrder)output.fieldOrder=output.fieldOrder.filter(name=>name!==key);
+  return {...next,output};
 }
 export function crawlForm(config) {
   const d=config.detail;

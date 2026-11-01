@@ -2,18 +2,18 @@
   "format": "scrapyjs-source-pin.v1",
   "sourceRepository": "/Users/shopme/Documents/workspace/scrapyJs",
   "sourceHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
-  "browserSha256": "42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c",
-  "authorization": "User authorized scrapyJs parameter simplification and consumer updates in this task; third-party notices retained.",
+  "browserSha256": "933775de59fed7cc1cd4f42dcd005ac53f8675a295b9b124437d1aeab5c7ba76",
+  "authorization": "User authorized full-field list preparation, record ownership safety fixes and source/SDK consumer synchronization; no Python runner, installation or publication.",
   "inputs": [
     {
       "file": "src/ai/BrowserValidation.js",
-      "sha256": "5489bc47f6d44a6248db682b113265315324fa72d37f5f13deef565aa7e3b954",
-      "bytes": 13704
+      "sha256": "d32bd7de38726b91ec69a94f697f43130321e469add663b819011b3dc07dc280",
+      "bytes": 16135
     },
     {
       "file": "src/ai/ConfigExecutor.js",
-      "sha256": "bd7103d3e1c4cbb6f08c96eea02fe8217833afde0f6a94f0811ff6cfb1228aa2",
-      "bytes": 8594
+      "sha256": "8bd7f5a265397db563027069a2bdc84f14d17bd1ddeee52ca51194ded76af742",
+      "bytes": 9212
     },
     {
       "file": "src/ai/EngineFingerprint.js",
@@ -37,8 +37,8 @@
     },
     {
       "file": "src/ai/TaskSpec.js",
-      "sha256": "443a6e423105d4a8fcdc1c1203fe98de6045783d4a7ddb4a15e0f87c1ead7495",
-      "bytes": 15803
+      "sha256": "9d8ca386124dcaa1f07c28e232ec120c21fb82833e6b7bbe9c721e56205019fe",
+      "bytes": 16025
     },
     {
       "file": "src/ai/Workflow.js",
@@ -57,8 +57,8 @@
     },
     {
       "file": "src/core/ChromeSpider.js",
-      "sha256": "3dcc8bba4be700ce1266091e521c9a70fbb5552994ab5f5b2b673b74ec13e25e",
-      "bytes": 15155
+      "sha256": "ef78f3680c034c6db81aeabea4404666e3717dfd842c0a9f7ab3b921d6d07fd5",
+      "bytes": 15540
     },
     {
       "file": "src/core/CloseSpider.js",
@@ -137,18 +137,28 @@
     },
     {
       "file": "src/item/ItemLoader.js",
-      "sha256": "6d6d0b1769c44ac79460242f8abc6ed00740edd8c2bb2256a50b5dcac11fd48c",
-      "bytes": 4720
+      "sha256": "c1eae594b83972fd66a83fa9170f967da246f7bf709cf82293ea67e681b42af2",
+      "bytes": 6113
     },
     {
       "file": "src/item/item-loader-extraction.js",
-      "sha256": "5a1724ef84bc67031e8ee9301eb9d7d0ce20722ba4a396432e6cf8e1d332f222",
-      "bytes": 9936
+      "sha256": "cc5e3123f1ea6e353de555a118e7f0830247b050a72cd209dffaa4269f53effa",
+      "bytes": 23995
+    },
+    {
+      "file": "src/item/list-preparation.js",
+      "sha256": "faf3dd00c9862f3ac88270cc117c987ea912a55655b706d5ded91485aafc51df",
+      "bytes": 3639
     },
     {
       "file": "src/item/parse-page.js",
-      "sha256": "2fa1e29d06a7abb2e69214ce8c4f71fd7a43262db8bc2cb309e03152c7eb67df",
-      "bytes": 6328
+      "sha256": "c8909f1fa9bfa761e04cad5aa3c22e11744d67a64aed2a38fb2a53a5118f0584",
+      "bytes": 6638
+    },
+    {
+      "file": "src/item/record-selection.js",
+      "sha256": "bb1fc053a6e4ffaf44b7d8b4f55c2269f55c5a9b58fbe36074110c475bfea0a5",
+      "bytes": 1716
     },
     {
       "file": "src/link/LinkExtractor.js",
@@ -201,6 +211,6 @@
       "bytes": 1614
     }
   ],
-  "sourceHash": "a2ea653145cdf1e9da70cba2b30e917f6e6e83daa32d04118448897e98272314",
-  "upstreamBuildReceiptSha256": "afef9cf57f250edea7f2818c3cca4d107049c19f9feb86c821579d553876e4c1"
+  "sourceHash": "e98923f9e17d6f21b6bb06647bf1a2476a39bfe5b88c18c3cf278e2df3508e39",
+  "upstreamBuildReceiptSha256": "0df7184ae844b3716e2be7c5d154a044e0715a2ee56c0d19422ac6375488f3c0"
 }

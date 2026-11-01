@@ -16,6 +16,648 @@ module.exports = {
 
 /***/ }),
 
+/***/ 8724:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  AttributeAction: () => (/* reexport */ types/* AttributeAction */.V4),
+  IgnoreCaseMode: () => (/* reexport */ types/* IgnoreCaseMode */.C6),
+  SelectorType: () => (/* reexport */ types/* SelectorType */.cV),
+  isTraversal: () => (/* reexport */ parse/* isTraversal */.$),
+  parse: () => (/* reexport */ parse/* parse */.q),
+  stringify: () => (/* reexport */ stringify)
+});
+
+// EXTERNAL MODULE: ./node_modules/css-what/lib/es/types.js
+var types = __webpack_require__(8543);
+// EXTERNAL MODULE: ./node_modules/css-what/lib/es/parse.js
+var parse = __webpack_require__(1025);
+;// ./node_modules/css-what/lib/es/stringify.js
+
+const attribValChars = ["\\", '"'];
+const pseudoValChars = [...attribValChars, "(", ")"];
+const charsToEscapeInAttributeValue = new Set(attribValChars.map((c) => c.charCodeAt(0)));
+const charsToEscapeInPseudoValue = new Set(pseudoValChars.map((c) => c.charCodeAt(0)));
+const charsToEscapeInName = new Set([
+    ...pseudoValChars,
+    "~",
+    "^",
+    "$",
+    "*",
+    "+",
+    "!",
+    "|",
+    ":",
+    "[",
+    "]",
+    " ",
+    ".",
+].map((c) => c.charCodeAt(0)));
+/**
+ * Turns `selector` back into a string.
+ *
+ * @param selector Selector to stringify.
+ */
+function stringify(selector) {
+    return selector
+        .map((token) => token.map(stringifyToken).join(""))
+        .join(", ");
+}
+function stringifyToken(token, index, arr) {
+    switch (token.type) {
+        // Simple types
+        case types/* SelectorType */.cV.Child:
+            return index === 0 ? "> " : " > ";
+        case types/* SelectorType */.cV.Parent:
+            return index === 0 ? "< " : " < ";
+        case types/* SelectorType */.cV.Sibling:
+            return index === 0 ? "~ " : " ~ ";
+        case types/* SelectorType */.cV.Adjacent:
+            return index === 0 ? "+ " : " + ";
+        case types/* SelectorType */.cV.Descendant:
+            return " ";
+        case types/* SelectorType */.cV.ColumnCombinator:
+            return index === 0 ? "|| " : " || ";
+        case types/* SelectorType */.cV.Universal:
+            // Return an empty string if the selector isn't needed.
+            return token.namespace === "*" &&
+                index + 1 < arr.length &&
+                "name" in arr[index + 1]
+                ? ""
+                : `${getNamespace(token.namespace)}*`;
+        case types/* SelectorType */.cV.Tag:
+            return getNamespacedName(token);
+        case types/* SelectorType */.cV.PseudoElement:
+            return `::${escapeName(token.name, charsToEscapeInName)}${token.data === null
+                ? ""
+                : `(${escapeName(token.data, charsToEscapeInPseudoValue)})`}`;
+        case types/* SelectorType */.cV.Pseudo:
+            return `:${escapeName(token.name, charsToEscapeInName)}${token.data === null
+                ? ""
+                : `(${typeof token.data === "string"
+                    ? escapeName(token.data, charsToEscapeInPseudoValue)
+                    : stringify(token.data)})`}`;
+        case types/* SelectorType */.cV.Attribute: {
+            if (token.name === "id" &&
+                token.action === types/* AttributeAction */.V4.Equals &&
+                token.ignoreCase === "quirks" &&
+                !token.namespace) {
+                return `#${escapeName(token.value, charsToEscapeInName)}`;
+            }
+            if (token.name === "class" &&
+                token.action === types/* AttributeAction */.V4.Element &&
+                token.ignoreCase === "quirks" &&
+                !token.namespace) {
+                return `.${escapeName(token.value, charsToEscapeInName)}`;
+            }
+            const name = getNamespacedName(token);
+            if (token.action === types/* AttributeAction */.V4.Exists) {
+                return `[${name}]`;
+            }
+            return `[${name}${getActionValue(token.action)}="${escapeName(token.value, charsToEscapeInAttributeValue)}"${token.ignoreCase === null ? "" : token.ignoreCase ? " i" : " s"}]`;
+        }
+    }
+}
+function getActionValue(action) {
+    switch (action) {
+        case types/* AttributeAction */.V4.Equals:
+            return "";
+        case types/* AttributeAction */.V4.Element:
+            return "~";
+        case types/* AttributeAction */.V4.Start:
+            return "^";
+        case types/* AttributeAction */.V4.End:
+            return "$";
+        case types/* AttributeAction */.V4.Any:
+            return "*";
+        case types/* AttributeAction */.V4.Not:
+            return "!";
+        case types/* AttributeAction */.V4.Hyphen:
+            return "|";
+        case types/* AttributeAction */.V4.Exists:
+            throw new Error("Shouldn't be here");
+    }
+}
+function getNamespacedName(token) {
+    return `${getNamespace(token.namespace)}${escapeName(token.name, charsToEscapeInName)}`;
+}
+function getNamespace(namespace) {
+    return namespace !== null
+        ? `${namespace === "*"
+            ? "*"
+            : escapeName(namespace, charsToEscapeInName)}|`
+        : "";
+}
+function escapeName(str, charsToEscape) {
+    let lastIdx = 0;
+    let ret = "";
+    for (let i = 0; i < str.length; i++) {
+        if (charsToEscape.has(str.charCodeAt(i))) {
+            ret += `${str.slice(lastIdx, i)}\\${str.charAt(i)}`;
+            lastIdx = i + 1;
+        }
+    }
+    return ret.length > 0 ? ret + str.slice(lastIdx) : str;
+}
+
+;// ./node_modules/css-what/lib/es/index.js
+
+
+
+
+
+/***/ }),
+
+/***/ 1025:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   $: () => (/* binding */ isTraversal),
+/* harmony export */   q: () => (/* binding */ parse)
+/* harmony export */ });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8543);
+
+const reName = /^[^\\#]?(?:\\(?:[\da-f]{1,6}\s?|.)|[\w\-\u00b0-\uFFFF])+/;
+const reEscape = /\\([\da-f]{1,6}\s?|(\s)|.)/gi;
+const actionTypes = new Map([
+    [126 /* Tilde */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Element],
+    [94 /* Circumflex */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Start],
+    [36 /* Dollar */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.End],
+    [42 /* Asterisk */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Any],
+    [33 /* ExclamationMark */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Not],
+    [124 /* Pipe */, _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Hyphen],
+]);
+// Pseudos, whose data property is parsed as well.
+const unpackPseudos = new Set([
+    "has",
+    "not",
+    "matches",
+    "is",
+    "where",
+    "host",
+    "host-context",
+]);
+/**
+ * Checks whether a specific selector is a traversal.
+ * This is useful eg. in swapping the order of elements that
+ * are not traversals.
+ *
+ * @param selector Selector to check.
+ */
+function isTraversal(selector) {
+    switch (selector.type) {
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Adjacent:
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Child:
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Descendant:
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Parent:
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Sibling:
+        case _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.ColumnCombinator:
+            return true;
+        default:
+            return false;
+    }
+}
+const stripQuotesFromPseudos = new Set(["contains", "icontains"]);
+// Unescape function taken from https://github.com/jquery/sizzle/blob/master/src/sizzle.js#L152
+function funescape(_, escaped, escapedWhitespace) {
+    const high = parseInt(escaped, 16) - 0x10000;
+    // NaN means non-codepoint
+    return high !== high || escapedWhitespace
+        ? escaped
+        : high < 0
+            ? // BMP codepoint
+                String.fromCharCode(high + 0x10000)
+            : // Supplemental Plane codepoint (surrogate pair)
+                String.fromCharCode((high >> 10) | 0xd800, (high & 0x3ff) | 0xdc00);
+}
+function unescapeCSS(str) {
+    return str.replace(reEscape, funescape);
+}
+function isQuote(c) {
+    return c === 39 /* SingleQuote */ || c === 34 /* DoubleQuote */;
+}
+function isWhitespace(c) {
+    return (c === 32 /* Space */ ||
+        c === 9 /* Tab */ ||
+        c === 10 /* NewLine */ ||
+        c === 12 /* FormFeed */ ||
+        c === 13 /* CarriageReturn */);
+}
+/**
+ * Parses `selector`, optionally with the passed `options`.
+ *
+ * @param selector Selector to parse.
+ * @param options Options for parsing.
+ * @returns Returns a two-dimensional array.
+ * The first dimension represents selectors separated by commas (eg. `sub1, sub2`),
+ * the second contains the relevant tokens for that selector.
+ */
+function parse(selector) {
+    const subselects = [];
+    const endIndex = parseSelector(subselects, `${selector}`, 0);
+    if (endIndex < selector.length) {
+        throw new Error(`Unmatched selector: ${selector.slice(endIndex)}`);
+    }
+    return subselects;
+}
+function parseSelector(subselects, selector, selectorIndex) {
+    let tokens = [];
+    function getName(offset) {
+        const match = selector.slice(selectorIndex + offset).match(reName);
+        if (!match) {
+            throw new Error(`Expected name, found ${selector.slice(selectorIndex)}`);
+        }
+        const [name] = match;
+        selectorIndex += offset + name.length;
+        return unescapeCSS(name);
+    }
+    function stripWhitespace(offset) {
+        selectorIndex += offset;
+        while (selectorIndex < selector.length &&
+            isWhitespace(selector.charCodeAt(selectorIndex))) {
+            selectorIndex++;
+        }
+    }
+    function readValueWithParenthesis() {
+        selectorIndex += 1;
+        const start = selectorIndex;
+        let counter = 1;
+        for (; counter > 0 && selectorIndex < selector.length; selectorIndex++) {
+            if (selector.charCodeAt(selectorIndex) ===
+                40 /* LeftParenthesis */ &&
+                !isEscaped(selectorIndex)) {
+                counter++;
+            }
+            else if (selector.charCodeAt(selectorIndex) ===
+                41 /* RightParenthesis */ &&
+                !isEscaped(selectorIndex)) {
+                counter--;
+            }
+        }
+        if (counter) {
+            throw new Error("Parenthesis not matched");
+        }
+        return unescapeCSS(selector.slice(start, selectorIndex - 1));
+    }
+    function isEscaped(pos) {
+        let slashCount = 0;
+        while (selector.charCodeAt(--pos) === 92 /* BackSlash */)
+            slashCount++;
+        return (slashCount & 1) === 1;
+    }
+    function ensureNotTraversal() {
+        if (tokens.length > 0 && isTraversal(tokens[tokens.length - 1])) {
+            throw new Error("Did not expect successive traversals.");
+        }
+    }
+    function addTraversal(type) {
+        if (tokens.length > 0 &&
+            tokens[tokens.length - 1].type === _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Descendant) {
+            tokens[tokens.length - 1].type = type;
+            return;
+        }
+        ensureNotTraversal();
+        tokens.push({ type });
+    }
+    function addSpecialAttribute(name, action) {
+        tokens.push({
+            type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Attribute,
+            name,
+            action,
+            value: getName(1),
+            namespace: null,
+            ignoreCase: "quirks",
+        });
+    }
+    /**
+     * We have finished parsing the current part of the selector.
+     *
+     * Remove descendant tokens at the end if they exist,
+     * and return the last index, so that parsing can be
+     * picked up from here.
+     */
+    function finalizeSubselector() {
+        if (tokens.length &&
+            tokens[tokens.length - 1].type === _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Descendant) {
+            tokens.pop();
+        }
+        if (tokens.length === 0) {
+            throw new Error("Empty sub-selector");
+        }
+        subselects.push(tokens);
+    }
+    stripWhitespace(0);
+    if (selector.length === selectorIndex) {
+        return selectorIndex;
+    }
+    loop: while (selectorIndex < selector.length) {
+        const firstChar = selector.charCodeAt(selectorIndex);
+        switch (firstChar) {
+            // Whitespace
+            case 32 /* Space */:
+            case 9 /* Tab */:
+            case 10 /* NewLine */:
+            case 12 /* FormFeed */:
+            case 13 /* CarriageReturn */: {
+                if (tokens.length === 0 ||
+                    tokens[0].type !== _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Descendant) {
+                    ensureNotTraversal();
+                    tokens.push({ type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Descendant });
+                }
+                stripWhitespace(1);
+                break;
+            }
+            // Traversals
+            case 62 /* GreaterThan */: {
+                addTraversal(_types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Child);
+                stripWhitespace(1);
+                break;
+            }
+            case 60 /* LessThan */: {
+                addTraversal(_types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Parent);
+                stripWhitespace(1);
+                break;
+            }
+            case 126 /* Tilde */: {
+                addTraversal(_types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Sibling);
+                stripWhitespace(1);
+                break;
+            }
+            case 43 /* Plus */: {
+                addTraversal(_types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Adjacent);
+                stripWhitespace(1);
+                break;
+            }
+            // Special attribute selectors: .class, #id
+            case 46 /* Period */: {
+                addSpecialAttribute("class", _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Element);
+                break;
+            }
+            case 35 /* Hash */: {
+                addSpecialAttribute("id", _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Equals);
+                break;
+            }
+            case 91 /* LeftSquareBracket */: {
+                stripWhitespace(1);
+                // Determine attribute name and namespace
+                let name;
+                let namespace = null;
+                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */) {
+                    // Equivalent to no namespace
+                    name = getName(1);
+                }
+                else if (selector.startsWith("*|", selectorIndex)) {
+                    namespace = "*";
+                    name = getName(2);
+                }
+                else {
+                    name = getName(0);
+                    if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
+                        selector.charCodeAt(selectorIndex + 1) !==
+                            61 /* Equal */) {
+                        namespace = name;
+                        name = getName(1);
+                    }
+                }
+                stripWhitespace(0);
+                // Determine comparison operation
+                let action = _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Exists;
+                const possibleAction = actionTypes.get(selector.charCodeAt(selectorIndex));
+                if (possibleAction) {
+                    action = possibleAction;
+                    if (selector.charCodeAt(selectorIndex + 1) !==
+                        61 /* Equal */) {
+                        throw new Error("Expected `=`");
+                    }
+                    stripWhitespace(2);
+                }
+                else if (selector.charCodeAt(selectorIndex) === 61 /* Equal */) {
+                    action = _types__WEBPACK_IMPORTED_MODULE_0__/* .AttributeAction */ .V4.Equals;
+                    stripWhitespace(1);
+                }
+                // Determine value
+                let value = "";
+                let ignoreCase = null;
+                if (action !== "exists") {
+                    if (isQuote(selector.charCodeAt(selectorIndex))) {
+                        const quote = selector.charCodeAt(selectorIndex);
+                        let sectionEnd = selectorIndex + 1;
+                        while (sectionEnd < selector.length &&
+                            (selector.charCodeAt(sectionEnd) !== quote ||
+                                isEscaped(sectionEnd))) {
+                            sectionEnd += 1;
+                        }
+                        if (selector.charCodeAt(sectionEnd) !== quote) {
+                            throw new Error("Attribute value didn't end");
+                        }
+                        value = unescapeCSS(selector.slice(selectorIndex + 1, sectionEnd));
+                        selectorIndex = sectionEnd + 1;
+                    }
+                    else {
+                        const valueStart = selectorIndex;
+                        while (selectorIndex < selector.length &&
+                            ((!isWhitespace(selector.charCodeAt(selectorIndex)) &&
+                                selector.charCodeAt(selectorIndex) !==
+                                    93 /* RightSquareBracket */) ||
+                                isEscaped(selectorIndex))) {
+                            selectorIndex += 1;
+                        }
+                        value = unescapeCSS(selector.slice(valueStart, selectorIndex));
+                    }
+                    stripWhitespace(0);
+                    // See if we have a force ignore flag
+                    const forceIgnore = selector.charCodeAt(selectorIndex) | 0x20;
+                    // If the forceIgnore flag is set (either `i` or `s`), use that value
+                    if (forceIgnore === 115 /* LowerS */) {
+                        ignoreCase = false;
+                        stripWhitespace(1);
+                    }
+                    else if (forceIgnore === 105 /* LowerI */) {
+                        ignoreCase = true;
+                        stripWhitespace(1);
+                    }
+                }
+                if (selector.charCodeAt(selectorIndex) !==
+                    93 /* RightSquareBracket */) {
+                    throw new Error("Attribute selector didn't terminate");
+                }
+                selectorIndex += 1;
+                const attributeSelector = {
+                    type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Attribute,
+                    name,
+                    action,
+                    value,
+                    namespace,
+                    ignoreCase,
+                };
+                tokens.push(attributeSelector);
+                break;
+            }
+            case 58 /* Colon */: {
+                if (selector.charCodeAt(selectorIndex + 1) === 58 /* Colon */) {
+                    tokens.push({
+                        type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.PseudoElement,
+                        name: getName(2).toLowerCase(),
+                        data: selector.charCodeAt(selectorIndex) ===
+                            40 /* LeftParenthesis */
+                            ? readValueWithParenthesis()
+                            : null,
+                    });
+                    continue;
+                }
+                const name = getName(1).toLowerCase();
+                let data = null;
+                if (selector.charCodeAt(selectorIndex) ===
+                    40 /* LeftParenthesis */) {
+                    if (unpackPseudos.has(name)) {
+                        if (isQuote(selector.charCodeAt(selectorIndex + 1))) {
+                            throw new Error(`Pseudo-selector ${name} cannot be quoted`);
+                        }
+                        data = [];
+                        selectorIndex = parseSelector(data, selector, selectorIndex + 1);
+                        if (selector.charCodeAt(selectorIndex) !==
+                            41 /* RightParenthesis */) {
+                            throw new Error(`Missing closing parenthesis in :${name} (${selector})`);
+                        }
+                        selectorIndex += 1;
+                    }
+                    else {
+                        data = readValueWithParenthesis();
+                        if (stripQuotesFromPseudos.has(name)) {
+                            const quot = data.charCodeAt(0);
+                            if (quot === data.charCodeAt(data.length - 1) &&
+                                isQuote(quot)) {
+                                data = data.slice(1, -1);
+                            }
+                        }
+                        data = unescapeCSS(data);
+                    }
+                }
+                tokens.push({ type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Pseudo, name, data });
+                break;
+            }
+            case 44 /* Comma */: {
+                finalizeSubselector();
+                tokens = [];
+                stripWhitespace(1);
+                break;
+            }
+            default: {
+                if (selector.startsWith("/*", selectorIndex)) {
+                    const endIndex = selector.indexOf("*/", selectorIndex + 2);
+                    if (endIndex < 0) {
+                        throw new Error("Comment was not terminated");
+                    }
+                    selectorIndex = endIndex + 2;
+                    // Remove leading whitespace
+                    if (tokens.length === 0) {
+                        stripWhitespace(0);
+                    }
+                    break;
+                }
+                let namespace = null;
+                let name;
+                if (firstChar === 42 /* Asterisk */) {
+                    selectorIndex += 1;
+                    name = "*";
+                }
+                else if (firstChar === 124 /* Pipe */) {
+                    name = "";
+                    if (selector.charCodeAt(selectorIndex + 1) === 124 /* Pipe */) {
+                        addTraversal(_types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.ColumnCombinator);
+                        stripWhitespace(2);
+                        break;
+                    }
+                }
+                else if (reName.test(selector.slice(selectorIndex))) {
+                    name = getName(0);
+                }
+                else {
+                    break loop;
+                }
+                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
+                    selector.charCodeAt(selectorIndex + 1) !== 124 /* Pipe */) {
+                    namespace = name;
+                    if (selector.charCodeAt(selectorIndex + 1) ===
+                        42 /* Asterisk */) {
+                        name = "*";
+                        selectorIndex += 2;
+                    }
+                    else {
+                        name = getName(1);
+                    }
+                }
+                tokens.push(name === "*"
+                    ? { type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Universal, namespace }
+                    : { type: _types__WEBPACK_IMPORTED_MODULE_0__/* .SelectorType */ .cV.Tag, name, namespace });
+            }
+        }
+    }
+    finalizeSubselector();
+    return selectorIndex;
+}
+
+
+/***/ }),
+
+/***/ 8543:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   C6: () => (/* binding */ IgnoreCaseMode),
+/* harmony export */   V4: () => (/* binding */ AttributeAction),
+/* harmony export */   cV: () => (/* binding */ SelectorType)
+/* harmony export */ });
+var SelectorType;
+(function (SelectorType) {
+    SelectorType["Attribute"] = "attribute";
+    SelectorType["Pseudo"] = "pseudo";
+    SelectorType["PseudoElement"] = "pseudo-element";
+    SelectorType["Tag"] = "tag";
+    SelectorType["Universal"] = "universal";
+    // Traversals
+    SelectorType["Adjacent"] = "adjacent";
+    SelectorType["Child"] = "child";
+    SelectorType["Descendant"] = "descendant";
+    SelectorType["Parent"] = "parent";
+    SelectorType["Sibling"] = "sibling";
+    SelectorType["ColumnCombinator"] = "column-combinator";
+})(SelectorType || (SelectorType = {}));
+/**
+ * Modes for ignore case.
+ *
+ * This could be updated to an enum, and the object is
+ * the current stand-in that will allow code to be updated
+ * without big changes.
+ */
+const IgnoreCaseMode = {
+    Unknown: null,
+    QuirksMode: "quirks",
+    IgnoreCase: true,
+    CaseSensitive: false,
+};
+var AttributeAction;
+(function (AttributeAction) {
+    AttributeAction["Any"] = "any";
+    AttributeAction["Element"] = "element";
+    AttributeAction["End"] = "end";
+    AttributeAction["Equals"] = "equals";
+    AttributeAction["Exists"] = "exists";
+    AttributeAction["Hyphen"] = "hyphen";
+    AttributeAction["Not"] = "not";
+    AttributeAction["Start"] = "start";
+})(AttributeAction || (AttributeAction = {}));
+
+
+/***/ }),
+
 /***/ 9283:
 /***/ (function(module) {
 
@@ -124,7 +766,7 @@ module.exports = {
 /***/ }),
 
 /***/ 4668:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
@@ -170,11 +812,19 @@ function validateConfig(config) {
   const input = object(config.itemConfig, 'itemConfig');
   const keys = Object.keys(input).filter(key => key !== '_listContainer' && key !== '_listItem');
   if (!keys.length || keys.length > 20) invalid('itemConfig must contain 1–20 fields');
-  const itemConfig = { _listContainer: selector(input._listContainer) };
+  const itemConfig = {};
+  if (Object.hasOwn(input, '_listContainer')) itemConfig._listContainer = selector(input._listContainer);
   if (Object.hasOwn(input, '_listItem')) itemConfig._listItem = selector(input._listItem);
   for (const key of keys) {
     fieldKey(key);
-    if (typeof input[key] !== 'string') invalid('Fields must be CSS selector strings');
+    if (typeof input[key] !== 'string') {
+      const field = object(input[key], 'field descriptor', ['selector', 'read', 'attr', 'cardinality']);
+      if (!['text', 'attr'].includes(field.read) || !['one', 'many'].includes(field.cardinality)
+          || (field.read === 'attr' ? !ATTRIBUTES.includes(field.attr) || field.attr === 'text' : Object.hasOwn(field, 'attr'))) invalid('Unsupported field descriptor read, attribute or cardinality');
+      itemConfig[key] = { selector: selector(field.selector, true), read: field.read,
+        ...(field.read === 'attr' ? { attr: field.attr } : {}), cardinality: field.cardinality };
+      continue;
+    }
     const parts = input[key].trim().split('::');
     if (parts.length > 2 || (parts.length === 2 && !ATTRIBUTES.includes(parts[1]))) invalid('Unsupported field attribute');
     itemConfig[key] = selector(parts[0], true) + (parts.length === 2 ? `::${parts[1]}` : '');
@@ -193,7 +843,11 @@ function validateConfig(config) {
     seen.add(field.key);
     fieldRequirements.push({ key: field.key, required: field.required, valueType: field.valueType });
   }
-  return { validation: { version: 1, rowShape: validation.rowShape }, itemConfig, fieldRequirements };
+  if (!Object.hasOwn(itemConfig, '_listContainer') && !Object.hasOwn(itemConfig, '_listItem')) invalid('A record selector or explicit legacy scope is required');
+  let selection;
+  try { selection = (__webpack_require__(7858).recordSelection)(itemConfig._listContainer, itemConfig._listItem); }
+  catch (_) { invalid('Invalid record selection'); }
+  return { validation: { version: 1, rowShape: validation.rowShape }, itemConfig, fieldRequirements, selection };
 }
 
 // This callback must remain self-contained: ChromePage serializes it into the page's DOM realm.
@@ -252,38 +906,39 @@ function inspectDOM(config) {
     return null;
   }
   try {
-    const containers = Array.from(document.querySelectorAll(config.itemConfig._listContainer));
-    if (containers.length !== 1) {
+    const plan = config.selection;
+    const containers = plan.listSelector === null ? [] : Array.from(document.querySelectorAll(plan.listSelector));
+    if (plan.listSelector !== null && !containers.length) {
       const title = String(document.title || '').trim();
       const denied = /^(?:401(?:\s+unauthorized)?|403(?:\s+forbidden)?|429(?:\s+too many requests)?|access denied|forbidden|Security Verification|请进行安全验证(?:\s*\(Security Verification\))?)$/i.test(title);
-      if (!containers.length && denied) issue('E_AI_PAGE_ACCESS', 'Target page requires access verification: ' + title, { key: '_listContainer', hits: 0 });
-      else issue('E_AI_STALE', 'List container must match exactly once', { key: '_listContainer', hits: containers.length });
+      issue(denied ? 'E_AI_PAGE_ACCESS' : 'E_AI_STALE', denied ? 'Target page requires access verification: ' + title : 'List scope no longer matches', {key:'_listContainer',hits:0});
       return result;
     }
-    const container = containers[0];
-    if (container.shadowRoot || !visible(container) || ['TABLE', 'THEAD', 'TR'].includes(container.tagName)) {
-      issue('E_AI_STALE', 'List container is hidden or unsupported');
+    if (containers.some(container => container.shadowRoot || !visible(container))) {
+      issue('E_AI_STALE', 'List scope is hidden or unsupported');
       return result;
     }
-    let rows = Array.from(container.children);
-    if (config.itemConfig._listItem !== undefined) {
-      try {
-        container.matches(config.itemConfig._listItem);
-        rows = rows.filter(row => row.matches(config.itemConfig._listItem));
-      } catch {
-        issue('E_AI_VALIDATION', 'Invalid list item CSS selector', { selector: config.itemConfig._listItem });
-        return result;
-      }
-    }
+    // A document query is already ordered and unique, even for overlapping scopes.
+    // For legacy container-only profiles, collect direct children by identity.
+    const admitted = new Set();
+    if (plan.listSelector !== null) for (const container of containers) for (const child of container.children) admitted.add(child);
+    let selected;
+    try { selected = Array.from(document.querySelectorAll(plan.itemSelector || '*')); }
+    catch { issue('E_AI_VALIDATION', 'Invalid record CSS selector', {selector:plan.itemSelector}); return result; }
+    const rows = selected.filter(row => plan.listSelector === null || admitted.has(row));
     if (!rows.length || rows.length > 500) {
-      issue('E_AI_STALE', 'List must contain 1–500 direct child rows', { hits: rows.length });
+      const title = String(document.title || '').trim();
+      const denied = /^(?:401(?:\s+unauthorized)?|403(?:\s+forbidden)?|429(?:\s+too many requests)?|access denied|forbidden|Security Verification|请进行安全验证(?:\s*\(Security Verification\))?)$/i.test(title);
+      issue(!rows.length && denied ? 'E_AI_PAGE_ACCESS' : 'E_AI_STALE', 'List must contain 1–500 selected records', {key:plan.listSelector === null ? '_listItem' : '_listContainer',hits:rows.length});
       return result;
     }
     result.rowShape = token(rows[0]);
     const fields = Object.entries(config.itemConfig).filter(([key]) => key !== '_listContainer' && key !== '_listItem').map(([key, source]) => {
-      const [selector, attribute] = source.split('::');
+      const descriptor = typeof source !== 'string';
+      const [selector, attribute] = descriptor
+        ? [source.selector, source.read === 'text' ? 'text' : source.attr] : source.split('::');
       const requirement = config.fieldRequirements.find(field => field.key === key);
-      return { key, selector, attribute, required: requirement?.required ?? false, valueType: requirement?.valueType };
+      return { key, selector, attribute, many: descriptor && source.cardinality === 'many', descriptor, required: requirement?.required ?? false, valueType: requirement?.valueType };
     });
     for (const [rowIndex, row] of rows.entries()) {
       result.checkedRows++;
@@ -294,25 +949,28 @@ function inspectDOM(config) {
         let matches;
         try { matches = Array.from(row.querySelectorAll(field.selector)); }
         catch { issue('E_AI_VALIDATION', 'Invalid field CSS selector', details); continue; }
-        if (matches.length > 1 || (!matches.length && field.required)) {
+        if ((!field.many && matches.length > 1) || (!matches.length && field.required)) {
           issue('E_AI_STALE', 'Field selector cardinality changed', { ...details, hits: matches.length });
           continue;
         }
-        if (!matches.length) continue;
-        const el = matches[0];
-        if (!visible(el) || el.shadowRoot) {
-          issue('E_AI_STALE', 'Field is hidden or uses Shadow DOM', details);
-          continue;
+        for (const el of matches) {
+          if (!visible(el) || el.shadowRoot) {
+            issue('E_AI_STALE', 'Field is hidden or uses Shadow DOM', details);
+            continue;
+          }
+          if (field.valueType === undefined) continue;
+          const value = valueOf(el, field.attribute);
+          if (!value || !String(value).trim()) {
+            // Explicit text reads preserve prepared optional empty cells. Legacy
+            // string profiles still reject matched empty nodes, as before.
+            if (!(field.descriptor && field.attribute === 'text' && !field.required && !['url', 'image'].includes(field.valueType))) {
+              issue('E_AI_STALE', 'Field is empty or its attribute is missing', details);
+            }
+            continue;
+          }
+          const error = semantic(value, el, field.attribute, field.valueType);
+          if (error) issue('E_AI_VALIDATION', error, details);
         }
-        if (field.valueType === undefined) continue;
-        const value = valueOf(el, field.attribute);
-        if (!value || !String(value).trim()) {
-          // Declared optional fields allow zero matches, but an empty matched node blocks.
-          issue('E_AI_STALE', 'Field is empty or its attribute is missing', details);
-          continue;
-        }
-        const error = semantic(value, el, field.attribute, field.valueType);
-        if (error) issue('E_AI_VALIDATION', error, details);
       }
     }
   } catch {
@@ -342,15 +1000,26 @@ async function validateBrowserProfile(page, spiderConfig) {
 // Legacy ItemLoader callers retain their literal attribute behavior.
 function normalizeRecord(record, config, baseURL) {
   if (!Object.hasOwn(config, 'validation')) return record;
-  const { fieldRequirements } = validateConfig(config);
+  const { fieldRequirements, itemConfig } = validateConfig(config);
   const output = { ...record };
   for (const field of fieldRequirements) {
-    if (!['url', 'image'].includes(field.valueType) || output[field.key] === undefined || output[field.key] === '') continue;
-    if (typeof output[field.key] !== 'string') invalid('URL field must be a scalar string');
-    let url;
-    try { url = new URL(output[field.key], baseURL); } catch { invalid('URL field could not be resolved'); }
-    if (!['http:', 'https:'].includes(url.protocol)) invalid('URL field must use HTTP or HTTPS');
-    output[field.key] = url.href;
+    if (!['url', 'image'].includes(field.valueType) || output[field.key] === undefined) continue;
+    const many = itemConfig[field.key].cardinality === 'many';
+    if (!many && output[field.key] === '') continue;
+    const resolve = value => {
+      if (typeof value !== 'string' || (many && !value.trim())) invalid('URL field must be a nonempty string');
+      let url;
+      try { url = new URL(value, baseURL); } catch { invalid('URL field could not be resolved'); }
+      if (!['http:', 'https:'].includes(url.protocol)) invalid('URL field must use HTTP or HTTPS');
+      return url.href;
+    };
+    if (many) {
+      if (!Array.isArray(output[field.key])) invalid('URL many field must be an array');
+      output[field.key] = Array.from(output[field.key], resolve);
+    } else {
+      if (typeof output[field.key] !== 'string') invalid('URL field must be a scalar string');
+      output[field.key] = resolve(output[field.key]);
+    }
   }
   return output;
 }
@@ -390,7 +1059,7 @@ function inspectPage(source, candidate, taskSpec, context = {}) {
     if (context.deadline && Date.now() >= context.deadline) throw fault('TIME_BUDGET');
     const url = assertAllowedUrl(source.url, spec);
     if (typeof source.html !== 'string' || new TextEncoder().encode(source.html).length > spec.limits.maxBodyBytes) throw fault('PAGE_SIZE');
-    const cheerio = __webpack_require__(844); const ItemLoader = __webpack_require__(2640);
+    const cheerio = __webpack_require__(449); const ItemLoader = __webpack_require__(2640);
     const $ = cheerio.load(source.html);
     const stage = context.stage || 'list';
     if (!['list', 'detail'].includes(stage) || !config[stage]) throw fault('UNSUPPORTED_CAPABILITY');
@@ -405,12 +1074,16 @@ function inspectPage(source, candidate, taskSpec, context = {}) {
     probe = { stage, selector: config.states.ready, count: ready };
     if (ready && empty) throw fault('PAGE_STATE_AMBIGUOUS');
     if (empty) pageState = 'empty'; else if (ready === 1) pageState = 'ready'; else throw fault('PAGE_NOT_READY');
-    const container = $(section.container);
-    evidence.container = { selector: section.container, matchCount: container.length };
+    const {recordSelection, selectCheerioRecords} = __webpack_require__(7858);
+    const container = section.container === undefined ? $() : $(section.container);
+    evidence.container = section.container === undefined ? null : { selector: section.container, matchCount: container.length };
     probe = { stage, selector: section.container, count: container.length };
     if (container.toArray().some(excluded)) throw fault('ERROR_REGION_SELECTED');
-    if (container.length !== 1) throw fault('CONTAINER_CARDINALITY');
-    const nodes = stage === 'list' ? container.children(config.list.record.selector) : container;
+    if (stage === 'detail' && container.length !== 1) throw fault('CONTAINER_CARDINALITY');
+    const plan = stage === 'list' ? recordSelection(section.container, section.record.selector, section.record.relation) : null;
+    const nodes = stage === 'list' ? selectCheerioRecords($, plan) : container;
+    if (plan) evidence.selection = plan;
+    probe = {stage, selector: stage === 'list' ? section.record.selector : section.container, count: nodes.length};
     evidence.recordCount = nodes.length;
     if (nodes.toArray().some(excluded)) throw fault('ERROR_REGION_SELECTED');
     const readNext = () => {
@@ -443,7 +1116,9 @@ function inspectPage(source, candidate, taskSpec, context = {}) {
         const matches = root.find(field.selector);
         probe = { stage, recordIndex, field: key, selector: field.selector, count: matches.length };
         if (Object.keys(detail.fields).length < 32) detail.fields[key] = { selector: field.selector, matchCount: matches.length };
-        if (matches.toArray().some(el => safetyRegions.some(sel => local(el).is(sel) || local(el).parents(sel).length))) throw fault('ERROR_REGION_SELECTED');
+        // Retain page ancestors for safety selectors while extraction stays record-local.
+        if ($(node).find(field.selector).toArray().some(excluded) ||
+          matches.toArray().some(el => safetyRegions.some(sel => local(el).is(sel) || local(el).parents(sel).length))) throw fault('ERROR_REGION_SELECTED');
         const count = matches.length;
         if (rules[key].cardinality === 'one' && count > 1) throw fault('FIELD_CARDINALITY');
         if (rules[key].required && count === 0) throw fault('FIELD_REQUIRED');
@@ -799,7 +1474,7 @@ function selector(value, allowAdjacent = false) {
   const combinator = allowAdjacent === true ? '[>+]' : '>';
   const re = new RegExp('^' + compound + '(?:(?:\\s*' + combinator + '\\s*|\\s+)' + compound + ')*$');
   if (!re.test(value.trim())) throw fault('CSS_SYNTAX');
-  try { (__webpack_require__(844).load)('<div></div>')(value); } catch { throw fault('CSS_SYNTAX'); }
+  try { (__webpack_require__(449).load)('<div></div>')(value); } catch { throw fault('CSS_SYNTAX'); }
   return value.trim();
 }
 function assertAllowedUrl(value, spec, base) {
@@ -899,7 +1574,8 @@ function validateCandidate(raw, taskSpec) {
   if (s.mode === 'list' && c.detail) throw fault('UNSUPPORTED_CAPABILITY');
   for (const stage of ['list', ...(s.mode === 'list-detail' ? ['detail'] : [])]) {
     const section = c[stage]; keys(section, stage === 'list' ? ['container', 'record', 'fields'] : ['container', 'fields']);
-    section.container = selector(section.container); keys(section.fields, Object.keys(s[stage].fields));
+    if (stage === 'detail' || Object.hasOwn(section, 'container')) section.container = selector(section.container);
+    keys(section.fields, Object.keys(s[stage].fields));
     if (Object.keys(section.fields).length !== Object.keys(s[stage].fields).length) throw fault('FIELD_SCHEMA');
     for (const [name, f] of Object.entries(section.fields)) {
       keys(f, ['selector', 'read', 'attr']); f.selector = selector(f.selector, true);
@@ -908,7 +1584,10 @@ function validateCandidate(raw, taskSpec) {
     }
   }
   keys(c.list.record, ['selector', 'relation']); c.list.record.selector = selector(c.list.record.selector);
-  if (c.list.record.relation !== 'directChildren') throw fault('UNSUPPORTED_CAPABILITY');
+  try {
+    const plan = (__webpack_require__(7858).recordSelection)(c.list.container, c.list.record.selector, c.list.record.relation);
+    c.list.record.relation = plan.relation;
+  } catch (_) { throw fault('UNSUPPORTED_CAPABILITY'); }
   keys(c.states, ['ready', 'empty', 'login', 'error', 'allowEmpty']);
   if (c.states.allowEmpty !== s.states.allowEmpty) throw fault('CANDIDATE_CONSTRAINT');
   for (const k of ['ready', 'empty', 'login', 'error']) c.states[k] = selector(c.states[k]);
@@ -953,7 +1632,7 @@ function isBudget(code) { return /BUDGET|TIMEOUT|ABORTED|PAGE_SIZE|JSON_SIZE/.te
 
 
 function scrubEvidence(source, stage) {
-  const $ = (__webpack_require__(844).load)(source.html);
+  const $ = (__webpack_require__(449).load)(source.html);
   $('script,style,input,textarea,meta').remove();
   $('*').each((_, node) => {
     for (const name of Object.keys(node.attribs || {})) if (/^(?:on|nonce$|value$|password$|token$)/i.test(name)) $(node).removeAttr(name);
@@ -1579,19 +2258,23 @@ class ChromeSpider extends CrawlSpider {
     // Legacy bridge only: heuristic content settling is not a modern completion guarantee.
     const region = this.config.itemConfig?._listContainer || null;
     const capture = () => page.evaluate(function transitionSnapshot(selector, xpath, itemSelector) {
-      const element = selector ? xpath ? document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue : document.querySelector(selector) : document.body;
-      let rows = element ? Array.from(element.children) : [];
-      if (itemSelector !== null) {
-        if (element) element.matches(itemSelector);
-        rows = rows.filter(row => row.matches(itemSelector));
-      }
-      let busy = false;
-      for (let node = element; node; node = node.parentElement) {
-        if (node.getAttribute('aria-busy') === 'true' || node.hidden) busy = true;
-      }
-      const style = element ? getComputedStyle(element) : null;
-      return { url: location.href, content: itemSelector === null ? element?.innerHTML || '' : JSON.stringify(rows.map(row => row.outerHTML)), records: rows.length,
-        visible: !!element && !busy && style?.display !== 'none' && style?.visibility !== 'hidden',
+      const elements = selector ? xpath
+        ? [document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue].filter(Boolean)
+        : Array.from(document.querySelectorAll(selector)) : [document.body].filter(Boolean);
+      const candidates = itemSelector !== null ? Array.from(document.querySelectorAll(itemSelector)) : null;
+      const children = new Set(elements.flatMap(element => Array.from(element.children)));
+      const rows = candidates ? candidates.filter(row => !selector || children.has(row)) : Array.from(children);
+      const visible = element => {
+        for (let node = element; node; node = node.parentElement) {
+          if (node.getAttribute('aria-busy') === 'true' || node.hidden) return false;
+        }
+        const style = getComputedStyle(element);
+        return style?.display !== 'none' && style?.visibility !== 'hidden';
+      };
+      return { url: location.href, content: JSON.stringify(itemSelector === null ? elements.map(element => element.innerHTML) : rows.map(row => row.outerHTML)), records: rows.length,
+        // Container mode historically permits hidden metadata children. In
+        // standalone mode require some visible record, not every optional row.
+        visible: elements.length > 0 && elements.every(visible) && (!!selector || itemSelector === null || rows.some(visible)),
         ready: document.readyState === 'complete' };
     }, region, !!region && this.isXPath(region), this.config.itemConfig?._listItem ?? null);
     const before = await capture();
@@ -1874,7 +2557,7 @@ module.exports = CrawlSpider;
 
 function getCheerio() {
     try {
-        return __webpack_require__(844);
+        return __webpack_require__(449);
     } catch {
         throw new Error('ListSpider requires "cheerio". Please install it with `npm install cheerio`.');
     }
@@ -4059,7 +4742,7 @@ const extraction = __webpack_require__(4849);
 // 在puppeeter中，或者是cheerio中
 function getCheerio() {
     try {
-        return __webpack_require__(844);
+        return __webpack_require__(449);
     } catch {
         throw new Error('ItemLoader requires "cheerio". Please install it with `npm install cheerio`.');
     }
@@ -4081,6 +4764,27 @@ class ItemLoader {
         const records = await this.extractData(source, config);
         if (!records.length) return null;
         return isDetailPage && records.length === 1 ? records[0] : records;
+    }
+
+    // Author-time convenience. Saved output is an ordinary explicit record config;
+    // parse never rediscovers records or changes its legacy detail/column contract.
+    static async prepareList(source, fields, options = {}) {
+        const preparation = __webpack_require__(8296);
+        try {
+            const input = preparation.normalize(fields, options);
+            if (typeof source === 'string') source = getCheerio().load(source, { decodeEntities: false });
+            const documentSource = source && source.nodeType === 9 && typeof source.querySelectorAll === 'function';
+            const request = {preparation:input};
+            const plan = documentSource ? extraction.extractRecords(request, null, source) : this.isCheerio(source)
+                ? extraction.extractRecords(request, source)
+                : await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, request);
+            if (plan.status !== 'ready') return plan;
+            const records = plan.records;
+            preparation.checkRecords(input, records);
+            return { ...plan, records };
+        } catch (error) {
+            return { status: 'rejected', diagnostics: [{ code: error.code || 'E_ITEMLOADER_SOURCE', path: error.path || '', message: error.message }] };
+        }
     }
 
     // Explicit, constrained configuration path; legacy parse stays compatible.
@@ -4163,10 +4867,12 @@ module.exports = ItemLoader;
 /***/ }),
 
 /***/ 4849:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
+
+const {recordSelection} = __webpack_require__(7858);
 
 function fault(code, path, message) {
     const error = new Error(`${code}${path ? ` (${path})` : ''}: ${message}`);
@@ -4252,14 +4958,176 @@ function normalizeConfig(config) {
             throw fault('E_ITEMLOADER_CONFIG', key, `${key} must be a nonempty CSS selector`);
         }
     }
-    return { listSelector: config._listContainer ?? null, itemSelector: config._listItem ?? null, fields };
+    let domOnlyScope = null;
+    // Scope selectors share structural CSS; native state requires a DOM backend.
+    // Reject query-relative scope and engine extensions rather than interpreting
+    // the same saved rule differently in another consumer. Strings/attributes
+    // and escaped identifier characters are not pseudo-classes.
+    for (const key of ['_listContainer', '_listItem']) {
+        if (!Object.hasOwn(config, key)) continue;
+        const selector = config[key];
+        let quote = '', brackets = 0;
+        const stack = [{ name: '', start: true }], functions = new Map();
+        const nativeState = ['enabled', 'disabled', 'checked', 'required', 'optional', 'any-link', 'link',
+            'hover', 'active', 'visited', 'focus', 'focus-visible', 'focus-within', 'target', 'lang', 'dir',
+            'indeterminate', 'default', 'valid', 'invalid', 'in-range', 'out-of-range', 'read-only', 'read-write',
+            'placeholder-shown', 'autofill', 'defined', 'modal', 'fullscreen', 'picture-in-picture', 'open', 'user-valid', 'user-invalid'];
+        const structural = ['not', 'is', 'where', 'has', 'root', 'empty',
+            'first-child', 'last-child', 'only-child', 'nth-child', 'nth-last-child',
+            'first-of-type', 'last-of-type', 'only-of-type', 'nth-of-type', 'nth-last-of-type'];
+        for (let i = 0; i < selector.length; i++) {
+            const char = selector[i], scope = stack[stack.length - 1];
+            if (char === '\\') { i++; scope.start = false; continue; }
+            if (quote) { if (char === quote) quote = ''; continue; }
+            if (char === '"' || char === "'") { quote = char; continue; }
+            if (char === '/' && selector[i + 1] === '*') {
+                const end = selector.indexOf('*/', i + 2);
+                if (end === -1) throw fault('E_ITEMLOADER_SELECTOR', key, 'Unterminated CSS comment');
+                i = end + 1;
+                continue;
+            }
+            if (char === '[') { brackets++; scope.start = false; }
+            if (char === ']') brackets--;
+            if (brackets) {
+                if (char === '!' && selector[i + 1] === '=') throw fault('E_ITEMLOADER_SELECTOR', key, 'Nonstandard attribute operator');
+                continue;
+            }
+            if (char === '(') { stack.push({ name: functions.get(i) || '', start: true, index: i + 1 }); continue; }
+            if (char === ')') {
+                if (stack.length === 1) throw fault('E_ITEMLOADER_SELECTOR', key, 'Unbalanced selector function');
+                const frame = stack.pop();
+                if (frame.name.startsWith('nth-')) {
+                    const formula = selector.slice(frame.index, i).replace(/\/\*[\s\S]*?\*\//g, '').trim();
+                    if (!/^(?:odd|even|[+-]?(?:\d*n(?:\s*[+-]\s*\d+)?|\d+))$/i.test(formula)) {
+                        if (/\bof\b/i.test(formula)) domOnlyScope ||= key;
+                        else throw fault('E_ITEMLOADER_SELECTOR', key, 'Invalid An+B nth formula');
+                    }
+                }
+                stack[stack.length - 1].start = false;
+                continue;
+            }
+            if (char === ',') { scope.start = true; continue; }
+            if (scope.start && /[>+~]/.test(char) && scope.name !== 'has') {
+                throw fault('E_ITEMLOADER_SELECTOR', key, 'Relative selector arguments are supported only in :has()');
+            }
+            if (!/\s/.test(char)) scope.start = false;
+            if (char === ':') {
+                const token = selector.slice(i + 1).match(/^((?:[\w-]|\\(?:[0-9a-f]{1,6}\s?|[^\r\n\f]))+)/i)?.[1];
+                const name = token?.replace(/\\([0-9a-f]{1,6})\s?|\\(.)/gi,
+                    (_match, hex, literal) => hex ? String.fromCodePoint(Math.min(parseInt(hex, 16) || 0xfffd, 0x10ffff)) : literal).toLowerCase();
+                if (selector[i + 1] === ':' || (!structural.includes(name) && !nativeState.includes(name))) {
+                    throw fault('E_ITEMLOADER_SELECTOR', key, 'Record scope requires supported CSS; relative :scope and selector extensions are not portable');
+                }
+                if (nativeState.includes(name)) domOnlyScope ||= key;
+                if (name === 'has' && stack.some(frame => frame.name === 'has')) {
+                    throw fault('E_ITEMLOADER_SELECTOR', key, 'Nested :has() is not portable CSS');
+                }
+                functions.set(i + 1 + token.length, name);
+            }
+        }
+    }
+    return { ...recordSelection(config._listContainer, config._listItem), fields, ...(domOnlyScope ? { domOnlyScope } : {}) };
 }
 
 // Self-contained callback: ChromePage/Puppeteer serialize this function. The same
 // implementation accepts Cheerio locally, keeping values and records identical.
 function extractRecords(config, $, context) {
+    // Author preparation and the ordinary record executor share this synchronous
+    // callback. Website tasks cannot replace nodes between proof and reads.
+    function discover(input, $, context) {
+      const dom = !$;
+      const root = dom ? context || document : null;
+      const parent = node => dom ? node.parentElement : node.parent;
+      const element = node => dom ? node?.nodeType === 1 : node?.type === 'tag';
+      const tag = node => dom ? node.tagName.toLowerCase() : node.name;
+      const attr = (node, name) => dom ? node.getAttribute(name) : node.attribs?.[name];
+      const contains = (a, b) => { for (let p = parent(b); p; p = parent(p)) if (p === a) return true; return false; };
+      const fail = (code, message, path = '') => { throw Object.assign(new Error(message), {code, path}); };
+      const query = (selector, context) => {
+        try { return dom ? Array.from((context || root).querySelectorAll(selector)) : (context ? $(context).find(selector) : $(selector)).toArray(); }
+        catch (error) { fail('E_ITEMLOADER_SELECTOR', error.message, selector); }
+      };
+      const safe = value => /^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(value) && !/token|secret|session|highlight|listselector/i.test(value);
+      const semantic = node => ['article', 'li', 'tr'].includes(tag(node)) || attr(node, 'role') === 'listitem' || attr(node, 'itemscope') !== undefined && attr(node, 'itemscope') !== null;
+      const all = query('*');
+      if (all.length > 20000) return {status:'rejected', diagnostics:[{code:'E_LIST_BUDGET',message:'Preparation supports at most 20,000 elements'}]};
+      try {
+        const excluded = query('script,style,noscript,template,iframe,object,embed,input,textarea,select,button,[hidden],[aria-hidden="true"],[contenteditable]:not([contenteditable="false"]),[data-ai-selector-ui]' + (input.excludedRegions.length ? ',' + input.excludedRegions.join(',') : ''));
+        const blocked = node => excluded.some(root => root === node || contains(root, node));
+        const matches = input.fields.map(entry => query(entry.field.selector));
+        const missing = matches.flatMap((nodes, i) => nodes.length ? [] : [input.fields[i].key]);
+        if (missing.length) return {status:'needsInput', missing:missing.map(key => 'a representative match for ' + key), diagnostics:[{code:'E_LIST_NO_MATCH',message:'Fields have no matching evidence: ' + missing.join(', '),fields:missing}]};
+        const targets = [...new Set(matches.flat())];
+        if (targets.some(blocked)) fail('E_LIST_EXCLUDED', 'Field evidence intersects an excluded or non-content region');
+        if (matches.some((nodes,i) => nodes.some(node => {
+          const read = input.fields[i].field.attr;
+          const subtree = ['text','innerText','innerHTML','outerHTML'].includes(read) || read === null && !['img','video','audio'].includes(tag(node));
+          return subtree && excluded.some(region => contains(node,region));
+        }))) fail('E_LIST_EXCLUDED', 'Field reads include an excluded descendant');
+        if (input.fields.some(entry => !entry.boundaries)) return {status:'needsInput',missing:['structural CSS fields or an explicit record configuration'],diagnostics:[{code:'E_LIST_CAPABILITY',message:'Automatic preparation supports one structural CSS branch per field; contextual, pseudo, sibling and namespace selectors require an explicit record configuration'}]};
+        // These are AST compound boundaries in the ORIGINAL selectors, not class
+        // names invented from one sample or a common string prefix. A boundary is
+        // accepted only after full-field node ownership and local queries agree.
+        const selectors = input.fields[0].boundaries.map(boundary => boundary.record).filter(selector => input.fields.every(entry => entry.boundaries.some(boundary => boundary.record === selector)));
+        const candidates = [];
+        for (const selector of selectors) {
+          const rows = query(selector);
+          if (rows.length > 500) fail('E_LIST_BUDGET', 'A possible record boundary exceeds 500 rows; cannot safely resolve other business groupings', selector);
+          if (!rows.length || rows.some(blocked)) continue;
+          if (rows.length === 1 && !semantic(rows[0])) continue;
+          if (rows.some(a => rows.some(b => a !== b && contains(a, b)))) continue;
+          const ownership = matches.map(nodes => rows.map(row => nodes.filter(node => contains(row, node))));
+          if (matches.some((nodes, i) => ownership[i].reduce((n, group) => n + group.length, 0) !== nodes.length)) continue;
+          if (rows.some((_, r) => !ownership.some(groups => groups[r].length))) continue;
+          if (input.fields.some((entry, i) => entry.field.cardinality === 'one' && ownership[i].some(group => group.length > 1))) continue;
+          const relative = input.fields.map(entry => entry.boundaries.find(boundary => boundary.record === selector).relative);
+          if (!relative.every((local,i) => rows.every((row,r) => {
+            const observed = query(local,row), wanted = ownership[i][r];
+            return observed.length === wanted.length && observed.every((node,n) => node === wanted[n]);
+          }))) continue;
+          candidates.push({selector,rows,ownership,relative});
+        }
+        const ambiguous = (message, choices = []) => ({status:'needsInput', missing:['one intended record example or an explicit record selector'],diagnostics:[{code:'E_LIST_AMBIGUOUS',message,candidates:choices.map(candidate => ({selector:candidate.selector,records:candidate.rows.length}))}]});
+        if (!candidates.length) return ambiguous('No record boundary covers all field nodes with the declared per-record cardinalities');
+        const choices = candidates; // Semantic tags cannot resolve a business boundary.
+        // Same ownership partitions are equivalent for extraction. Different ones
+        // are business alternatives, not a score that can choose the first list.
+        const partitions = choices.map(candidate => JSON.stringify(candidate.rows.map((_, r) => candidate.ownership.map(groups => groups[r].map(node => all.indexOf(node))))));
+        if (new Set(partitions).size > 1) return ambiguous('Several record groupings satisfy the fields; specify which entity is a record', choices);
+        for (const a of choices) for (const b of choices) if (a !== b && tag(a.rows[0]) === tag(b.rows[0]) && a.rows.some(node => b.rows.some(other => contains(node, other)))) return ambiguous('Nested record boundaries are indistinguishable in this sample; specify the product or nested entity', choices);
+        if (choices.length > 1) return ambiguous('Several explicit selector boundaries describe the same sample; identify the intended record instead of choosing a future-page rule',choices);
+        const chosen = choices[0];
+        const collection = node => {
+          for (let p = parent(node); element(p); p = parent(p)) if (['ul','ol','table'].includes(tag(p)) || attr(p,'role') === 'list') return p;
+          return null;
+        };
+        if (new Set(chosen.rows.map(collection)).size > 1) return ambiguous('Field evidence spans independent list containers; identify the intended list or explicitly select their records', [chosen]);
+        const itemConfig = {_listItem:chosen.selector};
+        for (const [i,entry] of input.fields.entries()) {
+          const field = entry.field, output = {selector:chosen.relative[i],cardinality:field.cardinality};
+          if (field.attr !== null) {
+            if (['text','innerHTML','outerHTML'].includes(field.attr)) output.read = field.attr;
+            else { output.read = 'attr'; output.attr = field.attr; }
+          }
+          itemConfig[entry.key] = output;
+        }
+        const shape = node => tag(node)+(attr(node,'class') || '').split(/\s+/).filter(safe).slice(0,3).map(value=>'.'+value).join('');
+        const rowShape = shape(chosen.rows[0]);
+        if (chosen.rows.some(node => shape(node) !== rowShape)) return {status:'needsInput',missing:['a uniform row shape or an explicit record configuration'],diagnostics:[{code:'E_LIST_ROW_SHAPE',message:'Prepared browser rules require the same tag/class shape in every row; layout variants need an explicit configuration'}]};
+        return {status:'ready',itemConfig,rowShape,recordCount:chosen.rows.length,diagnostics:[]};
+      } catch (error) { return {status:'rejected',diagnostics:[{code:error.code || 'E_ITEMLOADER_SELECTOR',message:error.message,path:error.path || ''}]}; }
+    }
+    let prepared;
+    if (config.preparation) {
+        const input = config.preparation;
+        prepared = discover(input, $, context);
+        if (prepared.status !== 'ready') return prepared;
+        config = {listSelector:null, itemSelector:prepared.itemConfig._listItem,
+            fields:input.fields.map(({key,field}) => ({key,field:{...field,selector:prepared.itemConfig[key].selector}}))};
+    }
+    const complete = records => prepared ? {...prepared,records} : {records};
     const dom = !$;
-    const root = dom ? document : context || $.root();
+    const root = dom ? context || document : context || $.root();
     const listMode = !!(config.listSelector || config.itemSelector);
     const fail = (code, path, message) => { const error = new Error(`${code} (${path}): ${message}`); error.code = code; error.path = path; throw error; };
     const css = (context, selector, path) => {
@@ -4324,27 +5192,95 @@ function extractRecords(config, $, context) {
         return row;
     };
     try {
+        if ($ && config.domOnlyScope) fail('E_ITEMLOADER_CAPABILITY', config.domOnlyScope, 'This scope selector requires native DOM CSS semantics; HTML/Cheerio cannot safely emulate it');
         const containers = config.listSelector ? css(root, config.listSelector, '_listContainer') : [];
         const selectedItems = config.itemSelector ? css(root, config.itemSelector, '_listItem') : [];
         validate(config.fields);
-        if (!listMode) return { records: [item(root, config.fields)] };
-        if (!config.listSelector) return { records: selectedItems.map(node => item(dom ? node : $(node), config.fields)) };
-        const seen = new Set(), records = [];
+        if (!listMode) return complete([item(root, config.fields)]);
+        if (!config.listSelector) return complete(selectedItems.map(node => item(dom ? node : $(node), config.fields)));
+        const seen = new Set(), selected = new Set(selectedItems);
         for (const container of containers) {
             const children = dom ? Array.from(container.children) : $(container).children().toArray();
             for (const child of children) {
-                if (seen.has(child) || (config.itemSelector && !(dom ? child.matches(config.itemSelector) : $(child).is(config.itemSelector)))) continue;
-                seen.add(child);
-                records.push(item(dom ? child : $(child), config.fields));
+                if (!config.itemSelector || selected.has(child)) seen.add(child);
             }
         }
-        return { records };
+        // Container iteration groups nested records incorrectly. Query order is
+        // document order and identity membership preserves distinct equal rows.
+        const records = css(root, '*', '_listContainer').filter(node => seen.has(node))
+            .map(node => item(dom ? node : $(node), config.fields));
+        return complete(records);
     } catch (error) {
+        if (prepared) return {status:'rejected',diagnostics:[{code:error.code || 'E_ITEMLOADER_SELECTOR',path:error.path || '',message:error.message}]};
         return { error: { code: error.code || 'E_ITEMLOADER_SELECTOR', path: error.path || '', message: error.message } };
     }
 }
 
 module.exports = { fault, selectorParts, fieldRule, normalizeConfig, extractRecords };
+
+
+/***/ }),
+
+/***/ 8296:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const { normalizeConfig, fault } = __webpack_require__(4849);
+const { parseJson } = __webpack_require__(1973);
+const css = __webpack_require__(8724); // The structural parser already used by Cheerio.
+
+function boundaries(selector) {
+  let branches;
+  try { branches = css.parse(selector); }
+  catch (error) { throw fault('E_ITEMLOADER_SELECTOR', selector, error.message); }
+  // Do not turn contextual/pseudo/sibling conditions into a weaker local CSS
+  // rule. Ordinary parse still supports its existing broader selector syntax.
+  if (branches.length !== 1 || branches[0].length > 128 || branches[0].some(token => !['tag','attribute','universal','descendant','child'].includes(token.type) || token.namespace)) return null;
+  const tokens = branches[0], result = [];
+  for (let i = 1; i < tokens.length - 1; i++) {
+    // A leading child combinator is not portable between DOM querySelectorAll
+    // and Cheerio find. Leave that case explicit instead of dropping the >.
+    if (tokens[i].type === 'descendant') result.push({record:css.stringify([tokens.slice(0,i)]),relative:css.stringify([tokens.slice(i+1)])});
+  }
+  return result;
+}
+
+function normalize(fields, options) {
+  fields = parseJson(fields, 65536); options = parseJson(options, 16384);
+  if (Object.keys(options).some(key => !['required', 'identity', 'excludedRegions'].includes(key))) throw fault('E_ITEMLOADER_CONFIG', '', 'Unsupported preparation option');
+  if (Object.keys(fields).some(key => ['_listItem', '_listContainer'].includes(key))) throw fault('E_ITEMLOADER_CONFIG', '', 'prepareList accepts flat fields; use parse for explicit record configurations');
+  const config = normalizeConfig(fields);
+  if (config.fields.length > 20 || config.fields.some(entry => !entry.field)) throw fault('E_ITEMLOADER_CAPABILITY', '', 'Preparation supports 1–20 flat CSS fields');
+  for (const entry of config.fields) {
+    if (entry.field.xpath) throw fault('E_ITEMLOADER_CAPABILITY', entry.key, 'List preparation requires CSS field evidence');
+    entry.field.cardinality = entry.field.cardinality === 'many' ? 'many' : 'one';
+    entry.boundaries = boundaries(entry.field.selector);
+  }
+  const keys = config.fields.map(entry => entry.key);
+  for (const key of ['required', 'identity', 'excludedRegions']) {
+    options[key] ??= [];
+    if (!Array.isArray(options[key]) || options[key].length > 20 || new Set(options[key]).size !== options[key].length || options[key].some(value => typeof value !== 'string' || !value.trim() || (key !== 'excludedRegions' && !keys.includes(value)))) throw fault('E_ITEMLOADER_CONFIG', key, 'Expected known field names or CSS exclusion selectors');
+  }
+  for (const key of options.identity) if (!options.required.includes(key) || config.fields.find(entry => entry.key === key).field.cardinality !== 'one') throw fault('E_LIST_IDENTITY', key, 'Identity must use required single-value fields');
+  return { fields: config.fields, ...options };
+}
+
+
+function checkRecords(input, records) {
+  const blank = value => value == null || typeof value === 'string' && !value.trim() || Array.isArray(value) && value.every(blank);
+  const seen = new Set();
+  for (const [rowIndex, row] of records.entries()) {
+    for (const key of input.required) if (blank(row[key])) throw fault('E_LIST_REQUIRED', key, 'Required field is empty in record ' + rowIndex);
+    if (input.identity.length) {
+      const id = JSON.stringify(input.identity.map(key => row[key]));
+      if (seen.has(id)) throw fault('E_LIST_IDENTITY', '', 'Duplicate identity in record ' + rowIndex);
+      seen.add(id);
+    }
+  }
+}
+module.exports = {normalize,checkRecords};
 
 
 /***/ }),
@@ -4359,6 +5295,7 @@ const { validateTaskSpec, validateCandidate, fault } = __webpack_require__(1973)
 const { inspectPage } = __webpack_require__(1952);
 const ScopedDownloader = __webpack_require__(3642);
 const { fieldRule } = __webpack_require__(4849);
+const { recordSelection } = __webpack_require__(7858);
 
 // Adapt ordinary CSS declarations to the existing constrained executor.
 module.exports = function parsePage(response, options = {}) {
@@ -4369,7 +5306,9 @@ module.exports = function parsePage(response, options = {}) {
     const scope = ScopedDownloader.validateScope(options.scope);
     const itemConfig = options.itemConfig;
     if (!itemConfig || typeof itemConfig !== 'object' || Array.isArray(itemConfig)) throw fault('FIELD_SCHEMA');
-    if (typeof itemConfig._listContainer !== 'string' || !itemConfig._listContainer.trim() || typeof itemConfig._listItem !== 'string' || !itemConfig._listItem.trim()) throw fault('CSS_SYNTAX');
+    if (typeof itemConfig._listItem !== 'string' || !itemConfig._listItem.trim()) throw fault('CSS_SYNTAX');
+    let selection;
+    try { selection = recordSelection(itemConfig._listContainer, itemConfig._listItem); } catch (_) { throw fault('CSS_SYNTAX'); }
     const names = Object.keys(itemConfig).filter(key => !['_listContainer', '_listItem'].includes(key));
     if (!names.length || names.some(key => key.startsWith('_') || ['constructor', 'prototype'].includes(key) || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key))) throw fault('FIELD_SCHEMA');
     const fieldsArray = (value, fallback, nonempty = false) => {
@@ -4386,7 +5325,8 @@ module.exports = function parsePage(response, options = {}) {
       const rule = itemConfig[name];
       // Reuse suffix parsing, but expose only this executor's CSS/text/href/src subset.
       if (typeof rule !== 'string' && (!rule || typeof rule !== 'object' || Array.isArray(rule) ||
-          Object.keys(rule).some(key => !['selector', 'read', 'attr'].includes(key)) ||
+          Object.keys(rule).some(key => !['selector', 'read', 'attr', 'cardinality'].includes(key)) ||
+          (Object.hasOwn(rule, 'cardinality') && !['one', 'many'].includes(rule.cardinality)) ||
           !['text', 'attr'].includes(rule.read) ||
           (rule.read === 'attr' && !['href', 'src'].includes(rule.attr)))) throw fault('FIELD_SCHEMA');
       let parsed;
@@ -4394,7 +5334,7 @@ module.exports = function parsePage(response, options = {}) {
       const attr = parsed.attr === null ? 'text' : parsed.attr;
       if (parsed.xpath || !parsed.selector || !['text', 'href', 'src'].includes(attr)) throw fault('FIELD_SCHEMA');
       const isUrl = urlFields.includes(name);
-      fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
+      fields[name] = { meaning: name, required: required.includes(name), valueType: isUrl ? 'url' : 'string', cardinality: parsed.cardinality === 'many' ? 'many' : 'one', normalizers: isUrl ? ['trim', 'resolveUrl'] : ['trim'] };
       reads[name] = attr === 'text' ? { selector: parsed.selector, read: 'text' } : { selector: parsed.selector, read: 'attr', attr };
     }
     if (!options.states || options.states.allowEmpty !== false || !options.pagination) throw fault('TASK_SCHEMA');
@@ -4424,7 +5364,7 @@ module.exports = function parsePage(response, options = {}) {
     });
     const candidate = validateCandidate({
       schemaVersion: 1, profile: 'http-cheerio',
-      list: { container: itemConfig._listContainer, record: { selector: itemConfig._listItem, relation: 'directChildren' }, fields: reads },
+      list: { ...(selection.listSelector === null ? {} : {container: selection.listSelector}), record: { selector: selection.itemSelector, relation: selection.relation }, fields: reads },
       states: options.states, pagination,
     }, spec);
     const source = { kind: 'http', url: response.url, status: response.status, html: response.text };
@@ -4433,7 +5373,7 @@ module.exports = function parsePage(response, options = {}) {
     // A wrapper can hide excluded records from directChildren. Let the same
     // executor check their ancestry; never accept records from this safety probe.
     if (errorCode === 'PAGE_EMPTY' && spec.excludedRegions.length) {
-      const probe = inspectPage(source, { ...candidate, list: { ...candidate.list, container: candidate.list.container + ' ' + candidate.list.record.selector } }, spec, context);
+      const probe = inspectPage(source, { ...candidate, list: { ...candidate.list, record: { ...candidate.list.record, relation: 'descendants' } } }, spec, context);
       if (probe.errorCode === 'ERROR_REGION_SELECTED') throw fault(probe.errorCode);
     }
     return { records, next, errorCode };
@@ -4445,12 +5385,53 @@ module.exports = function parsePage(response, options = {}) {
 
 /***/ }),
 
+/***/ 7858:
+/***/ ((module) => {
+
+"use strict";
+
+
+// One record-set contract, shared by manual, HTTP-candidate and browser profiles.
+// Backends execute this JSON plan; scope never becomes part of a saved selector.
+function recordSelection(container, selector, relation) {
+  for (const [key, value] of [['container', container], ['selector', selector]]) {
+    if (value !== undefined && (typeof value !== 'string' || !value.trim())) {
+      throw Object.assign(new Error('Invalid record ' + key), {code:'E_RECORD_SELECTION'});
+    }
+  }
+  const scoped = container !== undefined;
+  const resolved = relation === undefined ? (scoped ? 'directChildren' : 'descendants') : relation;
+  if (!['directChildren', 'descendants'].includes(resolved) || (!scoped && resolved === 'directChildren')) {
+    throw Object.assign(new Error('directChildren requires an explicit scope'), {code:'E_RECORD_SELECTION'});
+  }
+  return {listSelector: scoped ? container.trim() : null, itemSelector: selector === undefined ? null : selector.trim(), relation: resolved};
+}
+
+// Query records once in document order, then test membership by node identity.
+// No empty scope or zero-match fallback to the document is permitted.
+function selectCheerioRecords($, plan) {
+  const containers = plan.listSelector === null ? [] : $(plan.listSelector).toArray();
+  const nodes = $(plan.itemSelector || '*').toArray();
+  if (plan.listSelector === null) return $(nodes);
+  const scopes = new Set(containers);
+  return $(nodes.filter(node => {
+    for (let parent = node.parent; parent; parent = plan.relation === 'directChildren' ? null : parent.parent) {
+      if (scopes.has(parent)) return true;
+    }
+    return false;
+  }));
+}
+module.exports = {recordSelection, selectCheerioRecords};
+
+
+/***/ }),
+
 /***/ 4285:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 function getCheerio() {
   try {
-    return __webpack_require__(844);
+    return __webpack_require__(449);
   } catch {
     throw new Error('LinkExtractor requires "cheerio". Please install it with `npm install cheerio`.');
   }
@@ -4642,7 +5623,7 @@ module.exports = LinkExtractor;
 /***/ 2532:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const IDownloaderMiddleware = __webpack_require__(1025);
+const IDownloaderMiddleware = __webpack_require__(3406);
 const Response = __webpack_require__(6102);
 
 /**
@@ -4815,7 +5796,7 @@ module.exports = ChromeDownloaderMiddleware;
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 // import axios from 'axios';
-const IDownloaderMiddleware = __webpack_require__(1025);
+const IDownloaderMiddleware = __webpack_require__(3406);
 const Response = __webpack_require__(6102);
 const { ProxyManager } = __webpack_require__(4825);
 
@@ -5035,7 +6016,7 @@ module.exports = DownloaderMiddleware;
 /***/ 691:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const IDownloaderMiddleware = __webpack_require__(1025);
+const IDownloaderMiddleware = __webpack_require__(3406);
 const DownloaderMiddleware = __webpack_require__(5806);
 
 /**
@@ -5108,7 +6089,7 @@ module.exports = DownloaderMiddlewareManager;
 
 /***/ }),
 
-/***/ 1025:
+/***/ 3406:
 /***/ ((module) => {
 
 /**
@@ -10563,7 +11544,7 @@ module.exports = axios;
 
 /***/ }),
 
-/***/ 844:
+/***/ 449:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -14354,489 +15335,30 @@ function toggleClass(value, stateVal) {
     return this;
 }
 //# sourceMappingURL=attributes.js.map
-;// ./node_modules/css-what/lib/es/types.js
-var SelectorType;
-(function (SelectorType) {
-    SelectorType["Attribute"] = "attribute";
-    SelectorType["Pseudo"] = "pseudo";
-    SelectorType["PseudoElement"] = "pseudo-element";
-    SelectorType["Tag"] = "tag";
-    SelectorType["Universal"] = "universal";
-    // Traversals
-    SelectorType["Adjacent"] = "adjacent";
-    SelectorType["Child"] = "child";
-    SelectorType["Descendant"] = "descendant";
-    SelectorType["Parent"] = "parent";
-    SelectorType["Sibling"] = "sibling";
-    SelectorType["ColumnCombinator"] = "column-combinator";
-})(SelectorType || (SelectorType = {}));
-/**
- * Modes for ignore case.
- *
- * This could be updated to an enum, and the object is
- * the current stand-in that will allow code to be updated
- * without big changes.
- */
-const IgnoreCaseMode = {
-    Unknown: null,
-    QuirksMode: "quirks",
-    IgnoreCase: true,
-    CaseSensitive: false,
-};
-var AttributeAction;
-(function (AttributeAction) {
-    AttributeAction["Any"] = "any";
-    AttributeAction["Element"] = "element";
-    AttributeAction["End"] = "end";
-    AttributeAction["Equals"] = "equals";
-    AttributeAction["Exists"] = "exists";
-    AttributeAction["Hyphen"] = "hyphen";
-    AttributeAction["Not"] = "not";
-    AttributeAction["Start"] = "start";
-})(AttributeAction || (AttributeAction = {}));
-
-;// ./node_modules/css-what/lib/es/parse.js
-
-const reName = /^[^\\#]?(?:\\(?:[\da-f]{1,6}\s?|.)|[\w\-\u00b0-\uFFFF])+/;
-const reEscape = /\\([\da-f]{1,6}\s?|(\s)|.)/gi;
-const actionTypes = new Map([
-    [126 /* Tilde */, AttributeAction.Element],
-    [94 /* Circumflex */, AttributeAction.Start],
-    [36 /* Dollar */, AttributeAction.End],
-    [42 /* Asterisk */, AttributeAction.Any],
-    [33 /* ExclamationMark */, AttributeAction.Not],
-    [124 /* Pipe */, AttributeAction.Hyphen],
-]);
-// Pseudos, whose data property is parsed as well.
-const unpackPseudos = new Set([
-    "has",
-    "not",
-    "matches",
-    "is",
-    "where",
-    "host",
-    "host-context",
-]);
-/**
- * Checks whether a specific selector is a traversal.
- * This is useful eg. in swapping the order of elements that
- * are not traversals.
- *
- * @param selector Selector to check.
- */
-function isTraversal(selector) {
-    switch (selector.type) {
-        case SelectorType.Adjacent:
-        case SelectorType.Child:
-        case SelectorType.Descendant:
-        case SelectorType.Parent:
-        case SelectorType.Sibling:
-        case SelectorType.ColumnCombinator:
-            return true;
-        default:
-            return false;
-    }
-}
-const stripQuotesFromPseudos = new Set(["contains", "icontains"]);
-// Unescape function taken from https://github.com/jquery/sizzle/blob/master/src/sizzle.js#L152
-function funescape(_, escaped, escapedWhitespace) {
-    const high = parseInt(escaped, 16) - 0x10000;
-    // NaN means non-codepoint
-    return high !== high || escapedWhitespace
-        ? escaped
-        : high < 0
-            ? // BMP codepoint
-                String.fromCharCode(high + 0x10000)
-            : // Supplemental Plane codepoint (surrogate pair)
-                String.fromCharCode((high >> 10) | 0xd800, (high & 0x3ff) | 0xdc00);
-}
-function unescapeCSS(str) {
-    return str.replace(reEscape, funescape);
-}
-function isQuote(c) {
-    return c === 39 /* SingleQuote */ || c === 34 /* DoubleQuote */;
-}
-function isWhitespace(c) {
-    return (c === 32 /* Space */ ||
-        c === 9 /* Tab */ ||
-        c === 10 /* NewLine */ ||
-        c === 12 /* FormFeed */ ||
-        c === 13 /* CarriageReturn */);
-}
-/**
- * Parses `selector`, optionally with the passed `options`.
- *
- * @param selector Selector to parse.
- * @param options Options for parsing.
- * @returns Returns a two-dimensional array.
- * The first dimension represents selectors separated by commas (eg. `sub1, sub2`),
- * the second contains the relevant tokens for that selector.
- */
-function parse_parse(selector) {
-    const subselects = [];
-    const endIndex = parseSelector(subselects, `${selector}`, 0);
-    if (endIndex < selector.length) {
-        throw new Error(`Unmatched selector: ${selector.slice(endIndex)}`);
-    }
-    return subselects;
-}
-function parseSelector(subselects, selector, selectorIndex) {
-    let tokens = [];
-    function getName(offset) {
-        const match = selector.slice(selectorIndex + offset).match(reName);
-        if (!match) {
-            throw new Error(`Expected name, found ${selector.slice(selectorIndex)}`);
-        }
-        const [name] = match;
-        selectorIndex += offset + name.length;
-        return unescapeCSS(name);
-    }
-    function stripWhitespace(offset) {
-        selectorIndex += offset;
-        while (selectorIndex < selector.length &&
-            isWhitespace(selector.charCodeAt(selectorIndex))) {
-            selectorIndex++;
-        }
-    }
-    function readValueWithParenthesis() {
-        selectorIndex += 1;
-        const start = selectorIndex;
-        let counter = 1;
-        for (; counter > 0 && selectorIndex < selector.length; selectorIndex++) {
-            if (selector.charCodeAt(selectorIndex) ===
-                40 /* LeftParenthesis */ &&
-                !isEscaped(selectorIndex)) {
-                counter++;
-            }
-            else if (selector.charCodeAt(selectorIndex) ===
-                41 /* RightParenthesis */ &&
-                !isEscaped(selectorIndex)) {
-                counter--;
-            }
-        }
-        if (counter) {
-            throw new Error("Parenthesis not matched");
-        }
-        return unescapeCSS(selector.slice(start, selectorIndex - 1));
-    }
-    function isEscaped(pos) {
-        let slashCount = 0;
-        while (selector.charCodeAt(--pos) === 92 /* BackSlash */)
-            slashCount++;
-        return (slashCount & 1) === 1;
-    }
-    function ensureNotTraversal() {
-        if (tokens.length > 0 && isTraversal(tokens[tokens.length - 1])) {
-            throw new Error("Did not expect successive traversals.");
-        }
-    }
-    function addTraversal(type) {
-        if (tokens.length > 0 &&
-            tokens[tokens.length - 1].type === SelectorType.Descendant) {
-            tokens[tokens.length - 1].type = type;
-            return;
-        }
-        ensureNotTraversal();
-        tokens.push({ type });
-    }
-    function addSpecialAttribute(name, action) {
-        tokens.push({
-            type: SelectorType.Attribute,
-            name,
-            action,
-            value: getName(1),
-            namespace: null,
-            ignoreCase: "quirks",
-        });
-    }
-    /**
-     * We have finished parsing the current part of the selector.
-     *
-     * Remove descendant tokens at the end if they exist,
-     * and return the last index, so that parsing can be
-     * picked up from here.
-     */
-    function finalizeSubselector() {
-        if (tokens.length &&
-            tokens[tokens.length - 1].type === SelectorType.Descendant) {
-            tokens.pop();
-        }
-        if (tokens.length === 0) {
-            throw new Error("Empty sub-selector");
-        }
-        subselects.push(tokens);
-    }
-    stripWhitespace(0);
-    if (selector.length === selectorIndex) {
-        return selectorIndex;
-    }
-    loop: while (selectorIndex < selector.length) {
-        const firstChar = selector.charCodeAt(selectorIndex);
-        switch (firstChar) {
-            // Whitespace
-            case 32 /* Space */:
-            case 9 /* Tab */:
-            case 10 /* NewLine */:
-            case 12 /* FormFeed */:
-            case 13 /* CarriageReturn */: {
-                if (tokens.length === 0 ||
-                    tokens[0].type !== SelectorType.Descendant) {
-                    ensureNotTraversal();
-                    tokens.push({ type: SelectorType.Descendant });
-                }
-                stripWhitespace(1);
-                break;
-            }
-            // Traversals
-            case 62 /* GreaterThan */: {
-                addTraversal(SelectorType.Child);
-                stripWhitespace(1);
-                break;
-            }
-            case 60 /* LessThan */: {
-                addTraversal(SelectorType.Parent);
-                stripWhitespace(1);
-                break;
-            }
-            case 126 /* Tilde */: {
-                addTraversal(SelectorType.Sibling);
-                stripWhitespace(1);
-                break;
-            }
-            case 43 /* Plus */: {
-                addTraversal(SelectorType.Adjacent);
-                stripWhitespace(1);
-                break;
-            }
-            // Special attribute selectors: .class, #id
-            case 46 /* Period */: {
-                addSpecialAttribute("class", AttributeAction.Element);
-                break;
-            }
-            case 35 /* Hash */: {
-                addSpecialAttribute("id", AttributeAction.Equals);
-                break;
-            }
-            case 91 /* LeftSquareBracket */: {
-                stripWhitespace(1);
-                // Determine attribute name and namespace
-                let name;
-                let namespace = null;
-                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */) {
-                    // Equivalent to no namespace
-                    name = getName(1);
-                }
-                else if (selector.startsWith("*|", selectorIndex)) {
-                    namespace = "*";
-                    name = getName(2);
-                }
-                else {
-                    name = getName(0);
-                    if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
-                        selector.charCodeAt(selectorIndex + 1) !==
-                            61 /* Equal */) {
-                        namespace = name;
-                        name = getName(1);
-                    }
-                }
-                stripWhitespace(0);
-                // Determine comparison operation
-                let action = AttributeAction.Exists;
-                const possibleAction = actionTypes.get(selector.charCodeAt(selectorIndex));
-                if (possibleAction) {
-                    action = possibleAction;
-                    if (selector.charCodeAt(selectorIndex + 1) !==
-                        61 /* Equal */) {
-                        throw new Error("Expected `=`");
-                    }
-                    stripWhitespace(2);
-                }
-                else if (selector.charCodeAt(selectorIndex) === 61 /* Equal */) {
-                    action = AttributeAction.Equals;
-                    stripWhitespace(1);
-                }
-                // Determine value
-                let value = "";
-                let ignoreCase = null;
-                if (action !== "exists") {
-                    if (isQuote(selector.charCodeAt(selectorIndex))) {
-                        const quote = selector.charCodeAt(selectorIndex);
-                        let sectionEnd = selectorIndex + 1;
-                        while (sectionEnd < selector.length &&
-                            (selector.charCodeAt(sectionEnd) !== quote ||
-                                isEscaped(sectionEnd))) {
-                            sectionEnd += 1;
-                        }
-                        if (selector.charCodeAt(sectionEnd) !== quote) {
-                            throw new Error("Attribute value didn't end");
-                        }
-                        value = unescapeCSS(selector.slice(selectorIndex + 1, sectionEnd));
-                        selectorIndex = sectionEnd + 1;
-                    }
-                    else {
-                        const valueStart = selectorIndex;
-                        while (selectorIndex < selector.length &&
-                            ((!isWhitespace(selector.charCodeAt(selectorIndex)) &&
-                                selector.charCodeAt(selectorIndex) !==
-                                    93 /* RightSquareBracket */) ||
-                                isEscaped(selectorIndex))) {
-                            selectorIndex += 1;
-                        }
-                        value = unescapeCSS(selector.slice(valueStart, selectorIndex));
-                    }
-                    stripWhitespace(0);
-                    // See if we have a force ignore flag
-                    const forceIgnore = selector.charCodeAt(selectorIndex) | 0x20;
-                    // If the forceIgnore flag is set (either `i` or `s`), use that value
-                    if (forceIgnore === 115 /* LowerS */) {
-                        ignoreCase = false;
-                        stripWhitespace(1);
-                    }
-                    else if (forceIgnore === 105 /* LowerI */) {
-                        ignoreCase = true;
-                        stripWhitespace(1);
-                    }
-                }
-                if (selector.charCodeAt(selectorIndex) !==
-                    93 /* RightSquareBracket */) {
-                    throw new Error("Attribute selector didn't terminate");
-                }
-                selectorIndex += 1;
-                const attributeSelector = {
-                    type: SelectorType.Attribute,
-                    name,
-                    action,
-                    value,
-                    namespace,
-                    ignoreCase,
-                };
-                tokens.push(attributeSelector);
-                break;
-            }
-            case 58 /* Colon */: {
-                if (selector.charCodeAt(selectorIndex + 1) === 58 /* Colon */) {
-                    tokens.push({
-                        type: SelectorType.PseudoElement,
-                        name: getName(2).toLowerCase(),
-                        data: selector.charCodeAt(selectorIndex) ===
-                            40 /* LeftParenthesis */
-                            ? readValueWithParenthesis()
-                            : null,
-                    });
-                    continue;
-                }
-                const name = getName(1).toLowerCase();
-                let data = null;
-                if (selector.charCodeAt(selectorIndex) ===
-                    40 /* LeftParenthesis */) {
-                    if (unpackPseudos.has(name)) {
-                        if (isQuote(selector.charCodeAt(selectorIndex + 1))) {
-                            throw new Error(`Pseudo-selector ${name} cannot be quoted`);
-                        }
-                        data = [];
-                        selectorIndex = parseSelector(data, selector, selectorIndex + 1);
-                        if (selector.charCodeAt(selectorIndex) !==
-                            41 /* RightParenthesis */) {
-                            throw new Error(`Missing closing parenthesis in :${name} (${selector})`);
-                        }
-                        selectorIndex += 1;
-                    }
-                    else {
-                        data = readValueWithParenthesis();
-                        if (stripQuotesFromPseudos.has(name)) {
-                            const quot = data.charCodeAt(0);
-                            if (quot === data.charCodeAt(data.length - 1) &&
-                                isQuote(quot)) {
-                                data = data.slice(1, -1);
-                            }
-                        }
-                        data = unescapeCSS(data);
-                    }
-                }
-                tokens.push({ type: SelectorType.Pseudo, name, data });
-                break;
-            }
-            case 44 /* Comma */: {
-                finalizeSubselector();
-                tokens = [];
-                stripWhitespace(1);
-                break;
-            }
-            default: {
-                if (selector.startsWith("/*", selectorIndex)) {
-                    const endIndex = selector.indexOf("*/", selectorIndex + 2);
-                    if (endIndex < 0) {
-                        throw new Error("Comment was not terminated");
-                    }
-                    selectorIndex = endIndex + 2;
-                    // Remove leading whitespace
-                    if (tokens.length === 0) {
-                        stripWhitespace(0);
-                    }
-                    break;
-                }
-                let namespace = null;
-                let name;
-                if (firstChar === 42 /* Asterisk */) {
-                    selectorIndex += 1;
-                    name = "*";
-                }
-                else if (firstChar === 124 /* Pipe */) {
-                    name = "";
-                    if (selector.charCodeAt(selectorIndex + 1) === 124 /* Pipe */) {
-                        addTraversal(SelectorType.ColumnCombinator);
-                        stripWhitespace(2);
-                        break;
-                    }
-                }
-                else if (reName.test(selector.slice(selectorIndex))) {
-                    name = getName(0);
-                }
-                else {
-                    break loop;
-                }
-                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
-                    selector.charCodeAt(selectorIndex + 1) !== 124 /* Pipe */) {
-                    namespace = name;
-                    if (selector.charCodeAt(selectorIndex + 1) ===
-                        42 /* Asterisk */) {
-                        name = "*";
-                        selectorIndex += 2;
-                    }
-                    else {
-                        name = getName(1);
-                    }
-                }
-                tokens.push(name === "*"
-                    ? { type: SelectorType.Universal, namespace }
-                    : { type: SelectorType.Tag, name, namespace });
-            }
-        }
-    }
-    finalizeSubselector();
-    return selectorIndex;
-}
-
+// EXTERNAL MODULE: ./node_modules/css-what/lib/es/types.js
+var types = __webpack_require__(8543);
+// EXTERNAL MODULE: ./node_modules/css-what/lib/es/parse.js
+var es_parse = __webpack_require__(1025);
 // EXTERNAL MODULE: ./node_modules/boolbase/index.js
 var boolbase = __webpack_require__(1264);
 ;// ./node_modules/css-select/lib/esm/sort.js
 
 const procedure = new Map([
-    [SelectorType.Universal, 50],
-    [SelectorType.Tag, 30],
-    [SelectorType.Attribute, 1],
-    [SelectorType.Pseudo, 0],
+    [types/* SelectorType */.cV.Universal, 50],
+    [types/* SelectorType */.cV.Tag, 30],
+    [types/* SelectorType */.cV.Attribute, 1],
+    [types/* SelectorType */.cV.Pseudo, 0],
 ]);
-function sort_isTraversal(token) {
+function isTraversal(token) {
     return !procedure.has(token.type);
 }
 const attributes = new Map([
-    [AttributeAction.Exists, 10],
-    [AttributeAction.Equals, 8],
-    [AttributeAction.Not, 7],
-    [AttributeAction.Start, 6],
-    [AttributeAction.End, 6],
-    [AttributeAction.Any, 5],
+    [types/* AttributeAction */.V4.Exists, 10],
+    [types/* AttributeAction */.V4.Equals, 8],
+    [types/* AttributeAction */.V4.Not, 7],
+    [types/* AttributeAction */.V4.Start, 6],
+    [types/* AttributeAction */.V4.End, 6],
+    [types/* AttributeAction */.V4.Any, 5],
 ]);
 /**
  * Sort the parts of the passed selector,
@@ -14863,9 +15385,9 @@ function sortByProcedure(arr) {
 function getProcedure(token) {
     var _a, _b;
     let proc = (_a = procedure.get(token.type)) !== null && _a !== void 0 ? _a : -1;
-    if (token.type === SelectorType.Attribute) {
+    if (token.type === types/* SelectorType */.cV.Attribute) {
         proc = (_b = attributes.get(token.action)) !== null && _b !== void 0 ? _b : 4;
-        if (token.action === AttributeAction.Equals && token.name === "id") {
+        if (token.action === types/* AttributeAction */.V4.Equals && token.name === "id") {
             // Prefer ID selectors (eg. #ID)
             proc = 9;
         }
@@ -14877,7 +15399,7 @@ function getProcedure(token) {
             proc >>= 1;
         }
     }
-    else if (token.type === SelectorType.Pseudo) {
+    else if (token.type === types/* SelectorType */.cV.Pseudo) {
         if (!token.data) {
             proc = 3;
         }
@@ -15135,7 +15657,7 @@ const NINE = "9".charCodeAt(0);
  * @returns An array containing the integer step size and the integer offset of the nth rule.
  * @example nthCheck.parse("2n+3"); // returns [2, 3]
  */
-function esm_parse_parse(formula) {
+function parse_parse(formula) {
     formula = formula.trim().toLowerCase();
     if (formula === "even") {
         return [2, 0];
@@ -15338,7 +15860,7 @@ function compile_generate(parsed) {
  * check(6); // `true`
  */
 function nthCheck(formula) {
-    return compile(esm_parse_parse(formula));
+    return compile(parse_parse(formula));
 }
 /**
  * Parses and compiles a formula to a generator that produces a sequence of indices.
@@ -15698,7 +16220,7 @@ const subselects = {
         const { adapter } = options;
         const opts = copyOptions(options);
         opts.relativeSelector = true;
-        const context = subselect.some((s) => s.some(sort_isTraversal))
+        const context = subselect.some((s) => s.some(isTraversal))
             ? // Used as a placeholder. Will be replaced with the actual element.
                 [PLACEHOLDER_ELEMENT]
             : undefined;
@@ -15752,7 +16274,7 @@ function compilePseudoSelector(next, selector, options, context, compileToken) {
             throw new Error(`Pseudo ${name} doesn't have any arguments`);
         }
         // The alias has to be parsed here, to make sure options are respected.
-        const alias = parse_parse(stringPseudo);
+        const alias = (0,es_parse/* parse */.q)(stringPseudo);
         return subselects["is"](next, alias, options, context, compileToken);
     }
     if (typeof userPseudo === "function") {
@@ -15787,13 +16309,13 @@ function getElementParent(node, adapter) {
 function compileGeneralSelector(next, selector, options, context, compileToken) {
     const { adapter, equals } = options;
     switch (selector.type) {
-        case SelectorType.PseudoElement: {
+        case types/* SelectorType */.cV.PseudoElement: {
             throw new Error("Pseudo-elements are not supported by css-select");
         }
-        case SelectorType.ColumnCombinator: {
+        case types/* SelectorType */.cV.ColumnCombinator: {
             throw new Error("Column combinators are not yet supported by css-select");
         }
-        case SelectorType.Attribute: {
+        case types/* SelectorType */.cV.Attribute: {
             if (selector.namespace != null) {
                 throw new Error("Namespaced attributes are not yet supported by css-select");
             }
@@ -15802,11 +16324,11 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
             }
             return attributeRules[selector.action](next, selector, options);
         }
-        case SelectorType.Pseudo: {
+        case types/* SelectorType */.cV.Pseudo: {
             return compilePseudoSelector(next, selector, options, context, compileToken);
         }
         // Tags
-        case SelectorType.Tag: {
+        case types/* SelectorType */.cV.Tag: {
             if (selector.namespace != null) {
                 throw new Error("Namespaced tag names are not yet supported by css-select");
             }
@@ -15819,7 +16341,7 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
             };
         }
         // Traversal
-        case SelectorType.Descendant: {
+        case types/* SelectorType */.cV.Descendant: {
             if (options.cacheResults === false ||
                 typeof WeakSet === "undefined") {
                 return function descendant(elem) {
@@ -15858,20 +16380,20 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                 return false;
             };
         }
-        case SelectorType.Parent: {
+        case types/* SelectorType */.cV.Parent: {
             return function parent(elem) {
                 return adapter
                     .getChildren(elem)
                     .some((elem) => adapter.isTag(elem) && next(elem));
             };
         }
-        case SelectorType.Child: {
+        case types/* SelectorType */.cV.Child: {
             return function child(elem) {
                 const parent = adapter.getParent(elem);
                 return parent != null && adapter.isTag(parent) && next(parent);
             };
         }
-        case SelectorType.Sibling: {
+        case types/* SelectorType */.cV.Sibling: {
             return function sibling(elem) {
                 const siblings = adapter.getSiblings(elem);
                 for (let i = 0; i < siblings.length; i++) {
@@ -15885,7 +16407,7 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                 return false;
             };
         }
-        case SelectorType.Adjacent: {
+        case types/* SelectorType */.cV.Adjacent: {
             if (adapter.prevElementSibling) {
                 return function adjacent(elem) {
                     const previous = adapter.prevElementSibling(elem);
@@ -15906,7 +16428,7 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                 return !!lastElement && next(lastElement);
             };
         }
-        case SelectorType.Universal: {
+        case types/* SelectorType */.cV.Universal: {
             if (selector.namespace != null && selector.namespace !== "*") {
                 throw new Error("Namespaced universal selectors are not yet supported by css-select");
             }
@@ -15933,21 +16455,21 @@ function compile_compile(selector, options, context) {
     return ensureIsTag(next, options.adapter);
 }
 function compileUnsafe(selector, options, context) {
-    const token = typeof selector === "string" ? parse_parse(selector) : selector;
+    const token = typeof selector === "string" ? (0,es_parse/* parse */.q)(selector) : selector;
     return compileToken(token, options, context);
 }
 function includesScopePseudo(t) {
-    return (t.type === SelectorType.Pseudo &&
+    return (t.type === types/* SelectorType */.cV.Pseudo &&
         (t.name === "scope" ||
             (Array.isArray(t.data) &&
                 t.data.some((data) => data.some(includesScopePseudo)))));
 }
-const DESCENDANT_TOKEN = { type: SelectorType.Descendant };
+const DESCENDANT_TOKEN = { type: types/* SelectorType */.cV.Descendant };
 const FLEXIBLE_DESCENDANT_TOKEN = {
     type: "_flexibleDescendant",
 };
 const SCOPE_TOKEN = {
-    type: SelectorType.Pseudo,
+    type: types/* SelectorType */.cV.Pseudo,
     name: "scope",
     data: null,
 };
@@ -15963,8 +16485,8 @@ function absolutize(token, { adapter }, context) {
     }));
     for (const t of token) {
         if (t.length > 0 &&
-            sort_isTraversal(t[0]) &&
-            t[0].type !== SelectorType.Descendant) {
+            isTraversal(t[0]) &&
+            t[0].type !== types/* SelectorType */.cV.Descendant) {
             // Don't continue in else branch
         }
         else if (hasContext && !t.some(includesScopePseudo)) {
@@ -15986,7 +16508,7 @@ function compileToken(token, options, context) {
     if (options.relativeSelector !== false) {
         absolutize(token, options, finalContext);
     }
-    else if (token.some((t) => t.length > 0 && sort_isTraversal(t[0]))) {
+    else if (token.some((t) => t.length > 0 && isTraversal(t[0]))) {
         throw new Error("Relative selectors are not allowed when the `relativeSelector` option is disabled");
     }
     let shouldTestNextSiblings = false;
@@ -15994,16 +16516,16 @@ function compileToken(token, options, context) {
         .map((rules) => {
         if (rules.length >= 2) {
             const [first, second] = rules;
-            if (first.type !== SelectorType.Pseudo ||
+            if (first.type !== types/* SelectorType */.cV.Pseudo ||
                 first.name !== "scope") {
                 // Ignore
             }
             else if (isArrayContext &&
-                second.type === SelectorType.Descendant) {
+                second.type === types/* SelectorType */.cV.Descendant) {
                 rules[1] = FLEXIBLE_DESCENDANT_TOKEN;
             }
-            else if (second.type === SelectorType.Adjacent ||
-                second.type === SelectorType.Sibling) {
+            else if (second.type === types/* SelectorType */.cV.Adjacent ||
+                second.type === types/* SelectorType */.cV.Sibling) {
                 shouldTestNextSiblings = true;
             }
         }
@@ -16226,11 +16748,11 @@ function groupSelectors(selectors) {
 // Re-export pseudo extension points
 
 const UNIVERSAL_SELECTOR = {
-    type: SelectorType.Universal,
+    type: types/* SelectorType */.cV.Universal,
     namespace: null,
 };
 const SCOPE_PSEUDO = {
-    type: SelectorType.Pseudo,
+    type: types/* SelectorType */.cV.Pseudo,
     name: "scope",
     data: null,
 };
@@ -16240,7 +16762,7 @@ function lib_esm_is(element, selector, options = {}) {
 function some(elements, selector, options = {}) {
     if (typeof selector === "function")
         return elements.some(selector);
-    const [plain, filtered] = groupSelectors(parse_parse(selector));
+    const [plain, filtered] = groupSelectors((0,es_parse/* parse */.q)(selector));
     return ((plain.length > 0 && elements.some(_compileToken(plain, options))) ||
         filtered.some((sel) => filterBySelector(sel, elements, options).length > 0));
 }
@@ -16271,7 +16793,7 @@ function filterByPosition(filter, elems, data, options) {
     }
 }
 function esm_filter(selector, elements, options = {}) {
-    return filterParsed(parse_parse(selector), elements, options);
+    return filterParsed((0,es_parse/* parse */.q)(selector), elements, options);
 }
 /**
  * Filter a set of elements by a selector.
@@ -16331,7 +16853,7 @@ function filterParsed(selector, elements, options) {
 }
 function filterBySelector(selector, elements, options) {
     var _a;
-    if (selector.some(isTraversal)) {
+    if (selector.some(es_parse/* isTraversal */.$)) {
         /*
          * Get root node, run selector with the scope
          * set to all of our nodes.
@@ -16348,7 +16870,7 @@ function esm_select(selector, root, options = {}, limit = Infinity) {
     if (typeof selector === "function") {
         return esm_find(root, selector);
     }
-    const [plain, filtered] = groupSelectors(parse_parse(selector));
+    const [plain, filtered] = groupSelectors((0,es_parse/* parse */.q)(selector));
     const results = filtered.map((sel) => findFilterElements(root, sel, options, true, limit));
     // Plain selectors can be queried in a single go
     if (plain.length) {
@@ -16392,7 +16914,7 @@ function findFilterElements(root, selector, options, queryForSelector, totalLimi
         ? getChildren(root).filter(node_isTag)
         : sub.length === 0
             ? (Array.isArray(root) ? root : [root]).filter(node_isTag)
-            : queryForSelector || sub.some(isTraversal)
+            : queryForSelector || sub.some(es_parse/* isTraversal */.$)
                 ? findElements(root, [sub], options, limit)
                 : filterElements(root, [sub], options);
     const elems = elemsNoLimit.slice(0, limit);
@@ -16401,12 +16923,12 @@ function findFilterElements(root, selector, options, queryForSelector, totalLimi
         return result;
     }
     const remainingSelector = selector.slice(filterIndex + 1);
-    const remainingHasTraversal = remainingSelector.some(isTraversal);
+    const remainingHasTraversal = remainingSelector.some(es_parse/* isTraversal */.$);
     if (remainingHasTraversal) {
-        if (isTraversal(remainingSelector[0])) {
+        if ((0,es_parse/* isTraversal */.$)(remainingSelector[0])) {
             const { type } = remainingSelector[0];
-            if (type === SelectorType.Sibling ||
-                type === SelectorType.Adjacent) {
+            if (type === types/* SelectorType */.cV.Sibling ||
+                type === types/* SelectorType */.cV.Adjacent) {
                 // If we have a sibling traversal, we need to also look at the siblings.
                 result = prepareContext(result, domutils_lib_esm_namespaceObject, true);
             }
@@ -20217,11 +20739,11 @@ function tokenizer_isAsciiAlphaNumeric(cp) {
 function toAsciiLower(cp) {
     return cp + 32;
 }
-function tokenizer_isWhitespace(cp) {
+function isWhitespace(cp) {
     return cp === CODE_POINTS.SPACE || cp === CODE_POINTS.LINE_FEED || cp === CODE_POINTS.TABULATION || cp === CODE_POINTS.FORM_FEED;
 }
 function isScriptDataDoubleEscapeSequenceEnd(cp) {
-    return tokenizer_isWhitespace(cp) || cp === CODE_POINTS.SOLIDUS || cp === CODE_POINTS.GREATER_THAN_SIGN;
+    return isWhitespace(cp) || cp === CODE_POINTS.SOLIDUS || cp === CODE_POINTS.GREATER_THAN_SIGN;
 }
 function getErrorForNumericCharacterReference(code) {
     if (code === CODE_POINTS.NULL) {
@@ -20559,7 +21081,7 @@ class Tokenizer {
         this._createCharacterToken(type, ch);
     }
     _emitCodePoint(cp) {
-        const type = tokenizer_isWhitespace(cp)
+        const type = isWhitespace(cp)
             ? TokenType.WHITESPACE_CHARACTER
             : cp === CODE_POINTS.NULL
                 ? TokenType.NULL_CHARACTER

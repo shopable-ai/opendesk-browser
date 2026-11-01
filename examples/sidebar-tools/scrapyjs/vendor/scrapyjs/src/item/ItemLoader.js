@@ -27,6 +27,27 @@ class ItemLoader {
         return isDetailPage && records.length === 1 ? records[0] : records;
     }
 
+    // Author-time convenience. Saved output is an ordinary explicit record config;
+    // parse never rediscovers records or changes its legacy detail/column contract.
+    static async prepareList(source, fields, options = {}) {
+        const preparation = require('./list-preparation');
+        try {
+            const input = preparation.normalize(fields, options);
+            if (typeof source === 'string') source = getCheerio().load(source, { decodeEntities: false });
+            const documentSource = source && source.nodeType === 9 && typeof source.querySelectorAll === 'function';
+            const request = {preparation:input};
+            const plan = documentSource ? extraction.extractRecords(request, null, source) : this.isCheerio(source)
+                ? extraction.extractRecords(request, source)
+                : await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, request);
+            if (plan.status !== 'ready') return plan;
+            const records = plan.records;
+            preparation.checkRecords(input, records);
+            return { ...plan, records };
+        } catch (error) {
+            return { status: 'rejected', diagnostics: [{ code: error.code || 'E_ITEMLOADER_SOURCE', path: error.path || '', message: error.message }] };
+        }
+    }
+
     // Explicit, constrained configuration path; legacy parse stays compatible.
     static async parseConfig(source, candidate, taskSpec, context = {}) {
         return require('../ai/ConfigExecutor').inspectPage(source, candidate, taskSpec, context);

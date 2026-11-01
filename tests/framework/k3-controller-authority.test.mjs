@@ -267,6 +267,75 @@ async function networkRunFixture(t, fetchImpl) {
     read:()=>f.authority.controllerOperation({envelope},f.sender)};
 }
 
+async function locatorNavigationFixture({dropCommit=false,redirect='https://a.example/results',stop=false}={}) {
+  const f=await fixture(),revision=await f.commit('async function main(){return await page.url();}'),run=await f.start(revision);
+  const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
+    emit:details=>{for(const fn of listeners)fn(details);}};};
+  for(const key of ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred'])f.api.webNavigation[key]=event();
+  let clicks=0,fenced;
+  f.api.tabs.sendMessage=(_id,message,_options,callback)=>{
+    if(message.action==='ping'){callback({type:message.type,ready:true});return;}
+    const e=message.envelope;
+    const answer=value=>callback({requestId:e.requestId,runId:e.identity.runId,ownerEpoch:e.identity.ownerEpoch,value:controlEncode(value)});
+    if(e.operation.method==='locatorPrepare')answer({ready:true,token:'prepared'});
+    else if(e.operation.method==='locatorCommit'){
+      clicks++;
+      const details={tabId:2,frameId:0,documentId:'after-click',url:redirect};
+      f.frames.set(2,[{frameId:0,documentId:details.documentId,url:redirect}]);f.tabs.get(2).url=redirect;
+      fenced=f.authority.invalidateControllerTarget(details);
+      f.api.webNavigation.onCommitted.emit(details);f.api.webNavigation.onCompleted.emit(details);
+      if(stop){f.authority.stopControllerRun({runId:run.runId,requestId:crypto.randomUUID()},f.sender)
+        .then(()=>answer({committed:true})).catch(()=>{});}
+      else if(!dropCommit)answer({committed:true});
+    }else answer(redirect);
+  };
+  const context=createRunContext({identity:run.identity,revision:run.revision,target:run.target,dom:null,
+    transport:{request:envelope=>f.authority.controllerOperation({envelope},f.sender)}});
+  return {...f,run,context,get clicks(){return clicks;},fenced:()=>fenced};
+}
+test('Locator navigation Authority persists one intent, native handoff and next-document reads',async()=>{
+  const f=await locatorNavigationFixture();
+  try{
+    await f.context.page.locator('#submit').click({waitUntil:'load',timeout:1000});
+    assert.deepEqual(await f.fenced(),[]);
+    assert.equal(f.clicks,1);assert.equal(f.context.target.documentId,'after-click');
+    assert.equal(await f.context.page.url(),'https://a.example/results');
+    const op=(await f.rows('commandJournal')).find(row=>row.tag==='controller-navigation');
+    assert.equal(op.state,'durable');assert.equal(op.submissionCount,1);
+    assert.equal(op.targetTransition.to.documentId,'after-click');
+    const saved=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+    assert.equal(saved.target.documentId,'after-click');assert.equal(saved.navigationRequestId,undefined);
+    await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  }finally{f.context.dispose();}
+});
+test('Locator navigation Authority lost callback stays unknown and cannot replay the click',async()=>{
+  const f=await locatorNavigationFixture({dropCommit:true});
+  try{
+    await assert.rejects(f.context.page.locator('#submit').click({waitUntil:'load',timeout:100}),code('E_TIMEOUT'));
+    const op=(await f.rows('commandJournal')).find(row=>row.tag==='controller-navigation');
+    assert.equal(op.state,'effect_unknown');assert.equal(f.clicks,1);
+    await assert.rejects(f.authority.controllerOperation({envelope:op.envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+    assert.equal(f.clicks,1);
+  }finally{f.context.dispose();}
+});
+test('Locator navigation Authority never adopts a cross-origin click redirect',async()=>{
+  const f=await locatorNavigationFixture({redirect:'https://other.example/results'});
+  try{
+    await assert.rejects(f.context.page.locator('#submit').click({waitUntil:'load',timeout:500}));
+    const saved=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+    assert.equal(saved.target.documentId,'doc-top');assert.equal(f.clicks,1);
+  }finally{f.context.dispose();}
+});
+test('Locator navigation Authority Stop fences a late click acknowledgement',async()=>{
+  const f=await locatorNavigationFixture({stop:true});
+  try{
+    await assert.rejects(f.context.page.locator('#submit').click({waitUntil:'load',timeout:500}),code('E_CANCELLED'));
+    const saved=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+    assert.equal(saved.target.documentId,'doc-top');assert.equal(f.clicks,1);
+    assert.notEqual(saved.state,'running');
+  }finally{f.context.dispose();}
+});
+
 test('installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority',async()=>{
   const f=await installedTaskFixture();
   await assert.rejects(f.startTask(f.resolved,{networkOrigins:['https://other.example']}),code('E_PERMISSION'));

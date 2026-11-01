@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button,Textarea,SharedConversationFrame,SharedConversationDock,createConversationSession} from '@opendesk/ui';
-import {instructions,parseProposal,changes,sameConfig} from './ai-config.js';
+import {instructions,parseProposal,prepareListProposal,changes,sameConfig} from './ai-config.js';
 import {createAiRequest,requireGeneration} from './ai-request.js';
 import {createAiPending} from './ai-pending.js';
 
@@ -61,10 +61,38 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     return()=>{current=false;};
   },[pendingIdentity]);
   const inputKey=JSON.stringify({requirement,sample,usePage,useConfig});
+  const latestContext=React.useRef(null),localOperation=React.useRef(null);
+  latestContext.current={state,inputKey,blocked,unknown,pendingId,pendingReady,draft};
+  function stillCurrent(snapshot){
+    const latest=latestContext.current;
+    return alive.current&&!latest.blocked&&!latest.unknown&&!latest.pendingId&&latest.pendingReady&&
+      snapshot.input===latest.inputKey&&snapshot.epoch===latest.state.profileEpoch&&
+      sameConfig(snapshot.base,latest.state.config)&&snapshot.page.url===latest.state.target?.url;
+  }
   React.useEffect(()=>{onDirty(Boolean(draft)||(Boolean(requirement||sample)&&inputKey!==processedInput));},[requirement,sample,draft,inputKey,processedInput,onDirty]);
   function busy(value){setWorking(value);onBusy(value);}
+  async function prepareList(){
+    if(working||active.current||localOperation.current||unknown||!pendingReady||pendingId||blocked||!state.target||(draft&&!stale))return;
+    const operation={},snapshot={base:structuredClone(state.config),epoch:state.profileEpoch,
+      page:{title:state.target.title,url:state.target.url},input:inputKey,requestId:crypto.randomUUID(),source:'local-list'};
+    let unresolved=false;
+    localOperation.current=operation;busy(true);setError('');setNotice('');setDraft(null);setAppliedRequestId(null);
+    try{
+      const {value}=await pendingIdentity.read();
+      if(!stillCurrent(snapshot)||localOperation.current!==operation)return;
+      if(value){unresolved=true;setPendingId(value.requestId);setUnknown(true);setNotice('存在未决原请求，请查询 / 停止原请求；不会重新发送。');return;}
+      const result=await prepareListProposal(snapshot.base,globalThis.ScrapyAppModel.validateConfig,snapshot.page.url,sample);
+      if(!stillCurrent(snapshot)||localOperation.current!==operation)return;
+      if(result.status!=='ready'){
+        setError((result.diagnostics||[]).map(row=>row.message).join('；')||'无法准备列表，请检查完整字段和 HTML 样本。');return;
+      }
+      setDraft({...snapshot,config:result.config});
+      setNotice('本地列表准备完成；请审阅差异后应用为未保存草稿。');
+    }catch(e){if(stillCurrent(snapshot)&&localOperation.current===operation)setError(e.message);}
+    finally{if(localOperation.current===operation){localOperation.current=null;if(alive.current&&!unresolved)busy(false);}}
+  }
   async function generate(){
-    if(working||unknown||!pendingReady||pendingId||blocked||!recipient||!requirement.trim()||!usePage||!state.target||(draft&&!stale))return;
+    if(working||active.current||localOperation.current||unknown||!pendingReady||pendingId||blocked||!recipient||!requirement.trim()||!usePage||!state.target||(draft&&!stale))return;
     const id=crypto.randomUUID(),base=structuredClone(state.config),epoch=state.profileEpoch;
     const page={title:state.target.title,url:state.target.url};
     const context={page,currentConfig:useConfig?base:{url:page.url,itemConfig:{title:'.::text'}},sample,previousError:error||state.error||''};
@@ -107,11 +135,22 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
   }
   const stale=draft&&(draft.input!==JSON.stringify({requirement,sample,usePage,useConfig})||draft.epoch!==state.profileEpoch||!sameConfig(draft.base,state.config)||draft.page.url!==state.target?.url);
   async function apply(){
-    if(!draft||blocked||stale||working||unknown||pendingId||!pendingReady)return;
+    if(!draft||blocked||stale||working||active.current||localOperation.current||unknown||pendingId||!pendingReady)return;
+    const proposal=draft,operation={};localOperation.current=operation;
+    let unresolved=false;
     busy(true);
-    try{const current=await tool.request('ai.info',{});if(requireGeneration(current.generation)!==requireGeneration(draft.generation))throw Error('AI Provider 已变化，请重新生成。');
-      onApply(draft.config,draft.base,draft.epoch,draft.page,draft.requestId);setAppliedRequestId(draft.requestId);setDraft(null);setProcessedInput(inputKey);setNotice('已应用为未保存草稿；请在采集配置中命名保存。采集仍需单独点击「开始采集」。');}
-    catch(e){setError(e.message);}finally{busy(false);}
+    try{
+      if(proposal.source==='local-list'){
+        const {value}=await pendingIdentity.read();
+        if(!stillCurrent(proposal)||latestContext.current.draft!==proposal)return;
+        if(value){unresolved=true;setPendingId(value.requestId);setUnknown(true);setNotice('存在未决原请求，请查询 / 停止原请求；不会应用配置。');return;}
+      }else{
+        const info=await tool.request('ai.info',{});
+        if(requireGeneration(info.generation)!==requireGeneration(proposal.generation))throw Error('AI Provider 已变化，请重新生成。');
+      }
+      if(!stillCurrent(proposal)||latestContext.current.draft!==proposal)return;
+      onApply(proposal.config,proposal.base,proposal.epoch,proposal.page,proposal.requestId);setAppliedRequestId(proposal.requestId);setDraft(null);setProcessedInput(inputKey);setNotice('已应用为未保存草稿；请在采集配置中命名保存。采集仍需单独点击「开始采集」。');}
+    catch(e){if(alive.current)setError(e.message);}finally{localOperation.current=null;if(alive.current&&!unresolved)busy(false);}
   }
   async function exportDraft(){if(exportPending.current)return;exportPending.current=true;setExporting(true);setError('');setNotice('');try{const r=await tool.request('browser.downloads.text',{text:JSON.stringify(draft.config,null,2),filename:'scrapyjs-ai-config.json'});if(r?.started!==true)throw Error('下载结果未知');setNotice('已请求下载配置 JSON，请在下载列表确认。');}catch(e){setNotice('');setError(e.message);}finally{exportPending.current=false;setExporting(false);}}
   const diff=draft?changes(draft.base,draft.config):null;
@@ -141,7 +180,7 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     <p id="chat-ai-feedback" role="status" hidden={!feedback}>{feedback}</p><p role="alert" className="error" hidden={!error}>{error}</p>
     {unknown&&<Button base="aria" id="chat-ai-cancel" onClick={cancel}>查询 / 停止原请求</Button>}
     {draft&&<div id="chat-ai-review" ref={review} className="ai-review stack" aria-label="生成配置审阅">
-      <div className="toolbar"><h2 className="od-page-title">审阅配置</h2><span className="secondary">{changeCount} 项变更 · 尚未应用</span></div><p className="od-note secondary">目标：{draft.config.url}</p>
+      <div className="toolbar"><h2 className="od-page-title">{draft.source==='local-list'?'本地列表准备 · 审阅配置':'审阅配置'}</h2><span className="secondary">{changeCount} 项变更 · 尚未应用</span></div><p className="od-note secondary">目标：{draft.config.url}</p>
       <ul className="ai-diff">{changedFields.map(row=><Difference key={row.key} row={row}/>)}{diff.listChanged&&<Difference row={{key:'列表选择器',kind:'修改',before:diff.listBefore,after:diff.listAfter}}/>}{diff.optionChanges.map(row=><Difference key={row.key} row={row}/>)}</ul>
       {retainedFields.length>0&&<details id="ai-retained-fields" className="od-disclosure od-disclosure--flat"><summary>保持不变的字段 · {retainedFields.length}</summary><ul className="ai-diff disclosure-body">{retainedFields.map(row=><Difference key={row.key} row={row}/>)}</ul></details>}
       <details id="chat-ai-json" className="od-disclosure od-disclosure--flat"><summary>生成的完整 JSON（只读）</summary><div className="disclosure-body"><label className="sr-only" htmlFor="chat-ai-config-preview">生成的完整 JSON</label><Textarea className="od-field scrapy-code" id="chat-ai-config-preview" rows={6} readOnly value={JSON.stringify(draft.config,null,2)}/></div></details>
@@ -153,10 +192,11 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
       <div className="disclosure-body"><p className="od-note secondary" id="chat-ai-recipient">接收方：{recipient?[recipient.provider,recipient.model,recipient.endpoint].filter(Boolean).join(' · '):'共享 Provider 未就绪。本地调试不开放真实 AI；推理仍需原安装授权。'}</p></div>
     </details>
     <details className="od-disclosure od-disclosure--flat"><summary>查看{working&&requestContext?'本次':'下次'}配置与错误资料</summary><div className="disclosure-body"><pre id="ai-context-preview">{JSON.stringify(previewContext,null,2)}</pre></div></details>
-    {draft&&<details className="od-disclosure od-disclosure--flat"><summary>AI 调用记录</summary><div className="disclosure-body"><pre>{JSON.stringify({requestId:draft.requestId,providerGeneration:draft.generation,metadata:draft.metadata},null,2)}</pre></div></details>}
+    {draft&&draft.source!=='local-list'&&<details className="od-disclosure od-disclosure--flat"><summary>AI 调用记录</summary><div className="disclosure-body"><pre>{JSON.stringify({requestId:draft.requestId,providerGeneration:draft.generation,metadata:draft.metadata},null,2)}</pre></div></details>}
     </div></details>
     </div>
     {draft&&<div className="toolbar ai-review-actions" role="group" aria-label="配置提案操作"><Button base="aria" id="chat-ai-apply" variant="secondary" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||stale} onClick={apply}>应用为配置草稿</Button><Button base="aria" id="chat-ai-export" variant="outline" disabled={working||exporting} onClick={exportDraft}>导出生成配置</Button><Button base="aria" id="chat-ai-discard" variant="quiet" disabled={working} onClick={()=>{setDraft(null);setProcessedInput(inputKey);setNotice('已放弃生成草稿；需求和样本仍保留。');tool.root.querySelector('#ai-requirement')?.focus({preventScroll:true});}}>放弃生成草稿</Button></div>}
+    <Button base="aria" id="chat-list-prepare" variant="outline" disabled={blocked||working||unknown||pendingId!==null||!pendingReady||!state.target||Boolean(draft&&!stale)} onClick={prepareList}>从完整字段准备列表</Button>
     <label className="od-field-label ai-input-label" htmlFor="ai-requirement"><span>采集需求 / 纠正要求{draft&&!stale?' · 修改需求可重新生成':''}</span>{composerHint&&<span id="ai-composer-hint" className="ai-composer-hint">{composerHint}</span>}</label><div className="ai-composer-target" ref={setComposerTarget}/>
       <SharedConversationFrame open={open} rows={conversation.rows} draft={requirement}
         focusOnOpen={true} autoScroll={false} splitTargets={true} transcriptTarget={transcriptTarget} composerTarget={composerTarget}

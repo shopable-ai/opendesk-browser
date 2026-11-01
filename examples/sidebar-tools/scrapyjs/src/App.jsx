@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {Button,IconButton,Card,CardContent,Input,Textarea} from '@opendesk/ui';
-import {fieldForm,applyInlineField,crawlForm,applyCrawl} from './editor.js';
+import {fieldForm,applyInlineField,removeInlineField,crawlForm,applyCrawl} from './editor.js';
 import Results from './Results.jsx';
 import RuleEditor from './RuleEditor.jsx';
 import ColumnSettings from './ColumnSettings.jsx';
 import AiPanel from './AiPanel.jsx';
 import CaptureWorkspace from './CaptureWorkspace.jsx';
-import {accessDenied,resultKeys} from './results-model.js';
+import {accessDenied} from './results-model.js';
 
 const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',exportError:'',field:null,fieldPending:false,fieldError:'',invalidField:'',crawl:null,crawlPending:false,crawlError:'',crawlNotice:'',target:null,targetValid:true,http:null,httpValid:true,jsonHint:'',fieldHelp:'',removeField:false});
 const stringify=value=>JSON.stringify(value,null,2);
@@ -160,10 +160,6 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
   const currentInResults=visibleProfiles.some(row=>row.id===state.selectedId);
   const configuredFields=Object.entries(state.config.itemConfig).filter(([key])=>!key.startsWith('_'));
   const [outputError,setOutputError]=React.useState('');
-  const [displayOrder,setDisplayOrder]=React.useState({epoch:-1,keys:[]});
-  const resultFields=resultKeys(state.result?.data||[]);
-  const preferred=displayOrder.epoch===state.profileEpoch?displayOrder.keys:[];
-  const displayKeys=[...preferred.filter(key=>resultFields.includes(key)),...resultFields.filter(key=>!preferred.includes(key))];
   const fields=configuredFields;
   const form=ui.field||{key:'',originalKey:'',rule:'',selector:'',read:'text',attr:'',container:state.config.itemConfig._listContainer||'',item:state.config.itemConfig._listItem||''};
   const crawl=ui.crawl||crawlForm(state.config);
@@ -223,7 +219,7 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
         try{document.createDocumentFragment().querySelector(field[name].trim());}
         catch{throw Object.assign(Error(label+'选择器格式有误，请检查括号或使用点选。'),{fieldId:id});}
       }
-      const next=applyInlineField(app.state.config,field);
+      const next=applyInlineField(app.state.config,field,document);
       if(stringify(next)!==stringify(app.state.config))app.edit(next);
       else if(ui.fieldPending)app.cancelDraft(inlineCheckpoint.current,{keepDirty:ui.crawlPending||!valid||localDirty||aiDirty});
       inlineCheckpoint.current=null;
@@ -401,8 +397,7 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
         editScope={change=>touchField({...form,...change,key:'',originalKey:'',rule:'',isNew:false,scopeOnly:true})}
         remove={removeField} removePending={ui.removeField} cancelRemove={()=>{update({removeField:false});focusLater('remove-field');}}
         confirmRemove={()=>{
-          const itemConfig={...state.config.itemConfig};delete itemConfig[form.originalKey];
-          try{app.edit({...state.config,itemConfig});update({field:null,json:null,removeField:false,error:'',fieldError:'',fieldHelp:'已从配置草稿删除字段「'+form.originalKey+'」。'});focusLater('new-field');}
+          try{app.edit(removeInlineField(state.config,form.originalKey));update({field:null,json:null,removeField:false,error:'',fieldError:'',fieldHelp:'已从配置草稿删除字段「'+form.originalKey+'」。'});focusLater('new-field');}
           catch(error){update({fieldError:error.message,removeField:false});focusLater('field-error');}
         }}/>}
       <details className="od-disclosure" id="csv-preset"><summary>CSV 表头（可选）</summary><div className="disclosure-body csv-export-settings">
@@ -441,7 +436,7 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
       </div>
     </section>
     <section id="results-panel" role="tabpanel" aria-labelledby="tab-results" tabIndex={0} hidden={workspaceOpen||view!=='results'}>
-      <Results state={state} busy={busy} app={app} displayKeys={displayKeys} onOrderChange={keys=>setDisplayOrder({epoch:state.profileEpoch,keys})} columnsLocked={locked||!valid||pending||ui.removeField} active={view==='results'&&!managementOpen&&!workspaceOpen}/>
+      <Results state={state} busy={busy} app={app} columnsLocked={locked||!valid||pending||ui.removeField} active={view==='results'&&!managementOpen&&!workspaceOpen}/>
     </section>
     </div>
   </main></div>

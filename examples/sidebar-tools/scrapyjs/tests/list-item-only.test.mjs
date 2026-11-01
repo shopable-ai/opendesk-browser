@@ -35,3 +35,11 @@ test('pinned SDK and offline rule preview keep the same record boundaries',async
   assert.deepEqual(report.rows.map(row=>row.value),['10','']);
   assert.equal(probeRule(document,'h2::text','','.missing').status,'error');
 });
+
+test('nested container preview keeps document order and rejects nonportable scope selectors',async()=>{
+  const {document}=parseHTML('<main class="scope"><section class="scope"><article><b>A</b></article></section><article><b>B</b></article></main>');
+  const report=probeRule(document,'b','.scope','article');
+  assert.deepEqual(report.rows.map(row=>row.value),['A','B']);
+  for(const item of ['> article',':scope > article','article:contains(A)','article::text'])
+    assert.equal(probeRule(document,'b','.scope',item).status,'error');
+});

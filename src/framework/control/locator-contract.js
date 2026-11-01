@@ -1,7 +1,7 @@
-import {PageError, requireValue, options, selector, duration} from './value.js';
+import {PageError, requireValue, options, selector, duration, decodeValue} from './value.js';
 
 // R5.1 deliberately exposes a documented Playwright-like subset, not selector engines.
-export const PAGE_API_VERSION = '1.1.0-r13';
+export const PAGE_API_VERSION = '1.2.0';
 const roles = new Set(['button','link','textbox','searchbox','checkbox','radio','combobox','option','heading','dialog','form','region',
   'list','listitem','table','row','cell','columnheader','rowheader','img','article','navigation','main','banner','contentinfo','status','alert']);
 const kinds = new Set(['css','role','label','text','testId','placeholder','title','alt']);
@@ -61,17 +61,29 @@ export function withLocatorIndex(descriptor, index) {
   return validateLocatorDescriptor({...descriptor, index});
 }
 export function validateLocatorOperation(operation) {
-  requireValue(own(operation, ['action','value','name','state','timeout']), 'E_ARGUMENT_TYPE');
+  requireValue(own(operation, ['action','value','name','state','timeout','waitUntil']), 'E_ARGUMENT_TYPE');
   const {action} = operation;
   requireValue(['click','fill','check','uncheck','selectOption','count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked','waitFor'].includes(action), 'E_OPERATION_UNSUPPORTED');
   if (action === 'fill' || action === 'selectOption') requireValue(typeof operation.value === 'string', 'E_ARGUMENT_TYPE');
   if (action === 'getAttribute') requireValue(typeof operation.name === 'string' && /^[^\s"'<>/=]+$/.test(operation.name), 'E_ARGUMENT_TYPE');
   if (action === 'waitFor') requireValue(['attached','detached','visible','hidden'].includes(operation.state), 'E_OPTION_UNSUPPORTED');
   if (operation.timeout !== undefined) { duration(operation.timeout); requireValue(operation.timeout <= 120000, 'E_ARGUMENT_TYPE'); }
+  if (operation.waitUntil !== undefined) requireValue(action === 'click' &&
+    ['load','domcontentloaded'].includes(operation.waitUntil), 'E_OPTION_UNSUPPORTED');
   const expected = action === 'fill' || action === 'selectOption' ? ['action','value','timeout'] : action === 'getAttribute' ? ['action','name','timeout'] :
-    action === 'waitFor' ? ['action','state','timeout'] : ['action','timeout'];
+    action === 'waitFor' ? ['action','state','timeout'] : action === 'click' ? ['action','timeout','waitUntil'] : ['action','timeout'];
   requireValue(Object.keys(operation).every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
   return Object.freeze({...operation});
+}
+// An explicit click navigation uses the same durable intent and handoff as goto.
+// Callers cannot turn arbitrary actions into permission to follow another document.
+export function isControllerNavigation(operation) {
+  if (operation.kind === 'browser') return ['goto','reload'].includes(operation.method);
+  if (operation.kind !== 'packaged' || operation.method !== 'locatorAction') return false;
+  const args = decodeValue(operation.args);
+  requireValue(Array.isArray(args) && args.length === 2, 'E_ARGUMENT_TYPE');
+  validateLocatorDescriptor(args[0]);
+  return validateLocatorOperation(args[1]).waitUntil !== undefined;
 }
 export function validateObservationOptions(input = {}) {
   options(input, ['root','maxDepth','maxNodes','maxChars']);
@@ -88,5 +100,6 @@ export const MODERN_PAGE_CAPABILITIES = Object.freeze({
   actions:['click','fill','check','uncheck','selectOption'],
   reads:['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked','waitFor'],
   observation:'semantic-dom-summary',
+  clickNavigation:['load','domcontentloaded'],
   unsupported:['press','trusted-input','xpath','shadow-piercing']
 });

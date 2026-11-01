@@ -1,3 +1,4 @@
+import {normalizeConfig} from '../engine/browser.js';
 // Offline DOM only. These helpers never query the target tab or invoke a Task.
 const escapeCSS=value=>Array.from(value,char=>'\\'+char.codePointAt(0).toString(16)+' ').join('');
 const safeToken=value=>/^[a-zA-Z_][\w-]*$/.test(value)?value:escapeCSS(value);
@@ -54,10 +55,11 @@ export function probeRule(root,rule,container,item){
   const selector=(match?match[1]:rule).trim(),read=match?match[2]:'text';
   if(!selector||/^(?:xpath=|\(?\.?\/)/.test(selector)||['html','innerHTML','outerHTML'].includes(read))return fail('当前只验证 CSS 的文本或属性取值。');
   try{
-    const scopes=container?.trim()?Array.from(root.querySelectorAll(container.trim())):[root];
-    if(item?.trim())root.querySelectorAll(item.trim()); // validate even if scope is empty
-    const seen=new Set();
-    const items=container?.trim()?scopes.flatMap(scope=>Array.from(scope.children)).filter(node=>{if(seen.has(node)||item?.trim()&&!node.matches(item.trim()))return false;seen.add(node);return true;}):item?.trim()?Array.from(root.querySelectorAll(item.trim())):[root];
+    const plan=normalizeConfig({...container?.trim()?{_listContainer:container}:{},...item?.trim()?{_listItem:item}:{},value:'*'});
+    const scopes=plan.listSelector?Array.from(root.querySelectorAll(plan.listSelector)):[root];
+    const selected=plan.itemSelector?new Set(root.querySelectorAll(plan.itemSelector)):null; // validate even if scope is empty
+    const seen=new Set(scopes.flatMap(scope=>Array.from(scope.children||[])));
+    const items=plan.listSelector?Array.from(root.querySelectorAll('*')).filter(node=>seen.has(node)&&(!selected||selected.has(node))):selected?Array.from(selected):[root];
     if(!items.length)return fail('列表范围未匹配任何记录，请先修正列表容器和列表项。');
     const rows=items.slice(0,100).map((row,index)=>{
       const nodes=selector==='.'?[row]:Array.from(row.querySelectorAll(selector));

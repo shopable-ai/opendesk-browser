@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRunContext} from '../../src/framework/context.js';
+import {createRunContext,relayContextRequest} from '../../src/framework/context.js';
 import {PageError, encodeValue, decodeValue} from '../../src/framework/control/value.js';
 import {createControllerDriver} from '../../src/framework/control/native-driver.js';
 import {installPackagedPageSession} from '../../src/scripting/packaged/page-session.js';
@@ -121,14 +121,25 @@ function eventBus() {
       });
     }};
 }
-function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateCommit=false,pingPortClosed=false,deadlineMs=2000}={}) {
+function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateCommit=false,pingPortClosed=false,deadlineMs=2000,
+  navigationURL=null,revokeAtNavigation=false,navigateBeforeCommit=false,navigationEventDelay=0}={}) {
   const dom=pageDOM(), bus=eventBus(), calls=[], phases=[];
   let granted=true, changed=false, commits=0, writes=0, injections=0, closedPing=false;
+  let currentURL=target.url,commitSubmissions=0;
+  const navigationEvent=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),
+    removeListener:fn=>listeners.delete(fn),emit:details=>{for(const fn of listeners)fn(details);}};};
   const receipts=[];
   const api={runtime:{id:'ext',onMessage:bus,getURL:path=>'chrome-extension://ext/'+path},
     tabs:{sendMessage(_tab,message,exact,callback){
-      assert.deepEqual(exact,{documentId:target.documentId,frameId:0});
+      if(message.action==='execute'&&message.envelope.operation.method==='locatorCommit')commitSubmissions++;
+      assert.deepEqual(exact,{documentId:changed?'doc-B':target.documentId,frameId:0});
       calls.push(message.action==='execute'?message.envelope.operation.method:message.action);
+      if(changed){
+        const e=message.envelope;
+        callback(message.action==='ping'?{type:message.type,ready:true}:{requestId:e.requestId,
+          runId:e.identity.runId,ownerEpoch:e.identity.ownerEpoch,value:encodeValue(currentURL)});
+        return;
+      }
       // Another onMessage listener ignores our read-only ping (Chrome 155).
       if(message.action==='ping'&&pingPortClosed&&!closedPing){
         closedPing=true;
@@ -149,20 +160,91 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
       });
     }},
     webNavigation:{getAllFrames(_opts,callback){callback([{frameId:0,documentId:changed?'doc-B':'doc-A',
-      documentLifecycle:'active',url:target.url}]);}},
+      documentLifecycle:'active',url:currentURL}]);},onBeforeNavigate:navigationEvent(),onCommitted:navigationEvent(),
+      onDOMContentLoaded:navigationEvent(),onCompleted:navigationEvent(),onErrorOccurred:navigationEvent()},
     scripting:{executeScript(_opts,callback){injections++;callback([{frameId:0,documentId:'doc-A'}]);}}};
   const installation=installPackagedPageSession({api,document:dom.doc,window:dom.win,packageURLs:[]});
-  const driver=createControllerDriver({api,authorize:async (_env,{phase})=>{
-    phases.push(phase);if(!granted)throw new PageError('E_PERMISSION');return true;
+  if(navigationURL){const click=dom.button.onClick;dom.button.onClick=()=>{
+    click();changed=true;currentURL=navigationURL;if(revokeAtNavigation)granted=false;
+    const details={tabId:target.tabId,frameId:0,documentId:'doc-B',url:currentURL};
+    const emit=()=>{api.webNavigation.onCommitted.emit(details);api.webNavigation.onDOMContentLoaded.emit(details);api.webNavigation.onCompleted.emit(details);};
+    if(navigationEventDelay)setTimeout(emit,navigationEventDelay);else emit();
+  };}
+  const driver=createControllerDriver({api,authorize:async (_env,{phase,url})=>{
+    phases.push(phase);if(!granted)throw new PageError('E_PERMISSION');
+    if(url&&new URL(url).origin!==target.allowedOrigin)throw new PageError('E_PERMISSION');return true;
+  },beforeEffect:async(_env,details)=>{
+    if(navigateBeforeCommit&&details.method==='locatorCommit'){
+      changed=true;currentURL='https://example.test/unrelated';
+      api.webNavigation.onCommitted.emit({tabId:target.tabId,frameId:0,documentId:'doc-B',url:currentURL});
+    }
   },withWrite:async (_owner,fn)=>{writes++;return fn();}});
   const transport={request:envelope=>driver.execute(envelope,{deadlineAt:Date.now()+deadlineMs,
     recordReceipt:receipt=>{receipts.push(receipt);}})};
   const context=createRunContext({identity,revision,target,transport,dom:null});
   return {dom,bus,calls,phases,receipts,context,installation,
-    get commits(){return commits;},get writes(){return writes;},get injections(){return injections;},
+    get commits(){return commits;},get commitSubmissions(){return commitSubmissions;},get writes(){return writes;},get injections(){return injections;},
     setDocument(value){changed=value;},revoke(){granted=false;},
     dispose(){context.dispose();installation.dispose();}};
 }
+
+test('Locator navigation hands one confirmed click to the exact new document and fences old Locators',async()=>{
+  const f=fixture({navigationURL:'https://example.test/results'});
+  try{
+    const old=f.context.page.locator('#search-submit');
+    await old.click({waitUntil:'load',timeout:1000});
+    assert.equal(f.dom.submits,1);assert.equal(f.commits,1);
+    assert.equal(f.context.target.documentId,'doc-B');
+    assert.equal(await f.context.page.url(),'https://example.test/results');
+    await assert.rejects(old.click(),{code:'E_DOCUMENT_REPLACED'});
+  }finally{f.dispose();}
+});
+test('Locator navigation never repeats a click whose commit callback was lost',async()=>{
+  const f=fixture({navigationURL:'https://example.test/results',dropCommit:true,deadlineMs:150});
+  try{
+    await assert.rejects(f.context.page.locator('#search-submit').click({waitUntil:'load',timeout:100}),{code:'E_TIMEOUT'});
+    assert.equal(f.dom.submits,1);assert.equal(f.commits,1);
+    assert.equal(f.context.target.documentId,'doc-A');
+  }finally{f.dispose();}
+});
+test('Locator navigation waits for native commit evidence when the acknowledged click changes the frame before events arrive',async()=>{
+  const f=fixture({navigationURL:'https://example.test/results',navigationEventDelay:30});
+  try{
+    await f.context.page.locator('#search-submit').click({waitUntil:'load',timeout:1000});
+    assert.equal(f.dom.submits,1);assert.equal(f.commits,1);
+    assert.equal(f.context.target.documentId,'doc-B');
+    assert.equal(await f.context.page.url(),'https://example.test/results');
+  }finally{f.dispose();}
+});
+test('Locator navigation Worker relay consumes the trusted document handoff',async()=>{
+  const f=fixture({navigationURL:'https://example.test/results'});
+  try{
+    const reply=await relayContextRequest(f.context,{requestId:'worker-click-navigation',identity,revision,target,
+      operation:{kind:'packaged',method:'locatorAction',args:encodeValue([
+        createLocatorDescriptor('css','#search-submit'),{action:'click',waitUntil:'domcontentloaded',timeout:500}])}});
+    assert.equal(reply.handoff.to.documentId,'doc-B');
+    assert.equal(f.context.target.documentId,'doc-B');assert.equal(f.dom.submits,1);
+  }finally{f.dispose();}
+});
+test('Locator navigation rejects a replacement during effect preflight before dispatching any click',async()=>{
+  const f=fixture({navigateBeforeCommit:true});
+  try{
+    await assert.rejects(f.context.page.locator('#search-submit').click({waitUntil:'load',timeout:500}),{code:'E_DOCUMENT_REPLACED'});
+    assert.equal(f.commitSubmissions,0);assert.equal(f.dom.submits,0);
+    assert.equal(f.context.target.documentId,'doc-A');
+  }finally{f.dispose();}
+});
+test('Locator navigation keeps permission loss and cross-origin redirects fenced',async t=>{
+  for(const input of [{navigationURL:'https://other.test/results'},
+    {navigationURL:'https://example.test/results',revokeAtNavigation:true}])await t.test(JSON.stringify(input),async()=>{
+    const f=fixture(input);
+    try{
+      await assert.rejects(f.context.page.locator('#search-submit').click({waitUntil:'load',timeout:500}),{code:'E_PERMISSION'});
+      assert.equal(f.dom.submits,1);assert.equal(f.commits,1);
+      assert.equal(f.context.target.documentId,'doc-A');
+    }finally{f.dispose();}
+  });
+});
 
 
 test('closed-port read-only ping injects exact Page Session but never replays packaged operation',async()=>{
@@ -461,7 +543,7 @@ test('R13 attribute selectors, scoped indexes and strictness',async()=>{
     assert.throws(()=>p.getByRole('button').nth(1.2),{code:'E_ARGUMENT_TYPE'});
     assert.throws(()=>p.getByRole('button').nth(10001),{code:'E_ARGUMENT_TYPE'});
     assert.throws(()=>p.getByRole('button').first().last(),{code:'E_OPTION_UNSUPPORTED'});
-    assert.equal(p.modernCapabilities.version,'1.1.0-r13');
+    assert.equal(p.modernCapabilities.version,'1.2.0');
   }finally{f.dispose();}
 });
 

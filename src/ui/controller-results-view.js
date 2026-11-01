@@ -49,7 +49,15 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     const task = currentTask && snapshot.runs.find(row=>row.runId === currentTask.runId);
     // An explicit query selects both the decoded result and its technical
     // identity, even when the snapshot also contains the previous run.
-    if (snapshot.run) renderTask(snapshot.run);
+    if (snapshot.run) {
+      renderTask(snapshot.run);
+      patchDeveloperField(view,find('script-history'),{textContent:formatRunValue({
+        runId:snapshot.run.runId,state:snapshot.run.state,terminalReason:snapshot.run.terminalReason,
+        retirementState:snapshot.run.retirementState,run:snapshot.run,
+        results:values.filter(row=>row.runId===snapshot.run.runId),
+        downloads:snapshot.downloads.filter(row=>row.runId===snapshot.run.runId),
+        resultDeliveryDenied:snapshot.resultDeliveryDenied})});
+    }
     else if (task) renderTask(task);
     else if (!currentTask && !isRunning() && !host.currentRun && snapshot.runs.length) renderTask(snapshot.runs.at(-1));
     if (!snapshot.run) {

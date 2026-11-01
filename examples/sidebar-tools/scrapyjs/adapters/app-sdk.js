@@ -35,6 +35,12 @@
         return project(await request('tasks.start', {task, clientRequestId, params}));
       },
       read: async clientRequestId => project(await request('tasks.read', {clientRequestId})),
+      inspect: async (input,clientRequestId) => {
+        if(!task)throw new Error('固定 Task 尚未确认安装身份');
+        const {url,...inspection}=input;
+        return project(await request('tasks.start',{task,clientRequestId,params:{url,configJson:'{}',
+          optionsJson:JSON.stringify({inspection}),waitForSelector:'',timeoutMs:10000}}));
+      },
       stop: async clientRequestId => project(await request('tasks.stop', {clientRequestId})),
       load: () => request('storage.get', {key: STORAGE_KEY, withEtag: true}),
       async save(value, etag) {
@@ -50,7 +56,17 @@
         if (format === 'csv') {
           const data = value.result?.data ?? value.value?.data;
           if (!Array.isArray(data)) throw new Error('结果中没有可导出的记录数组');
-          const keys = [...new Set(data.flatMap(row => Object.keys(row)))];
+          let keys = [...new Set(data.flatMap(row => Object.keys(row)))];
+          // A per-download order must include every actual result field exactly once.
+          // It is independent of the collection-rule order stored in configuration.
+          if (output && Object.hasOwn(output, 'fieldOrder')) {
+            if (!Array.isArray(output.fieldOrder)) throw new Error('CSV 列顺序无效，必须包含全部结果字段且不重复');
+            const order = [...output.fieldOrder], available = new Set(keys);
+            if (order.length !== keys.length || new Set(order).size !== keys.length ||
+                order.some(key => typeof key !== 'string' || !available.has(key)))
+              throw new Error('CSV 列顺序无效，必须包含全部结果字段且不重复');
+            keys = order;
+          }
           const cell = v => {
             let value=String(v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : v);
             if(typeof v==='string' && (/^[\s\u0000-\u001f]*[=+@-]/u.test(value)||/^[\t\r\n]/u.test(value)))value="'"+value;

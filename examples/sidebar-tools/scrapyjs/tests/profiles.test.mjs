@@ -133,3 +133,12 @@ test('initial storage reply arriving after retirement preserves the completed ru
   assert.equal(app.state.runId,'finished-run');assert.deepEqual(plain(app.state.snapshot),snapshot);assert.equal(app.state.phase,'retired');
   assert(app.state.conflict);assert.equal(app.state.runProfile.name,'未保存配置');
 });
+
+test('all record modes round-trip through named configuration storage without inventing a container',async()=>{
+  for(const scope of [{_listContainer:'.scope',_listItem:'.row'},{_listContainer:'.scope'},{_listItem:'.row'},{}]){
+    const original={url:'https://example.test/list',itemConfig:{...scope,title:'b'}};
+    const storage=store(),app=createApp(storage.sdk);await app.load();app.edit(original);await app.save('Scope');
+    assert.equal(app.state.error,'');
+    const reopened=createApp(storage.sdk);await reopened.load();assert.deepEqual(plain(reopened.state.config),original);
+  }
+});

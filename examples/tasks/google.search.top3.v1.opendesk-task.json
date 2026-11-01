@@ -1,0 +1,50 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "google.search.top3",
+    "version": "1.0.0",
+    "title": "Google 搜索：前三条自然网页结果",
+    "description": "在已授权 Google 首页填写关键词并点击一次搜索，经同 Origin 文档交接后只读取前三条可见结果链接。固定 limit=3；遇验证停止。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://www.google.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3,
+          "title": "结果数量"
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "deadlineMs": 60000
+  },
+  "manifestHash": "c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261",
+  "sourceUtf8": "// Fixed Controller Task. Explicit click navigation stays in the approved Google Origin.\n// These are ISOLATED DOM actions, not operating-system keyboard/mouse events.\nasync function main() {\n  const query=params?.query;\n  if(typeof query!=='string'||!query.trim()||query.length>120||params?.limit!==3||\n      Object.keys(params).some(key=>!['query','limit'].includes(key)))\n    throw Object.assign(new Error('Expected a nonempty query and limit=3'),{code:'E_TASK_PARAMS'});\n  let url=new URL(await page.url());\n  const homepage=url.pathname==='/'&&!url.search;\n  if(url.origin!=='https://www.google.com'||url.username||url.password||\n      (!homepage&&(url.pathname!=='/search'||url.searchParams.get('q')!==query)))\n    throw Object.assign(new Error('Expected the approved Google homepage or exact query'),{code:'E_TARGET'});\n  const trace=[];\n  const record=(action,state,detail={})=>trace.push({at:new Date().toISOString(),action,state,...detail});\n  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));\n  const body=async()=>(await page.locator('body').innerText()).slice(0,3000);\n  const blocked=text=>/captcha|unusual traffic|automated queries|验证码|安全验证|访问受限|异常流量/i.test(text);\n  const documentId=async()=>(await page.observe({root:'body',maxDepth:1,maxNodes:1,maxChars:256})).document.documentId;\n  const result=(status,results=[],error=null)=>({kind:'google.search.top3.result',version:1,query,sourceUrl:url.href,\n    status,count:results.length,results,inputMode:'isolated-dom',trace,...(error?{error}:{}),observedAt:new Date().toISOString()});\n  try {\n    if(blocked(await body()))return result('blocked');\n    if(homepage){\n      const field=page.locator('textarea[name=q]');\n      record('input','before',{locator:'textarea[name=q]',value:await field.inputValue(),url:url.href,documentId:await documentId()});\n      await pause(3000);\n      await field.fill(query,{timeout:10000});\n      const entered=await field.inputValue();\n      record('input','returned',{locator:'textarea[name=q]',value:entered});\n      if(entered!==query)throw Object.assign(new Error('Search input did not match'),{code:'E_INPUT_VALUE'});\n      await pause(1000);\n      // Suggestions repaint the buttons after filling. Resolve the visible button now.\n      const buttons=page.locator('input[name=btnK]');let index=-1;\n      for(let i=0;i<await buttons.count();i++)if(await buttons.nth(i).isVisible()){index=i;break;}\n      if(index<0)throw Object.assign(new Error('No visible search button'),{code:'E_SELECTOR_NOT_FOUND'});\n      const locator='input[name=btnK] >> nth='+index;\n      record('click','started',{locator,url:await page.url()});\n      await buttons.nth(index).click({waitUntil:'load',timeout:15000});\n      record('click','returned',{locator});\n      url=new URL(await page.url());\n      record('navigation','observed',{url:url.href,documentId:await documentId()});\n      if(url.origin!=='https://www.google.com'||url.pathname!=='/search'||url.searchParams.get('q')!==query)\n        throw Object.assign(new Error('Unexpected search navigation'),{code:'E_TARGET'});\n    }\n    if(blocked(await body()))return result('blocked');\n    try{await page.locator('#rso').waitFor({state:'visible',timeout:12000});}\n    catch(error){if(error.code!=='E_TIMEOUT')throw error;return result(blocked(await body())?'blocked':'dom_unavailable');}\n    const links=page.locator('#rso a:has(h3)');\n    const paid=page.locator('#rso [data-text-ad] a:has(h3),#rso [data-ad] a:has(h3),#rso [data-ad-slot] a:has(h3)');\n    const excluded=new Set();\n    for(let i=0;i<Math.min(await paid.count(),40);i++)excluded.add(await paid.nth(i).getAttribute('href'));\n    const results=[];\n    for(let i=0;i<Math.min(await links.count(),30)&&results.length<3;i++){\n      const anchor=links.nth(i),href=await anchor.getAttribute('href');\n      if(!href||excluded.has(href)||!await anchor.isVisible()||await anchor.locator('h3').count()!==1)continue;\n      const title=(await anchor.locator('h3').innerText()).replace(/\\s+/g,' ').trim();\n      let link;try{link=new URL(href,url);}catch{continue;}\n      if(!title||!['https:','http:'].includes(link.protocol)||link.username||link.password)continue;\n      // Keep the observed public redirect target, omit Google's transient browser session parameter.\n      if(link.origin==='https://www.google.com'&&link.pathname==='/goto')link.searchParams.delete('gsessionid');\n      if(link.href.length>1000||results.some(row=>row.url===link.href))continue;\n      results.push({position:results.length+1,title:title.slice(0,240),url:link.href});\n    }\n    record('results','read',{locator:'#rso a:has(h3)',url:url.href,count:results.length});\n    await pause(2000);\n    return result(results.length?'success':/did not match any documents|找不到和您查询|没有找到/i.test(await body())?'no_results':'dom_changed',results);\n  }catch(error){\n    // A dispatched click may have happened even when its acknowledgement is lost. Never retry it here.\n    record('operation','stopped',{code:error.code||null,message:String(error.message||error).slice(0,200)});\n    return result('stopped',[],{code:error.code||null,message:String(error.message||error).slice(0,200)});\n  }\n}\n"
+}

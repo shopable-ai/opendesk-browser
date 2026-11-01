@@ -28,8 +28,8 @@ export interface OpenDeskLocator {
   first(): OpenDeskLocator;
   last(): OpenDeskLocator;
   nth(index: number): OpenDeskLocator;
-  /** DOM .click(), not trusted input. Requires a unique, visible, enabled, stable, unobscured in-viewport element. */
-  click(options?: LocatorTimeOptions): Promise<void>;
+  /** DOM .click(), not trusted input. waitUntil explicitly awaits a top-frame same-origin document navigation; recreate Locators afterwards. */
+  click(options?: LocatorTimeOptions & {waitUntil?: 'load' | 'domcontentloaded'}): Promise<void>;
   /** Replace entire editable input/textarea value; focus + synthetic input/change on changes. */
   fill(value: string, options?: LocatorTimeOptions): Promise<void>;
   /** Checkbox/radio untrusted DOM activation; radio cannot be unchecked. */
@@ -89,13 +89,14 @@ export interface PageObservation {
     maxVisited: number; visited: number; locatorChecks: number; maxLocatorChecks: number};
 }
 export interface ModernPageCapabilities {
-  readonly version: '1.1.0-r13';
+  readonly version: '1.2.0';
   readonly selectorEngine: string;
   readonly input: 'untrusted-isolated-dom';
   readonly locator: readonly string[];
   readonly actions: readonly string[];
   readonly reads: readonly string[];
   readonly observation: 'semantic-dom-summary';
+  readonly clickNavigation: readonly ('load' | 'domcontentloaded')[];
   readonly unsupported: readonly string[];
 }
 export interface OpenDeskPage {

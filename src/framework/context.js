@@ -3,6 +3,7 @@ import {createStorageFacades} from './sdk/storage.js';
 import {createBoundPage} from './ChromePage.js';
 import {createBrowserSdk} from './sdk/browser.js';
 import {normalizeBrowserOperation} from './sdk/browser-contract.js';
+import {isControllerNavigation} from './control/locator-contract.js';
 import {PageError, requireValue, frozenCopy, encodeValue, decodeValue, newPageRequestId, options as validateOptions, selector} from './control/value.js';
 
 const relays = new WeakMap();
@@ -157,7 +158,7 @@ export function createRunContext({identity, revision, target = identity?.target,
       requireValue(args.length === 1, 'E_ARGUMENT_TYPE');
       normalizeBrowserOperation(captured.operation.method, args[0]);
     }
-    return (await exchange(captured, captured.operation.kind === 'browser' && ['goto', 'reload'].includes(captured.operation.method))).reply;
+    return (await exchange(captured, isControllerNavigation(captured.operation))).reply;
   });
   return context;
 }

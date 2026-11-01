@@ -1,4 +1,4 @@
-import {readFile} from 'node:fs/promises';
+async function readDownload(download){const stream=await download.createReadStream();stream.setEncoding('utf8');let text='';for await(const chunk of stream)text+=chunk;return text;}
 
 // Exercise the actual React components with the original offline SDK fixture.
 export async function exerciseResultDisplay(page,url,{screenshot=async()=>{}}={}){
@@ -22,29 +22,45 @@ export async function exerciseResultDisplay(page,url,{screenshot=async()=>{}}={}
   await get('tab-results').click();await get('start').click();await get('run-summary').filter({hasText:'采集完成'}).waitFor();
   const headers=()=>get('record-table').locator('thead th').allTextContents();
   const rawHeaders=await headers();
+  check(await get('edit-result-columns').isVisible()&&await get('custom-csv').isVisible()&&await get('result-display-settings').count()===0,'display settings and custom CSV have independent entries');
+  await get('edit-result-columns').click();
+  check(await get('result-display-settings').getByRole('button',{name:/调整显示顺序/}).count()===2,'display settings reuse field-order handles independently of CSV');
+  const displaySource=get('result-display-settings').getByRole('button',{name:'调整显示顺序：source',exact:true});
+  await displaySource.press('Space');await page.keyboard.press('Home');await page.keyboard.press('Enter');
+  check((await headers()).slice(1).join(',')==='source,title','display sorting changes only the current result table');
+  await get('reset-result-order').click();
+  check(JSON.stringify(await headers())===JSON.stringify(rawHeaders),'reset restores default table order');
+  await get('close-result-display').click();
+  check(await get('result-display-settings').count()===0,'done collapses only display settings');
   await screenshot('02-results-downloads');
   await get('custom-csv').click();
-  const input=get('custom-csv-settings').getByRole('textbox',{name:'title 显示名称',exact:true});
-  const source=get('custom-csv-settings').getByRole('textbox',{name:'source 显示名称',exact:true});
+  const input=get('custom-csv-settings').getByRole('textbox',{name:'title CSV 表头',exact:true});
+  const source=get('custom-csv-settings').getByRole('textbox',{name:'source CSV 表头',exact:true});
   const preview=()=>get('custom-csv-settings').locator('.csv-header-preview th').allTextContents();
   check(await input.inputValue()==='标题'&&await source.inputValue()==='来源','manual and programmatic names prefill the custom export');
-  check(await get('custom-csv-settings').getByRole('textbox').count()===2&&await get('custom-csv-settings').getByRole('button').count()===2,'only one input per field plus download and cancel');
-  check(await get('custom-csv-settings').getByRole('button',{name:/调整.*顺序|显示列/}).count()===0,'custom CSV has no sorting or visibility controls');
+  check(await get('custom-csv-settings').getByRole('textbox').count()===2&&await get('custom-csv-settings').getByRole('button').count()===4,'each custom field has one name input and one existing sort handle, plus download and cancel');
+  check(await get('custom-csv-settings').getByRole('button',{name:/调整 CSV 列顺序/}).count()===2,'custom CSV reuses the existing field-order interaction');
   await input.fill('书名');
   check((await preview()).join(',')==='书名,来源','CSV preview updates in actual export order');
   check(JSON.stringify(await headers())===JSON.stringify(rawHeaders),'custom CSV labels leave the result table unchanged');
   await input.press('Escape');
   check(await input.inputValue()==='标题'&&await get('custom-csv-settings').isVisible(),'Escape restores the current name without closing the form');
+  await input.fill('组合输入');
+  await input.dispatchEvent('keydown',{key:'Escape',isComposing:true});
+  check(await input.inputValue()==='组合输入'&&await get('custom-csv-settings').isVisible(),'a composing Escape neither restores the field nor closes custom CSV');
+  await input.dispatchEvent('keydown',{key:'Escape',keyCode:229});
+  check(await input.inputValue()==='组合输入','legacy IME key code 229 also preserves the current input');
+  await input.press('Escape');check(await input.inputValue()==='标题','a normal Escape still restores the focused input baseline after composition');
   await input.fill('书名');await input.press('Enter');
   await screenshot('03-custom-csv');
   let pending=page.waitForEvent('download');await get('download-custom-csv').click();
-  const custom=await readFile(await(await pending).path(),'utf8');
+  const custom=await readDownload(await pending);
   check(custom.startsWith('"书名","来源"\r\n')&&custom.split('\r\n').length===3,'custom CSV downloads both complete records with selected labels');
   pending=page.waitForEvent('download');await get('download-csv').click();
-  const raw=await readFile(await(await pending).path(),'utf8');
+  const raw=await readDownload(await pending);
   check(raw.startsWith('"title","source"\r\n')&&raw.slice(raw.indexOf('\r\n'))===custom.slice(custom.indexOf('\r\n')),'original CSV stays byte-identical below its original headers');
   pending=page.waitForEvent('download');await get('download-json').click();
-  const json=JSON.parse(await readFile(await(await pending).path(),'utf8'));
+  const json=JSON.parse(await readDownload(await pending));
   check(json.result.data.length===2&&Object.hasOwn(json.result.data[0],'title')&&!Object.hasOwn(json.result.data[0],'书名'),'JSON retains original keys and all records');
   await source.fill('书名');
   check(await get('download-custom-csv').isDisabled()&&await get('custom-csv-settings').getByRole('alert').isVisible(),'duplicate custom headers block only custom download');

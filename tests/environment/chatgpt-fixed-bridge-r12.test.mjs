@@ -201,7 +201,7 @@ test('content revoke-request uses real sender and current source instead of supp
     'incognito':h=>{h.tab.incognito=true;},
     'current URL mismatch':h=>{h.tab.url='https://chatgpt.com/c/other';},
     'different current source':h=>{h.tab.url=h.frame.url='https://chatgpt.com/c/other';},
-    'sidepanel':h=>{delete h.sender.tab;h.sender.url='chrome-extension://extid/sidepanel.html?hostInstanceId=host';}
+    'tool sidepanel':h=>{delete h.sender.tab;h.sender.url='chrome-extension://extid/sidepanel.html?hostInstanceId=host&toolId=untrusted';}
   };
   for(const [name,change] of Object.entries(changes)){
     const h=gateHarness(),prepared=await h.send({kind:'prepare'}),requestId=prepared.data.requestId;
@@ -247,6 +247,17 @@ test('gate accepts exact project conversation path and rejects unfamiliar route 
       assert.equal(response.error.code,'E_BRIDGE_SOURCE',url);
     }
   }
+});
+test('trusted sidepanel revokes only the request bound to its verified current source',async()=>{
+  const h=gateHarness(),prepared=await h.send({kind:'prepare'}),requestId=prepared.data.requestId;
+  const pageSender=structuredClone(h.sender);
+  delete h.sender.tab;h.sender.url='chrome-extension://extid/sidepanel.html?hostInstanceId=host';
+  const wrong=await h.send({kind:'revoke-request',requestId,source:{...source,documentId:'replacement'}});
+  assert.equal(wrong.ok,false);assert.equal(wrong.error.code,'E_BRIDGE_SOURCE');
+  const revoked=await h.send({kind:'revoke-request',requestId,source});
+  assert.equal(revoked.ok,true);assert.deepEqual(revoked.data,{requestId,revoked:true});
+  Object.assign(h.sender,pageSender);
+  assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).ok,false);
 });
 test('prepare freezes current browser source and authorize accepts the same document with an old injection URL',async()=>{
   for(const initial of ['https://chatgpt.com/','https://chatgpt.com/c/initial-injection']){
@@ -416,7 +427,7 @@ function hostHarness({override={},readReply=null}={}){
       addListener(listener){events.permissionRemoved=listener;},removeListener(){events.permissionRemoved=null;}}}};
   const client={request:async method=>{
       if(method==='listTaskCatalog')return override.catalog||catalog;
-      if(method==='resolveInstalledTask')return override.resolved||resolved;
+      if(method==='resolveInstalledTask'){await override.onResolve?.();return override.resolved||resolved;}
       throw new Error('Unexpected '+method);
     },subscribeInstalledTasks(listener){events.installChanged=listener;return()=>{events.installChanged=null;};},
     subscribeConnection(listener){events.connectionChanged=listener;return()=>{events.connectionChanged=null;};},
@@ -575,6 +586,70 @@ test('revocation during async final reply or durable reads cannot produce a deli
     await assert.rejects(h.bridge.handle(h.message,h.sender));
     assert.equal(clicks,0,change);assert.equal(h.events.start,1,change);
     h.bridge.dispose();assert.equal(h.events.installChanged,null);assert.equal(h.events.permissionRemoved,null);
+  }
+});
+
+test('unrelated task installation changes allow exactly one A delivery across async verification',async()=>{
+  for(const phase of ['running','initial-reply','resolve','delivery-reply','delivery-snapshot']){
+    const override={},h=hostHarness({override});
+    let delivery=false,fired=false,clicks=0;
+    const change=()=>{if(!fired){fired=true;h.events.installChanged({taskId:'unrelated.task.b'});}};
+    override.onReadReply=()=>{if(phase===(delivery?'delivery-reply':'initial-reply'))change();};
+    override.onResolve=()=>{if(phase==='resolve')change();};
+    override.onSnapshot=()=>{if(phase===(delivery?'delivery-snapshot':'running'))change();};
+    h.api.tabs.sendMessage=async(_tab,message)=>{
+      if(message.kind==='progress')return {ok:true};
+      delivery=true;
+      await h.bridge.checkDelivery({...message,kind:'check-delivery'},h.sender);
+      clicks++;return {ok:true,data:{sent:true,userObserved:true}};
+    };
+    assert.equal((await h.bridge.handle(h.message,h.sender)).sent,true,phase);
+    assert.equal(fired,true,phase);assert.equal(clicks,1,phase);
+    assert.equal(h.events.start,1,phase);assert.equal(h.events.reserve,1,phase);
+    h.bridge.dispose();
+  }
+});
+
+test('own and unknown installation events invalidate A even during its first async reply',async()=>{
+  for(const event of [{taskId:'page.read.fixed'},{},undefined,{taskId:''}]){
+    for(const phase of ['initial-reply','resolve','running','delivery-reply','delivery-snapshot']){
+      const override={},h=hostHarness({override});
+      let delivery=false,fired=false,clicks=0;
+      const change=()=>{if(!fired){fired=true;h.events.installChanged(event);}};
+      override.onReadReply=()=>{if(phase===(delivery?'delivery-reply':'initial-reply'))change();};
+      override.onResolve=()=>{if(phase==='resolve')change();};
+      override.onSnapshot=()=>{if(phase===(delivery?'delivery-snapshot':'running'))change();};
+      h.api.tabs.sendMessage=async(_tab,message)=>{
+        if(message.kind==='progress')return {ok:true};
+        delivery=true;
+        await h.bridge.checkDelivery({...message,kind:'check-delivery'},h.sender);
+        clicks++;return {ok:true,data:{sent:true,userObserved:true}};
+      };
+      await assert.rejects(h.bridge.handle(h.message,h.sender),undefined,phase);
+      assert.equal(fired,true,phase);assert.equal(clicks,0,phase);
+      if(['initial-reply','resolve'].includes(phase))assert.equal(h.events.start,0,phase);
+      h.bridge.dispose();
+    }
+  }
+});
+
+test('directory detects any installation drift while task preparation only fences its own installation',async()=>{
+  for(const taskId of ['unrelated.task.b','page.read.fixed',null]){
+    for(const kind of ['list-tasks','prepare-task']){
+      const override={},h=hostHarness({override});
+      h.resolved.manifest.paramsSchema={type:'object',additionalProperties:false,properties:{},required:[]};
+      const installation=Object.fromEntries(['version','manifestHash','scriptId','revision','contentHash',
+        'installationId','generation'].map(key=>[key,h.resolved[key]]));
+      override.onResolve=()=>h.events.installChanged(taskId?{taskId}:{});
+      const message={protocol:h.message.protocol,kind,taskId:'page.read.fixed',args:{},
+        targetUrl:'https://httpbingo.org/html',installation};
+      const result=kind==='list-tasks'?h.bridge.listTasks(message,h.sender):h.bridge.prepareTask(message,h.sender);
+      if(kind==='prepare-task'&&taskId==='unrelated.task.b')
+        assert.equal((await result).taskId,'page.read.fixed');
+      else await assert.rejects(result,{code:'E_BRIDGE_REVOKED'});
+      assert.equal(h.events.start,0);assert.equal(h.events.reserve,0);
+      h.bridge.dispose();
+    }
   }
 });
 

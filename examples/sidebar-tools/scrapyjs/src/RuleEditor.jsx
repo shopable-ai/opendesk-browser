@@ -3,11 +3,22 @@ import {Button,IconButton,Input} from '@opendesk/ui';
 import {fieldForm} from './editor.js';
 import FieldOrder from './FieldOrder.jsx';
 
+function PickerSlot({Assistant,owner,report,...props}){
+  const changed=React.useCallback(open=>report(owner,open),[owner,report]);
+  return <Assistant {...props} onOpenChange={changed}/>;
+}
+
 // Valid input updates the configuration draft immediately; App owns validation.
 export default function RuleEditor({fields,form,pending,locked,error,invalidField,notice,
   editRow,newRow,editScope,cancel,remove,openJSON,removePending,confirmRemove,cancelRemove,Picker,ScopePicker,pickerLocked,onPickerOpenChange,config,onOrderChange,active}){
   const [scopeFeedback,setScopeFeedback]=React.useState('');
   const [moving,setMoving]=React.useState(false);
+  const [pickerOwner,setPickerOwner]=React.useState(null);
+  const pickerOwnerRef=React.useRef(null);
+  const reportPicker=React.useCallback((owner,open)=>{
+    if(open){pickerOwnerRef.current=owner;setPickerOwner(owner);onPickerOpenChange(true);}
+    else if(pickerOwnerRef.current===owner){pickerOwnerRef.current=null;setPickerOwner(null);onPickerOpenChange(false);}
+  },[onPickerOpenChange]);
   React.useEffect(()=>{if(!pending)setScopeFeedback('');},[pending]);
   const blocked=locked||pending||removePending||moving;
 
@@ -29,7 +40,7 @@ export default function RuleEditor({fields,form,pending,locked,error,invalidFiel
           onChange={event=>editRow(key,rule,{rule:event.target.value},isNew)}/>
           {editable&&<div className="rule-input-actions">
             {value&&<IconButton className="rule-input-icon" label={isNew?'清空新字段采集规则':'清空采集规则 '+key} disabled={rowLocked} onClick={event=>{const input=event.currentTarget.closest('.rule-input-group').querySelector('input');editRow(key,rule,{rule:''},isNew);requestAnimationFrame(()=>input.focus());}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></IconButton>}
-            {Picker&&<Picker fieldKey={name} disabled={pickerLocked||removePending||(pending&&!active)} config={config} onOpenChange={onPickerOpenChange} onUse={next=>editRow(key,rule,{rule:next},isNew)}/>}
+            {Picker&&<PickerSlot Assistant={Picker} owner={'field-'+index} report={reportPicker} fieldKey={name} disabled={pickerLocked||removePending||(pending&&!active)||(pickerOwner!==null&&pickerOwner!=='field-'+index)} config={config} onUse={next=>editRow(key,rule,{rule:next},isNew)}/>}
           </div>}
         </div>
         {!editable?<IconButton label={'在 JSON 编辑字段 '+key} disabled={blocked} onClick={()=>openJSON(key)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></IconButton>:
@@ -53,7 +64,7 @@ export default function RuleEditor({fields,form,pending,locked,error,invalidFiel
     <details id="list-scope" className="rule-scope"><summary>列表范围<span className="secondary">{form.container||'可选'}{form.item?' → '+form.item:''}</span></summary>
       <fieldset>
         <label htmlFor="list-container">列表容器（可选）</label><div className={'rule-input-group'+(ScopePicker?' has-rule-actions scope-input-group':'')}><Input id="list-container" className="od-field" value={form.container} placeholder="可留空，例如 .book-list" aria-invalid={form.scopeOnly&&pending&&Boolean(error)} aria-describedby={form.scopeOnly&&error?'field-error':undefined} disabled={locked||removePending||(pending&&!form.scopeOnly)} onChange={event=>{setScopeFeedback('');editScope({container:event.target.value});}}/>
-          {ScopePicker&&<div className="rule-input-actions scope-input-actions"><ScopePicker disabled={pickerLocked||removePending||(pending&&!form.scopeOnly)} scope={{container:form.container,item:form.item}} config={config} onOpenChange={onPickerOpenChange} onFeedback={setScopeFeedback} onUse={editScope}/></div>}
+          {ScopePicker&&<div className="rule-input-actions scope-input-actions"><PickerSlot Assistant={ScopePicker} owner="scope" report={reportPicker} disabled={pickerLocked||removePending||(pending&&!form.scopeOnly)||(pickerOwner!==null&&pickerOwner!=='scope')} scope={{container:form.container,item:form.item}} config={config} onFeedback={setScopeFeedback} onUse={editScope}/></div>}
         </div>
         <label htmlFor="list-item">列表项</label><Input id="list-item" className="od-field" value={form.item} placeholder="例如 li" aria-invalid={form.scopeOnly&&pending&&Boolean(error)} aria-describedby={form.scopeOnly&&error?'field-error':undefined} disabled={locked||removePending||(pending&&!form.scopeOnly)} onChange={event=>{setScopeFeedback('');editScope({item:event.target.value});}}/>
       </fieldset>

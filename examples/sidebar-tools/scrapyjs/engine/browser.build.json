@@ -3,13 +3,13 @@
   "profile": "complete-browser-sdk",
   "inputs": {
     "build-browser.mjs": "99084d1dc912d4bb920e690b68d3e1a4fba22ec8255f42ad3f512c01a63e15ba",
-    "../vendor/scrapyjs/browser.original.js": "42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c",
-    "../vendor/scrapyjs/provenance.json": "178c650b9d9759ffd3b60e214fbb2793c5d1019e34c4d70ee1ea1e29c7034c35",
-    "../vendor/scrapyjs/browser.original.build.json": "afef9cf57f250edea7f2818c3cca4d107049c19f9feb86c821579d553876e4c1"
+    "../vendor/scrapyjs/browser.original.js": "933775de59fed7cc1cd4f42dcd005ac53f8675a295b9b124437d1aeab5c7ba76",
+    "../vendor/scrapyjs/provenance.json": "09914b2c135a41bbe08cb75f8a9a104844884c5e4c93d47f6c4d88e256178f26",
+    "../vendor/scrapyjs/browser.original.build.json": "0df7184ae844b3716e2be7c5d154a044e0715a2ee56c0d19422ac6375488f3c0"
   },
-  "upstreamBrowserSha256": "42caa8fbbd0580ebf43e1be5c84a17f99f65b5fa438b0ce1ba4675c5fed4387c",
-  "sourceSha256": "cabcb6e035336ffc4132a1972603eda4d7d386571088bb8701b483abd36afbef",
-  "sourceBytes": 1141797,
+  "upstreamBrowserSha256": "933775de59fed7cc1cd4f42dcd005ac53f8675a295b9b124437d1aeab5c7ba76",
+  "sourceSha256": "7225ca6ef36d5c08bafc08b1c6c5cd87a7016c4cccfd2f43742b598e01386caa",
+  "sourceBytes": 1175322,
   "compression": false,
   "removedModules": [],
   "exportModules": {
