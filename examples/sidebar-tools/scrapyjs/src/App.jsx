@@ -442,6 +442,6 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
       }else if(action==='export'){
         closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('export-actions');
       }
-    }}/>}
+    }}/>
   </div>;
 }
