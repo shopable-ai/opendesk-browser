@@ -199,9 +199,9 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
       {stale&&<p role="alert" className="error">需求、资料、原配置或当前网页已变化，请重新生成；不会覆盖新草稿。</p>}
     </div>}
     <details id="ai-advanced" className="od-disclosure od-disclosure--flat"><summary>更多资料与诊断{sample?' · 含 HTML 样本':''}</summary><div className="disclosure-body">
-    <details className="od-disclosure od-disclosure--flat ai-materials" open={!usePage||undefined}><summary>发送资料{usePage?' · 已选择当前网页':' · 请确认当前网页'}</summary><div className="disclosure-body">
+    <details className="od-disclosure od-disclosure--flat ai-materials" open={!usePage||undefined}><summary>发送资料{usePage?' · 已包含当前网页':' · 不附加网页信息'}</summary><div className="disclosure-body">
     <fieldset className="ai-context" disabled={editingLocked}><legend>{editingLocked?'本次发送的资料':'下次待发送的资料'}</legend>
-      <div className="related-note"><label className="check"><input type="checkbox" id="chat-ai-use-page" checked={usePage} onChange={e=>setUsePage(e.target.checked)}/>发送当前网页标题与网址（必选）</label>
+      <div className="related-note"><label className="check"><input type="checkbox" id="chat-ai-use-page" checked={usePage} onChange={e=>setUsePage(e.target.checked)}/>附上当前网页标题与网址</label>
       <p className="secondary ai-page-context" title={(nextPage?.title||'')+' · '+(nextPage?.url||'')}>{nextPage?.title||'请刷新当前网页'} · {nextPage?.url||''}</p></div>
       <label className="check"><input type="checkbox" id="chat-ai-use-config" checked={useConfig} onChange={e=>setUseConfig(e.target.checked)}/>附上当前配置与规则</label>
     </fieldset></div></details>
