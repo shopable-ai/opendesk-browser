@@ -339,11 +339,11 @@
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'自动运行权限'),
           h('p',{className:'wf-sub'},'全局自动开关、逐任务授权、Chrome 网站访问和原 Bridge 预批准互相独立。此处没有可合法读写的自动授权 SDK，因此不展示虚假 Switch。'),
-          h(Status,{state:'unavailable',text:'公开能力未接入'})}),
+          h(Status,{state:'unavailable',text:'公开能力未接入'}))}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
           h('p',{className:'wf-sub'},'创建、导入、升级和卸载请使用宿主的「开发」或「我的 → 任务目录」；不会从沙箱打开私有宿主页面。'),
-          h('p',{className:'wf-sub'},'当前绑定：'+PINNED.length+' 个固定版本 Task；版本变化需重新审阅并更新应用包。')}),
+          h('p',{className:'wf-sub'},'当前绑定：'+PINNED.length+' 个固定版本 Task；版本变化需重新审阅并更新应用包。'))}),
         h(Card,{children:h('details',{className:'wf-help'},
           h('summary',null,'未来的多步骤流程'),
           h('p',null,'流程需要逐站授权、步骤依赖、原持久 Run/Result、恢复和 UNKNOWN 对账。项目现有队列只是离线状态模块；尚未接入真实派发，不显示流程启动按钮。'))}));
