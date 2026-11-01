@@ -145,9 +145,9 @@ node projects/chatgpt-mindmap/scripts/build-standalone.mjs --local-validation-on
 
 最小修复：恢复返回按钮文案；通用验证器补受管资源生命周期，同文档 History 路由变化继续核对真实 Document、同源及当前批准 URL。业务定向测试 19+7、运行时受影响测试 52 均通过。最终 r2 采用新文档验证；旧会话刷新恢复、登录会话、重启、远端/生产发布、全量回归及高级矩阵均 `NOT_TESTED`。下文旧阶段阻塞和历史证据保留，不代表本次安装状态，也不据此改变资源许可或远端发布准入。
 
-## 原目录 + opendesk-dev 最小验证（2026-10-17）
+## 本地资源准备 + opendesk-dev 最小验证（2026-10-17；2026-11-02 迁移收尾）
 
-当前原目录已声明公开 `pageFrames` 的 `xmind-runtime`。在仓库既有依赖已安装的环境，先执行一次：
+当前正式目录 `projects/chatgpt-mindmap/` 的 `package.json` 已声明公开 `pageFrames` 的 `xmind-runtime`。在仓库既有依赖已安装的环境，先执行一次：
 
 ```bash
 cd projects/chatgpt-mindmap
@@ -156,6 +156,8 @@ opendesk browser dev "$PWD"
 ```
 
 `prepare:local` 只用已有 esbuild 生成本机固定资源，不生成供手工粘贴的 program.js；原始参考资源和批准/安装状态不变。生成的 `assets/xmind-runtime.js` 与 `.opendesk-local/` 不提交。修改子帧源码或固定资源后需要重跑准备；普通父页面 UI 源码保存交给目录 Provider 自动准备，仍须在工作台明确点击运行。
+
+**迁移收尾（2026-11-02）：** 旧路径 `examples/programs/chatgpt-mindmap/assets/xmind-runtime.js` 曾遗留一份被 Git 跟踪的本机生成产物，现已移除。运行上述 `npm run prepare:local` 后，文件实际生成于 **`projects/chatgpt-mindmap/assets/xmind-runtime.js`**；该路径已由本项目 `.gitignore` 忽略，仍不提交或复制原生成包到 Git。旧路径不再作为资源入口。XMind 固定厂商资源与生产再分发许可仍为 `BLOCKED`，本次仅清理迁移遗留，不提升生产准入、安装或验收状态。
 
 **2026-10-17 续修：真实原目录流程两轮通过。** Resolver 现按公开 Page 合同冻结固定资源（最多 4 项、单项 5 MiB、合计 6 MiB），复用原 builder 包装；普通源码仍用 384 KiB 输入预算。真实资源为 4,067,627 字节，首轮包装源码约 4.22 MB。Node 与 Go 维护源码的固定源码合同均已对齐现行 Page 包装上限 38,281,216 字节；仍使用原分块、SHA、冻结复核与身份绑定。更正旧判断：64 KiB 输出分支仅限 Controller，既有 builder 本就支持 `pageFrames`。
 
