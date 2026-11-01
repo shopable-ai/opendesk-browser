@@ -381,6 +381,161 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return work();
     });
   }
+
+  // J06: this alias is only a lookup selector inside the currently installed App
+  // generation. The trusted operationRef is minted by this Authority, never by
+  // the sandbox or transport. The original Run/Result stores remain authoritative.
+  const delegationKey=(binding,clientRequestId)=>
+    'task-delegation-step:'+canonical([binding.appId,binding.packageHash,binding.generation,clientRequestId]);
+  const delegationId=value=>invariant(typeof value==='string'&&/^[A-Za-z0-9._:-]{1,80}$/.test(value),'E_SCHEMA');
+  const delegationHash=value=>invariant(typeof value==='string'&&/^[a-f0-9]{64}$/.test(value),'E_SCHEMA');
+  function delegationFingerprint(binding,paramsDigest,target){
+    return canonical({appId:binding.appId,packageHash:binding.packageHash,generation:binding.generation,
+      task:binding.task,paramsDigest,target},wireCanonicalOptions);
+  }
+  function delegatedRequest(request,mode){
+    fields(request,mode==='prepare'
+      ?['binding','clientRequestId','paramsDigest','target','deadlineAt']
+      :['binding','clientRequestId'],mode==='prepare'
+      ?['binding','clientRequestId','paramsDigest','target','deadlineAt']
+      :['binding','clientRequestId']);
+    delegationId(request.clientRequestId);
+    invariant(request.binding&&typeof request.binding.appId==='string','E_SCHEMA');
+    normalizeDelegatedTask(request.binding.task,true);
+    if(mode==='prepare'){
+      delegationHash(request.paramsDigest);
+      selection(request.target);
+      invariant(Number.isSafeInteger(request.deadlineAt)&&request.deadlineAt>now()&&
+        request.deadlineAt<=now()+120000,CONTROLLER_TIMEOUT_ERROR);
+    }
+  }
+  async function prepareDelegatedStep(request,sender){
+    delegatedRequest(request,'prepare');
+    return withTaskDelegation(request.binding,async()=>{
+      const host=await assertHost(sender),binding=request.binding;
+      return tx(RUN_WRITE,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const key=delegationKey(binding,request.clientRequestId);
+        const previous=await transaction.get(COMMAND_JOURNAL,key);
+        const fingerprint=delegationFingerprint(binding,request.paramsDigest,request.target);
+        if(previous){
+          invariant(previous.tag==='task-delegation-step','E_OWNER');
+          // A stop arriving before the first prepare remains a permanent fence.
+          if(!previous.prepared)invariant(false,CANCELLED_CODE,'Delegated step already cancelled');
+          invariant(previous.fingerprint===fingerprint,REQUEST_CONFLICT,'Step alias has different arguments');
+          return {operationRef:previous.operationRef,state:previous.state,runId:previous.runId,
+            deadlineAt:previous.deadlineAt};
+        }
+        const row={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
+          generation:binding.generation,clientRequestId:request.clientRequestId,
+          operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
+          task:structuredClone(binding.task),paramsDigest:request.paramsDigest,
+          target:structuredClone(request.target),deadlineAt:request.deadlineAt,fingerprint,
+          prepared:true,cancelled:false,state:'prepared',runId:null,createdAt:now()};
+        await transaction.put(COMMAND_JOURNAL,row,key);
+        return {operationRef:row.operationRef,state:row.state,runId:null,deadlineAt:row.deadlineAt};
+      });
+    });
+  }
+  async function inspectDelegatedStep(request,sender){
+    delegatedRequest(request,'inspect');
+    return withTaskDelegation(request.binding,async()=>{
+      const host=await assertHost(sender),binding=request.binding,key=delegationKey(binding,request.clientRequestId);
+      const observedPermissionEpoch=permissionRemovals.length;
+      const snapshot=await tx(RUN_READ,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const step=await transaction.get(COMMAND_JOURNAL,key);
+        if(!step)return {step:null};
+        invariant(step.tag==='task-delegation-step'&&step.appId===binding.appId&&
+          step.packageHash===binding.packageHash&&step.generation===binding.generation,'E_OWNER');
+        const run=step.runId?await transaction.get(RUN_STORE,step.runId):null;
+        if(step.runId)invariant(run?.tag===CONTROLLER_RUN_TAG&&!run.tombstoned&&
+          run.namespace===namespace(host)&&run.taskDelegationStep?.operationRef===step.operationRef&&
+          run.taskDelegationStep.clientRequestId===step.clientRequestId,'E_OWNER');
+        const result=run?await transaction.get('results',run.resultId):null;
+        return {step,run,result};
+      });
+      const {step,run}=snapshot;
+      const base={clientRequestId:request.clientRequestId,operationRef:step?.operationRef??null,
+        runId:run?.runId??null,resultId:run?.resultId??null,retirementState:run?.retirementState??null,
+        workerRetired:run?.workerRetired??false,resourceReleased:run?.retirementState==='released',
+        result:null};
+      if(!step)return {...base,semantic:'UNKNOWN',state:'unknown'};
+      if(!run){
+        return {...base,semantic:step.cancelled&&step.prepared?'NOT_SUBMITTED_FENCED':'UNKNOWN',
+          state:step.state};
+      }
+      // Chrome storage and IDB are distinct authorities. Installation/revocation
+      // is re-read under the lifecycle lock, and the result is delivered only
+      // after a second durable check. No old Host is impersonated or transferred.
+      await requireRunGrants(run);
+      const checked=await tx(RUN_READ,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const currentStep=await transaction.get(COMMAND_JOURNAL,key);
+        const current=await transaction.get(RUN_STORE,run.runId);
+        invariant(currentStep?.operationRef===step.operationRef&&currentStep.runId===run.runId&&
+          current?.tag===CONTROLLER_RUN_TAG&&!current.tombstoned&&
+          current.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
+        invariant(!current.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR);
+        await assertRunTaskAuthorization(transaction,current);
+        const result=await transaction.get('results',current.resultId);
+        invariant(!result||result.tag==='controller-result'&&result.runId===current.runId&&
+          result.resultId===current.resultId&&result.namespace===namespace(host),'E_OWNER');
+        return {run:current,result};
+      },[RUN_STORE,COMMAND_JOURNAL,'results','frameworkKV']);
+      invariant(!permissionRemovals.slice(observedPermissionEpoch).some(patterns=>
+        removedRunGrant(checked.run,patterns)),CONTROLLER_PERMISSION_ERROR);
+      return {...base,runId:checked.run.runId,resultId:checked.run.resultId,
+        retirementState:checked.run.retirementState??null,workerRetired:checked.run.workerRetired,
+        resourceReleased:checked.run.retirementState==='released',
+        semantic:checked.result?'FOUND_RESULT':'FOUND_RUNNING',
+        state:checked.run.state,result:checked.result??null};
+    });
+  }
+  async function cancelDelegatedStep(request,sender){
+    delegatedRequest(request,'cancel');
+    return withTaskDelegation(request.binding,async()=>{
+      const host=await assertHost(sender),binding=request.binding,key=delegationKey(binding,request.clientRequestId);
+      const answer=await tx(RUN_WRITE,async transaction=>{
+        await currentHost(transaction,host,sender);
+        let step=await transaction.get(COMMAND_JOURNAL,key);
+        if(!step){
+          // A pre-prepare stop fences future J06 submissions but cannot prove
+          // absence of a legacy in-flight submission from an older Host.
+          step={tag:'task-delegation-step',appId:binding.appId,packageHash:binding.packageHash,
+            generation:binding.generation,clientRequestId:request.clientRequestId,
+            operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
+            prepared:false,cancelled:true,state:'cancelled',runId:null,createdAt:now()};
+        }else{
+          invariant(step.tag==='task-delegation-step'&&step.appId===binding.appId&&
+            step.packageHash===binding.packageHash&&step.generation===binding.generation,'E_OWNER');
+          step={...step,cancelled:true,state:step.runId?'stopping':'cancelled'};
+        }
+        let run=null;
+        if(step.runId){
+          run=await transaction.get(RUN_STORE,step.runId);
+          invariant(run?.tag===CONTROLLER_RUN_TAG&&run.namespace===namespace(host)&&
+            run.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
+          if(!run.cancelSeq&&!terminals.has(run.state)&&!run.retirementId){
+            run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;
+            run.state='stopping';run.terminalReason=CANCELLED_CODE;
+            await transaction.put(RUN_STORE,run,run.runId);await lease(transaction,run);
+          }
+        }
+        await transaction.put(COMMAND_JOURNAL,step,key);
+        return {operationRef:step.operationRef,run,step};
+      });
+      if(answer.run){
+        abortOperations(answer.run.runId,CANCELLED_CODE);
+        await createControllerDriver({api,clock,authorize:async()=>true}).cancel(answer.run).catch(()=>{});
+      }
+      return {clientRequestId:request.clientRequestId,operationRef:answer.operationRef,
+        runId:answer.run?.runId??null,semantic:answer.run?'FOUND_RUNNING':
+          answer.step.prepared?'NOT_SUBMITTED_FENCED':'UNKNOWN',
+        state:answer.step.state};
+    });
+  }
+
   async function startControllerRun(request, sender) {
     request=structuredClone(request);
     return withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender));
@@ -461,7 +616,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admissionStartedAt=now();
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','taskDelegationStep','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -479,6 +634,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(isInstalledTask&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
       normalizeDelegatedTask(request.taskDelegation.task,true);
       await assertTaskDelegationApp(api,request.taskDelegation);
+    }
+    if(request.taskDelegationStep){
+      invariant(request.taskDelegation&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
+      fields(request.taskDelegationStep,['clientRequestId','operationRef'],
+        ['clientRequestId','operationRef']);
+      delegationId(request.taskDelegationStep.clientRequestId);
+      id(request.taskDelegationStep.operationRef);
     }
     invariant(isInstalledTask?Object.hasOwn(request,'expectedTaskGeneration')&&Object.hasOwn(request,'expectedTaskInstallationId'):
       !Object.hasOwn(request,'expectedTaskGeneration')&&!Object.hasOwn(request,'expectedTaskInstallationId'),
@@ -521,7 +683,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
     const expectedScheduleOwner=request.scheduledFireId?
       await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner):undefined;
-    const admissionKey = request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
+    const admissionKey = request.taskDelegationStep ? 'delegated-start:'+request.taskDelegationStep.operationRef :
+      request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
       request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
     invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
     const admitted = await tx(RUN_WRITE, async transaction => {
@@ -543,14 +706,38 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const scheduledFire=request.scheduledFireId?
         await scheduled.admit(transaction,request.scheduledFireId,{...request,expectedScheduleOwner,paramsDecoded:runParams},
           selectedOrigin||observed.allowedOrigin,now()):null;
+      const delegationStepKey=request.taskDelegationStep?
+        delegationKey(request.taskDelegation,request.taskDelegationStep.clientRequestId):null;
+      const step=delegationStepKey?await transaction.get(COMMAND_JOURNAL,delegationStepKey):null;
+      if(delegationStepKey){
+        invariant(step?.tag==='task-delegation-step'&&step.prepared&&
+          step.operationRef===request.taskDelegationStep.operationRef&&
+          step.appId===request.taskDelegation.appId&&
+          step.packageHash===request.taskDelegation.packageHash&&
+          step.generation===request.taskDelegation.generation&&
+          step.deadlineAt===request.deadlineAt&&
+          step.fingerprint===delegationFingerprint(request.taskDelegation,
+            await digest(runParams,wireCanonicalOptions),request.target),'E_OWNER',
+          'Prepared step does not match admission');
+      }
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
+        if(delegationStepKey){
+          invariant(step.runId===old.runId,'E_OWNER');
+          const previousRun=await transaction.get(RUN_STORE,old.runId);
+          invariant(previousRun?.tag===CONTROLLER_RUN_TAG&&
+            previousRun.taskDelegationStep?.operationRef===step.operationRef,'E_OWNER');
+          // Do not transfer the previous Worker's ownership to this Host.
+          return {run:previousRun,duplicate:true};
+        }
         invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
         const run=await owner(transaction, await transaction.get(RUN_STORE, old.runId), host, sender);
         assertBuiltinIdentity(run.builtinIdentity,environment);
         assertBuiltinIdentity(run.revision?.builtinIdentity,environment);
         return {run, duplicate: true};
       }
+      if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled,CANCELLED_CODE,
+        'Step is cancelled or already committed');
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
       const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
@@ -563,6 +750,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
           authorization:installedTask.installation.authorization}}:{}),
         ...(request.taskDelegation?{taskDelegation:structuredClone(request.taskDelegation)}:{}),
+        ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
@@ -588,6 +776,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, run, runId);
       await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
+      if(delegationStepKey)await transaction.put(COMMAND_JOURNAL,
+        {...step,state:'submitted',runId,submittedAt:now()},delegationStepKey);
       if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
       return {run, pinned, duplicate: false};
     }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
@@ -1261,6 +1451,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return result;
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
+    prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});
 }
