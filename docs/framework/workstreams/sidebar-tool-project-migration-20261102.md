@@ -1,6 +1,6 @@
 # Sidebar Tool 正式项目迁移与后续目录审计（2026-11-02）
 
-状态：SOURCE_MIGRATED_ON_REVIEW_BRANCH / NATIVE_NOT_TESTED。此文件是单次迁移审计与协作范围记录，不是新目录规范或新的 CI / Installer / 任务账本。长期规范继续以 docs/architecture/extension-project-layout.zh-CN.md 和 docs/framework/parallel-development.md 为准。
+状态：SOURCE_MIGRATED_ON_REVIEW_BRANCH / PRODUCT_CI_PARTIAL_PASS / INSTALLED_MAC_NOT_TESTED。此文件是单次迁移审计与协作范围记录，不是新目录规范或新的 CI / Installer / 任务账本。长期规范继续以 docs/architecture/extension-project-layout.zh-CN.md 和 docs/framework/parallel-development.md 为准。
 
 ## 1. 原始需求、负责人和边界
 
@@ -107,3 +107,21 @@
 Chrome 原生：用户用真实已授权 OpenDesk Browser 版本导入当前仍相同字节的 Tool JSON，核对版本/权限/身份；Queue 验证 Page FIFO 顺序、停止、重试/UNKNOWN 不重放；Fingerprint 验证授权应用、独立网页读回、停止与基线恢复。**与本迁移候选绑定的真实 Mac Chrome 原生证据尚未产生，必须标为 NOT_TESTED；历史验收不得直接继承。**
 
 GitHub PR 上自动执行的测试只根据具体 Workflow 运行详情标为 PASS/FAIL/PENDING，不用树对象和旧版收据冒充。此次云端 GitHub 迁移不持有用户 Mac 的 git status、Chrome 进程、Native 配对和真实权限，均 NOT_TESTED；在本地做最终集成前需检查未提交的并行修改。
+
+
+## 6. 本轮实际 GitHub Actions 回执（2026-11-02）
+
+本节仅报告**真实运行**，不把计划命令或历史截图算成 PASS。当前审阅 PR 为 https://github.com/shopable-ai/opendesk-browser/pull/77 ，最后工作分支以 PR HEAD 为准；迁移合并到 main、用户 Mac git status 和日常 Chrome 安装尚未验证。
+
+| 执行入口 | 真实回执和结果 | 限制 |
+| --- | --- | --- |
+| Browser Fingerprint R2.2 | https://github.com/shopable-ai/opendesk-browser/actions/runs/41346055401 ：SUCCESS。原项目 Node suite 72/72 PASS，Vite build PASS，原 Chrome 权限/SDK guard PASS，Linux Chrome for Testing 真实 source-driver 的应用/读回/恢复 PASS | 此 Chrome 是**源码级驱动**，不是通过日常 OpenDesk 正式安装后测试；Mac Native 与原生 installed-r24 工作流未运行 |
+| AI Send Queue R5.11 | https://github.com/shopable-ai/opendesk-browser/actions/runs/41346055393 ：FAIL。实际项目源码/Page 静态准备 PASS；Vite build PASS，候选 Tool JSON 已创建并通过格式校验；Node 196 个用例中 193 PASS、3 FAIL | 未晋升到受信正式包，未进行真实官网 ChatGPT FIFO；失败不能当作业务通过 |
+| Queue admission（失败 1） | projects/ai-send-queue/tests/admission.test.mjs：当前候选 JSON 22,882 bytes 与既有正式 JSON 13,967 bytes 不相等，正式包来源审阅测试 FAIL | 不为目录迁移修改安装版本、旧发布包字节、Host pin 或发行许可。另由 Queue owner 调查并按原晋升流程处理 |
+| Queue crown preview（失败 2/3） | projects/ai-send-queue/tests/crown-selected-defaults.test.mjs 与 tests/view.test.mjs：仍用旧 HTML 内嵌代码正则匹配；当前 R5.11 预览代码位于独立 boot.js 等文件，相关断言 FAIL | 不为使迁移 PR 全绿而降低断言；由 Queue owner 审阅是否调整测试源码引用，先证明与基线的关系 |
+| Page userscript dependencies and package | https://github.com/shopable-ai/opendesk-browser/actions/runs/41346055388 ：FAIL，8 项共享 Side Panel/开发 UI 测试断言不通过 | **迁移发现的 E_OFFICIAL_PAGE_BUILD 旧目录信任根拒绝已由 scripts/build-official-pages.mjs 精确路径修复**；此轮日志不再报告该拒绝。其他 8 项不属于这两目录路径迁移，需原 owner 区分是否已有基线问题 |
+| 其他 PR 通用工作流 | PR 产生多条全仓共享检查，部分 FAIL，例如 Agent Skills 任务受 esbuild 安装缺失影响 | 不是本迁移专属验收；按 job 的具体失败测试归因，不逐项接管其他所有者的功能 |
+
+源码位置的安全门禁只允许 projects/ai-send-queue/ 单一既有 Page Program 被审阅，未向全部 projects/ 开放 Page 发布；App Tool 和 Page 的两个独立来源白名单均已更新，发布策略仍 blocked/原值。浏览器原生 installed UI / macOS Profile 实测、Web Flow 并行业务真实回归、Chrome 安装状态、形式化同源晋升：均 NOT_TESTED 或 BLOCKED，不能随 PR 创建自动推断为完成。
+
+本记录中的数字与 URL 是对应提交的 CI 结果，而不是最终合并后的 main 结果。后续若通过新 commit 修复，必须在同一个工作流追加新回执，不能悄悄覆盖失败记录。
