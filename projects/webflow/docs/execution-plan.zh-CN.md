@@ -1154,3 +1154,23 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 **证据：** `artifacts/webflow-auto-20261102/core-migration-01a19ce9/core-proof.json`、`core-prompt.txt`、`core-filled.json`、`core-protocol.json`、`visible-baidu.json`、`sidebar-result.json`、`sidebar-identity.json`、`chat-delivery.json`、`core-final-sidebar.ax.txt`、`reopened-result.ax.txt`、`final-visible.ax.txt`、`dev-connected-open.ax.txt`、`final-chat.json`、`dev-core.log` 及定向检查日志。仅一张图片用于定位最初被滚动容器裁切的按钮；主验证为 AX 及只读 DOM，原生操作后均回读，不将点击 ACK 当成功。
 
 **当前完成边界：** 当前核心自动链 `CORE_AUTO_E2E=PASS`。新增侧栏手动/一次批准/停止有源码和 Node 行为证据，单独真实 Native 测试仍 `NOT_TESTED`；旧网页浮层删除按用户最新指示延期。跨对话、多步骤 B、持久队列、MCP 产品、完整长结果/AI 续答、production、宽度缩放/压力、完整矩阵和评分仍不属于当前阶段。没有借此宣称整个长期产品已完成。
+
+### 12.11.7 保存阶段结论、澄清持续自动触发与用户亲测（2026-11-03）
+
+用户要求把阶段性测试/结论保存在扩展项目，并希望亲自复制提示词观察真实效果，避免只相信 AI 声称完成。本节仅整理已有证据和准备输入；没有重新调用模型、运行 Task、启动构建/产品环境或扩大 MCP 实施。
+
+**结论分开记录：** 当前候选已证明的是“官方 ChatGPT 网页完整协议 → 原 Bridge/Host/Authority/Native 执行链 → 已安装 Task → 同次持久结果 → 侧栏与原聊天交付”。触发模式是已持久保存的精确范围持续批准，发送提示词后没有再点击采用、执行或五分钟批准。本次没有正式 MCP 工具调用；单凭模型的结果解说或把这些 Run/Result ID 填进另一份 MCP 报告，不能认定 MCP 链通过。正式 MCP 真实调用和与原 Task/交付身份的关联仍为 NOT_TESTED。12.11.3 有旧候选同批准两轮历史；最新候选在 12.11.6 只实际验证一轮成功，不冒报最新候选两轮或长期无人值守通过。
+
+**已保存在唯一项目：** [精简原生实测结论](../evidence/core-auto-20261103.json) 固定引用源码提交、构建指纹、精确范围、原 candidate/request/Run/Result、三条网页结果及独立观察匹配，注明自动触发与 MCP 的不同结论。[第一轮提示词 A](../tests/manual-auto-baidu-a.prompt.txt) 与[第二轮提示词 B](../tests/manual-auto-baidu-b.prompt.txt) 均使用全新 candidateId，状态 PREPARED_NOT_SENT。只保存可审阅的精简证据及人工测试输入，不把整份网页、用户草稿、Cookie、截图或生成日志装入正式工具 JSON；原始细节仍留 12.11.6 的本机 artifacts。
+
+**用户亲测顺序：**
+
+1. 在真正 Chrome 同一窗口打开“扩展 → Web Flow”，保持侧栏打开；核对 `baidu.search.top3@1.1.1` 已安装且已有批准有效，地址 `https://www.baidu.com/`、参数 `{"query":"OpenDesk Browser","limit":3}`。上轮收尾时总开关已关闭，测试前亲自开启“自动运行”；不需要重新批准相同有效范围，也不要操作旧网页浮层。
+2. 将 A 文件中的整条单段文字复制到官方 ChatGPT 已有对话，确认没有旧草稿/附件/输入法编辑后亲自发送。仅复制提示词内容，不把展示提示词的 Markdown 围栏一起贴入输入框。模型应回复唯一 `opendesk-task` 五字段代码块；随后不要点击任何采用、执行或 Run。
+3. 人工观察百度页是否自动打开、填写 `OpenDesk Browser` 并搜索；运行结束页面可能很快自动关闭，实际没看见就记“未观察到”，不能让 AI 的叙述代替这项人工观察。查看侧栏“当前任务”的任务/参数、新 request/Run/Result、真实三条结果、持久结果核实和资源 released；原聊天结果消息必须使用同一组身份。结果排名可能随网站变化，不要求复刻历史标题。
+4. 第一轮完成且 released 后，不更改开关或批准，发送 B 文件。第二轮也应自动执行，无再次采用/执行/批准，产生不同的新 request/Run/Result。两轮全部由用户实际看见后，才将最新候选两轮持续自动验证补记为通过；本轮准备文件没有代替用户运行。
+5. A/B 候选各只使用一次。以后每次点击已有批准中的“生成下一次指令”，取得新 candidateId；参数改变须审阅新的精确范围。UNKNOWN/停止未确认时只查询或停止原请求，不发送另一条候选补跑。测试完可关闭自动运行，保留原批准。
+
+**“持续”的准确含义：** 同一精确有效批准下，未来每条合法的新完整协议回复均可自动准入；用户负责发送新指令，原权限/安装身份仍逐次核验。它不是关闭侧栏后仍会循环运行的承诺，也不等于已经完成跨对话持久队列。原始结果、触发方式、人工网页观察、资源释放和聊天交付须分别判断。
+
+**验证范围：** 仅核对新增 JSON、两个提示词经原严格五字段解析器解码后的范围/新 ID、项目相对链接与差异格式；未再次运行产品或模型。测试文件和证据不进入 `tool.config.json.files`，原唯一 v0.3.5 正式安装包未变。
