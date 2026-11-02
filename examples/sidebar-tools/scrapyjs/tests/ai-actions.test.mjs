@@ -75,3 +75,41 @@ test('legacy complete config remains reviewable when user shared the original',(
   assert.equal(reply.type,'proposal');
   assert.equal(reply.config.maxPages,2);
 });
+test('ordinary underscore fields retain their rules and CSV aliases in unrelated proposals',()=>{
+  const before={...base(),itemConfig:{...base().itemConfig,_source:'.source::text'},
+    output:{fieldNames:{_source:'来源'}}};
+  const reply=resolveAiReply({type:'actions',actions:[
+    {kind:'field.upsert',key:'_source',rule:'.origin::text'},
+    {kind:'pagination.configure',maxPages:3}
+  ]},opts(before));
+  assert.equal(reply.config.itemConfig._source,'.origin::text');
+  assert.equal(reply.config.output.fieldNames._source,'来源');
+  assert.equal(before.itemConfig._source,'.source::text');
+  for(const key of ['_listContainer','_listItem']) {
+    assert.throws(()=>resolveAiReply({type:'actions',actions:[{kind:'field.upsert',key,rule:'.unsafe'}]},opts(before)),/保留字段/);
+    assert.throws(()=>resolveAiReply({type:'actions',actions:[{kind:'csv.configure',fieldNames:{[key]:'保留'}}]},opts(before)),/保留字段/);
+  }
+});
+test('CSV aliases and order include configured detail outputs without renaming capture fields',()=>{
+  const before={...base(),detail:{urlField:'url',identityField:'title',
+    itemConfig:{title:'h1::text',price:'.price::text'}}};
+  const reply=resolveAiReply({type:'actions',actions:[{kind:'csv.configure',
+    fieldNames:{price:'价格',title:'标题'},fieldOrder:['price','title','url']}]},opts(before));
+  assert.deepEqual(reply.config.detail,before.detail);
+  assert.deepEqual(reply.config.itemConfig,before.itemConfig);
+  assert.equal(reply.config.output.fieldNames.price,'价格');
+  assert.deepEqual(reply.config.output.fieldOrder,['price','title','url']);
+});
+test('CSV accepts only the fixed outputs of enabled splitPublication processing',()=>{
+  const before={...base(),itemConfig:{...base().itemConfig,publication:'.pub::text'},
+    processing:{version:1,rules:[{op:'splitPublication',field:'publication'}]}};
+  const reply=resolveAiReply({type:'actions',actions:[{kind:'csv.configure',
+    fieldNames:{price:'价格',author:'作者'},fieldOrder:['price','title','author']}]},opts(before));
+  assert.deepEqual(reply.config.processing,before.processing);
+  assert.equal(Object.hasOwn(reply.config.itemConfig,'price'),false);
+  assert.equal(reply.config.output.fieldNames.price,'价格');
+  assert.throws(()=>resolveAiReply({type:'actions',actions:[{kind:'csv.configure',
+    fieldNames:{unavailable:'未知'}}]},opts(before)),/不存在/);
+  assert.throws(()=>resolveAiReply({type:'actions',actions:[{kind:'csv.configure',
+    fieldNames:{price:'价格'}}]},opts(base())),/不存在/);
+});

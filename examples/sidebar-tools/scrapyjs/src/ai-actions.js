@@ -1,6 +1,7 @@
 // ScrapyJS-only, declarative AI Action Adapter. No page execution or storage access.
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
+const reservedFields = new Set(['_listContainer', '_listItem']);
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 function requireObject(value, message) {
   if (!isObject(value)) throw Error(message);
@@ -11,7 +12,7 @@ function keys(value, allowed) {
   if (Object.keys(value).some(key => !allowed.includes(key))) throw Error('AI 操作包含未受支持的参数。');
 }
 function fieldKey(key) {
-  if (typeof key !== 'string' || !key.trim() || key.length > 128 || forbidden.has(key) || key.startsWith('_'))
+  if (typeof key !== 'string' || !key.trim() || key.length > 128 || forbidden.has(key) || reservedFields.has(key))
     throw Error('AI 字段名称无效或属于引擎保留字段。');
   return key;
 }
@@ -132,7 +133,13 @@ export function resolveAiReply(raw, {base, expectedUrl, validate, changes, hasSa
   const config = validate(candidate);
   if (new URL(config.url).href !== new URL(expectedUrl).href)
     throw Error('AI 试图改变目标网址，请先在采集目标中确认网页。');
-  const fields = new Set(Object.keys(config.itemConfig).filter(key => !key.startsWith('_')));
+  const fields = new Set([...Object.keys(config.itemConfig), ...Object.keys(config.detail?.itemConfig || {})]
+    .filter(key => !reservedFields.has(key)));
+  // The original splitPublication pipeline emits these fixed result columns.
+  if (config.processing?.rules.some(rule => rule.op === 'splitPublication')) {
+    for (const key of ['publication_raw', 'author', 'translator', 'publisher', 'publication_date', 'price', 'currency'])
+      fields.add(key);
+  }
   for (const key of Object.keys(config.output?.fieldNames || {})) {
     if (!fields.has(key)) throw Error('CSV 显示名称引用了不存在的采集字段：' + key);
   }

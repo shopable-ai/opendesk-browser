@@ -6,12 +6,22 @@ export function requireGeneration(value){
 // One user action owns one request. Cancellation also fences read-only preparation.
 export function createAiRequest(request,payload,onInfo=()=>{},pending=null){
   let phase='preparing',cancelled=false,settled=false,dispatched=false,claimed=false;
+  let cleanup=null,terminalReply=null;
   const id=payload.requestId;
+  function clearTerminal(){
+    phase='settling';
+    cleanup=(async()=>{
+      try{if(claimed)await pending.clear(id);phase='settled';}
+      catch(error){phase='unknown';throw error;}
+    })();
+    return cleanup;
+  }
   return {id,
     get settled(){return settled;},
     get dispatched(){return dispatched;},
     get unknown(){return phase==='unknown';},
     async run(){
+      let response;
       try{
         if(pending){
           try{await pending.claim(id);claimed=true;}catch(error){phase='unknown';throw error;}
@@ -26,19 +36,29 @@ export function createAiRequest(request,payload,onInfo=()=>{},pending=null){
         if(cancelled)return null;
         if(result.requestId!==id)throw Error('AI 响应身份不符，未应用。');
         if(requireGeneration(result.providerGeneration)!==generation)throw Error('AI Provider 已变化，请重新生成。');
-        return result;
+        terminalReply={requestId:id,state:'completed'};
+        response=result;
       }catch(error){if(phase==='sent'&&isUnknown(error))phase='unknown';throw error;}
       finally{
         if(phase!=='unknown'){
-          phase='settled';
-          if(claimed)try{await pending.clear(id);}catch(error){phase='unknown';throw error;}finally{settled=true;}
+          try{await clearTerminal();}finally{settled=true;}
         }
         settled=true;
       }
+      // Stop may arrive after the real response but before its CAS clear receipt.
+      return cancelled?null:response;
     },
     async cancel({release=true}={}){
       cancelled=true;
-      if(phase==='preparing'||phase==='settled')return {requestId:id,state:phase==='settled'&&!settled?'unknown':'cancelled'};
+      if(phase==='preparing')return {requestId:id,state:'cancelled'};
+      if(phase==='settling'){
+        await cleanup;
+        return terminalReply||{requestId:id,state:'cancelled'};
+      }
+      if(phase==='settled')return terminalReply||{requestId:id,state:'cancelled'};
+      // A validated generate response remains terminal evidence if only storage
+      // cleanup failed. Retry that request's CAS clear, never replay inference.
+      if(terminalReply&&release){await clearTerminal();return terminalReply;}
       // This operation can prove it never called ai.generate, even when its
       // storage claim committed without a receipt. Clear only its own CAS row;
       // an offline Host cannot know about an undispatched preparation.

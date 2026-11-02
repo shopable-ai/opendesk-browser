@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 import {createExtensionCenterDOM} from '../../../../tests/helpers/extension-center-react-dom.mjs';
 import {AiPanel} from './react-fixture.mjs';
+import '../src/app-model.js';
 
 // Exercise the actual React state transitions in a DOM fixture. No browser,
 // Native request, real Provider, installation or layout evidence is claimed.
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 // linkedom does not implement a browser's default submit-button action.
 const send=doc=>doc.getElementById('ai-requirement').closest('form').dispatch('submit');
+// Unknown uses the business query/stop action; the shared composer stop button
+// is only rendered while generation is actively pending.
 
 test('lost claim receipt retains the local operation so explicit stop can retire preparation',async t=>{
   const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[];let lost=true;
@@ -31,7 +34,7 @@ test('lost claim receipt retains the local operation so explicit stop can retire
   get('chat-ai-use-page').checked=true;get('chat-ai-use-page').dispatch('click');
   send(ui.doc);await settle();
   assert.match(get('chat-ai-request-status').textContent,/unknown/);assert.equal(get('ai-generate').disabled,true);
-  get('chat-ai-cancel').dispatch('click');await settle();
+  get('chat-ai-query-original').dispatch('click');await settle();
   assert.equal(get('chat-ai-request-status')===null,true);assert.equal(get('ai-generate').disabled,false);
   assert.equal(get('ai-requirement').value,'preserve this input');assert.deepEqual(calls,['ai.info']);
 });
@@ -46,6 +49,42 @@ function storageFixture(initial=null){
     throw Error('Unexpected storage operation');
   };
 }
+
+test('stop in the terminal cleanup window leaves no proposal or unknown deadlock after reopening',async t=>{
+  const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[],busy=[],applied=[];
+  let releaseClear,clearing=false;
+  const clearGate=new Promise(resolve=>{releaseClear=resolve;});
+  globalThis.OpenDeskTool={request:async(operation,payload)=>{
+    calls.push({operation,payload:structuredClone(payload)});
+    if(operation==='storage.set'&&payload.value===null){clearing=true;await clearGate;}
+    if(operation.startsWith('storage.'))return storage(operation,payload);
+    if(operation==='ai.info')return {generation:1};
+    if(operation==='ai.generate')return {requestId:payload.requestId,providerGeneration:1,
+      proposal:{type:'actions',actions:[{kind:'field.upsert',key:'copy',rule:'h2::text'}]}};
+    if(operation==='ai.cancel')return {requestId:payload.requestId,state:'unknown'};
+    throw Error('Unexpected operation '+operation);
+  }};
+  t.after(()=>{globalThis.OpenDeskTool=previous;releaseClear();});
+  const state={config:{url:'https://example.com/',itemConfig:{title:'h2::text'}},target:{title:'Page',url:'https://example.com/'},profileEpoch:1};
+  const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{open:true,state,valid:true,
+    onBusy:(working,details)=>busy.push({working,...details}),onDirty(){},onApply:config=>applied.push(config),onClose(){}}});
+  ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0});
+  await settle();const get=id=>ui.doc.getElementById(id);
+  get('ai-requirement').value='add copy';get('ai-requirement').dispatch('input');
+  send(ui.doc);await settle();assert.equal(clearing,true);
+  get('chat-ai-cancel').dispatch('click');await settle();
+  const during=busy.at(-1);
+  releaseClear();await settle();
+  assert.equal(get('chat-ai-apply')===null,true,'stopped candidate must never reach review or export');
+  ui.state.open=false;ui.paint();await settle();ui.state.open=true;ui.paint();await settle();
+  assert.equal(get('chat-ai-export'),null);assert.equal(get('chat-ai-request-status'),null);
+  assert.equal(get('ai-generate').disabled,false,'stop must release the fence after confirmed cleanup');
+  assert.equal(during.unknown,false,'waiting for known terminal cleanup is not an unknown cancellation');
+  assert.deepEqual(busy.at(-1),{working:false,unknown:false});assert.deepEqual(applied,[]);
+  assert.equal(get('ai-requirement').value,'add copy');
+  assert.equal(calls.filter(call=>call.operation==='ai.generate').length,1,'no replay');
+  assert.equal(calls.filter(call=>call.operation==='ai.cancel').length,0,'retain the real completed response');
+});
 
 test('retry displays the same previous-error snapshot sent for that request',async t=>{
   const previous=globalThis.OpenDeskTool;
@@ -149,7 +188,7 @@ test('unknown permits next-input edits but fences generation/application and pre
   assert.equal(get('ai-generate').disabled,true,'reopening never releases unknown');
   send(ui.doc);
   assert.equal(calls.filter(call=>call.operation==='ai.generate').length,1,'never replay unknown');
-  assert.equal(get('chat-ai-cancel').disabled,false);get('chat-ai-cancel').dispatch('click');await settle();
+  assert.equal(get('chat-ai-query-original').disabled,false);get('chat-ai-query-original').dispatch('click');await settle();
   assert.deepEqual(calls.filter(call=>call.operation==='ai.cancel').map(call=>call.payload.requestId),[sent.requestId]);
   assert.equal(get('ai-generate').disabled,true);assert.match(get('chat-ai-request-status').textContent,/unknown/);
   assert.deepEqual(preview(),sentPreview);assert.deepEqual(applied,[]);assert.equal(busy.at(-1),true);
@@ -183,10 +222,10 @@ test('reopened pending identity and failed initial read block dispatch until a c
   assert.equal(get('ai-generate').disabled,true,'failed initial read is fail closed');
   readFailed=false;ui.state.show=false;ui.paint();ui.state.show=true;ui.paint();await settle();
   assert.ok(ui.doc.body.textContent.includes(stored.requestId),'remount restores original ID');
-  assert.equal(get('ai-generate').disabled,true);assert.equal(get('chat-ai-cancel').disabled,false);
-  get('chat-ai-cancel').dispatch('click');await settle();
+  assert.equal(get('ai-generate').disabled,true);assert.equal(get('chat-ai-query-original').disabled,false);
+  get('chat-ai-query-original').dispatch('click');await settle();
   assert.equal(get('ai-generate').disabled,true);assert.equal(calls.filter(c=>c.operation==='storage.set').length,0);
-  stateReply='cancelled';get('chat-ai-cancel').dispatch('click');await settle();
+  stateReply='cancelled';get('chat-ai-query-original').dispatch('click');await settle();
   const writes=calls.filter(c=>c.operation==='storage.set');assert.equal(writes.length,1);assert.equal(writes[0].payload.value,null);
   assert.deepEqual(calls.filter(c=>c.operation==='ai.cancel').map(c=>c.payload.requestId),[stored.requestId,stored.requestId]);
   assert.equal(calls.filter(c=>c.operation==='ai.generate').length,0);

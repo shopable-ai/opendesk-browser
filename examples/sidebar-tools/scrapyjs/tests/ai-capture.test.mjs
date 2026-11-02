@@ -119,6 +119,8 @@ test('Stop during persisted pending cleanup invalidates proposal delivery before
  const clearGate=deferred(),f=fixture({clearGate});await f.capture.restore();
  const running=f.capture.generate(input);await settle();
  assert.equal(f.capture.snapshot.requestId,'first');
- assert.equal((await f.capture.cancel()).state,'unknown');
- clearGate.resolve({saved:true});assert.equal(await running,null,'Stop must suppress a proposal already awaiting pending cleanup');
+ const stopping=f.capture.cancel();
+ clearGate.resolve({saved:true});
+ assert.equal((await stopping).state,'completed','validated completion waits for its pending cleanup receipt');
+ assert.equal(await running,null,'Stop must suppress a proposal already awaiting pending cleanup');
 });

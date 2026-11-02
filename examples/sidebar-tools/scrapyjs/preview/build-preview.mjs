@@ -86,7 +86,7 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
     fail('package bytes differ from current tool build receipt');
   if (ready.buildId !== sha(JSON.stringify({sources: ready.sources, files: ready.files,...(ready.designSources?{designSources:ready.designSources}:{})}))) fail('non-deterministic tool receipt');
   // Reuse the tool's Vite configuration in memory; the installed entry always
-  // mounts full Chat. This entry alone opts into the offline placeholder.
+  // mounts the same full Chat; only the preview transport is simulated.
   await record(join(project, 'preview/entry.jsx'));
   for(const name of ['RuleAssistant.jsx','ListScopeAssistant.jsx','rule-selection.js','rule-sample.js'])await record(join(project,'preview',name));
   const previewBuild = await build({configFile: join(project, 'vite.config.mjs'),
@@ -123,7 +123,7 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
   const sourceCommit = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
   const manifest = {format: 'opendesk.ui-preview.v1', tool: pkg.id, toolVersion: pkg.version,
     sourceCommit, evidenceLevel: sourcePreview ? 'SOURCE_COMPONENT_PREVIEW' : runtimeEvidence.receiptStatus, scenario, surface: 'side-panel', shellTheme, buildId: ready.buildId,
-    simulation: {mock: true, memoryOnly: true, network: false, installed: false, ai: 'PRESENTATION_PLACEHOLDER_ONLY',
+    simulation: {mock: true, memoryOnly: true, network: false, installed: false, ai: 'SHARED_CHAT_SIMULATED_TRANSPORT',
       realCapture: false, export: 'Blob download of simulated results only', nativeChrome: 'NOT_TESTED'},
     sourceLock: {algorithm: 'sha256', inputs: sources}, sources, runtime: {reactVersion: runtimeEvidence.reactVersion, react: fingerprint(react), shared: fingerprint(shared), provenance: runtimeEvidence},
     validatedBytes: {html: fingerprint(pkg.html), css: fingerprint(pkg.css), js: fingerprint(pkg.js),
@@ -158,7 +158,7 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
   html = html.replace(':root{color-scheme:light}', ':root{color-scheme:'+shellTheme+'}')
     .replace('预览外壳：浅色', '预览外壳：'+(shellTheme==='dark'?'深色':'浅色'))
     .replace('sandbox="allow-scripts"', 'sandbox="allow-scripts allow-downloads"')
-    .replace('模拟预览 · 非真实安装、权限或网络执行', '纯模拟 · 保存仅在内存 · 不采集网页 · AI 仅为占位说明 · 复制仅模拟确认 · 导出为模拟数据')
+    .replace('模拟预览 · 非真实安装、权限或网络执行', '纯模拟 · 保存仅在内存 · 不采集网页 · 共享 Chat 使用模拟回包 · 复制仅模拟确认 · 导出为模拟数据')
     .replace('<meta charset="utf-8">', '<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; frame-src \'self\' about:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">');
   // Recheck all recorded inputs before saving a preview of concurrently edited sources.
   for (const [path, expected] of Object.entries(sources))

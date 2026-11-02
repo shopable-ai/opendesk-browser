@@ -9,7 +9,7 @@ const root=new URL('../../',import.meta.url);
 const moduleURL=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function compile(path,replacements={}){
   let {code}=await transform(await readFile(new URL(path,root),'utf8'),{loader:'tsx',format:'esm',jsx:'transform'});
-  for(const [from,to] of Object.entries({react:import.meta.resolve('react'),...replacements}))
+  for(const [from,to] of Object.entries({react:import.meta.resolve('react'),'react-aria-components':import.meta.resolve('react-aria-components'),...replacements}))
     code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
   return moduleURL(code);
 }
