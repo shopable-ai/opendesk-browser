@@ -25,7 +25,13 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
   async function start(payload){
     live();const row=entry(payload.clientRequestId),fingerprint=canonical(payload);
     if(row.cancelled)throw Object.assign(new Error('Start cancelled'),{code:'E_CANCELLED'});
-    if(row.fingerprint){invariant(row.fingerprint===fingerprint,'E_REQUEST_CONFLICT');await authorize(row);return row.pending;}
+    if(row.fingerprint){
+      invariant(row.fingerprint===fingerprint,'E_REQUEST_CONFLICT');await authorize(row);
+      await row.pending;
+      // A recovered result may outlive its Task authorization. Re-read through
+      // Authority rather than disclosing the previously resolved promise.
+      return request('tasks.read',{clientRequestId:payload.clientRequestId});
+    }
     row.fingerprint=fingerprint;
     // Register synchronously so stop wins even before the first async read.
     row.pending=(async()=>{
@@ -54,6 +60,7 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
         row.runId=previous.runId;row.resultId=previous.resultId;
         row.state=previous.state;row.semantic=previous.semantic;
         row.retirementState=previous.retirementState;row.result=previous.result;
+        await authorize(row);
         return project(row);
       }
       invariant(prepared.state==='prepared','E_CANCELLED');

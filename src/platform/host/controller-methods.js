@@ -245,26 +245,29 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         .map(({attempt})=>Object.fromEntries(['attemptId','runId','state','downloadId','submissionCount','artifactHash','resourceReleasedAt'].map(key=>[key,attempt[key]])));
       return {run, runs, results, downloads, slotAvailable:!slot?.currentRunId&&!slot?.preview};
     }, [...stores,'downloadReceipts']);
-    const denied = new Set();
-    for (const run of snapshot.runs) {
-      try { invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run); }
-      catch { denied.add(run.runId); }
-    }
-    // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
-    await tx(RUN_READ,async transaction=>{
-      await currentHost(transaction,host,sender);
+    const resultRuns=new Set(snapshot.results.map(result=>result.runId));
+    return withDelegatedResultLocks(snapshot.runs.filter(run=>resultRuns.has(run.runId)),async()=>{
+      const denied = new Set();
       for (const run of snapshot.runs) {
-        const current=await transaction.get(RUN_STORE,run.runId);
-        if(current?.resultDeliveryRevoked)denied.add(run.runId);
-        if(run.taskDelegation){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
+        try { invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run); }
+        catch { denied.add(run.runId); }
       }
+      // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
+      await tx(RUN_READ,async transaction=>{
+        await currentHost(transaction,host,sender);
+        for (const run of snapshot.runs) {
+          const current=await transaction.get(RUN_STORE,run.runId);
+          if(current?.resultDeliveryRevoked)denied.add(run.runId);
+          if(run.taskDelegation){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
+        }
+      });
+      // Cover an event waiting for its durable transaction, without comparing
+      // historical document/Worker epochs or hiding results after navigation.
+      for (const run of snapshot.runs)
+        if (permissionRemovals.slice(permissionEpoch).some(patterns => removedRunGrant(run, patterns))) denied.add(run.runId);
+      return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
+        results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
     });
-    // Cover an event waiting for its durable transaction, without comparing
-    // historical document/Worker epochs or hiding results after navigation.
-    for (const run of snapshot.runs)
-      if (permissionRemovals.slice(permissionEpoch).some(patterns => removedRunGrant(run, patterns))) denied.add(run.runId);
-    return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
-      results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
   }
   function selection(target) {
     fields(target, target?.mode === 'owned' ? ['mode', 'url'] : ['mode', 'tabId', 'frameId', 'documentId', 'expectedUrl', 'expectedWindowId']);
@@ -380,6 +383,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await assertTaskDelegationApp(api,binding);
       return work();
     });
+  }
+  async function withDelegatedResultLocks(runs,work){
+    // The trusted snapshot is also a result-disclosure route. Order App locks
+    // consistently and hold them through the final IDB authorization decision,
+    // just as INSPECT does, so a completed revocation cannot race a cached read.
+    const appIds=[...new Set(runs.filter(run=>run.taskDelegation)
+      .map(run=>run.taskDelegation.appId))].sort();
+    const locks=globalThis.navigator?.locks;
+    const acquire=index=>{
+      if(index===appIds.length)return work();
+      invariant(locks?.request,'E_TOOL_LOCK');
+      return locks.request('opendesk.sidebar-tools:tool:'+appIds[index],()=>acquire(index+1));
+    };
+    return acquire(0);
   }
 
   // J06: this alias is only a lookup selector inside the currently installed App
@@ -592,7 +609,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await createControllerDriver({api,clock,authorize:async()=>true}).cancel(answer.run).catch(()=>{});
       }
       return {clientRequestId:request.clientRequestId,operationRef:answer.operationRef,
-        runId:answer.run?.runId??null,semantic:answer.run?'FOUND_RUNNING':
+        // A cancellation fence identifies the Run, not a live Worker.
+        runId:answer.run?.runId??null,semantic:answer.run?'UNKNOWN':
           answer.step.prepared?'NOT_SUBMITTED_FENCED':'UNKNOWN',
         state:answer.step.state};
     });

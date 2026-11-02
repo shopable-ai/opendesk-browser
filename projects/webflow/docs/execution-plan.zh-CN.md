@@ -189,6 +189,21 @@
 
 **通过条件：** 不依赖旧聊天内容或常驻 Worker，即可准确续接一条已批准主线。**停止条件：** 持久回执未知、缺少授权、结果歧义、过期/预算用尽。不能声称用户电脑离线仍在操作网页。
 
+**J06 / AWB-07 · 2026-11-02 本地定向验证增量（OD-AI-WORKFLOW-BRIDGE）**
+
+本轮只处理原 Controller 委托恢复。普通用户的“运行 A → 关闭侧栏/重建 iframe → 查回原结果”在真实 Chrome 仍为 `BLOCKED / NOT_TESTED`；Node 中实际调用原 Authority、Task 安装验证、Repository 和 RunHost，证明两个 Host 的同一步骤只关联一个 Run，新 Host 按四字段/六字段 pin 读取原 Result，未知状态不启动替代执行，取消或 Slot/Worker/Retirement 未释放不放行 B。事务替身不是 Chrome IDB，模拟安装的 Task 不是用户 Chrome 的安装证据。
+
+- 已复现并最小修复：取消接口无 Worker 存活证明却返回 `FOUND_RUNNING`；重复手动 start 返回缓存 Result 绕过后续 Task 撤权；替代 iframe 关闭后交付迟到恢复结果；通用 snapshot 未与 App 停用写入者共享 lifecycle 锁。snapshot 仅锁本次待披露 Result 对应的 App，避免单 Run 查询重入其他历史 App 的非重入锁。
+- 原 `tasks.start/read/stop` 请求 Schema 与五字段 `opendesk.task.intent.v1` 保持兼容；J06 手动入口仍要求可信用户手势，`continuationApproved:false`。本轮未开放 J06 M2 后台提交、B 自动续跑，未统一 MCP B 与 Bridge C 身份。
+- 证据：六个相关文件 `node --check` 通过；恢复/包/委托 61 项、原历史读取 11 项、原 Authority 定向回归 17 项、旧 Intent 3 项，共 92 项 PASS（不累加重复运行）。最初指定两组为 10 项 PASS；旧委托夹具失配和四项产品失败均保留修复前日志。测试代码在 `tests/environment/task-delegation-recovery.test.mjs`、`task-delegation.test.mjs`；实际命令、退出码、输入 SHA、关联记录及原生未测项见本机 `artifacts/j06-recovery-20261102/verification.json` 和同目录日志。
+- 撤权证据限于 Node：实际 `setInstalledSidebarToolEnabled` 写入者与 SUBMIT、INSPECT、snapshot 共享原 App Web Lock，并核对 Task 的原 IDB 授权。真实 MV3 跨上下文 Web Locks、Chrome storage/IDB 竞态与安装/升级/重装/卸载仍为 `NOT_TESTED`，不能宣称已证明最终撤权保证。
+- 环境：本机实际仓库 `/Users/mac/Documents/workspace/opendesk-browser`，`main` 基线及 GitHub 只读核验远端均为 `1e9b4324cd97674c0aa24a29b92a2da93ebc3fad`。既有 `dist/development` 是旧磁盘开发包；锁中 PID 40544 已不存在，serve 连接未证实；Chrome 工具拒绝接管现有 `chrome://extensions`。本轮未启动 watcher、构建、重装或替换扩展，真实启用路径/ID/Native 配对未核实。
+- 边界：Worker 无可信存活证据保持 `UNKNOWN`；稳定 `clientRequestId` 丢失后没有已发布的历史枚举/分页 SDK；保留 Run 时丢步骤 journal、丢 admission/Result、tombstone、过期、时钟回退、容量上限及事务失败已定向验证不会补跑，完整 GC/任意历史清除后的保证仍为 `NOT_TESTED`。未授权查询拒绝；单帧大 Result 拒绝，不新增传输通道。
+- 原 `opendesk-webflow-j06-framework-capabilities.pending.md`、`opendesk-webflow-j06-execution-plan.delta.pending.md` 未在可访问文件中取得，差量核对为 `BLOCKED_SOURCE_UNAVAILABLE`；未重建同职责文档。X15、X19、X20、X33、X34、X35、X36、X37、X39 及 X21、X22、X24、X40 的原定义未取得，逐项映射 `NOT_TESTED`，不能把相似测试猜配为原编号 PASS；各编号独立保留在 verification.json。
+- 所有权：`broker.js` 与本文件已有其他任务改动，预存改动仍为 `LOCAL_OWNER_UNVERIFIED`；只新增本 AWB-07 段，不接管其余内容及 J08。独立只读复审的结论与限制另存本机回执。正式 SDK 文档发布条件尚不具备，保留内部候选状态。
+
+**唯一下一条未完成操作：** 原环境 owner 提供可合法控制且可核验身份的同候选可信 Side Panel；使用用户已有安装/授权 Task A，运行并核对 PREPARE 后关闭重开，用原 `clientRequestId` 查回同一 Run/Result，再做同候选真实 IDB 取消/撤权交错。本轮没有把 J06 实测前置为重做 Bridge、UI、J03–J05、J07 或 J08。
+
 ### AWB-08 · 同一候选的整链复核与交接
 
 **涉及文件：** 本记录、原 Task README 与各 owner 当前说明；代码只按实际缺陷回到原任务修复。**依赖：** 本轮选定核心阶段通过，不要求自动完成全部 P0–P4。
