@@ -12,7 +12,7 @@ function fixture(overrides={}) {
     stop:async clientRequestId=>{calls.push('stop');return {clientRequestId,runId:'run-1',accepted:true,retired:false};},
     download:async(snapshot,format,output)=>{calls.push({snapshot,format,output});return {started:true};},...overrides};
   const app=globalThis.ScrapyAppModel.createApp(sdk);
-  app.edit({...app.state.config,url:page.url});
+  app.edit({...structuredClone(globalThis.ScrapyAppModel.DEFAULT_CONFIG),url:page.url});
   return {app,calls,sdk};
 }
 const proposal=(app,kind,format)=>({operation:{kind,...(format?{format}:{})},identity:actions.businessIdentity(app.state,kind)});
@@ -168,7 +168,7 @@ for(const kind of ['capture.stop','results.show','results.export'])test('late '+
   const sdk={prepare:async()=>{},currentPage:async()=>page,start:async(_c,_u,id)=>({clientRequestId:id,runId:'run-1',status:'running'}),
     read:async id=>({clientRequestId:id,runId:'run-1',status:'running',retired:false,result:{data:[]}}),
     stop:()=>gate,download:()=>gate};
-  const app=globalThis.ScrapyAppModel.createApp(sdk);app.edit({...app.state.config,url:page.url});
+  const app=globalThis.ScrapyAppModel.createApp(sdk);app.edit({...structuredClone(globalThis.ScrapyAppModel.DEFAULT_CONFIG),url:page.url});
   await app.refreshTarget();await app.start(page.url);
   if(kind==='results.show')sdk.read=()=>gate;
   const pending=actions.executeBusinessAction(app,proposal(app,kind,kind==='results.export'?'json':undefined));

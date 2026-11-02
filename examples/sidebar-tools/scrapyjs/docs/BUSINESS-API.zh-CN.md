@@ -2,7 +2,7 @@
 
 2026-11-02：领域代码已实现并经定向 Node 验证。入口是 `src/business-api.js` 的 `createBusinessApi(app, {isBlocked})`，参数必须是界面正在使用的**同一个** `ScrapyAppModel.createApp` 实例。此接口没有传输层，不是 MCP Server，也不是 `OpenDeskTool.request` 操作名。
 
-本轮未修改 App/AiPanel、共享 Chat、采集 adapter、Controller、正式包或安装环境。Chat owner 仍需在原组件内接入此门面、完成自然语言意图识别与简短结果/撤销展示；源码可直接调用不等于已安装界面已接入。
+当前 1.8.16 的 App/AiPanel 已接入同一个门面：明确配置编辑经校验后自动填入原模型，只反馈「已更新配置草稿」。Chat 默认不显示撤销、技术差异或业务操作工具栏；保存、采集/停止、结果与下载由原业务界面操作。下列 undo、saveCopy 和运行/导出方法属于底层 JS 能力，不能据其存在恢复已移除的 Chat 控件或自动执行策略。安装与真实操作范围见[本轮记录](../evidence/chat-simple-20261102.md)。
 
 ## 调用与配置同源
 
@@ -30,12 +30,12 @@ const proposed = business.config.propose({
   ]
 });
 const applied = business.config.apply({proposalId:proposed.proposalId});
-// applied.status === 'applied' 后，仅显示 proposed.summary 和撤销入口。
+// applied.status === 'applied' 后，Chat 只显示简短成功反馈。
 // 原 onChange 已通知 React；复用原 onApply 的 UI 草稿缓存清理，令 JSON
 // 文本回到 ui.json ?? stringify(state.config)。不操纵 DOM，不重置业务模型。
 // 该 UI 清理只在成功回执后发生，不能清空被 isBlocked 拒绝的未完成输入。
 
-// 用户点击撤销时：
+// 独立 JS 消费者需要撤销时；当前 Chat 不提供该入口：
 business.config.undo({undoId:applied.undoId});
 ```
 
