@@ -1,5 +1,9 @@
 # Page / Controller 程序示例（单文件与多文件）
 
+## 已迁移的独立项目
+
+- [AI 对话滚动导航](../../projects/ai-scroll-navigation/README.zh-CN.md)（原目录 `chatgpt-jump-top`）：该项目已发展为独立的多站 Page Program，2026-11-02 从 `examples/programs/` 迁入 `projects/ai-scroll-navigation/`。源码、测试、历史安装包和证据统一以新目录为准；不要在 `examples/programs/` 重新创建副本。
+
 [返回 examples 中文统一入口](../README.zh-CN.md) · [目录归属审计](../OWNERSHIP-AUDIT-2026-11-02.zh-CN.md)
 
 这里的 Page USER_SCRIPT 与 Controller 使用不同执行世界；实际类型请看各项目 package.json 的 runtimeKind。目录中的 sidebar-page-demo、sidebar-controller-demo 是历史命名，并不代表 Sidebar Tool；冻结 ID 与源码不因此改动。可安装 Controller Task 包另见 [tasks/](../tasks/README.zh-CN.md)；独立侧栏工具另见 [sidebar-tools/](../sidebar-tools/README.zh-CN.md)。
