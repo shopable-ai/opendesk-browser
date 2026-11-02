@@ -43,7 +43,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 }
 .sq-send>svg{position:relative;z-index:1;pointer-events:none;width:17px;height:17px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .sq-send:hover{filter:brightness(1.055)}
-.sq-crown{position:absolute;top:var(--sq-crown-y);left:var(--sq-crown-x);width:var(--sq-crown-w);height:var(--sq-crown-h);display:block;pointer-events:none;z-index:2;border:0;border-radius:0;background:transparent url("crown-premium.webp") center / contain no-repeat;box-shadow:none;transform:rotate(var(--sq-crown-angle));transform-origin:50% 83%;filter:none}
+.sq-crown{position:absolute;top:var(--sq-crown-y);left:var(--sq-crown-x);width:var(--sq-crown-w);height:var(--sq-crown-h);display:block;pointer-events:none;z-index:2;border:0;border-radius:0;background:transparent var(--sq-crown-image) center / contain no-repeat;box-shadow:none;transform:rotate(var(--sq-crown-angle));transform-origin:50% 83%;filter:none}
 @media(pointer:coarse){
   .sq-send{--sq-crown-w:var(--sq-crown-touch-w);--sq-crown-h:var(--sq-crown-touch-h);--sq-crown-x:var(--sq-crown-touch-x);--sq-crown-y:var(--sq-crown-touch-y);--sq-crown-angle:var(--sq-crown-touch-angle);width:42px;height:42px;min-width:42px}
   .sq-send>svg{width:20px;height:20px}

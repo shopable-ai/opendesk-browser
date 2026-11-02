@@ -7,6 +7,7 @@ import {dirname,resolve,join} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
 import {execFileSync} from 'node:child_process';
+import {approvedHtml} from './build-a-b.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url));
 const devIndex=process.argv.indexOf('--dev-url');
@@ -28,10 +29,9 @@ async function devSource(){
 }
 const selfTest=process.argv.includes('--self-test');
 const sourceBefore=!selfTest&&devUrl?await devSource():null;
-const approvedPath=resolve(here,'../cookie-editor.html');
 const reactPath=join(here,'index.html');
 const contract=JSON.parse(await readFile(join(here,'visual-contract.json'),'utf8'));
-const originalBytes=await readFile(approvedPath);
+const originalBytes=await approvedHtml();
 const gitBlob=createHash('sha1').update('blob '+originalBytes.length+'\0').update(originalBytes).digest('hex');
 if(gitBlob!==contract.approvedHtml.gitBlobSha)throw Error('E_APPROVED_HTML_CHANGED: '+gitBlob);
 let previewCheck='';
@@ -231,7 +231,7 @@ try{
   await oldPage.setContent(originalBytes.toString('utf8'),{waitUntil:'load'});
   await oldPage.locator('#labWidth').selectOption(String(width));
   await reactPage.goto(devUrl?.href||pathToFileURL(reactPath).href,{waitUntil:'load'});
-  await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});
+  // The default preview may open Enterprise; select the audit scene first.
   await reactPage.locator('.demo-lab>summary').click();
   await reactPage.getByTestId('scenario').selectOption(contract.scenario.reactScenario);
   await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});

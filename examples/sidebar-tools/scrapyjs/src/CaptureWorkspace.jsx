@@ -36,7 +36,7 @@ const noop=()=>{};
 const stringify=value=>JSON.stringify(value,null,2);
 
 // One collection owner, shared by manual rules and the optional AI proposal adapter.
-export default function CaptureWorkspace({open,state,locked,pending,valid,onClose,onBusy=noop,onDirty=noop,onAiGenerating=noop,onAiBusy=noop}){
+export default function CaptureWorkspace({open,state,locked,pending,valid,onClose,onBusy=noop,onDirty=noop,onAiGenerating=noop,onAiBusy=noop,retiredRequest,onRequestRetired=noop}){
   const tool=globalThis.OpenDeskTool;
   const [client]=React.useState(()=>createLocalRunnerClient((op,args)=>tool.request(op,args)));
   const [generating,setGenerating]=React.useState(false);
@@ -84,6 +84,11 @@ export default function CaptureWorkspace({open,state,locked,pending,valid,onClos
   React.useEffect(()=>{onDirty(configText!==null||Boolean(sample||aiProposal));},[configText,sample,aiProposal,onDirty]);
   React.useEffect(()=>{onAiBusy(ai.busy||ai.unknown);},[ai.busy,ai.unknown,onAiBusy]);
   React.useEffect(()=>{aiCapture.restore().catch(e=>{if(alive.current)setAiNotice(e.message);});return()=>aiCapture.dispose();},[aiCapture]);
+  React.useEffect(()=>{
+    if(ai.requestId!==retiredRequest?.requestId||!['cancelled','completed','failed'].includes(retiredRequest?.state))return;
+    // Re-read the CAS row; restore refuses an active or cancelling local owner.
+    aiCapture.restore().catch(e=>{if(alive.current)setAiNotice(e.message);});
+  },[aiCapture,ai.requestId,retiredRequest]);
   React.useEffect(()=>{if(confirming)confirmationCheckbox.current?.focus();},[confirming]);
   const syncRunner=React.useCallback(()=>{
     if(!alive.current)return;
@@ -164,7 +169,13 @@ export default function CaptureWorkspace({open,state,locked,pending,valid,onClos
     finally{aiStarting.current=false;if(alive.current)setGenerating(false);}
   }
   async function cancelAi(){
-    try{const reply=await aiCapture.cancel();if(alive.current)setAiNotice(reply?.state==='unknown'?'原 AI 请求结果仍为 unknown；不重新发送。':'原 AI 请求已确认结束；停止后的提案不采用。');}
+    try{
+      const reply=await aiCapture.cancel();
+      if(alive.current){
+        if(['cancelled','completed','failed'].includes(reply?.state)&&!aiCapture.snapshot.requestId&&!aiCapture.snapshot.unknown)onRequestRetired(reply);
+        setAiNotice(reply?.state==='unknown'?'原 AI 请求结果仍为 unknown；不重新发送。':'原 AI 请求已确认结束；停止后的提案不采用。');
+      }
+    }
     catch(error){if(alive.current)setAiNotice(error.message);}
     finally{if(alive.current)setGenerating(false);}
   }

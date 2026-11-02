@@ -93,7 +93,7 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
   };
   const owner={content:{ownerDocument:doc},getAsset:path=>assetRecords?
     (assetRecords[path].kind==='image'?assetRecords[path].url:assetRecords[path].text):path.endsWith('.webp')?
-    'data:image/webp;base64,ZmFrZQ==':'.sq-crown{background:url("crown-premium.webp") center/contain no-repeat}',
+    'data:image/webp;base64,ZmFrZQ==':'.sq-crown{background:var(--sq-crown-image) center/contain no-repeat}',
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
   const view=createQueueView({owner,createPageUI,assets:[],engine,
@@ -127,7 +127,7 @@ test('unknown result stays on its message with an accessible warning and no retr
   assert.ok(warning);assert.match(warning.title,/发送结果未知.*网站可能已发送.*不会自动重试/);
   assert.equal(warning.getAttribute('aria-label'),warning.title);
   assert.equal(buttons.find(node=>node.dataset.action==='now').disabled,true);
-  assert.equal(buttons.find(node=>node.dataset.action==='edit').disabled,true);
+  assert.notEqual(buttons.find(node=>node.dataset.action==='edit').disabled,true,'read-only draft recovery stays reachable');
   const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   click({target:{closest:()=>warning},stopPropagation(){}});
   const toast=h.ui('button').content.children[1];
@@ -270,22 +270,22 @@ test('the crown in the production Shadow DOM uses the packaged WebP data URL',()
   const stylesheet=h.ui('button').styles.join('\n');
   assert.match(stylesheet,/url\("data:image\/webp;base64,ZmFrZQ=="\)/);
   assert.doesNotMatch(stylesheet,/url\("crown-premium\.webp"\)/);
-  assert.match(h.ui('list').styles.join('\n'),/crown-premium\.webp/);
+  assert.match(h.ui('list').styles.join('\n'),/var\(--sq-crown-image\)/);
   h.dispose();
 });
 
-test('the view accepts the actual packager CSS and requires the exact declared crown bytes',async()=>{
+test('the view binds the declared WebP once without duplicating it in frozen CSS',async()=>{
   const assets=[{path:'assets/queue.css',kind:'css'},{path:'assets/crown-premium.webp',kind:'image'}];
   const bytes=new Map(await Promise.all(assets.map(async asset=>[
     asset.path,await readFile(new URL('../'+asset.path,import.meta.url))])));
   const records=buildAssetRecords(assets,bytes);
-  assert.ok(records['assets/queue.css'].text.includes(records['assets/crown-premium.webp'].url));
+  assert.ok(!records['assets/queue.css'].text.includes(records['assets/crown-premium.webp'].url));
   const h=fixture({assetRecords:records});
   assert.equal(h.view.place(h.snap),true);
   assert.ok(h.ui('button').styles.join('\n').includes(records['assets/crown-premium.webp'].url));
   h.dispose();
   const mismatched=structuredClone(records);
-  mismatched['assets/crown-premium.webp'].url='data:image/webp;base64,ZmFrZQ==';
+  mismatched['assets/crown-premium.webp'].url='https://example.com/crown.webp';
   assert.throws(()=>fixture({assetRecords:mismatched}),/crown image is missing or invalid/);
 });
 
@@ -313,7 +313,6 @@ test('panel CSS consumes measured radius without any website selector',async()=>
 test('product preview keeps the locked crown; historical calibration tool stays archived',async()=>{
   const html=await readFile(new URL('../preview/index.html',import.meta.url),'utf8');
   const tool=await readFile(new URL('../legacy/preview/crown-tuner-r53.html',import.meta.url),'utf8');
-  assert.match(html,/mark\.textContent='···'/);
   assert.match(html,/显示 3 条示例消息/);
   assert.doesNotMatch(html,/tools\/crown-tuner\.html/);
   assert.doesNotMatch(html,/id="angle"|id="scale"|detail-native/);

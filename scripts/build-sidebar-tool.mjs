@@ -11,6 +11,7 @@ import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 import {createToolLocalization} from '../src/ui/sidebar-tools/localization.js';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
+import {CONTROLLER_SOURCE_LIMIT} from '../src/platform/source-budgets.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -47,7 +48,7 @@ export async function checkCompiledToolBuildReady(root,meta){
     if(ready.state==='error')throw Object.assign(new Error('E_TOOL_BUILD: UI compilation failed: '+String(ready.message||'Build failed').slice(0,500)),{code:'E_TOOL_BUILD_FAILED'});
     fail('compiled UI build receipt state is invalid');
   }
-  const names=[paths.css,paths.js].sort();
+  const names=[paths.css,paths.js,...(paths.controller?[paths.controller]:[])].sort();
   if(ready?.format!=='opendesk.ui-build-ready.v1'||
     typeof ready.buildId!=='string'||!ready.buildId||ready.buildId.length>100||
     !ready.files||typeof ready.files!=='object'||Array.isArray(ready.files)||
@@ -82,17 +83,27 @@ export async function createSidebarToolPackage(projectPath) {
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks']
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks','controller']
        :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
-     Object.keys(meta.files).some(key=>!['html','css','js','dependencies','background'].includes(key))||
+     Object.keys(meta.files).some(key=>!['html','css','js','dependencies','background','controller'].includes(key))||
      !['html','css','js'].every(key=>Object.hasOwn(meta.files,key))||
      (Object.hasOwn(meta.files,'dependencies')&&!v2))
     
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
   if(Object.hasOwn(meta.files,'background')&&!v2)
     fail('files.background requires a v2 tool.config.json');
+  let controller;
+  if(Object.hasOwn(meta,'controller')||Object.hasOwn(meta.files,'controller')){
+    const metadata=meta.controller;
+    if(!v2||!metadata||typeof metadata!=='object'||Array.isArray(metadata)||
+       Object.keys(metadata).sort().join(',')!=='builtinIdentity,deadlineMs,paramsSchema,permissions,siteOrigins'||
+       !Object.hasOwn(meta.files,'controller'))
+      fail('controller requires closed v2 metadata and a precompiled files.controller path');
+    const sourceUtf8=await source(root,meta.files.controller,CONTROLLER_SOURCE_LIMIT);
+    controller={...metadata,sourceUtf8,sourceHash:createHash('sha256').update(sourceUtf8,'utf8').digest('hex')};
+  }
   let background;
   if(Object.hasOwn(meta.files,'background')){
     const js=await source(root,meta.files.background);
@@ -163,6 +174,7 @@ export async function createSidebarToolPackage(projectPath) {
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),
     ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),
       ...(background?{background}:{}),
+      ...(controller?{controller}:{}),
       ...(meta.delegatedTasks!==undefined?{delegatedTasks:meta.delegatedTasks}:{}),
       ...(meta.initialData!==undefined?{initialData:meta.initialData}:{})}:{})});
   return pkg;

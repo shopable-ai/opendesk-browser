@@ -2090,6 +2090,104 @@ test('R1.2 same-ID user-installed Markdown package cannot claim the official ful
     'unverified user package retains the ordinary content-height iframe policy');
 });
 
+for(const phase of ['load','authenticated ready'])test('Host initial layout delivery resends cached hint on '+phase,async t=>{
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
+  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
+  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:900});
+  const f=await hostFixture(t,{startTool:false});
+  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
+  workspace.getBoundingClientRect=()=>({bottom:2400});f.doc.body.append(workspace);
+  const createElement=f.doc.createElement.bind(f.doc);
+  f.doc.createElement=tag=>{
+    const node=createElement(tag);
+    if(tag==='iframe')node.getBoundingClientRect=()=>({top:200,height:800});
+    return node;
+  };
+  f.host.openTool(sample.id);
+  const frame=f.runtime.frameRoot.firstElementChild;
+  const layouts=()=>frame.contentWindow.sent.filter(message=>message.kind==='layout');
+  assert.equal(layouts().length,1,'mount measures and caches a hint before sandbox load');
+  const initial=layouts()[0];assert.equal(initial.availableHeight,688);
+  await frame.onload();
+  const loaded=frame.contentWindow.sent.find(message=>message.kind==='load');
+  assert.ok(loaded);
+  if(phase==='load'){
+    assert.deepEqual(frame.contentWindow.sent.map(message=>message.kind),['layout','load','layout'],
+      'load must be followed by a new hint even when geometry has not changed');
+    assert.deepEqual(layouts().at(-1),initial);
+    return;
+  }
+  const ready={protocol:loaded.protocol,kind:'status',state:'ready',instance:loaded.instance,toolId:sample.id};
+  const before=layouts().length;
+  for(const event of [
+    {source:{},origin:'null',data:ready},
+    {source:frame.contentWindow,origin:'https://evil.example',data:ready},
+    ...[{instance:'retired-instance'},{toolId:'another-tool'},{protocol:'invalid-protocol'},{state:'error'}]
+      .map(change=>({source:frame.contentWindow,origin:'null',data:{...ready,...change}}))
+  ])f.win.emit('message',event);
+  assert.equal(layouts().length,before,'forged peers and non-ready status cannot force a hint');
+  f.win.emit('message',{source:frame.contentWindow,origin:'null',data:ready});
+  assert.equal(layouts().length,before+1,'authenticated readiness resends the cached hint');
+  assert.deepEqual(layouts().at(-1),initial);
+  f.win.emit('message',{source:frame.contentWindow,origin:'null',data:{...ready,kind:'resize',height:800}});
+  assert.equal(layouts().length,before+1,'ordinary resize still deduplicates unchanged geometry');
+});
+
+for(const {label,viewport,bottom,zoom=1,expected} of [
+  {label:'visible viewport',viewport:900,bottom:2400,expected:688},
+  {label:'Host CSS zoom',viewport:900,bottom:2400,zoom:1.25,expected:548},
+  {label:'short workspace',viewport:900,bottom:760,expected:548},
+  {label:'missing workspace bounds',viewport:900,bottom:undefined,expected:688},
+  {label:'missing viewport fallback',viewport:undefined,bottom:760,expected:548},
+  {label:'invalid viewport fallback',viewport:NaN,bottom:760,expected:548},
+  {label:'zero viewport fallback',viewport:0,bottom:760,expected:548}
+])test('Host available height content hint uses '+label,async t=>{
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
+  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
+  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:viewport});
+  const f=await hostFixture(t);
+  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
+  let workspaceBottom=bottom;
+  workspace.getBoundingClientRect=()=>({bottom:workspaceBottom});
+  f.doc.body.append(workspace);
+  f.frame.getBoundingClientRect=()=>({top:200,height:1600*zoom});
+  Object.defineProperty(f.frame,'currentCSSZoom',{value:zoom});
+  const resize=height=>f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,toolId:sample.id,height
+  }});
+  resize(800);
+  const layouts=()=>f.frame.contentWindow.sent.filter(message=>message.kind==='layout');
+  assert.equal(layouts().at(-1)?.layoutMode,'content');
+  assert.equal(layouts().at(-1)?.availableHeight,expected,
+    'the hint uses visible space below the iframe top in tool CSS coordinates');
+  assert.equal(f.frame.style.height,'800px','the hint does not grant full-height layout');
+  if(Number.isFinite(viewport)&&viewport>0&&bottom>viewport){
+    const count=layouts().length;
+    workspaceBottom+=800;resize(1600);
+    assert.equal(layouts().at(-1).availableHeight,expected,'intrinsic growth cannot inflate the hint');
+    assert.equal(layouts().length,count,'unchanged available height stays deduplicated');
+  }
+});
+
+test('Host available height workspace hint preserves measured frame height under CSS zoom',async t=>{
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
+  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
+  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:900});
+  const official=await officialToolFixture('markdown-workbench');
+  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
+  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
+  workspace.getBoundingClientRect=()=>({bottom:2400});f.doc.body.append(workspace);
+  f.frame.getBoundingClientRect=()=>({top:200,height:1000});
+  Object.defineProperty(f.frame,'currentCSSZoom',{value:1.25});
+  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,toolId:official.id,height:1400
+  }});
+  const layout=f.frame.contentWindow.sent.findLast(message=>message.kind==='layout');
+  assert.equal(layout?.layoutMode,'workspace');
+  assert.equal(layout?.availableHeight,800,'verified workspace uses real frame height in tool CSS coordinates');
+  assert.equal(f.frame.style.height,'','content resize does not override verified flex sizing');
+});
+
 test('R18 resize and status messages accept only the live opaque frame and bounded sizes',async t=>{
   const f=await hostFixture(t);
   const loaded=f.frame.contentWindow.sent[0];
@@ -2196,6 +2294,91 @@ test('R18.1 conditional writes atomically reject a stale full-array replacement'
   assert.equal(rejected.ok,false);
   assert.match(rejected.error.message,/其他窗口/);
   assert.equal(f.store.get(sidebarToolStorageKey(sample.id)).notes[0].text,'甲');
+});
+
+test('currentPage.info quietly resolves a stale loading snapshot on every authorized read',async t=>{
+  const tab={id:7,windowId:1,active:true,status:'loading',title:'Ready',url:'https://article.example/read'};
+  let documentId='document-a',queries=0;
+  const target=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
+    tabs:{query:async()=>{queries++;return [{...tab}];}},
+    webNavigation:{getAllFrames:async()=>[{frameId:0,documentId,documentLifecycle:'active',url:tab.url}]}}});
+  t.after(()=>target.dispose());await target.ready;
+  assert.equal(target.snapshot.reason,'E_DOCUMENT_UNRESOLVED');
+  const f=await hostFixture(t,{target});
+  const read=async id=>{
+    f.ask('currentPage.info',{},id);
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+  };
+  const before=queries;
+  assert.equal((await read('pending')).result.reasonCode,'E_DOCUMENT_UNRESOLVED');
+  assert.ok(queries>before,'an unchanged unavailable snapshot still requires a fresh observation');
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length,0,
+    'quiet refresh must not invalidate pending reads with a resolving notification');
+  tab.status='complete';
+  assert.deepEqual((await read('ready')).result,{status:'available',title:tab.title,url:tab.url});
+  assert.equal(target.capture().documentId,'document-a');
+  tab.title='New document';documentId='document-b';
+  assert.equal((await read('new-document')).result.title,'New document');
+  assert.equal(target.capture().documentId,'document-b','an available snapshot is re-observed too');
+  tab.pendingUrl='https://article.example/next';
+  assert.equal((await read('navigation')).result.reasonCode,'E_DOCUMENT_UNRESOLVED');
+  delete tab.pendingUrl;tab.url='chrome://settings/';
+  assert.equal((await read('restricted')).result.reasonCode,'E_UNSUPPORTED_SCHEME');
+  assert.equal(f.focused,0,'metadata reads never replay task actions');
+});
+
+test('currentPage.info development reads refresh only after authorization and retain revalidation',async t=>{
+  const calls=[];let allowed=true,stale=false;
+  const target={snapshot:{status:'unavailable',reason:'E_DOCUMENT_UNRESOLVED'},
+    async refresh(options){calls.push('refresh');assert.deepEqual(options,{quiet:true,preserveRetry:true});
+      this.snapshot={status:'available',title:'Ready',url:'https://article.example/'};},
+    capture(){calls.push('capture');return {...this.snapshot};},
+    async revalidate(){calls.push('revalidate');if(stale)throw Object.assign(Error('stale'),{code:'E_DOCUMENT_STALE'});}};
+  const f=await hostFixture(t,{target,startTool:false});
+  f.host.openReadOnlyPreview(sample,{developmentSession:{async start(){},revoke(){},
+    async request(){calls.push('authorize');if(!allowed)throw Error('revoked');}}});
+  const frame=f.elements['sidebar-tool-frame'].children[0];await frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  const read=async id=>{
+    f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{protocol:loaded.protocol,
+      toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation:'currentPage.info',payload:{}}});
+    await settle(()=>frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId===id));
+    return frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+  };
+  assert.equal((await read('ready')).result.status,'available');
+  assert.deepEqual(calls,['authorize','refresh','capture','revalidate','authorize']);
+  calls.length=0;stale=true;
+  assert.equal((await read('stale')).error.code,'E_DOCUMENT_STALE');
+  assert.deepEqual(calls,['authorize','refresh','capture','revalidate']);
+  calls.length=0;allowed=false;
+  assert.equal((await read('revoked')).ok,false);
+  assert.deepEqual(calls,['authorize'],'denied development sessions cannot observe the page');
+});
+
+test('currentPage.info never delivers a refresh result to a retired session or revoked epoch',async t=>{
+  for(const mode of ['session','epoch'])await t.test(mode,async t=>{
+    const entered=deferred(),gate=deferred();let refreshes=0;
+    const target={snapshot:{status:'unavailable',reason:'E_DOCUMENT_UNRESOLVED'},
+      async refresh(options){
+        refreshes++;assert.deepEqual(options,{quiet:true,preserveRetry:true});
+        entered.resolve();await gate.promise;
+        this.snapshot={status:'available',title:'Late page',url:'https://article.example/'};
+      }};
+    const f=await hostFixture(t,{target});
+    f.ask('currentPage.info',{},'late');
+    await settle(()=>refreshes>0||f.frame.contentWindow.sent.some(row=>row.kind==='response'));
+    assert.equal(refreshes,1,'authorized metadata reads must enter the resolver');
+    await entered.promise;
+    if(mode==='session')f.host.closeTool();
+    else f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'revoked'});
+    gate.resolve();await pause();await pause();
+    const replies=f.frame.contentWindow.sent.filter(row=>row.kind==='response');
+    if(mode==='session')assert.equal(replies.length,0);
+    else {assert.equal(replies.length,1);assert.equal(replies[0].ok,false);}
+    assert.equal(refreshes,1,'a retired request is never retried');
+    assert.equal(f.focused,0);
+  });
 });
 
 test('R18.1 page metadata notification only targets a live tool iframe',async t=>{
@@ -3774,11 +3957,17 @@ test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
     setHook:async()=>{writes++;}});
   assert.equal(f.host.openSettings(tool.id),true);
   const fields=f.elements,help=fields['sidebar-tool-cookie-help'],button=fields['sidebar-tool-cookie-site-toggle'];
-  await settle(()=>!button.disabled);
+  const blocked=scenario==='site-ungranted';
+  await settle(()=>blocked?button.disabled&&button.textContent==='请先更新官方安装包':!button.disabled);
   assert.equal(fields['sidebar-tool-cookie-permissions'].hidden,false);
   assert.equal(fields['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,0,'direct management must not execute the package');
-  if(scenario==='official-granted'){
+  if(blocked){
+    assert.equal(help.hidden,false);
+    assert.match(help.textContent,/官方.*不匹配/);
+    assert.match(help.textContent,/审阅新版/);
+    assert.doesNotMatch(help.textContent,/仅能授权明确选择的网站/);
+  }else if(scenario==='official-granted'){
     assert.equal(help.hidden,true,'complete grant keeps settings compact');
     assert.equal(button.textContent,'撤销授权');
     assert.match(fields['sidebar-tool-cookie-target'].textContent,/已授权/);
@@ -3917,36 +4106,60 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
 });
 
-test('R5.37 development Cookie package grants declared capabilities for current site, never all sites',async t=>{
+test('unverified Cookie Editor offers recovery instead of a complete site grant the Host rejects',async t=>{
   cookieTestLocation(t);
   const official=await officialToolFixture('cookie-editor');
-  const tool={...official,js:official.js+'\nvoid 0;'},target=cookieTestTarget(),origin=target.capture().origin;
-  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
-  const chrome=cookieChromeFixture(),hostCalls=[];
-  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+  for(const [name,tool] of [
+    ['older release',{...official,version:'0.0.1'}],
+    ['modified package',{...official,js:official.js+'\nvoid 0;'}],
+    ['missing provenance',official]
+  ])await t.test(name,async t=>{
+    const target=cookieTestTarget();
+    const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+    const chrome=cookieChromeFixture(),hostCalls=[];
+    const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+      hostReply:cookieHostReceipt(tool,store,hostCalls)});
+    await settle(()=>!f.elements['sidebar-tool-cookie-help'].textContent.includes('正在核验')&&
+      f.elements['sidebar-tool-cookie-help'].textContent.length>0);
+    assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,true);
+    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/官方.*不匹配/);
+    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/审阅新版/);
+    assert.doesNotMatch(f.elements['sidebar-tool-cookie-help'].textContent,/仅能授权明确选择的网站/);
+    assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
+      'the unprivileged editor remains visible without granting access');
+    await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url,'E_COOKIE_NOT_SUBMITTED');
+    // A queued trusted dispatch must also fail closed, even if it bypasses the
+    // disabled React button after package admission has completed.
+    f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+    await pause();
+    assert.equal(chrome.requests.length,0,'do not request Chrome access for an inadmissible grant');
+    assert.equal(hostCalls.length,0,'do not send a complete site grant the real Host will reject');
+    assert.equal(store.has(BROWSER_MENU_GRANTS_STORE),false);
+    assert.equal(f.host.openSettings(tool.id),true);
+    assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
+      'Cookie Editor has one complete consent rather than a duplicate values action');
+  });
+});
+
+test('unverified Cookie Editor can still revoke its retained exact-site consent',async t=>{
+  cookieTestLocation(t);
+  const official=await officialToolFixture('cookie-editor');
+  const tool={...official,version:'0.0.1'},target=cookieTestTarget(),origin=target.capture().origin;
+  const store=await verifiedCookieStore(tool,null),hostCalls=[];
+  store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites={[origin]:{
+    storeId:'0',grantEpoch:'retained-site-consent',partitionKey:{topLevelSite:origin},
+    read:true,values:true,write:true,observe:true,clear:true,valueConsent:true
+  }};
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},
     hostReply:cookieHostReceipt(tool,store,hostCalls)});
-  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理本站 Cookie'&&
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
     !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
-    'R2.8 keeps the unprivileged editor visible before site consent');
-  await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url);
   f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
-  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.clear===true);
-  await settle(()=>f.elements['sidebar-tool-frame'].hidden===false);
-  assert.equal(chrome.requests.length,1,'missing Chrome website permission is requested in the click');
-  assert.deepEqual(chrome.requests[0],{origins:['https://cookie-r537.example/*']});
-  assert.equal(hostCalls.length,1,'Cookie Editor complete consent is one exact-site decision');
-  assert.equal(hostCalls[0].scope,undefined,'unverified bytes cannot acquire all-site consent');
-  assert.equal(hostCalls[0].cookieCapability,'all');
-  const saved=store.get(BROWSER_MENU_GRANTS_STORE)[tool.id];
-  assert.equal(saved.cookieAllSites,undefined);
-  assert.equal(saved.cookieSites[origin].valueConsent,true);
-  assert.equal(saved.cookieSites[origin].partitionKey.topLevelSite,origin);
-  for(const cap of ['read','values','write','observe','clear'])
-    assert.equal(saved.cookieSites[origin][cap],true,'explicit complete consent includes '+cap);
-  assert.equal(f.host.openSettings(tool.id),true);
-  assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
-    'Cookie Editor has one complete consent rather than a duplicate values action');
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites[origin].read===false);
+  assert.equal(hostCalls.length,1);
+  assert.equal(hostCalls[0].enabled,false);
+  assert.equal(hostCalls[0].origin,origin);
+  assert.equal(hostCalls[0].scope,undefined);
 });
 
 test('R5.37 verified official Cookie Editor requests missing Chrome all-site access and resumes UI',async t=>{
@@ -3970,7 +4183,7 @@ test('R5.37 verified official Cookie Editor requests missing Chrome all-site acc
   assert.equal(grant.valueConsent,true,'values require the persisted consent receipt');
 });
 
-async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url){
+async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url,expectedCode='E_SITE_GRANT_REQUIRED'){
   const messages=[],send=f.api.runtime.sendMessage;
   f.api.runtime.sendMessage=async message=>{messages.push(message);return send(message);};
   try{
@@ -3981,7 +4194,7 @@ async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url){
     await settle(()=>frame.contentWindow.sent.some(row=>row.requestId==='ungranted-write'));
     const reply=frame.contentWindow.sent.find(row=>row.requestId==='ungranted-write');
     assert.equal(reply.ok,false);
-    assert.equal(reply.error.code,'E_SITE_GRANT_REQUIRED');
+    assert.equal(reply.error.code,expectedCode);
     assert.equal(messages.length,0,'the unprivileged UI cannot dispatch a Cookie operation to Host');
   }finally{f.api.runtime.sendMessage=send;}
 }
@@ -4341,25 +4554,78 @@ for(const destination of ['detail','list','settings'])test('R1.8 previous instal
 
 const delegatedPin={taskId:'fixed-capture',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
 const delegatedInstall={...delegatedPin,installationId:'12345678-1234-4123-8123-123456789abc',generation:1};
-async function delegationHostFixture(t,{startGate=null}={}){
+async function delegationHostFixture(t,{startGate=null,controller=false}={}){
+  const {digest,digestUtf8}=await import('../../src/platform/protocol.js');
   const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'delegation-demo',capabilities:['tasks.run'],
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},delegatedTasks:[delegatedPin]};
+  if(controller){
+    const {BUILTIN_ABI}=await import('../../src/libs/runtime-contract.js');
+    const sourceUtf8='async function main(){return await page.title();}';
+    tool.capabilities=['controllers.run'];delete tool.delegatedTasks;
+    tool.controller={sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),siteOrigins:['https://example.com'],
+      paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},deadlineMs:30000,
+      builtinIdentity:{abi:BUILTIN_ABI,catalogSha256:'c'.repeat(64),bundleSha256:'d'.repeat(64)},permissions:['page.automation']};
+  }
   const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'app-epoch'}]]);
-  const calls=[],stops=[],cancels=[];
+  const calls=[],stops=[],cancels=[],protocolCalls=[],steps=new Map();
+  const result={runId:'original-run',resultId:'original-result',outcome:{ok:true,valueWire:encodeDelegationValue({data:[1,2,3]})}};
   const target={capture:()=>({tabId:2,frameId:0,documentId:'real-document',url:'https://example.com/',windowId:1}),revalidate:async()=>{}};
-  const runHost={start:async request=>{calls.push(request);if(startGate)await startGate.promise;return {runId:'original-run',resultId:'original-result'};},
+  const runHost={start:async request=>{
+    calls.push(request);
+    const step=steps.get(request.taskDelegationStep.clientRequestId);
+    assert.equal(step.state,'prepared');assert.equal(request.taskDelegationStep.operationRef,step.operationRef);
+    assert.equal(await digest(request.params,{maxDepth:48}),step.paramsDigest);
+    assert.deepEqual(request.target,step.target);assert.equal(request.deadlineAt,step.deadlineAt);
+    assert.deepEqual(request.taskDelegation,step.binding);
+    step.state='submitted';step.runId='original-run';step.resultId='original-result';
+    if(startGate)await startGate.promise;
+    if(!step.cancelled){step.state='completed';step.result=result;step.retirementState='released';}
+    return {runId:step.runId,resultId:step.resultId};
+  },
     cancelStart:id=>cancels.push(id),stop:async request=>{stops.push(request);return {};},
-    controller:{snapshotControllerRun:async()=>({run:{runId:'original-run',resultId:'original-result',state:'completed',retirementState:'released'},
-      results:[{runId:'original-run',resultId:'original-result',outcome:{ok:true,valueWire:encodeDelegationValue({data:[1,2,3]})}}]})}};
+    controller:{snapshotControllerRun:async()=>assert.fail('Delegated results must use the original durable inspection protocol')}};
   const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'userActivation');
   Object.defineProperty(globalThis.navigator,'userActivation',{configurable:true,value:{isActive:true}});
   t.after(()=>{if(previous)Object.defineProperty(globalThis.navigator,'userActivation',previous);else delete globalThis.navigator.userActivation;});
-  const f=await hostFixture(t,{tool,store,target,runHost,foundationClient:{request:async operation=>{
-    assert.equal(operation,'resolveInstalledTask');return {...delegatedInstall,scriptId:'task:fixed-capture:1.0.0',revision:1,manifest:{deadlineMs:30000}};
+  const f=await hostFixture(t,{tool,store,target,runHost,foundationClient:{request:async(operation,payload)=>{
+    protocolCalls.push([operation,structuredClone(payload)]);
+    if(operation==='resolveInstalledTask'){
+      assert.equal(controller,false,'App Controller must not look up a Task');
+      assert.deepEqual(payload,{taskId:delegatedPin.taskId});
+      return {...delegatedInstall,scriptId:'task:fixed-capture:1.0.0',revision:1,manifest:{deadlineMs:30000}};
+    }
+    const id=payload.clientRequestId;
+    if(operation==='prepareDelegatedStep'){
+      assert.equal(payload.binding.appId,tool.id);assert.equal(payload.binding.generation,'app-epoch');
+      assert.equal(payload.binding.packageHash,await sidebarToolPackageHash(tool));
+      assert.equal(typeof payload.binding.instanceId,'string');
+      const previous=steps.get(id);
+      if(previous){
+        if(previous.cancelled)throw Object.assign(Error('Step cancelled'),{code:'E_CANCELLED'});
+        assert.equal(previous.paramsDigest,payload.paramsDigest);
+        assert.deepEqual(previous.target,payload.target);
+        return {operationRef:previous.operationRef,state:previous.state,deadlineAt:previous.deadlineAt};
+      }
+      const step={...structuredClone(payload),operationRef:'operation-'+id,state:'prepared',cancelled:false,runId:null,resultId:null};
+      steps.set(id,step);
+      return {operationRef:step.operationRef,state:step.state,deadlineAt:step.deadlineAt};
+    }
+    if(operation==='inspectDelegatedStep'){
+      const step=steps.get(id);assert.ok(step,'read must inspect the previously prepared operation');
+      assert.deepEqual(payload.binding,step.binding);
+      return {operationRef:step.operationRef,runId:step.runId,resultId:step.resultId,state:step.state,
+        semantic:step.result?'FOUND_RESULT':'UNKNOWN',retirementState:step.retirementState??null,result:step.result??null};
+    }
+    assert.equal(operation,'cancelDelegatedStep');
+    let step=steps.get(id);
+    if(!step){step={binding:structuredClone(payload.binding),operationRef:'operation-'+id,runId:null,resultId:null};steps.set(id,step);}
+    assert.deepEqual(payload.binding,step.binding);
+    step.cancelled=true;step.state=step.runId?'stopping':'cancelled';
+    return {operationRef:step.operationRef,runId:step.runId,state:step.state,semantic:step.runId?'FOUND_RUNNING':'UNKNOWN'};
   }}});
   const rpc=async(operation,payload,id)=>{f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
     return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
-  return {...f,tool,calls,stops,cancels,rpc};
+  return {...f,tool,calls,stops,cancels,protocolCalls,rpc};
 }
 test('fixed Task public iframe dispatch start/read/stop keeps the same App mounted and decodes its result',async t=>{
   const f=await delegationHostFixture(t),frame=f.frame;
@@ -4373,6 +4639,8 @@ test('fixed Task public iframe dispatch start/read/stop keeps the same App mount
   assert.equal(stopped.ok,true);assert.equal(stopped.result.value,null);assert.equal(stopped.result.result,null);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);assert.equal(f.focused,0);
   assert.ok(f.stops.every(row=>row.runId==='original-run'));
+  assert.deepEqual(f.protocolCalls.map(([operation])=>operation),[
+    'resolveInstalledTask','resolveInstalledTask','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep']);
   f.host.closeTool();await pause();assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.ok(f.stops.length>=2,'closing the original iframe retires its own delegation');
 });
@@ -4400,6 +4668,28 @@ test('fixed Task public dispatch refuses cached results after App generation cha
   f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-app-epoch'});
   const stale=await f.rpc('tasks.read',{clientRequestId:'original-client'},'stale');assert.equal(stale.ok,false);
   assert.equal(stale.result,undefined);
+});
+test('App Controller public iframe RPC reads metadata and starts, reads and stops the original source without Task lookup',async t=>{
+  const f=await delegationHostFixture(t,{controller:true}),frame=f.frame;
+  const metadata=await f.rpc('controllers.read',{},'controller-describe');
+  assert.equal(metadata.ok,true);assert.deepEqual(metadata.result,{controller:{sourceHash:f.tool.controller.sourceHash}});
+  const started=await f.rpc('controllers.start',{clientRequestId:'app-client',params:{}},'controller-start');
+  assert.equal(started.ok,true);assert.equal(started.result.runId,'original-run');assert.equal(f.calls.length,1);
+  const claim=f.calls[0];
+  assert.deepEqual(claim.source,{kind:'app-controller',appId:f.tool.id,
+    packageHash:await sidebarToolPackageHash(f.tool),generation:'app-epoch'});
+  assert.deepEqual(claim.taskDelegation.controller,{sourceHash:f.tool.controller.sourceHash});
+  assert.equal(claim.expectedTaskInstallationId,undefined);assert.equal(claim.expectedTaskGeneration,undefined);
+  assert.deepEqual(claim.params,{});assert.equal(claim.taskDelegation.instanceId,metadata.instance);
+  const read=await f.rpc('controllers.read',{clientRequestId:'app-client'},'controller-read');
+  assert.equal(read.ok,true);assert.equal(read.result.runId,started.result.runId);
+  assert.deepEqual(read.result.value,{data:[1,2,3]});assert.equal(read.result.retirementState,'released');
+  const stopped=await f.rpc('controllers.stop',{clientRequestId:'app-client'},'controller-stop');
+  assert.equal(stopped.ok,true);assert.equal(stopped.result.runId,started.result.runId);
+  assert.equal(stopped.result.value,null);assert.equal(stopped.result.result,null);
+  assert.deepEqual(f.protocolCalls.map(([operation])=>operation),['prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep']);
+  assert.equal(f.stops.length,1);assert.equal(f.stops[0].runId,'original-run');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);assert.equal(f.focused,0);
 });
 test('fixed Task local installation review shows approved ID, version and both hashes',async t=>{
   const f=await delegationHostFixture(t);f.host.closeTool();

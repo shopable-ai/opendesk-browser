@@ -22,7 +22,7 @@ function action(doc,what,label,id){
   b.append(svg(doc,ICON[what]));return b;
 }
 function unknownMessage(state){
-  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列不会自动重试';
+  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列继续核对入站，不会自动重试；未点击发送的原草稿可取回编辑';
 }
 function inline(host,width){
   const props={position:'relative',display:'block',top:'auto',right:'auto',
@@ -79,13 +79,13 @@ function composerSurface(editor,nativeButton,form,win){
 }
 export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
-  // The Program packager already inlines declared CSS images. Direct source
-  // adapters can retain the relative reference; both must use these exact bytes.
+  // Reference the declared image at runtime so the frozen source contains its
+  // data URL once, rather than duplicating it inside both CSS and image assets.
   const crownImage=owner.getAsset('assets/crown-premium.webp');
-  const imageRef='url("crown-premium.webp")';
+  const imageRef='var(--sq-crown-image)';
   const packagedImageRef=`url("${crownImage}")`;
   if(typeof crownImage!=='string'||!/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(crownImage)||
-    typeof css!=='string'||(!css.includes(imageRef)&&!css.includes(packagedImageRef)))
+    typeof css!=='string'||!css.includes(imageRef))
     throw new Error('Packaged Send Queue crown image is missing or invalid');
   const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
@@ -258,7 +258,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       for(const [key,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
         ['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
-        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove')||
+        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove'&&!(unknown&&key==='edit'))||
           (item.state==='paused'&&key==='now'))b.disabled=true;
         ops.append(b);
       }

@@ -4,10 +4,38 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {parseHTML} from 'linkedom';
-import {loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
+import {build,stop} from 'esbuild';
+import {readFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+const require=createRequire(import.meta.url);
+let compilation;
+// Compile only in memory, preserving production ?raw CSS strings and sharing
+// React/ReactDOM with the mounted test renderer. No listener or output writer.
+function loadSidebarReact(){
+  return compilation??=(async()=>{
+    let result;
+    try{
+      result=await build({stdin:{resolveDir:process.cwd(),contents:`
+        export {SidebarAppShell} from './src/ui/react/app-shell.tsx';
+        export {createDeveloperView} from './src/ui/develop-view.js';
+        export {createMyWorkbenchView} from './src/ui/my-workbench-view.js';
+        export {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
+      `},bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
+      plugins:[{name:'mounted-production-imports',setup(builder){
+        builder.onResolve({filter:/^react(?:-dom)?(?:$|\/)/},({path})=>({
+          path:pathToFileURL(require.resolve(path)).href,external:true}));
+        builder.onLoad({filter:/\.css$/},async({path})=>({
+          contents:'export default '+JSON.stringify(await readFile(path,'utf8')),
+          loader:'js'}));
+      }}]});
+    }finally{stop();}
+    return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
+  })();
+}
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
 
-export async function mountWorkflowClient({steps=[],...options}={}){
+export async function mountWorkflowClient({steps=[],activeTab='workflow',...options}={}){
   const f=await workflowFixture({steps,...options});
   const {SidebarAppShell,createDeveloperView,createMyWorkbenchView,
     createSidebarToolsView}=await loadSidebarReact();
@@ -55,7 +83,7 @@ export async function mountWorkflowClient({steps=[],...options}={}){
   function App(){
     const [settingsOpen,setSettingsOpen]=React.useState(false);
     return React.createElement(SidebarAppShell,{
-      activeTab:'workflow',workflowController:controller,providerSettings,
+      activeTab,workflowController:controller,providerSettings,
       providerSettingsOpen:settingsOpen,
       onOpenProviderSettings:()=>setSettingsOpen(true),
       onCloseProviderSettings:()=>setSettingsOpen(false),
@@ -99,5 +127,5 @@ export async function mountWorkflowClient({steps=[],...options}={}){
   await tick();
   return {document,window,source:f,controller,providerSettings,keys,
     subscriptions:()=>subscriptions,html:()=>document.toString(),
-    click,clickNode,keydown,openSettings,close};
+    toolView:views[2],click,clickNode,keydown,openSettings,close};
 }

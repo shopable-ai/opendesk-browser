@@ -7,7 +7,7 @@ const css=readFileSync(resolve(base,'assets/queue.css'),'utf8');
 const image=readFileSync(resolve(base,'assets/crown-premium.webp')).toString('base64');
 const path=resolve(base,'preview/index.html');
 const current=readFileSync(path,'utf8');
-const inlineCss=css.replace('url("crown-premium.webp")','url("data:image/webp;base64,'+image+'")');
+const inlineCss=css.replace('var(--sq-crown-image)','url("data:image/webp;base64,'+image+'")');
 if(inlineCss===css)throw Error('Missing packaged WebP CSS declaration');
 function replaceOne(s,start,end,body){
   const i=s.indexOf(start), j=s.indexOf(end,i+start.length);

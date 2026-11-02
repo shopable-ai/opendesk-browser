@@ -518,9 +518,15 @@ try{
   await workspace.getByRole('button',{name:'放弃内容'}).click();
   await workspace.waitFor({state:'detached'});
   await button('导入 Cookie').click();await workspace.waitFor();
-  const chooserPromise=page.waitForEvent('filechooser');
-  await workspace.getByRole('button',{name:'选择或拖入 Cookie 文件'}).click();
-  const chooser=await chooserPromise;
+  // The whole drop area is a picker, including its padded edge.
+  await workspace.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
+  await page.screenshot({path:join(output,'import-dropzone-light.png')});
+  const dropzone=workspace.locator('.cookie-import-dropzone');
+  const bounds=await dropzone.boundingBox();
+  const [chooser]=await Promise.all([
+   page.waitForEvent('filechooser',{timeout:2000}),
+   dropzone.click({position:{x:bounds.width-12,y:12}})
+  ]);
   const file=JSON.stringify([{name:'import_file',value:'fictional'}]);
   await chooser.setFiles({
     name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
@@ -536,6 +542,12 @@ try{
   assert.match(await staged.innerText(),/已选择 cookies\.json.*点击「确认导入」后才会写入/);
   assert.equal((await stageInfo()).file,'cookies.json');
   assert.equal(await row('import_file').count(),0,'choosing a file must not write before import');
+  const keyboardChooserPromise=page.waitForEvent('filechooser');
+  await workspace.getByRole('button',{name:'选择或拖入 Cookie 文件'}).press('Enter');
+  await (await keyboardChooserPromise).setFiles({
+   name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
+  assert.equal(await row('import_file').count(),0,'keyboard re-selection must only stage the file');
+  await page.screenshot({path:join(output,'import-dropzone-selected.png')});
   await workspace.getByRole('button',{name:'确认导入',exact:true}).click();
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
@@ -543,14 +555,21 @@ try{
    await test('drag and drop stages a file, then one Confirm imports',async()=>{
    await button('导入 Cookie').click();
    const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+   await sheet.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
    const data=await page.evaluateHandle(()=>{
     const dt=new DataTransfer();
     dt.items.add(new File([JSON.stringify([{name:'drag_staged',value:'fictional drag'}])],
       'drag.json',{type:'application/json'}));
     return dt;
    });
-   await sheet.locator('.cookie-import-dropzone').dispatchEvent('dragenter',{dataTransfer:data});
-   await sheet.locator('.cookie-import-dropzone').dispatchEvent('drop',{dataTransfer:data});
+   const dropzone=sheet.locator('.cookie-import-dropzone');
+   const borderBefore=await dropzone.evaluate(el=>getComputedStyle(el).borderTopColor);
+   await dropzone.dispatchEvent('dragenter',{dataTransfer:data});
+   await sheet.getByText('松开以选择文件',{exact:true}).waitFor();
+   assert.notEqual(await dropzone.evaluate(el=>getComputedStyle(el).borderTopColor),borderBefore,
+    'dragging a file must visibly highlight the drop area');
+   await page.screenshot({path:join(output,'import-dropzone-dragging.png')});
+   await dropzone.dispatchEvent('drop',{dataTransfer:data});
    await sheet.getByText('已选择 drag.json · 点击「确认导入」后才会写入',{exact:true}).waitFor();
    assert.equal(await row('drag_staged').count(),0,'drop must not write before Confirm');
    assert.equal(await sheet.getByRole('button',{name:'预览导入'}).count(),0);

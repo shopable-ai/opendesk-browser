@@ -29,7 +29,9 @@ const taskInput={...pin};
 const page={tabId:7,frameId:0,documentId:'document-a',
   url:'https://example.com/search',windowId:2};
 
-function fixture({onInspect}={}){
+function fixture(controllerOrOptions=false){
+  const controller=controllerOrOptions===true;
+  const {onInspect}=controllerOrOptions&&typeof controllerOrOptions==='object'?controllerOrOptions:{};
   const ledger=new Map();
   let starts=0,inspects=0,stops=0,revoked=false;
   const client={async request(method,value){
@@ -70,6 +72,11 @@ function fixture({onInspect}={}){
   }};
   const host={
     async start(request){
+      if(controller){
+        assert.deepEqual(request.source,{kind:'app-controller',appId:app.appId,
+          packageHash:app.packageHash,generation:app.generation});
+        assert.equal(request.expectedTaskInstallationId,undefined);
+      }
       starts++;
       assert.equal(request.taskDelegationStep.operationRef,'op-'+request.taskDelegationStep.clientRequestId);
       const row=ledger.get(request.taskDelegationStep.clientRequestId);
@@ -83,7 +90,12 @@ function fixture({onInspect}={}){
   };
   const create=instanceId=>createTaskDelegationHost({api:{},client,host,
     appId:app.appId,instanceId,assertInstance:()=>{},
-    readApp:async()=>{if(revoked)throw err('E_TOOL_DISABLED');return structuredClone(app);},
+    readApp:async()=>{if(controller)throw err('UNEXPECTED_TASK_LOOKUP');if(revoked)throw err('E_TOOL_DISABLED');return structuredClone(app);},
+    readControllerApp:async()=>{
+      if(revoked)throw err('E_TOOL_DISABLED');
+      const {tasks,...binding}=structuredClone(app);
+      return {binding:{...binding,controller:{sourceHash:sha}},tool:{controller:{sourceHash:sha,deadlineMs:30000}}};
+    },
     assertApp:async binding=>{
       if(revoked||binding.appId!==app.appId||binding.generation!==app.generation)
         throw err('E_PERMISSION');
@@ -691,4 +703,35 @@ test('J06 lifecycle: real successful app-service finish and retirement work with
   assert.equal((await f.authority.retireControllerTarget({runId:run.runId},sender)).state,'released');
   assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').currentRunId,null);
   assert.equal((await f.rows('results')).filter(row=>row.runId===history.runId).length,1);
+});
+test('App Controller starts and recovers the original result without any Task lookup',async()=>{
+  const f=fixture(true),one=f.create('app-frame-1');
+  assert.deepEqual(await one.request('controllers.read',{}),{controller:{sourceHash:sha}});
+  const input={clientRequestId:'app-step',params:{query:'OpenDesk'}};
+  await assert.rejects(one.request('controllers.start',input),{code:'E_USER_GESTURE_REQUIRED'});
+  const started=await one.request('controllers.start',input,{verifiedUserActivation:true});
+  assert.equal(started.runId,'run-1');
+  const two=f.create('app-frame-2');
+  const result=await two.request('controllers.read',{clientRequestId:'app-step'});
+  assert.equal(result.runId,started.runId);assert.equal(result.semantic,'FOUND_RESULT');
+  await two.request('controllers.stop',{clientRequestId:'app-step'});
+  assert.equal(f.starts,1);
+  f.revoke();
+  await assert.rejects(two.request('controllers.read',{clientRequestId:'app-step'}),{code:'E_TOOL_DISABLED'});
+});
+
+test('App Controller stop before prepare survives a new frame and never dispatches',async()=>{
+  const f=fixture(true),one=f.create('app-frame-1');
+  await one.request('controllers.stop',{clientRequestId:'early'});
+  const two=f.create('app-frame-2');
+  await assert.rejects(two.request('controllers.start',{clientRequestId:'early',params:{}},
+    {verifiedUserActivation:true}),{code:'E_CANCELLED'});
+  assert.equal(f.starts,0);
+});
+
+test('a live request cannot change between Task and App Controller operations',async()=>{
+  const f=fixture(true),one=f.create('app-frame-1');
+  await one.request('controllers.start',{clientRequestId:'same',params:{}},{verifiedUserActivation:true});
+  await assert.rejects(one.request('tasks.stop',{clientRequestId:'same'}),{code:'E_REQUEST_CONFLICT'});
+  assert.equal(f.starts,1);assert.equal(f.stops,0);
 });

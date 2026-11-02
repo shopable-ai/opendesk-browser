@@ -8,7 +8,7 @@ export const OFFICIAL_PAGE_RELEASE_SCHEMA='opendesk.official-pages.releases.v1';
 export const OFFICIAL_PAGE_SOURCE_PATH='official-pages/sources.json';
 export const OFFICIAL_PAGE_CATALOG_PATH='official-pages/catalog.json';
 const scopes=Object.freeze({
-  'opendesk.ai-scroll-navigation':Object.freeze({project:'examples/programs/chatgpt-jump-top',
+  'opendesk.ai-scroll-navigation':Object.freeze({project:'projects/ai-scroll-navigation',
     sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'reviewed',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
   'opendesk.ai-reply-mindmap':Object.freeze({project:'projects/chatgpt-mindmap',
     sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'}),

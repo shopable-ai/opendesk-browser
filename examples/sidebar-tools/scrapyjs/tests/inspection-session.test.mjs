@@ -68,3 +68,39 @@ test('selection waits for an in-flight poll and performs a fresh document check'
   finish();await poll;await assert.rejects(use,/document revoked/);
   assert.equal(reads,3);
 });
+
+test('a late start receipt after a lost Stop reply never replays Stop',async()=>{
+  let admit,id,stops=0;
+  const {session}=setup({
+    inspect:(_input,requestId)=>{id=requestId;return new Promise(resolve=>admit=resolve);},
+    stop:async()=>{stops++;throw Error('lost stop reply');},
+    read:async()=>({clientRequestId:id,runId:'r1',status:'running',retired:false})
+  });
+  const opening=session.begin(input,'c');
+  while(!admit)await new Promise(resolve=>setImmediate(resolve));
+  await session.close();assert.equal(session.state.phase,'unknown');
+  admit({clientRequestId:id,runId:'r1',status:'running',retired:false});
+  await opening;
+  assert.equal(stops,1,'late admission must only reconcile the original request');
+  assert.equal(session.state.cancelled,true);
+  await session.close();
+  assert.equal(stops,1,'closing again may read the original request, never resend an uncertain Stop');
+  assert.ok(session.active());
+});
+
+test('late Stop replies cannot replace a successor inspection after original retirement',async()=>{
+  let requestId,finishStop,reads=0;
+  const row=()=>({clientRequestId:requestId,runId:requestId,status:'completed',retired:true,result});
+  const {session}=setup({
+    inspect:async(_input,id)=>{requestId=id;return {...row(),status:'running',retired:false};},
+    read:async()=>++reads===1?{...row(),status:'running',retired:false}:row(),
+    stop:id=>new Promise(resolve=>finishStop=()=>resolve({clientRequestId:id,runId:id,status:'cancelled',retired:true}))
+  });
+  await session.begin(input,'old');assert.equal(session.state.phase,'running');
+  const closing=session.close();
+  await session.close();assert.equal(session.state.phase,'closed');
+  await session.begin(input,'new');const successor=session.state.clientRequestId;
+  finishStop();await closing;
+  assert.equal(session.state.phase,'ready');assert.equal(session.state.clientRequestId,successor);
+  assert.deepEqual(await session.use(0,'new'),result.choices[0]);
+});

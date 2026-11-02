@@ -1,47 +1,62 @@
-/* Single integration boundary for the public task API. No tab IDs or executable source. */
+/* Public fixed Controller / explicit HTTP Task boundary. No tab IDs or executable source. */
 (() => {
   'use strict';
   const TASK_ID = 'scrapyjs.capture';
   const STORAGE_KEY = 'capture-config';
   const bytes = text => new TextEncoder().encode(text).byteLength;
   function createSdk(request) {
-    let task;
+    let task, controller;
+    const requestRoutes = new Map();
+    const configRoute = config => config?.executionMode === 'http-local' ? 'tasks' : 'controllers';
+    const requestRoute = clientRequestId => requestRoutes.get(clientRequestId) || 'controllers';
     const project = row => ({...row, status: row.state, result: row.value,
       durableResult: row.result, engineStatus: row.value?.engine?.status,
       accepted: ['stopping', 'cancelled'].includes(row.state),
       retired: row.retirementState === 'released' || (row.state === 'cancelled' && !row.runId)});
     return {
       currentPage: () => request('currentPage.info', {}),
-      async prepare() {
-        task = undefined;
+      async prepare(config) {
+        task = undefined; controller = undefined;
+        const route = configRoute(config);
         let resolved;
-        try {resolved = await request('tasks.read', {taskId: TASK_ID});}
+        try {resolved = await request(route + '.read', route === 'tasks' ? {taskId: TASK_ID} : {});}
         catch (error) {
           if (error.code === 'E_BUILTIN_VERSION_UNAVAILABLE') throw Object.assign(new Error(
-            '固定采集任务与当前运行时不匹配；请更新 scrapyjs 应用及其固定采集任务。采集配置已保留，保存配置不会更新任务验证。'), {code: error.code});
+            route === 'tasks'
+              ? '固定采集任务与当前运行时不匹配；请更新 scrapyjs 应用及其固定采集任务。采集配置已保留，保存配置不会更新任务验证。'
+              : '固定采集 Controller 与当前运行时不匹配；请更新 scrapyjs 应用。采集配置已保留，保存配置不会更新 Controller。'), {code: error.code});
           throw error;
         }
-        if (!resolved?.task) throw new Error('请先经原安装审阅链安装固定采集 Task');
-        task = resolved.task;
+        if (route === 'tasks') {
+          if (!resolved?.task) throw new Error('请先经原安装审阅链安装固定采集 Task');
+          task = resolved.task;
+        } else {
+          if (!resolved?.controller) throw new Error('请先经原安装审阅链安装含固定 Controller 的 scrapyjs 应用');
+          controller = resolved.controller;
+        }
       },
       start: async (config, url, clientRequestId) => {
-        if (!task) throw new Error('固定 Task 尚未确认安装身份');
+        const route = configRoute(config);
+        if (route === 'tasks' ? !task : !controller) throw new Error(route === 'tasks'
+          ? '固定 Task 尚未确认安装身份' : '固定 Controller 尚未确认安装身份');
         const configJson = JSON.stringify(config.itemConfig);
         if (bytes(configJson) > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
         const {url:configuredUrl,itemConfig,waitForSelector,timeoutMs,output,...options}=config;
         const optionsJson=JSON.stringify(options);
         if(bytes(optionsJson)>4096)throw new Error('分页、详情与处理配置超过 4096 字节');
         const params = {url: configuredUrl, configJson, optionsJson, waitForSelector: waitForSelector || '', timeoutMs: timeoutMs ?? 30000};
-        return project(await request('tasks.start', {task, clientRequestId, params}));
+        requestRoutes.set(clientRequestId, route);
+        return project(await request(route + '.start', {...(route === 'tasks' ? {task} : {}), clientRequestId, params}));
       },
-      read: async clientRequestId => project(await request('tasks.read', {clientRequestId})),
+      read: async clientRequestId => project(await request(requestRoute(clientRequestId) + '.read', {clientRequestId})),
       inspect: async (input,clientRequestId) => {
-        if(!task)throw new Error('固定 Task 尚未确认安装身份');
+        if(!controller)throw new Error('固定 Controller 尚未确认安装身份');
         const {url,...inspection}=input;
-        return project(await request('tasks.start',{task,clientRequestId,params:{url,configJson:'{}',
+        requestRoutes.set(clientRequestId, 'controllers');
+        return project(await request('controllers.start',{clientRequestId,params:{url,configJson:'{}',
           optionsJson:JSON.stringify({inspection}),waitForSelector:'',timeoutMs:35000}}));
       },
-      stop: async clientRequestId => project(await request('tasks.stop', {clientRequestId})),
+      stop: async clientRequestId => project(await request(requestRoute(clientRequestId) + '.stop', {clientRequestId})),
       load: () => request('storage.get', {key: STORAGE_KEY, withEtag: true}),
       async save(value, etag) {
         if (!(etag === null || typeof etag === 'string')) throw new Error('缺少 ETag，禁止无条件保存');

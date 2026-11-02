@@ -3,8 +3,8 @@
   "view": "side-panel",
   "scenario": "success",
   "source": {
-    "commit": "54daec0b85e45557ae6bde86b3b9c17951456f9f",
-    "buildId": "4c94c11d54c95c9dd8c034b398864f74ecb8136c64066c596a5f55037546a6c8",
+    "commit": "fe5f8efd5209690ff5b23cd39333c4a7ec54c8bd",
+    "buildId": "e4a30e6d6a1b75d696ce24455462863b1a55e4989ee96c9174531c9b4385b9f1",
     "evidenceLevel": "PREVIEW_COMPONENTS_COMPILED",
     "runtime": "PREVIEW_COMPONENTS_COMPILED"
   },

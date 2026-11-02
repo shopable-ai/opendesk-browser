@@ -2,7 +2,7 @@
 // Admission uncertainty is retained until the original request is released.
 export function createInspection(sdk,onChange=()=>{}){
   const state={phase:'closed',clientRequestId:null,runId:null,result:null,error:'',cancelled:false};
-  let fingerprint,input,reading=null,generation=0;
+  let fingerprint,input,reading=null,generation=0,stopRequested=false;
   const emit=()=>onChange({...state});
   const active=()=>['starting','running','unknown','stopping'].includes(state.phase);
   function apply(row){
@@ -27,7 +27,7 @@ export function createInspection(sdk,onChange=()=>{}){
   }
   async function begin(value,identity){
     if(active())return;
-    const epoch=++generation;
+    const epoch=++generation;stopRequested=false;
     input={...value,url:new URL(value.url).href};fingerprint=identity;
     Object.assign(state,{phase:'starting',clientRequestId:null,runId:null,result:null,error:'',cancelled:false});emit();
     try{
@@ -41,7 +41,7 @@ export function createInspection(sdk,onChange=()=>{}){
       const receipt=await sdk.inspect(input,state.clientRequestId);
       if(!receipt?.runId)throw Error('网页检查开始结果未知，请勿重复开始');
       apply(receipt);
-      if(state.cancelled&&active())await close();
+      if(state.cancelled&&active()&&!stopRequested)await close();
       else await refresh();
     }catch(error){if(epoch===generation){state.error=error.message;state.phase=state.clientRequestId?'unknown':state.cancelled?'closed':'error';}}
     finally{if(epoch===generation)emit();}
@@ -50,10 +50,15 @@ export function createInspection(sdk,onChange=()=>{}){
     state.cancelled=true;state.result=null;
     if(!state.clientRequestId){generation++;state.phase='closed';emit();return;}
     if(!active()){state.phase='closed';emit();return;}
-    state.phase='stopping';emit();
-    try{const row=await sdk.stop(state.clientRequestId);apply(row);}
-    catch(error){state.error=error.message;state.phase='unknown';}
-    emit();
+    // Stop may already have reached the Host even when its reply was lost.
+    // Reconcile only the original request; neither a late start nor another
+    // close may replay the uncertain cancellation.
+    if(stopRequested){await refresh();return;}
+    stopRequested=true;state.phase='stopping';emit();
+    const epoch=generation;
+    try{const row=await sdk.stop(state.clientRequestId);if(epoch!==generation)return;apply(row);}
+    catch(error){if(epoch!==generation)return;state.error=error.message;state.phase='unknown';}
+    if(epoch===generation)emit();
   }
   async function use(index,identity){
     if(state.phase!=='ready')throw Error('请等待原网页检查完成并释放');

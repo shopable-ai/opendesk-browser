@@ -504,8 +504,11 @@ test('R3.2 market and account invite share one formal App but never create produ
  assert.match(experiences,/https:\/\/example\.invalid\/invite\/demo-only/);
  assert.match(experiences,/onExperience\(item\.id\)/);
  for(const str of ['多账号整理','网址快捷切换','Cookie 有效期管理',
-  '匿名邀请','指定用户','撤销','模拟失败'])
+  '指定用户','撤销','模拟失败'])
    assert.ok(experiences.includes(str),'missing '+str);
+ // The anonymous choice is a labelled radio, not just explanatory copy.
+ assert.match(experiences,/checked=\{recipientType==='anonymous'\} onChange=\{\(\)=>updateType\('anonymous'\)\}\/>\s*<span>匿名链接<\/span>/);
+ assert.match(experiences,/return props\.previewOnly\?<CookieAccountShareDemo[^:]+:<CookieAccountShareLive/);
  for(const src of [preview,experiences])assert.doesNotMatch(src,
   /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
  assert.match(stylesheet,/\.cookie-market-resource/);
@@ -526,6 +529,63 @@ test('R3.7 dev comparison imports safely and pins approved bytes without generat
  const staticHtml=comparisonHtml(original,'STATIC_FIXTURE',{digest:'fixture'});
  assert.match(staticHtml,/srcdoc="STATIC_FIXTURE"/);
  assert.doesNotMatch(staticHtml,/allow-same-origin/);
+});
+
+test('R3.7 comparison rejects unapproved HTML bytes instead of relabelling them as approved',async()=>{
+ const {comparisonHtml}=await import('./build-a-b.mjs');
+ const {execFileSync}=await import('node:child_process');
+ // Independently recorded approval, not the current working-tree prototype.
+ const frozen=execFileSync('git',['cat-file','blob','60201dc02813769bd4facf4f06ea87ce697d0620'],{
+  cwd:new URL('.',import.meta.url)
+ });
+ assert.doesNotThrow(()=>comparisonHtml(frozen,'',{dev:true}));
+ for(const bytes of [Buffer.alloc(0),Buffer.concat([frozen,Buffer.from('\n<!-- drift -->')])]){
+  assert.throws(()=>comparisonHtml(bytes,'',{dev:true}),/E_R35_APPROVED_HTML_CHANGED/);
+  assert.throws(()=>comparisonHtml(bytes,'STATIC_FIXTURE'),/E_R35_APPROVED_HTML_CHANGED/);
+ }
+});
+
+test('visual audit selects its Cookie scenario before waiting for rows on an Enterprise default',async()=>{
+ const audit=await read('./visual-contract-check.mjs');
+ const start=audit.indexOf('  await reactPage.goto(');
+ const end=audit.indexOf('  if(width!==380)',start);
+ assert.ok(start>=0&&end>start,'audit scenario setup must be present');
+ const calls=[];
+ let scenario='serviceConnections',labOpen=false;
+ const page={
+  async goto(){calls.push('navigate');},
+  locator(selector){
+   if(selector==='.demo-lab>summary')return {async click(){labOpen=!labOpen;}};
+   assert.equal(selector,'.row-trigger');
+   return {first:()=>({async waitFor(){
+    assert.equal(scenario,'approvedParity','Enterprise default has no Cookie rows');
+    calls.push('rows-visible');
+   }})};
+  },
+  getByTestId(id){
+   assert.equal(id,'scenario');
+   return {async selectOption(value){assert.equal(labOpen,true);scenario=value;calls.push('select-scenario');}};
+  }
+ };
+ const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+ await new AsyncFunction('reactPage','devUrl','reactPath','pathToFileURL','contract',audit.slice(start,end))(
+  page,null,'fixture.html',()=>({href:'file:///fixture.html'}),{scenario:{reactScenario:'approvedParity'}});
+ assert.deepEqual(calls,['navigate','select-scenario','rows-visible']);
+ assert.equal(labOpen,false);
+});
+
+test('R3.7 visual audit self-test reads the approved Git baseline despite working prototype drift',async()=>{
+ const {execFileSync}=await import('node:child_process');
+ const {mkdtemp,rm}=await import('node:fs/promises');
+ const {tmpdir}=await import('node:os');
+ const {join}=await import('node:path');
+ const {fileURLToPath}=await import('node:url');
+ const output=await mkdtemp(join(tmpdir(),'cookie-audit-self-test-'));
+ try{
+  const result=execFileSync(process.execPath,[fileURLToPath(new URL('./visual-contract-check.mjs',import.meta.url)),
+   '--self-test','--output',output],{encoding:'utf8',timeout:10000});
+  assert.match(result,/R37_MATCHER_SELF_TEST_PASS 8 cases/);
+ }finally{await rm(output,{recursive:true,force:true});}
 });
 
 test('R3.7 dev serves current CSS and source receipts while static auditing remains strict',async()=>{
@@ -593,8 +653,21 @@ test('R2.6 canonical HTML and official React share the corrected import/export i
   const [html,react]=await Promise.all([
     read('../cookie-editor.html'),read('../../app/components/CookieEditorView.jsx')
   ]);
-  assert.ok(html.includes("btn('import','导入 Cookie','up')"));
+  const importButton=html.match(/<button\b[^>]*\bdata-action="import"[^>]*>[\s\S]*?<\/button>/)?.[0];
+  assert.ok(importButton,'HTML import action remains a button');
+  assert.match(importButton,/aria-label="导入 Cookie"/);
+  assert.match(importButton,/aria-haspopup="dialog"/);
+  assert.match(importButton,/aria-controls="importDialog"/);
+  assert.match(importButton,/\$\{icon\('up'\)\}/);
+  assert.match(html,/if\(action==='import'\)\{openImport\(\);return;\}/);
   assert.ok(html.includes("btn('export','导出 Cookie','down')"));
-  assert.match(react,/<Action name="upload" label="导入 Cookie"/);
-  assert.match(react,/<Action name="download" label="导出 Cookie"/);
+  for(const [htmlName,reactName,label,handler,path] of [
+    ['up','upload','导入 Cookie','onImport','M12 20V5m-5 5 5-5 5 5M4 4V2h16v2'],
+    ['down','download','导出 Cookie','onExport','M12 4v15m-5-5 5 5 5-5M4 20v2h16v-2']
+  ]){
+    // Check the actual arrow geometry and action binding, not just icon names.
+    assert.ok(html.includes(htmlName+':\'<path d="'+path+'"/>\''));
+    assert.ok(react.includes(reactName+':<path d="'+path+'"/>'));
+    assert.match(react,new RegExp('<Action name="'+reactName+'" label="'+label+'"[^>]*onClick=\\{'+handler+'\\}'));
+  }
 });

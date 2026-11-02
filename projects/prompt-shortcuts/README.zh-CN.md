@@ -16,7 +16,7 @@ Browser 开发服务同时修复官方目录变更触发 WXT 重启、清空加�
 
 **Prompt Shortcuts 只负责提示词**：保存、编辑、插入、快捷栏、OD 入口、图片及网站编辑器适配。独立滚动导航已从可信网页运行时、React 工具设置、宿主管理和本工具 HTML 预览移除。旧库含有 `scrollNavigation` 的五个开关时，`trusted/model.js` 可安全读取并忽略该历史字段；新建和下一次正常保存都不会重新写入它，提示词正文、图片引用、顺序与网站规则仍按现有数据合同保存。打开旧库但不保存时，不主动改写存储。
 
-独立源项目为 [AI 对话滚动导航](../../programs/chatgpt-jump-top/README.zh-CN.md)，**新源码 ID 为 `opendesk.ai-scroll-navigation`**。同目录旧 `chatgpt-jump-top.opendesk-page.json` 仍是旧 ID 历史正式制品，不能当作新包导入；新正式包还需使用原 Project Builder 构建并审阅来源和授权。未安装独立 Page Program 时，Prompt Shortcuts 不会提供导航按钮；导航安装、停用和 Origin 授权不复用 Prompt 权限。下方旧版演示和交付记录只是历史证据。**新包构建与当前安装版真实 Chrome 验收均未完成：NOT_TESTED。**
+独立源项目为 [AI 对话滚动导航](../ai-scroll-navigation/README.zh-CN.md)，**新源码 ID 为 `opendesk.ai-scroll-navigation`**。新项目目录内的旧 `chatgpt-jump-top.opendesk-page.json` 仍是旧 ID 历史正式制品，不能当作新包导入；新正式包还需使用原 Project Builder 构建并审阅来源和授权。未安装独立 Page Program 时，Prompt Shortcuts 不会提供导航按钮；导航安装、停用和 Origin 授权不复用 Prompt 权限。下方旧版演示和交付记录只是历史证据。**新包构建与当前安装版真实 Chrome 验收均未完成：NOT_TESTED。**
 
 该阶段最初的 `tool.config.json` 源码版本为 1.1.19，正式包当时仍为 1.1.18；此历史状态已由上方 1.1.20 交付记录取代。可信页面属于宿主代码，不因重打 Sidebar JSON 就自动更新。
 
@@ -108,25 +108,25 @@ DeepSeek、Gemini 对话页与 ChatGPT 一样使用扩展代码中的固定默�
 4. 选中文字后快速创建属于**可选**的 Chrome 原生右键功能：可在工具详情的受信任「设置」中启用，只有这一功能可能需要原生菜单许可；选区预填新建表单后仍需**显式保存**。
 5. 列表第一视觉层级为提示词正文；点击正文直接复制，不弹出额外复制窗口。每条仅常显「更多」图标，展开后用六个 SVG 操作图标完成编辑、启停、排序、复制与确认删除。关闭 Side Panel 后，已安装且启用的网页按钮独立运行。
 
-## ChatGPT 长内容回到开头
+## 独立 AI 对话滚动导航（已拆分）
 
-回顶箭头属于本工具的网页功能，**无需另外安装或手动运行 ChatGPT Jump Page 脚本**。工具已安装、启用且「网页按钮」开关打开时，进入或刷新 ChatGPT 页面会经现有固定 Page Relay 自动启动；关闭 Side Panel 不影响它。
+**当前边界：Prompt Shortcuts 不负责对话回顶/置底。** 本工具只负责提示词库、网页提示词快捷按钮和草稿插入；当前可信网页实现不会创建对话导航箭头。旧文档中“Prompt Shortcuts 自带回顶箭头”及 2026-10-20 的集成结果属于历史实现，不作为当前版本能力或验收证据。
 
-- 长用户消息的箭头位于“复制消息 / 编辑消息”原生操作组旁，长助手回复的箭头位于对应回复操作组旁。
-- writing block 的箭头位于“打开编辑器”工具栏；进入独立查看器后，在含“关闭查看器”的工具栏显示对应箭头。
-- 点击一次到达对应内容的真实起点，并避开固定或粘性工具栏；不会无条件把整页滚到 0，也不会写入正文、草稿或选区。操作组或目标不唯一时退出。
-- 只在精确 `https://chatgpt.com` 运行。停用、卸载或关闭「网页按钮」会清理箭头；页面离开、BFCache 恢复、SPA 导航和根节点替换沿用现有工具生命周期。点击前还会重新读取工具安装、启用和网页按钮状态。
+独立导航由单独 Page Program 提供：[AI 对话滚动导航](../ai-scroll-navigation/README.zh-CN.md)，ID 为 `opendesk.ai-scroll-navigation`。它的源码规则声明 ChatGPT、DeepSeek、Gemini 三个站点；各站点真实浏览器验收状态以独立项目记录为准，不能把匹配规则声明等同于全部验收通过。
 
-实现由 `trusted/page.js` 持有安装与生命周期，静态复用 [`conversation.js`](../../programs/chatgpt-jump-top/src/conversation.js) 的唯一滚动算法；该独立项目保留为诊断与算法测试入口，不是日常自动运行入口。代码固定编入浏览器扩展的 `agents/page-relay.js`，不从导入的工具包动态执行 JavaScript；现有 v2 工具身份、包文件和权限保持不变。
+两个项目拥有独立身份、安装包、网站权限、启停、撤权和生命周期：
+- 安装 Prompt Shortcuts 不会安装或授权 AI 对话滚动导航。
+- 安装 AI 对话滚动导航不依赖 Prompt Shortcuts。
+- 任一项目的权限和运行状态都不会替另一个项目授权或提供运行时。
 
-2026-10-20 已在真实已登录 Chrome 验证刷新与新进入页面自动显示箭头，并点击安装版 writing 箭头；[脱敏集成证据](evidence/chatgpt-jump-integration-20261020.json) 区分这些结果、生命周期定向测试与尚未完成的 production 验收。 本次页面适配器验证分两组不重复执行，共 78 项通过；固定来源检查 3 项通过，现有工具包同源检查通过。
+唯一导航源码、测试、历史 Page 包和开发入口统一保存在 `projects/ai-scroll-navigation/`；不再使用旧的 `examples/programs/chatgpt-jump-top/` 路径，也不在 Prompt Shortcuts 中复制导航算法。
 
 ## 手动安装 JSON 与页面验证
 
 **AI Dock 须从官方目录安装并通过可信来源核验。** 准入继续由当前构建中的官方发行规则检查包版本及摘要、可信官方来源记录、启用状态与安装代际；不能只凭版本号推定可用。手动导入本地 JSON 即使 ID、版本和字节相同，也不等同于官方目录安装，不能据此获得 AI Dock 准入；需要 AI 对话时请使用「扩展」中的官方可选目录，经原安装器审阅确认。下列手动导入仅用于工具包与网页功能验证，不代表 AI Dock 已可用或 R1.7 原生验收通过。
 
 1. 先更新 OpenDesk Browser 扩展代码，使它包含本次可信 `page-relay` 适配器。日常开发加载本仓库 `dist/development`，复用已有 `npm run dev`。**只向旧版扩展导入 JSON 不会更新这个静态适配器。**
-2. 在侧栏「扩展」点击「筛选和管理扩展」（省略号图标），选择「导入本地工具包」。在「导入扩展」中选择本目录唯一正式包 `prompt-shortcuts.opendesk-tool.json`，核对身份 `prompt-shortcuts`、版本 `1.1.16` 及权限后「确认安装」或「确认更新」。不要选独立 `chatgpt-jump-top` Page 包。
+2. 在侧栏「扩展」点击「筛选和管理扩展」（省略号图标），选择「导入本地工具包」。在「导入扩展」中选择本目录唯一正式包 `prompt-shortcuts.opendesk-tool.json`，核对身份 `prompt-shortcuts`、版本 `1.1.16` 及权限后「确认安装」或「确认更新」。不要将 AI 对话滚动导航的 Page 安装包当作 Prompt Shortcuts Tool 包导入。
 3. 已安装同身份同版本时保留现有数据，直接核对状态即可，不要为了测试卸载重装。新安装后默认可用；如果此前主动停用，在工具行的「管理」菜单选择「启用应用」，或在「工具设置」恢复「启用工具」，并恢复「网页快捷按钮」。
 4. 进入或刷新 `https://chatgpt.com`，无需去「开发」点击 Run。已有文档在扩展更新后应先刷新；先保存重要草稿，勿刷新其他会话页面。确认提示词入口只有一个，支持的长内容操作组旁出现回顶箭头。
 5. 点击长用户消息、长助手回复、Writing 或文档查看器中实际出现的箭头，观察对应内容起点是否可见、是否被工具栏遮挡，并确认正文和输入草稿不变。未出现某种内容时，该类型记为未验证，不用其他类型代替。

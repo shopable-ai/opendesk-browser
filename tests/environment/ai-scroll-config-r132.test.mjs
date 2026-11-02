@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeScrollConfig,scrollConfigForUrl,scrollPathMatches,
   SCROLL_CONFIG_EMPTY,SCROLL_CONFIG_PROGRAM_ID} from '../../src/scripting/user-scripts/scroll-config-contract.js';
-import {applicableRule} from '../../examples/programs/chatgpt-jump-top/src/site-configuration.js';
+import {applicableRule} from '../../projects/ai-scroll-navigation/src/site-configuration.js';
 import {pageInstallScope,pageInstallScopeDelta} from '../../src/scripting/user-scripts/page-install-authorization.js';
 
 const sample={origin:'https://chatgpt.com',pathScope:'/c',

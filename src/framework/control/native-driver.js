@@ -37,6 +37,8 @@ export function validateControllerEnvelope(envelope) {
     // not saved script pins. Never invent or demand a permanent draft pin.
     (revision.kind === 'draft'
       ? revision.scriptId === `draft:${identity.runId}` && revision.pinKey === undefined
+      : revision.kind==='app-controller'
+        ? /^app-controller:[a-z][a-z0-9-]{1,39}$/.test(revision.scriptId)&&revision.pinKey===undefined
       : revision.kind === undefined && typeof revision.pinKey === 'string' && revision.pinKey),
     'E_PAGE_CONTEXT_REQUIRED');
   requireValue(Number.isSafeInteger(target?.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 &&

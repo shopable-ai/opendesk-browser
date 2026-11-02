@@ -3,6 +3,7 @@ import {canonical,invariant} from '../protocol.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,requireToolRevocationEpochs} from '../../ui/sidebar-tools/lifecycle.js';
 import {normalizeTaskDelegations,sameTaskPin} from './delegation-contract.js';
+import {assertAppControllerBinding} from './app-controller-installation.js';
 export async function readTaskDelegationApp(api,appId){
   const rows=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
   const installed=rows[SIDEBAR_TOOL_STORE];
@@ -16,6 +17,7 @@ export async function readTaskDelegationApp(api,appId){
   return {appId,packageHash:await sidebarToolPackageHash(tool),generation,tasks};
 }
 export async function assertTaskDelegationApp(api,binding){
+  if(binding?.controller)return assertAppControllerBinding(api,binding);
   invariant(binding&&typeof binding.instanceId==='string'&&binding.instanceId.length>0,'E_OWNER');
   const current=await readTaskDelegationApp(api,binding.appId);
   const {instanceId,task,...app}=binding;

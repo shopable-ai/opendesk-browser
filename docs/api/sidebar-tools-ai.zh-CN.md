@@ -104,10 +104,35 @@ Frame 的 `open` 控制发送、焦点与滚动行为，不隐藏整个组件；
 
 Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Dock 共享原气泡、输入框和动作样式；公开 Dock 单独加载纯展示 `conversation-layout.css`。两者都不注入设置页或宿主整份 CSS，不新增 palette 或依赖。固定 runtime 公开 Dock、Frame 和 session，不导出 `TrustedConversationWorkspace`、可信 Header Slot、Provider、业务 consumer、Authority 或 private config。
 
+### 公共骨架与插槽
+
+共享 Chat 是框架组件，书签、ScrapyJS 及后续扩展均通过公共合同消费。公共骨架负责 Dock 开合、分隔条、收起按钮、消息、输入、发送/停止及 IME 等展示交互；消费者通过现有 props 调整文案和状态，通过命名插槽放入少量自有内容。这里的 slot 就是组件已公开的内容 props，不新增 Slot 服务、组件副本或另一套 UI runtime。
+
+| 组件 / 插槽 | 放入的内容 | 边界 |
+| --- | --- | --- |
+| Dock `children` | 原有 Frame 与工具局部容器的组合 | 与原业务区域并列；收起时保留挂载，不以 Chat 替换整页业务 |
+| Dock `toolbar` | 少量消费者自有操作节点 | 沿用公共工具栏位置，保留公共收起按钮和分隔条；不在此另建 Provider 或权限入口 |
+| Frame `intro` / `emptyPrompt` | 简短引导内容 / 空对话提示文案 | 不新增业务标题栏；业务设置仍在扩展原界面 |
+| Frame `feedback` | 阶段、错误、已核实结果等 React 内容 | 如实区分待执行、成功、失败和 unknown；展示不能代替真实回执 |
+| Frame `review` | 工具自有的配置差异、提案审阅和显式确认 UI | 校验、应用、命名保存和业务动作由工具 adapter 负责 |
+| Frame `technical` | 可选诊断或高级详情 React 内容 | 不泄露凭据，不把实现细节变成普通用户的操作前置条件 |
+
+`placeholder`、`inputLabel`、`stopLabel`、状态和事件回调沿用 Frame 现有签名。插槽不是替换公共输入、发送/停止或并发保护的入口；不通过工具 CSS 覆盖公共控件布局。扩展仍须完成实际需求，例如由 AI 生成配置、审阅后应用并调用原业务能力，不能把“已显示 Chat”当作业务闭环完成。
+
+已有高级布局可使用 Frame 的 `splitTargets`、`transcriptTarget`、`composerTarget`，把同一个 Frame 的消息与输入放入调用方自己的文档容器；这些内容仍属于同一 React Root 和原信任边界，不是将沙箱内容 portal 到可信 Host 的通道。普通接入优先默认布局。每个实例分别持有会话、请求和业务状态，复用组件不共享授权或跨扩展草稿。
+
+先用上述插槽和 props 解决消费者差异；确有跨扩展价值且现有接口无法覆盖时，按[通用能力例外](../../AGENTS.md)记录复现、最小公开 API、生命周期、权限及兼容影响，由平台 owner 修改唯一组件、同步本合同并运行受影响交互测试。HTML/Vue 等原有自定义 UI 继续可用，不为接入共享 Chat 强制迁移 React。
+
 ### 沙箱工具的公共页头入口与底部 Dock
 
 `OpenDeskTool.setConversationState({visible: boolean, open: boolean})` 将展示状态同步到 Host 固定 AI 按钮；默认隐藏。参数只能含这两个布尔字段，无效调用返回 false。监听 `OpenDeskTool.root` 的 `opendesk:conversation-action`，收到固定 `detail: {action: 'toggle'}` 后，由工具切换自己的 open 并重新同步状态。完整合同与示例见 [Sidebar Tool API](sidebar-tools.zh-CN.md)。此通知不携带原事件、HTML、任意动作名或 AI 授权，不可作为模型请求的用户手势。
 
 公开 `OpenDeskSidebarUI.SharedConversationDock` 可搭配 `SharedConversationFrame`：Dock 接受 `open` / `onClose`，提供底部展示容器与 resizer；Frame 负责对话内容。关闭时更新工具 open 并调用上述 API 同步页头 aria 状态。Dock、Frame 和 session 仍在工具自己的 iframe 内；它们不公开 TrustedWorkspace / HeaderSlot，也不改变 AI 调用、权限或安装合同。Host 清理实例后入口隐藏，迟到状态消息被拒绝；可信 Workspace 保留自身固定入口，避免重复。
 
+共享 Chat 面向各扩展复用。根容器使用 `od-conversation-workspace`，原扩展界面放在 `od-conversation-business` 中，Dock 与业务区并列；展开对话后仍保留可操作的业务区域，收起后归还空间，开合不卸载业务或丢弃草稿。共享区沿用公共分隔条、收起按钮、消息和输入样式，不增加「AI 采集助手」等业务标题或覆盖公共控件布局。扩展只提供允许发送的上下文、提案审阅与确认后的业务回调；自动配置和业务执行仍通过该扩展原有能力及真实回执完成。
+
 Dock 的可选 `toolbar` 接收消费者自有 React 展示节点，位于收起按钮旁；它不创建 Provider 配置或授权入口。可信书签继续通过已有 `onOpenSettings` 打开共享设置面板。按钮必须完整位于 Dock 内，分隔条不能遮住按钮或裁切焦点环。
+
+沙箱工具同步 `visible: true, open: true` 后，可信 ToolHost 页头显示公共 AI 来源菜单和设置图标，复用现有 Provider Runtime 与唯一共享设置面板。工具本身不接收设置 facade、密钥或配置写入接口；关闭 Chat、切换页面或关闭工具时这些局部控件隐藏。来源切换仍触发原 generation、取消和旧回包围栏。本机来源显示「本机 Codex」，实际模型由本机配置决定，不推测模型 ID。
+
+普通消息应保持为对话主内容；采集状态、完整 JSON 和运行诊断放入局部详情，不能挤掉消息与公共输入。业务是否可运行只约束相应业务动作，不应阻止普通询问。近期消息不会由 Frame/session 自动发送；消费者若显式选择对话上下文，须限制大小并让原可信发送审阅显示实际载荷，不能将历史文本当成授权或成功回执。

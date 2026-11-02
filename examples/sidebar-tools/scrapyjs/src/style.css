@@ -50,9 +50,6 @@ body{background:var(--od-paper)}
 .actions{gap:var(--space-2)}.actions #start{flex:1;background:var(--secondary);color:var(--secondary-foreground)}
 /* Local emphasis uses existing neutral tokens; shared Button/Frame stay canonical. */
 .scrapyjs-workspace :is(#start,#ai-apply){border-color:var(--od-input-border);font-weight:600;box-shadow:0 1px 2px var(--od-line)}
-.scrapyjs-workspace .ai-workspace .od-conversation-action--primary{background:var(--secondary);color:var(--secondary-foreground);border-color:var(--od-input-border)}
-.scrapyjs-workspace .ai-workspace .od-conversation-action--primary:hover:not(:disabled){background:var(--muted)}
-.scrapyjs-workspace .ai-workspace .od-conversation-log{--od-conversation-user-bg:var(--secondary);--od-conversation-user-ink:var(--secondary-foreground)}
 #profile-current{display:flex;align-items:center;gap:var(--space-2)}.state-dot{display:inline-block;flex-shrink:0;width:6px;height:6px;border-radius:50%;background:currentColor}
 #profile-current[data-dirty=true]{color:var(--od-warning)}
 .target-content{display:grid;gap:var(--space-2)}
@@ -107,46 +104,10 @@ fieldset{display:grid;gap:var(--space-3);border:0;padding:0;margin:0;min-width:0
 @media(pointer:coarse){.capture-app button,input,select,.capture-app summary,.capture-app .od-disclosure--flat>summary{min-height:44px}}
 
 /* The document scrolls context/review; no capped grid can compress Chat to its border. */
-.capture-app .ai-workspace{gap:var(--space-2)}.ai-workspace legend{font-size:var(--od-meta-size);color:var(--od-sub);padding:0;margin-bottom:var(--space-2)}.ai-context{gap:var(--space-2)}
-/* Align context text after the 16px checkbox and its 8px label gap. */
-.ai-page-context{padding-left:calc(var(--space-4) + var(--space-2))}.ai-diff{margin:0;padding-left:var(--space-4);display:grid;gap:var(--space-3)}
-.ai-heading-row{min-height:34px}.ai-context .check{font-size:var(--od-note-size);font-weight:500}.ai-page-context{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.ai-before-after{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);margin-top:var(--space-2)}.ai-before-after>div{min-width:0;font-size:12px;color:var(--od-sub)}.ai-before-after pre{margin-top:var(--space-1);color:var(--od-ink)}
-
-/* The same bottom Dock as the reference; business and Chat scroll independently. */
-.ai-workspace .ai-chat{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
-/* Toolbar content is presentation only; pointer events pass through to the resizer. */
-.ai-workspace .od-conversation-toolbar{left:var(--space-3);gap:var(--space-2);pointer-events:none}
-.ai-workspace .od-conversation-close{pointer-events:auto}
-.ai-workspace .od-conversation-separator{right:40px}
-.ai-workspace .od-conversation-separator:before{left:auto;right:var(--space-3)}
-.ai-dock-heading{display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0}
-.ai-dock-heading h2{margin:0;font-size:var(--od-note-size);font-weight:600;color:var(--od-ink)}
-.ai-dock-heading span{font-size:var(--od-meta-size);color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ai-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 var(--space-3) var(--space-2);scrollbar-width:thin;display:flex;flex-direction:column;gap:var(--space-2)}
-.ai-chat .ai-transcript{flex:none;overflow:visible;min-height:32px;padding:var(--space-2) 0}
-.ai-input-label{display:grid;gap:var(--space-1);flex:none;margin:var(--space-1) var(--space-3) 0;font-size:var(--od-meta-size);color:var(--od-sub)}
-.ai-composer-hint{font-weight:400;font-size:var(--od-meta-size);line-height:1.5}
-.ai-composer-target{flex:none;min-width:0}
-.ai-scroll :is(p,h2){margin:0}.ai-scroll :is(p,summary){font-size:var(--od-note-size)}
-.ai-scroll>*{flex-shrink:0}.ai-scroll details{flex:none}.ai-scroll .disclosure-body{padding-bottom:var(--space-2)}
-.ai-review{flex:none;gap:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-4)}.ai-diff>li{padding-block:var(--space-2)}.ai-diff>li>strong{font-weight:500}.ai-diff pre{border-color:transparent}
-/* Review content never paints behind the fixed actions or composer. */
-.ai-review-actions{flex:none;padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);background:var(--od-paper)}
-.ai-change-value{margin-top:var(--space-1);padding:var(--space-2)}
-/* Chat is the first surface; context and large diffs remain optional disclosures. */
-.ai-workspace .ai-review-details,.ai-workspace #ai-advanced{min-width:0}
-.ai-workspace #ai-advanced{margin-top:var(--space-2)}
-.ai-workspace #ai-review-details>.disclosure-body{padding:var(--space-2) 0}
-.ai-workspace .ai-unverified{line-height:1.55;overflow-wrap:anywhere}
-.ai-workspace .ai-review-actions{flex-wrap:wrap;gap:var(--space-2)}
-.ai-workspace .ai-review-actions>button{flex:1 1 112px;min-width:0;white-space:normal;line-height:1.3}
-.ai-workspace .ai-scroll :is(pre,textarea){max-width:100%;box-sizing:border-box;overflow:auto;overflow-wrap:anywhere}
-.ai-workspace .ai-scroll .ai-materials{min-width:0}
-.ai-workspace .ai-scroll .ai-review{min-width:0}
-@media(max-width:360px){.ai-workspace .ai-review-actions>button{flex-basis:100%}}
-
-@media(pointer:coarse){.ai-workspace .od-conversation-separator{right:48px}}
+/* Frame and Dock own the conversation layout. Only failure/recovery feedback is local. */
+.ai-feedback{flex:none;padding:0 var(--space-3);font-size:var(--od-note-size);line-height:1.5;max-height:25%;overflow:auto}
+.ai-feedback p{margin:var(--space-1) 0}
+.ai-feedback[hidden]{display:none}
 
 .check input{accent-color:var(--od-brand)}
 
@@ -242,7 +203,9 @@ fieldset{display:grid;gap:var(--space-3);border:0;padding:0;margin:0;min-width:0
   .library-primary-actions #edit-profile-rules:hover:not(:disabled) {background:color-mix(in srgb,var(--secondary) 92%,var(--primary))}
   :is(.profile-confirm-dialog,.scrapy-results-dialog,.confirmation) {background:var(--card);color:var(--foreground)}
   :is(.profile-confirm-dialog,.scrapy-results-dialog)::backdrop {background:rgb(36 50 73 / .28)}
-  .ai-preview-placeholder {gap:var(--space-3);padding:var(--space-3)}
+  .ai-preview-placeholder {flex:none;gap:var(--space-3);padding:var(--space-3);background:var(--card);border-top:1px solid var(--border)}
+  .ai-preview-placeholder:not([hidden]) {display:grid}
+  .ai-preview-placeholder p {margin:0;line-height:1.6}
   pre {background:var(--card)}
   .scrapy-results-dialog textarea {background:var(--background)}
   .rule-entry[data-editing="true"] {border-bottom-color:var(--border)}

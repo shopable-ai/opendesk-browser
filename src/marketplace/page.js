@@ -20,7 +20,7 @@ const TRANSFER_FORMAT='opendesk.market.transfer.v1';
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const CAPABILITY_NAMES={
   'storage.local':'保存该工具的本机数据','currentPage.read':'读取用户当前网页的标题和地址',
-  'tasks.open':'打开已安装任务','tasks.run':'运行固定任务、读取结果及停止原实例','page.toc':'读取可用网站的标题目录',
+  'tasks.open':'打开已安装任务','tasks.run':'运行固定任务、读取结果及停止原实例','controllers.run':'运行应用包内已审阅的网页自动化、读取结果及停止原实例','page.toc':'读取可用网站的标题目录',
   'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用','user.export':'复制内容或下载文件',
   'page.capture':'安装后在 Chrome 已允许访问的 ChatGPT 页面提供保存按钮',
   'knowledge.store':'管理本机知识收件箱',

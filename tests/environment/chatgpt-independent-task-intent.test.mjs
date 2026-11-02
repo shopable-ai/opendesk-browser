@@ -56,7 +56,9 @@ function harness({holdRun=false,clock}={}){
   const lostACKs=new Set();
   const api={runtime:{id:'extid',async sendMessage(msg){events.gates.push(msg);
     try{
-      const data=await (msg.kind==='preapprove-next'?ledger.preapproveNext(msg.source,msg):
+      const data=await (msg.kind==='approve-conversation'?ledger.approveConversation(msg.source,msg):
+        msg.kind==='authorize-conversation'?ledger.authorizeConversation(msg):
+        msg.kind==='preapprove-next'?ledger.preapproveNext(msg.source,msg):
         msg.kind==='bind-preapproved'?ledger.bindPreapproved(msg):
         msg.kind==='revoke-request'?ledger.revokeRequest(msg):msg.kind==='prepare'?ledger.prepare(msg.source,msg):
         msg.kind==='authorize'?ledger.authorize(msg):msg.kind==='reserve'?ledger.reserve(msg):ledger.assertConsumed(msg));
@@ -340,7 +342,7 @@ test('consumed UNKNOWN Host start remains fenced against adopting the same candi
 test('candidate prepare and authorize require a trusted sidepanel sender at the original SW gate',async()=>{
   const h=harness();let listener;
   const event={addListener(){}};
-  const api={storage:{local:h.storage},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+  const api={storage:{local:h.storage},runtime:{id:'extid',getURL:(path='')=> 'chrome-extension://extid/'+path,
     onMessage:{addListener:fn=>{listener=fn;}}},
     webNavigation:{getFrame:async()=>({...source,documentLifecycle:'active'}),onCommitted:event,onHistoryStateUpdated:event},
     tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event},permissions:{onRemoved:event}};
@@ -606,7 +608,7 @@ test('P0 bind shares the candidate quota and conversation dedup with ordinary ad
 });
 test('P0 SW accepts preapprove/bind only from the original trusted sidepanel, never content or a tool shell',async()=>{
   const h=harness();let listener;const event={addListener(){}};
-  installChatGPTBridgeTriggerGate({api:{storage:{local:h.storage},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+  installChatGPTBridgeTriggerGate({api:{storage:{local:h.storage},runtime:{id:'extid',getURL:(path='')=> 'chrome-extension://extid/'+path,
     onMessage:{addListener:fn=>{listener=fn;}}},
     webNavigation:{getFrame:async()=>({...source,documentLifecycle:'active'}),onCommitted:event,onHistoryStateUpdated:event},
     tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event},permissions:{onRemoved:event}}});
@@ -651,7 +653,7 @@ test('real SW revocation events fence failed storage writes and worker restart b
   for(const event of ['permission','navigation'])for(const state of ['approved','consumed']){
     const h=harness();let listener;
     h.api.storage={local:h.storage,session:sessionStorage()};
-    h.api.runtime.getURL=()=> 'chrome-extension://extid/';
+    h.api.runtime.getURL=(path='')=> 'chrome-extension://extid/'+path;
     h.api.runtime.onMessage={addListener:fn=>{listener=fn;}};
     const trusted={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=real'};
     const call=message=>new Promise(resolve=>listener(message,trusted,resolve));
@@ -731,7 +733,7 @@ function sessionStorage(){
 function restartableGate(h,clock){
   let listener;
   h.api.storage={local:h.storage,session:sessionStorage()};
-  h.api.runtime.getURL=()=> 'chrome-extension://extid/';
+  h.api.runtime.getURL=(path='')=> 'chrome-extension://extid/'+path;
   h.api.runtime.onMessage={addListener:fn=>{listener=fn;}};
   const trusted={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=real'};
   const send=message=>new Promise(resolve=>listener({protocol,...message},trusted,resolve));
@@ -830,4 +832,42 @@ test('fixed bridge explicitly refuses multi-origin scope before adoption, author
   assert.equal(h.events.gates.length,0);
   assert.equal(h.events.starts.length,0);
   assert.equal(h.events.updates.length,0);
+});
+
+const conversationApproval=h=>({protocol,kind:'approve-conversation-task',taskId:h.request.taskId,
+  targetUrl:h.request.targetUrl,installation:h.installation});
+test('conversation approval needs installation and target, not an old answer or request parameters',async()=>{
+  const h=harness();h.observed.error=Object.assign(Error('no old answer'),{code:'E_CHAT_PENDING'});
+  h.resolved.manifest.paramsSchema.required=['maxChars'];
+  const grant=await h.bridge.approveConversationTask(conversationApproval(h),h.sender);
+  assert.equal(grant.taskId,h.request.taskId);assert.equal(grant.targetUrl,h.request.targetUrl);
+  assert.equal(grant.remainingRuns,10);assert.equal(grant.parameterPolicy,'installed-schema');
+  assert.equal(h.events.starts.length,0);
+  assert.equal(h.events.gates.filter(row=>row.kind==='approve-conversation').length,1);
+});
+test('conversation approval converts the recognized candidate and admits later schema-checked parameters',async()=>{
+  const h=harness(),message=await adopt(h);
+  const grant=await h.bridge.approveConversationTask({...conversationApproval(h),...message,
+    kind:'approve-conversation-task'},h.sender);
+  assert.equal(grant.currentRequest.requestId,message.requestId);
+  assert.equal(grant.currentRequest.mode,'auto');
+  assert.equal((await h.bridge.handle({...message,mode:'auto'},h.sender)).sent,true);
+  h.intent.args={maxChars:300};h.intent.candidateId='conversation-second-candidate';
+  h.observed.blocks=[JSON.stringify(h.intent)];h.observed.turnKey='turn-2';h.observed.answerKey='answer-2';
+  const prepared=await h.bridge.adoptTask({...adoption(h),conversationGrantId:grant.grantId},h.sender);
+  assert.equal(prepared.mode,'auto');assert.equal(prepared.args.maxChars,300);
+  h.intent.args={maxChars:1000};h.intent.candidateId='conversation-invalid-candidate';
+  h.observed.blocks=[JSON.stringify(h.intent)];
+  await assert.rejects(h.bridge.adoptTask({...adoption(h),conversationGrantId:grant.grantId},h.sender));
+  assert.equal(h.events.starts.length,1);
+});
+test('conversation approval rejects changed scope and lost ACK never starts or silently grants again',async()=>{
+  for(const change of [{targetUrl:'https://other.example/'},{installation:{version:'wrong'}}]){
+    const h=harness();await assert.rejects(h.bridge.approveConversationTask({...conversationApproval(h),...change},h.sender));
+    assert.equal(h.events.starts.length,0);
+  }
+  const h=harness();h.loseACK('approve-conversation');
+  await assert.rejects(h.bridge.approveConversationTask(conversationApproval(h),h.sender));
+  await assert.rejects(h.bridge.approveConversationTask(conversationApproval(h),h.sender));
+  assert.equal(h.events.starts.length,0);
 });

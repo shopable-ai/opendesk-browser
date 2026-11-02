@@ -1,4 +1,18 @@
-## 当前：规则排序、显示排序与自定义 CSV（2026-11-01）
+## 当前固定入口：AI 简单演示占位（2026-11-02）
+
+按用户最新要求，[固定预览](preview.html)右上角 AI 仅打开简单占位说明和实际扩展入口，不显示聊天输入、消息或发送控件，也不调用 AI。实际工具入口默认保留完整 AiPanel；此前共享 Chat 候选记录保留其历史范围。
+
+占位区已补上白色底板、顶部细分隔线和 12px 内容间距，与上方采集区域清楚区分；已验证可见性、开合、Escape 与焦点恢复。[本轮截图和检查记录](../../../../artifacts/scrapyjs/ai-placeholder-surface-20261102/report.json)。
+
+固定三件套已与原生成器输出逐字节同步，1,386 项输入来源一致；已验证点击开合、键盘重开、Escape 关闭、焦点恢复及零 AI 请求。[本轮截图与检查记录](../../../../artifacts/scrapyjs/ai-placeholder-restore-20261102/report.json)。仅离线预览，未更新正式包或安装态。
+
+## 历史固定入口：共享 Chat 1.8.7（2026-11-02）
+
+[打开固定预览](preview.html)。已用原构建器的 `shared-ai-20261102/preview-final` 候选逐字节同步 HTML、manifest、context；1386 项输入在同步时与当前源码一致。HTML SHA-256 为 `9b32bb9a77858d74d4c6f6806a5427dcd46161b52bffbfbd75926a3ac4a3a8aa`。原固定入口仍是 1.8.2，日常 Chrome 两个已开窗口均可复现“AI 对话的预览占位”；同步并分别刷新后，都已打开真正共享组件的“AI 采集助手”、分隔手柄与输入框，另核对了 Esc 焦点返回及重开保留未发送文本。
+
+此入口使用真实 React 组件和内存模拟 transport，`SHARED_CHAT_SIMULATED_TRANSPORT`，网络关闭，不证明真实推理或安装成功。Chrome for Testing 的已安装 1.8.7 及新窗口证据、网页读取失败和 `local_codex` 阻塞见[本轮报告](../evidence/shared-ai-acceptance-20261102.md)。未取得本候选最终独立评分；历史分数不继承。旧三件套保留在本机 `artifacts/scrapyjs/shared-ai-20261102/old-fixed-preview-1.8.2/`，以下为历史记录。
+
+## 历史：规则排序、显示排序与自定义 CSV（2026-11-01）
 
 [打开完整交互预览](../../../../artifacts/scrapyjs/light-20261101/candidate15-field-order/preview.html) · [本地入口](http://127.0.0.1:49870/candidate15-field-order/preview.html) · [源码、截图和验证](../../../../artifacts/scrapyjs/light-20261101/candidate15-field-order/README.md)。
 
@@ -8,7 +22,7 @@
 
 同一冻结候选通过 69 项相关 Node 检查、52 项离线交互检查，页面/控制台错误 0。真实网站、真实 AI、Native、安装及 production 仍为 `NOT_TESTED`；未晋升包、提交或推送。以下旧候选只保留各自历史，旧名称/显隐入口不作为当前设计。
 
-# 当前：字段修改直接生效（2026-11-01）
+# 历史：字段修改直接生效（2026-11-01）
 
 [打开更新后的完整预览](preview.html)。字段名、采集规则及列表范围的有效修改立即进入配置草稿，删除「字段更改未应用 / 取消 / 应用字段」和范围应用栏。直接保存配置或开始采集即可；不完整或无效输入原位保留、提示并阻止保存/运行，修正后自动恢复，Esc 回到最后合法值。新增和重命名不中断连续输入，点选结果直接回填，自定义 CSV 表头与排序随字段改名保留。
 

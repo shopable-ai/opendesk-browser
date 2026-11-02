@@ -10,7 +10,9 @@ const base={url:'https://book.douban.com/tag/编程',itemConfig:{_listContainer:
 test('real provider proposals are data and pass the original lossless validator',()=>{
  const next={...base,itemConfig:{...base.itemConfig,author:'.pub'}};
  assert.equal(JSON.stringify(parseProposal(JSON.stringify(next),validateConfig,base.url)),JSON.stringify(next));
- assert.match(instructions,/不返回代码/);assert(sameConfig(base,structuredClone(base)));
+ assert.match(instructions,/只返回一个受控业务 JSON 对象/);
+ assert.match(instructions,/不允许执行脚本或添加函数/);
+ assert(sameConfig(base,structuredClone(base)));
 });
 test('invalid output, executable keys and changed targets fail before application',()=>{
  for(const proposal of ['```json\n{}\n```','not json',JSON.stringify({...base,code:'alert(1)'}),JSON.stringify({...base,maxPages:11}),JSON.stringify({...base,url:'https://download.csdn.net/'})])assert.throws(()=>parseProposal(proposal,validateConfig,base.url));

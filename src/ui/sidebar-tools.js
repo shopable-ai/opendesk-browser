@@ -2,6 +2,7 @@ import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/side
 import {createLocalTaskBridge,pickLocalTaskCredential,validateLocalTaskRequest} from '../platform/host/local-tasks.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
 import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
+import {APP_CONTROLLER_OPERATIONS,appControllerReview} from '../platform/tasks/app-controller-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
@@ -359,11 +360,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const workspace=doc.getElementById('workspace-content');
     const bounds=frame.getBoundingClientRect?.();
     if(!bounds)return;
-    const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
+    const viewportBottom=globalThis.innerHeight;
+    let bottom=workspace?.getBoundingClientRect?.().bottom??viewportBottom;
     const mode=frameRoot.dataset?.officialWorkspace==='true'?'workspace':'content';
+    // Intrinsic content can extend the workspace beyond the visible Host viewport.
+    if(mode==='content'&&Number.isFinite(viewportBottom)&&viewportBottom>0){
+      bottom=Number.isFinite(bottom)?Math.min(bottom,viewportBottom):viewportBottom;
+    }
     if(!Number.isFinite(bottom)||!Number.isFinite(bounds.top))return;
-    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height:null;
-    const height=mode==='workspace'&&frameHeight!==null?frameHeight:bottom-bounds.top-12;
+    // DOM bounds include Host CSS zoom; the sandbox consumes unzoomed CSS pixels.
+    const zoom=Number.isFinite(frame.currentCSSZoom)&&frame.currentCSSZoom>0?frame.currentCSSZoom:1;
+    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height/zoom:null;
+    const height=mode==='workspace'&&frameHeight!==null?frameHeight:(bottom-bounds.top)/zoom-12;
     const availableHeight=Math.max(mode==='workspace'?80:220,
       Math.min(1600,Math.floor(height)));
     const cacheKey=mode+':'+availableHeight;
@@ -421,6 +429,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
     'tasks.open':'打开已安装任务',
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
+    'controllers.run':'运行应用包内已审阅的网页自动化、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
     'page.videoSpeed':'调节已授权网页主/播放中 HTML5 视频；明确开启全局模式后跨网页沿用倍速，关闭侧栏仍生效；可停止并尝试恢复已控制视频 1×',
@@ -591,6 +600,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const globalAllowed=allSites&&cookieHasBaseGrant(tool);
     const siteAllowed=cookieHasSiteGrant(tool,origin);
     const managed=cookieHasManageGrant(tool,origin);
+    const officialBlocked=tool?.id==='cookie-editor'&&cookieAdmissionState===false&&!managed;
     const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
     // The original native Chrome grant is prepared even with Settings closed.
@@ -622,7 +632,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
     const chromeMissing=allowed&&cookieChromeState?.granted===false;
-    const cookieHelpText=allowed&&!officialPending?
+    const cookieHelpText=officialBlocked?
+      '当前 Cookie Editor 安装包与官方发行不匹配，暂时无法授权。请关闭此窗口，返回「扩展」列表，'+
+      '在 Cookie Editor 管理菜单中选择「审阅新版」；如无新版，请从官方来源重新导入安装包。':
+      allowed&&!officialPending?
       !origin?'请选择普通 HTTP/HTTPS 网站':partial?'授权不完整，请补全 Cookie 管理权限。':
         chromeMissing?'Chrome 网站权限已撤销，请恢复访问。':
           !cookieChromeState?'Chrome 权限状态尚未确认，请检查权限或重新打开设置。':''
@@ -631,19 +644,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (partial?'此前授权不完整。':'')+description+
       '全站授权适用于所有普通 HTTP/HTTPS 网站；单站授权仅适用于明确选择的网站。'+
       (tool.id!=='cookie-editor'&&tool.capabilities.includes('browser.cookies.values')?
-        ' 敏感值读取仍由原有可信设置单独授权。':'')+
-      (!allSites&&tool?.id==='cookie-editor'?
-        ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'');
+        ' 敏感值读取仍由原有可信设置单独授权。':'');
     patchToolField(view,cookieHelp,{hidden:!cookieHelpText,textContent:cookieHelpText});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
       attributes:{'aria-busy':String(cookieGrantPending)}});
-    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialPending?
+    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialBlocked?
+      '请先更新官方安装包':officialPending?
       '正在核验安装身份…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
         partial?'补全授权':'授权访问'):chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
       allSites?'撤销所有网站 Cookie 授权':'撤销本站 Cookie 授权':
       partial?'补全 Cookie 管理授权':allSites?'允许管理所有网站 Cookie':'允许管理本站 Cookie',
       className:firstUse?'od-button od-button--primary':'od-button',
-      disabled:busy||cookieGrantPending||officialPending||!cookieChromeState||
+      disabled:busy||cookieGrantPending||officialPending||officialBlocked||!cookieChromeState||
         enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
         !origin||requested.length===0});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
@@ -728,6 +740,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
       cookieHasSiteGrant(tool,origin));
+    // The Host rejects complete site consent for an unverified Cookie Editor.
+    // Keep retained consent manageable, but never request new access here.
+    if(tool.id==='cookie-editor'&&!allSites&&!revoke&&!restoreChrome)return;
     // A stale grant-only header/modal render may never act as a revoke.
     if(revoke&&event.target?.closest?.('button[data-cookie-grant-only="true"]'))return;
     // The shared Chrome gate consumes this genuine click synchronously,
@@ -742,7 +757,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!restoreChrome){
         if(allSites)await changeCookieAllSites(tool,!revoke);
         else if(revoke)await changeCookieSite();
-        else if(tool.id==='cookie-editor')await changeCookieSite({enabled:true});
         else for(const capability of cookieRequiredCapabilities(tool)){
           if(active!==tool||instance!==token||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin)
             throw Object.assign(new Error('工具或当前网站已变化，请重新选择网站'),{code:'E_DOCUMENT_CHANGED'});
@@ -1930,6 +1944,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
         ...toolLocaleContext(tool)},'*',transferred);
+      // A pre-load hint may have arrived before the sandbox bound its instance.
+      lastHostHeight=null;
       syncFrameLayout();
     };
     target.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -2142,6 +2158,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(developmentStorage&&operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read')){
         await developmentStorage.request(operation,{},token);
         assertSession(source,token);
+        await currentPageTarget?.refresh?.({quiet:true,preserveRetry:true});
+        assertSession(source,token);
         const target=currentPageTarget?.snapshot;
         if(target?.status!=='available')return currentPageInfo(target);
         const captured=currentPageTarget.capture();
@@ -2199,8 +2217,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);return true;}})});
       return sidebarAI.request(operation,payload);
     }
-    if(TASK_DELEGATION_OPERATIONS.includes(operation)){
-      if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes('tasks.run'))
+    if(TASK_DELEGATION_OPERATIONS.includes(operation)||APP_CONTROLLER_OPERATIONS.includes(operation)){
+      const capability=APP_CONTROLLER_OPERATIONS.includes(operation)?'controllers.run':'tasks.run';
+      if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes(capability))
         throw Object.assign(new Error('固定任务委托不可用'),{code:'E_CAPABILITY'});
       await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
       assertSession(source,token);
@@ -3368,7 +3387,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return response.data;
       }
 
-      if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
+      if(operation==='currentPage.info'){
+        await currentPageTarget?.refresh?.({quiet:true,preserveRetry:true});
+        assertSession(source,token);
+        return currentPageInfo(currentPageTarget?.snapshot);
+      }
       if(VIDEO_SPEED_OPERATIONS.includes(operation)){
         const globalSet=operation==='videoSpeed.set'&&payload&&Object.hasOwn(payload,'expectedRevision');
         if(globalSet&&(Object.keys(payload).sort().join(',')!=='expectedRevision,speed'||
@@ -3666,6 +3689,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Sandbox readiness cannot erase why the official React route was
         // rejected. Package readiness and trusted admission are separate.
         notice(bookmarkFallbackNotice);
+        lastHostHeight=null;
+        sendToolAvailableHeight();
         reportReadyOpen(message.instance);
         if(active?.id===ADBLOCK_ID&&pendingAdblockSettingsInstance===message.instance){
           pendingAdblockSettingsInstance=null;
@@ -3732,7 +3757,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
-      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start')&&
+      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start'||message.operation==='controllers.start')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const exportGrantEpoch=message.operation==='cookieEditor.export.begin'
       ?cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.grantEpoch:null;
@@ -4233,7 +4258,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
-    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+(candidate.background?
+    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+appControllerReview(candidate)+(candidate.background?
       '\n后台运行：仅按已批准计划访问本应用授权的数据。':'')});
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});

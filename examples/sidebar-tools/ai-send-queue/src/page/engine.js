@@ -87,6 +87,30 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       item.state==='confirmed')return false;
     return remove(id);
   }
+  // Explicitly take back the draft already in the website, without rewriting
+  // it. A possibly clicked send can never be made retryable this way.
+  function reclaimPrepared(id) {
+    const flight=state.inFlight;
+    if(!flight || flight.item.id!==id || flight.phase!=='unknown' ||
+      !flight.token || flight.clickAttempted ||
+      site.canReclaimPrepared?.(flight.token)!==true)return false;
+    state.inFlight=null;state.phase='waiting';state.reason='';
+    state.forceId=null;idleSince=null;
+    items.splice(items.indexOf(flight.item),1);
+    if(!items.length&&!state.answerGate)state.route=null;
+    emit();return true;
+  }
+  function confirmFlight(snap) {
+    const flight=state.inFlight,before=flight?.before||flight?.token?.before;
+    if(!before || !snap.ok || snap.route!==state.route ||
+      !site.confirm(before,flight.item.text,snap))return false;
+    flight.item.state='confirmed';state.lastConfirmed=flight.item.id;
+    items.splice(items.indexOf(flight.item),1);state.inFlight=null;
+    state.phase='waiting';state.reason='';state.forceId=null;
+    // A delayed acknowledgement proves admission, not reply completion.
+    state.answerGate={before,confirmedUser:snap.users.at(-1),started:clock(),sawBusy:snap.busy};
+    idleSince=null;emit();return true;
+  }
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
@@ -147,18 +171,27 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   }
   function tick({canSubmit=true}={}) {
     if(!items.length && !state.answerGate)return;
+    const snap=site.inspect();
+    // Keep read-only reconciliation alive even after a network/layout timeout.
+    // Check before deadlines or committing: the user may have sent the draft.
+    if(['await-native-ready','await-confirm','unknown'].includes(state.inFlight?.phase) &&
+      confirmFlight(snap))return;
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     const t=clock();
     // These deadlines survive blocked submission, navigation and composer loss.
     // Once prepared, the user may have sent the draft outside this engine.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
-      markUnknown('停止结果未知，请核对原对话后删除该条；消息未自动重发');return;
+      // Only Stop has been clicked: this item's draft was never prepared or
+      // submitted. Preserve it as paused and editable, without retrying Stop
+      // or waiving any existing reply/identity gate for the other messages.
+      state.inFlight.item.state='paused';state.inFlight=null;state.forceId=null;
+      state.phase='waiting';state.reason='停止后网页尚未就绪，此条已暂停，可取回编辑或恢复';
+      idleSince=null;emit();return;
     }
     if(state.inFlight?.phase==='await-native-ready' && t-state.inFlight.started>6000){
       const detail=state.inFlight.readinessReason||'未取得下一轮原生就绪检查';
       markUnknown(detail+'；填入后的发送状态未知，请核对原对话和草稿后删除该条');return;
     }
-    const snap=site.inspect();
     // Lost page access cannot turn an already-clicked send into an unsent item.
     if(state.inFlight?.phase==='await-confirm' &&
       (!snap.ok || snap.route!==state.route) && t-state.inFlight.started>ACK_MS){
@@ -187,26 +220,20 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       const flight=state.inFlight;
       if(!canSubmit)return;
       let result;
+      flight.clickAttempted=true;
       try{result=site.commit(flight.token);}
       catch{markUnknown('原生点击状态无法判定，请检查原对话');return;}
+      if(result?.retry || result?.stage==='before-click')flight.clickAttempted=false;
       if(result?.retry){flight.readinessReason=result.reason||'原生控件尚未就绪';return;}
       if(!result?.ok){
         if(result?.stage==='after-click'){markUnknown('网站可能已发送，请手动核对后删除该条');return;}
         markUnknown((result?.reason?result.reason+'；':'')+'填入后的发送状态未知，请核对原对话后删除该条');return;
       }
-      state.inFlight={item:flight.item,phase:'await-confirm',started:t,before:result.before};
+      state.inFlight={item:flight.item,phase:'await-confirm',started:t,before:result.before,clickAttempted:true};
       emit();return;
     }
     if(state.inFlight?.phase==='await-confirm') {
       const flight=state.inFlight;
-      if(flight.before && site.confirm(flight.before,flight.item.text,snap)){
-        flight.item.state='confirmed';state.lastConfirmed=flight.item.id;
-        items.splice(items.indexOf(flight.item),1);state.inFlight=null;
-        // Keep this gate even if the queue empties before the new answer appears.
-        state.phase='waiting';state.answerGate={
-          before:flight.before,confirmedUser:snap.users.at(-1),started:t,sawBusy:snap.busy};
-        idleSince=null;emit();return;
-      }
       if(t-flight.started>ACK_MS){
         const issue=site.confirmationIssue?.(flight.before,flight.item.text,snap);
         markUnknown((issue?issue+'；':'')+'未能确认用户消息入站，禁止重复点击');
@@ -237,6 +264,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,move,
+  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }

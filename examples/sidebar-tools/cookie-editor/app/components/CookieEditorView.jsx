@@ -88,14 +88,23 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
 }
 // Pure presentation of the approved Preview IO controls. Both simulated
 // and native adapters implement the callbacks; no credentials live here.
-export function CookieImportDropzone({dragging=false,fileName='',maxSize='150 KB',
+export function CookieImportDropzone({dragging=false,fileName='',maxSize='8 MiB',
   disabled=false,onPick,onDragEnter,onDragOver,onDragLeave,onDrop}){
+  const formatsId=React.useId();
   return <button type="button"
-    className={'cookie-import-file-picker od-button od-button--secondary cookie-button--compact'+
+    className={'cookie-import-dropzone cookie-import-file-picker od-button od-button--secondary'+
       (dragging?' is-dragging':'')}
-    aria-label="选择或拖入 Cookie 文件" title={"JSON / TXT · 最大 "+maxSize} disabled={disabled} onClick={onPick}
+    aria-label="选择或拖入 Cookie 文件" aria-describedby={formatsId}
+    disabled={disabled} onClick={onPick}
     onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
-    {dragging?'松开即可读取文件':fileName?'选择其他文件':'选择文件（可选）'}
+    <span className="cookie-import-dropzone-icon"><CookieIcon name={fileName?'check':'upload'}/></span>
+    <span className="cookie-import-dropzone-title">
+      {dragging?'松开以选择文件':fileName?'文件已暂存':'将 Cookie 文件拖到此处'}
+    </span>
+    <span className="cookie-import-dropzone-action">
+      {fileName?'点击更换文件，或拖入其他文件':'或点击选择文件'}
+    </span>
+    <span id={formatsId} className="cookie-import-dropzone-formats">JSON / TXT / Netscape · 最大 {maxSize}</span>
   </button>;
 }
 // Two directly visible formats, with native buttons and keyboard-accessible tabs.

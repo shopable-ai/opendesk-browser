@@ -4,6 +4,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {readFile,writeFile,rename,readdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {buildProgramProjectInMemory} from '../../../scripts/build-program-project.mjs';
 
 const root=fileURLToPath(new URL('.',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -24,7 +25,8 @@ async function sourceFiles(){
   const walk=async directory=>(await Promise.all((await readdir(join(root,directory),{withFileTypes:true}))
     .map(async row=>row.isDirectory()?walk(directory+'/'+row.name):
       /\.(?:jsx?|css|html)$/.test(row.name)?[directory+'/'+row.name]:[]))).flat();
-  return [...new Set([...SCRAPYJS_REACT_SOURCE_FILES,...await walk('src')])].sort();
+  return [...new Set([...SCRAPYJS_REACT_SOURCE_FILES,...await walk('src'),
+    ...await walk('controller'),...await walk('engine'),...await walk('adapters')])].sort();
 }
 async function sourceSnapshot(){
   return Object.fromEntries(await Promise.all((await sourceFiles()).map(async file=>
@@ -39,9 +41,12 @@ export function sharedDesignPlugin(){
     }};
 }
 function receiptPlugin(){
-  let before,designBefore;
+  let before,designBefore,controllerBuild;
   return {name:'scrapyjs-react-build-ready',apply:'build',
-    async buildStart(){before=await sourceSnapshot();designBefore=await designSnapshot();},
+    async buildStart(){
+      before=await sourceSnapshot();designBefore=await designSnapshot();
+      controllerBuild=await buildProgramProjectInMemory(root,{mode:'production'});
+    },
     generateBundle(_,bundle){
       const chunks=Object.values(bundle).filter(item=>item.type==='chunk');
       if(chunks.length!==1||chunks[0].dynamicImports.length||
@@ -50,10 +55,11 @@ function receiptPlugin(){
         throw Error('scrapyjs must emit one Classic JS chunk with host-owned React externals');
     },
     async writeBundle(){
+      await writeFile(join(root,'dist/controller.js'),controllerBuild.sourceUtf8);
       const files={},inputs=await sourceSnapshot(),designSources=await designSnapshot();
       if(JSON.stringify(before)!==JSON.stringify(inputs)||JSON.stringify(designBefore)!==JSON.stringify(designSources))
         throw Error('scrapyjs sources changed during compilation; discard this build');
-      for(const file of ['dist/tool.css','dist/tool.js'])
+      for(const file of ['dist/tool.css','dist/tool.js','dist/controller.js'])
         files[file]=fingerprint(await readFile(join(root,file)));
       // Identical sources and compiled bytes have an identical receipt.
       const buildId=hash(Buffer.from(JSON.stringify({sources:inputs,files,designSources})));

@@ -38,8 +38,8 @@ test('CSV custom headers preserve raw export, JSON, complete values and formula 
   await assert.rejects(sdk.download(snapshot,'csv',{fieldNames:{title:'重复',source:'重复'}}),/重复/);
   assert.equal(calls.length,count);
 });
-test('output names never enter the fixed task execution options',async()=>{
-  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push({op,payload:plain(payload)});return payload.taskId?{task:{taskId:'scrapyjs.capture'}}:{state:'running'};});
+test('output names never enter the fixed Controller execution options',async()=>{
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push({op,payload:plain(payload)});return op==='controllers.read'?{controller:{sourceHash:'a'.repeat(64)}}:{state:'running'};});
   await sdk.prepare();await sdk.start({...plain(DEFAULT_CONFIG),output:{fieldNames:{title:'标题'}}},page.url,'header-test');
   assert.deepEqual(JSON.parse(calls.at(-1).payload.params.optionsJson),{});
 });
@@ -49,7 +49,8 @@ function setup(overrides = {}) {
     read: async clientRequestId => ({clientRequestId,runId:'original',status:'running',engineStatus:'extracting',retired:false}),
     stop: async clientRequestId => {calls.push(clientRequestId); return {clientRequestId,runId:null,accepted:true,retired:false};},
     load: async () => ({value:null,etag:'initial'}), save: async () => ({saved:true}), download: async () => ({started:true}), ...overrides};
-  return {app:createApp(sdk),calls,sdk};
+  const app=createApp(sdk);app.state.config=plain(DEFAULT_CONFIG);
+  return {app,calls,sdk};
 }
 test('bounded list detail run exposes partial list outcome alongside detail completion',async()=>{
   const {app}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',engineStatus:'completed',retired:true,
@@ -126,6 +127,25 @@ test('cancel before target check finishes does not issue start', async () => {
   const run=app.start(page.url); await app.stop(); check.resolve(page); await run;
   assert.equal(app.state.runId,null); assert.equal(app.state.phase,'idle');
 });
+for(const gateName of ['prepare','currentPage'])test(`original stop reports prevented dispatch during ${gateName}`,async()=>{
+  const gate=deferred(),entered=deferred();let starts=0;
+  const {app,sdk,calls}=setup({start:async()=>{starts++;throw Error('must not dispatch');}});
+  await app.refreshTarget();
+  sdk[gateName]=async()=>{entered.resolve();await gate.promise;return page;};
+  const running=app.start(page.url);await entered.promise;
+  let stopped;
+  try{
+    stopped=await app.stop();
+    assert.equal(stopped.status,'accepted');assert.equal(stopped.dispatchPrevented,true);
+    assert.equal(stopped.clientRequestId,null);assert.equal(stopped.runId,null);
+    assert.equal(app.state.stopRequested,true);assert.equal(app.state.stopAccepted,false);
+  }finally{gate.resolve();await running;}
+  const receipt=await running;
+  assert.equal(receipt.status,'cancelled');assert.equal(receipt.dispatchPrevented,true);
+  assert.equal(receipt.preparationId,stopped.preparationId);
+  assert.equal(app.state.preparationId,null);assert.equal(app.state.phase,'idle');
+  assert.equal(starts,0);assert.deepEqual(calls,[]);
+});
 test('cancel before start receipt stops the original run once and waits for retirement', async () => {
   const pending=deferred(), sent=deferred(); const {app,calls,sdk}=setup({start:()=>{sent.resolve();return pending.promise;}});
   await app.refreshTarget(); const run=app.start(page.url); await sent.promise; await app.stop();
@@ -164,19 +184,19 @@ test('read permission failures remain classified without discarding drafts or in
   const denied=()=>{throw Object.assign(Error('权限不足'),{code:'E_PERMISSION_DENIED'});};
   const {app,sdk}=setup({load:denied,currentPage:denied});
   app.edit({...DEFAULT_CONFIG,timeoutMs:8000});
-  await app.load();await app.refreshTarget();
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);await app.refreshTarget();
   assert.equal(app.state.storageError?.code,'E_PERMISSION_DENIED');
   assert.equal(app.state.targetError?.code,'E_PERMISSION_DENIED');
   assert.equal(app.state.config.timeoutMs,8000);assert.equal(app.state.conflict,null);
   sdk.load=async()=>({value:null,etag:'recovered'});sdk.currentPage=async()=>page;
-  await app.load();await app.refreshTarget();
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);await app.refreshTarget();
   assert.equal(app.state.storageError,null);assert.equal(app.state.targetError,null);
   assert.equal(app.state.config.timeoutMs,8000);
 });
 test('conditional storage survives reopen and preserves edited draft during initial load', async () => {
   let record={value:null,etag:'a'}; const writes=[];
   const sdk={load:async()=>plain(record),save:async(value,etag)=>{writes.push(etag);record={value:plain(value),etag:'b'};return {saved:true};}};
-  const {app}=setup(sdk); await app.load(); app.edit({...DEFAULT_CONFIG,timeoutMs:5000}); await app.save();
+  const {app}=setup(sdk); await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG); app.edit({...DEFAULT_CONFIG,timeoutMs:5000}); await app.save();
   assert.deepEqual(writes,['a']); assert.equal(app.state.dirty,false);
   const reopened=setup(sdk).app; await reopened.load(); assert.equal(reopened.state.config.timeoutMs,5000);
   const pending=deferred(), loading=setup({load:()=>pending.promise}).app;
@@ -189,7 +209,7 @@ test('save readback accepts the original codec object ordering and keeps the new
   const {app}=setup({load:async()=>plain(record),save:async(value,etag)=>{
     writes.push(etag); record={value:decodeValue(encodeValue(plain(value))),etag:'saved-'+writes.length};return {saved:true};
   }});
-  await app.load();app.edit({...DEFAULT_CONFIG,timeoutMs:5000});await app.save();
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);app.edit({...DEFAULT_CONFIG,timeoutMs:5000});await app.save();
   assert.equal(app.state.error,'');assert.equal(app.state.dirty,false);assert.equal(app.state.storageReady,true);
   app.edit({...DEFAULT_CONFIG,timeoutMs:6000});await app.save();
   assert.deepEqual(writes,['initial','saved-1']);assert.equal(app.state.config.timeoutMs,6000);
@@ -199,7 +219,7 @@ test('a genuinely changed post-save value retains the draft and blocks another w
   const {app}=setup({load:async()=>plain(record),save:async value=>{
     writes++;const remote=plain(value);remote.records[0].config.timeoutMs=7000;record={value:remote,etag:'other-writer'};return {saved:true};
   }});
-  await app.load();app.edit({...DEFAULT_CONFIG,timeoutMs:5000});await app.save();
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);app.edit({...DEFAULT_CONFIG,timeoutMs:5000});await app.save();
   assert.match(app.state.error,/保存后版本已变化/);assert.equal(app.state.config.timeoutMs,5000);
   assert.equal(app.state.dirty,true);assert.equal(app.state.conflict.config.timeoutMs,7000);
   await app.save();assert.equal(writes,1);
@@ -207,7 +227,7 @@ test('a genuinely changed post-save value retains the draft and blocks another w
 test('storage conflict retains draft, reads current version and never overwrites automatically', async () => {
   let reads=0,writes=0; const {app}=setup({load:async()=>({value:reads++ ? {...DEFAULT_CONFIG,timeoutMs:7000}:null,etag:String(reads)}),
     save:async()=>{writes++;throw new Error('E_STORAGE_CONFLICT');}});
-  await app.load(); app.edit({...DEFAULT_CONFIG,timeoutMs:3000}); await app.save();
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG); app.edit({...DEFAULT_CONFIG,timeoutMs:3000}); await app.save();
   assert.equal(app.state.config.timeoutMs,3000); assert.equal(app.state.conflict.config.timeoutMs,7000); assert.equal(writes,1);
   await app.save(); assert.equal(writes,1); app.useSaved(); await app.confirmAction(); assert.equal(app.state.config.timeoutMs,7000); assert.equal(app.state.dirty,false);
 });
@@ -231,48 +251,54 @@ test('CSV uses the existing bounded Browser SDK export and preserves quotes, Uni
   assert.equal(actual.filename,'scrapyjs-result.csv');
   assert.equal(actual.text,'"title","tags","extra"\r\n"产品,""设计""","[""一"",""二""]",""\r\n"第二行\n内容","","0"');
 });
-test('SDK task requests pin the installed revision and correlate pre-reply cancellation', async () => {
-  const calls=[],task={taskId:'scrapyjs.capture',version:'0.1.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),installationId:'00000000-0000-4000-8000-000000000000',generation:1};
-  const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return payload.taskId?{task}:{clientRequestId:payload.clientRequestId,state:'running'};});
+test('default DOM uses the packaged Controller without Task delegation and correlates cancellation', async () => {
+  const calls=[],controller={sourceHash:'a'.repeat(64)};
+  const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);assert.ok(!op.startsWith('tasks.'));return op==='controllers.read'&&!payload.clientRequestId?{controller}:{clientRequestId:payload.clientRequestId,state:'running'};});
   await sdk.prepare();await sdk.start(DEFAULT_CONFIG,page.url,'capture-1');await sdk.stop('capture-1');await sdk.read('capture-1');
-  calls.shift();
-  assert.deepEqual(calls.map(([op])=>op),['tasks.start','tasks.stop','tasks.read']);
-  assert.deepEqual(calls[0][1].task,task);assert.equal(calls[0][1].clientRequestId,'capture-1');
+  assert.deepEqual(calls.shift(),['controllers.read',{}]);
+  assert.deepEqual(calls.map(([op])=>op),['controllers.start','controllers.stop','controllers.read']);
+  assert.deepEqual(Object.keys(calls[0][1]).sort(),['clientRequestId','params']);assert.equal(calls[0][1].clientRequestId,'capture-1');
   assert.deepEqual(calls[1][1],{clientRequestId:'capture-1'});
   assert.equal('tabId' in calls[0][1],false);assert.equal('code' in calls[0][1],false);
   assert.equal(calls[0][1].params.configJson,JSON.stringify(DEFAULT_CONFIG.itemConfig));
   assert.ok(Object.values(calls[0][1].params).every(value=>['string','number','boolean'].includes(typeof value)));
   assert.throws(()=>validateConfig({...DEFAULT_CONFIG,itemConfig:{title:'中'.repeat(1400)}}),/4096/);
 });
-test('stale fixed Task reports task recovery without changing saved capture configurations or starting', async () => {
+test('stale fixed Controller reports recovery without Task fallback or changing saved capture configurations', async () => {
   const calls=[];
   const sdk=context.ScrapyAppSdk.createSdk(async(op)=>{
     calls.push(op);
     if(op==='currentPage.info')return page;
-    if(op==='tasks.read')throw Object.assign(new Error('内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证'),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
+    if(op==='controllers.read')throw Object.assign(new Error('内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证'),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
     throw new Error('Unexpected operation: '+op);
   });
-  const app=createApp(sdk);
+  const app=createApp(sdk);app.state.config=plain(DEFAULT_CONFIG);
   const before=plain(app.state.config);
   await app.refreshTarget();await app.start(page.url);
-  assert.match(app.state.error,/固定采集任务.*运行时/);
+  assert.match(app.state.error,/固定.*Controller.*运行时/);
   assert.match(app.state.error,/更新.*scrapyjs/);
   assert.match(app.state.error,/采集配置已保留/);
   assert.equal(app.state.phase,'idle');assert.equal(app.state.clientRequestId,null);
   assert.deepEqual(plain(app.state.config),before);
-  assert.deepEqual(calls,['currentPage.info','tasks.read']);
+  assert.deepEqual(calls,['currentPage.info','controllers.read']);
 });
-test('failed Task preparation discards the previous installed identity and preserves other failures', async () => {
+test('failed Controller preparation discards the previous identity and preserves other failures', async () => {
   const failure=Object.assign(new Error('Permission denied'),{code:'E_PERMISSION'});
   let fail=false,starts=0;
   const sdk=context.ScrapyAppSdk.createSdk(async(op)=>{
-    if(op==='tasks.read'){if(fail)throw failure;return {task:{taskId:'scrapyjs.capture'}};}
-    if(op==='tasks.start')starts++;
+    if(op==='controllers.read'){if(fail)throw failure;return {controller:{sourceHash:'a'.repeat(64)}};}
+    if(op==='controllers.start')starts++;
   });
   await sdk.prepare();fail=true;
   await assert.rejects(sdk.prepare(),error=>error===failure);
   await assert.rejects(sdk.start(DEFAULT_CONFIG,page.url,'stale-task'),/尚未确认安装身份/);
   assert.equal(starts,0);
+});
+test('missing packaged Controller refuses DOM start without falling back to an installed Task',async()=>{
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return {};});
+  await assert.rejects(sdk.prepare(),/Controller/);
+  await assert.rejects(sdk.start(DEFAULT_CONFIG,page.url,'missing-controller'),/尚未确认安装身份/);
+  assert.deepEqual(calls,[['controllers.read',{}]]);
 });
 test('CSV escapes formula prefixes in fields and values while JSON retains original data',async()=>{
   const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push(plain(payload));return {started:true};});
@@ -305,13 +331,13 @@ test('default list config uses native SDK XPath self context for direct-text li 
   assert.deepEqual(plain(result.records),titles.map(title=>({title})));
 });
 
-test('pagination/detail grammar reaches exact Task params without executable strings or unbounded options',async()=>{
+test('pagination/detail grammar reaches exact Controller params without executable strings or unbounded options',async()=>{
   const {pagination,listDetail}=await import('../examples/configs.js');
   for(const config of [pagination,listDetail])assert.deepEqual(plain(validateConfig(config)),config);
   for(const detail of [{...listDetail.detail,code:'eval()'},{...listDetail.detail,urlField:'absent'},
     {...listDetail.detail,numberFields:['missing']}])assert.throws(()=>validateConfig({...listDetail,detail}));
   assert.throws(()=>validateConfig({...pagination,maxPages:11}));
-  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return payload.taskId?{task:{taskId:payload.taskId}}:{clientRequestId:payload.clientRequestId,state:'running'};});
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return op==='controllers.read'?{controller:{sourceHash:'a'.repeat(64)}}:{clientRequestId:payload.clientRequestId,state:'running'};});
   await sdk.prepare();await sdk.start(listDetail,listDetail.url,'id');
   const params=calls.at(-1)[1].params;
   assert.deepEqual(JSON.parse(params.configJson),listDetail.itemConfig);
@@ -328,9 +354,50 @@ test('download feedback retires previous success before a pending or failed requ
   assert.deepEqual(plain(app.state.result.data),[{title:'完整'}]);
 });
 
+test('saving an eleventh independent AI header copy preserves all ten saved configurations',async()=>{
+  const original={schemaVersion:1,selectedId:'saved-0',records:Array.from({length:10},(_,i)=>({
+    id:'saved-'+i,name:'已有配置'+i,config:{...plain(DEFAULT_CONFIG),timeoutMs:1000+i}
+  }))};
+  let record={value:plain(original),etag:'ten-saved'};const writes=[];
+  const sdk={load:async()=>plain(record),save:async(value,etag)=>{
+    assert.equal(etag,record.etag);writes.push(etag);record={value:plain(value),etag:'eleven-saved'};
+  }};
+  const {app}=setup(sdk);await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);
+  const draft={...plain(app.state.config),output:{fieldNames:{title:'标题'},fieldOrder:['title']}};
+  app.edit(draft);
+  assert.equal(await app.copyProfile('AI表头副本-20261102-核心'),true);
+  assert.deepEqual(writes,['ten-saved']);assert.equal(record.value.records.length,11);
+  assert.deepEqual(record.value.records.slice(0,10),original.records);
+  const saved=record.value.records[10];
+  assert.equal(saved.name,'AI表头副本-20261102-核心');assert.deepEqual(saved.config,draft);
+  assert.ok(!original.records.some(row=>row.id===saved.id));
+  assert.equal(app.state.selectedId,saved.id);assert.equal(app.state.dirty,false);
+  const reopened=setup(sdk).app;await reopened.load();
+  assert.equal(reopened.state.selectedId,saved.id);assert.deepEqual(plain(reopened.state.config),draft);
+  assert.deepEqual(plain(reopened.state.records),record.value.records);
+});
+
+test('an eleventh copy exceeding the total 8192 UTF-8 bytes is refused without changing saved records or draft',async()=>{
+  const original={schemaVersion:1,selectedId:'saved-0',records:Array.from({length:10},(_,i)=>({
+    id:'saved-'+i,name:'已有配置'+i,config:{...plain(DEFAULT_CONFIG),itemConfig:{title:'中'.repeat(120)}}
+  }))};
+  assert.ok(Buffer.byteLength(JSON.stringify(original))<=8192);
+  let writes=0;
+  const {app}=setup({load:async()=>({value:plain(original),etag:'ten-saved'}),save:async()=>{writes++;}});
+  await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);
+  const draft={...plain(DEFAULT_CONFIG),itemConfig:{title:'中'.repeat(1100)}};
+  app.edit(draft);
+  assert.ok(Buffer.byteLength(JSON.stringify({...original,records:[...original.records,{id:'copy',name:'超限副本',config:draft}]}))>8192);
+  assert.equal(await app.copyProfile('超限副本'),false);
+  assert.match(app.state.error,/8192/);assert.equal(writes,0);
+  assert.deepEqual(plain(app.state.records),original.records);
+  assert.equal(app.state.selectedId,'saved-0');assert.equal(app.state.dirty,true);
+  assert.deepEqual(plain(app.state.config),draft);assert.equal(app.state.storageReady,true);
+});
+
 test('editing a saved copy clears the previous success receipt while retaining its saved identity',async()=>{
   let record={value:null,etag:'initial'};
-  const {app}=setup({load:async()=>plain(record),save:async value=>{record={value:plain(value),etag:'copied'};}});await app.load();
+  const {app}=setup({load:async()=>plain(record),save:async value=>{record={value:plain(value),etag:'copied'};}});await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);
   assert.equal(await app.copyProfile('独立副本'),true);
   const id=app.state.selectedId,saved=plain(app.state.records);
   assert.match(app.state.notice,/保存为独立副本/);

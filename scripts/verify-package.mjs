@@ -71,6 +71,7 @@ export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
 ]);
 export const FIXED_ASSETS = Object.freeze({
+  'licenses/video-downloader-mux-Apache-2.0.txt': {bytes: 11342, sha256: '1a3c5bb355ae9ea7f0e8e92836b72189c7acf85a487dd8706d5f1dfff9bf7d3d'},
   'licenses/shared-ui-third-party-notices.txt': {bytes: 12986, sha256: 'e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8'},
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
   'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'},

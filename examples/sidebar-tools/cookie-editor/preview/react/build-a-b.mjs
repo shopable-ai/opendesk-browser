@@ -8,13 +8,21 @@ import {fileURLToPath} from 'node:url';
 
 const here=dirname(fileURLToPath(import.meta.url));
 export const accepted=JSON.parse(await readFile(join(here,'visual-contract.json'),'utf8')).approvedHtml.gitBlobSha;
-export async function approvedHtml(){
- const original=await readFile(resolve(here,'../cookie-editor.html'));
+if(!/^[a-f0-9]{40}$/.test(accepted))throw Error('E_R35_INVALID_APPROVED_BLOB');
+function verifyApprovedHtml(original){
  const sha=createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex');
  if(sha!==accepted)throw Error('E_R35_APPROVED_HTML_CHANGED: '+sha);
+}
+export async function approvedHtml(){
+ // visual-contract.json is LOCKED to the approval recorded in 476028620.
+ // Later edits to the working prototype do not approve a new A/B baseline.
+ // Missing Git objects fail closed; never fall back to working-tree HTML.
+ const original=execFileSync('git',['cat-file','blob',accepted],{cwd:here});
+ verifyApprovedHtml(original);
  return original;
 }
 export function comparisonHtml(original,react,{dev=false,digest=''}={}){
+verifyApprovedHtml(original);
 const attr=text=>String(text).replaceAll('&','&amp;').replaceAll('"','&quot;')
  .replaceAll('<','&lt;').replaceAll('>','&gt;');
 const file='<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8">'+

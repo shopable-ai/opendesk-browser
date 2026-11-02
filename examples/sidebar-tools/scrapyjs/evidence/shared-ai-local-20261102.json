@@ -1,0 +1,451 @@
+{
+  "date": "2026-11-02",
+  "toolId": "scrapyjs",
+  "version": "1.8.7",
+  "packageSha256": "31681157e0f90c9912d193caa2580781eb0fa27d2f36feb215e152f03a8627b4",
+  "packageBytes": 781476,
+  "buildReceipt": {
+    "format": "opendesk.ui-build-ready.v1",
+    "buildId": "ff8adf2d9dabe0576ce0be7a5fcf8cc4dc3e14012cfae8c2847393b1e52046ba",
+    "sources": {
+      "adapters/app-sdk.js": {
+        "bytes": 5900,
+        "sha256": "c858b1d80a7e872d19bd555886ff6e0f6e0807c3fc4ad0459ddd6d42eea7587f"
+      },
+      "package.json": {
+        "bytes": 1975,
+        "sha256": "8fbb42b169d42fa426531b98f380e18da24ba00d53ab39fab4e4777620e0f943"
+      },
+      "src/AiPanel.jsx": {
+        "bytes": 25679,
+        "sha256": "b0e8955d296176f1d4ebcc2e44d00d1ad4eada030cc0e05fa2884a00be51d244"
+      },
+      "src/App.jsx": {
+        "bytes": 51920,
+        "sha256": "51a2ef2779afe20a58439c0d5c558d9bf25cef20b76f13ce15dda23c90b67e1a"
+      },
+      "src/CaptureWorkspace.jsx": {
+        "bytes": 22846,
+        "sha256": "e22a94e487a857358b42af57595ae4410c72e5e1cffa7199ee5de354c2bd42ef"
+      },
+      "src/ColumnSettings.jsx": {
+        "bytes": 2498,
+        "sha256": "7812c8557ff0c218f1802a4d52ae1125f71387fc01a43c63b4bbe62cb2a9c4e3"
+      },
+      "src/FieldOrder.jsx": {
+        "bytes": 6133,
+        "sha256": "99ac0e7ce4f507af7ecbd6dd2e95d0e43a8ecd7b14d75ce61f45aa681a7aa824"
+      },
+      "src/PageAssistant.jsx": {
+        "bytes": 8313,
+        "sha256": "5c4baff31d58c5692331fae6f33a2c5803b33978ba1992f4df31f45a2ad4911e"
+      },
+      "src/Results.jsx": {
+        "bytes": 14316,
+        "sha256": "535397915303f46d9c29c613a9ea83aabcdd04a4b2685d81a2e1b6c7430a2571"
+      },
+      "src/RuleEditor.jsx": {
+        "bytes": 8504,
+        "sha256": "f02f75cf194bc9efba406be3e1aa035b6598f83f4ca0aa3e039eb229641769ac"
+      },
+      "src/ai-actions.js": {
+        "bytes": 8152,
+        "sha256": "dca6c4408b0a9183e7febd64332585fcf589af1c07ef8e9635abed7b7206918d"
+      },
+      "src/ai-capture.js": {
+        "bytes": 5323,
+        "sha256": "0b914a8ec4eaa8cd643485b7e9a30ff08b87e9fdea8d1cc7cf4f64798b439d92"
+      },
+      "src/ai-config.js": {
+        "bytes": 8492,
+        "sha256": "98d10a30516cfcbddc0a7aef1d93b58a9230eb4a7495e8d1b88e97def23305eb"
+      },
+      "src/ai-pending.js": {
+        "bytes": 1343,
+        "sha256": "a696f8b15c60b02fbb81a6ff59b40c80fca8c0d56b0640dd79102ef5f85c7e2e"
+      },
+      "src/ai-request.js": {
+        "bytes": 4098,
+        "sha256": "ad56a92e85b7334ed379726a116779a039a805f3d1c53551af5c34189a5ba008"
+      },
+      "src/app-model.js": {
+        "bytes": 31114,
+        "sha256": "a9f6e0299c4cd0c68bab27d95bb2c04f985b688054af068e6af117c941e64a0f"
+      },
+      "src/capture-trials.js": {
+        "bytes": 3717,
+        "sha256": "063f07cda7f5eaafc5463735ecb1bfc26c9053d92d7debd97e964204a1948171"
+      },
+      "src/editor.js": {
+        "bytes": 6037,
+        "sha256": "85b354513695abfe5d74d5d087d8ef09482dcf1fa8509979fe59c77498c9b9c5"
+      },
+      "src/index.html": {
+        "bytes": 26,
+        "sha256": "8eaf427812eabbe6e47fbbb159c1d9e7a2dd68d544332fca1a2cea7a8e19d5cc"
+      },
+      "src/local-runner-client.js": {
+        "bytes": 11016,
+        "sha256": "196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779"
+      },
+      "src/local-runner.css": {
+        "bytes": 3785,
+        "sha256": "8533227e43f2650b74985784f63953a764d633dfe1e5492d57cc41553c516078"
+      },
+      "src/main.jsx": {
+        "bytes": 565,
+        "sha256": "4780780ea0b932cc6d60de4ef4ae2c6f7b561330f5fa01bc1417e974e4ec5b9b"
+      },
+      "src/page-inspection.js": {
+        "bytes": 4626,
+        "sha256": "8ada32567a17270120ceffda9967f663711705cbf02bb54c66d9fb0e648012af"
+      },
+      "src/results-model.js": {
+        "bytes": 2822,
+        "sha256": "7de50a46caeb24f72a34b64e732d140fdfe7b28201ba8d292b323032c103671c"
+      },
+      "src/results.css": {
+        "bytes": 5286,
+        "sha256": "2325934293750562b15048c3df73193da9871a1f554051ca99f181ded81581c1"
+      },
+      "src/style.css": {
+        "bytes": 32786,
+        "sha256": "d8fff28b04ed7fb971597ecfd5351c2714402fef9beafc19080e9f511169b385"
+      },
+      "tool.config.json": {
+        "bytes": 1028,
+        "sha256": "03a2a991a0227a45657b3d267090ec3a8d6a35653359043c030642ed70581533"
+      },
+      "vite.config.mjs": {
+        "bytes": 4672,
+        "sha256": "dd551df27885cdceb2bc78c631ae2b91a2331dc40fa1a32f4121ca38a7410396"
+      }
+    },
+    "files": {
+      "dist/tool.css": {
+        "bytes": 57059,
+        "sha256": "83dec832a27afc5b896ea1b4e5c9ae051abaf6c90f7e24aafe474cc777dd6f16"
+      },
+      "dist/tool.js": {
+        "bytes": 666672,
+        "sha256": "232effa988ffcb10713a1c8874e33c02345f496fa8d6253910240a123e29e8b0"
+      }
+    },
+    "designSources": {
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 5526,
+        "sha256": "852b72482237595c88aae05e1e624728332ecc380d2d4fbc6fe6273f328ffe91"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 17758,
+        "sha256": "3db2a5db8cc7b59bd4e51207f7d4a2ce29dfa7f0dd3061d0af2ac3aecd1da11b"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      }
+    }
+  },
+  "native": {
+    "evidenceMethod": "Observed native Chrome accessibility UI through cua_repl; downloaded files independently checked with Python csv/json, all cells compared. This file records observations, not a captured browser transcript.",
+    "browser": "Chrome for Testing 149.0.7827.55",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionVersion": "0.1.0",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "STATIC_DEVELOPMENT_PACKAGE; no WXT serve connection; Browser framework was not rebuilt or reloaded",
+    "installerObservedPackageSha256": "31681157e0f90c9912d193caa2580781eb0fa27d2f36feb215e152f03a8627b4",
+    "installedToolVersion": "1.8.7",
+    "nativeDoctor": "connected=true; authenticated response extensionId matches loaded Chrome extension; nativeConnected=true",
+    "aiRequest": {
+      "requestId": "b0aed09d-c2ec-4687-97fd-f765112465aa",
+      "provider": "local_codex",
+      "endpoint": null,
+      "model": null,
+      "input": "增加价格字段，保留名称与链接",
+      "trustedReviewConfirmed": true,
+      "outcome": "E_CODEX_UNSUPPORTED",
+      "proposalReturned": false,
+      "configChangedByAI": false,
+      "testedVersion": "1.8.6",
+      "latestUserInstruction": "Keep existing local_codex; only record the blocker. Do not switch Provider."
+    },
+    "capture": {
+      "toolVersion": "1.8.7",
+      "packageSha256": "31681157e0f90c9912d193caa2580781eb0fa27d2f36feb215e152f03a8627b4",
+      "runId": "2e237163-3f37-4e71-b191-d61b652801cf",
+      "resultId": "1750777a-55c1-49d0-9807-89192874e093",
+      "state": "completed",
+      "retirementState": "released",
+      "rows": 20,
+      "keys": [
+        "author",
+        "column_title",
+        "currency",
+        "price",
+        "publication",
+        "publication_date",
+        "publication_raw",
+        "publisher",
+        "rating",
+        "title",
+        "translator",
+        "url"
+      ],
+      "files": [
+        {
+          "file": "result.json",
+          "download": "scrapyjs-result (16).json",
+          "sha256": "bc69bf5ffd6ec7936535d67831379ad7d1fa365d1150dbf0134c00ed3451e218",
+          "bytes": 106646
+        },
+        {
+          "file": "raw.csv",
+          "download": "scrapyjs-result (13).csv",
+          "sha256": "201ff2bdd8986c27a190c85f9cfff5e4f907d64f33dadb2a1e7a1446688bfb8f",
+          "bytes": 8379
+        },
+        {
+          "file": "custom.csv",
+          "download": "scrapyjs-result (14).csv",
+          "sha256": "778f5d5cc236be423623746c487d935432d11ff48cf96d1f791da792d6d6f5de",
+          "bytes": 8381
+        }
+      ],
+      "allCellsMatchRawJSON": true
+    },
+    "savedCopyName": "共享Chat验收-20261102",
+    "savedCopyNote": "Original saved configuration retained; one independent acceptance copy added through the original Save Copy flow.",
+    "scenarioResults": {
+      "S1": {
+        "status": "PARTIAL",
+        "testedVersion": "1.8.7",
+        "nativePassed": [
+          "Upper-right AI opens actual shared Chat",
+          "Escape from composer closes and restores AI button focus",
+          "Reopen preserves cancelled request and newline input",
+          "Switch to file preview and back retains Chat/input/error; unavailable page fences send/capture"
+        ],
+        "currentFollowup": "Installed original-window checks retained; new window renders shared Chat but currentPage.info fails and send remains disabled. User has not identified the originally reported old UI."
+      },
+      "S2": {
+        "status": "BLOCKED",
+        "reason": "Real Provider dispatch on installed 1.8.6 failed with E_CODEX_UNSUPPORTED; config unchanged. 1.8.7 Enter/review/cancel was exercised without dispatch, following the user instruction to retain the Provider and only record the blocker. No real proposal or AI apply/save evidence."
+      },
+      "S3": {
+        "status": "PASS",
+        "reason": "Native custom CSV: title→标题, price→价格, price reordered to first; 20x12 cells matched raw JSON; raw JSON/CSV field keys unchanged.",
+        "testedVersion": "1.8.7"
+      },
+      "S4": {
+        "status": "NOT_TESTED",
+        "reason": "Native model unavailable. Missing-DOM and evidence protocol covered only by targeted Node tests, not native model behavior."
+      },
+      "S5": {
+        "status": "PARTIAL",
+        "nativePassed": [
+          "Original Save Copy created a real independent saved configuration",
+          "Original controlled capture returned 20 real rows and 12 result fields",
+          "Host and engine completed, retirement released",
+          "Original JSON/raw CSV/custom CSV downloads independently checked"
+        ],
+        "notTested": [
+          "AI proposal apply → original save chain with a real provider",
+          "Separate 本机试采 entry was not run"
+        ],
+        "testedVersion": "1.8.7 (Save Copy created on 1.8.6, saved data retained and reopened on 1.8.7)"
+      },
+      "S6": {
+        "status": "PARTIAL",
+        "nativePassed": [
+          "Provider unavailable is visible and config unchanged",
+          "Close/reopen preserves error and input",
+          "Page change to a non-readable new tab disables capture",
+          "Installed 1.8.7 trusted review cancelled before dispatch; E_CANCELLED, no persistent pending fence; original config retained"
+        ],
+        "nodeOnly": [
+          "cancel",
+          "timeout",
+          "unknown fence",
+          "provider generation changes",
+          "late or malformed replies",
+          "illegal actions",
+          "closed/reopened pending requests"
+        ],
+        "notTested": [
+          "Those recovery cases in real Chrome",
+          "Close during actual active inference"
+        ]
+      },
+      "S7": {
+        "status": "PARTIAL",
+        "testedVersion": "1.8.7",
+        "nativePassed": [
+          "Final installed package and newly compiled preview both actually opened the shared Chat in Chrome",
+          "Preview visibly labels simulated transport; no old HTML placeholder"
+        ],
+        "scope": "UI identity only; offline preview never proves real Provider success",
+        "currentFollowup": "The documented fixed preview was still 1.8.2 and showed the old placeholder in two daily Chrome windows. All three generated files are now byte-identical to preview-final 1.8.7, and both windows were individually refreshed and observed with shared Chat. This does not establish user confirmation of the original complaint or successful inference."
+      }
+    },
+    "inputChecks": {
+      "Enter": "PASS_NATIVE_1.8.7: opens original trusted AI review",
+      "ShiftEnter": "PASS_NATIVE_1.8.7: newline without dispatch",
+      "Escape": "PASS_NATIVE_1.8.7: from composer closes Chat and restores AI button focus",
+      "ChineseIME": "NODE_ONLY; NOT_TESTED_NATIVE",
+      "narrowSidebar": "NOT_TESTED",
+      "scrollAndOcclusion": "NOT_TESTED_VISUALLY; screenshot API failed native_hook_stdin_oversized",
+      "closeDuringInference": "NOT_TESTED_NATIVE"
+    },
+    "automationLimitation": "Temporary native CUA timeouts recovered without browser/service restart. Final preview rendered and final package installed/tested afterward. Screenshot API failed native_hook_stdin_oversized; visual occlusion/narrow sidebar and native IME remain NOT_TESTED.",
+    "historicalInstall": {
+      "version": "1.8.6",
+      "packageSha256": "34781a4b22800d2ba63f0731fa89314a27701ca6434beb8446f41fbf399876c5",
+      "originalObservation": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/shared-ai-20261102/native-observation-1.8.6.json"
+    },
+    "finalReviewCancel": {
+      "testedVersion": "1.8.7",
+      "requestId": "3673e2d1-17f8-4cee-9a04-0ee8cd7e2bf1",
+      "provider": "local_codex",
+      "trustedReviewOpened": true,
+      "dispatchConfirmed": false,
+      "reviewCancelled": true,
+      "uiResult": "E_CANCELLED; input and original config retained; no pending fence; Send available again"
+    },
+    "browserDiskFingerprint": {
+      "developmentUpdateSha256": "d6d6c45a80b1a9a6bbfb2cd7b49582feeaa0a2621a33934e5c5475e502acae58",
+      "revision": "3446cf901cfe9eb46fc751f53e40c93e98d374610415646cf28e522eb8b9e2c8",
+      "sidebarSharedUiSha256": "5f390dbfa7091ecc2cb47df17fbe047c143b71612ce0cfa46bb4e0796a1faeaa",
+      "scope": "Read-only on-disk identity at known loaded path; not an in-memory runtime byte attestation"
+    }
+  },
+  "tests": {
+    "aiActions": "7/7 PASS",
+    "aiConfigRequestPendingPanelApp": "43/43 PASS",
+    "sharedAndBusinessGroup": "19 assertions passed; two shared files initially failed dependency resolution before assertions. Resolver-only repair then shared files 5/5 PASS.",
+    "packageAndSafety": "Final 1.8.7 candidate 9/9 PASS; then canonical promote and PROJECT_PACKAGE_MATCH",
+    "previewRuntime": "5/5 PASS after final source changes; final offline preview compilation and native Chat opening PASS",
+    "build": "Vite tool build and independent source-component preview build PASS",
+    "scope": "Targeted checks only; no root full suite, Browser rebuild or production certification.",
+    "finalTargeted": "72/72 PASS across AI actions/config/request/pending/panel/app/capture, original core flow and custom CSV"
+  },
+  "artifacts": {
+    "localEvidenceDir": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/shared-ai-20261102",
+    "downloadVerification": "native-final/verification.json",
+    "preview": "preview-final/preview.html",
+    "previewManifest": "preview-final/preview.manifest.json"
+  },
+  "limitations": [
+    "No real successful inference or native AI apply/save end-to-end evidence",
+    "No production Browser acceptance",
+    "No automatic replay, arbitrary JS execution, Provider change, runtime/Host/Authority edit or simulated native success",
+    "New CFT window renders shared Chat but current-page information cannot be read; send/capture disabled. No root cause established or Host change attempted.",
+    "The user has not confirmed which originally reported old UI they meant; two actually stale fixed-preview windows were repaired."
+  ],
+  "fixedRegressions": [
+    "Ordinary underscore capture fields no longer rejected as engine metadata",
+    "CSV proposals recognize configured detail fields and the seven fixed splitPublication result fields; unknown fields still rejected",
+    "Stop during validated terminal pending cleanup awaits the same CAS receipt and suppresses candidate delivery; failed cleanup retains unknown and never clears another request"
+  ],
+  "promotion": {
+    "builder": "scripts/build-sidebar-tool.mjs",
+    "candidate": "artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+    "validationBeforePromotion": "9/9 tests plus independent SHA verification of sources/files/designSources",
+    "promotionStatus": "PROJECT_PACKAGE_PROMOTED",
+    "projectCheck": "PROJECT_PACKAGE_MATCH",
+    "identityPermissionsTaskPinsUnchangedFromInstalled1_8_6": true
+  },
+  "platformFollowup": {
+    "issue": "Generic packager currently checks sources/files but not designSources",
+    "currentMitigation": "Independently recomputed all four design source SHA/lengths before promotion and at final evidence save; no current drift",
+    "scope": "No generic packager/Host/Provider/runtime source edited; future shared packaging hardening recorded, not treated as a current artifact failure"
+  },
+  "visibleUIFollowup": {
+    "date": "2026-11-02",
+    "method": "Native cua_repl AX observations; read-only DevTools observations; filesystem SHA/source comparisons. Observational record, not raw browser transcript.",
+    "userLatestAuthorization": "可以创建新的浏览器窗口进行测试、继续。",
+    "originalComplaintInstanceConfirmedByUser": false,
+    "dailyChrome": {
+      "app": "/Users/shopme/Applications/Google Chrome.app",
+      "profilesObserved": [
+        "您的 Chrome",
+        "Video SVIP R031 Accept"
+      ],
+      "scrapyjsInstalledInObservedLists": false,
+      "oldPreviewWindowCount": 2,
+      "url": "file:///Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/preview/preview.html",
+      "oldVersion": "1.8.2",
+      "oldAI": "PRESENTATION_PLACEHOLDER_ONLY",
+      "oldHtmlSha256": "8d2b2c3e4681944b58ff8e5f69d9ab62ffa6d122ffba225525c04376dd17130e",
+      "oldObservedText": "这里是 AI 对话的预览占位。",
+      "after": "Both previously open windows individually reloaded and observed with AI 采集助手, shared Dock separator, composer and send control. One window also checked Escape focus return and reopen preserving unsent text.",
+      "noInstallationOrDataChange": true
+    },
+    "fixedPreview": {
+      "version": "1.8.7",
+      "sourceCandidate": "artifacts/scrapyjs/shared-ai-20261102/preview-final",
+      "files": [
+        "preview.html",
+        "preview.manifest.json",
+        "preview.context.json"
+      ],
+      "allThreeByteIdentical": true,
+      "sourceInputsVerified": 1386,
+      "htmlBytes": 4725827,
+      "htmlSha256": "9b32bb9a77858d74d4c6f6806a5427dcd46161b52bffbfbd75926a3ac4a3a8aa",
+      "ai": "SHARED_CHAT_SIMULATED_TRANSPORT",
+      "network": false,
+      "memoryOnly": true,
+      "oldBackup": "artifacts/scrapyjs/shared-ai-20261102/old-fixed-preview-1.8.2"
+    },
+    "installedRuntime": {
+      "app": "/Applications/Google Chrome.app",
+      "version": "149.0.7827.55",
+      "profile": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "observedToolVersion": "1.8.7",
+      "reactVersion": "19.2.0",
+      "entry": "sidebar-shared-ui.js",
+      "functionSha256": {
+        "SharedConversationFrame": "88775171bf90e3e44b9e22249cce09a0003a9ef8f219736aaf2274608cd88291",
+        "SharedConversationDock": "7aef1b1edca05be2b9e0ccc414ef45aab8ceef314021bd4139db47f3e795a077",
+        "createConversationSession": "81b385cad50181d7c289138073a3f24371563a70f08f62ad1744943f3ef400af"
+      },
+      "functionSourceMatchesLoadedDisk": true,
+      "sourceMapMatchesCurrentSources": [
+        "src/ui/react/components/conversation.tsx",
+        "src/ui/conversation/session.js",
+        "src/ui/react/components/conversation-frame.css",
+        "src/ui/react/components/conversation-layout.css"
+      ],
+      "wholeRuntimeBytesAttested": false,
+      "cspObservation": "Blob fetch blocked by existing connect-src none; no security bypass performed."
+    },
+    "newWindow": {
+      "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+      "sharedChatVisible": true,
+      "pageRead": "BLOCKED",
+      "observedMessage": "当前网页信息不可用；网页信息读取失败，请检查上方原因后刷新当前网页。",
+      "sendDisabled": true,
+      "captureDisabled": true,
+      "attempts": [
+        "Refresh current page information",
+        "Raise native window and refresh",
+        "Return to extension list and reopen ScrapyJS"
+      ],
+      "result": "Same page-read blocker persists; source root cause not established. No new model dispatch, capture or config write.",
+      "originalWindowAndDataPreserved": true
+    },
+    "finalScore": "NOT_SCORED",
+    "currentScope": {
+      "physicalWidthZoomMatrix": "OUT_OF_SCOPE",
+      "nativeIME": "NOT_TESTED",
+      "visualOcclusion": "NOT_TESTED; screenshot API native_hook_stdin_oversized",
+      "production": "NOT_TESTED"
+    }
+  }
+}

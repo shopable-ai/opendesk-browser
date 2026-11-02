@@ -82,7 +82,9 @@ export function SidebarAppShell({
             trustedControls={<WebflowAutoControls webflowAuto={webflowAuto}
               display={toolSnapshot.fields['sidebar-tool-display']}
               visible={activeTab==='tools'&&!isPanelPreview&&!localeOpen&&!providerSettingsOpen}/>}
-            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}/>}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}
+            active={activeTab==='tools'||activeTab==='app-debug'}
+            providerSettings={providerSettings} onOpenProviderSettings={onOpenProviderSettings}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

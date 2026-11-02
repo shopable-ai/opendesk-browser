@@ -370,7 +370,7 @@ for(const field of ['draft','rich','composing']) {
 }
 
 for(const blocked of ['old answer','wrong turn','verifier missing','not idle','submission unavailable']) {
-  test(`force-stop cannot pass ${blocked} and times out unknown`,()=>{
+  test(`force-stop cannot pass ${blocked} and pauses the unsent item on timeout`,()=>{
     const f=fixture();confirmFirst(f);
     f.step(2300,{ack:false,busy:true,complete:false});
     assert.equal(f.engine.requestNow('q2').ok,true);
@@ -383,7 +383,9 @@ for(const blocked of ['old answer','wrong turn','verifier missing','not idle','s
     assert.equal(f.state.prepareCount,1);
     assert.ok(f.engine.view().answerGate);
     f.step(14301,{},options);
-    assert.equal(f.engine.view().phase,'unknown');
+    assert.equal(f.engine.view().phase,'waiting');
+    assert.equal(f.engine.view().inFlight,null);
+    assert.equal(f.engine.view().items[0].state,'paused');
     assert.equal(f.engine.requestNow('q2').ok,false);
     assert.equal(f.engine.confirmForceStop('q2'),false);
     f.step(16000,{users:1,answers:2,idle:true});
@@ -462,7 +464,8 @@ for(const historyChange of ['detached prefix','connected prefix missing','tail r
       assert.deepEqual(f.state.committedTexts,['first']);
       assert.equal(f.engine.view().inFlight.phase,'await-stop');
       f.step(13501);
-      assert.equal(f.engine.view().phase,'unknown');
+      assert.equal(f.engine.view().phase,'waiting');
+      assert.equal(f.engine.view().items[0].state,'paused');
     }
   });
 }
@@ -662,8 +665,15 @@ for(const unavailable of ['original page','navigation','editor']) {
       f.step(12000,{}, {canSubmit});
       assert.equal(f.engine.view().inFlight.phase,'await-stop');
       f.step(12001,{}, {canSubmit});
-      assertUnknownLocked(f,[0,0,1]);
-      assert.equal(f.state.clicks,1,'checked deletion releases only the remaining item');
+      assert.equal(f.engine.view().phase,'waiting');
+      assert.equal(f.engine.view().inFlight,null);
+      assert.equal(f.engine.view().items[0].state,'paused');
+      assert.match(f.engine.view().reason,/暂停/);
+      assert.deepEqual([f.state.prepareCount,f.state.commitCount,f.state.stops],[0,0,1]);
+      assert.equal(f.engine.pause('q2'),true,'other rows remain controllable');
+      assert.equal(f.engine.reclaim('q1'),true,'the never-written message can be taken back for editing');
+      assert.deepEqual(f.engine.view().items.map(item=>[item.text,item.state]),[['B','paused']]);
+      assert.equal(f.state.clicks,0,'timeout and recovery never submit a message');
     });
   }
 }
@@ -739,17 +749,19 @@ test('real adapter manual send after prepare never permits a second prepare or c
   send.click(); // The user's native send, not an engine action.
   assert.equal(users[0].innerText,text);
   step(2100);
-  assert.equal(engine.view().phase,'unknown');
-  assert.equal(engine.view().items[0].text,text);
+  assert.equal(engine.view().phase,'waiting');
+  assert.equal(engine.view().lastConfirmed,'q1');
+  assert.equal(engine.view().items[0].text,'B');
+  assert.ok(engine.view().answerGate);
   assert.equal(engine.requestNow('q1').ok,false);
   assert.equal(engine.confirmForceStop('q1'),false);
   step(20000);step(22000);
-  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
-  assert.equal(engine.remove('q1'),true);
+  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);
+  assert.equal(engine.remove('q1'),false,'already acknowledged, no deletion needed');
   assert.equal(engine.view().reason,'');
   editor.value=text; // The inspected unknown draft remains owned by the user.
   step(24000);step(26000);
-  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
+  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);
 });
 
 for(const failure of ['mayHaveWritten','throw']) {
@@ -854,7 +866,7 @@ test('uncertain cannot replace an active prepared flight',()=>{
   assert.deepEqual(state.committedTexts,['one']);
 });
 
-test('checked deletion after an uncertain reclaim retains the manually sent turn reply gate',()=>{
+test('late confirmation after an uncertain reclaim retains the manually sent turn reply gate',()=>{
   const {engine,state,site,step}=fixture();
   engine.enqueue('first',state.route);engine.enqueue('second',state.route);
   Object.assign(state,{busy:false,complete:true});
@@ -862,7 +874,8 @@ test('checked deletion after an uncertain reclaim retains the manually sent turn
   assert.equal(engine.uncertain('q1','取回状态未知',before),true);
   step(100,{ack:true,users:1}); // User sends the reclaimed draft outside the engine.
   assert.equal(state.clicks,0);
-  assert.equal(engine.remove('q1'),true);
+  assert.equal(engine.view().lastConfirmed,'q1');
+  assert.equal(engine.remove('q1'),false);
   assert.ok(engine.view().answerGate);
   step(200,{ack:false});step(1500);step(2800);
   assert.equal(state.prepareCount,0,'an old completed assistant cannot release second');
@@ -953,3 +966,66 @@ test('reordering resets idle eligibility and does not unpause a message',()=>{
   assert.deepEqual(state.committedTexts,['C']);
   assert.equal(engine.view().items.find(x=>x.id==='q2').state,'paused');
 });
+
+
+for (const stage of ['prepared timeout','ack timeout','throwing click']) {
+  test(`late exact acknowledgement recovers ${stage} without resending`,()=>{
+    const f=fixture();
+    f.engine.enqueue('first',f.state.route);f.engine.enqueue('second',f.state.route);
+    f.step(100,{busy:false,complete:true});f.step(1400);
+    if(stage!=='prepared timeout')f.step(2100,{failClick:stage==='throwing click'});
+    f.step(20000,{}, {canSubmit:false});
+    assert.equal(f.engine.view().phase,'unknown');
+    const clicks=f.state.clicks,prepares=f.state.prepareCount;
+    f.step(21000,{ack:true,users:1,busy:true,complete:false},{canSubmit:false});
+    assert.equal(f.engine.view().lastConfirmed,'q1');
+    assert.deepEqual(f.engine.view().items.map(x=>x.id),['q2']);
+    assert.ok(f.engine.view().answerGate,'late admission still waits for its own reply');
+    assert.equal(f.engine.view().reason,'');
+    f.step(23000,{ack:false,busy:false,complete:true},{canSubmit:false});
+    assert.ok(f.engine.view().answerGate,'an old completed reply cannot release it');
+    assert.equal(f.state.clicks,clicks);assert.equal(f.state.prepareCount,prepares);
+    f.step(24000,{answers:2},{canSubmit:false});f.step(25200,{}, {canSubmit:false});
+    f.step(26000);f.step(27200);f.step(28000);
+    assert.equal(f.state.clicks,clicks+1);
+    assert.equal(f.state.committedTexts.at(-1),'second');
+  });
+}
+
+test('manual admission is checked before a late preparation deadline or another commit',()=>{
+  const f=fixture();f.engine.enqueue('first',f.state.route);
+  f.step(100,{busy:false,complete:true});f.step(1400);
+  f.step(9000,{ack:true,users:1,busy:true,complete:false},{canSubmit:false});
+  assert.equal(f.engine.view().lastConfirmed,'q1');
+  assert.equal(f.engine.view().phase,'waiting');
+  assert.equal(f.state.commitCount,0);assert.equal(f.state.prepareCount,1);
+});
+
+test('late acknowledgement on a different route never unlocks the queue',()=>{
+  const f=fixture(),route=f.state.route;f.engine.enqueue('first',route);
+  f.step(100,{busy:false,complete:true});f.step(1400);f.step(2100);f.step(20000);
+  f.step(22000,{route:'c/elsewhere',ack:true,users:1});
+  assert.equal(f.engine.view().phase,'unknown');assert.equal(f.state.clicks,1);
+  f.step(23000,{route,ack:false});
+  assert.equal(f.engine.view().phase,'unknown');assert.equal(f.state.clicks,1);
+});
+
+for(const stage of ['never committed','button not ready','before click rejection','clicked','throwing commit']){
+  test(`taking back an unknown prepared draft requires proof of no send (${stage})`,()=>{
+    const f=fixture();f.engine.enqueue('first',f.state.route);f.engine.enqueue('second',f.state.route);
+    f.step(100,{busy:false,complete:true});f.step(1400);
+    if(stage==='button not ready')f.site.commit=()=>({ok:false,retry:true});
+    if(stage==='before click rejection')f.site.commit=()=>({ok:false,stage:'before-click'});
+    if(stage==='throwing commit')f.site.commit=()=>{throw Error('possibly clicked');};
+    if(stage!=='never committed')f.step(2100);
+    f.step(20000,{}, {canSubmit:false});
+    const allowed=!['clicked','throwing commit'].includes(stage);
+    let proof=false;f.site.canReclaimPrepared=()=>proof;
+    assert.equal(f.engine.reclaimPrepared('q1'),false,'missing draft/history proof retains unknown');
+    proof=true;
+    assert.equal(f.engine.reclaimPrepared('q1'),allowed);
+    assert.equal(f.engine.view().phase,allowed?'waiting':'unknown');
+    assert.deepEqual(f.engine.view().items.map(x=>x.id),allowed?['q2']:['q1','q2']);
+    assert.equal(f.state.prepareCount,1,'reclaim is read-only and never rewrites the draft');
+  });
+}

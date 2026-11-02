@@ -7,6 +7,7 @@ import ColumnSettings from './ColumnSettings.jsx';
 import AiPanel from './AiPanel.jsx';
 import CaptureWorkspace from './CaptureWorkspace.jsx';
 import {accessDenied} from './results-model.js';
+import {createBusinessApi} from './business-api.js';
 
 const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',exportError:'',field:null,fieldPending:false,fieldError:'',invalidField:'',crawl:null,crawlPending:false,crawlError:'',crawlNotice:'',target:null,targetValid:true,http:null,httpValid:true,jsonHint:'',fieldHelp:'',removeField:false});
 const stringify=value=>JSON.stringify(value,null,2);
@@ -60,9 +61,19 @@ function statusOf(state,matches,busy){
   return '采集结束 · 请查看运行详情';
 }
 
-export default function App({RuleAssistant,ListScopeAssistant}={}){
+// Offline presentation only; the installed entry keeps the full AiPanel.
+function AiPreviewPlaceholder({open,onClose}){
+  return <aside id="ai-preview-placeholder" className="ai-preview-placeholder" hidden={!open} aria-labelledby="ai-preview-heading" onKeyDown={event=>{
+    if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();onClose();}
+  }}><div className="toolbar"><h2 id="ai-preview-heading" className="od-page-title">AI 助手</h2><IconButton label="收起 AI 占位窗口" onClick={onClose}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></IconButton></div>
+    <p>这里是 AI 对话的预览占位。</p><p className="secondary">实际使用：在 OpenDesk「扩展」中打开「scrapyjs 采集」，点击右上角 AI，使用完整配置助手。</p>
+  </aside>;
+}
+
+export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeAssistant}={}){
   const tool=globalThis.OpenDeskTool;
   const hostNavigation=typeof tool.setNavigation==='function';
+  const hostConversation=typeof tool.setConversationState==='function';
   const [snapshot,setSnapshot]=React.useState(null);
   const [ui,setUI]=React.useState(()=>freshUI(0));
   const [app]=React.useState(()=>globalThis.ScrapyAppModel.createApp(
@@ -71,6 +82,9 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
       setUI(previous=>previous.epoch===state.profileEpoch?previous:freshUI(state.profileEpoch));
     }));
   const state=snapshot||app.state;
+  const businessUiBlocked=React.useRef(false);
+  const [business]=React.useState(()=>createBusinessApi(app,{isBlocked:()=>businessUiBlocked.current}));
+  React.useEffect(()=>()=>business.dispose(),[business]);
   const [view,setView]=React.useState('results');
   const [contextOpen,setContextOpen]=React.useState(false);
   React.useEffect(()=>setContextOpen(false),[view]);
@@ -90,14 +104,20 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
   const [modeChange,setModeChange]=React.useState(null);
   const [aiOpen,setAiOpen]=React.useState(false);
   const [workspaceAiBusy,setWorkspaceAiBusy]=React.useState(false);
+  const [retiredAiRequest,setRetiredAiRequest]=React.useState(null);
   const [workspaceOpen,setWorkspaceOpen]=React.useState(false);
   const [localBusy,setLocalBusy]=React.useState(false);
   const [ruleAssistOpen,setRuleAssistOpen]=React.useState(false);
   const [localDirty,setLocalDirty]=React.useState(false);
   const [aiBusy,setAiBusy]=React.useState(false);
+  const [aiRunning,setAiRunning]=React.useState(false);
+  const onAiBusy=React.useCallback((value,{unknown=false}={})=>{
+    setAiBusy(value);
+    setAiRunning(value&&!unknown);
+    // Restored pending requests need a visible recovery path even on older hosts.
+    if(value)setAiOpen(true);
+  },[]);
   const [aiDirty,setAiDirty]=React.useState(false);
-  const [savedAiRequestId,setSavedAiRequestId]=React.useState(null);
-  const aiApplication=React.useRef(null);
   const onAiDirty=React.useCallback(value=>setAiDirty(value),[]);
   const [aiGenerating,setAiGenerating]=React.useState(false);
   const actionFocus=React.useRef('profile-list');
@@ -142,6 +162,8 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
   const managementLocked=locked||!state.storageReady||Boolean(state.conflict);
   const pending=ui.fieldPending||ui.crawlPending;
   const valid=ui.valid&&ui.targetValid&&ui.httpValid;
+  let complete=false;
+  try{globalThis.ScrapyAppModel.validateConfig(state.config);complete=true;}catch{}
   const httpLocal=state.config.executionMode==='http-local';
   const httpForm=ui.http||{userAgent:state.config.http?.userAgent??'',headers:stringify(state.config.http?.headers??{}),fields:stringify(state.config.itemConfig),maxPages:String(state.config.maxPages??1)};
   const current=state.records.find(row=>row.id===state.selectedId);
@@ -151,6 +173,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
   const currentInResults=visibleProfiles.some(row=>row.id===state.selectedId);
   const configuredFields=Object.entries(state.config.itemConfig).filter(([key])=>!key.startsWith('_'));
   const [outputError,setOutputError]=React.useState('');
+  businessUiBlocked.current=baseLocked||!valid||pending||ui.removeField||Boolean(outputError)||localBusy||aiGenerating||workspaceAiBusy||ruleAssistOpen;
   const fields=configuredFields;
   const form=ui.field||{key:'',originalKey:'',rule:'',selector:'',read:'text',attr:'',container:state.config.itemConfig._listContainer||'',item:state.config.itemConfig._listItem||''};
   const crawl=ui.crawl||crawlForm(state.config);
@@ -159,6 +182,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
   const help=state.phase==='unknown'?'开始结果未知，请刷新原实例状态；不要重复开始。':
     accessDenied(state)?'权限受限；当前草稿保留。恢复方法见上方读取提示。':
     !valid?'配置草稿有误，请修正规则、Headers JSON 或目标网址后再运行或保存。':
+    !complete?'填写目标网址并添加采集字段，或选择已保存的配置。':
     pending?ui.fieldPending?'请补全或修正字段与列表范围；按 Esc 可恢复当前输入。':'分页与详情有未应用编辑，请先应用或取消。':
     !state.target?(state.targetError?'网页信息读取失败，请检查上方原因后刷新当前网页。':'请先打开目标网页，再刷新当前网页。'):!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
     state.saving?'正在保存配置，请稍候。':naming||state.pendingAction?'请先完成或取消配置操作。':'';
@@ -254,16 +278,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
   function cancelAction(){if(state.saving||busy||aiBusy||state.phase==='unknown')return;app.cancelAction();focusLater(actionFocus.current);}
   function openName(type,source){setNaming({type,source,value:type==='rename'?current.name:type==='copy'?(current?.name||'配置')+' 副本':'',error:''});focusLater('profile-name');}
   function closeName(){const source=naming.source;setNaming(null);focusLater(source);}
-  async function saveConfiguration(method,name){
-    const receipt=aiApplication.current,config=JSON.stringify(app.state.config);
-    const ok=await app[method](name);
-    // Only a successful write of this applied proposal acknowledges its save.
-    // Selecting a profile, renaming it or saving another draft cannot do so.
-    if(ok&&method!=='renameProfile'&&receipt&&aiApplication.current===receipt&&receipt.config===config){
-      setSavedAiRequestId(receipt.requestId);aiApplication.current=null;
-    }
-    return ok;
-  }
+  async function saveConfiguration(method,name){return app[method](name);}
   async function submitName(){
     if(!naming||state.saving)return;
     const ok=await saveConfiguration({save:'save',copy:'copyProfile',rename:'renameProfile'}[naming.type],naming.value);
@@ -284,20 +299,24 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
     else if(modeChange){event.preventDefault();cancelMode();}
     else if(ui.removeField){event.preventDefault();update({removeField:false});focusLater('remove-field');}
   }}>
+    <div id="ai-recovery" className="od-alert" role="status" hidden={!aiBusy||aiOpen}>
+      <p id="ai-toggle-status">AI 请求尚未结束，当前工具不能退出。请展开 AI 配置，查询或停止原请求。</p>
+      <Button base="aria" id="reopen-ai-request" variant="outline" onClick={()=>setAiOpen(true)}>处理 AI 原请求</Button>
+    </div>
+    {!hostConversation&&!aiBusy&&<Button base="aria" id="open-ai-config" variant="quiet" aria-expanded={aiOpen} aria-controls="chat-ai-panel" onClick={()=>setAiOpen(value=>!value)}>AI 配置</Button>}
     <section className="config-section" aria-labelledby="config-heading" hidden={workspaceOpen}>
       <h2 className="sr-only" id="config-heading">采集配置</h2>
-      <p id="ai-toggle-status" className="od-note secondary" role="status" hidden={!aiBusy}>AI 请求待处理；收起对话不会停止请求。展开后可查询或停止。</p>
       <div className="profile-choice" hidden={managementOpen}><label className="sr-only" htmlFor="profile-list">已保存配置</label>
         <select className="od-field" id="profile-list" aria-label="已保存配置" value={state.selectedId||''} disabled={managementLocked||!state.records.length} onChange={event=>{
           selectConfiguration(event.target.value,'profile-list');
         }}><option value="" disabled>未保存配置</option>{state.records.map(row=><option key={row.id} value={row.id}>{row.name}</option>)}</select>
         <div className="profile-actions">
           <IconButton id="new-profile" label="新建配置" disabled={managementLocked} onClick={()=>requestAction('newProfile','new-profile')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></IconButton>
-          <IconButton id="save-config" label={state.saving?'保存中…':'保存配置'} disabled={managementLocked||!valid||pending} onClick={()=>state.selectedId?saveConfiguration('save'):openName('save','save-config')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h9"/></svg></IconButton>
+          <IconButton id="save-config" label={state.saving?'保存中…':'保存配置'} disabled={managementLocked||!valid||!complete||pending} onClick={()=>state.selectedId?saveConfiguration('save'):openName('save','save-config')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h9"/></svg></IconButton>
           <IconButton id="manage-profiles" label="配置库" aria-expanded={managementOpen} aria-controls="profile-management" disabled={Boolean(naming)||Boolean(state.pendingAction)||state.saving} onClick={toggleManagement}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></IconButton>
         </div>
       </div>
-      <div className="config-meta" hidden={managementOpen}><p id="profile-current" className="od-note secondary" data-dirty={state.dirty} role="status" tabIndex={-1}><span className="state-dot" aria-hidden="true"/>{state.saving?'正在保存配置…':state.dirty?'有未保存更改':current?'配置已保存':'未保存配置'}</p><Button base="aria" id="open-local-runner" hidden={managementOpen} disabled={baseLocked||aiBusy} onClick={()=>{setWorkspaceOpen(true);focusLater('capture-heading');}}>本机试采 / 任务</Button></div>
+      <div className="config-meta" hidden={managementOpen}><p id="profile-current" className="od-note secondary" data-dirty={state.dirty} role="status" tabIndex={-1}><span className="state-dot" aria-hidden="true"/>{state.saving?'正在保存配置…':state.dirty?'有未保存更改':current?'配置已保存':'未保存配置'}</p><Button base="aria" id="open-local-runner" hidden={managementOpen} disabled={baseLocked||aiRunning} onClick={()=>{setWorkspaceOpen(true);focusLater('capture-heading');}}>本机试采 / 任务</Button></div>
       <div id="profile-management" className="profile-management" role="region" aria-label="配置库" hidden={!managementOpen}>
         {!hostNavigation&&<Button base="aria" id="profile-management-close" variant="quiet" disabled={Boolean(naming)||Boolean(state.pendingAction)||state.saving} onClick={closeManagement}>返回采集</Button>}
         <div className="library-heading"><span className="secondary">{state.records.length} 份配置</span><Button base="aria" id="library-new-profile" variant="secondary" disabled={managementLocked} onClick={()=>requestAction('newProfile','library-new-profile')}><svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>新建配置</Button></div>
@@ -317,13 +336,13 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
           {current&&!currentInResults&&searchTerm&&<p className="secondary">当前使用配置不受搜索筛选影响。</p>}
           <div className="library-primary-actions" data-saved={Boolean(current)&&!state.dirty}>
             <Button base="aria" id="edit-profile-rules" variant="secondary" disabled={locked} onClick={editConfiguration}>编辑采集规则<svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></Button>
-            <Button base="aria" id="library-save-config" variant="outline" hidden={Boolean(current)&&!state.dirty} disabled={managementLocked||!valid||pending||(!state.dirty&&Boolean(current))} onClick={()=>state.selectedId?saveConfiguration('save'):openName('save','library-save-config')}>{state.saving?'保存中…':'保存配置'}</Button>
+            <Button base="aria" id="library-save-config" variant="outline" hidden={Boolean(current)&&!state.dirty} disabled={managementLocked||!valid||!complete||pending||(!state.dirty&&Boolean(current))} onClick={()=>state.selectedId?saveConfiguration('save'):openName('save','library-save-config')}>{state.saving?'保存中…':'保存配置'}</Button>
           </div>
-          {(managementLocked||!valid||pending)&&<p className="secondary" role="status">{state.phase==='unknown'?'原运行状态待确认，请返回采集查询；当前草稿保留。':state.conflict||!state.storageReady?'保存版本尚未就绪，请在下方读取或处理冲突。':help||'当前操作进行中，配置管理暂不可用。'}</p>}
+          {(managementLocked||!valid||!complete||pending)&&<p className="secondary" role="status">{state.phase==='unknown'?'原运行状态待确认，请返回采集查询；当前草稿保留。':state.conflict||!state.storageReady?'保存版本尚未就绪，请在下方读取或处理冲突。':help||'当前操作进行中，配置管理暂不可用。'}</p>}
           <details id="profile-more-actions" className="library-more"><summary>更多操作</summary><div className="library-more-body">
-            <Button base="aria" id="copy-profile" variant="outline" disabled={managementLocked||!valid||pending} onClick={()=>openName('copy','copy-profile')}>复制为新配置</Button>
+            <Button base="aria" id="copy-profile" variant="outline" disabled={managementLocked||!valid||!complete||pending} onClick={()=>openName('copy','copy-profile')}>复制为新配置</Button>
             <Button base="aria" id="rename-profile" variant="outline" disabled={managementLocked||!current||state.dirty} onClick={()=>openName('rename','rename-profile')}>重命名</Button>
-            <Button base="aria" id="export-profile" variant="outline" disabled={locked||!valid||pending||exporting} onClick={exportConfiguration}>{exporting?'导出中…':'导出 JSON'}</Button>
+            <Button base="aria" id="export-profile" variant="outline" disabled={locked||!valid||!complete||pending||exporting} onClick={exportConfiguration}>{exporting?'导出中…':'导出 JSON'}</Button>
             <p className="secondary">复制与导出包含当前已应用的更改。{state.dirty?'重命名前请先保存更改。':''}</p>
             <div className="profile-danger"><Button base="aria" id="delete-profile" variant="quiet" disabled={managementLocked||!current} onClick={()=>requestAction('deleteProfile','delete-profile')}>删除配置…</Button><p className="secondary">删除后无法恢复，建议先导出备份。</p></div>
           </div></details>
@@ -347,7 +366,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
         <Button base="aria" id="use-saved" hidden={!state.conflict} disabled={locked} onClick={()=>{actionFocus.current='use-saved';app.useSaved();if(app.state.pendingAction)focusLater('profile-confirm-cancel');}}>用保存版本替换草稿</Button>
       </div>
     </section>
-    <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} state={state} locked={baseLocked||aiBusy} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setWorkspaceAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
+    <div hidden={!workspaceOpen}><CaptureWorkspace retiredRequest={retiredAiRequest} onRequestRetired={setRetiredAiRequest} open={workspaceOpen} state={state} locked={baseLocked||aiRunning} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setWorkspaceAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
 
     <div className="capture-workspace" hidden={managementOpen||workspaceOpen}>
     <Card className="target-section" data-expanded={showContext} role="region" aria-labelledby="target-heading"><CardContent className="target-content">
@@ -359,10 +378,11 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
           const url=event.target.value;try{app.edit({...state.config,url});update({target:url,targetValid:true,json:null,error:''});}catch(error){guarded(()=>app.touch());update({target:url,targetValid:false,error:error.message});}
         }} aria-invalid={!ui.targetValid}/><Message id="target-error" alert>{!ui.targetValid?ui.error:''}</Message><p id="target-help" className="sr-only">在目标网页打开此 App；{httpLocal?'本机自有 JSON 回显：仅 http://127.0.0.1:43121；公网未开放。':'仅采集当前网页同源地址。'}</p>
       </div>
+      <Message id="empty-workspace">{!state.selectedId&&!fields.length?'从空白开始：填写网址、添加字段，或选择已保存的配置。':''}</Message>
       <Message id="config-error" alert>{valid?ui.error:''}</Message>
       <div className="capture-meta"><div className="capture-context"><span>{httpLocal?'本机 HTTP':'DOM 网页'}</span><span>{fields.length} 个字段</span><span>{state.config.nextPageSelector?'最多 '+(state.config.maxPages||1)+' 页':'当前页'}{state.config.detail?' · 含详情':''}</span></div>
       <p id="run-summary" className="run-summary" data-phase={busy?'running':state.phase} data-completed={state.retired&&state.snapshot?.status==='completed'&&state.result?.engine?.status==='completed'} role="status"><span className="state-dot" aria-hidden="true"/>{statusOf(state,matches,busy)}</p></div>
-      <div className="toolbar actions" role="group" aria-label="采集操作"><Button base="aria" id="start" variant="secondary" title="开始采集" aria-label="开始采集" aria-describedby="run-summary run-help" disabled={locked||!matches||!valid||pending} onClick={()=>{app.start(state.config.url);setView('results');}}><svg className="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" fill="currentColor"/></svg>{busy?'正在采集…':'开始采集'}</Button><IconButton id="stop" label="停止采集" aria-describedby="run-summary run-help" disabled={!busy||(state.phase!=='starting'&&(state.retired||state.stopAccepted))} onClick={()=>app.stop()}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor" stroke="none"/></svg></IconButton></div>
+      <div className="toolbar actions" role="group" aria-label="采集操作"><Button base="aria" id="start" variant="secondary" title="开始采集" aria-label="开始采集" aria-describedby="run-summary run-help" disabled={locked||!matches||!valid||!complete||pending} onClick={()=>{app.start(state.config.url);setView('results');}}><svg className="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" fill="currentColor"/></svg>{busy?'正在采集…':'开始采集'}</Button><IconButton id="stop" label="停止采集" aria-describedby="run-summary run-help" disabled={!busy||(state.phase!=='starting'&&(state.retired||state.stopAccepted))} onClick={()=>app.stop()}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor" stroke="none"/></svg></IconButton></div>
       <Message id="run-help">{help}</Message>
       </div>
       <Message id="app-error" alert>{state.error}</Message><Message id="app-notice" className={state.notice==='已读取保存配置'?'sr-only':'secondary'}>{(view==='results'&&state.result!=null)||state.notice==='已读取保存配置'||state.notice.startsWith('已请求下载完整 ')||state.notice.startsWith('配置已保存')?'':state.notice}</Message>
@@ -410,7 +430,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
         <p className="od-note secondary">沿原导航授权，最多 10 页、100 条详情；身份不符或内容冲突会报错。</p>
       </fieldset></details>
       <details id="mode-settings" className="od-disclosure" ><summary>高级设置 · 采集方式与示例</summary><fieldset className="disclosure-body" disabled={locked||pending||!valid}>
-        <Field id="execution-mode" label="采集方式"><select className="od-field" id="execution-mode" value={httpLocal?'http-local':'dom'} onChange={event=>loadMode(event.target.value==='http-local'?httpExample():globalThis.ScrapyAppModel.DEFAULT_CONFIG)}><option value="dom">DOM 网页采集</option><option value="http-local">本机 HTTP（自有回显）</option></select></Field>
+        <Field id="execution-mode" label="采集方式"><select className="od-field" id="execution-mode" value={httpLocal?'http-local':'dom'} onChange={event=>loadMode(event.target.value==='http-local'?httpExample():globalThis.ScrapyAppModel.EMPTY_CONFIG)}><option value="dom">DOM 网页采集</option><option value="http-local">本机 HTTP（自有回显）</option></select></Field>
         <p className="od-note secondary">切换方式会载入示例配置；确认前保留当前规则。</p>
         <Button base="aria" id="load-http-example" variant="quiet" onClick={()=>loadMode(httpExample(),'load-http-example')}>载入本机 HTTP 示例</Button>
       </fieldset></details>
@@ -418,7 +438,7 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
     </section>
     <section id="json-panel" role="tabpanel" aria-labelledby="tab-json" tabIndex={0} hidden={view!=='json'}>
       <div id="json-editor" className="stack" ref={jsonDetails}>
-        <div className="json-heading"><div className="related-note"><h2 id="config-json-heading" className="od-page-title">完整 JSON 配置</h2><p id="json-intro" className="od-note secondary">长行可横向滚动；导出当前已应用的配置。</p></div><Button base="aria" id="export-config" variant="quiet" title="导出完整配置 JSON" aria-label="导出完整配置 JSON" disabled={locked||!valid||pending||exporting} onClick={exportConfiguration}><svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5" strokeLinecap="round" strokeLinejoin="round"/></svg>{exporting?'导出中…':'导出'}</Button></div>
+        <div className="json-heading"><div className="related-note"><h2 id="config-json-heading" className="od-page-title">完整 JSON 配置</h2><p id="json-intro" className="od-note secondary">长行可横向滚动；导出当前已应用的配置。</p></div><Button base="aria" id="export-config" variant="quiet" title="导出完整配置 JSON" aria-label="导出完整配置 JSON" disabled={locked||!valid||!complete||pending||exporting} onClick={exportConfiguration}><svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5" strokeLinecap="round" strokeLinejoin="round"/></svg>{exporting?'导出中…':'导出'}</Button></div>
         <Message id="config-export-status">{ui.notice}</Message><Message id="config-export-error" alert>{ui.exportError}</Message>
         <Message id="json-field-help">{ui.jsonHint}</Message>
         <div className="od-form-field field"><Textarea className="od-field scrapy-code" id="config-json" rows={12} wrap="off" spellCheck={false} disabled={locked||pending} value={ui.json??stringify(state.config)} aria-labelledby="config-json-heading" aria-invalid={!ui.valid} aria-describedby="json-intro config-help json-error json-field-help" onChange={event=>editJSON(event.target.value)}/></div>
@@ -431,18 +451,11 @@ export default function App({RuleAssistant,ListScopeAssistant}={}){
     </section>
     </div>
   </main></div>
-    <AiPanel open={aiOpen} state={state} captureStatus={statusOf(state,matches,busy)} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});}} onNavigate={action=>{
-      if(action==='save'){
-        if(baseLocked||pending||!valid||!app.state.storageReady||app.state.conflict)return;
-        closeAi();navigateManagement(false);
-        // Preserve the old AI workflow: an approved proposal creates a new
-        // named copy rather than silently overwriting an existing saved profile.
-        openName(current?'copy':'save','save-config');
-      }else if(action==='run'){
-        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('start');
-      }else if(action==='export'){
-        closeAi();navigateManagement(false);setWorkspaceOpen(false);setView('results');focusLater('results-panel');
-      }
-    }}/>
+    {previewAiPlaceholder?<AiPreviewPlaceholder open={aiOpen} onClose={closeAi}/>:<AiPanel business={business}
+      onConfigurationApplied={()=>update({...freshUI(app.state.profileEpoch)})}
+      retiredRequest={retiredAiRequest} onRequestRetired={setRetiredAiRequest} open={aiOpen} state={state}
+      locked={baseLocked||localBusy||aiGenerating||workspaceAiBusy||ruleAssistOpen} pending={pending} valid={valid}
+      onBusy={onAiBusy} onDirty={onAiDirty} onClose={closeAi}/>}
+
   </div>;
 }

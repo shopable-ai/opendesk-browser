@@ -65,7 +65,7 @@ function harness(overrides={}){
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
     {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
   });
-  return {page,api,sends,nodes,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,poll:()=>poll(),
+  return {page,api,sends,nodes,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,events,poll:()=>poll(),
     receive:(message,sender,reply=()=>{})=>onMessage(message,sender,reply)};
 }
 
@@ -181,21 +181,21 @@ test('missing Host receipt gives same-window guidance and never replays an attem
 test('homepage explains how to establish a conversation and never mints a request',async()=>{
   const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
   assert.equal(h.buttons[0].disabled,true);
-  assert.match(h.status.textContent,/先在 ChatGPT 发送一条消息/);
-  assert.match(h.status.textContent,/选择一个已有对话/);
+  assert.match(h.status.textContent,/发送你的任务命令/);
+  assert.match(h.status.textContent,/打开已有聊天/);
   await h.click(0);
   assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);
-  assert.match(h.status.textContent,/尚未建立会话/);h.page.dispose();
+  assert.match(h.status.textContent,/正式聊天建立后即可授权/);h.page.dispose();
 });
 
 test('SPA conversation creation enables prepare and leaving it restores guidance without writing',()=>{
   const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
   h.win.location.href=source.url;h.poll();
   assert.equal(h.buttons[0].disabled,false);
-  assert.match(h.status.textContent,/先选择任务并建立请求/);
+  assert.match(h.status.textContent,/识别后直接执行或允许本聊天后续执行/);
   h.win.location.href='https://chatgpt.com/plugins';h.poll();
   assert.equal(h.buttons[0].disabled,true);
-  assert.match(h.status.textContent,/尚未建立会话/);
+  assert.match(h.status.textContent,/正式聊天建立后即可授权/);
   assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);h.page.dispose();
 });
 
@@ -478,4 +478,87 @@ test('adopted auto approval stays separate from adoption and polling dispatches 
   await h.click(1);assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task']);
   h.poll();await flush();h.poll();await flush();
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
+});
+
+test('chat approval is available with a draft, attachment, IME and no old complete reply without touching the composer',async()=>{
+  const grantId='77777777-7777-4777-8777-777777777777';
+  const h=harness({'list-tasks':()=>({tasks:[customTask]}),
+    readPage:()=>{throw Error('approval must not read an old reply');},
+    'approve-conversation-task':message=>({grantId,source,taskId:customTask.taskId,
+      targetUrl:message.targetUrl,installation,remainingRuns:10,parameterPolicy:'installed-schema',expiresAt:Date.now()+1800000})});
+  await selectCustom(h);h.snap.users=[];h.snap.assistants=[];h.snap.draft='keep my draft';h.snap.rich=true;
+  h.snap.answerComplete=false;h.snap.busy=true;h.snap.idle=false;
+  for(const listener of h.events.get('compositionstart'))listener({target:h.snap.editor});
+  const approve=h.buttons.find(button=>button.textContent==='允许本聊天');
+  assert.ok(approve,'primary chat approval exists');assert.equal(approve.disabled,false);
+  await approve.listeners.click({isTrusted:false});assert.equal(h.sends.filter(row=>row.kind==='approve-conversation-task').length,0);
+  await approve.listeners.click({isTrusted:true});await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='approve-conversation-task').length,1);
+  assert.equal(h.writes.length,0);assert.equal(h.commits.length,0);assert.equal(h.snap.draft,'keep my draft');
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  assert.match(h.nodes.map(node=>node.textContent||'').join('\n'),/30 分钟/);
+  const revoke=h.buttons.find(button=>button.textContent==='撤销本聊天授权');
+  assert.equal(revoke.disabled,false);await revoke.listeners.click({isTrusted:true});await flush();
+  assert.equal(h.sends.find(row=>row.kind==='revoke-request').requestId,grantId);h.page.dispose();
+});
+test('installed task chooses its approved home URL so authorization does not begin with a blank target',async()=>{
+  const h=harness({'list-tasks':()=>({tasks:[customTask]})});
+  const select=h.nodes.find(node=>node.tag==='select');select.value='__installed__';await select.listeners.change();
+  assert.equal(h.nodes.find(node=>node.type==='url').value,'https://example.com/');h.page.dispose();
+});
+
+test('a known missing permission leaves chat approval correctable instead of permanently disabling it',async()=>{
+  const h=harness({'list-tasks':()=>({tasks:[customTask]}),
+    'approve-conversation-task':()=>{throw Object.assign(Error('permission missing'),{code:'E_BRIDGE_PERMISSION'});}});
+  await selectCustom(h);
+  const approve=h.buttons.find(button=>button.textContent==='允许本聊天');
+  await approve.listeners.click({isTrusted:true});await flush();
+  assert.equal(approve.disabled,false);assert.match(h.status.textContent,/permission missing/);
+  assert.equal(h.writes.length,0);h.page.dispose();
+});
+
+test('a real result delivery continuation containing a valid command cannot spend the chat grant',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  let text=intentText;
+  const liveOverrides={readPage:()=>({ok:true,turnKey:live.snap.users.at(-1)?.getAttribute('data-message-id'),
+    answerKey:live.snap.assistants.at(-1)?.getAttribute('data-message-id'),blocks:[text]})};
+  const live=harness(liveOverrides);t.after(()=>live.page.dispose());
+  const node=(key,value=key)=>({...live.messageNode(value),getAttribute:name=>name==='data-message-id'?key:null,
+    compareDocumentPosition:()=>4});
+  live.snap.users=[node('initial-user')];live.snap.assistants=[node('initial-answer')];live.poll();
+  liveOverrides['list-tasks']=()=>({tasks:[customTask]});await selectCustom(live);
+  liveOverrides['approve-conversation-task']=msg=>({grantId:'77777777-7777-4777-8777-777777777777',source,
+    taskId:customTask.taskId,targetUrl:msg.targetUrl,installation,remainingRuns:10,
+    parameterPolicy:'installed-schema',expiresAt:Date.now()+1800000});
+  await live.click(7);
+  liveOverrides['adopt-task']=msg=>({requestId:id,source,taskId:customTask.taskId,args:{},
+    targetUrl:'https://example.com/article',installation,mode:'auto',conversationGrantId:msg.conversationGrantId,
+    remainingRuns:9,candidate:{candidateId:JSON.parse(msg.candidateText).candidateId,text:msg.candidateText,
+      turnKey:msg.turnKey,answerKey:msg.answerKey}});
+  live.site.prepare=(value,before)=>{live.writes.push(value);live.snap.draft=value;
+    return {ok:true,token:{before:{...before,userTexts:before.users.map(item=>item.textContent)}}};};
+  live.site.commit=token=>{
+    live.commits.push(token);const result=live.snap.draft;
+    text=JSON.stringify({...JSON.parse(intentText),candidateId:'result-continuation-command'});
+    live.snap.users=[...live.snap.users,node('extension-result-user',result)];
+    live.snap.assistants=[...live.snap.assistants,node('result-answer',text)];
+    live.snap.draft='';live.poll();return {ok:true};
+  };
+  live.site.confirm=createChatGPTBridgeSite({doc:live.snap.editor.ownerDocument,win:live.win}).confirm;
+  liveOverrides.execute=async msg=>{
+    const result=await live.deliver({mode:msg.mode,turnKey:msg.turnKey,answerKey:msg.answerKey});
+    return result.data;
+  };
+  const drain=async()=>{for(let i=0;i<6;i++)await flush();};
+  live.snap.sendButton={disabled:false,getAttribute:()=>null};
+  live.snap.draft='command-user';
+  for(const listener of live.events.get('click')||[])
+    listener({type:'click',isTrusted:true,button:0,target:live.snap.sendButton});
+  live.snap.draft='';
+  live.snap.users.push(node('command-user'));live.snap.assistants.push(node('command-answer',text));live.poll();await drain();
+  for(const ms of [250,300,400]){t.mock.timers.tick(ms);await drain();}
+  assert.match(live.status.textContent,/真实结果已回传，官方 AI 已完成回复/);
+  live.poll();await flush();live.poll();await flush();
+  assert.equal(live.sends.filter(row=>row.kind==='execute').length,1);
+  assert.equal(live.sends.filter(row=>row.kind==='adopt-task').length,1);
 });

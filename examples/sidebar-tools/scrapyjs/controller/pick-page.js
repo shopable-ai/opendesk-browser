@@ -54,7 +54,8 @@ export async function runClickedInspection(input,page){
     const container=spec.container.trim(),item=spec.item.trim();
     const scopes=container?query(document,container):[];
     const selected=item?query(document,item):null,set=selected?new Set(selected):null;
-    const records=container?scopes.flatMap(scope=>[...scope.children].filter(row=>!set||set.has(row))):
+    const direct=new Set(scopes.flatMap(scope=>[...scope.children]));
+    const records=container?query(document,'*').filter(row=>direct.has(row)&&(!set||set.has(row))):
       selected||[document.body].filter(Boolean);
     if(spec.kind==='fields'&&records.length>100)throw Error('E_INSPECTION_LIMIT');
     if(spec.kind==='fields'&&!records.length)throw Error('E_PICK_NO_ROWS');
@@ -121,7 +122,10 @@ export async function runClickedInspection(input,page){
         document.removeEventListener('pointermove',hover,true);
         document.removeEventListener('click',pick,true);
         document.removeEventListener('keydown',keydown,true);
+        document.removeEventListener('visibilitychange',visibility,true);
         window.removeEventListener('pagehide',pagehide,true);
+        window.removeEventListener('hashchange',navigation,true);
+        window.removeEventListener('popstate',navigation,true);
         clearTimeout(timer);overlay.remove();
       };
       const finish=(value,error)=>{
@@ -145,10 +149,15 @@ export async function runClickedInspection(input,page){
       };
       const keydown=event=>{if(event.key==='Escape')finish(null,Error('E_PICK_CANCELLED'));};
       const pagehide=()=>finish(null,Error('E_INSPECTION_URL'));
+      const visibility=()=>{if(document.hidden)pagehide();};
+      const navigation=()=>{if(location.href!==spec.url)finish(null,Error('E_INSPECTION_URL'));};
       document.addEventListener('pointermove',hover,true);
       document.addEventListener('click',pick,true);
       document.addEventListener('keydown',keydown,true);
+      document.addEventListener('visibilitychange',visibility,true);
       window.addEventListener('pagehide',pagehide,true);
+      window.addEventListener('hashchange',navigation,true);
+      window.addEventListener('popstate',navigation,true);
       timer=setTimeout(()=>finish(null,Error('E_PICK_TIMEOUT')),25000);
     });
   },{url:input.url,kind:input.kind,container:input.container,item:input.item});

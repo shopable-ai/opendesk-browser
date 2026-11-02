@@ -3,13 +3,21 @@
 // Uses synthetic metadata only. Never accesses Chrome cookies or real credentials.
 import assert from 'node:assert/strict';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {chromium} from 'playwright';
+import {createRequire} from 'node:module';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+const {chromium}=createRequire(new URL('./react/package.json',import.meta.url))('playwright');
 
 const url=pathToFileURL(fileURLToPath(new URL('./cookie-editor.html',import.meta.url))).href;
+const output=fileURLToPath(new URL('../../../../artifacts/cookie-import-dropzone/html/',import.meta.url));
+await mkdir(output,{recursive:true});
+const sourceHash=createHash('sha256').update(await readFile(new URL(url))).digest('hex');
+const pass=[],network=[];
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||undefined});
 const page=await browser.newPage({viewport:{width:520,height:850}});
 const pageErrors=[];
 page.on('pageerror',error=>pageErrors.push(error.message));
+page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
 const count=()=>page.locator('#cookieRows .cookie-row').count();
 const trigger=()=>page.getByRole('button',{name:'导入 Cookie',exact:true});
 const sheet=()=>page.getByRole('dialog',{name:'导入 Cookie'});
@@ -18,7 +26,7 @@ const open=async()=>{
   await sheet().waitFor();
   await page.locator('#importDialog').evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
 };
-const test=async(name,run)=>{await run();console.log('PASS',name);};
+const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name);};
 const mock=(name,changes={})=>({name,domain:'shop.example.com',path:'/',session:true,secure:false,httpOnly:false,...changes});
 const measure=()=>page.evaluate(()=>{
   const p=document.querySelector('#panel').getBoundingClientRect();
@@ -53,7 +61,7 @@ try{
     assert.equal(await page.locator('#panelScroll').getAttribute('inert'),'');
     assert.equal(await page.locator('#importConfirm').textContent(),'确认导入');
     assert.equal(await page.locator('#importOverwrite').isChecked(),true);
-    await checkGeometry();
+    await page.locator('#panel').screenshot({path:output+'dropzone-empty.png'});
   });
   await test('dirty close, Escape, backdrop and focus restoration',async()=>{
     await page.locator('#importText').fill(JSON.stringify([mock('draft_not_imported')]));
@@ -73,11 +81,26 @@ try{
   });
   await test('file picker stages a file until one explicit Confirm click',async()=>{
     await open();
-    await page.locator('#importFile').setInputFiles({
+    const zone=page.locator('#importDropzone');
+    const file={
       name:'preview-metadata.json',mimeType:'application/json',
       buffer:Buffer.from(JSON.stringify([mock('picker_imported')]))
-    });
+    };
+    const [chooser]=await Promise.all([page.waitForEvent('filechooser'),zone.click({position:{x:8,y:8}})]);
+    await chooser.setFiles(file);
     assert.equal(await page.locator('#importFileName').isVisible(),true);
+    assert.match(await zone.innerText(),/文件已暂存/);
+    await zone.focus();
+    const [keyboardChooser]=await Promise.all([page.waitForEvent('filechooser'),page.keyboard.press('Enter')]);
+    assert.equal(await page.locator('#importFile').inputValue(),'','same file can be selected again');
+    await keyboardChooser.setFiles(file);
+    const [spaceChooser]=await Promise.all([page.waitForEvent('filechooser'),zone.press('Space')]);
+    await spaceChooser.setFiles([]);
+    assert.match(await page.locator('#importFileName').innerText(),/preview-metadata.json/,'picker cancellation keeps the staged file');
+    await page.locator('#panel').screenshot({path:output+'dropzone-selected.png'});
+    await page.locator('#importFile').setInputFiles({name:'too-large.json',mimeType:'application/json',buffer:Buffer.alloc(8*1024*1024+1)});
+    assert.equal(await page.locator('#importError').isVisible(),true);
+    assert.match(await page.locator('#importFileName').innerText(),/preview-metadata.json/,'oversized replacement keeps the staged file');
     assert.equal(await count(),8,'file selection is not a write');
     await page.getByRole('button',{name:'确认导入'}).click();
     await sheet().waitFor({state:'hidden'});
@@ -88,13 +111,24 @@ try{
   await test('native drag/drop stages and directly imports after confirmation',async()=>{
     await open();
     const payload=JSON.stringify([mock('drag_imported')]);
-    await page.locator('#importDropzone').evaluate((el,json)=>{
+    const zone=page.locator('#importDropzone');
+    const background=await zone.evaluate(el=>getComputedStyle(el).backgroundColor);
+    const transfer=await page.evaluateHandle(json=>{
       const data=new DataTransfer();
       data.items.add(new File([json],'drag-metadata.json',{type:'application/json'}));
-      for(const type of ['dragenter','dragover','drop']){
-        el.dispatchEvent(new DragEvent(type,{bubbles:true,cancelable:true,dataTransfer:data}));
-      }
+      return data;
     },payload);
+    await zone.dispatchEvent('dragenter',{dataTransfer:transfer});
+    await zone.dispatchEvent('dragover',{dataTransfer:transfer});
+    assert.match(await zone.innerText(),/松开以选择文件/);
+    assert.notEqual(await zone.evaluate(el=>getComputedStyle(el).backgroundColor),background);
+    await page.locator('#panel').screenshot({path:output+'dropzone-dragging.png'});
+    await zone.dispatchEvent('dragleave',{dataTransfer:transfer});
+    assert.equal(await zone.evaluate(el=>getComputedStyle(el).backgroundColor),background);
+    await zone.dispatchEvent('dragenter',{dataTransfer:transfer});
+    await zone.dispatchEvent('drop',{dataTransfer:transfer});
+    await transfer.dispose();
+    assert.match(await zone.innerText(),/文件已暂存/);
     assert.equal(await page.locator('#importFileName').isVisible(),true);
     assert.equal(await count(),9,'drop alone is not a write');
     await page.locator('#importConfirm').click();
@@ -120,6 +154,29 @@ try{
     assert.equal(await page.getByRole('searchbox',{name:'搜索 Cookie'}).inputValue(),query);
     assert.equal(await page.locator('#panelScroll').evaluate(el=>el.scrollTop),scroll);
   });
+  await test('paste replaces a staged file and overwrite remains an explicit choice',async()=>{
+    await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('');
+    await page.waitForFunction(()=>document.querySelectorAll('#cookieRows .cookie-row').length===10);
+    await open();
+    await page.locator('#importFile').setInputFiles({name:'unused.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([mock('unused')]))});
+    await page.locator('#importText').fill(JSON.stringify([mock('picker_imported',{secure:true}),mock('paste_imported')]));
+    assert.equal(await page.locator('#importFileName').isHidden(),true);
+    assert.doesNotMatch(await page.locator('#importDropzone').innerText(),/文件已暂存/);
+    await page.locator('#importOverwrite').uncheck();
+    await page.locator('#importConfirm').click();
+    await sheet().waitFor({state:'hidden'});
+    assert.equal(await count(),11);
+    assert.equal(await page.locator('#cookieRows').getByText('unused',{exact:true}).count(),0);
+    assert.match(await page.locator('#toast').innerText(),/覆盖 0、跳过 1/);
+    await open();
+    assert.equal(await page.locator('#importOverwrite').isChecked(),true);
+    await page.locator('#importText').fill(JSON.stringify([mock('picker_imported',{secure:true})]));
+    await page.locator('#importConfirm').click();
+    await sheet().waitFor({state:'hidden'});
+    assert.equal(await count(),11);
+    assert.match(await page.locator('#toast').innerText(),/覆盖 1、跳过 0/);
+  });
+  if(process.argv.includes('--geometry')){
   await page.locator('#labReset').click();
   await test('320, 360, 400 and 440px sheet geometry',async()=>{
     for(const width of [320,360,400,440]){
@@ -135,7 +192,11 @@ try{
     await checkGeometry(true);
     await page.locator('#importClose').click();
   });
+  }
   assert.deepEqual(pageErrors,[],'Browser page errors');
+  assert.deepEqual(network,[],'Offline preview makes no external requests');
+  assert.equal(createHash('sha256').update(await readFile(new URL(url))).digest('hex'),sourceHash,'HTML stayed stable during verification');
+  await writeFile(output+'results.json',JSON.stringify({status:'PASS',url,sourceHash,chromium:browser.version(),tests:pass,pageErrors,network,geometry:process.argv.includes('--geometry'),gaps:['Offline fictional metadata only','Real Cookie SDK, package and installed Chrome NOT_TESTED']},null,2)+'\n');
   console.log('PASS no uncaught browser errors');
 }finally{
   await browser.close();

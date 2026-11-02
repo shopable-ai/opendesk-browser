@@ -120,7 +120,7 @@ test('P0 discovery resets on SPA navigation and will only observe a later new us
 
 const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
 function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbingo.org/html',
-  grantReply=value=>value,bindReply=value=>value,initialEmpty=false,
+  grantReply=value=>value,bindReply=value=>value,adoptReply=value=>value,initialEmpty=false,
   intentProtocol='opendesk.task.intent.v1',autoTaskReply=value=>({ok:true,data:value}),executeReply=value=>value}={}){
   const nodes=[],sends=[],events=new Map(),windowEvents=new Map(),intervals=new Map(),snap=snapshot();
   let poll,autoRequests=0,nextTurn=0,nextInterval=0;
@@ -162,12 +162,18 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
   const identity=()=>noCandidate?{ok:false,error:{code:'E_CHAT_FORMAT',message:'no candidate'}}:{ok:!snap.busy,turnKey:snap.users.at(-1).getAttribute('data-message-id'),
     answerKey:snap.assistants.at(-1).getAttribute('data-message-id'),blocks:[JSON.stringify(intent)]};
   const scope={taskId:task.taskId,args:{...args},targetUrl:intent.targetUrl,installation};
-  const prepared=()=>({requestId:'33333333-3333-4333-8333-333333333333',source:{...source,url:win.location.href},...scope,
+  const prepared=()=>({requestId:'33333333-3333-4333-8333-333333333333',source:{...source,url:win.location.href},...scope,args:{...intent.args},
     candidate:{candidateId:intent.candidateId,text:JSON.stringify(intent),turnKey:identity().turnKey,answerKey:identity().answerKey}});
   let grant;
   const api={runtime:{id:'extid',onMessage:{addListener(){},removeListener(){}},async sendMessage(msg){
     sends.push(msg);
     if(msg.kind==='list-tasks')return {ok:true,data:{tasks:[task]}};
+    if(msg.kind==='approve-conversation-task'){
+      grant={grantId:'77777777-7777-4777-8777-777777777777',source,...scope,
+        parameterPolicy:'installed-schema',expiresAt:Date.now()+1800000,remainingRuns:msg.adoptedRequest?9:10,
+        ...(msg.adoptedRequest?{currentRequest:{requestId:msg.requestId,mode:'auto',expiresAt:Date.now()+300000}}:{})};
+      return {ok:true,data:await grantReply(structuredClone(grant))};
+    }
     if(msg.kind==='preapprove-next-task'){
       grant={...prepared(),candidate:undefined,baseline:{turnKey:identity().turnKey,answerKey:identity().answerKey},expiresAt:Date.now()+300000};
       grantHook();return {ok:true,data:grantReply(structuredClone(grant))};
@@ -176,7 +182,8 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
     if(msg.kind==='auto-task')return autoTaskReply({...prepared(),
       requestId:`55555555-5555-4555-8555-${String(++autoRequests).padStart(12,'0')}`,
       persistentAuto:true,expiresAt:Date.now()+600000});
-    if(msg.kind==='adopt-task')return {ok:true,data:prepared()};
+    if(msg.kind==='adopt-task')return {ok:true,data:await adoptReply({...prepared(),...(msg.conversationGrantId?{
+      mode:'auto',conversationGrantId:msg.conversationGrantId,remainingRuns:--grant.remainingRuns}: {})})};
     if(msg.kind==='execute')return executeReply({ok:true,
       data:{sent:true,aiReplyObserved:true,runId:'run-p0',resultId:'result-p0'}},msg);
     if(msg.kind==='revoke-request')return {ok:true,data:{requestId:msg.requestId,revoked:true}};
@@ -619,4 +626,94 @@ test('a malformed preapproved candidate can be revoked without stopping a run th
   assert.equal(h.sends.filter(row=>row.kind==='revoke-request').length,1);
   assert.match(h.nodes.find(node=>node.className==='status').textContent,/授权已撤销；不会执行/);
   assert.equal(h.buttons[6].disabled,false);h.page.dispose();
+});
+
+test('recognized command approves this chat once and subsequent changed parameters execute automatically',async()=>{
+  const h=pageHarness({taskId:'custom.search',args:{query:'first'}});h.next();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  const approve=h.buttons.find(button=>button.textContent==='允许本聊天');
+  assert.equal(approve.disabled,false);await approve.listeners.click({isTrusted:true});await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);
+  assert.equal(h.sends.filter(row=>row.kind==='authorize-task').length,0);
+  h.intent.candidateId='second-chat-search';h.intent.args={query:'second'};
+  h.next();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,2);
+  const adopted=h.sends.filter(row=>row.kind==='adopt-task');
+  assert.equal(adopted[0].conversationGrantId,undefined);
+  assert.equal(adopted[1].conversationGrantId,'77777777-7777-4777-8777-777777777777');
+  assert.deepEqual(JSON.parse(h.sends.filter(row=>row.kind==='execute')[1].candidateText).args,{query:'second'});
+  h.page.dispose();
+});
+test('chat grant does not authorize a different target and navigation removes its local reuse',async()=>{
+  const h=pageHarness();await h.selectInstalled();
+  await h.buttons.find(button=>button.textContent==='允许本聊天').listeners.click({isTrusted:true});await flush();
+  h.intent.targetUrl='https://httpbingo.org/another';h.next();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  assert.equal(h.sends.find(row=>row.kind==='adopt-task').conversationGrantId,undefined);
+  h.win.location.href='https://chatgpt.com/c/another-grant-chat';h.poll();await flush();
+  assert.equal(h.buttons.find(button=>button.textContent==='撤销本聊天授权').hidden,true);h.page.dispose();
+});
+
+test('manual adoption of an old command never spends a chat grant or executes automatically',async()=>{
+  const h=pageHarness();await h.selectInstalled();await h.click(7);
+  await h.click(4);
+  assert.equal(h.sends.find(row=>row.kind==='adopt-task').conversationGrantId,undefined);
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  assert.equal(h.buttons[2].disabled,false);await h.click(2);
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
+});
+test('unknown chat adoption freezes further allocations until explicit revocation is confirmed',async()=>{
+  for(const failure of ['lost-ack','wrong-count']){
+    const h=pageHarness({adoptReply:value=>{
+      if(!value.conversationGrantId)return value;
+      if(failure==='lost-ack')throw Object.assign(new Error('ACK lost'),{code:'E_BRIDGE_TRANSPORT'});
+      return {...value,remainingRuns:value.remainingRuns-1};
+    }});
+    await h.selectInstalled();await h.click(7);h.next();await flush();
+    assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+    for(let i=2;i<4;i++){
+      h.intent.candidateId='unknown-next-'+i;
+      h.snap.users.push(message('u'+i));h.snap.assistants.push(message('a'+i,JSON.stringify(h.intent)));
+      h.poll();await flush();
+    }
+    assert.equal(h.sends.filter(row=>row.kind==='adopt-task'&&row.conversationGrantId).length,1,failure);
+    assert.match(h.nodes.filter(node=>node.className==='hint').map(node=>node.textContent).join('\n'),/UNKNOWN|未知/);
+    const revoke=h.buttons.find(button=>button.textContent==='撤销本聊天授权');
+    assert.equal(revoke.disabled,false);await revoke.listeners.click({isTrusted:true});await flush();
+    assert.equal(h.buttons[7].disabled,false);h.page.dispose();
+  }
+});
+test('new complete command received during approval is retained and adopted exactly once after its ACK',async()=>{
+  let release;const waiting=new Promise(resolve=>{release=resolve;});
+  const h=pageHarness({grantReply:async value=>{await waiting;return value;}});
+  await h.selectInstalled();const approval=h.click(7);await flush();
+  h.next();await flush();assert.equal(h.sends.filter(row=>row.kind==='adopt-task').length,0);
+  release();await approval;h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='adopt-task').length,1);
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
+});
+test('queued discovery is discarded if the command bytes or conversation changed while approval waited',async()=>{
+  for(const change of ['bytes','navigation','incomplete']){
+    let release;const waiting=new Promise(resolve=>{release=resolve;});
+    const h=pageHarness({grantReply:async value=>{await waiting;return value;}});
+    await h.selectInstalled();const approval=h.click(7);await flush();h.next();await flush();
+    if(change==='bytes')h.snap.assistants.at(-1).textContent='changed after discovery';
+    if(change==='navigation'){
+      h.win.location.href='https://chatgpt.com/c/changed-while-approving';h.snap.route='c/changed-while-approving';
+    }
+    if(change==='incomplete'){h.snap.busy=true;h.snap.idle=false;h.snap.answerComplete=false;}
+    release();await approval;h.poll();await flush();
+    assert.equal(h.sends.filter(row=>row.kind==='adopt-task').length,0,change);
+    assert.equal(h.sends.filter(row=>row.kind==='execute').length,0,change);h.page.dispose();
+  }
+});
+
+test('UNKNOWN after an adoption ACK also blocks later polling of the restored candidate',async()=>{
+  const h=pageHarness({adoptReply:value=>{h.setNoCandidate(true);return value;}});
+  await h.selectInstalled();await h.click(7);h.next();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  h.setNoCandidate(false);h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  assert.match(h.nodes.filter(node=>node.className==='hint').map(node=>node.textContent).join('\n'),/UNKNOWN/);
+  h.page.dispose();
 });

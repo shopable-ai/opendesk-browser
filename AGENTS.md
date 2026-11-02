@@ -52,6 +52,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **R33.3 源码归属：当前唯一可信 React 根 `src/ui/react/`（包括 `components/ui/`）；`packages/opendesk-ui-react/` 是未来第二独立消费者经验证后才可评估的候选，本轮禁止创建或复制。五 Tab 渐进迁移、单 DOM owner，具体以权威 R33 架构文档为准。**
 
+## 框架共享 AI Chat 与扩展插槽（2026-11-02）
+
+**AI Chat 是面向各扩展复用的框架能力，扩展是消费者。** 接入或迭代先复用现有 `SharedConversationDock` / `SharedConversationFrame`、独立会话和受控 AI bridge；小范围展示差异优先使用[公共 Chat 插槽合同](docs/api/sidebar-tools-ai.zh-CN.md#公共骨架与插槽)，不复制某个扩展的 Chat，也不在工具内重写公共控件或覆盖公共布局。公共组件只持有展示行为；领域上下文、提示词、提案校验、审阅与确认后的业务执行留在扩展 adapter。AI 协助自动配置、降低学习成本并完成关键操作的目标继续保留，以真实业务回执证明结果。
+
+展开 Chat 后原扩展界面仍可见、可操作；收起归还空间，开合保留业务状态和草稿。普通共享区不加「AI 采集助手」等业务标题。插槽仅在调用方原有 Root 和信任边界内组合内容，不授权、不将沙箱内容挂入可信工作台，不替换公共发送/停止、IME、请求围栏或权限链。新增通用插槽须先证明现有 props 无法覆盖的跨扩展需求，再由平台 owner 在唯一组件与公开合同中实现；不建第二套 Chat。共享接入继续可选，不强制原 HTML/Vue 工具迁移 React。具体 API 只在上述合同维护。
+
 ## Sidebar Tool 单一正式安装包与测试后晋升（2026-10-15）
 
 **凡在 `examples/sidebar-tools/<id>/` 开发、测试并准备交付可导入的 Sidebar Tool，工具目录最终只保留一个 `<id>.opendesk-tool.json` 正式可安装包。** 用户期望安装/手动验收时不能只给 CI ZIP、忽略的 `artifacts/` 或仓库外附件；测试通过后必须把安装包与源码一起安全提交到 `main`。不对未触及的所有示例批量补包，不制造带 R/日期/版本后缀的重复正式 JSON；历史保留在 Git 提交和既有发行账本。此规则不适用于 Page USER_SCRIPT/Controller Task、Chrome CRX 或 `manifest.json`。

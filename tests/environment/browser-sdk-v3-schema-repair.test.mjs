@@ -19,6 +19,11 @@ const cookie=()=>({url:'https://example.com/',name:'session',value:'test-value'}
 
 test('repaired real module preserves V2/V3 policy schemas and strict Cookie schemas',()=>{
   const input=operationSchemas(policyOperation).input;
+  assert.equal(input.type,'object');
+  assert.equal(input.additionalProperties,false);
+  assert.deepEqual(input.required,['expectedRev']);
+  assert.deepEqual(Object.keys(input.properties).sort(),
+    [...new Set(input.anyOf.flatMap(branch=>Object.keys(branch.properties)))].sort());
   assert.equal(input.anyOf.length,2);
   const v3=input.anyOf.find(schema=>schema.properties?.desiredPolicy?.properties?.kind?.const==='site-budget.v3');
   assert.ok(v3,'setPolicy discovery must retain the intended V3 input');
@@ -36,6 +41,7 @@ test('repaired real module preserves V2/V3 policy schemas and strict Cookie sche
   assert.equal(v2.additionalProperties,false);
   for(const operation of ['browser.siteBudget.getStatus',policyOperation]){
     const output=operationSchemas(operation).output;
+    assert.equal(output.type,'object',operation);
     assert.deepEqual(output.anyOf.map(schema=>schema.properties.kind.const).sort(),
       ['site-budget.v2','site-budget.v3'],operation);
     assert.ok(output.anyOf.every(schema=>schema.type==='object'&&schema.additionalProperties===false));

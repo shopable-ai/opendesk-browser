@@ -6,7 +6,7 @@ import {createCloudService} from '../../src/cloud-control/service.js';
 import {createRunAuthority} from '../../src/platform/host/authority.js';
 import {createStorageMethods} from '../../src/platform/storage/repository.js';
 import {CONTRACT_VERSION,CONTRACT_HASH,digestUtf8} from '../../src/platform/protocol.js';
-import {encodeValue} from '../../src/platform/page-port/codec.js';
+import {encodeValue,decodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
 import {createTaskPackage,TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
@@ -19,6 +19,8 @@ import {CONTROLLER_SOURCE_LIMIT} from '../../src/platform/source-budgets.js';
 import {BUDGETS} from '../../src/platform/protocol.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {readAppControllerInstallation} from '../../src/platform/tasks/app-controller-installation.js';
+import {builtinIdentity} from '../../src/libs/identity.js';
 
 // Node component fixture adapted from k3-controller-authority; Chrome callbacks are doubles.
 function serialStore() {
@@ -351,4 +353,86 @@ test('task.list includes disabled installed metadata without allowing execution'
   assert.equal(tasks[0].generation,f.resolved.generation+1);
   await assert.rejects(f.adapter.handle(f.request),{code:'E_PERMISSION'});
   assert.equal(f.executed.length,0);
+});
+
+async function appControllerFixture(t,properties={}){
+  const f=await fixture(),sourceUtf8='async function main(){return await page.title();}';
+  const tool={format:'opendesk.sidebar-tool.v2',id:'controller-app',version:'1.0.0',title:'Controller app',description:'Reviewed page automation',
+    capabilities:['controllers.run'],html:'<main>App</main>',css:'',js:'void 0;',requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
+    controller:{sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),siteOrigins:['https://a.example'],permissions:['page.automation'],
+      paramsSchema:{type:'object',properties,required:[],additionalProperties:false},deadlineMs:90000,builtinIdentity:builtinIdentity(fakeBuiltinSource)}};
+  const local={[SIDEBAR_TOOL_STORE]:[tool],[TOOL_REVOCATION_EPOCHS_STORE]:{[tool.id]:'epoch-1'}};
+  f.api.storage={local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(local[key])]))}};
+  const locks=Object.getOwnPropertyDescriptor(navigator,'locks');
+  Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(...args)=>args.at(-1)()}});
+  t.after(()=>{if(locks)Object.defineProperty(navigator,'locks',locks);else delete navigator.locks;});
+  const {binding}=await readAppControllerInstallation(f.api,tool.id);
+  const bound={...binding,instanceId:'original-frame'};
+  const target={mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'};
+  const prepare=async(id='app-request')=>f.authority.prepareDelegatedStep({binding:bound,clientRequestId:id,
+    paramsDigest:await import('../../src/platform/protocol.js').then(m=>m.digest({},{maxDepth:48})),target,deadlineAt:Date.now()+30000},f.sender);
+  const start=async(id='app-request',extra={},sender=f.sender)=>{const step=await prepare(id);return f.authority.startControllerRun({
+    requestId:crypto.randomUUID(),source:{kind:'app-controller',appId:tool.id,packageHash:binding.packageHash,generation:binding.generation},
+    paramsWire:encodeValue({}),target,deadlineAt:step.deadlineAt,taskDelegation:bound,
+    taskDelegationStep:{clientRequestId:id,operationRef:step.operationRef},...extra},sender);};
+  const op=(run,kind,method,args=[])=>({requestId:crypto.randomUUID(),identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind,method,args:controlEncode(args)}});
+  return {...f,tool,local,bound,startApp:start,prepareApp:prepare,appOperation:op};
+}
+
+test('App Controller uses installed package bytes and the original Controller result without an installed Task',async t=>{
+  const f=await appControllerFixture(t),run=await f.startApp();
+  assert.equal(run.sourceUtf8,f.tool.controller.sourceUtf8);assert.equal(run.revision.kind,'app-controller');
+  const result=await f.authority.controllerOperation({envelope:f.appOperation(run,'packaged','title')},f.sender);
+  assert.ok(result);await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const snapshot=await f.authority.inspectDelegatedStep({binding:f.bound,clientRequestId:'app-request'},f.sender);
+  assert.equal(snapshot.runId,run.runId);assert.equal(snapshot.state,'completed');
+  assert.equal(snapshot.retirementState,'released');assert.equal((await f.rows('frameworkKV')).length,0);
+});
+for(const change of ['runtime','origin','params','deadline','source','generation'])test('App Controller rejects changed '+change+' before page effects',async t=>{
+  const f=await appControllerFixture(t);
+  let extra={};
+  if(change==='runtime')f.setBuiltin({...fakeBuiltinSource,sha256:'f'.repeat(64)});
+  if(change==='origin'){f.tabs.get(2).url='https://b.example/page';f.frames.set(2,[{frameId:0,documentId:'doc-top',url:'https://b.example/page'}]);}
+  if(change==='params')extra.paramsWire=encodeValue({injected:true});
+  if(change==='deadline')extra.deadlineAt=Date.now()+100000;
+  if(change==='source')f.tool.controller.sourceUtf8+='\nvoid 0;';
+  if(change==='generation')f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='epoch-2';
+  await assert.rejects(f.startApp('app-request',extra));assert.equal(f.calls.filter(row=>row.method==='execute').length,0);
+});
+test('App Controller refuses services, Cookie and extra network privileges',async t=>{
+  const f=await appControllerFixture(t),run=await f.startApp();
+  for(const [kind,method,args] of [['service','AXIOS_GET',[{url:'https://a.example'}]],['browser','cookies',[]],['browser','uploadFromUrl',[]]])
+    await assert.rejects(f.authority.controllerOperation({envelope:f.appOperation(run,kind,method,args)},f.sender),{code:'E_CAPABILITY'});
+  await f.finish(run);
+});
+test('App Controller revocation denies page effects and cached results after restoration',async t=>{
+  const f=await appControllerFixture(t),run=await f.startApp();
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='epoch-2';
+  await assert.rejects(f.authority.controllerOperation({envelope:f.appOperation(run,'packaged','title')},f.sender));
+  const result=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.ok(result.resultDeliveryDenied.includes(run.runId));
+  await assert.rejects(f.authority.inspectDelegatedStep({binding:f.bound,clientRequestId:'app-request'},f.sender));
+});
+test('App Controller early Stop permanently fences the original request',async t=>{
+  const f=await appControllerFixture(t);
+  await f.authority.cancelDelegatedStep({binding:f.bound,clientRequestId:'app-request'},f.sender);
+  await assert.rejects(f.startApp(),{code:'E_CANCELLED'});
+});
+
+test('App Controller executes reviewed parameter defaults while retaining the original request digest',async t=>{
+  const f=await appControllerFixture(t,{limit:{type:'integer',title:'Limit',default:10}});
+  const run=await f.startApp();
+  assert.deepEqual(decodeValue(run.paramsWire),{limit:10});
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+
+for(const changedOwner of ['host','iframe'])test('App Controller prepared admission rejects another '+changedOwner,async t=>{
+  const f=await appControllerFixture(t);
+  await f.prepareApp();
+  const other={...f.sender,documentId:'other-host-doc'};
+  if(changedOwner==='host')await f.register(other,'replacement-host');
+  else f.bound.instanceId='replacement-frame';
+  await assert.rejects(f.startApp('app-request',{},changedOwner==='host'?other:f.sender),{code:'E_OWNER'});
+  assert.equal((await f.rows('runs')).filter(row=>row.runId).length,0);
 });

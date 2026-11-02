@@ -1,8 +1,58 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createAiRequest,requireGeneration} from '../src/ai-request.js';
+import {createAiPending} from '../src/ai-pending.js';
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const payload={requestId:'original',request:'保留规则'};
+test('stop during terminal cleanup waits for its receipt and suppresses candidate delivery',async()=>{
+  const entered=deferred(),clear=deferred(),calls=[];
+  const op=createAiRequest(async name=>{
+    calls.push(name);return name==='ai.info'?{generation:1}:{requestId:'original',providerGeneration:1,proposal:{}};
+  },payload,()=>{},{claim:async()=>{},clear:async()=>{entered.resolve();await clear.promise;}});
+  const running=op.run();await entered.promise;
+  let reply;const stopping=op.cancel().then(value=>{reply=value;});
+  await new Promise(resolve=>setImmediate(resolve));
+  const premature=reply;
+  clear.resolve();await stopping;
+  assert.equal(await running,null,'a stop in cleanup must suppress the already received candidate');
+  assert.equal(premature,undefined,'no unknown or terminal receipt before cleanup finishes');
+  assert.deepEqual(reply,{requestId:'original',state:'completed'});
+  assert.equal(op.unknown,false);assert.deepEqual(calls,['ai.info','ai.generate']);
+});
+test('terminal evidence survives failed cleanup without clearing a different CAS owner',async()=>{
+  let value=null,revision=0,fail=true;const calls=[];
+  const pending=createAiPending(async(name,args)=>{
+    if(name==='storage.get')return {value:structuredClone(value),etag:String(revision)};
+    assert.equal(args.ifMatch,String(revision));
+    if(args.value===null&&fail)throw Error('lost cleanup receipt');
+    value=structuredClone(args.value);revision++;return {saved:true};
+  });
+  const op=createAiRequest(async name=>{
+    calls.push(name);return name==='ai.info'?{generation:1}:name==='ai.generate'?{requestId:'original',providerGeneration:1}: {requestId:'original',state:'unknown'};
+  },payload,()=>{},pending);
+  await assert.rejects(op.run(),/lost cleanup/);assert.equal(op.unknown,true);
+  fail=false;value={schemaVersion:1,requestId:'other'};revision++;
+  await assert.rejects(op.cancel(),/身份/);assert.equal(value.requestId,'other');assert.equal(op.unknown,true);
+  value={schemaVersion:1,requestId:'original'};revision++;
+  assert.deepEqual(await op.cancel(),{requestId:'original',state:'completed'});
+  assert.equal(value,null);assert.equal(op.unknown,false);assert.deepEqual(calls,['ai.info','ai.generate']);
+});
+test('stop shares a failed terminal cleanup receipt and explicit recovery retains completed evidence',async()=>{
+  const entered=deferred(),clear=deferred();let attempts=0;
+  const op=createAiRequest(async name=>{
+    assert.notEqual(name,'ai.cancel','known completion needs no uncertain Host cancellation');
+    return name==='ai.info'?{generation:1}:{requestId:'original',providerGeneration:1};
+  },payload,()=>{},{claim:async()=>{},clear:async()=>{
+    attempts++;if(attempts===1){entered.resolve();await clear.promise;}
+  }});
+  const running=op.run(),runFailure=assert.rejects(running,/cleanup failed/);
+  await entered.promise;
+  const stopFailure=assert.rejects(op.cancel(),/cleanup failed/);
+  clear.reject(Error('cleanup failed'));await Promise.all([runFailure,stopFailure]);
+  assert.equal(op.unknown,true);assert.equal(attempts,1,'Stop shares the in-flight clear');
+  assert.deepEqual(await op.cancel(),{requestId:'original',state:'completed'});
+  assert.equal(op.unknown,false);assert.equal(attempts,2);
+});
 test('cancel during info prevents dispatch after the delayed info response',async()=>{
   const info=deferred(),calls=[];
   const op=createAiRequest((name)=>{calls.push(name);return info.promise;},payload);

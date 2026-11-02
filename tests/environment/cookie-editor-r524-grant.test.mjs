@@ -70,7 +70,7 @@ test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate fi
   assert.match(host,/enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
 });
 
-test('R5.37 Cookie consent checks official provenance before offering all-site, supports site fallback and native Chrome repair',async()=>{
+test('R5.37 Cookie consent checks official provenance before offering complete access and native Chrome repair',async()=>{
   const host=await source('src/ui/sidebar-tools.js');
   assert.match(host,/async function admittedOfficialCookieImport\(tool,expectedEpoch,\{requireEnabled=true\}=\{\}\)/,
     'Cookie execution admission defaults to requiring an enabled installation');
@@ -92,7 +92,7 @@ test('R5.37 Cookie consent checks official provenance before offering all-site, 
   assert.match(host,/chromeMissing\?'恢复 Chrome Cookie 网站访问'/);
   assert.match(host,/const cookieRequiredCapabilities=/);
   assert.match(host,/cookieCapability:capability,enabled,origin:current/);
-  assert.match(host,/else if\(tool.id==='cookie-editor'\)await changeCookieSite\(\{enabled:true\}\)/);
+  assert.doesNotMatch(host,/else if\(tool.id==='cookie-editor'\)await changeCookieSite\(\{enabled:true\}\)/);
   assert.match(host,/else for\(const capability of cookieRequiredCapabilities\(tool\)\)/);
   assert.match(host,/kind:'cookie-grants-changed'/);
 });

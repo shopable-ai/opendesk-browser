@@ -1,6 +1,8 @@
 // ScrapyJS-only, declarative AI Action Adapter. No page execution or storage access.
+import {completeCsvOutput} from './export-settings.js';
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
+const reservedFields = new Set(['_listContainer', '_listItem']);
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 function requireObject(value, message) {
   if (!isObject(value)) throw Error(message);
@@ -10,8 +12,63 @@ function keys(value, allowed) {
   requireObject(value, 'AI 操作必须为对象。');
   if (Object.keys(value).some(key => !allowed.includes(key))) throw Error('AI 操作包含未受支持的参数。');
 }
+export function validateOperation(operation) {
+  keys(operation, ['kind', 'format', 'mode', 'settingsSource']);
+  if (!['capture.start', 'capture.stop', 'results.show', 'results.export'].includes(operation.kind) ||
+      (operation.kind === 'results.export' ? !['json', 'csv'].includes(operation.format) : own(operation, 'format')))
+    throw Error('AI 业务操作或导出格式无效。');
+  if (['mode','settingsSource'].some(key => own(operation,key)) &&
+      (operation.kind !== 'results.export' || operation.format !== 'csv') ||
+      operation.mode !== undefined && !['raw','custom'].includes(operation.mode) ||
+      operation.settingsSource !== undefined && (!['current','run'].includes(operation.settingsSource) || operation.mode !== 'custom'))
+    throw Error('自定义 CSV 的模式或设置来源无效。');
+  return {...operation};
+}
+// Bind a business request to its original data, not merely the selected view.
+export function businessIdentity(state, kind) {
+  if (kind === 'capture.stop') return JSON.stringify({runId:state.runId,
+    clientRequestId:state.clientRequestId,preparationId:state.preparationId});
+  const identity = {epoch:state.profileEpoch,configRevision:state.configRevision,config:state.config,page:state.target,
+    runId:state.runId,clientRequestId:state.clientRequestId};
+  // Stop/show follow the original run while its results continue to grow.
+  if (!['capture.stop', 'results.show'].includes(kind)) {
+    identity.result = state.result;
+    identity.runOutput = state.runProfile?.config?.output;
+  }
+  return JSON.stringify(identity);
+}
+const businessLocks = new WeakSet(), consumed = new WeakSet();
+export async function executeBusinessAction(app, proposal, {blocked = false} = {}) {
+  const operation = validateOperation(proposal.operation), state = app.state;
+  const preparingStop = operation.kind === 'capture.stop' && state.phase === 'starting' && Boolean(state.preparationId);
+  const alreadyLocked = businessLocks.has(app);
+  if (blocked || alreadyLocked && !preparingStop) throw Error('业务操作已锁定，请等待当前操作。');
+  if (consumed.has(proposal)) throw Error('此动作已消费，不会自动重放。');
+  if (proposal.identity !== businessIdentity(state, operation.kind)) throw Error('配置、网页或原运行结果身份已变化，请重新提议。');
+  if (state.saving || state.pendingAction) throw Error('配置操作已锁定。');
+  if (operation.kind === 'capture.start' && (state.phase === 'starting' || state.phase === 'unknown' ||
+      state.clientRequestId && !state.retired)) throw Error('原运行未结束或结果未知，不可重复开始。');
+  if (operation.kind === 'capture.stop' && !preparingStop && (!state.clientRequestId || state.retired || state.stopAccepted))
+    throw Error('没有可停止的原运行。');
+  if (operation.kind === 'results.export' && (!state.snapshot || state.result == null || state.snapshot.result !== state.result ||
+      state.snapshot.clientRequestId !== state.clientRequestId || state.snapshot.runId !== state.runId))
+    throw Error('尚无身份一致的真实结果可导出。');
+  consumed.add(proposal);businessLocks.add(app);
+  try {
+    switch (operation.kind) {
+      case 'capture.start': return await app.start(state.config.url);
+      case 'capture.stop': return await app.stop();
+      case 'results.show': return await app.refresh();
+      case 'results.export': {
+        const {output,warnings} = operation.mode === 'custom' ? completeCsvOutput(state.snapshot,
+          structuredClone((operation.settingsSource === 'run' ? state.runProfile?.config : state.config)?.output || {})) : {output:undefined,warnings:[]};
+        return {...await app.download(operation.format, output),warnings};
+      }
+    }
+  } finally { if (!alreadyLocked) businessLocks.delete(app); }
+}
 function fieldKey(key) {
-  if (typeof key !== 'string' || !key.trim() || key.length > 128 || forbidden.has(key) || key.startsWith('_'))
+  if (typeof key !== 'string' || !key.trim() || key.length > 128 || forbidden.has(key) || reservedFields.has(key))
     throw Error('AI 字段名称无效或属于引擎保留字段。');
   return key;
 }
@@ -97,12 +154,16 @@ function describeDiff(diff) {
 
 /**
  * Model output is untrusted data. This adapter only returns inspected data or
- * a validated, reviewable configuration. Callers must separately obtain user
- * confirmation before invoking existing ScrapyJS APIs.
+ * a validated configuration. The caller enforces actual user intent and the
+ * original permission/lifecycle fences before invoking ScrapyJS APIs.
  */
 export function resolveAiReply(raw, {base, expectedUrl, validate, changes, hasSample = false, allowFullConfig = true}) {
   const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
   requireObject(response, 'AI 返回内容不是 JSON 对象。');
+  if (response.type === 'operation') {
+    keys(response, ['type', 'operation']);
+    return {type:'operation', operation:validateOperation(response.operation)};
+  }
   if (response.type === 'explain' || response.type === 'needs-input') {
     keys(response, response.type === 'explain' ? ['type', 'message'] : ['type', 'message', 'missing']);
     if (typeof response.message !== 'string' || !response.message.trim() || response.message.length > 3000)
@@ -132,7 +193,13 @@ export function resolveAiReply(raw, {base, expectedUrl, validate, changes, hasSa
   const config = validate(candidate);
   if (new URL(config.url).href !== new URL(expectedUrl).href)
     throw Error('AI 试图改变目标网址，请先在采集目标中确认网页。');
-  const fields = new Set(Object.keys(config.itemConfig).filter(key => !key.startsWith('_')));
+  const fields = new Set([...Object.keys(config.itemConfig), ...Object.keys(config.detail?.itemConfig || {})]
+    .filter(key => !reservedFields.has(key)));
+  // The original splitPublication pipeline emits these fixed result columns.
+  if (config.processing?.rules.some(rule => rule.op === 'splitPublication')) {
+    for (const key of ['publication_raw', 'author', 'translator', 'publisher', 'publication_date', 'price', 'currency'])
+      fields.add(key);
+  }
   for (const key of Object.keys(config.output?.fieldNames || {})) {
     if (!fields.has(key)) throw Error('CSV 显示名称引用了不存在的采集字段：' + key);
   }
