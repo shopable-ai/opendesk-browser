@@ -199,7 +199,7 @@ exec "$AI_SCROLL_REAL_GIT" "$@"
 
 test('Node CI includes affected install, catalog and tool-local regressions',()=>{
   const ci=runBlock('Affected Node and Page Authority regressions');
-  for(const name of ['page-program-library','page-install-package','sidebar-tools-view',
+  for(const name of ['ai-scroll-navigation','page-program-library','page-install-package',
     'ai-scroll-install-ui-r134','ai-scroll-site-detail-ui-r134'])
     assert.ok(ci.includes(`tests/environment/${name}.test.mjs`),name);
   assert.ok(ci.includes('projects/ai-scroll-navigation/tests/*.test.mjs'));
