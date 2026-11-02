@@ -6,6 +6,7 @@ import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {createChatGPTFixedBridgeHost} from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
+import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-request.js';
 
 // React detects input event support once at import. Supply a DOM before loading
 // its client so this fixture exercises onChange through real delegated events.
@@ -52,6 +53,10 @@ async function fixture(t,{sheet=false,entry=false,host=controller()}={}){
  const {window,document}=parseHTML('<html><body><div id="opendesk-react-app"></div></body></html>');
  const previous=new Map(['window','document','HTMLElement','Element','SVGElement','IS_REACT_ACT_ENVIRONMENT'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
  Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,SVGElement:window.SVGElement,IS_REACT_ACT_ENVIRONMENT:true});
+ // Linkedom lacks textarea.defaultValue reflection. React initializes a newly
+ // mounted controlled textarea via that browser property before writing value.
+ Object.defineProperty(window.HTMLTextAreaElement.prototype,'defaultValue',{configurable:true,
+  get(){return this.textContent;},set(value){this.textContent=value;}});
  const root=createRoot(document.getElementById('opendesk-react-app'));
  const settings={source:'local_codex',endpoint:'',model:'',hasApiKey:false,generation:0};
  let open=true,closed=0,saves=0;
@@ -208,6 +213,68 @@ test('same-version replacement is explained as invalid approval and scope disclo
  assert.match(f.find('webflow-auto-grants').textContent,/安装已变化.*需重新批准/);
  assert.match(f.document.body.textContent,/ChatGPT.*各对话.*原聊天/);
  assert.equal(host.calls.some(([kind])=>kind==='approve'),false);
+});
+
+test('approved task generates a fresh strict five-field ChatGPT instruction without enabling or dispatching',async t=>{
+ const host=controller();
+ const approvedScope={...scope,args:{query:'包含 ``` 与 <script> 的关键词',limit:3}};
+ host.snapshot={...host.snapshot,grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope:approvedScope}]};
+ const f=await fixture(t,{host});
+ const button=()=>[...f.find('webflow-auto-grants').querySelectorAll('button')].find(b=>b.textContent.includes('生成'));
+ const clickGenerate=()=>React.act(async()=>button().dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ await clickGenerate();
+ const field=()=>f.find('webflow-auto-grants').querySelector('textarea');
+ const prompt=field().value;
+ assert.ok(field().hasAttribute('readOnly')||field().readOnly===true,field().outerHTML);
+ assert.equal(prompt.split('```').length,3,'parameter text cannot close the protocol fence');
+ const intent=validateWebFlowTaskIntent(prompt.split('```opendesk-task\n')[1].split('\n```')[0]);
+ assert.deepEqual(Object.keys(intent).sort(),['args','candidateId','protocol','targetUrl','taskId']);
+ assert.equal(intent.protocol,'webflow.task.intent.v1');
+ assert.equal(intent.taskId,scope.taskId);assert.equal(intent.targetUrl,scope.targetUrl);
+ assert.deepEqual(intent.args,approvedScope.args);
+ assert.match(f.find('webflow-auto-grants').textContent,/总开关已关闭/);
+ await clickGenerate();
+ const next=JSON.parse(field().value.split('```opendesk-task\n')[1].split('\n```')[0]);
+ assert.notEqual(next.candidateId,intent.candidateId);
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'generation cannot prepare, approve, enable or start');
+ assert.equal(f.document.querySelector('script'),null);
+ host.snapshot={...host.snapshot,tasks:[{...task,installation:{...installation,generation:2}}]};
+ await f.click('webflow-auto-refresh');
+ assert.equal(button(),undefined,'an outdated installation cannot produce an approved instruction');
+ assert.equal(field(),null,'refresh discards the old instruction');
+});
+
+test('unknown, unverified or revoked approval never offers a generated automatic instruction',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,catalogVerified:false,
+  grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
+ const f=await fixture(t,{host});
+ const hasGenerate=()=>[...f.find('webflow-auto-grants').querySelectorAll('button')].some(b=>b.textContent.includes('生成'));
+ assert.equal(hasGenerate(),false);
+ host.snapshot={...host.snapshot,catalogVerified:true,grants:[{...host.snapshot.grants[0],state:'revoked'}]};
+ await f.click('webflow-auto-refresh');assert.equal(hasGenerate(),false);
+ host.api.readAutoSettings=async()=>{throw Error('read failed');};
+ await f.click('webflow-auto-refresh');assert.equal(hasGenerate(),false);
+ assert.equal(f.find('webflow-auto-disable').disabled,false,'deny-only management remains available');
+});
+
+test('copy preserves the exact generated instruction and clipboard failure keeps it available for manual copying',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,
+  grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
+ const original=Object.getOwnPropertyDescriptor(globalThis,'navigator');let copied='';
+ const clipboard={writeText:async text=>{copied=text;}};
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard}});
+ t.after(()=>{if(original)Object.defineProperty(globalThis,'navigator',original);else delete globalThis.navigator;});
+ const f=await fixture(t,{host});
+ const click=label=>React.act(async()=>[...f.find('webflow-auto-grants').querySelectorAll('button')]
+  .find(b=>b.textContent===label).dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ await click('生成 ChatGPT 指令');
+ const prompt=f.find('webflow-auto-grants').querySelector('textarea').value;
+ await click('复制指令');assert.equal(copied,prompt);
+ assert.match(f.find('webflow-auto-grants').textContent,/指令已复制/);
+ clipboard.writeText=async()=>{throw Error('permission denied');};
+ await click('复制指令');assert.match(f.find('webflow-auto-grants').textContent,/⌘C \/ Ctrl\+C/);
+ assert.equal(f.find('webflow-auto-grants').querySelector('textarea').value,prompt);
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read']);
 });
 test('real Host projection reaches the settings UI; task revoke persists and denies the next automatic candidate',async t=>{
  let data={},catalogReadFailure=false;

@@ -95,6 +95,20 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
+test('overview leads to existing scripts and automatic usage help without creating an execution',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('查看可用脚本');
+  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
+  assert.ok(taskCard(f));
+  await f.click('概览');await f.click('使用与排障');
+  assert.equal(f.document.querySelector('main h2').textContent,'帮助');
+  await f.click('返回');
+  assert.equal(f.document.querySelector('[data-page="overview"]').getAttribute('aria-selected'),'true');
+  assert.equal(starts(host).length,0);
+  assert.equal(host.store.has('webflow.pending.v1'),false);
+  assert.deepEqual([...new Set(host.calls.map(c=>c.name))].sort(),['currentPage.info','storage.get','tasks.read']);
+});
+
 test('the step ID is durably read back before the direct manual start; duplicate clicks start once',async t=>{
   const host=sdk(),ack=deferred();host.start=()=>ack.promise;
   const f=await mount(t,host);await prepare(f);

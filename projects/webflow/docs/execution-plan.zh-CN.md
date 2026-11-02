@@ -1093,3 +1093,24 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 本轮 **A–D 核心开发链已取得真实开发候选证据**；独立复审结论以随后实际回执补记，未审不写 95。下一阶段只有用户明确要求才开展：多步骤 B、跨对话、持久队列、MCP 产品接入、完整回传/AI 续答、production、宽度缩放或压力矩阵。总开关最终保持关闭，百度固定安装与精确授权保留；原 dev writer 保持服务，不停止他人进程。
 
 **独立复审实读：** James（`01a19c4a-619c-7982-8cf8-739baca41db7`）已只读核对本次差量、`core-proof.json` 及原公开 Durable 历史，结论为 **96/100，第一阶段 development 核心链可接受收尾，原两项 P1 已关闭，本范围未发现剩余 P1**。他确认两次 saved Task 的独立身份、完整公开持久结果与回包一致、三条结果、输入/单次点击、重复与关闭拒绝，以及新 Side Panel host 的关闭读回；这是对提交材料的独立复审，不冒充专家另行操作 Chrome。其他安全负例仍仅为组件证据；production、完整矩阵、MCP 产品与完整 AI 回传继续延期。当前任务完成不改变旧任务 paused 状态。
+
+### 12.11.4 核心使用入口：复用批准、生成指令与结果指引（2026-11-02）
+
+**当前操作与复现：** 用户要求复用已有脚本和自动执行证据，直接完善核心。真实侧栏的可信页头显示“自动运行：已关闭”，沙箱概览却显示“自动触发 未接入”“没有公开的逐任务自动授权与总开关状态读写合同”，页脚仍写“无自动授权或后台执行”。本轮完成“打开现有应用 → 找到已有脚本批准 → 生成并复制有效指令 → 知道原聊天结果/失败在哪里”，不重新安装/运行百度 Task，不建立总 GOAL。
+
+**发现与复用：** owner 仍为 `projects/webflow/`。公开 `sidebar-tools.zh-CN.md` 的 `tasks.read({taskId})` 只返回固定安装元数据，`tasks.read({clientRequestId})` 只读取本 App 原请求，不能读取 Bridge 自动批准或任意聊天结果。真实可信消费者 `trusted/AutoSettings.tsx` 已经从原 `webflowAuto.readAutoSettings` 获得批准/安装投影，直接复用。沙箱只修正引导，不自报实时开关，不新增 SDK/RPC、数据库、Runner、授权或安装层。
+
+- 概览移除矛盾状态，接上原可信滑块、精确批准与原聊天任务卡的进度/结果/失败路径；明确本界面“记录”只保存手动请求。旧手动、一次批准、持续自动、取消/恢复路径保留。
+- 可信授权区先显示已有批准，再显示新增/更改范围。有效批准新增“生成 ChatGPT 指令”与复制：精确复用 taskId、targetUrl、args，每次生成新 UUID candidateId，保持原 `webflow.task.intent.v1` 严格五字段及 `opendesk-task` 代码块。参数反引号采用 JSON Unicode 转义，不能结束代码块。
+- 生成/复制不批准、不开关、不提交任务。关闭时提示先开启；安装改变、撤销、目录未核验、读取失败或刷新时不提供生成入口，刷新/关闭丢弃旧文本。复制失败仍保留只读文本及手动复制入口。实际执行与防重放仍经原 Bridge 逐次核验。
+- 固定组件仅更新 `scripts/bundle-provenance.mjs` 的 Web Flow 精确来源 pin；原第 12.10 节 35 行及 Cookie pin/业务、ScrapyJS、云控 dirty 保留，不混入本轮提交。
+
+**对应最小验证：** 新增生成/复制行为触发原 `auto-settings-ui.test.mjs` 的相关控件检查及三项新行为测试：严格五字段/新 ID/原批准范围、无有效批准不生成、复制与失败保留。原 13 项及后加复制项分别通过；原包/模型 6 项、概览→脚本/帮助导航 1 项、固定来源准入/拒绝 2 项通过，共 23 项。未重跑原 77 项、整组恢复、真实 Task 或模型。首次新挂载只读 textarea 的夹具失败来自 Linkedom 缺少 `defaultValue` 浏览器反射及属性大小写差异，仅修夹具。`node --check`、同源包和差异格式检查通过。
+
+**真实 Chrome UI：** 原扩展 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`，通过原安装器同 ID 导入 v0.3.5，新概览/可信控件已出现，无卸载。原百度批准仍有效，精确参数 `{"limit":3,"query":"OpenDesk Browser"}`、首页 `https://www.baidu.com/` 保留。原生点击生成、复制、再次生成：实际 AX Unicode 与剪贴板逐字一致，两次 candidateId 不同，均通过原严格解析器；未发送 ChatGPT，模型请求 0，Task start 0，开关保持关闭。原生证据仅覆盖入口/生成/复制；真实自动执行与 Durable/原聊天反馈复用 12.11.3，不冒报本次新字节重跑通过。
+
+控制中 Chrome 标签悬浮提示被 Computer Use 窗口元数据误认成前台，部分 AXPress/瞬时鼠标 ACK 无效果；使用真实 AX 主窗口标题/控件定位、带指针移动的原生 CGEvent 后，按回读确认生效，未用网页合成事件。仅留两张必要诊断截图。`pbpaste` 中文导出实际为 GB18030，正确解码后与 AX 完全一致，属于导出编码差异，没有修改产品规避。
+
+**包与持续开发：** 唯一 `webflow.opendesk-tool.json` **v0.3.5 / 53,597 bytes / SHA-256 `c64b7e7e4a968078af581dce05730e5845e4dfab4de084162c5262f405b36e19`**。原 candidate → 定向门禁 → `--promote-from` → `--check-project` 同源通过，四项 capability、两个 Task pin 未扩展。交接 PID 64855 已退出、两端口无监听，恢复原唯一 `npm run dev`：新 writer **85861**、43119/43120、原 `dist/development`。真实调试页显示“开发服务已连接”，指纹 **`105c832e5cf9`**（完整 `105c832e5cf9aa25ffcd84d1f2717f4fdc4984df9d2ab539cfee5dc695459388`）；未换扩展 ID/路径/Native 配对，没有第二个 writer。
+
+证据在 `artifacts/webflow-auto-20261102/core-entry-01a19caf/`：`approved-scope.ax.txt`、两份 `generated-prompt-*.txt`、`copied-prompt.ax.txt`、`copied-prompt.utf8.txt`、`native-prompt-proof.json`、`dev-final.ax.txt`、`dev-serve.log`。最终留在 Web Flow，开关关闭、原批准保留。下一条正常使用动作是从已有批准生成并复制新指令，用户准备执行时再开自动运行并在原聊天发送；无需重新创建或安装脚本。多步骤 B、跨对话、持久队列、MCP 产品、完整长结果/AI 续答、production、宽度缩放/压力和新评分继续延期。

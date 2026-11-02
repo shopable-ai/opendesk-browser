@@ -356,7 +356,7 @@
     const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
     const gotoScripts=()=>setTab('scripts');
     const banner=h('div',{className:'wf-banner'},
-      '已核对的是本应用安装审阅的 '+PINNED.length+' 个固定任务，不是浏览器所有脚本；自动运行授权和全局历史的公开接口尚未提供。');
+      '本页核对 '+PINNED.length+' 个固定脚本的安装。ChatGPT 自动运行的实时开关与精确批准范围见应用上方“自动运行”。');
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
     const taskCard=pin=>{
@@ -460,17 +460,21 @@
             .map(([label,n])=>h('div',{key:label,className:'wf-stat'},
               h('strong',null,n),h('span',null,label)))),
         h(Card,{children:h('div',{className:'wf-stack'},
-          h('div',{className:'wf-line wf-between'},h('h3',null,'自动触发'),
-            h(Status,{state:'unavailable',text:'未接入'})),
-          h('p',{className:'wf-sub'},'没有公开的逐任务自动授权与总开关状态读写合同。本界面不会授予任何自动执行权限。'),
+          h('h3',null,'从 ChatGPT 自动运行'),
+          h('ol',{className:'wf-help'},
+            h('li',null,'在上方“任务范围与授权”核对已有脚本批准；地址、参数与安装版本须完全匹配。'),
+            h('li',null,'在已批准任务中生成并复制本次 ChatGPT 指令，开启上方“自动运行”滑块。'),
+            h('li',null,'保持侧栏打开，在 ChatGPT 原对话粘贴并发送。完整助手回复符合协议后自动执行，无需再点运行。')),
+          h('p',{className:'wf-sub'},'进度、结果或具体失败请查看原聊天的 OpenDesk 任务卡；结果回到同一聊天。下方“记录”仅保存本界面的手动运行。'),
           h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{primary:true}),
+            Btn('使用与排障',()=>setTab('help'),{quiet:true}),
             Btn('刷新安装状态',()=>{void readTasks();},{disabled:loading})))}),
         summary.attention>0&&h('div',{className:'wf-banner wf-warning'},
           summary.attention+' 项固定任务不可用或版本变化。请在宿主任务目录核对，不要通过改名绕过固定身份。'),
         h(Card,{children:h('div',{className:'wf-stack'},
-          h('div',{className:'wf-line wf-between'},h('h3',null,'最近一次应用运行'),
+          h('div',{className:'wf-line wf-between'},h('h3',null,'最近一次手动运行'),
             Btn('查看记录',()=>setTab('history'),{quiet:true})),
-          summary.latest?historyCard(summary.latest,0):h('p',{className:'wf-sub'},'尚无 Web Flow 发起且读回的运行摘要。已有的 ChatGPT Bridge 记录不会自动导入此处。')
+          summary.latest?historyCard(summary.latest,0):h('p',{className:'wf-sub'},'尚无手动运行摘要。自动运行的结果在触发任务的原聊天中查看。')
         )}));
     }
     function scripts(){
@@ -497,7 +501,7 @@
     }
     function records(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'记录',note:'原步骤恢复入口与最近 12 条本应用摘要'}),
+        h(Head,{title:'记录',note:'手动运行原步骤与最近 12 条摘要；自动结果见原聊天'}),
         h('div',{className:'wf-banner'},'摘要仅用于定位。点击原记录的“查询原请求”，由当前宿主重新核验授权并读取原结果；不会重新运行。结果完成、资源释放、原聊天交付和 AI 续答分别核对。'),
         activeCard(),
         history.length?h('ul',{className:'wf-history'},...history.map(historyCard)):
@@ -533,13 +537,20 @@
         h(Head,{title:'帮助',note:'首次使用或需要排障时查看',
           action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
+          h('h3',null,'从 ChatGPT 自动运行'),
+          h('p',null,'1. 展开应用上方“任务范围与授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；改变参数需重新审核。'),
+          h('p',null,'2. 在已批准任务中点击“生成 ChatGPT 指令”并复制，开启“自动运行”。保持侧栏打开，在原 ChatGPT 对话发送指令，等待唯一完整助手回复。'),
+          h('p',null,'3. 在原聊天 OpenDesk 任务卡查看本次进度、结果或失败。自动结果不会出现在本界面的手动记录中。每次新任务须生成新 candidateId；结果未知时只查询原请求，不补跑。'),
+          h('h3',null,'未触发或需要停止'),
+          h('p',null,'先核对上方开关、任务批准和原聊天任务卡的错误。未批准时在可信界面审核；协议格式、重复候选、安装变化或网站权限失败时按原错误处理。关闭开关只阻止新任务；已开始的任务在原聊天任务卡停止。'),
+          h('p',null,'若上方没有自动运行控件，请更新 OpenDesk Browser 后重开应用。生成指令需要当前 Browser 的对应可信组件，单独升级工具包不会更新该组件。'),
           h('h3',null,'手动运行一个真实任务'),
           h('p',null,'1. 在宿主任务目录安装并核验与本应用相同版本、哈希的 Controller Task。'),
           h('p',null,'2. 打开对应的 Google / 百度获准网站，再在 Web Flow → 脚本选择任务、输入关键词并点击运行。'),
           h('p',null,'3. 保存运行步骤并确认手动运行。关闭重开后在“记录 → 原步骤 → 查询原请求”核对同一执行；网页业务状态须单独核对。'),
           h('h3',null,'出现版本不匹配或 UNKNOWN'),
           h('p',null,'回到可信宿主核对安装身份、权限、站点和结果。不通过自动重试绕开未知副作用。'),
-          h('p',null,'ChatGPT Bridge 的 opendesk.task.intent.v1 是独立触发路径；本应用不修改其协议、防重放或交付回执。'))}));
+          h('p',null,'持续自动使用 webflow.task.intent.v1 严格五字段；原手动与一次批准使用 opendesk.task.intent.v1，保留各自授权、防重放与回执。'))}));
     }
     const sections={overview,scripts,history:records,settings:settingsPage,help:helpPage};
     return h('div',{className:'wf-app', 'data-theme':settings.theme},
@@ -572,7 +583,7 @@
           h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
         page!=='history'&&activeCard(),
         sections[page]()),
-      h('footer',{className:'wf-footer'},'仅复用原 Task Authority / RunHost · 无自动授权或后台执行'));
+      h('footer',{className:'wf-footer'},'自动运行由上方可信控件管理 · 执行与结果复用原 Task'));
   }
   function sameSite(url,origin){
     try{return new URL(url).origin===origin;}catch{return false;}

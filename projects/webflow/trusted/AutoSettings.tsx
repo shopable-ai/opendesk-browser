@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {Button} from '../../../src/ui/react/components/ui/button.tsx';
 import {Switch} from '../../../src/ui/react/components/ui/switch.tsx';
+import {WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 
 type Installation=Record<string,unknown>;
 type ParamsSchema={type?:string;default?:unknown;const?:unknown;enum?:unknown[];
@@ -64,6 +65,47 @@ function ScopeSummary({scope}:{scope:WebflowAutoScope}){
    <summary>安装身份 · SHA / installation / generation</summary>
    <pre className="od-result od-technical" style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(scope.installation,null,2)}</pre>
   </details>
+ </div>;
+}
+
+// A copyable request only. The original Bridge still parses the assistant's
+// complete reply and rechecks the current approval, installation and site.
+function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:boolean}){
+ const [prompt,setPrompt]=React.useState('');
+ const [notice,setNotice]=React.useState('');
+ const field=React.useRef<HTMLTextAreaElement>(null);
+ const select=()=>{field.current?.focus();field.current?.select?.();};
+ const generate=()=>{
+  setNotice('');
+  try{
+   const intent={protocol:WEBFLOW_TASK_INTENT_PROTOCOL,candidateId:'wf-'+globalThis.crypto.randomUUID(),
+    taskId:scope.taskId,targetUrl:scope.targetUrl,args:scope.args};
+   // Encode a code block as data: a user parameter containing backticks must
+   // not close the block in the instruction given to ChatGPT.
+   const json=JSON.stringify(intent,null,2).replace(/`/g,'\\u0060');
+   setPrompt('请仅回复下面这一个 opendesk-task 代码块，完整保留五个字段及其值，不添加说明、引用或其他代码块：\n\n```opendesk-task\n'+json+'\n```');
+  }catch{setPrompt('');setNotice('本次指令未生成，请重新打开应用后重试。');}
+ };
+ const copy=async()=>{
+  select();
+  try{
+   if(!globalThis.navigator?.clipboard?.writeText)throw Error('clipboard unavailable');
+   await globalThis.navigator.clipboard.writeText(prompt);
+   setNotice('指令已复制。请在 ChatGPT 原对话粘贴并发送。');
+  }catch{setNotice('请选中下方指令，按 ⌘C / Ctrl+C 复制，再到 ChatGPT 粘贴并发送。');}
+ };
+ return <div className="od-stack">
+  <Button onClick={generate}>{prompt?'生成下一次指令':'生成 ChatGPT 指令'}</Button>
+  {prompt&&<div className="od-form-field">
+   <label className="od-field-label">本次 ChatGPT 指令
+    <textarea ref={field} className="od-field od-technical" value={prompt} readOnly rows={8} spellCheck={false}/>
+   </label>
+   <div className="od-toolbar"><Button onClick={()=>{void copy();}}>复制指令</Button>
+    <Button variant="quiet" onClick={select}>选中指令</Button></div>
+   <p className="od-field-help">{enabled?'保持侧栏打开，将指令发送给 ChatGPT。':'总开关已关闭：请先在上方开启自动运行，再发送指令。'}
+    每次新任务先生成新指令；重复候选不会重新执行。生成或复制本身不会运行任务。</p>
+  </div>}
+  {notice&&<p role="status" className="od-note">{notice}</p>}
  </div>;
 }
 
@@ -170,13 +212,17 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   });
  };
  const grantSnapshot=snapshot??lastSnapshot.current;
+ const grantUsable=grant=>{
+  if(!snapshot||snapshot.catalogVerified===false||grant.state!=='active')return false;
+  const current=snapshot.tasks.find(row=>row.taskId===grant.taskId);
+  const keys=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
+  return Boolean(current&&keys.every(key=>current.installation[key]===grant.scope.installation[key]));
+ };
  const grantLabel=grant=>{
   if(!snapshot)return '当前状态未确认（下列为上次已知批准，可直接撤销）';
   if(grant.state==='revoked')return '已撤销';
   if(snapshot.catalogVerified===false)return '安装状态待核验，请诊断刷新';
-  const current=snapshot.tasks.find(row=>row.taskId===grant.taskId);
-  const keys=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
-  return current&&keys.every(key=>current.installation[key]===grant.scope.installation[key])
+  return grantUsable(grant)
    ?'授权有效（仍需逐次核验网站权限）':'安装已变化或不可用，需重新批准';
  };
  const busy=Boolean(work),editable=Boolean(snapshot)&&work!=='read'&&work!=='write';
@@ -208,6 +254,14 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    disabled={!webflowAuto?.setAutoEnabled} onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>}
   {notice&&<p role="status" className="od-note">{notice}</p>}
   {error&&<p id="webflow-auto-error" role="alert" className="od-field-error">{error}</p>}
+  <details className="od-disclosure od-disclosure--flat">
+   <summary>如何触发与查看结果</summary>
+   <div className="od-stack">
+    <p className="od-field-help">在“任务范围与授权”中核对已有批准，生成并复制本次指令；开启上方滑块后，在 ChatGPT 对话中粘贴并发送。只有随后完整助手回复里的固定协议会触发。</p>
+    <p className="od-field-help">本次进度、结果或具体失败显示在触发任务的原聊天 OpenDesk 任务卡；持久结果回到同一聊天。沙箱“记录”仅显示手动运行，空记录不代表自动任务未执行。</p>
+    <p className="od-field-help">没有触发时先核对开关、已批准的精确地址与参数，以及原聊天任务卡提示。结果未知时查询原请求，不重新发送同一候选或切换入口补跑。关闭自动运行只阻止新任务；已开始的任务请在原聊天任务卡停止。</p>
+   </div>
+  </details>
   <details className="od-disclosure od-disclosure--flat" open={compact?undefined:true}>
    <summary>任务范围与授权</summary>
    <div className="od-stack">
@@ -222,6 +276,22 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   </div>
   {!webflowAuto&&<p role="status" className="od-note">自动准入设置暂不可用。</p>}
   {snapshot&&!snapshot.tasks.length&&<p role="status" className="od-note">暂无可审核的已安装任务，请诊断刷新查看原因。</p>}
+  {grantSnapshot&&<div id="webflow-auto-grants" className="od-stack" role="group" aria-label="已批准任务">
+   <strong className="od-field-label">逐任务授权</strong>
+   {!grantSnapshot.grants.length&&<p className="od-note">尚未批准任何任务。</p>}
+   {grantSnapshot.grants.map(grant=><div key={grant.grantId} className="od-surface od-surface--padded od-stack">
+    <strong>{grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)?.name||grant.taskId}（{grant.taskId}）</strong>
+    <p className="od-note">{grantLabel(grant)}</p>
+    <ScopeSummary scope={grant.scope}/>
+    <p className="od-technical">批准时间：{typeof grant.approvedAt==='number'
+     ?new Date(grant.approvedAt).toLocaleString('zh-CN'):grant.approvedAt}</p>
+    <Button variant="danger" disabled={work==='write'||grant.state==='revoked'||!webflowAuto?.revokeAutoTask}
+     aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
+    {!busy&&snapshot&&grantUsable(grant)&&
+     <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId} scope={grant.scope} enabled={snapshot.enabled}/>}
+   </div>)}
+  </div>}
+  <strong className="od-field-label">新建或更改批准范围</strong>
   <div className="od-form-field">
    <label className="od-field-label" htmlFor="webflow-auto-task">任务</label>
    <select id="webflow-auto-task" className="od-field" value={draft.taskId}
@@ -255,19 +325,6 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    <p className="od-field-help">本次批准会持久保存上述精确范围，允许后续持续自动提交。任何输入改变都需重新审核。</p>
    <Button id="webflow-auto-approve" variant="primary" disabled={busy||!webflowAuto?.approveAutoTask}
     aria-describedby="webflow-auto-risk" onClick={event=>approve(event.nativeEvent)}>批准此任务持续自动准入</Button>
-  </div>}
-  {grantSnapshot&&<div id="webflow-auto-grants" className="od-stack" role="group" aria-label="已批准任务">
-   <strong className="od-field-label">逐任务授权</strong>
-   {!grantSnapshot.grants.length&&<p className="od-note">尚未批准任何任务。</p>}
-   {grantSnapshot.grants.map(grant=><div key={grant.grantId} className="od-surface od-surface--padded od-stack">
-    <strong>{grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)?.name||grant.taskId}（{grant.taskId}）</strong>
-    <p className="od-note">{grantLabel(grant)}</p>
-    <ScopeSummary scope={grant.scope}/>
-    <p className="od-technical">批准时间：{typeof grant.approvedAt==='number'
-     ?new Date(grant.approvedAt).toLocaleString('zh-CN'):grant.approvedAt}</p>
-    <Button variant="danger" disabled={work==='write'||grant.state==='revoked'||!webflowAuto?.revokeAutoTask}
-     aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
-   </div>)}
   </div>}
   {snapshot&&<details className="od-disclosure od-disclosure--flat">
    <summary>诊断 · 任务可用性与授权代次</summary>

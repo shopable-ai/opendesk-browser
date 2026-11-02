@@ -22,7 +22,8 @@ const compiledTimeReviewInputs=Object.freeze({
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
-  'projects/webflow/trusted/AutoSettings.tsx':'d159b5485315a6cef01fc68967f66d7a016cdf22'
+  // Reviewed approved-scope prompt formatting/copy UI; no new execution or authority API.
+  'projects/webflow/trusted/AutoSettings.tsx':'b523ad3e4337b2d85cf2253dbd5adcba95e60c4e'
 });
 function reviewedCompiledWebFlow(target,path,root){
   if(!Object.hasOwn(compiledWebFlowInputs,path)||
