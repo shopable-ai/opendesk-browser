@@ -15,7 +15,7 @@ function runBlock(name){
 }
 const publish=runBlock('Commit verified package with normal fast-forward push');
 const verify=runBlock('Verify byte identity, revision, scope and blocked release');
-const packagePath='examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json';
+const packagePath='projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json';
 const catalogPath='official-pages/sources.json';
 const id='opendesk.ai-scroll-navigation';
 const row={programId:id,version:'0.4.1',revision:2,publication:'blocked'};
@@ -53,7 +53,7 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
       write(runner,'package.json',{type:'module'});
       write(runner,'src/scripting/user-scripts/page-install-package.js',
         `export const validatePageInstallPackage=async value=>({...value,sourceUtf8:'built source',pageRules:{matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']}});`);
-      write(runner,'examples/programs/chatgpt-jump-top/chatgpt-jump-top.opendesk-page.json',{programId:'opendesk.chatgpt-jump-top'});
+      write(runner,'projects/ai-scroll-navigation/chatgpt-jump-top.opendesk-page.json',{programId:'opendesk.chatgpt-jump-top'});
       write(temp,'ai-scroll-nav-build/program.js','built source');
       return command('bash',['-c',verify],runner,{AI_SCROLL_INPUT_HEAD:base,RUNNER_TEMP:temp});
     },
@@ -98,7 +98,7 @@ for(const path of ['src/platform/host/authority.js','src/platform/host/broker.js
   'scripts/program-assets.mjs','native-agent/local-dev/snapshot.mjs',
   'schemas/opendesk-program-project.v1.schema.json','package-lock.json',
   'tests/environment/ai-scroll-release-r134.test.mjs',
-  'examples/programs/chatgpt-jump-top/src/conversation.js']){
+  'projects/ai-scroll-navigation/src/conversation.js']){
   test(`input fence rejects changed ${path}`,t=>{
     const f=fixture(t);f.advance(path,'changed\n');const latest=git(f.author,'rev-parse','HEAD');
     const result=f.run();assert.notEqual(result.status,0);
@@ -202,7 +202,7 @@ test('Node CI includes affected install, catalog and tool-local regressions',()=
   for(const name of ['page-program-library','page-install-package','sidebar-tools-view',
     'ai-scroll-install-ui-r134','ai-scroll-site-detail-ui-r134'])
     assert.ok(ci.includes(`tests/environment/${name}.test.mjs`),name);
-  assert.ok(ci.includes('examples/programs/chatgpt-jump-top/tests/*.test.mjs'));
+  assert.ok(ci.includes('projects/ai-scroll-navigation/tests/*.test.mjs'));
 });
 
 for(const stage of ['publish','verify']){

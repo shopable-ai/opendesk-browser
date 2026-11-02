@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/ai-four-products-r124.yml'
       - 'official-pages/**'
-      - 'examples/programs/chatgpt-jump-top/**'
+      - 'projects/ai-scroll-navigation/**'
       - 'official-tools/catalog.json'
       - 'src/scripting/user-scripts/official-page-catalog.js'
       - 'src/sidebar-tools/official-catalog.js'
@@ -83,12 +83,12 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Freeze Scroll candidate without installing it
         run: |
-          node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
-          node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/scroll-r124"
+          node scripts/validate-program-project.mjs projects/ai-scroll-navigation
+          node scripts/build-program-project.mjs projects/ai-scroll-navigation --out "$RUNNER_TEMP/scroll-r124"
           node scripts/build-page-install-package.mjs \
             --input "$RUNNER_TEMP/scroll-r124/program.opendesk-draft.json" \
             --out "$RUNNER_TEMP/scroll-r124/ai-scroll-navigation.opendesk-page.json" \
-            --revision 1 --title "AI 对话滚动导航"
+            --revision 8 --title "AI 对话滚动导航"
       - name: Validate immutable new identity and origin authorization
         run: |
           node --input-type=module <<'NODE'
@@ -98,8 +98,8 @@ jobs:
           const file=process.env.RUNNER_TEMP+'/scroll-r124/ai-scroll-navigation.opendesk-page.json';
           const bytes=await readFile(file),pkg=await validatePageInstallPackage(JSON.parse(bytes));
           assert.equal(pkg.programId,'opendesk.ai-scroll-navigation');
-          assert.equal(pkg.version,'0.4.0');
-          assert.equal(pkg.revision,1);
+          assert.equal(pkg.version,'0.4.8');
+          assert.equal(pkg.revision,8);
           assert.equal(pkg.title,'AI 对话滚动导航');
           assert.deepEqual(pkg.pageRules.matches,[
             'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'
@@ -116,7 +116,7 @@ jobs:
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFile} from 'node:fs/promises';
-          const committed=await readFile('examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json');
+          const committed=await readFile('projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json');
           const rebuilt=await readFile(process.env.RUNNER_TEMP+'/scroll-r124/ai-scroll-navigation.opendesk-page.json');
           assert.deepEqual(committed,rebuilt,'Page formal package differs from latest compiled source');
           console.log('SCROLL_SOURCE_REBUILD_AND_FORMAL_PACKAGE_EQUAL',committed.length);

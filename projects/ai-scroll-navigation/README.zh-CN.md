@@ -66,7 +66,7 @@ r11 sourceHash 为 `05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea350351
 
 ## R1.3.4 增量（2026-10-27）
 
-- 当前正式可导入包为 **0.4.6 / revision 7**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
+- 当前正式可导入包为 **0.4.8 / revision 8**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
 - 首次使用 Page 网页增强时，需在 Chrome 的 OpenDesk Browser 扩展详情中允许用户脚本。安装后在批准的网站直接运行；不需要再到产品详情启用一次。`E_USER_SCRIPTS_UNAVAILABLE` 时先核对这一 Chrome 权限开关及其真实读回。
 - 从「扩展 → 已安装 → AI 对话滚动导航 → 详情」填写精确 HTTP(S) Origin 和路径前缀，进入原 Installer 审阅。Chrome 网站授权可能覆盖整个主机；原生匹配路径、明确端口与可信 Host 仍约束程序执行。HTTP/HTTPS、localhost、127.0.0.1 和不同端口分别处理，禁止通配 Origin、查询或片段作为路径范围。
 - 自定义网站候选由可信 Host 从当前不可变源码生成，使用 `1_000_000_000..2_147_483_647` 的保留 Revision 区间和 `+site.r…` 版本。相同输入生成相同身份，碰撞失败并保留旧安装；官方冻结包不得使用该区间。Revision 是不可变键，不以数值决定升级顺序。

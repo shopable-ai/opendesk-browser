@@ -4,7 +4,7 @@
   "programs": [
     {
       "programId": "opendesk.ai-scroll-navigation",
-      "project": "examples/programs/chatgpt-jump-top",
+      "project": "projects/ai-scroll-navigation",
       "packageFile": "ai-scroll-navigation.opendesk-page.json",
       "version": "0.4.8",
       "revision": 8,
