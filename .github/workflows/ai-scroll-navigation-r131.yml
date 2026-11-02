@@ -52,17 +52,18 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
-          import {readFile,writeFile} from 'node:fs/promises';
+          import {access,readFile,writeFile} from 'node:fs/promises';
           import {join} from 'node:path';
           import {execFileSync} from 'node:child_process';
           import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
           const root='projects/ai-scroll-navigation';
-          const [current,old,source,manifest]=await Promise.all([
+          const [current,source,manifest]=await Promise.all([
             readFile(join(root,'ai-scroll-navigation.opendesk-page.json'),'utf8'),
-            readFile(join(root,'chatgpt-jump-top.opendesk-page.json'),'utf8'),
             readFile(join(process.env.RUNNER_TEMP,'ai-scroll-nav-build','program.js'),'utf8'),
             readFile('official-pages/sources.json','utf8')
           ]);
+          await assert.rejects(access(join(root,'chatgpt-jump-top.opendesk-page.json')),{code:'ENOENT'},
+            'retired legacy import package must not remain in the current project');
           const value=await validatePageInstallPackage(JSON.parse(current));
           assert.equal(value.programId,'opendesk.ai-scroll-navigation');
           assert.equal(value.version,'0.4.8');
@@ -80,7 +81,6 @@ jobs:
           assert.equal(value.sourceUtf8,source);
           assert.deepEqual(value.pageRules.matches,[
             'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
-          assert.equal(JSON.parse(old).programId,'opendesk.chatgpt-jump-top');
           const publication=JSON.parse(manifest);
           const entry=publication.programs.find(row=>row.programId===value.programId);
           assert.ok(entry&&entry.publication==='blocked');

@@ -53,7 +53,6 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
       write(runner,'package.json',{type:'module'});
       write(runner,'src/scripting/user-scripts/page-install-package.js',
         `export const validatePageInstallPackage=async value=>({...value,sourceUtf8:'built source',pageRules:{matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']}});`);
-      write(runner,'projects/ai-scroll-navigation/chatgpt-jump-top.opendesk-page.json',{programId:'opendesk.chatgpt-jump-top'});
       write(temp,'ai-scroll-nav-build/program.js','built source');
       return command('bash',['-c',verify],runner,{AI_SCROLL_INPUT_HEAD:base,RUNNER_TEMP:temp});
     },
@@ -71,6 +70,12 @@ test('official r9 uses reserved-range guard and a matching hash record without n
   assert.match(workflow,/ai-scroll-release-record.json/);
   assert.match(workflow,/fetch-depth: 0/);
   assert.doesNotMatch(publish,/--force|git rebase/);
+});
+
+test('retired legacy import package is absent and the production verifier enforces cleanup',()=>{
+  assert.ok(verify.includes("await assert.rejects(access(join(root,'chatgpt-jump-top.opendesk-page.json')),{code:'ENOENT'}"));
+  assert.ok(!verify.includes("readFile(join(root,'chatgpt-jump-top.opendesk-page.json')"));
+  assert.ok(!verify.includes("JSON.parse(old).programId"));
 });
 
 test('actual publish block has valid bash syntax',()=>{
