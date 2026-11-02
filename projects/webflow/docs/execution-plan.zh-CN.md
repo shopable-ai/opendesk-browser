@@ -1024,3 +1024,9 @@ node --test \
 原始诊断摘要、输入身份及目标回执保存在 `artifacts/webflow-auto-20261102/resume-01a19c17/entry-audit.json`。本轮没有新增源码缺陷证据，没有修改业务、工具包、来源锁、授权或账本；没有产生 candidate/request/run/result 身份。浏览器已释放，无新增端口、Profile、watcher、DevTools 或在途真实请求。
 
 **下一条可恢复的操作仍是 A。** 先由来源 owner 完成上述两个固定输入的原审查/登记，恢复唯一原开发 watcher；Chrome 控制连接须通过应用插件界面恢复，受限可信界面由用户从正常工具栏打开 OpenDesk。取得真实加载/serve 与所属 Native 的配对证据后，立即在 Web Flow 审阅百度精确范围并开启滑块，再按 B→C→D 验证。旧样例仅保留 `NOT_SUBMITTED` 历史事实；正式试验须先核对账本，任何已提交或 UNKNOWN 候选只对账、不换入口补跑。
+
+#### 12.11.2 本任务第三轮阻塞审计（2026-11-02）
+
+原始回合及两次目标续跑共三个连续回合，来源 pin/字节不一致、可信 Chrome 入口和 Native 配对阻塞均未恢复。第二轮已精确检查 service 的 14 行新增/2 行删除差量，并检索原 Cookie 的 review/provenance/source/verification/result/receipt JSON，未找到当前 blob 的匹配回执；第三轮再次实读上述两个 pin/blob 与上一轮完全一致，默认 Native manifest 仍不存在，也未收到用户的可信入口恢复事实。因此实际调用 `update_goal(status="blocked")`，工具返回 **`blocked`**；完整 objective 保留，未标完成或 `PRODUCT_DONE`。回执在 `artifacts/webflow-auto-20261102/resume-01a19c17/goal-blocked-turn03.json`，第二/三轮诊断在同目录 `blocked-audit-turn02.json`、`blocked-audit-turn03.json`。
+
+A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request/run/result。两次续跑均未重试浏览器、测试、构建、打包或 Native 请求，未改业务、来源 pin、安装与授权；原浏览器会话已释放，未持有共享运行资源。需要原来源 owner 完成审查/登记及可信 Chrome/Native 入口恢复后，再直接继续 A→B→C→D；不以重复巡检或另建任务维持续跑。
