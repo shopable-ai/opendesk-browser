@@ -9,8 +9,8 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const PROBE_INTERVAL_MS=850;
 const MAX_DELIVERY_BYTES=8192;
-const CONVERSATION_HELP='请在 ChatGPT 发送你的任务命令，或打开已有聊天。正式聊天建立后即可授权，无需另外发送测试准备。';
-const REQUEST_HELP='发送约定的任务命令，识别后直接执行或允许本聊天后续执行。也可先选择已安装脚本和网址授权，无需清空输入框。请保持 OpenDesk 侧栏打开。';
+const CONVERSATION_HELP='尚未触发新请求。保持同窗口 Web Flow 侧栏打开，可在空白 ChatGPT 对话直接发送指令；已有精确批准且自动运行开启时，新完整任务协议将自动执行。';
+const REQUEST_HELP='尚未触发新请求。已有精确批准且自动运行开启时，发送新指令并等待完整任务协议即可自动执行，无需建立请求或再次批准。';
 const INSTALLED_CHOICE='__installed__';
 // The strict request parser admits flat primitive args/installation fields.
 // Storage can reorder their keys without changing the approved scope.
@@ -274,10 +274,12 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
   let lifecycleEpoch=0;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
+  let proposal=null,viewUrl=win.location.href;
   let conversationReady=null,loadingTasks=false;
   let conversationGrant=null,approvalUnknown=false,deferredDiscovery=null,deliveredTurn=null;
   const installedTasks=new Map(),installedOptions=[];
-  const discovery=createChatGPTTaskDiscovery();
+  // Deny-only diagnostics, never input to admission. No prompt/result bytes.
+  const discovery=createChatGPTTaskDiscovery({onStatus:value=>root.setAttribute('data-webflow-discovery',JSON.stringify(value))});
   discovery.reset(site.inspect());
   // Native form submissions are witnessed by their initiating click/Enter.
   // requestSubmit() can create a trusted SubmitEvent without either gesture;
@@ -295,7 +297,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(event.key!=='Enter'||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey||event.repeat||
         doc.activeElement!==editor||!(event.target===editor||editor.contains?.(event.target)))return;
     }else return;
-    discovery.witnessSubmission(snapshot);
+    if(discovery.witnessSubmission(snapshot)){
+      proposal=null;
+      if(state?.settled){state=null;clearReceipt();update();}
+      if(!state)note('已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。');
+    }
   };
   doc.addEventListener('click',onComposerSubmission,true);
   doc.addEventListener('keydown',onComposerSubmission,true);
@@ -355,7 +361,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     targetInput.disabled=editing;argsInput.disabled=editing;
     queryField.hidden=taskSelect.value!==BAIDU_TASK_ID;
     targetField.hidden=!selectedTask()&&!state?.candidate;argsField.hidden=targetField.hidden;
-    if(state?.candidate){
+    if(!state&&proposal?.url===win.location.href){
+      selection.textContent='当前候选（尚无任务请求）：'+proposal.candidateId+'\n脚本：'+proposal.taskId+
+        '\n目标：'+proposal.targetUrl+'\n参数：'+JSON.stringify(proposal.args);
+    }else if(state?.candidate){
       const name=state.taskName||installedTasks.get('installed:'+state.taskId)?.name||state.taskId;
       selection.textContent='本次任务：'+name+' @ '+state.installation.version+
         '\n触发：'+(state.persistentAuto?'持续批准自动执行':state.mode==='auto'?'授权自动执行':'手动执行')+
@@ -510,7 +519,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       activeGrant=!persistentAuto&&automatic&&discovered&&!grant&&!approvalUnknown&&conversationGrant&&conversationGrant.url===url&&Date.now()<conversationGrant.expiresAt&&
         conversationGrant.remainingRuns>0&&conversationGrant.taskId===intent.taskId&&conversationGrant.targetUrl===intent.targetUrl?conversationGrant:null;
       grantSubmitted=!!activeGrant;
-      if(!grant){state=null;clearReceipt();selection.textContent='待核验候选：'+intent.candidateId+'\n脚本：'+intent.taskId+'\n目标：'+intent.targetUrl+'\n参数：'+JSON.stringify(intent.args);}
+      if(!grant){state=null;proposal={...intent,url};clearReceipt();selection.textContent='待核验候选：'+intent.candidateId+'\n脚本：'+intent.taskId+'\n目标：'+intent.targetUrl+'\n参数：'+JSON.stringify(intent.args);}
       const prepared=await send({kind:persistentAuto?'auto-task':grant?'bind-preapproved-task':'adopt-task',persistentAuto,
         ...(grant?{requestId:grant.requestId}:{}),...(activeGrant?{conversationGrantId:activeGrant.grantId}:{}),candidateText:page.blocks[0],turnKey:page.turnKey,answerKey:page.answerKey});
       adoptAck=true;
@@ -548,6 +557,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         taskSelect.append(option);installedOptions.push(option);
       }
       const name=state.taskName||installedTasks.get(key)?.name;
+      if(!installedTasks.has(key))installedTasks.set(key,{taskId:state.taskId,
+        name:state.taskName,version:state.installation.version,installation:state.installation,
+        description:'目标：'+state.targetUrl+'；参数：'+JSON.stringify(state.args)});
       option.textContent=(name?name+' · ':'')+state.taskId+' @ '+state.installation.version;
       taskSelect.value=key;targetInput.value=state.targetUrl;argsInput.value=JSON.stringify(state.args);
       argsHelp.textContent='';
@@ -763,12 +775,28 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   });
   control('run',runButton,()=>{void execute('manual');});
   let autoPollBusy=false;
-  const poll=win.setInterval(()=>{
-    if(closed)return;
-    const snapshot=site.inspect();
+  const observeDiscovery=snapshot=>{
     const observed=discovery.observe(snapshot);
     if(observed&&!isDeliveredUser(observed.user))deferredDiscovery={...observed,url:win.location.href,route:snapshot.route,
       userText:observed.user.textContent||'',answerText:observed.answer.textContent||''};
+  };
+  // Observe the optimistic first user before /c/ can appear between polls.
+  // DOM changes never arm submission or execute a task; only native gestures
+  // arm the discovery and the normal poll still owns adoption.
+  const discoveryObserver=win.MutationObserver?new win.MutationObserver(()=>{
+    if(!closed)observeDiscovery(site.inspect());
+  }):null;
+  discoveryObserver?.observe(doc.body||doc.documentElement,{subtree:true,childList:true,
+    characterData:true,attributes:true,attributeFilter:['data-talvt-turn-state','data-is-streaming','aria-busy']});
+  const poll=win.setInterval(()=>{
+    if(closed)return;
+    const snapshot=site.inspect();
+    if(viewUrl!==win.location.href){
+      viewUrl=win.location.href;proposal=null;conversationReady=null;clearReceipt();
+      // Discovery separately binds a witnessed first user to its new /c/.
+      // Clearing UI here must not erase that observation.
+    }
+    observeDiscovery(snapshot);
     // Retain one complete observation while its earlier execution is settling.
     // Recheck the exact current DOM before adopting it; this is not a run queue.
     if(deferredDiscovery&&(deferredDiscovery.url!==win.location.href||
@@ -778,6 +806,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     composerClaim?.navigation();
     if(state&&win.location.href!==state.url){
       conversationGrant=null;approvalUnknown=false;deferredDiscovery=null;deliveredTurn=null;
+      clearReceipt();
       // Fence the old owner before releasing the new conversation's UI. Its
       // in-flight callbacks retain this cancelled object and cannot deliver
       // into a replacement state. The SW navigation fence owns revocation.
@@ -927,9 +956,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch{return false;}
     if(message.kind==='sidebar-read'||message.kind==='sidebar-control'){
       const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
-        selection:selection.textContent,viewStatus:viewStatus.textContent,resultPreview:result.hidden?'':result.textContent,
+        selection:selection.textContent,viewStatus:state?viewStatus.textContent:'',
         requestId:state?.requestId??null,runId:state?.runId??null,resultId:state?.resultId??null,
-        candidateId:state?.candidate?.candidateId??null,pending:pending||cancelPending||deliveryPending,
+        candidateId:state?.candidate?.candidateId??(proposal?.url===win.location.href?proposal.candidateId:null),
+        observation:discovery.status(),pending:pending||cancelPending||deliveryPending,
         actions:Object.fromEntries([...actions].map(([name,{button}])=>[name,!button.disabled])),
         fields:{task:taskSelect.value,query:queryInput.value,target:targetInput.value,args:argsInput.value,
           disabled:taskSelect.disabled,queryVisible:!queryField.hidden,targetVisible:!targetField.hidden},
@@ -1001,7 +1031,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   };
   const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;lifecycleEpoch++;
     discovery.reset(null);
-    if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;win.clearInterval(poll);
+    if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;discoveryObserver?.disconnect();win.clearInterval(poll);
     win.removeEventListener('pagehide',onPageHide);
     api.runtime.onMessage.removeListener(onMessage);
     doc.removeEventListener('compositionstart',beginComposition,true);

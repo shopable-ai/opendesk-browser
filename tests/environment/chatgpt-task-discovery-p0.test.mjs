@@ -610,7 +610,9 @@ test('P0 page releases a completed request on SPA navigation without adopting th
 test('P0 page ignores a non-task continuation and preserves its completed result receipt',async()=>{
   const h=pageHarness();h.next();await flush();await h.click(2);
   const status=h.nodes.find(node=>node.className==='status');const receipt=status.textContent;
-  h.submit('result-user');
+  // Result delivery calls the native button programmatically. It is not a
+  // new user gesture and must preserve the original request's receipt.
+  h.submit('result-user','click',{isTrusted:false});
   h.setNoCandidate(true);h.snap.users.push(message('result-user'));h.snap.assistants.push(message('result-continuation'));
   h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);

@@ -47,7 +47,7 @@ export function WebflowCurrentTask({controller}){
   <div className="od-toolbar"><strong className="od-field-label">当前任务</strong>
    <Button variant="quiet" onClick={()=>void read()}>查询原请求</Button></div>
   {error&&<p role="alert" className="od-field-error">{error}</p>}
-  {!session?<p role="status" className="od-note">请打开同一窗口中的 ChatGPT 对话。发送指令后，本区显示自动任务的进度与结果。</p>:<>
+  {!session?<p role="status" className="od-note">尚未触发新请求。保持同窗口 Web Flow 侧栏打开，在 ChatGPT 空白或已有对话发送指令；已有精确批准且自动运行开启时，完整任务协议将自动执行。</p>:<>
    <p className="od-note" style={{overflowWrap:'anywhere'}}>原对话：{session.url}</p>
    <p role="status" className={session.error?'od-field-error':'od-note'} style={{whiteSpace:'pre-wrap'}}>{session.status}</p>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
@@ -64,7 +64,6 @@ export function WebflowCurrentTask({controller}){
     {receipt.value&&<div className="od-form-field"><strong className="od-field-label">同次脚本结果（原始数据）</strong>
      <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxHeight:300,overflow:'auto'}}>{JSON.stringify(receipt.value,null,2)}</pre></div>}
    </div>}
-   {!receipt&&session.resultPreview&&<pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.resultPreview}</pre>}
    {session.requestId&&<details className="od-disclosure od-disclosure--flat"><summary>本次身份</summary>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify({candidateId:session.candidateId,
      requestId:session.requestId,runId:session.runId,resultId:session.resultId},null,2)}</pre></details>}

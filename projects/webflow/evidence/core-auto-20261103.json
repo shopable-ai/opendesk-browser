@@ -91,19 +91,19 @@
   },
   "autoSwitchAtTrialEnd": false,
   "authorityScope": "fixed task, exact URL and args plus current installation; keep the trusted Side Panel open in the same window",
-  "interpretation": "ChatGPT result narration cannot prove which transport triggered execution. This trial has no formal MCP tool-call record and cannot be relabeled an MCP success.",
+  "interpretation": "ChatGPT result narration cannot prove which transport triggered execution. This trial has no formal MCP tool-call record and cannot be relabeled an MCP success. This record describes only its original build. The later new-conversation failure and current runtime blocker are recorded separately.",
   "manualRetest": [
     {
       "round": "A",
       "path": "tests/manual-auto-baidu-a.prompt.txt",
       "candidateId": "wf-0356793b-9a2a-416f-81df-9fa7ffdbe7b8",
-      "status": "PREPARED_NOT_SENT"
+      "status": "OBSERVED_SENT_DO_NOT_REPLAY"
     },
     {
       "round": "B",
       "path": "tests/manual-auto-baidu-b.prompt.txt",
       "candidateId": "wf-ff9ccc93-c5cb-49f2-bb75-f51601913e96",
-      "status": "PREPARED_NOT_SENT"
+      "status": "HISTORICAL_PREPARED_STATE_NOT_REVERIFIED"
     }
   ],
   "sourceEvidence": "artifacts/webflow-auto-20261102/core-migration-01a19ce9/core-proof.json",
@@ -113,5 +113,6 @@
     "production and full matrix",
     "cross-conversation or persistent queue",
     "formal MCP chain"
-  ]
+  ],
+  "latestRetestRecord": "new-conversation-20261103.json"
 }

@@ -411,6 +411,9 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     const windowId=currentPageTarget?.snapshot?.windowId;
     if(!Number.isSafeInteger(windowId))throw fail('E_BRIDGE_WINDOW','当前侧栏窗口未确认');
     const tabs=await api.tabs.query({active:true,windowId});
+    if(!operation&&tabs.some(tab=>officialURL(tab.url)&&!chatGPTConversationId(tab.url))){
+      bridgeSource=null;return {session:null,receipt:null};
+    }
     const tab=tabs.find(tab=>officialURL(tab.url)&&chatGPTConversationId(tab.url)&&!tab.incognito&&!tab.pendingUrl);
     let source=operation?.source;
     if(!source&&tab){

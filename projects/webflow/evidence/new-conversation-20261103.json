@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-03",
+  "project": "webflow",
+  "stage": "core-development",
+  "sourceBaseCommit": "f8f6c9e0c56bf88d08b3245d29e68b6b637757a1",
+  "buildRevision": "9f65055fc225541414267fc9aa74365783ad0453105f0b4c28f64ba530c87506",
+  "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+  "mode": "continuous-development",
+  "loadedPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+  "originalFailure": {
+    "conversationId": "6ae8bcfb-cee0-83ee-9d6b-be0cb9985ce3",
+    "candidateId": "wf-0356793b-9a2a-416f-81df-9fa7ffdbe7b8",
+    "state": "OBSERVED_SENT_DO_NOT_REPLAY",
+    "oldResultObservedAt": "2026-11-02T16:17:03.804Z"
+  },
+  "firstMessageRetest": {
+    "url": "https://chatgpt.com/c/6ae8ca72-af90-83e8-91dc-65152136aebd",
+    "candidateId": "wf-c7fb6754-56d5-48d0-8c43-6d9529544f1b",
+    "userMessageId": "a75511f2-611b-4df7-b49d-532e875e142e",
+    "assistantMessageIds": [
+      "a0fd5741-de92-5785-9869-b65b34982d8e"
+    ],
+    "nativeSends": 1,
+    "manualAdoptExecuteApproveActions": 0,
+    "strictFiveFieldReply": true,
+    "discoveryHistory": [
+      {
+        "stage": "idle",
+        "reason": "conversation-changed-before-binding",
+        "route": "new:/"
+      },
+      {
+        "stage": "idle",
+        "reason": "no-live-submission",
+        "route": "new:/"
+      },
+      {
+        "stage": "idle",
+        "reason": "baseline",
+        "route": "new:/"
+      },
+      {
+        "stage": "submitted",
+        "reason": "native-submission-witnessed",
+        "route": "new:/"
+      },
+      {
+        "stage": "waiting-reply",
+        "reason": "exact-new-user-observed",
+        "route": "pending/235b8c47-d8a0-44a7-ab5e-f7b24322f2f5"
+      },
+      {
+        "stage": "idle",
+        "reason": "baseline",
+        "route": "c/6ae8ca72-af90-83e8-91dc-65152136aebd"
+      },
+      {
+        "stage": "eligible",
+        "reason": "unique-complete-reply-observed",
+        "route": "c/6ae8ca72-af90-83e8-91dc-65152136aebd"
+      },
+      {
+        "stage": "idle",
+        "reason": "no-live-submission",
+        "route": "c/6ae8ca72-af90-83e8-91dc-65152136aebd"
+      }
+    ],
+    "automaticHostAdmissionAttempt": "OBSERVED_REJECTED_BEFORE_REQUEST",
+    "requestId": null,
+    "runId": null,
+    "resultId": null,
+    "errorCode": "E_BUILTIN_VERSION_UNAVAILABLE"
+  },
+  "conclusions": {
+    "blankFirstMessageAutomaticDiscovery": "PASS",
+    "rejectedCandidateShowsOwnScopeWithoutOldResult": "PASS_NATIVE",
+    "sameGrantTwoSuccessiveBaiduRuns": "BLOCKED_RUNTIME_IDENTITY",
+    "baiduDomDurableResultReleaseChatDelivery": "NOT_TESTED_CURRENT_BUILD",
+    "formalMcp": "NOT_TESTED"
+  },
+  "preservedInstallationScope": {
+    "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+    "generation": 1,
+    "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+    "manifestHash": "adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b",
+    "revision": 1,
+    "scriptId": "task:baidu.search.top3:1.1.1",
+    "version": "1.1.1"
+  },
+  "autoSwitchAtTrialEnd": true,
+  "runtimeBlocker": {
+    "observed": "Original resolveInstalledTask rejects current builtin identity before auto-admit; no new request or Run",
+    "changedWorkerInput": "src/framework/sdk/browser-schemas.js",
+    "changeArrivedInConcurrentMainMerge": true,
+    "oldBuiltinDigest": "NOT_CAPTURED",
+    "identityCheckRelaxed": false,
+    "taskUpgrade": {
+      "state": "PREPARED_NOT_IMPORTED_NOT_VERIFIED_NOT_INSTALLED",
+      "taskId": "baidu.search.top3",
+      "from": "1.1.1",
+      "to": "1.1.2",
+      "sourceBytesUnchanged": true,
+      "permissionsUnchanged": true,
+      "paramsSchemaUnchanged": true,
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "oldManifestHash": "adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b",
+      "newManifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5"
+    }
+  },
+  "componentEvidence": {
+    "targetedTests": 138,
+    "failures": 0,
+    "sameRunUiRegression": 1,
+    "nativeE2eRunSuccessClaimed": false
+  },
+  "sourceEvidence": "artifacts/webflow-auto-20261103/new-chat-01a19d27/",
+  "rawEvidencePolicy": "Large page text and AX traces remain local; no user drafts or screenshots in the tool package."
+}

@@ -45,8 +45,14 @@ function editorText(editor) {
 }
 function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
+  const provisional=win.location.pathname.match(/(?:^|\/)c\/local-chatgpt(?:%3a|:)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\/?$/i);
+  if(provisional)return 'pending/'+provisional[1].toLowerCase();
   const match = win.location.pathname.match(/(?:^|\/)c\/([a-z0-9-]{8,})(?:\/|$)/i);
-  return match ? 'c/' + match[1].toLowerCase() : null;
+  if(match)return 'c/' + match[1].toLowerCase();
+  // Observation only. Task admission/delivery still requires a formal /c/
+  // source in the original Host, trigger ledger and Authority.
+  return /^(?:\/|\/g\/g-[^/]+(?:\/project)?\/?)$/.test(win.location.pathname)?
+    'new:'+win.location.pathname+(win.location.search||''):null;
 }
 function messageText(root) {
   const content = root.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap') || root;

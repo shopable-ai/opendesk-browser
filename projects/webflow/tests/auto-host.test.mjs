@@ -238,3 +238,11 @@ test('sidebar receipt separates durable result, release and delivery and never a
   h.projectRequest('different-request');assert.equal((await h.bridge.readBridgeState()).receipt,null);
  }
 });
+test('opening a blank ChatGPT tab clears the sidebar projection of a previous conversation',async()=>{
+ const h=harness();
+ const first=await h.bridge.readBridgeState();assert.equal(first.source.url,source.url);
+ h.sender.tab.url='https://chatgpt.com/';
+ const next=await h.bridge.readBridgeState();
+ assert.equal(next.session,null);assert.equal(next.receipt,null);assert.equal(next.source,undefined);
+ assert.equal(h.events.starts.length,0);
+});

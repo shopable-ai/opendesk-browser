@@ -181,21 +181,21 @@ test('missing Host receipt gives same-window guidance and never replays an attem
 test('homepage explains how to establish a conversation and never mints a request',async()=>{
   const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
   assert.equal(h.buttons[0].disabled,true);
-  assert.match(h.status.textContent,/发送你的任务命令/);
-  assert.match(h.status.textContent,/打开已有聊天/);
+  assert.match(h.status.textContent,/尚未触发新请求/);
+  assert.match(h.status.textContent,/空白 ChatGPT 对话直接发送指令/);
   await h.click(0);
   assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);
-  assert.match(h.status.textContent,/正式聊天建立后即可授权/);h.page.dispose();
+  assert.match(h.status.textContent,/已有精确批准且自动运行开启/);h.page.dispose();
 });
 
 test('SPA conversation creation enables prepare and leaving it restores guidance without writing',()=>{
   const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
   h.win.location.href=source.url;h.poll();
   assert.equal(h.buttons[0].disabled,false);
-  assert.match(h.status.textContent,/识别后直接执行或允许本聊天后续执行/);
+  assert.match(h.status.textContent,/无需建立请求或再次批准/);
   h.win.location.href='https://chatgpt.com/plugins';h.poll();
   assert.equal(h.buttons[0].disabled,true);
-  assert.match(h.status.textContent,/正式聊天建立后即可授权/);
+  assert.match(h.status.textContent,/尚未触发新请求/);
   assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);h.page.dispose();
 });
 

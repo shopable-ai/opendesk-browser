@@ -1195,3 +1195,40 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 **“持续”的准确含义：** 同一精确有效批准下，未来每条合法的新完整协议回复均可自动准入；用户负责发送新指令，原权限/安装身份仍逐次核验。它不是关闭侧栏后仍会循环运行的承诺，也不等于已经完成跨对话持久队列。原始结果、触发方式、人工网页观察、资源释放和聊天交付须分别判断。
 
 **验证范围：** 仅核对新增 JSON、两个提示词经原严格五字段解析器解码后的范围/新 ID、项目相对链接与差异格式；未再次运行产品或模型。测试文件和证据不进入 `tool.config.json.files`，原唯一 v0.3.5 正式安装包未变。
+
+
+### 12.11.8 用户实测反例：新 ChatGPT 对话未自动触发，旧结果混入（2026-11-03，待修复）
+
+用户明确要求创建新 Codex 任务继续完善和测试。用户在新 ChatGPT 对话发送提示词，自动运行显示“已开启/仅限已批准的精确范围”，但没有看见自动触发。现场对话为 `https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae8bcfb-cee0-83ee-9d6b-be0cb9985ce3`。当前任务仍提示“先选择任务并建立请求”“可手动执行或批准一次”；选择显示 `installed:baidu.search.top3`，目标描述却是 `https://httpbingo.org/html`；结果区仍显示旧时间 `2026-11-02T16:17:03.804Z` 的三条数据。这些旧数据属于 12.11.6，不能认定新对话执行通过。用户发送的是哪条 candidateId、是否存在新 request/Run/Result 仍未实读，不推断未提交或擅自重放。
+
+**当前完成条件重新限定：** 保留 12.11.6 的原对话单次真实成功事实；新对话首条发送和两轮连续自动触发尚未通过。下一 owner 先保全这次用户现场、实际输入/完整协议、真实路由/发送见证及原请求准入记录，再最小修复；新对话切换不得显示上次结果为本次结果，也不得用“建立请求/手动执行”误导已批准自动路径。修复后按正常用户入口验证新对话首条消息及同批准第二个新候选，真实百度、同次持久结果、资源释放、侧栏及原聊天交付分别核对。
+
+**仅为只读线索，尚非本机根因结论：** `chatgpt-fixed-bridge-page.js` 的 SPA 会话切换分支清空 state 并 reset discovery，却未调用 clearReceipt；selection 的 installed 选项缺失 Map 元数据时会落到示例网页描述。`onComposerSubmission` 要求 `site.inspect().ok`，而 site 的 route 要求已有正式 /c/ 身份；新对话首次发送及首次建路由是否丢失真实发送见证，须用用户这次实际入口复现。不得为修复而接受历史完整回复、合成发送或放宽来源/身份/权限围栏。
+
+本次旧 owner 仅记现场与移交，不在创建后重复操作源码、Chrome、Profile、writer/端口或 dist。交接时 main HEAD `9e8c2ccbd`；唯一既有 dev writer PID `94203`、Chrome PID `516` 仍在；`get_goal=null`，无活动目标需暂停。预存 12.10 MCP、Cookie pin 及其他 owner dirty 保留。当前阶段仍是核心修复，MCP、production、跨对话编排、多步骤 B、持久队列、完整矩阵、宽度缩放/压力与评分延期；旧网页浮层删除不作为当前前置。
+
+**本任务接管与现场保全（01a19d27，2026-11-03）：** 当前阶段为核心修复；下一操作是空白 ChatGPT 首条原生发送及同批准第二轮。已实读 `get_goal=null`。接管原 Chrome 窗口 759148456 / 标签 759148515、原唯一 writer PID94203 和 `dist/development`，不派给后续任务。现场 A（`wf-0356793b-9a2a-416f-81df-9fa7ffdbe7b8`）已发送，DOM 中有两个不同真实消息 ID，不能再标未发送或重发；最新完整五字段解码地址正确。侧栏当前无 requestId/Run/Result，却有旧结果；原始输入、完整助手代码/消息标识、空草稿及侧栏 AX 已保存在 `artifacts/webflow-auto-20261103/new-chat-01a19d27/user-failure-{chat,full}.json` 和 `user-failure.ax.txt`。旧 receipt 的显示不构成新执行。只写原 `chatgpt-{bridge-site,task-discovery,fixed-bridge-page}.js`、必要的 fixed Host 投影、项目可信 CurrentTask/相关测试及 WebFlow 来源 pin；原 12.10、Cookie pin 及其他 dirty 均保留。确定的显示缺陷和首发路由缺口先做定向复现，再沿原 watcher 验证；真实双轮、同Run持久结果/释放/交付尚未完成。
+
+### 12.11.9 首条发送临时路由与结果隔离修复：真实首发发现已证明，执行被运行时身份阻止（2026-11-03）
+
+**当前真实结论：** 空白 ChatGPT 首条原生发送已经自动发现唯一完整五字段协议并进入原 Host；没有点击采用、执行或批准。当前任务目录随后明确拒绝原 Task 的内置运行时身份，故本构建 **百度 DOM → 持久结果 → released → 原聊天交付以及同批准连续两轮仍为 BLOCKED / NOT_TESTED**，不能用 12.11.6 的旧结果补充。本任务没有创建后续 Codex 任务代替修复，没有活动 GOAL（实读 null）。精简身份见 [本轮实测记录](../evidence/new-conversation-20261103.json)。
+
+**按用户操作定位与修复：**
+
+- 用户现场的 A 已发送，当前 DOM 中两个不同真实消息 ID 共用 `fallback-turn-0:0:user` 键；候选解析后的地址及参数正确。A 已改记 `OBSERVED_SENT_DO_NOT_REPLAY`，B 的旧准备标签不再被视为本轮未发送的证明。原对话及旧成功事实保留。
+- 原生空白首发首次仍失败，原始证据 `first-native-sent.json` / `first-complete-chat.json` 保留；一次点击后的即时回读尚未看到用户节点，后续确认唯一用户消息，未二次点击。增加不含提示词/结果字节的只读发现阶段轨迹后，`diagnostic-first-observations.json` 直接观察到：`/` → `/c/local-chatgpt%3Af752096a-83bd-41d1-a13a-476092e6aea8` → 正式 `/c/6ae8c962-6ee0-83ee-b8a8-f2b6224235d9`。原见证已捕获，却在不识别临时路由时以 `route-unavailable-before-binding` 清空。
+- 修复仅给原 Site/Discovery 增加空白/精确 local-chatgpt UUID 的观察路由；原生见证后的空基线只允许进入一个临时路由，核对精确新增用户后，绑定同一用户到一个正式对话。MutationObserver 捕获两次轮询之间的新增用户；DOM 回调不建立许可、不执行任务。临时路由没有 Host/Authority 准入，未见证历史、任意已存对话、改写用户、多临时路由、第二次导航、流式和合成发送仍拒绝。
+- 采用真实消息 ID（`data-chatgpt-search-message-ids`）区分共享 fallback 键的不同消息；旧 fallback 键不再证明两个节点是同一消息。
+- SPA 更换及新原生发送清除上轮结果；可信 CurrentTask 只显示 Host 核实且与当前来源/request 匹配的回执，不显示页面 `resultPreview` 残留。空白活动标签不再回退旧对话。自动采用时补齐已安装脚本展示元数据，不再把 installed:baidu 回退成 httpbingo；准入失败的候选也保留本次 candidateId、地址/参数和明确错误，没有请求/Run 时不冒称“本次结果”。所有失败/结果仍经原精确 tab/document/url/request 围栏。
+
+**最终真实首发：** 当前 build `9f65055fc225541414267fc9aa74365783ad0453105f0b4c28f64ba530c87506`；新空白标签 `759148534` 首条原生点击一次，candidate `wf-c7fb6754-56d5-48d0-8c43-6d9529544f1b`，唯一新 user `a75511f2-611b-4df7-b49d-532e875e142e`，唯一完整 assistant `a0fd5741-de92-5785-9869-b65b34982d8e`；正式对话 `https://chatgpt.com/c/6ae8ca72-af90-83e8-91dc-65152136aebd`。轨迹明确为 `native-submission-witnessed` → `exact-new-user-observed`（pending/235b8c47-d8a0-44a7-ab5e-f7b24322f2f5）→ `unique-complete-reply-observed`（正式对话）。原聊天与可信侧栏都显示该候选及 `E_BUILTIN_VERSION_UNAVAILABLE`，没有旧时间/数据或示例地址；输入框为空，未重试。Host 在 `resolveSelection` 阶段拒绝，尚未调用持久 `auto-admit`，没有新的 request/Run/Result，未发送虚构的脚本结果给聊天。
+
+**新的实际阻塞与安全边界：** 本轮并行主分支同步 owner 在收到真实重叠协调后独占合并，提交 `efd63d580` / `f8f6c9e0c`，明确交回页面/Host 后本任务才继续写；最后索引/HEAD 亦已交还。其 146 项合并检查不覆盖本轮新修复。合并带入的 `src/framework/sdk/browser-schemas.js` 变化确实出现在新 Worker source map 的输入中；任务目录原 resolver 报内置运行时身份不可用，旧 bundle digest 未实读，不伪造旧值。没有放宽 `assertBuiltinIdentity`、替换内置字节、回退源码或静默重锁已安装 Revision。原 grant installation scope 逐字回读仍与原证据一致：installationId `da7b0581-5788-45c5-8316-ea7c03130d51`、generation 1、version 1.1.1、manifestHash `adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b`、contentHash `28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8`。总开关仍开启，原批准时间保留，没有重新批准/安装。
+
+**具体可审阅的后续动作：** 已按原 Task 打包函数准备 `artifacts/webflow-auto-20261103/new-chat-01a19d27/baidu.search.top3-1.1.2.candidate.opendesk-task.json`，只将 manifest version 从 1.1.1 改为 1.1.2；源码逐字相同、sourceHash、权限 `page.automation`、网站、参数 Schema 和期限均不变。新 manifestHash `6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5`。状态为 `PREPARED_NOT_IMPORTED_NOT_VERIFIED_NOT_INSTALLED`，不是可直接安装的已验证版本。用户本轮要求保留原安装/原批准，因此没有自行导入、运行验证、升级或改变其绑定；需用户明确允许原安装链的新版本验证/升级及同一精确范围恢复批准后，才能继续百度双轮。若未获允许，保留本次明确拒绝，不发送新候选补跑。
+
+**对应最小验证与开发环境：** 新首发/临时路由、重复消息键、跨对话结果清空、原生第二次发送、失败候选范围、空白投影及旧防重放/撤权/取消/回答替换共 **138 PASS / 0 FAIL**；另选原同 Run UI 回归 1 PASS。先保留各 RED 日志再修复。旧程序交付夹具改为真实的非原生 click 语义，原生用户新发送另有独立断言；旧引导文案断言更新为未触发/自动路径，不改权限校验。受影响 JS 语法通过，固定来源编译门禁通过，没有根 npm test、production、评分或完整矩阵。
+
+日常仍是原 `dist/development` / 扩展 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`。实读 Chrome 已启用路径为该目录，调试页确认 serve 连接。原唯一 writer PID94203 因缓存旧 CurrentTask pin 被来源门禁拒绝，已在接管权限内顺序停止、确认两端口释放后启动唯一新 writer PID3682（43119/43120）；没有并行 writer、隔离替换或 Native 配对修改。重启构建 148 秒，后续只有相关增量。最终相关源码与 `input-bindings.json` 指纹一致；正式 Web Flow v0.3.5 JSON 未变，不重打包。Cookie/ScrapyJS/云控及 Cookie pin、预存 12.10 段继续保留，不混入本次提交。
+
+**原始证据：** `artifacts/webflow-auto-20261103/new-chat-01a19d27/` 中 `user-failure-{chat,full}.json`、`user-failure.ax.txt`、各 RED/GREEN 日志、`diagnostic-first-observations.json`、`fixed-first-{filled,observations}.json`、`fixed-first-result.ax.txt`、`final-grant-identity.json`、`final-original-grant.ax.txt`、`extension-details.ax.txt`、`dev-connected-new.ax.txt` / `final-dev-connected.ax.txt`、`input-bindings.json`、`task-upgrade-review.json`、`final-targeted.log` 和 `dev-core.log`。本轮没有截图，没有操作旧网页浮层。MCP、跨对话编排/多步骤 B、持久队列、production、长结果完整回传、宽度缩放/压力和评分仍延期。
