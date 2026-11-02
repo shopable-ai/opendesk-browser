@@ -38,8 +38,10 @@ async function approvedFile(root,row){
   // Exact single-product exception, not a generalized publication permission.
   const oneQueueProduct=row.programId==='opendesk.ai-send-queue'&&
     directory===resolve(root,'examples/sidebar-tools/ai-send-queue');
+  const scrollNavigationProduct=row.programId==='opendesk.ai-scroll-navigation'&&
+    directory===resolve(root,'projects/ai-scroll-navigation');
   if(await realpath(directory)!==directory||
-    !(directory.startsWith(root+'/examples/programs/')||oneQueueProduct))
+    !(directory.startsWith(root+'/examples/programs/')||oneQueueProduct||scrollNavigationProduct))
     fail('项目目录越过许可的 Page 源码范围');
   const path=resolve(directory,row.packageFile);
   if(!path.startsWith(directory+'/'))fail('正式包路径越界');
