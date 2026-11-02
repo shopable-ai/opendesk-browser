@@ -176,10 +176,9 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(row.version, official.version);
   assert.equal(row.packageHash, officialOwner.packageHash);
   assert.equal(row.installEpoch, null);
-  // Ordinary all-site consent must not silently reveal sensitive Cookie values.
-  for (const cap of ['read', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
-  assert.equal(grant.values, false);
-  assert.equal(grant.valueConsent, false);
+  // The trusted complete-consent action explicitly includes Values in one write.
+  for (const cap of ['read', 'values', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
+  assert.equal(grant.valueConsent, true);
   assert.equal(grant.storeId, '0'); assert.match(grant.grantEpoch, /^[0-9a-f-]{36}$/i);
   assert.equal(row.cookieSites, undefined);
   const queries = [];
@@ -192,8 +191,10 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
       {partitionKey: {topLevelSite: new URL(target).origin, hasCrossSiteAncestor: false}});
     const rows = await f.sdk.cookies.getAll({url: target});
     assert.equal(rows.length, 1);
-    await f.denied(() => f.sdk.cookies.getAll({url: target, includeValues: true}),
-      'E_COOKIE_VALUES_REQUIRED');
+    assert(!JSON.stringify(rows).includes('NODE_FIXTURE_SECRET'),
+      'Complete consent must not make metadata-only reads disclose values');
+    const values = await f.sdk.cookies.getAll({url: target, includeValues: true});
+    assert.equal(values[0].value, 'NODE_FIXTURE_SECRET');
     const status = await f.sdk.capabilities.getStatus({operation: 'browser.cookies.getCurrentStore', url: target});
     assert.equal(status.authorization.site, 'granted');
     f.restart();
@@ -201,13 +202,24 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(writes, 1, 'Navigation and worker restarts must not ask for another grant');
   assert.deepEqual(f.local.get(grantsKey), saved);
   assert(queries.length >= 3 && queries.every(query => targets.includes(query.url) && query.storeId === '0'));
-  // Only the separate trusted values action can upgrade this grant.
+  // Explicit Values revocation survives restart; metadata access stays available.
+  await f.grantAll(false, {cookieCapability: 'values'});
+  const revoked = structuredClone(f.local.get(grantsKey)[official.id].cookieAllSites);
+  assert.equal(revoked.values, false);
+  assert.equal(revoked.valueConsent, false);
+  assert.notEqual(revoked.grantEpoch, grant.grantEpoch);
+  f.restart();
+  await f.denied(() => f.sdk.cookies.getAll({url: f.tab.url, includeValues: true}),
+    'E_COOKIE_VALUES_REQUIRED');
+  assert.equal((await f.sdk.cookies.getAll({url: f.tab.url})).length, 1);
+  assert.deepEqual(f.local.get(grantsKey)[official.id].cookieAllSites, revoked,
+    'Reading metadata must not silently restore revoked Values');
   assert.equal((await f.grantAll(true, {cookieCapability: 'values'})).capability, 'values');
   const withValues = f.local.get(grantsKey)[official.id].cookieAllSites;
   assert.equal(withValues.values, true);
   assert.equal(withValues.valueConsent, true);
-  assert.notEqual(withValues.grantEpoch, grant.grantEpoch);
-  assert.equal(writes, 2, 'Sensitive values require a separate persisted Host grant');
+  assert.notEqual(withValues.grantEpoch, revoked.grantEpoch);
+  assert.equal(writes, 3, 'Only explicit complete consent, revocation and reauthorization write grants');
   f.restart();
   const rowsWithValues = await f.sdk.cookies.getAll({url: f.tab.url, includeValues: true});
   assert.equal(rowsWithValues[0].value, 'NODE_FIXTURE_SECRET');
@@ -306,11 +318,28 @@ test('all-site revoke atomically clears legacy Cookie sites for only the revoked
 
 test('legacy single-site consent does not upgrade and ordinary tools cannot inherit official all-site rights', async () => {
   const f = officialFixture(); await f.grant('read');
+  const legacy = structuredClone(f.local.get(grantsKey));
   f.state.allowedOrigins.push('https://second.example.net');
+  f.restart();
   await f.sdk.cookies.getCurrentStore({url});
+  await f.denied(() => f.sdk.cookies.getAll({url, includeValues: true}), 'E_COOKIE_VALUES_REQUIRED');
   await f.denied(() => f.sdk.cookies.getCurrentStore({url: 'https://second.example.net/'}), 'E_SITE_GRANT_REQUIRED');
+  assert.deepEqual(f.local.get(grantsKey), legacy, 'Consumption must not upgrade legacy site consent');
+  // Omitting scope is an explicit complete single-site decision, never all-site consent.
+  assert.deepEqual(await f.grantAll(true, {scope: undefined}),
+    {origin, capability: 'all', enabled: true, storeId: '0'});
+  const site = f.local.get(grantsKey)[official.id].cookieSites[origin];
+  for (const cap of ['read', 'values', 'write', 'observe', 'clear']) assert.equal(site[cap], true);
+  assert.equal(site.valueConsent, true);
+  assert.equal(site.storeId, '0');
+  assert.deepEqual(site.partitionKey, partitionKey);
+  assert.notEqual(site.grantEpoch, legacy[official.id].cookieSites[origin].grantEpoch);
   assert.equal(f.local.get(grantsKey)[official.id].cookieAllSites, undefined);
-  await assert.rejects(f.grantAll(true, {scope: undefined}), {code: 'E_SCHEMA'});
+  f.restart();
+  assert.equal((await f.sdk.cookies.getAll({url, includeValues: true}))[0].value, 'NODE_FIXTURE_SECRET');
+  await f.denied(() => f.sdk.cookies.getAll({url: 'https://second.example.net/', includeValues: true}),
+    'E_SITE_GRANT_REQUIRED');
+  await assert.rejects(f.grantAll(true, {scope: 'all-sites'}), {code: 'E_SCHEMA'});
   await assert.rejects(f.grantAll(true, {cookieCapability: 'read'}), {code: 'E_SCHEMA'});
   const ordinary = fixture();
   await assert.rejects(ordinary.grantAll(), {code: 'E_OWNER'});
@@ -383,6 +412,17 @@ test('preserved Cookie grants follow installation lifecycle while disabled and s
 test('all-site consumption requires separate read/values/write bits and current official provenance', async () => {
   const f = officialFixture(); await f.grantAll();
   const grant = f.local.get(grantsKey)[official.id].cookieAllSites;
+  // Legacy values=true is not a receipt. Neither reading nor restarting may mint one.
+  for (const receipt of [undefined, false]) {
+    if (receipt === undefined) delete grant.valueConsent;
+    else grant.valueConsent = receipt;
+    const legacy = structuredClone(f.local.get(grantsKey));
+    f.restart();
+    await f.denied(() => f.sdk.cookies.getAll({url, includeValues: true}), 'E_COOKIE_VALUES_REQUIRED');
+    assert.equal((await f.sdk.cookies.getAll({url})).length, 1);
+    assert.deepEqual(f.local.get(grantsKey), legacy, 'Legacy value flags must not be silently upgraded');
+  }
+  grant.valueConsent = true;
   grant.values = false;
   await f.denied(() => f.sdk.cookies.getAll({url, includeValues: true}), 'E_COOKIE_VALUES_REQUIRED');
   grant.values = true; grant.read = false;

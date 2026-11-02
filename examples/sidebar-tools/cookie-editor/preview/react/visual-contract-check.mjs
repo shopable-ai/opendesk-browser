@@ -7,6 +7,7 @@ import {dirname,resolve,join} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
 import {execFileSync} from 'node:child_process';
+import {approvedHtml} from './build-a-b.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url));
 const devIndex=process.argv.indexOf('--dev-url');
@@ -28,10 +29,9 @@ async function devSource(){
 }
 const selfTest=process.argv.includes('--self-test');
 const sourceBefore=!selfTest&&devUrl?await devSource():null;
-const approvedPath=resolve(here,'../cookie-editor.html');
 const reactPath=join(here,'index.html');
 const contract=JSON.parse(await readFile(join(here,'visual-contract.json'),'utf8'));
-const originalBytes=await readFile(approvedPath);
+const originalBytes=await approvedHtml();
 const gitBlob=createHash('sha1').update('blob '+originalBytes.length+'\0').update(originalBytes).digest('hex');
 if(gitBlob!==contract.approvedHtml.gitBlobSha)throw Error('E_APPROVED_HTML_CHANGED: '+gitBlob);
 let previewCheck='';
