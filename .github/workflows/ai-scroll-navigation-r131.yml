@@ -87,6 +87,7 @@ jobs:
           assert.ok((entry.version==='0.4.1'&&entry.revision===2)||
             (entry.version==='0.4.2'&&entry.revision===3)||
             (entry.version==='0.4.6'&&entry.revision===7)||
+            (entry.version==='0.4.8'&&entry.revision===8)||
             (entry.version===value.version&&entry.revision===value.revision));
           entry.version=value.version;
           entry.revision=value.revision;
