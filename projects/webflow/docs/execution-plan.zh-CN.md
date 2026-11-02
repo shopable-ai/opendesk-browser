@@ -999,3 +999,28 @@ node --test \
 | 关闭 / 重复 / 未批准 / 撤权 / UNKNOWN 拒绝 | 受影响组件与账本检查 PASS；真实网站级 `NOT_TESTED` |
 
 **唯一下一条未完成操作：** 来源 owner 审查当前 Cookie 固定输入并恢复同源持续开发候选，通过正常 Chrome 可信 UI 核实固定加载/Native 配对后，在「扩展 → Web Flow」审阅 `baidu.search.top3@1.1.1`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}` 并开启滑块，立即执行上述真实新消息自动链。工具不能操作的可信界面需用户正常 UI 完成；不再重做 UI 原型、J06 或已有效的组件检查。此时 `get_goal=null`；没有新建、暂停、迁移、完成其他目标，未标 `PRODUCT_DONE`。
+
+#### 12.11.1 本任务接手、关键条件与真实入口诊断（2026-11-02）
+
+**用户操作结果：尚未完成安装版范围审核/开启，也未发送真实测试消息。** 新 owner 为 `01a19c17-85e6-7643-a203-c2c58be57e24`；先实读 `get_goal=null`，再按交接原文创建唯一目标、不设 token_budget，工具回执及收尾实读均为 `active`。这是本任务第一个目标回合，不沿用其他任务的阻塞次数，不标 `blocked`、`complete` 或 `PRODUCT_DONE`。
+
+实际入口与复用仍为本节的 Web Flow 可信控件和原监听器/Resolver/Ledger/Authority/RunHost；没有新增业务 API、Runner 或安装器。当前本地 `main` 为 `1bb7f1efb8d8a3fc9669ac8007b7ee91228ac1bd`。原记录的 11 个相关输入 SHA-256 全部一致，正式包仍为 v0.3.4 / 51,803 bytes / `5a69f22c3fca72d39cefce7359119230caceeddd3ff86489af44add0a0052298`；复用本节已有源码、组件与定向编译证据，不重复测试或累计成绩。第 12.10 节预存 MCP 改动完整保留、不归本任务提交。
+
+本任务的真实完成条件固定如下；结果回传/AI 续答、多步骤 B 与生产验收继续延期：
+
+| 条件 | 当前阶段必须观察到的事实 | 本轮状态 |
+| --- | --- | --- |
+| A：实际产品入口 | 同候选安装版「扩展 → Web Flow」真实共享 Switch 可由鼠标/键盘操作；准备不授权、明确批准才保存，关闭重开读回；可核对已安装任务的版本、哈希、代际、精确目标及参数 | `NOT_TESTED`；已有组件证据保留 |
+| B：自动触发 | 监听器附着并建立完整历史轮次后，ChatGPT 新用户轮次产生唯一完整五字段助手候选；无需采用/Run/再次批准进入原 Host；保留 conversation/tab/document 与 candidate/request/run/result 关联 | `BLOCKED / NOT_TESTED` |
+| C：网页和后续调用 | 同一原 Controller 真实输入/搜索，前三条自然结果与网页及同 Run 的 Durable 数据吻合；同一批准范围的第二个全新合法候选产生独立运行和结果，无需重新批准 | `NOT_TESTED`；验证码或不足三条按事实报告 |
+| D：关闭与拒绝 | 真实关闭或逐任务撤销后，新合法候选不产生 Controller 动作；重复 candidate/DOM 不二次执行；范围、参数、地址、安装代际、权限、UNKNOWN/迟到 ACK 的受影响保护保持拒绝 | 网站级 `NOT_TESTED`；同输入的既有定向拒绝证据复用 |
+
+**本轮只读诊断找到了更精确的入口阻塞，未修改其他 owner 源码或 pin：**
+
+- Chrome 连接及列页成功；对新列页中的原扩展详情尝试接管，仍明确拒绝 `Chrome internal tab 759148481 cannot be claimed`。现有能力仅有 viewport，没有可信 Side Panel 控制。对原 ChatGPT 测试对话的一次接管/快照调用超时，未发送消息；随后只按原技能恢复会话并 `tabs.finalize({keep:[]})`，回执 `sessionEnded=true`。用户原页面保留，没有改用其他浏览器、CDP、OS 自动化或私有 API。
+- 原来源表目前有**两处** Cookie 输入不一致：`trusted/account-share.js` 的 pin 为 `6124420696da31472805467c9a09ef9640b5d388`、磁盘 blob 为 `6aa681f2c82299471f55586e9783d21dee95128e`；`trusted/account-service.js` 的 pin 为 `f5addf371f529393004d7f9c35c55d7d5cf04a4e`、磁盘 blob 为 `ec2750e5945198d87a60606a40875ffe3f1f3482`。后者 SHA-256 为 `60538f4914922fd111d2c4a052a3c3350d96ecff23fcbb5faf753042b2bf1f2e`。仅 share 当前字节能匹配原 owner 的独立 review `artifacts/cookie-editor-r31/native-control-01a1930d/server-recovery-upgrade-order-final-review-20261101.json` 及对应 provenance 回执；在原唯一证据 JSON 中未找到 service 当前字节的匹配审查。保留拒绝，由原来源 owner 核对并完成最小来源登记；不重新运行相同失败构建。
+- 日常模式仍是原 `dist/development` 的旧磁盘开发包，没有运行中的 dev writer，锁中 PID 40544 已退出。未写入 dist、未启动 watcher，serve、真实启用路径/ID/指纹仍未知。`opendesk browser doctor` 真实返回 `connected:false`、默认 `local.installed:false`，原因为 `/Users/mac/.opendesk-browser/native-agent-r1` 不存在；源码指定的默认 Chrome Native manifest `com.shopable.opendesk_browser.agent.json` 也不存在。此事实只说明默认安装，不能替代其他实例/当前启用扩展的现场核对，未擅自 setup/cleanup 或改配对。
+
+原始诊断摘要、输入身份及目标回执保存在 `artifacts/webflow-auto-20261102/resume-01a19c17/entry-audit.json`。本轮没有新增源码缺陷证据，没有修改业务、工具包、来源锁、授权或账本；没有产生 candidate/request/run/result 身份。浏览器已释放，无新增端口、Profile、watcher、DevTools 或在途真实请求。
+
+**下一条可恢复的操作仍是 A。** 先由来源 owner 完成上述两个固定输入的原审查/登记，恢复唯一原开发 watcher；Chrome 控制连接须通过应用插件界面恢复，受限可信界面由用户从正常工具栏打开 OpenDesk。取得真实加载/serve 与所属 Native 的配对证据后，立即在 Web Flow 审阅百度精确范围并开启滑块，再按 B→C→D 验证。旧样例仅保留 `NOT_SUBMITTED` 历史事实；正式试验须先核对账本，任何已提交或 UNKNOWN 候选只对账、不换入口补跑。
