@@ -5,8 +5,9 @@ import {installFloatingNavigation} from './floating-navigation.js';
 import {installVisualSiteConfiguration,resolveConfiguredConversation} from './site-configuration.js';
 
 // A new Program ID is a separately reviewed installation, not an in-place
-// permission transfer. The legacy package remains untouched until users
-// explicitly retire it via the existing Installed Page controls.
+// permission transfer. Existing legacy installations remain independent and
+// are managed by Page Authority; removing their repository import artifact does
+// not revoke, uninstall or mutate an already-installed copy.
 export const PROGRAM_ID='opendesk.ai-scroll-navigation';
 const pageRules={
   matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],
