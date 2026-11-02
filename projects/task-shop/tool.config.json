@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "task-shop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Task Shop",
   "description": "无需 AI 的本地演示任务市场；手动领取、已安装 Controller 任务、真实持久结果与模拟验收。",
   "capabilities": [

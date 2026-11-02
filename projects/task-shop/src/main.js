@@ -18,6 +18,8 @@
   const put=(name,value)=>{fields[name].textContent=String(value??'—');};
   let state=null,busy=false,alive=true,checking='核查中',site='核查中';
   let binding=null,sessionRequestId=null,pollTimer=null,pollAttempts=0;
+  let starting=false,dispatched=false;
+  let transactionTail=Promise.resolve();
   const stageLabels={LEASED:'已领取',DISPATCH_PREPARED:'待确认执行',RUNNING:'运行中',
     STOP_REQUESTED:'停止待确认',UNKNOWN:'结果未知',REVIEW_PENDING:'待业务验收',
     NEEDS_ATTENTION:'需要人工处理',CANCELLED:'已放弃',ACCEPTED:'验收通过（模拟）',
@@ -52,13 +54,17 @@
     put('receipt',c?.receipt?(c.receipt.persisted?'持久结果匹配':'持久结果未确认')+
       ' · outcome '+(c.receipt.runtimeOk?'正常':'未核验')+
       ' · '+c.receipt.outputCount+' 条':'未观察');
+    put('source',c?.receipt?.sourceHash?'修订 '+c.receipt.revision+' / '+c.receipt.sourceHash:'尚未核验');
+    const rows=Array.isArray(c?.receipt?.results)?c.receipt.results.slice(0,3):[];
+    put('results',rows.length?rows.map((row,index)=>
+      (index+1)+'. '+row.title+'\n'+row.summary+'\n'+row.url).join('\n\n'):'尚无已核验的检索结果。');
     put('review',c?.review?(c.review.decision==='accepted'?'测试规则通过':'测试规则拒绝')+
       ' / '+c.review.acceptanceId:'未验收');
     put('settlement',c?.settlement?'已模拟记账 '+c.settlement.netPoints+' 虚拟积分，无真实付款':'仅演示，无实际支付');
     const permitted=Boolean(c&&now()<c.expiresAt);
     const hasSession=Boolean(c?.clientRequestId&&sessionRequestId===c.clientRequestId);
     const show={claim:state&&!c,prepare:c?.state==='LEASED'&&permitted,
-      execute:c?.state==='DISPATCH_PREPARED'&&permitted&&
+      execute:c?.state==='DISPATCH_PREPARED'&&permitted&&!dispatched&&
         binding&&hasSession&&M.pinMatches(M.PIN,binding),
       read:hasSession&&['DISPATCH_PREPARED','RUNNING','STOP_REQUESTED','UNKNOWN'].includes(c?.state),
       stop:hasSession&&['DISPATCH_PREPARED','RUNNING','STOP_REQUESTED','UNKNOWN'].includes(c?.state),
@@ -66,8 +72,7 @@
       reject:c?.state==='REVIEW_PENDING'&&permitted,settle:c?.state==='ACCEPTED',
       refresh:true};
     for(const [key,button] of Object.entries(actions)){
-      button.hidden=!show[key];button.disabled=busy&&!['refresh'].includes(key);
-      if(key==='refresh')button.disabled=busy;
+      button.hidden=!show[key];button.disabled=busy||(starting&&key!=='stop');
     }
     if(c&&['DISPATCH_PREPARED','RUNNING','STOP_REQUESTED','UNKNOWN'].includes(c.state)&&!hasSession)
       notify('本次已脱离原执行 iframe；无法安全跨重开查询或重发。请在可信原执行记录中人工核对。');
@@ -76,8 +81,14 @@
     const r=await request('storage.get',{key:M.KEY,withEtag:true});
     state=M.validate(r?.value);render();return state;
   }
-  // The original storage service verifies ifMatch under a per-tool Web Lock.
-  async function transact(action){
+  // Serialize this iframe's Stop/ACK writes; the original ETag contract still
+  // arbitrates other instances. Do not retry a failed or unknown write.
+  function transact(action){
+    const pending=transactionTail.then(()=>commit(action));
+    transactionTail=pending.catch(()=>{});
+    return pending;
+  }
+  async function commit(action){
     const r=await request('storage.get',{key:M.KEY,withEtag:true});
     const before=M.validate(r?.value);
     if(typeof r?.etag!=='string'||!/^[a-f0-9]{64}$/.test(r.etag))
@@ -95,7 +106,7 @@
       const [installed,page]=await Promise.allSettled([
         request('tasks.read',{taskId:M.PIN.taskId}),
         request('currentPage.info',{})]);
-      checking=installed.status==='fulfilled'&&M.pinMatches(M.PIN,installed.value?.task)
+      checking=installed.status==='fulfilled'&&M.isInstalledPin(installed.value?.task)
         ?'固定版本匹配':'未安装、停用或版本不匹配';
       site=page.status==='fulfilled'&&page.value?.status==='available'&&
         M.sameOrigin(page.value.url)?'目标站点匹配':'请打开 '+M.JOB.origin;
@@ -126,6 +137,8 @@
     const installed=pin?.task;
     if(!M.pinMatches(M.PIN,installed))
       throw Object.assign(Error('实际安装身份与审阅的固定 Task 不一致'),{code:'E_REVISION'});
+    if(!M.isInstalledPin(installed))
+      throw Object.assign(Error('缺少可信安装身份或代次'),{code:'E_INSTALLATION'});
     if(page?.status!=='available'||!M.sameOrigin(page.url))
       throw Object.assign(Error('必须先打开已审阅的百度目标网页'),{code:'E_SITE_SCOPE'});
     const id='taskshop:'+uid();
@@ -137,9 +150,10 @@
   }
   function execute(){
     const c=state?.claim;
-    if(busy||!c||c.state!=='DISPATCH_PREPARED'||c.expiresAt<=now()||
+    if(busy||dispatched||!c||c.state!=='DISPATCH_PREPARED'||c.expiresAt<=now()||
        c.clientRequestId!==sessionRequestId||!M.pinMatches(M.PIN,binding))return;
-    busy=true;clearError();render();
+    // Keep this fence even if both result persistence and MARK_UNKNOWN fail.
+    dispatched=true;starting=true;clearError();render();
     notify('正在提交原 Controller 请求；提交失败或超时也不能再点击执行。');
     // Important: no await before tasks.start; Host requires genuine user activation.
     let promise;
@@ -153,7 +167,7 @@
         try{await transact({type:'MARK_UNKNOWN',leaseId:c.leaseId});}
         catch(x){error(x);}
         notify('原提交结果未知：仅可使用同一请求查询，禁止重新发起。');
-      }).finally(()=>{busy=false;if(alive)render();});
+      }).finally(()=>{starting=false;if(alive)render();});
   }
   async function observe(snapshot){
     if(!alive)return;
