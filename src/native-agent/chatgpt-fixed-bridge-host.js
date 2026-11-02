@@ -462,7 +462,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         const installed=await resolveSelection(row.taskId,null,catalog),manifest=installed.manifest;
         tasks.push({taskId:row.taskId,name:manifest.title,description:manifest.description,version:installed.version,
           siteOrigins:[...manifest.siteOrigins],paramsSchema:structuredClone(manifest.paramsSchema),installation:installationOf(installed)});
-      }catch(error){unavailable.push({taskId:row.taskId,reason:error.message});}
+      }catch(error){unavailable.push({taskId:row.taskId,code:error.code,reason:error.message});}
     }
     trustedSettings();
     if(!sameEpoch(epoch))throw fail('E_BRIDGE_REVOKED','读取期间安装或自动批准已改变');

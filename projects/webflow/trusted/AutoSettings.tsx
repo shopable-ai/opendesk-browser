@@ -15,7 +15,7 @@ export type WebflowAutoSnapshot={enabled:boolean;epoch:number;
  diagnostic?:string;
  catalogVerified?:boolean;
  grants:{taskId:string;grantId:string;state:string;approvedAt:number|string;scope:WebflowAutoScope}[];
- tasks:AutoTask[];unavailable?:{taskId:string;reason:string}[]|string|boolean};
+ tasks:AutoTask[];unavailable?:{taskId:string;code?:string;reason:string}[]|string|boolean};
 export type WebflowAutoController={
  readBridgeState?:()=>Promise<unknown>;
  controlBridge?:(value:unknown,nativeEvent:Event)=>Promise<unknown>;
@@ -226,6 +226,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   if(!snapshot)return '当前状态未确认（下列为上次已知批准，可直接撤销）';
   if(grant.state==='revoked')return '已撤销';
   if(snapshot.catalogVerified===false)return '安装状态待核验，请诊断刷新';
+  if(Array.isArray(snapshot.unavailable)&&snapshot.unavailable.some(row=>row.taskId===grant.taskId&&
+   row.code==='E_BUILTIN_VERSION_UNAVAILABLE'))
+   return '任务运行时已更新，需先验证并升级任务。原批准保留；升级后需重新审核同一精确范围。';
   return grantUsable(grant)
    ?'授权有效（仍需逐次核验网站权限）':'安装已变化或不可用，需重新批准';
  };
@@ -336,7 +339,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    <p className="od-technical">授权代次（epoch）：{snapshot.epoch}</p>
    {snapshot.diagnostic&&<p className="od-note">{snapshot.diagnostic}</p>}
    {Array.isArray(unavailable)?unavailable.length
-    ?<ul>{unavailable.map((row,index)=><li className="od-note" key={row.taskId+':'+index}>{row.taskId}：{row.reason}</li>)}</ul>
+    ?<ul>{unavailable.map((row,index)=><li className="od-note" key={row.taskId+':'+index}>{row.taskId}：{row.code&&row.code+'：'}{row.reason}</li>)}</ul>
     :<p className="od-note">没有不可用任务的诊断记录。</p>
     :unavailable&&<p className="od-note">{typeof unavailable==='string'?unavailable:'任务目录暂不可用'}</p>}
   </details>}

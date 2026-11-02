@@ -7,6 +7,7 @@ import * as React from 'react';
 import {createChatGPTFixedBridgeHost} from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-request.js';
+import {assertBuiltinIdentity} from '../../../src/libs/identity.js';
 
 // React detects input event support once at import. Supply a DOM before loading
 // its client so this fixture exercises onChange through real delegated events.
@@ -168,6 +169,44 @@ test('diagnostic refresh reports unavailable tasks and errors without inventing 
  assert.match(f.document.body.textContent,/缺少网站访问权限/);
  assert.equal(f.find('webflow-auto-prepare').disabled,true);
  assert.equal(String(f.find('webflow-auto-enabled').checked),'false');
+});
+
+test('runtime mismatch explains the upgrade prerequisite while preserving the exact grant without offering execution',async t=>{
+ let data={},starts=0;
+ const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
+ const ledger=createChatGPTBridgeTriggerLedger({storage});
+ await ledger.approveAuto(scope);await ledger.setAutoEnabled(true);
+ const original=await ledger.readAutoSettings();
+ const manifest={taskId:task.taskId,version:task.version,title:task.name,siteOrigins:task.siteOrigins,
+  paramsSchema:task.paramsSchema,program:{revision:1,sourceHash:installation.contentHash}};
+ const pinned={abi:'opendesk-builtins.v10',catalogSha256:'c'.repeat(64),bundleSha256:'d'.repeat(64)};
+ const bridge=createChatGPTFixedBridgeHost({isVerifiedSidePanel:()=>true,
+  api:{runtime:{async sendMessage(message){
+   assert.equal(message.kind,'auto-settings','reading the failure cannot mutate approvals');
+   return {ok:true,data:await ledger.readAutoSettings()};
+  }},permissions:{contains:async()=>true}},
+  client:{request:async method=>{
+   if(method==='listTaskCatalog')return {installed:[{taskId:task.taskId,...installation,enabled:true}],
+    catalog:[{taskId:task.taskId,version:task.version,manifestHash:installation.manifestHash,stage:'available',manifest}]};
+   assert.equal(method,'resolveInstalledTask');
+   assertBuiltinIdentity(pinned,{...pinned,bundleSha256:'e'.repeat(64)});
+  },controller:{snapshotControllerRun:async()=>{throw Error('No run exists');}}},
+  host:{start:async()=>{starts++;throw Error('No run permitted');}}});
+ t.after(()=>bridge.dispose());
+ const f=await fixture(t,{host:{api:bridge}});
+ const snapshot=await bridge.readAutoSettings();
+ assert.equal(snapshot.unavailable[0].code,'E_BUILTIN_VERSION_UNAVAILABLE');
+ assert.equal(snapshot.tasks.length,0);
+ assert.deepEqual(await ledger.readAutoSettings(),original,'the frozen approval and switch survive a runtime update');
+ assert.match(f.find('webflow-auto-grants').textContent,/先.*验证.*升级/);
+ assert.match(f.find('webflow-auto-grants').textContent,/原批准保留/);
+ assert.ok(f.find('webflow-auto-grants').textContent.includes(scope.targetUrl));
+ assert.equal(String(f.find('webflow-auto-enabled').checked),'true');
+ assert.equal(f.find('webflow-auto-prepare').disabled,true);
+ assert.equal(f.find('webflow-auto-grants').querySelector('textarea'),null);
+ assert.equal([...f.find('webflow-auto-grants').querySelectorAll('button')].some(b=>b.textContent.includes('生成')),false);
+ assert.equal(f.document.querySelector('[aria-label="撤销 search 的自动准入"]').disabled,false);
+ assert.equal(starts,0);
 });
 
 test('installation rejection clears approval and never retries; refresh exposes the new installation',async t=>{

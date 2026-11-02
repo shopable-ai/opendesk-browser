@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "stage": "core-development",
+  "taskId": "01a19ded-cc6a-7b13-a5c8-366d4a025585",
+  "sourceBaseCommit": "982596cb665ccaf676e5513ec0318dfa495c35a2",
+  "goalStatus": "active",
+  "diagnosis": {
+    "observedAt": "2026-11-02T20:32:27.827Z",
+    "method": "Native DevTools read of exact task records in readonly IndexedDB transaction; packaged extension resources fetched without credentials",
+    "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "loadedPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "connectedRevisionBeforeChange": "9f65055fc225541414267fc9aa74365783ad0453105f0b4c28f64ba530c87506",
+    "frozenRecords": ["candidate", "verification", "installation", "scriptRevision"],
+    "frozenIdentity": {
+      "abi": "opendesk-builtins.v10",
+      "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "bundleSha256": "1bb6a0d29f888160af0e3ea8d4197ac47f1ce6ef5b54703bbcd0b894ed88e23a"
+    },
+    "currentIdentity": {
+      "abi": "opendesk-builtins.v10",
+      "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "bundleSha256": "78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0"
+    },
+    "verificationRunId": "3657af47-8a6f-4747-b2e3-77ef4e02d079",
+    "verificationResultId": "518170b6-bac9-4356-a561-cae82b7fb8f4",
+    "verificationNativeReceiptCount": 59,
+    "installation": {
+      "version": "1.1.1",
+      "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+      "generation": 1,
+      "revision": 1,
+      "enabled": true,
+      "manifestHash": "adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8"
+    },
+    "conclusion": "E_BUILTIN_VERSION_UNAVAILABLE correctly rejects a changed bundle before request admission. No immutable record was re-locked or identity check weakened.",
+    "sourceAttributionLimit": "browser-schemas.js is a changed Worker source-map input; it is not claimed to be the only source of the bundle difference."
+  },
+  "change": {
+    "behavior": "Trusted settings retain structured availability error and explain native verification/upgrade before scope approval; original grant and switch remain intact; unavailable tasks cannot generate instructions",
+    "targetedTests": 29,
+    "failures": 0,
+    "nativeRecoveryUi": "PASS_NATIVE",
+    "connectedRevisionAfterChange": "6bd1298cb1b9465398979e2400de90484ef15e620cfc3c1afacaac7d8e2d5ea2",
+    "currentBundleUnchangedAfterRebuild": true,
+    "originalGrantInstallationUnchanged": true,
+    "originalApprovedAtLocal": "2026/11/2 21:37:33",
+    "autoSwitchRemainsEnabled": true,
+    "devWriterPid": 15593,
+    "taskIdentityChecksChanged": false,
+    "newNativeRequests": 0
+  },
+  "upgradeReview": {
+    "state": "PREPARED_NOT_IMPORTED_NOT_VERIFIED_NOT_INSTALLED",
+    "from": "1.1.1",
+    "to": "1.1.2",
+    "sourceBytesUnchanged": true,
+    "manifestEqualExceptVersion": true,
+    "newManifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+    "specificUpgradeAndReapprovalAuthorized": false,
+    "scope": {"targetUrl": "https://www.baidu.com/", "args": {"query": "OpenDesk Browser", "limit": 3}}
+  },
+  "currentBuildBaiduTwoRounds": "NOT_TESTED_PENDING_AUTHORIZED_UPGRADE",
+  "sourceEvidence": "artifacts/webflow-auto-20261103/runtime-01a19ded/",
+  "deferred": ["MCP", "production", "full-matrix", "scoring"]
+}

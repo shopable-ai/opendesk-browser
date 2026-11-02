@@ -1232,3 +1232,38 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 日常仍是原 `dist/development` / 扩展 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`。实读 Chrome 已启用路径为该目录，调试页确认 serve 连接。原唯一 writer PID94203 因缓存旧 CurrentTask pin 被来源门禁拒绝，已在接管权限内顺序停止、确认两端口释放后启动唯一新 writer PID3682（43119/43120）；没有并行 writer、隔离替换或 Native 配对修改。重启构建 148 秒，后续只有相关增量。最终相关源码与 `input-bindings.json` 指纹一致；正式 Web Flow v0.3.5 JSON 未变，不重打包。Cookie/ScrapyJS/云控及 Cookie pin、预存 12.10 段继续保留，不混入本次提交。
 
 **原始证据：** `artifacts/webflow-auto-20261103/new-chat-01a19d27/` 中 `user-failure-{chat,full}.json`、`user-failure.ax.txt`、各 RED/GREEN 日志、`diagnostic-first-observations.json`、`fixed-first-{filled,observations}.json`、`fixed-first-result.ax.txt`、`final-grant-identity.json`、`final-original-grant.ax.txt`、`extension-details.ax.txt`、`dev-connected-new.ax.txt` / `final-dev-connected.ax.txt`、`input-bindings.json`、`task-upgrade-review.json`、`final-targeted.log` 和 `dev-core.log`。本轮没有截图，没有操作旧网页浮层。MCP、跨对话编排/多步骤 B、持久队列、production、长结果完整回传、宽度缩放/压力和评分仍延期。
+
+### 12.11.10 用户要求新任务继续、设置目标与关键测试条件（2026-11-03）
+
+用户最新原话：“创建新对话，继续完善。设置目标，和关键测试条件；”。本轮按保存项目直接创建 local 新任务，仍在现有 `main` 工作，不创建分支/worktree/PR。新任务启动先实读目标状态，再用 `create_goal` 设置唯一核心目标（无用户指定 token budget）；当前旧任务实读 `get_goal=null`，无旧目标需要暂停、迁移或伪报完成。
+
+**唯一核心目标：** 查实并安全解除当前 `E_BUILTIN_VERSION_UNAVAILABLE` 阻塞，完善 Web Flow 正常产品入口，使空白 ChatGPT 首条原生发送触发原已安装百度任务；同一精确有效批准及开关不变，连续两轮各自完成真实百度 DOM、同 Run 持久结果、资源 released、可信侧栏和原聊天交付，身份一致且结果不串线。当前阶段仍为核心开发，不恢复延期矩阵或另建总计划文件。
+
+**关键完成条件：**
+
+1. 先核对实际原 Task/批准及当前运行时身份；旧 bundle digest 仍未实读，不能把源文件有变化当成全部原因已证明。已准备的同源码 1.1.2 候选未导入、未验证、未安装；上一轮针对升级/恢复批准的询问尚无明确答复，本次“创建新对话”不能自动视为该特定动作的批准。继续不依赖该批准的必要诊断/修复；确需改变冻结安装时，保留原审阅链和用户授权边界，不改 SHA/ABI 校验制造通过。
+2. 真实空白 ChatGPT 对话（无历史/草稿/附件/IME）首条原生发送，完整严格五字段协议；临时 local-chatgpt 路由只观察，同一新增用户绑定正式对话后才准入；没有采用/执行/逐次批准点击。
+3. 每轮全新 candidateId，独立 requestId/Run/Result。真实百度填写 `OpenDesk Browser` 并搜索，读取三条自然结果；独立 DOM 与同 Run 原始 data 对照。第一轮持久结果核实且 released 后，再在同批准/开关不变下完成第二轮。
+4. 侧栏与原聊天使用同一 Run/Result 和完整本次 data，交付一次；没有 Run 明确未运行，换对话或下一次原生发送不把旧结果叫本次；百度任务不显示 httpbingo 范围。
+5. 保留本轮相关历史/合成发送/流式/回答替换、精确来源/文档/安装代次、撤权/取消/UNKNOWN 不重放保护。异常只查/停止原请求，不用新候选补跑未知效果。按实际变化选择定向检查，复用 138 项及原生首发已有证据，不重复无关全套测试。
+6. 只以同候选真实证据记录各步骤；MCP、production、跨对话编排、多步骤 B、持久队列、完整矩阵、宽度缩放/压力与评分继续延期。旧网页浮层不作为入口或删除前置，优先 AX/原生输入/只读 DOM，不逐步截图。
+
+**资源与生命周期交接：** 创建成功后，新任务接管 `projects/webflow/` 本轮源码、Chrome 和唯一 writer/dist/端口；旧任务停止这些资源的重复操作。交接实读 main HEAD `982596cb6`（仅本地提交，未推送）；Chrome PID516、dev writer PID3682（43119/43120）仍在，固定 `dist/development`，最近真实连接指纹 `9f65055fc225541414267fc9aa74365783ad0453105f0b4c28f64ba530c87506`。原失败标签759148515保留；最终首发/运行时拒绝标签759148534，对话 c/6ae8ca72-af90-83e8-91dc-65152136aebd。新任务先核对实际加载/连接/运行状态，不能凭 PID 证明连接；未获移交的其他 owner 资源不接管。预存 12.10 MCP 段、Cookie pin 和其他 dirty 保留；当前这段交接尚未提交，由新 owner 与其后续结果安全分离处理。
+
+### 12.11.11 冻结运行时差异已实读，恢复指引修复；升级仍待特定授权（2026-11-03）
+
+**目标与当前操作：** 任务 `01a19ded-cc6a-7b13-a5c8-366d4a025585` 启动实读 `get_goal=null`，已按 12.11.10 建立唯一核心目标，无 token budget，状态 active。主分支接手基线 `982596cb6`；不创建后续任务。下一条尚未完成的真实操作仍是解除原任务运行时拒绝后，新空白 ChatGPT 首发及同批准第二轮百度全链；当前未发送任何新候选、没有新增 request/Run/Result。当前目标没有完成，MCP、production、完整矩阵及评分继续延期。
+
+**具体根因（补足 12.11.9 的未知项）：** 从真实 Chrome 的原 Service Worker DevTools，只读打开已有 `opendesk-browser`，仅在 readonly 事务读取百度 1.1.1 的候选、安装、Revision 三条记录并投影 verification；没有读浏览器 Profile、Cookie、凭据或写库。四处 `builtinIdentity` 都为 ABI `opendesk-builtins.v10`、catalog `085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f`、bundle `1bb6a0d29f888160af0e3ea8d4197ac47f1ce6ef5b54703bbcd0b894ed88e23a`。verification 绑定原 Run `3657af47-8a6f-4747-b2e3-77ef4e02d079` / Result `518170b6-bac9-4356-a561-cae82b7fb8f4`，原生效果回执 59 条。安装仍为 generation 1、原 installationId、enabled，源码和 manifest Hash 与交接一致。
+
+同一真实扩展的打包资源按原 loader 的顺序及 `\n;\n` 拼接计算，当前 ABI、catalog 相同，bundle 为 `78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0`，与磁盘上经原 loader 校验的摘要相同。由此证明当前 `assertBuiltinIdentity` 是对真实 bundle 变化的正确拒绝；不是旧结果、参数错误、安装丢失或只看版本号作出的推断。`browser-schemas.js` 仍只是已证实变化的 Worker 输入，不宣称它是唯一变化原因。没有放宽校验、改 SHA/ABI、静默重锁冻结版本或回退其他 owner 源码。
+
+**独立可完成的最小修复：** 真实授权区在此错误下仅显示“安装已变化或不可用，需重新批准”，会把升级前置误导成单纯重复批准。现有固定 Host 的可信设置投影保留原错误 `code`；项目 `trusted/AutoSettings.tsx` 按 `E_BUILTIN_VERSION_UNAVAILABLE` 明确提示先验证、升级 Task，原批准保留，升级后审阅同一精确范围。继续只从原解析器核实的可用任务生成指令，未新增运行/安装/授权 API、持久层或自动修复逻辑；固定来源 pin 仅更新本组件，Cookie pin 不属于本次提交。正式 Web Flow JSON 未变。
+
+**对应定向证据：** 新测试先 RED 于 Host 丢失错误码，再 GREEN；使用原 Host、原 ledger 与真实 `assertBuiltinIdentity`，确认 bundle 变化时 task 不可用、原批准/开关/精确 scope 不变、无新指令、准备不可用、仍可撤销、零 Run。设置 UI 与受影响 Host 共 29 PASS，未重新运行上轮 138 项及无关矩阵。原生侧栏已实读“需先验证并升级任务。原批准保留”，原批准时间 `2026/11/2 21:37:33`、完整七字段安装 scope、百度精确地址及参数不变，总开关仍开启；当前已发送候选明确“尚无任务请求”，无新结果或回传。仅恢复指引为 `PASS_NATIVE`，不是百度双轮通过。
+
+**当前持续开发环境：** 原唯一 writer PID3682 因旧 Web Flow pin 缓存被构建来源门禁拒绝；先正常停止并确认进程/43119/43120 释放后，才启动唯一 writer PID15593（本任务 exec session48473）。没有并行 dev/build、替换加载目录或修改 Native 配对。固定 `dist/development` 与原扩展 ID 保持；Chrome 调试页实读“开发服务已连接”，完整 revision `6bd1298cb1b9465398979e2400de90484ef15e620cfc3c1afacaac7d8e2d5ea2`。新构建中原 loader 仍算得相同 `78012ced…` 当前 bundle；未通过重建回到旧 digest。日志 `runtime-01a19ded/dev-core.log`，保持该服务供后续使用；停留原标签759148534、可信 Web Flow 侧栏打开，没有发送消息。
+
+**可审阅的升级范围：** 已复核原 1.1.2 候选与正式 1.1.1 的源码逐字相同，manifest 除 version 外完全一致；源码 Hash `28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8`、新 manifest Hash `6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5`。仅 `page.automation`、`https://www.baidu.com`、原参数 Schema、60 秒期限。仍为 `PREPARED_NOT_IMPORTED_NOT_VERIFIED_NOT_INSTALLED`，不能用格式校验替代真实验证。用户尚未明确批准重新验证、升级安装及恢复 `https://www.baidu.com/` / `{"query":"OpenDesk Browser","limit":3}` 的精确批准；原安装及批准先保留。获此特定授权后才沿 Candidate → 真实验证 → Available → Installed → 精确范围审阅，再完成同批准/开关不变的两个全新候选，不逐次批准/采用/执行。
+
+精简身份与状态见 [运行时差异证据](../evidence/runtime-identity-20261103.json)，原始定向记录在 `artifacts/webflow-auto-20261103/runtime-01a19ded/`。原用户失败对话及全部已发送 candidate 保留、不重放；只保留本任务必要的脱敏摘要到 Git。
