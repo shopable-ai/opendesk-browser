@@ -23,7 +23,7 @@
     changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
   const Btn=(label,click,opts={})=>h('button',{
-    type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
+    key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
       (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
     title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,
     'aria-expanded':opts.expanded
@@ -38,12 +38,12 @@
   const safeError=error=>M.bounded(error&&error.code?error.code+'：'+(error.message||'操作失败'):
     error&&error.message||'操作失败',190);
   const defaultPrefs=()=>({theme:'system',favorites:[]});
-  const terminalReceipt=s=>M.isTerminal(s.state)&&s.state!=='completed'||M.isTerminal(s.state)&&Boolean(s.result);
+  const pendingKey='webflow.pending.v1';
 
   function App(){
     const [page,setPage]=R.useState('overview');
     const [settings,setSettings]=R.useState(defaultPrefs);
-    const [tasks,setTasks]=R.useState(PINN.map(pin=>({...pin,state:'checking',binding:null})));
+    const [tasks,setTasks]=R.useState(PINNED.map(pin=>({...pin,state:'checking',binding:null})));
     const [history,setHistory]=R.useState([]);
     const [loading,setLoading]=R.useState(true);
     const [pageInfo,setPageInfo]=R.useState({status:'unavailable'});
@@ -56,8 +56,14 @@
     const [active,setActive]=R.useState(null);
     const [saving,setSaving]=R.useState(false);
     const [showFilters,setShowFilters]=R.useState(false);
+    const [recoveryReady,setRecoveryReady]=R.useState(false);
+    const [staged,setStaged]=R.useState(null);
+    const [snapshots,setSnapshots]=R.useState({});
     const alive=R.useRef(true), seq=R.useRef(0), timer=R.useRef(null);
-    const busy=R.useRef(false), activeRef=R.useRef(null);
+    const busy=R.useRef(false), activeRef=R.useRef(null), historyRef=R.useRef([]);
+    const observation=R.useRef(0), pendingRef=R.useRef(null), stagedRef=R.useRef(null),cancelledRef=R.useRef(null);
+    const recordWrites=R.useRef(Promise.resolve());
+    const localCancellation=R.useRef(null);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
 
     const readTasks=R.useCallback(async()=>{
@@ -79,10 +85,10 @@
       let disposed=false;
       async function load(){
         try{
-          const [prefs,records,site]=await Promise.allSettled([
+          const [prefs,records,site,pending]=await Promise.allSettled([
             request('storage.get',{key:'webflow.settings.v1'}),
             request('storage.get',{key:'webflow.recent.v1'}),
-            request('currentPage.info',{})
+            request('currentPage.info',{}),request('storage.get',{key:pendingKey})
           ]);
           if(disposed)return;
           if(prefs.status==='fulfilled'&&prefs.value&&prefs.value.value){
@@ -90,24 +96,72 @@
             setSettings({theme:['system','light','dark'].includes(value.theme)?value.theme:'system',
               favorites:Array.isArray(value.favorites)?value.favorites.filter(x=>typeof x==='string').slice(0,16):[]});
           }else if(prefs.status==='rejected')setError('偏好读取失败：'+safeError(prefs.reason));
-          if(records.status==='fulfilled')setHistory(M.recentRecords(records.value&&records.value.value));
+          if(records.status==='fulfilled'){
+            historyRef.current=M.recentRecords(records.value&&records.value.value);
+            setHistory(historyRef.current);
+          }
           else setError('记录读取失败：'+safeError(records.reason));
           if(site.status==='fulfilled')setPageInfo(site.value||{status:'unavailable'});
+          if(pending.status==='rejected'){
+            setError('原步骤恢复入口读取失败：'+safeError(pending.reason));return;
+          }
+          const saved=pending.value?.value;
+          if(saved==null&&records.status==='rejected'){
+            setError('历史原步骤读取失败，不能确认没有未完成请求：'+safeError(records.reason));return;
+          }
+          if(saved!=null){
+            const item=M.pendingRecord(saved);
+            if(!item||!PINNED.some(pin=>pin.taskId===item.taskId)){
+              setError('原步骤恢复记录损坏；保留记录并在宿主核对，不能新建请求补跑。');return;
+            }
+            pendingRef.current=item;activeRef.current=item.clientRequestId;setActive(item);
+          }else{
+            // Earlier versions saved held/UNKNOWN summaries without a pending
+            // key. They are recovery locators, never authoritative results.
+            const legacy=historyRef.current.find(item=>item.retirementState!=='released'&&!item.notSubmittedFenced);
+            if(legacy){
+              const item=M.pendingRecord(legacy);
+              if(!item||!PINNED.some(pin=>pin.taskId===item.taskId)){
+                setError('历史原步骤无法恢复；保留记录并在宿主核对。');return;
+              }
+              activeRef.current=item.clientRequestId;setActive(item);
+            }
+          }
+          setRecoveryReady(true);
         }catch(e){if(!disposed)setError(safeError(e));}
       }
       void load();void readTasks();
-      return ()=>{disposed=true;alive.current=false;seq.current++;if(timer.current)clearTimeout(timer.current);};
+      return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;
+        if(timer.current)clearTimeout(timer.current);};
     },[readTasks,request]);
 
-    const save=async(key,value)=>{
+    const save=async(key,value,expected,guard=()=>alive.current)=>{
       // No optimistic success: conditional write followed by the real SDK readback.
+      if(!guard())return false;
       const before=await request('storage.get',{key,withEtag:true});
+      if(!guard())return false;
+      // Merge summaries against the value actually read by this CAS, including
+      // records temporarily unreadable during initial recovery or another UI.
+      if(typeof value==='function')value=value(before?.value);
+      // A proved released step may already have been cleared even when its
+      // ACK was lost. Reconcile empty; never remove a different step's locator.
+      if(key===pendingKey&&value===null&&typeof expected==='string'&&before?.value==null)return true;
+      // Reconstructing the same locator is also idempotent: a Stop may have
+      // superseded its UI epoch after storage committed but before the ACK.
+      if(key===pendingKey&&expected===null&&value&&before?.value?.clientRequestId===value.clientRequestId&&
+        before.value.taskId===value.taskId&&before.value.version===value.version)return true;
+      if(key===pendingKey&&(
+        typeof before?.etag!=='string'||
+        (expected===null?before?.value!=null:before?.value?.clientRequestId!==expected)))
+        throw Object.assign(Error('原步骤发生变化；请重开记录查询原请求'),{code:'E_CONFLICT'});
       const args={key,value};
       if(typeof(before&&before.etag)==='string')args.ifMatch=before.etag;
       await request('storage.set',args);
+      if(!guard())return false;
       const after=await request('storage.get',{key});
       if(JSON.stringify(after&&after.value)!==JSON.stringify(value))
         throw Error('保存后读回不一致；请在宿主检查真实状态');
+      return true;
     };
     const savePrefs=async value=>{
       if(saving)return;
@@ -122,83 +176,184 @@
       if(set.has(key))set.delete(key);else set.add(key);
       void savePrefs({...settings,favorites:[...set].slice(0,16)});
     };
-    const writeRecord=async(snapshot,pin)=>{
-      const item=M.projectRun(snapshot,pin);
-      const rows=M.recentRecords([item,...history]).slice(0,12);
-      try{
-        await save('webflow.recent.v1',rows);
-        if(alive.current){setHistory(rows);setNotice('已保存本应用执行摘要；权威结果仍在原 RunHost。');}
-      }catch(e){
-        if(alive.current){setHistory(rows);setError('执行摘要未确认持久化：'+safeError(e));}
-      }
+    const writeRecord=(snapshot,pin,id,epoch)=>{
+      const write=async()=>{
+        if(!current(id,epoch))return;
+        const item=M.projectRun(snapshot,pin);
+        let rows;
+        const saved=await save('webflow.recent.v1',previous=>{
+          rows=M.recentRecords([item,...M.recentRecords(previous).filter(x=>x.clientRequestId!==item.clientRequestId)]);
+          return rows;
+        },undefined,()=>current(id,epoch));
+        if(saved&&current(id,epoch)){historyRef.current=rows;setHistory(rows);}
+      };
+      // Only this UI's summaries are serialized; execution stays in Authority.
+      const pending=recordWrites.current.then(write,write);
+      recordWrites.current=pending.catch(()=>{});
+      return pending;
     };
-    const observe=async(clientRequestId,pin,snapshot,attempt=0)=>{
-      if(!alive.current)return;
-      let next=snapshot;
-      if(!next){
-        try{next=await request('tasks.read',{clientRequestId});}
-        catch(e){
-          if(alive.current){setError('原请求对账失败：'+safeError(e));setActive({clientRequestId,taskId:pin.taskId,state:'unknown'});}
-          return;
+    const current=(id,epoch)=>alive.current&&observation.current===epoch&&activeRef.current===id;
+    const forgetResult=id=>setSnapshots(old=>{const next={...old};delete next[id];return next;});
+    const accept=async(id,pin,next,epoch,attempt=0)=>{
+      if(!current(id,epoch))return;
+      if(!next||next.clientRequestId!==id)throw Error('原请求回包身份不匹配');
+      const previous=historyRef.current.find(x=>x.clientRequestId===id);
+      if(previous?.runId&&next.runId!==previous.runId||previous?.resultId&&next.resultId!==previous.resultId)
+        throw Error('原运行 / 结果身份不匹配');
+      setActive({...next,taskId:pin.taskId});
+      setSnapshots(old=>({...old,[id]:next}));
+      // Store only a navigation summary. Result/value never enter AppStorage.
+      await writeRecord(next,pin,id,epoch);
+      if(!current(id,epoch))return;
+      if(M.released(next)){
+        if(pendingRef.current?.clientRequestId===id){
+          await save(pendingKey,null,id,()=>current(id,epoch));
+          if(!current(id,epoch))return;
+          pendingRef.current=null;
         }
-      }
-      if(!alive.current||activeRef.current!==clientRequestId)return;
-      setActive(next);
-      if(terminalReceipt(next)){
-        await writeRecord(next,pin);
         activeRef.current=null;
-        if(alive.current)setActive(null);
+        setNotice('原请求已查询，资源已释放；后续任务仍须手动运行。');
         return;
       }
-      if(attempt>=45){setNotice('仍未取得确定的持久结果。可读取原请求状态，不能重新提交同一操作。');return;}
-      timer.current=setTimeout(()=>{void observe(clientRequestId,pin,null,attempt+1);},1600);
+      if(next.state==='unknown'||next.semantic==='UNKNOWN'||attempt>=45){
+        setNotice('原请求仍未确定。保留同一步骤，只能查询或停止，不能重新运行。');return;
+      }
+      timer.current=setTimeout(()=>{void observe(id,pin,epoch,attempt+1);},1600);
     };
-    const run=pin=>{
-      // The SDK request must start synchronously within the real button click.
-      if(busy.current||activeRef.current||pin.state!=='available'||!pin.binding||!query.trim())return;
+    const failObservation=(id,pin,epoch,e)=>{
+      if(!current(id,epoch))return;
+      forgetResult(id);setActive({clientRequestId:id,taskId:pin.taskId,state:'unknown'});
+      setNotice('');
+      setError('原请求未确认：'+safeError(e)+'。请查询或停止原步骤，不能新建请求补跑。');
+    };
+    const observe=async(id,pin,epoch,attempt=0)=>{
+      if(!current(id,epoch))return;
+      try{await accept(id,pin,await request('tasks.read',{clientRequestId:id}),epoch,attempt);}
+      catch(e){failObservation(id,pin,epoch,e);}
+    };
+    const prepare=async pin=>{
+      if(!recoveryReady||busy.current||activeRef.current||pin.state!=='available'||!pin.binding||!query.trim())return;
       if(pageInfo.status!=='available'||!sameSite(pageInfo.url,pin.site)){
         setError('请先切换至该任务获准网站，再从 Web Flow 点击运行。');return;
       }
       const id='webflow:'+global.crypto.randomUUID();
+      const item={clientRequestId:id,taskId:pin.taskId,version:pin.version,at:Date.now(),
+        task:pin.binding,params:{query:query.trim(),limit:3}};
+      const epoch=observation.current;
       busy.current=true;activeRef.current=id;setError('');setNotice('');
-      setActive({clientRequestId:id,taskId:pin.taskId,state:'preparing'});
-      const pending=request('tasks.start',{clientRequestId:id,task:pin.binding,params:{query:query.trim(),limit:3}});
-      Promise.resolve(pending).then(snapshot=>{
-        if(alive.current)void observe(id,pin,snapshot);
-      }).catch(e=>{
+      setActive({...item,state:'saving'});
+      try{
+        await save(pendingKey,item,null);
+        if(!alive.current)return;
+        pendingRef.current=item;
+        // Stop or navigation may have invalidated this preparation during I/O.
+        if(activeRef.current!==id||observation.current!==epoch||cancelledRef.current===id)return;
+        const ready={clientRequestId:id,task:pin.binding,params:{query:query.trim(),limit:3}};
+        stagedRef.current=ready;setStaged(ready);setActive({...item,state:'ready'});
+        setNotice('原步骤已保存并读回。点击“确认手动运行”才会执行网页操作。');
+      }catch(e){
         if(alive.current){
-          setError('提交结果未确认：'+safeError(e)+'。请先对账原请求，不得直接重试。');
-          setActive({clientRequestId:id,taskId:pin.taskId,state:'unknown'});
+          // start has never been called in this instance. Keep cancellation
+          // only, even if storage committed but its acknowledgement was lost.
+          localCancellation.current={clientRequestId:id,task:pin.binding,params:item.params};
+          setError('运行步骤未确认保存：'+safeError(e));setActive({...item,state:'unknown'});
         }
-      }).finally(()=>{busy.current=false;});
+      }finally{busy.current=false;}
     };
-    const readActive=()=>{
-      const current=activeRef.current, pin=PINNED.find(p=>p.taskId===active&&active.taskId);
-      if(!current||!pin)return;
+    const run=pin=>{
+      // Nothing asynchronous precedes this SDK start. Preparation was saved
+      // by the preceding button, so the trusted parent sees the actual click.
+      const ready=stagedRef.current;
+      if(!ready||busy.current||cancelledRef.current===ready.clientRequestId||
+        activeRef.current!==ready.clientRequestId)return;
+      if(!pin||pin.state!=='available'||!M.pinsEqual(pin.binding,ready.task)||
+        pin.binding.installationId!==ready.task.installationId||pin.binding.generation!==ready.task.generation){
+        setError('固定安装身份发生变化；不能执行已保存步骤，请查询或停止原请求。');return;
+      }
+      const id=ready.clientRequestId,epoch=++observation.current;
+      stagedRef.current=null;setStaged(null);setError('');setNotice('');
+      setActive({clientRequestId:id,taskId:pin.taskId,state:'preparing'});
+      try{
+        Promise.resolve(request('tasks.start',ready)).then(async snapshot=>{
+          // ACK alone cannot release the step: accept requires its matching
+          // durable Result and an affirmative retirement acknowledgement.
+          if(!current(id,epoch))return;
+          await accept(id,pin,snapshot,epoch);
+        }).catch(e=>failObservation(id,pin,epoch,e));
+      }catch(e){failObservation(id,pin,epoch,e);}
+    };
+    const readOriginal=(entry)=>{
+      const pin=PINNED.find(p=>p.taskId===entry?.taskId),id=entry?.clientRequestId;
+      if(!id||!pin)return;
+      if(activeRef.current&&activeRef.current!==id){setError('请先核对当前未释放的原请求。');return;}
+      if(stagedRef.current?.clientRequestId===id){
+        setNotice('本实例的步骤已保存但尚未提交；可以确认手动运行，或取消未运行步骤。');return;
+      }
+      if(localCancellation.current?.clientRequestId===id){
+        setNotice('本实例从未提交此步骤；取消保存结果未确认，可以重试取消未运行步骤。');return;
+      }
       if(timer.current)clearTimeout(timer.current);
-      void observe(current,pin);
+      const epoch=++observation.current;
+      stagedRef.current=null;setStaged(null);activeRef.current=id;forgetResult(id);
+      setActive({...entry,state:'checking'});setError('');setNotice('');
+      void (async()=>{
+        try{
+          if(!pendingRef.current){
+            const item={clientRequestId:id,taskId:pin.taskId,version:entry.version||pin.version,at:entry.at||Date.now()};
+            await save(pendingKey,item,null);
+            if(!current(id,epoch))return;
+            pendingRef.current=item;
+          }
+          await observe(id,pin,epoch);
+        }catch(e){failObservation(id,pin,epoch,e);}
+      })();
     };
-    const stop=()=>{
-      const id=activeRef.current;
+    const readActive=()=>readOriginal(active);
+    const cancelStaged=()=>{
+      const ready=stagedRef.current||localCancellation.current;if(!ready||busy.current)return;
+      const id=ready.clientRequestId,epoch=++observation.current;
+      // Invalidate confirmation synchronously. This instance has never called
+      // start for the staged ID; no platform operation needs to be stopped.
+      stagedRef.current=null;setStaged(null);cancelledRef.current=id;
+      localCancellation.current=ready;busy.current=true;
+      setActive({clientRequestId:id,taskId:ready.task.taskId,state:'cancelling-local'});
+      void save(pendingKey,null,id,()=>current(id,epoch)).then(saved=>{
+        if(saved&&current(id,epoch)){
+          pendingRef.current=null;activeRef.current=null;localCancellation.current=null;setActive(null);
+          setNotice('未运行步骤已取消；没有派发网页操作。');
+        }
+      }).catch(e=>failObservation(id,ready.task,epoch,e)).finally(()=>{busy.current=false;});
+    };
+    const stopOriginal=(entry)=>{
+      const id=entry?.clientRequestId;
       if(!id)return;
-      setNotice('正在向原 Host 发出停止请求；Stop 不撤销已产生的网页副作用。');
-      void request('tasks.stop',{clientRequestId:id}).then(s=>{
-        if(alive.current)setActive(s);
-      }).catch(e=>{if(alive.current)setError('停止结果未知：'+safeError(e));});
+      if(activeRef.current&&activeRef.current!==id){setError('请先停止当前原请求。');return;}
+      activeRef.current=id;cancelledRef.current=id;
+      const epoch=++observation.current;
+      if(timer.current)clearTimeout(timer.current);
+      stagedRef.current=null;setStaged(null);forgetResult(id);
+      setActive({...entry,state:'stopping'});
+      setNotice('正在停止原请求；已产生的网页副作用不会撤销。停止后请查询原请求确认释放。');
+      try{
+        void Promise.resolve(request('tasks.stop',{clientRequestId:id})).then(s=>{
+          if(current(id,epoch))setActive({...s,clientRequestId:id,taskId:entry.taskId});
+        }).catch(e=>{
+          if(current(id,epoch)){setActive({...entry,state:'unknown'});setError('停止结果未知：'+safeError(e));}
+        });
+      }catch(e){if(current(id,epoch))setError('停止结果未知：'+safeError(e));}
     };
+    const stop=()=>stopOriginal(active);
     const openTask=pin=>{
       if(pin.state!=='available')return;
       setError('');void request('tasks.open',{taskId:pin.taskId}).catch(e=>{
         if(alive.current)setError('宿主任务管理入口不可用：'+safeError(e));
       });
     };
-    const setTab=name=>{setPage(name);setDetail(null);setNotice('');setError('');};
+    const setTab=name=>{setPage(name);setDetail(null);setNotice('');};
     const sameTarget=pin=>pageInfo.status==='available'&&sameSite(pageInfo.url,pin.site);
     const rows=M.filterTasks(tasks,search,filter,settings.favorites);
     const summary=M.summary(tasks,history);
-    const selected=tasks.find(p=>p.taskId===detail);
-    const activePin=PINNED.find(p=>p.taskId===active&&active.taskId);
-    const runDisabled=pin=>pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
+    const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
     const gotoScripts=()=>setTab('scripts');
     const banner=h('div',{className:'wf-banner'},
       '已核对的是本应用安装审阅的 '+PINNED.length+' 个固定任务，不是浏览器所有脚本；自动运行授权和全局历史的公开接口尚未提供。');
@@ -232,13 +387,13 @@
             ['安装身份',pin.binding&&h('code',{className:'wf-mono'},pin.binding.installationId||'待核对')||'不可读取'],
             ['授权代次',pin.binding?String(pin.binding.generation):'不可读取']]),
           h('label',{className:'wf-label',htmlFor:'wf-query'},'搜索关键词',
-            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,
+            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,disabled:Boolean(activeRef.current),
               placeholder:'输入本次搜索关键词',onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
           h('p',{className:'wf-sub'},sameTarget(pin)?
             '目标网站匹配；运行仍须经过原宿主的实时权限、站点及任务校验。':
             '当前标签页不是该任务的获准网站。请切换页面后重新打开 Web Flow。'),
           h('div',{className:'wf-actions'},
-            Btn('确认手动运行',()=>run(pin),{primary:true,
+            Btn('保存运行步骤',()=>{void prepare(pin);},{primary:true,
               disabled:runDisabled(pin)||!query.trim()||query.trim().length>120}),
             Btn('关闭详情',()=>setDetail(null),{quiet:true}))
         )
@@ -250,9 +405,9 @@
           h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
           h('span',{className:'wf-meta'},time(entry.at))),
         h('div',{className:'wf-line wf-between'},
-          h(Status,{state:entry.state,text:'运行：'+entry.state}),
-          h('span',{className:'wf-sub'},entry.resultPersisted?'持久结果已观察到':'持久结果未确认')),
-        h('p',{className:'wf-sub'},'业务结果：'+businessLabel(entry.business)+
+          h(Status,{state:entry.state,text:'保存时运行：'+entry.state}),
+          h('span',{className:'wf-sub'},entry.resultPersisted?'保存时曾观察持久结果':'持久结果未确认')),
+        h('p',{className:'wf-sub'},'摘要（当前授权及结果须重新查询）：'+businessLabel(entry.business)+
           (entry.count!==null?' · '+entry.count+' 条':'')+
           '；原聊天交付 / AI 续答：未观察'),
         h('details',{className:'wf-help'},h('summary',null,'技术与证据'),
@@ -261,8 +416,40 @@
             ['resultId',h('code',{className:'wf-mono'},entry.resultId||'未取得')],
             ['原运行结果',entry.runtimeOk?'Controller 结果 outcome.ok=true':'未核验或执行失败'],
             ['资源释放',entry.retirementState],
-            ['持久结果',entry.resultPersisted?'原快照匹配':'未确认']]))
+            ['持久结果',entry.resultPersisted?'保存时原快照匹配':'未确认']])),
+        active?.clientRequestId!==entry.clientRequestId&&h('div',{className:'wf-actions'},
+          Btn('查询原请求',()=>readOriginal(entry)))
       ));
+    const activeCard=()=>{
+      if(!active)return null;
+      const snapshot=snapshots[active.clientRequestId];
+      const pin=PINNED.find(p=>p.taskId===active.taskId);
+      const projection=snapshot&&pin?M.projectRun(snapshot,pin):null;
+      return h(Card,{children:h('div',{className:'wf-stack'},
+        h('div',{className:'wf-line wf-between'},h('h3',null,'原步骤'),
+          h(Status,{state:active.state,text:'执行：'+active.state})),
+        h('strong',null,(pin?.title||active.taskId)+' · v'+(active.version||pin?.version||'未确认')),
+        h('p',{className:'wf-sub'},'目标网站：'+(pin?.site||'未确认')),
+        h('code',{className:'wf-mono'},active.clientRequestId),
+        h('p',{className:'wf-sub'},'资源释放：'+(snapshot?.retirementState||'未确认')+'；后续 B：不自动执行'),
+        staged&&h('p',null,'已保存参数：'+staged.params.query),
+        staged&&Btn('确认手动运行',()=>run(tasks.find(p=>p.taskId===staged.task.taskId)),{
+          primary:true,disabled:tasks.find(p=>p.taskId===staged.task.taskId)?.state!=='available'||busy.current}),
+        h('div',{className:'wf-actions'},Btn('查询原请求',readActive,{
+          disabled:active.state==='saving'||active.state==='cancelling-local'}),
+          staged?Btn('取消未运行步骤',cancelStaged):localCancellation.current?
+            Btn('重试取消未运行步骤',cancelStaged,{disabled:active.state==='cancelling-local'}):
+            Btn('停止原请求',stop,{disabled:active.state==='saving'})),
+        pendingRef.current?.task&&h('details',{className:'wf-help'},h('summary',null,'保存时的任务身份'),
+          detailList([['安装身份',pendingRef.current.task.installationId],
+            ['授权代次',String(pendingRef.current.task.generation)],
+            ['manifestHash',pendingRef.current.task.manifestHash],['contentHash',pendingRef.current.task.contentHash]])),
+        projection?.resultPersisted&&h('div',{className:'wf-stack'},
+          h('p',null,'原 Controller 持久结果 · '+(projection.runtimeOk?'执行成功':'执行未成功')),
+          h('p',{className:'wf-mono'},'runId: '+snapshot.runId+' · resultId: '+snapshot.resultId),
+          h('pre',{className:'wf-result'},JSON.stringify(snapshot.value??snapshot.result.outcome,null,2))),
+        h('p',{className:'wf-sub'},'查询不创建执行。UNKNOWN、缺失记录或资源未释放时，保留原步骤，只能查询或停止。'))});
+    };
     function overview(){
       return h('div',{className:'wf-stack'},
         h(Head,{title:'概览',note:'固定任务 · 真实安装核验与最近运行'}),
@@ -310,20 +497,13 @@
     }
     function records(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'记录',note:'仅包含本应用持久保存的最近 12 条摘要'}),
-        h('div',{className:'wf-banner'},'运行完成、业务成功、结果持久化、原聊天交付与 AI 续答是五个独立阶段。此处不证明原聊天已收到结果；刷新后无法跨 iframe 查询旧委托。'),
-        active&&h(Card,{children:h('div',{className:'wf-stack'},
-          h('div',{className:'wf-line wf-between'},h('h3',null,'当前原请求'),
-            h(Status,{state:active.state,text:active.state||'待确认'})),
-          h('code',{className:'wf-mono'},active.clientRequestId),
-          h('div',{className:'wf-actions'},
-            Btn('查询原请求',readActive),Btn('停止原请求',stop,{disabled:!activeRef.current})),
-          h('p',{className:'wf-sub'},'结果 UNKNOWN 时只能查询同一 clientRequestId；不自动再次执行。')
-        )}),
+        h(Head,{title:'记录',note:'原步骤恢复入口与最近 12 条本应用摘要'}),
+        h('div',{className:'wf-banner'},'摘要仅用于定位。点击原记录的“查询原请求”，由当前宿主重新核验授权并读取原结果；不会重新运行。结果完成、资源释放、原聊天交付和 AI 续答分别核对。'),
+        activeCard(),
         history.length?h('ul',{className:'wf-history'},...history.map(historyCard)):
           h(Card,{extra:'wf-empty',children:[
             h('strong',{key:'empty'},'还没有可展示的执行摘要'),
-            h('p',{key:'note',className:'wf-sub'},'在已审阅网站手动运行后，等待原 Controller 持久结果，再保存摘要。'),
+            h('p',{key:'note',className:'wf-sub'},'保存运行步骤后再确认手动运行。关闭重开可按原步骤查询，摘要本身不是权威结果。'),
             Btn('前往脚本',gotoScripts)
           ]}));
     }
@@ -356,7 +536,7 @@
           h('h3',null,'手动运行一个真实任务'),
           h('p',null,'1. 在宿主任务目录安装并核验与本应用相同版本、哈希的 Controller Task。'),
           h('p',null,'2. 打开对应的 Google / 百度获准网站，再在 Web Flow → 脚本选择任务、输入关键词并点击运行。'),
-          h('p',null,'3. 读取执行状态和持久结果；网页业务状态必须单独核对。'),
+          h('p',null,'3. 保存运行步骤并确认手动运行。关闭重开后在“记录 → 原步骤 → 查询原请求”核对同一执行；网页业务状态须单独核对。'),
           h('h3',null,'出现版本不匹配或 UNKNOWN'),
           h('p',null,'回到可信宿主核对安装身份、权限、站点和结果。不通过自动重试绕开未知副作用。'),
           h('p',null,'ChatGPT Bridge 的 opendesk.task.intent.v1 是独立触发路径；本应用不修改其协议、防重放或交付回执。'))}));
@@ -390,10 +570,7 @@
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
-        active&&page!=='history'&&h('div',{className:'wf-banner'},
-          h('div',{className:'wf-line wf-between'},
-            h('span',null,'有待核对的原请求：'+(active.state||'运行中')),
-            Btn('查看',()=>setTab('history'),{quiet:true}))),
+        page!=='history'&&activeCard(),
         sections[page]()),
       h('footer',{className:'wf-footer'},'仅复用原 Task Authority / RunHost · 无自动授权或后台执行'));
   }

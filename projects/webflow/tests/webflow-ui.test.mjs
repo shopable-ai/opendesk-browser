@@ -98,7 +98,7 @@ test('UNKNOWN remains terminal for auto-replay purposes and imported records can
 test('original builder accepts and preserves real v2 pins without embedding a runner',async()=>{
   const tool=validateSidebarToolPackage(await createSidebarToolPackage(project));
   assert.equal(tool.id,'webflow');
-  assert.equal(tool.version,'0.3.0');
+  assert.equal(tool.version,config.version);
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
   assert.equal(tool.scripts.length,1);
   assert.equal(tool.delegatedTasks.length,2);

@@ -204,6 +204,35 @@
 
 **唯一下一条未完成操作：** 原环境 owner 提供可合法控制且可核验身份的同候选可信 Side Panel；使用用户已有安装/授权 Task A，运行并核对 PREPARE 后关闭重开，用原 `clientRequestId` 查回同一 Run/Result，再做同候选真实 IDB 取消/撤权交错。本轮没有把 J06 实测前置为重做 Bridge、UI、J03–J05、J07 或 J08。
 
+**J06 核心 UI · 2026-11-02 本地续接结果（当前阶段，覆盖上段下一动作）：`SOURCE_IMPLEMENTED / UI_COMPONENT_PASS / PACKAGE_READY_INSTALL_NOT_TESTED`。真实核心链仍为 `BLOCKED / NOT_TESTED`，没有宣称 PRODUCT_DONE。** 当前任务 `01a19ba3-c341-7b00-84a8-18f14c13950c` 在现有 `main`、基线 `7581a5710934282baf238f4333ec5be595aa6baf` 继续；唯一业务 owner 为 `projects/webflow/`。本轮未改 Framework 源码、产品合同、自动触发、Bridge、MCP、Task Shop 或第 11/12 节；这些预存 dirty 原字节保留。
+
+| 普通用户操作 / 实际入口 | 当前真实安装 Chrome | 本轮 UI / 组件证据（不能升级为原生 PASS） |
+| --- | --- | --- |
+| 打开已安装固定 Task A，核对可执行状态 | BLOCKED | 实际 React root 首次渲染的 `PINN` ReferenceError 已红绿修复；脚本/详情按原六字段安装 pin 展示，Chrome 夹具真实点击可用 |
+| 保存步骤、确认手动运行 | NOT_TESTED | 原 storage CAS 写后读回稳定 ID、原 Task pin/参数；确认点击内同步 start；实际组件页派发计数从 0 到 1，重复点击定向检查不补跑 |
+| 关闭侧栏 | NOT_TESTED | 真实关闭独立组件页、卸载原 React 上下文；没有操作可信 Side Panel |
+| 重开 Web Flow | NOT_TESTED | 新建页面与 React 上下文，从持久 locator 恢复同一原步骤；不复用旧 UI 内存 |
+| 记录 → 原步骤 → 查询原请求 | NOT_TESTED | 实际点击查回同一模拟 clientRequestId/runId/resultId 和正文，计数仍 1；查询前摘要不作为结果正文；Host/Authority 的原 92 项组件证据另复用 |
+| 取消 / Stop（含 ACK 在途） | NOT_TESTED | 可见 Stop 清除旧正文；DOM 事件覆盖 ACK 未到、迟到 start/read/stop、保存/清理 ACK 丢失；本实例确定从未 start 的步骤可取消/重试取消，绝不恢复运行确认 |
+| 应用 / Task 撤权、身份变化 | NOT_TESTED | 模拟 E_PERMISSION 后正文和旧成功提示立即清除；六字段安装变化拒绝旧确认；没有证明真实 Chrome 撤权竞态 |
+| 结果完成但未释放，阻止后续 B | NOT_TESTED；J06 M2 / B 仍 DISABLED | completed、retiring/released 分开展示；UNKNOWN/未释放保留原步骤屏障，不自动继续；仅匹配持久 Result+released 或确定未提交栅栏可结清 |
+
+**实际修改与复用：** `src/ui/main.js`、`model.js`、`style.css`、原 UI 测试与新增 `tests/webflow-recovery-ui.test.mjs`、独立 `tests/webflow-ui-server.mjs`、`tool.config.json`、唯一正式 JSON、README/项目 AGENTS、App CI 和原 Web Flow 包 workflow。复用既有 tasks.start/read/stop、五字段 opendesk.task.intent.v1、唯一 Task Authority/RunHost/Result/安装器；没有第二 Runner 或业务数据库。AppStorage 只保存导航 locator、输入及摘要，不持久化 Controller Result/value。
+
+**已复现并关闭的 UI 缺口：** 首次渲染崩溃、查询条件错误/丢 taskId、start 前丢稳定 ID、旧记录无查询入口、UNKNOWN 或 Result 完成时提前解除屏障、迟到回调覆盖 Stop/新步骤、旧摘要存储倒退、清理 ACK 丢失后无法对账、Stop 打断 locator 恢复后冲突、未提交步骤查询/取消/保存失败后丢入口、确定未提交栅栏重开复活、历史恢复读取失败时放行新准入、未读旧历史被覆盖，以及撤权错误与旧成功提示并存。只在原 UI 上修复这些核心阻塞，没有整套重设计。
+
+**验证与包：** 最终相关输入下 38 项不同定向检查 PASS：29 项实际 React/DOM 事件行为、6 项原模型/包消费者、3 项原委托包合同；原 `final-checks-r3.log` 37 项加 `history-merge.log` 1 项，版本提升后仅复验 9 项相关模型/包门禁，不重复累加。四个相关 JS 语法检查、diff 检查和原包校验通过；旧框架六个输入 SHA 全与 `artifacts/j06-recovery-20261102/verification.json` 相同，复用其 92 项原组件结果，不重复运行。事务/SDK 替身不是真实 Chrome IDB。
+
+最终唯一包 `projects/webflow/webflow.opendesk-tool.json`：**v0.3.3，51,599 bytes，SHA-256 `a4e19613ed022e43cf43e6a4e6783b9729b9a8c320893aef14d18001638d1d21`**；原打包器 candidate → 相关门禁 → promote-from → check-project，已确认正式包与源码同源，`installed:false`。本地最后修复改变字节，遵守同版本不可替换规则递增版本；没有保留第二份正式 JSON。Chrome 页面加载的真实 UI 输入为 main `331be5278875…`、model `dee959d35a73…`、CSS `25618bf6a84b…`，与包中的源输入相同；HTML 壳/SDK/安装身份为明确隔离夹具，不是原 Host。
+
+**原始证据：** `artifacts/j06-ui-20261102/verification.json`、`final-inputs.json`、`ui-browser-final.json` 及 `final-{held-result,reopened-result,revoked-query}.png`。最终组件夹具的 ID 为 `webflow:edf7dce8-e89e-4325-a663-a5588e5c93ce`，run/result 为明确 `fixture-` 标识，模拟派发始终 1；真实 App generation/clientRequestId/runId/resultId/Worker/Retirement/@slot 均未取得。中间候选及红灯日志另留原文件，不冒充最终输入。独立只读审查 Bohr `01a19ba6-5435-7883-9892-3ffd933cbc6b` 已复核并关闭本轮已报项；最后三项定向复验通过，不重复累加，不能代替原生验收。
+
+**环境与生命周期：** 本次 Chrome skill 连接成功，但对现有 OpenDesk 内部页返回 `Chrome internal tab 759148481 cannot be claimed`，仅列出 viewport 能力，没有可信 Side Panel 控制入口；没有 raw CDP、替代通道、Profile/存储读取或安装绕路。日常路径仍 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`，仅有旧磁盘开发包；PID 40544 不存活，serve/实际启用路径与 ID/Go doctor/Native allowed_origins 配对未核实，没有新 Browser writer 或 dist 覆盖。Cookie account-share 审查 pin `6124420696da31472805467c9a09ef9640b5d388` 与当前磁盘 blob `6aa681f2c82299471f55586e9783d21dee95128e` 仍不匹配，未跳过来源门禁或改该 owner 的 pin。独立组件页上的阅读目录悬浮层曾遮住鼠标 Tab 目标，按原 UI 键盘导航正常切换，分类为夹具环境干扰，未修改阅读目录。所有本任务组件页已 finalize，独占 fixture 服务已停止；未运行真实 Task、修改授权、安装/卸载或清用户记录。当前 `get_goal=null`，未创建/迁移/暂停/完成其他目标。
+
+**七项评分：** 产品 UX、MV3/SDK、身份兼容、安全、可靠性、测试交接、跨领域综合均 `NOT_SCORED`，平均 `NOT_SCORED`；核心真实链尚未通过，不把源码复审或组件测试抬成 95 分。真实核心通过后再逐项独立审查，平均仅按七项和除以 7。完整 production、原编号原文缺失项、GC/任意历史清理、Worker 存活证明、M2/B 自动续跑继续保留原 NOT_TESTED/延期边界。
+
+**唯一下一条未完成操作：** 在现有、配对已核实且包含 J06 Framework 的持续开发 Chrome，通过原可信 UI 同 ID 审阅更新上述唯一包，再打开 Web Flow；已有 UNKNOWN 先查询原步骤，不能新 Run。随后用已有安装授权 A 完成真实 Run → 关侧栏 → 重开 → 记录查询同一 Run/Result，并只验证受影响取消/撤权/释放保护。当前工具不能代操作该可信入口，需由该正常 UI 提供合法入口；更新 JSON 不会把旧 Browser 的固定 Host 一并更新。先处理对应原来源门禁/serve/配对的实际阻塞，不重复已有效 Node 检查，不以本轮提交冒充核心原生完成。
+
 ### AWB-08 · 同一候选的整链复核与交接
 
 **涉及文件：** 本记录、原 Task README 与各 owner 当前说明；代码只按实际缺陷回到原任务修复。**依赖：** 本轮选定核心阶段通过，不要求自动完成全部 P0–P4。
