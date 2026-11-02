@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {IconButton} from './ui/button.tsx';
 import {Switch} from './ui/switch.tsx';
+import {WebflowAutoSettings} from '../../../../projects/webflow/trusted/AutoSettings.tsx';
 import {inferHttpsSource,isHttpsSource,httpsSourceConfigurationError} from '../../ai/provider-https-source.js';
 
 function focusableElements(panel){
@@ -122,7 +123,7 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
 // rendered as a Portal of the existing trusted React root, never a second root.
 export function SharedProviderSettingsSheet({
  open=false,onClose,doc=globalThis.document,providerSettings=null,
- onOpenNativeSettings=null,nativeConnection=null,children
+ onOpenNativeSettings=null,nativeConnection=null,webflowAuto=null,children
 }){
  const panel=React.useRef(null);
  const snapshot=React.useSyncExternalStore(providerSettings?.subscribeSettings??noSubscribe,
@@ -184,6 +185,7 @@ export function SharedProviderSettingsSheet({
   const root=doc.getElementById('opendesk-react-app'),wasInert=root?.inert;
   if(root)root.inert=true;
   const onKeydown=event=>{
+   if(event.isComposing||event.keyCode===229)return;
    if(event.key==='Escape'){event.preventDefault();event.stopPropagation();onClose?.();return;}
    if(event.key!=='Tab')return;
    const elements=focusableElements(current),first=elements[0],last=elements.at(-1);
@@ -310,6 +312,7 @@ export function SharedProviderSettingsSheet({
         </label>}
        </div>:<NativeConnectionCard nativeConnection={nativeConnection}
         onOpenNativeSettings={onOpenNativeSettings} doc={doc}/>}
+       {webflowAuto&&<WebflowAutoSettings webflowAuto={webflowAuto}/>}
        <p className="od-shared-provider-permission-note">
         网页摘要仍需按本轮授权；切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作。
        </p>

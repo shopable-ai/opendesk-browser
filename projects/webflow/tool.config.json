@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "webflow",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "title": "Web Flow",
   "description": "固定任务手动执行、原步骤关闭重开查询与停止；未知状态不重跑，不自动续跑后续任务。",
   "capabilities": [

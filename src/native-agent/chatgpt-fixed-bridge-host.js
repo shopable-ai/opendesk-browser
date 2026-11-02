@@ -1,7 +1,9 @@
 import {readChatGPTEdit,assertChatGPTTarget,chatGPTConversationId} from './workspace-chatgpt.js';
 import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge-trigger-gate.js';
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
-  FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent} from './chatgpt-task-request.js';
+  FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
+  WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+import {WEBFLOW_AUTO_GRANTS_KEY} from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from './chatgpt-execution-page.js';
@@ -180,18 +182,24 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   readReply=readChatGPTEdit,checkTarget=assertChatGPTTarget}={}){
   if(!client?.request||!client?.controller?.snapshotControllerRun||!host?.start)
     throw fail('E_BRIDGE_HOST','既有可信任务执行能力没有连接');
-  let busy=false,delivery=null,operation=null,globalEpoch=0,catalogEpoch=0,disposed=false;
+  let busy=false,delivery=null,operation=null,globalEpoch=0,catalogEpoch=0,autoPolicyEpoch=0,disposed=false;
+  let autoCatalog={tasks:[],unavailable:[],catalogVerified:false};
   const taskEpochs=new Map();
   const invalidate=()=>{globalEpoch++;};
+  const autoSettingsChanged=(changes,area)=>{if(area==='local'&&changes[WEBFLOW_AUTO_GRANTS_KEY])autoPolicyEpoch++;};
+  api.storage?.onChanged?.addListener(autoSettingsChanged);
   const unsubscribeTasks=client.subscribeInstalledTasks?.(event=>{
+    autoCatalog={...autoCatalog,catalogVerified:false};
     catalogEpoch++;
     if(typeof event?.taskId==='string'&&event.taskId.trim())
       taskEpochs.set(event.taskId,(taskEpochs.get(event.taskId)||0)+1);
     else invalidate();
   });
   // Capture before the first await, including when the task is learned later.
-  const captureEpoch=()=>({global:globalEpoch,catalog:catalogEpoch,tasks:new Map(taskEpochs)});
+  const captureEpoch=(persistentAuto=false)=>({global:globalEpoch,catalog:catalogEpoch,tasks:new Map(taskEpochs),
+    ...(persistentAuto?{auto:autoPolicyEpoch}:{})});
   const sameEpoch=(epoch,taskId)=>epoch?.global===globalEpoch&&
+    (epoch.auto===undefined||epoch.auto===autoPolicyEpoch)&&
     (taskId?(epoch.tasks.get(taskId)||0)===(taskEpochs.get(taskId)||0):epoch.catalog===catalogEpoch);
   const unsubscribeConnection=client.subscribeConnection?.(state=>{if(!state.connected)invalidate();});
   api.permissions?.onRemoved?.addListener(invalidate);
@@ -220,11 +228,12 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw fail('E_BRIDGE_WINDOW','原会话已不在原侧边栏窗口');
   };
   const assertIntent=async(source,message)=>{
-    const observed=await readReply(api,source,null,{protocols:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+    const persistent=message.persistentAuto===true;
+    const observed=await readReply(api,source,null,{protocols:[persistent?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
     if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
       observed.blocks?.length!==1||observed.blocks[0]!==message.candidateText)
       throw fail('E_BRIDGE_ANSWER','最新完整回答的候选字节或轮次已改变');
-    const intent=validateChatGPTTaskIntent(observed.blocks[0]);
+    const intent=(persistent?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(observed.blocks[0]);
     return {intent,candidate:{candidateId:intent.candidateId,text:observed.blocks[0],
       turnKey:observed.turnKey,answerKey:observed.answerKey}};
   };
@@ -388,6 +397,85 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     await assertSource(source,sender);
     if(disposed||!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','核验期间安装状态已改变');
     return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request)};
+  };
+  // Called directly by the compiled settings UI. Never registered as a page or sandbox RPC.
+  const trustedSettings=event=>{
+    if(disposed||!isVerifiedSidePanel()||event&&event.isTrusted!==true)
+      throw fail('E_WEBFLOW_GESTURE','仅真实可信侧栏中的用户操作可修改持续批准');
+  };
+  const autoGate=async payload=>{
+    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...payload});
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_WEBFLOW_AUTO_UNKNOWN',reply?.error?.message||'自动授权状态回执未知，未重试');
+    return reply.data;
+  };
+  const readAutoSettings=async()=>{
+    trustedSettings();
+    autoCatalog={...autoCatalog,catalogVerified:false};
+    const epoch=captureEpoch(true),settings=await autoGate({kind:'auto-settings'});
+    const catalog=await client.request('listTaskCatalog',{}),tasks=[],unavailable=[];
+    for(const row of catalog?.installed||[]){
+      if(row.enabled!==true)continue;
+      try{
+        const installed=await resolveSelection(row.taskId,null,catalog),manifest=installed.manifest;
+        tasks.push({taskId:row.taskId,name:manifest.title,description:manifest.description,version:installed.version,
+          siteOrigins:[...manifest.siteOrigins],paramsSchema:structuredClone(manifest.paramsSchema),installation:installationOf(installed)});
+      }catch(error){unavailable.push({taskId:row.taskId,reason:error.message});}
+    }
+    trustedSettings();
+    if(!sameEpoch(epoch))throw fail('E_BRIDGE_REVOKED','读取期间安装或自动批准已改变');
+    autoCatalog={tasks,unavailable,catalogVerified:true};return projectAutoSettings(settings);
+  };
+  const projectAutoSettings=settings=>({...settings,
+    grants:Object.entries(settings.grants).map(([taskId,row])=>({...row,taskId})),...autoCatalog});
+  const prepareAutoGrant=async value=>{
+    trustedSettings();const epoch=captureEpoch(true);
+    const request=validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
+      kind:'opendesk.task.request',version:1,requestId:'00000000-0000-4000-8000-000000000000',
+      taskId:value?.taskId,args:value?.args,targetUrl:value?.targetUrl,installation:value?.installation}));
+    if(!request.installation)throw fail('E_BRIDGE_SCHEMA','必须审阅真实已安装任务');
+    const normalized=await normalizeSelection(request);
+    trustedSettings();if(!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','审阅期间安装或批准已改变');
+    return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request),taskName:normalized.installed.manifest.title};
+  };
+  const approveAutoTask=async(value,event)=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
+    const review=await prepareAutoGrant(value);
+    if(JSON.stringify(review)!==JSON.stringify(value))throw fail('E_BRIDGE_CONTEXT','批准范围已改变，请重新审阅');
+    const settings=await autoGate({kind:'auto-grant',scope:review});
+    trustedSettings();
+    // Storage events can invalidate this host while the durable write is acknowledged.
+    // That is a denial fence for runs, not a reason to retry the approval.
+    return projectAutoSettings(settings);
+  };
+  const setAutoEnabled=async(enabled,event)=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
+    autoPolicyEpoch++;const settings=await autoGate({kind:'auto-enable',enabled});return projectAutoSettings(settings);
+  };
+  const revokeAutoTask=async(taskId,event)=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
+    if(typeof taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/u.test(taskId))
+      throw fail('E_BRIDGE_SCHEMA','缺少准确的任务 ID，未确认撤销');
+    autoPolicyEpoch++;const settings=await autoGate({kind:'auto-revoke',taskId});return projectAutoSettings(settings);
+  };
+  const admitAutoTask=async(message,sender)=>{
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='auto-task'||message.persistentAuto!==true)
+      throw fail('E_BRIDGE_SCHEMA','不是新协议持续自动准入请求');
+    const epoch=captureEpoch(true);assertPreparation(epoch);
+    const source=await preparationSource(sender),{intent,candidate}=await assertIntent(source,message);
+    const installed=await resolveSelection(intent.taskId);
+    const normalized=await normalizeSelection({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',version:1,
+      requestId:'00000000-0000-4000-8000-000000000000',taskId:intent.taskId,args:intent.args,
+      targetUrl:intent.targetUrl,installation:installationOf(installed)});
+    // Automatic intents carry complete reviewed parameters; defaults are not silently added.
+    if(JSON.stringify(intent.args)!==JSON.stringify(normalized.request.args))
+      throw fail('E_BRIDGE_CONTEXT','自动候选必须包含完整获准参数');
+    await assertIntent(source,message);await assertSource(source,sender);assertPreparation(epoch,intent.taskId);
+    const admitted=await autoGate({kind:'auto-admit',source,taskId:intent.taskId,args:normalized.request.args,
+      ...selectionScope(normalized.request),candidate});
+    try{
+      await assertSource(source,sender);await assertIntent(source,message);assertPreparation(epoch,intent.taskId);
+      return {...admitted,taskName:installed.manifest.title};
+    }catch(error){await autoGate({kind:'revoke-request',source,requestId:admitted.requestId}).catch(()=>{});throw error;}
   };
   // Both operations use the existing SW ledger. A lost ACK is never retried.
   const assertPreparation=(epoch,taskId)=>{
@@ -554,7 +642,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(!validChatGPTBridgeSource(source)||!sameSource(source,message.source))
       throw fail('E_BRIDGE_SENDER','来源与运行请求不匹配');
     busy=true;
-    const active=operation={source,message,cancelled:false,runId:null,stopPromise:null,deliveryDispatched:false,epoch:captureEpoch()};
+    const active=operation={source,message,cancelled:false,runId:null,stopPromise:null,deliveryDispatched:false,
+      epoch:captureEpoch(message.persistentAuto===true)};
     const returnToSource=async()=>{
       if(!active.returnToSource)return;
       active.returnToSource=false;
@@ -689,8 +778,10 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw error;
     }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
-  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,dispose(){
+  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,
+    readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
     disposed=true;invalidate();delivery=null;
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
+    api.storage?.onChanged?.removeListener(autoSettingsChanged);
   }});
 }

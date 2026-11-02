@@ -6,6 +6,8 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 ## 当前状态
 
+2026-11-02 当前第一阶段是 **ChatGPT 新完整回复 → 固定五字段协议 → 已批准脚本自动运行**。v0.3.4 增加实际产品入口：在「扩展 → Web Flow」宿主页头下显示可信“自动运行”滑块，展开“任务范围与授权”审阅精确任务；复用原 Bridge/持久账本，沙箱不取得授权 API。普通鼠标和空格键、关闭重开、失败不假开已有真实 Chrome **组件页**证据；真实安装版 ChatGPT→百度仍受来源门禁及可信 UI 控制能力阻塞，详见执行计划第 12.11 节。旧手动恢复与队列证据不替代自动链。
+
 2026-11-02，V0.3.3 正式 Sidebar Tool v2 应用源码已进入 `src/ui/`，配置为 `tool.config.json`（应用 ID `webflow`）。正式信息架构为概览 / 脚本 / 记录，帮助和设置位于标题栏。已实现固定任务核对、派发前保存原步骤、手动委托执行、关闭重开后按原请求查询/停止、结果与资源释放分开显示，以及仅属于本应用的持久摘要；v0.3.3 使用原打包器的候选、定向验证和晋升链；React DOM 交互与隔离 SDK 夹具不等于真实安装或 Task 执行，当前证据见原执行计划 AWB-07。实际 Chrome 安装、运行和可信 Side Panel UI 仍待本机验收。原交接校验与单 owner 离线队列模块保留，详见[离线模块说明](docs/offline-modules.zh-CN.md)，**它们仍未接实际派发或原 ChatGPT 交付**。
 
 现有发送队列、计算接力样例和 Bridge 各有源码及不同范围的证据，详见执行计划的事实表。目录存在不代表这些组件已经接成完整产品。
@@ -48,7 +50,7 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 | 应用界面 | 实现时按 Sidebar Tool 沙箱合同接入；不因目录归属取得可信 Host 权限 |
 | 网页执行 | 使用原 Controller Task / 必要的 Page 程序；各自站点与安装身份独立 |
 | 后台与恢复 | 使用已批准的持久化及调度能力；先完成能力探测，不预设任意后台 JS 可安装 |
-| 当前主流程 | V0.3.3 沙箱工具 UI 与两项受审固定 Task 的手动委托、原步骤恢复查询；本沙箱不取得自动授权或全局目录 |
+| 当前主流程 | v0.3.4 沙箱保留手动委托/原步骤恢复；可信宿主显示自动运行滑块及精确范围审核，接原 ChatGPT Bridge；本沙箱不取得自动授权或全局目录 |
 | 框架改动 | 当前未证明需要；不足先记 `SDK_GAP_NOT_PROVEN`，保留可复现缺口后交原 owner |
 | 安装包 | `tool.config.json` 为真实工具输入；正式包 `webflow.opendesk-tool.json` 已经由原 `build-sidebar-tool.mjs` 生成、验证、晋升并提交（Git `8a1cf108`）；仍须在「扩展」手动审阅安装 |
 | 验收 | 文档结构、源码/组件、真实 Chrome、业务通过与正式发行分别记录 |
@@ -75,14 +77,15 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 本轮正式 UI 已在项目内实装；工作流/Bridge 的真实恢复等级仍以原记录为准，不要把离线单元成绩转记到正式应用。
 
-## V0.3.3 正式 UI / 安装与验证
+## V0.3.4 正式 UI / 安装与验证
 
 - 入口：在 OpenDesk Browser「扩展」使用原安装器审阅 `projects/webflow/webflow.opendesk-tool.json`，安装后打开 Web Flow；本项目不安装第二个 Chrome 扩展，不插入新的宿主 React Root。版本与 SHA 以本次同源包及执行计划 AWB-07 回执为准；升级沿用同一 ID、原安装审阅和原数据，HTML 预览不是安装入口。
 - 固定委托：仅 `baidu.search.top3@1.1.1` 与 `google.search.top3@1.0.0`（确切 manifest/content Hash 随工具包冻结）。这不是“所有已安装脚本”的列表；安装变动或权限缺失只给出不可用状态，不尝试回退到同名任务。
 - 手动运行：在「脚本 → 运行」填写参数，点击「保存运行步骤」后，先通过原 AppStorage 的 CAS 写入并读回稳定 `clientRequestId`、六字段 Task 安装身份和输入；再点击「确认手动运行」，该点击内同步调用 `tasks.start({clientRequestId,task,params})`。这两个动作分别保存步骤和执行网页操作，不增加依赖或权限批准。保存失败不派发，连续点击不会重复派发。本实例尚未提交时，“查询”保留确认入口，“取消未运行步骤”只取消本地步骤且不调用 Task；取消保存失败可重试取消同一步骤，永不恢复运行确认；已重开的未知步骤继续仅查询/停止。
 - 恢复与停止：关闭重开后在「记录 → 原步骤 → 查询原请求」使用保存的原 ID 调用 `tasks.read({clientRequestId})`；「停止原请求」调用 `tasks.stop({clientRequestId})`，start ACK 未到时仍可停止。旧摘要也可从原记录查询，但摘要不是权威结果，结果正文仅来自本次通过授权的 SDK 回包。查询超时、无记录、UNKNOWN 和未释放均不生成新 ID 补跑。
 - 阶段与边界：同一 Run/Result 的持久结果和 `retirementState === 'released'` 分开显示；未释放时不放开新的步骤，不自动续跑 B。仅保存、未确认运行就关闭的步骤也按未确认状态保留，只允许查询/停止，不把重开当成运行许可。需要包含 J06 恢复实现的 Browser 候选；更新工具 JSON 不会把旧 Browser 的固定 Host/Authority 一并更新。当前真实加载路径、serve 和候选安装身份未核实，不能声称已在用户 Chrome 生效。
-- 非功能：全局脚本枚举、Web Flow 自动触发总开关/逐任务授予、跨 App/Bridge 的完整历史枚举、AI 原聊天交付、流程真实派发，均**没有公开的沙箱 SDK 或该产品的真实接线**，本版不提供虚假操作。
+- 自动运行：在 Web Flow 宿主页头下操作可信滑块；展开“任务范围与授权”，例如审阅 `baidu.search.top3@1.1.1`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}`。批准和开关即时保存。保持可信侧栏打开，在已加载监听器且已有完整轮次的 ChatGPT 对话中发送新消息，随后唯一完整助手回复的 `opendesk-task` 代码块内使用 `webflow.task.intent.v1`（严格 protocol/candidateId/taskId/targetUrl/args）。用户消息、历史、引用和流式内容不触发；旧 `opendesk.task.intent.v1` 保留手动/五分钟路径。固定可信组件随 Browser 更新，单独安装此 JSON 不会更新旧 Browser 的监听器/授权控制器。
+- 非当前阶段：全局脚本枚举、跨 App/Bridge 的完整历史、多步骤流程与跨对话。原回传保留但不作为本阶段自动触发的前置；真实网页、结果和自动触发仍须同一安装候选证明。
 - 测试：`node --check projects/webflow/src/ui/{model,main}.js`（shell 不支持括号扩展时分开运行）；`node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs`；`node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json`；成功后按打包 Skill 晋升及 `--check-project` 核对。隔离 UI 点击夹具：`node projects/webflow/tests/webflow-ui-server.mjs`，打印独占本地端口、输入 SHA；只加载本项目真实源码与 React，模拟 SDK 不使用真实 Task/用户记录。GitHub `.github/workflows/webflow-package.yml` 在项目 UI 源码变更后执行原打包器和测试，仅在显式 `workflow_dispatch` 时才把通过门禁的 JSON 写回 main；普通推送不自动发布包。既有 CI `41336225689` 已经完成包级写入与读回。
 - 真实 Chrome 验收：安装包、安装审阅、固定 Task 已安装、目标网页授权、实际提交/结果/用户手势/关闭恢复、Bridge 交付，须在用户本机 Development Side Panel 使用本仓库真实版本逐项测，不能由 HTML 或 Node 自动通过代替。
 

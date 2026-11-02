@@ -25,7 +25,7 @@ export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 // One-use bridge trigger fence only. Foundation Authority/RunHost remain the sole executors.
-installChatGPTBridgeTriggerGate({api:chrome});
+const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome});
 installGlobalVideoSpeedService({api:chrome});
 // Isolated trusted telemetry sidecar attaches after the single Foundation
 // instance is created. This must never create a second IndexedDB owner.
@@ -57,6 +57,7 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true,
+  withControllerAdmission:bridgeTriggerGate.withControllerAdmission,
   onToolUninstalled:async({toolId})=>{
     if(toolId==='cookie-editor'){
       if(!cookieAccounts)throw Object.assign(Error('E_ACCOUNT_HOST'),{code:'E_ACCOUNT_HOST'});

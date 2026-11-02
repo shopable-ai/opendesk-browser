@@ -12,8 +12,9 @@ const appended=(before,nodes,multiple=false)=>{
     // Earlier ChatGPT replies can hydrate after the latest reply is complete.
     // The unchanged latest reply anchors this new answer; older placeholder
     // text is not part of its identity. User history remains checked below.
+    // Exactly one reply may follow that anchor; multiple new replies are ambiguous.
     const anchors=nodes.map((node,index)=>same(before.at(-1),node)?index:-1).filter(index=>index>=0);
-    return anchors.length===1&&anchors[0]<nodes.length-1&&
+    return anchors.length===1&&anchors[0]===nodes.length-2&&
       !before.some(item=>sameIdentity(item,nodes.at(-1)));
   }
   const offset=before.findIndex(item=>same(item,nodes[0]||{}));

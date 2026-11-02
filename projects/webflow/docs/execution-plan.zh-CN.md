@@ -4,7 +4,7 @@
 >
 > **当前项目入口：** [projects/webflow/README.md](../README.md)。2026-11-01 按用户要求将 Web Flow 归为独立业务扩展应用，完整产品合同与本执行记录迁入项目 `docs/`；旧路径仅保留跳转。目录调整记录见第 8 节，原始源码审计及验收边界保留。
 >
-> **状态：方案与源码核对；产品新增能力 `NOT_TESTED`。** 本轮只维护方案文档，没有执行真实浏览器动作、提交 AI 消息、启动任务队列或安装/发布扩展。
+> **最新状态：第一阶段自动运行 UI 与原触发接线，见第 12.11 节；v0.3.4 源码/组件已验证，真实 ChatGPT→百度尚未验证。** 下列方案、历史搜索、离线队列与 V0.3.1 包级记录保留各自证据等级，不转记为本轮 Chrome 通过。
 >
 > **执行者：** 实施时按仓库现行 `.agents/workflows/extension-creation.md` 和对应 owner Skill 逐任务推进；可用时采用 `superpowers:subagent-driven-development` 或 `superpowers:executing-plans`。同一文件及公共合同只有一个写入 owner，只读复核可以并行。
 
@@ -37,7 +37,7 @@
 
 ### 全局约束
 
-- 原五字段 `opendesk.task.intent.v1` 不变；现有 Workflow v1 单站范围不变。
+- 原五字段 `opendesk.task.intent.v1` 保留手动/五分钟功能；2026-11-02 V0.1-R2 新增 `webflow.task.intent.v1` 专用于持续自动准入，仍为严格五字段，见第 12 节；现有 Workflow v1 单站范围不变。
 - Page、Sidebar、Controller 的安装与权限身份分别保留；一个产品入口不合并授权。
 - 新增 Web Flow 应用业务、专属测试与文档归 `projects/webflow/`；框架只承接通用能力，目录与包身份不会授予权限。
 - 现有 AI Send Queue 的业务目录为 `examples/sidebar-tools/ai-send-queue/`；不迁回旧目录、不创建同名副本。Sidebar 当前只提供提示，不恢复旧消息列表。
@@ -264,9 +264,9 @@
 
 ## 6. 当前断点与下次续接提示
 
-**已完成的方案工作：** 独立应用目录与文档归属整理，以及仓库和连接能力核对、唯一队列 owner 发现、现有实现边界记录、架构建议、五阶段与八项执行任务、固定恢复入口。产品源码未修改，新增链路未在本轮实测。
+**历史方案工作：** 独立应用目录、需求、五阶段与八项执行任务保持原记录。**当前 V0.1-R2 已有源码及组件增量，准确输入、测试与剩余阻塞见第 12 节**，不能继续把“产品源码未修改”的旧结论用于本轮。
 
-**下一条用户操作：** 在用户现有 OpenDesk 开发环境中，使用已批准的百度任务从真实搜索页输入关键词并提交，检查结果是否准确回原 ChatGPT 对话且得到对应 AI 续答。先核对已有候选和原始证据；若没有运行环境，先完成 AWB-01 的公共接口/owner 核对，再针对 AWB-02 已证实的源码缺口实施，保持 `CHROME_NATIVE_VERIFIED: NOT_TESTED`。
+**下一条用户操作（当前第一阶段）：** 在来源审查通过且加载/Native 配对已核实的持续开发环境中，打开「扩展 → Web Flow」，审阅百度精确范围并开启页头下的自动运行滑块；在已建立完整轮次并加载监听器的 ChatGPT 对话中发送新测试文本，取得唯一完整协议回复后观察自动执行百度、前三条真实结果及原 Durable 状态。无需逐条手动采用/Run。关闭、重复及撤权拒绝继续验证；原回传保留，多步骤、跨对话、MCP、完整 AI 续答验收与 production/评分不作本阶段前置。来源门禁和工具不能控制可信 Side Panel 的现场限制见第 12.11 节。
 
 **在进入跨对话前并行完成的技术项：** AWB-03 完整回复/产物合同与 AWB-05 仓库绑定合同。不可因为先做 P0 而丢失后续连续任务目标，也不可为写更多框架文档推迟已能执行的最短核心操作。
 
@@ -604,7 +604,7 @@ Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/r
 
 | 能力 | 实际文件与符号 | 已见事实与限制 |
 | --- | --- | --- |
-| 五字段候选 | [chatgpt-task-request.js](../../../src/native-agent/chatgpt-task-request.js)，`CHATGPT_TASK_INTENT_PROTOCOL`、`validateChatGPTTaskIntent` | 实际接受 `opendesk.task.intent.v1`，恰好 protocol/candidateId/taskId/targetUrl/args。没有 `webflow.task.intent.v1` 别名。后者是早期补丁和测试提示词中的错误名称。**2026-11-02 用户确认保留 `opendesk.task.intent.v1`，不实施更名或兼容别名**；旧 Task 源码与安装 pin 不变，必须以本行所列 parser 为准。回归测试：`tests/environment/chatgpt-task-request-r1.test.mjs`（百度/Google 正例、错误别名和额外字段拒绝）。结果格式仍为 `opendesk.task.result.v1`。 |
+| 五字段候选 | [chatgpt-task-request.js](../../../src/native-agent/chatgpt-task-request.js)，旧 `validateChatGPTTaskIntent` / 新 `validateWebFlowTaskIntent` | 原审计对应旧手动/五分钟路径：严格接受 `opendesk.task.intent.v1`，仍拒绝将 Web Flow 名称作为它的别名。**后续 V0.1-R2 已批准单独的持续自动路径**：`WEBFLOW_TASK_INTENT_PROTOCOL` / `validateWebFlowTaskIntent` 接受 `webflow.task.intent.v1`，不是旧协议改名或兼容别名。两者同为 protocol/candidateId/taskId/targetUrl/args 五字段；旧任务安装 pin 不变。当前自动样例见第 12.11 节；旧入口回归仍为 `tests/environment/chatgpt-task-request-r1.test.mjs`。结果格式保持 `opendesk.task.result.v1`。 |
 | 新回复发现 | [chatgpt-task-discovery.js](../../../src/native-agent/chatgpt-task-discovery.js)，`createChatGPTTaskDiscovery`；[chatgpt-bridge-site.js](../../../src/native-agent/chatgpt-bridge-site.js)；[workspace-chatgpt.js](../../../src/native-agent/workspace-chatgpt.js) | 核对新用户轮次、完整/空闲回答与 DOM 身份；历史加载、流式片段、重生成及错误上下文不直接准入。DOM 仍是不可信候选来源。 |
 | 网页入口 | [chatgpt-fixed-bridge-page.js](../../../src/native-agent/chatgpt-fixed-bridge-page.js)、[manifest.json](../../../manifest.json) | 已有手动/一次预批准与自动发现；manifest 在 chatgpt.com 主 frame 声明 ISOLATED Bridge 产物。构建可按市场渠道生成 externally_connectable，不能只看根 manifest 推断最终产物。 |
 | 已安装任务核验与执行 | [chatgpt-fixed-bridge-host.js](../../../src/native-agent/chatgpt-fixed-bridge-host.js)，`resolveSelection`、`normalizeSelection`、`handle` | 实读 Task Catalog/resolveInstalledTask、版本/hash/安装代次、单 Origin 和 paramsSchema；复用原 host.start。通用已安装任务路径不是仅限两项硬编码任务，也不天然等于只读。 |
@@ -771,37 +771,231 @@ B 的新增价值是官方工具发现、结构化参数和工具响应，无需
 
 剩余扣分集中在尚未冻结的真实 caller/session dispatch、获准的原子持久关联/单次预算、严格安装代际比较，以及原会话交付接线与有限查询次数/间隔的实施配置。应用安全另保留一点：跨入口排他仍依赖受协调 Demo，不是产品内已实现的互斥合同。这些缺口继续保持相应 BLOCKED/NOT_IMPLEMENTED/NOT_TESTED，不能为提高分数改写为已完成。
 
-### 12.10 本轮 installed-task MCP 实施与真实证据（2026-11-02）
+## 12. V0.1-R2 持久授权与自动准入（2026-11-02）
 
-**独占目标：** 官方 ChatGPT 通过 MCP 对本机已经安装并已授权的百度 baidu.search.top3@1.1.1 发起受限任务，原结果通过同一 MCP 调用或原会话 result(operationKey) 返回。本轮未接管 V0.1 Bridge、V0.2 编排队列、V0.3 UI、Task Shop 或现有 Task/Authority/RunHost。
+**当前阶段：本地增量实施与定向验证。源码/组件证据已取得；真实 Chrome E1–E3 `BLOCKED / NOT_TESTED`，未达 `PRODUCT_DONE`。** 本节由任务 `01a19870-e952-79a0-a5f2-989b1d7270f7` 写入；完成本轮证据登记后将此文件后续写入权交回 V0.3.1-R2。BR-01–12、AWB-01–08、历史原生证据、131 项离线队列及延期事项均保留原范围，不转为本轮结果。
 
-**已提交的增量源码：**
+### 12.1 实际现场、所有权与差量
 
-| 路径 | 本轮已实施 | 实际边界 |
+- 实际 cwd `/Users/mac/Documents/workspace/opendesk-browser`；不是提示词中的 `/Users/shopme/...`。分支 `main`，基线/本轮结束前 HEAD 为 `cf552718107898eea76890f6c755ecf654a0b948`。未新建分支/worktree/PR，未 stage、commit、push、release。
+- `git ls-remote origin refs/heads/main` 因 SSH `Permission denied (publickey)` 失败；本轮远端 main 未核实，不修改认证。原工作区 Cookie Editor、ScrapyJS、云控等 dirty 保留；本轮新增或修改文件详见 12.3。当前正式 Sidebar JSON 仍是 v0.3.0，未修改它或 V0.3.1 Owner 保留的 UI/config/package 文件。
+- 本机没有找到 `opendesk-webflow-v0.1-incremental-kit.zip`；跳过旧包，直接依据当前源码实施。`artifacts/web-flow-20261101/public-search-evidence.md` 缺失；历史 13/13 没有本机源码/原始报告可配对，记 `NOT_VERIFIED`，未重建、未转记。
+- 当前模型 `gpt-6.1-sol`；独立审查使用独立子 Agent，同仓只读审阅。没有修改系统模型、权限、provider 或认证配置。
+- 日常产物目录现存 `dist/development`，磁盘 Manifest `OpenDesk Browser Developer@0.1.0`，原开发指纹 `fc8a5a144c80c721c0054780365810d9f1f471c57b029401ddfd1ed5b76dcbb1`；锁文件登记 PID `40544` 实读已不存活，未证明 serve 客户端连接。**磁盘产物不能证明真实已加载路径或运行身份。** 本轮没有启动/替换 watcher 或写入该目录。
+- Chrome 只读列页成功；已有详情页 URL 含 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`，它只是可见 URL，不当作实际启用 ID/Native 配对证明。浏览器工具拒绝访问 `chrome://extensions/` 并明确禁止绕路，故不能完成真实加载路径、ID、Go doctor/allowed_origins 与可信 Side Panel 的配对核验；未抢占其他 owner 的 Profile/DevTools/Side Panel 或测试页。
+
+| 能力 | 恢复时差量 | 本轮结果 |
 | --- | --- | --- |
-| [installed-task-mcp.mjs](../src/adapters/installed-task-mcp.mjs) | opendesk.webflow.start({operationKey,query}) 和 opendesk.webflow.result({operationKey}) 的严格工具参数与错误处理，主体/原会话命名空间、幂等、UNKNOWN、一次许可和持久记录接口，复用 serveMcp | 没有可信调用者 provider / 原子关联 store / Native 安装 CAS，默认 stdio 启动只能安全发现工具，不能实际派发 |
-| [native-installed-task.mjs](../src/adapters/native-installed-task.mjs) | 固定 baidu pin/schema，复用 requestAgent；验证 task.list、目标、Native envelope、request.get 和 run.get；Controller Codec 解码、结果身份/投影字段白名单 | 不扩展任意脚本/Native 方法；没有绕过 Authority；真实 Go 与安装包仍待核对 |
-| [installed-task-mcp.test.mjs](../tests/installed-task-mcp.test.mjs) | 输入/冒充/重复/跨会话/撤权/丢 ACK/原生回复/结果白名单的定向离线测试 | 单测中的 mock store 和 mock CAS 只为测试，绝非可上线持久设施或可信身份来源 |
+| 已安装 Task 解析、安装 pin、Schema/Origin/网站权限、Authority/RunHost/Controller、Durable 与原聊天发送 | `ALREADY_DONE` | 复用原链，新增路径再次核验 |
+| 旧 `opendesk.task.intent.v1`、手动采用和五分钟批准 | `ALREADY_DONE` | 保留；与新持续路径分离 |
+| 新 `webflow.task.intent.v1` 及严格最新唯一完整候选 | `MISSING / NOT_WIRED` | `SOURCE_IMPLEMENTED / COMPONENT_TESTED` |
+| 持久逐任务批准、默认关总开关、撤销、重启恢复 | `MISSING` | `SOURCE_IMPLEMENTED / COMPONENT_TESTED` |
+| 可信设置 UI、自动发现到原执行链 | `NOT_WIRED` | 固定编译的可信设置接线；沙箱无私有授权 API |
+| 撤权与实际 Controller 提交原子排序 | 旧允许回执竞态由独立诊断证实 | 最小 Foundation 可注入守卫，持有原账本序列到原 Authority 准入返回 |
+| 同候选真实 Chrome 首次/再次自动执行及撤权拒绝 | `NOT_VERIFIED` | E1/E2/E3 `BLOCKED / NOT_TESTED` |
 
-源码 GitHub 提交顺序：0ddf6edd（Native 适配），e10f7e8c（MCP 受限入口），c417a866（测试），862dea7a（MCP 侧效应声明和 pin 验证），fe756050（测试预期修正）。文件全部在 projects/webflow/，无其他 owner 代码修改。
+### 12.2 安全合同与独立审查修复
 
-**当前定向测试证据：** 本轮通过 GitHub 连接读取已提交文件，在独立 V8 环境用注入 mock 的语法/行为检查，17/17 逻辑用例通过。V8 检查通过移除 ESM import 并以 stub 替代 Node/Native/Codec 的依赖，**不等于真实 Node 22 测试，更不等于 Chrome/Tunnel 验收**。实际仓库 node --check、node --test projects/webflow/tests/installed-task-mcp.test.mjs、stdio MCP Inspector、真实 ChatGPT MCP、Mac Chrome/Native 均未执行；因此不标 COMPONENT PASS。
+批准在 `storage.local` 的 `opendesk.webflow.auto-trigger-grants.v1` 持久保存，由既有单 SW Ledger 队列唯一写入；它是**自动提交许可**，不是第二执行 Authority。绑定 `taskId/version/manifestHash/contentHash/scriptId/revision/installationId/generation`、精确 `targetUrl` 与 Schema 归一化的完整 `args`。`contentHash` 就是原 Manifest `program.sourceHash` 对应源码身份，不创建两份新哈希语义。任务/权限/来源变化仍经原 Resolver 与 Authority 拒绝。
 
-**三个正式接线 BLOCKED 及公共 Owner 最小接口：**
+可信入口是现有 Side Panel 设置 sheet 内的固定组件。准备审阅不授予权限，批准/开关/撤销须原生可信事件；SW 再按真实 `MessageSender` 和 `runtime.getContexts(SIDE_PANEL)` 核验。批准适用于保持可信侧栏打开的窗口中、匹配范围的 ChatGPT 官方对话；结果自动发送到触发的原聊天，界面明确披露。沙箱项目没有获得 `chrome.*`、私有存储、内部模块或秘密 RPC。
 
-1. MCP-CALLER-CONTEXT：native-agent/local-dev/mcp.mjs 的 serveMcp tools/call 当前只将 (tool.name,args) 传给业务 dispatch，不提供来自已认证传输的 caller 和原 conversation；clientInfo、_meta、模型自报会话和 JSON-RPC ID 都不能授予权限。由 MCP/Transport Owner 审核加入可验证调用身份/会话上下文（不允许直接信任原始参数），并给出跨会话与缺失身份回归。当前 getTrustedContext 没有合法生产 provider，start/result 均 fail-closed。
-2. MCP-DURABLE-ADMISSION：service-worker.js 已有 Native admission ledger，但没有 MCP principal/conversation/冻结原封套与批准预算的原子持久关联。由原批准的存储/Authority Owner 提供 read(scope)、reserveAndConsume({scope,fingerprint,proposed,grant})、attachAck({scope,runId,revision,executionTarget}) 的受审持久事务合同。reserveAndConsume 必须同一原子事务写完整原始请求和消费 maxAdmissions=1；attachAck 必须 CAS 检查原 requestId/run 身份。当前仅有调用方 port，没有真正实现，不用进程内 Map 或第二套数据库代替。
-3. NATIVE-INSTALLATION-CAS：src/native-agent/host-adapter.js 的 installed-task run.start 接受 taskId/version/sourceHash，解析当前安装后才把 expectedTaskGeneration/expectedTaskInstallationId 给 Authority，无法对 MCP grant 中冻结的旧 generation/installationId 做同一次 admission 的原子比较。由 Native/Authority Owner 提供最小可信 CAS（不能让模型自报授权代次），同版本/同 hash 的卸载重装也必须拒绝并测试。当前 Native adapter 没有声明 atomicInstalledTaskPin 能力，投影因此拒绝真实派发。假 CAS 仅用于离线逻辑测试。
+原 512 项 candidate 墓碑继续持久保留；新持续路径拒绝跨对话重复 candidateId，旧手动路径保留原范围。requestId 由 Host/SW 生成。新自动准入、reserve、check-consumed、实际 Controller 提交、Durable 与最终发送均按原身份核验；写入/ACK 不明、UNKNOWN、取消或已提交 Controller 不自动重放。关闭/撤销只阻止后续准入，不承诺回滚既有动作。local 或 session 单点故障有各自恢复拒绝证据；两处同时不可持久写入只能报 UNKNOWN，不能声称撤权已持久成功。
 
-**附加现场前置：** 历史 Go Native task.list 有连接关闭/allowlist 缺口；需现场核验当前二进制或经批准等价安装核验。实际 ChatGPT/Tunnel 写工具资格、Native 配对和当前百度 Host/document/权限仍未知。B Demo 必须先与 C Bridge Owner 协调撤销匹配的待准入/一次预批准并核对回执；跨入口尚无共同去重锁，UNKNOWN 不允许切入口再执行。
+独立复审定位并已定向修复：
 
-| 证据层 | 本次状态 | 含义 |
+1. session get/set 失败不能跳过仍可用的 local 撤权保存；恢复标记不可读时保守关闭并撤销旧批准。
+2. 延迟的旧允许回执不能越过已经完成的撤权：原 `createFoundationBroker` 认证后 `startControllerRun` 注入通用可选 guard，业务判断仍在原 Bridge Ledger；提交按原 requestId 找到 consumed row，检查实际源码/参数/目标/安装，先持久标记 `controllerSubmitted`，与撤权在同一序列内执行原 Authority 准入。没有新增 Runner、安装器、任务库或用户可选的绕过字段。
+3. 自动设置代次与旧手动/五分钟的权限代次分离；自动配置变化不会误伤合法手动交付。
+4. 忙碌期间仅保留一个尚未准入的最新发现引用；前轮确定收尾且 DOM/source 仍匹配时重核，不建跨对话队列，UNKNOWN 不继续。
+5. 已知无关 Controller 请求先按持久记录判定归属，不读取 Bridge 专用 session 恢复标记；归属未知仍拒绝。最终提交前无条件检查同来源/请求的撤权标记，覆盖 ledger 读取及保存期间撤销。权限撤销代次在首个异步上下文查询之前捕获，拒绝迟到 enable/grant；存储键序变化按规范化数据比较。
+6. BFCache 返回重建观察基线，dispose 同步取消旧 owner 并使在途准入回执失效；暂存观察绑定用户/回答字节，改动后即使恢复原文也不复活；旧候选不恢复执行；设置读失败/挂起仍可显式关闭未来准入，保留上次已知项供撤销。安装 pin 变化说明需重新批准，目录缓存失效时显示待核验；IME Escape 保留编辑。真实 Host 的 taskId 投影和空 ID 拒绝经实际组件接线验证，目录挂起仍可逐任务撤销。
+
+### 12.3 修改文件与职责
+
+| 文件 | 必要职责 |
+| --- | --- |
+| `src/native-agent/chatgpt-task-request.js`、`workspace-chatgpt.js`、`chatgpt-task-discovery.js` | 新旧协议分离；完整、最新、唯一候选及引用/混合/重复字段拒绝 |
+| `projects/webflow/src/auto-grants.js` | 独立纯数据策略与精确安装/范围规范化，固定可信消费者使用 |
+| `src/native-agent/chatgpt-bridge-trigger-gate.js` | 原 SW Ledger 内持久设置、撤权恢复、自动准入和 Controller 提交围栏 |
+| `src/native-agent/chatgpt-fixed-bridge-host.js`、`chatgpt-fixed-bridge-page.js` | 当前安装解析、自动观察接线、执行前/发送前核验；复用原执行/交付及生命周期 |
+| `src/platform/host/broker.js`、`src/sw.js` | 已证实旧 ACK 竞态的最小通用提交 guard 接线；原认证与权限不变 |
+| `projects/webflow/trusted/AutoSettings.tsx` | 真实可信设置审阅、总开关、撤销及诊断；不在沙箱 `src/ui/` |
+| `src/ui/tool-shell.js`、`src/ui/react/main.tsx`、`app-shell.tsx`、`components/provider-settings.tsx` | 唯一 React 根与现有设置 sheet 的窄 controller 传递，以及受影响 IME Escape 修复 |
+| `scripts/bundle-provenance.mjs` | 仅上述纯策略/可信组件两个精确 blob 及既定输出目标允许；沙箱源码继续拒绝 |
+| `projects/webflow/tests/auto-{grants,host,settings-ui}.test.mjs` | 授权/撤销/重启/失配、原路由→Host→Durable→交付组件测试和真实组件交互 |
+| `tests/environment/chatgpt-independent-task-intent.test.mjs`、`chatgpt-task-discovery-p0.test.mjs`、`chatgpt-installed-task-host.test.mjs`、`webflow-fixed-source.test.mjs` | 协议/DOM 接线、延迟回执/BFCache、旧手动兼容和固定来源边界回归 |
+| 本文件、`product-contract.zh-CN.md` | 唯一进度与现行协议/批准范围同步，保留所有稳定需求编号及历史 |
+
+V0.3.1 Owner 的 `src/ui/main.js`、`model.js`、`style.css`、`tool.config.json`、`webflow.opendesk-tool.json` 均未修改。未运行 131 项离线队列、根 npm test、历史搜索实验、安装/打包晋升或视觉矩阵。
+
+### 12.4 定向验证与证据入口
+
+本轮变更后的 Bridge/权限/旧入口、设置及来源检查共 **217 项 PASS，0 FAIL，退出码 0**。源码版本为基线 HEAD 加未提交增量，28 项具体源码/测试 SHA-256 见 `artifacts/web-flow-20261102/v01-r2/source-inputs.json`；测试后输入复核未变化。每项行为名称与结果保留在对应原始日志，未执行的真实网站动作不包含在此分母。
+
+| 命令 | 退出码 | 结果 / 原始日志 |
 | --- | --- | --- |
-| SOURCE_IMPLEMENTED | PARTIAL_COMMITTED | 三个新文件真实提交，安全调用方适配可复用；公共能力缺失导致真正执行 BLOCKED |
-| COMPONENT_TESTED | PARTIAL_OFFLINE | V8 shim 17/17；原始 Node 测试 / stdio 与真实集成 NOT_TESTED |
-| MCP_CONNECTED | NOT_TESTED | 无真实账户/Tunnel 调用 |
-| CHROME_NATIVE_VERIFIED | NOT_TESTED | 无本轮 run.start/run.get 原生回执 |
-| BUSINESS_VERIFIED | NOT_TESTED | 无本轮真实百度网页动作和自然结果 |
-| DELIVERY_VERIFIED | NOT_TESTED | 无原 ChatGPT 对话的正式 MCP 结果及 AI 续答 |
+| 下方 Bridge 定向组 | 0 | 191 PASS；`artifacts/web-flow-20261102/v01-r2/bridge-tests.log` |
+| `node --test projects/webflow/tests/auto-grants.test.mjs projects/webflow/tests/auto-host.test.mjs projects/webflow/tests/auto-settings-ui.test.mjs` | 0 | 26 PASS；`artifacts/web-flow-20261102/v01-r2/authorization-tests.log` |
+| `node --check src/native-agent/chatgpt-fixed-bridge-host.js`、`chatgpt-fixed-bridge-page.js`、`chatgpt-bridge-trigger-gate.js`（分别完整路径）以及 `node --check src/sw.js`、`node --check src/platform/host/broker.js` | 0 | 受影响 JS 语法 PASS；TSX 由真实组件测试和定向构建编译 |
+| `git diff --check -- <本轮源码、测试与两份文档的实际路径>` | 0 | 差异格式 PASS；未运行产品环境 |
 
-**唯一下一步：** 本地 Codex Owner 先以现有 main 的三个新文件进行原生 Node syntax/test 验证、最小修复和只读能力检查；不得通过 fake caller/grant、放宽 Native CAS 或另起 Runner 取得绿色。公共三个 BLOCKED 项需要其原 Owner 独立完成并提供复现证据，才进入一次协调好的真实 ChatGPT → 百度任务 → 原会话交付验收。此安排不改变本计划其他阶段或其他 Owner 的验收等级。
+Bridge 定向组的完整可执行命令：
+
+```sh
+node --test \
+  tests/environment/chatgpt-independent-task-intent.test.mjs \
+  tests/environment/chatgpt-task-discovery-p0.test.mjs \
+  tests/environment/chatgpt-installed-task-host.test.mjs \
+  tests/environment/chatgpt-installed-task-scope.test.mjs \
+  tests/environment/chatgpt-fixed-bridge-r12.test.mjs \
+  tests/environment/chatgpt-fixed-bridge-r13.test.mjs \
+  tests/environment/chatgpt-bridge-site-r13.test.mjs \
+  tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs \
+  tests/environment/webflow-fixed-source.test.mjs \
+  tests/environment/scoped-schema.test.mjs
+```
+
+验证原因：新增协议和自动发现需要确认只有当前新回复会触发；持久准入/撤权需要确认单点存储故障、异步旧 ACK、权限移除、安装变化、重复及 Worker 恢复不重放；Host/设置接线影响旧手动交付、原聊天草稿/IME/取消、来源和固定编译边界，故执行对应既有测试。没有重跑无关队列、历史网站实验、全仓 CI 或缩放矩阵。
+
+初始 RED 为缺少 `auto-grants.js`（exit 1）；集成过程中修正了测试 fixture 缺少 Schema title、同步拒绝断言和 macOS 临时目录真实路径问题，并按独立复审补充真实缺陷负例，没有放宽安全校验。临时构建驱动的未初始化 Rollup 配置、未调用 unlisted main、virtual entry 解析问题归类为验证驱动故障，保留日志；这些早期输出不算最终运行入口产物。
+
+### 12.5 真实 Chrome 场景与剩余阻塞
+
+| 场景 | 本轮真实结果 | candidate / request / run / result / 原聊天 |
+| --- | --- | --- |
+| E1 首次在可信 UI 批准百度任务，再自动执行 | `BLOCKED / NOT_TESTED` | 未生成，未发送测试消息，未取得网页动作或 AI 续答证据 |
+| E2 同批准下全新 candidate 再运行，无重新批准 | `BLOCKED / NOT_TESTED` | 未生成；组件中两个独立 request/run/result 不冒充 Chrome 身份 |
+| E3 撤权/关闭后新候选拒绝 | `BLOCKED / NOT_TESTED` | 只有组件拒绝证据，未取得同 Chrome 候选证据 |
+| Google 独立真实闭环 | `NOT_TESTED` | 安装、站点和测试资源未核实；未重做历史实验 |
+
+仓库内百度包为 `baidu.search.top3@1.1.1`：manifestHash `adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b`，program.sourceHash `28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8`。Google 包为 `google.search.top3@1.0.0`：manifestHash `c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261`，program.sourceHash `f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad`。**这只是仓库包事实，当前 Chrome 实际安装版本、installationId/generation、网站权限均未知；不安装覆盖、不申请网站权限、不清除账本。**
+
+准确阻塞为：
+
+- SW 固定构建的 Cookie Owner 文件 `examples/sidebar-tools/cookie-editor/trusted/account-share.js` 与其现行审查 pin 不符；原构建门禁真实拒绝。本轮不修改该业务或其 pin，不以跳过来源检查制造完整包 PASS。
+- `chrome://extensions/` 被浏览器工具 URL 安全策略拒绝且禁止绕路，实际加载/Native 配对/可信 Side Panel 与原安装无法核验；磁盘旧产物与过期锁文件不能代替连接。没有同候选的 E1/E2/E3 原生证据。
+- SSH 远端只读核验失败只影响远端观察，不阻塞本地增量源码与组件工作；未修复系统认证。
+
+**唯一下一条产品操作仍是 E1 的可信设置首次批准。** 由有权使用现有开发资源的本机 owner 先恢复并核对同候选的持续开发入口，完成上述来源审查与加载配对，再走 E1→E2→E3；不得靠新 Profile、重装/改 ID、重发历史候选或清空 UNKNOWN 绕过。上述阻塞不扩展成重新研究全架构或完成 V0.3.1 UI 的条件。
+
+### 12.6 给 V0.3.1-R2 的交接
+
+- 复用本轮新协议 parser、固定可信设置、原 Ledger/Controller 提交 guard 和定向测试，不重写持久许可、Runner、Authority 或安装器；用户操作入口为现有可信设置 sheet 内「Web Flow 自动准入」。沙箱工具继续只走既有公开 SDK，不导入 `trusted/AutoSettings.tsx` 或私有 Host。
+- V0.3.1 保留的五个 UI/config/package 文件未写入；正式包、安装与视觉验收仍归原 Owner。这里的可信源码随 Browser 固定入口编译，不靠升级沙箱 JSON 获得权限。
+- 本轮产物仅在 `artifacts/web-flow-20261102/v01-r2/`；无 watcher、监听端口、Profile、Native 请求或真实任务运行由本轮长期持有。原有他人服务未停止；本轮临时编译/测试结束后确认进程退出，浏览器只释放本轮会话及临时空白页，不关闭他人页面。
+- 当前没有创建 GOAL，也未改写其他任务目标；完成的是本轮安全可实施的源码与组件部分。跨对话编排、Gemini、持久队列/跨日恢复、正式沙箱包安装及 production 验收继续延期；本轮不声称暂停、迁移或完成其他 GOAL。
+
+### 12.7 新版五字段手测提示词
+
+前提：同候选真实可信设置中审阅并批准百度任务，精确地址 `https://www.baidu.com/`、参数 `{"query":"OpenDesk Browser","limit":3}`，开启总开关，并保持同窗口可信侧栏打开。当前原生入口尚被阻塞，下列文字只供恢复后手测，粘贴本身不批准权限。
+
+````text
+请使用 OpenDesk 已安装的百度前三条任务搜索 OpenDesk Browser。
+本次先只输出一个完整的 opendesk-task 代码块，不使用其他工具或自行搜索，不加说明，不输出安装身份或其他字段：
+```opendesk-task
+{"protocol":"webflow.task.intent.v1","candidateId":"wf-r2-manual-20261102-001","taskId":"baidu.search.top3","targetUrl":"https://www.baidu.com/","args":{"query":"OpenDesk Browser","limit":3}}
+```
+收到 OpenDesk 的 opendesk.task.result.v1 真实回传后，根据 data 的实际状态、结果和链接用中文回答；搜索受阻或无结果就明确说明，不编造，也不要再次输出任务候选。
+````
+
+每次试验须使用从未提交过的新 candidateId；E2 仅改为 `wf-r2-manual-20261102-002` 等新值，任务/地址/参数保持审阅范围。E3 先在可信设置撤销或关闭，再使用另一个全新 ID 验证拒绝。以上样例 ID 若曾使用，不可再次使用；历史或 UNKNOWN 候选绝不重发。
+
+### 12.8 最终固定入口构建、独立评分与交接状态
+
+**本轮最终状态：`SOURCE_IMPLEMENTED / COMPONENT_TESTED`；下表两项定向入口 `BUILD_VERIFIED`。完整 SW/可安装 Browser 包未验证，`CHROME_NATIVE_VERIFIED` 与 `PRODUCT_DONE` 均未取得。** 这里的临时静态编译不切换日常开发模式，不替换扩展加载目录。
+
+| 最终命令 | 退出码 | 真实产物 / 结果 |
+| --- | --- | --- |
+| `node artifacts/web-flow-20261102/v01-r2/verify-fixed-build.mjs chatgpt-fixed-bridge` | 0 | `fixed-build-yUFz0a/agents/chatgpt-fixed-bridge.js`，61,650 bytes，SHA-256 `51e7ff1bf757851402bd08fc4c30ff12d3fe9100dc33224c482d84eaad461507` |
+| `node artifacts/web-flow-20261102/v01-r2/verify-fixed-build.mjs tool-shell` | 0 | `fixed-build-INphur/ui/tool-shell.js`，2,723,317 bytes，SHA-256 `e3199a3819f5e1957aba479c252e5e747338663cfe8a601f46fabae44163e5ff` |
+| 两产物的原 `assertClassicIIFE`、`inspectScript` 与 emitted feature 检查 | 0 | `fixed-code-checks.json`：classic IIFE、原 CSP AST、实际输出包含自动路径/可信设置均 PASS |
+| 原固定 SW 来源门禁 | 1 | `build-2.log` / `fixed-build-L3Btlz/report.json` 中 Cookie `account-share.js` 未审 pin 拒绝；`BLOCKED`，未覆盖它或放宽门禁 |
+
+以上输出目录均在 `artifacts/web-flow-20261102/v01-r2/`。驱动复用实际 `src/entrypoints/`、WXT 固定构建钩子、版本/来源/体积检查；显式执行 unlisted main 并保留定义导出，避免临时库入口裁掉业务接线。只证明受影响入口可编译及输出检查，不是完整 WXT 包、Chrome 加载或正式发布证据。可信组件精确 Git blob 为 `70340abbd23b41a9e3c09f85b900e6c45bca042a`，纯策略为 `c3ad731585e6aa55755185242e47e7c8a32f7b11`；除此两个输入没有新增项目源码泛许可。
+
+五份评审均来自独立上下文、只读子 Agent，完成复审后记录下列最终评分；它们是**源码与 Node 组件层**评分，原生产品层没有证据就不评分。
+
+| 独立视角 / Agent | 最终分数 | 已报缺陷的复核结论 |
+| --- | --- | --- |
+| 产品与 UX / Ampere `01a19881-90b7-7bb1-a96f-686e5c78648e` | 94/100 | taskId 真接线、紧急关闭/撤销、缓存诊断、来源/自动回传披露及 IME 已修；限定范围无剩余确证源码阻塞 |
+| Chrome MV3 与生命周期 / Hilbert `01a19881-9251-7123-97af-cfd975e81681` | 95/100 | 实际 gate 读取期间取消复现变为 Authority 0 次，含 final-save、BFCache 和延迟启用围栏 |
+| 安全授权、撤权与防重放 / Maxwell `01a1987e-ba7a-7602-80f8-ea7b8d2cab71` | 97/100 | source/request 读取及保存期间取消均拒绝；UNKNOWN 与持久围栏保留，最新已报 P1 关闭 |
+| Controller/Bridge 架构复用 / Heisenberg `01a19882-a254-7110-9e98-c4d3c129787f` | 97/100 | 原执行权威复用；无关 Controller 不依赖 Bridge 坏 session；在途旧页面不重发 |
+| 测试、可靠性与证据 / Singer `01a19881-9497-7040-b9b0-d095c64c26a4` | 93/100 | 生命周期及暂存内容版本负例已通过，限定范围无新确凿缺陷；原生证据不足仍保留 |
+| **五项算术平均** | **95.2/100** | 不能替代 E1–E3，也不能据此标 PRODUCT_DONE |
+
+最终测试日志为 **191+26=217 PASS / 0 FAIL**，对应源码输入与完整命令、退出码、产物引用、独立评分在 `verification.json`；早期 187+21 与旧源码输入另保留 `.initial.*` 文件，不能冒充最终输入。原生 conversation/tab/document、candidateId/requestId/runId/resultId 均没有生成新测试证据，保持空值与 `BLOCKED`。
+
+本轮临时编译与测试进程均已退出；浏览器会话已 finalize，临时页面关闭，用户原有页面保留。没有停止或接管他人服务，没有持有新的 Profile、端口、DevTools 或运行请求。**此文件本轮写入到此交回 V0.3.1-R2；后续以同一文档登记 E1 起点和真实证据，不重做已通过的离线队列/历史搜索/源码模块。**
+
+### 12.9 本任务恢复与真实入口核对（2026-11-02）
+
+**当前操作仍停在 A/E1：打开同候选可信设置，首次审阅批准百度精确范围。尚无新增真实 UI、Controller、Durable、原聊天交付或 AI 续答通过。** 恢复任务为 `01a198b5-f4a2-7690-819b-e24490e15f20`；按用户授权先实读 `get_goal = null`，随后建立本任务唯一目标，不设 token_budget。首轮与第二轮保持 `active`；同一来源门禁及可信入口阻塞已连续三个目标回合，第三轮实读输入和 HEAD 均未变化，无新增原生证据或可安全独立实施的剩余修复，因此按工具合同调用 `update_goal(status="blocked")`，返回状态为 `blocked`。目标完整保留，未标 `complete` 或 `PRODUCT_DONE`，没有改写原任务或应用数据库。
+
+本次开始的本地 main 为 `d13c975754532cfb6d145c2652f838f4b8a927d2`，证据写入时为 `5ac7718382fcbae15f8b09b94ecd5614ca0e96da`；期间另有 Git 集成任务工作。未 checkout、pull、stage、commit、push 或修改索引；实读仍有 106 个 dirty 文件、staged 为空。原交接任务已 idle；未发现当前本机另一个 Web Flow 写入任务。本文件自恢复读取至写入前 SHA 一致（`d1028ecb57f2d52df37d0edd55874e59b0276b6761ecbb799ba97321ebb8748f`），仅追加本节，不覆盖 V0.3.1 或其他历史内容。沙箱 UI/config/正式包和其他业务源码均未修改。
+
+恢复证据：`artifacts/web-flow-20261102/v01-r2/resume-01a198b5/recovery.json`。它是本次只读诊断与证据复用记录，不是新 Chrome PASS。
+
+后续阻塞审计及目标真实回执：同目录 `blocked-audit-turn02.json`、`blocked-audit-turn03.json`。第三轮再次确认 Cookie 审查 pin/磁盘 blob 不匹配，未重跑测试、构建或被拒绝的浏览器接管。需外部来源审查及合法可信入口发生变化后再恢复；不继续用重复查询、测试或文档改写维持自动续跑。
+
+| 当前核对 | 实际结果与处理 |
+| --- | --- |
+| 28 项已记录源码/测试输入 | SHA-256 全部一致；复用 191+26=217 项原定向结果，包含可信 UI 10 项组件证据；未重跑测试。没有确证新产品缺陷，不为制造工作改源码。 |
+| 两个最终固定入口产物 | 重新读取字节及 SHA，与 12.8 原报告一致；复用原定向 `BUILD_VERIFIED`，不是完整 Browser 包或 serve 连接证明；未重新编译。 |
+| 原 SW 来源检查 | 使用原 `describeBundle` 对当前 `sw.js` 的 `account-share.js` 输入只读诊断，仍真实 `REJECTED`。审查 blob 为 `6124420696da31472805467c9a09ef9640b5d388`，磁盘 blob 为 `6aa681f2c82299471f55586e9783d21dee95128e`。Cookie Owner 负责来源审查；本任务不改该业务或 pin、不重复失败构建。 |
+| 日常开发模式 | 要求仍为持续开发，目录 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`。磁盘为 Developer@0.1.0，锁 PID 40544 已退出，serve 未证实；当前仅能确认有开发产物，不能声称已连接。未启动 writer/watcher 或写入该目录。 |
+| 真实 Chrome 入口 | Chrome 连接成功；对当前列页返回的原 OpenDesk 详情页尝试接管，工具明确返回 `Chrome internal tab 759148481 cannot be claimed`。当前仅公开 viewport 能力，没有可信 Side Panel 控制能力。实际启用 ID、加载目录、Native/Go 配对与 Task 安装身份仍未知；未换控制通道或间接绕路。 |
+| A、E1、E2、E3 | `BLOCKED / NOT_TESTED`；未生成或发送新候选，candidateId/requestId/runId/resultId 与原生关联保持空值；组件撤销拒绝不能代替真实 E3。Google 保持 `NOT_TESTED`。 |
+| 资源与副作用 | 浏览器会话已 finalize，没有取得用户标签页控制权或新建测试页；未触发 Controller、修改授权、申请网站权限、覆盖安装或清账本，没有持有 Profile/DevTools/Side Panel/端口/watcher。 |
+
+**唯一下一步：由原开发环境 owner 恢复并核实同候选可信设置入口。** 先完成上述 Cookie 输入的原来源审查，在原 `dist/development` 恢复合法 serve 与加载/Native 配对核验；受当前工具限制的 Chrome 内部页和 Side Panel 必须由正常可信界面完成，不能另换自动化通道。入口恢复后直接审阅 `baidu.search.top3@1.1.1`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}`，再执行 A→E1→E2→E3；后续新 candidateId 仍须从未提交，沿用 12.7 提示词但不得重用其中已用 ID。保持 BR-01–12、AWB-01–08、131 项离线队列、跨对话、Gemini、production、完整矩阵及评分延期边界。
+
+### 12.11 当前第一阶段：正式自动运行入口与基础触发接线（2026-11-02）
+
+**最新用户范围优先：** 核心是监听 ChatGPT 新对话内容中的固定协议，自动触发已安装脚本。当前先完成产品 UI 和基础接线；手动恢复不是本轮主线。多步骤 B、跨对话、持久队列、MCP、完整回传/AI 续答、production 和 95 分矩阵延期，已有回传保留。第 12.9 的阻塞是历史恢复结果，不代表本轮没有可独立实施的 UI 工作；第 12.10 的 MCP 工作不成为本轮前置。
+
+**已接通的产品入口：** 「扩展 → Web Flow」宿主页头下直接显示共享 React Aria **自动运行滑块**，默认读持久总开关；“任务范围与授权”展开后使用原可信 Controller 审阅已安装任务的精确地址/参数/安装身份。全局可信设置保留同一个组件。可见开关、准备、批准、撤销均沿原 `createChatGPTFixedBridgeHost` → SW Ledger；每次实际执行仍由 Resolver/Authority/RunHost/Controller/Durable 负责。沙箱只更新操作说明，没有授权 API、第二 Bridge/Runner 或数据库。
+
+| 修改归属 | 本次差量与复用 |
+| --- | --- |
+| `projects/webflow/trusted/AutoSettings.tsx` | 真实共享 Switch、原生事件转发、可见状态与失败紧急关闭、精确范围折叠审核；产品入口准入判断留项目，其他工具、预览、停用、宿主设置和非当前 Tab 不显示该入口 |
+| `src/ui/sidebar-tools.js` / React `app-shell.tsx` / `tabs/tool-host.tsx` | 现有安装 owner 仅投影 toolId/启停/预览/设置展示事实；固定可信组合经可选 slot 放在原 frame 上方；单 React 根、原 iframe 不变，包中 JS 不进入可信页面 |
+| 原 `src/native-agent/chatgpt-*.js` / `workspace-chatgpt.js` / Broker / SW | 接续原 owner 已完成的持久自动路径，不复制或重写；保留原 final-submit 撤权与 UNKNOWN 围栏 |
+| `projects/webflow/src/ui/main.js` / `tool.config.json` / 唯一正式 JSON | 更新自动入口说明，版本 `0.3.3 → 0.3.4`；仍为同 ID、同能力及固定 Task pins；JSON 不包含可信组件，旧 Browser 必须另有同源固定代码 |
+| 项目 `tests/auto-settings-ui.test.mjs` / `auto-trigger-ui-server.mjs` | 增量检查真实 slider/入口隐藏与重开；独立夹具使用真实 Shell、ToolHost、Switch、Host 和 Ledger，安装/Chrome 权限/存储为注入边界，明确禁止 Task start |
+
+**真实鼠标诊断与修复：** 初版只转发 input 点击，React Aria 可见 label 消费鼠标按压，导致点击不保存。已在实际 Chrome 组件页复现并修成转发原始 label/input 可信点击，原同步 lock 防止同次激活写两次；不伪造生产事件。组件夹具确认鼠标 `isTrusted=true` 一次写入、空格键关闭、关重开回读、保存失败不假开、紧急关闭、准备不授权、精确批准及逐任务撤销；无 Console error。此处 **不是安装版可信 Side Panel PASS**。
+
+**本次有效证据：** `artifacts/webflow-auto-20261102/verification.json`、`reuse-audit.json`、`auto-switch.png`、`approved-ui.txt`、`revoked-ui.txt`。原 28 个输入中 23 个 SHA 未变；复用对应原 217 项证据，不重新累加为本次总成绩。以下实际运行于 Node 24.15.0，独立编译不写 `dist/development`：
+
+| 当前行为与命令 | 结果与证据等级 |
+| --- | --- |
+| `node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/auto-host.test.mjs tests/environment/webflow-fixed-source.test.mjs tests/environment/chatgpt-task-request-r1.test.mjs` | 22 PASS；滑块回执、Host/Ledger 防重放/撤权/UNKNOWN、真实事件限制、严格来源与旧协议保持，`COMPONENT_TESTED` |
+| `node --test --test-name-pattern='Web Flow' tests/environment/chatgpt-task-discovery-p0.test.mjs` | 9 PASS；新完整候选自动提交、无批准拒绝、迟到 ACK / BFCache / 内容变化 / UNKNOWN 不重放；组件证据，非真实聊天 |
+| `node --test --test-name-pattern='app declares\|original builder' projects/webflow/tests/webflow-ui.test.mjs` | 2 PASS；v2 包与固定 pins / 仅沙箱源码；没有重做 J06 恢复全组 |
+| `node artifacts/web-flow-20261102/v01-r2/verify-fixed-build.mjs tool-shell` | `BUILD_VERIFIED`；`fixed-build-zAIhGg/ui/tool-shell.js` 为 2,724,186 bytes，SHA-256 `8ff0ee9d3dfdf0e075664c8cf243085578666cb37e255947512977c78b5a587c`；原固定来源门禁保持，仅重新审查并 pin 自有 AutoSettings blob `d159b5485315a6cef01fc68967f66d7a016cdf22` |
+| 原 packer `--out` → 上述定向门禁 → `--promote-from` → `--check-project` | 唯一包 v0.3.4，51,803 bytes，SHA-256 `5a69f22c3fca72d39cefce7359119230caceeddd3ff86489af44add0a0052298`；同源通过，`installed:false` |
+| `node --check`（UI main、原 sidebar-tools 与新增 fixture）/ 范围内 `git diff --check` | PASS；源码语法/差异检查，不替代真实产品操作 |
+
+**谁的文本能触发：** 保持可信 OpenDesk 侧栏打开，同窗口 ChatGPT 官方网页的已有对话已建立完整轮次且监听器已附着后，发送一条新用户消息；只读取随后最新、完整、唯一助手回复的 `opendesk-task` 代码块。候选必须是 `webflow.task.intent.v1` 严格五字段并精确匹配批准范围。用户消息中的 JSON、首次挂载的历史、引用、流式回复、重复 candidate、旧 `opendesk.task.intent.v1` 均不进入此持久自动路径。初次历史建立期间不采用候选；不能将挂载/恢复/历史扫描当成新的执行许可。
+
+**现场测试文本（已按实际 parser 校验，NOT_SUBMITTED）：** 仅在真实安装与范围审核、开关回执完成后使用。下列 ID 本轮未发送；若此后已使用或状态 UNKNOWN，禁止复用或换 ID 补跑。
+
+````text
+请只原样输出下面唯一的 opendesk-task 代码块，不自行搜索，不加其他字段或授权声明：
+```opendesk-task
+{"protocol":"webflow.task.intent.v1","candidateId":"wf-auto-20261102-f7a8d9e1-04e4-4a08-b7be-8ae1f113d440","taskId":"baidu.search.top3","targetUrl":"https://www.baidu.com/","args":{"query":"OpenDesk Browser","limit":3}}
+```
+````
+
+**真实链尚未完成：** Chrome skill 连接成功，但实测仍拒绝 `Chrome internal tab 759148481 cannot be claimed`，当前能力没有可信 Side Panel 控制。普通 ChatGPT 标签页的接管/快照还发生一次超时，未发送任何测试消息。没有 raw CDP、替代浏览器通道、Profile/存储读取或内部 API 绕路。原 SW 的 `account-share.js` 来源单项诊断仍拒绝，未修改 Cookie 源码或 pin、未启动失败的全量构建。日常仍是原路径 `/Users/mac/Documents/workspace/opendesk-browser/dist/development` 的旧磁盘开发包；无在跑 dev writer，serve 未证明，实际扩展 ID、加载路径与 Go/Native 配对未知；本轮未启动 watcher、覆盖 dist 或替换扩展。两个历史自动 owner 实读 `notLoaded`，本轮接手自动主线；没有接管其他工作资源。
+
+| 普通用户核心链 | 当前事实 |
+| --- | --- |
+| 打开 Web Flow → 可发现滑块 → 精确审核/开启 → 重开回显 | `SOURCE_IMPLEMENTED / COMPONENT_TESTED / BUILD_VERIFIED`；真实 Chrome 组件页通过，安装版 `NOT_TESTED` |
+| ChatGPT 新完整协议 → 无手动 Run 自动执行 | 复用原监听器与 Host，当前 Node 组件通过；真实链 `BLOCKED / NOT_TESTED` |
+| 百度真实输入/搜索 → 三条实际结果 → 原 Durable 状态 | `NOT_TESTED`；没有本轮原生 candidate/request/run/result 关联，不以 fixture 填写 |
+| 关闭 / 重复 / 未批准 / 撤权 / UNKNOWN 拒绝 | 受影响组件与账本检查 PASS；真实网站级 `NOT_TESTED` |
+
+**唯一下一条未完成操作：** 来源 owner 审查当前 Cookie 固定输入并恢复同源持续开发候选，通过正常 Chrome 可信 UI 核实固定加载/Native 配对后，在「扩展 → Web Flow」审阅 `baidu.search.top3@1.1.1`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}` 并开启滑块，立即执行上述真实新消息自动链。工具不能操作的可信界面需用户正常 UI 完成；不再重做 UI 原型、J06 或已有效的组件检查。此时 `get_goal=null`；没有新建、暂停、迁移、完成其他目标，未标 `PRODUCT_DONE`。

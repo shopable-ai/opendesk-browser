@@ -24,8 +24,9 @@ const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','d
 
 // Explicit code-owned route names; payload fields can never select a method.
 // Preserve late method lookup and its receiver, as in the original wrappers.
-export function createMethodRoutes(service, names) {
-  return Object.fromEntries(names.map(name => [name, (payload, sender) => service[name](payload, sender)]));
+export function createMethodRoutes(service, names, guards={}) {
+  return Object.fromEntries(names.map(name => [name, (payload, sender) => guards[name]
+    ?guards[name](payload,sender,()=>service[name](payload,sender)):service[name](payload, sender)]));
 }
 
 export function createSdkRequestHandler({sdk,authority}) {
@@ -121,7 +122,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer,downloadEventsAttached=false,onToolUninstalled} = {}) {
+  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -246,6 +247,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
       else await storage.transaction(['runs','commandJournal'], 'readonly',tx=>authority.admitIdentity(tx,p.identity,sender,
         {ignoreRevision:['ackPageFrame'].includes(message.type),allowSettled:['ackPageFrame'].includes(message.type)}));
     }
+    if(message.type==='startControllerRun'&&withControllerAdmission)
+      return createMethodRoutes(authority,['startControllerRun'],{startControllerRun:withControllerAdmission}).startControllerRun(p,sender);
     return route(p,sender);
   }
   async function issueGestureTicket(tab) {

@@ -8,6 +8,7 @@ import {createChatGPTFixedBridgeHost,verifyChatGPTTaskDurableResult,formatChatGP
   from '../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger,installChatGPTBridgeTriggerGate,CHATGPT_BRIDGE_LEDGER_KEY} from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {validateChatGPTTaskIntent} from '../../src/native-agent/chatgpt-task-request.js';
+import * as taskIntentContract from '../../src/native-agent/chatgpt-task-request.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 const protocol='opendesk.chatgpt.bridge.r12.v1';
@@ -119,6 +120,31 @@ test('independent intent is strict and contains neither nonce nor installation p
   for(const change of [{requestId:id},{installation:h.installation},{candidateId:'x'},{args:{x:{}}},
     {protocol:'wrong'},{targetUrl:'https://example.com/#fragment'}])
     assert.throws(()=>validateChatGPTTaskIntent(JSON.stringify({...h.intent,...change})));
+});
+test('Web Flow intent has a separate strict five-field validator while the legacy default stays legacy',()=>{
+  assert.equal(taskIntentContract.WEBFLOW_TASK_INTENT_PROTOCOL,'webflow.task.intent.v1');
+  assert.equal(typeof taskIntentContract.validateWebFlowTaskIntent,'function');
+  const legacy=harness().intent,value={...legacy,protocol:'webflow.task.intent.v1',args:{query:'OpenDesk',limit:3,exact:true}};
+  const parse=taskIntentContract.validateWebFlowTaskIntent,text=JSON.stringify(value),parsed=parse(text);
+  assert.deepEqual(parsed,value);assert.ok(Object.isFrozen(parsed));assert.ok(Object.isFrozen(parsed.args));
+  assert.equal(validateChatGPTTaskIntent(JSON.stringify(legacy)).protocol,'opendesk.task.intent.v1');
+  assert.throws(()=>validateChatGPTTaskIntent(text),{code:'E_BRIDGE_SCHEMA'});
+  assert.throws(()=>parse(JSON.stringify(legacy)),{code:'E_BRIDGE_SCHEMA'});
+  for(const change of [{requestId:id},{installation:{}},{workflowId:'workflow-123'},
+    {candidateId:'short'},{taskId:'bad task'},{targetUrl:'https://user:pass@example.com/'},
+    {targetUrl:'https://example.com/#fragment'},{targetUrl:'javascript:alert(1)'},
+    {args:{nested:{}}},{args:[]},{args:{bad_key:null}}])
+    assert.throws(()=>parse(JSON.stringify({...value,...change})),{code:'E_BRIDGE_SCHEMA'});
+  for(const key of Object.keys(value)){
+    const missing={...value};delete missing[key];
+    assert.throws(()=>parse(JSON.stringify(missing)),{code:'E_BRIDGE_SCHEMA'});
+  }
+  for(const bad of [text.slice(0,-1),text+'\n'+text,'```json\n'+text+'\n```',
+    text.replace('"candidateId":','"candidateId":"other-candidate", "candidateId":'),
+    text.replace('"candidateId":','"candi\\u0064ateId":"other-candidate", "candidateId":'),
+    text.replace('"limit":3','"limit":2,"limit":3')])
+    assert.throws(()=>parse(bad),{code:'E_BRIDGE_FORMAT'});
+  assert.throws(()=>parse(' '.repeat(4097)),{code:'E_BRIDGE_LIMIT'});
 });
 test('adopt → approve → unique existing Host run, exact ledger identity and default scope',async()=>{
   const h=harness(),message=await adopt(h);
@@ -241,6 +267,68 @@ test('serialized discovery refuses quoted, hidden and unmarked modern intent but
   f.$('[data-message-author-role="assistant"]').html('<div data-code-block="true"><div data-markdown-copy="exclude"><div>opendesk-task</div><button>复制</button></div><div data-code-block-source="true"><code></code></div></div>');
   f.$('code').text(f.text);assert.equal(f.read().blocks[0],f.text);
   f.$('[data-markdown-copy] div').text('json');assert.equal(f.read().error.code,'E_CHAT_REQUEST_MARKER');
+});
+const webFlowFixture=()=>{
+  const f=domFixture(),value={...harness().intent,protocol:'webflow.task.intent.v1'};
+  const text=JSON.stringify(value);f.$('code').text(text);
+  f.$('[data-message-author-role="assistant"]').attr('data-talvt-turn-state','complete');
+  const read=(options={})=>f.read({protocols:['webflow.task.intent.v1'],...options});
+  return {...f,value,text,read};
+};
+test('Web Flow serialized reader selects its protocol explicitly and counts unmarked conflicts',()=>{
+  const f=webFlowFixture();assert.equal(f.read().blocks[0],f.text);
+  f.$('code').attr('class','language-json');assert.equal(f.read().error.code,'E_CHAT_REQUEST_MARKER');
+  f.$('code').attr('class','language-opendesk-task');
+  const legacy=JSON.stringify({...f.value,protocol:'opendesk.task.intent.v1'});
+  f.$('code').text(legacy);assert.equal(f.read().ok,false);
+  f.$('code').text(f.text);
+  f.$('[data-message-author-role="assistant"]').append('<pre><code class="language-json"></code></pre>');
+  f.$('code').last().text(legacy);assert.equal(f.read().error.code,'E_EDIT_AMBIGUOUS');
+});
+test('Web Flow serialized reader rejects extra fields, quoted and result pseudo candidates',()=>{
+  for(const change of [{requestId:id},{status:'completed'},{data:{protocol:'webflow.task.intent.v1'}}]){
+    const f=webFlowFixture();f.$('code').text(JSON.stringify({...f.value,...change}));
+    assert.equal(f.read().ok,false);
+  }
+  for(const wrapper of ['blockquote','div data-opendesk-file-data','div data-hidden="true"']){
+    const f=webFlowFixture();f.$('pre').wrap('<'+wrapper+'></'+wrapper.split(' ')[0]+'>');
+    assert.equal(f.read().ok,false);
+  }
+  const f=webFlowFixture();
+  f.$('code').attr('class','language-json').text(JSON.stringify({protocol:'opendesk.task.result.v1',data:f.value}));
+  assert.equal(f.read().ok,false);
+  f.$('main').append('<blockquote><div data-message-author-role="assistant" data-talvt-turn-state="complete"><pre><code class="language-opendesk-task"></code></pre></div></blockquote>');
+  f.$('code').last().text(f.text);assert.equal(f.read().ok,false);
+  const resultLabel=webFlowFixture();resultLabel.$('code').attr('class','language-opendesk-task-result');
+  assert.equal(resultLabel.read().ok,false);
+  const mixed=webFlowFixture();
+  mixed.$('[data-message-author-role="assistant"]').append('<pre><code class="language-json"></code></pre>');
+  mixed.$('code').last().text(JSON.stringify({protocol:'opendesk.task.result.v1',data:mixed.value}));
+  assert.equal(mixed.read().blocks[0],mixed.text);
+});
+test('Web Flow completion actions belong to the latest answer and cannot come from an older sibling',()=>{
+  const f=webFlowFixture();
+  f.$('[data-message-author-role="assistant"]').removeAttr('data-talvt-turn-state');
+  f.$('main').prepend('<div data-message-author-role="assistant"><button data-testid="copy-turn-action-button">复制旧回答</button></div>');
+  assert.equal(f.read().ok,false);
+  f.$('[data-message-author-role="assistant"]').last().append('<button data-testid="copy-turn-action-button">复制当前回答</button>');
+  assert.equal(f.read().blocks[0],f.text);
+  f.$('button').last().attr('data-hidden','true');assert.equal(f.read().ok,false);
+});
+test('Web Flow serialized reader requires the complete latest unique answer and never falls back',()=>{
+  for(const state of ['streaming','pending','unknown','missing','aria-busy']){
+    const f=webFlowFixture(),assistant=f.$('[data-message-author-role="assistant"]');
+    if(state==='missing')assistant.removeAttr('data-talvt-turn-state');
+    else if(state==='aria-busy')assistant.attr('aria-busy','true');
+    else assistant.attr('data-talvt-turn-state',state);
+    assert.equal(f.read().ok,false,state);
+    assert.equal(f.read({identityOnly:true,requireComplete:true}).ok,false,state);
+  }
+  const f=webFlowFixture();
+  f.$('main').append('<div data-message-author-role="assistant" data-talvt-turn-state="complete">最新回复没有任务</div>');
+  assert.equal(f.read().ok,false);
+  f.$('main').append('<div data-message-author-role="user">新问题</div>');
+  assert.equal(f.read().error.code,'E_CHAT_PENDING');
 });
 test('consumed UNKNOWN Host start remains fenced against adopting the same candidate again',async()=>{
   const h=harness(),message=await adopt(h);await approve(h,message);

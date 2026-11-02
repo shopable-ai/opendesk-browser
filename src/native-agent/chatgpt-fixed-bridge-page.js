@@ -2,6 +2,7 @@ import {createChatGPTBridgeSite} from './chatgpt-bridge-site.js';
 import {createChatGPTTaskDiscovery} from './chatgpt-task-discovery.js';
 import {chatGPTConversationId,inspectChatGPTEditsOnPage} from './workspace-chatgpt.js';
 import {validateChatGPTTaskIntent,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,FIXED_PAGE_URL,baiduSearchTarget} from './chatgpt-task-request.js';
+import {validateWebFlowTaskIntent,WEBFLOW_TASK_INTENT_PROTOCOL} from './chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from './chatgpt-bridge-trigger-gate.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -263,6 +264,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   panel.append(heading,status,selection,bar,viewStatus,result,fields,more,hint,details);shadow.append(style,panel);
   (doc.body||doc.documentElement).append(root);
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
+  let lifecycleEpoch=0;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
   let conversationReady=null,loadingTasks=false;
   const installedTasks=new Map(),installedOptions=[];
@@ -313,7 +315,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(state?.candidate){
       const name=state.taskName||installedTasks.get('installed:'+state.taskId)?.name||state.taskId;
       selection.textContent='本次任务：'+name+' @ '+state.installation.version+
-        '\n触发：'+(state.mode==='auto'?'预批准自动执行':'手动执行')+
+        '\n触发：'+(state.persistentAuto?'持续批准自动执行':state.mode==='auto'?'预批准自动执行':'手动执行')+
         '\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
     }else if(!state||state.attempted){
       const task=selectedTask();
@@ -324,7 +326,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     showIdentity();
   };
   const assertActive=owner=>{
-    if(owner!==state||owner.cancelled)throw fail('E_BRIDGE_CANCELLED','本次请求已取消，禁止继续执行或回传');
+    if(closed||owner!==state||owner.cancelled)throw fail('E_BRIDGE_CANCELLED','本次请求已取消或页面关闭，禁止继续执行或回传');
   };
   const validatePage=()=>{
     if(!chatGPTConversationId(win.location.href)||win.location.origin!=='https://chatgpt.com')
@@ -337,18 +339,18 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       reply?.error?.message||'可信任务宿主未响应，请确认同一窗口的 OpenDesk 侧栏保持打开；本次回执为 UNKNOWN，请按原请求核查');
     return reply.data;
   };
-  const adoptedMessage=()=>({adoptedRequest:state.adoptedRequest,candidateText:state.candidate.text,
+  const adoptedMessage=()=>({adoptedRequest:state.adoptedRequest,persistentAuto:state.persistentAuto===true,candidateText:state.candidate.text,
     turnKey:state.candidate.turnKey,answerKey:state.candidate.answerKey});
   const observe=()=>{
     validatePage();
     if(!state)throw fail('E_BRIDGE_REQUEST','尚未建立当前请求');
     if(state.candidate){
-      const page=readPage({expectedUrl:state.url,protocols:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+      const page=readPage({expectedUrl:state.url,protocols:[state.persistentAuto?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
       if(!page.ok)throw fail(page.error.code,page.error.message);
       if(page.blocks?.length!==1||page.blocks[0]!==state.candidate.text||
         page.turnKey!==state.candidate.turnKey||page.answerKey!==state.candidate.answerKey)
         throw fail('E_BRIDGE_CONTEXT','采用的对话任务、轮次或回答已改变');
-      validateChatGPTTaskIntent(page.blocks[0]);
+      (state.persistentAuto?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(page.blocks[0]);
       return {page,request:state.adoptedRequest};
     }
     const page=readPage({expectedUrl:state.url,requestId:state.requestId,
@@ -366,7 +368,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return {page,request};
   };
   const execute=async mode=>{
-    if(!state||state.cancelled||state.attempted||pending||cancelPending||deliveryPending)return;
+    if(closed||!state||state.cancelled||state.attempted||pending||cancelPending||deliveryPending)return;
     const owner=state;
     pending=true;update();
     try {
@@ -384,7 +386,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       // No local retry after a transport failure. The worker's durable trigger
       // fence and Controller command journal determine whether effects happened.
       const reply=await send({kind:'execute',requestId:state.requestId,mode,
-        ...(state.candidate?{adoptedRequest:state.adoptedRequest}:{}),
+        ...(state.candidate?{adoptedRequest:state.adoptedRequest,persistentAuto:state.persistentAuto===true}:{}),
         candidateText:page.blocks[0],sourceUrl:state.url,source:state.source,turnKey:page.turnKey,
         answerKey:page.answerKey});
       assertActive(owner);
@@ -425,20 +427,23 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   });
   const adoptLatest=async({automatic=false,grant=null}={})=>{
     if(pending||cancelPending||deliveryPending||closed)return;
+    const epoch=lifecycleEpoch;
     pending=true;preparing=true;update();
     try{
       validatePage();const url=win.location.href;
       const snap=site.inspect();
       if(!snap.ok||snap.busy||!snap.idle||!snap.answerComplete)
         throw fail('E_CHAT_STREAMING','等待官网完整回复后才可准备任务');
-      const page=readPage({expectedUrl:url,protocols:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+      const page=readPage({expectedUrl:url,protocols:automatic&&!grant?
+        [CHATGPT_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_PROTOCOL]:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
       if(!page.ok){
         // Ordinary replies, including the AI continuation after our result,
         // are not task proposals and must not replace an execution receipt.
         if(automatic&&page.error?.code==='E_CHAT_FORMAT')return;
         throw fail(page.error.code,page.error.message);
       }
-      const intent=validateChatGPTTaskIntent(page.blocks[0]);
+      const persistentAuto=JSON.parse(page.blocks[0]).protocol===WEBFLOW_TASK_INTENT_PROTOCOL;
+      const intent=(persistentAuto?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(page.blocks[0]);
       if(grant){
         assertActive(grant);
         if(!grant.future||grant.bindingAttempted||Date.now()>=grant.expiresAt||
@@ -446,8 +451,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
           throw fail('E_BRIDGE_APPROVAL','不是预批准后产生的新完整任务');
         grant.bindingAttempted=true; // A lost bind ACK is never automatically retried.
       }
-      const prepared=await send({kind:grant?'bind-preapproved-task':'adopt-task',
+      const prepared=await send({kind:persistentAuto?'auto-task':grant?'bind-preapproved-task':'adopt-task',persistentAuto,
         ...(grant?{requestId:grant.requestId}:{}),candidateText:page.blocks[0],turnKey:page.turnKey,answerKey:page.answerKey});
+      if(closed||epoch!==lifecycleEpoch)return;
       if(grant){
         assertActive(grant);
         if(prepared.requestId!==grant.requestId||prepared.expiresAt!==grant.expiresAt||!sameRequestScope(prepared,grant))
@@ -463,7 +469,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         throw fail('E_BRIDGE_CONTEXT','采用回执与对话任务不匹配');
       state={...adoptedRequest,url,source:prepared.source,expiresAt:prepared.expiresAt,candidate:prepared.candidate,
         adoptedRequest,attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,
-        mode:grant?'auto':null,approvedTurnKey:page.turnKey,taskName:prepared.taskName||grant?.taskName};
+        persistentAuto,mode:persistentAuto||grant?'auto':null,approvedTurnKey:page.turnKey,taskName:prepared.taskName||grant?.taskName};
       clearReceipt();
       // Show the accepted request in the controls too, rather than leaving a
       // previous manual selection above the correct execution summary.
@@ -478,16 +484,17 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       taskSelect.value=key;targetInput.value=state.targetUrl;argsInput.value=JSON.stringify(state.args);
       argsHelp.textContent='';
       selection.textContent='本次脚本：'+state.taskId+'\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
-      observe();note(grant?'已匹配预批准的新任务，将自动执行一次。':automatic?
+      observe();note(persistentAuto?'已匹配可信侧栏中的持续批准，将自动执行新候选。':grant?'已匹配预批准的新任务，将自动执行一次。':automatic?
         '已自动识别待执行任务。请核对脚本、网址和参数，只需点击一次“执行”。':
         '已采用对话任务，尚未执行。请核对脚本、网址和参数，点击“执行”或批准本次自动执行。');
     }catch(error){
+      if(closed||epoch!==lifecycleEpoch)return;
       // Binding/format errors have not submitted execute. Keep the grant
       // cancellable without asking a nonexistent Controller run to stop.
       note((error.code||'E_BRIDGE')+'：'+error.message+'；未自动重试。',true);
     }
-    finally{pending=false;preparing=false;update();}
-    if(grant&&state!==grant&&state?.mode==='auto')void execute('auto');
+    finally{pending=false;preparing=false;if(!closed)update();}
+    if(!closed&&epoch===lifecycleEpoch&&state?.mode==='auto'&&(state.persistentAuto||grant&&state!==grant))void execute('auto');
   };
   adoptButton.addEventListener('click',event=>{
     if(!event.isTrusted||adoptButton.disabled)return;
@@ -635,11 +642,20 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   runButton.addEventListener('click',event=>{
     if(event.isTrusted)void execute('manual');
   });
-  let autoPollBusy=false;
+  let autoPollBusy=false,deferredDiscovery=null;
   const poll=win.setInterval(()=>{
     if(closed)return;
     const snapshot=site.inspect();
-    const discovered=discovery.observe(snapshot);
+    const observed=discovery.observe(snapshot);
+    if(observed)deferredDiscovery={...observed,route:snapshot.route,
+      userText:observed.user.textContent||'',answerText:observed.answer.textContent||''};
+    if(deferredDiscovery&&((deferredDiscovery.user.textContent||'')!==deferredDiscovery.userText||
+      (deferredDiscovery.answer.textContent||'')!==deferredDiscovery.answerText))deferredDiscovery=null;
+    // At most one unadmitted observation, never an execution queue. A delayed
+    // successful receipt must not discard a later complete reply. Revalidate
+    // only while its exact user/answer remain the current DOM in this route.
+    const discovered=deferredDiscovery&&snapshot.ok&&snapshot.route===deferredDiscovery.route&&
+      snapshot.users.at(-1)===deferredDiscovery.user&&snapshot.assistants.at(-1)===deferredDiscovery.answer;
     if(!state)update(); // ChatGPT creates the first /c/... route without reloading.
     composerClaim?.navigation();
     if(state&&win.location.href!==state.url){
@@ -650,11 +666,12 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(pending||cancelPending||deliveryPending){
         note('原对话已切换；旧请求正在收尾，禁止回传。',true);update();return;
       }
-      state=null;conversationReady=null;discovery.reset(snapshot);update();
+      state=null;deferredDiscovery=null;conversationReady=null;discovery.reset(snapshot);update();
       return;
     }
     if(discovered&&!pending&&!cancelPending&&!deliveryPending&&
       (!state||state.cancelled||state.settled||state.future&&!state.attempted)){
+      deferredDiscovery=null;
       void adoptLatest({automatic:true,grant:state?.future&&!state.cancelled&&!state.attempted?state:null});
       return;
     }
@@ -813,11 +830,18 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return true;
   };
   api.runtime.onMessage.addListener(onMessage);
-  const dispose=()=>{if(closed)return;closed=true;win.clearInterval(poll);
+  const restoreFromCache=event=>{if(event.persisted)initChatGPTFixedBridgePage({api,doc,win,site,readPage});};
+  const onPageHide=event=>{
+    dispose();
+    if(event.persisted)win.addEventListener('pageshow',restoreFromCache,{once:true});
+  };
+  const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;lifecycleEpoch++;
+    if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;win.clearInterval(poll);
+    win.removeEventListener('pagehide',onPageHide);
     api.runtime.onMessage.removeListener(onMessage);
     doc.removeEventListener('compositionstart',beginComposition,true);
     doc.removeEventListener('compositionend',endComposition,true);root.remove();};
-  win.addEventListener('pagehide',dispose,{once:true});
+  win.addEventListener('pagehide',onPageHide,{once:true});
   taskSelect.addEventListener('change',async()=>{
     if(pending||cancelPending||deliveryPending||loadingTasks)return;
     if(taskSelect.value===INSTALLED_CHOICE){

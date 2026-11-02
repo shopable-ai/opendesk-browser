@@ -76,7 +76,7 @@ function MarketCapabilityRow({code,isNew=false}){
 
 
 
-export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) {
+export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,trustedControls=null}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const previewStatus=snapshot.fields['sidebar-tool-readonly-banner'];
   const marketReview = snapshot.market?.review ?? null;
@@ -522,6 +522,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </div>
 
 </div>
+{trustedControls}
 <section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
