@@ -185,6 +185,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   let busy=false,delivery=null,operation=null,globalEpoch=0,catalogEpoch=0,autoPolicyEpoch=0,disposed=false;
   let autoCatalog={tasks:[],unavailable:[],catalogVerified:false};
   const taskEpochs=new Map();
+  let bridgeSource=null,bridgeReceipt=null;
   const invalidate=()=>{globalEpoch++;};
   const autoSettingsChanged=(changes,area)=>{if(area==='local'&&changes[WEBFLOW_AUTO_GRANTS_KEY])autoPolicyEpoch++;};
   api.storage?.onChanged?.addListener(autoSettingsChanged);
@@ -402,6 +403,45 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   const trustedSettings=event=>{
     if(disposed||!isVerifiedSidePanel()||event&&event.isTrusted!==true)
       throw fail('E_WEBFLOW_GESTURE','仅真实可信侧栏中的用户操作可修改持续批准');
+  };
+  // Fixed trusted UI projection. It is never registered on the page/sandbox
+  // runtime listener. Actions require the original native Side Panel gesture.
+  const readBridgeState=async()=>{
+    trustedSettings();
+    const windowId=currentPageTarget?.snapshot?.windowId;
+    if(!Number.isSafeInteger(windowId))throw fail('E_BRIDGE_WINDOW','当前侧栏窗口未确认');
+    const tabs=await api.tabs.query({active:true,windowId});
+    const tab=tabs.find(tab=>officialURL(tab.url)&&chatGPTConversationId(tab.url)&&!tab.incognito&&!tab.pendingUrl);
+    let source=operation?.source;
+    if(!source&&tab){
+      const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+      source={tabId:tab.id,documentId:frame?.documentId,url:tab.url};
+    }
+    source??=bridgeSource;
+    if(!source)return {session:null,receipt:null};
+    await assertSource(source);trustedSettings();
+    const reply=await api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,
+      kind:'sidebar-read',sourceUrl:source.url},{documentId:source.documentId});
+    await assertSource(source);trustedSettings();
+    if(reply?.ok!==true||reply.data?.url!==source.url)
+      throw fail(reply?.error?.code||'E_BRIDGE_PROJECTION',reply?.error?.message||'网页监听器未就绪，请刷新当前空闲对话');
+    bridgeSource=source;
+    return {source,session:reply.data,receipt:bridgeReceipt&&sameSource(source,bridgeReceipt.source)&&
+      reply.data.requestId===bridgeReceipt.requestId?structuredClone(bridgeReceipt):null};
+  };
+  const controlBridge=async(value,event)=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
+    if(!value||!['fields','prepare','approve-once','run','cancel','adopt','view','preapprove'].includes(value.action)||
+      !validChatGPTBridgeSource(value.source))throw fail('E_BRIDGE_SCHEMA','侧栏操作无效');
+    const source=value.source;
+    if(!sameSource(source,bridgeSource))throw fail('E_BRIDGE_CONTEXT','侧栏对话已改变，请重新读取');
+    await assertSource(source);trustedSettings();
+    const reply=await api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'sidebar-control',
+      sourceUrl:source.url,requestId:value.requestId,action:value.action,
+      ...(value.action==='fields'?{fields:value.fields}:{})},{documentId:source.documentId});
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_OUTCOME_UNKNOWN',
+      reply?.error?.message||'操作回执未知；请查询原请求，不自动重试');
+    return readBridgeState();
   };
   const autoGate=async payload=>{
     const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...payload});
@@ -641,7 +681,9 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     const source={tabId:sender?.tab?.id,documentId:sender?.documentId,url:message.sourceUrl};
     if(!validChatGPTBridgeSource(source)||!sameSource(source,message.source))
       throw fail('E_BRIDGE_SENDER','来源与运行请求不匹配');
-    busy=true;
+    busy=true;bridgeSource=source;
+    bridgeReceipt={source,requestId:message.requestId,candidateId:message.adoptedRequest?.candidate?.candidateId??null,
+      execution:'validating',persistence:'not-confirmed',release:'not-confirmed',delivery:'not-sent',runId:null,resultId:null};
     const active=operation={source,message,cancelled:false,runId:null,stopPromise:null,deliveryDispatched:false,
       epoch:captureEpoch(message.persistentAuto===true)};
     const returnToSource=async()=>{
@@ -665,6 +707,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const targetUrl=request.installation?request.targetUrl:
         request.taskId===BAIDU_TASK_ID?baiduSearchTarget(request):FIXED_PAGE_URL;
       const progress=(stage,installed,result={})=>{
+        Object.assign(bridgeReceipt,{taskId:request.taskId,targetUrl,args:request.args,
+          installation:installationOf(installed),execution:stage==='result-ready'?'completed':stage,candidateId:request.candidate?.candidateId??null,...(active.runId?{runId:active.runId}:{})});
         // Feedback is observational only. It cannot grant permission or retry
         // an action, and is sent solely to the original exact document.
         void api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'progress',
@@ -728,6 +772,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       try{await showExecutionPage({...message,kind:'show-execution-page',runId:claim.runId},sender);}
       catch{/* Viewing cannot grant execution or invalidate a durable result. */}
       const terminal=await completion;
+      Object.assign(bridgeReceipt,{execution:terminal?.state??'unknown',release:terminal?.retirement?.state??'unknown'});
       await returnToSource();
       assertActive(active);
       if(terminal?.runId!==claim.runId||terminal.state!=='completed'||terminal.pendingSettlement||
@@ -739,6 +784,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       if(terminal.result?.resultId!==durable.resultId)
         throw fail('E_BRIDGE_RESULT','完成回执与持久记录的结果身份不同');
       const resultPreview=JSON.stringify(durable.value,null,2).slice(0,2000);
+      Object.assign(bridgeReceipt,{runId:durable.runId,resultId:durable.resultId,execution:'completed',
+        persistence:'verified',release:'released',value:durable.value});
       progress('result-ready',installed,{resultId:durable.resultId,resultPreview});
       await assertSource(source,sender);
       await assertReply(source,message);
@@ -751,7 +798,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         formatChatGPTFixedResult(request.requestId,durable);
       let delivered;
       try{
-        active.deliveryDispatched=true;
+        active.deliveryDispatched=true;bridgeReceipt.delivery='submitted';
         delivered=await api.tabs.sendMessage(source.tabId,{
           protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'deliver',requestId:request.requestId,
           mode:message.mode,sourceUrl:source.url,turnKey:message.turnKey,
@@ -763,6 +810,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         delivered.data.userObserved!==true)
         throw fail(delivered?.error?.code||'E_BRIDGE_SEND_UNKNOWN',
           delivered?.error?.message||'未观察到原 ChatGPT 对话新增的用户消息；禁止补发');
+      Object.assign(bridgeReceipt,{delivery:'confirmed',aiReplyObserved:delivered.data.aiReplyObserved===true});
       return Object.freeze({taskId:request.taskId,runId:durable.runId,
         resultId:durable.resultId,resultPreview,revision:durable.revision,
         sourceHash:durable.sourceHash,
@@ -770,6 +818,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
           resultCount:durable.value.count}:{}),
         sent:true,aiReplyObserved:delivered.data.aiReplyObserved===true});
     }catch(error){
+      Object.assign(bridgeReceipt,{error:{code:error.code||'E_BRIDGE_FAILURE',message:error.message},
+        ...(active.deliveryDispatched?{delivery:'unknown'}:{})});
       if(reserved||submitted){
         // The ledger is already consumed and the Controller may have an
         // unknown effect; never replace a precise failure with a replay.
@@ -779,7 +829,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
   return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,
-    readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
+    readBridgeState,controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
     disposed=true;invalidate();delivery=null;
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
     api.storage?.onChanged?.removeListener(autoSettingsChanged);

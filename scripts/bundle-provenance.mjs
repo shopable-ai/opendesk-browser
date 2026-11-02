@@ -22,12 +22,13 @@ const compiledTimeReviewInputs=Object.freeze({
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
-  // Reviewed approved-scope prompt formatting/copy UI; no new execution or authority API.
-  'projects/webflow/trusted/AutoSettings.tsx':'b523ad3e4337b2d85cf2253dbd5adcba95e60c4e'
+  // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
+  'projects/webflow/trusted/AutoSettings.tsx':'adb160a8eacc9190da7177267f368fa086ccd438',
+  'projects/webflow/trusted/CurrentTask.tsx':'4551e5bf32707037015db2cb6569ad6c077c3e23'
 });
 function reviewedCompiledWebFlow(target,path,root){
   if(!Object.hasOwn(compiledWebFlowInputs,path)||
-    !(path.endsWith('AutoSettings.tsx')?target==='ui/tool-shell.js':
+    !(path.startsWith('projects/webflow/trusted/')?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target)))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Web Flow source must not be a symlink: '+path);

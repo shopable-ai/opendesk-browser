@@ -1114,3 +1114,43 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 **包与持续开发：** 唯一 `webflow.opendesk-tool.json` **v0.3.5 / 53,597 bytes / SHA-256 `c64b7e7e4a968078af581dce05730e5845e4dfab4de084162c5262f405b36e19`**。原 candidate → 定向门禁 → `--promote-from` → `--check-project` 同源通过，四项 capability、两个 Task pin 未扩展。交接 PID 64855 已退出、两端口无监听，恢复原唯一 `npm run dev`：新 writer **85861**、43119/43120、原 `dist/development`。真实调试页显示“开发服务已连接”，指纹 **`105c832e5cf9`**（完整 `105c832e5cf9aa25ffcd84d1f2717f4fdc4984df9d2ab539cfee5dc695459388`）；未换扩展 ID/路径/Native 配对，没有第二个 writer。
 
 证据在 `artifacts/webflow-auto-20261102/core-entry-01a19caf/`：`approved-scope.ax.txt`、两份 `generated-prompt-*.txt`、`copied-prompt.ax.txt`、`copied-prompt.utf8.txt`、`native-prompt-proof.json`、`dev-final.ax.txt`、`dev-serve.log`。最终留在 Web Flow，开关关闭、原批准保留。下一条正常使用动作是从已有批准生成并复制新指令，用户准备执行时再开自动运行并在原聊天发送；无需重新创建或安装脚本。多步骤 B、跨对话、持久队列、MCP 产品、完整长结果/AI 续答、production、宽度缩放/压力和新评分继续延期。
+
+### 12.11.5 用户最新纠偏：在侧栏完成真实核心链路测试（2026-11-02，核心实测结果见 12.11.6）
+
+用户要求创建新任务继续，指出看不出核心测试已完成。当前明确的完成标准是：固定提示词在真实 ChatGPT 发送 → 完整回复为严格脚本协议 → 触发原已安装脚本 → 实际百度等网页自动化 → 在侧栏 Web Flow 看见同一次执行的结果或具体失败。12.11.4 只验证生成/复制，不等于此链已在新版本通过；12.11.3 的历史真实执行可复用为参考，不能代替本轮改动后的最终核心操作。
+
+用户同时指出网页注入的“OpenDesk · 浏览器任务”严重遮挡、干扰访问，要求过渡到侧栏扩展。下一 owner 直接检查并迁移必要的执行状态、结果/错误、停止与手动/一次批准交互到已有 Web Flow/可信控件，移除该侵入式网页悬浮面板。不能仅隐藏 CSS 或直接删除承载监听、严格解析、原聊天送回与来源/草稿保护的整个模块；复用原 Bridge/Authority/RunHost/持久结果，沙箱不提权，不新建第二条执行链。
+
+本次已明确授权按修改后的正常产品入口完成一条真实端到端核心链；不再以“之前跑过”或“只复制成功”跳过本次发送、完整回复、自动执行与侧栏结果核对。用户以百度搜索相关人物为代表场景；复用现有固定搜索脚本，实际关键词如改变，必须按原可信审核绑定精确参数，不扩大旧批准或编造旧人物测试证据。继续保护已有用户草稿、UNKNOWN 不补跑及真实来源/安装/权限/撤权；完整矩阵、production、跨对话/多步骤、MCP 产品和新评分仍延期。
+
+交接前实读 main HEAD `d36e69d01`、dev writer PID 85861 仍在；本任务 `get_goal=null`，无活动目标需暂停，未改变其他任务目标状态。新任务创建成功后由新 owner 接管源码、Chrome、watcher 与原输出，旧 owner 停止操作这些资源。
+
+
+### 12.11.6 侧栏核心自动链已真实跑通（承接 2026-11-02 授权）
+
+**最新阶段与入口：** 用户随后明确“先完成核心功能”，旧网页大浮层的删除可以延期，并要求优先 Accessibility / AppleScript / DOM 等准确、低截图消耗的方法。本次保留旧浮层，实际采用“扩展 → Web Flow → 任务范围与授权 → 生成 ChatGPT 指令 → 官方原对话原生发送”；旧浮层采用、执行、批准等点击 **0 次**。未创建新任务、Goal、分支、worktree 或 PR。
+
+**发现与复用/写入归属：** 继续复用已安装 `baidu.search.top3@1.1.1`、原精确批准 `https://www.baidu.com/` / `{"query":"OpenDesk Browser","limit":3}`，未创作或重装脚本、未扩为任意人物参数。`projects/webflow/trusted/CurrentTask.tsx` 是固定编译的可信视图，业务组件及专属测试归本项目；原 `chatgpt-fixed-bridge-host.js` 只投影既有运行/持久结果/资源释放/聊天交付，沿原协议对精确 document 派发侧栏操作，原 `tool-shell.js` 仅固定接线。沙箱及 JSON 未获得控制器、chrome.* 或动态可信代码。原页面监听/解析/发送见证/交付与草稿围栏保留；手动、一次批准、五分钟批准、查看执行页、取消均复用原请求动作。控制必须来自真实可信点击，原 tab/document/url/window/request 不匹配即拒绝；UNKNOWN 不生成新请求或补跑。新候选拒绝前清除上次结果，当前投影不会把其他 request 的结果接到新请求上。
+
+**实际失败与最小修复：** 首个富格式生成提示词在官网编辑器把网址变成富链接，发送前读回发现换行，未发送该份变形草稿。网址标准转义后，候选 `wf-a1c9e10b-6822-4343-b14c-ba8d3a10817b` 已真实发送并取得合法五字段完整回复，但官网把用户消息中的 Markdown 围栏渲染掉，原精确发送见证拒绝，未启动 Task。这不是 Host 执行失败，也没有放宽见证或重用该候选。生成器最终输出单段文字加精确 JSON，网址采用 `\u002f`、参数反引号采用 `\u0060`；解码后的 Task/目标/参数不变，输入不含代码围栏，模型回复仍必须是唯一 `opendesk-task` 完整五字段代码块。新提示词经原生 AX 写入并逐字读回一致后才发送。
+
+**本次同一开发候选的真实核心结果：**
+
+| 阶段 | 本次证据与结果 |
+| --- | --- |
+| 实际发送与协议 | 新 candidate `wf-8a241436-4ea3-40ee-b6b2-6275e76cca3b`；实际新增用户消息与生成指令一致；随后唯一完整助手代码块与原五字段逐项相同 |
+| 原固定脚本 | request `21e1ce7d-591c-4c9a-a18a-db253e0d2562`；Run `594b0d98-c05b-427b-bc5e-067699d80caf`；Result `08be9873-9fa5-4f44-83d7-7929b108abf6`；saved `task:baidu.search.top3:1.1.1` / r1 / source SHA `28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8` |
+| 真实网页业务 | 自动打开百度、原 Controller ISOLATED DOM 填词并单次搜索；独立 AppleScript 只读 DOM 在真实搜索页捕获 3 条，标题与 slot `1/2/5` 和同次脚本结果完全一致；不是只凭 completed |
+| 持久结果与释放 | 原 Host 的既有 Controller snapshot/Codec 校验同一 Run/Result 后，可信“当前任务”分别显示 completed、持久结果已核实、released；原 trace 含 input before/started/returned、click started/returned、navigation observed、results read |
+| 原聊天交付 | 同一原对话新增结果消息恰好 1 条，request/Run/Result、revision/sourceHash 与侧栏相同，完整 data 逐字段等于侧栏结果；官网已完成后续回复；未扩为长结果/AI 续答正式验收 |
+| 可见侧栏 | “当前任务”显示同次结果和明确状态；切到调试后从“扩展”重开仍显示该次完成回执；最终停留 Web Flow，自动开关已恢复关闭、原批准保留、测试输入为空，原项目页 173 字符草稿仍在 |
+
+本次三条标题为 `OpenDesk | OpenDesk`、`openDesk - OpenProject brings open source project management to openDesk`、`OpenProject 13.1: Share work packages, dynamic meetings and much more`。原始输出时间为 `2026-11-02T16:17:03.804Z`（北京时间 11 月 3 日 00:17），证据目录沿用本次任务开始日期。
+
+**验证与运行环境：** 原 Host/授权负例、可信组件、页面取消/交付围栏和新增侧栏 document/request 控制检查共 52 项相关检查通过；提示词最终改成单段后单独重跑其 15 项组件检查通过。固定来源精确 blob 及禁止进入 SW/其他宿主/Worker 的负向检查通过。Linkedom 的 select.value 仅 getter 导致的新增夹具失败已补真实反射，不改产品迁就夹具。旧取消测试的异步挂起由新增回调意外返回整个执行 Promise 引起，修回原“提交后立即返回”，24 项原生命周期检查通过。未跑根 npm test、完整矩阵或评分。
+
+日常仍为 Developer 持续开发、同一扩展 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`、原 `dist/development`、43119/43120。新增可信来源/提示词字节要求固定来源 pin 同步，经本任务接管的原 writer 顺序重启加载，始终只有一个 writer；最终 PID `94203`。真实调试页显示“开发服务已连接”，完整 revision `243ae9d3b96cfca9df566502f02a482a9cb7e61e3de7597225bfbe6dab9689a5`，不是仅凭 RUNNING。正式 v0.3.5 JSON/source 文件未变，保留原 SHA `c64b7e7e4a968078af581dce05730e5845e4dfab4de084162c5262f405b36e19`，没有无意义重打包。Cookie/ScrapyJS/云控、Cookie pin 与预存 12.10 MCP 内容保留，不混入本次提交。
+
+**证据：** `artifacts/webflow-auto-20261102/core-migration-01a19ce9/core-proof.json`、`core-prompt.txt`、`core-filled.json`、`core-protocol.json`、`visible-baidu.json`、`sidebar-result.json`、`sidebar-identity.json`、`chat-delivery.json`、`core-final-sidebar.ax.txt`、`reopened-result.ax.txt`、`final-visible.ax.txt`、`dev-connected-open.ax.txt`、`final-chat.json`、`dev-core.log` 及定向检查日志。仅一张图片用于定位最初被滚动容器裁切的按钮；主验证为 AX 及只读 DOM，原生操作后均回读，不将点击 ACK 当成功。
+
+**当前完成边界：** 当前核心自动链 `CORE_AUTO_E2E=PASS`。新增侧栏手动/一次批准/停止有源码和 Node 行为证据，单独真实 Native 测试仍 `NOT_TESTED`；旧网页浮层删除按用户最新指示延期。跨对话、多步骤 B、持久队列、MCP 产品、完整长结果/AI 续答、production、宽度缩放/压力、完整矩阵和评分仍不属于当前阶段。没有借此宣称整个长期产品已完成。

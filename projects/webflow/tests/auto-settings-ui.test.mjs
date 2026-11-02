@@ -226,15 +226,17 @@ test('approved task generates a fresh strict five-field ChatGPT instruction with
  const field=()=>f.find('webflow-auto-grants').querySelector('textarea');
  const prompt=field().value;
  assert.ok(field().hasAttribute('readOnly')||field().readOnly===true,field().outerHTML);
- assert.equal(prompt.split('```').length,3,'parameter text cannot close the protocol fence');
- const intent=validateWebFlowTaskIntent(prompt.split('```opendesk-task\n')[1].split('\n```')[0]);
+ assert.equal(prompt.includes('```'),false,'the sent instruction has no Markdown fences that the user-message renderer removes');
+ assert.equal(prompt.includes('\n'),false,'the witnessed input is one plain paragraph');
+ assert.equal(prompt.includes('https://'),false,'JSON URL escapes prevent the website composer from creating rich links');
+ const intent=validateWebFlowTaskIntent(prompt.slice(prompt.indexOf('{')));
  assert.deepEqual(Object.keys(intent).sort(),['args','candidateId','protocol','targetUrl','taskId']);
  assert.equal(intent.protocol,'webflow.task.intent.v1');
  assert.equal(intent.taskId,scope.taskId);assert.equal(intent.targetUrl,scope.targetUrl);
  assert.deepEqual(intent.args,approvedScope.args);
  assert.match(f.find('webflow-auto-grants').textContent,/总开关已关闭/);
  await clickGenerate();
- const next=JSON.parse(field().value.split('```opendesk-task\n')[1].split('\n```')[0]);
+ const next=JSON.parse(field().value.slice(field().value.indexOf('{')));
  assert.notEqual(next.candidateId,intent.candidateId);
  assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'generation cannot prepare, approve, enable or start');
  assert.equal(f.document.querySelector('script'),null);
@@ -372,4 +374,29 @@ test('installed Web Flow exposes one real slider; other tools, previews and disa
  }
  await f.setDisplay({...display,hidden:true});assert.equal(slider(),null);
  await f.setDisplay(display);assert.equal(slider().checked,true);
+});
+
+test('trusted sidebar shows same-run execution, persistence, release and chat delivery separately; query never runs a task',async t=>{
+ const host=controller(),calls=[];
+ const view={source:{tabId:9,documentId:'doc',url:'https://chatgpt.com/c/sidebar-test-12345678'},
+  session:{url:'https://chatgpt.com/c/sidebar-test-12345678',status:'脚本已完成',requestId:'request-one',runId:'run-one',resultId:'result-one',
+   actions:{run:true,cancel:true},fields:{task:'search',query:'OpenDesk',target:'https://search.example/',args:'{}'},tasks:[]},
+  receipt:{execution:'completed',persistence:'verified',release:'released',delivery:'unknown',value:{status:'success',count:3}}};
+ host.api.readBridgeState=async()=>{calls.push(['read']);return structuredClone(view);};
+ host.api.controlBridge=async(value,event)=>{calls.push(['control',value,event]);return structuredClone(view);};
+ const f=await fixture(t,{entry:true,host});
+ const panel=f.document.querySelector('[aria-label="Web Flow 当前任务"]');assert.ok(panel);
+ assert.match(panel.textContent,/持久结果已核实同一 Run \/ Result/);assert.match(panel.textContent,/资源释放released/);
+ assert.match(panel.textContent,/原聊天交付unknown/);assert.ok(panel.textContent.includes('"count": 3'));
+ const click=async(label,trusted)=>{
+  const button=[...panel.querySelectorAll('button')].find(node=>node.textContent===label);assert.ok(button);
+  const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:trusted});
+  await React.act(async()=>button.dispatchEvent(event));return event;
+ };
+ await click('查询原请求',true);assert.equal(calls.filter(([kind])=>kind==='control').length,0);
+ await click('执行本次任务',false);assert.equal(calls.filter(([kind])=>kind==='control').length,0);
+ const event=await click('执行本次任务',true),command=calls.find(([kind])=>kind==='control');
+ assert.equal(command[1].requestId,'request-one');assert.deepEqual(command[1].source,view.source);assert.equal(command[2],event);
+ view.session.requestId='request-two';view.session.runId=null;view.session.resultId=null;view.receipt=null;
+ await click('查询原请求',true);assert.equal(panel.textContent.includes('"count": 3'),false);
 });

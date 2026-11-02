@@ -263,6 +263,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   moreBar.append(prepareButton,autoButton,adoptButton);more.append(moreSummary,moreBar);
   panel.append(heading,status,selection,bar,viewStatus,result,fields,more,hint,details);shadow.append(style,panel);
   (doc.body||doc.documentElement).append(root);
+  const actions=new Map();
+  const control=(name,button,handler)=>{
+    actions.set(name,{button,handler});
+    button.addEventListener('click',event=>{if(event.isTrusted&&!button.disabled)return handler();});
+  };
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
   let lifecycleEpoch=0;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
@@ -428,8 +433,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         true);
     }finally{owner.executionFinished=true;pending=false;update();}
   };
-  viewButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||viewButton.disabled)return;
+  control('view',viewButton,async()=>{
+    if(viewButton.disabled)return;
     const owner=state;owner.viewPending=true;update();
     viewStatus.textContent='正在定位本次运行的页面…';viewStatus.classList.toggle('error',false);
     try{
@@ -471,6 +476,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
           throw fail('E_BRIDGE_APPROVAL','不是预批准后产生的新完整任务');
         grant.bindingAttempted=true; // A lost bind ACK is never automatically retried.
       }
+      if(!grant){state=null;clearReceipt();selection.textContent='待核验候选：'+intent.candidateId+'\n脚本：'+intent.taskId+'\n目标：'+intent.targetUrl+'\n参数：'+JSON.stringify(intent.args);}
       const prepared=await send({kind:persistentAuto?'auto-task':grant?'bind-preapproved-task':'adopt-task',persistentAuto,
         ...(grant?{requestId:grant.requestId}:{}),candidateText:page.blocks[0],turnKey:page.turnKey,answerKey:page.answerKey});
       if(closed||epoch!==lifecycleEpoch)return;
@@ -516,12 +522,12 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     finally{pending=false;preparing=false;if(!closed)update();}
     if(!closed&&epoch===lifecycleEpoch&&state?.mode==='auto'&&(state.persistentAuto||grant&&state!==grant))void execute('auto');
   };
-  adoptButton.addEventListener('click',event=>{
-    if(!event.isTrusted||adoptButton.disabled)return;
+  control('adopt',adoptButton,()=>{
+    if(adoptButton.disabled)return;
     return adoptLatest();
   });
-  preapproveButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||preapproveButton.disabled||pending||cancelPending||deliveryPending)return;
+  control('preapprove',preapproveButton,async()=>{
+    if(preapproveButton.disabled||pending||cancelPending||deliveryPending)return;
     pending=true;preparing=true;update();
     try{
       validatePage();const url=win.location.href,selected=selectedTask(),choice=taskSelect.value;
@@ -553,8 +559,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch(error){note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message+'；不会自动重试。',true);}
     finally{pending=false;preparing=false;update();}
   });
-  prepareButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||pending||cancelPending||deliveryPending)return;
+  control('prepare',prepareButton,async()=>{
+    if(pending||cancelPending||deliveryPending)return;
     pending=true;preparing=true;update();
     try {
       validatePage();
@@ -607,8 +613,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch(error){note((error.code||'E_BRIDGE')+'：'+error.message,true);}
     finally{pending=false;preparing=false;update();}
   });
-  autoButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||pending||cancelPending||deliveryPending||!state||state.cancelled||state.mode||state.attempted)return;
+  control('approve-once',autoButton,async()=>{
+    if(pending||cancelPending||deliveryPending||!state||state.cancelled||state.mode||state.attempted)return;
     const owner=state;
     pending=true;update();
     try{
@@ -631,8 +637,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch(error){if(owner.cancelled)return;note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message,true);}
     finally{pending=false;update();}
   });
-  cancelButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||preparing||!state||state.cancelled||state.sendSubmitted||state.settled)return;
+  control('cancel',cancelButton,async()=>{
+    if(preparing||!state||state.cancelled||state.sendSubmitted||state.settled)return;
     const owner=state,attempted=owner.attempted;
     // Fence synchronously, before either transport can yield. Keep the original
     // operation pending until its own promise settles; cancellation is not Run release.
@@ -659,9 +665,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
     }finally{cancelPending=false;update();}
   });
-  runButton.addEventListener('click',event=>{
-    if(event.isTrusted)void execute('manual');
-  });
+  control('run',runButton,()=>{void execute('manual');});
   let autoPollBusy=false,deferredDiscovery=null;
   const poll=win.setInterval(()=>{
     if(closed)return;
@@ -810,13 +814,49 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }finally{deliveryPending=false;update();}
   };
   const onMessage=(message,sender,reply)=>{
-    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress'].includes(message.kind))return false;
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress','sidebar-read','sidebar-control'].includes(message.kind))return false;
     if(sender?.id!==api.runtime.id||sender?.tab)return false;
     try{
       const url=new URL(sender.url),origin=new URL(api.runtime.getURL('/')).origin;
       if(url.origin!==origin||url.pathname!=='/sidepanel.html'||
         !url.searchParams.has('hostInstanceId')||['scheduledRunner','toolId','previewId'].some(key=>url.searchParams.has(key)))return false;
     }catch{return false;}
+    if(message.kind==='sidebar-read'||message.kind==='sidebar-control'){
+      const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
+        selection:selection.textContent,viewStatus:viewStatus.textContent,resultPreview:result.hidden?'':result.textContent,
+        requestId:state?.requestId??null,runId:state?.runId??null,resultId:state?.resultId??null,
+        candidateId:state?.candidate?.candidateId??null,pending:pending||cancelPending||deliveryPending,
+        actions:Object.fromEntries([...actions].map(([name,{button}])=>[name,!button.disabled])),
+        fields:{task:taskSelect.value,query:queryInput.value,target:targetInput.value,args:argsInput.value,
+          disabled:taskSelect.disabled,queryVisible:!queryField.hidden,targetVisible:!targetField.hidden},
+        tasks:[...taskSelect.children].map(option=>({value:option.value,label:option.textContent}))});
+      if(message.sourceUrl!==win.location.href){reply({ok:false,error:{code:'E_CHAT_TARGET',message:'对话已切换，请重新读取'}});return false;}
+      if(message.kind==='sidebar-read'){reply({ok:true,data:projection()});return false;}
+      // Fixed Side Panel native gesture was checked by the host before this
+      // document-targeted command. No webpage event or sandbox RPC can enter.
+      if(message.requestId!==(state?.requestId??null)){
+        reply({ok:false,error:{code:'E_BRIDGE_CONTEXT',message:'当前请求已改变，请重新读取'}});return false;
+      }
+      const perform=async()=>{
+        if(message.action==='fields'){
+          if(taskSelect.disabled)throw fail('E_BRIDGE_BUSY','当前步骤不可编辑');
+          const fields=message.fields;
+          if(!fields||typeof fields.task!=='string'||![...taskSelect.children].some(option=>option.value===fields.task)||
+            typeof fields.query!=='string'||fields.query.length>120||typeof fields.target!=='string'||fields.target.length>2048||
+            typeof fields.args!=='string'||fields.args.length>2048)throw fail('E_BRIDGE_SCHEMA','输入格式无效');
+          const changed=taskSelect.value!==fields.task;taskSelect.value=fields.task;
+          if(changed)await changeTask();
+          queryInput.value=fields.query;targetInput.value=fields.target;argsInput.value=fields.args;update();
+        }else{
+          const action=actions.get(message.action);
+          if(!action||action.button.disabled)throw fail('E_BRIDGE_CONTEXT','该操作当前不可用，请重新读取');
+          await action.handler();
+        }
+        return projection();
+      };
+      void perform().then(data=>reply({ok:true,data}),error=>reply({ok:false,error:{code:error.code||'E_BRIDGE_FAILURE',message:error.message}}));
+      return true;
+    }
     if(message.kind==='progress'){
       const owner=state;
       if(!owner||owner.cancelled||!owner.attempted||owner.settled||owner.deliveryStarted||
@@ -865,7 +905,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     doc.removeEventListener('click',onComposerSubmission,true);
     doc.removeEventListener('keydown',onComposerSubmission,true);root.remove();};
   win.addEventListener('pagehide',onPageHide,{once:true});
-  taskSelect.addEventListener('change',async()=>{
+  const changeTask=async()=>{
     if(pending||cancelPending||deliveryPending||loadingTasks)return;
     if(taskSelect.value===INSTALLED_CHOICE){
       loadingTasks=true;update();
@@ -901,7 +941,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
           key+' ('+spec.type+(task.paramsSchema.required?.includes(key)?'，必填':'')+')').join('、')||'无');
     }
     update();
-  });
+  };
+  taskSelect.addEventListener('change',changeTask);
   update();
   return {dispose};
 }

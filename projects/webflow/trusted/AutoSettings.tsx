@@ -2,6 +2,7 @@ import * as React from 'react';
 import {Button} from '../../../src/ui/react/components/ui/button.tsx';
 import {Switch} from '../../../src/ui/react/components/ui/switch.tsx';
 import {WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
+import {WebflowCurrentTask} from './CurrentTask.tsx';
 
 type Installation=Record<string,unknown>;
 type ParamsSchema={type?:string;default?:unknown;const?:unknown;enum?:unknown[];
@@ -16,6 +17,8 @@ export type WebflowAutoSnapshot={enabled:boolean;epoch:number;
  grants:{taskId:string;grantId:string;state:string;approvedAt:number|string;scope:WebflowAutoScope}[];
  tasks:AutoTask[];unavailable?:{taskId:string;reason:string}[]|string|boolean};
 export type WebflowAutoController={
+ readBridgeState?:()=>Promise<unknown>;
+ controlBridge?:(value:unknown,nativeEvent:Event)=>Promise<unknown>;
  readAutoSettings:()=>Promise<WebflowAutoSnapshot>;
  prepareAutoGrant:(scope:WebflowAutoScope)=>Promise<WebflowAutoReview>;
  approveAutoTask:(review:WebflowAutoReview,nativeEvent:Event)=>Promise<WebflowAutoSnapshot>;
@@ -80,10 +83,11 @@ function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:bool
   try{
    const intent={protocol:WEBFLOW_TASK_INTENT_PROTOCOL,candidateId:'wf-'+globalThis.crypto.randomUUID(),
     taskId:scope.taskId,targetUrl:scope.targetUrl,args:scope.args};
-   // Encode a code block as data: a user parameter containing backticks must
-   // not close the block in the instruction given to ChatGPT.
-   const json=JSON.stringify(intent,null,2).replace(/`/g,'\\u0060');
-   setPrompt('请仅回复下面这一个 opendesk-task 代码块，完整保留五个字段及其值，不添加说明、引用或其他代码块：\n\n```opendesk-task\n'+json+'\n```');
+   // One plain paragraph survives the official user-message renderer exactly.
+   // Fences in the input are rendered away and cannot witness the same send.
+   // JSON escapes prevent URL autolinks and parameter Markdown in the composer.
+   const json=JSON.stringify(intent).replaceAll('/',String.raw`\u002f`).replace(/`/g,'\\u0060');
+   setPrompt('请仅回复一个语言标记为 opendesk-task 的 JSON 代码块，完整保留下面 JSON 的五个字段及其值，不添加说明、引用、Markdown 链接或其他代码块。将以下 JSON 原样放入该代码块：'+json);
   }catch{setPrompt('');setNotice('本次指令未生成，请重新打开应用后重试。');}
  };
  const copy=async()=>{
@@ -254,12 +258,13 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    disabled={!webflowAuto?.setAutoEnabled} onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>}
   {notice&&<p role="status" className="od-note">{notice}</p>}
   {error&&<p id="webflow-auto-error" role="alert" className="od-field-error">{error}</p>}
+  {compact&&webflowAuto?.readBridgeState&&webflowAuto?.controlBridge&&<WebflowCurrentTask controller={webflowAuto}/>}
   <details className="od-disclosure od-disclosure--flat">
    <summary>如何触发与查看结果</summary>
    <div className="od-stack">
     <p className="od-field-help">在“任务范围与授权”中核对已有批准，生成并复制本次指令；开启上方滑块后，在 ChatGPT 对话中粘贴并发送。只有随后完整助手回复里的固定协议会触发。</p>
-    <p className="od-field-help">本次进度、结果或具体失败显示在触发任务的原聊天 OpenDesk 任务卡；持久结果回到同一聊天。沙箱“记录”仅显示手动运行，空记录不代表自动任务未执行。</p>
-    <p className="od-field-help">没有触发时先核对开关、已批准的精确地址与参数，以及原聊天任务卡提示。结果未知时查询原请求，不重新发送同一候选或切换入口补跑。关闭自动运行只阻止新任务；已开始的任务请在原聊天任务卡停止。</p>
+    <p className="od-field-help">本次进度、结果或具体失败显示在侧栏“当前任务”；持久结果仍回到触发任务的原聊天。沙箱“记录”仅显示手动运行，空记录不代表自动任务未执行。</p>
+    <p className="od-field-help">没有触发时先核对开关、已批准的精确地址与参数，以及“当前任务”提示。结果未知时查询原请求，不重新发送同一候选或切换入口补跑。关闭自动运行只阻止新任务；已开始的任务在“当前任务”停止。</p>
    </div>
   </details>
   <details className="od-disclosure od-disclosure--flat" open={compact?undefined:true}>

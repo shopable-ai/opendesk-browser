@@ -160,6 +160,8 @@ const nativeConnection=Object.freeze({
 });
 // Create the complete interface before controllers attach their real hosts.
 const webflowAuto=Object.freeze({
+  readBridgeState:()=>fixedPageChatBridge.readBridgeState(),
+  controlBridge:(value,event)=>fixedPageChatBridge.controlBridge(value,event),
   readAutoSettings:()=>fixedPageChatBridge.readAutoSettings(),
   prepareAutoGrant:selection=>fixedPageChatBridge.prepareAutoGrant(selection),
   approveAutoTask:(review,event)=>fixedPageChatBridge.approveAutoTask(review,event),

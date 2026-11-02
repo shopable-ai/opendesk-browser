@@ -21,7 +21,9 @@ function harness(){
   let observed,snapshot;
   const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
   const ledger=createChatGPTBridgeTriggerLedger({storage,generateId:()=>`66666666-6666-4666-8666-${String(++counter).padStart(12,'0')}`});
-  const events={starts:[],deliveries:[],gates:[]};
+  const events={starts:[],deliveries:[],gates:[],controls:[]};
+  let projectedRequest=null;
+  const session=()=>({url:source.url,requestId:projectedRequest,status:'current',actions:{cancel:true},fields:{},tasks:[]});
   const sender={id:'extension',frameId:0,url:source.url,documentId:source.documentId,
     tab:{id:source.tabId,url:source.url,windowId:2,incognito:false}};
   const api={runtime:{id:'extension',async sendMessage(msg){
@@ -33,9 +35,11 @@ function harness(){
         msg.kind==='revoke-request'?ledger.revokeRequest(msg):ledger.assertConsumed(msg));
       await afterGate(msg);return {ok:true,data};
     }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
-  }},tabs:{get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
+  }},tabs:{query:async()=>[{...sender.tab}],get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
     assert.equal(tab,source.tabId);assert.equal(options.documentId,source.documentId);
-    if(msg.kind==='progress')return {};
+    if(msg.kind==='sidebar-read')return {ok:true,data:session()};
+    if(msg.kind==='sidebar-control'){events.controls.push(msg);return {ok:true,data:session()};}
+    if(msg.kind==='progress'){projectedRequest=msg.requestId;return {};}
     events.deliveries.push(msg);await bridge.checkDelivery({...msg,kind:'check-delivery'},sender);
     if(deliveryUnknown)throw Error('send ACK lost');
     return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};
@@ -70,7 +74,7 @@ function harness(){
       requestId:admitted.requestId,taskId:admitted.taskId,args:admitted.args,targetUrl:admitted.targetUrl,installation:admitted.installation};
     return bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,adoptedRequest,source,sourceUrl:source.url},sender);
   };
-  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,
+  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,projectRequest:value=>{projectedRequest=value;},
     denyPermission:()=>{permission=false;},unverify:()=>{verified=false;},
     afterGate:fn=>{afterGate=fn;},loseSend:()=>{deliveryUnknown=true;},unknownRun:()=>{runUnknown=true;},
     async approve(){const review=await bridge.prepareAutoGrant(scope);await bridge.approveAutoTask(review,{isTrusted:true});
@@ -205,4 +209,32 @@ test('recovered native identity stays pinned if context is replaced during the n
  let query=0;
  const h=nativePanelHarness(()=>[++query===1?nativePanel:{...nativePanel,documentId:'replacement'}]);
  assert.equal((await h.send()).ok,false);
+});
+
+// The new trusted projection cannot make a page/sandbox click into approval.
+test('sidebar controls require a native gesture and the exact observed source; polling never executes',async()=>{
+ const h=harness();
+ const view=await h.bridge.readBridgeState();
+ assert.deepEqual(view.source,source);assert.equal(h.events.starts.length,0);
+ const value={source,requestId:null,action:'cancel'};
+ for(const event of [undefined,{isTrusted:false}])await assert.rejects(h.bridge.controlBridge(value,event),{code:'E_WEBFLOW_GESTURE'});
+ for(const patch of [{tabId:10},{documentId:'other'},{url:'https://chatgpt.com/c/other-session'}])
+  await assert.rejects(h.bridge.controlBridge({...value,source:{...source,...patch}},{isTrusted:true}),{code:'E_BRIDGE_CONTEXT'});
+ assert.equal(h.events.controls.length,0);
+ await h.bridge.controlBridge(value,{isTrusted:true});assert.equal(h.events.controls.length,1);
+ assert.equal(h.events.controls[0].kind,'sidebar-control');assert.equal(h.events.starts.length,0);
+ h.unverify();await assert.rejects(h.bridge.readBridgeState(),{code:'E_WEBFLOW_GESTURE'});
+});
+test('sidebar receipt separates durable result, release and delivery and never attaches old results to a new request',async()=>{
+ for(const unknown of [false,true]){
+  const h=harness();await h.approve();if(unknown)h.loseSend();
+  const run=h.run(h.next('wf-sidebar-result-'+unknown));
+  if(unknown)await assert.rejects(run);else await run;
+  const view=await h.bridge.readBridgeState();
+  assert.equal(view.receipt.execution,'completed');assert.equal(view.receipt.persistence,'verified');
+  assert.equal(view.receipt.release,'released');assert.equal(view.receipt.delivery,unknown?'unknown':'confirmed');
+  assert.equal(view.receipt.value.count,1);assert.ok(view.receipt.runId);assert.ok(view.receipt.resultId);
+  const starts=h.events.starts.length;await h.bridge.readBridgeState();assert.equal(h.events.starts.length,starts);
+  h.projectRequest('different-request');assert.equal((await h.bridge.readBridgeState()).receipt,null);
+ }
 });
