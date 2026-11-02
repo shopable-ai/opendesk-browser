@@ -1,4 +1,6 @@
-import {chatGPTConversationId} from './workspace-chatgpt.js';
+import {chatGPTConversationId,assertWebFlowReplyCandidate} from './workspace-chatgpt.js';
+import {resolveToolSender} from '../environment.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
   FIXED_PAGE_TASK_ID,validateChatGPTTaskIntent,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
 import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,assertAutoGrant}
@@ -239,9 +241,14 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
           throw fail('E_BRIDGE_CONTEXT','实际 Controller 提交与持续批准范围不同');
         await checkAuto(row);
         row.controllerSubmitted=true;await save(rows);await checkAuto(row);
+        const finalAutoEpoch=autoDenialRevision;
+        const finalCheck=await verify(row);
+        if(autoDenied||finalAutoEpoch!==autoDenialRevision)
+          throw fail('E_WEBFLOW_AUTO_DENIED','最终回答核验期间持续批准已撤销');
         if(revokeAll||revokedTabs.has(row.source.tabId)||
           revokedRequests.some(item=>item.requestId===request.requestId&&sameSource(row.source,item.source)))
           throw fail('E_BRIDGE_REVOKED','最终提交前原文档或本次请求已撤销');
+        finalCheck?.();
         return submit();
       });
     },
@@ -475,26 +482,43 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
       throw fail('E_BRIDGE_SOURCE','浏览器文档地址与请求来源不一致');
   };
   const sidepanelSender=sender=>{
-    try{
-      const url=new URL(sender.url),root=new URL(api.runtime.getURL('/'));
-      return sender.id===api.runtime.id&&!sender.tab&&url.origin===root.origin&&
-        url.pathname==='/sidepanel.html'&&url.searchParams.has('hostInstanceId')&&
-        !url.searchParams.has('scheduledRunner')&&!url.searchParams.has('toolId')&&
-        !url.searchParams.has('previewId');
-    }catch{return false;}
+    const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
+    return sender?.id===api.runtime.id&&!sender.tab&&
+      (sender.frameId===undefined||sender.frameId===0)&&
+      (!sender.documentLifecycle||sender.documentLifecycle==='active')&&
+      !!route?.hostInstanceId&&!route.hasLocator;
   };
   const actualSidepanel=async sender=>{
-    if(!sidepanelSender(sender)||!sender.documentId||!api.runtime.getContexts)
+    if(!sidepanelSender(sender)||!api.runtime.getContexts)
       throw fail('E_BRIDGE_SENDER','自动授权仅允许真实可信 Side Panel');
-    const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentIds:[sender.documentId]});
-    if(!contexts.some(context=>context.contextType==='SIDE_PANEL'&&context.documentId===sender.documentId&&
-      context.documentUrl===sender.url))throw fail('E_BRIDGE_SENDER','不是当前真实 Side Panel 文档');
+    let resolved;
+    try{resolved=Object.freeze({...await resolveToolSender(api,sender)});}
+    catch{throw fail('E_BRIDGE_SENDER','无法唯一核对真实 Side Panel 文档');}
+    const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentIds:[resolved.documentId]});
+    if(contexts.length!==1||contexts[0].contextType!=='SIDE_PANEL'||
+      contexts[0].documentId!==resolved.documentId||contexts[0].documentUrl!==resolved.url||
+      contexts[0].frameId!==0||contexts[0].incognito)
+      throw fail('E_BRIDGE_SENDER','不是当前唯一真实 Side Panel 文档');
+    return resolved;
   };
-  // Injected only into the original authenticated Foundation route, not a new
-  // message channel or Runner. Unrelated/manual request IDs retain their path.
-  const withControllerAdmission=(request,sender,submit)=>ledger.withControllerAdmission(request,submit,async row=>{
-    await actualSidepanel(sender);await assertSource(row.source);
-  });
+  // Reuse the original submission guard. The immutable durable candidate is
+  // read again after all guard writes, so a changed reply cannot spend a grant.
+  const withControllerAdmission=(request,sender,submit)=>{
+    const permissions=permissionEpoch;
+    let panel;
+    return ledger.withControllerAdmission(request,submit,async row=>{
+      const tabId=row.source.tabId;
+      if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
+      const epoch=sourceEpochs.get(tabId);
+      panel=await actualSidepanel(panel||sender);
+      await assertSource(row.source);
+      await assertWebFlowReplyCandidate(api,row.source,row.candidate);
+      return ()=>{
+        if(permissions!==permissionEpoch||epoch!==sourceEpochs.get(tabId))
+          throw fail('E_BRIDGE_REVOKED','最终回答核验期间来源或权限已改变');
+      };
+    });
+  };
   let permissionEpoch=0;
   const sourceEpochs=new Map();
   const revokeTab=tabId=>{
@@ -508,7 +532,7 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
     const receivedAutoEpoch=ledger.captureAutoDenialEpoch();
     const process=async()=>{
       if(['auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit'].includes(message.kind)){
-        await actualSidepanel(sender);
+        const panel=await actualSidepanel(sender);
         if(message.kind==='auto-settings')return ledger.readAutoSettings();
         if(message.kind==='auto-enable')return ledger.setAutoEnabled(message.enabled,{expectedDenialRevision:receivedAutoEpoch});
         if(message.kind==='auto-grant')return ledger.approveAuto(message.scope,{expectedDenialRevision:receivedAutoEpoch});
@@ -519,6 +543,7 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
         await assertSource(message.source);
         const data=await ledger.admitAuto(message);
         await assertSource(message.source);
+        await actualSidepanel(panel);
         if(epoch!==sourceEpochs.get(tabId)||permissions!==permissionEpoch)
           throw fail('E_BRIDGE_REVOKED','自动准入期间来源或权限已改变');
         return data;

@@ -8,6 +8,33 @@ const message=(id,text=id)=>({textContent:text,getAttribute:key=>key==='data-mes
   compareDocumentPosition:()=>4,isConnected:true});
 const snapshot=()=>({ok:true,route:'c/discovery-test-12345678',users:[message('u0')],
   assistants:[message('a0')],idle:true,busy:false,answerComplete:true,draft:'',rich:false});
+const witness=(probe,snap,text='u1')=>{
+  snap.draft=text;assert.equal(probe.witnessSubmission(snap),true);snap.draft='';
+};
+test('P1 discovery ignores a complete historical batch appended after a complete first batch',()=>{
+  const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+  snap.users.push(message('history-u1'));snap.assistants.push(message('history-a1'));
+  assert.equal(probe.observe(snap),null);
+  assert.equal(probe.observe(snap),null);
+});
+test('P1 submission witnesses expire before a user appears and mismatches cannot be revived',()=>{
+  for(const change of ['expired','mismatched']){
+    let now=0;const probe=createChatGPTTaskDiscovery({now:()=>now}),snap=snapshot();probe.reset(snap);
+    witness(probe,snap,'expected prompt');
+    if(change==='expired')now=60000;
+    snap.users.push(message('u1',change==='mismatched'?'different prompt':'expected prompt'));
+    snap.assistants.push(message('a1'));
+    assert.equal(probe.observe(snap),null,change);
+    snap.users.at(-1).textContent='expected prompt';assert.equal(probe.observe(snap),null,change);
+    witness(probe,snap,'new prompt');snap.users.push(message('u2','new prompt'));
+    snap.assistants.push(message('a2'));assert.equal(probe.observe(snap)?.user,snap.users.at(-1));
+  }
+});
+test('P1 discovery rejects a reused historical user identity even with matching submitted text',()=>{
+  const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);witness(probe,snap,'new prompt');
+  snap.users.push(message('u0','new prompt'));snap.assistants.push(message('a1'));
+  assert.equal(probe.observe(snap),null);assert.equal(probe.observe(snap),null);
+});
 test('P0 discovery ignores initial complete replies and replies already streaming at attachment',()=>{
   for(const streaming of [false,true]){
     const probe=createChatGPTTaskDiscovery(),snap=snapshot();
@@ -17,16 +44,19 @@ test('P0 discovery ignores initial complete replies and replies already streamin
   }
 });
 test('P0 discovery waits across send/stream gaps and emits one new complete answer',()=>{
-  const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+  let now=0;const probe=createChatGPTTaskDiscovery({now:()=>now}),snap=snapshot();probe.reset(snap);
+  witness(probe,snap);assert.equal(probe.observe(snap),null);
   snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
   snap.assistants.push(message('a1','partial'));snap.busy=true;snap.idle=false;snap.answerComplete=false;
   assert.equal(probe.observe(snap),null);
+  now=60000;assert.equal(probe.observe(snap),null); // Only waiting for the user node expires, not streaming.
   snap.assistants.at(-1).textContent='complete';snap.busy=false;snap.idle=true;snap.answerComplete=true;
   assert.equal(probe.observe(snap).answer,snap.assistants.at(-1));
   assert.equal(probe.observe(snap),null);
 });
 test('discovery refuses multiple new assistant replies for one new user turn',()=>{
   const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+  witness(probe,snap);
   snap.users.push(message('u1'));probe.observe(snap);
   snap.assistants.push(message('a1'),message('a2'));
   assert.equal(probe.observe(snap),null);
@@ -45,6 +75,7 @@ test('P0 discovery tolerates lazy hydration of older replies behind an unchanged
   const probe=createChatGPTTaskDiscovery(),snap=snapshot();
   const older=message('older-answer','ChatGPT 说：ChatGPT');
   snap.assistants.unshift(older);probe.reset(snap);
+  witness(probe,snap);
   snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
   older.textContent='Earlier historical answer, now fully hydrated';
   snap.assistants.push(message('a1','new complete answer'));
@@ -55,6 +86,7 @@ test('P0 lazy history still requires the unchanged latest reply anchor',()=>{
   for(const change of ['missing','edited','replaced','reused-answer','duplicate-anchor']){
     const probe=createChatGPTTaskDiscovery(),snap=snapshot();
     snap.assistants.unshift(message('older-answer'));probe.reset(snap);
+    witness(probe,snap);
     snap.users.push(message('u1'));probe.observe(snap);
     if(change==='missing')snap.assistants.pop();
     if(change==='edited')snap.assistants.at(-1).textContent='edited prior reply';
@@ -68,6 +100,7 @@ test('P0 discovery rejects hydrated historical replies reused after the latest a
   for(const remount of [false,true]){
     const probe=createChatGPTTaskDiscovery(),snap=snapshot();
     const older=message('older-answer','placeholder');snap.assistants.unshift(older);probe.reset(snap);
+    witness(probe,snap);
     snap.users.push(message('u1'));probe.observe(snap);
     older.textContent='hydrated historical answer';
     snap.assistants=[snap.assistants[1],remount?message('older-answer',older.textContent):older];
@@ -76,9 +109,11 @@ test('P0 discovery rejects hydrated historical replies reused after the latest a
 });
 test('P0 discovery resets on SPA navigation and will only observe a later new user turn',()=>{
   const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+  witness(probe,snap);
   snap.users.push(message('u1'));probe.observe(snap);
   snap.route='c/another-conversation';snap.assistants.push(message('a1'));
   assert.equal(probe.observe(snap),null);assert.equal(probe.observe(snap),null);
+  witness(probe,snap,'u2');
   snap.users.push(message('u2'));snap.assistants.push(message('a2'));
   assert.equal(probe.observe(snap).user,snap.users.at(-1));
 });
@@ -100,6 +135,7 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
     createElement:element,body:element('body'),
     addEventListener:(type,fn)=>events.set(type,fn),removeEventListener:type=>events.delete(type)};
   snap.editor={ownerDocument:doc};snap.form={};
+  snap.sendButton={disabled:false,getAttribute:()=>null};doc.activeElement=snap.editor;
   const source={tabId:9,documentId:'document-discovery',url:'https://chatgpt.com/c/discovery-test-12345678'};
   const win={location:{href:source.url,origin:'https://chatgpt.com'},
     setInterval(fn){poll=fn;intervals.set(++nextInterval,fn);return nextInterval;},
@@ -149,9 +185,16 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
   const page=initChatGPTFixedBridgePage({api,doc,win,site:{inspect:()=>({...snap})},readPage:identity});
   const buttons=nodes.filter(node=>node.tag==='button');
   const click=async index=>{await buttons[index].listeners.click({isTrusted:true});await flush();};
-  const next=()=>{const turn=++nextTurn;snap.users.push(message('u'+turn));
+  const submit=(text='u'+(nextTurn+1),type='click',overrides={})=>{
+    snap.draft=text;
+    const event={type,isTrusted:true,button:0,key:'Enter',
+      target:type==='click'?snap.sendButton:type==='submit'?snap.form:snap.editor,
+      submitter:snap.sendButton,...overrides};
+    events.get(type)?.(event);snap.draft='';return event;
+  };
+  const next=()=>{const turn=++nextTurn;submit('u'+turn);snap.users.push(message('u'+turn));
     snap.assistants.push(message('a'+turn,JSON.stringify(intent)));poll();};
-  return {snap,sends,nodes,buttons,win,intent,poll:()=>poll(),next,click,page,events,windowEvents,intervals,emitWindow,
+  return {snap,sends,nodes,buttons,win,intent,poll:()=>poll(),next,submit,click,page,events,windowEvents,intervals,emitWindow,
     setNoCandidate:value=>{noCandidate=value;},
     setGrantHook:fn=>{grantHook=fn;},async selectInstalled(){
       const select=nodes.find(node=>node.tag==='select');select.value='__installed__';await select.listeners.change();
@@ -159,6 +202,91 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
       nodes.find(node=>node.tag==='textarea').value=JSON.stringify(intent.args);
     }};
 }
+test('P1 Web Flow never auto-runs a historical batch appended after a complete first batch',async t=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});t.after(()=>h.page.dispose());
+  h.poll();
+  h.snap.users.push(message('history-u1'));
+  h.snap.assistants.push(message('history-a1',JSON.stringify(h.intent)));
+  h.poll();await flush();h.poll();await flush();
+  assert.deepEqual(h.sends,[]);
+});
+for(const type of ['click','keydown','submit'])
+test('P1 Web Flow binds a native '+type+' submission across send and stream gaps exactly once',async t=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});t.after(()=>h.page.dispose());
+  // Native form submission is initiated by a trusted composer Enter/click.
+  // requestSubmit() alone can produce a trusted SubmitEvent, so is not a witness.
+  if(type==='submit')h.submit('new prompt','keydown');
+  h.submit('new prompt',type);h.poll();await flush();assert.deepEqual(h.sends,[]);
+  h.snap.users.push(message('u1','new prompt'));h.poll();await flush();assert.deepEqual(h.sends,[]);
+  h.snap.assistants.push(message('a1','partial'));h.snap.busy=true;h.snap.idle=false;h.snap.answerComplete=false;
+  h.poll();await flush();assert.deepEqual(h.sends,[]);
+  h.snap.assistants.at(-1).textContent=JSON.stringify(h.intent);
+  h.snap.busy=false;h.snap.idle=true;h.snap.answerComplete=true;
+  h.poll();await flush();h.poll();await flush();
+  assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task','execute']);
+  assert.equal(h.sends[1].turnKey,'u1');assert.equal(h.sends[1].answerKey,'a1');
+  h.snap.users.push(message('history-u2'));h.snap.assistants.push(message('history-a2',JSON.stringify(h.intent)));
+  h.poll();await flush();assert.equal(h.sends.length,2);
+});
+test('P1 Web Flow ignores synthetic, unrelated, disabled, composing and mismatched submissions',async()=>{
+  for(const kind of ['synthetic-click','synthetic-keydown','synthetic-submit','uninitiated-submit',
+    'wrong-button','wrong-editor','wrong-form','disabled','readonly','aria-disabled','busy','rich',
+    'empty','shift-enter','ctrl-enter','meta-enter','alt-enter','repeat','composing','prevented','mismatched']){
+    const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});
+    try{
+      let type='click',text='expected prompt',overrides={};
+      if(kind.startsWith('synthetic-')){type=kind.slice(10);overrides.isTrusted=false;}
+      if(kind==='uninitiated-submit')type='submit';
+      if(kind==='wrong-button')overrides.target={};
+      if(kind==='wrong-editor'){type='keydown';overrides.target={};}
+      if(kind==='wrong-form'){type='submit';overrides.target={};}
+      if(kind==='disabled')h.snap.sendButton.disabled=true;
+      if(kind==='readonly')h.snap.editor.readOnly=true;
+      if(kind==='aria-disabled')h.snap.sendButton.getAttribute=()=> 'true';
+      if(kind==='busy'){h.snap.busy=true;h.snap.idle=false;}
+      if(kind==='rich')h.snap.rich=true;
+      if(kind==='empty')text='  ';
+      if(kind.endsWith('-enter')){type='keydown';overrides[kind.split('-')[0]+'Key']=true;}
+      if(kind==='repeat'){type='keydown';overrides.repeat=true;}
+      if(kind==='composing'){type='keydown';overrides.isComposing=true;}
+      if(kind==='prevented')overrides.defaultPrevented=true;
+      h.submit(text,type,overrides);
+      h.snap.users.push(message('history-u1',kind==='mismatched'?'different prompt':text));
+      h.snap.assistants.push(message('history-a1',JSON.stringify(h.intent)));
+      h.snap.busy=false;h.snap.idle=true;h.snap.rich=false;
+      h.poll();await flush();h.poll();await flush();assert.deepEqual(h.sends,[],kind);
+      h.snap.users.at(-1).textContent=text;h.poll();await flush();assert.deepEqual(h.sends,[],kind);
+    }finally{h.page.dispose();}
+  }
+});
+test('P1 a trusted programmatic form submit cannot reuse a consumed composer gesture',async t=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});t.after(()=>h.page.dispose());
+  h.submit('same prompt');h.snap.users.push(message('u1','same prompt'));
+  h.snap.assistants.push(message('a1',JSON.stringify(h.intent)));h.poll();await flush();
+  assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task','execute']);
+  h.submit('same prompt','submit');h.snap.users.push(message('u2','same prompt'));
+  h.snap.assistants.push(message('a2',JSON.stringify({...h.intent,candidateId:'unwitnessed-candidate'})));
+  h.poll();await flush();h.poll();await flush();
+  assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task','execute']);
+});
+test('P1 an existing complete task remains manually adoptable and executable without a send witness',async t=>{
+  const h=pageHarness();t.after(()=>h.page.dispose());
+  h.poll();await flush();assert.deepEqual(h.sends,[]);
+  await h.click(4);assert.deepEqual(h.sends.map(msg=>msg.kind),['adopt-task']);
+  await h.click(2);await h.click(2);
+  assert.deepEqual(h.sends.map(msg=>msg.kind),['adopt-task','authorize-task','execute']);
+});
+test('P1 page removes submission listeners on dispose and reinstalls them once after BFCache',async()=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});
+  assert.ok(h.events.has('click'));assert.ok(h.events.has('keydown'));
+  h.submit('abandoned');h.emitWindow('pagehide',{persisted:true});
+  assert.equal(h.events.size,0);
+  h.snap.users.push(message('cached-u','abandoned'));h.snap.assistants.push(message('cached-a',JSON.stringify(h.intent)));
+  h.emitWindow('pageshow',{persisted:true});h.poll();await flush();assert.deepEqual(h.sends,[]);
+  h.next();await flush();assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task','execute']);
+  h.emitWindow('pagehide',{persisted:false});assert.equal(h.events.size,0);assert.equal(h.intervals.size,0);
+  h.page.dispose();
+});
 test('P0 discovery delayed history from an empty shell never adopts, then adopts a real new turn once',async()=>{
   for(const streaming of [false,true]){
     const h=pageHarness({initialEmpty:true});h.poll();
@@ -178,6 +306,7 @@ test('P0 discovery delayed history from an empty shell never adopts, then adopts
 });
 test('P0 discovery preserves a new turn across same-route editor absence and adopts once',async()=>{
   const h=pageHarness();
+  h.submit('u1');
   h.snap.users.push(message('u1'));h.poll();
   h.snap.ok=false;h.poll();
   h.snap.ok=true;h.snap.assistants.push(message('a1','partial'));
@@ -189,7 +318,7 @@ test('P0 discovery preserves a new turn across same-route editor absence and ado
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
   assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);h.page.dispose();
 });
-test('P0 discovery keeps establishing history until staggered initial loading completes',async()=>{
+test('P0 discovery ignores staggered initial history until a witnessed new submission',async()=>{
   const h=pageHarness({initialEmpty:true});h.poll();
   h.snap.users.push(message('history-u0'));h.snap.assistants.push(message('history-a0'));
   h.snap.busy=true;h.snap.idle=false;h.snap.answerComplete=false;h.poll();await flush();
@@ -205,6 +334,7 @@ test('P0 discovery keeps establishing history until staggered initial loading co
 test('P0 discovery rejects interrupted turns after unknown or different routes and user anchor changes',()=>{
   for(const change of ['unknown-route','different-route','user-id','user-text','prior-anchor','extra-user']){
     const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
+    witness(probe,snap);
     snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
     const failed={ok:false,route:snap.route};
     if(change==='unknown-route')delete failed.route;
@@ -370,6 +500,7 @@ test('P0 preapproved new task executes once while an older reply hydrates',async
   const older=message('older-answer','ChatGPT 说：ChatGPT');h.snap.assistants.unshift(older);
   h.poll();await h.selectInstalled();await h.click(6);
   assert.equal(h.sends.filter(msg=>msg.kind==='preapprove-next-task').length,1);
+  h.submit('u1');
   h.snap.users.push(message('u1'));h.poll();await flush();
   older.textContent='Earlier historical answer, now fully hydrated';
   h.snap.assistants.push(message('a1',JSON.stringify(h.intent)));
@@ -461,6 +592,7 @@ test('P0 page releases a completed request on SPA navigation without adopting th
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
   assert.equal(h.buttons[4].disabled,false);
   h.intent.candidateId='p0-new-chat-candidate-456';
+  h.submit('new-chat-u1');
   h.snap.users.push(message('new-chat-u1'));h.snap.assistants.push(message('new-chat-a1'));
   h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,2);
@@ -471,6 +603,7 @@ test('P0 page releases a completed request on SPA navigation without adopting th
 test('P0 page ignores a non-task continuation and preserves its completed result receipt',async()=>{
   const h=pageHarness();h.next();await flush();await h.click(2);
   const status=h.nodes.find(node=>node.className==='status');const receipt=status.textContent;
+  h.submit('result-user');
   h.setNoCandidate(true);h.snap.users.push(message('result-user'));h.snap.assistants.push(message('result-continuation'));
   h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);

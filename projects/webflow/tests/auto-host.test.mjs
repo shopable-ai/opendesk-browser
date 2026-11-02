@@ -116,7 +116,7 @@ test('revocation immediately before start, UNKNOWN run and lost delivery ACK nev
 test('SW denies auto settings mutation from websites, sandbox, extension tabs and fake Side Panel context',async()=>{
   let listener;
   const event={addListener(){}};
-  const api={runtime:{id:'extension',getURL:()=> 'chrome-extension://extension/',getContexts:async()=>[],
+  const api={runtime:{id:'extension',getURL:path=> 'chrome-extension://extension/'+String(path).replace(/^\//,''),getContexts:async()=>[],
     onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:{get:async()=>({}),set:async()=>{}},session:{get:async()=>({}),set:async()=>{}}},
     webNavigation:{onCommitted:event,onHistoryStateUpdated:event},tabs:{onRemoved:event},permissions:{onRemoved:event}};
   installChatGPTBridgeTriggerGate({api});
@@ -133,8 +133,8 @@ test('SW accepts the actual Side Panel context, stores a grant, and denies a lat
   const panel={id:'extension',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real',documentId:'panel-document'};
   const event={addListener(){}};
   const store={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
-  const api={runtime:{id:'extension',getURL:()=> 'chrome-extension://extension/',
-    getContexts:async()=>[{contextType:'SIDE_PANEL',documentId:panel.documentId,documentUrl:panel.url}],
+  const api={runtime:{id:'extension',getURL:path=> 'chrome-extension://extension/'+String(path).replace(/^\//,''),
+    getContexts:async()=>[{contextType:'SIDE_PANEL',documentId:panel.documentId,documentUrl:panel.url,frameId:0,incognito:false}],
     onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:store},
     webNavigation:{onCommitted:event,onHistoryStateUpdated:event,
       getFrame:async()=>({url:currentUrl,documentId:source.documentId,documentLifecycle:'active'})},
@@ -153,9 +153,9 @@ test('SW accepts the actual Side Panel context, stores a grant, and denies a lat
 test('permission removal fences a delayed trusted enable before its first asynchronous context check returns',async()=>{
   let listener,onRemoved,held=false,data={};const wait=Promise.withResolvers();
   const panel={id:'extension',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real',documentId:'panel'};
-  const contexts=[{contextType:'SIDE_PANEL',documentId:'panel',documentUrl:panel.url}],event={addListener(){}};
+  const contexts=[{contextType:'SIDE_PANEL',documentId:'panel',documentUrl:panel.url,frameId:0,incognito:false}],event={addListener(){}};
   const store={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
-  const gate=installChatGPTBridgeTriggerGate({api:{runtime:{id:'extension',getURL:()=> 'chrome-extension://extension/',
+  const gate=installChatGPTBridgeTriggerGate({api:{runtime:{id:'extension',getURL:path=> 'chrome-extension://extension/'+String(path).replace(/^\//,''),
     getContexts:async()=>held?wait.promise:contexts,onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:store},
     webNavigation:{onCommitted:event,onHistoryStateUpdated:event},tabs:{onRemoved:event},
     permissions:{onRemoved:{addListener:fn=>{onRemoved=fn;}}}}});
@@ -165,4 +165,44 @@ test('permission removal fences a delayed trusted enable before its first asynch
   held=false;wait.resolve(contexts);
   const reply=await enabling;assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_WEBFLOW_AUTO_DENIED');
   assert.equal((await gate.readAutoSettings()).enabled,false);
+});
+
+function nativePanelHarness(contexts, senderChanges={}){
+ let listener;const event={addListener(){}};let queries=[];
+ const panel={id:'extension',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=native',...senderChanges};
+ const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+String(path).replace(/^\//,''),
+  getContexts:async query=>{queries.push(query);return typeof contexts==='function'?contexts(query):contexts;},
+  onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:{get:async()=>({}),set:async()=>{}}},
+  webNavigation:{onCommitted:event,onHistoryStateUpdated:event},tabs:{onRemoved:event},permissions:{onRemoved:event}};
+ installChatGPTBridgeTriggerGate({api});
+ return {queries,send:()=>new Promise(resolve=>listener({protocol,kind:'auto-settings'},panel,resolve))};
+}
+const nativePanel={contextType:'SIDE_PANEL',documentId:'native-document',frameId:0,incognito:false,
+ documentUrl:'chrome-extension://extension/sidepanel.html?hostInstanceId=native'};
+test('real native Side Panel recovers Chrome omitted documentId from one exact context',async()=>{
+ const h=nativePanelHarness([nativePanel]);assert.equal((await h.send()).ok,true);
+ assert.deepEqual(h.queries[0],{contextTypes:['SIDE_PANEL'],documentUrls:[nativePanel.documentUrl]});
+ assert.deepEqual(h.queries[1],{contextTypes:['SIDE_PANEL'],documentIds:[nativePanel.documentId]});
+});
+test('Side Panel recovery rejects missing, ambiguous, wrong, nested and incognito native contexts',async()=>{
+ for(const contexts of [[],[nativePanel,nativePanel],...[
+  {contextType:'TAB'},{documentUrl:nativePanel.documentUrl+'&toolId=webflow'},
+  {frameId:1},{incognito:true},{documentId:''}
+ ].map(change=>[{...nativePanel,...change}])]){
+  assert.equal((await nativePanelHarness(contexts).send()).ok,false);
+ }
+});
+test('native recovery never replaces explicit stale IDs or accepts foreign, tab, preview and nested senders',async()=>{
+ for(const change of [{id:'foreign'},{tab:{id:3}},{frameId:1},{documentLifecycle:'cached'},
+  {url:nativePanel.documentUrl+'&toolId=webflow'},{url:nativePanel.documentUrl+'&previewId=00000000-0000-4000-8000-000000000000'},
+  {url:nativePanel.documentUrl+'&scheduledRunner=1'},{url:nativePanel.documentUrl+'#fake'},
+  {documentId:'stale-document'}]){
+  const h=nativePanelHarness([nativePanel],change);assert.equal((await h.send()).ok,false,JSON.stringify(change));
+  if(!change.documentId)assert.equal(h.queries.length,0);
+ }
+});
+test('recovered native identity stays pinned if context is replaced during the next asynchronous check',async()=>{
+ let query=0;
+ const h=nativePanelHarness(()=>[++query===1?nativePanel:{...nativePanel,documentId:'replacement'}]);
+ assert.equal((await h.send()).ok,false);
 });

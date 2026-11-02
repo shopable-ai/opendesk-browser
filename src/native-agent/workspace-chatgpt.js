@@ -249,6 +249,23 @@ export async function readChatGPTEdit(api,target,requestId,{identityOnly=false,.
   return result;
 }
 
+// Revalidate the durable candidate at the original final submission fence.
+// The existing reader owns the exact document, latest/unique complete answer,
+// explicit marker and strict protocol checks; never replace it with page ACKs.
+export async function assertWebFlowReplyCandidate(api,target,candidate){
+  const mismatch=()=>({code:'E_BRIDGE_CONTEXT',message:'提交前回答与已保存的任务候选不一致，未运行。',outcome:'NOT_DISPATCHED'});
+  if(!candidate||Object.keys(candidate).sort().join(',')!=='answerKey,candidateId,text,turnKey'||
+    typeof candidate.turnKey!=='string'||!candidate.turnKey||candidate.turnKey.length>128||
+    typeof candidate.answerKey!=='string'||!candidate.answerKey||candidate.answerKey.length>2048)
+    throw mismatch();
+  const {candidateId,text,turnKey,answerKey}=candidate;
+  if(validateWebFlowTaskIntent(text).candidateId!==candidateId)throw mismatch();
+  const current=await readChatGPTEdit(api,target,undefined,{taskIntent:true,requireComplete:true,
+    protocols:[WEBFLOW_TASK_INTENT_PROTOCOL]});
+  if(current.turnKey!==turnKey||current.answerKey!==answerKey||current.blocks[0]!==text)
+    throw mismatch();
+}
+
 export async function fillChatGPTComposer(api,target,text,{operationId,turnKey}={}){
   await assertChatGPTTarget(api,target);
   let rows;

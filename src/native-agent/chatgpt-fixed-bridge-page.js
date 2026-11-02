@@ -270,6 +270,26 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const installedTasks=new Map(),installedOptions=[];
   const discovery=createChatGPTTaskDiscovery();
   discovery.reset(site.inspect());
+  // Native form submissions are witnessed by their initiating click/Enter.
+  // requestSubmit() can create a trusted SubmitEvent without either gesture;
+  // never let that event alone create or re-arm a consumed witness.
+  const onComposerSubmission=event=>{
+    if(closed||event.isTrusted!==true||event.defaultPrevented||composition||event.isComposing)return;
+    const snapshot=site.inspect();
+    if(!snapshot.ok)return;
+    const {editor,sendButton}=snapshot;
+    if(editor.disabled||editor.readOnly||editor.getAttribute?.('aria-disabled')==='true'||
+      !sendButton||sendButton.disabled||sendButton.getAttribute?.('aria-disabled')==='true')return;
+    if(event.type==='click'){
+      if(event.button!==0||!(event.target===sendButton||sendButton.contains?.(event.target)))return;
+    }else if(event.type==='keydown'){
+      if(event.key!=='Enter'||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey||event.repeat||
+        doc.activeElement!==editor||!(event.target===editor||editor.contains?.(event.target)))return;
+    }else return;
+    discovery.witnessSubmission(snapshot);
+  };
+  doc.addEventListener('click',onComposerSubmission,true);
+  doc.addEventListener('keydown',onComposerSubmission,true);
   const selectedTask=()=>installedTasks.get(taskSelect.value);
   const taskLabel=owner=>owner?.taskId||selectedTask()?.taskId||taskSelect.value;
   const targetLabel=owner=>owner?.targetUrl||(owner?.taskId===BAIDU_TASK_ID?
@@ -836,11 +856,14 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(event.persisted)win.addEventListener('pageshow',restoreFromCache,{once:true});
   };
   const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;lifecycleEpoch++;
+    discovery.reset(null);
     if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;win.clearInterval(poll);
     win.removeEventListener('pagehide',onPageHide);
     api.runtime.onMessage.removeListener(onMessage);
     doc.removeEventListener('compositionstart',beginComposition,true);
-    doc.removeEventListener('compositionend',endComposition,true);root.remove();};
+    doc.removeEventListener('compositionend',endComposition,true);
+    doc.removeEventListener('click',onComposerSubmission,true);
+    doc.removeEventListener('keydown',onComposerSubmission,true);root.remove();};
   win.addEventListener('pagehide',onPageHide,{once:true});
   taskSelect.addEventListener('change',async()=>{
     if(pending||cancelPending||deliveryPending||loadingTasks)return;
