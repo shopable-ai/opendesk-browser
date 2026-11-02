@@ -99,7 +99,7 @@ jobs:
           node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
       - name: Package runnable sandbox world demo (not installed)
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo --out artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/minimal-html-starter --out artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json
           node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json','utf8')));if(p.id!=='runtime-globals-demo'||p.capabilities.join(',')!=='currentPage.read')throw Error('Incorrect sandbox permissions');console.log('SANDBOX_RUNTIME_DEMO_PACKAGE_OK',p.id)"
       - name: Compile standalone React and Vue tool source with pinned toolchain
         run: |

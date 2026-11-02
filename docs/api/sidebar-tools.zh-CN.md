@@ -303,7 +303,7 @@ R4.8 当时尚未提供全局启停；当前安装器已有工具级启停，仍
 
 复用已有安装器、工具身份、Web Locks、版本管理和卸载。可选 Chrome `contextMenus` 权限仅由可信工具详情中的真实点击申请；网站批准绑定工具包完整摘要和撤销代际。沙箱调用 `OpenDeskSDK.browser.contextMenu.*` 与 `launch.consume()`，现有 `OpenDeskTool.request()` 不变。普通网页不取得菜单注册能力。
 
-详情见 [Browser SDK](browser-sdk.zh-CN.md) 和 [可导入示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)。真实 Chrome 状态须以当前候选验收为准。
+详情见 [Browser SDK](browser-sdk.zh-CN.md) 和 [可导入示例](../../examples/sidebar-tools/browser-sdk-context-menu-demo/README.zh-CN.md)。真实 Chrome 状态须以当前候选验收为准。
 
 
 ## Browser SDK R1.3 当前安装与验收（2026-10-12）

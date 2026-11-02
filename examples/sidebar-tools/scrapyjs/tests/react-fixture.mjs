@@ -26,7 +26,7 @@ const toggle=await compile('src/ui/react/components/ui/switch.tsx');
 const shared=moduleURL(`export {Card,CardContent} from ${JSON.stringify(card)};export {Input,Textarea} from ${JSON.stringify(input)};export {Switch} from ${JSON.stringify(toggle)};export {Button,IconButton} from ${JSON.stringify(button)};export {SharedConversationFrame,SharedConversationDock} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
 const sourceRoot='examples/sidebar-tools/scrapyjs/src/';
 const replacements={'@opendesk/ui':shared};
-for(const name of ['ai-config.js','ai-request.js','ai-pending.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js'])
+for(const name of ['ai-config.js','ai-actions.js','ai-request.js','ai-pending.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js'])
   replacements['./'+name]=new URL(sourceRoot+name,root).href;
 const panel=await compile(sourceRoot+'AiPanel.jsx',replacements);
 export const {default:AiPanel}=await import(panel);

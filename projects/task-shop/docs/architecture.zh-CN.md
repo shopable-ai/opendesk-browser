@@ -1,6 +1,6 @@
 # OpenDesk Task Shop · 技术架构与可信执行合同（V0.1 方案）
 
-> PROPOSED_ARCHITECTURE / NO_MARKET_SERVICE / NOT_TESTED。2026-11-02。本文提到的 Market API、Node Agent、Scheduler、Receipt 均属拟建方案，不是仓库现有公开 SDK。
+> PROPOSED_REMOTE_ARCHITECTURE / LOCAL_DEMO_SOURCE_IMPLEMENTED / NO_DEPLOYED_MARKET_SERVICE / CHROME_NOT_TESTED。2026-11-02。远程 Market API、Node Agent、Scheduler 仍属拟建，不是现有公开 SDK。
 >
 > 当前可复用事实：[Web Flow README](../../webflow/README.md)、[Web Flow 离线模块](../../webflow/docs/offline-modules.zh-CN.md)、[已安装 Controller Task 的 Native 调用](../../../docs/api/native-installed-tasks.zh-CN.md)、[受限本地任务桥](../../../docs/api/local-task-bridge.zh-CN.md)。
 
@@ -105,4 +105,4 @@
 
 既有源码/文档记录 Native `run.start/run.get` 对已安装 Task 的部分真实验证，但 `task.list` 有独立历史缺口；现有 Web Flow 的 handoff/单 owner queue 已完成离线组件测试，不表示正式安装、后台市场调度或多节点可用。
 
-下一步先做 TS-P01：核对一个**真实已安装且授权的只读商品整理任务**的 Task 身份、Target/Origin、现有受控调用和原结果对账路径。无本机环境时先停留在源码/接口审查级别，准备模拟市场租约与最小适配器，绝不伪造真实 Chrome 成功。
+D1 已在 `../src/core.js` 与 `../src/main.js` 实施本机单任务演示：SDK ETag 领取租约、固定 pin 委托、原持久结果引用及独立的本地模拟验收状态。无部署的远程市场、跨节点 CAS、真实用户认证或资金系统；Chrome/Native 仍未验收。下一步按照[唯一执行计划](execution-plan.zh-CN.md)运行原仓库 Node/打包门禁。

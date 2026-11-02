@@ -1,5 +1,5 @@
 import {decodeValue} from '../page-port/codec.js';
-import {canonical,invariant} from '../protocol.js';
+import {canonical,digest,invariant} from '../protocol.js';
 import {normalizeTaskDelegationRequest,sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {readTaskDelegationApp,assertTaskDelegationApp} from '../tasks/delegation-installation.js';
 
@@ -16,7 +16,8 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
     return row;
   }
   const project=row=>({clientRequestId:row.clientRequestId,runId:row.runId,resultId:row.resultId,
-    state:row.state,retirementState:row.retirementState??null,result:row.result??null,
+    state:row.state,semantic:row.semantic??null,operationRef:row.operationRef??null,
+    retirementState:row.retirementState??null,result:row.result??null,
     value:row.result?.outcome?.ok===true?decodeValue(row.result.outcome.valueWire):null});
   async function authorize(row){
     live();if(row.binding)await assertApp(row.binding);live();
@@ -37,12 +38,31 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
       const target=currentPageTarget.capture();
       await currentPageTarget.revalidate(target);await authorize(row);
       invariant(!row.cancelled,'E_CANCELLED');
+      const runTarget={mode:'borrowed',tabId:target.tabId,frameId:target.frameId,documentId:target.documentId,
+        expectedUrl:target.url,expectedWindowId:target.windowId};
+      // PREPARE is durable and side-effect free. A transport timeout or Host
+      // reconstruction must inspect the old operation, never allocate another
+      // controller run for the same App-scoped logical request.
+      const prepared=await client.request('prepareDelegatedStep',{
+        binding:row.binding,clientRequestId:payload.clientRequestId,
+        paramsDigest:await digest(payload.params,{maxDepth:48}),target:runTarget,
+        deadlineAt:clock()+(resolved.manifest.deadlineMs??30000)});
+      row.operationRef=prepared.operationRef;
+      if(prepared.state==='submitted'||prepared.state==='stopping'){
+        const previous=await client.request('inspectDelegatedStep',{
+          binding:row.binding,clientRequestId:payload.clientRequestId});
+        row.runId=previous.runId;row.resultId=previous.resultId;
+        row.state=previous.state;row.semantic=previous.semantic;
+        row.retirementState=previous.retirementState;row.result=previous.result;
+        return project(row);
+      }
+      invariant(prepared.state==='prepared','E_CANCELLED');
+      await authorize(row);invariant(!row.cancelled,'E_CANCELLED');
       row.admissionRequestId=crypto.randomUUID();
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,contentHash:resolved.contentHash},
-        params:payload.params,target:{mode:'borrowed',tabId:target.tabId,frameId:target.frameId,documentId:target.documentId,
-          expectedUrl:target.url,expectedWindowId:target.windowId},deadlineAt:clock()+(resolved.manifest.deadlineMs??30000),
+        params:payload.params,target:runTarget,deadlineAt:prepared.deadlineAt,
         requestId:row.admissionRequestId,expectedTaskGeneration:resolved.generation,expectedTaskInstallationId:resolved.installationId,
-        taskDelegation:row.binding});
+        taskDelegation:row.binding,taskDelegationStep:{clientRequestId:payload.clientRequestId,operationRef:prepared.operationRef}});
       row.runId=claim.runId;row.resultId=claim.resultId;row.state='running';
       if(row.cancelled||disposed){await host.stop({controller:true,runId:row.runId});invariant(false,'E_CANCELLED');}
       await authorize(row);return project(row);
@@ -68,16 +88,32 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
       return start(payload);
     }
     live();const row=entry(payload.clientRequestId);
-    if(operation==='tasks.stop'){
-      // Cancellation is local first and cannot target any other RunHost run.
-      row.cancelled=true;
-      if(row.admissionRequestId)host.cancelStart(row.admissionRequestId);
-      if(row.runId)await host.stop({controller:true,runId:row.runId});
-      row.state=row.admissionRequestId?'stopping':'cancelled';
-      return {...project({...row,result:null}),result:null,value:null};
+    if(operation==='tasks.stop')row.cancelled=true;
+    // The new iframe has a new Host registration. The original Host's
+    // snapshot API must not be impersonated to obtain its Run/Result.
+    if(operation==='tasks.stop'||row.operationRef||!row.runId){
+      const app=await readApp();live();
+      const binding=row.binding??{...app,instanceId,task:app.tasks[0]};
+      await assertApp(binding);live();
+      row.binding=binding;
+      if(operation==='tasks.stop'){
+        if(row.admissionRequestId)host.cancelStart(row.admissionRequestId);
+        const cancelled=await client.request('cancelDelegatedStep',{
+          binding,clientRequestId:payload.clientRequestId});
+        if(row.runId)await host.stop({controller:true,runId:row.runId}).catch(()=>{});
+        row.operationRef=cancelled.operationRef;row.runId=cancelled.runId??row.runId;
+        row.state=cancelled.state;row.semantic=cancelled.semantic;
+        return {...project({...row,result:null}),result:null,value:null};
+      }
+      const snapshot=await client.request('inspectDelegatedStep',{
+        binding,clientRequestId:payload.clientRequestId});
+      await assertApp(binding);live();
+      row.operationRef=snapshot.operationRef;row.runId=snapshot.runId;row.resultId=snapshot.resultId;
+      row.state=snapshot.state;row.semantic=snapshot.semantic;
+      row.retirementState=snapshot.retirementState;row.result=snapshot.result;
+      return project(row);
     }
     await authorize(row);
-    if(!row.runId)return project(row);
     const snapshot=await host.controller.snapshotControllerRun({runId:row.runId});
     await authorize(row);
     invariant(!snapshot.resultDeliveryDenied?.includes(row.runId),'E_PERMISSION');

@@ -126,7 +126,7 @@ if (label) label.textContent = '工具已初始化';
 - [Background 的 ESM 模块示例](../../examples/libs/trusted-imports/background.mjs)：从固定 npm 锁静态 `import dayjs from 'dayjs'`、`import {words} from 'lodash-es'`；只把所需模块编入该受信 WXT entry，**不能**假设有 Controller `page`。
 - [可信 Side Panel 宿主模块](../../examples/libs/trusted-imports/sidebar-host.mjs)：显式导入 `query-string`、`dayjs`，是扩展维护者的受信代码，绝不导入到用户工具的 opaque iframe。
 - [可信扩展自定义 HTML 页模块](../../examples/libs/trusted-imports/extension-page.mjs)：按需 import `lodash-es`，安全用 `textContent` 更新自己的 DOM；非用户 Page 脚本。
-- [可打包的 Side Panel 用户工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)：`tool.config.json` + HTML/CSS/经典 JS，真实通过 `globalThis.OpenDeskTool.root/request` 使用已授权桥；有明确导入与手工验收流程。
+- [可打包的 Side Panel 用户工具](../../examples/sidebar-tools/minimal-html-starter/README.md)：`tool.config.json` + HTML/CSS/经典 JS，真实通过 `globalThis.OpenDeskTool.root/request` 使用已授权桥；有明确导入与手工验收流程。为了兼容已有安装，示例包内部工具 ID 保持 `runtime-globals-demo`，仅源码目录更名。
 - [单文件 Page 的零参数示例](../../examples/programs/single-file/page-globals-zero-arg.js)：`async function main()` + `document` + 默认 `_`、`dayjs`；单文件编辑器不要粘贴 ESM 的 `export default`。
 
 以上三个 `examples/libs/trusted-imports/` 模块是**可在 Node 执行的静态 import 示例**，没有登记为产品固定入口；接入仍需明确的构建来源审查。这个限制不是对整个 `examples/` 目录的禁令：Stay Focus/AdBlock 已审核的项目 `trusted/` 由固定入口实际消费。目录名不授予信任，独立 `npm ci` + Node 方法测试也不构成真实扩展页面安装回执。
@@ -136,7 +136,7 @@ if (label) label.textContent = '工具已初始化';
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
 node --test tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/minimal-html-starter
 ```
 
 构建后的工具 JSON 还须用户在「扩展 → 应用」中审阅、确认安装与主动打开；真实 Chrome 验收用原始版本/权限/文档/构建哈希判断，L2 与实测不能混作一个 PASS。
@@ -184,7 +184,7 @@ async function main() {
 
 - [Controller 零参数多文件](../../examples/programs/controller-globals-zero-arg/README.md)：运行 `page.title()` + `_.words()` + `dayjs()`。
 - [Page USER_SCRIPT 零参数多文件](../../examples/programs/page-globals-zero-arg/README.md)：运行 `document.title` + `_.words()` + `dayjs()`。
-- [Controller 单文件默认公共库](../../examples/programs/single-file/controller-globals-zero-arg.js)、[历史 Controller 单文件](../../examples/programs/single-file/title.js)、[Page 单文件零参数](../../examples/programs/single-file/page-globals-zero-arg.js)、[可信扩展静态 ESM 模块](../../examples/libs/trusted-imports/README.zh-CN.md)、[可打包 Side Panel 工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
+- [Controller 单文件默认公共库](../../examples/programs/single-file/controller-globals-zero-arg.js)、[历史 Controller 单文件](../../examples/programs/single-file/title.js)、[Page 单文件零参数](../../examples/programs/single-file/page-globals-zero-arg.js)、[可信扩展静态 ESM 模块](../../examples/libs/trusted-imports/README.zh-CN.md)、[可打包 Side Panel 工具](../../examples/sidebar-tools/minimal-html-starter/README.md)、[React Direct](../../examples/programs/page-ui-react-direct/README.md)、[Vue Direct](../../examples/programs/page-ui-vue-direct/README.md)、[Side Panel 工具开发](sidebar-tool-development.zh-CN.md)。
 
 相关来源合同：[Controller](controller.zh-CN.md)、[Page](page-userscript.zh-CN.md)、[项目格式](local-projects.zh-CN.md)、[公共库实现](../architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。**使用体验必须以同一候选实际运行代码来证明，文档和组件测试不等于整体 95 分产品验收。**
 

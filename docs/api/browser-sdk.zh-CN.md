@@ -109,7 +109,7 @@ await watch.close();
 
 **权限边界不变**：`tabRef` 必须是该工具此前获准拥有的标签页；`origin` 必须是精确 HTTP(S) Origin；开始/导出操作必须经过可信界面单次批准；请求只收集单 Tab / 单 Origin 的有界 HTTP 元数据，默认不含 Cookie、Token、Body、完整 URL。安装包至少声明 `browser.network.observe` 和 `browser.events`；`watch.cancel()` 另外需要 `browser.operations`。普通 HTTP(S) Page SDK 和只读开发预览不暴露这些特权方法。
 
-`watch` 对象含函数，不是可跨 Worker、工具实例或页面序列化的授权凭据；工具重新打开时必须重新获取合法引用。该便利封装本身不代表 Mac Chrome 原生验收。参见 [可导入真实功能验证工具](../../examples/sidebar-tools/browser-sdk-r2/README.zh-CN.md)。
+`watch` 对象含函数，不是可跨 Worker、工具实例或页面序列化的授权凭据；工具重新打开时必须重新获取合法引用。该便利封装本身不代表 Mac Chrome 原生验收。参见 [可导入真实功能验证工具](../../examples/sidebar-tools/browser-sdk-operations-demo/README.zh-CN.md)。
 
 ---
 
@@ -249,7 +249,7 @@ Registry 的 `requiresUserGesture` 表示 OpenDesk 可信前台意图门槛，�
 
 v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放新字段。`opendesk.sidebar-tool.v2` 新增 `requires.browserSdk` 和 `contributes.contextMenus`。菜单动作最多三项，contexts 仅 `page/selection/link`，handler 仅 `open-self`；当前实现接受明确 HTTP(S) host 的 `/*` 网站规则，不能包含通配 host、任意 JS 回调或后台代码。工具仍须包含原 id/version/title/description/capabilities/html/css/js。
 
-真实配置与可导入 JSON：`examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json`。工具详情页在真实用户点击时请求可选 `contextMenus` 权限，批准**当前网站**后写入独立菜单偏好（非授权事实来源）；SW 依据已安装工具的实际完整包摘要、撤销状态、Chrome 可选权限及网站批准同步菜单。Chrome `contextMenus.onClicked` 不含 `documentId`。现在复用已存在的 `agents/page-relay.js` 可信 Content Script，只在浏览器产生的真实 `contextmenu` 事件里向可信 SW 发送**无正文、无选区、无 URL 参数的身份通知**；SW 读取 Chrome 提供的 `sender.tab.id/frameId/documentId/url`，在用户真正选择 OpenDesk 菜单后才核对这份提前观测的文档身份，并再次与 `webNavigation.getFrame` 的真实文档比较。Worker 恢复、来源信息缺失、同 URL 换文档、权限或启停撤销时一律不交付选区；启动工具 JavaScript 也会等待 `launch.bind` 回执后才执行。此机制仍需完整 Mac 原生菜单及竞争验收，不能把组件测试当作产品级 PASS。
+真实配置与可导入 JSON：`examples/sidebar-tools/browser-sdk-context-menu-demo/selection-notes.opendesk-tool.json`。工具详情页在真实用户点击时请求可选 `contextMenus` 权限，批准**当前网站**后写入独立菜单偏好（非授权事实来源）；SW 依据已安装工具的实际完整包摘要、撤销状态、Chrome 可选权限及网站批准同步菜单。Chrome `contextMenus.onClicked` 不含 `documentId`。现在复用已存在的 `agents/page-relay.js` 可信 Content Script，只在浏览器产生的真实 `contextmenu` 事件里向可信 SW 发送**无正文、无选区、无 URL 参数的身份通知**；SW 读取 Chrome 提供的 `sender.tab.id/frameId/documentId/url`，在用户真正选择 OpenDesk 菜单后才核对这份提前观测的文档身份，并再次与 `webNavigation.getFrame` 的真实文档比较。Worker 恢复、来源信息缺失、同 URL 换文档、权限或启停撤销时一律不交付选区；启动工具 JavaScript 也会等待 `launch.bind` 回执后才执行。此机制仍需完整 Mac 原生菜单及竞争验收，不能把组件测试当作产品级 PASS。
 
 ## 五、待验收与源码合同的差异
 
@@ -265,7 +265,7 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 
 这条预观察事件不保存正文、Cookie、请求、URL 查询参数或选区。新的页面访问不自动获得工具网站权限；仅 Chrome 菜单真实点击可以领取 16 KiB 内的选区。单工具最多一个待领上下文、有效期 60 秒；首次绑定之前不执行不可信工具 JS。主菜单开放但来源证据缺失时，仅能打开 OpenDesk 外壳，不能交付敏感文本。
 
-开发者手动启动 [可导入的选区笔记示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)，必须使用 HTTP(S) 测试页。真实 Mac Chrome GUI 菜单点击及权限弹窗仍需独立原始截图/日志；当前自动化真实 Chrome 证据仅覆盖 MV3 启动、事件注册和 Worker 停止/恢复，不得宣传为 native context-menu PASS。
+开发者手动启动 [可导入的选区笔记示例](../../examples/sidebar-tools/browser-sdk-context-menu-demo/README.zh-CN.md)，必须使用 HTTP(S) 测试页。真实 Mac Chrome GUI 菜单点击及权限弹窗仍需独立原始截图/日志；当前自动化真实 Chrome 证据仅覆盖 MV3 启动、事件注册和 Worker 停止/恢复，不得宣传为 native context-menu PASS。
 
 
 ### Chrome 网站访问与工具网站批准分别校验

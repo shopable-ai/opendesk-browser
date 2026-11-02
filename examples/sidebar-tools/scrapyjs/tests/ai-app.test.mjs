@@ -20,7 +20,7 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   const catalog={schemaVersion:1,selectedId:'original',records:[{id:'original',name:'CSDN 核心',config:original}]};
   const rows=new Map([['capture-config',{value:structuredClone(catalog),etag:'0'}],['ai-pending-request',{value:null,etag:'0'}]]);
   const calls=[];let resolveProposal;
-  const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
+  const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame','FocusEvent'].map(key=>[key,globalThis[key]]));
   let conversationState;
   const tool={setState(){},setConversationState(value){conversationState=value;},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
@@ -37,7 +37,8 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
     throw Error('No real task, browser or model operation is allowed: '+operation);
   }};
   Object.assign(globalThis,{OpenDeskTool:tool,ScrapyAppModel:context.ScrapyAppModel,ScrapyAppSdk:context.ScrapyAppSdk,
-    requestAnimationFrame:callback=>setTimeout(callback,0)});
+    requestAnimationFrame:callback=>setTimeout(callback,0),
+    FocusEvent:class extends Event{constructor(type,options){super(type,options);this.relatedTarget=options?.relatedTarget??null;}}});
   t.after(()=>Object.assign(globalThis,previous));
   const ui=createExtensionCenterDOM(t,{component:()=>{
     tool.root=globalThis.document.getElementById('opendesk-react-app');return React.createElement(App);
@@ -84,8 +85,10 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   edit('ai-requirement',sent.request);assert.equal(get('chat-ai-apply').disabled,false);
   assert.equal(get('ai-generate').disabled,true,'restoring the reviewed input restores the review step');
   get('chat-ai-apply').dispatch('click');await settle();await settle();
-  assert.equal(get('profile-naming').hidden,false);assert.equal(get('profile-name').value,'CSDN 核心 副本');
+  assert.equal(get('profile-naming').hidden,true,'applying leaves naming to the explicit save action');
   assert.equal(get('chat-ai-panel').hidden,false,'applying remains in the business workspace with the Chat mounted');
+  get('chat-ai-save').dispatch('click');await settle();await settle();
+  assert.equal(get('profile-naming').hidden,false);assert.equal(get('profile-name').value,'CSDN 核心 副本');
   assert.equal(get('start').disabled,true,'naming must finish before Run is available');
   assert.equal(writes().length,0,'applying a proposal only edits the local draft');
   assert.deepEqual(rows.get('capture-config').value,catalog,'original stays saved until explicit named save');
@@ -114,7 +117,7 @@ test('AI button requires a bound structure and previews on the original runner w
  const saved=structuredClone(f.rows.get('capture-config'));
  assert.ok(get('ai-trial'),'minimal AI action stays in original collection workspace');
  get('ai-trial').dispatch('click');await settle();
- assert.equal(f.calls.some(c=>c.operation.startsWith('ai.')),false,'no structure means no AI send');
+ assert.equal(f.calls.some(c=>c.operation==='ai.generate'||c.operation==='ai.cancel'),false,'no structure means no AI send');
  assert.match(get('ai-status').textContent,/结构样本/);
  f.edit('runner-config',JSON.stringify(base));f.edit('ai-sample',sample);
  get('ai-trial').dispatch('click');get('ai-trial').dispatch('click');await settle();await settle();await settle();
@@ -130,7 +133,9 @@ test('AI button requires a bound structure and previews on the original runner w
 });
 
 test('reopened unknown AI stays queryable while manual trial remains available and sample survives closing',async t=>{
- const f=await fixture(t,{pendingAi:true}),{get}=f;get('open-local-runner').dispatch('click');await settle();await settle();
+ const f=await fixture(t,{pendingAi:true}),{get}=f;
+ assert.equal(get('open-local-runner').disabled,false,'unresolved AI does not lock independent manual collection');
+ get('open-local-runner').dispatch('click');await settle();await settle();
  assert.equal(get('ai-trial').disabled,true);assert.match(get('ai-status').textContent,/unknown-ai/);
  f.edit('ai-sample',sample);get('close-local-runner').dispatch('click');get('open-local-runner').dispatch('click');await settle();
  assert.equal(get('ai-sample').value,sample);assert.equal(get('runner-start-preview').disabled,false);
@@ -164,14 +169,14 @@ test('reopening a pending AI request exposes recovery without a host AI button',
   const f=await fixture(t,{pendingAi:true}),{get,ui,calls,rows}=f;
   assert.equal(get('chat-ai-panel').hidden,false,'restored request must expose its recovery controls');
   assert.match(get('chat-ai-request-status').textContent,/unknown-ai/);
-  assert.equal(get('chat-ai-cancel').disabled,false);
+  assert.equal(get('chat-ai-query-original').disabled,false);
   assert.equal(get('start').disabled,true,'retain the unresolved request guard');
   ui.doc.querySelector('.od-conversation-close').dispatch('click');await settle();
   assert.equal(get('chat-ai-panel').hidden,true);
   assert.equal(get('ai-recovery').hidden,false,'collapsed busy Chat retains an actionable explanation');
   get('reopen-ai-request').dispatch('click');await settle();
   assert.equal(get('chat-ai-panel').hidden,false);
-  get('chat-ai-cancel').dispatch('click');await settle();
+  get('chat-ai-query-original').dispatch('click');await settle();
   assert.equal(get('start').disabled,true,'unknown stop must not release the request');
   assert.deepEqual(rows.get('ai-pending-request').value,{schemaVersion:1,requestId:'unknown-ai'});
   assert.deepEqual(calls.filter(c=>c.operation==='ai.cancel').map(c=>c.payload.requestId),['unknown-ai']);
@@ -191,7 +196,7 @@ test('terminal AI recovery also retires the passive workspace guard for the same
   tool.setState=value=>states.push(value);
   tool.request=(operation,payload)=>operation==='ai.cancel'
     ?Promise.resolve({requestId:payload.requestId,state:'cancelled'}):request(operation,payload);
-  get('chat-ai-cancel').dispatch('click');await settle();await settle();await settle();
+  get('chat-ai-query-original').dispatch('click');await settle();await settle();await settle();
   assert.equal(rows.get('ai-pending-request').value,null);
   assert.equal(states.at(-1).busy,false,'a second passive reader must not keep the Host locked after correlated recovery');
 });
@@ -224,9 +229,9 @@ for(const kind of ['wrong identity','unknown','lost cleanup receipt','changed st
       if(kind==='lost cleanup receipt'&&operation==='storage.set'&&payload.key==='ai-pending-request')throw Error('cleanup receipt unavailable');
       return request(operation,payload);
     };
-    get('chat-ai-cancel').dispatch('click');await settle();await settle();await settle();
+    get('chat-ai-query-original').dispatch('click');await settle();await settle();await settle();
     assert.equal(states.at(-1).busy,true);
     assert.equal(rows.get('ai-pending-request').value.requestId,kind==='changed stored identity'?'other-ai':'unknown-ai');
     assert.match(get('ai-status').textContent,/unknown-ai/);
-    assert.ok(get('chat-ai-cancel'));
+    assert.ok(get('chat-ai-query-original'));
   });

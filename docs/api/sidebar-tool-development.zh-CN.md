@@ -58,7 +58,7 @@
 <owner>/<id>.opendesk-tool.json       # 仅交付时经门禁晋升的唯一正式包
 ```
 
-必需/条件必需/可选、生成物/历史资料的消费者、提交与清理证据只在[目录合同第 2 节](../architecture/extension-project-layout.zh-CN.md#21-目录选择与存在条件)维护；此摘要不要求新建或删除目录。复用 [最小 HTML 示例](../../examples/sidebar-tools/runtime-globals-demo/README.md)或已有 React/Vue Starter；`scripts/templates` 是预览壳，不是源码脚手架。不强制项目级 AGENTS，也不复制根规则；特殊边界才就近补充，命令仍以 README 为准。
+必需/条件必需/可选、生成物/历史资料的消费者、提交与清理证据只在[目录合同第 2 节](../architecture/extension-project-layout.zh-CN.md#21-目录选择与存在条件)维护；此摘要不要求新建或删除目录。复用 [最小 HTML 示例](../../examples/sidebar-tools/minimal-html-starter/README.md)或已有 React/Vue Starter；`scripts/templates` 是预览壳，不是源码脚手架。不强制项目级 AGENTS，也不复制根规则；特殊边界才就近补充，命令仍以 README 为准。
 
 教学示例位于 `examples/sidebar-tools/<id>/`，采用相同配置；简单工具不强制新增 package.json、测试层次或构建依赖。业务测试优先归 `<owner>/tests/`，混合业务/宿主测试按职责拆分，原生驱动先保留 `tests/framework/` 的现行路径。开发只选相关验证；新增测试须指出实际行为/安全覆盖缺口，不按版本复制测试，不为可逆文案/样式添加机械源码断言。`app:update` 的 projects 路径和自有测试发现尚有缺口，不能将目录约定当作该命令已支持，具体见目录合同第 6 节。
 
