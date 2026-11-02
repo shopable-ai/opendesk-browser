@@ -2,12 +2,18 @@ import {decodeValue} from '../page-port/codec.js';
 import {canonical,digest,invariant} from '../protocol.js';
 import {normalizeTaskDelegationRequest,sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {readTaskDelegationApp,assertTaskDelegationApp} from '../tasks/delegation-installation.js';
+import {readAppControllerInstallation} from '../tasks/app-controller-installation.js';
 
 // One object per original opaque iframe. Inject the EXISTING visible RunHost
 // and current-page observer; this module never constructs a runner or UI.
 export function createTaskDelegationHost({api,client,host,currentPageTarget,appId,instanceId,assertInstance,
-  readApp=()=>readTaskDelegationApp(api,appId),assertApp=b=>assertTaskDelegationApp(api,b),clock=()=>Date.now()}){
+  readApp=()=>readTaskDelegationApp(api,appId),readControllerApp=()=>readAppControllerInstallation(api,appId),assertApp=b=>assertTaskDelegationApp(api,b),clock=()=>Date.now()}){
   const entries=new Map();let disposed=false;
+  function sourceFamily(row,controller){
+    const family=controller?'controller':'task';
+    invariant(!row.sourceFamily||row.sourceFamily===family,'E_REQUEST_CONFLICT');
+    row.sourceFamily=family;
+  }
   const normalizeInstalledPin=row=>normalizeDelegatedTask(Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,row[key]])),true);
   function live(){invariant(!disposed,'E_OWNER');assertInstance();}
   function entry(id){
@@ -22,19 +28,27 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
   async function authorize(row){
     live();if(row.binding)await assertApp(row.binding);live();
   }
-  async function start(payload){
-    live();const row=entry(payload.clientRequestId),fingerprint=canonical(payload);
+  async function start(payload,controller){
+    live();const row=entry(payload.clientRequestId),fingerprint=canonical({payload,controller});
+    sourceFamily(row,controller);
     if(row.cancelled)throw Object.assign(new Error('Start cancelled'),{code:'E_CANCELLED'});
     if(row.fingerprint){invariant(row.fingerprint===fingerprint,'E_REQUEST_CONFLICT');await authorize(row);return row.pending;}
     row.fingerprint=fingerprint;
     // Register synchronously so stop wins even before the first async read.
     row.pending=(async()=>{
-      const app=await readApp();live();
-      invariant(app.tasks.some(pin=>sameTaskPin(pin,payload.task)),'E_PERMISSION');
-      row.binding={...app,instanceId,task:payload.task};
-      const resolved=await client.request('resolveInstalledTask',{taskId:payload.task.taskId});
-      invariant(sameTaskPin(resolved,payload.task)&&resolved.installationId===payload.task.installationId&&
-        resolved.generation===payload.task.generation,'E_REVISION');
+      let resolved;
+      if(controller){
+        const installed=await readControllerApp();live();
+        row.binding={...installed.binding,instanceId};
+        resolved={manifest:installed.tool.controller};
+      }else{
+        const app=await readApp();live();
+        invariant(app.tasks.some(pin=>sameTaskPin(pin,payload.task)),'E_PERMISSION');
+        row.binding={...app,instanceId,task:payload.task};
+        resolved=await client.request('resolveInstalledTask',{taskId:payload.task.taskId});
+        invariant(sameTaskPin(resolved,payload.task)&&resolved.installationId===payload.task.installationId&&
+          resolved.generation===payload.task.generation,'E_REVISION');
+      }
       const target=currentPageTarget.capture();
       await currentPageTarget.revalidate(target);await authorize(row);
       invariant(!row.cancelled,'E_CANCELLED');
@@ -59,9 +73,11 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
       invariant(prepared.state==='prepared','E_CANCELLED');
       await authorize(row);invariant(!row.cancelled,'E_CANCELLED');
       row.admissionRequestId=crypto.randomUUID();
-      const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,contentHash:resolved.contentHash},
+      const source=controller?{kind:'app-controller',appId,packageHash:row.binding.packageHash,generation:row.binding.generation}:
+        {kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,contentHash:resolved.contentHash};
+      const claim=await host.start({source,
         params:payload.params,target:runTarget,deadlineAt:prepared.deadlineAt,
-        requestId:row.admissionRequestId,expectedTaskGeneration:resolved.generation,expectedTaskInstallationId:resolved.installationId,
+        requestId:row.admissionRequestId,...(controller?{}:{expectedTaskGeneration:resolved.generation,expectedTaskInstallationId:resolved.installationId}),
         taskDelegation:row.binding,taskDelegationStep:{clientRequestId:payload.clientRequestId,operationRef:prepared.operationRef}});
       row.runId=claim.runId;row.resultId=claim.resultId;row.state='running';
       if(row.cancelled||disposed){await host.stop({controller:true,runId:row.runId});invariant(false,'E_CANCELLED');}
@@ -75,6 +91,12 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
   }
   async function request(operation,value,{verifiedUserActivation=false}={}){
     const payload=normalizeTaskDelegationRequest(operation,value);
+    const controller=operation.startsWith('controllers.');
+    if(controller&&operation==='controllers.read'&&!payload.clientRequestId){
+      live();const installed=await readControllerApp();live();
+      await assertApp({...installed.binding,instanceId});live();
+      return {controller:{sourceHash:installed.tool.controller.sourceHash}};
+    }
     if(operation==='tasks.read'&&payload.taskId){
       live();const app=await readApp();live();
       const pin=app.tasks.find(row=>row.taskId===payload.taskId);invariant(pin,'E_PERMISSION');
@@ -83,20 +105,22 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
       await assertApp({...app,instanceId,task:resolved});live();
       return {task:normalizeInstalledPin(resolved)};
     }
-    if(operation==='tasks.start'){
+    if(operation==='tasks.start'||operation==='controllers.start'){
       invariant(verifiedUserActivation===true,'E_USER_GESTURE_REQUIRED');
-      return start(payload);
+      return start(payload,controller);
     }
     live();const row=entry(payload.clientRequestId);
-    if(operation==='tasks.stop')row.cancelled=true;
+    sourceFamily(row,controller);
+    const stop=operation==='tasks.stop'||operation==='controllers.stop';
+    if(stop)row.cancelled=true;
     // The new iframe has a new Host registration. The original Host's
     // snapshot API must not be impersonated to obtain its Run/Result.
-    if(operation==='tasks.stop'||row.operationRef||!row.runId){
-      const app=await readApp();live();
-      const binding=row.binding??{...app,instanceId,task:app.tasks[0]};
+    if(stop||row.operationRef||!row.runId){
+      const app=controller?(await readControllerApp()).binding:await readApp();live();
+      const binding=row.binding??(controller?{...app,instanceId}:{...app,instanceId,task:app.tasks[0]});
       await assertApp(binding);live();
       row.binding=binding;
-      if(operation==='tasks.stop'){
+      if(stop){
         if(row.admissionRequestId)host.cancelStart(row.admissionRequestId);
         const cancelled=await client.request('cancelDelegatedStep',{
           binding,clientRequestId:payload.clientRequestId});

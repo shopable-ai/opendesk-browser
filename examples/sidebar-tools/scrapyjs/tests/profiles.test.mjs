@@ -20,6 +20,28 @@ function store(value=null){
 }
 async function two(){const storage=store(),app=createApp(storage.sdk);await app.load();app.edit(config('a'));await app.save('A');
   const a=app.state.selectedId;await app.newProfile();app.edit(config('b'));await app.save('B');return {storage,app,a,b:app.state.selectedId};}
+test('an unconfigured workspace starts empty and cannot save or collect until completed manually',async()=>{
+  const storage=store(),calls=[];
+  const app=createApp({...storage.sdk,currentPage:async()=>({status:'available',url:config('a').url}),prepare:async()=>calls.push('prepare'),start:async()=>calls.push('start')});
+  await app.load();await app.refreshTarget();
+  assert.deepEqual(plain(app.state.config),{url:'',itemConfig:{}});
+  assert.equal(app.state.selectedId,null);assert.deepEqual(calls,[]);assert.equal(storage.writes.length,0);
+  assert.equal(await app.save('Empty'),false);await app.start(app.state.target.url);
+  assert.deepEqual(calls,[]);assert.equal(storage.writes.length,0);
+  app.edit({url:config('a').url,itemConfig:{}});
+  app.edit({...plain(app.state.config),itemConfig:{title:'h2::text'}});
+  assert.equal(await app.save('Manual'),true);
+  assert.deepEqual(storage.row.value.records[0].config,plain(app.state.config));
+});
+test('new empty drafts preserve existing saved configurations and reopen their selected record',async()=>{
+  const {storage,app,a,b}=await two(),before=storage.row;
+  await app.newProfile();
+  assert.deepEqual(plain(app.state.config),{url:'',itemConfig:{}});
+  assert.deepEqual(storage.row,before);assert.equal(app.state.records.length,2);
+  const reopened=createApp(storage.sdk);await reopened.load();
+  assert.equal(reopened.state.selectedId,b);assert.deepEqual(plain(reopened.state.config),config('b'));
+  assert.ok(reopened.state.records.find(row=>row.id===a));
+});
 test('legacy single config is read without a write and becomes the first named record only on explicit save',async()=>{
   const original=config('legacy'),s=store(original),app=createApp(s.sdk);await app.load();
   assert.equal(s.writes.length,0);assert.deepEqual(plain(app.state.config),original);assert.equal(app.state.records[0].name,'默认配置');
@@ -40,8 +62,8 @@ test('duplicate normalized names and illegal/oversized collections fail before w
   await app.copyProfile(' a ');assert.match(app.state.error,/同名/);assert.equal(storage.writes.length,count);assert.equal(app.state.records.length,2);
   for(const name of ['', 'x'.repeat(61), 'bad\nname']){await app.renameProfile(name);assert(app.state.error);}
   assert.equal(storage.writes.length,count);
-  for(let i=2;i<10;i++)await app.copyProfile('Record '+i);
-  const before=storage.writes.length;await app.copyProfile('Overflow');assert.match(app.state.error,/10/);assert.equal(storage.writes.length,before);
+  for(let i=2;i<32;i++)assert.equal(await app.copyProfile('Record '+i),true);
+  const before=storage.writes.length;await app.copyProfile('Overflow');assert.match(app.state.error,/32/);assert.equal(storage.writes.length,before);
   const s=store(),large=createApp(s.sdk);await large.load();
   // Each config is valid on its own; aggregate storage must stay within the existing SDK budget.
   const big={...config('x'),waitForSelector:'s'.repeat(3600)};
@@ -59,7 +81,7 @@ test('dirty switches/new/delete and remote adoption require confirmation; cancel
   await app.deleteProfile();app.cancelAction();assert.equal(app.state.records.length,2);
   await app.deleteProfile();await app.confirmAction();assert.equal(app.state.selectedId,b);assert.equal(app.state.records.length,1);
   await app.deleteProfile();await app.confirmAction();assert.equal(app.state.selectedId,null);assert.equal(app.state.records.length,0);
-  assert.deepEqual(plain(app.state.config),plain(DEFAULT_CONFIG));
+  assert.deepEqual(plain(app.state.config),{url:'',itemConfig:{}});
 });
 test('CAS conflict retains the complete local draft and remote catalog without unconditional retries',async()=>{
   const {storage,app,a,b}=await two();const other=createApp(storage.sdk);await other.load();
@@ -104,7 +126,7 @@ test('active run locks record mutations; immutable run ownership survives name c
 });
 test('field attributes, pagination and list-detail data survive named copies and switching without truncation',async()=>{
   const {listDetail}=await import('../examples/configs.js');const s=store(),app=createApp(s.sdk);await app.load();app.edit(listDetail);await app.save('Detail');
-  const id=app.state.selectedId;await app.copyProfile('Detail copy');await app.newProfile();await app.save('Default');await app.selectProfile(id);
+  const id=app.state.selectedId;await app.copyProfile('Detail copy');await app.newProfile();app.edit(config('fresh'));await app.save('Fresh');await app.selectProfile(id);
   assert.deepEqual(plain(app.state.config),listDetail);const reopened=createApp(s.sdk);await reopened.load();assert.deepEqual(plain(reopened.state.config),listDetail);
 });
 test('missing CAS token cannot become an unconditional write; late storage read cannot reset an active run',async()=>{
@@ -117,7 +139,7 @@ test('missing CAS token cannot become an unconditional write; late storage read 
     currentPage:async()=>({status:'available',url:DEFAULT_CONFIG.url}),
     start:async(_c,_u,id)=>{sent.resolve(id);await receipt.promise;return {clientRequestId:id,runId:'original'};},
     read:async id=>({clientRequestId:id,runId:'original',retired:false,status:'running'})});
-  const load=app.load();await app.refreshTarget();const run=app.start(DEFAULT_CONFIG.url),id=await sent.promise;
+  app.edit(plain(DEFAULT_CONFIG));const load=app.load();await app.refreshTarget();const run=app.start(DEFAULT_CONFIG.url),id=await sent.promise;
   storage.resolve({value:config('remote'),etag:'1'});await load;
   assert.equal(app.state.clientRequestId,id);assert(app.state.conflict);assert.equal(app.state.phase,'starting');
   receipt.resolve();await run;assert.equal(app.state.runId,'original');
@@ -128,7 +150,7 @@ test('initial storage reply arriving after retirement preserves the completed ru
     currentPage:async()=>({status:'available',url:DEFAULT_CONFIG.url}),
     start:async(_c,_u,id)=>({clientRequestId:id,runId:'finished-run'}),
     read:async id=>({clientRequestId:id,runId:'finished-run',retired:true,status:'completed',result:{data:[{title:'actual'}]}})});
-  const load=app.load();await app.refreshTarget();await app.start(DEFAULT_CONFIG.url);
+  app.edit(plain(DEFAULT_CONFIG));const load=app.load();await app.refreshTarget();await app.start(DEFAULT_CONFIG.url);
   const snapshot=plain(app.state.snapshot);storage.resolve({value:config('remote'),etag:'1'});await load;
   assert.equal(app.state.runId,'finished-run');assert.deepEqual(plain(app.state.snapshot),snapshot);assert.equal(app.state.phase,'retired');
   assert(app.state.conflict);assert.equal(app.state.runProfile.name,'未保存配置');

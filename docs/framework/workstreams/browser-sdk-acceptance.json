@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 75,
+    "operationCount": 81,
     "implementationCounts": {
-      "IMPLEMENTED": 75,
+      "IMPLEMENTED": 81,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -5745,6 +5745,253 @@
         "33b3f574f11b557f6c01830b5758f610d59266f8",
         "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd"
       ],
+      "evidence": []
+    },
+    {
+      "api": "browser.page.readEnvironment",
+      "module": "browser.page",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.page.readEnvironment:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.page.readEnvironment:output",
+      "chromePermissions": [
+        "scripting",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.page.environment.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "approved-current-document",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [],
+      "nextTask": "Verify the current candidate separately; do not inherit historical Node/Build/Native PASS.",
+      "evidence": []
+    },
+    {
+      "api": "browser.fingerprint.apply",
+      "module": "browser.fingerprint",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "REGISTERED_APPROVAL_UNVERIFIED",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.apply:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.apply:output",
+      "chromePermissions": [
+        "debugger",
+        "scripting",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.fingerprint.control"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-current-document",
+      "lifecycle": "session",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Registered in 2d2fa06b0; formal approvedOperations admission evidence not found. Runtime wiring and native observations do not grant approval."
+      ],
+      "nextTask": "Resolve formal scoped fingerprint SDK approval before updating approvedOperations.",
+      "evidence": []
+    },
+    {
+      "api": "browser.fingerprint.readback",
+      "module": "browser.fingerprint",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "REGISTERED_APPROVAL_UNVERIFIED",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.readback:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.readback:output",
+      "chromePermissions": [
+        "scripting",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.fingerprint.control"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "owned-fingerprint-session",
+      "lifecycle": "session",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Registered in 2d2fa06b0; formal approvedOperations admission evidence not found. Runtime wiring and native observations do not grant approval."
+      ],
+      "nextTask": "Resolve formal scoped fingerprint SDK approval before updating approvedOperations.",
+      "evidence": []
+    },
+    {
+      "api": "browser.fingerprint.restore",
+      "module": "browser.fingerprint",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "REGISTERED_APPROVAL_UNVERIFIED",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.restore:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.fingerprint.restore:output",
+      "chromePermissions": [
+        "debugger",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.fingerprint.control"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-fingerprint-session",
+      "lifecycle": "session",
+      "hostImplementation": "src/platform/chrome/context-menus.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Registered in 2d2fa06b0; formal approvedOperations admission evidence not found. Runtime wiring and native observations do not grant approval."
+      ],
+      "nextTask": "Resolve formal scoped fingerprint SDK approval before updating approvedOperations.",
+      "evidence": []
+    },
+    {
+      "api": "browser.siteBudget.getStatus",
+      "module": "browser.siteBudget",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.siteBudget.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.siteBudget.getStatus:output",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.siteBudget"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "installed-policy",
+      "lifecycle": "durable-policy",
+      "hostImplementation": "src/platform/chrome/browser-managed-site-budget.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [],
+      "nextTask": "Verify the current candidate separately; do not inherit historical Node/Build/Native PASS.",
+      "evidence": []
+    },
+    {
+      "api": "browser.siteBudget.setPolicy",
+      "module": "browser.siteBudget",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.siteBudget.setPolicy:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.siteBudget.setPolicy:output",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.siteBudget"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "installed-policy",
+      "lifecycle": "durable-policy",
+      "hostImplementation": "src/platform/chrome/browser-managed-site-budget.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [],
+      "nextTask": "Verify the current candidate separately; do not inherit historical Node/Build/Native PASS.",
       "evidence": []
     }
   ],

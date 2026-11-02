@@ -1918,12 +1918,12 @@
       "TRUSTED_HOST_OR_EXISTING_SERVICE": 315,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 78,
-    "approvedRegistered": 76,
+    "approvedOperations": 80,
+    "approvedRegistered": 78,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
     "nativeMappedApproved": 56,
-    "approvedWithInputAndOutputSchemas": 78,
+    "approvedWithInputAndOutputSchemas": 80,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -13576,6 +13576,130 @@
         "denial": "PASS",
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
+    },
+    {
+      "id": "browser.siteBudget.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "KEEP",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "mappingKind": "EXISTING_SERVICE",
+      "nativeApis": [],
+      "callSignature": "OpenDeskSDK.browser.siteBudget.getStatus(input)",
+      "returnSignature": "Promise<SiteBudgetStatusV2 | SiteBudgetStatusV3>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.siteBudget.getStatus:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.siteBudget.getStatus:output"
+      },
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.siteBudget"
+      ],
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "siteScope": "installed-policy",
+      "userGesture": false,
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "lifecycle": "durable-policy",
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 80000,
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/ui/sidebar-tools.js#browser.siteBudget dispatch",
+      "driverFile": "src/platform/chrome/browser-managed-site-budget.js",
+      "phase": "P6",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; preserve strict V2/V3 alternatives",
+      "approval": {
+        "scope": "Consistency sync of the existing reviewed finite site-budget service, not approval of new capabilities or raw native APIs.",
+        "evidence": [
+          ".agents/skills/opendesk-extension-runtime/SKILL.md#有限公共 MV3 后台预算：R1.4 源码阶段",
+          "docs/api/browser-sdk.zh-CN.md#R1.4 已接入源码的有限公共后台预算（待原生验收）",
+          "docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md"
+        ],
+        "implementationCommits": [
+          "c6c979e8fb4f37e43e52c9d42ca6d3ff8f6ffa9e",
+          "cf0ec255d9ef102e06108dede0f382ece335d63e"
+        ]
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/managed-site-budget-r14.test.mjs",
+          "tests/environment/browser-sdk-v3-schema-repair.test.mjs"
+        ],
+        "negative": "Verified live sender, installed hash/epoch, reviewed sites, trusted confirmation, expectedRev CAS, revocation and unknown effects remain enforced."
+      }
+    },
+    {
+      "id": "browser.siteBudget.setPolicy",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "KEEP",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "mappingKind": "EXISTING_SERVICE",
+      "nativeApis": [],
+      "callSignature": "OpenDeskSDK.browser.siteBudget.setPolicy(input)",
+      "returnSignature": "Promise<SiteBudgetStatusV2 | SiteBudgetStatusV3>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.siteBudget.setPolicy:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.siteBudget.setPolicy:output"
+      },
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.siteBudget"
+      ],
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "siteScope": "installed-policy",
+      "userGesture": false,
+      "effectClass": "write",
+      "riskLevel": "high",
+      "lifecycle": "durable-policy",
+      "maxRequestBytes": 80000,
+      "maxResponseBytes": 80000,
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/ui/sidebar-tools.js#browser.siteBudget dispatch",
+      "driverFile": "src/platform/chrome/browser-managed-site-budget.js",
+      "phase": "P6",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; preserve strict V2/V3 alternatives",
+      "approval": {
+        "scope": "Consistency sync of the existing reviewed finite site-budget service, not approval of new capabilities or raw native APIs.",
+        "evidence": [
+          ".agents/skills/opendesk-extension-runtime/SKILL.md#有限公共 MV3 后台预算：R1.4 源码阶段",
+          "docs/api/browser-sdk.zh-CN.md#R1.4 已接入源码的有限公共后台预算（待原生验收）",
+          "docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md"
+        ],
+        "implementationCommits": [
+          "c6c979e8fb4f37e43e52c9d42ca6d3ff8f6ffa9e",
+          "cf0ec255d9ef102e06108dede0f382ece335d63e"
+        ]
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/managed-site-budget-r14.test.mjs",
+          "tests/environment/browser-sdk-v3-schema-repair.test.mjs"
+        ],
+        "negative": "Verified live sender, installed hash/epoch, reviewed sites, trusted confirmation, expectedRev CAS, revocation and unknown effects remain enforced."
       }
     }
   ],
@@ -60838,10 +60962,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 76,
+    "registeredOperations": 78,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 78,
+    "approvedTotal": 80,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -60953,8 +61077,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "8485ef007b053141c44e1014b3c460049787880c",
-  "currentSchemaSourceSha": "da0dc03e1953f906e4f4d25a4534a599adc43cea",
+  "currentRegistrySourceSha": "ca633067979ad21ad2837b1db12ae5d796224cc6",
+  "currentSchemaSourceSha": "68a36e61cde4c026dda098ce974364ff9c490805",
   "contractRevisions": [
     {
       "date": "2026-10-13",

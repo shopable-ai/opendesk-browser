@@ -545,6 +545,35 @@ test('R3.7 comparison rejects unapproved HTML bytes instead of relabelling them 
  }
 });
 
+test('visual audit selects its Cookie scenario before waiting for rows on an Enterprise default',async()=>{
+ const audit=await read('./visual-contract-check.mjs');
+ const start=audit.indexOf('  await reactPage.goto(');
+ const end=audit.indexOf('  if(width!==380)',start);
+ assert.ok(start>=0&&end>start,'audit scenario setup must be present');
+ const calls=[];
+ let scenario='serviceConnections',labOpen=false;
+ const page={
+  async goto(){calls.push('navigate');},
+  locator(selector){
+   if(selector==='.demo-lab>summary')return {async click(){labOpen=!labOpen;}};
+   assert.equal(selector,'.row-trigger');
+   return {first:()=>({async waitFor(){
+    assert.equal(scenario,'approvedParity','Enterprise default has no Cookie rows');
+    calls.push('rows-visible');
+   }})};
+  },
+  getByTestId(id){
+   assert.equal(id,'scenario');
+   return {async selectOption(value){assert.equal(labOpen,true);scenario=value;calls.push('select-scenario');}};
+  }
+ };
+ const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+ await new AsyncFunction('reactPage','devUrl','reactPath','pathToFileURL','contract',audit.slice(start,end))(
+  page,null,'fixture.html',()=>({href:'file:///fixture.html'}),{scenario:{reactScenario:'approvedParity'}});
+ assert.deepEqual(calls,['navigate','select-scenario','rows-visible']);
+ assert.equal(labOpen,false);
+});
+
 test('R3.7 visual audit self-test reads the approved Git baseline despite working prototype drift',async()=>{
  const {execFileSync}=await import('node:child_process');
  const {mkdtemp,rm}=await import('node:fs/promises');

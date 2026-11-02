@@ -209,10 +209,6 @@
 .cookie-editor-react .cookie-inline-editor .discard-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
 .cookie-editor-react .cookie-inline-editor .discard-row>span{flex:1;min-width:110px}
 
-/* Import dropzone uses the shared presentation component inside a native modal. */
-.cookie-editor-react .cookie-import-dropzone{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
-.cookie-editor-react .cookie-import-dropzone>span{font-size:var(--od-note-size);color:var(--od-sub);overflow-wrap:anywhere}
-
 /* Shared Preview IO JSX, with Host-owned design tokens and no duplicated skins. */
 .cookie-editor-react .import-source{display:grid;gap:var(--space-1);min-width:0}
 .cookie-editor-react .import-dropzone{display:flex;align-items:center;text-align:left;width:100%;min-width:0;min-height:62px;gap:var(--space-2);padding:var(--space-3)}
@@ -334,20 +330,33 @@
   margin:0;font-size:11px;line-height:1.5;color:var(--od-sub);
 }
 .cookie-editor-react .cookie-import-dropzone{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;
-  padding:11px;border:1px dashed var(--od-line);border-radius:10px;
-  background:var(--od-muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:var(--space-1);width:100%;min-width:0;height:auto;
+  padding:var(--space-4);border:2px dashed var(--od-line);
+  border-radius:var(--radius-surface);background:var(--od-muted);
+  color:var(--od-ink);font:inherit;line-height:1.5;text-align:center;
+  white-space:normal;cursor:pointer;
 }
-.cookie-editor-react .cookie-import-dropzone.is-dragging{
+.cookie-editor-react .cookie-import-dropzone:hover:not(:disabled){
+  border-color:var(--od-sub);background:var(--od-muted);
+}
+.cookie-editor-react .cookie-import-dropzone.is-dragging:not(:disabled){
   border-color:var(--od-brand);background:var(--od-brand-bg);
 }
-.cookie-editor-react .cookie-import-dropzone>span{
-  min-width:0;font-size:11px;color:var(--od-sub);overflow-wrap:anywhere;
-}
-.cookie-editor-react .cookie-import-file-picker{flex:none;max-width:100%}
-.cookie-editor-react .cookie-import-file-picker.is-dragging{
+.cookie-editor-react .cookie-import-dropzone:focus-visible{
   outline:2px solid var(--od-brand);outline-offset:2px;
 }
+.cookie-editor-react .cookie-import-dropzone:disabled{cursor:not-allowed}
+.cookie-editor-react .cookie-import-dropzone>span{min-width:0;overflow-wrap:anywhere}
+.cookie-editor-react .cookie-import-dropzone-icon{
+  display:grid;place-items:center;width:36px;height:36px;
+  margin-bottom:var(--space-1);border:1px solid var(--od-line);
+  border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub);
+}
+.cookie-editor-react .cookie-import-dropzone-icon svg{width:20px;height:20px}
+.cookie-editor-react .cookie-import-dropzone-title{font-size:13px;font-weight:600}
+.cookie-editor-react .cookie-import-dropzone-action{font-size:12px;color:var(--od-brand)}
+.cookie-editor-react .cookie-import-dropzone-formats{font-size:11px;color:var(--od-sub)}
 .cookie-editor-react .cookie-import-paste{
   display:grid;gap:6px;min-width:0;font-size:11px;color:var(--od-sub);
 }

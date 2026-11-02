@@ -31,7 +31,6 @@ test('lost claim receipt retains the local operation so explicit stop can retire
   const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{state,valid:true,onBusy(){},onDirty(){},onApply(){throw Error('must not apply');},onClose(){}}});
   await settle();const get=id=>ui.doc.getElementById(id);
   get('ai-requirement').value='preserve this input';get('ai-requirement').dispatch('input');
-  get('chat-ai-use-page').checked=true;get('chat-ai-use-page').dispatch('click');
   send(ui.doc);await settle();
   assert.match(get('chat-ai-request-status').textContent,/unknown/);assert.equal(get('ai-generate').disabled,true);
   get('chat-ai-query-original').dispatch('click');await settle();
@@ -49,6 +48,53 @@ function storageFixture(initial=null){
     throw Error('Unexpected storage operation');
   };
 }
+
+test('default Chat exposes the shared message and composer without auxiliary business controls',async t=>{
+  const previous=globalThis.OpenDeskTool,storage=storageFixture();
+  globalThis.OpenDeskTool={request:async(op,args)=>op.startsWith('storage.')?storage(op,args):{generation:1}};
+  t.after(()=>{globalThis.OpenDeskTool=previous;});
+  const state={config:{url:'',itemConfig:{}},target:null,profileEpoch:0};
+  const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{state,valid:true,onBusy(){},onDirty(){},onClose(){}}});
+  await settle();
+  assert.ok(ui.doc.querySelector('[role="log"]'));assert.ok(ui.doc.getElementById('ai-requirement'));
+  assert.ok(ui.doc.getElementById('ai-generate'));assert.ok(ui.doc.querySelector('.od-conversation-close'));
+  assert.equal(ui.doc.querySelectorAll('#chat-ai-panel button').length,2);
+});
+
+test('ordinary conversation remains available without a ready capture and follows the previous reply',async t=>{
+  const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[];
+  globalThis.OpenDeskTool={request:async(operation,payload)=>{
+    if(operation.startsWith('storage.'))return storage(operation,payload);
+    if(operation==='ai.info')return {provider:'local_codex',model:'fixture',generation:1};
+    if(operation==='ai.generate'){
+      calls.push(structuredClone(payload));
+      return {requestId:payload.requestId,providerGeneration:1,
+        proposal:{type:'explain',message:calls.length===1?'可以先讨论需求，再准备采集规则。':'上条说的是先讨论需求。'}};
+    }
+    throw Error('Unexpected '+operation);
+  }};
+  t.after(()=>{globalThis.OpenDeskTool=previous;});
+  const state={config:{url:'https://example.com/',itemConfig:{title:'h2'}},target:null,profileEpoch:1,
+    clientRequestId:'retired-capture',snapshot:{status:'stopped'},retired:true};
+  const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{state,valid:false,locked:true,businessLocked:true,
+    onBusy(){},onDirty(){},onApply(){throw Error('must not apply');},onBusinessAction(){throw Error('must not execute');},onClose(){}}});
+  ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0});
+  await settle();const get=id=>ui.doc.getElementById(id);
+  get('ai-requirement').value='先聊聊怎么使用';get('ai-requirement').dispatch('input');
+  assert.equal(get('ai-generate').disabled,false,'capture readiness must not prevent ordinary questions');
+  send(ui.doc);await settle();await settle();
+  const log=ui.doc.querySelector('[role="log"]');
+  assert.match(log.textContent,/先聊聊怎么使用/);assert.match(log.textContent,/可以先讨论需求/);
+  assert.equal(get('ai-requirement').value,'','a conversational reply leaves a fresh composer');
+  get('ai-requirement').value='你上条说了什么？';get('ai-requirement').dispatch('input');send(ui.doc);
+  await settle();await settle();
+  assert.equal(calls.length,2);
+  assert.deepEqual(calls[1].context.conversation,[{role:'user',content:'先聊聊怎么使用'},
+    {role:'assistant',content:'可以先讨论需求，再准备采集规则。'}]);
+  assert.match(log.textContent,/上条说的是先讨论需求/);
+  assert.equal(get('chat-ai-apply'),null);assert.equal(get('chat-ai-confirm-operation'),null);
+  assert.deepEqual(state.config.itemConfig,{title:'h2'});
+});
 
 test('stop in the terminal cleanup window leaves no proposal or unknown deadlock after reopening',async t=>{
   const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[],busy=[],applied=[];
@@ -86,7 +132,7 @@ test('stop in the terminal cleanup window leaves no proposal or unknown deadlock
   assert.equal(calls.filter(call=>call.operation==='ai.cancel').length,0,'retain the real completed response');
 });
 
-test('retry displays the same previous-error snapshot sent for that request',async t=>{
+test('retry sends a stable snapshot of the previous error and original config',async t=>{
   const previous=globalThis.OpenDeskTool;
   const calls=[];
   const storage=storageFixture();
@@ -109,7 +155,6 @@ test('retry displays the same previous-error snapshot sent for that request',asy
   await settle();
   const requirement=ui.doc.getElementById('ai-requirement');
   requirement.value='保留规则，增加标题副本';requirement.dispatch('input');
-  const page=ui.doc.getElementById('chat-ai-use-page');page.checked=true;page.dispatch('click');
   const generate=ui.doc.getElementById('ai-generate');
   assert.equal(generate.disabled,false,'fixture entered a valid request');
   send(ui.doc);await settle();
@@ -119,18 +164,10 @@ test('retry displays the same previous-error snapshot sent for that request',asy
   send(ui.doc);await settle();
   assert.equal(calls.length,2);
   assert.equal(calls[1].context.previousError,'生成错误 A');
-  const displayed=JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>
-    node.querySelector('summary').textContent.includes('配置与错误资料')).querySelector('pre').textContent);
-  assert.equal(displayed.previousError,calls[1].context.previousError,
-    'clearing the live error must not alter this request’s displayed context');
-  assert.deepEqual(displayed.currentConfig,calls[1].context.currentConfig);
-  assert.equal(requirement.value,'保留规则，增加标题副本');
+  const sent=structuredClone(calls[1].context);
   state.target={title:'网页已变化',url:'https://download.csdn.net/other/'};
   state.config={...state.config,itemConfig:{title:'h3'}};ui.paint();
-  const during=JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>
-    node.querySelector('summary').textContent.includes('配置与错误资料')).querySelector('pre').textContent);
-  assert.deepEqual(during,displayed,'a target/config refresh cannot rewrite the in-flight preview');
-  assert.ok(ui.doc.body.textContent.includes(calls[1].context.page.url));
+  assert.deepEqual(calls[1].context,sent);
   rejectRequest(Error('生成错误 C'));await settle();
 });
 
@@ -154,27 +191,17 @@ test('unknown permits next-input edits but fences generation/application and pre
   await settle();
   const get=id=>ui.doc.getElementById(id);
   const edit=(id,value)=>{get(id).value=value;get(id).dispatch('input');};
-  const check=(id,value)=>{get(id).checked=value;get(id).dispatch('click');};
-  const preview=()=>JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>node.querySelector('summary').textContent.includes('配置与错误资料')).querySelector('pre').textContent);
-  edit('ai-requirement','original requirement');edit('chat-ai-sample','<h2>sent sample</h2>');check('chat-ai-use-page',true);
-  assert.equal(preview().sample,'<h2>sent sample</h2>','next-send review must disclose the sample before sending');
+  edit('ai-requirement','original requirement');
   send(ui.doc);await settle();
   assert.equal(get('ai-requirement').disabled,true,'pending requests still lock edits');
-  assert.equal(get('chat-ai-use-page').closest('fieldset').hasAttribute('disabled'),true);
   const sent=calls.find(call=>call.operation==='ai.generate').payload;
-  const sentPreview=preview();
-  assert.deepEqual(sentPreview,sent.context,'reviewed materials must include the exact HTML sample sent to the Provider');
+  const sentContext=structuredClone(sent.context);
   rejectRequest(Object.assign(Error('fixture outcome unknown'),{code:'E_AI_OUTCOME_UNKNOWN'}));await settle();
   assert.equal(get('ai-requirement').disabled,false,'unknown must allow preparing the next requirement');
-  assert.equal(get('chat-ai-use-page').closest('fieldset').hasAttribute('disabled'),false,'unknown must allow sample and selection edits');
-  edit('ai-requirement','next requirement');edit('chat-ai-sample','<p>next sample</p>');check('chat-ai-use-config',false);check('chat-ai-use-page',false);
+  edit('ai-requirement','next requirement');
   state.target={title:'Next page',url:'https://example.com/next'};state.config={...state.config,itemConfig:{title:'h3'}};ui.paint();
-  assert.equal(get('ai-requirement').value,'next requirement');assert.equal(get('chat-ai-sample').value,'<p>next sample</p>');
-  assert.equal(get('chat-ai-use-config').checked,false);assert.equal(get('chat-ai-use-page').checked,false);
-  const nextFields=get('chat-ai-use-page').closest('fieldset');
-  assert.match(nextFields.textContent,/下次待发送的资料/);assert.match(nextFields.textContent,/Next page/);
-  assert.equal(nextFields.textContent.includes('Sent page'),false);
-  assert.deepEqual(preview(),sentPreview,'edits must not rewrite the sent context');
+  assert.equal(get('ai-requirement').value,'next requirement');
+  assert.deepEqual(sent.context,sentContext);
   assert.ok(ui.doc.body.textContent.includes(sent.requestId),'show the unresolved request identity');
   assert.match(get('chat-ai-request-status').textContent,/unknown/);
   assert.equal(get('ai-generate').disabled,true);assert.equal(get('chat-ai-apply'),null);
@@ -191,7 +218,7 @@ test('unknown permits next-input edits but fences generation/application and pre
   assert.equal(get('chat-ai-query-original').disabled,false);get('chat-ai-query-original').dispatch('click');await settle();
   assert.deepEqual(calls.filter(call=>call.operation==='ai.cancel').map(call=>call.payload.requestId),[sent.requestId]);
   assert.equal(get('ai-generate').disabled,true);assert.match(get('chat-ai-request-status').textContent,/unknown/);
-  assert.deepEqual(preview(),sentPreview);assert.deepEqual(applied,[]);assert.equal(busy.at(-1),true);
+  assert.deepEqual(sent.context,sentContext);assert.deepEqual(applied,[]);assert.equal(busy.at(-1),true);
   ui.state.show=false;ui.paint();await settle();
   assert.deepEqual(calls.filter(call=>call.operation==='ai.cancel').map(call=>call.payload.requestId),[sent.requestId,sent.requestId]);
   assert.equal(busy.at(-1),true,'unmount must not declare the unknown request resolved');
@@ -218,7 +245,6 @@ test('reopened pending identity and failed initial read block dispatch until a c
   await settle();
   const get=id=>ui.doc.getElementById(id);
   get('ai-requirement').value='new request';get('ai-requirement').dispatch('input');
-  get('chat-ai-use-page').checked=true;get('chat-ai-use-page').dispatch('click');
   assert.equal(get('ai-generate').disabled,true,'failed initial read is fail closed');
   readFailed=false;ui.state.show=false;ui.paint();ui.state.show=true;ui.paint();await settle();
   assert.ok(ui.doc.body.textContent.includes(stored.requestId),'remount restores original ID');
@@ -250,14 +276,42 @@ test('local preview keeps the shared Chat draft across closing and reopening wit
   ui.state.open=true;ui.paint();
   assert.equal(ui.doc.activeElement,get('ai-requirement'),'opening the bottom Dock focuses the shared composer');
   get('ai-requirement').value='保留原规则，只增加 column_title';get('ai-requirement').dispatch('input');
-  get('chat-ai-sample').value='<h2>结构样本</h2>';get('chat-ai-sample').dispatch('input');
-  get('chat-ai-use-page').checked=true;get('chat-ai-use-page').dispatch('click');
   assert.equal(get('ai-generate').disabled,true);
   send(ui.doc);get('ai-requirement').dispatch('keydown',{key:'Enter'});await settle();
   ui.state.open=false;ui.paint();ui.state.open=true;ui.paint();
   assert.equal(get('ai-requirement').value,'保留原规则，只增加 column_title');
-  assert.equal(get('chat-ai-sample').value,'<h2>结构样本</h2>');assert.equal(get('chat-ai-use-page').checked,true);
   assert.ok(ui.doc.querySelector('[data-opendesk-conversation-frame]'),'uses the actual shared frame');
   assert.match(ui.doc.querySelector('[role="alert"]').textContent,/开发预览/);
   assert.equal(calls.filter(op=>op==='ai.generate'||op==='ai.cancel').length,0);
 });
+
+// The original business-action tests now live at App level: Chat never dispatches
+// collection/export. These races cover automatic configuration writes instead.
+for(const drift of ['profile','config','page','locked','provider','pending','unmount'])
+  test('automatic configuration editing rejects '+drift+' drift before applying',async t=>{
+    const previous=globalThis.OpenDeskTool,storage=storageFixture(),applied=[];
+    let release,requestId;
+    const gate=new Promise(resolve=>{release=resolve;});
+    const state={config:{url:'https://example.com/',itemConfig:{title:'h2'}},target:{url:'https://example.com/'},profileEpoch:1};
+    globalThis.OpenDeskTool={request:async(op,args)=>{
+      if(op.startsWith('storage.'))return storage(op,args);
+      if(op==='ai.info')return {generation:drift==='provider'&&requestId?2:1};
+      if(op==='ai.generate'){requestId=args.requestId;return gate;}
+      if(op==='ai.cancel')return {requestId:args.requestId,state:'cancelled'};
+      throw Error('Unexpected '+op);
+    }};
+    t.after(()=>{globalThis.OpenDeskTool=previous;});
+    const ui=createExtensionCenterDOM(t,{component:({show,...props})=>show?React.createElement(AiPanel,props):null,
+      props:{show:true,state,valid:true,onBusy(){},onDirty(){},onApply:value=>applied.push(value),onClose(){}}});
+    await settle();const input=ui.doc.getElementById('ai-requirement');input.value='新增 copy 字段';input.dispatch('input');send(ui.doc);await settle();
+    if(drift==='profile')state.profileEpoch++;
+    if(drift==='config')state.config={...state.config,maxPages:2};
+    if(drift==='page')state.target={url:'https://example.com/other'};
+    if(drift==='locked')ui.state.locked=true;
+    if(drift==='unmount')ui.state.show=false;
+    ui.paint();
+    // A different persisted identity must survive the old round's cleanup.
+    if(drift==='pending')await storage('storage.set',{key:'ai-pending-request',ifMatch:'1',value:{schemaVersion:1,requestId:'other'}});
+    release({requestId,providerGeneration:1,proposal:{type:'actions',actions:[{kind:'field.upsert',key:'copy',rule:'h2'}]}});
+    await settle();await settle();assert.deepEqual(applied,[]);
+  });

@@ -6,7 +6,7 @@ import {checkSidebarToolProjectPackage,createSidebarToolPackage,encodeSidebarToo
 import {CAPTURE_ORIGINS} from '../adapters/capture-policy.js';
 const tool=new URL('../',import.meta.url);
 const sha=x=>createHash('sha256').update(x).digest('hex');
-test('single promoted App is reproducible and delegates only to the shipped fixed Task revision',async()=>{
+test('single App binds its DOM Controller and preserves the explicit HTTP Task pin',async()=>{
   const candidate=process.env.SCRAPYJS_CANDIDATE;
   if(candidate)assert.equal(sha(await readFile(candidate)),sha(encodeSidebarToolPackage(await createSidebarToolPackage(tool.pathname))));
   else assert.equal((await checkSidebarToolProjectPackage(tool.pathname)).status,'PROJECT_PACKAGE_MATCH');
@@ -20,5 +20,11 @@ test('single promoted App is reproducible and delegates only to the shipped fixe
   assert.equal(sha(task.sourceUtf8),task.manifest.program.sourceHash);
   assert.deepEqual(app.delegatedTasks,[{taskId:task.manifest.taskId,version:task.manifest.version,
     manifestHash:task.manifestHash,contentHash:sha(task.sourceUtf8)}]);
-  assert.deepEqual(app.capabilities,['ai.generate','localTasks','storage.local','currentPage.read','user.export','tasks.run']);
+  assert.deepEqual(app.capabilities,['ai.generate','localTasks','storage.local','currentPage.read','user.export','tasks.run','controllers.run']);
+  assert.deepEqual(app.controller.siteOrigins,[...CAPTURE_ORIGINS].sort());
+  assert.deepEqual(app.controller.permissions,['page.automation']);
+  assert.equal(app.controller.sourceHash,sha(app.controller.sourceUtf8));
+  assert.equal(app.controller.sourceUtf8,await readFile(new URL('dist/controller.js',tool),'utf8'));
+  assert.deepEqual(app.controller.paramsSchema,task.manifest.paramsSchema);
+  assert.equal(app.controller.deadlineMs,90000);
 });

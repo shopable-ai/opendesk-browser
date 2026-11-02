@@ -1,3 +1,18 @@
+## 2026-11-02 · R32 登记一致性修复（非能力批准或原生验收）
+
+当前 Registry 登记 81 项，补齐旧 75 项账本遗漏的六项。新行均保留 NOT_TESTED，历史证据不改写。
+指纹 apply/readback/restore 虽已在 `2d2fa06b0` 接线，尚未找到正式矩阵准入批准依据，标记 REGISTERED_APPROVAL_UNVERIFIED；不能把登记或原生观察当作批准。
+siteBudget 两项同步已有 R1.4 已审有限数据合同（公开 SDK 文档与 runtime Skill），保留 V2/V3 严格分支、CAS 与可信审阅，不新增能力或原生直通。
+
+| API | Implementation | Exposure | Positive | Denial | Native Chrome |
+| --- | --- | --- | --- | --- | --- |
+| `browser.page.readEnvironment` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.fingerprint.apply` | IMPLEMENTED | REGISTERED_APPROVAL_UNVERIFIED | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.fingerprint.readback` | IMPLEMENTED | REGISTERED_APPROVAL_UNVERIFIED | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.fingerprint.restore` | IMPLEMENTED | REGISTERED_APPROVAL_UNVERIFIED | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.siteBudget.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.siteBudget.setPolicy` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
 ## 2026-10-17 · 当前 75 公共接口验收账本补齐（非 Native PASS）
 
 Registry 已注册 75 项；历史 73 项账本漏列 `cookies.getAllPage` 与 `cookies.setMany`。

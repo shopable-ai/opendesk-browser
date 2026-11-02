@@ -60,9 +60,16 @@
 .import-sheet-header h2{margin:0;font-size:15px;line-height:1.35}
 .import-sheet-body{min-height:0;flex:0 1 auto;display:grid;gap:11px;overflow-y:auto;overscroll-behavior:contain;padding:12px 13px;scrollbar-width:thin}
 .import-sheet-body .field{min-width:0;font-weight:600}.import-sheet-body textarea{min-height:76px;max-height:180px;resize:vertical;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
-.import-dropzone{min-height:84px;min-width:0;padding:12px 10px;border:1px dashed var(--line);border-radius:9px;background:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;color:var(--fg)}
-.import-dropzone:hover,.import-dropzone.dragging,.import-dropzone:focus-visible{border-color:var(--brand);background:var(--brand-bg)}
-.import-dropzone strong{font-size:11px;font-weight:700}.import-dropzone small,.import-sheet-note{font-size:10px;line-height:1.6;color:var(--muted)}
+.import-dropzone{width:100%;height:auto;min-width:0;padding:16px;border:2px dashed var(--line);border-radius:12px;background:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;white-space:normal;font:inherit;line-height:1.5;cursor:pointer;color:var(--fg)}
+.import-dropzone:hover:not(:disabled){border-color:var(--muted)}
+.import-dropzone.dragging:not(:disabled){border-color:var(--brand);background:var(--brand-bg)}
+.import-dropzone:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.import-dropzone:disabled{cursor:not-allowed;opacity:.6}
+.import-dropzone>span,.import-dropzone>strong,.import-dropzone>small{min-width:0;overflow-wrap:anywhere}
+.import-dropzone-icon{display:grid;place-items:center;width:36px;height:36px;margin-bottom:4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted)}
+.import-dropzone-icon .icon{width:20px;height:20px}
+.import-dropzone strong{font-size:13px;font-weight:600}.import-dropzone-action{font-size:12px;color:var(--brand)}
+.import-dropzone small{font-size:11px;color:var(--muted)}.import-sheet-note{font-size:10px;line-height:1.6;color:var(--muted)}
 .import-file-name{font-size:10px;color:var(--green);margin:0;overflow-wrap:anywhere}.import-overwrite{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer}
 .import-overwrite input{accent-color:var(--brand);width:15px;height:15px;flex:none}.import-sheet-note{margin:0}
 .import-sheet-footer{flex:none;display:grid;gap:9px;border-top:1px solid var(--line);padding:10px 13px 12px;background:var(--bg)}
@@ -367,11 +374,16 @@
         <header class="import-sheet-header"><h2 id="importTitle">导入 Cookie</h2><button id="importClose" type="button" class="iconbtn" aria-label="关闭导入" title="关闭导入"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
         <div id="importBody" class="import-sheet-body">
           <input id="importFile" type="file" accept=".json,.txt,application/json,text/plain" hidden>
-          <div id="importDropzone" class="import-dropzone" role="button" tabindex="0" aria-label="选择或拖放 Cookie JSON 文件"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4"/></svg><strong>拖放文件到这里，或点击选择</strong><small>JSON / TXT · 最大 8 MiB</small></div>
+          <button id="importDropzone" class="import-dropzone" type="button" aria-label="选择或拖入 Cookie 文件" aria-describedby="importFormats importPreviewNote">
+            <span class="import-dropzone-icon"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path id="importDropzoneGlyph" d="M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4"/></svg></span>
+            <strong id="importDropzoneTitle">将 Cookie 文件拖到此处</strong>
+            <span id="importDropzoneAction" class="import-dropzone-action">或点击选择文件</span>
+            <small id="importFormats">JSON / TXT 元数据 · 最大 8 MiB</small>
+          </button>
           <p id="importFileName" class="import-file-name" role="status" hidden></p>
           <label class="field" for="importText">或粘贴 Cookie JSON 元数据<textarea id="importText" autocomplete="off" spellcheck="false" placeholder='[{"name":"theme","domain":"shop.example.com","path":"/"}]'></textarea></label>
           <label class="import-overwrite" for="importOverwrite"><input id="importOverwrite" type="checkbox" checked><span>覆盖已有 Cookie</span></label>
-          <p class="import-sheet-note">仅供离线交互演示：只导入不含 Cookie 值的元数据，修改的是本页虚构列表，不写入 Chrome。不要使用真实账号凭据。</p>
+          <p id="importPreviewNote" class="import-sheet-note">仅供离线交互演示：只导入不含 Cookie 值的元数据，修改的是本页虚构列表，不写入 Chrome。不要使用真实账号凭据。</p>
         </div>
         <footer class="import-sheet-footer">
           <p id="importError" class="import-sheet-error" role="alert" hidden></p>
@@ -781,11 +793,17 @@ function renderExportPopover(){return `<div class="popover" role="dialog" aria-l
 function importNotice(message){const el=$('importError');el.textContent=message||'';el.hidden=!message;}
 function importHasDraft(){return Boolean(importFile||$('importText').value.trim());}
 function importHideDiscard(){$('importDiscard').hidden=true;$('importActions').hidden=false;}
+function updateImportDropzone(dragging=false){
+  $('importDropzone').classList.toggle('dragging',dragging);
+  $('importDropzoneTitle').textContent=dragging?'松开以选择文件':importFile?'文件已暂存':'将 Cookie 文件拖到此处';
+  $('importDropzoneAction').textContent=importFile?'点击更换文件，或拖入其他文件':'或点击选择文件';
+  $('importDropzoneGlyph').setAttribute('d',importFile?'m5 12 5 5L20 7':'M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4');
+}
 function resetImportDraft(){
   importGeneration++;importFile=null;$('importFile').value='';$('importText').value='';
   $('importFileName').hidden=true;$('importFileName').textContent='';
   $('importOverwrite').checked=true;importNotice('');importHideDiscard();
-  $('importDropzone').classList.remove('dragging');
+  updateImportDropzone();
 }
 function openImport(){
   if(importOpen||busy||sheet||tab!=='cookies')return;
@@ -814,9 +832,10 @@ function requestCloseImport(){
 }
 function stageImportFile(file){
   if(!file||!importOpen||importReading)return;
-  if(file.size>8*1024*1024){importFile=null;$('importFile').value='';$('importFileName').hidden=true;$('importFileName').textContent='';importNotice('文件超过 8 MiB，请选择较小的 JSON/TXT 文件。');return;}
-  importFile=file;$('importFileName').textContent='已选择 '+file.name.slice(0,100)+' · 点击「确认导入」后直接导入';
+  if(file.size>8*1024*1024){$('importFile').value='';importNotice('文件超过 8 MiB，请选择较小的 JSON/TXT 文件。');return;}
+  importFile=file;$('importFileName').textContent='已选择 '+file.name.slice(0,100)+' · 点击「确认导入」后才会导入演示列表';
   $('importFileName').hidden=false;$('importText').value='';importNotice('');importHideDiscard();
+  updateImportDropzone();
 }
 function parsePreviewImport(text){
   let parsed;try{parsed=JSON.parse(text);}catch{throw Error('JSON 语法不正确，请粘贴数组或选择 JSON 文件。');}
@@ -854,6 +873,7 @@ async function confirmImport(){
   const version=importGeneration,targetSite=site,selected=importFile;
   importReading=true;$('importConfirm').disabled=true;$('importClose').disabled=true;
   $('importCancel').disabled=true;$('importFile').disabled=true;importNotice('');
+  $('importDropzone').disabled=true;$('importText').disabled=true;$('importOverwrite').disabled=true;
   let text='';
   try{
     text=selected?await selected.text():$('importText').value;
@@ -876,6 +896,7 @@ async function confirmImport(){
     text='';importReading=false;
     $('importConfirm').disabled=false;$('importClose').disabled=false;
     $('importCancel').disabled=false;$('importFile').disabled=false;
+    $('importDropzone').disabled=false;$('importText').disabled=false;$('importOverwrite').disabled=false;
   }
 }
 function render(){const d=data();$('sitePick').value=site;$('mainTabs').hidden=route!=='main';for(const [name,id] of [['cookies','tabCookies'],['accounts','tabAccounts'],['enterprise','tabEnterprise'],['market','tabMarket'],['custom','tabCustom'],['circle','tabCircle']]){$(id).setAttribute('aria-selected',String(tab===name));$(id).tabIndex=tab===name?0:-1;$(id).disabled=busy;}$('sitePick').disabled=busy||Boolean(sheet)||route!=='main';$('viewCookies').hidden=tab!=='cookies';$('viewAccounts').hidden=tab!=='accounts';$('viewEnterprise').hidden=tab!=='enterprise';$('viewMarket').hidden=tab!=='market';$('viewCustom').hidden=tab!=='custom';$('viewCircle').hidden=tab!=='circle';if(tab==='cookies')renderCookies();else if(tab==='accounts')renderAccounts();else if(tab==='enterprise')renderEnterprise();else if(tab==='market')renderMarket();else if(tab==='custom')renderCustomize();else renderCircle();}
@@ -1037,19 +1058,22 @@ $('importConfirm').onclick=()=>{void confirmImport();};
 $('importKeep').onclick=()=>{importHideDiscard();$('importText').focus({preventScroll:true});};
 $('importDiscardConfirm').onclick=()=>forceCloseImport();
 $('importBackdrop').addEventListener('click',e=>{if(e.target===$('importBackdrop'))requestCloseImport();});
-$('importDropzone').addEventListener('click',()=>$('importFile').click());
-$('importDropzone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('importFile').click();}});
+$('importDropzone').addEventListener('click',()=>{
+ if(!importOpen||importReading)return;
+ $('importFile').value='';$('importFile').click();
+});
 $('importDropzone').addEventListener('dragenter',e=>{
- if(!importReading&&Array.from(e.dataTransfer?.types||[]).includes('Files')){e.preventDefault();$('importDropzone').classList.add('dragging');}
+ if(!importReading&&Array.from(e.dataTransfer?.types||[]).includes('Files')){e.preventDefault();updateImportDropzone(true);}
 });
 $('importDropzone').addEventListener('dragover',e=>{
- if(!importReading){e.preventDefault();e.dataTransfer.dropEffect='copy';$('importDropzone').classList.add('dragging');}
+ if(!importReading&&Array.from(e.dataTransfer?.types||[]).includes('Files')){e.preventDefault();e.dataTransfer.dropEffect='copy';updateImportDropzone(true);}
 });
-$('importDropzone').addEventListener('dragleave',e=>{if(!e.currentTarget.contains(e.relatedTarget))$('importDropzone').classList.remove('dragging');});
-$('importDropzone').addEventListener('drop',e=>{e.preventDefault();$('importDropzone').classList.remove('dragging');stageImportFile(e.dataTransfer?.files?.[0]);});
+$('importDropzone').addEventListener('dragleave',e=>{if(!e.currentTarget.contains(e.relatedTarget))updateImportDropzone();});
+$('importDropzone').addEventListener('drop',e=>{e.preventDefault();updateImportDropzone();stageImportFile(e.dataTransfer?.files?.[0]);});
 $('importFile').addEventListener('change',e=>stageImportFile(e.target.files?.[0]));
 $('importText').addEventListener('input',()=>{
  if(importFile){importFile=null;$('importFile').value='';$('importFileName').hidden=true;$('importFileName').textContent='';}
+ updateImportDropzone();
  importNotice('');importHideDiscard();
 });
 $('importDialog').addEventListener('keydown',e=>{

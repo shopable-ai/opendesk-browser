@@ -21,7 +21,15 @@ export function normalizeTaskDelegations(value){
   return rows;
 }
 export function normalizeTaskDelegationRequest(operation,value){
-  invariant(TASK_DELEGATION_OPERATIONS.includes(operation),'E_SCHEMA');
+  const app= ['controllers.start','controllers.read','controllers.stop'].includes(operation);
+  invariant(app||TASK_DELEGATION_OPERATIONS.includes(operation),'E_SCHEMA');
+  if(app){
+    if(operation==='controllers.read'&&value&&Object.keys(value).length===0)return {};
+    fields(value,operation==='controllers.start'?['clientRequestId','params']:['clientRequestId']);
+    invariant(typeof value.clientRequestId==='string'&&/^[A-Za-z0-9._:-]{1,80}$/.test(value.clientRequestId),'E_SCHEMA');
+    if(operation==='controllers.start')invariant(new TextEncoder().encode(canonical(value.params,{maxDepth:12})).byteLength<=8192,'E_BUDGET');
+    return structuredClone(value);
+  }
   if(operation==='tasks.read'&&Object.hasOwn(value||{},'taskId')){
     fields(value,['taskId']);
     invariant(typeof value.taskId==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(value.taskId),'E_SCHEMA');

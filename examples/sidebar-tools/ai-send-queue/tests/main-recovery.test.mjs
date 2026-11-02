@@ -6,7 +6,7 @@ import vm from 'node:vm';
 // Exercise the real entry's action wiring without sending a website message.
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
-  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false}={}){
+  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false}={}){
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
     recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0};
   let actions,unload,poll,hasRecovery=false,active=true,legacy=false;
@@ -21,6 +21,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     checkEnqueue(){calls.preflight++;return preflight;},
     enqueue(){calls.enqueued++;return enqueue;},
     wait(){},
+    reclaimPrepared(){calls.reclaimPrepared=(calls.reclaimPrepared||0)+1;return reclaimPrepared;},
     uncertain(...args){calls.uncertain=args;},
     requestNow(){calls.now++;return {ok:true};},
     tick(options){calls.ticks++;calls.canSubmit=options?.canSubmit;}};
@@ -176,3 +177,17 @@ test('force-send click calls the engine once without a second confirmation',asyn
   h.enqueue();h.actions.sendNow('q1');
   assert.equal(h.calls.now,1,'a retained recovery copy vetoes stopping too');
 });
+
+for(const allowed of [false,true]){
+  test(`unknown draft edit delegates to read-only no-send proof (${allowed})`,async()=>{
+    const h=fixture({queued:true,reclaimPrepared:allowed});await h.run();
+    h.state.items[0].state='unknown';h.state.phase='unknown';
+    h.state.inFlight={id:'q1',phase:'unknown'};
+    const draft=h.snap.draft;
+    assert.equal(h.edit(),allowed);
+    assert.equal(h.calls.reclaimPrepared,1);
+    assert.equal(h.calls.clear,0);assert.equal(h.calls.restores,0);
+    assert.equal(h.snap.draft,draft);assert.equal(h.calls.now,0);
+    assert.match(h.calls.toasts.at(-1),allowed?/保留原输入框草稿/:/不会自动重发/);
+  });
+}

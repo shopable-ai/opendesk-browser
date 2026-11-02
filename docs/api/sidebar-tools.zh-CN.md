@@ -42,6 +42,7 @@
 | --- | --- | --- |
 | v2 SDK 与贡献 | 源配置声明 `format: "opendesk.sidebar-tool.v2"`、`requires`、`contributes`，保留到最终包 | 具体名称与许可见 [Browser SDK](browser-sdk.zh-CN.md)，不是直接授权 |
 | v2 固定 Task 委托 | `capabilities` 声明 `tasks.run`，顶层 `delegatedTasks` 保留到最终包 | 每个 pin 为 `{taskId,version,manifestHash,contentHash}`；安装时审阅固定身份，运行合同见下文 |
+| v2 应用固定 Controller | `capabilities` 声明 `controllers.run`，顶层 `controller` 保留到最终包 | 固定 Classic 源码、SHA、内置运行时、参数、确切网站和期限一并审阅；无需独立 Task |
 | v2 多 JS 依赖 | `files.dependencies`：最多 8 个有序、不重复的固定 Classic 文件；构建成 `scripts` 中的 name/sha256/code | 沙箱校验字节后依序加载，再运行主 js；v1 不接受 dependencies/scripts，不开放任意后台 JS |
 | v2 App Service（R1.4） | `files.background`：独立本地 Classic JS 入口；生成顶层 `background: {kind,js,sha256}` | 与 UI `js/scripts` 分离；安装前校验源码摘要，不赋予特权 Background/Chrome 权限；详见下节 |
 | 固定 Shared UI | v1/v2 均可显式声明 `uiRuntime: "opendesk.react-ui.v1"`，同名字段进入包 | 只选择已支持的固定沙箱 React/UI 资源；工具在自己的文档创建 Root，没有宿主 Chrome 权限 |
@@ -120,7 +121,7 @@ await OpenDeskTool.request('browser.scheduler.create', {
 
 **Browser SDK v2 不是自动授权**：已有工具可以按当前 [Browser SDK API、可调用状态与 v2 菜单合同](browser-sdk.zh-CN.md) 声明受审的 `requires.browserSdk`、`contributes.contextMenus` 和相应 capability；例如 Cookie Editor、Bookmark Manager、Prompt Shortcuts 的真实配置已分别声明受控 Cookie、Bookmark、`page.prompts`/原生菜单能力，但这些能力**不等于所有新第三方工具均已取得原生访问权限**。新增工具必须根据公开能力状态（IMPLEMENTED/HOST_ONLY/NOT_EXPOSED/PLANNED）、权限和安装身份逐项审核；不能把 Browser SDK v2 错误简化成只有下述基础 `request` 操作。
 
-**公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；v2 另可审阅 `tasks.run` 的固定已安装 Task pins。`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。除下述经原 Task Authority 执行的固定委托外，没有向沙箱直接开放任意页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
+**公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；v2 另可审阅 `tasks.run` 的固定已安装 Task pins 或 `controllers.run` 的应用包内固定 Controller。`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。除下述经原 Task Authority 执行的固定委托外，没有向沙箱直接开放任意页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
 
 ## 2. 工具的运行 API
 
@@ -179,6 +180,23 @@ Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent�
 普通 `storage.local` 当前最多 32 个键，每项 JSON ≤8,192 字节，工具数据对象总 JSON ≤32,768 字节。`key` 须以英文字母开头，仅允许英文字母/数字/点/下划线/连字符，最长 60 字符。`withEtag/ifMatch` 是可选的条件更新；发生冲突应重新读回并让用户决定，不自动覆盖。
 
 `browser.clipboard.writeText`、`browser.downloads.text` 的文本须非空且 UTF-8 ≤150,000 bytes。`browser.downloads.text` 仅允许不含路径分隔符等危险字符、且不以点开头的 `.md`、`.txt`、`.json` 或 `.csv` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
+
+### 应用包内固定 Controller（v2）
+
+`controllers.run` 面向随 App 安装和更新的固定网页自动化。原 builder 读取 `files.controller` 的预编译 Classic 文件；`controller` 配置只声明 `{siteOrigins,permissions,paramsSchema,deadlineMs,builtinIdentity}`，最终包附上 `sourceUtf8/sourceHash`。源码复用原 Controller 编译器，不在打包或安装时执行。编译项目的 build-ready 回执同时绑定 Controller 源文件及输出；安装审阅显示源码 SHA、内置运行时 ABI/catalog/bundle SHA、参数、确切网站和期限，所有字段参与包身份。
+
+仅允许 `permissions: ["page.automation"]`、精确 HTTP(S) origins、原 Task 参数 schema 和 1–90,000 ms 期限；源码上限沿用公共 Controller source budget。`builtinIdentity` 为原固定运行时的 `{abi,catalogSha256,bundleSha256}`，不接受运行时漂移。App RPC 不接收可执行源码、网站、tab/frame/document、权限或运行时选择。
+
+| `OpenDeskTool.request` operation | 精确 payload | 返回 |
+| --- | --- | --- |
+| `controllers.read` | `{}` | `{controller:{sourceHash}}`；核验当前安装包，供开始前预检 |
+| `controllers.start` | `{clientRequestId,params}` | 与下节固定 Task 相同的原 Controller 运行快照 |
+| `controllers.read` | `{clientRequestId}` | 原请求结果；未知不自动重放 |
+| `controllers.stop` | `{clientRequestId}` | 提前取消或停止原请求；`result/value` 为 `null` |
+
+start 必须来自可信父宿主采样的真实用户动作。Authority 从已安装 App 取固定字节，绑定包 hash/撤权代次、原 iframe、原 Host 和捕获的当前精确文档，再复用原 durable prepare/admission、Controller Worker、RunHost、页面 Authority 和结果存储。独立 Task 不参与这条入口；`tasks.*` 仍用于明确选择的独立 Task。services、Cookie、上传、额外网络、定时和云控在此入口拒绝；普通页面操作仍受原来源、文档、Chrome 授权、撤权和未知效果围栏约束。安装更新、停用和撤权后，旧页面效果及结果拒绝，重新授权不复用旧运行。新 iframe 可读取/取消同包同代次的旧逻辑请求，但不能消费旧 Host 尚未提交的 admission 或再执行一次。
+
+**SDK Gap 记录（2026-11-02）**：ScrapyJS 普通 DOM 采集在 `tasks.read` 预检遭遇固定 Task 运行时过期；它只是 App 业务入口，不应要求用户到「我的」管理另一个 Task。现有沙箱没有受控 DOM/Locator，工具内部不能合法加载原 Worker 或伪造安装身份。通用价值是任意受审 App 随包拥有固定 Controller；最小扩展为现有 v2 包/安装审阅、委托 Host 和 Authority 的来源变体，不新增安装器、Runner、Registry 或业务专用 Host。组件证据见 `tests/environment/app-controller-package.test.mjs`、`native-installed-tasks.test.mjs` 与 `task-delegation-recovery.test.mjs`；Chrome 结果独立记录，不由组件 PASS 推定。
 
 ### 固定已安装 Controller Task 委托（v2）
 

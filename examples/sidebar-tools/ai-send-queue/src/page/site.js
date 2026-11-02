@@ -247,6 +247,14 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}
     return {ok:true,before:token.before};
   }
+  function canReclaimPrepared(token) {
+    const fresh=inspect();
+    return !!token && fresh.ok && fresh.route===token.route &&
+      fresh.form===token.form && fresh.editor===token.editor &&
+      !fresh.rich && !fresh.composing && !fresh.busy && fresh.draft===token.text &&
+      matchesHistoryTail(token.before.users,fresh.users) &&
+      matchesConversationTail(token.before,fresh,0);
+  }
   function confirmationIssue(before,text,snapshot) {
     if (!snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
     if (!matchesHistoryTail(before.users,snapshot.users,1))
@@ -279,5 +287,5 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       fresh.stopButton.disabled || fresh.stopButton.getAttribute('aria-disabled')==='true') return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,confirmationIssue,replyComplete,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,canReclaimPrepared,confirm,confirmationIssue,replyComplete,stop,normal});
 }

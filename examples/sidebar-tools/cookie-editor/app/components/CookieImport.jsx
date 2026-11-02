@@ -196,12 +196,9 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         accept=".json,.txt,.cookies,text/plain,application/json"
         disabled={disabled||busy||uncertain}
         onChange={event=>stageFile(event.currentTarget.files?.[0])}/>
-      <div className={'cookie-import-dropzone'+(dragging?' is-dragging':'')}>
-        <CookieImportDropzone dragging={dragging} fileName={stagedName}
-          disabled={disabled||busy||uncertain} maxSize="8 MiB"
-          onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}/>
-        <span>或将 JSON / TXT / Netscape 文件拖到此处</span>
-      </div>
+      <CookieImportDropzone dragging={dragging} fileName={stagedName}
+        disabled={disabled||busy||uncertain} maxSize="8 MiB"
+        onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}/>
       {stagedName&&<p className="cookie-import-selected" role="status">
         已选择 {stagedName} · 点击「确认导入」后才会写入
       </p>}

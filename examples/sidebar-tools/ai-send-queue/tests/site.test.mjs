@@ -373,18 +373,19 @@ for(const failure of ['replacement','input exception']) {
       prepares,commits,stops,clicks:f.state.clicks,submissions:f.state.users.map(node=>node.innerText)}));
     assert.equal(prepareResults[0].ok,false);
     assert.equal(prepareResults[0].mayHaveWritten,true);
-    assert.equal(engine.view().phase,'unknown');
-    assert.equal(engine.view().items[0].text,text);
-    const reason=engine.view().reason;
+    assert.equal(engine.view().phase,'waiting');
+    assert.equal(engine.view().lastConfirmed,'q1');
+    assert.equal(engine.view().items[0].text,'B');
+    assert.ok(engine.view().answerGate);
     for(const id of ['q1','q2']) {
       assert.equal(engine.requestNow(id).ok,false);
       assert.equal(engine.confirmForceStop(id),false);
     }
     engine.wait('external snapshot notification');
     step(20000);step(22000);
-    assert.equal(engine.view().reason,reason);
+    assert.ok(engine.view().answerGate);
     assert.deepEqual([prepares,commits,stops,f.state.clicks],[1,0,0,1]);
-    assert.equal(engine.remove('q1'),true,'manual website check precedes deletion');
+    assert.equal(engine.remove('q1'),false,'read-only admission already removed the sent item');
     step(24000);step(26000);
     assert.ok(engine.view().answerGate,'the acknowledged manual send still waits for its own reply');
     assert.deepEqual(engine.view().items.map(item=>item.text),['B']);
@@ -552,4 +553,41 @@ test('real adapter and engine advance once after prefix eviction and never retry
   step(20000);step(30000);
   assert.equal(state.clicks,1,'unknown never replays the queued or prior message');
   assert.deepEqual(engine.view().items.map(x=>x.text),['B']);
+});
+
+
+for(const changed of ['none','draft','route','editor','history','rich','composing','busy','unavailable']){
+  test(`prepared draft recovery checks original composer and history (${changed})`,()=>{
+    const f=fixture(),token=f.site.prepare('recover me',f.site.inspect()).token;
+    if(changed==='draft')f.editor.value='my new draft';
+    if(changed==='route')f.win.location.pathname='/c/87654321';
+    if(changed==='editor')f.replaceEditor('recover me');
+    if(changed==='history')f.state.users.push({parentElement:null});
+    if(changed==='rich')f.state.rich=true;
+    if(changed==='composing')f.state.composing=true;
+    if(changed==='busy')f.state.stopping=true;
+    if(changed==='unavailable')f.state.occupied=true;
+    const draft=changed==='editor'?'recover me':f.editor.value;
+    assert.equal(f.site.canReclaimPrepared(token),changed==='none');
+    assert.equal(f.state.clicks,0);
+    assert.equal(f.site.inspect().ok?f.site.inspect().draft:f.editor.value,draft);
+  });
+}
+
+test('real adapter can take back a timed-out prepared draft without writing or sending',()=>{
+  const f=fixture();let now=0,writes=0;
+  f.state.write=text=>{writes++;return text;};
+  const engine=createQueueEngine({site:f.site,clock:()=>now});
+  engine.enqueue('recover me',f.site.inspect().route);
+  engine.enqueue('next',f.site.inspect().route);
+  engine.tick();now=1200;engine.tick();
+  assert.equal(f.editor.value,'recover me');assert.equal(writes,1);
+  now=7300;engine.tick({canSubmit:false});
+  assert.equal(engine.view().phase,'unknown');
+  assert.equal(engine.reclaimPrepared('q1'),true);
+  assert.equal(f.editor.value,'recover me');assert.equal(writes,1);
+  now=9000;engine.tick();now=11000;engine.tick();
+  assert.deepEqual(engine.view().items.map(x=>x.text),['next']);
+  assert.equal(f.state.clicks,0,'the preserved draft still vetoes the next queued send');
+  assert.equal(writes,1);
 });

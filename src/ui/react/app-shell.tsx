@@ -78,7 +78,9 @@ export function SidebarAppShell({
             </section>
           </div>
           {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
-            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}/>}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}
+            active={activeTab==='tools'||activeTab==='app-debug'}
+            providerSettings={providerSettings} onOpenProviderSettings={onOpenProviderSettings}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

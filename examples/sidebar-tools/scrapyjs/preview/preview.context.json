@@ -3,8 +3,8 @@
   "view": "side-panel",
   "scenario": "success",
   "source": {
-    "commit": "4a494f6568d2559a24a8c50dc745f9bd8520284d",
-    "buildId": "ff8adf2d9dabe0576ce0be7a5fcf8cc4dc3e14012cfae8c2847393b1e52046ba",
+    "commit": "fe5f8efd5209690ff5b23cd39333c4a7ec54c8bd",
+    "buildId": "e4a30e6d6a1b75d696ce24455462863b1a55e4989ee96c9174531c9b4385b9f1",
     "evidenceLevel": "PREVIEW_COMPONENTS_COMPILED",
     "runtime": "PREVIEW_COMPONENTS_COMPILED"
   },
@@ -13,7 +13,7 @@
     "memoryOnly": true,
     "network": false,
     "installed": false,
-    "ai": "SHARED_CHAT_SIMULATED_TRANSPORT",
+    "ai": "PRESENTATION_PLACEHOLDER_ONLY",
     "realCapture": false,
     "export": "Blob download of simulated results only",
     "nativeChrome": "NOT_TESTED"

@@ -8,5 +8,5 @@ import '../src/style.css';
 const target=globalThis.OpenDeskTool?.root?.querySelector('#tool-app');
 if(!target)throw Error('E_SCRAPYJS_REACT_ROOT');
 const root=createRoot(target);
-root.render(<App RuleAssistant={RuleAssistant} ListScopeAssistant={ListScopeAssistant}/>);
+root.render(<App previewAiPlaceholder RuleAssistant={RuleAssistant} ListScopeAssistant={ListScopeAssistant}/>);
 globalThis.addEventListener('pagehide',()=>root.unmount(),{once:true});

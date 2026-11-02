@@ -12,15 +12,16 @@ export const settle=()=>new Promise(resolve=>setImmediate(resolve));
 export const base={url:'http://127.0.0.1:43233/page-1.html',itemConfig:{_listContainer:'#books',_listItem:':scope > li',id:'.::data-id',title:'h2::text',price:'.price::text'},nextPageSelector:'a.next',maxPages:50,dedupeKey:'id'};
 export const records=[['A','浏览器工具','19.50'],['B','本地任务','25.00'],['C','声明式采集','30.00'],['D','持久结果','0.00'],['E','精确分页','42.25'],['F','停止与恢复','']].map(([id,title,price])=>({id,title,price}));
 
-export async function fixture(t,{pendingAi=false,generate=null,clearGate=null}={}){
+export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,saveConfig=null,empty=false}={}){
   const saved={...base,maxPages:10};
-  const rows=new Map([['capture-config',{value:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
+  const rows=new Map([['capture-config',{value:empty?null:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
   const calls=[];let run;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
   const tool={setState(){},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get')return structuredClone(rows.get(payload.key));
     if(operation==='storage.set'){
+      if(payload.key==='capture-config'&&saveConfig)await saveConfig(payload);
       const row=rows.get(payload.key);assert.equal(payload.ifMatch,row.etag,'preserve CAS');rows.set(payload.key,{value:structuredClone(payload.value),etag:String(Number(row.etag)+1)});if(payload.key==='ai-pending-request'&&payload.value===null&&clearGate)return clearGate.promise;return {saved:true};
     }
     if(operation==='currentPage.info')return {status:'available',title:'公开 Fixture',url:base.url};

@@ -231,7 +231,7 @@ try{
   await oldPage.setContent(originalBytes.toString('utf8'),{waitUntil:'load'});
   await oldPage.locator('#labWidth').selectOption(String(width));
   await reactPage.goto(devUrl?.href||pathToFileURL(reactPath).href,{waitUntil:'load'});
-  await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});
+  // The default preview may open Enterprise; select the audit scene first.
   await reactPage.locator('.demo-lab>summary').click();
   await reactPage.getByTestId('scenario').selectOption(contract.scenario.reactScenario);
   await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});

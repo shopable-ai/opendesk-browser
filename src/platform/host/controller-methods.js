@@ -1,5 +1,7 @@
 import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {assertTaskDelegationApp} from '../tasks/delegation-installation.js';
+import {assertAppControllerBinding} from '../tasks/app-controller-installation.js';
+import {validateTaskParams} from '../tasks/contract.js';
 import {sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {createNetworkService} from '../chrome/network.js';
 import {createIsolatedHttpTransport} from '../chrome/network-transport.js';
@@ -391,7 +393,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const delegationHash=value=>invariant(typeof value==='string'&&/^[a-f0-9]{64}$/.test(value),'E_SCHEMA');
   function delegationFingerprint(binding,paramsDigest,target){
     return canonical({appId:binding.appId,packageHash:binding.packageHash,generation:binding.generation,
-      task:binding.task,paramsDigest,target},wireCanonicalOptions);
+      ...(binding.controller?{controller:binding.controller}:{task:binding.task}),paramsDigest,target},wireCanonicalOptions);
   }
   function delegatedRequest(request,mode){
     fields(request,mode==='prepare'
@@ -405,7 +407,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     // In the originating iframe the live Task pin has six fields; after a
     // reload the App review supplies four immutable package fields. Both may
     // inspect/cancel; only a fresh PREPARE accepts six current installed fields.
-    normalizeDelegatedTask(taskPin,mode==='prepare'||
+    if(request.binding.controller){
+      fields(request.binding.controller,['sourceHash'],['sourceHash']);
+      delegationHash(request.binding.controller.sourceHash);
+      invariant(!taskPin,'E_SCHEMA');
+    }else normalizeDelegatedTask(taskPin,mode==='prepare'||
       Object.hasOwn(taskPin||{},'installationId')||Object.hasOwn(taskPin||{},'generation'));
     if(mode==='prepare'){
       delegationHash(request.paramsDigest);
@@ -452,8 +458,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           generation:binding.generation,clientRequestId:request.clientRequestId,
           operationRef:newId(),workflowOccurrence:newId(),stepId:request.clientRequestId,
           preparedHost:{registrationId:host.registrationId,hostDocumentId:host.hostDocumentId,
+            hostInstanceId:host.hostInstanceId,iframeInstanceId:binding.instanceId,
             namespace:namespace(host),browserSessionIncarnation:session},
-          task:structuredClone(binding.task),paramsDigest:request.paramsDigest,
+          ...(binding.controller?{controller:structuredClone(binding.controller)}:{task:structuredClone(binding.task)}),paramsDigest:request.paramsDigest,
           target:structuredClone(request.target),targetPolicy:'borrowed-exact-document',
           deadlineAt:request.deadlineAt,fingerprint,maxAdmissions:1,admissionCount:0,
           prepared:true,cancelled:false,state:'prepared',runId:null,resultId:null,
@@ -682,19 +689,31 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
-    const variant = request.source, isDraft = variant?.kind === 'draft';
+    const variant = request.source, isDraft = variant?.kind === 'draft',isAppController=variant?.kind==='app-controller';
+    let appController,executionParamsWire=request.paramsWire;
     if (variant !== undefined) {
       invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
         CONTROLLER_SCHEMA_ERROR, 'Mixed source variants');
-      invariant(variant?.kind === 'draft' || variant?.kind === 'saved', CONTROLLER_SCHEMA_ERROR, 'Unknown controller source variant');
-      fields(variant, isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash'],
-        isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash']);
+      invariant(isDraft || isAppController || variant?.kind === 'saved', CONTROLLER_SCHEMA_ERROR, 'Unknown controller source variant');
+      const sourceFields=isAppController?['kind','appId','packageHash','generation']:isDraft?['kind','sourceUtf8']:['kind','scriptId','revision','contentHash'];
+      fields(variant,sourceFields,sourceFields);
     }
-    const saved = isDraft ? null : variant || request;
-    const isInstalledTask = !isDraft && saved.scriptId?.startsWith('task:');
+    if(isAppController){
+      invariant(request.taskDelegation?.controller&&request.taskDelegationStep&&
+        request.target.mode==='borrowed'&&!request.cloudRequestId&&!request.scheduledFireId&&
+        (!request.networkOrigins||request.networkOrigins.length===0),'E_PERMISSION');
+      const binding=request.taskDelegation;
+      invariant(['appId','packageHash','generation'].every(key=>variant[key]===binding[key]),'E_OWNER');
+      appController=(await assertAppControllerBinding(api,binding)).tool.controller;
+      assertBuiltinIdentity(appController.builtinIdentity,environment);
+      executionParamsWire=encodeValue(validateTaskParams(appController.paramsSchema,runParams));
+      invariant(request.deadlineAt<=admissionStartedAt+appController.deadlineMs,CONTROLLER_TIMEOUT_ERROR);
+    }
+    const saved = isDraft||isAppController ? null : variant || request;
+    const isInstalledTask = !isDraft&&!isAppController && saved.scriptId?.startsWith('task:');
     if(request.taskDelegation){
-      invariant(isInstalledTask&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
-      normalizeDelegatedTask(request.taskDelegation.task,true);
+      invariant((isInstalledTask||isAppController)&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
+      if(!isAppController)normalizeDelegatedTask(request.taskDelegation.task,true);
       await assertTaskDelegationApp(api,request.taskDelegation);
     }
     if(request.taskDelegationStep){
@@ -712,8 +731,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       'E_PERMISSION','Schedule admission requires an immutable installed task and FireId');
     invariant(request.scheduledFireId||request.expectedScheduleOwner===undefined,
       'E_OWNER','A schedule owner may only accompany a persisted scheduled occurrence');
-    const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
-    if (isDraft) {
+    const frozenSource=isDraft||isAppController;
+    const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : appController?.sourceUtf8;
+    if (frozenSource) {
       invariant(typeof draftSourceUtf8 === 'string' &&
         new TextEncoder().encode(draftSourceUtf8).byteLength <= CONTROLLER_SOURCE_LIMIT,
         'E_LIMIT', 'Draft source exceeds Controller source budget');
@@ -732,12 +752,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         /^[a-f0-9]{64}$/.test(saved.contentHash), 'E_REVISION');
     }
     invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
-    const sourceHash = isDraft ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
+    const sourceHash = frozenSource ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
     const host = await assertHost(sender), requestDigest = await digest(request, wireCanonicalOptions);
     const selectedOrigin = request.target.mode === 'owned' ? httpUrl(request.target.url).origin : null;
     let observed;
     if (request.target.mode === 'borrowed') observed = await observeControllerTarget({api, ...request.target});
     else await requireGrant(api, httpUrl(request.target.url).origin);
+    if(isAppController)invariant(appController.siteOrigins.includes(observed.allowedOrigin),'E_PERMISSION');
     const networkOrigins = normalizeControllerNetworkOrigins(selectedOrigin || observed.allowedOrigin,
       request.networkOrigins ?? [], {installedTask:isInstalledTask});
     for (const origin of networkOrigins) await requireGrant(api, origin);
@@ -757,7 +778,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
-      if(request.taskDelegation){
+      if(request.taskDelegation&&!isAppController){
         const pin=request.taskDelegation.task,installation=installedTask.installation;
         invariant(sameTaskPin(pin,{...installation,contentHash:saved.contentHash})&&
           pin.installationId===installation.authorization?.installationId&&
@@ -782,6 +803,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           step.fingerprint===delegationFingerprint(request.taskDelegation,
             await digest(runParams,wireCanonicalOptions),request.target),'E_OWNER',
           'Prepared step does not match admission');
+        if(isAppController)invariant(step.preparedHost?.registrationId===host.registrationId&&
+          step.preparedHost?.hostDocumentId===host.hostDocumentId&&
+          step.preparedHost?.hostInstanceId===host.hostInstanceId&&
+          step.preparedHost?.iframeInstanceId===request.taskDelegation.instanceId&&
+          step.preparedHost?.browserSessionIncarnation===session,'E_OWNER');
       }
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
@@ -805,12 +831,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         'Step is cancelled or already committed');
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
-      const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
+      const runId = newId(), scriptId = isAppController?`app-controller:${variant.appId}`:isDraft ? `draft:${runId}` : saved.scriptId;
       const run = {tag: CONTROLLER_RUN_TAG, runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
-        browserSessionIncarnation: session, scriptId, contentHash: sourceHash, builtinAbi: BUILTIN_ABI, sourceKind: isDraft ? 'draft' : 'saved',
+        browserSessionIncarnation: session, scriptId, contentHash: sourceHash, builtinAbi: BUILTIN_ABI, sourceKind: isAppController?'app-controller':isDraft ? 'draft' : 'saved',
         builtinIdentity:environment,
-        ...(isDraft ? {draftSourceUtf8} : {}),
+        ...(frozenSource ? {draftSourceUtf8} : {}),
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
           authorization:installedTask.installation.authorization}}:{}),
@@ -818,7 +844,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
-        paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
+        paramsWire: structuredClone(executionParamsWire), selection: structuredClone(request.target),
         startUrl: request.target.mode === 'owned' ? httpUrl(request.target.url).href : null,
         nativeFence: capturedFence, nativeNetworkFences, networkOrigins, nativeTabId: request.target.tabId ?? null,
         state: 'preparing', ownerEpoch: 1, runRevision: 1, eventSeq: 0, cancelSeq: 0, workerRetired: false,
@@ -827,11 +853,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, run, runId);
       await lease(transaction, run);
       let pinned;
-      if (isDraft) {
+      if (frozenSource) {
         // Draft bytes live only on this authoritative run; never create an
         // apparent saved script head, revision or long-lived revision pin.
         invariant(await digestUtf8(run.draftSourceUtf8) === sourceHash, 'E_HASH', 'Draft source changed at admission');
-        run.revision = {kind: 'draft', scriptId: run.scriptId, revision: 1, sourceHash,builtinIdentity:environment};
+        run.revision = {kind: isAppController?'app-controller':'draft', scriptId: run.scriptId, revision: 1, sourceHash,builtinIdentity:environment};
       } else {
         pinned = await storage.pinScriptRevision(scriptContext(host, sender, run), saved, transaction);
         assertBuiltinIdentity(pinned.revision.builtinIdentity,environment);
@@ -846,7 +872,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           admissionCount:1,submittedAt:now()},delegationStepKey);
       if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
       return {run, pinned, duplicate: false};
-    }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
+    }, frozenSource ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
     const run = admitted.run;
     if (admitted.duplicate) return {runId: run.runId, state: run.state, duplicate: true, runRevision: run.runRevision};
     try {
@@ -860,7 +886,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         current.target = {...observed, targetSessionId: newId(), targetVersion: 1, mode: request.target.mode, browserSessionIncarnation: session};
         current.identity = {tag: CONTROLLER_RUN_TAG, runId: current.runId, hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,
           ownerEpoch: current.ownerEpoch, scriptId: current.scriptId, revision: current.revision.revision, contentHash: current.contentHash, target: current.target};
-        if (isDraft) invariant(await digestUtf8(current.draftSourceUtf8) === current.revision.sourceHash,
+        if (frozenSource) invariant(await digestUtf8(current.draftSourceUtf8) === current.revision.sourceHash,
           'E_HASH', 'Admitted draft bytes do not match their SHA-256');
         current.state = 'running'; current.runRevision++; current.eventSeq++;
         boundTargets.set(current.runId, current.target);
@@ -868,7 +894,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await transaction.put(RUN_STORE, current, current.runId);
         await lease(transaction, current);
         assertCandidate();
-        return {...project(current), sourceUtf8: isDraft ? current.draftSourceUtf8 : pinned.revision.sourceUtf8,
+        return {...project(current), sourceUtf8: frozenSource ? current.draftSourceUtf8 : pinned.revision.sourceUtf8,
           paramsWire: current.paramsWire};
       });
     } catch (error) {
@@ -898,6 +924,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return;
     }
     invariant(operation.kind!=='browser-sdk','E_CAPABILITY','Browser app operations require an installed app-service');
+    if(run.sourceKind==='app-controller'){
+      invariant(operation.kind!=='service'&&!(operation.kind==='browser'&&
+        ['cookies','setCookie','deleteCookie','uploadFromUrl'].includes(operation.method)),'E_CAPABILITY',
+        'App Controller only grants page.automation');
+      return;
+    }
     if(!run.installedTaskAuthorization)return;
     // Only the installed, hash-covered grant can authorize Task services.
     if(operation.kind==='service'){
@@ -1386,7 +1418,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       current.retirementState = 'released'; current.runRevision++;
       // Once the Worker is conclusively retired, preserve sourceHash and
       // result identity but do not retain uncommitted draft source bytes.
-      if (current.sourceKind === 'draft') delete current.draftSourceUtf8;
+      if (['draft','app-controller'].includes(current.sourceKind)) delete current.draftSourceUtf8;
       await transaction.put(RUN_STORE, current, current.runId);
       await lease(transaction, current);
       // Host disappearance cannot call a host-authorized revision API. Release

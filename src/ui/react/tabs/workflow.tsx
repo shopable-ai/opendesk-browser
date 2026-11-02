@@ -64,11 +64,13 @@ const readEmptyProviderSettings=()=>EMPTY_PROVIDER_SNAPSHOT;
 // A trusted presentation control. The sole ToolShell Runtime owns the real
 // credentials, generation/Lease changes, cancellation and authorization.
 export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSettings=null,
-  onOpenSettings=null,active=true,doc=globalThis.document}){
+  onOpenSettings=null,active=true,doc=globalThis.document,idPrefix='workflow',
+  focusComposer=null,placement='top-start'}){
  const root=React.useRef(null),menu=React.useRef(null);
  const [open,setOpen]=React.useState(false),[notice,setNotice]=React.useState('');
  const selectedMode=snapshot.source==='local_codex'?'local_codex':'https';
  const selected=SOURCE_LABELS[selectedMode];
+ const popupStyle=placement==='bottom-end'?{top:'calc(100% + 8px)',bottom:'auto',left:'auto',right:0}:undefined;
  React.useEffect(()=>{if(!active)setOpen(false);},[active]);
  React.useEffect(()=>{
   if(!open||!doc)return;
@@ -79,8 +81,8 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
  React.useLayoutEffect(()=>{
   if(open)menu.current?.querySelector('[role="menuitemradio"][aria-checked="true"]')?.focus({preventScroll:true});
  },[open]);
- const trigger=()=>doc?.getElementById('workflow-provider-toggle');
- const composer=()=>doc?.getElementById('workflow-ai-request');
+ const trigger=()=>doc?.getElementById(`${idPrefix}-provider-toggle`);
+ const composer=()=>focusComposer?{focus:focusComposer}:doc?.getElementById('workflow-ai-request');
  const close=restore=>{setOpen(false);if(restore)trigger()?.focus({preventScroll:true});};
  const advanced=()=>{
   // The menu item disappears when the sheet opens. Hand focus to its stable
@@ -131,25 +133,25 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
  return <div className="workflow-source-picker" ref={root} onBlur={event=>{
   if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);
  }}>
-  <IconButton id="workflow-provider-toggle" label={`AI 来源：${selected}；选择来源`}
+  <IconButton id={`${idPrefix}-provider-toggle`} label={`AI 来源：${selected}；选择来源`}
    title={`当前来源：${selected} · 点击切换`}
-   aria-haspopup="menu" aria-expanded={open} aria-controls="workflow-source-menu"
+   aria-haspopup="menu" aria-expanded={open} aria-controls={`${idPrefix}-source-menu`}
    disabled={!active} onClick={()=>{setNotice('');setOpen(value=>!value);}}>
    <Glyph kind="settings"/>
   </IconButton>
-  {open&&<div id="workflow-source-menu" className="workflow-source-menu"
-    role="menu" aria-label="选择 AI 来源" ref={menu} onKeyDown={onMenuKeyDown}>
+  {open&&<div id={`${idPrefix}-source-menu`} className="workflow-source-menu"
+    role="menu" aria-label="选择 AI 来源" style={popupStyle} ref={menu} onKeyDown={onMenuKeyDown}>
     {Object.entries(SOURCE_LABELS).map(([value,label])=>
      <button type="button" key={value} role="menuitemradio"
-      id={`workflow-source-option-${value}`} aria-checked={selectedMode===value}
+      id={`${idPrefix}-source-option-${value}`} aria-checked={selectedMode===value}
       className="workflow-source-option" onClick={event=>select(value,event)}>
       <span>{label}</span>{selectedMode===value&&<span aria-hidden="true">✓</span>}
      </button>)}
     <div className="workflow-source-menu-divider"/>
     <button type="button" role="menuitem" className="workflow-source-option"
-     onClick={advanced}>高级 AI 设置…</button>
+     onClick={event=>{if(event.nativeEvent?.isTrusted)advanced();}}>高级 AI 设置…</button>
   </div>}
-  {notice&&<p className="workflow-source-notice" role="alert">{notice}</p>}
+  {notice&&<p className="workflow-source-notice" style={popupStyle} role="alert">{notice}</p>}
  </div>;
 }
 

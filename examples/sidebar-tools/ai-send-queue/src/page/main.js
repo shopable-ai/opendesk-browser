@@ -62,6 +62,13 @@ export default async function main({assets}={}) {
         // No inline editor. Put this message back into ChatGPT's existing
         // composer and cancel its queued-send authorization.
         const state=engine.view(),item=state.items.find(x=>x.id===id);
+        if(item?.state==='unknown'){
+          if(engine.reclaimPrepared(id)){
+            site.inspect().editor?.focus?.();
+            notify('尚未点击发送，已保留原输入框草稿并取消此条排队');return true;
+          }
+          notify('无法确认此条尚未发送，请核对原对话；队列会继续核对入站结果，不会自动重发');return false;
+        }
         if(!item || state.inFlight || ['unknown','sending','confirmed'].includes(item.state)){
           notify('这条消息正在发送或结果未知，暂不能取回');return false;
         }

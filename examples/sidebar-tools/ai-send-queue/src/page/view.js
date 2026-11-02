@@ -22,7 +22,7 @@ function action(doc,what,label,id){
   b.append(svg(doc,ICON[what]));return b;
 }
 function unknownMessage(state){
-  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列不会自动重试';
+  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列继续核对入站，不会自动重试；未点击发送的原草稿可取回编辑';
 }
 function inline(host,width){
   const props={position:'relative',display:'block',top:'auto',right:'auto',
@@ -258,7 +258,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       for(const [key,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
         ['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
-        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove')||
+        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove'&&!(unknown&&key==='edit'))||
           (item.state==='paused'&&key==='now'))b.disabled=true;
         ops.append(b);
       }

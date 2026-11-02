@@ -127,7 +127,7 @@ test('unknown result stays on its message with an accessible warning and no retr
   assert.ok(warning);assert.match(warning.title,/发送结果未知.*网站可能已发送.*不会自动重试/);
   assert.equal(warning.getAttribute('aria-label'),warning.title);
   assert.equal(buttons.find(node=>node.dataset.action==='now').disabled,true);
-  assert.equal(buttons.find(node=>node.dataset.action==='edit').disabled,true);
+  assert.notEqual(buttons.find(node=>node.dataset.action==='edit').disabled,true,'read-only draft recovery stays reachable');
   const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   click({target:{closest:()=>warning},stopPropagation(){}});
   const toast=h.ui('button').content.children[1];

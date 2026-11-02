@@ -113,3 +113,19 @@ test('CSV accepts only the fixed outputs of enabled splitPublication processing'
   assert.throws(()=>resolveAiReply({type:'actions',actions:[{kind:'csv.configure',
     fieldNames:{price:'价格'}}]},opts(base())),/不存在/);
 });
+
+test('business envelope accepts exactly one whitelist operation without config or execution payloads',()=>{
+  for(const operation of [{kind:'capture.start'},{kind:'capture.stop'},{kind:'results.show'},
+    {kind:'results.export',format:'json'},{kind:'results.export',format:'csv'}]) {
+    assert.deepEqual(resolveAiReply({type:'operation',operation},opts(base())),{type:'operation',operation});
+  }
+  for(const value of [
+    {type:'operation',operation:{kind:'script.run'}},
+    {type:'operation',operation:{kind:'capture.start',format:'json'}},
+    {type:'operation',operation:{kind:'results.export',format:'zip'}},
+    {type:'operation',operation:{kind:'results.export'}},
+    {type:'operation',operation:{kind:'capture.stop',url:'https://evil.test/'}},
+    {type:'operation',operation:{kind:'capture.start'},actions:[]},
+    {type:'actions',actions:[{kind:'capture.start'}]}
+  ]) assert.throws(()=>resolveAiReply(value,opts(base())));
+});

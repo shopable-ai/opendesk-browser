@@ -59,9 +59,11 @@ test('app.edit and named storage roundtrip preserve HTTP fields; invalid edits r
 });
 test('HTTP uses original prepare/start/read/stop task path, bounded options and active-run edit lock',async()=>{
   const calls=[],page={status:'available',url:'http://127.0.0.1:43121/http-echo'};
-  const task={taskId:'scrapyjs.capture',version:'0.4.1'};
+  const task={taskId:'scrapyjs.capture',version:'0.4.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
+    installationId:'00000000-0000-4000-8000-000000000000',generation:1};
   const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{
     calls.push([op,plain(payload)]);
+    assert.ok(!op.startsWith('controllers.'),'explicit HTTP must retain Task routing');
     if(op==='currentPage.info')return page;
     if(op==='tasks.read'&&payload.taskId)return {task};
     return {clientRequestId:payload.clientRequestId,runId:'http-run',state:op==='tasks.stop'?'stopping':'running',retirementState:'active'};
@@ -71,9 +73,51 @@ test('HTTP uses original prepare/start/read/stop task path, bounded options and 
   await app.stop();
   const start=calls.find(([op])=>op==='tasks.start')[1];
   assert.deepEqual(start.task,task);assert.deepEqual(JSON.parse(start.params.configJson),config().itemConfig);
+  assert.deepEqual(Object.keys(start).sort(),['clientRequestId','params','task']);
+  assert.deepEqual(start.params,{url:config().url,configJson:JSON.stringify(config().itemConfig),
+    optionsJson:JSON.stringify({executionMode:'http-local',maxPages:3,http:config().http}),waitForSelector:'',timeoutMs:30000});
   const options=JSON.parse(start.params.optionsJson);
   assert.equal(options.executionMode,'http-local');assert.deepEqual(options.http,config().http);assert.equal(options.maxPages,3);
   assert.deepEqual(calls.filter(([op])=>op.startsWith('tasks.')).map(([op])=>op),['tasks.read','tasks.start','tasks.read','tasks.stop']);
+  assert.deepEqual(calls.find(([op,payload])=>op==='tasks.read'&&payload.taskId)[1],{taskId:'scrapyjs.capture'});
+});
+
+test('per-request routes survive preparation switches and cancellation before start receipts, including inspection',async()=>{
+  const calls=[],pending=new Map(),task={taskId:'scrapyjs.capture',version:'0.4.1'};
+  const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{
+    calls.push([op,plain(payload)]);
+    if(op==='controllers.read'&&!payload.clientRequestId)return {controller:{sourceHash:'a'.repeat(64)}};
+    if(op==='tasks.read'&&payload.taskId)return {task};
+    if(op.endsWith('.start')&&payload.clientRequestId!=='inspect')
+      return new Promise(resolve=>pending.set(payload.clientRequestId,resolve));
+    return {clientRequestId:payload.clientRequestId,runId:payload.clientRequestId,state:'running'};
+  });
+  await sdk.prepare(DEFAULT_CONFIG);const dom=sdk.start(DEFAULT_CONFIG,DEFAULT_CONFIG.url,'dom');
+  await sdk.prepare(config());const http=sdk.start(config(),config().url,'http');
+  await sdk.stop('dom');await sdk.read('dom');
+  await sdk.prepare();await sdk.inspect({url:DEFAULT_CONFIG.url,kind:'fields',mode:'click'},'inspect');
+  await sdk.prepare(config());
+  await sdk.stop('inspect');await sdk.read('inspect');await sdk.stop('http');await sdk.read('http');
+  assert.deepEqual(calls.filter(([,payload])=>payload.clientRequestId).map(([op,payload])=>[op,payload.clientRequestId]),[
+    ['controllers.start','dom'],['tasks.start','http'],['controllers.stop','dom'],['controllers.read','dom'],
+    ['controllers.start','inspect'],['controllers.stop','inspect'],['controllers.read','inspect'],['tasks.stop','http'],['tasks.read','http']
+  ]);
+  for(const id of ['dom','http'])pending.get(id)({clientRequestId:id,runId:id,state:'running'});
+  assert.equal((await dom).status,'running');assert.equal((await http).status,'running');
+});
+
+test('unknown HTTP dispatch retains Task reconciliation route after preparing DOM and never retries',async()=>{
+  const calls=[],failure=Error('start acknowledgement lost');
+  const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{
+    calls.push([op,plain(payload)]);
+    if(payload.taskId)return {task:{taskId:'scrapyjs.capture'}};
+    if(op==='controllers.read'&&!payload.clientRequestId)return {controller:{sourceHash:'a'.repeat(64)}};
+    if(op==='tasks.start')throw failure;
+    return {clientRequestId:payload.clientRequestId,state:'stopping'};
+  });
+  await sdk.prepare(config());await assert.rejects(sdk.start(config(),config().url,'unknown-http'),error=>error===failure);
+  await sdk.prepare();await sdk.read('unknown-http');await sdk.stop('unknown-http');
+  assert.deepEqual(calls.map(([op])=>op),['tasks.read','tasks.start','controllers.read','tasks.read','tasks.stop']);
 });
 
 test('start cannot replace a valid local HTTP config URL with a public current-page URL',async()=>{

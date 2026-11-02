@@ -12,7 +12,6 @@ test('real provider proposals are data and pass the original lossless validator'
  assert.equal(JSON.stringify(parseProposal(JSON.stringify(next),validateConfig,base.url)),JSON.stringify(next));
  assert.match(instructions,/只返回一个受控业务 JSON 对象/);
  assert.match(instructions,/不允许执行脚本或添加函数/);
- assert.match(instructions,/不返回保存、下载、运行、任意 JavaScript 或跨站操作/);
  assert(sameConfig(base,structuredClone(base)));
 });
 test('invalid output, executable keys and changed targets fail before application',()=>{

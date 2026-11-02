@@ -2,6 +2,7 @@ import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/side
 import {createLocalTaskBridge,pickLocalTaskCredential,validateLocalTaskRequest} from '../platform/host/local-tasks.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
 import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
+import {APP_CONTROLLER_OPERATIONS,appControllerReview} from '../platform/tasks/app-controller-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
@@ -359,11 +360,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const workspace=doc.getElementById('workspace-content');
     const bounds=frame.getBoundingClientRect?.();
     if(!bounds)return;
-    const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
+    const viewportBottom=globalThis.innerHeight;
+    let bottom=workspace?.getBoundingClientRect?.().bottom??viewportBottom;
     const mode=frameRoot.dataset?.officialWorkspace==='true'?'workspace':'content';
+    // Intrinsic content can extend the workspace beyond the visible Host viewport.
+    if(mode==='content'&&Number.isFinite(viewportBottom)&&viewportBottom>0){
+      bottom=Number.isFinite(bottom)?Math.min(bottom,viewportBottom):viewportBottom;
+    }
     if(!Number.isFinite(bottom)||!Number.isFinite(bounds.top))return;
-    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height:null;
-    const height=mode==='workspace'&&frameHeight!==null?frameHeight:bottom-bounds.top-12;
+    // DOM bounds include Host CSS zoom; the sandbox consumes unzoomed CSS pixels.
+    const zoom=Number.isFinite(frame.currentCSSZoom)&&frame.currentCSSZoom>0?frame.currentCSSZoom:1;
+    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height/zoom:null;
+    const height=mode==='workspace'&&frameHeight!==null?frameHeight:(bottom-bounds.top)/zoom-12;
     const availableHeight=Math.max(mode==='workspace'?80:220,
       Math.min(1600,Math.floor(height)));
     const cacheKey=mode+':'+availableHeight;
@@ -421,6 +429,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
     'tasks.open':'打开已安装任务',
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
+    'controllers.run':'运行应用包内已审阅的网页自动化、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
     'page.videoSpeed':'调节已授权网页主/播放中 HTML5 视频；明确开启全局模式后跨网页沿用倍速，关闭侧栏仍生效；可停止并尝试恢复已控制视频 1×',
@@ -1932,6 +1941,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
         ...toolLocaleContext(tool)},'*',transferred);
+      // A pre-load hint may have arrived before the sandbox bound its instance.
+      lastHostHeight=null;
       syncFrameLayout();
     };
     target.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -2144,6 +2155,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(developmentStorage&&operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read')){
         await developmentStorage.request(operation,{},token);
         assertSession(source,token);
+        await currentPageTarget?.refresh?.({quiet:true,preserveRetry:true});
+        assertSession(source,token);
         const target=currentPageTarget?.snapshot;
         if(target?.status!=='available')return currentPageInfo(target);
         const captured=currentPageTarget.capture();
@@ -2201,8 +2214,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);return true;}})});
       return sidebarAI.request(operation,payload);
     }
-    if(TASK_DELEGATION_OPERATIONS.includes(operation)){
-      if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes('tasks.run'))
+    if(TASK_DELEGATION_OPERATIONS.includes(operation)||APP_CONTROLLER_OPERATIONS.includes(operation)){
+      const capability=APP_CONTROLLER_OPERATIONS.includes(operation)?'controllers.run':'tasks.run';
+      if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes(capability))
         throw Object.assign(new Error('固定任务委托不可用'),{code:'E_CAPABILITY'});
       await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
       assertSession(source,token);
@@ -3370,7 +3384,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return response.data;
       }
 
-      if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
+      if(operation==='currentPage.info'){
+        await currentPageTarget?.refresh?.({quiet:true,preserveRetry:true});
+        assertSession(source,token);
+        return currentPageInfo(currentPageTarget?.snapshot);
+      }
       if(VIDEO_SPEED_OPERATIONS.includes(operation)){
         const globalSet=operation==='videoSpeed.set'&&payload&&Object.hasOwn(payload,'expectedRevision');
         if(globalSet&&(Object.keys(payload).sort().join(',')!=='expectedRevision,speed'||
@@ -3668,6 +3686,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Sandbox readiness cannot erase why the official React route was
         // rejected. Package readiness and trusted admission are separate.
         notice(bookmarkFallbackNotice);
+        lastHostHeight=null;
+        sendToolAvailableHeight();
         reportReadyOpen(message.instance);
         if(active?.id===ADBLOCK_ID&&pendingAdblockSettingsInstance===message.instance){
           pendingAdblockSettingsInstance=null;
@@ -3734,7 +3754,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
-      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start')&&
+      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start'||message.operation==='controllers.start')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const exportGrantEpoch=message.operation==='cookieEditor.export.begin'
       ?cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.grantEpoch:null;
@@ -4235,7 +4255,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
-    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+(candidate.background?
+    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+appControllerReview(candidate)+(candidate.background?
       '\n后台运行：仅按已批准计划访问本应用授权的数据。':'')});
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});

@@ -123,14 +123,14 @@ test('same-document navigation immediately invalidates and releases click inspec
 });
 
 test('SDK inspection parameters reach the fixed Controller source and return the clicked record choices',async()=>{
-  const f=fixture(),task={taskId:'scrapyjs.capture',version:'0.6.2',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),installationId:'00000000-0000-4000-8000-000000000000',generation:1};
+  const f=fixture(),controller={sourceHash:'b'.repeat(64)};
   const context=vm.createContext({TextEncoder});
   vm.runInContext(await readFile(new URL('../adapters/app-sdk.js',import.meta.url),'utf8'),context);
   let starts=0;
   const sdk=context.ScrapyAppSdk.createSdk(async(operation,payload)=>{
-    if(operation==='tasks.read'&&payload.taskId)return {task};
-    assert.equal(operation,'tasks.start');starts++;
-    assert.deepEqual(payload.task,task);
+    if(operation==='controllers.read'){assert.deepEqual(Object.keys(payload),[]);return {controller};}
+    assert.equal(operation,'controllers.start');starts++;
+    assert.deepEqual(Object.keys(payload).sort(),['clientRequestId','params']);
     assert.equal(payload.clientRequestId,'source-click-1');
     assert.equal(payload.params.configJson,'{}');
     assert.equal('code' in payload,false);assert.equal('tabId' in payload,false);

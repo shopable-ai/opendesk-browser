@@ -129,6 +129,10 @@ const siteV3Site=obj({host:str(253),subdomains:bool,enabled:bool,pool:str(257),
   conditions:arr(siteV3Condition,4)},['host','subdomains','enabled','pool','conditions']);
 const siteV3Policy=obj({kind:{const:'site-budget.v3'},enabled:bool,
   sites:arr(siteV3Site,60),whitelist:arr(str(253),50)},['kind','enabled','sites','whitelist']);
+const siteV2Commit=obj({expectedRev:num(),enabled:bool,dailyMinutes:num(1,1440),
+   sites:arr(str(253),40),schedule:obj({enabled:bool,days:arr(num(0,6),7),
+     startMinute:num(0,1439),endMinute:num(0,1440)},['enabled','days','startMinute','endMinute'])},
+   ['expectedRev','enabled','dailyMinutes','sites','schedule']);
 const siteV3Commit=obj({expectedRev:num(),desiredPolicy:siteV3Policy,
   modelRef:str(64,'^[a-f0-9]{64}$'),
   sealedModel:{type:'object',maxProperties:160,additionalProperties:true}},
@@ -210,7 +214,7 @@ const ops=Object.freeze({
    obj({events:arr(bookmarkEvent,50),nextCursor:str(12),expiresAt:num(),
      gapCount:num(),droppedCount:num()},['events','nextCursor','expiresAt','gapCount','droppedCount'])],
  'browser.bookmarks.observe.stop':[obj({sessionRef:ref},['sessionRef']),obj({stopped:bool},['stopped'])],
- 'browser.siteBudget.getStatus':[empty,{anyOf:[obj({
+ 'browser.siteBudget.getStatus':[empty,{type:'object',anyOf:[obj({
    contract:str(80),kind:{const:'site-budget.v2'},desiredPolicyRev:num(),appliedPolicyRev:num(),
    status:{enum:['inactive','applied','missing-permission','reconciling','cleanup-pending','unknown']},
    settings:obj({enabled:bool,dailyMinutes:num(1,1440),sites:arr(str(253),40),
@@ -221,11 +225,10 @@ const ops=Object.freeze({
      ['idle','dnr','ready'])},
    ['contract','kind','desiredPolicyRev','appliedPolicyRev','status','settings',
      'usedMs','remainingMs','permissions']),siteV3Status]}],
- 'browser.siteBudget.setPolicy':[{anyOf:[obj({expectedRev:num(),enabled:bool,dailyMinutes:num(1,1440),
-   sites:arr(str(253),40),schedule:obj({enabled:bool,days:arr(num(0,6),7),
-     startMinute:num(0,1439),endMinute:num(0,1440)},['enabled','days','startMinute','endMinute'])},
-   ['expectedRev','enabled','dailyMinutes','sites','schedule']),siteV3Commit]},
-   {anyOf:[obj({contract:str(80),kind:{const:'site-budget.v2'},desiredPolicyRev:num(),
+ 'browser.siteBudget.setPolicy':[{
+   ...obj({...siteV2Commit.properties,...siteV3Commit.properties},['expectedRev']),
+   anyOf:[siteV2Commit,siteV3Commit]},
+   {type:'object',anyOf:[obj({contract:str(80),kind:{const:'site-budget.v2'},desiredPolicyRev:num(),
      appliedPolicyRev:num(),status:str(40),settings:{type:'object'},
      usedMs:num(),remainingMs:num(),permissions:{type:'object'}},
      ['contract','kind','desiredPolicyRev','appliedPolicyRev','status','settings',
