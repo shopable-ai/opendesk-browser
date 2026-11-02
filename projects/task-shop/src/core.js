@@ -16,6 +16,9 @@
   const KEY='taskshop.demo.v1',SCHEMA='taskshop.local-market.v1',LEASE_MS=15*60*1000;
   const pinFields=['taskId','version','manifestHash','contentHash'];
   const pinMatches=(a,b)=>pinFields.every(key=>a&&b&&a[key]===b[key]);
+  const isInstalledPin=value=>pinMatches(PIN,value)&&
+    typeof value.installationId==='string'&&Boolean(value.installationId.trim())&&
+    Number.isSafeInteger(value.generation)&&value.generation>0;
   const codeError=code=>Object.assign(new Error(code),{code});
   const ensure=(ok,code)=>{if(!ok)throw codeError(code);};
   const live=new Set(['LEASED','DISPATCH_PREPARED','RUNNING','STOP_REQUESTED','UNKNOWN']);
@@ -38,17 +41,32 @@
     const s=snapshot&&typeof snapshot==='object'?snapshot:{},result=s.result;
     const runId=typeof s.runId==='string'&&s.runId.length<=120?s.runId:null;
     const resultId=typeof s.resultId==='string'&&s.resultId.length<=120?s.resultId:null;
+    // This reviewed Task's manifest fixes program.revision=1 and sourceHash=contentHash.
+    const revision=result?.revision;
+    const sourceMatches=revision?.scriptId==='task:'+PIN.taskId+':'+PIN.version&&
+      revision.revision===1&&revision.sourceHash===PIN.contentHash;
     const persisted=Boolean(runId&&resultId&&result&&result.tag==='controller-result'&&
-      result.runId===runId&&result.resultId===resultId&&result.state==='completed');
+      result.runId===runId&&result.resultId===resultId&&result.state==='completed'&&sourceMatches);
     const runtimeOk=Boolean(persisted&&result.outcome&&result.outcome.ok===true&&s.state==='completed');
     const retired=s.retirementState==='released',data=s.value;
     const count=runtimeOk&&data&&data.status==='success'&&Array.isArray(data.results)
       ?data.results.length:0;
     const businessMatch=Boolean(runtimeOk&&retired&&count>=1&&count<=JOB.args.limit&&
-      data.results.every(item=>item&&typeof item.title==='string'&&item.title.trim()));
+      data.kind==='baidu.search.top3.result'&&data.version===2&&
+      data.query===JOB.args.query&&data.count===count&&data.results.every(item=>{
+        if(!item||typeof item.title!=='string'||!item.title.trim()||
+          typeof item.summary!=='string'||!item.summary.trim()||
+          typeof item.url!=='string'||item.url.length>=1200)return false;
+        try{const url=new URL(item.url);return ['http:','https:'].includes(url.protocol)&&
+          !url.username&&!url.password;}catch{return false;}
+      }));
+    const results=businessMatch?data.results.map(item=>({
+      title:Array.from(item.title.trim()).slice(0,96).join(''),
+      summary:Array.from(item.summary.trim()).slice(0,200).join(''),url:item.url})):[];
     return {runtimeState:typeof s.state==='string'?s.state.slice(0,30):'unknown',
       runId,resultId,persisted,runtimeOk,retired,businessMatch,
-      outputCount:count>=1&&count<=3?count:0};
+      sourceHash:sourceMatches?revision.sourceHash:null,revision:sourceMatches?revision.revision:null,
+      outputCount:results.length,results};
   }
   const withClaim=(state,claim,now)=>({...state,claim,updatedAt:now});
   function reduce(value,action){
@@ -82,6 +100,7 @@
       ensure(c.state==='LEASED','E_DISPATCH_LOCKED');
       ensure(now<c.expiresAt,'E_LEASE_EXPIRED');
       ensure(pinMatches(PIN,action.installedPin),'E_REVISION');
+      ensure(isInstalledPin(action.installedPin),'E_INSTALLATION');
       ensure(sameOrigin(action.currentUrl),'E_SITE_SCOPE');
       ensure(typeof action.clientRequestId==='string'&&
         /^taskshop:[A-Za-z0-9-]{12,72}$/.test(action.clientRequestId),'E_REQUEST_ID');
@@ -124,7 +143,8 @@
       ensure(c.state==='REVIEW_PENDING','E_NOT_REVIEWABLE');
       ensure(now<c.expiresAt,'E_LEASE_EXPIRED');
       ensure(c.receipt?.persisted&&c.receipt?.runtimeOk&&c.receipt?.retired&&
-        c.receipt?.businessMatch&&c.runId&&c.resultId,'E_EVIDENCE_INSUFFICIENT');
+        c.receipt?.businessMatch&&c.receipt.sourceHash===PIN.contentHash&&
+        c.receipt.revision===1&&c.runId&&c.resultId,'E_EVIDENCE_INSUFFICIENT');
       return withClaim(state,{...c,state:action.type==='ACCEPT'?'ACCEPTED':'REJECTED',
         review:{acceptanceId:action.acceptanceId,decision:action.type==='ACCEPT'?'accepted':'rejected',
           kind:'LOCAL_DEMO_RULE_REVIEW',at:now}},now);
@@ -138,6 +158,6 @@
     throw codeError('E_MARKET_ACTION');
   }
   global.OpenDeskTaskShopCore=Object.freeze({
-    KEY,JOB,PIN,SCHEMA,LEASE_MS,pinMatches,sameOrigin,projectSnapshot,validate,reduce
+    KEY,JOB,PIN,SCHEMA,LEASE_MS,pinMatches,isInstalledPin,sameOrigin,projectSnapshot,validate,reduce
   });
 })(globalThis);
