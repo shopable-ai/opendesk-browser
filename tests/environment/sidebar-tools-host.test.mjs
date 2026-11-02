@@ -3774,11 +3774,17 @@ test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
     setHook:async()=>{writes++;}});
   assert.equal(f.host.openSettings(tool.id),true);
   const fields=f.elements,help=fields['sidebar-tool-cookie-help'],button=fields['sidebar-tool-cookie-site-toggle'];
-  await settle(()=>!button.disabled);
+  const blocked=scenario==='site-ungranted';
+  await settle(()=>blocked?button.disabled&&button.textContent==='请先更新官方安装包':!button.disabled);
   assert.equal(fields['sidebar-tool-cookie-permissions'].hidden,false);
   assert.equal(fields['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,0,'direct management must not execute the package');
-  if(scenario==='official-granted'){
+  if(blocked){
+    assert.equal(help.hidden,false);
+    assert.match(help.textContent,/官方.*不匹配/);
+    assert.match(help.textContent,/审阅新版/);
+    assert.doesNotMatch(help.textContent,/仅能授权明确选择的网站/);
+  }else if(scenario==='official-granted'){
     assert.equal(help.hidden,true,'complete grant keeps settings compact');
     assert.equal(button.textContent,'撤销授权');
     assert.match(fields['sidebar-tool-cookie-target'].textContent,/已授权/);
@@ -3917,36 +3923,60 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
 });
 
-test('R5.37 development Cookie package grants declared capabilities for current site, never all sites',async t=>{
+test('unverified Cookie Editor offers recovery instead of a complete site grant the Host rejects',async t=>{
   cookieTestLocation(t);
   const official=await officialToolFixture('cookie-editor');
-  const tool={...official,js:official.js+'\nvoid 0;'},target=cookieTestTarget(),origin=target.capture().origin;
-  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
-  const chrome=cookieChromeFixture(),hostCalls=[];
-  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+  for(const [name,tool] of [
+    ['older release',{...official,version:'0.0.1'}],
+    ['modified package',{...official,js:official.js+'\nvoid 0;'}],
+    ['missing provenance',official]
+  ])await t.test(name,async t=>{
+    const target=cookieTestTarget();
+    const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+    const chrome=cookieChromeFixture(),hostCalls=[];
+    const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+      hostReply:cookieHostReceipt(tool,store,hostCalls)});
+    await settle(()=>!f.elements['sidebar-tool-cookie-help'].textContent.includes('正在核验')&&
+      f.elements['sidebar-tool-cookie-help'].textContent.length>0);
+    assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,true);
+    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/官方.*不匹配/);
+    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/审阅新版/);
+    assert.doesNotMatch(f.elements['sidebar-tool-cookie-help'].textContent,/仅能授权明确选择的网站/);
+    assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
+      'the unprivileged editor remains visible without granting access');
+    await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url,'E_COOKIE_NOT_SUBMITTED');
+    // A queued trusted dispatch must also fail closed, even if it bypasses the
+    // disabled React button after package admission has completed.
+    f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+    await pause();
+    assert.equal(chrome.requests.length,0,'do not request Chrome access for an inadmissible grant');
+    assert.equal(hostCalls.length,0,'do not send a complete site grant the real Host will reject');
+    assert.equal(store.has(BROWSER_MENU_GRANTS_STORE),false);
+    assert.equal(f.host.openSettings(tool.id),true);
+    assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
+      'Cookie Editor has one complete consent rather than a duplicate values action');
+  });
+});
+
+test('unverified Cookie Editor can still revoke its retained exact-site consent',async t=>{
+  cookieTestLocation(t);
+  const official=await officialToolFixture('cookie-editor');
+  const tool={...official,version:'0.0.1'},target=cookieTestTarget(),origin=target.capture().origin;
+  const store=await verifiedCookieStore(tool,null),hostCalls=[];
+  store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites={[origin]:{
+    storeId:'0',grantEpoch:'retained-site-consent',partitionKey:{topLevelSite:origin},
+    read:true,values:true,write:true,observe:true,clear:true,valueConsent:true
+  }};
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},
     hostReply:cookieHostReceipt(tool,store,hostCalls)});
-  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理本站 Cookie'&&
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
     !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
-    'R2.8 keeps the unprivileged editor visible before site consent');
-  await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url);
   f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
-  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.clear===true);
-  await settle(()=>f.elements['sidebar-tool-frame'].hidden===false);
-  assert.equal(chrome.requests.length,1,'missing Chrome website permission is requested in the click');
-  assert.deepEqual(chrome.requests[0],{origins:['https://cookie-r537.example/*']});
-  assert.equal(hostCalls.length,1,'Cookie Editor complete consent is one exact-site decision');
-  assert.equal(hostCalls[0].scope,undefined,'unverified bytes cannot acquire all-site consent');
-  assert.equal(hostCalls[0].cookieCapability,'all');
-  const saved=store.get(BROWSER_MENU_GRANTS_STORE)[tool.id];
-  assert.equal(saved.cookieAllSites,undefined);
-  assert.equal(saved.cookieSites[origin].valueConsent,true);
-  assert.equal(saved.cookieSites[origin].partitionKey.topLevelSite,origin);
-  for(const cap of ['read','values','write','observe','clear'])
-    assert.equal(saved.cookieSites[origin][cap],true,'explicit complete consent includes '+cap);
-  assert.equal(f.host.openSettings(tool.id),true);
-  assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
-    'Cookie Editor has one complete consent rather than a duplicate values action');
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites[origin].read===false);
+  assert.equal(hostCalls.length,1);
+  assert.equal(hostCalls[0].enabled,false);
+  assert.equal(hostCalls[0].origin,origin);
+  assert.equal(hostCalls[0].scope,undefined);
 });
 
 test('R5.37 verified official Cookie Editor requests missing Chrome all-site access and resumes UI',async t=>{
@@ -3970,7 +4000,7 @@ test('R5.37 verified official Cookie Editor requests missing Chrome all-site acc
   assert.equal(grant.valueConsent,true,'values require the persisted consent receipt');
 });
 
-async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url){
+async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url,expectedCode='E_SITE_GRANT_REQUIRED'){
   const messages=[],send=f.api.runtime.sendMessage;
   f.api.runtime.sendMessage=async message=>{messages.push(message);return send(message);};
   try{
@@ -3981,7 +4011,7 @@ async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url){
     await settle(()=>frame.contentWindow.sent.some(row=>row.requestId==='ungranted-write'));
     const reply=frame.contentWindow.sent.find(row=>row.requestId==='ungranted-write');
     assert.equal(reply.ok,false);
-    assert.equal(reply.error.code,'E_SITE_GRANT_REQUIRED');
+    assert.equal(reply.error.code,expectedCode);
     assert.equal(messages.length,0,'the unprivileged UI cannot dispatch a Cookie operation to Host');
   }finally{f.api.runtime.sendMessage=send;}
 }

@@ -178,10 +178,11 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
   host:scriptEditor.host,currentPageTarget,
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
-  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','show-execution-page','preapprove-next-task','bind-preapproved-task'].includes(message.kind)||
+  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
   Promise.resolve().then(()=>message.kind==='list-tasks'?fixedPageChatBridge.listTasks(message,sender):
+    message.kind==='approve-conversation-task'?fixedPageChatBridge.approveConversationTask(message,sender):
     message.kind==='show-execution-page'?fixedPageChatBridge.showExecutionPage(message,sender):
     message.kind==='preapprove-next-task'?fixedPageChatBridge.preapproveNextTask(message,sender):
     message.kind==='bind-preapproved-task'?fixedPageChatBridge.bindPreapprovedTask(message,sender):

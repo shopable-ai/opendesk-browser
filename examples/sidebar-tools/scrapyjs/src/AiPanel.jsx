@@ -9,7 +9,7 @@ function Difference({row}){return <li><strong>{row.kind} · {row.key}</strong>{r
   ?<pre className="ai-change-value" aria-label={row.kind==='新增'?'新值':'原值'}>{format(row.kind==='新增'?row.after:row.before)}</pre>
   :row.kind!=='保留'&&<div className="ai-before-after"><div>原值<pre>{format(row.before)}</pre></div><div>新值<pre>{format(row.after)}</pre></div></div>}</li>;}
 
-export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onClose,onBusy,onDirty}){
+export default function AiPanel({open=true,state,savedRequestId,locked,pending,valid,onApply,onClose,onBusy,onDirty,retiredRequest,onRequestRetired=()=>{}}){
   const tool=globalThis.OpenDeskTool;
   // This is the same presentation store used by Chat, scoped to this sandbox.
   // Its labels are UI identity only; ai.* remains the sole authority boundary.
@@ -60,6 +60,16 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
     pendingIdentity.read().then(({value})=>{if(!current)return;setPendingReady(true);if(value){setPendingId(value.requestId);setUnknown(true);busy(true);setNotice('存在未决原请求，请查询 / 停止原请求；不会重新发送。');}}).catch(e=>{if(current)setError(e.message);});
     return()=>{current=false;};
   },[pendingIdentity]);
+  React.useEffect(()=>{
+    if(!pendingId||pendingId!==retiredRequest?.requestId||active.current||!['cancelled','completed','failed'].includes(retiredRequest?.state))return;
+    let current=true;
+    pendingIdentity.read().then(({value})=>{
+      if(!current||!alive.current||active.current)return;
+      if(value){setPendingId(value.requestId);return;}
+      setPendingId(null);setUnknown(false);busy(false);setNotice('原 AI 请求已确认结束；停止后内容未应用。');
+    }).catch(e=>{if(current&&alive.current)setError(e.message);});
+    return()=>{current=false;};
+  },[pendingIdentity,pendingId,retiredRequest]);
   const inputKey=JSON.stringify({requirement,sample,usePage,useConfig});
   const latestContext=React.useRef(null),localOperation=React.useRef(null);
   latestContext.current={state,inputKey,blocked,unknown,pendingId,pendingReady,draft};
@@ -127,6 +137,7 @@ export default function AiPanel({open=true,state,savedRequestId,locked,pending,v
         if(['cancelled','completed','failed'].includes(reply.state)){
           if(!operation)await pendingIdentity.clear(pendingId);
           if(!alive.current||active.current!==operation)return;
+          onRequestRetired(reply);
           active.current=null;setPendingId(null);busy(false);setUnknown(false);append('系统','原 AI 请求已确认结束；停止后内容未应用。');setNotice(reply.state==='cancelled'?'已确认停止原 AI 请求；未应用配置。':'原 AI 请求已结束；停止后内容未应用。');
         }else{setUnknown(true);setNotice('停止结果尚未确认，请查询 / 停止原请求；返回内容不会应用。');}
       }

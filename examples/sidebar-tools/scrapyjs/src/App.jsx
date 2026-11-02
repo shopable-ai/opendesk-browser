@@ -72,6 +72,7 @@ function AiPreviewPlaceholder({open,onClose}){
 export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeAssistant}={}){
   const tool=globalThis.OpenDeskTool;
   const hostNavigation=typeof tool.setNavigation==='function';
+  const hostConversation=typeof tool.setConversationState==='function';
   const [snapshot,setSnapshot]=React.useState(null);
   const [ui,setUI]=React.useState(()=>freshUI(0));
   const [app]=React.useState(()=>globalThis.ScrapyAppModel.createApp(
@@ -99,11 +100,17 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
   const [modeChange,setModeChange]=React.useState(null);
   const [aiOpen,setAiOpen]=React.useState(false);
   const [workspaceAiBusy,setWorkspaceAiBusy]=React.useState(false);
+  const [retiredAiRequest,setRetiredAiRequest]=React.useState(null);
   const [workspaceOpen,setWorkspaceOpen]=React.useState(false);
   const [localBusy,setLocalBusy]=React.useState(false);
   const [ruleAssistOpen,setRuleAssistOpen]=React.useState(false);
   const [localDirty,setLocalDirty]=React.useState(false);
   const [aiBusy,setAiBusy]=React.useState(false);
+  const onAiBusy=React.useCallback(value=>{
+    setAiBusy(value);
+    // Restored pending requests need a visible recovery path even on older hosts.
+    if(value)setAiOpen(true);
+  },[]);
   const [aiDirty,setAiDirty]=React.useState(false);
   const [savedAiRequestId,setSavedAiRequestId]=React.useState(null);
   const aiApplication=React.useRef(null);
@@ -293,9 +300,13 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
     else if(modeChange){event.preventDefault();cancelMode();}
     else if(ui.removeField){event.preventDefault();update({removeField:false});focusLater('remove-field');}
   }}>
+    <div id="ai-recovery" className="od-alert" role="status" hidden={!aiBusy||aiOpen}>
+      <p id="ai-toggle-status">AI 请求尚未结束，当前工具不能退出。请展开 AI 配置，查询或停止原请求。</p>
+      <Button base="aria" id="reopen-ai-request" variant="outline" onClick={()=>setAiOpen(true)}>处理 AI 原请求</Button>
+    </div>
+    {!hostConversation&&!aiBusy&&<Button base="aria" id="open-ai-config" variant="quiet" aria-expanded={aiOpen} aria-controls="chat-ai-panel" onClick={()=>setAiOpen(value=>!value)}>AI 配置</Button>}
     <section className="config-section" aria-labelledby="config-heading" hidden={workspaceOpen}>
       <h2 className="sr-only" id="config-heading">采集配置</h2>
-      <p id="ai-toggle-status" className="od-note secondary" role="status" hidden={!aiBusy}>AI 请求待处理；收起对话不会停止请求。展开后可查询或停止。</p>
       <div className="profile-choice" hidden={managementOpen}><label className="sr-only" htmlFor="profile-list">已保存配置</label>
         <select className="od-field" id="profile-list" aria-label="已保存配置" value={state.selectedId||''} disabled={managementLocked||!state.records.length} onChange={event=>{
           selectConfiguration(event.target.value,'profile-list');
@@ -356,7 +367,7 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
         <Button base="aria" id="use-saved" hidden={!state.conflict} disabled={locked} onClick={()=>{actionFocus.current='use-saved';app.useSaved();if(app.state.pendingAction)focusLater('profile-confirm-cancel');}}>用保存版本替换草稿</Button>
       </div>
     </section>
-    <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} state={state} locked={baseLocked||aiBusy} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setWorkspaceAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
+    <div hidden={!workspaceOpen}><CaptureWorkspace retiredRequest={retiredAiRequest} onRequestRetired={setRetiredAiRequest} open={workspaceOpen} state={state} locked={baseLocked||aiBusy} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setWorkspaceAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
 
     <div className="capture-workspace" hidden={managementOpen||workspaceOpen}>
     <Card className="target-section" data-expanded={showContext} role="region" aria-labelledby="target-heading"><CardContent className="target-content">
@@ -440,6 +451,6 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
     </section>
     </div>
   </main></div>
-    {previewAiPlaceholder?<AiPreviewPlaceholder open={aiOpen} onClose={closeAi}/>:<AiPanel open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={setAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});openName(current?'copy':'save',managementOpen?'library-current':'profile-current');}}/>}
+    {previewAiPlaceholder?<AiPreviewPlaceholder open={aiOpen} onClose={closeAi}/>:<AiPanel retiredRequest={retiredAiRequest} onRequestRetired={setRetiredAiRequest} open={aiOpen} state={state} savedRequestId={savedAiRequestId} locked={baseLocked||localBusy||aiGenerating} pending={pending} valid={valid} onBusy={onAiBusy} onDirty={onAiDirty} onClose={closeAi} onApply={(config,base,epoch,page,requestId)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);aiApplication.current={requestId,config:JSON.stringify(config)};update({...freshUI(state.profileEpoch)});openName(current?'copy':'save',managementOpen?'library-current':'profile-current');}}/>}
   </div>;
 }

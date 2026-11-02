@@ -591,6 +591,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const globalAllowed=allSites&&cookieHasBaseGrant(tool);
     const siteAllowed=cookieHasSiteGrant(tool,origin);
     const managed=cookieHasManageGrant(tool,origin);
+    const officialBlocked=tool?.id==='cookie-editor'&&cookieAdmissionState===false&&!managed;
     const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
     // The original native Chrome grant is prepared even with Settings closed.
@@ -622,7 +623,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
     const chromeMissing=allowed&&cookieChromeState?.granted===false;
-    const cookieHelpText=allowed&&!officialPending?
+    const cookieHelpText=officialBlocked?
+      '当前 Cookie Editor 安装包与官方发行不匹配，暂时无法授权。请关闭此窗口，返回「扩展」列表，'+
+      '在 Cookie Editor 管理菜单中选择「审阅新版」；如无新版，请从官方来源重新导入安装包。':
+      allowed&&!officialPending?
       !origin?'请选择普通 HTTP/HTTPS 网站':partial?'授权不完整，请补全 Cookie 管理权限。':
         chromeMissing?'Chrome 网站权限已撤销，请恢复访问。':
           !cookieChromeState?'Chrome 权限状态尚未确认，请检查权限或重新打开设置。':''
@@ -631,19 +635,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (partial?'此前授权不完整。':'')+description+
       '全站授权适用于所有普通 HTTP/HTTPS 网站；单站授权仅适用于明确选择的网站。'+
       (tool.id!=='cookie-editor'&&tool.capabilities.includes('browser.cookies.values')?
-        ' 敏感值读取仍由原有可信设置单独授权。':'')+
-      (!allSites&&tool?.id==='cookie-editor'?
-        ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'');
+        ' 敏感值读取仍由原有可信设置单独授权。':'');
     patchToolField(view,cookieHelp,{hidden:!cookieHelpText,textContent:cookieHelpText});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
       attributes:{'aria-busy':String(cookieGrantPending)}});
-    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialPending?
+    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialBlocked?
+      '请先更新官方安装包':officialPending?
       '正在核验安装身份…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
         partial?'补全授权':'授权访问'):chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
       allSites?'撤销所有网站 Cookie 授权':'撤销本站 Cookie 授权':
       partial?'补全 Cookie 管理授权':allSites?'允许管理所有网站 Cookie':'允许管理本站 Cookie',
       className:firstUse?'od-button od-button--primary':'od-button',
-      disabled:busy||cookieGrantPending||officialPending||!cookieChromeState||
+      disabled:busy||cookieGrantPending||officialPending||officialBlocked||!cookieChromeState||
         enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
         !origin||requested.length===0});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
@@ -728,6 +731,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
       cookieHasSiteGrant(tool,origin));
+    // The Host rejects complete site consent for an unverified Cookie Editor.
+    // Keep retained consent manageable, but never request new access here.
+    if(tool.id==='cookie-editor'&&!allSites&&!revoke&&!restoreChrome)return;
     // A stale grant-only header/modal render may never act as a revoke.
     if(revoke&&event.target?.closest?.('button[data-cookie-grant-only="true"]'))return;
     // The shared Chrome gate consumes this genuine click synchronously,
@@ -742,7 +748,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!restoreChrome){
         if(allSites)await changeCookieAllSites(tool,!revoke);
         else if(revoke)await changeCookieSite();
-        else if(tool.id==='cookie-editor')await changeCookieSite({enabled:true});
         else for(const capability of cookieRequiredCapabilities(tool)){
           if(active!==tool||instance!==token||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin)
             throw Object.assign(new Error('工具或当前网站已变化，请重新选择网站'),{code:'E_DOCUMENT_CHANGED'});

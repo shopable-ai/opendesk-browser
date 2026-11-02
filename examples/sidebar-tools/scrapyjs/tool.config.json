@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.8.3",
+  "version": "1.8.5",
   "title": "scrapyjs 采集",
   "description": "用已有或手填声明式规则进行本机试采，核对后确认持久采集；可选 AI 生成或纠正规则，保留原浏览器采集与导出。",
   "capabilities": [
@@ -31,8 +31,8 @@
     {
       "taskId": "scrapyjs.capture",
       "version": "0.6.2",
-      "manifestHash": "e2089cbf3876732e5d87f37b40116ddd29a1f3952a672b44285eb0b6590583d3",
-      "contentHash": "5157302a4dbeed87b8fce62f659b7dca8f3ac8ec4171561de92f43ecf94c27dc"
+      "manifestHash": "d525c95c51d6c698468a05b5a33a8d033f1ff21e37fdbea95e1dc722bb4a1385",
+      "contentHash": "2912f8f85b8fba80260e945f37317d73c1b3942f882f95092ea967fed16e9331"
     }
   ],
   "uiRuntime": "opendesk.react-ui.v1"

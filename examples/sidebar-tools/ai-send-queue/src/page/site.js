@@ -71,11 +71,14 @@ function assistantCompleted(root) {
 function streaming(root) {
   if (!root) return false;
   const turn = root.closest('[data-talvt-turn-state]') || root;
-  return (turn.hasAttribute('data-talvt-turn-state') && turn.getAttribute('data-talvt-turn-state') !== 'complete') ||
-    Boolean(root.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming') ||
-      root.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
+  return (turn.hasAttribute('data-talvt-turn-state') && turn.getAttribute('data-talvt-turn-state') !== 'complete') || explicitStreaming(root);
+}
+function explicitStreaming(root) {
+  return Boolean(root?.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming') ||
+    root?.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
 }
 export function createChatGPTSite({doc = document, win = window, isComposing = () => false} = {}) {
+  let interrupted=null;
   function inspect() {
     const route = routeFor(win);
     if (!route || win !== win.top) return {ok:false,reason:'只支持已打开的 ChatGPT 对话'};
@@ -106,10 +109,21 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     const history = [...doc.querySelectorAll(USER+','+ASSISTANT)]
       .filter(el=>!el.parentElement?.closest(USER+','+ASSISTANT));
     const last = assistants.at(-1) || null;
-    const busy = !!stopButton || streaming(last);
-    const completed = !last || assistantCompleted(last);
+    // ChatGPT can leave a stopped turn marked in_progress indefinitely.
+    // Only our explicit stop, the exact same history, and a returned native
+    // idle control can override that stale marker. Live streaming still vetoes.
+    const nativeIdle=!!sendButton || nearby.some(el=>el.matches(
+      'button[data-testid="voice-mode-button"],button[aria-label="Start voice mode"],'+
+      'button[aria-label="开始语音模式"],button[aria-label="Start voice"],button[aria-label="开始语音"]'));
+    const stopped=!!interrupted && interrupted.route===route && !stopButton && nativeIdle &&
+      !explicitStreaming(last) && last===interrupted.assistants.at(-1) &&
+      matchesHistoryTail(interrupted.users,users) &&
+      matchesHistoryTail(interrupted.assistants,assistants) &&
+      matchesConversationTail(interrupted,{history},0);
+    const busy = !!stopButton || (!stopped && streaming(last));
+    const completed = !last || stopped || assistantCompleted(last);
     return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
-      busy,idle:!busy && completed,answerComplete:assistantCompleted(last) && !streaming(last),
+      busy,idle:!busy && completed,answerComplete:!!last && completed && !busy,
       draft:editorText(editor),composing:isComposing(),
       rich:!!editor.querySelector?.(RICH) || !!form.querySelector('[data-attachment-id],[data-file-id]')};
   }
@@ -263,7 +277,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       snapshot.draft!=='' || fresh.draft!=='' ||
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton ||
       fresh.stopButton.disabled || fresh.stopButton.getAttribute('aria-disabled')==='true') return false;
-    try { fresh.stopButton.click(); return true; } catch { return false; }
+    try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
   return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,confirmationIssue,replyComplete,stop,normal});
 }

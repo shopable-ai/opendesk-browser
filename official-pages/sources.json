@@ -38,8 +38,8 @@
       "programId": "opendesk.ai-send-queue",
       "project": "examples/sidebar-tools/ai-send-queue",
       "packageFile": "ai-send-queue.opendesk-page.json",
-      "version": "0.1.13",
-      "revision": 13,
+      "version": "0.1.14",
+      "revision": 14,
       "title": "AI 消息发送队列",
       "description": "ChatGPT 主动入队的 FIFO 顺序发送与未知结果保护。",
       "sites": [
@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "0.1.13/r13：修复编译后皇冠资源校验，配套 Sidebar 0.1.15 精确来源候选；真实同队列与 FIFO 发信仍未验收，官方发行保持 blocked。旧 ID 不自动迁移授权或队列。"
+      "blockedReason": "0.1.14/r14：修复强制停止后遗留 in_progress 导致队列锁死，停止等待超时的未发送消息改为暂停可编辑；本次真实强制发送尚未验证，官方发行保持 blocked。旧 ID 不自动迁移授权或队列。"
     }
   ]
 }

@@ -370,7 +370,7 @@ for(const field of ['draft','rich','composing']) {
 }
 
 for(const blocked of ['old answer','wrong turn','verifier missing','not idle','submission unavailable']) {
-  test(`force-stop cannot pass ${blocked} and times out unknown`,()=>{
+  test(`force-stop cannot pass ${blocked} and pauses the unsent item on timeout`,()=>{
     const f=fixture();confirmFirst(f);
     f.step(2300,{ack:false,busy:true,complete:false});
     assert.equal(f.engine.requestNow('q2').ok,true);
@@ -383,7 +383,9 @@ for(const blocked of ['old answer','wrong turn','verifier missing','not idle','s
     assert.equal(f.state.prepareCount,1);
     assert.ok(f.engine.view().answerGate);
     f.step(14301,{},options);
-    assert.equal(f.engine.view().phase,'unknown');
+    assert.equal(f.engine.view().phase,'waiting');
+    assert.equal(f.engine.view().inFlight,null);
+    assert.equal(f.engine.view().items[0].state,'paused');
     assert.equal(f.engine.requestNow('q2').ok,false);
     assert.equal(f.engine.confirmForceStop('q2'),false);
     f.step(16000,{users:1,answers:2,idle:true});
@@ -462,7 +464,8 @@ for(const historyChange of ['detached prefix','connected prefix missing','tail r
       assert.deepEqual(f.state.committedTexts,['first']);
       assert.equal(f.engine.view().inFlight.phase,'await-stop');
       f.step(13501);
-      assert.equal(f.engine.view().phase,'unknown');
+      assert.equal(f.engine.view().phase,'waiting');
+      assert.equal(f.engine.view().items[0].state,'paused');
     }
   });
 }
@@ -662,8 +665,15 @@ for(const unavailable of ['original page','navigation','editor']) {
       f.step(12000,{}, {canSubmit});
       assert.equal(f.engine.view().inFlight.phase,'await-stop');
       f.step(12001,{}, {canSubmit});
-      assertUnknownLocked(f,[0,0,1]);
-      assert.equal(f.state.clicks,1,'checked deletion releases only the remaining item');
+      assert.equal(f.engine.view().phase,'waiting');
+      assert.equal(f.engine.view().inFlight,null);
+      assert.equal(f.engine.view().items[0].state,'paused');
+      assert.match(f.engine.view().reason,/暂停/);
+      assert.deepEqual([f.state.prepareCount,f.state.commitCount,f.state.stops],[0,0,1]);
+      assert.equal(f.engine.pause('q2'),true,'other rows remain controllable');
+      assert.equal(f.engine.reclaim('q1'),true,'the never-written message can be taken back for editing');
+      assert.deepEqual(f.engine.view().items.map(item=>[item.text,item.state]),[['B','paused']]);
+      assert.equal(f.state.clicks,0,'timeout and recovery never submit a message');
     });
   }
 }

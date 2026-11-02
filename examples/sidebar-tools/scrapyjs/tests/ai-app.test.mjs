@@ -159,3 +159,74 @@ test('Stop while AI result awaits storage cleanup never creates a late preview',
  get('ai-cancel').dispatch('click');await settle();release({saved:true});await settle();await settle();
  assert.equal(f.posts().length,0,'no preview is allowed after Stop during cleanup');assert.equal(get('ai-proposal'),null);
 });
+
+test('reopening a pending AI request exposes recovery without a host AI button',async t=>{
+  const f=await fixture(t,{pendingAi:true}),{get,ui,calls,rows}=f;
+  assert.equal(get('chat-ai-panel').hidden,false,'restored request must expose its recovery controls');
+  assert.match(get('chat-ai-request-status').textContent,/unknown-ai/);
+  assert.equal(get('chat-ai-cancel').disabled,false);
+  assert.equal(get('start').disabled,true,'retain the unresolved request guard');
+  ui.doc.querySelector('.od-conversation-close').dispatch('click');await settle();
+  assert.equal(get('chat-ai-panel').hidden,true);
+  assert.equal(get('ai-recovery').hidden,false,'collapsed busy Chat retains an actionable explanation');
+  get('reopen-ai-request').dispatch('click');await settle();
+  assert.equal(get('chat-ai-panel').hidden,false);
+  get('chat-ai-cancel').dispatch('click');await settle();
+  assert.equal(get('start').disabled,true,'unknown stop must not release the request');
+  assert.deepEqual(rows.get('ai-pending-request').value,{schemaVersion:1,requestId:'unknown-ai'});
+  assert.deepEqual(calls.filter(c=>c.operation==='ai.cancel').map(c=>c.payload.requestId),['unknown-ai']);
+  assert.equal(calls.some(c=>c.operation==='ai.generate'||c.operation==='tasks.start'||c.operation==='storage.set'),false);
+});
+
+test('a host without the conversation toolbar keeps a tool-local AI entry',async t=>{
+  const f=await fixture(t),{get}=f;
+  assert.ok(get('open-ai-config'),'older supported hosts retain access to AI');
+  get('open-ai-config').dispatch('click');await settle();
+  assert.equal(get('chat-ai-panel').hidden,false);
+});
+
+test('terminal AI recovery also retires the passive workspace guard for the same stored request',async t=>{
+  const {get,rows}=await fixture(t,{pendingAi:true});
+  const states=[],tool=globalThis.OpenDeskTool,request=tool.request;
+  tool.setState=value=>states.push(value);
+  tool.request=(operation,payload)=>operation==='ai.cancel'
+    ?Promise.resolve({requestId:payload.requestId,state:'cancelled'}):request(operation,payload);
+  get('chat-ai-cancel').dispatch('click');await settle();await settle();await settle();
+  assert.equal(rows.get('ai-pending-request').value,null);
+  assert.equal(states.at(-1).busy,false,'a second passive reader must not keep the Host locked after correlated recovery');
+});
+
+
+test('terminal workspace recovery also retires the passive Chat guard without a late proposal',async t=>{
+  const {get,rows,calls}=await fixture(t,{pendingAi:true});
+  const states=[],tool=globalThis.OpenDeskTool,request=tool.request;
+  tool.setState=value=>states.push(value);
+  tool.request=(operation,payload)=>operation==='ai.cancel'
+    ?Promise.resolve({requestId:payload.requestId,state:'completed'}):request(operation,payload);
+  get('ai-cancel').dispatch('click');for(let n=0;n<20&&states.at(-1)?.busy!==false;n++)await settle();
+  assert.equal(rows.get('ai-pending-request').value,null);
+  assert.equal(get('chat-ai-request-status'),null);
+  assert.equal(states.at(-1).busy,false);
+  assert.equal(get('chat-ai-review'),null);
+  assert.equal(calls.some(c=>c.operation==='ai.generate'||c.operation==='tasks.start'),false);
+});
+
+for(const kind of ['wrong identity','unknown','lost cleanup receipt','changed stored identity'])
+  test('AI recovery keeps both readers fenced after '+kind,async t=>{
+    const {get,rows}=await fixture(t,{pendingAi:true});
+    const states=[],tool=globalThis.OpenDeskTool,request=tool.request;
+    tool.setState=value=>states.push(value);
+    tool.request=async(operation,payload)=>{
+      if(operation==='ai.cancel'){
+        if(kind==='changed stored identity')rows.set('ai-pending-request',{value:{schemaVersion:1,requestId:'other-ai'},etag:'1'});
+        return {requestId:kind==='wrong identity'?'other-ai':payload.requestId,state:kind==='unknown'?'unknown':'cancelled'};
+      }
+      if(kind==='lost cleanup receipt'&&operation==='storage.set'&&payload.key==='ai-pending-request')throw Error('cleanup receipt unavailable');
+      return request(operation,payload);
+    };
+    get('chat-ai-cancel').dispatch('click');await settle();await settle();await settle();
+    assert.equal(states.at(-1).busy,true);
+    assert.equal(rows.get('ai-pending-request').value.requestId,kind==='changed stored identity'?'other-ai':'unknown-ai');
+    assert.match(get('ai-status').textContent,/unknown-ai/);
+    assert.ok(get('chat-ai-cancel'));
+  });

@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/ai-send-queue",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "private": true,
   "type": "module",
   "description": "One OpenDesk Send Queue product: Page USER_SCRIPT FIFO sender and trusted React Sidebar control.",

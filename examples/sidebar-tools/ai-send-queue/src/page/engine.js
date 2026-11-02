@@ -152,7 +152,12 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     // These deadlines survive blocked submission, navigation and composer loss.
     // Once prepared, the user may have sent the draft outside this engine.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
-      markUnknown('停止结果未知，请核对原对话后删除该条；消息未自动重发');return;
+      // Only Stop has been clicked: this item's draft was never prepared or
+      // submitted. Preserve it as paused and editable, without retrying Stop
+      // or waiving any existing reply/identity gate for the other messages.
+      state.inFlight.item.state='paused';state.inFlight=null;state.forceId=null;
+      state.phase='waiting';state.reason='停止后网页尚未就绪，此条已暂停，可取回编辑或恢复';
+      idleSince=null;emit();return;
     }
     if(state.inFlight?.phase==='await-native-ready' && t-state.inFlight.started>6000){
       const detail=state.inFlight.readinessReason||'未取得下一轮原生就绪检查';

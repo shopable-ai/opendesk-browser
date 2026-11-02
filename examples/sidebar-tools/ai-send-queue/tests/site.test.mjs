@@ -26,8 +26,11 @@ function fixture() {
     getAttribute:name=>name==='data-testid'?(state.stopping?'stop-button':'send-button'):
       name==='aria-disabled'&&state.ariaDisabled?'true':null,
     matches:()=>false,click:()=>{state.clicks++;state.onSend?.();}};
+  const voice={isConnected:true,disabled:false,closest:()=>null,getClientRects:()=>[{}],
+    getAttribute:name=>name==='aria-label'?'开始语音':null,
+    matches:selector=>selector.includes('开始语音')};
   const form={isConnected:true,hasAttribute:()=>!!state.occupied,
-    querySelectorAll:()=>[send],querySelector:()=>state.rich?{}:null};
+    querySelectorAll:()=>state.voice?[voice]:state.noControl?[]:[send],querySelector:()=>state.rich?{}:null};
   const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
@@ -44,6 +47,50 @@ test('native stop clicks once but does not imply that generation has stopped',()
   assert.equal(site.stop(site.inspect()),true);assert.equal(state.clicks,1);
   assert.equal(site.inspect().busy,true,'the engine must still observe the stop transition');
 });
+
+function interruptedTurn(f){
+  const turn={getAttribute:name=>name==='data-talvt-turn-state'?'in_progress':null,
+    hasAttribute:name=>name==='data-talvt-turn-state',querySelector:()=>null};
+  const assistant={isConnected:true,parentElement:null,closest:()=>turn,
+    matches:()=>!!f.state.streaming,querySelector:()=>null};
+  const user={isConnected:true,parentElement:null,compareDocumentPosition:()=>4};
+  f.state.users=[user];f.state.assistants=[assistant];f.state.history=[user,assistant];
+  f.state.stopping=true;
+  return {user,assistant};
+}
+
+test('explicit stop followed by native idle controls releases a stale in_progress reply once',()=>{
+  const f=fixture();interruptedTurn(f);
+  const engine=createQueueEngine({site:f.site,clock:()=>now});let now=0;
+  engine.enqueue('next message',f.site.inspect().route);
+  assert.equal(engine.requestNow('q1').ok,true);
+  assert.equal(f.state.clicks,1);
+  f.state.stopping=false;f.state.voice=true;
+  engine.tick();now=1200;engine.tick();
+  assert.equal(f.editor.value,'next message');
+  f.state.voice=false;
+  now=1900;engine.tick();now=2500;engine.tick();
+  assert.equal(f.state.clicks,2,'one stop and one send, with no duplicate click');
+  assert.equal(engine.view().inFlight.phase,'await-confirm');
+});
+
+for(const changed of ['no explicit stop','stop still present','no idle control','streaming','user replaced','new user','assistant replaced','history changed','route changed']){
+  test(`native idle cannot release an interrupted reply with ${changed}`,()=>{
+    const f=fixture();const {user}=interruptedTurn(f);
+    if(changed!=='no explicit stop')assert.equal(f.site.stop(f.site.inspect()),true);
+    f.state.stopping=false;f.state.voice=true;
+    if(changed==='stop still present'){f.state.stopping=true;f.state.voice=false;}
+    if(changed==='no idle control'){f.state.voice=false;f.state.noControl=true;}
+    if(changed==='streaming')f.state.streaming=true;
+    if(changed==='user replaced')f.state.users=[{...user}];
+    if(changed==='new user')f.state.users.push({isConnected:true,parentElement:null});
+    if(changed==='assistant replaced')f.state.assistants=[{...f.state.assistants[0]}];
+    if(changed==='history changed')f.state.history=[...f.state.history].reverse();
+    if(changed==='route changed')f.win.location.pathname='/c/87654321';
+    assert.equal(f.site.inspect().idle,false);
+    assert.equal(f.site.inspect().answerComplete,false);
+  });
+}
 
 test('stop revalidates the empty draft, editor, composition, attachments and native control',()=>{
   for(const mode of ['draft','composition','rich','replacement','route','occupied','disabled','aria-disabled','button replaced']){

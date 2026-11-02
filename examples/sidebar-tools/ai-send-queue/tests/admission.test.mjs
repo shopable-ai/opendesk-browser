@@ -9,7 +9,7 @@ import {validatePageInstallPackage}
 import {SEND_QUEUE_PIN,admitsPinnedQueueTool,admitsPinnedQueuePage}
   from '../../../../src/platform/host/send-queue-admission.js';
 const app={id:'ai-send-queue',version:SEND_QUEUE_PIN.toolVersion,uiRuntime:'opendesk.react-ui.v1',capabilities:['currentPage.read']};
-const page={programId:'opendesk.ai-send-queue',revision:13,sourceHash:SEND_QUEUE_PIN.pageSourceHash,
+const page={programId:'opendesk.ai-send-queue',revision:SEND_QUEUE_PIN.pageRevision,sourceHash:SEND_QUEUE_PIN.pageSourceHash,
   pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],world:'USER_SCRIPT',
     runAt:'document_idle',allFrames:false}};
 test('only the exact built React package may request queue control',()=>{

@@ -19,7 +19,7 @@ test('selected C WebP is the only packaged crown image: valid, alpha capable and
  const manifest=JSON.parse(file('package.json'));
  assert.deepEqual(manifest.opendesk.assets.filter(x=>x.kind==='image').map(x=>x.path),['assets/crown-premium.webp']);
  assert.match(css,/\.sq-crown\{[^}]*pointer-events:none/);
- assert.match(css,/url\("crown-premium\.webp"\)/);
+ assert.match(css,/var\(--sq-crown-image\)/);
  assert.match(css,/R5\.4 CROWN-USER-FIT-BEGIN/);
 });
 test('production CSS and exact selected C WebP match the standalone preview bytes',()=>{
@@ -28,7 +28,7 @@ test('production CSS and exact selected C WebP match the standalone preview byte
  const art=JSON.parse(find('<script id="crown-variants" type="application/json">','</script>'));
  assert.deepEqual(Object.keys(art),['a'],'a is the legacy sync slot for the sole selected C artwork');
  assert.deepEqual(Buffer.from(art.a,'base64'),img);
- const inlineCss=css.replace('url("crown-premium.webp")','url("data:image/webp;base64,'+art.a+'")');
+ const inlineCss=css.replace('var(--sq-crown-image)','url("data:image/webp;base64,'+art.a+'")');
  assert.equal(find('<style id="program-css">\n','</style>'),inlineCss);
 });
 test('single HTTP preview retains the locked crown and consumes official React build',()=>{

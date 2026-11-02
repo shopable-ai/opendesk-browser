@@ -3,9 +3,9 @@
 export const SEND_QUEUE_PIN=Object.freeze({
   toolId:'ai-send-queue',toolVersion:'0.1.16',
   toolPackageSha256:'b1ddcc7245c414e1e8dc94b7c3d671c20ddbf9b77d4155cbeb819b643a014236',
-  pageProgramId:'opendesk.ai-send-queue',pageVersion:'0.1.13',pageRevision:13,
-  pagePackageHash:'c63d0b0321826eabf5340f06a96d435a6983fc982371e2bede440941c9a30720',
-  pageSourceHash:'2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de'
+  pageProgramId:'opendesk.ai-send-queue',pageVersion:'0.1.14',pageRevision:14,
+  pagePackageHash:'fcb982f876d8c4b1085be8c0eecf73580a4bfdfba9a0a93fb4ce63deb2838a31',
+  pageSourceHash:'54cb629d7f6fcf5c8ff0811cc36ff53706e9aebfdea01dbdd8760353e511a218'
 });
 export function admitsPinnedQueueTool(tool,sha256){
   return tool?.id===SEND_QUEUE_PIN.toolId&&
