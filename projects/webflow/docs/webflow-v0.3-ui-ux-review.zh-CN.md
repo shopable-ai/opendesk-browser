@@ -639,3 +639,54 @@ IAB 组件驱动产生的非可信 click/press 不能授予批准或写开关，
 配置恢复诊断：原 writer 的旧 hook 图对 `ai-knowledge-answers/trusted/ai-request.js` 报旧来源锁；现行 `describeBundle` 对同一当前文件校验通过（blob `d74df23166adc1ee10952db847cbd1202bdeb3ae`）。在独占资源明确释放后，只更新时间戳触发原 `wxt.config.mjs` 配置恢复，不改其字节、不停止 PID 15593、不修改 Knowledge 源码或放宽校验。新产物与 Chrome 是否实际应用分别记录，不能把进程存活当作新 UI 生效。
 
 配置恢复已完成：原 writer 15593 输出的新 revision 为 `7acfa04c42ff4a3dcf2e6b1c0509eebd5e6eb94ee83e0bfa03f7372dcd48db0d`，`ui/tool-shell.js` SHA-256 `dd277fd9329c93ce1b3353ab2cecbe5ab0de22a92fc75e597c1e39b3909d5b2a` 与发布标记逐字节一致，产物包含 `webflow-runtime-open`。这证明当前开发产物已更新；Chrome 是否已通过安全刷新应用该 revision 仍为 NOT_TESTED。完整本轮输入摘要、包及截图哈希、评分和证据边界见 [ui-layout-20261103.json](../evidence/ui-layout-20261103.json)。
+
+## 13. 独立交互 HTML 同步与评审（2026-11-03）
+
+### 13.1 范围与来源
+
+本轮接续 owner 维护 `preview/webflow-v0.3-preview.html`、设计模拟源文件、本节和 README 入口；真实生成/执行任务 owner 维护 AutoSettings、Bridge、execution-plan 及日常 Chrome。本轮不写正式 UI、工具 JSON、Browser writer 或权限链。开始时 main HEAD 为 `f3a6fbb2da027d282873bea2ff0b5505bcb3ef9e`，目标状态实读为 null，没有创建新总 GOAL、分支、worktree 或 PR。
+
+原 HTML 为 2026-11-02 v0.3.4 自定义设计稿，缺少当前完整宿主与运行面板，不能借用第 12 节组件 97 分。本轮通过原 `sidebar-preview-kit.mjs` 的 `createPreviewKit` 重新生成同一个 HTML，只修改允许的应用片段与 `DESIGN_APP_BEHAVIOR` 后模拟逻辑；样式、CSP、五 Tab 外壳及共享导航仍由 kit 保护。`build-design.mjs` 是该项目的填充入口，不是新预览框架或包生成器。当前生产预览 builder 未提供 Web Flow 同源 adapter，本文件明确为 **OFFLINE_DESIGN_PREVIEW**，不声明 SOURCE_PARITY_PASS。
+
+单文件自包含 CSS/JS；`design-app.fragment` 和 `design-app.js` 为可维护输入，manifest/context 固定来源与生成文件 SHA。公共组件参考由同一 kit 生成在本地，默认忽略，不作为新正式原型提交。安装身份为明确标注的设计占位，复制只演示反馈与手动选择，不写系统剪贴板，批准和执行只改本页内存。
+
+### 13.2 本轮验证记录
+
+已执行首轮 IAB 检查完整宿主与概览→准备审核→明确批准→生成指令→复制反馈→关闭面板→脚本。审核后表单隐藏，审核标题获得主动焦点并有 role=status 就绪播报；批准不改变关闭的总开关，生成后当前任务仍为空，关闭后焦点返回原触发按钮。初版截图暴露 HTML checkbox 被字段样式撑大、当前 Tab 不明显；已改为原生 button 的 switch 语义及 canonical tab 变体，后续按最终 SHA 复查。
+
+真实执行 owner 请求原生焦点后，已关闭 IAB 页面并明确回执释放；没有操作日常 Chrome 或剪贴板。此处首轮记录不作为最终候选评分。真实权限、安装、Native、production、真人辅助技术及原生 IME 均为 NOT_TESTED。
+
+独立交互与 UI/UX 初审均查到模拟层的真实问题：保存后关闭丢失手动步骤、查询历史 A 借用当前 B、场景切换混写请求来源、Google 详情打开百度授权。已逐项修复：保存即建立本页原步骤；关闭重开只核对/取消、不恢复执行许可；历史按请求独立只读；展示状态变化保留同次来源/关键词；详情绑定所点任务。另修复隐藏触发者后焦点丢失、纠正任务仍残留 aria-invalid、批准后返回开关不可达、确认前无参数回显和“原始结果”未含正文。没有把这些模拟缺陷推断为正式 UI 缺陷。
+
+`node projects/webflow/preview/check-design.mjs` 的 18 条定向 DOM 回放通过，记录在本轮 `dom-checks.json`。它只证明模拟代码的草稿、原步骤、身份隔离、失效/保存失败及 IME 取消围栏；dialog 与焦点有明确 shim，不能替代 Chromium 实际 Tab/Shift+Tab、像素与原生输入证据。本轮未运行全仓测试、Browser build、包晋升或 production。
+
+### 13.3 冻结候选与浏览器结果
+
+最终 HTML 为自包含单文件，SHA-256 **`a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1`**。静态模板合同通过；同候选 IAB 中的脚本文本与该文件逐字节一致，页面 JS error 为空。最终一轮 36 项浏览器断言通过，包含完整宿主、唯一标题/返回、正反 Tab、Escape、隐藏触发者后焦点转移、搜索及授权草稿保留、分步审核就绪播报、批准/生成不执行、返回唯一开关、关闭未来准入不停止现有任务、全部任务及授权状态、保存失败后只读确认、手动原步骤保留、Google 详情和不挤压应用。
+
+最终复查还修复两项只在实际截图中暴露的问题：未选中 Tab 的浅色字改为既有 `od-segmented` 与 secondary/quiet 组合；旧授权区“未执行”提示不会再出现在当前任务成功回执上方。明确重新读取后，旧保存失败提示也不再冒充当前未知状态。所有保护区、CSS、Tokens 和 CSP 保持 kit 同源。
+
+本轮精简证据及同候选 15 张截图 SHA 见 [ui-preview-20261103.json](../evidence/ui-preview-20261103.json)；原始 [browser-checks.json](../../../artifacts/sidebar-tools/webflow/html-design-20261103/browser-checks.json) 与 [DOM 回放](../../../artifacts/sidebar-tools/webflow/html-design-20261103/dom-checks.json) 保留在本机 artifacts。首页、审核、指令、运行、成功、失败、UNKNOWN、等待、空态、授权状态及已保存步骤截图均来自最终同一 SHA，不借用旧组件截图或初版截图。
+
+IAB 键盘事件只能证明本设计的显式导航/焦点围栏；原生 Space 默认激活未由该驱动确认，实际原生键盘、IME 与读屏继续 NOT_TESTED。复制只有明确模拟反馈和全文选择；本轮未读写系统剪贴板。正式安装包和真实执行源码由原 owner 维护，不随此 HTML 保存变更。
+
+### 13.4 独立终评后的定向修正
+
+第一次终评（HTML `8e906df2…`）为交互可访问性 **96/100**、UI/UX **94/100**，没有达到各项 ≥95 的目标，未以旧组件 97 分覆盖。扣分集中在弱选中态、运行状态间面板宽度变化、生成后旧主按钮仍突出、长指令滚走关闭入口，以及审核标题后 Tab 未顺接后续控件。
+
+本轮针对这些问题修正：选中 Tab 用持续可见勾选标记与 canonical secondary，不依赖焦点；运行面板在当前各状态保持 420px 上限的同一宽度；生成后降级“生成下一次”，把当前复制/返回开关放到主操作；头部与导航在独立正文滚动区之外；审核标题后的 Tab 按 DOM 顺序继续。IAB 逐项验证了这些行为，非宽度/缩放矩阵。
+
+原 kit 缺少通用的“固定容器、独立正文滚动”设计弹窗布局，项目内手写 CSS 或改生成文件会违反保护合同。因此在无并行差异的原 `scripts/templates/sidebar-preview.html` 中只增加 `preview-dialog` / `preview-dialog-body` 两条纯几何规则，再经原 kit 重新生成；未改共享控件、Tokens、宿主 DOM、权限或 CSP。原模板定向合同（同源、合法内容、样式保护、非法 CSS/资源拒绝）**17 PASS / 0 FAIL**，没有放宽检查器，也未重生成其他项目。
+
+### 13.5 同候选独立复评：目标已达到
+
+两位独立 AI 评审员分别读最终源码、manifest、实际截图与同 SHA 证据后复评。它们是独立模型任务的专业角色评估，不是人类专家或真人用户测试，也不借用第 12 节组件 97 分。
+
+| 角色 | 分项 | 总分 |
+| --- | --- | ---: |
+| UI/UX（Lorentz） | 信息层级与视觉布局 29/30；主操作与流程效率 24/25；导航、返回与交互 25/25；任务、结果与授权语义 20/20 | **98/100** |
+| 交互可访问性（Boyle） | 范围披露与授权隔离 25/25；键盘导航与焦点 25/25；状态反馈与恢复 25/25；可读性与操作发现 24/25 | **99/100** |
+
+各项相关独立评分均 ≥95，冻结交付。剩余非阻断扣分：概览轻微重复结果去向、持续准入术语的首次理解成本、已保存步骤恢复卡需再打开核对才能辨认精确关键词。不继续为追求 100 分扩展本轮范围。
+
+最终 SHA、两位评审任务 ID、分项、扣分、18 DOM / 36 IAB / 17 kit 结果及 15 张截图哈希统一保存在 [ui-preview-20261103.json](../evidence/ui-preview-20261103.json)。原位安装、真实网页与权限、Native、production、原生 IME/Space 与读屏仍为 NOT_TESTED。

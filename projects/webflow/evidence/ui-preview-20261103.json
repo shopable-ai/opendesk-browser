@@ -1,0 +1,408 @@
+{
+  "date": "2026-11-03",
+  "scope": "Independent self-contained Web Flow offline design HTML; not production component or native evidence",
+  "html": {
+    "path": "projects/webflow/preview/webflow-v0.3-preview.html",
+    "sha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
+    "bytes": 106112
+  },
+  "staticContract": "PASS",
+  "dom": {
+    "date": "2026-11-03",
+    "htmlSha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
+    "level": "PASS_MOCKED_DOM",
+    "checks": [
+      "authorization draft survives close",
+      "prepare hides form without granting",
+      "approve/generate do not enable or run",
+      "direct path returns to unique switch",
+      "discard preserves previous approval",
+      "corrected task clears invalid state",
+      "Google detail never opens Baidu grant",
+      "manual draft survives close",
+      "saved step survives without renewed execution permission",
+      "execution confirmation shows complete params",
+      "outcome fixture retains manual scope and delivery semantics",
+      "history A is independent of current B",
+      "stop preserves UNKNOWN without replay",
+      "composition guard prevents Escape cancel",
+      "reading does not invent switch state",
+      "failed save becomes unconfirmed and preserves current request",
+      "manual failure never claims chat delivery",
+      "empty fixture leaves historical request state intact"
+    ],
+    "limitations": [
+      "dialog and focus shims are not Chromium keyboard evidence",
+      "native permission / clipboard / real Task NOT_TESTED"
+    ]
+  },
+  "browser": {
+    "date": "2026-11-03",
+    "htmlSha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
+    "level": "IAB_OFFLINE_DESIGN",
+    "checks": [
+      {
+        "name": "完整宿主五Tab唯一标题",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "主内容跳转有可见焦点",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "反向Tab围栏",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "正向Tab围栏",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "Escape恢复入口与搜索保留",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "帮助复用唯一标题返回",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "授权草稿关闭重开保留",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "异步审核聚焦播报且隐藏重复表单",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "审核标题Tab顺接后续控件",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "选中标记独立于焦点持续可见",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "批准生成不会执行或开关",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "生成后当前下一步优先",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "长指令独立滚动且关闭入口可见",
+        "status": "PASS_IAB",
+        "details": {
+          "bodyScroll": 216,
+          "closeBottom": 65,
+          "closeTop": 33,
+          "viewport": 720,
+          "width": 420
+        }
+      },
+      {
+        "name": "复制明确模拟且选择全文",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "返回唯一开关有焦点",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "关闭未来准入不停止当前运行",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "状态 成功",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "面板宽度稳定 成功",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "结果持久释放交付AI续答分开",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "状态 失败",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "面板宽度稳定 失败",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "状态 UNKNOWN",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "面板宽度稳定 UNKNOWN",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "状态 等待完整回复",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "面板宽度稳定 等待完整回复",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "读取失效撤销未知分别反馈",
+        "status": "PASS_IAB",
+        "details": [
+          {
+            "state": "loading",
+            "disabled": true,
+            "summary": "正在读取批准与安装状态，尚未确认。"
+          },
+          {
+            "state": "invalid",
+            "disabled": false,
+            "summary": "安装身份已变化，原批准不能使用。请重新审核。"
+          },
+          {
+            "state": "revoked",
+            "disabled": false,
+            "summary": "批准已撤销，仅阻止未来准入，不回滚已有动作。"
+          },
+          {
+            "state": "unknown",
+            "disabled": true,
+            "summary": "状态未知。保留上次范围，不声称已保存；请重新读取。"
+          }
+        ]
+      },
+      {
+        "name": "保存失败保守未确认",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "读回清除旧未知提示",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "手动确认完整参数",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "已保存步骤重开不恢复许可",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "详情绑定点击任务",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "应用Tab键盘入口",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "五Tab键盘入口",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "面板不挤压原应用",
+        "status": "PASS_IAB",
+        "details": {
+          "before": {
+            "height": 498.0625,
+            "width": 368
+          },
+          "open": {
+            "height": 498.0625,
+            "width": 368
+          }
+        }
+      },
+      {
+        "name": "浏览器执行字节同冻结HTML",
+        "status": "PASS_IAB"
+      },
+      {
+        "name": "页面无JS错误",
+        "status": "PASS_IAB",
+        "details": []
+      }
+    ],
+    "limitations": [
+      "IAB event dispatch is not a native Chrome gesture",
+      "Native keyboard default Space activation, IME and screen reader NOT_TESTED",
+      "copy feedback simulated, system clipboard untouched",
+      "real permission / Task / install / production NOT_TESTED"
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/auth-invalid-final.png",
+      "sha256": "bac6368e4506b21d483f731857ee76863d6b7bb2d6b458b94f2dad9b11560bb1"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/auth-loading-final.png",
+      "sha256": "d5103bd260c551da274eead3584b44273b69cbf9337320e6a431ffdb513fbf24"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/auth-revoked-final.png",
+      "sha256": "3b81dde0b8221487c68c837720e90fb83b0fb793e0f6e2d0509e1d835c77d561"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/auth-unknown-final.png",
+      "sha256": "004482ffe20b3c7752e90fba22e11ef20b185f3247d490d7831da73ca977b97c"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/empty-final.png",
+      "sha256": "303078152665e62d0d571bd5e0cca35de0141c6760035fe55b1d9ff9554ecbc8"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/failure-final.png",
+      "sha256": "18bf51960e7a7957c73da14f9b6366f72e1af1fb59e561c2b339a4b2e4710569"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/google-detail-final.png",
+      "sha256": "4e32c74898b9e419e77bc9b7891d9d21d972752047b8e4a8d54d6227e389acb0"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/overview-final.png",
+      "sha256": "d507ba48a34dc1237683d4ddd073c19aebce8990650f43c16f75f4f27b13de24"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/prompt-final.png",
+      "sha256": "af973f6fc1f6bc84e69fbac419cb06801725ef2546ce40bf939922566268c6c5"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/review-final.png",
+      "sha256": "bd4a354f8cdd3457361d03405b500d0b70a360ad5800d9aaf9cf12ae166e785e"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/running-final.png",
+      "sha256": "8fbfba23988723678d1a52a9b0bbd2b694584bde5a1122aff9a6dbfe0c3f982b"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/saved-step-final.png",
+      "sha256": "49f6a9c9b65819da8a3702be0f21b947410f3320d7aa590a43e1e782dd1901ad"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/success-final.png",
+      "sha256": "c9613eba9f99f5b802f7afe5cb974df8ab7d0a4f8149bf2486fa92b7cf35d27e"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/unknown-final.png",
+      "sha256": "791953102cdcd7aaaadabbd5914e1bb1b55adff91c1804f9dcce9ec493b71616"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/html-design-20261103/waiting-final.png",
+      "sha256": "fca8f185a4195d785b4814c6805cb8d47923315d245748b0174fa2293782de47"
+    }
+  ],
+  "reviews": [
+    {
+      "reviewer": "independent AI reviewer Lorentz",
+      "agentId": "01a1a07c-0927-7541-a1e1-ae80bb0d318c",
+      "role": "UI/UX",
+      "htmlSha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
+      "score": 98,
+      "breakdown": {
+        "hierarchyAndLayout": [
+          29,
+          30
+        ],
+        "primaryActionsAndEfficiency": [
+          24,
+          25
+        ],
+        "navigationAndInteraction": [
+          25,
+          25
+        ],
+        "taskResultAuthorizationSemantics": [
+          20,
+          20
+        ]
+      },
+      "deductions": [
+        "Overview repeats automatic result destination (-1)",
+        "Persistent automatic admission terminology has some first-use learning cost (-1)"
+      ],
+      "evidence": [
+        "actual final screenshots",
+        "source and manifest",
+        "18 DOM checks",
+        "36 IAB checks"
+      ],
+      "scope": "offline design only, not human user testing or native/product acceptance"
+    },
+    {
+      "reviewer": "independent AI reviewer Boyle",
+      "agentId": "01a1a078-a536-7c00-9bdd-b5cadb41d2f7",
+      "role": "interaction/accessibility",
+      "htmlSha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
+      "score": 99,
+      "breakdown": {
+        "scopeDisclosureAndIsolation": [
+          25,
+          25
+        ],
+        "keyboardAndFocus": [
+          25,
+          25
+        ],
+        "feedbackAndRecovery": [
+          25,
+          25
+        ],
+        "readabilityAndDiscoverability": [
+          24,
+          25
+        ]
+      },
+      "deductions": [
+        "Saved-step recovery card needs opening read-only details to identify the exact keyword (-1)"
+      ],
+      "evidence": [
+        "actual final screenshots",
+        "source and manifest",
+        "18 DOM checks",
+        "36 IAB checks",
+        "17 kit checks"
+      ],
+      "scope": "offline design only; native keyboard/IME/screen-reader remain NOT_TESTED"
+    }
+  ],
+  "notTested": [
+    "Native Chrome permission/install/real Task",
+    "production",
+    "real native IME and screen reader",
+    "Space native default activation (IAB dispatch does not confirm it)"
+  ],
+  "resources": {
+    "productWriter": "not started/reloaded/stopped",
+    "chromeClipboard": "untouched",
+    "gitBranch": "main"
+  },
+  "kitChecks": {
+    "command": "node --test --test-name-pattern='self-contained|legitimate content|modified style|alternate CSS|reading design' tests/environment/sidebar-preview-kit.test.mjs",
+    "pass": 17,
+    "fail": 0,
+    "log": "artifacts/sidebar-tools/webflow/html-design-20261103/kit-checks.log"
+  },
+  "sharedLayoutChange": {
+    "path": "scripts/templates/sidebar-preview.html",
+    "scope": "Two canonical offline design dialog geometry rules; no host DOM, token, permission or CSP changes",
+    "reason": "Stable panel size and always-visible close/navigation with independent long-body scrolling; protected generated CSS must not be hand edited"
+  },
+  "historicalReviews": [
+    {
+      "htmlSha256": "8e906df2fa0042f432fba745d35e5aeb39a382ecc65feee4aaa63f8fec316397",
+      "role": "interaction/accessibility",
+      "score": 96
+    },
+    {
+      "htmlSha256": "8e906df2fa0042f432fba745d35e5aeb39a382ecc65feee4aaa63f8fec316397",
+      "role": "UI/UX",
+      "score": 94,
+      "targetMet": false
+    }
+  ],
+  "targetMet": true
+}

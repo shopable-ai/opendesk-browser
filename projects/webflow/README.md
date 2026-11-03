@@ -4,6 +4,10 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**
 
+**可交互设计预览（2026-11-03）：** 打开 [单文件 HTML](preview/webflow-v0.3-preview.html)，从完整「扩展 → Web Flow」外壳体验概览、脚本、记录、帮助/设置及“运行与授权”。授权按编辑 → 审核 → 明确批准分步；下方独立实验台可切换读取、失效、撤销、保存失败及任务成功/失败/UNKNOWN。它是对 v0.3.7 结构的离线设计模拟，不是正式源码同源预览，不执行真实任务或写系统剪贴板。原组件 97 分不适用于此文件；本轮同候选评审见 [UI 评审第 13 节](docs/webflow-v0.3-ui-ux-review.zh-CN.md#13-独立交互-html-同步与评审2026-11-03)。重新生成：`node projects/webflow/preview/build-design.mjs`；静态核对：`node scripts/sidebar-preview-kit.mjs check projects/webflow/preview/webflow-v0.3-preview.html`。输入为 `preview/design-app.fragment` / `design-app.js`，manifest/context 保存身份；不要手改受保护外壳或生成 HTML。
+
+该最终 HTML 已获独立 AI UI/UX **98/100**、交互可访问性 **99/100**；固定面板宽度、常驻关闭/导航、持续选中标记与草稿/原步骤保留已在同候选 IAB 检查。完整证据及未测项见[本轮记录](evidence/ui-preview-20261103.json)，评分仅适用于离线设计。
+
 **2026-11-03 UI 排版增量（v0.3.7）：** 首页仅保留紧凑的自动运行开关、状态摘要和“运行与授权”入口。独立面板分为当前任务 / 任务授权 / 使用说明；原始结果、运行身份和诊断默认折叠。沙箱三项主导航与帮助/设置合为一行，移除重复产品标题和大号统计卡。开合保持应用与授权草稿，导航不执行任务。源码、组件截图和独立评审见[现有 UI 评审第 12 节](docs/webflow-v0.3-ui-ux-review.zh-CN.md#12-v037-运行面板与应用布局修复2026-11-03)。此增量尚未在真实扩展安装/更新；下文 v0.3.6 实测与自动双轮证据仍只属于各自候选。可信组件随 Browser 编译，工具 JSON 单独更新不能替换它。
 
 ## 当前状态

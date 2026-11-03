@@ -1,0 +1,96 @@
+<section class="od-stack" aria-label="自动运行状态">
+  <div class="preview-row">
+    <button id="auto-enabled" class="od-button od-button--quiet" type="button" role="switch" aria-label="自动运行" aria-checked="false" aria-describedby="auto-summary">自动运行 · 关闭</button>
+    <button id="runtime-open" class="od-button od-button--secondary" type="button" aria-haspopup="dialog">运行与授权</button>
+  </div>
+  <p id="auto-summary" class="od-note" role="status">已关闭 · 尚无批准</p>
+</section>
+<div class="preview-row">
+  <nav id="app-tabs" class="od-segmented" role="tablist" aria-label="Web Flow 主导航">
+    <button id="app-overview" type="button" class="od-button od-button--quiet" role="tab" aria-controls="page-overview" aria-selected="true">概览</button>
+    <button id="app-scripts" type="button" class="od-button od-button--quiet" role="tab" aria-controls="page-scripts" aria-selected="false" tabindex="-1">脚本</button>
+    <button id="app-records" type="button" class="od-button od-button--quiet" role="tab" aria-controls="page-records" aria-selected="false" tabindex="-1">记录</button>
+  </nav>
+  <div class="preview-actions">
+    <button id="help-open" type="button" class="od-icon-button od-icon-button--quiet" aria-label="帮助" title="帮助">?</button>
+    <button id="settings-open" type="button" class="od-icon-button od-icon-button--quiet" aria-label="设置" title="设置">⚙</button>
+  </div>
+</div>
+<p id="app-notice" class="od-note" role="status" aria-live="polite" hidden></p>
+<section id="page-overview" role="tabpanel" aria-labelledby="app-overview" tabindex="0" class="preview-sections">
+  <p class="od-note">2 个固定脚本 · 自动结果见「当前任务」</p>
+  <div class="od-shared-card"><div class="od-shared-card-content od-stack">
+    <h2 class="od-title">从 ChatGPT 开始一次任务</h2>
+    <p class="od-body" id="next-step">先审核一个任务的精确范围，之后生成本次指令。</p>
+    <button id="start-guide" type="button" class="od-button od-button--primary">审核任务范围</button>
+  </div></div>
+  <section class="od-stack"><h2 class="od-title">结果在哪里？</h2><p class="od-note">自动任务的进度与结果在「运行与授权 → 当前任务」，结果也会回到触发任务的原聊天。下方「记录」保留手动运行。</p></section>
+  <div class="preview-actions"><button type="button" class="od-button od-button--quiet" data-page="scripts">查看固定脚本</button><button type="button" class="od-button od-button--quiet" data-runtime="help">查看使用说明</button></div>
+</section>
+<section id="page-scripts" role="tabpanel" aria-labelledby="app-scripts" tabindex="0" class="preview-sections" hidden>
+  <div class="od-form-field"><label for="script-search" class="od-field-label">搜索脚本</label><input id="script-search" class="od-field" type="search" placeholder="名称、网站或任务编号"></div>
+  <div class="od-form-field"><label for="script-filter" class="od-field-label">显示</label><select id="script-filter" class="od-field"><option value="all">全部固定任务</option><option value="available">可运行</option><option value="attention">需处理</option></select></div>
+  <p id="script-count" class="od-note" role="status"></p>
+  <div id="script-list" class="od-shared-card"><div class="od-shared-card-content od-stack"></div></div>
+  <p id="script-empty" class="od-alert" hidden>没有匹配的脚本。清除搜索或切换为全部。</p>
+  <button id="clear-filter" type="button" class="od-button od-button--quiet">清除搜索与筛选</button>
+  <details class="od-disclosure"><summary>添加其他脚本</summary><p class="od-note">当前仅支持两个固定委托。其他脚本的安装与来源审阅属于宿主任务目录；全局目录、收藏与多步骤流程尚未接入本应用。</p></details>
+</section>
+<section id="page-records" role="tabpanel" aria-labelledby="app-records" tabindex="0" class="preview-sections" hidden>
+  <h2 class="od-title">手动运行记录</h2><p class="od-note">自动运行请看「运行与授权 → 当前任务」。摘要不代表权威结果，UNKNOWN 只能核对原请求。</p>
+  <div id="manual-records" class="od-stack"><p class="od-alert">还没有手动运行记录。</p></div>
+</section>
+<section id="page-help" class="preview-sections" tabindex="-1" hidden>
+  <h2 class="od-title">使用说明</h2>
+  <ol class="od-body"><li>打开「运行与授权 → 任务授权」，核对脚本、精确网址和完整参数，准备审核后再明确批准。</li><li>生成并选择本次 ChatGPT 指令，开启自动运行。每次新任务生成新指令。</li><li>保持可信侧栏打开，在 ChatGPT 原对话粘贴发送；等待唯一完整助手回复。</li><li>在「当前任务」查看进度和持久结果，原聊天收到结果与资源释放分别核对。</li></ol>
+  <p class="od-note">关闭开关或撤销批准只阻止未来准入。已开始的任务请在「当前任务」停止；UNKNOWN 先核对，不重新运行。</p>
+  <button type="button" class="od-button od-button--secondary" data-runtime="help">打开运行面板说明</button>
+  <details class="od-disclosure"><summary>能力范围与后续设计 · BR / AWB</summary><p class="od-note">BR-01–05、AWB-01–08 的固定协议、精确授权、持久结果和原聊天回传保留。BR-06–12 的跨对话交接、多站工作流、持久队列、多 Profile、完整采集、环境核验和检索恢复按原产品合同分阶段推进；这里没有将这些概念功能视为已交付。</p></details>
+</section>
+<section id="page-settings" class="preview-sections" tabindex="-1" hidden>
+  <h2 class="od-title">设置</h2><p class="od-body">开关、批准和撤销分别即时保存；关闭面板不会清除草稿。</p>
+  <button type="button" class="od-button od-button--secondary" data-runtime="grant">管理任务授权</button>
+  <details class="od-disclosure"><summary>开发者与运行边界</summary><p class="od-note">源码编辑复用宿主「开发」，不在 Web Flow 建第二个编辑器。网站许可、安装身份与原执行链仍由宿主核验。工具 JSON 不替换可信组件。</p></details>
+</section>
+<dialog id="runtime-dialog" class="preview-confirm preview-dialog od-surface od-theme-shadcn" aria-labelledby="runtime-title">
+  <div class="od-page-head"><h2 id="runtime-title" class="od-title">运行与授权</h2><button id="runtime-close" type="button" class="od-icon-button od-icon-button--quiet" aria-label="关闭运行与授权">×</button></div>
+  <nav id="runtime-tabs" class="od-segmented" role="tablist" aria-label="运行面板导航">
+    <button id="runtime-task" type="button" class="od-button od-button--quiet" role="tab" aria-controls="runtime-task-panel" aria-selected="true">当前任务</button>
+    <button id="runtime-grant" type="button" class="od-button od-button--quiet" role="tab" aria-controls="runtime-grant-panel" aria-selected="false" tabindex="-1">任务授权</button>
+    <button id="runtime-help" type="button" class="od-button od-button--quiet" role="tab" aria-controls="runtime-help-panel" aria-selected="false" tabindex="-1">使用说明</button>
+  </nav>
+  <div class="preview-dialog-body preview-sections">
+  <p id="runtime-notice" class="od-note" role="status" aria-live="polite" hidden></p>
+  <section id="runtime-task-panel" role="tabpanel" aria-labelledby="runtime-task" tabindex="0" class="preview-sections"><div id="current-task" class="od-stack"></div></section>
+  <section id="runtime-grant-panel" role="tabpanel" aria-labelledby="runtime-grant" tabindex="0" class="preview-sections" hidden>
+    <p id="grant-status" class="od-alert" role="status">尚无批准。准备审核不会授予权限或执行。</p>
+    <form id="grant-form" class="od-stack" novalidate>
+      <div class="od-form-field"><label for="grant-task" class="od-field-label">已安装的固定任务</label><select id="grant-task" class="od-field"><option value="baidu">百度搜索 · 1.1.2</option><option value="google">Google 搜索 · 1.0.0（未就绪）</option></select></div>
+      <div class="od-form-field"><label for="grant-url" class="od-field-label">精确网址</label><input id="grant-url" class="od-field" type="url" value="https://www.baidu.com/" required aria-describedby="grant-url-help grant-error"><p id="grant-url-help" class="od-field-help">固定任务当前仅允许上方网站首页；不支持通配范围。</p></div>
+      <div class="od-form-field"><label for="grant-query" class="od-field-label">搜索关键词</label><input id="grant-query" class="od-field" value="OpenDesk Browser" required maxlength="200" aria-describedby="grant-error"></div>
+      <div class="od-form-field"><label for="grant-limit" class="od-field-label">结果数量</label><select id="grant-limit" class="od-field"><option value="3">3 条</option></select></div>
+      <p id="grant-error" class="od-field-error" role="alert" hidden></p>
+      <div class="preview-actions"><button id="prepare-grant" type="submit" class="od-button od-button--primary">准备审核范围</button><button id="discard-draft" type="button" class="od-button od-button--quiet">放弃草稿</button></div>
+    </form>
+    <section id="grant-review" class="od-stack" aria-labelledby="review-title" hidden>
+      <h3 id="review-title" class="od-title" tabindex="-1">请审核持续自动准入</h3><div id="review-summary" class="od-stack"></div>
+      <p class="od-body">保持可信侧栏打开的同一窗口中，各 ChatGPT 官方网页对话均可在上述精确范围触发。真实结果将发送到触发任务的原聊天。</p>
+      <p class="od-note">只允许匹配的任务、地址、参数和安装身份。批准不会开启开关，不增加网站权限。关闭或撤销不回滚已开始的动作。</p>
+      <div class="preview-actions"><button id="cancel-review" type="button" class="od-button od-button--secondary">返回修改</button><button id="approve-grant" type="button" class="od-button od-button--primary">批准持续自动准入</button></div>
+    </section>
+    <section id="approved-scope" class="od-stack" hidden>
+      <h3 class="od-title">已批准的精确范围</h3><div id="approved-summary" class="od-stack"></div>
+      <div class="preview-actions"><button id="generate-prompt" type="button" class="od-button od-button--primary">生成 ChatGPT 指令</button><button id="edit-grant" type="button" class="od-button od-button--quiet">修改范围</button><button id="revoke-grant" type="button" class="od-button od-button--quiet">撤销批准</button></div>
+      <section id="prompt-section" class="od-stack" hidden><div class="od-form-field"><label for="prompt-text" class="od-field-label">本次 ChatGPT 指令</label><textarea id="prompt-text" class="od-field" rows="6" readonly aria-describedby="prompt-help"></textarea><p id="prompt-help" class="od-field-help">生成和复制不运行任务；新任务需生成新指令。本离线演示不写系统剪贴板。</p></div><div class="preview-actions"><button id="copy-prompt" type="button" class="od-button od-button--secondary">演示复制反馈</button><button id="select-prompt" type="button" class="od-button od-button--quiet">选中指令</button><button id="prompt-return-switch" type="button" class="od-button od-button--secondary">返回自动运行开关</button></div><p id="copy-feedback" class="od-note" role="status"></p></section>
+    </section>
+    <button id="grant-refresh" type="button" class="od-button od-button--quiet" hidden>重新读取状态</button>
+    <details class="od-disclosure"><summary>授权规则与诊断</summary><p class="od-note">读取、保存失败或安装变化时不显示就绪、不自动重试；UNKNOWN 不重放。此设计文档只修改本页内存，不调用真实权限。</p><pre id="grant-diagnostic" class="od-result">没有诊断错误。</pre></details>
+  </section>
+  <section id="runtime-help-panel" role="tabpanel" aria-labelledby="runtime-help" tabindex="0" class="od-stack" hidden>
+    <h3 class="od-title">从批准到结果</h3><ol class="od-body"><li>任务授权：填写精确范围 → 准备审核 → 明确批准。</li><li>生成本次指令，开启自动运行后在 ChatGPT 粘贴发送。</li><li>等待完整助手回复；用户消息、历史、引用和流式内容均不触发。</li><li>当前任务：分别查看网页结果、持久结果、资源释放和原聊天交付。</li></ol><p class="od-note">关闭开关只拒绝未来任务。停止当前任务不保证撤销既有动作；结果未知时只核对原请求。</p><button type="button" class="od-button od-button--secondary" data-runtime="grant">去任务授权</button>
+  </section>
+  </div>
+</dialog>
+<dialog id="manual-dialog" class="preview-confirm od-surface od-theme-shadcn" aria-labelledby="manual-title"><div class="od-stack"><h2 id="manual-title" class="od-title">手动运行</h2><p id="manual-context" class="od-note"></p><form id="manual-form" class="od-stack" novalidate><div class="od-form-field"><label for="manual-query" class="od-field-label">搜索关键词</label><input id="manual-query" class="od-field" required aria-describedby="manual-error"></div><p id="manual-error" class="od-field-error" role="alert" hidden></p><button id="manual-save" type="submit" class="od-button od-button--primary">保存运行步骤</button></form><section id="manual-confirm" class="od-stack" hidden><p class="od-body">原步骤已保存并读回，尚未执行。确认后才模拟网页操作。</p><div id="manual-confirm-summary" class="od-stack"></div><button id="manual-run" class="od-button od-button--primary" type="button">确认手动运行</button></section><section id="manual-recover" class="od-stack" hidden><p class="od-alert">原步骤已保存但尚未提交。重开不恢复运行许可，只能核对或取消原步骤。</p><div class="preview-actions"><button id="manual-read-staged" type="button" class="od-button od-button--secondary">核对已保存步骤</button><button id="manual-cancel-staged" type="button" class="od-button od-button--quiet">取消未运行步骤</button></div></section><button id="manual-close" type="button" class="od-button od-button--secondary">关闭（保留草稿）</button><p id="manual-notice" class="od-note" role="status" hidden></p></div></dialog>
+<dialog id="record-dialog" class="preview-confirm od-surface od-theme-shadcn" aria-labelledby="record-title"><div class="od-stack"><h2 id="record-title" class="od-title">原请求核对</h2><div id="record-content" class="od-stack"></div><button id="record-close" type="button" class="od-button od-button--secondary">关闭核对</button></div></dialog>
+<dialog id="detail-dialog" class="preview-confirm od-surface od-theme-shadcn" aria-labelledby="detail-title"><div class="od-stack"><h2 id="detail-title" class="od-title">脚本详情</h2><div id="detail-content" class="od-stack"></div><button id="detail-close" type="button" class="od-button od-button--secondary">关闭详情</button></div></dialog>

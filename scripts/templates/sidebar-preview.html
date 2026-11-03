@@ -10,6 +10,10 @@
     .preview-heading{display:grid;gap:var(--space-2)}
     .preview-sections{display:grid;gap:var(--space-4);min-width:0}
     .preview-actions-code{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+    /* Design dialogs keep navigation outside a separately scrolling body.
+       Layout only: controls, surfaces, colors and focus remain canonical. */
+    .preview-dialog[open]{display:flex;flex-direction:column;gap:var(--space-2);width:min(420px,calc(100vw - var(--space-4)));max-height:calc(100dvh - var(--space-4)*2);overflow:hidden}
+    .preview-dialog-body{min-height:0;overflow:auto;overscroll-behavior:contain}
     /* Reading design only: geometry, not component appearance. Article and
        simulated device own separate scroll areas; no runtime CSS is copied. */
     .preview-reading-shell:has(.preview-reading-workbench){max-width:1360px}
