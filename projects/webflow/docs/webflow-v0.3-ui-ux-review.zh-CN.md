@@ -595,3 +595,47 @@ V0.3.2 的原型文本和结构已读取，但旧版 **GitHub 字节级 Chromium
 **本地 Codex 验收 Owner：** 用 GitHub 当前 `main` 原文及真实 Chromium/Playwright 对 320/360/440/580 × 深浅主题的脚本列表、参数输入、进度、成功/失败/UNKNOWN、停用、权限及版本场景运行增量交互；输出有文件路径的实际截图、无页面 JS error 的 trace、焦点与实际滚动宽度指标。随后再在正式扩展授权环境中测试 SDK、原请求对账和持久结果。未经此 Gate，不升级本节的 NOT_TESTED 状态。
 
 **仓库并行安全：** 这次未修改正式 `main.js/model.js/style.css`，也没有触碰 Authority、RunHost、Bridge、Native、Installer、Manifest 或宿主共享 SDK。任何集成变化应由正式 Owner 分开审阅/提交。
+
+
+## 12. V0.3.7 运行面板与应用布局修复（2026-11-03）
+
+本轮用户要求修复可信自动运行信息整块插入扩展应用上方引起的排版问题，并要求专家评审达到 95 分以上。范围是现有 Web Flow UI，BR-01–12、原 Task/Bridge 自动执行、权限和安装语义继续保留。不是另一个总目标或发布验收。
+
+### 12.1 复现、取舍与实施范围
+
+实际组合入口为 `SidebarAppShell → ToolHost.trustedControls → WebflowAutoControls`，沙箱应用来自 `tool.config.json.files`。原先可信组件把开关、长说明、当前任务、原始结果与范围表单依次排在 iframe 前；问题属于固定第一方展示与沙箱内容的层级，不是缺少 SDK。修复复用原 Button/Switch、Sheet 样式、React 根、Controller 与安装器，不新增能力和权限。
+
+本轮选择紧凑状态条加独立“运行与授权”面板：新增一级开发/日志 Tab 与正式五 Tab 冲突；只把原长页面套入展开区仍会挤压应用。独立面板使用当前任务 / 任务授权 / 使用说明，技术身份、原始 JSON 和诊断默认折叠。此选择是本轮根据用户目标作出的可逆排版决定，并非用户新增了后台日志需求。
+
+实施与验证计划：
+
+1. `trusted/AutoSettings.tsx` 只保留一个真实开关，紧凑条显示真实摘要；详细操作通过 Portal 进入面板，所有 Controller 调用与原生事件核验保持原入口。
+2. `trusted/RuntimePanel.tsx` 复用既有 Sheet 样式，处理正反 Tab、Escape、IME、背景 inert 和焦点返回；开合不销毁应用 iframe 或面板内草稿。`CurrentTask.tsx` 的进度、持久结果、释放和聊天交付分开显示。
+3. `src/ui/main.js/style.css` 去重复 Web Flow 标题，三 Tab 与帮助/设置合为一行；统计改为紧凑文本，更新真实操作说明。`model.js`、固定 Task、存储/恢复和执行算法未改变。
+4. 原打包器构建 0.3.7 候选；受影响 UI/恢复及精确来源检查通过后，再晋升唯一正式 JSON。固定可信组件另按原精确 Git blob 门禁审查，不由 JSON 提权。
+
+### 12.2 组件证据与边界
+
+独立夹具 `tests/auto-trigger-ui-server.mjs` 加载真实 AppShell、可信组件、共享 Button/Switch 与本项目沙箱 main/model/style；权限、Task 安装和存储均使用隔离模拟，没有真实网页派发。截图在 `artifacts/sidebar-tools/webflow/ui-layout/`，测试输出在同级 `ui-layout-tests.log` / `runtime-panel-tests.log`，不提交快照。
+
+已执行本地 Chromium 组件操作：打开/关闭面板；初始容器焦点立即 Shift+Tab 到末个按钮，再 Tab 回关闭按钮；Escape 关闭后焦点回 `webflow-runtime-open`；授权参数经切 Tab、关闭再打开保留；沙箱搜索“百度”在面板开合后保留；完成回执的四个事实与原始结果/身份折叠分别显示。空态及未建立请求时的草稿、等待、拒绝提示不被泛化覆盖。
+
+IAB 组件驱动产生的非可信 click/press 不能授予批准或写开关，实际被原门禁拒绝；该事实只证明拒绝路径，不能记成保存成功或 Chrome 原生授权通过。DOM 单元夹具注入 isTrusted 只用于验证事件传递，不是原生手势证据。
+
+实际扩展内部页面访问被 Browser URL 政策阻止；未绕过。真实 Side Panel 当前候选、原位安装/升级、原生批准、网站 Task 与 production 均为本轮 NOT_TESTED。另一个任务独占日常 Chrome / writer 15593 / dist 时，本轮停止所有 Browser/native 操作，也不触发共享输出更新。历史双轮原生证据不归入本轮 UI 评分。
+
+### 12.3 独立评审
+
+独立评审员首次发现并已修复：无 requestId 时的有效摘要被覆盖、初始容器焦点的反向 Tab 未围栏、任务操作测试绕过可见管理入口。后续评分仅评价同源码组件 UI/UX 与交互证据，真实产品/安装验收单列 NOT_TESTED；评分结果以本节后续实读记录为准，不预填 95。
+
+
+本轮独立初评为 **94/100**（布局 29/30、信息层级 23/25、交互可访问 24/25、边界及状态 18/20），没有达到目标。其余扣分已定向修复：紧凑条的“运行与授权”成为明确管理入口；概览内辅助链接不再使用主要运行按钮视觉；compact 授权页去掉重复章节标题；帮助/设置保留一个主 Tab 键盘入口；批准按钮前直接披露“同窗口各 ChatGPT 对话、上述精确范围、结果回到触发原聊天”。最新四个受影响 UI/恢复文件的 **55 项 Node 检查通过**，另补 IME Escape、无请求阶段摘要及批准前范围披露断言；真实安装/权限不据此提升等级。
+
+
+**最终独立 AI 组件 UI/UX 复评：97/100。** 评审员查看同源码 `overview-final.png`、`runtime-empty-final.png`、`authorization-final.png`、`review-final.png`，结合此前完成态和拒绝态证据，并复核三份可信源码的精确 blob。分项为布局 29/30、信息层级 24/25、交互可访问 24/25、边界及状态 20/20。非阻断扣分：编辑表单与审核摘要纵向重复；旧帮助仍提原聊天任务卡；审核区异步生成后缺少主动聚焦或就绪播报。评分只适用于本轮组件，不代表真实 Side Panel 或 production 发行通过。
+
+原 `webflow-fixed-source.test.mjs` 扩展至三个 UI 源文件的精确输出、字节漂移、符号链接和未审文件拒绝，**3/3 PASS**；未扩大准入目标、路径白名单或权限。正式包 **0.3.7 / 52,925 bytes / SHA-256 `cf95d32d6c35583a879af862783c94cbb0bd896c3331217d88a5453a3b6bf527`** 已用原打包器晋升并 `--check-project` 同源，**未安装**。源码和包一起保存 main，其他任务的 Bridge/原生证据及未提交改动保留原 owner。
+
+配置恢复诊断：原 writer 的旧 hook 图对 `ai-knowledge-answers/trusted/ai-request.js` 报旧来源锁；现行 `describeBundle` 对同一当前文件校验通过（blob `d74df23166adc1ee10952db847cbd1202bdeb3ae`）。在独占资源明确释放后，只更新时间戳触发原 `wxt.config.mjs` 配置恢复，不改其字节、不停止 PID 15593、不修改 Knowledge 源码或放宽校验。新产物与 Chrome 是否实际应用分别记录，不能把进程存活当作新 UI 生效。
+
+配置恢复已完成：原 writer 15593 输出的新 revision 为 `7acfa04c42ff4a3dcf2e6b1c0509eebd5e6eb94ee83e0bfa03f7372dcd48db0d`，`ui/tool-shell.js` SHA-256 `dd277fd9329c93ce1b3353ab2cecbe5ab0de22a92fc75e597c1e39b3909d5b2a` 与发布标记逐字节一致，产物包含 `webflow-runtime-open`。这证明当前开发产物已更新；Chrome 是否已通过安全刷新应用该 revision 仍为 NOT_TESTED。完整本轮输入摘要、包及截图哈希、评分和证据边界见 [ui-layout-20261103.json](../evidence/ui-layout-20261103.json)。

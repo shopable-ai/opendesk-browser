@@ -105,6 +105,8 @@ test('defaults come from the catalog schema, preparation displays exact scope an
  const review=f.find('webflow-auto-review');
  assert.ok(review);assert.match(review.textContent,/搜索任务/);assert.ok(review.textContent.includes(target));
  assert.match(review.textContent,/<script>review<\/script>/);assert.equal(review.querySelector('script'),null);
+ assert.match(review.textContent,/同一窗口中各 ChatGPT 对话.*精确范围|精确范围.*同一窗口中各 ChatGPT 对话/s);
+ assert.match(review.textContent,/结果返回触发任务的原聊天/);
  assert.equal(review.querySelector('details').hasAttribute('open'),false);
  assert.equal(f.host.calls.filter(([kind])=>kind==='approve').length,0);
  await f.click('webflow-auto-approve');
@@ -402,7 +404,7 @@ test('installed Web Flow exposes one real slider; other tools, previews and disa
  const slider=()=>f.document.querySelector('[role="switch"]');
  assert.equal(slider().tagName,'INPUT');
  assert.ok(f.document.querySelector('[data-slot="switch-thumb"]'));
- assert.equal(f.document.querySelector('details').hasAttribute('open'),false);
+ assert.ok(f.document.querySelector('[role="dialog"]').closest('[hidden]'),'management is outside the application flow');
  await f.click('webflow-auto-enabled',true);
  assert.equal(slider().checked,true);
  await f.setOpen(false);assert.equal(slider(),null);
@@ -415,6 +417,54 @@ test('installed Web Flow exposes one real slider; other tools, previews and disa
  await f.setDisplay(display);assert.equal(slider().checked,true);
 });
 
+test('runtime details occupy a separate panel; navigation preserves scope drafts without authorizing',async t=>{
+ const host=controller(),controls=[];
+ host.api.readBridgeState=async()=>({session:null,receipt:null});
+ host.api.controlBridge=async(...args)=>{controls.push(args);throw Error('navigation must not control a task');};
+ const f=await fixture(t,{entry:true,host});
+ const panel=()=>f.document.querySelector('[role="dialog"]');
+ assert.ok(f.find('webflow-runtime-open'),'the application exposes one explicit management entry');
+ assert.equal(panel().closest('[hidden]')!==null,true,'details take no application space by default');
+ await f.click('webflow-runtime-open');
+ assert.equal(panel().closest('[hidden]'),null);
+ await f.click('webflow-runtime-tab-scope');
+ await f.input('webflow-auto-args','{"query":"保留草稿","limit":3}');
+ await f.click('webflow-runtime-tab-task');
+ await f.click('webflow-runtime-tab-scope');
+ assert.equal(f.find('webflow-auto-args').value,'{"query":"保留草稿","limit":3}');
+ const imeEscape=new f.window.Event('keydown',{bubbles:true,cancelable:true});
+ Object.defineProperties(imeEscape,{key:{value:'Escape'},isComposing:{value:true}});
+ await React.act(async()=>f.find('webflow-auto-args').dispatchEvent(imeEscape));
+ assert.equal(panel().closest('[hidden]'),null,'IME cancellation must not dismiss the runtime panel');
+ const close=panel().querySelector('[aria-label="关闭运行与授权"]');
+ await React.act(async()=>close.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ await f.click('webflow-runtime-open');
+ assert.equal(f.find('webflow-auto-args').value,'{"query":"保留草稿","limit":3}');
+ const escape=new f.window.Event('keydown',{bubbles:true,cancelable:true});
+ Object.defineProperty(escape,'key',{value:'Escape'});
+ await React.act(async()=>f.find('webflow-auto-args').dispatchEvent(escape));
+ assert.ok(panel().closest('[hidden]'),'ordinary Escape dismisses the panel');
+ assert.deepEqual(f.host.calls.map(([kind])=>kind),['read'],'opening or switching views only reads settings');
+ assert.deepEqual(controls,[]);
+});
+
+test('the compact summary preserves pre-request progress and rejection diagnostics',async t=>{
+ const host=controller();
+ let status='指令仍在草稿，请在 ChatGPT 亲自发送';
+ host.api.readBridgeState=async()=>({source:{documentId:'doc'},session:{status,requestId:null,fields:{},tasks:[],actions:{}}});
+ host.api.controlBridge=async()=>{throw Error('no request may run');};
+ const f=await fixture(t,{entry:true,host});
+ assert.equal(f.find('webflow-runtime-summary').textContent,status);
+ await f.click('webflow-runtime-open');
+ for(const next of ['等待同一新消息及完整任务协议','历史或未见证发送，不会自动运行']){
+  status=next;
+  const refresh=[...f.document.querySelector('[aria-label="Web Flow 当前任务"]').querySelectorAll('button')]
+   .find(button=>button.textContent==='刷新状态');
+  await React.act(async()=>refresh.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+  assert.equal(f.find('webflow-runtime-summary').textContent,status);
+ }
+});
+
 test('trusted sidebar shows same-run execution, persistence, release and chat delivery separately; query never runs a task',async t=>{
  const host=controller(),calls=[];
  const view={source:{tabId:9,documentId:'doc',url:'https://chatgpt.com/c/sidebar-test-12345678'},
@@ -424,9 +474,12 @@ test('trusted sidebar shows same-run execution, persistence, release and chat de
  host.api.readBridgeState=async()=>{calls.push(['read']);return structuredClone(view);};
  host.api.controlBridge=async(value,event)=>{calls.push(['control',value,event]);return structuredClone(view);};
  const f=await fixture(t,{entry:true,host});
+ await f.click('webflow-runtime-open');
+ assert.equal(f.document.querySelector('[role="dialog"]').closest('[hidden]'),null);
  const panel=f.document.querySelector('[aria-label="Web Flow 当前任务"]');assert.ok(panel);
- assert.match(panel.textContent,/持久结果已核实同一 Run \/ Result/);assert.match(panel.textContent,/资源释放released/);
- assert.match(panel.textContent,/原聊天交付unknown/);assert.ok(panel.textContent.includes('"count": 3'));
+ assert.match(panel.textContent,/持久结果已核实同一 Run \/ Result/);assert.match(panel.textContent,/资源释放已释放/);
+ assert.match(panel.textContent,/原聊天交付结果未知/);assert.ok(panel.textContent.includes('"count": 3'));
+ assert.equal(panel.querySelector('pre').closest('details').hasAttribute('open'),false,'raw results are available on demand');
  const click=async(label,trusted)=>{
   const button=[...panel.querySelectorAll('button')].find(node=>node.textContent===label);assert.ok(button);
   const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:trusted});

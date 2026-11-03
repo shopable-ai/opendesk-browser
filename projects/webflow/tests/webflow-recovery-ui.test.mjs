@@ -108,6 +108,11 @@ test('overview leads to existing scripts and automatic usage help without creati
   assert.ok(taskCard(f));
   await f.click('概览');await f.click('使用与排障');
   assert.equal(f.document.querySelector('main h2').textContent,'帮助');
+  const keyboardTabs=()=>[...f.document.querySelectorAll('[role="tab"]')].filter(tab=>tab.getAttribute('tabindex')==='0');
+  assert.equal(keyboardTabs().length,1,'help retains one keyboard entry into primary navigation');
+  assert.equal(keyboardTabs()[0].getAttribute('data-page'),'overview');
+  await f.click('设置');
+  assert.equal(keyboardTabs().length,1,'settings retains one keyboard entry into primary navigation');
   await f.click('返回');
   assert.equal(f.document.querySelector('[data-page="overview"]').getAttribute('aria-selected'),'true');
   assert.equal(starts(host).length,0);

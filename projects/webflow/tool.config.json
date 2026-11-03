@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "webflow",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "title": "Web Flow",
   "description": "ChatGPT 固定协议自动运行使用引导；复用可信任务批准、原聊天结果，以及手动运行、原步骤查询与停止。",
   "capabilities": [

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "recordedDate": "2026-11-03",
+  "stage": "development-ui",
+  "baseCommit": "cc96d7da208b3d891c0a502da1b3c25ba0b3bea0",
+  "problem": "Trusted runtime controls occupied the application flow before the sandbox iframe.",
+  "result": "Compact status strip and one runtime sheet with task, scope and help views; application stays mounted.",
+  "sourceSha256": {
+    "projects/webflow/src/ui/main.js": "a34390b74a9d3d4afa3c9acc54f9b92e35a693967e8f91992c2f48c6315f2661",
+    "projects/webflow/src/ui/style.css": "c92983c8264d7a0f624515bdb227e46b5ad56af126a5d907dbf9c3faa6f29ff4",
+    "projects/webflow/src/ui/model.js": "dee959d35a73c8003977da8d6d4b953ebd959111eec544380157438967e607f8",
+    "projects/webflow/tool.config.json": "50b243f4f03d7650c0f9c098f3efb78105ebdb2c97a5f622f9745577b53ad46d",
+    "projects/webflow/trusted/AutoSettings.tsx": "a4b212cb7a49595bd4b1c3763d5c12f95bd265286d973d34a862592f7a2a1c61",
+    "projects/webflow/trusted/CurrentTask.tsx": "738301a3cc7cf0dc95d9ce86836e96985f924e7f42905604ca57ed5020056e6f",
+    "projects/webflow/trusted/RuntimePanel.tsx": "1ba21f025aecda580d18f931ae53ff91a5a78b2c0f7bbbbb206a9cc35f9be0b3"
+  },
+  "trustedGitBlobs": {
+    "projects/webflow/trusted/AutoSettings.tsx": "1179f31ea5500c8ff202541479872f94d4e39b17",
+    "projects/webflow/trusted/CurrentTask.tsx": "ed94deceb3690c2d14d48e179ce04a815ac0735e",
+    "projects/webflow/trusted/RuntimePanel.tsx": "2faa174b138f045b66104a409d022758a376e55d"
+  },
+  "verification": {
+    "uiAndRecovery": {
+      "passed": 55,
+      "failed": 0,
+      "log": "artifacts/sidebar-tools/webflow/ui-layout-tests.log"
+    },
+    "exactSourceAdmission": {
+      "passed": 3,
+      "failed": 0,
+      "log": "artifacts/sidebar-tools/webflow/source-admission-tests.log"
+    },
+    "syntax": "PASS",
+    "projectPackageSameSource": "PASS"
+  },
+  "componentBrowser": {
+    "level": "REAL_SHELL_AND_APP_SOURCE_WITH_MOCK_SDK",
+    "browser": "Codex In-app Browser",
+    "checks": [
+      "separate runtime panel and unchanged five top tabs",
+      "initial reverse Tab and forward wrap remain within dialog",
+      "Escape closes and restores opener focus; IME Escape retained by component test",
+      "scope draft survives tab switches and close/reopen",
+      "sandbox Baidu search filter survives opening and closing runtime panel",
+      "execution, persistence, release and chat delivery are separate; JSON and identity collapsed",
+      "approval review directly discloses same-window ChatGPT conversations, exact scope and original-chat delivery",
+      "untrusted UI events rejected without changing authority"
+    ],
+    "screenshots": {
+      "overview-final.png": {
+        "path": "artifacts/sidebar-tools/webflow/ui-layout/overview-final.png",
+        "sha256": "42cf2d547dd3abe240b5b112f01d76a01d7342627739ea8f6b96bc35e46f8d6b"
+      },
+      "runtime-empty-final.png": {
+        "path": "artifacts/sidebar-tools/webflow/ui-layout/runtime-empty-final.png",
+        "sha256": "c5e4d48a94bd9d671843b5193ed19525d0f186fbce02cbd4aa88b7a107febb99"
+      },
+      "authorization-final.png": {
+        "path": "artifacts/sidebar-tools/webflow/ui-layout/authorization-final.png",
+        "sha256": "d55dd0f55e7143bdcd2d4510533f219409062275acc539b4d0476e3e2ef23993"
+      },
+      "review-final.png": {
+        "path": "artifacts/sidebar-tools/webflow/ui-layout/review-final.png",
+        "sha256": "8665bb0238d1adc1f1eb05ddd8b515a5b4958ca0a1e2e6a81f814d7068d8d827"
+      }
+    }
+  },
+  "independentAiReview": {
+    "score": 97,
+    "scope": "Component UI/UX only; full native product not scored",
+    "reviewerAgent": "01a1a043-e4c4-75c1-9010-a072e85d5b3f",
+    "initialScore": 94,
+    "breakdown": {
+      "layout": {
+        "score": 29,
+        "max": 30
+      },
+      "informationHierarchy": {
+        "score": 24,
+        "max": 25
+      },
+      "interactionAndAccessibility": {
+        "score": 24,
+        "max": 25
+      },
+      "boundariesAndStates": {
+        "score": 20,
+        "max": 20
+      }
+    },
+    "nonBlockingDeductions": [
+      "editing and review repeat vertically",
+      "some help text still references original chat task cards",
+      "review readiness does not automatically focus or announce"
+    ]
+  },
+  "package": {
+    "id": "webflow",
+    "version": "0.3.7",
+    "file": "projects/webflow/webflow.opendesk-tool.json",
+    "bytes": 52925,
+    "sha256": "cf95d32d6c35583a879af862783c94cbb0bd896c3331217d88a5453a3b6bf527",
+    "sameOriginalPackagerCandidatePromoteCheck": true,
+    "installed": false,
+    "capabilitiesChanged": false,
+    "delegatedTasksChanged": false
+  },
+  "development": {
+    "mode": "continuous-development",
+    "writerPid": 15593,
+    "outputPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "extensionIdLastReadByNativeOwner": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "sourcePolicy": "Exact reviewed blobs; no gate relaxation",
+    "recovery": "Original serve config recovery after stale cached Knowledge pin; config bytes and Knowledge code untouched",
+    "emittedRevision": "7acfa04c42ff4a3dcf2e6b1c0509eebd5e6eb94ee83e0bfa03f7372dcd48db0d",
+    "toolShellSha256": "dd277fd9329c93ce1b3353ab2cecbe5ab0de22a92fc75e597c1e39b3909d5b2a",
+    "newPanelInEmittedBundle": true,
+    "chromeAppliedThisRevision": "NOT_TESTED",
+    "parallelWorkingTreeChangesRemainOwnedByOthers": true
+  },
+  "native": {
+    "currentCandidateSidePanel": "NOT_TESTED",
+    "toolUpgrade": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "reason": "Browser URL policy blocked extension internal pages; no alternative used to access them.",
+    "otherTaskEvidenceExcluded": "project-chat-auto-20261103.json belongs to its own aa17724e candidate"
+  },
+  "coordination": {
+    "originalChromeAndWriterPreserved": true,
+    "waitedForExplicitResourceRelease": true,
+    "browserPreviewPagesClosed": true,
+    "temporaryViewportOverridesReset": true
+  }
+}

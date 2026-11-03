@@ -23,8 +23,9 @@ const compiledTimeReviewInputs=Object.freeze({
 const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'d74521d517160273b2c3986fa71374314f2393e3',
-  'projects/webflow/trusted/CurrentTask.tsx':'ad22b9cf92fc911879b644e5da4a400155ce62aa'
+  'projects/webflow/trusted/AutoSettings.tsx':'1179f31ea5500c8ff202541479872f94d4e39b17',
+  'projects/webflow/trusted/CurrentTask.tsx':'ed94deceb3690c2d14d48e179ce04a815ac0735e',
+  'projects/webflow/trusted/RuntimePanel.tsx':'2faa174b138f045b66104a409d022758a376e55d'
 });
 function reviewedCompiledWebFlow(target,path,root){
   if(!Object.hasOwn(compiledWebFlowInputs,path)||

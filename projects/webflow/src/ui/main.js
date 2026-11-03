@@ -453,22 +453,20 @@
     function overview(){
       return h('div',{className:'wf-stack'},
         h(Head,{title:'概览',note:'固定任务 · 真实安装核验与最近运行'}),
-        banner,
-        h('div',{className:'wf-grid'},
+        h('div',{className:'wf-metrics','aria-label':'任务概况'},
           ...[['已审阅任务',summary.reviewed],['可手动运行',loading?'…':summary.available],
             ['需处理',loading?'…':summary.attention],['本应用记录',history.length]]
-            .map(([label,n])=>h('div',{key:label,className:'wf-stat'},
-              h('strong',null,n),h('span',null,label)))),
+            .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'从 ChatGPT 自动运行'),
           h('ol',{className:'wf-help'},
-            h('li',null,'在上方“任务范围与授权”核对已有脚本批准；地址、参数与安装版本须完全匹配。'),
+            h('li',null,'打开上方“运行与授权 → 任务授权”，核对脚本、地址与参数。'),
             h('li',null,'在已批准任务中生成并复制本次 ChatGPT 指令，开启上方“自动运行”滑块。'),
             h('li',null,'保持侧栏打开，在 ChatGPT 原对话粘贴并发送。完整助手回复符合协议后自动执行，无需再点运行。')),
-          h('p',{className:'wf-sub'},'进度、结果或具体失败请查看原聊天的 OpenDesk 任务卡；结果回到同一聊天。下方“记录”仅保存本界面的手动运行。'),
-          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{primary:true}),
+          h('p',{className:'wf-sub'},'在“运行与授权 → 当前任务”查看进度和结果；结果也会回到原聊天。“记录”保存手动运行。'),
+          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{quiet:true}),
             Btn('使用与排障',()=>setTab('help'),{quiet:true}),
-            Btn('刷新安装状态',()=>{void readTasks();},{disabled:loading})))}),
+            Btn('刷新安装状态',()=>{void readTasks();},{quiet:true,disabled:loading})))}),
         summary.attention>0&&h('div',{className:'wf-banner wf-warning'},
           summary.attention+' 项固定任务不可用或版本变化。请在宿主任务目录核对，不要通过改名绕过固定身份。'),
         h(Card,{children:h('div',{className:'wf-stack'},
@@ -522,7 +520,7 @@
             h('option',{value:'dark'},'深色')))}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'自动运行权限'),
-          h('p',{className:'wf-sub'},'使用本应用上方的“自动运行”滑块；展开“任务范围与授权”核对已安装脚本、地址和参数并批准。开关与批准即时保存。'),
+          h('p',{className:'wf-sub'},'使用本应用上方的“自动运行”滑块；打开“运行与授权 → 任务授权”核对已安装脚本、地址和参数并批准。开关与批准即时保存。'),
           h('p',{className:'wf-sub'},'若上方没有自动运行控件，请更新 OpenDesk Browser。保持可信侧栏打开后，在 ChatGPT 发送新消息；只有随后完整助手回复中的 webflow.task.intent.v1 候选可触发，用户消息、历史与引用不触发。'))}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
@@ -538,7 +536,7 @@
           action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'从 ChatGPT 自动运行'),
-          h('p',null,'1. 展开应用上方“任务范围与授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；改变参数需重新审核。'),
+          h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；改变参数需重新审核。'),
           h('p',null,'2. 在已批准任务中点击“生成 ChatGPT 指令”并复制，开启“自动运行”。保持侧栏打开，在原 ChatGPT 对话发送指令，等待唯一完整助手回复。'),
           h('p',null,'3. 在原聊天 OpenDesk 任务卡查看本次进度、结果或失败。自动结果不会出现在本界面的手动记录中。每次新任务须生成新 candidateId；结果未知时只查询原请求，不补跑。'),
           h('h3',null,'未触发或需要停止'),
@@ -555,15 +553,11 @@
     const sections={overview,scripts,history:records,settings:settingsPage,help:helpPage};
     return h('div',{className:'wf-app', 'data-theme':settings.theme},
       h('div',{className:'wf-head'},
-        h('div',{className:'wf-head-main'},h('span',{className:'wf-logo'},'W'),
-          h('div',null,h('h1',null,'Web Flow'),h('p',{className:'wf-sub'},'自动化任务中心'))),
-        h('div',{className:'wf-head-actions'},
-          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助'}),
-          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置'}))),
       h('div',{className:'wf-tabs',role:'tablist','aria-label':'Web Flow 主导航'},
         ...[['overview','概览'],['scripts','脚本'],['history','记录']].map(([key,label],i)=>
-          h('button',{key,type:'button',role:'tab',className:'wf-tab',
-            'aria-selected':page===key,'data-page':key,tabIndex:page===key?0:-1,
+          h('button',{key,type:'button',role:'tab',className:'wf-tab',id:'wf-tab-'+key,'aria-controls':'wf-panel',
+            'aria-selected':page===key,'data-page':key,
+            tabIndex:(['overview','scripts','history'].includes(page)?page:'overview')===key?0:-1,
             onClick:()=>setTab(key),
             onKeyDown:event=>{
               const steps=['overview','scripts','history'];
@@ -576,14 +570,17 @@
               event.preventDefault();setTab(steps[index]);
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
             }},label))),
-      h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel'},
+        h('div',{className:'wf-head-actions'},
+          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助'}),
+          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置'}))),
+      h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
+        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
         page!=='history'&&activeCard(),
-        sections[page]()),
-      h('footer',{className:'wf-footer'},'自动运行由上方可信控件管理 · 执行与结果复用原 Task'));
+        sections[page]()));
   }
   function sameSite(url,origin){
     try{return new URL(url).origin===origin;}catch{return false;}

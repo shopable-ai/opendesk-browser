@@ -3,6 +3,7 @@ import {Button} from '../../../src/ui/react/components/ui/button.tsx';
 import {Switch} from '../../../src/ui/react/components/ui/switch.tsx';
 import {WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 import {WebflowCurrentTask} from './CurrentTask.tsx';
+import {WebflowRuntimePanel} from './RuntimePanel.tsx';
 
 type Installation=Record<string,unknown>;
 type ParamsSchema={type?:string;default?:unknown;const?:unknown;enum?:unknown[];
@@ -71,6 +72,13 @@ function ScopeSummary({scope}:{scope:WebflowAutoScope}){
  </div>;
 }
 
+function ScopeSection({compact,children}){
+ return compact?<div className="od-stack">{children}</div>:
+  <details className="od-disclosure od-disclosure--flat" open>
+   <summary>任务范围与授权</summary><div className="od-stack">{children}</div>
+  </details>;
+}
+
 // A copyable request only. The original Bridge still parses the assistant's
 // complete reply and rechecks the current approval, installation and site.
 function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:boolean}){
@@ -116,6 +124,10 @@ function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:bool
 // Static trusted UI only. ToolShell supplies the narrow controller; no private
 // capability or executable review is exported to the installed sandbox.
 export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAuto?:WebflowAutoController|null;compact?:boolean}){
+ const [panelOpen,setPanelOpen]=React.useState(false);
+ const [tab,setTab]=React.useState('task');
+ const [summary,setSummary]=React.useState('正在读取任务状态…');
+ const closePanel=React.useCallback(()=>setPanelOpen(false),[]);
  const [snapshot,setSnapshot]=React.useState<WebflowAutoSnapshot|null>(null);
  const [draft,setDraft]=React.useState(()=>initialDraft());
  const [prepared,setPrepared]=React.useState<{review:WebflowAutoReview;edit:number}|null>(null);
@@ -234,7 +246,29 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  };
  const busy=Boolean(work),editable=Boolean(snapshot)&&work!=='read'&&work!=='write';
  const unavailable=snapshot?.unavailable;
- return <section className="od-stack" aria-labelledby="webflow-auto-title" aria-busy={busy}
+ const scopeRules=<>
+  <p className="od-field-help">
+   默认关闭。批准后，匹配任务、精确地址、参数和安装身份的请求可持续自动提交，无需逐次确认；不会增加 Controller 权限。
+   保持可信 OpenDesk 侧栏打开的窗口中，ChatGPT 官方网页的各对话均可在批准范围内触发；真实结果将自动发送至触发任务的原聊天。
+   关闭总开关或撤销任务只阻止未来准入，不会回滚已经开始的动作。未知结果不会自动重放。
+  </p>
+  <p className="od-field-help">{compact?'开关和授权即时保存。':'批准、开关和撤销即时保存，不受「保存 AI 设置」或「取消」影响。'}</p>
+ </>;
+ const switchControl=snapshot?<Switch id="webflow-auto-enabled" aria-label="Web Flow 自动运行"
+   isSelected={snapshot.enabled} isDisabled={busy||!webflowAuto?.setAutoEnabled}
+   aria-describedby="webflow-auto-risk"
+   // Forward the original pointer/keyboard gesture synchronously. toggle/run
+   // prevent the label and native input click from writing twice.
+   onClickCapture={event=>toggle(event.nativeEvent)}/>:<span id="webflow-auto-enabled" role="status">
+    {work==='read'?'正在读取…':'状态未确认'}</span>;
+ const feedback=<>
+  {(!snapshot||error||busy)&&<Button id="webflow-auto-disable" variant="danger"
+   disabled={!webflowAuto?.setAutoEnabled} onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>}
+  {notice&&<p role="status" className="od-note">{notice}</p>}
+  {error&&<p id="webflow-auto-error" role="alert" className="od-field-error">{error}</p>}
+ </>;
+ const tabs=[['task','当前任务'],['scope','任务授权'],['help','使用说明']];
+ const content=<section className="od-stack" aria-labelledby="webflow-auto-title" aria-busy={busy}
   onKeyDown={event=>{
    // This section shares the AI settings form. Enter in a scope input must not
    // submit/save that unrelated form; textarea and button keyboard actions remain native.
@@ -243,26 +277,37 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   }}>
   <div className="od-toolbar">
    <strong id="webflow-auto-title" className="od-title">自动运行</strong>
-   {snapshot?<Switch id="webflow-auto-enabled" aria-label="Web Flow 自动运行"
-    isSelected={snapshot.enabled} isDisabled={busy||!webflowAuto?.setAutoEnabled}
-    aria-describedby="webflow-auto-risk"
-    // React Aria handles pointer presses on its visible label; Space emits a
-    // native input click. Forward both original gestures. The synchronous lock
-    // in toggle/run prevents the same activation from writing twice.
-    onClickCapture={event=>toggle(event.nativeEvent)}/>:<span id="webflow-auto-enabled" role="status">
-     {work==='read'?'正在读取自动运行状态…':'自动运行状态未确认'}
-    </span>}
+   {(!compact||panelOpen)&&switchControl}
    <span role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):''}</span>
   </div>
   <p id="webflow-auto-risk" className="od-field-help">
-   开启后，新消息后的完整 ChatGPT 回复若包含已批准范围的任务协议，将自动运行已安装脚本。保持 OpenDesk 侧栏打开。
+   {compact?'仅自动运行已批准范围内的任务；关闭开关只阻止新任务。保持侧栏打开。':
+    '开启后，新消息后的完整 ChatGPT 回复若包含已批准范围的任务协议，将自动运行已安装脚本。保持 OpenDesk 侧栏打开。'}
   </p>
-  {(!snapshot||error||busy)&&<Button id="webflow-auto-disable" variant="danger"
-   disabled={!webflowAuto?.setAutoEnabled} onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>}
-  {notice&&<p role="status" className="od-note">{notice}</p>}
-  {error&&<p id="webflow-auto-error" role="alert" className="od-field-error">{error}</p>}
-  {compact&&webflowAuto?.readBridgeState&&webflowAuto?.controlBridge&&<WebflowCurrentTask controller={webflowAuto}/>}
-  <details className="od-disclosure od-disclosure--flat">
+  {(!compact||panelOpen)&&feedback}
+  {compact&&<div className="od-toolbar" role="tablist" aria-label="运行管理"
+   onKeyDown={event=>{
+    if(event.nativeEvent.isComposing||event.nativeEvent.keyCode===229)return;
+    const index=tabs.findIndex(([key])=>key===tab);
+    const next=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?
+     (index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;
+    if(next===null)return;
+    event.preventDefault();setTab(tabs[next][0]);
+    event.currentTarget.querySelector<HTMLButtonElement>('#webflow-runtime-tab-'+tabs[next][0])?.focus();
+   }}>
+   {tabs.map(([key,label])=><Button key={key} id={'webflow-runtime-tab-'+key} role="tab"
+    aria-selected={tab===key} aria-controls={'webflow-runtime-'+key} tabIndex={tab===key?0:-1}
+    variant={tab===key?'secondary':'quiet'} onClick={()=>setTab(key)}>{label}</Button>)}
+  </div>}
+  {compact&&<div id="webflow-runtime-task" role="tabpanel" aria-labelledby="webflow-runtime-tab-task"
+   hidden={tab!=='task'} tabIndex={0}>
+   {webflowAuto?.readBridgeState&&webflowAuto?.controlBridge?
+    <WebflowCurrentTask controller={webflowAuto} onSummary={setSummary}/>:
+    <p role="status" className="od-note">当前任务状态暂不可用，请在原聊天查看。</p>}
+  </div>}
+  <div id={compact?'webflow-runtime-help':undefined} role={compact?'tabpanel':undefined}
+   aria-labelledby={compact?'webflow-runtime-tab-help':undefined} hidden={compact&&tab!=='help'} tabIndex={compact?0:undefined}>
+  <details className="od-disclosure od-disclosure--flat" open={compact?true:undefined}>
    <summary>如何触发与查看结果</summary>
    <div className="od-stack">
     <p className="od-field-help">在“任务范围与授权”中核对已有批准，生成并复制本次指令；开启上方滑块后，在 ChatGPT 对话中粘贴并发送。只有随后完整助手回复里的固定协议会触发。</p>
@@ -270,18 +315,12 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     <p className="od-field-help">没有触发时先核对开关、已批准的精确地址与参数，以及“当前任务”提示。结果未知时查询原请求，不重新发送同一候选或切换入口补跑。关闭自动运行只阻止新任务；已开始的任务在“当前任务”停止。</p>
    </div>
   </details>
-  <details className="od-disclosure od-disclosure--flat" open={compact?undefined:true}>
-   <summary>任务范围与授权</summary>
-   <div className="od-stack">
-   <Button id="webflow-auto-refresh" disabled={busy||!webflowAuto?.readAutoSettings} onClick={refresh}>诊断刷新</Button>
-  <p className="od-field-help">
-   默认关闭。批准后，匹配任务、精确地址、参数和安装身份的请求可持续自动提交，无需逐次确认；不会增加 Controller 权限。
-   保持可信 OpenDesk 侧栏打开的窗口中，ChatGPT 官方网页的各对话均可在批准范围内触发；真实结果将自动发送至触发任务的原聊天。
-   关闭总开关或撤销任务只阻止未来准入，不会回滚已经开始的动作。未知结果不会自动重放。
-  </p>
-  <div className="od-stack">
-   <p className="od-field-help">批准、开关和撤销即时保存，不受「保存 AI 设置」或「取消」影响。</p>
   </div>
+  <div id={compact?'webflow-runtime-scope':undefined} role={compact?'tabpanel':undefined}
+   aria-labelledby={compact?'webflow-runtime-tab-scope':undefined} hidden={compact&&tab!=='scope'} tabIndex={compact?0:undefined}>
+  <ScopeSection compact={compact}>
+   <Button id="webflow-auto-refresh" disabled={busy||!webflowAuto?.readAutoSettings} onClick={refresh}>刷新授权状态</Button>
+  {compact?<details className="od-disclosure od-disclosure--flat"><summary>授权规则与数据去向</summary>{scopeRules}</details>:scopeRules}
   {!webflowAuto&&<p role="status" className="od-note">自动准入设置暂不可用。</p>}
   {snapshot&&!snapshot.tasks.length&&<p role="status" className="od-note">暂无可审核的已安装任务，请诊断刷新查看原因。</p>}
   {grantSnapshot&&<div id="webflow-auto-grants" className="od-stack" role="group" aria-label="已批准任务">
@@ -299,7 +338,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
      <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId} scope={grant.scope} enabled={snapshot.enabled}/>}
    </div>)}
   </div>}
-  <strong className="od-field-label">新建或更改批准范围</strong>
+  <details className="od-disclosure od-disclosure--flat" open={grantSnapshot?.grants.some(grantUsable)?undefined:true}>
+  <summary>新增或修改批准范围</summary>
+  <div className="od-stack">
   <div className="od-form-field">
    <label className="od-field-label" htmlFor="webflow-auto-task">任务</label>
    <select id="webflow-auto-task" className="od-field" value={draft.taskId}
@@ -330,10 +371,12 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    aria-labelledby="webflow-auto-review-title">
    <strong id="webflow-auto-review-title">批准前审核：{prepared.review.taskName}（{prepared.review.taskId}）</strong>
    <ScopeSummary scope={prepared.review}/>
-   <p className="od-field-help">本次批准会持久保存上述精确范围，允许后续持续自动提交。任何输入改变都需重新审核。</p>
+   <p className="od-field-help">本次批准会持久保存上述精确范围，允许同一窗口中各 ChatGPT 对话的匹配请求持续自动提交；结果返回触发任务的原聊天。任何输入改变都需重新审核。</p>
    <Button id="webflow-auto-approve" variant="primary" disabled={busy||!webflowAuto?.approveAutoTask}
     aria-describedby="webflow-auto-risk" onClick={event=>approve(event.nativeEvent)}>批准此任务持续自动准入</Button>
   </div>}
+  </div>
+  </details>
   {snapshot&&<details className="od-disclosure od-disclosure--flat">
    <summary>诊断 · 任务可用性与授权代次</summary>
    <p className="od-technical">授权代次（epoch）：{snapshot.epoch}</p>
@@ -343,7 +386,23 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     :<p className="od-note">没有不可用任务的诊断记录。</p>
     :unavailable&&<p className="od-note">{typeof unavailable==='string'?unavailable:'任务目录暂不可用'}</p>}
   </details>}
-   </div>
-  </details>
+  </ScopeSection>
+  </div>
  </section>;
+ if(!compact)return content;
+ return <>
+  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)'}}>
+   <div className="od-toolbar">
+    <strong className="od-field-label">自动运行</strong>
+    {!panelOpen&&switchControl}
+    <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):'状态未确认'}</span>
+    <Button id="webflow-runtime-open" variant="secondary" aria-haspopup="dialog" aria-expanded={panelOpen}
+     aria-controls="webflow-runtime-panel" style={{marginInlineStart:'auto'}} onClick={()=>setPanelOpen(true)}>运行与授权</Button>
+   </div>
+   {webflowAuto?.readBridgeState&&<p id="webflow-runtime-summary" className="od-note" role="status" title={summary}
+    style={{margin:0,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{summary}</p>}
+   {!panelOpen&&feedback}
+  </section>
+  <WebflowRuntimePanel open={panelOpen} onClose={closePanel}>{content}</WebflowRuntimePanel>
+ </>;
 }
