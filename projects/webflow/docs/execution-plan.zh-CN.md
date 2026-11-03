@@ -1544,3 +1544,31 @@ NC-07在普通`/c/6ae9c70a-68fc-83ec-997d-7aabfeab93b0`先进行一次可见说�
 两轮均无需采用/执行/再批准，自动调用原Task1.1.2。独立DOM分别记录tab759148619/759148621空首页→原SDK关键词→一次搜索→三条普通网页结果；title、URL/directUrl、summary及顺序与可信完整持久结果及原聊天data逐项相等。原UI确认同Run/Result、released、单次新增结果消息，原生展开身份确认每次候选绑定；两轮官网续答均complete且没有继续产生任务候选。这里确认桥接及这次原固定Task的真实操作，不把模型对全站排名/广告审计的保留意见偷换成独立全面验收。原先普通聊天通过的结论仅保留其原入口范围，不再覆盖本项目失败反例。
 
 精简证据：[project-instructions-repair-20261103.json](../evidence/project-instructions-repair-20261103.json)，保留原用户消息/拒绝、项目说明前后SHA、真实保存重开回读、当前原批准、两轮完整身份及原始材料SHA。读回校验器曾把保留的隐藏历史DOM节点算成原失败轮，已按精确用户/助手消息ID核对；未修改产品或重跑Task制造通过。真实浏览器及三个可信UI输入已明确交给UI任务01a1a216，只读观察器停止，交接时空草稿/无附件/idle、无UNKNOWN。该任务后续UI/CSS/pin变化另绑候选，不提升本轮d623证据为其95+通过；本任务继续仅保存文档/证据并在main本地提交，不推远端。
+
+### 12.11.20 任务范围授权与换关键词免重复批准（2026-11-04）
+
+**当前操作与失败：** 用户在自动运行已开启时，请求百度搜索“时间清单 / 前三条”，候选 `wf-f99782c5-10d2-4ac7-b9d5-442303d1e499` 停在“待精确批准”。源码证实 `assertAutoGrant` 原来逐字比较包含 `query` 的完整 args，并且新批准替换旧输入；因此只对同一关键词自动运行。沿用用户已提供的真实失败，不重放该候选或自动批准本机权限。
+
+**Owner / 类型与复用：** 仍为现有 Web Flow Combined Application。可变搜索输入策略归 `projects/webflow/src/authorization-policy.js`，存储匹配归原 `src/auto-grants.js`；可信 UI 仍由本项目两组件静态编译，最小接线只修改原 Bridge Host / Trigger Ledger / Page 提示。继续复用原 Schema 校验、Ledger、Authority、Controller 和持久结果/原聊天交付，不新增沙箱授权 API、Runner、数据库或安装器。沙箱源码、工具 JSON、Task 1.1.2 与安装身份不改；UI owner 01a1a216 的间距、40px 等宽页签和状态卡片完整保留。
+
+**实现行为：** 可信任务审核可选择“允许更换搜索关键词”，从真实解析出的固定安装 Schema 保存 `parameterPolicy`，仅 `query` 可变；`limit` 等其余参数、精确目标和全部安装 pin 保持固定。Host 拒绝伪造/过期 Schema 和非已审阅可变字段；Ledger 在准入、预留及最终提交前核对新规则。当前待批准卡片用原候选/请求保存规则并只执行一次，随后新关键词的新候选无需重批。旧授权仍精确；“改为允许更换关键词…”只预填并展开原审核，不自行保存或启用。高级固定输入模式保留，切换授权方式使旧审核失效；完成授权后刷新父级授权摘要。原始候选/来源/安装明细折叠，普通审核先读可变字段、固定边界与本次输入。
+
+**定向验证与证据边界：** `node --test projects/webflow/tests/auto-grants.test.mjs projects/webflow/tests/auto-host.test.mjs projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs projects/webflow/tests/reply-admission.test.mjs projects/webflow/tests/sidebar-bridge.test.mjs`：85 PASS。新增回归先在旧实现失败，修复后不同关键词经过原最终提交且重启保留同一批准；空/超长关键词、五条、缺失/多余参数、目标变化、各安装身份变化、撤权/停用、旧精确批准、伪造 Schema、原请求只消费一次及真实事件转交均已覆盖。切换原生 select 的 Linkedom 夹具先清理全部旧 selected 再选择目标，避免测试驱动产生空选择；未为驱动错误改变产品。固定构建门禁新增 `authorization-policy.js` 精确 blob，原 auto-grants/两 UI pin 同步；`node --test --test-name-pattern='Web Flow keyword policy' tests/environment/bundle-provenance.test.mjs`：1 PASS，验证合法目标、错目标、字节漂移和 symlink 拒绝。修改的 JS 语法检查及 diff 空白检查通过。
+
+**独立代码评审：** 只读 reviewer `01a1a22d-9e58-7ad0-8832-3b70c8ff014e` 未发现严重或重要问题，确认旧精确授权、唯一可变字段、Host 来源 Schema、固定目标/参数/七项安装身份、撤权及原候选单次执行边界；没有操作浏览器或重跑测试。此结论只属于本轮源码审查，不等于 UI 评分或原生执行通过。
+
+**持续开发磁盘发布（2026-11-04）：** 原 writer 自然发布 revision `97b1997586d557a7e70050343622688a63691822ec5a6de085f7d6c59dde612f`；UI owner 提供 `artifacts/webflow-runtime-spacing/published-build.json`，本任务再只读核对实际 `development-update.json`。`ui/tool-shell.js` SHA-256 为 `813fb7b18c64b30e67bf35d3b515e67a947ba56d63f4ffe70e8c7f2cc7b96846`，Bridge 为 `e7381e457c0969cea80b8e062db0b2a76b45bd0bf057510b2886a27c3e8e7b50`，SW 为 `5da28bab86305a9480f2e122eba40939e8ec5f6a3460e01728024aa372a95b4c`；均与发布清单一致。进一步对三份 source map 的 10 项相关 `sourcesContent` 逐字比较当前稳定源码：三可信组件、两处 policy/auto-grants 消费、Host、Ledger 与 Page 均一致，确认本轮授权源码已进入对应磁盘产物。此项只标 **DISK_PUBLICATION_PASS**；没有据此推断已加载的侧栏、客户端连接、用户授权或真实任务执行。
+
+**运行资源与下一步：** 唯一 dev writer54212 及 `dist/development` 由原 owner/UI owner 协调，本任务没有新建/触发构建、touch 配置或停止服务。源码冻结后已通知 UI owner 重新读取当前 pin；实际连接与新可信 Side Panel 生效不能仅凭磁盘产物宣称通过。本任务只读浏览器检查遇到页面读取超时及 Chrome 内部页不可 claim，已 finalize；未读取浏览器存储、修改项目说明、扩大本机批准或运行任务。新的 Chrome 原生参数授权及不同关键词实际搜索仍为 **NOT_TESTED**，旧固定输入/布局截图不继承为本轮证据。下一用户操作是新可信界面中一次审阅可变关键词规则；若原候选已过期则保留原结果未知/取消边界，由后续全新需求产生新候选，不重放历史身份。production、完整矩阵、评分与 MCP 继续延期。
+
+
+### 12.11.21 运行面板间距与等宽页签（2026-11-03）
+
+用户当前要求优化「扩展 → Web Flow → 运行与授权」间距与一行小按钮并做 95+ 专家复核。真实 owner 为本项目已固定编译的 trusted/AutoSettings.tsx、CurrentTask.tsx、RuntimePanel.tsx；复用原 Button、Switch、Sheet、Tokens、唯一可信 Root 与完整宿主夹具，普通沙箱应用与公共 Host/SDK 不改。先恢复用户的历史未见证回复场景，修 16px gutter、独立开关状态组、40px 等宽页签、同行任务状态 / 刷新、长地址与状态阅读区，以及短字段 / 授权动作的对应关系。保护原查询、Stop、草稿、真实手势、来源、身份、撤权和 UNKNOWN 不重放。
+
+本轮布局源码已由用户另行 Git 同步任务在 0561820a3 保存并合入 main（63090e6ee）；现有两份组件测试 23/23 PASS。冻结布局在真实 Chromium 完整宿主夹具中的方向键 / Home / End / Escape、焦点归还、跨 Tab / 开合后的 URL 与中文 JSON 草稿、审核 Tab / Shift+Tab 及无横向溢出有同候选图证；只准备审核，未批准或执行真实任务。独立 AI 专家 Herschel 对该冻结候选评 99/100，唯一扣 1 为首末控件双向焦点循环缺实测读回，不是已发现产品故障。详见[UI 评审第 15 节](webflow-v0.3-ui-ux-review.zh-CN.md#15-运行面板间距与等宽导航2026-11-03)与[精简证据](../evidence/ui-runtime-spacing-20261103.json)。
+
+后续 12.11.20 参数授权业务在同两组件继续修改，布局保留但不继承本分数；新业务由原 owner 独立验证。writer 54212 继续负责 dist/development；原配置代曾因并行源 / pin 改变而保守拒绝，稳定新输入在精确准入检查通过后仅走原配置重读，未停服务、新建 writer、换扩展路径或放宽保护。真实 Side Panel 新混合候选、安装 / Native / production 及产品综合评分仍 NOT_TESTED，旧 d623 不提升为本轮原生通过。收尾时原 writer 已成功发布 revision `97b1997586d557a7e70050343622688a63691822ec5a6de085f7d6c59dde612f`（236s）；tool-shell / Bridge 实际 SHA 与发布清单一致，source map 三份可信组件正文逐字匹配稳定源码。构建 / 发布 PASS；实际 Chrome 已加载 / 开发客户端连接与新混合侧栏仍 NOT_TESTED。下一条尚未见证操作为真实侧栏应用该候选；新授权范围审阅 / 官网实跑归参数授权任务，不为此重复触发或升级旧 grant。临时对照 Browser 已 finalize，Chrome 焦点已释放；历史预览、并行文档和源改动全部保留。
+
+
+**2026-11-04 页签风格后续：** 运行管理页签已复用主导航外观：公共 `od-button--tab`、选中强调文字与 2px 下划线、透明底、等宽 40px。仅两处展示 hunk 及 AutoSettings 精确 pin 改变，原回调、权限与草稿保留。既有 UI 检查 25/25 PASS，真实 Chromium 组件的键盘与草稿读回通过；独立 AI 新评 99/100 仅覆盖本轮 tabs。源码 blob `863e81bfc3dc193bf4cdc396af1f66ef97b247e5` 已包含在原 writer 发布的 `5e9966bf46e8527b6985246dd0e0ae1d74746ef9f677a3678a1ac6c82282ce0d`，映射与实际文件 SHA 已核对。真实侧栏新样式应用仍 NOT_TESTED。详见 UI 15.1 及原证据的 tabsStyleUpdate20261104；Browser 已 finalize，原生 Task 1.1.3 与两关键词验证继续由原 owner 负责。

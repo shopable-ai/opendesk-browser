@@ -31,11 +31,12 @@ const toggle=await compile('src/ui/react/components/ui/switch.tsx');
 const shared=moduleURL(`export {Card,CardContent} from ${JSON.stringify(card)};export {Input,Textarea} from ${JSON.stringify(input)};export {Switch} from ${JSON.stringify(toggle)};export {Button,IconButton} from ${JSON.stringify(button)};export {SharedConversationFrame,SharedConversationDock} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
 const sourceRoot='examples/sidebar-tools/scrapyjs/src/';
 const replacements={'@opendesk/ui':shared};
-for(const name of ['ai-config.js','ai-actions.js','ai-request.js','ai-pending.js','ai-page.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js','business-api.js'])
+for(const name of ['ai-config.js','ai-actions.js','ai-request.js','ai-pending.js','ai-page.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','capture-input.js','capture-structure.js','ai-capture.js','business-api.js'])
   replacements['./'+name]=new URL(sourceRoot+name,root).href;
 const panel=await compile(sourceRoot+'AiPanel.jsx',replacements);
 export const {default:AiPanel}=await import(panel);
-const workspace=await compile(sourceRoot+'CaptureWorkspace.jsx',replacements);
+const structure=await compile(sourceRoot+'CaptureStructure.jsx',replacements);
+const workspace=await compile(sourceRoot+'CaptureWorkspace.jsx',{...replacements,'./CaptureStructure.jsx':structure});
 const fieldOrder=await compile(sourceRoot+'FieldOrder.jsx',replacements);
 const columnSettings=await compile(sourceRoot+'ColumnSettings.jsx',{...replacements,'./FieldOrder.jsx':fieldOrder});
 const results=await compile(sourceRoot+'Results.jsx',{...replacements,'./ColumnSettings.jsx':columnSettings,'./FieldOrder.jsx':fieldOrder});

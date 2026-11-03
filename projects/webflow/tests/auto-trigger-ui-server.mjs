@@ -157,7 +157,7 @@ window.addEventListener('message',async event=>{
  builder.onResolve({filter:/\.css\?raw$/},args=>({path:resolve(args.resolveDir,args.path)}));
   builder.onLoad({filter:/\.css\?raw$/},async args=>({contents:await readSource(args.path.slice(0,-4)),loader:'text'}));
  }},{name:'explicit-source-snapshot',setup(builder){
-  if(!sourceRevision)return;
+  if(!sourceRevision&&!sourcePatches.length)return;
   builder.onLoad({filter:/\.(?:[cm]?js|jsx|tsx?|css)$/},async args=>{
    if(!isFrozenSource(relative(root,args.path)))return;
    return {contents:await readSource(args.path),loader:extname(args.path).slice(1)};

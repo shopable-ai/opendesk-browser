@@ -90,6 +90,46 @@ test('trusted approval then two independent candidates use original Host, durabl
   await h.bridge.revokeAutoTask(h.scope.taskId,{isTrusted:true});await assert.rejects(h.run(h.next('wf-host-denied')));
   assert.equal(h.events.starts.length,2);
 });
+test('Host derives variable keywords from the installed Schema and never accepts a widened or stale review',async()=>{
+ const h=harness(),selection={...h.scope,parameterPolicy:{mode:'schema',variableKeys:['query']}};
+ const review=await h.bridge.prepareAutoGrant(selection);
+ assert.deepEqual(review.parameterPolicy.paramsSchema,h.resolved.manifest.paramsSchema);
+ const forged=structuredClone(review);forged.parameterPolicy.paramsSchema.properties.query.maxLength=999;
+ await assert.rejects(h.bridge.approveAutoTask(forged,{isTrusted:true}));
+ await assert.rejects(h.bridge.prepareAutoGrant({...selection,parameterPolicy:{mode:'schema',variableKeys:['limit']}}));
+ assert.equal(h.events.gates.filter(message=>message.kind==='auto-grant').length,0);
+ await h.bridge.approveAutoTask(review,{isTrusted:true});await h.bridge.setAutoEnabled(true,{isTrusted:true});
+ const grantCount=()=>h.events.gates.filter(message=>message.kind==='auto-grant').length;
+ for(const [index,query]of ['时间清单','另一个关键词'].entries()){
+  const reply=await h.run(h.next('wf-host-variable-'+index,{args:{query,limit:3}}));
+  assert.equal(reply.sent,true);
+ }
+ assert.equal(h.events.starts.length,2);assert.equal(grantCount(),1);
+ await assert.rejects(h.bridge.admitAutoTask(h.next('wf-host-variable-limit',{args:{query:'时间清单',limit:5}}),h.sender));
+ assert.equal(h.events.starts.length,2);
+});
+test('native pending review upgrades one exact grant and executes the same candidate before later keyword changes',async()=>{
+ const h=harness();await h.approve();const args={query:'时间清单',limit:3};
+ const message=h.next('wf-host-upgrade-original',{args}),admitted=await h.bridge.admitAutoTask(message,h.sender);
+ assert.equal(admitted.pendingApproval,true);h.projectRequest(admitted.requestId);await h.bridge.readBridgeState();
+ await h.bridge.controlBridge({source:h.source,requestId:admitted.requestId,action:'approve-range',
+  pendingAuto:{scope:{...h.scope,args},candidate:admitted.candidate},
+  parameterPolicy:{mode:'schema',variableKeys:['query']}},{isTrusted:true});
+ const grant=(await h.ledger.readAutoSettings()).grants[h.scope.taskId];
+ assert.deepEqual(grant.parameterPolicy.variableKeys,['query']);
+ assert.equal(h.events.controls.length,1);assert.equal(h.events.starts.length,0);
+ const adoptedRequest={protocol:'opendesk.task.request.v1',kind:'opendesk.task.request',version:1,
+  requestId:admitted.requestId,...h.scope,args};
+ await h.bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,
+  adoptedRequest,source:h.source,sourceUrl:h.source.url},h.sender);
+ assert.equal(h.events.starts[0].requestId,admitted.requestId);
+ const next=await h.bridge.admitAutoTask(h.next('wf-host-upgrade-next',{args:{query:'新关键词',limit:3}}),h.sender);
+ assert.equal(next.pendingApproval,false);
+ await assert.rejects(h.bridge.controlBridge({source:h.source,requestId:admitted.requestId,action:'approve-range',
+  pendingAuto:{scope:{...h.scope,args},candidate:admitted.candidate},
+  parameterPolicy:{mode:'schema',variableKeys:['query']}},{isTrusted:true}));
+ assert.equal(h.events.starts.length,1);
+});
 test('Host reviews new Schema parameters from the original candidate and approves the original request only',async()=>{
  const h=harness();await h.approve();
  const args={query:'OpenDesk Browser SDK',limit:3},message=h.next('wf-host-new-scope',{args});

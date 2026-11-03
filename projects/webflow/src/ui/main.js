@@ -10,9 +10,9 @@
   }
   const h=(name,props,...children)=>R.createElement(name,props,...children);
   const PINNED=Object.freeze([
-    Object.freeze({taskId:'baidu.search.top3',version:'1.1.2',
-      manifestHash:'6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5',
-      contentHash:'28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8',
+    Object.freeze({taskId:'baidu.search.top3',version:'1.1.3',
+      manifestHash:'ff152dfdbaaef187bfb8fb91f18abcb83d348aa3672c059e6efb937c52f10b10',
+      contentHash:'14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269',
       title:'百度搜索 · 前三条自然结果',site:'https://www.baidu.com',icon:'百'}),
     Object.freeze({taskId:'google.search.top3',version:'1.0.0',
       manifestHash:'c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261',

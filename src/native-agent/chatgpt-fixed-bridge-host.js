@@ -3,7 +3,7 @@ import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
   WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
-import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope} from '../../projects/webflow/src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope,prepareAutoParameterPolicy} from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from './chatgpt-execution-page.js';
@@ -445,7 +445,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const message={persistentAuto:true,candidateText:pending.candidate.text,
         turnKey:pending.candidate.turnKey,answerKey:pending.candidate.answerKey};
       const {intent,candidate}=await assertIntent(source,message);
-      const review=await prepareAutoGrant(pending.scope);
+      const review=await prepareAutoGrant({...pending.scope,...(value.parameterPolicy!==undefined?{parameterPolicy:value.parameterPolicy}:{})});
       if(JSON.stringify(normalizeAutoScope(review))!==JSON.stringify(normalizeAutoScope(pending.scope))||
         intent.taskId!==review.taskId||intent.targetUrl!==review.targetUrl||
         JSON.stringify(intent.args)!==JSON.stringify(review.args))
@@ -494,7 +494,9 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(!request.installation)throw fail('E_BRIDGE_SCHEMA','必须审阅真实已安装任务');
     const normalized=await normalizeSelection(request);
     trustedSettings();if(!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','审阅期间安装或批准已改变');
-    return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request),taskName:normalized.installed.manifest.title};
+    const scope={taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request)};
+    const parameterPolicy=prepareAutoParameterPolicy(value.parameterPolicy,scope,normalized.installed.manifest.paramsSchema);
+    return {...scope,taskName:normalized.installed.manifest.title,...(parameterPolicy?{parameterPolicy}:{})};
   };
   const approveAutoTask=async(value,event)=>{
     if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);

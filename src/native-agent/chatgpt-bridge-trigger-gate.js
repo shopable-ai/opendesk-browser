@@ -3,7 +3,7 @@ import {resolveToolSender} from '../environment.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
   FIXED_PAGE_TASK_ID,validateChatGPTTaskIntent,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
-import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,assertAutoGrant}
+import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,normalizeAutoParameterPolicy,assertAutoGrant}
   from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 
@@ -298,6 +298,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     },
     approveAuto(value,{expectedDenialRevision,pendingRequest}={}){
       const scope=normalizeAutoScope(value);
+      const parameterPolicy=normalizeAutoParameterPolicy(value.parameterPolicy,scope);
       return changeAuto(async state=>{
         let rows,row;
         if(pendingRequest){
@@ -312,7 +313,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         }
         if(!Object.hasOwn(state.grants,scope.taskId)&&Object.keys(state.grants).length>=128)
           throw fail('E_BRIDGE_LIMIT','持续批准记录已满');
-        state.grants[scope.taskId]={scope,grantId:generateId(),state:'active',approvedAt:clock()};
+        state.grants[scope.taskId]={scope,...(parameterPolicy?{parameterPolicy}:{}),grantId:generateId(),state:'active',approvedAt:clock()};
         if(row){
           row.status='approved';row.mode='auto';row.approvedAt=clock();
           row.approvalExpiresAt=row.expiresAt;row.autoGrantId=state.grants[scope.taskId].grantId;

@@ -1,9 +1,10 @@
 import * as React from 'react';
 import {Button} from '../../../src/ui/react/components/ui/button.tsx';
+import {autoParameterOptions} from '../src/authorization-policy.js';
 
 // This fixed component receives only a compiled Host controller. The installed
 // tool package and its iframe never receive this controller or its projection.
-export function WebflowCurrentTask({controller,onSummary=null}){
+export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthorizationChange=null}){
  const [view,setView]=React.useState<any>(null),[error,setError]=React.useState('');
  const [working,setWorking]=React.useState(''),[draft,setDraft]=React.useState<any>(null);
  const sequence=React.useRef(0),mounted=React.useRef(true),lock=React.useRef(false),reading=React.useRef(false);
@@ -24,7 +25,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   const timer=setInterval(()=>void read(),1200);
   return ()=>{mounted.current=false;sequence.current++;clearInterval(timer);};
  },[read]);
- const command=async(action,event,fields?)=>{
+ const command=async(action,event,fields?,parameterPolicy?)=>{
   if(event?.isTrusted!==true){setError('请在侧栏亲自点击操作。');return;}
   if(!view?.source||!view.session||lock.current&&action!=='cancel')return;
   if(action!=='cancel')lock.current=true;
@@ -32,12 +33,14 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   try{
    const next=await controller.controlBridge({source:view.source,requestId:view.session.requestId,action,
     ...(action==='approve-range'?{pendingAuto:view.session.pendingAuto}:{}),
+    ...(parameterPolicy?{parameterPolicy}:{}),
     ...(fields?{fields}:{})},event);
-   if(mounted.current){sequence.current++;accept(next);}
+   if(mounted.current){sequence.current++;accept(next);if(action==='approve-range')onAuthorizationChange?.();}
   }catch(ex){if(mounted.current)setError(String(ex?.message||ex)+'；请查询原请求，不会自动重试。');}
   finally{if(mounted.current)setWorking('');lock.current=false;}
  };
  const session=view?.session,receipt=view?.receipt;
+ const options=session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
  const executionLabel={validating:'核验中',starting:'正在启动',completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
  React.useEffect(()=>{
   onSummary?.(error?'任务状态未确认，请打开运行与授权查看':
@@ -67,12 +70,24 @@ export function WebflowCurrentTask({controller,onSummary=null}){
      style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{session.status}</p>
    </div>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
-   {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="本轮精确范围审核">
+   {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">
     <strong>待批准 · 尚未执行</strong>
-    <p className="od-note">批准将替换此任务原有的精确范围；以后相同范围可自动执行。其他关键词不会继承本次批准。</p>
+    <p className="od-note">{options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
+     '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
+    <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
+    {options&&<p className="od-note">{options.description}目标、任务版本或权限变化后仍需审核。</p>}
+    <strong className="od-field-label">本次输入</strong>
+    <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(session.pendingAuto.scope.args,null,2)}</pre>
+    {options&&<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent,undefined,
+     {mode:'schema',variableKeys:options.variableKeys})}>允许更换关键词并执行</Button>}
+    <details className="od-disclosure od-disclosure--flat"><summary>来源与安装身份</summary>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify({
      candidate:session.pendingAuto.candidate,source:view.source,...session.pendingAuto.scope},null,2)}</pre>
-    <Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
+    </details>
+    {options?<details className="od-disclosure od-disclosure--flat"><summary>高级：仅允许此关键词</summary>
+     <p className="od-note">仅保存这组固定输入，并替换旧授权；下次换关键词仍需批准。</p>
+     <Button disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
+    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>}
    </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}

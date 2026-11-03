@@ -45,6 +45,55 @@ const submission=admitted=>({requestId:admitted.requestId,source:{kind:'saved',s
   revision:installation.revision,contentHash:installation.contentHash},paramsWire:encodeValue(scope.args),
   target:{mode:'owned',url:scope.targetUrl},expectedTaskGeneration:installation.generation,
   expectedTaskInstallationId:installation.installationId});
+const searchPolicy={mode:'schema',variableKeys:['query'],paramsSchema:{type:'object',additionalProperties:false,
+ properties:{query:{type:'string',title:'搜索关键词',minLength:1,maxLength:120},
+ limit:{type:'integer',title:'结果数量',enum:[3]}},required:['query','limit']}};
+test('one reviewed keyword policy admits different searches through final submission and restart',async()=>{
+ const h=harness();await h.ledger.approveAuto({...scope,parameterPolicy:searchPolicy});await h.ledger.setAutoEnabled(true);
+ const grantId=(await h.ledger.readAutoSettings()).grants[scope.taskId].grantId;
+ for(const [index,query] of ['时间清单','OpenDesk Browser SDK','OpenDesk Browser'].entries()){
+  h.restart();const args={query,limit:3},candidate=h.candidate('wf-variable-keyword-'+index);
+  candidate.text=JSON.stringify({...JSON.parse(candidate.text),args});
+  const admitted=await h.ledger.admitAuto({source,...scope,args,candidate,allowPending:true});
+  assert.equal(admitted.pendingApproval,false);
+  await h.ledger.reserve({...admitted,mode:'auto',turnKey:candidate.turnKey,answerKey:candidate.answerKey});
+  let starts=0;
+  await h.ledger.withControllerAdmission({...submission(admitted),paramsWire:encodeValue(args)},async()=>{starts++;});
+  assert.equal(starts,1);
+  assert.equal((await h.ledger.readAutoSettings()).grants[scope.taskId].grantId,grantId);
+ }
+});
+test('keyword policy rejects invalid parameters and keeps target, fixed values, installation and revocation fenced',async()=>{
+ const h=harness();await h.ledger.approveAuto({...scope,parameterPolicy:searchPolicy});await h.ledger.setAutoEnabled(true);
+ let index=0;
+ const attempt=async changes=>{
+  const next={...scope,...changes},candidate=h.candidate('wf-policy-boundary-'+(++index));
+  candidate.text=JSON.stringify({...JSON.parse(candidate.text),taskId:next.taskId,targetUrl:next.targetUrl,args:next.args});
+  return h.ledger.admitAuto({source,...next,candidate});
+ };
+ for(const args of [{query:'',limit:3},{query:'x'.repeat(121),limit:3},{query:'时间清单',limit:5},
+  {query:'时间清单'},{query:'时间清单',limit:3,extra:true}])await assert.rejects(attempt({args}));
+ await assert.rejects(attempt({targetUrl:'https://www.baidu.com/s?wd=other'}));
+ for(const [key,value]of Object.entries({...installation,version:'1.1.2',generation:2,
+  manifestHash:'c'.repeat(64),contentHash:'d'.repeat(64),scriptId:'task:other:1.0.0',revision:2,installationId:'other'})){
+  await assert.rejects(attempt({installation:{...installation,[key]:value}}));
+ }
+ const admitted=await attempt({args:{query:'时间清单',limit:3}});
+ await h.ledger.revokeAuto(scope.taskId);h.restart();
+ await assert.rejects(h.ledger.reserve({...admitted,mode:'auto',turnKey:admitted.candidate.turnKey,answerKey:admitted.candidate.answerKey}));
+ await assert.rejects(attempt({args:{query:'又一个关键词',limit:3}}));
+});
+test('legacy exact grants stay exact and malformed keyword policies cannot become wildcard grants',async()=>{
+ const h=harness();await h.approve();
+ const args={query:'时间清单',limit:3},candidate=h.candidate('wf-legacy-stays-exact');
+ candidate.text=JSON.stringify({...JSON.parse(candidate.text),args});
+ assert.equal((await h.ledger.admitAuto({source,...scope,args,candidate,allowPending:true})).pendingApproval,true);
+ for(const parameterPolicy of [null,{}, {...searchPolicy,variableKeys:[]},
+  {...searchPolicy,variableKeys:['missing']},{...searchPolicy,variableKeys:['query','query']},
+  {...searchPolicy,paramsSchema:{...searchPolicy.paramsSchema,additionalProperties:true}}]){
+  await assert.rejects(async()=>h.ledger.approveAuto({...scope,parameterPolicy}));
+ }
+});
 test('new exact scope waits with zero submission, approval replaces scope and consumes the same candidate once',async()=>{
  const h=harness();await h.approve();
  const next={...scope,args:{query:'OpenDesk Browser SDK',limit:3}};

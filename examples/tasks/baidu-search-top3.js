@@ -59,14 +59,27 @@ async function main() {
     }
     return output;
   };
+  const visibleControl = async (selector,required=true) => {
+    const matches=page.locator(selector),count=await matches.count();
+    if(count>8)throw Object.assign(new Error('Too many search controls'),{code:'E_SEARCH_CONTROL_AMBIGUOUS'});
+    let selected=null;
+    for(let index=0;index<count;index++) {
+      const candidate=matches.nth(index);
+      if(!await candidate.isVisible())continue;
+      if(selected)throw Object.assign(new Error('Multiple visible search controls'),{code:'E_SEARCH_CONTROL_AMBIGUOUS'});
+      selected=candidate;
+    }
+    if(!selected&&required)throw Object.assign(new Error('Visible search control missing'),{code:'E_SEARCH_CONTROL_MISSING'});
+    return selected;
+  };
   try {
     if (blocked(await readBody())) return result('blocked');
     if (homepage) {
       // Both IDs were observed in the real homepage; the legacy field is hidden on the new UI.
-      const modern = page.locator('#chat-textarea');
-      const fieldSelector = await modern.isVisible() ? '#chat-textarea' : '#kw';
+      const modern = await visibleControl('#chat-textarea',false);
+      const fieldSelector = modern ? '#chat-textarea' : '#kw';
       const buttonSelector = fieldSelector === '#chat-textarea' ? '#chat-submit-button' : '#su';
-      const field = page.locator(fieldSelector);
+      const field = modern || await visibleControl(fieldSelector);
       record('input','before',{locator:fieldSelector,value:await field.inputValue(),url:url.href,...await observeDocument()});
       record('input','started',{locator:fieldSelector});
       await field.fill(query,{timeout:10000});
@@ -77,7 +90,9 @@ async function main() {
       record('click','started',{locator:buttonSelector,url:await page.url()});
       // The observed Baidu homepage changes history inside the same document.
       // A cross-document replacement remains fenced rather than replaying this click.
-      await page.locator(buttonSelector).click({timeout:10000});
+      // Baidu may retain a hidden homepage form while rendering its modern
+      // search controls. Resolve the single visible button after the redraw.
+      await (await visibleControl(buttonSelector)).click({timeout:10000});
       record('click','returned',{locator:buttonSelector});
       const deadline=Date.now()+12000;
       do {

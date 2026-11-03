@@ -43,7 +43,7 @@ test('fixed pin identity rejects name collision, version or hash drift',()=>{
   assert.equal(M.pinsEqual(pin,{...pin,version:'99.0.0'}),false);
   assert.equal(M.pinsEqual(pin,{...pin,contentHash:'b'.repeat(64)}),false);
   assert.equal(M.pinsEqual(pin,{...pin,manifestHash:'c'.repeat(64)}),false);
-  assert.equal(M.taskKey(pin)!==M.taskKey({...pin,version:'1.1.3'}),true);
+  assert.equal(M.taskKey(pin)!==M.taskKey({...pin,version:'99.0.0'}),true);
   assert.equal(M.errorState({code:'E_REVISION'}),'changed');
   assert.equal(M.errorState({code:'E_PERMISSION'}),'unavailable');
 });

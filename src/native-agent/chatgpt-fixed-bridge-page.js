@@ -389,7 +389,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }else if(state?.candidate){
       const name=state.taskName||installedTasks.get('installed:'+state.taskId)?.name||state.taskId;
       selection.textContent='本次任务：'+name+' @ '+state.installation.version+
-        '\n触发：'+(state.pendingAuto?'待精确批准':state.persistentAuto?'持续批准自动执行':state.mode==='auto'?'授权自动执行':'手动执行')+
+        '\n触发：'+(state.pendingAuto?'待任务范围批准':state.persistentAuto?'按已授权规则自动执行':state.mode==='auto'?'授权自动执行':'手动执行')+
         '\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
     }else if(!state||state.attempted){
       const task=selectedTask();
@@ -591,7 +591,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       taskSelect.value=key;targetInput.value=state.targetUrl;argsInput.value=JSON.stringify(state.args);
       argsHelp.textContent='';
       selection.textContent='本次脚本：'+state.taskId+'\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
-      observe();note(state.pendingAuto?'待批准：任务支持本轮参数，但此精确范围尚未批准；尚未执行。请在可信侧栏审阅本轮候选。':persistentAuto?'已匹配可信侧栏中的持续批准，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
+      observe();note(state.pendingAuto?'待批准：本轮输入、目标或安装不在现有任务授权内；尚未执行。请在可信侧栏审阅任务范围；允许变化的关键词以后无需重复批准。':persistentAuto?'已匹配可信侧栏中的任务授权规则，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
         '已自动识别待执行任务。请核对脚本、网址和参数，只需点击一次“执行”。':
         '已采用对话任务，尚未执行。请核对脚本、网址和参数，点击“执行”或批准本次自动执行。');
     }catch(error){
