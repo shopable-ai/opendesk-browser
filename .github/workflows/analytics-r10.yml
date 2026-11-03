@@ -10,6 +10,7 @@ on:
       - 'tests/environment/analytics-r10*.test.mjs'
       - 'tests/environment/analytics-r11*.test.mjs'
       - 'tests/environment/analytics-r12*.test.mjs'
+      - 'tests/environment/analytics-insights-contract.test.mjs'
       - 'tests/environment/page-installed-programs.test.mjs'
       - 'tests/environment/page-program-library.test.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
@@ -71,4 +72,4 @@ jobs:
           node --check projects/prompt-shortcuts/src/main.js
           node --check projects/prompt-shortcuts/trusted/page.js
       - name: Real HTTP + SQLite persistence and privacy checks (not Chrome or deployed PostHog)
-        run: node --test tests/environment/analytics-r10*.test.mjs tests/environment/analytics-r11*.test.mjs tests/environment/analytics-r12*.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/page-program-library.test.mjs
+        run: node --test tests/environment/analytics-r10*.test.mjs tests/environment/analytics-r11*.test.mjs tests/environment/analytics-r12*.test.mjs tests/environment/analytics-insights-contract.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/page-program-library.test.mjs
