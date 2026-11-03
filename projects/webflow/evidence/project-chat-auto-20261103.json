@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "recordedDate": "2026-11-03",
+  "stage": "development-core",
+  "executionPlanSection": "12.11.14",
+  "goalThreadId": "01a1a038-b5a2-7553-a251-60834c01cc8b",
+  "startingCommit": "246fd012a67d3b5e221ee7d1716df4ecc46fb93c",
+  "failure": {
+    "url": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98590-8898-83ee-bb62-33ea6804f42e",
+    "nativeUserMessagePresent": true,
+    "completeStrictFiveFieldReplyPresent": true,
+    "candidateId": "wf-524d7d61-5810-4fc5-8926-8f704ff92b0a",
+    "alreadyExecutedInPriorEvidence": "authorized-two-rounds-20261103.json / round 2",
+    "currentObservation": {
+      "stage": "idle",
+      "reason": "no-live-submission",
+      "route": "c/6ae98590-8898-83ee-bb62-33ea6804f42e",
+      "history": [
+        {
+          "stage": "idle",
+          "reason": "conversation-changed-before-binding",
+          "route": "c/6ae98590-8898-83ee-bb62-33ea6804f42e"
+        },
+        {
+          "stage": "idle",
+          "reason": "no-live-submission",
+          "route": "c/6ae98590-8898-83ee-bb62-33ea6804f42e"
+        },
+        {
+          "stage": "idle",
+          "reason": "conversation-changed-before-binding",
+          "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+        },
+        {
+          "stage": "idle",
+          "reason": "no-live-submission",
+          "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+        },
+        {
+          "stage": "idle",
+          "reason": "conversation-changed-before-binding",
+          "route": "c/6ae9855a-a7e4-83ec-9520-13eee43e221e"
+        },
+        {
+          "stage": "idle",
+          "reason": "no-live-submission",
+          "route": "c/6ae9855a-a7e4-83ec-9520-13eee43e221e"
+        },
+        {
+          "stage": "idle",
+          "reason": "conversation-changed-before-binding",
+          "route": "c/6ae98590-8898-83ee-bb62-33ea6804f42e"
+        },
+        {
+          "stage": "idle",
+          "reason": "no-live-submission",
+          "route": "c/6ae98590-8898-83ee-bb62-33ea6804f42e"
+        }
+      ]
+    },
+    "originalSendTimeWitness": "not recoverable from retained eight-entry diagnostic history; no claim that the original user did not send",
+    "newRunForFailure": "not evidenced by original page or trusted UI; not replayed",
+    "unknownCandidateReplayed": false
+  },
+  "rootCauses": [
+    {
+      "kind": "reused-candidate",
+      "finding": "The supplied real prompt and complete reply reused the candidate already consumed by the previous ordinary-chat round; persistent replay refusal is correct."
+    },
+    {
+      "kind": "project-hidden-history",
+      "finding": "Native project new-chat navigation retains prior CSS-hidden messages. The site adapter counted those messages in its first-send baseline and could not bind the first user to the new formal route. Exclude hidden ancestors, retain offscreen live history."
+    },
+    {
+      "kind": "unexplained-idle",
+      "finding": "Different no-request observations shared one generic status. The fixed page projection now explains unsent draft, native-witness wait, complete-reply wait, unobserved history and replay, while preserving concrete errors."
+    }
+  ],
+  "environment": {
+    "mode": "continuous-development",
+    "extensionPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "writerPid": 15593,
+    "chromePid": 516,
+    "ports": [
+      43119,
+      43120
+    ],
+    "serveConnectedBeforeAndAfter": true,
+    "initialRevision": "6bd1298cb1b9465398979e2400de90484ef15e620cfc3c1afacaac7d8e2d5ea2",
+    "testedRevision": "aa17724e37754259e3c24141809835b1a607d0f6d2c57e600ad04cb7e0417b26",
+    "taskVersion": "1.1.2",
+    "sidebarInstalledVersion": "0.3.6",
+    "taskInstallationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+    "generation": 2,
+    "newInstallOrGrantPerformed": false,
+    "parallelUiWork": "0.3.7 source and RuntimePanel changes belong to UI owner; not included in this commit or these native UI claims"
+  },
+  "approval": {
+    "enabled": true,
+    "epoch": 11,
+    "approvedAtLocal": "2026-11-03 14:28:22 +08:00",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser",
+      "limit": 3
+    },
+    "sameApprovalForAllRounds": true,
+    "adoptExecuteOrPerCandidateApprovalClicks": 0,
+    "currentIdentityAndEpochEvidence": "final-grant.ax.txt"
+  },
+  "rounds": [
+    {
+      "name": "round1",
+      "candidateId": "wf-acd766c1-5a75-4045-a1f3-14cfc39aaf51",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98d6e-d120-83ec-a129-947504be6a61",
+      "requestId": "dcb5a624-44e6-4e24-85a4-1a9a08d10e02",
+      "runId": "d0cc6f57-97d1-4629-9406-ba91d5edf515",
+      "resultId": "75d1e5c9-2a46-4b87-a992-77c57c966a21",
+      "resultMessageId": "06edac7f-9831-4398-80b6-65848eb274f4",
+      "sourceUserMessageId": "649b5eb0-e1f5-4045-b5fd-d09b8a8bf04e",
+      "sourceAssistantMessageId": "98d0ea4d-e991-4354-95b2-cf6f4c36dd82 98d0ea4d-e991-4354-95b2-cf6f4c36dd82",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "targetDocumentId": "352981DD75A9C2BA0D1DC450527244CA",
+      "hostInstanceId": "13c0316a-dbda-43fe-8d4b-01bba3884032",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0"
+      },
+      "count": 3,
+      "businessStatus": "success",
+      "persistence": "verified",
+      "retirement": "released",
+      "deliveryCount": 1,
+      "clipboardAndNativeEditorExact": true,
+      "normalNativePaste": true,
+      "nativeSend": "Enter once; covered pointer attempts produced no native witness or user message",
+      "independentDomMatches": true,
+      "durableAndSidebarAndDeliveredDataEqual": true,
+      "hiddenPriorUsers": 0,
+      "rawPrefix": "round1"
+    },
+    {
+      "name": "round2",
+      "candidateId": "wf-8149cc31-b86d-4adf-9119-2dda55e3922c",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98e96-b510-83e8-a201-d0db3c6730c3",
+      "requestId": "36458b90-5270-4b0f-a00c-5f8ce00870d2",
+      "runId": "78db594b-79fc-474f-881d-5eba6d876981",
+      "resultId": "eb2ac821-f35c-4f11-a064-61727c49531b",
+      "resultMessageId": "b28b6df4-7e1f-42b8-bfdc-905a8014d983",
+      "sourceUserMessageId": "e6bfe7c2-ec57-49b1-9448-dd7b9332d0fb",
+      "sourceAssistantMessageId": "e36bcdca-c38b-4a7c-8e6e-3344e9308cde e36bcdca-c38b-4a7c-8e6e-3344e9308cde",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "targetDocumentId": "439C8E50119F343083828871DD437BB7",
+      "hostInstanceId": "13c0316a-dbda-43fe-8d4b-01bba3884032",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0"
+      },
+      "count": 3,
+      "businessStatus": "success",
+      "persistence": "verified",
+      "retirement": "released",
+      "deliveryCount": 1,
+      "clipboardAndNativeEditorExact": true,
+      "normalNativePaste": true,
+      "nativeSend": "Enter once; covered pointer attempts produced no native witness or user message",
+      "independentDomMatches": true,
+      "durableAndSidebarAndDeliveredDataEqual": true,
+      "hiddenPriorUsers": 2,
+      "rawPrefix": "round2"
+    },
+    {
+      "name": "ordinary",
+      "candidateId": "wf-bf4618cd-aca2-4d77-a4e7-c73012e816dc",
+      "conversationUrl": "https://chatgpt.com/c/6ae98fe3-510c-83e8-9604-8638118b045a",
+      "requestId": "098c2665-27e8-414f-a720-fef83a4e3043",
+      "runId": "554b5b6a-9591-4b17-b41e-bf9d5f42c7d6",
+      "resultId": "23f9ae7f-a5ff-48f7-9e5f-a0308a4d1dba",
+      "resultMessageId": "7ec839b9-927c-4fb5-9f8e-c37ca466ac2b",
+      "sourceUserMessageId": "a80ba745-04fd-4fcc-a2e4-99696a22f6ba",
+      "sourceAssistantMessageId": "33821ba5-0373-5c8f-811c-89850c621112 33821ba5-0373-5c8f-811c-89850c621112",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "targetDocumentId": "657B7B5A5626C23DDD585527446166AB",
+      "hostInstanceId": "13c0316a-dbda-43fe-8d4b-01bba3884032",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0"
+      },
+      "count": 3,
+      "businessStatus": "success",
+      "persistence": "verified",
+      "retirement": "released",
+      "deliveryCount": 1,
+      "clipboardAndNativeEditorExact": true,
+      "normalNativePaste": true,
+      "nativeSend": "Enter once; covered pointer attempts produced no native witness or user message",
+      "independentDomMatches": true,
+      "durableAndSidebarAndDeliveredDataEqual": true,
+      "hiddenPriorUsers": 0,
+      "rawPrefix": "ordinary"
+    }
+  ],
+  "checks": {
+    "uniqueRelevantNodeChecks": 87,
+    "sourceSyntax": "PASS",
+    "newReproductionsFailedBeforeFix": true,
+    "runtimePermissionsInstallationAndUnknownProtections": "62-check protections.log plus unchanged gate evidence; Node injection does not claim new native revoke/cancel matrix",
+    "rootNpmTestOrFullBuildRun": false
+  },
+  "keyConditions": {
+    "1": {
+      "status": "PASS_DEV",
+      "evidence": "failure + user-failure-*; original candidate never replayed"
+    },
+    "2": {
+      "status": "PASS_DEV",
+      "evidence": "environment + final-dev/extension-path/final-grant"
+    },
+    "3": {
+      "status": "PASS_DEV",
+      "evidence": "round1: generated prompt, Copy button, clipboard/readback, normal paste and native Enter"
+    },
+    "4": {
+      "status": "PASS_DEV",
+      "evidence": "round1/round2 discovery: witnessed new user -> pending -> formal project source -> unique complete protocol"
+    },
+    "5": {
+      "status": "PASS_DEV",
+      "evidence": "round1 DOM + durable + sidebar + one complete original-chat delivery"
+    },
+    "6": {
+      "status": "PASS_DEV",
+      "evidence": "round2 retained-hidden-history native chain; ordinary /c/ full regression; same approval"
+    },
+    "7": {
+      "status": "PASS_DEV",
+      "evidence": "protections.log/replay-ui.log; exact source/epoch/installation unchanged; current receipt cleared before second send"
+    },
+    "8": {
+      "status": "PASS_DEV",
+      "evidence": "final-visible + original durable evidence, local main commit and browser resource release"
+    }
+  },
+  "deferred": {
+    "MCP": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "fullMatrixAndScoring": "NOT_TESTED",
+    "crossConversationOrchestration": "NOT_TESTED",
+    "persistentQueue": "NOT_TESTED",
+    "fullNativeRevokeCancelMatrix": "NOT_TESTED"
+  },
+  "visibleAtResourceRelease": {
+    "currentTabId": 759148567,
+    "url": "https://chatgpt.com/c/6ae98fe3-510c-83e8-9604-8638118b045a",
+    "projectSuccessTabId": 759148561,
+    "projectUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98e96-b510-83e8-a201-d0db3c6730c3",
+    "trustedReceiptMatchesCurrentRun": true,
+    "releasedToUiOwner": "01a1a03b-aa4d-75c3-a283-a89fe66435c3 after final reads; no further native actions from this task"
+  },
+  "changedSourceSha256": {
+    "src/native-agent/chatgpt-bridge-site.js": "1f5ca5ba97181cb98c0b0d1565c526aad7fba2afcdfce60d394253743a084d7f",
+    "src/native-agent/chatgpt-fixed-bridge-page.js": "81b46b2c7d3a5ccd608ec4286caa615f9f11be90485cf722d4fa45f13fbcd846",
+    "projects/webflow/tests/first-message.test.mjs": "2d2b616af479bbe2352f4595e19ee1f9f61c9b7c428a27dab63930319dd4b4c9",
+    "projects/webflow/tests/sidebar-bridge.test.mjs": "4bf30d065af0f5387ec09ea3e8bab80915a1edb2bb6a01d3b6dbcffea2620142"
+  },
+  "testedPageBundleSha256": "b0f2762a04dc279ab32b804d2140f417c14050534aad2edb1181c8fd703ef6d1",
+  "rawEvidenceDirectory": "artifacts/webflow-auto-20261103/project-01a1a038",
+  "rawEvidenceSha256": {
+    "user-failure-full.json": "9b29ad4684ddce75cac90b907916cba7e6ffd9332fc46ef92715654c40661f98",
+    "user-failure-site.json": "b776d1eaa4303af652d5e736febb3c4eac52bfa53deb146d8ee9023afc460a59",
+    "user-failure.ax.txt": "b37e5f6c2b4a457ff80e7a490c3febe6c7e3a36b5b5ab4057729f8cdc111dff1",
+    "dev-connected.ax.txt": "6674fb27b68ff3c367fd9aab5a32cd8fc88213c31af266eed8187caf6c235b16",
+    "extension-path.ax.txt": "efd6e9f4c9a6757ad2fa9df8872ebadc96856379a7797e28815c0c844d5dc172",
+    "hidden-history-red.log": "0e7359b9f649fc117e60392b82bdd12b6273ad19be8088e352f87eaa7bd30fdc",
+    "discovery-ui-red.log": "39a617ca328d166d3a30392c0cbf6bc70ceacef29eade4877a267afffc5fd298",
+    "discovery-green.log": "3db38075dae638be8133449f289d2d4f640da0c3eac03e8f91bab407add183c3",
+    "protections.log": "96e9d5e8dbaed86a31d1722ed3d6eae311e74b7447dcac18cbb2507c7b89a4c9",
+    "replay-ui.log": "5e4e96753b2346a8be505ca0af73395ebaf7a83d7fb91a63a5f8f84bf135cd41",
+    "round1-blank.json": "87dd30031d05181b6ddda6ad2e2d6937a675f203175f1760ad7e931acb9c150b",
+    "round1-filled.json": "bd5cf9d4d84de8289a6eea52d8c67eb7e43370c9cf7e5068ba2494a5f2747d22",
+    "round1-chat.json": "056e2f86e4829495b845cfba7107b1deac26f3de8cad9b337c72d1bed9959518",
+    "round1-envelope.json": "c5a6362942879ce64b3606be985821216f049665f875920da006706358adbfc1",
+    "round1-ui-value.json": "5592d0bac949d3b5552bcfbb355509f0809b9da649b3cbb546f4cae535a8cab6",
+    "round1-receipt.ax.txt": "a2ccfd6a6d11f9deb9784eae72ed23a11ecc3eecffa6d78d0cb5ad6a62b55cb9",
+    "round1.dom.jsonl": "8cde630c7636beb213d5e6b785bc928da041158ece9be42fb465a1b62220dadf",
+    "round2-blank.json": "87dd30031d05181b6ddda6ad2e2d6937a675f203175f1760ad7e931acb9c150b",
+    "round2-hidden-fixed.json": "65fa6bd5272209412c84d5e831acbafa695c53fd552fa6fd5eac15f841036654",
+    "round2-cleared.ax.txt": "fc1a36e4c8487d67997973a1451428379fc79a85727399529736b240e1409bcf",
+    "round2-filled.json": "3af1887eb7a57e2ba69885c30a8df7f9a4c3b0a4a8ad7f5501e8a680f10cbd40",
+    "round2-progress.json": "9190dc17761211fe7a803a3d697821e6b92514efe8695434b23410ae77c7a9b7",
+    "round2-chat.json": "c2762a7c899c238a3498185ccc5d370d3550087e40504edb326695f66c07033f",
+    "round2-chat-final.json": "88324f8eefa489930af498fc25559ebaa161c5d0a0f9bbb5807d6088bdbaa317",
+    "round2-envelope.json": "4b1b0cdc49a137cbcc67aedc1c3961b15a1b8df1d6dc41fc390edd4d72a1d725",
+    "round2-ui-value.json": "fa3e2e6a776363838ea6c9e303860dc8eb8b93ba599282143641d0ffc4034771",
+    "round2-sidebar.ax.txt": "1c447d02cb3bac07e6407a91ff2aa765bf08849fdc6cf654d18503d2f16dafa3",
+    "round2.dom.jsonl": "eb9176e14a2c11f905ae010bcfd1d98bb3ff242ad1d1bf55107100b4014695b6",
+    "ordinary-filled.json": "3d495c71b6cde34c3ab4666e1e0c858554078393f3b4ad00629e735198b68a72",
+    "ordinary-chat.json": "cc56bed6536a9e9ccd862c38cbb140b1ac1622fb43ff793195335c3b539796b0",
+    "ordinary-chat-final.json": "494872eaa55875a277957fbe9c240de65c8ade25990f939754514eac7d837bff",
+    "ordinary-envelope.json": "4426b4326d44cfbeadeec3ac6d8aa7660e42fab833b406bc9a594b5bfafc8dc4",
+    "ordinary-ui-value.json": "4ab918df40f65a03985f7c9c050530b47bed54e121d22067fce03a4310935524",
+    "ordinary-sidebar.ax.txt": "6c1b552ce5598c467a64ea78b0ab7c8fa138dee27b57ee827e5c047d2d079737",
+    "ordinary.dom.jsonl": "82c18ea8ce7e50b13becb595a329db4310ada4be85bbd61ed03a8dae781fac86",
+    "two-round-durable-history.json": "9f60bca3dc850b2e994c9992bcb7bf37bdeb170b5508f23c3195d5503b9ad50b",
+    "final-durable-history.json": "d8030dca0b144959e60466cc3b82fb9cfa015ada6299609d7cd46dc5762aa91c",
+    "final-dev.ax.txt": "c9a326b75de65eef5a71083da9188a54323b96eed93a6ea03903053b6f48f517",
+    "final-grant.ax.txt": "d70923ffda9b7f237544a96a3bbf9e6cb5452cb0ac844b8da5703f5a97edf48e",
+    "final-visible.ax.txt": "e9c549279d0de022905c7ba7f269d487cd882c188b054bdb1735e23fd450d317"
+  }
+}

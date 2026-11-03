@@ -15,6 +15,16 @@ function visible(el, win) {
   return style.display !== 'none' && style.visibility !== 'hidden' &&
     (el.getClientRects().length > 0 || el.getBoundingClientRect().width > 0);
 }
+function displayedMessage(el, win) {
+  // Project navigation keeps the previous conversation in a CSS-hidden tree.
+  // Ignore that tree without excluding scrolled-out history in the live chat.
+  if (el.closest?.('[hidden],[inert],[aria-hidden="true"]')) return false;
+  for (let part=el;part;part=part.parentElement) {
+    const style=win.getComputedStyle(part);
+    if (style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse') return false;
+  }
+  return true;
+}
 function role(button) {
   const testId = button.getAttribute('data-testid') || '';
   const label = (button.getAttribute('aria-label') || button.getAttribute('title') || '').trim();
@@ -89,8 +99,8 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     const sendButtons = nativeButtons.filter(el => role(el)==='send');
     if (stopButtons.length > 1 || sendButtons.length > 1) return {ok:false,route,reason:'原生发送按钮存在歧义'};
     const stopButton = one(stopButtons), sendButton = one(sendButtons);
-    const users = [...doc.querySelectorAll(USER)].filter(el=>!el.parentElement?.closest(USER));
-    const assistants = [...doc.querySelectorAll(ASSISTANT)].filter(el=>!el.parentElement?.closest(ASSISTANT));
+    const users = [...doc.querySelectorAll(USER)].filter(el=>!el.parentElement?.closest(USER)&&displayedMessage(el,win));
+    const assistants = [...doc.querySelectorAll(ASSISTANT)].filter(el=>!el.parentElement?.closest(ASSISTANT)&&displayedMessage(el,win));
     const last = assistants.at(-1) || null;
     const busy = !!stopButton || streaming(last);
     const completed = !last || assistantCompleted(last);

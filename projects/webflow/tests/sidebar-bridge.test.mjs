@@ -4,7 +4,7 @@ import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const url='https://chatgpt.com/c/sidebar-test-12345678';
-function fixture({active=false,adoptError=false}={}){
+function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE'}={}){
  const {document,window}=parseHTML('<html><body></body></html>');let listener,poll;
  const events=new Map(),addEvent=document.addEventListener.bind(document);
  document.addEventListener=(type,handler,...rest)=>{events.set(type,handler);return addEvent(type,handler,...rest);};
@@ -20,7 +20,7 @@ function fixture({active=false,adoptError=false}={}){
  const api={runtime:{id:'extension',getURL:()=> 'chrome-extension://extension/',
   onMessage:{addListener(fn){listener=fn;},removeListener(){}},sendMessage:async message=>{
    sends.push(message);
-   if(adoptError&&message.kind==='adopt-task')return {ok:false,error:{code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'runtime changed'}};
+   if(adoptError&&message.kind==='adopt-task')return {ok:false,error:{code:adoptErrorCode,message:adoptErrorCode==='E_BRIDGE_REPLAY'?'候选已准入或结果未知，禁止重放':'runtime changed'}};
    return {ok:true,data:message.kind==='adopt-task'?prepared:message.kind==='execute'?
     {runId:'original-run',resultId:'original-result',resultPreview:'OLD_RESULT',sent:true,aiReplyObserved:true}:{}};
   }}};
@@ -93,5 +93,34 @@ test('changing conversations clears completed page results and keeps installed t
   assert.ok(result.hidden);assert.equal(result.textContent,'');
   assert.ok(!next.resultPreview);assert.ok(!next.selection.includes('httpbingo'));
   assert.ok(next.selection.includes('baidu.search.top3'));
+ }finally{h.page.dispose();}
+});
+
+test('without a request, the sidebar explains drafts, native submission and unobserved history separately',async()=>{
+ const h=fixture({active:true});try{
+  h.snapshot.draft='pasted instruction';h.poll();
+  assert.ok((await h.receive({kind:'sidebar-read'})).data.status.includes('尚未发送'));
+  h.submit();h.snapshot.draft='';h.poll();
+  assert.ok((await h.receive({kind:'sidebar-read'})).data.status.includes('等待同一新消息'));
+  h.win.location.href='https://chatgpt.com/c/retained-history-12345678';
+  h.snapshot.route='c/retained-history-12345678';
+  h.snapshot.users=[{textContent:'old command',getAttribute:()=>null}];
+  h.poll();
+  assert.ok((await h.receive({kind:'sidebar-read'})).data.status.includes('未能绑定'));
+  h.poll();
+  const history=(await h.receive({kind:'sidebar-read'})).data;
+  assert.equal(history.requestId,null);assert.ok(history.status.includes('未见证'));
+  assert.ok(history.status.includes('生成下一次指令'));assert.equal(h.sends.length,0);
+ }finally{h.page.dispose();}
+});
+
+test('an already admitted candidate stays unexecuted and points to generating a new instruction',async()=>{
+ const h=fixture({active:true,adoptError:true,adoptErrorCode:'E_BRIDGE_REPLAY'});try{
+  const rejected=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
+  assert.equal(rejected.requestId,null);assert.equal(rejected.candidateId,'sidebar-candidate');
+  assert.ok(rejected.status.includes('E_BRIDGE_REPLAY'));
+  assert.ok(rejected.status.includes('生成下一次指令'));
+  h.poll();assert.ok((await h.receive({kind:'sidebar-read'})).data.status.includes('E_BRIDGE_REPLAY'));
+  assert.equal(h.sends.filter(message=>message.kind==='execute').length,0);
  }finally{h.page.dispose();}
 });

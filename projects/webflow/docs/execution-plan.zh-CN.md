@@ -1304,3 +1304,54 @@ A–D 仍为第 12.11.1 节的 `NOT_TESTED` 状态，无真实 candidate/request
 **持续开发环境与保存边界：** Chrome 实际扩展页回读已启用的原 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`，加载路径仍为本仓库 `dist/development`；唯一 writer PID15593、43119/43120，调试页结束时仍为“开发服务已连接”，完整 revision `6bd1298cb1b9465398979e2400de90484ef15e620cfc3c1afacaac7d8e2d5ea2`，没有另起 dev/build 或替换目录。0.3.6 只更新沙箱包，核心双轮原固定 Browser 输入未变，不因此重跑两轮。原始证据在 `artifacts/webflow-auto-20261103/authorized-01a1a00e/`，精简 JSON 保存 30 项本地原始文件摘要；不提交原始聊天、AX 或用户草稿。Cookie/ScrapyJS/云控 dirty、Cookie provenance pin 和预存 12.10 MCP 段继续保留，仅分离提交本轮路径及 12.11.12–12.11.13。
 
 **完成与下一条用户操作：** 本轮核心完成条件已由新实测满足。正常使用继续在同窗口保持 Web Flow 侧栏打开，从有效批准生成一个从未发送的新指令，粘贴到 ChatGPT 后原生发送；以后不重复使用本段任何已发送 candidateId。旧目标 blocked 是历史记录，不是当前阻塞。MCP、production、跨对话编排、多步骤 B、持久队列、长结果专项、完整矩阵、宽度/压力及评分继续延期，不自动启动；手动恢复的真实 Chrome 专项仍为 NOT_TESTED。
+
+### 12.11.14 用户项目聊天未自动触发：新任务以 dev 现场修复及关键条件为准（2026-11-03）
+
+**最新用户反馈与当前失败：** 用户要求“创建新对话，继续完善。主要在 dev 环节完成测试。需要完成关键测试条件，感觉之前多次对话中丢失了”。用户在项目内新聊天复制提示词后没有看见自动执行，可信区显示自动运行已开启，原对话为 `https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98590-8898-83ee-bb62-33ea6804f42e`，状态仍为“尚未触发新请求”，同时显示将调用 `baidu.search.top3@1.1.2`、目标 `https://www.baidu.com/`、参数 `{"limit":3,"query":"OpenDesk Browser"}`。这是本轮必须先读取、定位并修复的真实反例，不能因开关开启、任务已选中或过去两轮成功就判定当前自动执行通过。当前只有用户界面事实；该对话 candidateId、真实发送/完整回复、discovery、去重及 Host/Run 状态尚未实读，不能假定用户未发送，也不能直接断言项目 URL 就是根因。先只读保全，不重复发送或执行该未知候选。
+
+**证据差异与唯一目标：** 12.11.13 / `authorized-two-rounds-20261103.json` 的两轮成功均为普通 `/c/` 空白聊天，测试输入使用原生 AX setfile 后点击官网发送；保留其限定 PASS。它不等于用户的项目聊天 `/g/.../c/...`、产品“复制指令 → 粘贴 → 原生发送”入口已验证。新任务须在当前 dev 产品入口复现本次失败，查明哪一步缺失，最小修复后按下表完成同一批准下的真实双轮；既有正确逻辑和安全边界直接复用，不重新做升级或无关矩阵，不另建后续任务代替修复。只有新增完整协议回复符合精确批准时自动运行，选择脚本或粘贴文本本身不应执行；产品必须明确解释未运行原因，不能永远只显示泛化“尚未触发”。
+
+| 关键条件 | 本轮完成标准与证据 |
+| --- | --- |
+| 现场断点 | 先读用户失败聊天的真实用户消息、完整助手代码块、candidateId、路由/document 与只读 discovery/Host/原请求；区分仅粘贴、原生发送未见证、非严格协议/流式、重复候选、历史消息、安装/批准/权限不匹配及页面/侧栏未接入。没有 Run 不称执行，UNKNOWN 仅查询/停止原请求，不另发补跑未知效果。 |
+| dev 与安装身份 | 固定 `dist/development`、原扩展 ID、唯一 serve 的真实连接/指纹；读取实际 Task 1.1.2、Web Flow 0.3.6、generation 2、批准 scope、时间/epoch 11 与开关，未变化不重复安装/授权。已有完整升级授权继续有效，不因旧待授权记录停工。 |
+| 用户实际入口 | 首轮必须从 ChatGPT 项目内“新聊天”的真实入口开始；保持同窗口可信 Web Flow 侧栏，空草稿、无附件/IME/历史，使用产品“生成新指令 → 复制指令”及正常粘贴，再官网原生发送一次；读取复制文本、编辑器读回及消息，不能只用构造文本、AX 写入或普通 `/c/` 代替该入口通过。 |
+| 自动触发 | 新 candidate，唯一完整严格五字段 `webflow.task.intent.v1`；临时路由只观察，正式项目聊天来源及同一新增用户见证绑定后自动准入；不点击采用、执行或逐次批准。读取阶段变化和最终 request/Run，不以“将调用”替代运行证据。 |
+| 第一轮真实业务 | 百度首页可见地填写 `OpenDesk Browser`、搜索一次并读取三条自然结果；独立 DOM 与同 Run 持久原始 data 对照，侧栏 verified、released；原项目聊天完整 data 恰好交付一次，Run/Result/来源一致。 |
+| 第二轮与普通路由 | 第一轮 released 后，批准/时间/epoch/开关不变，在另一个全新项目聊天或同一项目聊天下一次真实发送完成第二个全新候选的相同全链；显式观察切换/新发送清旧结果。普通 `/c/` 证据按受影响输入复用；若修复影响共同路由/发送/准入，则做一条对应普通入口回归，不恢复完整矩阵。 |
+| 保护与可解释性 | 保留真实来源、document、安装代次、历史/合成发送/流式/回答替换、撤权/取消/UNKNOWN 不重放及单次交付。旧/重复 candidate 不自动执行，并应呈现具体原因或可操作提示；无请求不显示旧结果，百度无 httpbingo 假范围。按实际故障与改动选择定向测试，不放宽校验。 |
+| 可见结果与保存 | 两轮及用户现场断点均有证据后才关闭新 goal；留下可直接查看的最新成功聊天与可信侧栏，报告根因、实际动作及未测项。原始证据位置、输入/构建身份和关键条件写回本执行计划及项目精简 evidence；安全保存源码/必要包，保留并行改动。 |
+
+**阶段保持：** 继续核心 dev 修复/测试；MCP、production、跨对话编排、多步骤 B、持久队列、完整长结果专项、完整矩阵、宽度/缩放/压力及评分继续延期。关键条件不是恢复延期项的理由。浏览器连接或驱动错误先与产品缺陷区分，继续使用用户已允许的 AX/AppleScript/原生输入/只读 DOM；不因 Browser MCP 超时就报授权 blocked。
+
+**当前交接与目标生命周期：** 本轮实读 `main@246fd012a67d3b5e221ee7d1716df4ecc46fb93c`，本次 `get_goal` 返回 null；上一轮工具曾报告 complete 的历史记录保留，不改写应用数据库或冒用其完成状态。新任务启动必须实读并建立其自身唯一目标（无 token budget），使用本节最新失败与关键条件。保存项目直接 local/main，禁止分支/worktree/PR。Chrome PID516、原 writer PID15593 与 43119/43120 实读仍在，进程不证明 serve 当前连接；加载路径、ID 与 revision 最近实读为 12.11.13 的值，接手应核对。新任务成功创建后接管本轮源码、Chrome、writer/dist/端口，旧任务停止重复操作。Cookie/ScrapyJS/云控 dirty、Cookie pin、执行计划预存 12.10 MCP 段及空行保持原 owner；本节尚未提交，后续只分离保存本节和新任务成果。
+
+
+**本任务现场修复与实测收尾（2026-11-03，01a1a038）：** 已建立并执行本任务唯一 active goal；本节原八项条件的新增 dev 证据见 [项目聊天实测摘要](../evidence/project-chat-auto-20261103.json)，原始材料仅保存在 `artifacts/webflow-auto-20261103/project-01a1a038/`。未重放用户失败候选，未重新安装或批准。
+
+**现场结论须分开：** 用户确实发送了指令，助手完整返回严格五字段协议；实际 candidate 为 `wf-524d7d61-5810-4fc5-8926-8f704ff92b0a`，与 12.11.13 已执行成功的第二轮完全相同，重复执行应拒绝。现场 discovery 当前为 `no-live-submission`，保留的八条记录含对话切换；不能据此倒推用户当时没有发送或原生手势的准确丢失时刻，也没有证据将原聊天称作新 Run 已执行。本轮没有重新采用/发送它来试错。
+
+同时经真实项目“新聊天”入口发现独立的产品缺陷：官网保留上一聊天的 CSS 隐藏 DOM，原 `createChatGPTBridgeSite.inspect()` 将其用户消息和助手回复计入空白项目聊天，首发见证因此不再被识别为 first-message，无法跨临时路由绑定正式聊天。先记录真实隐藏树并补 RED（隐藏用户数错误为 1），再在原适配器排除 hidden/inert/aria-hidden 及祖先 display/visibility 隐藏树；仍保留滚出视口的当前聊天历史。未修改路由命名、严格协议、Authority 或持久去重。第二轮真实页面同时保留两条旧用户消息和两条旧回复，修复后仍只绑定当前新增用户。
+
+**最小源码范围：** `src/native-agent/chatgpt-bridge-site.js` 修正当前文档消息范围；`chatgpt-fixed-bridge-page.js` 在原投影解释草稿未发送、已见证发送/等待完整回复、未见证历史及已用候选，给出“生成下一次指令”的路径，并保留具体权限/绑定错误，不用等待文案覆盖错误。业务专属回归仅新增到本项目 `first-message.test.mjs` / `sidebar-bridge.test.mjs`。沙箱应用、Task、安装身份、批准及共享执行链均复用原实现；本任务没有 Sidebar 包变化，无需再次打包或晋升。并行 UI owner 的 0.3.7/RuntimePanel/来源 pin/包晋升属于其任务，不混入本次提交或本轮原生 UI 结论。
+
+| 本节关键条件 | 本轮新增结果与原始证据 |
+| --- | --- |
+| 1 · 现场断点 | `user-failure-full.json` / `user-failure-site.json` / `user-failure.ax.txt` 保全真实消息、完整块、重复 candidate 与当前 discovery；没有补跑未知候选。已确定重复身份事实及独立复现的隐藏历史缺陷；原发送时刻的见证历史不可恢复，未虚构唯一先后原因。 |
+| 2 · dev 与身份 | `extension-path.ax.txt` 实读 Chrome 加载 `~/文稿/workspace/opendesk-browser/dist/development`，ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`；原 writer PID15593、Chrome PID516，43119/43120 未另建。`final-dev.ax.txt` 实读 serve 已连接 revision `aa17724e37754259e3c24141809835b1a607d0f6d2c57e600ad04cb7e0417b26`。`final-grant.ax.txt` 实读 Task1.1.2、原 installationId、generation2、epoch11、批准时间14:28:22与开关开启，均未重新批准。实际安装的 Sidebar 仍为0.3.6。 |
+| 3 · 用户实际入口 | 两轮均在原生项目“在 opendesk-browser 中新建聊天”编辑器，用产品生成→点击复制→正常 ⌘V 粘贴→读回完全一致→原生 Enter 发送；无 AX setfile 或构造文本替代。`round{1,2}.prompt.txt` / `round{1,2}-filled.json` 及 `round2-blank.json` 留空草稿、无附件和零当前历史证据。旧网页浮层覆盖原生发送按钮的指针尝试没有产生见证或消息，改用官网原生 Enter 后只发生一次真实发送；没有把驱动 ACK 当作已发送。 |
+| 4 · 自动准入 | 两个全新 candidate 均取得 native-submission → exact-new-user → pending → 正式项目 `/g/.../c/...` → unique-complete-reply，见 `round{1,2}-progress.json` / `round{1,2}-chat.json`；各仅一个严格五字段块，无采用、执行或逐次批准点击。 |
+| 5 · 第一轮业务 | `round1.dom.jsonl` 观察百度首页空输入→填写 OpenDesk Browser→结果；Task trace仅一次搜索点击。三条自然结果的 slot、标题、URL/directUrl、摘要与独立 DOM 核对；`round1-envelope.json`、`round1-ui-value.json` 和原持久历史同 data，侧栏 verified/released，原聊天恰好一条完整结果消息。 |
+| 6 · 第二轮与普通入口 | 第一轮 released 后，原批准/epoch/开关不变，真实项目新聊天第二轮相同全链通过；`round2-hidden-fixed.json` / `round2-cleared.ax.txt` 记录隐藏旧历史和旧结果清除。因修改共同 DOM 适配器，另做普通 `/c/` 首发完整自动执行回归，见 `ordinary-*` / `ordinary.dom.jsonl`；仍沿相同批准、真实复制粘贴与单次交付。 |
+| 7 · 保护与解释 | 两个 RED 及修复后定向检查见 `hidden-history-red.log`、`discovery-ui-red.log`、`discovery-green.log`、`protections.log`、`replay-ui.log`。覆盖真实来源/document/安装代次、旧/合成发送、流式/回答替换、撤权/取消/UNKNOWN不重放、单次交付及具体错误保留；87个不同命名检查通过，不以 Node 取代新原生矩阵。原失败重复候选不重放，重复拒绝提示可生成下一次指令。 |
+| 8 · 可见结果与保存 | `two-round-durable-history.json` / `final-durable-history.json` 均通过原“开发→运行结果→刷新运行历史”读取，三轮各一条对应 Run/Result、completed/released，原始值与侧栏及原聊天逐字一致。释放资源时普通成功tab759148567与可信同Run回执可见，最新项目成功tab759148561保留，`final-visible.ax.txt` / `round2-chat-final.json` / `ordinary-chat-final.json` 保留事实。源码/测试/本节与精简摘要安全本地提交；无推送。 |
+
+| 原生轮次 | candidateId | requestId | Run / Result |
+| --- | --- | --- | --- |
+| 项目首轮 | `wf-acd766c1-5a75-4045-a1f3-14cfc39aaf51` | `dcb5a624-44e6-4e24-85a4-1a9a08d10e02` | `d0cc6f57-97d1-4629-9406-ba91d5edf515` / `75d1e5c9-2a46-4b87-a992-77c57c966a21` |
+| 项目第二轮 | `wf-8149cc31-b86d-4adf-9119-2dda55e3922c` | `36458b90-5270-4b0f-a00c-5f8ce00870d2` | `78db594b-79fc-474f-881d-5eba6d876981` / `eb2ac821-f35c-4f11-a064-61727c49531b` |
+| 普通 /c/ 回归 | `wf-bf4618cd-aca2-4d77-a4e7-c73012e816dc` | `098c2665-27e8-414f-a720-fef83a4e3043` | `554b5b6a-9591-4b17-b41e-bf9d5f42c7d6` / `23f9ae7f-a5ff-48f7-9e5f-a0308a4d1dba` |
+
+第一轮项目聊天为 `https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98d6e-d120-83ec-a129-947504be6a61`；第二轮为 `https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae98e96-b510-83e8-a201-d0db3c6730c3`；普通回归为 `https://chatgpt.com/c/6ae98fe3-510c-83e8-9604-8638118b045a`。结果均为真实百度数据，不把官网 AI 续答是否即时结束混作执行、持久化或交付状态；其最终回复另见原聊天采集。
+
+**资源与阶段收尾：** 浏览器读取插件超时后使用已授权原生/只读 DOM，保留了驱动失败与加载中旧标签页，不将其分类为产品故障。仅复用原 watcher 的相关增量更新；并行 Knowledge/可信工具壳来源 pin 导致的构建拒绝未放宽，UI owner 单独处理。2026-11-03 15:48（+08）前完成最后原生回读并释放前台给 UI owner `01a1a03b-aa4d-75c3-a283-a89fe66435c3`；本任务此后只做文档/源码保存，不再操作其浏览器或 watcher。MCP、production、跨对话编排、持久队列、完整原生撤权/取消矩阵、完整测试矩阵及评分继续 NOT_TESTED / 延期；不因此阻塞本轮核心 dev 收尾。

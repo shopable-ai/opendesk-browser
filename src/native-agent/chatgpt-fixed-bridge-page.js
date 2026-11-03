@@ -319,7 +319,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     ...(state.future?['有效期至: '+new Date(state.expiresAt).toLocaleString()]:[]),
     ...(state.runId?['runId: '+state.runId]:[]),...(state.resultId?['resultId: '+state.resultId]:[])
   ].join('\n'):'';details.hidden=!state;};
-  const note=(text,error=false)=>{status.textContent=text;status.classList.toggle('error',error);};
+  let noteError=false;
+  const note=(text,error=false)=>{noteError=error;status.textContent=text;status.classList.toggle('error',error);};
   const showResult=preview=>{
     if(typeof preview!=='string'||!preview)return;
     result.textContent='本次脚本返回（原始数据）：\n'+preview.slice(0,2000);result.hidden=false;
@@ -327,9 +328,18 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const clearReceipt=()=>{viewStatus.textContent='';result.textContent='';result.hidden=true;};
   const update=()=>{
     const hasConversation=win.location.origin==='https://chatgpt.com'&&Boolean(chatGPTConversationId(win.location.href));
-    if(!state&&conversationReady!==hasConversation){
+    if(!state&&!proposal&&(!noteError||conversationReady===null)){
       conversationReady=hasConversation;
-      note(hasConversation?REQUEST_HELP:CONVERSATION_HELP);
+      const snapshot=site.inspect(),observation=discovery.status();
+      // Explain observation only; none of these UI states can arm admission.
+      if(snapshot.ok&&snapshot.rich)note('原生输入框含附件或富内容，尚未见证可执行指令；不会覆盖草稿或自动发送。');
+      else if(snapshot.ok&&snapshot.draft)note('指令仍在 ChatGPT 草稿中，尚未发送；请在官网发送，完整任务回复符合批准范围后才会运行。');
+      else if(['submitted','waiting-reply'].includes(observation.stage))note(observation.stage==='submitted'?
+        '已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。':
+        '已确认同一新增用户消息，正在等待本轮完整任务回复；流式内容不会执行。');
+      else if(observation.stage==='rejected')note('本次发送未能绑定当前消息（'+observation.reason+'），未执行。请在“任务范围与授权”生成下一次指令后发送；原候选不会补跑。');
+      else if(hasConversation&&snapshot.ok&&snapshot.users.length)note('当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。请在“任务范围与授权”生成下一次指令后发送；已用候选不会重新执行。');
+      else note(hasConversation?REQUEST_HELP:CONVERSATION_HELP);
     }
     const busy=pending||cancelPending||deliveryPending;
     const ready=!!state&&!state.future&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
@@ -575,7 +585,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
       // Binding/format errors have not submitted execute. Keep the grant
       // cancellable without asking a nonexistent Controller run to stop.
-      note((error.code||'E_BRIDGE')+'：'+error.message+'；未自动重试。',true);
+      note((error.code||'E_BRIDGE')+'：'+error.message+'；未自动重试。'+
+        (error.code==='E_BRIDGE_REPLAY'?'请在“任务范围与授权”生成下一次指令；同一候选不会重复执行。':''),true);
     }
     finally{pending=false;preparing=false;if(!closed)update();}
     if(!closed&&epoch===lifecycleEpoch&&!approvalUnknown&&state?.mode==='auto'&&!state.future&&!state.attempted)void execute('auto');

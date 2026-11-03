@@ -93,3 +93,25 @@ test('site inspects the native composer on supported blank ChatGPT routes only',
   if(view.ok)assert.equal(view.route,path.includes('local-chatgpt')?'pending/f752096a-83bd-41d1-a13a-476092e6aea8':'new:'+path);
  }
 });
+
+test('project new chat excludes CSS-hidden retained history and binds only its new visible user',()=>{
+ const {document}=parseHTML('<html><body><section style="display:none"><div data-chatgpt-search-unit-key="old:user" data-chatgpt-search-message-ids="old-user">old prompt</div><div data-content-search-unit-key="old:assistant" data-talvt-turn-state="complete">old reply</div></section><form><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></form><main></main></body></html>');
+ for(const node of document.querySelectorAll('textarea,button'))node.getClientRects=()=>[{}];
+ const win={location:{origin:'https://chatgpt.com',pathname:'/g/g-p-project/project',search:''},
+  getComputedStyle:node=>({display:node.style?.display||'block',visibility:node.style?.visibility||'visible'})};win.top=win;
+ const site=createChatGPTBridgeSite({doc:document,win}),probe=createChatGPTTaskDiscovery();
+ document.querySelector('textarea').value='exact prompt';
+ const blank=site.inspect();
+ assert.equal(blank.users.length,0,'the project page retains a hidden old conversation');
+ assert.equal(blank.assistants.length,0);assert.equal(blank.idle,true);
+ assert.equal(probe.witnessSubmission(blank),true);
+ const user=document.createElement('div');user.setAttribute('data-chatgpt-search-unit-key','fallback-turn-0:0:user');
+ user.setAttribute('data-chatgpt-search-message-ids','new-user');user.textContent='exact prompt';
+ document.querySelector('main').append(user);document.querySelector('textarea').value='';
+ assert.equal(probe.observe(site.inspect()),null);
+ win.location.pathname='/c/new-project-conversation';
+ const answer=document.createElement('div');answer.setAttribute('data-content-search-unit-key','new:assistant');
+ answer.setAttribute('data-talvt-turn-state','complete');answer.textContent='new reply';document.querySelector('main').append(answer);
+ const discovered=probe.observe(site.inspect());assert.equal(discovered?.user,user);
+ assert.equal(discovered?.answer,answer);assert.equal(probe.observe(site.inspect()),null);
+});
