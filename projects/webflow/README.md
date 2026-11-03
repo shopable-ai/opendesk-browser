@@ -4,9 +4,11 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**
 
-**可交互设计预览（2026-11-03）：** 打开 [单文件 HTML](preview/webflow-v0.3-preview.html)，从完整「扩展 → Web Flow」外壳体验概览、脚本、记录、帮助/设置及“运行与授权”。授权按编辑 → 审核 → 明确批准分步；下方独立实验台可切换读取、失效、撤销、保存失败及任务成功/失败/UNKNOWN。它是对 v0.3.7 结构的离线设计模拟，不是正式源码同源预览，不执行真实任务或写系统剪贴板。原组件 97 分不适用于此文件；本轮同候选评审见 [UI 评审第 13 节](docs/webflow-v0.3-ui-ux-review.zh-CN.md#13-独立交互-html-同步与评审2026-11-03)。重新生成：`node projects/webflow/preview/build-design.mjs`；静态核对：`node scripts/sidebar-preview-kit.mjs check projects/webflow/preview/webflow-v0.3-preview.html`。输入为 `preview/design-app.fragment` / `design-app.js`，manifest/context 保存身份；不要手改受保护外壳或生成 HTML。
+**交互预览纠偏（2026-11-03）：** 打开[原路径单文件 HTML](preview/webflow-v0.3-preview.html)，先看恢复后的蓝色原界面，再点“对照运行与授权”。左右复用相同的真实应用、滑块、JSON 审核和底部 Sheet；候选只调整运行面板的页签停留、只读摘要对齐、按钮层级，并补审核就绪定位与输入错误关联。其余概览 / 脚本 / 记录、帮助 / 设置与业务卡片不重新设计。参考是已有原生安装记录对应的 **0.3.6 沙箱源码（246fd012a）+ 9418a5d1a 时的可信组件（含 875 的正文显示/草稿修复）**，不是对当前安装状态的重新读取，也尚未由用户确认是其偏好的确切版本。
 
-该最终 HTML 已获独立 AI UI/UX **98/100**、交互可访问性 **99/100**；固定面板宽度、常驻关闭/导航、持续选中标记与草稿/原步骤保留已在同候选 IAB 检查。完整证据及未测项见[本轮记录](evidence/ui-preview-20261103.json)，评分仅适用于离线设计。
+原黑灰手绘稿的 **98/99 是历史自洽评估，不证明与扩展一致，本轮不再适用**。现入口 `node projects/webflow/preview/build-design.mjs` 直接复用原 `tests/auto-trigger-ui-server.mjs` 的源码组件夹具，不再填充手绘业务控件；`design-app.fragment/js` 只维护扩展外的对照辅助区。`runtime-layout.css` 与可审阅的 `runtime-presentation.json` 仅修改候选运行区的表现，不改生产源、权限或业务状态机。生成器明确从上述 Git 快照读取 UI 源，避免纳入并行新业务；生成 HTML 不手改。同名 manifest/context 固定源码、表现补丁、编译字节与输出 SHA。核对 `node projects/webflow/preview/check-design.mjs --frozen` 会报告当前源码差异；不加该参数则仍拒绝陈旧来源，不声称旧快照是新业务版本。详见[原 UI 评审第 14 节](docs/webflow-v0.3-ui-ux-review.zh-CN.md#14-恢复真实风格与局部对照2026-11-03)。
+
+本预览只替换数据 / 权限 / SDK / 剪贴板边界，不运行真实任务，不写系统剪贴板；宿主管理图标不可用、五 Tab 仅作真实上下文。正常 ChatGPT 消息主入口由业务任务另行完善，原指令辅助入口不代表该目标完成。最终同 SHA 独立 AI 复评：**UI/UX 97、变更可理解性 97、交互可访问性 96；来源/范围 99**。评分只适用于本局部离线候选；真实 Chrome / 安装 / production 仍为 **NOT_TESTED**，完整依据见第 14 节。
 
 **2026-11-03 UI 排版增量（v0.3.7）：** 首页仅保留紧凑的自动运行开关、状态摘要和“运行与授权”入口。独立面板分为当前任务 / 任务授权 / 使用说明；原始结果、运行身份和诊断默认折叠。沙箱三项主导航与帮助/设置合为一行，移除重复产品标题和大号统计卡。开合保持应用与授权草稿，导航不执行任务。源码、组件截图和独立评审见[现有 UI 评审第 12 节](docs/webflow-v0.3-ui-ux-review.zh-CN.md#12-v037-运行面板与应用布局修复2026-11-03)。此增量尚未在真实扩展安装/更新；下文 v0.3.6 实测与自动双轮证据仍只属于各自候选。可信组件随 Browser 编译，工具 JSON 单独更新不能替换它。
 

@@ -1,0 +1,20 @@
+/* Preview-only layout candidate. Every selector stays inside the real Sheet.
+   No palette, control skin, content, authority or application styles change. */
+#webflow-runtime-panel .workflow-sheet-content > section > [role="tablist"] {
+  position: sticky;
+  top: calc(-1 * var(--space-3));
+  z-index: 2;
+  padding-block: var(--space-2);
+  background: var(--od-paper);
+  border-bottom: 1px solid var(--od-line);
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-stack > .od-form-field:has(> strong.od-field-label) {
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-stack > .od-form-field > p {
+  margin: 0;
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > button {
+  justify-self: start;
+}

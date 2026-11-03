@@ -1,0 +1,41 @@
+{
+  "file": "projects/webflow/trusted/AutoSettings.tsx",
+  "scope": "Preview candidate only: runtime presentation and accessibility; no authority or business transitions changed",
+  "replacements": [
+    {
+      "id": "review-ready-focus",
+      "from": " const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);",
+      "to": " React.useLayoutEffect(()=>{\n  if(!prepared||!compact||!panelOpen)return;\n  const review=document.getElementById('webflow-auto-review');\n  review?.scrollIntoView?.({block:'nearest'});review?.focus({preventScroll:true});\n },[prepared,compact,panelOpen]);\n const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);"
+    },
+    {
+      "id": "review-ready-status",
+      "from": "    if(edit===edits.current)setPrepared({review,edit});",
+      "to": "    if(edit===edits.current){setPrepared({review,edit});setNotice('审核已就绪，请核对下方精确范围后批准。');}"
+    },
+    {
+      "id": "focusable-review",
+      "from": "   aria-labelledby=\"webflow-auto-review-title\">",
+      "to": "   aria-labelledby=\"webflow-auto-review-title\" tabIndex={0}>"
+    },
+    {
+      "id": "address-error-association",
+      "from": "   <input id=\"webflow-auto-target\" className=\"od-field\" type=\"url\" value={draft.targetUrl}",
+      "to": "   <input id=\"webflow-auto-target\" className=\"od-field\" type=\"url\" value={draft.targetUrl}\n    aria-invalid={Boolean(error&&/地址|网址|目标|URL/i.test(error))||undefined}\n    aria-describedby={error&&/地址|网址|目标|URL/i.test(error)?'webflow-auto-error':undefined}"
+    },
+    {
+      "id": "json-error-association",
+      "from": "   <textarea id=\"webflow-auto-args\" className=\"od-field\" value={draft.argsText} rows={6}",
+      "to": "   <textarea id=\"webflow-auto-args\" className=\"od-field\" value={draft.argsText} rows={6}\n    aria-invalid={Boolean(error&&/参数/.test(error))||undefined}\n    aria-describedby={error&&/参数/.test(error)?'webflow-auto-error':undefined}"
+    },
+    {
+      "id": "current-copy-primary",
+      "from": "<Button disabled={disabled} onClick={()=>{void copy();}}>复制指令</Button>",
+      "to": "<Button variant=\"primary\" disabled={disabled} onClick={()=>{void copy();}}>复制指令</Button>"
+    },
+    {
+      "id": "next-generation-quiet",
+      "from": "<Button disabled={disabled} onClick={generate}>{prompt?'生成下一次指令':'生成 ChatGPT 指令'}</Button>",
+      "to": "<Button variant={prompt?'quiet':'secondary'} disabled={disabled} onClick={generate}>{prompt?'生成下一次指令':'生成 ChatGPT 指令'}</Button>"
+    }
+  ]
+}

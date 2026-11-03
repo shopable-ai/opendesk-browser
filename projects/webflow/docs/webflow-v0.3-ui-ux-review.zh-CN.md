@@ -640,7 +640,9 @@ IAB 组件驱动产生的非可信 click/press 不能授予批准或写开关，
 
 配置恢复已完成：原 writer 15593 输出的新 revision 为 `7acfa04c42ff4a3dcf2e6b1c0509eebd5e6eb94ee83e0bfa03f7372dcd48db0d`，`ui/tool-shell.js` SHA-256 `dd277fd9329c93ce1b3353ab2cecbe5ab0de22a92fc75e597c1e39b3909d5b2a` 与发布标记逐字节一致，产物包含 `webflow-runtime-open`。这证明当前开发产物已更新；Chrome 是否已通过安全刷新应用该 revision 仍为 NOT_TESTED。完整本轮输入摘要、包及截图哈希、评分和证据边界见 [ui-layout-20261103.json](../evidence/ui-layout-20261103.json)。
 
-## 13. 独立交互 HTML 同步与评审（2026-11-03）
+## 13. 独立交互 HTML 同步与评审（2026-11-03，历史稿）
+
+**本节已被用户的真实界面反例否定为一致性验收。** 黑灰皮肤、另写滑块/授权表单及中央弹窗超出了局部排版范围；98/99 只说明当时模拟稿内部自洽，不适用于现有扩展或第 14 节的新候选。保留历史过程与 SHA，不再作为当前已通过表述。
 
 ### 13.1 范围与来源
 
@@ -678,7 +680,7 @@ IAB 键盘事件只能证明本设计的显式导航/焦点围栏；原生 Space
 
 原 kit 缺少通用的“固定容器、独立正文滚动”设计弹窗布局，项目内手写 CSS 或改生成文件会违反保护合同。因此在无并行差异的原 `scripts/templates/sidebar-preview.html` 中只增加 `preview-dialog` / `preview-dialog-body` 两条纯几何规则，再经原 kit 重新生成；未改共享控件、Tokens、宿主 DOM、权限或 CSP。原模板定向合同（同源、合法内容、样式保护、非法 CSS/资源拒绝）**17 PASS / 0 FAIL**，没有放宽检查器，也未重生成其他项目。
 
-### 13.5 同候选独立复评：目标已达到
+### 13.5 历史模拟稿的独立复评（不证明风格与交互一致性）
 
 两位独立 AI 评审员分别读最终源码、manifest、实际截图与同 SHA 证据后复评。它们是独立模型任务的专业角色评估，不是人类专家或真人用户测试，也不借用第 12 节组件 97 分。
 
@@ -690,3 +692,66 @@ IAB 键盘事件只能证明本设计的显式导航/焦点围栏；原生 Space
 各项相关独立评分均 ≥95，冻结交付。剩余非阻断扣分：概览轻微重复结果去向、持续准入术语的首次理解成本、已保存步骤恢复卡需再打开核对才能辨认精确关键词。不继续为追求 100 分扩展本轮范围。
 
 最终 SHA、两位评审任务 ID、分项、扣分、18 DOM / 36 IAB / 17 kit 结果及 15 张截图哈希统一保存在 [ui-preview-20261103.json](../evidence/ui-preview-20261103.json)。原位安装、真实网页与权限、Native、production、原生 IME/Space 与读屏仍为 NOT_TESTED。
+
+## 14. 恢复真实风格与局部对照（2026-11-03）
+
+### 14.1 先恢复真实基线
+
+用户明确否定第 13 节模拟稿的风格与范围：现有运行扩展的界面更好，需要先找回它，再只修改“运行与授权”。根因是原稿另写了黑灰 Neutral 控件、文字开关、拆字段授权表单与中央弹窗，而正式应用使用蓝色 `.wf-app/.wf-btn/.wf-tab/.wf-panel`，可信区使用真实 React Aria Switch、JSON 审核和底部 `RuntimePanel`。旧 98/99 没有检查这种偏离，不能用于本轮一致性结论。
+
+实装参考来自 [生成入口原生记录](../evidence/prompt-generation-20261103.json) 与其截图：当时沙箱为 **0.3.6**，可信组件已包含 `875ca5a4b` 的正文显示、选择与同批准刷新草稿修复。两者独立发布，不能用仓库 HEAD 或已晋升的 0.3.7 包推断安装状态。预览据此使用 `246fd012a67d3b5e221ee7d1716df4ecc46fb93c` 的真实应用源码，以及 `9418a5d1a` 树的可信组件；没有回退正式源、包或安装身份。**这是有证据的历史实装参考，尚非用户对偏好确切版本的新确认，也不是本轮实时安装回读。**
+
+原唯一生成入口 `preview/build-design.mjs` 改为消费既有 `tests/auto-trigger-ui-server.mjs` 的可复用导出。它编译真实 `SidebarAppShell` / `AutoSettings` / `RuntimePanel` / `CurrentTask` 与共享控件；应用 iframe 只使用自己的原 HTML/JS/CSS 和公开 SDK Mock，不借入完整宿主 CSS。左右使用相同应用与模拟批准；候选追加声明的运行区 CSS 与表现补丁 与 `runtime-presentation.json` 中可审阅的原组件表现补丁。后者只调整审核就绪定位/播报、输入错误关联与公共按钮变体，不重写组件、业务状态机或 Authority。`design-app.fragment/js` 仅维护应用之外的对照辅助区，不再维护一份业务控件或状态机；原 kit 手绘设计路径被替换，不再声称 kit 保护壳检查适用于这个源码组件夹具。
+
+### 14.2 仅运行区域的五处变化
+
+| 位置 / 原问题 | 局部变化 | 用户操作 |
+| --- | --- | --- |
+| 长授权内容使原三个页签滚走 | 页签在面板正文滚动时停留顶部 | 读完指令后直接切回当前任务 |
+| 只读摘要标签与值纵向堆叠 | 标签左、值右对齐，JSON 保留足够行宽，安装身份仍可展开 | 核对范围并更早到达生成入口 |
+| 撤销按钮横跨批准卡 | 使用相同控件的内容宽度 | 主动撤销，含义与权限不变 |
+| 生成后的下一次动作抢眼 | 使用原 Button primary/quiet 变体突出复制、弱化下一次生成 | 先完成当前指令的复制 |
+| 审核就绪与字段错误缺少定位 | 审核组聚焦/就绪播报，错误关联原地址或 JSON 输入 | 键盘审核并纠正输入 |
+
+保留原底部 Sheet，不预设新的弹窗方案；不更改概览 / 脚本 / 记录、主导航、帮助 / 设置、普通卡片、已好的生成 / 查询 / 停止业务。生成正文仍占整行；收窄后的选择器只命中只读摘要的标签/值，避免误把 `ApprovedTaskPrompt` 排成两列。所有候选 CSS 均以 `#webflow-runtime-panel` 为边界，未换肤、隐藏功能或改生产源码。本轮不更新工具包、不安装、不操作真实 Chrome / 系统剪贴板 / 日常 dev writer。
+
+外部“查看原主界面 / 对照运行与授权 / 仅看调整后”保留应用挂载。场景控制与明确清空模拟草稿的重置按钮位于扩展之外；宿主管理按钮在夹具中不可用，五 Tab 仅作为真实上下文。这里保留的指令辅助入口**不代表另一个业务任务的正常聊天主入口已经完成**。
+
+### 14.3 首轮同候选证据与限制
+
+本小节记录已验证的首轮 `ad38b031…`，随后因可访问性 94 分继续修订；它不冒充修订后的最终 HTML。最终候选的独立 SHA 与操作证据在下一小节登记。
+
+首轮 HTML 使用同一交付路径 [webflow-v0.3-preview.html](../preview/webflow-v0.3-preview.html)，当时为 **2,690,730 bytes / SHA-256 `ad38b03163d260f6165e146f188cd0a1042d3b70f653e3618adf96ea2e12ffc1`**。首轮 manifest 当时锁定 93 项输入、应用历史源码及编译/样式/文档 SHA；context 记录范围和 Mock 边界。HTML 通过原生成入口生成，未手改产物。首轮静态核对证明左右应用与编译 UI 相同，仅候选 CSS 不同、真实 JS 可解析、两层 opaque iframe 与 `connect-src 'none'`、无外部运行时资源。
+
+首轮 IAB 在该 SHA 验证了正文生成后聚焦并选中 **323 字符**、正文/字段同为 **346px**（保持整行）、内存复制成功与失败回退、Escape/关闭返回焦点、同批准刷新及开合保留指令、授权草稿保留、箭头键页签、查询同 Run 回执、停止原请求、失败 / UNKNOWN 与开关保存失败反馈。滚到指令时原导航位置为 `top=-283.64`，候选为 `top=139.17 / position:sticky`；没有据此修改任务或授权逻辑。原组件的 20 项定向检查通过，包含可信手势、撤权、同批准草稿、IME Escape/Enter 围栏与查询不运行。
+
+正常视口截图：[原主界面](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/final-overview-viewport.png)、[授权摘要前后对照](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/final-scope-viewport.png)、[指令滚动前后对照](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/final-prompt-viewport.png)。它们保留完整宿主；仅正常滚动外层页面，未裁掉宿主或改控件来配合截图。IAB 的 `fullPage` 输出出现重复头部拼接，已分类为驱动问题，**全部排除于视觉评审与交付证据**，不据此修改产品。
+
+精简记录见 [ui-preview-style-20261103.json](../evidence/ui-preview-style-20261103.json)，原始交互为 `artifacts/sidebar-tools/webflow/source-preview-20261103/final-interactions.json`。并行业务 owner 随后继续修改 `AutoSettings` / `CurrentTask`，本快照不混入其新语义。`node projects/webflow/preview/check-design.mjs --frozen` 明确报告当前来源差异，仅验证已披露的冻结产物；不加该参数时仍拒绝陈旧来源。后续要演示新业务须有意重新生成并验证，不能把本轮证据转记给它。
+
+当前 Chrome 安装 / Native / production / 原生 IME / 读屏均为 **NOT_TESTED**；未重新执行百度、全仓测试、Browser 构建或尺寸 / 缩放矩阵。本轮独立复评只评价上述局部离线候选，不借用旧分数。首轮 UI/UX 96、可理解性 96、可访问性 94，未宣称全项达标；扣分为窄 JSON 换行、生成后层级、审核就绪缺少聚焦/播报、字段错误未关联。随后通过上述局部表现补丁继续修复，最终证据与复评另行固定。来源评审另发现 config / extension-center CSS 锁缺项及读取中场景不能恢复，均已修复：补齐来源，明确 Git UI 快照，pending 读取可在切换后释放。
+
+### 14.4 最终候选与独立复评
+
+最终唯一 HTML：**2,691,836 bytes / SHA-256 `654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321`**。它使用同一原生成入口、96 项来源锁及七条明确的候选表现 hunk；UI 与配置从 `9418a5d1a` 读取，应用从 `246fd012a` 读取。修复 config 来源后重新生成，输出 HTML 与编译候选 JS 均逐字节不变。并行正常聊天的 0.3.8、可信组件、安装和原生结果不属于本预览，不被回退或混入。
+
+最终同 SHA 的 [概览](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/overview-viewport.png)、[授权摘要](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/scope-viewport.png)、[长指令与导航](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/prompt-viewport.png)、[审核](../../../artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/review-viewport.png)均为正常 viewport 截图，保留完整原宿主；不使用有重复拼接的 fullPage 输出。两侧采用同条件的原应用与批准，JSON 值列实测 270px、无横向溢出，当前短关键词保持一行；指令正文 346px、生成后聚焦并选中 323 字符。图中可直接看到右侧原页签停留、摘要对齐、撤销按钮收窄、蓝色复制主按钮与弱化的再次生成。
+
+最终 IAB 记录验证了指令及授权草稿开合保留、同批准刷新、Escape 返回焦点、审核就绪播报与主动焦点、JSON / 空地址的 `aria-invalid` 和错误关联。审核聚焦后实际 Tab 先进入审核内安装身份 summary，再 Tab 到批准按钮，没有回跳关闭按钮。读取中→已有批准可恢复；原请求查询、停止、成功回执、失败 / UNKNOWN 及开关保存失败继续显示原含义。最后一次复制失败回退的 IAB 组查询超时，**不记浏览器 PASS**；空 URL 的首次 fill 未更新受控输入，改用输入框内 Home / Shift+End / Backspace 后才验证到真实字段错误，不把驱动 ACK 当成输入成功。
+
+`node projects/webflow/preview/check-presentation.mjs` 先校验重编译字节与最终 `candidateJS` 一致，再复用原项目的 DOM 夹具验证：字段错误关联与清除、审核就绪 / 焦点及 Tab 不被围栏送回关闭按钮、真实 Button 变体与复制成功 / 失败保留文本且不发起任务。**候选 3/3 PASS；原版 `--baseline` 对应 3 条 RED**。DOM focus / tabindex / 可见性 shim 显式保留，不当作原生键盘、IME 或读屏证据。原组件 20 项的先前定向结果只作为未改业务合同的补充，不替代这三项候选回归。
+
+最后集中 IAB 窗口结束后已实际 `finalize` 并释放前台；仅保留交付页。真实 Chrome / 剪贴板 / writer / 安装由另一个业务 owner 操作。本任务仅保存预览、夹具导出、精简证据、README 顶部预览段与本评审；不提交其业务源码、0.3.8 包、执行计划或 provenance pin。
+
+最终独立评分只评价此冻结的局部离线候选，Native / production / 原生 IME / 读屏仍为 NOT_TESTED；用户偏好的确切历史版本仍待其确认。评分与具体剩余扣分由独立评审回执登记，不以旧分或总分覆盖门槛。
+
+两名独立 AI 评审员读取最终源、四图哈希、IAB 实际记录及候选 / baseline DOM 日志后给出下表；不是人类用户验证或 Native 验收。
+
+| 评审项 | 最终得分 | 剩余具体扣分 |
+| --- | ---: | --- |
+| 来源 / 范围 / 安全 / 可靠性（Popper） | **99/100** | 最后复制失败的 IAB 确认超时，证据完整度 −1；精确候选 DOM 已覆盖，未判产品故障 |
+| 局部 UI/UX（Raman） | **97/100** | 生成 / 复制前后说明重复，正文偏长 −3 |
+| 变更可理解性（Raman） | **97/100** | 持续自动准入、安装身份等术语的首次理解成本 −3 |
+| 交互可访问性（Raman） | **96/100** | 错误区与输入距离仍较远 −2；技术指令人工复核费力 −2 |
+
+来源、原蓝色风格及局部范围门槛通过；本轮无未关闭 P0/P1/P2 或阻断项，各相关最终分项均 ≥95。没有为追求满分扩展业务或删除功能。评审 ID、分项、扣分、唯一 SHA 与未测项保存在 [ui-preview-style-20261103.json](../evidence/ui-preview-style-20261103.json)。

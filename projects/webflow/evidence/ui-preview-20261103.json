@@ -404,5 +404,10 @@
       "targetMet": false
     }
   ],
-  "targetMet": true
+  "targetMet": true,
+  "currentApplicability": {
+    "status": "HISTORICAL_DESIGN_ONLY",
+    "reason": "User rejected its visual/interaction mismatch with the running extension; scores do not validate source consistency.",
+    "supersededBy": "ui-preview-style-20261103.json"
+  }
 }

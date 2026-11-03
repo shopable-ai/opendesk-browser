@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-03",
+  "scope": "Restore the evidenced existing Web Flow UI; runtime Sheet layout comparison only",
+  "html": {
+    "path": "projects/webflow/preview/webflow-v0.3-preview.html",
+    "sha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+    "bytes": 2691836
+  },
+  "reference": {
+    "sourceCommit": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+    "applicationRevision": "246fd012a67d3b5e221ee7d1716df4ecc46fb93c",
+    "recordedInstalledSandbox": "0.3.6",
+    "nativeReference": "projects/webflow/evidence/prompt-generation-20261103.json",
+    "liveInstallationReRead": false,
+    "userPreferredExactVersion": "NOT_CONFIRMED",
+    "trustedComponents": "9418a5d1a tree, including 875ca5a4b prompt visibility and draft fixes"
+  },
+  "changes": [
+    "Runtime tabs stick during scrolling",
+    "Readonly label/value rows preserve JSON width",
+    "Revoke button uses content width",
+    "Real Button variants emphasize copy over next generation",
+    "Review ready focus/status and field error associations"
+  ],
+  "source": {
+    "inputs": 96,
+    "uiSourceRevision": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+    "sourceRevisions": {
+      "src/ui/react/components/ui/button.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/my-controls.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/task-catalog.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/i18n/sidebar-navigation.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/navigation.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/ui/switch.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/app-localization.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/locale-manager-localization.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/localization.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/limits.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/schema.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/protocol.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/tasks/delegation-contract.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/source-budgets.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/local-project-site-scope.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/tasks/contract.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/libs/runtime-contract.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/tasks/app-controller-contract.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/framework/sdk/browser-direct.generated.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/background-policy.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/host/managed-site-runtime-contract.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/package.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/storage-state.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/lifecycle.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools/locale-packs.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/locale-manager.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/tools.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/cloud-authorization.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/cloud-settings.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/cloud.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-controls.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-dependencies.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-editor.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-local.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-diagnostics.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-execution.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop-advanced.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/develop.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/tasks.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/schedule-plan-presentation.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/schedule.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/my-workbench-defaults.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/my-workbench-view.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/develop-fields.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/develop-view.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/tool-document-url.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/environment.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/chrome/permission-gate.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/tasks/schedule-time.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/scheduled-task-workbench.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/my-sections.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/conversation-frame.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/conversation-layout.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/conversation.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/my-agent.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/my-page.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/native-agent/chatgpt-task-request.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "projects/webflow/trusted/CurrentTask.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "projects/webflow/trusted/RuntimePanel.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "projects/webflow/trusted/AutoSettings.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/ai/provider-https-source.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/provider-settings.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/workflow.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/use-settings-effect.ts": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "projects/stay-focus/trusted/react-controls.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/trusted-settings.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/tool-host.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/cloud-status-presentation.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/debug-workbench.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/browser-history.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/tabs/debug.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/app-shell.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/react/components/ui/sidebar-shared.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools-fields.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/sidebar-tools-view.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/native-agent/workspace-chatgpt.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/page-port/codec.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/native-agent/chatgpt-bridge-trigger-gate.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/platform/target/index.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/native-agent/chatgpt-execution-page.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/native-agent/chatgpt-fixed-bridge-host.js": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "projects/webflow/tool.config.json": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/extension-center.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/design-tokens.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/design-system.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+      "src/ui/tool-shell.css": "9418a5d1aa0f88cc0f60de108620149801b7eb1d"
+    },
+    "sameApplicationAndHostMarkup": true,
+    "differences": [
+      "runtime-layout.css",
+      "runtime-presentation.json: seven explicit presentation hunks"
+    ],
+    "candidateJS": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
+    "productionBusinessModifiedByThisTask": false,
+    "toolPackageModifiedByThisTask": false,
+    "currentTreeState": "FROZEN_SNAPSHOT_CURRENT_SOURCE_DIFFERS",
+    "parallelBusinessChangesExcluded": [
+      "projects/webflow/trusted/CurrentTask.tsx",
+      "projects/webflow/trusted/AutoSettings.tsx",
+      "projects/webflow/tool.config.json"
+    ]
+  },
+  "browser": {
+    "date": "2026-11-03",
+    "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+    "level": "IAB_REAL_SOURCE_RUNTIME_PRESENTATION_CANDIDATE",
+    "summary": {
+      "jsonWidth": 270,
+      "noHorizontalOverflow": true,
+      "text": "{\n  \"limit\": 3,\n  \"query\": \"OpenDesk Browser\"\n}"
+    },
+    "promptLength": 323,
+    "promptWidth": 346,
+    "generatedFocus": true,
+    "generatedSelection": 323,
+    "copySuccess": true,
+    "copyFailure": "FINAL_IAB_NOT_CONFIRMED; use exact-candidate DOM regression",
+    "sticky": {
+      "baseline": {
+        "position": "static",
+        "top": -283.640625
+      },
+      "candidate": {
+        "position": "sticky",
+        "top": 139.171875
+      }
+    },
+    "generatedDraftPreserved": true,
+    "authorizationDraft": "{\"query\":\"最终授权草稿\",\"limit\":3}",
+    "escapeFocus": true,
+    "jsonError": {
+      "describedBy": "webflow-auto-error",
+      "invalid": "true"
+    },
+    "addressError": {
+      "describedBy": "webflow-auto-error",
+      "invalid": "true"
+    },
+    "reviewFocus": true,
+    "reviewAnnounced": true,
+    "firstTab": {
+      "insideReview": true,
+      "text": "安装身份 · SHA / installation / generation"
+    },
+    "secondTabApprove": true,
+    "loadingPending": true,
+    "loadingRecovery": true,
+    "queryReceipt": true,
+    "stopOriginal": true,
+    "unknown": true,
+    "failure": true,
+    "saveFailure": "模拟存储不可用；请核对状态，不会自动重试。",
+    "systemClipboard": "NOT_WRITTEN",
+    "nativeChrome": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "driverNotes": [
+      "empty URL fill did not update controlled input; bounded Home/Shift+End/Backspace did and real field error was verified",
+      "rapid reset/view occurred before component readiness; fresh snapshot and ready controls used",
+      "immediate copy failure notice reads did not settle; final group read timed out and is not claimed as PASS"
+    ]
+  },
+  "componentRegression": {
+    "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs",
+    "passed": 20,
+    "failed": 0,
+    "scope": "Pinned original components: authority gestures, unchanged approval draft preservation, IME Escape/Enter, query never starts execution"
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/overview-viewport.png",
+      "sha256": "0af4c2374ca1919fbdacf756eb43c1b4ca637c1d646cba3ca251280f0cf0fe35",
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+      "capture": "Normal viewport, complete original host; outer page scrolled without cropping"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/scope-viewport.png",
+      "sha256": "f6b8b0fb7481734b81a3825f14d3338108799d669fda157a95b17e8fae70cf17",
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+      "capture": "Normal viewport, complete original host; outer page scrolled without cropping"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/prompt-viewport.png",
+      "sha256": "8dc3e87ce672defca32dc2b0b6d94ce93fcdd9bd59e4ae52a800f31485dbc073",
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+      "capture": "Normal viewport, complete original host; outer page scrolled without cropping"
+    },
+    {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/review-viewport.png",
+      "sha256": "ca0a555392c43dabacb9335fd30842dc0c20fb69251105bec721424223a923f3",
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+      "capture": "Normal viewport, complete original host; outer page scrolled without cropping"
+    }
+  ],
+  "driverLimitations": [
+    "IAB fullPage screenshots repeated the header during stitching; all fullPage images excluded from visual grading and delivery.",
+    "A label selector timed out; current DOM snapshot and semantic combobox resolved the same control.",
+    "Browser tooling Statsig telemetry errors occurred independently of the isolated page.",
+    "empty URL fill did not update controlled input; bounded Home/Shift+End/Backspace did and real field error was verified",
+    "rapid reset/view occurred before component readiness; fresh snapshot and ready controls used",
+    "immediate copy failure notice reads did not settle; final group read timed out and is not claimed as PASS"
+  ],
+  "reviews": {
+    "status": "PASS_LIMITED_OFFLINE_REVIEW",
+    "priorRound": {
+      "sha256": "ad38b03163d260f6165e146f188cd0a1042d3b70f653e3618adf96ea2e12ffc1",
+      "sourceScope": 96,
+      "uiUx": 96,
+      "understandability": 96,
+      "accessibility": 94,
+      "acceptedAsFinal": false
+    },
+    "fixes": "Local runtime presentation fixes applied and final same-SHA observations recorded",
+    "sourceScope": {
+      "agentId": "01a1a0fc-6906-7783-872e-3b61a9e81336",
+      "role": "Independent AI source/scope/safety reviewer",
+      "score": 99,
+      "dimensions": {
+        "provenance": 40,
+        "scope": 25,
+        "safety": 25,
+        "reliabilityEvidence": 9
+      },
+      "deductions": [
+        "1 point: final copy-failure IAB confirmation timed out; exact-candidate DOM coverage passes."
+      ],
+      "openP0P1P2": [],
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321"
+    },
+    "uiUxAccessibility": {
+      "agentId": "01a1a0ff-d89b-7772-a9fe-01a2adb6bef9",
+      "role": "Independent AI UI/UX and interaction accessibility reviewer",
+      "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+      "scores": {
+        "uiUx": 97,
+        "understandability": 97,
+        "accessibility": 96
+      },
+      "deductions": {
+        "uiUx": [
+          "3 points: repeated preparation/copy explanations and long copy"
+        ],
+        "understandability": [
+          "3 points: continuous-admission and installation-identity terminology"
+        ],
+        "accessibility": [
+          "2 points: visible error block remains distant from fields",
+          "2 points: technical instruction remains costly to review manually"
+        ]
+      },
+      "blockingFindings": []
+    },
+    "gate": {
+      "sourceAndStyle": true,
+      "localScope": true,
+      "allRelatedScoresAtLeast95": true,
+      "nativeAccepted": false,
+      "userPreferredExactVersionConfirmed": false
+    }
+  },
+  "notTested": [
+    "Current installed Chrome UI",
+    "Native installation / Task / permissions",
+    "Production",
+    "Native IME / screen reader"
+  ],
+  "normalChatBusiness": "Separate owner; this source snapshot does not claim the normal-chat objective is complete",
+  "presentationRegression": {
+    "command": "node projects/webflow/preview/check-presentation.mjs",
+    "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+    "status": "PASS",
+    "limitations": "DOM focus / tabindex / geometry shims, not native browser proof",
+    "passed": 3,
+    "failed": 0,
+    "baselineRedFailures": 3,
+    "baselineCommand": "node projects/webflow/preview/check-presentation.mjs --baseline",
+    "rawLog": "artifacts/sidebar-tools/webflow/source-preview-20261103/654cc4244052/presentation-checks.log"
+  }
+}

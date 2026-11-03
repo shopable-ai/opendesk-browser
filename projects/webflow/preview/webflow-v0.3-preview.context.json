@@ -1,16 +1,17 @@
 {
-  "view": "OpenDesk → 扩展 → Web Flow",
-  "scenario": "未批准，自动运行关闭，当前任务为空",
-  "hostInteractions": [
-    "五 Tab / 扩展返回 / 模拟卸载",
-    "帮助与设置复用唯一宿主返回",
-    "运行面板独立滚动，不挤压原应用"
+  "view": "完整宿主 → Web Flow：原版 / 运行与授权局部CSS候选",
+  "scenario": "同一模拟百度批准、自动运行开启、无当前任务",
+  "source": "OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES",
+  "scope": [
+    "运行面板页签停留",
+    "只读摘要标签/值对齐",
+    "撤销按钮内容宽度",
+    "复制与下一次生成层级",
+    "审核就绪焦点/播报及输入错误关联"
   ],
-  "source": "canonical sidebar-preview-kit; application markup/behavior are a design simulation, not production compiled bytes",
-  "simulation": "内存中模拟批准、开关、指令、任务、结果和交付；无网络、SDK、真实权限、存储或剪贴板写入。复制操作演示反馈并提供手动选择。",
-  "htmlSha256": "a88400f1c10c3d58d8400a90964ca701a8cceda9976b317c4eee91e5bc08a6b1",
-  "designVersion": "0.3.7-design",
+  "unchanged": "相同0.3.6业务源码、原可信组件与底部Sheet；候选仅应用公开记录的表现补丁，不改生产源、权限、业务状态机或安装包",
+  "simulation": "Only in-memory SDK/storage/permission/task/clipboard boundaries; no network, Chrome, Native or real execution.",
+  "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
   "nativeChrome": "NOT_TESTED",
-  "production": "NOT_TESTED",
-  "requirements": "BR-01–12 / AWB-01–08 remain in original product-contract and execution-plan; future workflows are labeled in Help."
+  "production": "NOT_TESTED"
 }
