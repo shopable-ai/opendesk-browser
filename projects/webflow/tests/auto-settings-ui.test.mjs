@@ -319,6 +319,63 @@ test('copy preserves the exact generated instruction and clipboard failure keeps
  assert.equal(f.find('webflow-auto-grants').querySelector('textarea').value,prompt);
  assert.deepEqual(host.calls.map(([kind])=>kind),['read']);
 });
+test('generating an instruction reveals and selects its actual text without running a task',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,enabled:true,
+  grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
+ const f=await fixture(t,{host}),events=[];
+ const methods=[[f.window.HTMLElement.prototype,'scrollIntoView'],
+  [f.window.HTMLTextAreaElement.prototype,'focus'],[f.window.HTMLTextAreaElement.prototype,'select']]
+  .map(([prototype,key])=>[prototype,key,Object.getOwnPropertyDescriptor(prototype,key)]);
+ t.after(()=>{for(const [prototype,key,descriptor]of methods){
+  if(descriptor)Object.defineProperty(prototype,key,descriptor);else delete prototype[key];
+ }});
+ // Linkedom has no layout/focus selection. Observe the real component's calls
+ // at these browser-only boundaries; native visibility is checked separately.
+ f.window.HTMLElement.prototype.scrollIntoView=function(){events.push(['reveal',this]);};
+ f.window.HTMLTextAreaElement.prototype.focus=function(){events.push(['focus',this]);};
+ f.window.HTMLTextAreaElement.prototype.select=function(){events.push(['select',this]);};
+ const generate=[...f.find('webflow-auto-grants').querySelectorAll('button')]
+  .find(button=>button.textContent==='生成 ChatGPT 指令');
+ await React.act(async()=>generate.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ const field=f.find('webflow-auto-grants').querySelector('textarea');
+ assert.ok(field.value.length>100);
+ assert.ok(events.some(([kind,node])=>kind==='reveal'&&(node===field||node.contains(field))),
+  'new instruction must be revealed inside the scrollable approval card');
+ assert.ok(events.some(([kind,node])=>kind==='focus'&&node===field));
+ assert.ok(events.some(([kind,node])=>kind==='select'&&node===field));
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read']);
+});
+
+test('refreshing unchanged approval preserves the generated draft; changed scope or failed verification removes it',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,enabled:true,epoch:11,
+  grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
+ const f=await fixture(t,{entry:true,host});
+ await f.click('webflow-runtime-open');await f.click('webflow-runtime-tab-scope');
+ const field=()=>f.find('webflow-auto-grants').querySelector('textarea');
+ const generate=()=>React.act(async()=>[...f.find('webflow-auto-grants').querySelectorAll('button')]
+  .find(button=>button.textContent.includes('生成')).dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ await generate();const prompt=field().value;
+ const pending=deferred();host.api.readAutoSettings=()=>pending.promise;
+ await f.click('webflow-auto-refresh');
+ assert.equal(field()?.value,prompt,'a read must not unmount the unsent instruction');
+ assert.ok([...f.find('webflow-auto-grants').querySelectorAll('button')]
+  .find(button=>button.textContent==='复制指令').disabled,'copy waits for scope verification');
+ await React.act(async()=>pending.resolve(structuredClone(host.snapshot)));
+ assert.equal(field().value,prompt);
+ await f.click('webflow-runtime-tab-help');await f.click('webflow-runtime-tab-scope');
+ const close=f.document.querySelector('[aria-label="关闭运行与授权"]');
+ await React.act(async()=>close.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ await f.click('webflow-runtime-open');assert.equal(field().value,prompt);
+ host.snapshot={...host.snapshot,grants:[{...host.snapshot.grants[0],
+  scope:{...scope,args:{query:'changed',limit:3}}}]};
+ host.api.readAutoSettings=async()=>structuredClone(host.snapshot);
+ await f.click('webflow-auto-refresh');assert.equal(field(),null,'a changed scope invalidates its old instruction');
+ await generate();assert.equal(JSON.parse(field().value.slice(field().value.indexOf('{'))).args.query,'changed');
+ host.api.readAutoSettings=async()=>{throw Error('verification unavailable');};
+ await f.click('webflow-auto-refresh');assert.equal(field(),null);
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'view changes never enable, approve or execute');
+});
+
 test('real Host projection reaches the settings UI; task revoke persists and denies the next automatic candidate',async t=>{
  let data={},catalogReadFailure=false;
  const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};

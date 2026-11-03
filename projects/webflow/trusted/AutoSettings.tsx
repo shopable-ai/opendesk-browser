@@ -81,10 +81,17 @@ function ScopeSection({compact,children}){
 
 // A copyable request only. The original Bridge still parses the assistant's
 // complete reply and rechecks the current approval, installation and site.
-function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:boolean}){
+function ApprovedTaskPrompt({scope,enabled,disabled=false}:{scope:WebflowAutoScope;enabled:boolean;disabled?:boolean}){
  const [prompt,setPrompt]=React.useState('');
  const [notice,setNotice]=React.useState('');
  const field=React.useRef<HTMLTextAreaElement>(null);
+ const generated=React.useRef<HTMLDivElement>(null);
+ React.useLayoutEffect(()=>{
+  if(!prompt)return;
+  generated.current?.scrollIntoView?.({block:'nearest'});
+  field.current?.focus({preventScroll:true});
+  field.current?.select?.();
+ },[prompt]);
  const select=()=>{field.current?.focus();field.current?.select?.();};
  const generate=()=>{
   setNotice('');
@@ -107,17 +114,19 @@ function ApprovedTaskPrompt({scope,enabled}:{scope:WebflowAutoScope;enabled:bool
   }catch{setNotice('请选中下方指令，按 ⌘C / Ctrl+C 复制，再到 ChatGPT 粘贴并发送。');}
  };
  return <div className="od-stack">
-  <Button onClick={generate}>{prompt?'生成下一次指令':'生成 ChatGPT 指令'}</Button>
-  {prompt&&<div className="od-form-field">
+  <p className="od-field-help">为 ChatGPT 准备本次任务指令；生成后需复制到官网对话并发送。批准范围和生成指令本身不会执行任务。</p>
+  <Button disabled={disabled} onClick={generate}>{prompt?'生成下一次指令':'生成 ChatGPT 指令'}</Button>
+  {prompt&&<div ref={generated} className="od-form-field">
+   <p role="status" className="od-note">{notice||'指令已生成。请复制后到 ChatGPT 粘贴并发送；发送与执行状态见“当前任务”。'}</p>
+   <div className="od-toolbar"><Button disabled={disabled} onClick={()=>{void copy();}}>复制指令</Button>
+    <Button disabled={disabled} variant="quiet" onClick={select}>选中指令</Button></div>
    <label className="od-field-label">本次 ChatGPT 指令
     <textarea ref={field} className="od-field od-technical" value={prompt} readOnly rows={8} spellCheck={false}/>
    </label>
-   <div className="od-toolbar"><Button onClick={()=>{void copy();}}>复制指令</Button>
-    <Button variant="quiet" onClick={select}>选中指令</Button></div>
    <p className="od-field-help">{enabled?'保持侧栏打开，将指令发送给 ChatGPT。':'总开关已关闭：请先在上方开启自动运行，再发送指令。'}
     每次新任务先生成新指令；重复候选不会重新执行。生成或复制本身不会运行任务。</p>
   </div>}
-  {notice&&<p role="status" className="od-note">{notice}</p>}
+  {!prompt&&notice&&<p role="status" className="od-note">{notice}</p>}
  </div>;
 }
 
@@ -334,8 +343,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
      ?new Date(grant.approvedAt).toLocaleString('zh-CN'):grant.approvedAt}</p>
     <Button variant="danger" disabled={work==='write'||grant.state==='revoked'||!webflowAuto?.revokeAutoTask}
      aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
-    {!busy&&snapshot&&grantUsable(grant)&&
-     <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId} scope={grant.scope} enabled={snapshot.enabled}/>}
+    {snapshot&&grantUsable(grant)&&
+     <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId+':'+JSON.stringify(grant.scope)}
+      scope={grant.scope} enabled={snapshot.enabled} disabled={busy}/>}
    </div>)}
   </div>}
   <details className="od-disclosure od-disclosure--flat" open={grantSnapshot?.grants.some(grantUsable)?undefined:true}>

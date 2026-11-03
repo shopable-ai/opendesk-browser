@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "date": "2026-11-03",
+  "stage": "development-core",
+  "executionPlanSection": "12.11.15",
+  "threadId": "01a1a06e-3b0a-7b60-840b-19757e3a3ca4",
+  "startingCommit": "f3a6fbb2da027d282873bea2ff0b5505bcb3ef9e",
+  "reportedOccurrence": {
+    "originalPromptOrNewFailureURLProvided": false,
+    "originalCandidateRecovered": false,
+    "conclusion": "Cannot attribute this new report to the prior reused candidate, empty text or absence of native send."
+  },
+  "findings": [
+    {
+      "kind": "generated-content-not-revealed",
+      "nativeEvidence": "Real textarea AXValue contains the full instruction, but text/copy actions lie below the visible long approval card. Generation did not reveal or focus them."
+    },
+    {
+      "kind": "read-unmounts-unsent-draft",
+      "componentEvidence": "Unchanged approval read sets busy; !busy unmounts ApprovedTaskPrompt and discards its draft. Regression first failed at this exact behavior."
+    },
+    {
+      "kind": "generation-role-unclear",
+      "change": "The trusted entry now explains that it only prepares input; native ChatGPT send and a new complete assistant protocol are required before execution."
+    }
+  ],
+  "changes": {
+    "owner": "projects/webflow/trusted/AutoSettings.tsx",
+    "behaviors": [
+      "Explicit generation reveals/focuses/selects the actual textarea. Copy actions precede the text.",
+      "Same verified epoch/grant/scope refresh and panel close/reopen retain the draft; generation/copy are disabled during verification.",
+      "Changed scope, installation, epoch, revocation or failed verification clears old instructions."
+    ],
+    "bridgeTaskAuthorityChanged": false,
+    "newPackageOrTaskInstall": false,
+    "reviewedSourceBlob": "3a70490c75f3dbfe8fffcb3873726ac4c42928a1"
+  },
+  "environment": {
+    "mode": "continuous-development",
+    "extensionPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "writerPid": 15593,
+    "chromePid": 516,
+    "serveConnectionReadFromUI": true,
+    "testedRevision": "fd2be95d3985f9c22d4bb326015defae3224efb9b3a86bd022eb423461205cfb",
+    "toolShellSHA256": "b6cb32568eb371861070d9ff79ea4a67377a32642127cb4cae573b449682a15a",
+    "sourceLockRecovery": "Original watcher cached prior pin. Touch of existing wxt.config.mjs reloaded the reviewed pin; config bytes unchanged, no second writer/build or relaxed guard.",
+    "approvalTimestampReadFromUI": "2026/11/3 14:28:22",
+    "automaticSwitchReadFromUI": "enabled",
+    "approvalChanged": false,
+    "sidebarPackage": "No upgrade performed; previous installed 0.3.6 and separate uninstalled 0.3.7 package are not the tested fixed Browser shell."
+  },
+  "native": {
+    "generationRevealAndFullSelection": true,
+    "panelCloseReopenPreservesSameText": true,
+    "sameApprovalRefreshPreservesSameText": true,
+    "explicitNextGenerationChangesCandidate": true,
+    "unsentDiscardedCandidates": [
+      "wf-fb7539f6-0965-45d9-ba45-74b56754f7f9",
+      "wf-866fb56c-766d-4c32-abec-3891690aa742"
+    ],
+    "discardedCandidatesSent": false,
+    "promptCodePoints": 323,
+    "promptSHA256": "40f972952ca4f015d5553ffe11778df3cb79e7bc8668febce22b7284f963dbd5",
+    "productCopyButtonUsed": true,
+    "systemClipboardEqualsTextarea": true,
+    "nativeComposerEqualsClipboard": true,
+    "paste": "physical Cmd+V key code 9; no AX setfile or JS input",
+    "send": "one physical Enter, original native-submission witness",
+    "candidateId": "wf-45a79e4a-0787-4266-97df-f3c602d6de3e",
+    "chatURL": "https://chatgpt.com/c/6ae999f9-3740-83ee-9303-0712f0ecbf6d",
+    "chatTabId": 759148572,
+    "requestId": "1cea4195-d72a-484e-998e-a947605ed212",
+    "runId": "7c98a86c-45ad-494e-98ca-d76fd637931b",
+    "resultId": "d9d30ae9-c3e0-4c35-857a-a694a19db1e3",
+    "taskVersion": "1.1.2",
+    "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "limit": 3,
+      "query": "OpenDesk Browser"
+    },
+    "searchClickStarts": 1,
+    "independentDOM": {
+      "matches": 3,
+      "fields": [
+        "slot",
+        "title",
+        "url",
+        "directUrl",
+        "summary"
+      ],
+      "summaryBound": "Existing baidu-search-top3.js sample(summary,200); no task changes."
+    },
+    "execution": "completed",
+    "persistence": "trusted same-Run UI verified",
+    "release": "released",
+    "delivery": "one original user result message confirmed",
+    "sidebarDataEqualsOriginalChatData": true,
+    "officialFollowup": "two complete assistant replies in final DOM: protocol then result explanation",
+    "adoptExecuteOrPerRunApprovalClicked": false
+  },
+  "driverLimitations": [
+    "Browser DOM call timed out; authorized AX, physical input and read-only DOM used. Browser session finalized successfully.",
+    "Clipped AX coordinates and wheel events inside textarea did not target visible controls. Screenshot plus sidebar-margin scrolling resolved this; action ACK was never the postcondition.",
+    "LC_ALL=C made initial pbpaste non-UTF-8; first character-based paste left editor empty. After read-only no-send confirmation, original copy button plus native NSPasteboard read and physical key-code paste succeeded. No send or task was retried.",
+    "Initial summary comparison kept full observer text; existing task bounds summaries to 200 code points. Source-confirmed bounded comparison passed without product change."
+  ],
+  "verification": {
+    "red": "two regressions failed at missing reveal and read-time draft removal",
+    "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs tests/environment/webflow-fixed-source.test.mjs",
+    "passed": 23,
+    "failed": 0,
+    "scope": "prompt/copy/failure, preservation/invalidation, approval/revoke and exact fixed source boundaries"
+  },
+  "deferred": [
+    "MCP",
+    "production",
+    "cross-conversation orchestration",
+    "persistent queue",
+    "full native revocation/UNKNOWN matrix",
+    "full test matrix",
+    "independent product score"
+  ],
+  "handoff": {
+    "nativeWorkFinished": true,
+    "deliverableTabLeftOpen": 759148572,
+    "focusReleasedTo": "01a1a071-1fde-7901-af40-2f1e50057147 for isolated HTML review; not this native evidence"
+  },
+  "rawEvidence": {
+    "directory": "artifacts/webflow-auto-20261103/prompt-01a1a06e",
+    "files": [
+      {
+        "path": "initial.ax.txt",
+        "sha256": "67a17638c1fa04494d6f3dcbe9c801b88ddf34cd503f42e8c06361133bffe634"
+      },
+      {
+        "path": "chat-preserved.json",
+        "sha256": "13d5e2fabb28bae486c25502915197ede952f4d87d4fd60d40b6f3db0bd28a01"
+      },
+      {
+        "path": "scope.ax.txt",
+        "sha256": "e8b79af915823e4bef1308f688107274f474e2167a79feb644bd9fbd4b2af5c4"
+      },
+      {
+        "path": "generated.prompt.txt",
+        "sha256": "5f2abf5df72da83bace5eb85bb62b94bf5b684e4c8dac588e5fd2f2c6122405d"
+      },
+      {
+        "path": "generated.png",
+        "sha256": "14116f421a729b90dced7ce3e77d7d112a242323fd04fdc4ef34efae15da137b"
+      },
+      {
+        "path": "generated-scrolled.png",
+        "sha256": "e3bfc75dbc03073dc85e917151b1440ff1d269208dff741e1b6da7d388b86cf9"
+      },
+      {
+        "path": "prompt-red.log",
+        "sha256": "09bbed38322a686e4a724115087a8dee80661fa0b8014d86282dabb72f4e14f6"
+      },
+      {
+        "path": "targeted.log",
+        "sha256": "98f39adce6ed0dfb0577dd72ccc89e6fa483c25757b0bac7e904fa6e643fe0c8"
+      },
+      {
+        "path": "dev-connected.ax.txt",
+        "sha256": "23928074bdf052dbfa3588fb9b0081a04f48769fcc6d59f972f28af2d5c300aa"
+      },
+      {
+        "path": "generated-fixed.png",
+        "sha256": "6020f0b4591d2dbe01f678965330389aca523d9ca91edc20adeb77781d8de721"
+      },
+      {
+        "path": "draft1.prompt.txt",
+        "sha256": "2c1f9e3db9879559d590f49e172c391cdce31f33833dfe0d22b37cbeca93f19a"
+      },
+      {
+        "path": "draft1-selected.txt",
+        "sha256": "2c1f9e3db9879559d590f49e172c391cdce31f33833dfe0d22b37cbeca93f19a"
+      },
+      {
+        "path": "reopened.ax.txt",
+        "sha256": "5b9cf2f2f6fa2341008f1effdb185969f5b5c9c9d7f55d386083acc52c1d213d"
+      },
+      {
+        "path": "refreshed.ax.txt",
+        "sha256": "5b9cf2f2f6fa2341008f1effdb185969f5b5c9c9d7f55d386083acc52c1d213d"
+      },
+      {
+        "path": "draft2.prompt.txt",
+        "sha256": "7cdd976cb88b2be5840d98224c4596cdf0d14ab7fbc91bd0cb77bffd227dff48"
+      },
+      {
+        "path": "clipboard.json",
+        "sha256": "f2086343d70ab75c6168850e40000fdc3153a1d777c4f6a6943090bc959f9767"
+      },
+      {
+        "path": "clipboard-before-paste.json",
+        "sha256": "f2086343d70ab75c6168850e40000fdc3153a1d777c4f6a6943090bc959f9767"
+      },
+      {
+        "path": "pasted-fixed.json",
+        "sha256": "9b6da911578f5a1cb288009bf8e12231f7912151a779b7fb5e9125570aa715f9"
+      },
+      {
+        "path": "after-send.json",
+        "sha256": "b13a4cba8c57a9dd09bbc7ef7a264ea5c1537e10b41aadf29925431acee61ef8"
+      },
+      {
+        "path": "progress.json",
+        "sha256": "6e04fc8d687455db6c466f254acc6c243eac773d2f9eac80a566086ea2afc08a"
+      },
+      {
+        "path": "native-round.dom.jsonl",
+        "sha256": "6983821fe651954cd45996c98026475522c5c99afee05309ac7912b03ed2bcfc"
+      },
+      {
+        "path": "same-run.ax.txt",
+        "sha256": "e2eda475025f2d49d7960c77e3ee8fce821aebdc5216e4630badce0e0c81e3a8"
+      },
+      {
+        "path": "sidebar-result.json",
+        "sha256": "41f27bf778d0dc74a6f53e5615ef9b1d4638b575b01036478771ccbe4af84a84"
+      },
+      {
+        "path": "current-identity.json",
+        "sha256": "9905192a5f5bbb5b32eab41f995ed076395f14d60458b357af1f9ba012f0976d"
+      },
+      {
+        "path": "envelope.json",
+        "sha256": "472f69348acfb4731ae0137716711ac6d51a1df8b760d1ce8f6af6e53800042e"
+      },
+      {
+        "path": "chat-final.json",
+        "sha256": "6898ca4126b29d40153355de15dc58dfd048a47ee9f2df85e28cd7a9550f1325"
+      },
+      {
+        "path": "extension-path-verified.ax.txt",
+        "sha256": "c8b7cd1de8b964c3310b4edc426c9758b7764ae5991e784599e9be67d53e3db0"
+      },
+      {
+        "path": "final-native.ax.txt",
+        "sha256": "20112f331790652a00031bfe52b539487673fea901060f0cf9f2be1e41fff923"
+      },
+      {
+        "path": "final-native.png",
+        "sha256": "fcb3ad337eb0bf8e498780bef2c7afe8450566ab1dc1525e0c44d75c75a4375e"
+      },
+      {
+        "path": "publication.json",
+        "sha256": "2172b86fe2bb07c3ff6c7dcf5b651d60585eaa3d635905f4a7e3381880735de7"
+      }
+    ]
+  }
+}
