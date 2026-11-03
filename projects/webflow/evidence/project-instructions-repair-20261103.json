@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "stage": "development-core-actual-user-project-context-repair",
+  "status": "ACTUAL_FAILED_ENTRY_TWO_NATIVE_ROUNDS_VERIFIED",
+  "ownerThread": "01a1a1e8-b9b0-7c63-a7d7-490dd8f7de3a",
+  "baseCommit": "e8957b483",
+  "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72",
+  "priorOrdinaryChatPassDoesNotCoverThisEntry": true,
+  "failure": {
+    "newUserMessageId": "de473f2d-f427-4194-ab42-3a7299f1e477",
+    "actualUserText": "请执行本轮 OpenDesk Web Flow 测试：在百度搜索 OpenDesk Browser SDK，取前三条自然结果。你的本条回复必须且只能包含一个语言标记为 opendesk-task 的完整 JSON 代码块，不要解释。JSON 严格只有五个字段：protocol 固定为 \"webflow.task.intent.v1\"；candidateId 由你现在生成，使用 \"wf-\" 加全新 UUID，绝不复用历史值；taskId 固定为 \"baidu.search.top3\"；targetUrl 固定为 \"https:\\u002f\\u002fwww.baidu.com\\u002f\"；args 固定为 {\"query\":\"OpenDesk Browser SDK\",\"limit\":3}。不得添加 kind、version、installation、runId 或其他字段。输出后等待本机真实回执，不要自行搜索或编造结果；收到本轮实际 data 后，再用中文列出三条结果并总结。",
+    "assistantMessageId": "a314f57e-44f3-46fe-920d-cf5b5d600627 a314f57e-44f3-46fe-920d-cf5b5d600627",
+    "completeReply": "ChatGPT 说：\n\n本轮未执行。\n\n当前 OpenDesk Web Flow 已核验的任务范围仅支持搜索 OpenDesk Browser，不包括 OpenDesk Browser SDK。\n\n需要先更新并核验任务参数的授权范围，才能生成对应的 opendesk-task JSON。",
+    "protocolBlocks": 0,
+    "taskExecuted": false,
+    "runId": null,
+    "resultId": null,
+    "stage": "AI_DID_NOT_PRODUCE_CANDIDATE",
+    "nativeDiscoveryWitnesses": [
+      {
+        "stage": "idle",
+        "reason": "conversation-changed-before-binding",
+        "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+      },
+      {
+        "stage": "idle",
+        "reason": "no-live-submission",
+        "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+      },
+      {
+        "stage": "idle",
+        "reason": "baseline",
+        "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+      },
+      {
+        "stage": "submitted",
+        "reason": "native-submission-witnessed",
+        "route": "new:/g/g-p-6ae779125890819197fcee27dd51d25e/project"
+      },
+      {
+        "stage": "waiting-reply",
+        "reason": "exact-new-user-observed",
+        "route": "pending/2e34b936-a5e2-4f47-8bb0-be6d993fd2ba"
+      },
+      {
+        "stage": "idle",
+        "reason": "baseline",
+        "route": "c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72"
+      },
+      {
+        "stage": "eligible",
+        "reason": "unique-complete-reply-observed",
+        "route": "c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72"
+      },
+      {
+        "stage": "idle",
+        "reason": "no-live-submission",
+        "route": "c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72"
+      }
+    ]
+  },
+  "rootCause": "Saved project instructions still required the old exact OpenDesk Browser sample before producing any candidate; current Host already had an effective exact OpenDesk Browser SDK/3 grant. Ordinary chat context updates had not updated this project setting.",
+  "actualApprovedScope": {
+    "taskId": "baidu.search.top3",
+    "version": "1.1.2",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser SDK",
+      "limit": 3
+    },
+    "approvedAt": "2026-11-03T22:04:43+08:00",
+    "state": "valid",
+    "changedByRepair": false
+  },
+  "repair": {
+    "surface": "Official ChatGPT current project settings / instructions",
+    "method": "Native trusted UI Copy project capability -> replace sole known old Web Flow block -> exact readback -> native Save -> reopen and verify persisted value",
+    "oldInstructionCharacters": 763,
+    "oldInstructionSHA256": "5a368c432b09261527230ff3ed882f01dfe5008c48f5f326c6d186f843ace3c2",
+    "newInstructionCharacters": 1336,
+    "newInstructionSHA256": "3ba3627b8fc0f95dd1189db8867288ac692a008a06639f19c5f2655f5737bd19",
+    "schemaSeparatedFromApproval": true,
+    "newSchemaValidParametersStillRequireOriginalTrustedApproval": true,
+    "unrelatedUserProjectInstructionsPresent": false,
+    "unrelatedInstructionsRemoved": false,
+    "hostTaskInstallationOrPermissionChanged": false,
+    "productCodeChangedByThisTask": false,
+    "projectSettingActuallySaved": true
+  },
+  "rounds": [
+    {
+      "case": "round-a",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72",
+      "requestTextSHA256": "ebd51bb05ff2bc918881b994c03c7f4ac9bf6a3a78c22720cffa1afd43fd8417",
+      "sameActualUserCopyAsFailure": true,
+      "intent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-59149935-bf25-479c-af08-6e3eff8452f9",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser SDK",
+          "limit": 3
+        }
+      },
+      "requestId": "468488b6-d6b0-4c7a-ada8-ddf31a426029",
+      "runId": "d118ce3d-544f-4ca2-9b9d-f24fa228a113",
+      "resultId": "f98fdb4f-138a-4c49-8a5a-6336ac4b6254",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "targetTabId": 759148619,
+      "observedAt": "2026-11-03T15:47:40.277Z",
+      "execution": "completed",
+      "business": "success",
+      "count": 3,
+      "searchClicks": 1,
+      "observedInputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "independentDOMMatchesDurableAndDelivered": true,
+      "dataSHA256": "9df14ebfd0cf3890b4cc56ec94d028f60d91b60932cb613e6ef747f9de9946c6",
+      "durable": "SAME_RUN_RESULT_CONFIRMED",
+      "retirement": "released",
+      "delivery": "EXACT_ORIGINAL_PROJECT_CHAT_CONFIRMED",
+      "resultMessageCount": 1,
+      "resultMessageId": "b5ae6d8b-a174-431f-88a5-2f10213e1fab",
+      "aiContinuation": "complete",
+      "continuationMessageId": "c7e0fb04-5584-4022-a5c9-71a0b8d41fca c7e0fb04-5584-4022-a5c9-71a0b8d41fca",
+      "adoptExecuteApproveClicks": 0
+    },
+    {
+      "case": "round-b",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae9fe60-ba0c-83ec-b275-68d0ad030e72",
+      "requestTextSHA256": "0384f40d74bd990caaccc848576f30b9b69cbdc950d116b481d5f872ee50bbe7",
+      "sameActualUserCopyAsFailure": false,
+      "intent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-2a8e4b91-60d7-43ca-aea5-0db3c4fa721e",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser SDK",
+          "limit": 3
+        }
+      },
+      "requestId": "0259d550-1cda-463a-9d30-52311d8663ba",
+      "runId": "3dc163cb-e6ef-43d5-aee6-f44ffc46fe45",
+      "resultId": "31904475-5762-4a85-a20b-558dae9cc4a1",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "targetTabId": 759148621,
+      "observedAt": "2026-11-03T15:51:08.957Z",
+      "execution": "completed",
+      "business": "success",
+      "count": 3,
+      "searchClicks": 1,
+      "observedInputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "independentDOMMatchesDurableAndDelivered": true,
+      "dataSHA256": "f3009c19562dd4bda6265b0c1c686f570bd014e42165e670a5bd6a821c9b6e19",
+      "durable": "SAME_RUN_RESULT_CONFIRMED",
+      "retirement": "released",
+      "delivery": "EXACT_ORIGINAL_PROJECT_CHAT_CONFIRMED",
+      "resultMessageCount": 1,
+      "resultMessageId": "1d17ec15-356e-4e08-b73b-c53b8a6ca3a1",
+      "aiContinuation": "complete",
+      "continuationMessageId": "205259ce-44a3-4856-8ada-b0986ce26249 205259ce-44a3-4856-8ada-b0986ce26249",
+      "adoptExecuteApproveClicks": 0
+    }
+  ],
+  "runtime": {
+    "baseCommit": "e8957b483633b8e22976fab5163ea2ae540f8726",
+    "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+    "hashes": {
+      "dist/development/ui/tool-shell.js": "0eb956a830b3ef923a522a5b678bcec0b571d6400c63e63f6540d000684935f3",
+      "dist/development/agents/chatgpt-fixed-bridge.js": "5a152ece57f8350c645c8b88c0f32ff5010c5d61a4b9d086416ba5267480dfaf"
+    },
+    "rawBrowserResourceReleased": true
+  },
+  "resources": {
+    "DOMObservers": "STOPPED",
+    "finalEditor": "EMPTY_IDLE_NO_ATTACHMENTS",
+    "unknownEffects": false,
+    "ChromeAndUIInputsHandedTo": "01a1a216-ec3e-75d0-869e-b4780e7b9aca",
+    "subsequentUIChangeNotCoveredByThisCandidate": true,
+    "devWriter": "54212 left running, not restarted"
+  },
+  "artifactReaderNote": "Raw DOM retained older hidden route messages. Scope the original refusal by exact user/assistant message IDs; global DOM node counts do not identify this turn. No product changes or replay for the reader assertion.",
+  "driverNotes": [
+    "The project menu was covered by floating tools. Native AX center clicks did not open settings; screenshots identified a visible unobscured part for the real native click.",
+    "A wrong menu-center click inserted a recognizable template into the empty project homepage composer. Exact ownership/readback was checked before clearing only this unsent template; zero messages were sent.",
+    "User original prompt contained a doubled URL escape variant; the first successful round replayed that exact user message, and the official AI produced a valid canonical target URL."
+  ],
+  "rawEvidence": "artifacts/webflow-auto-20261103/project-fix-01a1a1e8",
+  "rawSHA256": {
+    "failure-chat.json": "7c4ec50b2cf5285b291fe5666e89c6a0e7d32f8fcaef9e1212ea9c9150b80fad",
+    "failure.ax.txt": "e73ca6a05697d6b8cffb542a0e7bb13cfeaff6af614f1d2aaf2c56df35e3d694",
+    "project-instructions-before.json": "0fede7b4baf179d0c723ec6a8a0fb75c1a6f7e42b9352aa28c269c891360e02c",
+    "project-instructions-reviewed.json": "c2b4e15f509bcb5691483877aefeb856c816bd7b1c93da6b7705fd623c4333ff",
+    "project-instructions-persisted.json": "8fe45315fe45bcd3a08b6a16a0dc4ac9e5e38e2b17c12459c7779f63e09a6379",
+    "current-capability.txt": "3ba3627b8fc0f95dd1189db8867288ac692a008a06639f19c5f2655f5737bd19",
+    "current-grant.ax.txt": "d2a080f8d8774b2a8b66a6d847b7e575083fabc591db246464b51fa406e7e6ca",
+    "runtime-binding.json": "6283608dd3b839133d647d8e459223b487ca23b9d76fefd25d60f3de44b6bffe",
+    "final-editor.json": "03b5b67dd0a6a7780776876e33c94d652f59bb61b313f3357cd124094b73d631",
+    "final-visible.ax.txt": "9c8032eb4cdf67036b46c10c1de60b09c75a95ef1f4b00306822eb8ff46245c2",
+    "driver-inserted-unsent.json": "babc066d788eceb2aa0fce52e750b9a7de31842123999e70233392f21a158b3d",
+    "round-a-before-send.json": "a98bc5382a36b51021a74ddba92d39386d31fd4cd67e0c0ddea111047225f152",
+    "round-a-chat.json": "cdb9d952d74f41f79a6cf25bd7541ec0740fad58b8961c5c65c8db7398886766",
+    "round-a-final-chat.json": "acf40aa8abbef12094e9e5e5ee1936e6b3e0b17c77d9373076c7a10bd9a28293",
+    "round-a-identity.ax.txt": "c2ffbe0f77f9c14df67794d0d6fec9db2fd75a0e2bfe9ecf7769498f62db1a79",
+    "round-a-full-result.ax.txt": "04781a63aab02fa924056377a2b53afd270f304501a3d199f65f14ddea0c3d49",
+    "round-a-durable-value.json": "7aceb4d28cf5cff9012c41798d966198816deb09fabc3831bb97b7c375d02df2",
+    "round-a-result.json": "6283dd64cc1323d7e5c7f9c429eadf5fbe0ecab28e7a1c6cdf03718939b82653",
+    "round-a.dom.jsonl": "3dcb87e263d52cf4103e6d0611386e62b510fe6a190408b1129d0209a7ebe145",
+    "round-b-before-send.json": "131ac4eb495f04babe8fef61cccd17008719d0de721a373317a731ac83e8902c",
+    "round-b-chat.json": "4370fd3071a742bee5f7c8a12d38c13a38aab83ec637ad7065ba3e396732b32f",
+    "round-b-final-chat.json": "71b030ab9699d726a350f0034152fa3aca0cbd33d531117ec65bb2a23cecf922",
+    "round-b-identity.ax.txt": "75691a59ddaac81f63d48fd415e96e11d37dabab54c7f34f61ae38e883e5dc93",
+    "round-b-full-result.ax.txt": "e799f2f1ce06b40a11b8c516003557070bdded6b0ac9e38a23474131f65a0c9a",
+    "round-b-durable-value.json": "3014477239cdcdfc11726e589652e27a723a4f30038cbc52841469b5b6fb83af",
+    "round-b-result.json": "3b8cdb0987d894b826171257b4a5317a331a1ebd4ae33ee1159d8adf005c0a2c",
+    "round-b.dom.jsonl": "9a9435597fe2c3cce2eabc5910c2c2991f704d6a23130fb3956641ad10bd3753"
+  },
+  "notTested": [
+    "production",
+    "MCP",
+    "Go Native pairing",
+    "full native fault matrix",
+    "arbitrary result ranking or site-wide advertising audit",
+    "new UI layout candidate after resource handoff",
+    "product score"
+  ]
+}
