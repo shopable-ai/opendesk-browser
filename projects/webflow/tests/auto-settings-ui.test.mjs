@@ -551,7 +551,7 @@ test('trusted sidebar shows same-run execution, persistence, release and chat de
 });
 
 
-test('one-time ChatGPT capability instructions use only current reviewed scopes and copy without running or changing permission',async t=>{
+test('one-time ChatGPT instructions distinguish installed Schema capabilities from reviewed scopes without granting permission',async t=>{
  const host=controller();host.snapshot={...host.snapshot,catalogVerified:true,grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
  const f=await fixture(t,{host});
  const instructions=f.find('webflow-chatgpt-instructions');assert.ok(instructions);
@@ -559,6 +559,8 @@ test('one-time ChatGPT capability instructions use only current reviewed scopes 
  assert.equal(instructions.value.includes('\n'),false,'one-time context survives exact native text witnessing');
  const encodedScope=instructions.value.slice(instructions.value.indexOf('[{'),instructions.value.indexOf('}]')+2);
  assert.equal(JSON.parse(encodedScope)[0].targetUrl,scope.targetUrl);
+ assert.deepEqual(JSON.parse(encodedScope)[0].paramsSchema,task.paramsSchema);
+ assert.ok(instructions.value.includes('尚未批准'));assert.ok(instructions.value.includes('等待本机可信审阅'));
  assert.ok(instructions.value.includes('OpenDesk'));assert.ok(instructions.value.includes('每次'));
  assert.ok(!instructions.value.includes(installation.installationId));
  let copied='';const original=Object.getOwnPropertyDescriptor(globalThis,'navigator');
@@ -568,5 +570,27 @@ test('one-time ChatGPT capability instructions use only current reviewed scopes 
  assert.equal(host.calls.filter(([kind])=>kind!=='read').length,0);
  host.snapshot={...host.snapshot,epoch:3,grants:host.snapshot.grants.map(g=>({...g,state:'revoked'}))};
  await f.click('webflow-auto-refresh');
- assert.equal(f.find('webflow-chatgpt-instructions'),null);
+ assert.ok(f.find('webflow-chatgpt-instructions'),'installed capability remains available without an active exact grant');
+ host.snapshot={...host.snapshot,catalogVerified:false};await f.click('webflow-auto-refresh');
+ assert.equal(f.find('webflow-chatgpt-instructions'),null,'an unverified catalog cannot publish capabilities');
+});
+
+test('pending candidate review shows exact parameters and identity; only a native click forwards this same review',async t=>{
+ const host=controller(),calls=[];
+ const pendingAuto={scope:{...scope,args:{query:'OpenDesk Browser SDK',limit:3}},
+  candidate:{candidateId:'wf-pending-review',text:'candidate bytes',turnKey:'turn-sdk',answerKey:'answer-sdk'}};
+ const source={tabId:9,documentId:'sdk-document',url:'https://chatgpt.com/c/sdk-review-12345678'};
+ host.api.readBridgeState=async()=>({source,session:{url:source.url,status:'待批准，尚未执行',
+  requestId:'pending-request',pendingAuto,fields:{},tasks:[],actions:{cancel:true}},receipt:null});
+ host.api.controlBridge=async(value,event)=>{calls.push({value,event});return host.api.readBridgeState();};
+ const f=await fixture(t,{entry:true,host});await f.click('webflow-runtime-open');
+ const review=f.document.querySelector('[aria-label="本轮精确范围审核"]');assert.ok(review);
+ assert.ok(review.textContent.includes('OpenDesk Browser SDK'));assert.ok(review.textContent.includes(installation.installationId));
+ assert.ok(review.textContent.includes(source.documentId));assert.match(review.textContent,/替换.*原有.*精确范围/);
+ const button=[...review.querySelectorAll('button')].find(n=>n.textContent==='批准此精确范围并执行');
+ for(const trusted of [false,true]){
+  const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:trusted});
+  await React.act(async()=>button.dispatchEvent(event));assert.equal(calls.length,trusted?1:0);
+ }
+ assert.deepEqual(calls[0].value,{source,requestId:'pending-request',action:'approve-range',pendingAuto});
 });

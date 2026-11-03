@@ -30,7 +30,7 @@ function harness(){
     events.gates.push(msg);
     try{
       const data=await (msg.kind==='auto-settings'?ledger.readAutoSettings():msg.kind==='auto-enable'?ledger.setAutoEnabled(msg.enabled):
-        msg.kind==='auto-grant'?ledger.approveAuto(msg.scope):msg.kind==='auto-revoke'?ledger.revokeAuto(msg.taskId):
+        msg.kind==='auto-grant'?ledger.approveAuto(msg.scope,{pendingRequest:msg.pendingRequest}):msg.kind==='auto-revoke'?ledger.revokeAuto(msg.taskId):
         msg.kind==='auto-admit'?ledger.admitAuto(msg):msg.kind==='reserve'?ledger.reserve(msg):
         msg.kind==='revoke-request'?ledger.revokeRequest(msg):ledger.assertConsumed(msg));
       await afterGate(msg);return {ok:true,data};
@@ -74,7 +74,7 @@ function harness(){
       requestId:admitted.requestId,taskId:admitted.taskId,args:admitted.args,targetUrl:admitted.targetUrl,installation:admitted.installation};
     return bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,adoptedRequest,source,sourceUrl:source.url},sender);
   };
-  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,projectRequest:value=>{projectedRequest=value;},
+  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},
     denyPermission:()=>{permission=false;},unverify:()=>{verified=false;},
     afterGate:fn=>{afterGate=fn;},loseSend:()=>{deliveryUnknown=true;},unknownRun:()=>{runUnknown=true;},
     async approve(){const review=await bridge.prepareAutoGrant(scope);await bridge.approveAutoTask(review,{isTrusted:true});
@@ -89,6 +89,44 @@ test('trusted approval then two independent candidates use original Host, durabl
   assert.equal(h.events.starts[0].expectedTaskInstallationId,h.scope.installation.installationId);
   await h.bridge.revokeAutoTask(h.scope.taskId,{isTrusted:true});await assert.rejects(h.run(h.next('wf-host-denied')));
   assert.equal(h.events.starts.length,2);
+});
+test('Host reviews new Schema parameters from the original candidate and approves the original request only',async()=>{
+ const h=harness();await h.approve();
+ const args={query:'OpenDesk Browser SDK',limit:3},message=h.next('wf-host-new-scope',{args});
+ await assert.rejects(h.bridge.admitAutoTask(h.next('wf-host-five-results',{args:{...args,limit:5}}),h.sender));
+ assert.equal(h.events.gates.filter(m=>m.kind==='auto-admit').length,0,'unsupported parameters never enter pending approval');
+ h.next('wf-host-new-scope',{args});
+ const admitted=await h.bridge.admitAutoTask(message,h.sender);
+ assert.equal(admitted.pendingApproval,true);assert.equal(h.events.starts.length,0);
+ h.projectRequest(admitted.requestId);await h.bridge.readBridgeState();
+ const command={action:'approve-range',source:h.source,requestId:admitted.requestId,
+  pendingAuto:{scope:{...h.scope,args},candidate:admitted.candidate}};
+ await assert.rejects(h.bridge.controlBridge(command,{isTrusted:false}));
+ await assert.rejects(h.bridge.controlBridge({...command,pendingAuto:{...command.pendingAuto,
+  scope:{...h.scope,args:{query:'changed',limit:3}}}},{isTrusted:true}));
+ assert.equal(h.events.starts.length,0);
+ await h.bridge.controlBridge(command,{isTrusted:true});
+ const adoptedRequest={protocol:'opendesk.task.request.v1',kind:'opendesk.task.request',version:1,
+  requestId:admitted.requestId,...command.pendingAuto.scope};
+ const reply=await h.bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,
+  adoptedRequest,source:h.source,sourceUrl:h.source.url},h.sender);
+ assert.equal(reply.sent,true);assert.equal(h.events.starts.length,1);
+ assert.equal(h.events.starts[0].requestId,admitted.requestId);
+ await assert.rejects(h.bridge.controlBridge(command,{isTrusted:true}));
+});
+test('lost pending-approval ACK never sends the execute control or allocates a replacement request',async()=>{
+ const h=harness();await h.approve();const args={query:'SDK',limit:3};
+ const message=h.next('wf-pending-approval-ack',{args});
+ const admitted=await h.bridge.admitAutoTask(message,h.sender);
+ h.projectRequest(admitted.requestId);await h.bridge.readBridgeState();
+ h.afterGate(async msg=>{if(msg.kind==='auto-grant')throw Error('approval ACK lost');});
+ const command={action:'approve-range',source:h.source,requestId:admitted.requestId,
+  pendingAuto:{scope:{...h.scope,args},candidate:admitted.candidate}};
+ await assert.rejects(h.bridge.controlBridge(command,{isTrusted:true}));
+ h.afterGate(async()=>{});
+ await assert.rejects(h.bridge.controlBridge(command,{isTrusted:true}));
+ await assert.rejects(h.bridge.admitAutoTask(message,h.sender));
+ assert.equal(h.events.controls.length,0);assert.equal(h.events.starts.length,0);
 });
 test('Host rejects missing gestures, sandbox/page attempts, disabled task, permissions and changed installation',async()=>{
   const h=harness();const review=await h.bridge.prepareAutoGrant(h.scope);

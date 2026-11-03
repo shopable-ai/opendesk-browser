@@ -31,6 +31,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   setWorking(action);setError('');
   try{
    const next=await controller.controlBridge({source:view.source,requestId:view.session.requestId,action,
+    ...(action==='approve-range'?{pendingAuto:view.session.pendingAuto}:{}),
     ...(fields?{fields}:{})},event);
    if(mounted.current){sequence.current++;accept(next);}
   }catch(ex){if(mounted.current)setError(String(ex?.message||ex)+'；请查询原请求，不会自动重试。');}
@@ -59,6 +60,13 @@ export function WebflowCurrentTask({controller,onSummary=null}){
    <p className="od-note" style={{overflowWrap:'anywhere'}}>原对话：{session.url}</p>
    <p role="status" className={session.error?'od-field-error':'od-note'} style={{whiteSpace:'pre-wrap'}}>{session.status}</p>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
+   {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="本轮精确范围审核">
+    <strong>待批准 · 尚未执行</strong>
+    <p className="od-note">批准将替换此任务原有的精确范围；以后相同范围可自动执行。其他关键词不会继承本次批准。</p>
+    <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify({
+     candidate:session.pendingAuto.candidate,source:view.source,...session.pendingAuto.scope},null,2)}</pre>
+    <Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
+   </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar">
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}
    {session.viewStatus&&<p role="status" className="od-note">{session.viewStatus}</p>}

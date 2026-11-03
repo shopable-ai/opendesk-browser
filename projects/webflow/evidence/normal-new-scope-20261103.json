@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "stage": "development-core-normal-new-scope",
+  "status": "DEVELOPMENT_CORE_VERIFIED",
+  "goalThread": "01a1a19b-2e84-7683-ba0f-f02bc96064c1",
+  "baseCommit": "297b192ea",
+  "loadedExtension": {
+    "id": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "pathEvidence": "extension-path.ax.txt",
+    "serve": "CHROME_UI_CONFIRMED_CONNECTED",
+    "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+    "toolShellSHA256": "0eb956a830b3ef923a522a5b678bcec0b571d6400c63e63f6540d000684935f3",
+    "bridgeSHA256": "5a152ece57f8350c645c8b88c0f32ff5010c5d61a4b9d086416ba5267480dfaf"
+  },
+  "ownership": {
+    "business": "projects/webflow/trusted",
+    "existingChain": "original discovery -> Bridge Host -> durable trigger ledger -> Authority -> installed Controller -> durable result -> original-chat delivery",
+    "newRunnerOrDatabase": false,
+    "sandboxPackageChanged": false,
+    "applicationVersion": "0.3.8",
+    "taskUpgraded": false
+  },
+  "task": {
+    "taskId": "baidu.search.top3",
+    "installation": {
+      "version": "1.1.2",
+      "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+      "scriptId": "task:baidu.search.top3:1.1.2",
+      "revision": 1,
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+      "generation": 2
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3,
+          "title": "结果数量"
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "schemaSource": "trusted UI copy from readAutoSettings: listTaskCatalog + resolveInstalledTask, installation pinned"
+  },
+  "onboarding": {
+    "method": "one visible native context message in a new ordinary /c/ chat",
+    "conversationUrl": "https://chatgpt.com/c/6ae9e75a-50a8-83ee-8a51-10e89c3ab42a",
+    "source": "actual trusted capability textarea/clipboard",
+    "setupSHA256": "1404e4d0e7cc3b3b49b0fbec9de901a3506700a2ea7181a74537a5a65d3282ef",
+    "sourceRevision": "1cf75a0432fed2f3241692bdf12db1cd717f0e98ad8570a152c2ad7b0acfe00f",
+    "contextPreservedAcrossBrowserUpdate": true,
+    "sourceUnchangedInFinalToolShell": true,
+    "globalOrMCPRegistered": false,
+    "perRoundJSONGeneratorUsed": false,
+    "userProvidedCandidateJSON": false
+  },
+  "initialFailures": [
+    {
+      "revision": "a9f14460bb9bd534702fb81efeac87a3c60ca4509236693d2eaf190436a3f6a2",
+      "kind": "AI capability context limited to approved example, ordinary SDK request got no candidate",
+      "taskExecuted": false,
+      "raw": "initial-complete.json"
+    },
+    {
+      "revision": "1cf75a0432fed2f3241692bdf12db1cd717f0e98ad8570a152c2ad7b0acfe00f",
+      "kind": "transient official cancelled turn incorrectly retired native submission before later complete reply",
+      "candidateId": "wf-a11ce66b-9ed3-4225-80e1-66e9a33f04db",
+      "requestId": null,
+      "taskExecuted": false,
+      "candidateSealedNotAdopted": true,
+      "raw": [
+        "scope1-chat.json",
+        "scope1-chat-late.json"
+      ],
+      "fix": "native Stop witness retires eligibility; transient DOM state alone does not"
+    }
+  ],
+  "approval": {
+    "policy": "one exact scope per task, replacement (not wildcard or additional coexisting grant)",
+    "previousArgs": {
+      "query": "OpenDesk Browser",
+      "limit": 3
+    },
+    "currentArgs": {
+      "query": "OpenDesk Browser SDK",
+      "limit": 3
+    },
+    "targetUrl": "https://www.baidu.com/",
+    "approvedAtLocal": "2026-11-03 22:04:43",
+    "nativeReviewedScope": {
+      "candidate": {
+        "candidateId": "wf-f0515191-60cc-4c6f-81cd-3c4eb8d44eaf",
+        "text": "{\"protocol\":\"webflow.task.intent.v1\",\"candidateId\":\"wf-f0515191-60cc-4c6f-81cd-3c4eb8d44eaf\",\"taskId\":\"baidu.search.top3\",\"targetUrl\":\"https://www.baidu.com/\",\"args\":{\"query\":\"OpenDesk Browser SDK\",\"limit\":3}}",
+        "turnKey": "turn-1",
+        "answerKey": "answer-2:0"
+      },
+      "source": {
+        "tabId": 759148601,
+        "documentId": "D375E6E648084EF516D3D1C48734F9E7",
+        "url": "https://chatgpt.com/c/6ae9e75a-50a8-83ee-8a51-10e89c3ab42a"
+      },
+      "taskId": "baidu.search.top3",
+      "args": {
+        "limit": 3,
+        "query": "OpenDesk Browser SDK"
+      },
+      "targetUrl": "https://www.baidu.com/",
+      "installation": {
+        "version": "1.1.2",
+        "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+        "scriptId": "task:baidu.search.top3:1.1.2",
+        "revision": 1,
+        "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+        "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+        "generation": 2
+      }
+    },
+    "autoEnabled": true,
+    "scopeReapprovedForSecondRound": false
+  },
+  "normalTaskRounds": [
+    {
+      "requestId": "00e759e2-81ca-4904-970e-eb4b50bdb7c4",
+      "runId": "3865425b-1432-4042-a594-cab2e1f8fcdb",
+      "resultId": "cd4bb918-ccdd-4cd1-807f-d62e63d8e1cb",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "candidateId": "wf-f0515191-60cc-4c6f-81cd-3c4eb8d44eaf",
+      "count": 3,
+      "inputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "targetTabId": 759148605,
+      "targetDocumentId": "C0FB8E2C624E01E0D73F97FC56A4D305",
+      "searchClicks": 1,
+      "independentDOMMatched": true,
+      "durableMatchesDelivered": true,
+      "dataSHA256": "4f6a5a949b66130e45636cd02041b3ce435517a9dfd165f5979d0e38c767d9d0",
+      "case": "NC-08",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "pendingApprovalBeforeNativeReview": true,
+      "preApprovalRunId": null,
+      "preApprovalTargetTabs": 0,
+      "nativeApproval": true,
+      "scopeReplaced": true,
+      "sameCandidateAfterApproval": true,
+      "releaseConfirmed": true,
+      "durableResultVerified": true,
+      "singleOriginalChatDelivery": true,
+      "aiContinuationComplete": true,
+      "browserRevision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41"
+    },
+    {
+      "requestId": "af3cdca7-21c1-41ff-a846-22c122e4a077",
+      "runId": "e30cdc82-9c47-4838-b51c-67800a5e4ce9",
+      "resultId": "ed8d7f5c-099c-4b83-bce1-805d125f35d3",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "candidateId": "wf-6ed1390b9a0d4d6fa5b0c9e04a31b82f",
+      "count": 3,
+      "inputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "targetTabId": 759148607,
+      "targetDocumentId": "8AFBE056E91D4B49E94663C783C8DC8B",
+      "searchClicks": 1,
+      "independentDOMMatched": true,
+      "durableMatchesDelivered": true,
+      "dataSHA256": "ca8ce1e5aef8daf1dd90a26f845fa04cfef5b7131d5e8c64c320bb011d1b5836",
+      "case": "NC-09",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "nativeApproval": false,
+      "oneTimeContextRepeated": false,
+      "releaseConfirmed": true,
+      "durableResultVerified": true,
+      "singleOriginalChatDelivery": true,
+      "aiContinuationComplete": true,
+      "browserRevision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41"
+    }
+  ],
+  "negativeCases": [
+    {
+      "case": "NC-03",
+      "revision": "1cf75a0432fed2f3241692bdf12db1cd717f0e98ad8570a152c2ad7b0acfe00f",
+      "request": "只解释一下浏览器扩展与书签的区别，不要打开网页或执行任务。",
+      "completeReplyWithoutCandidate": true,
+      "taskExecuted": false,
+      "raw": "negative-complete.json"
+    },
+    {
+      "case": "NC-04",
+      "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+      "request": "把刚才搜索结果的数量改为五条再搜索。",
+      "programUnsupportedLimit5Explicit": true,
+      "candidateBlocks": 0,
+      "taskExecuted": false,
+      "silentlyChangedToThree": false,
+      "raw": [
+        "five-chat.json",
+        "five-status.ax.txt"
+      ]
+    },
+    {
+      "case": "native-stop",
+      "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+      "nativeStopClicked": true,
+      "discoveryReason": "native-stop-witnessed",
+      "taskExecuted": false,
+      "currentStatus": "本条未执行：官网已停止本轮回复，没有完整任务候选。",
+      "raw": [
+        "native-stop-chat.json",
+        "native-stop.ax.txt"
+      ]
+    },
+    {
+      "case": "NC-10",
+      "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+      "candidateId": "wf-9c35d01c-71a3-4a65-9a88-4cb990be62ce",
+      "requestId": "41f685f0-0867-4bd0-84a1-31a17e7ec536",
+      "runId": null,
+      "resultId": null,
+      "oldScopeDidNotInheritReplacedGrant": true,
+      "cancelledByNativeTrustedControl": true,
+      "taskExecuted": false,
+      "observerTargetTabs": 0,
+      "lateApprovalRace": "COMPONENT_TESTED_NOT_NATIVE_INJECTED",
+      "raw": [
+        "cancel-pending-before.ax.txt",
+        "cancel-pending-after.ax.txt",
+        "cancel-final.ax.txt",
+        "cancelled-scope-monitor.log"
+      ]
+    }
+  ],
+  "checks": {
+    "targetedBatch": {
+      "passed": 182,
+      "log": "final-targeted.log"
+    },
+    "additionalApprovalUnknownBatch": {
+      "passed": 28,
+      "newCases": 2,
+      "log": "approval-unknown-green.log"
+    },
+    "uniqueTestsPassed": 184,
+    "fullRootSuiteRun": false
+  },
+  "driverNotes": [
+    "Chrome control plugin tab claim timed out; used the explicitly authorized existing native guarded driver. No page JS synthesized send or approval.",
+    "Clipped/animated accessibility boxes were diagnosed with screenshots and native scrolling before the real approval. No product change was made for this driver issue.",
+    "An evidence reader mistakenly selected the second current Run while asked to verify the first; its assertion rejected the mismatch. The original first Run was queried read-only via Developer query by its exact runId, and actual durable value/released state were recovered and compared. No task was replayed.",
+    "Trusted shadow UI was read through native AX values; an empty MAIN DOM view was not used as task proof."
+  ],
+  "rawEvidence": "artifacts/webflow-auto-20261103/new-scope-01a1a19b",
+  "firstRunDurableRaw": "sdk-original-run-snapshot.json",
+  "secondRunDurableRaw": "followup-durable-value.json",
+  "notTested": [
+    "production",
+    "MCP",
+    "Go Native connection/pairing this run (DOM Task did not require it)",
+    "cross-conversation orchestration",
+    "persistent queue",
+    "full native revocation/generation/IME/UNKNOWN fault injection matrix",
+    "zoom/width stress",
+    "independent product scoring"
+  ]
+}

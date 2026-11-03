@@ -4,14 +4,14 @@ import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const url='https://chatgpt.com/c/sidebar-test-12345678';
-function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false}={}){
+function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false,persistentPending=false}={}){
  const {document,window}=parseHTML('<html><body></body></html>');let listener,poll;
  const events=new Map(),addEvent=document.addEventListener.bind(document);
  document.addEventListener=(type,handler,...rest)=>{events.set(type,handler);return addEvent(type,handler,...rest);};
  Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get(){return this._value??this.querySelector('option')?.value??'';},set(value){this._value=value;}});
  const win={location:{href:url,origin:'https://chatgpt.com'},setInterval(fn){poll=fn;return 1;},clearInterval(){},addEventListener(){},removeEventListener(){}};win.top=win;
  const sends=[];
- const intent={protocol:'opendesk.task.intent.v1',candidateId:'sidebar-candidate',taskId:'baidu.search.top3',targetUrl:'https://www.baidu.com/',args:{query:'OpenDesk Browser',limit:3}};
+ const intent={protocol:persistentPending?'webflow.task.intent.v1':'opendesk.task.intent.v1',candidateId:'sidebar-candidate',taskId:'baidu.search.top3',targetUrl:'https://www.baidu.com/',args:{query:'OpenDesk Browser',limit:3}};
  const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'original-install',generation:1};
  const prepared={requestId:'77777777-7777-4777-8777-777777777777',taskId:intent.taskId,targetUrl:intent.targetUrl,args:intent.args,installation,
   source:{tabId:9,documentId:'original-document',url},candidate:{text:JSON.stringify(intent),candidateId:intent.candidateId,turnKey:'turn',answerKey:'answer'}};
@@ -21,7 +21,7 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
   onMessage:{addListener(fn){listener=fn;},removeListener(){}},sendMessage:async message=>{
    sends.push(message);
    if(adoptError&&message.kind==='adopt-task')return {ok:false,error:{code:adoptErrorCode,message:adoptErrorCode==='E_BRIDGE_REPLAY'?'候选已准入或结果未知，禁止重放':'runtime changed'}};
-   return {ok:true,data:message.kind==='adopt-task'?prepared:message.kind==='execute'?
+   return {ok:true,data:message.kind==='auto-task'?{...prepared,pendingApproval:true}:message.kind==='adopt-task'?prepared:message.kind==='execute'?
     {runId:'original-run',resultId:'original-result',resultPreview:'OLD_RESULT',sent:true,aiReplyObserved:true}:{}};
   }}};
  const elements=[],create=document.createElement.bind(document);document.createElement=(...args)=>{const node=create(...args);elements.push(node);return node;};
@@ -33,7 +33,8 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
   if(response===false)queueMicrotask(()=>resolve(undefined));
  });
  return {page,receive,sends,sender,win,snapshot,poll:()=>poll(),elements,prepared,
-  submit:()=>events.get('click')({type:'click',isTrusted:true,button:0,target:snapshot.sendButton})};
+  submit:()=>events.get('click')({type:'click',isTrusted:true,button:0,target:snapshot.sendButton}),
+  stop:trusted=>events.get('click')({type:'click',isTrusted:trusted,button:0,target:snapshot.stopButton})};
 }
 test('page projection accepts only fixed trusted Side Panel messages and refuses stale requests or navigation',async()=>{
  const h=fixture();try{
@@ -47,6 +48,29 @@ test('page projection accepts only fixed trusted Side Panel messages and refuses
   assert.equal(stale.error.code,'E_BRIDGE_CONTEXT');assert.equal(h.sends.length,0);
   const fields=await h.receive({kind:'sidebar-control',requestId:null,action:'fields',fields:{task:'baidu.search.top3',query:'OpenDesk Browser',target:'',args:'{}'}});
   assert.equal(fields.ok,true);assert.equal(fields.data.fields.query,'OpenDesk Browser');assert.equal(h.sends.length,0);
+ }finally{h.page.dispose();}
+});
+test('pending Schema-supported candidate stays unexecuted through polling, then uses the same request after trusted approval',async()=>{
+ const h=fixture({active:true,persistentPending:true});try{
+  const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
+  assert.ok(view.pendingAuto);assert.match(view.status,/待批准.*尚未执行/);
+  assert.equal(view.actions.run,false);assert.equal(view.actions['approve-once'],false);
+  for(let i=0;i<3;i++)h.poll();
+  assert.equal(h.sends.filter(m=>m.kind==='execute').length,0);
+  assert.match((await h.receive({kind:'sidebar-read'})).data.status,/待批准/);
+  await h.receive({kind:'sidebar-control',requestId:view.requestId,action:'approve-range'});
+  for(let i=0;i<40;i++)await Promise.resolve();
+  const runs=h.sends.filter(m=>m.kind==='execute');assert.equal(runs.length,1);
+  assert.equal(runs[0].requestId,view.requestId);assert.equal(runs[0].mode,'auto');
+  assert.equal(runs[0].persistentAuto,true);
+ }finally{h.page.dispose();}
+});
+test('cancelled pending candidate cannot be revived by a late approval command',async()=>{
+ const h=fixture({active:true,persistentPending:true});try{
+  const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
+  await h.receive({kind:'sidebar-control',requestId:view.requestId,action:'cancel'});
+  assert.equal((await h.receive({kind:'sidebar-control',requestId:view.requestId,action:'approve-range'})).ok,false);
+  h.poll();assert.equal(h.sends.filter(m=>m.kind==='execute').length,0);
  }finally{h.page.dispose();}
 });
 test('a rejected candidate keeps its own scope without inventing a request or reverting to the manual example',async()=>{
@@ -144,7 +168,7 @@ test('cancelled official reply stops waiting and never becomes a candidate',asyn
  const h=fixture({active:true,readError:true});try{
   h.snapshot.draft='请搜索';h.submit();h.snapshot.draft='';
   h.snapshot.users=[{textContent:'请搜索',getAttribute:()=>null}];
-  h.snapshot.replyState='cancelled';h.poll();h.poll();
+  h.snapshot.stopButton={};h.snapshot.replyState='cancelled';h.stop(true);h.poll();h.poll();
   const view=(await h.receive({kind:'sidebar-read'})).data;
   assert.match(view.status,/本条未执行/);assert.match(view.status,/停止/);
   assert.equal(view.requestId,null);assert.equal(h.sends.length,0);

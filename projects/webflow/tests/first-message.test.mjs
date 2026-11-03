@@ -9,6 +9,16 @@ const message=(id,text=id)=>({textContent:text,compareDocumentPosition:()=>4,
   key==='data-chatgpt-search-unit-key'?'fallback-turn-0:0:user':null});
 const snapshot=()=>({ok:true,route:'new:/',users:[],assistants:[],idle:true,busy:false,
  answerComplete:false,draft:'exact prompt',rich:false});
+test('transient official cancelled state cannot discard a witnessed request; native Stop fences its late answer',()=>{
+ for(const stopped of [false,true]){
+  const probe=createChatGPTTaskDiscovery(),snap=snapshot();snap.route='c/current-turn';
+  probe.witnessSubmission(snap);snap.draft='';snap.users=[message('user','exact prompt')];
+  snap.replyState='cancelled';assert.equal(probe.observe(snap),null);
+  if(stopped)assert.equal(probe.witnessCancellation(snap),true);
+  snap.replyState='complete';snap.assistants=[message('answer')];snap.answerComplete=true;
+  assert.equal(Boolean(probe.observe(snap)),!stopped);
+ }
+});
 
 test('first native submission survives creation of its formal route only through its observed user',()=>{
  const probe=createChatGPTTaskDiscovery(),snap=snapshot();

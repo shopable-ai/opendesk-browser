@@ -288,6 +288,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(closed||event.isTrusted!==true||event.defaultPrevented||composition||event.isComposing)return;
     const snapshot=site.inspect();
     if(!snapshot.ok)return;
+    if(event.type==='click'&&event.button===0&&snapshot.stopButton&&
+      (event.target===snapshot.stopButton||snapshot.stopButton.contains?.(event.target))){
+      if(discovery.witnessCancellation(snapshot)){
+        deferredDiscovery=null;messageNotice={url:win.location.href,stage:'cancelled',
+          text:'本条未执行：官网已停止本轮回复，没有完整任务候选。需要执行时请正常提出新需求。'};
+        note(messageNotice.text);update();
+      }
+      return;
+    }
     const {editor,sendButton}=snapshot;
     if(editor.disabled||editor.readOnly||editor.getAttribute?.('aria-disabled')==='true'||
       !sendButton||sendButton.disabled||sendButton.getAttribute?.('aria-disabled')==='true')return;
@@ -364,7 +373,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       !candidateReady&&!targetReady?'请填写脚本要操作的完整网址。':
       '允许本聊天：固定脚本版本和此网址，30 分钟内最多 10 次；参数可按脚本规则变化，真实结果返回本聊天。草稿、附件和输入法不影响授权。';
     autoButton.disabled=busy||!ready||state.mode==='auto';
-    runButton.disabled=busy||!ready||state.mode==='auto';
+    runButton.disabled=busy||!ready||state.mode==='auto'||state.pendingAuto===true;
+    autoButton.disabled ||= state?.pendingAuto===true;
     cancelButton.disabled=preparing||!state||state.cancelled||state.sendSubmitted||state.settled;
     viewButton.disabled=!state?.runId||state.cancelled||state.executionFinished||state.settled||
       state.deliveryStarted||state.progressRank!==2||state.viewPending||win.location.href!==state.url;
@@ -379,7 +389,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }else if(state?.candidate){
       const name=state.taskName||installedTasks.get('installed:'+state.taskId)?.name||state.taskId;
       selection.textContent='本次任务：'+name+' @ '+state.installation.version+
-        '\n触发：'+(state.persistentAuto?'持续批准自动执行':state.mode==='auto'?'授权自动执行':'手动执行')+
+        '\n触发：'+(state.pendingAuto?'待精确批准':state.persistentAuto?'持续批准自动执行':state.mode==='auto'?'授权自动执行':'手动执行')+
         '\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
     }else if(!state||state.attempted){
       const task=selectedTask();
@@ -561,7 +571,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
       state={...adoptedRequest,url,source:prepared.source,expiresAt:prepared.expiresAt,candidate:prepared.candidate,
         adoptedRequest,attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,
-        persistentAuto,mode:persistentAuto||grant||activeGrant?'auto':null,approvedTurnKey:page.turnKey,taskName:prepared.taskName||grant?.taskName};
+        persistentAuto,pendingAuto:prepared.pendingApproval===true,
+        mode:prepared.pendingApproval?null:persistentAuto||grant||activeGrant?'auto':null,
+        approvedTurnKey:page.turnKey,taskName:prepared.taskName||grant?.taskName};
       clearReceipt();
       // Show the accepted request in the controls too, rather than leaving a
       // previous manual selection above the correct execution summary.
@@ -579,7 +591,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       taskSelect.value=key;targetInput.value=state.targetUrl;argsInput.value=JSON.stringify(state.args);
       argsHelp.textContent='';
       selection.textContent='本次脚本：'+state.taskId+'\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
-      observe();note(persistentAuto?'已匹配可信侧栏中的持续批准，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
+      observe();note(state.pendingAuto?'待批准：任务支持本轮参数，但此精确范围尚未批准；尚未执行。请在可信侧栏审阅本轮候选。':persistentAuto?'已匹配可信侧栏中的持续批准，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
         '已自动识别待执行任务。请核对脚本、网址和参数，只需点击一次“执行”。':
         '已采用对话任务，尚未执行。请核对脚本、网址和参数，点击“执行”或批准本次自动执行。');
     }catch(error){
@@ -852,7 +864,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
       return;
     }
-    if(!state||state.cancelled||state.attempted||pending||autoPollBusy||state.mode==='auto'&&approvalUnknown)return;
+    if(!state||state.cancelled||state.attempted||state.pendingAuto||pending||autoPollBusy||state.mode==='auto'&&approvalUnknown)return;
     if(state.expiresAt&&Date.now()>=state.expiresAt){
       state.attempted=true;note('本次请求已过期，未触发运行。请重新建立请求。',true);update();return;
     }
@@ -977,6 +989,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
         selection:state||proposal?selection.textContent:'',messageStage:messageNotice?.url===win.location.href?messageNotice.stage:null,viewStatus:state?viewStatus.textContent:'',
         requestId:state?.requestId??null,runId:state?.runId??null,resultId:state?.resultId??null,
+        pendingAuto:state?.pendingAuto&&!state.cancelled&&!state.attempted?{
+          scope:{taskId:state.taskId,args:state.args,targetUrl:state.targetUrl,installation:state.installation},
+          candidate:state.candidate}:null,
         candidateId:state?.candidate?.candidateId??(proposal?.url===win.location.href?proposal.candidateId:null),
         observation:discovery.status(),pending:pending||cancelPending||deliveryPending,
         actions:Object.fromEntries([...actions].map(([name,{button}])=>[name,!button.disabled])),
@@ -991,7 +1006,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         reply({ok:false,error:{code:'E_BRIDGE_CONTEXT',message:'当前请求已改变，请重新读取'}});return false;
       }
       const perform=async()=>{
-        if(message.action==='fields'){
+        if(message.action==='approve-range'){
+          const owner=state;
+          if(!owner?.pendingAuto||owner.cancelled||owner.attempted||pending||cancelPending||deliveryPending)
+            throw fail('E_BRIDGE_CONTEXT','本轮候选已改变或取消，不会执行');
+          observe();owner.pendingAuto=false;owner.mode='auto';update();
+          // Trusted Host has persisted approval of this exact original request.
+          // execute still reserves it and enters the original admission fence.
+          void execute('auto');
+        }else if(message.action==='fields'){
           if(taskSelect.disabled)throw fail('E_BRIDGE_BUSY','当前步骤不可编辑');
           const fields=message.fields;
           if(!fields||typeof fields.task!=='string'||![...taskSelect.children].some(option=>option.value===fields.task)||

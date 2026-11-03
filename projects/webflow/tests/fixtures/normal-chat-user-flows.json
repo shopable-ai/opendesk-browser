@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "project": "webflow",
-  "stage": "development-core-normal-chat",
-  "planSection": "12.11.16",
+  "stage": "development-core-normal-new-scope",
+  "planSection": "12.11.17",
   "status": "DEVELOPMENT_CORE_VERIFIED",
   "purpose": "正常官网消息主流程的关键料件。不能用侧栏生成JSON回显或离线HTML评分替代通过。",
   "approval": {
@@ -14,7 +14,8 @@
       "limit": 3
     },
     "reuseExistingExactApproval": true,
-    "noScopeExpansion": true
+    "noScopeExpansion": true,
+    "historicalBaseline": true
   },
   "sharedConditions": [
     "先读取真实侧栏、用户草稿、附件、IME和未知请求，不覆盖或重放。",
@@ -113,6 +114,44 @@
       ],
       "status": "CHROME_NATIVE_VERIFIED",
       "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-08",
+      "required": true,
+      "userMessage": "请用 OpenDesk Browser 在百度搜索 OpenDesk Browser SDK，给我前三条自然结果，并根据实际返回内容总结。",
+      "expect": [
+        "真实安装 Schema 支持新关键词，能力说明与精确批准分列。",
+        "AI 新候选自动进入待批准；零 Run、零目标网页操作。",
+        "可信界面审阅原候选参数、来源及安装身份，无需重填 JSON。",
+        "新精确批准替换该 Task 原范围；同候选/原 request 执行一次。",
+        "同 Run 持久结果等于独立 DOM 及原聊天单次 data，released 且 AI 完整续答。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-new-scope-20261103.json"
+    },
+    {
+      "id": "NC-09",
+      "required": true,
+      "after": "NC-08 released and delivery confirmed",
+      "userMessage": "请再按刚才的关键词搜索一次，仍取三条自然结果，并用这一次的返回重新总结。",
+      "expect": [
+        "同范围无需再次接入或批准，新 candidate/request/run/result。",
+        "真实新搜索及本轮持久结果/单次交付/AI 续答，不复用上轮数据。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-new-scope-20261103.json"
+    },
+    {
+      "id": "NC-10",
+      "required": true,
+      "fixtureType": "cancel-pending-exact-scope",
+      "userMessage": "请用 OpenDesk Browser 在百度搜索 OpenDesk Browser，给我前三条自然结果，并根据实际返回内容总结。",
+      "expect": [
+        "旧关键词不继承已替换为 SDK 的批准，显示待批准。",
+        "可信取消后零执行；迟到批准不能恢复（组件竞争回归）。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED_AND_COMPONENT_RACE_TESTED",
+      "evidence": "projects/webflow/evidence/normal-new-scope-20261103.json"
     }
   ],
   "evidenceFields": [

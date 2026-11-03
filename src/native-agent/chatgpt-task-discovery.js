@@ -63,6 +63,12 @@ export function createChatGPTTaskDiscovery({now=Date.now,onStatus=()=>{}}={}){
       report('submitted','native-submission-witnessed');
       return true;
     },
+    // The official UI can transiently mark a new turn cancelled before its
+    // response begins. Only the native Stop gesture retires the send witness.
+    witnessCancellation(snapshot){
+      if(!submission||!snapshot?.ok||snapshot.route!==route)return false;
+      this.reset(snapshot);report('cancelled','native-stop-witnessed');return true;
+    },
     observe(snapshot){
       if(!snapshot?.ok){
         // A same-route editor remount pauses observation, not turn identity.
@@ -111,9 +117,6 @@ export function createChatGPTTaskDiscovery({now=Date.now,onStatus=()=>{}}={}){
             !before.users.every((item,index)=>same(item,users[index])))this.reset(snapshot,'user-baseline-changed');
           return null;
         }
-      }
-      if(snapshot.replyState==='cancelled'){
-        this.reset(snapshot);report('cancelled','assistant-cancelled');return null;
       }
       if(route.startsWith('new:')||route.startsWith('pending/')||snapshot.busy||!snapshot.idle||!snapshot.answerComplete)return null;
       const next=assistants.at(-1),user=users.at(-1);

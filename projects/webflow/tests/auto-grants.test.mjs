@@ -45,6 +45,56 @@ const submission=admitted=>({requestId:admitted.requestId,source:{kind:'saved',s
   revision:installation.revision,contentHash:installation.contentHash},paramsWire:encodeValue(scope.args),
   target:{mode:'owned',url:scope.targetUrl},expectedTaskGeneration:installation.generation,
   expectedTaskInstallationId:installation.installationId});
+test('new exact scope waits with zero submission, approval replaces scope and consumes the same candidate once',async()=>{
+ const h=harness();await h.approve();
+ const next={...scope,args:{query:'OpenDesk Browser SDK',limit:3}};
+ const candidate=h.candidate('wf-new-schema-scope');candidate.text=JSON.stringify({...JSON.parse(candidate.text),args:next.args});
+ const admitted=await h.ledger.admitAuto({source,...next,candidate,allowPending:true});
+ assert.equal(admitted.pendingApproval,true);
+ const reservation={...admitted,mode:'auto',turnKey:candidate.turnKey,answerKey:candidate.answerKey};
+ let starts=0;
+ await assert.rejects(h.ledger.reserve(reservation));
+ const request={...submission(admitted),paramsWire:encodeValue(next.args)};
+ await assert.rejects(h.ledger.withControllerAdmission(request,async()=>{starts++;}));
+ assert.equal(starts,0);assert.equal(h.data[CHATGPT_BRIDGE_LEDGER_KEY][admitted.requestId].status,'prepared');
+ await h.ledger.approveAuto(next,{pendingRequest:{source,requestId:admitted.requestId,candidate}});
+ assert.deepEqual((await h.ledger.readAutoSettings()).grants[scope.taskId].scope.args,next.args);
+ await h.ledger.reserve(reservation);
+ await h.ledger.withControllerAdmission(request,async()=>{starts++;});
+ await assert.rejects(h.ledger.withControllerAdmission(request,async()=>{starts++;}));
+ await assert.rejects(h.ledger.admitAuto({source,...next,candidate,allowPending:true}));
+ assert.equal(starts,1);
+ const fresh=h.candidate('wf-new-schema-next');fresh.text=JSON.stringify({...JSON.parse(fresh.text),args:next.args});
+ const second=await h.ledger.admitAuto({source,...next,candidate:fresh,allowPending:true});
+ assert.equal(second.pendingApproval,false);assert.notEqual(second.requestId,admitted.requestId);
+ await assert.rejects(h.admit('wf-old-scope-revoked'));
+});
+test('cancelled, edited and disabled pending scopes cannot be approved by late callbacks',async()=>{
+ for(const failure of ['cancel','scope','candidate','disabled']){
+  const h=harness();await h.approve();const next={...scope,args:{query:'SDK',limit:3}};
+  const candidate=h.candidate('wf-pending-'+failure);candidate.text=JSON.stringify({...JSON.parse(candidate.text),args:next.args});
+  const admitted=await h.ledger.admitAuto({source,...next,candidate,allowPending:true});
+  if(failure==='cancel')await h.ledger.revokeRequest({source,requestId:admitted.requestId});
+  if(failure==='disabled')await h.ledger.setAutoEnabled(false);
+  const review=failure==='scope'?scope:next;
+  await assert.rejects(h.ledger.approveAuto(review,{pendingRequest:{source,requestId:admitted.requestId,
+   candidate:failure==='candidate'?{...candidate,answerKey:'changed'}:candidate}}));
+  await assert.rejects(h.ledger.reserve({...admitted,mode:'auto',turnKey:candidate.turnKey,answerKey:candidate.answerKey}));
+ }
+});
+test('cancellation during the pending approval save prevents its ACK and original Controller admission',async()=>{
+ const h=harness();await h.approve();const next={...scope,args:{query:'SDK',limit:3}};
+ const candidate=h.candidate('wf-cancel-approval-save');candidate.text=JSON.stringify({...JSON.parse(candidate.text),args:next.args});
+ const admitted=await h.ledger.admitAuto({source,...next,candidate,allowPending:true});let cancelled=false,starts=0;
+ h.onWrite(value=>{
+  if(!cancelled&&value[CHATGPT_BRIDGE_LEDGER_KEY]?.[admitted.requestId]?.status==='approved'){
+   cancelled=true;void h.ledger.revokeRequest({source,requestId:admitted.requestId});
+  }
+ });
+ await assert.rejects(h.ledger.approveAuto(next,{pendingRequest:{source,requestId:admitted.requestId,candidate}}));
+ await assert.rejects(h.ledger.withControllerAdmission({...submission(admitted),paramsWire:encodeValue(next.args)},async()=>{starts++;}));
+ assert.equal(starts,0);assert.equal(cancelled,true);
+});
 test('source navigation or precise request cancellation during the final save forbids Authority submission',async()=>{
   for(const cancel of ['source','request']){
     const h=harness();await h.approve();const admitted=await h.admit('wf-final-'+cancel);

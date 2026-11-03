@@ -3,7 +3,7 @@ import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
   WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
-import {WEBFLOW_AUTO_GRANTS_KEY} from '../../projects/webflow/src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope} from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from './chatgpt-execution-page.js';
@@ -434,11 +434,27 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   };
   const controlBridge=async(value,event)=>{
     if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
-    if(!value||!['fields','prepare','approve-once','run','cancel','adopt','view','preapprove'].includes(value.action)||
+    if(!value||!['fields','prepare','approve-once','approve-range','run','cancel','adopt','view','preapprove'].includes(value.action)||
       !validChatGPTBridgeSource(value.source))throw fail('E_BRIDGE_SCHEMA','侧栏操作无效');
     const source=value.source;
     if(!sameSource(source,bridgeSource))throw fail('E_BRIDGE_CONTEXT','侧栏对话已改变，请重新读取');
     await assertSource(source);trustedSettings();
+    if(value.action==='approve-range'){
+      const pending=value.pendingAuto;
+      if(!pending?.candidate||!pending.scope)throw fail('E_BRIDGE_CONTEXT','缺少本轮待批准范围');
+      const message={persistentAuto:true,candidateText:pending.candidate.text,
+        turnKey:pending.candidate.turnKey,answerKey:pending.candidate.answerKey};
+      const {intent,candidate}=await assertIntent(source,message);
+      const review=await prepareAutoGrant(pending.scope);
+      if(JSON.stringify(normalizeAutoScope(review))!==JSON.stringify(normalizeAutoScope(pending.scope))||
+        intent.taskId!==review.taskId||intent.targetUrl!==review.targetUrl||
+        JSON.stringify(intent.args)!==JSON.stringify(review.args))
+        throw fail('E_BRIDGE_CONTEXT','当前候选与审阅参数或安装身份不符');
+      await assertSource(source);await assertIntent(source,message);trustedSettings();
+      await autoGate({kind:'auto-grant',scope:review,
+        pendingRequest:{source,requestId:value.requestId,candidate}});
+      await assertSource(source);await assertIntent(source,message);trustedSettings();
+    }
     const reply=await api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'sidebar-control',
       sourceUrl:source.url,requestId:value.requestId,action:value.action,
       ...(value.action==='fields'?{fields:value.fields}:{})},{documentId:source.documentId});
@@ -513,7 +529,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(JSON.stringify(intent.args)!==JSON.stringify(normalized.request.args))
       throw fail('E_BRIDGE_CONTEXT','自动候选必须包含完整获准参数');
     await assertIntent(source,message);await assertSource(source,sender);assertPreparation(epoch,intent.taskId);
-    const admitted=await autoGate({kind:'auto-admit',source,taskId:intent.taskId,args:normalized.request.args,
+    const admitted=await autoGate({kind:'auto-admit',allowPending:true,source,taskId:intent.taskId,args:normalized.request.args,
       ...selectionScope(normalized.request),candidate});
     try{
       await assertSource(source,sender);await assertIntent(source,message);assertPreparation(epoch,intent.taskId);

@@ -1433,3 +1433,33 @@ NC-07在普通`/c/6ae9c70a-68fc-83ec-997d-7aabfeab93b0`先进行一次可见说�
 另在独立无执行需求聊天中原生点击官网“停止”一次，真实最新turn为cancelled，侧栏明确“本条未执行：官网已停止本轮回复，没有完整任务候选”，不再永久等待，零Task。测试聊天已关闭；成功普通聊天与真实同Run回执已恢复保留。中途预览标签被前置时，URL守卫拒绝后续UI动作，没有在离线HTML上点击或将其记作通过。
 
 本轮精简证据为[normal-chat-20261103.json](../evidence/normal-chat-20261103.json)，关键料件NC-01–07已分别更新实际等级；NC-06保留组件与当前受影响原生核心的分层，不宣称完整原生故障矩阵通过。原始DOM/AX/复制读回/完整消息仅留忽略目录`artifacts/webflow-auto-20261103/normal-chat-01a1a0ef/`。本任务唯一goal对应的正常聊天dev核心已满足；MCP、production、跨对话编排、持久队列、全量对抗/原生撤权与IME/UNKNOWN注入矩阵及产品评分继续NOT_TESTED/延期，不自动进入旧目标阶段。仅本轮源码、唯一0.3.8包、料件与精简证据安全保存main；预存12.10 MCP和其他owner改动不混入，不推远端。
+
+
+### 12.11.17 普通新范围待批准与同候选执行（2026-11-03）
+
+**本轮核心已完成，未进入 production / MCP / 全量验收。** 原固定范围及 NC-01–07 的历史通过证据直接复用。本轮先在真实普通聊天发送“请用 OpenDesk Browser 在百度搜索 OpenDesk Browser SDK，给我前三条自然结果，并根据实际返回内容总结。”，随后沿原入口修复并验证新精确范围；没有给用户消息附候选 JSON，也没有使用单次协议生成器。
+
+**实读与根因：** 初始 main 为 `297b192ea`，Chrome 实际启用原 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`、加载原 `dist/development`，复用唯一 `npm run dev`。真实 Task Catalog/安装核验投影的 Schema 允许 1–120 字关键词、固定 `limit=3`；Task 仍为 `baidu.search.top3@1.1.2`，installation `da7b0581-5788-45c5-8316-ea7c03130d51` / generation 2，源码与 manifest Hash 沿原基线。应用仍为已安装 0.3.8；两者未升级或重装。初始能力说明仅列已批准样本，导致 AI 误认新关键词不支持，原侧栏如实显示无候选未执行。
+
+能力说明改为分别列出真实已安装任务的完整 Schema 和当前精确批准。普通聊天只原生发送一次可见说明，逐字回读且保留单段文本及 JSON 网址转义，不修改全局设置或既有项目指令。能力说明复制来自 `1cf75a0432fe…` 的真实可信 UI，随后保留聊天上下文；最终两轮任务均在 `d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41` 执行，tool-shell 字节未因后续发现器修复改变。初始无候选和中间失败候选不拼作最终同候选通过。
+
+中间候选 `wf-a11ce66b-9ed3-4225-80e1-66e9a33f04db` 已由官方完整回复产生，但官网曾短暂将用户轮次标记 cancelled，旧发现器提前退休发送见证，故零请求、零执行；该候选封存且未手动采用。修复在原 discovery/site/page：原生 Stop 手势才退休该轮见证，短暂 DOM 标记不自行丢弃发送；停止后迟到回复仍不可恢复。未让本地执行器猜自然语言，也未放宽完整回复、来源或五字段规则。
+
+**唯一链路的最小修复：** `AutoSettings.tsx` 提供 Schema 能力说明；原 `admitAutoTask` 在完成参数/安装/来源核验后，请原持久 trigger ledger 保存 prepared 候选。缺精确批准时返回明确待批准而不 reserve/execute/start。可信 `CurrentTask.tsx` 展示原参数、候选、来源和安装身份，原生“批准此精确范围并执行”经原 Host 与 ledger 核验同一 request/candidate；在既有存储中写入精确批准和本请求批准并读回确认，再通知原 page 执行。原 reserve、check-consumed、Authority `withControllerAdmission`、controllerSubmitted、原 Task、持久结果和原聊天交付继续逐次围栏。新增待批准记录也不能绕过 Controller 提交保护；取消、撤权或 ACK 未知时不补发、不换身份。无新 Runner、Host、授权层或数据库。
+
+**真实两轮：** 普通 `/c/6ae9e75a-50a8-83ee-8a51-10e89c3ab42a`，最终开发 revision `d623f73025c1…`，真实 UI 确认 serve 已连接。
+
+| 操作 | candidateId | requestId | Run / Result |
+| --- | --- | --- | --- |
+| SDK 新范围 → 待批准 → 原生审阅执行 | `wf-f0515191-60cc-4c6f-81cd-3c4eb8d44eaf` | `00e759e2-81ca-4904-970e-eb4b50bdb7c4` | `3865425b-1432-4042-a594-cab2e1f8fcdb` / `cd4bb918-ccdd-4cd1-807f-d62e63d8e1cb` |
+| “请再按刚才的关键词搜索一次，仍取三条自然结果，并用这一次的返回重新总结。” | `wf-6ed1390b9a0d4d6fa5b0c9e04a31b82f` | `af3cdca7-21c1-41ff-a846-22c122e4a077` | `e30cdc82-9c47-4838-b51c-67800a5e4ce9` / `ed8d7f5c-099c-4b83-bce1-805d125f35d3` |
+
+第一轮在可信界面审阅 `OpenDesk Browser SDK / 3`、百度首页和原安装身份前，显示明确待批准、没有 Run/结果，发送前启动的只读观察器未见百度目标。原生批准后同一候选执行一次；第二轮未再次接入或批准。两次目标分别为 tab 759148605 / 759148607：独立 DOM 均记录首页空输入 → 填入 SDK 关键词 → 一次搜索 → 三条结果。按 Task 的 title/summary 截取合同逐条比较 slot、URL、标题和摘要，两轮真实 DOM、可信“查看完整结果”和原聊天完整 data 一致；执行 completed、同 Run 持久核验、released、每轮单条交付及官方 AI 完整续答分别确认。所有上述候选/请求/Run/结果均封存，禁止重放。
+
+**精确批准与负例：** 现行 `grants[taskId]` 仅保留一个精确范围，2026-11-03 22:04:43 的新批准替换原 `OpenDesk Browser / 3` 为 `OpenDesk Browser SDK / 3`，未扩为通配或并存授权。最终可信刷新确认 SDK 范围仍有效且总开关开启。旧关键词重新请求会待批准；候选 `wf-9c35d01c-71a3-4a65-9a88-4cb990be62ce` / request `41f685f0-0867-4bd0-84a1-31a17e7ec536` 经可信取消后，Run/Result 均 null，只读观察器零百度目标；迟到批准不恢复的竞争条件另由组件验证。五条请求被 AI 明确解释为 Schema 不支持，没有候选，没有偷改为三条。普通解释无 Task。最终候选下的原生 Stop 留下 `native-stop-witnessed`，明确本条未执行、零新 Task，不永久等候。
+
+**验证与驱动边界：** 定向组合 182 项通过；补充批准 ACK 丢失及批准持久写入期间取消后，两文件 28 项通过（其中 2 项新增，去重共 184 项）。验证新范围待批准、同请求执行、精确替换、权限/安装/来源、撤权、防重放、原生 Stop、结果及草稿/附件/IME 保护；未运行根全量测试。可信两组件 pin 仅更新本轮 Web Flow 项，保留并行 Cookie pin。旧 pin 曾阻止 dev 发布，修复 pin 后由同一 writer 恢复；未另起 writer 或复制静态扩展。
+
+原生驱动的菜单/窗口守卫、动画或被裁剪 AX 坐标先按驱动诊断：第一次坐标落在被裁剪内容，核对仍待批准后滚动到实际按钮再执行，未改产品适配坐标。证据读取器曾在第二轮 UI 上校验第一轮，断言正确拒绝；随后仅在原“开发 → 查询任务”按第一轮确切 runId 读取原持久快照，确认同 Result/released/完整 value，无任务重跑。主世界无法读可信 Shadow UI 的空结果未被当作执行证据。浏览器检查会话已 finalize，普通聊天和原 dev 服务保留。
+
+精简证据为 [normal-new-scope-20261103.json](../evidence/normal-new-scope-20261103.json)，料件扩展 NC-08–10，原始 DOM、AX、消息、真实原 Run 快照及日志仅留 `artifacts/webflow-auto-20261103/new-scope-01a1a19b/`。本轮仅 main 本地保存；预存 MCP 段落、并行 UI/预览、Cookie、ScrapyJS 和云控改动不混入，不推远端。MCP、production、Go Native 配对、跨对话编排、持久队列、完整原生撤权/代次/IME/UNKNOWN 故障注入、缩放压力及产品评分继续 NOT_TESTED/延期。
