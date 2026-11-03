@@ -2,6 +2,39 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,settle,base,records} from './capture-fixture.mjs';
 
+test('an idle saved tool releases the Host after restoration and workspace return',async t=>{
+ const {get,hostStates,posts}=await fixture(t);
+ for(let i=0;i<8;i++)await settle();
+ assert.deepEqual(hostStates.at(-1),{dirty:false,busy:false});
+ get('open-local-runner').dispatch('click');await settle();
+ get('close-local-runner').dispatch('click');await settle();
+ assert.deepEqual(hostStates.at(-1),{dirty:false,busy:false});
+ assert.equal(posts().length,0);
+});
+
+test('a restored structure task exposes recovery from the root and releases the Host only after original retirement',async t=>{
+ const structureRun={requestId:'original-structure-request',runId:'original-structure-run',mode:'structure',
+   status:'running',workerExited:false,pagesVisited:0,recordsCount:0,errors:[],previewPassed:false,
+   configHash:'original-structure-hash',fields:[],completeness:{}};
+ const {get,hostStates,calls,rows,posts}=await fixture(t,{structureRun});
+ for(let i=0;i<8;i++)await settle();
+ assert.equal(hostStates.at(-1).busy,true);
+ assert.ok(get('local-recovery'),'a hidden structure task must not silently trap Host Back');
+ assert.equal(get('local-recovery').hidden,false);
+ get('reopen-local-request').dispatch('click');await settle();
+ assert.equal(get('local-recovery').hidden,true);
+ assert.equal(get('capture-structure-recover').closest('[hidden]'),null);
+ get('close-local-runner').dispatch('click');await settle();
+ assert.equal(get('local-recovery').hidden,false,'closing a child must retain its original fence and recovery path');
+ get('reopen-local-request').dispatch('click');await settle();
+ structureRun.status='stopped';structureRun.workerExited=true;
+ get('capture-structure-recover').dispatch('click');for(let i=0;i<8;i++)await settle();
+ assert.equal(hostStates.at(-1).busy,false);
+ assert.equal(rows.get('local-structure-state').value.requestId,structureRun.requestId);
+ assert.equal(posts().length,0);
+ assert.equal(calls.some(c=>c.operation==='ai.generate'||c.operation==='ai.cancel'||c.operation==='controllers.start'||c.operation==='tasks.start'),false);
+});
+
 test('URL and page-budget errors are associated with the input before any structure or collection request',async t=>{
  const f=await fixture(t,{pendingAi:true}),{get}=f;
  get('open-local-runner').dispatch('click');for(let i=0;i<12;i++)await settle();

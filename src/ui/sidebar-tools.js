@@ -339,6 +339,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     })).catch(()=>{});}catch{/* Optional analytics stays silent. */}
   };
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
+  let toolParked=false;
   // Only an explicit trusted launch may become an open, after the real UI is ready.
   // Never equate a route locator, React remount, iframe load start or denied admission with usage.
   let pendingAnalyticsOpen=null;
@@ -1067,7 +1068,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Also retire a failed Prompt admission's installation-scoped Provider.
     trustedPromptPilot?.releaseConversation?.();
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
-    toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
+    toolDirty=false;toolSaving=false;toolParked=false;frameDraft='';clipPage=null;
     toolNavigation=null;navigationAllowed=false;
     bookmarkNavigation=null;bookmarkNavigationBack=null;
     bookmarkFallbackNotice='';
@@ -1485,7 +1486,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(pendingUninstallId&&!installed.some(row=>row.id===pendingUninstallId&&samePackage(row,pendingUninstallBaseline)))
       cancelRemovalReview();
     // Presentation facts from the installed-tool owner; never sandbox claims.
-    patchToolField(view, display, {hidden: !active,data:{toolId:active?.id||'',
+    patchToolField(view, display, {hidden: !active||toolParked,data:{toolId:active?.id||'',
       preview:readOnlyPreview,settingsOpen:tocSettingsOpen,
       enabled:Boolean(active&&!enableReadError&&sidebarToolEnabled(enableRecords,active.id))}});
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
@@ -1566,8 +1567,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         (clipNavigation&&clipPage!=='home'))?'返回上一级':'返回扩展列表';
     patchToolField(view,backButton,{title:backLabel});
     setToolFieldAttribute(view,backButton,'aria-label',backLabel);
-    taskWorkbench.setToolActive?.(Boolean(visible && active));
-    if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
+    taskWorkbench.setToolActive?.(Boolean(visible && active && !toolParked));
+    if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active && !toolParked?'active':'list';
   }
   function focusToolInList(id) {
     // The list is still hidden until React commits the suspended ToolHost.
@@ -1589,8 +1590,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setImportOpen(false);suspendTool();notice('');
     return true;
   }
+  const toolBusyNotice='当前工具仍有未完成的操作，请完成或停止原操作后再切换。';
   function canLeave(onApproved) {
-    if(toolSaving){notice('当前工具正在保存，请完成后再切换。',true);return false;}
+    if(toolSaving){notice(toolBusyNotice,true);return false;}
     // Prompt Shortcuts returns directly; pending and unknown writes report busy.
     if(active?.id===PROMPT_ID)return true;
     if(toolDirty||isDirty()){
@@ -1963,8 +1965,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // discard its draft or introduce a redundant leave-confirmation dialog.
     if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&
        samePackage(active,toolById(id))&&frameRevocationEpoch===(revocationEpochs[id]??null)&&
-       (frame?.isConnected||nativeUI))
+       (frame?.isConnected||nativeUI)){
+      if(toolParked){toolParked=false;render();syncFrameLayout();notice('');}
       return instance;
+    }
     if(launchGate&&active&&(toolSaving||toolDirty||isDirty())){
       notice('当前工具有未保存内容，请先保存或关闭，再重新从右键菜单启动。',true);return;
     }
@@ -2124,6 +2128,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed)return;
     // Do not dismiss a trusted import while an installation is in flight.
     if(!next&&visible&&busy)return false;
+    // A returned-to-list sandbox still owns its original pending operations.
+    // Hiding the workbench must not dispose/recreate that unresolved owner.
+    if(toolParked){visible=Boolean(next);if(!visible)setImportOpen(false);render();return;}
     if(!next&&visible&&!canLeave(()=>{
       suspendTool();
       if(destination&&destination!=='tools')taskWorkbench.navigate?.(destination);
@@ -3708,7 +3715,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='edit-state'){
       if(typeof message.dirty==='boolean'&&typeof message.busy==='boolean'){
-        toolDirty=message.dirty;toolSaving=message.busy;render();
+        toolDirty=message.dirty;toolSaving=message.busy;
+        if(!toolSaving&&status.textContent===toolBusyNotice)notice('');
+        render();
       }
       return;
     }
@@ -4757,7 +4766,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(action==='back'&&!toolNavigation.canBack||
        action==='primary'&&!toolNavigation.primary||
        action==='secondary'&&!toolNavigation.secondary)return false;
-    if(toolSaving){notice('当前工具正在处理操作，请完成后再切换。',true);return true;}
+    if(toolSaving){notice(toolBusyNotice,true);return true;}
     frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
       kind:'navigation-action',instance,toolId:active.id,action},'*');
     return true;
@@ -4772,6 +4781,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
+    if(toolSaving&&!readOnlyPreview&&frame?.isConnected){
+      toolParked=true;render();
+      notice('已返回扩展列表，原工具和未完成操作仍保留。重新打开「'+active.title+'」可继续查看；原操作结束前不能替换或更新。');
+      focusToolInList(id);return;
+    }
     if(closeTool())focusToolInList(id);
   });
   listen(primaryAction,'click',()=>{

@@ -845,10 +845,13 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   state(true,true);
   assert.equal(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/未完成的操作/,'busy does not prove a save is in progress');
   let prevented=false;
   const unloading={preventDefault(){prevented=true;}};
   f.win.emit('beforeunload',unloading);assert.equal(prevented,false);assert.equal(unloading.returnValue,undefined);
-  state(false,false);assert.notEqual(f.host.setVisible(false),false);
+  state(false,false);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true,'retirement clears its obsolete busy warning');
+  assert.notEqual(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
@@ -885,6 +888,36 @@ test('actual sandbox state object clears host dirty state only after busy work e
   assert.equal(f.host.closeTool(),true,'saved state needs no modal');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(sent.at(-1).kind,'edit-state');assert.equal(sent.at(-1).dirty,false);assert.equal(sent.at(-1).busy,false);
+});
+
+test('Host Back preserves a busy sandbox while returning to the list and other tabs',async t=>{
+  const other={...sample,id:'other-app'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]);
+  const f=await hostFixture(t,{store});
+  const send=(dirty,busy)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
+  send(true,true);
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true,'Back must expose the extension list');
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame,'the unresolved owner must remain mounted');
+  assert.equal(f.frame.isConnected,true);
+  assert.notEqual(f.host.setVisible(false,'workspace'),false,'other tabs may be shown without retiring this tool');
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  f.host.setVisible(true);
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true);
+  f.host.openTool(other.id);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame,'another tool cannot replace the unresolved owner');
+  assert.equal(f.host.closeTool(),false,'a view return is not a confirmed close');
+  f.host.openTool(sample.id);
+  assert.equal(f.elements['sidebar-tool-display'].hidden,false);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='load').length,1,'reopening must not reinitialize or replay');
+  f.ask('storage.get',{key:'notes'},'preserved-owner-read');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='preserved-owner-read'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='preserved-owner-read').ok,true);
+  send(false,false);
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.runtime.frameRoot.children.length,0,'ordinary close resumes only after confirmed idle');
 });
 
 test('Final R2 revocation during ETag digest prevents a write that has not started',async t=>{

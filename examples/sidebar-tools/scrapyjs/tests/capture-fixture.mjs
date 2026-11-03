@@ -12,12 +12,13 @@ export const settle=()=>new Promise(resolve=>setImmediate(resolve));
 export const base={url:'http://127.0.0.1:43233/page-1.html',itemConfig:{_listContainer:'#books',_listItem:':scope > li',id:'.::data-id',title:'h2::text',price:'.price::text'},nextPageSelector:'a.next',maxPages:50,dedupeKey:'id'};
 export const records=[['A','浏览器工具','19.50'],['B','本地任务','25.00'],['C','声明式采集','30.00'],['D','持久结果','0.00'],['E','精确分页','42.25'],['F','停止与恢复','']].map(([id,title,price])=>({id,title,price}));
 
-export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,saveConfig=null,empty=false}={}){
+export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,saveConfig=null,empty=false,structureRun=null}={}){
   const saved={...base,maxPages:10};
   const rows=new Map([['capture-config',{value:empty?null:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
-  const calls=[];let run;
+  rows.set('local-structure-state',{value:structureRun?{schemaVersion:1,requestId:structureRun.requestId,runId:structureRun.runId,mode:'structure'}:null,etag:'0'});
+  const calls=[],hostStates=[];let run;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
-  const tool={prepareAI:prepareAiFixture,setState(){},request:async(operation,payload)=>{
+  const tool={prepareAI:prepareAiFixture,setState(value){hostStates.push(structuredClone(value));},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get')return structuredClone(rows.get(payload.key));
     if(operation==='storage.set'){
@@ -30,6 +31,10 @@ export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,sa
     if(operation==='ai.cancel')return {requestId:payload.requestId,state:'unknown'};
     if(operation==='localTasks.export')return {started:true,downloadId:42};
     if(operation==='localTasks.request'){
+      if(structureRun&&payload.path==='/v1/runs/'+structureRun.runId){
+        if(payload.method==='POST')throw Error('unexpected structure mutation');
+        return structuredClone(structureRun);
+      }
       if(payload.path.includes('/records?'))return {records:run.recordsCount?structuredClone(records):[],total:run.recordsCount,offset:0};
       if(payload.method==='POST'&&payload.path==='/v1/runs'){
         const {requestId,mode,config,previewRunId}=payload.body;
@@ -47,5 +52,5 @@ export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,sa
   },props:{show:true}});
   ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0});
   await settle();await settle();
-  return {ui,calls,rows,get:id=>ui.doc.getElementById(id),edit(id,text){const node=ui.doc.getElementById(id);node.value=text;node.dispatch('input');},posts:()=>calls.filter(row=>row.operation==='localTasks.request'&&row.payload.method==='POST'&&row.payload.path==='/v1/runs')};
+  return {ui,calls,rows,hostStates,get:id=>ui.doc.getElementById(id),edit(id,text){const node=ui.doc.getElementById(id);node.value=text;node.dispatch('input');},posts:()=>calls.filter(row=>row.operation==='localTasks.request'&&row.payload.method==='POST'&&row.payload.path==='/v1/runs')};
 }
