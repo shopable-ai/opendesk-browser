@@ -77,12 +77,18 @@ async function mount(t,host=sdk()){
   return f;
 }
 
-test('opening the real Web Flow React root renders usable navigation and fixed tasks',async t=>{
-  const f=await mount(t);
+test('opening Web Flow recognizes the verified Baidu upgrade by its exact package identity',async t=>{
+  const pkg=JSON.parse(readFileSync(new URL('../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  const host=sdk();
+  host.pins[0]={taskId:pkg.manifest.taskId,version:pkg.manifest.version,
+    manifestHash:pkg.manifestHash,contentHash:pkg.manifest.program.sourceHash,
+    installationId:'install-'+pkg.manifest.taskId,generation:2};
+  const f=await mount(t,host);
   assert.deepEqual(f.errors,[]);
   await f.click('脚本');
   assert.match(f.text(),/百度搜索/);
-  assert.match(f.text(),/可手动运行/);
+  assert.match(taskCard(f).textContent,/可手动运行/);
+  assert.ok(taskCard(f).textContent.includes(pkg.manifest.version));
 });
 
 const starts=host=>host.calls.filter(c=>c.name==='tasks.start');
@@ -293,7 +299,7 @@ test('Stop during pending clear does not permanently desynchronize the original 
 test('querying a locally staged step preserves confirmation and local cancellation creates zero Runs',async t=>{
   const host=sdk(),f=await mount(t,host);await prepare(f);await f.click('记录');await f.click('查询原请求');
   assert.equal(f.find('确认手动运行').disabled,false);
-  assert.match(f.text(),/百度搜索/);assert.match(f.text(),/1.1.1/);assert.match(f.text(),/https:\/\/www.baidu.com/);
+  assert.match(f.text(),/百度搜索/);assert.ok(f.text().includes(config.delegatedTasks[0].version));assert.match(f.text(),/https:\/\/www.baidu.com/);
   await f.click('取消未运行步骤');assert.equal(host.store.get('webflow.pending.v1'),null);assert.equal(starts(host).length,0);
   assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0,'no platform request was dispatched');
 });

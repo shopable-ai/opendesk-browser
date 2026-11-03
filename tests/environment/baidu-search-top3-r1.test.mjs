@@ -12,7 +12,7 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
-  assert.equal(pkg.manifest.version,'1.1.1');
+  assert.equal(pkg.manifest.version,'1.1.2');
   assert.equal(pkg.manifest.program.revision,1);
   assert.equal(pkg.manifest.deadlineMs,60000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);

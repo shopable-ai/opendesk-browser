@@ -10,8 +10,8 @@
   }
   const h=(name,props,...children)=>R.createElement(name,props,...children);
   const PINNED=Object.freeze([
-    Object.freeze({taskId:'baidu.search.top3',version:'1.1.1',
-      manifestHash:'adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b',
+    Object.freeze({taskId:'baidu.search.top3',version:'1.1.2',
+      manifestHash:'6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5',
       contentHash:'28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8',
       title:'百度搜索 · 前三条自然结果',site:'https://www.baidu.com',icon:'百'}),
     Object.freeze({taskId:'google.search.top3',version:'1.0.0',

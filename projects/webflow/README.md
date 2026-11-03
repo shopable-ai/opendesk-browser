@@ -6,11 +6,11 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 ## 当前状态
 
-当前核心是 **ChatGPT 新完整回复 → 严格五字段协议 → 已批准的固定脚本 → 持久结果与原聊天反馈**。已安装百度脚本的两次自动执行、结果回读及关闭/防重复证据保留在执行计划第 12.11.3 节，继续直接复用。
+当前核心是 **ChatGPT 新完整回复 → 严格五字段协议 → 已批准的固定脚本 → 持久结果与原聊天反馈**。2026-11-03，当前持续开发环境已完成百度任务 1.1.2 的真实验证与原位升级，并在同一精确批准及开关不变下完成两个空白 ChatGPT 对话的首发自动执行。每轮真实百度 DOM、同 Run 持久结果、资源释放、侧栏及原聊天完整数据的单次交付均已核对，见[本轮实测证据](evidence/authorized-two-rounds-20261103.json)及执行计划第 12.11.13 节。
 
-v0.3.5 修正概览中的旧“未接入”信息。当前 Browser 的可信“当前任务”已接入自动任务进度、同次持久结果、具体错误、原请求停止及手动/一次批准控件；真实固定提示词 → 协议 → 百度网页 → 侧栏结果与原聊天交付已通过本次核心测试，见执行计划第 12.11.6 节。当前 Browser 的可信“任务范围与授权”先展示已有批准，可从有效批准直接生成并复制本次 ChatGPT 指令；每次生成新 candidateId，复用原任务、精确地址及参数，不运行任务、不改变批准或开关。指令采用单段文本及 JSON Unicode 网址转义，避免官网把输入围栏或富链接转换后破坏精确发送见证。该可信组件随 Browser 固定编译，单独升级工具 JSON 不会更新它；最新原生验证等级见执行计划。
+v0.3.6 同步沙箱中的百度固定任务为已验证的 1.1.2，解决升级后仍显示旧版本不可用的问题；唯一正式包已经原位更新到本机。当前 Browser 的可信“当前任务”展示自动进度、同次持久结果、资源释放和原聊天交付；“任务范围与授权”可从有效批准生成每次新 candidateId 的 ChatGPT 指令，生成本身不运行任务、不改变批准或开关。指令采用单段文本及 JSON Unicode 网址转义，保护精确发送见证。可信组件随 Browser 固定编译，工具 JSON 不替换它；本轮未修改该组件或运行时身份校验。
 
-最新反例与修复见[执行计划第 12.11.9 节](docs/execution-plan.zh-CN.md#12119-首条发送临时路由与结果隔离修复真实首发发现已证明执行被运行时身份阻止2026-11-03)及[本轮实测记录](evidence/new-conversation-20261103.json)。空白对话首条原生发送现已跨过 `local-chatgpt` 临时路由，自动发现完整协议并进入原 Host；原百度任务因内置运行时身份变化被安全拒绝，当前构建的百度执行、同次结果/释放/交付及连续两轮仍未通过。原安装和批准保留，未重装或改 pin 绕过。
+历史首发反例及修复见[执行计划第 12.11.9 节](docs/execution-plan.zh-CN.md#12119-首条发送临时路由与结果隔离修复真实首发发现已证明执行被运行时身份阻止2026-11-03)及[当时实测记录](evidence/new-conversation-20261103.json)。旧任务的运行时拒绝已沿原 Candidate → Verification → Available → Installed 链解除；1.1.2 与 1.1.1 源码逐字相同，未改 SHA/ABI 校验。原 installationId 保留，generation 升至 2，再经可信原生审核恢复同一百度首页及固定参数批准；本轮两次首发均先绑定正式 `/c/` 再自动准入。
 
 前一候选的单次成功保留在[历史实测结论](evidence/core-auto-20261103.json)。[提示词 A](tests/manual-auto-baidu-a.prompt.txt) 已在用户现场观察到发送，禁止重放；[提示词 B](tests/manual-auto-baidu-b.prompt.txt) 的历史准备状态未重新核实。以后使用新 candidateId；运行时阻塞解除前不要把发送新候选当作补跑。正式 MCP 链仍未验证。
 
@@ -83,14 +83,14 @@ v0.3.5 修正概览中的旧“未接入”信息。当前 Browser 的可信“�
 
 本轮正式 UI 已在项目内实装；工作流/Bridge 的真实恢复等级仍以原记录为准，不要把离线单元成绩转记到正式应用。
 
-## V0.3.5 正式 UI / 安装与验证
+## V0.3.6 正式 UI / 安装与验证
 
 - 入口：在 OpenDesk Browser「扩展」使用原安装器审阅 `projects/webflow/webflow.opendesk-tool.json`，安装后打开 Web Flow；本项目不安装第二个 Chrome 扩展，不插入新的宿主 React Root。版本与 SHA 以本次同源包及执行计划 AWB-07 回执为准；升级沿用同一 ID、原安装审阅和原数据，HTML 预览不是安装入口。
-- 固定委托：仅 `baidu.search.top3@1.1.1` 与 `google.search.top3@1.0.0`（确切 manifest/content Hash 随工具包冻结）。这不是“所有已安装脚本”的列表；安装变动或权限缺失只给出不可用状态，不尝试回退到同名任务。
+- 固定委托：仅 `baidu.search.top3@1.1.2` 与 `google.search.top3@1.0.0`（确切 manifest/content Hash 随工具包冻结）。这不是“所有已安装脚本”的列表；安装变动或权限缺失只给出不可用状态，不尝试回退到同名任务。本机百度已可用；Google 安装/授权不可用，未纳入本轮通过结论。
 - 手动运行：在「脚本 → 运行」填写参数，点击「保存运行步骤」后，先通过原 AppStorage 的 CAS 写入并读回稳定 `clientRequestId`、六字段 Task 安装身份和输入；再点击「确认手动运行」，该点击内同步调用 `tasks.start({clientRequestId,task,params})`。这两个动作分别保存步骤和执行网页操作，不增加依赖或权限批准。保存失败不派发，连续点击不会重复派发。本实例尚未提交时，“查询”保留确认入口，“取消未运行步骤”只取消本地步骤且不调用 Task；取消保存失败可重试取消同一步骤，永不恢复运行确认；已重开的未知步骤继续仅查询/停止。
 - 恢复与停止：关闭重开后在「记录 → 原步骤 → 查询原请求」使用保存的原 ID 调用 `tasks.read({clientRequestId})`；「停止原请求」调用 `tasks.stop({clientRequestId})`，start ACK 未到时仍可停止。旧摘要也可从原记录查询，但摘要不是权威结果，结果正文仅来自本次通过授权的 SDK 回包。查询超时、无记录、UNKNOWN 和未释放均不生成新 ID 补跑。
-- 阶段与边界：同一 Run/Result 的持久结果和 `retirementState === 'released'` 分开显示；未释放时不放开新的步骤，不自动续跑 B。仅保存、未确认运行就关闭的步骤也按未确认状态保留，只允许查询/停止，不把重开当成运行许可。需要包含 J06 恢复实现的 Browser 候选；更新工具 JSON 不会把旧 Browser 的固定 Host/Authority 一并更新。当前真实加载路径、serve 和候选安装身份未核实，不能声称已在用户 Chrome 生效。
-- 自动运行：在 Web Flow 宿主页头下操作可信滑块；展开“任务范围与授权”，先复用已有有效批准，例如 `baidu.search.top3@1.1.1`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}`。点击“生成 ChatGPT 指令”→“复制指令”，确认上方自动运行已开启后，在原 ChatGPT 对话粘贴并发送。每次新任务先生成新指令，不重复用旧候选。只有随后唯一完整助手回复的 `opendesk-task` 代码块内 `webflow.task.intent.v1`（严格 protocol/candidateId/taskId/targetUrl/args）可触发；用户消息、历史、引用和流式内容不触发。批准和开关即时保存，关闭只阻止未来准入；已开始的任务在上方可信“当前任务”停止；手动/一次批准也可从该区操作。进度、同次持久结果、资源释放和原聊天交付分别显示在“当前任务”，结果仍回原聊天，本应用“记录”只显示手动请求。旧 `opendesk.task.intent.v1` 的手动/五分钟路径保留。固定可信组件随 Browser 更新，单独安装此 JSON 不会更新旧 Browser 的监听器/授权控制器。
+- 阶段与边界：同一 Run/Result 的持久结果和 `retirementState === 'released'` 分开显示；未释放时不放开新的步骤，不自动续跑 B。仅保存、未确认运行就关闭的步骤也按未确认状态保留，只允许查询/停止，不把重开当成运行许可。需要包含 J06 恢复实现的 Browser 候选；更新工具 JSON 不会把旧 Browser 的固定 Host/Authority 一并更新。本轮已核实持续开发路径、serve、任务及应用安装；手动恢复的真实 Chrome 专项仍为 NOT_TESTED。
+- 自动运行：在 Web Flow 宿主页头下操作可信滑块；展开“任务范围与授权”，先复用已有有效批准，例如 `baidu.search.top3@1.1.2`、`https://www.baidu.com/`、`{"query":"OpenDesk Browser","limit":3}`。点击“生成 ChatGPT 指令”→“复制指令”，确认上方自动运行已开启后，在原 ChatGPT 对话粘贴并发送。每次新任务先生成新指令，不重复用旧候选。只有随后唯一完整助手回复的 `opendesk-task` 代码块内 `webflow.task.intent.v1`（严格 protocol/candidateId/taskId/targetUrl/args）可触发；用户消息、历史、引用和流式内容不触发。批准和开关即时保存，关闭只阻止未来准入；已开始的任务在上方可信“当前任务”停止；手动/一次批准也可从该区操作。进度、同次持久结果、资源释放和原聊天交付分别显示在“当前任务”，结果仍回原聊天，本应用“记录”只显示手动请求。旧 `opendesk.task.intent.v1` 的手动/五分钟路径保留。固定可信组件随 Browser 更新，单独安装此 JSON 不会更新旧 Browser 的监听器/授权控制器。
 - 非当前阶段：全局脚本枚举、跨 App/Bridge 的完整历史、多步骤流程与跨对话。原回传保留；本次自动核心链及单次聊天交付已有同一开发候选证据，手动/一次批准/停止的新增侧栏入口原生实测仍为 NOT_TESTED。旧网页浮层暂保留，本次操作未使用它。
 - 测试：`node --check projects/webflow/src/ui/{model,main}.js`（shell 不支持括号扩展时分开运行）；`node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs`；`node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json`；成功后按打包 Skill 晋升及 `--check-project` 核对。隔离 UI 点击夹具：`node projects/webflow/tests/webflow-ui-server.mjs`，打印独占本地端口、输入 SHA；只加载本项目真实源码与 React，模拟 SDK 不使用真实 Task/用户记录。GitHub `.github/workflows/webflow-package.yml` 在项目 UI 源码变更后执行原打包器和测试，仅在显式 `workflow_dispatch` 时才把通过门禁的 JSON 写回 main；普通推送不自动发布包。既有 CI `41336225689` 已经完成包级写入与读回。
 - 真实 Chrome 验收：安装包、安装审阅、固定 Task 已安装、目标网页授权、实际提交/结果/用户手势/关闭恢复、Bridge 交付，须在用户本机 Development Side Panel 使用本仓库真实版本逐项测，不能由 HTML 或 Node 自动通过代替。

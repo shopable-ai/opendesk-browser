@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "recordedDate": "2026-11-03",
+  "stage": "development-core",
+  "newGoalEstablished": true,
+  "sourceBaseCommit": "dc3ecf7f7b8a0fc4ed8d6850bee11044abe2952c",
+  "authorization": "explicit user authorization in execution-plan 12.11.12 supersedes previous upgrade-pending records",
+  "environment": {
+    "mode": "continuous-development",
+    "extensionPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "serveConnected": true,
+    "buildRevision": "6bd1298cb1b9465398979e2400de90484ef15e620cfc3c1afacaac7d8e2d5ea2",
+    "chromePid": 516,
+    "writerPid": 15593,
+    "ports": [
+      43119,
+      43120
+    ]
+  },
+  "upgrade": {
+    "taskId": "baidu.search.top3",
+    "from": "1.1.1",
+    "to": "1.1.2",
+    "route": [
+      "Candidate",
+      "native validation",
+      "verified durable result and released",
+      "Available",
+      "Installed",
+      "trusted exact scope review"
+    ],
+    "sourceBytesUnchanged": true,
+    "permissionsUnchanged": true,
+    "deadlineMs": 60000,
+    "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+    "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+    "validationRunId": "7c4e30d3-1341-440f-8bf5-b80579c7234e",
+    "validationResultId": "a08aae4f-b09d-4991-8a18-8b07225f29ff",
+    "installation": {
+      "version": "1.1.2",
+      "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+      "scriptId": "task:baidu.search.top3:1.1.2",
+      "revision": 1,
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+      "generation": 2
+    },
+    "verifiedAndExecutedBuiltinIdentity": {
+      "abi": "opendesk-builtins.v10",
+      "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "bundleSha256": "78012cedf6b9711a6bbb719914ce80e36c6e536ed13139dd1b1b3b4979b12db0"
+    }
+  },
+  "approval": {
+    "enabled": true,
+    "epochBeforeRound1": 11,
+    "epochAfterRound2AndToolUpgrade": 11,
+    "approvedAtLocal": "2026-11-03 14:28:22 +08:00",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser",
+      "limit": 3
+    },
+    "sameApprovalAndSwitchForBothRounds": true,
+    "perCandidateAdoptExecuteOrApprovalClicks": 0
+  },
+  "rounds": [
+    {
+      "candidateId": "wf-8031cf4d-3148-4838-82b8-e3f731d3bcbd",
+      "conversationUrl": "https://chatgpt.com/c/6ae97f63-1d34-83e8-9802-d4cbda50eaed",
+      "sourceUserMessageId": "e6161e58-0309-4a46-9090-bd347bf0b8af",
+      "sourceAssistantMessageId": "fcbb00fb-217d-42b5-9907-307a343f85c1",
+      "requestId": "9d036636-fbc7-40bb-b718-855319427903",
+      "runId": "56626c74-258e-4f6a-bf4f-777480900d1d",
+      "resultId": "0e984b5e-d98d-4409-bf5e-5bacc75ca027",
+      "resultMessageId": "630a1a30-4881-437e-8c48-0aef81ccc88b",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "observedAt": "2026-11-03T06:31:14.452Z",
+      "businessStatus": "success",
+      "count": 3,
+      "persistence": "verified",
+      "release": "released",
+      "delivery": "confirmed",
+      "resultMessageCount": 1,
+      "strictFiveFieldIntent": true,
+      "nativeFirstSendWitnessed": true,
+      "formalConversationBoundBeforeAdmission": true,
+      "independentDomMatchesFullResult": true,
+      "sidebarMatchesFullResult": true,
+      "fullChatDataMatchesDurableResult": true,
+      "resultValueSha256": "389a56d361cd938fd860c1a039542b2accf39ac582400854acb95cb5fee3f63d",
+      "titles": [
+        "OpenDesk | OpenDesk",
+        "openDesk - OpenProject brings open source project management to openDesk",
+        "OpenProject 13.1: Share work packages, dynamic meetings and much more"
+      ]
+    },
+    {
+      "candidateId": "wf-524d7d61-5810-4fc5-8926-8f704ff92b0a",
+      "conversationUrl": "https://chatgpt.com/c/6ae98028-e114-83ec-9788-b19411918b50",
+      "sourceUserMessageId": "d9e7c322-8bac-4c03-97cc-951938b1fcaf",
+      "sourceAssistantMessageId": "2ce98487-6cbe-40a6-b5d4-e0c3fb22b932",
+      "requestId": "41e3c676-63c0-41b0-8516-57f9a9d7790a",
+      "runId": "b713b1e8-54fd-4627-ab42-21f5a101db64",
+      "resultId": "9e60af94-762c-4635-99c5-48493433360b",
+      "resultMessageId": "6debdb6f-0cea-4393-97c5-c75fb2f67fe1",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "observedAt": "2026-11-03T06:34:01.798Z",
+      "businessStatus": "success",
+      "count": 3,
+      "persistence": "verified",
+      "release": "released",
+      "delivery": "confirmed",
+      "resultMessageCount": 1,
+      "strictFiveFieldIntent": true,
+      "nativeFirstSendWitnessed": true,
+      "formalConversationBoundBeforeAdmission": true,
+      "independentDomMatchesFullResult": true,
+      "sidebarMatchesFullResult": true,
+      "fullChatDataMatchesDurableResult": true,
+      "resultValueSha256": "6a64477e93cae61fa8e1a703a70a72d455ecc443ca5edd725939d6e56eb1c634",
+      "titles": [
+        "OpenDesk | OpenDesk",
+        "openDesk - OpenProject brings open source project management to openDesk",
+        "OpenProject 13.1: Share work packages, dynamic meetings and much more"
+      ]
+    }
+  ],
+  "resultIsolation": {
+    "secondBlankConversationShowsNoFirstResult": true,
+    "stableSingleResultMessagePerConversation": true,
+    "oldRejectedCandidatesNotReplayed": true
+  },
+  "uiFollowup": {
+    "nativeFailureBefore": "sandbox still pinned baidu 1.1.1 and displayed unavailable after Task upgrade",
+    "changedFiles": [
+      "projects/webflow/src/ui/main.js",
+      "projects/webflow/tool.config.json"
+    ],
+    "toolFrom": "0.3.5",
+    "toolTo": "0.3.6",
+    "toolSha256": "9bc9f33762f339294becfd1d5c5764a3fb7815a7f46c2e66d5ec69d4b66b71a0",
+    "samePackagerCandidateTestPromoteCheck": true,
+    "installedViaOriginalTrustedUI": true,
+    "baiduShownAvailableInRealSandbox": true,
+    "automaticBridgeAndBuiltinSourcesChanged": false,
+    "postUpgradeApprovalAndCompletedReceiptPreserved": true
+  },
+  "checks": {
+    "uiAndDelegationPackage": {
+      "passed": 39,
+      "failed": 0
+    },
+    "taskPackageIdentity": {
+      "passed": 1,
+      "failed": 0
+    },
+    "syntax": "PASS",
+    "projectPackageSameSource": "PASS",
+    "reusedAutomaticBoundaryEvidence": [
+      "12.11.9: 138 targeted checks",
+      "12.11.11: 29 Host/settings checks"
+    ]
+  },
+  "conclusions": {
+    "currentBuildAutomaticTwoRounds": "PASS_NATIVE",
+    "candidateValidationAndTaskUpgrade": "PASS_NATIVE",
+    "toolUpgradeAndBaiduAvailability": "PASS_NATIVE"
+  },
+  "deferred": {
+    "MCP": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "crossConversationOrchestration": "NOT_TESTED",
+    "persistentQueue": "NOT_TESTED",
+    "fullMatrixAndScoring": "NOT_TESTED",
+    "manualRecoveryNativeSpecialists": "NOT_TESTED",
+    "GoogleTask": "NOT_TESTED"
+  },
+  "rawEvidenceDirectory": "artifacts/webflow-auto-20261103/authorized-01a1a00e",
+  "rawEvidenceSha256": {
+    "round1-blank.json": "f8b5be9a0db2c3f98183ce5003c5173147c3ec283fc6422454787108a88a2dd3",
+    "round1-filled.json": "71522712573ceab3d92f0306c2a828e0adcbdca89f7a49ec03f6519c19116773",
+    "round1-chat-final.json": "6344456579f664a5805e3913cd6bfa3d0d5122a3032bfebac89e2b0b73d22b32",
+    "round1-dom-final.json": "2a504059f9217b648ef53a3462a42170d1ada57f0f315aa4db49ff77dc3daf13",
+    "round1-ui-value.json": "0b92b23979fb19b0f698e2a5794e5abc2b1532e0b94ae80d7ddfb5fae90f61ec",
+    "round1-final.ax.txt": "77e7f5076b98a33c67e0c93aa1eeb5f7882a200577cb0897c78dfedc794828d1",
+    "round1.dom.jsonl": "80cc32dcd9c237404228fc36794da25926563714a1b299e80fb4af8c0d01e6b6",
+    "round2-blank.json": "f8b5be9a0db2c3f98183ce5003c5173147c3ec283fc6422454787108a88a2dd3",
+    "round2-filled.json": "cf1da485b91c10599aa5eeb78c7b2215f163681c2a99ed2b197ca6b59b803816",
+    "round2-chat-final.json": "e85b3b0aeb43aece7558d4b2d806e56c1a53295f086e871505bab009bf317d6d",
+    "round2-ui-value.json": "6cead5f480ad97830e2db3c67fc68740150f4b564002af83baa9b92ca00fcca2",
+    "round2-final.ax.txt": "c25a0757a87f185e321d1104ecde8b365e0aaf9f0915100682c141131d14da6f",
+    "round2.dom.jsonl": "6a083f9338a1e5042497f698c302d15ac139ede83c058b761fafbe89728f8398",
+    "validation-durable-history.json": "2ae4d57e7e089a04b1bb1d4d10d73b51ea59c742e6aeee9249740f33102821d5",
+    "two-round-durable-history.json": "d4e2e8ee405625055f03e0e4cc4a5672c0bf0737b88569eeb34f1addc39de31c",
+    "verification-checked.ax.txt": "a819f592502759f64321de8e2cb7b6363bd85397d8ff6c4ecc60355a157e06c9",
+    "available.ax.txt": "4e5fc7cb6541ff0f82304f73e306c57e3ee6f525daaafa53f144c6fecef915ba",
+    "installed.ax.txt": "f28d4f7a089c8a91cfab524d0b2bd434ea49360095c579fd102100119acd4edc",
+    "approval-review.ax.txt": "d706ee24f76d028be3ca80ce98f6ea56d68c8840c774f0b7148ee54ffa157407",
+    "approved.ax.txt": "e6ea4e46fc93f37d55ec3e4b75d451089c54f6bf2639126a7c7d9f31bb23a67a",
+    "upgrade-installation.json": "d900be89aa609cefe64cf1665a2251a2b09ec1a17d277b400ff4e9bb48da7481",
+    "final-grant.ax.txt": "192afa835c406eab421f92b0293470a2d8af15d2304660220b34eb863dde7915",
+    "tool-upgrade-review.ax.txt": "d7225c7d3bccc0ac441193563190e4d1776f567add984156f83e5cdb7d904979",
+    "tool-updated.ax.txt": "3e8dc23d862b5b19de51ee58075de4f2fec6ec250fce0909df344f372b113977",
+    "final-scripts.ax.txt": "95a6dbe5e3ba0e56f343979b59f33920ffc43915221dd73099981f9c0bfdba13",
+    "extension-path.ax.txt": "0e67b33796d6ffb837bdf77f930081a268b38f7b99d5d0ad897abc4989079955",
+    "final-dev.ax.txt": "3b3a0a8bafe59b619a61636fe8dbb6b1328e779a79a8ea902323f88e85587a07",
+    "ui-pin-red.log": "37c2a3c7c94d80c092dbd00df0010ace37a6a209ca1f9528ff5697cf6bd13a2b",
+    "ui-package-tests.log": "00b35ac53e281ac0ee373f1075d359cb76e84d91270800be8aea1ea008bad13d",
+    "task-package-tests.log": "48f4d38d6e04e6a5f80d938e73c6f1db4f1ff6c1fbfaf2995c2e7dafe33886ff"
+  }
+}

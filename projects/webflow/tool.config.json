@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "webflow",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "title": "Web Flow",
   "description": "ChatGPT 固定协议自动运行使用引导；复用可信任务批准、原聊天结果，以及手动运行、原步骤查询与停止。",
   "capabilities": [
@@ -19,8 +19,8 @@
   "delegatedTasks": [
     {
       "taskId": "baidu.search.top3",
-      "version": "1.1.1",
-      "manifestHash": "adf0cc21e1aa498b169846256f92cf65da42f3c9d27011b29205e164f26bea4b",
+      "version": "1.1.2",
+      "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
       "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8"
     },
     {
