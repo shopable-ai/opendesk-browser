@@ -23,7 +23,8 @@ test('Host denial precedes result bytes; later denial keeps the marked draft wit
       elements.push(node);return node;
     };
     const listeners=new Map();
-    const doc={getElementById:()=>null,createElement:element,body:element('body'),
+    let mounts=0;const body=element('body');body.append=(...children)=>{mounts+=children.length;};
+    const doc={getElementById:()=>null,createElement:element,body,
       addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type)};
     const url='https://chatgpt.com/c/test-12345678';
     const win={location:{href:url,origin:'https://chatgpt.com'},setInterval:()=>1,
@@ -70,6 +71,9 @@ test('Host denial precedes result bytes; later denial keeps the marked draft wit
     }}};
     const bridge=initChatGPTFixedBridgePage({api,doc,win,site,
       readPage:()=>({ok:true,turnKey:'turn-1',answerKey:'answer-1',blocks:[JSON.stringify(request)]})});
+    assert.equal(mounts,0,'retired ChatGPT floating UI must not be mounted');
+    assert.equal(initChatGPTFixedBridgePage({api,doc,win,site,readPage:()=>({ok:false})}),null,
+      'detached UI still requires one instance per document');
     const buttons=elements.filter(node=>node.tag==='button');
     await buttons[0].listeners.click({isTrusted:true});
     assert.equal(writes,1);snapshot.draft=''; // user sent the prepared request

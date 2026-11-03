@@ -47,6 +47,13 @@ v0.3.6 同步沙箱中的百度固定任务为已验证的 1.1.2，解决升级�
 
 旧的 `docs/product/ai-workflow-bridge.zh-CN.md` 和 `docs/framework/workstreams/web-flow-20261101.md` 仅保留迁移入口，不再维护第二份正文或进度。后续更新本项目内文档，不按聊天新建总 GOAL。
 
+## ChatGPT 旧任务浮层退役（2026-11-04）
+
+- **用户入口保留在 Web Flow 与 Browser 可信任务面板**。ChatGPT 官网不再注入「OpenDesk · 浏览器任务」旧浮层；原先已批准任务、去重与结果回传不因隐藏而失效。旧 UI 仅能由固定第一方测试/调试入口显式启用，网页与模型不提供开关。
+- 旧 Bridge 的站点实现归 `projects/webflow/trusted/chatgpt-bridge-page.js`，旧 DOM 单独归 `projects/webflow/trusted/legacy-chatgpt-panel.js`；`src/native-agent/chatgpt-fixed-bridge-page.js` 仅提供原有命名导出的兼容入口。这两个文件是 **Browser 固定编译的第一方可信 Content 代码**，不是可经 Sidebar Tool JSON 执行的沙箱脚本。旧手动/聊天授权功能仍为兼容路径，不应成为新 UI 的第二入口。
+- `scripts/bundle-provenance.mjs` 对两份业务模块各自固定 Git blob SHA，且只允许打入 `agents/chatgpt-fixed-bridge.js`；变更须审查并重置精确 pin，不能扩大到 SW、Sidebar 或通用 Page 程序。
+- 暂保留旧 DOM 对象作为历史状态投影及控制器内部依赖，但不挂载到页面；未来如要删除这部分状态，须先将 Bridge 改成不依赖 DOM 的纯状态模型。**本次不宣称侧栏关闭后仍能继续执行**，该能力依赖 Background/RunHost 的独立验收。
+
 ## 应用与框架的分工
 
 **Web Flow 是框架的业务消费者。** 本项目承载工作流的业务规则、任务衔接、上下文交接与结果展示；OpenDesk Browser 保持通用浏览器能力、执行授权、生命周期、安装和存储职责。

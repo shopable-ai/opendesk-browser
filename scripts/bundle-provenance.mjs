@@ -24,15 +24,22 @@ const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'a365dafbe226978e163f4db67c2b9b7e5eb65ac8',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
+  // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'9871466e353075d400d988b345dd2becdddd3327',
+  'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
   'projects/webflow/trusted/AutoSettings.tsx':'cdd873c03d9e2138d1a9e8bdccc49d54826b857f',
   'projects/webflow/trusted/CurrentTask.tsx':'82d2eca97d5a909737c0d8d7a7f80366f8d260fb',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){
-  if(!Object.hasOwn(compiledWebFlowInputs,path)||
-    !(path.startsWith('projects/webflow/trusted/')?target==='ui/tool-shell.js':
-      ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target)))return null;
+  if(!Object.hasOwn(compiledWebFlowInputs,path))return null;
+  const siteAdapter=path==='projects/webflow/trusted/chatgpt-bridge-page.js'||
+    path==='projects/webflow/trusted/legacy-chatgpt-panel.js';
+  const allowed=siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
+    path.startsWith('projects/webflow/trusted/')?target==='ui/tool-shell.js':
+      ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
+  if(!allowed)return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Web Flow source must not be a symlink: '+path);
   const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
