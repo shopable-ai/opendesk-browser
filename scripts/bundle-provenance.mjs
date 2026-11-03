@@ -21,10 +21,12 @@ const compiledTimeReviewInputs=Object.freeze({
 // Web Flow's trigger policy is pure data validation; only its compiled settings
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
-  'projects/webflow/src/auto-grants.js':'db7b5aad4d0b5f19de518659f361e3a8458e4a8a',
+  'projects/webflow/src/auto-grants.js':'a365dafbe226978e163f4db67c2b9b7e5eb65ac8',
+  // Reviewed bounded keyword policy shared by the ledger and compiled controls.
+  'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'76f6526fabdb3336d8a07c3dd4703b7c83aab166',
-  'projects/webflow/trusted/CurrentTask.tsx':'0ca9c7401abddf81f17e3d00b656e23f47df831b',
+  'projects/webflow/trusted/AutoSettings.tsx':'cdd873c03d9e2138d1a9e8bdccc49d54826b857f',
+  'projects/webflow/trusted/CurrentTask.tsx':'82d2eca97d5a909737c0d8d7a7f80366f8d260fb',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){

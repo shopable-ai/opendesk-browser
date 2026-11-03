@@ -159,6 +159,21 @@ test('privileged entries reject historical, user project and standalone vendor m
     assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',modules:{['/repo/'+path]:{}}},root,lock}),/cannot enter/);
   assert.throws(()=>describeBundle({chunk,root,lock:{packages:{}}}),/missing lock/);
 });
+test('Web Flow keyword policy uses exact reviewed bytes and only the original compiled targets',async t=>{
+ const project=await realpath(await mkdtemp(join(tmpdir(),'webflow-policy-boundary-')));
+ t.after(()=>rm(project,{recursive:true,force:true}));
+ const path='projects/webflow/src/authorization-policy.js',file=join(project,path),bytes=await readFile(resolve(path));
+ await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+ const graph=target=>({chunk:{fileName:target,modules:{[file]:{renderedLength:bytes.length,originalLength:bytes.length}}},
+  root:project,lock:{packages:{}}});
+ for(const target of ['sw.js','agents/chatgpt-fixed-bridge.js'])assert.ok(describeBundle(graph(target)).modules[0].reviewedFirstPartyBlob);
+ for(const target of ['agents/page-relay.js','scripting/sandbox/worker-runtime.js','ui/sidebar-tool-host.js'])
+  assert.throws(()=>describeBundle(graph(target)),/cannot enter a privileged fixed bundle/);
+ await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// changed policy\n')]));
+ assert.throws(()=>describeBundle(graph('sw.js')),/Trusted Web Flow source changed/);
+ await rm(file);await symlink(resolve(path),file);
+ assert.throws(()=>describeBundle(graph('sw.js')),/must not be a symlink/);
+});
 test('receipt collection requires every fixed output and binds final verified hashes',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'r9-provenance-'));t.after(()=>rm(directory,{recursive:true,force:true}));
   await assert.rejects(collectBundleEvidence(directory,['sw.js'],[]),/Incomplete/);

@@ -3,7 +3,7 @@ import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
   WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
-import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope} from '../../projects/webflow/src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope,prepareAutoParameterPolicy} from '../../projects/webflow/src/auto-grants.js';
 import {WEB_TASK_PROTOCOL} from '../page-events/web-task-contract.js';
 import {registeredSiteRegistry} from '../page-events/site-catalog.js';
 import {permissionPattern} from '../environment.js';
@@ -448,7 +448,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const message={persistentAuto:true,candidateText:pending.candidate.text,
         turnKey:pending.candidate.turnKey,answerKey:pending.candidate.answerKey};
       const {intent,candidate}=await assertIntent(source,message);
-      const review=await prepareAutoGrant(pending.scope);
+      const review=await prepareAutoGrant({...pending.scope,...(value.parameterPolicy!==undefined?{parameterPolicy:value.parameterPolicy}:{})});
       if(JSON.stringify(normalizeAutoScope(review))!==JSON.stringify(normalizeAutoScope(pending.scope))||
         intent.taskId!==review.taskId||intent.targetUrl!==review.targetUrl||
         JSON.stringify(intent.args)!==JSON.stringify(review.args))
@@ -525,8 +525,9 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       checkPermissions:checkPermissions??sourceOrigin===LEGACY_AUTO_SOURCE_ORIGIN});
     if(sourceOrigin!==LEGACY_AUTO_SOURCE_ORIGIN)await readProfilesFor(sourceOrigin);
     trustedSettings();if(!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','审阅期间安装或批准已改变');
+    const parameterPolicy=prepareAutoParameterPolicy(value.parameterPolicy,scope,normalized.installed.manifest.paramsSchema);
     const review=freezeReview({taskId:request.taskId,args:structuredClone(normalized.request.args),...selectionScope(normalized.request),
-      sourceOrigin,taskName:normalized.installed.manifest.title});
+      sourceOrigin,taskName:normalized.installed.manifest.title,...(parameterPolicy?{parameterPolicy}:{})});
     preparedAutoReviews.set(review,JSON.stringify(review));
     return review;
   };

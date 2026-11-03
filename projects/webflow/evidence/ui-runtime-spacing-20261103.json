@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "taskDate": "2026-11-03",
+  "recordedAt": "2026-11-04T00:17:07.767800+08:00",
+  "owner": "01a1a216-ec3e-75d0-869e-b4780e7b9aca",
+  "scope": "FROZEN_LAYOUT_REAL_CHROMIUM_COMPONENTS_MOCK_EXTERNAL_BOUNDARIES",
+  "typeAndOwnership": {
+    "product": "Web Flow",
+    "owner": "projects/webflow",
+    "surface": "fixed audited trusted Side Panel controls",
+    "entry": "扩展 → Web Flow → 运行与授权",
+    "frameworkHostChanged": false,
+    "sandboxPackageChanged": false,
+    "reuse": [
+      "existing Button / Switch / Sheet / design tokens",
+      "existing complete host component fixture"
+    ],
+    "authorityAndTaskDispatchChanged": false
+  },
+  "source": {
+    "baselineCommit": "e8957b483633b8e22976fab5163ea2ae540f8726",
+    "layoutSavedInCommit": "0561820a37fb3756ce6e57735eaab4f8df75ba7b",
+    "layoutMergedToMain": "63090e6ee601ea531b85eb6d9dfece8a4c28dc4d",
+    "files": {
+      "projects/webflow/trusted/AutoSettings.tsx": {
+        "sha256": "075cc667dc1751b320af71019fe21d64d74fa4f2be9c1154d7e058c5333bbc6e",
+        "gitBlob": "2f66954a13d87c792b14535bd099b2a639758230"
+      },
+      "projects/webflow/trusted/CurrentTask.tsx": {
+        "sha256": "d299fcd92e6e66b570633c32e4b9b7e9289bb1796babe3ea69d9d2b623f74449",
+        "gitBlob": "0ca9c7401abddf81f17e3d00b656e23f47df831b"
+      },
+      "projects/webflow/trusted/RuntimePanel.tsx": {
+        "sha256": "a843e5986f82526329ab1da5b3181c8d075fb8abbc4268e621059cef962fd399",
+        "gitBlob": "f418c26696933f0b9440080fd2586e47e42b870f"
+      }
+    },
+    "html": {
+      "baseline.html": "0701aee1baaf649e3ef55ba1f285a986bcc9f2283c30eeff542fb4fbff79fdc2",
+      "candidate.html": "02c370220e90d1e74ff75e47e642de0ef7280e708c2c8b0cb10c22741908417c"
+    }
+  },
+  "changes": [
+    "16px outer gutter, original padded status surface",
+    "three equal navigation tabs, 40px height",
+    "task-state heading and refresh share a row",
+    "full wrapped original-chat URL and status reading group",
+    "short address label/value row; full-width JSON remains",
+    "approval time and revoke grouped; manual actions wrap"
+  ],
+  "verification": {
+    "existingComponentTests": {
+      "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs",
+      "pass": 23,
+      "fail": 0,
+      "candidateOnly": true
+    },
+    "arrowRight": "task -> scope selected and focused",
+    "end": "scope -> help selected and focused",
+    "home": "scope -> task selected and focused",
+    "escapeAfterKeyboardOpen": {
+      "closed": true,
+      "focusReturnedToOpener": true
+    },
+    "draftPreservedAcrossTabsAndReopen": {
+      "targetUrl": "https://www.baidu.com/?ui-draft=kept",
+      "args": {
+        "query": "排版验证草稿，不执行",
+        "limit": 3
+      }
+    },
+    "tabs": [
+      {
+        "width": 104.65625,
+        "height": 40
+      },
+      {
+        "width": 104.671875,
+        "height": 40
+      },
+      {
+        "width": 104.671875,
+        "height": 40
+      }
+    ],
+    "authorizationPanel": {
+      "scrollWidth": 358,
+      "clientWidth": 358
+    },
+    "approvalFocus": {
+      "focused": true,
+      "top": 689.5625,
+      "bottom": 726.40625,
+      "navigationBottom": 213,
+      "clear": true
+    },
+    "reverseFocusToJSON": {
+      "focused": true,
+      "top": 255.890625,
+      "bottom": 394.734375,
+      "navigationBottom": 213,
+      "clear": true
+    },
+    "realAuthorityMutation": "NOT_DISPATCHED"
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/webflow-runtime-spacing/final-comparison.png",
+      "sha256": "09fc2cdc386f3e539dda105828b1976be4166be03facc8040870ef70c0554e92"
+    },
+    {
+      "path": "artifacts/webflow-runtime-spacing/scope-full.png",
+      "sha256": "a86ca4dbfa6884a64acc04e1eeeb504b2c4dbd5f6f6f4184cd42c1501d62f105"
+    },
+    {
+      "path": "artifacts/webflow-runtime-spacing/approval-focus-full.png",
+      "sha256": "2ca1696c16dfd955a04e117035b06864a591d8a5295919f7fe8ead5e3632cb30"
+    }
+  ],
+  "review": {
+    "kind": "INDEPENDENT_AI_UI_REVIEW",
+    "reviewer": "Herschel",
+    "agentId": "01a1a21f-3609-76c0-badc-9d23ca697112",
+    "score": 99,
+    "maximum": 100,
+    "dimensions": {
+      "visualAndSpace": {
+        "score": 30,
+        "maximum": 30
+      },
+      "hierarchyAndState": {
+        "score": 25,
+        "maximum": 25
+      },
+      "interactionAndAccessibility": {
+        "score": 29,
+        "maximum": 30
+      },
+      "scopeAndEvidence": {
+        "score": 15,
+        "maximum": 15
+      }
+    },
+    "deduction": "1 point: no actual forward/backward focus-wrap readback at first and last dialog controls; source retains the focus fence",
+    "blockingFindings": [],
+    "previousScoresInherited": false
+  },
+  "boundaries": {
+    "liveMixedCandidateSidePanel": "NOT_TESTED",
+    "realChromeInstall": "NOT_TESTED",
+    "native": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "newParameterPolicy": "OWNED_BY_01a1a221_NOT_INCLUDED_IN_THIS_SCORE",
+    "realAuthorityMutation": "NOT_DISPATCHED",
+    "realTaskExecution": "NOT_DISPATCHED",
+    "oldD623RunEvidenceReusedForThisUI": false
+  },
+  "development": {
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "writerPid": 54212,
+    "newWriterOrOutputCopy": false,
+    "status": "STABLE_COMBINED_SOURCE_PUBLISHED_BY_EXISTING_WRITER",
+    "oldPublishedRevision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+    "oldPublishedRevisionIsNewLayoutEvidence": false,
+    "publication": {
+      "mode": "CONTINUOUS_DEVELOPMENT",
+      "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+      "writerPid": 54212,
+      "revision": "97b1997586d557a7e70050343622688a63691822ec5a6de085f7d6c59dde612f",
+      "files": {
+        "ui/tool-shell.js": "813fb7b18c64b30e67bf35d3b515e67a947ba56d63f4ffe70e8c7f2cc7b96846",
+        "agents/chatgpt-fixed-bridge.js": "e7381e457c0969cea80b8e062db0b2a76b45bd0bf057510b2886a27c3e8e7b50"
+      },
+      "compiledTrustedSources": [
+        {
+          "file": "projects/webflow/trusted/CurrentTask.tsx",
+          "sha256": "e3cb2f7c624228175dec5f83807ea2e860b40b62060cea68eee15b65cfca0185"
+        },
+        {
+          "file": "projects/webflow/trusted/RuntimePanel.tsx",
+          "sha256": "a843e5986f82526329ab1da5b3181c8d075fb8abbc4268e621059cef962fd399"
+        },
+        {
+          "file": "projects/webflow/trusted/AutoSettings.tsx",
+          "sha256": "4ff0498fac38dada8d54e93ef6571417a920785d3845b652751e5ac6157e3c43"
+        }
+      ],
+      "diskPublication": "PASS",
+      "actualLoadedSidePanel": "NOT_TESTED",
+      "devClientConnection": "NOT_TESTED"
+    },
+    "scope": "Mixed source includes subsequent authorization task; publication is not a new UI score or loaded-client proof"
+  },
+  "tabsStyleUpdate20261104": {
+    "scope": "runtime tabs match the existing workbench navigation",
+    "sourceBlob": "863e81bfc3dc193bf4cdc396af1f66ef97b247e5",
+    "sourceSHA256": "870a914467231111f3da2834575ca053213885f236fdae7477984a662af629f8",
+    "baselineSHA256": "4ff0498fac38dada8d54e93ef6571417a920785d3845b652751e5ac6157e3c43",
+    "html": {
+      "baseline.html": "36c62c8adefc644146c908bdb3031dd687e6f7d6be112d2569ec21cae04b67de",
+      "candidate.html": "e64a6a4ab5e202cb3d7aef1ef91971369cd68c81c666568b6605c03c419426b9"
+    },
+    "tests": {
+      "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs",
+      "pass": 25,
+      "fail": 0
+    },
+    "interaction": {
+      "end": true,
+      "home": true,
+      "arrowRight": true,
+      "draftURL": "https://www.baidu.com/?tab-style=draft",
+      "draftJSON": "{\n  \"query\": \"选项卡样式草稿\",\n  \"limit\": 3\n}",
+      "reopenedDraftURL": "https://www.baidu.com/?tab-style=draft",
+      "reopenedDraftJSON": "{\n  \"query\": \"选项卡样式草稿\",\n  \"limit\": 3\n}",
+      "escape": {
+        "closed": true,
+        "focusReturned": true
+      }
+    },
+    "tabs": {
+      "heights": [
+        40,
+        40,
+        40
+      ],
+      "widths": [
+        108.65625,
+        108.671875,
+        108.671875
+      ],
+      "selectedInk": "--od-accent-ink",
+      "underlinePixels": 2,
+      "unselectedBorder": "transparent",
+      "background": "transparent",
+      "className": "od-button od-button--quiet od-button--tab"
+    },
+    "darkContrast": 9.36,
+    "sandboxApplicationBytesUnchanged": true,
+    "presentationHunks": 2,
+    "screenshots": [
+      {
+        "path": "artifacts/webflow-runtime-tabs-20261104/comparison.png",
+        "sha256": "378947b51330b8f3a631bd544c541355518eec9c8de4d0d8fce17973cd853416"
+      },
+      {
+        "path": "artifacts/webflow-runtime-tabs-20261104/scope-focus.png",
+        "sha256": "2d46d0850f48e190d0c516f6a1d1d35a9bac2ec4e40d8e90435298dbc1ba9df9"
+      },
+      {
+        "path": "artifacts/webflow-runtime-tabs-20261104/final-comparison.png",
+        "sha256": "99c7d9da2ff37392f541f42c8937557afb1e1657b07da056dc57a1d016cace17"
+      }
+    ],
+    "realAuthorityMutations": "NOT_DISPATCHED",
+    "nativeSidePanelNewStyle": "NOT_TESTED",
+    "publication": {
+      "status": "DISK_PUBLICATION_PASS",
+      "mode": "CONTINUOUS_DEVELOPMENT",
+      "revision": "5e9966bf46e8527b6985246dd0e0ae1d74746ef9f677a3678a1ac6c82282ce0d",
+      "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+      "toolShellSHA256": "036de4a6693fb233c3102bcc94e88f96764ffa43d8f61c8cc538c07dea085b76",
+      "compiledSource": {
+        "sourceSHA256": "870a914467231111f3da2834575ca053213885f236fdae7477984a662af629f8",
+        "sourceBlob": "863e81bfc3dc193bf4cdc396af1f66ef97b247e5"
+      },
+      "nativeNewSidePanel": "NOT_TESTED"
+    },
+    "review": {
+      "kind": "independent AI UI review",
+      "reviewer": "Herschel",
+      "score": 99,
+      "maximum": 100,
+      "dimensions": {
+        "visualSpace": 30,
+        "hierarchyState": 25,
+        "affectedInteractionAccessibility": 30,
+        "scopeEvidence": 14
+      },
+      "deduction": "Corrected dark palette lacks an actual screenshot; its token issue is resolved.",
+      "blockingFindings": [],
+      "scope": "Tabs presentation and affected component interaction only; native business not scored",
+      "previousScoreInherited": false
+    }
+  }
+}

@@ -808,3 +808,30 @@ IAB 键盘事件只能证明本设计的显式导航/焦点围栏；原生 Space
 | 范围与证据 | 10/10 | 同候选完整图、来源 / 操作记录、未测边界明确 |
 
 独立来源 / 安全评审 Avicenna 给出**限定静态 PASS、无 P 级问题**：当前 HTML / manifest / context / 归档身份一致；左侧完整 document / JS / CSS 等于固定 654 候选；八条 hunk 与两处实际 JS 差异可逐字节解释；权限、批准、撤权、UNKNOWN、草稿保护和原值处理逻辑未变。三个 current source diff 继续披露，不能用该预览覆盖正常聊天 297b 的真实业务证据。两份原始评审回执与 SHA 保存在本轮 evidence；未为追求满分追加无关验收或修改业务。
+
+## 15. 运行面板间距与等宽导航（2026-11-03）
+
+用户指出真实「扩展 → Web Flow → 运行与授权」中的间距和一行小按钮不合理。此次直接修原 `trusted/AutoSettings.tsx`、`CurrentTask.tsx`、`RuntimePanel.tsx`，复用原 Button、Switch、Sheet、Tokens 和唯一可信根：外层 gutter 16px，状态组使用原 Surface，三个页签等分可用宽度且高 40px；任务状态与刷新同行，长原对话地址和正文独立成组，授权时间与撤销就近排列，已有手动动作允许自然换行。短地址使用标签 / 值对应，JSON 仍为标题在上、正文独占完整行。未修改 SDK、Bridge、授权范围、任务执行或沙箱应用。
+
+先恢复实际源码与用户所述历史回复场景，再复用原完整宿主夹具生成同条件前后对照；没有改写历史单文件预览，也没有以旧 99 分证明本次结果。组件使用真实 React / Host 展示，安装、权限、Task 与存储为明确模拟边界。测试夹具只补「历史或未见证的发送」场景，不新增样式字符串断言或全仓回归。
+
+**同一冻结候选的验证：** 既有 `auto-settings-ui.test.mjs` 与 `current-task.test.mjs` 共 **23/23 PASS**；真实 Chromium 中 ArrowRight / Home / End 改变正确页签与焦点，真实键盘打开后 Escape 返回原入口。修改后的 URL 与多行中文 JSON 在跨 Tab、关闭 / 重开后逐字保留。页签实测宽 104.656 / 104.672 / 104.672px、高均 40px；授权面板 `scrollWidth = clientWidth = 358`。审核仅准备未批准，Tab 到批准按钮及 Shift+Tab 返回准备按钮 / JSON 均未被吸顶导航遮挡。未运行真实任务或改变真实授权。
+
+独立 AI 评审 Herschel 核对三份冻结源码 blob / SHA、两份 HTML SHA 及完整截图，给出 **99/100**，无必须修复的源码或布局缺陷：
+
+| 维度 | 得分 | 依据 / 扣分 |
+| --- | ---: | --- |
+| 视觉与空间 | 30/30 | 对齐、间距、页签密度与长内容完整阅读 |
+| 层级与状态 | 25/25 | 开关 / 导航 / 内容分区，动作对应所属内容，状态语义保留 |
+| 交互与可访问性 | 29/30 | 键盘、滚动中焦点、Escape 与草稿保留；扣 1 分为未实测首末控件双向焦点循环，源码已有围栏 |
+| 范围与证据 | 15/15 | 冻结身份、同候选图证和验证边界清楚 |
+
+唯一原始图证为本机 `artifacts/webflow-runtime-spacing/final-comparison.png`、`scope-full.png`、`approval-focus-full.png`；早期不完整裁剪图排除。结构化身份和本轮报告见[ui-runtime-spacing-20261103.json](../evidence/ui-runtime-spacing-20261103.json)。源码三份布局已随独立 Git 同步任务的 `0561820a3` 保存并合入 main；后续另一任务在其中迭代 `parameterPolicy`，本评审不覆盖新授权业务或混合构建。真实 Side Panel 新混合候选、Chrome 安装 / Native / production 与产品综合评分仍为 **NOT_TESTED**，旧 `d623` 运行证据不提升为本轮原生通过。日常环境继续由原 writer 54212 负责 `dist/development`；来源 pin 更新后只走原配置重读，未停服务、另开 writer 或替换加载目录。 原 writer 随后成功发布 `97b1997586d5…`（完整 revision 见本轮证据），日志 `Built extension in 236 s`；产物清单 SHA 与实际文件匹配，tool-shell source map 的三份组件正文逐字匹配当前稳定源码。该混合产物发布 PASS 与 Chrome 已应用 / 已连接分开记录；不把磁盘文件当真实侧栏见证。
+
+### 15.1 页签沿用主页面导航风格（2026-11-04）
+
+用户最新要求内部页签参考主页面。上轮胶囊样式与分数仅属历史候选。本次只改 `AutoSettings.tsx` 两处展示 hunk：复用公共 `od-button--tab`，选中采用蓝色文字与 2px 下划线，非选中为灰色文字与透明底线，取消胶囊外框和按钮底色。保留等宽 40px、原字号、键盘、ARIA、草稿和授权回调。暗色初审指出的填充色问题已修正为现有 `--od-accent-ink`；从唯一 Tokens 计算对比度为 9.36，没有新增 token 或控件库。项目原夹具补一处 guard，使已有 `sourcePatches` 可作用于工作树；前后沙箱应用字节严格相同。
+
+相关既有检查 **25/25 PASS**。真实 Chromium 完整宿主组件读回确认方向键 / Home / End、Escape 焦点归还，以及 URL / 多行中文 JSON 跨页签、关闭重开后的逐字保留。三个页签实测宽 108.656 / 108.672 / 108.672px，高均 40px。默认图 `artifacts/webflow-runtime-tabs-20261104/comparison.png` 与键盘图 `scope-focus.png`、`final-comparison.png` 分别保留；键盘焦点框不是常驻外框。
+
+Herschel 对此新候选独立评分 **99/100**（视觉 30/30、层级状态 25/25、受影响交互可访问性 30/30、范围证据 14/15），无阻断项，通过主导航风格目标。唯一扣 1 为修正后的暗色缺实际截图；不继承上轮分数，不评分真实 Native 业务。源码 blob 为 `863e81bfc3dc193bf4cdc396af1f66ef97b247e5`，与候选及实际 tool-shell source map 逐字节一致；原 writer 已发布 `5e9966bf46e8…`，tool-shell SHA 为 `036de4a6693fb233c3102bcc94e88f96764ffa43d8f61c8cc538c07dea085b76`。真实侧栏新样式应用与 Task 新版本业务仍由原生任务分别见证，不能以磁盘产物或组件分数替代。结构化记录追加在[原证据的 tabsStyleUpdate20261104](../evidence/ui-runtime-spacing-20261103.json)，未另建评分账本。

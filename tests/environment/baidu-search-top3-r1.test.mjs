@@ -12,7 +12,7 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
-  assert.equal(pkg.manifest.version,'1.1.2');
+  assert.equal(pkg.manifest.version,'1.1.3');
   assert.equal(pkg.manifest.program.revision,1);
   assert.equal(pkg.manifest.deadlineMs,60000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
@@ -34,6 +34,44 @@ const row=(n,ad=false)=>{
     querySelector:s=>s.startsWith('.c-abstract')?summary:null,
     querySelectorAll:s=>s==='h3 a'?[a]:s==='h3'?[heading]:s.startsWith('.c-abstract')?[summary]:s==='span,a,em,small'&&ad?[label]:[]};
 };
+async function runHomepage({ambiguous=false,unknown=false}={}){
+ let url='https://www.baidu.com/',value='',clicks=0;
+ const strict=items=>{
+  if(items.length!==1)throw Object.assign(Error('Ambiguous search control'),{code:'E_STRICT_MODE_VIOLATION'});
+  return items[0];
+ };
+ const locator=items=>({count:async()=>items.length,nth:index=>locator(items.slice(index,index+1)),
+  first:()=>locator(items.slice(0,1)),isVisible:async()=>items.length?strict(items).visible!==false:false,
+  inputValue:async()=>{strict(items);return value;},fill:async next=>{strict(items);value=next;},
+  click:async()=>{strict(items);clicks++;if(unknown)throw Object.assign(Error('ACK lost'),{code:'E_EFFECT_UNKNOWN'});
+   url='https://www.baidu.com/s?wd='+encodeURIComponent(value);},
+  innerText:async()=>strict(items).innerText??'',textContent:async()=>strict(items).textContent??'',
+  getAttribute:async name=>strict(items).getAttribute?.(name)??null,
+  locator:selector=>locator(items.flatMap(node=>node.querySelectorAll?.(selector)??[]))});
+ const buttons=[{visible:ambiguous},{visible:true}];
+ const page={url:async()=>url,observe:async()=>({document:{documentId:'homepage-one'}}),locator:selector=>{
+  if(selector==='body')return locator([{innerText:''}]);
+  if(selector==='#chat-textarea')return locator([{}]);
+  if(selector==='#chat-submit-button')return locator(buttons);
+  if(selector==='#content_left')return {waitFor:async()=>{}};
+  if(selector==='#content_left .result.c-container')return locator([row(1),row(2),row(3)]);
+  throw Error('Unexpected locator '+selector);
+ }};
+ const ctx={page,params:{query:'时间清单',limit:3},URL,Date,Error,Object,Promise,TextEncoder,setTimeout:fn=>{fn();return 0;}};
+ vm.createContext(ctx);vm.runInContext(src+';globalThis.run=main;',ctx,{timeout:1000});
+ return {result:await ctx.run(),get clicks(){return clicks;}};
+}
+test('homepage ignores a hidden duplicate submit control and submits exactly once',async()=>{
+ const actual=await runHomepage();
+ assert.equal(actual.result.status,'success');assert.equal(actual.result.count,3);assert.equal(actual.clicks,1);
+ assert.equal(actual.result.query,'时间清单');
+});
+test('homepage refuses two visible submit controls and never retries an unknown click',async()=>{
+ const ambiguous=await runHomepage({ambiguous:true});
+ assert.equal(ambiguous.result.status,'stopped');assert.equal(ambiguous.clicks,0);
+ const unknown=await runHomepage({unknown:true});
+ assert.equal(unknown.result.status,'stopped');assert.equal(unknown.result.error.code,'E_EFFECT_UNKNOWN');assert.equal(unknown.clicks,1);
+});
 async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAvailable=true}={}){
  const locator=items=>{
    const one=()=>{assert.equal(items.length,1,'Locator read must be strict');return items[0];};

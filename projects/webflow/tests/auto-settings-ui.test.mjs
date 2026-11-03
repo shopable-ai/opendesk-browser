@@ -42,8 +42,9 @@ function controller(){
  const api={
   readAutoSettings(){calls.push(['read']);return Promise.resolve(structuredClone(snapshot));},
   prepareAutoGrant(input){calls.push(['prepare',input]);return Promise.resolve({...input,taskName:task.name});},
-  approveAutoTask(review,event){calls.push(['approve',review,event]);snapshot={...snapshot,grants:[{
-   taskId:review.taskId,grantId:'grant-one',state:'active',approvedAt:1793548800000,scope:review}]};return Promise.resolve(structuredClone(snapshot));},
+  approveAutoTask(review,event){const {parameterPolicy,...scope}=review;calls.push(['approve',review,event]);snapshot={...snapshot,grants:[{
+   taskId:review.taskId,grantId:'grant-one',state:'active',approvedAt:1793548800000,scope,
+   ...(parameterPolicy?{parameterPolicy}:{})}]};return Promise.resolve(structuredClone(snapshot));},
   setAutoEnabled(value,event){calls.push(['enabled',value,event]);snapshot={...snapshot,enabled:value};return Promise.resolve(structuredClone(snapshot));},
   revokeAutoTask(taskId,event){calls.push(['revoke',taskId,event]);snapshot={...snapshot,grants:snapshot.grants.map(grant=>({...grant,state:'revoked'}))};return Promise.resolve(structuredClone(snapshot));}
  };
@@ -82,7 +83,9 @@ async function fixture(t,{sheet=false,entry=false,host=controller()}={}){
  const input=async(id,value)=>React.act(async()=>{
   const node=find(id);
   if(node.tagName==='SELECT'){
-   for(const option of node.querySelectorAll('option'))option.selected=option.value===value;
+   const options=[...node.querySelectorAll('option')];
+   for(const option of options)option.selected=false;
+   options.find(option=>option.value===value).selected=true;
   }else Object.getOwnPropertyDescriptor(Object.getPrototypeOf(node),'value').set.call(node,value);
   node.dispatchEvent(new window.Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));
  });
@@ -105,7 +108,8 @@ test('defaults come from the catalog schema, preparation displays exact scope an
  const review=f.find('webflow-auto-review');
  assert.ok(review);assert.match(review.textContent,/搜索任务/);assert.ok(review.textContent.includes(target));
  assert.match(review.textContent,/<script>review<\/script>/);assert.equal(review.querySelector('script'),null);
- assert.match(review.textContent,/同一窗口中各 ChatGPT 对话.*精确范围|精确范围.*同一窗口中各 ChatGPT 对话/s);
+ assert.match(review.textContent,/同一窗口中各 ChatGPT 对话/);
+ assert.ok(review.textContent.includes(target));
  assert.match(review.textContent,/结果返回触发任务的原聊天/);
  assert.equal(review.querySelector('details').hasAttribute('open'),false);
  assert.equal(f.host.calls.filter(([kind])=>kind==='approve').length,0);
@@ -141,6 +145,45 @@ test('every edited scope invalidates a review, including an in-flight preparatio
  assert.match(f.find('webflow-auto-error').textContent,/JSON/);
 });
 
+function keywordController(){
+ const host=controller(),search={...task,taskId:'baidu.search.top3',name:'百度搜索',paramsSchema:{type:'object',additionalProperties:false,
+  required:['query','limit'],properties:{query:{type:'string',title:'搜索关键词',default:'OpenDesk',minLength:1,maxLength:120},
+   limit:{type:'integer',title:'结果数量',enum:[3],default:3}}}};
+ host.snapshot={...host.snapshot,tasks:[search]};
+ host.api.prepareAutoGrant=async input=>{
+  host.calls.push(['prepare',input]);return {...input,taskName:search.name,...(input.parameterPolicy?{
+   parameterPolicy:{...input.parameterPolicy,paramsSchema:search.paramsSchema}}:{})};
+ };
+ return {host,search};
+}
+test('keyword approval defaults to variable search input and changing to exact invalidates the review',async t=>{
+ const {host}=keywordController(),f=await fixture(t,{host});
+ assert.equal(f.find('webflow-auto-parameter-policy').value,'variable');
+ await f.click('webflow-auto-prepare');
+ assert.deepEqual(host.calls.at(-1)[1].parameterPolicy,{mode:'schema',variableKeys:['query']});
+ assert.match(f.find('webflow-auto-review').textContent,/1–120 字/);
+ await f.input('webflow-auto-parameter-policy','exact');assert.equal(f.find('webflow-auto-review'),null);
+ await f.click('webflow-auto-prepare');assert.equal(host.calls.at(-1)[1].parameterPolicy,undefined);
+ await f.input('webflow-auto-parameter-policy','variable');await f.click('webflow-auto-prepare');
+ await f.click('webflow-auto-approve',true);
+ assert.match(f.find('webflow-auto-grants').textContent,/关键词不固定/);
+ assert.deepEqual(host.snapshot.grants[0].parameterPolicy.variableKeys,['query']);
+ assert.equal(host.snapshot.enabled,false,'task approval does not silently enable the global switch');
+});
+test('legacy keyword approval opens a review with its existing target and args without silently extending authority',async t=>{
+ const {host,search}=keywordController(),oldScope={...scope,taskId:search.taskId,args:{query:'旧关键词',limit:3}};
+ host.snapshot={...host.snapshot,enabled:true,grants:[{taskId:search.taskId,grantId:'old',state:'active',approvedAt:0,scope:oldScope}]};
+ const f=await fixture(t,{host}),button=[...f.find('webflow-auto-grants').querySelectorAll('button')].find(node=>node.textContent==='改为允许更换关键词…');
+ assert.ok(button);await React.act(async()=>button.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ assert.equal(f.find('webflow-auto-task').value,search.taskId);
+ assert.deepEqual(JSON.parse(f.find('webflow-auto-args').value),oldScope.args);
+ assert.equal(f.find('webflow-auto-prepare').closest('details').open,true);
+ assert.equal(host.snapshot.grants[0].parameterPolicy,undefined);
+ assert.equal(host.calls.filter(([kind])=>kind==='approve'||kind==='enabled').length,0);
+ await f.click('webflow-auto-prepare');await f.click('webflow-auto-approve',true);
+ assert.equal(host.snapshot.enabled,true);assert.deepEqual(host.snapshot.grants[0].parameterPolicy.variableKeys,['query']);
+});
+
 test('total switch and per-task revoke require native gestures and reflect only Host results',async t=>{
  const host=controller();host.snapshot={...host.snapshot,grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
  const f=await fixture(t,{host}),pending=deferred();
@@ -157,7 +200,7 @@ test('total switch and per-task revoke require native gestures and reflect only 
  await React.act(async()=>revoke.dispatchEvent(revokeEvent));
  assert.deepEqual(host.calls.at(-1),['revoke','search',revokeEvent]);
  assert.match(f.find('webflow-auto-grants').textContent,/已撤销/);
- assert.match(f.document.body.textContent,/持续自动提交/);assert.match(f.document.body.textContent,/Controller/);
+ assert.match(f.document.body.textContent,/自动运行决定是否接收新任务/);
  assert.match(f.document.body.textContent,/不.*回滚.*已经开始/);
 });
 
@@ -603,13 +646,36 @@ test('pending candidate review shows exact parameters and identity; only a nativ
   requestId:'pending-request',pendingAuto,fields:{},tasks:[],actions:{cancel:true}},receipt:null});
  host.api.controlBridge=async(value,event)=>{calls.push({value,event});return host.api.readBridgeState();};
  const f=await fixture(t,{entry:true,host});await f.click('webflow-runtime-open');
- const review=f.document.querySelector('[aria-label="本轮精确范围审核"]');assert.ok(review);
+ const review=f.document.querySelector('[aria-label="任务范围审核"]');assert.ok(review);
  assert.ok(review.textContent.includes('OpenDesk Browser SDK'));assert.ok(review.textContent.includes(installation.installationId));
- assert.ok(review.textContent.includes(source.documentId));assert.match(review.textContent,/替换.*原有.*精确范围/);
+ assert.ok(review.textContent.includes(source.documentId));assert.match(review.textContent,/目标、参数或安装版本尚未获准/);
  const button=[...review.querySelectorAll('button')].find(n=>n.textContent==='批准此精确范围并执行');
  for(const trusted of [false,true]){
   const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:trusted});
   await React.act(async()=>button.dispatchEvent(event));assert.equal(calls.length,trusted?1:0);
  }
  assert.deepEqual(calls[0].value,{source,requestId:'pending-request',action:'approve-range',pendingAuto});
+});
+test('pending keyword review exposes one ordinary approval and forwards only the chosen policy with the original candidate',async t=>{
+ const {host,search}=keywordController(),calls=[];
+ const pendingAuto={scope:{...scope,taskId:search.taskId,args:{query:'时间清单',limit:3}},
+  candidate:{candidateId:'wf-pending-keyword',text:'candidate bytes',turnKey:'turn-keyword',answerKey:'answer-keyword'}};
+ const source={tabId:9,documentId:'keyword-document',url:'https://chatgpt.com/c/keyword-12345678'};
+ host.api.readBridgeState=async()=>({source,session:{url:source.url,status:'待批准，尚未执行',
+  requestId:'pending-keyword-request',pendingAuto,fields:{},tasks:[],actions:{cancel:true}},receipt:null});
+ host.api.controlBridge=async(value,event)=>{calls.push({value,event});return host.api.readBridgeState();};
+ const f=await fixture(t,{entry:true,host});await f.click('webflow-runtime-open');
+ const review=f.document.querySelector('[aria-label="任务范围审核"]');
+ assert.match(review.textContent,/时间清单/);assert.match(review.textContent,/1–120 字/);
+ const button=[...review.querySelectorAll('button')].find(node=>node.textContent==='允许更换关键词并执行');
+ assert.ok(button);assert.equal(button.closest('details'),null);
+ for(const trusted of [false,true]){
+  const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:trusted});
+  await React.act(async()=>button.dispatchEvent(event));assert.equal(calls.length,trusted?1:0);
+ }
+ assert.deepEqual(calls[0].value,{source,requestId:'pending-keyword-request',action:'approve-range',pendingAuto,
+  parameterPolicy:{mode:'schema',variableKeys:['query']}});
+ const exact=[...review.querySelectorAll('button')].find(node=>node.textContent==='批准此精确范围并执行');
+ assert.ok(exact.closest('details'));
+ assert.equal(host.calls.filter(([kind])=>kind==='read').length,2,'successful approval refreshes the parent authorization summary');
 });
