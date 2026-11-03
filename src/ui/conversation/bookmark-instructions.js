@@ -27,3 +27,14 @@ export const bookmarkInstructions=[
     'Stop only after real verification; avoid repeated searches and empty plans.',
     'Model JSON is a proposal; SDK/Host permission, current-page identity and readback decide truth.'
   ].join('\n');
+
+export const bookmarkConversationPolicy=Object.freeze({
+  scopes:{bookmark:{instructions:bookmarkInstructions,continuation:true,deadlineMs:480000,
+    deadlineMessage:'运行时间已达上限。已完成的操作保留，请核对书签后继续。'}},
+  refs:{empty:()=>({folderId:null,bookmarkId:null,matches:[]}),normalize:refs=>({
+    folderId:typeof refs?.folderId==='string'?refs.folderId.slice(0,160):null,
+    bookmarkId:typeof refs?.bookmarkId==='string'?refs.bookmarkId.slice(0,160):null,
+    matches:Array.isArray(refs?.matches)?refs.matches.slice(0,12)
+      .filter(id=>typeof id==='string'&&id.length<=160):[]
+  })}
+});

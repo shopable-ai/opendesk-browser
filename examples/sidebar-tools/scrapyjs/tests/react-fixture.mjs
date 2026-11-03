@@ -3,6 +3,11 @@ import {transform} from 'esbuild';
 
 // Compile the real tool and shared Chat in memory. Transport remains a fixture.
 const root=new URL('../../../../',import.meta.url);
+// Transport double only: no real gesture or private-port security proof.
+export async function prepareAiFixture(factory){
+  const payload=await factory();
+  return payload===null?null:this.request('ai.generate',payload);
+}
 // linkedom lacks CSS.escape, used by React Aria for the CSP nonce meta lookup.
 // Hex escaping each code point is valid CSS; this is a DOM-fixture shim only.
 globalThis.CSS??={escape:value=>Array.from(String(value),char=>'\\'+(char.codePointAt(0)||0xfffd).toString(16)+' ').join('')};
@@ -26,7 +31,7 @@ const toggle=await compile('src/ui/react/components/ui/switch.tsx');
 const shared=moduleURL(`export {Card,CardContent} from ${JSON.stringify(card)};export {Input,Textarea} from ${JSON.stringify(input)};export {Switch} from ${JSON.stringify(toggle)};export {Button,IconButton} from ${JSON.stringify(button)};export {SharedConversationFrame,SharedConversationDock} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
 const sourceRoot='examples/sidebar-tools/scrapyjs/src/';
 const replacements={'@opendesk/ui':shared};
-for(const name of ['ai-config.js','ai-actions.js','ai-request.js','ai-pending.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js','business-api.js'])
+for(const name of ['ai-config.js','ai-actions.js','ai-request.js','ai-pending.js','ai-page.js','local-runner-client.js','editor.js','results-model.js','capture-trials.js','ai-capture.js','business-api.js'])
   replacements['./'+name]=new URL(sourceRoot+name,root).href;
 const panel=await compile(sourceRoot+'AiPanel.jsx',replacements);
 export const {default:AiPanel}=await import(panel);

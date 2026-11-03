@@ -380,6 +380,9 @@
 .sidebar-tool-item-version{color:var(--od-sub);font-size:11px;flex:none}
 .sidebar-tool-item-open-icon{display:grid;place-items:center;color:var(--od-sub);flex:none}
 .sidebar-tool-empty{margin:0;padding:16px 12px;border:1px dashed #cfdaea;background:#fff;border-radius:var(--radius-surface);color:#5e7088;font-size:12px}
+.sidebar-tool-toast{position:fixed;inset-block-start:var(--space-3);inset-inline:var(--od-page-gutter);z-index:300;display:flex;align-items:center;gap:var(--space-2);max-width:360px;margin-inline:auto;padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);box-shadow:0 4px 16px color-mix(in srgb,var(--od-ink) 16%,transparent);font-size:12px;line-height:1.5}
+.sidebar-tool-toast>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.sidebar-tool-toast>.od-icon-button{flex:none}
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:var(--od-muted);border-radius:var(--radius-control)}
 .sidebar-tool-status[data-state=error]{color:var(--od-negative)}
 .sidebar-tool-status[data-state=success]{color:var(--od-positive)}

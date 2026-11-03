@@ -1,3 +1,4 @@
+import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instructions.js';
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -177,7 +178,7 @@ async function agentWorkbench(t){
   runtime.updateSettings({source:'custom_https',endpoint:'https://model.example/v1/responses',
     model:'memory-model',apiKey:'memory-only'});
   const provider=createBusinessConversation({api:f.api,providerRuntime:runtime,
-    hostInstanceId:'agent-workbench-test',consumerId:'tasks',instanceId:'my-agent'});
+    hostInstanceId:'agent-workbench-test',consumerId:'tasks',policy:taskConversationPolicy,instanceId:'my-agent'});
   const agent=createMyTaskAgent({client:f.client,taskWorkbench:f.ui,provider,
     currentPageTarget:f.page,api:f.api});
   t.after(()=>{agent.dispose();provider.dispose();runtime.dispose();});

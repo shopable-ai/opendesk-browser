@@ -1,0 +1,14 @@
+{
+  "exclude": [
+    "evidence/",
+    "docs/contracts/source-snapshots/",
+    "docs/framework/evidence/",
+    "docs/framework/workstreams/",
+    "docs/framework/prototypes/",
+    "src/libs/vendor/",
+    "src/libs/page-frameworks/",
+    "examples/sidebar-tools/import-max-probe/vendor/",
+    "**/browser.original.js",
+    "**/*.min.js"
+  ]
+}

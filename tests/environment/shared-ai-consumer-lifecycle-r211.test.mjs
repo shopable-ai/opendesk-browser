@@ -1,3 +1,6 @@
+import {bookmarkConversationPolicy} from '../../src/ui/conversation/bookmark-instructions.js';
+import {promptConversationPolicy} from '../../src/ui/conversation/prompt-actions.js';
+import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instructions.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
@@ -15,7 +18,7 @@ function harness(t,{source='local_codex',permission,transport,cancel}={}) {
       return {probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
         async planStructured({input}){history.push(input);return {threadId,history:[...history]};},
         plan:async()=>({threadId}),snapshot:()=>({threadId}),
-        cancel(){cancelled.push(threadId);return cancel?cancel():Promise.resolve({state:'CANCELLED'});},
+        cancel(){cancelled.push(threadId);return cancel?cancel():Promise.resolve({state:'CANCELLED',terminalStatus:'interrupted'});},
         dispose(){disposed.push(threadId);}};
     },
     facadeFactory:({localPlanner})=>({
@@ -28,8 +31,9 @@ function harness(t,{source='local_codex',permission,transport,cancel}={}) {
   const api={permissions:{request:permission||(()=>Promise.resolve(true)),contains:async()=>true,
     onRemoved:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)}}};
   const conversations=[];
-  const make=(consumerId='bookmark',instanceId=consumerId)=>{
-    const value=createBusinessConversation({api,providerRuntime:runtime,hostInstanceId:'panel',consumerId,instanceId});
+  const make=(consumerId='bookmark',instanceId=consumerId,policy)=>{
+    const value=createBusinessConversation({api,providerRuntime:runtime,hostInstanceId:'panel',consumerId,instanceId,
+      policy:policy??({bookmark:bookmarkConversationPolicy,prompt:promptConversationPolicy,tasks:taskConversationPolicy})[consumerId]});
     conversations.push(value);return value;
   };
   t.after(()=>{for(const conversation of conversations)conversation.dispose();runtime.dispose();});
@@ -96,6 +100,7 @@ test('R2.1.1 Native permission revocation retires idle main/edit history while u
   assert.deepEqual(h.disposed,[]);
   assert.equal((await send(prompt,'prompt','follow-up')).threadId,main.threadId);
   h.revoke({permissions:['nativeMessaging']});
+  await tick(); // Retired Native leases await their cancellation receipt before disposal.
   assert.deepEqual(new Set(h.disposed),new Set([main.threadId,edit.threadId,other.threadId]));
   const freshMain=await send(prompt,'prompt','new-main'),freshEdit=await send(prompt,'prompt-edit','new-edit');
   assert.notEqual(freshMain.threadId,main.threadId);assert.notEqual(freshEdit.threadId,edit.threadId);
@@ -150,4 +155,57 @@ test('R2.1.1 incomplete idle HTTPS settings and consumer teardown leave no revoc
   assert.doesNotThrow(()=>h.revoke({origins:['https://other.example/*']}));
   conversation.dispose();assert.equal(h.listeners.size,0);
   assert.doesNotThrow(()=>h.runtime.updateSettings({model:'after-close'}));
+});
+
+test('explicit arbitrary trusted policy owns instructions, scopes and isolated sessions',async t=>{
+  const h=harness(t);
+  const policy={scopes:{notes:{instructions:'Return a note proposal only.'}}};
+  const a=h.make('notes','a',policy),b=h.make('notes','b',policy);
+  await assert.rejects(a.request({request:'private',event:{isTrusted:false}}),{code:'E_USER_GESTURE'});
+  await assert.rejects(a.request({request:'escape',scope:'bookmark',event:trusted}),{code:'E_AI_SCOPE'});
+  assert.equal(h.calls.length,0);
+  const first=await a.request({request:'private-a',event:trusted});
+  const second=await b.request({request:'private-b',event:trusted});
+  assert.equal(h.calls[0].instructions,'Return a note proposal only.');
+  assert.equal(h.calls[0].scope,'notes');
+  assert.notEqual(first.proposal.threadId,second.proposal.threadId);
+  assert.deepEqual(second.proposal.history,['private-b']);
+  assert.equal(first.continueWith,undefined);
+  a.dispose();
+  await second.authorization.assertWrite();second.authorization.release();
+});
+
+test('missing or invalid policy fails before any lease is acquired',t=>{
+  const h=harness(t);
+  for(const policy of [undefined,{}, {scopes:{notes:{instructions:''}}},
+    {scopes:{notes:{instructions:'notes',deadlineMs:0}}}]){
+    assert.throws(()=>h.make('notes','same',policy),{code:'E_AI_POLICY'});
+  }
+  assert.doesNotThrow(()=>h.make('notes','same',{scopes:{notes:{instructions:'notes'}}}));
+});
+
+test('bookmark entire task deadline includes permission wait and post-inference continuation',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const permission=deferred(),h=harness(t,{source:'custom_https',permission:()=>permission.promise});
+  const conversation=h.make();
+  const running=conversation.request({request:'bounded task',event:trusted});
+  const rejected=assert.rejects(running,{code:'E_AGENT_LIMIT'});
+  t.mock.timers.tick(480000);await rejected;
+  assert.equal(h.calls.length,0,'permission wait consumes the original task budget');
+  permission.resolve(true);
+  const next=await conversation.request({request:'fresh task',event:trusted});
+  t.mock.timers.tick(479999);
+  await next.continueWith({progress:'verified first step'});
+  assert.equal(h.calls.at(-1).instructions,h.calls[0].instructions);
+  t.mock.timers.tick(1);
+  await assert.rejects(next.continueWith({progress:'too late'}),{code:'E_AGENT_LIMIT'});
+  await assert.rejects(next.authorization.assertWrite(),{code:'E_AGENT_LIMIT'});
+  next.authorization.release();
+});
+
+test('failed secondary scope acquisition releases only the partial new owner',t=>{
+  const h=harness(t),instanceId='a'.repeat(150);
+  assert.throws(()=>h.make('notes',instanceId,{scopes:{notes:{instructions:'notes'},
+    'notes-private-edit':{instructions:'private edit'}}}),{code:'E_AI_IDENTITY'});
+  assert.doesNotThrow(()=>h.make('notes',instanceId,{scopes:{notes:{instructions:'notes'}}}));
 });

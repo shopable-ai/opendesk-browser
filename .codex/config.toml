@@ -1,0 +1,12 @@
+# Local checkout path; update cwd if this repository is moved.
+[mcp_servers.codegraph]
+command = "npm"
+args = ["run", "--silent", "codegraph:mcp"]
+cwd = "/Users/shopme/Documents/workspace/opendesk-browser"
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.codegraph.env]
+CODEGRAPH_TELEMETRY = "0"
+CODEGRAPH_NO_DOWNLOAD = "1"
+CODEGRAPH_MCP_TOOLS = "explore,status"

@@ -1,3 +1,7 @@
+import {bookmarkConversationPolicy} from './conversation/bookmark-instructions.js';
+import {promptConversationPolicy} from './conversation/prompt-actions.js';
+import {taskConversationPolicy} from './conversation/my-task-instructions.js';
+import {createKnowledgeConversation} from '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 import {TRUSTED_AI_PROXY_VERSION} from '../../projects/ai-proxy/trusted/admission.js';
 import {createDeveloperHostControls} from './develop-host-controls.js';
 import {createDebugWorkbench} from './debug-workbench.js';
@@ -202,7 +206,7 @@ let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
 const sidebarTools=createSidebarTools({providerRuntime,api:chrome,currentPageTarget,taskWorkbench,foundationClient,runHost:sharedRunHost,localeController,toolLocaleService,view:toolView,
   trustedAIProxyPilot:{enabled:true,version:TRUSTED_AI_PROXY_VERSION,mount:args=>extensionList.mountAIProxyPilot(args)},
   trustedKnowledgePilot:{enabled:true,mount:args=>{
-    const conversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
+    const conversation=createKnowledgeConversation({providerRuntime,api:chrome,hostInstanceId,
       consumerId:'knowledge',instanceId:args.instanceId,installEpoch:args.installEpoch});
     let host,portal;
     try{
@@ -223,7 +227,7 @@ const sidebarTools=createSidebarTools({providerRuntime,api:chrome,currentPageTar
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
       const installEpoch=args.installEpoch??null;
       const conversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
-        consumerId:'bookmark',
+        consumerId:'bookmark',policy:bookmarkConversationPolicy,
         instanceId:args.instanceId||crypto.randomUUID(),installEpoch});
       // Preserve the historical display-only draft/transcript on re-open of
       // the SAME installation epoch, never its executable Bookmark references.
@@ -247,7 +251,7 @@ const sidebarTools=createSidebarTools({providerRuntime,api:chrome,currentPageTar
     conversation:({instanceId=crypto.randomUUID(),installEpoch=null}={})=>{
       promptConversation?.dispose();
       promptConversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
-        consumerId:'prompt',instanceId,installEpoch});
+        consumerId:'prompt',policy:promptConversationPolicy,instanceId,installEpoch});
       return promptConversation;
     },
     releaseConversation(){
@@ -287,7 +291,7 @@ scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEdit
   api:chrome,document,myView,developerView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
 const myConversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
-  consumerId:'tasks',
+  consumerId:'tasks',policy:taskConversationPolicy,
   instanceId:'my-'+crypto.randomUUID()});
 const myAgent=createMyTaskAgent({client:foundationClient,taskWorkbench,
   provider:myConversation,currentPageTarget,api:chrome,

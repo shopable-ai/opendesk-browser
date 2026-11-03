@@ -15,13 +15,16 @@ test('single App binds its DOM Controller and preserves the explicit HTTP Task p
   assert.equal(app.html.trim(),'<div id="tool-app"></div>');
   assert.doesNotMatch(app.js,/__opendeskPreview|E_PREVIEW_(?:UNSUPPORTED|KEY|ETAG|EXPORT|LIMIT|IDENTITY|BUSY)|chrome\.(?:tabs|scripting)|allow-same-origin/);
   const task=JSON.parse(await readFile(process.env.SCRAPYJS_TASK_CANDIDATE || new URL('controller/scrapyjs.opendesk-task.json',tool)));
-  assert.deepEqual(task.manifest.siteOrigins,[...CAPTURE_ORIGINS,'http://127.0.0.1:43121'].sort());
+  // The unused HTTP Task remains independently frozen; adding an origin to the
+  // App Controller must not silently rewrite its installed pin or permissions.
+  assert.deepEqual(task.manifest.siteOrigins,['http://127.0.0.1:43111','http://127.0.0.1:43121',
+    'https://book.douban.com','https://download.csdn.net'].sort());
   assert.deepEqual(task.manifest.permissions,['page.automation','network','network.localRelay']);
   assert.equal(sha(task.sourceUtf8),task.manifest.program.sourceHash);
   assert.deepEqual(app.delegatedTasks,[{taskId:task.manifest.taskId,version:task.manifest.version,
     manifestHash:task.manifestHash,contentHash:sha(task.sourceUtf8)}]);
   assert.deepEqual(app.capabilities,['ai.generate','localTasks','storage.local','currentPage.read','user.export','tasks.run','controllers.run']);
-  assert.deepEqual(app.controller.siteOrigins,[...CAPTURE_ORIGINS].sort());
+  assert.deepEqual([...app.controller.siteOrigins].sort(),[...CAPTURE_ORIGINS].sort());
   assert.deepEqual(app.controller.permissions,['page.automation']);
   assert.equal(app.controller.sourceHash,sha(app.controller.sourceUtf8));
   assert.equal(app.controller.sourceUtf8,await readFile(new URL('dist/controller.js',tool),'utf8'));

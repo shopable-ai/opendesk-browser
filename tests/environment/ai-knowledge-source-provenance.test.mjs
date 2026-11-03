@@ -11,7 +11,7 @@ const project='projects/ai-knowledge-answers';
 const reviewed={
   'src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
   'trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
-  'trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
+  'trusted/ai-request.js':'d74df23166adc1ee10952db847cbd1202bdeb3ae',
   'trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
   'trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
@@ -42,6 +42,14 @@ test('Knowledge source review does not admit package, sandbox, sibling or added 
 test('Knowledge source review rejects byte drift and symlinks for every approved input',async t=>{
   const root=await realpath(await mkdtemp(join(tmpdir(),'opendesk-knowledge-source-')));
   t.after(()=>rm(root,{recursive:true,force:true}));
+  // The real tool-shell admission also verifies all fixed AI Proxy inputs.
+  // Supply those unchanged dependencies so this fixture reaches Knowledge's
+  // byte/symlink gate rather than failing on an unrelated missing directory.
+  const proxyInputs=JSON.parse(await readFile('projects/ai-proxy/trusted/source-lock.json','utf8'));
+  for(const path of Object.keys(proxyInputs)){
+    const file=resolve(root,path);
+    await mkdir(dirname(file),{recursive:true});await writeFile(file,await readFile(path));
+  }
   for(const [path,blob] of Object.entries(reviewed)){
     const file=resolve(root,project,path),bytes=await readFile(resolve(project,path));
     await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);

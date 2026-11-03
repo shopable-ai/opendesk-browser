@@ -4,41 +4,56 @@
 import {permissionPattern} from '../../environment.js';
 import {createConversationSession} from './session.js';
 import {describeLocalCodex} from '../workflow/local-codex.js';
-import {promptInstructions,promptEditInstructions} from './prompt-actions.js';
-import {bookmarkInstructions} from './bookmark-instructions.js';
-import {taskInstructions} from './my-task-instructions.js';
-import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../../projects/ai-knowledge-answers/trusted/ai-request.js';
-
 const err=(code,message)=>Object.assign(new Error(message),{code});
 
 export function createBusinessConversation({api,providerRuntime:providers,hostInstanceId,
-  consumerId='bookmark',instanceId=crypto.randomUUID(),installEpoch=null}={}) {
-    if(!['bookmark','prompt','tasks','knowledge'].includes(consumerId))
-      throw err('E_AI_SCOPE','未知 AI 消费者');
-    const mainLease=providers.acquire({consumerId,instanceId,hostInstanceId,installEpoch});
-    const editLease=consumerId==='prompt'?providers.acquire({consumerId:'prompt-edit',
-      instanceId:instanceId+':edit',hostInstanceId,installEpoch}):null;
+  consumerId,instanceId=crypto.randomUUID(),installEpoch=null,policy}={}) {
+    // Policies enter only from statically compiled trusted adapters, never the SDK.
+    if(typeof consumerId!=='string'||!policy?.scopes||
+       !Object.hasOwn(policy.scopes,consumerId)||
+       policy.authorizeTurn!==undefined&&typeof policy.authorizeTurn!=='function'||
+       policy.refs!==undefined&&(!policy.refs||typeof policy.refs.empty!=='function'||typeof policy.refs.normalize!=='function'))
+      throw err('E_AI_POLICY','显式可信消费者策略无效');
+    const scopes=new Map();
+    for(const [scope,value] of Object.entries(policy.scopes)){
+      if(!/^[a-z][a-z0-9-]{0,79}$/.test(scope)||
+         typeof value?.instructions!=='string'||!value.instructions.trim()||
+         value.continuation!==undefined&&typeof value.continuation!=='boolean'||
+         value.deadlineMs!==undefined&&(!Number.isSafeInteger(value.deadlineMs)||value.deadlineMs<=0)||
+         value.deadlineMs!==undefined&&typeof value.deadlineMessage!=='string')
+        throw err('E_AI_POLICY','消费者作用域策略无效');
+      scopes.set(scope,Object.freeze({...value}));
+    }
+    const authorizeTurn=policy.authorizeTurn;
+    const emptyRefs=policy.refs?.empty??(()=>({}));
+    const sessionRefs=policy.refs?.normalize??(()=>({}));
+    const leases=new Map();
+    try{
+      for(const scope of scopes.keys())leases.set(scope,providers.acquire({
+        consumerId:scope,instanceId:scope===consumerId?instanceId:instanceId+':'+scope,
+        hostInstanceId,installEpoch}));
+    }catch(error){
+      for(const lease of leases.values())lease.dispose();
+      throw error;
+    }
     const authorizationListeners=new Set();
-    let approvedKnowledgeTest=null,knowledgeApprovalEpoch=0;
-    const clearKnowledgeTest=()=>{knowledgeApprovalEpoch++;approvedKnowledgeTest=null;};
-    let consumerDisposed=false,bookmarkConversationBusy=false,
-      bookmarkConversationActive=null,bookmarkConversationGrantEpoch=0;
-    function forScope(scope){return scope==='prompt-edit'?editLease:mainLease;}
-    function invalidateBookmarkConversation(reason){
-      clearKnowledgeTest();
-      if(reason?.code==='E_MODEL_GRANT_REVOKED')bookmarkConversationGrantEpoch++;
-      bookmarkConversationActive?.abortController.abort(reason);
-      bookmarkConversationActive?.release();
+    let consumerDisposed=false,consumerRoundBusy=false,
+      consumerRoundActive=null,consumerRoundGrantEpoch=0;
+    function forScope(scope){return leases.get(scope);}
+    function invalidateConsumer(reason){
+      if(reason?.code==='E_MODEL_GRANT_REVOKED')consumerRoundGrantEpoch++;
+      consumerRoundActive?.abortController.abort(reason);
+      consumerRoundActive?.release();
       // Revocation retires private Native history even between turns, and
-      // includes prompt edit's separate lease. Regrant starts fresh context.
-      mainLease.invalidate();editLease?.invalidate();
+      // includes every declared scope's separate lease. Regrant starts fresh context.
+      for(const lease of leases.values())lease.invalidate();
       if(reason?.code==='E_MODEL_GRANT_REVOKED')
         for(const listener of [...authorizationListeners])listener(reason);
     }
     // Revoke this consumer's authorization and retained context only when the
     // removed grant covers its Provider; unrelated websites are unaffected.
     function consumerPermissionRemoved(grant){
-      const active=bookmarkConversationActive;
+      const active=consumerRoundActive;
       const selected=active?.source||providers.configuration().source;
       let grantPattern=active?.grantPattern||null;
       if(!grantPattern&&selected!=='local_codex'){
@@ -56,16 +71,14 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       };
       if((selected==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
         (selected!=='local_codex'&&grant.origins?.some(affectsProvider)))
-        invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
+        invalidateConsumer(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
     }
     api.permissions.onRemoved?.addListener(consumerPermissionRemoved);
     // Provider reconfiguration must also interrupt an unresolved transport or
     // permission wait. An aborted round releases its UI busy state promptly;
     // unlike permission revocation, a settings change is not a revoked grant.
     const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
-      if(approvedKnowledgeTest?.providerGeneration!==providers.configuration().generation)
-        clearKnowledgeTest();
-      const active=bookmarkConversationActive;
+      const active=consumerRoundActive;
       if(!active||active.providerGeneration===providers.configuration().generation)return;
       active.abortController.abort(err('E_TOOL_CHANGED',
         'AI Provider 已改变，本轮推理停止；迟到结果无效'));
@@ -73,27 +86,9 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       if(lease)void Promise.resolve(lease.cancelInference()).catch(()=>{});
       active.release();
     });
-    // Shared sessions keep only references belonging to their original business.
-    // Prompt needs its verified library ETag for safe ordinal follow-up actions.
-    const emptyRefs=()=>consumerId==='bookmark'
-      ?{folderId:null,bookmarkId:null,matches:[]}
-      :consumerId==='prompt'?{matches:[],etag:null}:{};
-    const sessionRefs=refs=>{
-      const matches=Array.isArray(refs?.matches)?refs.matches.slice(0,12)
-        .filter(id=>typeof id==='string'&&id.length<=160):[];
-      if(consumerId==='bookmark')return {
-        folderId:typeof refs?.folderId==='string'?refs.folderId.slice(0,160):null,
-        bookmarkId:typeof refs?.bookmarkId==='string'?refs.bookmarkId.slice(0,160):null,
-        matches
-      };
-      if(consumerId==='prompt')return {matches,
-        etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null};
-      return {};
-    };
     const conversationSession=createConversationSession({identity:{
       consumerId,instanceId,hostInstanceId,installEpoch},rowsLimit:24});
-    // References are strictly owned by this adapter, not the neutral Session.
-    // Preserve Prompt's verified ETag, rather than treating it as a bookmark ID.
+    // Reference schemas belong to the trusted policy, never the neutral Session.
     let businessRefs=emptyRefs();
     const conversation=Object.freeze({
     identity:()=>conversationSession.identity(),
@@ -129,16 +124,17 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       businessRefs=sessionRefs(snapshot.refs||{});
     },
     async request({request,context={},event,signal,scope=consumerId,continuation=false,
-      approvedKnowledgeTest:sessionGrant=null,knowledgeEtag=null}={}){
-      const isApproved=consumerId==='knowledge'&&scope==='knowledge'&&
-        sessionGrant!==null&&sessionGrant===approvedKnowledgeTest&&
-        Date.now()<=sessionGrant.expiresAt&&sessionGrant.etag===knowledgeEtag&&
-        sessionGrant.providerGeneration===providers.configuration().generation;
-      if(consumerDisposed||(!event?.isTrusted&&!isApproved))
-        throw err('E_USER_GESTURE','请从可信 AI 对话输入框发送，或批准本地知识测试会话');
-      if(scope!==consumerId&&!(consumerId==='prompt'&&scope==='prompt-edit'))
-        throw err('E_AI_SCOPE','当前消费者没有此业务作用域');
-      if(bookmarkConversationBusy)throw err('E_AI_BUSY','此消费者已有 AI 请求');
+      approval=null}={}){
+      const requestSignal=signal;
+      let approvedTurn=null;
+      if(!event?.isTrusted&&authorizeTurn)approvedTurn=authorizeTurn({approval,scope,request,context});
+      if(consumerDisposed||(!event?.isTrusted&&typeof approvedTurn?.assertAuthorized!=='function'))
+        throw err('E_USER_GESTURE','请从可信 AI 对话输入框发送，或使用已批准的可信会话');
+      const scopePolicy=scopes.get(scope);
+      if(!scopePolicy)throw err('E_AI_SCOPE','当前消费者没有此业务作用域');
+      approvedTurn?.assertAuthorized();
+      if(approvedTurn?.signal)signal=signal?AbortSignal.any([signal,approvedTurn.signal]):approvedTurn.signal;
+      if(consumerRoundBusy)throw err('E_AI_BUSY','此消费者已有 AI 请求');
       const frozenConfig=providers.configuration(),selected=frozenConfig.source;
       const providerGeneration=frozenConfig.generation;
       if(!['local_codex','cloud_responses','custom_https'].includes(selected))
@@ -151,17 +147,17 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           throw err('E_AI_CONFIG','请在共享 AI 设置中配置 HTTPS 接口、模型及本次 API Key');
         grantPattern=permissionPattern(settings.endpoint);
         // Start inside the trusted Send gesture; no deferred permission prompt.
-        permission=continuation||isApproved?api.permissions.contains({origins:[grantPattern]}):
+        permission=continuation||approvedTurn?api.permissions.contains({origins:[grantPattern]}):
           api.permissions.request({origins:[grantPattern]});
       }
-      const abortController=new AbortController(),generation=bookmarkConversationGrantEpoch;
+      const abortController=new AbortController(),generation=consumerRoundGrantEpoch;
       // The task budget starts at Send, including permission and first inference.
-      const deadlineTimer=scope==='bookmark'?setTimeout(()=>abortController.abort(
-        err('E_AGENT_LIMIT','运行时间已达上限。已完成的操作保留，请核对书签后继续。')),480000):null;
+      const deadlineTimer=scopePolicy.deadlineMs?setTimeout(()=>abortController.abort(
+        err('E_AGENT_LIMIT',scopePolicy.deadlineMessage)),scopePolicy.deadlineMs):null;
       const clearDeadline=()=>clearTimeout(deadlineTimer);
       abortController.signal.addEventListener('abort',clearDeadline,{once:true});
       const abortFromParent=()=>abortController.abort(typeof signal?.reason?.code==='string'?
-        signal.reason:err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
+        signal.reason:err('E_CANCELLED','本轮已停止，未发出新的业务操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
       let round;
@@ -176,8 +172,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         throw error;
       }
       const active={abortController,source:selected,generation,providerGeneration,
-        grantPattern,signal,scope,round,sessionGrant:isApproved?sessionGrant:null};
-      bookmarkConversationBusy=true;bookmarkConversationActive=active;
+        grantPattern,signal:requestSignal,scope,round};
+      consumerRoundBusy=true;consumerRoundActive=active;
       let released=false,deciding=false;
       const release=()=>{
         if(released)return;released=true;
@@ -185,22 +181,20 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         round.finish();
         abortController.signal.removeEventListener('abort',clearDeadline);
         signal?.removeEventListener('abort',abortFromParent);
-        if(bookmarkConversationActive===active){
-          bookmarkConversationActive=null;bookmarkConversationBusy=false;
+        if(consumerRoundActive===active){
+          consumerRoundActive=null;consumerRoundBusy=false;
         }
       };
       active.release=release;
       const assertLive=()=>{
-        if(isApproved&&(approvedKnowledgeTest!==sessionGrant||
-           Date.now()>sessionGrant.expiresAt||sessionGrant.providerGeneration!==providers.configuration().generation))
-          throw err('E_MODEL_GRANT_REVOKED','本地知识自动推理会话已失效');
+        approvedTurn?.assertAuthorized();
         if(consumerDisposed)
           throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
-        if(generation!==bookmarkConversationGrantEpoch)
+        if(generation!==consumerRoundGrantEpoch)
           throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
         if(abortController.signal.aborted)
           throw abortController.signal.reason||err('E_CANCELLED','本轮已停止，未继续写入');
-        if(bookmarkConversationActive!==active)
+        if(consumerRoundActive!==active)
           throw err('E_TOOL_CHANGED','当前 AI 消费者实例已切换，本轮操作失效');
         if(signal?.aborted)
           throw err('E_CANCELLED','本轮已停止，未继续写入');
@@ -234,7 +228,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           }catch{/* An unknown authorization state is not a grant. */}
           assertLive();
           if(!permitted){
-            invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效'));
+            invalidateConsumer(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效'));
             throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效，拒绝继续业务写入');
           }
         }
@@ -250,19 +244,18 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           if(!readiness.ready)throw err(readiness.state,readiness.message);
         }
         const result=await awaitActive(forScope(scope).requestStructured({
-          source:selected,request,context,instructions:scope==='knowledge'?KNOWLEDGE_ANSWER_INSTRUCTIONS:scope==='tasks'?taskInstructions:
-            scope==='prompt'?promptInstructions:scope==='prompt-edit'?promptEditInstructions:bookmarkInstructions,
+          source:selected,request,context,instructions:scopePolicy.instructions,
           scope,settings,
           signal:abortController.signal
         }));
         await assertWrite();
         // Keep this capability scoped to the whole readback-verified business
         // turn, not merely to the duration of model inference.
-        // Continue only the originally authorized bookmark task; no synthetic
+        // Continue only the originally authorized task; no synthetic
         // user gesture, new permission grant, scheduler or execution Host.
         const continueWith=async(nextContext,{signal:taskSignal}={})=>{
-          if(scope!=='bookmark')throw err('E_AI_SCOPE','非书签任务无法使用书签连续决策');
-          if(released)throw err('E_TOOL_CHANGED','书签任务已结束，不能重放后续模型调用');
+          if(!scopePolicy.continuation)throw err('E_AI_SCOPE','当前作用域不允许连续决策');
+          if(released)throw err('E_TOOL_CHANGED','当前任务已结束，不能重放后续模型调用');
           assertLive();
           if(deciding)throw err('E_AI_BUSY','当前任务已经在生成后续决策');
           const stopTask=()=>abortController.abort(typeof taskSignal.reason?.code==='string'?
@@ -272,9 +265,9 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           deciding=true;
           try{
             await assertWrite();
-            const next=await awaitActive(forScope('bookmark').requestStructured({
-              source:selected,request,context:nextContext,scope:'bookmark',
-              instructions:bookmarkInstructions,settings,signal:abortController.signal
+            const next=await awaitActive(forScope(scope).requestStructured({
+              source:selected,request,context:nextContext,scope,
+              instructions:scopePolicy.instructions,settings,signal:abortController.signal
             }));
             await assertWrite();
             return next.proposal;
@@ -284,14 +277,14 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           }
         };
         return {proposal:result.proposal,provider:selected,metadata:result.metadata,
-          ...(scope==='bookmark'?{continueWith}:{}),
+          ...(scopePolicy.continuation?{continueWith}:{}),
           authorization:Object.freeze({signal:abortController.signal,assertWrite,release})};
       }catch(error){
         // Stop releases pending waits immediately. Allow already queued grant
         // removal listeners to run before classifying that cancellation, so a
         // same-turn revocation retains its stronger public error semantics.
         if(error?.code==='E_CANCELLED')await Promise.resolve();
-        const revoked=generation!==bookmarkConversationGrantEpoch;
+        const revoked=generation!==consumerRoundGrantEpoch;
         release();
         if(consumerDisposed)throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
         if(revoked)throw err('E_MODEL_GRANT_REVOKED','本轮模型权限已撤销；迟到提议已丢弃');
@@ -300,50 +293,13 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         // A user's own Stop remains E_CANCELLED if the Provider is unchanged.
         if(providers.configuration().generation!==providerGeneration)
           throw err('E_TOOL_CHANGED','AI Provider 已切换，旧推理结果不能继续写入');
+        approvedTurn?.assertAuthorized();
         if(signal?.aborted)throw err('E_CANCELLED','本轮已停止；迟到提议已丢弃');
         throw error;
       }
     },
-    // Approval is a first-party, memory-only capability, never exposed through the
-    // sandbox SDK. It grants ONLY knowledge inference on this exact local document.
-    beginKnowledgeTestApproval({event,origin,documentId,etag}={}){
-      if(consumerId!=='knowledge'||consumerDisposed||!event?.isTrusted||
-         origin!=='http://127.0.0.1:43111'||
-         typeof documentId!=='string'||documentId.length<8||documentId.length>160||
-         typeof etag!=='string'||!/^[a-f0-9]{64}$/u.test(etag))
-        throw err('E_KB_TEST_CONSENT','本地测试来源、知识版本或可信用户授权无效');
-      const config=providers.configuration(),selected=config.source;
-      let permission;
-      if(selected==='local_codex'){
-        // Must start synchronously from this real UI click if Native is optional.
-        permission=api.permissions.request({permissions:['nativeMessaging']});
-      }else if(['cloud_responses','custom_https'].includes(selected)){
-        let url;try{url=new URL(config.settings.endpoint)}catch{}
-        if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||
-           !config.settings.apiKey||!config.settings.model)
-          throw err('E_AI_CONFIG','先完成共享 AI HTTPS 模型设置');
-        permission=api.permissions.request({origins:[permissionPattern(config.settings.endpoint)]});
-      }else throw err('E_AI_CONFIG','当前没有可使用的 AI Provider');
-      clearKnowledgeTest();const epoch=knowledgeApprovalEpoch;
-      return Promise.resolve(permission).then(permitted=>{
-        if(permitted!==true||consumerDisposed||epoch!==knowledgeApprovalEpoch||
-           providers.configuration().generation!==config.generation)
-          throw err('E_MODEL_GRANT_REVOKED','模型授权未批准或已变化');
-        const grant=Object.freeze({origin,documentId,etag,providerGeneration:config.generation,
-          expiresAt:Date.now()+600000});
-        approvedKnowledgeTest=grant;
-        return grant;
-      });
-    },
-    revokeKnowledgeTest(){
-      if(consumerId!=='knowledge')return;
-      const active=bookmarkConversationActive;
-      clearKnowledgeTest();
-      if(active?.sessionGrant)active.abortController.abort(
-        err('E_MODEL_GRANT_REVOKED','本地知识测试已停止'));
-    },
     cancel({signal}={}){
-      const active=bookmarkConversationActive;
+      const active=consumerRoundActive;
       if(!active||signal&&active.signal!==signal)return Promise.resolve();
       active.abortController.abort(
         err('E_CANCELLED','已停止当前 AI 对话'));
@@ -352,13 +308,13 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     },
     dispose(){
       if(consumerDisposed)return;consumerDisposed=true;
-      invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
+      invalidateConsumer(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
       unsubscribeProviderSettings?.();
       authorizationListeners.clear();
       // No install-scoped references or in-flight responses survive disposal.
       businessRefs=emptyRefs();conversationSession.dispose();
-      editLease?.dispose();mainLease.dispose();
+      for(const lease of leases.values())lease.dispose();
     }
   });
   return conversation;

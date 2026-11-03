@@ -4,7 +4,6 @@ import {createWorkflowProviderFacade} from '../workflow/provider.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sources=new Set(['local_codex','cloud_responses','custom_https']);
-const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks','knowledge','sidebar-tools']);
 const idle=()=>({sessionId:null,threadId:null,state:'IDLE',busy:false,resumable:false});
 const endpointOrigin=endpoint=>{
   try{const origin=new URL(endpoint).origin;return origin==='null'?null:origin;}
@@ -65,7 +64,7 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
   }
   function acquire({consumerId,instanceId,hostInstanceId:owner=hostInstanceId,installEpoch=null}={}) {
     ensure();
-    if(!consumers.has(consumerId)||typeof instanceId!=='string'||!instanceId||
+    if(typeof consumerId!=='string'||!/^[a-z][a-z0-9-]{0,79}$/.test(consumerId)||typeof instanceId!=='string'||!instanceId||
       instanceId.length>160||owner!==hostInstanceId||
       installEpoch!==null&&typeof installEpoch!=='string')
       throw fail('E_AI_IDENTITY','Provider Lease 身份无效');

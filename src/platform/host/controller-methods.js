@@ -526,8 +526,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return {run:current,result,slotAvailable:!slot?.currentRunId&&!slot?.preview,
           originalHostActive};
       },[RUN_STORE,COMMAND_JOURNAL,'results','frameworkKV']);
+      if(checked.result){
+        // Validate the result actually being delivered (it may have settled
+        // since the first read). Retirement does not relax delegated delivery's
+        // original-document scope, and a new iframe supplies no target identity.
+        const target=checked.run.target;
+        invariant(target?.tabId===step.target.tabId&&target.frameId===step.target.frameId&&
+          target.documentId===step.target.documentId,DOC_REPLACED);
+        await verifyControllerTarget({api,target,expectedUrl:step.target.expectedUrl,
+          expectedWindowId:step.target.expectedWindowId});
+      }
       invariant(!permissionRemovals.slice(observedPermissionEpoch).some(patterns=>
         removedRunGrant(checked.run,patterns)),CONTROLLER_PERMISSION_ERROR);
+      if(checked.result)checkFence(checked.run);
       // A durable 'running' row alone cannot prove the old Host or Worker is
       // alive after an iframe/service-worker restart. An unavailable context
       // inventory is UNKNOWN, not FOUND_RUNNING.
@@ -592,13 +603,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         }
         if(run)step={...step,ownerEpoch:run.ownerEpoch,cancelSeq:run.cancelSeq};
         await transaction.put(COMMAND_JOURNAL,step,key);
-        return {operationRef:step.operationRef,run,step};
+        const slot=await transaction.get(RUN_STORE,'@slot');
+        return {operationRef:step.operationRef,run,step,slotAvailable:!slot?.currentRunId&&!slot?.preview};
       });
       if(answer.run){
         abortOperations(answer.run.runId,CANCELLED_CODE);
         await createControllerDriver({api,clock,authorize:async()=>true}).cancel(answer.run).catch(()=>{});
       }
       return {clientRequestId:request.clientRequestId,operationRef:answer.operationRef,
+        resultId:answer.run?.resultId??null,retirementState:answer.run?.retirementState??null,
+        workerRetired:answer.run?.workerRetired??false,resourceReleased:answer.run?.retirementState==='released',
+        slotAvailable:answer.slotAvailable,result:null,value:null,
         runId:answer.run?.runId??null,semantic:answer.run?'FOUND_RUNNING':
           answer.step.prepared?'NOT_SUBMITTED_FENCED':'UNKNOWN',
         state:answer.step.state};

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createSidebarToolAIAdapter} from '../../src/ui/ai/sidebar-tool-adapter.js';
 const input={requestId:'one',request:'generate',instructions:'return JSON',context:{},providerGeneration:1};
 function setup(options={}){
- let calls=0,confirmations=0,settings={source:options.source||'local_codex',model:'',generation:1},listener;
+ let calls=0,authorizations=0,settings={source:options.source||'local_codex',model:'',generation:1},listener;
  const runtime={settingsSnapshot:()=>settings,subscribeSettings:fn=>(listener=fn,()=>{}),
  acquire:identity=>{assert.equal(identity.consumerId,'sidebar-tools');assert.equal(identity.installEpoch,'epoch');return {
  cancelInference:()=>options.cancel?.()??Promise.resolve({state:'UNKNOWN'}),
@@ -11,19 +11,19 @@ function setup(options={}){
  async requestStructured(args){calls++;if(!options.generate)args.onEvent({type:'turn.completed',turnId:'turn-real',status:'completed'});
  return options.generate?options.generate(args):{proposal:{ok:true},metadata:{usage:null}};}};}};
  const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'instance',installEpoch:'epoch',assertCurrent(){},
- confirm:async(data,signal)=>{confirmations++;return options.confirm?.(data,signal);},...options});
- return {adapter,calls:()=>calls,confirmations:()=>confirmations,switch(){settings={...settings,generation:2};listener();}};
+ assertAuthorized:async(signal)=>{authorizations++;return options.assertAuthorized?.(signal);},...options});
+ return {adapter,calls:()=>calls,authorizations:()=>authorizations,switch(){settings={...settings,generation:2};listener();}};
 }
 test('real evidence, strict schema, generation and replay',async()=>{
  const t=setup();assert.equal((await t.adapter.request('ai.info',{})).generation,1);
  await assert.rejects(t.adapter.request('ai.generate',{...input,providerGeneration:undefined}),{code:'E_MODEL_STALE'});
  await assert.rejects(t.adapter.request('ai.generate',{...input,apiKey:'fake'}),{code:'E_AI_REQUEST'});
  const result=await t.adapter.request('ai.generate',input);
- assert.equal(result.metadata.turnId,'turn-real');assert.equal(result.metadata.model,'real-model');assert.equal(t.confirmations(),1);
+ assert.equal(result.metadata.turnId,'turn-real');assert.equal(result.metadata.model,'real-model');assert.equal(t.authorizations(),1);
  await assert.rejects(t.adapter.request('ai.generate',input),{code:'E_AI_REPLAY'});t.adapter.dispose();
 });
-test('cancel pending approval sends nothing and rejects late approval',async()=>{
- let approve;const t=setup({confirm:()=>new Promise(r=>approve=r)});
+test('cancel pending authorization sends nothing and rejects late authorization',async()=>{
+ let approve;const t=setup({assertAuthorized:()=>new Promise(r=>approve=r)});
  const pending=t.adapter.request('ai.generate',input);
  await assert.rejects(t.adapter.request('ai.generate',{...input,requestId:'two'}),{code:'E_AI_BUSY'});
  assert.deepEqual(await t.adapter.request('ai.cancel',{requestId:'one'}),{requestId:'one',state:'cancelled'});
@@ -75,16 +75,16 @@ test('raw provider errors never cross bridge',async()=>{
  await assert.rejects(t.adapter.request('ai.generate',input),error=>error.code==='E_AI_PROVIDER'&&!String(error).includes('secret-token'));
  t.adapter.dispose();
 });
-test('approval abort invokes review cancellation without ever dispatching',async()=>{
- let reviewCancelled=false;
- const t=setup({confirm:(_data,signal)=>new Promise((_,reject)=>{
- signal.addEventListener('abort',()=>{reviewCancelled=true;reject(new Error('private review details'));},{once:true});
+test('stop aborts authorization checks without ever dispatching',async()=>{
+ let authorizationAborted=false;
+ const t=setup({assertAuthorized:(signal)=>new Promise((_,reject)=>{
+ signal.addEventListener('abort',()=>{authorizationAborted=true;reject(new Error('private authorization details'));},{once:true});
  })});
  const pending=t.adapter.request('ai.generate',input);
  const rejected=assert.rejects(pending,{code:'E_CANCELLED'});
  assert.equal((await t.adapter.request('ai.cancel',{requestId:'one'})).state,'cancelled');
  await rejected;await new Promise(r=>setImmediate(r));
- assert.equal(reviewCancelled,true);assert.equal(t.calls(),0);t.adapter.dispose();
+ assert.equal(authorizationAborted,true);assert.equal(t.calls(),0);t.adapter.dispose();
 });
 test('Native cancellation failure is unknown and its raw error is discarded',async()=>{
  let finish;const t=setup({generate:()=>new Promise(r=>finish=r),cancel:async()=>{throw Error('secret native credential');}});
@@ -125,7 +125,7 @@ test('real planner retains original turn after failed cancellation and reconnect
    throw Error('Unexpected RPC '+method);
  }};
  const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'recovery-host'});
- const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
+ const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},assertAuthorized:async()=>{}});
  try{
    await assert.rejects(adapter.request('ai.generate',input),{code:'E_AI_UNKNOWN'});
    assert.equal(runtime.developmentIdle(),false,'disconnected original Native inference must veto reload');
@@ -159,7 +159,7 @@ test('actual shared runtime/facade/planner preserves flat terminal events and se
    throw Error('Unexpected protocol method');
  }};
  const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'host'});
- const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'instance',installEpoch:'epoch',assertCurrent(){},confirm:async()=>{}});
+ const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'instance',installEpoch:'epoch',assertCurrent(){},assertAuthorized:async()=>{}});
  try{
    for(let i=1;i<=2;i++){
      const result=await adapter.request('ai.generate',{...input,requestId:'protocol-'+i});
@@ -202,7 +202,7 @@ test('real runtime switch retains old planner cleanup instead of synthetic idle'
  const runtime=createSharedAIProviderRuntime({client:{requestWorkflowAI(){}},hostInstanceId:'host',
  plannerFactory:()=>({plan(){},snapshot:()=>({}),planStructured:()=>new Promise(r=>finish=r),
  cancel(){cancelCalls++;return new Promise(r=>reply=r);},dispose(){disposed++;}})});
- const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
+ const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},assertAuthorized:async()=>{}});
  const pending=adapter.request('ai.generate',input);await new Promise(r=>setImmediate(r));
  const rejected=assert.rejects(pending,{code:'E_AI_UNKNOWN'});
  runtime.updateSettings({source:'cloud_responses'});
@@ -241,7 +241,7 @@ test('actual planner unknown terminal retains original identity and cannot turn 
  }};
  // No planner/facade doubles: an unknown terminal is never confirmed failure.
  const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'host'});
- const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
+ const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},assertAuthorized:async()=>{}});
  try{
    await assert.rejects(adapter.request('ai.generate',input),{code:'E_AI_UNKNOWN'});
    assert.equal(calls.filter(row=>row.method==='ai.session.close').length,0);
@@ -269,7 +269,7 @@ test('real runtime disconnect fences original request but preparation rejection 
      throw Error('Unexpected RPC '+method);
    }};
    const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'host'});
-   const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
+   const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},assertAuthorized:async()=>{}});
    try{
      if(mode==='prepare'){
        // Character-valid public envelope, but exceeds the real local UTF-8 input cap.
@@ -289,7 +289,7 @@ test('real runtime disconnect fences original request but preparation rejection 
 
 test('disconnect before lease dispatch remains retryable',async()=>{
  let attempts=0;
- const t=setup({confirm:async()=>{if(++attempts===1)throw Object.assign(Error('private preparation'),{code:'E_AI_DISCONNECTED'});}});
+ const t=setup({assertAuthorized:async()=>{if(++attempts===1)throw Object.assign(Error('private preparation'),{code:'E_AI_DISCONNECTED'});}});
  try{
    await assert.rejects(t.adapter.request('ai.generate',input),{code:'E_AI_PROVIDER'});
    assert.equal(t.calls(),0);

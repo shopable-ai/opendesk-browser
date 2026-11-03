@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.8.16",
+  "version": "1.9.2",
   "title": "scrapyjs 采集",
-  "description": "用已有或手填声明式规则进行本机试采，核对后确认持久采集；可选 AI 生成或纠正规则，保留原浏览器采集与导出。",
+  "description": "从当前真实网页用自然语言创建单页列表配置，保存后采集并导出；保留已有规则编辑、本机试采与原浏览器采集。",
   "capabilities": [
     "ai.generate",
     "localTasks",
@@ -42,7 +42,8 @@
     "siteOrigins": [
       "http://127.0.0.1:43111",
       "https://book.douban.com",
-      "https://download.csdn.net"
+      "https://download.csdn.net",
+      "https://books.toscrape.com"
     ],
     "permissions": [
       "page.automation"

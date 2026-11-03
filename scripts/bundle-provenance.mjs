@@ -253,10 +253,14 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // stricter URL scope (reject query/hash) and unique reply receipt verification;
 // no new Chrome privileges, origins, target worlds or automatic resend paths.
 // Preserve per-file closed hash admission; never wildcard this allowlist.
+// 2026-11-03 AI architecture review: ai-request.js now owns its existing
+// approval closure and supplies an explicit shared-conversation policy.
+// Exact localhost/document/ETag/generation, permission rechecks and revocation
+// remain enforced; no new output, origin, sandbox capability or replay path.
 const compiledKnowledgeInputs=Object.freeze({
   'projects/ai-knowledge-answers/src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
   'projects/ai-knowledge-answers/trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
-  'projects/ai-knowledge-answers/trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
+  'projects/ai-knowledge-answers/trusted/ai-request.js':'d74df23166adc1ee10952db847cbd1202bdeb3ae',
   'projects/ai-knowledge-answers/trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'projects/ai-knowledge-answers/trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
   'projects/ai-knowledge-answers/trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',

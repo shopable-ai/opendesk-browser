@@ -39,7 +39,7 @@ export function validateSidebarToolAIRequest(payload){
     typeof instructions!=='string'||!instructions.trim()||instructions.length>10000||!object(context)||
     JSON.stringify({request,context}).length>20000)throw fail('E_AI_REQUEST','AI 请求格式或容量无效');
 }
-export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEpoch,assertCurrent,confirm,timeoutMs=180000}){
+export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEpoch,assertCurrent,assertAuthorized,timeoutMs=180000}){
   if(!providerRuntime||!instanceId||typeof installEpoch!=='string'||!installEpoch)
     throw fail('E_AI_IDENTITY','缺少安装代际');
   const lease=providerRuntime.acquire({consumerId:'sidebar-tools',instanceId,installEpoch});
@@ -117,8 +117,7 @@ export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEp
       try{
         const work=(async()=>{
           const s=settings();
-          await confirm({provider:s.source,endpoint:s.source==='local_codex'?null:s.endpoint,model:s.model||null,
-            requestId,request,instructions,context},controller.signal);
+          await assertAuthorized(controller.signal);
           check(providerGeneration);
           if(controller.signal.aborted)throw controller.signal.reason;
           let completed=null;
@@ -141,7 +140,7 @@ export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEp
         })().finally(()=>{row.workSettled=true;if(states.has(row.id))release(row);});
         const result=await Promise.race([work,interrupted]);states.set(requestId,'completed');return result;
       }catch(error){
-        // Entering the lease is distinct from confirmation/preparation. A local
+        // Entering the lease is distinct from authorization/preparation. A local
         // disconnect can erase the planner snapshot before this catch runs;
         // absence of a session (or a later IDLE receipt) proves no retirement.
         if(row.dispatched&&row.source==='local_codex'&&!row.terminal&&error?.code==='E_AI_DISCONNECTED')

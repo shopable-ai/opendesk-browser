@@ -72,6 +72,119 @@ function fieldKey(key) {
     throw Error('AI 字段名称无效或属于引擎保留字段。');
   return key;
 }
+// Object order is a codec detail; array order is part of the configuration.
+const configValue = value => JSON.stringify(value, (_key, row) => isObject(row)
+  ? Object.fromEntries(Object.keys(row).sort().map(key => [key, row[key]])) : row);
+
+/** A deliberately small grammar, fully consumed from THIS turn, not AI/history. */
+export function resolveConfigurationEditScope(request, base, {page = null} = {}) {
+  const raw = request.trim();
+  const quotePairs = {"'":"'",'"':'"','“':'”','‘':'’','「':'」','『':'』','`':'`'};
+  // Only unquote a literal header value, never a quoted instruction.
+  const text = raw.replace(/[。.!！]+$/u, '').trim().replace(
+    /(表头改(?:成|为)\s*)(['"“‘「『`])([\p{L}\p{N}_-]+)(['"”’」』`])(?=\s*(?:$|[，,；;\n]))/gu,
+    (value, prefix, open, label, close) => quotePairs[open] === close ? prefix + label : value);
+  const clarify = () => ({type:'needs-input', message:'尚未修改配置，请完整说明字段与新表头、CSV 列顺序、最大页数或明确的字段选择器；无法根据网址推导网页规则。'});
+  // A new list is inferred from an authorized page observation, never from a URL
+  // or a previous configuration. Existing drafts keep the exact-edit contract.
+  if (/(?:创建|新建|生成|建立|制作).{0,16}(?:采集|爬虫|配置|规则)|\b(?:create|generate|build)\b.{0,40}\b(?:config|scrap|collect)/iu.test(text) &&
+      !/解释|讨论|示例|如果|假如|不要|不需要|不创建|如何|怎么|是否|[？?]|^["'“‘「『`]|\b(?:explain|discuss|if|don't|how)\b/iu.test(text)) {
+    if (Object.keys(base.itemConfig).length || Object.keys(base).some(key=>!['url','itemConfig'].includes(key)))
+      return {type:'needs-input',message:'请先在配置库新建空白配置，已有配置已保留。'};
+    if (!page?.url || base.url && new URL(base.url).href!==new URL(page.url).href)
+      return {type:'needs-input',message:'请先打开目标网页并刷新当前网页信息。'};
+    if (!/(?:只|仅)采(?:集)?当前页|(?:只|仅)(?:采集)?(?:当前|本)页|\b(?:current page only|only (?:the )?current page)\b/iu.test(text))
+      return {type:'needs-input',message:'请说明要采集的字段及范围；目前可从当前页创建列表配置。'};
+    const names=text.match(/CSV\s*表头(?:分别)?(?:为|是|设为)\s*(.+?)(?=[，,]\s*(?:只|仅)|$)/iu);
+    const headers=names?names[1].split(/[、，,]/u).map(value=>value.trim()):null;
+    if(headers&&(headers.some(value=>!value||value.length>80)||new Set(headers).size!==headers.length))return clarify();
+    return {type:'create',base:structuredClone(base),url:page.url,headers};
+  }
+  if (!text || /["'“”「」『』`<>]|引用|示例|样本中的|别人说|有人建议|不要|不需要|不必|不修改|不更改|别改|解释|说明|讨论|影响|风险|会怎样|会怎么样|为什么|为何|如何|怎么|是否|能否|如果|假如|[？?]|\b(?:don't|do not|explain|discuss|risk|impact|why|how|whether|if)\b/i.test(text))
+    return {type:'readonly', message:'尚未修改配置，请直接说明要修改的内容。'};
+  const expected = structuredClone(base), touched = new Set();
+  const touch = key => {
+    if (touched.has(key)) throw Error('请合并重复或矛盾的修改要求。');
+    touched.add(key);
+  };
+  const field = key => {
+    fieldKey(key);
+    if (!own(base.itemConfig, key) && !own(base.detail?.itemConfig || {}, key))
+      throw Error('字段不存在，请明确已有字段。');
+    return key;
+  };
+  try {
+    // Literal selector bytes must not pass through sentence-punctuation cleanup.
+    const literal = raw.match(/^(?:请\s*)?把采集规则设为\s*([\w-]+)\s*字段[，,]\s*选择器\s+([^\s，,；;。]+)$/u);
+    const copy = text.match(/^保留全部规则[，,]\s*只增加与\s*([\w-]+)\s*相同的\s*([\w-]+)[，,]\s*仅采当前页$/u);
+    if (literal) {
+      const [, key, selector] = literal;
+      if (/[.!！]$/u.test(selector) &&
+          (selector.slice(0,-1).match(/\\+$/u)?.[0].length || 0) % 2 !== 1)
+        return clarify(); // Ambiguous sentence punctuation is never removed.
+      fieldKey(key);
+      expected.itemConfig[key] = selector;
+      // Only an entirely empty workspace may initialize its URL from the page.
+      if (!base.url) {
+        if (Object.keys(base.itemConfig).length || !page?.url) return clarify();
+        expected.url = page.url;
+      }
+    } else if (copy) {
+      const [, source, destination] = copy;
+      fieldKey(source);fieldKey(destination);
+      if (!own(base.itemConfig, source) || own(base.itemConfig, destination)) return clarify();
+      expected.itemConfig[destination] = structuredClone(base.itemConfig[source]);
+      if (own(base, 'maxPages')) expected.maxPages = 1;
+    } else {
+      const clauses = text.split(/[，,；;\n]/u).map(part => part.trim());
+      if (!clauses.length || clauses.length > 16 || clauses.some(part => !part)) return clarify();
+      for (const [index, clause] of clauses.entries()) {
+        let match;
+        if ((match = clause.match(/^(?:请\s*)?(?:把\s*([\w-]+)\s*的\s*CSV\s*|(?:把\s*)?CSV\s*中\s*([\w-]+)\s*的\s*(?:字段\s*)?)表头改(?:成|为)\s*([\p{L}\p{N}_-]+)$/iu))) {
+          const key = field(match[1] || match[2]), label = match[3];
+          if (/并|同时|然后|但是|改成|改为|设为/u.test(label)) return clarify();
+          touch('header.' + key);
+          expected.output = {...expected.output, fieldNames:{...expected.output?.fieldNames, [key]:label}};
+        } else if ((match = clause.match(/^(?:(?:请\s*)?把\s*)?(?:CSV\s*)?列顺序改为\s*([\w-]+(?:\s*、\s*[\w-]+)*)$/iu))) {
+          touch('order');
+          const order = match[1].split('、').map(key => field(key.trim()));
+          if (new Set(order).size !== order.length) return clarify();
+          expected.output = {...expected.output, fieldOrder:order};
+        } else if ((match = clause.match(/^(?:请\s*)?把最大页数设为\s*([1-9]\d*)$/u))) {
+          touch('maxPages');expected.maxPages = Number(match[1]);
+        } else if (index === clauses.length - 1 && touched.size && /^(?:请\s*)?修改配置$/u.test(clause)) {
+          // This suffix confirms the preceding explicit edits; it grants no scope.
+          continue;
+        } else return clarify();
+      }
+    }
+    return {type:'edit', base:structuredClone(base), expected};
+  } catch {
+    return clarify();
+  }
+}
+
+export function assertConfigurationEditScope(scope, base, candidate, validate) {
+  if(scope.type==='create'){
+    const config=validate(candidate),fields=Object.keys(config.itemConfig).filter(key=>!reservedFields.has(key));
+    if(configValue(base)!==configValue(scope.base)||new URL(config.url).href!==new URL(scope.url).href||
+      !config.itemConfig._listItem||!fields.length||(config.maxPages??1)!==1||
+      Object.keys(config).some(key=>!['url','itemConfig','output','maxPages','timeoutMs','waitForSelector'].includes(key)))
+      throw Error('新配置必须是当前网页的单页列表，不得增加翻页、详情或其他操作；未应用。');
+    if(scope.headers){
+      const order=config.output?.fieldOrder||fields;
+      if(fields.length!==scope.headers.length||order.length!==fields.length||
+        order.some((key,index)=>!fields.includes(key)||config.output?.fieldNames?.[key]!==scope.headers[index]))
+        throw Error('AI 返回的字段和 CSV 表头与本轮要求不一致，未应用。');
+    }
+    return;
+  }
+  if (scope.type !== 'edit') throw Error(scope.message);
+  if (configValue(base) !== configValue(scope.base) ||
+      configValue(validate(candidate)) !== configValue(validate(scope.expected)))
+    throw Error('AI 返回的配置超出本轮要求或指定值不一致，整批未应用；请编辑要求后重发。');
+}
+
 function mergeActions(base, actions) {
   if (!Array.isArray(actions) || !actions.length || actions.length > 16)
     throw Error('AI 配置操作必须包含 1–16 项受控动作。');

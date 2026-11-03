@@ -28,6 +28,7 @@ async function settle(check){
 class Port {
   closed=false;sent=[];onmessage=null;
   postMessage(message){
+    if(this.failDelivery)throw Error('transport unavailable');
     if(this.closed)return;
     const data=structuredClone(message);this.sent.push(data);
     // Real port events may be trusted while every data field is hostile.
@@ -57,6 +58,12 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     get timeStamp(){return states.get(this).timeStamp;}
     stopImmediatePropagation(){this.stopped=true;}
   }
+  class NativeKeyboardEvent extends NativeEvent {
+    constructor(type,options={}){super(type);Object.assign(states.get(this),{key:'Enter',shiftKey:false,isComposing:false,...options});}
+    get key(){return states.get(this).key;}
+    get shiftKey(){return states.get(this).shiftKey;}
+    get isComposing(){return states.get(this).isComposing;}
+  }
   const win=new Events(),root=new Events(),status={dataset:{}},publicMessages=[];
   Object.assign(root,{replaceChildren(){},querySelectorAll:selector=>draftRoot?.querySelectorAll(selector)||[],getBoundingClientRect:()=>({top:0,bottom:100})});
   const parent={postMessage(message){publicMessages.push(message);send(message);}};
@@ -69,9 +76,9 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     const sidebarToolRequestTimeout=(${sidebarToolRequestTimeout.toString()});
     (${initSidebarToolSandbox.toString()})(); ({Reflect,Function,Promise,Object,Map,Set,Number,globalThis})`,{
     SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,crypto:globalThis.crypto,
-    window:win,parent,Event:NativeEvent,MessagePort:Port,
+    window:win,parent,Event:NativeEvent,KeyboardEvent:NativeKeyboardEvent,MessagePort:Port,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:{},head:node(),body:node(),createElement:node},
-    Blob,TextEncoder,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:export-fixture';},revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
+    Blob,TextEncoder,structuredClone,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:export-fixture';},revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
   });
   let leaked=false;
   win.addEventListener('message',event=>{if(event.ports?.length)leaked=true;});
@@ -89,12 +96,14 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   };
   const dispatch=(event,run)=>{
     const state=states.get(event);state.currentTarget=win;
-    try{win.emit('click',event);return run(event);}finally{state.currentTarget=null;}
+    try{win.emit(state.type,event);return run(event);}finally{state.currentTarget=null;}
   };
   return {win,port,publicMessages,request,NativeEvent,realm,blobs,root,get leaked(){return leaked;},
     prepare:factory=>track(win.OpenDeskSDK.browser.downloads.prepareText(factory)),
+    prepareAI:factory=>track(win.OpenDeskTool.prepareAI(factory)),
     click(run,timeStamp){const event=new NativeEvent('click');states.get(event).trusted=true;
       if(timeStamp!==undefined)states.get(event).timeStamp=timeStamp;return dispatch(event,run);},
+    key(run,options={},trusted=true){const event=new NativeKeyboardEvent('keydown',options);states.get(event).trusted=trusted;return dispatch(event,run);},
     async dispatchMicrotask(run){
       const event=new NativeEvent('click'),state=states.get(event);state.trusted=true;state.currentTarget=win;
       try{win.emit('click',event);await Promise.resolve().then(run);}finally{state.currentTarget=null;}
@@ -121,6 +130,84 @@ test('sandbox loads large UI and fixed dependencies while rejecting a changed de
         assert.equal(b.blobs.length,0,'bad dependency SHA must prevent all script loads');
         assert.match(b.publicMessages.find(row=>row.kind==='status'&&row.state==='error').message,/E_TOOL_SHA/);
       }
+    }finally{await b.dispose();}
+  }
+});
+
+test('prepareAI binds one trusted send through async preparation without borrowing parent activation',async()=>{
+  let now=0,finish,calls=0;
+  const b=sandbox({clock:{now:()=>now}});
+  const payload={requestId:'one',request:'Explain only',instructions:'Return data',context:{},providerGeneration:1};
+  try{
+    await assert.rejects(b.prepareAI(()=>{calls++;return payload;}),{code:'E_AI_GESTURE'});
+    let duplicate;
+    const pending=b.click(()=>{
+      const first=b.prepareAI(()=>{calls++;return new Promise(resolve=>finish=resolve);});
+      duplicate=b.prepareAI(()=>{calls++;return payload;});return first;
+    });
+    await assert.rejects(duplicate,{code:'E_AI_GESTURE'});
+    now=6000;finish(payload);await tick();
+    assert.equal(calls,1);assert.equal(b.port.sent.length,1);
+    const sent=b.port.sent[0];assert.equal(sent.operation,'ai.generate');assert.deepEqual(sent.payload,payload);
+    b.respond({...sent,kind:'response',ok:true,result:{requestId:'one',proposal:{answer:'ok'},providerGeneration:1}});
+    assert.equal((await pending).proposal.answer,'ok');
+    assert.equal(b.publicMessages.some(row=>row.operation==='ai.generate'),false);
+  }finally{await b.dispose();}
+});
+
+test('prepareAI expires unsent preparation and stopping preparation never dispatches',async()=>{
+  for(const stopped of [false,true]){
+    let now=0,finish;
+    const b=sandbox({clock:{now:()=>now}});
+    try{
+      const pending=b.click(()=>b.prepareAI(()=>new Promise(resolve=>finish=resolve)));
+      now=stopped?1:8001;finish(stopped?null:{requestId:'late',request:'x',context:{}});
+      if(stopped)assert.equal(await pending,null);
+      else await assert.rejects(pending,{code:'E_AI_PREPARE'});
+      assert.equal(b.port.sent.length,0);
+    }finally{await b.dispose();}
+  }
+});
+
+test('prepareAI accepts trusted Enter while Shift+Enter, IME and synthetic keys do not authorize',async()=>{
+  const b=sandbox();
+  try{
+    for(const [options,trusted] of [[{shiftKey:true},true],[{isComposing:true},true],[{},false]])
+      await assert.rejects(b.key(()=>b.prepareAI(()=>({requestId:'key'})),options,trusted),{code:'E_AI_GESTURE'});
+    const sent=b.key(()=>b.prepareAI(()=>({requestId:'key'})));
+    await tick();assert.equal(b.port.sent.length,1);
+    const message=b.port.sent[0];
+    b.respond({...message,kind:'response',ok:true,result:{requestId:'key'}});
+    assert.equal((await sent).requestId,'key');
+  }finally{await b.dispose();}
+});
+
+for(const phase of ['delivery','timeout','closed'])test(`dispatched AI reports unknown on ${phase} without replay`,async()=>{
+  let expire;
+  const b=sandbox({timers:{setTimeout(fn){expire=fn;return 1;},clearTimeout(){}}});
+  try{
+    if(phase==='delivery')b.port.failDelivery=true;
+    const result=b.click(()=>b.prepareAI(()=>({requestId:'unknown'})));
+    const rejected=assert.rejects(result,{code:'E_AI_UNKNOWN'});
+    await tick();
+    if(phase==='timeout')expire();
+    if(phase==='closed')b.win.emit('pagehide',{});
+    await rejected;
+    assert.equal(b.port.sent.length,phase==='delivery'?0:1);
+    assert.equal(b.publicMessages.some(row=>row.operation==='ai.generate'),false);
+  }finally{await b.dispose();}
+});
+
+test('closing AI preparation or during payload cloning is known unsent',async()=>{
+  for(const phase of ['preparing','cloning']){
+    let finish;
+    const b=sandbox();
+    try{
+      const result=b.click(()=>b.prepareAI(()=>phase==='preparing'?new Promise(resolve=>finish=resolve):
+        {get requestId(){b.win.emit('pagehide',{});return 'closed';}}));
+      const rejected=assert.rejects(result,{code:'E_AI_PREPARE'});
+      if(phase==='preparing'){b.win.emit('pagehide',{});finish({requestId:'closed'});}
+      await rejected;assert.equal(b.port.sent.length,0);
     }finally{await b.dispose();}
   }
 });
@@ -599,10 +686,11 @@ test('prepareText: after send a lost acknowledgement remains unknown and never r
   }finally{await b.dispose();}
 });
 
-async function hostFixture(t,{capabilities=tool.capabilities}={}){
+async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime}={}){
   const installed={...tool,capabilities};
   const descriptors=new Map(['window','navigator','location','MessageChannel'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   const win=new Events(),copied=[],downloads=[],calls=[],store=new Map([[SIDEBAR_TOOL_STORE,[installed]]]);
+  if(providerRuntime)store.set(TOOL_REVOCATION_EPOCHS_STORE,{[installed.id]:'ai-install-epoch'});
   const {document:doc}=parseHTML('<html><body></body></html>');
   const create=doc.createElement.bind(doc);
   doc.createElement=tag=>{
@@ -630,7 +718,7 @@ async function hostFixture(t,{capabilities=tool.capabilities}={}){
   }};
   const view=createSidebarToolsView(),runtime={frameRoot:doc.createElement('div'),settingsControl:doc.createElement('button')};
   doc.body.append(runtime.frameRoot,runtime.settingsControl);view.attachRuntime(runtime);
-  const host=createSidebarTools({api,doc,view,taskWorkbench:{},lockManager:{request:(_key,run)=>run()},fetcher:officialFixtureFetch});
+  const host=createSidebarTools({api,doc,view,providerRuntime,taskWorkbench:{},lockManager:{request:(_key,run)=>run()},fetcher:officialFixtureFetch});
   t.after(()=>{host.dispose();view.dispose();for(const [key,descriptor] of descriptors){
     if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
   }});
@@ -648,6 +736,49 @@ async function hostFixture(t,{capabilities=tool.capabilities}={}){
     change(key,value){store.set(key,value);changed.emit('change',{[key]:{newValue:value}},'local');}
   };
 }
+
+test('AI send uses saved Provider once without review and rejects background or revoked senders',async t=>{
+  let sends=0;
+  const providerRuntime={settingsSnapshot:()=>({source:'local_codex',generation:1}),subscribeSettings:()=>()=>{},
+    acquire:()=>({planner:{snapshot:()=>({})},dispose(){},cancelInference:async()=>({}),
+      async requestStructured({request}){sends++;return {proposal:{answer:request},metadata:{}};}})};
+  const f=await hostFixture(t,{capabilities:['ai.generate'],providerRuntime});
+  const payload={requestId:'send-one',request:'Explain only',instructions:'Return data',context:{},providerGeneration:1};
+  const response=async id=>{await settle(()=>f.response(id)||f.review());
+    assert.equal(f.review(),false,'ordinary Chat must never open the extra Provider review');return f.response(id);};
+  f.privateRequest('ai.generate',payload,1);
+  const first=await response(1);
+  assert.equal(first.ok,true,JSON.stringify(first.error));
+  assert.deepEqual(first.result.proposal,{answer:'Explain only'});
+  assert.equal(sends,1);
+  navigator.userActivation.isActive=true;
+  f.windowRequest('ai.generate',{...payload,requestId:'background'},2,{verifiedGesture:true,userActivation:true});
+  assert.equal((await response(2)).error.code,'E_USER_GESTURE_REQUIRED');
+  assert.equal(sends,1,'ambient parent activation and caller flags cannot manufacture a user send');
+  navigator.userActivation.isActive=true;
+  f.change(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'changed'});
+  f.privateRequest('ai.generate',{...payload,requestId:'revoked'},3);
+  await tick();await tick();
+  assert.equal(sends,1,'revoking the installed instance cannot send');
+});
+
+for(const reason of ['capability','disabled','generation','replaced-package'])
+test(`AI direct send retains ${reason} protection`,async t=>{
+  let sends=0;
+  const providerRuntime={settingsSnapshot:()=>({source:'local_codex',generation:1}),subscribeSettings:()=>()=>{},
+    acquire:()=>({planner:{snapshot:()=>({})},dispose(){},cancelInference:async()=>({}),
+      async requestStructured(){sends++;return {proposal:{},metadata:{}};}})};
+  const f=await hostFixture(t,{capabilities:reason==='capability'?[]:['ai.generate'],providerRuntime});
+  if(reason==='disabled')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false});
+  if(reason==='replaced-package')f.store.set(SIDEBAR_TOOL_STORE,[{...f.loaded.tool,version:'2.0.0'}]);
+  f.privateRequest('ai.generate',{requestId:'denied',request:'Explain only',instructions:'Return data',context:{},
+    providerGeneration:reason==='generation'?2:1},1);
+  await settle(()=>f.response(1));
+  assert.equal(f.response(1).ok,false);
+  assert.equal(f.response(1).error.code,{capability:'E_CAPABILITY',disabled:'E_TOOL_DISABLED',
+    generation:'E_MODEL_STALE','replaced-package':'E_TOOL_CHANGED'}[reason]);
+  assert.equal(sends,0);assert.equal(f.review(),false);
+});
 
 test('host + bridge: trusted click uses the same exact Host intent then one frontend sink',async t=>{
   const f=await hostFixture(t);

@@ -1,20 +1,22 @@
 # Sidebar Tool 通用 AI bridge
 
-安装包声明 `ai.generate`。仅已安装、有有效 installEpoch 的实例可用；只读开发预览拒绝真实 AI。沙箱通过原 `OpenDeskTool.request(operation, payload)` 调用，不提供密钥、Provider 配置或执行代码。
+安装包声明 `ai.generate`。仅已安装、有有效 installEpoch 的实例可用；只读开发预览拒绝真实 AI。沙箱复用原 `OpenDeskTool.request(operation, payload)` 与 `OpenDeskTool.prepareAI(factory)`，不提供密钥、Provider 配置或执行代码。
 
 - `ai.info {}` → `{provider, endpoint, model, generation}`。本机 Provider endpoint 为 null。
 - `ai.generate {requestId, request, instructions, context, providerGeneration}` → `{requestId, proposal, metadata, providerGeneration}`。providerGeneration 必须取自 ai.info；缺失、过期均拒绝。requestId 是 1–100 位字母数字、下划线、点或连字符，本实例不得重放。
-- `ai.cancel {requestId}` → `{requestId, state: 'cancelled'|'completed'|'failed'|'unknown'}`。确认前取消（尚未派发）返回 cancelled，并经原 review cancel 链关闭对应可信审阅。派发后的 local_codex 取消等待 lease.cancelInference()：仅原回合明确 terminalStatus 映射为 completed/failed/cancelled；无请求关联的 IDLE（包括失败清理后无 active）不构成退休证明，不清除 unknown；未知或失败回执保留 unknown。已派发取消但终态未确认时，generate 以 E_AI_UNKNOWN 拒绝；超时仍以 E_AI_TIMEOUT 拒绝，不用 E_CANCELLED 暗示终态。后续查询原 requestId；只有真实回合终态证明才能解除 unknown。云端 Abort 仅停止本地交付，返回 unknown，不声称远端退休或未产生费用；即使本地 transport 已结束，当前实例仍拒绝新 generate，不自动重发。
+- `ai.cancel {requestId}` → `{requestId, state: 'cancelled'|'completed'|'failed'|'unknown'}`。授权检查期间取消（尚未派发）返回 cancelled，不派发推理。派发后的 local_codex 取消等待 lease.cancelInference()：仅原回合明确 terminalStatus 映射为 completed/failed/cancelled；无请求关联的 IDLE（包括失败清理后无 active）不构成退休证明，不清除 unknown；未知或失败回执保留 unknown。已派发取消但终态未确认时，generate 以 E_AI_UNKNOWN 拒绝；超时仍以 E_AI_TIMEOUT 拒绝，不用 E_CANCELLED 暗示终态。后续查询原 requestId；只有真实回合终态证明才能解除 unknown。云端 Abort 仅停止本地交付，返回 unknown，不声称远端退休或未产生费用；即使本地 transport 已结束，当前实例仍拒绝新 generate，不自动重发。
 
-每次 generate 由原可信确认 UI 展示实际 Provider、接收方和完整 request/instructions/context，真实用户点击后才发送。AI proposal 只是数据，应用自行验证、应用和保存；平台不加入业务 prompt。普通用户复用已配置 Provider，无需向沙箱提供密钥。
+普通 Chat 点击发送后直接使用当前保存的 Provider，不再弹出逐次发送审阅或要求第二次确认。在实际发送点击或非 IME、非 Shift 的 Enter 回调中，第一次 await 前同步调用 `OpenDeskTool.prepareAI(factory)`，桥接消费一次真实原生事件，并沿已有闭包私有 MessagePort 派发一个请求。factory 可异步读取本工具的待处理锁与 `ai.info`，须在 8 秒内返回完整 generate payload；准备阶段停止则返回 null，桥接不发送。无有效事件拒绝 `E_AI_GESTURE`；准备超时、失败或实例销毁拒绝 `E_AI_PREPARE`（factory 失败保留 cause），明确尚未派发。准备失败仍须收尾可能在途的本工具存储操作，不能丢弃未知的锁写入。
 
-请求严格拒绝未知字段；request ≤4000 字符，instructions ≤10000 字符，context 必须为 JSON 对象，request/context 序列化总计 ≤20000 字符，proposal 序列化 ≤262144 字符。单实例单并发，最多记录 128 个请求；达到上限重新打开工具。Host 总超时 180 秒（含确认），沙箱 RPC 190 秒。超时报告 E_AI_TIMEOUT、状态 unknown，绝不自动重放；取消/切换/销毁后迟到结果不交付，旧工作或本地取消回执尚未收尾时拒绝新请求。
+已派发后的桥接断连、超时或回执丢失为 `E_AI_UNKNOWN`，保留原 requestId 并禁止自动重发。私有端口与凭据不向工具暴露；公开消息、payload 手势标记和父页面短时 userActivation 均不授权，Host 对未沿本实例私有端口的 generate 拒绝 `E_USER_GESTURE_REQUIRED`。已在真实事件内持有完整 payload 的同步 `request('ai.generate', payload)` 也复用同一单次门禁；异步准备须使用 prepareAI，缺少该能力时保留草稿并提示更新 Browser，不回退后台发送。上述门禁不替代已安装 ai.generate 能力、安装/启用/实例及 Provider generation 检查；原安装审核、新能力授权和 AI 设置入口保留。AI proposal 只是数据，应用自行验证、应用和保存；平台不加入业务 prompt。普通用户复用已配置 Provider，无需向沙箱提供密钥。
+
+请求严格拒绝未知字段；request ≤4000 字符，instructions ≤10000 字符，context 必须为 JSON 对象，request/context 序列化总计 ≤20000 字符，proposal 序列化 ≤262144 字符。单实例单并发，最多记录 128 个请求；达到上限重新打开工具。Host 总超时 180 秒（含授权检查），沙箱 RPC 190 秒。超时报告 E_AI_TIMEOUT、状态 unknown，绝不自动重放；取消/切换/销毁后迟到结果不交付，旧工作或本地取消回执尚未收尾时拒绝新请求。
 
 身份绑定真实安装代际、iframe instanceId 与共享 Provider generation。权限、安装身份与启用状态在 Host 检查；Provider 凭据、source 与 lease 来自可信 runtime。Provider 切换中止当前工作，工具销毁释放 lease。
 
 metadata 的 turnId/status 取自真实 turn.completed 事件，threadId/sessionId/model 取自 lease planner snapshot（model 可回退当前可信配置）；缺失 ID 为 null、状态为 unknown，不推测成功。Provider 异常仅输出固定白名单 code 与有界安全文案，不转发原始错误或凭据。无浏览器或真实推理证据时不得据此声称 CHROME_NATIVE_PASS 或 95 分验收通过。
 
-本机推理调用中断连且没有原回合关联 terminal 时，返回 E_AI_UNKNOWN 并保留原 requestId 锁；planner 清空 session 或后续 cancel 返回 IDLE 均不解除锁。确认前失败、local planner 输入准备拒绝仍记 failed，可用新 requestId 明确重试；不自动重发。
+本机推理调用中断连且没有原回合关联 terminal 时，返回 E_AI_UNKNOWN 并保留原 requestId 锁；planner 清空 session 或后续 cancel 返回 IDLE 均不解除锁。派发前授权检查失败、local planner 输入准备拒绝仍记 failed，可用新 requestId 明确重试；不自动重发。
 
 metadata 额外白名单透传 responseId、upstreamStatus、upstreamRequestId：仅接受 1–200 位字母数字及 `_ . : -`，缺失或不合规则为 null。不透传任意 Provider metadata、headers、凭据、原始错误或带认证信息的 URL。
 
@@ -30,36 +32,66 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 | --- | --- | --- |
 | 公共展示 Frame | rows、draft、busy、阻断状态及回调 → 文本消息、输入、发送/停止事件 | 工具自己的 React Root；仅持有焦点/滚动/IME 等展示状态，随组件卸载释放；不发请求、不写业务 |
 | 业务无关会话 | 展示 identity、rowsLimit、本地更新/round → 快照、订阅、过时回包检查 | 每个视图实例独立的内存 draft/rows/phase；无自动持久化、模型历史拼接或授权；由消费者稳定创建并 dispose |
-| Provider / 推理及权限链 | 已批准 `ai.info/generate/cancel` 的载荷 → 安全配置投影、proposal/metadata 或原请求状态 | 真实安装身份、Provider generation、可信确认、凭据、lease、unknown 围栏归原 Host/runtime；沙箱不拥有这些状态 |
+| Provider / 推理及权限链 | 已批准 `ai.info/generate/cancel` 的载荷 → 安全配置投影、proposal/metadata 或原请求状态 | 真实安装身份、Provider generation、真实发送手势、凭据、lease、unknown 围栏归原 Host/runtime；沙箱不拥有这些状态 |
 | 领域 adapter（工具自有） | 用户意图和最少业务上下文、AI proposal → 校验后的待审提案和显式应用结果 | 业务 prompt、上下文转换、提案校验、差异审阅、应用/保存及业务持久化留工具；不放进 Frame/session/通用 bridge |
 
-公共层不要求书签树、CRUD、书签权限、业务 prompt 或专有 consumer 初始化。会话中的消息仅用于展示，不会自动成为下次模型输入；消费者自行选择允许发送的上下文，并由原可信 UI 审阅完整载荷。共享代码或消费者源码存在不等于目标 Browser 已更新：分别记录**源码导出、目标版本包含、实际运行、权限批准**。能力缺失时保留草稿并提示维护者核对目标版本，不复制私有组件作为兼容后门。local debug / 只读预览只验证展示，不可发送真实 AI。
+公共层不要求书签树、CRUD、书签权限、业务 prompt 或专有 consumer 初始化。会话中的消息仅用于展示，不会自动成为下次模型输入；消费者自行选择允许发送的上下文，普通发送直接使用已保存来源，不经额外审阅。共享代码或消费者源码存在不等于目标 Browser 已更新：分别记录**源码导出、目标版本包含、实际运行、权限批准**。能力缺失时保留草稿并提示维护者核对目标版本，不复制私有组件作为兼容后门。local debug / 只读预览只验证展示，不可发送真实 AI。
 
 普通作者为已有工具接入时，按以下最小路径完成，不需先阅读书签 App 或 Go：
 
 1. **准备展示**：保留项目原构建；配置 `uiRuntime: "opendesk.react-ui.v1"`，在自己 Root 使用下方 Frame/session。每个 Chat 视图稳定创建一次 session，订阅后在卸载清理订阅并 `dispose()`；不要在每次 render 新建或跨消费者共用单例。`inputId` 在同一文档中唯一；展示 identity 每实例区分，不能冒充 Host 安装身份。未发送时也可独立使用展示与内存会话。
-2. **接发送**：`onSend(event)` 保持原事件，先拒绝空白/重复/blocked；第一次 await（包括 `ai.info`）前取得工具自己的单并发锁。读取 info 后再以其 generation 建立 `session.begin({providerGeneration: info.generation})`，保存该轮的 requestId 和实例。以下仅示出已进入发送回调后的公共载荷；外围锁、错误和清理按本节处理，并非完整组件：
+2. **接发送**：`onSend(event)` 保持原事件，先拒绝空白/重复/blocked；第一次 await（包括 `ai.info`）前取得工具自己的单并发锁并调用 prepareAI。读取 info 后再以其 generation 建立 `session.begin({providerGeneration: info.generation})`，保存该轮的 requestId 和实例。以下仅示出已进入发送回调后的公共载荷；外围锁、错误和清理按本节处理，并非完整组件：
 
    ```js
-   const info = await OpenDeskTool.request('ai.info', {});
    // 同一实例每个获准的新 round 使用唯一 ID；unknown 时不得开始新 round。
    const requestId = crypto.randomUUID();
-   const payload = {
-     requestId,
-     request: '请为所选文本给出摘要提案',
-     instructions: '仅返回摘要数据，不执行或保存任何操作',
-     context: {text: '由本工具确认可发送的文本'},
-     providerGeneration: info.generation
-   };
+   const reply = await OpenDeskTool.prepareAI(async () => {
+     const info = await OpenDeskTool.request('ai.info', {});
+     if (!isCurrentRound()) return null; // 本工具检查停止/卸载
+     return {
+       requestId,
+       request: '请为所选文本给出摘要提案',
+       instructions: '仅返回摘要数据，不执行或保存任何操作',
+       context: {text: '由本工具确认可发送的文本'},
+       providerGeneration: info.generation
+     };
+   });
    ```
 
-   工具发送状态机调用 `const reply = await OpenDeskTool.request('ai.generate', payload)`；Host 仍展示完整载荷并等待真实确认。info 返回后、generate 前及回包时复查原实例/本地 round 仍有效；若准备阶段已停止或卸载，不能继续派发。回包须匹配 requestId 和 generation，并经该 round 的 `assertCurrent(reply.providerGeneration)` 后才更新展示/待审提案；此比较不主动读取实时 Provider，真实身份与当前 Provider 代际仍由 Host 校验。Frame 的 busy 防重复只是交互保护，不能取代请求锁。
-3. **接停止与 unknown**：`onStop(event)` 使当前本地 round 失效，已提交 generate 的轮次调用 `await OpenDeskTool.request('ai.cancel', {requestId})`，只用原 requestId；不要在成功响应后自动 cancel。准备阶段尚未提交 generate 则停止本地准备即可。合并重复停止动作并等待真实回执；`unknown`、`E_AI_UNKNOWN` 或 `E_AI_TIMEOUT` 保留原请求围栏和禁止新发送状态，只查询/停止原请求，不自动重试或应用迟到结果。确认前取消与派发后退休的区别遵守上文 bridge 合同。`cancel/reset/dispose/finish()`、UI 关闭和本地 IDLE 均不清除 Host unknown。
+   `isCurrentRound()` 由工具原有发送状态机提供，不是公共 SDK。Host 核验本次真实事件、私有实例端口和当前授权后直接派发，不展示逐次确认。info 返回后、generate 前及回包时复查原实例/本地 round 仍有效；若准备阶段已停止或卸载，不能继续派发。null 回包不应用内容；非 null 回包须匹配 requestId 和 generation，并经该 round 的 `assertCurrent(reply.providerGeneration)` 后才更新展示/待审提案；此比较不主动读取实时 Provider，真实身份与当前 Provider 代际仍由 Host 校验。Frame 的 busy 防重复只是交互保护，不能取代请求锁。
+3. **接停止与 unknown**：`onStop(event)` 使当前本地 round 失效，已提交 generate 的轮次调用 `await OpenDeskTool.request('ai.cancel', {requestId})`，只用原 requestId；不要在成功响应后自动 cancel。准备阶段尚未提交 generate 则停止本地准备即可。合并重复停止动作并等待真实回执；`unknown`、`E_AI_UNKNOWN` 或 `E_AI_TIMEOUT` 保留原请求围栏和禁止新发送状态，只查询/停止原请求，不自动重试或应用迟到结果。派发前取消与派发后退休的区别遵守上文 bridge 合同。`cancel/reset/dispose/finish()`、UI 关闭和本地 IDLE 均不清除 Host unknown。
 4. **清理和显式应用**：round 完成时清理原锁与本地 busy，但 unknown 围栏单独保留，不能因 finally 解锁就恢复发送。卸载使旧 round 失效、释放订阅/监听与 Root，已派发请求按原取消/销毁链处理；异步清理完成不能向新实例写回。AI reply 先按工具 schema 和大小限制校验，再展示为待审数据；差异审阅、显式应用、命名保存和单独运行由业务决定，Chat 不直接写入业务数据或执行提案。
 
 输入/消息、空白拒发、busy 防重复、Enter/Shift+Enter、IME、停止与清理由下方合同界定；不同消费者/实例的草稿、消息、请求和授权不得混用。实施 owner 只对本次变化运行相关交互、代际迟到回包、订阅释放及 bridge 权限/unknown 测试。纯文档检查不启动浏览器或推理；没有同候选证据的真实 AI、Chrome、安装、正式包与 production 均为 `NOT_TESTED`。
 
 已有实现提供分层组合能力，当前没有承诺自动连接全部回调的沙箱 Chat 产品、统一持久化历史或私有 Provider 设置 API；这些不是普通接入的前置缺陷。遇到公开接口无法覆盖的具体行为，按工作流记录公开能力不足、复现、工具内为何不能解决、跨消费者价值、最小 API/文件/测试与安全影响；证据不足为 `SDK_GAP_NOT_PROVEN`，交对应平台 owner 后再决定实现，不靠复制领域 consumer 补洞。
+
+### 当前消费者与可信接线边界（2026-11-03）
+
+以下区分源码职责与运行证据；`import` 公共组件只能证明接线，不能证明已加载版本、样式、设置往返或业务执行正确。
+
+| 公共能力 | 实际消费者 / 入口 | 状态归属与领域依赖 | 证据与待验证项 |
+| --- | --- | --- | --- |
+| Dock / Frame / 内存 session | 书签的 `TrustedConversationWorkspace`；ScrapyJS 正式 `src/AiPanel.jsx` | 各视图实例独立草稿、消息和 round；公共 Frame/session 无领域 import | `src/ui/react/components/conversation.tsx`、`src/ui/conversation/session.js`、`src/entrypoints/sidebar-shared-ui.js`；ScrapyJS 离线预览刻意显示占位，不能作为正式 Chat 证据 |
+| 可信会话编排 | 书签、Prompt、任务、知识问答各自构造策略 | 通用核心持有 lease、权限、Provider generation、取消、订阅和迟到围栏；提示词、refs 格式、续轮预算和特定授权留可信消费者 | `src/ui/conversation/provider-consumer.js` 与 `src/ui/tool-shell.js`；这些策略不导出到沙箱，不授予业务写权限 |
+| 唯一 Provider Runtime / 设置 | 可信书签入口；沙箱 Chat 展开后由 ToolHost 显示公共入口 | 来源、Endpoint、模型、凭据属于可信 Shell；工具仅获得安全 info 投影 | `src/ui/ai/provider-runtime.js`、`src/ui/react/components/provider-settings.tsx`、`src/ui/react/tabs/tool-host.tsx`；沙箱与可信入口差异源自信任边界，不需要复制设置表单 |
+| 沙箱 AI bridge | 已声明 `ai.generate` 的 ScrapyJS 安装实例 | 真实发送手势、安装代际、撤权及 unknown 归原 Host；提案校验与 `business.config.propose/apply` 归 ScrapyJS | `examples/sidebar-tools/scrapyjs/src/AiPanel.jsx`、`src/business-api.js`；源码验证不证明最新源码已安装或真实推理成功 |
+| Cookie Editor 当前正式入口 | `app/entries/official.jsx` → `CookieEditorApp` | 未声明 `ai.generate`，未发现 Dock/Frame/session 或 Chat bridge 接线；“AI 账号额度管理”和 Cookie 权限是其他功能 | `examples/sidebar-tools/cookie-editor/tool.config.json`、`app/components/CookieHttpConnections.jsx`、`ai-account-usage/web/main.jsx`；用户记忆中的历史 Chat 版本仍未知，不据此新增 AI 或读取凭据 |
+
+开合、卸载和请求退休需分开：Dock 收起保留挂载；卸载销毁本地 session。书签在 Shell 中按同一 installEpoch 缓存展示用草稿/消息供重开，重置 refs 和 needsReview，原 conversation/lease 已销毁；这不是跨扩展模型历史或授权共享。ScrapyJS 展示 session 随实例销毁，但原 `ai-pending` 持久围栏可在重开后恢复 unknown，只处理原 requestId。可信编排与沙箱请求状态机因信任边界保留不同接线；它们复用公共展示和本地会话规则，不合并业务持久化或推理授权。
+
+可信平台维护者从 `src/ui/tool-shell.js` 的现有构造入口接线：`createBusinessConversation` 必须收到静态可信 `policy`。`policy.scopes` 显式声明每个作用域的 instructions，可按实际业务声明 continuation、deadlineMs/deadlineMessage；`policy.refs.empty/normalize` 只处理该消费者的引用投影。书签策略在 `bookmark-instructions.js`，Prompt 策略在 `prompt-actions.js`，任务策略在 `my-task-instructions.js`。知识问答从项目 `projects/ai-knowledge-answers/trusted/ai-request.js` 的 `createKnowledgeConversation` 接入，特定本地测试批准留该可信 adapter。公共核心不按 consumerId 导入领域提示词或解释业务结果，未声明 scope 一律拒绝。Provider Runtime 接受有界的可信消费者标识，标识本身不授权；原 SDK、Host、Authority、安装与真实用户手势链继续适用。
+
+普通沙箱工具只走下方公开组件和 `ai.info/generate/cancel`，无需接触这些可信 policy。后续修改先定位正式入口、实际加载版本与第一条失败操作，再在消费者 adapter 或唯一公共 owner 修复；禁止为适配差异再画聊天页、复制设置或新建会话存储。业务动作定义、领域上下文、结果 schema、精确意图校验及执行回调属于消费者；自然语言修改经原业务接口执行，公共 Chat 不直接读写业务数据。
+
+特定可信批准通过可选 `policy.authorizeTurn({approval, scope, request, context})` 同步返回 `{assertAuthorized, signal?}`；不适用的批准返回 null。核心仅在缺少真实发送事件时调用该钩子，随后在权限检查及推理交付前后、保留的写入授权上重复调用同步 `assertAuthorized()`，失败须抛错。批准对象身份、有效期及撤销由静态可信 adapter 持有；提供 signal 时撤销必须 abort，不能把一次批准当永久授权。此钩子不能替代核心的实时权限、代际和实例检查，不接受沙箱注入，也不是公开 SDK。改动被固定编译的项目 adapter 时，审阅对应精确字节并同步现有来源锁及其定向测试，保留 target/逐文件/拒绝漂移规则。
+
+### 设置、直接发送与业务草稿
+
+- Provider 表单的取消、关闭、Escape 只丢弃未保存内容；重新打开读取已保存配置。本机连接开关沿原 `nativeConnection.setEnabled` 即时生效，取消或保存 AI 表单均不回滚连接。采集字段、分页和 CSV 等继续归扩展业务模型。
+- 设置往返验证未保存内容、返回焦点和原 Chat 草稿；普通发送只点击一次，直接请求当前保存来源，保留停止、错误与原请求围栏。没有逐次发送审阅或其取消步骤。高度异常先复现第一个错误边界并记录候选与容器变化，不写死高度或新增尺寸管理器。
+- 普通解释不写业务配置。明确修改的提案必须经消费者校验完整结果仅包含本轮指定变化；夹带其他字段、URL、分页或执行动作时整批拒绝，保留原输入和业务草稿供修改后重发。是否自动应用已明确的配置修改由业务合同决定，无需为此增加通用差异确认或重复工具栏。
+- 纯配置修改与基于网页观察推导规则分开。网页观察须绑定可信文档身份及当前业务版本；URL 相同不能证明是同一文档。没有该绑定时不得自动应用依赖旧观察的提案。ScrapyJS 消费者差异和当前限制只在其[项目合同](../../examples/sidebar-tools/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md)维护。
 
 ## 沙箱复用 Chat 展示
 

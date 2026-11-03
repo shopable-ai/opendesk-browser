@@ -1929,7 +1929,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
           if(message?.kind!=='request'||
-             !['browser.clipboard.writeText','browser.downloads.text','localTasks.export'].includes(message.operation)||
+             !['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate'].includes(message.operation)||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -2201,6 +2201,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(['ai.info','ai.generate','ai.cancel'].includes(operation)){
       if(!tool.capabilities.includes('ai.generate'))throw Object.assign(new Error('缺少 ai.generate 权限'),{code:'E_CAPABILITY'});
+      if(operation==='ai.generate'&&(directExportPort===null||directExportPort!==frameExportPort))
+        throw Object.assign(new Error('请直接点击发送重试'),{code:'E_USER_GESTURE_REQUIRED'});
       await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
       assertSession(source,token);
       sidebarAI ||= createSidebarToolAIAdapter({providerRuntime,instanceId:token,
@@ -2208,10 +2210,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertCurrent:()=>{assertSession(source,token);if(readOnlyPreview||frameRevocationEpoch!==revocationEpoch||
           revocationEpochs[tool.id]!==revocationEpoch||!sidebarToolEnabled(enableRecords,tool.id))
           throw Object.assign(new Error('工具授权已变化'),{code:'E_TOOL_CHANGED'});},
-        confirm:(data,signal)=>requestBrowserClick({signal,toolId:tool.id,button:'发送给此 AI Provider',
-          message:'本次 AI 接收方与完整发送数据：\n'+JSON.stringify(data,null,2),
-          run:async()=>{await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
-            await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);return true;}})});
+        assertAuthorized:async()=>{await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
+          await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);}});
       return sidebarAI.request(operation,payload);
     }
     if(TASK_DELEGATION_OPERATIONS.includes(operation)||APP_CONTROLLER_OPERATIONS.includes(operation)){
@@ -5089,11 +5089,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
   listen(actionContinue,'click',event=>{void applyActionReview(event).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));});
-  listen(actionCancel,'click',()=>{cancelActionReview();notice('已取消，原内容仍保留。');});
+  listen(actionCancel,'click',()=>{cancelActionReview();view.showToast('已取消，原内容仍保留。');});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{
-    cancelRemovalReview();notice('已取消卸载。');
+    cancelRemovalReview();view.showToast('已取消卸载。');
     requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));

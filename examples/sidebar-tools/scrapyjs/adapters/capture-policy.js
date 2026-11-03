@@ -2,7 +2,8 @@
 export const CAPTURE_ORIGINS=Object.freeze([
   'http://127.0.0.1:43111',
   'https://book.douban.com',
-  'https://download.csdn.net'
+  'https://download.csdn.net',
+  'https://books.toscrape.com'
 ]);
 export function allowedUrl(value,base) {
   const url=new URL(value,base);

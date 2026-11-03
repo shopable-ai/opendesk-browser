@@ -65,6 +65,19 @@ npm run dev              # 持续运行，Ctrl+C 停止
 
 完整首次安装、验证品红描边、更新边界与排错说明见[扩展开发 R13.1](docs/framework/extension-development-r131.zh-CN.md)。持续开发期间不要另行构建到相同输出目录。
 
+## 代码图谱查询（CodeGraph）
+
+仓库已固定开发依赖 `@colbymchenry/codegraph@1.6.2`，用于本地符号、调用关系与影响范围查询：
+
+```sh
+npm run codegraph:init
+npm run codegraph:explore -- "SharedConversationDock"
+npm run codegraph -- callers SharedConversationDock --json
+npm run codegraph:status
+```
+
+首次初始化后，离线修改源码可运行 `npm run codegraph:sync`；Codex MCP 连接期间自动同步。索引不提交 Git。项目级 MCP 配置、排除范围、查询示例与限制见 [CodeGraph 使用说明](docs/framework/codegraph.zh-CN.md)。
+
 ## 本地构建
 
 ```sh
