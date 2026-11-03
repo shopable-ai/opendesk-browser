@@ -17,7 +17,13 @@ R2.2 曾用末级短标题解决父子 flex span 拉开的大空白，但把工�
 - **展示 owner**：沿用 `src/ui/sidebar-tools/title-path.js`、`src/ui/sidebar-tools.js` 与 `src/ui/react/tabs/tool-host.tsx` 的现有职责；同一标题文本保留工具/子页上下文，`title` 与 `aria-label` 补充完整语义及实际版本，不能代替可见路径。只在确有溢出时 CSS 单次省略；未知业务名不做宽泛正则裁剪，映射继续用 `Object.hasOwn`。`title-path.js` 已在源码中改为工具/页名显示。
 - **内容归属**：已适配子页只展示业务数据、搜索、表单及必要状态；移除与宿主页头重复的标题、用途说明、返回和同一主操作。业务区块名、字段帮助、错误/权限/空态说明仍按实际需要保留。可信设置也不重复“工具设置”H2，可访问区域名称保留。
 - **能力与准入**：现有有界 `OpenDeskTool.setNavigation` 是发现起点；先核对公开导航合同、真实消费者和目标工具的受信准入，不因内容里出现返回按钮就宣称 API 缺失。可信消费者可用不等于任意沙箱已获准入；不得伪造 API、放宽来源或直接控制宿主 DOM。无复现证据仍为 `SDK_GAP_NOT_PROVEN`。正式导航仍仅对获准入的完整官方包开放，不得放宽准入。
-- **生命周期与保护**：导航接收、呈现及动作发送继续绑定完整包字节、安装代际、活动实例与来源；撤销后清除旧提示，保留草稿不保留控制权。重复打开同一有效实例不重建；延迟初始化失败不能销毁新工作区。子页返回交给原业务处理，根返回沿原关闭保护，保留 dirty/busy/保存中/结果未知及撤权围栏；未知副作用不自动重放。
+- **生命周期与保护**：导航接收、呈现及动作发送继续绑定完整包字节、安装代际、活动实例与来源；撤销后清除旧提示，保留草稿不保留控制权。重复打开同一有效实例不重建；延迟初始化失败不能销毁新工作区。子页返回交给原业务处理。已安装沙箱在根页上报 busy 时，根返回只展示扩展列表，保留原 iframe、实例、草稿与请求；随后可切到其他 Tab，重开同一工具恢复原实例，不重复初始化或执行。真正关闭、替换、更新或卸载仍保留 dirty/busy/保存中/结果未知及撤权围栏；未知副作用不自动重放。只读预览与可信原生界面保持原关闭保护。
+
+### 未决操作期间的根页返回（2026-11-04）
+
+ScrapyJS 的历史 AI 请求或本机任务尚未确认结束时，可能持续上报 busy；不能将它一律提示为“正在保存”，也不能靠清锁、重建 iframe 或重跑请求恢复导航。宿主允许用户先返回扩展列表，并保留唯一原实例；提示用户重新打开原工具查询、停止或继续查看原操作。工具自己的隐藏任务须在根页提供可见恢复入口。任务确认结束后，普通关闭重新适用原有草稿保护。
+
+此返回行为不新增后台运行合同、授权或第二个工具实例，不表示请求已停止或保存成功。旧实例消息、跨窗口撤权、卸载和包身份校验继续由原 Host 处理。定向回归入口为 `tests/environment/sidebar-tools-host.test.mjs` 的 `Host Back preserves a busy sandbox while returning to the list and other tabs`，以及 ScrapyJS `tests/local-runner-app.test.mjs` 的空闲恢复和原结构任务恢复场景；Node 结果与真实 Chrome 生效状态分别报告。
 
 ### 开发与预览的接入及验证顺序
 
@@ -47,7 +53,7 @@ R2.2 本地证据与验证缺口见[增量记录](../framework/workstreams/sideb
 - 可信呈现 owner：现有 `ToolHost` / `src/ui/sidebar-tools.js`，只绘制标题、左返回及当前上下文图标，根页面仍使用原关闭/生命周期。不得复制一套浏览历史。
 - 原版 `src/sidebar-tools/bridge.js` 仍是隔离入口，不允许扩展代码直接修改可信 React DOM。所有消息沿 `SIDEBAR_TOOL_PROTOCOL`，必须通过 `event.origin==='null'`、实际 `event.source`、宿主活动 `instance` 与 `toolId` 验证。工具被关闭、切换或实例重新创建后清空显示提示，旧消息一律无效。
 - 当前已验真官方工具沿原协议上报各自受约束的 `OpenDeskTool.setNavigation`；历史 `web-markdown-clipper` 页面 ID 为 `home | library | reader | edit | new`。Sandbox→Host 使用 `kind:'navigation-state'`；Host→Sandbox 使用 `kind:'navigation-action'` 且 `action` 仅 `back | primary`。宿主将页面 ID 映射为内置标题和图标，绝不接受扩展自填可信标题、HTML、URL、脚本或特权操作。
-- `busy / dirty` 使用既有 `OpenDeskTool.setState` 与宿主原始生命周期。保存进行时禁止切换；编辑未保存时业务返回触发确认，打开设置前提示先保存或取消。根返回仍通过原有关闭保护。
+- `busy / dirty` 使用既有 `OpenDeskTool.setState` 与宿主原始生命周期。编辑未保存时业务返回触发确认，打开设置前提示先保存或取消。保存或其他操作未决时禁止销毁或替换原实例；已安装沙箱根返回按上方现行规则保留实例并展示列表，其他关闭路径仍通过原有保护。
 - `primary` 行为由 `notes.js` 自己判断：资料库新建、阅读进入编辑、编辑/新建保存。显示提示不能代替业务端再次验证当前状态。
 - 旧工具及独立标签页：没有 `setNavigation` 的工具保留既有内部页头与按钮。没有已验证活动子页时宿主根返回保持旧操作，不凭空推断历史。独立标签页不创建虚假的扩展列表路由。
 

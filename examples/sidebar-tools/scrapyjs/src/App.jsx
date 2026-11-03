@@ -303,6 +303,10 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
       <p id="ai-toggle-status">AI 请求尚未结束，当前工具不能退出。请展开 AI 配置，查询或停止原请求。</p>
       <Button base="aria" id="reopen-ai-request" variant="outline" onClick={()=>setAiOpen(true)}>处理 AI 原请求</Button>
     </div>
+    <div id="local-recovery" className="od-alert" role="status" hidden={workspaceOpen||!(localBusy||workspaceAiBusy||aiGenerating)}>
+      <p>本机任务状态尚未确认，当前工具不能退出。请查看并查询或停止原任务。</p>
+      <Button base="aria" id="reopen-local-request" variant="outline" onClick={()=>{setWorkspaceOpen(true);focusLater('capture-heading');}}>查看原本机任务</Button>
+    </div>
     {!hostConversation&&!aiBusy&&<Button base="aria" id="open-ai-config" variant="quiet" aria-expanded={aiOpen} aria-controls="chat-ai-panel" onClick={()=>setAiOpen(value=>!value)}>AI 配置</Button>}
     <section className="config-section" aria-labelledby="config-heading" hidden={workspaceOpen}>
       <h2 className="sr-only" id="config-heading">采集配置</h2>
