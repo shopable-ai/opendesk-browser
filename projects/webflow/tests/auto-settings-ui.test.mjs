@@ -549,3 +549,24 @@ test('trusted sidebar shows same-run execution, persistence, release and chat de
  view.session.requestId='request-two';view.session.runId=null;view.session.resultId=null;view.receipt=null;
  await click('查询原请求',true);assert.equal(panel.textContent.includes('"count": 3'),false);
 });
+
+
+test('one-time ChatGPT capability instructions use only current reviewed scopes and copy without running or changing permission',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,catalogVerified:true,grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
+ const f=await fixture(t,{host});
+ const instructions=f.find('webflow-chatgpt-instructions');assert.ok(instructions);
+ assert.equal(instructions.value.includes('https://'),false,'capability context must not create a rich URL preview in the official composer');
+ assert.equal(instructions.value.includes('\n'),false,'one-time context survives exact native text witnessing');
+ const encodedScope=instructions.value.slice(instructions.value.indexOf('[{'),instructions.value.indexOf('}]')+2);
+ assert.equal(JSON.parse(encodedScope)[0].targetUrl,scope.targetUrl);
+ assert.ok(instructions.value.includes('OpenDesk'));assert.ok(instructions.value.includes('每次'));
+ assert.ok(!instructions.value.includes(installation.installationId));
+ let copied='';const original=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>{copied=text;}}}});
+ t.after(()=>{if(original)Object.defineProperty(globalThis,'navigator',original);else delete globalThis.navigator;});
+ await f.click('webflow-chatgpt-copy');assert.equal(copied,instructions.value);
+ assert.equal(host.calls.filter(([kind])=>kind!=='read').length,0);
+ host.snapshot={...host.snapshot,epoch:3,grants:host.snapshot.grants.map(g=>({...g,state:'revoked'}))};
+ await f.click('webflow-auto-refresh');
+ assert.equal(f.find('webflow-chatgpt-instructions'),null);
+});

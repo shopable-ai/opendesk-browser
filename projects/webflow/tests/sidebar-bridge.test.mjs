@@ -4,7 +4,7 @@ import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const url='https://chatgpt.com/c/sidebar-test-12345678';
-function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE'}={}){
+function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false}={}){
  const {document,window}=parseHTML('<html><body></body></html>');let listener,poll;
  const events=new Map(),addEvent=document.addEventListener.bind(document);
  document.addEventListener=(type,handler,...rest)=>{events.set(type,handler);return addEvent(type,handler,...rest);};
@@ -26,7 +26,7 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
   }}};
  const elements=[],create=document.createElement.bind(document);document.createElement=(...args)=>{const node=create(...args);elements.push(node);return node;};
  const page=initChatGPTFixedBridgePage({api,doc:document,win,site:{inspect:()=>active?snapshot:{ok:false}},
-  readPage:()=>({ok:true,turnKey:'turn',answerKey:'answer',blocks:[JSON.stringify(intent)]})});
+  readPage:()=>readError?{ok:false,error:{code:'E_CHAT_FORMAT',message:'没有任务协议'}}:({ok:true,turnKey:'turn',answerKey:'answer',blocks:[JSON.stringify(intent)]})});
  const sender={id:'extension',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real'};
  const receive=(message,from=sender)=>new Promise(resolve=>{
   const response=listener({protocol,sourceUrl:win.location.href,...message},from,resolve);
@@ -92,7 +92,7 @@ test('changing conversations clears completed page results and keeps installed t
   assert.equal(next.requestId,null);assert.equal(next.runId,null);
   assert.ok(result.hidden);assert.equal(result.textContent,'');
   assert.ok(!next.resultPreview);assert.ok(!next.selection.includes('httpbingo'));
-  assert.ok(next.selection.includes('baidu.search.top3'));
+  assert.equal(next.selection,'');assert.ok(next.tasks.some(row=>row.label.includes('baidu.search.top3')));
  }finally{h.page.dispose();}
 });
 
@@ -110,17 +110,43 @@ test('without a request, the sidebar explains drafts, native submission and unob
   h.poll();
   const history=(await h.receive({kind:'sidebar-read'})).data;
   assert.equal(history.requestId,null);assert.ok(history.status.includes('未见证'));
-  assert.ok(history.status.includes('生成下一次指令'));assert.equal(h.sends.length,0);
+  assert.ok(history.status.includes('正常发送新需求'));assert.equal(h.sends.length,0);
  }finally{h.page.dispose();}
 });
 
-test('an already admitted candidate stays unexecuted and points to generating a new instruction',async()=>{
+test('an already admitted or unknown candidate stays unexecuted and points to the original request',async()=>{
  const h=fixture({active:true,adoptError:true,adoptErrorCode:'E_BRIDGE_REPLAY'});try{
   const rejected=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
   assert.equal(rejected.requestId,null);assert.equal(rejected.candidateId,'sidebar-candidate');
   assert.ok(rejected.status.includes('E_BRIDGE_REPLAY'));
-  assert.ok(rejected.status.includes('生成下一次指令'));
+  assert.ok(rejected.status.includes('查询或停止原请求'));assert.ok(rejected.status.includes('不要更换身份补跑'));
   h.poll();assert.ok((await h.receive({kind:'sidebar-read'})).data.status.includes('E_BRIDGE_REPLAY'));
   assert.equal(h.sends.filter(message=>message.kind==='execute').length,0);
+ }finally{h.page.dispose();}
+});
+
+
+test('a complete ordinary reply records no candidate without dispatching or retaining an old success',async()=>{
+ const h=fixture({active:true,readError:true});try{
+  h.snapshot.draft='只解释一下，不执行';h.submit();h.snapshot.draft='';
+  const node=text=>({textContent:text,getAttribute:()=>null,compareDocumentPosition:()=>4});
+  h.snapshot.users=[node('只解释一下，不执行')];h.snapshot.assistants=[node('这是普通回答')];
+  h.poll();for(let i=0;i<20;i++)await Promise.resolve();h.poll();
+  const view=(await h.receive({kind:'sidebar-read'})).data;
+  assert.equal(view.requestId,null);assert.equal(view.runId,null);
+  assert.match(view.status,/本条未执行/);assert.match(view.status,/没有.*候选/);
+  assert.equal(h.sends.filter(m=>['auto-task','adopt-task','execute'].includes(m.kind)).length,0);
+  h.snapshot.draft='请搜索';h.submit();h.snapshot.draft='';h.poll();
+  assert.match((await h.receive({kind:'sidebar-read'})).data.status,/等待/);
+ }finally{h.page.dispose();}
+});
+test('cancelled official reply stops waiting and never becomes a candidate',async()=>{
+ const h=fixture({active:true,readError:true});try{
+  h.snapshot.draft='请搜索';h.submit();h.snapshot.draft='';
+  h.snapshot.users=[{textContent:'请搜索',getAttribute:()=>null}];
+  h.snapshot.replyState='cancelled';h.poll();h.poll();
+  const view=(await h.receive({kind:'sidebar-read'})).data;
+  assert.match(view.status,/本条未执行/);assert.match(view.status,/停止/);
+  assert.equal(view.requestId,null);assert.equal(h.sends.length,0);
  }finally{h.page.dispose();}
 });

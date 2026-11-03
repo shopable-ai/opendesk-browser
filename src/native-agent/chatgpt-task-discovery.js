@@ -112,6 +112,9 @@ export function createChatGPTTaskDiscovery({now=Date.now,onStatus=()=>{}}={}){
           return null;
         }
       }
+      if(snapshot.replyState==='cancelled'){
+        this.reset(snapshot);report('cancelled','assistant-cancelled');return null;
+      }
       if(route.startsWith('new:')||route.startsWith('pending/')||snapshot.busy||!snapshot.idle||!snapshot.answerComplete)return null;
       const next=assistants.at(-1),user=users.at(-1);
       if(!next||!appended(pending.assistants,assistants,true)){

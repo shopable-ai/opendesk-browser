@@ -6,7 +6,7 @@ import {claimChatGPTBridgeComposer} from '../../src/native-agent/chatgpt-fixed-b
 
 // DOM component evidence only; does not prove live ChatGPT selectors or editing.
 const attr='data-opendesk-composer-owner';
-const message=text=>({innerText:text,parentElement:null,querySelector:()=>null});
+const message=text=>({innerText:text,parentElement:null,querySelector:()=>null,closest:()=>null});
 function fixture(){
   const state={users:[message('prior')],clicks:0,writes:0,focus(){},edit:text=>text,
     editors:null,attachment:null,files:[],throwClick:false};

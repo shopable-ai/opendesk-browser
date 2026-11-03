@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "stage": "development-core-normal-chat",
+  "status": "DEVELOPMENT_CORE_VERIFIED",
+  "goalThread": "01a1a0ef-365d-7833-89c8-fd0018d46bd9",
+  "notPreviousHelperEvidence": true,
+  "originalRoot": "/Users/mac/Documents/workspace/opendesk-browser",
+  "loadedExtension": {
+    "id": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "serve": "FINAL_CHROME_UI_CONFIRMED_CONNECTED",
+    "revision": "a9f14460bb9bd534702fb81efeac87a3c60ca4509236693d2eaf190436a3f6a2",
+    "toolShellSHA256": "ff9d5f16c55ab74b6777580c9853fcb71b31ecd761909af1a0d81912ed5b1289",
+    "bridgeSHA256": "7f3f61691db52fcd0f9168f3255bb421d7f8a1843ab27760846c810472e7efc1"
+  },
+  "onboarding": {
+    "source": "visible trusted UI copied instructions from current valid exact grant",
+    "destination": "ChatGPT current project instructions",
+    "projectRoute": "/g/g-p-6ae779125890819197fcee27dd51d25e/project",
+    "originalInstructionsLength": 0,
+    "nativeReviewAndSave": true,
+    "reopenedAndExactMatch": true,
+    "instructionLength": 763,
+    "instructionSHA256": "5a368c432b09261527230ff3ed882f01dfe5008c48f5f326c6d186f843ace3c2",
+    "perTaskGeneratorUsed": false,
+    "candidateIdInUserMessage": false,
+    "scope": "this project; does not imply global ChatGPT or native MCP connection"
+  },
+  "approval": {
+    "taskId": "baidu.search.top3",
+    "installation": {
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "generation": 2,
+      "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+      "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+      "revision": 1,
+      "scriptId": "task:baidu.search.top3:1.1.2",
+      "version": "1.1.2"
+    },
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser",
+      "limit": 3
+    },
+    "approvedAtLocal": "2026/11/3 14:28:22",
+    "reapprovedThisTask": false,
+    "autoEnabled": true
+  },
+  "normalTaskRounds": [
+    {
+      "case": "NC-01",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "userMessage": "请用 OpenDesk Browser 在百度搜索 OpenDesk Browser，给我前三条自然结果，并根据实际返回内容总结。",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae9bdd9-0d4c-83ee-95b6-262115dff0c7",
+      "candidateId": "wf-bada5c7c-8476-402c-ac32-26800559c6c9",
+      "candidateSource": "official-complete-assistant-after-normal-native-user-message",
+      "requestId": "b3bf68fb-6231-40b5-b1e5-0e04bb01c856",
+      "runId": "a1ccac2f-a12e-46c8-a0fe-a6de0770e4b8",
+      "resultId": "9e2b3411-8feb-4c11-8929-249843a81b0c",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "task": "task:baidu.search.top3:1.1.2",
+      "count": 3,
+      "inputModes": [
+        "",
+        "OpenDesk Browser"
+      ],
+      "searchClickCount": 1,
+      "independentDOMMatched": true,
+      "dataSHA256": "3a3a3dd25c2f70b73becf021e7479025e239e6cfcbf66e5aa1e1887d1f9a269b",
+      "releaseConfirmed": true,
+      "durableResultVerified": true,
+      "singleOriginalChatDelivery": true,
+      "aiContinuationComplete": true,
+      "browserRevision": "b0f4a387e11a46f581f114f4827f1e6b759e446e15643e19008eb9ee911c5dd1"
+    },
+    {
+      "case": "NC-02",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "userMessage": "请再按刚才的关键词搜索一次，仍取三条自然结果，并用这一次的返回重新总结。",
+      "conversationUrl": "https://chatgpt.com/g/g-p-6ae779125890819197fcee27dd51d25e-opendesk-browser/c/6ae9bdd9-0d4c-83ee-95b6-262115dff0c7",
+      "candidateId": "wf-6c8e47b2a9314d0f857c2b96e401a3fd",
+      "candidateSource": "official-complete-assistant-after-normal-native-user-message",
+      "requestId": "b8a22d8e-24be-43b6-8d56-3e48ef0c6ef4",
+      "runId": "2b911bf1-78e5-40da-88e8-e14dfa36a440",
+      "resultId": "c96749eb-8a30-4802-ac25-6340f5d97f81",
+      "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "task": "task:baidu.search.top3:1.1.2",
+      "count": 3,
+      "inputModes": [
+        "",
+        "OpenDesk Browser"
+      ],
+      "searchClickCount": 1,
+      "independentDOMMatched": true,
+      "dataSHA256": "e9fea67d108b163442b4868aac911c3b83404e4d58c35e71a1dc4721ec49b128",
+      "releaseConfirmed": true,
+      "durableResultVerified": true,
+      "singleOriginalChatDelivery": true,
+      "aiContinuationComplete": true,
+      "browserRevision": "b0f4a387e11a46f581f114f4827f1e6b759e446e15643e19008eb9ee911c5dd1"
+    }
+  ],
+  "negativeCases": [
+    {
+      "case": "NC-03",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "request": "unrelated explanation with explicit no execution",
+      "completeReply": true,
+      "protocolBlocks": 0,
+      "newTaskOrResult": false,
+      "currentSidebar": "本条未执行：AI 已回复，但没有产生可执行任务候选",
+      "oldSuccessShownAsCurrent": false
+    },
+    {
+      "case": "NC-04",
+      "status": "CHROME_NATIVE_VERIFIED",
+      "request": "five results",
+      "modelExplicitlyRejectedUnsupportedFive": true,
+      "silentRewriteToThree": false,
+      "protocolBlocks": 0,
+      "newTaskOrResult": false,
+      "currentSidebar": "本条未执行"
+    }
+  ],
+  "initialFailure": {
+    "conversationId": "6ae9b744-7e34-83ee-85d4-8a21847e17b4",
+    "normalNativeSendWitnessed": true,
+    "officialTurnState": "cancelled",
+    "assistantCandidate": false,
+    "taskDispatched": false,
+    "priorUIIncorrectlyWaiting": true,
+    "cancellationCause": "UNKNOWN",
+    "notClaimedCompleteNoProtocolReply": true
+  },
+  "checks": {
+    "coreTargeted": {
+      "passed": 40,
+      "log": "artifacts/webflow-auto-20261103/normal-chat-01a1a0ef/core-tests.log"
+    },
+    "affectedProtectionBatch": {
+      "initialPassed": 109,
+      "initialFailed": 19,
+      "total": 128,
+      "failureCause": "old DOM mock message lacked Element.closest",
+      "fixtureOnlyCorrection": true,
+      "recheckedFilePassed": 20,
+      "log": "artifacts/webflow-auto-20261103/normal-chat-01a1a0ef/protections.log",
+      "resolved": true
+    },
+    "sandboxGuidanceAndPackage": {
+      "passed": 61,
+      "log": "artifacts/webflow-auto-20261103/normal-chat-01a1a0ef/package-ui-tests.log"
+    },
+    "oneTimeContextURLProtection": {
+      "passed": 24,
+      "log": "artifacts/webflow-auto-20261103/normal-chat-01a1a0ef/connection-url-green.log"
+    }
+  },
+  "package": {
+    "id": "webflow",
+    "version": "0.3.8",
+    "sha256": "de7c7aa0fb47799bdb2b9f850529eaaa4c1985b0e3620f7971e8e13928e1a1e2",
+    "status": "INSTALLED_CHROME_VERIFIED",
+    "sameCapabilitiesAndDelegatedTaskPins": true,
+    "nativeReview": "0.3.6 -> 0.3.8, permissions unchanged, canonical SHA matched",
+    "guidanceVisibleAfterUpgrade": true
+  },
+  "rawEvidence": "artifacts/webflow-auto-20261103/normal-chat-01a1a0ef",
+  "notTested": [
+    "production",
+    "MCP",
+    "full fault matrix including native revocation/generation/IME/UNKNOWN injection (unchanged guards component tested)",
+    "cross-conversation orchestration",
+    "persistent queue",
+    "independent product scoring"
+  ],
+  "goNativePairing": {
+    "doctorConnected": false,
+    "doctorInstalled": false,
+    "doctorExtensionId": null,
+    "legacyManifestName": "org.opendesk.browser_core_demo",
+    "legacyAllowedOrigins": [
+      "chrome-extension://jpjgepfbapojijlabljgdpbhfmiapkin/"
+    ],
+    "status": "NOT_CONNECTED_NOT_REPAIRED",
+    "notCurrentTaskProof": true,
+    "currentTaskInputMode": "isolated-dom"
+  },
+  "firstNormalRoundsBuild": {
+    "id": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "serve": "UI_CONFIRMED_CONNECTED",
+    "revision": "b0f4a387e11a46f581f114f4827f1e6b759e446e15643e19008eb9ee911c5dd1",
+    "toolShellSHA256": "a565ed6e93f7c946b6df98440394334447f4aa35d57685709d7b32c6749917a9"
+  },
+  "ordinaryChatRegression": {
+    "case": "NC-07",
+    "status": "CHROME_NATIVE_VERIFIED",
+    "conversationUrl": "https://chatgpt.com/c/6ae9c70a-68fc-83ec-997d-7aabfeab93b0",
+    "oneVisibleContextMessageBeforeFirstTask": true,
+    "globalChatGPTSettingsChanged": false,
+    "candidateId": "wf-f259bd17-55ff-4c05-bdad-c28e206e9e71",
+    "requestId": "2b3d3687-75dd-4eb1-a373-4b16d4ec50a4",
+    "runId": "442c97ee-846c-4cb2-8440-b112e5186192",
+    "resultId": "a71d2d0d-842b-4295-851a-d83729233ee3",
+    "count": 3,
+    "inputValues": [
+      "",
+      "OpenDesk Browser"
+    ],
+    "searchClicks": 1,
+    "independentDOMMatched": true,
+    "trustedHostDurableValueMatchesDeliveredData": true,
+    "dataSHA256": "06e3dee2b53d1708dcd94e14e66b6f231178f89d204f4c35e2bc9ab580ec84e1",
+    "singleDelivery": true,
+    "fullAIContinuation": true,
+    "browserRevision": "a9f14460bb9bd534702fb81efeac87a3c60ca4509236693d2eaf190436a3f6a2",
+    "oneTimeContextSHA256": "3185742fff35e1a0f234a91380219c5046e930ef3beea90ebcb1ed330b7d7c56",
+    "oneTimeContextLength": 778
+  },
+  "cancellationRegression": {
+    "status": "CHROME_NATIVE_VERIFIED",
+    "conversationUrl": "https://chatgpt.com/c/6ae9c881-3510-83ee-ab30-ba6c0b8396c0",
+    "nativeStopOnce": true,
+    "officialTurnState": "cancelled",
+    "sidebarCurrentMessageUnexecutedAndStopped": true,
+    "taskDispatched": false,
+    "browserRevision": "a9f14460bb9bd534702fb81efeac87a3c60ca4509236693d2eaf190436a3f6a2"
+  },
+  "onboardingComposerRegression": {
+    "originalRawURLBecameRich": true,
+    "sendBlockedBeforeAnyUserMessage": true,
+    "onlyVerifiedTestOwnedUnsentDraftCleared": true,
+    "fix": "single paragraph plus JSON URL escapes, same decoded exact scope",
+    "safeNativeComposerReadbackExact": true,
+    "safeContextSentOnce": true,
+    "perTaskProtocolPreparation": false
+  },
+  "driverNotes": [
+    "Project settings close did not save: explicit Save and reopened exact match used.",
+    "URL guard refused UI navigation while an unrelated preview tab was active; no clicks occurred there.",
+    "Stopped-reply probe used a separate no-execution chat; successful task chat and receipt restored."
+  ]
+}

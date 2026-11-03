@@ -115,3 +115,12 @@ test('project new chat excludes CSS-hidden retained history and binds only its n
  const discovered=probe.observe(site.inspect());assert.equal(discovered?.user,user);
  assert.equal(discovered?.answer,answer);assert.equal(probe.observe(site.inspect()),null);
 });
+
+
+test('site reports the cancelled latest user turn even without an assistant message',()=>{
+ const {document}=parseHTML('<html><body><div data-talvt-turn-state="cancelled"><div data-message-author-role="user">search</div></div><form><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></form></body></html>');
+ for(const node of document.querySelectorAll('textarea,button'))node.getClientRects=()=>[{}];
+ const win={location:new URL('https://chatgpt.com/c/cancelled-12345678'),getComputedStyle:()=>({display:'block',visibility:'visible'})};win.top=win;
+ const view=createChatGPTBridgeSite({doc:document,win}).inspect();
+ assert.equal(view.replyState,'cancelled');assert.equal(view.answerComplete,false);
+});

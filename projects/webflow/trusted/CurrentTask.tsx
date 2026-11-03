@@ -37,7 +37,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   finally{if(mounted.current)setWorking('');lock.current=false;}
  };
  const session=view?.session,receipt=view?.receipt;
- const executionLabel={completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
+ const executionLabel={validating:'核验中',starting:'正在启动',completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
  React.useEffect(()=>{
   onSummary?.(error?'任务状态未确认，请打开运行与授权查看':
    session?.status||(!view?'正在读取任务状态…':'等待 ChatGPT 新任务'));
@@ -54,7 +54,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   {error&&<p role="alert" className="od-field-error">{error}</p>}
   {!session?<div className="od-surface od-surface--padded od-stack" role="status">
    <strong>等待 ChatGPT 新任务</strong>
-   <p className="od-note">在“任务授权”核对批准并生成指令，开启自动运行后，到 ChatGPT 粘贴并发送。进度和结果将在这里显示。</p>
+   <p className="od-note">先在“使用说明”完成一次 ChatGPT 能力接入，再核对任务批准并开启自动运行。之后在该项目正常发送需求；本条是否执行、进度和结果将在这里显示。</p>
   </div>:<>
    <p className="od-note" style={{overflowWrap:'anywhere'}}>原对话：{session.url}</p>
    <p role="status" className={session.error?'od-field-error':'od-note'} style={{whiteSpace:'pre-wrap'}}>{session.status}</p>
@@ -64,10 +64,10 @@ export function WebflowCurrentTask({controller,onSummary=null}){
    {session.viewStatus&&<p role="status" className="od-note">{session.viewStatus}</p>}
    {receipt&&<div className="od-stack" aria-label="同次运行回执">
     <dl className="od-body" style={{display:'grid',gridTemplateColumns:'auto minmax(0,1fr)',gap:'var(--space-2)',margin:0,overflowWrap:'anywhere'}}>
-     <dt>脚本执行</dt><dd>{executionLabel[receipt.execution]||receipt.execution}</dd>
+     <dt>脚本执行</dt><dd>{executionLabel[receipt.execution]||'状态待核查'}</dd>
      <dt>持久结果</dt><dd>{receipt.persistence==='verified'?'已核实同一 Run / Result':'尚未核实'}</dd>
-     <dt>资源释放</dt><dd>{receipt.release==='released'?'已释放':receipt.release}</dd>
-     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知':receipt.delivery}</dd>
+     <dt>资源释放</dt><dd>{receipt.release==='released'?'已释放':receipt.release==='unknown'?'未知，请查询原请求':'尚未确认'}</dd>
+     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知，请查询原请求':receipt.delivery==='submitted'?'已提交，等待原聊天确认':'尚未发送'}</dd>
     </dl>
     {receipt.error&&<p role="alert" className="od-field-error">{receipt.error.code}：{receipt.error.message}</p>}
     {receipt.value&&<details className="od-disclosure od-disclosure--flat"><summary>查看完整结果（原始数据）</summary>

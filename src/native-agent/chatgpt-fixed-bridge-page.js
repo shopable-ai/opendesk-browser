@@ -274,7 +274,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
   let lifecycleEpoch=0;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
-  let proposal=null,viewUrl=win.location.href;
+  let proposal=null,messageNotice=null,viewUrl=win.location.href;
   let conversationReady=null,loadingTasks=false;
   let conversationGrant=null,approvalUnknown=false,deferredDiscovery=null,deliveredTurn=null;
   const installedTasks=new Map(),installedOptions=[];
@@ -298,7 +298,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         doc.activeElement!==editor||!(event.target===editor||editor.contains?.(event.target)))return;
     }else return;
     if(discovery.witnessSubmission(snapshot)){
-      proposal=null;
+      proposal=null;messageNotice=null;
       if(state?.settled){state=null;clearReceipt();update();}
       if(!state)note('已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。');
     }
@@ -332,15 +332,17 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       conversationReady=hasConversation;
       const snapshot=site.inspect(),observation=discovery.status();
       // Explain observation only; none of these UI states can arm admission.
-      if(snapshot.ok&&snapshot.rich)note('原生输入框含附件或富内容，尚未见证可执行指令；不会覆盖草稿或自动发送。');
+      if(messageNotice?.url===win.location.href)note(messageNotice.text);
+      else if(snapshot.ok&&snapshot.rich)note('原生输入框含附件或富内容，尚未见证可执行指令；不会覆盖草稿或自动发送。');
       else if(snapshot.ok&&snapshot.draft)note('指令仍在 ChatGPT 草稿中，尚未发送；请在官网发送，完整任务回复符合批准范围后才会运行。');
       else if(['submitted','waiting-reply'].includes(observation.stage))note(observation.stage==='submitted'?
         '已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。':
         '已确认同一新增用户消息，正在等待本轮完整任务回复；流式内容不会执行。');
-      else if(observation.stage==='rejected')note('本次发送未能绑定当前消息（'+observation.reason+'），未执行。请在“任务范围与授权”生成下一次指令后发送；原候选不会补跑。');
-      else if(hasConversation&&snapshot.ok&&snapshot.users.length)note('当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。请在“任务范围与授权”生成下一次指令后发送；已用候选不会重新执行。');
+      else if(observation.stage==='rejected')note('本次发送未能绑定当前消息（'+observation.reason+'），未执行。完成一次 ChatGPT 能力接入后，正常发送新需求；原候选不会补跑。');
+      else if(hasConversation&&snapshot.ok&&snapshot.users.length)note('当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。完成一次 ChatGPT 能力接入后，正常发送新需求；已用候选不会重新执行。');
       else note(hasConversation?REQUEST_HELP:CONVERSATION_HELP);
     }
+    selection.hidden=!state&&!proposal;
     const busy=pending||cancelPending||deliveryPending;
     const ready=!!state&&!state.future&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
     adoptButton.disabled=busy||loadingTasks||!hasConversation||Boolean(state&&!state.cancelled&&!state.attempted);
@@ -514,7 +516,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(!page.ok){
         // Ordinary replies, including the AI continuation after our result,
         // are not task proposals and must not replace an execution receipt.
-        if(automatic&&page.error?.code==='E_CHAT_FORMAT')return;
+        if(automatic&&page.error?.code==='E_CHAT_FORMAT'){
+          messageNotice={url,stage:'no-candidate',text:'本条未执行：AI 已回复，但没有产生可执行任务候选。普通聊天不会运行；若本条需要任务，请在“使用说明”核对一次能力接入，再正常提出新需求。'};
+          note(messageNotice.text);return;
+        }
         throw fail(page.error.code,page.error.message);
       }
       const persistentAuto=JSON.parse(page.blocks[0]).protocol===WEBFLOW_TASK_INTENT_PROTOCOL;
@@ -586,7 +591,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       // Binding/format errors have not submitted execute. Keep the grant
       // cancellable without asking a nonexistent Controller run to stop.
       note((error.code||'E_BRIDGE')+'：'+error.message+'；未自动重试。'+
-        (error.code==='E_BRIDGE_REPLAY'?'请在“任务范围与授权”生成下一次指令；同一候选不会重复执行。':''),true);
+        (error.code==='E_BRIDGE_REPLAY'?'候选已使用或结果未知，请查询或停止原请求，不要更换身份补跑。':''),true);
     }
     finally{pending=false;preparing=false;if(!closed)update();}
     if(!closed&&epoch===lifecycleEpoch&&!approvalUnknown&&state?.mode==='auto'&&!state.future&&!state.attempted)void execute('auto');
@@ -788,6 +793,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   let autoPollBusy=false;
   const observeDiscovery=snapshot=>{
     const observed=discovery.observe(snapshot);
+    if(discovery.status().stage==='cancelled'){
+      messageNotice={url:win.location.href,stage:'cancelled',text:'本条未执行：官网已停止本轮回复，没有完整任务候选。需要执行时请正常提出新需求。'};
+    }
     if(observed&&!isDeliveredUser(observed.user))deferredDiscovery={...observed,url:win.location.href,route:snapshot.route,
       userText:observed.user.textContent||'',answerText:observed.answer.textContent||''};
   };
@@ -803,7 +811,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(closed)return;
     const snapshot=site.inspect();
     if(viewUrl!==win.location.href){
-      viewUrl=win.location.href;proposal=null;conversationReady=null;clearReceipt();
+      viewUrl=win.location.href;proposal=null;messageNotice=null;conversationReady=null;clearReceipt();
       // Discovery separately binds a witnessed first user to its new /c/.
       // Clearing UI here must not erase that observation.
     }
@@ -967,7 +975,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch{return false;}
     if(message.kind==='sidebar-read'||message.kind==='sidebar-control'){
       const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
-        selection:selection.textContent,viewStatus:state?viewStatus.textContent:'',
+        selection:state||proposal?selection.textContent:'',messageStage:messageNotice?.url===win.location.href?messageNotice.stage:null,viewStatus:state?viewStatus.textContent:'',
         requestId:state?.requestId??null,runId:state?.runId??null,resultId:state?.resultId??null,
         candidateId:state?.candidate?.candidateId??(proposal?.url===win.location.href?proposal.candidateId:null),
         observation:discovery.status(),pending:pending||cancelPending||deliveryPending,

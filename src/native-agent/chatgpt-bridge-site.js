@@ -105,6 +105,7 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     const busy = !!stopButton || streaming(last);
     const completed = !last || assistantCompleted(last);
     return {ok:true,route,form,editor,sendButton,users,assistants,
+      replyState:users.at(-1)?.closest('[data-talvt-turn-state]')?.getAttribute('data-talvt-turn-state')??null,
       busy,idle:!busy && completed,answerComplete:assistantCompleted(last) && !streaming(last),
       draft:editorText(editor),rich:!!editor.querySelector?.(RICH) || !!form.querySelector(ATTACHMENTS) ||
         [...form.querySelectorAll('input[type="file"]')].some(input=>input.files?.length)};

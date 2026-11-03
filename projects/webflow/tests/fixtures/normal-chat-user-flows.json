@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "project": "webflow",
+  "stage": "development-core-normal-chat",
+  "planSection": "12.11.16",
+  "status": "DEVELOPMENT_CORE_VERIFIED",
+  "purpose": "正常官网消息主流程的关键料件。不能用侧栏生成JSON回显或离线HTML评分替代通过。",
+  "approval": {
+    "taskId": "baidu.search.top3",
+    "version": "1.1.2",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser",
+      "limit": 3
+    },
+    "reuseExistingExactApproval": true,
+    "noScopeExpansion": true
+  },
+  "sharedConditions": [
+    "先读取真实侧栏、用户草稿、附件、IME和未知请求，不覆盖或重放。",
+    "记录实际一次接入/能力上下文从何而来、是否可见、作用范围与缺口；不假定官网AI已知道本地任务。",
+    "每轮用户输入仅为下面普通消息，不含协议JSON、Task ID或候选ID；不调用准备指令生成器。",
+    "只认本轮官网完整助手候选、真实Task动作、同Run持久结果、释放和原聊天单次交付。",
+    "每一阶段须能区分尚未执行、待AI、无可执行候选、待批准、运行中、完成、失败和UNKNOWN，并给出下一步。"
+  ],
+  "cases": [
+    {
+      "id": "NC-01",
+      "required": true,
+      "route": "fresh-project-conversation",
+      "userMessage": "请用 OpenDesk Browser 在百度搜索 OpenDesk Browser，给我前三条自然结果，并根据实际返回内容总结。",
+      "expect": [
+        "普通消息原生发送见证。",
+        "AI自行产出全新完整五字段候选，不是复述侧栏已生成的某个候选。",
+        "原精确批准及开关开启时自动准入，不点击采用/执行/逐次批准。",
+        "真实首页填写、一次搜索、三条自然结果与独立DOM核对。",
+        "同Run持久结果、资源释放、原聊天单次完整data及AI续答。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-02",
+      "required": true,
+      "route": "same-conversation-next-user-message",
+      "after": "NC-01 released",
+      "userMessage": "请再按刚才的关键词搜索一次，仍取三条自然结果，并用这一次的返回重新总结。",
+      "expect": [
+        "无需重新生成/复制指令或重新批准。",
+        "候选与运行为本轮新身份；旧完成结果不得冒充新运行。",
+        "同一精确范围；本轮结果与原聊天单次回传。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-03",
+      "required": true,
+      "route": "same-connected-conversation",
+      "userMessage": "只解释一下浏览器扩展与书签的区别，不要打开网页或执行任务。",
+      "expect": [
+        "普通聊天不触发Task或网页动作。",
+        "界面明确本条没有执行任务，不显示旧成功为本条完成。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-04",
+      "required": true,
+      "route": "same-connected-conversation",
+      "userMessage": "把刚才搜索结果的数量改为五条再搜索。",
+      "expect": [
+        "不继承现有limit=3批准，不静默改写成三条。",
+        "当前固定任务不支持或新范围未获授权时明确说明，并且不执行。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-05",
+      "required": true,
+      "fixtureType": "complete-reply-without-executable-protocol",
+      "assistantReply": "我目前不能通过当前对话调用你本机的 OpenDesk Browser 任务。",
+      "expect": [
+        "零Task派发。",
+        "明确未产生可执行任务/能力接入未就绪；与已运行失败区分。",
+        "不给出永久等待、旧任务结果或假称已搜索。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-06",
+      "required": true,
+      "fixtureType": "affected-protections",
+      "expect": [
+        "历史/流式/重复候选不执行；UNKNOWN只查询或停止原请求，不换ID补跑。",
+        "能力接入/结果回传不覆盖用户草稿、附件、IME或发往错误聊天。",
+        "总开关关闭、撤销、安装代次或来源变化仍拒绝。"
+      ],
+      "verification": "优先复用未失效的定向证据；仅对本轮实际影响的保护补测，不自动做完整原生矩阵。",
+      "status": "COMPONENT_AND_NATIVE_CORE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    },
+    {
+      "id": "NC-07",
+      "requiredWhen": "修改共同来源/发送/路由/新聊天能力接入",
+      "route": "fresh-ordinary-c-conversation",
+      "userMessage": "请用 OpenDesk Browser 在百度搜索 OpenDesk Browser，给我前三条自然结果，并根据实际返回内容总结。",
+      "expect": [
+        "对应普通/c/入口正常首发回归；不把项目路径成功当作全部路由通过。"
+      ],
+      "status": "CHROME_NATIVE_VERIFIED",
+      "evidence": "projects/webflow/evidence/normal-chat-20261103.json"
+    }
+  ],
+  "evidenceFields": [
+    "humanMessage",
+    "capabilityContextSourceAndScope",
+    "nativeSubmissionWitness",
+    "assistantMessageIdAndCompleteProtocol",
+    "candidateId",
+    "requestId",
+    "runId",
+    "resultId",
+    "taskAndInstallationIdentity",
+    "currentUserVisibleStage",
+    "independentTargetDOM",
+    "durableData",
+    "retirementState",
+    "originalChatDeliveryCount",
+    "actualLoadedPathIdServeRevision"
+  ],
+  "notAcceptance": [
+    "侧栏生成一段JSON让AI原样返回",
+    "仅Node或HTML通过",
+    "高分UI评分",
+    "完成态文案但没有真实Task和结果",
+    "把缺少协议视为用户发送错误"
+  ],
+  "nativeScopeNote": "NC-01/02: natural first/follow-up requests after project onboarding. NC-07: first normal task after one visible context message in an ordinary chat; no global registration claimed."
+}
