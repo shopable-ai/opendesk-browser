@@ -121,7 +121,8 @@ test('P0 discovery resets on SPA navigation and will only observe a later new us
 const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
 function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbingo.org/html',
   grantReply=value=>value,bindReply=value=>value,adoptReply=value=>value,initialEmpty=false,
-  intentProtocol='opendesk.task.intent.v1',autoTaskReply=value=>({ok:true,data:value}),executeReply=value=>value}={}){
+  intentProtocol='opendesk.task.intent.v1',autoTaskReply=value=>({ok:true,data:value}),executeReply=value=>value,
+  responseHost=()=> 'discovery-host'}={}){
   const nodes=[],sends=[],events=new Map(),windowEvents=new Map(),intervals=new Map(),snap=snapshot();
   let poll,autoRequests=0,nextTurn=0,nextInterval=0;
   if(initialEmpty){snap.users=[];snap.assistants=[];}
@@ -166,7 +167,7 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
     candidate:{candidateId:intent.candidateId,text:JSON.stringify(intent),turnKey:identity().turnKey,answerKey:identity().answerKey}});
   let grant;
   const api={runtime:{id:'extid',onMessage:{addListener(){},removeListener(){}},async sendMessage(msg){
-    sends.push(msg);
+    if(msg.kind!=='list-tasks')sends.push(msg); // assertions below count effect-bearing messages
     if(msg.kind==='list-tasks')return {ok:true,data:{tasks:[task]}};
     if(msg.kind==='approve-conversation-task'){
       grant={grantId:'77777777-7777-4777-8777-777777777777',source,...scope,
@@ -189,6 +190,8 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
     if(msg.kind==='revoke-request')return {ok:true,data:{requestId:msg.requestId,revoked:true}};
     return {ok:true,data:{}};
   }}};
+  const hostSend=api.runtime.sendMessage;
+  api.runtime.sendMessage=async message=>({...await hostSend(message),bridgeHostId:responseHost(message)});
   const page=initChatGPTFixedBridgePage({api,doc,win,site:{inspect:()=>({...snap})},readPage:identity});
   const buttons=nodes.filter(node=>node.tag==='button');
   const click=async index=>{await buttons[index].listeners.click({isTrusted:true});await flush();};
@@ -665,17 +668,17 @@ test('manual adoption of an old command never spends a chat grant or executes au
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
 });
 test('unknown chat adoption freezes further allocations until explicit revocation is confirmed',async()=>{
-  for(const failure of ['lost-ack','wrong-count']){
+  for(const failure of ['lost-ack','wrong-count','wrong-host']){
     const h=pageHarness({adoptReply:value=>{
       if(!value.conversationGrantId)return value;
       if(failure==='lost-ack')throw Object.assign(new Error('ACK lost'),{code:'E_BRIDGE_TRANSPORT'});
-      return {...value,remainingRuns:value.remainingRuns-1};
-    }});
+      return failure==='wrong-count'?{...value,remainingRuns:value.remainingRuns-1}:value;
+    },responseHost:message=>failure==='wrong-host'&&message.kind==='adopt-task'?'other-host':'discovery-host'});
     await h.selectInstalled();await h.click(7);h.next();await flush();
     assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
     for(let i=2;i<4;i++){
       h.intent.candidateId='unknown-next-'+i;
-      h.snap.users.push(message('u'+i));h.snap.assistants.push(message('a'+i,JSON.stringify(h.intent)));
+      h.next(); // another real composer gesture must remain fenced after the unknown ACK
       h.poll();await flush();
     }
     assert.equal(h.sends.filter(row=>row.kind==='adopt-task'&&row.conversationGrantId).length,1,failure);

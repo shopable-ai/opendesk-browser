@@ -31,7 +31,7 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     createDeveloperView:()=>view,createMyWorkbenchView:()=>view,createSidebarToolsView:()=>toolView,
     createScriptEditor:()=>({...disposable(),host:{},connectLocalProjects(){}}),
     createSidebarTabMemory:()=>({...disposable(),record(){},restore:async()=>calls.push('restore')}),
-    mountSidebarApp:()=>({...disposable(),renderNavigation(){},connectWorkflowPage(){}}),
+    mountSidebarApp:()=>({...disposable(),renderNavigation(){},connectWorkflowPage(){},connectMyAgent(){}}),
     createSidebarTools:()=>tools,isActualSidePanelContext:()=>context.promise,
     requestedToolId:()=>surface==='tool'?'quick-notes':null,
     requestedPreviewId:()=>surface==='preview'?'preview-r37':null,

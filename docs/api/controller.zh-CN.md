@@ -98,6 +98,8 @@ Stop 走原 RunHost，停止原因 E_CANCELLED；完成回执后继续查询原 
 
 run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾。Locator 等待默认 30 秒，单次 timeout 上限 120 秒，同时受运行期限约束；timeout:0 取消局部超时，仍受运行期限约束。未知 native effect/缺回执/撤权仍保守拦截。[断连恢复](dependencies-and-errors.zh-CN.md#断连和未知结果)。
 
+「开发 → 运行目标与版本」可为下一次 Controller 草稿选择 30 秒（默认）、60 秒或 120 秒。期限与源码、参数和目标在真实 Run 点击内冻结；准备过程中更改期限会拒绝旧启动。验证已声明 60 秒的 Task 时，可选择同一期限；此设置不改变已安装任务的 manifest 上限，也不延长已开始的运行。
+
 ## 已安装 Task 的存储与调用
 
 Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。

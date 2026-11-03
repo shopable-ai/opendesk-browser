@@ -39,7 +39,7 @@ import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {createToolDevelopmentControls} from './sidebar-tools/development-controls.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {AGENT_CONFIG_PROTOCOL} from '../native-agent/protocol.js';
-import {createChatGPTFixedBridgeHost} from '../native-agent/chatgpt-fixed-bridge-host.js';
+import {createChatGPTFixedBridgeHost,routeChatGPTBridgeMessage} from '../native-agent/chatgpt-fixed-bridge-host.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../native-agent/chatgpt-bridge-trigger-gate.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {isToolSender} from '../environment.js';
@@ -188,12 +188,14 @@ extensionList.renderNavigation(pendingReactTab);
 // R1.2 is one business adapter on the existing trusted Client and exact RunHost.
 // Only the positively verified Side Panel in the source tab's window responds.
 const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:foundationClient,
-  host:scriptEditor.host,currentPageTarget,
+  host:scriptEditor.host,currentPageTarget,bridgeHostId:hostInstanceId,
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
   if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task','auto-task'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
+  message=routeChatGPTBridgeMessage(message,hostInstanceId,{visible:document.visibilityState==='visible'});
+  if(!message)return false;
   Promise.resolve().then(()=>message.kind==='list-tasks'?fixedPageChatBridge.listTasks(message,sender):
     message.kind==='auto-task'?fixedPageChatBridge.admitAutoTask(message,sender):
     message.kind==='approve-conversation-task'?fixedPageChatBridge.approveConversationTask(message,sender):
@@ -205,8 +207,8 @@ const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
     message.kind==='prepare-task'?fixedPageChatBridge.prepareTask(message,sender):message.kind==='check-delivery'?
     fixedPageChatBridge.checkDelivery(message,sender):message.kind==='cancel'?
     fixedPageChatBridge.cancel(message,sender):fixedPageChatBridge.handle(message,sender)).then(
-    data=>sendResponse({ok:true,data}),
-    error=>sendResponse({ok:false,error:{code:error?.code||'E_BRIDGE_FAILURE',
+    data=>sendResponse({ok:true,bridgeHostId:hostInstanceId,data}),
+    error=>sendResponse({ok:false,bridgeHostId:hostInstanceId,error:{code:error?.code||'E_BRIDGE_FAILURE',
       message:error?.message||'受信任务调用未能完成，未知结果不会重放'}}));
   return true;
 };

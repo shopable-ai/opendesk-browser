@@ -38,13 +38,16 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
   }
   function run(event) {
     if (!event?.isTrusted || isDisposed() || running || isBlocked() || host.currentRun || !controllerResults.projection?.slotAvailable) return;
-    let chosen, params, permission, sourceUtf8,esm,classic;
+    let chosen, params, permission, sourceUtf8,esm,classic,deadlineMs;
     const runKind=programSource.kind();
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
       // before any asynchronous permission check or other work.
       chosen = captureCurrentPage(); params = JSON.parse(find('script-params').value);
       sourceUtf8 = programSource.source();
+      deadlineMs=Number(find('script-draft-deadline-ms')?.value??30000);
+      if(!Number.isSafeInteger(deadlineMs)||deadlineMs<1000||deadlineMs>120000)
+        throw {code:'E_ARGUMENT_TYPE',message:'Controller 草稿最长运行时间须为 1–120 秒'};
       if (programSource.kind() === 'page-userscript') throw {code:'E_PROGRAM_KIND',message:'这是网页 JavaScript 项目，请使用“在当前网页试运行”'};
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
@@ -80,7 +83,8 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       // plain JavaScript. All three Controller formats share one final gate.
       const check=()=>{
         if(isDisposed()||ticket!==generation||programSource.source()!==authorSourceUtf8||
-          scriptId()!==id||programSource.kind()!==runKind||!isControllerDraft())
+          scriptId()!==id||programSource.kind()!==runKind||!isControllerDraft()||
+          Number(find('script-draft-deadline-ms')?.value??30000)!==deadlineMs)
           throw {code:esm?'E_CONTROLLER_ESM_STALE':classic?'E_CONTROLLER_CLASSIC_STALE':'E_CONTROLLER_DRAFT_STALE',
             message:'源码、程序或运行模式已变化；不会启动过期 Controller 草稿'};
       };
@@ -101,7 +105,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       // claiming a committed Host call was undone by a later Stop.
       check();preparingKind=null;update();
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
-        params, target:chosen.target, deadlineAt:Date.now() + 30000});
+        params, target:chosen.target, deadlineAt:Date.now() + deadlineMs});
       admittedRunId = claim.runId;
       ownedRunId = claim.runId;
       if (isDisposed()) return;

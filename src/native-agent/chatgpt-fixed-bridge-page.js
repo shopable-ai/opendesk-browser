@@ -309,6 +309,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(discovery.witnessSubmission(snapshot)){
       proposal=null;messageNotice=null;
       if(state?.settled){state=null;clearReceipt();update();}
+      else if(state?.executionFinished&&!state.settled){
+        messageNotice={url:win.location.href,stage:'previous-request-unknown',
+          text:'本条尚未执行：原请求的最终回执待确认。请查询或停止原请求；不会自动重放或改由其他宿主执行。'};
+        note(messageNotice.text,true);update();
+      }
       if(!state)note('已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。');
     }
   };
@@ -321,6 +326,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       requestId:owner.requestId,taskId:owner.taskId,args:owner.args}):FIXED_PAGE_URL);
   const showIdentity=()=>{identity.textContent=state?[
     'requestId: '+state.requestId,
+    ...(state.bridgeHostId?['bridgeHostId: '+state.bridgeHostId]:[]),
     ...(state.candidate?['candidateId: '+state.candidate.candidateId]:[]),
     ...(state.installation?['scriptId: '+state.installation.scriptId,'revision: '+state.installation.revision,
       'sourceHash: '+state.installation.contentHash,'installationId: '+state.installation.installationId,
@@ -408,10 +414,30 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(state&&state.url!==win.location.href)throw fail('E_CHAT_TARGET','会话已更换，请重新建立请求');
   };
   const send=async message=>{
-    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...message});
+    const panelRequest=['execute','cancel','check-delivery','show-execution-page','authorize-task','prepare-task',
+      'approve-conversation-task','preapprove-next-task','bind-preapproved-task','adopt-task','auto-task'].includes(message.kind);
+    const owner=message.requestId&&message.requestId===state?.requestId?state:null;
+    let bridgeHostId=owner?.bridgeHostId;
+    if(panelRequest&&owner&&!bridgeHostId)
+      throw fail('E_BRIDGE_HOST','原请求缺少确定的宿主定位；不会换宿主或重放原请求');
+    if((panelRequest||message.kind==='prepare')&&!bridgeHostId){
+      // Select one verified Host using the existing read-only catalog request
+      // before any candidate, grant or preapproval mutates the original Ledger.
+      let located;
+      try{located=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'list-tasks'});}
+      catch{throw fail('E_BRIDGE_HOST','未找到确定的可信侧栏宿主，尚未提交；请保持同窗口侧栏打开');}
+      if(located?.ok!==true||typeof located.bridgeHostId!=='string'||!located.bridgeHostId||located.bridgeHostId.length>128)
+        throw fail('E_BRIDGE_HOST','未找到确定的可信侧栏宿主，尚未提交；请保持同窗口侧栏打开');
+      bridgeHostId=located.bridgeHostId;
+    }
+    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...message,
+      ...(panelRequest&&bridgeHostId?{bridgeHostId}:{})});
     if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_TRANSPORT',
       reply?.error?.message||'可信任务宿主未响应，请确认同一窗口的 OpenDesk 侧栏保持打开；本次回执为 UNKNOWN，请按原请求核查');
-    return reply.data;
+    if(panelRequest&&bridgeHostId&&reply?.bridgeHostId!==bridgeHostId)
+      throw fail('E_BRIDGE_OUTCOME_UNKNOWN','任务宿主回执不匹配；本次回执为 UNKNOWN，不会改由其他宿主重放');
+    return reply.data&&typeof reply.data==='object'&&!Array.isArray(reply.data)
+      ?{...reply.data,...(bridgeHostId||reply.bridgeHostId?{bridgeHostId:bridgeHostId||reply.bridgeHostId}:{})}:reply.data;
   };
   const adoptedMessage=()=>({adoptedRequest:state.adoptedRequest,persistentAuto:state.persistentAuto===true,candidateText:state.candidate.text,
     turnKey:state.candidate.turnKey,answerKey:state.candidate.answerKey});
@@ -548,6 +574,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const prepared=await send({kind:persistentAuto?'auto-task':grant?'bind-preapproved-task':'adopt-task',persistentAuto,
         ...(grant?{requestId:grant.requestId}:{}),...(activeGrant?{conversationGrantId:activeGrant.grantId}:{}),candidateText:page.blocks[0],turnKey:page.turnKey,answerKey:page.answerKey});
       adoptAck=true;
+      if(typeof prepared.bridgeHostId!=='string'||!prepared.bridgeHostId||prepared.bridgeHostId.length>128)
+        throw fail('E_BRIDGE_HOST','候选缺少确定的侧栏宿主定位，尚未执行；请在空闲后更新侧栏与网页');
       if(closed||epoch!==lifecycleEpoch)return;
       if(grant){
         assertActive(grant);
@@ -570,6 +598,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         activeGrant.remainingRuns=prepared.remainingRuns;
       }
       state={...adoptedRequest,url,source:prepared.source,expiresAt:prepared.expiresAt,candidate:prepared.candidate,
+        bridgeHostId:prepared.bridgeHostId,
         adoptedRequest,attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,
         persistentAuto,pendingAuto:prepared.pendingApproval===true,
         mode:prepared.pendingApproval?null:persistentAuto||grant||activeGrant?'auto':null,
@@ -738,6 +767,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const inserted=prepareChatGPTBridgeDraft(site,prompt,snap);
       if(!inserted?.ok)throw fail('E_CHAT_FILL',inserted?.reason||'无法写入原生输入框');
       state={requestId:prepared.requestId,taskId,args,...scope,url,source:prepared.source,expiresAt:prepared.expiresAt,
+        bridgeHostId:prepared.bridgeHostId,
         attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,mode:null,approvedTurnKey:null};
       clearReceipt();
       selection.textContent='本次脚本：'+taskId+'\n目标：'+targetLabel(state)+'\n参数：'+JSON.stringify(args);
@@ -980,11 +1010,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const onMessage=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress','sidebar-read','sidebar-control'].includes(message.kind))return false;
     if(sender?.id!==api.runtime.id||sender?.tab)return false;
+    let sendingHostId;
     try{
       const url=new URL(sender.url),origin=new URL(api.runtime.getURL('/')).origin;
       if(url.origin!==origin||url.pathname!=='/sidepanel.html'||
         !url.searchParams.has('hostInstanceId')||['scheduledRunner','toolId','previewId'].some(key=>url.searchParams.has(key)))return false;
+      sendingHostId=url.searchParams.get('hostInstanceId');
     }catch{return false;}
+    if(['progress','deliver'].includes(message.kind)&&state?.bridgeHostId&&
+      (message.bridgeHostId!==state.bridgeHostId||sendingHostId!==state.bridgeHostId))return false;
     if(message.kind==='sidebar-read'||message.kind==='sidebar-control'){
       const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
         selection:state||proposal?selection.textContent:'',messageStage:messageNotice?.url===win.location.href?messageNotice.stage:null,viewStatus:state?viewStatus.textContent:'',

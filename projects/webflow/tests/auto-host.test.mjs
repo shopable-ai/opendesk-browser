@@ -1,13 +1,27 @@
 // Component evidence: real Host + original durable ledger with injected Chrome/Controller boundaries.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createChatGPTFixedBridgeHost} from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
+import {createChatGPTFixedBridgeHost,routeChatGPTBridgeMessage} from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger,installChatGPTBridgeTriggerGate} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {createMethodRoutes} from '../../../src/platform/host/broker.js';
 
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const source={tabId:9,documentId:'chat-document',url:'https://chatgpt.com/c/webflow-auto-12345678'};
+test('two real Side Panel responders route a candidate execution to only its preparing host',()=>{
+ const request={kind:'execute',requestId:'same-request',adoptedRequest:{requestId:'same-request'},bridgeHostId:'prepared-host'};
+ const accepted=['prepared-host','other-host'].map(host=>routeChatGPTBridgeMessage(request,host)).filter(Boolean);
+ assert.equal(accepted.length,1);assert.deepEqual(accepted[0],{kind:'execute',requestId:'same-request',adoptedRequest:{requestId:'same-request'}});
+ assert.equal(routeChatGPTBridgeMessage({...request,bridgeHostId:undefined},'prepared-host'),null);
+ assert.equal(routeChatGPTBridgeMessage({...request,bridgeHostId:'gone-host'},'prepared-host'),null);
+ assert.equal(routeChatGPTBridgeMessage({kind:'cancel',requestId:'legacy'},'prepared-host'),null);
+ assert.equal(routeChatGPTBridgeMessage({kind:'auto-task'},'prepared-host'),null);
+ assert.equal(routeChatGPTBridgeMessage({kind:'list-tasks'},'hidden-host',{visible:false}),null);
+ assert.deepEqual(routeChatGPTBridgeMessage({kind:'list-tasks'},'prepared-host',{visible:true}),{kind:'list-tasks'});
+ assert.deepEqual(routeChatGPTBridgeMessage(request,'prepared-host',{visible:false}),accepted[0],
+   'an already bound Host keeps ownership while its Side Panel is temporarily hidden');
+ assert.equal(routeChatGPTBridgeMessage({kind:'check-delivery',requestId:'same-request',bridgeHostId:'prepared-host'},'other-host'),null);
+});
 function harness(){
   const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
     scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'real-install',generation:1};

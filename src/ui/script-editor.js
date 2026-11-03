@@ -208,6 +208,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Describe the selected official source format instead of telling React /
       // Vue authors to write the legacy async function main() entry.
       view.patch('developer-run-technical',{hidden:componentMode!=='javascript'||loadedPageSource});
+      view.patch('script-draft-deadline-row',{hidden:pageExecution||local||!!programSource.snapshot()});
       view.patch('page-preview-mode-title',{textContent:componentMode==='javascript'?
         '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行'});
       view.patch('page-preview-mode-hint',{textContent:componentMode==='react'?
@@ -224,6 +225,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     const worldChoice=find('script-javascript-world');
     if(worldChoice)patchDeveloperField(view,worldChoice,{value:javascriptWorld,disabled:frameworkBusy()});
+    patchDeveloperField(view,find('script-draft-deadline-ms'),{disabled:isRunning()||isStopping()||!!host.currentRun});
     const blocked=isStopping()||editingBusy||pagePreviewFlow?.busy||isRunning()||!controllerResults.projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
     let runDisabled=blocked;
     if(local)runDisabled||=!localProject.canAttemptRun();
@@ -585,6 +587,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
     // Input identity must invalidate synchronously before the next trusted Run.
     listen(find('script-source'),'input',()=>{try{sourceInput();}catch(error){fail(error);}});
+    listen(find('script-draft-deadline-ms'),'change',()=>{controllerRunner?.invalidate();update();});
     listen(find('script-run'),'click',start);
     on('script-stop','click',stop);
   }
