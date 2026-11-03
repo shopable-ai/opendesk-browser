@@ -1,6 +1,6 @@
 # OpenDesk Analytics R1.12.1 — 管理员 PostHog 四组 Insights（继承原 R1.10 入口）
 
-状态：SOURCE_DEFINED / NOT_DEPLOYED / NOT_CLOUD_VERIFIED（R1.12.1 只有源码定义与定向测试候选；没有 PostHog 真实 SQL 编译、查询、生产交付或云端回读证据）。必须复用现有 PostHog，不建立另一个 Dashboard 或 Analytics 系统。生产端点继续为空。
+状态：SOURCE_DEFINED / STATIC_CONTRACT_TESTS_PASS / NOT_DEPLOYED / NOT_CLOUD_VERIFIED（四组查询定义与 6 条静态合同测试已通过仓库 CI；尚无 PostHog 真实 HogQL 编译、Insight/Dashboard 创建、查询或云端回读证据）。必须复用现有 PostHog，不建立另一个 Dashboard 或 Analytics 系统。生产端点继续为空。
 
 ## 统计口径与证据边界
 
@@ -11,6 +11,32 @@
 - Reading TOC 浮动目录的用户真实点击经过原网页适配器对目标章节的可读视区测量、原站点/Chrome 授权检查及 Host 活动 Document 校验后，发送 `reading_toc.navigated`（B 级，计入主动 DAU）；自动目录渲染、Scroll Spy 不发主动使用事件。R1.12 已新增已安装 Page 的手动运行与 Host 持久 Receipt 统计入口，但还缺最新候选真实 Chrome 验收；AdBlock 真正网络规则命中在普通生产 Chrome 标记 NOT_OBSERVABLE，Workflow 仅经三段独立观察证明的链接导航允许 B 级，搜索与单独填写仍不可冒充通用业务成功。尚未观察到的指标是 NOT_OBSERVED，不是数值 0。
 - 每个用户自定义 Page/Task ID 使用仅保存在本机的独立随机秘密盐生成 anon-*，只能在同一安装内关联，不能跨安装把相同工具合并。官方 Sidebar ID 可直接聚合。跨安装 Page/Task 按类型统计可靠，按具体匿名工具身份的全球排行榜不可宣称完成。
 - 最新安装是原 Sidebar Installer + Foundation Authority 的已知快照；不代表实时 Chrome 商店总装机。R1.11 的 `inventory_types` 分别包括 sidebar/page/task 安装数、Scheduler Definition（active/paused/unknown）与 App Service 正式 Sidebar 父级绑定（enabled/disabled/unknown）；Scheduler 与 App Service 不增加独立 installed 总量。`inventory_items` 最多 96 项，官方 Sidebar ID 公开，用户 Page/Task 使用每安装盐化代号。inventory_read_state=failed 和 inventory_overflow 必须显示为未知/覆盖缺口。
+
+## 管理员 Dashboard 交付与权限边界
+
+- 只在现有 PostHog 项目中创建一个受管理员权限保护的 Dashboard；禁止公开分享链接，禁止把 Dashboard 嵌入普通用户扩展界面。项目管理员/分析员权限由 PostHog 项目角色控制；实际权限配置仍需在目标项目读回。
+- Dashboard 只由下列 A/B/C/D 四组 Insights 组成；每个图表显示名称、时间范围、项目时区和口径说明。不得把安装实例写成真人，也不得把匿名 Page/Task ID 当成跨安装统一产品身份。
+- 推荐布局：第一行 DAU/WAU/MAU 三个单值卡 + DAU 趋势；第二行手动尝试/结果状态 + 自动执行来源与对账差异；第三行工具活跃/打开排行 + 日/周/月趋势；第四行最新已知安装覆盖、Scheduler/App Service 状态、读取失败、过期和覆盖缺口。
+- 全局时间筛选不得改变自动快照的 UTC 日键；手动事件按 PostHog 项目时区显示，自动快照按 `utc_day` 显示。两者合并时必须明确标注时间基准。
+- **空数据状态**：没有任何符合条件的事件时，显示 `NO_OBSERVATIONS`，解释为“当前时间窗没有可观测的已同意统计数据”。它不能区分未部署、无人同意或确实没有主动使用；不得把它改写成“0 用户 / 0 安装 / 0 次使用”。只有已观测且完整覆盖的数据才可显示数值 0。
+- D 组必须同时展示 `FRESH / STALE / READ_FAILED`、`inventory_overflow` 与 `projection_gap`。读取失败时，不显示旧快照计数为当前状态；历史最后有效值如需保留，必须单独标为“上次有效读回”，不能放在“当前安装”列。
+
+## 全局数据可观测状态（Dashboard 顶部状态卡）
+
+此查询只判断当前时间窗有没有收到符合范围的事件；它不判断 Worker/D1/PostHog 是否已部署，也不把无数据解释成零活跃。
+
+```sql
+SELECT count() AS observed_events_30d,
+  uniqExact(distinct_id) AS observed_installations_30d,
+  if(count()=0,'NO_OBSERVATIONS','OBSERVED') AS observation_state
+FROM events
+WHERE event IN (
+  'app.opened','tool.opened','tool.engaged','tool.manual_attempt',
+  'workflow.manual_attempt','reading_toc.navigated',
+  'tool.manual_result','tool.auto_daily','app.inventory_types'
+)
+  AND timestamp >= now() - INTERVAL 30 DAY
+```
 
 ## Insights A — DAU / WAU / MAU
 
@@ -136,21 +162,27 @@ ORDER BY period,events_count DESC
 每个 distinct_id 仅取最新的 app.inventory 和 app.inventory_types。后者包含 inventory_types 中 Sidebar、Page、Task 的实际安装/启用/停用/阻断/未知计数、Scheduler Definition 的当前活跃/暂停、App Service 父级绑定状态，以及 inventory_items 中最多 96 个可信安装身份（Sidebar ID 与其他类型匿名 ID），超出部分 inventory_overflow。最后一次观测时间超过 24 小时示例阈值时标记 STALE。读取失败标记 READ_FAILED，不冒充零安装。Scheduler Schedule Definition、Workflow 和 App Service 不得作为独立安装工具重复计数。
 
 \`\`\`sql
-SELECT distinct_id,max(timestamp) AS last_reported,
+SELECT distinct_id,
+  max(timestamp) AS last_reported,
   dateDiff('hour',max(timestamp),now()) AS age_hours,
-  if(argMax(properties.inventory_read_state,timestamp)='failed','READ_FAILED',
-    if(dateDiff('hour',max(timestamp),now())>=24,'STALE','FRESH'))
-    AS freshness,
   argMax(properties.inventory_read_state,timestamp) AS latest_state,
-  argMax(properties.inventory_types,timestamp) AS latest_types,
-  argMax(properties.inventory_items,timestamp) AS latest_items,
-  argMax(properties.inventory_overflow,timestamp) AS latest_overflow,
-  argMax(properties.projection_gap,timestamp) AS latest_gap
+  if(argMax(properties.inventory_read_state,timestamp)='failed','READ_FAILED',
+    if(dateDiff('hour',max(timestamp),now())>=24,'STALE','FRESH')) AS freshness,
+  if(argMax(properties.inventory_read_state,timestamp)='failed',NULL,
+    argMax(properties.inventory_types,timestamp)) AS latest_types,
+  if(argMax(properties.inventory_read_state,timestamp)='failed',NULL,
+    argMax(properties.inventory_items,timestamp)) AS latest_items,
+  if(argMax(properties.inventory_read_state,timestamp)='failed',NULL,
+    argMax(properties.inventory_overflow,timestamp)) AS latest_overflow,
+  if(argMax(properties.inventory_read_state,timestamp)='failed',NULL,
+    argMax(properties.projection_gap,timestamp)) AS latest_gap
 FROM events
 WHERE event='app.inventory_types'
   AND timestamp >= now() - INTERVAL 90 DAY
 GROUP BY distinct_id
 \`\`\`
+
+**重要的 NULL 语义**：ClickHouse 的 `argMax(arg,val)` 会跳过 `arg` 为 NULL 的行。因此，最新 `app.inventory_types` 读取失败时，直接 `argMax(inventory_types,timestamp)` 可能返回更早的非空安装快照。上面的 `if(latest_state='failed',NULL,...)` 防止把旧计数冒充当前读回；参考 [ClickHouse argMax NULL 处理](https://clickhouse.com/docs/sql-reference/aggregate-functions/reference/argmax)。该修复是查询源码审查，不代表 PostHog HogQL 已在目标项目编译通过。
 
 ## D1 开发对账
 

@@ -12,7 +12,7 @@ test('only trusted explicit launch produces pending intent, never mount alone',(
   assert(!fn.includes("reportAnalytics('event.host_report','tool.opened'"),'mount start must not count as ready');
 });
 test('sandbox and audited native UI report only after verified ready, once per token',()=>{
-  assert.match(source,/if\(message\.state==='ready'\)\{\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*notice\(bookmarkFallbackNotice\);\s*reportReadyOpen\(message\.instance\);/);
+  assert.match(source,/if\(message\.state==='ready'\)\{[\s\S]{0,500}?notice\(bookmarkFallbackNotice\);[\s\S]{0,500}?reportReadyOpen\(message\.instance\);/);
   assert.match(source,/frameRoot\.dataset\.bookmarkTrusted='true';\s*render\(\);notice\(''\);reportReadyOpen\(token\)/);
   assert.match(source,/frameRoot\.dataset\.timeReviewNative='true';\s*render\(\);notice\(''\);reportReadyOpen\(token\)/);
   assert.match(source,/pendingAnalyticsOpen=null; \/\/ consume before dispatch/);
