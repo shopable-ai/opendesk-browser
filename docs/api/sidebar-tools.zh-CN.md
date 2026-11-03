@@ -162,6 +162,8 @@ Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent�
 
 需要关闭保护的编辑器可调用 `OpenDeskTool.setState({dirty, busy})`，两个字段必须是布尔值，并且通过一个对象传递。输入后标记未保存；写入期间保持 `busy: true`；只有持久保存确认后才清除 dirty，完成后再清除 busy。宿主据此保护关闭与切换；该消息不提供能力或网站授权，也不能阻止用户明确卸载。
 
+已安装沙箱在根页上报 busy 时，宿主返回按钮只展示扩展列表，原 iframe、实例、草稿及请求继续保留；重新打开同一工具恢复原现场。此时可以查看其他 Tab，但关闭、替换或更新该工具仍受原保护，未决操作和开发刷新围栏不会因界面隐藏而解除。子页、只读预览及可信原生界面仍走原返回合同，详见[未决操作期间的根页返回](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#未决操作期间的根页返回2026-11-04)。
+
 ### 受限页头导航发现入口
 
 `OpenDeskTool.setNavigation` 是可选的受限导航能力，仅获准入的完整官方包具备；先用 `typeof OpenDeskTool.setNavigation === 'function'` 做特性检测，方法存在本身不替代完整包、来源、实例与安装代际核验。接入与返回层级见[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)。工具上报当前导航展示状态，由宿主统一呈现页头；返回/主操作交回工具处理，并保留草稿、忙态和结果未知保护。未准入或未接入的工具不能直接移除唯一可用的内部导航；此入口不授予宿主 DOM 或额外权限。

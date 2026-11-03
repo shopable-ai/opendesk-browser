@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "title": "scrapyjs 采集",
   "description": "从当前真实网页用自然语言创建单页列表配置，保存后采集并导出；保留已有规则编辑、本机试采与原浏览器采集。",
   "capabilities": [

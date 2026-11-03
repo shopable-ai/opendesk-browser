@@ -897,12 +897,17 @@ test('Host Back preserves a busy sandbox while returning to the list and other t
   const send=(dirty,busy)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
     data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
   send(true,true);
+  assert.equal(f.host.isDirty(),true,'development refresh must see the original pending work');
+  f.ask('storage.get',{key:'notes'},'preserved-owner-read');
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-display'].hidden,true,'Back must expose the extension list');
   assert.equal(f.runtime.frameRoot.firstElementChild,f.frame,'the unresolved owner must remain mounted');
   assert.equal(f.frame.isConnected,true);
+  assert.equal(f.host.isDirty(),true,'returning to the list must retain the reload guard');
   assert.notEqual(f.host.setVisible(false,'workspace'),false,'other tabs may be shown without retiring this tool');
   assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='preserved-owner-read'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='preserved-owner-read').ok,true,'the original late response stays correlated while hidden');
   f.host.setVisible(true);
   assert.equal(f.elements['sidebar-tool-display'].hidden,true);
   f.host.openTool(other.id);
@@ -912,12 +917,50 @@ test('Host Back preserves a busy sandbox while returning to the list and other t
   assert.equal(f.elements['sidebar-tool-display'].hidden,false);
   assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
   assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='load').length,1,'reopening must not reinitialize or replay');
-  f.ask('storage.get',{key:'notes'},'preserved-owner-read');
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='preserved-owner-read'));
-  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='preserved-owner-read').ok,true);
   send(false,false);
+  assert.equal(f.host.isDirty(),false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children.length,0,'ordinary close resumes only after confirmed idle');
+});
+
+test('returning a busy sandbox to the list keeps installation revocation effective',async t=>{
+  const f=await hostFixture(t);
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{protocol:f.loaded.protocol,
+    toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty:false,busy:true}});
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true);
+  f.change([{...sample,js:'void 1;'}]);
+  assert.equal(f.runtime.frameRoot.children.length,0,'source replacement must still revoke the retained document');
+  const before=f.frame.contentWindow.sent.length;
+  f.ask('storage.set',{key:'notes',value:'stale parked write'},'stale-parked-write');
+  await pause();await pause();
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  assert.equal(f.frame.contentWindow.sent.length,before,'the retired instance cannot receive new authority');
+});
+
+for(const revokeBeforeBack of [false,true])test('epoch-only revocation retires a retained busy sandbox and exposes its recoverable draft: '+revokeBeforeBack,async t=>{
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[sample]],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'original-epoch'}]])});
+  const send=(kind,extra)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind,...extra}});
+  send('draft',{text:'preserve this unresolved draft'});
+  send('edit-state',{dirty:true,busy:true});
+  if(!revokeBeforeBack)f.emit(f.elements['sidebar-tool-back'],'click');
+  const epochs={[sample.id]:'revoked-epoch'};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  if(revokeBeforeBack)f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.runtime.frameRoot.children.length,0,'revocation must retire a hidden owner that can no longer be reopened');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,'preserve this unresolved draft');
+  assert.equal(f.host.isDirty(),false,'only the revoked instance guard retires; stored original operations remain untouched');
+  const before=f.frame.contentWindow.sent.length;
+  send('edit-state',{dirty:false,busy:true});
+  f.ask('storage.set',{key:'notes',value:'stale epoch write'},'stale-epoch-write');
+  await pause();await pause();
+  assert.equal(f.host.isDirty(),false);
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  assert.equal(f.frame.contentWindow.sent.length,before);
 });
 
 test('Final R2 revocation during ETag digest prevents a write that has not started',async t=>{

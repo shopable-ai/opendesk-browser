@@ -23,7 +23,7 @@ R2.2 曾用末级短标题解决父子 flex span 拉开的大空白，但把工�
 
 ScrapyJS 的历史 AI 请求或本机任务尚未确认结束时，可能持续上报 busy；不能将它一律提示为“正在保存”，也不能靠清锁、重建 iframe 或重跑请求恢复导航。宿主允许用户先返回扩展列表，并保留唯一原实例；提示用户重新打开原工具查询、停止或继续查看原操作。工具自己的隐藏任务须在根页提供可见恢复入口。任务确认结束后，普通关闭重新适用原有草稿保护。
 
-此返回行为不新增后台运行合同、授权或第二个工具实例，不表示请求已停止或保存成功。旧实例消息、跨窗口撤权、卸载和包身份校验继续由原 Host 处理。定向回归入口为 `tests/environment/sidebar-tools-host.test.mjs` 的 `Host Back preserves a busy sandbox while returning to the list and other tabs`，以及 ScrapyJS `tests/local-runner-app.test.mjs` 的空闲恢复和原结构任务恢复场景；Node 结果与真实 Chrome 生效状态分别报告。
+此返回行为不新增后台运行合同、授权或第二个工具实例，不表示请求已停止或保存成功。列表显示状态不代表执行已空闲；开发自动刷新继续检查原工具的 dirty/busy 与 Provider Lease，不得因工具隐藏而跳过。旧实例消息、跨窗口撤权、卸载和包身份校验继续由原 Host 处理。定向回归入口为 `tests/environment/sidebar-tools-host.test.mjs` 的 `Host Back preserves a busy sandbox while returning to the list and other tabs`，以及 ScrapyJS `tests/local-runner-app.test.mjs` 的空闲恢复和原结构任务恢复场景；Node 结果与真实 Chrome 生效状态分别报告。
 
 ### 开发与预览的接入及验证顺序
 

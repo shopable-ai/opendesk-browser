@@ -1580,7 +1580,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, removeReview, {hidden: true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
-  const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
+  const isDirty=()=>toolDirty||toolSaving||(!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty);
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
   function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
@@ -2006,6 +2006,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(disposed||!visible||busy)return;
       cancelRemovalReview();setImportOpen(false);clearTransientNotice();
       if(!sameLiveCookie)destroyFrame();
+      toolParked=false;
       active=tool;readOnlyPreview=false;previewDirty=false;
       tocSettingsOpen=true;tocScope='site';render();
       requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -3932,6 +3933,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(nativeUI||nativePending){
           destroyFrame();tocSettingsOpen=true;render();
           notice('可信工具安装代际已撤销；请重新打开已核验工具。',true);
+        }else if(toolParked){
+          retireUntrustedTool();
+          notice('当前工具实例已撤销；已保留可复制草稿，请核对后重新打开。',true);
         }else{
           render();
           notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
@@ -4781,7 +4785,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
-    if(toolSaving&&!readOnlyPreview&&frame?.isConnected){
+    if(toolSaving&&!readOnlyPreview&&!nativeUI&&!nativePending&&frame?.isConnected){
+      if(frameRevocationEpoch!==(revocationEpochs[id]??null)){
+        retireUntrustedTool();
+        notice('当前工具实例已撤销；已保留可复制草稿，请核对后重新打开。',true);return;
+      }
       toolParked=true;render();
       notice('已返回扩展列表，原工具和未完成操作仍保留。重新打开「'+active.title+'」可继续查看；原操作结束前不能替换或更新。');
       focusToolInList(id);return;
