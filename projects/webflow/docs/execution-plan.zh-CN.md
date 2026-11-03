@@ -1463,3 +1463,24 @@ NC-07在普通`/c/6ae9c70a-68fc-83ec-997d-7aabfeab93b0`先进行一次可见说�
 原生驱动的菜单/窗口守卫、动画或被裁剪 AX 坐标先按驱动诊断：第一次坐标落在被裁剪内容，核对仍待批准后滚动到实际按钮再执行，未改产品适配坐标。证据读取器曾在第二轮 UI 上校验第一轮，断言正确拒绝；随后仅在原“开发 → 查询任务”按第一轮确切 runId 读取原持久快照，确认同 Result/released/完整 value，无任务重跑。主世界无法读可信 Shadow UI 的空结果未被当作执行证据。浏览器检查会话已 finalize，普通聊天和原 dev 服务保留。
 
 精简证据为 [normal-new-scope-20261103.json](../evidence/normal-new-scope-20261103.json)，料件扩展 NC-08–10，原始 DOM、AX、消息、真实原 Run 快照及日志仅留 `artifacts/webflow-auto-20261103/new-scope-01a1a19b/`。本轮仅 main 本地保存；预存 MCP 段落、并行 UI/预览、Cookie、ScrapyJS 和云控改动不混入，不推远端。MCP、production、Go Native 配对、跨对话编排、持久队列、完整原生撤权/代次/IME/UNKNOWN 故障注入、缩放压力及产品评分继续 NOT_TESTED/延期。
+
+### 12.11.18 用户指定固定协议提示词两轮实测（2026-11-03）
+
+**用户指定的两轮固定协议原生操作已核实，owner 01a1a1e8-b9b0-7c63-a7d7-490dd8f7de3a。** 用户此前仍未认可核心完成；本轮直接制作并发送可复制的官网测试提示词，要求官网 AI 自行生成全新五字段候选，不重放历史 JSON。现有普通需求入口及 12.11.16–17 的限定证据保留。本任务先实读 `get_goal=null`，再按明确要求建立本任务目标，不改写其他任务生命周期。这是本次指定操作链的实测结论，不代替用户亲测或长期产品验收。
+
+**发现、复用与写入范围：** 正式业务 owner 为 `projects/webflow/`；组合应用沿原可信 Web Flow UI、ChatGPT Bridge、已安装 Task、Authority、RunHost 与持久结果。无已证实源码缺陷时不改实现、不打包/升级。只新增 `tests/protocol-auto-first.prompt.txt`、`tests/protocol-auto-followup.prompt.txt`、本轮精简 evidence，以及本节；不接管 UI/preview、README、Cookie/ScrapyJS/云控、预存 MCP 或 provenance 改动。共享计划仅追加本节，提交时只暂存自己的精确片段。
+
+**现场与起始操作：** `main@f51ca3410`；旧任务明确交接真实 Chrome 焦点及本轮业务。本轮复用 Chrome PID516、窗口759148456、聊天tab759148601，唯一 dev writer79748、43119/43120；原 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`。真实调试页显示 serve 已连接，revision `d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41`。可信授权 UI 读回总开关开启、百度首页、`{"query":"OpenDesk Browser SDK","limit":3}`、22:04:43 原批准、Task1.1.2/原SHA/installation/generation2，未重新批准。起始操作为原生发送提示词 A；发送前启动只读百度观察器，逐字核对空草稿/无附件/完整闲置，观察新增消息及完整协议，再分别核对真实搜索、同Run持久值、released、单次回传与完整续答。原始材料独立保存 `artifacts/webflow-auto-20261103/protocol-01a1a1e8/`。此双轮原生验证由用户指定入口触发；未改源码不重复旧 Node/构建矩阵。
+
+**用户可直接复制的实际料件：** [提示词 A](../tests/protocol-auto-first.prompt.txt) 与 [提示词 B](../tests/protocol-auto-followup.prompt.txt)。两条均为单段文本，已填入真实 Task、网址与精确参数，只要求官网 AI 自己生成新 candidateId，没有封存候选或待用户填写的字段。目标网址保留 JSON Unicode 转义以避免官网富内容转换，解析后仍是原精确百度首页。无需每轮到侧栏准备或复制 JSON；保持当前 Web Flow 自动运行及原精确批准即可。两条分别在本任务进展中完整交给用户，并原生粘贴、逐字回读后按 Enter 一次。第二条在第一轮完整续答结束后发送，没有接入、采用、执行或批准点击。
+
+| 测试 | 官网新 candidateId | 原请求 / Run / Result | 实际结果采集时间（北京时间） |
+| --- | --- | --- | --- |
+| A | `wf-7da1b8e4-62c9-4e35-a0bf-19f6d2c8437e` | `7a695d58-dd5a-4272-a03b-8978e51672d4` / `770c533f-d9ed-419c-a007-792db9bd23a0` / `816960c3-0341-4ef2-b31f-bba8ec640190` | 2026-11-03 23:02:00 |
+| B | `wf-2bd5e1a7-c880-4efa-9f14-51d8cfe703ab` | `f247e6de-88e3-4484-b6be-df3efb8fc243` / `33614af9-9705-4c00-8a25-d120c44ada21` / `204e53c9-b736-4ca5-8ea3-cb1d0fdfe471` | 2026-11-03 23:05:19 |
+
+**逐段实证：** 两轮官网完整助手回复各只有一个 `opendesk-task` 五字段代码块，均通过现行 `validateWebFlowTaskIntent` 直接校验。发送前已启动的独立只读 DOM 观察分别记录目标tab759148609/759148611的首页空值→填写关键词→结果页；原 Task trace 各仅一次搜索点击。固定 Task 返回的三条网页容器在独立 DOM 的顺序、slot、标题、URL/directUrl、摘要截取与可信“查看完整结果”原始值及原聊天完整 data 逐项一致。两次脚本均 `completed`、业务 `success`/3条；原可信 UI分别确认同一Run/Result、资源已释放、原聊天已确认新增结果消息；原生展开“本次身份”核对候选到Run绑定。每轮原聊天仅一条对应完整结果，官网续答均为complete，按这次真实data总结且没有再产生任务候选。最终当前任务显示“真实结果已回传，官方 AI 已完成回复 / 触发：持续批准自动执行”。以上身份全部封存，只复制提示词让AI生成新身份，不复制实际回复补跑。
+
+**归类与边界：** 本轮没有产品源码、Task或沙箱包变化，因此不升级、不打包、不重复184项组件回归。旧同指纹的limit=5明确不执行、新精确范围待批准/取消及原生Stop等证据按[上一轮证据](../evidence/normal-new-scope-20261103.json)复用，不冒称本轮重跑；新范围仍须可信审阅，不能静默改参数。最初浏览器快照读取超时无发送，后续用用户明确允许的原CGEvent/AX驱动与只读DOM观察完成；身份控件首次被裁剪未展开，滚动后真实展开核验，没有为驱动错误改产品。Chrome扩展详情另实读原ID的加载路径为`~/文稿/workspace/opendesk-browser/dist/development`；dev两项产物SHA与前轮一致。只读观察器已停止、检查标签已关闭、浏览器检查会话已finalize；原聊天、侧栏、批准与原dev writer保留。
+
+精简证据为[protocol-prompts-20261103.json](../evidence/protocol-prompts-20261103.json)，包括实际提示词摘要、原生消息ID、两轮完整身份、独立网页/持久/回传核对及原始材料SHA。这里验证原固定Task的可见结果及完整桥接，不宣称任意网页自然排名、全站广告审计、MCP、Go Native配对、production、跨对话、持久队列、完整IME/撤权/UNKNOWN故障矩阵或评分通过。保存到现有main本地提交，不推送，保留并行未提交内容。

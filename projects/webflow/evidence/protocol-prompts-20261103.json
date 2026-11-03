@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "stage": "development-core-user-specified-protocol-prompts",
+  "status": "TWO_NATIVE_ROUNDS_VERIFIED",
+  "goalThread": "01a1a1e8-b9b0-7c63-a7d7-490dd8f7de3a",
+  "baseCommit": "f51ca3410",
+  "conversationUrl": "https://chatgpt.com/c/6ae9e75a-50a8-83ee-8a51-10e89c3ab42a",
+  "conversationContext": "Existing ordinary chat; each test prompt explicitly supplies the complete five-field protocol contract. No onboarding or settings changed in this round.",
+  "loadedExtension": {
+    "id": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+    "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+    "pathEvidence": "extension-path.ax.txt",
+    "serve": "CHROME_UI_CONFIRMED_CONNECTED",
+    "revision": "d623f73025c1315a1e755555b1f174938b756599618d3c15648a60ab490bfa41",
+    "toolShellSHA256": "0eb956a830b3ef923a522a5b678bcec0b571d6400c63e63f6540d000684935f3",
+    "bridgeSHA256": "5a152ece57f8350c645c8b88c0f32ff5010c5d61a4b9d086416ba5267480dfaf"
+  },
+  "task": {
+    "taskId": "baidu.search.top3",
+    "installation": {
+      "version": "1.1.2",
+      "manifestHash": "6e73df2f70377ec2cc65761416344945d22a7c7e59c6e9aa3aae922d71490cd5",
+      "scriptId": "task:baidu.search.top3:1.1.2",
+      "revision": 1,
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+      "installationId": "da7b0581-5788-45c5-8316-ea7c03130d51",
+      "generation": 2
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3,
+          "title": "结果数量"
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "schemaSource": "Current examples/tasks/baidu.search.top3.v1.opendesk-task.json, pinned to native trusted installation identity; prior trusted Catalog evidence reused."
+  },
+  "approval": {
+    "enabled": true,
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "query": "OpenDesk Browser SDK",
+      "limit": 3
+    },
+    "originalApprovedAt": "2026-11-03T22:04:43+08:00",
+    "reviewedFrom": "native trusted approval UI",
+    "reapprovedThisRound": false
+  },
+  "rounds": [
+    {
+      "case": "round-a",
+      "promptFile": "tests/protocol-auto-first.prompt.txt",
+      "promptSHA256": "ebd51bb05ff2bc918881b994c03c7f4ac9bf6a3a78c22720cffa1afd43fd8417",
+      "newUserMessageId": "d1306c82-83b0-4171-a93c-6a84bb6fbfa9",
+      "protocolAssistantMessageId": "0155468d-3a47-42bd-bfba-a1ac4cfe5fca 0155468d-3a47-42bd-bfba-a1ac4cfe5fca",
+      "intent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-7da1b8e4-62c9-4e35-a0bf-19f6d2c8437e",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser SDK",
+          "limit": 3
+        }
+      },
+      "requestId": "7a695d58-dd5a-4272-a03b-8978e51672d4",
+      "runId": "770c533f-d9ed-419c-a007-792db9bd23a0",
+      "resultId": "816960c3-0341-4ef2-b31f-bba8ec640190",
+      "targetTabId": 759148609,
+      "targetDocumentId": "FED87969529595946F7AE435C5858B16",
+      "nativeSend": "ONE_ENTER_AFTER_EXACT_READBACK",
+      "searchClicks": 1,
+      "observedInputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "executionStatus": "completed",
+      "dataStatus": "success",
+      "count": 3,
+      "observedAt": "2026-11-03T15:02:00.560Z",
+      "visibleDOMMatchesDurableAndDelivered": true,
+      "resultTitles": [
+        "OpenDesk | OpenDesk",
+        "browser-sdk · GitHub Topics · GitHub",
+        "OpenDesk:基于多平台的办公生产力智能体项目 - AtomGit"
+      ],
+      "resultMessageId": "9c2b649c-352d-4e76-ab3d-5cf980c5ad08",
+      "resultMessageCount": 1,
+      "durable": "SAME_RUN_RESULT_VERIFIED",
+      "retirement": "released",
+      "delivery": "EXACT_ORIGINAL_CHAT_CONFIRMED",
+      "aiContinuation": "COMPLETE_FROM_ACTUAL_DATA",
+      "continuationMessageId": "d54de66a-411b-4150-a90b-47d7467e2b3b d54de66a-411b-4150-a90b-47d7467e2b3b",
+      "continuationSHA256": "f8357bcf9ea493fb3f5272a0e3e2abd702bbddc6fef2265f023e87e2cebe56f2",
+      "dataSHA256": "788a55ded56959c8f76d446785b6a69030fdd4918ea6bbc59e952aef8650c334",
+      "additionalAdoptionExecutionApprovalClicks": 0
+    },
+    {
+      "case": "round-b",
+      "promptFile": "tests/protocol-auto-followup.prompt.txt",
+      "promptSHA256": "0384f40d74bd990caaccc848576f30b9b69cbdc950d116b481d5f872ee50bbe7",
+      "newUserMessageId": "9223a36b-9fde-4d38-bcba-dde302d2d2da",
+      "protocolAssistantMessageId": "4fdbf3ce-858c-484f-85c4-ffb3ec59a17e 4fdbf3ce-858c-484f-85c4-ffb3ec59a17e",
+      "intent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-2bd5e1a7-c880-4efa-9f14-51d8cfe703ab",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser SDK",
+          "limit": 3
+        }
+      },
+      "requestId": "f247e6de-88e3-4484-b6be-df3efb8fc243",
+      "runId": "33614af9-9705-4c00-8a25-d120c44ada21",
+      "resultId": "204e53c9-b736-4ca5-8ea3-cb1d0fdfe471",
+      "targetTabId": 759148611,
+      "targetDocumentId": "39F69F8E4E4676AB4ACA67E14749A22C",
+      "nativeSend": "ONE_ENTER_AFTER_EXACT_READBACK",
+      "searchClicks": 1,
+      "observedInputValues": [
+        "",
+        "OpenDesk Browser SDK"
+      ],
+      "executionStatus": "completed",
+      "dataStatus": "success",
+      "count": 3,
+      "observedAt": "2026-11-03T15:05:19.794Z",
+      "visibleDOMMatchesDurableAndDelivered": true,
+      "resultTitles": [
+        "OpenDesk | OpenDesk",
+        "browser-sdk · GitHub Topics · GitHub",
+        "OpenDesk:基于多平台的办公生产力智能体项目 - AtomGit"
+      ],
+      "resultMessageId": "55ca68f1-08e0-4647-a9a5-8b178bc0537c",
+      "resultMessageCount": 1,
+      "durable": "SAME_RUN_RESULT_VERIFIED",
+      "retirement": "released",
+      "delivery": "EXACT_ORIGINAL_CHAT_CONFIRMED",
+      "aiContinuation": "COMPLETE_FROM_ACTUAL_DATA",
+      "continuationMessageId": "713c827f-c714-4206-8723-51f873a10b4e 713c827f-c714-4206-8723-51f873a10b4e",
+      "continuationSHA256": "0729d885c170d4868b12843c0a6082dc7af72ef34b0e2c77284080d1dd85caa0",
+      "dataSHA256": "3e7cd182f5b081a7b13dc955f77b2eef077da7d66e60731e5829b73ebecffe59",
+      "additionalAdoptionExecutionApprovalClicks": 0
+    }
+  ],
+  "noHistoricalCandidateReplayed": true,
+  "noImplementationTaskOrPackageChange": true,
+  "reusedEvidence": {
+    "path": "projects/webflow/evidence/normal-new-scope-20261103.json",
+    "sha256": "63f71c7fe186a613f0108ac3c83ec10001c40afb43d995f5c5f3bc4bad746bdc",
+    "scope": "Same d623f73025c1 dev artifacts: unsupported limit=5 no execution; old replaced exact scope remains pending then cancelled with null Run/Result; native Stop and bounded component protections. No negative replay in this round.",
+    "ordinaryRequestEntry": "Preserved with existing NC-01–10 evidence; explicit test prompts are the user-requested primary test method for this round."
+  },
+  "driverNotes": [
+    "Browser snapshot inspection timed out without sending; user-authorized existing CGEvent/AX and read-only DOM observers used for the actual chain.",
+    "Native AX identity control was clipped; first click did not open it. Scrolled the existing sidebar and verified expanded identity; no product changes.",
+    "Read-only DOM observers started before sending and stopped after terminal evidence; did not perform searches or deliver results."
+  ],
+  "rawEvidence": "artifacts/webflow-auto-20261103/protocol-01a1a1e8",
+  "rawSHA256": {
+    "dev.ax.txt": "e4fe79ca732f3cb5bf553a37e20b44a936bcc6e259ca0f779f0d5c43458ee734",
+    "grant.ax.txt": "67cef1be2ef8d3123255d2818d685ad2d1dd8d0f5673ade4323b51059a78fa03",
+    "grant-identity.ax.txt": "325f3fff9e196c5ccd1d24a64e2e669c1c3040e9c1bd155ad4dc48d74ecff6b8",
+    "extension-path.ax.txt": "dd0323a1f71930affc2460736f14923896f5081bee852eaa24f59ab2f4575b5d",
+    "final-visible.ax.txt": "1249a6d488869c13b67d2174af55cbcc2cc67608d9f42dbd3adc89034b7c036d",
+    "round-a-before-send.json": "e846c2f5daabeb6fe3b4463639c6e9df6ed92ab8ece57b7b9675396c96e3d008",
+    "round-a-chat.json": "efc92f56e2ffe90331f0fd2c8ba5d65cea7eb36873c8365c840ee4d935b21fce",
+    "round-a-final-chat.json": "f33e4fc440f82ac51e772f276ada2e899a64b7ab67361b6e8454bc004f86e5d6",
+    "round-a-identity.ax.txt": "b6086cc7b517fee52cca421f282a19fd610815b8ca3be65f9656db907ee02c59",
+    "round-a-full-result.ax.txt": "fe62f14eb2dde6664d3ef8e4767f58d79907c15ef5f8b35f2453d736d086440d",
+    "round-a-durable-value.json": "aebef996f8d9eaff5fc38c4fb10f8f9b49b4eaf8cc67d8d38fc5e21c33b3a590",
+    "round-a-result.json": "399db63ce774f41caa9655f3ef674a7c6da4afc4820d95461c318c9768861416",
+    "round-a.dom.jsonl": "f93d82de73f09e91c61e2d3f813f65faf450488562aeca12e4f879eec45a5dd4",
+    "round-b-before-send.json": "fc94e727d43cb811e0c50094792c5e4bbb8defc958a2dbddc15be65f46dd26bf",
+    "round-b-chat.json": "59c1073473c28d747fb121c493efb4383b690bb2558f16e93055216eba9be020",
+    "round-b-final-chat.json": "dc485415a9aede890faa69b1288a29fdfa7a62cc926c15daf43d6f2a5f582e9a",
+    "round-b-identity.ax.txt": "1249a6d488869c13b67d2174af55cbcc2cc67608d9f42dbd3adc89034b7c036d",
+    "round-b-full-result.ax.txt": "99847e9e1797a93966579d9e4f0a37c502e1de85f1ac224d567247ea06b78f52",
+    "round-b-durable-value.json": "af4ff202fea2bd3b85ab9feb2866e36b0a82e41fc1f69d6d287bba289bf8bdcf",
+    "round-b-result.json": "abe788536a0d4e23f6e169f68c3fd43d56a55fc04af784cf7bb231975e2f021c",
+    "round-b.dom.jsonl": "b7d22355e4ad40a5fd4205301a8149cc3c2e736ebb1ef11941192ee166c016d6"
+  },
+  "notTested": [
+    "production",
+    "MCP",
+    "Go Native pairing",
+    "cross-conversation orchestration",
+    "persistent queue",
+    "full native revocation/IME/UNKNOWN fault matrix",
+    "zoom/pressure",
+    "product scoring",
+    "arbitrary natural-search ranking or website-wide advertising audit"
+  ]
+}
