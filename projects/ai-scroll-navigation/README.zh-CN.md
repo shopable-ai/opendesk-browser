@@ -2,7 +2,7 @@
 
 ## 目录迁移说明（2026-11-02）
 
-本项目已从 `examples/programs/chatgpt-jump-top/` 整体迁移至 `projects/ai-scroll-navigation/`。项目身份保持 `opendesk.ai-scroll-navigation`，本次只调整仓库归属与路径引用；源码、Page 规则、版本、历史安装包、测试和证据均保留，不生成第二套实现。后续开发、构建和测试统一使用新目录。
+本项目已从 `examples/programs/chatgpt-jump-top/` 整体迁移至 `projects/ai-scroll-navigation/`。项目身份保持 `opendesk.ai-scroll-navigation`，源码、Page 规则、当前安装包、测试和证据均以新目录为唯一归属，不生成第二套实现。**历史 `opendesk.chatgpt-jump-top` 0.2.0/r2 导入包已于 2026-11-03 从项目目录清理**；旧 ID 的页面标记兼容逻辑仍保留。清理仓库文件不会卸载、撤权或修改用户已经安装的旧版本，其生命周期仍由原 Page Authority 管理。
 
 ## 最新真实 UI 核心完成（2026-10-27，0.4.7/r11）
 
@@ -66,7 +66,7 @@ r11 sourceHash 为 `05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea350351
 
 ## R1.3.4 增量（2026-10-27）
 
-- 当前正式可导入包为 **0.4.6 / revision 7**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
+- 当前正式可导入包为 **0.4.8 / revision 9**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
 - 首次使用 Page 网页增强时，需在 Chrome 的 OpenDesk Browser 扩展详情中允许用户脚本。安装后在批准的网站直接运行；不需要再到产品详情启用一次。`E_USER_SCRIPTS_UNAVAILABLE` 时先核对这一 Chrome 权限开关及其真实读回。
 - 从「扩展 → 已安装 → AI 对话滚动导航 → 详情」填写精确 HTTP(S) Origin 和路径前缀，进入原 Installer 审阅。Chrome 网站授权可能覆盖整个主机；原生匹配路径、明确端口与可信 Host 仍约束程序执行。HTTP/HTTPS、localhost、127.0.0.1 和不同端口分别处理，禁止通配 Origin、查询或片段作为路径范围。
 - 自定义网站候选由可信 Host 从当前不可变源码生成，使用 `1_000_000_000..2_147_483_647` 的保留 Revision 区间和 `+site.r…` 版本。相同输入生成相同身份，碰撞失败并保留旧安装；官方冻结包不得使用该区间。Revision 是不可变键，不以数值决定升级顺序。
@@ -102,7 +102,7 @@ r11 sourceHash 为 `05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea350351
 - **五项行为**：`regionTop`、`regionBottom` 为同一长内容两方向；`conversationTop`、`conversationBottom` 为整段对话；`floatingTop` 与 `conversationTop` 复用一枚顶部浮动按钮，不能创建第二枚。默认无需另加配置开关。
 - **新旧脚本共存防护**：旧冻结包具有 `[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-jump-top.lifecycle"]` 生命周期宿主，改名后的源码识别它及旧回复导航的活动 ShadowRoot，在存在旧活动导航时**主动退出**；同一新身份的多个代码实例采用活体 DOM owner 仲裁，并在点击时重检。保留旧 `data-opendesk-chatgpt-jump-top` 回复标记供既有 Mind Map 寻址，新 `data-opendesk-ai-scroll-navigation="reply"` 明确标识现代实例。仅承担页面级兼容，不改变旧安装注册/撤权/用户授权。
 - **权限**：Page `pageRules` 仅为 `chatgpt.com`、`chat.deepseek.com`、`gemini.google.com` 三个明确 Origin 的顶层 `USER_SCRIPT`。从旧版新增 Origin 属于扩权，必须走现有 Page Authority 与用户审阅；代码不会替安装器授予权限。
-- **真实交付状态**：新 ID 只是**已提交的业务源码**；当前环境没有用户 Mac 工作区，也不能运行项目校验器或 Node 单测。目录历史 `chatgpt-jump-top.opendesk-page.json` 仍为 **0.2.0 / revision 2 / ChatGPT-only / 旧 ID**，绝不视作 0.4.0 可安装包。需由原有 `build:program`、`scripts/build-page-install-package.mjs --title "AI 对话滚动导航"` 与完整哈希校验生成**不同的新正式包**，经过原有独立安装确认与三站权限审阅，核验停用、撤权、旧 ID 退出与 Mind Map 共存。新旧安装迁移状态 `MIGRATION_REQUIRED`，上述真实 Chrome 项目一律 `NOT_TESTED`；不得虚构新包 sourceHash、授权转移或 `MULTI_SITE_VERIFIED`。
+- **当时交付状态（2026-10-25，历史记录）**：当时新 ID 仅为已提交源码，旧 0.2.0/r2 包仍在目录，尚未生成新身份安装包。该旧包已于 2026-11-03 清理；当前 0.4.8/r9 已由原 Program Builder 和 Page Installer 重新构建，并通过 AI Scroll Navigation 专项 CI 的源码回归、版本/网站范围和字节一致性检查。历史记录中的“仍待构建”仅描述 2026-10-25，不代表当前状态。新身份真实安装和三站完整操作仍须单独验收，官方发行继续 blocked。
 - **扩展中心搜索**：新包安装时的正式标题应明确使用「AI 对话滚动导航」。现有已安装 Page 的搜索读取 title、programId 和由 pageRules 映射的网站字符串；**npm description 不会自动成为已安装 Page 的搜索内容**。故在 Extension Center owner 修改投影前，「回顶」「长回复」等别名搜索仍有缺口。本轮不冒险重写另一 owner 的通用扩展列表。
 
 ## 历史：ChatGPT Jump Top 的原始单站证据
@@ -154,7 +154,7 @@ node scripts/validate-program-project.mjs projects/ai-scroll-navigation
 
 本地项目入口仍为 `opendesk browser dev "$PWD/projects/ai-scroll-navigation"`，随后通过界面明确 Run。本次真实操作使用「开发 → 直接编辑 → JavaScript → Page·当前网页 DOM → 运行」执行最终候选，并获得 Page `active` 返回。界面未提供该次 Page 的精确 `previewId/sourceHash/documentId`，不能用旧 Controller 的 runId/SHA 补作收据。
 
-现有离线包 [`chatgpt-jump-top.opendesk-page.json`](chatgpt-jump-top.opendesk-page.json) 保持身份 `opendesk.chatgpt-jump-top`、版本 `0.2.0`、revision `2`，sourceHash 为 `2f8c1667e0047e4c6a7152b5da121f0d1438abdfa470b139db9cc30c911cc791`。**旧包不含本次修复，本轮未晋升安装包。** 它由原 `build-page-install-package.mjs` 生成，不携带安装授权或运行证明；后续安装/升级仍走「扩展 → 导入」及原有审阅/Authority 流程，提交源码不会自动升级浏览器。
+**历史安装包清理（2026-11-03）：** 旧 `opendesk.chatgpt-jump-top`（0.2.0 / revision 2，ChatGPT-only）安装包已从本项目删除；它不再是当前可导入制品。当前唯一新身份包为 [`ai-scroll-navigation.opendesk-page.json`](ai-scroll-navigation.opendesk-page.json)，ID `opendesk.ai-scroll-navigation`、版本 **0.4.8 / revision 9**。仓库删除不会自动卸载或撤销用户本机已安装的旧 ID；旧安装仍须通过原 Page Authority 单独停用、撤权或卸载。运行时代码保留旧 DOM 标记兼容，避免新旧页面实例冲突。
 
 ## 真实核心操作证据
 

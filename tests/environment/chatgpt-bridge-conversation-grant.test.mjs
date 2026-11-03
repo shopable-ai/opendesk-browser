@@ -222,7 +222,7 @@ test('failed child persistence leaves neither a debit nor an approved child',asy
 function gateHarness({holdFrame=false}={}){
   const h=harness(),events={},frame=Promise.withResolvers();
   const event=name=>({addListener:fn=>{events[name]=fn;}});
-  const api={storage:{local:h.storage,session:h.session},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+  const api={storage:{local:h.storage,session:h.session},runtime:{id:'extid',getURL:(path='')=> 'chrome-extension://extid/'+path,
     onMessage:event('message')},webNavigation:{getFrame:async()=>holdFrame?frame.promise:
       ({...source,documentLifecycle:'active'}),onCommitted:event('navigation'),onHistoryStateUpdated:event('history')},
     tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event('close')},permissions:{onRemoved:event('permission')}};

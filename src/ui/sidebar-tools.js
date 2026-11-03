@@ -1484,7 +1484,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed)return;
     if(pendingUninstallId&&!installed.some(row=>row.id===pendingUninstallId&&samePackage(row,pendingUninstallBaseline)))
       cancelRemovalReview();
-    patchToolField(view, display, {hidden: !active});
+    // Presentation facts from the installed-tool owner; never sandbox claims.
+    patchToolField(view, display, {hidden: !active,data:{toolId:active?.id||'',
+      preview:readOnlyPreview,settingsOpen:tocSettingsOpen,
+      enabled:Boolean(active&&!enableReadError&&sidebarToolEnabled(enableRecords,active.id))}});
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
       active?.capabilities.includes(TOC_CAPABILITY)&&
       active?.title===readingTocCatalog.messages['zh-CN'].title;

@@ -10,6 +10,7 @@ import {MyAgentDock} from './tabs/my-agent.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
+import {WebflowAutoControls} from '../../../projects/webflow/trusted/AutoSettings.tsx';
 import {DebugPage} from './tabs/debug.tsx';
 
 const emptyToolSnapshot={fields:{}};
@@ -21,7 +22,7 @@ export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
   onStopAppDebug=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
-  developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,
+  developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,webflowAuto=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
   onOpenNativeSettings=null,nativeConnection=null,
   debugModel={},debugActions={},development=null,
@@ -78,6 +79,9 @@ export function SidebarAppShell({
             </section>
           </div>
           {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
+            trustedControls={<WebflowAutoControls webflowAuto={webflowAuto}
+              display={toolSnapshot.fields['sidebar-tool-display']}
+              visible={activeTab==='tools'&&!isPanelPreview&&!localeOpen&&!providerSettingsOpen}/>}
             debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}
             active={activeTab==='tools'||activeTab==='app-debug'}
             providerSettings={providerSettings} onOpenProviderSettings={onOpenProviderSettings}/>}
@@ -97,7 +101,7 @@ export function SidebarAppShell({
         hidden={activeTab!=='debug'}/>}
     </main>
     <MyAgentDock agent={myAgent} active={activeTab==='tasks'} onOpenSettings={onOpenProviderSettings}/>
-    {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings}
+    {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings} webflowAuto={webflowAuto}
       onOpenNativeSettings={onOpenNativeSettings} nativeConnection={nativeConnection}
       open={providerSettingsOpen} onClose={onCloseProviderSettings}/>}
     <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-11-03",
+  "project": "webflow",
+  "sourceCommit": "f0e375ef8",
+  "evidenceKind": "development-native-core-test",
+  "actualRoute": [
+    "official ChatGPT webpage",
+    "complete webflow.task.intent.v1 reply",
+    "fixed first-party Bridge",
+    "original Host/Authority/RunHost and Native execution path",
+    "installed baidu.search.top3@1.1.1",
+    "same-run durable result",
+    "trusted Web Flow sidebar",
+    "original ChatGPT conversation delivery"
+  ],
+  "conclusions": {
+    "currentBuildAutomaticCoreChain": "PASS",
+    "triggerMode": "persistent exact-scope approval; no adopt/execute click after ChatGPT send",
+    "currentBuildTwoSuccessiveNewCandidates": "AWAITING_USER_TEST",
+    "formalMcpToolInvocation": "NOT_TESTED",
+    "mcpNativeTaskChatEndToEnd": "NOT_TESTED"
+  },
+  "observedAt": "2026-11-02T16:17:03.804Z",
+  "buildRevision": "243ae9d3b96cfca9df566502f02a482a9cb7e61e3de7597225bfbe6dab9689a5",
+  "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+  "scope": {
+    "taskId": "baidu.search.top3",
+    "version": "1.1.1",
+    "scriptId": "task:baidu.search.top3:1.1.1",
+    "revision": 1,
+    "sourceHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8",
+    "targetUrl": "https://www.baidu.com/",
+    "args": {
+      "limit": 3,
+      "query": "OpenDesk Browser"
+    }
+  },
+  "identity": {
+    "candidateId": "wf-8a241436-4ea3-40ee-b6b2-6275e76cca3b",
+    "requestId": "21e1ce7d-591c-4c9a-a18a-db253e0d2562",
+    "runId": "594b0d98-c05b-427b-bc5e-067699d80caf",
+    "resultId": "08be9873-9fa5-4f44-83d7-7929b108abf6"
+  },
+  "observations": {
+    "completeFiveFieldReply": true,
+    "pageOverlayActions": 0,
+    "visibleBaiduDOMMatchesSidebar": true,
+    "persistentResultVerifiedByOriginalHost": true,
+    "sidebarAndOriginalChatValueEqual": true,
+    "chatDeliveriesForResult": 1,
+    "execution": "completed",
+    "retirement": "released",
+    "taskStatus": "success",
+    "count": 3,
+    "titles": [
+      "OpenDesk | OpenDesk",
+      "openDesk - OpenProject brings open source project management to openDesk",
+      "OpenProject 13.1: Share work packages, dynamic meetings and much more"
+    ],
+    "trace": [
+      [
+        "input",
+        "before"
+      ],
+      [
+        "input",
+        "started"
+      ],
+      [
+        "input",
+        "returned"
+      ],
+      [
+        "click",
+        "started"
+      ],
+      [
+        "click",
+        "returned"
+      ],
+      [
+        "navigation",
+        "observed"
+      ],
+      [
+        "results",
+        "read"
+      ]
+    ]
+  },
+  "autoSwitchAtTrialEnd": false,
+  "authorityScope": "fixed task, exact URL and args plus current installation; keep the trusted Side Panel open in the same window",
+  "interpretation": "ChatGPT result narration cannot prove which transport triggered execution. This trial has no formal MCP tool-call record and cannot be relabeled an MCP success.",
+  "manualRetest": [
+    {
+      "round": "A",
+      "path": "tests/manual-auto-baidu-a.prompt.txt",
+      "candidateId": "wf-0356793b-9a2a-416f-81df-9fa7ffdbe7b8",
+      "status": "PREPARED_NOT_SENT"
+    },
+    {
+      "round": "B",
+      "path": "tests/manual-auto-baidu-b.prompt.txt",
+      "candidateId": "wf-ff9ccc93-c5cb-49f2-bb75-f51601913e96",
+      "status": "PREPARED_NOT_SENT"
+    }
+  ],
+  "sourceEvidence": "artifacts/webflow-auto-20261102/core-migration-01a19ce9/core-proof.json",
+  "rawEvidencePolicy": "Large AX/DOM logs, screenshots and user drafts remain in local artifacts; this project record contains only the compact test conclusion and identity references.",
+  "notTested": [
+    "native manual/once/stop entry acceptance",
+    "production and full matrix",
+    "cross-conversation or persistent queue",
+    "formal MCP chain"
+  ]
+}

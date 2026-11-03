@@ -163,8 +163,17 @@ const nativeConnection=Object.freeze({
   }
 });
 // Create the complete interface before controllers attach their real hosts.
+const webflowAuto=Object.freeze({
+  readBridgeState:()=>fixedPageChatBridge.readBridgeState(),
+  controlBridge:(value,event)=>fixedPageChatBridge.controlBridge(value,event),
+  readAutoSettings:()=>fixedPageChatBridge.readAutoSettings(),
+  prepareAutoGrant:selection=>fixedPageChatBridge.prepareAutoGrant(selection),
+  approveAutoTask:(review,event)=>fixedPageChatBridge.approveAutoTask(review,event),
+  setAutoEnabled:(enabled,event)=>fixedPageChatBridge.setAutoEnabled(enabled,event),
+  revokeAutoTask:(taskId,event)=>fixedPageChatBridge.revokeAutoTask(taskId,event)
+});
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
-  nativeConnection,localeController,
+  nativeConnection,localeController,webflowAuto,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false,
   onStopAppDebug:()=>void stopPanelDevelopment()});
@@ -182,10 +191,11 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
   host:scriptEditor.host,currentPageTarget,
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
-  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task'].includes(message.kind)||
+  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task','auto-task'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
   Promise.resolve().then(()=>message.kind==='list-tasks'?fixedPageChatBridge.listTasks(message,sender):
+    message.kind==='auto-task'?fixedPageChatBridge.admitAutoTask(message,sender):
     message.kind==='approve-conversation-task'?fixedPageChatBridge.approveConversationTask(message,sender):
     message.kind==='show-execution-page'?fixedPageChatBridge.showExecutionPage(message,sender):
     message.kind==='preapprove-next-task'?fixedPageChatBridge.preapproveNextTask(message,sender):

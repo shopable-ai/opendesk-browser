@@ -6,32 +6,45 @@ const describe=node=>({node,text:node.textContent||'',id:
   node.getAttribute?.('data-content-search-unit-key')||null});
 const sameIdentity=(before,node)=>before.node===node||Boolean(before.id&&before.id===describe(node).id);
 const same=(before,node)=>before.text===(node.textContent||'')&&sameIdentity(before,node);
+const userText=node=>{
+  const content=node.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||node;
+  return content.innerText??content.textContent??'';
+};
 const appended=(before,nodes,multiple=false)=>{
   if(!before.length)return multiple?nodes.length>=1:nodes.length===1;
   if(multiple){
     // Earlier ChatGPT replies can hydrate after the latest reply is complete.
     // The unchanged latest reply anchors this new answer; older placeholder
     // text is not part of its identity. User history remains checked below.
+    // Exactly one reply may follow that anchor; multiple new replies are ambiguous.
     const anchors=nodes.map((node,index)=>same(before.at(-1),node)?index:-1).filter(index=>index>=0);
-    return anchors.length===1&&anchors[0]<nodes.length-1&&
+    return anchors.length===1&&anchors[0]===nodes.length-2&&
       !before.some(item=>sameIdentity(item,nodes.at(-1)));
   }
   const offset=before.findIndex(item=>same(item,nodes[0]||{}));
   const count=before.length-offset+1;
   return offset>=0&&nodes.length===count&&
     before.slice(offset).every((item,index)=>same(item,nodes[index]))&&
-    !before.some(item=>same(item,nodes.at(-1)));
+    !before.some(item=>sameIdentity(item,nodes.at(-1)));
 };
 
-export function createChatGPTTaskDiscovery(){
-  let route=null,before=null,pending=null,establishing=false;
+export function createChatGPTTaskDiscovery({now=Date.now}={}){
+  let route=null,before=null,pending=null,submission=null;
   const capture=snapshot=>({users:snapshot.users.map(describe),assistants:snapshot.assistants.map(describe)});
   return {
     reset(snapshot){
       route=snapshot?.ok?snapshot.route:null;
-      before=snapshot?.ok?capture(snapshot):null;pending=null;
-      establishing=Boolean(snapshot?.ok&&(!snapshot.users.length||snapshot.busy||
-        !snapshot.idle||!snapshot.answerComplete));
+      before=snapshot?.ok?capture(snapshot):null;pending=null;submission=null;
+    },
+    // Called only by the fixed page adapter after a native composer gesture.
+    // Capture at that gesture, not the previous poll: history may hydrate in
+    // between. An unobserved send is never inferred from appended DOM alone.
+    witnessSubmission(snapshot){
+      if(!snapshot?.ok||!snapshot.route||snapshot.busy||!snapshot.idle||snapshot.rich||
+        typeof snapshot.draft!=='string'||!snapshot.draft.trim())return false;
+      this.reset(snapshot);
+      submission={text:snapshot.draft,expiresAt:now()+30000};
+      return true;
     },
     observe(snapshot){
       if(!snapshot?.ok){
@@ -41,18 +54,22 @@ export function createChatGPTTaskDiscovery(){
       }
       if(snapshot.route!==route||!before){this.reset(snapshot);return null;}
       const users=snapshot.users,assistants=snapshot.assistants;
-      // Initial history can mount in several batches. Keep establishing the
-      // baseline until that load is complete, never adopting its final turn.
-      if(establishing){this.reset(snapshot);return null;}
+      // There is no reliable "history finished" DOM state. Complete batches,
+      // remounts and regeneration all remain history without a witnessed send.
+      if(!submission||!pending&&now()>=submission.expiresAt){this.reset(snapshot);return null;}
       if(pending&&(!same(pending.user,users.at(-1)||{})||!appended(before.users,users))){
         this.reset(snapshot);return null;
       }
       if(!pending){
-        if(appended(before.users,users))pending={user:describe(users.at(-1)),assistants:before.assistants};
+        if(appended(before.users,users)){
+          if(userText(users.at(-1))!==submission.text){this.reset(snapshot);return null;}
+          pending={user:describe(users.at(-1)),assistants:before.assistants};
+        }
         else {
-          // Includes initial streaming replies, regenerated old answers, and
-          // history remounts without a retained user anchor. Never adopt them.
-          if(!snapshot.busy&&snapshot.answerComplete)this.reset(snapshot);
+          // Preserve a witnessed send across the gap before its user node,
+          // but a changed user baseline consumes it without adopting anything.
+          if(users.length!==before.users.length||
+            !before.users.every((item,index)=>same(item,users[index])))this.reset(snapshot);
           return null;
         }
       }

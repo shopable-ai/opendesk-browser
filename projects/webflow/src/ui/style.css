@@ -55,6 +55,7 @@
 .wf-detail{display:grid;grid-template-columns:minmax(65px,1fr) minmax(0,2fr);gap:6px 9px;font-size:12px}
 .wf-detail dt{color:var(--sub)}.wf-detail dd{margin:0;overflow-wrap:anywhere}
 .wf-mono{font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+.wf-result{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
 .wf-empty{text-align:center;padding:22px 12px;display:grid;gap:6px}
 .wf-empty strong{font-size:14px}
 .wf-error{color:#b94a56}.wf-ok{color:var(--good)}.wf-warn{color:var(--warn)}

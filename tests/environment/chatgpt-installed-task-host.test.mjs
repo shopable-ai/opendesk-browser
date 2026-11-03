@@ -30,7 +30,7 @@ function harness(){
       sourceKind:'saved',revision,outcome:{ok:true,valueWire:encodeValue({title:'Article',excerpt:'Real page data'})}}]};
   const sender={id:'extid',frameId:0,url:source.url,documentId:source.documentId,
     tab:{id:source.tabId,url:source.url,windowId:2,incognito:false}};
-  const events={starts:[],gates:[],progress:[],deliveries:[]};let permission=true,onSend=()=>{};
+  const events={starts:[],gates:[],progress:[],deliveries:[]};let permission=true,onSend=()=>{},storageChanged=()=>{};
   const api={runtime:{id:'extid',async sendMessage(msg){events.gates.push(msg);
     return {ok:true,data:msg.kind==='reserve'?{consumed:true}:{allowed:true}};}},
     tabs:{get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
@@ -40,7 +40,8 @@ function harness(){
       await bridge.checkDelivery({...msg,kind:'check-delivery'},sender);
       return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};}},
     webNavigation:{getFrame:async()=>({...source,documentLifecycle:'active'})},
-    permissions:{contains:async()=>permission,onRemoved:{addListener(){},removeListener(){}}}};
+    permissions:{contains:async()=>permission,onRemoved:{addListener(){},removeListener(){}}},
+    storage:{onChanged:{addListener:fn=>{storageChanged=fn;},removeListener(){}}}};
   const client={request:async method=>method==='listTaskCatalog'?{installed:[installed],catalog:[candidate]}:resolved,
     controller:{snapshotControllerRun:async()=>snapshot}};
   const host={currentRun:null,start:async input=>{events.starts.push(input);return {runId:'run-article'};},
@@ -50,7 +51,8 @@ function harness(){
     isVerifiedSidePanel:()=>true,checkTarget:async()=>{},
     readReply:async()=>({turnKey:message.turnKey,answerKey:message.answerKey,blocks:[message.candidateText]})});
   return {bridge,client,request,message,sender,installation,installed,resolved,candidate,events,snapshot,
-    deny:()=>{permission=false;},onSend:fn=>{onSend=fn;}};
+    deny:()=>{permission=false;},onSend:fn=>{onSend=fn;},autoChange:()=>storageChanged({
+      'opendesk.webflow.auto-trigger-grants.v1':{newValue:{enabled:false}}},'local')};
 }
 test('installed directory resolves a third script and schema defaults without starting a run',async()=>{
   const h=harness();
@@ -101,6 +103,11 @@ test('generic delivery rechecks installation identity and never retries a failed
   const h=harness();h.onSend(()=>{h.installed.generation++;});
   await assert.rejects(h.bridge.handle(h.message,h.sender));
   assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
+});
+test('changing persistent auto settings does not invalidate an unrelated legacy manual delivery',async()=>{
+  const h=harness();h.onSend(h.autoChange);
+  const receipt=await h.bridge.handle(h.message,h.sender);
+  assert.equal(receipt.sent,true);assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
 });
 test('generic durable results retain exact source identity and refuse unsupported or oversized JSON',()=>{
   const h=harness();

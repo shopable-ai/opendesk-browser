@@ -550,6 +550,11 @@ test('a real result delivery continuation containing a valid command cannot spen
     return result.data;
   };
   const drain=async()=>{for(let i=0;i<6;i++)await flush();};
+  live.snap.sendButton={disabled:false,getAttribute:()=>null};
+  live.snap.draft='command-user';
+  for(const listener of live.events.get('click')||[])
+    listener({type:'click',isTrusted:true,button:0,target:live.snap.sendButton});
+  live.snap.draft='';
   live.snap.users.push(node('command-user'));live.snap.assistants.push(node('command-answer',text));live.poll();await drain();
   for(const ms of [250,300,400]){t.mock.timers.tick(ms);await drain();}
   assert.match(live.status.textContent,/真实结果已回传，官方 AI 已完成回复/);

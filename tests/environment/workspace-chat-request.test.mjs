@@ -5,7 +5,7 @@ import {load} from 'cheerio';
 import {createHash,randomUUID} from 'node:crypto';
 import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL} from '../../src/native-agent/workspace-chat-request.js';
 import {createEditContext,parseEditProposal,validateEditProposal,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
-import {inspectChatGPTEditsOnPage,fillChatGPTComposerOnPage,verifyChatGPTComposerOnPage,fillChatGPTComposer} from '../../src/native-agent/workspace-chatgpt.js';
+import {inspectChatGPTEditsOnPage,readChatGPTEdit,fillChatGPTComposerOnPage,verifyChatGPTComposerOnPage,fillChatGPTComposer} from '../../src/native-agent/workspace-chatgpt.js';
 import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 
 const WS='workspace-12345678-1234-4234-8234-123456789abc';
@@ -198,6 +198,19 @@ test('modern complete turn reads one request through the unchanged strict parser
   const result=read();assert.equal(result.ok,true);assert.equal(result.assistantFragments,1);
   assert.equal(result.blocks[0],text);assert.deepEqual(parseFileRequest(result.blocks[0],request),request);
   assert.equal(result.answerKey,read().answerKey);
+});
+test('Web Flow readReply round trip preserves protocol selection and validates the returned five fields',async()=>{
+  const value={protocol:'webflow.task.intent.v1',candidateId:'webflow-candidate-123',taskId:'article.read',
+    targetUrl:'https://example.com/article',args:{}},text=JSON.stringify(value);
+  const options={taskIntent:true,protocols:['webflow.task.intent.v1']};
+  const {f}=modernRequestFixture({userText:'请读取文章',blocks:[{text,language:'opendesk-task'}]});
+  const reply=await readChatGPTEdit(f.api,f.target,null,options);
+  assert.equal(reply.blocks[0],text);assert.equal(reply.assistantFragments,1);
+  // Exercise the caller-side boundary separately from the serialized DOM
+  // filter: an otherwise valid script response must not bypass schema checks.
+  f.api.scripting.executeScript=async()=>[{frameId:0,documentId:f.target.documentId,result:{
+    ok:true,url:f.target.url,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...value,requestId:REQUEST})]}}];
+  await assert.rejects(readChatGPTEdit(f.api,f.target,null,options),{code:'E_BRIDGE_SCHEMA'});
 });
 test('modern code sources stay distinct from legacy blocks, action labels and inline examples',()=>{
   const {request}=makeContext(),text=JSON.stringify(request);

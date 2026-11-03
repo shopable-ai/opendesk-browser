@@ -10,16 +10,41 @@ const payload={task,clientRequestId:'request-1',params:{}};
 const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve};};
 function fixture(overrides={}){
   let valid=true,alive=true;const calls=[],stops=[],cancels=[];
+  const ledger=new Map();
   const row={...task,scriptId:'task:fixed-task:1.0.0',revision:1,manifest:{deadlineMs:30000}};
   const result={runId:'run-1',resultId:'result-1',outcome:{ok:true,valueWire:encodeValue(42)}};
-  const host={start:async request=>{calls.push(request);return {runId:'run-1',resultId:'result-1'};},
+  const host={start:async request=>{calls.push(request);
+      Object.assign(ledger.get(request.taskDelegationStep.clientRequestId),{state:'submitted',runId:'run-1',resultId:'result-1'});
+      return {runId:'run-1',resultId:'result-1'};},
     stop:async request=>stops.push(request),cancelStart:id=>cancels.push(id),
     controller:{snapshotControllerRun:async()=>({run:{runId:'run-1',resultId:'result-1',state:'completed',retirementState:'released'},results:[result]})},...overrides.host};
-  const service=createTaskDelegationHost({host,client:{request:async()=>row},
+  const client={request:async(method,input)=>{
+    if(method==='resolveInstalledTask')return overrides.client?.request(method,input)??row;
+    let step=ledger.get(input.clientRequestId);
+    if(method==='prepareDelegatedStep'){
+      if(step?.cancelled)throw Object.assign(new Error('cancelled'),{code:'E_CANCELLED'});
+      if(!step){step={operationRef:'operation-'+input.clientRequestId,state:'prepared',deadlineAt:input.deadlineAt};
+        ledger.set(input.clientRequestId,step);}
+      return structuredClone(step);
+    }
+    if(method==='cancelDelegatedStep'){
+      if(!step){step={operationRef:'operation-'+input.clientRequestId};ledger.set(input.clientRequestId,step);}
+      step.cancelled=true;step.state=step.runId?'stopping':'cancelled';return structuredClone(step);
+    }
+    if(method==='inspectDelegatedStep'){
+      if(!step?.runId)return {semantic:'UNKNOWN',state:'unknown',runId:null,resultId:null,result:null};
+      const snapshot=await host.controller.snapshotControllerRun({runId:step.runId});
+      if(snapshot.resultDeliveryDenied?.includes(step.runId))throw Object.assign(new Error('revoked'),{code:'E_PERMISSION'});
+      return {...structuredClone(step),state:snapshot.run.state,retirementState:snapshot.run.retirementState,
+        semantic:'FOUND_RESULT',result:snapshot.results?.find(value=>value.runId===step.runId)??null};
+    }
+    throw new Error('Unexpected method '+method);
+  }};
+  const service=createTaskDelegationHost({host,
     currentPageTarget:{capture:()=>({windowId:1,tabId:2,frameId:0,documentId:'document-1',url:'https://example.com/'}),revalidate:async()=>{}},
     appId:'demo',instanceId:'original-frame',assertInstance:()=>assert.ok(alive),
     readApp:async()=>({appId:'demo',packageHash:'c'.repeat(64),generation:'epoch-1',tasks:[pin]}),
-    assertApp:async()=>{if(!valid)throw Object.assign(new Error('revoked'),{code:'E_PERMISSION'});},...overrides,host});
+    assertApp:async()=>{if(!valid)throw Object.assign(new Error('revoked'),{code:'E_PERMISSION'});},...overrides,host,client});
   return {service,host,calls,stops,cancels,row,result,revoke:()=>valid=false,retire:()=>alive=false};
 }
 test('fixed source uses original RunHost, trustworthy borrowed document, and deterministic result',async()=>{
@@ -62,14 +87,14 @@ test('revocation denies cached results and repeat starts; Stop exposes no cached
   const f=fixture();await f.service.request('tasks.start',payload,{verifiedUserActivation:true});await f.service.request('tasks.read',{clientRequestId:'request-1'});
   f.revoke();await assert.rejects(f.service.request('tasks.read',{clientRequestId:'request-1'}),{code:'E_PERMISSION'});
   await assert.rejects(f.service.request('tasks.start',payload,{verifiedUserActivation:true}),{code:'E_PERMISSION'});
-  const stopped=await f.service.request('tasks.stop',{clientRequestId:'request-1'});assert.equal(stopped.result,null);
+  await assert.rejects(f.service.request('tasks.stop',{clientRequestId:'request-1'}),{code:'E_PERMISSION'});
 });
 test('Authority result denial cannot be mistaken for empty success',async()=>{
   const f=fixture({host:{controller:{snapshotControllerRun:async()=>({resultDeliveryDenied:['run-1']})}}});
   await f.service.request('tasks.start',payload,{verifiedUserActivation:true});
   await assert.rejects(f.service.request('tasks.read',{clientRequestId:'request-1'}),{code:'E_PERMISSION'});
 });
-test('new iframe has no access to old run; dispose cancels original only',async()=>{
+test('independent backing stores do not share Runs; dispose cancels original only',async()=>{
   const f=fixture(),other=fixture();await f.service.request('tasks.start',payload,{verifiedUserActivation:true});
   assert.equal((await other.service.request('tasks.read',{clientRequestId:'request-1'})).runId,null);
   await f.service.dispose();assert.deepEqual(f.stops,[{controller:true,runId:'run-1'}]);

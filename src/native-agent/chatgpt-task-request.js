@@ -85,13 +85,36 @@ export function fixedPageReadTarget(request){
 
 // Independent assistant intent: no installation pin or authorization nonce.
 export const CHATGPT_TASK_INTENT_PROTOCOL='opendesk.task.intent.v1';
-export function validateChatGPTTaskIntent(text){
+export const WEBFLOW_TASK_INTENT_PROTOCOL='webflow.task.intent.v1';
+function validateTaskIntent(text,protocol){
   if(typeof text!=='string'||text.length>4096)throw fail('E_BRIDGE_LIMIT','任务意图超出长度限制');
   let value;try{value=JSON.parse(text);}catch{throw fail('E_BRIDGE_FORMAT','任务意图必须是完整 JSON');}
+  if(protocol===WEBFLOW_TASK_INTENT_PROTOCOL){
+    // JSON.parse loses duplicate keys. Scan complete JSON strings and container
+    // boundaries first, keeping a distinct key set for every object (also args).
+    const objects=[];
+    for(const match of text.matchAll(/"(?:[^"\\]|\\.)*"|[{}[\]]/gu)){
+      const item=match[0];
+      if(item==='{')objects.push(new Set());
+      else if(item==='[')objects.push(null);
+      else if(item==='}'||item===']')objects.pop();
+      else if(text.slice(match.index+item.length).trimStart().startsWith(':')){
+        const keys=objects.at(-1),key=JSON.parse(item);
+        if(keys.has(key))throw fail('E_BRIDGE_FORMAT','任务意图不能包含重复字段');
+        keys.add(key);
+      }
+    }
+  }
   if(!own(value,['protocol','candidateId','taskId','targetUrl','args'])||Object.keys(value).length!==5||
-    value.protocol!==CHATGPT_TASK_INTENT_PROTOCOL||typeof value.candidateId!=='string'||!token.test(value.candidateId)||
+    value.protocol!==protocol||typeof value.candidateId!=='string'||!token.test(value.candidateId)||
     typeof value.taskId!=='string'||!taskIdPattern.test(value.taskId)||!validTarget(value.targetUrl))
     throw fail('E_BRIDGE_SCHEMA','任务意图字段、候选身份或目标不合法');
   return Object.freeze({protocol:value.protocol,candidateId:value.candidateId,taskId:value.taskId,
     targetUrl:value.targetUrl,args:genericArgs(value.args)});
+}
+export function validateChatGPTTaskIntent(text){
+  return validateTaskIntent(text,CHATGPT_TASK_INTENT_PROTOCOL);
+}
+export function validateWebFlowTaskIntent(text){
+  return validateTaskIntent(text,WEBFLOW_TASK_INTENT_PROTOCOL);
 }

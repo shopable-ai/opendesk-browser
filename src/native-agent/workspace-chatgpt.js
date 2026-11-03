@@ -1,3 +1,5 @@
+import {WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+
 export function isChatGPTURL(value){
   try{const url=new URL(value);return !url.username&&!url.password&&
     ['https://chatgpt.com','https://chat.openai.com'].includes(url.origin);}catch{return false;}
@@ -12,6 +14,12 @@ export function chatGPTConversationId(value){
 export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,
   protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false}){
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
+  // Keep these literals inside the serialized function: Chrome does not carry
+  // module bindings into ISOLATED. Existing callers still select the old intent.
+  const knownIntentProtocols=['opendesk.task.intent.v1','webflow.task.intent.v1'];
+  const intentProtocols=protocols.filter(protocol=>knownIntentProtocols.includes(protocol));
+  if(!intentProtocols.length)intentProtocols.push('opendesk.task.intent.v1');
+  const webFlow=taskIntent&&intentProtocols.includes('webflow.task.intent.v1');
   const url=location.href;
   if(url!==expectedUrl||!['https://chatgpt.com','https://chat.openai.com'].includes(location.origin))
     return error('E_CHAT_TARGET','对话页面已经切换，请重新绑定当前对话。');
@@ -23,7 +31,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   };
   const modernSelector='[data-chatgpt-search-unit-key$=":user"],[data-content-search-unit-key$=":assistant"]';
   const messages=[...document.querySelectorAll('[data-message-author-role="user"],[data-message-author-role="assistant"],'+modernSelector)]
-    .filter(node=>!hidden(node)&&!node.parentElement?.closest('[data-message-author-role]')&&!node.parentElement?.closest(modernSelector));
+    .filter(node=>!hidden(node)&&!node.closest('blockquote,[data-opendesk-file-data]')&&
+      !node.parentElement?.closest('[data-message-author-role]')&&!node.parentElement?.closest(modernSelector));
   let lastUser=-1;
   for(let index=0;index<messages.length;index++)if((messages[index].getAttribute('data-message-author-role')==='user'||messages[index].getAttribute('data-chatgpt-search-unit-key')?.endsWith(':user')))lastUser=index;
   const local=globalThis.__opendeskWorkspaceChatV1||(globalThis.__opendeskWorkspaceChatV1={turns:new WeakMap(),counter:0,fills:new Map()});
@@ -35,9 +44,18 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const turnKey=user?local.turns.get(user):'no-user';
   const userText=user?.textContent||'';
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
-  const answer=lastUser<0?[]:taskIntent?messages.slice(lastUser+1).slice(-1):messages.slice(lastUser+1);
+  const turnAnswers=lastUser<0?[]:messages.slice(lastUser+1);
+  const answer=taskIntent?turnAnswers.slice(-1):turnAnswers;
   const streaming=stop||answer.some(node=>{const turn=node.closest('[data-talvt-turn-state]');
-    return turn&&turn.getAttribute('data-talvt-turn-state')!=='complete';})||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'));
+    return turn&&turn.getAttribute('data-talvt-turn-state')!=='complete';})||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'))||
+    webFlow&&answer.some(node=>node.closest('[aria-busy="true"]')||node.querySelector('[aria-busy="true"]'));
+  if(webFlow&&turnAnswers.length>1)return error('E_EDIT_AMBIGUOUS','最新用户消息后存在多个回答，无法确认唯一任务。');
+  if(webFlow&&answer.length&&!streaming){
+    const node=answer[0],turn=node.closest('[data-talvt-turn-state]');
+    const actions=node.querySelector('[data-testid="copy-turn-action-button"],[data-assistant-message-actions]');
+    if(turn?.getAttribute('data-talvt-turn-state')!=='complete'&&(!actions||hidden(actions)))
+      return error('E_CHAT_INCOMPLETE','无法确认最新回答已经完整结束，未读取任务。');
+  }
   // Keep both node identity and its observed text revision. Regenerating an
   // answer under the same user message must not preserve an approved proposal.
   let answerKey=null;
@@ -82,16 +100,17 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
         if(language&&!hidden(language)&&header.closest('[data-code-block="true"]')===surface)
           label+=' '+(language.textContent||'').trim();
       }
-      let protocol;try{protocol=JSON.parse(text).protocol;}catch{}
+      let protocol,parsed=false;try{protocol=JSON.parse(text)?.protocol;parsed=true;}catch{}
       // Count ALL protocol candidates before checking the nonce. Conflicting
       // old/new blocks cannot be hidden by filtering on the expected ID first.
-      const intentMarked=/\b(?:language-)?opendesk-task\b/.test(label);
+      const intentMarked=(webFlow?/(?:^|\s)(?:language-)?opendesk-task(?:\s|$)/u:/\b(?:language-)?opendesk-task\b/).test(label);
       const marked=/\b(?:language-)?opendesk-(?:edit|request)\b/.test(label)||taskIntent&&intentMarked;
       if(taskIntent){
-        if(!intentMarked&&protocol!=='opendesk.task.intent.v1')continue;
+        const incompleteIntent=!parsed&&text.trim().startsWith('{')&&knownIntentProtocols.some(p=>text.includes('"'+p+'"'));
+        if(!intentMarked&&!knownIntentProtocols.includes(protocol)&&!incompleteIntent)continue;
         if(!intentMarked)unmarkedRequest=true;
       }
-      if(!marked&&!protocols.includes(protocol)&&
+      if(!taskIntent&&!marked&&!protocols.includes(protocol)&&
         !(text.trim().startsWith('{')&&protocols.some(p=>text.includes('"'+p+'"'))))continue;
       if(protocol==='opendesk.workspace.request.v1'&&!/\b(?:language-)?opendesk-request\b/.test(label))unmarkedRequest=true;
       blocks.push(text);
@@ -100,6 +119,13 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   }
   if(blocks.length!==1)return error('E_CHAT_FORMAT','本轮完整回答没有唯一的 OpenDesk 请求或提案。');
   if(unmarkedRequest)return error('E_CHAT_REQUEST_MARKER',taskIntent?'对话任务必须在明确标记的 opendesk-task 代码块中。':'读取请求必须在明确标记的 opendesk-request 代码块中，未执行正文中的示例。');
+  if(taskIntent){
+    let value;try{value=JSON.parse(blocks[0]);}catch{return error('E_CHAT_FORMAT','任务意图必须是完整 JSON。');}
+    if(!intentProtocols.includes(value?.protocol))return error('E_CHAT_FORMAT','任务意图不属于本次选择的协议。');
+    if(value.protocol==='webflow.task.intent.v1'&&
+      (Object.keys(value).length!==5||!['protocol','candidateId','taskId','targetUrl','args'].every(key=>Object.hasOwn(value,key))))
+      return error('E_CHAT_FORMAT','Web Flow 任务必须严格包含五个意图字段。');
+  }
   if(!taskIntent&&!ids.some(id=>id&&blocks[0].includes(id)))return error('E_REQUEST_CONTEXT','回答的请求身份已过期，未执行。');
   return {ok:true,url,turnKey,answerKey,blocks,assistantFragments:answer.length,resultObserved:!!resultId&&userText.includes(resultId)};
 }
@@ -218,7 +244,26 @@ export async function readChatGPTEdit(api,target,requestId,{identityOnly=false,.
   await assertChatGPTTarget(api,target);
   if(!identityOnly&&(!Array.isArray(result.blocks)||result.blocks.length!==1||typeof result.blocks[0]!=='string'))
     throw {code:'E_CHAT_FORMAT',message:'回答格式不完整，未处理。'};
+  if(!identityOnly&&options.taskIntent&&options.protocols?.includes(WEBFLOW_TASK_INTENT_PROTOCOL))
+    validateWebFlowTaskIntent(result.blocks[0]);
   return result;
+}
+
+// Revalidate the durable candidate at the original final submission fence.
+// The existing reader owns the exact document, latest/unique complete answer,
+// explicit marker and strict protocol checks; never replace it with page ACKs.
+export async function assertWebFlowReplyCandidate(api,target,candidate){
+  const mismatch=()=>({code:'E_BRIDGE_CONTEXT',message:'提交前回答与已保存的任务候选不一致，未运行。',outcome:'NOT_DISPATCHED'});
+  if(!candidate||Object.keys(candidate).sort().join(',')!=='answerKey,candidateId,text,turnKey'||
+    typeof candidate.turnKey!=='string'||!candidate.turnKey||candidate.turnKey.length>128||
+    typeof candidate.answerKey!=='string'||!candidate.answerKey||candidate.answerKey.length>2048)
+    throw mismatch();
+  const {candidateId,text,turnKey,answerKey}=candidate;
+  if(validateWebFlowTaskIntent(text).candidateId!==candidateId)throw mismatch();
+  const current=await readChatGPTEdit(api,target,undefined,{taskIntent:true,requireComplete:true,
+    protocols:[WEBFLOW_TASK_INTENT_PROTOCOL]});
+  if(current.turnKey!==turnKey||current.answerKey!==answerKey||current.blocks[0]!==text)
+    throw mismatch();
 }
 
 export async function fillChatGPTComposer(api,target,text,{operationId,turnKey}={}){

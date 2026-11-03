@@ -18,6 +18,24 @@ const compiledTimeReviewInputs=Object.freeze({
   'projects/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
   'projects/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
 });
+// Web Flow's trigger policy is pure data validation; only its compiled settings
+// component enters the trusted shell. Installed sandbox JSON cannot replace either.
+const compiledWebFlowInputs=Object.freeze({
+  'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
+  // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
+  'projects/webflow/trusted/AutoSettings.tsx':'adb160a8eacc9190da7177267f368fa086ccd438',
+  'projects/webflow/trusted/CurrentTask.tsx':'4551e5bf32707037015db2cb6569ad6c077c3e23'
+});
+function reviewedCompiledWebFlow(target,path,root){
+  if(!Object.hasOwn(compiledWebFlowInputs,path)||
+    !(path.startsWith('projects/webflow/trusted/')?target==='ui/tool-shell.js':
+      ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target)))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Web Flow source must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledWebFlowInputs[path])throw Error('Trusted Web Flow source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
 function reviewedCompiledTimeReview(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledTimeReviewInputs,path))return null;
   const file=resolve(root,path);
@@ -613,6 +631,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const path=modulePath(id,root);
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
+      reviewedCompiledWebFlow(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
       reviewedCompiledVideoSVIP(chunk.fileName,path,root)||
       reviewedCompiledVideoDownloader(chunk.fileName,path,root)||

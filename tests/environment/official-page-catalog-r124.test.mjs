@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {
   createOfficialPageResources,officialPageInputs,readOfficialPageSources
 } from '../../scripts/build-official-pages.mjs';
@@ -24,9 +26,30 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked
     ['https://chatgpt.com/*'],['https://chatgpt.com/*']
   ]);
   assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked','blocked']);
+  assert.equal(source.programs[0].project,'projects/ai-scroll-navigation');
   assert.deepEqual(await officialPageInputs(),[
     'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH]);
   for(const row of source.programs)assert.match(row.blockedReason,/./);
+});
+
+test('migrated Scroll project is the only projects/ source explicitly admitted by the official builder',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'official-scroll-project-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const source=clone(await readOfficialPageSources());
+  const scroll=source.programs.find(row=>row.programId==='opendesk.ai-scroll-navigation');
+  scroll.publication='approved';
+  delete scroll.blockedReason;
+  const queue=source.programs.find(row=>row.programId==='opendesk.ai-send-queue');
+  await mkdir(join(root,'official-pages'),{recursive:true});
+  await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source,null,2)+'\n');
+  for(const row of [scroll,queue]){
+    const directory=join(root,row.project);
+    await mkdir(directory,{recursive:true});
+    await writeFile(join(directory,row.packageFile),await readFile(join(row.project,row.packageFile)));
+  }
+  const inputs=await officialPageInputs(root);
+  assert.ok(inputs.includes('projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
+  assert.ok(inputs.includes('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
 });
 
 test('blocked discovery stays metadata only while exact queue review bytes remain separate',async()=>{
