@@ -124,3 +124,97 @@ test('Stop during persisted pending cleanup invalidates proposal delivery before
  assert.equal((await stopping).state,'completed','validated completion waits for its pending cleanup receipt');
  assert.equal(await running,null,'Stop must suppress a proposal already awaiting pending cleanup');
 });
+
+test('selector corrections cannot change text, attribute or cardinality contracts before local preview',async()=>{
+ const original={url:config.url,itemConfig:{_listContainer:'ul',_listItem:'li',
+  link:'a[data-note="x::y"]::href',title:'h2::text',
+  tags:{selector:'.tag',read:'text',cardinality:'many'},
+  metadata:{id:{selector:'.',read:'attr',attr:'data-id',cardinality:'one'},_listItem:'b::text'}}};
+ const next={...input,context:{...input.context,currentConfig:original}};
+ for(const change of [
+  {link:'a::text'},
+  {link:{selector:'a',read:'attr',attr:'title'}},
+  {title:{selector:'a'}},
+  {tags:{selector:'.tag',read:'text',cardinality:'one'}},
+  {metadata:{...original.itemConfig.metadata,id:{selector:'.',read:'attr',attr:'data-id'}}},
+  {metadata:{...original.itemConfig.metadata,id:{selector:'.',read:'attr',attr:'id',cardinality:'one'}}},
+  {metadata:{...original.itemConfig.metadata,_listItem:'b::title'}}
+ ]){
+  const proposal={...original,itemConfig:{...original.itemConfig,...change}};
+  const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});
+  await f.capture.restore();
+  await assert.rejects(f.capture.generate(next),/读取|单值|多值/);
+  assert.equal(f.calls.some(c=>c.op.startsWith('localTasks.')),false);
+  assert.equal(f.stored,null,'a completed but invalid proposal does not create unknown work');
+ }
+});
+
+test('equivalent local read syntax and corrected selectors keep their contract without mutating saved rules',async()=>{
+ const original={url:config.url,itemConfig:{
+  quoted:'a[data-note="x::text"]',escaped:'a.escaped\\:\\:text',
+  link:'a[data-note="x::y"]::href',title:'h2::innerText',
+  tags:{selector:'.old',read:'attr',attr:'text',cardinality:'many'},
+  metadata:{id:{selector:'.',read:'attr',attr:'data-id',cardinality:'one'}}}};
+ const proposal={...original,itemConfig:{
+  quoted:{selector:'a[data-note="y::href"]'},escaped:{selector:'a.other'},
+  link:{selector:'h3 a',read:'attr',attr:'href',cardinality:'auto'},title:{selector:'h3',read:'text'},
+  tags:{selector:'.new',read:'text',cardinality:'many'},
+  metadata:{id:{selector:'span',read:'attr',attr:'data-id',cardinality:'one'}}}};
+ const saved=structuredClone(original);
+ const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});
+ await f.capture.restore();
+ assert.deepEqual((await f.capture.generate({...input,context:{...input.context,currentConfig:original}})).config,proposal);
+ assert.deepEqual(original,saved);
+});
+
+test('provable default reads can become explicit, while selector changes cannot silently switch default data kinds',async()=>{
+ for(const [beforeRule,afterRule] of [
+  ['h2',{selector:'h3',read:'text'}],
+  ['h2/* unit::text */',{selector:'h3',read:'text'}],
+  ['h2.\\31 img',{selector:'.title',read:'text'}],
+  ['h2.x\u00a0img',{selector:'.title',read:'text'}],
+  ['img.cover',{selector:'img.new',read:'attr',attr:'src'}],
+  ['video, audio',{selector:'.media',read:'attr',attr:'src'}],
+  ['article > h2',{selector:'.title',read:'text'}],
+  ['a.old',{selector:'a.new'}],
+  ['.ambiguous',{selector:'.ambiguous'}]
+ ]){
+  const original={...config,itemConfig:{value:beforeRule}},proposal={...config,itemConfig:{value:afterRule}};
+  const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});await f.capture.restore();
+  assert.deepEqual((await f.capture.generate({...input,context:{...input.context,currentConfig:original}})).config,proposal);
+ }
+ for(const [beforeRule,afterRule] of [
+  ['img',{selector:'a'}],['a',{selector:'h2'}],['a',{selector:'a',read:'text'}],
+  ['.ambiguous',{selector:'.other'}],['.ambiguous',{selector:'.ambiguous',read:'text'}],
+  ['h2, img',{selector:'h2',read:'text'}],
+  ['.\\31 img',{selector:'.\\31 img',read:'attr',attr:'src'}],
+  ['\\69 mg',{selector:'\\69 mg',read:'text'}],
+  ['.x\u00a0img',{selector:'.x\u00a0img',read:'attr',attr:'src'}],
+  ['h2\u00a0img',{selector:'h2\u00a0img',read:'attr',attr:'src'}]
+ ]){
+  const original={...config,itemConfig:{value:beforeRule}},proposal={...config,itemConfig:{value:afterRule}};
+  const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});await f.capture.restore();
+  await assert.rejects(f.capture.generate({...input,context:{...input.context,currentConfig:original}}),/读取/);
+ }
+});
+
+test('an omitted item filter and an explicit wildcard both keep all direct children',async()=>{
+ const original={...config,itemConfig:{_listContainer:'ul',title:'h2::text'}};
+ const proposal={...original,itemConfig:{...original.itemConfig,_listItem:'*'}};
+ const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});await f.capture.restore();
+ assert.deepEqual((await f.capture.generate({...input,context:{...input.context,currentConfig:original}})).config,proposal);
+});
+
+test('an explicitly new Chinese task can replace fields but cannot change the target or approved full budget',async()=>{
+ const next={...input,requirement:'采集图书链接，最多20页，只试采2页',context:{
+  ...input.context,ruleIntent:'create',currentConfig:undefined,budget:{maxPages:20,previewPages:2}}};
+ const proposal={url:config.url,itemConfig:{url:{selector:'a',read:'attr',attr:'href'}},maxPages:20};
+ const f=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal})});await f.capture.restore();
+ assert.deepEqual((await f.capture.generate(next)).config,proposal);
+ for(const changed of [{...proposal,maxPages:2},{...proposal,maxPages:undefined},{...proposal,url:'https://example.org/other'}]){
+  const bad=fixture({generate:async args=>({requestId:args.requestId,providerGeneration:1,proposal:changed})});await bad.capture.restore();
+  await assert.rejects(bad.capture.generate(next),/预算|目标/);
+  assert.equal(bad.calls.some(c=>c.op.startsWith('localTasks.')),false);
+  assert.equal(bad.stored,null);
+ }
+});

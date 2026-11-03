@@ -77,6 +77,11 @@ jobs:
           fc-cache -f >/dev/null
           fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | tee /tmp/cookie-editor-cjk-family
           grep -Eq 'Noto Sans CJK|WenQuanYi' /tmp/cookie-editor-cjk-family
+      - name: Account spacing, search and receive return (current source, fresh evidence)
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run check:accounts -- --fresh
       - name: Real built React 19 Chromium UI E2E
         working-directory: examples/sidebar-tools/cookie-editor/preview/react
         env:
@@ -112,5 +117,6 @@ jobs:
             examples/sidebar-tools/cookie-editor/preview/cookie-editor.html
             artifacts/cookie-editor-r523/
             artifacts/cookie-editor-r35-visual/
+            artifacts/cookie-editor-account-ui/
       # Publishing is owned by cookie-editor-r56-react-candidate.yml after
       # its combined source-bound package, Node and Chromium release gates.

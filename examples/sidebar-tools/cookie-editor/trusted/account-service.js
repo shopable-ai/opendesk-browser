@@ -570,8 +570,20 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       // Service-only configuration and Native operations do not consume Cookie
       // accounts. Load them only to create or verify this site's associations;
       // an unrelated unavailable vault must not block connection management.
-      const accounts=operation==='serviceAssociate'||localState.associations.length>0
-        ?(await statusFor(origin)).accounts:[];
+      let accounts=[];
+      if(operation==='serviceAssociate'||localState.associations.length>0){
+        try{accounts=(await statusFor(origin)).accounts;}
+        catch(error){
+          // Connection inspection and revocation use the exact persisted
+          // Native binding/session, not a Cookie snapshot. A corrupt account
+          // must not hide the state needed to reduce that authority. Keep
+          // accounts unverified and all session/unknown guards;
+          // storage, migration-conflict and unknown errors still stop here.
+          const inspectOrRevoke=['serviceStatus','serviceUnbindAssociation','serviceRemoteDisconnect',
+            'serviceDisconnect','serviceRemoveAssociation'].includes(operation);
+          if(!inspectOrRevoke||error?.code!=='E_VAULT_CORRUPT')throw error;
+        }
+      }
       await assertCurrent();
       const context={identity,accounts,origin,assertCurrent};
       if(operation==='serviceCommitAssociation'||operation==='serviceOpenManagement'&&metadata.associationId!==''){

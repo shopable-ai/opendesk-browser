@@ -26,7 +26,12 @@ const css=await readFile(new URL('preview/runtime-layout.css',project),'utf8');
 const withoutRuntime=doc=>{const d=load(doc);d('style').remove();d('script[type=module]').remove();return d.html();};
 assert.equal(withoutRuntime(documents.candidate),withoutRuntime(documents.baseline),'host markup must remain identical');
 const baselineStyle=load(documents.baseline)('style').text(),candidateStyle=load(documents.candidate)('style').text();
-assert.equal(candidateStyle.replace(css,''),baselineStyle,'only declared runtime CSS may differ');
+const comparison=manifest.comparisonBaseline;
+const baselineCSS=execFileSync('git',['show',comparison.revision+':projects/webflow/preview/runtime-layout.css'],{cwd:root,encoding:'utf8'});
+for(const [path,expected]of Object.entries(comparison.inputs))
+ assert.equal(sha(execFileSync('git',['show',comparison.revision+':'+path],{cwd:root})),expected,'previous delivered layout differs: '+path);
+assert.equal(sha(baselineCSS),comparison.css);
+assert.equal(candidateStyle.replace(css,''),baselineStyle.replace(baselineCSS,''),'only declared runtime CSS may differ');
 const patch=JSON.parse(await readFile(new URL('preview/runtime-presentation.json',project)));
 assert.deepEqual(patch,manifest.presentationPatch);
 assert.equal(patch.file,'projects/webflow/trusted/AutoSettings.tsx');

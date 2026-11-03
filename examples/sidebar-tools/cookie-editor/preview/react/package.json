@@ -11,6 +11,8 @@
     "check": "node build-preview.mjs --check",
     "test:chromium": "npm run check && node chromium.mjs",
     "test": "node --test preview.test.mjs",
+    "check:accounts": "node check-accounts.mjs",
+    "check:accounts:watch": "node check-accounts.mjs --watch",
     "dev": "vite --host 127.0.0.1 --port 43134 --strictPort",
     "audit:dev": "node visual-contract-check.mjs --dev-url http://127.0.0.1:43134/dev.html --g1",
     "test:chromium:dev": "node chromium.mjs --dev-url http://127.0.0.1:43134/dev.html",

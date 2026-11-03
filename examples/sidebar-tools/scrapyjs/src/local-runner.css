@@ -3,6 +3,8 @@
 .scrapy-local-runner :where(div,section,fieldset,details,label,li,pre,textarea,input,select){min-width:0;max-width:100%;box-sizing:border-box}
 .scrapy-local-runner :where(p,dd,strong,summary,label){overflow-wrap:anywhere}
 .scrapy-local-runner .runner-inputs,.scrapy-local-runner .runner-summary,.scrapy-local-runner .runner-records{display:grid;gap:var(--space-2)}
+.scrapy-local-runner .runner-inputs>label{display:grid;gap:var(--space-2)}
+.scrapy-local-runner .runner-inputs textarea{font:inherit;line-height:1.6}
 .scrapy-local-runner .toolbar{flex-wrap:wrap;gap:var(--space-2)}
 .scrapy-local-runner button{white-space:normal;overflow-wrap:anywhere;max-width:100%;height:auto;min-height:36px}
 .scrapy-local-runner input,.scrapy-local-runner select,.scrapy-local-runner textarea{font-size:inherit}

@@ -189,6 +189,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     if(scenario==='hostClosed')throw error('E_HOST_CLOSED');
     const action=operation.slice('cookieAccount.'.length);
     if(action==='status')return accountMeta();
+    if(action.startsWith('share'))throw error('E_PREVIEW_ONLY');
     if(!['create','rename','update','delete','switch','setAutoEnabled','setAutoRefresh','allowAlias'].includes(action))
       throw error('E_ACCOUNT_REQUEST');
     if(payload.revision!==demoAccounts.revision)throw error('E_VAULT_CONFLICT');

@@ -12,6 +12,7 @@ from .errors import Fault
 from .security import target_url
 from .storage import Store,TERMINAL
 from .worker import run_worker
+from .structure import compile_structure_config
 
 
 class Manager:
@@ -73,7 +74,7 @@ class Manager:
             if not isinstance(body,dict) or set(body)-{'requestId','mode','config','previewPages','previewRunId','configHash'}:
                 raise Fault('INVALID_REQUEST')
             request=body.get('requestId'); mode=body.get('mode')
-            if not isinstance(request,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',request) or mode not in ('preview','full'):
+            if not isinstance(request,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',request) or mode not in ('preview','full','structure'):
                 raise Fault('INVALID_REQUEST')
             signature=canonical(body)
             previous=self.store.by_request(grant['owner'],request)
@@ -81,10 +82,11 @@ class Manager:
                 if previous['signature']!=signature or previous['scope']!=grant['scope']:
                     raise Fault('IDEMPOTENCY_CONFLICT','Request identity already exists with a different payload or scope',409)
                 return json.loads(previous['snapshot']),False
-            cfg=body.get('config'); compiled=compile_config(cfg)
+            cfg=body.get('config'); compiled=compile_structure_config(cfg) if mode=='structure' else compile_config(cfg)
             target_url(cfg['url'],grant['scope'])
             pages=body.get('previewPages',1)
             if type(pages) is not int or not 1<=pages<=3: raise Fault('INVALID_PREVIEW_PAGES')
+            if mode=='structure' and pages!=1: raise Fault('INVALID_PREVIEW_PAGES','Structure reads exactly one document')
             digest=config_hash(cfg); preview_id=body.get('previewRunId')
             if mode=='full':
                 if not isinstance(preview_id,str) or body.get('configHash')!=digest:
@@ -107,7 +109,8 @@ class Manager:
             except Exception:
                 snap=self.store.update(run_id,{'status':'FAILED','stopReason':'SPAWN_FAILED','errors':[{'code':'SPAWN_FAILED','message':'Worker could not start'}],'workerExited':True})
                 return snap,True
-            self.active={'id':run_id,'owner':grant['owner'],'process':process,'stop':stop,'started':time.monotonic()}
+            self.active={'id':run_id,'owner':grant['owner'],'process':process,'stop':stop,'started':time.monotonic(),
+                         'maxSeconds':45 if mode=='structure' else 1800}
             threading.Thread(target=self.watch,args=(run_id,),daemon=True).start()
             return snap,True
 
@@ -115,7 +118,7 @@ class Manager:
         while True:
             with self.lock:
                 if not self.active or self.active['id']!=run_id: return
-                if time.monotonic()-self.active['started']>=1800:
+                if time.monotonic()-self.active['started']>=self.active['maxSeconds']:
                     self.stop_active('TIME_LIMIT'); return
                 self.reap()
                 if not self.active: return
@@ -129,6 +132,8 @@ class Manager:
         if snap['status']=='STOPPING':
             reason=snap['stopReason'] or 'STOP_REQUESTED'
             outcome={'status':'INTERRUPTED' if reason=='SERVICE_SHUTDOWN' else 'COMPLETED' if reason=='TIME_LIMIT' else 'STOPPED','stopReason':reason,'errors':[]}
+            if snap['mode']=='structure' and reason=='TIME_LIMIT':
+                outcome={'status':'FAILED','stopReason':reason,'errors':[{'code':'TIME_LIMIT','message':'Structure deadline exceeded'}]}
         preview_passed=(snap['mode']=='preview' and outcome['status']=='COMPLETED' and snap['recordsCount']>0 and not outcome['errors'])
         self.store.mirror(active['id'])
         self.store.update(active['id'],{**outcome,'workerExited':True,'previewPassed':preview_passed})

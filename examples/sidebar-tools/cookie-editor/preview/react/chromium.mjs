@@ -81,6 +81,61 @@ try{
    await ready();
  }
 
+ await test('account layout spacing and receive return',async()=>{
+  const checkLayout=async label=>{
+   const layout=await page.locator('.cookie-account-content--list').evaluate(content=>{
+    const visible=[...content.children].filter(el=>el.getClientRects().length);
+    return {expected:Number.parseFloat(getComputedStyle(content).getPropertyValue('--space-2')),
+     gaps:visible.slice(1).map((el,i)=>({
+      before:visible[i].getAttribute('aria-label')||visible[i].className,
+      after:el.getAttribute('aria-label')||el.className,
+      gap:el.getBoundingClientRect().top-visible[i].getBoundingClientRect().bottom
+     }))};
+   });
+   assert.ok(layout.expected>0,label+' must use a positive spacing token');
+   for(const gap of layout.gaps)
+    assert.ok(Math.abs(gap.gap-layout.expected)<.75,
+     label+' has overlapping or uneven blocks: '+JSON.stringify(gap));
+  };
+  await scene('accountsDemo');await lab.locator('summary').click();
+  await page.getByRole('tab',{name:'账号',exact:true}).click();
+  await page.locator('.cookie-account-count').filter({hasText:'3'}).waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),3);
+  assert.equal(await button('领取分享配置').isEnabled(),true);
+  await checkLayout('three accounts');
+  await page.screenshot({path:join(output,'accounts-three.png'),fullPage:true});
+  await button('领取分享配置').click();
+  await page.getByRole('heading',{name:'领取分享',exact:true}).waitFor();
+  await page.getByRole('textbox',{name:'邀请链接',exact:true})
+   .fill('https://relay.invalid/i/'+'a'.repeat(32));
+  await button('查看邀请').click();
+  await page.getByText('交互预览仅展示领取表单，不连接分享服务或领取真实配置。',{exact:true}).waitFor();
+  await button('返回账号').click();
+  await button('领取分享配置').waitFor();
+  assert.equal(await button('领取分享配置').evaluate(el=>el===document.activeElement),true,
+   'returning from receive must restore focus to its entry');
+  assert.equal(await page.locator('[data-account-alias]').count(),3);
+  await checkLayout('returned account list');
+  await button('添加账号').click();
+  await page.getByRole('textbox',{name:'账号名称',exact:true}).fill('布局检查账号');
+  await button('保存账号').click();
+  const search=page.getByRole('searchbox',{name:'搜索账号',exact:true});
+  await search.waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),4);
+  await checkLayout('search shown');
+  await page.screenshot({path:join(output,'accounts-search.png'),fullPage:true});
+  await search.fill('不存在的布局检查账号');
+  await page.getByText('没有匹配的账号。',{exact:true}).waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),0);
+  await checkLayout('no matching accounts');
+  await scene('accountsFirst');await lab.locator('summary').click();
+  await page.getByText('此网站尚未保存账号。',{exact:true}).waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),0);
+  assert.equal(await button('领取分享配置').isEnabled(),true);
+  await checkLayout('empty accounts');
+  await page.screenshot({path:join(output,'accounts-empty.png'),fullPage:true});
+  await scene('accountsDemo');await ready();await lab.locator('summary').click();
+ });
  await test('R2.6 defaults to three fictional accounts and product-owned share/market views',async()=>{
   // R3.4: open Cookie first to match the frozen baseline, then verify the
   // same three-account fixture is reachable without changing the SDK mock.
@@ -116,7 +171,7 @@ try{
   await button('个人账号更多操作').click();
   await page.getByRole('menuitem',{name:'分享账号配置'}).click();
   await page.getByRole('region',{name:'分享配置'}).waitFor();
-  await page.getByLabel('匿名邀请').check();
+  await page.getByLabel('匿名链接',{exact:true}).check();
   await page.getByRole('button',{name:'模拟生成邀请'}).click();
   await page.getByText('https://example.invalid/invite/demo-only').waitFor();
   await page.getByRole('button',{name:'模拟过期'}).click();
@@ -871,6 +926,7 @@ await test('export floats above the list, uses two tabs and closes on outside fo
   await page.screenshot({path:join(output,'380-editing.png'),fullPage:true});
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
+ assert.ok(pass.length>0,'No Chromium tests matched the requested selection');
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
  const sourceAfter=devUrl?await(await fetch(new URL('/dev-source.json',devUrl))).json():null;
  if(devUrl)assert.equal(sourceAfter.sourceHash,sourceBefore.sourceHash,'source changed during dev test');

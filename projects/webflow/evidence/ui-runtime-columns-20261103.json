@@ -1,0 +1,177 @@
+{
+  "date": "2026-11-03",
+  "stage": "OFFLINE_SOURCE_PREVIEW_CORE_LAYOUT",
+  "status": "SUPERSEDED_USER_REJECTED_LAYOUT",
+  "scope": "Web Flow 运行与授权 only; historical 0.3.6 app + pinned trusted UI; no installed 0.3.8 change",
+  "html": {
+    "path": "projects/webflow/preview/webflow-v0.3-preview.html",
+    "sha256": "51c21ddd86b1215279bb7596880d9da482af7a4382d921cfa76569d0617ebb16",
+    "bytes": 2694624
+  },
+  "source": {
+    "uiRevision": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+    "appRevision": "246fd012a67d3b5e221ee7d1716df4ecc46fb93c",
+    "inputCount": 96,
+    "comparisonBaseline": {
+      "revision": "c0d45f7a7ad5b2fb97e224cce209c9d36713a632",
+      "description": "654cc4244052 delivered layout with its seven presentation fixes",
+      "inputs": {
+        "projects/webflow/preview/runtime-layout.css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0",
+        "projects/webflow/preview/runtime-presentation.json": "0c2187580ebe992a748ce857dd208ecba373c8005e0569443b1f4d13b4cb5d29"
+      },
+      "js": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
+      "css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0"
+    },
+    "presentationHunks": 10,
+    "baselineJSMatches654": true,
+    "baselineCSSMatches654": true,
+    "sameApplicationAs654": true,
+    "baselineDocumentMatches654": true
+  },
+  "changes": [
+    "Two complete short fields, each label above value, side by side instead of 72px label/value rows",
+    "Address >48 characters or formatted JSON >96 characters spans both columns; exact values unchanged",
+    "Approval time and existing revoke control share one row",
+    "Long prepared review scrolls from heading below sticky tabs; existing focus, announcement and error associations retained"
+  ],
+  "comparison": {
+    "conclusion": "Mixed layout matches stated preference; does not establish a universal score or density win",
+    "shortFieldWidth": 167,
+    "previousValueWidth": 270,
+    "longFieldWidth": 346,
+    "promptWidth": 346,
+    "editableFieldWidth": 372,
+    "tradeoff": "Short JSON wraps one additional line; no truncation or horizontal overflow observed. Do not penalize wrapping itself."
+  },
+  "checks": [
+    {
+      "command": "node projects/webflow/preview/check-design.mjs --frozen",
+      "result": "PASS",
+      "level": "STATIC_SOURCE_AND_SCOPE",
+      "changedCurrentSources": [
+        "projects/webflow/trusted/CurrentTask.tsx",
+        "projects/webflow/trusted/AutoSettings.tsx",
+        "projects/webflow/tool.config.json"
+      ]
+    },
+    {
+      "command": "node projects/webflow/preview/check-presentation.mjs",
+      "result": "3/3 PASS",
+      "level": "BOUNDED_DOM_COMPONENT"
+    },
+    {
+      "entry": "Full host preview → 运行与授权 → 任务授权",
+      "result": "PASS",
+      "level": "IAB_OFFLINE_SOURCE_FIXTURE",
+      "behavior": [
+        "Short fields side by side with their own labels and no horizontal overflow",
+        "Generated prompt focused and selected (323 characters), full row",
+        "Native opener Escape restores focus",
+        "Same prompt survives close/reopen and same-grant refresh",
+        "Long input readback and draft retained across close/reopen",
+        "Long scope values span both columns without overflow",
+        "Review heading visible: top 216.25 > tabs bottom 193.015625",
+        "Review Tab goes to installation summary then approve; approve remains visible",
+        "Prepared only, no approval or real Task execution"
+      ]
+    }
+  ],
+  "rawEvidence": {
+    "prompt-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/prompt-viewport.png",
+      "sha256": "e1827ce5f17c63a96024081ce0090827d75f886bfe07b5b1a6b15dad63c68f47",
+      "bytes": 115281
+    },
+    "scope-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/scope-viewport.png",
+      "sha256": "174e8edf0eabd09fc6f07214eceb5e069b298ea9b848cdc054d9d857e504aa4e",
+      "bytes": 81783
+    },
+    "overview-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/overview-viewport.png",
+      "sha256": "4f27da0a7891c3cb8046c25d309e4988ff533bf867492832f66e2c34b370097b",
+      "bytes": 82052
+    },
+    "presentation-checks.log": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/presentation-checks.log",
+      "sha256": "c515824157fcf8bc8d0d498e2a2f6025bac2a4ba09e62c6cb1803a70501fe081",
+      "bytes": 461
+    },
+    "long-review-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/long-review-viewport.png",
+      "sha256": "2a0fdc7c5e77413a0a767960cdc85f6c21e2ea0e48589b2434a842b79b4d40bd",
+      "bytes": 121862
+    },
+    "interactions.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/interactions.json",
+      "sha256": "1901425fba02ad6d9f80874f764a87a6efdb7f8fa64bb7920fb06f0e9fa73e81",
+      "bytes": 6761
+    },
+    "source-checks.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/source-checks.json",
+      "sha256": "4fc29d56d3d2be8f71b0074421123885244393923abeb69d632dd0acab3d110a",
+      "bytes": 809
+    },
+    "independent-review.txt": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/independent-review.txt",
+      "sha256": "ef8ba5582bb71ca55e13061c86041e73a83e1fd8888cbc287371e5ff865be285",
+      "bytes": 1237
+    }
+  },
+  "imageLimits": {
+    "scope-viewport.png": "Complete host visible but short fields below viewport; NOT evidence of fully visible short-field layout",
+    "shortFieldFinalEvidence": "Final SHA DOM coordinates and text in interactions.json",
+    "processReference": "14dc993b3650/scope-viewport.png is an earlier iteration, not a final 51c21 image",
+    "fullPage": "NOT_USED; historical stitching artifacts excluded"
+  },
+  "independentReview": {
+    "status": "COMPLETE",
+    "reviewer": "Avicenna",
+    "agentId": "01a1a152-d61f-7da2-9f0b-608a10526f9a",
+    "findings": [],
+    "conclusion": "Mixed layout matches user preference; long review focus improved; no claim of universal superiority or density gain",
+    "scores": {
+      "localUIUX": "NOT_SCORED",
+      "understandability": "NOT_SCORED",
+      "accessibility": "NOT_SCORED",
+      "sourceScope": "NOT_SCORED"
+    },
+    "limitations": "Incomplete final short-field screenshot; final DOM evidence sufficient for bounded layout checks; no standardized numeric rubric or installed/native evidence",
+    "rawReport": "artifacts/sidebar-tools/webflow/source-preview-20261103/51c21ddd86b1/independent-review.txt"
+  },
+  "resources": {
+    "IAB": "ACTUALLY_FINALIZED; deliverable tab retained",
+    "previewServer": "Reused existing read-only 127.0.0.1:53921 / PID 60154",
+    "ChromeClipboardDevWriter": "OWNED_ELSEWHERE; not operated",
+    "gitIndex": "Released by business owner after 297b192ea; UI task never modified it"
+  },
+  "notTested": [
+    "Installed Chrome",
+    "Native",
+    "production",
+    "system clipboard",
+    "native IME",
+    "screen reader"
+  ],
+  "outOfScope": [
+    "root test suite",
+    "Browser build",
+    "Baidu task replay",
+    "width/zoom matrix"
+  ],
+  "userPreferredHistoricalVersion": "NOT_CONFIRMED",
+  "historicalScores": "654 scores remain historical; not inherited by this candidate",
+  "documentation": {
+    "review": "projects/webflow/docs/webflow-v0.3-ui-ux-review.zh-CN.md#145-用户纠偏后的短字段双栏2026-11-03",
+    "readme": "Top preview paragraphs updated only after explicit owner release",
+    "businessOwnerHead": "297b192ea68ded8b9f6b1b768397aa9771948d90",
+    "businessReadmeSuffixPreserved": true,
+    "uiCommit": "NOT_CREATED",
+    "push": "NOT_PERFORMED"
+  },
+  "userFeedback": {
+    "date": "2026-11-03",
+    "text": "感觉这版本更糟糕，比如参数JSON，不应该完全作为第二栏。",
+    "effect": "Old implementation and component results remain historical; previous design recommendation withdrawn."
+  }
+}

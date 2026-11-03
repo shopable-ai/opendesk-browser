@@ -580,8 +580,8 @@ test('fixed lifecycle cleanup preserves owner references until keys are cleared:
   const keyOwner = owner => 'cookie-editor:' + createHash('sha256').update(owner).digest('hex');
   const deviceRecords = new Map(owners.map(owner => [keyOwner(owner), ['receiver', 'signing', 'sender']]));
   deviceRecords.set('another-tool:install', ['unrelated']);
-  const share = {format: 1, items: [{owner: owners[0], ref: 'source'}],
-    claims: [{owner: owners[1], ref: 'received'}]};
+  const share = {format: 1, items: [{owner: owners[0], ref: 'source', phase: 'revoked'}],
+    claims: [{owner: owners[1], ref: 'received', phase: 'applied'}]};
   f.records.set(COOKIE_SHARE_STORAGE_KEY, share);
   let lost = true;
   const service = createCookieAccountService({api: f.api, storage: f.storage,

@@ -7,7 +7,7 @@
  const feedback=document.getElementById('compare-feedback');
  const send=(action,value)=>frames.forEach(frame=>frame.contentWindow.postMessage({protocol:'webflow.source-preview.v1',action,value},'*'));
  document.getElementById('compare-home').onclick=()=>{send('view','overview');feedback.textContent='两侧回到相同主界面。应用与业务样式完全相同；草稿仍保留。';};
- document.getElementById('compare-scope').onclick=()=>{send('view','scope');feedback.textContent='仅比较运行与授权：页签停留、摘要对齐、按钮层级与审核可访问性。请在面板内滚动查看。';};
+ document.getElementById('compare-scope').onclick=()=>{send('view','scope');feedback.textContent='左侧为固定 654 参考，右侧为本次方案：短信息横向对齐，参数 JSON 标题与内容上下排列并占整行。文本可自然换行；切换视图保留草稿。';};
  document.getElementById('compare-mode').onclick=event=>{
   const figure=document.getElementById('baseline-figure');figure.hidden=!figure.hidden;
   event.currentTarget.setAttribute('aria-pressed',String(figure.hidden));

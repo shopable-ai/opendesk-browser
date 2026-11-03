@@ -140,14 +140,15 @@ window.addEventListener('message',async event=>{
   if(!readPending)pendingReads.splice(0).forEach(resolve=>resolve());
   document.getElementById('webflow-auto-refresh')?.click();
  }else if(action==='copy'&&['success','error'].includes(value))copyFailure=value==='error';
- else if(action==='task'&&['empty','waiting','running','success','failed','unknown'].includes(value)){
+ else if(action==='task'&&['empty','waiting','running','success','failed','unknown','history'].includes(value)){
   if(value==='empty'){taskView={session:null,receipt:null};return;}
   document.getElementById('fixture-result').click();
-  const waiting=value==='waiting',running=value==='running';
-  taskView.session.status={waiting:'等待 ChatGPT 完整回复',running:'百度搜索执行中',success:'百度搜索已完成',failed:'执行失败：模拟网站读取失败',unknown:'结果未知：请查询原请求，不会自动重试'}[value];
+  const waiting=value==='waiting',running=value==='running',history=value==='history';
+  taskView.session.status={history:'当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。完成一次 ChatGPT 能力接入后，正常发送新需求；已用候选不会重新执行。',waiting:'等待 ChatGPT 完整回复',running:'百度搜索执行中',success:'百度搜索已完成',failed:'执行失败：模拟网站读取失败',unknown:'结果未知：请查询原请求，不会自动重试'}[value];
+  if(history){taskView.session.requestId=null;taskView.session.url='https://chatgpt.com/g/g-p-fixture-opendesk-browser/c/fixture-conversation';}
   taskView.session.fields={disabled:true,task:'baidu',query:'OpenDesk Browser',target:'https://www.baidu.com/',args:'{}'};
   taskView.session.actions={cancel:waiting||running||value==='unknown'};
-  if(waiting)taskView.receipt=null;
+  if(waiting||history)taskView.receipt=null;
   else if(value!=='success'){taskView.receipt={execution:running?'running':value==='failed'?'failed':'unknown',persistence:'unverified',release:'retiring',delivery:value==='unknown'?'unknown':'尚未交付'};}
  }
 });`:''}

@@ -40,14 +40,14 @@ export function WebflowRuntimePanel({open,onClose,children}){
   <div className="workflow-sheet-backdrop" aria-hidden="true" onClick={onClose}/>
   <section id="webflow-runtime-panel" ref={panel} role="dialog" aria-modal="true" aria-labelledby="webflow-runtime-title"
    className="workflow-sheet-panel" tabIndex={-1} style={{maxHeight:'88dvh'}}>
-   <div className="workflow-sheet-heading od-toolbar">
+   <div className="workflow-sheet-heading od-toolbar" style={{paddingInline:'var(--space-4)'}}>
     <h3 id="webflow-runtime-title">运行与授权</h3>
     <IconButton label="关闭运行与授权" onClick={onClose}>
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
       strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
     </IconButton>
    </div>
-   <div className="workflow-sheet-content od-stack">{children}</div>
+   <div className="workflow-sheet-content od-stack" style={{padding:'var(--space-4)'}}>{children}</div>
   </section>
  </div>,document.body);
 }

@@ -6,6 +6,22 @@ HTML = '''<section data-list="a::b"><article><h1>甲 &amp; 乙</h1><a href="/一
 CONFIG = {'url':'https://example.org/list','itemConfig':{'_listContainer':'[data-list="a::b"]','_listItem':'article','title':'h1::text','href':'a::href','tags':{'selector':'i','read':'text','cardinality':'many'},'optional':'.missing::title','nested':{'name':{'selector':'a','read':'text','cardinality':'one'}},'image':'img','default':'a'}}
 
 class DslTests(unittest.TestCase):
+    def test_native_projections_are_rejected_during_compile_not_as_worker_errors(self):
+        for change in [
+            {'itemConfig': {'title': {'selector': '.title::text', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': 'h2::attr(title)', 'read': 'attr', 'attr': 'title'}}},
+            {'itemConfig': {'_listContainer': '#rows::text', 'title': 'h2::text'}},
+            {'itemConfig': {'_listContainer': '#rows', '_listItem': ':scope > li::text', 'title': 'h2::text'}},
+            {'waitForSelector': 'h2::text'},
+            {'nextPageSelector': '.next::attr(href)'},
+            {'itemConfig': {'title': {'selector': 'svg|a', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': '[svg|href]', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': 'h2[svg|href]', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': 'h2:not([svg|href])', 'read': 'text'}}},
+        ]:
+            with self.subTest(change=change), self.assertRaises(Fault):
+                compile_config({**CONFIG, **change})
+
     def test_real_scrapling_preserves_original_itemloader_values_and_direct_children(self):
         self.assertEqual(extract(HTML, compile_config(CONFIG)), [
             {'title':'甲 & 乙','href':'/一?x=2&y=3','tags':['A','B'],'optional':'','nested':{'name':'链接'},'image':'/图.png','default':'链接'},
@@ -14,6 +30,9 @@ class DslTests(unittest.TestCase):
         cfg={'url':'https://example.org','itemConfig':{'v':{'selector':'i','cardinality':'one'}}}
         with self.assertRaises(Fault) as e: extract(HTML,compile_config(cfg))
         self.assertEqual(e.exception.code,'CARDINALITY')
+    def test_pipe_attribute_operators_and_values_are_not_namespace_references(self):
+        config={'url':'https://example.org','itemConfig':{'value':{'selector':'h2[lang|=zh][data-note="svg|href"]','read':'text'}}}
+        self.assertEqual(extract('<h2 lang="zh-CN" data-note="svg|href">标题</h2>',compile_config(config)),[{'value':'标题'}])
     def test_unsupported_is_explicit_not_silently_discarded(self):
         for cfg in [dict(CONFIG, detail={}),dict(CONFIG,processing={}),dict(CONFIG,itemConfig={'x':'.//a'}),dict(CONFIG,itemConfig={'x':{'selector':'a','read':'innerHTML'}})]:
             with self.subTest(cfg=cfg), self.assertRaises(Fault) as e: compile_config(cfg)

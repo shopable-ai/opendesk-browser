@@ -8,13 +8,45 @@
   background: var(--od-paper);
   border-bottom: 1px solid var(--od-line);
 }
-#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-stack > .od-form-field:has(> strong.od-field-label) {
-  grid-template-columns: 72px minmax(0, 1fr);
-  align-items: start;
+#webflow-runtime-panel .wf-runtime-scope-summary {
+  gap: var(--space-2);
 }
-#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-stack > .od-form-field > p {
+/* A scalar has a label/value row. Structured JSON always gets its own
+   heading and the complete row below it, regardless of text length. */
+#webflow-runtime-panel .wf-runtime-scope-summary > .od-form-field {
+  align-items: start;
+  align-content: start;
+  min-width: 0;
+}
+#webflow-runtime-panel .wf-runtime-scope-summary > .od-form-field:has(> p) {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+}
+#webflow-runtime-panel .wf-runtime-scope-summary > .od-form-field > p {
   margin: 0;
 }
+#webflow-runtime-panel .wf-runtime-scope-summary pre {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Keep the focused review heading below the original sticky tab toolbar. */
+#webflow-runtime-panel #webflow-auto-review {
+  scroll-margin-block-start: calc(var(--space-4) * 4);
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > strong,
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-note,
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-stack {
+  grid-column: 1 / -1;
+}
+#webflow-runtime-panel #webflow-auto-grants > .od-surface > .od-technical {
+  margin: 0;
+  align-self: center;
+  overflow-wrap: anywhere;
+}
 #webflow-runtime-panel #webflow-auto-grants > .od-surface > button {
-  justify-self: start;
+  justify-self: end;
 }

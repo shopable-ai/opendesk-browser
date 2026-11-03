@@ -21,6 +21,23 @@ function host(handler=()=>snapshot()){
 }
 const postCalls=h=>h.calls.filter(x=>x.operation==='localTasks.request'&&x.payload.method==='POST');
 
+test('structure uses a separate pointer and never certifies a full collection',async()=>{
+ const rows=new Map([['local-runner-state',{value:{oldCollection:true},etag:'0'}],['local-structure-state',{value:null,etag:'0'}]]);
+ const calls=[];
+ const request=async(op,args)=>{
+  calls.push({op,args});
+  if(op==='storage.get')return structuredClone(rows.get(args.key));
+  if(op==='storage.set'){assert.equal(args.ifMatch,rows.get(args.key).etag);rows.set(args.key,{value:args.value,etag:String(Number(args.ifMatch)+1)});return {saved:true};}
+  return snapshot({mode:'structure',previewPassed:false});
+ };
+ const client=createLocalRunnerClient(request,{stateKey:'local-structure-state',modes:['structure']});await client.restore();
+ await client.start({requestId:'req-1',mode:'structure',config,previewPages:1});
+ assert.equal(client.snapshot.mode,'structure');assert.equal(previewCertified(client.snapshot),false);
+ assert.deepEqual(rows.get('local-runner-state').value,{oldCollection:true});
+ await assert.rejects(client.start({requestId:'req-2',mode:'full',config}));
+ assert.equal(calls.filter(c=>c.op==='localTasks.request'&&c.args.method==='POST').length,1);
+});
+
 test('preview creates only through the host and persists an ETag-protected small pointer before POST',async()=>{
   const h=host((operation,payload)=>{assert.equal(operation,'localTasks.request');assert(h.value.requestId);assert.equal(payload.path,'/v1/runs');return snapshot({status:'QUEUED',workerExited:false});});
   const client=createLocalRunnerClient(h.request);await client.restore();
@@ -29,6 +46,19 @@ test('preview creates only through the host and persists an ETag-protected small
   assert.equal(client.snapshot.status,'queued');assert.equal(h.value.runId,'run-1');
   assert.equal(h.value.requestId,'req-1');assert(!('config' in h.value));
   assert(Buffer.byteLength(JSON.stringify(h.value))<8192);
+});
+
+test('authorization lost while its pointer is saved aborts before POST and safely restores the prior pointer',async()=>{
+ const h=host();let current=true;
+ const request=async(op,args)=>{
+  const reply=await h.request(op,args);
+  if(op==='storage.set'&&args.value?.requestId==='req-cancelled')current=false;
+  return reply;
+ };
+ const client=createLocalRunnerClient(request);await client.restore();
+ await assert.rejects(client.start({requestId:'req-cancelled',mode:'preview',config,previewPages:3,
+  assertCurrent:()=>{if(!current)throw Error('authorization retired');}}),/authorization retired/);
+ assert.equal(postCalls(h).length,0);assert.equal(h.value,null);assert.equal(client.pointer,null);
 });
 
 test('lost create receipt is resolved by original requestId and never by repeating POST',async()=>{

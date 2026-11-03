@@ -1,7 +1,7 @@
 {
   "format": "webflow.source-comparison.v1",
   "date": "2026-11-03",
-  "sourceCommit": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+  "sourceCommit": "297b192ea68ded8b9f6b1b768397aa9771948d90",
   "uiSourceRevision": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
   "sourceRevisions": {
     "src/ui/react/components/ui/button.tsx": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
@@ -93,7 +93,17 @@
   },
   "appRevision": "246fd012a67d3b5e221ee7d1716df4ecc46fb93c",
   "evidence": "OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES",
-  "sourceParity": "EXACT_BASELINE_WITH_DISCLOSED_RUNTIME_PRESENTATION_CANDIDATE",
+  "sourceParity": "FIXED_654_REFERENCE_VS_STRUCTURED_SCOPE_ROWS",
+  "comparisonBaseline": {
+    "revision": "c0d45f7a7ad5b2fb97e224cce209c9d36713a632",
+    "description": "654cc4244052 delivered layout with its seven presentation fixes",
+    "inputs": {
+      "projects/webflow/preview/runtime-layout.css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0",
+      "projects/webflow/preview/runtime-presentation.json": "0c2187580ebe992a748ce857dd208ecba373c8005e0569443b1f4d13b4cb5d29"
+    },
+    "js": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
+    "css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0"
+  },
   "installedVersionReference": "0.3.6; historical native record, not a fresh installation read",
   "applicationSources": {
     "/app/main.js": "35ee1eda999402dbea53ac1ec49c25bbb554c8dadb54d35883c6a788b5e327a2",
@@ -101,18 +111,23 @@
     "/app/style.css": "25618bf6a84b74ed0f1477ed9a714ed05fb6d44ac73734a3e91e1f5c3b02cb7c"
   },
   "fixtureJS": "5f9704a71f135acbc4110067c4a5cdfd4961d15c8b2889a0136f051bd74ca17e",
-  "embeddedFixtureJS": "5f9704a71f135acbc4110067c4a5cdfd4961d15c8b2889a0136f051bd74ca17e",
-  "candidateJS": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
-  "embeddedCandidateJS": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
+  "embeddedFixtureJS": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
+  "candidateJS": "896c49a4b63e69127e072dcea0435d29d5d3aea357943c74792fd81baa9f2e6c",
+  "embeddedCandidateJS": "896c49a4b63e69127e072dcea0435d29d5d3aea357943c74792fd81baa9f2e6c",
   "applicationDocumentSHA": "a9ac6508adf172718e53040a4e36bb67ea38945da45514197ea2e3bc5a5e041f",
   "presentationPatch": {
     "file": "projects/webflow/trusted/AutoSettings.tsx",
     "scope": "Preview candidate only: runtime presentation and accessibility; no authority or business transitions changed",
     "replacements": [
       {
+        "id": "summary-layout-hook",
+        "from": "function ScopeSummary({scope}:{scope:WebflowAutoScope}){\n return <div className=\"od-stack\">",
+        "to": "function ScopeSummary({scope}:{scope:WebflowAutoScope}){\n return <div className=\"od-stack wf-runtime-scope-summary\">"
+      },
+      {
         "id": "review-ready-focus",
         "from": " const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);",
-        "to": " React.useLayoutEffect(()=>{\n  if(!prepared||!compact||!panelOpen)return;\n  const review=document.getElementById('webflow-auto-review');\n  review?.scrollIntoView?.({block:'nearest'});review?.focus({preventScroll:true});\n },[prepared,compact,panelOpen]);\n const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);"
+        "to": " React.useLayoutEffect(()=>{\n  if(!prepared||!compact||!panelOpen)return;\n  const review=document.getElementById('webflow-auto-review');\n  review?.scrollIntoView?.({block:'start'});review?.focus({preventScroll:true});\n },[prepared,compact,panelOpen]);\n const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);"
       },
       {
         "id": "review-ready-status",
@@ -147,12 +162,12 @@
     ]
   },
   "fixtureCSS": "fb19877b3dc5d1ac6721e556faf2abf136a9ec733bb1445ccdf10076a8641577",
-  "candidateCSS": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0",
+  "candidateCSS": "31d3ce612b37016c115386a2e1820f0a4d35e4caf70d5bdb247036a854342419",
   "documents": {
-    "baseline": "1245a9428f8d413b16dcad58beee2be6b70447e3c01761bf24aaff678a8a5d7b",
-    "candidate": "d50b4234255dc37e26b06cd869139a1b3232023ea1fe05fd7816b35e323ec4e6"
+    "baseline": "d50b4234255dc37e26b06cd869139a1b3232023ea1fe05fd7816b35e323ec4e6",
+    "candidate": "4efa5f58e4e9514affeeb59289f255d6b8c842d70bfff6b9a35498f31128d152"
   },
-  "htmlSha256": "654cc4244052fe498629de279722838dc516a76d010bcd18d8a31894165e9321",
+  "htmlSha256": "4e083d101d2be4e10228e89d0f7296f98e3f51b4ba08f81373635232a8942114",
   "inputs": {
     "src/ui/react/components/ui/button.tsx": "6a7243ecb11198fcbcd53cc3ececbb3e3b0f5f537584ee62a66b6080c67dfb22",
     "src/ui/react/tabs/my-controls.tsx": "f5a445b4508ddf2680b07604dec58c9729551d3d847760bb60283f07585459d5",
@@ -245,11 +260,11 @@
     "src/ui/design-system.css": "3db2a5db8cc7b59bd4e51207f7d4a2ce29dfa7f0dd3061d0af2ac3aecd1da11b",
     "src/ui/tool-shell.css": "256179a28f28758b8d55bc355bbc951825d0fd8c6970bc07cab59d04fe62eba2",
     "projects/webflow/tests/auto-trigger-ui-server.mjs": "4c3d66b9d30d8a75c0a50ebf1c8d04984ecccce5ce8bba54bb77ecf83cd45bd8",
-    "projects/webflow/preview/build-design.mjs": "8b051062a279b34c6d0ddcba48d61ab771c2f75d50696ecde3fdebb786b2946f",
-    "projects/webflow/preview/design-app.fragment": "782245ff087f9c801ca9e60724b9776dd9deaa915b3038a338d580739f2cca4f",
-    "projects/webflow/preview/design-app.js": "730f9edde19de038a95c33742f26972b97fc96b719307b8826d4154a37f2a8e2",
-    "projects/webflow/preview/runtime-layout.css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0",
-    "projects/webflow/preview/runtime-presentation.json": "0c2187580ebe992a748ce857dd208ecba373c8005e0569443b1f4d13b4cb5d29"
+    "projects/webflow/preview/build-design.mjs": "a355585ccd95956f21d32086419766943b1754e4d3b050fedbca3da397b0e0ac",
+    "projects/webflow/preview/design-app.fragment": "1f69277fc1fb197d609213b9f5d62917952b0fe4ecca4a1e90e1703716b5a51b",
+    "projects/webflow/preview/design-app.js": "8e82915a7e74c3d5b4dbf8c61a6a4788b702a9b62d9cbc6dab2dc4a55373674f",
+    "projects/webflow/preview/runtime-layout.css": "31d3ce612b37016c115386a2e1820f0a4d35e4caf70d5bdb247036a854342419",
+    "projects/webflow/preview/runtime-presentation.json": "beb55d3d5618dbbcdb5a01d315405050a1d56a402bde6fadb0d11efa84560570"
   },
   "nativeChrome": "NOT_TESTED",
   "production": "NOT_TESTED",

@@ -57,9 +57,9 @@ function initialDraft(task?:AutoTask){
 }
 function ScopeSummary({scope}:{scope:WebflowAutoScope}){
  return <div className="od-stack">
-  <div className="od-form-field">
+  <div className="od-form-field" style={{gridTemplateColumns:'auto minmax(0,1fr)',alignItems:'start',columnGap:'var(--space-2)'}}>
    <strong className="od-field-label">精确地址</strong>
-   <p className="od-body" style={{overflowWrap:'anywhere'}}>{scope.targetUrl}</p>
+   <p className="od-body" style={{overflowWrap:'anywhere',margin:0}}>{scope.targetUrl}</p>
   </div>
   <div className="od-form-field">
    <strong className="od-field-label">参数 JSON</strong>
@@ -314,23 +314,27 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  </>;
  const tabs=[['task','当前任务'],['scope','任务授权'],['help','使用说明']];
  const content=<section className="od-stack" aria-labelledby="webflow-auto-title" aria-busy={busy}
+  style={compact?{gap:'var(--space-4)'}:undefined}
   onKeyDown={event=>{
    // This section shares the AI settings form. Enter in a scope input must not
    // submit/save that unrelated form; textarea and button keyboard actions remain native.
    if(event.key==='Enter'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229&&
     (event.target as HTMLElement).tagName==='INPUT')event.preventDefault();
   }}>
+  <div className={compact?'od-surface od-surface--padded od-stack':'od-stack'}>
   <div className="od-toolbar">
-   <strong id="webflow-auto-title" className="od-title">自动运行</strong>
+   <strong id="webflow-auto-title" className="od-field-label" style={{flex:1}}>自动运行</strong>
+   <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):''}</span>
    {(!compact||panelOpen)&&switchControl}
-   <span role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):''}</span>
   </div>
-  <p id="webflow-auto-risk" className="od-field-help">
+  <p id="webflow-auto-risk" className="od-field-help" style={{margin:0,lineHeight:1.65}}>
    {compact?'仅自动运行已批准范围内的任务；关闭开关只阻止新任务。保持侧栏打开。':
     '开启后，新消息后的完整 ChatGPT 回复若包含已批准范围的任务协议，将自动运行已安装脚本。保持 OpenDesk 侧栏打开。'}
   </p>
   {(!compact||panelOpen)&&feedback}
-  {compact&&<div className="od-toolbar" role="tablist" aria-label="运行管理"
+  </div>
+  {compact&&<div className="od-segmented" role="tablist" aria-label="运行管理"
+   style={{width:'100%',position:'sticky',top:0,zIndex:2}}
    onKeyDown={event=>{
     if(event.nativeEvent.isComposing||event.nativeEvent.keyCode===229)return;
     const index=tabs.findIndex(([key])=>key===tab);
@@ -342,7 +346,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    }}>
    {tabs.map(([key,label])=><Button key={key} id={'webflow-runtime-tab-'+key} role="tab"
     aria-selected={tab===key} aria-controls={'webflow-runtime-'+key} tabIndex={tab===key?0:-1}
-    variant={tab===key?'secondary':'quiet'} onClick={()=>setTab(key)}>{label}</Button>)}
+    variant={tab===key?'secondary':'quiet'}
+    style={{flex:'1 1 0',minWidth:0,minHeight:40,paddingInline:'var(--space-1)'}}
+    onClick={()=>setTab(key)}>{label}</Button>)}
   </div>}
   {compact&&<div id="webflow-runtime-task" role="tabpanel" aria-labelledby="webflow-runtime-tab-task"
    hidden={tab!=='task'} tabIndex={0}>
@@ -378,10 +384,12 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     <strong>{grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)?.name||grant.taskId}（{grant.taskId}）</strong>
     <p className="od-note">{grantLabel(grant)}</p>
     <ScopeSummary scope={grant.scope}/>
-    <p className="od-technical">批准时间：{typeof grant.approvedAt==='number'
-     ?new Date(grant.approvedAt).toLocaleString('zh-CN'):grant.approvedAt}</p>
-    <Button variant="danger" disabled={work==='write'||grant.state==='revoked'||!webflowAuto?.revokeAutoTask}
-     aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
+    <div className="od-toolbar" style={{flexWrap:'wrap',justifyContent:'space-between'}}>
+     <p className="od-technical" style={{margin:0}}>批准时间：{typeof grant.approvedAt==='number'
+      ?new Date(grant.approvedAt).toLocaleString('zh-CN'):grant.approvedAt}</p>
+     <Button variant="danger" disabled={work==='write'||grant.state==='revoked'||!webflowAuto?.revokeAutoTask}
+      aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
+    </div>
     {snapshot&&grantUsable(grant)&&
      <details className="od-disclosure od-disclosure--flat"><summary>高级：单次协议示例</summary>
       <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId+':'+JSON.stringify(grant.scope)}
@@ -418,7 +426,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   <Button id="webflow-auto-prepare" disabled={busy||!task||!webflowAuto?.prepareAutoGrant}
    onClick={prepare}>{work==='prepare'?'正在核验…':'准备任务审核'}</Button>
   {prepared&&<div id="webflow-auto-review" className="od-surface od-surface--padded od-stack" role="group"
-   aria-labelledby="webflow-auto-review-title">
+   aria-labelledby="webflow-auto-review-title" style={{scrollMarginBlockStart:64}}>
    <strong id="webflow-auto-review-title">批准前审核：{prepared.review.taskName}（{prepared.review.taskId}）</strong>
    <ScopeSummary scope={prepared.review}/>
    <p className="od-field-help">本次批准会持久保存上述精确范围，允许同一窗口中各 ChatGPT 对话的匹配请求持续自动提交；结果返回触发任务的原聊天。任何输入改变都需重新审核。</p>

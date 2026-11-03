@@ -36,7 +36,17 @@ function metadata(row){
     description:row.description,mode:row.mode,expiresAt:row.expiresAt,
     remainingClaims:row.remainingClaims,revoked:row.revoked};
 }
-const view=row=>({ref:row.ref,url:row.url,phase:row.phase,...(row.invite?{invite:metadata(row.invite)}:{})});
+const pendingItem=row=>row.clearedUnknown===true||['creating','revoking'].includes(row.phase)||
+  row.deliveries?.some(delivery=>delivery.phase==='delivering');
+const pendingClaim=row=>!['unclaimed','applied'].includes(row.phase);
+const fields=(row,keys)=>Object.fromEntries(keys.filter(key=>Object.hasOwn(row,key)).map(key=>[key,row[key]]));
+const view=(row,owner=row.owner)=>({ref:row.ref,url:row.url,phase:row.phase,
+  ...(row.invite&&row.owner===owner?{invite:metadata(row.invite)}:{}),
+  ...(pendingItem(row)?{pending:true,relayOrigin:row.relay,
+    statusAvailable:row.owner===owner&&!row.clearedUnknown&&Boolean(row.invite)&&
+      typeof row.id==='string'&&ID.test(row.id)&&typeof row.managerSecret==='string'&&ID.test(row.managerSecret),
+    recoveryAvailable:row.phase==='creating'&&!row.clearedUnknown&&row.owner===owner&&row.createRequest?.operationRef===row.ref&&
+      typeof row.managerSecret==='string'&&ID.test(row.managerSecret)}:{})});
 export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(...a)=>fetch(...a),
   sessionKeys,mapSnapshot,validateSnapshot,sessionCrypto,clearSessionKeys}){
   async function store(){
@@ -121,10 +131,10 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
     for(const old of owners){
       if(old===owner||typeof old!=='string'||!old)continue;
       const items=prior.items.filter(row=>row.owner===old),claims=prior.claims.filter(row=>row.owner===old);
-      if(!items.every(row=>['revoked','expired','consumed'].includes(row.phase)&&
+      if(!items.every(row=>!pendingItem(row)&&['revoked','expired','consumed'].includes(row.phase)&&
         (row.deliveries===undefined||Array.isArray(row.deliveries)&&
           row.deliveries.every(delivery=>delivery.phase==='delivered')))||
-        !claims.every(row=>row.phase==='applied'))continue;
+        !claims.every(row=>!row.clearedUnknown&&row.phase==='applied'))continue;
       if(typeof clearSessionKeys==='function')await clearSessionKeys(old);
       else if([...items,...claims].some(row=>row.mode==='session'||row.invite?.mode==='session'||row.deliveries))continue;
       retired.add(old);
@@ -146,6 +156,12 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
   }
   async function dispatch(action,payload,owner){
     await authorize();
+    if(['shareInspect','shareClaim','sharePair'].includes(action)){
+      const address=cookieShareAddress(payload.inviteUrl,{invitation:true});
+      const state=await read();
+      if(state.claims.some(row=>row.url===address.url&&
+        (row.clearedUnknown||row.owner!==owner&&pendingClaim(row))))throw fail('E_OUTCOME_UNKNOWN');
+    }
     // The caller has established the current installed owner. Retire only
     // wholly completed older owners; pending/unknown fences have no TTL.
     if(['shareCreate','sharePair'].includes(action))await retireCompletedOwners(owner);
@@ -153,8 +169,12 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
       return (await sessionFor(owner)).dispatch(action,payload,owner);
     if(action==='shareList'){
       const state=await read();await authorize();
-      return {invitations:state.items.filter(x=>x.owner===owner&&x.alias===payload.alias&&
-        x.siteOrigin===payload.origin&&x.invite).map(view)};
+      const rows=state.items.filter(x=>(x.owner===owner||pendingItem(x))&&
+        x.alias===payload.alias&&x.siteOrigin===payload.origin).map(x=>view(x,owner));
+      // Installed older UI dereferences invite metadata for every invitation.
+      // New pending projections have no invitation yet and use a separate field.
+      return {creationRecoveryVersion:1,invitations:rows.filter(row=>row.invite),
+        pendingInvitations:rows.filter(row=>!row.invite)};
     }
     if(action==='shareCreate'){
       const {origin:relay}=cookieShareAddress(payload.relayOrigin);
@@ -174,18 +194,26 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
       if(mode==='session'&&!account.cookies.length)throw fail('E_ACCOUNT_EMPTY');
       if(await api.permissions.contains({origins:[relay+'/*']})!==true)throw fail('E_SHARE_PERMISSION_REQUIRED');
       const ref=crypto.randomUUID();
+      const managerSecret=Array.from(crypto.getRandomValues(new Uint8Array(32)),
+        byte=>byte.toString(16).padStart(2,'0')).join('');
+      const createRequest={operationRef:ref,origin:account.origin,
+        displayName:account.displayName,description:account.description??'',mode,
+        expiresInSeconds:payload.expiresInSeconds,maxClaims:payload.maxClaims};
       await change(state=>{
+        // This fence survives UI/client restarts and installation changes.
+        // An uncorrelated legacy create must never acquire a replacement ID.
+        if(state.items.some(x=>x.alias===account.alias&&x.siteOrigin===account.origin&&
+          pendingItem(x)))throw fail('E_OUTCOME_UNKNOWN');
         if(state.items.length>=32)throw fail('E_SHARE_LIMIT');
         const row={ref,owner,relay,alias:account.alias,siteOrigin:account.origin,
-          url:'',phase:'creating',...(mode==='session'?{accountVersion:account.version}:{})};
+          managerSecret,createRequest,url:'',phase:'creating',
+          ...(mode==='session'?{accountVersion:account.version}:{})};
         state.items.push(row);return row;
       });
-      const result=await request(relay,'/v1/invites',{body:{origin:account.origin,
-        displayName:account.displayName,description:account.description??'',mode,
-        expiresInSeconds:payload.expiresInSeconds,maxClaims:payload.maxClaims}});
+      const result=await request(relay,'/v1/invites',{body:createRequest,secret:managerSecret});
       let invite;try{invite=metadata(result.invite);}catch{throw fail('E_OUTCOME_UNKNOWN');}
       if(invite.origin!==account.origin||invite.mode!==mode||
-        !ID.test(result.managerSecret)||result.url!==relay+'/i/'+invite.id)
+        result.managerSecret!==managerSecret||result.url!==relay+'/i/'+invite.id)
         throw fail('E_OUTCOME_UNKNOWN');
       return view(await change(state=>{
         const row=state.items.find(x=>x.ref===ref&&x.owner===owner&&x.phase==='creating');
@@ -196,8 +224,27 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
     }
     if(action==='shareStatus'||action==='shareRevoke'){
       const row=(await read()).items.find(x=>x.ref===payload.ref&&x.owner===owner);
-      if(!row?.id||!ID.test(row.id)||!ID.test(row.managerSecret))throw fail('E_SHARE_NOT_FOUND');
+      if(!row)throw fail('E_SHARE_NOT_FOUND');
       if(row.siteOrigin!==payload.origin)throw fail('E_SITE_MISMATCH');
+      if(row.clearedUnknown)throw fail('E_OUTCOME_UNKNOWN');
+      if(row.phase==='creating'){
+        if(action!=='shareStatus'||row.createRequest?.operationRef!==row.ref||
+          typeof row.managerSecret!=='string'||!ID.test(row.managerSecret))throw fail('E_OUTCOME_UNKNOWN');
+        const result=await request(row.relay,'/v1/invite-creations/'+row.ref,{secret:row.managerSecret});
+        const invite=metadata(result.invite),expected=row.createRequest;
+        if(invite.origin!==row.siteOrigin||invite.origin!==expected.origin||
+          invite.mode!==expected.mode||invite.displayName!==expected.displayName||
+          invite.description!==expected.description||invite.remainingClaims>expected.maxClaims||
+          result.url!==row.relay+'/i/'+invite.id)throw fail('E_SHARE_RESPONSE');
+        const phase=invite.revoked?'revoked':invite.expiresAt<=Date.now()?'expired':
+          invite.remainingClaims===0?'consumed':'active';
+        return view(await change(state=>{
+          const current=state.items.find(x=>x.ref===row.ref&&x.owner===owner);
+          if(!same(current,row))throw fail('E_OUTCOME_UNKNOWN');
+          Object.assign(current,{id:invite.id,url:result.url,invite,phase});return current;
+        }));
+      }
+      if(!ID.test(row.id)||!ID.test(row.managerSecret))throw fail('E_SHARE_NOT_FOUND');
       if(action==='shareRevoke'){
         if(row.phase==='revoked')return view(row);
         if(row.phase!=='active')throw fail('E_OUTCOME_UNKNOWN');
@@ -212,9 +259,13 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
       try{invite=metadata(await request(row.relay,'/v1/invites/'+row.id));
         if(invite.id!==row.id||invite.origin!==row.invite.origin)throw fail('E_SHARE_RESPONSE');
         if(invite.remainingClaims===0)phase='consumed';
+        // An available invitation is not proof that an earlier uncertain
+        // revoke was never sent. Keep that fence until a terminal observation.
+        if(row.phase==='revoking'&&phase==='active')phase='revoking';
       }catch(error){
         const phases={E_INVITE_EXPIRED:'expired',E_INVITE_REVOKED:'revoked'};
-        if(!phases[error.code])throw error;phase=phases[error.code];invite=row.invite;
+        if(!phases[error.code])throw error;phase=phases[error.code];
+        invite={...row.invite,...(phase==='revoked'?{revoked:true}:{})};
       }
       return view(await change(state=>Object.assign(state.items.find(x=>x.ref===row.ref),{phase,invite})));
     }
@@ -329,12 +380,21 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
         throw fail('E_SHARE_DEVICE_KEY_STORAGE_REQUIRED');
     }
     const service=await store();
+    // Uninstall removes credentials, packets and device keys, but must not
+    // turn an unresolved remote effect into permission to submit it again.
+    const next={format:1,
+      items:prior.items.filter(pendingItem).map(row=>({
+        ...fields(row,['ref','owner','relay','alias','siteOrigin','url','phase']),clearedUnknown:true})),
+      claims:prior.claims.filter(pendingClaim).map(row=>({
+        ...fields(row,['ref','owner','url','alias','mode','phase']),clearedUnknown:true}))};
+    const keep=next.items.length>0||next.claims.length>0;
     await service.transaction(['frameworkKV'],'readwrite',async tx=>{
       const current=await tx.get('frameworkKV',KEY)??{format:1,items:[],claims:[]};
       if(!same(current,prior))throw fail('E_OUTCOME_UNKNOWN');
-      await tx.delete('frameworkKV',KEY);
+      if(keep)await tx.put('frameworkKV',next,KEY);
+      else await tx.delete('frameworkKV',KEY);
     });
-    if(await service.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',KEY))!==undefined)
+    if(!same(await service.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',KEY)),keep?next:undefined))
       throw fail('E_OUTCOME_UNKNOWN');
   }};
 }

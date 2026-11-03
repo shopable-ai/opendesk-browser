@@ -65,9 +65,14 @@ async function fixture(t,{serviceTransport}={}){
   return {send,records,state,document,sender,service,api,tool,release,setBeforePut:fn=>{beforePut=fn;}};
 }
 
-test('actual Sidebar Host converts SW facts to the installed App contract without forwarding authority facts',async t=>{
+for(const corrupt of [false,true])test('actual Sidebar Host converts SW facts without forwarding authority facts'+(corrupt?' when accounts are corrupt':''),async t=>{
   const f=await fixture(t);
-  await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  const saved=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  if(corrupt){
+    await f.send('serviceAssociate',{revision:1,connectionId:saved.connections[0].id,
+      alias:'acct_local_1',accountVersion:1,remoteAccountId:'remote_1',organization:'本机用户',providerKey:'codex',document:f.document});
+    f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
+  }
   const listeners=new Map(),win={
     addEventListener(type,fn){listeners.set(type,[...(listeners.get(type)||[]),fn]);},
     removeEventListener(type,fn){listeners.set(type,(listeners.get(type)||[]).filter(x=>x!==fn));}
@@ -117,6 +122,10 @@ test('actual Sidebar Host converts SW facts to the installed App contract withou
   assert.equal(response.result.connections[0].reasonCode,'E_SERVICE_BRIDGE_UNAVAILABLE');
   assert.equal(response.result.connections[0].canConnect,false);
   assert.deepEqual(response.result.capabilities,{connect:false,openManagement:false,policyAcceptance:false});
+  if(corrupt){
+    assert.equal(response.result.associations[0].status,'STALE');
+    assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY),null);
+  }
   assert.doesNotMatch(JSON.stringify(response.result),/ownerCurrent|accountCurrent|reconnectable|cookie-service-facts|PRIVATE_COOKIE/);
 });
 test('fixed Host service persists configuration and scoped association without Cookie or Native effects',async t=>{
@@ -168,16 +177,22 @@ test('connection-only configuration does not depend on the Cookie account store'
   assert.equal(result.connections[0].status,'DISCONNECTED');
   assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY),null);
 });
-test('existing site associations still require the current Cookie account store',async t=>{
+test('service status preserves unverified associations when the Cookie account store is corrupt',async t=>{
   const f=await fixture(t);
   const saved=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
   const connectionId=saved.connections[0].id;
   await f.send('serviceAssociate',{revision:1,connectionId,alias:'acct_local_1',accountVersion:1,
     remoteAccountId:'remote_1',organization:'本机用户',providerKey:'codex',document:f.document});
   f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
-  await assert.rejects(f.send('serviceStatus'),{code:'E_VAULT_CORRUPT'});
+  const status=await f.send('serviceStatus');
+  assert.equal(status.revision,2);
+  assert.equal(status.connections[0].id,connectionId);
+  assert.equal(status.associations[0].localAlias,'acct_local_1');
+  assert.equal(status.associations[0].status,'STALE');
+  assert.equal(status.associations[0].remoteRevocation,'NOT_REQUIRED');
   await assert.rejects(f.send('serviceRename',{revision:2,connectionId,label:'未核实'}),{code:'E_VAULT_CORRUPT'});
   assert.equal(f.records.get(COOKIE_SERVICE_CONNECTIONS_KEY).revision,2);
+  assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY),null);
 });
 test('Native service actions remain fenced by actual sender, installed epoch and user gesture',async t=>{
   let calls=0;

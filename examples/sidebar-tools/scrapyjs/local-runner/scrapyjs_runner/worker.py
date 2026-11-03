@@ -8,6 +8,7 @@ from .dsl import canonical,compile_config,document,extract,query
 from .errors import Fault
 from .security import Downloader,target_url
 from .storage import Store
+from .structure import structure_record
 
 
 def run_worker(directory,run_id,boot,expected_parent,stop,fixtures,preview_pages):
@@ -18,9 +19,11 @@ def run_worker(directory,run_id,boot,expected_parent,stop,fixtures,preview_pages
     threading.Thread(target=watchdog,daemon=True).start()
     store=Store(directory)
     started=time.monotonic()
+    runtime_limit=1800
+    structure_mode=False
     def check():
         if stop.is_set(): raise Fault('STOP_REQUESTED')
-        if time.monotonic()-started>=1800: raise Fault('TIME_LIMIT')
+        if time.monotonic()-started>=runtime_limit: raise Fault('TIME_LIMIT')
         if os.getppid()!=expected_parent: raise Fault('OWNER_EXITED')
         with store.connect() as db: store.assert_boot(db,boot)
     outcome={'status':'FAILED','stopReason':'WORKER_ERROR','errors':[{'code':'WORKER_ERROR','message':'Worker failed'}]}
@@ -29,7 +32,17 @@ def run_worker(directory,run_id,boot,expected_parent,stop,fixtures,preview_pages
             fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
             check()
             snap=__import__('json').loads(store.get(run_id)['snapshot'])
-            cfg=snap['config']; compiled=compile_config(cfg)
+            cfg=snap['config']
+            if snap['mode']=='structure':
+                structure_mode=True; runtime_limit=45
+                downloader=Downloader(snap['scope'],fixtures,check,15)
+                html,final_url=downloader.html(cfg['url'])
+                check(); target_url(final_url,snap['scope'])
+                record=structure_record(html,final_url,cfg['inputHash'],check)
+                check(); store.commit_page(run_id,[record],boot); check()
+                outcome={'status':'COMPLETED','stopReason':'STRUCTURE_READY','errors':[]}
+                return
+            compiled=compile_config(cfg)
             maximum=min(50,cfg.get('maxPages',50),preview_pages if snap['mode']=='preview' else 50)
             downloader=Downloader(snap['scope'],fixtures,check,cfg.get('timeoutMs',15000)/1000)
             url=cfg['url']; requested_urls=set(); visited_urls=set(); seen_records=set()
@@ -81,7 +94,7 @@ def run_worker(directory,run_id,boot,expected_parent,stop,fixtures,preview_pages
                 url=next_url
             outcome={'status':'COMPLETED','stopReason':reason,'errors':[]}
         except Fault as error:
-            normal_budget = error.code in ('TIME_LIMIT','RECORD_LIMIT')
+            normal_budget = not structure_mode and error.code in ('TIME_LIMIT','RECORD_LIMIT')
             outcome={'status':'COMPLETED' if normal_budget else 'STOPPED' if error.code=='STOP_REQUESTED' else 'FAILED','stopReason':error.code,'errors':[] if normal_budget or error.code=='STOP_REQUESTED' else [error.public()]}
         except BaseException:
             # Never expose credential/config/HTML through tracebacks.

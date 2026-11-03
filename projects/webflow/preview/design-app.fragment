@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src about:; connect-src 'none'; img-src data:">
-<title>Web Flow · 原界面与运行授权局部对照</title>
+<title>Web Flow · 运行授权清晰核对布局</title>
 <style>/* SOURCE_STYLES */
 html,body{height:auto;min-height:100%;overflow:auto}body{display:block}
 .comparison{max-width:920px;margin:auto;padding:16px;display:grid;gap:12px}
@@ -20,7 +20,7 @@ html,body{height:auto;min-height:100%;overflow:auto}body{display:block}
 </style>
 </head>
 <body><main class="comparison">
-<h1>沿用原界面，只调整“运行与授权”</h1>
+<h1>运行与授权：清晰核对精确范围</h1>
 <p class="od-note">离线源码预览 · 左右使用同一应用与模拟数据。蓝色业务界面、滑块、JSON 审核和底部面板来自原源码；候选仅在运行与授权追加已披露的排版与可访问性补丁。</p>
 <div class="comparison-controls" role="group" aria-label="对照视图">
  <button class="od-button od-button--secondary" id="compare-home">查看原主界面</button>
@@ -29,21 +29,20 @@ html,body{height:auto;min-height:100%;overflow:auto}body{display:block}
 </div>
 <p class="od-note" id="compare-feedback" role="status">先看恢复后的真实风格，再打开运行与授权查看局部差异。切换视图不重建应用，不清除草稿。</p>
 <div class="comparison-grid">
- <figure id="baseline-figure"><figcaption><strong>原版参考</strong><br><span class="od-note">实装记录对应的 0.3.6 应用 + 当前可信组件重建</span></figcaption>
+ <figure id="baseline-figure"><figcaption><strong>参考：654 标签 / 值行</strong><br><span class="od-note">固定历史参考，包含原可访问性修复</span></figcaption>
  <iframe id="baseline" title="原版参考：完整 Web Flow" sandbox="allow-scripts"></iframe></figure>
- <figure><figcaption><strong>局部调整后</strong><br><span class="od-note">原组件 + 运行区域局部排版 / 可访问性补丁</span></figcaption>
+ <figure><figcaption><strong>本次：按信息类型排版</strong><br><span class="od-note">短信息横向对齐；JSON 独占完整内容行</span></figcaption>
  <iframe id="candidate" title="局部候选：完整 Web Flow" sandbox="allow-scripts"></iframe></figure>
 </div>
-<table aria-label="本次五处局部差异">
+<table aria-label="本次四处局部差异">
 <thead><tr><th>位置 / 原问题</th><th>本次变化</th><th>对应操作</th></tr></thead>
 <tbody>
-<tr><td>运行面板导航随长内容滚走</td><td>保留原三个页签，滚动时停留在面板顶部</td><td>查看指令后直接切回当前任务</td></tr>
-<tr><td>只读摘要的标签与值纵向堆叠</td><td>标签左对齐、值在右，JSON 保留足够行宽</td><td>核对批准范围，更早看到生成指令入口</td></tr>
-<tr><td>撤销按钮横跨整张批准卡</td><td>收为原样式的内容宽度按钮</td><td>主动管理授权，不改变撤销含义</td></tr>
-<tr><td>生成后下一次操作仍抢眼</td><td>沿用公共按钮变体，突出复制、弱化下一次生成</td><td>先完成当前指令的复制</td></tr>
-<tr><td>审核就绪和字段错误缺少定位</td><td>就绪播报 / 聚焦；错误关联原输入</td><td>键盘审核与纠正地址 / JSON</td></tr>
+<tr><td>上一轮将参数 JSON 整块放入第二栏</td><td>移除双业务列与字符阈值；JSON 标题在上，完整内容在下</td><td>按自然顺序阅读并核对参数</td></tr>
+<tr><td>短信息和长内容混用一种网格</td><td>地址标签 / 值横向对齐；JSON、编辑框、指令使用整行宽度</td><td>快速扫描短信息，完整阅读精确原文</td></tr>
+<tr><td>批准时间和撤销各占一行</td><td>时间在左、原撤销按钮在右；原安全含义保留</td><td>查看批准时间或主动撤销</td></tr>
+<tr><td>长审核区定位到末尾，标题可能被遮挡</td><td>就绪后从审核标题开始显示，避开原顶部页签</td><td>从标题逐项核对后再主动批准</td></tr>
 </tbody></table>
-<p class="od-note">参考依据是已有安装记录和历史源码，尚未由用户确认这就是其偏好的确切版本。0.3.7 源码/安装包及本机实时安装状态与本预览分开；正常聊天主入口由业务任务完善，本页原指令辅助入口不代表该目标已完成。</p>
+<p class="od-note">两侧同为历史 0.3.6 应用与固定可信组件，不代表当前 0.3.8 或实时安装。蓝色皮肤、原底部 Sheet、页签停留、复制层级及七条可访问性修复保留；只比较运行区布局。用户偏好的确切历史版本仍未确认，正常聊天主入口由业务任务维护。</p>
 <details><summary>离线场景与来源（不属于扩展 UI）</summary>
 <p class="od-note">只替换内存数据和 SDK / 剪贴板边界。场景切换可能使原批准失效并清除关联指令，这是原组件的保护行为；不代表真实授权或执行。</p>
 <div class="comparison-controls">

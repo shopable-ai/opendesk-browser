@@ -126,3 +126,109 @@ de78e056f6ca0a4bc5c98998e5b34a19707483e18cef2a3fc93ebad125155455  tests/environm
 原工具栏→SidePanel→原审阅2.0.56→2.0.57及官方来源/完整包 SHA 已独立确认；原 A/B/test1 和白名单/自动切换/刷新已读回，B 的虚构值仅只读核对。指定候选的 UI revision 为 `ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c`、ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`，实际 UI 连接与当时磁盘比对有证据；AX JSON SHA-256 `a8fef410e8671ef38720194bab2df503e74a3a79df33f52495f4c1e9b90d749b`，安装详情截图 SHA-256 `94635776ecc89c73e3c99e811fec76c6c4a4433516a7e27d626146066defb403`。实际物理加载路径、A 值、闭侧栏双向切换/刷新、双机/恢复/登录仍未测；不能以该原候选证据提升 `b9c058fca` 的 SW 拆分为 Chrome PASS。
 
 README 已顶置上述当前入口，将旧 blocked/待安装段落标为历史。仅改 README 与本记录，检查证据字段/摘要、链接和 diff，不跑产品测试/构建、不占输入/Chrome/Native/服务/dist，不启停 writer或清 unknown。共享输入已释放给 Scrapy，新 owner 不自动继承。新收到的 Sharing/Accounts/preview/react.css 等 dirty 不是本任务变更、具体 owner 未知，已一次告知新原生 owner 保留；不覆盖或随本次文档保存。
+
+### 接续修复：账号损坏不阻断既有远端撤权（2026-10-31）
+
+> 本小节为上一轮执行记录。下述“重入未实现”已由下一小节的后续修复覆盖；原命令和摘要保留对应当时输入。
+
+本架构接续实读 HEAD `07ab1034c`、`main...origin/main`，索引空，`get_goal=null`；未创建或修改 Goal。仍是核心源码修复及最小验证。组合式 Cookie App 的唯一 owner 为 `examples/sidebar-tools/cookie-editor/`：本次修改固定 SW 账号适配器，复用原 Host→Native 消费者→Node 业务服务，不改公开 `browser.cookies.*`，不新增公共能力或框架通道。现有 Tool v2/React 包 `2.0.57` 不含本次可信代码，未重新打包。后台独立升级及完全公共替代仍未实现/`SDK_GAP_NOT_PROVEN`。
+
+实际入口取证：`app/components/CookieServiceConnections.jsx → CookieEditorApp.jsx.serviceAction → accountRequest →` 原固定 Host 的 `cookieAccount` 分发。已载入的企业页解绑/断开不依赖 `accountReady`，直接发送用户审阅的服务/会话 revision；创建绑定才读取当前账号。缺陷在 `account-service.js`：只要本站有任何关联，四种撤权/清理操作也先调用 `statusFor(origin)`，损坏账号因此以 `E_VAULT_CORRUPT` 阻止原服务账本中的精确解绑和断开。
+
+最小修复仅在 `serviceUnbindAssociation`、`serviceRemoteDisconnect`、`serviceDisconnect`、`serviceRemoveAssociation` 读取账号且明确报 `E_VAULT_CORRUPT` 时，保留空的已核实账号集合并继续；输出关联为 `STALE`，不伪造当前账号。健康账号仍按原路径核对。存储不可用、迁移冲突与 `E_OUTCOME_UNKNOWN` 不被吞掉；普通状态/改名、新关联、远端绑定、管理页和策略批准仍拒绝损坏账号。原安装/Sender/Host Document、配置/会话 revision、连接 epoch、Native 活租约、绑定 ID/版本、authEpoch、持久回执与 unknown 禁重放均保留；本地清理仍先通过原远端活动围栏。未更改消息或存储 schema、SW 注册、公开 SDK、Native 通道、App 或正式 JSON。
+
+验证与证据（Node v24.15.0）：
+
+- `node --test --test-name-pattern 'corrupt Cookie account store|Cookie account store is corrupt' examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs`：修复前4 FAIL，解绑和远端断开直接报 `E_VAULT_CORRUPT`；修复后4 PASS。新增行为覆盖真实 Node 绑定撤销、确认后本地移除、远端仍活跃时禁止直接清理、未知绑定不重放，以及损坏账号不能获取绑定/管理/策略权限。
+- `node --test examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs`：19 PASS / 0 FAIL。包含原真实 Host→App 返回形状、安装/Sender/手势、文档及站点撤权、重连版本、原操作对账和真实 Node 管理 HTTP 链；Chrome/Foundation/Native 传输仍为测试替身，不是原生验收。其后仅将新增撤权回归的末端断言改为核对远端设备确实撤销、管理访问关闭及本地 epoch 前进，复测上述四条仍 4 PASS；运行时源码未变。
+- `node --test tests/environment/cookie-account-provenance-r134.test.mjs`：10 PASS / 0 FAIL。审查后仅将账号服务 Git blob pin `944308bfcdc4fa5db302c0935b405ee7e488129b` 更新为 `41807f91a610f0b44df81afc2e1b0d7d0d22bd7e`；固定 SW 目标、来源漂移/symlink、无 evidence 的 WXT hook 拒绝保护保持。该 hook 调用不是完整构建。
+- 修改源码与集成测试的 `node --check` 通过；本轮文件的 diff/链接/摘要检查通过。未重跑未改输入的纯模型/UI 单元组、完整 Browser 构建或原生矩阵。
+
+通过时关键输入 SHA-256：`trusted/account-service.js` 为 `b9a8d1c68163b3e6353df74d1d7b27cd621e4649a9f3c26eca32500c88cbc7a5`；项目 `tests/service-session-integration.test.mjs` 为 `0e544c0e5f95c7ff017113175bcafcbeef80ce221685bec76a88618d38776313`（含末次四条断言复测）；根 `scripts/bundle-provenance.mjs` 为 `afb0aea789ddf1b4e5dc3f6861a027d2b63187fcbd25ebac0f520c0ea36fce78`；根 `tests/environment/cookie-account-provenance-r134.test.mjs` 为 `838f977ad4aba5554435c492540419dd05f85e5c887aa56a82cccb2c57193f0b`。
+
+限制与所有权：损坏后重新进入企业页仍会因 `serviceStatus` 拒绝而无法载入，不宣称该错误恢复已完成；本轮解决已载入状态下的精确撤权。完整构建、当前 serve 发布/连接、Chrome/Native 均 `NOT_TESTED`，没有新评分。只使用测试临时目录和系统分配的 loopback 端口，均已释放；未启停共享 writer、写 dist、刷新/重装、使用输入/剪贴板/Native、接管原生资源或清除 unknown。原生 owner 的 S3 证据/工作记录及并行 App/preview/Cloud/Scrapy 改动保留。此次六份修改留在本地 main，未暂存、提交或推送；下一条原生验证仍由产品 owner 按其资源窗口安排。
+
+### 后续修复：重新进入服务页后仍可撤权（2026-10-31）
+
+用户要求“看不明白，继续”。下一条操作收敛为：账号损坏后重新进入企业页 → 读回原连接/关联 → 明确解绑或断开。原生资源仍由产品 owner 持有，继续仅做源码和定向 Node 验证；`main`、原业务 owner、公开 SDK、运行世界和安装合同不变。
+
+四条改进后的入口回归先复现 `serviceStatus → E_VAULT_CORRUPT`。修复只将原状态读取加入上一轮的已知损坏降级：真实连接与绑定仍取原可信存储，账号有效性一律不确认；不调用 Native、不修改账号或清除 pending。新绑定、管理页、策略批准、改名和其他错误仍按原路径拒绝。原 App 初始 `serviceStatus` 可接受原返回形状，失效账号的解绑按钮本来就不依赖 `accountReady`；因此无需编辑并行 App、编译 UI 或重打包。SW 重启/Native 失效仍受原活租约约束，不能把重入恢复当作会话重新授权。
+
+最小验证：
+
+- `node --test --test-name-pattern 'service status preserves|reopening service status|revocation with a corrupt' examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs`：修复前4 FAIL、修复后4 PASS；包括重入后分别解绑/断开，以及读回未知绑定后仍禁止重放。
+- 上述两个文件不筛选的回归：20 PASS / 0 FAIL。扩展原 Host 测试同时覆盖正常账号和损坏账号，真实 `createSidebarTools` 启动后可返回原 App 形状，内部授权事实仍不外传；原 Node 适配器独立读回实际远端绑定/设备撤销。
+- `node --test --test-name-pattern '^stale active binding can unbind without a local account and confirmed revocation can be removed$' examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs`：1 PASS；复用既有 JSX 按钮交互回归，无 UI 源码修改。
+- `node --test tests/environment/cookie-account-provenance-r134.test.mjs`：10 PASS。审查后仅将账号服务精确 pin 更新为 `be7a41991904dbbd79d258567ac6a2bdf9a499ec`，未放宽目标/来源/动态代码准入。修改源码及两个服务测试的 `node --check` 通过，文档/摘要和定向 diff 检查通过。
+
+本次输入 SHA-256：
+
+```text
+9eb16a7ad83b1eb7a187aa927522b28ac6f7d12f2b3aa4d1973dc002230d8b8d  trusted/account-service.js
+ee30c3144fc3c54ad576b5bf9a6bc136431f159831e7b6ff1ccafe395aae3715  tests/service-connections-host.test.mjs
+0f38c227f7e6ff3f284ca4ac1a6ddf44699e4bf7941d03215fb09683fe2ee414  tests/service-session-integration.test.mjs
+8e1676b25371d810f4c73eb0d017a632ffde8602a01d2d007bc8ea2e8797a456  scripts/bundle-provenance.mjs
+729b2bc8adb4cd4811bfd283189eb4ba0708218b1ab10d133fdd2275f30e5069  tests/environment/cookie-account-provenance-r134.test.mjs
+```
+
+前三项相对 Cookie 项目，后两项相对仓库根。当前共七份本任务修改留在本地 main，未暂存/提交/推送。完整 Browser 构建、serve 应用和 Chrome/Native 仍 `NOT_TESTED`；不接管共享输入、浏览器、Native、writer 或输出，临时 Node HTTP/目录均已释放。不自动扩展到后台独立升级、公共 SDK 或其他 Cookie/S3 验收。
+
+### 接续提示词审阅与交接（2026-11-01）
+
+用户要求提示词更易理解、保留原目标与关键任务、防止不同对话重复执行，并采用独立百分制评分及算术平均。当前核心源码改进已经完成，实际Browser/Chrome/Native验收及Git保存未完成，后台独立升级仍是未实现的后续方向。本回合只修订提示词；未运行产品测试/构建、未操作浏览器/Native/输入/服务。只读核对上述五份源码/测试/来源文件摘要仍与最后工程检查点一致，已有自动证据继续有效；`get_goal=null`，未创建或修改Goal。
+
+唯一接续提示词为 [Cookie服务本地验证与收尾](../prompts/cookie-editor-service-boundary-continuation.zh-CN.md)。它与另一个双机/S3提示词分属不同任务；新任务先从本记录最新有效工程检查点及在途操作接续，不重做展示拆分、已修依赖和有效检查。原生资源按最新owner核实。本对话交付提示词后不再继续工程写入；这不自动移交浏览器/Native/writer，也不暂停、完成或迁移任何旧Goal。
+
+本次提示词初稿SHA-256 `0ba3aa7bb8d4ac3259d9f10b4389aae5d45e8d5c7487355a7f5c55f5547ba76e`。两位独立AI审阅者在独立上下文、互不看到对方结论的情况下冷审；均未修改文件或运行工程。每位分别对目标与需求、语义可读性、任务与验收、跨对话去重、权限与证据给0–100分，个人综合为五维算术平均，总综合为两人综合算术平均。
+
+| 初稿审阅者 | 目标与需求 | 语义可读性 | 任务与验收 | 跨对话去重 | 权限与证据 | 个人综合 |
+| --- | --- | --- | --- | --- | --- | --- |
+| AI A · Archimedes `01a192ea-a47e-7b40-b6d8-34ad59fdfcad` | 93 | 92 | 88 | 94 | 96 | 92.6 |
+| AI B · Curie `01a192ea-a5c3-72a2-9572-a43eac6d25f5` | 95 | 96 | 88 | 91 | 88 | 91.6 |
+
+初稿总综合 `(92.6 + 91.6) / 2 = 92.1/100`，未达95。按具体意见修订：用用户操作描述开头；明确原生夹具尚未核实、下一步先只读确认；将源码、隔离Profile及实际SW产物串成同一候选证据；分别定义正常、损坏账号下解绑/断开两例、未知结果禁重放的成功条件；缩小章节写入、核对真实资源owner；Git保存取决于明确授权且独立报告；只保留一套本轮完成标准，提示词评分与有当前授权才执行的产品评分分开。修订稿SHA-256 `8a4875c8029594cf348ec0e5d93bf88785a02ee4e6fc64d7eec9b8f017e4c1ed`，交两人分别复评，不要求保底。
+
+| 第二稿审阅者 | 目标与需求 | 语义可读性 | 任务与验收 | 跨对话去重 | 权限与证据 | 个人综合 |
+| --- | --- | --- | --- | --- | --- | --- |
+| AI A · Archimedes | 98 | 96 | 95 | 99 | 97 | 97.0 |
+| AI B · Curie | 98 | 97 | 94 | 98 | 97 | 96.8 |
+
+第二稿总综合 `(97.0 + 96.8) / 2 = 96.9/100`；AI B的任务与验收维度仍94，未宣称所有维度达标。两人均指出未知结果步骤容易误要求UI显示内部ID、禁重试目标范围不够明确；AI A另建议明确Goal快照归属。最终稿仅修正这些歧义：UI提示未知，原账本独立核对ID/pending，不新增诊断UI；禁重放限定同一配置/会话/绑定及原未知请求，保留只读对账和其他独立操作；Goal状态明确属交接任务，接手者实读自身。最终稿SHA-256 `6920e3caa96b54820fa04b0ff06dc04dd703af8f7e09ade5f65c7272c24ce6a0`，再次分别复评。
+
+| 最终稿审阅者 | 目标与需求 | 语义可读性 | 任务与验收 | 跨对话去重 | 权限与证据 | 个人综合 |
+| --- | --- | --- | --- | --- | --- | --- |
+| AI A · Archimedes | 100 | 98 | 99 | 100 | 100 | 99.4 |
+| AI B · Curie | 99 | 98 | 98 | 99 | 98 | 98.4 |
+
+两人均独立读回最终稿全文并核对上述SHA；未互看结论，也未修改文件或执行工程。最终总综合 `(99.4 + 98.4) / 2 = 98.9/100`，每维及个人综合均≥95。AI A保留技术段落密度和需从原协议定位动作的轻微扣分；两人均未发现必须继续修订的问题。分数只评价本份提示词，不证明产品、Chrome/Native或正式验收通过；产品当前未做独立评分，不能据此宣称产品达到95。
+
+本回合只新增上述提示词并向本节追加审阅/交接记录。提示词路径、最终摘要、评分平均值及文档格式已核对，工程源码和原有并行改动未变；未暂存、提交或推送。后续执行以最新有效工程检查点及实际资源回执为准。
+
+### 本地有限验收入口核对：新源码尚未应用，原生流程未测（2026-11-01）
+
+本轮 owner 为 `01a192fa-84a8-7a31-9872-8f1ae7d2688a`，目标只含企业页正常重入、损坏账号下分别解绑/断开，以及原未知绑定的只读对账和禁止重放。**源码完成，验收未完成；当前不能确认用户已能在浏览器使用本轮修复。** 本轮没有复现新的产品故障，没有修改运行时源码、App、CSS、preview、Native 或正式工具包；没有扩展到独立后台升级、production 或双电脑分享。自身 `get_goal` 实读为 null，未创建或接管旧 Goal。
+
+原始核对结果保存在本机 [entry-audit.json](../../../artifacts/cookie-editor-service-boundary-20261101-01a192fa/entry-audit.json)，可审查的七文件差异保存在同目录 `review.diff`。证据目录不提交为正式安装物。核对时 `main` HEAD 为 `07ab1034cc7b24f3de966bb437dd03c72a439a1a`；上个工程检查点列出的五份源码/测试/来源文件 SHA-256 全部一致。原 Host/实际 Node 链20项、原解绑按钮1项、来源保护10项继续有效，本轮未重跑；它们仍不证明真实 Chrome/Native。
+
+**候选与实际应用链未建立：** 本轮意图是持续开发验证，期望复用 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`，但当前只有遗留 development 产物，不能标为已连接 serve。43119/43120 均无监听；`.wxt/development.lock` 仍记旧 PID12811，实际进程不存在。本轮未清锁、启动或停止 writer。磁盘 `development-update.json` revision 为 `ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c`，136项摘要全部一致；SW SHA-256 为 `c2dfd8fb13a57039ba2ec9fff4eded6f610cf3067c12fd31ac6f8f6b7f3b36cc`，Host 为 `582fea80b23bf48d01aa81bbe754f5a9a7d67df653bc5cbb6d02c899e1a90df4`。其中 SW 仍含已有关联时直接调用账号读取的旧分支，未包含本轮损坏降级；所以这些摘要只证明遗留产物一致，不能串成当前 `account-service.js` 源码摘要 → 构建来源回执 → 实际 SW 的证明。
+
+当前 Chrome 可只读发现原详情标签页 URL 中的 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`；浏览器控制接口明确拒绝接管 `chrome://extensions` 内部页，按其诊断文档核对后，没有可用的内部页替代能力。本轮未重试、未改用特权脚本或其他控制通道。详情 URL 不证明扩展启用、实际加载路径、应用 revision 或正在运行的 SW；这些项均为 `NOT_TESTED`。浏览器只读会话已释放，原用户页面保留，未打开/关闭/重载业务页。
+
+**Native 与夹具前置仍缺失：** 原 `opendesk browser doctor` 返回 `connected=false`、`local.installed=false`、`socketExists=false`，报 `/Users/mac/.opendesk-browser/native-agent-r1` 不存在。只读发现的 OpenDesk demo Native manifest 允许另一个 demo ID，不能作为本次企业服务配对的证明；未改 manifest、凭据或配对。最初尝试的 `doctor --help` 返回 `E_SCHEMA`，已分类为命令参数不支持，随后用原无参数 doctor 取得上述结果，不记为产品回归。
+
+两个服务测试的合成合同已沿现有入口核对：账号损坏由测试临时记录触发，丢 bind 回执由测试 Native 替身触发；Host 测试同样合成浏览器身份。这些不是原生故障夹具。已有 `manage.mjs serve --native` 是显式、受认证的 provider 注册入口，没有提供已核验的损坏账号/丢回执安全造景与恢复合同；既有 Cookie 原生驱动覆盖其他 Cookie 操作。当前未找到可用且 owner 明确的隔离 Profile/企业服务夹具：未观察到运行中的 CFT，默认开发 Profile 根不存在；不据此断言其他位置没有历史 Profile，也不复用归属未知的目录。没有在日常账号注入故障或新建特权入口。
+
+资源已一次协调，Scrapy owner `01a192d9-942f-7820-9900-76d67213c741` 的本任务回执明确：不持有输入、Chrome、Profile、Browser writer 或 Cookie 夹具，也未释放任何日常/他人隔离窗口。其项目编译 PID15730、快照 PID15964 保留；非其所有的 runner PID11223 同样不动。本轮仅此只读核对，无实际资源冲突；未触及 S3 账本和工作记录。
+
+| 本轮必需用户操作 | 结果与证据缺口 |
+| --- | --- |
+| 正常进入企业页，读取原连接、资源、策略，再退出重入 | `NOT_TESTED`：无本轮实际候选及已核验隔离 Native 入口 |
+| 损坏账号重入后明确解绑，独立确认远端撤销，再移除本地关联 | `NOT_TESTED`：无合法可恢复损坏夹具，未发出解绑 |
+| 另一份合成绑定在损坏后直接断开，独立确认设备及绑定撤销 | `NOT_TESTED`：同上，未发出断开 |
+| 重入未知结果，独立读回原操作 ID/pending，验证同身份禁重放 | `NOT_TESTED`：无合法丢回执原生夹具，未创建/重放未知操作 |
+
+这些结果是环境、驱动及夹具证据缺口，不是已复现的产品失败或 PASS。本轮没有安装、连接、绑定、解绑、断开、授权、Cookie/账号写入、构建、打包或强制刷新；没有待对账的新副作用请求，也没有新操作 ID。旧 unknown 的原记录与刷新围栏保持，不能以本轮未发请求推断旧请求未发生。未新增产品评分，`NOT_SCORED`。
+
+唯一下一步：**先取得 owner 明确、可恢复且能独立读取权威账本/原回执的隔离原生夹具。** 入口落实后，在该 owner 的具体资源窗口内复用原认证 Native 和原 serve，确认本轮源码确已发布并应用，再对同一候选执行表中四条流程；当前不在日常环境安装/升级 Native 来代替这项前置，也不因缺证据重跑已有 Node 检查。
+
+Git 单独报告：本轮没有明确提交/推送授权，索引仍为空，没有暂存、提交或推送。待保存仍是原七文件：项目 `trusted/account-service.js`、`tests/service-connections-host.test.mjs`、`tests/service-session-integration.test.mjs`、`README.zh-CN.md`，以及根 `scripts/bundle-provenance.mjs`、`tests/environment/cookie-account-provenance-r134.test.mjs`、本工作记录。本轮仅向本节追加事实，其他并行文件及历史记录保留。收尾只核对本节格式/链接、JSON、源码摘要和限定差异，不启动产品测试或构建。

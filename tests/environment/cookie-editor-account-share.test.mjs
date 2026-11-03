@@ -200,7 +200,7 @@ test('real Relay create/status/revoke exposes no manager secret or Cookie bytes'
   assert.equal(result.phase,'active');assert.equal(result.invite.remainingClaims,3);
   assert.ok(result.url.startsWith(f.origin+'/i/'));
   assert.doesNotMatch(JSON.stringify(result),/managerSecret|NEVER_TRANSMIT_COOKIE|acct_source/);
-  assert.deepEqual(JSON.parse(f.calls[0].options.body),{origin:f.saved.origin,displayName:'工作账号',
+  assert.deepEqual(JSON.parse(f.calls[0].options.body),{operationRef:result.ref,origin:f.saved.origin,displayName:'工作账号',
     description:'账号描述',mode:'configuration',expiresInSeconds:3600,maxClaims:3});
   assert.equal((await f.create().dispatch('shareStatus',{ref:result.ref},'owner')).phase,'active');
   await assert.rejects(service.dispatch('shareRevoke',{ref:result.ref},'other-owner'),{code:'E_SHARE_NOT_FOUND'});
@@ -210,7 +210,7 @@ test('real Relay create/status/revoke exposes no manager secret or Cookie bytes'
   assert.equal(revoked.phase,'revoked');
   assert.equal((await service.dispatch('shareStatus',{ref:result.ref},'owner')).phase,'revoked');
   const manager=f.records.get(COOKIE_SHARE_STORAGE_KEY).items[0].managerSecret;
-  assert.equal(f.calls.filter(x=>x.options.headers['x-opendesk-invite-manager']).length,1);
+  assert.equal(f.calls.filter(x=>x.options.headers['x-opendesk-invite-manager']).length,2);
   assert.doesNotMatch(JSON.stringify(revoked),new RegExp(manager));
 });
 test('configuration claim creates distinct alias/name, preserves sessions and is not claimed twice after restart',async t=>{
@@ -338,7 +338,10 @@ test('uncertain durable create fence prevents any remote POST and cleanup preser
   const f=await fixture(t);f.loseCommit();
   await assert.rejects(f.create().dispatch('shareCreate',f.payload,'owner'),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(f.calls.length,0);
-  await f.create().clear();assert.equal(f.records.has(COOKIE_SHARE_STORAGE_KEY),false);
+  await f.create().clear();
+  const retained=f.records.get(COOKIE_SHARE_STORAGE_KEY).items[0];
+  assert.equal(retained.phase,'creating');assert.equal(retained.clearedUnknown,true);
+  assert.equal(retained.managerSecret,undefined);assert.equal(retained.createRequest,undefined);
   assert.equal(f.records.has(COOKIE_ACCOUNT_STORE_KEY),true);
 });
 

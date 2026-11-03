@@ -89,7 +89,7 @@ test('session sender uses the original invitation entry and only one claim',asyn
     ref:'ref-1',url:'https://relay.invalid/i/'+invitation.id,phase:'active',
     invite:{...invitation,mode:'session',remainingClaims:1}};},'send');
   await app.field('分享内容','session');
-  await app.field('局域网 HTTPS 分享服务','https://relay.invalid');
+  await app.field('分享服务地址','https://relay.invalid');
   app.find(n=>n.type==='button'&&text(n)==='生成真实邀请').props.onClick();await app.flush();
   assert.equal(calls[0].action,'shareCreate');
   assert.equal(calls[0].payload.mode,'session');

@@ -15,6 +15,7 @@ import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/hos
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {COOKIE_ACCOUNT_PROTOCOL} from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
@@ -4005,6 +4006,49 @@ function cookieTestLocation(t){
     '5b69971e-94b0-4e5d-8fad-c5bdbb997380'};
   t.after(()=>{if(old===undefined)delete globalThis.location;else globalThis.location=old;});
 }
+
+test('Cookie session Host forwards only reviewed metadata and its captured document',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const grant={storeId:'0',grantEpoch:'session-host',read:true,write:true,values:true,valueConsent:true};
+  const store=await verifiedCookieStore(tool,grant),messages=[];
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},
+    hostReply:async message=>{
+      if(message.protocol===COOKIE_ACCOUNT_PROTOCOL){messages.push(message);return {ok:true,data:{accepted:true}};}
+    }});
+  const prior=Object.getOwnPropertyDescriptor(globalThis,'navigator');let trusted=true;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,
+    value:{userActivation:{get isActive(){return trusted;}}}});
+  t.after(()=>{if(prior)Object.defineProperty(globalThis,'navigator',prior);else delete globalThis.navigator;});
+  let seq=0;
+  const ask=async(action,payload)=>{
+    const id='session-host-'+(++seq);f.ask('cookieAccount.'+action,payload,id);
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);
+  };
+  const inviteUrl='https://relay.invalid/i/'+'a'.repeat(32),senderFingerprint='b'.repeat(64);
+  for(const [action,payload] of [
+    ['sharePair',{inviteUrl}],
+    ['sharePairs',{ref:'ref'}],
+    ['shareDeliver',{ref:'ref',requestId:'c'.repeat(32),receiverFingerprint:'d'.repeat(64),revision:1}],
+    ['shareClaim',{inviteUrl,revision:1,senderFingerprint}],
+    ['shareClaim',{inviteUrl,revision:1}]
+  ]){
+    const reply=await ask(action,payload);
+    assert.equal(reply.ok,true,action+': '+JSON.stringify(reply.error));
+    const message=messages.at(-1);
+    assert.equal(message.trustedClick,true);assert.equal(message.payload.origin,target.capture().origin);
+    assert.deepEqual(message.payload.document,action==='sharePairs'?undefined:target.capture());
+    if(Object.hasOwn(payload,'senderFingerprint'))assert.equal(message.payload.senderFingerprint,senderFingerprint);
+  }
+  const count=messages.length;
+  for(const payload of [{inviteUrl,document:{tabId:999}}, {inviteUrl,cookies:[{value:'must-not-forward'}]},
+    {inviteUrl,privateKey:'must-not-forward'}])
+    assert.equal((await ask('sharePair',payload)).error.code,'E_ACCOUNT_REQUEST');
+  trusted=false;
+  assert.equal((await ask('sharePair',{inviteUrl})).error.code,'E_USER_GESTURE_REQUIRED');
+  assert.equal(messages.length,count,'no forged payload or gesture reaches the SW');
+});
 
 
 test('R5.38 one clear preview dialog mints one exact native Host approval without a second review',async t=>{

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>OpenDesk · 原网页效果</title>
+  <link rel="stylesheet" href="/cloud-proof.css">
+  <script src="/cloud-proof.js" defer></script>
+</head>
+<body>
+  <main class="page stack">
+    <header>
+      <p class="eyebrow">OpenDesk / 43111</p>
+      <h1>原网页效果</h1>
+    </header>
+    <p>被动页面证据 · 未关联原生 Run / Result / 回执，不能单独证明任务成功。</p>
+    <form id="proof-form" class="stack" method="post" autocomplete="off">
+      <label>本次任务姓名<input id="proof-name" name="name" minlength="1" maxlength="40" required autocomplete="off"></label>
+      <div class="toolbar"><button id="proof-query" type="submit" disabled>查询原网页记录</button></div>
+    </form>
+    <p id="proof-status" role="status" aria-live="polite">尚未查询。</p>
+    <section id="proof-result" class="stack" aria-label="页面观察记录" hidden>
+      <p id="proof-session"></p>
+      <p id="proof-summary"></p>
+      <ul id="proof-documents" class="history stack"></ul>
+      <details>
+        <summary>观察会话与固定源码身份</summary>
+        <pre id="proof-identity"></pre>
+      </details>
+    </section>
+  </main>
+</body>
+</html>

@@ -46,6 +46,7 @@ export function CookieAccounts({
   const scroll=React.useRef(0);
   const returning=React.useRef(false);
   const formReturn=React.useRef(null);
+  const receiveTrigger=React.useRef(null);
   const draftFocusReturn=React.useRef(false);
   const resumedRevision=React.useRef(resumeRevision);
   const draftInput=React.useRef(null);
@@ -81,7 +82,7 @@ export function CookieAccounts({
     }
     if(!busy&&!inline&&formReturn.current){
       const alias=formReturn.current.alias;
-      const control=alias
+      const control=formReturn.current.receive?receiveTrigger.current:alias
         ?list.current?.querySelector('[data-account-alias="'+CSS.escape(alias)+'"] [aria-haspopup="menu"]')
         :list.current?.querySelector('[aria-label="添加账号"]');
       control?.focus({preventScroll:true});formReturn.current=null;
@@ -245,7 +246,7 @@ export function CookieAccounts({
     </React.Fragment>);
   const currentItem=accounts.find(item=>item.alias===currentAlias);
   if(route==='receive')return <CookieAccountReceive origin={origin} request={onShareRequest}
-    onBack={()=>onRoute('list')}/>;
+    onBack={()=>{formReturn.current={receive:true};onRoute('list');}}/>;
   if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
     request={onShareRequest} copy={onShareCopy}
     onBack={()=>{formReturn.current={alias:shareItem.alias};setShareItem(null);}}/>;
@@ -383,7 +384,7 @@ export function CookieAccounts({
   return <section className="cookie-account-page od-surface" aria-label="账号"
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
-    <div className="cookie-account-content">
+    <div className="cookie-account-content cookie-account-content--list">
       <div className="cookie-account-current" aria-label="当前账号状态">
         <span className={avatarClass(currentItem)} aria-hidden="true">
           {String(currentItem?.displayName||'?').slice(0,1)}</span>
@@ -427,9 +428,9 @@ export function CookieAccounts({
       {(accounts.length>3||query.length>0)&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
-      {!previewOnly&&<button type="button" className="od-button od-button--secondary"
+      <button ref={receiveTrigger} type="button" className="od-button od-button--secondary"
         disabled={busy||!accountReady||typeof onShareRequest!=='function'}
-        onClick={()=>onRoute('receive')}>领取分享配置</button>}
+        onClick={()=>{scroll.current=list.current?.scrollTop||0;onRoute('receive');}}>领取分享配置</button>
       {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
       {filtered.map(item=><article key={item.alias} data-account-alias={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')+
           (item.alias===justSavedAlias?' is-just-saved':'')}>

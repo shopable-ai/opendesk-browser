@@ -161,3 +161,89 @@ test('expired or revoked encrypted invites erase stored device keys and envelope
     }finally{db.close();}
   });
 });
+
+
+test('create correlation survives relay reopen and authenticated GET recovers a lost reply',async()=>{
+  await withServer(async({api,file})=>{
+    const operationRef='recovery-operation-00000000001', manager='fixture-manager-000000000001';
+    const body={operationRef,origin:site,displayName:'Synthetic recovery',mode:'session',
+      expiresInSeconds:3600,maxClaims:1};
+    const committed=await api('POST','/v1/invites',body,manager);
+    assert.equal(committed.code,201);
+    // Deliberately do not give the caller the create reply. The only durable
+    // caller inputs after a restart are its pre-committed ref and credential.
+    const recovered=await api('GET','/v1/invite-creations/'+operationRef,undefined,manager);
+    assert.equal(recovered.code,200);
+    assert.equal(recovered.invite.id,committed.invite.id);
+    assert.equal(recovered.url,committed.url);
+    assert.equal(recovered.managerSecret,undefined);
+    const reopened=createShareRelay({dbPath:file,publicOrigin:'http://localhost:8713',clock:()=>1_000_000});
+    try{assert.deepEqual(reopened.operations.creation(operationRef,manager),
+      {invite:recovered.invite,url:recovered.url});}finally{reopened.close();}
+    const db=new DatabaseSync(file);
+    try{assert.equal(db.prepare('SELECT COUNT(*) AS n FROM invitations').get().n,1);}
+    finally{db.close();}
+  });
+});
+test('same create operation is atomic and bound to its credential and exact request',async()=>{
+  await withServer(async({api,file})=>{
+    const body={operationRef:'duplicate-operation-0000000001',origin:site,displayName:'Synthetic',
+      mode:'configuration',expiresInSeconds:3600,maxClaims:1};
+    const manager='fixture-manager-000000000001';
+    const results=await Promise.all(Array.from({length:6},()=>api('POST','/v1/invites',body,manager)));
+    assert.ok(results.every(row=>row.code===201));
+    assert.equal(new Set(results.map(row=>row.invite.id)).size,1);
+    assert.equal((await api('POST','/v1/invites',body,'other-manager-00000000000001')).error?.code,
+      'E_MANAGE_FORBIDDEN');
+    assert.equal((await api('POST','/v1/invites',{...body,displayName:'Changed'},manager)).error?.code,
+      'E_CREATE_CONFLICT');
+    const db=new DatabaseSync(file);
+    try{assert.equal(db.prepare('SELECT COUNT(*) AS n FROM invitations').get().n,1);}
+    finally{db.close();}
+  });
+});
+test('public creation ref grants no recovery or management authority, including after revoke',async()=>{
+  await withServer(async({api})=>{
+    const operationRef='public-operation-000000000001', manager='fixture-manager-000000000001';
+    const created=await api('POST','/v1/invites',{operationRef,origin:site,displayName:'Synthetic',
+      mode:'session',expiresInSeconds:3600,maxClaims:1},manager);
+    for(const credential of [undefined,'wrong-manager-00000000000001']){
+      const response=await api('GET','/v1/invite-creations/'+operationRef,undefined,credential);
+      assert.equal(response.code,403);
+      assert.deepEqual(Object.keys(response).sort(),['code','error']);
+    }
+    assert.equal((await api('POST',`/v1/invites/${created.invite.id}/revoke`,{},manager)).status,'revoked');
+    const recovered=await api('GET','/v1/invite-creations/'+operationRef,undefined,manager);
+    assert.equal(recovered.code,200);assert.equal(recovered.invite.revoked,true);
+    assert.doesNotMatch(JSON.stringify(recovered),/managerSecret|ciphertext|ecdhPublic|verifyPublic/);
+  });
+});
+
+
+test('keyed replay preserves terminal state and unkeyed legacy creates never gain a recovery receipt',async()=>{
+  await withServer(async({api,now,file})=>{
+    const manager='fixture-manager-000000000001';
+    const body={operationRef:'terminal-operation-0000000001',origin:site,displayName:'Synthetic',
+      mode:'configuration',expiresInSeconds:300,maxClaims:1};
+    const created=await api('POST','/v1/invites',body,manager);
+    const claim=await api('POST',`/v1/invites/${created.invite.id}/claim`,{});
+    assert.equal(claim.status,'configuration_claimed');
+    let repeated=await api('POST','/v1/invites',body,manager);
+    assert.equal(repeated.invite.id,created.invite.id);assert.equal(repeated.invite.remainingClaims,0);
+    assert.equal((await api('POST',`/v1/invites/${created.invite.id}/claim`,{})).error.code,'E_INVITE_CONSUMED');
+    await api('POST',`/v1/invites/${created.invite.id}/revoke`,{},manager);
+    now(1_301_000);
+    repeated=await api('POST','/v1/invites',body,manager);
+    assert.equal(repeated.invite.id,created.invite.id);
+    assert.equal(repeated.invite.revoked,true);assert.equal(repeated.invite.remainingClaims,0);
+    assert.equal(repeated.invite.expiresAt,created.invite.expiresAt);
+    assert.equal((await api('GET','/v1/invite-creations/'+body.operationRef)).code,403);
+    const {operationRef,...legacy}=body;
+    assert.equal((await api('POST','/v1/invites',legacy)).code,201);
+    assert.equal((await api('GET','/v1/invite-creations/historical-unkeyed-0000000001',undefined,manager)).code,403);
+    const db=new DatabaseSync(file);
+    try{assert.equal(db.prepare('SELECT COUNT(*) AS n FROM invitations').get().n,2);
+      assert.equal(db.prepare('SELECT COUNT(*) AS n FROM invite_creations').get().n,1);}
+    finally{db.close();}
+  });
+});

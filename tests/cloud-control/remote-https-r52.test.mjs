@@ -207,6 +207,9 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     assert.deepEqual(await p('/v1/job-status',{jobId:created.jobId},grant.credential),
       {jobId:created.jobId,state:'completed',receiptConfirmed:true},
       'A status-only receipt cannot expose raw Run metadata or page body');
+    assert.deepEqual(await p('/v1/job-status',{jobId:created.jobId,includeEvidence:true},grant.credential),
+      {jobId:created.jobId,state:'completed',receiptConfirmed:true,retirementState:'released'},
+      'Explicit evidence reads expose only the recorded release for status-only consent');
 
     const contentJob=await p('/v1/submit',{...seed,requestKey:'second-client-full',
       params:{name:'Explicitly approved text'}},permittedResultClient.credential);
@@ -224,6 +227,13 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
         sourceHash:pin.sourceHash,revision:{sourceHash:pin.sourceHash},
         retirementState:'released',state:'completed',
         valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}}},executor.credential);
+    const evidenceStatus=await p('/v1/job-status',{jobId:contentJob.jobId,includeEvidence:true},
+      permittedResultClient.credential);
+    assert.equal(evidenceStatus.retirementState,'released');
+    assert.equal(evidenceStatus.assignmentId,contentAssignment.assignmentId);
+    assert.equal(evidenceStatus.trace.receiptId,contentReceipt.receiptId);
+    await assert.rejects(p('/v1/job-status',{jobId:contentJob.jobId,includeEvidence:'yes'},
+      permittedResultClient.credential),{code:'E_SCHEMA'});
     await assert.rejects(p('/v1/job-status',{jobId:contentJob.jobId},
       grant.credential),{code:'E_JOB'},'Other client must not read a job it did not submit');
     assert.deepEqual(await p('/v1/job-status',{jobId:contentJob.jobId},

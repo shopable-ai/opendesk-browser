@@ -1,0 +1,202 @@
+{
+  "date": "2026-11-03",
+  "stage": "OFFLINE_RUNTIME_READING_LAYOUT",
+  "status": "CORE_PREVIEW_COMPLETE_WITH_INDEPENDENT_SCORE",
+  "html": {
+    "path": "projects/webflow/preview/webflow-v0.3-preview.html",
+    "sha256": "4e083d101d2be4e10228e89d0f7296f98e3f51b4ba08f81373635232a8942114",
+    "bytes": 2694491
+  },
+  "problem": "51c21 treated the complete structured JSON field as a short second business column; user rejected this interpretation",
+  "decision": "Scalar label/value row; structured JSON label above full-row content, regardless of character count",
+  "source": {
+    "appRevision": "246fd012a67d3b5e221ee7d1716df4ecc46fb93c",
+    "uiRevision": "9418a5d1aa0f88cc0f60de108620149801b7eb1d",
+    "inputCount": 96,
+    "presentationHunks": 8,
+    "candidateJS": "896c49a4b63e69127e072dcea0435d29d5d3aea357943c74792fd81baa9f2e6c",
+    "baseline": "Explicit fixed 654 reference; not last 51c21 or installed 0.3.8"
+  },
+  "retained": [
+    "Original blue UI, controls, bottom Sheet and unrelated business",
+    "Existing focus/announcement/error association/copy hierarchy protections",
+    "Full original data and exact task/permission state machine",
+    "Approval time and revoke action on one row"
+  ],
+  "removed": [
+    "Two complete business field columns",
+    "48/96 character thresholds and span classes"
+  ],
+  "measurements": {
+    "scalarLabel": 48,
+    "scalarValue": 290,
+    "scalarGap": 8,
+    "json": 346,
+    "editable": 372,
+    "prompt": 346,
+    "selectedPromptCharacters": 323,
+    "reviewTitleTop": 216.34375,
+    "tabsBottom": 193.015625
+  },
+  "verification": [
+    {
+      "command": "node projects/webflow/preview/check-design.mjs --frozen",
+      "result": "PASS",
+      "level": "STATIC_SOURCE_AND_SCOPE"
+    },
+    {
+      "command": "node projects/webflow/preview/check-presentation.mjs",
+      "result": "3/3 PASS",
+      "level": "BOUNDED_DOM_COMPONENT"
+    },
+    {
+      "entry": "Full host → 运行与授权 → 任务授权",
+      "result": "PASS",
+      "level": "IAB_OFFLINE_SOURCE_FIXTURE",
+      "checks": [
+        "JSON title then full-row content completely visible",
+        "Short scalar label/value relationship and 8px gap",
+        "No horizontal overflow for short or long JSON",
+        "Generated exact prompt focused and selected; open/refresh retains it",
+        "Long input readback, review positioning, retained authorization draft",
+        "Tab enters installation summary then approve with visible focus",
+        "Escape restores real pointer opener; prepare never approves or executes"
+      ]
+    }
+  ],
+  "rubric": {
+    "path": "projects/webflow/preview/runtime-review-rubric.md",
+    "sha256": "306b40d9c12b4e250164abc66b91e32cffc6e66d8282299b2f3cf666cd6a234e",
+    "weights": [
+      25,
+      25,
+      20,
+      20,
+      10
+    ],
+    "minimumRequested": 95,
+    "scope": "Only this local offline UI; numeric review does not imply installed/native acceptance"
+  },
+  "independentReview": {
+    "uiExpert": {
+      "id": "01a1a16a-c18c-7943-b7b1-7f93eb511ef2",
+      "name": "Ampere",
+      "status": "COMPLETE",
+      "total": 99,
+      "maximum": 100,
+      "dimensionScores": [
+        25,
+        25,
+        20,
+        19,
+        10
+      ],
+      "productFindings": [],
+      "rawReport": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/ui-review.json"
+    },
+    "sourceAudit": {
+      "id": "01a1a152-d61f-7da2-9f0b-608a10526f9a",
+      "name": "Avicenna",
+      "status": "COMPLETE",
+      "result": "BOUNDED_STATIC_PASS",
+      "findings": [],
+      "rawReport": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/source-review.json"
+    }
+  },
+  "rawEvidence": {
+    "prompt-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/prompt-viewport.png",
+      "sha256": "7edb92131807b741c63090237efdbdd4e998ac337005c52d42b3e2f775238438",
+      "bytes": 115059
+    },
+    "webflow-v0.3-preview.manifest.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/webflow-v0.3-preview.manifest.json",
+      "sha256": "13803714e68860675b95fe2b9f29d3004002e48a0f0718789bd7e954a2de4d8b",
+      "bytes": 23479
+    },
+    "runtime-review-rubric.md": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/runtime-review-rubric.md",
+      "sha256": "306b40d9c12b4e250164abc66b91e32cffc6e66d8282299b2f3cf666cd6a234e",
+      "bytes": 1865
+    },
+    "scope-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/scope-viewport.png",
+      "sha256": "8690efe85b01a4e09551a554392ee95862fade7183a7213ba038fa1cd38b43cb",
+      "bytes": 74855
+    },
+    "webflow-v0.3-preview.context.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/webflow-v0.3-preview.context.json",
+      "sha256": "54c063ed769ea9ebfb5312716d07d52a17cc2d7f93d992e294d57e65a5765b6d",
+      "bytes": 1598
+    },
+    "presentation-checks.log": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/presentation-checks.log",
+      "sha256": "e2f19e771feb306376dc8f6c4dff4d19cc39e93efc4efa7853bbac2fc775f248",
+      "bytes": 464
+    },
+    "long-review-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/long-review-viewport.png",
+      "sha256": "1be4ceb4b79232a0c70f1b4af7f5a284e0fa8371a61a6b3714baf13b3990067b",
+      "bytes": 122466
+    },
+    "interactions.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/interactions.json",
+      "sha256": "3f04479c8aef5a7f4b8f8b60dc5fe93f3075cb0bd8636c0ae453c006c65e4985",
+      "bytes": 6062
+    },
+    "source-checks.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/source-checks.json",
+      "sha256": "22fe51a73fbf92a14def666e202b90878e6b385e4fa54d65e93e6aeaf406deac",
+      "bytes": 809
+    },
+    "review-focus-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/review-focus-viewport.png",
+      "sha256": "cc6648203145200281de892d1aad972aef5ae274dede2be18d9e8c9a73690fe4",
+      "bytes": 119312
+    },
+    "ui-review.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/ui-review.json",
+      "sha256": "e888742d30d36d7cb6ded88ae5fcbe7e672fad522ebe8d9643d3bd4b209a0902",
+      "bytes": 1399
+    },
+    "source-review.json": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/source-review.json",
+      "sha256": "42a126776958890455006cbc5e7621aaea6903582ab161df795fd252579fbc57",
+      "bytes": 1055
+    },
+    "candidate-viewport.png": {
+      "path": "artifacts/sidebar-tools/webflow/source-preview-20261103/4e083d101d2b/candidate-viewport.png",
+      "sha256": "8ae7964699c60fb8c5e27a9600a47eaab9c2ff818741bf140d2b5bfc397c4125",
+      "bytes": 25916
+    }
+  },
+  "notTested": [
+    "Installed Chrome",
+    "Native",
+    "production",
+    "system clipboard",
+    "native IME",
+    "screen reader",
+    "Actual permissions/revocation/UNKNOWN scene execution"
+  ],
+  "outOfScope": [
+    "Browser build",
+    "root test suite",
+    "Baidu replay",
+    "width/zoom matrix"
+  ],
+  "resources": {
+    "server": "Own read-only 127.0.0.1:54519 / PID24875 retained for live deliverable; not a Browser dev writer",
+    "browser": "ACTUALLY_FINALIZED; new candidate deliverable retained; no further Browser calls",
+    "ChromeClipboardDevWriter": "Not operated",
+    "gitIndexCommitPush": "Not operated"
+  },
+  "userAcceptance": "NOT_CONFIRMED",
+  "scoreThresholdMet": true,
+  "documentation": {
+    "review": "projects/webflow/docs/webflow-v0.3-ui-ux-review.zh-CN.md#146-参数-json-作为完整阅读块2026-11-03",
+    "readme": "Only top three preview paragraphs updated",
+    "commit": "NOT_CREATED",
+    "push": "NOT_PERFORMED"
+  }
+}

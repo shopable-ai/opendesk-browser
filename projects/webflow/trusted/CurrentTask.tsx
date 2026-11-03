@@ -49,16 +49,23 @@ export function WebflowCurrentTask({controller,onSummary=null}){
   disabled={!session?.actions?.[name]||Boolean(working)&&name!=='cancel'}
   onClick={event=>void command(name,event.nativeEvent)}>{labels[name]}</Button>;
  const edit=(key,value)=>setDraft(current=>({...current,[key]:value}));
- return <section className="od-stack" aria-label="Web Flow 当前任务">
-  <div className="od-toolbar" style={{justifyContent:'flex-end'}}>
+ return <section className="od-stack" aria-label="Web Flow 当前任务" style={{gap:'var(--space-3)'}}>
+  <div className="od-toolbar" style={{justifyContent:'space-between'}}>
+   <strong className="od-field-label">任务状态</strong>
    <Button variant="quiet" onClick={()=>void read()}>{session?.requestId?'查询原请求':'刷新状态'}</Button></div>
   {error&&<p role="alert" className="od-field-error">{error}</p>}
   {!session?<div className="od-surface od-surface--padded od-stack" role="status">
    <strong>等待 ChatGPT 新任务</strong>
    <p className="od-note">先在“使用说明”完成一次 ChatGPT 能力接入，再核对任务批准并开启自动运行。之后在该项目正常发送需求；本条是否执行、进度和结果将在这里显示。</p>
   </div>:<>
-   <p className="od-note" style={{overflowWrap:'anywhere'}}>原对话：{session.url}</p>
-   <p role="status" className={session.error?'od-field-error':'od-note'} style={{whiteSpace:'pre-wrap'}}>{session.status}</p>
+   <div className="od-surface od-surface--padded od-stack" style={{gap:'var(--space-3)'}}>
+    <div className="od-form-field">
+     <strong className="od-field-label">原对话</strong>
+     <p className="od-note" style={{overflowWrap:'anywhere',margin:0}}>{session.url}</p>
+    </div>
+    <p role="status" className={session.error?'od-field-error':'od-body'}
+     style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{session.status}</p>
+   </div>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
    {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="本轮精确范围审核">
     <strong>待批准 · 尚未执行</strong>
@@ -67,7 +74,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
      candidate:session.pendingAuto.candidate,source:view.source,...session.pendingAuto.scope},null,2)}</pre>
     <Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
    </div>}
-   {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar">
+   {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}
    {session.viewStatus&&<p role="status" className="od-note">{session.viewStatus}</p>}
    {receipt&&<div className="od-stack" aria-label="同次运行回执">
@@ -96,7 +103,7 @@ export function WebflowCurrentTask({controller,onSummary=null}){
       <Button disabled={session.fields.disabled||Boolean(working)} onClick={event=>void command('fields',event.nativeEvent,
        {task:draft.task,query:draft.query,target:draft.target,args:draft.args})}>应用输入 / 读取所选脚本</Button>
      </>}
-     <div className="od-toolbar">{['prepare','adopt','approve-once','preapprove'].map(action)}</div>
+     <div className="od-toolbar" style={{flexWrap:'wrap'}}>{['prepare','adopt','approve-once','preapprove'].map(action)}</div>
     </div>
    </details>
   </>}

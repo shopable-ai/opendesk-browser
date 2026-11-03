@@ -105,6 +105,14 @@ node scripts/cloud-control/cli.mjs provider --postgres --ledger-id <stable-id> \
 
 **重要**：浏览器用户每天使用的是 Side Panel UI，并不被要求执行这些 URL 或输入管理员 token。外部 Client 只能访问经授权的 HTTPS `/v1/submit` 与 `/v1/job-status`，不能从 Admin 或 Browser Executor 路由绕过约束。可选 TLS listener 仍是同一个 Provider；Admin 在公开 listener 上统一拒绝。
 
+### 后端丢失提交应答的只读恢复（开发增量，2026-10-30）
+
+现有 `/v1/job-status` 接受且只接受 `{jobId}` 或 `{requestKey}` 之一。原键查询只查当前已认证 Client/Pairing 的持久 request 索引，再经过原 `clientJob` 归属检查；不存在返回 `E_JOB`，不创建 Job、不调用 submit、不改账本。混填、空键或多余字段拒绝。TLS、配对、Grant、撤权及双重结果许可规则保持原合同。后端在提交超时或重启后保存原输入和原键，用此入口对账；查不到不证明未执行，不自动重放或换键。`assignmentId`、资源释放和原 Run/Result 仍须对应原始证据，不能由后端自造。
+
+`/v1/client-scope` 可显式请求 `includeAvailability:true`：只返回本 Client 对应 Executor 的 `availability.state`（READY / NOT_CONNECTED / NOT_AUTHORIZED）及 `transport`（wss / https-pull / none）。READY 表示当前 WSS 连接或同配对/Grant 下未过期的 Pull 会话，是提交前的连接提示；不证明安装、网页执行或后续不会断开，实际准入仍走原 Authority。暂停显示 NOT_AUTHORIZED，撤权沿原 E_AUTH 拒绝。省略选项保持原应答。
+
+`/v1/job-status` 的 `includeEvidence:true` 只增加原 Receipt 已记录的 `retirementState:released`；完整结果双重许可同时成立后才增加原 `assignmentId`。缺回执不推断释放，status-only 不扩张为 Run 身份/正文许可。原 trace 仍按双重许可返回，默认应答保持兼容。
+
 ## 3. 原 Host/Side Panel RPC：10 项 + 一个 Observer-only
 
 `src/platform/host/{authority,broker,client}.js` 已定义真实可信 Side Panel 方法：

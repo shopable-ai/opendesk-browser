@@ -4,27 +4,32 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {once} from 'node:events';
 import {spawn} from 'node:child_process';
-import {mkdtemp,writeFile,readFile,mkdir} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,mkdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
+import {join,resolve,dirname} from 'node:path';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {createLocalTaskBridge,revokeLocalTasks} from '../../../../src/platform/host/local-tasks.js';
 import {createLocalRunnerClient} from '../src/local-runner-client.js';
+import {structureInputHash,validateStructure} from '../src/capture-structure.js';
 
 const runner=resolve('examples/sidebar-tools/scrapyjs/local-runner');
 const inputs=['src/platform/host/local-tasks.js','examples/sidebar-tools/scrapyjs/src/local-runner-client.js',
-  ...['dsl.py','security.py','manager.py','worker.py','storage.py','service.py','__main__.py'].map(name=>'examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/'+name)];
+  'examples/sidebar-tools/scrapyjs/src/capture-structure.js',
+  ...['dsl.py','security.py','manager.py','worker.py','structure.py','storage.py','service.py','__main__.py'].map(name=>'examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/'+name)];
 const sourceHashes=async()=>Object.fromEntries(await Promise.all(inputs.map(async name=>[name,createHash('sha256').update(await readFile(name)).digest('hex')])));
-const output=resolve('artifacts/scrapyjs/r17-local-host-integration.json');
+const structureOnly=globalThis.process.argv.includes('--structure-only');
+const output=resolve(globalThis.process.env.SCRAPYJS_STRUCTURE_REPORT||'artifacts/scrapyjs/'+(structureOnly?'r17-structure-host-integration.json':'r17-local-host-integration.json'));
 const directory=await mkdtemp(join(tmpdir(),'scrapyjs-r17-'));
 let pages=3,slow=false,hits=0;
+const sources=new Map();
 const fixture=http.createServer(async(req,res)=>{
   if(req.url==='/robots.txt'){res.end('User-agent: *\nAllow: /\n');return;}
   const page=Number(new URL(req.url,'http://fixture').searchParams.get('page')||1);
   hits++;if(slow)await delay(180);
   res.setHeader('Content-Type','text/html;charset=utf-8');
-  res.end(`<html><body><ul id="rows"><li><h2>图书 ${page}</h2><span data-price="${page}.50">价格</span></li></ul>${page<pages?`<a class="next" href="/?page=${page+1}">下一页</a>`:''}</body></html>`);
+  const html=`<html><body><ul id="rows"><li><h2>图书 ${page}</h2><span data-price="${page}.50">价格</span></li></ul>${page<pages?`<a class="next" href="/?page=${page+1}">下一页</a>`:''}</body></html>`;
+  sources.set(req.url,html);res.end(html);
 });
 fixture.listen(0,'127.0.0.1');await once(fixture,'listening');
 const scope='http://127.0.0.1:'+fixture.address().port;
@@ -67,6 +72,38 @@ try{
   report.health=await startService();assert.equal(report.health.scraplingVersion,'0.5');
   bridge=makeBridge();let client=createLocalRunnerClient(request);await client.restore();
   const config={url:scope+'/?page=1',itemConfig:{_listContainer:'#rows',_listItem:'li',title:'h2::text',price:'span::data-price'},nextPageSelector:'a.next',maxPages:50};
+  if(structureOnly){
+    // Same production bridge, public paths and original Python service. The
+    // storage/installation approval fixture is explicit; this is not Chrome.
+    const oldPointer={schemaVersion:1,requestId:'preserved-collection',runId:'old-collection',mode:'preview'};
+    values['local-runner-state']=oldPointer;
+    let posts=0,lost=true;
+    const structureRequest=async(op,args)=>{
+      if(op==='localTasks.request'&&args.method==='POST'&&args.path==='/v1/runs'){
+        posts++;const reply=await request(op,args);
+        if(lost){lost=false;throw Object.assign(Error('Simulated lost response after real creation'),{code:'E_TOOL_TIMEOUT'});}
+        return reply;
+      }
+      return request(op,args);
+    };
+    const input={url:config.url,requirement:'采集书名、价格和链接',correction:'只取当前书目',maxPages:20,previewPages:3};
+    const cfg={url:input.url,inputHash:await structureInputHash(JSON.stringify(input)),maxPages:20,previewPages:3};
+    const structure=createLocalRunnerClient(structureRequest,{stateKey:'local-structure-state',modes:['structure']});
+    await structure.restore();await structure.start({requestId:randomUUID(),mode:'structure',config:cfg,previewPages:1});
+    const snap=await settled(structure),rows=await structure.records(0,1),record=validateStructure(snap,rows,cfg);
+    const html=sources.get('/?page=1');
+    assert.equal(record.sourceHash,'sha256:'+createHash('sha256').update(html).digest('hex'));
+    assert.match(record.sample,/data-price="1.50"/);
+    assert.equal(hits,1);assert.equal(posts,1);assert.equal(snap.previewPassed,false);
+    assert.deepEqual(values['local-runner-state'],oldPointer);
+    const reopened=createLocalRunnerClient(request,{stateKey:'local-structure-state',modes:['structure']});
+    assert.equal((await reopened.restore()).runId,snap.runId);
+    assert.equal(posts,1);assert.equal(approvals,1);
+    report.structure={input,config:cfg,snapshot:snap,record,sameResponseHtml:html,
+      independentSourceHashMatch:true,postsAfterLostResponse:posts,targetRequests:hits,
+      originalCollectionPointerPreserved:true,reopenedSameRun:reopened.pointer.runId};
+    await revokeLocalTasks(api,'scrapyjs');report.revocation='confirmed';
+  }else{
   let preview;
   for(const previewPages of [1,2,3]){
     await client.start({requestId:randomUUID(),mode:'preview',config,previewPages});preview=await settled(client);
@@ -121,13 +158,17 @@ try{
   const afterRestart=await client.refresh();assert.equal(afterRestart.runId,stopId);assert.equal(approvals,1);
   report.hostSessionRestart={originalRunId:afterRestart.runId,renewedAfter401:true,repeatedApproval:false,replayedCreate:false};
   await revokeLocalTasks(api,'scrapyjs');report.revocation='confirmed';
+  }
   report.status='PASS';
 }catch(error){report.status='FAIL';report.error={message:error.message,stack:error.stack};throw error;}
 finally{
-  if(process&&process.exitCode===null){process.kill('SIGTERM');await once(process,'exit');}
+  if(process&&process.exitCode===null&&!process.signalCode){process.kill('SIGTERM');await once(process,'exit');}
   await new Promise(done=>fixture.close(done));
+  report.resources={ownServiceExited:process?.exitCode!==null||Boolean(process?.signalCode),
+    serviceExit:{exitCode:process?.exitCode,signalCode:process?.signalCode},fixtureClosed:!fixture.listening,realAiRequests:0};
+  await rm(directory,{recursive:true,force:true});report.resources.privateTemporaryDirectoryRemoved=true;
   report.sourcesAfter=await sourceHashes();report.sourceStable=JSON.stringify(report.sources)===JSON.stringify(report.sourcesAfter);
   if(!report.sourceStable&&report.status==='PASS'){report.status='SOURCE_DRIFT';globalThis.process.exitCode=1;}
-  await mkdir(resolve('artifacts/scrapyjs'),{recursive:true});await writeFile(output,JSON.stringify(report,null,2)+'\n');
+  await mkdir(dirname(output),{recursive:true});await writeFile(output,JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({status:report.status,report:output,previews:report.previews.map(row=>({pages:row.pagesVisited,records:row.recordsCount})),stop:report.stop,approvals}));
 }

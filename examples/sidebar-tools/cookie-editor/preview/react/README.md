@@ -6,6 +6,16 @@
 
 ## R3.7 当前阶段：仅 dev，不构建（2026-10-27）
 
+### 账号 UI 自动检查（2026-10-31）
+
+在本目录执行 `npm run check:accounts`，复用原 Chromium runner，仅检查正常窗口下的空账号、3 个账号、搜索出现/无结果、领取入口与返回焦点、相邻区块 token 间距及模拟分享边界。失败返回非零，并保留失败截图。不会执行缩放/宽度矩阵、全量构建或安装。首次使用须已有本目录锁定依赖（`npm ci --ignore-scripts --no-audit --no-fund`）；本机默认使用现有 Google Chrome，其他环境沿用 `CHROME_BIN`。
+
+命令优先复用原 `43134/dev.html` 服务；默认端口没有服务时才临时启动本项目原 Vite，结束后关闭自己创建的服务。不会重启他人的服务或写 Browser 的 `dist/development`。
+
+`npm run check:accounts:watch` 持续监听本工具源码/检查与共享样式、固定 UI 资源，变更后自动合并触发，同一监听进程内串行执行。停止用 Ctrl+C。结果位于 `artifacts/cookie-editor-account-ui/latest.json`；原始 Chromium 回执、截图按运行目录保留。
+
+相关源码、检查脚本、浏览器、Node 与默认检查条件未变，最近一次成功且证据文件完整时，输出 **REUSED** 并给出原执行时间；它不是重新执行的 PASS。失败、源码漂移或证据缺失不会复用。需要新执行用 `npm run check:accounts -- --fresh`。缓存不依赖 Git HEAD，因此无关提交不会单独触发重检；这是 Mock 开发证据，不能替代真实安装、权限或 Native 验收。既有 Cookie React CI 在相关提交后自动执行 `--fresh` 并上传原始证据。
+
 在本目录使用 Node 24 运行 `npm run dev`，固定监听 `127.0.0.1:43134`，端口占用直接失败。
 
 - `/dev.html` 由 Vite 直接转换现有 `src/main.jsx` → 同一正式 `app/CookieEditorApp.jsx`；不读取旧生成 `index.html`。

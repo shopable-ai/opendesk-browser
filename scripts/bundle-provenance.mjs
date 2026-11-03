@@ -23,9 +23,9 @@ const compiledTimeReviewInputs=Object.freeze({
 const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'710c61aa3d3f5e8b577ee40cb74de36c88062259',
-  'projects/webflow/trusted/CurrentTask.tsx':'7f014bb5c49e971b001b145b8c9243f44a0ad929',
-  'projects/webflow/trusted/RuntimePanel.tsx':'2faa174b138f045b66104a409d022758a376e55d'
+  'projects/webflow/trusted/AutoSettings.tsx':'2f66954a13d87c792b14535bd099b2a639758230',
+  'projects/webflow/trusted/CurrentTask.tsx':'0ca9c7401abddf81f17e3d00b656e23f47df831b',
+  'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){
   if(!Object.hasOwn(compiledWebFlowInputs,path)||
@@ -189,10 +189,14 @@ const compiledCookieAccountInputs=Object.freeze({
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
   // Verified same-site manual recovery settles only the unchanged tab fence;
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'f5addf371f529393004d7f9c35c55d7d5cf04a4e',
+  // 2026-11-02 exact-source review: corrupt-vault inspection/revocation keeps
+  // accounts unverified and preserves commit, ownership and unknown fences.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'ec2750e5945198d87a60606a40875ffe3f1f3482',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
-  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
+  // Reuse the exact independently reviewed upgrade-order DTO source; pending
+  // invitations remain separated from complete metadata and cannot re-dispatch.
+  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6aa681f2c82299471f55586e9783d21dee95128e',
   // Full saved-Cookie scope is checked before and after encryption and again
   // before POST; durable unknown fences never replay a consumed request.
   'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',

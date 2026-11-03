@@ -3,7 +3,7 @@ import hashlib
 import json
 import re
 from functools import lru_cache
-from cssselect import HTMLTranslator, SelectorError
+from cssselect import HTMLTranslator, SelectorError, parse as parse_css
 from scrapling import Selector
 from .errors import Fault
 
@@ -24,6 +24,21 @@ def css(selector):
     if re.match(r'^(?:\.?/|\.\.?(?:/|$)|[a-z-]+::)', selector):
         raise Fault('NOT_SUPPORTED', 'XPath is not supported by local-runner')
     try:
+        def named_namespace(value):
+            if isinstance(value, (list, tuple)):
+                return any(named_namespace(child) for child in value)
+            props = getattr(value, '__dict__', {})
+            return (props.get('namespace') not in (None, '', '*') or
+                    any(named_namespace(child) for child in props.values()))
+        # Namespace predicates may not execute against an empty document.
+        # Inspect the parsed CSS tree, including :not/:is/:has arguments;
+        # quoted pipe characters and |= attribute operators are not prefixes.
+        if named_namespace(parse_css(selector)):
+            raise SelectorError('Namespace prefixes are not supported')
+        # This protocol selects elements; text/attribute reads are separate
+        # metadata. Scrapling also accepts projections returning strings, which
+        # must never reach query() or start a worker as valid element selectors.
+        HTMLTranslator().css_to_xpath(selector)
         Selector('<html></html>', adaptive=False).css(selector)
     except Exception:
         raise Fault('INVALID_SELECTOR', 'Invalid CSS selector') from None
@@ -142,7 +157,7 @@ def _scope_expression(selector):
     try:
         expression = translator.css_to_xpath(selector)
     except SelectorError:
-        # Keep Scrapling's own extensions on its normal CSS path.
+        # Unscoped selectors use Scrapling's normal CSS path.
         return None
     return expression if translator.scoped else None
 

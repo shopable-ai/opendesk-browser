@@ -3,9 +3,14 @@
   "scope": "Preview candidate only: runtime presentation and accessibility; no authority or business transitions changed",
   "replacements": [
     {
+      "id": "summary-layout-hook",
+      "from": "function ScopeSummary({scope}:{scope:WebflowAutoScope}){\n return <div className=\"od-stack\">",
+      "to": "function ScopeSummary({scope}:{scope:WebflowAutoScope}){\n return <div className=\"od-stack wf-runtime-scope-summary\">"
+    },
+    {
       "id": "review-ready-focus",
       "from": " const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);",
-      "to": " React.useLayoutEffect(()=>{\n  if(!prepared||!compact||!panelOpen)return;\n  const review=document.getElementById('webflow-auto-review');\n  review?.scrollIntoView?.({block:'nearest'});review?.focus({preventScroll:true});\n },[prepared,compact,panelOpen]);\n const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);"
+      "to": " React.useLayoutEffect(()=>{\n  if(!prepared||!compact||!panelOpen)return;\n  const review=document.getElementById('webflow-auto-review');\n  review?.scrollIntoView?.({block:'start'});review?.focus({preventScroll:true});\n },[prepared,compact,panelOpen]);\n const lastSnapshot=React.useRef<WebflowAutoSnapshot|null>(null);"
     },
     {
       "id": "review-ready-status",

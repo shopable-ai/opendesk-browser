@@ -638,11 +638,20 @@ function freshControl(b,executorId){
             // An authenticated external client may read only its OWN immutable
             // task pins and result-consent scope. No admin or executor token,
             // internal credentials, or executable source is exposed.
-            exact(b,[],['includeTaskSchemas']);
+            exact(b,[],['includeTaskSchemas','includeAvailability']);
             if(Object.hasOwn(b,'includeTaskSchemas')&&typeof b.includeTaskSchemas!=='boolean')fail('E_SCHEMA');
+            if(Object.hasOwn(b,'includeAvailability')&&typeof b.includeAvailability!=='boolean')fail('E_SCHEMA');
             out={clientId:client.clientId,providerId:state.providerId,
               executorId:client.executorId,grantId:client.grantId,
               tasks:structuredClone(client.tasks),allowResult:client.allowResult===true};
+            if(b.includeAvailability===true){
+              const owner=state.executors[client.executorId],session=pullSessions.get(client.executorId);
+              const socket=[...sockets.values()].some(value=>(value.executorId??value)===client.executorId);
+              const pull=session?.expiresAt>clock()&&session.grantId===owner.grantId&&
+                session.pairingId===owner.pairingId&&session.pairingGeneration===owner.pairingGeneration;
+              out.availability={state:owner.suspendedAt?'NOT_AUTHORIZED':socket||pull?'READY':'NOT_CONNECTED',
+                transport:owner.suspendedAt?'none':socket?'wss':pull?'https-pull':'none'};
+            }
             if(b.includeTaskSchemas===true){
               // A trusted BFF can render a form for ONLY this Client's approved
               // registry pins. Never return manifests, program bytes or credentials.
@@ -665,8 +674,19 @@ function freshControl(b,executorId){
             break;
           }
           case '/v1/job-status':{
-            exact(b,['jobId']);
-            const j=clientJob(b.jobId,client);
+            // A BFF may lose the submit response before persisting JobId.
+            // Recover only the original request in this exact client/pairing
+            // namespace. This observation never calls once() or dispatches.
+            exact(b,[],['jobId','requestKey','includeEvidence']);
+            if(Object.hasOwn(b,'jobId')===Object.hasOwn(b,'requestKey'))fail('E_SCHEMA');
+            if(Object.hasOwn(b,'includeEvidence')&&typeof b.includeEvidence!=='boolean')fail('E_SCHEMA');
+            let jobId=b.jobId;
+            if(Object.hasOwn(b,'requestKey')){
+              if(!nonempty(b.requestKey)||b.requestKey.length>150)fail('E_SCHEMA');
+              const scope='external:'+client.clientId+':'+client.pairingId+':';
+              jobId=state.requests[scope+b.requestKey]?.answer?.jobId;
+            }
+            const j=clientJob(jobId,client);
             const status=j.receipt?.result?.state||
               (j.cancelled?(j.runRef?'OUTCOME_UNKNOWN':'cancelled'):
                 j.state==='admitted'&&j.assignment?.leaseUntil<=clock()?'OUTCOME_UNKNOWN':
@@ -674,6 +694,8 @@ function freshControl(b,executorId){
                 j.state);
             const full=j.receipt?.result;
             out={jobId:j.jobId,state:status,receiptConfirmed:!!j.receipt};
+            if(b.includeEvidence===true&&full?.retirementState==='released')
+              out.retirementState='released';
             if(client.allowResult===true&&j.resultAllowed===true&&full?.visibility==='full'){
               out.result={state:full.state,
                 ...(Object.hasOwn(full,'valueWire')?{valueWire:full.valueWire}:{}),
@@ -684,6 +706,8 @@ function freshControl(b,executorId){
                 out.trace={requestId:j.runRef.requestId,runId:j.runRef.runId,
                   resultId:j.runRef.resultId,receiptId:j.receipt.receiptId,
                   receiptDigest:j.receipt.digest};
+              if(b.includeEvidence===true&&j.assignment?.assignmentId)
+                out.assignmentId=j.assignment.assignmentId;
             }
             break;
           }

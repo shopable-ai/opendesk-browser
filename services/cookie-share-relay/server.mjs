@@ -74,6 +74,11 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
       FOREIGN KEY(invite_id) REFERENCES invitations(id)
     );
     CREATE INDEX IF NOT EXISTS idx_pairs_invite ON pair_requests(invite_id);
+    CREATE TABLE IF NOT EXISTS invite_creations (
+      operation_ref TEXT PRIMARY KEY, invite_id TEXT NOT NULL UNIQUE,
+      request_hash TEXT NOT NULL,
+      FOREIGN KEY(invite_id) REFERENCES invitations(id)
+    );
   `);
   // Expired/revoked/consumed invites must never retain encrypted sessions or
   // device pairing public keys indefinitely. Safe to call across restarts.
@@ -94,8 +99,7 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
     if(invitation.expires_at<=clock())throw fail('E_INVITE_EXPIRED',410);
     return invitation;
   };
-  const gate=(id,managerSecret)=>{
-    const invitation=validInvite(id);
+  const managerGate=(invitation,managerSecret)=>{
     if(typeof managerSecret!=='string'||!ID.test(managerSecret))
       throw fail('E_MANAGE_FORBIDDEN',403);
     const a=Buffer.from(invitation.manager_hash,'hex');
@@ -103,6 +107,7 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
     if(a.length!==b.length||!timingSafeEqual(a,b))throw fail('E_MANAGE_FORBIDDEN',403);
     return invitation;
   };
+  const gate=(id,managerSecret)=>managerGate(validInvite(id),managerSecret);
   const trans=fn=>{
     db.exec('BEGIN IMMEDIATE');
     try{const result=fn();db.exec('COMMIT');return result;}
@@ -112,7 +117,7 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
     description:i.description,mode:i.mode,expiresAt:i.expires_at,
     remainingClaims:Math.max(0,i.max_claims-i.claims),revoked:Boolean(i.revoked)});
   const operations={
-    create(body){
+    create(body,credential){
       if(!body||typeof body!=='object'||Array.isArray(body))throw fail('E_REQUEST');
       const origin=validOrigin(body.origin);
       const displayName=word(body.displayName,64);
@@ -124,12 +129,39 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
       if(!Number.isSafeInteger(expiresIn)||expiresIn<300||expiresIn>MAX_AGE||
         !Number.isSafeInteger(maxClaims)||maxClaims<1||maxClaims>10||
         (mode==='session'&&maxClaims!==1))throw fail('E_LIMIT');
-      const id=random(),managerSecret=random(),expiresAt=clock()+expiresIn*1000;
-      db.prepare(`INSERT INTO invitations
-        (id,origin,display_name,description,mode,expires_at,max_claims,manager_hash,created_at)
-        VALUES (?,?,?,?,?,?,?,?,?)`).run(id,origin,displayName,description,mode,
-          expiresAt,maxClaims,hex(managerSecret),clock());
-      return {invite:metadata(find(id)),url:`${publicOrigin}/i/${id}`,managerSecret};
+      const operationRef=body.operationRef;
+      if(operationRef!==undefined&&
+        (typeof operationRef!=='string'||!ID.test(operationRef)||
+         typeof credential!=='string'||!ID.test(credential)))throw fail('E_CREATE_OPERATION');
+      const requestHash=hex(JSON.stringify({origin,displayName,description,mode,expiresIn,maxClaims}));
+      return trans(()=>{
+        if(operationRef!==undefined){
+          const prior=db.prepare('SELECT * FROM invite_creations WHERE operation_ref=?').get(operationRef);
+          if(prior){
+            const invitation=managerGate(find(prior.invite_id),credential);
+            if(prior.request_hash!==requestHash)throw fail('E_CREATE_CONFLICT',409);
+            return {invite:metadata(invitation),url:`${publicOrigin}/i/${invitation.id}`,managerSecret:credential};
+          }
+        }
+        const id=random(),managerSecret=operationRef===undefined?random():credential;
+        const expiresAt=clock()+expiresIn*1000;
+        db.prepare(`INSERT INTO invitations
+          (id,origin,display_name,description,mode,expires_at,max_claims,manager_hash,created_at)
+          VALUES (?,?,?,?,?,?,?,?,?)`).run(id,origin,displayName,description,mode,
+            expiresAt,maxClaims,hex(managerSecret),clock());
+        if(operationRef!==undefined)db.prepare(`INSERT INTO invite_creations
+          (operation_ref,invite_id,request_hash) VALUES (?,?,?)`).run(operationRef,id,requestHash);
+        return {invite:metadata(find(id)),url:`${publicOrigin}/i/${id}`,managerSecret};
+      });
+    },
+    creation(operationRef,managerSecret){
+      if(typeof operationRef!=='string'||!ID.test(operationRef))throw fail('E_CREATE_OPERATION');
+      const prior=db.prepare('SELECT invite_id FROM invite_creations WHERE operation_ref=?').get(operationRef);
+      // Ref knowledge alone must not disclose even the invitation identity.
+      if(!prior)throw fail('E_MANAGE_FORBIDDEN',403);
+      const invitation=managerGate(find(prior.invite_id),managerSecret);
+      // Read the durable receipt even after expiry/revocation; never recreate.
+      return {invite:metadata(invitation),url:`${publicOrigin}/i/${invitation.id}`};
     },
     public(id){return metadata(validInvite(id));},
     pair(id,body){
@@ -274,8 +306,11 @@ export function createShareHttpServer(relay){
         return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>在已接通配置领取的 OpenDesk 版本中：打开上述网站 → Cookie Editor → 账号 → 领取分享配置，将当前邀请链接粘贴到领取入口。旧版本需先更新。本页不会写入 Cookie 或自动登录；配置领取不等于会话移交。</p></html>`);
       }
       const match=/^\/v1\/invites\/([A-Za-z0-9_-]{22,80})(?:\/(pairs|pair|deliver|challenge|claim|revoke))?$/.exec(path);
+      const creation=/^\/v1\/invite-creations\/([A-Za-z0-9_-]{22,80})$/.exec(path);
+      if(req.method==='GET'&&creation)
+        return json(res,200,relay.operations.creation(creation[1],req.headers['x-opendesk-invite-manager']));
       if(req.method==='POST'&&path==='/v1/invites')
-        return json(res,201,relay.operations.create(await readJson(req)));
+        return json(res,201,relay.operations.create(await readJson(req),req.headers['x-opendesk-invite-manager']));
       if(!match)throw fail('E_NOT_FOUND',404);
       const [,id,action]=match;
       const manager=req.headers['x-opendesk-invite-manager'];

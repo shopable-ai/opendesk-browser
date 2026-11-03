@@ -2,10 +2,11 @@ import * as React from 'react';
 import {CookieIconButton} from './CookieEditorView.jsx';
 
 const messages={
-  E_SHARE_HTTPS_REQUIRED:'请输入两端设备均信任证书的 HTTPS 地址。',
+  E_PREVIEW_ONLY:'交互预览仅展示领取表单，不连接分享服务或领取真实配置。',
+  E_SHARE_HTTPS_REQUIRED:'分享服务地址须使用有效的 HTTPS 地址。',
   E_SHARE_URL:'请输入完整的 HTTPS 分享服务地址或邀请链接。',
   E_SHARE_PERMISSION_REQUIRED:'未获得分享服务连接权限，请在可信提示中允许该地址。',
-  E_SHARE_NETWORK:'无法连接分享服务，请检查局域网与证书。',
+  E_SHARE_NETWORK:'无法连接分享服务，请稍后查看服务状态。',
   E_SHARE_RESPONSE:'分享服务返回了无效响应。',
   E_SHARE_DEVICE_KEY_STORAGE_REQUIRED:'安全设备私钥存储尚未通过恢复合同验证，会话传递暂不可用；请仅领取配置并在网站正常登录。',
   E_OUTCOME_UNKNOWN:'操作结果未知，已停止；不会自动重试或重复领取。请核对服务状态。',
@@ -58,6 +59,8 @@ export function CookieAccountShareLive({account,onBack,request,copy}){
   const [relay,setRelay]=React.useState(''),[expiry,setExpiry]=React.useState('86400');
   const [maxClaims,setMaxClaims]=React.useState('1'),[invite,setInvite]=React.useState(null);
   const [existing,setExisting]=React.useState([]);
+  const [checkedExisting,setCheckedExisting]=React.useState(false);
+  const [creationReady,setCreationReady]=React.useState(false);
   const [pairs,setPairs]=React.useState([]),[reviewed,setReviewed]=React.useState('');
   const [delivery,setDelivery]=React.useState(null);
   const {busy,notice,setNotice,run}=useShareRequest(request);
@@ -65,9 +68,14 @@ export function CookieAccountShareLive({account,onBack,request,copy}){
   const create=()=>run('shareCreate',{alias:account.alias,accountVersion:account.version,
     relayOrigin:relay.trim(),expiresInSeconds:Number(expiry),
     maxClaims:mode==='session'?1:Number(maxClaims),mode},setInvite);
-  // Unknown creates have no safely recoverable server ID. Prevent a second
-  // click from being mistaken for a retry of that first invitation.
+  // The durable account fence remains authoritative after this view closes.
+  // Recovery queries an existing operation; it never submits another create.
   React.useEffect(()=>{if(notice===messages.E_OUTCOME_UNKNOWN)setUnknown(true);},[notice]);
+  const pending=existing.some(item=>item.pending||['creating','revoking'].includes(item.phase));
+  const acceptStatus=item=>{
+    setExisting(rows=>rows.map(row=>row.ref===item.ref?item:row));
+    if(item.invite){setInvite(item);setMode(item.invite.mode);}
+  };
   const session=(invite?.invite.mode||mode)==='session';
   return <ShareFrame title={session?'分享会话':'分享配置'} onBack={onBack} busy={busy}>
     <p className="cookie-account-notice">{session
@@ -83,8 +91,8 @@ export function CookieAccountShareLive({account,onBack,request,copy}){
           <option value="session" disabled={!account.cookieCount}>加密会话快照 · 单次领取</option>
         </select>
       </label>
-      <label className="cookie-share-field">局域网 HTTPS 分享服务
-        <input className="od-field" type="url" aria-label="局域网 HTTPS 分享服务"
+      <label className="cookie-share-field">分享服务地址
+        <input className="od-field" type="url" aria-label="分享服务地址"
           autoComplete="off" value={relay} disabled={busy||Boolean(invite)||unknown}
           onChange={e=>setRelay(e.target.value)}/>
       </label>
@@ -106,13 +114,31 @@ export function CookieAccountShareLive({account,onBack,request,copy}){
         ?'链接只用于发起配对；须核对接收设备的完整指纹后，才向该设备加密交付。'
         :'持有链接的人可领取配置。仅向可信接收方传递，并按需撤销。'}</p>
       <button className="od-button od-button--primary" type="button"
-        disabled={busy||!relay.trim()||Boolean(invite)||unknown} onClick={create}>
+        disabled={busy||!checkedExisting||!creationReady||pending||!relay.trim()||Boolean(invite)||unknown} onClick={create}>
         {busy?'正在处理…':'生成真实邀请'}</button>
+      {!checkedExisting&&<p className="cookie-account-empty">先查看已有邀请，核对是否有尚未确认的创建记录。</p>}
       <button className="od-button od-button--secondary" type="button" disabled={busy}
         onClick={()=>run('shareList',{alias:account.alias},value=>{
-          setExisting(value.invitations);if(!value.invitations.length)setNotice('没有已保存的邀请。');
+          const pending=Array.isArray(value.pendingInvitations)?value.pendingInvitations:[];
+          const invitations=[...value.invitations,...pending];
+          setExisting(invitations);setCheckedExisting(true);
+          const ready=value.creationRecoveryVersion===1&&Array.isArray(value.pendingInvitations);
+          setCreationReady(ready);
+          if(!ready)setNotice('分享功能需要更新 Browser 后再创建邀请。现有邀请仍可查看。');
+          else if(!invitations.length)setNotice('没有已保存的邀请。');
         })}>查看已有邀请</button>
-      {existing.map(item=><button key={item.ref} className="od-button od-button--secondary"
+      {existing.filter(item=>item.pending||['creating','revoking'].includes(item.phase)).map(item=><div key={item.ref}
+        className="cookie-market-detail" role="status">
+        <strong>{item.phase==='creating'?'创建结果未知':item.phase==='revoking'?'撤销结果未知':'操作结果未知'}</strong><code>{item.ref}</code>
+        <p className="cookie-account-empty">{item.recoveryAvailable
+          ?'已保留原创建身份。只读查询原结果，不会重新发送创建请求。'
+          :'原记录缺少可用的服务端关联或管理权限；继续保留未知状态，不会补发或清除记录。'}</p>
+        {item.recoveryAvailable&&<button className="od-button od-button--secondary" type="button"
+          disabled={busy} onClick={()=>run('shareStatus',{ref:item.ref},acceptStatus)}>只读查询创建结果</button>}
+        {!item.recoveryAvailable&&item.statusAvailable&&<button className="od-button od-button--secondary" type="button"
+          disabled={busy} onClick={()=>run('shareStatus',{ref:item.ref},acceptStatus)}>只读查询邀请状态</button>}
+      </div>)}
+      {existing.filter(item=>item.invite&&!item.pending).map(item=><button key={item.ref} className="od-button od-button--secondary"
         type="button" disabled={busy} onClick={()=>{
           setRelay(new URL(item.url).origin);setMode(item.invite.mode);setInvite(item);
           setPairs([]);setReviewed('');setDelivery(null);
@@ -181,8 +207,8 @@ export function CookieAccountReceive({onBack,request,origin}){
   const claimed=value=>{setReceipt(value);setReceived(true);};
   return <ShareFrame title="领取分享" onBack={onBack} busy={busy}>
     <div className="cookie-share-form">
-      <label className="cookie-share-field">HTTPS 邀请链接
-        <input className="od-field" type="url" aria-label="HTTPS 邀请链接" autoComplete="off"
+      <label className="cookie-share-field">邀请链接
+        <input className="od-field" type="url" aria-label="邀请链接" autoComplete="off"
           value={url} disabled={busy||received||unknown}
           onChange={e=>{setUrl(e.target.value);setInspection(null);}}/>
       </label>

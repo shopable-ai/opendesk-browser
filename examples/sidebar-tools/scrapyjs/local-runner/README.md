@@ -28,7 +28,7 @@ master 文件也可由可信 Host 配置，必须为当前用户拥有、无组/
 | `GET /health` | 无鉴权；`{status:"ok",service:"scrapyjs-local-runner",version:"1.7.0",scraplingVersion:"0.5"}` |
 | `POST /v1/session` | master bearer + `{owner,origin,scope}` → `{token,tokenType:"Bearer",expiresAt,expiresIn:900,owner,origin,scope}`；expiresAt 为 Unix 秒。owner 为可信 Host 提供的 `toolId:installEpoch:packageHash` 安装身份（最多 256 字符）。相同 owner 可刷新；旧 token 到期前仍有效，不触发任务重放。 |
 | `POST /v1/revoke` | master bearer + `{owner}` → `{revoked:true,workerExited:true}`；先撤销该 owner 全部 sessions 并等待它的 worker 真退出。收尾失败返回 503，不假报成功；不影响其他 owner。 |
-| `POST /v1/runs` | `{requestId,mode:"preview"\|"full",config,previewPages?:1..3,previewRunId?,configHash?}` → snapshot（202，新建；200，完全相同请求幂等返回）。full 必须提供已成功非空 preview 的 ID 与 hash，并逐字节规范化比较同一 config/owner/scope。previewPages 默认 1，只限制 preview，不修改 config。 |
+| `POST /v1/runs` | `{requestId,mode:"structure"\|"preview"\|"full",config,previewPages?:1..3,previewRunId?,configHash?}` → snapshot（202，新建；200，完全相同请求幂等返回）。full 必须提供已成功非空 preview 的 ID 与 hash，并逐字节规范化比较同一 config/owner/scope。previewPages 默认 1，只限制 preview，不修改 config。 |
 | `GET /v1/runs/by-request/{requestId}` | **路由在 `/{id}` 之前**；同 owner/scope 只读查原任务，可恢复响应未知的 POST，找不到为 404。禁止用新的 requestId 重试未知请求。 |
 | `GET /v1/runs/{id}` | snapshot |
 | `GET /v1/runs/{id}/records?offset=0&limit=50` | `{records,total,offset}`，offset 0..2000，limit 1..200 |
@@ -45,6 +45,18 @@ snapshot 固定字段：
 
 状态：`RUNNING → COMPLETED | FAILED | STOPPED`；停止处理中可见 `STOPPING`。服务启动先取得 data-dir 独占锁，旧未终态转 `INTERRUPTED`，不自动重跑；终态只在进程确认退出后 `workerExited:true`。错误统一 `{error:{code,message}}`（400/401/403/404/409/413/415/422/429/503），snapshot.errors 为 `{code,message}` 数组。403/404 不泄露其他 owner/scope 的任务。requestId 在 owner 内永久幂等：配置或 mode 等变化返回 `409 IDEMPOTENCY_CONFLICT`，不创建第二任务。总并发 1，无无界队列；忙时新请求 `409 WORKER_BUSY`。
 
+## 网页结构任务（开发协议增量，2026-11-01）
+
+仍使用原 `POST /v1/runs`，`mode:"structure"`，`config` 仅允许 `{url,inputHash,maxPages,previewPages}`。`inputHash` 为 `sha256:<64位小写十六进制>`，绑定 App 当前网址、中文需求／纠正、模式、规则修订和预算；服务仅保存摘要，不需要中文原文。两个 config 预算是用户后续完整／试采预算（1–50／1–3）；顶层 `previewPages` 固定为 1 或省略，结构始终只下载一页。禁止附带采集选择器、可执行代码或 full/preview 身份。
+
+结果是同一 snapshot＋原 records 的单记录：`{format:"scrapyjs.static-structure.v1",url,inputHash,sourceHash,fetchedAt,sample,truncated}`。url 为最终同源响应网址，sourceHash 为**同次原始响应字节** SHA256。只用原 Downloader（robots、DNS/IP pin、重定向、匿名无 Cookie、2 MiB 响应等保护保持），不读浏览器 DOM或执行 JS。结构读取有45秒合作式检查与父进程兜底，超时为失败；父进程按原有限 terminate/kill/join 等待实际退出。HTTP socket timeout仍为15秒，Stop/撤权走同一收尾。
+
+样本排除 head、脚本、表单、iframe等区域，只保留有限元素、常见选择器／字段属性与截短文本，最多400节点、16层、8000 UTF-8字节；JSON编码预算也受限，原16 KiB单记录门禁保持。`truncated:true` 明示省略，不代表完整网页或动态渲染。普通采集 DSL 的 HTML 读取仍明确拒绝；structure 任务不伪装普通采集记录。
+
+沿用同 owner/scope、请求幂等、by-request查询、Stop、重启中断、撤权和保留上限。结构永不设置 previewPassed，不能作为 full 的 previewRunId。App 使用独立指针保留采集任务；老版本服务会拒绝新模式，不自动换请求ID、重放或退化到不受限下载。
+
+定向验证：`.venv/bin/python -m unittest discover -s tests -p test_structure.py -v`；真实公共桥接传输验证：仓库根 `node examples/sidebar-tools/scrapyjs/tests/local-host-integration.mjs --structure-only`。前者覆盖本服务／真实HTTP／Worker，后者复用原Host适配器但安装／存储与可信审阅是测试替身，均不能冒充Chrome安装态通过。
+
 ## 原 DSL 保真与明确限制
 
 已读取 `../src/app-model.js`、`../adapters/capture-policy.js`、`../vendor/scrapyjs/src/item/ItemLoader.js` 与 `item-loader-extraction.js`。
@@ -52,6 +64,10 @@ snapshot 固定字段：
 支持原 `url,itemConfig,nextPageSelector,maxPages,dedupeKey,timeoutMs,waitForSelector`。`_listContainer` 的**直接子元素**按 `_listItem` 过滤，重叠容器不重复；无 listContainer 时单个对象记录。`.` 选择当前项；其余 CSS 限定为后代查询。CSS 字符串末尾 `::text/::innerText/::<attr>`、描述符 `read:text|attr`、`cardinality:one|many|auto`、嵌套字段。`one` 多匹配报错；`many` 始终数组；`auto` 0/1/多为 `""`/标量/数组。原 ItemLoader 空字段是空串而非 null；无匹配列表原 parse 为 null，这里 records 规范化为 []。JSONL/CSV 不擅自改写空串、列表或 JSON null。默认 a 取文本或 href，img/video/audio 取 src；attr 保留原相对 URL，不偷偷转绝对链接。按当前 vendor 的 read()，`::text`、`::innerText` 与描述符 `read:"attr",attr:"text"|"innerText"` 都是保留文本读取；`read:"text"` 同样读取文本，其他 attr 读取原始属性值。
 
 分页仅同 scope 的静态下一页链接，disabled/aria-disabled 结束；不模拟 click、JS、登录或滚动。waitForSelector 仅检查下载后的静态 HTML，不等待 JS。`detail,processing,validation,fieldRequirements`、XPath、HTML 读取、未知配置/描述符均明确 `422 NOT_SUPPORTED` 或 `INVALID_CONFIG`，不丢弃。
+
+本机协议优先使用 `{selector,read,attr?,cardinality?}`：`selector`、列表/条目范围、等待和下一页均只能选择元素。Scrapling 原生 `.title::text` / `::attr(...)` 投影不能放进这些 CSS 位置，会在创建任务前明确拒绝；合法的字符串字段末尾读取（如 `a::href`）仍按本机协议解释。固定任务的 AI 纠正允许等价语法和选择器变化，但不静默改变读取属性或 cardinality；有意改变字段需求须重新绑定规则与试采。这不表示当前 HTTP JSON 就是 Scrapling 原生 API，也不调用旧 JS 执行器。
+
+默认读取转显式描述符只在可证明等价时接受：明确文本元素为 text，img/video/audio 为 src，a 保留文本为空时回退 href。未能从最终元素类型证明含义的默认规则，保留原选择器与默认模式。缺省 `_listItem` 和 `*` 均取全部直接子元素。CSS 注释可用；服务未开放命名空间映射，未绑定前缀会在创建前 `INVALID_SELECTOR`，不留失败 run。
 
 ## 生命周期、安全和预算
 

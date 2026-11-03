@@ -16,8 +16,8 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
-  'trusted/account-service.js':'f5addf371f529393004d7f9c35c55d7d5cf04a4e',
-  'trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
+  'trusted/account-service.js':'ec2750e5945198d87a60606a40875ffe3f1f3482',
+  'trusted/account-share.js':'6aa681f2c82299471f55586e9783d21dee95128e',
   'trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
   'trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
   'trusted/service-connections.js':'fcba7f4eae2d3dcc43a066eedc0f0b6f7d284bd9',

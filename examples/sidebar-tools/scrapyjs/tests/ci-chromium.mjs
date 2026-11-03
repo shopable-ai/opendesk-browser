@@ -9,8 +9,10 @@ import {createHash} from 'node:crypto';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {build} from 'esbuild';
+import {officialDesignSources} from '../../../../scripts/preview/shared-tool-design.mjs';
 const root=resolve('examples/sidebar-tools/scrapyjs');
 const out=resolve(process.argv[2]||'artifacts/app-ci/scrapyjs/chrome');
+const inputsOnly=process.argv.includes('--capture-inputs-only');
 assert(process.env.CHROME_BIN,'Real Chrome required');
 await mkdir(out,{recursive:true});
 const assetFiles={
@@ -22,6 +24,17 @@ const assetFiles={
  '/tool.css':join(root,'dist/tool.css')};
 const assets=Object.fromEntries(await Promise.all(Object.entries(assetFiles)
   .map(async ([url,path])=>[url,await readFile(path)])));
+const toolReceipt=JSON.parse(await readFile(join(root,'dist/build-ready.json'),'utf8'));
+for(const [name,expected] of Object.entries({...toolReceipt.sources,...toolReceipt.files})){
+ const bytes=await readFile(join(root,name));
+ assert.equal(bytes.length,expected.bytes,'source/build bytes: '+name);
+ assert.equal(createHash('sha256').update(bytes).digest('hex'),expected.sha256,'source/build drift: '+name);
+}
+assert.equal(createHash('sha256').update(assets['/tool.js']).digest('hex'),toolReceipt.files['dist/tool.js'].sha256);
+assert.equal(createHash('sha256').update(assets['/tool.css']).digest('hex'),toolReceipt.files['dist/tool.css'].sha256);
+// Match the existing offline preview's canonical visual source. This is a test
+// page; the installed sandbox still receives its original public Shared UI.
+assets['/preview-tokens.css']=Buffer.from((await officialDesignSources()).tokens);
 const config=JSON.parse(await readFile(join(root,'tool.config.json')));
 const task=config.delegatedTasks.find(x=>x.taskId==='scrapyjs.capture');
 assert(task?.manifestHash&&task?.contentHash);
@@ -47,14 +60,14 @@ const sharedUI=await build({
 assets['/shared-ui.js']=Buffer.from(sharedUI.outputFiles[0].contents);
 const page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
- '<link rel="stylesheet" href="/tool.css"></head><body><div id="tool-root"><div id="tool-app"></div></div>'+
+ '<link rel="stylesheet" href="/preview-tokens.css"><link rel="stylesheet" href="/tool.css"></head><body><div id="tool-root"><div id="tool-app"></div></div>'+
  '<script>window.__opendeskPreviewScenario="success";window.__opendeskPreviewTask='+JSON.stringify(task)+';</script>'+
  ['/mock.js','/react.js','/shared-ui.js','/sdk.js','/model.js','/tool.js']
  .map(src=>'<script src="'+src+'"></script>').join('')+'</body></html>';
 const server=createServer((req,res)=>{
  const name=req.url?.split('?')[0];
  if(name!=='/'&&!Object.hasOwn(assets,name)){res.writeHead(404);res.end();return;}
- res.setHeader('content-type',name==='/'?'text/html;charset=utf-8':name==='/tool.css'?'text/css':'text/javascript');
+ res.setHeader('content-type',name==='/'?'text/html;charset=utf-8':name.endsWith('.css')?'text/css':'text/javascript');
  res.end(name==='/'?page:assets[name]);
 });
 await new Promise((ok,bad)=>{server.once('error',bad);server.listen(0,'127.0.0.1',ok);});
@@ -93,7 +106,10 @@ async function click(selector){
  assert.equal(ok,true,'Enabled control missing: '+selector);
 }
 const report={status:'STARTED',kind:'CHROMIUM_ORIGINAL_REACT_SHARED_PRESENTATION_SIMULATED_SDK',sourceCommit:process.env.GITHUB_SHA||null,
- installed:false,realCapture:false,network:false,android:false,checks,errors};
+ installed:false,realCapture:false,network:false,android:false,scope:inputsOnly?'capture-inputs-only':'original-ci',checks,errors,
+ candidateVersion:config.version,buildId:toolReceipt.buildId,buildReceipt:toolReceipt,
+ resources:{profile,pid:child.pid,origin:'http://127.0.0.1:'+server.address().port},
+ inputFiles:Object.fromEntries(Object.entries(assets).map(([name,bytes])=>[name,createHash('sha256').update(bytes).digest('hex')]))};
 try{
  let port;
  for(let i=0;i<120;i++){
@@ -119,6 +135,48 @@ try{
  await until('Boolean(document.querySelector("#config-heading")) && '+
    'document.querySelector("#app-notice")?.textContent.includes("已读取保存配置")','React initial state');
  checks.push('Real Chromium renders original React with public shared presentation sources and memory-only SDK mock');
+ if(inputsOnly){
+  await click('#open-local-runner');
+  await until('!document.querySelector("#runner-start-preview").disabled','Independent manual controls');
+  const saved=await read('document.querySelector("#runner-config").value');
+  assert.equal(await read('document.querySelector("#runner-config").closest("details").open'),false);
+  assert.equal(await read('document.querySelector("#capture-url").value'),JSON.parse(saved).url);
+  assert.equal(await read('document.querySelector("#capture-requirement").getClientRects().length>0'),true);
+  assert.match(await read('document.querySelector("#capture-rule-summary").textContent'),/title/);
+  checks.push('Normal URL, Chinese requirement/correction, budget and readable rules precede folded advanced JSON');
+  async function fill(selector,value){
+    await read(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});
+      const prototype=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(prototype,'value').set.call(el,${JSON.stringify(value)});
+      el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  }
+  const requirement='采集书名、作者和价格，缺失价格保留空白';
+  const correction='只取当前书目，不要混入推荐书目';
+  await fill('#capture-requirement',requirement);await fill('#capture-correction',correction);await fill('#capture-budget','20');
+  await click('#close-local-runner');await click('#open-local-runner');
+  assert.equal(await read('document.querySelector("#capture-requirement").value'),requirement);
+  assert.equal(await read('document.querySelector("#capture-correction").value'),correction);
+  assert.equal(await read('document.querySelector("#runner-config").value'),saved);
+  checks.push('Chinese drafts survive workspace return/reopen while full saved/manual JSON stays intact');
+  await click('#runner-start-preview');
+  await until('!document.querySelector("#runner-prepare-full").disabled','Simulated manual preview certification');
+  await click('#runner-prepare-full');await click('#runner-confirm-result');
+  assert.equal(await read('document.querySelector("#runner-start-full").disabled'),false);
+  await fill('#capture-correction',correction+'，保留币种');await fill('#capture-correction',correction);
+  assert.equal(await read('document.querySelector("#runner-prepare-full").disabled'),true);
+  assert.equal(await read('document.querySelector("#runner-start-full").disabled'),true);
+  assert.equal(await read('document.querySelector("#runner-full-confirmation").hidden'),true);
+  checks.push('Editing/reverting Chinese correction invalidates simulated preview and explicit full confirmation');
+  await fill('#capture-url','javascript:alert(1)');await click('#runner-start-preview');
+  await until('document.querySelector("#runner-error").textContent.includes("网址")','Invalid URL is rejected');
+  await fill('#capture-url',JSON.parse(saved).url);await fill('#capture-budget','51');await click('#runner-start-preview');
+  await until('document.querySelector("#runner-error").textContent.includes("预算")','Invalid budget is rejected');
+  await fill('#capture-budget','20');
+  checks.push('Unsafe URL and out-of-range budget produce inline errors before a new simulated run');
+  // Clear the previous expected validation error by one valid, bounded preview.
+  await click('#runner-start-preview');await until('!document.querySelector("#runner-prepare-full").disabled','Fresh simulated preview');
+  await read('document.querySelector("#capture-heading").scrollIntoView({block:"start"})');
+ }else{
  assert.equal(await read('document.querySelector("#config-heading").textContent'),'采集配置');
  assert.equal(await read('document.querySelector("#target-heading").textContent'),'采集目标');
  checks.push('Original capture/target headings preserved');
@@ -134,6 +192,7 @@ try{
  assert.equal(await read('document.querySelectorAll("#record-table tbody tr").length'),2);
  assert.equal(await read('document.querySelector("#record-table").textContent.includes("纯模拟结果")'),true);
  checks.push('Simulated records visible; no live target request');
+ }
  assert.deepEqual(errors,[]);
  const shot=await call('Page.captureScreenshot',{format:'png'});
  const bytes=Buffer.from(shot.data,'base64');
@@ -152,7 +211,10 @@ finally{
  child.kill('SIGTERM');
  await new Promise(ok=>{if(child.exitCode!==null)return ok();child.once('exit',ok);setTimeout(ok,2000).unref();});
  await new Promise(ok=>server.close(ok));
- await rm(profile,{recursive:true,force:true,maxRetries:3}).catch(e=>{errors.push('cleanup: '+e.message);process.exitCode=1;});
+ let profileRemoved=false;
+ await rm(profile,{recursive:true,force:true,maxRetries:3}).then(()=>{profileRemoved=true;}).catch(e=>{errors.push('cleanup: '+e.message);process.exitCode=1;});
+ report.resources={...report.resources,childExited:child.exitCode!==null||child.signalCode!==null,serverClosed:!server.listening,profileRemoved,
+   realAiRequests:0,realCaptureWorkers:0};
  await writeFile(join(out,'receipt.json'),JSON.stringify(report,null,2)+'\n');
  console.log(JSON.stringify({status:report.status,checks:checks.length,realCapture:'NOT_TESTED',error:report.error?.message,errors,receipt:join(out,'receipt.json')}));
 }

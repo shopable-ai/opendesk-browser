@@ -2,6 +2,47 @@
 
 业务页面是后端同源提供的普通 HTML/CSS/JavaScript，不是可信 Side Panel、Provider 或执行器；不引入 React、SDK、第三方资源或前端构建步骤。本目录另有固定 Task 候选和受信维护脚本，页面不加载维护代码或持有 Provider 凭据。后端与 Provider 复用现有开发服务。
 
+## 当前人工 demo（2026-10-30，owner 01a18c80）
+
+接续任务 `01a18c80-2e69-7760-9d09-4e7f1383b805` 已创建无预算完整原版 demo 目标；同一扩展页面策略阻断连续3轮、Provider仍无Executor后，已正式标为 blocked、未完成；旧目标仍 blocked、未完成，交接不改变旧目标生命周期。原服务全部复用，不提交／推送。共享开发恢复已获明确回执，不再等待旧维护或已确认扩展 ID。
+
+本轮真实操作已在独立 Chrome 窗口完成：打开标准页，正常 SidePanel「调试 → 本地开发服务」显示已连接、当前指纹 `ed52e7aea28a`；「我的 → 添加任务 → 浏览任务目录」成功打开，目录为 0 个版本。恢复后的完整客户端 revision 和实际加载路径仍未独立核对。随后浏览器工具对真实任务目录扩展页面明确给出 URL 安全策略拒绝；不换桌面驱动、CDP 或其他控制面绕过。没有导入、验证、安装、配对、Run 或云控 submit 在途，全局输入已释放。
+
+当前需要用户在已打开目录手工导入原包 `examples/tasks/form-fill.v1.opendesk-task.json`，沿原流程验证并安装，再于云控配对同一 Provider、批准原固定任务和需要的结果范围。取得非敏感真实 Executor ID 后继续本文维护绑定和业务页单次提交。新接续原始记录：`.runtime/cloud-mac24dev-20261030-01a18c80/session-status.json`；已有组件证据复用，没有为交接重跑构建或测试。下方旧 owner、桌面占用及目标状态记录均为历史，不替代本段与唯一工作流顶部。
+
+当前只接通原 `sample.form-fill@1.0.0`，不要求执行下方历史1.0.1交付流程。
+
+- 业务入口：`http://127.0.0.1:38001/public/opendesk-cloud-demo/index.html`。
+- 独立原网页观察：`http://127.0.0.1:43111/cloud-proof.html`，业务页「原请求状态」中也有链接。原样输入本次任务姓名、明确查询后，显示原文档ID、HTML摘要、逐次submit/done和接收时间。重复提交不会合并；缺号或非ready起点会标为不完整。没有记录不等于未执行，不能据此重发。
+- 效果页只投影43111服务**当前观察会话**已写盘的被动事实，不访问Provider，不调用Task，不查询浏览器私有存储；不展示同文档其他姓名内容。查询无自动轮询，姓名不进入URL或存储。它不是原生Run/Result/回执校验器，不能单独判定真实云控成功。
+- 本轮重载43111后，旧观察会话原样保留在 `.runtime/cloud-mac24dev-20261030-01a188d9/page-observation/`，前任 owner 的三个会话在 `.runtime/cloud-mac24dev-20261030-01a18bb3/` 下的 `page-observation/`、`page-observation-r2/` 和 `page-observation-root/`。**当前使用 `.runtime/cloud-mac24dev-20261030-01a18c80/page-observation-root-html/`**，为根路径提供普通 HTML 后的新独立会话。完成文字必须独立精确匹配查询姓名（按原页去首尾空白）；残留或不一致文字只标记已隐藏，原始私有记录不改写。不要将旧文档的后续事件拼成新会话；实际任务开始前应由原任务入口打开新文档。若观察服务退出，使用下方命令和**尚不存在**的私有目录恢复；普通Python静态服务器不提供效果查询。
+
+```sh
+node tests/cloud-control/passive-form-proof.mjs /absolute/path/to/fresh-private-evidence-directory
+```
+
+当前服务已运行，无需执行启动命令。已实测业务登录、本人设备1288选择、空历史和效果页空查询。最后Provider实读executors=0/jobs=0、设备NOT_CONNECTED，本轮尚无本地Run或云控submit。正常SidePanel tooltip现已确认真实扩展ID为 `ljclbnojkhhgdpoaaggiihlmidgcoihi`，完整客户端revision为 `ed52e7aea28a2bfe5373a16b8f5024b89bb0ddb06b16d0b0824928eb9b3f5d55`，与发布磁盘记录一致；不再要求重给ID。实际Chrome加载路径、Task安装／配对／授权及执行关联ID仍未取得，旧网页SDK重注入与Native功能未验证。正式GOAL实读为blocked、未完成；当前Cookie持有桌面A/B短段，云控在明确交接前不并发输入／Run／Native。
+
+### 一次性人工准备与后续单次提交
+
+1. 复用上方已确认的真实扩展ID、完整revision及开发连接，不重复索取。实际加载路径仍须独立核对是否为 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`；不能由目录／指纹补造。取得明确操作窗口后继续正常SidePanel流程，不用扩展管理页、Workspace或替代控制面绕过既有拒绝。
+2. 下载业务页原1.0.0包。现行源码中Controller Task入口仍在「我的 → 添加任务 → 浏览任务目录」，并非「扩展」中的Sidebar应用；导入后应为待验证。按原目录流程，用同源、同源码且released的真实Run核对验证，再设为本地可用并安装确定版本。若确需本地验证，仅明确Run一次，保留原Run/Result，不对未知效果重试。已存在有效验证则复用，不额外运行。
+3. 普通固定Task不以Native为前提。只有当前操作确实需要Native且已协调操作窗口时，才运行官方 `opendesk browser setup --extension-id ljclbnojkhhgdpoaaggiihlmidgcoihi`，在扩展明确授权连接，再用 `opendesk browser doctor` 核对；此前doctor仅曾观察到未安装／未连接，不能用扩展ID确认替代Native配对。不要手改allowed_origins。Provider后续生成的Executor ID与此32位扩展ID是两个字段，不能互换。
+4. 「云控 → 连接设置与解除配对」填写原Provider地址 `http://127.0.0.1:43112`、本页列出的固定Provider ID和本机私有admin.json中的一次性配对码，勾选「使用本机演示连接」，点击「完成配对」。只批准原1.0.0、原43111站点及所需最小结果回传，不选择其他任务。
+5. 保留云控页面显示的真实Executor ID，由维护者运行本文已有 `bind-provider.mjs --executor <真实ID> --login-file <私有登录文件>`。本demo需查看结果及关联身份，明确批准结果回传后追加 `--allow-result`。该脚本另作受限外部Client授权，Token只交服务端；不要在网页或对话中粘贴凭据。当前没有Executor，所以**此步尚未执行**。
+6. 业务页登录、选择本人设备、刷新至READY。点击「新建请求」，填写唯一姓名，再只点一次「提交一次」。以后只用「查询原请求」或历史恢复；UNKNOWN、超时或回执缺失都不换键重提。
+7. 分别核对状态、原Result、released和回执，保存requestKey/jobId/assignmentId/runId/resultId/receiptId；另开效果页输入同一姓名，核对原文档唯一提交及完成文字。观察文档ID不是Chrome原生documentId，仍需与原执行身份关联。取消登记、Worker停止、资源释放须分别核对，不能用其中一项替代其他项。
+
+首轮三个相关组件文件26项通过；收紧完成文字后，观察查询／页面11项通过，业务页面16项有效组件证据复用，未重复执行。这些不是Chrome任务执行证据。真实取消／幂等保护须在正常demo成功后继续按当前合同完成，不用组件结果冒充。当前完整实况以[唯一联调工作流顶部](../../../docs/framework/workstreams/mac24dev-chrome-integration-20261029-01a1884d.md)为准。
+
+### Root快捷URL的独立接收日志
+
+为Cookie既有 `http://127.0.0.1:43111/#od-account=<alias>` 合同提供辅助网络证据，服务仅对精确 `GET /` 写私有 `root-requests.jsonl`，每行只有 `path:"/"`、服务端 `receivedAt`、递增 `requestSeq`。不保存Cookie、header、query或hash，HEAD和其他路径不计入，不提供日志下载接口。2026-10-30 19:41起，根路径在日志写盘后返回 HTTP200 普通 HTML；页面无脚本、observer、重定向或账号处理，仅含标准测试页链接，保持 no-store。HEAD返回同一文档头和空正文，query路径仍404；demo-form原页面、观察事件和冻结Task不变。此前root404属于旧会话行为。
+
+当前日志路径：`/Users/mac/Documents/workspace/opendesk-browser/.runtime/cloud-mac24dev-20261030-01a18c80/page-observation-root-html/root-requests.jsonl`。当前会话 `ea89e280-f720-48bb-9bcd-e3e43af1c2ad`，激活PID24146。交接基线为1行：`requestSeq:1`、`2026-10-30T11:41:18.505Z` 是维护者明确登记的根GET自检，**不是Cookie导航或额外reload证据**。实际操作前后均只读最新序号对照，不清空或手写；后续探活用HEAD，不拼接旧documents/events。最多4096条，写入失败或上限时返回503，应记EVIDENCE_INCOMPLETE。完整激活回执 `.runtime/cloud-mac24dev-20261030-01a18c80/root-html-activation.json` 保留原目录7文件摘要未变、同源输入摘要及自检基线。
+
+此记录只证明根路径HTTP请求到达，**不直接证明是哪一Tab、SW额外reload或业务成功**。须与Cookie owner独占窗口、实际Tab、首导航／同文档hash起点及无额外人工reload的操作时序关联；无法关联就保留缺证。根文档和原保护的9项定向HTTP检查通过，live根GET实读200／363B，但Chrome能否正常访问及原生ERR_BLOCKED_BY_CLIENT是否解除仍NOT_TESTED。重载只替换本任务43111服务并保留所有旧文件；未访问38001、未占桌面或运行Task，已将明确回执交给Cookie owner01a18c92。云控完整目标仍blocked、未完成。
+
 ## 本轮版本交付接线（2026-10-30，尚未原生执行）
 
 已补齐原先写死 `1.0.0` 的后端、页面和绑定维护入口。受信私有配置可选 `taskPin`，只接受原 `1.0.0` 或本目录独立的 [`1.0.1` 待验证包](form-fill.v1.0.1.opendesk-task.json)；省略仍选原版。不是任意程序上传接口，当前 demo 仍为一个选定 Task。原键的投影从保存的 pin 读取，不能随当前目录版本改写；更换绑定后旧请求保留但拒绝借用新身份查询或执行。
@@ -36,10 +77,10 @@ node examples/cloud-control/mac24dev-demo/bind-provider.mjs --executor <真实-e
 当前后端、HTTP 转发、测试页、Provider 和 Browser dev watcher 已运行，直接打开入口即可。日常 Chrome 继续加载 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`，不要重装或换目录。若它们退出，只恢复退出的服务；操作前核对监听和 owner，不能重复启动 watcher。
 
 - 数据库与数据库持久隧道：按 `/Users/mac/Documents/Codex/2026-10-29/mac24dev-cool8-db-cutover/outputs/RUNBOOK.md`，本机 Docker 保持运行；不恢复旧快照。
-- 后端：SSH `mac24dev`，进入 `/Users/a0000/Documents/workspace-old/todo-admin-midway-cool8-operate`，使用 Node22 的 `npm run upgrade:start`；活服务直接复用。当前 runtime 为 `runtime-cloud-demo-20261030071501858`，从最终支付父闭包复制，231文件，旧 runtime 保留。
+- 后端：SSH `mac24dev`，进入 `/Users/a0000/Documents/workspace-old/todo-admin-midway-cool8-operate`，使用 Node22 的 `npm run upgrade:start`；活服务直接复用。最新第二次认证owner恢复通知为 `runtime-admin-login-20261030101345939-29485b`／PID54921，231文件，三认证JS修复且其余228含pay／cloud保留；原owner的 `backend-auth-v2-app-compatibility.json` 已验证app登录／本人设备／固定pin／空历史。操作前重新实核实际进程和runtime，后续必须保留此最新父闭包，不回8055、未激活的0938或旧cloud闭包；全部旧runtime保留。
 - HTTP 转发退出后：`ssh -fNT -o ExitOnForwardFailure=yes -L 127.0.0.1:38001:127.0.0.1:38001 mac24dev`。
 - Provider 使用原 `.local/cloud-control` 身份与状态，管理/Chrome loopback 为43112、受限后端 TLS 为43113；服务启动命令见下方维护说明，不使用另一个目录重建身份。
-- 测试页退出后：Browser 仓库执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。Watcher 退出后才执行 `npm run dev`。
+- 测试页及效果观察服务退出后：Browser 仓库执行本页顶部的 `passive-form-proof.mjs` 命令并选全新私有证据目录；不要与已有43111服务并行启动。Watcher 退出后才执行 `npm run dev`。
 
 登录用户名和密码保留在本机0600私有文件 `/Users/mac/Documents/workspace/opendesk-browser/.runtime/integration-20261030-01a18893/demo-login.private.json`。只在本机查看并用于该页面登录；不要复制进静态文件、日志或提交。页面登录与现有后端账号兼容，可改用自己的合法账号及其设备，但维护者必须对该账号的真实设备另作精确绑定。
 

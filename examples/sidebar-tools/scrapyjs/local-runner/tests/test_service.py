@@ -66,8 +66,12 @@ class Fixture(BaseHTTPRequestHandler):
                 self.server.release.wait(12)
             prefix='/slow/' if self.path.startswith('/slow/') else '/page/'
             nextlink=f'<a class="next" href="{prefix}{n+1}">Next</a>' if n<3 else '<a class="next disabled" aria-disabled="true">Next</a>'
-            body=(f'<html><meta charset="utf-8"><ul id="rows"><li><b>{n}</b><h2>第{n}页, "甲" &amp; 乙</h2><a href="/detail/{n}">链接{n}</a><i>A</i><i>B</i></li><li><b>{n}b</b><h2>空值{n}</h2></li><aside><li><h2>干扰</h2></li></aside></ul>{nextlink}</html>').encode(); kind='text/html; charset=utf-8'
+            first=f'<li><b>{n}</b><h2>第{n}页, "甲" &amp; 乙</h2><a href="/detail/{n}">链接{n}</a><i>A</i><i>B</i></li>'
+            duplicate=first if getattr(self.server,'repeat_first_row',False) else ''
+            body=(f'<html><meta charset="utf-8"><ul id="rows">{first}<li><b>{n}b</b><h2>空值{n}</h2></li>{duplicate}<aside><li><h2>干扰</h2></li></aside></ul>{nextlink}</html>').encode(); kind='text/html; charset=utf-8'
         self.send_response(200); self.send_header('Content-Type',kind); self.send_header('Content-Length',str(len(body))); self.end_headers()
+        if hasattr(self.server,'source_pages') and self.path.startswith('/page/'):
+            self.server.source_pages[self.path]=body.decode('utf-8')
         try: self.wfile.write(body)
         except (BrokenPipeError,ConnectionResetError): pass
 
@@ -182,6 +186,50 @@ class ServiceTests(unittest.TestCase):
                         row['tags']=json.loads(row['tags']); row['nested']=json.loads(row['nested'])
                 self.assertEqual(decoded,self.expected(pages),fmt)
             EVIDENCE[str(pages)+'-page']={'snapshot':snap,'records':data['records'],'jsonlEveryFieldEqual':True,'csvEveryFieldEqual':True}
+
+    def test_15_element_selectors_reject_before_creation_and_descriptors_scrape_three_pages(self):
+        before=len(self.fixture.hits)
+        rejected=[]
+        for index,change in enumerate([
+            {'itemConfig': {'title': {'selector': 'h2::text', 'read': 'text'}}},
+            {'itemConfig': {'_listContainer': '#rows::text', 'title': 'h2::text'}},
+            {'itemConfig': {'_listContainer': '#rows', '_listItem': ':scope > li::text', 'title': 'h2::text'}},
+            {'waitForSelector': 'h2::text'},
+            {'nextPageSelector': '.next::attr(href)'},
+            {'itemConfig': {'title': {'selector': 'svg|a', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': '[svg|href]', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': 'h2[svg|href]', 'read': 'text'}}},
+            {'itemConfig': {'title': {'selector': 'h2:not([svg|href])', 'read': 'text'}}},
+        ]):
+            request_id=f'invalid-projection-{index}'
+            status,error=self.call('/v1/runs','POST',{'requestId':request_id,'mode':'preview','config':{**self.config(),**change}})
+            self.assertEqual(status,422,error)
+            self.assertEqual(error['error']['code'],'INVALID_SELECTOR')
+            self.assertEqual(self.call('/v1/runs/by-request/'+request_id)[0],404)
+            rejected.append({'requestId':request_id,'status':status,'error':error})
+        self.assertEqual(len(self.fixture.hits),before,'Invalid selectors must not download any page')
+        self.fixture.source_pages={}; self.fixture.repeat_first_row=True
+        try:
+            cfg=self.config(); cfg['dedupeKey']='id'
+            cfg['itemConfig'].update({'_listContainer':'#rows, ul#rows','_listItem':':scope > li',
+                'id':{'selector':'b','read':'text','cardinality':'one'},
+                'title':{'selector':'h2/* unit::text */','read':'text','cardinality':'one'},
+                'href':{'selector':'a','read':'attr','attr':'href','cardinality':'one'},
+                'missing':{'selector':'.absent','read':'text','cardinality':'one'}})
+            body,created=self.start(config=cfg,pages=3); snap=self.done(created['runId'])
+            self.assertEqual((snap['status'],snap['pagesVisited'],snap['recordsCount'],snap['previewPassed']),('COMPLETED',3,6,True),snap)
+            self.assertEqual(snap['errors'],[])
+            status,data=self.call('/v1/runs/'+snap['runId']+'/records')
+            self.assertEqual(status,200)
+            self.assertEqual(data,{'records':self.expected(3),'total':6,'offset':0})
+            self.assertEqual(list(self.fixture.source_pages),['/page/1','/page/2','/page/3'])
+            EVIDENCE['elementSelectorProtocol']={'rejectedWithoutRunOrDownload':rejected,'request':body,'snapshot':snap,
+                'records':data,'sourcePages':self.fixture.source_pages.copy(),
+                'independentGolden':self.expected(3),'everyFieldEqual':True,
+                'duplicateRowsDropped':3,'nestedNonRowsExcluded':True,'relativeLinksPreserved':True,'missingScalar':'','missingMany':[]}
+        finally:
+            self.fixture.repeat_first_row=False
+            del self.fixture.source_pages
 
     def test_20_full_requires_exact_preview_and_request_lookup_never_replays(self):
         cfg=self.config()
