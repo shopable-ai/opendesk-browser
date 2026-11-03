@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-import {transform} from 'esbuild';
-import {settingsModuleURL} from '../helpers/trusted-settings-react-fixture.mjs';
+import {build,stop} from 'esbuild';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
 import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
@@ -11,40 +12,81 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createSidebarToolsView, patchToolField, setToolFieldAttribute, requestToolFieldEffect} from '../../src/ui/sidebar-tools-view.js';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 
-const compiled = await transform(await readFile(new URL('../../src/ui/react/tabs/tool-host.tsx', import.meta.url), 'utf8'),
-  {loader: 'tsx', format: 'esm', jsx: 'transform'});
-const compileComponent = async (path, replacements) => {
-  const {code} = await transform(await readFile(new URL(path,import.meta.url),'utf8'),
-    {loader:'tsx',format:'esm',jsx:'transform'});
-  return 'data:text/javascript;base64,'+Buffer.from(Object.entries(replacements).reduce(
-    (text,[from,to])=>text.replaceAll(JSON.stringify(from),JSON.stringify(to)),code)).toString('base64');
-};
-const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
-const switchModule = await compileComponent('../../src/ui/react/components/ui/switch.tsx',{
-  'react':import.meta.resolve('react'),'react-aria-components':import.meta.resolve('react-aria-components')});
-const conversationCSS='data:text/javascript;base64,'+Buffer.from('export default '+JSON.stringify(
-  await readFile(new URL('../../src/ui/react/components/conversation-frame.css',import.meta.url),'utf8'))).toString('base64');
-const conversationLayoutCSS='data:text/javascript;base64,'+Buffer.from('export default '+JSON.stringify(
-  await readFile(new URL('../../src/ui/react/components/conversation-layout.css',import.meta.url),'utf8'))).toString('base64');
-const conversationModule = await compileComponent('../../src/ui/react/components/conversation.tsx',{
-  'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
-  './ui/button.tsx':buttonModule,'./conversation-frame.css?raw':conversationCSS,'./conversation-layout.css?raw':conversationLayoutCSS});
-const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
-  'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule,
-  '../components/ui/switch.tsx':switchModule,
-  '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href});
-const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
-  .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
-  .replace('"./tools.tsx"',JSON.stringify(toolsModule))
-  .replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL))
-  .replace('"../components/ui/button.tsx"',JSON.stringify(buttonModule))
-  // Relative imports cannot resolve inside the test's data: module. Compile
-  // the same real component with absolute React references for this fixture.
-  .replace('"../components/conversation.tsx"',JSON.stringify(conversationModule));
-const {ToolHost} = await import('data:text/javascript;base64,' + Buffer.from(moduleSource).toString('base64'));
+// Compile the real import graph; hand-replaced data: imports drift when shared
+// controls acquire dependencies. Keep React/DOM identical to the test renderer.
+const require=createRequire(import.meta.url);
+let compiled;
+try {
+  compiled=await build({entryPoints:[new URL('../../src/ui/react/tabs/tool-host.tsx',import.meta.url).pathname],
+    bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
+    plugins:[{name:'tool-host-test-imports',setup(builder){
+      builder.onResolve({filter:/^react(?:-dom)?(?:$|\/)/},({path})=>({
+        path:pathToFileURL(require.resolve(path)).href,external:true}));
+      builder.onLoad({filter:/\.css$/},async({path})=>({
+        contents:'export default '+JSON.stringify(await readFile(path,'utf8')),loader:'js'}));
+    }}]});
+} finally {stop();}
+const {ToolHost}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const nextTick = () => new Promise(resolve => setImmediate(resolve));
+
+test('transient tool feedback expires, replaces safely and leaves the live tool intact',async t=>{
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  const {createRoot}=await import('react-dom/client');
+  const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
+  t.after(async()=>{
+    await React.act(async()=>root.unmount());view.dispose();
+    globalThis.window=prior.window;globalThis.document=prior.document;globalThis.IS_REACT_ACT_ENVIRONMENT=prior.act;
+  });
+  t.mock.timers.enable({apis:['setTimeout']});
+  await React.act(async()=>root.render(React.createElement(ToolHost,{view})));
+  const frame=document.createElement('iframe');view.runtime.frameRoot.append(frame);
+  const toast=()=>document.querySelector('.sidebar-tool-toast');
+  await React.act(async()=>view.patch('sidebar-tool-status',{
+    textContent:'仍需处理的错误',hidden:false,attributes:{'data-state':'error'}}));
+  await React.act(async()=>view.showToast('已取消，原内容仍保留。'));
+  assert.equal(toast().querySelector('[role="status"]').textContent,'已取消，原内容仍保留。');
+  assert.equal(document.getElementById('sidebar-tool-status').textContent,'仍需处理的错误',
+    'transient cancellation cannot erase an actionable error');
+  const first=view.getSnapshot().toast.id;
+  await React.act(async()=>t.mock.timers.tick(4000));
+  await React.act(async()=>view.showToast('已取消卸载。'));
+  await React.act(async()=>{view.dismissToast(first);t.mock.timers.tick(1000);});
+  assert.equal(toast().querySelector('[role="status"]').textContent,'已取消卸载。');
+  await React.act(async()=>t.mock.timers.tick(4000));
+  assert.equal(toast(),null,'ordinary feedback disappears automatically');
+  await React.act(async()=>view.showToast('取消'));
+  await React.act(async()=>toast().querySelector('button').click());
+  assert.equal(toast(),null,'the close control dismisses feedback immediately');
+  // Crossing from the opaque tool iframe gives focusin a null relatedTarget.
+  // Linkedom has no focus model, so supply only that browser boundary here.
+  await React.act(async()=>view.patch('sidebar-tool-display',{hidden:false}));
+  let focused=document.body;
+  Object.defineProperty(document,'activeElement',{configurable:true,get:()=>focused});
+  const back=document.getElementById('sidebar-tool-back');
+  back.focus=()=>{focused=back;};
+  await React.act(async()=>view.showToast('键盘取消'));
+  const close=toast().querySelector('button');
+  await React.act(async()=>{
+    focused=close;
+    close.dispatchEvent(new window.Event('focusin',{bubbles:true}));
+  });
+  await React.act(async()=>t.mock.timers.tick(6000));
+  assert.ok(toast(),'focused feedback must not expire under the keyboard');
+  await React.act(async()=>close.click());
+  assert.equal(toast(),null);
+  assert.equal(focused?.id,'sidebar-tool-back','closing from the iframe boundary returns focus to the live tool navigation');
+  await React.act(async()=>view.showToast('切换前的提示'));
+  await React.act(async()=>root.render(React.createElement(ToolHost,{view,active:false})));
+  assert.equal(toast(),null);assert.equal(view.getSnapshot().toast,null);
+  await React.act(async()=>root.render(React.createElement(ToolHost,{view})));
+  assert.equal(toast(),null,'returning cannot revive old feedback');
+  assert.equal(view.runtime.frameRoot.firstChild,frame,'feedback never remounts or replaces the tool');
+});
 
 test('a missing React view cannot initialize a second DOM owner', () => {
   const doc = new Proxy({}, {get() {assert.fail('missing View must fail before touching DOM');}});
@@ -499,6 +541,11 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
       packagePath: `official-tools/${tool.id}/${tool.id}.opendesk-tool.json`,
       bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')
     }]};
+  // This scenario needs an admitted package to exercise the enabled button.
+  // Installed bytes alone deliberately cannot authorize Cookie Editor.
+  const release=catalog.apps[0];
+  store.set(MARKET_PROVENANCE_STORE,{[tool.id]:{
+    marketId:release.id,version:release.version,sha256:release.sha256}});
   const storageListeners = new Set(), pageListeners = new Set(), localeListeners = new Set();
   const reads = [], fetched = [], toolActivity = [];
   const api = {runtime: {
@@ -593,7 +640,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   const click = new window.Event('click', {bubbles: true});
   await React.act(async () => button.dispatchEvent(click));
   assert.deepEqual(clicks, [click], 'React forwards the real DOM event to the bound controller action');
-  assert.equal(store.size, 1);
+  assert.equal(store.size, 2);
   assert.equal(view.runtime.frameRoot.children.length, 0, 'opening settings cannot start the sandbox');
 
   await React.act(async () => facade.dispose());

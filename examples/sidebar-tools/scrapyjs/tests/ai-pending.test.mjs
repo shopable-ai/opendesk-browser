@@ -19,6 +19,29 @@ function fixture(initial=null){
 const payload={requestId:'fixture-original',request:'private requirement',context:{sample:'private sample'}};
 const timeout=()=>Object.assign(Error('outcome unknown'),{code:'E_AI_OUTCOME_UNKNOWN'});
 
+test('page observation recovery persists only its identity marker and retains CAS ownership',async()=>{
+  const store=fixture(),pending=createAiPending(store.request);
+  await pending.claim('new-page',{pageObservation:true});
+  assert.deepEqual((await pending.read()).value,{schemaVersion:1,requestId:'new-page',pageObservation:true,dispatchState:'preparing'});
+  await assert.rejects(pending.clear('other'),/身份/);
+  assert.equal(store.value.pageObservation,true);
+  await pending.clear('new-page');assert.equal(store.value,null);
+  await assert.rejects(createAiPending(fixture({schemaVersion:1,requestId:'bad',pageObservation:'true'}).request).read(),/身份/);
+});
+
+test('restored unsent observation retires with CAS and fences a late dispatch',async()=>{
+  const store=fixture(),pending=createAiPending(store.request);
+  await pending.claim('new-page',{pageObservation:true});
+  await pending.clearUnsent('new-page');
+  await assert.rejects(pending.markDispatched('new-page'),/身份/);
+  assert.equal(store.value,null);
+  await pending.claim('sent-page',{pageObservation:true});
+  await pending.markDispatched('sent-page');
+  assert.equal(store.value.dispatchState,'may-have-sent');
+  await assert.rejects(pending.clearUnsent('sent-page'),/发送/);
+  assert.equal(store.value.requestId,'sent-page');
+});
+
 test('CAS stores only identity before dispatch; run settlement releases with CAS',async()=>{
   const store=fixture(),pending=createAiPending(store.request),calls=[];
   const op=createAiRequest(async name=>{

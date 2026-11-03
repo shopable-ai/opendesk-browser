@@ -1,3 +1,5 @@
+import {bookmarkConversationPolicy} from '../conversation/bookmark-instructions.js';
+import {taskConversationPolicy} from '../conversation/my-task-instructions.js';
 import {createWorkflowUIState} from './workflow-ui-state.js';
 import {selectSavedWorkflowRoute,naturalProductReply} from './workflow-reuse.js';
 import {selectInstalledTaskRoute} from './installed-task-reuse.js';
@@ -3062,10 +3064,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // Business Provider leases are now owned by the trusted Shell adapters.
   // Standalone historical unit clients retain a compatibility facade only.
   const conversation=ownsProviderRuntime?createBusinessConversation({
-    providerRuntime:providers,api,hostInstanceId,consumerId:'bookmark',
+    providerRuntime:providers,api,hostInstanceId,consumerId:'bookmark',policy:bookmarkConversationPolicy,
     instanceId:'test-bookmark-'+crypto.randomUUID()}):null;
   const taskConversation=ownsProviderRuntime?createBusinessConversation({
-    providerRuntime:providers,api,hostInstanceId,consumerId:'tasks',
+    providerRuntime:providers,api,hostInstanceId,consumerId:'tasks',policy:taskConversationPolicy,
     instanceId:'test-tasks-'+crypto.randomUUID()}):null;
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,taskConversation,
     dispose() {

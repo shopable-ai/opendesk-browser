@@ -210,7 +210,7 @@ test('closing an AI tool cannot acknowledge reload without the original Native t
   }};
   const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'closed-tool-host'});
   const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'closed-tool',
-    installEpoch:'original-install',assertCurrent(){},confirm:async()=>{}});
+    installEpoch:'original-install',assertCurrent(){},assertAuthorized:async()=>{}});
   const f=pageFixture(async()=>{prepared++;return true;},()=>runtime.developmentIdle()),p=f.ports[0];
   try{
     await assert.rejects(adapter.request('ai.generate',{requestId:'original-request',request:'generate',

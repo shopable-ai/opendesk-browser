@@ -1,3 +1,5 @@
+import {bookmarkConversationPolicy} from '../../src/ui/conversation/bookmark-instructions.js';
+import {promptConversationPolicy} from '../../src/ui/conversation/prompt-actions.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createConversationSession} from '../../src/ui/conversation/session.js';
@@ -64,9 +66,9 @@ test('R2.2.1 business adapters retain Prompt ETag and do not share Bookmark refe
   };
   const api={permissions:{onRemoved:{addListener(){},removeListener(){}}}};
   const bookmark=createBusinessConversation({api,providerRuntime:providers,
-    ...identity('bookmark','bookmark-2')});
+    policy:bookmarkConversationPolicy,...identity('bookmark','bookmark-2')});
   const prompt=createBusinessConversation({api,providerRuntime:providers,
-    ...identity('prompt','prompt-3')});
+    policy:promptConversationPolicy,...identity('prompt','prompt-3')});
   const etag='a'.repeat(64);
   bookmark.saveSession({open:true,draft:'folder',rows:[
     {id:'1',speaker:'你',message:'save'}],
@@ -110,7 +112,7 @@ test('R2.2.1 settings changes retire an unresolved inference without pinning UI 
     onRemoved:{addListener(){},removeListener(){}}
   }};
   const consumer=createBusinessConversation({api,providerRuntime:providers,
-    ...identity('bookmark','bookmark-settings')});
+    policy:bookmarkConversationPolicy,...identity('bookmark','bookmark-settings')});
   const first=consumer.request({request:'first',event:{isTrusted:true}});
   // Permit the original permission check and model dispatch to start.
   for(let i=0;i<8&&turns===0;i++)await new Promise(resolve=>setImmediate(resolve));

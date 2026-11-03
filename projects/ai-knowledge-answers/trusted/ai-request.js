@@ -1,3 +1,5 @@
+import {permissionPattern} from '../../../src/environment.js';
+import {createBusinessConversation} from '../../../src/ui/conversation/provider-consumer.js';
 // Trusted business adapter only: uses the SAME shared Provider consumer.
 // This file cannot be executed by an installed sandbox or manufacture model grants.
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -144,5 +146,62 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     invalidate(){latest=null;void Promise.resolve(cancel()).catch(()=>{});},
     cancel,
     dispose(){if(disposed)return;disposed=true;latest=null;void Promise.resolve(cancel()).catch(()=>{});}
+  });
+}
+
+// Statically compiled first-party adapter. Approval identity remains in this
+// closure; sandbox callers cannot manufacture a nonce or install this policy.
+export function createKnowledgeConversation(options={}){
+  const {api,providerRuntime:providers}=options;
+  let approved=null,epoch=0,disposed=false,approvalController=null;
+  const revoke=()=>{
+    epoch++;approved=null;
+    approvalController?.abort(fail('E_MODEL_GRANT_REVOKED','本地知识测试已停止'));
+    approvalController=null;
+  };
+  const policy={scopes:{knowledge:{instructions:KNOWLEDGE_ANSWER_INSTRUCTIONS}},
+    authorizeTurn({approval,scope}){
+      if(scope!=='knowledge'||!approval||approval.grant!==approved||approved===null)return null;
+      const grant=approved;
+      const assertAuthorized=()=>{
+        if(disposed||approved!==grant||approval.etag!==grant.etag||
+           Date.now()>grant.expiresAt||grant.providerGeneration!==providers.configuration().generation)
+          throw fail('E_MODEL_GRANT_REVOKED','本地知识自动推理会话已失效');
+      };
+      assertAuthorized();return {assertAuthorized,signal:approvalController.signal};
+    }};
+  const core=createBusinessConversation({...options,consumerId:'knowledge',policy});
+  const unsubscribeAuthorization=core.subscribeAuthorizationChanges(revoke);
+  const unsubscribeProvider=core.subscribeProviderChanges(revoke);
+  return Object.freeze({...core,
+    request({approvedKnowledgeTest=null,knowledgeEtag=null,...input}={}){
+      return core.request({...input,approval:{grant:approvedKnowledgeTest,etag:knowledgeEtag}});
+    },
+    beginKnowledgeTestApproval({event,origin,documentId,etag}={}){
+      if(disposed||!event?.isTrusted||origin!=='http://127.0.0.1:43111'||
+         typeof documentId!=='string'||documentId.length<8||documentId.length>160||!sha(etag))
+        throw fail('E_KB_TEST_CONSENT','本地测试来源、知识版本或可信用户授权无效');
+      const config=providers.configuration(),selected=config.source;
+      let permission;
+      if(selected==='local_codex')permission=api.permissions.request({permissions:['nativeMessaging']});
+      else if(['cloud_responses','custom_https'].includes(selected)){
+        let url;try{url=new URL(config.settings.endpoint)}catch{}
+        if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||
+           !config.settings.apiKey||!config.settings.model)
+          throw fail('E_AI_CONFIG','先完成共享 AI HTTPS 模型设置');
+        permission=api.permissions.request({origins:[permissionPattern(config.settings.endpoint)]});
+      }else throw fail('E_AI_CONFIG','当前没有可使用的 AI Provider');
+      revoke();const expected=epoch;
+      return Promise.resolve(permission).then(permitted=>{
+        if(permitted!==true||disposed||epoch!==expected||providers.configuration().generation!==config.generation)
+          throw fail('E_MODEL_GRANT_REVOKED','模型授权未批准或已变化');
+        approved=Object.freeze({origin,documentId,etag,providerGeneration:config.generation,
+          expiresAt:Date.now()+600000});
+        approvalController=new AbortController();return approved;
+      });
+    },
+    revokeKnowledgeTest:revoke,
+    dispose(){if(disposed)return;disposed=true;revoke();
+      unsubscribeAuthorization();unsubscribeProvider();core.dispose();}
   });
 }

@@ -54,6 +54,7 @@ export function initSidebarToolSandbox() {
   const promiseThen=NativePromise.prototype.then,promiseResolve=NativePromise.resolve,promiseReject=NativePromise.reject;
   const define=Object.defineProperty,freeze=Object.freeze,create=Object.create,ownKeys=Reflect.ownKeys;
   const finite=Number.isFinite,nativeTimer=setTimeout,nativeClear=clearTimeout,timerReceiver=globalThis;
+  const clone=globalThis.structuredClone;
   const clockReceiver=globalThis.performance,clock=clockReceiver?.now;
   const mapGet=Map.prototype.get,mapSet=Map.prototype.set,mapDelete=Map.prototype.delete;
   const mapForEach=Map.prototype.forEach,mapClear=Map.prototype.clear;
@@ -86,10 +87,18 @@ export function initSidebarToolSandbox() {
   const stopImmediate=eventPrototype?.stopImmediatePropagation;
   const portPrototype=globalThis.MessagePort?.prototype;
   const portPost=portPrototype?.postMessage,portClose=portPrototype?.close;
-  let exportPort=null,exportClick=null;
+  let exportPort=null,exportClick=null,aiKey=null;
   const consumedClickTimeStamps=new Set();
   window.addEventListener('click',event=>{
     if(trustedGetter&&apply(trustedGetter,event,[])===true)exportClick=event;
+  },true);
+  const keyboardPrototype=globalThis.KeyboardEvent?.prototype;
+  const keyGetter=keyboardPrototype&&Object.getOwnPropertyDescriptor(keyboardPrototype,'key')?.get;
+  const shiftGetter=keyboardPrototype&&Object.getOwnPropertyDescriptor(keyboardPrototype,'shiftKey')?.get;
+  const composingGetter=keyboardPrototype&&Object.getOwnPropertyDescriptor(keyboardPrototype,'isComposing')?.get;
+  window.addEventListener('keydown',event=>{
+    if(trustedGetter&&keyGetter&&shiftGetter&&composingGetter&&apply(trustedGetter,event,[])===true&&
+       apply(keyGetter,event,[])==='Enter'&&!apply(shiftGetter,event,[])&&!apply(composingGetter,event,[]))aiKey=event;
   },true);
   // Presentation-only acknowledgement. It is NOT a grant: only the trusted
   // Host checks official installation, locks and storage. The accepted sandbox
@@ -149,17 +158,18 @@ export function initSidebarToolSandbox() {
     try{Object.defineProperty(window,method,{value:blocked,writable:false,configurable:false});}
     catch{try{window[method]=blocked;}catch{/* Browser-level controls still apply. */}}
   }
-  const consumeExportClick=operation=>{
-    const clickTimeStamp=exportClick&&timeStampGetter?apply(timeStampGetter,exportClick,[]):null;
+  const consumeRequestGesture=operation=>{
+    const gesture=operation==='ai.generate'&&aiKey&&apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
+    const clickTimeStamp=gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export')&&
-      exportClick&&apply(trustedGetter,exportClick,[])===true&&
-      apply(currentTargetGetter,exportClick,[])!==null&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate')&&
+      gesture&&apply(trustedGetter,gesture,[])===true&&
+      apply(currentTargetGetter,gesture,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
     // Label activation forwards the same timestamp; both entry points consume
     // it synchronously, before invoking any tool code (including getters).
     if(!direct)return null;
-    exportClick=null;apply(setAdd,consumedClickTimeStamps,[clickTimeStamp]);
+    exportClick=null;aiKey=null;apply(setAdd,consumedClickTimeStamps,[clickTimeStamp]);
     return exportPort;
   };
   const sendRequest=(operation,payload,directPort,finalCheck)=>{
@@ -177,8 +187,8 @@ export function initSidebarToolSandbox() {
           toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
           toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status'||
            toolId==='ai-send-queue'&&operation==='sendQueue.command';
-        reject(exportError(uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
-          exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
+        reject(exportError(operation==='ai.generate'?'E_AI_UNKNOWN':uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
+          operation==='ai.generate'?'AI 回执超时，结果未知；请查询原请求，勿自动重试':exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
           '操作回执超时，结果未知；请核对实际结果，不要重复提交':'工具请求超时'));
       },timeoutMs);
       apply(mapSet,waiting,[requestId,{resolve,reject,timeout,operation,browserWrite}]);
@@ -195,24 +205,25 @@ export function initSidebarToolSandbox() {
         try{apply(portPost,directPort,[message]);}
         catch{
           apply(mapDelete,waiting,[requestId]);cancelTimer(timeout);
-          reject(exportError('E_OUTCOME_UNKNOWN','导出请求未确认，请核对实际结果，勿自动重试'));
+          reject(exportError(operation==='ai.generate'?'E_AI_UNKNOWN':'E_OUTCOME_UNKNOWN',
+            operation==='ai.generate'?'AI 发送回执未确认，请查询原请求，勿自动重试':'导出请求未确认，请核对实际结果，勿自动重试'));
         }
       }else parent.postMessage(message,'*');
     });
   };
   const request=(operation,payload={})=>{
     if(!instance)return rejected(new NativeError('工具界面尚未就绪'));
-    return sendRequest(operation,payload,consumeExportClick(operation));
+    return sendRequest(operation,payload,consumeRequestGesture(operation));
   };
-  const prepareExport=factory=>{
-    const operation='browser.downloads.text';
+  const prepareRequest=(operation,factory)=>{
+    const ai=operation==='ai.generate';
     // Consume even an invalid factory's opportunity. No caller-controlled
     // property is read until the native dispatch has been checked and spent.
-    const port=consumeExportClick(operation);
+    const port=consumeRequestGesture(operation);
     const started=now();
-    if(!port||cookieExports||!finite(started))
-      return rejected(exportError('E_EXPORT_GESTURE','文本准备需要一次有效的原生点击'));
-    if(typeof factory!=='function')return rejected(exportError('E_SCHEMA','文本准备需要 factory'));
+    if(!port||!ai&&cookieExports||!finite(started))
+      return rejected(exportError(ai?'E_AI_GESTURE':'E_EXPORT_GESTURE','准备需要一次有效的原生发送操作'));
+    if(typeof factory!=='function')return rejected(exportError(ai?'E_AI_PREPARE':'E_SCHEMA','准备需要 factory'));
     const reservation={port,instance,toolId,operation,deadline:started+8000,active:true,timeout:null,cancel:null};
     return new Carrier((resolve,reject)=>{
       const finish=()=>{
@@ -223,21 +234,21 @@ export function initSidebarToolSandbox() {
       };
       const fail=error=>{if(finish())reject(error);};
       const preparationFailed=cause=>{
-        const error=exportError('E_EXPORT_PREPARE','文本准备失败，未发送');
+        const error=exportError(ai?'E_AI_PREPARE':'E_EXPORT_PREPARE','准备失败，未发送');
         define(error,'cause',{value:cause});fail(error);
       };
       // Store only closure-private records. Tool code receives no reservation,
       // port, proof, or callback capable of sending a caller-selected operation.
-      reservation.cancel=()=>fail(exportError('E_TOOL_DISPOSED','工具已关闭，文本未发送'));
+      reservation.cancel=()=>fail(exportError(ai?'E_AI_PREPARE':'E_TOOL_DISPOSED','工具已关闭，未发送'));
       apply(setAdd,preparations,[reservation]);
-      reservation.timeout=later(()=>fail(exportError('E_TOOL_TIMEOUT','文本准备超时，未发送')),8000);
+      reservation.timeout=later(()=>fail(exportError(ai?'E_AI_PREPARE':'E_TOOL_TIMEOUT','准备超时，未发送')),8000);
       const assertValid=()=>{
         const time=now();
         if(!reservation.active||disposed||exportPort!==reservation.port||instance!==reservation.instance||toolId!==reservation.toolId){
-          throw exportError('E_TOOL_DISPOSED','工具连接已失效，文本未发送');
+          throw exportError(ai?'E_AI_PREPARE':'E_TOOL_DISPOSED','工具连接已失效，未发送');
         }
         if(!finite(time)||time>=reservation.deadline){
-          throw exportError('E_TOOL_TIMEOUT','文本准备超时，未发送');
+          throw exportError(ai?'E_AI_PREPARE':'E_TOOL_TIMEOUT','准备超时，未发送');
         }
       };
       const valid=()=>{
@@ -251,15 +262,23 @@ export function initSidebarToolSandbox() {
       try{observe(apply(promiseResolve,Carrier,[value]),result=>{
         if(!valid())return;
         try{
-          if(!result||typeof result!=='object')throw exportError('E_SCHEMA','Expected text export arguments');
-          const keys=ownKeys(result);
-          if(keys.length!==2||
+          if(ai&&result===null){finish();resolve(null);return;}
+          if(!result||typeof result!=='object')throw exportError(ai?'E_AI_PREPARE':'E_SCHEMA',ai?'AI 准备结果必须为请求对象':'Expected text export arguments');
+          let payload;
+          if(ai){
+            // Copy accessors/thenables before the final private delivery check.
+            // Host still owns the strict AI schema, identity and capability checks.
+            payload=apply(clone,globalThis,[result]);
+          }else{
+            const keys=ownKeys(result);
+            if(keys.length!==2||
              !((keys[0]==='filename'&&keys[1]==='text')||(keys[0]==='text'&&keys[1]==='filename')))
             throw exportError('E_SCHEMA','Expected only filename and text');
-          const data=create(null);
-          data.filename=result.filename;data.text=result.text; // each getter exactly once
-          freeze(data);
-          const payload=normalizeBrowserOperation(reservation.operation,data);
+            const data=create(null);
+            data.filename=result.filename;data.text=result.text; // each getter exactly once
+            freeze(data);
+            payload=normalizeBrowserOperation(reservation.operation,data);
+          }
           // Keep the reservation cancellable through timeout discovery and
           // all send initialization, then check immediately before delivery.
           observe(sendRequest(reservation.operation,payload,reservation.port,()=>{
@@ -269,6 +288,8 @@ export function initSidebarToolSandbox() {
       },preparationFailed);}catch(error){preparationFailed(error);}
     });
   };
+  const prepareExport=factory=>prepareRequest('browser.downloads.text',factory);
+  const prepareAI=factory=>prepareRequest('ai.generate',factory);
   // A real user input means refreshing this preview could discard unsaved work.
   // This is a UX signal only; no security decision relies on untrusted code.
   const sendDraft=()=>{
@@ -434,7 +455,7 @@ export function initSidebarToolSandbox() {
       return true;
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,setState,setConversationState,
+      root,request,prepareAI,setState,setConversationState,
       ...(navigationAllowed?{setNavigation}:{}),
       get locale(){return uiLocale;},
       get messages(){return uiMessages;},
@@ -520,13 +541,13 @@ export function initSidebarToolSandbox() {
     disposed=true;
     apply(setForEach,preparations,[reservation=>reservation.cancel()]);
     if(exportPort)apply(portClose,exportPort,[]);
-    exportPort=null;exportClick=null;
+    exportPort=null;exportClick=null;aiKey=null;
     apply(setClear,localeListeners,[]);if(scriptUrl)URL.revokeObjectURL(scriptUrl);
     apply(mapForEach,waiting,[({reject,timeout,operation,browserWrite})=>{
       cancelTimer(timeout);
       const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
-      reject(exportError(exporting||browserWrite?'E_OUTCOME_UNKNOWN':'E_TOOL_DISPOSED',
-        exporting||browserWrite?'工具已关闭，操作结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
+      reject(exportError(operation==='ai.generate'?'E_AI_UNKNOWN':exporting||browserWrite?'E_OUTCOME_UNKNOWN':'E_TOOL_DISPOSED',
+        operation==='ai.generate'?'工具已关闭，AI 结果未知；请查询原请求，勿自动重试':exporting||browserWrite?'工具已关闭，操作结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
     }]);
     apply(mapClear,waiting,[]);
   },{once:true});

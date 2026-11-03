@@ -7,6 +7,8 @@ work/
 # Local build and agent state
 .wxt/
 .omx/
+.codegraph/
+.codegraph-*/
 __pycache__/
 *.pyc
 

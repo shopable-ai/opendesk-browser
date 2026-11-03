@@ -15,7 +15,8 @@ export function createSidebarToolsView() {
   const runtime = Object.seal({frameRoot: null, settingsControl: null});
   const trustedSettingsActions=Object.create(null);
   let snapshot = {fields: Object.fromEntries(Object.entries(fields).map(([key, state]) => [key, {...state}])),
-    market: {pending: [], review: null, error: ''}, labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+    market: {pending: [], review: null, error: ''}, toast: null, labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+  let nextToastId = 0;
   let marketInstallActions = null;
   let disposed = false, queued = false, attachment = null, connection = null;
   const trustedSettings=Object.freeze(Object.fromEntries(Object.keys(snapshot.trustedSettings).map(key=>[key,Object.freeze({
@@ -107,6 +108,14 @@ export function createSidebarToolsView() {
   }
   return Object.freeze({
     fields, labels, actions, runtime, patch, bind, dispatch, trustedSettings, trustedSettingsActions,
+    showToast(message) {
+      if (disposed) return;
+      snapshot = {...snapshot, toast: {id: ++nextToastId, message}}; notify();
+    },
+    dismissToast(id) {
+      if (disposed || snapshot.toast?.id !== id) return;
+      snapshot = {...snapshot, toast: null}; notify();
+    },
     get marketInstallActions() {return marketInstallActions;},
     setMarketInstall(patch) {
       if (disposed) return;
@@ -204,7 +213,7 @@ export function createSidebarToolsView() {
       finally {
         subscribers.clear();
         marketInstallActions = null;
-        snapshot={...snapshot,trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+        snapshot={...snapshot,toast:null,trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
         for(const key of Object.keys(trustedSettingsActions))delete trustedSettingsActions[key];
         for (const key of Object.keys(actions)) delete actions[key];
         rowActions.clear(); effects.length = 0;

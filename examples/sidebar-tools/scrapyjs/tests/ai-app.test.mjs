@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import * as React from 'react';
 import {createExtensionCenterDOM} from '../../../../tests/helpers/extension-center-react-dom.mjs';
-import {App} from './react-fixture.mjs';
+import {App,prepareAiFixture} from './react-fixture.mjs';
 
 const context=vm.createContext({URL,TextEncoder,crypto:globalThis.crypto});
 for(const path of ['../src/app-model.js','../adapters/app-sdk.js'])
@@ -44,7 +44,7 @@ test('shared Chat applies an explicit lossless edit and saves a copy only throug
   const calls=[];let resolveProposal;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame','FocusEvent'].map(key=>[key,globalThis[key]]));
   let conversationState;
-  const tool={setState(){},setConversationState(value){conversationState=value;},request:async(operation,payload)=>{
+  const tool={prepareAI:prepareAiFixture,setState(){},setConversationState(value){conversationState=value;},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get')return structuredClone(rows.get(payload.key));
     if(operation==='storage.set'){
@@ -143,10 +143,11 @@ for(const request of ['只解释 title 的 CSV 表头，不要修改配置','如
 
 test('a failed original save preserves the applied draft without a second Chat save or undo area',async t=>{
  const f=await fixture(t,{saveConfig:async()=>{throw Error('保存结果未知');},generate:async payload=>({requestId:payload.requestId,providerGeneration:1,
-   proposal:{type:'actions',actions:[{kind:'csv.configure',fieldNames:{title:'书名'},fieldOrder:['title','id','price']}]}})});
+   proposal:{type:'actions',actions:[{kind:'csv.configure',fieldNames:{title:'书名'}}]}})});
  f.get('open-ai-config').dispatch('click');f.edit('ai-requirement','把 title 的 CSV 表头改为书名');f.get('ai-requirement').dispatch('keydown',{key:'Enter'});
  await settle();await settle();await settle();assert.equal(f.get('chat-ai-undo'),null);
  const read=()=>JSON.parse(f.get('config-json').value||f.get('config-json').defaultValue),draft=read();
+ assert.equal(draft.output.fieldNames.title,'书名','save failure must exercise an actually applied draft');
  f.get('save-config').dispatch('click');await settle();await settle();await settle();
  assert.equal(Boolean(f.get('chat-ai-undo')),false);assert.deepEqual(read(),draft);
  assert.match(f.ui.doc.body.textContent,/保存结果未知|保存版本/);
@@ -293,7 +294,7 @@ test('Chat business requests leave start, stop and download solely to the origin
   const rows=new Map([['capture-config',{value:config,etag:'0'}],['ai-pending-request',{value:null,etag:'0'}]]);
   const calls=[];let requestId,kind='capture.start',stopped=false;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame','FocusEvent'].map(key=>[key,globalThis[key]]));
-  const tool={setState(){},request:async(op,args)=>{
+  const tool={prepareAI:prepareAiFixture,setState(){},request:async(op,args)=>{
     calls.push({op,args:structuredClone(args)});
     if(op==='storage.get')return structuredClone(rows.get(args.key));
     if(op==='storage.set'){

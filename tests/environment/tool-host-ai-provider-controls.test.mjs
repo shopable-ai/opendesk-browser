@@ -4,6 +4,41 @@ import * as React from 'react';
 import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 import {tick} from './workflow-react-fixture.mjs';
 
+test('shared settings cancel discards the unsaved source and reopening reads the saved configuration',async t=>{
+  const f=await mountWorkflowClient();
+  t.after(()=>f.close());
+  const source=value=>f.document.querySelector(`input[name="od-ai-provider-source"][value="${value}"]`);
+  const cancel=()=>[...f.document.querySelectorAll('.od-shared-provider-form button')]
+    .find(node=>node.textContent==='取消');
+  const before=f.providerSettings.settingsSnapshot();
+  await f.openSettings();
+  await f.clickNode(source('https'));
+  assert.ok(f.document.getElementById('od-ai-provider-endpoint'),'the unsaved form actually changed');
+  assert.strictEqual(f.providerSettings.settingsSnapshot(),before);
+  await f.clickNode(cancel());
+  assert.equal(f.document.querySelector('.od-shared-provider-form'),null);
+  assert.strictEqual(f.providerSettings.settingsSnapshot(),before,'cancel never saves a Provider draft');
+  await f.openSettings();
+  assert.equal(source('local_codex').checked,true);
+  assert.equal(f.document.getElementById('od-ai-provider-endpoint'),null);
+  await f.keydown('Escape');
+
+  await React.act(async()=>{
+    f.providerSettings.updateSettings({source:'cloud_responses',
+      endpoint:'https://model.example/v1/responses',model:'saved-model'});
+    await tick();
+  });
+  const saved=f.providerSettings.settingsSnapshot();
+  await f.openSettings();
+  await f.clickNode(source('local_codex'));
+  await f.clickNode(cancel());
+  assert.strictEqual(f.providerSettings.settingsSnapshot(),saved);
+  await f.openSettings();
+  assert.equal(source('https').checked,true);
+  assert.equal(f.document.getElementById('od-ai-provider-endpoint').value,saved.endpoint);
+  assert.equal(f.document.getElementById('od-ai-provider-model').value,saved.model);
+});
+
 test('ToolHost offers trusted shared AI controls only for a visible, open sandbox conversation',async t=>{
   const f=await mountWorkflowClient({activeTab:'tools'});
   t.after(()=>f.close());

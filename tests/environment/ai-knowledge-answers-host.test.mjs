@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createTrustedKnowledgeHost} from '../../projects/ai-knowledge-answers/trusted/host.js';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
-import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
+import {createKnowledgeConversation} from '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 
 // Integration uses the actual shared runtime/consumer; model transport is fake.
@@ -13,6 +13,7 @@ const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;})
 function setup(t,{transport,localTest=false}={}){
   let stored={version:1,items:[{id,question:'退款期限是多少',aliases:['多久可以退款'],
     answer:'7 天内可退款',scope:'',enabled:true}]},live=true,dirty=false;
+  let providerPermitted=true,permissionWait=null;
   let connection;const removals=new Set(),calls=[],permissions=[],pageCalls=[];
   const runtime=createSharedAIProviderRuntime({hostInstanceId:'host-test',
     client:{requestWorkflowAI:async()=>assert.fail('fake HTTPS test must not call Native')},
@@ -22,9 +23,9 @@ function setup(t,{transport,localTest=false}={}){
     }})});
   runtime.updateSettings({source:'custom_https',endpoint:'https://ai.example/v1/chat/completions',
     model:'fixture',apiKey:'test-secret'});
-  const conversation=createBusinessConversation({providerRuntime:runtime,
+  const conversation=createKnowledgeConversation({providerRuntime:runtime,
     hostInstanceId:'host-test',consumerId:'knowledge',instanceId:'instance-test',installEpoch:'install-test',
-    api:{permissions:{request:args=>{permissions.push(args);return Promise.resolve(true);},contains:async()=>true,
+    api:{permissions:{request:args=>{permissions.push(args);return Promise.resolve(true);},contains:()=>permissionWait??Promise.resolve(providerPermitted),
       onRemoved:{addListener:fn=>removals.add(fn),removeListener:fn=>removals.delete(fn)}}}});
   const readLibrary=async()=>({value:structuredClone(stored),etag:createHash('sha256').update(JSON.stringify(stored)).digest('hex')});
   const pageCall=name=>{pageCalls.push(name);assert.fail('manual knowledge must not access the local test page');};
@@ -36,7 +37,9 @@ function setup(t,{transport,localTest=false}={}){
     guardBlocked:()=>dirty,
     subscribeConnection:fn=>{connection=fn;return ()=>{connection=null;};}});
   t.after(()=>{host.dispose();runtime.dispose();});
-  return {host,runtime,calls,permissions,pageCalls,readLibrary,
+  return {host,conversation,runtime,calls,permissions,pageCalls,readLibrary,
+    denyProvider:()=>{providerPermitted=false;},
+    holdProviderCheck:promise=>{permissionWait=promise;},
     disconnect:()=>connection({nativeConnected:false}),
     revoke:(grant={origins:['https://ai.example/*']})=>{for(const listener of [...removals])listener(grant);},
     invalidate:()=>{stored.items[0].answer='15 天内可退款';host.invalidate();},
@@ -111,4 +114,103 @@ test('fake integration: only the current Provider permission invalidates prepare
   h.revoke({origins:['https://unrelated.example/*']});
   assert.ok(h.host.snapshot().result);assert.ok(h.host.snapshot().prepared);
   h.revoke();assert.equal(h.host.snapshot().result,null);assert.equal(h.host.snapshot().prepared,null);
+});
+
+
+const approvalInput={event:trusted,origin:'http://127.0.0.1:43111',
+  documentId:'document-first-party',etag:'a'.repeat(64)};
+test('trusted knowledge approval binds exact nonce, origin, document, ETag and consumer instance',async t=>{
+  const a=setup(t),b=setup(t);
+  for(const patch of [{event:{isTrusted:false}},{origin:'http://localhost:43111'},
+    {origin:'https://example.com'},{documentId:''},{etag:'invalid'}])
+    assert.throws(()=>a.conversation.beginKnowledgeTestApproval({...approvalInput,...patch}),{code:'E_KB_TEST_CONSENT'});
+  assert.equal(a.permissions.length,0);
+  const pending=a.conversation.beginKnowledgeTestApproval(approvalInput);
+  assert.equal(a.permissions.length,1,'permission starts inside the real approval click');
+  const grant=await pending;
+  assert.equal(grant.documentId,'document-first-party');
+  const send=(conversation,approvedKnowledgeTest=grant,knowledgeEtag=approvalInput.etag)=>
+    conversation.request({request:'question',approvedKnowledgeTest,knowledgeEtag});
+  await assert.rejects(send(a.conversation,{...grant}),{code:'E_USER_GESTURE'});
+  await assert.rejects(send(b.conversation),{code:'E_USER_GESTURE'});
+  await assert.rejects(send(a.conversation,grant,'b'.repeat(64)),{code:'E_MODEL_GRANT_REVOKED'});
+  assert.equal(a.calls.length,0);
+  const result=await send(a.conversation);
+  assert.equal(a.permissions.length,1,'approved inference only checks existing permission');
+  assert.equal(a.calls[0].instructions,KNOWLEDGE_ANSWER_INSTRUCTIONS);
+  a.conversation.revokeKnowledgeTest();
+  await assert.rejects(result.authorization.assertWrite(),{code:'E_MODEL_GRANT_REVOKED'});
+  result.authorization.release();
+  await assert.rejects(send(a.conversation),{code:'E_USER_GESTURE'});
+});
+
+for(const change of ['expiry','provider','revoke'])test('approved knowledge '+change+' rejects late inference and retained authorization',async t=>{
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const held=deferred(),h=setup(t,{transport:()=>held.promise});
+  const grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  const pending=h.conversation.request({request:'question',approvedKnowledgeTest:grant,knowledgeEtag:grant.etag});
+  const rejected=assert.rejects(pending,error=>['E_MODEL_GRANT_REVOKED','E_TOOL_CHANGED'].includes(error.code));
+  await tick();
+  if(change==='expiry')now=grant.expiresAt+1;
+  if(change==='provider')h.runtime.updateSettings({model:'changed'});
+  if(change==='revoke')h.revoke();
+  held.resolve({proposal:{answer:'late'}});await rejected;
+});
+
+test('approved knowledge authorization rechecks expiry after delivery on every write assertion',async t=>{
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const h=setup(t),grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  const result=await h.conversation.request({request:'question',approvedKnowledgeTest:grant,knowledgeEtag:grant.etag});
+  await result.authorization.assertWrite();now=grant.expiresAt+1;
+  await assert.rejects(result.authorization.assertWrite(),{code:'E_MODEL_GRANT_REVOKED'});
+  result.authorization.release();
+});
+
+
+test('knowledge approval cannot bypass current Provider permissions',async t=>{
+  const h=setup(t),grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  h.denyProvider();
+  await assert.rejects(h.conversation.request({request:'question',approvedKnowledgeTest:grant,
+    knowledgeEtag:grant.etag}),error=>['E_AI_PERMISSION','E_MODEL_GRANT_REVOKED'].includes(error.code));
+  assert.equal(h.calls.length,0);
+});
+
+test('project knowledge revoke promptly aborts an approved unresolved inference with grant semantics',async t=>{
+  const held=deferred(),h=setup(t,{transport:()=>held.promise});
+  const grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  const pending=h.conversation.request({request:'question',approvedKnowledgeTest:grant,knowledgeEtag:grant.etag});
+  const rejected=assert.rejects(pending,{code:'E_MODEL_GRANT_REVOKED'});
+  await tick();h.conversation.revokeKnowledgeTest();
+  await rejected;
+  assert.equal(h.calls[0].signal.aborted,true);
+  held.resolve({proposal:{answer:'late'}});
+});
+
+
+test('approved authorization expires while a current permission assertion is pending',async t=>{
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const h=setup(t),grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  const result=await h.conversation.request({request:'question',approvedKnowledgeTest:grant,knowledgeEtag:grant.etag});
+  const held=deferred();h.holdProviderCheck(held.promise);
+  const pending=result.authorization.assertWrite();
+  const rejected=assert.rejects(pending,{code:'E_MODEL_GRANT_REVOKED'});
+  now=grant.expiresAt+1;held.resolve(true);await rejected;
+  result.authorization.release();
+});
+
+
+test('approved project request preserves conditional cancellation by the original parent signal',async t=>{
+  const held=deferred(),h=setup(t,{transport:()=>held.promise});
+  const grant=await h.conversation.beginKnowledgeTestApproval(approvalInput);
+  const parent=new AbortController();
+  const pending=h.conversation.request({request:'question',approvedKnowledgeTest:grant,
+    knowledgeEtag:grant.etag,signal:parent.signal});
+  const outcome=pending.then(value=>({value}),error=>({error}));
+  await tick();await h.conversation.cancel({signal:parent.signal});
+  const aborted=h.calls[0].signal.aborted;
+  held.resolve({proposal:{answer:'late'}});
+  const result=await outcome;
+  result.value?.authorization.release();
+  assert.equal(aborted,true,'conditional Stop must match the original caller signal');
+  assert.equal(result.error?.code,'E_CANCELLED');
 });

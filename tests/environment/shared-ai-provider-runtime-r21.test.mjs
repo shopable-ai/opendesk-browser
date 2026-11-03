@@ -1,3 +1,6 @@
+import {bookmarkConversationPolicy} from '../../src/ui/conversation/bookmark-instructions.js';
+import {promptConversationPolicy} from '../../src/ui/conversation/prompt-actions.js';
+import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instructions.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
@@ -168,7 +171,7 @@ test('R2.1 independent lease and Native-context identity for bookmark, prompt, p
 
 test('R2.1 identity validation and duplicate instance protection are fail-closed',()=>{
   const r=setup();
-  assert.throws(()=>r.runtime.acquire({consumerId:'unknown',instanceId:'1'}),{code:'E_AI_IDENTITY'});
+  assert.throws(()=>r.runtime.acquire({consumerId:'invalid/scope',instanceId:'1'}),{code:'E_AI_IDENTITY'});
   assert.throws(()=>r.runtime.acquire({consumerId:'bookmark',instanceId:'1',hostInstanceId:'other'}),{code:'E_AI_IDENTITY'});
   const first=r.runtime.acquire({consumerId:'bookmark',instanceId:'1',installEpoch:'old'});
   assert.throws(()=>r.runtime.acquire({consumerId:'bookmark',instanceId:'1',installEpoch:'old'}),{code:'E_AI_LEASE_DUPLICATE'});
@@ -234,7 +237,7 @@ test('R2.1 official consumer adapters do not share threads, cancellation or busi
       removeListener:listener=>listeners.delete(listener)}
   }};
   const make=(consumerId,instanceId)=>createBusinessConversation({
-    api,providerRuntime:r.runtime,hostInstanceId:'panel-1',consumerId,instanceId,installEpoch:'epoch-9'
+    api,providerRuntime:r.runtime,hostInstanceId:'panel-1',consumerId,policy:({bookmark:bookmarkConversationPolicy,prompt:promptConversationPolicy,tasks:taskConversationPolicy})[consumerId],instanceId,installEpoch:'epoch-9'
   });
   const bookmark=make('bookmark','book-1'),prompt=make('prompt','prompt-1'),
     tasks=make('tasks','my-1'),anotherBookmark=make('bookmark','book-2');
@@ -271,7 +274,7 @@ test('R2.2.1 shared Consumer Session retains Prompt ETag but never leaks other b
     removeListener:listener=>listeners.delete(listener)
   }}};
   const make=(consumerId,instanceId)=>createBusinessConversation({
-    api,providerRuntime:r.runtime,hostInstanceId:'panel-1',consumerId,instanceId
+    api,providerRuntime:r.runtime,hostInstanceId:'panel-1',consumerId,policy:({bookmark:bookmarkConversationPolicy,prompt:promptConversationPolicy,tasks:taskConversationPolicy})[consumerId],instanceId
   });
   const bookmark=make('bookmark','bookmark-session');
   const prompt=make('prompt','prompt-session');

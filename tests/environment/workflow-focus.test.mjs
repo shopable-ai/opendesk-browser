@@ -1,3 +1,5 @@
+import {bookmarkConversationPolicy} from '../../src/ui/conversation/bookmark-instructions.js';
+import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instructions.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -189,6 +191,8 @@ if(!vm.SourceTextModule) {
       // neutral Session is linked directly, unrelated business adapters are
       // intentionally unmounted while the shared Provider Runtime is real.
       '../conversation/provider-consumer.js':{createBusinessConversation:()=>({dispose(){}})},
+      '../conversation/bookmark-instructions.js':{bookmarkConversationPolicy},
+      '../conversation/my-task-instructions.js':{taskConversationPolicy},
       '../conversation/session.js':{createConversationSession},
       '../conversation/draft-suggestion.js':{appendWorkflowSuggestionDraft},
       './view-state.js':{deriveWorkflowViewState},

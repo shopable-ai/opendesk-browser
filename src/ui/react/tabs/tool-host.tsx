@@ -755,7 +755,45 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
   disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true||
     !snapshot.fields['sidebar-tool-cookie-help']?.textContent?.trim()}
   onClose={dismissCookieConsent} onAuthorize={requestCookieGrant}/>}
+{snapshot.toast&&<ToolToast key={snapshot.toast.id} view={view} toast={snapshot.toast}
+  visible={active&&!concealed}/>}
 </div></ToolContext.Provider>;
+}
+
+function ToolToast({view,toast,visible}) {
+  const [hovered,setHovered]=React.useState(false),[focused,setFocused]=React.useState(false);
+  const priorFocus=React.useRef(null);
+  React.useEffect(()=>{
+    if(!visible){view.dismissToast(toast.id);return;}
+    if(hovered||focused)return;
+    const timer=setTimeout(()=>view.dismissToast(toast.id),5000);
+    return ()=>clearTimeout(timer);
+  },[view,toast.id,visible,hovered,focused]);
+  if(!visible)return null;
+  return <div className="sidebar-tool-toast"
+    onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
+    onFocus={event=>{
+      if(!event.currentTarget.contains(event.relatedTarget))priorFocus.current=event.relatedTarget;
+      setFocused(true);
+    }} onBlur={event=>{
+      if(!event.currentTarget.contains(event.relatedTarget))setFocused(false);
+    }}>
+    <span role="status" aria-live="polite" aria-atomic="true">{toast.message}</span>
+    <IconButton label="关闭提示" onMouseDown={event=>event.preventDefault()}
+      onClick={event=>{
+        const doc=event.currentTarget.ownerDocument;
+        if(event.currentTarget===doc.activeElement){
+          // A focus transition from the opaque tool iframe has no relatedTarget.
+          const target=[priorFocus.current,doc.getElementById('sidebar-tool-back')].find(node=>
+            node?.isConnected&&!node.disabled&&!node.closest?.('[hidden],[inert]'));
+          target?.focus?.({preventScroll:true});
+        }
+        view.dismissToast(toast.id);
+      }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"
+        strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
+    </IconButton>
+  </div>;
 }
 
 function CookieConsentDialog({description,disabled,onClose,onAuthorize}) {

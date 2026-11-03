@@ -1,17 +1,10 @@
 import * as React from 'react';
 import {Button,SharedConversationFrame,SharedConversationDock,createConversationSession} from '@opendesk/ui';
 import {instructions,changes,sameConfig} from './ai-config.js';
-import {resolveAiReply} from './ai-actions.js';
+import {resolveAiReply,resolveConfigurationEditScope,assertConfigurationEditScope} from './ai-actions.js';
 import {createAiRequest,requireGeneration} from './ai-request.js';
 import {createAiPending} from './ai-pending.js';
-
-export function requestsConfigurationEdit(request){
-  const text=request.trim();
-  if(/^["“「]|[`<>]|引用|样本中的|示例中的|不要|不需要|不必|不修改|不更改|别改|仅解释|只解释|讨论|影响|风险|会怎样|会怎么样|有什么|吗[？?]?$|为什么|为何|如何|怎么|是否|能否|如果|假如|解释|说明|\b(?:don't|do not|explain|discuss|risk|impact|why|how|whether|if)\b/i.test(text))return false;
-  const direct=/^(?:(?:请|麻烦)(?:你)?\s*)?(?:(?:帮我|替我|我想|我要|我需要)\s*)?(?:把|将|修改|更改|设置|设为|增加|新增|添加|删除|移除|调整|保留)|^(?:please\s+)?(?:add|remove|change|set|update|rename)\b/i.test(text);
-  return direct&&/修改|改为|改成|更改|设置|设为|增加|新增|添加|删除|移除|调整|保留.*只|\b(?:add|remove|change|set|update|rename)\b/i.test(text)&&
-    /配置|字段|表头|顺序|列|分页|页数|规则|选择器|csv|maxPages|field|column|config|pagination|title|url/i.test(text);
-}
+import {createAiPageObservation,retireAiPageObservation} from './ai-page.js';
 
 const operationGuidance={
   'capture.start':'请在采集界面点击「开始采集」。',
@@ -22,6 +15,7 @@ const operationGuidance={
 
 export default function AiPanel({open=true,state,business,onConfigurationApplied,locked,pending,valid,onApply,onClose,onBusy,onDirty,retiredRequest,onRequestRetired=()=>{}}){
   const tool=globalThis.OpenDeskTool;
+  const requestTool=React.useCallback((op,args)=>tool.request(op,args),[tool]);
   const [chat]=React.useState(()=>createConversationSession({identity:{consumerId:'scrapyjs-config',
     instanceId:crypto.randomUUID(),hostInstanceId:'sandbox-presentation'}}));
   const conversation=React.useSyncExternalStore(chat.subscribe,chat.getSnapshot);
@@ -80,33 +74,49 @@ export default function AiPanel({open=true,state,business,onConfigurationApplied
   }
   async function generate(){
     if(working||active.current||unknown||!pendingReady||pendingId||!recipient||!requirement.trim())return;
+    if(typeof tool.prepareAI!=='function'){
+      setError('当前 Browser 缺少 OpenDeskTool.prepareAI 安全发送能力，请更新 Browser 后重试；输入已保留。');return;
+    }
     let before;
     try{before=business?.state.read();}catch(e){setError(e.message);return;}
     const request=requirement.trim(),id=crypto.randomUUID(),base=structuredClone(state.config),epoch=state.profileEpoch;
     const page=state.target?{title:state.target.title,url:state.target.url}:null;
-    const operation=createAiRequest((op,args)=>tool.request(op,args),{requestId:id,request,instructions,context:buildContext()},setRecipient,pendingIdentity);
+    const scope=resolveConfigurationEditScope(request,base,{page});
+    const observation=scope.type==='create'?createAiPageObservation(requestTool,{requestId:id,url:page.url}):null;
+    const requestPending=observation?{claim:requestId=>pendingIdentity.claim(requestId,{pageObservation:true}),
+      beforeDispatch:pendingIdentity.markDispatched,clear:pendingIdentity.clear}:pendingIdentity;
+    const operation=createAiRequest((op,args)=>tool.request(op,args),{requestId:id,request,instructions,context:buildContext()},setRecipient,requestPending,
+      factory=>tool.prepareAI(factory),observation?{
+        prepare:async context=>{
+          const next={...context,...await observation.prepare()};
+          while(next.conversation?.length&&JSON.stringify({request,context:next}).length>20000)next.conversation.shift();
+          return next;
+        },retire:()=>observation.retire()
+      }:null);
     append('你',request);setPendingId(id);active.current=operation;busy(true);setUnknown(false);setError('');setNotice('');
     const finishReply=()=>{setRequirement('');setNotice('');};
     try{
       const result=await operation.run();
       if(!alive.current||active.current!==operation)return;
       if(!result){setNotice('原 AI 请求已结束；停止后返回的内容未应用。');return;}
-      const reply=resolveAiReply(result.proposal,{base,expectedUrl:page?.url||base.url,
-        validate:globalThis.ScrapyAppModel.validateConfig,changes,hasSample:false,allowFullConfig:true});
+      const reply=resolveAiReply(result.proposal,{base,expectedUrl:base.url||page?.url,
+        validate:globalThis.ScrapyAppModel.validateConfig,changes,hasSample:Boolean(observation),allowFullConfig:true});
       if(reply.type==='operation'){
-        append('助手',operationGuidance[reply.operation.kind]);finishReply();return;
+        append('助手',operationGuidance[reply.operation.kind]);return;
       }
       if(reply.type!=='proposal'){
-        append('助手',reply.message+(reply.missing.length?'\n需要补充：'+reply.missing.join('、'):''));finishReply();return;
+        append('助手',reply.message+(reply.missing.length?'\n需要补充：'+reply.missing.join('、'):''));
+        if(reply.type==='explain'&&scope.type==='readonly')finishReply();return;
       }
+      if(!['edit','create'].includes(scope.type)){
+        append('助手',scope.message);return;
+      }
+      assertConfigurationEditScope(scope,base,reply.config,globalThis.ScrapyAppModel.validateConfig);
       if(!reply.actions.length){append('助手','配置没有变化。');finishReply();return;}
-      if(!requestsConfigurationEdit(request)){
-        append('助手','尚未修改配置，请直接说明要修改的内容。');finishReply();return;
-      }
-      if(!page)throw Error('修改配置前，请刷新当前网页。');
       const info=await tool.request('ai.info',{});
       if(requireGeneration(info.generation)!==requireGeneration(result.providerGeneration))throw Error('AI Provider 已变化，未修改配置。');
       const {value}=await pendingIdentity.read();
+      if(observation)await observation.assertCurrent();
       if(value||active.current!==operation||!stillCurrent({base,epoch,page},id))throw Error('配置、网页或原请求已变化，未修改配置。');
       if(business){
         const proposed=business.config.propose({identity:before.identity,config:reply.config});
@@ -131,12 +141,27 @@ export default function AiPanel({open=true,state,business,onConfigurationApplied
     if(!active.current&&!pendingId)return;
     const operation=active.current;setNotice('正在停止原 AI 请求…');
     try{
-      const reply=operation?await operation.cancel():await tool.request('ai.cancel',{requestId:pendingId});
+      let reply,recovered=null;
+      if(operation)reply=await operation.cancel();
+      else{
+        recovered=(await pendingIdentity.read()).value;
+        if(recovered?.requestId!==pendingId)throw Error('未决 AI 身份已变化；未清除。');
+        if(recovered.pageObservation&&recovered.dispatchState==='preparing'){
+          // Retire the original observation before CAS-clearing its unsent row.
+          // A concurrent late factory must claim the same CAS to dispatch.
+          await retireAiPageObservation(requestTool,pendingId);
+          await pendingIdentity.clearUnsent(pendingId);
+          reply={requestId:pendingId,state:'cancelled'};
+        }else reply=await tool.request('ai.cancel',{requestId:pendingId});
+      }
       if(!operation&&(reply?.requestId!==pendingId||!['cancelled','completed','failed','unknown'].includes(reply.state)))throw Error('停止回执身份或状态无效，原请求仍在等待确认。');
       if(alive.current&&active.current===operation){
         if(operation&&!operation.dispatched&&!operation.settled){setNotice('已请求取消准备；等待原运行结束，未解除围栏。');return;}
         if(['cancelled','completed','failed'].includes(reply.state)){
-          if(!operation)await pendingIdentity.clear(pendingId);
+          if(!operation&&recovered.dispatchState!=='preparing'){
+            if(recovered.pageObservation)await retireAiPageObservation(requestTool,pendingId);
+            await pendingIdentity.clear(pendingId);
+          }
           if(!alive.current||active.current!==operation)return;
           onRequestRetired(reply);
           active.current=null;setPendingId(null);busy(false);setUnknown(false);append('系统','原 AI 请求已确认结束；停止后内容未应用。');setNotice(reply.state==='cancelled'?'已确认停止原 AI 请求；未应用配置。':'原 AI 请求已结束；停止后内容未应用。');

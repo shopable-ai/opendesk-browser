@@ -245,3 +245,12 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  onStep({message,refs:refsNext,etag:checkedValue.etag});
  return {messages:[message],refs:refsNext,etag:checkedValue.etag,writeIssued:true,releasedImageAssets};
 }
+
+export const promptConversationPolicy=Object.freeze({
+  scopes:{prompt:{instructions:promptInstructions},'prompt-edit':{instructions:promptEditInstructions}},
+  refs:{empty:()=>({matches:[],etag:null}),normalize:refs=>({
+    matches:Array.isArray(refs?.matches)?refs.matches.slice(0,12)
+      .filter(id=>typeof id==='string'&&id.length<=160):[],
+    etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null
+  })}
+});

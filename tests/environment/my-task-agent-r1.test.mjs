@@ -1,3 +1,4 @@
+import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instructions.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMyTaskAgent,validateMyTaskAgentProposal} from '../../src/ui/my-task-agent.js';
@@ -471,7 +472,7 @@ function authorizedRig({source='custom_https',holdInference=false,unknownCancel=
   runtime.updateSettings({source,endpoint:'https://model.example/v1/responses',
     model:'test-model',apiKey:'memory-only'});
   const provider=createBusinessConversation({api,providerRuntime:runtime,
-    hostInstanceId:'my-agent-test',consumerId:'tasks',instanceId:'tasks-one'});
+    hostInstanceId:'my-agent-test',consumerId:'tasks',policy:taskConversationPolicy,instanceId:'tasks-one'});
   const x=rig([],{provider,api});
   return {agent:x.agent,client:x.client,runtime,provider,api,cancelled,inferenceEntered,resolveInference,
     get changes(){return x.changes;},

@@ -837,6 +837,8 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   assert.equal(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
   f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+  assert.equal(f.view.getSnapshot().toast.message,'已取消，原内容仍保留。');
+  assert.notEqual(f.elements['sidebar-tool-status'].textContent,'已取消，原内容仍保留。');
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
   state(true,true);

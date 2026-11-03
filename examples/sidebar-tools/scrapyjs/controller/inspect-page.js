@@ -6,9 +6,10 @@ const fail=code=>{throw Object.assign(new Error(code),{code});};
 // Fixed, read-only inspection. Confirmation and document-identity validation
 // remain with the original Task read; this module never navigates or installs UI.
 export async function runInspection(input,page) {
-  if(!input||!['fields','lists'].includes(input.kind)||typeof input.url!=='string'||
+  if(!input||!['fields','lists','context'].includes(input.kind)||typeof input.url!=='string'||
     typeof input.container!=='string'||typeof input.item!=='string'||
-    (input.mode!==undefined&&!['snapshot','click'].includes(input.mode)))fail('E_INSPECTION_CONFIG');
+    (input.mode!==undefined&&!['snapshot','click'].includes(input.mode))||
+    (input.kind==='context'&&input.mode!==undefined&&input.mode!=='snapshot'))fail('E_INSPECTION_CONFIG');
   input={url:input.url,kind:input.kind,container:input.container,item:input.item,mode:input.mode??'snapshot'};
   allowedUrl(input.url);
   if(await page.url()!==input.url)fail('E_INSPECTION_URL');
@@ -25,6 +26,7 @@ export async function runInspection(input,page) {
     // Never use aggregate textContent: it can include script, form or editable
     // descendants even when their containing candidate is otherwise safe.
     function text(node) {
+      if(node.nodeType===3)return safe(node.parentElement)?node.nodeValue||'':'';
       if(!safe(node))return '';
       let value='';
       for(const child of node.childNodes){
@@ -32,6 +34,49 @@ export async function runInspection(input,page) {
         else if(child.nodeType===1)value+=text(child);
       }
       return value;
+    }
+    if(input.kind==='context'){
+      // Serialize data only: never clone, insert HTML, or read aggregate HTML.
+      // Reserve closing tags so even a truncated sample retains its structure.
+      const attributes=['id','class','title','href','src','data-src','alt','role','aria-label',
+        'aria-labelledby','aria-describedby','aria-level','aria-hidden','datetime',
+        'itemprop','itemscope','itemtype','lang','dir','rel','colspan','rowspan','scope'];
+      const voids=new Set(['area','base','br','col','hr','img','link','meta','param','source','track','wbr']);
+      const escape=value=>value.replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+      let html='',reserved=0,visited=0,truncated=false;
+      function sample(node,depth){
+        if(++visited>2000||depth>64){truncated=true;return false;}
+        if(node.nodeType===3){
+          const value=text(node).replace(/\s+/g,' ');
+          for(const char of value){
+            const encoded=escape(char);
+            if(html.length+reserved+encoded.length>12000){truncated=true;return false;}
+            html+=encoded;
+          }
+          return true;
+        }
+        if(node.nodeType!==1||!safe(node))return true;
+        const tag=node.localName;
+        if(!/^[a-z][a-z0-9:-]*$/i.test(tag))return true;
+        let open='<'+tag;
+        const close=voids.has(tag)?'':'</'+tag+'>';
+        for(const name of attributes){
+          const value=node.getAttribute(name);
+          if(value===null)continue;
+          if(value.length>12000){truncated=true;return false;}
+          open+=' '+name+'="'+escape(value)+'"';
+          if(html.length+reserved+open.length+1+close.length>12000){truncated=true;return false;}
+        }
+        open+='>';
+        if(html.length+reserved+open.length+close.length>12000){truncated=true;return false;}
+        html+=open;reserved+=close.length;
+        let complete=true;
+        for(const child of node.childNodes)if(!sample(child,depth+1)){complete=false;break;}
+        reserved-=close.length;html+=close;
+        return complete;
+      }
+      if(document.body)sample(document.body,0);
+      return {kind:input.kind,url:input.url,choices:[{html}],...truncated?{truncated:true}:{}};
     }
     const preview=value=>value.trim().replace(/\s+/g,' ').slice(0,240);
     const query=(root,selector)=>{
@@ -137,6 +182,7 @@ export async function runInspection(input,page) {
     }
     return {kind:input.kind,url:input.url,choices,...truncated?{truncated:true}:{}};
   },{url:input.url,kind:input.kind,container:input.container,item:input.item});
+  if(input.kind==='context'&&result.choices.some(choice=>choice.html.length>12000))fail('E_INSPECTION_LIMIT');
   if(new TextEncoder().encode(JSON.stringify(result)).length>48000)fail('E_INSPECTION_LIMIT');
   return result;
 }

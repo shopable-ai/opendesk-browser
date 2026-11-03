@@ -21,6 +21,7 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {readAppControllerInstallation} from '../../src/platform/tasks/app-controller-installation.js';
 import {builtinIdentity} from '../../src/libs/identity.js';
+import {createTaskDelegationHost} from '../../src/platform/host/task-delegation.js';
 
 // Node component fixture adapted from k3-controller-authority; Chrome callbacks are doubles.
 function serialStore() {
@@ -355,7 +356,7 @@ test('task.list includes disabled installed metadata without allowing execution'
   assert.equal(f.executed.length,0);
 });
 
-async function appControllerFixture(t,properties={}){
+async function appControllerFixture(t,properties={},targetOverrides={}){
   const f=await fixture(),sourceUtf8='async function main(){return await page.title();}';
   const tool={format:'opendesk.sidebar-tool.v2',id:'controller-app',version:'1.0.0',title:'Controller app',description:'Reviewed page automation',
     capabilities:['controllers.run'],html:'<main>App</main>',css:'',js:'void 0;',requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
@@ -368,7 +369,7 @@ async function appControllerFixture(t,properties={}){
   t.after(()=>{if(locks)Object.defineProperty(navigator,'locks',locks);else delete navigator.locks;});
   const {binding}=await readAppControllerInstallation(f.api,tool.id);
   const bound={...binding,instanceId:'original-frame'};
-  const target={mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page'};
+  const target={mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top',expectedUrl:'https://a.example/page',...targetOverrides};
   const prepare=async(id='app-request')=>f.authority.prepareDelegatedStep({binding:bound,clientRequestId:id,
     paramsDigest:await import('../../src/platform/protocol.js').then(m=>m.digest({},{maxDepth:48})),target,deadlineAt:Date.now()+30000},f.sender);
   const start=async(id='app-request',extra={},sender=f.sender)=>{const step=await prepare(id);return f.authority.startControllerRun({
@@ -388,6 +389,73 @@ test('App Controller uses installed package bytes and the original Controller re
   const snapshot=await f.authority.inspectDelegatedStep({binding:f.bound,clientRequestId:'app-request'},f.sender);
   assert.equal(snapshot.runId,run.runId);assert.equal(snapshot.state,'completed');
   assert.equal(snapshot.retirementState,'released');assert.equal((await f.rows('frameworkKV')).length,0);
+});
+
+for(const replacementFrame of [false,true])test(`delegated read revalidates the original document after release (${replacementFrame?'new':'same'} iframe)`,async t=>{
+  const f=await appControllerFixture(t);
+  const create=instanceId=>createTaskDelegationHost({api:f.api,appId:f.tool.id,instanceId,
+    assertInstance:()=>{},
+    client:{request:(method,value)=>f.authority[method](JSON.parse(JSON.stringify(value)),f.sender)},
+    currentPageTarget:{capture:()=>({tabId:2,frameId:0,documentId:'doc-top',url:'https://a.example/page'}),
+      revalidate:async()=>{}},
+    host:{async start({params,...request}){
+      return f.authority.startControllerRun(JSON.parse(JSON.stringify({...request,paramsWire:encodeValue(params)})),f.sender);
+    },stop:async()=>{},cancelStart:()=>{}}});
+  const original=create('original-frame');
+  const run=await original.request('controllers.start',{clientRequestId:'document-read',params:{}},{verifiedUserActivation:true});
+  const pending=await original.request('controllers.read',{clientRequestId:'document-read'});
+  assert.equal(pending.semantic,'UNKNOWN');assert.equal(pending.result,null);
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const reader=replacementFrame?create('replacement-frame'):original;
+  const read=()=>reader.request('controllers.read',{clientRequestId:'document-read'});
+  const before=await read();
+  assert.equal(before.semantic,'FOUND_RESULT');assert.equal(before.value,false);
+  assert.equal(before.retirementState,'released');
+  f.frames.get(2)[0].documentId='same-url-new-document';
+  await assert.rejects(read(),{code:'E_DOCUMENT_REPLACED'});
+  // Generic history still owns the immutable original result. Only delegated
+  // delivery requires the original page document; navigation must not erase it.
+  const history=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.deepEqual(history.results,[before.result]);
+  assert.equal((await f.rows('results')).length,1);
+  const receipt=await f.authority.cancelDelegatedStep({binding:f.bound,clientRequestId:'document-read'},f.sender);
+  assert.equal(receipt.retirementState,'released');assert.equal(receipt.workerRetired,true);
+  assert.equal(receipt.resourceReleased,true);assert.equal(receipt.slotAvailable,true);
+  assert.equal(receipt.resultId,run.resultId);assert.equal(receipt.result,null);assert.equal(receipt.value,null);
+  const stopped=await create('stop-recovery-frame').request('controllers.stop',{clientRequestId:'document-read'});
+  assert.equal(stopped.retirementState,'released');assert.equal(stopped.workerRetired,true);
+  assert.equal(stopped.resourceReleased,true);assert.equal(stopped.slotAvailable,true);
+  assert.equal(stopped.resultId,run.resultId);
+  assert.equal(stopped.result,null);assert.equal(stopped.value,null);
+  await assert.rejects(read(),{code:'E_DOCUMENT_REPLACED'});
+});
+
+test('delegated read rejects another active tab at the same URL in the captured window',async t=>{
+  const f=await appControllerFixture(t,{}, {expectedWindowId:5});
+  Object.assign(f.tabs.get(2),{windowId:5,active:true});
+  let activeTab=f.tabs.get(2);
+  f.api.tabs.query=async()=>[activeTab];
+  const run=await f.startApp();
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const read=()=>f.authority.inspectDelegatedStep({binding:f.bound,clientRequestId:'app-request'},f.sender);
+  assert.equal((await read()).semantic,'FOUND_RESULT');
+  activeTab={...activeTab,id:3};
+  await assert.rejects(read(),{code:'E_DOCUMENT_STALE'});
+  assert.equal(f.frames.get(2)[0].documentId,'doc-top');
+});
+
+test('delegated stop does not claim resource release before Worker retirement',async t=>{
+  const f=await appControllerFixture(t),run=await f.startApp();
+  const stop=()=>f.authority.cancelDelegatedStep({binding:{...f.bound,instanceId:'recovery-frame'},
+    clientRequestId:'app-request'},f.sender);
+  const stopping=await stop();
+  assert.equal(stopping.state,'stopping');assert.notEqual(stopping.retirementState,'released');
+  assert.equal(stopping.workerRetired,false);assert.equal(stopping.resourceReleased,false);
+  assert.equal(stopping.slotAvailable,false);assert.equal(stopping.result,null);assert.equal(stopping.value,null);
+  await f.finish(run,'stopped');await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const released=await stop();
+  assert.equal(released.retirementState,'released');assert.equal(released.resourceReleased,true);
+  assert.equal(released.workerRetired,true);assert.equal(released.slotAvailable,true);
 });
 for(const change of ['runtime','origin','params','deadline','source','generation'])test('App Controller rejects changed '+change+' before page effects',async t=>{
   const f=await appControllerFixture(t);

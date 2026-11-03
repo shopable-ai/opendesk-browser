@@ -134,7 +134,10 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
         if(row.runId)await host.stop({controller:true,runId:row.runId}).catch(()=>{});
         row.operationRef=cancelled.operationRef;row.runId=cancelled.runId??row.runId;
         row.state=cancelled.state;row.semantic=cancelled.semantic;
-        return {...project({...row,result:null}),result:null,value:null};
+        row.resultId=cancelled.resultId??row.resultId;row.retirementState=cancelled.retirementState??null;
+        return {...project({...row,result:null}),workerRetired:cancelled.workerRetired??false,
+          resourceReleased:cancelled.resourceReleased??false,slotAvailable:cancelled.slotAvailable??null,
+          result:null,value:null};
       }
       const snapshot=await client.request('inspectDelegatedStep',{
         binding,clientRequestId:payload.clientRequestId});

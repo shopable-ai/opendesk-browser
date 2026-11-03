@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import * as React from 'react';
 import {createExtensionCenterDOM} from '../../../../tests/helpers/extension-center-react-dom.mjs';
-import {App} from './react-fixture.mjs';
+import {App,prepareAiFixture} from './react-fixture.mjs';
 
 const context=vm.createContext({URL,TextEncoder,crypto:globalThis.crypto});
 for(const path of ['../src/app-model.js','../adapters/app-sdk.js'])
@@ -17,7 +17,7 @@ export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,sa
   const rows=new Map([['capture-config',{value:empty?null:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
   const calls=[];let run;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
-  const tool={setState(){},request:async(operation,payload)=>{
+  const tool={prepareAI:prepareAiFixture,setState(){},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get')return structuredClone(rows.get(payload.key));
     if(operation==='storage.set'){
