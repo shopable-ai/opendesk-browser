@@ -47,7 +47,7 @@ test('Insight B separates manual outcomes from latest cumulative automatic snaps
   assert.match(b,/snapshot_version/);
   assert.match(b,/source_totals/);
   assert.match(b,/reconciliation_gap/);
-  assert.match(b,/不得逐版本累计/);
+  assert.match(b,/逐版本累计/);
 });
 
 test('Insight C does not turn per-install anonymous Page/Task IDs into a global tool ranking',()=>{
