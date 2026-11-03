@@ -14,7 +14,7 @@ export const records=[['A','浏览器工具','19.50'],['B','本地任务','25.00
 
 export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,saveConfig=null,empty=false}={}){
   const saved={...base,maxPages:10};
-  const rows=new Map([['capture-config',{value:empty?null:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
+  const rows=new Map([['capture-config',{value:empty?null:{schemaVersion:1,selectedId:'saved',records:[{id:'saved',name:'已有采集配置',config:saved}]},etag:'0'}],['local-runner-state',{value:null,etag:'0'}],['local-structure-state',{value:null,etag:'0'}],['ai-pending-request',{value:pendingAi?{schemaVersion:1,requestId:'unknown-ai'}:null,etag:'0'}]]);
   const calls=[];let run;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
   const tool={prepareAI:prepareAiFixture,setState(){},request:async(operation,payload)=>{
@@ -47,5 +47,15 @@ export async function fixture(t,{pendingAi=false,generate=null,clearGate=null,sa
   },props:{show:true}});
   ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0});
   await settle();await settle();
-  return {ui,calls,rows,get:id=>ui.doc.getElementById(id),edit(id,text){const node=ui.doc.getElementById(id);node.value=text;node.dispatch('input');},posts:()=>calls.filter(row=>row.operation==='localTasks.request'&&row.payload.method==='POST'&&row.payload.path==='/v1/runs')};
+  return {ui,calls,rows,get:id=>ui.doc.getElementById(id),edit(id,text){
+    const node=ui.doc.getElementById(id);
+    if(node.tagName==='SELECT'){
+      // linkedom exposes a getter-only select value; choose its real option.
+      const option=[...node.options].find(item=>item.value===text);
+      assert.ok(option,'select option exists: '+id+'='+text);
+      option.selected=true;
+      assert.equal(node.value,text,'select driver must deliver the requested value');
+      node.dispatch('change');
+    }else{node.value=text;node.dispatch('input');}
+  },posts:()=>calls.filter(row=>row.operation==='localTasks.request'&&row.payload.method==='POST'&&row.payload.path==='/v1/runs')};
 }

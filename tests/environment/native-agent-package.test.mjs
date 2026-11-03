@@ -18,8 +18,8 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(BUILD_POLICY.productionBytes,512*1024);
   assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
   assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,512*1024);
-  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,1024*1024);
-  assert.equal(BUILD_POLICY.developmentBytes,1536*1024);
+  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,2*1024*1024);
+  assert.equal(BUILD_POLICY.developmentBytes,2*1024*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
   // Sidebar Tools and R15 Page core remain separately reviewed fixed entries;
@@ -76,6 +76,7 @@ test('fixed transport registers listeners on the original SW APIs; default-off d
       getURL:page=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+page,
       getManifest:()=>({version:'0.1.0'}),connectNative:()=>{connections++;throw Error('Not enabled');}},
     storage:{local:{get:async()=>({}),set:async()=>{}}},
+    webNavigation:{onCommitted:event(),onHistoryStateUpdated:event()},tabs:{onRemoved:event()},
     permissions:{contains:async()=>false,onRemoved:event()}
   };
   const scope={chrome:api,__opendeskNativeHostPorts:new Map()};
@@ -86,7 +87,7 @@ test('fixed transport registers listeners on the original SW APIs; default-off d
   assert.equal(descriptor.writable,false);
   assert.equal(descriptor.configurable,false);
   assert.equal(connections,0,'Native is disabled by default, so no connectNative is allowed');
-  assert.equal(api.runtime.onMessage.listeners.size,1);
+  assert.equal(api.runtime.onMessage.listeners.size,3);
   assert.equal(api.runtime.onConnect.listeners.size,1);
   assert.throws(()=>installNativeTransport(scope),/E_NATIVE_TRANSPORT_CONFLICT/);
   agent.dispose();

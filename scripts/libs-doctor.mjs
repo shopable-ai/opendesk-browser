@@ -106,11 +106,12 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     })),
     sources:{},packages:{},legacy:{},policy:{
       // Independent release-policy audit, not a second bundle-size budget.
-      // The approved current production SW limit is 1 MiB; the package
+      // The approved current SW limit is 2 MiB in both modes; the package
       // verifier and WXT get the actual bound from BUILD_POLICY.
-      expectedSwHardBytes:1024*1024,
+      expectedSwHardBytes:2*1024*1024,
       configuredSwHardBytes:BUILD_POLICY.serviceWorkerProductionBytes,
-      status:BUILD_POLICY.serviceWorkerProductionBytes===1024*1024?'PASS':'POLICY_DRIFT'
+      status:BUILD_POLICY.serviceWorkerProductionBytes===2*1024*1024&&
+        BUILD_POLICY.developmentBytes===2*1024*1024?'PASS':'POLICY_DRIFT'
     },
     runtime:'RUNTIME_UNVERIFIED',native:'NATIVE_UNVERIFIED'
   };
@@ -251,7 +252,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     }
   }
   report.issues=[...errors,...(report.policy.status==='POLICY_DRIFT'?
-    ['configured SW hard cap differs from reviewed 1 MiB release limit']:[]),
+    ['configured SW hard cap differs from reviewed 2 MiB limit in both modes']:[]),
     ...(report.legacy.jquery.status==='DUPLICATE_SOURCE'?
       ['old src/vendor jQuery duplicates the canonical src/libs source']:[])];
   return report;

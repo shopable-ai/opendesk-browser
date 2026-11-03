@@ -2,12 +2,15 @@
   "exclude": [
     "evidence/",
     "docs/contracts/source-snapshots/",
+    "docs/contracts/source-deltas/",
     "docs/framework/evidence/",
     "docs/framework/workstreams/",
     "docs/framework/prototypes/",
     "src/libs/vendor/",
     "src/libs/page-frameworks/",
     "examples/sidebar-tools/import-max-probe/vendor/",
+    "projects/video-downloader/tests/fixtures/h264-aac.ts",
+    "projects/video-downloader/tests/fixtures/h264-he-aac.ts",
     "**/browser.original.js",
     "**/*.min.js"
   ]

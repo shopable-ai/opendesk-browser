@@ -87,7 +87,7 @@ test('navigation fences are scoped to the bound source while permission revocati
     const events={};
     const event=name=>({addListener(listener){events[name]=listener;}});
     const frame=Promise.withResolvers();
-    const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+    const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:(path='')=> 'chrome-extension://extid/'+path,
       onMessage:event('message')},webNavigation:{getFrame:()=>frame.promise,
       onCommitted:event('navigate'),onHistoryStateUpdated:event('history')},
       tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event('close')},
@@ -114,7 +114,7 @@ function gateHarness(){
   const tab={id:source.tabId,url:source.url,windowId:2,incognito:false};
   const sender={id:'extid',frameId:0,documentId:source.documentId,
     documentLifecycle:'active',url:'https://chatgpt.com/c/initial-injection',tab:{...tab}};
-  const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',onMessage:event('message')},
+  const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:(path='')=> 'chrome-extension://extid/'+path,onMessage:event('message')},
     webNavigation:{getFrame:async()=>({...frame}),onCommitted:event('committed'),onHistoryStateUpdated:event('history')},
     tabs:{get:async()=>({...tab}),onRemoved:event('close')},permissions:{onRemoved:event('permission')}};
   installChatGPTBridgeTriggerGate({api});

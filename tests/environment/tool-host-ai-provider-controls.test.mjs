@@ -1,8 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as React from 'react';
+import {createRoot} from 'react-dom/client';
 import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 import {tick} from './workflow-react-fixture.mjs';
+
+test('trusted conversation exposes the shared source selector only while open',async t=>{
+  const f=await mountWorkflowClient({activeTab:'tools'});
+  const mount=f.document.createElement('div'),header=f.document.createElement('span');
+  f.document.body.append(mount,header);
+  const root=createRoot(mount);
+  t.after(async()=>{await React.act(async()=>{root.unmount();await tick();});await f.close();});
+  const controller={readSession:()=>({}),saveSession:()=>{},request:()=>{}};
+  let opened=0;
+  await React.act(async()=>{root.render(React.createElement(f.TrustedConversationWorkspace,{
+    controller,headerTarget:header,renderBusiness:()=>React.createElement('div',null,'书签业务'),
+    renderHeaderControls:focusComposer=>React.createElement(f.ToolConversationProviderControls,{
+      providerSettings:f.providerSettings,onOpenSettings:()=>opened++,focusComposer})
+  }));await tick();});
+  assert.equal(f.document.getElementById('sidebar-tool-conversation-provider-toggle'),null);
+  await f.clickNode(header.querySelector('[aria-label="AI 对话"]'));
+  const picker=f.document.getElementById('sidebar-tool-conversation-provider-toggle');
+  assert.ok(picker,'open trusted conversation offers the same source selector as sandbox');
+  await f.clickNode(picker);
+  await f.click('sidebar-tool-conversation-source-option-https');
+  assert.equal(opened,1,'unconfigured HTTPS opens shared settings without changing provider');
+  assert.equal(f.providerSettings.settingsSnapshot().source,'local_codex');
+  await f.clickNode(header.querySelector('[aria-label="AI 对话"]'));
+  assert.equal(f.document.getElementById('sidebar-tool-conversation-provider-toggle'),null);
+});
 
 test('shared settings cancel discards the unsaved source and reopening reads the saved configuration',async t=>{
   const f=await mountWorkflowClient();
@@ -58,17 +84,8 @@ test('ToolHost offers trusted shared AI controls only for a visible, open sandbo
   const ids=[...f.document.querySelectorAll('[id]')].map(node=>node.id);
   assert.equal(ids.filter(id=>id===picker).length,1);
   assert.match(get(picker).parentNode.parentNode.querySelector('span').getAttribute('title'),/本机 Codex · 模型由本机配置/);
-  assert.equal(get(settings).getAttribute('aria-label'),'AI 设置');
-  assert.ok(get(settings).classList.contains('od-icon-button'));
-  assert.equal(get(settings).closest('#sidebar-tool-frame'),null,'controls stay in trusted Host chrome');
-
-  await f.click(settings,false);
-  assert.equal(f.document.querySelector('.workflow-sheet-overlay [role="dialog"]'),null,'synthetic settings click is ignored');
-  await f.click(settings);
-  assert.equal(f.document.querySelectorAll('.od-shared-provider-form').length,1);
-  await f.keydown('Escape');
-  assert.equal(f.document.querySelector('.workflow-sheet-overlay [role="dialog"]'),null);
-  assert.equal(f.document.activeElement?.id,get(settings).id,'shared sheet restores its Host entry');
+  assert.equal(get(settings),null,'AI settings gear belongs to the sandbox Dock, never beside uninstall');
+  assert.equal(get(picker).closest('.sidebar-tool-view-head').querySelector('[aria-label="AI 设置"]'),null);
 
   await f.click(picker);
   assert.equal(get(picker).getAttribute('aria-controls'),menu);

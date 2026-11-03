@@ -852,6 +852,8 @@ function validateConfig(config) {
 
 // This callback must remain self-contained: ChromePage serializes it into the page's DOM realm.
 function inspectDOM(config) {
+  // Preserve null selection/diagnostic values through Chrome script injection.
+  if (typeof config === 'string') return JSON.stringify(inspectDOM(JSON.parse(config)));
   const result = { valid: true, checkedRows: 0, rowShape: null, issues: [],
     ...(typeof document.baseURI === 'string' ? { baseURL: document.baseURI } : {}) };
   const issue = (code, message, details = {}) => {
@@ -984,7 +986,7 @@ async function validateBrowserProfile(page, spiderConfig) {
   try {
     const config = validateConfig(spiderConfig);
     if (!page || typeof page.evaluate !== 'function') invalid('A page.evaluate transport is required');
-    const report = await page.evaluate(inspectDOM, config);
+    const report = JSON.parse(await page.evaluate(inspectDOM, JSON.stringify(config)));
     if (!report || typeof report.valid !== 'boolean' || !Number.isInteger(report.checkedRows)
         || report.checkedRows < 0 || report.checkedRows > 500 || !Array.isArray(report.issues)
         || (report.rowShape !== null && typeof report.rowShape !== 'string')) invalid('Invalid browser validation transport result');
@@ -2284,7 +2286,17 @@ class ChromeSpider extends CrawlSpider {
     const settleMs = Math.min(300, navigationTimeout / 4);
     while (Date.now() < deadline) {
       if (this.scrapy?.shouldClose(false)) return false;
-      const after = await capture();
+      let after;
+      try {
+        after = await capture();
+      } catch (error) {
+        // Only this read after our one click may outlive the old document.
+        // Never replay the click, unknown effects, permission errors or closure.
+        if (error.code !== 'E_RECIPE_INJECTION' || !/^Frame with ID \d+ was removed\.?$/.test(error.message)) throw error;
+        candidate = null;
+        await page.waitForTimeout(Math.min(50, Math.max(1, deadline - Date.now())));
+        continue;
+      }
       latest = after;
       // Navigation alone, empty placeholders and busy/hidden old records are not a completed page.
       if (after?.ready && after.visible !== false && after.records !== 0 && after.content !== before?.content) {
@@ -4777,7 +4789,7 @@ class ItemLoader {
             const request = {preparation:input};
             const plan = documentSource ? extraction.extractRecords(request, null, source) : this.isCheerio(source)
                 ? extraction.extractRecords(request, source)
-                : await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, request);
+                : JSON.parse(await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, JSON.stringify(request)));
             if (plan.status !== 'ready') return plan;
             const records = plan.records;
             preparation.checkRecords(input, records);
@@ -4820,7 +4832,7 @@ class ItemLoader {
         if (this.isCheerio(source)) return this.unwrap(extraction.extractRecords(normalized, source));
         // document.evaluate is the native XPath API, not a page bridge.
         const page = source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source, usePuppeteer);
-        return this.unwrap(await page.evaluate(extraction.extractRecords, normalized));
+        return this.unwrap(JSON.parse(await page.evaluate(extraction.extractRecords, JSON.stringify(normalized))));
     }
 
     static resolveChromePage(source, usePuppeteer) {
@@ -5032,6 +5044,9 @@ function normalizeConfig(config) {
 // Self-contained callback: ChromePage/Puppeteer serialize this function. The same
 // implementation accepts Cheerio locally, keeping values and records identical.
 function extractRecords(config, $, context) {
+    // Chrome's scripting dictionary transport omits null properties. The
+    // packaged callback carries JSON both ways so an absent scope stays null.
+    if (typeof config === 'string') return JSON.stringify(extractRecords(JSON.parse(config), $, context));
     // Author preparation and the ordinary record executor share this synchronous
     // callback. Website tasks cannot replace nodes between proof and reads.
     function discover(input, $, context) {

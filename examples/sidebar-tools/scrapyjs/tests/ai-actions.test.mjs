@@ -138,6 +138,26 @@ async function scoped(request,before,candidate) {
   assertConfigurationEditScope(scope,before,reply.config,validate);
   return reply.config;
 }
+test('ordinary column language resolves current display names and preserves every unrelated setting',async()=>{
+  const before={...base(),itemConfig:{...base().itemConfig,price:'.price::text'},
+    output:{fieldNames:{title:'书名',price:'价格'},fieldOrder:['title','price','url']}};
+  const expected={...before,output:{...before.output,fieldNames:{title:'图书名称',price:'售价'}}};
+  for(const request of [
+    '价格这一列叫售价，书名那列叫图书名称，其它保持原样。',
+    '麻烦把价格的列名换成售价；再把书名的表头改为图书名称，其他不变。',
+    '我想把 price 的 CSV 表头改成售价，title 的列名用图书名称，其余保持原样。'
+  ]) {
+    assert.deepEqual(await scoped(request,before,expected),validate(expected));
+    await assert.rejects(scoped(request,before,{...expected,maxPages:2}));
+    await assert.rejects(scoped(request,before,{...expected,itemConfig:{...before.itemConfig,title:'h3'}}));
+    await assert.rejects(scoped(request,before,{...expected,output:{...expected.output,fieldNames:{title:'图书名称',price:'其他'}}}));
+  }
+  for(const request of ['价格这一列叫售价，开始采集','价格这一列叫售价，书名那列叫图书名称，顺便优化其他设置',
+    '不要把价格这一列叫售价','如果价格这一列叫售价','价格这一列叫售价，价格这一列叫金额'])
+    await assert.rejects(scoped(request,before,expected));
+  const ambiguous={...before,output:{fieldNames:{title:'价格',price:'价格'}}};
+  await assert.rejects(scoped('价格这一列叫售价',ambiguous,expected));
+});
 test('semantic scope enforces exact header values and all final differences for both envelopes',async()=>{
   const before={...base(),maxPages:2,output:{fieldNames:{url:'链接'},fieldOrder:['url','title']}};
   const expected={...before,output:{...before.output,fieldNames:{...before.output.fieldNames,title:'书名'}}};
@@ -290,4 +310,26 @@ test('natural-language creation from an empty draft permits only the observed cu
   assert.notEqual(resolveConfigurationEditScope(request,before).type,'create');
   assert.notEqual(resolveConfigurationEditScope('解释如何根据当前网页创建采集配置，只采当前页',before,{page}).type,'create');
   assert.deepEqual(before,{url:'',itemConfig:{}});
+});
+
+test('blank-page authoring does not require a creation verb or a fixed range phrase',async()=>{
+  const {resolveConfigurationEditScope,assertConfigurationEditScope}=await import('../src/ai-actions.js');
+  const base={url:'',itemConfig:{}},page={url:'https://example.com/catalog'};
+  const config={url:page.url,itemConfig:{_listItem:'.entry',title:'h2::text'},maxPages:1};
+  for(const request of [
+    '把这一页的书名、评分和书籍链接整理成一个采集配置，先只要这一页。',
+    '我需要这个页面每条名言的内容和作者。',
+    'The team names and wins on this page, please.'
+  ]){
+    const scope=resolveConfigurationEditScope(request,base,{page});
+    assert.equal(scope.type,'create',request);
+    assert.doesNotThrow(()=>assertConfigurationEditScope(scope,base,config,validate));
+    assert.throws(()=>assertConfigurationEditScope(scope,base,{...config,maxPages:2},validate));
+    assert.notEqual(resolveConfigurationEditScope(request,base).type,'create');
+  }
+  for(const request of ['解释当前配置','不要修改配置','如果创建配置会怎样？']){
+    const scope=resolveConfigurationEditScope(request,base,{page});
+    assert.notEqual(scope.type,'create');
+    assert.throws(()=>assertConfigurationEditScope(scope,base,config,validate));
+  }
 });

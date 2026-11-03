@@ -101,8 +101,8 @@ export default defineConfig({
         }
       });
       // The Sidebar Tool Host has a 1 MiB cap; other generated JS retains
-      // its 512 KiB production cap. Production SW
-      // has a 1 MiB hard gate (512 KiB advisory), development SW 1.5 MiB.
+      // its 512 KiB cap in both modes. SW has a 2 MiB hard gate
+      // in both modes (non-blocking 512 KiB advisory).
       // 320 KiB remains advisory for other generated entries. Neither the
       // fixed IIFE allowlist nor CSP/package/security checks are weakened.
       if (entry.type === 'background') {

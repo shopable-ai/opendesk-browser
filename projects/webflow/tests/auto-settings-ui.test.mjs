@@ -33,7 +33,7 @@ const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.
 const task={taskId:'search',name:'搜索任务',description:'读取搜索结果',version:'1.1.1',
  siteOrigins:['https://search.example'],installation,paramsSchema:{type:'object',
  required:['query','limit'],properties:{query:{type:'string',default:'OpenDesk'},limit:{type:'integer',default:3}}}};
-const scope={taskId:'search',args:{query:'OpenDesk',limit:3},targetUrl:'https://search.example/',installation};
+const scope={sourceOrigin:'https://chatgpt.com',taskId:'search',args:{query:'OpenDesk',limit:3},targetUrl:'https://search.example/',installation};
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 
 function controller(){
@@ -125,10 +125,12 @@ test('every edited scope invalidates a review, including an in-flight preparatio
  await f.click('webflow-auto-prepare');
  await f.input('webflow-auto-args','{"query":"changed","limit":3}');
  await f.input('webflow-auto-args',JSON.stringify(scope.args));
+ await f.input('webflow-auto-source','https://source.example');
+ await f.input('webflow-auto-source','https://chatgpt.com');
  await React.act(async()=>pending.resolve({...scope,taskName:task.name}));
  assert.equal(f.find('webflow-auto-approve'),null,'a stale async result cannot restore an invalidated review');
  host.api.prepareAutoGrant=async input=>({...input,taskName:task.name});
- for(const [id,value]of [['webflow-auto-target',scope.targetUrl+'next'],['webflow-auto-args','{}'],['webflow-auto-task','search']]){
+ for(const [id,value]of [['webflow-auto-source','https://source.example'],['webflow-auto-target',scope.targetUrl+'next'],['webflow-auto-args','{}'],['webflow-auto-task','search']]){
   await f.click('webflow-auto-prepare');assert.ok(f.find('webflow-auto-approve'));
   await f.input(id,value);assert.equal(f.find('webflow-auto-approve'),null,id);
  }
@@ -550,6 +552,23 @@ test('trusted sidebar shows same-run execution, persistence, release and chat de
  await click('查询原请求',true);assert.equal(panel.textContent.includes('"count": 3'),false);
 });
 
+test('source input defaults to ChatGPT, reviews the selected origin and invalidates stale reviews',async t=>{
+ const host=controller(),f=await fixture(t,{host});
+ assert.equal(f.find('webflow-auto-source').value,'https://chatgpt.com');
+ await f.input('webflow-auto-source','https://source.example');await f.click('webflow-auto-prepare');
+ assert.equal(host.calls.at(-1)[1].sourceOrigin,'https://source.example');
+ assert.match(f.find('webflow-auto-review').textContent,/https:\/\/source.example/);
+ await f.input('webflow-auto-source','https://other.example');
+ assert.equal(f.find('webflow-auto-approve'),null);
+ assert.equal(host.calls.some(([kind])=>kind==='approve'),false);
+});
+test('Generic grants describe standard events and never offer ChatGPT instruction generation',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,grants:[{taskId:'search',grantId:'generic',state:'active',approvedAt:0,
+  scope:{...scope,sourceOrigin:'https://source.example'}}]};
+ const f=await fixture(t,{host});
+ assert.equal([...f.find('webflow-auto-grants').querySelectorAll('button')].some(b=>b.textContent.includes('生成')),false);
+ assert.match(f.find('webflow-auto-grants').textContent,/标准事件/);
+});
 
 test('one-time ChatGPT instructions distinguish installed Schema capabilities from reviewed scopes without granting permission',async t=>{
  const host=controller();host.snapshot={...host.snapshot,catalogVerified:true,grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};

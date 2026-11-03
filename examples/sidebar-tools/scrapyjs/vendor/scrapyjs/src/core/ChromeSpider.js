@@ -222,7 +222,17 @@ class ChromeSpider extends CrawlSpider {
     const settleMs = Math.min(300, navigationTimeout / 4);
     while (Date.now() < deadline) {
       if (this.scrapy?.shouldClose(false)) return false;
-      const after = await capture();
+      let after;
+      try {
+        after = await capture();
+      } catch (error) {
+        // Only this read after our one click may outlive the old document.
+        // Never replay the click, unknown effects, permission errors or closure.
+        if (error.code !== 'E_RECIPE_INJECTION' || !/^Frame with ID \d+ was removed\.?$/.test(error.message)) throw error;
+        candidate = null;
+        await page.waitForTimeout(Math.min(50, Math.max(1, deadline - Date.now())));
+        continue;
+      }
       latest = after;
       // Navigation alone, empty placeholders and busy/hidden old records are not a completed page.
       if (after?.ready && after.visible !== false && after.records !== 0 && after.content !== before?.content) {

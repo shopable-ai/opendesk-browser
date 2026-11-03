@@ -686,11 +686,11 @@ test('prepareText: after send a lost acknowledgement remains unknown and never r
   }finally{await b.dispose();}
 });
 
-async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime}={}){
+async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,openAIProviderSettings}={}){
   const installed={...tool,capabilities};
   const descriptors=new Map(['window','navigator','location','MessageChannel'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   const win=new Events(),copied=[],downloads=[],calls=[],store=new Map([[SIDEBAR_TOOL_STORE,[installed]]]);
-  if(providerRuntime)store.set(TOOL_REVOCATION_EPOCHS_STORE,{[installed.id]:'ai-install-epoch'});
+  if(providerRuntime||capabilities.includes('ai.generate'))store.set(TOOL_REVOCATION_EPOCHS_STORE,{[installed.id]:'ai-install-epoch'});
   const {document:doc}=parseHTML('<html><body></body></html>');
   const create=doc.createElement.bind(doc);
   doc.createElement=tag=>{
@@ -718,7 +718,10 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime}={}
   }};
   const view=createSidebarToolsView(),runtime={frameRoot:doc.createElement('div'),settingsControl:doc.createElement('button')};
   doc.body.append(runtime.frameRoot,runtime.settingsControl);view.attachRuntime(runtime);
-  const host=createSidebarTools({api,doc,view,providerRuntime,taskWorkbench:{},lockManager:{request:(_key,run)=>run()},fetcher:officialFixtureFetch});
+  const settingsCalls=[];
+  const host=createSidebarTools({api,doc,view,providerRuntime,
+    openAIProviderSettings:(...args)=>{settingsCalls.push(args);return openAIProviderSettings?.(...args);},
+    taskWorkbench:{},lockManager:{request:(_key,run)=>run()},fetcher:officialFixtureFetch});
   t.after(()=>{host.dispose();view.dispose();for(const [key,descriptor] of descriptors){
     if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
   }});
@@ -727,7 +730,8 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime}={}
   const loaded=frame.contentWindow.sent[0],port=frame.contentWindow.ports[0];
   const envelope=(operation,payload,id)=>({protocol:loaded.protocol,kind:'request',toolId:tool.id,instance:loaded.instance,
     operation,payload,requestId:String(id)});
-  return {host,api,store,frame,loaded,port,view,copied,downloads,calls,
+  return {host,api,store,frame,loaded,port,view,copied,downloads,calls,settingsCalls,
+    windowMessage(data){win.emit('message',{origin:'null',source:frame.contentWindow,data});},
     review:()=>!view.fields['sidebar-tool-action-review'].hidden,
     privateRequest(operation,payload,id){port.postMessage(envelope(operation,payload,id));},
     windowRequest(operation,payload,id,extra={}){win.emit('message',{origin:'null',source:frame.contentWindow,
@@ -736,6 +740,115 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime}={}
     change(key,value){store.set(key,value);changed.emit('change',{[key]:{newValue:value}},'local');}
   };
 }
+
+test('AI settings: sandbox sends a synchronous fixed action only on its original private port',async()=>{
+  const b=sandbox();
+  try{
+    assert.equal(typeof b.win.OpenDeskTool.openAISettings,'function','the public settings action must exist');
+    assert.equal(b.win.OpenDeskTool.openAISettings(),false);
+    assert.equal(b.synthetic(()=>b.win.OpenDeskTool.openAISettings()),false);
+    for(let i=0;i<2;i++){
+      assert.equal(b.click(()=>b.win.OpenDeskTool.openAISettings()),true,'returns a boolean, never a Promise');
+      assert.equal(b.port.sent.length,i+1);
+      const message=b.port.sent[i];
+      assert.deepEqual(Object.keys(message).sort(),['instance','kind','protocol','requestId','toolId']);
+      assert.equal(message.protocol,SIDEBAR_TOOL_PROTOCOL);assert.equal(message.kind,'open-ai-settings');
+      assert.equal(message.instance,'frame-1');assert.equal(message.toolId,tool.id);
+      assert.match(message.requestId,/^[1-9]\d*$/);
+      if(i)assert.ok(Number(message.requestId)>Number(b.port.sent[i-1].requestId));
+    }
+    assert.equal(b.publicMessages.some(row=>row.kind==='open-ai-settings'||row.operation==='ai.generate'),false);
+    assert.equal(b.port.sent.some(row=>row.operation==='ai.generate'),false);
+  }finally{await b.dispose();}
+});
+
+test('AI settings: sandbox rejects microtasks, late calls and calls after pagehide',async()=>{
+  const b=sandbox();
+  try{
+    assert.equal(typeof b.win.OpenDeskTool.openAISettings,'function');
+    await b.click(()=>Promise.resolve().then(()=>assert.equal(b.win.OpenDeskTool.openAISettings(),false)));
+    b.click(()=>{});await tick();
+    assert.equal(b.win.OpenDeskTool.openAISettings(),false);
+    await b.dispose();
+    assert.equal(b.click(()=>b.win.OpenDeskTool.openAISettings()),false);
+    assert.equal(b.port.sent.length,0);
+    assert.equal(b.publicMessages.some(row=>row.kind==='open-ai-settings'),false);
+  }finally{await b.dispose();}
+});
+
+const settingsAction=(f,requestId='1')=>({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'open-ai-settings',
+  instance:f.loaded.instance,toolId:tool.id,requestId});
+const openConversation=f=>f.windowMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'conversation-state',
+  instance:f.loaded.instance,toolId:tool.id,visible:true,open:true});
+
+test('AI settings: Host opens the unique settings callback once without generating or reviewing',async t=>{
+  const f=await hostFixture(t,{capabilities:['ai.generate']});openConversation(f);
+  f.port.postMessage(settingsAction(f));
+  await settle(()=>f.settingsCalls.length);
+  assert.deepEqual(f.settingsCalls,[[]],'fixed settings action forwards no caller payload');
+  f.port.postMessage(settingsAction(f));await tick();await tick();
+  assert.equal(f.settingsCalls.length,1,'a replay cannot reopen settings');
+  assert.equal(f.calls.length,0,'settings must not invoke ai.generate or a Browser operation');
+  assert.equal(f.review(),false);
+});
+
+for(const reason of ['window','protocol','instance','tool','payload','extra','numeric-id','invalid-id'])
+test(`AI settings: Host rejects ${reason} forgery`,async t=>{
+  const f=await hostFixture(t,{capabilities:['ai.generate']});openConversation(f);
+  const message=settingsAction(f);
+  if(reason==='protocol')message.protocol='spoof';
+  if(reason==='instance')message.instance='another-instance';
+  if(reason==='tool')message.toolId='another-tool';
+  if(reason==='payload')message.payload={};
+  if(reason==='extra')message.verifiedGesture=true;
+  if(reason==='numeric-id')message.requestId=1;
+  if(reason==='invalid-id')message.requestId='NaN';
+  if(reason==='window')f.windowMessage(message);else f.port.postMessage(message);
+  await tick();await tick();
+  assert.equal(f.settingsCalls.length,0);assert.equal(f.calls.length,0);assert.equal(f.review(),false);
+});
+
+for(const reason of ['capability','conversation-closed','conversation-hidden','hidden','closed','epoch','disabled','uninstalled','replaced','disposed'])
+test(`AI settings: Host rejects ${reason} state`,async t=>{
+  const f=await hostFixture(t,{capabilities:reason==='capability'?[]:['ai.generate']});openConversation(f);
+  if(reason.startsWith('conversation-'))f.windowMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'conversation-state',
+    instance:f.loaded.instance,toolId:tool.id,visible:reason!=='conversation-hidden',open:reason!=='conversation-closed'});
+  if(reason==='hidden')f.host.setVisible(false);
+  if(reason==='closed')f.host.closeTool();
+  if(reason==='epoch')f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'revoked'});
+  if(reason==='disabled')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false});
+  if(reason==='uninstalled')f.store.set(SIDEBAR_TOOL_STORE,[]);
+  if(reason==='replaced')f.store.set(SIDEBAR_TOOL_STORE,[{...f.loaded.tool,version:'2.0.0'}]);
+  if(reason==='disposed')f.host.dispose();
+  f.port.postMessage(settingsAction(f));await tick();await tick();
+  assert.equal(f.settingsCalls.length,0);assert.equal(f.calls.length,0);assert.equal(f.review(),false);
+});
+
+for(const reason of ['conversation','instance','epoch','disabled','uninstalled','disposed'])
+test(`AI settings: Host rechecks ${reason} after awaiting installed state`,async t=>{
+  const f=await hostFixture(t,{capabilities:['ai.generate']});openConversation(f);
+  const get=f.api.storage.local.get;
+  let resume,entered=false;
+  const gate=new Promise(resolve=>{resume=resolve;});
+  f.api.storage.local.get=async key=>{
+    // Snapshot before yielding: the Host must recheck lifecycle and saved state,
+    // rather than treating a previously valid installation as current authority.
+    const saved=await get(key);entered=true;await gate;return saved;
+  };
+  try{
+    f.port.postMessage(settingsAction(f));await tick();await tick();
+    assert.equal(entered,true,'settings must check the installed state before opening');
+    if(reason==='conversation')f.windowMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'conversation-state',
+      instance:f.loaded.instance,toolId:tool.id,visible:true,open:false});
+    if(reason==='instance')f.host.closeTool();
+    if(reason==='epoch')f.change(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'revoked'});
+    if(reason==='disabled')f.change(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false});
+    if(reason==='uninstalled')f.change(SIDEBAR_TOOL_STORE,[]);
+    if(reason==='disposed')f.host.dispose();
+  }finally{resume();f.api.storage.local.get=get;}
+  await tick();await tick();
+  assert.equal(f.settingsCalls.length,0);assert.equal(f.calls.length,0);
+});
 
 test('AI send uses saved Provider once without review and rejects background or revoked senders',async t=>{
   let sends=0;

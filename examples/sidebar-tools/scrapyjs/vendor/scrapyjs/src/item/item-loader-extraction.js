@@ -160,6 +160,9 @@ function normalizeConfig(config) {
 // Self-contained callback: ChromePage/Puppeteer serialize this function. The same
 // implementation accepts Cheerio locally, keeping values and records identical.
 function extractRecords(config, $, context) {
+    // Chrome's scripting dictionary transport omits null properties. The
+    // packaged callback carries JSON both ways so an absent scope stays null.
+    if (typeof config === 'string') return JSON.stringify(extractRecords(JSON.parse(config), $, context));
     // Author preparation and the ordinary record executor share this synchronous
     // callback. Website tasks cannot replace nodes between proof and reads.
     function discover(input, $, context) {

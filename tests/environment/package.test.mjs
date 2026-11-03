@@ -141,7 +141,7 @@ test('final production verification blocks a physically oversized SW before pack
   const {root}=await packageCopy(t,'production');
   const path=`${root}/sw.js`,originalBytes=(await readFile(path)).length;
   assert(originalBytes<BUILD_POLICY.serviceWorkerProductionBytes-10);
-  // Cross the advisory 512 KiB line without failing, then test the 1 MiB gate.
+  // Cross the advisory 512 KiB line without failing, then test the 2 MiB gate.
   await padScript(path,Math.max(originalBytes+5,BUILD_POLICY.serviceWorkerReviewBytes+1));
   assert.equal((await verifyPackage(root,{mode:'production'})).mode,'production');
   await padScript(path,BUILD_POLICY.serviceWorkerProductionBytes-6);

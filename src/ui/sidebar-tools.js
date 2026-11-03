@@ -167,7 +167,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -1931,8 +1931,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         port.onmessage=event=>{
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
-          if(message?.kind!=='request'||
-             !['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate'].includes(message.operation)||
+          if(!(message?.kind==='open-ai-settings'&&Object.keys(message).length===5||
+             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate'].includes(message.operation))||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -3670,6 +3670,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='open-ai-settings'){
+      // The closure-private port proves a current native click. This action can
+      // only open the existing trusted Sheet; it cannot infer or write settings.
+      if(!exportPort||Object.keys(message).length!==5)return;
+      const tool=active,epoch=frameRevocationEpoch,source=event.source,token=message.instance;
+      const current=()=>sameInstance(source,token)&&frameExportPort===exportPort&&active===tool&&
+        frameRevocationEpoch===epoch&&visible&&!readOnlyPreview&&!tocSettingsOpen&&
+        conversationVisible&&conversationOpen&&tool.capabilities.includes('ai.generate')&&
+        !installedReadError&&!enableReadError&&!revocationReadError;
+      if(!current()||typeof openAIProviderSettings!=='function')return;
+      void (async()=>{
+        try{
+          await assertSidebarToolEnabled(api,tool.id);
+          await assertInstalledTool(tool,epoch,'工具安装身份已变化');
+          if(current())openAIProviderSettings();
+        }catch{/* A retired or revoked instance cannot open trusted settings. */}
+      })();
+      return;
+    }
     if(message.kind==='conversation-state'){
       if(frame?.contentWindow===event.source&&typeof message.visible==='boolean'&&typeof message.open==='boolean')
         setConversationState({visible:message.visible,open:message.open});

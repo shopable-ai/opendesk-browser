@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {allowedUrl,validateCapture,decimalFields,runCapture} from '../controller/capture.js';
 import {fields,pagination,listDetail} from '../examples/configs.js';
 const copy=x=>JSON.parse(JSON.stringify(x));
-test('native configuration grammar validates before browser work; only three explicit origins are allowed',()=>{
+test('native configuration grammar validates before browser work; only explicit origins are allowed',()=>{
   for(const config of [fields,pagination,listDetail])assert.equal(validateCapture(copy(config)).url,fields.url);
   for(const url of ['https://github.com/microsoft','http://127.0.0.1:43112/','http://u:p@127.0.0.1:43111/','javascript:alert(1)'])
     assert.throws(()=>allowedUrl(url),/E_CAPTURE_ORIGIN/);
@@ -13,6 +14,16 @@ test('native configuration grammar validates before browser work; only three exp
   for(const change of [{code:'return []'},{nextPageSelector:'//a'},{maxPages:11},{dedupeKey:'missing'},
     {fieldRequirements:[],validation:undefined},{processing:{version:1,rules:[{op:'eval',field:'name'}]}}])
     assert.throws(()=>validateCapture({...fields,...change}));
+});
+test('new-site authoring stays inside the two exact reviewed Controller origins',async()=>{
+  const config=JSON.parse(await readFile(new URL('../tool.config.json',import.meta.url),'utf8'));
+  for(const url of ['https://quotes.toscrape.com/','https://www.scrapethissite.com/pages/forms/']){
+    assert.equal(allowedUrl(url),url);
+    assert.ok(config.controller.siteOrigins.includes(new URL(url).origin));
+  }
+  for(const url of ['http://quotes.toscrape.com/','https://quotes.toscrape.com.evil.test/',
+    'https://u:p@quotes.toscrape.com/','https://scrapethissite.com/','https://other.scrapethissite.com/',
+    'http://127.0.0.1:43112/','https://example.com/'])assert.throws(()=>allowedUrl(url),/E_CAPTURE_ORIGIN/);
 });
 test('DOM capture refuses HTTP headers and User-Agent before any controlled page access',async()=>{
   let pageAccesses=0;

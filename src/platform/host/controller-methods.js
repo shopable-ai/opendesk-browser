@@ -86,8 +86,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
   const tx = (mode, work, names = stores) => storage.transaction([...new Set(names)], mode, work);
   const now = () => clock.now();
-  async function requireRunGrants(run) {
-    if(run.taskDelegation)await assertTaskDelegationApp(api,run.taskDelegation);
+  async function requireRunGrants(run,lockedDelegation) {
+    if(run.taskDelegation&&(!lockedDelegation||!same(run.taskDelegation,lockedDelegation)))
+      await assertTaskDelegationApp(api,run.taskDelegation);
     for (const origin of runOrigins(run)) {
       try { await requireGrant(api, origin); }
       catch (error) {
@@ -247,17 +248,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         .map(({attempt})=>Object.fromEntries(['attemptId','runId','state','downloadId','submissionCount','artifactHash','resourceReleasedAt'].map(key=>[key,attempt[key]])));
       return {run, runs, results, downloads, slotAvailable:!slot?.currentRunId&&!slot?.preview};
     }, [...stores,'downloadReceipts']);
+    // A targeted read delivers only this Run's result. Unrelated historical
+    // grants must not delay its settlement or resource retirement.
+    const deliveryRuns = snapshot.run ? [snapshot.run] : snapshot.runs;
     const resultRuns=new Set(snapshot.results.map(result=>result.runId));
-    return withDelegatedResultLocks(snapshot.runs.filter(run=>resultRuns.has(run.runId)),async()=>{
+    return withDelegatedResultLocks(deliveryRuns.filter(run=>resultRuns.has(run.runId)),async()=>{
       const denied = new Set();
-      for (const run of snapshot.runs) {
+      for (const run of deliveryRuns) {
         try { invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run); }
         catch { denied.add(run.runId); }
       }
       // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
       await tx(RUN_READ,async transaction=>{
         await currentHost(transaction,host,sender);
-        for (const run of snapshot.runs) {
+        for (const run of deliveryRuns) {
           const current=await transaction.get(RUN_STORE,run.runId);
           if(current?.resultDeliveryRevoked)denied.add(run.runId);
           if(run.taskDelegation){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
@@ -265,7 +269,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       });
       // Cover an event waiting for its durable transaction, without comparing
       // historical document/Worker epochs or hiding results after navigation.
-      for (const run of snapshot.runs)
+      for (const run of deliveryRuns)
         if (permissionRemovals.slice(permissionEpoch).some(patterns => removedRunGrant(run, patterns))) denied.add(run.runId);
       return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
         results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
@@ -383,7 +387,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(locks?.request,'E_TOOL_LOCK');
     return locks.request('opendesk.sidebar-tools:tool:'+binding.appId,async()=>{
       await assertTaskDelegationApp(api,binding);
-      return work();
+      // Installation writers use this same lifecycle lock. The verified binding
+      // remains current until work settles; site grants are checked separately.
+      return work(binding);
     });
   }
   async function withDelegatedResultLocks(runs,work){
@@ -983,9 +989,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     id(runId);
     const host=await assertHost(sender);
     const run=await tx(RUN_READ,async transaction=>owner(transaction,await transaction.get(RUN_STORE,runId),host,sender));
-    return withTaskDelegation(run.taskDelegation,()=>controllerOperationDelegated(request,sender));
+    return withTaskDelegation(run.taskDelegation,lockedDelegation=>controllerOperationDelegated(request,sender,lockedDelegation));
   }
-  async function controllerOperationDelegated(request, sender) {
+  async function controllerOperationDelegated(request, sender, lockedDelegation) {
     fields(request, ['envelope'], ['envelope']);
     const envelope = structuredClone(request.envelope);
     fields(envelope, ['requestId', 'identity', 'revision', 'target', 'operation'], ['requestId', 'identity', 'revision', 'target', 'operation']);
@@ -1023,7 +1029,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     if (previous?.reply) {
       const target = previous.reply.handoff?.to || envelope.target;
-      await requireRunGrants(priorRun);
+      await requireRunGrants(priorRun,lockedDelegation);
       if(priorRun.profile!=='app-service')await verifyControllerTarget({api, target});
       await tx(RUN_READ, async transaction => {
         const run = await owner(transaction, await transaction.get(RUN_STORE, envelope.identity.runId), host, sender, {active: true});
@@ -1084,7 +1090,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             sourceOrigin:envelope.target.allowedOrigin, additionalOrigins:run.networkOrigins || [],
             serviceCall, method:envelope.operation.method, capability:details.capability});
         }
-        await requireRunGrants(run);
+        await requireRunGrants(run,lockedDelegation);
         if (details.handoff) await verifyControllerTarget({api, target: details.handoff.to});
         else if (details.navigationPending) {
           invariant(navigation, CONTROLLER_OWNER_ERROR, 'Only the original navigation may cross documents');

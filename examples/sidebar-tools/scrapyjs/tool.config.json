@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.9.2",
+  "version": "1.9.12",
   "title": "scrapyjs 采集",
   "description": "从当前真实网页用自然语言创建单页列表配置，保存后采集并导出；保留已有规则编辑、本机试采与原浏览器采集。",
   "capabilities": [
@@ -43,7 +43,9 @@
       "http://127.0.0.1:43111",
       "https://book.douban.com",
       "https://download.csdn.net",
-      "https://books.toscrape.com"
+      "https://books.toscrape.com",
+      "https://quotes.toscrape.com",
+      "https://www.scrapethissite.com"
     ],
     "permissions": [
       "page.automation"

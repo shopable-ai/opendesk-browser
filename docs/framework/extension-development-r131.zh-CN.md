@@ -46,7 +46,7 @@ npm run dev
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 
-若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。当前可信工作台 `ui/tool-shell.js` 在两种模式下的硬预算为 3 MiB（2 MiB 提醒线）；Sidebar Tool Host `ui/sidebar-tool-host.js` 在两种模式下统一为 1 MiB，替代原 516 KiB 小幅例外。这些是项目工程预算，不是 Chrome 体积限制；普通生成入口仍为 512 KiB，SW 生产为 1 MiB、开发为 1.5 MiB。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，CSP、来源锁定及其他入口限制继续生效。
+若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。当前可信工作台 `ui/tool-shell.js` 在两种模式下的硬预算为 3 MiB（2 MiB 提醒线）；Sidebar Tool Host `ui/sidebar-tool-host.js` 在两种模式下统一为 1 MiB，替代原 516 KiB 小幅例外。这些是项目工程预算，不是 Chrome 体积限制；普通生成入口仍为 512 KiB，SW 生产与开发统一为 2 MiB，保留 512 KiB 非阻断审阅线（当前已测 SW 为 1,128,391 bytes，2 MiB 为持续开发提供合理余量）。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，模块图、来源锁定、CSP、自包含检查及其他入口限制继续生效。
 
 日常源码开发始终使用上述 `dist/development`。`~/.opendesk-browser/extensions/local-dev-<会话标识>` 是历史会话手工复制的静态安装包，`npm run dev` 不会更新它。隔离验收包只加载到验收专属 CFT/Profile，不替换日常 Chrome 的开发扩展；不要为日常修复再复制到一个新目录。
 

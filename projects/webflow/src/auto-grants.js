@@ -3,14 +3,27 @@
 import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 
 export const WEBFLOW_AUTO_GRANTS_KEY='opendesk.webflow.auto-trigger-grants.v1';
+// Missing source in historical v1 data means the original ChatGPT-only grant.
+// It never means the current website, a wildcard, or all registered profiles.
+export const LEGACY_AUTO_SOURCE_ORIGIN='https://chatgpt.com';
 const fail=()=>Object.assign(new Error('持续自动批准缺失、关闭、已撤销或与当前安装及精确范围不符'),{code:'E_WEBFLOW_AUTO_DENIED'});
+function sourceOriginOf(value){
+  if(typeof value!=='string'||value.length>2048)throw fail();
+  try{
+    const url=new URL(value);
+    if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.hostname.includes('*'))throw fail();
+    return url.origin;
+  }catch{throw fail();}
+}
 export const emptyAutoSettings=()=>({version:1,enabled:false,epoch:0,grants:{}});
 export function normalizeAutoScope(value){
+  const sourceOrigin=Object.hasOwn(value??{},'sourceOrigin')?value.sourceOrigin:LEGACY_AUTO_SOURCE_ORIGIN;
+  if(sourceOriginOf(sourceOrigin)!==sourceOrigin)throw fail();
   const checked=validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
     kind:'opendesk.task.request',version:1,requestId:'00000000-0000-4000-8000-000000000000',
     taskId:value?.taskId,args:value?.args,targetUrl:value?.targetUrl,installation:value?.installation}));
   if(!checked.installation)throw fail();
-  return {taskId:checked.taskId,args:{...checked.args},targetUrl:checked.targetUrl,installation:{...checked.installation}};
+  return {taskId:checked.taskId,args:{...checked.args},targetUrl:checked.targetUrl,installation:{...checked.installation},sourceOrigin};
 }
 export function validateAutoSettings(value){
   if(value===undefined)return emptyAutoSettings();
@@ -24,9 +37,9 @@ export function validateAutoSettings(value){
   }
   return structuredClone(value);
 }
-export function assertAutoGrant(settings,scope,{grantId,epoch}={}){
+export function assertAutoGrant(settings,scope,{grantId,epoch,sourceUrl}={}){
   const canonical=normalizeAutoScope(scope),grant=settings.grants[canonical.taskId];
-  if(settings.enabled!==true||!grant||grant.state!=='active'||
+  if(sourceOriginOf(sourceUrl)!==canonical.sourceOrigin||settings.enabled!==true||!grant||grant.state!=='active'||
     grantId!==undefined&&grant.grantId!==grantId||epoch!==undefined&&settings.epoch!==epoch||
     JSON.stringify(normalizeAutoScope(grant.scope))!==JSON.stringify(canonical))throw fail();
   return grant;

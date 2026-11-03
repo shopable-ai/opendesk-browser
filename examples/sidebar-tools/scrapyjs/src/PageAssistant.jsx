@@ -7,6 +7,7 @@ import {createInspection} from './page-inspection.js';
 function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedback=()=>{},onUse}){
   const [open,setOpen]=React.useState(false),[selected,setSelected]=React.useState(null),[error,setError]=React.useState('');
   const [snapshot,setSnapshot]=React.useState(null);
+  const alive=React.useRef(true);
   const [session]=React.useState(()=>createInspection(globalThis.ScrapyAppSdk.createSdk(
     (operation,payload)=>globalThis.OpenDeskTool.request(operation,payload)),setSnapshot));
   const state=snapshot||session.state;
@@ -14,6 +15,8 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
   const identity=JSON.stringify({scope,config}),currentIdentity=React.useRef(identity),openedIdentity=React.useRef(identity);
   currentIdentity.current=identity;
   const fields=kind==='fields',choices=state.result?.choices||[];
+  const flat=!fields&&!config.itemConfig._listContainer&&!config.itemConfig._listItem&&Object.keys(config.itemConfig).length>0;
+  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;switching.current=false;session.close();};},[session]);
   React.useEffect(()=>{onOpenChange(open||session.active());},[open,state.phase,onOpenChange,session]);
   React.useEffect(()=>{
     const timer=setInterval(()=>{if(session.active()&&session.state.clientRequestId)session.refresh();},800);
@@ -27,9 +30,12 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
   },[open]);
   function begin(event,next=false){
     if(disabled||session.active())return;
-    trigger.current=event.currentTarget;switching.current=next;openedIdentity.current=currentIdentity.current;
+    trigger.current=event.currentTarget;switching.current=next&&flat?'prepare':next;openedIdentity.current=currentIdentity.current;
     setSelected(null);setError('');if(!next)setOpen(true);onOpenChange(true);
-    session.begin({url:config.url,kind,container:scope?.container??config.itemConfig._listContainer??'',
+    const identity=[...new Set([config.dedupeKey,config.detail?.identityField].filter(Boolean))];
+    const required=[...new Set([...(config.fieldRequirements||[]).filter(row=>row.required).map(row=>row.key),...identity])];
+    session.begin(next&&flat?{url:config.url,kind:'records',container:'',item:'',mode:'snapshot',itemConfig:config.itemConfig,required,identity}:
+      {url:config.url,kind,container:scope?.container??config.itemConfig._listContainer??'',
       item:scope?.item??config.itemConfig._listItem??'',mode:next?'snapshot':'click'},openedIdentity.current);
   }
   async function use(index){
@@ -37,15 +43,27 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
     applying.current=true;
     try{
       const choice=await session.use(index,currentIdentity.current);
+      if(!alive.current)return;
       if(currentIdentity.current!==openedIdentity.current)throw Error('配置已变化，请取消后重新点选');
       if(fields)onUse(choice.rule);
-      else {onUse({container:choice.container,item:choice.item});onFeedback('已选中「'+choice.label+'」· '+choice.count+' 条记录');}
+      else if(state.result.kind==='records'){
+        globalThis.ScrapyAppModel.validateConfig({...config,itemConfig:choice.itemConfig,
+          ...(config.validation?{validation:{...config.validation,rowShape:choice.rowShape}}:{})});
+        onUse({container:choice.itemConfig._listContainer||'',item:choice.itemConfig._listItem,
+          preparedList:{base:JSON.stringify(config),itemConfig:choice.itemConfig,rowShape:choice.rowShape}});
+        onFeedback('已准备 '+choice.count+' 条记录的规则；请使用原采集或保存配置。');
+      }else {onUse({container:choice.container,item:choice.item});onFeedback('已选中「'+choice.label+'」· '+choice.count+' 条记录');}
       switching.current=false;await session.close();setOpen(false);
     }catch(issue){setError(issue.message);onFeedback(issue.message);switching.current=false;}
     finally{applying.current=false;}
   }
   React.useEffect(()=>{
     if(!switching.current||state.phase!=='ready')return;
+    if(switching.current==='prepare'){
+      if(choices.length===1){use(0);return;}
+      onFeedback([...(state.result.diagnostics||[]).map(row=>row.code+'：'+row.message),...(state.result.missing||[])].join('；')||'无法确定逐条记录，请补充字段或手动选择列表。');
+      switching.current=false;session.close();return;
+    }
     const index=choices.findIndex(row=>row.container===(scope?.container||'').trim());
     if(!choices.length){onFeedback('没有符合当前列表项的列表，范围未更改。');switching.current=false;session.close();return;}
     if(choices.length===1&&index===0){onFeedback('当前只有一个可用列表，范围未更改。');switching.current=false;session.close();return;}
@@ -59,9 +77,9 @@ function PageAssistant({kind,fieldKey,disabled,scope,config,onOpenChange,onFeedb
   React.useEffect(()=>{if(state.cancelled&&state.phase==='closed')setOpen(false);},[state.phase,state.cancelled]);
   const label=fields?'点选生成选择器 '+(fieldKey||'新字段'):'点选列表容器';
   return <>
-    {!fields&&<IconButton className="rule-input-icon scope-input-icon" label="切换列表容器" disabled={disabled||session.active()} onClick={event=>begin(event,true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></IconButton>}
+    {!fields&&<IconButton className="rule-input-icon scope-input-icon" label={flat?'从完整字段准备逐条记录':'切换列表容器'} disabled={disabled||session.active()} onClick={event=>begin(event,true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></IconButton>}
     <IconButton className="rule-input-icon rule-pick-trigger" label={label} title="从真实网页内容中选择" disabled={disabled||session.active()} onClick={event=>begin(event)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5m0 6v5h-5M9 20H4v-5m6-5 8 3-4 1-1 4z"/></svg></IconButton>
-    {!open&&session.active()&&<span className="secondary" role="status">{state.error||'正在读取网页列表…'}</span>}
+    {!open&&session.active()&&<><span className="secondary" role="status">{state.cancelled?'正在停止，等待原检查释放…':state.error||'正在读取网页列表…'}</span><Button base="aria" variant="quiet" onClick={close}>取消检查</Button></>}
     <dialog ref={dialog} className="rule-picker-dialog" aria-label={label} onCancel={event=>{event.preventDefault();if(!composing.current)close();}}
       onCompositionStartCapture={()=>{composing.current=true;}} onCompositionEndCapture={()=>{composing.current=false;}}
       onKeyDown={event=>{

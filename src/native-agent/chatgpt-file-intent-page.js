@@ -23,9 +23,9 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window}={
   filename.placeholder='例如 demo.txt';
   caption.append(filename);
   const note=doc.createElement('div');note.className='note';
-  note.textContent='将在可信工作区重新选择授权目录和文件，并确认共享范围。此处不会直接读取、发送或保存文件。';
+  note.textContent='在可信扩展页选择已有授权目录和文件，批准读取范围或具体修改。无需先进入 Workspace；网页文字本身不会授权。';
   const open=doc.createElement('button');open.type='button';open.className='primary';
-  open.textContent='打开可信文件工作区';
+  open.textContent='审阅当前对话的文件请求';
   const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
   head.append(toggle);detail.append(caption,note,open,status);card.append(head,detail);
   shadow.append(style,card);(doc.body||doc.documentElement).append(root);
@@ -50,14 +50,14 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window}={
     let pathHint;
     try{pathHint=normalizeChatGPTFileHint(filename.value);}
     catch(error){say(error.message,true);return;}
-    pending=true;update();say('正在打开可信 Workspace…');
+    pending=true;update();say('正在打开可信文件审阅页…');
     Promise.resolve(api.runtime.sendMessage({
       protocol:CHATGPT_FILE_INTENT_PROTOCOL,kind:'open',pathHint
     })).then(reply=>{
       if(disposed)return;
       if(reply?.ok!==true)throw Object.assign(new Error(reply?.error?.message||'可信入口未接线'),{
         code:reply?.error?.code||'E_FILE_HANDOFF'});
-      say('已打开可信工作区。请在扩展中选择文件和授权范围；本次没有读取或共享文件。');
+      say('已打开文件审阅页。请在扩展中批准精确目录和路径；本次没有读取或共享文件。');
     }).catch(error=>{if(!disposed)say((error.code||'E_FILE_HANDOFF')+' · '+error.message,true);})
       .finally(()=>{pending=false;update();});
   });

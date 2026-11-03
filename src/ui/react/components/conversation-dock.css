@@ -1,13 +1,5 @@
 .od-conversation-header-slot:empty{display:none}
 .od-conversation-header-slot{display:inline-flex;align-items:center;flex:none}
-/* Framework-level Provider settings: icon-only, compact, no default background. */
-.od-conversation-settings{position:relative;display:grid;
- place-items:center;width:30px;min-width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:var(--radius-control);
- background:transparent;color:var(--od-sub);cursor:pointer}
-.od-conversation-settings svg{width:17px;height:17px}
-.od-conversation-settings:hover{color:var(--od-ink);background:var(--od-muted)}
-.od-conversation-settings:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-@media(pointer:coarse){.od-conversation-settings{width:44px;min-width:44px;height:44px;min-height:44px}}
 /* Workflow reuses the same toolbar rhythm without changing its Source owner. */
 .workflow-composer .od-conversation-input{border:0;border-radius:0;padding-left:var(--space-1);background:transparent}
 .workflow-composer .od-conversation-input:focus-visible{outline:none}

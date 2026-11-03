@@ -38,7 +38,7 @@ class ItemLoader {
             const request = {preparation:input};
             const plan = documentSource ? extraction.extractRecords(request, null, source) : this.isCheerio(source)
                 ? extraction.extractRecords(request, source)
-                : await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, request);
+                : JSON.parse(await (source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source)).evaluate(extraction.extractRecords, JSON.stringify(request)));
             if (plan.status !== 'ready') return plan;
             const records = plan.records;
             preparation.checkRecords(input, records);
@@ -81,7 +81,7 @@ class ItemLoader {
         if (this.isCheerio(source)) return this.unwrap(extraction.extractRecords(normalized, source));
         // document.evaluate is the native XPath API, not a page bridge.
         const page = source && source.nodeType !== 9 && typeof source.evaluate === 'function' ? source : this.resolveChromePage(source, usePuppeteer);
-        return this.unwrap(await page.evaluate(extraction.extractRecords, normalized));
+        return this.unwrap(JSON.parse(await page.evaluate(extraction.extractRecords, JSON.stringify(normalized))));
     }
 
     static resolveChromePage(source, usePuppeteer) {

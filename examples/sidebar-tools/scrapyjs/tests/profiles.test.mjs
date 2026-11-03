@@ -65,10 +65,11 @@ test('duplicate normalized names and illegal/oversized collections fail before w
   for(let i=2;i<32;i++)assert.equal(await app.copyProfile('Record '+i),true);
   const before=storage.writes.length;await app.copyProfile('Overflow');assert.match(app.state.error,/32/);assert.equal(storage.writes.length,before);
   const s=store(),large=createApp(s.sdk);await large.load();
-  // Each config is valid on its own; aggregate storage must stay within the existing SDK budget.
+  // Each config is valid on its own; the decoded catalog still has a finite bound.
   const big={...config('x'),waitForSelector:'s'.repeat(3600)};
-  large.edit(big);await large.save('Large');await large.copyProfile('Large2');
-  const n=s.writes.length;await large.copyProfile('Large3');assert.match(large.state.error,/8192/);assert.equal(s.writes.length,n);
+  large.edit(big);await large.save('Large');
+  for(let i=2;i<=8;i++)assert.equal(await large.copyProfile('Large'+i),true);
+  const n=s.writes.length;await large.copyProfile('Large9');assert.match(large.state.error,/32768/);assert.equal(s.writes.length,n);
   assert.deepEqual(plain(large.state.config),big);
 });
 test('dirty switches/new/delete and remote adoption require confirmation; cancel preserves selection, draft and storage',async()=>{

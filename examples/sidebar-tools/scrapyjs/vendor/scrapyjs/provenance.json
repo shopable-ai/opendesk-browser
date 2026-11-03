@@ -2,13 +2,13 @@
   "format": "scrapyjs-source-pin.v1",
   "sourceRepository": "/Users/shopme/Documents/workspace/scrapyJs",
   "sourceHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
-  "browserSha256": "933775de59fed7cc1cd4f42dcd005ac53f8675a295b9b124437d1aeab5c7ba76",
+  "browserSha256": "7244b651f110adc2da9b50430c482dd9c2aa2b03f885e820080d107f156710a4",
   "authorization": "User authorized full-field list preparation, record ownership safety fixes and source/SDK consumer synchronization; no Python runner, installation or publication.",
   "inputs": [
     {
       "file": "src/ai/BrowserValidation.js",
-      "sha256": "d32bd7de38726b91ec69a94f697f43130321e469add663b819011b3dc07dc280",
-      "bytes": 16135
+      "sha256": "99de6e34362ffac02e396160d87fe3ad2515ca6081c675daadc693ea9115560c",
+      "bytes": 16332
     },
     {
       "file": "src/ai/ConfigExecutor.js",
@@ -57,8 +57,8 @@
     },
     {
       "file": "src/core/ChromeSpider.js",
-      "sha256": "ef78f3680c034c6db81aeabea4404666e3717dfd842c0a9f7ab3b921d6d07fd5",
-      "bytes": 15540
+      "sha256": "a561bc3a4bb55bf80303e995ea85c5450e4a542bf49aaa31a0f746136c4cde42",
+      "bytes": 16007
     },
     {
       "file": "src/core/CloseSpider.js",
@@ -137,13 +137,13 @@
     },
     {
       "file": "src/item/ItemLoader.js",
-      "sha256": "c1eae594b83972fd66a83fa9170f967da246f7bf709cf82293ea67e681b42af2",
-      "bytes": 6113
+      "sha256": "16fde191ec672b8664fbe3a87ca074a44c07a450eb8c6011c1e7fb0c56fe66d1",
+      "bytes": 6169
     },
     {
       "file": "src/item/item-loader-extraction.js",
-      "sha256": "cc5e3123f1ea6e353de555a118e7f0830247b050a72cd209dffaa4269f53effa",
-      "bytes": 23995
+      "sha256": "1973ae96e47ded2836b35afb1e4a6d3c03a8a9c9cb9fba99ab76a9f619ba1134",
+      "bytes": 24255
     },
     {
       "file": "src/item/list-preparation.js",
@@ -211,6 +211,6 @@
       "bytes": 1614
     }
   ],
-  "sourceHash": "e98923f9e17d6f21b6bb06647bf1a2476a39bfe5b88c18c3cf278e2df3508e39",
-  "upstreamBuildReceiptSha256": "0df7184ae844b3716e2be7c5d154a044e0715a2ee56c0d19422ac6375488f3c0"
+  "sourceHash": "e57f0faaf7f93a7fd299d10e8566218eed45bce3cb198b68aa6f59c291c0b994",
+  "upstreamBuildReceiptSha256": "4e8f1c170d11cd4709fc3584a74d5bf32615bf66142f8dccbffeb2165a38dc3e"
 }

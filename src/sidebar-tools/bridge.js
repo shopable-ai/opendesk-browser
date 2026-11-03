@@ -162,7 +162,7 @@ export function initSidebarToolSandbox() {
     const gesture=operation==='ai.generate'&&aiKey&&apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
     const clickTimeStamp=gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open')&&
       gesture&&apply(trustedGetter,gesture,[])===true&&
       apply(currentTargetGetter,gesture,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -454,8 +454,17 @@ export function initSidebarToolSandbox() {
         visible:value.visible,open:value.open},'*');
       return true;
     };
+    const openAISettings=()=>{
+      const port=consumeRequestGesture('ai.settings.open');
+      if(!port||!instance||disposed)return false;
+      try{
+        apply(portPost,port,[{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'open-ai-settings',instance,toolId,
+          requestId:''+(++sequence)}]);
+        return true;
+      }catch{return false;}
+    };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,prepareAI,setState,setConversationState,
+      root,request,prepareAI,setState,setConversationState,openAISettings,
       ...(navigationAllowed?{setNavigation}:{}),
       get locale(){return uiLocale;},
       get messages(){return uiMessages;},

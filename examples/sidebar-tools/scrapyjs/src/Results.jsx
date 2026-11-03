@@ -51,7 +51,7 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
   const csvKeys=[...csvOrder.filter(key=>rawCsvKeys.includes(key)),...rawCsvKeys.filter(key=>!csvOrder.includes(key))];
   const csvLabels=csvKeys.map(key=>(Object.hasOwn(names,key)?names[key].normalize('NFC').trim():'')||key);
   const duplicate=new Set(csvLabels).size!==csvLabels.length;
-  function openSettings(){setNames({...state.config?.output?.fieldNames});setCsvOrder([]);setCsvMoving(false);setDisplayOpen(false);setDownloadError('');setSettingsOpen(true);}
+  function openSettings(){setNames({...state.config?.output?.fieldNames});setCsvOrder([...(state.config?.output?.fieldOrder||[])]);setCsvMoving(false);setDisplayOpen(false);setDownloadError('');setSettingsOpen(true);}
   const settingsEntry=React.useRef(null),settingsHeading=React.useRef(null);
   function closeSettings(){setSettingsOpen(false);setDisplayOpen(false);setNames({});setCsvOrder([]);setCsvMoving(false);requestAnimationFrame(()=>settingsEntry.current?.focus({preventScroll:true}));}
   React.useEffect(()=>{if(settingsOpen&&active)settingsHeading.current?.focus({preventScroll:true});},[settingsOpen,active]);

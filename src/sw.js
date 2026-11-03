@@ -19,13 +19,19 @@ import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 import {installChatGPTBridgeTriggerGate} from './native-agent/chatgpt-bridge-trigger-gate.js';
 import {installGlobalVideoSpeedService} from '../projects/video-speed-controller/trusted/service.js';
 import {handleSidebarToolRuntimeQuery} from './sidebar-tools/runtime-compatibility.js';
+import {createWebTaskIngress} from './page-events/web-task-ingress.js';
+import {createSiteContentRegistration} from './page-events/content-script-registration.js';
+import {loadSiteProfiles,SITE_ADAPTER_VERSIONS} from './page-events/site-catalog.js';
+import {WEB_TASK_PROTOCOL,WEB_TASK_INTENT_PROTOCOL,SITE_PROFILES_KEY} from './page-events/web-task-contract.js';
 
 
 export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 // One-use bridge trigger fence only. Foundation Authority/RunHost remain the sole executors.
-const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome});
+let webTaskIngress;
+const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome,
+  verifyWebTask:(row,sender)=>webTaskIngress.verifySubmission(row,sender)});
 installGlobalVideoSpeedService({api:chrome});
 // Isolated trusted telemetry sidecar attaches after the single Foundation
 // instance is created. This must never create a second IndexedDB owner.
@@ -165,8 +171,27 @@ installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
   }});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
-const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome});
+const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome,
+  hasPendingWebTasks:bridgeTriggerGate.hasPendingWebTasks});
 const ensureCloudRunner=broker=>cloudRunnerLifecycle.reconcile(broker);
+webTaskIngress=createWebTaskIngress({api:chrome,ledger:bridgeTriggerGate,
+  loadFoundation:()=>foundation,ensureRunner:async()=>ensureCloudRunner(await foundation)});
+const siteContentRegistration=createSiteContentRegistration({api:chrome,
+  profiles:()=>loadSiteProfiles(chrome),adapterIds:Object.keys(SITE_ADAPTER_VERSIONS),protocolIds:[WEB_TASK_INTENT_PROTOCOL]});
+const reconcileSiteContent=()=>void siteContentRegistration.reconcile().catch(error=>
+  console.warn('[web task registration]',error?.code||error?.message));
+chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes[SITE_PROFILES_KEY])reconcileSiteContent();});
+chrome.permissions.onAdded?.addListener(reconcileSiteContent);
+chrome.permissions.onRemoved.addListener(reconcileSiteContent);
+reconcileSiteContent();
+chrome.runtime.onMessage.addListener((message,sender,reply)=>{
+  if(message?.protocol!==WEB_TASK_PROTOCOL)return false;
+  pendingFoundation++;
+  Promise.resolve().then(()=>webTaskIngress.handle(message,sender)).then(data=>reply({ok:true,data}),
+    error=>reply({ok:false,error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}}))
+    .finally(()=>pendingFoundation--);
+  return true;
+});
 // Fixed Browser Host sidecar reuses the sole foundation Scheduler instance.
 // No user code executes in this worker or can replace this trusted closure.
 globalThis.__opendeskBrowserSchedule=async(operation,args,owner,intent)=>{

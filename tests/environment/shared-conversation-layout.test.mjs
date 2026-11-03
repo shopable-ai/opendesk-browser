@@ -84,3 +84,25 @@ test('Dock keeps the settings action beside collapse and retains its children',t
  open=true;ui.paint();assert.equal(dock.hidden,false);
  assert.equal(ui.doc.getElementById('kept-draft').value,'retained draft');
 });
+
+test('AI settings: Dock supplies an optional public IconButton and collapse retains the subtree',t=>{
+ let settings=0,open=true,withSettings=false,mounts=0;
+ function Child(){React.useEffect(()=>{mounts++;},[]);return React.createElement('input',{id:'settings-draft',defaultValue:'draft'});}
+ const ui=createExtensionCenterDOM(t,{component:()=>React.createElement(SharedConversationDock,{open,
+  onOpenSettings:withSettings?()=>settings++:undefined,onClose:()=>{open=false;}},React.createElement(Child))});
+ const dock=ui.doc.querySelector('.od-conversation-dock'),input=ui.doc.getElementById('settings-draft');
+ assert.equal(dock.querySelector('[aria-label="AI 设置"]'),null,'settings is opt-in');
+ withSettings=true;ui.paint();
+ const toolbar=dock.querySelector('.od-conversation-toolbar'),button=toolbar.querySelector('[aria-label="AI 设置"]');
+ assert.ok(button,'onOpenSettings must supply the settings button without a consumer toolbar');
+ assert.equal(button.title,'AI 设置');assert.ok(button.classList.contains('od-icon-button'));
+ assert.ok(button.querySelector('svg'),'settings uses a gear icon');
+ assert.equal(toolbar.querySelectorAll('button').length,2);
+ assert.equal(button.parentElement,toolbar.querySelector('.od-conversation-close').parentElement);
+ button.dispatch('click');assert.equal(settings,1);assert.equal(open,true);
+ input.value='unsent draft';
+ toolbar.querySelector('.od-conversation-close').dispatch('click');ui.paint();
+ assert.equal(dock.hidden,true);assert.equal(ui.doc.getElementById('settings-draft'),input);
+ open=true;ui.paint();
+ assert.equal(dock.hidden,false);assert.equal(input.value,'unsent draft');assert.equal(mounts,1);
+});

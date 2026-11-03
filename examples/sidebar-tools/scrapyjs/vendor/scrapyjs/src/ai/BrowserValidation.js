@@ -81,6 +81,8 @@ function validateConfig(config) {
 
 // This callback must remain self-contained: ChromePage serializes it into the page's DOM realm.
 function inspectDOM(config) {
+  // Preserve null selection/diagnostic values through Chrome script injection.
+  if (typeof config === 'string') return JSON.stringify(inspectDOM(JSON.parse(config)));
   const result = { valid: true, checkedRows: 0, rowShape: null, issues: [],
     ...(typeof document.baseURI === 'string' ? { baseURL: document.baseURI } : {}) };
   const issue = (code, message, details = {}) => {
@@ -213,7 +215,7 @@ async function validateBrowserProfile(page, spiderConfig) {
   try {
     const config = validateConfig(spiderConfig);
     if (!page || typeof page.evaluate !== 'function') invalid('A page.evaluate transport is required');
-    const report = await page.evaluate(inspectDOM, config);
+    const report = JSON.parse(await page.evaluate(inspectDOM, JSON.stringify(config)));
     if (!report || typeof report.valid !== 'boolean' || !Number.isInteger(report.checkedRows)
         || report.checkedRows < 0 || report.checkedRows > 500 || !Array.isArray(report.issues)
         || (report.rowShape !== null && typeof report.rowShape !== 'string')) invalid('Invalid browser validation transport result');

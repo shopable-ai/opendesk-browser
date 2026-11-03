@@ -96,9 +96,28 @@ test('fixed shared UI compiles against pinned React with zero module imports',as
   assert.equal(typeof context.OpenDeskSidebarUI.Switch,'function');
   assert.equal(context.OpenDeskSidebarUI.Card({}).type,'div');
   const ui=context.OpenDeskSidebarUI;
-  assert.deepEqual(Object.keys(ui).sort(),['Button','Card','CardContent','IconButton',
-    'SharedConversationFrame','Switch','createConversationSession'].sort());
+  assert.deepEqual(Object.keys(ui).sort(),['Button','Card','CardContent','IconButton','Input','Textarea',
+    'SharedConversationDock','SharedConversationFrame','Switch','createConversationSession'].sort());
   assert.equal(Object.isFrozen(ui),true);
+  let settings=0,focused=0;
+  context.OpenDeskTool={openAISettings:()=>{settings++;return true;}};
+  const dock=ui.SharedConversationDock({open:true,id:'sandbox-dock'});
+  assert.equal(dock.props.id,'sandbox-dock');
+  assert.equal(dock.props.open,true);
+  const listeners=new Map();
+  context.addEventListener=(type,listener)=>listeners.set(type,listener);
+  context.removeEventListener=(type,listener)=>{if(listeners.get(type)===listener)listeners.delete(type);};
+  dock.props.onOpenSettings({currentTarget:{focus:()=>focused++}});
+  assert.equal(settings,1,'fixed UI wires only the bounded Host settings action');
+  assert.equal(focused,1,'settings can restore focus across the iframe boundary');
+  const body={};context.document.body=body;context.document.activeElement=body;
+  const trigger={isConnected:true,focus:()=>focused++};
+  dock.props.onOpenSettings({currentTarget:trigger});
+  assert.equal(focused,2);
+  listeners.get('focus')?.();
+  assert.equal(focused,3,'returning from the trusted sheet restores the sandbox settings button');
+  listeners.get('focus')?.();
+  assert.equal(focused,3,'restoration is one-shot');
   for(const forbidden of ['TrustedConversationWorkspace','TrustedConversationHeaderSlot',
     'Provider','authority','privateConfig','credentials'])assert.equal(ui[forbidden],undefined);
   const modules=Object.keys(chunk.modules);

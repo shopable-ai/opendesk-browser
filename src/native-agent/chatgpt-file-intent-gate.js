@@ -41,8 +41,8 @@ export function assertLockedChatGPTFileRequest(request,reviewed){
   return request;
 }
 
-export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now()}={}){
-  const pending=new Map(),sourceEpochs=new Map();
+export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now(),targetPage=WORKSPACE_PAGE,onClaim=()=>{}}={}){
+  const pending=new Map(),sourceEpochs=new Map(),openings=new Set();
   let disposed=false;
   const epoch=tabId=>sourceEpochs.get(tabId)||0;
   const currentSource=async(tabId,documentId)=>{
@@ -66,7 +66,7 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now()}={
     return currentSource(sender.tab.id,sender.documentId);
   };
   const workspaceSender=sender=>{
-    const url=api.runtime.getURL(WORKSPACE_PAGE);
+    const url=api.runtime.getURL(targetPage);
     if(sender?.id!==api.runtime.id||sender.url!==url||sender.frameId!==0||
       sender.tab?.incognito||!Number.isSafeInteger(sender.tab?.id)||
       typeof sender.documentId!=='string'||!sender.documentId||
@@ -91,19 +91,28 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now()}={
           throw fail('E_FILE_SCHEMA','网页入口不能提交任何授权或绑定字段');
         const hint=normalizeChatGPTFileHint(message.pathHint);
         const source=await pageSender(sender),generation=epoch(source.tabId);
-        const tab=await api.tabs.create({url:api.runtime.getURL(WORKSPACE_PAGE),
-          windowId:source.windowId,openerTabId:source.tabId,active:true});
-        if(!Number.isSafeInteger(tab?.id)||tab.windowId!==source.windowId)
-          throw fail('E_FILE_OPEN','未能打开可信文件工作区');
-        const fresh=await currentSource(source.tabId,source.documentId);
-        if(disposed||generation!==epoch(source.tabId)||fresh.url!==source.url)
-          throw fail('E_FILE_SOURCE','打开工作区期间原会话发生变化');
-        pending.set(tab.id,{source,pathHint:hint,createdAt:clock()});
-        return {opened:true}; // No token, credential or Native RPC to the page.
+        if(openings.size>=4||pending.size>=16)throw fail('E_FILE_LIMIT','请先完成已有文件入口');
+        const opening=(async()=>{
+          const tab=await api.tabs.create({url:api.runtime.getURL(targetPage),
+            windowId:source.windowId,openerTabId:source.tabId,active:true});
+          if(!Number.isSafeInteger(tab?.id)||tab.windowId!==source.windowId)
+            throw fail('E_FILE_OPEN','未能打开可信文件工作区');
+          const fresh=await currentSource(source.tabId,source.documentId);
+          if(disposed||generation!==epoch(source.tabId)||fresh.url!==source.url)
+            throw fail('E_FILE_SOURCE','打开工作区期间原会话发生变化');
+          pending.set(tab.id,{source,pathHint:hint,createdAt:clock()});
+          return {opened:true}; // No credential or Native RPC to the page.
+        })();
+        openings.add(opening);
+        try{return await opening;}finally{openings.delete(opening);}
       }
       if(Object.keys(message).some(key=>!['protocol','kind'].includes(key)))
         throw fail('E_FILE_SCHEMA','领取请求不接受网页或文件权限参数');
-      const workspaceTab=workspaceSender(sender),item=pending.get(workspaceTab.id);
+      const workspaceTab=workspaceSender(sender);
+      // A fast extension document can claim before tabs.create's source
+      // recheck completes. Await only those non-authorizing opens, not a retry.
+      if(!pending.has(workspaceTab.id)&&openings.size)await Promise.allSettled([...openings]);
+      const item=pending.get(workspaceTab.id);
       if(!item)throw fail('E_FILE_REPLAY','没有可领取的单次文件意图');
       pending.delete(workspaceTab.id); // Consume before any asynchronous check.
       if(item.source.windowId!==workspaceTab.windowId||clock()-item.createdAt>TTL_MS)
@@ -111,6 +120,7 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now()}={
       const fresh=await currentSource(item.source.tabId,item.source.documentId);
       if(disposed||fresh.url!==item.source.url||fresh.windowId!==item.source.windowId)
         throw fail('E_FILE_SOURCE','原 ChatGPT 对话已经切换');
+      await onClaim({...item,workspaceTab},sender);
       return {source:item.source,pathHint:item.pathHint,
         requiresWorkspaceSelection:true,requiresFileReview:true,requiresDisclosureConsent:true};
     };

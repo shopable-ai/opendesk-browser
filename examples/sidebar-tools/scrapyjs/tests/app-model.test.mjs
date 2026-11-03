@@ -377,19 +377,19 @@ test('saving an eleventh independent AI header copy preserves all ten saved conf
   assert.deepEqual(plain(reopened.state.records),record.value.records);
 });
 
-test('an eleventh copy exceeding the total 8192 UTF-8 bytes is refused without changing saved records or draft',async()=>{
+test('an eleventh copy exceeding the total 32768 decoded UTF-8 bytes is refused without changing saved records or draft',async()=>{
   const original={schemaVersion:1,selectedId:'saved-0',records:Array.from({length:10},(_,i)=>({
-    id:'saved-'+i,name:'已有配置'+i,config:{...plain(DEFAULT_CONFIG),itemConfig:{title:'中'.repeat(120)}}
+    id:'saved-'+i,name:'已有配置'+i,config:{...plain(DEFAULT_CONFIG),itemConfig:{title:'中'.repeat(120)},waitForSelector:'s'.repeat(2450)}
   }))};
-  assert.ok(Buffer.byteLength(JSON.stringify(original))<=8192);
+  assert.ok(Buffer.byteLength(JSON.stringify(original))<=32768);
   let writes=0;
   const {app}=setup({load:async()=>({value:plain(original),etag:'ten-saved'}),save:async()=>{writes++;}});
   await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);
   const draft={...plain(DEFAULT_CONFIG),itemConfig:{title:'中'.repeat(1100)}};
   app.edit(draft);
-  assert.ok(Buffer.byteLength(JSON.stringify({...original,records:[...original.records,{id:'copy',name:'超限副本',config:draft}]}))>8192);
+  assert.ok(Buffer.byteLength(JSON.stringify({...original,records:[...original.records,{id:'copy',name:'超限副本',config:draft}]}))>32768);
   assert.equal(await app.copyProfile('超限副本'),false);
-  assert.match(app.state.error,/8192/);assert.equal(writes,0);
+  assert.match(app.state.error,/32768/);assert.equal(writes,0);
   assert.deepEqual(plain(app.state.records),original.records);
   assert.equal(app.state.selectedId,'saved-0');assert.equal(app.state.dirty,true);
   assert.deepEqual(plain(app.state.config),draft);assert.equal(app.state.storageReady,true);

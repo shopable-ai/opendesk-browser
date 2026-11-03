@@ -1,11 +1,27 @@
 import {allowedUrl} from '../adapters/capture-policy.js';
 import {runClickedInspection} from './pick-page.js';
+import {ItemLoader} from '../engine/browser.js';
 
 const fail=code=>{throw Object.assign(new Error(code),{code});};
 
 // Fixed, read-only inspection. Confirmation and document-identity validation
 // remain with the original Task read; this module never navigates or installs UI.
 export async function runInspection(input,page) {
+  // Author-only discovery on the admitted document. Capture and pagination keep
+  // using the saved explicit rule and never call this branch.
+  if(input?.kind==='records'){
+    if(Object.keys(input).some(key=>!['kind','url','container','item','mode','itemConfig','required','identity'].includes(key))||
+      input.mode!=='snapshot'||input.container!==''||input.item!=='')fail('E_INSPECTION_CONFIG');
+    allowedUrl(input.url);
+    if(await page.url()!==input.url)fail('E_INSPECTION_URL');
+    const prepared=await ItemLoader.prepareList(page,input.itemConfig,{required:input.required??[],identity:input.identity??[],
+      excludedRegions:['form','option','[contenteditable]']});
+    if(await page.url()!==input.url)fail('E_INSPECTION_URL');
+    return {kind:'records',url:input.url,status:prepared.status,diagnostics:prepared.diagnostics,
+      missing:prepared.missing??[],choices:prepared.status==='ready'?[{
+        status:'pass',itemConfig:prepared.itemConfig,rowShape:prepared.rowShape,count:prepared.recordCount
+      }]:[]};
+  }
   if(!input||!['fields','lists','context'].includes(input.kind)||typeof input.url!=='string'||
     typeof input.container!=='string'||typeof input.item!=='string'||
     (input.mode!==undefined&&!['snapshot','click'].includes(input.mode))||

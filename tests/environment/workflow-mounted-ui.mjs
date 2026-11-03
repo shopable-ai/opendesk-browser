@@ -21,6 +21,8 @@ function loadSidebarReact(){
         export {createDeveloperView} from './src/ui/develop-view.js';
         export {createMyWorkbenchView} from './src/ui/my-workbench-view.js';
         export {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
+        export {TrustedConversationWorkspace} from './src/ui/react/components/conversation.tsx';
+        export {ToolConversationProviderControls} from './src/ui/react/tabs/tool-host.tsx';
       `},bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
       plugins:[{name:'mounted-production-imports',setup(builder){
         builder.onResolve({filter:/^react(?:-dom)?(?:$|\/)/},({path})=>({
@@ -38,7 +40,7 @@ import {workflowFixture,tick} from './workflow-react-fixture.mjs';
 export async function mountWorkflowClient({steps=[],activeTab='workflow',...options}={}){
   const f=await workflowFixture({steps,...options});
   const {SidebarAppShell,createDeveloperView,createMyWorkbenchView,
-    createSidebarToolsView}=await loadSidebarReact();
+    createSidebarToolsView,TrustedConversationWorkspace,ToolConversationProviderControls}=await loadSidebarReact();
   const {window,document}=parseHTML('<html><body><div id="opendesk-react-app"></div></body></html>');
   const previous=new Map(['window','document','IS_REACT_ACT_ENVIRONMENT'].map(key=>
     [key,Object.getOwnPropertyDescriptor(globalThis,key)]));
@@ -125,7 +127,7 @@ export async function mountWorkflowClient({steps=[],activeTab='workflow',...opti
   };
   await React.act(async()=>{root.render(React.createElement(App));await tick();});
   await tick();
-  return {document,window,source:f,controller,providerSettings,keys,
+  return {document,window,source:f,controller,providerSettings,keys,TrustedConversationWorkspace,ToolConversationProviderControls,
     subscriptions:()=>subscriptions,html:()=>document.toString(),
     toolView:views[2],click,clickNode,keydown,openSettings,close};
 }

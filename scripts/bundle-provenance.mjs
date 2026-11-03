@@ -21,9 +21,9 @@ const compiledTimeReviewInputs=Object.freeze({
 // Web Flow's trigger policy is pure data validation; only its compiled settings
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
-  'projects/webflow/src/auto-grants.js':'c3ad731585e6aa55755185242e47e7c8a32f7b11',
+  'projects/webflow/src/auto-grants.js':'db7b5aad4d0b5f19de518659f361e3a8458e4a8a',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'2f66954a13d87c792b14535bd099b2a639758230',
+  'projects/webflow/trusted/AutoSettings.tsx':'76f6526fabdb3336d8a07c3dd4703b7c83aab166',
   'projects/webflow/trusted/CurrentTask.tsx':'0ca9c7401abddf81f17e3d00b656e23f47df831b',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });

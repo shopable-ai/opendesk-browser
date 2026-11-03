@@ -12,7 +12,7 @@ export function chatGPTConversationId(value){
 // Chrome serializes this function into the extension's ISOLATED world. It
 // exposes no listener, Native RPC, credentials, or model API to the page.
 export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,
-  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false}){
+  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false,fileRequest=false}){
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
   // Keep these literals inside the serialized function: Chrome does not carry
   // module bindings into ISOLATED. Existing callers still select the old intent.
@@ -20,6 +20,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const intentProtocols=protocols.filter(protocol=>knownIntentProtocols.includes(protocol));
   if(!intentProtocols.length)intentProtocols.push('opendesk.task.intent.v1');
   const webFlow=taskIntent&&intentProtocols.includes('webflow.task.intent.v1');
+  const strictReply=webFlow||fileRequest;
   const url=location.href;
   if(url!==expectedUrl||!['https://chatgpt.com','https://chat.openai.com'].includes(location.origin))
     return error('E_CHAT_TARGET','对话页面已经切换，请重新绑定当前对话。');
@@ -49,8 +50,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const streaming=stop||answer.some(node=>{const turn=node.closest('[data-talvt-turn-state]');
     return turn&&turn.getAttribute('data-talvt-turn-state')!=='complete';})||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'))||
     webFlow&&answer.some(node=>node.closest('[aria-busy="true"]')||node.querySelector('[aria-busy="true"]'));
-  if(webFlow&&turnAnswers.length>1)return error('E_EDIT_AMBIGUOUS','最新用户消息后存在多个回答，无法确认唯一任务。');
-  if(webFlow&&answer.length&&!streaming){
+  if(strictReply&&turnAnswers.length>1)return error('E_EDIT_AMBIGUOUS','最新用户消息后存在多个回答，无法确认唯一任务。');
+  if(strictReply&&answer.length&&!streaming){
     const node=answer[0],turn=node.closest('[data-talvt-turn-state]');
     const actions=node.querySelector('[data-testid="copy-turn-action-button"],[data-assistant-message-actions]');
     if(turn?.getAttribute('data-talvt-turn-state')!=='complete'&&(!actions||hidden(actions)))
@@ -113,6 +114,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
       if(!taskIntent&&!marked&&!protocols.includes(protocol)&&
         !(text.trim().startsWith('{')&&protocols.some(p=>text.includes('"'+p+'"'))))continue;
       if(protocol==='opendesk.workspace.request.v1'&&!/\b(?:language-)?opendesk-request\b/.test(label))unmarkedRequest=true;
+      if(fileRequest&&protocol==='opendesk.workspace.edit.v1'&&!/\b(?:language-)?opendesk-edit\b/.test(label))unmarkedRequest=true;
       blocks.push(text);
       if(blocks.length>1)return error('E_EDIT_AMBIGUOUS','当前回答包含多个请求或提案，请让模型只返回一个。');
     }
@@ -148,7 +150,10 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
   if([...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"],[data-is-streaming="true"],.result-streaming')].some(n=>!hidden(n)))
     return error('E_CHAT_STREAMING','ChatGPT 仍在生成，结果已保留，稍后可重试回填。');
   const local=globalThis.__opendeskWorkspaceChatV1;
-  const users=[...document.querySelectorAll('[data-message-author-role="user"]')].filter(n=>!hidden(n)&&!n.parentElement?.closest('[data-message-author-role]'));
+  const userSelector='[data-message-author-role="user"],[data-chatgpt-search-unit-key$=":user"]';
+  const userNodes=()=>[...document.querySelectorAll(userSelector)].filter(n=>!hidden(n)&&
+    !n.closest('blockquote,[data-opendesk-file-data]')&&!n.parentElement?.closest(userSelector));
+  const users=userNodes();
   const turnKey=users.length?(local?.userTexts?.get(users.at(-1))===(users.at(-1).textContent||'')?local?.turns.get(users.at(-1)):null):'no-user';
   if(!local||turnKey!==expectedTurnKey)return error('E_CHAT_TURN','对话已进入另一轮，未回填迟到结果。');
   const previous=local.fills.get(operationId);
@@ -172,7 +177,7 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
   // focus can synchronously restore a website's saved draft. Recheck AFTER
   // that event before the edit, and confirm this is still the live composer.
   const focused=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
-  const currentUsers=[...document.querySelectorAll('[data-message-author-role="user"]')].filter(n=>!hidden(n)&&!n.parentElement?.closest('[data-message-author-role]'));
+  const currentUsers=userNodes();
   if(focused.length!==1||focused[0]!==editor||editor.isConnected===false||editor.closest('form')!==form||
     (currentUsers.length?(local.userTexts.get(currentUsers.at(-1))===(currentUsers.at(-1).textContent||'')?local.turns.get(currentUsers.at(-1)):null):'no-user')!==expectedTurnKey||location.href!==expectedUrl)
     return error('E_CHAT_TARGET','聚焦期间页面或输入框发生变化，未输入。');
@@ -192,11 +197,22 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
   const liveEditors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   if(liveEditors.length!==1||liveEditors[0]!==editor||editor.isConnected===false)
     return error('E_CHAT_FILL_UNKNOWN','编辑时输入框被替换，不能核对结果；请检查网页。','OUTCOME_UNKNOWN');
-  const content=textarea?editor.value:editor.innerText;
-  const exact=content===text||(!textarea&&editor.textContent===text)||content===text+'\n';
+  // Same observed source-line shape as chatgpt-bridge-site's editorText.
+  // This function is serialized alone by Chrome, so it cannot import that
+  // module closure. CSS innerText paragraph spacing is not submitted text.
+  const lines=!textarea&&editor.hasAttribute?.('data-composer-markdown')?[...(editor.childNodes||[])]:[];
+  const sourceLines=lines.length>0&&lines.every(node=>node.nodeType===1&&node.tagName==='P'&&
+    !node.querySelector('br:not(.ProseMirror-trailingBreak)'));
+  const content=sourceLines?lines.map(node=>node.textContent).join('\n'):textarea?editor.value:editor.innerText;
+  const exact=content===text||(!textarea&&!sourceLines&&editor.textContent===text)||content===text+'\n';
   if(location.href!==expectedUrl)return error('E_CHAT_TARGET','回填期间对话切换，结果未知，请检查网页。','OUTCOME_UNKNOWN');
   if(!exact){
     if(!accepted&&!(textarea?editor.value:editor.textContent)){local.fills.delete(operationId);return error('E_CHAT_COMPOSER','输入框未接受编辑命令，结果已保留。');}
+    // Native editing can return before the website has reconciled its
+    // paragraph model. Keep the replay fence unknown and require the separate
+    // read-only script task to prove exact bytes; this is not a filled ACK.
+    if(accepted)return {ok:true,url:location.href,turnKey,filled:false,sent:false,
+      interaction:'browser-insertText',readBackVerified:false,pendingReadBack:true};
     return error('E_CHAT_FILL_UNKNOWN','输入框内容未通过读回核对，请手动检查；不会重复插入。','OUTCOME_UNKNOWN');
   }
   local.fills.set(operationId,'filled');
@@ -215,12 +231,20 @@ export function verifyChatGPTComposerOnPage({expectedUrl,text,operationId,expect
     return false;
   };
   const local=globalThis.__opendeskWorkspaceChatV1;
-  const users=[...document.querySelectorAll('[data-message-author-role="user"]')].filter(n=>!hidden(n)&&!n.parentElement?.closest('[data-message-author-role]'));
-  if(local?.fills.get(operationId)!=='filled'||(users.length?(local.userTexts?.get(users.at(-1))===(users.at(-1).textContent||'')?local.turns.get(users.at(-1)):null):'no-user')!==expectedTurnKey)return error();
+  const userSelector='[data-message-author-role="user"],[data-chatgpt-search-unit-key$=":user"]';
+  const users=[...document.querySelectorAll(userSelector)].filter(n=>!hidden(n)&&
+    !n.closest('blockquote,[data-opendesk-file-data]')&&!n.parentElement?.closest(userSelector));
+  if(!['filled','unknown'].includes(local?.fills.get(operationId))||(users.length?(local.userTexts?.get(users.at(-1))===(users.at(-1).textContent||'')?local.turns.get(users.at(-1)):null):'no-user')!==expectedTurnKey)return error();
   const editors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   if(editors.length!==1||editors[0].isConnected===false)return error();
-  const editor=editors[0],value=editor.tagName==='TEXTAREA'?editor.value:editor.innerText;
-  if(value!==text&&value!==text+'\n'&&!(editor.tagName!=='TEXTAREA'&&editor.textContent===text))return error();
+  const editor=editors[0],textarea=editor.tagName==='TEXTAREA';
+  // Keep the independent serialized read aligned with the insertion read.
+  const lines=!textarea&&editor.hasAttribute?.('data-composer-markdown')?[...(editor.childNodes||[])]:[];
+  const sourceLines=lines.length>0&&lines.every(node=>node.nodeType===1&&node.tagName==='P'&&
+    !node.querySelector('br:not(.ProseMirror-trailingBreak)'));
+  const value=sourceLines?lines.map(node=>node.textContent).join('\n'):textarea?editor.value:editor.innerText;
+  if(value!==text&&value!==text+'\n'&&!(!textarea&&!sourceLines&&editor.textContent===text))return error();
+  local.fills.set(operationId,'filled');
   return {ok:true,url:location.href,filled:true,sent:false,readBackVerified:true};
 }
 
@@ -277,7 +301,8 @@ export async function fillChatGPTComposer(api,target,text,{operationId,turnKey}=
     throw {code:'E_CHAT_FILL_UNKNOWN',message:'回填响应无法核对，请检查原输入框。',outcome:'OUTCOME_UNKNOWN'};
   if(!result.ok)throw result.error;
   try{await assertChatGPTTarget(api,target);}catch{throw {code:'E_CHAT_TARGET',message:'回填后页面身份变化，请检查原对话；不会重试。',outcome:'OUTCOME_UNKNOWN'};}
-  if(result.url!==target.url||result.filled!==true||result.sent!==false||result.readBackVerified!==true)
+  const provisional=result.pendingReadBack===true&&result.filled===false&&result.readBackVerified===false;
+  if(result.url!==target.url||result.sent!==false||(!provisional&&(result.filled!==true||result.readBackVerified!==true)))
     throw {code:'E_CHAT_FILL_UNKNOWN',message:'未收到已验证的回填结果。',outcome:'OUTCOME_UNKNOWN'};
   let verification;
   try{verification=await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},world:'ISOLATED',
@@ -287,5 +312,5 @@ export async function fillChatGPTComposer(api,target,text,{operationId,turnKey}=
     verification[0].result?.ok!==true||verification[0].result?.url!==target.url)
     throw verification?.[0]?.result?.error||{code:'E_CHAT_FILL_UNKNOWN',message:'输入框独立读回不匹配。',outcome:'OUTCOME_UNKNOWN'};
   try{await assertChatGPTTarget(api,target);}catch{throw {code:'E_CHAT_TARGET',message:'最终回填核对期间页面已变化，请检查原对话。',outcome:'OUTCOME_UNKNOWN'};}
-  return result;
+  return {...result,filled:true,readBackVerified:true,pendingReadBack:false};
 }

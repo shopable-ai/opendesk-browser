@@ -31,3 +31,31 @@ test('current task shows result bytes only from the Host receipt, never an unown
   for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
  }
 });
+
+test('current task displays one returned row without padding results or replacing its run identity',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+ const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
+ const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,IS_REACT_ACT_ENVIRONMENT:true});
+ const root=createRoot(document.getElementById('root'));
+ const returned={status:'success',count:1,results:[{title:'One observed page',url:'https://example.com/only-result'}]};
+ const identity={candidateId:'one-candidate',requestId:'one-request',runId:'one-run',resultId:'one-result'};
+ const controller={readBridgeState:async()=>({source:{documentId:'one-document'},
+  session:{...identity,url:'https://chatgpt.com/c/one-conversation',status:'已完成',
+   resultPreview:'OLD_UNRELATED_RESULT',fields:{},tasks:[],actions:{}},
+  receipt:{...identity,execution:'completed',persistence:'verified',release:'released',delivery:'confirmed',value:returned}})};
+ try{
+  await React.act(async()=>{root.render(React.createElement(WebflowCurrentTask,{controller}));});
+  const receipt=document.querySelector('[aria-label="同次运行回执"]');
+  assert.ok(receipt);
+  assert.deepEqual(JSON.parse(receipt.querySelector('pre').textContent),returned);
+  assert.deepEqual(JSON.parse(document.querySelector('details pre').textContent),identity);
+  assert.ok(receipt.textContent.includes('已核实同一 Run / Result'));
+  assert.ok(receipt.textContent.includes('released'));
+  assert.ok(receipt.textContent.includes('已确认新增结果消息'));
+  assert.ok(!document.body.textContent.includes('OLD_UNRELATED_RESULT'));
+ }finally{
+  await React.act(async()=>root.unmount());
+  for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});

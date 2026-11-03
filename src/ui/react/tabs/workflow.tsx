@@ -65,7 +65,7 @@ const readEmptyProviderSettings=()=>EMPTY_PROVIDER_SNAPSHOT;
 // credentials, generation/Lease changes, cancellation and authorization.
 export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSettings=null,
   onOpenSettings=null,active=true,doc=globalThis.document,idPrefix='workflow',
-  focusComposer=null,placement='top-start'}){
+  focusComposer=null,placement='top-start',triggerIcon='settings'}){
  const root=React.useRef(null),menu=React.useRef(null);
  const [open,setOpen]=React.useState(false),[notice,setNotice]=React.useState('');
  const selectedMode=snapshot.source==='local_codex'?'local_codex':'https';
@@ -137,7 +137,9 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
    title={`当前来源：${selected} · 点击切换`}
    aria-haspopup="menu" aria-expanded={open} aria-controls={`${idPrefix}-source-menu`}
    disabled={!active} onClick={()=>{setNotice('');setOpen(value=>!value);}}>
-   <Glyph kind="settings"/>
+   {triggerIcon==='chevron'?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="m6 9 6 6 6-6"/></svg>:<Glyph kind="settings"/>}
   </IconButton>
   {open&&<div id={`${idPrefix}-source-menu`} className="workflow-source-menu"
     role="menu" aria-label="选择 AI 来源" style={popupStyle} ref={menu} onKeyDown={onMenuKeyDown}>
