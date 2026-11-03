@@ -1,6 +1,6 @@
 # OpenDesk Analytics R1.12.1 — 管理员 PostHog 四组 Insights（继承原 R1.10 入口）
 
-状态：SOURCE_DEFINED / NOT_DEPLOYED / NOT_CLOUD_VERIFIED（R1.12.1 只有源码定义与定向测试候选；没有 PostHog 真实 SQL 编译、查询、生产交付或云端回读证据）。必须复用现有 PostHog，不建立另一个 Dashboard 或 Analytics 系统。生产端点继续为空。
+状态：SOURCE_DEFINED / STATIC_CONTRACT_TESTS_PASS / NOT_DEPLOYED / NOT_CLOUD_VERIFIED（四组查询定义与 6 条静态合同测试已通过仓库 CI；尚无 PostHog 真实 HogQL 编译、Insight/Dashboard 创建、查询或云端回读证据）。必须复用现有 PostHog，不建立另一个 Dashboard 或 Analytics 系统。生产端点继续为空。
 
 ## 统计口径与证据边界
 
