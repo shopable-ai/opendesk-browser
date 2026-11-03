@@ -208,5 +208,106 @@
     "zoom/pressure",
     "product scoring",
     "arbitrary natural-search ranking or website-wide advertising audit"
-  ]
+  ],
+  "latestReconfirmation": {
+    "baseCommit": "96c63ab34",
+    "reason": "User explicitly requires successful real tests before delivering prompts; both prompts were natively sent again before this response.",
+    "status": "TWO_FRESH_NATIVE_ROUNDS_VERIFIED",
+    "environmentFix": "Old npm run dev and both listening ports were absent. Restored the sole same-path dev server (node54212); native debug UI confirms connected, same d623 revision and relevant artifact hashes. No install, task update, new approval or product code change.",
+    "temporaryUnavailable": "During startup compilation the approval UI showed installation changed or unavailable. After compilation, native Refresh approval status returned the original valid exact approval; original installation and 22:04:43 grant unchanged.",
+    "rounds": [
+      {
+        "case": "round-a",
+        "promptFile": "tests/protocol-auto-first.prompt.txt",
+        "promptSHA256": "ebd51bb05ff2bc918881b994c03c7f4ac9bf6a3a78c22720cffa1afd43fd8417",
+        "candidateId": "wf-8f2a719c-55b4-4d3e-9e12-c0d78a6f423b",
+        "requestId": "52396a6c-1f82-4efb-be5d-ac03e1b44586",
+        "runId": "bd51c8cc-af5e-4163-bbdc-df4af1807c32",
+        "resultId": "fc935d48-7397-48ba-abcf-915753e77f31",
+        "targetTabId": 759148615,
+        "observedAt": "2026-11-03T15:23:16.879Z",
+        "status": "success",
+        "count": 3,
+        "searchClicks": 1,
+        "independentDOMMatchesDurableAndDelivered": true,
+        "dataSHA256": "c0775008b53b99a753118799244a121880a9c392624618e7fa5c4d4ea47d1dda",
+        "resultMessageId": "690bd3bf-70b8-43b5-b22e-e83489f0944b",
+        "resultMessageCount": 1,
+        "retirement": "released",
+        "aiContinuation": "complete",
+        "continuationMessageId": "3c7697ce-c8d1-43ef-be75-d72d4928ae41 3c7697ce-c8d1-43ef-be75-d72d4928ae41",
+        "additionalApprovalClicks": 0
+      },
+      {
+        "case": "round-b",
+        "promptFile": "tests/protocol-auto-followup.prompt.txt",
+        "promptSHA256": "0384f40d74bd990caaccc848576f30b9b69cbdc950d116b481d5f872ee50bbe7",
+        "candidateId": "wf-4e92b7c1-6f3a-42d8-9a05-7c1e63b8d294",
+        "requestId": "edf2d87c-5116-4363-8752-4261c62d34db",
+        "runId": "017e33e5-ff02-4b1b-946f-46a718d7592d",
+        "resultId": "229b70ba-8e3c-4e56-995e-6d7be400f0a2",
+        "targetTabId": 759148617,
+        "observedAt": "2026-11-03T15:26:24.657Z",
+        "status": "success",
+        "count": 3,
+        "searchClicks": 1,
+        "independentDOMMatchesDurableAndDelivered": true,
+        "dataSHA256": "f2138361dbdd77a9ecac4653f18c83725ecde42b3f4ad5a48dbfc66ccbf5418b",
+        "resultMessageId": "149818cf-5227-4f85-8123-5ffacefcbfdb",
+        "resultMessageCount": 1,
+        "retirement": "released",
+        "aiContinuation": "complete",
+        "continuationMessageId": "02dff087-6868-461d-a76d-3b41f6a4fab3 02dff087-6868-461d-a76d-3b41f6a4fab3",
+        "additionalApprovalClicks": 0
+      }
+    ],
+    "visibleResultOrdering": {
+      "returnedSlots": [
+        "1",
+        "2",
+        "5"
+      ],
+      "slot3": {
+        "tpl": "bk_polysemy",
+        "webContainer": false,
+        "title": "openDesk - 百度百科"
+      },
+      "slot4": {
+        "tpl": "recommend_list",
+        "webContainer": false
+      },
+      "firstThreeRegularWebContainersMatched": true,
+      "returnedRowsVisibleAdLabels": [],
+      "scope": "Current fixed Task regular-web-container contract, not a general website-wide ad/ranking certification."
+    },
+    "rawEvidence": "artifacts/webflow-auto-20261103/confirmed-01a1a1e8",
+    "rawSHA256": {
+      "dev-before.ax.txt": "558abcc8d8f8057208a5a9b4d842973f8bfc8bf8e0beacedd9d7739150661387",
+      "dev.ax.txt": "c3c7f0a9a97720280cf2fd2779386843dcff406fbd27d687fe0349c7fc98fbeb",
+      "grant.ax.txt": "61bba797d74e6c40c8c338cd5757bc3188a459d9966d295b0df0e7f78386a2f0",
+      "grant-after-start.ax.txt": "fb64d19b8e8e5a00ddfacb3afd32435c8828dec8d2b2ebd636dca1329f1e79df",
+      "grant-identity.ax.txt": "8e19526f3e7c664cf0a4255d5150ba34d68042bf42529668c76795968bba0da6",
+      "final-visible.ax.txt": "90f3cad910f4739bf7072125e5f04181de2a8facd4bbf92a6a8d761d22a108eb",
+      "round-a-before-send.json": "0c13accf6512062671a7f01b5356571731736c087534fd9623e4808e786c8ebe",
+      "round-a-chat.json": "40ad922fae4b3b1126fd491f4b5ee6d7cdfd24f2a6c31c05e6d75c3e415fd3c7",
+      "round-a-final-chat.json": "ece3aaf56013b8fa527a1d28d55cd1b211cd3b2a7f97703a143e7e80dd3ee0e6",
+      "round-a-identity.ax.txt": "53e7fb501447d4ba8eaabda64e07e68c033d7ec9e6ed214cdfdf4d571f0fc2f2",
+      "round-a-full-result.ax.txt": "680e8c16f10146b011fd77efa6c0862a4b608deb313ef6d99bd3625090379681",
+      "round-a-durable-value.json": "fd8e1a2fb27e275af0e4fa3832512125456190ee6fb7d0f6d37f6dfe982b43b3",
+      "round-a-result.json": "6f98429dc8d47593df6a4ab2e28bd4489309967752897f78662451a233a0f655",
+      "round-a.dom.jsonl": "2b8e3dc36efefd8b16c04ba54fa37302f4c69341de1fc49e4174a90b882a01fe",
+      "round-b-before-send.json": "fa3f6e3d1959a98ccff8e8bbbcf6d342564023896b85ca23b9314b1c20d7ba57",
+      "round-b-chat.json": "eb7bb8a5a02c316c0bd736ab1bf532a7538f0a67667f8731e64680afcefc347f",
+      "round-b-final-chat.json": "f3574df967df1f03c6a8042a00fd2d11892435eb4bf4c3da26e686f072b4eb15",
+      "round-b-identity.ax.txt": "90f3cad910f4739bf7072125e5f04181de2a8facd4bbf92a6a8d761d22a108eb",
+      "round-b-full-result.ax.txt": "85faa53032ddbb2f94f39eb8b74da9a308470c44db12de0ba6beac16288569f2",
+      "round-b-durable-value.json": "8eacd8069ed4ac8c5322273be15cdcf582f464c698c065321b76a0a7cfa85438",
+      "round-b-result.json": "3c502779cb0fcb607bed110f806be5ac93935dff876547c9da1d1df5b9c9db90",
+      "round-b.dom.jsonl": "35fa62928a30a0f296fe0de582b4211a8b0678a3400d009d96f8a4d598af5aea"
+    },
+    "observers": "STOPPED",
+    "devServer": "LEFT_RUNNING",
+    "conversation": "LEFT_OPEN_IDLE_EMPTY_DRAFT",
+    "promptsDeliveredOnlyAfterTheseTests": true
+  }
 }
