@@ -1,0 +1,73 @@
+// First-party legacy ChatGPT UI owned by Web Flow, disabled by default.
+// Detached DOM preserves existing trusted projection/side-panel controls.
+// A website or model cannot enable this UI; only an explicitly configured caller can.
+export function createLegacyChatGPTTaskPanel({doc,visible=false,fixedTaskId,baiduTaskId,installedChoice}={}){
+  const root=doc.createElement('div');
+  root.id='opendesk-fixed-bridge-r12';
+  root.setAttribute('data-opendesk-ui-owner','fixed-chat-bridge-r12');
+  root.style.cssText='position:fixed;right:14px;top:72px;z-index:2147483645;max-width:min(330px,calc(100vw - 28px))';
+  const shadow=root.attachShadow({mode:'closed'});
+  const style=doc.createElement('style');
+  // Isolated page UI maps the canonical token values; never inject host CSS.
+  style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.45 system-ui,-apple-system,sans-serif;background:#fff;color:#1b2c49;border:1px solid #e1e8f1;border-radius:12px;box-shadow:0 4px 16px #0002;padding:12px;max-width:330px;max-height:calc(100vh - 96px);overflow:auto}.heading{font-weight:650;font-size:13px;margin-bottom:8px}.fields{display:grid;gap:8px;margin-bottom:8px}.field{display:grid;gap:4px}.field[hidden]{display:none}.field span,.hint,.status,.selection{color:#53647e}.hint,.selection{margin:8px 0;overflow-wrap:anywhere;white-space:pre-wrap}select,input,textarea{font:inherit;width:100%;min-width:0;min-height:36px;padding:8px;border:1px solid #7f8da1;border-radius:8px;background:inherit;color:inherit}textarea{resize:vertical;min-height:64px}select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button{font:inherit;min-height:36px;background:#f5f7fb;border:1px solid #7f8da1;border-radius:8px;cursor:pointer;padding:8px;color:inherit}button:disabled,select:disabled,input:disabled,textarea:disabled{opacity:.55;cursor:default}.run{background:#365eda;color:#fff;border-color:#365eda}.status{margin-top:8px;overflow-wrap:anywhere;white-space:pre-wrap}.error{color:#ae3d4b}details{margin-top:8px}summary{cursor:pointer}pre{font:11px/1.45 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}@media(prefers-color-scheme:dark){.panel{background:#151c28;color:#e9eef7;border-color:#374457}.status,.field span,.hint,.selection{color:#b3c1d3}button{background:#222d3e;border-color:#6d809b;color:#e9eef7}select,input,textarea{border-color:#6d809b}.run{background:#3566ba;color:white}.error{color:#ff9ea6}}';
+  const panel=doc.createElement('div');panel.className='panel';
+  const heading=doc.createElement('div');heading.className='heading';
+  heading.textContent='OpenDesk · 浏览器任务';
+  const fields=doc.createElement('div');fields.className='fields';
+  const taskField=doc.createElement('label');taskField.className='field';
+  const taskCaption=doc.createElement('span');taskCaption.textContent='选择已安装脚本';
+  const taskSelect=doc.createElement('select');taskSelect.setAttribute('aria-label','选择浏览器任务');
+  const fixedOption=doc.createElement('option');fixedOption.value=fixedTaskId;
+  fixedOption.textContent='读取示例网页 · page.read.fixed';
+  const baiduOption=doc.createElement('option');baiduOption.value=baiduTaskId;
+  baiduOption.textContent='百度搜索前三条 · baidu.search.top3';
+  const installedOption=doc.createElement('option');installedOption.value=installedChoice;
+  installedOption.textContent='从已安装脚本中选择…';
+  taskSelect.append(fixedOption,baiduOption,installedOption);taskSelect.value=fixedTaskId;
+  taskField.append(taskCaption,taskSelect);
+  const queryField=doc.createElement('label');queryField.className='field';
+  const queryCaption=doc.createElement('span');queryCaption.textContent='百度搜索关键词';
+  const queryInput=doc.createElement('input');queryInput.type='text';queryInput.maxLength=120;
+  queryInput.value='OpenDesk Browser';queryInput.placeholder='输入搜索关键词';
+  queryInput.setAttribute('aria-label','百度搜索关键词');
+  queryField.append(queryCaption,queryInput);
+  const targetField=doc.createElement('label');targetField.className='field';
+  const targetCaption=doc.createElement('span');targetCaption.textContent='打开的目标网址';
+  const targetInput=doc.createElement('input');targetInput.type='url';targetInput.maxLength=2048;
+  targetInput.setAttribute('aria-label','打开的目标网址');targetInput.placeholder='填写脚本要操作的完整网址';
+  targetField.append(targetCaption,targetInput);
+  const argsField=doc.createElement('label');argsField.className='field';
+  const argsCaption=doc.createElement('span');argsCaption.textContent='脚本参数（JSON）';
+  const argsInput=doc.createElement('textarea');argsInput.value='{}';argsInput.maxLength=2048;
+  argsInput.setAttribute('aria-label','脚本参数 JSON');
+  const argsHelp=doc.createElement('span');
+  argsField.append(argsCaption,argsInput,argsHelp);fields.append(taskField,queryField,targetField,argsField);
+  const selection=doc.createElement('div');selection.className='selection';
+  const hint=doc.createElement('div');hint.className='hint';
+  hint.textContent='由 OpenDesk 自动化脚本操作浏览器，结果发送到当前聊天。请先核对脚本、网址和参数。';
+  const bar=doc.createElement('div');bar.className='bar';
+  const prepareButton=doc.createElement('button');prepareButton.textContent='建立请求';
+  const autoButton=doc.createElement('button');autoButton.textContent='批准本次自动执行';
+  const runButton=doc.createElement('button');runButton.className='run';runButton.textContent='执行';
+  const cancelButton=doc.createElement('button');cancelButton.textContent='停止/取消';
+  const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
+  const viewStatus=doc.createElement('div');viewStatus.className='status';viewStatus.setAttribute('role','status');
+  const result=doc.createElement('pre');result.setAttribute('aria-label','本次脚本返回值');result.hidden=true;
+  const details=doc.createElement('details');
+  const summary=doc.createElement('summary');summary.textContent='执行详情';
+  const identity=doc.createElement('pre');details.append(summary,identity);
+  const adoptButton=doc.createElement('button');adoptButton.textContent='采用对话任务';
+  const viewButton=doc.createElement('button');viewButton.textContent='查看执行页面';
+  const preapproveButton=doc.createElement('button');preapproveButton.textContent='预批准一次 · 5 分钟';
+  const conversationButton=doc.createElement('button');conversationButton.textContent='允许本聊天';
+  const revokeConversationButton=doc.createElement('button');revokeConversationButton.textContent='撤销本聊天授权';
+  const approvalHint=doc.createElement('div');approvalHint.className='hint';approvalHint.setAttribute('role','status');
+  bar.append(runButton,conversationButton,viewButton,cancelButton,revokeConversationButton);
+  const more=doc.createElement('details'),moreSummary=doc.createElement('summary');
+  moreSummary.textContent='更多请求方式';
+  const moreBar=doc.createElement('div');moreBar.className='bar';
+  moreBar.append(prepareButton,autoButton,adoptButton,preapproveButton);more.append(moreSummary,moreBar);
+  panel.append(heading,status,selection,bar,approvalHint,viewStatus,result,fields,more,hint,details);shadow.append(style,panel);
+  if(visible)(doc.body||doc.documentElement).append(root);
+  return {root,fields,taskSelect,queryField,queryInput,targetField,targetInput,argsField,argsInput,argsHelp,selection,prepareButton,autoButton,runButton,cancelButton,status,viewStatus,result,details,summary,identity,adoptButton,viewButton,preapproveButton,conversationButton,revokeConversationButton,approvalHint};
+}
