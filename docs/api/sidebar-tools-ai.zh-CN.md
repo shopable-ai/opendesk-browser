@@ -167,7 +167,7 @@ Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Doc
 
 Dock 的可选 `onOpenSettings` 在自身控制区提供公共齿轮图标，与公共收起按钮并列；`toolbar` 继续接收消费者自有 React 展示节点。两者只负责展示，不拥有 Provider 配置或授权。可信书签与 Prompt 通过原 `onOpenSettings` 打开同一个设置面板；固定沙箱 UI runtime 为公开 Dock 接入下述固定打开动作，无需工具复制按钮或重打业务包。按钮尺寸、悬停提示、焦点和无障碍名称统一；分隔条不能遮住按钮或裁切焦点环。
 
-沙箱工具同步 `visible: true, open: true` 后，设置齿轮与收起按钮位于底部公共 Dock 的控制区；ToolHost 页头、卸载按钮旁不再保留 AI 设置齿轮。原页头 AI 按钮继续重新打开/切换 Chat，紧凑来源下拉仍留在可信页头，用下拉箭头表示来源选择；其高级设置项仍打开同一设置面板。来源切换沿原 Provider Runtime 的 generation、取消和旧回包围栏，不静默切换。本机来源显示「本机 Codex」，实际模型由本机配置决定。
+沙箱工具同步 `visible: true, open: true` 后，设置齿轮与收起按钮位于底部公共 Dock 的控制区；ToolHost 页头的 AI 相关入口仅保留原 AI 按钮，用于重新打开/切换 Chat，不附加来源下拉或重复设置按钮。可信书签与 Prompt 同样从公共 Dock 打开唯一设置面板。来源选择、本机连接和其他 Provider 配置保留在原 AI 设置弹窗；沿用原字段、分组、保存与取消语义，不因接入 Chat 重设计表单。打开/关闭 Chat 或打开设置只改变展示，不切换来源、保存设置、派发推理或执行业务。来源变更只通过原设置保存及 Provider Runtime 的 generation、取消和旧回包围栏生效；本机连接开关仍按下述规则即时生效，实际模型由本机配置决定。本段按 2026-11-04 用户纠偏替代此前“紧凑来源下拉仍留在可信页头”的要求。
 
 固定沙箱 Dock 调用 `OpenDeskTool.openAISettings()`：无参数、同步返回布尔值，只有仍在派发的真实按钮点击（包括按钮键盘激活生成的 click）可沿原私有端口提交固定 `open-ai-settings` 动作；返回 true 仅表示提交，不是授权或设置保存回执。Host 校验当前端口、来源窗口、toolId、实例、单调 requestId、已安装 ai.generate 能力、启用状态、安装代际与可见/展开生命周期，并在异步安装核对后复查。公开 window 消息、伪造身份、额外载荷、退休/卸载或迟到动作拒绝。动作不携带凭据、HTML、任意操作、设置写接口或推理授权，仍只打开原唯一 `SharedProviderSettingsSheet`。
 

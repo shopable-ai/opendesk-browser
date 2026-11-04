@@ -6,6 +6,7 @@ import {load} from 'cheerio';
 import {inspectChatGPTEditsOnPage,readChatGPTEdit,assertWebFlowReplyCandidate} from '../../../src/native-agent/workspace-chatgpt.js';
 import {installChatGPTBridgeTriggerGate,CHATGPT_BRIDGE_LEDGER_KEY} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
+import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-request.js';
 
 const source={tabId:9,documentId:'webflow-final-document',url:'https://chatgpt.com/c/webflow-final-12345678'};
 const panel={id:'extension',documentId:'trusted-panel',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real'};
@@ -16,9 +17,9 @@ const intent={protocol:'webflow.task.intent.v1',candidateId:'webflow-final-candi
   targetUrl:scope.targetUrl,args:scope.args};
 const readOptions={taskIntent:true,requireComplete:true,protocols:['webflow.task.intent.v1']};
 
-function harness(){
+function harness({taskScope=scope,taskIntent=intent}={}){
   const $=load('<main><div data-message-author-role="user">请搜索 OpenDesk Browser</div><div data-message-author-role="assistant" data-talvt-turn-state="complete"><pre><code class="language-opendesk-task"></code></pre></div></main>');
-  $('code').text(JSON.stringify(intent));
+  $('code').text(JSON.stringify(taskIntent));
   // Stable wrappers preserve DOM node identity across serialized script calls.
   const nodes=new WeakMap(),wrap=node=>{
     if(!node)return null;
@@ -57,18 +58,18 @@ function harness(){
   const gate=installChatGPTBridgeTriggerGate({api});
   const read=()=>readChatGPTEdit(api,source,undefined,readOptions);
   const candidate=async()=>{
-    const observed=await read();return {candidateId:intent.candidateId,text:observed.blocks[0],
+    const observed=await read();return {candidateId:taskIntent.candidateId,text:observed.blocks[0],
       turnKey:observed.turnKey,answerKey:observed.answerKey};
   };
   const admit=async()=>{
-    await gate.approveAuto(scope);await gate.setAutoEnabled(true);
-    const admitted=await gate.admitAuto({source,...scope,candidate:await candidate()});
+    await gate.approveAuto(taskScope);await gate.setAutoEnabled(true);
+    const admitted=await gate.admitAuto({source,...taskScope,candidate:await candidate()});
     await gate.reserve({...admitted,mode:'auto',turnKey:admitted.candidate.turnKey,answerKey:admitted.candidate.answerKey});
     return admitted;
   };
   const request=admitted=>({requestId:admitted.requestId,source:{kind:'saved',scriptId:installation.scriptId,
-    revision:installation.revision,contentHash:installation.contentHash},paramsWire:encodeValue(scope.args),
-    target:{mode:'owned',url:scope.targetUrl},expectedTaskGeneration:installation.generation,
+    revision:installation.revision,contentHash:installation.contentHash},paramsWire:encodeValue(taskScope.args),
+    target:{mode:'owned',url:taskScope.targetUrl},expectedTaskGeneration:installation.generation,
     expectedTaskInstallationId:installation.installationId});
   return {$,api,gate,read,candidate,admit,request,get data(){return data;},
     afterWrite:fn=>{afterWrite=fn;},afterRead:fn=>{afterRead=fn;},
@@ -96,6 +97,83 @@ test('unchanged complete candidate submits once through the original guard and c
   assert.deepEqual(await h.gate.withControllerAdmission(h.request(admitted),panel,submit),{runId:'original-authority-run'});
   await assert.rejects(h.gate.withControllerAdmission(h.request(admitted),panel,submit),{code:'E_BRIDGE_REPLAY'});
   assert.equal(starts,1);
+});
+
+test('readable and legally escaped task JSON preserve exact values through the reply reader',async t=>{
+  const values=[
+    ['unicode','中文搜索 👩‍💻 😀 e\u0301'],
+    ['punctuation','斜杠 / 反引号 ``` 与 "引号"'],
+    ['backslashes',String.raw`C:\temp\中文\u002f \n \"`],
+    ['controls','第一行\n第二行\t制表符\r回车'],
+    ['html','<script>alert("data")</script> &amp; &#47; <a href="https://example.com/">链接</a>'],
+    ['url text','https://example.com/中文?a=%2F%252F+plus&b=1#fragment']
+  ];
+  const formats=[
+    ['plain',text=>text],
+    ['pretty',text=>JSON.stringify(JSON.parse(text),null,2)],
+    ['escaped-slash',text=>text.replaceAll('/',String.raw`\/`)],
+    ['unicode-slash',text=>text.replaceAll('/',String.raw`\u002f`)],
+    ['unicode-keys',text=>text.replace('"targetUrl"',String.raw`"target\u0055rl"`)
+      .replace('"query"',String.raw`"qu\u0065ry"`)]
+  ];
+  for(const [name,query] of values)for(const [format,serialize] of formats)await t.test(name+'/'+format,async()=>{
+    const h=harness(),value={...intent,targetUrl:'https://example.com/中文?a=%2F%252F+plus&b=1',args:{query,limit:3}};
+    const text=serialize(JSON.stringify(value));
+    // Syntax highlighting uses multiple text nodes. Markup and HTML entities
+    // inside the payload are data, never reparsed as HTML or decoded twice.
+    h.$('code').empty();
+    for(const token of text.match(/.{1,7}|\n/gu))h.$('code').append(h.$('<span></span>').text(token));
+    const observed=await h.read();
+    assert.equal(observed.blocks[0],text);
+    assert.deepEqual(validateWebFlowTaskIntent(observed.blocks[0]),value);
+    assert.equal(h.$('code script,code a').length,0);
+    const candidate={candidateId:value.candidateId,text,turnKey:observed.turnKey,answerKey:observed.answerKey};
+    await assertWebFlowReplyCandidate(h.api,source,candidate);
+    assert.equal(Object.keys(h.data).length,0,'reading cannot approve or dispatch a task');
+  });
+});
+
+test('readable and escaped replies preserve approved argument values through controller admission',async t=>{
+  const args={query:String.raw`中文 / "引号" C:\temp\中文\u002f 👩‍💻`,limit:3};
+  const taskScope={...scope,args},taskIntent={...intent,args};
+  for(const [name,serialize] of [
+    ['plain',text=>text],
+    ['escaped-slash',text=>text.replaceAll('/',String.raw`\/`)],
+    ['unicode-slash',text=>text.replaceAll('/',String.raw`\u002f`)]
+  ])await t.test(name,async()=>{
+    const h=harness({taskScope,taskIntent});
+    h.$('code').text(serialize(JSON.stringify(taskIntent)));
+    const admitted=await h.admit(),request=h.request(admitted);
+    assert.deepEqual(admitted.args,args);
+    assert.deepEqual(h.data[CHATGPT_BRIDGE_LEDGER_KEY][admitted.requestId].scope.args,args);
+    let starts=0;
+    const submit=async()=>{starts++;return {runId:'fixture-authority-run'};};
+    const decodedTwice={...request,paramsWire:encodeValue({...args,query:args.query.replace(String.raw`\u002f`,'/')})};
+    await assert.rejects(h.gate.withControllerAdmission(decodedTwice,panel,submit),{code:'E_BRIDGE_CONTEXT'});
+    assert.equal(starts,0,'changed literal escape text cannot spend the existing approval');
+    assert.notEqual(h.data[CHATGPT_BRIDGE_LEDGER_KEY][admitted.requestId].controllerSubmitted,true);
+    assert.deepEqual(await h.gate.withControllerAdmission(request,panel,submit),{runId:'fixture-authority-run'});
+    await assert.rejects(h.gate.withControllerAdmission(request,panel,submit),{code:'E_BRIDGE_REPLAY'});
+    assert.equal(starts,1,'the unchanged original values are admitted once');
+  });
+});
+
+test('malformed escapes, duplicate decoded keys and double-encoded URLs fail before admission',async t=>{
+  const json=JSON.stringify(intent);
+  const cases=[
+    ['invalid escape',json.replace('OpenDesk Browser',String.raw`OpenDesk\q`),'E_CHAT_FORMAT'],
+    ['duplicate target',json.replace('"targetUrl":',String.raw`"target\u0055rl":"https://other.example/","targetUrl":`),'E_BRIDGE_FORMAT'],
+    ['duplicate argument',json.replace('"query":',String.raw`"qu\u0065ry":"changed","query":`),'E_BRIDGE_FORMAT'],
+    ['double-encoded URL',JSON.stringify({...intent,targetUrl:String.raw`https:\u002f\u002fwww.baidu.com\u002f`}), 'E_BRIDGE_SCHEMA'],
+    ['Markdown URL',JSON.stringify({...intent,targetUrl:'[百度](https://www.baidu.com/)'}),'E_BRIDGE_SCHEMA'],
+    ['HTML URL',JSON.stringify({...intent,targetUrl:'https:&#47;&#47;www.baidu.com&#47;'}),'E_BRIDGE_SCHEMA'],
+    ['oversized JSON',JSON.stringify({...intent,args:{query:'中'.repeat(4096),limit:3}}),'E_BRIDGE_LIMIT']
+  ];
+  for(const [name,text,code] of cases)await t.test(name,async()=>{
+    const h=harness();h.$('code').text(text);
+    await assert.rejects(h.read(),{code});
+    assert.equal(Object.keys(h.data).length,0,'invalid text cannot create a grant or dispatch');
+  });
 });
 
 test('regenerated, streaming and conflicting answers during the saved fence cannot submit',async()=>{

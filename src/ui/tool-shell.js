@@ -74,8 +74,12 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
+  let webflowRefreshHeld=false;
+  const beforeWebflowEffect=()=>{
+    if(webflowRefreshHeld)throw Object.assign(new Error('正在刷新当前对话，请稍候再发起新操作'),{code:'E_BRIDGE_REFRESH_PENDING'});
+  };
   // The trusted Host shell, not any business View, owns Provider resources.
-  const providerRuntime=createSharedAIProviderRuntime({client:foundationClient,hostInstanceId});
+  const providerRuntime=createSharedAIProviderRuntime({client:foundationClient,hostInstanceId,beforeRequest:beforeWebflowEffect});
   // React receives only the public settings surface, never configuration() or Provider Lease authority.
   const providerSettings=Object.freeze({
     settingsSnapshot:providerRuntime.settingsSnapshot,
@@ -165,6 +169,8 @@ const nativeConnection=Object.freeze({
 // Create the complete interface before controllers attach their real hosts.
 const webflowAuto=Object.freeze({
   readBridgeState:()=>fixedPageChatBridge.readBridgeState(),
+  refreshBridge:(value,event)=>fixedPageChatBridge.refreshBridge(value,event),
+  subscribeBridgeContext:listener=>fixedPageChatBridge.subscribeBridgeContext(listener),
   controlBridge:(value,event)=>fixedPageChatBridge.controlBridge(value,event),
   readAutoSettings:()=>fixedPageChatBridge.readAutoSettings(),
   prepareAutoGrant:selection=>fixedPageChatBridge.prepareAutoGrant(selection),
@@ -189,8 +195,24 @@ extensionList.renderNavigation(pendingReactTab);
 // Only the positively verified Side Panel in the source tab's window responds.
 const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:foundationClient,
   host:scriptEditor.host,currentPageTarget,
+  acquireRefresh:()=>{
+    if(webflowRefreshHeld||!providerRuntime.developmentIdle()||!nativeAgentHost.developmentIdle())return null;
+    webflowRefreshHeld=true;
+    return ()=>{webflowRefreshHeld=false;};
+  },
+  refreshIdle:()=>providerRuntime.developmentIdle()&&nativeAgentHost.developmentIdle(),
+  canRefresh:async()=>{
+    if(!providerRuntime.developmentIdle()||!nativeAgentHost.developmentIdle())return false;
+    const key='opendesk.native-agent.ledger.v1',saved=await chrome.storage.local.get(key),rows=saved[key];
+    if(rows!==undefined&&(!rows||typeof rows!=='object'||Array.isArray(rows)))return false;
+    if(Object.values(rows||{}).some(row=>!['ACKNOWLEDGED','FAILED_CONFIRMED'].includes(row?.state)))return false;
+    return providerRuntime.developmentIdle()&&nativeAgentHost.developmentIdle();
+  },
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
+  // New persistent candidates have one SW/Offscreen owner. Old manual and
+  // already-in-flight panel requests retain this exact Host and transport.
+  if(message?.kind==='auto-task'||message?.backgroundOwner===true)return false;
   if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task','adopt-task','authorize-task','approve-conversation-task','show-execution-page','preapprove-next-task','bind-preapproved-task','auto-task'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
@@ -330,7 +352,8 @@ taskWorkbench.connectToolsView((visible,destination)=>{
     void extensionCenter.refresh();
   return accepted;
 });
-const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
+const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget,
+  beforeMutation:beforeWebflowEffect});
 scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
   if(shellClosed)return;
   if(kind==='controller'){

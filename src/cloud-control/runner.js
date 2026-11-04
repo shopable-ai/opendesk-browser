@@ -52,6 +52,12 @@ export function createCloudRunnerLoop({client,host,webTasks,schedule=setTimeout,
     if(disposed||claiming||host.executionPending)return null;
     claiming=true;
     try{
+      // Read original consumed identities after a worker restart or lost ACK.
+      // Reconciliation never reclaims them or starts another Controller.
+      if(webTasks?.reconcile){
+        try{await webTasks.reconcile();}
+        catch(error){if(!disposed)log('[web runner reconciliation]',error?.code||error?.message||error);}
+      }
       // Alternate web with the original pair without changing app/cloud preference.
       const webFirst=webTasks&&preferWeb;
       if(webFirst){

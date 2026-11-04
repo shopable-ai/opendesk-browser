@@ -570,3 +570,10 @@ test('new request mode diagnoses an old Go without lease capability before expor
   assert.match(h.state().status.text,/E_NATIVE_UPDATE_REQUIRED/);
   assert.equal(h.state().prompt,'');assert.equal(h.reads,0);
 });
+
+test('identity reader exports actual latest user content only with explicit readUserMessage opt-in',()=>{
+  const h=pageFixture();h.setMessagesHTML('<div data-message-author-role="user"><span>Header</span><div data-testid="message-content">exact task</div><button>Edit</button></div>');
+  const read=options=>h.invoke(inspectChatGPTEditsOnPage,{expectedUrl:URL_CHAT,identityOnly:true,...options});
+  assert.equal(read({}).userText,undefined);
+  assert.equal(read({readUserMessage:true}).userText,'exact task');
+});

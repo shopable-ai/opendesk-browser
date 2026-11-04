@@ -5,7 +5,7 @@ import {createRunHost} from '../../src/run-host.js';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
 const target={status:'available',windowId:5,tabId:10,frameId:0,documentId:'doc-A',
   url:'https://example.test/item',origin:'https://example.test'};
-function fixture(granted=true){
+function fixture(granted=true,{beforeMutation}={}){
   const started=[],saved=[],stopped=[],subscriptions=new Set(),replies=[];
   const client={ready:Promise.resolve(),registration:{registrationId:'registration-1'},
     subscribeNativeAgent:cb=>{subscriptions.add(cb);return()=>subscriptions.delete(cb);},
@@ -18,7 +18,7 @@ function fixture(granted=true){
   },start:async data=>{started.push(data);return {runId:'run-A',state:'running',sourceKind:data.source.kind,
     revision:{sourceHash:'abc'}};},stop:async data=>{stopped.push(data);return {runId:data.runId,state:'stopped'};}};
   const api={permissions:{contains:async()=>granted,request:()=>{throw Error('Forbidden synthetic permission request');}}};
-  return {host,client,adapter:createNativeAgentHostAdapter({host,client,currentPageTarget,api}),started,saved,stopped,
+  return {host,client,adapter:createNativeAgentHostAdapter({host,client,currentPageTarget,api,beforeMutation}),started,saved,stopped,
     subscriptions,replies,currentPageTarget,api};
 }
 test('current target is live Sidebar snapshot, not active tab chosen by CLI',async t=>{
@@ -130,3 +130,78 @@ for(const readiness of ['shared-promise','connected-getter']){
   });
  }
 }
+
+
+const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+const draftStart=()=>({method:'run.start',params:{source:{kind:'draft',sourceUtf8:'async function main(){}'},params:{},target}});
+test('all Native effects count pending synchronously before client.ready, and clear on readiness failure',async t=>{
+ for(const method of ['script.save','page.preview','page.dispose','run.start','run.stop']){
+  let checks=0;const f=fixture(true,{beforeMutation:()=>checks++}),ready=deferred();t.after(()=>f.adapter.dispose());
+  f.client.ready=ready.promise;
+  const pending=f.adapter.handle({method,params:{}});
+  assert.equal(f.adapter.developmentIdle(),false,method+' must fence refresh before the first await');
+  assert.equal(checks,['script.save','page.preview','run.start'].includes(method)?1:0);
+  const rejected=assert.rejects(pending,/not ready/);ready.reject(Error('not ready'));await rejected;
+  assert.equal(f.adapter.developmentIdle(),true);
+  assert.equal(f.saved.length+f.started.length+f.stopped.length,0);
+ }
+});
+test('trusted beforeMutation rejects new effects before touching ready or any preparation; RPC cannot override it',async t=>{
+ let checks=0,readyReads=0;
+ const f=fixture(true,{beforeMutation:()=>{checks++;throw Object.assign(Error('refresh held'),{code:'E_REFRESH_HELD'});}});
+ t.after(()=>f.adapter.dispose());Object.defineProperty(f.client,'ready',{get(){readyReads++;return Promise.resolve();}});
+ for(const method of ['script.save','page.preview','run.start']){
+  await assert.rejects(f.adapter.handle({method,params:{beforeMutation:()=>{},beforeStart:()=>{}}}),{code:'E_REFRESH_HELD'});
+  assert.equal(f.adapter.developmentIdle(),true);
+ }
+ assert.equal(checks,3);assert.equal(readyReads,0);assert.equal(f.saved.length+f.started.length,0);
+ await f.adapter.handle({method:'run.stop',params:{runId:'original-run'}});
+ const result=await f.adapter.handle({method:'run.get',params:{runId:'original-run'}});
+ f.client.request=async()=>({installed:[],catalog:[]});
+ assert.deepEqual(await f.adapter.handle({method:'task.list'}),{tasks:[]});
+ assert.equal(result.run.runId,'original-run');assert.equal(f.stopped.length,1);assert.equal(checks,3);
+});
+test('deferred target preparation and awaited save/stop effects keep developmentIdle false until settled',async t=>{
+ const f=fixture();t.after(()=>f.adapter.dispose());let preparation=deferred();
+ f.currentPageTarget.refresh=()=>preparation.promise;
+ const starting=f.adapter.handle(draftStart());
+ for(let i=0;i<8;i++)await Promise.resolve();
+ assert.equal(f.adapter.developmentIdle(),false);assert.equal(f.started.length,0);
+ preparation.resolve();await starting;assert.equal(f.adapter.developmentIdle(),true);
+ for(const [method,install,params] of [
+  ['script.save',fn=>{f.host.controller.commitControllerScript=fn;},{scriptId:'test',expectedRevision:0,sourceUtf8:'main'}],
+  ['run.stop',fn=>{f.host.stop=fn;},{runId:'original-run'}]
+ ]){
+  const effect=deferred();install(()=>effect.promise);const pending=f.adapter.handle({method,params});
+  for(let i=0;i<8;i++)await Promise.resolve();
+  assert.equal(f.adapter.developmentIdle(),false,method);effect.resolve({});await pending;
+  assert.equal(f.adapter.developmentIdle(),true);
+ }
+});
+test('managed Page cleanup bypasses new-effect lock while deferred preview preparation stays pending',async t=>{
+ let held=false,checks=0;const f=fixture(true,{beforeMutation:()=>{checks++;if(held)throw Error('refresh held');}});
+ t.after(()=>f.adapter.dispose());const prepare=deferred();f.currentPageTarget.refresh=()=>prepare.promise;
+ const sourceUtf8='async function main(){}',sourceHash=await sha256Utf8(sourceUtf8);
+ f.client.request=async(method,p)=>method==='previewPageScript'?{
+  sourceHash,world:'USER_SCRIPT',documentId:target.documentId,tabId:target.tabId,state:'preview-ready',
+  managedUI:true,managedPreviewId:p.managedUI.previewId}:{previewId:p.previewId,sourceHash,state:'preview-retired',
+    receipt:{ok:true,scope:'managed-ui-only'}};
+ const previewing=f.adapter.handle({method:'page.preview',params:{sourceUtf8,sourceHash,sourceBytes:new TextEncoder().encode(sourceUtf8).length,
+  entryFormat:'async-main',managedUI:true,bindingId:'local-'+'a'.repeat(20),target}});
+ for(let i=0;i<8;i++)await Promise.resolve();assert.equal(f.adapter.developmentIdle(),false);
+ prepare.resolve();const preview=await previewing;
+ held=true;await f.adapter.handle({method:'page.dispose',params:{previewId:preview.previewId}});
+ assert.equal(checks,1);assert.equal(f.adapter.developmentIdle(),true);
+});
+
+test('overlapping mutations remain pending until every original effect settles',async t=>{
+  const f=fixture();t.after(()=>f.adapter.dispose());const first=deferred(),second=deferred();let calls=0;
+  f.host.controller.commitControllerScript=()=>++calls===1?first.promise:second.promise;
+  const request={method:'script.save',params:{scriptId:'shared',expectedRevision:0,sourceUtf8:'main'}};
+  const a=f.adapter.handle(request),b=f.adapter.handle(request);
+  assert.equal(f.adapter.developmentIdle(),false);
+  first.resolve({revision:1});await a;
+  assert.equal(f.adapter.developmentIdle(),false,'finishing one effect cannot hide another pending mutation');
+  const rejected=assert.rejects(b,/save failed/);second.reject(Error('save failed'));await rejected;
+  assert.equal(f.adapter.developmentIdle(),true);
+});

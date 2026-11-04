@@ -49,11 +49,84 @@ test('current task displays one returned row without padding results or replacin
   const receipt=document.querySelector('[aria-label="同次运行回执"]');
   assert.ok(receipt);
   assert.deepEqual(JSON.parse(receipt.querySelector('pre').textContent),returned);
-  assert.deepEqual(JSON.parse(document.querySelector('details pre').textContent),identity);
+  const identityDetails=[...document.querySelectorAll('details')].find(node=>node.querySelector('summary')?.textContent==='本次身份');
+  assert.deepEqual(JSON.parse(identityDetails.querySelector('pre').textContent),identity);
   assert.ok(receipt.textContent.includes('已核实同一 Run / Result'));
-  assert.ok(receipt.textContent.includes('released'));
+  assert.ok(receipt.textContent.includes('已释放'));
   assert.ok(receipt.textContent.includes('已确认新增结果消息'));
   assert.ok(!document.body.textContent.includes('OLD_UNRELATED_RESULT'));
+ }finally{
+  await React.act(async()=>root.unmount());
+  for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});
+
+test('a historical unknown stays separate from the current page and exposes no retry action',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+ const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
+ const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,IS_REACT_ACT_ENVIRONMENT:true});
+ const root=createRoot(document.getElementById('root'));
+ const controller={readBridgeState:async()=>({source:{documentId:'new-document'},session:null,receipt:null,
+  history:[{requestId:'unknown-request',scope:{taskId:'baidu.search.top3'},createdAt:1,
+   receipt:{execution:'unknown',delivery:'unknown',runId:'original-run'}}]})};
+ try{
+  await React.act(async()=>{root.render(React.createElement(WebflowCurrentTask,{controller}));});
+  assert.equal(document.querySelector('[aria-label="同次运行回执"]'),null);
+  assert.ok(document.body.textContent.includes('original-run'));
+  assert.ok(document.body.textContent.includes('回传未知，禁止补发'));
+  assert.ok(document.body.textContent.includes('刷新只查询，不会重跑或补发'));
+  assert.deepEqual([...document.querySelectorAll('button')].map(node=>node.textContent),['刷新状态']);
+ }finally{
+  await React.act(async()=>root.unmount());
+  for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});
+
+test('a supplied bridge owns task reads and unknown original records stay independent of listener readiness',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+ const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
+ const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,IS_REACT_ACT_ENVIRONMENT:true});
+ const root=createRoot(document.getElementById('root'));let reads=0,queries=0;
+ const controller={readBridgeState:async()=>{reads++;throw Error('duplicate owner');}};
+ const bridge={view:{source:{documentId:'current'},session:null,listener:{state:'ready'},work:{state:'unknown'},
+  history:[{requestId:'original',scope:{taskId:'search'},createdAt:1,receipt:{execution:'unknown',delivery:'unknown'}}]},
+  error:'',revision:0,read:async()=>{queries++;},execute:async()=>null};
+ try{
+  await React.act(async()=>root.render(React.createElement(WebflowCurrentTask,{controller,bridge})));
+  assert.equal(reads,0);
+  assert.ok(document.querySelector('[data-webflow-original-records]').textContent.includes('original'));
+  await React.act(async()=>document.querySelector('button').dispatchEvent(new window.Event('click',{bubbles:true})));
+  assert.equal(queries,1);assert.equal(reads,0);
+  bridge.view=null;bridge.error='读取失败';bridge.revision++;
+  await React.act(async()=>root.render(React.createElement(WebflowCurrentTask,{controller,bridge})));
+  assert.equal(document.querySelector('[data-webflow-original-records]'),null);
+  assert.equal(document.querySelector('[role="alert"]').textContent,'读取失败');
+ }finally{
+  await React.act(async()=>root.unmount());
+  for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});
+
+test('an authoritative empty history query is visible but an unread or failed query never reports zero records',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+ const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
+ const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,IS_REACT_ACT_ENVIRONMENT:true});
+ const root=createRoot(document.getElementById('root')),url='https://chatgpt.com/c/original';
+ const bridge={view:{source:{url},history:[],historyRead:{url,checkedAt:1},session:null},error:'',revision:0,read:async()=>{}};
+ try{
+  await React.act(async()=>root.render(React.createElement(WebflowCurrentTask,{controller:{},bridge})));
+  const query=document.querySelector('[data-webflow-history-query]');assert.ok(query);
+  assert.ok(query.textContent.includes('0 条'));assert.ok(query.textContent.includes(url));
+  assert.ok(query.textContent.includes('不代表旧任务未执行'));
+  bridge.view={history:[],session:null};
+  await React.act(async()=>root.render(React.createElement(WebflowCurrentTask,{controller:{},bridge})));
+  assert.equal(document.querySelector('[data-webflow-history-query]'),null);
+  bridge.error='读取失败';bridge.view=null;
+  await React.act(async()=>root.render(React.createElement(WebflowCurrentTask,{controller:{},bridge})));
+  assert.equal(document.querySelector('[data-webflow-history-query]'),null);
  }finally{
   await React.act(async()=>root.unmount());
   for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}

@@ -1,6 +1,10 @@
 export const WEB_TASK_PROTOCOL='opendesk.web-task.v1';
 export const SITE_PROFILES_KEY='opendesk.web-task.site-profiles.v1';
 export const WEB_TASK_INTENT_PROTOCOL='webflow.task.intent.v1';
+// Compiled routing identity; it carries no Task grant and cannot be registered
+// or replaced by website data.
+export const CHATGPT_TASK_PROFILE=Object.freeze({id:'chatgpt',version:'1.0.0',origin:'https://chatgpt.com',
+  adapter:'chatgpt',adapterVersion:'1.0.0',protocols:Object.freeze([WEB_TASK_INTENT_PROTOCOL]),enabled:true});
 
 // Structural identity only. The ingress must obtain these fields from Chrome,
 // match the reviewed Profile, and verify permissions before using the ledger.

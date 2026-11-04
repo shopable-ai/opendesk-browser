@@ -1,0 +1,524 @@
+{
+  "schemaVersion": 1,
+  "goalThreadId": "01a1a556-e7f9-7040-a201-f29deff0fd7a",
+  "phase": "daily-development",
+  "status": "INCOMPLETE",
+  "observedAt": "2026-11-04T08:14:34.623921+00:00",
+  "candidate": {
+    "observedAt": "2026-11-04T08:14:34.623921+00:00",
+    "revision": "09f519953ed11d693d165b444078822bf49ba2b6d5760043d1a678246d62ca9e",
+    "markerExists": true,
+    "targets": {
+      "agents/chatgpt-fixed-bridge.js": {
+        "sha256": "b61d21e9da463e8a3e9774a3bbc2c442196e71f7bf0b16d84c47a01cfa6c7efb",
+        "markerMatches": true,
+        "sourceMapExists": true,
+        "sources": [
+          {
+            "source": "projects/webflow/trusted/chatgpt-bridge-page.js",
+            "blob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+            "matches": 1,
+            "equalsCurrentSource": true,
+            "reviewedPin": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+            "pinMatches": true
+          }
+        ]
+      },
+      "ui/tool-shell.js": {
+        "sha256": "29e0ed24da8ac54635d594839faa8f9c3989c6efba40bddf21dcedc8388cc3ec",
+        "markerMatches": true,
+        "sourceMapExists": true,
+        "sources": [
+          {
+            "source": "projects/webflow/trusted/AutoSettings.tsx",
+            "blob": "27d7e6f577f161a5cb5b86f195c3c6775d4b84ee",
+            "matches": 1,
+            "equalsCurrentSource": true,
+            "reviewedPin": "27d7e6f577f161a5cb5b86f195c3c6775d4b84ee",
+            "pinMatches": true
+          },
+          {
+            "source": "projects/webflow/trusted/CurrentTask.tsx",
+            "blob": "4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e",
+            "matches": 1,
+            "equalsCurrentSource": true,
+            "reviewedPin": "4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e",
+            "pinMatches": true
+          },
+          {
+            "source": "src/native-agent/chatgpt-fixed-bridge-host.js",
+            "blob": "7b81bfc4d00208e84508fce2a5b3176a84636cc1",
+            "matches": 1,
+            "equalsCurrentSource": true
+          },
+          {
+            "source": "src/ui/ai/provider-runtime.js",
+            "blob": "397f7e5afda0fcaa1e8ff4823f124cccfbade7da",
+            "matches": 1,
+            "equalsCurrentSource": true
+          },
+          {
+            "source": "src/native-agent/host-adapter.js",
+            "blob": "bc05d64be3a70a908f9904a1ccb10e42bd5aee94",
+            "matches": 1,
+            "equalsCurrentSource": true
+          },
+          {
+            "source": "src/ui/tool-shell.js",
+            "blob": "0b2e943232fcd18970d68dd0498033304f3111ec",
+            "matches": 1,
+            "equalsCurrentSource": true
+          }
+        ]
+      },
+      "sw.js": {
+        "sha256": "d27d23824eb7f4d29e59c5ad3c387847ddd7808e0957ea07ca117427f81f84ca",
+        "markerMatches": true,
+        "sourceMapExists": true,
+        "sources": [
+          {
+            "source": "src/page-events/web-task-ingress.js",
+            "blob": "7da33e2c2f5be3433687a8c54874d2321cd1f9b3",
+            "matches": 1,
+            "equalsCurrentSource": true
+          },
+          {
+            "source": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+            "blob": "8ad65012db2d510f85988cf7c1d984ba21731be2",
+            "matches": 1,
+            "equalsCurrentSource": true
+          }
+        ]
+      }
+    },
+    "limitations": [
+      "Disk provenance only. Does not establish current Chrome identity, live serve connection or runtime revision."
+    ]
+  },
+  "resources": {
+    "uiLease": {
+      "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "observedAt": "2026-11-04T08:14:34.623921+00:00",
+      "source": "profiles.py status",
+      "latestObservedTurnStatus": "interrupted",
+      "takenOver": false
+    },
+    "writer": {
+      "pid": 93582,
+      "observedStatus": "live during this continuation; later existing watcher completed candidate build",
+      "action": "retained; no second writer or rebuild started"
+    },
+    "transferredFiles": [
+      "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "projects/webflow/tests/sidebar-bridge.test.mjs",
+      "scripts/bundle-provenance.mjs: only the page Bridge pin"
+    ],
+    "nativeCoexistencePeer": {
+      "threadId": "01a1a581-1e75-7821-8ada-211862559ee9",
+      "latestObservedTurnStatus": "inProgress",
+      "scope": "Separate environment work; its profile evidence does not establish this candidate's K1/K3/K4 pass."
+    }
+  },
+  "criteria": {
+    "K1": {
+      "diskProvenance": "PASS_AT_OBSERVED_TIME",
+      "currentChromeIdentityServeAndRevision": "NOT_TESTED"
+    },
+    "K2": {
+      "source": "No confirmed HIGH/MEDIUM in the bounded current increment review; native current-candidate evidence remains missing.",
+      "currentCandidateNative": "NOT_TESTED"
+    },
+    "K3": "SOURCE_FIXED_COMPONENT_PASS: both findings repaired in actual product; native isolated-world navigation and complete safe-refresh loop remain NOT_TESTED.",
+    "K4": "NOT_TESTED: neither new verification candidate has been sent by this chat",
+    "K5": "NOT_TESTED",
+    "K6": {
+      "legacyCandidateId": "wf-084e05c5-0230-44fc-9ecb-4f94cea6e759",
+      "state": "UNKNOWN",
+      "replayed": false,
+      "historyWarning": "Successful empty history does not prove zero effects."
+    },
+    "K7": {
+      "score": "NOT_SCORED",
+      "incrementReview": {
+        "agentId": "01a1a5a0-c3e1-7c92-8f51-3b523c15cc29",
+        "status": "REQUEST_CHANGES",
+        "scope": "Current page increment impact on K2/K3/K6 only",
+        "pageBlob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+        "hostBlob": "7b81bfc4d00208e84508fce2a5b3176a84636cc1",
+        "confirmedHigh": 0,
+        "confirmedMedium": 2,
+        "leaderReproduced": true,
+        "nativeVerified": false
+      }
+    }
+  },
+  "actionsThisContinuation": [
+    "Read-only ownership and candidate audit",
+    "Existing watcher output recovered without intervention; page source now equals its reviewed pin",
+    "No browser actions, new sends, refreshes, installs, commits or permission changes",
+    "Independent bounded review and leader in-memory reproduction confirmed two MEDIUM K3 defects; transferred files left untouched."
+  ],
+  "historicalEvidence": {
+    "path": "projects/webflow/evidence/listener-recovery-20261104.json",
+    "caution": "Its 07:47:18Z bundle snapshot and later sourceBlobs are different observation times. Revision 1c9ace... is historical; do not combine them into current same-candidate proof."
+  },
+  "nextOperation": "Coordinate the shared Chrome window with active listener UI peer, then acquire own UI interval and prove same-candidate K1/K3 before two independent closed-sidebar rounds.",
+  "blockers": [
+    "Source ownership resolved. Actual shared Chrome window is being operated by listener UI thread 01a1a5c2-71a3-78b0-accd-0d78aaf4dbcd; this thread released its UI lease without input/navigation and requested user authorization for a single coordination message."
+  ],
+  "componentReproduction": {
+    "command": "node artifacts/webflow/listener-recovery-20261104/refresh-safety-repro.mjs",
+    "scope": "Real Page and Host components with synthetic trusted gestures, LinkeDOM and mock Chrome/Controller boundaries; no browser, Native or network operation.",
+    "exitCode": 0,
+    "interpretation": "Exit 0 confirms defect reproduction, not product PASS.",
+    "results": [
+      {
+        "scenario": "submitted-before-user-node",
+        "observation": "submitted",
+        "recoveryAllowed": true,
+        "reloads": 1,
+        "starts": 0,
+        "deliveries": 0
+      },
+      {
+        "scenario": "waiting-reply-with-previous-complete-answer",
+        "observation": "waiting-reply",
+        "recoveryAllowed": true,
+        "reloads": 1,
+        "starts": 0,
+        "deliveries": 0
+      },
+      {
+        "scenario": "navigate-away-and-back-after-dispatch",
+        "observation": "idle",
+        "recoveryAllowed": true,
+        "reloads": 1,
+        "starts": 0,
+        "deliveries": 0
+      }
+    ]
+  },
+  "openFindings": [
+    {
+      "id": "REFRESH-INCOMPLETE-SEND",
+      "severity": "MEDIUM",
+      "file": "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "line": 959,
+      "problem": "refreshSafety does not reject discovery submitted/waiting-reply, allowing refresh before the new reply exists even when the previous snapshot is idle/complete.",
+      "expected": "Reject while a witnessed new submission remains unresolved; do not reload.",
+      "minimalRecommendation": "Include discovery submission state in the page-local final refresh safety check and add owner-scoped regression coverage.",
+      "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "sourceStatus": "FIXED_COMPONENT_VERIFIED",
+      "nativeStatus": "NOT_TESTED",
+      "currentOwner": "01a1a5d2-c10d-72a1-9740-4ee3204666fc"
+    },
+    {
+      "id": "REFRESH-NAVIGATION-GENERATION",
+      "severity": "MEDIUM",
+      "file": "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "line": 786,
+      "problem": "An already dispatched refresh challenge survives observed A -> B -> A navigation and remains accepted at the original URL.",
+      "expected": "Navigation invalidates the challenge; reject that old dispatch without reload.",
+      "minimalRecommendation": "Invalidate the challenge when route changes and bind it to a page-local navigation generation; cover the delayed dispatch case.",
+      "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "sourceStatus": "FIXED_COMPONENT_VERIFIED",
+      "nativeStatus": "NOT_TESTED",
+      "currentOwner": "01a1a5d2-c10d-72a1-9740-4ee3204666fc"
+    }
+  ],
+  "followUpAudit": {
+    "observedAt": "2026-11-04T08:31:34.650980+00:00",
+    "previousGoalTurn": "progress: two confirmed K3 defects reproduced",
+    "currentPageBlob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+    "currentHostBlob": "7b81bfc4d00208e84508fce2a5b3176a84636cc1",
+    "currentDiskRevision": "09f519953ed11d693d165b444078822bf49ba2b6d5760043d1a678246d62ca9e",
+    "writerPid": 93582,
+    "writerProcessConfirmedLive": true,
+    "uiLeaseOwner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+    "retirementTurnStatus": "interrupted",
+    "nativeCoexistenceTurnStatus": "failed: exceeded retry limit, 429 Too Many Requests",
+    "verifiedWait": false
+  },
+  "preparedPatch": {
+    "path": "artifacts/webflow/listener-recovery-20261104/refresh-safety-owner-review.patch",
+    "basePageBlob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+    "candidatePageBlob": "30aae9e6d3b422624a0f5c95b062eebfc6daaadd",
+    "applied": true,
+    "sharedProductSourceTestAndPinChanged": true,
+    "scope": [
+      "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "projects/webflow/tests/sidebar-bridge.test.mjs",
+      "scripts/bundle-provenance.mjs: only Page Bridge pin"
+    ],
+    "behavior": "Reject unresolved submitted/waiting-reply; synchronously invalidate and generation-fence challenges on navigate/currententrychange, bind currentEntry.key; missing navigation observation refuses refresh; retain healthy new-probe refresh.",
+    "verification": {
+      "newRegressionAgainstCurrentSource": {
+        "command": "node --test --test-name-pattern='unresolved native submissions|navigation away and back' artifacts/webflow/listener-recovery-20261104/refresh-safety-current-regression.test.mjs",
+        "exitCode": 1,
+        "pass": 0,
+        "fail": 2,
+        "meaning": "Expected red: both new user-behavior regressions expose the current defects."
+      },
+      "candidatePageSuite": {
+        "command": "node --test artifacts/webflow/listener-recovery-20261104/refresh-safety-candidate.test.mjs",
+        "exitCode": 0,
+        "pass": 29,
+        "fail": 0
+      },
+      "candidateHostPageIntegration": {
+        "command": "node artifacts/webflow/listener-recovery-20261104/refresh-safety-candidate-integration.mjs",
+        "exitCode": 0,
+        "scenarios": 3,
+        "reloadsEach": 0,
+        "newRunsEach": 0,
+        "deliveriesEach": 0,
+        "navigationScenario": "Dispatched refresh held across native Navigation event round trip without intervening poll; initial recovery allowed, late dispatch refused."
+      },
+      "gitApplyCheck": "PASS; check only, not applied",
+      "native": "NOT_TESTED",
+      "newNavigationRegressionAgainstCurrentSource": {
+        "command": "node --test --test-name-pattern='actual navigation events|missing native navigation' artifacts/webflow/listener-recovery-20261104/refresh-safety-current-regression.test.mjs",
+        "exitCode": 1,
+        "pass": 0,
+        "fail": 2,
+        "meaning": "Expected red against unchanged product; regression and unavailable-observer guards are absent."
+      }
+    },
+    "independentReview": {
+      "agentId": "01a1a5ae-b4f6-76f2-9b55-8b7cf82e5c79",
+      "status": "COMMENT",
+      "reviewedPageBlob": "30aae9e6d3b422624a0f5c95b062eebfc6daaadd",
+      "sourceLevelOriginalGapsClosed": true,
+      "newConfirmedHigh": 0,
+      "newConfirmedMedium": 0,
+      "necessaryRevision": "none",
+      "limitations": [
+        "Candidate not applied to product; original findings remain open in current product.",
+        "Navigation event delivery in actual extension isolated world NOT_VERIFIED.",
+        "No Chrome refresh/native two-run proof or score."
+      ]
+    },
+    "remainingAuthority": "Scoped source handover granted explicitly by user; native shared-window actions still require conflict coordination.",
+    "priorCandidate": {
+      "pageBlob": "49f1d779a3c254f9d54098b6cc7b067e187bc456",
+      "review": "REQUEST_CHANGES: polling-dependent fast-navigation gap remained; replaced, not accepted."
+    },
+    "iteration": 2,
+    "navigationApiReference": {
+      "researcherId": "01a1a5b1-e3f0-7c90-afe4-1ceff9518dfe",
+      "sameDocumentPushReplace": "navigate before and currententrychange after committed update, synchronous in the standard page environment",
+      "chromeMinimum": 102,
+      "isolatedWorld": "NOT_VERIFIED",
+      "sources": [
+        "https://html.spec.whatwg.org/multipage/nav-history-apis.html#shared-history-push/replace-state-steps",
+        "https://html.spec.whatwg.org/multipage/nav-history-apis.html#update-the-navigation-api-entries-for-a-same-document-navigation",
+        "https://developer.chrome.com/docs/web-platform/navigation-api"
+      ]
+    },
+    "scopeHandover": "USER_APPROVED_APPLIED"
+  },
+  "latestAuditAt": "2026-11-04T09:21:33.286724+00:00",
+  "blockingAudit": {
+    "observedAt": "2026-11-04T08:41:40.575449+00:00",
+    "eligibleForBlocked": true,
+    "consecutiveGoalTurnsWithSameOwnershipBlocker": 3,
+    "previousTurnClassification": "progress: reviewed un-applied repair patch and targeted red/green proof completed",
+    "currentTurnClassification": "no progress: authoritative recheck found no external change",
+    "sameCondition": "Page Bridge/test/pin scope remains transferred, no handover approval received, and interrupted original owner still holds UI lease. Cannot apply prepared repairs or proceed to real Chrome verification without handover or original-owner action.",
+    "authoritativeCurrentEvidence": {
+      "ownerThread": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "ownerThreadStatus": "idle",
+      "latestTurnStatus": "interrupted",
+      "uiLeaseOwner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "pageBlob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+      "diskRevision": "09f519953ed11d693d165b444078822bf49ba2b6d5760043d1a678246d62ca9e"
+    },
+    "independentWorkCompleted": [
+      "Defects reproduced with unchanged real Host/Page components",
+      "Minimal patch prepared without writing transferred files",
+      "New user-behavior regressions fail on current source and pass on temporary candidate",
+      "Temporary candidate 29 tests pass; no-poll Host/Page integration reload/Run/delivery counts all zero",
+      "Independent source review of candidate 30aae9e6d3b422624a0f5c95b062eebfc6daaadd has no confirmed new HIGH/MEDIUM"
+    ],
+    "remainingSafeActionsWithoutExternalChange": [],
+    "unblockConditions": [
+      "User explicitly hands over the two scoped repairs and UI continuation",
+      "Original owner closes the current product defects and releases or explicitly hands over UI"
+    ],
+    "recommendedGoalStatus": "blocked",
+    "completionClaim": false
+  },
+  "receivingThreadAudit": {
+    "threadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "observedAt": "2026-11-04T09:14:28.933951+00:00",
+    "branch": "main",
+    "preparedPatchApplyCheck": "PASS; check only, not applied",
+    "pageBlob": "dd8b7c56ba5e7861c9fe9301b4e663ec218701d7",
+    "pageTestBlob": "51b34a7bfb14a6a045cde9e96ae0cb2cc38fb866",
+    "hostBlob": "7b81bfc4d00208e84508fce2a5b3176a84636cc1",
+    "diskRevision": "09f519953ed11d693d165b444078822bf49ba2b6d5760043d1a678246d62ca9e",
+    "writer": {
+      "pid": 93582,
+      "live": true,
+      "action": "retained"
+    },
+    "scopeHandover": {
+      "status": "EXPLICIT_USER_HANDOVER_RECEIVED",
+      "originalOwner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "answer": "移交这三处，由本对话应用已审查补丁",
+      "scope": [
+        "projects/webflow/trusted/chatgpt-bridge-page.js",
+        "projects/webflow/tests/sidebar-bridge.test.mjs",
+        "scripts/bundle-provenance.mjs: only Page pin"
+      ]
+    },
+    "nativeUI": {
+      "leaseOwnerAtInitialAudit": "01a1a56c-cc26-7062-936a-0d118040a842",
+      "acquiredByThisThread": false,
+      "actions": "Read-only inventory and AX of the exact system Chrome app; no clicks, input, navigation or refresh."
+    },
+    "parallelListenerUI": {
+      "threadId": "01a1a5c2-71a3-78b0-accd-0d78aaf4dbcd",
+      "latestTurn": "inProgress",
+      "latestComment": "Completed capability onboarding; diagnosing current-document listener handshake; no business candidate sent.",
+      "boundary": "Do not concurrently control its live chat/window or duplicate its sends."
+    },
+    "chromeIdentity": {
+      "executable": "/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "pid": 47748,
+      "profileLastUsed": "Default",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "storedExtensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "nativeHostPid": 15514,
+      "nativeHostParentPid": 47748,
+      "nativeManifest": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "allowedOrigins": [
+        "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+      ],
+      "liveServeRevision": "NOT_TESTED"
+    },
+    "observedVisibleState": {
+      "listener": "需要刷新当前对话",
+      "refreshButton": "disabled",
+      "reason": "无法确认页面草稿、输入法和在途操作，暂不能安全刷新。",
+      "runtimeExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "note": "Read-only observation of a concurrently owned UI; no claim of fresh handshake or same-candidate runtime proof."
+    },
+    "productSourceChanged": true,
+    "newBusinessSends": 0,
+    "newRuns": 0,
+    "newDeliveries": 0,
+    "K3": "Two existing component findings remain open in unchanged product; native refresh NOT_TESTED",
+    "K4K5": "NOT_TESTED",
+    "K6": "Original candidate remains UNKNOWN, untouched",
+    "K7": "NOT_SCORED",
+    "oldGoalLifecycle": "No goal created, completed, paused, migrated or otherwise changed by this thread.",
+    "nextOperation": "After explicit scoped file handover, recheck current diffs and apply the reviewed patch; then use the retained watcher. Coordinate actual UI ownership before any native action."
+  },
+  "appliedRepair": {
+    "observedAt": "2026-11-04T09:21:33.286724+00:00",
+    "ownerThreadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "pageBlob": "30aae9e6d3b422624a0f5c95b062eebfc6daaadd",
+    "reviewedCandidateIdentical": true,
+    "verification": {
+      "command": "node --test projects/webflow/tests/sidebar-bridge.test.mjs projects/webflow/tests/auto-host.test.mjs projects/webflow/tests/listener-events.test.mjs",
+      "pass": 76,
+      "fail": 0,
+      "syntax": "PASS",
+      "hostPageIntegration": {
+        "command": "node artifacts/webflow/listener-recovery-20261104/refresh-safety-applied-integration.mjs",
+        "scenarios": 3,
+        "reloadsEach": 0,
+        "newRunsEach": 0,
+        "deliveriesEach": 0,
+        "native": false
+      }
+    },
+    "watcher": {
+      "pid": 93582,
+      "retained": true,
+      "stalePinCacheRejection": "Expected first incremental attempt rejected; unchanged-byte wxt.config.mjs notification selected reviewed current graph via existing watcher.",
+      "newWriterStarted": false
+    },
+    "diskCandidate": {
+      "observedAt": "2026-11-04T09:20:47.271288+00:00",
+      "revision": "264c5f5669aaf611aba7292ba4ad8c1b500d21ed5b4426d814efc3fa2fbf51f4",
+      "targets": {
+        "agents/chatgpt-fixed-bridge.js": {
+          "sha256": "56b65e739391da219719022b8d68f30408a65146edead2785b9e735c57d1a90d",
+          "markerMatches": true,
+          "sources": [
+            {
+              "path": "projects/webflow/trusted/chatgpt-bridge-page.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "30aae9e6d3b422624a0f5c95b062eebfc6daaadd"
+            }
+          ]
+        },
+        "ui/tool-shell.js": {
+          "sha256": "29e0ed24da8ac54635d594839faa8f9c3989c6efba40bddf21dcedc8388cc3ec",
+          "markerMatches": true,
+          "sources": [
+            {
+              "path": "projects/webflow/trusted/AutoSettings.tsx",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "27d7e6f577f161a5cb5b86f195c3c6775d4b84ee"
+            },
+            {
+              "path": "projects/webflow/trusted/CurrentTask.tsx",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e"
+            },
+            {
+              "path": "src/native-agent/chatgpt-fixed-bridge-host.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "7b81bfc4d00208e84508fce2a5b3176a84636cc1"
+            },
+            {
+              "path": "src/ui/ai/provider-runtime.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "397f7e5afda0fcaa1e8ff4823f124cccfbade7da"
+            },
+            {
+              "path": "src/native-agent/host-adapter.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "bc05d64be3a70a908f9904a1ccb10e42bd5aee94"
+            },
+            {
+              "path": "src/ui/tool-shell.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "0b2e943232fcd18970d68dd0498033304f3111ec"
+            }
+          ]
+        },
+        "sw.js": {
+          "sha256": "d27d23824eb7f4d29e59c5ad3c387847ddd7808e0957ea07ca117427f81f84ca",
+          "markerMatches": true,
+          "sources": [
+            {
+              "path": "src/page-events/web-task-ingress.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "7da33e2c2f5be3433687a8c54874d2321cd1f9b3"
+            },
+            {
+              "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+              "matches": 1,
+              "equalsCurrentSource": true,
+              "blob": "8ad65012db2d510f85988cf7c1d984ba21731be2"
+            }
+          ]
+        }
+      }
+    },
+    "nativeEvidence": "NOT_TESTED",
+    "newBusinessSends": 0
+  }
+}

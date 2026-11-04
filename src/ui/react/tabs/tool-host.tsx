@@ -4,7 +4,6 @@ import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {UninstallDialog} from './tools.tsx';
 import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
-import {WorkflowSourceMenu} from './workflow.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
 
 const h=React.createElement.bind(React);
@@ -78,11 +77,8 @@ function MarketCapabilityRow({code,isNew=false}){
 
 
 export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
-  trustedControls=null,providerSettings=null,onOpenProviderSettings=null,active=true}) {
+  trustedControls=null,active=true}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
-  const conversationToggle=snapshot.fields['sidebar-tool-conversation-toggle'];
-  const conversationOpen=active&&!concealed&&snapshot.fields['sidebar-tool-display']?.hidden===false&&
-    conversationToggle?.hidden===false&&conversationToggle.attributes?.['aria-expanded']==='true';
   const previewStatus=snapshot.fields['sidebar-tool-readonly-banner'];
   const marketReview = snapshot.market?.review ?? null;
   const marketReviewRef = React.useRef(marketReview);
@@ -500,10 +496,6 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 </svg>
 </ToolField>
 <TrustedConversationHeaderSlot/>
-{conversationOpen&&providerSettings&&onOpenProviderSettings&&
-  <ToolConversationProviderControls providerSettings={providerSettings}
-    onOpenSettings={onOpenProviderSettings}
-    focusComposer={()=>nodes.current.frameRoot?.querySelector('iframe')?.focus({preventScroll:true})}/>}
 
 <ToolField as="button" type="button" id="sidebar-tool-conversation-toggle"
   className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
@@ -954,20 +946,4 @@ function ToolFileInput({value, disabled, onChoose, onCancel}) {
   }, [onCancel]);
   return <input ref={ref} id="sidebar-tool-file" type="file" accept=".json,application/json"
     aria-describedby="sidebar-tool-file-error" disabled={disabled} onChange={onChoose}/>;
-}
-
-// Trusted Host chrome only: no settings facade or provider configuration is
-// passed into the sandbox or its business conversation slots.
-export function ToolConversationProviderControls({providerSettings,onOpenSettings,focusComposer}){
-  const snapshot=React.useSyncExternalStore(providerSettings.subscribeSettings,
-    providerSettings.settingsSnapshot,providerSettings.settingsSnapshot);
-  const local=snapshot.source==='local_codex';
-  const summary=local?'本机 Codex':`HTTPS · ${snapshot.model||'未配置模型'}`;
-  const detail=local?'本机 Codex · 模型由本机配置':summary;
-  return <div role="group" aria-label="AI 来源与设置" className="sidebar-tool-header-actions">
-    <span className="workflow-source-name" style={{maxWidth:'12ch'}} title={detail} aria-label={`当前 AI：${detail}`}>{summary}</span>
-    <WorkflowSourceMenu snapshot={snapshot} providerSettings={providerSettings}
-      idPrefix="sidebar-tool-conversation" placement="bottom-end" triggerIcon="chevron" onOpenSettings={onOpenSettings}
-      focusComposer={focusComposer}/>
-  </div>;
 }

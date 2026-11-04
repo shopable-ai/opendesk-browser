@@ -389,3 +389,22 @@ test('a readiness-only planner can retire on provider change without inventing a
     assert.equal(calls.includes('ai.plan.start'),false,'readiness must not create inference');
   }finally{lease.dispose();runtime.dispose();}
 });
+
+test('trusted admission fence blocks new Provider work before dispatch while preserving explicit cancellation',async()=>{
+ let held=false,dispatches=0,cancellations=0;
+ const runtime=createSharedAIProviderRuntime({hostInstanceId:'refresh-fence',client:{requestWorkflowAI(){}},
+  beforeRequest:()=>{if(held)throw fail('E_BRIDGE_REFRESH_PENDING');},
+  plannerFactory:()=>({snapshot:()=>({busy:false}),plan:async()=>{dispatches++;},
+   resume:async()=>{dispatches++;},probe:async()=>{dispatches++;},
+   cancel:async()=>{cancellations++;return {state:'IDLE'};},dispose(){}}),
+  facadeFactory:()=>({generateStructured:async()=>{dispatches++;return {ok:true};}})});
+ const lease=runtime.acquire({consumerId:'sidebar-tools',instanceId:'fenced'});
+ try{
+  await lease.probe();assert.equal(dispatches,1);held=true;
+  await assert.rejects(lease.requestStructured({request:'new'}),{code:'E_BRIDGE_REFRESH_PENDING'});
+  for(const action of [()=>lease.planner.plan({}),()=>lease.planner.resume({}),()=>lease.probe()])
+   assert.throws(action,{code:'E_BRIDGE_REFRESH_PENDING'});
+  await lease.cancelInference();assert.equal(cancellations,1);assert.equal(dispatches,1);
+  held=false;await lease.requestStructured({request:'new explicit request'});assert.equal(dispatches,2);
+ }finally{held=false;lease.dispose();runtime.dispose();}
+});

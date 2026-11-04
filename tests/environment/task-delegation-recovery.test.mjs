@@ -291,6 +291,20 @@ async function installedTaskFixture({permissions=['page.automation']}={}){
   return {...f,operation,base,resolved,manifest,installPackage,startTask,installClaim};
 }
 
+test('installed-task mutation fences a pending final check before its first await and leaves other tasks independent',async()=>{
+  const f=await installedTaskFixture();
+  const original=f.authority.captureInstalledTaskFence(f.resolved.taskId);
+  const unrelated=f.authority.captureInstalledTaskFence('unrelated-task');
+  const change=f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+  assert.throws(original,{code:'E_REVISION'});
+  assert.throws(()=>f.authority.captureInstalledTaskFence(f.resolved.taskId),{code:'E_REVISION'});
+  unrelated();await change;
+  const next=f.authority.captureInstalledTaskFence(f.resolved.taskId);next();
+  const unknown=f.authority.uninstallTask({},f.sender);
+  assert.throws(next,{code:'E_REVISION'});assert.throws(unrelated,{code:'E_REVISION'});
+  await assert.rejects(unknown);
+});
+
 async function recoveryAuthorityFixture(){
   const f=await installedTaskFixture();
   const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation']

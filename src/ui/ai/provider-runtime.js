@@ -11,7 +11,7 @@ const endpointOrigin=endpoint=>{
 };
 
 export function createSharedAIProviderRuntime({client,hostInstanceId,
-  plannerFactory=createLocalCodexPlanner,facadeFactory=createWorkflowProviderFacade}={}) {
+  plannerFactory=createLocalCodexPlanner,facadeFactory=createWorkflowProviderFacade,beforeRequest=()=>{}}={}) {
   if(!client||typeof client.requestWorkflowAI!=='function'||typeof hostInstanceId!=='string'||!hostInstanceId)
     throw fail('E_AI_RUNTIME','共享 Provider 缺少可信 Host 身份');
   let disposed=false,generation=1;
@@ -79,6 +79,7 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     const assertOpen=()=>{ensure();if(stopped)throw fail('E_TOOL_CHANGED','消费者已关闭');};
     const native=()=>{
       assertOpen();
+      beforeRequest();
       if(retiredPlanner)throw fail('E_AI_OUTCOME_UNKNOWN','原 Provider 回合尚未确认终态，请先核对原请求');
       if(!nativePlanner){nativePlanner=plannerFactory({client});nativePlannerUsed=false;}
       return nativePlanner;
@@ -127,6 +128,7 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     }
     async function guarded(dispatch,signal){
       assertOpen();
+      beforeRequest();
       if(retiredPlanner)throw fail('E_AI_OUTCOME_UNKNOWN','原 Provider 回合尚未确认终态，请先核对原请求');
       const expectedEpoch=epoch,expectedGeneration=generation,controller=new AbortController();
       const abort=()=>controller.abort(signal?.reason||fail('E_CANCELLED','AI 已停止'));

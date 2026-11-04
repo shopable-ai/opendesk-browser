@@ -25,11 +25,12 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'9871466e353075d400d988b345dd2becdddd3327',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'30aae9e6d3b422624a0f5c95b062eebfc6daaadd',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'cdd873c03d9e2138d1a9e8bdccc49d54826b857f',
-  'projects/webflow/trusted/CurrentTask.tsx':'82d2eca97d5a909737c0d8d7a7f80366f8d260fb',
+  'projects/webflow/trusted/AutoSettings.tsx':'27d7e6f577f161a5cb5b86f195c3c6775d4b84ee',
+  // Reviewed read-only background history, UNKNOWN guidance and distinct AI acknowledgement.
+  'projects/webflow/trusted/CurrentTask.tsx':'4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){
@@ -44,6 +45,23 @@ function reviewedCompiledWebFlow(target,path,root){
   if(realpathSync(file)!==file)throw Error('Trusted Web Flow source must not be a symlink: '+path);
   const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledWebFlowInputs[path])throw Error('Trusted Web Flow source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+// The image bridge is first-party Web Flow business code over the original
+// Native transport. Exact blobs enter only the original transport/settings;
+// no installed tool, page or sandbox receives this filesystem capability.
+const compiledChatGPTImageInputs=Object.freeze({
+  'projects/webflow/trusted/chatgpt-images.js':'2a0bf5ce089094f8a897627d0fc8b44f397feef8',
+  'projects/webflow/trusted/chatgpt-image-page.js':'ae234cd786494feaa4ac3d5aac708e41df174198',
+  'projects/webflow/trusted/chatgpt-images-ui.js':'f68a49905b2870b7f1fd9be4691d1e26d4196ed8'
+});
+function reviewedCompiledChatGPTImages(target,path,root){
+  if(!Object.hasOwn(compiledChatGPTImageInputs,path)||
+    !(target==='native-agent/settings.js'||target==='native-agent/transport.js'&&!path.endsWith('-ui.js')))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted ChatGPT image source must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledChatGPTImageInputs[path])throw Error('Trusted ChatGPT image source changed; review and re-pin before fixed build: '+path);
   return hash;
 }
 function reviewedCompiledTimeReview(target,path,root){
@@ -646,6 +664,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
+      reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
       reviewedCompiledVideoSVIP(chunk.fileName,path,root)||
       reviewedCompiledVideoDownloader(chunk.fileName,path,root)||

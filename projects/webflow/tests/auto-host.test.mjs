@@ -8,7 +8,7 @@ import {createMethodRoutes} from '../../../src/platform/host/broker.js';
 
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const source={tabId:9,documentId:'chat-document',url:'https://chatgpt.com/c/webflow-auto-12345678'};
-function harness({profiles=[],requestPermission=true,saveError=null,grantError=null}={}){
+function harness({profiles=[],requestPermission=true,saveError=null,grantError=null,history=[],historyError=null,canRefresh=()=>true,acquireRefresh=()=>()=>{},refreshIdle=()=>true}={}){
   const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
     scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'real-install',generation:1};
   const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},targetUrl:'https://www.baidu.com/',installation};
@@ -29,6 +29,8 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
   const api={runtime:{id:'extension',async sendMessage(msg){
     events.order.push(msg.kind);
     if(msg.protocol==='opendesk.web-task.v1'){
+      if(msg.kind==='history')return historyError?{ok:false,error:{code:'E_WEB_TASK_UNKNOWN',message:historyError}}:
+        {ok:true,data:structuredClone(history)};
       if(msg.kind==='profiles-read')return {ok:true,data:{profiles:structuredClone(profiles)}};
       if(saveError)return {ok:false,error:{code:saveError,message:'Profile save failed'}};
       assert.deepEqual(msg.expectedProfiles,profiles);
@@ -46,6 +48,8 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
     }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
   }},tabs:{query:async()=>[{...sender.tab}],get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
     assert.equal(tab,source.tabId);assert.equal(options.documentId,source.documentId);
+    if(msg.kind==='sidebar-probe')return {ok:true,data:{url:source.url,nonce:msg.nonce,runtimeId:'extension',session:session(),recovery:{allowed:true,reason:'当前对话空闲且没有草稿'}}};
+    if(msg.kind==='sidebar-refresh'){events.controls.push(msg);return {ok:true,data:{refreshing:true,nonce:msg.nonce}};}
     if(msg.kind==='sidebar-read')return {ok:true,data:session()};
     if(msg.kind==='sidebar-control'){events.controls.push(msg);return {ok:true,data:session()};}
     if(msg.kind==='progress'){projectedRequest=msg.requestId;return {};}
@@ -72,7 +76,7 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
     get completion(){return Promise.resolve({runId:snapshot.run.runId,state:runUnknown?'unknown':'completed',
     retirement:{state:'released'},result:{resultId:snapshot.run.resultId}});}};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,currentPageTarget:{snapshot:{windowId:2}},
-    isVerifiedSidePanel:()=>verified,checkTarget:async()=>{},readReply:async()=>structuredClone(observed)});
+    isVerifiedSidePanel:()=>verified,canRefresh,acquireRefresh,refreshIdle,checkTarget:async()=>{},readReply:async()=>structuredClone(observed)});
   const next=(id,changes={})=>{
     const intent={protocol:'webflow.task.intent.v1',candidateId:id,taskId:scope.taskId,targetUrl:scope.targetUrl,args:scope.args,...changes};
     observed={turnKey:'turn-'+id,answerKey:'answer-'+id,blocks:[JSON.stringify(intent)],answerComplete:true};
@@ -84,7 +88,7 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
       requestId:admitted.requestId,taskId:admitted.taskId,args:admitted.args,targetUrl:admitted.targetUrl,installation:admitted.installation};
     return bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,adoptedRequest,source,sourceUrl:source.url},sender);
   };
-  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},replaceProfiles:value=>{profiles=value;},
+  return {bridge,api,host,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},replaceProfiles:value=>{profiles=value;},
     denyPermission:()=>{permission=false;},unverify:()=>{verified=false;},
     afterGate:fn=>{afterGate=fn;},loseSend:()=>{deliveryUnknown=true;},unknownRun:()=>{runUnknown=true;},
     async approve(){const review=await bridge.prepareAutoGrant(scope);await bridge.approveAutoTask(review,{isTrusted:true});
@@ -327,6 +331,22 @@ test('sidebar receipt separates durable result, release and delivery and never a
  }
 });
 
+test('restored conversation shows historical background identity without treating it as the current page receipt',async()=>{
+ const history=[{requestId:'original-request',source:{...source,tabId:99,documentId:'old-document'},
+  scope:{taskId:'baidu.search.top3'},candidate:{candidateId:'original-candidate'},createdAt:1,
+  receipt:{runId:'original-run',resultId:'original-result',execution:'unknown',delivery:'unknown'}}];
+ const h=harness({history});h.projectRequest('original-request');
+ const view=await h.bridge.readBridgeState();
+ assert.deepEqual(view.history,history);assert.equal(view.receipt,null);assert.equal(h.events.starts.length,0);
+ const current=harness({history:[{...history[0],source}]});current.projectRequest('original-request');
+ const currentView=await current.bridge.readBridgeState();
+ assert.equal(currentView.receipt.runId,'original-run');assert.equal(currentView.receipt.delivery,'unknown');
+ assert.equal(current.events.starts.length,0);
+ const unreadable=harness({historyError:'ledger read unknown'});
+ await assert.rejects(unreadable.bridge.readBridgeState(),{code:'E_WEB_TASK_UNKNOWN'});
+ assert.equal(unreadable.events.starts.length,0);
+});
+
 const siteOrigin='https://source.example';
 const genericProfile={id:'site-existing',version:'1.0.0',origin:siteOrigin,adapter:'generic',adapterVersion:'1.0.0',
  protocols:['webflow.task.intent.v1'],enabled:true};
@@ -471,4 +491,126 @@ test('one returned search row stays identical through delivery and sidebar; repl
  assert.equal(settings.enabled,false);assert.equal(settings.grants['baidu.search.top3'].state,'revoked');
  await assert.rejects(h.run(h.next('wf-core-after-cleanup')));
  assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
+});
+
+test('listener readiness requires an exact live challenge and never reuses an old active tab',async()=>{
+ const h=harness();
+ assert.equal((await h.bridge.readBridgeState()).listener.state,'ready');
+ h.api.tabs.query=async()=>[{id:10,url:'https://example.org/',windowId:2}];
+ const away=await h.bridge.readBridgeState();
+ assert.equal(away.listener.state,'not-applicable');assert.equal(away.source,undefined);
+ assert.equal(away.session,null);assert.equal(h.events.starts.length,0);
+});
+test('disconnected or legacy listeners preserve original records but cannot claim readiness or safe refresh',async()=>{
+ for(const kind of ['missing','legacy','wrong-nonce','wrong-runtime']){
+  const history=[{requestId:'original-unknown',source,scope:{taskId:'baidu.search.top3'},createdAt:1,
+   receipt:{execution:'unknown',release:'unknown',delivery:'unknown'}}];
+  const h=harness({history});
+  h.api.tabs.sendMessage=async(_tab,message)=>{
+   if(kind==='missing')throw Error('Extension context invalidated.');
+   return {ok:true,data:{url:source.url,nonce:kind==='wrong-nonce'?'old':message.nonce,
+    runtimeId:kind==='wrong-runtime'?'other':'extension',...(kind==='legacy'?{}:{session:{url:source.url}})}};
+  };
+  const view=await h.bridge.readBridgeState();
+  assert.equal(view.listener.state,'refresh-required');assert.equal(view.listener.recovery.allowed,false);
+  assert.equal(view.work.state,'unknown');assert.equal(view.history[0].requestId,'original-unknown');
+  assert.equal(h.events.starts.length,0);
+ }
+});
+test('safe refresh requires a gesture, fresh same-source probe, idle Host and settled original history',async()=>{
+ const h=harness();const view=await h.bridge.readBridgeState();
+ assert.equal(view.listener.recovery.allowed,true);
+ await assert.rejects(h.bridge.refreshBridge({source:view.source},{isTrusted:false}),{code:'E_WEBFLOW_GESTURE'});
+ await assert.rejects(h.bridge.refreshBridge({source:{...view.source,documentId:'old'}},{isTrusted:true}));
+ await h.bridge.refreshBridge({source:view.source},{isTrusted:true});
+ assert.equal(h.events.controls.filter(row=>row.kind==='sidebar-refresh').length,1);
+ assert.equal(h.events.starts.length,0);assert.equal(h.events.deliveries.length,0);
+ for(const options of [{canRefresh:()=>false},{historyError:'unreadable original ledger'},
+  {history:[{requestId:'unknown',source,scope:{taskId:'baidu.search.top3'},receipt:{execution:'completed',release:'released',delivery:'unknown'}}]}]){
+  const blocked=harness(options);
+  await assert.rejects(blocked.bridge.refreshBridge({source},{isTrusted:true}));
+  assert.equal(blocked.events.controls.length,0);
+ }
+});
+test('navigation during a listener challenge rejects the late ready reply',async()=>{
+ const h=harness(),send=h.api.tabs.sendMessage;
+ h.api.tabs.sendMessage=async(...args)=>{const reply=await send(...args);h.sender.tab.url='https://chatgpt.com/c/new-conversation';return reply;};
+ await assert.rejects(h.bridge.readBridgeState());assert.equal(h.events.starts.length,0);
+});
+
+test('local legacy delivery UNKNOWN remains protected even with no background history',async()=>{
+ const h=harness();await h.approve();h.loseSend();
+ await assert.rejects(h.run(h.next('wf-local-send-unknown')));
+ const view=await h.bridge.readBridgeState();
+ assert.equal(view.receipt.delivery,'unknown');assert.equal(view.work.state,'unknown');
+ assert.equal(view.listener.recovery.allowed,false);
+ await assert.rejects(h.bridge.refreshBridge({source},{isTrusted:true}));
+ assert.equal(h.events.controls.filter(row=>row.kind==='sidebar-refresh').length,0);
+});
+test('a known running background task is running and incomplete delivery remains protected',async()=>{
+ for(const [receipt,status,expected] of [
+  [{execution:'running',release:'retiring',delivery:'not-sent'},'consumed','running'],
+  [{execution:'completed',release:'released',delivery:'not-sent'},'consumed','unknown'],
+  [{execution:'not-started',release:'not-started',delivery:'not-sent'},'prepared','idle']]){
+  const h=harness({history:[{requestId:'original',source,scope:{taskId:'baidu.search.top3'},status,receipt}]});
+  const view=await h.bridge.readBridgeState();assert.equal(view.work.state,expected);
+  if(expected!=='idle')assert.equal(view.listener.recovery.allowed,false);
+ }
+});
+test('refresh final asynchronous boundary cannot bypass a new run, lost trust or context event',async()=>{
+ for(const change of ['trust','run','source']){
+  const h=harness(),query=h.api.tabs.query;let queries=0;
+  h.api.tabs.query=async(...args)=>{const result=await query(...args);
+   if(++queries===3){if(change==='trust')h.unverify();if(change==='run')h.host.currentRun={runId:'new-run'};
+    if(change==='source')h.sender.tab.url='https://chatgpt.com/c/replacement';}
+   return result;};
+  await assert.rejects(h.bridge.refreshBridge({source},{isTrusted:true}));
+  assert.equal(h.events.controls.filter(row=>row.kind==='sidebar-refresh').length,0);
+ }
+});
+
+test('refresh owns the shared admission fence before any await and releases on success or failure',async()=>{
+ for(const historyError of [null,'unreadable']){
+  let held=false,acquired=0,released=0;
+  const h=harness({historyError,acquireRefresh:()=>{
+   assert.equal(held,false);held=true;acquired++;return ()=>{held=false;released++;};
+  },canRefresh:()=>{assert.equal(held,true);return true;}});
+  const operation=h.bridge.refreshBridge({source},{isTrusted:true});
+  assert.equal(held,true,'new Native/Provider admissions must already see the fence');
+  if(historyError)await assert.rejects(operation);else await operation;
+  assert.equal(acquired,1);assert.equal(released,1);assert.equal(held,false);
+ }
+});
+test('final synchronous provider/native idle check vetoes cleanup that started during asynchronous validation',async()=>{
+ let idle=true;
+ const h=harness({refreshIdle:()=>idle}),query=h.api.tabs.query;let queries=0;
+ h.api.tabs.query=async(...args)=>{const result=await query(...args);if(++queries===3)idle=false;return result;};
+ await assert.rejects(h.bridge.refreshBridge({source},{isTrusted:true}));
+ assert.equal(h.events.controls.filter(row=>row.kind==='sidebar-refresh').length,0);
+});
+
+test('an early transport rejection keeps refresh admission fenced until the dispatched message expires',async()=>{
+ let held=false,deadline=0;
+ const h=harness({acquireRefresh:()=>{held=true;return ()=>{held=false;};}}),send=h.api.tabs.sendMessage;
+ h.api.tabs.sendMessage=(tab,message,options)=>{
+  if(message.kind==='sidebar-refresh'){deadline=message.expiresAt;return Promise.reject(Error('reply channel closed'));}
+  return send(tab,message,options);
+ };
+ const pending=h.bridge.refreshBridge({source},{isTrusted:true});
+ const rejected=assert.rejects(pending,/reply channel closed/);
+ while(!deadline)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(held,true);await new Promise(resolve=>setTimeout(resolve,20));
+ assert.equal(held,true,'early transport failure cannot release a still-live dispatch');
+ await rejected;assert.equal(held,false);assert.ok(Date.now()>=deadline);
+ assert.equal(h.events.starts.length,0);assert.equal(h.events.deliveries.length,0);
+});
+
+test('a successful empty original-history read is distinguished from an unread or failed history',async()=>{
+ const h=harness();h.api.tabs.sendMessage=async()=>{throw Error('old context invalidated');};
+ const view=await h.bridge.readBridgeState();
+ assert.equal(view.historyRead.url,source.url);assert.ok(Number.isSafeInteger(view.historyRead.checkedAt));
+ assert.deepEqual(view.history,[]);assert.equal(view.listener.state,'refresh-required');
+ const away=harness();away.api.tabs.query=async()=>[{id:30,url:'https://example.org/'}];
+ assert.equal((await away.bridge.readBridgeState()).historyRead,undefined);
+ await assert.rejects(harness({historyError:'unreadable'}).bridge.readBridgeState());
 });

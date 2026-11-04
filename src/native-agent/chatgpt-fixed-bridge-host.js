@@ -38,6 +38,19 @@ const installationOf=value=>Object.fromEntries(installationKeys.map(key=>[key,va
 const sameInstallation=(a,b)=>installationKeys.every(key=>a?.[key]===b?.[key]);
 const selectionScope=request=>({...(request.installation?{targetUrl:request.targetUrl,installation:request.installation}:{}),
   ...(request.candidate?{candidate:request.candidate}:{})});
+const pageRecoveryReason=reason=>({
+  pending:'页面仍有操作或回传正在进行，请等待原请求结束。',
+  'approval-unknown':'原批准结果未确认，请先查询原请求。',
+  'unresolved-request':'原请求尚未结束，请先查询原请求。',
+  'unresolved-admission':'上一条候选的准入结果未确认，请先核对原记录。',
+  'deferred-discovery':'仍有已观察到的任务等待处理，请先核对原记录。',
+  composition:'输入法仍在编辑，请结束输入后重新检查。',
+  'site-not-idle':'当前对话仍在生成或页面尚未稳定，请稍后重新检查。',
+  'incomplete-answer':'当前回复尚未完成，请稍后重新检查。',
+  'draft-or-attachment':'当前对话有草稿或附件，请先保留并处理后重新检查。',
+  'composer-owned':'输入框仍由其他操作占用，请先完成原操作。',
+  'site-unavailable':'当前页面的空闲状态无法确认，请保留对话并重新检查。'
+})[reason]||'当前页面尚不能安全刷新，请先核对原记录。';
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
   Object.getPrototypeOf(value)===Object.prototype;
 const safeWebURL=value=>{
@@ -182,6 +195,7 @@ export function formatChatGPTInstalledResult(request,durable){
 // another Controller Runner. Only the first-party verified Side Panel calls it.
 export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   currentPageTarget,isVerifiedSidePanel=()=>false,
+  canRefresh=()=>false,acquireRefresh=()=>null,refreshIdle=()=>false,
   readReply=readChatGPTEdit,checkTarget=assertChatGPTTarget}={}){
   if(!client?.request||!client?.controller?.snapshotControllerRun||!host?.start)
     throw fail('E_BRIDGE_HOST','既有可信任务执行能力没有连接');
@@ -189,6 +203,44 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   let autoCatalog={tasks:[],unavailable:[],catalogVerified:false};
   const taskEpochs=new Map();
   let bridgeSource=null,bridgeReceipt=null;
+  let bridgeContextEpoch=0,bridgeReadSequence=0,refreshPending=false,bridgeObservedTabId=null;
+  const bridgeSubscribers=new Set();
+  const bridgeContextChanged=()=>{
+    bridgeContextEpoch++;bridgeReadSequence++;bridgeSource=null;
+    for(const listener of bridgeSubscribers)listener();
+  };
+  const changedTab=tabId=>{if(tabId===bridgeObservedTabId)bridgeContextChanged();};
+  const navigationChanged=details=>{if(details?.frameId===0)changedTab(details.tabId);};
+  const contextEvents=[
+    [api.tabs?.onActivated,info=>{if(info.windowId===currentPageTarget?.snapshot?.windowId)bridgeContextChanged();}],
+    [api.tabs?.onUpdated,(tabId,changes)=>{if(changes.url||changes.status)changedTab(tabId);}],
+    [api.tabs?.onRemoved,changedTab],[api.webNavigation?.onCommitted,navigationChanged],
+    [api.webNavigation?.onHistoryStateUpdated,navigationChanged],[api.webNavigation?.onReferenceFragmentUpdated,navigationChanged]
+  ];
+  for(const [event,listener] of contextEvents)event?.addListener(listener);
+  const bounded=async promise=>{
+    let timer;
+    try{return await Promise.race([promise,new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(fail('E_BRIDGE_TIMEOUT','监听检查超时，请重新检查；原请求不会重跑')),2000);
+    })]);}finally{clearTimeout(timer);}
+  };
+  const bridgeWork=(source,history=[],page=null)=>{
+    const local=bridgeReceipt?.source?.url===source.url?bridgeReceipt:null;
+    const receipts=[...history.map(row=>({receipt:row.receipt,status:row.status})),...(local?[{receipt:local}]:[])];
+    const liveStages=['preparing','validating','starting','running','stopping'];
+    const terminal=['completed','failed','stopped'];
+    const unknown=receipts.some(({receipt:r,status})=>!r||r.delivery==='unknown'||
+      r.execution==='unknown'&&status!=='approved'||
+      terminal.includes(r.execution)&&r.release!=='released'||
+      r.execution==='completed'&&r.delivery!=='confirmed'&&status!=='revoked'||
+      ![...liveStages,...terminal,'not-started'].includes(r.execution)&&status!=='approved')||
+      ['approval-unknown','unresolved-admission'].includes(page?.recovery?.reason);
+    const running=busy||operation||host.currentRun||host.executionPending||page?.session?.pending||
+      page?.recovery?.reason==='unresolved-request'||receipts.some(({receipt,status})=>
+        liveStages.includes(receipt?.execution)||status==='approved');
+    return {state:unknown?'unknown':running?'running':'idle',reason:unknown?
+      '原请求的执行或回传尚未确认。请先查看原记录，不要重复发送。':running?'任务或回传正在进行，请等待原请求结束。':''};
+  };
   const invalidate=()=>{globalEpoch++;};
   const autoSettingsChanged=(changes,area)=>{if(area==='local'&&changes[WEBFLOW_AUTO_GRANTS_KEY])autoPolicyEpoch++;};
   api.storage?.onChanged?.addListener(autoSettingsChanged);
@@ -411,29 +463,115 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   // runtime listener. Actions require the original native Side Panel gesture.
   const readBridgeState=async()=>{
     trustedSettings();
+    const ticket=++bridgeReadSequence,epoch=bridgeContextEpoch;
     const windowId=currentPageTarget?.snapshot?.windowId;
     if(!Number.isSafeInteger(windowId))throw fail('E_BRIDGE_WINDOW','当前侧栏窗口未确认');
-    const tabs=await api.tabs.query({active:true,windowId});
-    if(!operation&&tabs.some(tab=>officialURL(tab.url)&&!chatGPTConversationId(tab.url))){
-      bridgeSource=null;return {session:null,receipt:null};
-    }
+    const tabs=await bounded(api.tabs.query({active:true,windowId}));
+    bridgeObservedTabId=tabs[0]?.id??null;
     const tab=tabs.find(tab=>officialURL(tab.url)&&chatGPTConversationId(tab.url)&&!tab.incognito&&!tab.pendingUrl);
+    const checked=()=>{
+      trustedSettings();
+      if(epoch!==bridgeContextEpoch||ticket!==bridgeReadSequence)
+        throw fail('E_BRIDGE_CONTEXT','对话或监听上下文已改变，请重新检查');
+    };
+    const notCurrent={state:'not-applicable',reason:'请切换到要使用的 ChatGPT 对话，然后重新检查。',
+      checkedAt:Date.now(),recovery:{allowed:false,reason:'当前没有可确认的 ChatGPT 对话'}};
     let source=operation?.source;
     if(!source&&tab){
-      const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+      const frame=await bounded(api.webNavigation.getFrame({tabId:tab.id,frameId:0}));
       source={tabId:tab.id,documentId:frame?.documentId,url:tab.url};
     }
-    source??=bridgeSource;
-    if(!source)return {session:null,receipt:null};
-    await assertSource(source);trustedSettings();
-    const reply=await api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,
-      kind:'sidebar-read',sourceUrl:source.url},{documentId:source.documentId});
-    await assertSource(source);trustedSettings();
-    if(reply?.ok!==true||reply.data?.url!==source.url)
-      throw fail(reply?.error?.code||'E_BRIDGE_PROJECTION',reply?.error?.message||'网页监听器未就绪，请刷新当前空闲对话');
+    if(!source){checked();bridgeSource=null;return {session:null,receipt:null,history:[],listener:notCurrent,work:{state:'idle'}};}
+    await bounded(assertSource(source));trustedSettings();
+    const historyReply=await bounded(api.runtime.sendMessage({protocol:WEB_TASK_PROTOCOL,kind:'history'}));
+    if(historyReply?.ok!==true||!Array.isArray(historyReply.data))
+      throw fail(historyReply?.error?.code||'E_WEB_TASK_UNKNOWN',historyReply?.error?.message||'原后台请求记录未确认，请查询后再处理');
+    // Restored tabs can have a new tab/document ID. Historical rows remain
+    // visible by exact conversation URL; only exact live identities become a receipt.
+    const history=historyReply.data.filter(row=>row.source?.url===source.url).sort((a,b)=>b.createdAt-a.createdAt);
+    const historyRead={url:source.url,checkedAt:Date.now()};
+    const nonce=crypto.randomUUID();let reply,probeError;
+    try{reply=await bounded(api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,
+      kind:'sidebar-probe',sourceUrl:source.url,nonce},{documentId:source.documentId}));}
+    catch(error){probeError=error;}
+    await bounded(assertSource(source));checked();
+    const active=await bounded(api.tabs.query({active:true,windowId}));checked();
+    if(tab&&!active.some(row=>row.id===tab.id&&row.url===tab.url&&!row.pendingUrl))
+      throw fail('E_BRIDGE_CONTEXT','当前标签已切换，请重新检查');
+    const live=reply?.ok===true&&reply.data?.url===source.url&&reply.data?.nonce===nonce&&
+      reply.data?.runtimeId===api.runtime.id&&reply.data?.session?.url===source.url;
+    let work=bridgeWork(source,history,live?reply.data:null);
+    const isCurrent=tab?.id===source.tabId&&tab.url===source.url;
+    const safety=live&&reply.data.recovery?.allowed===true&&work.state==='idle'&&await bounded(canRefresh())===true;
+    work=bridgeWork(source,history,live?reply.data:null);
+    checked();
+    const listener=!isCurrent?notCurrent:{state:live?'ready':'refresh-required',checkedAt:Date.now(),
+      reason:live?'已连接当前对话，正在等待新的完整任务。':'当前对话的监听连接已断开或版本已更新。先核对原请求，再恢复连接。',
+      ...(probeError?{detail:{code:probeError.code||'E_BRIDGE_DISCONNECTED',message:String(probeError.message).slice(0,500)}}:{}),
+      recovery:{allowed:safety&&work.state==='idle',reason:safety&&work.state==='idle'?'刷新只重新连接当前对话，不重发消息或重跑任务。':
+        work.state!=='idle'?work.reason:!live?'无法确认页面草稿、输入法和在途操作，暂不能安全刷新。':
+        reply.data.recovery?.allowed!==true?pageRecoveryReason(reply.data.recovery?.reason):
+        '仍有本机操作或未确认状态，请先完成原操作。'}};
+    if(!live){bridgeSource=null;return {source,session:null,receipt:null,history,historyRead,listener,work};}
     bridgeSource=source;
-    return {source,session:reply.data,receipt:bridgeReceipt&&sameSource(source,bridgeReceipt.source)&&
-      reply.data.requestId===bridgeReceipt.requestId?structuredClone(bridgeReceipt):null};
+    const session=reply.data.session;
+    const background=history.find(row=>sameSource(source,row.source)&&row.requestId===session.requestId);
+    return {source,session,history,historyRead,listener,work,receipt:background?{source,...background.receipt,
+      requestId:background.requestId,candidateId:background.candidate?.candidateId??null}:bridgeReceipt&&sameSource(source,bridgeReceipt.source)&&
+      session.requestId===bridgeReceipt.requestId?structuredClone(bridgeReceipt):null};
+  };
+  const refreshBridge=async(value,event)=>{
+    if(!event||event.isTrusted!==true)throw fail('E_WEBFLOW_GESTURE','请在侧栏亲自确认刷新当前对话');
+    trustedSettings(event);
+    if(refreshPending||!validChatGPTBridgeSource(value?.source))throw fail('E_BRIDGE_CONTEXT','当前对话身份未确认');
+    const contextEpoch=bridgeContextEpoch,epoch=captureEpoch();
+    // The composition owner fences new Native/Provider effects synchronously,
+    // before the first asynchronous probe. Cleanup remains available.
+    const releaseRefresh=acquireRefresh();
+    if(typeof releaseRefresh!=='function')throw fail('E_BRIDGE_REFRESH_BLOCKED','当前操作尚未空闲，保留当前对话');
+    let dispatchExpiresAt=0,refreshConfirmed=false;
+    refreshPending=true;
+    try{
+      const view=await readBridgeState();
+      if(!sameSource(view.source,value.source)||view.listener?.recovery.allowed!==true)
+        throw fail('E_BRIDGE_REFRESH_BLOCKED',view.listener?.recovery.reason||'当前对话尚不能安全刷新');
+      const nonce=crypto.randomUUID();
+      // A second page-local probe closes the draft/IME race after the ledger
+      // read. The page checks this same one-use challenge again before reload.
+      const probe=await bounded(api.tabs.sendMessage(value.source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,
+        kind:'sidebar-probe',sourceUrl:value.source.url,nonce},{documentId:value.source.documentId}));
+      if(probe?.ok!==true||probe.data?.nonce!==nonce||probe.data?.runtimeId!==api.runtime.id||
+        probe.data?.url!==value.source.url||probe.data?.recovery?.allowed!==true||busy||host.currentRun||
+        host.executionPending||await bounded(canRefresh())!==true)throw fail('E_BRIDGE_REFRESH_BLOCKED','页面或在途操作已改变，保留当前对话');
+      await assertSource(value.source);trustedSettings();
+      const active=await bounded(api.tabs.query({active:true,windowId:currentPageTarget.snapshot.windowId}));
+      if(!active.some(row=>row.id===value.source.tabId&&row.url===value.source.url&&!row.pendingUrl))
+        throw fail('E_BRIDGE_CONTEXT','当前标签已改变，未刷新');
+      await bounded(assertSource(value.source));
+      // All asynchronous checks have settled. A replacement Host, a new Run,
+      // or an unknown local receipt must veto at the final dispatch boundary.
+      trustedSettings();
+      if(refreshIdle()!==true||contextEpoch!==bridgeContextEpoch||!sameEpoch(epoch)||!sameSource(bridgeSource,value.source)||
+        bridgeWork(value.source,view.history,probe.data).state!=='idle')
+        throw fail('E_BRIDGE_REFRESH_BLOCKED','原请求或监听上下文已改变，保留当前对话');
+      dispatchExpiresAt=Date.now()+1000;
+      const reply=await bounded(api.tabs.sendMessage(value.source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,
+        // Shorter than the 2s reply timeout: a message delivered after the
+        // admission fence is released cannot cause a late page refresh.
+        kind:'sidebar-refresh',sourceUrl:value.source.url,nonce,expiresAt:dispatchExpiresAt},{documentId:value.source.documentId}));
+      if(reply?.ok!==true||reply.data?.refreshing!==true||reply.data?.nonce!==nonce)
+        throw fail('E_BRIDGE_REFRESH_UNKNOWN','刷新回执未确认，请重新检查；不会自动重复刷新');
+      refreshConfirmed=true;
+      bridgeContextChanged();
+      return {source:value.source,session:null,receipt:null,history:view.history,historyRead:view.historyRead,work:view.work,
+        listener:{state:'unconfirmed',reason:'正在重新连接当前对话，请稍候检查。',recovery:{allowed:false,reason:'等待新文档就绪'}}};
+    }finally{
+      // A channel can reject immediately even while Chrome retains the sent
+      // message. Keep new effects fenced until that one dispatch has expired.
+      while(!refreshConfirmed&&Date.now()<dispatchExpiresAt)
+        await new Promise(resolve=>setTimeout(resolve,dispatchExpiresAt-Date.now()));
+      refreshPending=false;releaseRefresh();
+    }
   };
   const controlBridge=async(value,event)=>{
     if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
@@ -951,8 +1089,9 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
   return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,approveConversationTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,
-    readBridgeState,controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
+    readBridgeState,refreshBridge,subscribeBridgeContext(listener){bridgeSubscribers.add(listener);return ()=>bridgeSubscribers.delete(listener);},controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
     disposed=true;invalidate();delivery=null;
+    bridgeContextChanged();bridgeSubscribers.clear();for(const [event,listener] of contextEvents)event?.removeListener(listener);
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
     api.storage?.onChanged?.removeListener(autoSettingsChanged);
   }});

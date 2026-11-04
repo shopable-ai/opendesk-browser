@@ -87,7 +87,7 @@ test('fixed transport registers listeners on the original SW APIs; default-off d
   assert.equal(descriptor.writable,false);
   assert.equal(descriptor.configurable,false);
   assert.equal(connections,0,'Native is disabled by default, so no connectNative is allowed');
-  assert.equal(api.runtime.onMessage.listeners.size,3);
+  assert.equal(api.runtime.onMessage.listeners.size,4,'fixed files gate, files service, image service and Native config');
   assert.equal(api.runtime.onConnect.listeners.size,1);
   assert.throws(()=>installNativeTransport(scope),/E_NATIVE_TRANSPORT_CONFLICT/);
   agent.dispose();

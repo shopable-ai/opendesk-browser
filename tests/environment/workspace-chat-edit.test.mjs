@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {parseHTML} from 'linkedom';
 import {createEditContext,parseEditProposal,validateEditProposal,createEditReceipt,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
 import {inspectChatGPTEditsOnPage,readChatGPTEdit,isChatGPTURL} from '../../src/native-agent/workspace-chatgpt.js';
 import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
@@ -95,6 +96,93 @@ test('reader never falls back to an old answer while the latest user awaits a re
   const text=JSON.stringify(envelope(contextFor(record()).context));
   const read=pageFixture(t,[message('user'),message('assistant',[text]),message('user')]);
   assert.equal(read().error.code,'E_CHAT_PENDING');
+});
+
+function rolelessAnswerFixture(t){
+  const {document}=parseHTML('<html><body><article data-talvt-turn-state="complete">'+
+    '<section><h5 data-conversation-role="user">You said:</h5>'+
+    '<div data-chatgpt-search-unit-key="fallback-turn-0:0:user" data-chatgpt-search-message-ids="f82ad299-6ddf-4e25-b3a4-f612b0333d61">request-0123456789abcdef</div></section>'+
+    '<section id="answer-parent"><h6 data-conversation-role="assistant">ChatGPT said:</h6>'+
+    '<div id="answer" data-chatgpt-search-message-ids="f82ad299-6ddf-4e25-b3a4-f612b0333d60">'+
+    '<div data-code-block="true"><div data-markdown-copy="exclude"><div>opendesk-edit</div><button>Copy code</button></div>'+
+    '<div data-code-block-source="true"><code><span></span></code></div></div></div></section></article></body></html>');
+  const text=JSON.stringify(envelope(contextFor(record()).context));
+  document.querySelector('code span').textContent=text;
+  const previous={document:globalThis.document,location:globalThis.location,getComputedStyle:globalThis.getComputedStyle};
+  globalThis.document=document;globalThis.location=new URL('https://chatgpt.com/c/current');
+  globalThis.getComputedStyle=node=>node.style;
+  t.after(()=>Object.assign(globalThis,previous));
+  return {document,text,answer:document.querySelector('#answer'),parent:document.querySelector('#answer-parent'),
+    read:options=>inspectChatGPTEditsOnPage({expectedUrl:location.href,requestId:'request-0123456789abcdef',
+      requireUserEcho:true,fileRequest:true,...options})};
+}
+
+test('reader reads the actual single-UUID roleless assistant with a unique immediate-parent heading',t=>{
+  const {read,text}=rolelessAnswerFixture(t),result=read();
+  assert.equal(result.ok,true);assert.deepEqual(result.blocks,[text]);assert.equal(result.assistantFragments,1);
+  assert.equal(read().answerKey,result.answerKey);
+});
+
+test('roleless answer still requires the newest user echo and positive completion',t=>{
+  const {read,document}=rolelessAnswerFixture(t);
+  document.querySelector('[data-chatgpt-search-unit-key]').textContent='different request';
+  assert.equal(read().error.code,'E_CHAT_TURN');
+  document.querySelector('[data-chatgpt-search-unit-key]').textContent='request-0123456789abcdef';
+  const turn=document.querySelector('article');turn.setAttribute('data-talvt-turn-state','streaming');
+  assert.equal(read().error.code,'E_CHAT_STREAMING');
+  turn.removeAttribute('data-talvt-turn-state');assert.equal(read().error.code,'E_CHAT_INCOMPLETE');
+});
+
+test('newest pending modern user prevents reading an older UUID answer',t=>{
+  const {read,document}=rolelessAnswerFixture(t);
+  const user=document.createElement('div');user.setAttribute('data-chatgpt-search-unit-key','fallback-turn-1:0:user');
+  user.textContent='request-0123456789abcdef';document.body.append(user);
+  assert.equal(read().error.code,'E_CHAT_PENDING');
+});
+
+for(const kind of ['user heading','missing heading','multiple headings','hidden heading','nested heading',
+  'broad turn heading','user marker','legacy user ancestor','multiple UUIDs','quoted','hidden','file data']){
+  test('roleless candidate denies '+kind,t=>{
+    const {read,document,answer,parent}=rolelessAnswerFixture(t),heading=parent.querySelector('[data-conversation-role]');
+    if(kind==='user heading')heading.setAttribute('data-conversation-role','user');
+    if(kind==='missing heading')heading.remove();
+    if(kind==='multiple headings')parent.prepend(heading.cloneNode(true));
+    if(kind==='hidden heading')heading.hidden=true;
+    if(kind==='nested heading')answer.prepend(heading);
+    if(kind==='broad turn heading')document.querySelector('article').prepend(heading);
+    if(kind==='user marker')answer.setAttribute('data-chatgpt-search-unit-key','fallback-turn-0:1:user');
+    if(kind==='legacy user ancestor')parent.setAttribute('data-message-author-role','user');
+    if(kind==='multiple UUIDs')answer.setAttribute('data-chatgpt-search-message-ids',
+      answer.getAttribute('data-chatgpt-search-message-ids')+' f82ad299-6ddf-4e25-b3a4-f612b0333d61');
+    if(kind==='hidden')answer.style.display='none';
+    if(kind==='file data')parent.setAttribute('data-opendesk-file-data','');
+    if(kind==='quoted'){const quote=document.createElement('blockquote');parent.before(quote);quote.append(parent);}
+    assert.equal(read().ok,false);
+  });
+}
+
+for(const attrs of ['data-chatgpt-search-message-ids="f82ad299-6ddf-4e25-b3a4-f612b0333d62"',
+  'data-message-author-role="assistant"','data-content-search-unit-key="nested:assistant"']){
+  test('nested message wrapper cannot donate code or count as an extra UUID answer: '+attrs,t=>{
+    const {read,document,answer,text}=rolelessAnswerFixture(t),nested=document.createElement('section');
+    nested.innerHTML='<div '+attrs+'></div>';
+    nested.lastElementChild.append(answer.querySelector('[data-code-block]'));answer.append(nested);
+    assert.equal(read().error.code,'E_CHAT_FORMAT');
+    const pre=document.createElement('pre');pre.innerHTML='<code class="language-opendesk-edit"></code>';
+    pre.firstElementChild.textContent=text;answer.append(pre);
+    const result=read();assert.equal(result.ok,true);assert.equal(result.assistantFragments,1);assert.deepEqual(result.blocks,[text]);
+  });
+}
+
+test('UUID answer preserves unique block enforcement',t=>{
+  const {read,answer}=rolelessAnswerFixture(t);
+  answer.append(answer.firstElementChild.cloneNode(true));assert.equal(read().error.code,'E_EDIT_AMBIGUOUS');
+});
+
+test('one assistant heading cannot identify two sibling UUID wrappers',t=>{
+  const {read,answer,parent}=rolelessAnswerFixture(t),sibling=answer.cloneNode(false);
+  sibling.removeAttribute('id');sibling.setAttribute('data-chatgpt-search-message-ids','f82ad299-6ddf-4e25-b3a4-f612b0333d62');
+  parent.append(sibling);assert.equal(read().ok,false);assert.equal(read({fileRequest:false}).ok,false);
 });
 
 test('reader rejects ambiguous proposals and incomplete streaming turns',t=>{

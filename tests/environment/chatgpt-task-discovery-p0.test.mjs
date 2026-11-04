@@ -165,7 +165,8 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
   const prepared=()=>({requestId:'33333333-3333-4333-8333-333333333333',source:{...source,url:win.location.href},...scope,args:{...intent.args},
     candidate:{candidateId:intent.candidateId,text:JSON.stringify(intent),turnKey:identity().turnKey,answerKey:identity().answerKey}});
   let grant;
-  const api={runtime:{id:'extid',onMessage:{addListener(){},removeListener(){}},async sendMessage(msg){
+  const api={runtime:{id:'extid',getURL:path=>'chrome-extension://extid/'+(path||''),
+    onMessage:{addListener(){},removeListener(){}},async sendMessage(msg){
     sends.push(msg);
     if(msg.kind==='list-tasks')return {ok:true,data:{tasks:[task]}};
     if(msg.kind==='approve-conversation-task'){
@@ -396,6 +397,14 @@ test('Web Flow page refuses a new candidate without a persistent grant and never
   h.next();await flush();h.poll();await flush();
   assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task']);
   assert.match(h.nodes.find(node=>node.className==='status').textContent,/E_WEBFLOW_AUTO_DENIED/);
+});
+test('Web Flow background admission arms its original request without sending a panel execute',async t=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1',autoTaskReply:grant=>({ok:true,
+    data:{...grant,executionOwner:'background'}})});t.after(()=>h.page.dispose());
+  h.next();await flush();h.poll();await flush();
+  assert.deepEqual(h.sends.map(msg=>msg.kind),['auto-task','background-ready']);
+  assert.equal(h.sends[1].requestId,'55555555-5555-4555-8555-000000000001');
+  assert.match(h.nodes.find(node=>node.className==='status').textContent,/框架后台/);
 });
 for(const outcome of ['settled','UNKNOWN'])
 test('Web Flow page handles a complete B discovered before A execute ACK: '+outcome,async t=>{

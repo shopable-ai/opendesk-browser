@@ -83,8 +83,7 @@ export function SidebarAppShell({
               display={toolSnapshot.fields['sidebar-tool-display']}
               visible={activeTab==='tools'&&!isPanelPreview&&!localeOpen&&!providerSettingsOpen}/>}
             debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}
-            active={activeTab==='tools'||activeTab==='app-debug'}
-            providerSettings={providerSettings} onOpenProviderSettings={onOpenProviderSettings}/>}
+            active={activeTab==='tools'||activeTab==='app-debug'}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

@@ -7,8 +7,8 @@ import {sameLocalSourceIdentity, validLocalSourceIdentity} from '../../native-ag
 
 // A live Side Panel owns this adapter and the EXISTING RunHost instance.
 // The SW forwards only to its authenticated registered host port.
-export function createNativeAgentHostAdapter({client, host, currentPageTarget, api = globalThis.chrome} = {}) {
-  let disposed = false;
+export function createNativeAgentHostAdapter({client, host, currentPageTarget, api = globalThis.chrome, beforeMutation = () => {}} = {}) {
+  let disposed = false, pendingMutations = 0;
   const previews=new Map();
   const failure=e=>{const code=e.code||'E_EFFECT_UNKNOWN';return {code,message:e.message||'Bridge request failed',outcome:e.outcome||(code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED')};};
   const requireReady = async () => {
@@ -22,7 +22,22 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     return agentTargetFromSnapshot(currentPageTarget.capture());
   }
   const sameJson=(a,b)=>agentCanonical(a??null)===agentCanonical(b??null);
-  async function handle(request, {beforeStart} = {}) {
+  async function handle(request, options = {}) {
+    const newEffect=['script.save','page.preview','run.start'].includes(request.method);
+    const effect=newEffect||['page.dispose','run.stop'].includes(request.method);
+    // Register synchronously, before readiness or preparation can yield to a
+    // refresh preflight. Cleanup remains available while new effects are held.
+    if(effect)pendingMutations++;
+    try{
+      if(newEffect){
+        if(disposed)throw new AgentBridgeError('E_HOST_NOT_READY');
+        // Factory-owned trusted callback; RPC params never supply this guard.
+        beforeMutation();
+      }
+      return await dispatch(request,options);
+    }finally{if(effect)pendingMutations--;}
+  }
+  async function dispatch(request, {beforeStart} = {}) {
     await requireReady();
     // Local UI supplies a synchronous final admission check out of band. It is
     // never accepted from Native RPC params, and cannot yield before dispatch.
@@ -199,7 +214,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     try { client.replyNativeAgent({requestId:request.dispatchId??request.requestId,...(error ? {error} : {result})}); }
     catch { /* Browser host state is authoritative; never replay. */ }
   });
-  return {handle,developmentIdle:()=>!disposed&&!host.executionPending&&!host.currentRun&&
+  return {handle,developmentIdle:()=>!disposed&&pendingMutations===0&&!host.executionPending&&!host.currentRun&&
     ![...previews.values()].some(row=>row.state==='preview-pending'||row.state==='preview-unknown'||row.managedUI&&row.state!=='preview-retired'),
     dispose() {disposed=true;unsubscribe();}};
 }

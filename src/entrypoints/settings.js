@@ -3,7 +3,9 @@ import {initNativeAgentSettings} from '../native-agent/settings.js';
 import {initChatGPTFilesUI} from '../native-agent/chatgpt-files-ui.js';
 import chatGPTFilesHTML from '../native-agent/chatgpt-files.html?raw';
 import {mountWorkspace} from '../ui/react/workspace/main.tsx';
+import {initChatGPTImagesUI} from '../../projects/webflow/trusted/chatgpt-images-ui.js';
 export default defineUnlistedScript(() => {
+  if(location.hash==='#chatgpt-images')return initChatGPTImagesUI();
   if(location.hash==='#chatgpt-files'){
     // Fixed build-time template only. No page/model HTML enters this document.
     const template=new DOMParser().parseFromString(chatGPTFilesHTML,'text/html');

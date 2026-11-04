@@ -6,7 +6,7 @@ import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
 import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,normalizeAutoParameterPolicy,assertAutoGrant}
   from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
-import {validWebTaskSource} from '../page-events/web-task-contract.js';
+import {validWebTaskSource,CHATGPT_TASK_PROFILE} from '../page-events/web-task-contract.js';
 import {createSiteProfileRegistry} from '../page-events/site-profiles.js';
 
 // This is a one-use *trigger fence*, not a Task permission issuer or a second
@@ -262,7 +262,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       const ticket=autoDenialRevision,settings=await loadAuto();
       let grant;
       try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
-        if(site||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
+        if((site&&site.adapter!=='chatgpt')||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
       }
       const rows=await load(),now=clock();prune(rows,now);
       if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
@@ -273,6 +273,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       if(rows[requestId]||requestId===candidate.candidateId)throw fail('E_BRIDGE_REPLAY','请求身份冲突');
       const row=rows[requestId]={source:structuredClone(source),scope,candidate,createdAt:now,
         ...(site?{site:structuredClone(site)}:{}),
+        ...(site?.adapter==='chatgpt'?{webReady:false}:{}),
         expiresAt:now+600000,...(grant?{approvalExpiresAt:now+600000,approvedAt:now,status:'approved',mode:'auto',
         autoGrantId:grant.grantId,autoEpoch:settings.epoch}:{status:'prepared',pendingAuto:true})};
       await checkAuto(row);await save(rows);
@@ -329,6 +330,20 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     // Outside-queue read/delivery verification must notice replacement grants
     // as well as synchronous denials while its browser observations await.
     captureAutoPolicyEpoch(){return autoPolicyRevision;},
+    assertWebTaskDelivery(requestId,source){
+      requireRequestId(requestId);
+      if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');
+      return sequence(async()=>{
+        const ticket=revocationRevision,rows=await load(),row=rows[requestId];
+        const final=()=>{
+          if(!row?.site||!sameSource(row.source,source)||row.status!=='consumed'||!row.controllerSubmitted||
+            row.webDelivery!=='dispatching'||ticket!==revocationRevision||revokeAll||revokedTabs.has(source.tabId)||
+            revokedRequests.some(item=>item.requestId===requestId&&sameSource(source,item.source)))
+            throw fail('E_BRIDGE_REVOKED','原网页请求已撤销或不再允许交付');
+        };
+        final();await checkAuto(row);final();return final;
+      });
+    },
     setAutoEnabled(enabled,{expectedDenialRevision}={}){
       if(typeof enabled!=='boolean')throw fail('E_BRIDGE_SCHEMA','自动开关必须为布尔值');
       return changeAuto(state=>{state.enabled=enabled;},{deny:!enabled,recover:enabled,expectedDenialRevision});
@@ -369,13 +384,15 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     },
     // Trusted ingress only; no page RPC is added to the legacy Bridge protocol.
     // This is the same trigger ledger/queue/tombstone, never a second Task DB.
-    admitWebTask({source,site,candidate,...value}){
+    admitWebTask({source,site,candidate,allowPending=false,...value}){
       if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');
       const selected=createSiteProfileRegistry({profiles:[site],adapterIds:[site?.adapter],
         protocolIds:['webflow.task.intent.v1']}).select(source.url);
-      if(!selected||selected.origin!==value.sourceOrigin||selected.adapter==='chatgpt'||
-        selected.origin==='https://chatgpt.com')throw fail('E_BRIDGE_SOURCE','网站配置与实际来源不符');
-      return admitPersistentAuto({source,candidate,...value},selected);
+      if(!selected||selected.origin!==value.sourceOrigin||
+        (selected.adapter==='chatgpt'||selected.origin===CHATGPT_TASK_PROFILE.origin?
+          stableJSON(selected)!==stableJSON(CHATGPT_TASK_PROFILE)||!validChatGPTBridgeSource(source):
+          selected.adapter!=='generic'))throw fail('E_BRIDGE_SOURCE','网站配置与实际来源不符');
+      return admitPersistentAuto({source,candidate,allowPending,...value},selected);
     },
     async hasPendingWebTasks(){
       // Lifecycle reads this while holding the original run-admission lock.
@@ -389,6 +406,65 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     inspectWebTask(requestId){
       requireRequestId(requestId);
       return sequence(async()=>{const row=(await load())[requestId];return row?.site?structuredClone(row):null;});
+    },
+    listWebTasks({source,includeLegacy=false}={}){
+      if(source!==undefined&&!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');
+      source=source===undefined?undefined:structuredClone(source);
+      return sequence(async()=>{
+        // Reconciliation is read-only, including when a revocation fence is pending.
+        // Callers must still verify current authority before any action.
+        const rows=(await storage.get(CHATGPT_BRIDGE_LEDGER_KEY))?.[CHATGPT_BRIDGE_LEDGER_KEY];
+        if(rows!==undefined&&!plain(rows))throw fail('E_BRIDGE_STORAGE','无法读取网页请求记录');
+        return Object.entries(rows??{}).filter(([requestId,row])=>{
+          if(source!==undefined&&!sameSource(row?.source,source))return false;
+          if(row?.site)return true;
+          // Internal trusted history opt-in only. Legacy rows never become
+          // eligible for site query, claim, reconciliation or admission.
+          if(includeLegacy!==true||!plain(row)||row.kind==='conversation-grant'||!TOKEN.test(requestId)||
+            !validChatGPTBridgeSource(row.source)||!plain(row.scope)||
+            typeof row.scope.taskId!=='string'||!plain(row.scope.args))return false;
+          try{requestScope(requestId,row.scope.taskId,row.scope.args,row.scope.targetUrl,row.scope.installation);}
+          catch{return false;}
+          return true;
+        })
+          .map(([requestId,row])=>({requestId,...structuredClone(row)}));
+      });
+    },
+    recordWebTaskObservation(requestId,observation){
+      requireRequestId(requestId);
+      if(!plain(observation))throw fail('E_BRIDGE_SCHEMA','网页观察必须为受限对象');
+      const patch={};
+      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','error']){
+        if(!Object.hasOwn(observation,key))continue;
+        const value=observation[key];
+        if(key==='error'){
+          if(value!==null&&(!plain(value)||Object.keys(value).some(field=>!['code','message'].includes(field))||
+            Object.entries(value).some(([field,text])=>typeof text!=='string'||text.length>(field==='code'?128:2048))))
+            throw fail('E_BRIDGE_SCHEMA','网页观察错误对象不合法或超限');
+        }else if(key==='aiReplyObserved'?typeof value!=='boolean':
+          typeof value!=='string'||!value||value.length>128){
+          throw fail('E_BRIDGE_SCHEMA','网页观察字段不合法或超限');
+        }
+        patch[key]=structuredClone(value);
+      }
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId];
+        if(!row?.site)throw fail('E_BRIDGE_REQUEST','没有对应的网页请求记录');
+        row.webObservation={...row.webObservation,...patch};
+        await save(rows);
+        return {requestId,webObservation:structuredClone(row.webObservation)};
+      });
+    },
+    armWebTask(requestId,source){
+      requireRequestId(requestId);requireSource(source);source=structuredClone(source);
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId];
+        if(row?.site?.adapter!=='chatgpt'||!sameSource(row.source,source)||
+          !['prepared','approved'].includes(row.status)||row.webReady!==false)
+          throw fail('E_BRIDGE_REPLAY','网页接收尚未就绪、来源不符或已处理');
+        row.webReady=true;await save(rows);
+        return {requestId,ready:true};
+      });
     },
     markWebTaskDelivery(requestId,state){
       requireRequestId(requestId);
@@ -406,6 +482,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         throw fail('E_BRIDGE_SOURCE','缺少真实执行宿主身份或核验');
       return sequence(async()=>{
         const rows=await load(),candidates=Object.entries(rows).filter(([,row])=>row.site&&row.status==='approved'&&
+          (row.site.adapter!=='chatgpt'||row.webReady===true)&&
           clock()<row.approvalExpiresAt).sort((a,b)=>a[1].createdAt-b[1].createdAt);
         for(const [requestId,row] of candidates){
           try{await verify(row);await checkAuto(row);}catch(error){

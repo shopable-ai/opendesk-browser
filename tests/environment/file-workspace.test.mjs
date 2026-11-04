@@ -21,6 +21,14 @@ test('a trusted stable file request ID is preserved on the Native wire',async t=
   await assert.rejects(f.service.request('files.write',{}, {requestId:'fixed-write-12345678'}),error=>error.code==='E_REQUEST_CONFLICT');
   f.reply(f.sent[0],{result:{saved:true,sha256:'c'.repeat(64)}});await pending;
 });
+test('authorized image inspection uses the original bounded read channel without binary transport or write retry',async t=>{
+  const f=fixture();t.after(f.service.dispose);
+  const pending=f.service.request('files.inspectImage',{workspaceId:'w',path:'cat.png',leaseEpoch:''},{sessionId:'a'.repeat(32)});
+  await tick();assert.equal(f.sent.length,1);assert.equal(f.sent[0].method,'files.inspectImage');
+  assert.equal(Object.hasOwn(f.sent[0].params,'content'),false);
+  const result={workspaceId:'w',path:'cat.png',absolutePath:'/approved/cat.png',bytes:1234,width:1024,height:1024,format:'png',sha256:'a'.repeat(64)};
+  f.reply(f.sent[0],{result});assert.deepEqual(await pending,result);
+});
 test('concurrent duplicate IDs cannot pass the permission await twice',async t=>{
   let release;const permission=new Promise(resolve=>{release=resolve;});
   const f=fixture({permission:()=>permission});t.after(f.service.dispose);

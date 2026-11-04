@@ -1,7 +1,7 @@
 import {AGENT_MAX_BYTES,AgentBridgeError,agentObject} from './protocol.js';
 
 export const FILES_PROTOCOL='opendesk.local-files.v1';
-const METHODS=new Set(['files.status','workspaces.list','files.list','files.read','files.write','files.create']);
+const METHODS=new Set(['files.status','workspaces.list','files.list','files.read','files.write','files.create','files.inspectImage']);
 const WRITES=new Set(['files.write','files.create']);
 
 // A capability-specific adapter on the EXISTING Native Port. Never exposed to

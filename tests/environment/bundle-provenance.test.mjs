@@ -174,6 +174,24 @@ test('Web Flow keyword policy uses exact reviewed bytes and only the original co
  await rm(file);await symlink(resolve(path),file);
  assert.throws(()=>describeBundle(graph('sw.js')),/must not be a symlink/);
 });
+test('ChatGPT image files enter only their reviewed Native transport/settings entries with exact bytes',async t=>{
+ const project=await realpath(await mkdtemp(join(tmpdir(),'webflow-images-boundary-')));
+ t.after(()=>rm(project,{recursive:true,force:true}));
+ for(const name of ['chatgpt-images.js','chatgpt-image-page.js','chatgpt-images-ui.js']){
+  const path='projects/webflow/trusted/'+name,file=join(project,path),bytes=await readFile(resolve(path));
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  const graph=target=>({chunk:{fileName:target,modules:{[file]:{}}},root:project,lock:{packages:{}}});
+  const allowed=name==='chatgpt-images-ui.js'?['native-agent/settings.js']:['native-agent/settings.js','native-agent/transport.js'];
+  for(const target of allowed)assert.ok(describeBundle(graph(target)).modules[0].reviewedFirstPartyBlob);
+  for(const target of ['sw.js','agents/page-relay.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js',
+   ...(name==='chatgpt-images-ui.js'?['native-agent/transport.js']:[])])
+   assert.throws(()=>describeBundle(graph(target)),/cannot enter a privileged fixed bundle/);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// changed image boundary\n')]));
+  assert.throws(()=>describeBundle(graph(allowed[0])),/Trusted ChatGPT image source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>describeBundle(graph(allowed[0])),/must not be a symlink/);
+ }
+});
 test('receipt collection requires every fixed output and binds final verified hashes',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'r9-provenance-'));t.after(()=>rm(directory,{recursive:true,force:true}));
   await assert.rejects(collectBundleEvidence(directory,['sw.js'],[]),/Incomplete/);

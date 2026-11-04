@@ -11,7 +11,7 @@ export function chatGPTConversationId(value){
 
 // Chrome serializes this function into the extension's ISOLATED world. It
 // exposes no listener, Native RPC, credentials, or model API to the page.
-export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,
+export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,readUserMessage=false,
   protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false,fileRequest=false}){
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
   // Keep these literals inside the serialized function: Chrome does not carry
@@ -31,9 +31,30 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     return false;
   };
   const modernSelector='[data-chatgpt-search-unit-key$=":user"],[data-content-search-unit-key$=":assistant"]';
-  const messages=[...document.querySelectorAll('[data-message-author-role="user"],[data-message-author-role="assistant"],'+modernSelector)]
+  const uuidSelector='[data-chatgpt-search-message-ids]';
+  const messageBoundary='[data-message-author-role],'+modernSelector+','+uuidSelector;
+  // The current official DOM can omit the assistant role on the content
+  // wrapper. Trust only one UUID and its immediate parent's sole visible role
+  // heading; a complete turn can contain BOTH roles and proves no ownership.
+  const rolelessAssistant=node=>{
+    if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(node.getAttribute('data-chatgpt-search-message-ids')||''))return false;
+    if(['data-message-author-role','data-chatgpt-search-unit-key','data-content-search-unit-key']
+      .some(attr=>node.getAttribute(attr)!==null))return false;
+    const parent=node.parentElement;
+    if(!parent||['data-message-author-role','data-chatgpt-search-unit-key','data-content-search-unit-key']
+      .some(attr=>parent.getAttribute(attr)!==null))return false;
+    if([...parent.querySelectorAll(uuidSelector)].filter(part=>part.parentElement===parent).length!==1)return false;
+    const headings=[...parent.querySelectorAll('[data-conversation-role]')];
+    return headings.length===1&&headings[0].getAttribute('data-conversation-role')==='assistant'&&
+      !hidden(headings[0])&&!node.contains(headings[0]);
+  };
+  const explicitSelector='[data-message-author-role="user"],[data-message-author-role="assistant"],'+modernSelector;
+  const messages=[...document.querySelectorAll(explicitSelector+','+uuidSelector)]
     .filter(node=>!hidden(node)&&!node.closest('blockquote,[data-opendesk-file-data]')&&
-      !node.parentElement?.closest('[data-message-author-role]')&&!node.parentElement?.closest(modernSelector));
+      !node.parentElement?.closest(messageBoundary)&&
+      (['user','assistant'].includes(node.getAttribute('data-message-author-role'))||
+        node.getAttribute('data-chatgpt-search-unit-key')?.endsWith(':user')||
+        node.getAttribute('data-content-search-unit-key')?.endsWith(':assistant')||rolelessAssistant(node)));
   let lastUser=-1;
   for(let index=0;index<messages.length;index++)if((messages[index].getAttribute('data-message-author-role')==='user'||messages[index].getAttribute('data-chatgpt-search-unit-key')?.endsWith(':user')))lastUser=index;
   const local=globalThis.__opendeskWorkspaceChatV1||(globalThis.__opendeskWorkspaceChatV1={turns:new WeakMap(),counter:0,fills:new Map()});
@@ -43,7 +64,9 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     local.turns.set(user,'turn-'+(++local.counter));local.userTexts.set(user,user.textContent||'');
   }
   const turnKey=user?local.turns.get(user):'no-user';
-  const userText=user?.textContent||'';
+  const userContent=user?.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||user;
+  const userText=userContent?.innerText??userContent?.textContent??'';
+  const userIdentity=identityOnly&&readUserMessage&&user&&new TextEncoder().encode(userText).length<=32*1024?{userText}:{};
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
   const turnAnswers=lastUser<0?[]:messages.slice(lastUser+1);
   const answer=taskIntent?turnAnswers.slice(-1):turnAnswers;
@@ -73,20 +96,21 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     }
     answerKey=keys.join('/');
   }
-  if(identityOnly&&!requireComplete)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,
+  if(identityOnly&&!requireComplete)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,...userIdentity,
     ...(resultId?{resultObserved:userText.includes(resultId)}:{})};
   if(streaming)return error('E_CHAT_STREAMING','ChatGPT 仍在生成，请等回答结束再处理。');
   if(lastUser<0)return error('E_CHAT_FORMAT','无法确认本轮回答边界，未执行请求。');
   if(lastUser===messages.length-1)return error('E_CHAT_PENDING','最新问题尚未出现回答，没有读取上一轮内容。');
-  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true};
+  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true,...userIdentity};
   const ids=requestIds||[requestId];
   if(requireUserEcho&&!ids.some(id=>id&&userText.includes(id)))
     return error('E_CHAT_TURN','最新用户消息没有本轮请求身份，未使用旧回答。');
   const blocks=[];let count=0,total=0,unmarkedRequest=false;
   for(const node of answer){
     for(const code of node.querySelectorAll('pre code,[data-code-block="true"] [data-code-block-source="true"] code')){
-      const legacyOwner=code.closest('[data-message-author-role]'),modernOwner=code.closest(modernSelector);
-      if(hidden(code)||(!legacyOwner&&!modernOwner)||(legacyOwner&&legacyOwner!==node)||(modernOwner&&modernOwner!==node)||
+      const legacyOwner=code.closest('[data-message-author-role]'),modernOwner=code.closest(modernSelector),uuidOwner=code.closest(uuidSelector);
+      if(hidden(code)||(!legacyOwner&&!modernOwner&&!uuidOwner)||(legacyOwner&&legacyOwner!==node)||(modernOwner&&modernOwner!==node)||
+        (uuidOwner&&uuidOwner!==node)||
         code.closest('blockquote,[data-opendesk-file-data]'))continue;
       if(++count>128)return error('E_CHAT_LIMIT','当前回答代码块过多。');
       const text=code.textContent||'';total+=text.length;
@@ -290,8 +314,11 @@ export async function assertWebFlowReplyCandidate(api,target,candidate){
     throw mismatch();
 }
 
-export async function fillChatGPTComposer(api,target,text,{operationId,turnKey}={}){
+export async function fillChatGPTComposer(api,target,text,{operationId,turnKey,beforeInsert}={}){
   await assertChatGPTTarget(api,target);
+  // Fixed trusted callers may recheck their own revocable disclosure grant at
+  // the insertion boundary, after the asynchronous document lookup.
+  if(beforeInsert)await beforeInsert();
   let rows;
   try{rows=await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},world:'ISOLATED',
     func:fillChatGPTComposerOnPage,args:[{expectedUrl:target.url,text,operationId,expectedTurnKey:turnKey}]});}

@@ -132,6 +132,17 @@ function webFixture(options={}){
   return {...f,events,webTasks,webRequest:request};
 }
 
+test('web reconciliation failure cannot starve the original app and cloud consumers',async()=>{
+  const f=fixture(connected(),{webTasks:{reconcile:async()=>{throw Error('web ledger unavailable');},
+    claim:async()=>null,settle:async()=>{}}});addAppServices(f);
+  try{
+    await f.loop.tick();await f.loop.tick();
+    const requests=f.calls.filter(([name])=>name==='start').map(([,request])=>request);
+    assert.deepEqual(requests.map(request=>request.profile??'controller'),['app-service','controller']);
+    assert.equal(f.warnings.filter(row=>row.includes('web ledger unavailable')).length,2);
+  }finally{await f.loop.dispose();}
+});
+
 test('web request uses the original Host once and holds the slot until completion and awaited settlement',async()=>{
   const f=webFixture(),completion=Promise.withResolvers(),settlement=Promise.withResolvers();
   f.host.completion=completion.promise;

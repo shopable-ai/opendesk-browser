@@ -185,9 +185,12 @@ chrome.permissions.onAdded?.addListener(reconcileSiteContent);
 chrome.permissions.onRemoved.addListener(reconcileSiteContent);
 reconcileSiteContent();
 chrome.runtime.onMessage.addListener((message,sender,reply)=>{
-  if(message?.protocol!==WEB_TASK_PROTOCOL)return false;
+  const chat=message?.protocol==='opendesk.chatgpt.bridge.r12.v1'&&
+    (['auto-task','background-ready','background-stop'].includes(message.kind)||message.kind==='check-delivery'&&message.backgroundOwner===true);
+  if(message?.protocol===WEB_TASK_PROTOCOL&&message.kind==='stop-owned')return false;
+  if(message?.protocol!==WEB_TASK_PROTOCOL&&!chat)return false;
   pendingFoundation++;
-  Promise.resolve().then(()=>webTaskIngress.handle(message,sender)).then(data=>reply({ok:true,data}),
+  Promise.resolve().then(()=>chat?webTaskIngress.handleChatGPT(message,sender):webTaskIngress.handle(message,sender)).then(data=>reply({ok:true,data}),
     error=>reply({ok:false,error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}}))
     .finally(()=>pendingFoundation--);
   return true;

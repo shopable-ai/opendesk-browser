@@ -13,6 +13,16 @@ export default defineUnlistedScript(async()=>{
   // registering this Host or granting cloud execution capabilities.
   const client=createHostClient(chrome);
   const host=createRunHost({api:chrome,client,document,templateModuleFactory:null});
+  const stopOwned=(message,sender,reply)=>{
+    if(message?.protocol!==WEB_TASK_PROTOCOL||message.kind!=='stop-owned'||sender?.id!==chrome.runtime.id||sender.tab||
+      sender.url!==undefined&&sender.url!==chrome.runtime.getURL('sw.js'))return false;
+    host.cancelStart(message.requestId);
+    Promise.resolve().then(()=>message.runId&&host.currentRun===message.runId?
+      host.stop({controller:true,runId:message.runId,requestId:message.requestId+':stop',reason:'E_CANCELLED'}):null)
+      .then(()=>reply({ok:true}),()=>reply({ok:false}));
+    return true;
+  };
+  chrome.runtime.onMessage.addListener(stopOwned);
   const webRequest=async(kind,payload={})=>{
     const reply=await chrome.runtime.sendMessage({protocol:WEB_TASK_PROTOCOL,kind,...payload});
     if(reply?.ok!==true)throw Object.assign(Error(reply?.error?.message||'Web task receipt unknown'),
@@ -20,7 +30,7 @@ export default defineUnlistedScript(async()=>{
     return reply.data;
   };
   const runner=createCloudRunnerLoop({client,host,webTasks:{claim:()=>webRequest('claim'),
-    settle:requestId=>webRequest('settle',{requestId})}});
-  window.addEventListener('pagehide',runner.dispose,{once:true});
+    settle:requestId=>webRequest('settle',{requestId}),reconcile:()=>webRequest('reconcile')}});
+  window.addEventListener('pagehide',()=>{chrome.runtime.onMessage.removeListener(stopOwned);void runner.dispose();},{once:true});
   runner.start();
 });

@@ -14,6 +14,7 @@ export function installNativeTransport(scope=globalThis) {
   Object.defineProperty(scope,'__opendeskNativeManagedUI',{value:createManagedUIPreview,writable:false,configurable:false});
   const agent=createNativeAgentService({api,hostPorts,development:scope.__opendeskDevelopment});
   agent.installChatGPTFiles();
+  agent.installChatGPTImages();
   // Internal fixed consumers only. No runtime message or sandbox API exposes it.
   Object.defineProperty(scope,'__opendeskManagedServices',{value:agent.managedServices,writable:false,configurable:false});
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{

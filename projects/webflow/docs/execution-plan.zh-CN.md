@@ -1883,3 +1883,210 @@ NC-07在普通`/c/6ae9c70a-68fc-83ec-997d-7aabfeab93b0`先进行一次可见说�
 **本轮结果：** 新增两个用例，以上单条结果核心链和 React 原值展示均通过。`node --test --test-name-pattern='one returned search row|trusted approval then|Host rejects|revocation immediately|sidebar receipt' projects/webflow/tests/auto-host.test.mjs` 为 5 PASS；`node --test projects/webflow/tests/first-message.test.mjs projects/webflow/tests/reply-admission.test.mjs projects/webflow/tests/current-task.test.mjs projects/webflow/tests/sidebar-bridge.test.mjs` 为 30 PASS；合计 35 PASS / 0 FAIL。测试和本文 `git diff --check` 通过。未改生产源码、Task 参数/版本/包、已有安装或浏览器授权，未构建或提交；新测试首次运行即通过，属于既有行为的覆盖补充，不宣称修复了产品故障。
 
 **现在如何继续：** 核心流程自动化测试已补齐当前缺口，已有实网运行可复用：真实能力说明及自然语言 → 模型新五字段协议 → 1.1.2 已安装任务 → 百度输入/单次搜索 → 三项真实结果 → 同 Run/Result 原聊天回传及资源释放。返回至少一条即可满足本轮业务样本条件；不再调查百科、强制恰好三条或为此重新升级。真实现场的 Auto/精确授权清理与从「我的」独立读取原持久值保留未完成事实，浏览器策略限制仍适用于相关操作；本次组件测试的清理 PASS 不能冒充该本机清理。它们不阻止本轮独立的测试完善收尾，也不触发重复轮询、重新搜索或旧请求重放。
+
+### 12.21 ChatGPT 新准入迁移为框架后台 owner（2026-11-04）
+
+**当前结论：源码迁移和定向检查通过，官方 ChatGPT 双轮验收未完成。** 本轮用户明确要求新完整固定协议回复在精确持续授权内自动执行，关闭侧栏后仍完成执行、持久结果、释放和原聊天单次回传。沿用 12.13–12.18 的框架与证据边界；历史普通网站、系统 Chrome 或只读任务 PASS 不替代本候选。第二 AI、完整多来源管理、production 不作前置；不把旧 goal 或旧验收清单恢复为本轮任务。
+
+**真实入口与缺口：** 修改前 `src/sw.js` 的原 `webTaskIngress` 已处理普通网站入口，原 `src/entrypoints/cloud-runner.js` / `src/cloud-control/runner.js` 已有 Offscreen RunHost、单槽和 Controller 执行；ChatGPT 的 `auto-task` 仍由 `src/ui/tool-shell.js` 创建的 `createChatGPTFixedBridgeHost` 接收，可信侧栏关闭就没有该入口。这是现有框架的接入缺口，不需要重建网页运行框架。复用 Site Profile、ChatGPT 完整回复读取器、原触发账本、Task integrity validator、Authority、Controller 和持久 Results；新 Adapter 只做官方 ChatGPT 来源/DOM/协议核验与原结果消息格式适配。Web Flow 持续授权策略与可信 UI 继续归本项目，不向网页或模型开放授权。
+
+**owner、写入与运行环境：** 当前聊天 `01a1a27d-949e-7fd2-b22e-c0213e3c6410`，`main` HEAD `8ec5c9421f61519c2c29158d9da117ba70af411e`。平台写入限 `src/page-events/{web-task-contract,web-task-ingress}.js`、`src/native-agent/chatgpt-{background-adapter,bridge-trigger-gate,fixed-bridge-host,fixed-bridge-page}.js`、原 `src/{sw.js,ui/tool-shell.js,entrypoints/cloud-runner.js,cloud-control/runner.js,platform/host/authority.js}`；项目写入限 `trusted/CurrentTask.tsx`、相关 tests、当前计划与证据。`scripts/bundle-provenance.mjs` 只更新已审查 CurrentTask 的精确 blob，未放宽来源门禁。新增通用内部 fence 位于原 Authority 的安装/停用/卸载写入入口，不成为公开 SDK 或网页权限接口。独立子 agent 仅执行有界账本测试与只读审查，不并行操作浏览器。
+
+其他 owner 的 ChatGPT 文件意图、ScrapyJS、共享 Chat、React 工作台及测试改动均保留。本轮没有修改百度 Controller/任务包、提交、推送、新建分支/worktree/PR、发布或重装扩展。现有 PID 19312 的 dev watcher 及 43119/43120 服务保持原状，未覆盖日常 `dist/development`；观察到日常 SW/可信侧栏产物尚未包含本轮迁移，不能将其当成本轮已验证版本。后续使用前须重查实际路径、ID、serve 连接与产物指纹。
+
+**实现与安全边界：**
+
+- 仅从新的 `auto-task` 准入选择 SW/Offscreen owner。原侧栏手动和已在途请求不转移、不重新执行。固定官方 ChatGPT Site Profile 不签发授权；仍核对完整回复、turn/answer、原聊天 URL、Chrome 顶层 document、七项安装快照、完整参数与精确来源/目标范围。
+- 原账本先持久准入，页面确认原 request 后才置 ready；ready 不批准、不重置 consumed。原单槽和 Controller admission 消费一次。确定的候选或任务失配保留拒绝墓碑并允许处理下一候选；读取失败、资源不可用等未知错误保留原状态，不猜测授权。
+- 原 Run/Result 按 request、namespace、原 Offscreen document 查回；执行、结果持久化、资源释放、原聊天交付、AI 续答分开记录。持久交付 fence 在发送前建立，ACK 丢失保持 unknown，查询原记录而不补发。页面发送前再次核对原来源、任务、持续授权和该 request 未取消；安装变更在异步最终检查期间由原 Authority 同步 fence 拦截。
+- 取消先持久撤销该 request，再通知原 RunHost 取消原 request 的启动或停止已确认相同 Run；不按共享槽猜目标。历史结果仍经原 Authority 读取，拒绝时只展示状态/错误，不泄露原值。
+- SW 重建只对同一仍存活 Offscreen owner 的原 consumed 身份对账；更换 Offscreen 或浏览器重启不接管、不重跑。原 `paused_unknown` / 缺失 ACK 不称透明续跑。可信「运行与授权」可查看原身份、结果和 unknown，提示先关闭/撤销，再核对目标网站与原 Run/Result。恢复后的旧文档历史与当前会话回执分开，不能向新聊天送旧结果。
+
+**当前源码验证：** 原 Host/回复准入、后台 Adapter/账本/Ingress、旧普通网站入口、页面桥接、可信 React 展示、Offscreen bootstrap 和原 runner 的 17 个定向文件合计 **319 PASS / 0 FAIL**；原 Authority 安装变更/撤权/停用用例另 **7 PASS / 0 FAIL**。包括新增双独立请求、重复候选、关闭/撤销、任务/来源失配、换聊天、执行 ACK 丢失后重建 SW 对账、交付 ACK 丢失不重发、新 Offscreen 不接管、最终交付时取消及安装变更交错。这里的 Chrome/DOM/执行边界使用注入夹具，不能记为真实网站或权限 UI PASS。相关 JS 语法检查、组件编译及 scoped `git diff --check` 通过；未运行无关全量 CI。日志及源码哈希见[本轮证据摘要](../evidence/background-migration-20261104.json)。
+
+**同候选构建与真实 Chromium 传输：** 在独立物理快照 `/private/tmp/opendesk-webflow-background-a_7ole3z` 使用原 `node scripts/build.mjs development` 构建通过；产物为该目录的 `dist/development`，静态开发包、未连接 serve、非 production。原回执 `evidence/build-development.json`，packageHash `f73280c222dd17c441541cea35129b62ce184f8053c949295329db3852c5f088`，构建期间原回执输入漂移为空；另核对本轮 14 个实现/生成器/审查文件与实际快照字节全部相同。第一次快照缺少已有根 `native-agent/local-project-source-contract.mjs`，补复制原依赖后经原门禁重建通过，未修改产品来适配快照。
+
+自建无登录、无授权、无 Task 的 headless CFT 154.0.8037.92 实测原 SW 启动、原 Offscreen bootstrap、实际 SW `MessageSender` 及原 `stop-owned` ACK，通过且全过程无 Side Panel。实际测试扩展 ID `dnjckkpphhkcclmlklopilmipdjfeamc`；这是本临时路径的 ID，不是日常扩展/Native 配对证据。产物前后指纹一致，launcher 正常关闭本实例并删除本临时 Profile，cleanup PASS。首次驱动绑定早期 SW 目标时 CDP 求值超时，保留 FAIL 与清理证据；随后按既有驱动绑定稳定的原 worker context 后 PASS，没有为此改产品。完整报告在 `artifacts/webflow/background-migration-20261104/runtime-smoke-bound-context.json`；本项仅证明传输，不代替以下实网验收。
+
+| 当前用户验收项 | 源码/夹具结果 | 同候选官方 ChatGPT + 百度 |
+|---|---|---|
+| 可信 UI 对当前已安装任务/来源/目标一次授权，关闭侧栏后新回复自动执行 | 原授权与后台准入保护 PASS | NOT_TESTED |
+| 实际输入、搜索、导航、读取三条结果、持久化、释放、原聊天一次回传与 AI 续答 | 原 Run/Result/交付及分阶段回执 PASS | NOT_TESTED |
+| 同一有效授权下第二次独立请求，身份/结果分别正确，每次一次 | PASS | NOT_TESTED |
+| 重复候选、关闭/撤销、任务/来源失配拒绝执行 | PASS | NOT_TESTED |
+| 导航/换聊天后禁止错误交付 | PASS | NOT_TESTED |
+| 执行/交付 ACK 丢失、SW 重建后查询原身份，不盲目重跑/重发 | PASS，含新 owner 拒绝接管 | NOT_TESTED；透明重启续跑未实现或证明 |
+
+**实网阻塞与下一条操作：** 三个已登记 ChatGPT Profile 分别属于 `01a181b4-3c6d-7831-b003-73965362118e`、`01a18c66-2de6-7822-a7b4-96e53c2b2f68`、`01a19d33-48b5-7aa2-8081-86e6de53afac`。最后 status 的桌面锁为空，但 Profile 租约仍在；进程退出或租约陈旧不构成移交。个人 [chatgpt-test-profiles Skill](/Users/shopme/.codex/skills/chatgpt-test-profiles/SKILL.md) 明确“都已占用则报告忙碌，不触发扩容”“不会因超时抢走其他owner”，因此未操作这些实例、强抢租约、另建登录池或发未经授权的跨聊天消息。合法释放/明确移交后，下一条操作是在本 owner 的隔离浏览器绑定本候选，沿可信 UI 核对已安装百度任务与权限并只批准一次，再做下列两轮；如出现验证码、站点限制、权限缺口或未知副作用，停止相应动作并记录，不重放。
+
+**当前版本用户手测步骤与提示词：**
+
+1. 在可合法独占的隔离测试浏览器确认实际扩展路径、ID 和上述候选 packageHash；不要用旧日常产物冒充新版本，也不要重装日常扩展。打开「扩展 → Web Flow → 运行与授权」，检查真实已安装 `baidu.search.top3` 的版本、源码与安装代际。仓库任务包当前为 **1.1.3**，但本轮未读取浏览器实际安装，不能假定二者相同；版本不可用或身份变化时停止，由正常可信流程处理，不复用旧批准。
+2. 在可信 UI 审阅并批准来源 `https://chatgpt.com`、任务 `baidu.search.top3`、目标 `https://www.baidu.com/`、完整参数 `{"query":"OpenDesk Browser","limit":3}` 的精确范围，开启自动运行一次。必要的网站权限仍由可信手势批准。生成两个不同候选提示词后关闭侧栏；没有匹配授权时网页应保持待批准，模型文字不构成批准。
+3. 在官方 ChatGPT 新对话**只发送一次**[第一轮当前生成提示词](../tests/manual-background-baidu-first.prompt.txt)，不要点击采用/执行。等完整 `opendesk-task` 回复后观察真实百度输入、一次搜索与导航、三条真实结果、目标资源释放、原聊天单条 `opendesk.task.result.v1` 用户消息和 AI 续答。缺少任何一步分别记录，不能用 AI 推断补齐结果。
+4. 第一轮明确结束后，在同一聊天、同一有效授权下**只发送一次**[第二轮当前生成提示词](../tests/manual-background-baidu-second.prompt.txt)，保持侧栏关闭，核对两套不同 request / Run / Result，每套仅执行和回传一次。不要复用第一轮 candidateId。
+5. 重开「运行与授权」查看「后台原请求与对账」，并从原任务最近结果核对两次持久原值、资源与交付身份。执行完成、结果已核实、释放、交付确认、AI 续答分别看；UNKNOWN 只查询原记录，不换 ID 重跑或补发。测试结束通过可信 UI 关闭本轮自动运行并撤销本轮批准，保留结果供复核。
+
+两份文件由当前 `AutoSettings.tsx` 中原 `ApprovedTaskPrompt` 的生成动作产生，并经原五字段解析器核验；不是浏览器里已完成授权的证据。生成器 SHA256 `9f80d769e386d612176f5ad19acf9a4bc1802bf3e0c692756ea85da2d19d0274`；候选分别为 `wf-872ae43b-b58f-46a8-99d4-5bf97beb3092` 和 `wf-de4f3c44-7abd-42ff-8164-f206c387467e`，均尚未发送。未来测试用过后应从同一可信组件重新生成，不修改或重用已消费候选。本文两轮和拒绝/故障矩阵在真实站点仍未完成，整个迁移不记为已正式验收。
+
+#### 12.21.1 本聊天持续目标与关键测试条件（2026-11-04）
+
+用户明确要求设置目标后，已通过原生 `create_goal` 为本聊天 `01a1a27d-949e-7fd2-b22e-c0213e3c6410` 创建 **active** 目标，无指定 token 预算。目标是：**完成现有 Web Flow 的 ChatGPT 后台迁移，在精确可信持续授权内，关闭侧栏完成两次独立真实执行、保存结果、释放资源及原聊天各一次回传和 AI 续答，并验证拒绝与未知状态不重放。** 继续复用原框架与上述 owner，不新建另一份总计划。状态以原生 `get_goal` 实读为准；本文不是应用状态的替代存储。
+
+以下条件已经写入原生目标。全部真实验收绑定**同一 dev 候选、同一个合法独占隔离浏览器**；源码测试与历史证据单独保留，不折算为实网 PASS。
+
+| 条件 | 具体操作与通过标准 | 设置时状态 |
+|---|---|---|
+| K01 候选与资源身份 | 重查 main/diff、文件 owner、Profile/UI 租约；核对真实扩展路径、ID、候选指纹/模式、登录，以及已安装任务的版本、源码、manifest、revision、installationId、generation。源码包不当安装证明 | 待重查；已有构建/传输证据，实际安装身份未读 |
+| K02 一次精确可信授权 | 通过真实可信 UI 一次批准 `baidu.search.top3`、来源 `https://chatgpt.com`、目标 `https://www.baidu.com/`、完整参数 `{"query":"OpenDesk Browser","limit":3}`，开启后关闭侧栏；缺少网站权限仍走原可信手势链 | 实网 NOT_TESTED |
+| K03 第一轮关闭侧栏闭环 | 官方新聊天发送一次当前生成的全新固定协议提示词，不点采用/执行；观察实际输入、一次搜索、导航、三条真实结果；同一 request/Run/Result、持久原值、released、原聊天单条结果及 AI 续答分别确认 | 源码/夹具 PASS；实网 NOT_TESTED |
+| K04 同授权第二次独立请求 | 第一轮明确结束后，同一仍有效授权发送第二个新候选，继续关闭侧栏且不再批准；两轮 request/Run/Result 正确，每轮各执行/回传一次。相同查询的数据值可以相同 | 源码/夹具 PASS；实网 NOT_TESTED |
+| K05 拒绝与零副作用 | 重复候选、关闭开关、撤权、任务/安装版本或来源失配均拒绝，新增 Run、网站效果、交付为零；保持原单槽与安全链 | 源码/夹具 PASS；实网 NOT_TESTED |
+| K06 原聊天及最终交付检查 | 原聊天/URL/document 导航变化不向错误聊天发送；取消、安装或授权变化交错继续拦截；未知交付不补发给替代聊天 | 源码/夹具 PASS；实网 NOT_TESTED |
+| K07 执行和交付 ACK 丢失 | 自有隔离环境分别有界验证两种丢失，先查原账本与 Run/Result；执行不换 ID、不启动第二 Run，交付保留 unknown、不重复发送；可信 UI 能查看和处理 | 源码/夹具 PASS；实网 NOT_TESTED |
+| K08 SW/浏览器重启对账 | 验证自有 SW 重建后原身份对账；原 Offscreen 存活只查同一 owner。更换 owner 或浏览器重启后，无法确认副作用就保持 UNKNOWN/paused_unknown，不接管、不重跑、不重发 | 源码/夹具 PASS；实网 NOT_TESTED；透明续跑未实现或证明 |
+| K09 可复核交付与收尾 | 分别报告源码和真实结果、每阶段身份及一次效果；保留当前提示词/手测步骤；可信 UI 收尾本轮开关/批准，按原 owner 命令清理自有资源；未知动作先对账，不误报清理成功 | 源码交付已有；实网收尾 NOT_TESTED |
+
+**硬条件与完成线：** 核心真实双轮、可信授权、身份与来源隔离、拒绝零副作用、未知不重放必须通过；每个适用条件都有当前候选对应证据才完成原生目标。透明重启续跑不作本轮前提，未实现/未证明必须继续明确列为未完成；不能以 `paused_unknown` 表述为续跑成功。出现 Profile/窗口归属不明、验证码、站点限制、权限缺口或未知副作用时，停止相应动作、记录阻塞并继续独立必要工作，不制造 PASS。
+
+**持续边界：** 保留 main、并行改动、现有 watcher 和日常加载目录；不新建分支/worktree/PR、不提交/推送/发布/重装，不未经授权向其他聊天发消息或抢浏览器。第二 AI、完整多来源管理、production、95 分评分和无关全量 CI 不作前置。319+7 源码 PASS、快照构建及传输 PASS 是上次基线，未因设置目标重复执行；后续仅在变更、失败或证据失效时补相关验证。下一条实际操作为重查合法 Profile/窗口租约与候选身份，再执行 K02–K04；历史占用不构成抢占依据。
+
+**设置目标后的第一次实测入口复核：** 上个目标回合已创建原生目标并固定条件，属于已完成的进展；本回合没有取得新的实网执行证据。14 个实现/生成器/审查输入均与快照相同，171 个产物文件的 packageHash 仍为上述值，无需重建或重复源码测试；PID 19312 及两开发端口仍存活。三个 Profile 租约仍属其他 owner，当前原生 UI 锁改由 `01a1a297-f4bc-7992-b2c9-45fe3161ab4e` 持有。只读核对 `test-chatgpt-03` 原 owner 的最后一轮已结束，其原目标报告 blocked、浏览器正常关闭但租约未释放；其上次页面提示登录过期，不当作当前登录实读。已向用户提出仅移交该关闭 Profile 的明确选项，不包含接管现有 UI 锁，也没有默认批准、代签 owner 或改注册表。目标保持 active；这是创建目标后的第一次实际入口阻塞审计，不提前记 blocked。获得明确移交或合法空闲后再按原管理命令申请，核验正常登录与窗口身份，随后做 K02–K04。证据摘要保存了本次检查，K02–K08 实网仍 NOT_TESTED。
+
+**用户授权移交后的实际进展：** 用户明确回复“移交 test-chatgpt-03 给本聊天”。确认该目录无运行进程后，按用户授权通过原 `profiles.py --owner <旧owner> release --name test-chatgpt-03` 释放，再用本聊天 owner 原 `acquire` 申请成功；仅此 Profile 转移，未手改注册表或接管原生 UI 锁。随后在本 owner 独占 headless 实例 PID 84750/端口 57495 使用原 `check` 检查现有登录：官方 ChatGPT 显示“请稍候…”、`challenge:true`、无账号菜单和编辑器，结果 `NOT_VERIFIED`。没有刷新、循环导入 Cookie、自动点击验证、发送消息或运行任务；原 `stop` 命令已正常关闭本实例，保留本聊天 Profile 租约与登录数据。原 helper 截图只在私有 slot 中，不复制入项目。这是已完成的资源移交和当前登录诊断，不是实网业务 PASS。
+
+当前桌面 UI owner 仍为 `01a1a297-f4bc-7992-b2c9-45fe3161ab4e`，其原生聊天实读 `active/inProgress`，不能按空闲或结束处理。下一步在其正常释放后取得本 owner UI 锁，准确绑定此 Profile 的可见窗口，按网站正常流程处理验证并核对登录；不再以“全部 Profile 被占用”作为本聊天阻塞理由。源码映射另证实日常 SW/可信侧栏主包尚缺本轮迁移，而 ChatGPT 页面桥接已更新；没有操作日常 writer 或把混合产物当成本候选。原冻结静态 dev 候选保持有效，实际业务验收仍须核对加载身份并满足 K01–K09。新外部条件为原生 UI 忙及网站验证，不沿用旧 Profile 租约阻塞次数；目标继续 active。
+
+**移交后的连续阻塞审计结论：** 移交并诊断出网站验证的回合、其后一次实时 owner 等待及本次复核，共三回合均未取得合法原生 UI 使用权及正常登录条件。本次原 owner 的同一 turn 实读仍为 `active/inProgress`（cursor `357db128-ec80-4749-9528-08e3bd0f4fec:8`），不因等待超时判定结束。14 个本轮实现输入无漂移，原候选仍在，没有需要独立继续的已知源码修复或失效测试；未重复启动浏览器、导入 Cookie 或重跑测试。已经通过原生 `update_goal(status="blocked")` 登记，工具回读确认为 **blocked**，不是 complete 或用户暂停；目标全文和 K01–K09 不变。已完成的源码、构建和传输证据保留，实网双轮、拒绝及故障条件仍 NOT_TESTED。`test-chatgpt-03` 继续由本聊天保留、无运行进程，其他 owner 的浏览器和 watcher 不动。恢复须先由原 owner 正常释放 UI，再取得本 owner UI 锁、绑定本 Profile 可见窗口、按网站正常流程完成验证并确认登录，随后从 K01 继续。没有将“设置阻塞状态”当作产品目标已完成，也不以反复查询维持续跑。
+
+
+#### 12.21.2 新对话续接的实际入口检查（2026-11-04）
+
+本对话 `01a1a2b9-3b15-7a83-9c14-661dee32475d` 首先调用原生 `get_goal`，返回 `goal: null`；随后通过 `create_goal` 建立包含最终后台行为、K01–K09、约束和停止条件的 **active** 目标，未设置 token_budget。原对话目标按用户交接为 paused，本次没有跨对话迁移或改写它，亦未把未完成工作标完成。
+
+当前 `main` HEAD 仍为 `45d561be780374d84b51ec22ff708fa4aeef2775`。本轮 14 个迁移/生成器输入与原已构建快照的字节均相同，复用原源码测试、静态构建和传输证据，没有重复运行测试或独立构建。已阅读实际迁移 diff 和 SW → 原 Ingress/Adapter → 原 ledger → Offscreen Runner/RunHost → Authority → 原聊天交付调用链，没有据此新增另一套实现。
+
+**资源已取得，原生入口仍阻塞：** 用本对话真实 ID 显式 acquire `test-chatgpt-03` 成功，目录及登录态保留，当前没有本对话启动的浏览器。原 `ui-acquire` 返回 busy；最后实读 UI owner 为 `01a1a2b7-4e36-7ae0-8367-5c7086a3325a`，不操作或查询其窗口，不代其释放、不发协调消息。01/02 租约及浏览器保持不动。当前正常登录、窗口/PID/CDP 绑定和实际安装任务身份均 **NOT_READ_CURRENTLY**；旧挑战页不当作当前现场。
+
+**候选接入的具体缺口：** Profile03 的只读扩展元数据仍指向 `ccfcjegpkdlgbclopjmadlcjedelidmf`、仓库 `dist/development`，禁用原因列表为空；这不是运行时安装或开发连接证明。原 writer PID 19312、43119/43120 与输出锁仍存活。本轮沿原 watcher 对自有源码做内容不变的保存探针：cloud runner 与 ChatGPT page bridge 的相关源码映射相同，SW 与可信 tool-shell 的相关源码映射仍不同，且 SW 中缺少本轮后台 adapter。最新磁盘 revision 为 `19daad2a5a34aa96d19e6329cd40e0b684ae5f817cddb4542fe056d23094cb0c`；发布标记存在不能证明全部本轮迁移已经进入候选。未从现有可读信息确认两个入口未更新的原因，不能擅自断言是源码、pin、预算或 watcher 错误。没有停止/重启原 watcher、另起 writer、覆盖产物、重装扩展，亦未把不同 ID 的静态快照加入 Profile03。
+
+本轮证据追加在[原摘要的 continuations](../evidence/background-migration-20261104.json)，实际检查明细为 `artifacts/webflow/background-migration-20261104/current-entry-01a1a2b9.json`。K01 部分完成；K02–K08 当前候选实网仍 **NOT_TESTED**，业务消息/新 Run 均为 0；K09 仅完成本次来源与阻塞记录。旧字段中的 owner/blocked/UI 忙均保留为历史时点，不能覆盖本节。现成两份提示词未发送、未重用，发送前仍须从当前可信生成动作产生新 ID 并核对实际安装任务。
+
+下一条操作仍是：UI 合法释放后取得本 owner 租约并准确绑定可见 Profile03，沿原共享 writer 取得包含后台迁移的当前日常候选（不重装、不绕过刷新保护），核对官方登录与真实安装百度任务，再做可信 UI 一次精确批准、关闭侧栏双轮。若候选更新确实要求改变“不得重启共享 writer”等当前边界，只暂停该动作并明确所需协调；不自行绕过。这个新目标的第一次入口阻塞审计保持 active，未提前设为 blocked 或 complete。
+
+
+**本新目标的连续三轮入口审计结论：** 首轮完成目标建立、Profile03 申请及日常候选缺口取证；第二轮对当前实时 UI owner 有界等待，仍 active/inProgress；第三轮再次用同一 turn 与 cursor 核对，仍 inProgress，UI 申请失败。最新磁盘 revision `8bd51efe934afb2c4c4ac2eb98e51589a6a5051c7ba677db7cc3cb373e0e5d15` 中，SW/可信 tool-shell 相关源码映射仍旧，14 个迁移输入无漂移；没有独立必要源码修复或失效测试可继续。相同实际阻塞已连续三轮，原生 `update_goal(status="blocked")` 回读确认为 **blocked**，原目标全文与 K01–K09 不变，未标完成。已通过本 owner 原 `release --name test-chatgpt-03` 正常释放未运行的 slot，返回 released；目录和登录数据保留，没有取得或释放他人的 UI 锁。恢复时需重新显式 acquire Profile03 及 UI，沿原 writer 取得当前迁移候选、绑定窗口并核对登录/实际安装任务，然后继续 K02–K04。未启动浏览器、未发送消息、未执行任务、未重跑测试或构建；K02–K08 实网仍 NOT_TESTED。源码、旧构建、传输冒烟与真实验收继续分开。后续停止轮询，不通过重复检查维持续跑。
+
+
+### 12.22 官方 ChatGPT 图片保存增量：核心链尚未完成（2026-11-04）
+
+**当前结果：官方新图与完整资源字节已证明；P0 固定流程保存、已安装 Native 核验及原聊天单次回传未完成；P1 未开始。** owner 为聊天 01a1a2b7-5802-74d0-944a-7bb6ad5027e8，原生 goal 最后实读 active。沿用本计划、原 Web Flow / 固定协议、Chrome downloads 和 Native files；不新建总计划、下载引擎、授权层或 MCP Tunnel。仅核心开发及必要验证，没有提交、推送、重装、新分支/worktree 或停止他人服务。
+
+**真实来源与本轮新证据：** 在官方 [原聊天](https://chatgpt.com/c/6aea2fc0-db1c-83e8-a953-15eeeed62e12) 只发送一次非敏感生成提示，得到白底蓝色卡通小猫、无文字或球。官方查看器的一次诊断下载已完成；保留原 Downloads 文件，并以 COPYFILE_EXCL 复制到批准目录的 official-source-probe.png，字节相同。macOS ImageIO 完整缓存解码及 CoreGraphics 光栅读取通过：PNG、1254×1254、1,367,957 字节，SHA256 为 0e9ae73bb864c59427f9e13b8ba905abab3f9ef0560fda5dfe1cd94dc4b0b05d。本轮又在原官网页面通过 CUA 操作 Console，对选中 gallery blob 做一次只读 fetch / digest；MIME、字节数、尺寸和 SHA 与官方完整下载逐项相同。先前“两个 blob URL 不同所以原资源映射未知”已被本张图片的字节证据解除，不继续沿用旧阻塞；此结论限当前已核对资源，不宣称任意 blob 都是完整生成图。
+
+**发现与最小实现：** 这是经审计第一方可信功能，业务 owner 为 projects/webflow/trusted/chatgpt-{image-page,images,images-ui}.js；settings.html#chatgpt-images 是原扩展的可信审阅页。继续复用 workspace-chatgpt 来源/回复/草稿入口、NativeConnection / File Workspace Service 和 Chrome downloads。公开下载能力没有可信落盘解码元数据，原 files.read 仅为 32768 字节文本合同，已证明的公共缺口限定为授权目录内只读 files.inspectImage。Browser 原链增补此方法，Native master 的 files_image_unix.go 复用 session / workspace grant / lease 和 descriptor-relative、no-follow、设备及硬链接保护，8 MiB 数据 / 16×1024×1024 像素上限、稳定快照和完整 PNG/JPEG 解码，返回可信路径、尺寸、字节数和 SHA，不传二进制或新增下载器。旧文本读写及 SHA 合同保持。
+
+**本轮实际 DOM 与摘要修复：** 官网助手节点现在仅有单个 UUID 的 data-chatgpt-search-message-ids，其直接父节点有唯一 assistant 角色标题；同一 complete turn 同时含 user / assistant，不能用宽祖先推断角色。共享读取器据此增加窄适配，并保留用户最新轮次、唯一完整代码块、嵌套来源、隐藏/引用、streaming 和请求 echo 检查。图片观察器要求完成的助手、明确 gallery / preview、精确图片 owner，拒绝引用、普通附件、未知 CDN、跨站或非 UUID blob；当前已证明官网形态的 same-origin blob 可作为显式选择。仅对选中资源读取有界流并计算摘要，异步后再查图片、文档、生成状态和尺寸。准备请求固定 expectedSha256；下载前复查同一消息/asset、SHA、字节、MIME、尺寸，独立 Native 读回必须匹配相同 SHA，防止同尺寸不同内容误报成功。固定协议只回显可信页字段，模型不能加 URL、Shell、授权或覆盖参数。
+
+**生命周期与零重放：** 原来源/document、Native session/grant 在最终边界回查；先持久 dispatch / delivery fence，Chrome 另存为使用新文件和 uniquify，已存在或错误文件拒绝。原下载 ACK 丢失、同路径未知结果、回填未知不换 request 绕过或重复执行；输入框草稿导致明确 NOT_DISPATCHED 时允许同一操作 ID 重试，真正 unknown / replay 仍保留 fence；过期仅允许查询原下载/已发送结果。结果草稿不等于送达，只有原聊天可见真实 resultId 才记 received。3 个业务文件仅按精确 Git blob 摘要准入原 settings / transport，UI 不进入 transport，错误目标、变更字节及 symlink 继续拒绝。
+
+**当前运行边界：** 原 PID 19312 watcher 曾自动产出包含图片协议的 settings / transport，仍使用 dist/development，没有第二 writer。完成本轮准入摘要后，仅触发原 watcher 重读配置（配置字节未变、原 PID 保留）；settings / transport 的 5 项适用 source map 输入已与当前源码逐字节相同。该证据证明持续开发产物同源，不证明浏览器已安全重载或 Native 已激活。扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf 与原 Native doctor / allowed_origins 配对；serve 已连接是上次 UI 观察，实际加载目录未从扩展详情重新证明。已安装 Native 仍为旧 build-cookie-service-20261031-a92036ec。独立官方完整签名 App 已构建成功，位于 Native 仓库 .runtime/tests/chatgpt-images-20261104/native-candidate/OpenDesk.app；主 App、vision / status helper 连续性通过，但 UI helper 从旧裸路径/identifier 迁移为嵌套 App / 新 identifier，整包连续性检查 FAIL。两包完整签名有效；该失败不是主程序签名失败，也不是 updater 强制的 Native 注册拦截，但不能宣称 GUI/TCC 连续性通过。不替换 signed bundle 内单个二进制，不放宽检查器。
+
+**真实链仍有具体阻塞：** 只读核查 Native Host PID 13799 没有可见本地 accepted client、网络连接或子进程，但仍连接共享 Chrome；原 status 不提供全局 idle 证明，不能排除 Chrome-originated pending AI。官方 browser update 要求原 Host/socket 退出，当前未确认所有消费者空闲，因而没有断开、停止或激活候选。另一次 Chrome downloads.download 精确 blob 诊断调出 Save As，但随后 AX 窗口变为 scrapyjs 文件名，未点保存、未猜测归属，结果 UNKNOWN，未重试。尝试绑定本任务扩展标签页时，浏览器安全工具明确拒绝 chrome-extension 协议并禁止换入口绕过；此后停止相关 UI 操作，没有从其他 surface 或命令继续访问。原生 UI 锁已通过本 owner 原命令释放；未知保存窗口和 DevTools 不冒称已关闭。下一条真实操作需要工具允许访问的可信审阅入口，以及共享 Native 连接可安全更新的明确空闲条件；不得通过手改配置、猜测下载归属或中断他人工作绕过。
+
+**验证范围：** 本轮先以失败测试复现摘要冲突、新 DOM 识别和引用图片误选，修复后图片/原 files/共享读取定向文件合计 87 PASS，来源准入定向 3 PASS，语法和 git diff --check 通过。共享读取器子 agent 另报告关联调用方定向合计 130 PASS。之前 Native TestNativeFilesInspectImage 主聊天新运行 PASS，子 agent 报告 files/lease/MCP 定向 race 与 vet PASS（race 有既有 LC_DYSYMTAB 警告），相关 Native 输入未变化，不重复构建或测试。无关 package brand 断言曾失败并保留，不宣称全 CI 通过。独立复查先提出图片 owner 歧义及明确未插入后无法重试两项 MEDIUM，均以失败回归复现并修复；同一 reviewer 复查无剩余具体 HIGH/MEDIUM，3 个定向回归通过。自动验证与源码审查均不替代真实 Chrome 下载完成、已安装 Native 联合核验或原聊天单次回执。
+
+已批准目录仍为 artifacts/chatgpt-images-20261104/workspace，workspaceId 为 workspace-9266be80-75fa-463a-bd51-b63e6444d22d。唯一已核对落盘文件是手动诊断 official-source-probe.png；它不算固定协议保存。原对话未发送固定保存请求或结果，P0 未完成，P1 尚未上传或编辑。安全入口恢复后从原图显式选择 / 新文件路径继续，取得真实下载 ID、独立读回及单次原聊天结果；P0 后再上传同一图做语义编辑、另存并核对原图不变。并行文本协议、后台迁移、共享 Chat 和其他改动保留。本机最新产物/源码摘要、检查与阻塞见[本轮证据](../../../artifacts/chatgpt-images-20261104/evidence.json)。
+
+
+**连续三轮阻塞审计结果：** 上一目标回合完成真实 blob / 官方原图字节比对、DOM / SHA / 重试边界修复及同源产物，属于 progress。本轮只读复核发现旧 PID 13799 已退出，但 Chrome PID 47748 已自动建立同一旧签名包的新 Host PID 20110，agent.sock 仍由其监听；不是得到安全维护窗口，亦不是新版 inspector 已激活。当前相关 Browser / Native 输入、5 项来源映射及原诊断文件均未变化，没有重复测试、构建、下载、浏览器动作或停止服务。共享 Native 安全更新条件未满足是从原始目标回合至本轮连续三轮的同一真实阻塞，工具禁止扩展协议访问的边界也仍有效，所请求的维护窗口 / 人工接管信息尚未收到。没有剩余可独立推进的必要修复，因此原生 update_goal(status="blocked") 已回读确认为 **blocked**；完整 P0/P1 目标保留，未标 complete 或用户 paused。P0 固定保存 / 已安装 Native 读回 / 原聊天单次回执仍未完成，P1 未开始。停止循环复查，待共享 Native 的安全维护条件及获准可信操作入口实际具备后，再恢复原图的新路径保存链；未知诊断下载只对账、不重放。详情记入本轮 evidence.json 的 blockedAudit。
+
+### 12.23 任务协议可读显示与内部编解码（2026-11-04）
+
+**当前操作与原因：** 用户看到的 `opendesk-task` JSON 将网址斜杠显示成 Unicode 转义。实际 `WebflowAutoSettings` 的“生成 ChatGPT 指令 / 复制指令 / 一次接入能力说明”组件入口复现了该行为：`AutoSettings.tsx` 主动改写全部斜杠，单次指令还额外改写反引号；原五字段解析器已经支持普通网址和合法 JSON 转义。历史为官网富链接和自动化发送见证添加的可见转义，被本轮用户要求取代。
+
+**归属与修复：** Web Flow 组合式应用的固定可信 Side Panel UI，owner 为 `projects/webflow/trusted/AutoSettings.tsx`，按 `opendesk-trusted-sidebar-feature` 处理。显示与剪贴板复用标准 `JSON.stringify`，返回复用原 Bridge / `validateWebFlowTaskIntent` 的 `JSON.parse`；没有公共 SDK 缺口，不新增 Framework API、解码器或安装器。网址、中文及普通标点直接显示，仅保留引号、反斜杠和换行必需的 JSON 语法处理，并在能力说明中要求 AI 同样输出可读 JSON。用户无需手工转码。原严格五字段、任务身份、权限与发送保护继续适用。
+
+**写入与验证：** 修改上述组件、原 `auto-settings-ui.test.mjs`、现用 `protocol-auto-first.prompt.txt` / `protocol-auto-followup.prompt.txt`、README、本节，以及 `scripts/bundle-provenance.mjs` 的该组件一条摘要。组件 Git blob 为 `3868a516fef337d7d7e62698a979538d08806cef`；真实 `describeBundle` 核验仅准入原 `ui/tool-shell.js`，错误 SW / Content / sidebar-tool-host 目标继续拒绝。现有三个行为用例先因可见网址转义而失败，修复后通过；随后 `node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/reply-admission.test.mjs` 共 43 PASS，覆盖显示/复制、中文/反引号/引号/反斜杠/字面转义值、普通与合法转义 JSON 内部解析等价、安装变化/撤销、唯一完整回复与防重放。原 esbuild 夹具只在内存编译组件。未改旧固定 candidateId 料件、历史证据或并行 background 料件。
+
+**运行与边界：** 保持 main 和全部并行改动，不提交/推送，不替换正式工具 JSON，不启动/停止/重启 watcher，不静态构建或写 `dist/development`，不发送浏览器/模型消息，不重放任务或重装工具。本轮是源码与内存组件验证；日常目录仍为仓库 `dist/development`，实际 Chrome 加载路径/ID、serve 连接、指纹及新源码是否安全应用未重查。真实 Chrome 新显示、粘贴发送及官网 AI 可读输出为 `NOT_TESTED`；production、评分和完整验收延期。后续只核对本次显示与复制变化，不恢复历史双轮执行等无关目标。
+
+**本目标续核：生成 → 官网代码块读取 → 严格解析（2026-11-04）：** 用户明确要求核对对应逻辑、提示词约束与转码风险，并建立完成目标；本聊天已通过原生 `create_goal` 建立本次可读协议目标，没有另建总计划。实际代码改动在 `AutoSettings.tsx` 的 `ApprovedTaskPrompt` / `ChatGPTConnection`：前者删除网址和反引号的额外改写，后者删除能力与批准范围 JSON 的斜杠改写，并增加可读 JSON 的 AI 约束。提示词提高模型输出一致性，程序的标准序列化、原始文本读取和严格校验负责正确性，不要求人工替换文本。
+
+现有链路为 `workspace-chatgpt.js` 从唯一完整助手代码块读取 `code.textContent` → Page / Background 原样传递 `candidateText` → `validateWebFlowTaskIntent` 对原始 JSON 文本解析。各边界会独立校验同一原始文本，不对已经解析的字符串再次 Unicode / HTML / URL 解码。旧 `opendesk-request` 手动 Bridge 的提示词属于另一协议，本轮不改。独立只读 reviewer 未发现本轮具体 HIGH / MEDIUM 问题；该结论不替代官网实测。
+
+在原 `reply-admission.test.mjs` 增加真实读取器与解析器联合回归：6 类参数 × 5 种合法 JSON 表达共 30 项子用例覆盖中文 / emoji / 组合字符、标点、字面反斜杠、实际控制字符、HTML-looking 数据与百分号文本；分散高亮文本节点合并后保持原始字节及解析值。另有 7 项子用例拒绝非法转义、Unicode 解码后重复键、二次编码 / Markdown / HTML 实体网址和超长 JSON，全部在授权或派发前失败。两份定向测试文件合计 **82 PASS**；随后发现并行 listener UI 源码变化，仅重跑本次显示 / 复制 / 能力说明 / 联合解析相关选择，**42 PASS**。没有为了本轮新增失败而改原生产解析器。
+
+真实无界面 CFT 154.0.8037.92 中，通过原组件及真实解析器完成生成 → 显示 → 原复制按钮 → 解析 → 新候选检查，标准 JSON 与合法斜杠转义解析值一致，中文、emoji、引号和字面反斜杠保留；授权 / 执行边界调用为零。安装、任务目录与剪贴板由夹具模拟，不是已安装扩展或系统剪贴板的证明。该组件候选为上文 `3868a516…` 源码；报告与截图位于 `artifacts/webflow/readable-json-01a1a54b/`。本 owner 正常申请已有空闲 Profile03，官网停在挑战页，未发送任何消息或任务；已正常关闭本 owner 的浏览器并释放租约，保留登录目录，没有操作其他 Profile 或 UI 锁。
+
+**当前应用边界：** 本次只读检查时，`dist/development/ui/tool-shell.js.map` 中该组件尚未与本次源码相同，锁文件记载的 PID 35137 已退出，43120 没有监听；同时其他 owner 正在修改同一文件的 listener 功能，源码已变化为 `2c16c6a6…`，原精确准入摘要仍为已复核的 `3868a516…`。这是检查时点的混合开发状态，不证明已安装扩展收到修改，也不授权本聊天替其他 owner 审核并更新整份文件摘要。保留并行变化、原输出和来源围栏，不启动新 writer、不覆盖产物。并行 owner 完成其源码与摘要集成后，沿正常持续开发入口安全应用；本次不恢复双轮任务、正式安装或 production 验收。官网 AI 本轮可读输出与已加载扩展的新链仍为 **NOT_TESTED**；已完成的源码及组件验证与这两项未测边界分开记录。
+
+**本目标收尾状态：** 源码修复、定向解析验证及真实 Chromium 组件验证已完成；原生 goal 保持 **active**，未把尚未进入日常产物的变更或官网受阻链标完成。15:05 CST 再次只读检查时，并行源码已变为 `f771f366…`，原准入摘要未变；日常 source map 中仍没有新的可读 JSON 逻辑。继续所需的是并行 UI owner 完成当前候选及精确摘要集成，然后核对正常开发产物与已加载扩展；官网挑战解除前只记录未测，不重发任务。本聊天停止修改共享组件和准入摘要，保留本轮回归与记录；单次状态摘要为 `artifacts/webflow/readable-json-01a1a54b/status.json`。没有重复构建、重跑无关测试或抢占并行资源。
+
+**连续三轮同一阻塞的审计结果（15:14 CST）：** 前轮完成源码与回归后，在两次原目标续跑中再次核对同一 UI 文件、精确准入和日常候选，并通过 `wait_threads` 确认实际 owner 聊天「Web Flow 监听状态与后台闭环（95+）」仍为 active / inProgress；等待超时未当作任务退出或重启理由。该 owner 仍在修复独立审查发现的未知回传 / 安全刷新问题。本轮先后检查源码 `f645ed7e…` / `27d7e6f5…`，均与原准入摘要 `3868a516…` 不匹配，日常 `ui/tool-shell.js.map` 已缺失，开发锁与 43120 监听均不存在；缺失产物只记为当前不可用，不推断损坏原因，不自行恢复共享 writer。没有剩余可独立推进的必要源码修复；源码生成、解析、防重放与组件证据复用，不重复测试。本目标原文保留，原生 `update_goal(status="blocked")` 已回读确认为 **blocked**，未标 complete 或 paused。待当前 UI owner 完成审核及源码/摘要集成、正常日常候选可用后，恢复本次已加载扩展的显示 / 复制 / 读取核对；官网挑战未解除仍记录 NOT_TESTED。实读状态与恢复入口追加在上述 `status.json`，此后停止循环等待，不占用其他浏览器、输出或文件。
+
+**用户恢复后的首轮核查（15:21 CST）：** 原生目标已由用户恢复 active，阻塞计数重新开始。实读源码仍为 `27d7e6f5…`、准入仍为 `3868a516…`，日常 source map / 开发锁缺失，43120 无监听；通过同一实际 owner 的 `wait_threads` 句柄确认其仍为 active / inProgress，独立复审后的安全刷新竞态仍在处理，原生 UI 租约现由该 owner 持有。完成一次 45 秒有界等待，没有把超时当任务退出，没有另起 writer、占用浏览器、复跑已通过测试或扩大写入。目标继续 active，完整范围不变；本轮为 verified wait，当前精确句柄及恢复审计已写入原 `status.json`。
+
+**恢复后的三轮审计结束（15:25 CST）：** 恢复首轮及两次续跑均以当前文件和同一 live peer 句柄核对，源码 `27d7e6f5…` / 准入 `3868a516…` 持续不匹配，日常 source map 与开发锁缺失、43120 无监听；peer 仍 active / inProgress，未完成候选集成。前轮为 verified wait，超时没有被解释为退出；本轮没有其他必要独立修复可做。原生 `update_goal(status="blocked")` 已再次确认 **blocked**，完整目标与官网 / 已加载扩展未测项不变。当前候选与来源摘要集成完成、正常开发产物可用后再恢复；不继续循环查询，不覆盖共享文件 / 输出，不另启 writer 或重放任务。准确审计与恢复条件保留在原 `status.json`。
+
+**再次恢复后的实际进展（15:31 CST）：** 本轮先确认原 owner 仍 active，再沿其实际开发进程等待，未另起 writer。原 owner 已将当前组件精确准入更新为 `27d7e6f577f161a5cb5b86f195c3c6775d4b84ee`，并通过原 `npm run dev` 启动 PID 87636 / 43120；此前的摘要与缺失产物阻塞已解除。日常候选 `8844987b8b6c806d43c1292dbd40a867a05c0e3e6e67a59063af5f3827b3a3cc` 的 tool-shell / page bridge / SW 三份文件 SHA 与同一前后稳定 revision 匹配，适用的组件、原回复读取器、五字段解析器和 Background adapter 共 8 项 source map 逐字同源，可读 JSON 已进入实际开发产物。鉴于并行监听 / 准入输入已合并，重跑本次相关 42 项显示 / 复制 / 合法与非法 JSON 联合检查，42 PASS / 0 FAIL；未跑全组 CI。本轮属于 progress，goal 已由用户恢复并保持 active，不能继续沿用旧 blocked 结论。当前原生 UI、Bridge 及开发输出由同一并行 owner 管理，已加载扩展身份 / revision 与官网本轮显示 / 回复读取仍待合法入口实测，未发送或重放任务。固定候选证据为原目录 `development-candidate.json`，最新状态同步至原 `status.json`；磁盘同源不等于浏览器已加载。
+
+**读取到授权准入的取值回归补齐（本轮 progress）：** 原 30 项合法表达用例只验证回复读取与五字段解析，还不能直接证明批准范围和实际 Controller 提交保留同一字面值。本轮仅扩展原 `reply-admission.test.mjs` 夹具的参数输入，并新增三种表达的联合行为用例：可读 JSON、JSON 斜杠转义、Unicode 斜杠转义分别经过原 DOM 读取、持续批准、持久准入、Controller 最终校验，中文 / 引号 / Windows 反斜杠路径 / 字面 `\u002f` / emoji 均保持原值，模拟提交各只调用一次；再提交被原防重放拒绝。先把参数中的字面转义错改成斜杠，最终准入会以 E_BRIDGE_CONTEXT 拒绝、零模拟提交且未消耗原提交围栏，随后原值仍可成功。原回复准入文件完整运行 **59 PASS / 0 FAIL**，含原撤权、来源与最终回答变更围栏；没有生产解码器或权限改动，没有真实任务执行。本轮继续 active。
+
+当前原生 UI owner 已能打开侧栏，但其最新实读进展报告 Chrome 对原聊天仍返回导航中，精确文档尚未确认；因此不能把源码 / 产物 / 夹具通过当作当前官网完整链。保留并行 owner 的浏览器和 watcher，不替其刷新或改用另一个文档重放。旧 8844987… 是已核对的磁盘候选；随后其他产物产生的新 revision 不自动继承浏览器已加载证明，也不触发本聊天重复构建或无关测试。
+
+**当前仅剩实站入口阻塞（15:43 CST）：** 原 59 项授权准入回归及界面 / 解析验证后，又在连续三轮目标回合核对同一实际 live owner 与入口。原 owner 已正常恢复开发 writer（当前 PID 93582 / 43120 LISTEN）；组件源码 / pin 均为 `27d7e6f5…` 且当前 UI source map 同源，旧“摘要或产物缺失”阻塞已解除，不再沿用。最新磁盘 revision 为 `1c9ace397e7a4f5f364891c351208e1b241add32171280a649d43fb6323a57b5`，没有据此宣称浏览器已加载。真实浏览器 UI 租约仍由同一 active / inProgress owner 持有，旧文档监听恢复和原请求对账尚未交出可用入口；本聊天不能独立确认当前官网完整链。没有其他必要源码修复或失效测试可独立推进，原生 `update_goal(status="blocked")` 已确认 **blocked**，完整目标及官网 / 已加载扩展的未测要求保留。等待合法可用入口和精确候选 / 文档身份后继续本次显示、复制和读取验证，不重放旧请求、不接管浏览器、不重启服务；当前逐项状态记录在原 `status.json` 的 runtimeAudit。
+
+### 12.24 系统 Chrome 实测失败与状态 UI 续接（2026-11-04）
+
+用户已明确允许控制已有系统 Chrome，并在看到“网页监听器未就绪，请刷新当前空闲对话”后要求在 Web Flow 中以图标、颜色及文字明确显示状态，采用 95 分以上方案，创建新对话继续完善。该最新要求覆盖旧 Profile03 限制和评分延期；仍不自动进入 production、全量 CI 或压力验收。
+
+本聊天 01a1a2b9-3b15-7a83-9c14-661dee32475d 使用 /Users/shopme/Applications/Google Chrome.app、原 dist/development 与实际扩展 ccfcjegpkdlgbclopjmadlcjedelidmf。经原打包器生成、36 项定向 UI/恢复用例通过后，在正常可信导入审阅中安装了 Web Flow 0.3.9 候选；工具目录正式包仍 0.3.8，未晋升。已安装 baidu.search.top3 实读为 1.1.2、revision 1、generation 2，原精确持续授权有效、自动开关原已开启，本聊天未改授权。0.3.9 手动任务 pin 为 1.1.3，不能当作实际安装证明或强制升级依据。
+
+在自有官方聊天 https://chatgpt.com/c/6aead398-7780-83ee-a9d8-9e296034aaa7 关闭侧栏后，一次发送新候选 wf-084e05c5-0230-44fc-9ecb-4f94cea6e759，官网返回完整五字段 JSON，随后出现 E_BRIDGE: Extension context invalidated。没有观察到百度执行、结果或回传；原持久账本尚未确认，不能把“未观察到”记成零执行。未重发、未重放；一次原生刷新点击也未证明文档已刷新。失败截图为 artifacts/webflow/background-migration-20261104/first-context-invalidated.png。下一步先只读核查原 request/Run/Result 与当前监听握手，再完善可信可访问状态和安全恢复，不能靠盲目刷新、重发或换 ID 重跑恢复未知请求。
+
+page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-page.js，旧 src 文件仅兼容 re-export；保留该迁移、可读 JSON、legacy overlay 清理及其他并行改动。当前磁盘 revision 为 09b5eb092fa30e3caf222df68ce55be9c2fd6e9af55168186f63522ebae046fa，但当前浏览器同版尚未重核。共享 watcher lock 仍记 PID 35137，交接时该 PID 未存活；未启动第二 writer、重启服务或覆盖输出。
+
+原生 UI 锁已通过本 owner 原命令正常释放；Profile03 自有进程停止、租约释放，保留登录目录；系统 Chrome、自有测试聊天和现有授权留给接收方，不关闭他人窗口。当前聊天原生 goal 实读仍 active，未完成、未暂停，工具不能改写正文；最新系统 Chrome 与评分要求尚未同步进旧 goal。创建新对话不代表生命周期已迁移，移交确认后旧聊天不重复操作该业务、浏览器或输出。独立评分尚未执行（NOT_SCORED），真实无侧栏双轮及后续拒绝/ACK/重启条件仍未完成。详细身份与事实追加在 background-migration-20261104.json 的最新 continuation；创建及首条正文核对结果随后另记。
+
+
+### 12.25 可信监听状态、安全恢复与原生工具阻塞（2026-11-04）
+
+本轮 owner 为 01a1a556-e7f9-7040-a201-f29deff0fd7a。用户要的监听状态已接入可信 Web Flow 头部：图标、颜色、文字和辅助技术状态同时表达；监听、授权、执行及交付分别核验，未知原请求保持独立记录。当前文档需通过一次新 nonce 握手，导航或迟到回复不能沿用绿色状态。刷新须真实用户手势、影响确认、一次性短时挑战和末次页面 / Native / Provider 空闲检查；刷新派发后的传输错误也保持准入围栏到挑战失效，不重试。原 history 成功才显示查询 URL 与数量，空数组明确不等于零执行。
+
+**当前真实用户操作证据：** 恢复原 npm run dev 的缺失产物后，原系统 Chrome 以原扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf 显示开发服务已连接，live revision 为 1c9ace397e7a4f5f364891c351208e1b241add32171280a649d43fb6323a57b5。日常目录仍为 dist/development。前一自有 writer 因 Node 默认 4GB 堆上限退出，确认无存活 writer 后以同一入口、进程级 8GB 堆恢复，现为 PID 93582；服务留运行，不改安装、路径、授权或模型路由。Bridge / tool-shell / SW 的 SHA 与同版 marker 一致，9 项相关 source map 内容逐字等于当前源码。
+
+旧会话的原请求 history 查询成功，当前精确 URL 返回 0 条；UI 如实显示“未找到记录不代表旧任务未执行；不会重跑或补发”。Developer 可见 Run 1f5f0a70-1fab-4d51-b143-476ac75cf6c1 的结果时间为昨天 2026-11-03T12:42:30.809Z，不能关联今天旧 candidate wf-084e05c5-0230-44fc-9ecb-4f94cea6e759。旧候选永久保留 UNKNOWN，本轮没有重发、补跑、交付或换 ID 重试它。原 tab 560069827 的浏览器自动化归属仍是前一会话；未转移。
+
+新建的同一历史聊天文档 tab 560069829 已原生显示“监听就绪 / 任务工作状态：空闲”，旧浮层不出现；旧回复按历史 / 未见证基线处理，没有新请求。安全刷新影响确认和确认按钮初始焦点已观察，点击一次后导航进入 pending，**未证明重载完成或重新握手**。另建 tab 560069830 打开 ChatGPT 新聊天，仅准备不含任务协议的消息；中文输入丢字、paste 及后续应用状态读取连续超时，未点击发送。当前草稿内容未核实，不得把这一环境阻塞归因为任务源码缺陷。本轮新任务候选提交数为 0。
+
+**定向源码验证：** 核心七文件 159 PASS / 0 FAIL；最后 historyRead 增量两文件 43 PASS / 0 FAIL（覆盖前组中的部分测试，数量不相加）。受影响 JS 语法和定向 diff 检查通过。独立审查已关闭所审源码中的 HIGH / MEDIUM，并认可三项精确 provenance pin；审查者未独立操作 Chrome。证据见 [listener-recovery-20261104.json](../evidence/listener-recovery-20261104.json)，含候选 SHA、source map 同源和原生事实边界。没有重跑全量 CI、生产构建、正式包晋升或提交。
+
+**未完成与接续：** 关闭侧栏的新业务两 Run、原 Run/Result 持久关联、资源释放、原聊天单次交付与完整刷新恢复仍未完成；整体目标不标完成，评分为 NOT_SCORED，不能宣称 ≥95。新验证必须是明确独立的新业务请求，不能补回旧 UNKNOWN。退役 owner 01a1a547-87d1-7432-9ea2-7ad0b7016f09 继续负责五场景和真实初始化次数；独立模块重复初始化探针只证明组件加固缺口，不是当前产品实际重复注入证据。原生 UI 已按本 owner 官方命令释放，返回 native_ui_owner: null；本轮停止原生操作，保留系统 Chrome、所有授权、并行 Profile 与服务。旧原生 goal 的生命周期没有由本轮迁移或改写。
+
+**接收对话实查（2026-11-04 17:14，owner `01a1a5d2-c10d-72a1-9740-4ee3204666fc`）：** Page 基础 blob 仍为 `dd8b7c56…`，已有两项安全修复补丁的 `git apply --check` 通过但尚未应用；退役 owner 最新 completed 回合只释放 UI，未明确移交 Page / 测试 / 单项 pin。已就这三处提出最小移交问题，等待明确答复，未修改产品源码或重复有效测试。原 writer PID 93582 存活，磁盘 revision 仍为 `09f51995…`。只读核对系统 Chrome PID 47748、Default 的扩展路径 `dist/development`、原扩展 ID 和 Native manifest allowed origin 一致；Native Host PID 15514 的父进程为该 Chrome。此配置与进程证据不等于 live serve / revision 通过。只读 AX 显示“需要刷新当前对话”，刷新因无法确认页面安全而禁用。另一个 listener UI 对话 `01a1a5c2…` 正在处理该真实握手步骤，不并发操作其窗口或发送候选；本对话没有取得 UI 租约、点击、输入或导航。两轮执行及完整刷新仍 NOT_TESTED，评分 NOT_SCORED，旧 UNKNOWN 未触碰。细节追加在原 [进度证据](../evidence/listener-recovery-goal-progress-20261104.json) 的 receivingThreadAudit；旧 goal 生命周期未改变。
+
+**三处移交后修复（2026-11-04 17:22，同接收 owner）：** 用户明确移交 Page Bridge、`sidebar-bridge.test.mjs` 和该 Page 的单项 provenance pin 后，重新核对基础摘要并应用已审查补丁，Page blob 为 `30aae9e6d3b422624a0f5c95b062eebfc6daaadd`，与最终审查候选相同。未结束的原生发送拒绝刷新；Navigation `navigate/currententrychange` 同步作废旧挑战并绑定导航代次与 currentEntry.key，缺少观测能力时保留只读握手但拒绝刷新，dispose 清理监听。实际产品三文件定向 76 PASS / 0 FAIL；实际 Host/Page 三个集成场景均拒绝刷新，reload / Run / delivery 各为 0；固定来源保护另 3 PASS / 0 FAIL。原 writer PID 93582 首次增量因缓存旧 pin 被门禁拒绝，仅通知其重读字节未变的配置后，原进程发布 `264c5f5669aaf611aba7292ba4ad8c1b500d21ed5b4426d814efc3fa2fbf51f4`。Bridge SHA 为 `56b65e739391da219719022b8d68f30408a65146edead2785b9e735c57d1a90d`；Bridge / tool-shell / SW SHA 均匹配 marker，9 项相关源码映射匹配当前源码。取得本对话 UI 租约后只读发现另一 listener 对话仍在同一 Chrome 的 DevTools 中操作，未点击或输入，已释放本租约；请求一次跨对话协调消息的明确授权。源码问题已在组件层修复，真实 isolated-world Navigation、安全刷新新文档握手、关闭侧栏双轮与独立评分仍 NOT_TESTED / NOT_SCORED；未提交、推送、重装或晋升正式包。
+
+### 12.26 事件驱动监听与异步完成唤醒（2026-11-04）
+
+本轮 owner 为 01a1a58c-a62a-7791-82d3-905abbce979c，用户要求优化看起来依靠刷新的监听。实际发现正常发送已有可信原生手势见证和 DOM 观察，但观察器只记录发现，准入仍由 850ms 轮询推进；输入属性、部分完成标记及 body 替换也可能等到轮询。刷新不是执行入口，历史 / 未见证提示是在阻止错误补跑，不能为消除提示而恢复旧候选。
+
+**最小修复：** 归属为现有第一方可信 Content 模块 `trusted/chatgpt-bridge-page.js`，不新增 SDK、Host 或安装器。DOM、输入、可见性、焦点及导航事件合并唤醒原检查函数，观察稳定的 documentElement 并补齐影响消息 / 输入资格的属性；只保留 5 秒巡检处理缺少事件的路由或属性变化。观察器仍立即捕获首发的临时路由用户消息，准入前继续精确复核。异步准备、执行、取消及交付结束时检查等待中的新请求；后台交付必须在原 owner 状态落定之后再唤醒。自有 UI 的 DOM 变化不触发反馈循环，dispose 移除事件并拒绝排队回调。事件不创造发送见证、权限或重放许可，UNKNOWN 保持原围栏。
+
+**验证与复查：** 新增本项目 `tests/listener-events.test.mjs` 的 9 项行为回归，保留真实 discovery / admission，仅模拟 Chrome 传输与 Node 无法提供的原生手势；测试不触发定时器，证明完整新回复直接准入、streaming / 非可信发送拒绝、两种执行 owner 只执行一次、延迟完成接续而 UNKNOWN 阻止、后台真实交付状态机完成后立即接续、输入属性 / body 替换和 dispose。先用失败回归证明轮询依赖及交付落定竞态，再完成修复。联合原首发、回复准入、Sidebar Bridge 与发现回归 **153 PASS / 0 FAIL**；固定来源准入 **3 PASS / 0 FAIL**，继续拒绝错误 bundle、变更字节及 symlink。根发现夹具仅补齐真实 runtime.getURL mock，以适配并行 owner 的恢复握手；保留其新增后台测试。相关 JS 语法检查通过。独立 reviewer 最终未发现本轮剩余具体回归；未重复全 CI、production 或评分。
+
+**运行与并行边界：** 保留监听恢复 owner 的可信 UI、握手 / 安全刷新及后台迁移。源码精确 pin 同步至 `scripts/bundle-provenance.mjs`，未放宽来源检查。原日常 writer PID 93582 曾因缓存旧摘要拒绝新 bridge；本轮仅通知同一 WXT 配置 watcher 重读（配置字节未变、Node PID 保留），未另起 writer、覆盖 dist、重装或修改授权。同一 PID 已发布开发候选 `09f519953ed11d693d165b444078822bf49ba2b6d5760043d1a678246d62ca9e`，页面 Bridge 的 source map 与当前源码逐字相同，文件 SHA256 `b61d21e9da463e8a3e9774a3bbc2c442196e71f7bf0b16d84c47a01cfa6c7efb` 与同版发布标记一致，配置重读后无构建错误；该证据与 Chrome 已加载 / 新任务实跑分开。本轮未占用原生浏览器、发送新业务或重放旧请求，真实 Chrome 新候选与后台双轮仍 NOT_TESTED。本轮无提交 / 推送，不接管其他聊天的 goal 或验收。
+
+**真实 UI 续接首轮（2026-11-04，owner `01a1a5c2-71a3-78b0-accd-0d78aaf4dbcd`）：** 下一条用户操作仍是在合法自有 ChatGPT 聊天正常发送新需求，验证完整回复无需刷新即可自动执行及回传，再验证第二条独立需求接续。本轮在 `main` 只读重核：writer PID 93582 存活，日常目录仍为 `dist/development`；稳定磁盘候选仍为 `09f519953ed1…`，Bridge 的精确 Git blob pin、source map 原文、bundle SHA256 和发布 marker 全部一致。相关输入未变，复用上轮定向回归证据，没有重复测试、构建或修改业务源码。这些事实仅证明源码与磁盘产物，Chrome 实际加载路径、ID、live revision、serve 连接及现行安装 / 批准均未由本轮 UI 核验。
+
+原生 UI 租约实读由 `01a1a56c-cc26-7062-936a-0d118040a842` 持有；该 owner 的原生聊天状态为 active / inProgress，正在合法操作其 CFT。一次 45 秒有界等待后，官方 `profiles.py ui-acquire` 仍返回 exit 1 / `native UI busy; do independent work, retry after owner releases`。本轮没有调用浏览器控制、接管窗口、释放他人租约或发送跨聊天消息，新业务发送数为 0。当前阻塞为 **BLOCKED_UI_LEASE**，不归因于监听源码，也不声称真实 UI 通过；双轮 Run / Result / released / 原聊天单次交付继续 **NOT_TESTED**。旧 `wf-084e05c5-0230-44fc-9ecb-4f94cea6e759` 继续 UNKNOWN，没有重发或补跑。合法 owner 释放后，由本聊天申请自己的 UI 租约并沿上述核心操作继续；不循环查询维持续跑，不恢复 production、评分或全矩阵。准确候选、租约失败与恢复条件保存在本机 `artifacts/webflow/listener-ui-01a1a5c2/status.json`；本轮未提交 / 推送，也未改变其他聊天的 goal 状态。
+
+
+**用户纠偏后的真实 UI 推进与参数校验修复（2026-11-04，同 owner `01a1a5c2…`）：** 用户明确 Skill 是可调整的协作指导。本轮已把个人 `chatgpt-test-profiles` Skill 改为按实际资源冲突协调：精确绑定的只读 / 独立页面工作继续，全局焦点与原生弹窗按实际占用串行；不抢注册表、不释放他人租约、不绕过工具明确拒绝。补充原生 app 句柄不等于新建 tab，输入前核对实际窗口 / 标签组 / 选中标签与 URL，超时后先核对部分执行结果。本轮确曾发现原生前台窗口与 API 新建 tab 不同，已纠正；不把纠正前窗口的观察当作新文档证据。原 `BLOCKED_UI_LEASE` 保留为历史申请结果，已不代表本轮整体进度。
+
+在系统 Chrome 的自有 `🧪 Web Flow 自动监听` 组、实际 tab `560069838`、原聊天 `https://chatgpt.com/c/6aeaf6d1-da80-83e8-8e7f-ccfe26c957e3`，完成一次能力说明，再正常发送一次“百度搜索 OpenDesk Browser / 前三条自然网页结果”。核对扩展实际 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、日常加载路径 `dist/development`、serve 已连接、live revision `264c5f56…`；既有 Task 1.1.2 / 精确参数批准有效且未更改。新文档显示监听就绪，原生发送被见证，完整 AI 候选 `wf-8d7c2a91-4e63-4f20-a85b-91c6e3d702bf` 无需刷新 / 重新检查即自动识别。随后当前任务显示 `E_SCHEMA：IndexedDB operation failed；未自动重试` 和“当前候选（尚无任务请求）”；原聊天账本查询为 0，不能据此推断零执行。没有第二条需求、手动采用、重发、补跑或交付；原旧候选 `wf-084e05c5…` 继续 UNKNOWN，新候选也保留未知围栏。原标签页已保留续接。
+
+**最小修复及定向证据：** 真实入口失败触发了现有 `src/native-agent/chatgpt-background-adapter.js` 的实际 verifier 回归，先得到 4 项失败：完整参数经 parser 排序为 `limit/query`，manifest 归一化为 `query/limit`，原 `JSON.stringify` 比较误判缺参；事务内普通 Error 又被原 storageError 包装为相同的通用 IndexedDB 错误。仅复用原 `canonical` 作值比较，并使用现有 `FoundationError` 保留校验错误；未改数据库、Host、权限、安装或未知重放逻辑。新增本项目 `tests/background-task-verification.test.mjs`，联合原后台 ledger / ingress 共 **30 PASS / 0 FAIL**，覆盖完整参数、遗漏默认参数、安装 pin 变更、精确站点、额外字段、固定 limit、停用和缺失安装，以及原未知 ACK 不重试。相关 JS 语法与定向差异检查通过。此夹具运行实际 verifier / 安装完整性检查和原存储错误投影，存储与资源为 Node 本地夹具，不宣称真实 IndexedDB / Native 成功。
+
+原 writer PID 93582 持续存活，自动发布开发产物 `c86970ed333d3ab0f9090b640ceb612ca83dca774f0ac7d128a21af308115661`；SW SHA256 `cb2c805c5d63b1346e0169484c54d9dff8c40f1763b1ccf0d5926f4f64ac9306` 与 marker 相同，adapter 的 source map 原文与修复源码逐字相同。未重启服务、另起构建或强制重载扩展；修复后的 Chrome live revision / 成功实跑尚未验证。失败图、AX 与完整本机进度在 `artifacts/webflow/listener-ui-01a1a5c2/actual-ui-progress.json` 及同目录 `first-candidate-failure.png/.txt`。下一步只读核对原 request / Run / Result 与安全的当前候选状态，不能通过刷新、重发或换 ID 补偿 UNKNOWN；关闭侧栏双轮、同 Run 持久结果 / released / 原聊天单次交付仍 **NOT_TESTED**。本轮保持 `main`，保留并行改动，无提交 / 推送、production 或评分。

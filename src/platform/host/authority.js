@@ -287,6 +287,16 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   const cloud = cloudFactory?.({storage,api,clock,assertHost,currentHost,resolveTask:tasks.resolveInstalledTask,emitToHost});
   const schedules=createScheduleService({storage,api,clock,session,assertHost,emitToHost});
   const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost,cloud,scheduled:schedules});
+  const unknownTaskChange={epoch:0,pending:0},installedTaskChanges=new Map();
+  // Internal final-check fence over the ORIGINAL installation mutations. It
+  // grants nothing and is never exposed as a page or SDK method.
+  function captureInstalledTaskFence(taskId){
+    const unknown=unknownTaskChange.epoch,ticket=installedTaskChanges.get(taskId)?.epoch;
+    const final=()=>invariant(!unknownTaskChange.pending&&!installedTaskChanges.get(taskId)?.pending&&
+      unknown===unknownTaskChange.epoch&&ticket===installedTaskChanges.get(taskId)?.epoch,
+      'E_REVISION','Installed task changed during verification');
+    final();return final;
+  }
   async function notifyTaskChanged(taskId){
     const hosts=await storage.transaction(['commandJournal'],'readonly',async tx=>
       (await tx.all('commandJournal')).filter(row=>row?.tag==='host'&&row.active&&
@@ -298,8 +308,19 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.
   return {...sdk, ...controller, ...tasks, ...Object.fromEntries(['saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState'].map(name=>[name,schedules[name]])), cloud, schedules,
-    ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,async(request,sender)=>{cloud?.invalidate();const outcome=await tasks[name](request,sender);
-      await notifyTaskChanged(request.taskId).catch(error=>console.warn('Installed task event',error));return outcome;} ])),
+    captureInstalledTaskFence,
+    ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,async(request,sender)=>{
+      let change=unknownTaskChange;
+      if(typeof request?.taskId==='string'&&request.taskId.trim()){
+        if(!installedTaskChanges.has(request.taskId))installedTaskChanges.set(request.taskId,{epoch:0,pending:0});
+        change=installedTaskChanges.get(request.taskId);
+      }
+      change.epoch++;change.pending++;
+      try{
+        cloud?.invalidate();const outcome=await tasks[name](request,sender);
+        await notifyTaskChanged(request.taskId).catch(error=>console.warn('Installed task event',error));return outcome;
+      }finally{change.pending--;}
+    } ])),
     ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
     registerHost, assertHost,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),

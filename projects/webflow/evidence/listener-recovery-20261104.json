@@ -1,0 +1,234 @@
+{
+  "schema": "opendesk.webflow.listener-recovery.evidence.v1",
+  "recordedAt": "2026-11-04T08:04:52.396Z",
+  "ownerThread": "01a1a556-e7f9-7040-a201-f29deff0fd7a",
+  "stage": "development",
+  "status": "SOURCE_AND_PARTIAL_NATIVE_VERIFIED",
+  "objectiveComplete": false,
+  "score": "NOT_SCORED",
+  "checkout": {
+    "branch": "main",
+    "observedHead": "98caa21c00890386a44d74c5bdcf520e896f2e0c",
+    "committedByThisThread": false,
+    "parallelChangesPreserved": true
+  },
+  "changes": [
+    "Trusted listener state is independent of authorization, task execution, delivery and original unknown history.",
+    "A live nonce probe binds current tab, exact conversation, document and extension runtime identity. Navigation and late responses invalidate prior readiness.",
+    "Refresh requires an explicit trusted gesture, impact confirmation, one-use short-lived challenge, fresh source validation and final page/Native/Provider idle checks.",
+    "Native and Provider admission share a refresh fence. An early transport rejection retains the fence until the dispatched page refresh deadline expires.",
+    "Original history includes legacy records without widening admission or inventing Run/Result identities. Only a successful history read may display its exact URL and count."
+  ],
+  "sourceBlobs": {
+    "projects/webflow/trusted/AutoSettings.tsx": "27d7e6f577f161a5cb5b86f195c3c6775d4b84ee",
+    "projects/webflow/trusted/CurrentTask.tsx": "4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e",
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "9e73dc14d58d0c23f73260126995141a101b5643",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "7b81bfc4d00208e84508fce2a5b3176a84636cc1",
+    "src/native-agent/chatgpt-bridge-trigger-gate.js": "8ad65012db2d510f85988cf7c1d984ba21731be2",
+    "src/native-agent/host-adapter.js": "bc05d64be3a70a908f9904a1ccb10e42bd5aee94",
+    "src/page-events/web-task-ingress.js": "7da33e2c2f5be3433687a8c54874d2321cd1f9b3",
+    "src/ui/ai/provider-runtime.js": "397f7e5afda0fcaa1e8ff4823f124cccfbade7da",
+    "src/ui/tool-shell.js": "0b2e943232fcd18970d68dd0498033304f3111ec"
+  },
+  "verification": {
+    "core": {
+      "command": "node --test projects/webflow/tests/auto-host.test.mjs projects/webflow/tests/sidebar-bridge.test.mjs projects/webflow/tests/chatgpt-background-ingress.test.mjs projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/native-agent-host.test.mjs",
+      "pass": 159,
+      "fail": 0,
+      "scope": "Before the final historyRead increment",
+      "log": "artifacts/webflow/listener-recovery-20261104/source-tests.log"
+    },
+    "finalIncrement": {
+      "command": "node --test projects/webflow/tests/auto-host.test.mjs projects/webflow/tests/current-task.test.mjs",
+      "pass": 43,
+      "fail": 0,
+      "scope": "Includes final successful-empty-history versus unread/failed query regressions; overlaps the core suite, do not sum counts.",
+      "log": "artifacts/webflow/listener-recovery-20261104/history-query-tests.log"
+    },
+    "syntax": "Relevant JavaScript node --check passed during implementation.",
+    "diffCheck": "PASS for affected source/test paths before this evidence-only append.",
+    "review": {
+      "agent": "01a1a55f-5c96-7753-9ffd-9f8f0abff36f",
+      "confirmedHigh": 0,
+      "confirmedMedium": 0,
+      "finalHistoryReadReviewed": true,
+      "nativeReview": "Evidence supplied by leader; reviewer did not independently operate Chrome.",
+      "score": "NOT_SCORED"
+    },
+    "bundle": {
+      "observedAt": "2026-11-04T07:47:18.623Z",
+      "revision": "1c9ace397e7a4f5f364891c351208e1b241add32171280a649d43fb6323a57b5",
+      "targets": {
+        "agents/chatgpt-fixed-bridge.js": {
+          "sha256": "83eaed50d931362e77b8a3d7182dff3ceec3b6964565244e005a6e4522b896b0",
+          "markerMatches": true,
+          "sources": [
+            {
+              "source": "projects/webflow/trusted/chatgpt-bridge-page.js",
+              "present": true,
+              "equalsCurrentSource": true
+            }
+          ]
+        },
+        "ui/tool-shell.js": {
+          "sha256": "29e0ed24da8ac54635d594839faa8f9c3989c6efba40bddf21dcedc8388cc3ec",
+          "markerMatches": true,
+          "sources": [
+            {
+              "source": "projects/webflow/trusted/AutoSettings.tsx",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "projects/webflow/trusted/CurrentTask.tsx",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "src/native-agent/chatgpt-fixed-bridge-host.js",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "src/ui/ai/provider-runtime.js",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "src/native-agent/host-adapter.js",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "src/ui/tool-shell.js",
+              "present": true,
+              "equalsCurrentSource": true
+            }
+          ]
+        },
+        "sw.js": {
+          "sha256": "d27d23824eb7f4d29e59c5ad3c387847ddd7808e0957ea07ca117427f81f84ca",
+          "markerMatches": true,
+          "sources": [
+            {
+              "source": "src/page-events/web-task-ingress.js",
+              "present": true,
+              "equalsCurrentSource": true
+            },
+            {
+              "source": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+              "present": true,
+              "equalsCurrentSource": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "environment": {
+    "chromeApp": "/Users/shopme/Applications/Google Chrome.app",
+    "chromeVersion": "156",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "dailyPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous development",
+    "liveRevisionObserved": "1c9ace397e7a4f5f364891c351208e1b241add32171280a649d43fb6323a57b5",
+    "serveObserved": "connected in native Debug UI after recovery",
+    "writer": {
+      "pid": 93582,
+      "entry": "npm run dev",
+      "nodeOptions": "--max-old-space-size=8192",
+      "session": 43144,
+      "log": "artifacts/webflow/listener-recovery-20261104/dev.log",
+      "leftRunning": true
+    },
+    "recovery": "Previous own writer 87636 hit the default 4GB V8 heap limit. Confirmed no remaining writer before restoring the same entry with process-scoped 8GB. No extension path, identity, permission or provider change.",
+    "installedWebflow": "0.3.9 candidate from predecessor; formal project package remains 0.3.8, not promoted.",
+    "taskGrant": {
+      "taskId": "baidu.search.top3",
+      "installedVersion": "1.1.2",
+      "generation": 2,
+      "revision": 1,
+      "args": {
+        "query": "OpenDesk Browser",
+        "limit": 3
+      },
+      "targetUrl": "https://www.baidu.com/",
+      "sourceOrigin": "https://chatgpt.com",
+      "observed": "Existing exact grant valid in native UI; unchanged by this thread."
+    }
+  },
+  "originalRequest": {
+    "candidateId": "wf-084e05c5-0230-44fc-9ecb-4f94cea6e759",
+    "url": "https://chatgpt.com/c/6aead398-7780-83ee-a9d8-9e296034aaa7",
+    "tabId": "560069827",
+    "status": "UNKNOWN",
+    "historyRead": {
+      "successful": true,
+      "filteredRows": 0,
+      "queryUrl": "https://chatgpt.com/c/6aead398-7780-83ee-a9d8-9e296034aaa7",
+      "zeroExecutionProven": false
+    },
+    "unrelatedRun": {
+      "runId": "1f5f0a70-1fab-4d51-b143-476ac75cf6c1",
+      "observedResultAt": "2026-11-03T12:42:30.809Z",
+      "observedState": "completed; resources released",
+      "associatedWithOriginalCandidate": false
+    },
+    "retried": false,
+    "replayed": false,
+    "resent": false,
+    "deliveryConfirmed": false,
+    "browserOwnership": "Browser API reported this tab owned by predecessor session 01a1a2b9-3b15-7a83-9c14-661dee32475d; no ownership transfer performed."
+  },
+  "nativeObservations": [
+    {
+      "case": "invalid legacy document",
+      "result": "Observed refresh-required with disabled refresh and visible explanation that draft/IME/in-flight safety could not be confirmed. No green readiness."
+    },
+    {
+      "case": "successful empty original history",
+      "result": "UI displayed 0 records, exact original chat URL, and explicit warning that empty history does not mean the old task did not execute."
+    },
+    {
+      "case": "fresh document of same historical chat",
+      "tabId": "560069829",
+      "result": "Observed listener ready and task idle, no legacy overlay, and historical/unwitnessed reply baseline explicitly produced no new request."
+    },
+    {
+      "case": "safe refresh confirmation on fresh document",
+      "tabId": "560069829",
+      "result": "Confirmation impact text and initial confirm-button focus observed; confirm clicked once. Navigation became pending. Reload completion and new-document handshake NOT_CONFIRMED."
+    },
+    {
+      "case": "independent new chat preparation",
+      "tabId": "560069830",
+      "url": "https://chatgpt.com/",
+      "result": "New page loaded. Preparation text contained no task protocol. Native typeText dropped Chinese characters, paste timed out; final draft content unread. Send was never clicked."
+    }
+  ],
+  "blockers": [
+    "Browser control getTab/getJsDialog and eventually native getApp repeatedly timed out at 30 seconds. No lower-level/private or CDP fallback used.",
+    "Native screenshots failed with native_hook_stdin_oversized; no screenshot artifact claimed.",
+    "Safe refresh did not produce verified completed navigation or a subsequent ready handshake.",
+    "No new candidate or task message was sent by this thread; closed-sidebar two-run proof, durable Run/Result correlation, resource release and single original-chat delivery remain NOT_TESTED."
+  ],
+  "deferred": {
+    "legacyRetirement": {
+      "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+      "fiveNativeScenarios": "NOT_TESTED here; retained by retirement owner.",
+      "initializationCount": "NOT_TESTED in real Chrome. Separate module-evaluation probe shows hardening gap; actual manifest currently single static entry and no demonstrated duplicate injection."
+    },
+    "production": "NOT_TESTED",
+    "packagePromotion": "NOT_PERFORMED",
+    "providerOrRoutingChanges": "NONE",
+    "predecessorGoal": "Not migrated, paused or marked complete by this chat; predecessor last observed active."
+  },
+  "resourceBoundary": {
+    "nativeUiLease": "Released using profiles.py with this exact owner; native_ui_owner returned null.",
+    "dailyWriter": "Leave running; other owners must not start a competing writer.",
+    "sourceOwnership": "At evidence capture page/AutoSettings/CurrentTask/Host and three provenance pins still held by this owner; bounded page singleton handoff announced separately after capture.",
+    "unrelatedProfiles": "Untouched",
+    "newMessagesSent": 0,
+    "newCandidatesSubmitted": 0
+  }
+}
