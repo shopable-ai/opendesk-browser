@@ -1,0 +1,14 @@
+{
+  "threadId": "01a1a581-1e75-7821-8ada-211862559ee9",
+  "hostId": "local",
+  "verified": true,
+  "characters": 4046,
+  "readbackSource": "read_thread first turn functionCallOutput codex_app.create_thread <input>",
+  "originalGoalStatusAtCreation": "active",
+  "initialInputIsUserMessageItem": false,
+  "title": "OpenDesk Native 多浏览器与多扩展连接隔离",
+  "project": "/Users/shopme/Documents/workspace/opendesk",
+  "newThreadGoalStatus": "NOT_READ",
+  "executionObserved": "active; initial repository and Native entry inspection",
+  "scope": "Separate Native client coexistence work; does not replace or complete the legacy-overlay acceptance goal"
+}

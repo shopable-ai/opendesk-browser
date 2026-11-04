@@ -1,0 +1,86 @@
+{
+  "recordedAt": "2026-11-04T07:30:43.174856+00:00",
+  "level": "SOURCE_IMPLEMENTED",
+  "runtimeLevel": "NOT_TESTED",
+  "revision": "8844987b8b6c806d43c1292dbd40a867a05c0e3e6e67a59063af5f3827b3a3cc",
+  "publicationUnchangedDuringRead": true,
+  "outputs": [
+    {
+      "target": "agents/chatgpt-fixed-bridge.js",
+      "sha256": "4ef9b121cccf6b71f245bd13c9e6947c56c7e2ad70b88b070cb47f29b69354ed",
+      "matchesPublication": true,
+      "sources": [
+        {
+          "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "4a2dfd4a300d2c949f74d6c7c7211812fa2f9a9cdcfa98093c675c35e0cc5d21"
+        },
+        {
+          "path": "projects/webflow/trusted/chatgpt-bridge-page.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "fd1ac258d7dad67cf29aa22b45a26bec5f4c96ddc5545180c6ef5ba806bf844a"
+        },
+        {
+          "path": "projects/webflow/trusted/legacy-chatgpt-panel.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2"
+        }
+      ]
+    },
+    {
+      "target": "ui/tool-shell.js",
+      "sha256": "57fea6ed6360f602e8d5b28548aab3c73b0da494b89640968a48f2c2ba9660f4",
+      "matchesPublication": true,
+      "sources": [
+        {
+          "path": "projects/webflow/trusted/CurrentTask.tsx",
+          "matchesCurrentSource": true,
+          "sourceSha256": "5e1c6cdc8fe08681079c684135e8b752e79b9ea6e535e23992409e8ff3181788"
+        },
+        {
+          "path": "projects/webflow/trusted/AutoSettings.tsx",
+          "matchesCurrentSource": true,
+          "sourceSha256": "c16009f5c99f07bb73635799e7017072b04b2b16ef933ee5976463ecae8cd732"
+        },
+        {
+          "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "4a2dfd4a300d2c949f74d6c7c7211812fa2f9a9cdcfa98093c675c35e0cc5d21"
+        },
+        {
+          "path": "src/native-agent/chatgpt-fixed-bridge-host.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "533923ba53057e6f713e958e7c35f15e7ce990b59b8e1661606af1604a102431"
+        }
+      ]
+    },
+    {
+      "target": "sw.js",
+      "sha256": "d27d23824eb7f4d29e59c5ad3c387847ddd7808e0957ea07ca117427f81f84ca",
+      "matchesPublication": true,
+      "sources": [
+        {
+          "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "4a2dfd4a300d2c949f74d6c7c7211812fa2f9a9cdcfa98093c675c35e0cc5d21"
+        },
+        {
+          "path": "src/native-agent/chatgpt-fixed-bridge-host.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "533923ba53057e6f713e958e7c35f15e7ce990b59b8e1661606af1604a102431"
+        },
+        {
+          "path": "src/native-agent/chatgpt-background-adapter.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "79538ae9af74eddafc3fa05dc6f8730ff7a3ea34a364b7aee9861edd2e8deaac"
+        },
+        {
+          "path": "src/page-events/web-task-ingress.js",
+          "matchesCurrentSource": true,
+          "sourceSha256": "b7a1bbd5abc59a7c5dace4700b89c355f1df78cff17edf3a28d237ddc7c410d5"
+        }
+      ]
+    }
+  ],
+  "limit": "Disk publication/source map proof only; not Chrome loaded version, serve-client connection, authorization, task execution or delivery."
+}

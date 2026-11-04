@@ -1,0 +1,38 @@
+{
+  "recordedAt": "2026-11-04T07:33:25.481803+00:00",
+  "command": [
+    "node",
+    "--test",
+    "projects/webflow/tests/chatgpt-legacy-panel.test.mjs",
+    "tests/environment/webflow-fixed-source.test.mjs",
+    "tests/environment/chatgpt-fixed-bridge-r13.test.mjs",
+    "tests/environment/chatgpt-independent-task-intent.test.mjs",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs",
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs"
+  ],
+  "exitCode": 0,
+  "counts": {
+    "tests": 111,
+    "pass": 111,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "sourceFingerprints": {
+    "projects/webflow/tests/chatgpt-legacy-panel.test.mjs": "a2860db6b96697a7edf3175762dfc29837ff2f707247c97f8d819357cb9307be",
+    "tests/environment/webflow-fixed-source.test.mjs": "7ddba79165d85d37135e418af89e6597fa5b91fab55b3145ebe59c310eee72c4",
+    "tests/environment/chatgpt-fixed-bridge-r13.test.mjs": "44edb72790cb6c416ccf423d9eae0b7b5498ca861bf4acfa8e9fbd2f8bceffd7",
+    "tests/environment/chatgpt-independent-task-intent.test.mjs": "f769c31cbfb94aedad6eb8a44140d390416de217965aaafe2695665a6e374f9b",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs": "a510c4ea454e6bc3949a254cd3a7ac2126919a03d820d231062d3519c72dc5b3",
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs": "30e0338ad5c24fe0549368f4107056874cd9475f940b0766d12d08a455548fde",
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "fd1ac258d7dad67cf29aa22b45a26bec5f4c96ddc5545180c6ef5ba806bf844a",
+    "projects/webflow/trusted/legacy-chatgpt-panel.js": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2",
+    "scripts/bundle-provenance.mjs": "7351095c8351b422e5314e6572aff87d6afac40deedca4e895a3a2edf8d16288",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "533923ba53057e6f713e958e7c35f15e7ce990b59b8e1661606af1604a102431",
+    "src/native-agent/chatgpt-bridge-trigger-gate.js": "4a2dfd4a300d2c949f74d6c7c7211812fa2f9a9cdcfa98093c675c35e0cc5d21"
+  },
+  "changedDuringRun": [],
+  "level": "COMPONENT_TESTED",
+  "native": "NOT_TESTED",
+  "logFormat": "Node default spec reporter; filename does not imply TAP syntax"
+}
