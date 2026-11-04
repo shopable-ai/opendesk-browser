@@ -8,19 +8,20 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawn,execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-import {installationRoot} from '../installation-root.mjs';
+import {loadGoInstall,resolveNativeConnection,verifyConnectionAuth} from './native-connections.mjs';
+export {loadGoInstall} from './native-connections.mjs';
 import {readCliIdentity,formatCliVersion} from './cli-identity.mjs';
 import {diagnoseInstallation,formatDiagnostic} from './installation-diagnostics.mjs';
 
 const APP='OpenDesk Browser 本地目录直连 R17.1';
 const MAX_WIRE=60*1024;
-const EXTENSION=/^[a-p]{32}$/;
 const SOURCE=/^source-[a-f0-9]{24}$/;
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 export const HELP=`${APP}
 用法：
   opendesk-dev [目录]          临时读写接入指定目录，省略则使用当前目录
   opendesk-dev --read-only [目录]  明确申请只读；权限不匹配时拒绝
+  opendesk-dev --connection <32hex|legacy> [--read-only] [目录]  明确选择 Native 连接
   opendesk-dev -- <特殊目录>   明确将 - 开头的名称当作目录
   opendesk-dev --register-go  注册已安装的 npm CLI，供 opendesk browser 使用
   opendesk-dev --version [--json]  实际包版本、内容指纹和安装路径
@@ -31,6 +32,7 @@ export const HELP=`${APP}
 实际权限由 Go 返回，同目录重复启动不改变原会话权限。只有合法
 OpenDesk 项目清单才会提供运行绑定；不会自动运行 npm 或网页业务。
 按 Ctrl+C 仅结束本进程拥有的临时来源。
+多个 Native 连接时须用 --connection <32hex|legacy> 或 OPENDESK_NATIVE_CONNECTION 明确选择。
 `;
 function problem(code,message){return Object.assign(new Error(message||code),{code});}
 export function assertSupportedNodeVersion(value=process.versions.node){
@@ -55,8 +57,13 @@ export function parseArgs(argv){
     }
     return parsed;
   }
-  let access='read-write';
-  if(args[0]==='--read-only'){access='read-only';args=args.slice(1);}
+  let access='read-write',connection;
+  while(args[0]?.startsWith('-')&&args[0]!=='--'){
+    if(args[0]==='--read-only'&&access!=='read-only'){access='read-only';args=args.slice(1);}
+    else if(args[0]==='--connection'&&connection===undefined&&(args[1]==='legacy'||/^[a-f0-9]{32}$/.test(args[1]||''))){
+      connection=args[1];args=args.slice(2);
+    }else throw problem('E_SCHEMA','不支持、重复或无效的参数：'+args[0]);
+  }
   if(args[0]==='--'){
     if(args.length!==2||!args[1])throw problem('E_SCHEMA','-- 后必须明确提供一个目录路径');
     args=args.slice(1);
@@ -64,38 +71,7 @@ export function parseArgs(argv){
   else if(args[0]?.startsWith('-'))throw problem('E_SCHEMA','不支持的参数：'+args[0]);
   if(args.length>1||args.some(x=>!x||x.includes('\u0000')))
     throw problem('E_SCHEMA','只能指定一个目录；包含空格或中文的路径请整体作为一个参数传入。');
-  return {action:'attach',dir:args[0]||'.',access};
-}
-function trustedFile(file,mode,owner=true){
-  const stat=fs.lstatSync(file);
-  if(!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o077)!==0&&mode===0o600||
-    owner&&process.getuid&&stat.uid!==process.getuid())
-    throw problem('E_INSTALL_PERMISSIONS','本机安装配置不符合权限要求');
-  return stat;
-}
-export function loadGoInstall(home=os.homedir(),{instance=process.env.OPENDESK_NATIVE_INSTANCE}={}){
-  const root=installationRoot({home,instance});
-  for(const dir of [...new Set([path.join(home,'.opendesk-browser'),path.dirname(root),root])]){
-    const info=fs.lstatSync(dir);
-    if(!info.isDirectory()||info.isSymbolicLink()||(info.mode&0o077)!==0||
-      process.getuid&&info.uid!==process.getuid())
-      throw problem('E_INSTALL_PERMISSIONS','本机 OpenDesk Native 配置目录不安全');
-  }
-  const file=path.join(root,'install.json');const info=trustedFile(file,0o600);
-  if(info.size>16384)throw problem('E_INSTALL_INVALID','安装配置过大');
-  const raw=JSON.parse(fs.readFileSync(file,'utf8')),cfg={};
-  // Go writes lower-camel JSON; keep old CLI fixtures/configs compatible.
-  for(const [field,key] of Object.entries({Provider:'provider',InstallRoot:'installRoot',SocketPath:'socketPath',ExtensionID:'extensionId',ClientCredential:'clientCredential',Browser:'browser',UserDataDir:'userDataDir'})){
-    if(Object.hasOwn(raw,key)&&Object.hasOwn(raw,field)&&raw[key]!==raw[field])throw problem('E_INSTALL_INVALID','安装配置字段冲突');
-    cfg[field]=Object.hasOwn(raw,key)?raw[key]:raw[field];
-  }
-  if(cfg.Provider!=='opendesk'||cfg.InstallRoot!==root||
-    cfg.SocketPath!==path.join(root,'agent.sock')||!EXTENSION.test(cfg.ExtensionID||'')||
-    !/^[a-f0-9]{64}$/.test(cfg.ClientCredential||'')||
-    !['chrome','cft'].includes(cfg.Browser))
-    throw problem('E_MIGRATION_REQUIRED','需要受信 Go OpenDesk Native Host；不自动迁移旧 Node Host');
-  return {socketPath:cfg.SocketPath,clientCredential:cfg.ClientCredential,
-    extensionId:cfg.ExtensionID,browser:cfg.Browser,userDataDir:cfg.UserDataDir||''};
+  return {action:'attach',dir:args[0]||'.',access,...(connection===undefined?{}:{connection})};
 }
 function canonicalDirectory(requested){
   let absolute=path.resolve(requested);
@@ -170,8 +146,8 @@ export function attachOnce(cfg,absolute,{timeoutMs=2500,access='read-write',conn
         catch{fail('E_SCHEMA','Native 回包不是有效 JSON');return;}
         buffer=buffer.subarray(split+1);
         if(state===0){
-          if(message?.kind!=='authenticated'||message.v!==1){fail('E_NATIVE_AUTH','Host 验证未通过');return;}
-          if(!message.browserReady){fail('E_NATIVE_NOT_READY','扩展尚未完成 Native 连接');return;}
+          try{verifyConnectionAuth(cfg,message);}
+          catch(error){fail(error.code,error.message);return;}
           if(message.localDevMultiVersion!==1||message.localFilesVersion!==1||message.localDevAccessVersion!==1){
             fail('E_NATIVE_UPDATE_REQUIRED','OpenDesk Host 或浏览器扩展缺少 R17 访问级别协商；请更新受影响组件并重新加载');return;
           }
@@ -200,6 +176,7 @@ function macBundleIdentifier(app){
 export function workspaceOpenCommand(cfg,sourceId,{platform=process.platform,homeDirectory=os.homedir(),
   bundleIdentifier=macBundleIdentifier,exists=fs.existsSync}={}){
   const url='chrome-extension://'+cfg.extensionId+'/native-agent/workspace.html?sourceId='+sourceId;
+  if(cfg.connectionId!==undefined)throw problem('E_PROFILE_TARGET','Native 连接未提供可信 Chrome Profile 路由；请在所选连接的 Chrome Profile 手动打开：'+url);
   if(cfg.userDataDir)throw problem('E_PROFILE_TARGET','使用了自定义 Chrome Profile，无法保证自动打开正确实例；可在已配对浏览器打开：'+url);
   let executable,args;
   if(platform==='darwin'){
@@ -273,7 +250,8 @@ export function createOwnerLifecycle(socket,{signals=process,onClose=()=>{}}={})
       finish('cleanup');
     }};
 }
-export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdout,stderr=process.stderr,identityRoot,diagnosticOptions={}}={}){
+export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdout,stderr=process.stderr,identityRoot,diagnosticOptions={},
+  launchWorkspace=openWorkspace,signals=process}={}){
   try{
     const parsed=parseArgs(argv);
     if(parsed.action==='help'){stdout.write(HELP);return 0;}
@@ -288,15 +266,22 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
     }
     assertSupportedNodeVersion();
     if(parsed.action==='register'){safeRegister();stdout.write('已登记受信 npm CLI 入口。可使用 opendesk browser。\n');return 0;}
-    const cfg=loadGoInstall(),{absolute,stat}=canonicalDirectory(parsed.dir);
+    const connection=parsed.connection??process.env.OPENDESK_NATIVE_CONNECTION;
+    const cfg=await resolveNativeConnection(os.homedir(),{connection});
+    const {absolute,stat}=canonicalDirectory(parsed.dir);
     const sourceId=idForPath(cfg,absolute,stat);
+    const manualWorkspace=cfg.connectionId===undefined?null:
+      '未自动打开浏览器：Native 连接不包含可信 Chrome Profile 路由。请在所选连接 '+cfg.connectionId+
+      ' 的 Chrome Profile 手动打开 Workspace：chrome-extension://'+cfg.extensionId+
+      '/native-agent/workspace.html?sourceId='+sourceId+'\n';
+    if(cfg.connectionId)stdout.write('已选择 Native 连接：'+cfg.connectionId+' · 扩展 '+cfg.extensionId+'\n');
     stdout.write('请求接入目录：'+absolute+'（仅此目录，本次会话'+(parsed.access==='read-only'?'只读':'读写')+'）\n');
     let attached,launched=false,openError=null;
     try{attached=await attachOnce(cfg,absolute,{timeoutMs:1500,access:parsed.access});}
     catch(err){
-      if(err.code!=='E_NATIVE_NOT_READY')throw err;
+      if(err.code!=='E_NATIVE_NOT_READY'||cfg.connectionId!==undefined||connection!==undefined)throw err;
       stdout.write('正在等待已配对的浏览器扩展建立 Native 连接…\n');
-      try{await openWorkspace(cfg,sourceId);launched=true;}
+      try{await launchWorkspace(cfg,sourceId);launched=true;}
       catch(error){openError=error;stderr.write(error.code+': '+error.message+'\n');}
       const deadline=Date.now()+9000;
       while(Date.now()<deadline&&!attached){
@@ -317,11 +302,12 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
     if(reply.alreadyActive){
       socket.end();
       stdout.write('此目录已经由另一个 CLI 会话接入；本命令不抢占、不重复登记。\n');
-      if(!launched){try{await openWorkspace(cfg,sourceId);}catch(error){stderr.write(error.code+': '+error.message+'\n');return 2;}}
+      if(manualWorkspace)stdout.write(manualWorkspace);
+      else if(!launched){try{await launchWorkspace(cfg,sourceId);}catch(error){stderr.write(error.code+': '+error.message+'\n');return 2;}}
       return openError?2:0;
     }
     let session;
-    const owner=createOwnerLifecycle(socket,{onClose:()=>session?.close()});
+    const owner=createOwnerLifecycle(socket,{signals,onClose:()=>session?.close()});
     try{
       owner.assertOpen();
       const manifest=await owner.during(providerManifest(absolute));
@@ -346,13 +332,13 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       stdout.write('目录已登记：'+reply.name+' · 工作区 '+reply.workspaceId+
         ' · '+(reply.access==='read-write'?'读写':'只读')+'\n');
       if(!manifest.runnable)stdout.write('文件工作区可用，未配置可运行程序。'+(manifest.reason||'')+'\n');
-      if(!launched){
-        try{await owner.during(openWorkspace(cfg,sourceId));launched=true;}
+      if(!launched&&!manualWorkspace){
+        try{await owner.during(launchWorkspace(cfg,sourceId));launched=true;}
         catch(error){owner.assertOpen();openError=error;stderr.write(error.code+': '+error.message+'\n');}
       }
       owner.assertOpen();
-      stdout.write(launched?'已请求在已配对 Chrome 中打开对应 Workspace（由浏览器确认页面是否打开）。\n':
-        '未能自动打开浏览器，可在已配对 Chrome 手动打开 Workspace。\n');
+      stdout.write(manualWorkspace||(launched?'已请求在已配对 Chrome 中打开对应 Workspace（由浏览器确认页面是否打开）。\n':
+        '未能自动打开浏览器，可在已配对 Chrome 手动打开 Workspace。\n'));
       if(manifest.runnable){
         stdout.write(providerStatus?.connected?
           '可运行源码 Provider 已通过 Native Host 注册；浏览器工作台仍需明确点击运行。\n':

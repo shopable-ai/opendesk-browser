@@ -34,9 +34,19 @@ opendesk browser dev -- "-special-folder"
 opendesk-dev -- "-special-folder"
 ```
 
-CLI 默认前台运行，打开 **现有** `native-agent/workspace.html` 页面并用不透明 `sourceId` 定位目录。无需先打开 Sidebar、运行 Codex、注册 MCP、手动执行 `Command.run()`、启动目录 HTTP 服务器或安装项目依赖。普通 Markdown/HTML 目录可只使用文件工作区，不会猜测 JS 入口、不读取任意 `npm scripts` 并执行。
+CLI 默认前台运行，使用 **现有** `native-agent/workspace.html` 页面并用不透明 `sourceId` 定位目录。旧单 Host 路径沿用自动打开；scoped 连接须在所选 Chrome Profile 手动打开 CLI 输出的 Workspace URL，详见下节。无需先打开 Sidebar、运行 Codex、注册 MCP、手动执行 `Command.run()`、启动目录 HTTP 服务器或安装项目依赖。普通 Markdown/HTML 目录可只使用文件工作区，不会猜测 JS 入口、不读取任意 `npm scripts` 并执行。
 
 `opendesk browser` **裸命令** 等价于 `opendesk browser dev .`；其它原有 `setup/update/doctor/cleanup/workspace/project/ai/native-host/bridge.status/run.*/page.*` 子命令仍分别分派，未知子命令不会被当目录授权。`--help`、`help`、`--version` 不启动来源、不打开窗口、不修改授权。
+
+### 同一安装的多个 Native 连接（2026-11-04 源码合同）
+
+多个真实 Chrome Profiles 或已批准扩展 ID 可以各自拥有 scoped Native 连接；连接 ID 只固定 Native Authority，不提供可信 OS Profile 启动路由。在要接入的项目目录执行 `opendesk-dev --connection <实际32位小写hex连接ID> .`；需要只读时执行 `opendesk-dev --connection <实际连接ID> --read-only .`。也可设置 `OPENDESK_NATIVE_CONNECTION`，命令行 `--connection` 优先。旧单 Host 可显式选择 `opendesk-dev --connection legacy .`；`legacy` 不是其他连接失效时的回退目标。
+
+自动发现遇到多个候选（包括与 scoped 并存的 legacy socket）会在探测前拒绝，要求明确选择；唯一 scoped 候选也必须通过只认证的就绪及 connectionId/extensionId 核验，attach 时再次核验身份，才发送 `dev.attach`。显式连接缺失、失效或未就绪时停止，不换目标，也不以启动浏览器重试。Node 发现当前安装的 `revoked` publication 时保守报 `E_CONNECTION_REVOKED` 并停止整次选择，不因它被撤销而自动选另一 Profile；不删除记录。Go 负责自身撤权和记录生命周期。
+
+scoped 接入成功后，新 lease 保持前台连接直到停止；目录已有 owner 时只报告复用，不抢 lease。两种情况均不调用浏览器 launcher，均输出须在所选连接的 Chrome Profile 手动打开的完整 Workspace URL，不声称已经打开。权限、凭据、Provider 和 sourceId 固定在所选连接，不跨 scope 继承。
+
+上述为 CLI 源码与隔离 Unix socket 组件合同；不证明本机已安装新版 CLI/Go、Chrome 已加载对应产物或最新四项安全补丁已通过真实多 Profile 验证。构建、安装、真实 Chrome 和正式发布须分别取证。
 
 ## 从源码安装当前本地 npm CLI（不发布）
 
@@ -105,7 +115,7 @@ R17 使用已有 Go 文件服务、Workspace、Node `LocalDevResolver`、原 Bro
 
 ## Workspace 和浏览器程序
 
-默认打开原 `native-agent/workspace.html` **完整标签页**，不是自动弹出 Chrome Side Panel。文件列表、源码编辑、Markdown/HTML 静态预览、对照、另存为、写入读回和冲突提示复用已有实现。侧栏需用户点击「在侧栏打开」；入口把当前已核验的 `workspaceId` 显式传入文件 Workspace URL，不能依赖“最近选中目录”。不能伪造用户手势。Workspace 是扩展页面，**不能成为业务运行目标**；业务程序按原工作台和已授权的真实目标网页运行。
+Workspace 使用原 `native-agent/workspace.html` **完整标签页**；旧单 Host 默认请求打开，scoped 连接按上节手动打开，均不自动弹出 Chrome Side Panel。文件列表、源码编辑、Markdown/HTML 静态预览、对照、另存为、写入读回和冲突提示复用已有实现。侧栏需用户点击「在侧栏打开」；入口把当前已核验的 `workspaceId` 显式传入文件 Workspace URL，不能依赖“最近选中目录”。不能伪造用户手势。Workspace 是扩展页面，**不能成为业务运行目标**；业务程序按原工作台和已授权的真实目标网页运行。
 
 历史名称是展示缓存，不是磁盘或运行权限。未连接显示「尚未连接本机」，已连接无目录显示「尚无已接入目录」；离线列表注明「待连接核验」，不拿缓存访问文件。掉线、迟到响应和 Host 重启后清除旧操作能力并保留名称与草稿；A 离线、全部目录暂空、B 再上线也不自动改选 B。新连接须重读文件；过期 AI 草稿须重新建立请求和审阅，或明确「丢弃草稿并重读」。Demo 内存文件仅用于独立演示构建，正式扩展缺 API/断线不能退回演示数据。
 
