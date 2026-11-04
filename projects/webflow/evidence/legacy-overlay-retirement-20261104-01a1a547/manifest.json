@@ -1,0 +1,105 @@
+{
+  "recordedAt": "2026-11-04T06:57:04.171573+00:00",
+  "files": [
+    {
+      "name": "acceptance.json",
+      "sha256": "b42cde0c9e78add24fc5e7552631609eddca53f8230b7e61a7faad2c1961a4dc",
+      "bytes": 8067
+    },
+    {
+      "name": "baseline.json",
+      "sha256": "b4bc3472890b7bddd240fe85510b9b05e7d7acc9ebd0888645d3699c85f34816",
+      "bytes": 3751
+    },
+    {
+      "name": "chrome-challenge.png",
+      "sha256": "c8ceaa8561dbaa930285718b080ec157f7099610c32db2f6ad40fb920495f17e",
+      "bytes": 8087
+    },
+    {
+      "name": "chrome-entry.json",
+      "sha256": "eeb4d4347ab79bbd1b3c102b5d376fc0d4d6573748368e5afacf52d0b84a602e",
+      "bytes": 733
+    },
+    {
+      "name": "duplicate-initialization-probe.mjs",
+      "sha256": "e2721b9fc20359091a6c6f8d735b936cab9d77475f301d175ffcac44e85aa3eb",
+      "bytes": 1968
+    },
+    {
+      "name": "duplicate-initialization.json",
+      "sha256": "faab10dc1c6d237eccc0b90342c3a1bfec27718111096486d45d64d97bc66680",
+      "bytes": 493
+    },
+    {
+      "name": "node-tests.tap",
+      "sha256": "9a7ebf8c5c3e161579db8b6d4a36e0bf17a02c73e2708dd1a59a1c5275a2e988",
+      "bytes": 9982
+    },
+    {
+      "name": "report.zh-CN.md",
+      "sha256": "b3809e2d6c5ce07308b1c68031b509bfd8a3c4de149c651b40378a97cb75b169",
+      "bytes": 7478
+    },
+    {
+      "name": "review-architecture-final.md",
+      "sha256": "34c7c990f268c089b487d11132864eeefc089bec3f55fe77c6d5940c8a2f4c30",
+      "bytes": 673
+    },
+    {
+      "name": "review-architecture.md",
+      "sha256": "965963c96249ea097893e8941103dc51a1fc4fec88ee1018e513954f724092cf",
+      "bytes": 1382
+    },
+    {
+      "name": "review-chrome.md",
+      "sha256": "c0b83f15a93a540cc2e87827d545b85820a7185609b3a9fac7326a6b78e8c869",
+      "bytes": 1402
+    },
+    {
+      "name": "review-critic.md",
+      "sha256": "58a7a186def2ece041d428f7e89625fe2db244e626914e8dec1616b3351abc7f",
+      "bytes": 1284
+    },
+    {
+      "name": "review-mv3.md",
+      "sha256": "f3d87a995fc258dc7f9bb9ef533f15730109fb507991d676e83185986d46864f",
+      "bytes": 1756
+    },
+    {
+      "name": "review-product.md",
+      "sha256": "fa81a0749ee3a02a0a6a6f52a8bb657dc476364dd810af6621b79c755fbcf385",
+      "bytes": 1472
+    },
+    {
+      "name": "review-quality.md",
+      "sha256": "b4fac0e69292ce5c670151e0c8cd835f7fe5039fd274e903be9de6d745f5007f",
+      "bytes": 1195
+    },
+    {
+      "name": "review-security.md",
+      "sha256": "2068942998cfe484ce3b6bd3592e7776b169dfea2bf5df13f31ac6bd46d7d191",
+      "bytes": 1856
+    },
+    {
+      "name": "scores.json",
+      "sha256": "446f263271858b5719c98fb9907456ff27f557ae08cf910aaeed7556e5540f5f",
+      "bytes": 1715
+    },
+    {
+      "name": "site-regression-after.tap",
+      "sha256": "08a27c30af6fa50c4752c1fedca8b0a934200af6aaba647923f2b5819e78cd22",
+      "bytes": 2163
+    },
+    {
+      "name": "site-regression-before.tap",
+      "sha256": "9add241518e03ddd920c7980c8f539b82ab0b4288ed858550857f4bbc733cde6",
+      "bytes": 3813
+    },
+    {
+      "name": "stale-output.json",
+      "sha256": "04e818e9092ea216fc89289162bb61fadd660869fc20864faed831048f3e9b02",
+      "bytes": 1309
+    }
+  ]
+}

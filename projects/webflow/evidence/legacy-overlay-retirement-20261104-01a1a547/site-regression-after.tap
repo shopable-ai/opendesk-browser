@@ -1,0 +1,28 @@
+✔ adapter exposes only inspect/prepare/commit/confirm and has no independent program imports (3.537875ms)
+✔ focus restoring any draft, attachment, file or second editor cannot overwrite native content (2.790875ms)
+✔ prepare uses one focus and exact browser edit readback; lossy writes never permit send (1.057916ms)
+✔ an empty official ProseMirror paragraph is empty while whitespace and multiline drafts remain exact (0.179917ms)
+✔ pure line-break drafts never become empty or permit a browser write (0.185625ms)
+✔ official markdown paragraphs preserve source newlines and exact spaces without CSS spacing (0.132875ms)
+✔ native markdown insertion requires exact paragraph readback before admitting a send token (3.719833ms)
+✔ commit permits waiting only before click; success and throwing clicks consume the token once (0.329084ms)
+✔ changed native draft, attachments, history node or history text deny commit (0.579417ms)
+✔ confirm requires exact historical user node and text prefix plus exactly one new result (0.217583ms)
+✔ confirm permits eviction only of an old history prefix while retaining the exact current turn (0.173834ms)
+✔ deny-only claim survives unknown outcomes, empty scripted changes and synthetic input (15.446791ms)
+✔ unknown click followed by browser-generated input keeps the result claim (0.850458ms)
+✔ native keyboard edit requires matching type and data before releasing a claim (33.239584ms)
+✔ only a native composition transaction changing the same editor releases its claim (0.263792ms)
+✔ blurred keyboard intent cannot release the claim before its task timer expires (11.122875ms)
+✔ cancelled keydown cannot lend its intent to a browser editing command (16.604166ms)
+✔ IME cancellation, lost focus or unrelated draft changes cannot release the result claim (0.932042ms)
+✔ confirmed success releases only an empty same native composer; navigation releases stale claim (0.323792ms)
+✔ synchronous browser editing input cannot release the claim on partial insertion (0.257542ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 160.130084

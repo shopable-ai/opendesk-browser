@@ -1,0 +1,20 @@
+{
+  "level": "COMPONENT_TESTED",
+  "firstInstance": true,
+  "secondInstance": true,
+  "afterFirst": {
+    "runtimeListeners": 1,
+    "intervals": 1,
+    "mounts": 0
+  },
+  "afterSecond": {
+    "runtimeListeners": 2,
+    "intervals": 2,
+    "mounts": 0
+  },
+  "duplicateInitializationObserved": true,
+  "tasksStarted": 0,
+  "messagesSent": 0,
+  "nativeStatus": "NOT_TESTED",
+  "limit": "Two independent module evaluations simulate bundle reinjection; this does not prove native task replay."
+}

@@ -1,0 +1,56 @@
+{
+  "scale": 100,
+  "scope": "Current local retirement acceptance; not a source-only design score",
+  "reviews": [
+    {
+      "perspective": "产品与交互体验",
+      "score": 40,
+      "agentId": "01a1a553-18e9-7201-8c39-776a1f8aa2e5",
+      "evidence": "review-product.md"
+    },
+    {
+      "perspective": "系统架构与源码归属",
+      "score": 54,
+      "agentId": "01a1a54c-e540-7570-bc2d-39157082292b",
+      "evidence": "review-architecture-final.md"
+    },
+    {
+      "perspective": "Chrome MV3 生命周期",
+      "score": 68,
+      "agentId": "01a1a54c-e732-7132-9dbe-59c218707bcb",
+      "evidence": "review-mv3.md"
+    },
+    {
+      "perspective": "权限、安全与防重放",
+      "score": 62,
+      "agentId": "01a1a54c-e636-7161-962a-0129692a9b2c",
+      "evidence": "review-security.md"
+    },
+    {
+      "perspective": "回归兼容与工程质量",
+      "score": 74,
+      "agentId": "01a1a553-b30b-76e3-a353-dcdc8d037f08",
+      "evidence": "review-quality.md"
+    },
+    {
+      "perspective": "真实 Chrome 测试与证据",
+      "score": 15,
+      "agentId": "01a1a554-5b9d-7af0-ab9f-c3d0f9ffb96f",
+      "evidence": "review-chrome.md"
+    },
+    {
+      "perspective": "独立综合反方",
+      "score": 45,
+      "agentId": "01a1a555-a031-7b81-9dd6-846ccc3c0e5c",
+      "evidence": "review-critic.md"
+    }
+  ],
+  "sum": 358,
+  "denominator": 7,
+  "average": 51.142857142857146,
+  "averageRounded": 51.14,
+  "averageThreshold": 95,
+  "criticalDimensionsThreshold": 95,
+  "passed": false,
+  "independentProcess": "Fresh agent contexts for each perspective; no peer scores supplied/read; architecture same reviewer addendum after test-only fix and duplicate probe."
+}

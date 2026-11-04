@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-11-04T06:48:20.615128+00:00",
+  "classification": "STALE_DEVELOPMENT_OUTPUT",
+  "mapSha256": "fe869aa4c77b6f9c03be5512c704e2c84541106f4c9758972e731c228dbdb913",
+  "projectBridgeInMap": false,
+  "legacyMountSource": [
+    {
+      "line": 201,
+      "text": "  if(doc.getElementById('opendesk-fixed-bridge-r12'))return null;"
+    },
+    {
+      "line": 203,
+      "text": "  root.id='opendesk-fixed-bridge-r12';"
+    },
+    {
+      "line": 212,
+      "text": "  heading.textContent='OpenDesk · 浏览器任务';"
+    },
+    {
+      "line": 268,
+      "text": "  (doc.body||doc.documentElement).append(root);"
+    }
+  ],
+  "parallelNativeScreenshot": {
+    "path": "artifacts/webflow/background-migration-20261104/first-context-invalidated.png",
+    "sha256": "eaa4a9a1525defbcdefccfc2aaaa2ff798bfc8680c423444c66f20d2545d10d5",
+    "mtimeUtc": "2026-11-04T06:42:43.344943+00:00",
+    "observed": "Real ChatGPT page displays OpenDesk · 浏览器任务 and E_BRIDGE: Extension context invalidated; 未自动重试",
+    "owner": "01a1a2b9-3b15-7a83-9c14-661dee32475d",
+    "scope": "Reused single native failure image; not our UI operation or five lifecycle cases"
+  },
+  "lockPid": 35137,
+  "lockPidAlive": false,
+  "serveConnection": "NOT_TESTED",
+  "mayOverwriteSharedOutput": false
+}

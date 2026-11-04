@@ -1,0 +1,55 @@
+✖ adapter exposes only inspect/prepare/commit/confirm and has no independent program imports (4.483125ms)
+✔ focus restoring any draft, attachment, file or second editor cannot overwrite native content (1.314333ms)
+✔ prepare uses one focus and exact browser edit readback; lossy writes never permit send (0.172709ms)
+✔ an empty official ProseMirror paragraph is empty while whitespace and multiline drafts remain exact (0.117875ms)
+✔ pure line-break drafts never become empty or permit a browser write (0.136209ms)
+✔ official markdown paragraphs preserve source newlines and exact spaces without CSS spacing (0.113583ms)
+✔ native markdown insertion requires exact paragraph readback before admitting a send token (0.221417ms)
+✔ commit permits waiting only before click; success and throwing clicks consume the token once (0.113792ms)
+✔ changed native draft, attachments, history node or history text deny commit (0.166959ms)
+✔ confirm requires exact historical user node and text prefix plus exactly one new result (0.17125ms)
+✔ confirm permits eviction only of an old history prefix while retaining the exact current turn (0.150292ms)
+✔ deny-only claim survives unknown outcomes, empty scripted changes and synthetic input (6.008209ms)
+✔ unknown click followed by browser-generated input keeps the result claim (0.238833ms)
+✔ native keyboard edit requires matching type and data before releasing a claim (28.393708ms)
+✔ only a native composition transaction changing the same editor releases its claim (0.316958ms)
+✔ blurred keyboard intent cannot release the claim before its task timer expires (13.159833ms)
+✔ cancelled keydown cannot lend its intent to a browser editing command (17.886625ms)
+✔ IME cancellation, lost focus or unrelated draft changes cannot release the result claim (0.833ms)
+✔ confirmed success releases only an empty same native composer; navigation releases stale claim (0.294417ms)
+✔ synchronous browser editing input cannot release the claim on partial insertion (0.135792ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 19
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 143.788417
+
+✖ failing tests:
+
+test at tests/environment/chatgpt-bridge-site-r13.test.mjs:36:1
+✖ adapter exposes only inspect/prepare/commit/confirm and has no independent program imports (4.483125ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /from '\.\/chatgpt-bridge-site.js'/. Input:
+  
+  '// Compatibility exports; business site adapter and retired page UI are Web Flow-owned.\n' +
+    '// This first-party entry keeps callers stable without hosting a second implementation.\n' +
+    'export {\n' +
+    '  prepareChatGPTBridgeDraft,\n' +
+    '  claimChatGPTBridgeComposer,\n' +
+    '  isChatGPTBridgeContinuation,\n' +
+    '  bridgePrompt,\n' +
+    '  initChatGPTFixedBridgePage\n' +
+    "} from '../../projects/webflow/trusted/chatgpt-bridge-page.js';\n"
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/chatgpt-bridge-site-r13.test.mjs:39:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "// Compatibility exports; business site adapter and retired page UI are Web Flow-owned.\n// This first-party entry keeps callers stable without hosting a second implementation.\nexport {\n  prepareChatGPTBridgeDraft,\n  claimChatGPTBridgeComposer,\n  isChatGPTBridgeContinuation,\n  bridgePrompt,\n  initChatGPTFixedBridgePage\n} from '../../projects/webflow/trusted/chatgpt-bridge-page.js';\n",
+    expected: /from '\.\/chatgpt-bridge-site.js'/,
+    operator: 'match',
+    diff: 'simple'
+  }

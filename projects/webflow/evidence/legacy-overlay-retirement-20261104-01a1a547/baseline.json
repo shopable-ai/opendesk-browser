@@ -1,0 +1,93 @@
+{
+  "recordedAt": "2026-11-04T06:46:56.100927+00:00",
+  "head": "a0f40d4eec5413faf553df7d60169e750dd2988b",
+  "branch": "main",
+  "remoteMainObserved": "2bcaf9372295df7d42f3016095d7f149cb25b489",
+  "relatedInputs": [
+    {
+      "path": "src/native-agent/chatgpt-fixed-bridge-page.js",
+      "sha256": "f02ae215456b445f68a69c1d51c9d637f0033f5f8c237cdb67dc9f63e9f63139",
+      "blob": "de3f93cf8217c335d3880dab87cbb5ca59e61122",
+      "sameAsCIBaseline": true,
+      "mtimeUtc": "2026-11-04T06:39:19.349787+00:00"
+    },
+    {
+      "path": "src/entrypoints/chatgpt-fixed-bridge.js",
+      "sha256": "715a3528b7590f1fc1cede8894ef00d786183d08bcd164ea3db9ecf0065af402",
+      "blob": "5ad8f496701380bb190d1ece4132e862e0ca87d0",
+      "sameAsCIBaseline": true,
+      "mtimeUtc": "2026-11-03T14:06:51.777820+00:00"
+    },
+    {
+      "path": "src/page-events/chatgpt-runtime.js",
+      "sha256": "b44357d247186f5598cfdd8c814c6af4eadeed5b7b9af7ea9c4b4da655537494",
+      "blob": "9b472b961e043d7bb580d0a5f6b204686f7251ee",
+      "sameAsCIBaseline": true,
+      "mtimeUtc": "2026-11-03T07:27:28.682685+00:00"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "sha256": "fa8c5ecf4b5578277474d513850b69d2fb6adc4e320c85c09e3f0764275f5061",
+      "blob": "ed212248c11358786aa56bdfa7f85870ba0703d7",
+      "sameAsCIBaseline": false,
+      "mtimeUtc": "2026-11-04T06:39:19.429017+00:00"
+    },
+    {
+      "path": "projects/webflow/trusted/legacy-chatgpt-panel.js",
+      "sha256": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2",
+      "blob": "c25df281a5df633afad53c94c8dc1ad04ba1d0da",
+      "sameAsCIBaseline": true,
+      "mtimeUtc": "2026-11-04T06:39:19.349257+00:00"
+    },
+    {
+      "path": "scripts/bundle-provenance.mjs",
+      "sha256": "e28138f7f30b91565a04fa5773dfb5f29b384783783aeec0a66c024472ac2f10",
+      "blob": "0e3122a396a95fec57ad0a4c1680c1b80c2fda20",
+      "sameAsCIBaseline": false,
+      "mtimeUtc": "2026-11-04T06:39:19.429166+00:00"
+    }
+  ],
+  "bundles": [
+    {
+      "path": "agents/chatgpt-fixed-bridge.js",
+      "sha256": "1242586b1ee7bb7d318a23c1c93eb9dd4e572ac1863327e49a729ae139a8a565",
+      "mtimeUtc": "2026-11-04T06:35:54.809064+00:00",
+      "reviewedInputs": [
+        {
+          "path": "src/native-agent/chatgpt-fixed-bridge-page.js",
+          "currentSourceMatches": false
+        },
+        {
+          "path": "src/page-events/chatgpt-runtime.js",
+          "currentSourceMatches": true
+        },
+        {
+          "path": "src/entrypoints/chatgpt-fixed-bridge.js",
+          "currentSourceMatches": true
+        }
+      ]
+    },
+    {
+      "path": "sw.js",
+      "sha256": "d26ade403c8a64c7e4609ad88104900910fe1bbe3c0ecf71612e646573717c3c",
+      "mtimeUtc": "2026-11-04T06:29:32.506561+00:00",
+      "reviewedInputs": []
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "sha256": "b74b4ecf3b884a5eae036946984b40b0271b11a64fa4001f70c1f70011d627eb",
+      "mtimeUtc": "2026-11-04T06:29:55.308948+00:00",
+      "reviewedInputs": []
+    }
+  ],
+  "dirtyAtStart": "Multiple parallel modifications including bridge, provenance, execution-plan; untouched by this task.",
+  "dailyExtensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "dailyExtensionIdFromSecurePreferences": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "liveLoadedPathAndDevClient": "NOT_TESTED; preferences are configuration evidence only; UI owned by background migration.",
+  "developmentPublicationMarker": {
+    "revision": "09b5eb092fa30e3caf222df68ce55be9c2fd6e9af55168186f63522ebae046fa",
+    "bridgeHash": "1242586b1ee7bb7d318a23c1c93eb9dd4e572ac1863327e49a729ae139a8a565",
+    "markerMatchesDiskBridge": true,
+    "serveConnectionVerified": false
+  }
+}

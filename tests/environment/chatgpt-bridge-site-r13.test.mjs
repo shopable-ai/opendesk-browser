@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createChatGPTBridgeSite} from '../../src/native-agent/chatgpt-bridge-site.js';
 import {claimChatGPTBridgeComposer} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
+import * as compatibilityBridge from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
+import * as projectBridge from '../../projects/webflow/trusted/chatgpt-bridge-page.js';
 
 // DOM component evidence only; does not prove live ChatGPT selectors or editing.
 const attr='data-opendesk-composer-owner';
@@ -35,8 +37,10 @@ function fixture(){
 
 test('adapter exposes only inspect/prepare/commit/confirm and has no independent program imports',async()=>{
   assert.deepEqual(Object.keys(fixture().site),['inspect','prepare','commit','confirm']);
-  const source=await readFile(new URL('../../src/native-agent/chatgpt-fixed-bridge-page.js',import.meta.url),'utf8');
-  assert.match(source,/from '\.\/chatgpt-bridge-site.js'/);
+  assert.deepEqual(Object.keys(compatibilityBridge),Object.keys(projectBridge));
+  for(const name of Object.keys(projectBridge))assert.equal(compatibilityBridge[name],projectBridge[name]);
+  const source=await readFile(new URL('../../projects/webflow/trusted/chatgpt-bridge-page.js',import.meta.url),'utf8');
+  assert.match(source,/from '\.\.\/\.\.\/\.\.\/src\/native-agent\/chatgpt-bridge-site.js'/);
   assert.doesNotMatch(source,/examples\/programs/);
 });
 test('focus restoring any draft, attachment, file or second editor cannot overwrite native content',()=>{

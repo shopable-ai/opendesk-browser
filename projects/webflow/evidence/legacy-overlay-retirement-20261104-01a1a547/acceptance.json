@@ -1,0 +1,191 @@
+{
+  "taskId": "WF-LEGACY-CHATGPT-OVERLAY-RETIREMENT-ACCEPTANCE",
+  "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+  "recordedAt": "2026-11-04T06:49:47.687181+00:00",
+  "scope": "Acceptance only; no migration rewrite or business source edits",
+  "writeOwnership": [
+    "projects/webflow/evidence/legacy-overlay-retirement-20261104-01a1a547/",
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs"
+  ],
+  "currentStage": "Independent review complete; native blocked; test-only delta ready for scoped commit",
+  "historicalReuse": {
+    "commits": [
+      "9dd521e33cec8dbca324731d41586e9273ac1a12",
+      "2bcaf9372295df7d42f3016095d7f149cb25b489"
+    ],
+    "ancestorOfLocalHEAD": true,
+    "ci": "https://github.com/shopable-ai/opendesk-browser/actions/runs/41696130272",
+    "bridgeTests": {
+      "pass": 93,
+      "provenance": "user-provided historical CI result; no rerun and not current dirty tree"
+    },
+    "productionBuild": "Historical PASS; not proof of current local disk or Chrome"
+  },
+  "componentTests": {
+    "command": "node --test projects/webflow/tests/chatgpt-legacy-panel.test.mjs tests/environment/webflow-fixed-source.test.mjs tests/environment/chatgpt-fixed-bridge-r13.test.mjs tests/environment/chatgpt-independent-task-intent.test.mjs tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs",
+    "pass": 91,
+    "fail": 0,
+    "skip": 0,
+    "log": "node-tests.tap",
+    "reason": "Current bridge/provenance changed relative to CI baseline; verify hidden panel, compatibility, discovery, cancel and admission fences",
+    "level": "COMPONENT_TESTED"
+  },
+  "nativeChecks": [
+    {
+      "behavior": "Old overlay absent in first/history/new/reload/reopen ChatGPT",
+      "status": "BLOCKED",
+      "evidence": "stale-output.json",
+      "reason": "Reused native screenshot shows old panel; local dev bundle contains old mounting implementation. Profile03 independently encountered site challenge; no authenticated native sequence performed."
+    },
+    {
+      "behavior": "New permitted natural-language task, exactly one real run, durable result, release, original-chat single delivery and AI continuation",
+      "status": "NOT_TESTED",
+      "reason": "Native UI/approved installed task and live browser owned by parallel background migration; it recorded Extension context invalidated, no local success established."
+    },
+    {
+      "behavior": "History/duplicate/reference/stream/range/revocation/identity/UNKNOWN rejection",
+      "status": "COMPONENT_TESTED",
+      "nativeStatus": "NOT_TESTED",
+      "reason": "91 targeted tests are not Chrome safety acceptance."
+    },
+    {
+      "behavior": "Side Panel closed execution and delivery",
+      "status": "BLOCKED",
+      "owner": "01a1a2b9-3b15-7a83-9c14-661dee32475d",
+      "reason": "Independent Background/RunHost workflow; no new runner or scheduler."
+    }
+  ],
+  "realTaskIdentity": {
+    "candidateId": null,
+    "requestId": null,
+    "runId": null,
+    "resultId": null,
+    "tasksStartedByThisChat": 0,
+    "messagesSentByThisChat": 0,
+    "unknownReplay": false
+  },
+  "conflicts": [
+    {
+      "files": [
+        "projects/webflow/trusted/chatgpt-bridge-page.js",
+        "scripts/bundle-provenance.mjs",
+        "projects/webflow/docs/execution-plan.zh-CN.md"
+      ],
+      "owner": "Parallel background, files/images and provenance work; no single source writer handover received",
+      "action": "Read-only; no edits or stage/commit of existing dirty files"
+    },
+    {
+      "resource": "daily dist/development + native UI + approved installed-task browser",
+      "owner": "Active background migration workflow",
+      "action": "No restart, rebuild, extension reload or output overwrite; lock PID dead is not ownership release."
+    }
+  ],
+  "environment": {
+    "profile": "test-chatgpt-03",
+    "headlessOnly": true,
+    "entryStatus": "BLOCKED_CHALLENGE",
+    "normalClose": true,
+    "leaseReleased": true,
+    "cookieImport": false,
+    "uiLeaseTouched": false
+  },
+  "sourceChanges": [],
+  "commitsCreated": [],
+  "executionPlanUpdate": "BLOCKED_SAME_FILE_OWNER; suggested exact delta will remain in this evidence, no overwrite of parallel plan",
+  "productStatus": "BLOCKED",
+  "nativeGoal": "active; first goal turn, not eligible for blocked transition under native goal contract",
+  "nextOperation": "Current daily-output owner publishes the existing merged sources through the single authorized dev writer, then safely refreshes a task-accounted ChatGPT page and checks old DOM node count=0. Do not replay the unknown first candidate.",
+  "testDrift": {
+    "classification": "OUTDATED_ASSERTION",
+    "reproduction": "site-regression-before.tap",
+    "failure": "Old source text assertion expects ./chatgpt-bridge-site.js import inside compatibility shim after owner migration",
+    "fixScope": "Single existing test; inspect the project owner implementation and check compatibility exports reference it; product source unchanged",
+    "fixStatus": "COMPONENT_TESTED"
+  },
+  "testOnlyChanges": [
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs"
+  ],
+  "additionalTest": {
+    "before": {
+      "pass": 19,
+      "fail": 1,
+      "log": "site-regression-before.tap"
+    },
+    "after": {
+      "pass": 20,
+      "fail": 0,
+      "log": "site-regression-after.tap"
+    },
+    "runtimeBehaviorChanged": false
+  },
+  "duplicateInitialization": {
+    "status": "COMPONENT_TESTED",
+    "result": "Independent module evaluation on the same doc creates two runtime listeners and two intervals; zero DOM mounts, zero tasks or messages",
+    "evidence": "duplicate-initialization.json",
+    "fixStatus": "BLOCKED_SAME_FILE_OWNER; projects/webflow/trusted/chatgpt-bridge-page.js remains untouched",
+    "nativeReplayObserved": false
+  },
+  "finalInputCheck": {
+    "recordedAt": "2026-11-04T06:54:20.321961+00:00",
+    "bridgeBlob": "ed212248c11358786aa56bdfa7f85870ba0703d7",
+    "provenanceBlob": "26e22290b2076ce7125b9983760858bec48bb9c6",
+    "provenanceChangedDuringReview": true,
+    "testEvidenceScope": "91 tests passed at recorded earlier inputs; later parallel provenance edits are not claimed tested. Retirement module/bridge unchanged. Do not repeat unrelated image-owner tests."
+  },
+  "scores": {
+    "scale": 100,
+    "scope": "Current local retirement acceptance; not a source-only design score",
+    "reviews": [
+      {
+        "perspective": "产品与交互体验",
+        "score": 40,
+        "agentId": "01a1a553-18e9-7201-8c39-776a1f8aa2e5",
+        "evidence": "review-product.md"
+      },
+      {
+        "perspective": "系统架构与源码归属",
+        "score": 54,
+        "agentId": "01a1a54c-e540-7570-bc2d-39157082292b",
+        "evidence": "review-architecture-final.md"
+      },
+      {
+        "perspective": "Chrome MV3 生命周期",
+        "score": 68,
+        "agentId": "01a1a54c-e732-7132-9dbe-59c218707bcb",
+        "evidence": "review-mv3.md"
+      },
+      {
+        "perspective": "权限、安全与防重放",
+        "score": 62,
+        "agentId": "01a1a54c-e636-7161-962a-0129692a9b2c",
+        "evidence": "review-security.md"
+      },
+      {
+        "perspective": "回归兼容与工程质量",
+        "score": 74,
+        "agentId": "01a1a553-b30b-76e3-a353-dcdc8d037f08",
+        "evidence": "review-quality.md"
+      },
+      {
+        "perspective": "真实 Chrome 测试与证据",
+        "score": 15,
+        "agentId": "01a1a554-5b9d-7af0-ab9f-c3d0f9ffb96f",
+        "evidence": "review-chrome.md"
+      },
+      {
+        "perspective": "独立综合反方",
+        "score": 45,
+        "agentId": "01a1a555-a031-7b81-9dd6-846ccc3c0e5c",
+        "evidence": "review-critic.md"
+      }
+    ],
+    "sum": 358,
+    "denominator": 7,
+    "average": 51.142857142857146,
+    "averageRounded": 51.14,
+    "averageThreshold": 95,
+    "criticalDimensionsThreshold": 95,
+    "passed": false,
+    "independentProcess": "Fresh agent contexts for each perspective; no peer scores supplied/read; architecture same reviewer addendum after test-only fix and duplicate probe."
+  }
+}

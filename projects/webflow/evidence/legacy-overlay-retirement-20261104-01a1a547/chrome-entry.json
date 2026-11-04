@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-11-04T06:46:24.692Z",
+  "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
+  "browser": "Chrome/154.0.8037.92",
+  "profile": "test-chatgpt-03",
+  "pid": 49961,
+  "headless": true,
+  "endpointIdentityVerified": true,
+  "targetId": "CA8DD0DCC3EBBBD2EA96B38D6E4DE6A8",
+  "observation": {
+    "url": "https://chatgpt.com/",
+    "title": "请稍候…",
+    "ready": "complete",
+    "challenge": true,
+    "composer": false,
+    "oldNodeCount": 0
+  },
+  "status": "BLOCKED",
+  "reason": "ChatGPT challenge; official logged-in application unavailable. Zero legacy nodes on challenge page is not product acceptance. No challenge interaction or credential import attempted.",
+  "messagesSent": 0,
+  "tasksStarted": 0
+}
