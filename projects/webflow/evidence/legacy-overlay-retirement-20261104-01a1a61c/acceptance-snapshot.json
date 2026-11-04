@@ -1,0 +1,186 @@
+{
+  "taskId": "WF-LEGACY-CHATGPT-OVERLAY-RETIREMENT-ACCEPTANCE",
+  "checkedAt": "2026-11-04T10:42:05.053332+00:00",
+  "head": "44654b0df1a3a38d15e69ed834014563da7ba2ee",
+  "sourceSHA256": {
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6",
+    "projects/webflow/trusted/legacy-chatgpt-panel.js": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2",
+    "src/native-agent/chatgpt-bridge-site.js": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "5e7b52f743ec0b262804eca5b30439710159a6fdc17bc07ea4ba23e92ffb9c1e",
+    "src/entrypoints/chatgpt-fixed-bridge.js": "715a3528b7590f1fc1cede8894ef00d786183d08bcd164ea3db9ecf0065af402",
+    "src/page-events/chatgpt-runtime.js": "b44357d247186f5598cfdd8c814c6af4eadeed5b7b9af7ea9c4b4da655537494",
+    "src/page-events/content-runtime.js": "5daacf23885a62978fa58f7c216001584114929bc35cdf7d0662fcca706c92bc",
+    "scripts/bundle-provenance.mjs": "67678e44b098085d55e25e4e9037e99647ed5cbdc1411f0fe9b81446640ecdcf",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs": "0a2520f6843d770e92a24ec2d4a16f46837ba0c43b05a5e1b21e9257c3d02dd8"
+  },
+  "development": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "writer": {
+      "pid": 93582,
+      "token": "7149cbfa-ab00-4559-bed3-d6f0a723a56a",
+      "kind": "development",
+      "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "startedAt": "2026-11-04T07:40:31.963Z"
+    },
+    "diskRevision": "9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e",
+    "bridgeSHA256": "6961c52b59b5c85fe6af2838ba61ac3813b7895d96320014e0b4ac0fe6fcae4f",
+    "markerBridgeSHA256": "6961c52b59b5c85fe6af2838ba61ac3813b7895d96320014e0b4ac0fe6fcae4f",
+    "maps": {
+      "../../../src/native-agent/chatgpt-bridge-site.js": {
+        "same": true,
+        "sha256": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa"
+      },
+      "../../../projects/webflow/trusted/chatgpt-bridge-page.js": {
+        "same": true,
+        "sha256": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6"
+      },
+      "../../../projects/webflow/trusted/legacy-chatgpt-panel.js": {
+        "same": true,
+        "sha256": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2"
+      },
+      "../../../src/page-events/chatgpt-runtime.js": {
+        "same": true,
+        "sha256": "b44357d247186f5598cfdd8c814c6af4eadeed5b7b9af7ea9c4b4da655537494"
+      },
+      "../../../src/page-events/content-runtime.js": {
+        "same": true,
+        "sha256": "5daacf23885a62978fa58f7c216001584114929bc35cdf7d0662fcca706c92bc"
+      }
+    },
+    "liveServe": "NOT_VERIFIED",
+    "liveRevision": "NOT_VERIFIED"
+  },
+  "installationConfig": {
+    "file": "Secure Preferences",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "state": null,
+    "version": null
+  },
+  "native": {
+    "manifestPath": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "allowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "connections": [
+      {
+        "browser": "chrome",
+        "connectionId": "0563aef890ea2bef8f117e4f8bf70395",
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "ready": true
+      }
+    ],
+    "bridgeStatus": {
+      "connectionId": "0563aef890ea2bef8f117e4f8bf70395",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "kind": "response",
+      "requestId": "99ea9daa-6179-49ba-8d68-ae43add1ef53",
+      "result": {
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "bridgeVersion": 1,
+        "nativeConnected": true,
+        "enabled": true,
+        "hostRegistrations": [
+          "ace06f92-35ce-4fd9-bd27-d9d328742e91"
+        ]
+      },
+      "v": 1
+    },
+    "delivery": "/Users/shopme/Documents/workspace/opendesk/.runtime/tests/browser-multiclient/completion.md",
+    "systemInstall": "/Users/shopme/Documents/workspace/opendesk/.runtime/tests/browser-multiclient/system-install-20261104/completion.md",
+    "doctor": "legacy socket diagnostic adaptation deferred by owner"
+  },
+  "ui": {
+    "windowId": 560069843,
+    "tabId": 560069844,
+    "firstOpenDOM": "first-open-dom.json",
+    "firstOpenDOMObservedAt": "2026-11-04T10:35:56.977517+00:00",
+    "screenshots": "NOT_TESTED: own tab screenshot timed out before writing; kernel reset",
+    "otherScenarios": "NOT_TESTED",
+    "initializationCount": "NOT_TESTED",
+    "consoleErrors": "NOT_TESTED",
+    "tabDOMRead": "first exact-tab DOM read completed and wrote first-open-dom.json; screenshot then timed out; second binding timed out; later exact URL metadata succeeded, fresh read-only evaluate timed out at10s; native AX read belonged to listener window and was not operated",
+    "nativeUILease": "acquire rejected twice; owner 01a1a61c-595c-7f81-a4ab-c5b9d8ea1e43, not cleared",
+    "newTasksSent": 0,
+    "oldUnknownReplayed": false,
+    "collaborationRule": {
+      "skill": "/Users/shopme/.codex/skills/chatgpt-test-profiles/SKILL.md",
+      "quote": "全局键鼠、依赖前台焦点的输入、剪贴板、原生菜单 / 文件选择器，以及会抢占桌面的浏览器启动，默认先取得 UI 锁",
+      "application": "Two official acquisition attempts rejected due to active file-test owner; no takeover or release. Independent background window read attempted; exact DOM/screenshot later timed out."
+    },
+    "handoff": "Exact own tab 560069844 URL https://chatgpt.com/ read again; markHandoff succeeded. No further page actions or tasks sent."
+  },
+  "tests": {
+    "initial": "affected-tests.json: 109 tests,104 pass,5 outdated scheduling assertions, source stable",
+    "corrected": "corrected-tests.json/log:28 pass,0 fail,exit0,stable source fingerprints; other81 passed in affected-tests initial run; totals are unique coverage, not a single all-green invocation",
+    "reused": "projects/webflow/evidence/legacy-overlay-retirement-20261104-01a1a547/resumed-node-tests.json: legacy-panel2 and source/test hashes unchanged; prior evidence only",
+    "duplicateProbe": "duplicate-initialization-current.json:2 independent modules each register listener/interval;0 mounts,0 tasks;not Chrome duplication proof",
+    "initialFailureClassification": {
+      "count": 5,
+      "kind": "outdated assertions for polling-based schedule and status text",
+      "change": "test harness makes reply incomplete before approval; explicit auto approval dispatches event-driven; existing late-authorization cancellation coverage retained",
+      "businessSourceChanged": false
+    }
+  },
+  "ownership": {
+    "ourWrites": [
+      "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs",
+      "projects/webflow/evidence/legacy-overlay-retirement-20261104-01a1a61c",
+      "projects/webflow/docs/execution-plan.zh-CN.md: owner-specific insertion under section12.25 only"
+    ],
+    "listenerOwner": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "listenerScope": [
+      "projects/webflow/trusted/chatgpt-bridge-page.js",
+      "projects/webflow/tests/sidebar-bridge.test.mjs",
+      "scripts/bundle-provenance.mjs Page pin",
+      "src/native-agent/chatgpt-bridge-site.js",
+      "projects/webflow/tests/bridge-inline-url.test.mjs",
+      "projects/webflow/evidence/listener-recovery-goal-progress-20261104.json",
+      "projects/webflow/tests/listener-events.test.mjs",
+      "projects/webflow/docs/execution-plan.zh-CN.md"
+    ]
+  },
+  "acceptance": {
+    "defaultLegacyUI": "SOURCE_IMPLEMENTED / COMPONENT_TESTED; first live DOM oldNodes=0, live candidate linkage incomplete",
+    "fiveScenarios": "NOT_TESTED: four remaining plus same-candidate linkage",
+    "realTaskRunResultReleaseSingleDelivery": "NOT_TESTED for current candidate; listener owner final has no completed current-candidate loop",
+    "safety": "COMPONENT_TESTED:81 from initial run plus corrected28; no current native replay/revocation claim",
+    "ownershipProvenance": "SOURCE_IMPLEMENTED / COMPONENT_TESTED; maps and pin verified separately from loaded candidate",
+    "initialization": "BLOCKED: independent-module duplication component repro remains, actual live count unknown",
+    "product": "BLOCKED / NOT_TESTED, not PRODUCT_DONE"
+  },
+  "goalLifecycle": "Original 01a1a547 goal remains paused by handoff report; this chat did not modify it or create another goal",
+  "nextStep": "Obtain actual UI slot and recover exact own tab DOM/screenshot; verify current loaded candidate then open known history in own tab without sending any candidate. Reuse listener final same-candidate run evidence only when delivered.",
+  "checkedAtFinalAudit": "2026-11-04T10:51:52.966172+00:00",
+  "listenerFinal": {
+    "threadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "status": "completed turn / product incomplete",
+    "source": "wait_threads latest final read 2026-11-04",
+    "summary": "URL decoration adapter fixed, targeted tests passed, new disk candidate; real two rounds incomplete, first unknown, second unsent, current UI lease held by file test",
+    "sameCandidateRealRunEvidenceReusable": false
+  },
+  "foreignFilesBeforeCommit": {
+    "projects/webflow/evidence/listener-recovery-goal-progress-20261104.json": "d1ce5e86e4f39b2b22103555fc55653ed312855a04c3aedf329de007027b44bd",
+    "projects/webflow/tests/listener-events.test.mjs": "8a05ec130db1c027d2972d03d9b43e0d3976bf3b3a909b803d24b43ae624875f",
+    "src/native-agent/chatgpt-bridge-site.js": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+    "projects/webflow/tests/bridge-inline-url.test.mjs": "adf0bd11abf5765278817db1877d0b660eab923dddc53d1fe9ac176da788153d",
+    "docs/framework/chatgpt-local-files-fixed-protocol-r1.zh-CN.md": "f2a5f248c5ed7b4a61db2c67cf9d1924bd7f8c94897f320986de997e5c709c1d"
+  },
+  "ownTestsSHA256": "0a2520f6843d770e92a24ec2d4a16f46837ba0c43b05a5e1b21e9257c3d02dd8",
+  "reviews": {
+    "file": "reviews.json",
+    "count": 7,
+    "scores": [
+      60,
+      88,
+      76,
+      86,
+      85,
+      58,
+      62
+    ],
+    "total": 515,
+    "average": 73.57142857142857,
+    "roundedAverage": 73.57,
+    "acceptancePassed": false
+  }
+}

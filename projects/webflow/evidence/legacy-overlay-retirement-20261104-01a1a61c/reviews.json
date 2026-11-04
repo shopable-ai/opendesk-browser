@@ -1,0 +1,245 @@
+{
+  "taskId": "WF-LEGACY-CHATGPT-OVERLAY-RETIREMENT-ACCEPTANCE",
+  "process": {
+    "independentContexts": 7,
+    "peerScoresProvided": false,
+    "readOnly": true,
+    "model": "inherited parent model/provider; no explicit override",
+    "note": "Each reviewer independently assessed the same source and acceptance evidence. Scores measure current acceptance, including missing evidence; they are not a claim of confirmed product faults."
+  },
+  "basis": {
+    "head": "44654b0df1a3a38d15e69ed834014563da7ba2ee",
+    "pageSHA256": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6",
+    "bridgeSiteSHA256": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+    "diskRevision": "9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e",
+    "liveRevision": "NOT_VERIFIED"
+  },
+  "reviews": [
+    {
+      "view": "产品与交互",
+      "agent_id": "01a1a627-3405-7753-b526-c7bc8c6ec9b6",
+      "assessment": {
+        "perspective": "产品与交互",
+        "score": 60,
+        "evidence": [
+          "本轮目录内 acceptance-snapshot.json（下称S）:6–8：Page=999c3dec…、bridgeSite=5bdab325…，只读核对源码一致。",
+          "chatgpt-bridge-page.js:201–207默认关闭旧浮层；legacy-chatgpt-panel.js:71仅显式开启才挂载。",
+          "first-open-dom.json:3–6：新Chrome首页oldNodes=0、oldText=false。",
+          "S:97–103、130–136：截图超时、实际初始化数未知、本轮零新任务；当前正常入口与结果续答未验收。"
+        ],
+        "deductions": [
+          {
+            "points": 8,
+            "reason": "其余四场景未测，首页单次DOM不足证明持续无旧浮层。"
+          },
+          {
+            "points": 7,
+            "reason": "S:50–51，运行候选与当前源码关联未证实。"
+          },
+          {
+            "points": 20,
+            "reason": "缺本轮普通新需求→执行→结果单次回传→完整续答证据；历史成功不计入。"
+          },
+          {
+            "points": 5,
+            "reason": "独立模块诊断有2监听器、0任务；真实初始化次数未知，不能推断重复执行。"
+          }
+        ],
+        "unresolved": [
+          "取得合法UI时段后补同候选场景与新任务闭环；超时及占用属于取证限制，不认定产品故障。",
+          "不增加官方Catalog版本/SHA匹配门槛；安装身份与授权保护保留。"
+        ],
+        "verdict": "不通过：60<95；未测不等于故障。"
+      }
+    },
+    {
+      "view": "架构与源码归属",
+      "agent_id": "01a1a627-351b-7060-823e-303ac0e84216",
+      "assessment": {
+        "perspective": "架构与源码归属",
+        "score": 88,
+        "evidence": [
+          "projects/webflow/README.md:63明确可信项目owner；src/native-agent/chatgpt-fixed-bridge-page.js:3仅兼容重导出，无第二实现。",
+          "scripts/bundle-provenance.mjs:29、41、47固定两模块blob及唯一Content目标；实读hash匹配，Page SHA为999c3dec…。这是构建来源保护，符合AGENTS.md:45。",
+          "projects/webflow/trusted/chatgpt-bridge-page.js:439经原消息入口；src/native-agent/chatgpt-fixed-bridge-host.js:1029复用host.start，未见搬迁新增Runner。"
+        ],
+        "deductions": [
+          {
+            "points": 7,
+            "reason": "chatgpt-bridge-page.js:17、204仅模块内WeakSet；独立模块重求值可绕过守卫。"
+          },
+          {
+            "points": 3,
+            "reason": "acceptance-snapshot.json:50实际加载候选与serve未核实。"
+          },
+          {
+            "points": 2,
+            "reason": "acceptance-snapshot.json:132当前候选单次执行及交付缺实站证据。"
+          }
+        ],
+        "unresolved": [
+          "上述快照及duplicate-initialization-current.json、first-open-dom.json均位于projects/webflow/evidence/legacy-overlay-retirement-20261104-01a1a61c/。",
+          "duplicate-initialization-current.json:11为2监听器、0任务；真实初始化数未知，不能判定重复执行。应补隔离世界文档级跨模块单例及生命周期验证。",
+          "first-open-dom.json:3为oldNodes=0；后续超时及UI占用限制验收，不构成产品故障。需补同候选实站关联与单次交付。"
+        ],
+        "verdict": "不通过：88<95；源码归属和精确pin成立，跨模块singleton及实站验收未闭合。"
+      }
+    },
+    {
+      "view": "Chrome MV3 生命周期",
+      "agent_id": "01a1a627-3622-7b40-a695-49ebc3a57048",
+      "assessment": {
+        "perspective": "Chrome MV3生命周期；独立只读验收评审",
+        "score": 76,
+        "evidence": [
+          "chatgpt-bridge-page.js:17,204：单例WeakSet仅模块内有效；1159-1175：pagehide清理、BFCache恢复重建；1001-1004：未知批准/请求阻止刷新。",
+          "duplicate-initialization-current.json:10-19：2监听器、2定时器、0任务，仅组件重现，非Chrome重复执行事实。",
+          "acceptance-snapshot.json:35,50-51：Page999c3dec同源，实际加载候选未核实；97-104：截图/DOM超时、UI占用、无新任务。",
+          "first-open-dom.json:3：首次oldNodes=0。",
+          "affected-tests.log:95-102：重启及撤权围栏有组件证据。"
+        ],
+        "deductions": [
+          "-8：跨模块单例缺口尚存，真实初始化数未知。",
+          "-6：BFCache/pagehide仅源码支持，缺当前候选实站闭环。",
+          "-7：SW重启、关闭侧栏后的执行/释放/单次交付未实证（snapshot:132-133）。",
+          "-3：磁盘同源未关联实际加载候选，首次DOM不足覆盖其余场景。"
+        ],
+        "unresolved": [
+          "补跨模块幂等防护，并核验实站初始化数；取得合法UI时段后关联候选，验证BFCache、SW/侧栏关闭及UNKNOWN只对账不重放。未测不判为故障。"
+        ],
+        "verdict": "不通过：76<95；源码保护与组件证据不足以完成实站生命周期验收。"
+      }
+    },
+    {
+      "view": "权限安全与防重放",
+      "agent_id": "01a1a628-fae1-7553-86ef-8477d48c7926",
+      "nickname": "Pasteur",
+      "assessment": {
+        "perspective": "权限安全与防重放",
+        "score": 86,
+        "evidence": [
+          "chatgpt-task-request.js:89-113：严格五字段，拒绝重复键。",
+          "chatgpt-fixed-bridge-host.js:274-296,417-428,888-914：真实sender/document、安装身份、参数及交付前授权复核。",
+          "chatgpt-bridge-trigger-gate.js:290-325,631-678：持久消费、提交及撤权栅栏。",
+          "chatgpt-bridge-page.js:897-961：发送尝试单次化，UNKNOWN不补发。",
+          "acceptance-snapshot.json:107-110：初跑104/109，修后28通过，合并覆盖109；legacy2复用，非单次全绿。"
+        ],
+        "deductions": [
+          "-6：缺同候选实站撤权及UNKNOWN防重放证据。",
+          "-5：缺新Run→持久结果→released→单次交付闭环。",
+          "-3：live revision与初始化次数未核实。"
+        ],
+        "unresolved": [
+          "快照:50-51,136-141：首次DOM旧节点0；其余四场景未验证。",
+          "双监听器产生0任务，未证明实站重复；Native连接成功不代表任务成功。",
+          "不恢复官方Catalog发行匹配门槛；本轮仅只读，未运行测试。"
+        ],
+        "verdict": "COMMENT：86<95，验收未达标；扣分源于证据缺口，未证实权限绕过或实站重放。"
+      }
+    },
+    {
+      "view": "回归兼容与工程质量",
+      "agent_id": "01a1a629-af8d-7c43-ab2d-6c7232066752",
+      "nickname": "Hegel",
+      "assessment": {
+        "perspective": "回归兼容与工程质量",
+        "score": 85,
+        "evidence": [
+          "chatgpt-bridge-cancel-page-r21.test.mjs:99-104,150-169,209-217,457-488：五处修正符合事件驱动时序；取消用例改为执行前取消合理，262-309仍覆盖迟到授权及执行中取消，未发现保护弱化。",
+          "affected-tests.log:111-114、corrected-tests.log:29-32：初跑109=104通过+5失败；修正后28通过，去重81+28成立，不能称单次109全绿；legacy2仅复用旧证据。",
+          "acceptance-snapshot.json:6-14,50-51,69,135-142：当前精确指纹一致，Native ready；源码及组件证据充分，实站验收未闭环。"
+        ],
+        "deductions": [
+          "-6：live revision及其余四场景缺证，需补同候选绑定。",
+          "-6：当前真实任务双轮未闭环，需补Run/Result/released/单次交付证据。",
+          "-3：跨模块初始化重现2监听器，需确认实际注入生命周期。"
+        ],
+        "unresolved": [
+          "首页oldNodes=0；2监听器0任务不证明实站重复执行。首轮UNKNOWN不重发，第二轮未发。未运行测试或诊断。"
+        ],
+        "verdict": {
+          "gte95": false,
+          "recommendation": "COMMENT",
+          "acceptance": "组件回归有依据，正式验收尚未达到；缺证不判为产品故障。"
+        }
+      }
+    },
+    {
+      "view": "真实Chrome测试与证据",
+      "agent_id": "01a1a629-b0b1-72d2-9ac1-786cafb53d7b",
+      "nickname": "Archimedes",
+      "assessment": {
+        "perspective": "真实Chrome测试与证据",
+        "score": 58,
+        "evidence": [
+          "acceptance-snapshot.json:6-51：Page999c3dec、site5bdab325与磁盘映射同源；只读复核源码摘要一致，但liveServe/liveRevision未验证。",
+          "acceptance-snapshot.json:59-90：Native条件交付有记录，Origin/连接身份匹配、ready且nativeConnected；不证明Task成功。",
+          "first-open-dom.json:2-6：首页oldNodes=0、空草稿，仅限当次观察。",
+          "affected-tests.log:111-118、corrected-tests.log:29-36：首跑109项104通过5失败；过时断言修后28通过，其他81复用首跑；非单次全绿。旧面板2项仅历史复用。",
+          "duplicate-initialization-current.json:10-19：组件重现2监听器、2定时器、0任务，实站重复未知。",
+          "docs/execution-plan.zh-CN.md:2130-2132：首轮UNKNOWN、第二轮未发；修后候选未实站验证。"
+        ],
+        "deductions": [
+          "-12：实际加载候选未绑定",
+          "-12：其余四场景缺实站证据",
+          "-10：缺同Run/Result、released及单次回传闭环",
+          "-8：真实初始化次数未验证"
+        ],
+        "unresolved": "需同候选五场景、实站初始化及双轮链条证据；UNKNOWN不得重发。未测不等于产品故障。",
+        "verdict": "PARTIAL，未达到≥95验收门槛"
+      }
+    },
+    {
+      "view": "独立综合反方",
+      "agent_id": "01a1a62b-de31-75d3-b778-e2a6db226bdf",
+      "nickname": "Nietzsche",
+      "assessment": {
+        "perspective": "第七视角：独立综合反方",
+        "score": 62,
+        "evidence": [
+          "acceptance-snapshot.json:50-51,64-85：live身份未验证，Native ready。",
+          "first-open-dom.json:2-6：首次oldNodes=0；trusted/legacy-chatgpt-panel.js:71仅显式visible时挂载。",
+          "affected-tests.log:111-114：104/109；corrected-tests.log:29-32：修正后28/28。其余81及历史legacy2可复用，非一次全绿。",
+          "duplicate-initialization-current.json:10-19：独立模块2监听器、0任务，仅组件复现。",
+          "acceptance-snapshot.json:98-103,141-157：四场景、初始化及真实交付未验证；图标修复后双轮仍未完成。"
+        ],
+        "deductions": [
+          {
+            "points": 10,
+            "reason": "磁盘同源不能证明当前页面加载该候选"
+          },
+          {
+            "points": 10,
+            "reason": "其余四场景缺本机证据"
+          },
+          {
+            "points": 6,
+            "reason": "实站初始化次数未知，不能将探针推断为重复执行故障"
+          },
+          {
+            "points": 12,
+            "reason": "新任务运行、结果、释放和唯一交付缺同候选闭环"
+          }
+        ],
+        "unresolved": {
+          "当前阻塞": "记录中UI锁未取得，精确标签DOM读取超时；不是Native未交付。",
+          "下一条操作": "合法取得UI时段后，恢复自有ChatGPT标签读取并核实live revision；打开已知历史会话，观察旧浮层，不发送候选、不重放unknown。",
+          "停止条件": "补齐上述当前候选证据再关闭验收；无须扩大开发或恢复Catalog发行门槛。"
+        },
+        "verdict": "REJECT：62<95。源码迁移和组件证据成立，整体验收尚未完成；扣分针对证据缺口，不宣称产品故障。"
+      }
+    }
+  ],
+  "summary": {
+    "total": 515,
+    "count": 7,
+    "average": 73.57142857142857,
+    "roundedAverage": 73.57,
+    "requiredAverage": 95,
+    "requiredArchitecture": 95,
+    "requiredSecurity": 95,
+    "requiredChromeEvidence": 95,
+    "acceptancePassed": false,
+    "notAClaimOfProductFailure": true
+  }
+}

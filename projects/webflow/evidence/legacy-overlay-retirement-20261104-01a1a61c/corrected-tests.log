@@ -1,0 +1,36 @@
+✔ installed script selection binds explicit target, normalized parameters and installation into the chat request (5.155833ms)
+✔ changed target during installed-script preflight never mints a nonce or writes a draft (0.408916ms)
+✔ refreshing installed scripts uses the current version, schema and installation and removes unavailable selections (0.880333ms)
+✔ visible progress accepts only the current trusted Host and cannot claim execution before admission (1.410125ms)
+✔ missing Host receipt gives same-window guidance and never replays an attempted execute (4.376459ms)
+✔ homepage explains how to establish a conversation and never mints a request (0.23525ms)
+✔ SPA conversation creation enables prepare and leaving it restores guidance without writing (0.167084ms)
+✔ approved candidate cancelled before reply completion never executes or edits the draft (0.380083ms)
+✔ view button follows this running identity and never chooses a target or restarts execution (0.68925ms)
+✔ late view failure stays visible after completion and verified result preview belongs to the current request (1.175792ms)
+✔ late manual and auto authorizations cannot dispatch execute or overwrite cancellation (1.462792ms)
+✔ execute cancellation sends Stop without waiting for revoke and rejects late deliver and success (0.70275ms)
+✔ late pre-send delivery permission cannot write or commit after cancellation (0.489333ms)
+✔ cancel failure remains UNKNOWN despite late execute success (0.428333ms)
+✔ native commit disables cancellation unless it explicitly reports no click was attempted (1.349292ms)
+✔ late second delivery check cannot commit or delete an already written draft (0.526333ms)
+✔ prepared revoke failure is UNKNOWN and untrusted clicks never cancel (0.3395ms)
+✔ preparing a replacement request disables cancellation of the old request (0.264208ms)
+✔ confirmed manual delivery releases the composer for a different approved auto request exactly once (history eviction=false) (1.440167ms)
+✔ confirmed manual delivery releases the composer for a different approved auto request exactly once (history eviction=true) (0.853083ms)
+✔ a new request cannot clear or replace an UNKNOWN composer marker even after the draft becomes empty (0.638416ms)
+✔ appended adoption button needs a trusted click and adopts without nonce echo, draft edits or execution (0.684292ms)
+✔ adopted candidate drift blocks manual and auto approval before any execute (0.43025ms)
+✔ adoption alone never executes and explicit auto approval dispatches once without polling (0.259583ms)
+✔ chat approval is available with a draft, attachment, IME and no old complete reply without touching the composer (1.792542ms)
+✔ installed task chooses its approved home URL so authorization does not begin with a blank target (0.481417ms)
+✔ a known missing permission leaves chat approval correctable instead of permanently disabling it (0.758875ms)
+✔ a real result delivery continuation containing a valid command cannot spend the chat grant (1.373541ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93.912917

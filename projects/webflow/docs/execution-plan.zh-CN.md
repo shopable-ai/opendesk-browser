@@ -2075,6 +2075,10 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 
 ### 12.25 可信监听状态、安全恢复与原生工具阻塞（2026-11-04）
 
+**旧浮层退役验收接收差量（2026-11-04，owner `01a1a61c-d772-7e00-b69f-e5449bfd6409`）：** `WF-LEGACY-CHATGPT-OVERLAY-RETIREMENT-ACCEPTANCE` 沿用本节，不另建总目标。系统 Chrome 独立窗口 560069843 / tab 560069844 首次打开 `https://chatgpt.com/`，定向 DOM 实读旧节点 0、旧标题 false、空草稿；截图未写入即超时，随后定向 DOM 读取也超时。实际运行候选与 serve 尚未关联，其他四场景、真实初始化次数及当前候选任务闭环仍 NOT_TESTED。Native 独立任务已交付；本轮原扩展 ID、日常加载路径、manifest Origin 及显式连接的 ready / nativeConnected / enabled 已只读核对，不把连接成功当 Task 成功。磁盘候选 `9121af7f…` 的 Bridge 摘要、源码映射及 Page 精确 pin 同源，未覆盖 watcher 输出。
+
+本轮五个受影响文件首跑 109 项中 104 通过，5 项仍假设批准后等轮询或固定旧文案。仅调整 `chatgpt-bridge-cancel-page-r21.test.mjs` 的测试时序：先保持回复未完成再批准，核对取消后零执行；显式批准后无需轮询即可执行一次。修后该文件 28/28、exit 0，前后源码指纹稳定；其余 81 项沿用首跑通过结果，未变旧面板 2 项复用历史记录，不将这些数量说成一次全绿运行。独立模块诊断在当前 Page 仍得到 2 监听器 / 2 interval / 0 挂载 / 0 任务；它证明模块间单例缺口，不证明真实 Chrome 重复执行。Page / sidebar 测试 / 单项 pin 继续归 listener owner，本轮未抢写。未知候选均未重发，本轮新业务发送 0；原暂停 goal 未改变。七个独立视角为 60 / 88 / 76 / 86 / 85 / 58 / 62，合计 515，平均 73.57，未达到 95；扣分依据与未决项见[独立复核](../evidence/legacy-overlay-retirement-20261104-01a1a61c/reviews.json)。准确来源、初跑失败、修后日志、Native 配对及未测边界见[本轮证据快照](../evidence/legacy-overlay-retirement-20261104-01a1a61c/acceptance-snapshot.json)。取得不冲突的 UI 时段并恢复本任务定向读取后，下一步仅先核对当前加载候选、打开历史聊天并记录旧节点，不自动重放未知请求或扩大验收。
+
 本轮 owner 为 01a1a556-e7f9-7040-a201-f29deff0fd7a。用户要的监听状态已接入可信 Web Flow 头部：图标、颜色、文字和辅助技术状态同时表达；监听、授权、执行及交付分别核验，未知原请求保持独立记录。当前文档需通过一次新 nonce 握手，导航或迟到回复不能沿用绿色状态。刷新须真实用户手势、影响确认、一次性短时挑战和末次页面 / Native / Provider 空闲检查；刷新派发后的传输错误也保持准入围栏到挑战失效，不重试。原 history 成功才显示查询 URL 与数量，空数组明确不等于零执行。
 
 **当前真实用户操作证据：** 恢复原 npm run dev 的缺失产物后，原系统 Chrome 以原扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf 显示开发服务已连接，live revision 为 1c9ace397e7a4f5f364891c351208e1b241add32171280a649d43fb6323a57b5。日常目录仍为 dist/development。前一自有 writer 因 Node 默认 4GB 堆上限退出，确认无存活 writer 后以同一入口、进程级 8GB 堆恢复，现为 PID 93582；服务留运行，不改安装、路径、授权或模型路由。Bridge / tool-shell / SW 的 SHA 与同版 marker 一致，9 项相关 source map 内容逐字等于当前源码。

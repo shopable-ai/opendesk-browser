@@ -96,8 +96,9 @@ test('installed script selection binds explicit target, normalized parameters an
   const request=JSON.parse(h.writes[0].slice(h.writes[0].indexOf('{"protocol"')));
   assert.equal(request.targetUrl,'https://example.com/article');
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
-  await h.click(1);assert.match(h.status.textContent,/尚未运行/);
-  h.snap.answerComplete=false;h.poll();await flush();
+  h.snap.answerComplete=false;
+  await h.click(1);assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  h.poll();await flush();
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
   h.snap.answerComplete=true;h.poll();await flush();h.poll();await flush();
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
@@ -146,14 +147,14 @@ test('refreshing installed scripts uses the current version, schema and installa
 
 test('visible progress accepts only the current trusted Host and cannot claim execution before admission',async()=>{
   const execution=Promise.withResolvers(),h=harness({execute:()=>execution.promise});
-  await h.prepare();await h.click(1);
+  await h.prepare();h.snap.answerComplete=false;await h.click(1);
   const approved=h.status.textContent;assert.match(approved,/尚未运行/);
   const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',bridgeHostId:'cancel-host',requestId:id,sourceUrl:source.url,
     mode:'auto',stage:'running',taskId:'page.read.fixed',scriptId:'task:page.read.fixed:1.0.0',
     revision:1,targetUrl:'https://httpbingo.org/html',runId:'run-real'};
   const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=cancel-host'};
   h.receive(progress,sender);assert.equal(h.status.textContent,approved);
-  h.poll();await flush();
+  h.snap.answerComplete=true;h.poll();await flush();
   const before=h.status.textContent;
   h.receive(progress,{...sender,tab:{id:9}});assert.equal(h.status.textContent,before);
   h.receive({...progress,requestId:'other-request'},sender);assert.equal(h.status.textContent,before);
@@ -205,9 +206,9 @@ test('SPA conversation creation enables prepare and leaving it restores guidance
   assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);h.page.dispose();
 });
 
-test('approved complete candidate cancelled before polling never executes or edits the draft',async()=>{
-  const h=harness();await h.prepare();await h.click(1);
-  h.snap.draft='user draft';await h.click(3);h.poll();h.click(2);await flush();
+test('approved candidate cancelled before reply completion never executes or edits the draft',async()=>{
+  const h=harness();await h.prepare();h.snap.answerComplete=false;await h.click(1);
+  h.snap.draft='user draft';await h.click(3);h.snap.answerComplete=true;h.poll();h.click(2);await flush();
   assert.equal(h.buttons[4].textContent,'采用对话任务');assert.equal(h.buttons[3].textContent,'停止/取消');
   assert.equal(h.sends.filter(x=>x.kind==='execute').length,0);
   assert.equal(h.sends.filter(x=>x.kind==='cancel').length,0);
@@ -461,7 +462,7 @@ test('appended adoption button needs a trusted click and adopts without nonce ec
     ['建立请求','批准本次自动执行','执行','停止/取消']);
   assert.equal(h.sends.length,1);assert.equal(h.sends[0].kind,'adopt-task');
   assert.equal(h.writes.length,0);assert.equal(h.snap.draft,'existing user draft');
-  assert.match(h.status.textContent,/已采用对话任务，尚未执行/);
+  assert.match(h.status.textContent,/尚未运行/);
   await h.click(2);await flush();
   assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task','execute']);
   const execution=h.sends[2];assert.equal(execution.candidateText,intentText);
@@ -479,9 +480,10 @@ test('adopted candidate drift blocks manual and auto approval before any execute
     assert.match(h.status.textContent,/已改变/);assert.equal(h.writes.length,0);h.page.dispose();
   }
 });
-test('adopted auto approval stays separate from adoption and polling dispatches once',async()=>{
+test('adoption alone never executes and explicit auto approval dispatches once without polling',async()=>{
   const h=intentHarness();await h.click(4);assert.equal(h.sends.length,1);
-  await h.click(1);assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task']);
+  await h.click(1);await flush();
+  assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task','execute']);
   h.poll();await flush();h.poll();await flush();
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
 });

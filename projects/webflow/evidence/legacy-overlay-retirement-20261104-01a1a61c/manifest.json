@@ -1,0 +1,15 @@
+{
+  "taskId": "WF-LEGACY-CHATGPT-OVERLAY-RETIREMENT-ACCEPTANCE",
+  "generatedAt": "2026-11-04T10:51:52.966172+00:00",
+  "scope": "Evidence files only; manifest excludes itself. Tests represent component evidence, not real-task acceptance.",
+  "sha256": {
+    "acceptance-snapshot.json": "6b1c86827858fd17aad1cb4b135bc38fecf5e5384fba934c27798f4167500f32",
+    "affected-tests.json": "d2dafbd2e05b9a0717142e9c9b101c21bb2f694c233da6798086d7e32cf81785",
+    "affected-tests.log": "93dca486ccfaeba06cab6b6ffded0dfb0a3841ce9349874af360974868dfd220",
+    "corrected-tests.json": "fe292be7613d64f91d6b731f8ccd543cd3c46147af3bab724f45c53ce79fd104",
+    "corrected-tests.log": "2f35aaa4e70627cd32e60fbdccf3a4526f16cf4828630cffa90096acdd2b8032",
+    "duplicate-initialization-current.json": "faab10dc1c6d237eccc0b90342c3a1bfec27718111096486d45d64d97bc66680",
+    "first-open-dom.json": "60e1f0106610ea8be637ebf8e16881ca9347ce6e8c98b5ccd97744b7613c482e",
+    "reviews.json": "2234780dafcc616f131e1fd78b58af1983b65fa119d1d642aa9684f358e6b797"
+  }
+}

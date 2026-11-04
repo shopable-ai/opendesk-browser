@@ -1,0 +1,57 @@
+{
+  "startedAt": "2026-11-04T10:43:25.633464+00:00",
+  "finishedAt": "2026-11-04T10:43:25.765256+00:00",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=spec",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs"
+  ],
+  "exitCode": 0,
+  "stable": true,
+  "sourceBefore": {
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6",
+    "projects/webflow/trusted/legacy-chatgpt-panel.js": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2",
+    "scripts/bundle-provenance.mjs": "67678e44b098085d55e25e4e9037e99647ed5cbdc1411f0fe9b81446640ecdcf",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "5e7b52f743ec0b262804eca5b30439710159a6fdc17bc07ea4ba23e92ffb9c1e",
+    "src/native-agent/chatgpt-bridge-site.js": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+    "src/native-agent/chatgpt-task-discovery.js": "511b1d47c2cd3f8354a792572def9d91625aef5cc097f0cfc68f703626eb2a0e",
+    "src/entrypoints/chatgpt-fixed-bridge.js": "715a3528b7590f1fc1cede8894ef00d786183d08bcd164ea3db9ecf0065af402",
+    "src/page-events/chatgpt-runtime.js": "b44357d247186f5598cfdd8c814c6af4eadeed5b7b9af7ea9c4b4da655537494",
+    "src/page-events/content-runtime.js": "5daacf23885a62978fa58f7c216001584114929bc35cdf7d0662fcca706c92bc",
+    "src/native-agent/chatgpt-background-adapter.js": "96469fb1e11c8b1333ccb10a093beb609166384d17425b3537139d6013a35923",
+    "tests/environment/webflow-fixed-source.test.mjs": "7ddba79165d85d37135e418af89e6597fa5b91fab55b3145ebe59c310eee72c4",
+    "tests/environment/chatgpt-fixed-bridge-r13.test.mjs": "c9f018fe69d7254b1956df0cc0b3919b240ad2f6a01047803aac11d52bfd2a88",
+    "tests/environment/chatgpt-independent-task-intent.test.mjs": "f769c31cbfb94aedad6eb8a44140d390416de217965aaafe2695665a6e374f9b",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs": "0a2520f6843d770e92a24ec2d4a16f46837ba0c43b05a5e1b21e9257c3d02dd8",
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs": "30e0338ad5c24fe0549368f4107056874cd9475f940b0766d12d08a455548fde"
+  },
+  "sourceAfter": {
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6",
+    "projects/webflow/trusted/legacy-chatgpt-panel.js": "852731f620cc0daf152982de1c2203228e6cbdeb384d2d4057d65316a349e3a2",
+    "scripts/bundle-provenance.mjs": "67678e44b098085d55e25e4e9037e99647ed5cbdc1411f0fe9b81446640ecdcf",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "5e7b52f743ec0b262804eca5b30439710159a6fdc17bc07ea4ba23e92ffb9c1e",
+    "src/native-agent/chatgpt-bridge-site.js": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+    "src/native-agent/chatgpt-task-discovery.js": "511b1d47c2cd3f8354a792572def9d91625aef5cc097f0cfc68f703626eb2a0e",
+    "src/entrypoints/chatgpt-fixed-bridge.js": "715a3528b7590f1fc1cede8894ef00d786183d08bcd164ea3db9ecf0065af402",
+    "src/page-events/chatgpt-runtime.js": "b44357d247186f5598cfdd8c814c6af4eadeed5b7b9af7ea9c4b4da655537494",
+    "src/page-events/content-runtime.js": "5daacf23885a62978fa58f7c216001584114929bc35cdf7d0662fcca706c92bc",
+    "src/native-agent/chatgpt-background-adapter.js": "96469fb1e11c8b1333ccb10a093beb609166384d17425b3537139d6013a35923",
+    "tests/environment/webflow-fixed-source.test.mjs": "7ddba79165d85d37135e418af89e6597fa5b91fab55b3145ebe59c310eee72c4",
+    "tests/environment/chatgpt-fixed-bridge-r13.test.mjs": "c9f018fe69d7254b1956df0cc0b3919b240ad2f6a01047803aac11d52bfd2a88",
+    "tests/environment/chatgpt-independent-task-intent.test.mjs": "f769c31cbfb94aedad6eb8a44140d390416de217965aaafe2695665a6e374f9b",
+    "tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs": "0a2520f6843d770e92a24ec2d4a16f46837ba0c43b05a5e1b21e9257c3d02dd8",
+    "tests/environment/chatgpt-bridge-site-r13.test.mjs": "30e0338ad5c24fe0549368f4107056874cd9475f940b0766d12d08a455548fde"
+  },
+  "summary": [
+    "\u2139 tests 28",
+    "\u2139 suites 0",
+    "\u2139 pass 28",
+    "\u2139 fail 0",
+    "\u2139 cancelled 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0",
+    "\u2139 duration_ms 93.912917"
+  ],
+  "log": "corrected-tests.log"
+}
