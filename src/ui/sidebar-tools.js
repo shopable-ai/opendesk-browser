@@ -46,7 +46,7 @@ import {presentCookieServiceState} from '../../examples/sidebar-tools/cookie-edi
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
-import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
+import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,admitsInstalledSidebarTool,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
@@ -78,16 +78,13 @@ import {PROMPT_ASSET_OPERATIONS} from '../../projects/prompt-shortcuts/trusted/a
 import {executePromptAsset} from '../../projects/prompt-shortcuts/trusted/asset-host.js';
 import '../../projects/prompt-shortcuts/trusted/model.js';
 import {createTrustedPromptHost} from './conversation/prompt-host.js';
-import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
-  trustedPromptProvenanceChanged} from './trusted-prompt-admission.js';
+import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION} from './trusted-prompt-admission.js';
 import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../projects/time-review/trusted/trusted-admission.js';
-import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION,
-  trustedAIProxyProvenanceChanged} from '../../projects/ai-proxy/trusted/admission.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION} from '../../projects/time-review/trusted/trusted-admission.js';
+import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION} from '../../projects/ai-proxy/trusted/admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
-  trustedBookmarkProvenanceChanged,bookmarkSandboxNotice} from './trusted-bookmark-admission.js';
-import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION,
-  trustedKnowledgeProvenanceChanged} from './trusted-knowledge-admission.js';
+  bookmarkSandboxNotice} from './trusted-bookmark-admission.js';
+import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION} from './trusted-knowledge-admission.js';
 
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
 // whole sandbox postMessage. The host adds a bounded envelope separately.
@@ -485,29 +482,28 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const cookieSiteToggle=view.fields['sidebar-tool-cookie-site-toggle'];patchToolField(view,cookieSiteToggle,{type:'button'});
   patchToolField(view,cookieSiteToggle,{id:'sidebar-tool-cookie-site-toggle'});patchToolField(view,cookieSiteToggle,{className:'od-button'});
   let cookieGrantPending=false,cookieGrantStatusLoaded=false;
-  // Admission is never inferred from the tool ID. The exact official release
-  // and installed provenance must be checked before showing an all-site action.
-  let cookieAdmissionTool=null,cookieAdmissionEpoch=null,cookieAdmissionRelease=null;
+  // Cookie consent follows the actual installation, independently of the
+  // current official release. Grants remain bound to its package and epoch.
+  let cookieAdmissionTool=null,cookieAdmissionEpoch=null;
   let cookieAdmissionState=null,cookieAdmissionHash=null,cookieAdmissionTicket=0;
   let cookieChromeKey='',cookieChromeState=null;
   function invalidateCookieAdmission(){
     cookieAdmissionTicket++;cookieAdmissionTool=null;cookieAdmissionState=null;
-    cookieAdmissionHash=null;cookieAdmissionEpoch=null;cookieAdmissionRelease=null;
+    cookieAdmissionHash=null;cookieAdmissionEpoch=null;
     cookieChromeKey='';cookieChromeState=null;
   }
   function prepareCookieAdmission(tool){
     if(tool?.id!=='cookie-editor'||readOnlyPreview)return;
     const epoch=revocationEpochs[tool.id]??null;
-    const release=officialReleases.find(row=>row.toolId==='cookie-editor')?.sha256??null;
-    if(cookieAdmissionTool===tool&&cookieAdmissionEpoch===epoch&&cookieAdmissionRelease===release)return;
+    if(cookieAdmissionTool===tool&&cookieAdmissionEpoch===epoch)return;
     const ticket=++cookieAdmissionTicket;
-    cookieAdmissionTool=tool;cookieAdmissionEpoch=epoch;cookieAdmissionRelease=release;
+    cookieAdmissionTool=tool;cookieAdmissionEpoch=epoch;
     cookieAdmissionState=null;cookieAdmissionHash=null;
     void (async()=>{
       const hash=await sidebarToolPackageHash(tool);
       // Settings describe retained grants even while the tool is stopped.
       // Executing Cookie operations still requires the default enabled check.
-      const admitted=Boolean(release&&await admittedOfficialCookieImport(tool,epoch,{requireEnabled:false}));
+      const admitted=await admittedInstalledCookieTool(tool,epoch,{requireEnabled:false});
       if(disposed||ticket!==cookieAdmissionTicket)return;
       cookieAdmissionHash=hash;cookieAdmissionState=admitted;render();
     })().catch(()=>{
@@ -592,16 +588,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const cookieHasSiteGrant=(tool,origin)=>Boolean(origin&&
     cookieRecordComplete(tool,cookieSiteBaseRecord(tool,origin)));
   const cookieHasManageGrant=(tool,origin)=>cookieHasBaseGrant(tool)||cookieHasSiteGrant(tool,origin);
+  const cookieUsesAllSites=(tool,origin)=>tool?.id==='cookie-editor'&&cookieAdmissionState===true&&
+    (cookieHasBaseGrant(tool)||!cookieHasSiteGrant(tool,origin));
   const cookieSiteRecord=(tool,origin)=>cookieHasBaseGrant(tool)
     ?cookieAllSiteRecord(tool):cookieSiteBaseRecord(tool,origin);
   function renderCookieSettings(show){
     const tool=active,origin=websiteOrigin(currentPageTarget?.snapshot?.url);
-    const officialPending=tool?.id==='cookie-editor'&&cookieAdmissionState===null;
-    const allSites=tool?.id==='cookie-editor'&&cookieAdmissionState===true;
+    const installationPending=tool?.id==='cookie-editor'&&cookieAdmissionState===null;
+    const allSites=cookieUsesAllSites(tool,origin);
     const globalAllowed=allSites&&cookieHasBaseGrant(tool);
     const siteAllowed=cookieHasSiteGrant(tool,origin);
     const managed=cookieHasManageGrant(tool,origin);
-    const officialBlocked=tool?.id==='cookie-editor'&&cookieAdmissionState===false&&!managed;
+    const installationBlocked=tool?.id==='cookie-editor'&&cookieAdmissionState===false&&!managed;
     const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
     // The original native Chrome grant is prepared even with Settings closed.
@@ -633,14 +631,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
     const chromeMissing=allowed&&cookieChromeState?.granted===false;
-    const cookieHelpText=officialBlocked?
-      '当前 Cookie Editor 安装包与官方发行不匹配，暂时无法授权。请关闭此窗口，返回「扩展」列表，'+
-      '在 Cookie Editor 管理菜单中选择「审阅新版」；如无新版，请从官方来源重新导入安装包。':
-      allowed&&!officialPending?
+    const cookieHelpText=installationBlocked?
+      '当前 Cookie Editor 安装状态已变化，请关闭后重新打开工具再授权。':
+      allowed&&!installationPending?
       !origin?'请选择普通 HTTP/HTTPS 网站':partial?'授权不完整，请补全 Cookie 管理权限。':
         chromeMissing?'Chrome 网站权限已撤销，请恢复访问。':
           !cookieChromeState?'Chrome 权限状态尚未确认，请检查权限或重新打开设置。':''
-      :officialPending?'正在核验当前安装包及官方发行来源，请勿重复授权。':
+      :installationPending?'正在读取当前安装状态，请勿重复授权。':
       (!origin?'请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':'')+
       (partial?'此前授权不完整。':'')+description+
       '全站授权适用于所有普通 HTTP/HTTPS 网站；单站授权仅适用于明确选择的网站。'+
@@ -649,14 +646,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,cookieHelp,{hidden:!cookieHelpText,textContent:cookieHelpText});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
       attributes:{'aria-busy':String(cookieGrantPending)}});
-    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialBlocked?
-      '请先更新官方安装包':officialPending?
-      '正在核验安装身份…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
+    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':installationBlocked?
+      '请重新打开工具':installationPending?
+      '正在读取安装状态…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
         partial?'补全授权':'授权访问'):chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
       allSites?'撤销所有网站 Cookie 授权':'撤销本站 Cookie 授权':
       partial?'补全 Cookie 管理授权':allSites?'允许管理所有网站 Cookie':'允许管理本站 Cookie',
       className:firstUse?'od-button od-button--primary':'od-button',
-      disabled:busy||cookieGrantPending||officialPending||officialBlocked||!cookieChromeState||
+      disabled:busy||cookieGrantPending||installationPending||installationBlocked||!cookieChromeState||
         enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
         !origin||requested.length===0});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
@@ -665,7 +662,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       hidden:tool.id==='cookie-editor'||!managed||firstUse||
         !tool.capabilities.includes('browser.cookies.values'),
       textContent:valueAllowed?'撤销敏感值读取授权':'单独授权读取敏感值',
-      disabled:busy||cookieGrantPending||officialPending||!cookieChromeState||
+      disabled:busy||cookieGrantPending||installationPending||!cookieChromeState||
         enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||!origin});
     setToolFieldAttribute(view,cookieValuesToggle,'aria-pressed',String(valueAllowed));
     const rows=(firstUse||globalAllowed?[]:Object.entries(menuGrants?.[tool.id]?.cookieSites||{}))
@@ -735,15 +732,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       active?.id==='cookie-editor'&&cookieAdmissionState===null||!cookieChromeState)return;
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),tool=active,token=instance;
     if(!tool||!origin)return;
-    const allSites=tool.id==='cookie-editor'&&cookieAdmissionState===true;
+    const allSites=cookieUsesAllSites(tool,origin);
     const wasUsable=cookieHasManageGrant(tool,origin);
     const scopeGranted=allSites?cookieHasBaseGrant(tool):cookieHasSiteGrant(tool,origin);
     const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
       cookieHasSiteGrant(tool,origin));
-    // The Host rejects complete site consent for an unverified Cookie Editor.
-    // Keep retained consent manageable, but never request new access here.
-    if(tool.id==='cookie-editor'&&!allSites&&!revoke&&!restoreChrome)return;
+    if(tool.id==='cookie-editor'&&cookieAdmissionState!==true&&!revoke&&!restoreChrome)return;
     // A stale grant-only header/modal render may never act as a revoke.
     if(revoke&&event.target?.closest?.('button[data-cookie-grant-only="true"]'))return;
     // The shared Chrome gate consumes this genuine click synchronously,
@@ -896,22 +891,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     frameRevocationEpoch===(revocationEpochs[active.id]??null)&&
     samePackage(active,toolById(active.id));
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
-  // Bind to the installed, enabled, signed-off official release and epoch.
-  async function admittedOfficialCookieImport(tool,expectedEpoch,{requireEnabled=true}={}){
+  // Bind to the actual installed package and epoch; consent and one-shot
+  // write intents remain separate from official release discovery.
+  async function admittedInstalledCookieTool(tool,expectedEpoch,{requireEnabled=true}={}){
     if(tool?.id!=='cookie-editor'||!tool.capabilities?.includes('browser.cookies.write'))
       return false;
-    const release=officialReleases.find(row=>row.toolId==='cookie-editor');
-    if(!release||release.version!==tool.version)return false;
     const state=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-    const current=requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]);
-    const installed=current.some(row=>sameSidebarToolPackage(row,tool));
-    const grant=state[MARKET_PROVENANCE_STORE]?.[tool.id];
-    const enabled=sidebarToolEnabled(state[SIDEBAR_TOOL_ENABLE_STORE],tool.id);
-    const epoch=state[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
-    return installed&&(!requireEnabled||enabled)&&epoch===expectedEpoch&&
-      grant?.marketId===release.id&&grant?.version===release.version&&
-      grant?.sha256===release.sha256&&await matchesOfficialRelease(release,tool);
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+    return admitsInstalledSidebarTool({tool,installed:state[SIDEBAR_TOOL_STORE],
+      enableRecords:state[SIDEBAR_TOOL_ENABLE_STORE],epochs:state[TOOL_REVOCATION_EPOCHS_STORE],
+      expectedEpoch,id:'cookie-editor',capabilities:['browser.cookies.write'],requireEnabled});
   }
   const cookieImportOwner=(tool,token,epoch)=>JSON.stringify([tool.id,tool.version,token,epoch]);
   const captureCookieImportDocument=(action='导入')=>{
@@ -1099,22 +1088,26 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // never consumes the installed package's html/css/js as executable input.
   async function installedAdmissionState(){
     const saved=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
     return {installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
-      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
-      provenance:saved[MARKET_PROVENANCE_STORE]};
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs:saved[TOOL_REVOCATION_EPOCHS_STORE]};
+  }
+  // Optional full-UI replacement must represent the installed UI itself.
+  // This never grants or denies runtime rights: custom/newer/missing bundled
+  // UI resources simply keep the package's own sandbox, without Catalog I/O.
+  async function bundledPresentationFits(tool,componentVersion){
+    if(tool.version!==componentVersion)return false;
+    try{
+      const url=api.runtime.getURL('official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json');
+      const response=await fetcher(url,{cache:'no-store',credentials:'omit',redirect:'error'});
+      if(!response?.ok||response.url&&response.url!==url)return false;
+      return sameSidebarToolPackage(await response.json(),tool);
+    }catch{return false;}
   }
   async function admittedNativeTimeReview(tool,expectedEpoch){
     if(nativeTimeReview?.version!==TRUSTED_TIME_REVIEW_VERSION||
        typeof nativeTimeReview.mount!=='function')return false;
-    // An official first-open must wait for the built-in catalog to load;
-    // catalog failure still fails closed, never enables native by title.
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===TIME_REVIEW_ID&&
-      row.version===TRUSTED_TIME_REVIEW_VERSION);
-    if(!release)return false;
-    return admitsTrustedTimeReview({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsTrustedTimeReview({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function requestNativeTimeReview(tool,token,epoch,operation,payload={},event=null){
     const current=()=>!disposed&&instance===token&&active===tool&&!readOnlyPreview&&
@@ -1129,7 +1122,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw Object.assign(new Error('请在上方可信设置区完成授权或清空确认'),{code:'E_TIME_TRUSTED_CLICK'});
     }
     if(!await admittedNativeTimeReview(tool,epoch)||!current()){
-      if(current()){destroyFrame();tocSettingsOpen=true;render();notice('官方 UI 身份或安装代际已变化，请重新打开工具。',true);}
+      if(current()){destroyFrame();tocSettingsOpen=true;render();notice('安装身份或代际已变化，请重新打开工具。',true);}
       throw Object.assign(new Error('可信 UI 准入已失效'),{code:'E_TOOL_CHANGED'});
     }
     try{return await runTrustedTimeReviewOperation(operation,payload,event);}
@@ -1143,18 +1136,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
   }
 // The normal installed-tool path may mount the single statically compiled
-  // React portal only AFTER exact official-release/installation admission.
+  // React portal only AFTER actual installation and lifecycle admission.
   // Every SDK operation still uses the existing Host dispatcher and approval UI.
   async function admittedNativeAIProxy(tool,expectedEpoch){
     if(trustedAIProxyPilot?.enabled!==true||
        trustedAIProxyPilot.version!==TRUSTED_AI_PROXY_VERSION||
        typeof trustedAIProxyPilot.mount!=='function')return false;
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===TRUSTED_AI_PROXY_ID&&
-      row.version===TRUSTED_AI_PROXY_VERSION);
-    if(!release)return false;
-    return admitsTrustedAIProxy({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsTrustedAIProxy({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function requestTrustedAIProxy(tool,token,epoch,operation,payload={}){
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
@@ -1166,7 +1154,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const proxyAction=proxyActionGate.begin(tool.id,operation);
     if(!await admittedNativeAIProxy(tool,epoch)||!current()){
       if(current()){destroyFrame();tocSettingsOpen=true;render();
-        notice('AI Proxy 官方安装身份或授权已变化，可信界面已关闭。',true);}
+        notice('AI Proxy 安装身份或授权已变化，界面已关闭。',true);}
       throw Object.assign(new Error('AI Proxy 可信准入已失效'),{code:'E_TOOL_CHANGED'});
     }
     proxyAction.assertCurrent();
@@ -1177,12 +1165,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(trustedBookmarkPilot?.enabled!==true||
        trustedBookmarkPilot.componentVersion!==TRUSTED_BOOKMARK_COMPONENT_VERSION||
        typeof trustedBookmarkPilot.mount!=='function')return false;
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===TRUSTED_BOOKMARK_ID&&
-      row.version===TRUSTED_BOOKMARK_VERSION);
-    if(!release)return false;
-    return admitsTrustedBookmark({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsTrustedBookmark({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function requestTrustedBookmark(tool,token,epoch,operation,payload={}){
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
@@ -1190,50 +1173,30 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!current())throw Object.assign(new Error('书签可信界面已关闭'),{code:'E_TOOL_CHANGED'});
     if(!await admittedNativeBookmark(tool,epoch)||!current()){
       if(current()){destroyFrame();tocSettingsOpen=true;render();
-        notice('书签官方安装身份或授权已变化，可信界面已关闭。',true);}
+        notice('书签安装身份或授权已变化，界面已关闭。',true);}
       throw Object.assign(new Error('书签可信准入已失效'),{code:'E_TOOL_CHANGED'});
     }
     return dispatch(operation,payload,tool,trustedBookmarkSource,token,epoch);
   }
 
-  // A reviewed installed package, provenance and generation are mandatory.
+  // The actual reviewed installation and generation remain mandatory.
   async function admittedNativePrompt(tool,expectedEpoch){
     if(trustedPromptPilot?.enabled!==true||typeof trustedPromptPilot.mount!=='function'||
        typeof trustedPromptPilot.conversation!=='function')return false;
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===PROMPT_ID&&row.version===TRUSTED_PROMPT_VERSION);
-    if(!release)return false;
-    return admitsTrustedPrompt({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsTrustedPrompt({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedOfficialVideoSpeed(tool,expectedEpoch){
-    // First-party page effects are never admitted solely by an ID or capability.
-    // Check the actual bundled release, installed bytes, source provenance,
-    // enablement and installation epoch before every operation and readback.
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&
-      row.version===tool?.version);
-    return admitsOfficialVideoSpeed({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsOfficialVideoSpeed({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedOfficialVideoSVIP(tool,expectedEpoch){
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===VIDEO_SVIP_ID&&row.version===tool?.version);
-    return admitsOfficialVideoSVIP({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsOfficialVideoSVIP({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedOfficialVideoDownloader(tool,expectedEpoch){
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===MEDIA_ID&&row.version===tool?.version);
-    return admitsOfficialVideoDownloader({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsOfficialVideoDownloader({tool,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedNativeKnowledge(tool,expectedEpoch){
     if(trustedKnowledgePilot?.enabled!==true||typeof trustedKnowledgePilot.mount!=='function')return false;
-    if(!officialLoaded&&!officialError)await officialReady;
-    if(!officialLoaded||officialError)return false;
-    const release=officialReleases.find(row=>row.toolId===TRUSTED_KNOWLEDGE_ID&&row.version===TRUSTED_KNOWLEDGE_VERSION);
-    return admitsTrustedKnowledge({tool,release,expectedEpoch,...await installedAdmissionState()});
+    return admitsTrustedKnowledge({tool,expectedEpoch,...await installedAdmissionState()});
   }
   function trustedBookmarkSDK(tool,token,epoch){
     const request=(operation,payload={})=>requestTrustedBookmark(tool,token,epoch,operation,payload);
@@ -1580,7 +1543,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, removeReview, {hidden: true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
-  const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
+  const isDirty=()=>toolDirty||toolSaving||(!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty);
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
   function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
@@ -1627,17 +1590,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     developmentStorage=readOnly?developmentSession:null;
     pendingAnalyticsOpen=carryOpen?instance:null;
     const token=instance;
+    // Full replacement components only render the UI version they implement.
+    // Other installed versions keep their own sandbox UI and runtime rights.
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TIME_REVIEW_ID&&
+       tool.version===TRUSTED_TIME_REVIEW_VERSION&&
        nativeTimeReview?.version===TRUSTED_TIME_REVIEW_VERSION&&typeof nativeTimeReview.mount==='function'){
       // Async fail-closed admission finishes BEFORE any privileged UI code
-      // mounts. A modified/offline/legacy same-ID package keeps its sandbox.
+      // mounts. Other component versions keep their own sandbox UI.
       nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
-      notice('正在校验当前扩展内置的 Time Review 官方发行身份…');
-      void admittedNativeTimeReview(tool,frameRevocationEpoch).then(admitted=>{
+      notice('正在读取时间回顾安装状态…');
+      void (async()=>await admittedNativeTimeReview(tool,frameRevocationEpoch)&&
+        await bundledPresentationFits(tool,TRUSTED_TIME_REVIEW_VERSION))().then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){
           mountTool(tool,{forceSandbox:true});
-          notice('当前包不是已审批的内置 Time Review 发行，已在受限沙箱中打开。');
+          notice('');
           return;
         }
         try{
@@ -1655,21 +1622,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }).catch(error=>{
         if(disposed||active!==tool||instance!==token)return;
         destroyFrame();tocSettingsOpen=true;render();
-        notice('官方包身份校验失败，未执行特权 UI：'+String(error?.message||error).slice(0,180),true);
+        notice('安装状态核对失败：'+String(error?.message||error).slice(0,180),true);
       });
       return;
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_AI_PROXY_ID&&
+       tool.version===TRUSTED_AI_PROXY_VERSION&&
        trustedAIProxyPilot?.enabled===true&&typeof trustedAIProxyPilot.mount==='function'){
       const epoch=frameRevocationEpoch;
       nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
-      notice('正在核验 AI Proxy 官方安装身份…');
+      notice('正在读取 AI Proxy 安装状态…');
       const fallback=()=>{
         if(disposed||active!==tool||instance!==token)return;
         mountTool(tool,{forceSandbox:true});
-        notice('AI Proxy 官方身份未通过核验，已在受限沙箱中打开。');
+        notice('已在应用沙箱中打开 AI Proxy。');
       };
-      void admittedNativeAIProxy(tool,epoch).then(admitted=>{
+      void (async()=>await admittedNativeAIProxy(tool,epoch)&&
+        await bundledPresentationFits(tool,TRUSTED_AI_PROXY_VERSION))().then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){fallback();return;}
         try{
@@ -1696,15 +1665,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_BOOKMARK_ID&&
+       tool.version===TRUSTED_BOOKMARK_VERSION&&
        trustedBookmarkPilot?.enabled===true&&typeof trustedBookmarkPilot.mount==='function'){
       nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
-      notice('正在核验书签管理官方安装身份…');
-      void admittedNativeBookmark(tool,frameRevocationEpoch).then(admitted=>{
+      notice('正在读取书签管理安装状态…');
+      void (async()=>await admittedNativeBookmark(tool,frameRevocationEpoch)&&
+        await bundledPresentationFits(tool,TRUSTED_BOOKMARK_VERSION))().then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){
           mountTool(tool,{forceSandbox:true});
-          bookmarkFallbackNotice=bookmarkSandboxNotice(tool.version);
-          notice(bookmarkFallbackNotice);
+          notice('');
           return;
         }
         try{
@@ -1714,7 +1684,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             onStateChange:state=>{
               if(disposed||active!==tool||instance!==token)return;
               const next=state?.navigation;
-              // Only signed, statically admitted React can call this closure.
+              // Only the statically compiled React component can call this closure.
               // Keep accepted page names bounded; no dynamic iframe can set it.
               const allowed=next?.canBack===true&&
                 (next.page==='create'||next.page==='edit')&&
@@ -1741,17 +1711,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }).catch(error=>{
         if(disposed||active!==tool||instance!==token)return;
         destroyFrame();tocSettingsOpen=true;render();
-        notice('书签官方身份校验失败：'+String(error?.message||error).slice(0,160),true);
+        notice('书签安装状态核对失败：'+String(error?.message||error).slice(0,160),true);
       });
       return;
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_KNOWLEDGE_ID&&
        trustedKnowledgePilot?.enabled===true){
-      nativePending=true;render();notice('正在核验知识问答官方安装身份…');
+      nativePending=true;render();notice('正在读取知识问答安装状态…');
       void admittedNativeKnowledge(tool,frameRevocationEpoch).then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){mountTool(tool,{forceSandbox:true});
-          notice('官方来源核验未通过，已保留知识沙箱；未开放可信 AI。');return;}
+          notice('已在应用沙箱中打开知识问答。');return;}
         try{
           const epoch=frameRevocationEpoch;let cached=null;
           const assertIdentity=args=>{
@@ -1781,7 +1751,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }catch(error){destroyFrame();render();notice('知识 AI 启动失败：'+String(error.message),true);}
       }).catch(error=>{
         if(disposed||active!==tool||instance!==token)return;
-        destroyFrame();render();notice('知识官方身份核验失败：'+String(error.message),true);
+        destroyFrame();render();notice('知识问答安装状态核对失败：'+String(error.message),true);
       });
       return;
     }
@@ -1789,12 +1759,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // iframe is appended to its final React business target just once.
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===PROMPT_ID&&
        trustedPromptPilot?.enabled===true&&typeof trustedPromptPilot.mount==='function'){
-      nativePending=true;render();notice('正在核验提示词快捷按钮官方安装身份…');
+      nativePending=true;render();notice('正在读取提示词快捷按钮安装状态…');
       void admittedNativePrompt(tool,frameRevocationEpoch).then(async admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){
           mountTool(tool,{forceSandbox:true});
-          notice('官方身份核验未通过，已保留受限 iframe，未开放可信 AI。');
+          notice('已在应用沙箱中打开提示词快捷按钮。');
           return;
         }
         let host=null;
@@ -1805,13 +1775,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                nativeUI?.kind!=='prompt'||!frame?.contentWindow||
                !sameInstance(frame.contentWindow,token))
               throw Object.assign(new Error('提示词实例已经关闭'),{code:'E_TOOL_CHANGED'});
-            // Full official provenance and package digest were already checked
+            // The actual installed package and epoch were already checked
             // at admission. Reuse the mounted instance; storage change listeners
             // revoke it on update/disable/uninstall, and dispatch checks live RPCs.
             if(enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
                (revocationEpochs?.[tool.id]??null)!==epoch||
                !installed.some(row=>row.id===tool.id&&samePackage(row,tool)))
-              throw Object.assign(new Error('官方安装状态已变化，请重新打开工具'),{code:'E_TOOL_CHANGED'});
+              throw Object.assign(new Error('安装状态已变化，请重新打开工具'),{code:'E_TOOL_CHANGED'});
           };
           host=createTrustedPromptHost({
             api,tool,token,epoch,lockManager,model:globalThis.OpenDeskPromptShortcutsModel,
@@ -1846,7 +1816,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }).catch(error=>{
         if(disposed||active!==tool||instance!==token)return;
         destroyFrame();tocSettingsOpen=true;render();
-        notice('官方身份核验失败，未开放 AI 数据访问：'+String(error?.message||error).slice(0,180),true);
+        notice('安装状态核对失败：'+String(error?.message||error).slice(0,180),true);
       });
       return;
     }
@@ -1901,17 +1871,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }
         if(!sameInstance(frame?.contentWindow,token))return;
       }
-      // Only the exact bundled official release can replace an in-tool header.
-      // Tool ID, claimed capability and same-ID manual installs are insufficient.
-      let approvedNavigation=false;
-      if(!readOnly){
-        try{
-          const releases=officialLoaded?officialReleases:
-            (await loadOfficialCatalog({api,fetcher})).apps;
-          const release=releases.find(row=>row.toolId===tool.id);
-          approvedNavigation=Boolean(release&&await matchesOfficialRelease(release,tool));
-        }catch{/* No trusted catalog/proof: retain the tool's own navigation UI. */}
-      }
+      // Display-only navigation belongs to the current reviewed installation.
+      // The sandbox keeps its own code; header actions grant no SDK authority.
+      const approvedNavigation=!readOnly;
       if(!sameInstance(frame?.contentWindow,token))return;
       if(!readOnly&&(installedReadError||revocationReadError||enableReadError||
          !sidebarToolEnabled(enableRecords,tool.id)||!samePackage(tool,toolById(tool.id))||
@@ -2006,6 +1968,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(disposed||!visible||busy)return;
       cancelRemovalReview();setImportOpen(false);clearTransientNotice();
       if(!sameLiveCookie)destroyFrame();
+      toolParked=false;
       active=tool;readOnlyPreview=false;previewDirty=false;
       tocSettingsOpen=true;tocScope='site';render();
       requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -2283,8 +2246,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(tool.id!=='cookie-editor'||!COOKIE_ACCOUNT_OPERATIONS.includes(action)||
          !['browser.cookies.read','browser.cookies.values','browser.cookies.write']
            .every(cap=>tool.capabilities.includes(cap))||
-         !await admittedOfficialCookieImport(tool,revocationEpoch))
-        throw Object.assign(new Error('当前正式 Cookie Editor 未获得账号管理资格'),
+         !await admittedInstalledCookieTool(tool,revocationEpoch))
+        throw Object.assign(new Error('当前 Cookie Editor 安装状态或账号管理能力不可用'),
           {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
       const accountRead=action==='status'||COOKIE_SERVICE_READS.includes(action);
       if(!accountRead&&!verifiedGesture)
@@ -2384,8 +2347,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const grantEpoch=exportGrantEpoch;
       if(cookieSiteRecord(tool,origin)?.grantEpoch!==grantEpoch)
         throw Object.assign(new Error('点击时的导出授权已变化'),{code:'E_DOCUMENT_CHANGED'});
-      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
-        throw Object.assign(new Error('仅正式 Cookie Editor 可一键导出'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+      if(!await admittedInstalledCookieTool(tool,revocationEpoch))
+        throw Object.assign(new Error('当前 Cookie Editor 安装状态不可用，无法导出'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
       assertSession(source,token);
       if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||cookieSiteRecord(tool,origin)?.read!==true||
          cookieSiteRecord(tool,origin)?.grantEpoch!==grantEpoch)
@@ -2412,8 +2375,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('请先在当前网站授权 Cookie 写入'),
           {code:'E_SITE_GRANT_REQUIRED'});
-      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
-        throw Object.assign(new Error('仅正式 Cookie Editor 可使用一键导入'),
+      if(!await admittedInstalledCookieTool(tool,revocationEpoch))
+        throw Object.assign(new Error('当前 Cookie Editor 安装状态不可用，无法导入'),
           {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
       assertSession(source,token);
       if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
@@ -2450,7 +2413,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           {code:'E_SITE_GRANT_REQUIRED'});
       // Never infer this privileged single-click privilege from a same-ID
       // custom package or sandbox assertion about its own confirmation UI.
-      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
+      if(!await admittedInstalledCookieTool(tool,revocationEpoch))
         throw Object.assign(new Error('当前安装包未通过官方清理资格核验，请安装正式 Cookie Editor'),
           {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
       assertSession(source,token);
@@ -2488,8 +2451,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!origin||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('请先授权当前网站写入 Cookie'),{code:'E_SITE_GRANT_REQUIRED'});
-      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
-        throw Object.assign(new Error('仅正式 Cookie Editor 可一键保存'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+      if(!await admittedInstalledCookieTool(tool,revocationEpoch))
+        throw Object.assign(new Error('当前 Cookie Editor 安装状态不可用，无法保存'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
       assertSession(source,token);
       if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
          cookieSiteRecord(tool,origin)?.write!==true)
@@ -2809,7 +2772,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             assertSession(source,token);
             if(clickDirect&&directExportPort!==frameExportPort)
               throw Object.assign(new Error('导出界面已关闭'),{code:'E_TOOL_CHANGED'});
-            if(cookieDirect&&(!await admittedOfficialCookieImport(tool,revocationEpoch)||
+            if(cookieDirect&&(!await admittedInstalledCookieTool(tool,revocationEpoch)||
                websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||cookieSiteRecord(tool,origin)?.read!==true))
               throw Object.assign(new Error('导出授权已变化'),{code:'E_TOOL_CHANGED'});
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
@@ -2952,9 +2915,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const origin=new URL(payload.url).origin;
         const requiredCookieGrant=operation==='browser.cookies.clearSite'?'clear':
           operation==='browser.cookies.observe.start'?'observe':'write';
-        const officialBatch=operation==='browser.cookies.setMany'&&
-          tool.id==='cookie-editor'&&await admittedOfficialCookieImport(tool,revocationEpoch);
-        if(!officialBatch&&cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
+        const cookieEditorBatch=operation==='browser.cookies.setMany'&&
+          tool.id==='cookie-editor'&&await admittedInstalledCookieTool(tool,revocationEpoch);
+        if(!cookieEditorBatch&&cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
           tocSettingsOpen=true;render();
           const currentOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
           // This exact trusted gate precedes both approval and the Cookie RPC.
@@ -2964,10 +2927,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             '请通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant+'；未保存草稿可保留'),
           {code:operation==='browser.cookies.setMany'?'E_COOKIE_NOT_SUBMITTED':'E_SITE_GRANT_REQUIRED'});
         }
-        // Only the official Cookie Editor may consume a trusted one-click
+        // Only the installed Cookie Editor may consume a trusted one-click
         // import intent; all other callers still see the original Host review.
         // This trusted branch mints an EXACT one-shot Host approval per chunk.
-        if(officialBatch){
+        if(cookieEditorBatch){
           assertSession(source,token);
           const owner=cookieImportOwner(tool,token,revocationEpoch);
           const sourceOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
@@ -3003,7 +2966,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }
         if(['browser.cookies.set','browser.cookies.remove'].includes(operation)&&
            tool.id==='cookie-editor'&&
-           await admittedOfficialCookieImport(tool,revocationEpoch)){
+           await admittedInstalledCookieTool(tool,revocationEpoch)){
           const owner=cookieImportOwner(tool,token,revocationEpoch);
           if(cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path,
                action:operation==='browser.cookies.remove'?'remove':'set'})){
@@ -3029,7 +2992,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // R5.38+ has the first-dialog trusted click and MUST NOT show it twice.
         if(operation==='browser.cookies.clearSite'&&tool.id==='cookie-editor'&&
            compareToolVersions(tool.version,'2.0.36')>=0&&
-           await admittedOfficialCookieImport(tool,revocationEpoch)){
+           await admittedInstalledCookieTool(tool,revocationEpoch)){
           const owner=cookieImportOwner(tool,token,revocationEpoch);
           const {captured,document}=captureCookieImportDocument('清理');
           await currentPageTarget.revalidate(captured);
@@ -3295,7 +3258,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(VIDEO_SPEED_GLOBAL_OPERATIONS.includes(operation)){
       if(tool.id!==VIDEO_SPEED_ID||!await admittedOfficialVideoSpeed(tool,revocationEpoch))
-        throw Object.assign(new Error('全局倍速需有效的官方安装'),{code:'E_VIDEO_TRUST'});
+        throw Object.assign(new Error('全局倍速需要有效安装与授权'),{code:'E_VIDEO_TRUST'});
       assertSession(source,token);
       const response=await api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,
         toolId:tool.id,installEpoch:revocationEpoch,operation,payload});
@@ -3424,11 +3387,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                 throw Object.assign(new Error('快捷键偏好未开启'),{code:'E_VIDEO_SHORTCUT_STALE'});
             }
             if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
-              throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
+              throw Object.assign(new Error('视频倍速安装状态或授权已变化，请重新打开工具'),{code:'E_VIDEO_TRUST'});
             if(expectedRevision){
               const raw=(await api.storage.local.get(VIDEO_SPEED_GLOBAL_STORE))[VIDEO_SPEED_GLOBAL_STORE];
-              const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&row.version===tool.version);
-              const state=globalVideoSpeedState(raw,revocationEpoch,release?.sha256);
+              const state=globalVideoSpeedState(raw,revocationEpoch??'',await sidebarToolPackageHash(tool));
               if(!state.enabled||state.revision!==expectedRevision||state.speed!==args.speed)
                 throw Object.assign(new Error('全局倍速已停止或变化，请重新检测'),{code:'E_VIDEO_CHANGED'});
             }
@@ -3473,7 +3435,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           assertCurrent:()=>assertSession(source,token),
           assertInstalled:async()=>{
             if(!await admittedOfficialVideoSVIP(tool,revocationEpoch))
-              throw Object.assign(new Error('视频会员需安装已审阅的 0.3.2 官方版本并保持授权'),
+              throw Object.assign(new Error('视频助手安装状态或授权已变化，请重新打开工具'),
                 {code:'E_VIDEO_TRUST'});
           }
         });
@@ -3521,7 +3483,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           assertCurrent:()=>assertSession(source,token),
           assertInstalled:async()=>{
             if(!await admittedOfficialVideoDownloader(tool,revocationEpoch))
-              throw Object.assign(new Error('视频下载必须使用已审阅并安装的官方发行包'),{code:'E_MEDIA_TRUST'});
+              throw Object.assign(new Error('视频下载需要有效安装与授权'),{code:'E_MEDIA_TRUST'});
           }
         });
       }
@@ -3871,10 +3833,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
       void runDefaultPreinstall();
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,
-      MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes||{},key)))
+      BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes||{},key)))
       (cookieImportGate.revoke(),cookieWriteGate.revoke(),cookieClearGate.revoke(),cookieExportGate.revoke());
-    if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,
-      MARKET_PROVENANCE_STORE].some(key=>Object.hasOwn(changes||{},key))){
+    if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE]
+      .some(key=>Object.hasOwn(changes||{},key))){
       invalidateCookieAdmission();
       if(active?.id==='cookie-editor')render();
     }
@@ -3951,27 +3913,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(nativeUI||nativePending){
           destroyFrame();tocSettingsOpen=true;render();
           notice('可信工具安装代际已撤销；请重新打开已核验工具。',true);
+        }else if(toolParked){
+          retireUntrustedTool();
+          notice('当前工具实例已撤销；已保留可复制草稿，请核对后重新打开。',true);
         }else{
           render();
           notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
         }
       }
-    }
-    if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)&&
-       (active?.id===TIME_REVIEW_ID
-         ?trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-         :active?.id===TRUSTED_AI_PROXY_ID
-           ?trustedAIProxyProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-         :active?.id===TRUSTED_BOOKMARK_ID
-           ?trustedBookmarkProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-           :active?.id===PROMPT_ID
-             ?trustedPromptProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-             :active?.id===TRUSTED_KNOWLEDGE_ID
-               ?trustedKnowledgeProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-             :false)){
-      // Only this admitted tool's own provenance revokes its React/native UI.
-      destroyFrame();tocSettingsOpen=true;render();
-      notice('官方来源身份发生变化；可信 UI 已关闭。',true);
     }
     // Do not refresh the native view for every TIME_REVIEW_KEY write: the
     // Host persists status reads, and echoing them would form a poll loop.
@@ -4800,7 +4749,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
-    if(toolSaving&&!readOnlyPreview&&frame?.isConnected){
+    if(toolSaving&&!readOnlyPreview&&!nativeUI&&!nativePending&&frame?.isConnected){
+      if(frameRevocationEpoch!==(revocationEpochs[id]??null)){
+        retireUntrustedTool();
+        notice('当前工具实例已撤销；已保留可复制草稿，请核对后重新打开。',true);return;
+      }
       toolParked=true;render();
       notice('已返回扩展列表，原工具和未完成操作仍保留。重新打开「'+active.title+'」可继续查看；原操作结束前不能替换或更新。');
       focusToolInList(id);return;
@@ -5173,8 +5126,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         check();
         if(expectedState){
           const raw=(await api.storage.local.get(VIDEO_SPEED_GLOBAL_STORE))[VIDEO_SPEED_GLOBAL_STORE];
-          const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&row.version===session.tool.version);
-          const state=globalVideoSpeedState(raw,session.epoch,release?.sha256);
+          const state=globalVideoSpeedState(raw,session.epoch??'',await sidebarToolPackageHash(session.tool));
           if(state.revision!==expectedState.revision||state.enabled!==expectedState.enabled)return;
         }
         return notifyVideoSpeed({...access,...details});

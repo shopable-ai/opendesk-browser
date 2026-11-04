@@ -111,6 +111,7 @@ test('ChatGPT page waits for the complete streamed candidate before one approved
     onMessage:{addListener(){},removeListener(){}},
     async sendMessage(message){
       sends.push(message);
+      if(message.kind==='list-tasks')return {ok:true,data:{tasks:[]}};
       if(message.kind==='prepare'){
         assert.equal(message.taskId,request.taskId);assert.deepEqual(message.args,args);
         return {ok:true,data:{requestId:id,taskId:request.taskId,args,source}};
@@ -128,6 +129,8 @@ test('ChatGPT page waits for the complete streamed candidate before one approved
       }
       throw Error('Unexpected message '+message.kind);
     }}};
+  const hostSend=api.runtime.sendMessage;
+  api.runtime.sendMessage=async message=>({...await hostSend(message),bridgeHostId:'r20-host'});
   let responseText=candidateText.slice(0,-1);
   const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:opts=>({
     ok:true,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[responseText]})});

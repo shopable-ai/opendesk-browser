@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION,
-  trustedAIProxyProvenanceChanged} from '../trusted/admission.js';
+import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION} from '../trusted/admission.js';
 import {serializeSidebarToolPackage,validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 
 function fixture(){
@@ -25,57 +24,51 @@ test('exact reviewed normalized package and independently installed identity adm
   assert.equal(await admitsTrustedAIProxy(),false);
 });
 
-test('spoofed identity, executable bytes, release path, version and digest fail closed',async()=>{
+test('AI Proxy admission rejects absent, duplicate, altered and invalid installations or missing capability',async()=>{
   const good=fixture();
+  const missing={...good.tool,capabilities:['storage.local']};
+  const malformed={...good.tool,extra:true};
   for(const change of [
     {tool:{...good.tool,id:'ai-vip-share'}},
     {tool:{...good.tool,version:'0.1.1'}},
-    {tool:{...good.tool,capabilities:['storage.local']}},
+    {tool:missing,installed:[missing]},
     {tool:{...good.tool,js:'malicious()'}},
-    {installed:[]},
-    {installed:[{...good.tool,html:'<main>tampered</main>'}]},
-    {release:{...good.release,id:'other/ai-proxy'}},
-    {release:{...good.release,toolId:'ai-vip-share'}},
-    {release:{...good.release,version:'0.1.1'}},
-    {release:{...good.release,packagePath:'projects/ai-vip-share/tool.json'}},
-    {release:{...good.release,sha256:good.release.sha256.toUpperCase()}},
-    {release:{...good.release,sha256:'0'.repeat(64)}},
-    {release:{...good.release,bytes:good.release.bytes+1}}
+    {installed:[]},{installed:undefined},{installed:{}},
+    {installed:[good.tool,good.tool]},
+    {installed:[good.tool,{...good.tool,js:'void 1;'}]},
+    {installed:[{...good.tool,html:'<main>different package</main>'}]},
+    {tool:malformed,installed:[malformed]}
   ])assert.equal(await admitsTrustedAIProxy({...good,...change}),false,JSON.stringify(change));
-  // Even matching self-reported provenance cannot replace the release's byte digest.
-  assert.equal(await admitsTrustedAIProxy({...good,
-    tool:{...good.tool,js:'malicious()'},installed:[{...good.tool,js:'malicious()'}]}),false);
 });
 
-test('enable state, null first-install epoch, rotated generations and provenance are enforced',async()=>{
+test('AI Proxy admission ignores Catalog, source records and fixed version for actual local installs',async()=>{
+  const good=fixture();
+  const local={...good.tool,version:'0.1.1',html:'<main>Custom proxy</main>',css:'',
+    js:'throw new Error("installed JS must remain in the sandbox");'};
+  for(const change of [
+    {release:undefined,provenance:undefined},{release:null,provenance:{}},
+    {release:{...good.release,id:'other/ai-proxy',toolId:'other-tool',version:'99.0.0',
+      packagePath:'local.json',sha256:'invalid',bytes:1}},
+    {provenance:{'ai-proxy':{marketId:'local',version:'0.0.1',extra:true}}},
+    {tool:local,installed:[local]}
+  ])assert.equal(await admitsTrustedAIProxy({...good,...change}),true);
+  const unreadable={...good};
+  for(const key of ['release','provenance'])Object.defineProperty(unreadable,key,{
+    get(){throw new Error('distribution metadata must not be read');}
+  });
+  assert.equal(await admitsTrustedAIProxy(unreadable),true);
+});
+
+test('AI Proxy admission enforces enable state and exact epoch including initial null',async()=>{
   const good=fixture();
   assert.equal(await admitsTrustedAIProxy({...good,expectedEpoch:null,epochs:{}}),true);
+  assert.equal(await admitsTrustedAIProxy({...good,expectedEpoch:null,epochs:undefined}),true);
   for(const change of [
     {enableRecords:{'ai-proxy':false}}, {enableRecords:{'ai-proxy':'true'}},
+    {enableRecords:[]},{enableRecords:null},
     {epochs:{'ai-proxy':'rotated'}}, {expectedEpoch:null}, {expectedEpoch:undefined},
+    {epochs:[]},{epochs:null},
     {epochs:{'ai-proxy':''},expectedEpoch:''},
-    {epochs:{'ai-proxy':12},expectedEpoch:12},
-    {provenance:{}},
-    {provenance:{'ai-proxy':{...good.provenance['ai-proxy'],marketId:'other/ai-proxy'}}},
-    {provenance:{'ai-proxy':{...good.provenance['ai-proxy'],version:'0.1.1'}}},
-    {provenance:{'ai-proxy':{...good.provenance['ai-proxy'],sha256:'0'.repeat(64)}}},
-    {provenance:{'ai-proxy':{...good.provenance['ai-proxy'],extra:true}}}
+    {epochs:{'ai-proxy':12},expectedEpoch:12}
   ])assert.equal(await admitsTrustedAIProxy({...good,...change}),false,JSON.stringify(change));
-});
-
-test('unrelated provenance changes preserve AI Proxy; own edits, removal and corruption revoke',async()=>{
-  const {provenance}=fixture();
-  const unrelated={marketId:'opendesk/other',version:'1.0.0',sha256:'f'.repeat(64)};
-  assert.equal(trustedAIProxyProvenanceChanged({oldValue:provenance,
-    newValue:{...provenance,other:unrelated}}),false);
-  assert.equal(trustedAIProxyProvenanceChanged({oldValue:{...provenance,other:unrelated},
-    newValue:provenance}),false);
-  assert.equal(await admitsTrustedAIProxy({...fixture(),provenance:{...provenance,other:unrelated}}),true);
-  for(const newValue of [{},null,[],{'ai-proxy':null},
-    {'ai-proxy':{...provenance['ai-proxy'],sha256:'f'.repeat(64)}},
-    {'ai-proxy':{...provenance['ai-proxy'],version:'0.3.0'}},
-    {'ai-proxy':{...provenance['ai-proxy'],marketId:'other/ai-proxy'}},
-    {'ai-proxy':{...provenance['ai-proxy'],extra:true}}])
-    assert.equal(trustedAIProxyProvenanceChanged({oldValue:provenance,newValue}),true);
-  assert.equal(trustedAIProxyProvenanceChanged({newValue:provenance}),true);
 });

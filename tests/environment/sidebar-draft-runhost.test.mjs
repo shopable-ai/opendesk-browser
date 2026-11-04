@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRunHost} from '../../src/run-host.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
+import {createControllerDraftRun} from '../../src/ui/controller-draft-run.js';
 
 function stubHost() {
   const requests = [];
@@ -55,4 +56,73 @@ test('saved script API retains explicit scriptId/revision/contentHash admission'
     {scriptId: 'saved-r1', revision: 1, contentHash: hash});
   assert.equal(requests[0].source, undefined);
   host.dispose();
+});
+
+function draftEditorFixture({deadline='30000',permission=Promise.resolve(true),completion=Promise.resolve({})}={}) {
+  const fields=Object.fromEntries(Object.entries({
+    'script-id':{value:'test-draft'},'script-params':{value:'{}'},
+    'script-allow-cookies':{checked:false},'script-run-id':{value:''},
+    'script-draft-deadline-ms':{value:deadline}
+  }).map(([key,state])=>[key,{key,...state}]));
+  const starts=[],errors=[];
+  const runner=createControllerDraftRun({
+    client:{},api:{permissions:{contains:()=>permission}},
+    host:{currentRun:null,completion,async start(request){starts.push(request);return {runId:'test-run'};}},
+    currentPageTarget:{capture:()=>({tabId:1,frameId:0,documentId:'exact',url:'https://example.com/',windowId:2}),revalidate:async()=>{}},
+    programSource:{kind:()=> 'controller',source:()=> 'async function main(){return 1;}'},
+    view:{fields,patch(key,values){Object.assign(fields[key],values);}},
+    controllerResults:{projection:{slotAvailable:true},renderTask(){},read:async()=>{},clearProjection(){}},
+    isDisposed:()=>false,isBlocked:()=>false,isControllerDraft:()=>true,
+    display(){},fail:error=>errors.push(error),hideUserScriptsRecovery(){},beginResult(){},update(){}
+  });
+  return {fields,starts,errors,runner,settle:()=>new Promise(resolve=>setImmediate(resolve))};
+}
+
+test('trusted draft Run uses its selected existing deadline while preserving the default',async()=>{
+  for(const deadline of ['30000','60000','120000']){
+    const f=draftEditorFixture({deadline}),before=Date.now();
+    f.runner.run({isTrusted:true});await f.settle();
+    assert.equal(f.starts.length,1);assert.deepEqual(f.errors,[]);
+    assert.ok(f.starts[0].deadlineAt>=before+Number(deadline));
+    assert.ok(f.starts[0].deadlineAt<=Date.now()+Number(deadline));
+    assert.equal(f.starts[0].target.documentId,'exact');
+    assert.equal(f.starts[0].source.kind,'draft');
+  }
+});
+
+test('invalid draft deadlines never reach admission or widen a runtime limit',async()=>{
+  for(const deadline of ['', '999','120001','60000.5','Infinity','not-a-number']){
+    const f=draftEditorFixture({deadline});f.runner.run({isTrusted:true});await f.settle();
+    assert.equal(f.starts.length,0);assert.equal(f.errors[0]?.code,'E_ARGUMENT_TYPE');
+  }
+  const f=draftEditorFixture({deadline:'60000'});f.runner.run({isTrusted:false});await f.settle();
+  assert.equal(f.starts.length,0);
+});
+
+test('a changed deadline during permission preparation cannot admit the old draft',async()=>{
+  let grant;const permission=new Promise(resolve=>{grant=resolve;});
+  const f=draftEditorFixture({deadline:'60000',permission});f.runner.run({isTrusted:true});
+  f.fields['script-draft-deadline-ms'].value='120000';grant(true);await f.settle();
+  assert.equal(f.starts.length,0);assert.equal(f.errors[0]?.code,'E_CONTROLLER_DRAFT_STALE');
+});
+
+test('cancelled or disposed preparation cannot start after a late permission reply',async()=>{
+  for(const cancel of ['invalidate','dispose']){
+    let grant;const permission=new Promise(resolve=>{grant=resolve;});
+    const f=draftEditorFixture({deadline:'60000',permission});f.runner.run({isTrusted:true});
+    f.runner[cancel]();grant(true);await f.settle();
+    assert.equal(f.starts.length,0);assert.equal(f.errors[0]?.code,'E_CONTROLLER_DRAFT_STALE');
+  }
+});
+
+test('a running draft keeps its frozen deadline and an older view retains the default',async()=>{
+  let finish;const completion=new Promise(resolve=>{finish=resolve;});
+  const f=draftEditorFixture({deadline:'60000',completion});f.runner.run({isTrusted:true});await f.settle();
+  assert.equal(f.starts.length,1);const admitted=f.starts[0].deadlineAt;
+  f.fields['script-draft-deadline-ms'].value='120000';f.runner.invalidate();
+  assert.equal(f.starts[0].deadlineAt,admitted);finish({});await f.settle();
+  const old=draftEditorFixture();delete old.fields['script-draft-deadline-ms'];const before=Date.now();
+  old.runner.run({isTrusted:true});await old.settle();
+  assert.equal(old.starts.length,1);assert.ok(old.starts[0].deadlineAt>=before+30000);
+  assert.ok(old.starts[0].deadlineAt<=Date.now()+30000);
 });

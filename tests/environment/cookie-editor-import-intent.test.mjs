@@ -57,11 +57,9 @@ test('wrong owner, wrong origin, expiration and unknown failures cannot reuse a 
   time+=120000;
   assert.throws(()=>gate.acquire({owner:'a',origin:'https://a.test',count:1}),{code:'E_DOCUMENT_CHANGED'});
 });
-test('verified official package, original Host approval and existing review survive',async()=>{
+test('installed package binding, original Host approval and existing review survive',async()=>{
   const code=await readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
   assert.match(code,/navigator\?\.userActivation\?\.isActive===true/);
-  assert.match(code,/matchesOfficialRelease\(release,tool\)/);
-  assert.match(code,/grant\?\.sha256===release\.sha256/);
   assert.match(code,/cookieSiteRecord\(tool,origin\)\?\.write!==true/);
   assert.match(code,/cookieImportGate\.acquire/);
   assert.match(code,/operation:'browser\.intent\.confirm'/);

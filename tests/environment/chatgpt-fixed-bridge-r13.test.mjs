@@ -43,12 +43,13 @@ test('Host denial precedes result bytes; later denial keeps the marked draft wit
       commit(){clicks++;return {ok:true};}};
     const done=Promise.withResolvers();
     const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=test-host'};
-    const deliver={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'deliver',requestId,
+    const deliver={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'deliver',bridgeHostId:'test-host',requestId,
       sourceUrl:url,mode:'manual',turnKey:'turn-1',answerKey:'answer-1',
       runId:'run-1',resultId:'result-1',text:'private result bytes'};
     const receive=()=>new Promise(resolve=>assert.equal(onMessage(deliver,sender,resolve),true));
     const api={runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',onMessage:{
       addListener(listener){onMessage=listener;},removeListener(){}},async sendMessage(message){
+      if(message.kind==='list-tasks')return {ok:true,data:{tasks:[]}};
       if(message.kind==='prepare')return {ok:true,data:{requestId,source:{url}}};
       if(message.kind==='authorize')return {ok:true,data:{}};
       if(message.kind==='check-delivery'){
@@ -69,6 +70,8 @@ test('Host denial precedes result bytes; later denial keeps the marked draft wit
       }
       throw Error('Unexpected bridge operation');
     }}};
+    const hostSend=api.runtime.sendMessage;
+    api.runtime.sendMessage=async message=>({...await hostSend(message),bridgeHostId:'test-host'});
     const bridge=initChatGPTFixedBridgePage({api,doc,win,site,
       readPage:()=>({ok:true,turnKey:'turn-1',answerKey:'answer-1',blocks:[JSON.stringify(request)]})});
     assert.equal(mounts,0,'retired ChatGPT floating UI must not be mounted');

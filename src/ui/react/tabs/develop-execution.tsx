@@ -121,6 +121,11 @@ export function DevelopExecution(){
           <summary>
             {"运行目标与版本"}
           </summary>
+          <DevelopField as="div" id="script-draft-deadline-row" className="od-form-field">
+            <label htmlFor="script-draft-deadline-ms" className="od-field-label">Controller 草稿最长运行时间</label>
+            <DevelopField as="select" id="script-draft-deadline-ms" className="od-field"/>
+            <p className="hint">仅用于下一次草稿运行；已安装任务沿用其安装版本声明的期限。</p>
+          </DevelopField>
           <DevelopField as="p" id="script-task-id" className="identity">
             {"尚未运行"}
           </DevelopField>

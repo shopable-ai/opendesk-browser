@@ -11,13 +11,12 @@ import {nextPatchVersion} from '../../scripts/app-update-plan.mjs';
 import {OFFICIAL_CATALOG_PATH} from '../../src/sidebar-tools/official-catalog.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {
- admitsTrustedBookmark,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_ID,
- trustedBookmarkProvenanceChanged
+ admitsTrustedBookmark,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_ID
 } from '../../src/ui/trusted-bookmark-admission.js';
 
 const read=path=>readFile(resolve(path),'utf8');
 
-test('Bookmark release config, packed catalog and compiled Browser admission advance together',async t=>{
+test('Bookmark component version marker advances without restricting installed package versions',async t=>{
  const source=await readOfficialSources();
  const row=source.tools.find(item=>item.id===TRUSTED_BOOKMARK_ID);
  assert.ok(row,'the official source catalog must include Bookmark Manager');
@@ -31,7 +30,7 @@ test('Bookmark release config, packed catalog and compiled Browser admission adv
  assert.match(wxt,/__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON\.stringify\(trustedBookmarkVersion\)/,
    'the real MV3 compiler must inject the exact source version');
  // Exercise the next PATCH too: Browser compile-time injection must advance
- // with the source release, while older installed Browser builds fail closed.
+ // with the source release without becoming an installed-package version gate.
  for(const version of [config.version,nextPatchVersion(config.version)])await t.test(version,async t=>{
   const root=await realpath(await mkdtemp(join(tmpdir(),'bookmark-release-')));
   t.after(()=>rm(root,{recursive:true,force:true}));
@@ -68,59 +67,47 @@ test('Bookmark release config, packed catalog and compiled Browser admission adv
    provenance:{[tool.id]:{marketId:release.id,version,sha256:release.sha256}}};
   assert.equal(await compiled.admitsTrustedBookmark(args),true,'the generated official package must enter React');
   if(version!==config.version)
-   assert.equal(await admitsTrustedBookmark(args),false,'an older Browser must reject a future release');
+   assert.equal(await admitsTrustedBookmark(args),true,'the fixed component marker does not gate installed versions');
  });
 });
 
-test('R3.0.6 only the exact official, enabled, current installed package enters static React',async()=>{
+test('Bookmark admission uses the actual installed package without Catalog or provenance',async()=>{
  const tool=await createSidebarToolPackage(resolve('projects/bookmark-manager'));
- assert.equal(tool.version,TRUSTED_BOOKMARK_VERSION);
- assert.equal(tool.id,TRUSTED_BOOKMARK_ID);
- const canonical=serializeSidebarToolPackage(tool);
- const sha256=createHash('sha256').update(canonical,'utf8').digest('hex');
- const release={id:'opendesk/bookmark-manager',toolId:TRUSTED_BOOKMARK_ID,
-  version:TRUSTED_BOOKMARK_VERSION,
-  packagePath:'official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json',
-  bytes:Buffer.byteLength(canonical,'utf8'),sha256};
- const source={marketId:release.id,version:release.version,sha256};
- const args={tool,installed:[tool],release,provenance:{[tool.id]:source},
-  enableRecords:{},epochs:{[tool.id]:'epoch-valid'},expectedEpoch:'epoch-valid'};
+ const args={tool,installed:[tool],enableRecords:{},
+  epochs:{[tool.id]:'epoch-valid'},expectedEpoch:'epoch-valid'};
  assert.equal(await admitsTrustedBookmark(args),true);
- // Even mutually consistent remote metadata cannot select another version
- // of the statically compiled Browser component.
- const futureTool={...tool,version:'99.0.0'};
- const futureCanonical=serializeSidebarToolPackage(futureTool);
- const futureHash=createHash('sha256').update(futureCanonical,'utf8').digest('hex');
- const cases=[
-  {...args,tool:{...tool,js:tool.js+';globalThis.evil=true;'}},
-  {...args,tool:{...tool,id:'another-tool'}},
-  {...args,tool:{...tool,version:'0.3.7'}},
-  {...args,tool:futureTool,installed:[futureTool],
-   release:{...release,version:futureTool.version,sha256:futureHash,bytes:Buffer.byteLength(futureCanonical)},
-   provenance:{[tool.id]:{...source,version:futureTool.version,sha256:futureHash}}},
-  {...args,installed:[]},
-  {...args,release:{...release,version:'0.3.12'}},
-  {...args,release:{...release,sha256:'f'.repeat(64)}},
-  {...args,release:{...release,id:'third-party/bookmark-manager'}},
-  {...args,enableRecords:{[tool.id]:false}},
-  {...args,epochs:{[tool.id]:'epoch-revoked'}},
-  {...args,expectedEpoch:'epoch-stale'},
-  {...args,provenance:{}},
-  {...args,provenance:{[tool.id]:{...source,version:'0.3.12'}}},
-  {...args,provenance:{[tool.id]:{...source,marketId:'third-party/bookmark-manager'}}},
-  {...args,provenance:{[tool.id]:{...source,extra:'unknown'}}}
- ];
- for(const value of cases)assert.equal(await admitsTrustedBookmark(value),false,
-  'an altered install, release, grant or provenance must fail closed');
- assert.equal(trustedBookmarkProvenanceChanged({
-  oldValue:{[tool.id]:source},newValue:{[tool.id]:source,unrelated:{foo:true}}
- }),false);
- assert.equal(trustedBookmarkProvenanceChanged({
-  oldValue:{[tool.id]:source},newValue:{[tool.id]:{...source,sha256:'f'.repeat(64)}}
- }),true);
- assert.equal(trustedBookmarkProvenanceChanged({
-  oldValue:{[tool.id]:source},newValue:{unrelated:{foo:true}}
- }),true);
+ const local={...tool,version:'0.0.1',html:'<main>Custom bookmarks</main>',css:'',
+  js:'throw new Error("installed JS must remain in the sandbox");'};
+ for(const change of [
+  {},{release:null,provenance:{}},
+  {release:{id:'other/bookmark-manager',version:'99.0.0',sha256:'invalid'},
+   provenance:{[tool.id]:{marketId:'local',version:'0.0.1'}}},
+  {tool:local,installed:[local]},
+  {tool:{...tool,version:'99.0.0'},installed:[{...tool,version:'99.0.0'}]},
+  {epochs:{},expectedEpoch:null},{epochs:undefined,expectedEpoch:null},
+  {enableRecords:{[tool.id]:true}}
+ ])assert.equal(await admitsTrustedBookmark({...args,...change}),true);
+ const unreadable={...args};
+ for(const key of ['release','provenance'])Object.defineProperty(unreadable,key,{
+  get(){throw new Error('distribution metadata must not be read');}
+ });
+ assert.equal(await admitsTrustedBookmark(unreadable),true);
+ const noBookmarks={...tool,capabilities:tool.capabilities.filter(cap=>cap!=='browser.bookmarks.full')};
+ const noPage={...tool,capabilities:tool.capabilities.filter(cap=>cap!=='currentPage.read')};
+ const malformed={...tool,extra:true};
+ for(const change of [
+  {tool:{...tool,id:'another-tool'}},{tool:local},{installed:[local]},
+  {installed:[]},{installed:undefined},{installed:{}},
+  {installed:[tool,tool]},{installed:[tool,local]},
+  {tool:noBookmarks,installed:[noBookmarks]},{tool:noPage,installed:[noPage]},
+  {tool:malformed,installed:[malformed]},
+  {enableRecords:{[tool.id]:false}},{enableRecords:[]},
+  {enableRecords:{[tool.id]:'true'}},
+  {epochs:{[tool.id]:'epoch-revoked'}},{expectedEpoch:'epoch-stale'},
+  {expectedEpoch:undefined},{epochs:{}},{epochs:[]},{epochs:null},
+  {epochs:{[tool.id]:7},expectedEpoch:7},{epochs:{[tool.id]:''},expectedEpoch:''}
+ ])assert.equal(await admitsTrustedBookmark({...args,...change}),false,JSON.stringify(change));
+ assert.equal(await admitsTrustedBookmark(),false);
 });
 
 test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe intact',async()=>{
@@ -146,7 +133,6 @@ test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe inta
  assert.match(host,/trustedBookmarkSource=Symbol/);
  assert.match(host,/return dispatch\(operation,payload,tool,trustedBookmarkSource/);
  assert.match(host,/frame=doc\.createElement\('iframe'\)/);
- assert.match(host,/trustedBookmarkProvenanceChanged/);
  assert.match(host,/onBookmarkChromeGrantRemoved/);
  assert.match(app,/export default function App\(\{runtime=null/);
  assert.match(app,/watchStart\(\)/);

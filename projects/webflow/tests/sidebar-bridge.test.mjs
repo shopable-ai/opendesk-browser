@@ -4,7 +4,7 @@ import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const url='https://chatgpt.com/c/sidebar-test-12345678';
-function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false,persistentPending=false,background=false,sendHook,navigationAvailable=true}={}){
+function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false,persistentPending=false,background=false,sendHook,navigationAvailable=true,lookupFailure=false}={}){
  const {document,window}=parseHTML('<html><body></body></html>');let listener,poll;
  const events=new Map(),addEvent=document.addEventListener.bind(document);
  document.addEventListener=(type,handler,...rest)=>{events.set(type,handler);return addEvent(type,handler,...rest);};
@@ -13,7 +13,7 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
  const navigation={currentEntry:{key:'fixture-current-entry'},addEventListener(type,fn){if(!navigationListeners.has(type))navigationListeners.set(type,new Set());navigationListeners.get(type).add(fn);},
   removeEventListener(type,fn){navigationListeners.get(type)?.delete(fn);}};
  const win={...(navigationAvailable?{navigation}:{}),location:{href:url,origin:'https://chatgpt.com'},setInterval(fn){poll=fn;return 1;},clearInterval(){},addEventListener(){},removeEventListener(){}};win.top=win;
- const sends=[],reloads=[];win.document=document;win.location.reload=()=>reloads.push('reload');
+ const sends=[],reloads=[],hostReads=[];win.document=document;win.location.reload=()=>reloads.push('reload');
  const intent={protocol:persistentPending||background?'webflow.task.intent.v1':'opendesk.task.intent.v1',candidateId:'sidebar-candidate',taskId:'baidu.search.top3',targetUrl:'https://www.baidu.com/',args:{query:'OpenDesk Browser',limit:3}};
  const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'original-install',generation:1};
  const prepared={requestId:'77777777-7777-4777-8777-777777777777',taskId:intent.taskId,targetUrl:intent.targetUrl,args:intent.args,installation,
@@ -22,10 +22,11 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
  snapshot.form=document.createElement('form');snapshot.editor={};snapshot.sendButton={disabled:false,getAttribute:()=>null};
  const api={runtime:{id:'extension',getURL:path=> 'chrome-extension://extension/'+(path||''),
   onMessage:{addListener(fn){listener=fn;},removeListener(){}},sendMessage:async message=>{
+   if(message.kind==='list-tasks'){hostReads.push(message);if(lookupFailure)throw Error('No Side Panel receiver');return {ok:true,bridgeHostId:'reviewed-host',data:{tasks:[]}};}
    sends.push(message);
    if(sendHook){const result=sendHook(message);if(result!==undefined)return result;}
    if(adoptError&&message.kind==='adopt-task')return {ok:false,error:{code:adoptErrorCode,message:adoptErrorCode==='E_BRIDGE_REPLAY'?'候选已准入或结果未知，禁止重放':'runtime changed'}};
-   return {ok:true,data:message.kind==='auto-task'?{...prepared,pendingApproval:!background,...(background?{executionOwner:'background'}:{})}:message.kind==='adopt-task'?prepared:message.kind==='execute'?
+   return {ok:true,...(!background?{bridgeHostId:'reviewed-host'}:{}),data:message.kind==='auto-task'?{...prepared,pendingApproval:!background,...(background?{executionOwner:'background'}:{})}:message.kind==='adopt-task'?prepared:message.kind==='execute'?
     {runId:'original-run',resultId:'original-result',resultPreview:'OLD_RESULT',sent:true,aiReplyObserved:true}:{}};
   }}};
  const elements=[],create=document.createElement.bind(document);document.createElement=(...args)=>{const node=create(...args),add=node.addEventListener.bind(node);
@@ -38,13 +39,31 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
   const response=listener({protocol,sourceUrl:win.location.href,...message},from,resolve);
   if(response===false)queueMicrotask(()=>resolve(undefined));
  });
- return {page,receive,sends,sender,win,snapshot,poll:()=>poll(),elements,prepared,api,document,reloads,
+ return {page,receive,sends,hostReads,sender,win,snapshot,poll:()=>poll(),elements,prepared,api,document,reloads,
   navigationEvent:type=>{for(const fn of navigationListeners.get(type)||[])fn({type});},
   compose:()=>events.get('compositionstart')(),
   receiveSync:(message,reply)=>listener({protocol,sourceUrl:win.location.href,...message},sender,reply),
   submit:()=>events.get('click')({type:'click',isTrusted:true,button:0,target:snapshot.sendButton}),
   stop:trusted=>events.get('click')({type:'click',isTrusted:trusted,button:0,target:snapshot.stopButton})};
 }
+test('an adopted legacy candidate routes execution back to its exact responding Side Panel host',async()=>{
+ const h=fixture({active:true});try{
+  const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
+  await h.receive({kind:'sidebar-control',requestId:view.requestId,action:'run'});
+  for(let i=0;i<40;i++)await Promise.resolve();
+  const runs=h.sends.filter(message=>message.kind==='execute');
+  assert.equal(runs.length,1);assert.equal(runs[0].bridgeHostId,'reviewed-host');
+  assert.equal(h.hostReads.length,1,'read-only Host selection precedes the first Ledger mutation');
+  assert.equal(h.sends[0].bridgeHostId,'reviewed-host');
+ }finally{h.page.dispose();}
+});
+test('a failed read-only Host lookup rejects before any candidate or grant is submitted',async()=>{
+ const h=fixture({active:true,lookupFailure:true});try{
+  const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
+  assert.equal(h.hostReads.length,1);assert.equal(h.sends.length,0);
+  assert.equal(view.requestId,null);assert.match(view.status,/E_BRIDGE_HOST/);
+ }finally{h.page.dispose();}
+});
 test('page projection accepts only fixed trusted Side Panel messages and refuses stale requests or navigation',async()=>{
  const h=fixture();try{
   for(const sender of [{id:'other',url:h.sender.url},{...h.sender,tab:{id:9}},
@@ -63,6 +82,7 @@ test('background page accepts exact SW progress but gives it no trusted manageme
  const h=fixture({active:true,background:true});try{
   const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  assert.equal(h.hostReads.length,0,'SW-owned tasks do not depend on an open Side Panel Host');
   assert.equal(h.sends.filter(row=>row.kind==='background-ready').length,1);
   const progress={kind:'progress',requestId:view.requestId,mode:'auto',taskId:h.prepared.taskId,stage:'running',
    scriptId:h.prepared.installation.scriptId,revision:h.prepared.installation.revision,targetUrl:h.prepared.targetUrl,runId:'background-run'};
@@ -300,7 +320,7 @@ test('unresolved pending admission and unknown adoption never authorize recovery
 
 test('unused future admission still blocks refresh, and unknown conversation approval stays blocked after cancel',async()=>{
  let h;
- h=fixture({active:true,sendHook:message=>message.kind==='preapprove-next-task'?{ok:true,data:{...h.prepared,
+ h=fixture({active:true,sendHook:message=>message.kind==='preapprove-next-task'?{ok:true,bridgeHostId:'reviewed-host',data:{...h.prepared,
   expiresAt:Date.now()+60000,baseline:{turnKey:'turn',answerKey:'answer'}}}:undefined});
  try{
   await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'});

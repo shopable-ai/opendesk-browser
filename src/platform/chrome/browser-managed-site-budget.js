@@ -241,18 +241,21 @@ export function createManagedSiteBudgetService({
       // from this resource ledger, which may retain a removed owner's cleanup.
       const auth=await readManagedSiteToolAuthority(api,{toolId:id,
         capability:MANAGED_SITE_BUDGET_CAPABILITY,extraStoreKeys:[MARKET_PROVENANCE_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE]});
-      const provenance=sourceId(auth.saved,id);
       const packageHash=auth.tool?await sidebarToolPackageHash(auth.tool):null;
       const kind=auth.tool?.backgroundPolicy?.kind;
       const supports=[SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3].includes(kind);
-      const source=provenance?.marketId??null;
-      const provenanceValid=!provenance||provenance.sha256===packageHash;
-      const valid=Boolean(supports&&provenanceValid&&auth.enabled&&!cleanup);
+      // Distribution metadata is not an installed-tool lease. Keep the ledger's
+      // source while the actual package is unchanged, including on revocation;
+      // epoch and reviewed-scope checks below still fence its native authority.
+      const provenance=auth.saved[MARKET_PROVENANCE_STORE]?.[id];
+      const source=provenance?.marketId==='opendesk/'+id?provenance.marketId:null;
+      const samePackage=row?.packageHash===packageHash;
+      const valid=Boolean(supports&&auth.enabled&&!cleanup);
       if(expectedLease&&(expectedLease.epoch!==auth.epoch||expectedLease.hash!==packageHash||!valid))
         fail('E_TOOL_CHANGED','安装包或撤权代际已改变');
       const permission=await currentPermission(api);
       let nextRow=row?structuredClone(row):null;
-      if(nextRow&&!cleanup&&nextRow.source!==source){
+      if(nextRow&&!cleanup&&!samePackage&&nextRow.source!==source){
         // The preceding publisher must relinquish verified native resources
         // before a same-ID newcomer can allocate its own slot.
         if(!permission.dnr)fail('E_CLEANUP_PENDING','来源变更，原生 DNR 资源尚不能核验清理');
@@ -370,9 +373,8 @@ export function createManagedSiteBudgetService({
         // reviewed. The old checkpoint must never charge across generations.
         // Explicit STOP, installed-tool revocation or lost Chrome permissions
         // remain durable disable events; none may silently auto-resume.
-        // An interim provenance mismatch during Installer's multi-key commit
-        // is NOT itself a user STOP. Its native effects stay suspended by
-        // canApply=false until the journal/installation identity is consistent.
+        // Distribution provenance is not part of normal runtime admission;
+        // the installed package/epoch and reviewed scope own that decision.
         if(!auth.enabled||revoke||permissionRevoked||!permission.ready){
           if(nextRow.policy.enabled){
             nextRow.policy={...nextRow.policy,enabled:false};
@@ -496,7 +498,7 @@ export function createManagedSiteBudgetService({
         try{
           await nativeRules(nextRow.slot,wanted);
           nextRow.appliedPolicyRev=nextRow.desiredPolicyRev;
-          nextRow.status=!provenanceValid?'unknown':valid&&nextRow.settings.enabled?
+          nextRow.status=valid&&nextRow.settings.enabled?
             permission.ready?'applied':'missing-permission':'inactive';
         }catch(error){
           nextRow.status='unknown';
@@ -637,7 +639,7 @@ export function installManagedSiteBudgetService({api=globalThis.chrome,...option
     },
     onStorageChanged:(changes,area)=>{
       if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-        MARKET_PROVENANCE_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE].some(key=>Object.hasOwn(changes,key))){
+        MANAGED_SITE_REVIEWED_SCOPE_STORE].some(key=>Object.hasOwn(changes,key))){
         service.invalidate();void service.run({boot:true}).catch(error=>
           console.warn('E_SITE_BUDGET_CHANGE',error?.code||'E_SITE_BUDGET'));
       }

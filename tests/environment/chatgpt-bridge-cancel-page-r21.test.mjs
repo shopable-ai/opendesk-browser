@@ -38,7 +38,7 @@ function harness(overrides={}){
   const api={runtime:{id:'extid',getURL:()=>'chrome-extension://extid/',
     onMessage:{addListener(fn){onMessage=fn;},removeListener(){}},
     async sendMessage(message){
-      sends.push(message);
+      if(message.kind!=='list-tasks')sends.push(message); // read-only Host discovery has no effects
       if(message.kind==='prepare')currentScope=Object.fromEntries(
         ['taskId','args','targetUrl','installation'].filter(key=>message[key]!==undefined).map(key=>[key,message[key]]));
       if(overrides[message.kind]){
@@ -53,6 +53,8 @@ function harness(overrides={}){
       if(message.kind==='check-delivery')return {ok:true,data:{allowed:true}};
       return {ok:true,data:{}};
     }}};
+  const hostSend=api.runtime.sendMessage;
+  api.runtime.sendMessage=async message=>({...await hostSend(message),bridgeHostId:'cancel-host'});
   const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:overrides.readPage||(()=>({ok:true,
     turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...JSON.parse(candidate),...currentScope,requestId:currentRequestId})]}))});
   const buttons=nodes.filter(x=>x.tag==='button');
@@ -60,10 +62,10 @@ function harness(overrides={}){
   const click=i=>{assert.ok(buttons[i],`button ${i} exists`);return buttons[i].listeners.click({isTrusted:true});};
   const prepare=async()=>{await click(0);snap.users=[...snap.users,messageNode(currentRequestId)];snap.draft='';};
   const deliver=(fields={})=>new Promise(resolve=>{
-    assert.equal(onMessage({protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'deliver',requestId:currentRequestId,
+    assert.equal(onMessage({protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'deliver',bridgeHostId:'cancel-host',requestId:currentRequestId,
       sourceUrl:source.url,mode:'manual',turnKey:'turn-1',answerKey:'answer-1:0',
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
-    {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
+    {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=cancel-host'},resolve),true);
   });
   return {page,api,sends,nodes,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,events,poll:()=>poll(),
     receive:(message,sender,reply=()=>{})=>onMessage(message,sender,reply)};
@@ -146,15 +148,19 @@ test('visible progress accepts only the current trusted Host and cannot claim ex
   const execution=Promise.withResolvers(),h=harness({execute:()=>execution.promise});
   await h.prepare();await h.click(1);
   const approved=h.status.textContent;assert.match(approved,/尚未运行/);
-  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',bridgeHostId:'cancel-host',requestId:id,sourceUrl:source.url,
     mode:'auto',stage:'running',taskId:'page.read.fixed',scriptId:'task:page.read.fixed:1.0.0',
     revision:1,targetUrl:'https://httpbingo.org/html',runId:'run-real'};
-  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=cancel-host'};
   h.receive(progress,sender);assert.equal(h.status.textContent,approved);
   h.poll();await flush();
   const before=h.status.textContent;
   h.receive(progress,{...sender,tab:{id:9}});assert.equal(h.status.textContent,before);
   h.receive({...progress,requestId:'other-request'},sender);assert.equal(h.status.textContent,before);
+  assert.equal(h.receive({...progress,bridgeHostId:'other-host'},sender),false);
+  assert.equal(h.receive(progress,{...sender,url:'chrome-extension://extid/sidepanel.html?hostInstanceId=other-host'}),false);
+  assert.equal(h.receive({...progress,kind:'deliver',bridgeHostId:'other-host'},sender),false);
+  assert.equal(h.status.textContent,before);
   h.receive(progress,sender);assert.match(h.status.textContent,/自动化已开始/);
   h.receive({...progress,stage:'validating'},sender);assert.match(h.status.textContent,/自动化已开始/);
   await h.click(3);const cancelled=h.status.textContent;
@@ -215,14 +221,14 @@ test('view button follows this running identity and never chooses a target or re
   const h=harness({execute:()=>execution.promise,'show-execution-page':()=>({shown:true,runId:'run-real'})});
   const view=h.buttons.find(button=>button.textContent==='查看执行页面');
   assert.equal(view.disabled,true);await h.prepare();await h.click(2);await flush();
-  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',bridgeHostId:'cancel-host',requestId:id,sourceUrl:source.url,
     mode:'manual',stage:'running',taskId:'page.read.fixed',runId:'run-real'};
-  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=cancel-host'};
   h.receive(progress,sender);assert.equal(view.disabled,false);
   await view.listeners.click({isTrusted:false});assert.equal(h.sends.some(row=>row.kind==='show-execution-page'),false);
   await view.listeners.click({isTrusted:true});
   assert.deepEqual(h.sends.find(row=>row.kind==='show-execution-page'),{protocol:progress.protocol,
-    kind:'show-execution-page',requestId:id,runId:'run-real',source,sourceUrl:source.url});
+    kind:'show-execution-page',requestId:id,runId:'run-real',source,sourceUrl:source.url,bridgeHostId:'cancel-host'});
   h.receive({...progress,stage:'result-ready'},sender);assert.equal(view.disabled,true);
   execution.resolve({runId:'run-real',sent:true,aiReplyObserved:true});await flush();
   assert.equal(view.disabled,true);assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);
@@ -233,9 +239,9 @@ test('late view failure stays visible after completion and verified result previ
   const execution=Promise.withResolvers(),viewing=Promise.withResolvers();
   const h=harness({execute:()=>execution.promise,'show-execution-page':()=>viewing.promise});
   await h.prepare();await h.click(2);await flush();
-  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',bridgeHostId:'cancel-host',requestId:id,sourceUrl:source.url,
     mode:'manual',stage:'running',taskId:'page.read.fixed',runId:'run-real'};
-  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=cancel-host'};
   h.receive(progress,sender);
   const view=h.buttons.find(button=>button.textContent==='查看执行页面');
   const pendingView=view.listeners.click({isTrusted:true});
@@ -272,7 +278,7 @@ test('execute cancellation sends Stop without waiting for revoke and rejects lat
   await h.prepare();h.click(2);await flush();const cancelling=h.click(3);await flush();
   const stop=h.sends.find(x=>x.kind==='cancel');
   assert.deepEqual(stop,{protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'cancel',
-    requestId:id,source,sourceUrl:source.url});
+    requestId:id,source,sourceUrl:source.url,bridgeHostId:'cancel-host'});
   assert.equal(h.buttons[0].disabled,true);
   assert.equal((await h.deliver()).ok,false);assert.equal(h.writes.length,1);
   revoke.resolve({requestId:id,revoked:true});await cancelling;

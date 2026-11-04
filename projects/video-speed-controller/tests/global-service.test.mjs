@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../../scripts/build-sidebar-tool.mjs';
-import {createGlobalVideoSpeedService,restoreControlledVideoSpeed,readRestoredVideoSpeed} from '../trusted/service.js';
+import {createGlobalVideoSpeedService,installGlobalVideoSpeedService,restoreControlledVideoSpeed,readRestoredVideoSpeed} from '../trusted/service.js';
 import {pageVideoSpeed} from '../trusted/host.js';
 import {admitsOfficialVideoSpeed,VIDEO_SPEED_VERSION,VIDEO_SPEED_MARKET_ID} from '../trusted/admission.js';
 import {VIDEO_SPEED_ID as ID,VIDEO_SPEED_GLOBAL_STORE as STORE,VIDEO_SPEED_GLOBAL_PROTOCOL as PROTOCOL} from '../trusted/policy.js';
@@ -34,8 +34,8 @@ function video(source='https://cdn.example/a.mp4',rate=1){
     set playbackRate(value){this.writes.push(value);if(this.throwOnSet)throw Error('hostile setter');if(!this.ignoreSet)speed=value;},
     override(value){speed=value;},getBoundingClientRect:()=>({width:800,height:450})};
 }
-function fixture(t){
-  const epoch='video-install-epoch',extensionId='a'.repeat(32);
+function fixture(t,{epoch='video-install-epoch'}={}){
+  const extensionId='a'.repeat(32);
   const url=path=>'chrome-extension://'+extensionId+'/'+path;
   const host={id:extensionId,url:url('sidepanel.html?hostInstanceId=00000000-0000-4000-8000-000000000001&toolId='+ID),
     documentId:'host-document',frameId:0};
@@ -45,22 +45,23 @@ function fixture(t){
   const docs=new Map([[frames[0].documentId,{nodes:[],querySelectorAll(){return this.nodes;}}]]);
   const data={
     [SIDEBAR_TOOL_STORE]:[clone(tool)],[SIDEBAR_TOOL_ENABLE_STORE]:{},
-    [TOOL_REVOCATION_EPOCHS_STORE]:{[ID]:epoch},
+    [TOOL_REVOCATION_EPOCHS_STORE]:epoch===null?{}:{[ID]:epoch},
     [MARKET_PROVENANCE_STORE]:{[ID]:{marketId:VIDEO_SPEED_MARKET_ID,version:VIDEO_SPEED_VERSION,sha256}}
   };
   const calls=[],sets=[],messages=[],storageEvents=[],locks=[];
   let sequence=Promise.resolve(),lockWork=0,activity=0,service;
   const f={data,host,contexts,tab,frames,docs,calls,sets,messages,storageEvents,locks,
-    permission:true,unknownStorage:false,lostStorageAck:false,beforeScript:null,beforeGet:null,onSet:null};
+    permission:true,unknownStorage:false,lostStorageAck:false,beforeScript:null,beforeGet:null,onSet:null,
+    catalogAvailable:true,catalogReads:0,onStorageChanged:null};
   const touch=()=>{activity++;};
   const lockManager={request(name,work){
     assert.equal(name,'opendesk.sidebar-tools:tool:'+ID);locks.push(name);lockWork++;touch();
     const result=sequence.then(work);sequence=result.catch(()=>{});
     return result.finally(()=>{lockWork--;touch();});
   }};
-  const api={runtime:{id:extensionId,getURL:url,getContexts:async query=>{
+  const api={runtime:{id:extensionId,getURL:url,onMessage:{addListener(){}},getContexts:async query=>{
     touch();return clone(contexts.filter(row=>query.documentUrls.includes(row.documentUrl)&&query.contextTypes.includes(row.contextType)));
-  }},storage:{local:{get:async keys=>{
+  }},storage:{onChanged:{addListener(listener){f.onStorageChanged=listener;}},local:{get:async keys=>{
     touch();await f.beforeGet?.(keys);
     if(f.unknownStorage&&typeof keys==='string')throw Error('readback unavailable');
     return clone(Object.fromEntries((typeof keys==='string'?[keys]:keys).filter(key=>Object.hasOwn(data,key)).map(key=>[key,data[key]])));
@@ -95,9 +96,12 @@ function fixture(t){
       if(previous)Object.defineProperty(globalThis,'document',previous);else delete globalThis.document;
     }
   }}};
-  const fetcher=async address=>{touch();assert.equal(address,url(OFFICIAL_CATALOG_PATH));return {ok:true,json:async()=>clone({
+  const fetcher=async address=>{touch();f.catalogReads++;assert.equal(address,url(OFFICIAL_CATALOG_PATH));
+    if(!f.catalogAvailable)throw Error('catalog unavailable');
+    return {ok:true,json:async()=>clone({
     schema:OFFICIAL_RELEASE_SCHEMA,sourceRepository:OFFICIAL_SOURCE_REPOSITORY,apps:[release]})};};
   f.restart=()=>{service=createGlobalVideoSpeedService({api,fetcher,lockManager});return service;};
+  f.install=()=>{service=installGlobalVideoSpeedService({api,fetcher,lockManager});return service;};
   f.restart();
   f.service=()=>service;
   f.addVideo=(frameId=0,node=video())=>{docs.get(frames.find(row=>row.frameId===frameId).documentId).nodes.push(node);return node;};
@@ -139,7 +143,7 @@ function fixture(t){
   return f;
 }
 
-test('current package passes real SHA/release/provenance admission and trusted host status',async t=>{
+test('reviewed installed package passes admission and trusted host status',async t=>{
   const f=fixture(t);
   assert.equal(tool.version,VIDEO_SPEED_VERSION);
   assert.equal(await admitsOfficialVideoSpeed({tool,release,installed:f.data[SIDEBAR_TOOL_STORE],
@@ -147,6 +151,48 @@ test('current package passes real SHA/release/provenance admission and trusted h
     epochs:f.data[TOOL_REVOCATION_EPOCHS_STORE],expectedEpoch:'video-install-epoch'}),true);
   assert.deepEqual(await f.command('status'),{enabled:true,speed:1,revision:''});
   assert.equal(f.sets.length,0);
+});
+
+for(const reason of ['missing-catalog','missing-provenance','changed-provenance','older-version','local-package'])
+test('global service admits '+reason+' and binds preferences to installed bytes',async t=>{
+  const f=fixture(t);
+  if(reason==='missing-catalog')f.catalogAvailable=false;
+  if(reason==='missing-provenance')delete f.data[MARKET_PROVENANCE_STORE];
+  if(reason==='changed-provenance')f.data[MARKET_PROVENANCE_STORE][ID].sha256='0'.repeat(64);
+  if(reason==='older-version')f.data[SIDEBAR_TOOL_STORE][0].version='1.2.0';
+  if(reason==='local-package')f.data[SIDEBAR_TOOL_STORE][0].html+='<p>reviewed local edit</p>';
+  const state=await f.configure(true,3),node=f.addVideo();
+  assert.equal((await f.apply()).verified,true);
+  assert.deepEqual(node.writes,[3]);
+  const expectedHash=createHash('sha256').update(encodeSidebarToolPackage(f.data[SIDEBAR_TOOL_STORE][0])).digest('hex');
+  assert.equal(f.data[STORE].packageHash,expectedHash);
+  f.restart();assert.deepEqual(await f.command('status'),state);
+  assert.equal(f.catalogReads,0,'runtime authority must not depend on catalog availability');
+});
+
+test('initial null installation epoch supports configure and restart without accepting a stale host',async t=>{
+  const f=fixture(t,{epoch:null});
+  const state=await f.configure(true,2),node=f.addVideo();
+  f.restart();assert.deepEqual(await f.command('status'),state);
+  await f.apply();assert.deepEqual(node.writes,[2]);
+  f.data[TOOL_REVOCATION_EPOCHS_STORE][ID]='new-epoch';
+  await assert.rejects(f.command('configure',{enabled:true,speed:3}),{code:'E_VIDEO_REVOKED'});
+  assert.equal((await f.apply()).status,'stopped');
+  assert.deepEqual(node.writes,[2]);assert.equal(f.sets.length,1);
+});
+
+test('provenance storage notification does not revoke an in-flight global apply',async t=>{
+  const f=fixture(t);f.seed();f.install();await f.drain();const node=f.addVideo();
+  let delivered=false;
+  f.beforeScript=async request=>{
+    if(request.args?.[0]==='probe'&&!delivered){
+      delivered=true;
+      f.onStorageChanged({[MARKET_PROVENANCE_STORE]:{oldValue:f.data[MARKET_PROVENANCE_STORE],newValue:{}}},'local');
+      delete f.data[MARKET_PROVENANCE_STORE];
+    }
+  };
+  assert.equal((await f.apply()).verified,true);
+  assert.equal(delivered,true);assert.deepEqual(node.writes,[2]);assert.equal(f.sets.length,0);
 });
 
 test('first use applies the default global speed without opening or configuring the tool',async t=>{
@@ -181,11 +227,11 @@ test('persisted preference survives service restart and applies to new video, so
   assert.equal(f.sets.length,1,'page events never rewrite persistent preferences');
 });
 
-for(const reason of ['modified-package','provenance','disabled','uninstalled','duplicate-install'])
+for(const reason of ['missing-capability','invalid-package','disabled','uninstalled','duplicate-install'])
 test('authority rejects '+reason+' before storage or media writes',async t=>{
   const f=fixture(t);f.seed();f.addVideo();
-  if(reason==='modified-package')f.data[SIDEBAR_TOOL_STORE][0].html+='<p>tampered</p>';
-  if(reason==='provenance')f.data[MARKET_PROVENANCE_STORE][ID].sha256='0'.repeat(64);
+  if(reason==='missing-capability')f.data[SIDEBAR_TOOL_STORE][0].capabilities=[];
+  if(reason==='invalid-package')f.data[SIDEBAR_TOOL_STORE][0].format='invalid';
   if(reason==='disabled')f.data[SIDEBAR_TOOL_ENABLE_STORE][ID]=false;
   if(reason==='uninstalled')f.data[SIDEBAR_TOOL_STORE]=[];
   if(reason==='duplicate-install')f.data[SIDEBAR_TOOL_STORE].push(clone(tool));
@@ -351,7 +397,7 @@ test('lost storage acknowledgement confirmed by readback succeeds without repeat
   assert.equal((await f.command('status')).revision,state.revision);
 });
 
-for(const reason of ['permission','navigation','incognito','epoch','uninstalled','disabled'])
+for(const reason of ['permission','navigation','incognito','epoch','package','uninstalled','disabled'])
 test('in-flight '+reason+' after probe is revalidated before the setter',async t=>{
   const f=fixture(t);f.seed();const node=f.addVideo();let invalidated=false;
   f.beforeScript=async request=>{
@@ -361,6 +407,7 @@ test('in-flight '+reason+' after probe is revalidated before the setter',async t
     if(reason==='navigation')f.tab.pendingUrl='https://new.example/';
     if(reason==='incognito')f.tab.incognito=true;
     if(reason==='epoch')f.data[TOOL_REVOCATION_EPOCHS_STORE][ID]='new-epoch';
+    if(reason==='package')f.data[SIDEBAR_TOOL_STORE][0].html+='<p>replacement package</p>';
     if(reason==='uninstalled')f.data[SIDEBAR_TOOL_STORE]=[];
     if(reason==='disabled')f.data[SIDEBAR_TOOL_ENABLE_STORE][ID]=false;
   };

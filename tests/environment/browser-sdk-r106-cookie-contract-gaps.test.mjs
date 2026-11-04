@@ -111,10 +111,13 @@ function fixture({tool = pkg, owner = identity} = {}) {
       remove: () => {native.push('remove'); throw Error('These contracts must not remove Cookies');}
     }
   };
-  const fetchImpl = async resource => new URL(resource).protocol === 'chrome-extension:'
+  const fetchImpl = async resource => {
+    if(state.catalogUnavailable)throw Error('Official catalog unavailable');
+    return new URL(resource).protocol === 'chrome-extension:'
     ? new Response(JSON.stringify({schema: 'opendesk.official-tools.releases.v1',
       sourceRepository: 'https://github.com/shopable-ai/opendesk-browser', apps: [release]}))
     : new Response('', {status: 404}); // Optional remote release is absent in this offline fixture.
+  };
   const rebuild = () => createContextMenuHost({api, logger: {warn() {}}, fetchImpl,
     lockManager: {request: (_key, work) => work()}});
   let host = rebuild();
@@ -353,20 +356,36 @@ test('legacy single-site consent does not upgrade and ordinary tools cannot inhe
   await ordinary.denied(() => ordinary.sdk.cookies.getAll({url, includeValues: true}), 'E_SITE_GRANT_REQUIRED');
 });
 
-test('all-site consent rejects forged Sender, identity, provenance and same-ID altered packages', async () => {
+test('all-site consent rejects forged Sender and stale installation identity', async () => {
   const f = officialFixture();
   await assert.rejects(f.grantAll(true, {}, {...sender, url: 'https://foreign.test/'}), {code: 'E_OWNER'});
   await assert.rejects(f.grantAll(true, {packageHash: '0'.repeat(64)}), {code: 'E_TOOL_CHANGED'});
   await assert.rejects(f.grantAll(true, {installEpoch: 'foreign'}), {code: 'E_TOOL_CHANGED'});
-  f.local.delete(provenanceKey);
-  await assert.rejects(f.grantAll(), {code: 'E_OWNER'});
-  f.local.set(provenanceKey, {[official.id]: {marketId: release.id, version: release.version, sha256: '0'.repeat(64)}});
-  await assert.rejects(f.grantAll(), {code: 'E_OWNER'});
-  const altered = validateSidebarToolPackage({...official, js: official.js + '\nvoid 1;'});
-  const bad = fixture({tool: altered, owner: {...officialOwner, packageHash: await sidebarToolPackageHash(altered)}});
-  bad.local.set(provenanceKey, {[official.id]: {marketId: release.id, version: release.version, sha256: release.sha256}});
-  await assert.rejects(bad.grantAll(), {code: 'E_OWNER'});
-  assert.equal(bad.local.get(grantsKey), undefined);
+  assert.equal(f.local.get(grantsKey), undefined);
+});
+
+test('installed Cookie Editor consent and access do not depend on the current official release',async t=>{
+  for(const [name,tool,provenance] of [
+    ['older release',validateSidebarToolPackage({...official,version:'0.0.1'}),undefined],
+    ['modified package',validateSidebarToolPackage({...official,js:official.js+'\nvoid 1;'}),undefined],
+    ['missing provenance',official,undefined],
+    ['stale provenance',official,{marketId:release.id,version:release.version,sha256:'0'.repeat(64)}]
+  ])await t.test(name,async()=>{
+    const owner={...officialOwner,toolVersion:tool.version,packageHash:await sidebarToolPackageHash(tool)};
+    const f=fixture({tool,owner});
+    f.state.catalogUnavailable=true;
+    if(provenance)f.local.set(provenanceKey,{[tool.id]:provenance});
+    await f.denied(()=>f.sdk.cookies.getCurrentStore({url}),'E_SITE_GRANT_REQUIRED');
+    await f.grantAll();
+    assert.equal(f.local.get(grantsKey)[tool.id].packageHash,owner.packageHash);
+    f.restart();
+    assert.deepEqual(await f.sdk.cookies.getCurrentStore({url}),{storeId:'0'});
+    assert.equal((await f.sdk.cookies.getAll({url,includeValues:true}))[0].value,'NODE_FIXTURE_SECRET');
+    const status=await f.sdk.capabilities.getStatus({operation:'browser.cookies.getCurrentStore',url});
+    assert.equal(status.authorization.site,'granted');
+    await f.grantAll(false);
+    await f.denied(()=>f.sdk.cookies.getCurrentStore({url}),'E_SITE_GRANT_REQUIRED');
+  });
 });
 
 test('all-site consumption rechecks enabled state, install epoch, package and capability boundaries', async () => {
@@ -409,7 +428,7 @@ test('preserved Cookie grants follow installation lifecycle while disabled and s
     {installEpoch: epoch}), {storeId: '0'});
 });
 
-test('all-site consumption requires separate read/values/write bits and current official provenance', async () => {
+test('all-site consumption requires separate read/values/write bits independently of release provenance', async () => {
   const f = officialFixture(); await f.grantAll();
   const grant = f.local.get(grantsKey)[official.id].cookieAllSites;
   // Legacy values=true is not a receipt. Neither reading nor restarting may mint one.
@@ -432,7 +451,7 @@ test('all-site consumption requires separate read/values/write bits and current 
     'E_SITE_GRANT_REQUIRED');
   grant.write = true;
   f.local.delete(provenanceKey);
-  await f.denied(() => f.sdk.cookies.getAll({url}), 'E_SITE_GRANT_REQUIRED');
+  assert.equal((await f.sdk.cookies.getAll({url})).length,1);
 });
 
 test('browser.cookies.getCurrentStore: installed SDK returns exact Store and denies permission, Origin and identity', async () => {

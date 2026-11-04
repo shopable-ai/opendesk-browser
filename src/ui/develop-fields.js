@@ -403,6 +403,12 @@ export const DEVELOPER_FIELDS = {
   "developer-run-technical": {
     "className": "developer-run-technical od-disclosure"
   },
+  "script-draft-deadline-row": {},
+  "script-draft-deadline-ms": {
+    "value": "30000",
+    "className": "od-field",
+    "options": [["30 秒（默认）", "30000"], ["60 秒", "60000"], ["120 秒", "120000"]]
+  },
   "script-task-id": {
     "textContent": "尚未运行"
   },

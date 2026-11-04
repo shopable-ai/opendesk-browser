@@ -203,8 +203,8 @@ test('receipt collection requires every fixed output and binds final verified ha
 
 test('reviewed Time Review markup and logic can enter only the pinned existing sidebar host',()=>{
   const inputs=[
-    'examples/sidebar-tools/time-review/src/index.html',
-    'examples/sidebar-tools/time-review/src/main.js'
+    'projects/time-review/src/index.html',
+    'projects/time-review/src/main.js'
   ];
   const approved={fileName:'ui/sidebar-tool-host.js',modules:Object.fromEntries(
     inputs.map(path=>[resolve(path),{renderedLength:12,originalLength:40}]))};
@@ -216,7 +216,7 @@ test('reviewed Time Review markup and logic can enter only the pinned existing s
     assert.throws(()=>describeBundle({chunk:{...approved,fileName:target},lock:{packages:{}}}),
       /cannot enter a privileged fixed bundle/);
   for(const path of ['examples/sidebar-tools/other/src/main.js',
-    'examples/sidebar-tools/time-review/src/unsafe.js',
+    'projects/time-review/src/unsafe.js',
     'src/vendor/legacy.js','docs/contracts/source-snapshots/tool.js'])
     assert.throws(()=>describeBundle({chunk:{
       fileName:'ui/sidebar-tool-host.js',modules:{[resolve(path)]:{}}},lock:{packages:{}}}),
@@ -227,9 +227,9 @@ test('reviewed Time Review markup and logic can enter only the pinned existing s
 test('a modified Time Review source must not enter privileged fixed output under the old pin',async t=>{
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-compiled-review-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/time-review/src/index.html';
+  const path='projects/time-review/src/index.html';
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/time-review/src'),{recursive:true});
+  await mkdir(join(project,'projects/time-review/src'),{recursive:true});
   await writeFile(file,'<main>unreviewed markup</main>');
   assert.throws(()=>describeBundle({chunk:{
     fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}},root:project,lock:{packages:{}}}),
@@ -239,9 +239,9 @@ test('a modified Time Review source must not enter privileged fixed output under
 test('a symlink cannot substitute a pinned Time Review source in privileged output',async t=>{
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-compiled-symlink-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/time-review/src/index.html';
+  const path='projects/time-review/src/index.html';
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/time-review/src'),{recursive:true});
+  await mkdir(join(project,'projects/time-review/src'),{recursive:true});
   await symlink(resolve(path),file);
   assert.throws(()=>describeBundle({chunk:{
     fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}

@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "webflow",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "title": "Web Flow",
   "description": "ChatGPT 正常需求与受限任务候选的自动执行引导；复用可信批准、原聊天结果、手动运行及原请求恢复。",
   "capabilities": [
@@ -19,8 +19,8 @@
   "delegatedTasks": [
     {
       "taskId": "baidu.search.top3",
-      "version": "1.1.3",
-      "manifestHash": "ff152dfdbaaef187bfb8fb91f18abcb83d348aa3672c059e6efb937c52f10b10",
+      "version": "1.1.4",
+      "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
       "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269"
     },
     {

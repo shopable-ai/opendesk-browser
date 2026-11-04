@@ -5,10 +5,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {MARKET_PROVENANCE_STORE} from '../../../../src/sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE} from '../../../../src/framework/sdk/browser-contract.js';
-import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog,matchesOfficialRelease}
-  from '../../../../src/sidebar-tools/official-catalog.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
@@ -206,7 +203,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
   async function installed(message=null){
     const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,
       SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-      MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]);
+      BROWSER_MENU_GRANTS_STORE]);
     const entries=state[SIDEBAR_TOOL_STORE];
     if(!Array.isArray(entries))throw fail('E_TOOL_CHANGED');
     const matches=entries.filter(item=>item?.id===ID);
@@ -221,19 +218,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
     const epoch=state[TOOL_REVOCATION_EPOCHS_STORE]?.[ID]??null;
     if(message&&(message.packageHash!==hash||message.installEpoch!==epoch))
       throw fail('E_TOOL_CHANGED');
-    // Pin to the bundled reviewed catalog. Network-based Stay Focus updates
-    // must not block or mutate Cookie Editor's authorization decisions.
-    const releaseResponse=await fetch(api.runtime.getURL(OFFICIAL_CATALOG_PATH),{
-      cache:'no-store',credentials:'omit',redirect:'error'
-    });
-    if(!releaseResponse.ok)throw fail('E_TOOL_CHANGED');
-    const catalog=validateOfficialReleaseCatalog(await releaseResponse.json());
-    const release=catalog.apps.find(entry=>entry.toolId===ID);
-    const grant=state[MARKET_PROVENANCE_STORE]?.[ID];
-    if(!release||release.version!==tool.version||grant?.marketId!==release.id||
-      grant.version!==release.version||grant.sha256!==release.sha256||
-      !await matchesOfficialRelease(release,tool))
-      throw fail('E_TOOL_CHANGED');
+    // Account access follows the actual installation and its Cookie consent;
+    // a newer or unavailable official catalog must not invalidate either.
     const siteRecord=state[BROWSER_MENU_GRANTS_STORE]?.[ID];
     if(siteRecord?.version!==tool.version||siteRecord?.packageHash!==hash||
        siteRecord?.installEpoch!==epoch)

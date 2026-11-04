@@ -272,7 +272,7 @@ test('the mutation listener only signals invalidation; its port disconnect is cl
  assert.ok(messages.every(m=>!Object.hasOwn(m,'title')));
 });
 
-test('official package bytes, provenance, enablement and epoch are all required',async()=>{
+test('video SVIP admission follows the reviewed installation without a current release',async t=>{
  const tool=await createSidebarToolPackage('projects/video-svip');
  const bytes=encodeSidebarToolPackage(tool);
  const sha256=createHash('sha256').update(bytes).digest('hex');
@@ -284,14 +284,29 @@ test('official package bytes, provenance, enablement and epoch are all required'
    provenance:{[VIDEO_SVIP_ID]:{marketId:VIDEO_SVIP_MARKET_ID,version:VIDEO_SVIP_VERSION,sha256}},
    enableRecords:{},epochs:{[VIDEO_SVIP_ID]:expectedEpoch},expectedEpoch};
  assert.equal(await admitsOfficialVideoSVIP(good),true);
+ const older={...tool,version:'0.0.1'},local={...tool,js:tool.js+'/* reviewed local edit */'};
+ for(const [name,delta] of [
+   ['missing catalog and provenance',{release:undefined,provenance:undefined}],
+   ['older installed version',{tool:older,installed:[older]}],
+   ['reviewed local package',{tool:local,installed:[local],release:null,provenance:{}}],
+   ['outdated catalog version',{release:{...release,version:'0.0.1'}}],
+   ['changed provenance',{provenance:{[VIDEO_SVIP_ID]:{marketId:'local',sha256:'0'.repeat(64)}}}],
+   ['changed catalog digest',{release:{...release,sha256:'a'.repeat(64)}}],
+   ['initial null epoch',{epochs:{},expectedEpoch:null}]
+ ])await t.test(name,async()=>assert.equal(await admitsOfficialVideoSVIP({...good,...delta}),true));
  for(const delta of [
    {tool:{...tool,js:tool.js+'/* tampered */'}},
-   {release:{...release,sha256:'a'.repeat(64)}},
+   {tool:older},
    {enableRecords:{[VIDEO_SVIP_ID]:false}},
+   {enableRecords:[]},
    {installed:[tool,tool]},
-   {provenance:{}},
+   {installed:[]},
    {epochs:{[VIDEO_SVIP_ID]:'revoked'}},
-   {expectedEpoch:'mismatch'}
+   {epochs:{},expectedEpoch:undefined},
+   {epochs:{[VIDEO_SVIP_ID]:''},expectedEpoch:''},
+   {expectedEpoch:'mismatch'},
+   {tool:{...tool,capabilities:[]},installed:[{...tool,capabilities:[]}]},
+   {tool:{...tool,format:'invalid'},installed:[{...tool,format:'invalid'}]}
  ])assert.equal(await admitsOfficialVideoSVIP({...good,...delta}),false);
 });
 

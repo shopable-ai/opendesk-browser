@@ -7,6 +7,18 @@ import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope,pre
 import {WEB_TASK_PROTOCOL} from '../page-events/web-task-contract.js';
 import {registeredSiteRegistry} from '../page-events/site-catalog.js';
 import {permissionPattern} from '../environment.js';
+
+// This is a locator for the existing verified Host, never an authorization.
+// Chrome can retain more than one Side Panel document in the same window.
+// Only the Host that answered preparation may consume a stateful request.
+export function routeChatGPTBridgeMessage(message,hostInstanceId,{visible=false}={}){
+  if(!message||typeof hostInstanceId!=='string'||!hostInstanceId)return null;
+  if(message.kind==='list-tasks'&&message.bridgeHostId===undefined&&!visible)return null;
+  if(message.bridgeHostId!==undefined&&message.bridgeHostId!==hostInstanceId)return null;
+  if(message.kind!=='list-tasks'&&message.bridgeHostId!==hostInstanceId)return null;
+  const {bridgeHostId,...request}=message;
+  return request;
+}
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {showChatGPTExecutionPage,returnToChatGPTSourcePage} from './chatgpt-execution-page.js';
@@ -194,7 +206,7 @@ export function formatChatGPTInstalledResult(request,durable){
 // A business adapter onto the existing pinned Task/Authority/RunHost, never
 // another Controller Runner. Only the first-party verified Side Panel calls it.
 export function createChatGPTFixedBridgeHost({api=chrome,client,host,
-  currentPageTarget,isVerifiedSidePanel=()=>false,
+  currentPageTarget,isVerifiedSidePanel=()=>false,bridgeHostId,
   canRefresh=()=>false,acquireRefresh=()=>null,refreshIdle=()=>false,
   readReply=readChatGPTEdit,checkTarget=assertChatGPTTarget}={}){
   if(!client?.request||!client?.controller?.snapshotControllerRun||!host?.start)
@@ -972,6 +984,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         // Feedback is observational only. It cannot grant permission or retry
         // an action, and is sent solely to the original exact document.
         void api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'progress',
+          ...(bridgeHostId?{bridgeHostId}:{}),
           requestId:request.requestId,sourceUrl:source.url,mode:message.mode,stage,...result,
           taskId:request.taskId,scriptId:installed.scriptId,revision:installed.revision,
           targetUrl,...(active.runId?{runId:active.runId}:{})},
@@ -1061,6 +1074,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         active.deliveryDispatched=true;bridgeReceipt.delivery='submitted';
         delivered=await api.tabs.sendMessage(source.tabId,{
           protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'deliver',requestId:request.requestId,
+          ...(bridgeHostId?{bridgeHostId}:{}),
           mode:message.mode,sourceUrl:source.url,turnKey:message.turnKey,
           answerKey:message.answerKey,text,
           runId:durable.runId,resultId:durable.resultId

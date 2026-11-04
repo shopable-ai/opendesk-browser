@@ -42,6 +42,8 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **统一产品规则：用户完成安装审阅后，正常功能直接可用，不再要求通用“启用”或每次到站重复授权。** 第一方经审计网页增强（例如官方阅读目录）在 Chrome 已允许访问、原安装有效、未被用户主动停用时自动显示页面 UI；普通 Sidebar 应用安装后可按需打开界面，但不自动运行沙箱；Installed Page Program 仅按已批准固定匹配范围自动运行，Controller/Task 仍需用户 Run 或独立批准的计划触发。设置中的“停用 / 恢复”保留供主动管理，绝不是安装后的第二步。**复用合法授权不等于扩权**：Cookie、正文采集、持续统计、网络、Native、跨站动作以及缺失的 Chrome optional 权限仍走原可信用户手势与 Authority，撤销和新能力拒绝时必须停止，未知效果不得自动重放。不得把官方 `reading-toc` 默认页面规则扩给第三方自报能力或同名脚本。实施与测试以[唯一安装即用及权限合同](docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md)为准，不新建第二套 Host、Registry 或授权层。
 
+**开发阶段不增加官方发行匹配门槛（用户于 2026-11-04 明确适用于全部扩展）：** 这是框架统一规则，不只适用于 Cookie Editor。已审阅安装的扩展，其正常打开、共享展示、授权、后台及授权后的使用，不以当前官方 Catalog 的版本、包 SHA 或发行来源记录匹配为前提；旧版本、本地审阅包、来源记录缺失/过期和目录不可用不能因此要求升级、重新导入或停止使用。各入口复用现有安装合同，不逐工具新增例外或恢复同类检测。真实安装包身份与授权记录绑定、能力、用户可信点击、Chrome 权限、撤权、未知副作用及固定编译源码的构建来源保护继续保留；动态包仍在原沙箱执行，自定义 UI 保留原入口。新包下载的完整性核验和明确安装/来源替换审阅仍由原安装器处理。该决定优先于旧文档、Skill 和测试中的发行匹配运行要求。
+
 ## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.3）
 
 **本轮产品 P0 是五个可信 Side Panel Tab 最终统一 React 工作台**，优先「开发」「扩展」，再「工作流」「我的」「云控」；阶段性分模块迁移不等于最终长期保留两套 UI。UI 组件首选评估 shadcn/ui（React Aria base）+ Tailwind v4 + 既有 OpenDesk Tokens，须先以真实依赖、CSS scope、交互/焦点和构建体积确认，再实施正式可信 UI；不是仅创建 Starter/组件包或重写 Browser SDK/Host。

@@ -159,6 +159,77 @@ test('fresh reviewed official install enables verified DNR immediately, without 
   assert.equal((await f.restartService().tick()).enabled,true);
   assert.equal(f.changes.length,writes,'boot readback must not rewrite a user choice');
 });
+test('reviewed actual installation keeps filtering without bundled package equality',async t=>{
+  for(const kind of ['older','local','missing'])await t.test(kind,async()=>{
+    const f=await fixture();
+    await f.service.dispatch(f.message('adblock.enable'),sender);
+    const installed=kind==='older'?{...f.tool,version:'1.1.0'}:
+      kind==='local'?{...f.tool,js:'throw new Error("dynamic tool JS must stay sandboxed");'}:f.tool;
+    const packageHash=await sidebarToolPackageHash(installed);
+    f.stored.set(SIDEBAR_TOOL_STORE,[installed]);
+    const approved={...f.stored.get(ADBLOCK_STORE),approvedHash:packageHash};
+    f.stored.set(ADBLOCK_STORE,approved);
+    const options={api:f.api,lockManager:f.lockManager,fetcher:kind==='missing'?
+      async()=>({ok:false,status:404}):f.fetcher};
+    const service=createAdblockService(options);
+    const request=operation=>({...f.message(operation),packageHash});
+    const before=structuredClone([...f.stored]),rules=structuredClone(f.rules),calls=f.actions.length;
+    const state=await service.tick();
+    assert.equal(state.installed,true);
+    assert.equal(state.toolEnabled,true);
+    assert.equal(state.enabled,true);
+    assert.equal(state.rules.verified,true);
+    assert.equal((await service.dispatch(request('adblock.status'),sender)).enabled,true);
+    const probe=request('adblock.probe');delete probe.installEpoch;
+    assert.equal((await service.probe(probe,sender)).serviceReady,true);
+    const page=pageSender(f);
+    assert.deepEqual(await service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL},page),
+      {version:1,host:'www.javbus.com',enabled:true});
+    assert.deepEqual(await service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+      type:'lookup',selector:'.advertisement'},page),
+      {version:1,host:'www.javbus.com',selector:'.advertisement',present:false});
+    assert.deepEqual([...f.stored],before,'release drift cannot revoke the actual approval');
+    assert.deepEqual(f.rules,rules);
+    assert.equal(f.actions.length,calls,'release drift cannot clear valid native rules');
+    await service.dispatch(request('adblock.disable'),sender);
+    assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+    assert.equal((await createAdblockService(options).tick()).enabled,false,'STOP survives restart');
+    assert.equal((await service.dispatch(request('adblock.enable'),sender)).enabled,true);
+    assert.deepEqual(f.stored.get(ADBLOCK_STORE),approved);
+  });
+});
+test('fresh reviewed local installation defaults on without a bundled resource',async()=>{
+  const f=await fixture(),installed={...f.tool,version:'1.1.0',js:'void 0;'};
+  const hash=await sidebarToolPackageHash(installed);
+  f.stored.set(SIDEBAR_TOOL_STORE,[installed]);
+  f.stored.delete(ADBLOCK_STORE);
+  const service=createAdblockService({api:f.api,lockManager:f.lockManager,
+    fetcher:async()=>({ok:false,status:404})});
+  const state=await service.tick();
+  assert.equal(state.enabled,true);
+  assert.equal(state.rules.verified,true);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),{
+    version:1,enabled:true,exceptions:[],approvedHash:hash,approvedEpoch:'epoch-1'
+  });
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
+});
+test('actual installed package or epoch replacement invalidates the old approval',async t=>{
+  for(const kind of ['package','epoch'])await t.test(kind,async()=>{
+    const f=await fixture();
+    await f.service.dispatch(f.message('adblock.enable'),sender);
+    if(kind==='package')f.stored.set(SIDEBAR_TOOL_STORE,[{...f.tool,js:'void 0;'}]);
+    else f.stored.set(TOOL_REVOCATION_EPOCHS_STORE,{adblock:'epoch-2'});
+    await assert.rejects(f.service.dispatch(f.message('adblock.status'),sender),{code:'E_TOOL_CHANGED'});
+    const state=await f.service.tick();
+    assert.equal(state.installed,true);
+    assert.equal(state.enabled,false);
+    assert.equal(state.rules.verified,true);
+    assert.deepEqual(f.stored.get(ADBLOCK_STORE),{
+      version:1,enabled:false,exceptions:[],approvedHash:null,approvedEpoch:null
+    });
+    assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  });
+});
 test('reviewed install transaction defaults to protection on without opening the tool',async()=>{
   const f=await fixture();
   f.stored.set(SIDEBAR_TOOL_STORE,[]);
@@ -179,9 +250,8 @@ test('reviewed official update commits retained protection with the new package 
   f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
   f.stored.set(ADBLOCK_STORE,old);
   t.mock.method(globalThis,'fetch',f.fetcher);
-  // Updating the Browser's bundled resource may retire old rules, but must
-  // retain the user's policy until the reviewed tool update commits.
-  assert.equal((await f.service.tick()).enabled,false);
+  // Bundled resource drift cannot revoke the actual installed approval.
+  assert.equal((await f.service.tick()).enabled,true);
   assert.deepEqual(f.stored.get(ADBLOCK_STORE),old);
   const writes=[];
   const set=f.api.storage.local.set;
@@ -323,7 +393,7 @@ test('package epoch and retained policy have one verified commit without replay 
     assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
   });
 });
-test('first-run default cannot override missing permission, explicit stop or forged tool',async()=>{
+test('first-run default cannot override missing permission, explicit stop or missing capability',async()=>{
   const denied=await fixture({permission:false});
   denied.stored.delete(ADBLOCK_STORE);
   const disabled={version:1,enabled:false,exceptions:[],approvedHash:null,approvedEpoch:null};
@@ -364,11 +434,11 @@ test('first-run default cannot override missing permission, explicit stop or for
   revoked.service.invalidate(true);
   assert.equal((await revoked.service.tick()).enabled,false);
   assert.deepEqual(revoked.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
-  const impostor=await fixture();
-  impostor.stored.delete(ADBLOCK_STORE);
-  impostor.stored.set(SIDEBAR_TOOL_STORE,[{...impostor.tool,title:'same ID, different bytes'}]);
-  assert.equal((await impostor.service.tick()).enabled,false);
-  assert.deepEqual(impostor.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  const incapable=await fixture();
+  incapable.stored.delete(ADBLOCK_STORE);
+  incapable.stored.set(SIDEBAR_TOOL_STORE,[{...incapable.tool,capabilities:[]}]);
+  assert.equal((await incapable.service.tick()).enabled,false);
+  assert.deepEqual(incapable.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
 });
 test('lost picker write receipts reconcile read-only across worker restart and duplicate operations',async()=>{
   const f=await fixture(),page=pageSender(f);
@@ -651,23 +721,21 @@ test('uninstalled tool never activates and startup removes only stale AdBlock ru
   assert.equal(result.installed,false);
   assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
 });
-test('an installed package from an older bundle requires review without changing authority or rules',async()=>{
+test('an older installed package still requires real Chrome permission rather than a release update',async()=>{
   const f=await fixture({permission:false});
   const older={...f.tool,version:'1.1.0'};
   f.stored.set(SIDEBAR_TOOL_STORE,[older]);
   const packageHash=await sidebarToolPackageHash(older);
   const before=structuredClone([...f.stored]);
-  for(const operation of ['adblock.status','adblock.enable']){
-    await assert.rejects(f.service.dispatch({...f.message(operation),packageHash},sender),error=>{
-      assert.equal(error.code,'E_ADBLOCK_UPDATE_REQUIRED');
-      assert.match(error.message,/版本不匹配/);
-      assert.match(error.message,/重启 Chrome 不会更新工具包/);
-      return true;
-    });
-  }
-  assert.deepEqual([...f.stored],before,'a rejected old bundle cannot change installed authority or intent');
-  assert.equal(f.actions.length,0,'version diagnosis cannot write DNR rules');
-  assert.equal(f.permission,false,'version diagnosis cannot grant native permissions');
+  const state=await f.service.dispatch({...f.message('adblock.status'),packageHash},sender);
+  assert.equal(state.installed,true);
+  assert.equal(state.enabled,false);
+  assert.equal(state.permissions.dnr,false);
+  await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),packageHash},sender),
+    {code:'E_ADBLOCK_PERMISSION'});
+  assert.deepEqual([...f.stored],before,'missing permission cannot change installed authority or intent');
+  assert.equal(f.actions.length,0,'missing permission cannot write DNR rules');
+  assert.equal(f.permission,false,'installed package bytes cannot grant native permissions');
   await assert.rejects(f.service.dispatch({...f.message('adblock.status'),packageHash,
     installEpoch:'old'},sender),{code:'E_TOOL_CHANGED'});
 });

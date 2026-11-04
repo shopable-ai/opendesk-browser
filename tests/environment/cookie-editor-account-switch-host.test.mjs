@@ -241,6 +241,27 @@ test('removed password operations reject at the SW protocol boundary',async()=>{
   {code:'E_ACCOUNT_REQUEST'});
 });
 
+test('installed Cookie account status, save and switch do not require a matching official release',async t=>{
+  const f=await serviceFixture(t),service=createCookieAccountService({api:f.api,storage:f.storage});
+  delete f.state[MARKET_PROVENANCE_STORE];
+  let catalogReads=0;
+  globalThis.fetch=async()=>{catalogReads++;throw Error('Official catalog unavailable');};
+  const result=await service.dispatch(f.message('status',{}),f.sender);
+  assert.equal(result.unlocked,true);
+  assert.deepEqual(result.accounts,[]);
+  assert.equal(catalogReads,0);
+  assert.equal(f.writes(),0);
+  const saved=await service.dispatch(f.message('create',{revision:0,displayName:'本地账号'}),f.sender);
+  assert.equal(saved.accounts.length,1);
+  f.setCookie('different-session');
+  const switched=await service.dispatch(f.message('switch',{revision:1,alias:saved.accounts[0].alias}),f.sender);
+  assert.equal(switched.verified,true);
+  assert.equal(catalogReads,0);
+  assert.equal(f.writes(),1);
+  await assert.rejects(service.dispatch({...f.message('status',{}),packageHash:'0'.repeat(64)},f.sender),
+    {code:'E_TOOL_CHANGED'});
+});
+
 test('share operations retain the exact trusted sender and original-click boundary',async t=>{
   const f=await serviceFixture(t),service=createCookieAccountService({api:f.api,storage:f.storage});
   for(const operation of COOKIE_ACCOUNT_OPERATIONS.filter(x=>x.startsWith('share'))){

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createManagedSiteBudgetService,stopManagedSiteBudgetForTool,
+import {createHash} from 'node:crypto';
+import {createManagedSiteBudgetService,installManagedSiteBudgetService,stopManagedSiteBudgetForTool,
+  stageManagedSiteV3MigrationLocked,
   MANAGED_SITE_BUDGET_STORE,MANAGED_SITE_BUDGET_ALARM,MANAGED_SITE_BUDGET_RULE_FIRST}
   from '../../src/platform/chrome/browser-managed-site-budget.js';
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,sidebarToolPackageHash,
@@ -54,7 +56,8 @@ function fixture(installed=[tool()]){
     permissions:{contains:async()=>permissions},
     idle:{queryState:async()=> 'active'},
     windows:{getLastFocused:async()=>({id:2,focused:true,type:'normal',incognito:false})},
-    tabs:{query:async()=>[{id:5,windowId:2,url,incognito:false}]},
+    tabs:{query:async()=>[{id:5,windowId:2,url,incognito:false}],
+      update:async(tabId,patch)=>{url=patch.url;return {id:tabId,windowId:2,url,incognito:false};}},
     alarms:{get:async name=>alarms.get(name),
       create:async(name,value)=>{if(!dropAlarm)alarms.set(name,value);},
       clear:async name=>{alarms.delete(name);}},
@@ -79,8 +82,137 @@ function fixture(installed=[tool()]){
     packageHash:await sidebarToolPackageHash(row),installEpoch:epoch
   });
   return {api,service,sender,local,session,alarms,rules,writes,lockManager,msg,
-    tick:ms=>{time+=ms;},setUrl:v=>{url=v;},allow:v=>{permissions=v;},
+    now:()=>time,tick:ms=>{time+=ms;},setUrl:v=>{url=v;},allow:v=>{permissions=v;},
     fault:v=>{dropNative=v;},faultAlarm:v=>{dropAlarm=v;}};
+}
+async function reviewedBudget(kind,provenance){
+  const installed=kind==='site-budget.v2'?tool():
+    tool('1.1.0',{kind:'site-budget.v3',suggestions:[]});
+  const f=fixture([installed]),packageHash=await sidebarToolPackageHash(installed);
+  if(provenance)f.local.set(MARKET_PROVENANCE_STORE,{[id]:{
+    marketId:'opendesk/'+id,sha256:packageHash,version:installed.version,...provenance
+  }});
+  let args={...settings,expectedRev:0};
+  if(kind==='site-budget.v3'){
+    f.local.set(MANAGED_SITE_REVIEWED_SCOPE_STORE,{[id]:{
+      installEpoch:'epoch-a',packageHash,sites:[{host:'example.com',subdomains:true}]
+    }});
+    args={expectedRev:0,sealedModel:{},modelRef:createHash('sha256').update('{}').digest('hex'),
+      desiredPolicy:{kind,enabled:true,whitelist:[],sites:[{
+        host:'example.com',subdomains:true,enabled:true,pool:'s:example.com',
+        conditions:[{type:'counter-limit',limitMs:60000}]
+      }]}};
+  }
+  const receipt=await f.service.dispatch(await f.msg('setPolicy',args),f.sender);
+  assert.equal(receipt.status,'applied');
+  await f.service.run(); // Establish the first observation after enabling v3.
+  return f;
+}
+for(const kind of ['site-budget.v2','site-budget.v3']){
+  test(kind+' stale distribution digest does not block reviewed policy or metering',async()=>{
+    const f=await reviewedBudget(kind,{sha256:'0'.repeat(64),version:'99.0.0'});
+    f.tick(30000);await f.service.run();
+    const receipt=await f.service.dispatch(await f.msg('getStatus'),f.sender);
+    assert.equal(receipt.status,'applied');
+    assert.equal(kind==='site-budget.v3'?receipt.usage['s:example.com']:receipt.usedMs,30000);
+    f.tick(30000);await f.service.run();
+    assert.equal(f.rules.length,1,'the installed reviewed policy must reach native enforcement');
+    assert.equal(f.alarms.has(MANAGED_SITE_BUDGET_ALARM),true);
+  });
+  test(kind+' distribution storage event cannot interrupt continuous metering',async()=>{
+    const f=await reviewedBudget(kind,{}),listeners=new Set(),pending=[];
+    const lockManager={request(key,work){
+      const task=f.lockManager.request(key,work);pending.push(task);return task;
+    }};
+    const settled=async()=>{
+      await new Promise(resolve=>setImmediate(resolve));
+      await Promise.all(pending);
+    };
+    f.api.runtime.onMessage={addListener(){},removeListener(){}};
+    f.api.storage.onChanged={addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};
+    const installed=installManagedSiteBudgetService({api:f.api,lockManager,now:f.now});
+    try{
+      await settled();
+      f.tick(30000);
+      f.local.delete(MARKET_PROVENANCE_STORE);
+      for(const listener of listeners)listener({[MARKET_PROVENANCE_STORE]:{}},'local');
+      await settled();
+      await installed.service.run();
+      const row=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+      assert.equal(kind==='site-budget.v3'?row.usage['s:example.com']:row.usage.daily,30000,
+        'distribution bookkeeping must not invalidate the installed owner observation');
+    }finally{installed.dispose();}
+  });
+  for(const official of [false,true]){
+    test(kind+' distribution metadata changes preserve '+(official?'official':'local')+' installation resources',async()=>{
+      const f=await reviewedBudget(kind,official?{}:null);
+      f.tick(30000);await f.service.run();
+      f.tick(30000);await f.service.run();
+      await f.service.run({boot:true});
+      const original=structuredClone(f.local.get(MANAGED_SITE_BUDGET_STORE)[id]);
+      const rules=structuredClone(f.rules);
+      assert.equal(rules.length,1);
+      for(const provenance of [undefined,{},
+        {[id]:{marketId:'opendesk/'+id,sha256:'0'.repeat(64),version:'0.0.1'}},
+        {[id]:{marketId:'opendesk/'+id,sha256:original.packageHash,version:'1.0.0'}}]){
+        if(provenance===undefined)f.local.delete(MARKET_PROVENANCE_STORE);
+        else f.local.set(MARKET_PROVENANCE_STORE,provenance);
+        await f.service.run({boot:true});
+        const receipt=await f.service.dispatch(await f.msg('getStatus'),f.sender);
+        assert.equal(receipt.status,'applied');
+        assert.deepEqual(f.local.get(MANAGED_SITE_BUDGET_STORE)[id],original,
+          'metadata alone must not reset the installed owner, policy, revisions or usage');
+        assert.deepEqual(f.rules,rules);
+        assert.equal(f.alarms.has(MANAGED_SITE_BUDGET_ALARM),true);
+      }
+    });
+  }
+  test(kind+' stale distribution data cannot authorize a changed package or epoch',async()=>{
+    const f=await reviewedBudget(kind,{sha256:'0'.repeat(64)});
+    const oldRequest=await f.msg('getStatus');
+    const before=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+    const newer={...f.local.get(SIDEBAR_TOOL_STORE)[0],version:'2.0.0'};
+    f.local.set(SIDEBAR_TOOL_STORE,[newer]);
+    await assert.rejects(f.service.dispatch(oldRequest,f.sender),{code:'E_TOOL_CHANGED'});
+    f.local.set(TOOL_REVOCATION_EPOCHS_STORE,{[id]:'epoch-b'});
+    await assert.rejects(f.service.dispatch(await f.msg('getStatus',{},newer,'epoch-a'),f.sender),
+      {code:'E_TOOL_CHANGED'});
+    await f.service.run({boot:true});
+    const receipt=await f.service.dispatch(await f.msg('getStatus'),f.sender);
+    assert.equal(receipt.status,'inactive');
+    assert.deepEqual(f.rules,[],'old reviewed rights cannot activate the replacement installation');
+    assert.deepEqual(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].usage,before.usage);
+    if(kind==='site-budget.v3')assert.equal(receipt.siteReviewActive,false);
+  });
+  test(kind+' missing distribution metadata cannot discard policy on epoch revocation',async()=>{
+    const f=await reviewedBudget(kind,{}),oldRequest=await f.msg('getStatus');
+    f.tick(30000);await f.service.run();
+    const before=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+    f.local.delete(MARKET_PROVENANCE_STORE);
+    f.local.set(TOOL_REVOCATION_EPOCHS_STORE,{[id]:'epoch-b'});
+    await assert.rejects(f.service.dispatch(oldRequest,f.sender),{code:'E_TOOL_CHANGED'});
+    await f.service.run({boot:true});
+    const after=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+    assert.ok(after,'revoking a lease must not be mistaken for a package source replacement');
+    assert.deepEqual(after.usage,before.usage);
+    assert.equal(after.source,before.source);
+    assert.equal(after.packageHash,before.packageHash);
+    assert.deepEqual((after.policy??after.settings).sites,(before.policy??before.settings).sites);
+    assert.equal(after.status,'inactive');
+    assert.deepEqual(f.rules,[],'the old epoch never retains active native authority');
+  });
+  test(kind+' Chrome permission revocation remains durable with stale distribution data',async()=>{
+    const f=await reviewedBudget(kind,{sha256:'0'.repeat(64)});
+    f.allow(false);await f.service.run({boot:true});
+    const row=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+    assert.equal((row.policy??row.settings).enabled,false);
+    assert.equal(row.status,'missing-permission');
+    assert.equal(f.alarms.has(MANAGED_SITE_BUDGET_ALARM),false);
+    f.allow(true);await f.service.run({boot:true});
+    assert.equal((f.local.get(MANAGED_SITE_BUDGET_STORE)[id].policy??
+      f.local.get(MANAGED_SITE_BUDGET_STORE)[id].settings).enabled,false);
+    assert.deepEqual(f.rules,[],'restoring Chrome permissions cannot silently restart restrictions');
+  });
 }
 test('native policy reconciliation works with more installed tools than DNR owner slots',async()=>{
   const others=Array.from({length:32},(_,i)=>({format:'opendesk.sidebar-tool.v1',
@@ -236,15 +368,45 @@ test('installer tool lock and epoch rotation stop old restriction without deadlo
   assert.equal(f.rules.length,0);
   assert.equal(f.alarms.has(MANAGED_SITE_BUDGET_ALARM),false);
 });
-test('cross-source ID replacement cleans prior owner and alarm; no inherited settings',async()=>{
-  const f=fixture();
-  await f.service.dispatch(await f.msg('setPolicy',{...settings,expectedRev:0}),f.sender);
-  f.local.set(MARKET_PROVENANCE_STORE,{[id]:{marketId:'opendesk/'+id,
-    sha256:await sidebarToolPackageHash(tool()),version:'1.0.0'}});
+test('reviewed cross-source package replacement cleans prior owner without inheriting settings',async()=>{
+  const f=await reviewedBudget('site-budget.v2');
+  f.tick(60000);await f.service.run();
+  const peer={id:741001,priority:2,action:{type:'allowAllRequests'},
+    condition:{resourceTypes:['main_frame']}};
+  f.rules.push(peer);
+  const candidate=tool('1.0.1'),options={api:f.api,lockManager:f.lockManager,
+    candidate,baseline:tool(),reviewApproved:true,approveUpdate:async()=>true,
+    market:{marketId:'opendesk/'+id,sha256:await sidebarToolPackageHash(candidate),
+      operationId:'123e4567-e89b-42d3-a456-426614174997'}};
+  await assert.rejects(installReviewedSidebarTool(options),{code:'E_PUBLISHER_CONFLICT'});
+  assert.deepEqual(f.local.get(SIDEBAR_TOOL_STORE),[tool()]);
+  const installed=await installReviewedSidebarTool({...options,approveSourceChange:async()=>true});
+  assert.equal(installed.state,'installed');
+  await assert.rejects(f.service.dispatch(await f.msg('getStatus',{},tool(),'epoch-a'),f.sender),
+    {code:'E_TOOL_CHANGED'});
   await f.service.run({boot:true});
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)?.[id],undefined);
-  assert.equal(f.rules.length,0);
+  assert.deepEqual(f.rules,[peer]);
   assert.equal(f.alarms.has(MANAGED_SITE_BUDGET_ALARM),false);
+});
+test('explicit v3 migration still requires the original verified source identity',async()=>{
+  const f=await reviewedBudget('site-budget.v3',{});
+  const row=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+  const args={id,source:'opendesk/'+id,epoch:row.epoch,packageHash:row.packageHash,
+    desiredPolicy:row.policy,modelRef:row.modelRef,sealedModel:row.sealedModel,
+    usage:row.usage,day:row.day,clockHighWater:row.clockHighWater,notices:row.notices};
+  for(const provenance of [undefined,{[id]:{marketId:'opendesk/'+id,
+    sha256:'0'.repeat(64),version:'0.0.1'}}]){
+    if(provenance===undefined)f.local.delete(MARKET_PROVENANCE_STORE);
+    else f.local.set(MARKET_PROVENANCE_STORE,provenance);
+    await assert.rejects(stageManagedSiteV3MigrationLocked(f.api,args,{lockManager:f.lockManager}),
+      {code:'E_MIGRATION_IDENTITY'});
+    assert.deepEqual(f.local.get(MANAGED_SITE_BUDGET_STORE)[id],row);
+  }
+  f.local.set(MARKET_PROVENANCE_STORE,{[id]:{marketId:'opendesk/'+id,
+    sha256:row.packageHash,version:'1.1.0'}});
+  assert.equal((await stageManagedSiteV3MigrationLocked(f.api,args,{lockManager:f.lockManager})).state,
+    'already-staged');
 });
 test('Chrome DNR mismatch remains unknown; corrupt resource ledger forbids writes',async()=>{
   const f=fixture();
