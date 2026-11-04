@@ -2,26 +2,26 @@
   "schemaVersion": 1,
   "recordedAt": "2026-11-04T00:59:33.199694+08:00",
   "stage": "DEVELOPMENT_CORE_NATIVE_VALIDATION_IN_PROGRESS",
-  "status": "NOT_COMPLETE_RUNTIME_RECOVERY_PENDING",
+  "status": "NOT_COMPLETE_USER_NATIVE_INSTALL_ACTION_REQUIRED",
   "runtime": {
     "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
     "extensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
     "verifiedConnectedRevision": "e694cd406fc438d2ebf011bcf89dec6aad53e85e0885a0cd904aa62142b8fe46",
     "rawConnected": "deadline-dev-connected.ax.txt",
-    "latestObservedConnectedRevision": "e694cd406fc438d2ebf011bcf89dec6aad53e85e0885a0cd904aa62142b8fe46",
-    "latestObservedRaw": "deadline-dev-connected.ax.txt",
+    "latestObservedConnectedRevision": "321cf9f4ea148ed7b876df1eae08954dc2102b39af0de8f6712fa73214399300",
+    "latestObservedRaw": "recovery-dev-connected.ax.txt",
     "subsequentDiskUpdateDoesNotProveLoaded": true,
     "deadlineRepairSourceMaps": "4 files compared exact",
-    "mode": "STATIC_DEVELOPMENT_SERVE_DISCONNECTED",
-    "serveStatus": "EXITED",
-    "writerPid": 54212,
+    "mode": "CONTINUOUS_DEVELOPMENT_CONNECTED",
+    "serveStatus": "RUNNING",
+    "writerPid": 49560,
     "servePort": 43119,
     "oldLockPreserved": true,
-    "newRoutingNative": "NOT_TESTED",
+    "newRoutingNative": "DISPATCH_PASS_SECOND_TASK_DEADLINE_FAILURE",
     "globalFixedInputsOwner": "01a1a295-afc1-73c3-aae0-44308af99dc3",
     "globalFixedInputsStable": true,
     "globalFixedInputsStableReportedBy": "01a1a295-afc1-73c3-aae0-44308af99dc3",
-    "authorizedServeRecovery": "NOT_REQUESTED_UNDER_NO_RESTART_HANDOFF",
+    "authorizedServeRecovery": "USER_ALLOWED_2026-11-04",
     "historicalPublishedRevision": "5e9966bf46e8527b6985246dd0e0ae1d74746ef9f677a3678a1ac6c82282ce0d"
   },
   "authorization": {
@@ -134,13 +134,13 @@
     "originalFailureReadOnlyReconciled": true
   },
   "currentUiResource": {
-    "surface": "window759148633 / Chat tab759148637",
-    "state": "Original and latest Run reconciled; second keyword confirmed to have no new Run; new routing awaiting authorized serve recovery",
+    "surface": "window759148633 / same conversation tab759148642 / task catalog tab759148646",
+    "state": "Task1.1.4 imported and selected; verification Run input empty; current installed Task1.1.3 and WebFlow0.3.9 retained; Browser Use URL policy rejected privileged-page control",
     "originalUnknownWindowUntouched": true
   },
   "rating": {
     "overall": "NOT_SCORED",
-    "reason": "latest routing repair not published; final two normal keyword rounds await runtime recovery",
+    "reason": "Task1.1.4/WebFlow0.3.10 installation and final two fresh normal keyword rounds pending user native UI actions after browser policy rejection",
     "oldComponent99Inherited": false
   },
   "rawDirectory": "/Users/mac/Documents/workspace/opendesk-browser/artifacts/webflow-authorization-20261104",
@@ -298,5 +298,106 @@
       "projects/webflow/webflow.opendesk-tool.json": "6dbc185f9b24d9234947eee07333d5204dc5d72c698741f5ed09dcdf33c97af2"
     }
   },
-  "updatedAt": "2026-11-03T19:25:42.835Z"
+  "updatedAt": "2026-11-04T07:31:03.960174+00:00",
+  "resumption20261104": {
+    "ownerTask": "01a1a53a-7ce9-73f2-9414-c1c61d813831",
+    "mainStart": "1a8c4b9ff0b2e303a8bd16e459d4ac76d88d8e61",
+    "oldRequestsNotReplayed": true,
+    "sameConversationFreshDocumentTabId": 759148642,
+    "oldDocumentLoadingFailureTabId": 759148637,
+    "unsubmittedNewCandidate": "wf-9c2f4a61-b036-4d8a-9a72-01fe37cb2e64",
+    "roundC": {
+      "candidateId": "wf-3e7b6a80-1d49-4c82-a57f-0e2d98b41c6a",
+      "query": "OpenDesk Browser SDK",
+      "requestId": "7fc2b878-181a-429e-8f17-02954429e5ef",
+      "runId": "34e46e3b-eb50-46b7-8e14-677327999855",
+      "resultId": "6334e52b-c684-45b2-92b8-4d4d1acdf72c",
+      "businessStatus": "success",
+      "count": 3,
+      "workerRetired": true,
+      "retirementState": "released",
+      "domAndDurableAndOriginalChat": "PASS",
+      "aiReplyComplete": true
+    },
+    "roundD": {
+      "candidateId": "wf-2f1c890a-6d45-4ab9-9a7e-b0c6d3f85241",
+      "query": "时间清单",
+      "runId": "9c700548-9a5e-4951-9c11-89e98869b1d2",
+      "resultId": "009404cc-d0e5-4f99-8b1c-226ab7f76889",
+      "state": "stopped",
+      "terminalReason": "E_TIMEOUT: Controller fenced",
+      "workerRetired": true,
+      "retirementState": "released",
+      "businessSuccess": false,
+      "replayed": false
+    },
+    "nativeHostRouting": {
+      "roundCAndDSameHost": "5f7fcf91-b0cc-4e7d-af91-df770e897e07",
+      "additionalRealHostTabId": 759148646,
+      "additionalRealHostId": "a5a71735-aa08-4832-bd3d-7ca5c6b81c27",
+      "additionalHostCreatedByNormalSidepanelEntry": true
+    },
+    "candidateRepair": {
+      "taskVersion": "1.1.4",
+      "deadlineMs": 120000,
+      "sourceHashUnchanged": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+      "appVersion": "0.3.10",
+      "taskPackageTests": 18,
+      "appTests": 36,
+      "nativeValidation": "PASS",
+      "nativeInstall": "NOT_TESTED",
+      "nativeValidationRunId": "56321c09-4c89-46aa-b95d-145e7247ab1c",
+      "nativeValidationResultId": "6ffbd5d5-2fbb-4924-8c0d-19b7e03367d2",
+      "nativeValidationBusinessStatus": "success",
+      "nativeValidationCount": 3,
+      "nativeValidationWorkerRetired": true,
+      "nativeValidationRetirementState": "released",
+      "nativeCandidateImport": "PASS",
+      "nativeCandidateVerification": "NOT_TESTED",
+      "nativeAvailability": "NOT_TESTED",
+      "appPackagePromoted": "PASS",
+      "appPackageCheckProject": "PASS",
+      "appCanonicalSHA256": "01433fbaae1f728d6d49ba0b60f45f25a9ac4d94b38f65e6973aa33d65d36d7b",
+      "appNativeUpdate": "NOT_TESTED"
+    },
+    "browserPolicyBlock": {
+      "tool": "Browser Use / Chrome user.claimTab",
+      "urlScheme": "chrome-extension",
+      "status": "URL_POLICY_REJECTED",
+      "explicitlyProhibitsAlternateControlForSameOperation": true,
+      "workaroundAttemptedAfterRejection": false,
+      "browserConnectionFinalized": true,
+      "requiresUserAction": "Verify original 120s Run, make Task1.1.4 available, install; update WebFlow0.3.10 via original installer; review variable-query rule for new installation once"
+    },
+    "independentSourceReview": {
+      "reviewer": "Lagrange",
+      "agentId": "01a1a56f-870e-72d2-8806-391135814d3b",
+      "p0p1": "none identified in reviewed task deadline and delegate pin change",
+      "identityAndDeadlineBypass": "none identified",
+      "taskSourceUnchanged": true,
+      "overallScore": "NOT_SCORED",
+      "awaits": "new installation and final two normal keyword rounds under same candidate"
+    },
+    "goalState": "active; incomplete; manual installation pending; not falsely completed or blocked",
+    "rawEvidenceSHA256": {
+      "recovery-dev-connected.ax.txt": "3d4bcea7600ecfb965440deef5c8b6b4460448ba7fe5dce4bccaad10f828877d",
+      "recovery-disk-publication.json": "886c88f888a6e2cfa26721a18b4afe1b911747f6fb286d04b6d2a72a24493e0b",
+      "recovery-round-c-chat.json": "911cf42fb1fc944871163791588d7f70b4837c766332677217a6c958615aba11",
+      "recovery-round-c-result.json": "d9147b4bcd9f149d037f01e2361307071c9203d0cc80c4c47b37aa82197ede66",
+      "recovery-round-c-durable.json": "1fb92806b3093a18d2bc2b7890e8a6d5080d2b320a132ab4bb21e7e8d191aeb7",
+      "recovery-round-c-comparison.json": "6b1f24b67417cd8791efe746225ae3a2dcd91487440b9e93d068547ec3b58c36",
+      "recovery-round-c.dom.jsonl": "3f79bbfac68370527288aed7c6e93b9f81b2512c6f52d94e5971abe40956ac00",
+      "recovery-round-d-progress.json": "578553b0022a626beed1816cb497573be2f91f074e1b17e5f6b87a08c76a1f2a",
+      "recovery-round-d-durable.json": "5eea07ba9aef5d13ae6696d45da58a277fbb3ad5ada13faa3d63434631350b6f",
+      "recovery-round-d.dom.jsonl": "a24dc1065eccc09a27497eb77ac72c3031f331594e65b7f4f0f321689b03275a",
+      "recovery-validation-120-durable.json": "54a0a3011a61268b0f83536db8114efa3194d68fc89fda004cc5c6feb386c7ae",
+      "recovery-validation-120.dom.jsonl": "ad71839d75726f39415685c421391cb256fd2461986efcd3d8dc89b6963ea2e3",
+      "recovery-editor-validation-source.js": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "recovery-task-imported.ax.txt": "6f749fdb28fc8093af6f8276c5404a20a23cac42fa9aa0ea11511d3bd46455fb",
+      "recovery-task-verified.ax.txt": "3711678f812e7e47f93468d140387e9bcf7c1cb587565408a53947ce509971bb",
+      "recovery-task-package-tests.log": "4cf29c1779c751c7666e7b5a5a0b782af949aac694498aa0c836958e9b60ee50",
+      "recovery-app-package-tests.log": "b3c02b46c24bef514f2e97c2aa851493667e42efe7f5d94e5ca1cc356ac710ee"
+    }
+  }
 }
