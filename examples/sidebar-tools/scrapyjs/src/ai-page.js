@@ -62,8 +62,16 @@ export function createAiPageObservation(request,{requestId,url}){
   const checkCancelled=()=>{if(cancelled)throw fail('E_CANCELLED','网页观察已取消。',id);};
   function validate(row){
     if(row?.clientRequestId!==id||typeof row.runId!=='string'||!row.runId||
-      typeof row.resultId!=='string'||!row.resultId||row.state!=='completed'||row.retirementState!=='released')
+      typeof row.resultId!=='string'||!row.resultId||row.retirementState!=='released')
       throw fail('E_PAGE_OBSERVATION','网页观察尚未完成释放或身份不符。',id);
+    if(row.state==='failed'){
+      const code=row.result?.outcome?.error?.code;
+      if(code==='E_USER_SCRIPTS_UNAVAILABLE')
+        throw fail(code,'浏览器未开放用户脚本能力，请在扩展详情中检查「允许用户脚本」开关。',id);
+      const safeCode=typeof code==='string'&&/^E_[A-Z0-9_]{1,80}$/.test(code)?code:'E_PAGE_OBSERVATION';
+      throw fail(safeCode,'网页观察运行失败（'+safeCode+'）。',id);
+    }
+    if(row.state!=='completed')throw fail('E_PAGE_OBSERVATION','网页观察尚未完成释放或身份不符。',id);
     const value=row.value;
     if(value?.kind!=='context'||value.url!==url||!Array.isArray(value.choices)||value.choices.length!==1||
       typeof value.choices[0]?.html!=='string'||value.choices[0].html.length>12000||
@@ -80,12 +88,17 @@ export function createAiPageObservation(request,{requestId,url}){
     checkCancelled();
     if(preparation)return preparation;
     preparation=(async()=>{
-      const deadline=Date.now()+budgetMs;
+      const startedAt=Date.now(),deadline=startedAt+budgetMs;
+      let stage='metadata',lastRow=null,startMs=null,firstRunningMs=null,firstFencedMs=null;
+      let readCount=0,maxReadMs=0;
+      try{
       await bounded(()=>request('controllers.read',{}),deadline,id);
       checkCancelled();
+      stage='current-page';
       await current(deadline);
       let row;
       try{
+        stage='start';
         row=await bounded(()=>{
           checkCancelled();
           started=true; // Set before invoking a possibly synchronous transport.
@@ -94,22 +107,38 @@ export function createAiPageObservation(request,{requestId,url}){
             waitForSelector:'',timeoutMs:5000}});
         },deadline,id);
       }catch(error){if(started)throw outcome(id,error);throw error;}
+      startMs=Date.now()-startedAt;
+      lastRow=row;
+      if(row?.state==='running')firstRunningMs=startMs;
+      if(row?.retirementState==='fenced')firstFencedMs=Date.now()-startedAt;
       checkCancelled();
       let runId=row?.runId,resultId=row?.resultId;
       while(row?.retirementState!=='released'){
+        stage='read-release';
         if(row?.clientRequestId!==id)throw outcome(id);
         await bounded(()=>new Promise(resolve=>setTimeout(resolve,100)),deadline,id);
         checkCancelled();
+        const readStartedAt=Date.now();
+        readCount++;
         try{row=await bounded(()=>request('controllers.read',{clientRequestId:id}),deadline,id);}
         catch(error){throw outcome(id,error);}
+        finally{maxReadMs=Math.max(maxReadMs,Date.now()-readStartedAt);}
+        lastRow=row;
         checkCancelled();
         if((runId&&row?.runId!==runId)||(resultId&&row?.resultId!==resultId))throw outcome(id);
+        if(firstRunningMs===null&&row?.state==='running')firstRunningMs=Date.now()-startedAt;
+        if(firstFencedMs===null&&row?.retirementState==='fenced')firstFencedMs=Date.now()-startedAt;
         runId=row?.runId;resultId=row?.resultId;
       }
       snapshot=validate(row);
       context=Object.freeze({sample:row.value.choices[0].html,pageObservation:Object.freeze({
         clientRequestId:id,runId:row.runId,resultId:row.resultId,truncated:row.value.truncated===true})});
       return context;
+      }catch(error){
+        if(error?.code!=='E_OUTCOME_UNKNOWN')throw error;
+        const progress={startMs,firstRunningMs,firstFencedMs,readCount,maxReadMs,...Object.fromEntries(['state','retirementState','runId','resultId'].map(key=>[key,lastRow?.[key]??null]))};
+        throw outcome(id,fail('E_OBSERVATION_STAGE',stage+' '+JSON.stringify(progress)+'；'+error.message,id,error));
+      }
     })();
     return preparation;
   }

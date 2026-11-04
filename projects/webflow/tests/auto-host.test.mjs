@@ -22,7 +22,7 @@ test('two real Side Panel responders route a candidate execution to only its pre
    'an already bound Host keeps ownership while its Side Panel is temporarily hidden');
  assert.equal(routeChatGPTBridgeMessage({kind:'check-delivery',requestId:'same-request',bridgeHostId:'prepared-host'},'other-host'),null);
 });
-function harness(){
+function harness({profiles=[],requestPermission=true,saveError=null,grantError=null}={}){
   const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
     scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'real-install',generation:1};
   const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},targetUrl:'https://www.baidu.com/',installation};
@@ -35,13 +35,22 @@ function harness(){
   let observed,snapshot;
   const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
   const ledger=createChatGPTBridgeTriggerLedger({storage,generateId:()=>`66666666-6666-4666-8666-${String(++counter).padStart(12,'0')}`});
-  const events={starts:[],deliveries:[],gates:[],controls:[]};
+  const events={starts:[],deliveries:[],gates:[],controls:[],order:[],permissions:[],profileWrites:[]};
   let projectedRequest=null;
   const session=()=>({url:source.url,requestId:projectedRequest,status:'current',actions:{cancel:true},fields:{},tasks:[]});
   const sender={id:'extension',frameId:0,url:source.url,documentId:source.documentId,
     tab:{id:source.tabId,url:source.url,windowId:2,incognito:false}};
   const api={runtime:{id:'extension',async sendMessage(msg){
+    events.order.push(msg.kind);
+    if(msg.protocol==='opendesk.web-task.v1'){
+      if(msg.kind==='profiles-read')return {ok:true,data:{profiles:structuredClone(profiles)}};
+      if(saveError)return {ok:false,error:{code:saveError,message:'Profile save failed'}};
+      assert.deepEqual(msg.expectedProfiles,profiles);
+      events.profileWrites.push(msg);profiles=structuredClone(msg.profiles);
+      return {ok:true,data:{profiles:structuredClone(profiles)}};
+    }
     events.gates.push(msg);
+    if(msg.kind==='auto-grant'&&grantError)return {ok:false,error:{code:grantError,message:'grant failed'}};
     try{
       const data=await (msg.kind==='auto-settings'?ledger.readAutoSettings():msg.kind==='auto-enable'?ledger.setAutoEnabled(msg.enabled):
         msg.kind==='auto-grant'?ledger.approveAuto(msg.scope,{pendingRequest:msg.pendingRequest}):msg.kind==='auto-revoke'?ledger.revokeAuto(msg.taskId):
@@ -58,7 +67,8 @@ function harness(){
     if(deliveryUnknown)throw Error('send ACK lost');
     return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};
   }},webNavigation:{getFrame:async()=>({...source,documentLifecycle:'active'})},
-  permissions:{contains:async()=>permission,onRemoved:{addListener(){},removeListener(){}}}};
+  permissions:{contains:async value=>{events.permissions.push(value);return permission;},
+    request:value=>{events.order.push('permission-request');events.permissions.push(value);permission=requestPermission;return Promise.resolve(requestPermission);},onRemoved:{addListener(){},removeListener(){}}}};
   const client={request:async method=>method==='listTaskCatalog'?{installed:[installed],catalog:[catalog]}:resolved,
     controller:{snapshotControllerRun:async()=>structuredClone(snapshot)}};
   const authority={async startControllerRun(input){
@@ -88,7 +98,7 @@ function harness(){
       requestId:admitted.requestId,taskId:admitted.taskId,args:admitted.args,targetUrl:admitted.targetUrl,installation:admitted.installation};
     return bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,adoptedRequest,source,sourceUrl:source.url},sender);
   };
-  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},
+  return {bridge,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},replaceProfiles:value=>{profiles=value;},
     denyPermission:()=>{permission=false;},unverify:()=>{verified=false;},
     afterGate:fn=>{afterGate=fn;},loseSend:()=>{deliveryUnknown=true;},unknownRun:()=>{runUnknown=true;},
     async approve(){const review=await bridge.prepareAutoGrant(scope);await bridge.approveAutoTask(review,{isTrusted:true});
@@ -330,6 +340,104 @@ test('sidebar receipt separates durable result, release and delivery and never a
   h.projectRequest('different-request');assert.equal((await h.bridge.readBridgeState()).receipt,null);
  }
 });
+
+const siteOrigin='https://source.example';
+const genericProfile={id:'site-existing',version:'1.0.0',origin:siteOrigin,adapter:'generic',adapterVersion:'1.0.0',
+ protocols:['webflow.task.intent.v1'],enabled:true};
+test('Generic review binds canonical source, registers only on approval and preserves gesture permission order',async()=>{
+ const h=harness();h.denyPermission();
+ const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+ assert.equal(review.sourceOrigin,siteOrigin);assert.equal(h.events.profileWrites.length,0);
+ assert.equal(h.events.permissions.length,0,'preparation can review a site before Chrome permission is granted');
+ h.events.order.length=0;
+ const pending=h.bridge.approveAutoTask(review,{isTrusted:true});
+ assert.deepEqual(h.events.order,['permission-request'],'request runs before the first await');
+ await pending;
+ assert.deepEqual(h.events.permissions[0],{origins:['https://source.example/*','https://www.baidu.com/*']});
+ assert.ok(h.events.permissions.slice(1).some(value=>value.origins.includes('https://source.example/*')));
+ assert.ok(h.events.order.indexOf('profiles-save')>h.events.order.indexOf('profiles-read'));
+ assert.ok(h.events.order.indexOf('auto-grant')>h.events.order.indexOf('profiles-save'));
+ const write=h.events.profileWrites[0];
+ assert.deepEqual(write.expectedProfiles,[]);
+ const hash=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(siteOrigin))).toString('hex');
+ assert.deepEqual(write.profiles,[{...genericProfile,id:'site-'+hash.slice(0,16)}]);
+ assert.equal((await h.ledger.readAutoSettings()).grants[h.scope.taskId].scope.sourceOrigin,siteOrigin);
+ assert.equal(h.events.starts.length,0);
+});
+test('ChatGPT retains default source and never requests new Chrome permission or a Generic Profile',async()=>{
+ const h=harness();await h.approve();
+ assert.equal(h.events.order.includes('permission-request'),false);
+ assert.equal(h.events.order.includes('profiles-read'),false);
+ assert.equal((await h.ledger.readAutoSettings()).grants[h.scope.taskId].scope.sourceOrigin,'https://chatgpt.com');
+});
+test('source tampering and noncanonical origins cannot reuse a reviewed approval',async()=>{
+ const h=harness();const review=await h.bridge.prepareAutoGrant(h.scope);
+ assert.equal(Reflect.set(review,'sourceOrigin',siteOrigin),false);
+ await assert.rejects(h.bridge.approveAutoTask({...review,sourceOrigin:siteOrigin},{isTrusted:true}),{code:'E_BRIDGE_CONTEXT'});
+ for(const origin of [siteOrigin+'/',siteOrigin+'/path','https://user@source.example','*','file:///tmp','https://*.example'])
+  await assert.rejects(h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:origin}));
+ assert.equal(h.events.order.includes('permission-request'),false);
+ assert.equal(h.events.gates.some(msg=>msg.kind==='auto-grant'),false);
+});
+test('review and nested scope are immutable; hidden toJSON cannot request unreviewed origins',async()=>{
+ const h=harness();const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+ const bytes=JSON.stringify(review);
+ assert.equal(Object.isFrozen(review),true);assert.equal(Object.isFrozen(review.args),true);
+ assert.equal(Object.isFrozen(review.installation),true);
+ assert.equal(Reflect.set(review,'sourceOrigin','https://unreviewed.example'),false);
+ assert.equal(Reflect.defineProperty(review,'toJSON',{value:()=>JSON.parse(bytes)}),false);
+ const forged={...review,sourceOrigin:'https://unreviewed.example',targetUrl:'https://other.example/'};
+ Object.defineProperty(forged,'toJSON',{value:()=>JSON.parse(bytes)});
+ await assert.rejects(h.bridge.approveAutoTask(forged,{isTrusted:true}),{code:'E_BRIDGE_CONTEXT'});
+ assert.equal(h.events.permissions.length,0);assert.equal(h.events.profileWrites.length,0);
+});
+test('denied Generic permission writes neither Profile nor grant',async()=>{
+ const h=harness({requestPermission:false});const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+ await assert.rejects(h.bridge.approveAutoTask(review,{isTrusted:true}),{code:'E_BRIDGE_PERMISSION'});
+ assert.equal(h.events.profileWrites.length,0);assert.equal(h.events.gates.some(msg=>msg.kind==='auto-grant'),false);
+});
+test('existing compatible Profile is reused; disabled or incompatible Profiles cannot be revived',async()=>{
+ const h=harness({profiles:[genericProfile]});
+ await h.bridge.approveAutoTask(await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin}),{isTrusted:true});
+ assert.equal(h.events.profileWrites.length,0);
+ for(const patch of [{enabled:false},{adapterVersion:'2.0.0'},{protocols:[]},{adapter:'other'}]){
+  const item=harness({profiles:[{...genericProfile,...patch}]});
+  await assert.rejects(item.bridge.prepareAutoGrant({...item.scope,sourceOrigin:siteOrigin}),/Profile|恢复/);
+  assert.equal(item.events.profileWrites.length,0);assert.equal(item.events.gates.some(msg=>msg.kind==='auto-grant'),false);
+ }
+});
+
+test('Profile CAS/write failures stop before grant; grant failure never executes or replays',async()=>{
+ for(const saveError of ['E_WEB_TASK_PROFILE_CHANGED','E_WEB_TASK_UNKNOWN']){
+  const h=harness({saveError});const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+  await assert.rejects(h.bridge.approveAutoTask(review,{isTrusted:true}),{code:saveError});
+  assert.equal(h.events.gates.some(msg=>msg.kind==='auto-grant'),false);assert.equal(h.events.starts.length,0);
+ }
+ const h=harness({grantError:'E_WEBFLOW_AUTO_UNKNOWN'});
+ const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+ await assert.rejects(h.bridge.approveAutoTask(review,{isTrusted:true}),{code:'E_WEBFLOW_AUTO_UNKNOWN'});
+ assert.equal(h.events.profileWrites.length,1);assert.equal(h.events.starts.length,0);
+ assert.equal(Object.keys((await h.ledger.readAutoSettings()).grants).length,0);
+ await assert.rejects(h.bridge.approveAutoTask(review,{isTrusted:true}),{code:'E_BRIDGE_CONTEXT'});
+ assert.equal(h.events.gates.filter(msg=>msg.kind==='auto-grant').length,1);
+});
+test('Profile disabled after review and changed task catalog or arguments cannot bypass original validation',async()=>{
+ const h=harness();const review=await h.bridge.prepareAutoGrant({...h.scope,sourceOrigin:siteOrigin});
+ h.replaceProfiles([{...genericProfile,enabled:false}]);
+ await assert.rejects(h.bridge.approveAutoTask(review,{isTrusted:true}),/恢复/);
+ assert.equal(h.events.profileWrites.length,0);assert.equal(h.events.gates.some(msg=>msg.kind==='auto-grant'),false);
+ for(const change of ['catalog','installation','args','target']){
+  const item=harness({profiles:[genericProfile]});
+  const scope={...item.scope,sourceOrigin:siteOrigin};
+  if(change==='catalog')item.catalog.stage='unavailable';
+  if(change==='installation')item.installed.generation++;
+  if(change==='args')scope.args={...scope.args,limit:4};
+  if(change==='target')scope.targetUrl='https://unapproved.example/';
+  await assert.rejects(item.bridge.prepareAutoGrant(scope));
+  assert.equal(item.events.profileWrites.length,0);assert.equal(item.events.gates.some(msg=>msg.kind==='auto-grant'),false);
+ }
+});
+
 test('opening a blank ChatGPT tab clears the sidebar projection of a previous conversation',async()=>{
  const h=harness();
  const first=await h.bridge.readBridgeState();assert.equal(first.source.url,source.url);
@@ -337,4 +445,44 @@ test('opening a blank ChatGPT tab clears the sidebar projection of a previous co
  const next=await h.bridge.readBridgeState();
  assert.equal(next.session,null);assert.equal(next.receipt,null);assert.equal(next.source,undefined);
  assert.equal(h.events.starts.length,0);
+});
+
+test('one returned search row stays identical through delivery and sidebar; replay and closed approval cannot start another run',async()=>{
+ const h=harness();await h.approve();
+ const message=h.next('wf-core-single-result');
+ const completed=await h.run(message);
+ const expected={status:'success',query:'OpenDesk Browser',
+  sourceUrl:'https://www.baidu.com/s?wd=OpenDesk%20Browser',count:1,
+  results:[{title:'Fixture page run-1',url:'https://example.com/run-1'}]};
+ assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
+ const sent=h.events.deliveries[0];
+ const payload=JSON.parse(sent.text.slice(sent.text.indexOf('{')));
+ assert.equal(payload.protocol,'opendesk.task.result.v1');
+ assert.equal(payload.requestId,h.events.starts[0].requestId);
+ assert.equal(payload.taskId,'baidu.search.top3');
+ assert.equal(payload.scriptId,h.scope.installation.scriptId);
+ assert.equal(payload.sourceHash,h.scope.installation.contentHash);
+ assert.equal(payload.targetUrl,'https://www.baidu.com/');
+ assert.equal(payload.runId,'run-1');assert.equal(payload.resultId,'result-1');
+ assert.equal(sent.runId,payload.runId);assert.equal(sent.resultId,payload.resultId);
+ assert.equal(sent.sourceUrl,source.url);assert.equal(sent.requestId,payload.requestId);
+ assert.deepEqual(payload.data,expected);
+ assert.deepEqual(JSON.parse(completed.resultPreview),expected);
+ const view=await h.bridge.readBridgeState();
+ assert.deepEqual(view.source,source);
+ assert.equal(view.session.requestId,payload.requestId);
+ assert.equal(view.receipt.requestId,payload.requestId);
+ assert.equal(view.receipt.runId,payload.runId);assert.equal(view.receipt.resultId,payload.resultId);
+ assert.deepEqual(view.receipt.value,expected);
+ assert.equal(view.receipt.execution,'completed');assert.equal(view.receipt.persistence,'verified');
+ assert.equal(view.receipt.release,'released');assert.equal(view.receipt.delivery,'confirmed');
+ await assert.rejects(h.run(message));
+ await h.bridge.readBridgeState();
+ assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
+ await h.bridge.setAutoEnabled(false,{isTrusted:true});
+ await h.bridge.revokeAutoTask(h.scope.taskId,{isTrusted:true});
+ const settings=await h.ledger.readAutoSettings();
+ assert.equal(settings.enabled,false);assert.equal(settings.grants['baidu.search.top3'].state,'revoked');
+ await assert.rejects(h.run(h.next('wf-core-after-cleanup')));
+ assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
 });

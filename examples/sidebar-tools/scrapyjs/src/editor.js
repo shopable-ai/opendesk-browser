@@ -28,6 +28,15 @@ export function applyField(config, form) {
 // write a stale copy of the collection-wide scope; that is a separate action.
 export function applyInlineField(config, form, selectorDocument=globalThis.document) {
   const invalid=(message,fieldId)=>{throw Object.assign(Error(message),{fieldId});};
+  // The original scope callback also carries the prepared relative fields as
+  // one draft transaction. A later manual edit must not replay that payload.
+  if(form.scopeOnly&&form.preparedList?.base===JSON.stringify(config)){
+    const prepared=form.preparedList;
+    if(form.container!== (prepared.itemConfig._listContainer||'')||form.item!==prepared.itemConfig._listItem)
+      invalid('准备的记录范围已变化，请重新准备','list-item');
+    return {...config,itemConfig:prepared.itemConfig,
+      ...(config.validation?{validation:{...config.validation,rowShape:prepared.rowShape}}:{})};
+  }
   if(form.scopeOnly)return applyField(config,{...form,key:'',originalKey:'',selector:'',read:'text',attr:''});
   const key=form.key.trim(),rule=form.rule.trim();
   if(!key)invalid('字段名不能为空；删除请使用删除字段','field-key');

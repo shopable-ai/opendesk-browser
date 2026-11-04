@@ -109,7 +109,7 @@ export function SharedConversationFrame({
 // Controlled presentation only: children remain mounted while hidden. The caller
 // owns the workspace/business containers, session, focus restoration and actions.
 export function SharedConversationDock({open=false,onClose,id='opendesk-conversation-dock',
- title='AI 对话',className='',children,toolbar=null,expandedFeedback=false,
+ title='AI 对话',className='',children,toolbar=null,onOpenSettings=null,expandedFeedback=false,
  style,...props}){
  const dockRef=React.useRef(null),resizeRef=React.useRef(null);
  const [height,setHeight]=React.useState(null);
@@ -177,10 +177,17 @@ export function SharedConversationDock({open=false,onClose,id='opendesk-conversa
      onKeyDown={separatorKey}/>
     <div className="od-conversation-toolbar">
     {toolbar}
-    <button type="button" className="od-conversation-close" aria-label="收起对话"
+    {onOpenSettings&&<OpenDeskIconButton className="od-conversation-control od-conversation-settings"
+     label="AI 设置" title="AI 设置" onClick={onOpenSettings}>
+     <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
+     </svg>
+    </OpenDeskIconButton>}
+    <OpenDeskIconButton className="od-conversation-control od-conversation-close" label="收起对话"
      title="收起对话" onClick={onClose}>
      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-    </button>
+    </OpenDeskIconButton>
     </div>
    </div>
    {children}
@@ -207,7 +214,7 @@ export function TrustedConversationWorkspace({controller,...props}){
 }
 function ConversationWorkspace({
  controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作',
- emptyPrompt='想完成什么操作？',phaseLabels=null,onOpenSettings=null
+ emptyPrompt='想完成什么操作？',phaseLabels=null,onOpenSettings=null,renderHeaderControls=null
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
  const [open,setOpen]=React.useState(restored.open===true);
@@ -363,24 +370,17 @@ function ConversationWorkspace({
  const lastRow=rows.at(-1);
  const feedbackError=lastRow?.speaker==='系统'&&lastRow.message===error?'':error;
 
- const trigger=headerTarget?createPortal(<button ref={triggerRef} type="button"
+ const trigger=headerTarget?createPortal(<>{open&&renderHeaderControls?.(()=>inputRef.current?.focus({preventScroll:true}))}<button ref={triggerRef} type="button"
    className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
    aria-label="AI 对话" title="打开或收起 AI 对话" aria-pressed={open} aria-expanded={open}
    aria-controls="opendesk-conversation-dock" onClick={toggle}>
    <ConversationAiGlyph/>
-  </button>,headerTarget):null;
+  </button></>,headerTarget):null;
  return <div ref={shellRef} className="od-conversation-workspace" data-chat-open={open?'true':'false'}>
   {trigger}
   <div className="od-conversation-business">{renderBusiness(bridge)}</div>
   <SharedConversationDock open={open} onClose={close} title={title}
-   expandedFeedback={Boolean(error||needsReview)} toolbar={onOpenSettings&&<button type="button" className="od-conversation-settings"
-     aria-label="AI Provider 设置" title="AI 设置" onClick={onOpenSettings}>
-     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
-      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
-      <circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>
-     </svg>
-    </button>}>
+   expandedFeedback={Boolean(error||needsReview)} onOpenSettings={onOpenSettings}>
    <SharedConversationFrame open={open} rows={rows} draft={draft} busy={busy}
     blocked={needsReview||busy} canSend={Boolean(controller?.request)}
     placeholder={placeholder} emptyPrompt={emptyPrompt} inputId="od-conversation-input"

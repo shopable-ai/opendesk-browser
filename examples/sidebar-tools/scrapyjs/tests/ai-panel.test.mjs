@@ -10,7 +10,30 @@ import '../src/app-model.js';
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 // linkedom does not implement a browser's default submit-button action.
 const send=doc=>doc.getElementById('ai-requirement').closest('form').dispatch('submit');
-for(const stale of [false,true])test('blank creation observes the real page and revalidates its original document before applying: '+stale,async t=>{
+test('page preparation failure explains the cause while retaining the unsent request',async t=>{
+  const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[];
+  const url='https://example.com/catalog';
+  globalThis.OpenDeskTool={prepareAI:async factory=>{
+    try{return await factory();}catch(cause){throw Object.assign(Error('准备失败，未发送'),{code:'E_AI_PREPARE',cause});}
+  },request:async(op,args)=>{
+    calls.push(op);if(op.startsWith('storage.'))return storage(op,args);
+    if(op==='ai.info')return {generation:1};
+    if(op==='controllers.read')throw Error('网页观察暂不可用');
+    throw Error('unexpected '+op);
+  }};
+  t.after(()=>{globalThis.OpenDeskTool=previous;});
+  const state={config:{url:'',itemConfig:{}},target:{title:'Catalog',url},profileEpoch:1};
+  const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{state,valid:true,onBusy(){},onDirty(){},onApply(){throw Error('must not apply');},onClose(){}}});
+  await settle();const input=ui.doc.getElementById('ai-requirement');
+  input.value='帮我创建当前页的图书采集配置，只采当前页';input.dispatch('input');send(ui.doc);
+  for(let i=0;i<8;i++)await settle();
+  assert.match(ui.doc.querySelector('[role="alert"]').textContent,/网页观察暂不可用/);
+  assert.ok(input.value);assert.equal(calls.includes('ai.generate'),false);
+});
+for(const request of [
+  '请根据当前网页创建一个采集配置：采集当前页每本书的书名、价格和详情链接，CSV 表头分别为书名、价格、详情链接，只采当前页。',
+  '把这一页的书名、价格和详情链接整理成一个采集配置，先只要这一页。'
+])for(const stale of [false,true])test('blank creation observes the real page and revalidates its original document before applying: '+stale+' / '+request,async t=>{
   const previous=globalThis.OpenDeskTool,storage=storageFixture(),sent=[],writes=[],calls=[];
   const url='https://example.com/catalog';let originalId;
   const observed=id=>({clientRequestId:id,runId:'observation-run',resultId:'observation-result',state:'completed',retirementState:'released',
@@ -36,7 +59,7 @@ for(const stale of [false,true])test('blank creation observes the real page and 
   const ui=createExtensionCenterDOM(t,{component:AiPanel,props:{state,valid:true,onBusy(){},onDirty(){},onApply:value=>writes.push(value),onClose(){}}});
   ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0});
   await settle();const input=ui.doc.getElementById('ai-requirement');
-  input.value='请根据当前网页创建一个采集配置：采集当前页每本书的书名、价格和详情链接，CSV 表头分别为书名、价格、详情链接，只采当前页。';input.dispatch('input');send(ui.doc);
+  input.value=request;input.dispatch('input');send(ui.doc);
   for(let index=0;index<8;index++)await settle();
   assert.equal(sent.length,1);assert.match(sent[0].context.sample,/Real entry/);
   assert.equal(calls.filter(call=>call.op==='controllers.start').length,1);

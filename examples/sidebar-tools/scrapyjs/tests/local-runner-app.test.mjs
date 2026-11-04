@@ -50,7 +50,7 @@ test('URL and page-budget errors are associated with the input before any struct
  assert.notEqual(get('capture-url').getAttribute('aria-invalid'),'true');
  assert.notEqual(get('capture-budget').getAttribute('aria-invalid'),'true');
  assert.equal(get('capture-read-structure').disabled,false);
- assert.equal(f.calls.some(c=>c.operation.startsWith('ai.')),false);
+ assert.equal(f.calls.some(c=>['ai.generate','ai.cancel'].includes(c.operation)),false);
 });
 
 test('Chinese new-rule validation guides the next step without blocking existing manual rules',async t=>{
@@ -76,13 +76,13 @@ test('Chinese new-rule validation guides the next step without blocking existing
  f.edit('capture-correction','只取当前书目的标价');
  assert.notEqual(get('capture-correction').getAttribute('aria-invalid'),'true');
  assert.equal(get('capture-read-structure').disabled,false);
- assert.equal(f.calls.some(c=>c.operation.startsWith('ai.')),false);
+ assert.equal(f.calls.some(c=>['ai.generate','ai.cancel'].includes(c.operation)),false);
  assert.equal(f.rows.get('ai-pending-request').value.requestId,'unknown-ai');
 });
 
 test('opening and closing Chat with an unknown request keeps manual collection available and the original fence intact',async t=>{
  const f=await fixture(t,{pendingAi:true}),{get}=f;
- assert.equal(f.calls.some(c=>c.operation.startsWith('ai.')),false,'manual entry must not mount the optional Provider consumer');
+ assert.equal(f.calls.some(c=>['ai.generate','ai.cancel'].includes(c.operation)),false,'opening recovery must not start or cancel inference');
  globalThis.OpenDeskTool.root.dispatch('opendesk:conversation-action',{detail:{action:'toggle'}});
  for(let i=0;i<12;i++)await settle();
  assert.match(get('chat-ai-request-status').textContent,/unknown-ai/);
@@ -121,7 +121,7 @@ test('Chinese collection inputs keep saved rules intact and editing/reverting an
  assert.equal(f.posts().every(row=>row.payload.body.mode==='preview'),true);
  assert.equal(f.posts()[0].payload.body.config.maxPages,25);
  assert.deepEqual(f.rows.get('capture-config'),saved);
- assert.equal(f.calls.some(row=>row.operation.startsWith('ai.')),false,'unknown AI is untouched by independent input work');
+ assert.equal(f.calls.some(row=>['ai.generate','ai.cancel'].includes(row.operation)),false,'unknown AI is untouched by independent input work');
  assert.equal(f.rows.get('ai-pending-request').value.requestId,'unknown-ai');
 });
 
@@ -138,10 +138,10 @@ test('normal URL and budget validation reject unsafe targets and invalid budgets
  }
 });
 
-test('manual/saved config trial, explicit full, reopen, Stop and exports use one runner without opening Chat or querying AI',async t=>{
+test('manual/saved config trial, explicit full, reopen, Stop and exports use one runner without starting AI inference',async t=>{
   const f=await fixture(t),{get,ui}=f;
   assert.equal(get('open-local-runner')?.disabled,false,'manual collection must have an independent entry');
-  assert.equal(f.calls.some(call=>call.operation.startsWith('ai.')),false,'closed Chat must not query a Provider');
+  assert.equal(f.calls.some(call=>['ai.generate','ai.cancel'].includes(call.operation)),false,'read-only Provider status must not start inference');
   get('open-local-runner').dispatch('click');await settle();
   assert.deepEqual(JSON.parse(get('runner-config').value||get('runner-config').defaultValue),{...base,maxPages:10},'reuse selected saved configuration');
   f.edit('runner-config',JSON.stringify(base));
@@ -162,7 +162,7 @@ test('manual/saved config trial, explicit full, reopen, Stop and exports use one
   assert.match(ui.doc.body.textContent,/已停止/);assert.match(ui.doc.body.textContent,/worker 已确认退出/);
   for(const format of ['jsonl','csv']){get('runner-export-'+format).dispatch('click');await settle();}
   assert.deepEqual(f.calls.filter(row=>row.operation==='localTasks.export').map(row=>row.payload),[{runId:'full-1',format:'jsonl'},{runId:'full-1',format:'csv'}]);
-  assert.equal(f.calls.some(row=>row.operation.startsWith('ai.')||row.operation.startsWith('tasks.')),false);
+  assert.equal(f.calls.some(row=>['ai.generate','ai.cancel'].includes(row.operation)||row.operation.startsWith('tasks.')),false);
 });
 
 test('editing and reverting manual config invalidates preview certification and never starts full',async t=>{
@@ -180,9 +180,10 @@ test('unknown AI remains fenced while independent manual trial and full stay ava
   const f=await fixture(t,{pendingAi:true}),{get}=f;
   await settle();await settle();
   assert.equal(get('open-ai'),null,'no separate AI workbench is mounted');
-  assert.equal(get('config-json').disabled,false,'unknown inference must not lock unrelated configuration edits');
+  assert.equal(get('config-json').disabled,true,'the main AI draft keeps its original unknown fence');
   get('open-local-runner').dispatch('click');await settle();
   assert.ok(get('runner-start-preview'),'manual controls stay reachable with unknown AI');
+  assert.equal(get('runner-config').disabled,false,'the independent manual runner remains editable');
   get('runner-start-preview').dispatch('click');await settle();await settle();
   assert.equal(get('runner-prepare-full').disabled,false);get('runner-prepare-full').dispatch('click');get('runner-confirm-result').checked=true;get('runner-confirm-result').dispatch('click');get('runner-start-full').dispatch('click');await settle();await settle();
   assert.equal(f.posts().length,2);assert.equal(f.posts()[1].payload.body.mode,'full');
@@ -198,6 +199,6 @@ test('Douban trial is one bounded action, reports robots failure and preserves s
  assert.equal(f.posts().length,1);const body=f.posts()[0].payload.body;
  assert.equal(body.config.url,'https://book.douban.com/top250');assert.equal(body.config.maxPages,3);assert.equal(body.previewPages,3);
  assert.equal(get('runner-config').value||get('runner-config').defaultValue,before);assert.deepEqual(f.rows.get('capture-config'),saved);
- assert.equal(f.calls.some(c=>c.operation.startsWith('ai.')),false);
+ assert.equal(f.calls.some(c=>['ai.generate','ai.cancel'].includes(c.operation)),false);
  assert.match(f.ui.doc.body.textContent,/ROBOTS_UNAVAILABLE/);assert.equal(get('runner-prepare-full').disabled,true);
 });

@@ -6,6 +6,8 @@ import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
 import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,normalizeAutoParameterPolicy,assertAutoGrant}
   from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
+import {validWebTaskSource} from '../page-events/web-task-contract.js';
+import {createSiteProfileRegistry} from '../page-events/site-profiles.js';
 
 // This is a one-use *trigger fence*, not a Task permission issuer or a second
 // execution Authority. The installed Task, site grants and immutable revision
@@ -98,7 +100,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         if(!plain(fence)||fence.revocationFence!==1||typeof fence.all!=='boolean'||
           !Array.isArray(fence.tabIds)||!fence.tabIds.every(Number.isSafeInteger)||
           !Array.isArray(fence.requests)||!fence.requests.every(item=>plain(item)&&
-            typeof item.requestId==='string'&&TOKEN.test(item.requestId)&&validChatGPTBridgeSource(item.source)))
+            typeof item.requestId==='string'&&TOKEN.test(item.requestId)&&validWebTaskSource(item.source)))
           throw fail('E_BRIDGE_STORAGE','撤权恢复标记无法核验，禁止恢复批准');
         revokeAll ||= fence.all;
         for(const tabId of fence.tabIds)revokedTabs.add(tabId);
@@ -136,7 +138,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     return rows;
   };
   const save=rows=>storage.set({[CHATGPT_BRIDGE_LEDGER_KEY]:rows});
-  let autoDenialRevision=0,autoDenied=false;
+  let autoDenialRevision=0,autoPolicyRevision=0,autoDenied=false;
   const readAutoFence=async()=>{
     const fence=revocationStorage?(await revocationStorage.get(WEBFLOW_AUTO_GRANTS_KEY))?.[WEBFLOW_AUTO_GRANTS_KEY]:null;
     if(fence!=null&&(!plain(fence)||fence.denied!==true||!Array.isArray(fence.revokedTaskIds)||
@@ -158,12 +160,16 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
   const checkAuto=async row=>{
     if(!row.autoGrantId)return;
     const ticket=autoDenialRevision;
-    assertAutoGrant(await loadAuto(),row.scope,{grantId:row.autoGrantId,epoch:row.autoEpoch});
-    if(autoDenied||ticket!==autoDenialRevision)throw fail('E_WEBFLOW_AUTO_DENIED','持续批准已撤销');
+    const settings=await loadAuto(); // Storage/schema uncertainty must remain an explicit failure.
+    try{
+      assertAutoGrant(settings,row.scope,{grantId:row.autoGrantId,epoch:row.autoEpoch,sourceUrl:row.source?.url});
+      if(autoDenied||ticket!==autoDenialRevision)throw fail('E_WEBFLOW_AUTO_DENIED','持续批准已撤销');
+    }catch(error){error.webTaskInvalid=true;throw error;}
   };
   const stableJSON=value=>JSON.stringify(value,(_key,item)=>plain(item)?
     Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const changeAuto=(update,{deny=false,recover=false,taskId,expectedDenialRevision=autoDenialRevision}={})=>{
+    autoPolicyRevision++;
     if(deny){autoDenied=true;autoDenialRevision++;}
     return sequence(async()=>{
       const ticket=autoDenialRevision;
@@ -187,7 +193,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       const pendingRows=await update(settings);settings.epoch++;
       if(!deny&&ticket!==autoDenialRevision)throw fail('E_WEBFLOW_AUTO_DENIED','写入前持续批准已撤销');
       await storage.set({[WEBFLOW_AUTO_GRANTS_KEY]:settings,
-        ...(pendingRows?{[CHATGPT_BRIDGE_LEDGER_KEY]:pendingRows}:{})});
+        ...(pendingRows?{[CHATGPT_BRIDGE_LEDGER_KEY]:pendingRows}:{})});autoPolicyRevision++;
       const confirmed=validateAutoSettings((await storage.get(WEBFLOW_AUTO_GRANTS_KEY))?.[WEBFLOW_AUTO_GRANTS_KEY]);
       if(stableJSON(confirmed)!==stableJSON(settings)||ticket!==autoDenialRevision)
         throw fail('E_WEBFLOW_AUTO_UNKNOWN','批准写入回执不明；禁止自动准入');
@@ -247,6 +253,34 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     row.status='approved';row.mode='auto';row.approvedAt=now;row.conversationGrantId=grantId;
     row.approvalExpiresAt=Math.min(row.expiresAt,grant.expiresAt,now+300000);
   };
+  const admitPersistentAuto=({source,candidate,allowPending=false,...value},site)=>{
+    candidate=candidateSnapshot(candidate);
+    const intent=validateWebFlowTaskIntent(candidate.text),scope=normalizeAutoScope(value);
+    if(intent.taskId!==scope.taskId||intent.targetUrl!==scope.targetUrl||
+      JSON.stringify(intent.args)!==JSON.stringify(scope.args))throw fail('E_BRIDGE_CONTEXT','候选与批准范围不同');
+    return sequence(async()=>{
+      const ticket=autoDenialRevision,settings=await loadAuto();
+      let grant;
+      try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
+        if(site||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
+      }
+      const rows=await load(),now=clock();prune(rows,now);
+      if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
+        throw fail('E_BRIDGE_REPLAY','候选已准入或结果未知，禁止重放');
+      if(Object.values(rows).filter(row=>row.candidate).length>=MAX_CANDIDATE_RECORDS)
+        throw fail('E_BRIDGE_LIMIT','候选防重放记录已满');
+      const requestId=generateId();requireRequestId(requestId);
+      if(rows[requestId]||requestId===candidate.candidateId)throw fail('E_BRIDGE_REPLAY','请求身份冲突');
+      const row=rows[requestId]={source:structuredClone(source),scope,candidate,createdAt:now,
+        ...(site?{site:structuredClone(site)}:{}),
+        expiresAt:now+600000,...(grant?{approvalExpiresAt:now+600000,approvedAt:now,status:'approved',mode:'auto',
+        autoGrantId:grant.grantId,autoEpoch:settings.epoch}:{status:'prepared',pendingAuto:true})};
+      await checkAuto(row);await save(rows);
+      if(ticket!==autoDenialRevision)throw fail('E_WEBFLOW_AUTO_DENIED','准入期间批准已撤销');
+      return {requestId,source:structuredClone(source),...structuredClone(scope),candidate:structuredClone(candidate),
+        persistentAuto:true,pendingApproval:!grant,expiresAt:row.expiresAt};
+    });
+  };
   return Object.freeze({
     // Generic Foundation submission guard: the request ID identifies the
     // existing row, never grants execution permission. Hold the same queue as
@@ -292,6 +326,9 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     },
     readAutoSettings(){return sequence(loadAuto);},
     captureAutoDenialEpoch(){return autoDenialRevision;},
+    // Outside-queue read/delivery verification must notice replacement grants
+    // as well as synchronous denials while its browser observations await.
+    captureAutoPolicyEpoch(){return autoPolicyRevision;},
     setAutoEnabled(enabled,{expectedDenialRevision}={}){
       if(typeof enabled!=='boolean')throw fail('E_BRIDGE_SCHEMA','自动开关必须为布尔值');
       return changeAuto(state=>{state.enabled=enabled;},{deny:!enabled,recover:enabled,expectedDenialRevision});
@@ -328,30 +365,61 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       return changeAuto(state=>{if(Object.hasOwn(state.grants,taskId))state.grants[taskId].state='revoked';},{deny:true,taskId});
     },
     admitAuto({source,candidate,allowPending=false,...value}){
-      requireSource(source);candidate=candidateSnapshot(candidate);
-      const intent=validateWebFlowTaskIntent(candidate.text),scope=normalizeAutoScope(value);
-      if(intent.taskId!==scope.taskId||intent.targetUrl!==scope.targetUrl||
-        JSON.stringify(intent.args)!==JSON.stringify(scope.args))throw fail('E_BRIDGE_CONTEXT','候选与批准范围不同');
+      requireSource(source);return admitPersistentAuto({source,candidate,allowPending,...value});
+    },
+    // Trusted ingress only; no page RPC is added to the legacy Bridge protocol.
+    // This is the same trigger ledger/queue/tombstone, never a second Task DB.
+    admitWebTask({source,site,candidate,...value}){
+      if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');
+      const selected=createSiteProfileRegistry({profiles:[site],adapterIds:[site?.adapter],
+        protocolIds:['webflow.task.intent.v1']}).select(source.url);
+      if(!selected||selected.origin!==value.sourceOrigin||selected.adapter==='chatgpt'||
+        selected.origin==='https://chatgpt.com')throw fail('E_BRIDGE_SOURCE','网站配置与实际来源不符');
+      return admitPersistentAuto({source,candidate,...value},selected);
+    },
+    async hasPendingWebTasks(){
+      // Lifecycle reads this while holding the original run-admission lock.
+      // Never acquire our queue here: submission holds this queue while waiting
+      // for that lock. A stale positive read only conservatively retains Host.
+      const rows=(await storage.get(CHATGPT_BRIDGE_LEDGER_KEY))?.[CHATGPT_BRIDGE_LEDGER_KEY];
+      if(rows!==undefined&&!plain(rows))throw fail('E_BRIDGE_STORAGE','无法核验网页宿主保留状态');
+      return Object.values(rows??{}).some(row=>row?.site&&['approved','consumed'].includes(row.status)&&
+        row.webDelivery!=='delivered'&&clock()<row.approvalExpiresAt);
+    },
+    inspectWebTask(requestId){
+      requireRequestId(requestId);
+      return sequence(async()=>{const row=(await load())[requestId];return row?.site?structuredClone(row):null;});
+    },
+    markWebTaskDelivery(requestId,state){
+      requireRequestId(requestId);
       return sequence(async()=>{
-        const ticket=autoDenialRevision,settings=await loadAuto();
-        let grant;
-        try{grant=assertAutoGrant(settings,scope);}catch(error){
-          if(!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
+        const rows=await load(),row=rows[requestId];
+        if(!row?.site||row.status!=='consumed'||!row.controllerSubmitted||
+          !(state==='dispatching'&&!row.webDelivery||state==='delivered'&&row.webDelivery==='dispatching'))
+          throw fail('E_BRIDGE_REPLAY','交付已经开始或身份未知，禁止重复发送');
+        await checkAuto(row);row.webDelivery=state;await save(rows);
+        return {requestId,delivery:state};
+      });
+    },
+    claimWebTask({documentId,verify}={}){
+      if(typeof documentId!=='string'||!documentId||documentId.length>128||typeof verify!=='function')
+        throw fail('E_BRIDGE_SOURCE','缺少真实执行宿主身份或核验');
+      return sequence(async()=>{
+        const rows=await load(),candidates=Object.entries(rows).filter(([,row])=>row.site&&row.status==='approved'&&
+          clock()<row.approvalExpiresAt).sort((a,b)=>a[1].createdAt-b[1].createdAt);
+        for(const [requestId,row] of candidates){
+          try{await verify(row);await checkAuto(row);}catch(error){
+            if(!error.webTaskInvalid&&!['E_WEB_TASK_SOURCE','E_WEB_TASK_PROFILE','E_WEB_TASK_REVOKED'].includes(error.code))throw error;
+            // Confirmed invalid work cannot block later compatible requests.
+            // Keep its candidate as the original durable replay tombstone.
+            row.status='revoked';row.webInvalidReason=error.code;await save(rows);continue;
+          }
+          row.status='consumed';row.consumedAt=clock();row.webHostDocumentId=documentId;
+          await save(rows);
+          await verify(row);await checkAuto(row);
+          return {requestId,...structuredClone(row)};
         }
-        const rows=await load(),now=clock();prune(rows,now);
-        if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
-          throw fail('E_BRIDGE_REPLAY','候选已准入或结果未知，禁止重放');
-        if(Object.values(rows).filter(row=>row.candidate).length>=MAX_CANDIDATE_RECORDS)
-          throw fail('E_BRIDGE_LIMIT','候选防重放记录已满');
-        const requestId=generateId();requireRequestId(requestId);
-        if(rows[requestId]||requestId===candidate.candidateId)throw fail('E_BRIDGE_REPLAY','请求身份冲突');
-        const row=rows[requestId]={source:structuredClone(source),scope,candidate,createdAt:now,
-          expiresAt:now+600000,...(grant?{approvalExpiresAt:now+600000,approvedAt:now,status:'approved',mode:'auto',
-          autoGrantId:grant.grantId,autoEpoch:settings.epoch}:{status:'prepared',pendingAuto:true})};
-        await checkAuto(row);await save(rows);
-        if(ticket!==autoDenialRevision)throw fail('E_WEBFLOW_AUTO_DENIED','准入期间批准已撤销');
-        return {requestId,source:structuredClone(source),...structuredClone(scope),candidate:structuredClone(candidate),
-          persistentAuto:true,pendingApproval:!grant,expiresAt:row.expiresAt};
+        return null;
       });
     },
     approveConversation(source,{taskId,targetUrl,installation}={}){
@@ -558,7 +626,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
   });
 }
 
-export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
+export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}={}){
   const ledger=createChatGPTBridgeTriggerLedger({storage:api.storage.local,
     revocationStorage:api.storage.session,clock});
   const pageSource=async sender=>{
@@ -615,6 +683,10 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
     const permissions=permissionEpoch;
     let panel;
     return ledger.withControllerAdmission(request,submit,async row=>{
+      if(row.site){
+        if(typeof verifyWebTask!=='function')throw fail('E_BRIDGE_SOURCE','通用网页提交验证未接通');
+        return verifyWebTask(row,sender);
+      }
       const tabId=row.source.tabId;
       if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
       const epoch=sourceEpochs.get(tabId);

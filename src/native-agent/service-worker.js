@@ -3,6 +3,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_LAST_C
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
+import {installChatGPTFilesService} from './chatgpt-files-service.js';
 import {createManagedServiceClient} from './managed-service-client.js';
 import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';
 import {resolveToolSender} from '../environment.js';
@@ -10,7 +11,7 @@ import {resolveToolSender} from '../environment.js';
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0,lastConnectedAt=null;
-  let connectionAttempt=Promise.resolve(),settleConnection=()=>{};
+  let connectionAttempt=Promise.resolve(),settleConnection=()=>{},chatGPTFiles=null;
   const pending=new Map(),store=api.storage.local;
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
@@ -347,9 +348,14 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   };
   api.permissions.onRemoved?.addListener(onRemoved);
   return {ready:initial,handleSettings,acceptHostResponse,managedServices,
+    installChatGPTFiles(){
+      if(!chatGPTFiles)chatGPTFiles=installChatGPTFilesService({api,development,files:{
+        state:async()=>{await initial;if(enabled&&!port)connect();return files.state();},request:files.request}});
+      return chatGPTFiles;
+    },
     acceptHostRequest:(host,message)=>workflowAI.acceptHostRequest(host,message)||projects.acceptHostRequest(host,message),
     dropHost(host){workflowAI.dropHost(host);projects.dropHost(host);},dispose() {
-    settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();
+    settingsGeneration++;disposed=true;enabled=false;chatGPTFiles?.dispose();invalidateConnection()?.disconnect();
     api.permissions.onRemoved?.removeListener(onRemoved);
   }};
 }

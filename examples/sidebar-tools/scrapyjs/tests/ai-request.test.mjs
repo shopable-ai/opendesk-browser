@@ -222,7 +222,11 @@ test('unreleased page preparation keeps the original pending identity and stop n
     retire:async()=>{calls.push('retire');if(!released)throw Error('page still unknown');}};
   const op=createAiRequest(async()=>{throw Error('must not infer');},payload,()=>{},
     {claim:async()=>calls.push('claim'),clear:async()=>calls.push('clear')},async factory=>factory(),hooks);
-  await assert.rejects(op.run(),/page still unknown/);
+  await assert.rejects(op.run(),error=>{
+    assert.match(error.message,/page observation lost/);
+    assert.match(error.message,/page still unknown/);
+    return true;
+  });
   assert.equal(op.unknown,true);assert.equal(op.dispatched,false);assert.equal(calls.includes('clear'),false);
   released=true;assert.equal((await op.cancel()).state,'cancelled');
   assert.deepEqual(calls,['claim','observe','retire','retire','clear']);

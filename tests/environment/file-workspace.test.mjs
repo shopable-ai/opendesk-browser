@@ -13,6 +13,23 @@ function fixture({permission=async()=>true,timeoutMs=1000,onChange=()=>{}}={}){
   const reply=(request,body)=>service.receive({v:1,kind:'files.response',protocol:FILES_PROTOCOL,sessionId,requestId:request.requestId,...body});
   return {service,sent,connection,reply};
 }
+test('a trusted stable file request ID is preserved on the Native wire',async t=>{
+  const f=fixture();t.after(f.service.dispose);
+  const pending=f.service.request('files.write',{workspaceId:'w',path:'demo.txt',content:'new',expectedSha256:'b'.repeat(64)},
+    {sessionId:'a'.repeat(32),requestId:'fixed-write-12345678'});
+  await tick();assert.equal(f.sent[0].requestId,'fixed-write-12345678');
+  await assert.rejects(f.service.request('files.write',{}, {requestId:'fixed-write-12345678'}),error=>error.code==='E_REQUEST_CONFLICT');
+  f.reply(f.sent[0],{result:{saved:true,sha256:'c'.repeat(64)}});await pending;
+});
+test('concurrent duplicate IDs cannot pass the permission await twice',async t=>{
+  let release;const permission=new Promise(resolve=>{release=resolve;});
+  const f=fixture({permission:()=>permission});t.after(f.service.dispose);
+  const first=f.service.request('files.write',{}, {requestId:'same-write-12345678'});
+  const second=f.service.request('files.write',{}, {requestId:'same-write-12345678'});
+  const refused=assert.rejects(second,error=>error.code==='E_REQUEST_CONFLICT');
+  release(true);await tick();assert.equal(f.sent.length,1);
+  f.reply(f.sent[0],{result:{saved:true,sha256:'c'.repeat(64)}});await first;await refused;
+});
 test('read-time Native session is checked before dispatch and explicit empty lease expectation is preserved',async t=>{
   const f=fixture();t.after(f.service.dispose);
   await assert.rejects(f.service.request('files.write',{}, {sessionId:'old-session'}),e=>e.code==='E_FILES_SESSION');

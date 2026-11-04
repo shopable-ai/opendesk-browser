@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {Button,IconButton} from '../ui/react/components/ui/button.tsx';
 import {Card,CardContent} from '../ui/react/components/ui/card.tsx';
@@ -33,7 +34,30 @@ export default defineUnlistedScript(()=>{
   document.head.append(style);
   Object.defineProperty(globalThis,'OpenDeskSidebarUI',{
     value:Object.freeze({Button,IconButton,Card,CardContent,Switch,Input,Textarea,
-      SharedConversationFrame,SharedConversationDock,createConversationSession}),
+      SharedConversationFrame,SharedConversationDock:SandboxConversationDock,createConversationSession}),
     enumerable:false,configurable:false,writable:false
   });
 });
+
+// The fixed sandbox entry wires only a bounded UI action, never Provider data.
+let cancelSettingsFocus=()=>{};
+function SandboxConversationDock(props){
+  const openSettings=event=>{
+    const trigger=event.currentTarget;
+    trigger.focus({preventScroll:true});
+    cancelSettingsFocus();
+    if(!globalThis.OpenDeskTool?.openAISettings?.())return;
+    // The trusted sheet makes its root inert, which blurs the iframe's inner
+    // element. Chrome restores the iframe itself, so restore its trigger only
+    // when focus returns without another focused control.
+    const restore=()=>{
+      cancelSettingsFocus();
+      if(trigger.isConnected&&document.activeElement===document.body)
+        trigger.focus({preventScroll:true});
+    };
+    cancelSettingsFocus=()=>globalThis.removeEventListener('focus',restore);
+    globalThis.addEventListener('focus',restore);
+  };
+  return React.createElement(SharedConversationDock,{...props,
+    onOpenSettings:props.onOpenSettings??openSettings});
+}

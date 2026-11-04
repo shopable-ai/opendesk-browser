@@ -40,6 +40,7 @@ const workspace=await compile(sourceRoot+'CaptureWorkspace.jsx',{...replacements
 const fieldOrder=await compile(sourceRoot+'FieldOrder.jsx',replacements);
 const columnSettings=await compile(sourceRoot+'ColumnSettings.jsx',{...replacements,'./FieldOrder.jsx':fieldOrder});
 const results=await compile(sourceRoot+'Results.jsx',{...replacements,'./ColumnSettings.jsx':columnSettings,'./FieldOrder.jsx':fieldOrder});
+export const {default:Results}=await import(results);
 const ruleEditor=await compile(sourceRoot+'RuleEditor.jsx',{...replacements,'./FieldOrder.jsx':fieldOrder});
 export const {default:App}=await import(await compile(sourceRoot+'App.jsx',{
   ...replacements,'./AiPanel.jsx':panel,'./CaptureWorkspace.jsx':workspace,'./Results.jsx':results,'./RuleEditor.jsx':ruleEditor,'./ColumnSettings.jsx':columnSettings

@@ -3,7 +3,10 @@ import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
   WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
-import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope,prepareAutoParameterPolicy} from '../../projects/webflow/src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope,prepareAutoParameterPolicy} from '../../projects/webflow/src/auto-grants.js';
+import {WEB_TASK_PROTOCOL} from '../page-events/web-task-contract.js';
+import {registeredSiteRegistry} from '../page-events/site-catalog.js';
+import {permissionPattern} from '../environment.js';
 
 // This is a locator for the existing verified Host, never an authorization.
 // Chrome can retain more than one Side Panel document in the same window.
@@ -359,14 +362,14 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw fail('E_BRIDGE_REVISION','安装来源、授权代次或运行版本在核验期间发生变化');
     return installed;
   };
-  const normalizeSelection=async(request,{validateArgs=true}={})=>{
+  const normalizeSelection=async(request,{validateArgs=true,sourceOrigin=LEGACY_AUTO_SOURCE_ORIGIN,checkPermissions=true}={})=>{
     const installed=await resolve(request.taskId,request.installation);
     const target=new URL(request.targetUrl);
     if(!safeWebURL(request.targetUrl)||target.hash||
       !installed.manifest.siteOrigins.includes(target.origin))
       throw fail('E_BRIDGE_TARGET','目标网址必须属于所选脚本已批准的网站');
-    if(!await api.permissions.contains({origins:['https://chatgpt.com/*',target.origin+'/*']}))
-      throw fail('E_BRIDGE_PERMISSION','ChatGPT 或所选脚本网站的 Chrome 访问权限缺失');
+    if(checkPermissions&&!await api.permissions.contains({origins:[permissionPattern(sourceOrigin),permissionPattern(request.targetUrl)]}))
+      throw fail('E_BRIDGE_PERMISSION','来源网站或所选脚本网站的 Chrome 访问权限缺失');
     const args=validateArgs?validateTaskParams(installed.manifest.paramsSchema,request.args):{};
     const normalized=validateChatGPTTaskRequest(JSON.stringify({...request,candidate:undefined,args,
       installation:installationOf(installed)}));
@@ -498,26 +501,85 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   };
   const projectAutoSettings=settings=>({...settings,
     grants:Object.entries(settings.grants).map(([taskId,row])=>({...row,taskId})),...autoCatalog});
-  const prepareAutoGrant=async value=>{
+  const preparedAutoReviews=new WeakMap();
+  const freezeReview=value=>{
+    if(value&&typeof value==='object'){
+      for(const child of Object.values(value))freezeReview(child);
+      Object.freeze(value);
+    }
+    return value;
+  };
+  const profileGate=async payload=>{
+    trustedSettings();
+    const reply=await api.runtime.sendMessage({protocol:WEB_TASK_PROTOCOL,...payload});
+    trustedSettings();
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_WEB_TASK_UNKNOWN',
+      reply?.error?.message||'网站 Profile 回执未知，未重试');
+    return reply.data;
+  };
+  const readProfilesFor=async sourceOrigin=>{
+    const {profiles}=await profileGate({kind:'profiles-read'});
+    if(profiles?.some(profile=>profile.origin===sourceOrigin&&profile.enabled===false))
+      throw fail('E_SITE_PROFILE_DISABLED','网站 Profile 已停用，请单独恢复后重新审阅');
+    try{registeredSiteRegistry(profiles);}catch{
+      throw fail('E_SITE_PROFILE','网站 Profile 不兼容，请检查登记后重新审阅');
+    }
+    return profiles;
+  };
+  const prepareAutoGrant=async(value,{checkPermissions}={})=>{
     trustedSettings();const epoch=captureEpoch(true);
+    const scope=normalizeAutoScope(value),sourceOrigin=scope.sourceOrigin;
     const request=validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
       kind:'opendesk.task.request',version:1,requestId:'00000000-0000-4000-8000-000000000000',
-      taskId:value?.taskId,args:value?.args,targetUrl:value?.targetUrl,installation:value?.installation}));
-    if(!request.installation)throw fail('E_BRIDGE_SCHEMA','必须审阅真实已安装任务');
-    const normalized=await normalizeSelection(request);
+      taskId:scope.taskId,args:scope.args,targetUrl:scope.targetUrl,installation:scope.installation}));
+    // Reviewing an unregistered site does not request permission or register it.
+    const normalized=await normalizeSelection(request,{sourceOrigin,
+      checkPermissions:checkPermissions??sourceOrigin===LEGACY_AUTO_SOURCE_ORIGIN});
+    if(sourceOrigin!==LEGACY_AUTO_SOURCE_ORIGIN)await readProfilesFor(sourceOrigin);
     trustedSettings();if(!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','审阅期间安装或批准已改变');
-    const scope={taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request)};
     const parameterPolicy=prepareAutoParameterPolicy(value.parameterPolicy,scope,normalized.installed.manifest.paramsSchema);
-    return {...scope,taskName:normalized.installed.manifest.title,...(parameterPolicy?{parameterPolicy}:{})};
+    const review=freezeReview({taskId:request.taskId,args:structuredClone(normalized.request.args),...selectionScope(normalized.request),
+      sourceOrigin,taskName:normalized.installed.manifest.title,...(parameterPolicy?{parameterPolicy}:{})});
+    preparedAutoReviews.set(review,JSON.stringify(review));
+    return review;
   };
   const approveAutoTask=async(value,event)=>{
     if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');trustedSettings(event);
-    const review=await prepareAutoGrant(value);
-    if(JSON.stringify(review)!==JSON.stringify(value))throw fail('E_BRIDGE_CONTEXT','批准范围已改变，请重新审阅');
+    const reviewedBytes=value&&preparedAutoReviews.get(value);
+    if(!reviewedBytes)
+      throw fail('E_BRIDGE_CONTEXT','批准范围已改变，请重新审阅');
+    // Only our internal immutable serialization supplies permission origins.
+    // JSON.stringify on a caller object could conceal mutations through toJSON.
+    const reviewed=JSON.parse(reviewedBytes),epoch=captureEpoch(true);
+    const sourceOrigin=reviewed.sourceOrigin;
+    const generic=sourceOrigin!==LEGACY_AUTO_SOURCE_ORIGIN;
+    // Invoke synchronously in the original native click, before any await.
+    const permission=generic?api.permissions.request({origins:[permissionPattern(sourceOrigin),permissionPattern(reviewed.targetUrl)]}):null;
+    preparedAutoReviews.delete(value);
+    if(generic&&await permission!==true)throw fail('E_BRIDGE_PERMISSION','网站访问权限未批准，未登记或保存自动授权');
+    const review=await prepareAutoGrant(reviewed,{checkPermissions:true});
+    if(JSON.stringify(review)!==reviewedBytes)
+      throw fail('E_BRIDGE_CONTEXT','批准范围已改变，请重新审阅');
+    const assertApproval=()=>{
+      trustedSettings();
+      if(!sameEpoch(epoch,review.taskId))throw fail('E_BRIDGE_REVOKED','批准期间安装、权限或授权已改变，请重新审阅');
+    };
+    if(generic){
+      const profiles=await readProfilesFor(sourceOrigin);
+      assertApproval();
+      if(!profiles.some(profile=>profile.origin===sourceOrigin)){
+        const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(sourceOrigin));
+        const hash=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+        const profile={id:'site-'+hash.slice(0,16),version:'1.0.0',origin:sourceOrigin,
+          adapter:'generic',adapterVersion:'1.0.0',protocols:[WEBFLOW_TASK_INTENT_PROTOCOL],enabled:true};
+        assertApproval();
+        await profileGate({kind:'profiles-save',profiles:[...profiles,profile],expectedProfiles:profiles});
+      }
+    }
+    assertApproval();
     const settings=await autoGate({kind:'auto-grant',scope:review});
     trustedSettings();
-    // Storage events can invalidate this host while the durable write is acknowledged.
-    // That is a denial fence for runs, not a reason to retry the approval.
+    // A Profile is routing data only. A failed/unknown grant is never executed or replayed.
     return projectAutoSettings(settings);
   };
   const setAutoEnabled=async(enabled,event)=>{

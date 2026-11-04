@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
-import {WEBFLOW_AUTO_GRANTS_KEY} from '../src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope,assertAutoGrant,validateAutoSettings} from '../src/auto-grants.js';
 
 const source={tabId:9,documentId:'auto-document',url:'https://chatgpt.com/c/webflow-test-12345678'};
 const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
@@ -222,4 +222,45 @@ test('failed revoke persists a deny fence for a replacement worker and cannot re
   await assert.rejects(h.ledger.revokeAuto(scope.taskId));h.allowWrites();h.restart();
   await assert.rejects(h.admit('wf-deny-restart'));
   await h.ledger.setAutoEnabled(true);await assert.rejects(h.admit('wf-deny-reenabled'));
+});
+
+test('an existing ChatGPT auto grant cannot authorize a different site origin',async()=>{
+  const h=harness();await h.approve();
+  for(const url of ['https://gemini.google.com/app/12345678','https://chatgpt.com.evil.test/c/12345678']){
+    await assert.rejects(h.admit('wf-foreign-origin-1',{source:{...source,url}}),{code:'E_BRIDGE_SOURCE'});
+  }
+  assert.equal((await h.admit('wf-unchanged-origin-1')).persistentAuto,true);
+});
+
+test('legacy grants remain ChatGPT-only and actual browser source is required for authorization',()=>{
+  const settings={version:1,enabled:true,epoch:1,grants:{[scope.taskId]:{
+    scope,grantId:'legacy',state:'active',approvedAt:1}}};
+  const checked=validateAutoSettings(settings);
+  assert.equal(normalizeAutoScope(scope).sourceOrigin,'https://chatgpt.com');
+  assert.equal(assertAutoGrant(checked,scope,{sourceUrl:source.url}).grantId,'legacy');
+  assert.throws(()=>assertAutoGrant(checked,scope));
+  for(const sourceUrl of ['https://gemini.google.com/app/one','https://chatgpt.com.evil.test/',
+    'https://name@chatgpt.com/c/one','http://chatgpt.com/c/one'])
+    assert.throws(()=>assertAutoGrant(checked,scope,{sourceUrl}),{code:'E_WEBFLOW_AUTO_DENIED'});
+  assert.equal(Object.hasOwn(settings.grants[scope.taskId].scope,'sourceOrigin'),false,
+    'normalizing legacy approval never rewrites or expands it');
+});
+
+test('explicit source approval cannot be borrowed by another source or hidden behind an invalid origin',()=>{
+  const bound={...scope,sourceOrigin:'https://gemini.google.com'};
+  const settings={version:1,enabled:true,epoch:1,grants:{[scope.taskId]:{
+    scope:bound,grantId:'gemini',state:'active',approvedAt:1}}};
+  assert.equal(assertAutoGrant(settings,bound,{sourceUrl:'https://gemini.google.com/app/one'}).grantId,'gemini');
+  assert.throws(()=>assertAutoGrant(settings,bound,{sourceUrl:source.url}));
+  assert.throws(()=>assertAutoGrant(settings,scope,{sourceUrl:'https://gemini.google.com/app/one'}));
+  for(const sourceOrigin of [null,'*','https://gemini.google.com/','https://gemini.google.com/app',
+    'https://user@gemini.google.com','https://gemini.google.com:443','file:///tmp/site'])
+    assert.throws(()=>normalizeAutoScope({...scope,sourceOrigin}),{code:'E_WEBFLOW_AUTO_DENIED'});
+});
+
+test('ChatGPT admission rechecks actual origin even when a scope claims a different reviewed source',async()=>{
+  const h=harness();
+  await h.ledger.approveAuto({...scope,sourceOrigin:'https://gemini.google.com'});
+  await h.ledger.setAutoEnabled(true);
+  await assert.rejects(h.admit('wf-source-bound-1',{sourceOrigin:'https://gemini.google.com'}),{code:'E_WEBFLOW_AUTO_DENIED'});
 });

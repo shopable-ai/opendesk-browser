@@ -71,7 +71,7 @@ export function createInspection(sdk,onChange=()=>{}){
     if(identity!==fingerprint)throw Error('配置已变化，请取消后重新点选');
     const choice=state.result.choices[index];
     if(!choice)throw Error('候选已失效');
-    if(input.kind==='fields'&&choice.status!=='pass')throw Error('内容未完整匹配，请选择其他内容或手动编辑规则');
+    if(['fields','records'].includes(input.kind)&&choice.status!=='pass')throw Error('内容未完整匹配，请选择其他内容或手动编辑规则');
     return choice;
   }
   return {state,begin,refresh,close,use,active};

@@ -4,9 +4,10 @@ import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {stageSidebarTool} from '../../scripts/stage-sidebar-tool.mjs';
+import {stageSidebarTool,inspectSidebarToolProject} from '../../scripts/stage-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {readToolSnapshot} from '../../src/native-agent/tool-snapshot.js';
+import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function fixture(compiled){
   const dir=await mkdtemp(join(tmpdir(),'opendesk-ui-stage-'));
@@ -67,6 +68,33 @@ test('invalid resource traversal is rejected before any file packaging',async t=
   meta.files.js='../outside.js';
   await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(meta));
   await assert.rejects(stageSidebarTool(f.dir),/invalid project-relative file path/);
+});
+
+test('a fixed Controller app can stage UI snapshots without running the Controller or losing its source binding',async t=>{
+  const f=await fixture(false);t.after(()=>rm(f.dir,{recursive:true,force:true}));
+  const config=JSON.parse(await readFile(join(f.dir,'tool.config.json'),'utf8'));
+  Object.assign(config,{format:'opendesk.sidebar-tool.v2',capabilities:['controllers.run'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
+    controller:{siteOrigins:['https://example.com'],permissions:['page.automation'],
+      paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},deadlineMs:5000,
+      builtinIdentity:{abi:BUILTIN_ABI,catalogSha256:'a'.repeat(64),bundleSha256:'b'.repeat(64)}}});
+  config.files.controller='src/controller.js';
+  const source='throw new Error("Controller must not execute during staging");\nasync function main(){return 1;}';
+  await writeFile(join(f.dir,config.files.controller),source);
+  await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(config));
+  const before=await inspectSidebarToolProject(f.dir),first=await stageSidebarTool(f.dir);
+  assert.equal(first.installed,false);assert.equal(first.previewAuthorized,false);
+  const tool=validateSidebarToolPackage(JSON.parse(await readFile(first.output,'utf8')));
+  assert.equal(tool.controller.sourceUtf8,source);
+  assert.equal(tool.controller.sourceHash,sha(source));
+  await writeFile(join(f.dir,config.files.controller),source+'\n// revised');
+  assert.notEqual((await inspectSidebarToolProject(f.dir)).fingerprint,before.fingerprint);
+  const next=await stageSidebarTool(f.dir);assert.notEqual(next.sha256,first.sha256);
+  const latest=await readFile(join(f.dir,next.nativeLatest),'utf8');
+  config.files.controller='../outside.js';
+  await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(config));
+  await assert.rejects(stageSidebarTool(f.dir),/invalid project-relative file path/);
+  assert.equal(await readFile(join(f.dir,next.nativeLatest),'utf8'),latest);
 });
 
 test('identical compiled output with a new receipt keeps immutable chunks and publishes a fresh manifest',async t=>{

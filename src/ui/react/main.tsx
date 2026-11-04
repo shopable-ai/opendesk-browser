@@ -8,6 +8,7 @@ import '../../../projects/bookmark-manager/src/model.js';
 import '../../../projects/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../projects/bookmark-manager/src/react/App.jsx';
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
+import {ToolConversationProviderControls} from './tabs/tool-host.tsx';
 import {createPromptReconciliationAdapter} from '../conversation/prompt-controller.js';
 import sharedUiCSS from './components/ui/sidebar-shared.css?raw';
 import conversationLayoutCSS from './components/conversation-layout.css?raw';
@@ -95,6 +96,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   }
   function openSharedProviderSettings(){if(disposed||!providerSettings)return;settingsOpen=true;paint();}
   function closeSharedProviderSettings(){if(disposed)return;settingsOpen=false;paint();}
+  const renderConversationSource=focusComposer=>providerSettings&&
+    <ToolConversationProviderControls providerSettings={providerSettings}
+      onOpenSettings={openSharedProviderSettings} focusComposer={focusComposer}/>;
   function paint(){
     if(disposed)return;
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
@@ -120,6 +124,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
           title="提示词 AI 对话" emptyPrompt="想管理哪些提示词？" phaseLabels={PROMPT_PHASE_LABELS}
+          renderHeaderControls={renderConversationSource}
           onOpenSettings={openSharedProviderSettings}
           placeholder="例如：创建一条将中文翻译成日语的提示词"
           renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
@@ -128,6 +133,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
          title="AI 对话" emptyPrompt="想整理哪些书签？" phaseLabels={BOOKMARK_PHASE_LABELS}
+         renderHeaderControls={renderConversationSource}
          onOpenSettings={openSharedProviderSettings}
          placeholder="例如：创建一个文件夹并收藏当前网页"
          

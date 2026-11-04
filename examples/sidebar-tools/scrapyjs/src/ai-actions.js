@@ -76,7 +76,7 @@ function fieldKey(key) {
 const configValue = value => JSON.stringify(value, (_key, row) => isObject(row)
   ? Object.fromEntries(Object.keys(row).sort().map(key => [key, row[key]])) : row);
 
-/** A deliberately small grammar, fully consumed from THIS turn, not AI/history. */
+/** Resolve explicit values from this turn and the current field labels, never AI/history. */
 export function resolveConfigurationEditScope(request, base, {page = null} = {}) {
   const raw = request.trim();
   const quotePairs = {"'":"'",'"':'"','“':'”','‘':'’','「':'」','『':'』','`':'`'};
@@ -84,24 +84,22 @@ export function resolveConfigurationEditScope(request, base, {page = null} = {})
   const text = raw.replace(/[。.!！]+$/u, '').trim().replace(
     /(表头改(?:成|为)\s*)(['"“‘「『`])([\p{L}\p{N}_-]+)(['"”’」』`])(?=\s*(?:$|[，,；;\n]))/gu,
     (value, prefix, open, label, close) => quotePairs[open] === close ? prefix + label : value);
-  const clarify = () => ({type:'needs-input', message:'尚未修改配置，请完整说明字段与新表头、CSV 列顺序、最大页数或明确的字段选择器；无法根据网址推导网页规则。'});
-  // A new list is inferred from an authorized page observation, never from a URL
-  // or a previous configuration. Existing drafts keep the exact-edit contract.
-  if (/(?:创建|新建|生成|建立|制作).{0,16}(?:采集|爬虫|配置|规则)|\b(?:create|generate|build)\b.{0,40}\b(?:config|scrap|collect)/iu.test(text) &&
-      !/解释|讨论|示例|如果|假如|不要|不需要|不创建|如何|怎么|是否|[？?]|^["'“‘「『`]|\b(?:explain|discuss|if|don't|how)\b/iu.test(text)) {
+  const clarify = () => ({type:'needs-input', message:'尚未修改配置，请说明想调整哪个字段、列名或采集范围；其余配置会保留。'});
+  if (!text || /["'“”「」『』`<>]|引用|示例|样本中的|别人说|有人建议|不要|不需要|不必|不修改|不更改|别改|解释|说明|讨论|影响|风险|会怎样|会怎么样|为什么|为何|如何|怎么|是否|能否|如果|假如|[？?]|\b(?:don't|do not|explain|discuss|risk|impact|why|how|whether|if)\b/i.test(text))
+    return {type:'readonly', message:'尚未修改配置，请直接说明要修改的内容。'};
+  // Blank state, not a vocabulary of creation verbs, enables bounded page
+  // authoring. The model may still explain or ask for missing information.
+  // Exact edits below take precedence; this is only their fallback.
+  const authoringOpportunity = () => {
     if (Object.keys(base.itemConfig).length || Object.keys(base).some(key=>!['url','itemConfig'].includes(key)))
-      return {type:'needs-input',message:'请先在配置库新建空白配置，已有配置已保留。'};
+      return clarify();
     if (!page?.url || base.url && new URL(base.url).href!==new URL(page.url).href)
       return {type:'needs-input',message:'请先打开目标网页并刷新当前网页信息。'};
-    if (!/(?:只|仅)采(?:集)?当前页|(?:只|仅)(?:采集)?(?:当前|本)页|\b(?:current page only|only (?:the )?current page)\b/iu.test(text))
-      return {type:'needs-input',message:'请说明要采集的字段及范围；目前可从当前页创建列表配置。'};
     const names=text.match(/CSV\s*表头(?:分别)?(?:为|是|设为)\s*(.+?)(?=[，,]\s*(?:只|仅)|$)/iu);
     const headers=names?names[1].split(/[、，,]/u).map(value=>value.trim()):null;
     if(headers&&(headers.some(value=>!value||value.length>80)||new Set(headers).size!==headers.length))return clarify();
     return {type:'create',base:structuredClone(base),url:page.url,headers};
-  }
-  if (!text || /["'“”「」『』`<>]|引用|示例|样本中的|别人说|有人建议|不要|不需要|不必|不修改|不更改|别改|解释|说明|讨论|影响|风险|会怎样|会怎么样|为什么|为何|如何|怎么|是否|能否|如果|假如|[？?]|\b(?:don't|do not|explain|discuss|risk|impact|why|how|whether|if)\b/i.test(text))
-    return {type:'readonly', message:'尚未修改配置，请直接说明要修改的内容。'};
+  };
   const expected = structuredClone(base), touched = new Set();
   const touch = key => {
     if (touched.has(key)) throw Error('请合并重复或矛盾的修改要求。');
@@ -112,6 +110,12 @@ export function resolveConfigurationEditScope(request, base, {page = null} = {})
     if (!own(base.itemConfig, key) && !own(base.detail?.itemConfig || {}, key))
       throw Error('字段不存在，请明确已有字段。');
     return key;
+  };
+  const namedField = name => {
+    const matches = [...new Set([...Object.keys(base.itemConfig),...Object.keys(base.detail?.itemConfig || {})])]
+      .filter(key=>!reservedFields.has(key)&&(key===name||base.output?.fieldNames?.[key]===name));
+    if(matches.length!==1)throw Error('请明确要修改哪一列。');
+    return field(matches[0]);
   };
   try {
     // Literal selector bytes must not pass through sentence-punctuation cleanup.
@@ -139,9 +143,10 @@ export function resolveConfigurationEditScope(request, base, {page = null} = {})
       const clauses = text.split(/[，,；;\n]/u).map(part => part.trim());
       if (!clauses.length || clauses.length > 16 || clauses.some(part => !part)) return clarify();
       for (const [index, clause] of clauses.entries()) {
+        const columnClause = clause.replace(/^(?:(?:麻烦|请|帮我|我想要?|再|然后|另外|并且|把|将)\s*)+/u,'');
         let match;
-        if ((match = clause.match(/^(?:请\s*)?(?:把\s*([\w-]+)\s*的\s*CSV\s*|(?:把\s*)?CSV\s*中\s*([\w-]+)\s*的\s*(?:字段\s*)?)表头改(?:成|为)\s*([\p{L}\p{N}_-]+)$/iu))) {
-          const key = field(match[1] || match[2]), label = match[3];
+        if ((match = columnClause.replace(/^CSV\s*中\s*/iu,'').match(/^(.+?)\s*(?:的\s*)?(?:CSV\s*)?(?:字段\s*)?(?:表头|列名|(?:这一|那一|这|那)?列)\s*(?:改成|改为|换成|换为|设为|命名为|用|叫)\s*([\p{L}\p{N}_-]+)$/iu))) {
+          const key = namedField(match[1].trim()), label = match[2];
           if (/并|同时|然后|但是|改成|改为|设为/u.test(label)) return clarify();
           touch('header.' + key);
           expected.output = {...expected.output, fieldNames:{...expected.output?.fieldNames, [key]:label}};
@@ -152,10 +157,10 @@ export function resolveConfigurationEditScope(request, base, {page = null} = {})
           expected.output = {...expected.output, fieldOrder:order};
         } else if ((match = clause.match(/^(?:请\s*)?把最大页数设为\s*([1-9]\d*)$/u))) {
           touch('maxPages');expected.maxPages = Number(match[1]);
-        } else if (index === clauses.length - 1 && touched.size && /^(?:请\s*)?修改配置$/u.test(clause)) {
+        } else if (index === clauses.length - 1 && touched.size && /^(?:(?:请\s*)?修改配置|(?:其他|其它|其余)(?:配置)?(?:保持原样|保持不变|不变))$/u.test(clause)) {
           // This suffix confirms the preceding explicit edits; it grants no scope.
           continue;
-        } else return clarify();
+        } else return authoringOpportunity();
       }
     }
     return {type:'edit', base:structuredClone(base), expected};

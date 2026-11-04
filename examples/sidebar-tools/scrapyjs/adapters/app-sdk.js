@@ -4,6 +4,42 @@
   const TASK_ID = 'scrapyjs.capture';
   const STORAGE_KEY = 'capture-config';
   const bytes = text => new TextEncoder().encode(text).byteLength;
+  const CATALOG_FORMAT = 'scrapyjs.config-catalog.gzip.v1';
+  async function transform(input, stream, limit) {
+    const reader = new Blob([input]).stream().pipeThrough(stream).getReader(), chunks = [];
+    let size = 0;
+    try {
+      for (;;) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > limit) {await reader.cancel(); throw new Error(`配置存储超过 ${limit} 字节`);}
+        chunks.push(value);
+      }
+    } finally {reader.releaseLock();}
+    const result = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {result.set(chunk, offset); offset += chunk.byteLength;}
+    return result;
+  }
+  async function storedCatalog(value) {
+    const text = JSON.stringify(value);
+    if (bytes(text) <= 8192) return value;
+    if (value?.schemaVersion !== 1 || !Array.isArray(value.records)) throw new Error('配置超过 8192 字节，未保存');
+    if (bytes(text) > 32768) throw new Error('全部命名配置超过 32768 字节，未保存');
+    const packed = await transform(text, new CompressionStream('gzip'), 8192);
+    const result = {format: CATALOG_FORMAT, data: btoa(String.fromCharCode(...packed))};
+    if (bytes(JSON.stringify(result)) > 8192) throw new Error('压缩后的配置超过 8192 字节，未保存');
+    return result;
+  }
+  async function loadedCatalog(value) {
+    if (value?.format !== CATALOG_FORMAT) return value;
+    if (Object.keys(value).some(key => !['format','data'].includes(key)) || typeof value.data !== 'string' ||
+        bytes(JSON.stringify(value)) > 8192) throw new Error('压缩配置格式无效');
+    const input = Uint8Array.from(atob(value.data), character => character.charCodeAt(0));
+    const unpacked = await transform(input, new DecompressionStream('gzip'), 32768);
+    return JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(unpacked));
+  }
   function createSdk(request) {
     let task, controller;
     const requestRoutes = new Map();
@@ -57,11 +93,14 @@
           optionsJson:JSON.stringify({inspection}),waitForSelector:'',timeoutMs:35000}}));
       },
       stop: async clientRequestId => project(await request(requestRoute(clientRequestId) + '.stop', {clientRequestId})),
-      load: () => request('storage.get', {key: STORAGE_KEY, withEtag: true}),
+      async load() {
+        const record = await request('storage.get', {key: STORAGE_KEY, withEtag: true});
+        return {...record, value: await loadedCatalog(record.value)};
+      },
       async save(value, etag) {
         if (!(etag === null || typeof etag === 'string')) throw new Error('缺少 ETag，禁止无条件保存');
-        if (bytes(JSON.stringify(value)) > 8192) throw new Error('配置超过 8192 字节，未保存');
-        const result = await request('storage.set', {key: STORAGE_KEY, value, ifMatch: etag});
+        const stored = await storedCatalog(value);
+        const result = await request('storage.set', {key: STORAGE_KEY, value: stored, ifMatch: etag});
         if (result?.saved !== true) throw new Error('保存结果未知，请保留草稿并重新读取');
         return result;
       },

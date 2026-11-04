@@ -28,6 +28,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'agents/page-agent': './src/agents/page-agent.js',
   'agents/page-relay': './src/agents/page-relay.js',
   'agents/chatgpt-fixed-bridge': './src/entrypoints/chatgpt-fixed-bridge.js',
+  'agents/web-task-content': './src/entrypoints/web-task-content.js',
   'framework/sdk-main': './src/framework/sdk/entry.js',
   'scripting/packaged/page-session': './src/scripting/packaged/page-session.js',
   'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
@@ -50,8 +51,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.
 // Keep the fixed, self-contained classic bundles and security scanners.
-// Production SW has a 1 MiB hard cap and a non-blocking 512 KiB review line.
-// Development SW has 1.5 MiB; ordinary generated JS retains the 512 KiB cap.
+// SW has a 2 MiB hard cap in both modes and a non-blocking 512 KiB review line.
+// Ordinary generated JS retains the 512 KiB cap.
 // The fixed Side Panel / catalog host entry ui/tool-shell.js has a 3 MiB hard
 // cap in both production and development, with a non-blocking 2 MiB review line.
 // This is an engineering budget, not a Chrome size limit, runtime permission
@@ -61,7 +62,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
 // rather than repeatedly tuning the previous 516 KiB cap for small additions.
 // WXT and package verification consume this same limit; all source/CSP checks remain.
 export const SIDEBAR_TOOL_HOST_BYTES=1024*1024;
-export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 3 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 3 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 2 * 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 2 * 1024 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
 export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});

@@ -145,7 +145,7 @@ await OpenDeskTool.request('browser.scheduler.create', {
 
 `root` 是该工具 UI 自己的根元素。`request(operation,payload)` 异步返回经过宿主验证的结果，或以错误拒绝。任何需要用户数据/站点内容的操作都应在明确的用户动作后执行，不吞掉异步错误。
 
-工具可调用 `OpenDeskTool.setConversationState({visible, open})` 显示公共页头 AI 入口并同步对话开关状态。参数严格为仅含 `visible`、`open` 两个布尔字段的对象；有效调用返回 `true`，无效参数或已销毁实例返回 `false`。默认隐藏；此 API 不扩展 `setState` 的 dirty/busy 合同。按钮位于可信 HeaderSlot 旁、卸载之前，控制目标为宿主 `sidebar-tool-frame`，`aria-expanded` / `aria-pressed` 跟随 open。可信 Workspace 继续使用自身入口，不调用此沙箱 API。
+工具可调用 `OpenDeskTool.setConversationState({visible, open})` 显示公共页头 AI 入口并同步对话开关状态。参数严格为仅含 `visible`、`open` 两个布尔字段的对象；有效调用返回 `true`，无效参数或已销毁实例返回 `false`。默认隐藏；此 API 不扩展 `setState` 的 dirty/busy 合同。按钮位于可信 HeaderSlot 旁、卸载之前，控制目标为宿主 `sidebar-tool-frame`，`aria-expanded` / `aria-pressed` 跟随 open。可信 Workspace 继续使用自身入口，不调用此沙箱 API。此页头 AI 按钮只负责开合；AI 设置齿轮位于底部公共 Dock 内，与收起按钮并列，卸载旁不保留重复齿轮。来源下拉仍在可信页头，以箭头表示来源选择；设置与受控 `OpenDeskTool.openAISettings()` 的完整边界见 [公共 Chat 合同](sidebar-tools-ai.zh-CN.md#沙箱工具的公共页头入口与底部-dock)。
 
 ```js
 let open = false;

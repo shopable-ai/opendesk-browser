@@ -1,6 +1,10 @@
 # scrapyJs 采集应用
 
+**Git 集成包（1.9.13，2026-11-04）**：合并远端 1.9.12 的 AI/规则迭代与本地返回恢复改动，保留两侧源码和历史证据。合并源码已重新编译，唯一正式包经原打包器候选、定向检查、晋升和同源核对；权限、Controller 参数与任务合同未变。此包尚未在 Chrome 安装或验证，下面各版本的原生结果仍只属于原候选。
+
 **返回卡住修复（1.9.3，2026-11-04）**：旧安装版 1.7.4 恢复了未决 AI 与失联本机任务，根页却显示“配置已保存 / 尚无运行”，宿主将 busy 误报为正在保存。现在宿主根返回可先显示扩展列表，并保留原实例、草稿和请求；重开原工具继续查看。工具根页新增隐藏本机任务的恢复入口；开发刷新与撤权保护继续有效。1.9.3 唯一正式包已同源晋升，尚未安装；真实旧窗口未强制重载，修复后的 Chrome 操作待验证。范围与证据见[返回恢复记录](evidence/return-recovery-20261104.md)。
+
+**当前迭代方式（2026-11-03，用户纠偏）**：日常采用[本地项目侧栏调试与编译/快照监听](#真实扩展的持续开发入口)，不为每次修改升级版本和重复安装。当前隔离 Chrome 已从该入口打开 1.9.10 的实时开发预览；原安装态也已读回 1.9.10，两者数据、权限与代码快照独立。预览可验证界面与隔离配置操作，真实 AI、Controller 和下载需在修复集中完成后，用安装态集中验证。新站自然语言闭环的原 goal 仍为 paused，`completed/fenced` 延迟尚未修复；本次只恢复持续开发链。具体身份及验证见[本轮证据](evidence/blank-page-creation-20261103.md#持续开发入口恢复2026-11-03)。下方旧版本与目标描述保留为历史记录。
 
 **当前开发目标（1.9.1）**：从独立空白配置，用自然语言让 AI 根据当前真实网页创建单页列表规则，再用原保存、采集和 CSV 入口，关闭重开后直接复用。已补有界只读结构观察与原文档复核，不使用演示站专用规则。当前源码/包检查与真实闭环状态分别见[本轮证据](evidence/blank-page-creation-20261103.md)；历史豆瓣表头证据不能代替此目标。当前仍为核心开发，production、复杂网站和完整验收延期。
 
@@ -485,9 +489,11 @@ node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/scrapyjs
 opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs
 ```
 
+独立测试浏览器须使用与其现有 Native Host 相同的 `OPENDESK_NATIVE_INSTANCE` 和官方 CLI；不能从历史 README 的实例名推定当前配对。目录文件工作区可用即可调试 Sidebar App，可运行 Controller Provider 的 `E_PROJECT_SCHEMA` 不作为该预览的前置条件。当前连接身份只在本轮证据记录，开始时重查，不重做配对或安装。
+
 在真正 Chrome 的「开发 → 本地项目」选 scrapyjs，再点击「在侧栏调试」。Vite 编译、stage 发布与 Browser 开发连接分别核验；应用更新通过原 Native 会话替换沙箱实例，不是网页 Vite HMR，也不承诺保留 React 内存状态。修改 JSX/CSS 后必须在真实侧栏看到变化及还原，才算扩展开发更新证据。
 
-当前本地调试只提供隔离 session 存储及 `currentPage.info`，不会继承正式安装版的 Task 委托或下载权限。`tasks.read/start/stop` 需通过原安装态 App：使用唯一打包器生成当前源码的临时候选，经「扩展」原安装审阅链安装，再使用独立安装并批准的固定 `scrapyjs.capture` 0.3.0。候选准备不等于正式包晋升；不修改 Host 以绕过限制。
+当前本地调试只提供隔离 session 存储及 `currentPage.info`，不发送真实 AI，不继承正式安装版的 Controller、Task 或下载权限。固定 `files.controller` 可进入来源绑定快照，但 stage 不执行它或授予运行权限。界面和本地业务迭代先在此完成，相关修复集中完成后，再使用唯一打包器生成同 ID 候选，经原安装审阅链集中验证真实 AI、Controller、Task 与下载；不把每一轮 UI/诊断调整都变成安装。安装态继续受其固定包、独立 Task 批准和原 Authority 约束，不因预览更新而换代码。候选准备不等于正式包晋升；不修改 Host 以绕过限制。
 
 线上核心场景是 `examples/original-sites.js` 的 `originalSites[2]`（豆瓣读书）与 `[3]`（CSDN）；两者都是当前页采集。实际网页内容、运行退休回执、表格与下载读回分别留证，不使用历史条数作固定预期。当前 React 的两站真实采集已通过；开发更新与还原复用同源码已有证据。历史连接观察不表示 watcher 当前仍在线，后续源码迭代开始时应重查；下节 Mock 不替代扩展证据。
 
@@ -554,7 +560,7 @@ node --input-type=module -e 'import {originalSites} from "./examples/sidebar-too
 - 保存、切换、重命名和删除共用原 ETag 条件写入。发生冲突或保存回执未知时保留草稿和远端列表，禁止自动重试；「读取保存版本」只读远端，「用保存版本替换草稿」经确认后采用远端完整列表。需要的本地草稿应先复制到外部文本。
 - 运行期间锁定配置编辑和管理，Stop 始终作用于原实例。结果显示启动时的配置名称；切换配置后清空上一份结果，不把旧结果归给新配置。配置记录 ID 与固定 `scrapyjs.capture` Task 身份互不替代。
 
-命名配置是 App 自身数据：同一 `capture-config` 存储项使用 `{schemaVersion:1, selectedId, records:[{id,name,config}]}`，最多 10 份，**整个存储项 JSON 合计最多 8,192 UTF-8 字节**；不为每个名称创建 Task。名称 1–60 个字符、最多 180 UTF-8 字节。每份采集配置仍遵守原 itemConfig / options 各 4,096 字节限制。超限、损坏记录和非法配置均拒绝保存，草稿与原保存值保留；较大的旧单配置仍可读取，不会为了迁移自动截断或覆盖。
+命名配置是 App 自身数据：同一 `capture-config` 存储项的业务结构为 `{schemaVersion:1, selectedId, records:[{id,name,config}]}`，最多 32 份，解码后合计最多 32,768 UTF-8 字节；不为每个名称创建 Task。目录超过 8,192 字节时，用浏览器原生 gzip 压缩为 `scrapyjs.config-catalog.gzip.v1`，实际存储 JSON 仍须不超过公开 SDK 的单项 8,192 字节限制。读取兼容原单配置和未压缩目录，只在用户保存时迁移；仍是原键的一次 ETag 条件写入及读回核对。名称 1–60 个字符、最多 180 UTF-8 字节。每份采集配置仍遵守原 itemConfig / options 各 4,096 字节、单配置 8,192 字节限制。压缩后仍超限、解压超限、损坏或非法配置均拒绝，保留原值和草稿，不自动删除历史配置。
 
 历史 App 1.2.0 已在独立 Mac CFT 的原安装升级入口验证：A/B 保存切换、销毁重开、改名复制、同名拒绝、删除确认与取消、JSON/字段/分页草稿保护，以及两份不同字段的真实采集均通过；运行均 completed/released。旧列表详情配置与控件来回切换完整保留。36 项定向 Node 检查通过；ETag 冲突/并发保存、容量、损坏存储和详情草稿保护属于组件证据。可提交索引为 `evidence/named-configs-20261029.json`，原始报告为 `artifacts/scrapyjs/native-profiles/candidate-20261029-c/report.json` 与 `supplement-20261029-a/report.json`。原生测试使用上批固定静态开发快照，不代表日常 Chrome 已更新或 production 验收。
 
@@ -631,6 +637,16 @@ Task v0.3.0 sourceHash `12668947ef0f99851986891b911ee3d32deca993e42066b48f496691
 
 ### 2026-11-01 · 从完整字段准备列表（核心开发）
 
-原工具目录继续作为唯一业务 owner。当前配置可先填写 `title/url/price` 的完整 CSS 字段路径，无需填写 `_listItem/_listContainer`。在「AI 配置 → 更多资料与诊断 → 提供必要 HTML 样本」粘贴代表性 HTML，再点击「从完整字段准备列表」；成功后审阅差异、应用为未保存草稿，最后沿原命名保存链保存。准备在本地使用同源 `ItemLoader.prepareList`，无需 AI Provider，不自动抓正文或开始采集。已有明确列表规则和普通详情提案保留原路径。
+原工具目录继续作为唯一业务 owner。当前配置可先填写 `title/url/price` 的完整 CSS 字段路径，无需填写 `_listItem/_listContainer`。在「采集规则 → 列表范围」未配置范围而已有完整字段时，原范围切换按钮显示「从完整字段准备逐条记录」；它读取已授权的当前网页，复用同源 `ItemLoader.prepareList`，唯一可靠结果回填未保存草稿，随后沿原命名保存与采集链执行，无需 AI Provider。旧「粘贴 HTML → 准备列表」界面已被共享 Chat 简化移除，不再是当前入口，不恢复第二套 Chat 或旧技术审阅 UI。已有明确列表规则和普通详情提案保留原路径。当前入口和验证边界见[使用链证据](evidence/record-preparation-20261103.md)。
 
 记录边界由真实节点和字段归属证明，歧义或未出现的字段会要求补足信息。缺可选标量沿用空字符串、缺 many 为 `[]`，相同标题不合并。未知/未决请求、忙态、目标/配置/输入变更和过期提案继续阻止应用。支持范围与严格重放的必填/身份合同见 [上游 API](../../../../scrapyJs/docs/api/items-pipelines-exports.md)。本轮只更新源码和来源锁定 SDK；没有构建工具 dist、晋升正式包、安装或操作日常 Chrome。最终候选行为与未测边界见仓库 `artifacts/scrapyjs/record-model-20261101/author-entry/` 的本轮报告。
+
+### 2026-11-04 · AI Panel 默认记录模式
+
+新 DOM 列表默认由 AI 根据授权网页结构生成完整 `_listItem` 与相对字段，校验后同步原草稿；已有 `_listContainer` 规则继续可用，保存/采集不再推断。完整字段准备是可选作者辅助，不是每次运行前置，也尚未接入默认 Chat 的 `prepareListProposal` 调用。模式选择、参数示例、真实测试边界及下一轮关键条件统一见[共享 Chat 合同](docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md#ai-panel-默认列表规则与执行方式2026-11-04)。
+
+### 2026-11-03 · 点选与准备的维护边界
+
+优先保留「先确定每条记录，再相对读取字段」的执行方式。已知记录范围直接使用 `_listItem` 即可；`_listContainer` 是可选的直接子项高级范围。自动准备仅是作者阶段的便利，不让每个业务重复调用、不在保存重放或翻页时偷偷推断。两个范围都空仍是单页对象，不能把字段数组按下标拼表。
+
+侧栏现有「点选列表容器」会由点击位置寻找祖先候选，回侧栏核对条数、样本和规则后「使用此列表」；普通候选数量不是业务记录正确性的证明。手填两项时须留意直接子项语义；嵌套包装中的深层记录可使用独立完整 `_listItem`。本轮 Chrome 原点选入口的确认交互、共用抽取器及定向证据见[Chrome 列表选择文档](../../../../scrapyJsChrome/docs/list-selection.md)，不代表本侧栏已安装包或并行 UI 文件同步完成。先前讨论的方案分数不作为验收指标。

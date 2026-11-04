@@ -302,3 +302,25 @@ Chrome 官方依据：[Worker 生命周期](https://developer.chrome.com/docs/ex
 - 运行原文与日志：沿既有受控产物存储和 `artifacts/<用途>/<runId>/` 规则；仓库只保存必要的脱敏证据摘要与引用，不把每次运行的大段对话或截图默认提交公开仓库。
 
 下次恢复时先读本合同和当前执行记录，核对最新分支、相关文件、授权、运行条件和未确认副作用，然后只推进首项依赖已满足的任务。已有同输入有效证据直接复用；没有证据的能力保留 `NOT_TESTED`。可找回任务与运行中自动恢复分别验收，创建目录或写下关键词只完成前者的文档基础。
+
+## 11. 通用网页任务适配 V1.1
+
+用户于 2026-11-03 要求将网页任务入口升级为通用平台。目标是：已授权网页的任务事件，经统一发现、网站及适配器识别、原 Task Catalog/Authority、原 Controller/RunHost 执行，持久保存原 Run/Result 并交付正确接收方；关闭 Side Panel、切换标签、Worker 休眠和浏览器重启后安全查询与对账。ChatGPT 是首个案例，不为每个网站复制授权、执行器、任务库或调度器。实际进度及关键门禁只在[执行计划 12.13](execution-plan.zh-CN.md#1213-持续目标与关键测试条件2026-11-03)维护。
+
+**统一选择 C：Generic Runtime + 少量固定 Site Adapter + 受限声明式 Profile。** Runtime 负责顶层页面事件、协议识别、候选传递、会话和适配选择；不授予权限、不执行 Task。Profile 只选择已编译、已审查的适配器与协议。网站产生的 JSON、DOM 和消息均是不可信候选；配置声明不能替代真实 sender/document、Chrome 网站权限、原安装身份及 Authority。
+
+四个对象分别管理：Site Profile 是站点路由数据；Adapter 是固定适配代码；Task Script 是经原流程安装的自动化版本；User Permission 是实际批准范围和 Chrome 权限。不同来源可共享同一 Generic Adapter，但不能共享未批准的 Task 来源范围。原无来源字段的自动批准只代表 ChatGPT，不能解释为所有已登记网站；现有逐 Task 批准只保存一个来源范围，重新批准会替换原范围。
+
+**Adapter Creation Policy：**
+
+1. 遵循标准任务协议的普通网站使用 Generic，不创建专用 JS。
+2. 仅匹配来源不同，增加 Profile，不复制监听器。当前只支持精确 HTTP(S) origin；同一 origin 最多一个有效 Profile，不支持隐式路径优先级。
+3. 必须识别特殊 DOM 时才建 DOM Adapter；网站完成标记、轮次和结果位置须有真实证据，不能从导航选择器推断回复完成。
+4. 有独立消息机制才建 Protocol Adapter；特殊观察或回传才建 Site Adapter。网站 DOM 不放入公共 Runtime。
+5. 特殊权限进入原权限审查、真实用户手势及 Authority；Profile 不含权限、远程 JS 或能力授予字段。
+6. 适配器版本来自固定代码目录，Profile 同时记录自身版本和所需 Adapter 精确版本；未知、停用或升级不匹配均拒绝。升级先撤旧注册，再登记新身份；已失效候选保留终态和防重放记录，不借新版本重放。
+7. 版本兼容无法证明时停用对应 Profile。不能以放宽全部站点选择器修复一个网站，也不能因注销注册就假定旧 Content Script 已销毁。
+
+**注册、批准及恢复规则：** 可信 Side Panel 读取并校验配置，用预期旧配置比较后保存，避免覆盖另一窗口的新登记；普通站批准动作在真实手势中申请来源和目标网站权限，再核对原 Task 安装快照，最后保存原持续批准。单独写 Profile 不授权执行，权限拒绝不保存批准。停用/删除、权限撤销或版本变化时对账动态注册；已载入文档仍经后台逐次核验。新文档不能领取旧文档私有结果，已消费请求不能转交新 Host。结果交付先持久记录发送意图；丢失回执保留 UNKNOWN，不自动重发。Worker/浏览器恢复只沿原 Run/Result 对账，不能恢复任意 JS 栈或盲目再次执行。
+
+`SOURCE_IMPLEMENTED`、`COMPONENT_TESTED`、`CHROME_NATIVE_VERIFIED`、`PRODUCT_DONE`、`BLOCKED`、`NOT_TESTED` 分开记录。Node、内存编译和临时组件扩展均不能证明真实产品 Chrome 全链通过；第二 AI 网站没有真实完成/回传证据时保留未完成。

@@ -18,11 +18,20 @@ const request=validateChatGPTTaskRequest(JSON.stringify({
   version:1,requestId:id,taskId:'baidu.search.top3',args
 }));
 const candidateText=JSON.stringify(request);
-test('Baidu Bridge admits the exact importable task package identity',async()=>{
+test('legacy fixed Baidu Bridge retains its reviewed identity while separately installed packages may upgrade',async()=>{
+  // The old fixed bridge deliberately remains pinned; a newer independently
+  // installed Task is not an authorization or hash update for that legacy path.
+  const pinned={version:BAIDU_TASK_VERSION,sourceHash:BAIDU_TASK_SOURCE_HASH,manifestHash:BAIDU_TASK_MANIFEST_HASH};
+  assert.deepEqual(pinned,{
+    version:'1.0.0',
+    sourceHash:'586fbf0f2d16a9bd00f17dd1b5e0b94171e799a53fe2d0d6edf9b86db0121cd3',
+    manifestHash:'6be4d039d123c89b51fba945d5997724de5948c3b839c1d2afa0b2dcfccd49ed'
+  });
   const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
-  assert.equal(BAIDU_TASK_VERSION,pkg.manifest.version);
-  assert.equal(BAIDU_TASK_SOURCE_HASH,pkg.manifest.program.sourceHash);
-  assert.equal(BAIDU_TASK_MANIFEST_HASH,pkg.manifestHash);
+  const available={version:pkg.manifest.version,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash};
+  if(available.version===pinned.version)assert.deepEqual(available,pinned);
+  else assert.notEqual(available.manifestHash,pinned.manifestHash,
+    'a newer Task manifest cannot silently masquerade as the fixed legacy identity');
 });
 const resultData={kind:'baidu.search.top3.result',version:1,query:args.query,
   sourceUrl:baiduSearchTarget(request),status:'success',count:2,

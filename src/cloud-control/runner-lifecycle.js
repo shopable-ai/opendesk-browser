@@ -4,7 +4,8 @@
 import {CLOUD_RUNNER_DOCUMENT_PATH} from '../tool-document-url.js';
 import {withRunAdmissionLock} from '../platform/host/run-admission-lock.js';
 
-export function createCloudRunnerLifecycle({api=globalThis.chrome,locks=globalThis.navigator?.locks}={}){
+export function createCloudRunnerLifecycle({api=globalThis.chrome,locks=globalThis.navigator?.locks,
+  hasPendingWebTasks=async()=>false}={}){
   if(typeof api?.runtime?.getURL!=='function'||
      typeof api?.runtime?.getContexts!=='function'||
      typeof api?.offscreen?.createDocument!=='function'||
@@ -20,6 +21,7 @@ export function createCloudRunnerLifecycle({api=globalThis.chrome,locks=globalTh
       throw Error('E_CLOUD_RUNNER_CONTRACT');
     const enabled=(await cloud?.read?.())?.enabled===true;
     const appPending=await broker.authority.schedules?.hasPendingAppServices?.()===true;
+    const webPending=await hasPendingWebTasks()===true;
     const documentUrl=api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
     const contexts=await api.runtime.getContexts({
       contextTypes:['OFFSCREEN_DOCUMENT'],documentUrls:[documentUrl]
@@ -29,7 +31,7 @@ export function createCloudRunnerLifecycle({api=globalThis.chrome,locks=globalTh
          context.documentUrl!==documentUrl))
       throw Error('E_CLOUD_RUNNER_CONTEXT');
 
-    if(enabled||appPending){
+    if(enabled||appPending||webPending){
       if(contexts.length===1)return {state:'ready'};
       await api.offscreen.createDocument({
         url:CLOUD_RUNNER_DOCUMENT_PATH,reasons:['WORKERS'],
@@ -51,7 +53,8 @@ export function createCloudRunnerLifecycle({api=globalThis.chrome,locks=globalTh
 
       // State may have changed while IndexedDB was read; recheck the current
       // approval before a global chrome.offscreen.closeDocument() operation.
-      if((await cloud?.read?.())?.enabled===true||await broker.authority.schedules?.hasPendingAppServices?.()===true)return {state:'ready'};
+      if((await cloud?.read?.())?.enabled===true||await broker.authority.schedules?.hasPendingAppServices?.()===true||
+        await hasPendingWebTasks()===true)return {state:'ready'};
       await api.offscreen.closeDocument();
       return {state:'closed'};
     },{locks});

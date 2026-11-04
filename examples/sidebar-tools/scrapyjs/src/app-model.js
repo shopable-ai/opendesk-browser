@@ -155,7 +155,7 @@
     });
     if (records.length ? !ids.has(value.selectedId) : value.selectedId !== null) throw new Error('选中的配置记录不存在');
     const catalog = {schemaVersion: 1, selectedId: value.selectedId, records};
-    if (storageBytes(catalog) > 8192) throw new Error('全部命名配置超过 8192 字节，未保存；请减少配置数量或内容');
+    if (storageBytes(catalog) > 32768) throw new Error('全部命名配置超过 32768 字节，未保存；请减少配置数量或内容');
     return catalog;
   }
   function readCatalog(value) {

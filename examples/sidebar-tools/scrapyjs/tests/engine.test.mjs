@@ -30,10 +30,15 @@ test('complete browser exports preserve processing, validation and rule migratio
 });
 
 test('browser extraction callback executes outside the Worker/Webpack closure',async()=>{
-  let source;
-  await ItemLoader.parse({evaluate:async callback=>{source=callback.toString();return {records:[]};}}, {_listContainer:'#sample-list',_listItem:'li',title:'.::text'});
-  assert.ok(source);
+  let source,wireInput;
   const scope=vm.createContext({document:{querySelectorAll(){return [];}}});
+  await ItemLoader.parse({evaluate:async(callback,input)=>{
+    source=callback.toString();wireInput=input;
+    return vm.runInContext('('+source+')',scope)(input);
+  }}, {_listContainer:'#sample-list',_listItem:'li',title:':scope::text'});
+  assert.ok(source);
+  assert.equal(typeof wireInput,'string');
+  assert.equal(JSON.parse(wireInput).listSelector,'#sample-list');
   const output=vm.runInContext('('+source+')',scope)(normalizeConfig({_listContainer:'#sample-list',_listItem:'li',title:':scope::text'}));
   assert.deepEqual(json(output),{records:[]});
 });

@@ -8,6 +8,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "codegraph": "CODEGRAPH_TELEMETRY=0 CODEGRAPH_NO_DOWNLOAD=1 codegraph",
+    "codegraph:init": "npm run --silent codegraph -- init --yes",
+    "codegraph:sync": "npm run --silent codegraph -- sync",
+    "codegraph:status": "npm run --silent codegraph -- status",
+    "codegraph:explore": "npm run --silent codegraph -- explore",
+    "codegraph:mcp": "npm run --silent codegraph -- serve --mcp",
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs production",
     "build:dev": "node scripts/build.mjs development",
@@ -42,6 +48,7 @@
     "verify:developer": "node scripts/verify-package.mjs dist/production-developer production"
   },
   "devDependencies": {
+    "@colbymchenry/codegraph": "1.6.2",
     "@tailwindcss/cli": "4.3.3",
     "acorn": "8.15.0",
     "tailwindcss": "4.3.3",

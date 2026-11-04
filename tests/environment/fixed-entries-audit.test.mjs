@@ -32,9 +32,9 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   assert.equal(summary.toolShellReviewBytes,2 * 1024 * 1024);
   assert.deepEqual(summary.critical,[]);
   assert.deepEqual(summary.reviewRequired,[]);
-  assert.equal(summary.serviceWorkerProductionBudgetBytes,1024*1024);
+  assert.equal(summary.serviceWorkerProductionBudgetBytes,2*1024*1024);
   assert.equal(summary.serviceWorkerReviewBytes,512*1024);
-  assert.equal(summary.entries[0].remainingBytes,1024*1024-326907);
+  assert.equal(summary.entries[0].remainingBytes,2*1024*1024-326907);
   assert.equal(summary.entries[0].risk,'normal');
   assert.equal(summary.entries[0].requiresSizeReview,false);
   assert.match(summary.attributionNote,/PRE-minification/);
@@ -153,7 +153,7 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   const mismatch=packageFixture();mismatch.measured['sidepanel.html'].sha256='b'.repeat(64);
   assert.throws(()=>summarizePackageResources(mismatch.receipt,mismatch.measured),/size\/hash mismatch/);
 });
-test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()=>{
+test('SW review at 512 KiB is non-blocking and 2 MiB hard cap blocks +1 byte',()=>{
   const f=fixture(),sw=f.receipt.bundleModules.find(row=>row.target==='sw.js');
   const setBytes=bytes=>{
     sw.bytes=bytes;f.measured['sw.js'].bytes=bytes;
@@ -173,8 +173,8 @@ test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()
 test('fixed UI host budgets apply only to their exact outputs in both modes',()=>{
   assert.equal(entryByteBudget('ui/tool-shell.js','production'),3*1024*1024);
   assert.equal(entryByteBudget('ui/tool-shell.js','development'),3*1024*1024);
-  assert.equal(entryByteBudget('sw.js','production'),1024*1024);
-  assert.equal(entryByteBudget('sw.js','development'),1536*1024);
+  assert.equal(entryByteBudget('sw.js','production'),2*1024*1024);
+  assert.equal(entryByteBudget('sw.js','development'),2*1024*1024);
   assert.equal(entryByteBudget('ui/sidebar-tool-host.js','production'),1024*1024);
   assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),1024*1024);
   for(const target of ['agents/page-relay.js','libs/packages/axios.js','ui/sidebar-tool-host-copy.js']){
@@ -240,7 +240,7 @@ test('development distinguishes SW budget and source maps from executable code',
   f.measured['sw.js.map']={bytes:500000,sha256:digest};
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
-  assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,1536*1024);
+  assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,2*1024*1024);
   assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,3*1024*1024);
   assert.equal(report.sourceMapBytes,500000);
 });

@@ -124,10 +124,11 @@ export default function AiPanel({open=true,state,business,onConfigurationApplied
         if(receipt.status!=='applied')throw Error('未取得配置应用回执。');
         onConfigurationApplied?.({requestId:id,config:proposed.config});
       }else onApply(reply.config,base,epoch,page,id);
-      append('助手','已更新配置草稿。');finishReply();
+      append('助手',scope.type==='create'?'已更新当前页的单页采集配置草稿。':'已更新配置草稿。');finishReply();
     }catch(e){
       if(alive.current&&active.current===operation){
-        setError(e.message);
+        setError(e.code==='E_AI_PREPARE'&&typeof e.cause?.message==='string'
+          ?`${e.message}：${e.cause.message.slice(0,600)}`:e.message);
         if(operation.unknown){
           setUnknown(true);setNotice('原请求结果未知，请查询或停止原请求。');
           if(!operation.dispatched){try{const {value}=await pendingIdentity.read();if(alive.current&&active.current===operation&&value&&value.requestId!==operation.id){active.current=null;setPendingId(value.requestId);}}catch{}}

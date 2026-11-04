@@ -59,7 +59,7 @@ export default function RuleEditor({fields,form,pending,locked,error,invalidFiel
     <div className="rule-column-head" aria-hidden="true"><span/><span>字段名</span><span>选择器 · 取值</span><span/></div>
     <FieldOrder id="field-list" keys={[...fields.map(([key])=>key),...(form.isNew?['']:[])]} onOrderChange={onOrderChange} locked={locked||pending||removePending||form.isNew} active={active} onMovingChange={setMoving}
       renderKey={(_,index)=>index} renderItem={(key,index,handle)=>key?row(key,fields.find(([name])=>name===key)[1],index,false,handle):row('','',index,true)}/>
-    <div className="rule-add"><Button base="aria" id="new-field" variant="quiet" disabled={blocked} onClick={newRow}>＋ 添加字段</Button></div>
+    <div className="rule-add"><Button base="aria" id="new-field" variant="outline" disabled={blocked} onClick={newRow}>＋ 添加字段</Button></div>
     <details className="rule-syntax"><summary>规则写法</summary><p id="rule-syntax" className="secondary">文本 <code>.title::text</code> · 链接 <code>a::href</code> · 图片 <code>img::src</code>。复杂规则使用行末 JSON 按钮编辑。</p></details>
     <details id="list-scope" className="rule-scope"><summary>列表范围<span className="secondary">{form.container||'可选'}{form.item?' → '+form.item:''}</span></summary>
       <fieldset>

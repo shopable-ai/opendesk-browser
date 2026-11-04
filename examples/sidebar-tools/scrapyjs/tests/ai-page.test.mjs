@@ -65,6 +65,18 @@ test('oversized or malformed context cannot reach AI',async()=>{
   }
 });
 
+test('released failed observation reports the actual controller failure without exposing a sample',async()=>{
+  const failed={...snapshot(),state:'failed',value:null,
+    result:{outcome:{ok:false,error:{code:'E_USER_SCRIPTS_UNAVAILABLE',message:'E_USER_SCRIPTS_UNAVAILABLE'}}}};
+  const h=host({'controllers.start':()=>failed});
+  await assert.rejects(h.observation().prepare(),error=>{
+    assert.equal(error.code,'E_USER_SCRIPTS_UNAVAILABLE');
+    assert.match(error.message,/允许用户脚本/);
+    return true;
+  });
+  assert.equal(h.calls.filter(row=>row.method==='controllers.start').length,1);
+});
+
 test('an unknown start is never replayed and retirement keeps its original ID',async()=>{
   const h=host({'controllers.start':()=>{throw Object.assign(Error('reply lost'),{code:'E_TOOL_TIMEOUT'});}});
   const operation=h.observation();
@@ -72,6 +84,21 @@ test('an unknown start is never replayed and retirement keeps its original ID',a
   await assert.rejects(operation.prepare(),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(h.calls.filter(row=>row.method==='controllers.start').length,1);
   await operation.retire();
+  assert.deepEqual(h.calls.at(-1),{method:'controllers.stop',payload:{clientRequestId}});
+});
+
+for(const code of ['E_PERMISSION','E_TOOL_TIMEOUT'])test('start diagnostics retain the admission cause without lifting retirement fences: '+code,async()=>{
+  const h=host({'controllers.start':()=>{throw Object.assign(Error('admission did not return'),{code});}});
+  const operation=h.observation();
+  await assert.rejects(operation.prepare(),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+    assert.equal(error.clientRequestId,clientRequestId);
+    assert.match(error.message,/E_OBSERVATION_STAGE start/);
+    assert.ok(error.message.includes(code));
+    return true;
+  });
+  await operation.retire();
+  assert.equal(h.calls.filter(row=>row.method==='controllers.start').length,1);
   assert.deepEqual(h.calls.at(-1),{method:'controllers.stop',payload:{clientRequestId}});
 });
 
@@ -147,7 +174,13 @@ test('exactly 12000 characters are allowed and unreleased polling has a total de
   const large=host({'controllers.start':()=>{const row=snapshot();row.value.choices[0].html='x'.repeat(12000);return row;}});
   assert.equal((await large.observation().prepare()).sample.length,12000);
   const h=host({'controllers.start':()=>unknown(),'controllers.read':payload=>payload.clientRequestId?unknown():{controller:{}}});
-  const operation=h.observation(),waiting=assert.rejects(operation.prepare(),{code:'E_OUTCOME_UNKNOWN'});
+  const operation=h.observation(),waiting=assert.rejects(operation.prepare(),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+    assert.match(error.message,/read-release/);
+    assert.match(error.message,/"state":"unknown"/);
+    assert.match(error.message,/"runId":"run-1"/);
+    return true;
+  });
   for(let tick=0;tick<=55;tick++){
     for(let i=0;i<30;i++)await Promise.resolve();
     t.mock.timers.tick(100);
@@ -156,6 +189,32 @@ test('exactly 12000 characters are allowed and unreleased polling has a total de
   await assert.rejects(operation.prepare(),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(h.calls.filter(row=>row.method==='controllers.start').length,1);
   assert.ok(h.calls.filter(row=>row.method==='controllers.read').length<=56);
+});
+
+test('a stalled release reports when admission completed and the fence was first observed',async t=>{
+  t.mock.timers.enable({apis:['setTimeout','Date']});
+  const admission=deferred();let reads=0;
+  const ids={runId:'94999b7a-a50c-46eb-b4d9-aef1dbfd1e51',resultId:'2b10367f-c8e9-440d-9fca-d114f1637c4e'};
+  const h=host({'controllers.start':()=>admission.promise,
+    'controllers.read':payload=>!payload.clientRequestId?{controller:{}}:
+      ++reads===1?{...snapshot(),...ids,retirementState:'fenced'}:new Promise(()=>{})});
+  const waiting=assert.rejects(h.observation().prepare(),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+    assert.match(error.message,/"startMs":1200/);
+    assert.match(error.message,/"firstRunningMs":1200/);
+    assert.match(error.message,/"firstFencedMs":1300/);
+    assert.match(error.message,/"readCount":2/);
+    assert.match(error.message,/"maxReadMs":4100/);
+    assert.match(error.message,/"state":"completed"/);
+    assert.ok(error.message.includes(ids.runId));
+    assert.ok(error.message.includes(ids.resultId));
+    return true;
+  });
+  const flush=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
+  await flush();t.mock.timers.tick(1200);admission.resolve({...snapshot(),...ids,state:'running',retirementState:'not-started'});
+  await flush();t.mock.timers.tick(100);await flush();t.mock.timers.tick(100);await flush();
+  t.mock.timers.tick(4100);await flush();await waiting;
+  assert.equal(h.calls.filter(row=>row.method==='controllers.start').length,1);
 });
 
 test('polls only the original request until released, and times out hung transport without replay',async t=>{
@@ -169,7 +228,12 @@ test('polls only the original request until released, and times out hung transpo
   assert.equal((await preparing).pageObservation.runId,'run-1');
   assert.equal(reads,2);
   const hung=host({'controllers.start':()=>new Promise(()=>{})}),operation=hung.observation();
-  const waiting=assert.rejects(operation.prepare(),{code:'E_OUTCOME_UNKNOWN'});
+  const waiting=assert.rejects(operation.prepare(),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+    assert.match(error.message,/start/);
+    assert.match(error.message,/"runId":null/);
+    return true;
+  });
   await flush();t.mock.timers.tick(5500);await flush();await waiting;
   await assert.rejects(operation.prepare(),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(hung.calls.filter(row=>row.method==='controllers.start').length,1);

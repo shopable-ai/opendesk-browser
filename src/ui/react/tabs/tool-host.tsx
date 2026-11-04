@@ -958,28 +958,16 @@ function ToolFileInput({value, disabled, onChoose, onCancel}) {
 
 // Trusted Host chrome only: no settings facade or provider configuration is
 // passed into the sandbox or its business conversation slots.
-function ToolConversationProviderControls({providerSettings,onOpenSettings,focusComposer}){
+export function ToolConversationProviderControls({providerSettings,onOpenSettings,focusComposer}){
   const snapshot=React.useSyncExternalStore(providerSettings.subscribeSettings,
     providerSettings.settingsSnapshot,providerSettings.settingsSnapshot);
   const local=snapshot.source==='local_codex';
   const summary=local?'本机 Codex':`HTTPS · ${snapshot.model||'未配置模型'}`;
   const detail=local?'本机 Codex · 模型由本机配置':summary;
-  const openSettings=event=>{
-    if(!event.nativeEvent?.isTrusted)return;
-    event.currentTarget.focus({preventScroll:true});
-    onOpenSettings();
-  };
   return <div role="group" aria-label="AI 来源与设置" className="sidebar-tool-header-actions">
     <span className="workflow-source-name" style={{maxWidth:'12ch'}} title={detail} aria-label={`当前 AI：${detail}`}>{summary}</span>
     <WorkflowSourceMenu snapshot={snapshot} providerSettings={providerSettings}
-      idPrefix="sidebar-tool-conversation" placement="bottom-end" onOpenSettings={onOpenSettings}
+      idPrefix="sidebar-tool-conversation" placement="bottom-end" triggerIcon="chevron" onOpenSettings={onOpenSettings}
       focusComposer={focusComposer}/>
-    <IconButton id="sidebar-tool-conversation-settings" label="AI 设置" onClick={openSettings}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
-        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
-      </svg>
-    </IconButton>
   </div>;
 }

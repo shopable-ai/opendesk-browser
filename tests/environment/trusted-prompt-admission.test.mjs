@@ -23,6 +23,9 @@ const released118=JSON.parse(execFileSync('git',['show',
 const released119=JSON.parse(execFileSync('git',['show',
   'e6752699d:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
   {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
+const released120=JSON.parse(execFileSync('git',['show',
+  '5b173e7c1:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
+  {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
 const candidate=await createSidebarToolPackage('projects/prompt-shortcuts');
 const id='prompt-shortcuts';
 function releaseFor(tool){
@@ -33,7 +36,7 @@ function releaseFor(tool){
 }
 const currentRelease=releaseFor(candidate),previousRelease=releaseFor(previous),
   intermediateRelease=releaseFor(intermediate),lastOfficialRelease=releaseFor(lastOfficial),
-  release118=releaseFor(released118),release119=releaseFor(released119);
+  release118=releaseFor(released118),release119=releaseFor(released119),release120=releaseFor(released120);
 const provenanceFor=release=>({[id]:{marketId:release.id,version:release.version,sha256:release.sha256}});
 function argsFor(tool,release=currentRelease){
   return {tool,release,installed:[tool],provenance:provenanceFor(releaseFor(tool)),
@@ -56,6 +59,11 @@ test('Prompt admission preserves actual historical installations without a versi
   assert.equal(released119.version,'1.1.19');
   assert.equal(release119.bytes,143608);
   assert.equal(release119.sha256,'a041ded61a10f4c2b0b78918e77207f9723e8aa1388f5943302737fe23f97474');
+  assert.equal(released120.version,'1.1.20');
+  assert.equal(release120.bytes,143868);
+  assert.equal(release120.sha256,'e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef');
+  assert.equal(await admitsTrustedPrompt(argsFor(released120)),true);
+  assert.equal(await admitsTrustedPrompt(argsFor(released120,release120)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(released119)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(released119,release119)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(released118)),true);
@@ -69,7 +77,7 @@ test('Prompt admission preserves actual historical installations without a versi
   assert.equal(await admitsTrustedPrompt(argsFor(candidate)),true);
 });
 
-for(const tool of [previous,intermediate,lastOfficial,released118,released119,candidate])test(tool.version+' admission retains installation, capability and revocation guards',async()=>{
+for(const tool of [previous,intermediate,lastOfficial,released118,released119,released120,candidate])test(tool.version+' admission retains installation, capability and revocation guards',async()=>{
   const valid=argsFor(tool);
   const rejected=[
     ['uninstalled', {installed:[]}],

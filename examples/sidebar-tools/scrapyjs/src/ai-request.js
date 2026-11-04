@@ -42,7 +42,7 @@ export function createAiRequest(request,payload,onInfo=()=>{},pending=null,prepa
     get dispatched(){return dispatched;},
     get unknown(){return phase==='unknown';},
     async run(){
-      let response;
+      let response,failure=null;
       try{
         let result;
         if(prepareAI){
@@ -60,6 +60,7 @@ export function createAiRequest(request,payload,onInfo=()=>{},pending=null,prepa
         terminalReply={requestId:id,state:'completed'};
         response=result;
       }catch(error){
+        failure=error;
         if(prepareAI&&['E_AI_PREPARE','E_AI_GESTURE'].includes(error?.code)){
           preparationClosed=true;dispatched=false;
           phase=claimUncertain?'unknown':'preparing';
@@ -72,7 +73,13 @@ export function createAiRequest(request,payload,onInfo=()=>{},pending=null,prepa
       }
       finally{
         if(phase!=='unknown'){
-          try{await clearTerminal();}finally{settled=true;}
+          try{await clearTerminal();}catch(error){
+            // Retirement uncertainty must keep the fence, without hiding the
+            // preparation failure that explains why no inference was sent.
+            if(failure)throw Object.assign(new Error(String(failure.cause?.message||failure.message).slice(0,600)+
+              '；原观察清理：'+String(error.message).slice(0,350),{cause:error}),{code:error.code,clientRequestId:error.clientRequestId});
+            throw error;
+          }finally{settled=true;}
         }
         settled=true;
       }

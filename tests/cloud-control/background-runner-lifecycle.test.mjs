@@ -159,3 +159,21 @@ test('missing Web Locks cannot close Offscreen; bypass requires an explicit mock
   assert.equal(entered,false);
   assert.equal(await withRunAdmissionLock(()=>42,{locks:null,allowWithoutLocks:true}),42);
 });
+
+test('approved or consumed web request retains the same Offscreen Host while cloud is disabled',async()=>{
+  const f=fixture();let pending=true;
+  const lifecycle=createCloudRunnerLifecycle({api:f.api,locks:f.locks,hasPendingWebTasks:async()=>pending});
+  assert.deepEqual(await lifecycle.reconcile(f.broker),{state:'created'});
+  assert.deepEqual(await lifecycle.reconcile(f.broker),{state:'ready'});
+  pending=false;
+  assert.deepEqual(await lifecycle.reconcile(f.broker),{state:'closed'});
+  assert.equal(f.calls.filter(call=>call==='create').length,1);
+});
+
+test('a web request approved during the slot read prevents idle Offscreen closure',async()=>{
+  const f=fixture();let reads=0;
+  f.state.contexts=[{contextType:'OFFSCREEN_DOCUMENT',documentUrl:url}];
+  const lifecycle=createCloudRunnerLifecycle({api:f.api,locks:f.locks,hasPendingWebTasks:async()=>++reads>1});
+  assert.deepEqual(await lifecycle.reconcile(f.broker),{state:'ready'});
+  assert.equal(f.calls.includes('close'),false);
+});

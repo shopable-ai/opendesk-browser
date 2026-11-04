@@ -74,7 +74,7 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 | --- | --- | --- | --- |
 | Dock / Frame / 内存 session | 书签的 `TrustedConversationWorkspace`；ScrapyJS 正式 `src/AiPanel.jsx` | 各视图实例独立草稿、消息和 round；公共 Frame/session 无领域 import | `src/ui/react/components/conversation.tsx`、`src/ui/conversation/session.js`、`src/entrypoints/sidebar-shared-ui.js`；ScrapyJS 离线预览刻意显示占位，不能作为正式 Chat 证据 |
 | 可信会话编排 | 书签、Prompt、任务、知识问答各自构造策略 | 通用核心持有 lease、权限、Provider generation、取消、订阅和迟到围栏；提示词、refs 格式、续轮预算和特定授权留可信消费者 | `src/ui/conversation/provider-consumer.js` 与 `src/ui/tool-shell.js`；这些策略不导出到沙箱，不授予业务写权限 |
-| 唯一 Provider Runtime / 设置 | 可信书签入口；沙箱 Chat 展开后由 ToolHost 显示公共入口 | 来源、Endpoint、模型、凭据属于可信 Shell；工具仅获得安全 info 投影 | `src/ui/ai/provider-runtime.js`、`src/ui/react/components/provider-settings.tsx`、`src/ui/react/tabs/tool-host.tsx`；沙箱与可信入口差异源自信任边界，不需要复制设置表单 |
+| 唯一 Provider Runtime / 设置 | 可信与沙箱公共 Dock 内的设置入口；Host 持有唯一设置面板 | 来源、Endpoint、模型、凭据属于可信 Shell；工具仅获得安全 info 投影 | `src/ui/ai/provider-runtime.js`、`src/ui/react/components/provider-settings.tsx`、`src/ui/react/tabs/tool-host.tsx`；沙箱与可信入口差异源自信任边界，不需要复制设置表单 |
 | 沙箱 AI bridge | 已声明 `ai.generate` 的 ScrapyJS 安装实例 | 真实发送手势、安装代际、撤权及 unknown 归原 Host；提案校验与 `business.config.propose/apply` 归 ScrapyJS | `examples/sidebar-tools/scrapyjs/src/AiPanel.jsx`、`src/business-api.js`；源码验证不证明最新源码已安装或真实推理成功 |
 | Cookie Editor 当前正式入口 | `app/entries/official.jsx` → `CookieEditorApp` | 未声明 `ai.generate`，未发现 Dock/Frame/session 或 Chat bridge 接线；“AI 账号额度管理”和 Cookie 权限是其他功能 | `examples/sidebar-tools/cookie-editor/tool.config.json`、`app/components/CookieHttpConnections.jsx`、`ai-account-usage/web/main.jsx`；用户记忆中的历史 Chat 版本仍未知，不据此新增 AI 或读取凭据 |
 
@@ -92,6 +92,8 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 - 设置往返验证未保存内容、返回焦点和原 Chat 草稿；普通发送只点击一次，直接请求当前保存来源，保留停止、错误与原请求围栏。没有逐次发送审阅或其取消步骤。高度异常先复现第一个错误边界并记录候选与容器变化，不写死高度或新增尺寸管理器。
 - 普通解释不写业务配置。明确修改的提案必须经消费者校验完整结果仅包含本轮指定变化；夹带其他字段、URL、分页或执行动作时整批拒绝，保留原输入和业务草稿供修改后重发。是否自动应用已明确的配置修改由业务合同决定，无需为此增加通用差异确认或重复工具栏。
 - 纯配置修改与基于网页观察推导规则分开。网页观察须绑定可信文档身份及当前业务版本；URL 相同不能证明是同一文档。没有该绑定时不得自动应用依赖旧观察的提案。ScrapyJS 消费者差异和当前限制只在其[项目合同](../../examples/sidebar-tools/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md)维护。
+
+**AI Panel 入口与执行模式（2026-11-04）**：以 AI Panel 为默认入口，不表示每次业务运行都重新请求模型。领域 adapter 决定提案的具体参数、作者阶段准备与校验，并通过原业务接口应用；已保存配置由原执行器重复运行。公共 Frame/session/bridge 不强制通用的“先推断再执行”阶段，不解析 ScrapyJS 的 `_listContainer/_listItem`，也不新增跨工具 `mode` 参数。不同业务可以有自己的确定性规则格式；ScrapyJS 的默认记录模式与尚未通过的实际链只见[对应项目合同](../../examples/sidebar-tools/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md#ai-panel-默认列表规则与执行方式2026-11-04)，不把某个消费者的测试结果提升为框架整体能力证明。
 
 ## 沙箱复用 Chat 展示
 
@@ -163,8 +165,12 @@ Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Doc
 
 共享 Chat 面向各扩展复用。根容器使用 `od-conversation-workspace`，原扩展界面放在 `od-conversation-business` 中，Dock 与业务区并列；展开对话后仍保留可操作的业务区域，收起后归还空间，开合不卸载业务或丢弃草稿。共享区沿用公共分隔条、收起按钮、消息和输入样式，不增加「AI 采集助手」等业务标题或覆盖公共控件布局。扩展只提供允许发送的上下文、提案审阅与确认后的业务回调；自动配置和业务执行仍通过该扩展原有能力及真实回执完成。
 
-Dock 的可选 `toolbar` 接收消费者自有 React 展示节点，位于收起按钮旁；它不创建 Provider 配置或授权入口。可信书签继续通过已有 `onOpenSettings` 打开共享设置面板。按钮必须完整位于 Dock 内，分隔条不能遮住按钮或裁切焦点环。
+Dock 的可选 `onOpenSettings` 在自身控制区提供公共齿轮图标，与公共收起按钮并列；`toolbar` 继续接收消费者自有 React 展示节点。两者只负责展示，不拥有 Provider 配置或授权。可信书签与 Prompt 通过原 `onOpenSettings` 打开同一个设置面板；固定沙箱 UI runtime 为公开 Dock 接入下述固定打开动作，无需工具复制按钮或重打业务包。按钮尺寸、悬停提示、焦点和无障碍名称统一；分隔条不能遮住按钮或裁切焦点环。
 
-沙箱工具同步 `visible: true, open: true` 后，可信 ToolHost 页头显示公共 AI 来源菜单和设置图标，复用现有 Provider Runtime 与唯一共享设置面板。工具本身不接收设置 facade、密钥或配置写入接口；关闭 Chat、切换页面或关闭工具时这些局部控件隐藏。来源切换仍触发原 generation、取消和旧回包围栏。本机来源显示「本机 Codex」，实际模型由本机配置决定，不推测模型 ID。
+沙箱工具同步 `visible: true, open: true` 后，设置齿轮与收起按钮位于底部公共 Dock 的控制区；ToolHost 页头、卸载按钮旁不再保留 AI 设置齿轮。原页头 AI 按钮继续重新打开/切换 Chat，紧凑来源下拉仍留在可信页头，用下拉箭头表示来源选择；其高级设置项仍打开同一设置面板。来源切换沿原 Provider Runtime 的 generation、取消和旧回包围栏，不静默切换。本机来源显示「本机 Codex」，实际模型由本机配置决定。
 
-普通消息应保持为对话主内容；采集状态、完整 JSON 和运行诊断放入局部详情，不能挤掉消息与公共输入。业务是否可运行只约束相应业务动作，不应阻止普通询问。近期消息不会由 Frame/session 自动发送；消费者若显式选择对话上下文，须限制大小并让原可信发送审阅显示实际载荷，不能将历史文本当成授权或成功回执。
+固定沙箱 Dock 调用 `OpenDeskTool.openAISettings()`：无参数、同步返回布尔值，只有仍在派发的真实按钮点击（包括按钮键盘激活生成的 click）可沿原私有端口提交固定 `open-ai-settings` 动作；返回 true 仅表示提交，不是授权或设置保存回执。Host 校验当前端口、来源窗口、toolId、实例、单调 requestId、已安装 ai.generate 能力、启用状态、安装代际与可见/展开生命周期，并在异步安装核对后复查。公开 window 消息、伪造身份、额外载荷、退休/卸载或迟到动作拒绝。动作不携带凭据、HTML、任意操作、设置写接口或推理授权，仍只打开原唯一 `SharedProviderSettingsSheet`。
+
+设置取消/关闭返回原 Chat，不卸载业务或会话；原消息、未发送输入、业务草稿及 Dock 高度保留。收起只隐藏 Dock 并归还空间，沿原 AI 入口重开；它不销毁 session、不停止或重放推理，也不清除 unknown。
+
+普通消息应保持为对话主内容；采集状态、完整 JSON 和运行诊断放入局部详情，不能挤掉消息与公共输入。业务是否可运行只约束相应业务动作，不应阻止普通询问。近期消息不会由 Frame/session 自动发送；消费者若显式选择对话上下文，须限制大小并绑定本次真实发送意图，沿原受控直接发送路径处理，不增加逐次 Provider 审阅；不能将历史文本当成授权或成功回执。

@@ -6,6 +6,11 @@ on:
     paths:
       - 'src/native-agent/chatgpt-bridge-trigger-gate.js'
       - 'src/native-agent/chatgpt-fixed-bridge-page.js'
+      - 'projects/webflow/trusted/chatgpt-bridge-page.js'
+      - 'projects/webflow/trusted/legacy-chatgpt-panel.js'
+      - 'scripts/bundle-provenance.mjs'
+      - 'tests/environment/webflow-fixed-source.test.mjs'
+      - 'projects/webflow/tests/chatgpt-legacy-panel.test.mjs'
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
       - 'examples/tasks/baidu-search-top3.js'
@@ -38,6 +43,8 @@ jobs:
         run: |
           node --check src/native-agent/chatgpt-bridge-trigger-gate.js
           node --check src/native-agent/chatgpt-fixed-bridge-page.js
+          node --check projects/webflow/trusted/chatgpt-bridge-page.js
+          node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
@@ -48,6 +55,8 @@ jobs:
             tests/environment/baidu-search-top3-r1.test.mjs \
             tests/environment/chatgpt-fixed-bridge-r12.test.mjs \
             tests/environment/chatgpt-fixed-bridge-r13.test.mjs \
-            tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+            tests/environment/chatgpt-baidu-bridge-r20.test.mjs \
+            tests/environment/webflow-fixed-source.test.mjs \
+            projects/webflow/tests/chatgpt-legacy-panel.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build

@@ -608,6 +608,46 @@ test('J06 Authority: rebuilding Authority preserves original Run and completed R
 });
 
 const gate=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve};};
+test('J06 lifecycle: one operation verifies its locked installation once and keeps site permission checks',async()=>{
+  const f=await recoveryAuthorityFixture(),prepared=await f.prepare();
+  const run=await f.authority.startControllerRun(f.request(prepared),f.sender);
+  const get=f.api.storage.local.get,contains=f.api.permissions.contains;
+  let installationReads=0,permissionChecks=0;
+  f.api.storage.local.get=async keys=>{
+    if(keys.includes(SIDEBAR_TOOL_STORE))installationReads++;
+    return get(keys);
+  };
+  f.api.permissions.contains=async query=>{permissionChecks++;return contains(query);};
+  await f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender);
+  assert.equal(installationReads,1,'The held lifecycle lock keeps the verified package immutable for this operation');
+  assert.ok(permissionChecks>1,'Chrome site access must still be checked before and after native dispatch');
+
+  f.beforeReply(()=>f.setAllowed(false));
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender),
+    error=>error.code==='E_PERMISSION');
+});
+
+test('J06 lifecycle: operation verification remains serialized with the actual App disable writer',async()=>{
+  const f=await recoveryAuthorityFixture(),prepared=await f.prepare();
+  const run=await f.authority.startControllerRun(f.request(prepared),f.sender);
+  const entered=gate(),release=gate(),send=f.api.tabs.sendMessage,set=f.api.storage.local.set;
+  let wrote=false;
+  f.api.tabs.sendMessage=(id,message,options,callback)=>{
+    if(message.action==='execute'){
+      entered.resolve();
+      release.promise.then(()=>send(id,message,options,callback));
+    }else send(id,message,options,callback);
+  };
+  f.api.storage.local.set=async rows=>{wrote=true;return set(rows);};
+  const pending=f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender);
+  await entered.promise;
+  const disabled=setInstalledSidebarToolEnabled({api:f.api,lockManager:navigator.locks,tool:f.tool,enabled:false});
+  try{await new Promise(setImmediate);assert.equal(wrote,false);}
+  finally{release.resolve();await pending;await disabled;}
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender),
+    error=>error.code==='E_TOOL_DISABLED');
+});
+
 test('J06 lifecycle: actual App disable writer fences a waiting SUBMIT under the same Web Lock',async()=>{
   const f=await recoveryAuthorityFixture(),prepared=await f.prepare(),entered=gate(),release=gate();
   const set=f.api.storage.local.set;let settled=false;
@@ -667,6 +707,32 @@ test('J06 lifecycle: a single unrelated Result does not reacquire a held App loc
     finally{held=false;}
   });
   assert.equal(snapshot.results.length,1);assert.equal(snapshot.results[0].runId,unrelated.runId);
+});
+
+test('J06 lifecycle: single-run settlement and read do not query unrelated historical grants',async()=>{
+  const f=await recoveryAuthorityFixture(),prepared=await f.prepare();
+  const run=await f.authority.startControllerRun(f.request(prepared),f.sender);
+  const historical=(await f.rows('runs')).find(row=>row.tag==='controller-run'&&!row.taskDelegation);
+  await f.storage.transaction(['runs'],'readwrite',async tx=>{
+    const old=await tx.get('runs',historical.runId);
+    old.networkOrigins=['https://unrelated-history.example'];
+    await tx.put('runs',old,old.runId);
+  });
+  const contains=f.api.permissions.contains,queries=[];
+  f.api.permissions.contains=async query=>{queries.push(query);return contains(query);};
+  const settled=await f.finish(run);
+  assert.equal(settled.result.outcome.ok,true);
+  assert.equal((await f.authority.retireControllerTarget({runId:run.runId},f.sender)).state,'released');
+  const snapshot=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.equal(snapshot.results.length,1);
+  assert.equal(snapshot.results[0].runId,run.runId);
+  assert.equal(queries.some(query=>query.origins.includes('https://unrelated-history.example/*')),false);
+
+  // The requested Run still loses its result when its own site grant is gone.
+  f.setAllowed(false);
+  const denied=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.equal(denied.results.length,0);
+  assert.ok(denied.resultDeliveryDenied.includes(run.runId));
 });
 
 test('J06 lifecycle: real successful app-service finish and retirement work with the same App delegated history',async()=>{

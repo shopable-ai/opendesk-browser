@@ -292,7 +292,7 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
   const confirmation=state.pendingAction?.type==='delete'?'确认删除「'+current?.name+'」？删除后无法恢复。'+(state.dirty?'未保存的编辑也将丢弃。':''):
     state.pendingAction?.type==='select'?'切换到「'+(state.records.find(row=>row.id===state.pendingAction.id)?.name||'所选配置')+'」将丢弃当前未保存的更改和未应用的编辑。取消可继续编辑当前草稿。':
     '未保存的 JSON 或未应用编辑将丢弃。确认'+({new:'新建配置',select:'切换配置',saved:'用远端完整列表替换草稿'}[state.pendingAction?.type]||'')+'？';
-  return <div className="od-conversation-workspace scrapyjs-workspace od-theme-shadcn" data-theme="light"><div className="od-conversation-business capture-business od-theme-shadcn" ref={businessScroll}><main className="capture-app" aria-label="scrapyjs 采集" onKeyDown={event=>{
+  return <div className="od-conversation-workspace scrapyjs-workspace" data-theme="light"><div className="od-conversation-business capture-business od-theme-shadcn" ref={businessScroll}><main className="capture-app" aria-label="scrapyjs 采集" onKeyDown={event=>{
     if(event.key!=='Escape'||event.nativeEvent.isComposing||event.nativeEvent.keyCode===229||state.saving)return;
     if(naming){event.preventDefault();closeName();}else if(state.pendingAction){event.preventDefault();cancelAction();}
     else if(managementOpen){event.preventDefault();closeManagement();}

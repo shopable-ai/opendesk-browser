@@ -10,7 +10,7 @@ type Installation=Record<string,unknown>;
 type ParamsSchema={type?:string;default?:unknown;const?:unknown;enum?:unknown[];
  required?:string[];properties?:Record<string,ParamsSchema>;minimum?:number};
 type ParameterPolicy={mode:'schema';variableKeys:string[];paramsSchema?:ParamsSchema};
-export type WebflowAutoScope={taskId:string;args:Record<string,unknown>;targetUrl:string;installation:Installation;parameterPolicy?:ParameterPolicy};
+export type WebflowAutoScope={taskId:string;args:Record<string,unknown>;targetUrl:string;installation:Installation;sourceOrigin?:string;parameterPolicy?:ParameterPolicy};
 export type WebflowAutoReview=WebflowAutoScope&{taskName:string};
 type AutoTask={taskId:string;name:string;description?:string;version:string;
  siteOrigins:string[];paramsSchema:ParamsSchema;installation:Installation};
@@ -54,13 +54,17 @@ function initialValue(schema:ParamsSchema={},depth=0):unknown{
  return '';
 }
 function initialDraft(task?:AutoTask){
- return {taskId:task?.taskId??'',targetUrl:task?.siteOrigins?.[0]?task.siteOrigins[0].replace(/\/$/,'')+'/':'',
+ return {sourceOrigin:'https://chatgpt.com',taskId:task?.taskId??'',targetUrl:task?.siteOrigins?.[0]?task.siteOrigins[0].replace(/\/$/,'')+'/':'',
   variableParameters:Boolean(autoParameterOptions(task)),
   argsText:JSON.stringify(task?initialValue(task.paramsSchema):{},null,2)};
 }
 function ScopeSummary({scope,parameterPolicy=scope.parameterPolicy}:{scope:WebflowAutoScope;parameterPolicy?:ParameterPolicy}){
  const policyOptions=parameterPolicy&&autoParameterOptions({taskId:scope.taskId,paramsSchema:parameterPolicy.paramsSchema});
  return <div className="od-stack">
+  <div className="od-form-field">
+   <strong className="od-field-label">允许触发的网站</strong>
+   <p className="od-body" style={{overflowWrap:'anywhere'}}>{scope.sourceOrigin??'https://chatgpt.com'}</p>
+  </div>
   <p className="od-note">{policyOptions?policyOptions.description:'仅允许下列固定参数；换关键词等参数变化仍需批准。'}</p>
   <div className="od-form-field" style={{gridTemplateColumns:'auto minmax(0,1fr)',alignItems:'start',columnGap:'var(--space-2)'}}>
    <strong className="od-field-label">精确地址</strong>
@@ -235,7 +239,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    if(!draft.targetUrl)throw Error('请输入精确目标地址');
    const edit=edits.current;
    void run('prepare',()=>webflowAuto.prepareAutoGrant({taskId:task.taskId,
-    args:args as Record<string,unknown>,targetUrl:draft.targetUrl,installation:task.installation,
+    args:args as Record<string,unknown>,sourceOrigin:draft.sourceOrigin,targetUrl:draft.targetUrl,installation:task.installation,
     ...(draft.variableParameters&&autoParameterOptions(task)?{parameterPolicy:{mode:'schema' as const,
      variableKeys:autoParameterOptions(task).variableKeys}}:{})}),review=>{
     if(edit===edits.current)setPrepared({review,edit});
@@ -295,7 +299,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    row.code==='E_BUILTIN_VERSION_UNAVAILABLE'))
    return '任务运行时已更新，需先验证并升级任务。原批准保留；升级后需重新审核同一精确范围。';
   return grantUsable(grant)
-   ?'授权有效（仍需逐次核验网站权限）':'安装已变化或不可用，需重新批准';
+   ?'授权有效（自动核验网站权限，无需逐次确认）':'安装已变化或不可用，需重新批准';
  };
  const busy=Boolean(work),editable=Boolean(snapshot)&&work!=='read'&&work!=='write';
  const unavailable=snapshot?.unavailable;
@@ -336,8 +340,8 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    {(!compact||panelOpen)&&switchControl}
   </div>
   <p id="webflow-auto-risk" className="od-field-help" style={{margin:0,lineHeight:1.65}}>
-   {compact?'按任务授权自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。保持侧栏打开。':
-    '开启后，新消息后的完整 ChatGPT 回复若包含已批准范围的任务协议，将自动运行已安装脚本。保持 OpenDesk 侧栏打开。'}
+   {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 需要保持侧栏打开。':
+    '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 当前需要保持侧栏打开，普通网站的已准入任务由后台执行。'}
   </p>
   {(!compact||panelOpen)&&feedback}
   </div>
@@ -376,8 +380,8 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   <details className="od-disclosure od-disclosure--flat" open={compact?true:undefined}>
    <summary>如何触发与查看结果</summary>
    <div className="od-stack">
-    <p className="od-field-help">完成一次能力接入，批准任务范围并开启上方滑块后，在 ChatGPT 项目中正常发送需求。允许更换关键词的任务不再逐次确认；AI 生成新的完整候选后才会执行。</p>
-    <p className="od-field-help">本次进度、结果或具体失败显示在侧栏“当前任务”；持久结果仍回到触发任务的原聊天。沙箱“记录”仅显示手动运行，空记录不代表自动任务未执行。</p>
+    <p className="od-field-help">完成一次能力接入，批准任务范围并开启上方滑块后，在 ChatGPT 项目中正常发送需求。允许更换关键词的任务不再逐次确认；AI 生成新的完整候选后才会执行。普通网站使用已批准来源的标准事件。</p>
+    <p className="od-field-help">ChatGPT 的进度、结果或具体失败显示在侧栏“当前任务”，结果回到原聊天。普通网站在原文档接收结果并可查询原请求状态；切换到新文档不会自动重发结果。沙箱“记录”仅显示手动运行，空记录不代表自动任务未执行。</p>
     <p className="od-field-help">没有触发时先核对开关、已批准的精确地址与参数，以及“当前任务”提示。结果未知时查询原请求，不重新发送同一候选或切换入口补跑。关闭自动运行只阻止新任务；已开始的任务在“当前任务”停止。</p>
    </div>
   </details>
@@ -399,7 +403,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     {!grant.parameterPolicy&&grantUsable(grant)&&autoParameterOptions(grantSnapshot.tasks.find(row=>row.taskId===grant.taskId))&&
      <Button disabled={busy} onClick={()=>{
       invalidate();setDraft({...initialDraft(grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)),
-       targetUrl:grant.scope.targetUrl,argsText:JSON.stringify(grant.scope.args,null,2)});
+       sourceOrigin:grant.scope.sourceOrigin??'https://chatgpt.com',targetUrl:grant.scope.targetUrl,argsText:JSON.stringify(grant.scope.args,null,2)});
       setNotice('已填入原任务范围；请在下方准备审核，一次改为允许更换关键词。旧授权在批准前保持不变。');
       if(scopeEditor.current){scopeEditor.current.open=true;scopeEditor.current.scrollIntoView?.({block:'nearest'});}
      }}>改为允许更换关键词…</Button>}
@@ -410,20 +414,30 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
       aria-label={'撤销 '+grant.taskId+' 的自动准入'} onClick={event=>revoke(grant.taskId,event.nativeEvent)}>撤销此任务</Button>
     </div>
     {snapshot&&grantUsable(grant)&&
-     <details className="od-disclosure od-disclosure--flat"><summary>高级：单次协议示例</summary>
-      <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId+':'+JSON.stringify(grant.scope)}
-       scope={grant.scope} enabled={snapshot.enabled} disabled={busy}/></details>}
+     ((grant.scope.sourceOrigin??'https://chatgpt.com')==='https://chatgpt.com'
+      ?<details className="od-disclosure od-disclosure--flat"><summary>高级：单次协议示例</summary>
+       <ApprovedTaskPrompt key={snapshot.epoch+':'+grant.grantId+':'+JSON.stringify(grant.scope)}
+        scope={grant.scope} enabled={snapshot.enabled} disabled={busy}/></details>
+      :<p className="od-field-help">请由已批准的来源网站使用标准事件提交 webflow.task.intent.v1；无需每次触发再次授权。</p>)}
    </div>)}
   </div>}
   <details ref={scopeEditor} className="od-disclosure od-disclosure--flat" open={grantSnapshot?.grants.some(grantUsable)?undefined:true}>
   <summary>新增或修改批准范围</summary>
   <div className="od-stack">
   <div className="od-form-field">
+   <label className="od-field-label" htmlFor="webflow-auto-source">来源网站地址（不含路径）</label>
+   <input id="webflow-auto-source" className="od-field" type="url" value={draft.sourceOrigin}
+    autoComplete="off" spellCheck={false} disabled={!editable||!task}
+    onChange={event=>edit({sourceOrigin:event.currentTarget.value})}/>
+   <p className="od-field-help">例如 https://example.com。批准时一次申请来源及目标网站访问权限，并登记来源网站；登记本身不授权执行任务。同一任务重新批准其他来源会替换原范围。</p>
+  </div>
+  <div className="od-form-field">
    <label className="od-field-label" htmlFor="webflow-auto-task">任务</label>
    <select id="webflow-auto-task" className="od-field" value={draft.taskId}
     disabled={!editable||!snapshot?.tasks.length} onChange={event=>{
      invalidate();setError('');
-     setDraft(initialDraft(snapshot?.tasks.find(row=>row.taskId===event.currentTarget.value)));
+     const next=initialDraft(snapshot?.tasks.find(row=>row.taskId===event.currentTarget.value));
+     setDraft(current=>({...next,sourceOrigin:current.sourceOrigin}));
     }}>
     {!snapshot?.tasks.length&&<option value="">暂无可用任务</option>}
     {snapshot?.tasks.map(row=><option key={row.taskId} value={row.taskId}>{row.name} · {row.version} · {row.taskId}</option>)}
