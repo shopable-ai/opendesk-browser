@@ -125,33 +125,56 @@ test('same-title installed tools keep distinct iframe identities without grantin
   assert.equal(store.has(MARKET_PROVENANCE_STORE),false,'a title collision cannot create official provenance');
 });
 
-test('R1.6 same-ID Clipper package cannot claim shared navigation or hijack back',async t=>{
+test('installed Bookmark UI opens without a catalog and provenance edits do not revoke its session',async t=>{
+  const tool=await officialToolFixture('bookmark-manager');
+  let mounts=0,disposals=0;
+  const grants={[tool.id]:{version:tool.version,packageHash:await sidebarToolPackageHash(tool),
+    installEpoch:null,bookmarkFull:true}};
+  const f=await hostFixture(t,{tool,startTool:false,
+    store:new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,grants]]),
+    fetcher:async url=>{if(String(url).endsWith('/catalog.json'))throw Error('Official catalog unavailable');
+      return officialFixtureFetch(url);},
+    trustedBookmarkPilot:{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
+      mount(){mounts++;return ()=>{disposals++;};}}});
+  f.host.openTool(tool.id);
+  await settle(()=>mounts===1);
+  assert.equal(f.runtime.frameRoot.dataset.bookmarkTrusted,'true');
+  f.changeStorage({[MARKET_PROVENANCE_STORE]:{oldValue:{},newValue:{[tool.id]:{
+    marketId:'opendesk/'+tool.id,version:'99.0.0',sha256:'0'.repeat(64)}}}});
+  assert.equal(disposals,0,'distribution metadata does not revoke actual installation authority');
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'retired'});
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:{[tool.id]:'retired'}}});
+  assert.equal(disposals,1,'a real installation epoch change still retires the component');
+});
+
+test('installed Clipper navigation rejects malformed state without hijacking Back',async t=>{
  const lookalike={...sample,id:'web-markdown-clipper',title:'用户自定义剪藏'};
  const f=await hostFixture(t,{tool:lookalike,store:new Map([[SIDEBAR_TOOL_STORE,[lookalike]]])});
- assert.equal(f.loaded.navigationAllowed,false,'release digest, not tool ID, admits shared header');
+ assert.equal(f.loaded.navigationAllowed,true,'the reviewed installation may use display-only navigation');
  const before=f.frame.contentWindow.sent.length;
  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
    data:{protocol:f.loaded.protocol,toolId:lookalike.id,instance:f.loaded.instance,
-     kind:'navigation-state',page:'reader'}});
+     kind:'navigation-state',page:'unknown-page'}});
  assert.equal(f.elements['sidebar-tool-title'].textContent,lookalike.title,'forged business title is ignored');
  f.emit(f.elements['sidebar-tool-back'],'click');
- assert.equal(f.frame.contentWindow.sent.length,before,'unreviewed tool receives no trusted back action');
+ assert.equal(f.frame.contentWindow.sent.length,before,'malformed navigation receives no back action');
  assert.equal(f.runtime.frameRoot.children.length,0,'back returns to the extension list');
 });
-test('uncatalogued ScrapyJS cannot replace the shared title or intercept Host Back',async t=>{
+test('installed ScrapyJS uses its shared navigation without a matching release catalog',async t=>{
   const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json',import.meta.url),'utf8'));
-  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
-  assert.equal(f.loaded.navigationAllowed,false,'shared navigation requires a matching trusted release');
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    fetcher:async()=>{throw Error('Catalog unavailable');}});
+  assert.equal(f.loaded.navigationAllowed,true);
   const before=f.frame.contentWindow.sent.length;
   f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
     protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,
     kind:'navigation-state',state:{page:'library',title:'配置库',canBack:true}
   }});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title);
-  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/配置库');
   f.emit(f.elements['sidebar-tool-back'],'click');
-  assert.equal(f.frame.contentWindow.sent.length,before,'unadmitted packages receive no navigation action');
-  assert.equal(f.runtime.frameRoot.children.length,0);
+  assert.equal(f.frame.contentWindow.sent.length,before+1);
+  assert.equal(f.frame.contentWindow.sent.at(-1).kind,'navigation-action');
+  assert.equal(f.runtime.frameRoot.children.length,1,'the app handles its own Back without remounting');
 });
 
 test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remounting',async t=>{
@@ -204,18 +227,19 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
-test('R1.7 same-ID manually altered Prompt Shortcuts cannot claim official Header actions',async t=>{
+test('installed local Prompt UI uses display-only Header actions without changing its sandbox',async t=>{
   const official=await officialToolFixture('prompt-shortcuts');
   const altered={...official,js:official.js+'\nvoid 0;'};
   const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
-  assert.equal(f.loaded.navigationAllowed,false,'ID alone never elevates a manually changed install');
+  assert.equal(f.loaded.navigationAllowed,true);
   const before=f.frame.contentWindow.sent.length;
   f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
     protocol:f.loaded.protocol,toolId:altered.id,instance:f.loaded.instance,
     kind:'navigation-state',state:{page:'create',title:'伪造标题',canBack:true,primary:'new'}
   }});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,altered.title);
-  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,altered.title+'/伪造标题');
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,false);
+  assert.equal(f.loaded.tool.js,altered.js);
   assert.equal(f.frame.contentWindow.sent.length,before);
 });
 
@@ -293,28 +317,22 @@ for(const id of ['web-markdown-clipper','prompt-shortcuts'])test('R2.2 revoked '
   assert.equal(actions(),before);
 });
 
-for(const version of ['0.3.12','99.0.0',null])test('Bookmark compatibility notice survives sandbox ready: '+(version||'missing official source'),async t=>{
+for(const version of ['0.3.12','99.0.0','custom'])test('installed Bookmark version keeps its own sandbox UI: '+version,async t=>{
   const official=await officialToolFixture('bookmark-manager');
-  const tool=version?{...official,version}:official;
+  const tool=version==='custom'?{...official,js:official.js+'\nvoid 0;'}:{...official,version};
   let mounts=0;
   const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    fetcher:async()=>{throw Error('Catalog unavailable');},
     trustedBookmarkPilot:{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
       mount(){mounts++;return ()=>{};}}});
   f.host.openTool(tool.id);
   await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
   const frame=f.elements['sidebar-tool-frame'].children[0];
   await frame.onload();
-  const loaded=frame.contentWindow.sent[0];
-  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
-    protocol:loaded.protocol,toolId:tool.id,instance:loaded.instance,kind:'status',state:'ready'}});
-  const status=f.elements['sidebar-tool-status'];
-  assert.equal(mounts,0,'rejected packages never execute in the trusted root');
-  assert.equal(status.hidden,false,'ready must not erase the explanation of the old UI');
-  assert.match(status.textContent,/兼容界面/);
-  if(version){
-    assert.ok(status.textContent.includes('v'+version));
-    assert.match(status.textContent,/Browser.*配套版本/);
-  }else assert.match(status.textContent,/官方来源.*安装身份/);
+  assert.equal(mounts,0,'a different fixed UI version cannot overwrite the package UI');
+  assert.equal(frame.contentWindow.sent[0].tool.js,tool.js);
+  assert.equal(frame.contentWindow.sent[0].navigationAllowed,true);
+  assert.doesNotMatch(f.elements['sidebar-tool-status'].textContent,/匹配|审阅新版|配套版本/);
 });
 
 test('Bookmark explicit sandbox launch does not invent an admission failure',async t=>{
@@ -1115,6 +1133,7 @@ async function videoShortcutHostFixture(t){
 }
 test('video shortcut receiver rejects forged sender and nonce, then independently verifies a valid key',async t=>{
   const f=await videoShortcutHostFixture(t),before=f.calls.length,locksBefore=f.lockCalls.length;
+  f.setGlobalState(false,1,'');
   for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:1},
     {...f.sender,tab:{id:8}},{...f.sender,documentId:'old-document'},{}])f.emitSignal(f.signal,sender);
   f.emitSignal({...f.signal,nonce:'forged'});
@@ -1327,7 +1346,7 @@ test('video shortcut enable receipt cannot report success after OFF',async t=>{
 test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
-  assert.equal(tool.version,TRUSTED_PROMPT_VERSION,'source candidate must be reviewed before trusted admission');
+  assert.ok(tool.version,'the actual installed version is independent of component metadata');
   assert.equal(release.version,tool.version,'official fixture must describe those same candidate bytes');
   const epoch='prompt-generation-r13',store=new Map([
     [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
@@ -1448,7 +1467,7 @@ test('R1.16.1 committed official 1.1.15 mounts trusted AI against the 1.1.16 cat
   f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:{[tool.id]:'revoked'}}});
   assert.notEqual(f.runtime.frameRoot.dataset.promptAi,'true','revocation destroys the trusted Dock');
 });
-test('R1.11 Prompt trusted admission requires exact candidate digest and refuses unpinned legacy version',async()=>{
+test('Prompt runtime admission accepts installed legacy UI while rejecting a different current package',async()=>{
   const current=await officialToolFixture('prompt-shortcuts');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===current.id);
   const epoch='prompt-r111-verified-generation';
@@ -1458,27 +1477,32 @@ test('R1.11 Prompt trusted admission requires exact candidate digest and refuses
   assert.equal(await admitsTrustedPrompt({tool:current,...valid}),true,
     'matching version alone is insufficient: official release digest must also match');
   const legacy={...current,version:'1.1.14'};
-  assert.equal(await admitsTrustedPrompt({tool:legacy,...valid,installed:[legacy]}),false,
-    'older installed release cannot borrow the current trusted identity');
+  assert.equal(await admitsTrustedPrompt({tool:legacy,...valid,installed:[legacy]}),true,
+    'the reviewed legacy installation does not require a current release match');
   assert.equal(await admitsTrustedPrompt({tool:{...current,js:current.js+'\\nvoid 0;'},...valid}),false,
     'a changed same-version body never inherits trusted privileges');
   assert.equal(await admitsTrustedPrompt({tool:current,...valid,epochs:{[current.id]:'revoked'}}),false,
     'a revoked or replaced installation cannot retain the trusted Dock');
 });
-test('R1.3 same-ID modified Prompt is never admitted to trusted Dock',async t=>{
+test('installed modified Prompt keeps its original iframe inside the shared Dock',async t=>{
   const official=await officialToolFixture('prompt-shortcuts');
   const altered={...official,js:official.js+'\\nvoid 0;'};
   const mounts=[];
   const pilot={enabled:true,
     conversation:()=>({request:async()=>{},cancel:async()=>{}}),
-    mount(args){mounts.push(args);return {frameTarget:new Node('div'),dispose(){}};}};
+    mount(args){
+      const frameTarget=args.container.ownerDocument.createElement('div');
+      args.container.append(frameTarget);mounts.push({...args,frameTarget});
+      return {frameTarget,dispose(){}};
+    }};
   const f=await hostFixture(t,{tool:altered,store:new Map([
     [SIDEBAR_TOOL_STORE,[altered]]]),startTool:false,trustedPromptPilot:pilot});
   f.host.openTool(altered.id);
-  await settle(()=>f.runtime.frameRoot.children.length===1&&
-    f.runtime.frameRoot.children[0].tagName?.toLowerCase()==='iframe');
-  assert.equal(mounts.length,0);
-  assert.equal(f.runtime.frameRoot.dataset.promptAi,undefined);
+  await settle(()=>mounts.length===1);
+  assert.equal(f.runtime.frameRoot.dataset.promptAi,'true');
+  const frame=mounts[0].frameTarget.querySelector('iframe');
+  assert.ok(frame);await frame.onload();
+  assert.equal(frame.contentWindow.sent[0].tool.js,altered.js);
 });
 test('queued task navigation loses authority when its tool is closed',async t=>{
   const gate=deferred(),entered=deferred();
@@ -2155,18 +2179,17 @@ test('R1.2 verified official Markdown workspace ignores content-resize hints and
     'closing a tool revokes the layout mode along with its frame session');
 });
 
-test('R1.2 same-ID user-installed Markdown package cannot claim the official full-height layout',async t=>{
+test('installed local Markdown package keeps its source UI in the shared workspace',async t=>{
   const official=await officialToolFixture('markdown-workbench');
   const altered={...official,css:official.css+'\n.mdw{outline:0}'};
   const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
-  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
-    'official ID or name without a matching release hash never grants layout admission');
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,'true');
+  assert.equal(f.loaded.tool.css,altered.css,'the custom package remains the sandbox source');
   f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
     protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
     toolId:altered.id,height:240
   }});
-  assert.equal(f.frame.style.height,'240px',
-    'unverified user package retains the ordinary content-height iframe policy');
+  assert.equal(f.frame.style.height,'','layout is independent of current release metadata');
 });
 
 for(const phase of ['load','authenticated ready'])test('Host initial layout delivery resends cached hint on '+phase,async t=>{
@@ -3174,7 +3197,7 @@ test('denied native menu ticket binding discards iframe without running untruste
 });
 
 test('a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed',async t=>{
-  const row=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
+  const row=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-context-menu-demo/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
   const store=new Map([[SIDEBAR_TOOL_STORE,[row]],
     ['opendesk.sidebar-tools.enabled.v1',{[row.id]:false}]]);
   const target={snapshot:{status:'available',url:'https://example.com/post',title:'Example'}};
@@ -3384,7 +3407,7 @@ test('sandbox Browser RPC honors Registry argument-byte budget and settles overs
   await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='near-limit'));
   const reached=f.frame.contentWindow.sent.find(row=>row.requestId==='near-limit');
   assert.equal(reached.ok,false);
-  assert.equal(reached.error.code,'E_COOKIE_NOT_SUBMITTED',
+  assert.equal(reached.error.code,'E_SITE_GRANT_REQUIRED',
     'the admitted batch reaches trusted site-authorization refusal before Cookie dispatch');
 
   const oversized={...near,cookies:near.cookies.map(row=>({...row,value:row.value+'x'.repeat(30)}))};
@@ -3476,12 +3499,14 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
   const origin='https://example.org';
   const target={snapshot:{status:'available',url:origin+'/'}};
-  let pauseAdmission=false;const entered=deferred(),resume=deferred();
+  let pauseAdmission=false,admissionPaused=false;const resume=deferred();
+  t.after(()=>resume.resolve());
   // Current installation consent must be complete before its iframe is shown.
   // This test exports fixture text and never reads sensitive Cookie values.
   const f=await hostFixture(t,{tool,target,getHook:async key=>{
-    if(pauseAdmission&&Array.isArray(key)&&key.includes(MARKET_PROVENANCE_STORE)){
-      pauseAdmission=false;entered.resolve();await resume.promise;
+    if(pauseAdmission&&Array.isArray(key)&&key.includes(SIDEBAR_TOOL_STORE)&&
+       key.includes(TOOL_REVOCATION_EPOCHS_STORE)){
+      pauseAdmission=false;admissionPaused=true;await resume.promise;
     }
   },store:new Map([
     [SIDEBAR_TOOL_STORE,[tool]],
@@ -3515,7 +3540,7 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
   assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'no-gesture')).error.code,'E_USER_GESTURE_REQUIRED');
   active=true;pauseAdmission=true;
   const oldClick=ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'begin-regranted');
-  await entered.promise;
+  await settle(()=>admissionPaused);
   const changed=structuredClone(f.store.get(BROWSER_MENU_GRANTS_STORE));
   changed[tool.id].cookieAllSites.grantEpoch='grant-after-regrant';
   f.store.set(BROWSER_MENU_GRANTS_STORE,changed);
@@ -3542,10 +3567,11 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
   authorized=true;revokeBeforeDelivery=true;active=false;
   assert.equal((await ask('browser.clipboard.writeText',{text:'revoked'},'revoked-before-sink')).error.code,'E_TOOL_CHANGED');
   assert.equal(copied.length,1,'fresh storage check stops revocation even before its UI event');
-  f.store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites={read:true,grantEpoch:'grant-2'};
+  f.store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites={storeId:'0',read:true,write:true,
+    observe:true,clear:true,values:true,valueConsent:true,grantEpoch:'grant-2'};
   revokeBeforeDelivery=false;
   f.store.delete(MARKET_PROVENANCE_STORE);active=true;
-  assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'changed-provenance')).ok,false);
+  assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'changed-provenance')).result.authorized,true);
 });
 
 test('R10 canonical exports need real Side Panel click plus one-use Host authorization',async t=>{
@@ -3733,11 +3759,10 @@ test('R3.4 stale Bookmark SDK instances cannot use the current trusted mount to 
   assert.equal(f.writes.length,1);
 });
 
-test('R3.4 Bookmark saves recheck install generation, enablement and provenance before requesting approval',async t=>{
+test('Bookmark saves recheck actual installation, generation and enablement',async t=>{
   const changes={
     epoch:f=>f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-install-generation'}),
     disabled:f=>f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[f.tool.id]:false}),
-    provenance:f=>f.store.delete(MARKET_PROVENANCE_STORE),
     uninstall:f=>f.store.set(SIDEBAR_TOOL_STORE,[])
   };
   for(const [reason,change] of Object.entries(changes))await t.test(reason,async t=>{
@@ -3797,7 +3822,7 @@ test('R1.3 frontend status and list reflect callable export services and include
 });
 
 test('R1.3 final sandbox delivery rejects selection that expires during frontend authority recheck',async t=>{
-  const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
+  const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-context-menu-demo/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
   const originalNow=Date.now,oldLocation=globalThis.location;let now=originalNow(),returned=false;
   Date.now=()=>now;globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
   t.after(()=>{Date.now=originalNow;globalThis.location=oldLocation;});
@@ -4017,14 +4042,14 @@ function cookieHostReceipt(tool,store,calls){
     return {ok:true,data:{enabled:request.enabled}};
   };
 }
-for(const scenario of ['official-ungranted','site-ungranted','separate-values','official-partial','official-granted'])
+for(const scenario of ['official-ungranted','modified-ungranted','separate-values','official-partial','official-granted'])
 test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
   const official=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
   const extraValues=scenario==='separate-values';
-  const allSites=scenario.startsWith('official-');
+  const allSites=!extraValues;
   const tool=extraValues?{...official,id:'cookie-consent-test',capabilities:[
     'browser.cookies.read','browser.cookies.write','browser.cookies.values'
-  ]}:allSites?official:{...official,js:official.js+'\nvoid 0;'};
+  ]}:scenario==='modified-ungranted'?{...official,js:official.js+'\nvoid 0;'}:official;
   const complete={storeId:'0',grantEpoch:'r-final-consent',read:true,values:true,
     valueConsent:true,write:true,observe:true,clear:true};
   const grant=scenario==='official-granted'?complete:scenario==='official-partial'?
@@ -4036,17 +4061,11 @@ test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
     setHook:async()=>{writes++;}});
   assert.equal(f.host.openSettings(tool.id),true);
   const fields=f.elements,help=fields['sidebar-tool-cookie-help'],button=fields['sidebar-tool-cookie-site-toggle'];
-  const blocked=scenario==='site-ungranted';
-  await settle(()=>blocked?button.disabled&&button.textContent==='请先更新官方安装包':!button.disabled);
+  await settle(()=>!button.disabled);
   assert.equal(fields['sidebar-tool-cookie-permissions'].hidden,false);
   assert.equal(fields['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,0,'direct management must not execute the package');
-  if(blocked){
-    assert.equal(help.hidden,false);
-    assert.match(help.textContent,/官方.*不匹配/);
-    assert.match(help.textContent,/审阅新版/);
-    assert.doesNotMatch(help.textContent,/仅能授权明确选择的网站/);
-  }else if(scenario==='official-granted'){
+  if(scenario==='official-granted'){
     assert.equal(help.hidden,true,'complete grant keeps settings compact');
     assert.equal(button.textContent,'撤销授权');
     assert.match(fields['sidebar-tool-cookie-target'].textContent,/已授权/);
@@ -4065,7 +4084,7 @@ test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
         'values cannot be granted before the base website decision');
     }
     if(!allSites)assert.equal(help.textContent.includes('允许管理所有普通 HTTP/HTTPS 网站'),false,
-      'unverified or generic packages cannot advertise all-site consent');
+      'generic Cookie tools retain their exact-site consent');
     if(scenario==='official-partial'){
       assert.match(help.textContent,/不完整|补全/);
       assert.match(button.textContent,/补全/,'partial metadata cannot be mistaken for complete consent');
@@ -4228,7 +4247,7 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
 });
 
-test('unverified Cookie Editor offers recovery instead of a complete site grant the Host rejects',async t=>{
+test('installed Cookie Editor can request consent without matching the current official release',async t=>{
   cookieTestLocation(t);
   const official=await officialToolFixture('cookie-editor');
   for(const [name,tool] of [
@@ -4241,22 +4260,20 @@ test('unverified Cookie Editor offers recovery instead of a complete site grant 
     const chrome=cookieChromeFixture(),hostCalls=[];
     const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
       hostReply:cookieHostReceipt(tool,store,hostCalls)});
-    await settle(()=>!f.elements['sidebar-tool-cookie-help'].textContent.includes('正在核验')&&
-      f.elements['sidebar-tool-cookie-help'].textContent.length>0);
-    assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,true);
-    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/官方.*不匹配/);
-    assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/审阅新版/);
-    assert.doesNotMatch(f.elements['sidebar-tool-cookie-help'].textContent,/仅能授权明确选择的网站/);
+    await settle(()=>!f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+    assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,false);
+    assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].textContent,'允许管理所有网站 Cookie');
     assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
       'the unprivileged editor remains visible without granting access');
-    await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url,'E_COOKIE_NOT_SUBMITTED');
-    // A queued trusted dispatch must also fail closed, even if it bypasses the
-    // disabled React button after package admission has completed.
-    f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
-    await pause();
-    assert.equal(chrome.requests.length,0,'do not request Chrome access for an inadmissible grant');
-    assert.equal(hostCalls.length,0,'do not send a complete site grant the real Host will reject');
+    await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url);
+    // Opening the tool cannot grant access; the original trusted click does.
     assert.equal(store.has(BROWSER_MENU_GRANTS_STORE),false);
+    f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+    await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieAllSites?.read===true);
+    assert.equal(chrome.requests.length,1);
+    assert.equal(hostCalls.length,1);
+    assert.equal(hostCalls[0].scope,'all-http-sites');
+    assert.equal(hostCalls[0].packageHash,await sidebarToolPackageHash(tool));
     assert.equal(f.host.openSettings(tool.id),true);
     assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
       'Cookie Editor has one complete consent rather than a duplicate values action');

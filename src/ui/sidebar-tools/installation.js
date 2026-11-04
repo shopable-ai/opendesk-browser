@@ -74,6 +74,22 @@ export function requireCompleteInstalledSidebarTools(rows){
     throw error('本机工具安装记录损坏或重复；已停止修改以保护原始数据','E_STORAGE_CORRUPT');
   return admitted;
 }
+// Runtime admission uses the user's actual reviewed installation. Release
+// discovery/provenance describes distribution; it is not another permission.
+export function admitsInstalledSidebarTool({tool,installed,enableRecords,epochs,expectedEpoch,
+  id=tool?.id,capabilities=[],requireEnabled=true}={}){
+  try{
+    const current=validateSidebarToolPackage(tool);
+    if(current.id!==id||!capabilities.every(cap=>current.capabilities.includes(cap)))return false;
+    const rows=requireCompleteInstalledSidebarTools(installed);
+    if(!rows.some(row=>sameSidebarToolPackage(row,current)))return false;
+    const enabled=requireToolEnableRecords(enableRecords);
+    if(requireEnabled&&enabled[id]===false)return false;
+    const actualEpoch=requireToolRevocationEpochs(epochs)[id]??null;
+    return expectedEpoch===actualEpoch&&
+      (actualEpoch===null||typeof actualEpoch==='string'&&actualEpoch.length>0);
+  }catch{return false;}
+}
 export async function getInstalledSidebarTools(api) {
   return requireCompleteInstalledSidebarTools(
     (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);

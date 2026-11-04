@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {createOfficialToolResources} from '../../scripts/build-official-tools.mjs';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {
  TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION,
- admitsTrustedKnowledge,trustedKnowledgeProvenanceChanged
+ admitsTrustedKnowledge
 } from '../../src/ui/trusted-knowledge-admission.js';
 
 // Use the real schema and portable encoder, independent of parallel UI edits.
@@ -32,20 +32,20 @@ async function rejected(cases){
  for(const [label,args] of cases)assert.equal(await admitsTrustedKnowledge(args),false,label);
 }
 
-test('actual knowledge source and optional official release share bytes; plain import grants no trusted AI',async()=>{
- const {catalog,resources}=await createOfficialToolResources();
- const release=catalog.apps.find(row=>row.toolId===id);
- assert.equal(release.installationPolicy,'optional');
- const tool=await createSidebarToolPackage('projects/'+id);
- assert.deepEqual(resources.get(release.packagePath),encodeSidebarToolPackage(tool));
- assert.deepEqual(tool.capabilities,['storage.local','user.export']);
- const args={...fixture(),tool,installed:[tool],release,
-  provenance:{[id]:{marketId:release.id,sha256:release.sha256,version:release.version}}};
- assert.equal(await admitsTrustedKnowledge(args),true);
- assert.equal(await admitsTrustedKnowledge({...args,provenance:{}}),false);
+test('knowledge admission accepts the formal installed package and current local source without Catalog',async()=>{
+ const formal=validateSidebarToolPackage(JSON.parse(await readFile(
+  'projects/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json','utf8')));
+ const local=await createSidebarToolPackage('projects/'+id);
+ // The Catalog selects promoted bytes; advancing local source may differ.
+ // Both reviewed installations use their actual identity, not each other's bytes.
+ for(const tool of [formal,local]){
+  assert.deepEqual(tool.capabilities,['storage.local','user.export']);
+  const args={...fixture(),tool,installed:[tool],release:undefined,provenance:undefined};
+  assert.equal(await admitsTrustedKnowledge(args),true);
+ }
 });
 
-test('exact official canonical package is admitted, including reordered storage keys',async()=>{
+test('knowledge admission uses the actual canonical installed package, including reordered storage keys',async()=>{
  assert.equal(TRUSTED_KNOWLEDGE_ID,id);
  assert.equal(TRUSTED_KNOWLEDGE_VERSION,'0.1.7');
  const args=fixture();
@@ -58,23 +58,17 @@ test('exact official canonical package is admitted, including reordered storage 
  assert.equal(await admitsTrustedKnowledge({...args,epochs:undefined,expectedEpoch:null}),true);
 });
 
-test('official identity, exact package path, version and storage capability are mandatory',async()=>{
+test('knowledge admission requires the tool identity and declared storage capability',async()=>{
  const args=fixture();
  await rejected([
   ['different tool ID',{...args,tool:{...args.tool,id:'another-tool'}}],
-  ['different publisher',{...args,release:{...args.release,id:'third-party/'+id}}],
-  ['different release tool',{...args,release:{...args.release,toolId:'another-tool'}}],
-  ['different path',{...args,release:{...args.release,packagePath:'examples/sidebar-tools/'+id+'/'+id+'.opendesk-tool.json'}}],
-  ['non-exact path',{...args,release:{...args.release,packagePath:args.release.packagePath+'?v=1'}}],
-  ['new official version',fixture({version:nextVersion})],
-  ['previous official version',fixture({version:'0.1.3'})],
-  ['old official version',fixture({version:'0.1.0'})],
-  ['release version mismatch',{...args,release:{...args.release,version:nextVersion}}],
   ['missing storage.local',fixture({capabilities:['user.export']})]
  ]);
+ for(const version of [nextVersion,'0.1.3','0.1.0'])
+  assert.equal(await admitsTrustedKnowledge(fixture({version})),true,'actual installed version '+version);
 });
 
-test('same ID replacements and altered package bytes never inherit trusted admission',async()=>{
+test('knowledge admission rejects same-ID mismatches, duplicate installs and invalid package schema',async()=>{
  const args=fixture(),changed=fixture({js:'globalThis.changed=true;'});
  assert.notEqual(changed.release.sha256,args.release.sha256);
  assert.equal(changed.release.bytes===args.release.bytes,false);
@@ -83,31 +77,25 @@ test('same ID replacements and altered package bytes never inherit trusted admis
   ['invalid install list',{...args,installed:{[id]:args.tool}}],
   ['same ID altered install',{...args,installed:[changed.tool]}],
   ['altered requested package',{...args,tool:changed.tool}],
-  ['both packages replaced, official release unchanged',{
-   ...args,tool:changed.tool,installed:changed.installed
-  }],
-  // Matching forged provenance is insufficient: final real digest must agree.
-  ['forged release and provenance hash',{
-   ...args,release:{...args.release,sha256:'f'.repeat(64)},
-   provenance:{[id]:{...args.provenance[id],sha256:'f'.repeat(64)}}
-  }],
-  ['wrong byte count',{...args,release:{...args.release,bytes:args.release.bytes+1}}],
+  ['duplicate install',{...args,installed:[args.tool,args.tool]}],
+  ['duplicate same ID with different bytes',{...args,installed:[args.tool,changed.tool]}],
   ['invalid package schema',{
    ...args,tool:{...args.tool,extra:true},installed:[{...args.tool,extra:true}]
   }]
  ]);
- // Equal length tampering still fails the final digest check.
+ // A locally reviewed replacement is admitted only when it is the actual install.
  const sameLength=fixture({js:'void 1;'});
  assert.equal(sameLength.release.bytes,args.release.bytes);
  assert.notEqual(sameLength.release.sha256,args.release.sha256);
  assert.equal(await admitsTrustedKnowledge({
   ...args,tool:sameLength.tool,installed:sameLength.installed
- }),false);
+ }),true);
 });
 
-test('absent, malformed or mismatched provenance fails closed',async()=>{
+test('knowledge admission ignores missing, stale or malformed distribution metadata',async()=>{
  const args=fixture(),source=args.provenance[id];
- await rejected([
+ const admitted=[
+  ['missing Catalog',{...args,release:undefined,provenance:undefined}],
   ['missing provenance',{...args,provenance:undefined}],
   ['absent source',{...args,provenance:{}}],
   ['array source map',{...args,provenance:[]}],
@@ -118,10 +106,16 @@ test('absent, malformed or mismatched provenance fails closed',async()=>{
    {marketId:source.marketId,version:source.version}
   ].map((value,index)=>['invalid source '+index,{...args,provenance:{[id]:value}}]),
   ['invalid release digest',{...args,release:{...args.release,sha256:'invalid'}}]
- ]);
+ ];
+ for(const [label,value] of admitted)assert.equal(await admitsTrustedKnowledge(value),true,label);
+ const unreadable={...args};
+ for(const key of ['release','provenance'])Object.defineProperty(unreadable,key,{
+  get(){throw new Error('distribution metadata must not be read');}
+ });
+ assert.equal(await admitsTrustedKnowledge(unreadable),true);
 });
 
-test('disable and stale, missing or malformed epoch authority reject admission',async()=>{
+test('knowledge admission rejects disabled, stale, missing or malformed epoch authority',async()=>{
  const args=fixture();
  await rejected([
   ['disabled',{...args,enableRecords:{[id]:false}}],
@@ -139,24 +133,6 @@ test('disable and stale, missing or malformed epoch authority reject admission',
  assert.equal(await admitsTrustedKnowledge(),false);
  assert.equal(await admitsTrustedKnowledge({}),false);
  const broken=fixture();
- Object.defineProperty(broken.release,'sha256',{get(){throw new Error('unreadable');}});
+ Object.defineProperty(broken.tool,'js',{get(){throw new Error('unreadable package');}});
  assert.equal(await admitsTrustedKnowledge(broken),false);
-});
-
-test('unrelated provenance updates preserve valid knowledge; own changes revoke it',()=>{
- const source=fixture().provenance[id];
- for(const unrelated of [undefined,{marketId:'opendesk/other-tool',sha256:'a'.repeat(64)},null]){
-  assert.equal(trustedKnowledgeProvenanceChanged({
-   oldValue:{[id]:source,'other-tool':{old:true}},
-   newValue:{'other-tool':unrelated,[id]:{sha256:source.sha256,version:source.version,marketId:source.marketId}}
-  }),false);
- }
- for(const value of [undefined,null,[],{},
-  {...source,sha256:fixture({js:'void 1;'}).release.sha256},
-  {...source,version:nextVersion},{...source,marketId:'third-party/'+id},
-  {...source,extra:true}]){
-  assert.equal(trustedKnowledgeProvenanceChanged({oldValue:{[id]:source},newValue:{[id]:value}}),true);
-  assert.equal(trustedKnowledgeProvenanceChanged({oldValue:{[id]:value},newValue:{[id]:source}}),true);
- }
- assert.equal(trustedKnowledgeProvenanceChanged(),true);
 });

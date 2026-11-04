@@ -64,7 +64,7 @@ test('existing Host limits multi-origin writes to the trusted Cookie Editor impo
     readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
     readFile(new URL('../../src/platform/chrome/context-menus.js',import.meta.url),'utf8')
   ]);
-  assert.match(panel,/admittedOfficialCookieImport\(tool,revocationEpoch\)/);
+  assert.match(panel,/admittedInstalledCookieTool\(tool,revocationEpoch\)/);
   assert.match(panel,/cookieImportGate\.acquire/);
   assert.match(panel,/cookieImportSource:sourceOrigin,document/);
   assert.match(panel,/captureCookieImportDocument/);

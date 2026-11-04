@@ -2,16 +2,14 @@ import {VIDEO_SPEED_ID,VIDEO_SPEED_GLOBAL_PROTOCOL,VIDEO_SPEED_GLOBAL_STORE,
   VIDEO_SPEED_GLOBAL_OPERATIONS,validVideoSpeed,globalVideoSpeedState} from './policy.js';
 import {admitsOfficialVideoSpeed} from './admission.js';
 import {requestVideoSpeed} from './host.js';
-import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../../src/ui/sidebar-tools/lifecycle.js';
-import {MARKET_PROVENANCE_STORE} from '../../../src/ui/sidebar-tools/installation.js';
-import {validateOfficialReleaseCatalog,OFFICIAL_CATALOG_PATH} from '../../../src/sidebar-tools/official-catalog.js';
 import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../src/sidebar-tools/sender.js';
 
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const authorityKeys=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-  MARKET_PROVENANCE_STORE,VIDEO_SPEED_GLOBAL_STORE];
+  VIDEO_SPEED_GLOBAL_STORE];
 const pattern=url=>{const u=new URL(url);if(!['http:','https:'].includes(u.protocol))throw error('E_VIDEO_TARGET','请选择普通网页');
   return u.protocol+'//'+u.hostname+'/*';};
 
@@ -37,35 +35,27 @@ export function readRestoredVideoSpeed(){
 }
 
 export function createGlobalVideoSpeedService({api=globalThis.chrome,
-  fetcher=globalThis.fetch,lockManager=globalThis.navigator?.locks}={}){
-  let generation=0,releasePromise;
+  lockManager=globalThis.navigator?.locks}={}){
+  let generation=0;
   const busy=new Set(),pending=new Map(),localWrites=new Map();
   const lock=work=>{
     if(!lockManager?.request)throw error('E_TOOL_LOCK','安全存储锁不可用');
     return lockManager.request('opendesk.sidebar-tools:tool:'+VIDEO_SPEED_ID,work);
   };
-  async function release(){
-    // The bundled catalog only. No remote publication or fallback identity.
-    if(!releasePromise)releasePromise=(async()=>{
-      const response=await fetcher(api.runtime.getURL(OFFICIAL_CATALOG_PATH));
-      if(!response.ok)throw error('E_VIDEO_TRUST','官方目录不可用');
-      const catalog=validateOfficialReleaseCatalog(await response.json());
-      return catalog.apps.find(row=>row.toolId===VIDEO_SPEED_ID);
-    })().catch(cause=>{releasePromise=null;throw cause;});
-    return releasePromise;
-  }
   async function authority(){
     const saved=await api.storage.local.get(authorityKeys);
     const installed=saved[SIDEBAR_TOOL_STORE];
     const tool=Array.isArray(installed)?installed.find(row=>row?.id===VIDEO_SPEED_ID):null;
-    const epoch=saved[TOOL_REVOCATION_EPOCHS_STORE]?.[VIDEO_SPEED_ID];
-    const descriptor=await release();
-    if(!await admitsOfficialVideoSpeed({tool,release:descriptor,installed,
-      provenance:saved[MARKET_PROVENANCE_STORE],enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
+    const epoch=saved[TOOL_REVOCATION_EPOCHS_STORE]?.[VIDEO_SPEED_ID]??null;
+    if(!await admitsOfficialVideoSpeed({tool,installed,
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
       epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],expectedEpoch:epoch}))
-      throw error('E_VIDEO_TRUST','全局倍速需要有效的同版本官方安装');
-    const state=globalVideoSpeedState(saved[VIDEO_SPEED_GLOBAL_STORE],epoch,descriptor.sha256);
-    return {tool,epoch,hash:descriptor.sha256,state,raw:saved[VIDEO_SPEED_GLOBAL_STORE]};
+      throw error('E_VIDEO_TRUST','全局倍速需要有效且已启用的安装');
+    const hash=await sidebarToolPackageHash(tool);
+    // The existing preference schema uses strings. Reserve '' for an absent
+    // initial epoch; installed epochs must be nonempty and host checks use null.
+    const state=globalVideoSpeedState(saved[VIDEO_SPEED_GLOBAL_STORE],epoch??'',hash);
+    return {tool,epoch,hash,state,raw:saved[VIDEO_SPEED_GLOBAL_STORE]};
   }
   async function liveHost(sender){
     if(!isSidebarToolHostSender(api,sender,VIDEO_SPEED_ID)||sender.tab?.incognito||
@@ -196,12 +186,12 @@ export function createGlobalVideoSpeedService({api=globalThis.chrome,
       const now=await authority();
       if(now.epoch!==auth.epoch||now.hash!==auth.hash)throw error('E_VIDEO_REVOKED','安装已变化');
       const raw={enabled:sync?true:payload.enabled,speed:payload.speed,
-        revision:crypto.randomUUID(),epoch:auth.epoch,packageHash:auth.hash};
+        revision:crypto.randomUUID(),epoch:auth.epoch??'',packageHash:auth.hash};
       if(localWrites.size>=64)localWrites.delete(localWrites.keys().next().value);
       localWrites.set(raw.revision,raw);
       ++generation;
       await writeVerifiedLocalValue(api,VIDEO_SPEED_GLOBAL_STORE,raw,auth.raw,'全局倍速设置');
-      const state=globalVideoSpeedState(raw,auth.epoch,auth.hash);
+      const state=globalVideoSpeedState(raw,auth.epoch??'',auth.hash);
       const observed=generation;
       // No media writes are retried if this response is lost.
       const restored=!state.enabled?await restore(auth,observed):null;

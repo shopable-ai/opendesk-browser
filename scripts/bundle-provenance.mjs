@@ -13,7 +13,7 @@ import {FIXED_OUTPUTS} from './build-contract.mjs';
 // existing trusted sidebar-tool-host entry. Never allow arbitrary examples,
 // installed packages or remote/user sources. Each source is pinned to its
 // reviewed Git blob; edits require an explicit build-boundary review. The
-// separate runtime admission still validates the exact official release.
+// separate runtime admission validates the actual reviewed installation.
 const compiledTimeReviewInputs=Object.freeze({
   'projects/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
   'projects/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
@@ -56,9 +56,9 @@ function reviewedCompiledTimeReview(target,path,root){
 const compiledVideoSpeedInputs=Object.freeze({
   'projects/video-speed-controller/trusted/policy.js':'45c5531da48e44cb8170d4e0766a834591db3903',
   'projects/video-speed-controller/trusted/host.js':'bd0024ed057e86fa4a0cc2309ed59f09ceacec65',
-  'projects/video-speed-controller/trusted/admission.js':'bcf9a90166da5cae8162fd66b56ebadf2f2320e1',
+  'projects/video-speed-controller/trusted/admission.js':'eb2e47f56b28a53c4771cc1152507f7e54f058c2',
   'projects/video-speed-controller/trusted/page.js':'5ab8b5ad8c07c8eabb360807c40e336e3e5c840e',
-  'projects/video-speed-controller/trusted/service.js':'b0e746d0a18b18d75f95771350345d79f7ddc69b'
+  'projects/video-speed-controller/trusted/service.js':'6224c5cb254a1504cd7989db91beb4ce5f2cf3b8'
 });
 const videoSpeedTargets=Object.freeze({
   'ui/sidebar-tool-host.js':['policy.js','host.js','admission.js'],
@@ -84,7 +84,7 @@ function reviewedCompiledVideoSpeed(target,path,root){
 const compiledVideoSVIPInputs=Object.freeze({
   'projects/video-svip/trusted/policy.js':'39678897d66bc0aa52609952a42a12bff442fc80',
   'projects/video-svip/trusted/host.js':'a395a0b0a3453993627890cf580061f96e2a8fb5',
-  'projects/video-svip/trusted/admission.js':'3b6e07c464cb54d8f65d421dcb580a297a99a431'
+  'projects/video-svip/trusted/admission.js':'6f28e8a0892dc2057c1110827c5da093c7d618e5'
 });
 function reviewedCompiledVideoSVIP(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSVIPInputs,path))return null;
@@ -113,7 +113,7 @@ const compiledVideoDownloaderInputs=Object.freeze({
   'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
   'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
   'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
-  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6',
+  'projects/video-downloader/trusted/admission.js':'9ff692570de52587d910adb3e8c526188f01b276',
   'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'
 });
@@ -135,7 +135,7 @@ function reviewedCompiledVideoDownloader(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'projects/adblock/trusted/dnr-session.js':'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca',
-  'projects/adblock/trusted/service.js':'47f424bd9591cb8dac84b03caf04ef8fc2e0ca99',
+  'projects/adblock/trusted/service.js':'9e63fc863e310c94ff0233192c9c57f0ba548e9d',
   'projects/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'projects/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'projects/adblock/trusted/lifecycle.js':'50143f14fa3a1e9434f5c79bd2df37db83c245bb',
@@ -193,7 +193,9 @@ const compiledCookieAccountInputs=Object.freeze({
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
   // 2026-11-02 exact-source review: corrupt-vault inspection/revocation keeps
   // accounts unverified and preserves commit, ownership and unknown fences.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'ec2750e5945198d87a60606a40875ffe3f1f3482',
+  // 2026-11-04 independently reviewed: installation and Cookie consent no
+  // longer depend on current release matching; fixed SW source stays pinned.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'953e4792f7f2d5a102ca1db8ca861a703257b7c0',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
   // Reuse the exact independently reviewed upgrade-order DTO source; pending
@@ -435,7 +437,7 @@ const compiledAppOwnedBackgroundInputs=Object.freeze({
   'projects/time-review/trusted/service.js':'87e438ee574bc4180123b1dec2cd4cf6be369f50',
   'projects/time-review/trusted/sync-outbox.js':'d00c7d7c4d3507b6fda21347a4c87d900979e3a2',
   'projects/time-review/trusted/sync-transport.js':'b09f943f2b176b2da2162df1174cd0758f593c56',
-  'projects/time-review/trusted/trusted-admission.js':'78943bff60eaa423c77ecfb56db26a64ae73cd76',
+  'projects/time-review/trusted/trusted-admission.js':'f8e864ff653181634d377f807b76d3dd18613653',
   'projects/time-review/trusted/trusted-native-ui.js':'d9aae298be73fac262490cd943c531414bf8d3d4'
 });
 function reviewedCompiledAppOwnedBackground(target,path,root){

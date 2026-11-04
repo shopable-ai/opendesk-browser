@@ -6,7 +6,7 @@ import {TIME_REVIEW_KEY} from '../../projects/time-review/trusted/model.js';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../projects/time-review/trusted/trusted-admission.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION} from '../../projects/time-review/trusted/trusted-admission.js';
 import {serializeSidebarToolPackage,validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
 function fixture(){
@@ -25,33 +25,54 @@ function fixture(){
     enableRecords:{'time-review':true}};
   return args;
 }
-test('R1.6 native admission needs exact built-in version, release hash, provenance and epoch',async t=>{
+test('Time Review admission requires an actual unique install, time capability and valid lifecycle',async()=>{
   const good=fixture();
   assert.equal(await admitsTrustedTimeReview(good),true);
+  const missing={...good.tool,capabilities:['user.export']};
+  const malformed={...good.tool,extra:true};
   for(const change of [
-    {tool:{...good.tool,js:'malicious()'}},
+    {tool:{...good.tool,id:'another-tool'}},
+    {tool:{...good.tool,js:'different()'}},
     {tool:{...good.tool,version:'1.5.2'}},
-    {tool:{...good.tool,capabilities:['time.review']}},
-    {release:{...good.release,sha256:'0'.repeat(64)}},
-    {release:{...good.release,packagePath:'third-party/tool.json'}},
-    {release:{...good.release,version:'1.5.2'}},
-    {provenance:{}},{provenance:{'time-review':{marketId:'other/time-review',
-      version:good.tool.version,sha256:good.release.sha256}}},
+    {tool:missing,installed:[missing]},
+    {tool:malformed,installed:[malformed]},
     {enableRecords:{'time-review':false}},
-    {enableRecords:{'time-review':'true'}},
-    {installed:[]},{installed:[{...good.tool,js:'tampered()'}]},
-    {epochs:{'time-review':'other'}},{expectedEpoch:null}
+    {enableRecords:{'time-review':'true'}},{enableRecords:[]},
+    {installed:[]},{installed:undefined},{installed:{}},
+    {installed:[{...good.tool,js:'different()'}]},
+    {installed:[good.tool,good.tool]},
+    {installed:[good.tool,{...good.tool,js:'different()'}]},
+    {epochs:{'time-review':'other'}},{expectedEpoch:null},{expectedEpoch:undefined},
+    {epochs:[]},{epochs:null},
+    {epochs:{'time-review':7},expectedEpoch:7},
+    {epochs:{'time-review':''},expectedEpoch:''}
   ])assert.equal(await admitsTrustedTimeReview({...good,...change}),false,JSON.stringify(change));
+  assert.equal(await admitsTrustedTimeReview(),false);
 });
-test('R1.6 first install with null epoch is admitted only for the exact reviewed release',async t=>{
-  const good=fixture();
-  good.expectedEpoch=null;
-  good.epochs={};
+test('Time Review admission accepts initial null epoch without a Catalog or source record',async()=>{
+  const good={...fixture(),expectedEpoch:null,epochs:{},release:undefined,provenance:undefined};
   assert.equal(await admitsTrustedTimeReview(good),true);
-  assert.equal(await admitsTrustedTimeReview({...good,tool:{...good.tool,js:'tampered()'}}),false);
-  assert.equal(await admitsTrustedTimeReview({...good,provenance:{}}),false);
+  assert.equal(await admitsTrustedTimeReview({...good,epochs:undefined}),true);
+  assert.equal(await admitsTrustedTimeReview({...good,tool:{...good.tool,js:'different()'}}),false);
   assert.equal(await admitsTrustedTimeReview({...good,enableRecords:{'time-review':false}}),false);
   assert.equal(await admitsTrustedTimeReview({...good,expectedEpoch:'stale-epoch'}),false);
+});
+test('Time Review admission ignores stale releases and provenance for installed old or local packages',async()=>{
+  const good=fixture();
+  const local={...good.tool,version:'1.5.2',html:'<main>Custom time review</main>',css:'',
+    js:'throw new Error("installed JS must remain in the sandbox");'};
+  for(const change of [
+    {release:null,provenance:{}},
+    {release:{...good.release,id:'other/time-review',version:'0.0.1',
+      packagePath:'local.json',sha256:'invalid',bytes:1}},
+    {provenance:{'time-review':{marketId:'local',version:'0.0.1',extra:true}}},
+    {tool:local,installed:[local]}
+  ])assert.equal(await admitsTrustedTimeReview({...good,...change}),true);
+  const unreadable={...good};
+  for(const key of ['release','provenance'])Object.defineProperty(unreadable,key,{
+    get(){throw new Error('distribution metadata must not be read');}
+  });
+  assert.equal(await admitsTrustedTimeReview(unreadable),true);
 });
 test('R1.6 source uses one static first-party UI; other tools retain the opaque sandbox',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
@@ -189,36 +210,4 @@ test('R1.8 unavailable Chrome permission and storage APIs fail closed without as
     'unknown idle permission must never be treated as authorized');
   assert.equal(f.get('time-review-revoke-idle').hidden,true);
   assert.match(f.get('time-review-site-grants-status').textContent,/授权状态不可读/);
-});
-
-test('R1.7 unrelated provenance changes preserve trusted UI but Time Review identity changes invalidate it',()=>{
-  const trusted={marketId:'opendesk/time-review',version:TRUSTED_TIME_REVIEW_VERSION,
-    sha256:'a'.repeat(64)};
-  const oldValue={'time-review':trusted,'reading-toc':{
-    marketId:'opendesk/reading-toc',version:'1.0.0',sha256:'b'.repeat(64)}};
-  const newValue={...oldValue,'cookie-editor':{
-    marketId:'opendesk/cookie-editor',version:'3.2.0',sha256:'c'.repeat(64)}};
-  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue}),false,
-    'installing another official tool cannot destroy an active Time Review native panel');
-  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:{...newValue,
-    'time-review':{...trusted}}}),false,'copying unchanged own provenance is not a revocation');
-  for(const newOwn of [
-    undefined,null,{...trusted,sha256:'d'.repeat(64)},
-    {...trusted,version:'1.7.0'},{...trusted,marketId:'third-party/time-review'},
-    {...trusted,extra:'unreviewed'},
-    {...trusted,sha256:'not-a-hash'}
-  ]){
-    const next={...newValue,'time-review':newOwn};
-    assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:next}),true,
-      'changing or corrupting own official provenance must close privileged UI');
-  }
-  assert.equal(trustedTimeReviewProvenanceChanged({
-    oldValue:{'time-review':trusted},newValue
-  }),false,'valid Time Review provenance remains trusted when only unrelated records are added');
-  for(const invalid of [null,[],'corrupted',
-    {'time-review':{...trusted,sha256:'not-a-hash'}}]){
-    assert.equal(trustedTimeReviewProvenanceChanged({oldValue:invalid,newValue}),true,
-      'old missing/corrupt source cannot be reused');
-  }
-  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:undefined}),true);
 });

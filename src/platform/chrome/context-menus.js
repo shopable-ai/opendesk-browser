@@ -20,8 +20,6 @@ import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
-import {loadOfficialCatalog,matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
-import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
@@ -319,21 +317,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.cookies.observe.getStatus':'observe','browser.cookies.observe.read':'observe',
     'browser.cookies.observe.stop':'observe'
   });
-  let cookieOfficialCatalog;
-  async function admittedOfficialCookie(tool){
-    if(tool.id!=='cookie-editor'||!tool.capabilities.includes('browser.cookies.write'))return false;
-    // Reuse the import UI's exact offline release/provenance checks. Neither
-    // a claimed ID nor a caller-provided package hash establishes officiality.
-    try{
-      const catalog=await (cookieOfficialCatalog??=loadOfficialCatalog({api,fetcher:fetchImpl}));
-      const release=catalog.apps.find(row=>row.toolId==='cookie-editor');
-      const saved=await api.storage.local.get(MARKET_PROVENANCE_STORE);
-      const provenance=saved[MARKET_PROVENANCE_STORE]?.[tool.id];
-      return Boolean(release&&provenance?.marketId===release.id&&
-        provenance.version===release.version&&provenance.sha256===release.sha256&&
-        await matchesOfficialRelease(release,tool));
-    }catch{cookieOfficialCatalog=undefined;return false;}
-  }
+  // Callers verify the actual installation before this product scope check.
+  // Explicit Cookie consent does not depend on current catalog contents.
+  const isCookieEditor=tool=>tool.id==='cookie-editor'&&
+    tool.capabilities.includes('browser.cookies.write');
   async function authorizedCookie(identity,operation,url,options={}){
     const parsed=parsedHttp(url);
     if(!parsed)throw failure('E_SCHEMA','A specific HTTP(S) Cookie URL is required');
@@ -343,7 +330,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        record.installEpoch!==(source.epochs[tool.id]??null))
       throw failure('E_SITE_GRANT_REQUIRED','Cookie site grant invalidated by a package change');
     const cap=cookieCapabilities[operation];
-    const allSites=record.cookieAllSites?.[cap]===true&&await admittedOfficialCookie(tool);
+    const allSites=record.cookieAllSites?.[cap]===true&&isCookieEditor(tool);
     const grant=allSites?record.cookieAllSites:record.cookieSites?.[origin];
     if(!cap||grant?.[cap]!==true||!grant.storeId||!grant.grantEpoch)
       throw failure('E_SITE_GRANT_REQUIRED','Approve this Cookie capability in the installed tool settings');
@@ -816,7 +803,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       (cookieSites[origin]?.[cookieCapabilities[operation]]===true||
        validGrant&&grantRecord.cookieAllSites?.storeId&&grantRecord.cookieAllSites.grantEpoch&&
        grantRecord.cookieAllSites[cookieCapabilities[operation]]===true&&
-       await admittedOfficialCookie(tool))&&await chromeSitePermitted(api,origin)
+       isCookieEditor(tool))&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
       requiredBrowser&&environmentAllowed&&fingerprintAllowed&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
@@ -1289,14 +1276,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_TOOL_CHANGED');
         const hash=await digestTool(tool);
         if(allSites&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
-        if(allSites&&enabled&&!await admittedOfficialCookie(tool))
-          throw failure('E_OWNER','All-site Cookie consent requires the exact official release');
-        // A custom package claiming the official tool ID cannot invoke the
-        // trusted one-click site grant to enable every Cookie capability.
-        // Keep explicit, single-capability consent for non-official tools.
-        if(siteCapability==='all'&&enabled&&!allSites&&tool.id==='cookie-editor'&&
-          !await admittedOfficialCookie(tool))
-          throw failure('E_SCHEMA','Complete site Cookie consent requires the exact official release');
+        if(allSites&&enabled&&!isCookieEditor(tool))
+          throw failure('E_OWNER','All-site Cookie consent requires an installed Cookie Editor');
         if(siteCapability==='all'
           ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))||
             enabled&&!allSites&&tool.id!=='cookie-editor'

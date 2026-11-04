@@ -70,22 +70,22 @@ test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate fi
   assert.match(host,/enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
 });
 
-test('R5.37 Cookie consent checks official provenance before offering complete access and native Chrome repair',async()=>{
+test('Cookie consent checks the installation before offering complete access and native Chrome repair',async()=>{
   const host=await source('src/ui/sidebar-tools.js');
-  assert.match(host,/async function admittedOfficialCookieImport\(tool,expectedEpoch,\{requireEnabled=true\}=\{\}\)/,
+  assert.match(host,/async function admittedInstalledCookieTool\(tool,expectedEpoch,\{requireEnabled=true\}=\{\}\)/,
     'Cookie execution admission defaults to requiring an enabled installation');
   const display=host.slice(host.indexOf('function prepareCookieAdmission('),
     host.indexOf('function prepareCookieChrome('));
-  assert.match(display,/const admitted=Boolean\(release&&await admittedOfficialCookieImport\(tool,epoch,\{requireEnabled:false\}\)\)/,
+  assert.match(display,/const admitted=await admittedInstalledCookieTool\(tool,epoch,\{requireEnabled:false\}\)/,
     'only display admission may recognize retained consent while disabled');
-  const calls=[...host.matchAll(/await admittedOfficialCookieImport\(([^\n)]*)\)/g)].map(match=>match[1]);
+  const calls=[...host.matchAll(/await admittedInstalledCookieTool\(([^\n)]*)\)/g)].map(match=>match[1]);
   assert.equal(calls.filter(args=>args==='tool,epoch,{requireEnabled:false}').length,1,
     'the display-only override has exactly one call site');
   const runtimeCalls=calls.filter(args=>args!=='tool,epoch,{requireEnabled:false}');
   assert.ok(runtimeCalls.length>0,'verify actual execution admission consumers');
   for(const args of runtimeCalls)assert.equal(args,'tool,revocationEpoch',
     'every execution consumer must use the enabled-by-default admission');
-  assert.match(host,/const allSites=tool.id==='cookie-editor'&&cookieAdmissionState===true/);
+  assert.match(host,/const allSites=cookieUsesAllSites\(tool,origin\)/);
   assert.match(host,/!cookieHasManageGrant\(active,websiteOrigin\(currentPageTarget\?\.snapshot\?\.url\)\)/);
   assert.match(host,/const nativeRequest=revoke\?Promise.resolve\(true\):requestCookieChrome\(event,origin,allSites\)/);
   assert.match(host,/pageConsent.confirm\(event,cookieChromeRequest\(origin,allSites\)\)/);

@@ -235,7 +235,7 @@ for(const mode of ['probe','set','read'])test(`Host rejects mismatched ${mode} r
   if(mode==='probe')assert.equal(f.calls.filter(row=>row.args[0]==='set').length,0);
 });
 
-test('only the official installed release can use first-party video mutation',async()=>{
+test('video speed admission follows the reviewed installation without a current release',async t=>{
   const tool=await createSidebarToolPackage('projects/video-speed-controller');
   const bytes=encodeSidebarToolPackage(tool);
   const sha256=createHash('sha256').update(bytes).digest('hex');
@@ -248,18 +248,31 @@ test('only the official installed release can use first-party video mutation',as
   const admitted={tool,release,installed:[tool],provenance:source,
     enableRecords:{},epochs:{[VIDEO_SPEED_ID]:expectedEpoch},expectedEpoch};
   assert.equal(await admitsOfficialVideoSpeed(admitted),true);
+  const older={...tool,version:'1.2.0'};
+  const local={...tool,html:tool.html+'<p>reviewed local edit</p>'};
+  for(const [name,changes] of [
+    ['missing catalog and provenance',{release:undefined,provenance:undefined}],
+    ['older installed version',{tool:older,installed:[older]}],
+    ['reviewed local package',{tool:local,installed:[local],release:null,provenance:{}}],
+    ['outdated catalog version',{release:{...release,version:'1.2.0'}}],
+    ['changed provenance',{provenance:{[VIDEO_SPEED_ID]:{marketId:'local',sha256:'0'.repeat(64)}}}],
+    ['changed catalog digest',{release:{...release,sha256:'a'.repeat(64)}}],
+    ['initial null epoch',{epochs:{},expectedEpoch:null}]
+  ])await t.test(name,async()=>assert.equal(await admitsOfficialVideoSpeed({...admitted,...changes}),true));
   for(const changes of [
-    {tool:{...tool,version:'1.2.0'}},
-    {release:{...release,version:'1.2.0'}},
+    {tool:older},
     {tool:{...tool,html:tool.html+'<p>modified</p>'}},
     {installed:[tool,{...tool}]},
-    {provenance:{}},
-    {provenance:{[VIDEO_SPEED_ID]:{marketId:VIDEO_SPEED_MARKET_ID,version:VIDEO_SPEED_VERSION,sha256:'0'.repeat(64)}}},
-    {release:{...release,sha256:'a'.repeat(64)}},
+    {installed:[]},
     {enableRecords:{[VIDEO_SPEED_ID]:false}},
+    {enableRecords:[]},
     {epochs:{[VIDEO_SPEED_ID]:'another-install'}},
+    {epochs:{},expectedEpoch:undefined},
+    {epochs:{[VIDEO_SPEED_ID]:''},expectedEpoch:''},
     {expectedEpoch:'another-install'},
-    {tool:{...tool,id:'other-id'}}
+    {tool:{...tool,id:'other-id'}},
+    {tool:{...tool,capabilities:[]},installed:[{...tool,capabilities:[]}]},
+    {tool:{...tool,format:'invalid'},installed:[{...tool,format:'invalid'}]}
   ])assert.equal(await admitsOfficialVideoSpeed({...admitted,...changes}),false);
 });
 
