@@ -1,5 +1,37 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="server-flow-1420-20261106"></a>
+
+## 2026-11-06：纠正文件优先布局，恢复服务端激活流程（1.4.20）
+
+用户最新决定是「不增加区域，不强调Cookie JSON文件；JSON由服务器保存或提供」。本轮仅完成这项核心纠偏及原激活入口的必要联调；不恢复旧全量验收。本工具仍由本目录唯一持有，现有`main`开发，本地提交不推送；其他owner的Cookie Editor、Webflow、Native与公共Host改动均保留。
+
+| 条件 | 本轮结果与证据边界 |
+| --- | --- |
+| K1 历史与服务 | 读取历史授权并复用ego TaskSpace13、用户已批准的`Profile 1`。开始时原7898/7899及Browser dev服务均未运行；确认端口空闲后启动原fixture和LAN服务，属于新的内存实验账本，不是旧事务恢复，不清除旧journal/unknown |
+| K2 实际安装与布局 | 原安装器从1.4.19审阅更新为1.4.20，权限未变、保留数据。实际界面默认没有独立网站登录卡、文件步骤或文件按钮；原会员→兑换→商品→网络→推广层级保留。服务端会话核对和设置内嵌原「兑换激活」卡 |
+| K3 激活与取消 | 在真实安装工具中连接原本地开发服务，手动输入测试码并预检，核对脱敏账号/商品后取消；GET会员记录仍为0条、权益0项。再次填码、预检并明确确认后，服务端及工具均为1条兑换、20次演示额度、一个当前分配。没有通过终端提交兑换 |
+| K4 服务端会话与防重复 | 确认后由原服务端交付合成会话，原激活卡显示目标`127.0.0.1:7898`与「设置并打开网站」，无需选择文件。主动取消准备，重复已消费码预检被拒绝；重开工具仍为1条兑换/20次额度，无重复消费或自动写入。本轮没有批准新的Cookie写入或启动代理 |
+| K5 LAN与真实ChatGPT边界 | 固定LAN指引页实际可访问；完整宿主标签页不等于原生Side Panel的活动网页上下文，当前候选自动带码流程仍`NOT_TESTED`，不以手动输入替代。此前1.4.18的真实ChatGPT登录在本轮开始时可见账号菜单/设置/退出，未发送消息或查看会话；1.4.20未重新写入。真实ChatGPT服务端会话来源`NOT_CONFIGURED`，fixture只交付自有合成会话，未加载真实文件 |
+| K6 定向验证 | 五个控制器文件38项PASS，覆盖默认/旧本机选择不显示导入、主动开发测试、失去开发配置即丢弃准备、服务端分配、激活来源与确认、取消和未知事务升级恢复。既有开发代理来源测试5项PASS，覆盖production拒绝、安装身份/真实owner、撤权和STOP；工具/同源预览构建、原打包器候选→晋升→同源核对通过。不重复未变输入的整组检查，不跑根npm test/完整CI |
+| K7 环境与保护 | 实际启用扩展ID`ccfcjegpkdlgbclopjmadlcjedelidmf`，加载路径`~/文稿/workspace/opendesk-browser/dist/development`。原`npm run dev`已运行，实际调试页连接指纹`1119d863079a`。唯一平台变更是更新既有development固定HTTP回环代理例外的源码批准摘要及其定向测试；没有放宽安装器、网站授权、精确来源、逐批确认或CAS/unknown保护。旧包网站授权升级承接问题仍未修复/未通过 |
+
+**验证命令与用途：** 以下控制器检查对应入口显隐与服务端激活行为；平台检查对应本轮更新的精确开发来源批准，防止任意包或production取得固定HTTP例外。两组共43项PASS，工具与预览构建检查当前产物，`--check-project`核对唯一安装包未漂移。文档修订仅核对链接/内容/格式，不触发重复构建。
+
+```sh
+node --test examples/sidebar-tools/ai-vip-share/tests/controller-local-file.test.mjs examples/sidebar-tools/ai-vip-share/tests/controller-site-restore.test.mjs examples/sidebar-tools/ai-vip-share/tests/controller-lan-activation.test.mjs examples/sidebar-tools/ai-vip-share/tests/controller-member-site-context.test.mjs examples/sidebar-tools/ai-vip-share/tests/controller-recovery-upgrade.test.mjs
+node --test tests/environment/browser-managed-proxy-development.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-project
+```
+
+**唯一安装包：** `ai-vip-share.opendesk-tool.json`，**1.4.20 / 137736 bytes / SHA-256 `7c2a744389ecdbe283769c9296bd32169f4ff8e1ce76c66481e029f50defbec2`**。与`dist/development/official-tools/ai-vip-share/`内同包逐字节一致；首次导入曾因原静态发行仍旧而报`E_PUBLISHER_CONFLICT`，恢复原serve正常同步后再经原安装器更新成功，没有绕过来源保护。工具buildId`e7f7167e2aad828fdc86d2ae66f3dda485ab97ebd7328936cca48b8d5397a978`（14输入/2输出）；预览buildId`39cfed092c80d9a77bc64e40b3da5f994712731c9d67322ae5853c99df68ae2f`（27输入/5输出），本轮逐项字节/SHA核对一致。
+
+**原文件与本机证据：** 用户授权文件仅作一次本机只读解析：13841字节、SHA-256`abfed7ca33b3637806a68be180ef90e52aa1e5d3a9d8b22e9d8a4a2c0061c514`、mtime纳秒`1793896382356555343`；当时25项保留22、跳过3、21+1批。没有重新导入、写入、上传、保存秘密副本或输出名称/值。忽略目录`artifacts/ai-vip-share-server-20261106/`只保存非秘密`original-file-check.json`与`v1420-server-first.png`、`v1420-server-session-inline.png`等运行证据，预览只用合成fixture。
+
+**资源与后续：** 当前原fixture PID29597监听127.0.0.1:7898，已消费测试码01，测试码02未消费；LAN指引PID29611监听192.168.30.3:7899，dev writer PID35245监听43119/43120。保留进程供继续操作，不重启清账，不覆盖其他writer或改Native配对。Space13结束时保留p1真实登录页和p4已更新工具结果，关闭本轮p3检查页；TaskSpace不隔离Cookie。正式服务端ChatGPT配置、当前候选LAN带码原生流程、旧网站授权升级承接、production、支付/商业、代理流量、完整矩阵与评分均未通过；本轮不将其宣称完成。
+
+以下1.4.19及更早的文件优先布局和“当前阶段”按历史阅读，不能恢复为本轮产品要求。
+
 <a id="cancel-expiry-1419-20261106"></a>
 
 ## 2026-11-06：独立 Profile 真实登录与取消到期收尾（1.4.19）

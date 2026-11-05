@@ -12,52 +12,6 @@ export default function VipApp({createDevelopmentControls}={}){
   },[createDevelopmentControls]);
   return (
     <main className="ai-vip od-theme-shadcn" aria-label="AI VIP Share 网站快速登录、会员与网络服务">
-      <details id="ai-vip-sites-section" className="ai-vip-sites od-shared-card" aria-labelledby="ai-vip-site-title" open hidden>
-        <summary><strong id="ai-vip-site-title">网站快速登录</strong><small className="ai-vip-version">v{toolConfig.version}</small><span id="ai-vip-site-source"></span></summary>
-        <CardContent className="ai-vip-site-content">
-          <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
-          <input id="ai-vip-site-select" type="hidden" defaultValue="" />
-          <ol id="ai-vip-file-steps" className="ai-vip-login-steps" aria-label="本地文件登录步骤" hidden>
-            <li><span aria-hidden="true">1</span>选择文件</li>
-            <li><span aria-hidden="true">2</span>逐批确认</li>
-            <li><span aria-hidden="true">3</span>网站核验</li>
-          </ol>
-          <div className="ai-vip-site-summary">
-            <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
-              <span>登录账号</span>
-              <p id="ai-vip-site-account">尚未获取授权账号。</p>
-            </div>
-          </div>
-          <div id="ai-vip-source-auth" className="ai-vip-source-auth" hidden>
-            <label className="od-form-field ai-vip-site-field" htmlFor="ai-vip-source-credential">
-              <span className="od-field-label">登录凭据</span>
-              <input id="ai-vip-source-credential" className="od-field" type="password" data-sensitive
-                autoComplete="off" autoCapitalize="none" spellCheck="false" placeholder="网站服务签发的临时凭据，仅本次使用" />
-            </label>
-            <Button size="lg" id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
-          </div>
-          <input id="ai-vip-cookie-file" type="file" accept=".json,application/json" data-sensitive hidden aria-label="选择本地 Cookie JSON" />
-          <p id="ai-vip-file-help" className="od-field-help" hidden>从已登录的 ChatGPT 导出 Cookie JSON，再选择文件。文件仅在本机完整校验，合法过期项会跳过并显示数量，原文件不变。每批由你确认；写入后仍需在网站核验账号。</p>
-          <p id="ai-vip-file-summary" className="ai-vip-file-summary" hidden></p>
-          <div className="ai-vip-site-actions">
-            <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>准备登录</Button>
-            <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>打开网站 ↗</Button>
-            <Button size="lg" id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>取消登录</Button>
-          </div>
-          <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite" hidden></p>
-      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
-        <h2 id="ai-vip-cookie-title">确认网站登录</h2>
-        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
-        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
-        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
-        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
-        <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
-        <Button size="lg" id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
-      </section>
-        </CardContent>
-      </details>
-
-
       <Card id="ai-vip-member-card" className="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
         <CardContent className="ai-vip-card-inner">
           <div className="ai-vip-section-head">
@@ -98,7 +52,7 @@ export default function VipApp({createDevelopmentControls}={}){
       <Card className="ai-vip-redeem" aria-labelledby="ai-vip-redeem-title">
         <CardContent className="ai-vip-section-content">
         <h2 id="ai-vip-redeem-title">兑换激活</h2>
-        <p className="ai-vip-redeem-subtitle">输入兑换码或使用专属激活链接，领取对应权益。</p>
+        <p className="ai-vip-redeem-subtitle">输入激活码或打开专属链接，核对权益后确认激活。网站会话由服务器提供。</p>
         <p id="ai-vip-redeem-intro" className="ai-vip-note od-field-help" hidden>先核对权益，再确认兑换。</p>
         <div id="ai-vip-activation-hint" className="ai-vip-link-hint" hidden>
           <strong>已识别专属激活链接 · 待确认</strong><p id="ai-vip-activation-detail"></p>
@@ -135,6 +89,50 @@ export default function VipApp({createDevelopmentControls}={}){
         <p id="ai-vip-redeem-status" className="ai-vip-note od-field-help" role="status" aria-live="polite">会员服务接入后可使用激活码。</p>
         <p id="ai-vip-redeem-error" className="ai-vip-error od-alert od-alert--error" role="alert" hidden></p>
         <p id="ai-vip-redeem-fine" className="ai-vip-fine-print" hidden>确认兑换后才会领取权益。</p>
+      <div id="ai-vip-sites-section" className="ai-vip-sites" hidden>
+        <p id="ai-vip-site-source" className="ai-vip-note"></p>
+        <div className="ai-vip-site-content">
+          <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
+          <input id="ai-vip-site-select" type="hidden" defaultValue="" />
+          <ol id="ai-vip-file-steps" className="ai-vip-login-steps" aria-label="本机测试步骤" hidden>
+            <li><span aria-hidden="true">1</span>选择测试材料</li>
+            <li><span aria-hidden="true">2</span>逐批确认</li>
+            <li><span aria-hidden="true">3</span>网站核验</li>
+          </ol>
+          <div className="ai-vip-site-summary">
+            <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
+              <span>登录账号</span>
+              <p id="ai-vip-site-account">尚未获取授权账号。</p>
+            </div>
+          </div>
+          <div id="ai-vip-source-auth" className="ai-vip-source-auth" hidden>
+            <label className="od-form-field ai-vip-site-field" htmlFor="ai-vip-source-credential">
+              <span className="od-field-label">登录凭据</span>
+              <input id="ai-vip-source-credential" className="od-field" type="password" data-sensitive
+                autoComplete="off" autoCapitalize="none" spellCheck="false" placeholder="网站服务签发的临时凭据，仅本次使用" />
+            </label>
+            <Button size="lg" id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
+          </div>
+          <input id="ai-vip-cookie-file" type="file" accept=".json,application/json" data-sensitive hidden aria-label="选择本地 Cookie JSON" />
+          <p id="ai-vip-file-help" className="od-field-help" hidden>仅用于本机开发测试。正式登录由服务器提供已授权会话，用户无需选择文件。测试材料不会上传或保存。</p>
+          <p id="ai-vip-file-summary" className="ai-vip-file-summary" hidden></p>
+          <div className="ai-vip-site-actions">
+            <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>准备登录</Button>
+            <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>打开网站 ↗</Button>
+            <Button size="lg" id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>取消登录</Button>
+          </div>
+          <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite" hidden></p>
+      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
+        <h2 id="ai-vip-cookie-title">确认网站登录</h2>
+        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
+        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
+        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
+        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
+        <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
+        <Button size="lg" id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
+      </section>
+        </div>
+      </div>
         </CardContent>
       </Card>
 

@@ -78,7 +78,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
   }
   const current=()=>[LOCAL_CHATGPT,...ORDINARY_SITES].find(row=>row.key===select?.value);
   const assertActive=(context,epoch)=>{
-    if(disposed||(!isLocal(context)&&!available)||generation!==epoch||current()!==context)throw Error('Selection changed');
+    if(disposed||!available||generation!==epoch||current()!==context)throw Error('Selection changed');
   };
   function invalidate(){
     ++generation;loading=false;masked='';notice='';
@@ -103,7 +103,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       ' 项。每批单独确认；设置可能替换当前登录。';
   }
   async function importLocalFile(event){
-    if(event.isTrusted!==true||!isLocal(current())||loading||blocked())return;
+    if(event.isTrusted!==true||!available||!isLocal(current())||loading||blocked())return;
     const file=fileInput?.files?.[0];
     if(!file)return; // Cancelling the native chooser has no effects.
     const epoch=++generation;loading=true;setPending(null);localBatches=[];masked='';
@@ -309,8 +309,9 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         ORDINARY_SITES.some(row=>row.site.targetUrl===restoredTarget);
       const lost=profileAvailable&&!development;profileAvailable=Boolean(development);
       available=Boolean(development&&requested);
-      if(lost&&!isLocal(current())){restoreBlocked=true;invalidate();}
-      const rows=[LOCAL_CHATGPT,...(available?ORDINARY_SITES:[]),...(commercialTarget()?[{key:'commercial',site:{label:commercialLabel||'会员网站'}}]:[])];
+      if(lost){restoreBlocked=true;invalidate();}
+      // Local files are an explicit development test, never a default product source.
+      const rows=[...(available?[LOCAL_CHATGPT,...ORDINARY_SITES]:[]),...(commercialTarget()?[{key:'commercial',site:{label:commercialLabel||'会员网站'}}]:[])];
       if(section)section.hidden=rows.length===0;
       const key=rows.map(row=>row.key+'|'+row.site.label).join(',');
       if(key!==optionsKey){
@@ -333,7 +334,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         const target=getRestoredTarget?.();
         // undefined means the independent journal read has not settled yet.
         if(storedChoice!==null||target!==undefined){
-          const choice=storedChoice??[LOCAL_CHATGPT,...ORDINARY_SITES].find(row=>row.site.targetUrl===target)?.key??LOCAL_CHATGPT.key;
+          const choice=storedChoice??[LOCAL_CHATGPT,...ORDINARY_SITES].find(row=>row.site.targetUrl===target)?.key??(commercialTarget()?'commercial':'');
           const present=rows.some(row=>row.key===choice);
           // A commercial directory is verified asynchronously. Wait for it
           // without treating the saved preference as authority or replacing a
@@ -362,7 +363,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       if(fileInput)fileInput.disabled=Boolean(locked||controllerBusy||loading||pending);
       if(clear)clear.hidden=!credentialInput?.value;
       receive.hidden=pending;
-      receive.textContent=loading?'正在准备…':isLocal(context)?'选择 Cookie JSON':'准备登录';
+      receive.textContent=loading?'正在准备…':isLocal(context)?'选择本机测试材料':'准备登录';
       cancel.hidden=!pending&&!loading;
       if(accountRow)accountRow.hidden=!pending;
       clear.disabled=Boolean(controllerBusy);cancel.disabled=Boolean(controllerBusy);

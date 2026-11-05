@@ -1,7 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runtime,deferred} from './helpers/controller-fixture.mjs';
+import {runtime as rawRuntime,deferred} from './helpers/controller-fixture.mjs';
 import {readCookieJournal} from '../src/cookie-journal.js';
+
+// Local file support is now reached only through the explicit development test entry.
+async function runtime(options={}){
+  const e=await rawRuntime(options);
+  await e.click('test-sites');
+  await e.chooseSite('local-chatgpt');
+  return e;
+}
 
 const KEY='aiVipCookieDeliveryR137';
 const cookie=(extra={})=>({name:'__Host-session',value:'synthetic-local-only',domain:'chatgpt.com',path:'/',
@@ -12,8 +20,8 @@ async function journal(e){return (await readCookieJournal(async()=>{
 })).value;}
 async function settle(e){for(let i=0;i<30&&e.get('site-select').disabled;i++)await e.flush();}
 
-test('local file works without member/development service, cancelled preparation leaves no secrets or writes',async()=>{
-  const e=await runtime({developmentProfile:null});
+test('explicit development file test needs no member service; cancelled preparation leaves no secrets or writes',async()=>{
+  const e=await runtime({});
   assert.equal(e.get('site-select').value,'local-chatgpt');
   await e.importFile(input());
   assert.equal(e.get('cookie-install').hidden,false);
@@ -31,7 +39,7 @@ test('local file works without member/development service, cancelled preparation
 
 test('malformed/all-expired/oversized file feedback does not dispatch and later valid input recovers',async()=>{
   let contextQueries=0;
-  const e=await runtime({developmentProfile:null,cookieContext:async()=>{contextQueries++;return {storeId:'0'};}});
+  const e=await runtime({cookieContext:async()=>{contextQueries++;return {storeId:'0'};}});
   for(const text of ['secret invalid JSON']){
     await e.importFile(text);assert.equal(e.get('cookie-install').hidden,true);
     assert.match(e.get('site-status').textContent,/无效|不安全/);
@@ -51,7 +59,7 @@ test('malformed/all-expired/oversized file feedback does not dispatch and later 
 });
 
 test('context mismatch and changed context stop before writing',async()=>{
-  let current='1';const e=await runtime({developmentProfile:null,cookieContext:async()=>({storeId:current})});
+  let current='1';const e=await runtime({cookieContext:async()=>({storeId:current})});
   await e.importFile(input());assert.match(e.get('site-status').textContent,/Store/);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.match(e.get('file-summary').textContent,/文件共 1 项.*保留 1 项.*已跳过 0 项/);
@@ -62,7 +70,7 @@ test('context mismatch and changed context stop before writing',async()=>{
 
 test('each partition batch needs a new explicit confirmation; duplicate click dispatches only once, reopen never writes',async()=>{
   const gate=deferred();let first=true;
-  const e=await runtime({developmentProfile:null,cookieSetMany:async args=>{
+  const e=await runtime({cookieSetMany:async args=>{
     if(first){first=false;await gate.promise;}
     return {saved:args.cookies.length,verified:args.cookies.length,
       results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
@@ -77,7 +85,7 @@ test('each partition batch needs a new explicit confirmation; duplicate click di
   assert.equal(e.cookieCalls.length,2);assert.deepEqual(e.tabCalls,[{url:'https://chatgpt.com/'}]);
   assert.equal(e.get('site-receive').disabled,false);
   assert.deepEqual((await journal(e)).attempts.map(r=>r.state),['success','success']);
-  const reopened=await runtime({store:e.store,developmentProfile:null});
+  const reopened=await runtime({store:e.store});
   assert.equal(reopened.get('site-select').value,'local-chatgpt');
   assert.match(reopened.get('cookie-status').textContent,/本批 Cookie 已写入并核验/);
   assert.equal(reopened.get('cookie-install').hidden,true);assert.equal(reopened.cookieCalls.length,0);
@@ -87,7 +95,7 @@ test('each partition batch needs a new explicit confirmation; duplicate click di
 test('late first-batch success preserves its receipt but expired remainder never claims file completion or opens website',async()=>{
   let now=Date.now();const gate=deferred();
   class Clock extends Date {static now(){return now;}}
-  const e=await runtime({developmentProfile:null,dateClock:Clock,cookieSetMany:async args=>{
+  const e=await runtime({dateClock:Clock,cookieSetMany:async args=>{
     await gate.promise;
     return {saved:args.cookies.length,verified:args.cookies.length,
       results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
@@ -102,7 +110,7 @@ test('late first-batch success preserves its receipt but expired remainder never
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(e.get('site-receive').disabled,false);
   assert.deepEqual((await journal(e)).attempts.map(row=>row.state),['success']);
-  const reopened=await runtime({store:e.store,developmentProfile:null});
+  const reopened=await runtime({store:e.store});
   assert.match(reopened.get('cookie-status').textContent,/本批 Cookie/);
   assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.tabCalls.length,0);
   assert.ok(!JSON.stringify([...e.store]).includes('synthetic-local-only'));
@@ -110,7 +118,7 @@ test('late first-batch success preserves its receipt but expired remainder never
 
 test('expiry before confirmation reports all unsubmitted cookies and dispatches nothing',async()=>{
   let now=Date.now();class Clock extends Date {static now(){return now;}}
-  const e=await runtime({developmentProfile:null,dateClock:Clock,pollTimers:true});
+  const e=await runtime({dateClock:Clock,pollTimers:true});
   await e.importFile(input([cookie(),cookie({name:'partitioned',partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}})]));
   now+=120001;
   e.timers.find(row=>row.ms===1200).callback();await e.flush();
@@ -122,7 +130,7 @@ test('expiry before confirmation reports all unsubmitted cookies and dispatches 
 
 test('trusted cancellation allows explicit retry only while prepared; expiry removes retry guidance and unknown locks after reopen',async()=>{
   let cancel=true,now=Date.now();class Clock extends Date {static now(){return now;}}
-  const e=await runtime({developmentProfile:null,dateClock:Clock,pollTimers:true,cookieSetMany:async()=>{
+  const e=await runtime({dateClock:Clock,pollTimers:true,cookieSetMany:async()=>{
     throw Object.assign(Error('synthetic'),{code:cancel?'E_COOKIE_NOT_SUBMITTED':'E_CANCELLED'});
   }});
   await e.importFile(input());await e.click('cookie-install');await settle(e);
@@ -140,7 +148,7 @@ test('trusted cancellation allows explicit retry only while prepared; expiry rem
   cancel=false;await e.click('cookie-install');await settle(e);
   assert.equal((await journal(e)).attempts[1].state,'unknown');
   const before=JSON.stringify(e.store.get(KEY));
-  const reopened=await runtime({store:e.store,developmentProfile:null});
+  const reopened=await runtime({store:e.store});
   assert.equal(reopened.get('site-receive').disabled,true);
   await reopened.importFile(input());assert.equal(reopened.cookieCalls.length,0);
   assert.equal(JSON.stringify(e.store.get(KEY)),before);
@@ -150,7 +158,7 @@ test('trusted cancellation allows explicit retry only while prepared; expiry rem
 test('mixed file submits only retained cookies, keeps review counts across batches and clears on completion',async()=>{
   const partitionKey={topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false};
   const retained=[cookie(),cookie({name:'partitioned',partitionKey})];
-  const e=await runtime({developmentProfile:null});
+  const e=await runtime({});
   await e.importFile(input([cookie({name:'expired',session:false,expirationDate:1}),...retained]));
   assert.match(e.get('file-summary').textContent,/文件共 3 项.*保留 2 项.*已跳过 1 项.*2 批/);
   assert.equal(e.cookieCalls.length,0);
@@ -168,7 +176,7 @@ test('mixed file submits only retained cookies, keeps review counts across batch
 
 test('expired partition claims still undergo current-context checks before retained rows can be prepared',async()=>{
   let queries=0;
-  const e=await runtime({developmentProfile:null,cookieContext:async kind=>{
+  const e=await runtime({cookieContext:async kind=>{
     if(kind==='store')return {storeId:'0'};
     queries++;return {partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}};
   }});
@@ -188,7 +196,7 @@ test('expired partition claims still undergo current-context checks before retai
 
 
 test('missing website permission retains non-secret file counts with no prepared batch or writes',async()=>{
-  const e=await runtime({developmentProfile:null,cookieContext:async()=>{
+  const e=await runtime({cookieContext:async()=>{
     throw Object.assign(Error('synthetic'),{code:'E_SITE_GRANT_REQUIRED'});
   }});
   await e.importFile(input([cookie(),cookie({name:'past',session:false,expirationDate:1})]));
@@ -197,4 +205,30 @@ test('missing website permission retains non-secret file counts with no prepared
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(e.cookieCalls.length,0);
   assert.ok(!JSON.stringify([...e.store]).includes('synthetic-local-only'));
+});
+
+
+test('consumer startup and old local-file preference expose no import flow or network side effects',async()=>{
+  for(const developmentProfile of [null, undefined]){
+    const e=await rawRuntime({...(developmentProfile===null?{developmentProfile:null}:{}),
+      store:new Map([['aiVipSiteSelectionR1',{schemaVersion:1,selection:'local-chatgpt'}]])});
+    assert.equal(e.get('sites-section').hidden,true);
+    assert.equal(e.get('site-select').value,'');
+    assert.equal(e.get('file-help').hidden,true);
+    assert.equal(e.get('file-steps').hidden,true);
+    await e.importFile(input());
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.equal(e.cookieCalls.length,0);assert.equal(e.calls.length,0);
+    assert.equal(e.get('site-options').children.some(row=>row.value==='local-chatgpt'),false);
+  }
+});
+
+test('losing the development profile invalidates a prepared local test without writes',async()=>{
+  const e=await runtime();await e.importFile(input());
+  assert.equal(e.get('cookie-install').hidden,false);
+  e.setStatus({state:'disabled',permission:true,canStop:false,control:'controllable_by_this_extension'});
+  await e.click('proxy-refresh');
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.get('file-summary').textContent,'');
+  assert.equal(e.cookieCalls.length,0);
 });
