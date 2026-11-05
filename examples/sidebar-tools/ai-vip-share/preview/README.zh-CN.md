@@ -1,5 +1,13 @@
 # AI VIP Share · 预览说明
 
+## 2026-11-06 当前更新（1.4.18）
+
+正式包及同源预览已更新为 **1.4.18**，默认展开快速登录、显示三步入口，完整校验后跳过合法过期项并报告总/保留/跳过数。预览仅使用合成数据，真实文件只在已安装工具原入口处理；预览不能证明可信权限、Cookie 写入或 ChatGPT 登录。来源与操作证据见[唯一测试记录](../dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#expired-filter-1418-20261106)。下节及后文版本为历史。
+
+## 2026-11-06 更新（1.4.16）
+
+该阶段正式包和同源预览为 **1.4.16**。本地 ChatGPT 登录默认展开，显示版本、三步入口及精确过期反馈；下面“默认折叠/1.4.13”均为历史。1.4.16 已在 ego 原扩展中心审阅安装并以真实用户文件触发过期拒绝；文件未进入此预览。预览的 Cookie 写入仍为受限合成 fixture，不能作为真实写入或登录证据。当前来源与未测项见[唯一测试记录](../dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#visible-login-1416-20261106)。
+
 ## 当前参照、入口与版本（2026-11-01）
 
 用户明确以 [`design.html`](design.html) 为参照，随后要求复用 Neutral shadcn aria-nova 并简化网站登录；[`index.html`](index.html) 是消费正式 React/控制器的同源交互入口。唯一正式包为 **1.4.13**，未执行原生安装更新；日常 1.4.8 与 Core Profile 1.4.11 均为历史观察。目标、来源回执及未测项见[唯一当前账本](../dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#design-alignment-20261101)。

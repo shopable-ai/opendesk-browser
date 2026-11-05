@@ -23,8 +23,10 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
   const credentialInput=byId('ai-vip-source-credential'),clear=byId('ai-vip-source-clear');
   const accountRow=byId('ai-vip-site-account-row');
   const fileInput=byId('ai-vip-cookie-file'),fileHelp=byId('ai-vip-file-help');
+  const fileSteps=byId('ai-vip-file-steps'),fileSummary=byId('ai-vip-file-summary');
   const isLocal=context=>context?.key===LOCAL_CHATGPT.key;
   let localBatches=[],localIndex=0,localDeadline=0,localStore=null,localPartition=null;
+  let localSummary='',fileError=false;
   const clocks=Session.createSourceClocks();
   let available=false,profileAvailable=false,disposed=false,generation=0,loading=false,notice='',masked='',optionsKey=null;
   let siteButtons=[];
@@ -80,6 +82,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
   };
   function invalidate(){
     ++generation;loading=false;masked='';notice='';
+    localSummary='';fileError=false;
     localBatches=[];localIndex=0;localDeadline=0;localStore=null;localPartition=null;
     if(fileInput)fileInput.value='';
     if(credentialInput)credentialInput.value='';
@@ -104,19 +107,26 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
     const file=fileInput?.files?.[0];
     if(!file)return; // Cancelling the native chooser has no effects.
     const epoch=++generation;loading=true;setPending(null);localBatches=[];masked='';
+    localSummary='';fileError=false;
     notice='正在本机预检文件…';onChange();
     try{
       if(file.size>65536)throw Error('文件超过 64 KiB，未提交 Cookie。');
       const checked=preflightCookieFile(await file.text());
       assertActive(LOCAL_CHATGPT,epoch);
+      localSummary='文件共 '+checked.totalCount+' 项 · 保留 '+checked.count+' 项 · 已跳过 '+
+        checked.skippedCount+' 项过期 Cookie。';
+      if(!checked.count){
+        fileError=true;notice='没有可用 Cookie，未准备任何写入批次。可重新选择其他文件；原文件保持不变。';
+        return;
+      }
       // These are public authorized context queries, never Cookie value reads.
       const actual=await cookies.getCurrentStore({url:LOCAL_CHATGPT.site.targetUrl});
       assertActive(LOCAL_CHATGPT,epoch);
       if(typeof actual?.storeId!=='string')throw Error('无法核对当前浏览器存储，未提交 Cookie。');
-      const partitioned=checked.batches.some(batch=>batch.cookies.some(row=>row.partitionKey));
+      const partitioned=checked.contexts.some(row=>row.partitionKey);
       const partition=partitioned?await cookies.getPartitionKey({url:LOCAL_CHATGPT.site.targetUrl}):null;
       assertActive(LOCAL_CHATGPT,epoch);
-      for(const batch of checked.batches)for(const row of batch.cookies){
+      for(const row of checked.contexts){
         if(row.storeId!==undefined&&row.storeId!==actual.storeId)
           throw Error('文件的 Cookie Store 与当前浏览器不符，未提交 Cookie。');
         if(row.partitionKey&&(row.partitionKey.topLevelSite!==partition?.partitionKey?.topLevelSite||
@@ -126,9 +136,13 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       localStore=actual.storeId;localPartition=partition?.partitionKey??null;
       localDeadline=Math.floor(Math.min(Date.now()+120000,checked.earliestExpiry??Infinity));
       localBatches=checked.batches;localIndex=0;
+      localSummary+=' '+checked.batches.length+' 批分别确认。准备有效期最多 2 分钟。';
       stageLocalBatch(epoch);
     }catch(error){
       if(generation===epoch){localBatches=[];setPending(null);masked='';
+        // Keep non-secret file counts when browser authorization/context fails;
+        // no batch is prepared, and the error below remains authoritative.
+        fileError=true;
         notice=error?.code==='E_COOKIE_FILE'?error.message:
           ['E_SITE_GRANT_REQUIRED','E_CHROME_PERMISSION_REQUIRED'].includes(error?.code)?
             '请先在工具设置中授予 ChatGPT 网站 Cookie 读取及写入权限，再重新选择文件。':
@@ -265,10 +279,10 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
           ++localIndex;
           stageLocalBatch(delivery.epoch);
         }else{
-          localBatches=[];masked='';
+          localBatches=[];masked='';localSummary='';
           notice=!success?'本批未完整设置，后续批次已丢弃。请核对结果，不会自动重试。':
-            remaining>0?'本批已写入并核验；剩余 '+remaining+' 项已过期，未提交。请重新选择有效文件，不会自动重试。':
-              '文件内各批 Cookie 已写入并核验，请在目标页核对实际登录状态。';
+            remaining>0?'本批已写入并核验；准备已到期，剩余 '+remaining+' 项未提交。请重新选择文件，不会自动重试。':
+              '本次保留的各批 Cookie 已写入并核验，请在目标页核对实际登录状态。';
         }
         return {complete:success&&active&&remaining===0};
       }
@@ -284,7 +298,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         const remaining=delivery.kind==='local-file'?
           localBatches.slice(localIndex).reduce((count,batch)=>count+batch.cookies.length,0):0;
         delivery.credential='';invalidate();
-        notice=remaining>0?'剩余 '+remaining+' 项已过期，未提交。请重新选择有效文件，不会自动重试。':
+        notice=remaining>0?'准备已到期，剩余 '+remaining+' 项未提交。请重新选择文件，不会自动重试。':
           '会话交付已过期，请重新获取。';onChange();
       }
     },
@@ -343,6 +357,8 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       const pending=Boolean(getPending());
       authPanel.hidden=!context||isLocal(context)||pending;
       if(fileHelp)fileHelp.hidden=!isLocal(context);
+      if(fileSteps)fileSteps.hidden=!isLocal(context);
+      if(fileSummary){fileSummary.textContent=localSummary;fileSummary.hidden=!isLocal(context)||!localSummary;}
       if(fileInput)fileInput.disabled=Boolean(locked||controllerBusy||loading||pending);
       if(clear)clear.hidden=!credentialInput?.value;
       receive.hidden=pending;
@@ -361,6 +377,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
           context?'填写网站服务签发的登录凭据后，点击「准备登录」。':
             commercial?'准备登录后核对账号，再由浏览器确认。':rows.length?'请选择要登录的网站。':''));
       status.hidden=!status.textContent;
+      status.setAttribute('data-tone',isLocal(context)&&fileError&&!locked?'error':'neutral');
     },
     dispose(){invalidate();disposed=true;++generation;loading=false;if(credentialInput)credentialInput.value='';setPending(null);}
   };

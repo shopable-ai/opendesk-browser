@@ -8,12 +8,18 @@
 .ai-vip-sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .ai-vip-site-content,.ai-vip-section-content{display:grid;gap:var(--space-2)}
 .ai-vip-sites{display:block}
-.ai-vip-sites>summary{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);cursor:pointer;list-style:none}
+.ai-vip-sites>summary{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-2);padding:var(--space-3);cursor:pointer;list-style:none}
 .ai-vip-sites>summary::-webkit-details-marker{display:none}
 .ai-vip-sites>summary>strong{flex:none}
-.ai-vip-sites>summary>span{flex:1;font-size:var(--od-note-size);color:var(--od-sub)}
-.ai-vip-sites>summary::after{content:'⌄';color:var(--od-sub)}
+.ai-vip-sites>summary>span{flex-basis:100%;order:1;font-size:var(--od-note-size);color:var(--od-sub)}
+.ai-vip-sites>summary::after{content:'⌄';margin-left:auto;color:var(--od-sub)}
 .ai-vip-sites[open]>summary{border-bottom:1px solid var(--od-line)}
+.ai-vip-version{font-size:var(--od-meta-size);color:var(--od-sub);font-weight:400}
+.ai-vip-login-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);list-style:none;margin:0;padding:var(--space-2) 0;color:var(--od-sub);font-size:var(--od-meta-size)}
+.ai-vip-login-steps li{display:flex;align-items:center;gap:var(--space-1)}
+.ai-vip-login-steps li>span{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:var(--radius-pill);background:var(--od-muted);color:var(--od-ink)}
+.ai-vip-file-summary{margin:0;padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);font-size:var(--od-note-size);line-height:1.55}
+.ai-vip-site-status[data-tone="error"]{padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-warning-bg);color:var(--od-warning-ink)}
 .ai-vip-membership{overflow:hidden}
 .ai-vip-section-head,.ai-vip-benefits-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .ai-vip h2{margin:0;font-size:var(--od-body-size);font-weight:600;line-height:1.5}

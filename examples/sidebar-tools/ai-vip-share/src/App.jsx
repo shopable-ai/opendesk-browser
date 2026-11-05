@@ -12,11 +12,16 @@ export default function VipApp({createDevelopmentControls}={}){
   },[createDevelopmentControls]);
   return (
     <main className="ai-vip od-theme-shadcn" aria-label="AI VIP Share 网站快速登录、会员与网络服务">
-      <details id="ai-vip-sites-section" className="ai-vip-sites od-shared-card" aria-labelledby="ai-vip-site-title" hidden>
-        <summary><strong id="ai-vip-site-title">网站登录</strong><span id="ai-vip-site-source"></span></summary>
+      <details id="ai-vip-sites-section" className="ai-vip-sites od-shared-card" aria-labelledby="ai-vip-site-title" open hidden>
+        <summary><strong id="ai-vip-site-title">网站快速登录</strong><small className="ai-vip-version">v{toolConfig.version}</small><span id="ai-vip-site-source"></span></summary>
         <CardContent className="ai-vip-site-content">
           <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
           <input id="ai-vip-site-select" type="hidden" defaultValue="" />
+          <ol id="ai-vip-file-steps" className="ai-vip-login-steps" aria-label="本地文件登录步骤" hidden>
+            <li><span aria-hidden="true">1</span>选择文件</li>
+            <li><span aria-hidden="true">2</span>逐批确认</li>
+            <li><span aria-hidden="true">3</span>网站核验</li>
+          </ol>
           <div className="ai-vip-site-summary">
             <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
               <span>登录账号</span>
@@ -32,7 +37,8 @@ export default function VipApp({createDevelopmentControls}={}){
             <Button size="lg" id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
           </div>
           <input id="ai-vip-cookie-file" type="file" accept=".json,application/json" data-sensitive hidden aria-label="选择本地 Cookie JSON" />
-          <p id="ai-vip-file-help" className="od-field-help" hidden>仅在本机预检。保留 Cookie 安全属性，按分区分别确认；不推断账号或会员套餐。</p>
+          <p id="ai-vip-file-help" className="od-field-help" hidden>从已登录的 ChatGPT 导出 Cookie JSON，再选择文件。文件仅在本机完整校验，合法过期项会跳过并显示数量，原文件不变。每批由你确认；写入后仍需在网站核验账号。</p>
+          <p id="ai-vip-file-summary" className="ai-vip-file-summary" hidden></p>
           <div className="ai-vip-site-actions">
             <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>准备登录</Button>
             <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>打开网站 ↗</Button>

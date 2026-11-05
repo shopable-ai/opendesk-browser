@@ -52,13 +52,13 @@ test('session cookies omit expiry, omitted context remains omitted', () => {
   assert.equal(run([row({valueRedacted: false})]).count, 1);
 });
 
-test('store and both partition dimensions define separate batches, never an inferred context', () => {
-  const result = run([row({storeId: '0'}), row({storeId: '1'}),
-    row({storeId: '1', partitionKey}),
-    row({storeId: '1', partitionKey: {...partitionKey, hasCrossSiteAncestor: true}})]);
-  assert.equal(result.batches.length, 4);
-  assert.deepEqual(result.batches.map(batch => batch.cookies[0].storeId), ['0', '1', '1', '1']);
-  assert.equal(result.batches[3].cookies[0].partitionKey.hasCrossSiteAncestor, true);
+test('both partition dimensions define separate batches; mixed stores are rejected before filtering', () => {
+  const result = run([row({storeId: '0'}), row({storeId: '0', partitionKey}),
+    row({storeId: '0', partitionKey: {...partitionKey, hasCrossSiteAncestor: true}})]);
+  assert.equal(result.batches.length, 3);
+  assert.equal(result.batches[2].cookies[0].partitionKey.hasCrossSiteAncestor, true);
+  rejected([row({storeId: '0'}), row({storeId: '1'})]);
+  rejected([row({storeId: '0'}), row({storeId: '1', expirationDate: 1})]);
 });
 
 test('rejects mixed omitted and explicit stores before returning batches, including duplicate slots', () => {
@@ -88,8 +88,7 @@ test('rejects invalid formats, file sizes and row counts without leaking parse c
 });
 
 test('rejects expiry contradictions, invalid domain/path, missing booleans and SameSite', () => {
-  const bad = [{expirationDate: now / 1000}, {expirationDate: now / 1000 - 1},
-    {expirationDate: null}, {expirationDate: '1900000000'}, {expirationDate: 4102444801},
+  const bad = [    {expirationDate: null}, {expirationDate: '1900000000'}, {expirationDate: 4102444801},
     {expirationDate: undefined}, {session: true}, {session: true, expirationDate: -1},
     {domain: 'evil.chatgpt.com'}, {domain: '.chatgpt.com.evil'}, {domain: 'CHATGPT.COM'},
     {hostOnly: false}, {domain: '.chatgpt.com'}, {path: '/session'},
@@ -128,7 +127,7 @@ test('enforces UTF-8 value and whole-request budgets without capacity splitting'
   rejected([row({value: '界'.repeat(1366)})]);
   const rows = Array.from({length: 3}, (_, i) => row({name: `cookie${i}`, value: 'x'.repeat(3900)}));
   rejected(rows); // Values fit individually; the single store/partition request does not.
-  assert.equal(run(rows.map((cookie, i) => ({...cookie, storeId: String(i)}))).batches.length, 3);
+  rejected(rows.map(cookie => ({...cookie, expirationDate: 1}))); // Expiry cannot bypass budgets.
   const boundary = Array.from({length: 3}, (_, i) => row({name: `cookie${i}`, value: ''}));
   const size = Buffer.byteLength(JSON.stringify(run(boundary).batches[0]));
   const remaining = 12000 - size;
@@ -136,4 +135,38 @@ test('enforces UTF-8 value and whole-request budgets without capacity splitting'
   assert.equal(Buffer.byteLength(JSON.stringify(run(boundary).batches[0])), 12000);
   boundary[0].value += 'x';
   rejected(boundary);
+});
+
+
+test('validates every record before skipping expired ones, preserving all retained attributes and counts', () => {
+  const session = row({name: 'session-only', session: true});
+  delete session.expirationDate;
+  const valid = row({storeId: '0', domain: '.chatgpt.com', hostOnly: false,
+    secure: false, httpOnly: false, sameSite: 'strict', expirationDate: now / 1000 + 30});
+  const partitioned = row({name: 'partitioned', storeId: '0', partitionKey});
+  const rows = [row({name: 'past', storeId: '0', expirationDate: now / 1000 - 1}),
+    valid, {...session, storeId: '0'}, partitioned,
+    row({name: 'boundary', storeId: '0', expirationDate: now / 1000})];
+  const text = JSON.stringify(rows), original = structuredClone(rows);
+  const result = preflightCookieFile(text, now);
+  assert.deepEqual(rows, original);
+  assert.equal(JSON.stringify(rows), text);
+  assert.deepEqual([result.totalCount, result.count, result.skippedCount], [5, 3, 2]);
+  assert.equal(result.earliestExpiry, now + 30000);
+  assert.deepEqual(result.batches, run([valid, {...session, storeId: '0'}, partitioned]).batches);
+  assert.deepEqual(run([row({expirationDate: 1})]), {
+    batches: [], contexts: [{storeId: undefined, partitionKey: null}],
+    count: 0, totalCount: 1, skippedCount: 1, earliestExpiry: null
+  });
+});
+
+test('expired rows cannot hide unsafe input, duplicate slots, or invalid later records', () => {
+  const expired = row({name: 'expired', expirationDate: 1});
+  for (const change of [{domain: 'evil.test'}, {path: '/wrong'}, {secure: 'true'},
+    {value: '[REDACTED]'}, {valueRedacted: true}, {partitionKey: {...partitionKey, topLevelSite: 'https://evil.test'}},
+    {unknown: 'DO_NOT_LEAK'}, {value: 'x'.repeat(4097)}]) rejected([row(), {...expired, ...change}]);
+  rejected([row(), row({expirationDate: 1})]);
+  rejected([expired, {...expired, domain: '.chatgpt.com', hostOnly: false}]);
+  rejected([expired, row({domain: 'evil.test'})]);
+  rejected(Array.from({length: 51}, (_, i) => ({...expired, name: `past${i}`})));
 });

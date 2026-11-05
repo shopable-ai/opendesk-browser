@@ -27,7 +27,6 @@ export function preflightCookieFile(text, now = Date.now()) {
   if (!Array.isArray(rows) || rows.length < 1 || rows.length > 50) reject();
 
   const groups = new Map(), seen = new Set();
-  let earliestExpiry = null;
   rows.forEach((row, index) => {
     const line = index + 1;
     if (!record(row) || Object.keys(row).some(key => !FIELDS.has(key)) ||
@@ -48,12 +47,13 @@ export function preflightCookieFile(text, now = Date.now()) {
         (row.name.startsWith('__Host-Http-') && !row.httpOnly)) reject(line);
 
     if (row.session ? own(row, 'expirationDate') :
-        (!Number.isFinite(row.expirationDate) || row.expirationDate <= now / 1000 ||
+        (!Number.isFinite(row.expirationDate) || row.expirationDate <= 0 ||
          row.expirationDate > 4102444800)) reject(line);
     if (own(row, 'storeId') && (typeof row.storeId !== 'string' ||
         !/^[A-Za-z0-9_-]{1,64}$/.test(row.storeId))) reject(line);
     // Omitted stores may resolve to an explicit store; reject ambiguity before batching.
     if (own(row, 'storeId') !== own(rows[0], 'storeId')) reject(line);
+    if (row.storeId !== rows[0].storeId) reject(line);
     if (own(row, 'partitionKey') && (!record(row.partitionKey) ||
         Object.keys(row.partitionKey).length !== 2 ||
         row.partitionKey.topLevelSite !== 'https://chatgpt.com' ||
@@ -72,14 +72,28 @@ export function preflightCookieFile(text, now = Date.now()) {
     if (!row.hostOnly) cookie.domain = row.domain;
     if (!row.session) {
       cookie.expirationDate = row.expirationDate;
-      earliestExpiry = Math.min(earliestExpiry ?? Infinity, row.expirationDate * 1000);
     }
     if (own(row, 'storeId')) cookie.storeId = row.storeId;
     if (own(row, 'partitionKey')) cookie.partitionKey = {...row.partitionKey};
     if (!groups.has(groupKey)) groups.set(groupKey, {url: LOCAL_CHATGPT.site.targetUrl, cookies: []});
     groups.get(groupKey).cookies.push(cookie);
   });
-  const batches = [...groups.values()];
-  if (batches.some(batch => batch.cookies.length > 50 || bytes(JSON.stringify(batch)) > 12000)) reject();
-  return {batches, count: rows.length, earliestExpiry};
+  const validated = [...groups.values()];
+  // Validate the complete export (including request budgets) before excluding any
+  // expired records. Filtering must never hide unsafe or ambiguous input.
+  if (validated.some(batch => batch.cookies.length > 50 || bytes(JSON.stringify(batch)) > 12000)) reject();
+  // Non-secret claims allow the controller to check the complete export's
+  // browser context even when every cookie in one partition is expired.
+  const contexts = validated.map(batch => ({storeId: batch.cookies[0].storeId,
+    partitionKey: batch.cookies[0].partitionKey ?? null}));
+  let earliestExpiry = null, count = 0;
+  const batches = validated.map(batch => ({...batch, cookies: batch.cookies.filter(cookie => {
+    if (cookie.expirationDate !== undefined) {
+      if (cookie.expirationDate <= now / 1000) return false;
+      earliestExpiry = Math.min(earliestExpiry ?? Infinity, cookie.expirationDate * 1000);
+    }
+    count++;
+    return true;
+  })})).filter(batch => batch.cookies.length);
+  return {batches, contexts, count, totalCount: rows.length, skippedCount: rows.length - count, earliestExpiry};
 }

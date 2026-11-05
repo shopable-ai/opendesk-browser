@@ -18,23 +18,35 @@ test('local file works without member/development service, cancelled preparation
   await e.importFile(input());
   assert.equal(e.get('cookie-install').hidden,false);
   assert.match(e.get('site-status').textContent,/1 \/ 1.*1 项/);
+  assert.match(e.get('file-summary').textContent,/文件共 1 项.*保留 1 项.*已跳过 0 项.*1 批/);
+  assert.equal(e.get('file-summary').hidden,false);
   assert.equal(e.calls.length,0);assert.equal(e.cookieCalls.length,0);
   await e.click('site-cancel');
   assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.get('file-summary').hidden,true);
+  assert.equal(e.get('file-summary').textContent,'');
   assert.equal(e.cookieCalls.length,0);
   assert.ok(!JSON.stringify([...e.store]).includes('synthetic-local-only'));
 });
 
-test('malformed/expired/oversized file feedback does not dispatch and later valid input recovers',async()=>{
-  const e=await runtime({developmentProfile:null});
-  for(const text of ['secret invalid JSON',input([cookie({session:false,expirationDate:1})])]){
+test('malformed/all-expired/oversized file feedback does not dispatch and later valid input recovers',async()=>{
+  let contextQueries=0;
+  const e=await runtime({developmentProfile:null,cookieContext:async()=>{contextQueries++;return {storeId:'0'};}});
+  for(const text of ['secret invalid JSON']){
     await e.importFile(text);assert.equal(e.get('cookie-install').hidden,true);
     assert.match(e.get('site-status').textContent,/无效|不安全/);
     assert.ok(!e.get('site-status').textContent.includes('secret invalid'));
   }
+  await e.importFile(input([cookie({name:'expired-secret-name',session:false,expirationDate:1})]));
+  assert.match(e.get('site-status').textContent,/没有可用 Cookie.*未准备任何写入批次/);
+  assert.doesNotMatch(e.get('site-status').textContent,/expired-secret-name|synthetic-local-only/);
+  assert.equal(e.get('site-status').attributes['data-tone'],'error');
+  assert.match(e.get('file-summary').textContent,/文件共 1 项.*保留 0 项.*已跳过 1 项/);
+  assert.equal(contextQueries,0);assert.equal(e.cookieCalls.length,0);
   await e.importFile(input(),{size:65537});
   assert.match(e.get('site-status').textContent,/64 KiB/);
   await e.importFile(input());assert.equal(e.get('cookie-install').disabled,false);
+  assert.equal(e.get('site-status').attributes['data-tone'],'neutral');
   assert.equal(e.cookieCalls.length,0);
 });
 
@@ -42,6 +54,7 @@ test('context mismatch and changed context stop before writing',async()=>{
   let current='1';const e=await runtime({developmentProfile:null,cookieContext:async()=>({storeId:current})});
   await e.importFile(input());assert.match(e.get('site-status').textContent,/Store/);
   assert.equal(e.get('cookie-install').hidden,true);
+  assert.match(e.get('file-summary').textContent,/文件共 1 项.*保留 1 项.*已跳过 0 项/);
   current='0';await e.importFile(input());current='1';
   await e.click('cookie-install');await settle(e);
   assert.equal(e.cookieCalls.length,0);
@@ -83,7 +96,7 @@ test('late first-batch success preserves its receipt but expired remainder never
   await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
   now+=120001;gate.resolve();await settle(e);
   assert.equal(e.cookieCalls.length,1);assert.equal(e.tabCalls.length,0);
-  assert.match(e.get('site-status').textContent,/剩余 1 项.*过期.*未提交/);
+  assert.match(e.get('site-status').textContent,/准备已到期.*剩余 1 项未提交/);
   assert.match(e.get('cookie-status').textContent,/本批 Cookie 已写入并核验/);
   assert.doesNotMatch(e.get('cookie-status').textContent,/全部 Cookie/);
   assert.equal(e.get('cookie-install').hidden,true);
@@ -101,9 +114,10 @@ test('expiry before confirmation reports all unsubmitted cookies and dispatches 
   await e.importFile(input([cookie(),cookie({name:'partitioned',partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}})]));
   now+=120001;
   e.timers.find(row=>row.ms===1200).callback();await e.flush();
-  assert.match(e.get('site-status').textContent,/剩余 2 项.*过期.*未提交/);
+  assert.match(e.get('site-status').textContent,/准备已到期.*剩余 2 项未提交/);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(e.cookieCalls.length,0);assert.equal(e.tabCalls.length,0);
+  assert.equal(e.get('file-summary').textContent,'');
 });
 
 test('trusted pre-dispatch cancellation permits only another explicit click; unknown remains locked after reopen',async()=>{
@@ -122,4 +136,57 @@ test('trusted pre-dispatch cancellation permits only another explicit click; unk
   assert.equal(reopened.get('site-receive').disabled,true);
   await reopened.importFile(input());assert.equal(reopened.cookieCalls.length,0);
   assert.equal(JSON.stringify(e.store.get(KEY)),before);
+});
+
+
+test('mixed file submits only retained cookies, keeps review counts across batches and clears on completion',async()=>{
+  const partitionKey={topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false};
+  const retained=[cookie(),cookie({name:'partitioned',partitionKey})];
+  const e=await runtime({developmentProfile:null});
+  await e.importFile(input([cookie({name:'expired',session:false,expirationDate:1}),...retained]));
+  assert.match(e.get('file-summary').textContent,/文件共 3 项.*保留 2 项.*已跳过 1 项.*2 批/);
+  assert.equal(e.cookieCalls.length,0);
+  await e.click('cookie-install');await settle(e);
+  assert.equal(e.cookieCalls.length,1);
+  assert.equal(e.get('file-summary').hidden,false);
+  assert.match(e.get('site-status').textContent,/2 \/ 2/);
+  await e.click('cookie-install');await settle(e);
+  assert.equal(e.cookieCalls.length,2);
+  assert.deepEqual(e.cookieCalls.flatMap(batch=>batch.cookies.map(row=>row.name)),['__Host-session','partitioned']);
+  assert.equal(e.get('file-summary').textContent,'');
+  assert.match(e.get('site-status').textContent,/保留的各批 Cookie.*写入并核验.*目标页核对/);
+  assert.doesNotMatch(e.get('site-status').textContent,/登录成功|全部已登录/);
+});
+
+test('expired partition claims still undergo current-context checks before retained rows can be prepared',async()=>{
+  let queries=0;
+  const e=await runtime({developmentProfile:null,cookieContext:async kind=>{
+    if(kind==='store')return {storeId:'0'};
+    queries++;return {partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}};
+  }});
+  const expired=cookie({name:'expired',session:false,expirationDate:1,
+    partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:true}});
+  await e.importFile(input([cookie(),expired]));
+  assert.equal(queries,1);
+  assert.match(e.get('site-status').textContent,/分区与当前网站不符/);
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.cookieCalls.length,0);
+  assert.match(e.get('file-summary').textContent,/文件共 2 项.*保留 1 项.*已跳过 1 项/);
+  await e.importFile(input([cookie(),{...expired,partitionKey:{...expired.partitionKey,hasCrossSiteAncestor:false}}]));
+  assert.equal(queries,2);
+  assert.equal(e.get('cookie-install').hidden,false);
+  assert.match(e.get('file-summary').textContent,/保留 1 项.*已跳过 1 项/);
+});
+
+
+test('missing website permission retains non-secret file counts with no prepared batch or writes',async()=>{
+  const e=await runtime({developmentProfile:null,cookieContext:async()=>{
+    throw Object.assign(Error('synthetic'),{code:'E_SITE_GRANT_REQUIRED'});
+  }});
+  await e.importFile(input([cookie(),cookie({name:'past',session:false,expirationDate:1})]));
+  assert.match(e.get('file-summary').textContent,/文件共 2 项.*保留 1 项.*已跳过 1 项/);
+  assert.match(e.get('site-status').textContent,/授予 ChatGPT 网站 Cookie/);
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.cookieCalls.length,0);
+  assert.ok(!JSON.stringify([...e.store]).includes('synthetic-local-only'));
 });
