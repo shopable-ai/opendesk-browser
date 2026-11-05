@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-05",
+  "owner": "01a1abf9-e767-70d3-b041-a2e291b20c24",
+  "stage": "核心功能与最小必要验证；不恢复完整验收",
+  "status": "INCOMPLETE_UI_RECONCILIATION_REQUIRED",
+  "repository": {
+    "branch": "main",
+    "startingHead": "865064afa29703789cf7ba0e3f094b9004c831dd",
+    "startingWorktree": "clean",
+    "businessSourceChanged": false
+  },
+  "development": {
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "previousLockPid": 93582,
+    "previousWriterAlive": false,
+    "outputGuardAndServePortsInitiallyListening": false,
+    "restoration": "原 npm run dev 经存活检查和 OS 输出守卫自行恢复；未手删锁，未启动第二 writer",
+    "firstRestoredWriterPid": 34246,
+    "firstExecSessionId": 48779,
+    "firstWriterExit": "134；约602秒后 Node 默认约4 GiB堆耗尽，未把首次恢复当成持续存活证明",
+    "writerPid": 35291,
+    "execSessionId": 57780,
+    "currentCommand": "NODE_OPTIONS=--max-old-space-size=8192 npm run dev",
+    "currentLog": "/tmp/opendesk-webflow-dev-01a1abf9.log",
+    "currentReadiness": "RUNNING；日志就绪、PID存活、43119与43120均由35291监听，marker revision仍为9121af7f…；不证明长期稳定",
+    "serve": "http://localhost:43119",
+    "terminalRunningObserved": true,
+    "liveUiServiceConnected": true,
+    "liveUiObservationBoundary": "首次writer就绪后观察；8 GiB恢复后尚未重新读取Chrome",
+    "revision": "9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e",
+    "actualChromeLoadPathRecheckedInDetails": false,
+    "sourceSha256": {
+      "projects/webflow/trusted/chatgpt-bridge-page.js": "999c3dec5ed707496cc4b6f29ec78f7d502f06917ec208570ffe1fb8630aa6d6",
+      "src/native-agent/chatgpt-bridge-site.js": "5bdab3255708d87b3489456849b09bd2d4f180a19538a9b846b9e28344112caa",
+      "src/native-agent/chatgpt-background-adapter.js": "96469fb1e11c8b1333ccb10a093beb609166384d17425b3537139d6013a35923"
+    },
+    "bridgeBundleSha256": "6961c52b59b5c85fe6af2838ba61ac3813b7895d96320014e0b4ac0fe6fcae4f",
+    "bridgeBundleMatchesMarker": true
+  },
+  "native": {
+    "connectionId": "0563aef890ea2bef8f117e4f8bf70395",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "ready": true,
+    "nativeConnected": true,
+    "enabled": true,
+    "targetCurrentWithoutRegistration": "E_HOST_AMBIGUOUS / NOT_DISPATCHED；只读调用，未视为产品故障"
+  },
+  "realOperation": {
+    "browserExecutable": "/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "tabId": 560069845,
+    "conversationUrl": "https://chatgpt.com/c/6aec8b7a-a48c-83ee-8879-e9044c0ad01e",
+    "conversationTitle": "确认接入规则",
+    "capabilitySource": "现有可信 Web Flow 使用说明中的能力文本；本聊天仅接入一次，并明确该条不执行",
+    "capabilityMessagesSent": 1,
+    "newBusinessMessagesSent": 1,
+    "businessPrompt": "请通过 OpenDesk 用百度搜索 OpenDesk Browser，返回前三条自然网页结果。",
+    "existingGrant": {
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {"limit": 3, "query": "OpenDesk Browser"},
+      "uiStatus": "授权有效（自动核验网站权限，无需逐次确认）",
+      "changed": false
+    },
+    "listenerReadyBeforeBusinessSend": true,
+    "trustedSendObserved": "已确认同一新增用户消息，正在等待本轮完整任务回复；流式内容不会执行。",
+    "candidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-9c6d4f2a-7b81-4e35-a920-6f1c8d3b5e74",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {"query": "OpenDesk Browser", "limit": 3}
+    },
+    "backgroundStatusObserved": "已交给框架后台；关闭侧栏仍会执行并向此聊天回传一次。",
+    "searchTabObserved": "先见百度首页标签，再见 OpenDesk Browser_百度搜索 标签；未读取结果正文，不等于三条业务数据验真",
+    "sidebarClosedScreenshotObserved": true,
+    "legacyOverlay": "本轮空白页面 AX 和关闭侧栏后的截图未见旧 OpenDesk · 浏览器任务 浮层；未做五场景或 DOM 节点计数",
+    "requestId": null,
+    "runId": null,
+    "resultId": null,
+    "durableResult": "NOT_VERIFIED",
+    "resourceRelease": "NOT_VERIFIED",
+    "singleExecution": "NOT_VERIFIED；仅一条业务消息与一个可见候选，不以此证明后台只执行一次",
+    "originalChatDelivery": "NOT_VERIFIED；最后一次可见原聊天读取未出现真实结果",
+    "aiContinuation": "NOT_VERIFIED",
+    "reconciliationState": "UNKNOWN；只核对原身份，不重发、补跑或换 candidateId 补偿"
+  },
+  "uiInterference": {
+    "observed": "侧栏关闭截图之后，未由本轮操作的 Cookie Editor 侧栏出现；稍后前台换至另一窗口的账户设置",
+    "actor": "unknown",
+    "nativeInputStopped": true,
+    "uiLeaseReleasedByOwnCommand": true,
+    "targetedCuaRead": "浏览器清单及标签列表可读，但绑定本轮标签仍超时；未通过 shell、CDP 或其他 UI surface 绕过",
+    "userClarification": "已发异步问题协调当前 Chrome 使用，记录时未收到答复"
+  },
+  "nextAction": "取得不冲突的 UI 时段，在原聊天 Web Flow 当前任务与原请求记录只读取回 request/Run/Result，核对业务数据、释放、单次交付和续答；不发送新的补偿请求。",
+  "verification": {
+    "sourceTests": "未重复；本轮未修改业务源码，相关指纹未变",
+    "developmentOutput": "原服务恢复编译成功；marker 与 Bridge bundle 摘要一致，真实侧栏 connected/live revision 相同",
+    "formalAcceptance": "NOT_TESTED",
+    "score": "NOT_SCORED"
+  },
+  "preservedUnknownCandidates": [
+    "wf-084e05c5-0230-44fc-9ecb-4f94cea6e759",
+    "wf-015d0f5e-ade3-4aea-95b5-b4093a67c471",
+    "wf-8d7c2a91-4e63-4f20-a85b-91c6e3d702bf"
+  ],
+  "deferred": ["完整五场景", "七视角及95分", "production", "全量CI", "跨版本矩阵", "长压测与全量对抗"]
+}
