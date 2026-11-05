@@ -120,15 +120,23 @@ test('expiry before confirmation reports all unsubmitted cookies and dispatches 
   assert.equal(e.get('file-summary').textContent,'');
 });
 
-test('trusted pre-dispatch cancellation permits only another explicit click; unknown remains locked after reopen',async()=>{
-  let cancel=true;
-  const e=await runtime({developmentProfile:null,cookieSetMany:async()=>{
+test('trusted cancellation allows explicit retry only while prepared; expiry removes retry guidance and unknown locks after reopen',async()=>{
+  let cancel=true,now=Date.now();class Clock extends Date {static now(){return now;}}
+  const e=await runtime({developmentProfile:null,dateClock:Clock,pollTimers:true,cookieSetMany:async()=>{
     throw Object.assign(Error('synthetic'),{code:cancel?'E_COOKIE_NOT_SUBMITTED':'E_CANCELLED'});
   }});
   await e.importFile(input());await e.click('cookie-install');await settle(e);
   assert.equal(e.get('cookie-install').disabled,false);
   assert.equal((await journal(e)).attempts[0].resolution,'not-submitted');
   assert.equal(e.cookieCalls.length,1);
+  assert.match(e.get('cookie-status').textContent,/有效交付可由你重新确认/);
+  now+=120001;e.timers.find(row=>row.ms===1200).callback();await e.flush();
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.get('file-summary').textContent,'');
+  assert.match(e.get('cookie-status').textContent,/当前准备已结束/);
+  assert.doesNotMatch(e.get('cookie-status').textContent,/有效交付可由你重新确认/);
+  assert.equal(e.cookieCalls.length,1);
+  await e.importFile(input());
   cancel=false;await e.click('cookie-install');await settle(e);
   assert.equal((await journal(e)).attempts[1].state,'unknown');
   const before=JSON.stringify(e.store.get(KEY));
