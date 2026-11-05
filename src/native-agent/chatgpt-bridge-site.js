@@ -6,7 +6,7 @@ const USER = '[data-message-author-role="user"],[data-message-role="user"],[data
 const ASSISTANT = '[data-message-author-role="assistant"],[data-message-role="assistant"],[data-content-search-unit-key$=":assistant"]';
 const SEND_LABEL = /^(send message|send prompt|send|发送消息|发送|送出)$/i;
 const STOP_LABEL = /^(stop generating|stop generation|stop responding|stop|停止生成|停止回复|停止)$/i;
-const RICH = 'img,video,canvas,iframe,[contenteditable="false"],[data-attachment-id],[data-file-id]';
+const RICH = 'img,video,canvas,iframe,[data-attachment-id],[data-file-id]';
 const ATTACHMENTS = '[data-attachment-id],[data-file-id],[data-upload-id],[data-testid="file-thumbnail"],[data-testid*="attachment-preview"],[data-testid*="file-preview"],button[aria-label="Remove file"],button[aria-label="移除文件"]';
 
 function visible(el, win) {
@@ -33,6 +33,17 @@ function role(button) {
   return null;
 }
 function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
+function noneditableContent(editor) {
+  if (!editor.querySelector?.('[contenteditable="false"]')) return false;
+  return [...editor.querySelectorAll('[contenteditable="false"]')].some(node => {
+    // ChatGPT adds an empty, hidden URL icon to plain markdown text. Only
+    // this observed decoration is ignorable; all other noneditable content
+    // and any unexpected descendants remain a draft/attachment barrier.
+    const icon = node.closest('span[data-inline-url-icon][aria-hidden="true"][contenteditable="false"]');
+    return !icon || !editor.contains(icon) || icon.textContent !== '' ||
+      [...icon.querySelectorAll('*')].some(child => !['span','svg','path'].includes(child.localName));
+  });
+}
 function editorText(editor) {
   // Only the observed single placeholder paragraph is empty. Extra paragraphs
   // and line breaks are user drafts even when they contain no text nodes.
@@ -107,7 +118,7 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     return {ok:true,route,form,editor,sendButton,stopButton,users,assistants,
       replyState:users.at(-1)?.closest('[data-talvt-turn-state]')?.getAttribute('data-talvt-turn-state')??null,
       busy,idle:!busy && completed,answerComplete:assistantCompleted(last) && !streaming(last),
-      draft:editorText(editor),rich:!!editor.querySelector?.(RICH) || !!form.querySelector(ATTACHMENTS) ||
+      draft:editorText(editor),rich:!!editor.querySelector?.(RICH) || noneditableContent(editor) || !!form.querySelector(ATTACHMENTS) ||
         [...form.querySelectorAll('input[type="file"]')].some(input=>input.files?.length)};
   }
   function prepare(text,initial) {

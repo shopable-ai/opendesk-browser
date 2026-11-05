@@ -2,6 +2,37 @@
 
 更新：2026-11-04。本文记录当前 Browser 实现、持续开发环境的真实读写证据及手动步骤。本轮复用现有 Native 文件引擎，不修改 Native 仓库；未进行 production 发布验收。
 
+## 最新独立核验与用户查看方法（2026-11-04 18:43，01a1a61c）
+
+**本轮新真实读写已核验。** CFT `/Applications/Google Chrome.app` 149.0.7827.55 第一窗口、原「接通 ChatGPT 文件入口」聊天，通过正常输入框发送新读取需求和新修改需求。原生回执显示保存与独立读回均 true；终端二进制读取、`cat` 和 `shasum -a 256` 与事先记录的期望全文一致。测试文件只由产品 Native 流程写入，终端没有预写或恢复文件。
+
+- 实际文件：`/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt`。
+- 完整内容：`OpenDesk local file test\nstatus=verified-20261104-183414-1cc16f\n`，64 字节，末尾保留 LF。
+- SHA-256：`b91d4a28b57c58e521e468a2cc9f2b4f98d7e1bd5c1bf5639e4c2b44d7e4b89f`。
+- 本轮稳定写入身份：`e5d0404c-6b2c-4542-9d32-088dfd64fc07`，binding `69578c3d-c12a-42c4-a25b-4362ee2df921`；已消费，不可重放。真实读取 request `65589d9a-f65f-4591-bb9b-ef9980a3a546`，result `367fe63d-506c-4f89-9889-23fcb7738c42`。上下文仅填一次，由操作者手动发送一次。
+
+**自己核对，无需相信模型“已完成”：**
+
+1. 在指定 CFT 原聊天点击 OpenDesk「查看回执」，查看「已保存：true · 独立读回通过：true」。读取提示「仅显示在本机，尚未发送给 ChatGPT」只证明读取；模型给出 `opendesk-edit` 也不等于已经保存。修改上下文仍须自己审阅并点击发送。
+2. 用文本编辑器打开上述实际文件，核对第一行和本轮唯一标记；不要只看聊天里生成的正文。
+3. 终端独立执行下列只读命令。全文、64 字节、SHA 和末尾 `0a` 全部匹配，才与本轮结果一致。
+
+```sh
+file='/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt'
+cat "$file"
+wc -c < "$file"
+shasum -a 256 "$file"
+tail -c 1 "$file" | od -An -tx1
+```
+
+本轮还观察了设置切换保留未发送草稿、运行关闭的新需求不启动可见文件任务、重开不补跑，以及项目 Stop 后晚到模型回答不恢复任务。首个 Stop 驱动因任务已完成而未点到，不计通过；后一个场景实际点击 Stop 并取得停止回执。没有独立 Native 派发计数，不能扩大为真实零派发证明。结束为运行开启、诊断隐藏，刷新设置后仍保留，原输入框为空。
+
+**失败与限制保留：** 首条读取遇到旧文档 `Extension context invalidated / OUTCOME_UNKNOWN`，磁盘未变；正常退役旧文档后新需求成功，未重放旧请求。网页「文件处理设置」链接曾被 Chrome 以 `ERR_BLOCKED_BY_CLIENT` 拒绝，地址栏进入原可信设置可用；设置的本机连接摘要另显示 `E_OWNER`，本轮未诊断或修复这两处入口/摘要问题，不将实际文件读写成功描述为它们已解决。上一轮 `E_FILES_ACCESS` 根因仍未知，本轮最终读写未复现该拒绝。
+
+本轮未改产品源码，不重复已通过且相关输入未变的 153 项检查。共享 `chatgpt-bridge-site.js` 有并行变更；最终写入前后相关源文件和产物 SHA 稳定，sourcemap 内本功能源与当前源码一致。最终网页桥 SHA 为 `6961c52b59b5c85fe6af2838ba61ac3813b7895d96320014e0b4ac0fe6fcae4f`；侧栏收尾实读 serve 已连接、revision `9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e`。扩展实际 ID、加载路径、Native doctor 的 local.extensionId 与 manifest allowed_origins 配对一致。全局 revision 不替代已打开网页身份，结论只覆盖本次相关链路。
+
+本机观察摘录与磁盘命令结果见 `artifacts/chatgpt-files-20261103-01a1a1b4/independent-verification-20261104-01a1a61c.{json,txt}` 及同名前缀 `-disk.txt`；它们是工具观察记录，不是原始 Native 包，也不能代替当前磁盘与原聊天回执。production、故障注入、全量 CI、Go/MCP、评分、首页首条消息及宽度/跨浏览器矩阵仍未测试。本轮没有提交或推送。
+
 ## 正式交互与管理开关（2026-11-04，本轮）
 
 正常使用在 ChatGPT **具体对话**的原输入框发送文件需求。空闲页面不再显示「项目文件 · 在对话中提出需求」常驻调试浮层。有任务时，输入框附近按需显示紧凑的状态与「停止项目任务」「查看回执」；完成、失败或结果未知保留可展开的实际回执，并可「收起状态」。内容位于正常文档流，不覆盖原输入框；停止在请求进行中仍可用，立即交给原后台处理，不等待原 RPC 结束后才提交停止。

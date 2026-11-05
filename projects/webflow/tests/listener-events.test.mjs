@@ -44,7 +44,8 @@ function fixture({background=true,visiblePanel=false,sendHook}={}){
   onMessage:{addListener(fn){listener=fn;},removeListener(){}},
   async sendMessage(message){
    sends.push(message);const result=sendHook?.(message);if(result!==undefined)return result;
-   return {ok:true,data:message.kind==='auto-task'?prepared(message):message.kind==='check-delivery'?{allowed:true}:{}};
+   return {ok:true,...(!background?{bridgeHostId:'events-host'}:{}),
+    data:message.kind==='auto-task'?prepared(message):message.kind==='check-delivery'?{allowed:true}:{}};
   }}};
  let resultText=null,resultUser=null;
  const resultObserved=Promise.withResolvers();
@@ -109,6 +110,7 @@ test('the existing Side Panel execution owner also consumes an event-driven cand
   h.reply();await settle();
   assert.equal(h.sends.filter(row=>row.kind==='auto-task').length,1);
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);
+  assert.equal(h.sends.find(row=>row.kind==='execute').bridgeHostId,'events-host');
   assert.equal(h.sends.filter(row=>row.kind==='background-ready').length,0);
   h.emitWin('focus');h.poll();await settle();
   assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);
@@ -123,7 +125,7 @@ test('a deferred event resumes after the original execute ACK only when it is '+
  }});try{
   h.reply();await settle();h.reply();await settle();
   assert.equal(h.sends.filter(row=>row.kind==='auto-task').length,1);
-  ack.resolve(outcome==='completed'?{ok:true,data:{sent:true,runId:'first-run',resultId:'first-result'}}:
+  ack.resolve(outcome==='completed'?{ok:true,bridgeHostId:'events-host',data:{sent:true,runId:'first-run',resultId:'first-result'}}:
    {ok:false,error:{code:'E_BRIDGE_OUTCOME_UNKNOWN',message:'first execution ACK unknown'}});
   await settle();
   assert.equal(h.sends.filter(row=>row.kind==='auto-task').length,outcome==='completed'?2:1);

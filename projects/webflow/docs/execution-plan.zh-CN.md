@@ -2117,3 +2117,16 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **最小修复及定向证据：** 真实入口失败触发了现有 `src/native-agent/chatgpt-background-adapter.js` 的实际 verifier 回归，先得到 4 项失败：完整参数经 parser 排序为 `limit/query`，manifest 归一化为 `query/limit`，原 `JSON.stringify` 比较误判缺参；事务内普通 Error 又被原 storageError 包装为相同的通用 IndexedDB 错误。仅复用原 `canonical` 作值比较，并使用现有 `FoundationError` 保留校验错误；未改数据库、Host、权限、安装或未知重放逻辑。新增本项目 `tests/background-task-verification.test.mjs`，联合原后台 ledger / ingress 共 **30 PASS / 0 FAIL**，覆盖完整参数、遗漏默认参数、安装 pin 变更、精确站点、额外字段、固定 limit、停用和缺失安装，以及原未知 ACK 不重试。相关 JS 语法与定向差异检查通过。此夹具运行实际 verifier / 安装完整性检查和原存储错误投影，存储与资源为 Node 本地夹具，不宣称真实 IndexedDB / Native 成功。
 
 原 writer PID 93582 持续存活，自动发布开发产物 `c86970ed333d3ab0f9090b640ceb612ca83dca774f0ac7d128a21af308115661`；SW SHA256 `cb2c805c5d63b1346e0169484c54d9dff8c40f1763b1ccf0d5926f4f64ac9306` 与 marker 相同，adapter 的 source map 原文与修复源码逐字相同。未重启服务、另起构建或强制重载扩展；修复后的 Chrome live revision / 成功实跑尚未验证。失败图、AX 与完整本机进度在 `artifacts/webflow/listener-ui-01a1a5c2/actual-ui-progress.json` 及同目录 `first-candidate-failure.png/.txt`。下一步只读核对原 request / Run / Result 与安全的当前候选状态，不能通过刷新、重发或换 ID 补偿 UNKNOWN；关闭侧栏双轮、同 Run 持久结果 / released / 原聊天单次交付仍 **NOT_TESTED**。本轮保持 `main`，保留并行改动，无提交 / 推送、production 或评分。
+
+
+### 12.27 原生 URL 装饰图标阻止发送见证（2026-11-04）
+
+**当前操作与归属：** owner 为接收对话 01a1a5d2-c10d-72a1-9740-4ee3204666fc。原三处安全补丁已按用户明确移交应用，之后 main 合并保留；本轮继续真实关闭侧栏运行。系统 Chrome 自有窗口 560069839 / tab 560069842、原扩展 ID 与 dist/development 的 live revision 2a1cb5d06cd8 已核对。可信刷新确认一次后，同一 URL 的新页面重新显示监听就绪；未取得前后 documentId，A→B→A isolated-world 导航仍未原生验证。
+
+**真实失败与最小公共缺口：** 关闭侧栏后只发送一次新候选 wf-015d0f5e-ade3-4aea-95b5-b4093a67c471，133 秒内未见结果。重新打开侧栏只读诊断：Page discovery 从未进入 submitted，candidate 为空。将同文仅作为未发送诊断草稿粘贴，官网自动给普通 URL 插入无文字、aria-hidden=true 的 data-inline-url-icon / contenteditable=false span，内部仅 span / svg / path。原通用 DOM adapter 把所有不可编辑节点视为富内容，拒绝了真实发送见证。该检查也服务安全结果填入，工具业务内不能绕过，故在唯一原 owner src/native-agent/chatgpt-bridge-site.js 做窄适配；不新增 API、Host、权限、来源、执行世界或生命周期。Web Flow 业务回归归本项目 tests/bridge-inline-url.test.mjs。旧 ai-send-queue owner 和 Page/Host 不改。
+
+**最小修复计划：** 先用真实 adapter + discovery 失败回归锁定普通 URL 草稿无法见证，再只忽略同一 editor 内、无文字、隐藏且仅含已观察装饰标签的 URL 图标；其他不可编辑节点、附件、媒体和异常子节点继续拒绝，精确草稿读回不变。运行该行为回归及受影响原 adapter / 首发 / 事件用例；沿用原 writer PID 93582，不另起构建。原生证明只使用自有窗口和原 UI 租约，诊断草稿清理后释放，不重放任何未知请求。
+
+**未完成边界：** 第一轮请求结果未知，不作 PASS，也不以 history=[] 宣称零效果；第二轮 wf-3820f2be-5e4f-44b8-8468-e272746d0f69 尚未发送。旧 wf-084e05c5-0230-44fc-9ecb-4f94cea6e759 与并行真实 UI 对话候选保留 UNKNOWN。关闭侧栏双轮 / 同 Run 持久结果 / released / 单次回传未完成，NOT_SCORED；不提交、推送、重装、晋升或改变原 goal 生命周期。
+
+**修复与验证结果：** 新增行为回归先以 rich=true 的错误判定失败，修复后联合原 adapter / 首发 / 事件监听四文件 42 PASS。独立复查未确认新增 HIGH/MEDIUM；根据其覆盖建议，再补真实 prepare 插入 URL 图标、commit 前图标变为文字或新增附件的回归，最终本项目新文件 3 PASS，成功仅一次 click，变化时零 click，重复 commit 拒绝。JS 语法与 diff 检查通过。原 writer 自动发布 revision `9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e`，Bridge / tool-shell / SW marker 摘要及 10 项相关 source map 均匹配当前源码，未新增 writer 或手动重建。该新候选的 live Chrome / 页面重注入与 URL 发送见证仍 NOT_TESTED；全局 UI 租约由新的 CFT 文件测试对话 `01a1a61c…` 正常持有，本对话没有抢占。前述 2a1cb5… 原生刷新证据不能冒充修复后版本。详情保留在原 [进度证据](../evidence/listener-recovery-goal-progress-20261104.json) 的 `nativeRecoveryAndFirstRound` / `inlineUrlRepair`，历史快照明确标注为旧观察。

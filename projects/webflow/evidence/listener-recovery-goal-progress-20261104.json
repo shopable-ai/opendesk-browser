@@ -93,19 +93,20 @@
     },
     "limitations": [
       "Disk provenance only. Does not establish current Chrome identity, live serve connection or runtime revision."
-    ]
+    ],
+    "scope": "Historical 08:14 disk snapshot; superseded, never current-candidate proof."
   },
   "resources": {
     "uiLease": {
-      "owner": "01a1a547-87d1-7432-9ea2-7ad0b7016f09",
-      "observedAt": "2026-11-04T08:14:34.623921+00:00",
-      "source": "profiles.py status",
-      "latestObservedTurnStatus": "interrupted",
+      "owner": "01a1a61c-595c-7f81-a4ab-c5b9d8ea1e43",
+      "observedAt": "2026-11-04T10:37:28.302668+00:00",
+      "source": "profiles.py status; read_thread confirms active CFT file-test interval",
+      "thisThreadReleased": true,
       "takenOver": false
     },
     "writer": {
       "pid": 93582,
-      "observedStatus": "live during this continuation; later existing watcher completed candidate build",
+      "observedStatus": "PID 93582 retained; original watcher automatically published inline-URL adapter increment.",
       "action": "retained; no second writer or rebuild started"
     },
     "transferredFiles": [
@@ -121,16 +122,16 @@
   },
   "criteria": {
     "K1": {
-      "diskProvenance": "PASS_AT_OBSERVED_TIME",
-      "currentChromeIdentityServeAndRevision": "NOT_TESTED"
+      "diskProvenance": "PASS_CURRENT_POST_FIX",
+      "currentChromeIdentityServeAndRevision": "Pre-fix native revision 2a1cb5d06cd8 verified. Post-fix 9121af7f0594 runtime NOT_TESTED; do not combine."
     },
     "K2": {
       "source": "No confirmed HIGH/MEDIUM in the bounded current increment review; native current-candidate evidence remains missing.",
-      "currentCandidateNative": "NOT_TESTED"
+      "currentCandidateNative": "Pre-fix same-source ready handshake observed. Post-fix native URL witness NOT_TESTED."
     },
-    "K3": "SOURCE_FIXED_COMPONENT_PASS: both findings repaired in actual product; native isolated-world navigation and complete safe-refresh loop remain NOT_TESTED.",
-    "K4": "NOT_TESTED: neither new verification candidate has been sent by this chat",
-    "K5": "NOT_TESTED",
+    "K3": "Source protections pass targeted components. Pre-fix trusted confirmation→reload→same-URL ready UI observed, without exact document IDs. Native isolated-world A→B→A remains NOT_TESTED.",
+    "K4": "NOT_PASSED: round1 wf-015d0f5e-ade3-4aea-95b5-b4093a67c471 sent once with sidebar closed; no result after 133s, then reopened only for diagnosis. URL decoration blocked native witness; no Run/release receipt and no replay.",
+    "K5": "NOT_TESTED: round2 wf-3820f2be-5e4f-44b8-8468-e272746d0f69 remains NOT_SENT pending reliable first-round reconciliation.",
     "K6": {
       "legacyCandidateId": "wf-084e05c5-0230-44fc-9ecb-4f94cea6e759",
       "state": "UNKNOWN",
@@ -149,6 +150,17 @@
         "confirmedMedium": 2,
         "leaderReproduced": true,
         "nativeVerified": false
+      },
+      "sourceMergeImpactReview": {
+        "agentId": "01a1a5f7-64a4-7cc2-845b-9e9d174d3766",
+        "status": "NO_NEW_CONFIRMED_HIGH_MEDIUM",
+        "pageBlob": "dfa3fc3f9c172e39e6d203bbbaddb2b435f57678",
+        "hostBlob": "d39e76fabca710845a8fc2474e7e55c541e99b3f",
+        "toolShellBlob": "7ac021a9fc1711a5d3336ed6e0f1226c0a7b1a6d",
+        "high": 0,
+        "medium": 0,
+        "score": "NOT_SCORED",
+        "limitation": "Source tracing only; no native proof."
       }
     }
   },
@@ -156,15 +168,21 @@
     "Read-only ownership and candidate audit",
     "Existing watcher output recovered without intervention; page source now equals its reviewed pin",
     "No browser actions, new sends, refreshes, installs, commits or permission changes",
-    "Independent bounded review and leader in-memory reproduction confirmed two MEDIUM K3 defects; transferred files left untouched."
+    "Independent bounded review and leader in-memory reproduction confirmed two MEDIUM K3 defects; transferred files left untouched.",
+    "Applied user-approved three-file safety handover; sync owner subsequently merged it on main.",
+    "Confirmed exact system Chrome identity, serve revision and successful same-URL native safe-refresh recovery UI.",
+    "Sent first independent business candidate once with sidebar already closed; no result, reopened solely for read-only diagnosis, no replay.",
+    "Identified and minimally fixed empty hidden URL-decoration rich-content false positive in original DOM adapter.",
+    "Verified targeted behavior and guards, unchanged writer provenance; preserved all unknowns, grants, processes and parallel edits."
   ],
   "historicalEvidence": {
     "path": "projects/webflow/evidence/listener-recovery-20261104.json",
     "caution": "Its 07:47:18Z bundle snapshot and later sourceBlobs are different observation times. Revision 1c9ace... is historical; do not combine them into current same-candidate proof."
   },
-  "nextOperation": "Coordinate the shared Chrome window with active listener UI peer, then acquire own UI interval and prove same-candidate K1/K3 before two independent closed-sidebar rounds.",
+  "nextOperation": "Post-fix native verification requires the currently occupied UI lease. Once available, use this chat’s own window to confirm live revision and a harmless URL submission; reconcile original round1 read-only. No resend, ID substitution or round2 before reliable first-round terminal/release proof.",
   "blockers": [
-    "Source ownership resolved. Actual shared Chrome window is being operated by listener UI thread 01a1a5c2-71a3-78b0-accd-0d78aaf4dbcd; this thread released its UI lease without input/navigation and requested user authorization for a single coordination message."
+    "Native global keyboard/clipboard lease held by active CFT file-test chat 01a1a61c-595c-7f81-a4ab-c5b9d8ea1e43; no takeover or new cross-chat message.",
+    "First business round lacks reliable terminal/release/result evidence. No retry, ID substitution or second round while that boundary remains unresolved."
   ],
   "componentReproduction": {
     "command": "node artifacts/webflow/listener-recovery-20261104/refresh-safety-repro.mjs",
@@ -317,7 +335,7 @@
     },
     "scopeHandover": "USER_APPROVED_APPLIED"
   },
-  "latestAuditAt": "2026-11-04T09:21:33.286724+00:00",
+  "latestAuditAt": "2026-11-04T10:37:28.302668+00:00",
   "blockingAudit": {
     "observedAt": "2026-11-04T08:41:40.575449+00:00",
     "eligibleForBlocked": true,
@@ -346,7 +364,8 @@
       "Original owner closes the current product defects and releases or explicitly hands over UI"
     ],
     "recommendedGoalStatus": "blocked",
-    "completionClaim": false
+    "completionClaim": false,
+    "scope": "Historical original-owner/goal audit, superseded by explicit user handover. Not a current UI/file ownership blocker or current goal state."
   },
   "receivingThreadAudit": {
     "threadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
@@ -413,7 +432,8 @@
     "K6": "Original candidate remains UNKNOWN, untouched",
     "K7": "NOT_SCORED",
     "oldGoalLifecycle": "No goal created, completed, paused, migrated or otherwise changed by this thread.",
-    "nextOperation": "After explicit scoped file handover, recheck current diffs and apply the reviewed patch; then use the retained watcher. Coordinate actual UI ownership before any native action."
+    "nextOperation": "After explicit scoped file handover, recheck current diffs and apply the reviewed patch; then use the retained watcher. Coordinate actual UI ownership before any native action.",
+    "scope": "Historical initial receiving audit; later nativeRecoveryAndFirstRound and inlineUrlRepair supersede current-state fields."
   },
   "appliedRepair": {
     "observedAt": "2026-11-04T09:21:33.286724+00:00",
@@ -520,5 +540,270 @@
     },
     "nativeEvidence": "NOT_TESTED",
     "newBusinessSends": 0
+  },
+  "receivingNativeInterval": {
+    "observedAt": "2026-11-04T09:50:51.278495+00:00",
+    "ownerThreadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "windowId": 560069839,
+    "tabId": 560069840,
+    "url": "https://chatgpt.com/",
+    "emptyComposerConfirmed": true,
+    "newCandidateSends": 0,
+    "newRuns": 0,
+    "newDeliveries": 0,
+    "uiLeaseReleased": true,
+    "nextUiOwner": "01a1a5f1-b38d-7962-968e-49f3d64026d7",
+    "retained": "All Chrome windows, unknown candidates, installation/grants and writer93582 retained",
+    "browserControlLimitation": "Exact-tab DOM snapshot and read-only evaluate each timed out; navigation completed. Native AX successfully selected own separate window. No retry send.",
+    "scope": "Historical first native interval before merged-candidate recovery; not current UI ownership."
+  },
+  "concurrentMergeAudit": {
+    "observedAt": "2026-11-04T09:50:51.278495+00:00",
+    "ownerThreadId": "01a15352-d840-7250-893d-4c0af1c2930e",
+    "currentPageBlob": "dfa3fc3f9c172e39e6d203bbbaddb2b435f57678",
+    "priorAppliedPageBlob": "30aae9e6d3b422624a0f5c95b062eebfc6daaadd",
+    "sourcePreservesRefreshFences": true,
+    "sourceReview": "Pending bounded independent impact review",
+    "diskAudit": "artifacts/webflow/listener-recovery-20261104/post-merge-disk-audit.json",
+    "sameCandidateSourceAndDisk": false,
+    "indexUnmergedAtObservation": true,
+    "action": "Read-only; leave sync owner resolution, staging and watcher intact",
+    "latestState": {
+      "observedAt": "2026-11-04T09:54:55.211775+00:00",
+      "resolvedByOwner": true,
+      "commit": "44654b0df1a3a38d15e69ed834014563da7ba2ee",
+      "sourceTestScope": "31 page safety/message regressions and exact Page pin verified by sync owner; unchanged results reused, not repeated"
+    }
+  },
+  "postMergeTargetedChecks": {
+    "observedAt": "2026-11-04T09:54:55.211775+00:00",
+    "eventListener": {
+      "command": "node --test --test-reporter=spec projects/webflow/tests/listener-events.test.mjs",
+      "initialPass": 6,
+      "initialFail": 3,
+      "classification": "Legacy fixture omitted newly required exact Host identity; product rejected safely. Updated only mock replies and assert actual outgoing Host identity.",
+      "pass": 9,
+      "fail": 0
+    },
+    "pageHostIntegration": {
+      "command": "node artifacts/webflow/listener-recovery-20261104/refresh-safety-applied-integration.mjs",
+      "initialIssue": "Temporary harness extraction ended at newly inserted routing test; corrected extraction only.",
+      "passScenarios": 3,
+      "reloadsEach": 0,
+      "startsEach": 0,
+      "deliveriesEach": 0,
+      "native": false
+    },
+    "diffCheck": "PASS"
+  },
+  "currentCandidate": {
+    "observedAt": "2026-11-04T10:36:24.058852+00:00",
+    "revision": "9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e",
+    "targets": {
+      "agents/chatgpt-fixed-bridge.js": {
+        "sha256": "6961c52b59b5c85fe6af2838ba61ac3813b7895d96320014e0b4ac0fe6fcae4f",
+        "markerMatches": true,
+        "sources": [
+          {
+            "path": "projects/webflow/trusted/chatgpt-bridge-page.js",
+            "matches": 1,
+            "blob": "dfa3fc3f9c172e39e6d203bbbaddb2b435f57678",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/native-agent/chatgpt-bridge-site.js",
+            "matches": 1,
+            "blob": "0c4cb3e8c0a555de3b8477a8a94b3169a431ef6c",
+            "equalsCurrentSource": true
+          }
+        ]
+      },
+      "ui/tool-shell.js": {
+        "sha256": "8c0f50803f972720289b50286ef0cce8812adff23b0a115cba4d8d034487b509",
+        "markerMatches": true,
+        "sources": [
+          {
+            "path": "projects/webflow/trusted/AutoSettings.tsx",
+            "matches": 1,
+            "blob": "27d7e6f577f161a5cb5b86f195c3c6775d4b84ee",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "projects/webflow/trusted/CurrentTask.tsx",
+            "matches": 1,
+            "blob": "4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/native-agent/chatgpt-fixed-bridge-host.js",
+            "matches": 1,
+            "blob": "d39e76fabca710845a8fc2474e7e55c541e99b3f",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/ui/ai/provider-runtime.js",
+            "matches": 1,
+            "blob": "397f7e5afda0fcaa1e8ff4823f124cccfbade7da",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/native-agent/host-adapter.js",
+            "matches": 1,
+            "blob": "bc05d64be3a70a908f9904a1ccb10e42bd5aee94",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/ui/tool-shell.js",
+            "matches": 1,
+            "blob": "7ac021a9fc1711a5d3336ed6e0f1226c0a7b1a6d",
+            "equalsCurrentSource": true
+          }
+        ]
+      },
+      "sw.js": {
+        "sha256": "f65f80b37e45a22fcbb98d44361a74676e2f2eb573224db684faa59eb26c200c",
+        "markerMatches": true,
+        "sources": [
+          {
+            "path": "src/page-events/web-task-ingress.js",
+            "matches": 1,
+            "blob": "7da33e2c2f5be3433687a8c54874d2321cd1f9b3",
+            "equalsCurrentSource": true
+          },
+          {
+            "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+            "matches": 1,
+            "blob": "8ad65012db2d510f85988cf7c1d984ba21731be2",
+            "equalsCurrentSource": true
+          }
+        ]
+      }
+    },
+    "limitation": "Disk/source-map provenance only. Current post-fix live Chrome revision and Page reinjection are NOT_TESTED."
+  },
+  "nativeRecoveryAndFirstRound": {
+    "ownerThreadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "windowId": 560069839,
+    "tabId": 560069842,
+    "sourceUrl": "https://chatgpt.com/c/6aeb022e-1ab8-83e8-bc2a-b530fbf76227",
+    "runtime": {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "serveConnected": true,
+      "liveRevision": "2a1cb5d06cd8ef11fe5cb2ded750adeb25ccc181c7cd073aef1e3cf7e4a57b28",
+      "scope": "Native observations before the inline-URL fix, not current post-fix runtime proof"
+    },
+    "safeRefresh": {
+      "confirmedOnceAt": "2026-11-04T10:05:42.392Z",
+      "readyObservedAt": "2026-11-04T10:06:36.769Z",
+      "sameUrl": true,
+      "emptyComposer": true,
+      "status": "监听就绪",
+      "taskWorkState": "空闲",
+      "reloadCompletedUiObserved": true,
+      "newDocumentId": "NOT_CAPTURED",
+      "limitations": [
+        "No exact pre/post documentId proof",
+        "Navigation A→B→A in isolated world NOT_TESTED"
+      ]
+    },
+    "round1": {
+      "round": 1,
+      "candidateId": "wf-015d0f5e-ade3-4aea-95b5-b4093a67c471",
+      "intent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-015d0f5e-ade3-4aea-95b5-b4093a67c471",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser",
+          "limit": 3
+        }
+      },
+      "promptFile": "artifacts/webflow/listener-recovery-20261104/native-round-1.prompt.txt",
+      "status": "NO_RESULT_OBSERVED_READ_ONLY_DIAGNOSIS",
+      "newExecutionAuthorization": "Two independent new validation rounds explicitly authorized in current goal; not replay of old UNKNOWN.",
+      "sentAt": "2026-11-04T10:11:16.021Z",
+      "sourceUrl": "https://chatgpt.com/c/6aeb022e-1ab8-83e8-bc2a-b530fbf76227",
+      "sidebarClosedBeforeSend": true,
+      "closedIntervalEndedAt": "2026-11-04T10:13:29.620Z",
+      "reopenedForDiagnosis": true,
+      "passed": false,
+      "secondRoundStarted": false,
+      "noReplay": true
+    },
+    "pageObservation": {
+      "stage": "idle",
+      "reason": "no-live-submission",
+      "historyReasons": [
+        "baseline",
+        "route-unavailable-before-binding",
+        "conversation-changed-before-binding",
+        "no-live-submission"
+      ],
+      "candidate": null,
+      "pending": false,
+      "closed": false,
+      "method": "Native DevTools temporary function breakpoint and read-only scoped inspection; breakpoint removed, resumed, DevTools closed"
+    },
+    "draftDiagnosis": {
+      "unsentSameTextOnly": true,
+      "richRejected": true,
+      "observedRoot": "span[data-inline-url-icon][aria-hidden=\"true\"][contenteditable=\"false\"]",
+      "textContent": "",
+      "descendantTags": [
+        "span",
+        "svg",
+        "path"
+      ],
+      "nestedNoneditableSpan": true,
+      "draftClearedNatively": true,
+      "draftSent": false
+    },
+    "uiLeaseReleasedAfterDiagnosis": true,
+    "secondBusinessRoundSent": false,
+    "outcome": "First round has no reliable Run/result/release receipt. Empty history is not zero-effects proof. No candidate replay."
+  },
+  "inlineUrlRepair": {
+    "ownerThreadId": "01a1a5d2-c10d-72a1-9740-4ee3204666fc",
+    "source": "src/native-agent/chatgpt-bridge-site.js",
+    "sourceBlob": "0c4cb3e8c0a555de3b8477a8a94b3169a431ef6c",
+    "test": "projects/webflow/tests/bridge-inline-url.test.mjs",
+    "behavior": "Ignore only the observed empty hidden URL decoration in the same editor with span/svg/path descendants; retain noneditable, media, attachment, exact-draft and one-click barriers.",
+    "red": {
+      "pass": 1,
+      "fail": 1,
+      "expectedFailure": "Plain URL decoration incorrectly marked rich; negative protection test already passed. Initial fixture-only getter error was corrected before product-defect reproduction."
+    },
+    "verification": {
+      "command": "node --test --test-reporter=spec projects/webflow/tests/bridge-inline-url.test.mjs tests/environment/chatgpt-bridge-site-r13.test.mjs projects/webflow/tests/first-message.test.mjs projects/webflow/tests/listener-events.test.mjs",
+      "pass": 42,
+      "fail": 0,
+      "followupCommand": "node --test --test-reporter=spec projects/webflow/tests/bridge-inline-url.test.mjs",
+      "followupPass": 3,
+      "followupFail": 0,
+      "followupReason": "Added prepare/commit mutation regression after reviewer noted coverage gap; includes sole successful click and zero clicks after text/attachment change.",
+      "syntax": "PASS",
+      "diffCheck": "PASS"
+    },
+    "independentReview": {
+      "agentId": "01a1a5f7-64a4-7cc2-845b-9e9d174d3766",
+      "sourceBlob": "0c4cb3e8c0a555de3b8477a8a94b3169a431ef6c",
+      "high": 0,
+      "medium": 0,
+      "nativeVerified": false,
+      "coverageSuggestionAddressed": true,
+      "followup": "Reviewer confirms no new issue after prepare→commit mutation regression was added; source unchanged, native still NOT_TESTED."
+    },
+    "watcher": {
+      "pid": 93582,
+      "retained": true,
+      "secondWriterStarted": false,
+      "revision": "9121af7f0594ed8026bcbad925f77bf2765d5cae7d5bc79dafebd108c6a0620e",
+      "provenanceArtifact": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow/listener-recovery-20261104/inline-url-candidate-provenance.json"
+    },
+    "currentCandidateNative": "NOT_TESTED; native UI lease currently held by a different chat",
+    "score": "NOT_SCORED",
+    "testBlob": "7b9051d9de0b818698d6eb6bb65fd304da1ab9c2"
   }
 }
