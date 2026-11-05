@@ -31,6 +31,8 @@ export default function VipApp({createDevelopmentControls}={}){
             </label>
             <Button size="lg" id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
           </div>
+          <input id="ai-vip-cookie-file" type="file" accept=".json,application/json" data-sensitive hidden aria-label="选择本地 Cookie JSON" />
+          <p id="ai-vip-file-help" className="od-field-help" hidden>仅在本机预检。保留 Cookie 安全属性，按分区分别确认；不推断账号或会员套餐。</p>
           <div className="ai-vip-site-actions">
             <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>准备登录</Button>
             <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>打开网站 ↗</Button>
@@ -42,7 +44,7 @@ export default function VipApp({createDevelopmentControls}={}){
         <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
         <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
         <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
-        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>确认登录并打开网站</Button>
+        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
         <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
         <Button size="lg" id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
       </section>

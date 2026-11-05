@@ -18,6 +18,7 @@ for(const moveElsewhere of [false,true])test(`trusted Cookie cancellation ${move
     throw Object.assign(Error('cancelled in trusted review'),{code:'E_COOKIE_NOT_SUBMITTED'});
   }});
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.chooseSite('commercial');await e.click('site-receive');
   const button=e.get('cookie-install');button.isConnected=true;
   let focuses=0;button.focus=()=>{focuses++;documentState.activeElement=button;};
   documentState.activeElement=button;
@@ -101,7 +102,8 @@ test('shared session acquisition keeps member refresh disabled until it settles'
     return fixtureRequest(fixture,{...args,headers:args.config.headers});
   }});
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
-  hold=true;await e.click('shared-receive');
+  await e.chooseSite('commercial');
+  hold=true;await e.click('site-receive');
   assert.equal(e.get('refresh').disabled,true,'shared session in flight blocks refresh');
   gate.resolve();await e.flush();
   assert.equal(e.get('refresh').disabled,false);
@@ -187,6 +189,7 @@ import {COOKIE_JOURNAL_KEY,readCookieJournal,reserveCookieAttempt,saveCookieRece
 test('full bounded Cookie journal reports capacity before dispatch and preserves every original record',async()=>{
   const e=await runtime();
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.chooseSite('commercial');await e.click('site-receive');
   await e.click('cookie-install');
   for(let i=0;i<100&&e.toolStates.at(-1)?.busy;i++)await e.flush();
   assert.equal(e.cookieCalls.length,1);
@@ -213,6 +216,7 @@ test('full bounded Cookie journal reports capacity before dispatch and preserves
   await e.click('shared-receive');
   assert.equal(e.get('cookie-install').disabled,false);
   const before=e.cookieCalls.length,tabs=e.tabCalls.length;
+  await e.chooseSite('commercial');await e.click('site-receive');
   await e.click('cookie-install');
   for(let i=0;i<100&&e.toolStates.at(-1)?.busy;i++)await e.flush();
   assert.equal(e.get('cookie-status').textContent,'恢复记录容量不足，未提交Cookie；原记录已保留');

@@ -95,7 +95,7 @@ test('commercial preference waits for the verified directory without replaying a
     if(args.method==='GET'&&new URL(args.url).pathname==='/api/member')await gate.promise;
     return fixtureRequest(fixture,{...args,headers:args.config.headers});
   }});
-  assert.equal(reopened.get('site-select').value,'','preference cannot stand in for a verified directory');
+  assert.equal(reopened.get('site-select').value,'local-chatgpt','unverified commercial directory grants no authority; local file stays available');
   gate.resolve();await reopened.flush();
   assert.equal(reopened.get('site-select').value,'commercial');
   assert.equal(reopened.get('site-source').textContent,'公司共享账号 A · 127.0.0.1:7898');
@@ -111,7 +111,7 @@ test('profile revocation blocks a late ordinary preference even with no journal'
   const e=await runtime({store:new Map([[KEY,preference('ordinary-1')]]),beforeStorageGet:async payload=>{
     if(payload.key===KEY)await gate.promise;
   }});
-  assert.equal(e.get('sites-section').hidden,true);
+  assert.equal(e.get('sites-section').hidden,false,'local file source is independent of dev profile');
   e.setStatus(released);await e.click('proxy-refresh');
   gate.resolve();await e.flush();
   e.setStatus({...released,developmentProfile:profile});await e.click('proxy-refresh');
@@ -155,12 +155,12 @@ test('profile unavailable or lost hides dev selection and receipts, including a 
   const unavailable=await runtime({store:e.store,developmentProfile:null,ordinaryNetwork});
   assert.equal(unavailable.get('site-select').value,'');
   assert.ok(unavailable.get('site-options').children.every(row=>!row.value.startsWith('ordinary-')));
-  assert.equal(unavailable.get('sites-section').hidden,true);
+  assert.equal(unavailable.get('sites-section').hidden,false,'local file source remains available');
   assert.equal(unavailable.get('cookie-section').hidden,true);noEffects(unavailable);
   const active=await runtime({store:e.store,ordinaryNetwork});
   assert.equal(active.get('site-select').value,'ordinary-1');
   active.setStatus({...released,developmentProfile:null});await active.click('proxy-refresh');
-  assert.equal(active.get('site-select').value,'');
+  assert.equal(active.get('site-select').value,'local-chatgpt');
   assert.equal(active.get('cookie-section').hidden,true);noEffects(active);
   const gate=deferred();
   const late=await runtime({store:e.store,ordinaryNetwork,
@@ -177,7 +177,7 @@ test('profile unavailable or lost hides dev selection and receipts, including a 
 test('invalid preferences and storage read/write errors leave explicit selection usable without authority',async()=>{
   for(const bad of [preference('https://evil.test/'),{...preference('ordinary-1'),credential:bearer}]){
     const e=await runtime({store:new Map([[KEY,bad]]),ordinaryNetwork});
-    assert.equal(e.get('site-select').value,'');
+    assert.equal(e.get('site-select').value,'local-chatgpt');
     await choose(e,'ordinary-1');assert.equal(e.get('site-select').value,'ordinary-1');noEffects(e);
     assert.equal(e.storageCalls.filter(row=>row.operation==='storage.set').length,0);
   }

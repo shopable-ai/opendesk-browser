@@ -1,5 +1,39 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="local-chatgpt-1415-20261106"></a>
+
+## 2026-11-06：本地 ChatGPT 文件核心开发与最小验证（1.4.15）
+
+Owner：接收对话 `01a1acaa-505e-7113-a4c6-d9b29f5cb36c`，现有 main，接收时 HEAD `3b0b90e66`。继承的本工具未提交改动由本轮承接；Framework、Cookie Editor、Web Flow、Native、来源保护及其他任务文件均未改写。原对话 paused 不等于目标完成；本轮目标仍未完成，真实外部步骤未通过。
+
+### 当前操作与证据层级
+
+| 用户操作 | 本轮结果 |
+| --- | --- |
+| 真实材料取得/预检 | 用户指定原文件只读、仅内存预检；25 条中 1 条过期，最早到期为北京时间 2026-11-06 00:58:19，01:06 检查返回 `E_COOKIE_FILE`。未删行、改值、续期、另存明文或上传。未提交真实 Cookie |
+| 实站基线 | ego(lite) TaskSpace 3，本任务新页面访问 `https://chatgpt.com/`，显示“登录/免费注册”；未发送消息、未验证权益、未清除现有会话。它是新的未登录观察，不沿用旧 CFT challenge 结论 |
+| 预检界面/取消 | 同一 TaskSpace 的同源 React **合成预览**：无会员服务时仍有本地文件入口；坏 JSON 显示格式错误，合成两分区文件显示第 1/2 批/1 项；取消隐藏确认、清空 input、恢复选择按钮并回焦，页面不显示合成值。未点击批次提交，无真实 SDK/Chrome 调用 |
+| 防重复/迟到/恢复/unknown | Node/VM 合成行为：双击只派发一次、下一批须新点击、成功后按钮恢复、重开不写、可信 `E_COOKIE_NOT_SUBMITTED` 才能再明确确认，普通取消保持 unknown；首批晚于 120 秒成功保留 journal，余批未提交数量可见且不开页。不能称原生 PASS |
+| 当前候选真实入口/安装/可信确认/写入/登录 | **NOT_TESTED**。ego 扩展列表为空，当前 `task.cdp` 仅支持 Target/Browser，调用 Extensions 加载接口被拒；原生目录选择器未自动操作。受管 test-chatgpt-01/02/03 均有其他 owner，UI 锁也属其他任务；未申请/回收/接管任何 slot，没有启动 CFT、seed/login 或 CDP 注入 Cookie |
+
+现有 `npm run dev`（观察 PID33443，子 Node33463）已监听 43119/43120，固定 `dist/development/manifest.json` 已恢复；这只证明输出与监听存在，**当前本轮 actual extension ID、加载路径、serve 客户端连接及 Native 配对未读取**。未启动第二 Browser writer，也未覆盖/停止已有服务。ego 普通网页和预览不证明持续开发连接或扩展专项通过。
+
+### 修复、检查与包
+
+修复两个 P2：本地文件完整完成与本批成功分开，迟到首批不能误报全文件成功/自动开页；省略与显式 Store 混用在分组前拒绝，不放宽 journal。确认前到期也显示未提交数量。`AI_VIP_REACT_SOURCES` 补齐 `src/local-cookie-file.js`，preview 继续复用原来源列表。包版本、控制器版本升为 1.4.15，恢复兼容列表保留 1.4.14 及更早版本；原 1.4.14 unknown 事务可查询但不被清除或重兑。
+
+本轮检查由新文件来源、两个复现、原控制器接入及版本升级触发：
+
+- parser 9、local controller 7、UI/包同源 5：共 21 项 Node/VM 通过；原始输出 `artifacts/ai-vip-share-chatgpt-20261106/local-and-package-tests.txt`。两个新到期行为测试修复前均失败，修复后通过。
+- 原 `controller-native-regressions` 11、站点恢复 10、旧版恢复 6、预览隔离 2：29 项通过；另补 1.4.14 恢复行为 1 项通过。名称含 native 的文件实际为 Node fixture，没有原生浏览器证据。未跑全仓测试或延期矩阵。
+- JS 语法、JSON 解析及本工具 `git diff --check` 通过。限定独立复核无可复现发现，额外首批迟到未知结果检查通过；它不代替原生测试或架构/发布签署。
+- 工具/预览使用项目原 Vite 脚本构建成功。工具收据 buildId `e0fd306d90a095b60530327c4510acf4add68f05170c35dc9a8a43f2d2d29ed9`，14 输入/2 输出；预览 buildId `857ed97fe1231ef403edcf2c907dcbe8fdcece5afb1bf1b415fe281dc6734240`，27 输入/5 输出；所有来源和产物逐项字节/摘要匹配。
+- 原打包器候选→检查→`--promote-from`→`--check-project` 返回 `PROJECT_PACKAGE_MATCH`。唯一正式包 **1.4.15 / 135852 字节 / SHA-256 `19d8bf682db0500697c46c954f25230c738c7bb8a1c29131349ca7182a766892`**，状态 `PACKAGE_READY_INSTALL_NOT_TESTED`。新增 `browser.cookies.read` 尚未真实安装审阅；仅用于核对当前 Store/Partition。
+
+本地合成证据为 `ego-synthetic-preflight.txt/png` 和 `ego-cancel-state.json`，均在上述忽略的 artifacts 目录；未将真实文件带入预览或 fixture。TaskSpace 已 `finish({keep:[]})` 释放本任务两页，临时预览服务 127.0.0.1:54692 已正常停止；未占用 Profile/UI 租约。所有历史 journal/unknown、其他窗口与服务保持原归属。
+
+下一条未完成操作是当前 1.4.15 从原扩展入口安装更新，再用新的有效用户文件完成逐批可信确认、取消、SDK 核验、实站登录及重开。Cookie 回读/HTTP 200 不证明登录，登录不证明套餐。等待有效材料与明确可用的测试资源，不以新 Profile 绕过 unknown。商业、支付、真实代理流量、production/发布、全量矩阵、宽度/缩放与 95+ 评分继续延期。
+
 <a id="design-alignment-20261101"></a>
 
 ## 当前目标：按 design.html 对齐实际 UI 与交互（2026-11-01）

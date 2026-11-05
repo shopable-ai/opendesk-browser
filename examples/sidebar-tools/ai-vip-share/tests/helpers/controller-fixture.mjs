@@ -40,7 +40,7 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
-  developmentControls=false,ordinaryNetwork,documentState,proxyDisable}={}){
+  developmentControls=false,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites',
@@ -91,7 +91,10 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
       current={...released,developmentProfile};return clone(current)}};
   const window={OpenDeskTool:{root:{querySelector:id=>rootReady?nodes.get(id.slice(1)):null},request:storage,
     setState:state=>toolStates.push(clone(state))},
-    OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{setMany:async args=>{
+    OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{
+      getCurrentStore:async()=>cookieContext?cookieContext('store'):{storeId:'0'},
+      getPartitionKey:async()=>cookieContext?cookieContext('partition'):{partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}},
+      setMany:async args=>{
       cookieCalls.push(clone(args));return cookieSetMany?cookieSetMany(args):{
         saved:args.cookies.length,verified:args.cookies.length,
         results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
@@ -105,7 +108,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   const instrumented=script.replace(anchor,
     '  window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n'+anchor);
   const document=Object.assign(documentState??{},{createElement:()=>node()});
-  await runControllerVm(instrumented,{window,document,URL,Date,Intl,performance:performanceClock,
+  await runControllerVm(instrumented,{window,document,URL,Date:dateClock,Intl,performance:performanceClock,
     TextEncoder,Uint8Array,crypto:{randomUUID,subtle:webcrypto.subtle}}, {timeout:2000});
   if(developmentControls){
     rootReady=true;
@@ -120,6 +123,10 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   const get=name=>nodes.get('ai-vip-'+name);
   const click=async(name,trusted=true)=>{get(name).listeners.click({isTrusted:trusted});await flush()};
   return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
+    async importFile(text,{size=new TextEncoder().encode(text).length,trusted=true}={}){
+      get('cookie-file').files=[{size,text:async()=>text}];
+      await get('cookie-file').listeners.change({isTrusted:trusted});await flush();
+    },
     release,developmentView:()=>({created:createdControls,removed:removedControls}),
     activation:window.__activationTests,setPage(value){page=value},
     async chooseSite(value,{trusted=true}={}){

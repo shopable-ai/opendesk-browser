@@ -100,7 +100,16 @@ export function installPreviewFixture(root){
         return {status:200,data:lastReceipt};
       throw Error('E_PREVIEW_UNSUPPORTED_REQUEST');
     }},
-    cookies:{setMany:async({url,cookies})=>{
+    cookies:{
+      getCurrentStore:async({url})=>{
+        if(url!=='https://chatgpt.com/')throw Error('E_PREVIEW_UNAPPROVED_CONTEXT');
+        return {storeId:'0',preview:true};
+      },
+      getPartitionKey:async({url})=>{
+        if(url!=='https://chatgpt.com/')throw Error('E_PREVIEW_UNAPPROVED_CONTEXT');
+        return {partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false},preview:true};
+      },
+      setMany:async({url,cookies})=>{
       if(url!==SITE||!Array.isArray(cookies)||cookies.length!==2)
         throw Error('E_PREVIEW_INVALID_DELIVERY');
       const outcome=preview.cookieOutcome;

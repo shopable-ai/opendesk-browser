@@ -23,6 +23,11 @@ test('preview works beside read-only real SDK globals without using real capabil
   const member=await request({method:'GET',url:'http://127.0.0.1:7898/api/member'});
   assert.equal(member.data.account.state,'bound');
   await assert.rejects(request({method:'GET',url:'https://example.com/api/member'}),/NO_EXTERNAL_NETWORK/);
+  const cookies=page.__OpenDeskVipPreviewSDK.browser.cookies;
+  assert.equal((await cookies.getCurrentStore({url:'https://chatgpt.com/'})).storeId,'0');
+  assert.equal((await cookies.getPartitionKey({url:'https://chatgpt.com/'})).preview,true);
+  await assert.rejects(cookies.getCurrentStore({url:'https://example.com/'}),/UNAPPROVED_CONTEXT/);
+  await assert.rejects(cookies.setMany({url:'https://chatgpt.com/',cookies:[{name:'synthetic'}]}),/INVALID_DELIVERY/);
 });
 
 test('only the session preview supplies a website directory, including after redemption',async()=>{

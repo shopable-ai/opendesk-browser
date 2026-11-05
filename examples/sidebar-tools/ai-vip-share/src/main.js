@@ -1,4 +1,5 @@
 import * as Journal from './cookie-journal.js';
+import {LOCAL_CHATGPT} from './local-cookie-file.js';
 import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
 import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
 // AI VIP Share business presentation stays inside the installed opaque sandbox.
@@ -139,9 +140,9 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.14';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.15';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -318,7 +319,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
   }
   cookieOpen?.addEventListener('click',event=>{if(event.isTrusted===true)void openCookieTarget();});
   function cookieTarget(url){
-    return commercialCookieTarget(url)||Boolean(developmentProfile&&
+    return url===LOCAL_CHATGPT.site.targetUrl||commercialCookieTarget(url)||Boolean(developmentProfile&&
       ORDINARY_SITES.some(row=>row.site.targetUrl===url));
   }
   function commercialCookieTarget(url){
@@ -379,6 +380,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
     }
     presentedCookiePending=cookiePending;presentedCookieIssue=issue;
     cookieInstall.hidden=!cookiePending;
+    cookieInstall.textContent=cookiePending?.kind==='local-file'?'确认本批设置（'+cookiePending.payload.cookies.length+' 项）':'设置并打开网站';
     cookieInstall.disabled=!cookieReady||cookieBusy||busy||!cookiePending||Boolean(cookieFault)||journalLocked()||
       (record?.scopeKey&&record.scopeKey===cookiePending?.scopeKey&&
         record.deliveryId===cookiePending?.deliveryId&&record.state!=='failed');
@@ -386,7 +388,8 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
     for(const row of record?.results||[])addRow(cookieResults,'第 '+(row.index+1)+' 项',
       row.verified?'已写入并核验':row.saved?'已写入，尚未核验':
         COOKIE_RESULT_LABELS[row.code]||'未完成，请人工核对');
-    const labels={success:'全部 Cookie 已写入并核验；请在目标页面验证会话。',
+    const localBatch=record?.scopeKey&&JSON.parse(record.scopeKey)[0]==='user-local-file';
+    const labels={success:(localBatch?'本批':'全部')+' Cookie 已写入并核验；请在目标页面验证会话。',
       partial:'部分 Cookie 已写入；其余未完成。不会自动回滚或重放，请在目标页面核对。',
       failed:'Cookie 未写入。请检查目标网站的 Chrome 权限与工具设置授权；修复后可主动重试有效交付。',
       unknown:'Cookie 操作结果未知或恢复记录未确认；已禁止重放，请在目标页面人工核对。'};
@@ -442,7 +445,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
   }
   async function validateCurrentDelivery(delivery,refresh=false){
     if(disposed)fail('E_COOKIE_DELIVERY','工具已关闭');
-    if(delivery.kind==='ordinary')return websiteController.validate(delivery,{refresh});
+    if(['ordinary','local-file'].includes(delivery.kind))return websiteController.validate(delivery,{refresh});
     if(refresh){
       const latest=verifiedMember(await businessRequest('GET',endpoints.member));
       acceptMemberSnapshot(latest);
@@ -489,7 +492,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
     if(event?.isTrusted!==true||cookieInstall.disabled||cookieBusy||busy||!cookiePending)return;
     const returnFocus=document.activeElement===cookieInstall;
     let delivery;
-    try{delivery=cookiePending.kind==='ordinary'?cookiePending:commercialIntent(cookiePending);}
+    try{delivery=['ordinary','local-file'].includes(cookiePending.kind)?cookiePending:commercialIntent(cookiePending);}
     catch{cookiePending=null;cookieFault='缺少当前有效会话分配，未提交 Cookie。';renderRedeem();return;}
     cookiePending=delivery; // Preserve the exact intent for an explicit pre-dispatch cancellation.
     cookieBusy=true;cookieFault='';renderRedeem();
@@ -517,10 +520,12 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
         cookieJournal=(await Journal.saveCookieReceipt(storeRequest,marker.reference,{receipt:result})).value;
         const outcome=cookieJournal.attempts.find(row=>row.attemptId===marker.reference.attemptId);
         if(cookiePending===delivery||cookiePending?.deliveryId===delivery.deliveryId)cookiePending=null;
-        if(delivery.kind==='ordinary')websiteController.completed(delivery,{success:outcome.state==='success'});
+        const completion=['ordinary','local-file'].includes(delivery.kind)?
+          websiteController.completed(delivery,{success:outcome.state==='success'}):null;
         sharedNotice=outcome.state==='success'?'已设置，请在目标页核对实际登录状态。':
           '网站会话未完整设置；请核对逐项结果，不会自动重试。';
-        if(outcome.state==='success'&&!disposed)await openCookieTarget(delivery.targetUrl);
+        if(outcome.state==='success'&&!disposed&&
+          (delivery.kind!=='local-file'||completion?.complete))await openCookieTarget(delivery.targetUrl);
       }catch(error){
         let safeCancellation=false,confirmedNotInvoked=false;
         if(marker){
@@ -535,7 +540,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
           cancelledBeforeDispatch=true;
           sharedNotice='已取消 Cookie 确认，未提交写入；有效交付可由你重新确认，不会自动重试。';
         }else{
-          if(delivery.kind==='ordinary')websiteController.completed(delivery);
+          if(['ordinary','local-file'].includes(delivery.kind))websiteController.completed(delivery);
           cookiePending=null;
           cookieFault=cookieFault||(started?'Cookie 写入结果未知，已禁止重放；请在目标页面人工核对。':
             error?.code==='E_COOKIE_LIMIT'?'恢复记录容量不足，未提交Cookie；原记录已保留':
@@ -1003,7 +1008,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
       snapshot.serverNow+Math.max(0,performance.now()-serverSampleAt):data.serverNow;
     snapshot={...data,serverNow:Math.max(data.serverNow,floor)};
     memberVerifiedFresh=true;
-    if(cookiePending&&cookiePending.kind!=='ordinary'&&cookiePending.accountId!==data.account.id)cookiePending=null;
+    if(cookiePending&&!['ordinary','local-file'].includes(cookiePending.kind)&&cookiePending.accountId!==data.account.id)cookiePending=null;
     serverSampleAt=performance.now();
     if(pending&&pending.accountId!==data.account.id){
       pending=null;code.value='';
@@ -1588,7 +1593,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
     renderRedeem();
   }
   websiteController=createWebsiteController({byId,network:businessSdk,tabs:window.OpenDeskSDK?.browser?.tabs,
-    storeRequest,getRestoredTarget:()=>!cookieReady?undefined:cookieJournal?.schemaVersion===2?
+    storeRequest,cookies:window.OpenDeskSDK?.browser?.cookies,getRestoredTarget:()=>!cookieReady?undefined:cookieJournal?.schemaVersion===2?
       cookieJournal.attempts.filter(row=>row.state==='success').map(row=>JSON.parse(row.scopeKey)[6]).at(-1):null,
     getPending:()=>cookiePending,setPending:value=>{cookiePending=value;if(value&&cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}},
     validateDelivery:validateCookieDelivery,commercialReceive:requestSharedSession,
@@ -1604,7 +1609,7 @@ import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
     window.setInterval(()=>{
       if(!cookieBusy){
         websiteController?.tick();
-        if(cookiePending&&cookiePending.kind!=='ordinary'&&
+        if(cookiePending&&!['ordinary','local-file'].includes(cookiePending.kind)&&
           (estimatedServerNow()===null||cookiePending.expiresAt<=estimatedServerNow())){
           cookiePending=null;sharedNotice='会话交付已过期，请重新获取。';renderRedeem();
         }
