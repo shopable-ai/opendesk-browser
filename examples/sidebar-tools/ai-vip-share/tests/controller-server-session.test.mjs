@@ -34,6 +34,22 @@ test('activation receives server JSON without file selection and every partition
   const reopened=await runtime({store:e.store,fixture:e.fixture});
   assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.tabCalls.length,0);
   assert.equal(JSON.stringify([...e.store]),before);
+  assert.doesNotMatch(reopened.get('site-status').textContent,/账号或授权目录已变化/);
+  assert.match(reopened.get('cookie-status').textContent,/上次批次/);
+  await reopened.click('site-receive');
+  assert.match(reopened.get('cookie-status').textContent,/当前批次尚未提交/);
+  assert.equal(reopened.get('cookie-results').children.length,0,'old receipt is not a result of the new batch');
+  assert.equal(reopened.get('cookie-open').hidden,true);
+  assert.match(reopened.get('session-validity').textContent,/交付有效期至/);
+  assert.match(reopened.get('site-account').textContent,/未提供脱敏账号.*身份未核验/);
+  assert.equal(reopened.fixture.ledger.size,1,'existing entitlement does not redeem again');
+  assert.equal(reopened.cookieCalls.length,0);
+  await reopened.click('site-cancel');
+  assert.equal(reopened.get('session-validity').hidden,true);
+  assert.doesNotMatch(reopened.get('site-status').textContent,/共 3 项|1 \/ 2|每批分别确认/);
+  assert.equal(reopened.get('cookie-install').hidden,true);
+  assert.match(reopened.get('cookie-status').textContent,/上次批次/);
+  assert.equal(JSON.stringify([...e.store]),before,'preparation and cancellation retain the journal');
 });
 test('missing website grant leaves server activation intact and never writes',async()=>{
   const e=await activated({cookieContext:async()=>{throw Object.assign(Error('synthetic'),{code:'E_SITE_GRANT_REQUIRED'});}});

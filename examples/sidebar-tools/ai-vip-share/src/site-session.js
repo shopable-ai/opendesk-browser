@@ -253,7 +253,8 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       summary.textContent=context?context.site.label+' · '+new URL(context.site.targetUrl).host:
         commercial?(commercialLabel||'会员网站')+' · '+new URL(commercial).host:
           rows.length?'选择网站':'暂无可用网站';
-      account.textContent=masked||(commercial?(commercialLabel||'服务器当前分配的账号'):'尚未取得会话');
+      account.textContent=masked||(commercial?(commercialLabel||'服务器当前分配的账号')+
+        ' · 服务器未提供脱敏账号，网站身份未核验':'尚未取得会话');
       status.textContent=locked?'恢复记录仍需核对，已停止取得及写入新会话；仍可打开网站。':pending?(commercial?commercialNotice||'':''):notice||
         (commercial&&commercialNotice?commercialNotice:
         (storageFailed?'网站选择未能保存；仍可手动选择，重新打开后请核对。':

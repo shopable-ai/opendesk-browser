@@ -19,21 +19,29 @@ function bounded(value){
   if(new TextEncoder().encode(JSON.stringify(value)).length>MAX_BYTES)fail('E_COOKIE_LIMIT');
   return value;
 }
-// Storage-only dictionary: APIs and all policy checks continue to see schema 2.
-function encodeJournal(value){
+// Storage-only dictionaries: APIs and all policy checks continue to see schema 2.
+// v4 uses fixed-position slot tuples only when v3 exceeds the SAME 8 KiB quota.
+// No history is pruned, and exact readback still establishes each CAS outcome.
+const SLOT_FIELDS=['name','domain','hostOnly','path','storeId','partitionKey'];
+function encodeJournal(value,version){
   const scopes=[],slots=[],scopeIds=new Map(),slotIds=new Map();
   const intern=(items,ids,value)=>{
     const key=canonical(value);
     if(!ids.has(key)){ids.set(key,items.length);items.push(value);}
     return ids.get(key);
   };
-  return {schemaVersion:3,legacy:value.legacy,scopes,slots,attempts:value.attempts.map(row=>
+  const encoded={schemaVersion:3,legacy:value.legacy,scopes,slots,attempts:value.attempts.map(row=>
     ({...row,scopeKey:intern(scopes,scopeIds,row.scopeKey),slots:intern(slots,slotIds,row.slots)}))};
+  if(version===4||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=4;
+    encoded.slots=slots.map(list=>list.map(slot=>SLOT_FIELDS.map(field=>slot[field])));
+  }
+  return encoded;
 }
 function journalBounded(value){bounded(encodeJournal(value));return value;}
 function decodeJournal(value){
   bounded(value);
-  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts'])||value.schemaVersion!==3||
+  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts'])||![3,4].includes(value.schemaVersion)||
     !Array.isArray(value.scopes)||!Array.isArray(value.slots)||!Array.isArray(value.attempts)||
     value.attempts.length>128||value.scopes.length>128||value.slots.length>128||
     value.scopes.some(s=>typeof s!=='string'||s.length>8192)||
@@ -42,15 +50,19 @@ function decodeJournal(value){
     if(!Number.isSafeInteger(index)||index<0||index>=items.length)fail();
     return items[index];
   };
+  const slots=value.schemaVersion===4?value.slots.map(list=>list.map(tuple=>{
+    if(!Array.isArray(tuple)||tuple.length!==SLOT_FIELDS.length)fail();
+    return Object.fromEntries(SLOT_FIELDS.map((field,index)=>[field,tuple[index]]));
+  })):value.slots;
   const attempts=value.attempts.map(row=>{
     if(!plain(row))fail();
-    return {...row,scopeKey:ref(value.scopes,row.scopeKey),slots:ref(value.slots,row.slots)};
+    return {...row,scopeKey:ref(value.scopes,row.scopeKey),slots:ref(slots,row.slots)};
   });
   // The byte-limited input and row/dictionary caps bound expansion before validation.
   const expanded=validateMigratedCookieJournal({schemaVersion:2,legacy:value.legacy,attempts});
   // Reject unused/duplicate dictionaries and noncanonical references as well as
   // unknown fields; never silently sanitize a corrupt recovery journal.
-  if(canonical(encodeJournal(expanded))!==canonical(value))fail();
+  if(canonical(encodeJournal(expanded,value.schemaVersion))!==canonical(value))fail();
   return expanded;
 }
 function target(value,originOnly=false){
@@ -316,7 +328,7 @@ export async function readCookieJournal(request){
   const result=await request('storage.get',{key:COOKIE_JOURNAL_KEY,withEtag:true});
   if(!plain(result)||result.preview===true||!Object.hasOwn(result,'value')||
     typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag))fail();
-  return {etag:result.etag,value:result.value?.schemaVersion===3?decodeJournal(result.value):
+  return {etag:result.etag,value:[3,4].includes(result.value?.schemaVersion)?decodeJournal(result.value):
     result.value?.schemaVersion===2?validateMigratedCookieJournal(bounded(result.value)):
     validateLegacyCookieRecord(result.value)};
 }

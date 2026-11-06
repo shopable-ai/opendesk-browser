@@ -258,11 +258,14 @@ test('a settled zero-save receipt preserves replay history without inventing Coo
 });
 test('reserve refuses before persistence when the marker fits but the final receipt cannot fit',async()=>{
   const a=attempt('a.example.test',{count:50,slots:Array.from({length:50},(_,i)=>({
-    name:'cookie'+i,domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
+    name:('cookie'+i).padEnd(60,'x'),domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
   }))});
-  assert.ok(Buffer.byteLength(JSON.stringify({...empty(),attempts:[a]}))<8192);
+  const compact=attempt=>({schemaVersion:4,legacy:empty().legacy,scopes:[attempt.scopeKey],
+    slots:[attempt.slots.map(s=>['name','domain','hostOnly','path','storeId','partitionKey'].map(k=>s[k]))],
+    attempts:[{...attempt,scopeKey:0,slots:0}]});
+  assert.ok(Buffer.byteLength(JSON.stringify(compact(a)))<8192);
   const results=Array.from({length:50},(_,index)=>({index,saved:true,verified:true}));
-  assert.ok(Buffer.byteLength(JSON.stringify({...empty(),attempts:[{...a,state:'success',resolution:'receipt',results}]}))>8192);
+  assert.ok(Buffer.byteLength(JSON.stringify(compact({...a,state:'success',resolution:'receipt',results})))>8192);
   const s=storage(empty());
   await assert.rejects(reserveCookieAttempt(s.request,a),{code:'E_COOKIE_LIMIT'});
   assert.equal(s.writes,0);assert.deepEqual(s.value,empty());

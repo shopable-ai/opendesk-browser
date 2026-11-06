@@ -233,3 +233,33 @@ test('unknown receipt remains unknown after compressed reopen and cannot be rewr
     {code: 'E_COOKIE_RECEIPT_CONFLICT'},
   );
 });
+
+test('a new website fits beside real-sized settled history without dropping facts or enlarging storage quota', async () => {
+  const slots = Array.from({length: 21}, (_, i) => ({name: 'synthetic_session_cookie_with_representative_length_' + i,
+    domain: 'a.example.test', hostOnly: true, path: '/', storeId: 'authorized-store', partitionKey: null}));
+  const initial = {schemaVersion: 3, legacy: {record: null, attribution: null}, scopes: [row(0).scopeKey], slots: [slots],
+    attempts: Array.from({length: 7}, (_, i) => ({...row(i), scopeKey: 0, slots: 0, count: 21,
+      ...(i === 1 || i === 5 ? {state: 'success', resolution: 'receipt',
+        results: slots.map((_, index) => ({index, saved: true, verified: true}))} : {})}))};
+  assert.ok(bytes(initial) > 7400 && bytes(initial) <= 8192);
+  const s = storage(initial), history = (await readCookieJournal(s.request)).value;
+  const candidate = {...row(99), scopeKey: row(99).scopeKey.replaceAll('a.example.test', 'b.example.test'),
+    slots: row(99).slots.map(slot => ({...slot, domain: 'b.example.test'})), state: 'unknown', resolution: 'pending'};
+  const reserved = await reserveCookieAttempt(s.request, candidate);
+  assert.equal(s.value.schemaVersion, 4);
+  assert.ok(bytes(s.value) <= 8192);
+  assert.deepEqual(reserved.value.attempts.slice(0, -1), history.attempts);
+  assert.deepEqual((await readCookieJournal(s.request)).value, reserved.value);
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_UNRESOLVED'});
+  const settled = await saveCookieReceipt(s.request, reserved.reference, {receipt: {saved: 2, verified: 2,
+    results: candidate.slots.map((_, index) => ({index, saved: true, verified: true}))}});
+  assert.deepEqual((await readCookieJournal(s.request)).value, settled.value);
+  assert.deepEqual(settled.value.attempts.slice(0, -1), history.attempts);
+  const raw = s.value;
+  for (const mutate of [v => v.slots[0][0].push('secret'), v => v.slots[0][0][2] = 'true',
+    v => v.slots[0][0][5] = {unknown: true}, v => v.slots.push(v.slots[0])]) {
+    const bad = clone(raw); mutate(bad); const rejected = storage(bad);
+    await assert.rejects(readCookieJournal(rejected.request));
+    assert.equal(rejected.writes, 0);
+  }
+});

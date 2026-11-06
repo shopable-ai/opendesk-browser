@@ -60,7 +60,7 @@ test('reopen restores latest B choice and existing verified v2 receipt without r
   assert.equal(reopened.get('site-select').value,'ordinary-1');
   assert.match(reopened.get('site-source').textContent,/127\.0\.0\.1:7902/);
   assert.equal(reopened.get('cookie-section').hidden,false);
-  assert.match(reopened.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
+  assert.match(reopened.get('cookie-status').textContent,/上次批次 Cookie 已写入并核验/);
   assert.equal(reopened.get('cookie-results').children.length,2);
   assert.notEqual(reopened.get('sites-section').open,true,'restored successful history stays compact');
   assert.equal(JSON.stringify(e.store.get(JOURNAL)),before);
@@ -82,7 +82,7 @@ test('preference-free existing journals restore last successful fixed site inclu
   const e=await installedReceipts();e.store.delete(KEY);
   const reopened=await runtime({store:e.store,ordinaryNetwork});
   assert.equal(reopened.get('site-select').value,'ordinary-1');
-  assert.match(reopened.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
+  assert.match(reopened.get('cookie-status').textContent,/上次批次 Cookie 已写入并核验/);
   noEffects(reopened);
 });
 

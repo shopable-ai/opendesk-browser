@@ -143,9 +143,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.22';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.25';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -428,6 +428,13 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     projectCookieRecord();
     cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault;
     const record=cookieRecord;
+    const currentRecord=Boolean(record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId));
+    const validity=byId('ai-vip-session-validity');
+    if(validity){
+      validity.hidden=!cookiePending;
+      validity.textContent=cookiePending?'交付有效期至 '+dateLabel(cookiePending.expiresAt)+
+        '；仅限本次提交窗口，不代表网站登录或套餐有效期。':'';
+    }
     const siteSection=byId('ai-vip-sites-section');
     const issue=cookieFault||(['unknown','partial'].includes(record?.state)?record.deliveryId||record.state:'');
     if(siteSection&&!cookieSection.hidden){
@@ -444,11 +451,11 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       (record?.scopeKey&&record.scopeKey===cookiePending?.scopeKey&&
         record.deliveryId===cookiePending?.deliveryId&&record.state!=='failed');
     clear(cookieResults);
-    for(const row of record?.results||[])addRow(cookieResults,'第 '+(row.index+1)+' 项',
+    for(const row of (currentRecord?record?.results:[])||[])addRow(cookieResults,'第 '+(row.index+1)+' 项',
       row.verified?'已写入并核验':row.saved?'已写入，尚未核验':
         COOKIE_RESULT_LABELS[row.code]||'未完成，请人工核对');
     const localBatch=record?.scopeKey&&(JSON.parse(record.scopeKey)[0]==='user-local-file'||record.targetUrl===LOCAL_CHATGPT.site.targetUrl);
-    const labels={success:(localBatch?'本批':'全部')+' Cookie 已写入并核验；请在目标页面验证会话。',
+    const labels={success:(!cookiePending?'上次批次':localBatch?'本批':'全部')+' Cookie 已写入并核验；网站登录及身份仍需在目标页面核对。',
       partial:'部分 Cookie 已写入；其余未完成。不会自动回滚或重放，请在目标页面核对。',
       failed:'Cookie 未写入。请检查目标网站的 Chrome 权限与工具设置授权；修复后可主动重试有效交付。',
       unknown:'Cookie 操作结果未知或恢复记录未确认；已禁止重放，请在目标页面人工核对。'};
@@ -456,10 +463,10 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?
         (record.state==='failed'&&sharedNotice.startsWith('已取消 Cookie 确认')?
           (cookiePending?sharedNotice:'已取消 Cookie 确认，未提交写入；当前准备已结束，请重新准备登录。'):labels[record.state]):
-        cookiePending?'已收到网站会话，目标网站：'+new URL(cookiePending.targetUrl).host+'。应用前请核对授权。':
+        cookiePending?'已收到网站会话，目标网站：'+new URL(cookiePending.targetUrl).host+'。当前批次尚未提交，请核对后确认。':
         sharedBusy?'正在获取网站会话…':sharedNotice.startsWith('未取得有效')?
           '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
-    if(cookieOpen)cookieOpen.hidden=record?.state!=='success'||!cookieTarget(record.targetUrl);
+    if(cookieOpen)cookieOpen.hidden=Boolean(cookiePending)||record?.state!=='success'||!cookieTarget(record.targetUrl);
   }
   function journalLocked(){
     if(!cookieReady)return true;
@@ -1054,6 +1061,11 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     websiteController?.render({development:Boolean(developmentProfile),locked:journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable),
       busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label,
       commercialNotice:sharedBusy?'正在准备网站登录…':sharedNotice});
+    const flow=byId('ai-vip-login-flow');
+    if(flow)flow.textContent=journalLocked()||cookieFault?'当前：先核对恢复记录；不会自动重复兑换或写入。':
+      cookiePending?'当前：核对会话 → 每批独立确认 → 网站核验。':
+      assignedShared()?'已有权益，无需再次兑换。准备服务器会话 → 每批独立确认 → 网站核验。':
+      '激活权益 → 准备会话 → 逐批确认 → 网站核验';
     renderCookies();
     renderShared();
     window.OpenDeskTool.setState?.({dirty:Boolean(code.value||pending||cookiePending),
@@ -1089,7 +1101,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     if(snapshot?.account.id!==data.account.id||sharedCatalog?.companyId!==next?.companyId||sharedCatalog?.redemptionId!==next?.redemptionId||
       (selected&&(!replacement||replacement.targetUrl!==selected.targetUrl||replacement.cookieFormat!==selected.cookieFormat||
         assignedScope(replacement)!==assignedScope(selected)))){
-      invalidateShared();sharedNotice='账号或授权目录已变化，请重新取得会话。';
+      const hadPrevious=Boolean(snapshot||sharedCatalog);
+      invalidateShared();sharedNotice=hadPrevious?'账号或授权目录已变化，请重新取得会话。':'';
     }
     sharedCatalog=next;
     sharedId=next?.assignedAccountId||'';
@@ -1686,7 +1699,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   websiteController=createWebsiteController({byId,network:businessSdk,tabs:window.OpenDeskSDK?.browser?.tabs,
     storeRequest,cookies:window.OpenDeskSDK?.browser?.cookies,getRestoredTarget:()=>!cookieReady?undefined:cookieJournal?.schemaVersion===2?
       cookieJournal.attempts.filter(row=>row.state==='success').map(row=>JSON.parse(row.scopeKey)[6]).at(-1):null,
-    getPending:()=>cookiePending,setPending:value=>{cookiePending=value;if(!value)serverSession=null;
+    getPending:()=>cookiePending,setPending:value=>{cookiePending=value;if(!value){serverSession=null;sharedNotice='';}
       if(value&&cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}},
     validateDelivery:validateCookieDelivery,commercialReceive:requestSharedSession,
     commercialTarget:()=>assignedShared()?.targetUrl||null,onChange:renderRedeem,

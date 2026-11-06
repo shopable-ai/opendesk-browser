@@ -111,8 +111,8 @@ async function installedFixture(){
 test('trusted development MODE and reviewed source pin emit fixed HTTP PAC for website/API hosts',()=>{
   runIsolated(`
     assert.equal(profiles.MANAGED_PROXY_DEVELOPMENT_ENABLED,true);
-    assert.equal(tool.version,'1.4.22');
-    assert.equal(packageHash,'94ce458f359b99cdb54d2c95ed4115d3cd7b2f58f032e9331d914f1175550c30');
+    assert.equal(tool.version,'1.4.25');
+    assert.equal(packageHash,'63ec75c60de47481d82da40ae9e9807f4abfc23903e44543b4405a425e8a41f5');
     assert.deepEqual(profiles.REVIEWED_MANAGED_PROXY_PROFILES,[]);
     assert(Object.isFrozen(profiles.REVIEWED_MANAGED_PROXY_PROFILES));
     assert.deepEqual(profiles.getDevelopmentManagedProxyProfile(owner),config);

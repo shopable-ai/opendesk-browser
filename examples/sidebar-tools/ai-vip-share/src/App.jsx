@@ -53,6 +53,7 @@ export default function VipApp({createDevelopmentControls}={}){
         <CardContent className="ai-vip-section-content">
         <h2 id="ai-vip-redeem-title">兑换激活</h2>
         <p className="ai-vip-redeem-subtitle">输入激活码或打开专属链接，核对权益后确认激活。网站会话由服务器提供。</p>
+        <p id="ai-vip-login-flow" className="ai-vip-note" role="status" aria-live="polite">激活权益 → 准备会话 → 逐批确认 → 网站核验</p>
         <p id="ai-vip-redeem-intro" className="ai-vip-note od-field-help" hidden>先核对权益，再确认兑换。</p>
         <div id="ai-vip-activation-hint" className="ai-vip-link-hint" hidden>
           <strong>已识别专属激活链接 · 待确认</strong><p id="ai-vip-activation-detail"></p>
@@ -96,10 +97,11 @@ export default function VipApp({createDevelopmentControls}={}){
           <input id="ai-vip-site-select" type="hidden" defaultValue="" />
           <div className="ai-vip-site-summary">
             <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
-              <span>登录账号</span>
+              <span>服务端分配</span>
               <p id="ai-vip-site-account">尚未获取授权账号。</p>
             </div>
           </div>
+          <p id="ai-vip-session-validity" className="ai-vip-note" hidden></p>
           <div id="ai-vip-source-auth" className="ai-vip-source-auth" hidden>
             <label className="od-form-field ai-vip-site-field" htmlFor="ai-vip-source-credential">
               <span className="od-field-label">登录凭据</span>

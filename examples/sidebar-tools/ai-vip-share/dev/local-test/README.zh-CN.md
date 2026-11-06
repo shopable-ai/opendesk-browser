@@ -1,5 +1,7 @@
 # 在仓库中直接运行 AI VIP Share 本地联调
 
+> 2026-11-06 运行状态更正：文中 7898/7903/7899 的历史 PID 与账本只对应各次观察。本轮开始时这些内存进程已退出，不能通过重启恢复旧兑换，也不能重放旧码或清 journal。最新候选与独立普通工作台实验见[当前测试记录](EXTENSION-VIP-TEST.zh-CN.md#core-chain-1425-20261106)。日常 Browser 仍用原 `dist/development` 持续开发，不启动第二 writer。
+
 本目录已正式纳入 `examples/sidebar-tools/ai-vip-share/dev/local-test/`。**无需再下载或解压 ZIP**。
 它是独立开发测试工具，不属于 Sidebar Tool 安装包，也不会连接尚未审核的商业 Provider。
 

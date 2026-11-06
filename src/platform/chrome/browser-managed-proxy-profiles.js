@@ -11,14 +11,14 @@ export const REVIEWED_MANAGED_PROXY_PROFILES=Object.freeze([]);
 // installed package, storage, or the legacy AI local-test adapter. WXT serve
 // uses Vite's build pipeline, so DEV may be false; MODE is the actual mode.
 const developmentBuild=import.meta.env?.MODE==='development';
-// Source-reviewed 2026-11-06: ai-vip-share 1.4.22, 138909 bytes.
+// Source-reviewed 2026-11-06: ai-vip-share 1.4.25, 140413 bytes.
 // The product receives server-held ChatGPT exports inside activation; there
 // is no frontend file import. Legacy recovery stays on its original service.
 // Existing exact
 // activation origins, CAS/journal, Cookie confirmation and STOP are unchanged.
 // This approves only the fixed development HTTP proxy exception below; it is
 // not a Catalog-release requirement for ordinary installed-tool operation.
-const developmentPackageHash='94ce458f359b99cdb54d2c95ed4115d3cd7b2f58f032e9331d914f1175550c30';
+const developmentPackageHash='63ec75c60de47481d82da40ae9e9807f4abfc23903e44543b4405a425e8a41f5';
 export const MANAGED_PROXY_DEVELOPMENT_ENABLED=developmentBuild&&
   typeof developmentPackageHash==='string'&&/^[0-9a-f]{64}$/.test(developmentPackageHash);
 export const DEVELOPMENT_MANAGED_PROXY_CONFIG=Object.freeze({
