@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runtime,fixtureRequest} from './helpers/controller-fixture.mjs';
+import {runtime,fixtureRequest,EXTENSION_ORIGIN} from './helpers/controller-fixture.mjs';
+import {createLocalFixture} from '../dev/local-test/local-fixture-server.mjs';
 
 test('ordinary sites require a trusted test action even with a development profile',async()=>{
   const e=await runtime();
@@ -180,5 +181,25 @@ test('unmasked or misleading identity metadata fails closed and cannot be submit
     await e.click('cookie-install');
     assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
     assert.equal(e.fixture.ledger.size,1);
+  }
+});
+
+test('lost or expired allocation is explained without denying retained quota or repeating redemption',async()=>{
+  for(const reason of ['revoked','expired']){
+    let allowed=true,now=Date.now();
+    const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,sessionTarget:'http://127.0.0.1:7903/session/',
+      now:()=>now,isSharedAccessAllowed:()=>allowed});
+    const e=await runtime({fixture});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+    if(reason==='revoked')allowed=false;else now+=3600001;
+    await e.click('refresh');
+    assert.match(e.get('login-flow').textContent,/没有可用的网站会话分配.*服务方.*不会自动重复兑换/);
+    assert.doesNotMatch(e.get('login-flow').textContent,/激活权益 →/);
+    assert.equal(e.get('remaining').textContent,'20','retained quota is a separate fact');
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.equal(e.get('site-account-row').hidden,true);
+    assert.equal(fixture.ledger.size,1);
+    assert.equal(e.calls.filter(row=>new URL(row.url).pathname==='/api/redeem').length,1);
+    assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);assert.deepEqual(e.proxyCalls,[]);
   }
 });
