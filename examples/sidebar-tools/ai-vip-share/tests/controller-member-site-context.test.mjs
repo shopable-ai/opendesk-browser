@@ -24,7 +24,7 @@ test('redeeming while an ordinary site is selected cannot deliver a different me
       await e.click('site-receive');
       assert.equal(e.calls.filter(row=>row.data?.operation==='sharedSession').length,1);
       assert.equal(e.get('cookie-install').hidden,false,'explicit member website acquisition remains available');
-      assert.match(e.get('cookie-status').textContent,/127\.0\.0\.1:7898/);
+      assert.match(e.get('cookie-status').textContent,/127\.0\.0\.1:7903/);
       assert.equal(e.cookieCalls.length,0,'acquisition still requires a separate trusted write confirmation');
     }finally{e.release?.();}
   }

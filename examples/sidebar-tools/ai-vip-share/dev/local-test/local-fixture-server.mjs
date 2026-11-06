@@ -4,6 +4,7 @@
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
+import {createServerCookieSource,checkServerCookieSource,cookieSourceError} from './server-cookie-source.mjs';
 import {sendVipSessionPage} from './vip-session-page.mjs';
 
 const AI_DOMAINS=Object.freeze([
@@ -63,14 +64,33 @@ function pacFor({proxyPort,proxyKind}){
 }
 
 /** Start with a private in-memory ledger. Keep the server alive across sidebar/reload tests. */
-export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now,extensionOrigin=null,
+export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=null,proxyPort=7897,proxyKind='http',now=Date.now,extensionOrigin=null,
   getMemberState=()=>({account:{state:'bound',id:ACCOUNT_ID,displayNameMasked:DISPLAY_NAME},entitlements:[]}),
   // Test-only revocation policy, checked for both delivery and every target-page visit.
   isSharedAccessAllowed=()=>true}={}){
+  if(![SESSION_TARGET,'http://127.0.0.1:7903/session/'].includes(sessionTarget))
+    throw Error('sessionTarget must be an exact supported loopback session URL');
   if(!Number.isInteger(proxyPort)||proxyPort<1||proxyPort>65535)throw Error('proxyPort out of range');
   if(!['http','socks5'].includes(proxyKind))throw Error('proxyKind must be http or socks5');
   if(extensionOrigin!==null&&!/^chrome-extension:\/\/[a-p]{32}$/.test(extensionOrigin))
     throw Error('extensionOrigin must be one exact isolated Chrome extension origin');
+  if(cookieSource!==null&&typeof cookieSource!=='function')throw cookieSourceError();
+  let lastSourceRevision=null;
+  const retiredSourceRevisions=new Set();
+  const sourceSnapshot=()=>{
+    if(cookieSource===null)return null;
+    try{
+      const source=checkServerCookieSource(cookieSource(),now());
+      if(lastSourceRevision&&lastSourceRevision!==source.revision)retiredSourceRevisions.add(lastSourceRevision);
+      lastSourceRevision=source.revision;
+      if(retiredSourceRevisions.has(source.revision))throw cookieSourceError();
+      return source;
+    }catch{
+      if(lastSourceRevision)retiredSourceRevisions.add(lastSourceRevision);
+      throw cookieSourceError();
+    }
+  };
+  sourceSnapshot(); // Explicit configuration must fail closed before a listener exists.
   const previews=new Map(),ledger=new Map(),leases=new Map();
   const sharedRequests=new Map(),sessions=new Map();
   const pac=pacFor({proxyPort,proxyKind});
@@ -96,14 +116,32 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
         entitlement.status==='active'&&Number.isFinite(entitlement.expiresAt)&&entitlement.expiresAt>currentTime)&&
       isSharedAccessAllowed({accountId,redemptionId,sharedAccountId:assignment.sharedAccountId,serverNow:currentTime})===true);
   };
-  const issueDelivery=(accountId,sharedAccountId,redemptionId)=>{
+  const assertSourceAssignment=(row,source)=>{
+    if(source&&(!sharedAccessAllowed(row.receipt.accountId,row.receipt.redemptionId)||
+      row.sourceRevision!==source.revision))throw cookieSourceError();
+  };
+  const recoveryReceipt=row=>{
+    const receipt=row.receipt;
+    if(cookieSource===null||!receipt.cookieDelivery)return receipt;
+    try{
+      assertSourceAssignment(row,sourceSnapshot());
+      if(receipt.cookieDelivery.expiresAt>now())return receipt;
+    }catch{
+      // Session availability cannot erase an already committed activation.
+    }
+    const {cookieDelivery,...durableReceipt}=receipt;
+    return durableReceipt;
+  };
+  const issueDelivery=(accountId,sharedAccountId,redemptionId,source=null)=>{
     const issuedAt=now();
-    const cookieDelivery={schemaVersion:1,deliveryId:randomUUID(),targetUrl:SESSION_TARGET,
+    const cookieDelivery=source?{schemaVersion:2,deliveryId:randomUUID(),targetUrl:'https://chatgpt.com/',
+      expiresAt:Math.min(issuedAt+120000,source.checked.earliestExpiry??Infinity),cookies:source.cookies}:
+      {schemaVersion:1,deliveryId:randomUUID(),targetUrl:sessionTarget,
       expiresAt:issuedAt+120000,cookies:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({
         name,value:randomUUID(),path:'/session/',httpOnly:true,secure:false,sameSite:'lax',
         expirationDate:(issuedAt+3600000)/1000
       }))};
-    sessions.set(cookieDelivery.deliveryId,{accountId,sharedAccountId,redemptionId,cookieDelivery});
+    if(!source)sessions.set(cookieDelivery.deliveryId,{accountId,sharedAccountId,redemptionId,cookieDelivery});
     return cookieDelivery;
   };
   const member=()=>{
@@ -111,7 +149,9 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     const receipts=bound?[...ledger.values()]
       .filter(({receipt})=>receipt.accountId===state.account.id&&receipt.status==='redeemed'):[];
     const assignment=bound?currentAssignment(state.account.id):null;
-    const accounts=assignment&&sharedAccessAllowed(state.account.id,assignment.receipt.redemptionId)?
+    let source=null,sourceAvailable=true;
+    try{source=sourceSnapshot();}catch{sourceAvailable=false;}
+    const accounts=sourceAvailable&&(!source||assignment?.sourceRevision===source.revision)&&assignment&&sharedAccessAllowed(state.account.id,assignment.receipt.redemptionId)?
       SHARED_ACCOUNTS.filter(row=>row.id===assignment.sharedAccountId):[];
     return {schemaVersion:1,serverNow:now(),account:state.account,
       entitlements:bound?[...state.entitlements,...(assignment?.receipt.grantedEntitlements??[])]:[],
@@ -120,10 +160,14 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
         redeemedAt:receipt.redeemedAt,status:'redeemed',voucherPreviewMasked:maskedCode(code)
       })),...(accounts.length?{sharedAccounts:{schemaVersion:1,companyId:'fixture-company',
         assignedAccountId:assignment.sharedAccountId,redemptionId:assignment.receipt.redemptionId,
-      accounts:accounts.map(row=>({...row,targetUrl:SESSION_TARGET,
-        cookieScope:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({name,path:'/session/'}))}))}}:{})};
+      accounts:accounts.map(row=>({...row,...(source?{cookieFormat:'chatgpt-export-v1',targetUrl:'https://chatgpt.com/',
+        cookieScope:source.checked.batches.flatMap(batch=>batch.cookies.map(cookie=>
+          Object.fromEntries(['name','path','domain','storeId','partitionKey'].filter(key=>Object.hasOwn(cookie,key))
+            .map(key=>[key,cookie[key]]))))}:{targetUrl:sessionTarget,
+        cookieScope:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({name,path:'/session/'}))})}))}}:{})};
   };
   const server=http.createServer(async(req,res)=>{
+    try{
     const path=(req.url||'').split('?')[0];
     // Opt in to one observed isolated extension origin at server startup only.
     // Web origins, opaque sandboxes and every other extension remain refused.
@@ -214,7 +258,7 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       const old=ledger.get(idempotencyKey);
       if(old){
         if(old.previewId!==previewId||old.receipt.accountId!==accountId){json(res,409,{error:'E_IDEMPOTENCY_CONFLICT'});return;}
-        json(res,200,old.receipt);return;
+        json(res,200,recoveryReceipt(old));return;
       }
       const pre=previews.get(previewId);
       if(!pre||pre.accountId!==accountId||pre.expiresAt<=now()){
@@ -232,13 +276,17 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
         previews.delete(previewId);
         json(res,200,receipt);return;
       }
+      const source=sourceSnapshot();
       const redeemedAt=now(),redemptionId=randomUUID(),sharedAccountId=DEMO_ASSIGNMENTS[pre.code];
+      if(source&&isSharedAccessAllowed({accountId,redemptionId,sharedAccountId,serverNow:redeemedAt})!==true){
+        json(res,403,{error:'E_SHARED_ACCESS_DENIED'});return;
+      }
       const receipt={status:'redeemed',accountId,idempotencyKey,
-        redemptionId,redeemedAt,cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId),grantedEntitlements:[{
+        redemptionId,redeemedAt,cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId,source),grantedEntitlements:[{
           type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'},
           {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',expiresAt:redeemedAt+3600000,
             detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
-      ledger.set(idempotencyKey,{previewId,code:pre.code,sharedAccountId,receipt});
+      ledger.set(idempotencyKey,{previewId,code:pre.code,sharedAccountId,receipt,...(source?{sourceRevision:source.revision}:{})});
       previews.delete(previewId);
       if(req.headers['x-fixture-drop-ack']==='1'){
         // Deliberately emulate a lost receipt AFTER applying a single mock effect.
@@ -262,12 +310,14 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
         if(!sharedAccessAllowed(accountId,redemptionId)){
           json(res,403,{error:'E_SHARED_ACCESS_DENIED'});return;
         }
+        const source=sourceSnapshot();
+        assertSourceAssignment(currentAssignment(accountId),source);
         if(previous&&previous.cookieDelivery.expiresAt<=now()){
           json(res,409,{error:'E_DELIVERY_EXPIRED'});return;
         }
         const {sharedAccountId}=currentAssignment(accountId);
         const response=previous??{schemaVersion:1,accountId,sharedAccountId,redemptionId,requestId,serverNow:now(),
-          cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId)};
+          cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId,source)};
         sharedRequests.set(requestId,response);
         json(res,200,response);return;
       }
@@ -276,7 +326,7 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       }
       const existing=ledger.get(data.idempotencyKey);
       // Missing ledger entry is UNKNOWN, never 'rejected + final=true'.
-      json(res,200,(existing?.receipt.accountId===account.id?existing.receipt:null)??{status:'unknown',accountId:account.id,
+      json(res,200,(existing?.receipt.accountId===account.id?recoveryReceipt(existing):null)??{status:'unknown',accountId:account.id,
         idempotencyKey:data.idempotencyKey});return;
     }
     if(path==='/api/activate'){
@@ -313,6 +363,7 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       json(res,200,{active:true,lease:row.lease});return;
     }
     json(res,404,{error:'E_ROUTE_NOT_FOUND'});
+    }catch{if(!res.headersSent)json(res,503,{error:'E_COOKIE_SOURCE'});else res.destroy();}
   });
   return {server,pac,ledger,previews,leases,sharedRequests,sessions,setNextVerifyDelay,getVerificationState};
 }
@@ -323,8 +374,17 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const port=Number(process.env.VIP_TEST_PORT||7898);
   const proxyPort=Number(process.env.LOCAL_PROXY_PORT||7897);
   const proxyKind=process.env.LOCAL_PROXY_KIND||'http';
-  const {server}=createLocalFixture({proxyPort,proxyKind,
+  const hasCookieFile=Object.hasOwn(process.env,'VIP_TEST_COOKIE_FILE');
+  // Ephemeral/IPv6 test listeners retain the legacy synthetic target. The new
+  // explicit IPv4 instance advertises its own supported session origin.
+  const sessionTarget=!hasCookieFile&&host==='127.0.0.1'&&port===7903?
+    `http://${host}:${port}/session/`:SESSION_TARGET;
+  let fixture;
+  try{fixture=createLocalFixture({proxyPort,proxyKind,sessionTarget,
+    cookieSource:hasCookieFile?createServerCookieSource(process.env.VIP_TEST_COOKIE_FILE):null,
     extensionOrigin:process.env.VIP_TEST_EXTENSION_ORIGIN||null});
+  }catch{console.error('[local fixture] Configuration unavailable or invalid');process.exit(1);}
+  const {server}=fixture;
   server.listen({port,host,ipv6Only:host==='::1'},()=>{
     const actual=server.address().port;
     const origin=`http://${host==='::1'?'[::1]':host}:${actual}`;

@@ -90,7 +90,7 @@ for(const outcome of ['success','trusted-cancel','preflight-failure'])test(`ordi
   assert.equal(e.calls.length,before+1,'repeated refresh cannot stack requests');
   member.resolve();await e.flush();
   assert.equal(e.get('refresh').disabled,false);
-  assert.deepEqual(e.calls.slice(before).map(({method,url})=>[method,url]),[['GET','http://127.0.0.1:7898/api/member']]);
+  assert.deepEqual(e.calls.slice(before).map(({method,url})=>[method,url]),[['GET','http://127.0.0.1:7903/api/member']]);
   assert.equal(e.cookieCalls.length,cookies,'refresh never repeats Cookie submission');
   assert.equal(e.tabCalls.length,tabs);
 });

@@ -1,5 +1,52 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="server-cookie-1422-20261106"></a>
+
+## 2026-11-06：测试服务器真实会话交付与原事务恢复（1.4.22）
+
+本节是当前核心开发结果；下方1.4.20及更早记录保留历史。唯一业务owner仍为本工具目录，现有`main`开发，仅本地提交、不推送。没有创建Vault、账号池、第二Provider/Host、分支或worktree。原来源对话`01a1ad1c-f681-74e1-abe5-a62ac3cb48e7`的goal由用户暂停；本次没有恢复或修改它，也不把创建新对话当作目标迁移。
+
+### 一屏关键操作结果
+
+| 操作 | 实际结果 | 适用版本/边界 |
+| --- | --- | --- |
+| 预检后取消 | 承接上一轮已安装1.4.22实际操作，7903兑换0、权益0；随后明确确认才产生原唯一兑换 | 没有再次消费DEMO-VIP-01/02 |
+| 核对上次兑换 | 本轮按原服务和原idempotencyKey核对，服务端200/redeemed、账号与key匹配；原「核对上次兑换」最终显示成功并经原CAS解除恢复锁 | 7903原进程和账本未重启；未生成新兑换key、未手动清记录 |
+| 服务器取得会话 | 修复公共HTTP响应容量后，原「准备登录」取得当前分配的schema2交付；实显总25、保留22、跳过3，第1/2批21项 | 已安装1.4.22，真实授权原文件只读；没有前端文件选择 |
+| 两批可信写入 | 首批21项独立点击并确认原「确认本次Cookie操作」，逐项已写入并核验；再对第二批1项重新点击、可信确认，成功后才自动开ChatGPT | 每批原SDK/Host、网站授权、Store/Partition、CAS/journal均保留；未用CDP注入Cookie |
+| ChatGPT状态 | 原p6在写前个人资料按钮true、登录按钮false；自动打开的p8在写后菜单、设置、退出均true | 已有登录基线，证明写后登录状态，不称新登录或Plus/VIP；未读取聊天历史、输出账号资料或发送消息 |
+| 重开工具 | 持久Cookie journal前后ETag相同，当前兑换恢复记录已清；启动只发会员GET1次，兑换POST/会话领取/Cookie写入/代理START均0 | 只计本工具桥操作名/请求种类，不留载荷；历史unknown保留 |
+| 原生带码 | ego工具栏打开真实Side Panel，识别批准的127.0.0.1:7898激活链接并带入已消费码；预检拒绝，没有再次兑换 | 原生侧栏1.4.22、业务仍连接7903；不是LAN全链通过 |
+| LAN链接 | 原进程仍监听192.168.30.3:7899，本机`en0`现为192.168.30.4；终端和ego均未能访问原来源 | `NOT_TESTED`：未迁移来源、加网络别名、重启LAN服务或消费第二码 |
+| 原文件/旧账本 | 写后原文件13841字节、SHA与mtimeNs均未变；7903仍兑换1/权益2/共享目录1；7898仍兑换1/权益2 | 两个原内存账本保留，没有将LAN作为真实Cookie接口 |
+
+### 根因与最小框架修复
+
+原导出压紧JSON为11892字节，尚不含回执/交付信封。已安装工具通过原`OpenDeskSDK.browser.network.request`查询当前会话时，直接返回`E_LIMIT: HTTP response exceeds byte budget`。原`context-menus`网络驱动硬编码8192字节，HTTP IPC又硬编码12000字节；因此原兑换在服务端提交后，其携带Cookie的回执会因超限被拒绝，前端保留恢复锁。交付过期后，原服务`recoveryReceipt`去掉短时Cookie数据，仍返回持久兑换终态；本轮原UI恢复成功，不能把前轮即时截图停留当作最终失败。
+
+公开网络config没有调整容量或分页选项。业务目录无法让已有服务器原样响应越过驱动硬上限；重启服务器或伪造较小交付会损害本次账本与证据。公共缺口已由真实安装请求和定向回归证明，按Runtime Skill修复唯一`browser-contract.js`的network响应预算为80000字节，驱动与`{status,data}` JSON IPC均从Registry取值、分别拒绝超限。它也适用于其他工具的中等JSON响应，源码不含ChatGPT/本工具业务分支。
+
+请求仍限12000字节；能力、真实sender/document、精确URL/Origin、安装身份、Chrome权限、前后撤权检查、credentials omit、手动重定向与Cookie逐批确认不变。没有新API、第二网络服务、永久无限预算或官方Catalog运行匹配门槛。本轮公共文件改动范围仅`src/framework/sdk/browser-contract.js`、`src/platform/chrome/context-menus.js`、既有R2 Host测试和公开SDK说明；此前development代理pin两处仍仅约束固定HTTP开发例外。**单独更新工具JSON不会更新旧Browser宿主。**
+
+### 运行身份、产物与证据
+
+实际Chrome扩展详情再次读到ID`ccfcjegpkdlgbclopjmadlcjedelidmf`、已启用、加载来源`~/文稿/workspace/opendesk-browser/dist/development`。使用用户批准的ego Profile1 `AI VIP Share Test 20261106`及接管后的同一TaskSpace3；它不代表Cookie/Profile隔离。开始时真实调试页显示开发服务已连接、指纹`85a3d93c8fec`，复用PID98996及43119/43120，未启动第二writer。框架改动后原watcher增量产物更新并安全重载关闭旧工具tab，新宿主真实会话已通过；最后一次重开后调试区未读到连接文字，**最新客户端连接/指纹为未验证**，不沿用旧指纹冒充最新状态，不把Cloud/Native诊断未知扩成无关修复。
+
+唯一正式包为[`../../ai-vip-share.opendesk-tool.json`](../../ai-vip-share.opendesk-tool.json)：版本**1.4.22**、**138909字节**、SHA-256 **`94ce458f359b99cdb54d2c95ed4115d3cd7b2f58f032e9331d914f1175550c30`**。上一轮原安装器已从1.4.20审阅更新1.4.22；本轮实际沙箱和原生侧栏均实读1.4.22。框架修复没有改变工具构建输入，无需同版本重打或另升工具PATCH；本轮再次执行原打包器`--check-project`，结果`PROJECT_PACKAGE_MATCH`。正式目录仍仅一个安装包。
+
+工具`dist/build-ready.json`的buildId为`d2f366480f80f5eade740e93d5b553fa5e2722e7bbd4cc7872a73d3b5aef8891`；同源合成预览为`6e9a17f85eae06137b8cdea2c50e3be9c22d00961ea3e7132f7a7909f7b57960`，本轮逐项复核sources/files摘要匹配。预览不含真实Cookie、不证明原生登录。
+
+原授权文件只读摘要仍为SHA-256 `abfed7ca33b3637806a68be180ef90e52aa1e5d3a9d8b22e9d8a4a2c0061c514`，mtimeNs `1793896382356555343`，13841字节。25/22/3与21+1只属于此次时钟观察，不承诺后续仍有效。没有另存明文或提交秘密；本机成功界面截图留在忽略的`artifacts/sidebar-tools/ai-vip-share/server-cookie-1422-success.png`，其中只显示工具状态和序号回执，不包含Cookie名/值或网站聊天内容。
+
+### 必要验证与未测项
+
+针对真实E_LIMIT新增行为回归：64KiB JSON可通过已安装Host而响应头不泄露；超过80000字节流/编码后IPC各自拒绝；大响应取得后撤权仍不交付。修复前两条相关行为确实失败，修复后既有R2 Host与网络权限链共**31项PASS**，覆盖原身份、精确来源、取消、撤权和权限复用。三个修改JS文件语法检查、任务diff格式检查通过。上一轮未变输入的85项服务端/批次/控制器/旧恢复/源预检、26项VM/原生驱动/离线/LAN、5项开发代理来源保护及2项晋升保护复用已有结果，没有为了计数重复运行或启动全量构建/CI。
+
+旧网站授权跨包升级承接限制仍保留：本轮沿用上一轮通过原可信界面重新审阅的同一`https://chatgpt.com`授权，没有扩大站点或绕过Host。LAN当前地址不匹配、第二设备、旧Browser单独导入包、production、商业后台/支付、真实代理转发、全量矩阵、压力/变异、宽度缩放、CWS及独立评分均未执行。测试服务当前演示权益不是商业会员。
+
+本轮保留原7898、7903、LAN7899与开发watcher，不结束其他owner资源；已调用TaskSpace3的`finish`释放临时p9，保留工具p7、ChatGPT结果p8及用户原p6，保留批准Profile。进程与页面均为本次观察，后续开始时需重查；不要重启内存账本、重放unknown或清除网站登录制造基线。
+
+
 <a id="server-flow-1420-20261106"></a>
 
 ## 2026-11-06：纠正文件优先布局，恢复服务端激活流程（1.4.20）

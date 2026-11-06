@@ -8,6 +8,7 @@ import {createLocalFixture} from '../../dev/local-test/local-fixture-server.mjs'
 const base='examples/sidebar-tools/ai-vip-share/';
 const [html,script]=await Promise.all(['src/App.jsx','src/main.js'].map(p=>readFile(base+p,'utf8')));
 const ORIGIN='http://127.0.0.1:7898',EXTENSION_ORIGIN='chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf';
+const NEW_ORIGIN='http://127.0.0.1:7903';
 const PREFERENCE='aiVipLocalDevelopmentR136',RECOVERY='aiVipRedeemR52';
 const domains=['chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',
   'generativelanguage.googleapis.com','perplexity.ai'];
@@ -37,7 +38,8 @@ function fixtureRequest(fixture,{method,url,data,headers}){
     request.end(data===undefined?'':JSON.stringify(data));
   });
 }
-async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
+async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,
+  sessionTarget:(store.get(PREFERENCE)?.schemaVersion===1?ORIGIN:store.get(PREFERENCE)?.serviceOrigin??NEW_ORIGIN)+'/session/'}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
   developmentControls=false,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
@@ -74,9 +76,9 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   };
   const request=async args=>{
     calls.push(clone(args));
-    if(ordinaryNetwork&&new URL(args.url).origin!==ORIGIN)return ordinaryNetwork(args);
+    if(ordinaryNetwork&&![ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin))return ordinaryNetwork(args);
     assert.equal(args.config.headers?.['X-OpenDesk-Local-Test'],'1');
-    assert.equal(new URL(args.url).origin,ORIGIN);
+    assert.ok([ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin));
     assert(['/api/member','/api/preview','/api/redeem','/api/status'].includes(new URL(args.url).pathname));
     if(network)return network(args,fixture);
     const result=await fixtureRequest(fixture,{...args,headers:args.config.headers});

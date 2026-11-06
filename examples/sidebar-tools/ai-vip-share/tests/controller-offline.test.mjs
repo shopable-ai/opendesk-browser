@@ -55,7 +55,7 @@ test('offline reopen restores ordinary choice and successful history, never sess
   await settle(previous,()=>previous.store.get(JOURNAL)?.attempts.at(-1)?.state==='success'&&
     !previous.get('site-select').disabled);
   verifiedCookieRows(previous);
-  assert.deepEqual(previous.store.get(PREFERENCE),{schemaVersion:1,enabled:true});
+  assert.deepEqual(previous.store.get(PREFERENCE),{schemaVersion:2,enabled:true,serviceOrigin:'http://127.0.0.1:7903'});
   const saved=JSON.stringify([...previous.store]);
   for(const value of [credential,secret])assert.ok(!saved.includes(value));
   const e=await runtime({store:previous.store,network:offline,ordinaryNetwork:offline});

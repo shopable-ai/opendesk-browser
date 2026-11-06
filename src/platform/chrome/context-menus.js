@@ -439,7 +439,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     await verifyBrowserOwner(context,operation,origin);
     return true;
   }});
-  const networkHost=createNetworkService({fetchImpl,maxResponseBytes:8192,
+  const networkResponseBytes=browserOperation('browser.network.request').maxResponseBytes;
+  const networkHost=createNetworkService({fetchImpl,maxResponseBytes:networkResponseBytes,
     authorize:async({url},context)=>{
       const origin=new URL(url).origin;
       if(origin!==context.approvedOrigin)throw failure('E_SITE_GRANT_REQUIRED','HTTP request Origin changed');
@@ -1005,7 +1006,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           const response=await networkHost.request(checked,{...context,signal:controller.signal,
             deadlineAt:Date.now()+15000});
           const result={status:response.status,data:response.data};
-          if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
+          if(jsonBytes(result)>networkResponseBytes)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
       }

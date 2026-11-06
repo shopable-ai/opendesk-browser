@@ -42,7 +42,7 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
     maxResponseBytes:['browser.page.readEnvironment','browser.fingerprint.readback'].includes(operation)?8192:
      ['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
      operation==='browser.capabilities.list'?32000:
-      operation==='browser.siteBudget.getStatus'||operation==='browser.siteBudget.setPolicy'?80000:shared.maxResponseBytes,
+      ['browser.siteBudget.getStatus','browser.siteBudget.setPolicy','browser.network.request'].includes(operation)?80000:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
     requiresUserGesture:USER_GESTURE_OPERATIONS.has(operation),lifecycle,

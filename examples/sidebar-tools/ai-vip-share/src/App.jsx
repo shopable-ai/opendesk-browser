@@ -94,11 +94,6 @@ export default function VipApp({createDevelopmentControls}={}){
         <div className="ai-vip-site-content">
           <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
           <input id="ai-vip-site-select" type="hidden" defaultValue="" />
-          <ol id="ai-vip-file-steps" className="ai-vip-login-steps" aria-label="本机测试步骤" hidden>
-            <li><span aria-hidden="true">1</span>选择测试材料</li>
-            <li><span aria-hidden="true">2</span>逐批确认</li>
-            <li><span aria-hidden="true">3</span>网站核验</li>
-          </ol>
           <div className="ai-vip-site-summary">
             <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
               <span>登录账号</span>
@@ -113,9 +108,6 @@ export default function VipApp({createDevelopmentControls}={}){
             </label>
             <Button size="lg" id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
           </div>
-          <input id="ai-vip-cookie-file" type="file" accept=".json,application/json" data-sensitive hidden aria-label="选择本地 Cookie JSON" />
-          <p id="ai-vip-file-help" className="od-field-help" hidden>仅用于本机开发测试。正式登录由服务器提供已授权会话，用户无需选择文件。测试材料不会上传或保存。</p>
-          <p id="ai-vip-file-summary" className="ai-vip-file-summary" hidden></p>
           <div className="ai-vip-site-actions">
             <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>准备登录</Button>
             <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>打开网站 ↗</Button>

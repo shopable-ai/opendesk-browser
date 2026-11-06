@@ -201,7 +201,7 @@ Registry 的 `requiresUserGesture` 表示 OpenDesk 可信前台意图门槛，�
 | `browser.tabs.create` | {url} | **IMPLEMENTED** | 安装能力与目标网站权限；返回本工具持有的不可伪造 tabRef，不开放任意 tabId |
 | `browser.tabs.activateOwned` | {tabRef} | **IMPLEMENTED** | 仅控制当前安装持有的有效 tabRef，每次复核安装身份与文档 |
 | `browser.sidePanel.openSelf` | {} | **IMPLEMENTED** | Chrome 要求真实用户操作；由可信前台执行，不接受沙箱自报手势 |
-| `browser.network.request` | HTTP 请求合同 | **IMPLEMENTED** | 安装已批准 `network` 且 Chrome 已有目标网站访问权限后，GET/POST/PUT/DELETE 直接调用（含 localhost 普通 fetch），无需逐次确认方法或请求体；仅缺少 Chrome 来源权限时由可信真实点击申请，并复用后续权限。Chrome host permission 按其原生主机范围生效，不提供端口级许可；每次请求仍绑定精确 URL/Origin、安装身份和能力，发送前后复核撤权，凭据省略、手工重定向及字节限制不变。仅预提交权限阶段取消/拒绝返回 `E_NETWORK_NOT_SUBMITTED`；后续取消/撤权仍可能已产生效果。原生验证 `NOT_TESTED` |
+| `browser.network.request` | HTTP 请求合同 | **IMPLEMENTED** | 安装已批准 `network` 且 Chrome 已有目标网站访问权限后，GET/POST/PUT/DELETE 直接调用（含 localhost 普通 fetch），无需逐次确认方法或请求体；仅缺少 Chrome 来源权限时由可信真实点击申请，并复用后续权限。Chrome host permission 按其原生主机范围生效，不提供端口级许可；每次请求仍绑定精确 URL/Origin、安装身份和能力，发送前后复核撤权，凭据省略、手工重定向保持；请求仍限 12000 UTF-8 字节，响应流与 `{status,data}` JSON IPC 各限 80000 字节（含编码开销），超限拒绝，不截断交付。仅预提交权限阶段取消/拒绝返回 `E_NETWORK_NOT_SUBMITTED`；后续取消/撤权仍可能已产生效果。2026-11-06已安装开发工具的有界JSON交付已验证，完整原生矩阵 `NOT_TESTED` |
 | `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **IMPLEMENTED** | 精确网站、文档及有限时长的元数据观察；保留开始审阅，仅缺少 webRequest 时申请 Chrome 权限 |
 | `browser.network.observe.getStatus` | {observationId} | **IMPLEMENTED** | 仅本安装的观察会话 |
 | `browser.network.observe.stop` | {observationId} | **IMPLEMENTED** | 停止本安装的观察，无新增采集审阅 |

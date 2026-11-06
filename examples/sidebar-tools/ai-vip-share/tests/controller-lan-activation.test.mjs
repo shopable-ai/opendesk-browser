@@ -19,7 +19,7 @@ test('approved LAN activation link fills the installed controller and confirms t
   assert.equal(posts(e,'/redeem').length,1);
   assert.equal(e.fixture.ledger.size,1);
   assert.equal(e.cookieCalls.length,0);
-  assert(e.calls.every(row=>new URL(row.url).origin===ORIGIN));
+  assert(e.calls.every(row=>new URL(row.url).origin==='http://127.0.0.1:7903'));
   const reopened=await runtime({store:e.store,fixture:e.fixture,currentPage:page(LAN)});
   await reopened.checkPage();
   assert.equal(posts(reopened,'/redeem').length,0);

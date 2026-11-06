@@ -99,6 +99,35 @@ test('R2 schema rejects arbitrary tabs, credentials, bad methods and unsafe head
   assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'POST',url:'https://host.test',config:{headers:{authorization:'secret'}}}),err('E_CONFIG_UNSUPPORTED'));
 });
 
+test('bounded HTTP JSON above 8 KiB reaches an installed tool without exposing response headers',async()=>{
+  const data={items:[{payload:'x'.repeat(65536)}]};
+  const f=fixture({fetchImpl:async()=>new Response(JSON.stringify(data),{
+    headers:{'content-type':'application/json','set-cookie':'private=secret'}
+  })});
+  assert.deepEqual(await f.call('browser.network.request',{
+    method:'GET',url:'https://example.org/delivery',config:{responseType:'json'}
+  }),{status:200,data});
+});
+
+test('oversized HTTP bodies and encoded IPC responses remain bounded',async()=>{
+  for(const [body,responseType] of [['x'.repeat(80001),'text'],['\\'.repeat(45000),'text']]){
+    const f=fixture({fetchImpl:async()=>new Response(body)});
+    await assert.rejects(f.call('browser.network.request',{
+      method:'GET',url:'https://example.org/delivery',config:{responseType}
+    }),err('E_LIMIT'));
+  }
+});
+
+test('large HTTP results cannot cross a revoked site grant',async()=>{
+  const f=fixture({fetchImpl:async()=>{
+    f.setSite(false);
+    return new Response(JSON.stringify({payload:'x'.repeat(16000)}));
+  }});
+  await assert.rejects(f.call('browser.network.request',{
+    method:'GET',url:'https://example.org/delivery',config:{responseType:'json'}
+  }),err('E_SITE_PERMISSION_REVOKED'));
+});
+
 test('R2 Host directly creates and activates owned tabs while rejecting foreign sites and raw IDs',async()=>{
   const f=fixture(),args={url:'https://example.org/path'};
   await assert.rejects(f.call('browser.tabs.create',{url:'https://different.test/'}),err('E_SITE_PERMISSION_REVOKED'));

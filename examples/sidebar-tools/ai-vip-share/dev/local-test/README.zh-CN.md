@@ -3,9 +3,34 @@
 本目录已正式纳入 `examples/sidebar-tools/ai-vip-share/dev/local-test/`。**无需再下载或解压 ZIP**。
 它是独立开发测试工具，不属于 Sidebar Tool 安装包，也不会连接尚未审核的商业 Provider。
 
+## 当前本机联调（1.4.22，2026-11-06）
+
+服务器本来用于测试，复用现有7903，通过`VIP_TEST_COOKIE_FILE`只读授权原路径。原兑换恢复已成功，同一账本仍为1条兑换/2项权益/1个共享账号；原7898仍为1条兑换/2项权益。**两者都不得重启清账，也不要再次消费DEMO-VIP-01/02。** 新明确连接默认7903，旧schema1 preference及旧recovery按其原7898来源核对，不自动迁移。
+
+已安装1.4.22实际取得schema2交付，25项完整预检后保留22项、跳过3项过期数据，以21+1两批分别可信确认、逐项核验后自动打开ChatGPT。已有登录基线，写后账号菜单/设置/退出核对为true；不推断新登录或Plus/VIP。源失效只阻止新交付，不抹去原兑换终态。前端不选择或上传Cookie文件，不复制原文、不输出秘密。
+
+公共Sidebar HTTP旧8192字节流预算导致原兑换回执及交付E_LIMIT；现按唯一Registry取80000字节流/JSON IPC上限，原请求12000字节、权限和撤权保护不变。需要相应Browser运行代码，单独更新JSON不能修复旧宿主。工具包仍1.4.22且同源匹配。
+
+原LAN进程仍绑定批准的192.168.30.3:7899，本机本轮实读地址为192.168.30.4，故原链接不可达；不自动放宽来源或改系统网络。原生侧栏已识别批准的127.0.0.1:7898回环带码，已消费码预检拒绝且未新增兑换；LAN完整链仍NOT_TESTED。运行证据、资源归属及延期项见[唯一账本](EXTENSION-VIP-TEST.zh-CN.md#server-cookie-1422-20261106)。
+
+### 将来新实例的条件启动示例
+
+仅在7903空闲、没有可复用实例或待核对事务时，从仓库根目录使用原服务器；本轮两个账本仍在运行，**不要现在运行此示例**。路径须为明确授权原文件，Origin须为实读扩展ID。新实例不恢复旧内存账本，不复制原文：
+
+```sh
+VIP_TEST_PORT=7903 \
+VIP_TEST_COOKIE_FILE=/absolute/operator-authorized-cookies.json \
+VIP_TEST_EXTENSION_ORIGIN='chrome-extension://<实际扩展ID>' \
+node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
+```
+
+## 以下为历史联调说明
+
+旧端口、启动命令、安装版本及运行指纹只属于各节当时记录；当前操作以顶部 1.4.22 合同为准。
+
 当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md)；历史两站真实扩展链、本地兑换及代理配置启停见[核心 UI 与功能结果](EXTENSION-VIP-TEST.zh-CN.md#2026-10-31-2101-核心-ui-与功能结果)，分别绑定实际候选。本目录只定义受控开发协议，不是商业后台协议；下述 HTTP 测试通过本身不证明 Chrome 写入或登录。商业后台、代理实际转发与 production 正式验收仍为 `NOT_TESTED`。
 
-## 当前联调边界（1.4.20，2026-11-06）
+## 联调边界（1.4.20，2026-11-06，历史）
 
 产品沿用激活码/专属链接入口，Cookie JSON由服务器保存或提供；用户不选择文件。当前fixture只签发本机合成会话，不加载真实ChatGPT文件；真实ChatGPT服务端来源尚未配置。1.4.20在原安装器更新后，已实测预检取消零消费、确认单次兑换、服务端会话内嵌原激活卡、重复码不再消费。LAN指引页可访问，当前候选的活动网页带码流程未取得原生Side Panel证据；详见[本轮记录](EXTENSION-VIP-TEST.zh-CN.md#server-flow-1420-20261106)。
 
@@ -120,7 +145,7 @@ curl -sS http://127.0.0.1:7898/proxy.pac
 7897 必须已经是可用的 **HTTP CONNECT** 代理；7898 是下面的本地 fixture，不提供代理功能。仅在确需首次启动服务、且浏览器请求包含扩展 Origin 时绑定实际 ID；不要据此重启现有服务：
 
 ```sh
-VIP_TEST_EXTENSION_ORIGIN=chrome-extension://<实际扩展ID> node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
+VIP_TEST_EXTENSION_ORIGIN='chrome-extension://<实际扩展ID>' node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
 ```
 
 1. 从「扩展」安装/更新并打开已晋升、同源的 `ai-vip-share` **1.3.8**，匹配新版 development Host。先看始终可见的「功能与接入状态」，展开六类入口说明，核对本地演示可用性；没有入口时先处理 Host/来源匹配，不盲目导入。

@@ -98,7 +98,7 @@ test('commercial preference waits for the verified directory without replaying a
   assert.equal(reopened.get('site-select').value,'','unverified directory exposes no consumer file source');
   gate.resolve();await reopened.flush();
   assert.equal(reopened.get('site-select').value,'commercial');
-  assert.equal(reopened.get('site-source').textContent,'公司共享账号 A · 127.0.0.1:7898');
+  assert.equal(reopened.get('site-source').textContent,'公司共享账号 A · 127.0.0.1:7903');
   assert.deepEqual(reopened.calls.map(row=>[row.method,new URL(row.url).pathname]),[['GET','/api/member']]);
   assert.deepEqual(reopened.cookieCalls,[]);assert.deepEqual(reopened.tabCalls,[]);
   assert.deepEqual(reopened.proxyCalls,[]);
