@@ -24,8 +24,8 @@ const SESSION_COOKIE_NAME='opendesk_fixture_session';
 const CONTEXT_COOKIE_NAME='opendesk_fixture_context';
 const SESSION_TARGET='http://127.0.0.1:7898/session/';
 const SHARED_ACCOUNTS=Object.freeze([
-  {id:'shared-a',label:'公司共享账号 A'},
-  {id:'shared-b',label:'公司共享账号 B'}
+  {id:'shared-a',label:'公司共享账号 A',displayNameMasked:'a***@fixture.test'},
+  {id:'shared-b',label:'公司共享账号 B',displayNameMasked:'b***@fixture.test'}
 ]);
 
 function readBody(request){
@@ -171,10 +171,10 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
         redeemedAt:receipt.redeemedAt,status:'redeemed',voucherPreviewMasked:maskedCode(code)
       })),...(accounts.length?{sharedAccounts:{schemaVersion:1,companyId:'fixture-company',
         assignedAccountId:assignment.sharedAccountId,redemptionId:assignment.receipt.redemptionId,
-      accounts:accounts.map(row=>({...row,...(source?{cookieFormat:'chatgpt-export-v1',targetUrl:'https://chatgpt.com/',
+      accounts:accounts.map(({displayNameMasked,...row})=>({...row,...(source?{cookieFormat:'chatgpt-export-v1',targetUrl:'https://chatgpt.com/',
         cookieScope:source.checked.batches.flatMap(batch=>batch.cookies.map(cookie=>
           Object.fromEntries(['name','path','domain','storeId','partitionKey'].filter(key=>Object.hasOwn(cookie,key))
-            .map(key=>[key,cookie[key]]))))}:{targetUrl:sessionTarget,
+            .map(key=>[key,cookie[key]]))))}:{displayNameMasked,targetUrl:sessionTarget,
         cookieScope:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({name,path:'/session/'}))})}))}}:{})};
   };
   const server=http.createServer(async(req,res)=>{

@@ -90,7 +90,11 @@ test('login confirmation opens once and unrelated renders preserve user collapse
 });
 
 test('activation delivery shows its actual target and missing website identity before any site selection',async()=>{
-  const e=await runtime();
+  const e=await runtime({network:async(args,fixture)=>{
+    const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    for(const row of response.data.sharedAccounts?.accounts??[])delete row.displayNameMasked;
+    return response;
+  }});
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
   assert.equal(e.get('site-select').value,'commercial');
   assert.match(e.get('site-source').textContent,/127\.0\.0\.1:7903/);
@@ -105,4 +109,76 @@ test('activation delivery shows its actual target and missing website identity b
   assert.equal(e.get('site-account-row').hidden,true);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(e.fixture.ledger.size,1,'cancelling a session does not undo or repeat redemption');
+});
+
+test('server masked identity is reviewable without claiming website verification or causing side effects',async()=>{
+  const e=await runtime();
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  assert.match(e.get('site-account').textContent,/服务端提供：a\*\*\*@fixture\.test.*网站身份未核验/);
+  assert.doesNotMatch(e.get('site-account').textContent,/未提供|身份已核验|登录成功|VIP有效/);
+  assert.equal(e.get('site-account-row').hidden,false);
+  assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.proxyCalls,[]);assert.deepEqual(e.tabCalls,[]);
+  const before=JSON.stringify([...e.store]);
+  assert(!before.includes('a***@fixture.test'),'review identity stays out of recovery storage');
+  await e.click('site-cancel');
+  assert.equal(e.get('site-account-row').hidden,true);
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(JSON.stringify([...e.store]),before,'display metadata never enters secret or recovery storage');
+});
+
+test('unchanged reviewed identity permits one explicit write and reopening does not replay it',async()=>{
+  const e=await runtime();
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.click('cookie-install');await e.flush();
+  assert.equal(e.cookieCalls.length,1);
+  assert.deepEqual(e.tabCalls,[{url:'http://127.0.0.1:7903/session/'}]);
+  assert.equal(e.fixture.ledger.size,1);
+  const before=JSON.stringify([...e.store]);
+  const reopened=await runtime({store:e.store,fixture:e.fixture});
+  assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.tabCalls.length,0);
+  assert.equal(reopened.proxyCalls.length,0);
+  assert.equal(reopened.calls.filter(row=>row.method==='POST').length,0);
+  assert.equal(reopened.get('site-account-row').hidden,true);
+  assert.equal(JSON.stringify([...e.store]),before);
+});
+
+test('changed or removed website identity invalidates a prepared delivery before Cookie dispatch',async()=>{
+  for(const replacement of ['b***@fixture.test',null]){
+    let changed=false;
+    const e=await runtime({network:async(args,fixture)=>{
+      const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+      if(changed)for(const row of response.data.sharedAccounts?.accounts??[]){
+        if(replacement===null)delete row.displayNameMasked;
+        else row.displayNameMasked=replacement;
+      }
+      return response;
+    }});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+    assert.equal(e.get('cookie-install').hidden,false);
+    changed=true;await e.click('cookie-install');await e.flush();
+    assert.equal(e.cookieCalls.length,0,'the pre-dispatch member refresh must cancel the old review');
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.equal(e.get('site-account-row').hidden,true);
+    assert.equal(e.fixture.ledger.size,1);
+    assert.deepEqual(e.tabCalls,[]);assert.deepEqual(e.proxyCalls,[]);
+  }
+});
+
+test('unmasked or misleading identity metadata fails closed and cannot be submitted',async()=>{
+  for(const identity of ['full-account@fixture.test','a***@fixture.test\nVIP有效','a***\u202e@fixture.test',42]){
+    let changed=false;
+    const e=await runtime({network:async(args,fixture)=>{
+      const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+      if(changed)for(const row of response.data.sharedAccounts?.accounts??[])row.displayNameMasked=identity;
+      return response;
+    }});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+    changed=true;await e.click('refresh');
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.equal(e.get('site-account-row').hidden,true);
+    assert.match(e.get('redeem-status').textContent,/权益刷新失败/);
+    await e.click('cookie-install');
+    assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
+    assert.equal(e.fixture.ledger.size,1);
+  }
 });

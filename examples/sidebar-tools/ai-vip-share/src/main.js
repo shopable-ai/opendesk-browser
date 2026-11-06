@@ -143,9 +143,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.27';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.28';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -231,10 +231,16 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       fail('E_SHARED_SCHEMA','共享账号目录无效');
     const ids=new Set(),scopes=new Map();
     const accounts=data.accounts.map(row=>{
-      if(!exactKeys(row,['id','label','targetUrl','cookieScope','cookieFormat'])||!safeString(row.id,120)||
+      if(!exactKeys(row,['id','label','displayNameMasked','targetUrl','cookieScope','cookieFormat'])||!safeString(row.id,120)||
         ids.has(row.id)||!safeString(row.label,100)||!commercialCookieTarget(row.targetUrl)||
         !Array.isArray(row.cookieScope)||!row.cookieScope.length||row.cookieScope.length>50)
         fail('E_SHARED_SCHEMA','共享账号或目标无效');
+      // Display metadata is neither a credential nor proof of website login.
+      // Reject raw identities and characters that could mislead the review.
+      if(row.displayNameMasked!==undefined&&(!safeString(row.displayNameMasked,100)||
+        row.displayNameMasked!==row.displayNameMasked.trim()||!/\*{2,}/.test(row.displayNameMasked)||
+        /[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/.test(row.displayNameMasked)))
+        fail('E_SHARED_SCHEMA','共享账号脱敏身份无效');
       ids.add(row.id);
       if(row.cookieFormat!==undefined){
         if(!localMode||!developmentProfile||row.cookieFormat!=='chatgpt-export-v1'||
@@ -1060,6 +1066,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     renderLocalDevelopment();
     websiteController?.render({development:Boolean(developmentProfile),locked:journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable),
       busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label,
+      commercialIdentity:assignedShared()?.displayNameMasked,
       commercialNotice:sharedBusy?'正在准备网站登录…':sharedNotice});
     const flow=byId('ai-vip-login-flow');
     if(flow)flow.textContent=journalLocked()||cookieFault?'当前：先核对恢复记录；不会自动重复兑换或写入。':
@@ -1100,6 +1107,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     const replacement=next?.accounts.find(row=>row.id===sharedId);
     if(snapshot?.account.id!==data.account.id||sharedCatalog?.companyId!==next?.companyId||sharedCatalog?.redemptionId!==next?.redemptionId||
       (selected&&(!replacement||replacement.targetUrl!==selected.targetUrl||replacement.cookieFormat!==selected.cookieFormat||
+        replacement.label!==selected.label||replacement.displayNameMasked!==selected.displayNameMasked||
         assignedScope(replacement)!==assignedScope(selected)))){
       const hadPrevious=Boolean(snapshot||sharedCatalog);
       invalidateShared();sharedNotice=hadPrevious?'账号或授权目录已变化，请重新取得会话。':'';

@@ -81,6 +81,8 @@ test('schema 2 raw delivery, sanitized retained scope, current assignment, repea
   assert.equal(first.receipt.cookieDelivery.targetUrl,'https://chatgpt.com/');
   assert.deepEqual(first.receipt.cookieDelivery.cookies,rows);
   const catalog=(await api('/api/member')).data.sharedAccounts;
+  assert.equal(Object.hasOwn(catalog.accounts[0],'displayNameMasked'),false,
+    'an external Cookie source must not inherit the synthetic website identity');
   assert.equal(catalog.accounts[0].cookieFormat,'chatgpt-export-v1');
   assert.deepEqual(catalog.accounts[0].cookieScope,[
     {name:rows[0].name,path:'/',storeId:'0',partitionKey:rows[0].partitionKey},

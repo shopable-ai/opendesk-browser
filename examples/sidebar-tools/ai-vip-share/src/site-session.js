@@ -190,7 +190,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         notice='会话交付已过期，请重新获取。';onChange();
       }
     },
-    render({development,locked,busy:controllerBusy,commercialLabel,commercialNotice}){
+    render({development,locked,busy:controllerBusy,commercialLabel,commercialIdentity,commercialNotice}){
       if(!select)return;
       const restoredTarget=getRestoredTarget?.();
       const requested=testsRequested||storedChoice?.startsWith('ordinary-')||
@@ -259,7 +259,8 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         commercial?(commercialLabel||'会员网站')+' · '+new URL(commercial).host:
           rows.length?'选择网站':'暂无可用网站';
       account.textContent=masked||(commercial?(commercialLabel||'服务器当前分配的账号')+
-        ' · 服务器未提供脱敏账号，网站身份未核验':'尚未取得会话');
+        (commercialIdentity?' · 服务端提供：'+commercialIdentity+'；网站身份未核验':
+          ' · 服务器未提供脱敏账号，网站身份未核验'):'尚未取得会话');
       status.textContent=locked?'恢复记录仍需核对，已停止取得及写入新会话；仍可打开网站。':pending?(commercial?commercialNotice||'':''):notice||
         (commercial&&commercialNotice?commercialNotice:
         (storageFailed?'网站选择未能保存；仍可手动选择，重新打开后请核对。':

@@ -318,7 +318,7 @@ test('shared directory exposes only the server assignment bound to its redemptio
   const directory=(await api('/api/member')).data.sharedAccounts;
   assert.deepEqual(directory,{schemaVersion:1,companyId:'fixture-company',
     assignedAccountId:'shared-a',redemptionId:receipt.redemptionId,accounts:[
-      {id:'shared-a',label:'公司共享账号 A',targetUrl:'http://127.0.0.1:7898/session/',cookieScope:[
+      {id:'shared-a',label:'公司共享账号 A',displayNameMasked:'a***@fixture.test',targetUrl:'http://127.0.0.1:7898/session/',cookieScope:[
         {name:'opendesk_fixture_session',path:'/session/'},{name:'opendesk_fixture_context',path:'/session/'}]}
     ]});
   memberState={account:{...boundAccount,id:'other-member'},entitlements:memberState.entitlements};
@@ -337,6 +337,7 @@ test('server reassignment replaces both Cookie slots and invalidates all earlier
     assert.equal(directory.assignedAccountId,id);
     assert.equal(directory.redemptionId,receipt.redemptionId);
     assert.deepEqual(directory.accounts.map(row=>row.id),[id]);
+    assert.equal(directory.accounts[0].displayNameMasked,id==='shared-a'?'a***@fixture.test':'b***@fixture.test');
     const member=(await api('/api/member')).data;
     assert.equal(member.redemptions.at(-1).voucherPreviewMasked,id==='shared-a'?'****-01':'****-02');
     const response=await sharedSession(receipt.redemptionId);
