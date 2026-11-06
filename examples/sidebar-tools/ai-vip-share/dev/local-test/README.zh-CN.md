@@ -1,11 +1,17 @@
 # 在仓库中直接运行 AI VIP Share 本地联调
 
-> 2026-11-06 运行状态更正：文中 7898/7903/7899 的历史 PID 与账本只对应各次观察。本轮开始时这些内存进程已退出，不能通过重启恢复旧兑换，也不能重放旧码或清 journal。最新候选与独立普通工作台实验见[当前测试记录](EXTENSION-VIP-TEST.zh-CN.md#core-chain-1425-20261106)。日常 Browser 仍用原 `dist/development` 持续开发，不启动第二 writer。
+> 2026-11-06最新观察：原7898/7903/7899旧账本已退出、不可恢复。当前是独立的新7903合成实验（PID78467，上次观察，开始时重查），不是旧码或真实Cookie实验。1.4.27已通过原安装器更新并完成两项可信写入、模拟网站账号/VIP核验及90秒自然到期；最新事实见[唯一测试记录](EXTENSION-VIP-TEST.zh-CN.md#user-journey-1427-20261106)。保留该内存账本与共享dev writer，不运行下方历史启动示例。
 
 本目录已正式纳入 `examples/sidebar-tools/ai-vip-share/dev/local-test/`。**无需再下载或解压 ZIP**。
 它是独立开发测试工具，不属于 Sidebar Tool 安装包，也不会连接尚未审核的商业 Provider。
 
-## 当前本机联调（1.4.22，2026-11-06）
+## 新合成实验的进程内参数
+
+只有确认旧实验终止、端口空闲且没有待核对事务时，才建立明确标识的新实验；不要重复消费旧演示码或以重启恢复账本。原`createLocalFixture`支持`voucherAssignments: {'NEW-EXPERIMENT-A': 'shared-a'}`（1–32项，固定码格式，只映射原shared-a/b）和`sessionLifetimeMs: 90000`（1秒–1小时，仅合成Cookie）。这是启动时的进程内配置，服务器会复制并冻结映射，没有远程重置/撤权控制入口。默认值保留原演示合同，真实Cookie文件不会被这些参数延长或修改。
+
+新实验须同时明确自己的getMemberState主体、精确extensionOrigin与sessionTarget；仍由工具原UI预检/确认兑换、取得当前分配、原授权和每批可信确认，不能从终端兑换或注入Cookie。下面1.4.22等PID、端口和计数仅是历史观察，不要用其启动命令覆盖当前实验。
+
+## 历史本机联调（1.4.22，2026-11-06）
 
 服务器本来用于测试，复用现有7903，通过`VIP_TEST_COOKIE_FILE`只读授权原路径。原兑换恢复已成功，同一账本仍为1条兑换/2项权益/1个共享账号；原7898仍为1条兑换/2项权益。**两者都不得重启清账，也不要再次消费DEMO-VIP-01/02。** 新明确连接默认7903，旧schema1 preference及旧recovery按其原7898来源核对，不自动迁移。
 
@@ -28,7 +34,7 @@ node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
 
 ## 以下为历史联调说明
 
-旧端口、启动命令、安装版本及运行指纹只属于各节当时记录；当前操作以顶部 1.4.22 合同为准。
+旧端口、启动命令、安装版本及运行指纹只属于各节当时记录；当前操作以顶部最新记录为准。
 
 当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md)；历史两站真实扩展链、本地兑换及代理配置启停见[核心 UI 与功能结果](EXTENSION-VIP-TEST.zh-CN.md#2026-10-31-2101-核心-ui-与功能结果)，分别绑定实际候选。本目录只定义受控开发协议，不是商业后台协议；下述 HTTP 测试通过本身不证明 Chrome 写入或登录。商业后台、代理实际转发与 production 正式验收仍为 `NOT_TESTED`。
 

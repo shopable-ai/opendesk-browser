@@ -119,7 +119,7 @@ export default function VipApp({createDevelopmentControls}={}){
       <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
         <h2 id="ai-vip-cookie-title">确认网站登录</h2>
         <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
-        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
+        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录。完成后请在网站核对账号、套餐和到期时间；写入成功不代表会员已生效。</p>
         <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
         <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
         <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>

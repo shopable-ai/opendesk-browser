@@ -20,9 +20,12 @@ function bounded(value){
   return value;
 }
 // Storage-only dictionaries: APIs and all policy checks continue to see schema 2.
-// v4 uses fixed-position slot tuples only when v3 exceeds the SAME 8 KiB quota.
+// v4 uses slot tuples; v5 also removes repeated attempt field names, only when
+// the previous encoding exceeds the SAME 8 KiB quota.
 // No history is pruned, and exact readback still establishes each CAS outcome.
 const SLOT_FIELDS=['name','domain','hostOnly','path','storeId','partitionKey'];
+const ATTEMPT_FIELDS=['scopeKey','attemptId','requestId','deliveryId','policyVersion','payloadHash',
+  'expiresAt','count','slots','state','resolution','results'];
 function encodeJournal(value,version){
   const scopes=[],slots=[],scopeIds=new Map(),slotIds=new Map();
   const intern=(items,ids,value)=>{
@@ -32,16 +35,20 @@ function encodeJournal(value,version){
   };
   const encoded={schemaVersion:3,legacy:value.legacy,scopes,slots,attempts:value.attempts.map(row=>
     ({...row,scopeKey:intern(scopes,scopeIds,row.scopeKey),slots:intern(slots,slotIds,row.slots)}))};
-  if(version===4||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+  if(version>=4||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
     encoded.schemaVersion=4;
     encoded.slots=slots.map(list=>list.map(slot=>SLOT_FIELDS.map(field=>slot[field])));
+  }
+  if(version===5||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=5;
+    encoded.attempts=encoded.attempts.map(row=>ATTEMPT_FIELDS.map(field=>row[field]));
   }
   return encoded;
 }
 function journalBounded(value){bounded(encodeJournal(value));return value;}
 function decodeJournal(value){
   bounded(value);
-  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts'])||![3,4].includes(value.schemaVersion)||
+  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts'])||![3,4,5].includes(value.schemaVersion)||
     !Array.isArray(value.scopes)||!Array.isArray(value.slots)||!Array.isArray(value.attempts)||
     value.attempts.length>128||value.scopes.length>128||value.slots.length>128||
     value.scopes.some(s=>typeof s!=='string'||s.length>8192)||
@@ -50,11 +57,13 @@ function decodeJournal(value){
     if(!Number.isSafeInteger(index)||index<0||index>=items.length)fail();
     return items[index];
   };
-  const slots=value.schemaVersion===4?value.slots.map(list=>list.map(tuple=>{
+  const slots=value.schemaVersion>=4?value.slots.map(list=>list.map(tuple=>{
     if(!Array.isArray(tuple)||tuple.length!==SLOT_FIELDS.length)fail();
     return Object.fromEntries(SLOT_FIELDS.map((field,index)=>[field,tuple[index]]));
   })):value.slots;
-  const attempts=value.attempts.map(row=>{
+  const attempts=value.attempts.map(stored=>{
+    if(value.schemaVersion===5&&(!Array.isArray(stored)||stored.length!==ATTEMPT_FIELDS.length))fail();
+    const row=value.schemaVersion===5?Object.fromEntries(ATTEMPT_FIELDS.map((field,index)=>[field,stored[index]])):stored;
     if(!plain(row))fail();
     return {...row,scopeKey:ref(value.scopes,row.scopeKey),slots:ref(slots,row.slots)};
   });
@@ -328,7 +337,7 @@ export async function readCookieJournal(request){
   const result=await request('storage.get',{key:COOKIE_JOURNAL_KEY,withEtag:true});
   if(!plain(result)||result.preview===true||!Object.hasOwn(result,'value')||
     typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag))fail();
-  return {etag:result.etag,value:[3,4].includes(result.value?.schemaVersion)?decodeJournal(result.value):
+  return {etag:result.etag,value:[3,4,5].includes(result.value?.schemaVersion)?decodeJournal(result.value):
     result.value?.schemaVersion===2?validateMigratedCookieJournal(bounded(result.value)):
     validateLegacyCookieRecord(result.value)};
 }

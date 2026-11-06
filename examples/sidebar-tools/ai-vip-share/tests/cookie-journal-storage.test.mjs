@@ -263,3 +263,40 @@ test('a new website fits beside real-sized settled history without dropping fact
     assert.equal(rejected.writes, 0);
   }
 });
+
+test('a new delivery fits a near-full v4 history by encoding attempt field names once', async () => {
+  const fields = ['name', 'domain', 'hostOnly', 'path', 'storeId', 'partitionKey'];
+  const slots = Array.from({length: 21}, (_, i) => ({...row(0).slots[0],
+    name: 'synthetic_session_cookie_with_representative_length_' + i}));
+  const initial = {schemaVersion: 4, legacy: {record: null, attribution: null},
+    scopes: [row(0).scopeKey], slots: [slots.map(slot => fields.map(key => slot[key]))], attempts: []};
+  for (let i = 0; ; i++) {
+    const next = {...row(i), scopeKey: 0, slots: 0, count: 21,
+      ...(i < 2 ? {state: 'success', resolution: 'receipt',
+        results: slots.map((_, index) => ({index, saved: true, verified: true}))} : {})};
+    if (bytes({...initial, attempts: [...initial.attempts, next]}) > 8192) break;
+    initial.attempts.push(next);
+  }
+  assert.ok(bytes(initial) > 7800 && bytes(initial) <= 8192);
+  const s = storage(initial), history = (await readCookieJournal(s.request)).value;
+  const candidate = {...row(99), scopeKey: row(99).scopeKey.replaceAll('a.example.test', 'b.example.test'),
+    slots: row(99).slots.map(slot => ({...slot, domain: 'b.example.test'})), state: 'unknown', resolution: 'pending'};
+  const reserved = await reserveCookieAttempt(s.request, candidate);
+  assert.equal(s.value.schemaVersion, 5);
+  assert.deepEqual(reserved.value.attempts.slice(0, -1), history.attempts);
+  assert.deepEqual((await readCookieJournal(s.request)).value, reserved.value);
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_UNRESOLVED'});
+  const settled = await saveCookieReceipt(s.request, reserved.reference, {receipt: {saved: 2, verified: 2,
+    results: candidate.slots.map((_, index) => ({index, saved: true, verified: true}))}});
+  assert.ok(bytes(s.value) <= 8192);
+  assert.deepEqual(settled.value.attempts.slice(0, -1), history.attempts);
+  assert.deepEqual((await readCookieJournal(s.request)).value, settled.value);
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_REPLAY'});
+  for (const mutate of [v => v.attempts[0].push('secret'), v => v.attempts[0][0] = -1,
+    v => v.attempts[0][8] = 999, v => v.attempts[0][11] = [{index: 0, saved: false, verified: true}],
+    v => v.scopes.push(v.scopes[0])]) {
+    const bad = clone(s.value); mutate(bad); const rejected = storage(bad);
+    await assert.rejects(readCookieJournal(rejected.request));
+    assert.equal(rejected.writes, 0);
+  }
+});

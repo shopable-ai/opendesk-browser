@@ -72,7 +72,7 @@ test('commercial preparation failure is visible without a delivery or Cookie sid
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
   await e.chooseSite('commercial');await e.click('site-receive');
   assert.equal(e.get('site-status').hidden,false);
-  assert.match(e.get('site-status').textContent,/未取得.*刷新授权目录.*未写入 Cookie/);
+  assert.match(e.get('site-status').textContent,/未取得.*网站授权.*刷新.*未写入 Cookie/);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
   assert.equal(e.get('site-receive').disabled,false);
@@ -87,4 +87,22 @@ test('login confirmation opens once and unrelated renders preserve user collapse
   await e.click('proxy-refresh');
   assert.equal(e.get('sites-section').open,false);
   assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
+});
+
+test('activation delivery shows its actual target and missing website identity before any site selection',async()=>{
+  const e=await runtime();
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  assert.equal(e.get('site-select').value,'commercial');
+  assert.match(e.get('site-source').textContent,/127\.0\.0\.1:7903/);
+  assert.match(e.get('site-account').textContent,/未提供脱敏账号.*身份未核验/);
+  assert.doesNotMatch(e.get('site-account').textContent,/尚未取得会话/);
+  assert.equal(e.get('site-open').disabled,false);
+  assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.proxyCalls,[]);assert.deepEqual(e.tabCalls,[]);
+  await e.click('site-open');
+  assert.deepEqual(e.tabCalls,[{url:'http://127.0.0.1:7903/session/'}]);
+  assert.deepEqual(e.cookieCalls,[],'opening for website authorization does not write');
+  await e.click('site-cancel');
+  assert.equal(e.get('site-account-row').hidden,true);
+  assert.equal(e.get('cookie-install').hidden,true);
+  assert.equal(e.fixture.ledger.size,1,'cancelling a session does not undo or repeat redemption');
 });

@@ -151,7 +151,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
   });
   open?.addEventListener('click',event=>{
     if(event.isTrusted!==true||open.disabled)return;
-    const url=current()?.site.targetUrl||(select.value==='commercial'?commercialTarget():null);
+    const url=getPending()?.targetUrl||current()?.site.targetUrl||(select.value==='commercial'?commercialTarget():null);
     if(url)void tabs.create({url}).catch(()=>{notice='未能打开目标网页，请稍后重试。';onChange();});
   });
   receive?.addEventListener('click',event=>{
@@ -232,8 +232,13 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
           }
         }
       }
+      const delivery=getPending();
+      // Activation can deliver the assigned session before a website is chosen.
+      // Its validated target owns this stage; a saved unrelated selection is
+      // neither the current delivery target nor evidence that no session exists.
+      if(delivery&&delivery.targetUrl===commercialTarget())select.value='commercial';
       const context=current(),commercial=select.value==='commercial'&&commercialTarget();
-      select.disabled=Boolean(controllerBusy)||rows.length===0;open.disabled=!context&&!commercial;
+      select.disabled=Boolean(controllerBusy)||rows.length===0;open.disabled=!delivery&&!context&&!commercial;
       for(const button of siteButtons){
         const selected=button.value===select.value;
         button.disabled=select.disabled;
@@ -242,7 +247,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         button.title=selected?'再次点击取消选择':'';
       }
       receive.disabled=Boolean(locked||controllerBusy||loading||(!context&&!commercial));
-      const pending=Boolean(getPending());
+      const pending=Boolean(delivery);
       authPanel.hidden=!context||pending;
       if(clear)clear.hidden=!credentialInput?.value;
       receive.hidden=pending;

@@ -65,6 +65,7 @@ function pacFor({proxyPort,proxyKind}){
 
 /** Start with a private in-memory ledger. Keep the server alive across sidebar/reload tests. */
 export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=null,proxyPort=7897,proxyKind='http',now=Date.now,extensionOrigin=null,
+  voucherAssignments=DEMO_ASSIGNMENTS,sessionLifetimeMs=3600000,
   getMemberState=()=>({account:{state:'bound',id:ACCOUNT_ID,displayNameMasked:DISPLAY_NAME},entitlements:[]}),
   // Test-only revocation policy, checked for both delivery and every target-page visit.
   isSharedAccessAllowed=()=>true}={}){
@@ -75,6 +76,16 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
   if(extensionOrigin!==null&&!/^chrome-extension:\/\/[a-p]{32}$/.test(extensionOrigin))
     throw Error('extensionOrigin must be one exact isolated Chrome extension origin');
   if(cookieSource!==null&&typeof cookieSource!=='function')throw cookieSourceError();
+  // A fresh experiment must be able to use fresh codes without recreating old
+  // redemption facts. Configuration is in-process only, never an HTTP control.
+  if(!voucherAssignments||typeof voucherAssignments!=='object'||Array.isArray(voucherAssignments)||
+    !Object.keys(voucherAssignments).length||Object.keys(voucherAssignments).length>32||
+    Object.entries(voucherAssignments).some(([code,assignment])=>
+      !/^[A-Z0-9][A-Z0-9_-]{3,63}$/.test(code)||!SHARED_ACCOUNTS.some(row=>row.id===assignment)))
+    throw Error('Invalid fixture voucher assignments');
+  const assignments=Object.freeze({...voucherAssignments});
+  if(!Number.isSafeInteger(sessionLifetimeMs)||sessionLifetimeMs<1000||sessionLifetimeMs>3600000)
+    throw Error('Invalid fixture session lifetime');
   let lastSourceRevision=null;
   const retiredSourceRevisions=new Set();
   const sourceSnapshot=()=>{
@@ -139,7 +150,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
       {schemaVersion:1,deliveryId:randomUUID(),targetUrl:sessionTarget,
       expiresAt:issuedAt+120000,cookies:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({
         name,value:randomUUID(),path:'/session/',httpOnly:true,secure:false,sameSite:'lax',
-        expirationDate:(issuedAt+3600000)/1000
+        expirationDate:(issuedAt+sessionLifetimeMs)/1000
       }))};
     if(!source)sessions.set(cookieDelivery.deliveryId,{accountId,sharedAccountId,redemptionId,cookieDelivery});
     return cookieDelivery;
@@ -177,7 +188,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     if(req.method==='GET'&&path==='/activate'){
       const query=new URL(req.url,'http://127.0.0.1').searchParams;
       const valid=[...query.keys()].length===1&&query.getAll('activation_code').length===1&&
-        Object.hasOwn(DEMO_ASSIGNMENTS,query.get('activation_code'));
+        Object.hasOwn(assignments,query.get('activation_code'));
       res.writeHead(valid?200:400,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
         'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff',
         'Content-Security-Policy':"default-src 'none'"});
@@ -209,7 +220,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     }
     if(req.method==='GET'&&path==='/health'){
       json(res,200,{ok:true,mode:'LOCAL_FIXTURE_NOT_PRODUCTION',memberPort:server.address()?.port,
-        proxyPort,proxyKind,accountId:ACCOUNT_ID,providerHttps:false,
+        proxyPort,proxyKind,accountId:getMemberState().account.id??null,providerHttps:false,
         browserReleaseIntegration:false});return;
     }
     if(req.method==='GET'&&path==='/proxy.pac'){
@@ -238,7 +249,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
       json(res,403,{error:'E_ACCOUNT_UNBOUND'});return;
     }
     if(path==='/api/preview'){
-      if(typeof data.code!=='string'||!Object.hasOwn(DEMO_ASSIGNMENTS,data.code)){
+      if(typeof data.code!=='string'||!Object.hasOwn(assignments,data.code)){
         json(res,422,{error:'E_DEMO_CODE_INVALID'});return;
       }
       const reserved=codeReservation(data.code);
@@ -277,7 +288,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
         json(res,200,receipt);return;
       }
       const source=sourceSnapshot();
-      const redeemedAt=now(),redemptionId=randomUUID(),sharedAccountId=DEMO_ASSIGNMENTS[pre.code];
+      const redeemedAt=now(),redemptionId=randomUUID(),sharedAccountId=assignments[pre.code];
       if(source&&isSharedAccessAllowed({accountId,redemptionId,sharedAccountId,serverNow:redeemedAt})!==true){
         json(res,403,{error:'E_SHARED_ACCESS_DENIED'});return;
       }

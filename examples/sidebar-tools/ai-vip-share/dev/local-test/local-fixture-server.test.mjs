@@ -113,6 +113,46 @@ test('health is loopback only, mock mode is explicit',async()=>{
   assert.equal(data.ok,true);assert.equal(data.proxyPort,7897);
   assert.equal(data.browserReleaseIntegration,false);
 });
+test('fresh experiment codes keep their own subject, single-use ledger and short session deadline',async(t)=>{
+  let clock=SERVER_NOW;
+  const account={state:'bound',id:'journey-new-subject',displayNameMasked:'j***@fixture.test'};
+  const assignments={'JOURNEY-NEW-A':'shared-a'};
+  const fresh=createLocalFixture({now:()=>clock,getMemberState:()=>({account,entitlements:[]}),
+    voucherAssignments:assignments,sessionLifetimeMs:60000});
+  assignments['DEMO-VIP-01']='shared-a'; // The running experiment owns a snapshot.
+  await new Promise(resolve=>fresh.server.listen(0,'127.0.0.1',resolve));
+  t.after(()=>new Promise(resolve=>fresh.server.close(resolve)));
+  const origin='http://127.0.0.1:'+fresh.server.address().port;
+  const call=async(path,data)=>{
+    const response=await fetch(origin+path,{method:data?'POST':'GET',
+      headers:{'X-OpenDesk-Local-Test':'1',...(data?{'Content-Type':'application/json'}:{})},
+      ...(data?{body:JSON.stringify(data)}:{})});
+    return {status:response.status,data:await response.json()};
+  };
+  assert.equal((await call('/health')).data.accountId,account.id);
+  assert.equal((await call('/api/preview',{code:'DEMO-VIP-01'})).status,422);
+  const landing=await fetch(origin+'/activate?activation_code=JOURNEY-NEW-A');
+  assert.equal(landing.status,200);assert.equal(fresh.ledger.size,0);
+  assert.doesNotMatch(await landing.text(),/JOURNEY-NEW-A/);
+  const preview=await call('/api/preview',{code:'JOURNEY-NEW-A'});
+  assert.equal(preview.data.accountId,account.id);assert.equal(fresh.ledger.size,0);
+  const receipt=await call('/api/redeem',{previewId:preview.data.previewId,
+    accountId:account.id,idempotencyKey:randomUUID()});
+  assert.equal(receipt.status,200);assert.equal(fresh.ledger.size,1);
+  const delivery=receipt.data.cookieDelivery;
+  assert.equal(delivery.cookies[0].expirationDate*1000,SERVER_NOW+60000);
+  const visit=()=>fetch(origin+'/session/',{headers:{Cookie:cookieHeader(delivery)}}).then(r=>r.text());
+  assert.match(await visit(),/data-vip-state="active"/);
+  clock+=60000;
+  assert.match(await visit(),/data-session-reason="expired"/);
+  assert.equal((await call('/api/preview',{code:'JOURNEY-NEW-A'})).status,409);
+});
+test('invalid fresh experiment assignments and session lifetimes fail before listening',()=>{
+  for(const voucherAssignments of [{},[],{'bad code':'shared-a'},{'FRESH-CODE':'other'}])
+    assert.throws(()=>createLocalFixture({voucherAssignments}),/voucher assignments/);
+  for(const sessionLifetimeMs of [0,999,3600001,NaN,1.5])
+    assert.throws(()=>createLocalFixture({sessionLifetimeMs}),/session lifetime/);
+});
 test('development activation URL is inert, exact and never reflects activation parameters',async()=>{
   const before=await api('/api/member');
   for(const code of ['DEMO-VIP-01','DEMO-VIP-02']){
