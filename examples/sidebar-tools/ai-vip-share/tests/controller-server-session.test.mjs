@@ -57,6 +57,26 @@ test('missing website grant leaves server activation intact and never writes',as
   assert.equal(e.get('cookie-install').hidden,true);
   assert.match(e.get('site-status').textContent,/允许 ChatGPT 网站 Cookie/);
 });
+test('a new pre-dispatch failure never presents an old successful receipt as its result',async()=>{
+  const e=await activated();
+  await e.click('cookie-install');await settle(e);
+  await e.click('cookie-install');await settle(e);
+  const before=JSON.stringify([...e.store]);
+  let unavailable=false;
+  const reopened=await runtime({store:e.store,fixture:e.fixture,cookieContext:async kind=>{
+    if(unavailable)throw Object.assign(Error('grant unavailable'),{code:'E_SITE_GRANT_REQUIRED'});
+    return kind==='store'?{storeId:'0'}:{partitionKey};
+  }});
+  assert.equal(reopened.get('cookie-results').children.length,1,'previous success remains visible on reopen');
+  await reopened.click('site-receive');
+  unavailable=true;await reopened.click('cookie-install');await settle(reopened);
+  assert.match(reopened.get('cookie-status').textContent,/Cookie 未提交/);
+  assert.equal(reopened.get('cookie-results').children.length,0);
+  assert.equal(reopened.get('cookie-open').hidden,true);
+  assert.equal(reopened.cookieCalls.length,0);
+  assert.equal(reopened.tabCalls.length,0);
+  assert.equal(JSON.stringify([...e.store]),before,'display filtering must preserve historical receipts');
+});
 test('cancelled trusted confirmation can be retried explicitly; unknown stops the remaining batches and survives reopen',async()=>{
   let cancel=true;
   const e=await activated({cookieSetMany:async()=>{throw Object.assign(Error('synthetic'),

@@ -258,11 +258,14 @@ test('a settled zero-save receipt preserves replay history without inventing Coo
 });
 test('reserve refuses before persistence when the marker fits but the final receipt cannot fit',async()=>{
   const a=attempt('a.example.test',{count:50,slots:Array.from({length:50},(_,i)=>({
-    name:('cookie'+i).padEnd(60,'x'),domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
+    name:('cookie'+i).padEnd(80,'x'),domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
   }))});
-  const compact=attempt=>({schemaVersion:4,legacy:empty().legacy,scopes:[attempt.scopeKey],
+  const fields=['scopeKey','attemptId','requestId','deliveryId','policyVersion','payloadHash',
+    'expiresAt','count','slots','state','resolution','results'];
+  const compact=attempt=>({schemaVersion:6,legacy:empty().legacy,scopes:[attempt.scopeKey],
     slots:[attempt.slots.map(s=>['name','domain','hostOnly','path','storeId','partitionKey'].map(k=>s[k]))],
-    attempts:[{...attempt,scopeKey:0,slots:0}]});
+    attempts:[fields.map(key=>key==='scopeKey'||key==='slots'?0:key==='results'?
+      attempt.results.map(r=>r.code===undefined?[r.index,r.saved,r.verified]:[r.index,r.saved,r.verified,r.code]):attempt[key])]});
   assert.ok(Buffer.byteLength(JSON.stringify(compact(a)))<8192);
   const results=Array.from({length:50},(_,index)=>({index,saved:true,verified:true}));
   assert.ok(Buffer.byteLength(JSON.stringify(compact({...a,state:'success',resolution:'receipt',results})))>8192);

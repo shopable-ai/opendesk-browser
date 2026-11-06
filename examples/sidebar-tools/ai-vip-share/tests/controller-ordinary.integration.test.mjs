@@ -176,3 +176,46 @@ test('trusted pre-dispatch cancellation requires a fresh manual confirmation, ne
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===2&&!e.get('site-select').disabled);
   assert.deepEqual((await attempts(e)).map(row=>row.state),['failed','success']);
 });
+
+test('ordinary sources display different valid masked identities and write only after confirmation',async t=>{
+  let masked;
+  const h=await setup(t,{response:(args,response)=>{
+    if(args.method==='POST')response.data.displayNameMasked=masked;
+    return response;
+  }}),{e}=h;
+  const identities=['a**@source-one.test','用户***乙','**'+'x'.repeat(98)];
+  for(const [index,value] of identities.entries()){
+    masked=value;
+    await h.acquire(index%2);await h.wait(()=>!e.get('cookie-install').hidden);
+    assert.equal(e.get('site-account').textContent,value);
+    assert.equal(e.cookieCalls.length,index,'preparation must not write Cookies');
+    await e.click('cookie-install');
+    await h.wait(()=>e.cookieCalls.length===index+1&&!e.get('site-select').disabled);
+    assert.equal(e.cookieCalls[index].url,origins[index%2]+'/session/');
+  }
+  assert.deepEqual((await attempts(e)).map(row=>row.state),['success','success','success']);
+});
+
+test('invalid ordinary masked identities leave no delivery, journal write or SDK call',async t=>{
+  let masked;
+  const h=await setup(t,{response:(args,response)=>{
+    if(args.method==='POST')response.data.displayNameMasked=masked;
+    return response;
+  }}),{e}=h;
+  const invalid=[undefined,null,42,{},[], '', '   ', 'raw@source.test', 'a*@source.test',
+    'a*b*c@source.test',' a**@source.test','a**@source.test ','**'+'x'.repeat(99),
+    ...['\x00','\x1f','\x7f','\x85','\x9f','\u202a','\u202b','\u202c','\u202d','\u202e',
+      '\u2066','\u2067','\u2068','\u2069'].map(char=>'a**'+char+'@source.test')];
+  for(const [index,value] of invalid.entries()){
+    masked=value;
+    await h.acquire(index%2);
+    await h.wait(()=>!e.get('site-receive').disabled&&/来源授权或交付无效/.test(e.get('site-status').textContent));
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.equal(e.get('site-account-row').hidden,true);
+    await e.click('cookie-install');
+    assert.equal(e.cookieCalls.length,0);
+    assert.equal(e.store.has(KEY),false);
+    assert.equal(e.storageCalls.filter(row=>row.operation==='storage.set'&&row.key===KEY).length,0);
+    assert.deepEqual(e.tabCalls,[]);
+  }
+});

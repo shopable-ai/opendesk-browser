@@ -68,6 +68,218 @@ function near() {
   return value;
 }
 
+// Independent old wire format, so capacity assertions cannot use the new codec.
+function v5(value) {
+  const scopes = [], slots = [];
+  const intern = (list, value) => {
+    let index = list.findIndex(item => JSON.stringify(item) === JSON.stringify(value));
+    if (index < 0) { index = list.length; list.push(value); }
+    return index;
+  };
+  const fields = ['scopeKey', 'attemptId', 'requestId', 'deliveryId', 'policyVersion', 'payloadHash',
+    'expiresAt', 'count', 'slots', 'state', 'resolution', 'results'];
+  const attempts = value.attempts.map(row => fields.map(key => key === 'scopeKey' ? intern(scopes, row[key]) :
+    key === 'slots' ? intern(slots, row[key].map(slot =>
+      ['name', 'domain', 'hostOnly', 'path', 'storeId', 'partitionKey'].map(field => slot[field]))) : row[key]));
+  return {schemaVersion: 5, legacy: clone(value.legacy), scopes, slots, attempts};
+}
+
+function v6(value) {
+  const wire = v5(value), results = list => list.map(r => r.code === undefined ?
+    [r.index, r.saved, r.verified] : [r.index, r.saved, r.verified, r.code]);
+  wire.schemaVersion = 6;
+  wire.attempts.forEach(tuple => tuple[11] = results(tuple[11]));
+  if (wire.legacy.record) wire.legacy.record.results = results(wire.legacy.record.results);
+  return wire;
+}
+
+function batch21() {
+  const history = {...row(0), count: 21, state: 'success', resolution: 'receipt',
+    slots: Array.from({length: 21}, (_, i) => ({...row(0).slots[0],
+      name: 'synthetic_session_cookie_with_representative_length_' + i})),
+    results: Array.from({length: 21}, (_, index) => ({index, saved: true, verified: true}))};
+  const candidate = {...history, attemptId: '00000000-0000-4000-8000-000000000000',
+    requestId: 'new-request', deliveryId: 'new-delivery', state: 'unknown', resolution: 'pending', results: [],
+    scopeKey: history.scopeKey.replaceAll('a.example.test', 'chatgpt.com'),
+    slots: history.slots.map(slot => ({...slot, domain: 'chatgpt.com'}))};
+  const results = [...history.results.slice(0, -1),
+    {index: 20, saved: true, verified: false, code: 'E_CHROME_PERMISSION_REQUIRED'}];
+  const journal = {...empty(), attempts: [history]};
+  while (bytes(v5({...journal, attempts: [...journal.attempts,
+    {...candidate, resolution: 'receipt', results}]})) <= 8192) {
+    journal.attempts.push(row(journal.attempts.length));
+  }
+  assert.ok(bytes(v5(journal)) <= 8192);
+  assert.ok(bytes(v5({...journal, attempts: [...journal.attempts, candidate]})) <= 8192);
+  return {journal, candidate, results};
+}
+
+test('21 successful historical items plus a full new 21-item worst receipt fit only after result compaction', async t => {
+  const {journal, candidate, results} = batch21();
+  for (const saved of [true, false]) await t.test(`last item saved=${saved}`, async t => {
+    const worst = results.map(r => r.index === 20 ? {...r, saved} : r);
+    const oldBytes = bytes(v5({...journal, attempts: [...journal.attempts,
+      {...candidate, resolution: 'receipt', results: worst}]}));
+    assert.ok(oldBytes > 8192);
+    const s = storage(v5(journal), {lost: true});
+    assert.deepEqual((await readCookieJournal(s.request)).value, journal);
+    const reserved = await reserveCookieAttempt(s.request, candidate);
+    assert.equal(s.writes, 1);
+    assert.equal(reserved.value.schemaVersion, 2);
+    assert.deepEqual(reserved.value.attempts.slice(0, -1), journal.attempts);
+    assert.deepEqual((await readCookieJournal(s.request)).value, reserved.value);
+    const settled = await saveCookieReceipt(s.request, reserved.reference, {receipt: {
+      saved: 20 + Number(saved), verified: 20, stopped: true, results: worst,
+    }});
+    assert.equal(s.value.schemaVersion, 6);
+    assert.equal(s.writes, 2);
+    assert.ok(bytes(s.value) <= 8192);
+    assert.deepEqual(settled.value.attempts.slice(0, -1), journal.attempts);
+    assert.deepEqual(settled.value.attempts.at(-1).results, worst);
+    assert.deepEqual((await readCookieJournal(s.request)).value, settled.value);
+    t.diagnostic(`v5=${oldBytes} bytes; v6=${bytes(s.value)} bytes`);
+    const writes = s.writes;
+    await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_UNRESOLVED'});
+    assert.equal(s.writes, writes);
+  });
+});
+
+test('schema6 preserves legacy results, expired seen and unresolved locks without normalization', async () => {
+  const {journal, candidate} = batch21();
+  journal.legacy = {attribution: {sourceId: 'old-source', siteId: 'old-site'}, record: {
+    schemaVersion: 1, deliveryId: 'old-delivery', attemptId: 'old-attempt', accountId: 'old-account',
+    serviceOrigin: 'https://old.example.test', targetUrl: 'https://old.example.test/',
+    state: 'unknown', count: 2, results: [
+      {index: 0, saved: true, verified: true},
+      {index: 1, saved: true, verified: false, code: 'E_OUTCOME_UNKNOWN'},
+    ], seen: [{deliveryId: 'expired', expiresAt: 1700000000000}],
+    scope: JSON.stringify([['session', '/', 'old.example.test']]),
+  }};
+  const s = storage(v6(journal));
+  assert.deepEqual((await readCookieJournal(s.request)).value, journal);
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_UNRESOLVED'});
+  assert.equal(s.writes, 0);
+});
+
+test('schema6 writes preserve legacy facts and a full successful receipt with replay protection', async () => {
+  const {journal, candidate} = batch21();
+  journal.legacy = {attribution: {sourceId: 'old-source', siteId: 'old-site'}, record: {
+    schemaVersion: 1, deliveryId: 'old-delivery', attemptId: 'old-attempt', accountId: 'old-account',
+    serviceOrigin: 'https://old.example.test', targetUrl: 'https://old.example.test/',
+    state: 'failed', count: 1, results: [{index: 0, saved: false, verified: false, code: 'E_COOKIE_SCOPE'}],
+    seen: [{deliveryId: 'expired', expiresAt: 1700000000000}],
+  }};
+  const s = storage(v5(journal), {lost: true});
+  const reserved = await reserveCookieAttempt(s.request, candidate);
+  const results = Array.from({length: 21}, (_, index) => ({index, saved: true, verified: true}));
+  const settled = await saveCookieReceipt(s.request, reserved.reference, {receipt: {
+    saved: 21, verified: 21, results,
+  }});
+  assert.equal(s.value.schemaVersion, 6);
+  assert.deepEqual(s.value.legacy.record.results, [[0, false, false, 'E_COOKIE_SCOPE']]);
+  assert.deepEqual(settled.value.legacy, journal.legacy);
+  assert.deepEqual(settled.value.attempts.slice(0, -1), journal.attempts);
+  assert.deepEqual(settled.value.attempts.at(-1).results, results);
+  assert.deepEqual((await readCookieJournal(s.request)).value, settled.value);
+  const writes = s.writes;
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_REPLAY'});
+  assert.equal(s.writes, writes);
+});
+
+test('schema6 receipt requires exact readback and never retries a conflicting CAS', async () => {
+  const {journal, candidate, results} = batch21();
+  for (const conflict of [true, false]) {
+    const s = storage(v5(journal)), reserved = await reserveCookieAttempt(s.request, candidate);
+    let sets = 0;
+    const request = async (op, args) => {
+      if (op === 'storage.set') {
+        sets++;
+        assert.equal(args.key, COOKIE_JOURNAL_KEY);
+        assert.equal(args.value.schemaVersion, 6);
+        if (conflict) throw Error('conflicting CAS');
+        const changed = clone(args);
+        changed.value.attempts.at(-1)[2] = 'concurrent-request';
+        return s.request(op, changed);
+      }
+      return s.request(op, args);
+    };
+    await assert.rejects(saveCookieReceipt(request, reserved.reference, {receipt: {
+      saved: 21, verified: 20, stopped: true, results,
+    }}), {code: 'E_COOKIE_RECEIPT_UNCONFIRMED'});
+    assert.equal(sets, 1);
+    assert.deepEqual((await readCookieJournal(s.request)).value.attempts.slice(0, -1), journal.attempts);
+    if (conflict) assert.deepEqual((await readCookieJournal(s.request)).value, reserved.value);
+  }
+});
+
+test('schema6 rejects corrupt result indexes, tuples and noncanonical encodings without writes', async () => {
+  const {journal} = batch21();
+  journal.legacy = {record: {
+    schemaVersion: 1, deliveryId: 'old', attemptId: 'old', accountId: 'old',
+    serviceOrigin: 'https://old.example.test', targetUrl: 'https://old.example.test/',
+    state: 'unknown', count: 1, results: [{index: 0, saved: true, verified: false}], seen: [],
+  }, attribution: null};
+  const raw = v6(journal);
+  for (const mutate of [
+    v => v.attempts[0][11][0][0] = 1,
+    v => v.attempts[0][11][1][0] = 0,
+    v => v.attempts[0][11][0][0] = '0',
+    v => v.attempts[0][11].reverse(),
+    v => v.attempts[0][11][0] = {index: 0, saved: true, verified: true},
+    v => v.attempts[0][11][0].pop(),
+    v => v.attempts[0][11][0].push(null),
+    v => v.attempts[0][11][0].push(undefined),
+    v => v.attempts[0][11][0].push('E_COOKIE_STORE'),
+    v => v.attempts[0][11][0].push('E_COOKIE_STORE', 'secret'),
+    v => v.attempts[0][11][0][1] = 1,
+    v => v.attempts[0][11][0][1] = false,
+    v => v.attempts[0][11] = null,
+    v => v.attempts[0].push('secret'),
+    v => v.attempts[0][0] = -1,
+    v => v.attempts[0][8] = 999,
+    v => v.slots.push(clone(v.slots[0])),
+    v => v.scopes.push(v.scopes[0]),
+    v => v.secret = 'secret',
+    v => v.legacy.record.results[0][0] = 1,
+    v => v.legacy.record.results[0].push(null),
+    v => v.legacy.record.results[0].push(undefined),
+    v => v.legacy.record.results[0].push('BAD_CODE'),
+    v => v.legacy.record.results[0].push('E_OUTCOME_UNKNOWN', 'secret'),
+    v => v.legacy.record.results[0] = {index: 0, saved: true, verified: false},
+    v => v.legacy.record.secret = 'secret',
+    v => v.legacy.record.results = null,
+    v => delete v.legacy.record,
+  ]) {
+    const bad = clone(raw); mutate(bad); const s = storage(bad);
+    await assert.rejects(readCookieJournal(s.request), {code: 'E_COOKIE_STORAGE'});
+    assert.equal(s.writes, 0);
+  }
+});
+
+test('true schema6 overflow reserves zero writes even though the pending marker fits', async t => {
+  const candidate = {...row(99), count: 50, state: 'unknown', resolution: 'pending'};
+  const results = Array.from({length: 50}, (_, index) => ({index, saved: true, verified: true}));
+  results[49] = {index: 49, saved: false, verified: false, code: 'E_CHROME_PERMISSION_REQUIRED'};
+  let marker, final;
+  for (let length = 60; length < 200; length++) {
+    candidate.slots = Array.from({length: 50}, (_, i) => ({...row(0).slots[0],
+      name: ('cookie' + i).padEnd(length, 'x')}));
+    marker = v6({...empty(), attempts: [candidate]});
+    final = v6({...empty(), attempts: [{...candidate, state: 'partial', resolution: 'receipt', results}]});
+    if (bytes(final) > 8192) break;
+  }
+  assert.ok(bytes(marker) <= 8192);
+  assert.ok(bytes(final) > 8192);
+  const s = storage(empty());
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_LIMIT'});
+  assert.equal(s.writes, 0);
+  assert.deepEqual(s.value, empty());
+  const oversized = storage(final);
+  await assert.rejects(readCookieJournal(oversized.request), {code: 'E_COOKIE_LIMIT'});
+  assert.equal(oversized.writes, 0);
+  t.diagnostic(`v6 pending=${bytes(marker)} bytes; worst receipt=${bytes(final)} bytes`);
+});
+
 test('near-full v2 reserves into same-key v3, expands beyond 8 KiB and retains every fact', async () => {
   const initial = near();
   assert.ok(bytes(initial) > 7300);

@@ -143,9 +143,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.29';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.31';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28','1.4.29','1.4.30',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -434,7 +434,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     projectCookieRecord();
     cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault;
     const record=cookieRecord;
-    const currentRecord=Boolean(record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId));
+    const currentRecord=Boolean(record&&!(cookieFault&&cookieFaultRecoverable)&&
+      (!cookiePending||record.deliveryId===cookiePending.deliveryId));
     const validity=byId('ai-vip-session-validity');
     if(validity){
       validity.hidden=!cookiePending;
@@ -472,7 +473,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         cookiePending?'已收到网站会话，目标网站：'+new URL(cookiePending.targetUrl).host+'。当前批次尚未提交，请核对后确认。':
         sharedBusy?'正在获取网站会话…':sharedNotice.startsWith('未取得有效')?
           '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
-    if(cookieOpen)cookieOpen.hidden=Boolean(cookiePending)||record?.state!=='success'||!cookieTarget(record.targetUrl);
+    if(cookieOpen)cookieOpen.hidden=!currentRecord||Boolean(cookiePending)||record?.state!=='success'||!cookieTarget(record.targetUrl);
   }
   function journalLocked(){
     if(!cookieReady)return true;

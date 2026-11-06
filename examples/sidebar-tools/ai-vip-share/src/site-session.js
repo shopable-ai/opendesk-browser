@@ -122,8 +122,11 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
           row.sameSite!==slot.sameSite)throw Error('Cookie policy mismatch');
       }
       assertActive(context,epoch);
-      // Display only a fixed masked identity; source-supplied strings never become UI authority.
-      if(response.data.displayNameMasked!=='o***@fixture.test')throw Error('Masked identity mismatch');
+      // Display metadata only; a masked identity never grants authority or proves website login.
+      const identity=response.data.displayNameMasked;
+      if(typeof identity!=='string'||!identity.length||identity.length>100||identity!==identity.trim()||
+        !/\*{2,}/.test(identity)||/[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/.test(identity))
+        throw Error('Invalid masked identity');
       masked=response.data.displayNameMasked;
       setPending({...delivery,kind:'ordinary',context,authorization:currentAuth,metadata,scopeKey,
         requestId,policyVersion:context.site.policyVersion,epoch,credential,
