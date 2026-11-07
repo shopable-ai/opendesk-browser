@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
 <meta name="od-preview-inherits" content="ai_scroll_navigation_r31_preview.html">
-<title>AI 对话滚动导航 · R3.7 交互预览</title>
+<title>AI 对话滚动导航 · R3.8 交互预览</title>
 <style>
 /* Inherit the R3.1 visual contract and the official OpenDesk semantic tokens.
  * Design review only; no Chrome authority, page.config, SDK or React is executed. */
@@ -172,7 +172,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 </style>
 </head>
 <body>
-<!-- R3.7 retains the inherited one-page editor and simulates current-tab address autofill. -->
+<!-- R3.8 retains the inherited one-page editor and simulates current-tab address autofill. -->
 <!-- Use symbol icons rather than Unicode glyphs, to avoid fallback-font drift. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
@@ -188,7 +188,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
-  <div><strong>AI 对话滚动导航 · R3.7 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
+  <div><strong>AI 对话滚动导航 · R3.8 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
   <div class="review-controls">
     <label>宽度 <select id="review-width" aria-label="Side Panel 宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>520</option></select></label>
     <label>当前网页 <select id="review-site" aria-label="模拟活动网页"><option value="chatgpt">ChatGPT · 内置</option><option value="deepseek">DeepSeek · 内置</option><option value="gemini">Gemini · 内置</option><option value="new">example.ai · 未授权</option><option value="pending">example.ai · 已授权</option><option value="broken">example.ai · 结构变化</option><option value="internal">Chrome 内部页</option></select></label>
@@ -340,7 +340,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     if(view==='editor'&&draftDirty){
       e.target.value=scenario;
       $('discard-dialog').showModal();
-      exitCallback=()=>{draftDirty=false;scenario=next;updateHome();show('home')};
+      exitCallback=()=>{draftDirty=false;scenario=next;$('review-site').value=next;updateHome();show('home')};
       return;
     }
     scenario=next;updateHome();show('home');
