@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
 <meta name="od-preview-inherits" content="projects/ai-scroll-navigation/preview/index.html@R3.8">
-<title>AI 对话滚动导航 · R3.9 交互预览</title>
+<title>AI 对话滚动导航 · R4.0 交互预览</title>
 <style>
 /* Inherit the R3.1 visual contract and the official OpenDesk semantic tokens.
  * Design review only; no Chrome authority, page.config, SDK or React is executed. */
@@ -131,6 +131,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .selector-row--advanced{padding:0;border:0;gap:6px}
 .selector-row--advanced+.selector-row--advanced{border:0}
 .selector-state[data-invalid="true"]{color:var(--od-negative)}
+.field-required{display:inline-block;margin-left:2px;color:var(--od-negative);font-size:13px;font-weight:750;line-height:1;vertical-align:baseline}
 @media(max-width:340px){.selector-edit-line{gap:6px}.selector-edit-line .od-button{min-width:68px;padding-inline:7px}}
 .notice{border:1px solid var(--od-line);background:var(--od-muted);border-radius:10px;padding:10px;font-size:12px;color:var(--od-sub);line-height:1.55}
 
@@ -150,9 +151,10 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .compact-editor .selector-edit-line .selector-pick{flex:none;width:36px;height:36px;min-width:36px;min-height:36px;padding:0;place-items:center;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .compact-editor .selector-edit-line .selector-pick:hover:not(:disabled){background:var(--od-muted);color:var(--od-accent-ink)}
 .compact-editor .selector-edit-line .selector-pick svg{width:18px;height:18px}
-.save-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:2px;padding-top:10px;border-top:1px solid var(--od-line)}
-.save-row .od-button{min-width:110px}
-.save-row .od-error{flex:1;min-width:0}
+.editor-actionbar{display:flex;align-items:center;gap:var(--space-3);flex:none;min-height:60px;padding:8px var(--od-page-gutter) 10px;border-top:1px solid var(--od-line);background:var(--od-paper)}
+.editor-actionbar .od-note{flex:1;min-width:0;line-height:1.35}
+.editor-actionbar .od-button{flex:none;min-width:116px}
+@media(max-width:340px){.editor-actionbar{gap:var(--space-2)}.editor-actionbar .od-button{min-width:108px}}
 .picking-inline{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap}
 #runtime-row .grow{flex:1;min-width:0}
 #view-editor{padding-bottom:4px}
@@ -163,7 +165,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 </style>
 </head>
 <body>
-<!-- R3.9 refines the inherited editor: exact current origin + path suggestion, inline clear, compact icon actions. -->
+<!-- R4.0 preserves the R3.9 view model; refines required indicators and a single persistent save action. -->
 <!-- Use symbol icons rather than Unicode glyphs, to avoid fallback-font drift. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
@@ -180,7 +182,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
-  <div><strong>AI 对话滚动导航 · R3.9 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
+  <div><strong>AI 对话滚动导航 · R4.0 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
   <div class="review-controls">
     <label>宽度 <select id="review-width" aria-label="Side Panel 宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>520</option></select></label>
     <label>当前网页 <select id="review-site" aria-label="模拟活动网页"><option value="chatgpt">ChatGPT · 内置</option><option value="deepseek">DeepSeek · 内置</option><option value="gemini">Gemini · 内置</option><option value="new">example.ai · 未授权</option><option value="pending">example.ai · 已授权</option><option value="broken">example.ai · 结构变化</option><option value="internal">Chrome 内部页</option></select></label>
@@ -240,21 +242,21 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
         <header class="od-page-head"><button class="od-icon-button od-icon-button--quiet" id="editor-back" type="button" aria-label="返回上一页" title="返回上一页"><svg><use href="#i-back"/></svg></button><h1 id="editor-title">添加网站</h1></header>
         <section class="od-surface od-surface--padded compact-editor">
           <h2 class="editor-caption">网站信息</h2>
-          <div class="form-field"><label for="site-url">网站地址</label><div class="url-field"><input id="site-url" class="od-field" type="url" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="site-url-help" placeholder="https://example.ai"><button id="clear-site-url" class="url-clear" type="button" aria-label="清空网站地址" title="清空网站地址" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div><p id="site-url-help" class="od-meta">自动使用当前网页域名；仅匹配相同网站，页面路径请单独设置。</p></div>
-          <div class="form-field"><label for="site-path">适用路径</label><input id="site-path" class="od-field" value="/" autocomplete="off" spellcheck="false" aria-describedby="site-path-help"><p id="site-path-help" class="od-meta">按路径前缀匹配；如果网址含有会话编号，可改为稳定路径前缀。</p></div>
+          <div class="form-field"><label for="site-url">网站地址<span class="field-required" aria-hidden="true">*</span></label><div class="url-field"><input id="site-url" class="od-field" type="url" required aria-required="true" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="site-url-help" placeholder="https://example.ai"><button id="clear-site-url" class="url-clear" type="button" aria-label="清空网站地址" title="清空网站地址" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div><p id="site-url-help" class="od-meta">自动使用当前网页域名；仅匹配相同网站，页面路径请单独设置。</p></div>
+          <div class="form-field"><label for="site-path">适用路径<span class="field-required" aria-hidden="true">*</span></label><input id="site-path" class="od-field" required aria-required="true" value="/" autocomplete="off" spellcheck="false" aria-describedby="site-path-help"><p id="site-path-help" class="od-meta">按路径前缀匹配；如果网址含有会话编号，可改为稳定路径前缀。</p></div>
           <p id="url-feedback" class="od-error" role="alert" hidden></p>
           <p id="editor-detected" class="od-meta" hidden></p>
           <p id="permission-note" class="scope-info" hidden>首次网页点选或测试需经过原 Installer 授权审阅；此预览仅模拟。</p>
           <h2 class="editor-caption">网站适配</h2>
           <div class="selector-stack">
-            <div class="selector-row"><div class="selector-head"><label for="css-main">对话主区域</label><small id="main-state" class="selector-state">必填</small></div><div class="selector-edit-line"><input id="css-main" class="od-field" aria-required="true" spellcheck="false" autocomplete="off" aria-describedby="main-state" placeholder="CSS 或点选"><button id="pick-main" type="button" class="od-icon-button selector-pick" aria-label="选取对话主区域" title="在网页选取对话主区域（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
-            <div class="selector-row"><div class="selector-head"><label for="css-scroll">滚动容器</label><small id="scroll-state" class="selector-state">必填</small></div><div class="selector-edit-line"><input id="css-scroll" class="od-field" aria-required="true" spellcheck="false" autocomplete="off" aria-describedby="scroll-state" placeholder="CSS 或点选"><button id="pick-scroll" type="button" class="od-icon-button selector-pick" aria-label="选取滚动容器" title="在网页选取滚动容器（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
-            <div class="selector-row"><div class="selector-head"><label for="css-message">消息节点（可选）</label><small id="message-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-message" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="message-state" placeholder="CSS 或点选"><button id="pick-message" type="button" class="od-icon-button selector-pick" aria-label="选取消息节点" title="在网页选取消息节点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
-            <div class="selector-row"><div class="selector-head"><label for="css-anchor">按钮锚点（可选）</label><small id="anchor-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-anchor" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="anchor-state" placeholder="CSS 或点选"><button id="pick-anchor" type="button" class="od-icon-button selector-pick" aria-label="选取按钮锚点" title="在网页选取按钮锚点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
+            <div class="selector-row"><div class="selector-head"><label for="css-main">对话主区域<span class="field-required" aria-hidden="true">*</span></label><small id="main-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-main" class="od-field" required aria-required="true" spellcheck="false" autocomplete="off" aria-describedby="main-state" placeholder="CSS 或点选"><button id="pick-main" type="button" class="od-icon-button selector-pick" aria-label="选取对话主区域" title="在网页选取对话主区域（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
+            <div class="selector-row"><div class="selector-head"><label for="css-scroll">滚动容器<span class="field-required" aria-hidden="true">*</span></label><small id="scroll-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-scroll" class="od-field" required aria-required="true" spellcheck="false" autocomplete="off" aria-describedby="scroll-state" placeholder="CSS 或点选"><button id="pick-scroll" type="button" class="od-icon-button selector-pick" aria-label="选取滚动容器" title="在网页选取滚动容器（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
+            <div class="selector-row"><div class="selector-head"><label for="css-message">消息节点</label><small id="message-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-message" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="message-state" placeholder="CSS 或点选"><button id="pick-message" type="button" class="od-icon-button selector-pick" aria-label="选取消息节点" title="在网页选取消息节点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
+            <div class="selector-row"><div class="selector-head"><label for="css-anchor">按钮锚点</label><small id="anchor-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-anchor" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="anchor-state" placeholder="CSS 或点选"><button id="pick-anchor" type="button" class="od-icon-button selector-pick" aria-label="选取按钮锚点" title="在网页选取按钮锚点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
           </div>
           <p id="picking-notice" class="notice picking-inline" role="status" hidden><span id="picking-message">请在目标网页点选元素；Esc 可取消。本页面只模拟点选结果。</span><button id="cancel-pick" type="button" class="od-button od-button--quiet od-button--small">取消</button></p>
           
-          <div class="save-row"><p id="editor-feedback" class="od-error" role="alert" hidden></p><button id="adapt-save" class="od-button" type="button" disabled>保存网站</button></div>
+          <p id="editor-feedback" class="od-error" role="alert" hidden></p>
         </section>
       </section>
       <section class="screen" id="view-install" aria-label="权限审阅（离线模拟）" hidden>
@@ -277,6 +279,10 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       <section class="screen" id="view-index" aria-label="扩展列表" hidden><header class="od-page-head"><h1>扩展</h1></header><button class="od-surface" type="button" id="index-open" style="padding:12px;text-align:left;background:var(--od-paper);color:var(--od-ink);width:100%;cursor:pointer">AI 对话滚动导航　›</button></section>
       <section class="screen" id="view-other" aria-label="其余工作台导航" hidden><header class="od-page-head"><h1 id="other-title">其他</h1></header><p class="od-note">这份设计预览只覆盖扩展中的 AI 对话滚动导航，不模拟其他工作台业务。</p><button id="other-return" class="od-button od-button--secondary">返回扩展</button></section>
     </main>
+    <div id="editor-actionbar" class="editor-actionbar" hidden aria-label="保存网站操作">
+      <p id="editor-save-status" class="od-note" aria-live="polite">请先完成必填项</p>
+      <button id="adapt-save" class="od-button" type="button" disabled>保存网站</button>
+    </div>
   </div>
 </div>
 <dialog class="dialog" id="discard-dialog" aria-labelledby="discard-title"><h2 id="discard-title">放弃未保存的修改？</h2><p>当前页面有尚未保存的编辑内容。离开后将保留此前已保存的规则。</p><div class="dialog-actions"><button class="od-button od-button--secondary" id="discard-keep">继续编辑</button><button class="od-button od-button--danger" id="discard-confirm">放弃修改</button></div></dialog>
@@ -312,12 +318,13 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('builtin-all-count').textContent='当前已内置 '+builtinSites.length+' 个网站';
   }
   const savedRules=[]; // Never leaves preview memory.
+  const touchedSelectors=new Set(); // Field errors appear only after interaction.
   let view='home',tab='tools',scenario='chatgpt',enabled=true,editorFrom='home',editIndex=-1,
       draftDirty=false,pathTouched=false,urlFillMode='empty',pick=null,pendingAction=null,reviewScroll=0,
       authorizedInPreview=new Set(['https://chatgpt.com','https://chat.deepseek.com','https://gemini.google.com']);
   let toastTimer=null,exitCallback=null;
   function toast(msg){clearTimeout(toastTimer);$('toast').textContent=msg;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3500);}
-  function show(v,focusId){if(!views.includes(v))return;view=v;for(const name of views)$('view-'+name).hidden=name!==v;$('workspace').scrollTop=0;if(v!=='editor')stopPick(false);if(focusId)requestAnimationFrame(()=>$(focusId)?.focus({preventScroll:true}));}
+  function show(v,focusId){if(!views.includes(v))return;view=v;for(const name of views)$('view-'+name).hidden=name!==v;$('editor-actionbar').hidden=v!=='editor';$('workspace').scrollTop=0;if(v!=='editor')stopPick(false);if(focusId)requestAnimationFrame(()=>$(focusId)?.focus({preventScroll:true}));}
   function leave(current,target,focus){if(draftDirty&&current==='editor'){$('discard-dialog').showModal();exitCallback=()=>{draftDirty=false;show(target,focus)};return;}show(target,focus);}
   $('discard-keep').onclick=()=>{$('discard-dialog').close();exitCallback=null;};
   $('discard-confirm').onclick=()=>{const cb=exitCallback;exitCallback=null;$('discard-dialog').close();cb?.();};
@@ -416,7 +423,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       '网站域名已修改；保存前请检查适用路径及访问权限。';
   }
   function startEditor(from='home',index=-1){
-    editorFrom=from;editIndex=index;draftDirty=false;pathTouched=index>=0;pendingAction=null;stopPick(false);
+    editorFrom=from;editIndex=index;draftDirty=false;pathTouched=index>=0;pendingAction=null;touchedSelectors.clear();stopPick(false);
     const r=index>=0?savedRules[index]:null;
     const prefill=!r?currentPrefill():null;
     urlFillMode=r?'existing':prefill?'current':'empty';
@@ -468,7 +475,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   // The saved rule is intentionally marked as preview memory, never a Host receipt.
   function selectorError(raw,required=false){
     const value=raw.trim();
-    if(!value)return required?'必填':'';
+    if(!value)return required?'请填写选择器':'';
     if(value.length>256||/[\u0000-\u001f\u007f{};]/.test(value))return '格式无效';
     try{document.querySelector(value);}catch{return 'CSS 语法错误';}
     return '';
@@ -483,20 +490,29 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   function ruleValid(){return ruleCheck().ok;}
   function renderDraft(){
     const status=ruleCheck();
-    for(const id of ['main','scroll','message','anchor']){
-      const error=status.errors[id];
-      const element=$(id+'-state'),value=$('css-'+id).value.trim();
-      element.hidden=(!error||(!value&&id!=='main'&&id!=='scroll'));
-      element.textContent=error;
-      element.dataset.invalid=String(Boolean(error&&value));
-      $('css-'+id).setAttribute('aria-invalid',String(Boolean(error&&value)));
+    const rawFields=['main','scroll','message','anchor'];
+    for(const id of rawFields){
+      const error=status.errors[id],input=$('css-'+id),value=input.value.trim();
+      const reveal=Boolean(error)&&(Boolean(value)||touchedSelectors.has(id));
+      const state=$(id+'-state');
+      state.hidden=!reveal;state.textContent=reveal?error:'';
+      state.dataset.invalid=String(reveal);
+      input.setAttribute('aria-invalid',String(reveal));
     }
     const error=status.target.error;
     const duplicateBuiltIn=error==='此网站已有内置适配，无需重复添加'&&!$('editor-detected').hidden;
     $('editor-feedback').hidden=!error||!$('site-url').value.trim()||duplicateBuiltIn;
     $('editor-feedback').textContent=error||'';
-    $('adapt-save').disabled=!status.ok;
+    const remaining=['main','scroll'].filter(id=>!$('css-'+id).value.trim()).length;
+    const invalidCss=rawFields.some(id=>status.errors[id]&&$('css-'+id).value.trim());
+    const saveDisabled=!status.ok||Boolean(pick)||(editIndex>=0&&!draftDirty);
+    $('adapt-save').disabled=saveDisabled;
     $('adapt-save').textContent=editIndex>=0?'保存更改':'保存网站';
+    $('editor-save-status').textContent=error?'请检查网站地址或路径':
+      invalidCss?'请修正 CSS 选择器':
+      remaining?'还需填写 '+remaining+' 项选择器':
+      pick?'正在点选网页元素':
+      editIndex>=0&&!draftDirty?'暂无修改':'已填写完成，可以保存';
   }
   // No simulated webpage region: only an external, preview-only result control.
   let pickTimer=null;
@@ -506,6 +522,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     if(!pick)return;
     const which=pick;pick=null;clearTimeout(pickTimer);pickTimer=null;
     $('picking-notice').hidden=true;$('review-pick-tools').hidden=true;
+    if(view==='editor')renderDraft();
     if(cancel){toast('点选已取消，表单内容仍保留（离线模拟）');requestAnimationFrame(()=>$('css-'+which).focus({preventScroll:true}));}
   }
   function finishPreviewPick(result){
@@ -513,7 +530,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     const which=pick;stopPick(false);
     if(result==='success'){
       $('css-'+which).value=previewPickSelectors[which];
-      draftDirty=true;renderDraft();
+      touchedSelectors.add(which);draftDirty=true;renderDraft();
       toast('已模拟填入'+pickingLabels[which]+'选择器，未验证目标网页');
     }else toast('点选超时，原有内容已保留（离线模拟）');
     requestAnimationFrame(()=>$('css-'+which).focus({preventScroll:true}));
@@ -522,7 +539,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     if(!pickingLabels[which])return;
     if(pick)stopPick(false);
     if(!permissionFor({type:'pick',field:which}))return;
-    pick=which;
+    pick=which;renderDraft();
     $('picking-notice').hidden=false;$('review-pick-tools').hidden=false;
     $('picking-message').textContent='正在等待网页选取「'+pickingLabels[which]+'」。Esc 或取消可退出，原输入不会丢失。';
     $('review-pick-copy').textContent='「'+pickingLabels[which]+'」选取中 · 仅模拟结果';
@@ -533,7 +550,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   $('review-pick-success').onclick=()=>finishPreviewPick('success');
   $('review-pick-timeout').onclick=()=>finishPreviewPick('timeout');
   for(const id of ['css-main','css-scroll','css-message','css-anchor']){
-    $(id).addEventListener('input',()=>{draftDirty=true;renderDraft();});
+    $(id).addEventListener('input',()=>{draftDirty=true;touchedSelectors.add(id.slice(4));renderDraft();});
   }
   function savePreviewRule(){
     if(!ruleValid()){renderDraft();return;}
