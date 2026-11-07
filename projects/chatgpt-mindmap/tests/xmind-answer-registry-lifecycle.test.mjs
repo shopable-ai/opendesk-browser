@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {createAnswerRegistry} from '../src/answer-registry.js';
 import {mountAnswerTool as mountScrollTool,unmountAnswerTool as unmountScrollTool}
-  from '../../chatgpt-jump-top/src/conversation.js';
+  from '../../ai-scroll-navigation/src/conversation.js';
 
 const deferred=()=>{
   let resolve,reject;
@@ -118,9 +118,11 @@ test('official actions retain one visible toggle across open close reopen close'
   const h=setup(),node=h.content,html=node.innerHTML,text=node.textContent;
   const group=h.triggerHost.parentElement,bar=group.parentElement;
   assert.equal(bar.getAttribute('data-testid'),'message-actions');
-  assert.equal(group.hasAttribute('data-opendesk-chatgpt-answer-tools'),true);
+  assert.equal(group.hasAttribute('data-ai-answer-tools'),true);
   assert.equal(bar.lastElementChild,group);
-  assert.equal(group.style.marginInlineStart,'auto');
+  assert.equal(group.style.marginInlineStart,'0px');
+  assert.equal(group.style.marginInlineEnd,'auto');
+  assert.equal(group.style.justifyContent,'flex-start');
   assert.equal(group.style.borderRadius,'12px');
   const native=bar.querySelector('[data-testid="copy-turn-action-button"]');
   assert.equal(bar.firstElementChild,native);
@@ -153,7 +155,7 @@ test('reply group reuses navigation and retires only its own mindmap host',async
   navigation.setAttribute('data-opendesk-chatgpt-jump-top','trusted');
   group.prepend(navigation);
   for(let i=0;i<3;i++)h.registry.scan();
-  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length,1);
   assert.equal(group.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length,1);
   assert.equal(navigation.parentElement,group);
   await h.registry.destroy();
@@ -163,9 +165,13 @@ test('reply group reuses navigation and retires only its own mindmap host',async
 });
 
 
-test('Mind Map alone creates one shared right-side footer without Scroll Navigation',async()=>{
+test('Mind Map alone creates one shared left-aligned footer without Scroll Navigation',async()=>{
   const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;
-  assert.equal(group.hasAttribute('data-opendesk-chatgpt-answer-tools'),true);
+  assert.equal(group.hasAttribute('data-ai-answer-tools'),true);
+  assert.equal(group.hasAttribute('data-opendesk-chatgpt-answer-tools'),false);
+  assert.equal(group.style.marginInlineStart,'0px');
+  assert.equal(group.style.marginInlineEnd,'auto');
+  assert.equal(group.style.justifyContent,'flex-start');
   assert.equal(bar.lastElementChild,group);
   assert.equal(group.querySelectorAll('[data-opendesk-chatgpt-jump-top]').length,0);
   await h.click();await h.click();
@@ -173,6 +179,29 @@ test('Mind Map alone creates one shared right-side footer without Scroll Navigat
   await h.registry.destroy();
   assert.equal(group.isConnected,false);
   assert.equal(bar.querySelector('[data-testid="copy-turn-action-button"]')!==null,true);
+});
+
+test('Mind Map adopts and left aligns a live legacy navigation group without replacing its peer',async()=>{
+  let group,navigator;
+  const h=setup({beforeStart:({document})=>{
+    const bar=document.querySelector('[data-testid="message-actions"]');
+    group=document.createElement('span');
+    group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+    group.style.marginInlineStart='auto';
+    navigator=document.createElement('span');
+    navigator.setAttribute('data-opendesk-chatgpt-jump-top','host');
+    group.append(navigator);bar.append(group);
+  }});
+  for(let i=0;i<3;i++)h.registry.scan();
+  assert.equal(h.triggerHost.parentElement,group);
+  assert.equal(group.hasAttribute('data-ai-answer-tools'),true);
+  assert.equal(group.style.marginInlineStart,'0px');
+  assert.equal(group.style.marginInlineEnd,'auto');
+  assert.equal(group.style.justifyContent,'flex-start');
+  assert.deepEqual([...group.children],[navigator,h.triggerHost]);
+  await h.registry.destroy();
+  assert.equal(navigator.parentElement,group);
+  assert.equal(group.isConnected,true);
 });
 
 test('Mind Map first: Scroll joins its outer DIL footer and stopping either preserves its peer',async()=>{
@@ -185,7 +214,7 @@ test('Mind Map first: Scroll joins its outer DIL footer and stopping either pres
   assert.equal(mountScrollTool(row,navigator),group);
   for(let i=0;i<3;i++)h.registry.scan();
   assert.deepEqual([...group.children],[navigator,h.triggerHost]);
-  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length,1);
   unmountScrollTool(navigator);
   assert.equal(group.isConnected,true);
   assert.equal(h.triggerHost.parentElement,group);
@@ -209,7 +238,7 @@ test('Scroll first: Mind Map reuses the same group without needing a Scroll star
   assert.equal(group.parentElement,bar);
   assert.equal(h.triggerHost.parentElement,group);
   assert.deepEqual([...group.children],[navigator,h.triggerHost]);
-  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length,1);
   await h.registry.destroy();
   assert.equal(group.isConnected,true);
   assert.equal(navigator.parentElement,group);
@@ -224,12 +253,12 @@ test('Mind Map alone reuses a nested empty shared group without any installed na
     bar=document.querySelector('[data-testid="message-actions"]');
     row=document.createElement('div');bar.append(row);
     group=document.createElement('span');
-    group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+    group.setAttribute('data-ai-answer-tools','');
     row.append(group);
   }});
   assert.equal(h.triggerHost.parentElement,group);
   assert.equal(group.parentElement,row);
-  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length,1);
   await h.registry.destroy();
   assert.equal(group.isConnected,false);
   assert.equal(row.isConnected,true);
@@ -295,12 +324,12 @@ test('DIL nested navigation background absorbs the outer mindmap without lifting
   const h=setup(),oldGroup=h.triggerHost.parentElement,bar=oldGroup.parentElement;
   const row=bar.ownerDocument.createElement('div'),native=bar.firstElementChild;
   const wrapper=bar.ownerDocument.createElement('span');wrapper.append(native);row.append(wrapper);
-  const group=bar.ownerDocument.createElement('span');group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+  const group=bar.ownerDocument.createElement('span');group.setAttribute('data-ai-answer-tools','');
   const navigation=bar.ownerDocument.createElement('span');
   navigation.setAttribute('data-opendesk-chatgpt-jump-top','prompt-shortcuts');
   group.append(navigation);row.append(group);bar.prepend(row);
   for(let i=0;i<3;i++)h.registry.scan();
-  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length,1);
   assert.deepEqual([...group.children],[navigation,h.triggerHost]);
   assert.equal(group.parentElement,row);assert.equal(row.lastElementChild,group);
   assert.equal(native.parentElement,wrapper);assert.equal(wrapper.parentElement,row);
@@ -316,7 +345,7 @@ test('multiple nested navigation groups refuse a guessed destination',async()=>{
   const h=setup(),oldGroup=h.triggerHost.parentElement,bar=oldGroup.parentElement;
   for(let i=0;i<2;i++){
     const row=bar.ownerDocument.createElement('div'),group=bar.ownerDocument.createElement('span');
-    group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+    group.setAttribute('data-ai-answer-tools','');
     const navigation=bar.ownerDocument.createElement('span');
     navigation.setAttribute('data-opendesk-chatgpt-jump-top','prompt-shortcuts');
     group.append(navigation);row.append(group);bar.prepend(row);
@@ -332,7 +361,7 @@ for(const kind of ['element','text'])test(`nested navigation cannot absorb a min
   const peer=kind==='text'?bar.ownerDocument.createTextNode('native peer'):bar.ownerDocument.createElement('button');
   oldGroup.append(peer);
   const row=bar.ownerDocument.createElement('div'),group=bar.ownerDocument.createElement('span');
-  group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+  group.setAttribute('data-ai-answer-tools','');
   const navigation=bar.ownerDocument.createElement('span');
   navigation.setAttribute('data-opendesk-chatgpt-jump-top','prompt-shortcuts');
   group.append(navigation);row.append(group);bar.prepend(row);

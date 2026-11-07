@@ -46,6 +46,18 @@ test('DIL structure refuses missing role, duplicate bodies, footers or assistant
   function documentBar(root){return root.closest('[data-talvt-turn-state]').lastElementChild.cloneNode(true);}
 });
 
+test('current DIL markdown body binds only its completed turn footer',()=>{
+  const html=searchReply('A').replace('data-d-component="title"',
+    'data-markdown-text-style="assistant-message"');
+  const {document}=parseHTML(`<html><body>${html}</body></html>`);
+  const root=discoverAnswers(document)[0];
+  assert.equal(inspectAnswer(root).ok,true);
+  assert.equal(inspectAnswer(root).content,root.children[1]);
+  assert.equal(inspectAnswer(root).bar.id,'actions-A');
+  root.append(root.children[1].cloneNode(true));
+  assert.equal(inspectAnswer(root).reason,'ambiguous-content');
+});
+
 // Structural attributes observed on the real anonymous ChatGPT reply on Mac,
 // 2026-10-17. This regression is not a substitute for native website evidence.
 const reply=(id,complete='data-message-complete')=>`<li data-message-role="assistant" id="${id}" ${complete}>

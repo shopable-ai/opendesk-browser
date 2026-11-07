@@ -5,10 +5,12 @@ import {annotateMindmapError,describeMindmapError} from './diagnostics.js';
 
 // Small DOM convention shared with the independently installed navigation.
 // Keep this Page project self-contained; neither program owns the other's UI.
-const TOOLS='data-opendesk-chatgpt-answer-tools';
+const TOOLS='data-ai-answer-tools';
+// Reuse a live group from an older installed peer until that peer is updated.
+const TOOL_GROUPS=`[${TOOLS}],[data-opendesk-chatgpt-answer-tools]`;
 function unmountAnswerTool(host){
   const group=host.parentElement;host.remove();
-  if(group?.hasAttribute(TOOLS)&&!group.childNodes.length)group.remove();
+  if(group?.matches(TOOL_GROUPS)&&!group.childNodes.length)group.remove();
 }
 function mountAnswerTool(bar,host){
   if(!bar?.isConnected||!host||host===bar||host.contains(bar))return null;
@@ -16,7 +18,7 @@ function mountAnswerTool(bar,host){
   // Page Programs resolve that same footer without requiring the other Program
   // to have installed a navigation button first.
   const scope=bar.closest?.('.turn-action-controls')||bar;
-  const groups=[...scope.querySelectorAll(`[${TOOLS}]`)];
+  const groups=[...scope.querySelectorAll(TOOL_GROUPS)];
   let group=groups[0];
   if(groups.length>1){
     const previous=host.parentElement;
@@ -36,11 +38,16 @@ function mountAnswerTool(bar,host){
     group.style.cssText='display:inline-flex;align-items:center;gap:2px;padding:2px;border-radius:12px;'+
       'background:color-mix(in srgb,currentColor 6%,transparent);'+
       'border:1px solid color-mix(in srgb,currentColor 10%,transparent);'+
-      'margin-inline-start:auto;max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
+      'max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
   }
+  if(!group.hasAttribute(TOOLS))group.setAttribute(TOOLS,'');
+  // Keep the same left alignment regardless of which Page Program mounts first.
+  if(group.style.marginInlineStart!=='0px')group.style.marginInlineStart='0px';
+  if(group.style.marginInlineEnd!=='auto')group.style.marginInlineEnd='auto';
+  if(group.style.justifyContent!=='flex-start')group.style.justifyContent='flex-start';
   const previous=host.parentElement;
   if(group.lastElementChild!==host)group.append(host);
-  if(previous!==group&&previous?.hasAttribute(TOOLS)&&!previous.childNodes.length)previous.remove();
+  if(previous!==group&&previous?.matches(TOOL_GROUPS)&&!previous.childNodes.length)previous.remove();
   // Existing nested shared groups stay inside the native row. A missing group
   // is independently created at the same outer footer by either installation.
   if(target.lastElementChild!==group)target.append(group);

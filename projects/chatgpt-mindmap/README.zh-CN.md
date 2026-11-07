@@ -1,5 +1,17 @@
 # AI 回复思维导图 · OpenDesk 网页增强
 
+## 回复工具组优化（2026-11-07）
+
+**2026-11-08 最新状态：用户反馈当前浏览器看不见扩展运行。** 下述实际运行证据来自 ego TaskSpace 20 的 Profile 1，不能替代用户当前浏览器入口；续接任务须先定位该入口并修通可见运行，整体未完成。
+
+思维导图与 `projects/ai-scroll-navigation` 共用 `span[data-ai-answer-tools]`，单独运行和任意加载顺序均靠左紧跟原生操作，不再留下起始侧自动边距。保留旧已安装程序创建的容器及其按钮，复用时修正对齐；新容器只写短标记。
+
+已通过原资源准备、Program 编译和 Page 打包器生成并实际安装 **0.2.7/r3** 本机候选，位于 `artifacts/ai-answer-tools-20261107/ai-reply-mindmap-r3.local.opendesk-page.json`，源码 SHA-256 为 `e8954ccb3bb43c2965fd5b2c6624f16d273928fce645451b6bb6cacf1e58f614`，15 项源码/资产输入已逐项核对。增加当前 ChatGPT `data-markdown-text-style="assistant-message"` 正文适配，保留唯一正文与所属操作区的边界检查。仅供本机验证，未生成正式发行包；XMind 再分发许可继续未批准。
+
+用户授权后已开启浏览器用户脚本许可，原生侧栏原 Installer 完成 r2 → r3 更新；安装身份和 ChatGPT 单站范围保持，读回 enabled / active / registered。同一条已有长回复完成两轮 XMind 绘制和返回原文，规范化原文两次均与基线一致；三枚按钮共用一个左对齐背景，原生「更多操作」可打开。分别停用两项时完成自身清理，恢复并刷新后自动显示。11/07 此轮未发送 ChatGPT 消息。证据为 `artifacts/ai-answer-tools-20261107/installed-r3-long-cycles.json`、`installed-r3-long-mindmap.png` 及 `installed-restored-readback.json`。下方旧安装版本、哈希及许可状态均为其各自候选的历史证据，不证明本轮正式发行。
+
+2026-11-08 按用户明确要求，在已登录 ego 新建专用测试对话并发送一次虚构活动问题。新回复自动挂载导图与回复导航，共用一个左对齐短标记组；两轮 XMind 均 ready、一个 viewer/iframe，返回后 825 字符正文 SHA-256 均与基线一致。刷新后两项自动恢复，仍为原安装身份及 r3/r14 哈希，回执 `page_auto / completed`；原生更多菜单正常。见 `artifacts/ai-answer-tools-20261107/new-conversation-cycles-20261108.json`、`new-conversation-final-20261108.png`、`new-conversation-installed-readback-20261108.json`。本机候选和 XMind 分发许可边界不变。
+
 ## 新身份本机核心验证（2026-10-26）
 
 新 ID `opendesk.ai-reply-mindmap` 的 **0.2.7/r1** 本机候选已通过原 Page 导入审阅安装，详情为 active / registered，固定源码 `c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`。同一冻结 Browser 候选中，使用 ChatGPT 已有回复完成两轮打开 XMind、返回原文；第一轮实际看见绘制的画布，第二轮再次出现 XMind 只读画布及操作栏。两次关闭后画布均移除，稳定后的规范化回复 AX 均与基线一致（8357 字符）；不声明 DOM 字节一致或控制台零错误，没有发送消息。

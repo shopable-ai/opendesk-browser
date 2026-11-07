@@ -66,10 +66,12 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
       // The adapter uses simple tag/attribute selector lists, with no combinators.
       return selector.split(',').some(part => {
         const simple = part.trim();
+        const classes = [...simple.matchAll(/\.([\w-]+)/g)];
+        if (classes.some(([, value]) => !(node.getAttribute('class') || '').split(/\s+/).includes(value))) return false;
         const tagMatch = simple.match(/^[a-z][a-z0-9-]*/i);
         if (tagMatch && tagMatch[0].toUpperCase() !== node.tagName) return false;
         const attributes = [...simple.matchAll(/\[([\w-]+)(?:([\^$]?=)"([^"]*)")?\]/g)];
-        if (!tagMatch && !attributes.length) return false;
+        if (!tagMatch && !attributes.length && !classes.length) return false;
         return attributes.every(([, name, operator, value]) => {
           const actual = node.getAttribute(name);
           if (actual === null) return false;
@@ -762,6 +764,29 @@ function nativeMessages({assistant = false} = {}) {
   return {...env, main, pair, user, userActions, target, ...actions};
 }
 
+test('current DIL assistant footer uses More without requiring a closed regenerate menu', () => {
+  const f = dilMindmapReply();
+  f.pair.setAttribute('data-talvt-turn-state', 'complete');
+  f.toolbar.setAttribute('class', 'turn-action-controls');
+  f.buttons[2].setAttribute('aria-label', '更多操作');
+  f.content.querySelector('[data-d-component]').removeAttribute('data-d-component');
+  element({parent:f.content, attributes:{'data-markdown-text-style':'assistant-message'}});
+  const binding = () => conversation.findRegionBindings(f.doc, f.view)
+    .find(item => item.answerRoot === f.original);
+  assert.ok(binding()?.header === f.toolbar);
+  assert.ok(binding()?.target === f.original);
+  const viewer = f.open();
+  assert.ok(binding()?.target === viewer, 'the new body marker also survives mindmap replacement');
+  f.close(viewer);
+  for (const label of ['复制', '评价回复', '更多操作']) {
+    const duplicate=element({tag:'button',parent:f.toolbar,attributes:{'aria-label':label}});
+    assert.equal(binding(), undefined, `reject duplicate ${label}`);
+    duplicate.remove();
+  }
+  element({parent:f.pair,attributes:{class:'turn-action-controls'}});
+  assert.equal(binding(), undefined, 'never choose between duplicate direct footers');
+});
+
 const jumpHostSelector = '[data-opendesk-chatgpt-jump-top]';
 
 test('native user message mounts beside copy wrapper and keeps content root as target', t => {
@@ -807,7 +832,7 @@ test('native assistant sibling footer targets assistant content instead of prece
   const session = conversation.installJumpToTop({doc, win: view, owner: observerOwner()});
   t.after(() => session.dispose());
   assert.equal(toolbar.querySelector(jumpHostSelector)?.parentElement, toolbar.lastElementChild);
-  assert.ok(toolbar.lastElementChild.hasAttribute('data-opendesk-chatgpt-answer-tools'));
+  assert.ok(toolbar.lastElementChild.hasAttribute('data-ai-answer-tools'));
   assert.equal(conversation.jumpRegionTop(bindings[1], doc, view), true);
   assertScroll(main, 1388);
   assert.equal(target.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
@@ -952,7 +977,7 @@ for (const order of [['default', 'prompt-shortcuts'], ['prompt-shortcuts', 'defa
   });
 }
 
-const answerTools = '[data-opendesk-chatgpt-answer-tools]';
+const answerTools = '[data-ai-answer-tools]';
 const mindmapViewer = {'data-opendesk-chatgpt-mindmap': 'viewer'};
 
 function dilMindmapReply() {
@@ -1075,6 +1100,8 @@ test('answer tool group stays left aligned, moves own host and unmounts only emp
   });
   const host = doc.createElement('span'), peer = doc.createElement('span');
   const group = conversation.mountAnswerTool(bars[0], host);
+  assert.equal(group.hasAttribute('data-ai-answer-tools'), true);
+  assert.equal(group.hasAttribute('data-opendesk-chatgpt-answer-tools'), false);
   conversation.mountAnswerTool(bars[0], peer);
   assert.equal(group, bars[0].lastElementChild);
   assert.equal(group.style.marginInlineStart, '0px');
@@ -1097,7 +1124,7 @@ test('mounting navigation left aligns an existing peer group without replacing i
   const bar = element({parent: doc.body});bar.style.display = 'flex';
   const native = element({tag: 'button', parent: bar});
   const group = element({tag: 'span', parent: bar,
-    attributes: {'data-opendesk-chatgpt-answer-tools': ''}});
+    attributes: {'data-ai-answer-tools': ''}});
   group.style.marginInlineStart = 'auto';
   const peer = element({tag: 'span', parent: group,
     attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
@@ -1110,6 +1137,53 @@ test('mounting navigation left aligns an existing peer group without replacing i
   assert.equal(bar.children[0], native);
   conversation.unmountAnswerTool(host);
   assert.deepEqual(group.children, [peer]);
+});
+
+test('navigation adopts a legacy mindmap group and preserves it through retirement', () => {
+  const {doc} = environment();
+  const bar = element({parent: doc.body});
+  const group = element({tag: 'span', parent: bar,
+    attributes: {'data-opendesk-chatgpt-answer-tools': ''}});
+  group.style.marginInlineStart = 'auto';
+  const peer = element({tag: 'span', parent: group,
+    attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  const host = doc.createElement('span');host.setAttribute('data-opendesk-chatgpt-jump-top', 'host');
+  assert.equal(conversation.mountAnswerTool(bar, host), group);
+  assert.equal(group.hasAttribute('data-ai-answer-tools'), true);
+  assert.equal(group.style.marginInlineStart, '0px');
+  assert.equal(group.style.marginInlineEnd, 'auto');
+  assert.deepEqual(group.children, [host, peer]);
+  conversation.unmountAnswerTool(host);
+  assert.equal(peer.parentElement, group);
+  assert.equal(group.isConnected, true);
+});
+
+test('a late legacy mindmap joins navigation without leaving two shared backgrounds', () => {
+  const {doc} = environment(), bar = element({parent: doc.body});
+  const host = doc.createElement('span');host.setAttribute('data-opendesk-chatgpt-jump-top', 'host');
+  const original = conversation.mountAnswerTool(bar, host);
+  const group = element({tag: 'span', parent: bar,
+    attributes: {'data-opendesk-chatgpt-answer-tools': ''}});
+  const peer = element({tag: 'span', parent: group,
+    attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  assert.equal(conversation.mountAnswerTool(bar, host), group);
+  assert.deepEqual(group.children, [host, peer]);
+  assert.equal(original.isConnected, false);
+  assert.equal(bar.querySelectorAll('[data-ai-answer-tools]').length, 1);
+  conversation.unmountAnswerTool(host);
+  assert.equal(peer.parentElement, group);
+});
+
+test('late legacy merging never moves another child out of the navigation group', () => {
+  const {doc} = environment(), bar = element({parent: doc.body});
+  const host = doc.createElement('span');host.setAttribute('data-opendesk-chatgpt-jump-top', 'host');
+  const original = conversation.mountAnswerTool(bar, host);
+  const extra = element({tag: 'button', parent: original});
+  const group = element({tag: 'span', parent: bar,
+    attributes: {'data-opendesk-chatgpt-answer-tools': ''}});
+  element({tag: 'span', parent: group, attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  assert.equal(conversation.mountAnswerTool(bar, host), null);
+  assert.deepEqual(original.children, [host, extra]);
 });
 
 
@@ -1125,7 +1199,7 @@ test('Scroll navigation alone owns the outer DIL footer and keeps a peer across 
   const session=conversation.installJumpToTop({doc:f.doc,win:f.view,owner,
     regionDirections:{top:true,bottom:true}});
   t.after(()=>session.dispose());
-  const group=footer.querySelector('[data-opendesk-chatgpt-answer-tools]');
+  const group=footer.querySelector('[data-ai-answer-tools]');
   assert.ok(group,'scroll navigation independently created the background group');
   assert.equal(group.parentElement,footer);
   const host=group.querySelector('[data-opendesk-chatgpt-jump-top]');

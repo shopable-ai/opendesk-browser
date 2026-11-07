@@ -13,8 +13,11 @@ const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-
 const OWN = 'data-opendesk-chatgpt-jump-top';
 const MODERN_OWN = 'data-opendesk-ai-scroll-navigation';
 const LEGACY_LIFECYCLE = '[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-jump-top.lifecycle"]';
-const ANSWER_TOOLS = 'data-opendesk-chatgpt-answer-tools';
+const ANSWER_TOOLS = 'data-ai-answer-tools';
+// Older installed peers may still own a live group with the original marker.
+const ANSWER_TOOL_GROUPS = `[${ANSWER_TOOLS}],[data-opendesk-chatgpt-answer-tools]`;
 const MINDMAP_VIEWER = '[data-opendesk-chatgpt-mindmap="viewer"]';
+const ASSISTANT_CONTENT = '[data-d-component],[data-markdown-text-style="assistant-message"]';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
 const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
@@ -297,6 +300,24 @@ function messageActions(marker, copySelector, peerSelector, boundary, win) {
 }
 
 function assistantActions(original, main, win) {
+  // Current DIL places regeneration inside More's closed menu. Bind the
+  // direct completed-turn footer, never a code block or the nested user bar.
+  const turn = original.closest('[data-talvt-turn-state]');
+  if (turn && original.matches('[data-content-search-unit-key$=":assistant"]')) {
+    if (turn.getAttribute('data-talvt-turn-state') !== 'complete' ||
+        turn.querySelectorAll(ASSISTANT_TURN).length !== 1 ||
+        original.querySelectorAll('[data-conversation-role="assistant"]').length !== 1 ||
+        ![...original.children].some(node => node.matches('[data-conversation-role="assistant"]')))
+      return null;
+    const footers = [...turn.children].filter(node => node.matches('.turn-action-controls'));
+    if (footers.length !== 1 || footers[0].contains(original) ||
+        original.contains(footers[0]) || footers[0].querySelector(TURN)) return null;
+    const feedback = [...footers[0].querySelectorAll('button[aria-label="评价回复"]')];
+    if (feedback.length !== 1) return null;
+    const actions = messageActions(feedback[0], 'button[aria-label="复制"]',
+      'button[aria-label="更多操作"]', turn, win);
+    return actions && footers[0].contains(actions.header) ? actions : null;
+  }
   // Never associate an action bar across a second assistant reply.
   for (let scope = original.parentElement; scope && scope !== main; scope = scope.parentElement) {
     if (scope.querySelectorAll(ASSISTANT_TURN).length !== 1) break;
@@ -319,7 +340,7 @@ function messageBindings(main, doc, win) {
       const viewers = [...original.children].filter(node => node.matches(MINDMAP_VIEWER));
       const contents = [...original.children].filter(node => node.tagName === 'DIV'
         && !node.matches('[data-opendesk-chatgpt-mindmap]')
-        && node.querySelector('[data-d-component]'));
+        && node.querySelector(ASSISTANT_CONTENT));
       if (!viewers.length && contents.some(node => !rendered(node, win))) continue;
       if (viewers.length) {
         // DIL keeps the assistant root visible and conceals only its content
@@ -412,9 +433,19 @@ function answerToolScope(bar) {
 export function mountAnswerTool(bar, host) {
   if (!bar?.isConnected || !host || host === bar || host.contains(bar)) return null;
   const scope = answerToolScope(bar);
-  const groups = [...scope.querySelectorAll(`[${ANSWER_TOOLS}]`)];
-  if (groups.length > 1) return null; // Do not mutate ambiguous foreign groups.
+  const groups = [...scope.querySelectorAll(ANSWER_TOOL_GROUPS)];
   let group = groups[0];
+  if (groups.length > 1) {
+    const previous = host.parentElement;
+    const destinations = groups.filter(candidate => candidate !== previous);
+    // An older peer may mount after our short-marker group. Move only our
+    // sole host into its unique mindmap group; never absorb foreign children.
+    if (groups.length !== 2 || destinations.length !== 1 ||
+        previous?.childNodes.length !== 1 || previous.childNodes[0] !== host ||
+        ![...destinations[0].children].some(node =>
+          node.matches('[data-opendesk-chatgpt-mindmap="button"]'))) return null;
+    group = destinations[0];
+  }
   const target = group?.parentElement || scope;
   if (!target?.isConnected || !scope.contains(target)) return null;
   if (!group) {
@@ -425,6 +456,7 @@ export function mountAnswerTool(bar, host) {
       + 'border:1px solid color-mix(in srgb,currentColor 10%,transparent);'
       + 'max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
   }
+  if (!group.hasAttribute(ANSWER_TOOLS)) group.setAttribute(ANSWER_TOOLS, '');
   // A peer may have created the group with the former right-aligned margin.
   // Update layout only, and avoid style mutations on every observer refresh.
   if (group.style.marginInlineStart !== '0px') group.style.marginInlineStart = '0px';
@@ -432,7 +464,7 @@ export function mountAnswerTool(bar, host) {
   if (group.style.justifyContent !== 'flex-start') group.style.justifyContent = 'flex-start';
   const previous = host.parentElement;
   if (previous !== group) group.append(host);
-  if (previous !== group && previous?.hasAttribute(ANSWER_TOOLS) && !previous.childNodes.length)
+  if (previous !== group && previous?.matches(ANSWER_TOOL_GROUPS) && !previous.childNodes.length)
     previous.remove();
   // The two Apps retain their own listeners. Order navigation before Mind Map
   // and never replace the shared group, native controls or a peer's host.
@@ -452,7 +484,7 @@ export function mountAnswerTool(bar, host) {
 export function unmountAnswerTool(host) {
   const group = host?.parentElement;
   host?.remove();
-  if (group?.hasAttribute(ANSWER_TOOLS) && !group.childNodes.length) group.remove();
+  if (group?.matches(ANSWER_TOOL_GROUPS) && !group.childNodes.length) group.remove();
 }
 
 function newButton(doc, kind, directions, sessionKey) {
@@ -575,7 +607,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
           && (old.answerRoot || old.target) === (binding.answerRoot || binding.target)
           && old.directions.join(',') === binding.directions.join(',') &&
           (binding.answerRoot
-            ? old.host.parentElement?.hasAttribute(ANSWER_TOOLS)
+            ? old.host.parentElement?.matches(ANSWER_TOOL_GROUPS)
               && answerToolScope(binding.header).contains(old.host.parentElement)
             : old.host.nextElementSibling === binding.anchor)) {
         if (binding.answerRoot) mountAnswerTool(binding.header, old.host);

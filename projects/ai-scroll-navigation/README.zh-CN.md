@@ -1,5 +1,34 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 默认安装与回复工具组（2026-11-07）
+
+**2026-11-08 最新状态：用户反馈当前浏览器看不见扩展运行。** 下述 PASS 只适用于 ego TaskSpace 20 的 Profile 1 和独立默认安装测试环境；用户当前窗口/Profile 的实际显示尚未验证，需由续接对话优先定位并修通，整体未完成。
+
+当前源码与唯一 Page 包更新为 **0.4.10/r14**，回复按钮与思维导图共用 `span[data-ai-answer-tools]` 并保持左对齐；兼容复用旧安装版的共享容器，不替换对方按钮或原生操作。已适配当前 ChatGPT 的 `data-markdown-text-style="assistant-message"` 正文及将重新生成收进「更多」的完成回复；继续拒绝重复正文、页脚或操作按钮等歧义布局。
+
+滚动导航现列入官方默认预装：首次全新安装的可信 Side Panel 沿原 Page Authority 安装固定包，仍须具备 Chrome 网站访问权限及用户脚本许可。已有 Profile 不因更新补装，不覆盖主动停用、卸载、已有包或未知清理状态。
+
+本轮已在 ego 的原生 Side Panel 经原 Installer 更新到 r14，安装身份和原三站范围不变，读回 enabled / active / registered。在已有 ChatGPT 长对话验证回复开头/末尾、对话顶部/底部、与导图共存及独立启停；共享组紧跟原生按钮约 2px。恢复后刷新自动显示，无需到开发页 Run。当前 DOM 适配及共享生命周期的相关测试 126 项通过。
+
+全新独立 CFT Profile 已证明首次可信 Side Panel 自动安装、列表显示和重开不重复，读回同一 r14、enabled / active / registered。ChatGPT 首次访问及刷新均自动执行，原 Authority 回执为 `page_auto / completed`，返回 `active`。2026-11-08 按用户指定的已有登录 ego 入口创建专用新对话，回复完成后自动出现导航与导图；实际回复开头/末尾、整段对话顶底及边界禁用通过，刷新后自动恢复，同 r14/安装身份/哈希的回执仍为 `page_auto / completed`。这是分环境验证；同一全新 Profile 登录后的回复导航仍为后续 `NOT_TESTED`，未冒称同环境通过。新环境使用独立静态开发测试快照，本轮默认安装输入与 main 同源；无关 AI Proxy / Native 模板使用已审阅基线，不作为 main 整体构建验收。DeepSeek/Gemini 长对话和 production 为 `NOT_TESTED`。
+
+11/08 新对话的共享组仍只有一个 SPAN 短标记，与最后原生操作相距 2px；回复回顶滚动值 725→210（正文 top=64），回复到底 725→525（正文 bottom=691），整段对话顶底为 0/725。见 `artifacts/ai-answer-tools-20261107/new-conversation-navigation-20261108.json`、`new-conversation-refreshed-20261108.json`、`new-conversation-installed-readback-20261108.json`；测试对话保留供查看，自有临时浏览器及元数据标签已正常收尾。
+
+候选来源、安装和核心证据见 `artifacts/ai-answer-tools-20261107/final-candidate-provenance.json`、`installed-restored-readback.json`、`installed-r14-navigation.json`、`fresh-after-first-sidepanel.json`、`fresh-after-reopen.json`、`fresh-auto-runtime-after-refresh.json`。本节取代下方历史版本及目录策略，不将历史实测视为本包验收。
+
+## 历史来源与按钮职责（2026-11-07 核对）
+
+此项目就是从提示词扩展拆出的导航。Git 提交 `03f7cda72` 将 `examples/sidebar-tools/prompt-shortcuts/trusted/page.js` 的导航接入及浮动区移入独立 Page 项目；`8998424f4` 再将 `examples/programs/chatgpt-jump-top/` 迁到本目录，多数业务文件为原字节重命名。当前提示词项目位于 `projects/prompt-shortcuts/`，不再提供导航。
+
+| 位置 | 滚动目标 | 当前实现 |
+| --- | --- | --- |
+| 思维导图旁的两枚按钮 | 对应这一条长回复的开头、末尾 | `conversation.js` 的 region 导航，与导图共享回复工具组 |
+| 已确认关系的代码／写作内容块 header | 对应内容块或编辑器内部的开头、末尾 | 同一 region 适配器；不等同于整段对话 |
+| 对话区域左下角的浮动双按钮 | 整段对话顶部、底部 | `floating-navigation.js`，独立于提示词栏和回复工具组 |
+| 页面最上方的对话 header | 历史上的对话回顶 | 最早 `f105d31ec` 有单枚回顶按钮；当前入口明确 `conversationDirections:{top:false,bottom:false}`，整段对话导航由浮动区提供。未找到这里同时默认显示顶、底双按钮的已提交版本 |
+
+`ea3fe993a` 曾在提示词扩展中引入回复顶底、对话顶底及浮动回顶五项开关；`7f569f280` 将整段对话顶底合并为独立浮动双按钮。`ebd450a4b` 后来让回复导航与思维导图共用回复背景。因此，“回复导航通过”“整段对话浮动导航通过”和“header 导航通过”是不同声明；本轮实测不宣称已恢复对话 header 按钮。本节只核对来源和职责，没有更改当前按钮位置或安装包。
+
 ## 目录迁移说明（2026-11-02）
 
 本项目已从 `examples/programs/chatgpt-jump-top/` 整体迁移至 `projects/ai-scroll-navigation/`。项目身份保持 `opendesk.ai-scroll-navigation`，源码、Page 规则、当前安装包、测试和证据均以新目录为唯一归属，不生成第二套实现。**历史 `opendesk.chatgpt-jump-top` 0.2.0/r2 导入包已于 2026-11-03 从项目目录清理**；旧 ID 的页面标记兼容逻辑仍保留。清理仓库文件不会卸载、撤权或修改用户已经安装的旧版本，其生命周期仍由原 Page Authority 管理。

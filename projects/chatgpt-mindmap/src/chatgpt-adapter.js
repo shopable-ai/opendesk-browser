@@ -1,6 +1,7 @@
 // DOM-only ChatGPT adapter. Selector candidates MUST be verified against a
 // logged-in current ChatGPT build before declaring native acceptance.
 const SEARCH_ANSWER='[data-content-search-unit-key$=":assistant"]';
+const SEARCH_CONTENT='[data-d-component],[data-markdown-text-style="assistant-message"]';
 const ANSWER='[data-message-author-role="assistant"],[data-message-role="assistant"],'+SEARCH_ANSWER;
 const CONTENT=['.markdown','.prose','[data-testid="message-content"]',
   '[data-assistant-markdown-root]'];
@@ -74,7 +75,7 @@ export function inspectAnswer(root) {
     ![...root.children].some(el=>el.matches('[data-conversation-role="assistant"]'))))
     return {ok:false,reason:'missing-assistant-marker'};
   const contentHits=searchLayout
-    ?[...root.children].filter(el=>el.tagName==='DIV'&&!own(el)&&el.querySelector('[data-d-component]'))
+    ?[...root.children].filter(el=>el.tagName==='DIV'&&!own(el)&&el.querySelector(SEARCH_CONTENT))
     :CONTENT.flatMap(selector=>cleanCandidates(root,selector));
   const unique=[...new Set(contentHits)];
   // Class overlap .markdown.prose refers to the *same* element. Nested
