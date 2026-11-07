@@ -256,19 +256,10 @@ test('a settled zero-save receipt preserves replay history without inventing Coo
   assert.deepEqual(cookieAttemptConflicts(failed,next),[]);
   assert.throws(()=>planCookieAttempt(failed,a),{code:'E_COOKIE_REPLAY'});
 });
-test('reserve refuses before persistence when the marker fits but the final receipt cannot fit',async()=>{
+test('reserve refuses oversized slot metadata before any persistence',async()=>{
   const a=attempt('a.example.test',{count:50,slots:Array.from({length:50},(_,i)=>({
-    name:('cookie'+i).padEnd(80,'x'),domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
+    name:('cookie'+i).padEnd(256,'x'),domain:'a.example.test',hostOnly:true,path:'/session/',storeId:'authorized-store',partitionKey:null
   }))});
-  const fields=['scopeKey','attemptId','requestId','deliveryId','policyVersion','payloadHash',
-    'expiresAt','count','slots','state','resolution','results'];
-  const compact=attempt=>({schemaVersion:6,legacy:empty().legacy,scopes:[attempt.scopeKey],
-    slots:[attempt.slots.map(s=>['name','domain','hostOnly','path','storeId','partitionKey'].map(k=>s[k]))],
-    attempts:[fields.map(key=>key==='scopeKey'||key==='slots'?0:key==='results'?
-      attempt.results.map(r=>r.code===undefined?[r.index,r.saved,r.verified]:[r.index,r.saved,r.verified,r.code]):attempt[key])]});
-  assert.ok(Buffer.byteLength(JSON.stringify(compact(a)))<8192);
-  const results=Array.from({length:50},(_,index)=>({index,saved:true,verified:true}));
-  assert.ok(Buffer.byteLength(JSON.stringify(compact({...a,state:'success',resolution:'receipt',results})))>8192);
   const s=storage(empty());
   await assert.rejects(reserveCookieAttempt(s.request,a),{code:'E_COOKIE_LIMIT'});
   assert.equal(s.writes,0);assert.deepEqual(s.value,empty());
@@ -324,7 +315,7 @@ test('new schema rejects secret/unknown fields, contradictory facts and storage 
     {...a,state:'success'},{...a,resolution:'not-submitted',state:'unknown'}])
     assert.throws(()=>planCookieAttempt(empty(),row));
   let journal=empty(),limited=false;
-  for(let i=0;i<20;i++){
+  for(let i=0;i<128;i++){
     const row=attempt(`${i}.example.test`);
     try{journal=planCookieReceipt(planCookieAttempt(journal,row),ref(row),saved());}
     catch(error){assert.equal(error.code,'E_COOKIE_LIMIT');limited=true;break;}
