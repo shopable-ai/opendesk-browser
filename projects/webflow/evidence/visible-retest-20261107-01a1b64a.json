@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1b64a-be30-7ea1-a768-71dda18f89cf",
+  "date": "2026-11-07",
+  "status": "PARTIAL_BLOCKED",
+  "summary": {"baiduPassed": 2, "filePassed": 1, "fileBlocked": 1, "allFourPassed": false},
+  "environment": {
+    "mode": "continuous-development",
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "browserPidObserved": 57348,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "serveConnectedObserved": true,
+    "watcherPidObserved": 26234,
+    "servePortsObserved": [43119, 43120],
+    "buildFingerprintObserved": "ca505a94567208cff493044b8bd6064cf0ccffd85be0acb21737af9f8a4d3fbe",
+    "filesBuildFingerprintObserved": "e3e5eabc229fcafeae18c7c0d44d27c924283ed529bb7501c17fea424b2a6505",
+    "candidateContinuity": "Development fingerprint changed between Baidu and file rounds; these are not four runs of one frozen candidate. Same extension ID and existing connected watcher were retained.",
+    "uiAutomation": "CUA native app, existing visible system Chrome",
+    "productionAcceptance": "NOT_TESTED"
+  },
+  "scope": {
+    "baiduRounds": 2,
+    "fileRounds": 2,
+    "filePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt",
+    "finalFileReceipts": "DRAFT_ONLY",
+    "handlerOrBridgeInvocationByTester": false,
+    "rawDispatchCounts": "NOT_TESTED"
+  },
+  "baidu": {
+    "conversationUrl": "https://chatgpt.com/c/6aef2f22-2508-83e8-ad67-8c610e4a766e",
+    "source": {
+      "tabId": 560070293,
+      "documentId": "EE98E0226B6269CADF9A1B5558099A59"
+    },
+    "capabilitySetup": "Copied once from original Web Flow usage help and sent once before both natural-language requests; original listener generated both requests without manual prepare/handler/poll.",
+    "installationObserved": {
+      "scriptId": "task:baidu.search.top3:1.1.4",
+      "version": "1.1.4",
+      "revision": 1,
+      "installationId": "4fb33bcf-ced1-43b0-8af2-584999f865e1",
+      "generation": 4,
+      "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+      "authorizationEpoch": 7,
+      "approvedAtLocal": "2026/11/7 20:32:09",
+      "targetUrl": "https://www.baidu.com/",
+      "parameterPolicy": {"variableKeys": ["query"], "queryLength": [1, 120], "limit": 3}
+    },
+    "rounds": [
+      {
+        "round": 1,
+        "prompt": "请用百度搜索 OpenDesk Browser，返回前三条自然网页结果。",
+        "candidate": {
+          "protocol": "webflow.task.intent.v1",
+          "candidateId": "wf-c9e27f50-621b-4d9f-bca7-0531ed8a6f44",
+          "taskId": "baidu.search.top3",
+          "targetUrl": "https://www.baidu.com/",
+          "args": {"query": "OpenDesk Browser", "limit": 3}
+        },
+        "requestId": "eb09cfd2-a4fc-4e1b-8519-051b104b5685",
+        "runId": "d616534f-5abf-4829-b6c2-f8db9b12200c",
+        "resultId": "9a0ddf08-9a92-4c96-bb5c-d47a49aa1bc9",
+        "sidePanelClosedDuringExecution": true,
+        "taskExecutionTabVisiblyObserved": true,
+        "normalTrigger": true,
+        "realExecution": true,
+        "executionStatus": "completed",
+        "dataStatus": "success",
+        "inputMode": "isolated-dom",
+        "durableSameRunResult": true,
+        "resourcesReleased": true,
+        "originalChatResultMessagesObserved": 1,
+        "aiContinuationCompleted": true,
+        "rawDispatchCount": "NOT_TESTED",
+        "observedAt": "2026-11-07T14:02:55.305Z",
+        "trace": [
+          {"action":"input","state":"before","at":"2026-11-07T14:02:25.312Z","documentId":"40689F28BD5188FAE2F919BA62891E26","locator":"#chat-textarea","value":""},
+          {"action":"input","state":"started","at":"2026-11-07T14:02:25.313Z","locator":"#chat-textarea"},
+          {"action":"input","state":"returned","at":"2026-11-07T14:02:27.603Z","locator":"#chat-textarea","value":"OpenDesk Browser"},
+          {"action":"click","state":"started","at":"2026-11-07T14:02:31.281Z","locator":"#chat-submit-button"},
+          {"action":"click","state":"returned","at":"2026-11-07T14:02:34.435Z","locator":"#chat-submit-button"},
+          {"action":"navigation","state":"observed","at":"2026-11-07T14:02:35.015Z","documentId":"40689F28BD5188FAE2F919BA62891E26","query":"OpenDesk Browser"},
+          {"action":"results","state":"read","at":"2026-11-07T14:02:52.299Z","count":3}
+        ],
+        "results": [
+          {"position":1,"slot":"1","tpl":"www_index","title":"OpenDesk | OpenDesk","directUrl":"https://opendesk.bitclub.ai/","summary":"OpenDesk 不把智能体限制在聊天窗口里。它可以读取本地上下文、调用插件、通过消息渠道持续工作,并把复杂配置过程变成自然语言交互。 01 描述目标 告诉OpenDesk 你要连接飞书、整理目录、查找文件或准备开发环境。 02 装配能力 它按任务选择模型、插件、MCP 与 Skills,自动完成依赖安装和配置。 03 交付结果 任务"},
+          {"position":2,"slot":"2","tpl":"www_index","title":"openDesk - OpenProject brings open source project management to openDesk","directUrl":"https://www.openproject.org/opendesk/","summary":"OpenProject brings comprehensive project management features to openDesk, enabling teams to manage their projects efficiently throughout the entire project lifecycle, from planning to execution. Docum"},
+          {"position":3,"slot":"4","tpl":"www_index","title":"Opendesk开源家具cad图纸下载免费教程_什么值得买","directUrl":"https://post.m.smzdm.com/zz/p/akl9e2mr/","summary":"2025年1月14日首先使用谷歌浏览器搜索Opendesk,然后在搜索结果中找到带有猫咪图标的GitHub链接,点击绿色的'Code'按钮选择'Open with GitHub Desktop'下载文件,最后解压并查看CAD图纸。 支持的家具种类 Opendesk提供的图纸包括会议桌、餐桌、工作台、餐椅、休闲椅等多种家具,适用于餐厅、书房、办公室和公共空间,所有图纸均含加工图纸、组..."}
+        ],
+        "receiptLabels": ["已完成", "已核实同一 Run / Result", "已释放", "已确认新增结果消息", "已观察到新回复"],
+        "aiSummaryObservation": "AI completed a new Chinese answer listing these three results and real trace; noted furniture mismatch, without re-running the task."
+      },
+      {
+        "round": 2,
+        "prompt": "请用百度搜索 OpenDesk Browser automation，返回前三条自然网页结果。",
+        "candidate": {
+          "protocol": "webflow.task.intent.v1",
+          "candidateId": "wf-27acfd48-a1be-44f2-9c5b-8be64e07dc13",
+          "taskId": "baidu.search.top3",
+          "targetUrl": "https://www.baidu.com/",
+          "args": {"query": "OpenDesk Browser automation", "limit": 3}
+        },
+        "requestId": "f65b575d-d070-447d-b348-ea59e4f9d599",
+        "runId": "0e6acf2c-aed9-4da0-922c-588973acb361",
+        "resultId": "3482c906-9309-4ca7-a122-55c09263a014",
+        "sidePanelClosedDuringExecution": true,
+        "taskExecutionTabVisiblyObserved": true,
+        "normalTrigger": true,
+        "realExecution": true,
+        "executionStatus": "completed",
+        "dataStatus": "success",
+        "inputMode": "isolated-dom",
+        "durableSameRunResult": true,
+        "resourcesReleased": true,
+        "originalChatResultMessagesObserved": 1,
+        "aiContinuationCompleted": true,
+        "rawDispatchCount": "NOT_TESTED",
+        "observedAt": "2026-11-07T14:08:03.840Z",
+        "trace": [
+          {"action":"input","state":"before","at":"2026-11-07T14:07:32.291Z","documentId":"CE14858E758B5D981FF41B305F691038","locator":"#chat-textarea","value":""},
+          {"action":"input","state":"started","at":"2026-11-07T14:07:32.291Z","locator":"#chat-textarea"},
+          {"action":"input","state":"returned","at":"2026-11-07T14:07:36.231Z","locator":"#chat-textarea","value":"OpenDesk Browser automation"},
+          {"action":"click","state":"started","at":"2026-11-07T14:07:39.587Z","locator":"#chat-submit-button"},
+          {"action":"click","state":"returned","at":"2026-11-07T14:07:42.332Z","locator":"#chat-submit-button"},
+          {"action":"navigation","state":"observed","at":"2026-11-07T14:07:43.532Z","documentId":"CE14858E758B5D981FF41B305F691038","query":"OpenDesk Browser automation"},
+          {"action":"results","state":"read","at":"2026-11-07T14:08:00.834Z","count":3}
+        ],
+        "results": [
+          {"position":1,"slot":"5","tpl":"www_index","title":"OpenClaw Browser Relay:AI驱动的浏览器自动化技术解析-CSDN博客","directUrl":"https://blog.csdn.net/weixin_42523670/article/details/169520804","summary":"2026年10月29日import subprocess import json def test_login_flow(): # 打开登录页面 subprocess.run([ \"openclaw\", \"browser\", \"--browser-profile\", \"tester\", \"open\", \"https://example.com/login\" ], check=True) # 执行登"},
+          {"position":2,"slot":"6","tpl":"www_index","title":"OpenClaw浏览器自动化核心技术解析与实战指南-CSDN博客","directUrl":"https://blog.csdn.net/weixin_42546508/article/details/169656872","summary":"8天前通过CDP协议可接入主流云浏览器服务: // Browserless配置示例 { browser: { enabled: true, defaultProfile: \"browserless\", profiles: { browserless: { cdpUrl: \"wss://production-sfo.browserless.io?token=<API_KEY>\", color: \"#"},
+          {"position":3,"slot":"7","tpl":"www_index","title":"OpenClaw:深入解析浏览器自动化实战与应用_mob64ca14040d22的技术博客_51CTO博客","directUrl":"https://blog.51cto.com/u_16213632/14600086","summary":"2026年5月15日/bin/bash # OpenClaw 浏览器自动化登录示例 # 1. 启动浏览器 openclaw browser start ..."}
+        ],
+        "receiptLabels": ["已完成", "已核实同一 Run / Result", "已释放", "已确认新增结果消息", "已观察到新回复"],
+        "ledgerEntriesInOriginalChatObserved": 2,
+        "aiSummaryObservation": "AI completed a new Chinese answer listing these three results and real trace; noted they concern OpenClaw rather than OpenDesk Browser."
+      }
+    ]
+  },
+  "files": [
+    {
+      "round": 1,
+      "status": "PASS_DRAFT_ONLY",
+      "conversationUrl": "https://chatgpt.com/c/6aef3227-6d68-83e8-9685-bc51091a7ddb",
+      "initialPrompt": "请只回复：文件可视复验第一轮准备好了。等待我从 OpenDesk 可信文件入口提供本轮固定协议和真实文件上下文，不猜测文件正文或身份。",
+      "entryRecovery": "Initial SPA new-chat entry returned E_FILE_SENDER before any binding or file operation. No new review tab and empty draft were confirmed; normal reload of this new chat allowed original entry to create the trusted review page. No permission checks bypassed.",
+      "nativeConnectedObserved": true,
+      "directorySelectedLabel": "workspace · read-write",
+      "baselineIndependentRead": {
+        "bytes": 75,
+        "text": "OpenDesk local file test\nstatus=listener-verified-20261107-01a1b5f2-round2\n",
+        "sha256": "857c4f950fedae2b1f06afc89d9f154f3b952adbcf2ba92f71a7a834f18c714b"
+      },
+      "handoffRecovery": "Before preparing a file request, the original entry returned E_FILE_HANDOFF: Extension context invalidated after the concurrent development update. Refreshed the empty-draft new chat, retained the same extension installation, and claimed a fresh binding through the original entry.",
+      "task": "请先按本提示词的固定协议，只返回一个 opendesk-request，原样保留全部真实身份、read 操作及 demo.txt 路径。收到我发送的真实 OpenDesk 文件结果前，不猜测正文或 SHA。收到真实结果后，基线必须为 OpenDesk local file test\nstatus=listener-verified-20261107-01a1b5f2-round2\n；否则停止。复用结果 editProposal 的全部身份和 baseSha256，只修改 content，返回单个 opendesk-edit。完整目标正文为 OpenDesk local file test\nstatus=visible-retest-20261107-round1\n，保留第一行和末尾 LF。不要输出 Shell、命令、diff 或其他文件修改；写盘等待我在可信扩展页审阅并确认。",
+      "entry": "Original chat: 项目文件诊断 → 可选：旧版文件请求 → 审阅当前对话的文件请求. Trusted page: 高级：旧版文件协议访问与审阅. Exact workspace/demo.txt, 读取后提出修改（保存需确认）, disclosure checkbox and original prepare/fill controls. No manual 读取完整回答并处理请求 action, handler, poll or bridge call by tester.",
+      "readRequest": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "b2a0508d-a526-40c2-af81-e79addf00d30",
+        "bindingId": "bbf8c87a-564d-4c3d-8c5e-66342edf6cb1",
+        "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "readResult": {
+        "protocol": "opendesk.workspace.result.v1",
+        "resultId": "fffcef81-9555-430b-91ca-36eb288899e2",
+        "requestId": "b2a0508d-a526-40c2-af81-e79addf00d30",
+        "bindingId": "bbf8c87a-564d-4c3d-8c5e-66342edf6cb1",
+        "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+        "operation": "read",
+        "path": "demo.txt",
+        "status": "success",
+        "data": {
+          "bytes": 75,
+          "content": "OpenDesk local file test\nstatus=listener-verified-20261107-01a1b5f2-round2\n",
+          "path": "demo.txt",
+          "sha256": "857c4f950fedae2b1f06afc89d9f154f3b952adbcf2ba92f71a7a834f18c714b",
+          "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1"
+        },
+        "editProposal": {
+          "protocol": "opendesk.workspace.edit.v1",
+          "requestId": "e2c66fb8-b00a-413f-bdaf-a5050a2686bc",
+          "bindingId": "bbf8c87a-564d-4c3d-8c5e-66342edf6cb1",
+          "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+          "path": "demo.txt",
+          "baseSha256": "857c4f950fedae2b1f06afc89d9f154f3b952adbcf2ba92f71a7a834f18c714b",
+          "content": "OpenDesk local file test\nstatus=listener-verified-20261107-01a1b5f2-round2\n"
+        }
+      },
+      "editProposal": {
+        "protocol": "opendesk.workspace.edit.v1",
+        "requestId": "e2c66fb8-b00a-413f-bdaf-a5050a2686bc",
+        "bindingId": "bbf8c87a-564d-4c3d-8c5e-66342edf6cb1",
+        "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+        "path": "demo.txt",
+        "baseSha256": "857c4f950fedae2b1f06afc89d9f154f3b952adbcf2ba92f71a7a834f18c714b",
+        "content": "OpenDesk local file test\nstatus=visible-retest-20261107-round1\n"
+      },
+      "preSaveIndependentReadMatchedBaseline": true,
+      "review": "Trusted page displayed full before/after text and base SHA. Only after this review was the original 确认写入 control clicked. No shell file write.",
+      "finalResult": {
+        "protocol": "opendesk.workspace.result.v1",
+        "resultId": "9c432641-2f0e-4e9e-a904-818462b3a640",
+        "requestId": "e2c66fb8-b00a-413f-bdaf-a5050a2686bc",
+        "bindingId": "bbf8c87a-564d-4c3d-8c5e-66342edf6cb1",
+        "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+        "operation": "write",
+        "path": "demo.txt",
+        "status": "success",
+        "data": {
+          "bytes": 63,
+          "path": "demo.txt",
+          "saved": true,
+          "sha256": "fd06e9aea785d77a3f29400571e76cf855520cad1a6c43262488bf530534f137",
+          "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+          "readBackVerified": true
+        }
+      },
+      "outcome": {
+        "normalTrigger": true,
+        "realRead": true,
+        "readContextAutomaticallyFilled": true,
+        "readContextSentOnceObserved": true,
+        "aiEditProposalCompleted": true,
+        "editProposalAutomaticallyDiscovered": true,
+        "saved": true,
+        "readBackVerified": true,
+        "independentDiskMatch": true,
+        "completed": true,
+        "finalReceiptDraftFilled": true,
+        "finalReceiptSent": false,
+        "rawDispatchCounts": "NOT_TESTED"
+      },
+      "completionLabels": ["执行状态：success", "草稿填入状态：filled。本轮已结束，无需再发送。需要模型查看结果时可自行发送。", "本轮修改已完成：保存与独立读回均已确认，回执已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。"],
+      "cleanup": "Closed only this completed trusted review tab; retained original chat and its verified final receipt draft. Did not send the final receipt."
+    },
+    {
+      "round": 2,
+      "status": "BLOCKED_PROMPT_DELIVERY_UNKNOWN",
+      "conversationUrl": "https://chatgpt.com/c/6aef3825-7274-83ec-b7a8-ea994e57a654",
+      "initialPrompt": "请只回复：文件可视复验第二轮准备好了。等待我从 OpenDesk 可信文件入口提供本轮固定协议和真实文件上下文，不猜测文件正文或身份。",
+      "task": "请先按本提示词的固定协议，只返回一个 opendesk-request，原样保留全部真实身份、read 操作及 demo.txt 路径。收到我发送的真实 OpenDesk 文件结果前，不猜测正文或 SHA。收到真实结果后，基线必须为 OpenDesk local file test\nstatus=visible-retest-20261107-round1\n；否则停止。复用结果 editProposal 的全部身份和 baseSha256，只修改 content，返回单个 opendesk-edit。完整目标正文为 OpenDesk local file test\nstatus=visible-retest-20261107-round2\n，保留第一行和末尾 LF。不要输出 Shell、命令、diff 或其他文件修改；写盘等待我在可信扩展页审阅并确认。",
+      "preparedRequest": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "da70fed7-d56b-467c-8648-7f081f8f7b9b",
+        "bindingId": "75799e57-d20d-4518-b7bb-e3bd0ce9964b",
+        "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "failureSequence": [
+        "Original new chat sent preparation message and received completed acknowledgement. Original empty-draft reload stabilized the source document, but ChatGPT failed to load the conversation and exposed no composer.",
+        "Trusted original entry prepared the exact read request. One click of 填入原对话草稿 returned E_CHAT_COMPOSER: 未找到唯一的 ChatGPT 输入框，结果已保留.",
+        "Original site 再试一次 restored the same chat and an empty composer without another document reload. Prepared prompt was absent; original fill control remained disabled.",
+        "One original reprepare action was denied with E_FILE_DELIVERY_UNKNOWN: 原草稿回填结果未知；请核对原对话，不会换身份重放. No new identity was created.",
+        "Read-only source inspection found 只读核对未知写入 applies to existing write entries, not this unknown prompt fill. No supported prompt-delivery recovery was exposed. Ledger and guards retained."
+      ],
+      "outcome": {
+        "initialAcknowledgementCompleted": true,
+        "normalFileRequestTriggered": false,
+        "preparedPromptSent": false,
+        "realRead": false,
+        "readContextSent": false,
+        "aiEditProposalCompleted": false,
+        "saved": false,
+        "completed": false,
+        "finalReceiptDraftFilled": false,
+        "finalReceiptSent": false,
+        "unknownDeliveryNotReplayed": true,
+        "rawDispatchCounts": "NOT_TESTED"
+      },
+      "cleanup": {
+        "sourceChatPreserved": true,
+        "sourceComposerEmpty": true,
+        "trustedReviewTabNoLongerPresentAtFinalObservation": true,
+        "unknownLedgerNotCleared": true,
+        "otherTabsUntouched": true
+      }
+    }
+  ],
+  "workspaceRestore": {
+    "reason": "Native workspace dropdown and original CLI workspace list were empty during recovery. Restored only the preauthorized isolated test directory via original Native CLI.",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace",
+    "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+    "access": "read-write",
+    "authorized": true,
+    "grantRetained": true
+  },
+  "finalIndependentFileRead": {
+    "bytes": 63,
+    "text": "OpenDesk local file test\nstatus=visible-retest-20261107-round1\n",
+    "sha256": "fd06e9aea785d77a3f29400571e76cf855520cad1a6c43262488bf530534f137",
+    "unchangedAfterBlockedRound2": true
+  },
+  "repositoryActions": {"productCodeEdited": false, "committed": false, "pushed": false, "branchesOrWorktreesCreated": false},
+  "resourceCleanup": {"nativeUiLeaseReleased": true, "nativeUiOwnerAfterRelease": null, "browserRetained": true, "existingWatcherRetained": true},
+  "limitations": [
+    "Native menu actions repeatedly reported app changes; user explicitly handed control back with 继续，接下来由你操作. Fresh UI states were used; no blind repeat of an unknown write.",
+    "File round 2 remains blocked before Native read by unknown prompt delivery. This evidence does not establish 2+2 PASS.",
+    "Concurrent development changed the build fingerprint between task families; this is not acceptance evidence for one frozen candidate.",
+    "File tests exercised the optional fixed-protocol legacy entry, not the separate natural-language project-connection flow.",
+    "Original listener discovery inferred from visible automatic processing and results; raw discovery-event payloads and dispatch counts NOT_TESTED.",
+    "One observed result message per Baidu Run does not prove raw dispatch count; raw counts NOT_TESTED.",
+    "No production, full CI, long-running stress or independent scoring performed."
+  ]
+}

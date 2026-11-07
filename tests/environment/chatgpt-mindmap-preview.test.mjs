@@ -5,9 +5,9 @@ import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {PREVIEW_CSP,PREVIEW_ASSETS_DIR,verifyFixedXmindAssets,startXmindPreview}
-  from '../../projects/chatgpt-mindmap/preview/serve.mjs';
+  from '../../projects/ai-reply-mindmap/preview/serve.mjs';
 
-const root=new URL('../../projects/chatgpt-mindmap/',import.meta.url);
+const root=new URL('../../projects/ai-reply-mindmap/',import.meta.url);
 const manifest=JSON.parse(await readFile(new URL('tests/xmind-provenance.json',root),'utf8'));
 
 test('preview HTML loads four real sibling JS and imports shared product modules',async()=>{
@@ -38,7 +38,7 @@ test('preview HTML loads four real sibling JS and imports shared product modules
   }
 });
 test('four exact Git-tracked originals are directly in preview/, not .runtime',async()=>{
-  assert.match(PREVIEW_ASSETS_DIR,/chatgpt-mindmap\/preview$/);
+  assert.match(PREVIEW_ASSETS_DIR,/ai-reply-mindmap\/preview$/);
   assert.deepEqual(manifest.assets.map(row=>row.name),[
     'jszip.min.js','polyfill-45b9836beb.min.js',
     'xmind-sdk.bundle.js','snowbrush-2c2b5d62b5.js']);

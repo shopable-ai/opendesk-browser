@@ -33,7 +33,7 @@
 
 | 案例 | 类型 | 默认业务目录 | 主 Skill | 边界 / 缺口处理 |
 | --- | --- | --- | --- | --- |
-| A ChatGPT Mind Map 网页回复按钮 | Page USER_SCRIPT | [`projects/chatgpt-mindmap/`](../../projects/chatgpt-mindmap/README.zh-CN.md) | `opendesk-script-authoring` | 复用 Page UI，正式安装由 `opendesk-program-publish`；XMind 固定 JS 的许可/预算/隔离单独审计，无通用证据时 `SDK_GAP_NOT_PROVEN` |
+| A AI 回复思维导图 网页回复按钮 | Page USER_SCRIPT | [`projects/ai-reply-mindmap/`](../../projects/ai-reply-mindmap/README.zh-CN.md) | `opendesk-script-authoring` | 复用 Page UI，正式安装由 `opendesk-program-publish`；XMind 固定 JS 的许可/预算/隔离单独审计，无通用证据时 `SDK_GAP_NOT_PROVEN` |
 | B Cookie Editor 仅优化已安装 UI | Sidebar Tool | `examples/sidebar-tools/cookie-editor/` | `opendesk-sidebar-tool-dev` | 业务 UI/React 与打包属于工具；若明确是受审可信后台业务才另路由 |
 | C Prompt Shortcuts 跨 AI 网站网页按钮 | Sidebar Tool v2 + 既有受信网页适配器 | [`projects/prompt-shortcuts/`](../../projects/prompt-shortcuts/README.zh-CN.md) | `opendesk-sidebar-tool-dev` | 保留现有 `page.prompts`/`browser.contextMenu` SDK、安装身份与 `trusted/page.js`；只改双选择器和业务适配器，不能擅自迁成 Page Program 或重写 Host |
 | D Bookmark Manager React UI | Sidebar Tool（正式 React 为固定可信入口） | [`projects/bookmark-manager/`](../../projects/bookmark-manager/README.zh-CN.md) | `opendesk-sidebar-tool-dev` | 先核对正式 README/配置与真实消费者；沙箱 UI 留工具，固定可信 React 变化由 trusted owner 协作，权限/安装不因复用继承 |

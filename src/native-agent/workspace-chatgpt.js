@@ -13,7 +13,7 @@ export function chatGPTConversationId(value){
 // Chrome serializes this function into the extension's ISOLATED world. It
 // exposes no listener, Native RPC, credentials, or model API to the page.
 export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,readUserMessage=false,
-  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false,fileRequest=false}){
+  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false,fileRequest=false,eventText=false,witness}){
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
   // Keep these literals inside the serialized function: Chrome does not carry
   // module bindings into ISOLATED. Existing callers still select the old intent.
@@ -21,7 +21,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const intentProtocols=protocols.filter(protocol=>knownIntentProtocols.includes(protocol));
   if(!intentProtocols.length)intentProtocols.push('opendesk.task.intent.v1');
   const webFlow=taskIntent&&intentProtocols.includes('webflow.task.intent.v1');
-  const strictReply=webFlow||fileRequest;
+  if(eventText&&(!identityOnly||taskIntent))return error('E_SCHEMA','固定事件原文仅供文件身份快照使用。');
+  const strictReply=webFlow||fileRequest||eventText;
   const url=location.href;
   if(url!==expectedUrl||!['https://chatgpt.com','https://chat.openai.com'].includes(location.origin))
     return error('E_CHAT_TARGET','对话页面已经切换，请重新绑定当前对话。');
@@ -59,6 +60,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   let lastUser=-1;
   for(let index=0;index<messages.length;index++)if((messages[index].getAttribute('data-message-author-role')==='user'||messages[index].getAttribute('data-chatgpt-search-unit-key')?.endsWith(':user')))lastUser=index;
   const local=globalThis.__opendeskWorkspaceChatV1||(globalThis.__opendeskWorkspaceChatV1={turns:new WeakMap(),counter:0,fills:new Map()});
+  local.readerEpoch ||= crypto.randomUUID();
   const user=messages[lastUser];
   local.userTexts ||= new WeakMap();
   if(user&&(!local.turns.has(user)||local.userTexts.get(user)!==(user.textContent||''))){
@@ -67,6 +69,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const turnKey=user?local.turns.get(user):'no-user';
   const userContent=user?.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||user;
   const userText=userContent?.innerText??userContent?.textContent??'';
+  if(eventText&&new TextEncoder().encode(userText).length>512*1024)
+    return error('E_CHAT_LIMIT','当前用户消息过长，无法核对完整版本。');
   const userIdentity=readUserMessage&&user&&new TextEncoder().encode(userText).length<=32*1024?{userText}:{};
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
   const turnAnswers=lastUser<0?[]:messages.slice(lastUser+1);
@@ -83,7 +87,9 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   }
   // Keep both node identity and its observed text revision. Regenerating an
   // answer under the same user message must not preserve an approved proposal.
-  let answerKey=null;
+  if(witness&&(witness.user!==user||turnAnswers.length!==1||witness.answer!==turnAnswers[0]))
+    return error('E_CHAT_TARGET','发现见证与当前原始消息节点不一致。');
+  let answerKey=null,answerText;
   if(answer.length&&!streaming){
     local.answers ||= new WeakMap();let total=0;
     const keys=[];
@@ -104,6 +110,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
           if(!body.textContent.trim())return error('E_CHAT_INCOMPLETE','最新回答正文尚未就绪，未绑定任务。');
         }
       }
+      if(eventText)answerText=text;
       let item=local.answers.get(node);
       if(!item){item={id:'answer-'+(++local.counter),revision:0,text};local.answers.set(node,item);}
       else if(item.text!==text){item.revision++;item.text=text;}
@@ -114,17 +121,18 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   // A deny-only projection for the fixed file consumer. It never resolves or
   // authorizes a Task; mixed/malformed/quoted Task text cannot cause fallback
   // file I/O after the Task path refuses it.
-  const taskIdentity=identityOnly&&readUserMessage?{taskIntentPresent:answer.some(node=>{
+  const taskIdentity=identityOnly&&(readUserMessage||eventText)?{taskIntentPresent:answer.some(node=>{
     const text=node.textContent||'',pattern=/(?:opendesk\.task\.(?:intent|request)|webflow\.task\.intent)\.v1/;
     return text.length>400*1024||pattern.test(text)||pattern.test(text.replace(/\\u([a-f0-9]{4})/gi,
       (_escape,unit)=>String.fromCharCode(parseInt(unit,16))));
   })}:{};
-  if(identityOnly&&!requireComplete)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,...userIdentity,...taskIdentity,
+  if(identityOnly&&!requireComplete&&!eventText)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,...userIdentity,...taskIdentity,
     ...(resultId?{resultObserved:userText.includes(resultId)}:{})};
   if(streaming)return error('E_CHAT_STREAMING','ChatGPT 仍在生成，请等回答结束再处理。');
   if(lastUser<0)return error('E_CHAT_FORMAT','无法确认本轮回答边界，未执行请求。');
   if(lastUser===messages.length-1)return error('E_CHAT_PENDING','最新问题尚未出现回答，没有读取上一轮内容。');
-  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true,...userIdentity,...taskIdentity};
+  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true,...userIdentity,...taskIdentity,
+    ...(eventText?{readerEpoch:local.readerEpoch,userText,answerText}:{})};
   const ids=requestIds||[requestId];
   if(requireUserEcho&&!ids.some(id=>id&&userText.includes(id)))
     return error('E_CHAT_TURN','最新用户消息没有本轮请求身份，未使用旧回答。');
@@ -338,11 +346,24 @@ export async function assertWebFlowReplyCandidate(api,target,candidate){
     throw mismatch();
 }
 
-export async function fillChatGPTComposer(api,target,text,{operationId,turnKey,beforeInsert}={}){
+export async function fillChatGPTComposer(api,target,text,{operationId,turnKey,beforeInsert,beforeDispatch}={}){
   await assertChatGPTTarget(api,target);
   // Fixed trusted callers may recheck their own revocable disclosure grant at
   // the insertion boundary, after the asynchronous document lookup.
   if(beforeInsert)await beforeInsert();
+  // No await between this trusted revocation fence and executeScript. Keep it
+  // outside the injection catch: a rejected guard proves nothing was sent.
+  if(beforeDispatch!==undefined){
+    try{
+      if(typeof beforeDispatch!=='function')throw {code:'E_SCHEMA',message:'回填派发检查必须是同步函数。'};
+      const result=beforeDispatch();
+      if(result!=null&&typeof result.then==='function'){
+        // An async guard is never accepted, even if its Promise is settled.
+        Promise.resolve(result).catch(()=>{});
+        throw {code:'E_SCHEMA',message:'回填派发检查不能返回异步结果。'};
+      }
+    }catch(error){throw {code:error?.code||'E_CHAT_GUARD',message:error?.message||'回填前检查拒绝了操作。',outcome:'NOT_DISPATCHED'};}
+  }
   let rows;
   try{rows=await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},world:'ISOLATED',
     func:fillChatGPTComposerOnPage,args:[{expectedUrl:target.url,text,operationId,expectedTurnKey:turnKey}]});}

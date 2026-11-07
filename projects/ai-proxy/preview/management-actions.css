@@ -1,0 +1,22 @@
+/* Only the two contextual management shortcuts opt in. No global restyling. */
+@scope (.proxy-app) {
+  :scope .r86Panel .apManagementAction { position:relative; display:inline-flex; flex:none; }
+  :scope .r86Panel .apManagementAction .apManagementIcon {
+    position:relative; width:34px; height:34px; min-width:34px; min-height:34px;
+  }
+  :scope .r86Panel .apManagementLaunch {
+    position:absolute; top:1px; right:3px; font-size:10px; line-height:1; font-weight:650;
+  }
+  :scope .r86Panel .apManagementTooltip {
+    position:absolute; inset-inline-end:0; top:calc(100% + 6px); z-index:6;
+    display:grid; gap:3px; width:max-content; max-width:260px; padding:8px 10px;
+    border-radius:8px; background:var(--r86-ink); color:var(--r86-surface);
+    box-shadow:0 4px 12px #0002; font-size:12px; line-height:1.5; font-weight:400;
+    text-align:start; white-space:normal; overflow-wrap:anywhere;
+  }
+  :scope .r86Panel .apManagementTooltip[hidden] { display:none; }
+  :scope .r86Panel .apManagementTooltip strong { font-weight:650; }
+  :scope .r86Panel .apManagementTooltip > span { font-size:11px; }
+  /* A transparent bridge keeps the tooltip hoverable across its visual gap. */
+  :scope .r86Panel .apManagementTooltip::before { content:''; position:absolute; inset: -6px 0 auto; height:6px; }
+}

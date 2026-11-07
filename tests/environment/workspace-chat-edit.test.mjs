@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {parseHTML} from 'linkedom';
 import {createEditContext,parseEditProposal,validateEditProposal,createEditReceipt,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
-import {inspectChatGPTEditsOnPage,readChatGPTEdit,isChatGPTURL} from '../../src/native-agent/workspace-chatgpt.js';
+import {inspectChatGPTEditsOnPage,readChatGPTEdit,isChatGPTURL,fillChatGPTComposer} from '../../src/native-agent/workspace-chatgpt.js';
 import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 import {createMemoryWorkspace,DEMO_WORKSPACE_ID} from '../../src/native-agent/file-workspace-demo.js';
 import {createChatGPTFilesController} from '../../projects/webflow/trusted/chatgpt-files-controller.js';
@@ -426,4 +426,75 @@ test('reader excludes CSS-hidden ancestors and detects ancestor streaming state'
   const read=pageFixture(t,messages);assert.deepEqual(read().blocks,[text]);
   visible.closest=selector=>selector.includes('result-streaming')?{}:null;
   assert.equal(read().error.code,'E_CHAT_STREAMING');
+});
+
+for(const action of ['stop','close'])test(`composer ${action} during beforeInsert await prevents executeScript`,async()=>{
+  let release,entered,active=true,executions=0;
+  const waiting=new Promise(resolve=>{entered=resolve;}),target={tabId:5,documentId:'doc',url:'https://chatgpt.com/c/current'};
+  const api={webNavigation:{getFrame:async()=>target},scripting:{executeScript:async()=>{executions++;throw Error('unexpected injection');}}};
+  const pending=fillChatGPTComposer(api,target,'result',{operationId:'fill',turnKey:'turn',
+    beforeInsert(){entered();return new Promise(resolve=>{release=resolve;});},
+    beforeDispatch(){if(!active)throw {code:'E_STOPPED',outcome:'NOT_DISPATCHED'};}});
+  const rejected=assert.rejects(pending,error=>error.code==='E_STOPPED'&&error.outcome==='NOT_DISPATCHED');
+  await waiting;active=false;release();await rejected;assert.equal(executions,0);
+});
+test('composer dispatch guard rejects thenables before injection',async()=>{
+  const target={tabId:5,documentId:'doc',url:'https://chatgpt.com/c/current'};let executions=0;
+  const api={webNavigation:{getFrame:async()=>target},scripting:{executeScript:async()=>{executions++;throw Error('unexpected injection');}}};
+  for(const result of [Promise.resolve(),{then(){}}])await assert.rejects(fillChatGPTComposer(api,target,'result',
+    {beforeDispatch:()=>result}),error=>error.outcome==='NOT_DISPATCHED');
+  assert.equal(executions,0);
+});
+test('fixed event projection preserves exact text, epoch and original-node witness',t=>{
+  const {read,document,answer}=rolelessAnswerFixture(t),user=document.querySelector('[data-chatgpt-search-unit-key]');
+  user.textContent='  中文  request-0123456789abcdef\n\n tail  ';
+  Object.defineProperty(user,'innerText',{get:()=>user.textContent});
+  const controls=document.createElement('div');controls.setAttribute('data-assistant-message-actions','');controls.textContent='Copy Reply';answer.append(controls);
+  const options={identityOnly:true,eventText:true,witness:{user,answer}};
+  const result=read(options),copy=answer.cloneNode(true);
+  for(const node of copy.querySelectorAll('[data-assistant-message-actions],[data-testid="copy-turn-action-button"],[data-markdown-copy="exclude"] button'))node.remove();
+  assert.equal(result.ok,true);assert.equal(result.userText,user.innerText);assert.equal(result.answerText,copy.textContent);
+  assert.match(result.readerEpoch,/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i);
+  assert.equal(read(options).readerEpoch,result.readerEpoch);assert.equal(read(options).answerKey,result.answerKey);
+  assert.equal(Object.values(result).includes(answer),false);assert.equal(Object.values(result).includes(user),false);
+  assert.equal(read({...options,witness:{user:user.cloneNode(true),answer}}).ok,false);
+  assert.equal(read({...options,witness:{user,answer:answer.cloneNode(true)}}).ok,false);
+  controls.textContent='Copied';assert.equal(read(options).answerKey,result.answerKey);
+  answer.querySelector('code span').textContent+=' ';assert.notEqual(read(options).answerKey,result.answerKey);
+});
+test('fixed event projection requires complete unique answers, bounded UTF-8 user text and preserves mixed Task deny',t=>{
+  const {read,document,answer,parent}=rolelessAnswerFixture(t),user=document.querySelector('[data-chatgpt-search-unit-key]');
+  const options={identityOnly:true,eventText:true};
+  user.textContent='中'.repeat(174762)+'xx';assert.equal(read(options).ok,true);
+  user.textContent+='x';assert.equal(read(options).error.code,'E_CHAT_LIMIT');
+  user.textContent='request-0123456789abcdef';
+  answer.querySelector('code span').textContent='webflow.task.intent.v1';
+  assert.equal(read(options).taskIntentPresent,true);
+  answer.closest('[data-talvt-turn-state]').setAttribute('data-talvt-turn-state','streaming');assert.equal(read(options).ok,false);
+  answer.closest('[data-talvt-turn-state]').setAttribute('data-talvt-turn-state','complete');
+  answer.setAttribute('data-message-author-role','assistant');
+  const duplicate=answer.cloneNode(true);parent.append(duplicate);
+  assert.equal(read(options).ok,false);duplicate.remove();answer.remove();assert.equal(read(options).ok,false);
+});
+
+test('fixed event projection serializes without DOM witnesses and keeps the existing answer limit',t=>{
+  const {read,answer}=rolelessAnswerFixture(t),options={identityOnly:true,eventText:true,fileRequest:false};
+  assert.equal(read({...options,identityOnly:false}).error.code,'E_SCHEMA');
+  assert.equal(read({...options,taskIntent:true}).error.code,'E_SCHEMA');
+  const result=(0,eval)('('+inspectChatGPTEditsOnPage.toString()+')')({expectedUrl:location.href,...options});
+  assert.equal(result.ok,true);assert.equal(result.answerText,read(options).answerText);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)),result);
+  answer.querySelector('code span').textContent='x'.repeat(400*1024);
+  assert.equal(read(options).error.code,'E_CHAT_LIMIT');
+});
+test('legacy beforeInsert remains asynchronous and dispatch guard succeeds without crossing the wire',async()=>{
+  const target={tabId:5,documentId:'doc',url:'https://chatgpt.com/c/current'},events=[];
+  const api={webNavigation:{getFrame:async()=>target},scripting:{executeScript:async options=>{
+    events.push(options.func.name);assert.equal(Object.hasOwn(options.args[0],'beforeDispatch'),false);
+    return [{frameId:0,documentId:'doc',result:{ok:true,url:target.url,filled:true,sent:false,readBackVerified:true}}];
+  }}};
+  const result=await fillChatGPTComposer(api,target,'result',{beforeInsert:async()=>{await Promise.resolve();events.push('beforeInsert');},
+    beforeDispatch:()=>{events.push('beforeDispatch');}});
+  assert.equal(result.readBackVerified,true);
+  assert.deepEqual(events,['beforeInsert','beforeDispatch','fillChatGPTComposerOnPage','verifyChatGPTComposerOnPage']);
 });

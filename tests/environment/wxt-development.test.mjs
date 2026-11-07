@@ -149,6 +149,20 @@ test('newly connected tools receive the existing reason a development update is 
   }finally{f.worker.dispose();}
 });
 
+test('official Page packages update discovery without retiring live previews or granting execution',async()=>{
+  const f=workerFixture();
+  try{
+    await f.connect();f.start();await until(()=>f.reads>1);
+    f.change('official-pages/opendesk.ai-scroll-navigation/opendesk.ai-scroll-navigation.opendesk-page.json','page-r13');
+    f.change('official-pages/catalog.json','page-catalog-r13');
+    await until(()=>f.messages.some(message=>message.type==='revision'&&message.revision===revision(3)));
+    assert.equal(f.reloads,0);assert.equal(f.messages.some(message=>message.type==='prepare'),false);
+    for(const file of ['official-pages/opendesk.ai-scroll-navigation/trusted.js',
+      'official-pages/opendesk.ai-scroll-navigation/other.opendesk-page.json'])
+      assert.equal(developmentChanges({files:{}},{files:{[file]:'new'}}).extension,true,file);
+  }finally{f.worker.dispose();}
+});
+
 test('background waits for idle, freezes admissions, acknowledges draft and reloads only once',async()=>{
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.worker.held,true);const reads=f.reads;await new Promise(resolve=>setTimeout(resolve,50));assert.equal(f.reloads,1);assert.equal(f.reads,reads);f.worker.dispose();

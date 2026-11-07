@@ -15,7 +15,7 @@ test('new Mind Map is an independent ChatGPT-only Page Program',()=>{
   assert.match(source,/const PROGRAM_ID='opendesk\.ai-reply-mindmap'/);
   assert.match(source,/id:PROGRAM_ID\+'\.lifecycle'/);
   assert.match(source,/return \{programId:PROGRAM_ID,status:'active'/);
-  assert.match(source,/programRevision:\{version:'0\.2\.7',revision:1\}/);
+  assert.match(source,/programRevision:\{version:'0\.2\.7',revision:3\}/);
   assert.doesNotMatch(source,/opendesk\.chatgpt-mindmap/);
 });
 

@@ -6,7 +6,7 @@ import type { UiLocalePreference } from './i18n/locale';
 import { useEffect, useRef, useState } from 'react';
 import { copyableOptionsHash, optionsHash, parseOptionsHash, parseSubscriptionRoute, subscriptionRouteHash,
   type OptionsSection, type SubscriptionRoute } from './ui/optionsRoute';
-import { OptionsPageHeader } from './ui/OptionsShell';
+import { OptionsPageHeader, OptionsNavIcon } from './ui/OptionsShell';
 import { ProxyIcon } from './ui/ProxyIcon';
 import { FormField } from './ui/FormField';
 import { BACKUP_MAX_BYTES, BackupImportValidationError, parseBackupForImport } from './ui/backupImport';
@@ -25,7 +25,7 @@ import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/confi
 type Page = OptionsSection;
 const emptyEndpoint = {name:'', scheme:'http' as ProxyScheme,host:'',port:''};
 
-export default function App({onClose,navigationBusy=false}:{onClose?:()=>void;navigationBusy?:boolean}={}) {
+export default function App({onClose,navigationBusy=false,presentation='sidebar'}:{onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management'}={}) {
   const { t, preference, setPreference } = useI18n();
   const modes:{mode:RouteMode;name:string}[]=[
   // Keep the same primary action order as the persistent R8.3 Side Panel.
@@ -491,7 +491,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className="optionsHead">
-      <nav className="settingsSectionNav" aria-label={t('settingsSections')}>
+      {presentation==='management'?<h2 className="managementTitle">{t('apManageSettings')}</h2>:<nav className="settingsSectionNav" aria-label={t('settingsSections')}>
         <label htmlFor="settings-section" className="settingsSectionLabel">{t('settingsSections')}</label>
         <select id="settings-section" aria-label={t('settingsSections')} value={tab} disabled={busy}
           onChange={event=>navigate(event.target.value as Page)}>
@@ -500,7 +500,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           </optgroup>
           <optgroup label={t('optionalServices')}><option value="official">{t('officialNetwork')} · {t('officialOptional')}</option></optgroup>
         </select>
-      </nav>
+      </nav>}
+      {presentation==='management'?<Button className="settingsRefresh" disabled={busy} onClick={()=>void refresh()}><ProxyIcon name="refresh"/>{t('refreshStatus')}</Button>:<>
       <details className="settingsMore"><summary title={t('copyPageLink')+' / '+t('refreshStatus')} aria-label={t('copyPageLink')+' / '+t('refreshStatus')}><ProxyIcon name="more"/></summary><div className="optionsHeadActions">
         <Button type="button" className="optionsCopyLink" aria-label={copiedPageLink?t('pageLinkCopied'):t('copyPageLink')}
           title={t('copyPageLink')} onClick={() => void copyCurrentPageLink()}>
@@ -512,8 +513,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       </div></details>
       <Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
         title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>
+      </>}
     </header>
     <div className="layout">
+      {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
+        {tabs.map(item=><Button key={item.id} disabled={busy||navigationBusy}
+          className={item.id==='official'?'managementOptional':''} aria-current={tab===item.id?'page':undefined}
+          onClick={()=>navigate(item.id)}><OptionsNavIcon section={item.id}/><span>{item.name}</span>
+          {item.id==='official'&&<small>{t('officialOptional')}</small>}</Button>)}
+      </nav>}
       <section ref={sectionContent} className={'panel optionsContent optionsContent--' + tab}>
         {pageLinkCopyFailed && <p className="notice error" role="alert">{t('pageLinkCopyFailed')}</p>}
         {copiedPageLink && <p className="settingsCopyFeedback" role="status">{t('pageLinkCopied')}</p>}

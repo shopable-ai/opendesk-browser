@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1b5ac-ffcc-74f0-b4dd-f45d49bd3b19",
+  "date": "2026-11-07",
+  "timezone": "Asia/Shanghai",
+  "scope": "Read-only preservation of the user's already-sent Baidu reference and file baseline before design review; file operations remain the main task",
+  "observationKind": "CUA visible accessibility text and read-only filesystem/process checks; no raw listener events or Native dispatch counters",
+  "source": {
+    "application": "/Users/shopme/Applications/Google Chrome.app",
+    "pid": 57348,
+    "url": "https://chatgpt.com/c/6aef0427-02ac-83ec-89d0-75c5bbf7ff24",
+    "title": "提交百度搜索任务",
+    "userPrompt": "请通过 OpenDesk 执行百度搜索，搜索词为 OpenDesk Browser，取得前三条自然网页结果。\n\n本次回答请仅输出一个语言标记为 opendesk-task 的 JSON 代码块，将下面完整 JSON 原样放入代码块，不添加说明或其他代码块，也不要自行调用联网搜索：\n\n{\"protocol\":\"webflow.task.intent.v1\",\"candidateId\":\"wf-7bc39908-2fd8-4a82-9de5-4f3aa1a0afb1\",\"taskId\":\"baidu.search.top3\",\"targetUrl\":\"https://www.baidu.com/\",\"args\":{\"query\":\"OpenDesk Browser\",\"limit\":3}}\n\n这项“仅输出代码块”的要求只适用于当前回答。之后收到 OpenDesk 回传的真实任务结果时，请根据结果整理前三条的标题、网址和摘要，并继续回答。收到结果之前，不要编造搜索结果或声称任务完成。",
+    "assistantResponse": "```opendesk-task\n{\"protocol\":\"webflow.task.intent.v1\",\"candidateId\":\"wf-7bc39908-2fd8-4a82-9de5-4f3aa1a0afb1\",\"taskId\":\"baidu.search.top3\",\"targetUrl\":\"https://www.baidu.com/\",\"args\":{\"query\":\"OpenDesk Browser\",\"limit\":3}}\n```",
+    "responseBoundary": "One visible user message and one complete code response with reply actions; no subsequent result message",
+    "composer": "empty",
+    "candidateWasResent": false,
+    "baiduTabObserved": true,
+    "baiduTabIsExecutionProof": false
+  },
+  "visibleRuntime": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "webflowInstalledVersion": "0.3.9",
+    "autoRun": "on",
+    "listener": "需要刷新当前对话",
+    "listenerExplanation": "当前对话的监听连接已断开或版本已更新。先核对原请求，再恢复连接。",
+    "safeRefresh": "disabled: 无法确认页面草稿、输入法和在途操作，暂不能安全刷新。",
+    "currentSourceLedgerRows": 0,
+    "ledgerCaveat": "未找到记录不代表旧任务未执行；不会重跑或补发。",
+    "fixedTaskAvailability": "2 项固定任务不可用或版本变化",
+    "exactHistoricalIngressStage": "UNKNOWN: current disconnected listener and zero scoped ledger rows cannot reconstruct the original dispatch stage",
+    "serveClientConnected": "NOT_VERIFIED",
+    "loadedRuntimeFingerprint": "NOT_VERIFIED",
+    "nativeConnected": "NOT_VERIFIED"
+  },
+  "environment": {
+    "branch": "main",
+    "head": "fcfc32a10ab656133547c43e46818c9a8e63c163",
+    "initialWorkingTree": "clean",
+    "devWriterPid": 87598,
+    "devPort": 43120,
+    "devPortListening": true,
+    "newWriterStarted": false,
+    "chromeNativeManifest": {
+      "path": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "host": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+      "allowedOrigins": [
+        "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+      ]
+    },
+    "cftNativeManifestIsDifferentHost": "/Users/shopme/.opendesk-browser/native-agent-instances/scrapyjs-react-01a186cc/native-host",
+    "pairingCaveat": "Manifest observation is not a doctor/local.extensionId or live Native connection proof; no pairing was changed"
+  },
+  "fileBaseline": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt",
+    "bytes": 65,
+    "content": "OpenDesk local file test\nstatus=chain-verified-20261106-01a1afe0\n",
+    "sha256": "fad1a276d529db3eea85ed4cd0954226fe1792065ad3b2f622a92366f97f9a8a",
+    "shellWrites": false
+  },
+  "resourceHandling": {
+    "uiLeaseAcquiredByThisOwner": true,
+    "uiLeaseReleased": true,
+    "userChangeSignalObserved": true,
+    "furtherActionsAfterSignal": "Only one fresh read of unchanged AX state; no further clicks",
+    "finalVisibleUi": "运行与授权 → 当前任务",
+    "messagesSent": 0,
+    "productSettingsChanged": false
+  },
+  "status": "SITE_PRESERVED; SOURCE_AND_SIMULATED_CHAIN_PASS; BROWSER_FILE_FLOW_PENDING",
+  "designReviews": [
+    {
+      "reviewer": "Dirac",
+      "agentId": "01a1b5ae-9b5b-78e0-bacf-c9f0d6c8c934",
+      "score": 97,
+      "breakdown": [
+        30,
+        25,
+        20,
+        13,
+        9
+      ],
+      "blockers": []
+    },
+    {
+      "reviewer": "Godel",
+      "agentId": "01a1b5ae-9c48-77e2-9d74-aea91644c495",
+      "score": 98,
+      "breakdown": [
+        30,
+        25,
+        20,
+        14,
+        9
+      ],
+      "blockers": []
+    }
+  ],
+  "sourceReview": {
+    "status": "SOURCE_REVIEW_PASS",
+    "blobs": {
+      "chatgpt-files-controller.js": "191444d3dbd8e091cf2275249767c8b900b110bc",
+      "chatgpt-files-service.js": "9b1520dd9d1a19b15bdc88250f486a5f6aad9cce",
+      "chatgpt-file-intent-page.js": "96f8ea7753ee55fde54f134c5f8919b8f6555b8e",
+      "chatgpt-files-ui.js": "3a8063a2659e194800ce797846ab2e8a95471317"
+    },
+    "notRuntimeProof": true
+  },
+  "verification": {
+    "projectTests": {
+      "pass": 178,
+      "browserOrNativeReal": false
+    },
+    "platformTests": {
+      "pass": 94,
+      "browserOrNativeReal": false
+    },
+    "provenanceTests": {
+      "pass": 4
+    },
+    "realFileFlow": "FAILED_FIRST_ATTEMPT; minimal prompt repair awaiting loaded-runtime retest"
+  },
+  "liveEnvironmentObservation": {
+    "application": "/Users/shopme/Applications/Google Chrome.app",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "serve": "connected before config refresh",
+    "loadedRevision": "8e09eb27d8aded7725a114008dee771cd695bd25227fc38e22dff879d6e9067b",
+    "nativeUi": "enabled; Host connected; 2 registered workspaces",
+    "doctor": {
+      "connected": false,
+      "socketExists": false,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+    },
+    "discrepancy": "UI/doctor do not prove actual files dispatch. Both wrappers invoke same app binary; no pairing change."
+  },
+  "currentConnection": {
+    "connectionId": "fda9359097a20fb55d8fc02ca6557bcc",
+    "ready": true,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "workspaceId": "workspace-8c5d4021-f13c-4a2f-8eb0-d8cf2bff1f0e",
+    "workspacePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace",
+    "access": "read-write",
+    "grantEstablishedBy": "original CLI browser --connection ... workspace add",
+    "reason": "existing legacy fixture grant did not exist in the current connection; only exact single-file fixture directory registered",
+    "pairingChanged": false,
+    "nativeCodeChanged": false
+  },
+  "browserFileFlow": {
+    "url": "https://chatgpt.com/c/6aef1005-3824-83e8-9c69-c9792ac8816a",
+    "newTestConversation": true,
+    "baselineMessage": "请只回复：准备好了。",
+    "baselineReply": "准备好了。",
+    "diagnosticsDisplayEnabledForTest": true,
+    "readRound": {
+      "protocol": "opendesk.workspace.request.v1",
+      "requestId": "42f6b2d2-d0ed-407b-b0c0-e6fd5a0d5ce2",
+      "bindingId": "93bc95ac-2c36-44cd-b57c-6f60c74f82dc",
+      "workspaceId": "workspace-8c5d4021-f13c-4a2f-8eb0-d8cf2bff1f0e",
+      "operation": "read",
+      "path": "demo.txt",
+      "promptFilledByProduct": true,
+      "promptSentByNativeTrustedClick": true,
+      "manualInspectUsed": false,
+      "status": "FAILED_BEFORE_FILE_DISPATCH: original discovery rejected the send witness",
+      "assistantReturnedExactSixFieldRequest": true,
+      "listenerVisibleDiagnostic": "当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。",
+      "renderedUserText": "read-only DevTools DOM inspection showed the user-side Markdown fences and language marker absent",
+      "stop": "trusted disclosure checkbox unchecked; automatic processing visibly paused",
+      "retried": false
+    },
+    "retestSource": {
+      "url": "https://chatgpt.com/c/6aef13ae-0f1c-83ee-85e2-f6169316ab73",
+      "baselineUser": "请只回复：文件链复测准备好了。",
+      "baselineAssistant": "文件链复测准备好了。",
+      "requestPrepared": false
+    }
+  },
+  "buildEvidence": {
+    "writerPid": 87598,
+    "markerRevision": "2b992e073dfee5173c40583010d29af12ebe6a39ca9da97d7d8aea7bb3f8b613",
+    "mapsEqualCurrentSources": [
+      "chatgpt-files-controller.js",
+      "chatgpt-files-service.js",
+      "chatgpt-file-intent-page.js",
+      "chatgpt-files-ui.js",
+      "file-workspace-service.js",
+      "workspace-chatgpt.js"
+    ],
+    "notChromeLoadedProof": true
+  },
+  "promptRepair": {
+    "cause": "generated user prompt used Markdown fences; sent DOM text differs from witnessed draft; original discovery strict equality intentionally preserved",
+    "regression": "actual generated prompt through original bridge/service/controller, simple and nested paths; quoted task with emphasis, HTML/entity/link/code punctuation, backslash/newline; decoded request/task equality; 178 related project tests passed",
+    "guardWeakened": false,
+    "runtimeRetest": "PENDING",
+    "independentReviewFound": "plain paragraph alone still loses Markdown punctuation and escaped quote/slash; first candidate rejected 92/100 without repin",
+    "fix": "encode Markdown-sensitive characters within JSON string tokens with equivalent Unicode escapes; keep structure and all decoded fields unchanged",
+    "review": {
+      "reviewer": "Aquinas",
+      "agentId": "01a1b5e2-8a35-7f63-a2e3-5bc93facb29a",
+      "score": 98,
+      "breakdown": [
+        30,
+        25,
+        20,
+        15,
+        8
+      ],
+      "blockers": [],
+      "realMarkdownRendering": "4/4 exact prompt text and decoded values",
+      "notRuntimeProof": true
+    }
+  },
+  "devWriterRecovery": {
+    "previousPid": 87598,
+    "observedAlive": false,
+    "ports43119and43120": "no LISTEN",
+    "lock": "stale previous PID, left for original acquireDevelopmentLock to recover",
+    "newWriterStarted": false
+  }
+}

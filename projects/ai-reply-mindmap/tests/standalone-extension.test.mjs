@@ -306,7 +306,7 @@ test('local build labels every artifact, verifies four original SHAs and retains
   assert.throws(() => guardSnowbrush(Buffer.from('eval(task);eval(task)')));
   const inputs = result.inputs.map(input => input.path);
   for (const name of ['answer-registry.js', 'view.js', 'xmind-frame.js', 'xmind-frame-child.js', 'export.js']) {
-    assert(inputs.includes('projects/chatgpt-mindmap/src/' + name));
+    assert(inputs.includes('projects/ai-reply-mindmap/src/' + name));
   }
   assert(!inputs.some(path => path.startsWith('src/') || path.includes('vendor/') || path.includes('node_modules/')));
   const content = await readFile(join(out, 'content.js'), 'utf8');

@@ -1,5 +1,7 @@
 # Examples 目录归属与安全迁移审计（2026-11-02）
 
+**2026-11-08 路径补记：** 用户授权将导图正式 owner 从 `projects/chatgpt-mindmap/` 整体更名为 [`projects/ai-reply-mindmap/`](../projects/ai-reply-mindmap/README.zh-CN.md)。下表及原审计保留 11/02 的历史观察，当前入口使用新目录；旧 examples 资源、安装身份和许可限制没有因此清理或变更。
+
 **审计源：** GitHub main 的 8edcf7a6e6700cec0892f604bd6fd1965f4557c3；只记录本次可见源码、配置、Git 树、README、官方 Catalog、现有定向测试和 Actions。此文档不是安装证据，不能证明所有本机脚本调用者或外部 pin 已被穷尽。下一轮迁移前必须重新核对新的 HEAD 和所有消费者。
 
 **目标：** 每个目录有清晰的职责；保护已安装工具/任务的 ID、version、sourceHash、授权、Web Flow 结果归属，以及正在并行开发的文件。上一轮 e80c64bc87dc04ae4f3a6aaad655bd07ae11db2c 已改名 browser-sdk-r2、browser-sdk-r13、runtime-globals-demo，迁出 browser-sdk-acceptance 并删除四个历史 app-* 样本；不要重做。

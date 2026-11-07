@@ -12,7 +12,8 @@ export function validDefaultPreinstallMarker(row){
     !['pending','complete','attention','skipped-existing'].includes(row.state)||
     typeof row.extensionVersion!=='string'||!Array.isArray(row.completed)||
     !row.completed.every(id=>typeof id==='string')||
-    !(row.plan===null||Array.isArray(row.plan)))
+    !(row.plan===null||Array.isArray(row.plan))||
+    (row.pageState!==undefined&&!['pending','complete','attention'].includes(row.pageState)))
     throw error('默认预装标记损坏，已停止自动恢复');
   return row;
 }
@@ -27,7 +28,8 @@ export async function registerDefaultPreinstall({api,lockManager,reason}){
     const historical=historyKeys.some(key=>saved[key]!==undefined&&
       (key===REGISTRY||saved[key]&&typeof saved[key]==='object'&&Object.keys(saved[key]).length>0));
     const marker={schema:DEFAULT_PREINSTALL_STORE,state:historical?'skipped-existing':'pending',
-      extensionVersion:api.runtime.getManifest().version,plan:null,completed:[]};
+      extensionVersion:api.runtime.getManifest().version,plan:null,completed:[],
+      pageState:historical?'complete':'pending'};
     let failure=null;
     try{await api.storage.local.set({[DEFAULT_PREINSTALL_STORE]:marker});}
     catch(e){failure=e;}
@@ -36,7 +38,7 @@ export async function registerDefaultPreinstall({api,lockManager,reason}){
     catch(e){throw error('无法确认默认初始化状态写入','E_OUTCOME_UNKNOWN');}
     // Confirm semantic state, independent of Chrome's object-key reordering.
     if(actual?.schema===marker.schema&&actual?.state===marker.state&&
-      actual?.extensionVersion===marker.extensionVersion&&actual.plan===null&&
+      actual?.extensionVersion===marker.extensionVersion&&actual.pageState===marker.pageState&&actual.plan===null&&
       Array.isArray(actual.completed)&&actual.completed.length===0)
       return {state:marker.state};
     throw error(failure?'默认初始化状态写入失败':'默认初始化状态写入结果未知',

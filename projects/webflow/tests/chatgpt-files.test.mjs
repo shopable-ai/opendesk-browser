@@ -7,11 +7,12 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
 const source={tabId:7,documentId:'source-doc',url:'https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456',windowId:3};
 const owner={id:'extension',url:'chrome-extension://extension/native-agent/settings.html#chatgpt-files',frameId:0,documentId:'owner-doc',tab:{id:51,windowId:3}};
-function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initialContent='safe original\n'}={}){
+function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initialContent='safe original\n',simulateDiscovery=true}={}){
   let userText='',content=initialContent,answer,reads=0,writes=0,fills=0,epoch='',access='read-write',sessionId='native-session-123456',turnKey='turn-1',answerKey='answer-1',complete=true,observed=false,taskIntentPresent=false,readError,afterReadError;
   const storage={async get(key){return {[key]:ledger[key]};},async set(value){Object.assign(ledger,structuredClone(value));}};
   const files={state:()=>({connected:true,sessionId,devLeaseEpoch:1}),async request(method,params,expected){
     assert.equal(expected.sessionId,sessionId);
+    expected.beforeDispatch?.();
     if(method==='workspaces.list')return {workspaces:[{workspaceId,name:'isolated-test',access,sourceId:'',leaseEpoch:epoch}]};
     assert.equal(params.workspaceId,workspaceId);assert.equal(params.leaseEpoch,epoch);
     if(method==='files.read'){reads++;if(afterReadError){readError=afterReadError;afterReadError=null;}return {workspaceId,path:params.path,content,bytes:Buffer.byteLength(content),sha256:sha(content)};}
@@ -21,27 +22,130 @@ function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initial
     if(method==='files.list')return {workspaceId,path:params.path,entries:[],truncated:false};
     throw Error(method);
   }};
-  const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path},storage:{local:storage},
+  const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,
+    async getContexts({documentIds}){return (documentIds||[]).map(documentId=>({contextType:'TAB',documentId,documentUrl:owner.url,tabId:owner.tab.id,frameId:0,incognito:false}));}},storage:{local:storage,session:{...storage,async setAccessLevel(){}}},
     tabs:{async get(){return {id:7,windowId:3,url:source.url};}},webNavigation:{async getFrame(){return {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
   const readAnswer=async(_api,_source,_id,options={})=>{if(readError){const error=readError;readError=null;throw error;}return ({url:source.url,turnKey,answerKey,answerComplete:complete,
-    resultObserved:observed,...(options.readUserMessage?{userText,...(options.identityOnly?{taskIntentPresent}:{})}:{}),blocks:[answer]});};
+    resultObserved:observed,...(options.readUserMessage?{userText,...(options.identityOnly?{taskIntentPresent}:{})}:{}),
+    ...(options.eventText?{readerEpoch:'reader-epoch-12345678',userText,answerText:answer}:{}),blocks:[answer]});};
   const controller=createChatGPTFilesController({api,files,readAnswer,fillComposer:async()=>{fills++;if(fillError)throw fillError;if(fillUnknown)throw {code:'E_CHAT_FILL_UNKNOWN',outcome:'OUTCOME_UNKNOWN'};return {filled:true,sent:false};}});
   controller.claim({source,workspaceTab:owner.tab},owner);
   let last;
+  let prepared=false,revision=0,baselineTurn;
+  const event=()=>({protocol:CHATGPT_PROJECT_PROTOCOL,action:'fixed-complete',readerEpoch:'reader-epoch-12345678',turnKey,answerKey,
+    userSha256:sha(userText),answerSha256:sha(answer)});
   const call=async(action,extra={},sender=owner)=>{
     const bound=action==='approve'?{reviewId:last?.proposal?.reviewId}:action==='fill'?{packetId:last?.[extra.packet==='prompt'?'promptPacketId':'resultPacketId']}:{};
-    return last=await controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action,...bound,...extra},sender);
+    // This unit driver supplies a separate observed event. Raw poll coverage
+    // disables it; the original bridge/service integration has its own fixture.
+    if(simulateDiscovery&&prepared&&['inspect','poll'].includes(action)&&complete&&answer?.startsWith('{')&&
+      !last?.proposal&&!['completed','paused'].includes(last?.automation.phase)&&(action==='inspect'||turnKey!==baselineTurn)){
+      if(turnKey===baselineTurn)turnKey='fixed-turn-'+(++revision);
+      try{await controller.fixedComplete(event(),{id:'extension',frameId:0,documentId:source.documentId,url:source.url,tab:{id:7,windowId:3}});}
+      catch(error){if(!['E_CHAT_STREAMING','E_CHAT_PENDING','E_CHAT_INCOMPLETE'].includes(error.code))throw error;return last;}
+    }
+    last=await controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action,...bound,...extra},sender);
+    if(action==='prepare'){prepared=true;baselineTurn=turnKey;}
+    return last;
   };
   const prepare=async(path='demo.txt',operation='read',allowEdit=true)=>{
     const state=await call('prepare',{workspaceId,path,operation,allowEdit,task:'test'});answer=JSON.stringify(state.request);return state;
   };
   const proposal=async()=>{await prepare();const state=await call('inspect');
     const result=JSON.parse(state.resultText.slice(state.resultText.indexOf('{')));
+    observed=true;turnKey='edit-turn-'+(++revision);answerKey='edit-answer-'+revision;
     answer=JSON.stringify({...result.editProposal,content:'safe modified\n'});
     await call('inspect');};
-  return {userText:value=>{userText=value;},taskIntent:value=>{taskIntentPresent=value;},call,prepare,proposal,controller,api,files,readAnswer,ledger,answer:value=>{answer=value;},content:value=>{content=value;},
-    epoch:value=>{epoch=value;},access:value=>{access=value;},session:value=>{sessionId=value;},turn:value=>{turnKey=value;},revision:value=>{answerKey=value;},complete:value=>{complete=value;},observed:value=>{observed=value;},readError:value=>{readError=value;},afterReadError:value=>{afterReadError=value;},counts:()=>({reads,writes,fills}),text:()=>content};
+  return {fillError:value=>{fillError=value;},userText:value=>{userText=value;},taskIntent:value=>{taskIntentPresent=value;},call,prepare,proposal,controller,api,files,readAnswer,ledger,answer:value=>{answer=value;},content:value=>{content=value;},
+    event,epoch:value=>{epoch=value;},access:value=>{access=value;},session:value=>{sessionId=value;},turn:value=>{turnKey=value;},revision:value=>{answerKey=value;},complete:value=>{complete=value;},observed:value=>{observed=value;},readError:value=>{readError=value;},afterReadError:value=>{afterReadError=value;},counts:()=>({reads,writes,fills}),text:()=>content};
 }
+test('a verified pre-insertion prompt failure permits only an explicit retry of the same packet',async()=>{
+  const h=setup({fillError:{code:'E_CHAT_COMPOSER',message:'no composer',outcome:'NOT_DISPATCHED'}});
+  try{
+    const initial=await h.prepare();
+    const retry=await h.call('fill',{packet:'prompt'});
+    assert.equal(retry.promptDelivery,'ready');assert.equal(retry.promptPacketId,initial.promptPacketId);
+    assert.deepEqual(retry.request,initial.request);assert.equal(retry.automation.phase,'approved');
+    const key='fill:'+initial.promptPacketId,entry=h.ledger['opendesk.chatgpt.files.writes.v1'][key];
+    assert.equal(entry.state,'failed');assert.equal(entry.failure.outcome,'NOT_DISPATCHED');
+    await assert.rejects(h.prepare(),{code:'E_FILE_DELIVERY_UNKNOWN'});
+    await h.call('poll');assert.deepEqual(h.counts(),{reads:0,writes:0,fills:1});
+    h.fillError(null);
+    const filled=await h.call('fill',{packet:'prompt',packetId:initial.promptPacketId});
+    assert.equal(filled.promptDelivery,'filled');assert.deepEqual(filled.request,initial.request);
+    assert.equal(h.ledger['opendesk.chatgpt.files.writes.v1'][key].state,'confirmed');
+    await assert.rejects(h.call('fill',{packet:'prompt'}),{code:'E_FILE_REPLAY'});
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:2});
+  }finally{h.controller.dispose();}
+});
+test('uncertain or unclassified prompt failures retain the original persistent replay fence',async()=>{
+  for(const outcome of ['OUTCOME_UNKNOWN',undefined]){
+    const error={code:'E_CHAT_COMPOSER',message:'unverified response',...(outcome?{outcome}:{})};
+    const h=setup({fillError:error});
+    try{
+      const initial=await h.prepare();
+      await assert.rejects(h.call('fill',{packet:'prompt'}),{code:error.code});
+      assert.equal((await h.call('state')).promptDelivery,'unknown');
+      await assert.rejects(h.call('fill',{packet:'prompt'}),{code:'E_FILE_REPLAY'});
+      await assert.rejects(h.prepare(),{code:'E_FILE_DELIVERY_UNKNOWN'});
+      assert.equal(h.ledger['opendesk.chatgpt.files.writes.v1']['fill:'+initial.promptPacketId].state,'unknown');
+      assert.deepEqual(h.counts(),{reads:0,writes:0,fills:1});
+    }finally{h.controller.dispose();}
+  }
+});
+test('retrying a definite prompt failure still rechecks the exact Native authority',async()=>{
+  const h=setup({fillError:{code:'E_CHAT_COMPOSER',outcome:'NOT_DISPATCHED'}});
+  try{
+    await h.prepare();await h.call('fill',{packet:'prompt'});h.fillError(null);h.access('read-only');
+    await assert.rejects(h.call('fill',{packet:'prompt'}),{code:'E_FILES_SESSION'});
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:1});
+  }finally{h.controller.dispose();}
+});
+test('a persisted definite prompt failure survives worker restart without allocating another request',async()=>{
+  const h=setup({fillError:{code:'E_CHAT_COMPOSER',outcome:'NOT_DISPATCHED'}});
+  const original=await h.prepare();await h.call('fill',{packet:'prompt'});h.controller.dispose();
+  let fills=0;
+  const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer,
+    fillComposer:async(_api,_source,_text,{operationId})=>{assert.equal(operationId,original.promptPacketId);fills++;}});
+  try{
+    const state=await resumed.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'state'},owner);
+    assert.equal(state.promptDelivery,'ready');assert.deepEqual(state.request,original.request);
+    await resumed.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'fill',packet:'prompt',packetId:original.promptPacketId},owner);
+    assert.equal(fills,1);assert.equal(h.counts().reads,0);assert.equal(h.counts().writes,0);
+  }finally{resumed.dispose();}
+});
+test('failure-proof storage loss never makes an unknown prompt retryable',async()=>{
+  const h=setup({fillError:{code:'E_CHAT_COMPOSER',outcome:'NOT_DISPATCHED'}});
+  try{
+    const original=await h.prepare(),set=h.api.storage.local.set;
+    h.api.storage.local.set=async value=>{
+      if(value['opendesk.chatgpt.files.writes.v1']?.['fill:'+original.promptPacketId]?.state==='failed')throw Error('failure proof unavailable');
+      return set(value);
+    };
+    await assert.rejects(h.call('fill',{packet:'prompt'}),/failure proof unavailable/);
+    assert.equal((await h.call('state')).promptDelivery,'unknown');
+    await assert.rejects(h.call('fill',{packet:'prompt'}),{code:'E_FILE_REPLAY'});
+    assert.equal(h.ledger['opendesk.chatgpt.files.writes.v1']['fill:'+original.promptPacketId].state,'unknown');
+    assert.equal(h.counts().fills,1);
+  }finally{h.controller.dispose();}
+});
+test('loss of the entire prompt failure entry cannot turn a retry into a first fill or a fresh request',async()=>{
+  for(const restart of [false,true]){
+    const h=setup({fillError:{code:'E_CHAT_COMPOSER',outcome:'NOT_DISPATCHED'}});
+    const original=await h.prepare();await h.call('fill',{packet:'prompt'});
+    delete h.ledger['opendesk.chatgpt.files.writes.v1']['fill:'+original.promptPacketId];
+    let fills=0,controller=h.controller;
+    if(restart){h.controller.dispose();controller=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer,
+      fillComposer:async()=>{fills++;}});}
+    try{
+      await assert.rejects(controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'fill',packet:'prompt',
+        packetId:original.promptPacketId},owner),{code:'E_FILE_DELIVERY_UNKNOWN'});
+      await assert.rejects(controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'prepare',workspaceId,
+        path:'demo.txt',operation:'read'},owner),{code:'E_FILE_DELIVERY_UNKNOWN'});
+      assert.equal(fills,0);assert.deepEqual(h.counts(),{reads:0,writes:0,fills:1});
+    }finally{controller.dispose();}
+  }
+});
 test('backend refuses file admission when the independently read reply contains a Task candidate',async()=>{
   const h=setup();h.userText('读取 isolated-test 项目 demo.txt，只读');h.controller.dispose();
   const controller=createChatGPTFilesController({api:h.api,files:h.files,
@@ -57,6 +161,43 @@ test('web content cannot call the trusted controller or grant itself a directory
   await assert.rejects(h.call('prepare',{workspaceId,path:'../secret.txt',operation:'read'}),{code:'E_FILES_PATH'});
   assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
 });
+test('fixed poll and alarm cannot discover a historical answer without the original event',async()=>{
+  const h=setup({simulateDiscovery:false});await h.prepare('demo.txt','read',false);h.turn('turn-without-witness');
+  await h.call('poll');await h.controller.tick();
+  assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+});
+test('a completed fixed event cannot block a new owner round or replay old effects',async()=>{
+  const h=setup({simulateDiscovery:false});
+  const first=await h.prepare('demo.txt','read',false);h.turn('first-round');h.answer(JSON.stringify(first.request));
+  const oldEvent=h.event();await h.controller.fixedComplete(oldEvent,pageSender);await h.controller.tick();
+  assert.deepEqual(h.counts(),{reads:1,writes:0,fills:1});
+  const nextOwner={...owner,documentId:'second-owner-doc',tab:{id:52,windowId:3}};
+  h.api.runtime.getContexts=async({documentIds})=>documentIds.map(documentId=>({contextType:'TAB',documentId,documentUrl:owner.url,
+    tabId:documentId===nextOwner.documentId?52:51,frameId:0,incognito:false}));
+  await h.controller.claim({source,workspaceTab:nextOwner.tab},nextOwner);
+  const next=await h.controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'prepare',workspaceId,path:'demo.txt',operation:'read'},nextOwner);
+  h.turn('second-round');h.answer(JSON.stringify(next.request));
+  assert.notEqual(first.request.requestId,next.request.requestId);
+  await h.controller.fixedComplete(h.event(),pageSender);await h.controller.tick();
+  const before=h.counts();assert.deepEqual(before,{reads:2,writes:0,fills:2});
+  assert.equal((await h.controller.fixedComplete(oldEvent,pageSender)).status,'completed');
+  assert.equal((await h.controller.fixedStatus({...oldEvent,action:'fixed-status'},pageSender)).status,'completed');
+  await h.controller.tick();assert.deepEqual(h.counts(),before);
+});
+test('worker recovery invalidates the old review and requires a newly displayed concrete approval',async()=>{
+  const h=setup();await h.proposal();const old=(await h.call('state')).proposal.reviewId;
+  h.controller.dispose();
+  const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
+  const call=(action,extra={})=>resumed.handle({protocol:CHATGPT_FILES_PROTOCOL,action,...extra},owner);
+  try{
+    await assert.rejects(call('approve',{reviewId:old}),{code:'E_FILE_PAUSED'});assert.equal(h.counts().writes,0);
+    const current=await call('state');assert.ok(current.proposal.reviewId);assert.notEqual(current.proposal.reviewId,old);
+    assert.equal(current.automation.phase,'paused');assert.equal(current.canApprove,true);
+    await assert.rejects(call('approve',{reviewId:old}),{code:'E_FILE_REVIEW'});assert.equal(h.counts().writes,0);
+    const done=await call('approve',{reviewId:current.proposal.reviewId});
+    assert.equal(done.result.data.saved,true);assert.equal(done.result.data.readBackVerified,true);assert.equal(h.counts().writes,1);
+  }finally{resumed.dispose();}
+});
 test('first manual project connection rejects a current Task reply before file I/O',async()=>{
   const h=setup();
   await h.controller.projectTask({task:projectTask},pageSender);
@@ -69,7 +210,7 @@ test('locked read refuses a model-chosen path and reads only approved bytes',asy
   const h=setup(),state=await h.prepare();h.answer(JSON.stringify({...state.request,path:'other.txt'}));
   await assert.rejects(h.call('inspect'),{code:'E_FILE_SCOPE'});assert.equal(h.counts().reads,0);
   h.answer(JSON.stringify(state.request));const result=await h.call('inspect');assert.match(result.resultText,/safe original/);
-  await assert.rejects(h.call('inspect'),{code:'E_FILE_REPLAY'});assert.equal(h.counts().reads,1);
+  await assert.rejects(h.call('inspect'),{code:'E_FILE_EVENT'});assert.equal(h.counts().reads,1);
 });
 test('a fixed file reply containing a Task candidate cannot dispatch a read or write',async()=>{
   const read=setup();await read.prepare('demo.txt','read',false);read.turn('turn-2');read.taskIntent(true);
@@ -90,7 +231,8 @@ test('a file reply changed between full parsing and the conflict probe cannot di
   try{
     controller.claim({source,workspaceTab:owner.tab},owner);
     const state=await controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'prepare',workspaceId,path:'demo.txt',operation:'read'},owner);
-    h.answer(JSON.stringify(state.request));changed=true;
+    h.answer(JSON.stringify(state.request));h.turn('accepted-turn');
+    await controller.fixedComplete(h.event(),pageSender);changed=true;
     await assert.rejects(controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'inspect'},owner),{code:'E_CHAT_ANSWER'});
     assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
   }finally{controller.dispose();}
@@ -130,17 +272,18 @@ test('unknown write reconciliation shows different current bytes without claimin
 });
 test('the durable unknown fence survives service restart and blocks a new mutation ID for the same path',async()=>{
   const ledger={},first=setup({ledger,unknown:true});await first.proposal();await first.call('approve');first.controller.dispose();
-  const next=setup({ledger,initialContent:first.text()});await next.proposal();
-  await assert.rejects(next.call('approve'),{code:'E_FILE_UNKNOWN'});assert.equal(next.counts().writes,0);
+  const next=setup({ledger,initialContent:first.text()});
+  await assert.rejects(next.prepare(),{code:'E_FILE_UNKNOWN'});assert.equal(next.counts().writes,0);
   const reconciled=await next.call('reconcile');assert.match(reconciled.resultText,/"readBackVerified":true/);
-  assert.deepEqual(reconciled.comparison,{readBack:'safe modified\n'},'a new proposal cannot be presented as the interrupted write');
-  await assert.rejects(next.call('approve'),{code:'E_FILE_REPLAY'});assert.equal(next.counts().writes,0);
+  assert.equal(reconciled.comparison.readBack,'safe modified\n');
+  await assert.rejects(next.prepare(),{code:'E_FILE_UNKNOWN'},'readback cannot retire an unknown in-flight write');
+  await assert.rejects(next.call('approve'),{code:'E_FILE_PAUSED'});assert.equal(next.counts().writes,0);
 });
 test('read-only grants and a retired source document cannot dispatch writes',async()=>{
   const readOnly=setup();await readOnly.proposal();readOnly.access('read-only');
   await assert.rejects(readOnly.call('approve'),{code:'E_FILES_SESSION'});assert.equal(readOnly.counts().writes,0);
   const gone=setup();await gone.proposal();gone.controller.drop(source.tabId);
-  await assert.rejects(gone.call('approve'),{code:'E_FILE_OWNER'});assert.equal(gone.counts().writes,0);
+  await assert.rejects(gone.call('approve'),{code:'E_FILE_SOURCE'});assert.equal(gone.counts().writes,0);
 });
 test('result fills once and is never called sent merely because it was filled',async()=>{
   const h=setup();await h.prepare();await h.call('inspect');const filled=await h.call('fill',{packet:'result'});
@@ -226,7 +369,7 @@ test('two read-edit rounds finish after receipt fill and reject old confirmation
   for(let i=0;i<2;i++){
     const prepared=await h.prepare();h.turn(`write-read-${i}`);h.observed(false);
     const read=await h.call('poll');assert.equal(read.automation.active,true);
-    assert.equal(read.automation.phase,'watching');
+    assert.equal(read.automation.phase,'read-result-filled');
     assert.equal(read.result.editProposal.content,i?'changed-0\n':'safe original\n');
     if(previousRead){
       assert.notEqual(prepared.request.requestId,previousRead);assert.notEqual(read.resultPacketId,previousResult);
@@ -537,7 +680,7 @@ test('K6 ACK followed by ledger persistence failure retains the durable dispatch
     return set(value);
   };
   await h.controller.tick();
-  assert.deepEqual(failedStates,['confirmed','unknown']);assert.equal(h.counts().writes,1);
+  assert.deepEqual(failedStates,['confirmed-pending','unknown']);assert.equal(h.counts().writes,1);
   assert.equal(h.text(),'safe modified\n');assert.equal(h.counts().reads,3);
   const [entry]=Object.values(h.ledger[writeLedger]);assert.equal(entry.state,'dispatching');
   h.controller.dispose();h.api.storage.local.set=set;
@@ -571,7 +714,9 @@ test('K7 stop queued before wake prevents dispatch; stop during dispatch never r
   assert.equal(state.automation.active,false);assert.equal(stopped.counts().writes,0);stopped.controller.dispose();
 
   const h=setup();await projectProposal(h);const entered=deferred(),release=deferred(),request=h.files.request;
-  h.files.request=async(...args)=>{if(args[0]==='files.write'){entered.resolve();await release.promise;}return request(...args);};
+  h.files.request=async(...args)=>{if(args[0]==='files.write'){
+    const receipt=await request(...args);entered.resolve();await release.promise;return receipt;
+  }return request(...args);};
   const waking=h.controller.tick();await entered.promise;
   const stopping=h.controller.projectStop(pageSender),lateWake=h.controller.tick();release.resolve();
   const [,paused]=await Promise.all([waking,stopping,lateWake]);

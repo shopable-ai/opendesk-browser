@@ -1,0 +1,478 @@
+{
+  "kind": "webflow-home-current-source-preview",
+  "date": "2026-11-07",
+  "scope": "SOURCE_COMPONENTS_AND_OFFLINE_PREVIEW_WITH_MOCK_BOUNDARIES",
+  "outcome": "Current-worktree source preview and actual homepage UI improvements complete within the current component scope.",
+  "branch": "main",
+  "commitPush": "NOT_REQUESTED_NOT_PERFORMED",
+  "preview": {
+    "entry": "projects/webflow/preview/webflow-v0.3-preview.html",
+    "manifest": "projects/webflow/preview/webflow-v0.3-preview.manifest.json",
+    "candidateHash": "9022d3736c8e471dfbbdad7be45856a5c67d3936f64ae33b083607aa103412a6",
+    "htmlSHA": "16647c5fa13799f6bcf3d590c5ad209cd21a4da21cb054bcca38711563e76d59",
+    "sourceCommitAtGeneration": "fcfc32a10ab656133547c43e46818c9a8e63c163",
+    "sourceInputs": 102,
+    "productDocumentSHA": "afb90ef29d945a7071ee2da9891690be2f5b2978b531f7b92578dc62e1854ffa",
+    "fixtureJS": "0c5cf8d819c5837513791e0a7fa3540010ee63a4389909b1e671bdbd13e0ff84",
+    "fixtureCSS": "fb19877b3dc5d1ac6721e556faf2abf136a9ec733bb1445ccdf10076a8641577",
+    "applicationDocumentSHA": "e5d2cc8c199f4d7e5d10e22df9876ae53a2d4db0789cba86b5d8334f779e329c",
+    "sourceMode": "CURRENT_WORKTREE",
+    "historicalLayoutFiles": "UNUSED",
+    "sourceCheck": {
+      "level": "CURRENT_SOURCE_PARITY_AND_OFFLINE_SCOPE",
+      "candidateHash": "9022d3736c8e471dfbbdad7be45856a5c67d3936f64ae33b083607aa103412a6",
+      "htmlSha256": "16647c5fa13799f6bcf3d590c5ad209cd21a4da21cb054bcca38711563e76d59",
+      "sourceInputs": 102,
+      "sourceState": "MATCHES_CURRENT_WORKTREE",
+      "checks": [
+        "current source and dependency hashes",
+        "rebuilt trusted components and sandbox bytes",
+        "one source implementation without presentation patches",
+        "opaque sandbox; no network; external diagnostics"
+      ],
+      "visualInteraction": "SEPARATE_BROWSER_EVIDENCE",
+      "nativeChrome": "NOT_TESTED",
+      "production": "NOT_TESTED"
+    },
+    "renderedEvidenceReuse": {
+      "previousCandidateDocumentSHA": "afb90ef29d945a7071ee2da9891690be2f5b2978b531f7b92578dc62e1854ffa",
+      "currentCandidateDocumentSHA": "afb90ef29d945a7071ee2da9891690be2f5b2978b531f7b92578dc62e1854ffa",
+      "identical": true
+    }
+  },
+  "implementation": {
+    "owners": [
+      "projects/webflow/trusted/AutoSettings.tsx",
+      "projects/webflow/trusted/CurrentTask.tsx",
+      "projects/webflow/src/ui/main.js",
+      "projects/webflow/src/ui/style.css"
+    ],
+    "changes": [
+      "Group manual task counts and actionable cause navigation; place refresh beside the heading.",
+      "Keep collapsed original tutorial after manual task results; preserve complete instructions.",
+      "Keep 44px navigation/help/settings controls and 14px overview body.",
+      "Distinguish listener readiness, disabled new-request intake and current work.",
+      "Progress focuses the current task; Stop opener focuses the original request cancellation without issuing it.",
+      "Generate the sole offline preview from actual current source; remove historical UI and presentation patches.",
+      "Bind the complete delivered HTML and input closure to a fresh source build; Git HEAD is provenance metadata only."
+    ],
+    "newDependencies": false,
+    "businessExecutionOrAuthorityChanges": false
+  },
+  "tests": {
+    "jointRun": {
+      "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs projects/webflow/tests/preview-source.test.mjs",
+      "passed": 86,
+      "failed": 0,
+      "log": "artifacts/webflow-preview-home-20261107/final-tests.log",
+      "note": "This run preceded the final metadata-only builder change; product UI bytes remain identical."
+    },
+    "finalPreviewRegressions": {
+      "command": "node --test projects/webflow/tests/preview-source.test.mjs",
+      "passed": 3,
+      "failed": 0,
+      "behaviors": [
+        "Recorded Git provenance can change without invalidating identical source.",
+        "Patched embedded code is rejected even when artifact hashes are recomputed.",
+        "Patched outer behavior is rejected even with an updated HTML hash."
+      ]
+    },
+    "syntaxAndWhitespace": "PASS for affected sources; no product build performed",
+    "ownPins": {
+      "projects/webflow/trusted/AutoSettings.tsx": {
+        "gitBlob": "db3fcedbec2af5b7f717441178bca1d9c528e279",
+        "sha256": "3e751af68389e73591a4c3d04ccbdf4ac1e6c59411329c56dbc9b1daa2542869"
+      },
+      "projects/webflow/trusted/CurrentTask.tsx": {
+        "gitBlob": "263cb461d970571b43aa5cbc0f265096892e327a",
+        "sha256": "1ce1e8f4e0ff18a1fd31fd73683969135b647dbc2e46d3f8a232be9dd69590a5"
+      }
+    },
+    "sharedGate": {
+      "command": "node --test tests/environment/webflow-fixed-source.test.mjs",
+      "passed": 2,
+      "failed": 1,
+      "reason": "Positive describeBundle check stops at unrelated projects/ai-proxy/src/App.jsx fixed-source pin drift.",
+      "negativeSourceProtections": "PASS",
+      "positiveGate": "BLOCKED_NOT_PASS",
+      "log": "artifacts/webflow-preview-home-20261107/owned-source-tests.log"
+    }
+  },
+  "browser": {
+    "engine": "ego(lite)",
+    "boundary": "Real Shell/trusted components/sandbox source; in-memory SDK, storage, authorization and execution boundaries. No real tasks, network, Chrome permissions or Native.",
+    "matrix": {
+      "widths": [
+        320,
+        360
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "casesPerWidth": 20,
+      "totalCases": 40,
+      "states": [
+        "idle",
+        "draft",
+        "no-candidate",
+        "pending",
+        "running",
+        "disconnected",
+        "unknown",
+        "failed",
+        "combined-error",
+        "off"
+      ],
+      "horizontalOverflow": false,
+      "logs": [
+        "artifacts/webflow-preview-home-20261107/matrix-320.json",
+        "artifacts/webflow-preview-home-20261107/matrix-360.json"
+      ]
+    },
+    "actions": {
+      "sandbox": [
+        {
+          "width": 320,
+          "theme": "light",
+          "overflow": false,
+          "header": [
+            {
+              "text": "概览",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "脚本",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "记录",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "?",
+              "width": 44,
+              "height": 44
+            },
+            {
+              "text": "⚙",
+              "width": 44,
+              "height": 44
+            }
+          ],
+          "refreshInHeading": true,
+          "tutorialClosed": true,
+          "bodySize": "14px"
+        },
+        {
+          "width": 320,
+          "theme": "dark",
+          "overflow": false,
+          "header": [
+            {
+              "text": "概览",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "脚本",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "记录",
+              "width": 64.6640625,
+              "height": 44
+            },
+            {
+              "text": "?",
+              "width": 44,
+              "height": 44
+            },
+            {
+              "text": "⚙",
+              "width": 44,
+              "height": 44
+            }
+          ],
+          "refreshInHeading": true,
+          "tutorialClosed": true,
+          "bodySize": "14px"
+        },
+        {
+          "width": 360,
+          "theme": "light",
+          "overflow": false,
+          "header": [
+            {
+              "text": "概览",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "脚本",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "记录",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "?",
+              "width": 44,
+              "height": 44
+            },
+            {
+              "text": "⚙",
+              "width": 44,
+              "height": 44
+            }
+          ],
+          "refreshInHeading": true,
+          "tutorialClosed": true,
+          "bodySize": "14px"
+        },
+        {
+          "width": 360,
+          "theme": "dark",
+          "overflow": false,
+          "header": [
+            {
+              "text": "概览",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "脚本",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "记录",
+              "width": 76,
+              "height": 44
+            },
+            {
+              "text": "?",
+              "width": 44,
+              "height": 44
+            },
+            {
+              "text": "⚙",
+              "width": 44,
+              "height": 44
+            }
+          ],
+          "refreshInHeading": true,
+          "tutorialClosed": true,
+          "bodySize": "14px"
+        }
+      ],
+      "manualReasonOpensScripts": true,
+      "help": true,
+      "settings": true,
+      "progress": {
+        "focusedStatus": true,
+        "oldLedgerClosed": true
+      },
+      "stopOpener": {
+        "focusedOriginalStop": true,
+        "notYetStopped": true
+      },
+      "originalStop": true,
+      "approvalButton": "批准此精确范围并执行",
+      "approval": true,
+      "draftPreserved": true
+    },
+    "stability": {
+      "keyboardOpen": true,
+      "imeKeepsOpen": true,
+      "escape": {
+        "closed": true,
+        "focusReturned": true
+      },
+      "touchOpen": true,
+      "polling": [
+        {
+          "open": false,
+          "width": 320,
+          "polls": 5,
+          "maxShift": 0,
+          "focusKept": true,
+          "openKept": true
+        },
+        {
+          "open": true,
+          "width": 320,
+          "polls": 5,
+          "maxShift": 0,
+          "focusKept": true,
+          "openKept": true
+        },
+        {
+          "open": false,
+          "width": 360,
+          "polls": 5,
+          "maxShift": 0,
+          "focusKept": true,
+          "openKept": true
+        },
+        {
+          "open": true,
+          "width": 360,
+          "polls": 5,
+          "maxShift": 0,
+          "focusKept": true,
+          "openKept": true
+        }
+      ],
+      "manualJoin": {
+        "reads": 22,
+        "busy": "true",
+        "disabled": true,
+        "sameRead": true
+      }
+    },
+    "offlineFinal": {
+      "url": "file:///Users/shopme/Documents/workspace/opendesk-browser/projects/webflow/preview/webflow-v0.3-preview.html",
+      "outerWidth": 1180,
+      "deviceWidth": 360,
+      "diagnosticsOutsideDevice": true,
+      "opaqueSandbox": "allow-scripts",
+      "sourceNote": [
+        "来源：当前工作区 · 9022d3736c8e。从 build-design.mjs 重建，check-design.mjs 检查。SHA 见同名 manifest。旧版排版比较不参与当前候选。"
+      ],
+      "scopeNavigation": true,
+      "widthAndThemeControls": true,
+      "renderedSourceReuse": {
+        "previousCandidateDocumentSHA": "afb90ef29d945a7071ee2da9891690be2f5b2978b531f7b92578dc62e1854ffa",
+        "currentCandidateDocumentSHA": "afb90ef29d945a7071ee2da9891690be2f5b2978b531f7b92578dc62e1854ffa",
+        "identical": true
+      }
+    },
+    "screenshot": "artifacts/webflow-preview-home-20261107/final-current-source-preview.png",
+    "testDriverNote": "An installed Reading TOC overlay was hidden only on these temporary diagnostic pages after it intercepted a click. No product CSS or product error was suppressed. Device metrics and screenshots were captured in the same invocation; exploratory mislabeled-width captures are excluded."
+  },
+  "independentUIReview": {
+    "reviewer": "Turing / native designer subagent",
+    "score": 96,
+    "maximum": 100,
+    "floor": 95,
+    "status": "PASS_WITHIN_COMPONENT_PREVIEW_SCOPE",
+    "inheritedHistoricalScore": false,
+    "reviewedCandidate": "7a0deb04ba3c85c93af50e0c24fed3a880b37a68d582333fada3fbef3ed63bad",
+    "finalCandidateReuse": "The final builder-only metadata change leaves the complete rendered product document byte-identical; offline final entry was checked separately.",
+    "rubric": [
+      {
+        "criterion": "Information hierarchy",
+        "score": 19,
+        "max": 20,
+        "deduction": "Idle work status alongside pending approval or disconnected listener remains mildly ambiguous."
+      },
+      {
+        "criterion": "Space efficiency",
+        "score": 19,
+        "max": 20,
+        "deduction": "UNKNOWN at 320px separates Stop from other actions."
+      },
+      {
+        "criterion": "Interaction",
+        "score": 20,
+        "max": 20,
+        "deduction": null
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 14,
+        "max": 15,
+        "deduction": "Complete modal Tab / Shift+Tab traversal was not established."
+      },
+      {
+        "criterion": "Narrow stability",
+        "score": 15,
+        "max": 15,
+        "deduction": null
+      },
+      {
+        "criterion": "Visual consistency",
+        "score": 9,
+        "max": 10,
+        "deduction": "Dark trusted secondary buttons retain light fills through inherited action aliases in the preview theme adapter; this does not establish a production defect."
+      }
+    ],
+    "blockingHomepageDefects": [],
+    "limitations": [
+      "Mock cancellation and approval prove preview behavior only.",
+      "Screen reader and full accessibility conformance not established.",
+      "System Chrome, Native and production acceptance not performed."
+    ]
+  },
+  "independentCodeReview": {
+    "reviewer": "Ohm / native code-reviewer subagent",
+    "blockingExecutionPermissionOrLifecycleFindings": [],
+    "closedFindings": [
+      "Bind delivered embedded/outer bytes directly to the complete fresh generated HTML and source closure.",
+      "Exclude HEAD-only provenance changes from deterministic HTML identity."
+    ],
+    "finalReadOnlyRecheck": "CLOSED; final hashes and source inputs matched; no new execution, permission or lifecycle issue."
+  },
+  "developmentEnvironment": {
+    "mode": "Existing continuous-development watcher preserved; offline preview is a separate read-only source fixture.",
+    "writerPIDObserved": 26234,
+    "path": "dist/development",
+    "productOutput": {
+      "path": "dist/development/ui/tool-shell.js.map",
+      "readOnly": true,
+      "sources": {
+        "projects/webflow/trusted/AutoSettings.tsx": {
+          "sourceMapEntry": "../../../projects/webflow/trusted/AutoSettings.tsx",
+          "matchesCurrentSource": false,
+          "currentSHA": "3e751af68389e73591a4c3d04ccbdf4ac1e6c59411329c56dbc9b1daa2542869",
+          "builtSHA": "5153ab67dca1546944506df39550b56c55a5e85f09de7023062398e48e2590d8"
+        },
+        "projects/webflow/trusted/CurrentTask.tsx": {
+          "sourceMapEntry": "../../../projects/webflow/trusted/CurrentTask.tsx",
+          "matchesCurrentSource": false,
+          "currentSHA": "1ce1e8f4e0ff18a1fd31fd73683969135b647dbc2e46d3f8a232be9dd69590a5",
+          "builtSHA": "9e9b3584f5095df51575ac20f01d455d1abacf80ae3c539afd67b33e4d077962"
+        }
+      }
+    },
+    "systemChromeApplied": false,
+    "existingExtensionID": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionIDObservation": "Historical identity retained, not re-read or changed in this UI task.",
+    "nativePairingChanged": false,
+    "unsentFileReceiptDraft": "UNTOUCHED",
+    "installedPackage": "NOT_UPDATED"
+  },
+  "notTested": [
+    "System Chrome loaded final UI",
+    "Installation or upgrade",
+    "Native",
+    "Production",
+    "Screen reader",
+    "Full accessibility conformance",
+    "Complete modal Tab / Shift+Tab traversal"
+  ],
+  "deferred": [
+    "Unrelated AI Proxy pin drift remains with its owner.",
+    "No production or business workflow acceptance, full CI, package promotion, publishing, commit or push.",
+    "No replay of UNKNOWN or unsent file receipt."
+  ],
+  "resources": {
+    "taskSpace": 21,
+    "resultPage": "p1 file:// preview",
+    "ownTemporaryServerPort": 57989,
+    "cleanup": {
+      "ownTemporaryServer": "STOPPED; exec session 27153 exited 130 after Ctrl-C",
+      "taskSpace": "FINISHED exactly once; retained only final local-file result p1 for review",
+      "subagents": "All three task subagents closed",
+      "productWatcher": "PID 26234 preserved; not stopped or overwritten"
+    }
+  }
+}

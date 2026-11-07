@@ -10,13 +10,19 @@ export function installChatGPTFilesService({api,files,development}){
     message:data.message,phase:data.automation?.phase,delivery:data.delivery,observed:data.observed,
     projectConnection:data.projectConnection?{name:data.projectConnection.name}:null,
     comparison:data.comparison||null,
-    resultText:data.resultText||'',resultStatus:data.resultStatus||'',resultPacketId:data.resultPacketId,result:data.result||null});
+    status:data.status,resultText:data.resultText||'',resultStatus:data.resultStatus||'',resultPacketId:data.resultPacketId,result:data.result||null});
   const onMessage=(message,sender,reply)=>{
     if(![CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL].includes(message?.protocol))return false;
     const finish=development?.nativeStarted();
     const action=development?.held?Promise.reject({code:'E_DEV_RELOADING',message:'开发更新正在核对空闲状态，请稍后刷新',outcome:'NOT_DISPATCHED'}):
       (async()=>{
         if(message.protocol===CHATGPT_FILES_PROTOCOL)return controller.handle(message,sender);
+        if(['fixed-complete','fixed-status'].includes(message.action)){
+          if(message.action==='fixed-complete'){
+            await controller.fixedComplete(message,sender);await controller.tick();
+          }
+          return summary(await controller.fixedStatus(message,sender));
+        }
         if(Object.keys(message).some(key=>!['protocol','action',...(['start','conversation'].includes(message.action)?['task']:message.action==='configure'?['preferences']:[])].includes(key)))
           throw {code:'E_FILE_SCHEMA',message:'网页任务不接受项目权限或文件参数'};
         if(message.action==='settings')return controller.settings(sender);

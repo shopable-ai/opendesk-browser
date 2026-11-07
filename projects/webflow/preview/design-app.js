@@ -1,23 +1,21 @@
-// Only comparison controls live here. All application controls render from
-// the actual source in the existing isolated component fixture.
+// External preview controls only. Product markup, styling and behavior are compiled from source.
 (()=>{
  const data=JSON.parse(document.getElementById('webflow-preview-sources').textContent);
- const frames=['baseline','candidate'].map(id=>document.getElementById(id));
- frames.forEach(frame=>{frame.srcdoc=data[frame.id];});
- const feedback=document.getElementById('compare-feedback');
- const send=(action,value)=>frames.forEach(frame=>frame.contentWindow.postMessage({protocol:'webflow.source-preview.v1',action,value},'*'));
- document.getElementById('compare-home').onclick=()=>{send('view','overview');feedback.textContent='两侧回到相同主界面。应用与业务样式完全相同；草稿仍保留。';};
- document.getElementById('compare-scope').onclick=()=>{send('view','scope');feedback.textContent='左侧为固定 654 参考，右侧为本次方案：短信息横向对齐，参数 JSON 标题与内容上下排列并占整行。文本可自然换行；切换视图保留草稿。';};
- document.getElementById('compare-mode').onclick=event=>{
-  const figure=document.getElementById('baseline-figure');figure.hidden=!figure.hidden;
-  event.currentTarget.setAttribute('aria-pressed',String(figure.hidden));
-  event.currentTarget.textContent=figure.hidden?'显示前后对照':'仅看调整后';
- };
- for(const [id,action]of [['lab-auth','auth'],['lab-task','task'],['lab-copy','copy']])
-  document.getElementById(id).onchange=event=>{send(action,event.currentTarget.value);feedback.textContent='已切换两侧内存场景；真实任务、授权和系统剪贴板不受影响。';};
+ const frame=document.getElementById('candidate'),feedback=document.getElementById('preview-feedback');
+ const send=(action,value)=>frame.contentWindow.postMessage({protocol:'webflow.source-preview.v1',action,value},'*');
+ frame.srcdoc=data.candidate;
+ for(const [id,value]of [['preview-home','overview'],['preview-task','task'],['preview-scope','scope']])
+  document.getElementById(id).onclick=()=>{send('view',value);feedback.textContent='已切换视图，模拟草稿仍保留。';};
+ const resize=()=>{const width=document.getElementById('preview-width').value,theme=document.getElementById('preview-theme').value;
+  document.getElementById('preview-device').style.width=width+'px';
+  document.getElementById('preview-size').textContent=width+' px · '+(theme==='dark'?'深色应用':'浅色应用');};
+ document.getElementById('preview-width').onchange=resize;
+ document.getElementById('preview-theme').onchange=event=>{send('theme',event.currentTarget.value);resize();};
+ for(const [id,action]of [['lab-auth','auth'],['lab-task','task'],['lab-listener','listener'],['lab-enabled','enabled']])
+  document.getElementById(id).onchange=event=>{send(action,event.currentTarget.value);feedback.textContent='已切换模拟状态，未调用任何真实任务或权限。';};
  document.getElementById('lab-reset').onclick=()=>{
-  frames.forEach(frame=>{frame.srcdoc=data[frame.id];});
-  for(const id of ['lab-auth','lab-task','lab-copy'])document.getElementById(id).selectedIndex=0;
-  feedback.textContent='已重置两侧模拟数据与草稿；真实数据不受影响。';
+  frame.srcdoc=data.candidate;
+  for(const id of ['lab-auth','lab-task','lab-listener','lab-enabled','preview-theme'])document.getElementById(id).selectedIndex=0;
+  resize();feedback.textContent='已重置本页模拟数据与草稿，真实数据不受影响。';
  };
 })();

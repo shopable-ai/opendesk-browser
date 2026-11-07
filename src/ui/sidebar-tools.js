@@ -45,6 +45,7 @@ import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_F
 import {presentCookieServiceState} from '../../examples/sidebar-tools/cookie-editor/trusted/service-view.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
+import {resumeDefaultPagePreinstall} from '../scripting/user-scripts/default-preinstall.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,admitsInstalledSidebarTool,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
@@ -3967,7 +3968,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     preinstallBusy=true;
     try{
       const result=await resumeDefaultPreinstall({api,lockManager,fetcher});
+      const pages=await resumeDefaultPagePreinstall({api,lockManager,fetcher,client:foundationClient});
+      if(pages.state==='attention'&&!disposed)notice('默认网页增强安装结果待核对；不会重复安装，请到网页增强详情检查。',true);
+      if(pages.state==='permission-required'&&!disposed)notice('默认网页增强等待 Chrome 网站访问权限，请在网页增强安装入口审阅并授予访问。',true);
       if(disposed)return;
+      if(pages.state==='complete'&&pages.installed>0)
+        doc.dispatchEvent(new doc.defaultView.Event('opendesk:page-installation-changed'));
       if(result.state==='complete')await loadInstalled();
       if(result.state==='attention')notice('官方预装事务结果未确认，请到应用市场核对；不会重复安装。',true);
     }catch(error){

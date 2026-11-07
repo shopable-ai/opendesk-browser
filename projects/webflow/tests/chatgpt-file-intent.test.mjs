@@ -7,6 +7,7 @@ import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_FILES_PAGE}
   from '../trusted/chatgpt-files-controller.js';
 import {normalizeChatGPTFileHint,assertLockedChatGPTFileRequest,
   installChatGPTFileIntentGate,CHATGPT_FILE_INTENT_PROTOCOL} from '../trusted/chatgpt-file-intent-gate.js';
+import {installChatGPTFilesService} from '../trusted/chatgpt-files-service.js';
 import {initChatGPTFileIntentPage} from '../trusted/chatgpt-file-intent-page.js';
 
 const sourceUrl='https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456';
@@ -184,6 +185,253 @@ function conversationFixture(reply,options={}){
   };
   return {...h,snap,calls,submit};
 }
+
+// Exercise the original native-send/discovery fixture with actual reader DOM.
+// The reader is called directly in ISOLATED in production, so bind its globals
+// only for the lifetime of this fixture (never replace the reader with a spy).
+async function withFixedConversation(reply,run){
+  const h=conversationFixture(reply||(()=>({ok:true,data:{status:'completed',phase:'completed'}}))),saved=new Map();
+  for(const key of ['document','location','__opendeskWorkspaceChatV1'])saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));
+  Object.defineProperty(globalThis,'document',{configurable:true,value:h.doc});
+  Object.defineProperty(globalThis,'location',{configurable:true,get:()=>h.win.location});
+  delete globalThis.__opendeskWorkspaceChatV1;
+  const message=(role,text,id)=>{
+    const node=h.doc.createElement('div');node.setAttribute('data-message-author-role',role);node.setAttribute('data-message-id',id);
+    node.textContent=text;
+    // linkedom's innerText collapses whitespace unlike the browser fixture's
+    // explicit rendered content. Preserve the exact witnessed UTF-8 here.
+    if(role==='user')Object.defineProperty(node,'innerText',{configurable:true,get:()=>node.textContent});
+    if(role==='assistant'){
+      if(text.startsWith('{"protocol"')){
+        node.textContent='';const pre=h.doc.createElement('pre'),code=h.doc.createElement('code');
+        code.className=text.includes('opendesk.workspace.edit.v1')?'language-opendesk-edit':'language-opendesk-request';
+        code.textContent=text;pre.append(code);node.append(pre);
+      }
+      const actions=h.doc.createElement('div');actions.setAttribute('data-assistant-message-actions','');node.append(actions);
+    }
+    h.doc.body.append(node);return node;
+  };
+  h.snap.users=[message('user','history','u0')];h.snap.assistants=[message('assistant','history','a0')];
+  let turnIndex=0;
+  const submit=(text,answerText=text,renderedUserText=text)=>{
+    h.snap.draft=text;h.emit('keydown',{key:'Enter',target:h.snap.editor});h.snap.draft='';
+    turnIndex++;const user=message('user',renderedUserText,'u'+turnIndex),answer=message('assistant',answerText,'a'+turnIndex);
+    h.snap.users.push(user);h.snap.assistants.push(answer);h.tick();return {user,answer};
+  };
+  try{await h.ready;await run({...h,submit});}
+  finally{h.entry.dispose();for(const [key,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+}
+const fixedRead='  请原样回显：\n'+JSON.stringify({protocol:'opendesk.workspace.request.v1',requestId:'req-fixed',bindingId:'binding',workspaceId:'workspace',operation:'read',path:'demo.txt'})+'\n';
+const fixedEdit='\n'+JSON.stringify({protocol:'opendesk.workspace.edit.v1',requestId:'edit-fixed',bindingId:'binding',workspaceId:'workspace',path:'demo.txt',baseSha256:'a'.repeat(64),content:'正文\n'})+'  ';
+const digest=text=>createHash('sha256').update(text,'utf8').digest('hex');
+for(const [name,text] of [['read',fixedRead],['edit',fixedEdit]])test('original bridge forwards witnessed fixed '+name+' through the shared reader',async()=>{
+  await withFixedConversation(undefined,async h=>{
+    const {answer}=h.submit(text);await settleFixed(h,()=>h.calls.length===1);
+    assert.equal(h.calls.length,1,'fixed discovery must reach the existing transport: '+h.status.textContent);
+    const event=h.calls[0];
+    assert.deepEqual(Object.keys(event).sort(),['protocol','action','readerEpoch','turnKey','answerKey','userSha256','answerSha256'].sort());
+    assert.equal(event.protocol,'opendesk.chatgpt.project.v1');assert.equal(event.action,'fixed-complete');
+    assert.equal(typeof event.readerEpoch,'string');assert.ok(event.readerEpoch);
+    assert.equal(event.userSha256,digest(text));assert.equal(event.answerSha256,digest(answer.textContent));
+    assert.ok(event.turnKey);assert.ok(event.answerKey);
+    h.tick();await h.settle();assert.equal(h.calls.length,1,'fixed events never wake a natural project');
+  });
+});
+
+async function settleFixed(h,predicate){
+  // WebCrypto runs outside the JS turn: neither two setImmediate callbacks nor
+  // a fixed iteration count proves its completion under concurrent test load.
+  const deadline=performance.now()+2000;
+  while(!await predicate()){
+    assert.equal(h.status.classList.contains('error'),false,
+      'fixed fixture reached a terminal error before the expected state: '+h.status.textContent);
+    assert.ok(performance.now()<deadline,
+      'fixed fixture timed out after 2000ms waiting for the expected state: '+h.status.textContent);
+    await h.settle();
+  }
+}
+for(const status of ['not-accepted','accepted','in-flight','completed','unknown'])test('lost fixed ACK queries the same event before '+status,async()=>{
+  let attempts=0;
+  await withFixedConversation(message=>{
+    if(message.action==='fixed-complete'&&++attempts===1)throw Error('lost ACK');
+    return {ok:true,data:{status:message.action==='fixed-status'?status:'completed'}};
+  },async h=>{
+    h.submit(fixedRead);
+    await settleFixed(h,()=>status==='not-accepted'?h.calls.length===3:h.calls.length===2);
+    await h.settle();
+    const first=h.calls[0];
+    assert.deepEqual(h.calls[1],{...first,action:'fixed-status'});
+    if(status==='not-accepted')assert.deepEqual(h.calls[2],first);
+    h.tick();await h.settle();assert.equal(h.calls.length,status==='not-accepted'?3:2);
+    if(status==='unknown')assert.match(h.status.textContent,/暂停/);
+    assert.equal(h.calls.some(message=>['conversation','wake','start'].includes(message.action)),false);
+  });
+});
+
+for(const data of [{},{status:'unknown'},{status:'not-accepted'},{status:'unrecognized'}])test('an unproven fixed ACK pauses visibly: '+JSON.stringify(data),async()=>{
+  await withFixedConversation(()=>({ok:true,data}),async h=>{
+    h.submit(fixedRead);await settleFixed(h,()=>/暂停/.test(h.status.textContent));
+    h.tick();await h.settle();assert.equal(h.calls.length,1);
+  });
+});
+
+test('a second transport failure pauses the fixed event without a third attempt',async()=>{
+  await withFixedConversation(message=>{
+    if(message.action==='fixed-complete')throw Error('lost ACK');
+    return {ok:true,data:{status:'not-accepted'}};
+  },async h=>{
+    h.submit(fixedRead);await settleFixed(h,()=>/暂停/.test(h.status.textContent));
+    h.tick();await h.settle();
+    assert.deepEqual(h.calls.map(message=>message.action),['fixed-complete','fixed-status','fixed-complete']);
+  });
+});
+
+for(const changed of ['user-text','answer-text','user-node','answer-node','epoch','url'])test('fixed retry rejects changed '+changed,async()=>{
+  let release;
+  await withFixedConversation(message=>{
+    if(message.action==='fixed-complete')throw Error('lost ACK');
+    if(message.action==='fixed-status')return new Promise(resolve=>{release=resolve;});
+    return {ok:true,data:{phase:'paused'}};
+  },async h=>{
+    const {user,answer}=h.submit(fixedRead);
+    await settleFixed(h,()=>typeof release==='function');
+    if(changed==='user-text')user.textContent+=' ';
+    if(changed==='answer-text')answer.firstChild.textContent+=' ';
+    if(changed==='user-node')user.replaceWith(user.cloneNode(true));
+    if(changed==='answer-node')answer.replaceWith(answer.cloneNode(true));
+    if(changed==='epoch')delete globalThis.__opendeskWorkspaceChatV1;
+    if(changed==='url')h.win.location=new URL('https://chatgpt.com/c/other');
+    release({ok:true,data:{status:'not-accepted'}});await h.settle();await h.settle();
+    h.tick();await h.settle();
+    assert.equal(h.calls.filter(message=>message.action==='fixed-complete').length,1);
+    assert.equal(h.calls.some(message=>message.action==='wake'),false);
+    if(changed!=='url')assert.match(h.status.textContent,/暂停/);
+  });
+});
+
+for(const stop of ['visible-stop','native-stop','disable','navigation','dispose'])test('fixed '+stop+' retires the witness and notifies original stop',async()=>{
+  let release;
+  await withFixedConversation(message=>message.action==='fixed-complete'?new Promise(resolve=>{release=resolve;}):{ok:true,data:{phase:'paused'}},async h=>{
+    h.submit(fixedRead);await settleFixed(h,()=>typeof release==='function');
+    if(stop==='visible-stop')h.stop.click();
+    if(stop==='native-stop'){h.snap.stopButton={};h.emit('click',{target:h.snap.stopButton});}
+    if(stop==='disable')h.preferences({enabled:false});
+    if(stop==='navigation'){h.win.location=new URL('https://chatgpt.com/c/other');h.tick();}
+    if(stop==='dispose')h.entry.dispose();
+    await h.settle();
+    assert.deepEqual(h.calls.map(message=>message.action),['fixed-complete','stop']);
+    release({ok:true,data:{status:'accepted',phase:'accepted'}});await h.settle();h.tick();await h.settle();
+    assert.deepEqual(h.calls.map(message=>message.action),['fixed-complete','stop']);
+  });
+});
+
+test('fixed Stop before reply retires original discovery without dispatching the later answer',async()=>{
+  await withFixedConversation(undefined,async h=>{
+    h.snap.draft=fixedRead;h.emit('keydown',{key:'Enter',target:h.snap.editor});h.snap.draft='';
+    h.stop.click();await h.settle();
+    assert.deepEqual(h.calls,[{protocol:'opendesk.chatgpt.project.v1',action:'stop'}]);
+    // Reusing historic nodes is not a new native send.
+    h.snap.users.at(-1).textContent=fixedRead;h.snap.assistants.at(-1).textContent=fixedRead;
+    h.tick();await h.settle();assert.equal(h.calls.length,1);
+  });
+});
+
+test('fixed hashes exclude known assistant controls but retain body whitespace and ordinary buttons',async()=>{
+  await withFixedConversation(undefined,async h=>{
+    // Delay discovery until the complete answer has its rendered controls.
+    h.snap.answerComplete=false;
+    const {answer}=h.submit(fixedRead,fixedEdit);
+    answer.querySelector('[data-assistant-message-actions]').textContent='Copy reply';
+    const button=h.doc.createElement('button');button.textContent='body action';answer.append(button);
+    h.snap.answerComplete=true;h.tick();
+    await settleFixed(h,()=>h.calls.length===1);
+    assert.equal(h.calls[0].answerSha256,digest(fixedEdit+'body action'));
+    assert.equal(h.calls[0].userSha256,digest(fixedRead));
+  });
+});
+
+for(const path of ['demo.txt','folder/demo.txt'])test('original bridge → installed service/controller → real reader stages edit and writes only after trusted approval: '+path,async()=>{
+  const messages=emitter(),local={},session={},methods=[],fills=[];
+  const owner={...workspaceSender,url:'chrome-extension://test-extension/'+CHATGPT_FILES_PAGE};
+  const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
+  let service,content='safe original\n';
+  const storage=rows=>({async get(key){return {[key]:structuredClone(rows[key])};},async set(value){Object.assign(rows,structuredClone(value));}});
+  const call=(message,sender=pageSender)=>new Promise(resolve=>messages.emit(message,sender,resolve));
+  const trusted=async(action,extra={})=>{
+    const reply=await call({protocol:CHATGPT_FILES_PROTOCOL,action,...extra},owner);
+    assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;
+  };
+  try{
+    await withFixedConversation(message=>call(message),async h=>{
+      const api={runtime:{id:'test-extension',getURL:path=>'chrome-extension://test-extension/'+path,onMessage:messages,
+        async getContexts(){return [{documentId:owner.documentId,documentUrl:owner.url,tabId:owner.tab.id,frameId:0,incognito:false}];}},
+        storage:{local:storage(local),session:{...storage(session),async setAccessLevel(value){assert.deepEqual(value,{accessLevel:'TRUSTED_CONTEXTS'});}}},
+        tabs:{onRemoved:emitter(),async get(id){const sender=id===7?pageSender:owner;return {...sender.tab,url:sender.url};},
+          async create(){return owner.tab;}},
+        webNavigation:{onCommitted:emitter(),onHistoryStateUpdated:emitter(),
+          async getFrame({tabId}){const sender=tabId===7?pageSender:owner;return {url:sender.url,documentId:sender.documentId,documentLifecycle:'active'};}},
+        scripting:{async executeScript({func,args,target,world}){
+          assert.equal(world,'ISOLATED');assert.deepEqual(target,{tabId:7,documentIds:[pageSender.documentId]});
+          let result;
+          if(func.name==='inspectChatGPTEditsOnPage')result=func(...args);
+          else{
+            assert.ok(['fillChatGPTComposerOnPage','verifyChatGPTComposerOnPage'].includes(func.name));
+            if(func.name==='fillChatGPTComposerOnPage')fills.push(args[0]);
+            result={ok:true,url:sourceUrl,filled:true,sent:false,readBackVerified:true};
+          }
+          return [{documentId:pageSender.documentId,frameId:0,result}];
+        }}};
+      const files={state:()=>({connected:true,sessionId:'native-session-123456',devLeaseEpoch:1}),
+        async request(method,params,expected){
+          expected.beforeDispatch?.();methods.push(method);
+          if(method==='workspaces.list')return {workspaces:[{workspaceId,name:'fixture',access:'read-write',sourceId:'',leaseEpoch:''}]};
+          assert.equal(params.workspaceId,workspaceId);assert.equal(params.path,path);
+          if(method==='files.write'){
+            assert.equal(params.expectedSha256,digest(content));content=params.content;
+            return {workspaceId,path:params.path,saved:true,sha256:digest(content),bytes:Buffer.byteLength(content)};
+          }
+          assert.equal(method,'files.read');return {workspaceId,path:params.path,content,sha256:digest(content),bytes:Buffer.byteLength(content)};
+        }};
+      service=installChatGPTFilesService({api,files});
+      assert.equal((await call({protocol:CHATGPT_FILE_INTENT_PROTOCOL,kind:'open',pathHint:'demo.txt'})).ok,true);
+      assert.equal((await call({protocol:CHATGPT_FILE_INTENT_PROTOCOL,kind:'claim'},owner)).ok,true);
+      const task='读取 "status" 字段，修改 **status**；保留 <tag> & [label]、`code`、~value~ 和 \\。\n仅此文件。';
+      const prepared=await trusted('prepare',{workspaceId,path,operation:'read',allowEdit:true,task});
+      assert.equal(methods.filter(method=>method==='files.read').length,0);
+      const readText=JSON.stringify(prepared.request);
+      // ChatGPT renders Markdown fences out of a sent user message. Exercise
+      // the actual product prompt, not an idealized JSON-only submission.
+      const renderedPrompt=prepared.prompt.replace(/^```[^\n]*\n?/gm,'')
+        .replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~])/g,'$1')
+        .replace(/\*\*([^*]+)\*\*/g,'$1');
+      assert.deepEqual(JSON.parse(prepared.prompt.slice(prepared.prompt.lastIndexOf('{'))),prepared.request);
+      const taskStart=prepared.prompt.indexOf('任务说明（JSON 字符串）：')+'任务说明（JSON 字符串）：'.length;
+      assert.equal(JSON.parse(prepared.prompt.slice(taskStart,prepared.prompt.indexOf('。请保留 JSON 转义',taskStart))),task);
+      h.submit(prepared.prompt,readText,renderedPrompt);await settleFixed(h,()=>fills.length===1);
+      await settleFixed(h,()=>h.calls.length===1&&/已读取/.test(h.status.textContent));
+      assert.equal(methods.filter(method=>method==='files.read').length,1);
+      assert.equal(methods.filter(method=>method==='files.write').length,0);
+      const read=await trusted('state'),packet=JSON.parse(read.resultText.slice(read.resultText.indexOf('{')));
+      assert.ok(packet.editProposal);assert.equal(read.delivery,'filled');
+      assert.doesNotMatch(read.resultText,/[\r\n]/,'fixed result source must remain one paragraph through the official composer and user-message renderer');
+      const editText=JSON.stringify({...packet.editProposal,content:'safe modified\n'});
+      h.submit(read.resultText,editText);
+      await settleFixed(h,()=>h.calls.length===2);
+      let staged;
+      await settleFixed(h,async()=>{staged=await trusted('state');return !!staged.proposal;});
+      assert.ok(staged.proposal?.reviewId,JSON.stringify(staged));
+      assert.equal(content,'safe original\n');assert.equal(methods.filter(method=>method==='files.write').length,0);
+      h.tick();await h.settle();assert.equal(h.calls.length,2,'fixed page does not send project wake');
+      const saved=await trusted('approve',{reviewId:staged.proposal.reviewId});
+      assert.equal(content,'safe modified\n');assert.equal(methods.filter(method=>method==='files.write').length,1);
+      assert.match(saved.resultText,/"saved":true/);assert.match(saved.resultText,/"readBackVerified":true/);
+      await trusted('poll'); // Advance only the already accepted result-ready event.
+      assert.equal(fills.length,2,'read result and verified write receipt each fill once');
+      const duplicate=await call(h.calls[1]);assert.equal(duplicate.ok,true);
+      assert.equal(methods.filter(method=>method==='files.write').length,1);assert.equal(fills.length,2);
+    });
+  }finally{service?.dispose();}
+});
 
 test('normal native ChatGPT send starts a project task once and shows real inline receipt',async()=>{
   const h=conversationFixture();
@@ -712,9 +960,14 @@ test('project Stop fences a valid pending edit across background ticks and contr
     const sha=value=>createHash('sha256').update(value).digest('hex');
     const owner={...workspaceSender,url:'chrome-extension://test-extension/'+CHATGPT_FILES_PAGE};
     const source={tabId:7,windowId:3,documentId:pageSender.documentId,url:sourceUrl};
-    const api={runtime:{id:'test-extension',getURL:path=>'chrome-extension://test-extension/'+path},
+    const session={};
+    const api={runtime:{id:'test-extension',getURL:path=>'chrome-extension://test-extension/'+path,
+      async getContexts(){return [{documentId:owner.documentId,documentUrl:owner.url,tabId:owner.tab.id,frameId:0,incognito:false}];}},
       storage:{local:{async get(key){return {[key]:structuredClone(ledger[key])};},
-        async set(value){Object.assign(ledger,structuredClone(value));}}},
+        async set(value){Object.assign(ledger,structuredClone(value));}},
+        session:{async setAccessLevel(value){assert.deepEqual(value,{accessLevel:'TRUSTED_CONTEXTS'});},
+          async get(key){return {[key]:structuredClone(session[key])};},
+          async set(value){Object.assign(session,structuredClone(value));}}},
       tabs:{async get(){return {...pageSender.tab,url:sourceUrl};}},
       webNavigation:{async getFrame(){return {url:sourceUrl,documentId:source.documentId,documentLifecycle:'active'};}}};
     const files={state:()=>({connected:true,sessionId:'native-session-123456',devLeaseEpoch:1}),

@@ -1,0 +1,127 @@
+{
+  "schema": "opendesk.webflow.development-evidence.v1",
+  "owner": "01a1b5f2-4fb8-7c63-9c1d-0e6e8167f6ae",
+  "phase": "Baidu core closed-sidepanel loop complete 2/2; continuing fresh file read/edit cycles",
+  "completeLoops": 2,
+  "browser": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "serve": "actual debug UI connected after safe automatic extension reload",
+    "revision": "3484bcd4e195aba02cdb834dafbb9947c1ada7ed92edf1d7071d7783912e36d8"
+  },
+  "protectedUnknownCandidate": "wf-7bc39908-2fd8-4a82-9de5-4f3aa1a0afb1",
+  "installedTask": {
+    "taskId": "baidu.search.top3",
+    "version": "1.1.4",
+    "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+    "scriptId": "task:baidu.search.top3:1.1.4",
+    "revision": 1,
+    "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "installationId": "4fb33bcf-ced1-43b0-8af2-584999f865e1",
+    "generation": 4,
+    "deadlineMs": 120000
+  },
+  "prerequisiteRun": {
+    "runId": "15352aa7-8625-4656-9c6c-9ef8a058a0bb",
+    "execution": "completed",
+    "release": "released",
+    "countsAsPromptLoop": false,
+    "purpose": "same fixed source normal local verification and installation restoration"
+  },
+  "attempts": [
+    {
+      "entry": "ordinary natural-language demand after actual capability onboarding",
+      "source": {
+        "tabId": 560070258,
+        "documentId": "71C66BCB11129E81CB73F412F99D60D4",
+        "url": "https://chatgpt.com/c/6aef1a21-3d18-83e8-9def-f60bc5244d56"
+      },
+      "prompt": "请用百度搜索 OpenDesk Browser，返回前三条自然网页结果。",
+      "candidateId": "wf-6c28e8a4-4a9b-49f1-9d37-b807f4b28c65",
+      "requestId": "144d9636-9a0c-42d7-9021-2d615be0e497",
+      "runId": "e65cbd3d-cc61-48ab-8f65-8f4fe2ff60ad",
+      "resultId": "3f3db9e3-0141-4523-9dc2-1c76a3daf4d5",
+      "sidePanel": "closed before prompt and through terminal run",
+      "execution": "stopped",
+      "terminalReason": "E_TIMEOUT Controller fenced",
+      "persistence": "not-confirmed",
+      "release": "released",
+      "delivery": "not-sent; trusted cancel registered afterward, no future delivery",
+      "aiContinuation": "absent",
+      "counted": false
+    },
+    {
+      "entry": "ordinary natural-language demand after full current capability text was sent and acknowledged",
+      "source": {
+        "url": "https://chatgpt.com/c/6aef1ea7-a474-83ee-a116-e4e1372835c1",
+        "tabId": 560070262,
+        "documentId": "636623F05D540C5C90E97A0D82DAFB90"
+      },
+      "prompt": "请用百度搜索 OpenDesk Browser，返回前三条自然网页结果。",
+      "candidateId": "wf-96234d49-afa3-4c16-8cef-bbeb04407b06",
+      "sidePanel": "closed before natural-language prompt through result sent and AI continuation; only reopened afterward for read-only reconciliation",
+      "execution": "completed",
+      "counted": true,
+      "requestId": "dea16a95-d4a8-40ca-acd8-4228796a2d75",
+      "runId": "560fa58b-0c61-4375-9eaf-07e754696ac1",
+      "resultId": "8c39c15b-e0b9-4f5e-a77a-6dc83c4cd61c",
+      "persistence": "same Run / Result verified in actual trusted UI",
+      "release": "released",
+      "delivery": "one new user result message in exact original chat",
+      "aiContinuation": "actual completed reply summarizes the three returned results and no new Task",
+      "resultArtifact": "projects/webflow/evidence/baidu-result-560fa58b-0c61-4375-9eaf-07e754696ac1.json",
+      "artifactSha256": "3be257db2c1a676850e01a88e94c344c27a1a02b5fb3e02c1d6b0b8f6754f729",
+      "contentVerification": "Observed original Baidu result page titles, summaries and displayed target domains; downloaded original typed result contains full summaries, direct URLs, redirect URLs, original source URL and trace. Titles and whitespace-normalized/truncated summaries agree with observed slots 1,2,4. Original redirect token query was not separately read from native AX."
+    },
+    {
+      "entry": "ordinary natural-language changed-query demand; same existing approval, no per-query review",
+      "source": {
+        "url": "https://chatgpt.com/c/6aef1ea7-a474-83ee-a116-e4e1372835c1",
+        "tabId": 560070262,
+        "documentId": "636623F05D540C5C90E97A0D82DAFB90"
+      },
+      "prompt": "请用百度搜索 OpenDesk Browser automation，返回前三条自然网页结果。",
+      "candidateId": "wf-68e3bda9-9f1a-4d62-a491-5d9c2a7086f4",
+      "requestId": "c5a823d5-60cd-435f-9a03-f2f2eb77f820",
+      "runId": "53ce6c9e-146c-424c-888c-815858a91538",
+      "resultId": "9021725e-5d65-4b0f-a77f-1c6ffbf943c9",
+      "sidePanel": "closed before prompt through actual result sent and AI reply completed; reopened afterward only for query/download",
+      "delivery": "actual new exact original-chat user message",
+      "execution": "completed",
+      "counted": true,
+      "persistence": "same Run / Result verified in actual trusted UI",
+      "release": "released",
+      "aiContinuation": "actual completed reply explains three real results; no new Task",
+      "resultArtifact": "projects/webflow/evidence/baidu-result-53ce6c9e-146c-424c-888c-815858a91538.json",
+      "artifactSha256": "609cf744b4933513e676157425479028231a797db279301a566392656e4dd207",
+      "contentVerification": "Observed actual Baidu original result page CSDN/CSDN/51CTO titles and snippets; downloaded original typed result agrees after current whitespace/truncation rules, contains full direct and redirect links, source URL and input/click/navigation/read trace. Original redirect token query was not separately read from native AX."
+    }
+  ],
+  "fix": {
+    "provenGap": "generic web-task-ingress claim hardcoded 30000ms although installed Task manifest declares 120000ms",
+    "owner": "shared runtime; no Task business source changed",
+    "implementation": "resolve existing installed Task through original Authority, compare exact pinned installation identity, use installed manifest deadline with original 30000ms fallback",
+    "tests": {
+      "command": "node --test tests/environment/web-task-ingress.test.mjs projects/webflow/tests/chatgpt-background-ingress.test.mjs",
+      "passed": 83,
+      "failed": 0,
+      "redBeforeFix": "10 of 11 new deadline/identity regressions failed before runtime fix"
+    },
+    "browserVerification": "two complete closed-sidepanel ordinary natural-language loops PASS"
+  },
+  "notTested": [
+    "production/full CI/independent scoring (deferred)",
+    "new file read/edit cycles (next)"
+  ],
+  "services": {
+    "oldWriter": 25029,
+    "oldWriterExit": "134; JavaScript heap out of memory",
+    "recovery": "same npm run dev with per-process NODE_OPTIONS=--max-old-space-size=12288; no alternate output/profile/extension pairing",
+    "currentWriter": 26234
+  },
+  "entryModes": {
+    "ordinaryNaturalLanguage": "2/2 current complete loops",
+    "fixedJsonEcho": "old wf-7bc39908 preserved; not replayed, not counted"
+  }
+}

@@ -15,6 +15,7 @@ import {resolveBrowserEdition,DEVELOPER_BROWSER_NAME} from './scripts/browser-ed
 import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
 import {sidebarToolPackageHash} from './src/ui/sidebar-tools/package.js';
 import {buildOfficialTools} from './scripts/build-official-tools.mjs';
+import {buildOfficialPages} from './scripts/build-official-pages.mjs';
 
 const browserEdition=resolveBrowserEdition();
 const aiLocalTest=process.env.OPENDESK_BUILD_MODE==='development'&&process.env.OPENDESK_AI_LOCAL_TEST==='1';
@@ -46,7 +47,11 @@ export default defineConfig({
   hooks: {
     // The original writer also refreshes promoted resources after config
     // recovery; it does not reuse a stale public catalog from process startup.
-    'build:before'(wxt){if(wxt.config.command==='serve')return buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});},
+    async 'build:before'(wxt){
+      if(wxt.config.command!=='serve')return;
+      await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
+      await buildOfficialPages(wxt.config.publicDir,{root:wxt.config.root});
+    },
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
       if(browserEdition==='developer')output.name=DEVELOPER_BROWSER_NAME;

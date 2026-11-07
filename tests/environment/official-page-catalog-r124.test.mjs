@@ -16,7 +16,7 @@ import {
 const clone=value=>structuredClone(value);
 const expectedIds=['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap','opendesk.ai-send-queue'];
 
-test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked gates',async()=>{
+test('R1.2.4 official Page source keeps exact independent IDs, sites and default installation policy',async()=>{
   const source=await readOfficialPageSources();
   assert.deepEqual(source.programs.map(row=>row.programId),expectedIds);
   assert.deepEqual(source.programs[0].sites,[
@@ -25,11 +25,13 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked
   assert.deepEqual(source.programs.slice(1).map(row=>row.sites),[
     ['https://chatgpt.com/*'],['https://chatgpt.com/*']
   ]);
-  assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked','blocked']);
+  assert.deepEqual(source.programs.map(row=>row.publication),['approved','blocked','blocked']);
   assert.equal(source.programs[0].project,'projects/ai-scroll-navigation');
   assert.deepEqual(await officialPageInputs(),[
-    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH]);
-  for(const row of source.programs)assert.match(row.blockedReason,/./);
+    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH,
+    'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json']);
+  assert.equal(source.programs[0].installationPolicy,'preinstalled');
+  for(const row of source.programs.slice(1))assert.match(row.blockedReason,/./);
 });
 
 test('migrated Scroll project is the only projects/ source explicitly admitted by the official builder',async t=>{
@@ -52,14 +54,19 @@ test('migrated Scroll project is the only projects/ source explicitly admitted b
   assert.ok(inputs.includes('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
 });
 
-test('blocked discovery stays metadata only while exact queue review bytes remain separate',async()=>{
+test('default Scroll ships frozen bytes while blocked releases retain their gates',async()=>{
   const {catalog,resources}=await createOfficialPageResources();
   const candidatePath='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
-  assert.deepEqual([...resources.keys()],[candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
+  const scroll=catalog.apps[0];
+  assert.equal(scroll.status,'available');
+  assert.equal(scroll.installationPolicy,'preinstalled');
+  assert.deepEqual(resources.get(scroll.packagePath),await readFile(
+    'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
+  assert.deepEqual([...resources.keys()],[scroll.packagePath,candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
   assert.deepEqual(resources.get(candidatePath),await readFile(
     'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
   assert.equal(catalog.apps.length,3);
-  for(const row of catalog.apps){
+  for(const row of catalog.apps.slice(1)){
     assert.equal(row.kind,'page-program');
     assert.equal(row.status,'blocked');
     assert.equal('packagePath' in row,false);
@@ -76,7 +83,7 @@ test('R1.2.4 source catalog rejects spoofing IDs, site expansion, release, and p
     row=>{row.sites.push('https://example.com/*');},
     row=>{row.publication='available';},
     row=>{row.packageFile='../attack.opendesk-page.json';},
-    row=>{row.installationPolicy='preinstalled';}
+    row=>{row.installationPolicy='reviewed';}
   ]){
     const modified=clone(source);
     change(modified.programs[0]);
@@ -95,7 +102,7 @@ test('R1.2.4 extension-origin catalog fetch never authorizes a blocked install',
       arrayBuffer:async()=>Uint8Array.from(bytes).buffer};
   };
   assert.deepEqual(await loadOfficialPageCatalog({api,fetcher}),catalog);
-  await assert.rejects(loadOfficialPagePackage(catalog.apps[0],{api,fetcher}),
+  await assert.rejects(loadOfficialPagePackage(catalog.apps[1],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});
   await assert.rejects(loadOfficialPagePackage(catalog.apps[2],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});

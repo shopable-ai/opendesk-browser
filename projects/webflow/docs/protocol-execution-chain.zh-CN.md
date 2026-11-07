@@ -1,6 +1,81 @@
 # Webflow 固定协议执行链与浏览器测试
 
+> **2026-11-07 当前结果（01a1b5f2）：** 百度普通提示词关侧栏完整闭环 **2/2**，固定文件协议原监听读写闭环 **2/2**，分别见[百度证据](../evidence/baidu-prompt-loop-20261107-01a1b5f2.json)和[文件证据](../evidence/file-prompt-loop-20261107-01a1b5f2.json)。文件先前读取成功但编辑未接纳：固定结果单段化后仍失败；真实 DOM 显示长消息在正文外追加省略号/展开控件，原整节点文本基线会因此失效。最小修复统一使用既有精确用户正文，保留节点身份、正文空白、历史及唯一回复保护；新增回归先红后绿，相关原监听/文件桥 **138/138 PASS**，独立源码复核无阻断。两轮新对话、新 request/binding 均实际生成提案并经可信具体确认保存，独立磁盘全文/SHA 与真实 saved/readBackVerified 回执相符；最终回执只留原聊天草稿。普通自然语言自主项目发现、MCP、production 与全量 CI 仍延期。下方旧进度按历史阅读，不继承评分。
+
 更新日期：2026-11-07。本文保存固定协议的组件调用关系、文件读写的真实入口及手动测试条件。完整需求与项目进度仍以[产品合同](product-contract.zh-CN.md)、[执行计划](execution-plan.zh-CN.md)为准；文件历史证据见[本地文件说明](chatgpt-local-files.zh-CN.md)。
+
+## 当前文件接线方案（2026-11-07，01a1b5ac，设计评审通过；浏览器验证进行中）
+
+**本轮目标是文件读写。** 普通自然语言仍是产品目标；不指定文件时自主发现项目尚缺，本轮不实现 MCP 或百度业务。2026-11-03 百度双轮成功、11-06 固定文件高级页 poll 成功仍只证明各自候选。下面方案及其评分不继承历史 PASS。
+
+### 本轮独立评审与实施证据
+
+实施前两位独立原生评审均达到门槛：架构评审 **97/100**（30/30、25/25、20/20、13/15、9/10），反例审查 **98/100**（30/30、25/25、20/20、14/15、9/10），均无阻断。分母依次为需求30、源码落地25、授权身份与防重20、生命周期与未知15、验证10；这是设计评分，不是产品原生验收评分。
+
+实施后的独立源码复审发现并修复两项问题：完成记录不能阻挡新 owner 的新一轮；重启后的旧 reviewId 必须失效，重新核对后签发新 ID。复审以真实 beforeDispatch mock 再证旧确认零写入、新具体确认一次写入、重复确认零新增写入、Stop 不重签。另修复恢复提案后台可确认但可信 UI 按钮被禁用的问题；controller 显式投影 canApprove，已重查的新具体确认可用，自动处理仍暂停。独立联测确认真实 UI 点击携带新 ID 且仅写一次。最终四份源码准入为 controller `191444d3dbd8e091cf2275249767c8b900b110bc`、service `9b1520dd9d1a19b15bdc88250f486a5f6aad9cce`、page `96f8ea7753ee55fde54f134c5f8919b8f6555b8e`、UI `3a8063a2659e194800ce797846ab2e8a95471317`，仅据此更新原来源锁。
+
+原始 bridge 集成先红后绿；旧 poll 历史回答测试修改前实际读/填各1次，修改后无原事件时均0次。最新项目定向测试 **178/178 PASS**（controller 70、原始 bridge/adapter 74、生命周期17、UI17）；平台 Native/fill 接口定向测试 **94/94 PASS**；精确来源锁测试 **4/4 PASS**。这些使用模拟页面/Native，不冒充真实 Chrome 文件读写。真实读盘、逐提案可信点击、saved 加独立全文/SHA、第二新身份仍待本轮浏览器证据。
+
+真实浏览器首轮回显完整，但原 discovery 判为历史/未见证，尚未触发文件结果。只读 DOM 诊断发现准备提示词中的 Markdown 围栏在用户消息渲染后被移除，与发送草稿不再相等。已保留失败身份并停止该轮；不放宽原严格相等校验。原 bridge 集成改为发送产品实际生成的提示词并模拟围栏渲染，旧源码先失败，改用单段说明及等价 JSON Unicode 字符串转义后通过。独立源码复审 98/100、无阻断，真实 Markdown 渲染 4/4 保持全文及解码值；新候选真实重测仍待执行。
+
+### 现场与范围
+
+本轮系统 Chrome 中已只读确认 `https://chatgpt.com/c/6aef0427-02ac-83ec-89d0-75c5bbf7ff24`：用户发送的确是 `wf-7bc39908-2fd8-4a82-9de5-4f3aa1a0afb1`；助手完整原样回显五字段 JSON，无后续结果消息、草稿为空。Web Flow 0.3.9 自动运行开启，Listener 显示连接断开/版本变化；当前来源查询原请求账本 0 条，另有两项固定 Task 不可用。0 条不证明没有执行；没有重发、补跑、替换候选或改授权。百度安装/后台执行仍归原 owner。唯一 writer 87598/43120 在运行；后续只读实查确认系统 Chrome 加载本仓库 `dist/development`，ID 与 Native manifest、doctor local.extensionId 均为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；serve 已连接，更新前指纹 `8e09eb27d8ad`。Native UI 显示已连接、2个工作区，但相同 app CLI doctor 报 socket 不存在；不以此重配，真实文件调用仍待验证。
+
+**已证实的文件断点：** `chatgpt-bridge-page.js` 的 `checkPage` 已分流 `files → conversationAdapter.conversation`；`chatgpt-file-intent-page.js` 的 submission 和 conversation 都用 `isChatGPTFileTask`，它明确排除固定协议。service 当前也没有固定完成事件动作。只加 adapter 分支不够，必须接真实绑定并限制旧 poll。
+
+**主链：**可信页 `claim → prepare` → 操作者在原聊天发送完整六字段提示词 → 原发送见证/完整回答 discovery → 文件 adapter 的固定事件 → service 真实页面 sender → controller 唯一固定会话及重读核对 → 原 Native `files.read` → 真实正文/SHA/编辑身份 → 草稿。编辑七字段经同入口只生成提案；可信页 `approve(reviewId)` → 原 Native `files.write(expectedSha256)` → 真实保存回执 → 独立 `files.read` 全文/SHA → 草稿并完成。最终回执不自动发送。
+
+### 具体接口与实施位置
+
+| 箭头 | 已有能力、拟改接口及拒绝条件 |
+| --- | --- |
+| 可信准备 → 批准记录 | 原 gate 从 Chrome tab/frame 重查 source，一次性 claim 到固定审阅页；controller `prepare` 生成 request/binding，不读目标文件。固定会话保持非 `project` 类型，禁止走普通 project 的内部 auto-approve。 |
+| 真实发送 → 完整回答 | 原 bridge 仅 trusted 点击/Enter 调用 discovery；MutationObserver、异步完成唤醒及 5 秒兜底共用原入口。保持原 discovery 不变，不能从历史 DOM 重建发送。adapter submission 增加固定协议待见证状态；conversation 区分普通需求与固定回答。混合 Task/文件由现有 route 拒绝。 |
+| 固定发现 → service | 新增严格七字段 `{protocol:'opendesk.chatgpt.project.v1',action:'fixed-complete',readerEpoch,turnKey,answerKey,userSha256,answerSha256}`；摘要按原用户内容 innerText、原 discovery 助手 clone 去除已知操作控件后的精确 UTF-8 字节计算，不规范化空白。adapter 在同一 ISOLATED 世界直接调用现有受控 reader 的固定快照投影，确认当前 user/answer 节点仍是 discovery 见证的节点，并取得同一 readerEpoch/turnKey/answerKey；后台重读逐项比较，不仅比较摘要。消息不含 owner、权限、工作区或任意执行代码。service 另接受同字段 `fixed-status`，只用于原事件对账。 |
+| sender → 唯一固定会话 | controller `fixedComplete/fixedStatus` 进入原队列，复用 `pageSource`，逐项匹配 Chrome 提供的 tab/window/frame=0/documentId/URL 和可信 prepare 保存的 source。一个 source 至多一个非终结 fixed 会话；没有或不唯一、已暂停/过期、owner 不活跃均不派发。不得伪造可信页 sender 来调用 handle。 |
+| 回答 → 固定 handler | 受控 reader 拟增加仅固定调用者使用的 `eventText` 投影和 `readerEpoch`，同一次完整快照返回 user/assistant 原文、turnKey/answerKey/epoch；controller 计算两摘要，与发现事件一致，再调用既有 `answer → parseFileRequest/parseEditProposal → inspect`。reader 的最终身份重查与原 sameAnswer 均保留。六字段 read、七字段 edit 严格不变；固定 operation 选择原 read/list 或提案，AI 不能选择本地 JS。 |
+| handler → 磁盘 | 原 `disk → authority/discover → files.request`；原 `file-workspace-service.js` 在现有 Native Port 发送 `opendesk.local-files.v1` 到 Go `files_service_unix.go`。Native 检查安装、workspace grant、lease、路径和写权限；无 Native 缺陷证据，不改 Go。 |
+| 提案 → 保存 | 固定 edit 只生成 reviewId、完整前后正文、基准 SHA 和稳定编辑 requestId。仅真实可信审阅文档 `approve(reviewId)` 可确认；重查 owner/generation、当前回答、目录 authority 和磁盘基线。原 reserve 持久写入屏障后才调用 write；回执与独立读回均通过才显示 saved/readBackVerified。 |
+| 结果 → 草稿 | 复用 `fillChatGPTComposer` 的精确 document/turn、空草稿/附件及 operationId 保护；保留现有异步 beforeInsert，并增加内部同步 beforeDispatch，在该 await 返回后、executeScript 前同一同步片段检查失效状态。先持久 fill-in-flight 屏障再插入；填入和发送分别记录。原用户消息实际含 resultId 才是 result-sent，编辑不能消费未发送的读取上下文。 |
+
+模型协议是 `opendesk.workspace.request.v1` / `opendesk.workspace.edit.v1`；页面到后台调度使用现有 `opendesk.chatgpt.project.v1` 的上述受限动作；可信页继续 `opendesk.chatgpt.files.v1`；Native wire 是 `opendesk.local-files.v1`。Profile 登记、Task 安装与固定文件 handler 分别管理，不假设有任意协议注册表。
+
+### 固定会话、重启和旧 poll
+
+复用 controller 的 sessions、串行队列及现有 alarm。固定记录按原 owner tab 保存，但以完整 source 唯一匹配；记录 owner documentId/generation、30 分钟有效期、request/authority、原 baseline、consumed、两个事件及其 epoch/turn/answer/摘要、阶段、提案/结果与 delivery。增加一个版本化 `storage.session` 键，仅可信上下文访问；初始化确认 `TRUSTED_CONTEXTS`，失败拒绝固定新操作。源码检索中的现有 session 消费者均为可信页/SW；实施前定向核实该设置不破坏实际消费者。最多4个未结束 fixed 会话，每条512 KiB，超限拒绝，不截断。
+
+同 source 的第二个活动 owner claim 拒绝。owner 关闭时立即失效内存 generation 并暂停，保留状态；经原 source 的一次性 gate 可重新领取无活跃 owner 的同一会话，但不得自动恢复操作，原 reviewId 失效。仅 owner 丢失且已稳定保存的 review-ready 可在新可信页重新核对 source、authority、原回答、基准全文/SHA 后重新签发 reviewId；新页具体确认后才解除此 owner 暂停并保存。unknown/in-flight、停止、来源改变等其他暂停原因不能因此解除。来源导航、关闭或 document 改变永久暂停该记录，不能重绑到新文档。普通 project 的既有行为不被称为本轮逐提案确认实现。
+
+旧 UI poll 对新 fixed 会话只取状态/推进已接纳事件，不自行 inspect 历史回答；alarm 同样只推进已持久接纳事件。UI 轮询负责展示，不是文件发现来源。手动 inspect 保留诊断能力但不得绕过 fixed 事件门槛。新事件、poll、alarm、approve、claim 共用同一队列与 consumed，不产生第二个 controller。
+
+| 持久阶段 | 恢复与副作用合同 |
+| --- | --- |
+| approved | 等待原发现事件；重启后核验 source、owner、expiry、偏好与 authority，不能用 poll 创造见证。 |
+| accepted | 摘要、readerEpoch、turn/answer、协议与批准身份均匹配后，先保存 accepted 再 ACK；仅相同当前事件可推进。 |
+| read-in-flight | 先保存 consumed/read-in-flight 再读；恢复或存储结果未知时暂停，绝不自动重新读或回填。 |
+| result-ready | 保存真实结果与 editProposal 后才可回填；只有 source/owner 和原事件仍可证才继续。 |
+| fill-in-flight | 在现有 local 持久副作用元数据中保存 source、packetId 和 unknown 屏障（无正文），再 session 保存阶段，然后插入；丢失 session 也不把空草稿当未填。只有已验证填入才结清。失败保持 unknown，不自动清除、不换ID补填。 |
+| read-result-filled | 编辑阶段需原用户消息包含真实 resultId；新的 edit 发现事件另行绑定，不能复用 read 事件授权。只读至此 completed。 |
+| review-ready | 保存提案，只能可信确认；恢复/重新领取后重新显示当前提案并签发新 reviewId，旧确认不生效。 |
+| write-reserved | 原 ledger dispatching 先持久化，任何中断不重写。收到原 ACK 且独立读回成功后写 confirmed-pending（保存非正文回执/目标SHA），再持久结果包，最后 confirmed。缺失会话但有确认事实显示“保存已确认，交付状态未知”，不自动补发。 |
+| unknown / paused | 只读对账，不自动恢复或换ID。unknown、dispatching、confirmed-pending 均阻止同 workspace/path 新写入。reconcile 的 readback-matched 仍是屏障：一次读回不能证明原在途写入已排空。 |
+
+任何 session/local 写入失败均停止后续副作用；不声称跨存储原子事务。原 local ledger 对缺失键允许初始化，对损坏/未知版本/无效条目 fail closed，不能当空账本。沿用同一已有 ledger，不进行 IDB 迁移、不改全局 local 访问级别；其权限边界仍是扩展固定代码，网站 MAIN、USER_SCRIPT 和动态沙箱无直接 storage 权限。实施验证该边界，不能将扩展其他可信代码伪称彼此安全隔离。扩展重载/浏览器重启丢失 session 时先查询持久写入/回填屏障，再要求新批准；未知不解除。
+
+### 消息丢失与派发前失效
+
+adapter 在原文档内保留本次发现的节点、原文本、readerEpoch/turnKey/answerKey与两个摘要，直到 ACK 或明确暂停。`fixed-complete` 传输异常后只先查询同摘要 `fixed-status`；后台对当前 source、epoch、节点版本、摘要重新核验，返回 not-accepted / accepted / in-flight / completed / unknown 和非敏感提示。只有证明未接纳且原节点/文本/URL仍一致时，最多重发一次同一事件；未知或页面见证丢失则可见暂停，不从历史补造，不转 Task。重复到达只返回既有状态，不再次 inspect/读/写/填。
+
+service 的关闭/导航/stop/禁用处理先同步标记受影响 generation 无效，再排队保存；每次 await 后检查。已证实原 Native request 在 `permissions.contains` await 后只重查连接，因此最小公共改动是在原 request 的内部 expected options 增加同步 `beforeDispatch`，位于权限、session/port/generation 检查后和 `postMessage` 前同一同步片段。guard 仅接受受信调用方闭包，不进入模型消息、service schema 或 Native wire。read/list/write 都传相应票据，关闭或stop被观察后不得新派发。postMessage 后不能撤回，继续核对原回执或记 unknown。草稿的现有 beforeInsert 存在 await 后失效窗口，因此同样增加内部同步 beforeDispatch，在异步 beforeInsert 返回后且 executeScript 前执行，保留其他调用者原钩子兼容；提交后才收到停止则 delivery unknown，不重填。
+
+旧 writer 或未知 Native 写入无需“推定已排空”才能编辑源码，但在真实验证同一文件前必须读取旧账本并确认没有阻断记录；无法证明就不写，不以读回相同清除。运行更新仍走已有 dev 安全刷新/重载栅栏，不停止其他服务、不循环重载、不换扩展ID。
+
+### 验证与门槛
+
+两位独立原生 reviewer 分别按需求30/落地25/身份防重20/生命周期15/验证10评分，各自至少95且无阻断才实施。先在真实 bridge fixture 复现固定事件未进入 service，再以同入口连接 service/controller（不是controller单测）验证 read/edit 和实际模拟 dispatch/填入计数。覆盖 mixed/重复事件、丢失ACK先查状态、错误sender/绑定、两个owner、旧poll/alarm无见证零读取、权限失效、在关键持久阶段中断，以及权限await中的close/stop零write postMessage、异步beforeInsert返回后停止时零executeScript插入；原接口旧调用不回归。
+
+真实 Chrome 只用新 prepare 身份：只读完整回显，由原事件真实读盘、回填并结束；读后改完整七字段回显，确认前独立磁盘不变，可信review确认后真实saved回执及独立全文/SHA；再新身份只读。旧poll不作发现来源，无手动inspect。记录加载路径/ID、serve与指纹、request/binding/result/operation和真实提示词，派发计数没有原始证据就标NOT_TESTED。最终回执不自动发给AI。production、全量CI、百度完整后台卡、通用项目发现均延期。
 
 ## 最新纠偏：自然语言是用户入口（设计候选，未通过评审）
 

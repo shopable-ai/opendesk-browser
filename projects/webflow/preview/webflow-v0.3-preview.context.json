@@ -1,26 +1,20 @@
 {
-  "view": "完整宿主 → Web Flow：654 标签/值参考 / 按信息类型排版",
-  "scenario": "同一模拟百度批准、自动运行开启、无当前任务",
+  "view": "完整宿主 → Web Flow 首页、当前任务、任务授权、使用说明",
+  "scenario": "当前源码、模拟监听就绪、自动运行开启、无当前任务；外部可切换状态",
   "source": "OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES",
-  "scope": [
-    "精确地址标签/值横向对齐；参数JSON标题在上、内容整行，不使用字符阈值",
-    "批准时间与撤销操作并排",
-    "编辑框与生成指令保持整行并正常换行",
-    "保留原页签停留、按钮层级、审核就绪焦点/播报与错误关联"
+  "sourceMode": "CURRENT_WORKTREE",
+  "candidateHash": "9022d3736c8e471dfbbdad7be45856a5c67d3936f64ae33b083607aa103412a6",
+  "htmlSha256": "16647c5fa13799f6bcf3d590c5ad209cd21a4da21cb054bcca38711563e76d59",
+  "hostInteractions": [
+    "原运行与授权面板",
+    "键盘/触摸状态详情",
+    "原生开关",
+    "原请求停止",
+    "授权编辑与草稿保留"
   ],
-  "comparisonBaseline": {
-    "revision": "c0d45f7a7ad5b2fb97e224cce209c9d36713a632",
-    "description": "654cc4244052 delivered layout with its seven presentation fixes",
-    "inputs": {
-      "projects/webflow/preview/runtime-layout.css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0",
-      "projects/webflow/preview/runtime-presentation.json": "0c2187580ebe992a748ce857dd208ecba373c8005e0569443b1f4d13b4cb5d29"
-    },
-    "js": "3e8852cc7bd8578b444bc396ef77efd50f2812006fad968f2b11d3502cdfaaec",
-    "css": "f96e6f5004d75f8a4b617d161f2f32e8857b34c2935a604014d1eb7367eed5b0"
-  },
-  "unchanged": "相同0.3.6业务源码、原可信组件与底部Sheet；候选仅应用公开记录的表现补丁，不改生产源、权限、业务状态机或安装包",
   "simulation": "Only in-memory SDK/storage/permission/task/clipboard boundaries; no network, Chrome, Native or real execution.",
-  "htmlSha256": "4e083d101d2be4e10228e89d0f7296f98e3f51b4ba08f81373635232a8942114",
+  "historicalComparison": "runtime-layout.css and runtime-presentation.json are unused historical design material",
+  "installedPackage": "NOT_UPDATED",
   "nativeChrome": "NOT_TESTED",
   "production": "NOT_TESTED"
 }

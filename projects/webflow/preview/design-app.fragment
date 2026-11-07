@@ -1,60 +1,45 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src about:; connect-src 'none'; img-src data:">
-<title>Web Flow · 运行授权清晰核对布局</title>
+<title>Web Flow · 当前源码交互预览</title>
 <style>/* SOURCE_STYLES */
-html,body{height:auto;min-height:100%;overflow:auto}body{display:block}
-.comparison{max-width:920px;margin:auto;padding:16px;display:grid;gap:12px}
-.comparison h1{font-size:18px;margin:0}.comparison p{margin:0}
-.comparison-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.comparison-grid{display:flex;gap:20px;align-items:flex-start;overflow-x:auto;padding:2px}
-.comparison figure{margin:0;width:400px;flex:none}.comparison figcaption{margin-bottom:8px}
-.comparison iframe{display:block;width:400px;height:720px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
-.comparison del{color:var(--od-sub)}.comparison table{border-collapse:collapse;width:100%;font-size:12px}
-.comparison th,.comparison td{padding:8px;text-align:left;border-bottom:1px solid var(--od-line)}
-.comparison details{padding:12px;border:1px solid var(--od-line);border-radius:var(--radius-surface)}
-.comparison .od-field{width:auto}.comparison figure[hidden]{display:none}
-</style>
-</head>
-<body><main class="comparison">
-<h1>运行与授权：清晰核对精确范围</h1>
-<p class="od-note">离线源码预览 · 左右使用同一应用与模拟数据。蓝色业务界面、滑块、JSON 审核和底部面板来自原源码；候选仅在运行与授权追加已披露的排版与可访问性补丁。</p>
-<div class="comparison-controls" role="group" aria-label="对照视图">
- <button class="od-button od-button--secondary" id="compare-home">查看原主界面</button>
- <button class="od-button od-button--primary" id="compare-scope">对照运行与授权</button>
- <button class="od-button" id="compare-mode" aria-pressed="false">仅看调整后</button>
+html,body{height:auto;min-height:100%;overflow:auto;color-scheme:light}body{display:block;background:var(--od-paper);color:var(--od-ink)}
+.preview{max-width:1040px;margin:auto;padding:24px;display:grid;gap:16px}.preview h1{font-size:20px;margin:0}.preview p{margin:0}
+.preview-layout{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap}.preview-device{margin:0;width:360px;max-width:100%;flex:none}
+.preview-device figcaption{margin-bottom:8px}.preview-device iframe{display:block;width:100%;height:800px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.preview-lab{flex:1;min-width:240px;display:grid;gap:16px}.preview-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.preview-controls .od-field{width:auto;min-height:44px}.preview-controls label{display:grid;gap:4px}.preview-controls button{min-height:44px}
+.preview details{padding:12px;border:1px solid var(--od-line);border-radius:var(--radius-surface)}.preview details>summary{min-height:32px;cursor:pointer}
+@media(max-width:600px){.preview{padding:12px}.preview-device{margin-inline:auto}.preview-layout{gap:20px}.preview-lab{min-width:0;width:100%}}
+</style></head><body><main class="preview">
+<h1>Web Flow 交互预览</h1>
+<p class="od-note">当前产品源码 · 可实际操作 · 仅模拟数据。运行与授权、状态详情及应用页面均来自同一份真实实现。</p>
+<div class="preview-layout">
+<figure class="preview-device" id="preview-device"><figcaption><strong>当前候选</strong> <span class="od-note" id="preview-size">360 px · 浅色应用</span></figcaption>
+<iframe id="candidate" title="当前源码：完整 Web Flow" sandbox="allow-scripts"></iframe></figure>
+<aside class="preview-lab" aria-label="预览辅助区（不属于产品 UI）">
+<div class="preview-controls" role="group" aria-label="预览视图">
+<button class="od-button" id="preview-home">首页</button><button class="od-button" id="preview-task">当前任务</button><button class="od-button" id="preview-scope">任务授权</button>
 </div>
-<p class="od-note" id="compare-feedback" role="status">先看恢复后的真实风格，再打开运行与授权查看局部差异。切换视图不重建应用，不清除草稿。</p>
-<div class="comparison-grid">
- <figure id="baseline-figure"><figcaption><strong>参考：654 标签 / 值行</strong><br><span class="od-note">固定历史参考，包含原可访问性修复</span></figcaption>
- <iframe id="baseline" title="原版参考：完整 Web Flow" sandbox="allow-scripts"></iframe></figure>
- <figure><figcaption><strong>本次：按信息类型排版</strong><br><span class="od-note">短信息横向对齐；JSON 独占完整内容行</span></figcaption>
- <iframe id="candidate" title="局部候选：完整 Web Flow" sandbox="allow-scripts"></iframe></figure>
+<div class="preview-controls">
+<label>预览宽度<select id="preview-width" class="od-field"><option value="320">320 px</option><option value="360" selected>360 px</option></select></label>
+<label>应用主题<select id="preview-theme" class="od-field"><option value="light">浅色</option><option value="dark">深色</option></select></label>
 </div>
-<table aria-label="本次四处局部差异">
-<thead><tr><th>位置 / 原问题</th><th>本次变化</th><th>对应操作</th></tr></thead>
-<tbody>
-<tr><td>上一轮将参数 JSON 整块放入第二栏</td><td>移除双业务列与字符阈值；JSON 标题在上，完整内容在下</td><td>按自然顺序阅读并核对参数</td></tr>
-<tr><td>短信息和长内容混用一种网格</td><td>地址标签 / 值横向对齐；JSON、编辑框、指令使用整行宽度</td><td>快速扫描短信息，完整阅读精确原文</td></tr>
-<tr><td>批准时间和撤销各占一行</td><td>时间在左、原撤销按钮在右；原安全含义保留</td><td>查看批准时间或主动撤销</td></tr>
-<tr><td>长审核区定位到末尾，标题可能被遮挡</td><td>就绪后从审核标题开始显示，避开原顶部页签</td><td>从标题逐项核对后再主动批准</td></tr>
-</tbody></table>
-<p class="od-note">两侧同为历史 0.3.6 应用与固定可信组件，不代表当前 0.3.8 或实时安装。蓝色皮肤、原底部 Sheet、页签停留、复制层级及七条可访问性修复保留；只比较运行区布局。用户偏好的确切历史版本仍未确认，正常聊天主入口由业务任务维护。</p>
-<details><summary>离线场景与来源（不属于扩展 UI）</summary>
-<p class="od-note">只替换内存数据和 SDK / 剪贴板边界。场景切换可能使原批准失效并清除关联指令，这是原组件的保护行为；不代表真实授权或执行。</p>
-<div class="comparison-controls">
- <label>授权场景<select id="lab-auth" class="od-field"><option value="approved">已有有效批准</option><option value="none">无批准</option><option value="revoked">已撤销</option><option value="invalid">安装变化</option><option value="error">读取失败</option><option value="loading">读取中</option><option value="save-fail">下次开关保存失败</option></select></label>
- <label>任务场景<select id="lab-task" class="od-field"><option value="empty">无当前任务</option><option value="waiting">等待完整回复</option><option value="running">运行中</option><option value="success">已完成</option><option value="failed">失败</option><option value="unknown">UNKNOWN</option></select></label>
- <label>复制反馈<select id="lab-copy" class="od-field"><option value="success">内存复制成功</option><option value="error">复制失败 / 手动选择</option></select></label>
- <button id="lab-reset" class="od-button">重置两侧模拟数据与草稿</button>
+<p class="od-note" id="preview-feedback" role="status">直接点击左侧界面。开关与授权只写本页内存；切换页面不清除草稿。</p>
+<details><summary>模拟状态与来源</summary>
+<div class="od-stack">
+<p class="od-note">辅助控件只改变预览内存，不属于产品。切换状态会改变当前模拟任务；重置会清除本页模拟草稿。</p>
+<div class="preview-controls">
+<label>自动运行<select id="lab-enabled" class="od-field"><option value="true">开启</option><option value="false">关闭</option></select></label>
+<label>任务状态<select id="lab-task" class="od-field"><option value="empty">空闲</option><option value="draft">草稿未发送</option><option value="waiting">等待回复</option><option value="no-candidate">无任务候选</option><option value="pending">待批准</option><option value="running">运行中</option><option value="success">已完成</option><option value="failed">具体错误</option><option value="unknown">结果未知</option><option value="combined-error">未知并有错误</option></select></label>
+<label>连接<select id="lab-listener" class="od-field"><option value="ready">监听就绪</option><option value="disconnected">需要恢复</option><option value="error">读取失败</option></select></label>
+<label>授权<select id="lab-auth" class="od-field"><option value="approved">已批准</option><option value="none">未批准</option><option value="revoked">已撤销</option><option value="invalid">安装变化</option><option value="error">读取失败</option><option value="loading">读取中</option><option value="save-fail">下次保存失败</option></select></label>
+<button id="lab-reset" class="od-button">重置模拟数据与草稿</button>
 </div>
-<p class="od-note">重置会清空本页模拟草稿。复制按钮沿用真实组件，只写本页内存；不写系统剪贴板。宿主管理图标在离线夹具中不可用；五 Tab 仅为上下文。本页无真实网站、任务或权限能力。原生 Chrome / 安装 / production：NOT_TESTED。</p>
-<p class="od-technical">源版本：<!-- SOURCE_REVISION -->。生成入口：preview/build-design.mjs；组件夹具：tests/auto-trigger-ui-server.mjs。输入与输出 SHA 见同名 manifest。</p>
-</details>
-</main>
-<script id="webflow-preview-sources" type="application/json">/* SOURCE_DOCUMENTS */</script>
-<script>/* PREVIEW_BEHAVIOR */</script>
+<p class="od-note">网络、真实任务、Chrome、Native、安装与网站权限均不可用。宿主五 Tab 仅作上下文，管理图标不可用；复制仅写内存。系统 Chrome、读屏、Native、production：NOT_TESTED。</p>
+<p class="od-technical">来源：<!-- SOURCE_REVISION -->。从 build-design.mjs 重建，check-design.mjs 检查。SHA 见同名 manifest。旧版排版比较不参与当前候选。</p>
+</div></details>
+</aside></div></main>
+<script id="webflow-preview-sources" type="application/json">/* SOURCE_DOCUMENTS */</script><script>/* PREVIEW_BEHAVIOR */</script>
 </body></html>

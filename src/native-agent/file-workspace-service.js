@@ -58,7 +58,7 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000,onCha
     if(!supported)throw new AgentBridgeError('E_FILES_UNSUPPORTED','本机 OpenDesk 尚未提供文件工作区，请更新原生程序');
     if(!available())throw new AgentBridgeError('E_FILES_DISCONNECTED','请先在本机连接设置中连接 OpenDesk');
     if(expected.sessionId!==undefined&&expected.sessionId!==sessionId)throw new AgentBridgeError('E_FILES_SESSION','读取时的 Native 连接已失效，请重新读取文件');
-    const c={...connection()},epoch=sessionId,requestId=expected.requestId??crypto.randomUUID();
+    const c={...connection()},epoch=sessionId,requestId=expected.requestId??crypto.randomUUID(),beforeDispatch=expected.beforeDispatch;
     if(typeof requestId!=='string'||!/^[A-Za-z0-9._:-]{1,100}$/.test(requestId)||pending.has(requestId))
       throw new AgentBridgeError('E_REQUEST_CONFLICT','文件请求 ID 无效或仍在处理中');
     // Freeze caller-owned input before the permission await.
@@ -69,6 +69,18 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000,onCha
       throw new AgentBridgeError('E_FILES_DISCONNECTED');
     if(pending.has(requestId))throw new AgentBridgeError('E_REQUEST_CONFLICT','同一文件请求仍在处理中');
     if(pending.size>=4)throw new AgentBridgeError('E_LIMIT');
+    // Trusted closure only; never serialized into the Native request. This
+    // fence runs after all awaits and final connection checks, before sending.
+    if(beforeDispatch!==undefined){
+      try{
+        if(typeof beforeDispatch!=='function')throw new AgentBridgeError('E_SCHEMA','派发检查必须是同步函数');
+        const result=beforeDispatch();
+        if(result!=null&&typeof result.then==='function'){
+          Promise.resolve(result).catch(()=>{});
+          throw new AgentBridgeError('E_SCHEMA','派发检查不能返回异步结果');
+        }
+      }catch(error){throw new AgentBridgeError(error?.code||'E_FILES_GUARD',error?.message||'派发前检查拒绝了操作','NOT_DISPATCHED');}
+    }
     return new Promise((resolve,reject)=>{
       const write=WRITES.has(method);
       const timer=setTimeout(()=>settle(requestId,null,{code:'E_FILES_TIMEOUT',

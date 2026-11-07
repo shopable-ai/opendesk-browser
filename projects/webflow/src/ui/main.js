@@ -451,29 +451,35 @@
         h('p',{className:'wf-sub'},'查询不创建执行。UNKNOWN、缺失记录或资源未释放时，保留原步骤，只能查询或停止。'))});
     };
     function overview(){
-      return h('div',{className:'wf-stack'},
-        h(Head,{title:'概览',note:'固定任务 · 真实安装核验与最近运行'}),
-        h('div',{className:'wf-metrics','aria-label':'任务概况'},
-          ...[['已审阅任务',summary.reviewed],['可手动运行',loading?'…':summary.available],
-            ['需处理',loading?'…':summary.attention],['本应用记录',history.length]]
-            .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))),
-        h(Card,{children:h('div',{className:'wf-stack'},
-          h('h3',null,'从 ChatGPT 自动运行'),
-          h('ol',{className:'wf-help'},
-            h('li',null,'打开上方“运行与授权 → 任务授权”，核对脚本、地址与参数。'),
-            h('li',null,'在“使用说明”完成一次 ChatGPT 能力接入，再开启上方“自动运行”滑块。'),
-            h('li',null,'保持侧栏打开，在已接入的 ChatGPT 项目中正常提出需求。AI 生成新候选后自动执行，无需每轮准备或复制指令。')),
-          h('p',{className:'wf-sub'},'在“运行与授权 → 当前任务”查看进度和结果；结果也会回到原聊天。“记录”保存手动运行。'),
-          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{quiet:true}),
-            Btn('使用与排障',()=>setTab('help'),{quiet:true}),
-            Btn('刷新安装状态',()=>{void readTasks();},{quiet:true,disabled:loading})))}),
-        summary.attention>0&&h('div',{className:'wf-banner wf-warning'},
-          summary.attention+' 项固定任务不可用或版本变化。请在宿主任务目录核对，不要通过改名绕过固定身份。'),
+      return h('div',{className:'wf-stack wf-overview'},
+        h('section',{className:'wf-stack','aria-label':'手动任务概况'},
+          h(Head,{title:'手动任务',action:Btn('刷新',()=>{void readTasks();},
+            {quiet:true,disabled:loading,ariaLabel:'刷新安装状态',title:'刷新安装状态'})}),
+          h('div',{className:'wf-metrics','aria-label':'任务概况'},
+            ...[['已审阅任务',summary.reviewed],['可手动运行',loading?'…':summary.available],
+              ['需处理',loading?'…':summary.attention]]
+              .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))),
+          summary.attention>0&&h('div',{className:'wf-banner wf-warning wf-line'},
+            h('p',{className:'wf-grow'},summary.attention+' 项手动任务需处理。请在脚本查看原因，并核对安装与授权。'),
+            Btn('查看原因',gotoScripts,{quiet:true}))),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('div',{className:'wf-line wf-between'},h('h3',null,'最近一次手动运行'),
             Btn('查看记录',()=>setTab('history'),{quiet:true})),
           summary.latest?historyCard(summary.latest,0):h('p',{className:'wf-sub'},'尚无手动运行摘要。自动运行的结果在触发任务的原聊天中查看。')
-        )}));
+        )}),
+        h(Card,{children:h('details',{className:'wf-onboarding',onKeyDown:event=>{
+          if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){
+            event.preventDefault();event.stopPropagation();event.currentTarget.open=false;
+            event.currentTarget.querySelector('summary').focus();
+          }
+        }},h('summary',null,'从 ChatGPT 自动运行 · 使用步骤'),
+          h('div',{className:'wf-stack'},h('ol',{className:'wf-help'},
+            h('li',null,'打开上方“运行与授权 → 任务授权”，核对脚本、地址与参数。'),
+            h('li',null,'在“使用说明”完成一次 ChatGPT 能力接入，再开启上方“自动运行”滑块。'),
+            h('li',null,'在已接入的 ChatGPT 聊天中正常提出需求，侧栏可关闭。AI 生成新候选后自动执行，无需每轮准备或复制指令。')),
+          h('p',{className:'wf-sub'},'在“运行与授权 → 当前任务”查看进度和结果；结果也会回到原聊天。“记录”保存手动运行。'),
+          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{quiet:true}),
+            Btn('使用与排障',()=>setTab('help'),{quiet:true}))))}));
     }
     function scripts(){
       return h('div',{className:'wf-stack'},
@@ -521,7 +527,7 @@
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'自动运行权限'),
           h('p',{className:'wf-sub'},'使用本应用上方的“自动运行”滑块；打开“运行与授权 → 任务授权”核对已安装脚本、地址和参数并批准。开关与批准即时保存。'),
-          h('p',{className:'wf-sub'},'若上方没有自动运行控件，请更新 OpenDesk Browser。保持可信侧栏打开后，在 ChatGPT 发送新消息；只有随后完整助手回复中的 webflow.task.intent.v1 候选可触发，用户消息、历史与引用不触发。'))}),
+          h('p',{className:'wf-sub'},'若上方没有自动运行控件，请更新 OpenDesk Browser。在 ChatGPT 发送新消息，侧栏可关闭；只有随后完整助手回复中的 webflow.task.intent.v1 候选可触发，用户消息、历史与引用不触发。'))}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
           h('p',{className:'wf-sub'},'创建、导入、升级和卸载请使用宿主的「开发」或「我的 → 任务目录」；不会从沙箱打开私有宿主页面。'),
@@ -536,11 +542,11 @@
           action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'从 ChatGPT 自动运行'),
-          h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；改变参数需重新审核。'),
-          h('p',null,'2. 在“运行与授权 → 使用说明”审阅一次能力说明，保存到 ChatGPT 当前项目的项目指令。普通聊天也可先发送能力说明一次，范围仅限该聊天。开启自动运行，保持侧栏打开。'),
+          h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；允许更换关键词时，规则内换词无需重复批准。'),
+          h('p',null,'2. 在“运行与授权 → 使用说明”复制能力说明，向普通新聊天发送一次；也可选择保存为项目指令。已接入聊天无需重复。开启自动运行后可关闭侧栏，保留 ChatGPT 标签页。'),
           h('p',null,'3. 此后正常发送需求即可，AI 每次生成新候选。当前消息的等待、未执行、运行和结果在“当前任务”查看，真实结果单次回原聊天；结果未知时只查询或停止原请求，不补跑。'),
           h('h3',null,'未触发或需要停止'),
-          h('p',null,'先核对上方开关、任务批准和原聊天任务卡的错误。未批准时在可信界面审核；协议格式、重复候选、安装变化或网站权限失败时按原错误处理。关闭开关只阻止新任务；已开始的任务在原聊天任务卡停止。'),
+          h('p',null,'先核对上方开关、任务批准和“运行与授权 → 当前任务”的错误。未批准时在可信界面审核；协议格式、重复候选、安装变化或网站权限失败时按原错误处理。关闭开关只阻止新任务；已开始的任务在“运行与授权 → 当前任务”停止。'),
           h('p',null,'若上方没有自动运行或一次接入说明，请更新 OpenDesk Browser 后重开应用。它们来自 Browser 的可信组件，单独升级工具包不会更新该组件。'),
           h('h3',null,'手动运行一个真实任务'),
           h('p',null,'1. 在宿主任务目录安装并核验与本应用相同版本、哈希的 Controller Task。'),
@@ -571,8 +577,8 @@
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
             }},label))),
         h('div',{className:'wf-head-actions'},
-          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助'}),
-          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置'}))),
+          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助',title:'帮助'}),
+          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置',title:'设置'}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
         'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},

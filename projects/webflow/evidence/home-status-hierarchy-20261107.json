@@ -1,0 +1,602 @@
+{
+  "schema": "opendesk.webflow.ui-evidence.v1",
+  "date": "2026-11-07",
+  "recordedAt": "2026-11-07T14:26:29.478290+00:00",
+  "scope": "Web Flow 首页信息层级、按需解释、状态稳定性与可访问交互；独立 UI 开发及评审，不接管百度/本地文件/Native 业务。",
+  "workspace": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "branch": "main",
+  "result": {
+    "stage": "SOURCE_AND_COMPONENT_UI_COMPLETE",
+    "independentUIScore": 96,
+    "target": 95,
+    "businessOrReleaseScore": "NOT_SCORED",
+    "finalSystemChrome": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "Native": "NOT_TESTED"
+  },
+  "ownershipAndReuse": {
+    "trustedOwner": "projects/webflow/trusted/AutoSettings.tsx / CurrentTask.tsx",
+    "sandboxOwner": "projects/webflow/src/ui/main.js / style.css",
+    "entry": "现有 Web Flow 首页 → 状态详情 / 运行与授权；原沙箱概览 → 使用步骤。",
+    "reused": "原 React Root、原 RuntimePanel、原 Button/Switch/Tokens、原沙箱、原只读 bridge 和现有组件夹具；无新依赖、Host、Authority 或安装器。",
+    "parallel": "保留本项目文件业务、README、执行计划及 provenance 的并行改动；provenance 仅更新本次两份 UI 的精确来源 pin。"
+  },
+  "changedFiles": [
+    "projects/webflow/trusted/AutoSettings.tsx",
+    "projects/webflow/trusted/CurrentTask.tsx",
+    "projects/webflow/src/ui/main.js",
+    "projects/webflow/src/ui/style.css",
+    "projects/webflow/tests/auto-settings-ui.test.mjs",
+    "projects/webflow/tests/auto-trigger-ui-server.mjs",
+    "scripts/bundle-provenance.mjs",
+    "projects/webflow/docs/execution-plan.zh-CN.md",
+    "projects/webflow/evidence/home-status-hierarchy-20261107.json"
+  ],
+  "behavior": [
+    "首页短状态配原生 details；完整解释和维护操作按需展开，轮询不改变开合与焦点。",
+    "待批准、未知结果、具体错误、断线恢复与原请求进度/停止入口始终留在折叠区外。",
+    "未知回执与具体错误并存时同时显示；不能以短摘要掩盖错误。",
+    "手动检查加入正在进行的同一只读请求，并显示 busy/disabled；不重复读、不越过 mutation。",
+    "原沙箱教学步骤默认折叠，脚本、帮助及刷新入口保留；概览14px正文，关键动作/详情44px热区。可信首页提示继承现有正文 token（当前13px）。",
+    "Esc 关闭详情并归还焦点，IME 合成中的 Esc 不关闭；授权草稿跨导航/关闭重开保留。",
+    "后台 polling 与前台 busy 分开；刷新最终确认、上下文与生命周期围栏、UNKNOWN 不重放保持。"
+  ],
+  "candidateSHA256": {
+    "projects/webflow/trusted/AutoSettings.tsx": "fbcd83c6871da6c34024d079f634aead59d0a10b9b2e3b6288325cca81164888",
+    "projects/webflow/trusted/CurrentTask.tsx": "aab1ae40b1a007263f6f7c3bd19d9cb74e2516e744c03437e55933af4db5de1f",
+    "projects/webflow/trusted/RuntimePanel.tsx": "a843e5986f82526329ab1da5b3181c8d075fb8abbc4268e621059cef962fd399",
+    "src/ui/design-tokens.css": "852b72482237595c88aae05e1e624728332ecc380d2d4fbc6fe6273f328ffe91",
+    "src/ui/design-system.css": "3db2a5db8cc7b59bd4e51207f7d4a2ce29dfa7f0dd3061d0af2ac3aecd1da11b",
+    "src/ui/tool-shell.css": "256179a28f28758b8d55bc355bbc951825d0fd8c6970bc07cab59d04fe62eba2",
+    "src/ui/react/components/ui/sidebar-shared.css": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a",
+    "projects/webflow/tests/auto-trigger-ui-server.mjs": "0278889f376220ea083067865ab0730209dabad7ed4c486650ada559d468b9ed",
+    "projects/webflow/src/ui/main.js": "554ce2bdbf78d87f6b5f9c5c3851d7188bd00e30be6ddd9a6b99c68bd87bb156",
+    "projects/webflow/src/ui/style.css": "64cdf4761397d58a4963bf413e30129bcb9e77924726a4f6d843e1f4d5f51ccc",
+    "projects/webflow/src/ui/model.js": "dee959d35a73c8003977da8d6d4b953ebd959111eec544380157438967e607f8"
+  },
+  "ownSourcePins": {
+    "projects/webflow/trusted/AutoSettings.tsx": {
+      "expectedGitBlob": "0ccfc90be8a33311e6cc758e2bfc1d327a3b85aa",
+      "actualGitBlob": "0ccfc90be8a33311e6cc758e2bfc1d327a3b85aa",
+      "matches": true
+    },
+    "projects/webflow/trusted/CurrentTask.tsx": {
+      "expectedGitBlob": "9a736e608b68f85d610c0568df1dc48f41c4c6d8",
+      "actualGitBlob": "9a736e608b68f85d610c0568df1dc48f41c4c6d8",
+      "matches": true
+    }
+  },
+  "validation": {
+    "componentTests": {
+      "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs",
+      "pass": 83,
+      "fail": 0,
+      "purpose": "状态摘要/解释、手动读合并、刷新/上下文/取消保护、原沙箱导航与恢复行为。",
+      "log": "../../../artifacts/webflow-home-hierarchy-20261107/components-test.log"
+    },
+    "sourceBoundaryTests": {
+      "command": "node --test tests/environment/webflow-fixed-source.test.mjs",
+      "pass": 2,
+      "fail": 1,
+      "status": "FAIL_PARALLEL_SOURCE_DRIFT",
+      "failure": "Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/App.jsx",
+      "interpretation": "正向固定 bundle 检查被共享 AI Proxy 来源门禁提前阻断；两项改字节/符号链接负例通过。本任务两项 UI 来源 pin 逐字核对相符，不修改 AI Proxy 来制造 PASS。",
+      "log": "../../../artifacts/webflow-home-hierarchy-20261107/source-test.log"
+    },
+    "syntax": "node --check projects/webflow/src/ui/main.js 及本轮夹具/测试语法检查通过；实际组件经 esbuild 转译并执行。",
+    "whitespace": "git diff --check 受影响文件通过。",
+    "browserLevel": "REAL_COMPONENT_REAL_SHELL_MOCK_HOST",
+    "browser": {
+      "level": "REAL_COMPONENT_REAL_SHELL_MOCK_HOST",
+      "tocSuppressed": "Only unrelated ego reading-toc decoration hidden in fixture document",
+      "results": [
+        {
+          "name": "idle",
+          "statusHeight": 108,
+          "overflow": false,
+          "width": 320,
+          "notice": "",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "no-candidate",
+          "statusHeight": 156,
+          "overflow": false,
+          "width": 320,
+          "notice": "本条未执行 · 未生成任务候选",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看详情",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "draft",
+          "statusHeight": 132.1484375,
+          "overflow": false,
+          "width": 320,
+          "notice": "草稿尚未发送 · 请在 ChatGPT 发送",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "disconnected",
+          "statusHeight": 200.296875,
+          "overflow": false,
+          "width": 320,
+          "notice": "",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看连接恢复操作",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "unknown",
+          "statusHeight": 180.1484375,
+          "overflow": false,
+          "width": 320,
+          "notice": "结果未知 · 请核对原请求",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看原请求记录",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "pending",
+          "statusHeight": 156,
+          "overflow": false,
+          "width": 320,
+          "notice": "待批准 · 尚未执行",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "审阅授权",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "history",
+          "statusHeight": 132.1484375,
+          "overflow": false,
+          "width": 320,
+          "notice": "历史回复 · 未触发新任务",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "running",
+          "statusHeight": 180.1484375,
+          "overflow": false,
+          "width": 320,
+          "notice": "正在读取网页结果",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看进度 / 停止",
+              "right": 295.8671875
+            }
+          ]
+        },
+        {
+          "name": "combined-error",
+          "statusHeight": 200.296875,
+          "overflow": false,
+          "width": 320,
+          "notice": "结果未知 · 保存回执失败：原连接已断开；请核对原请求，不会补发。",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看原请求记录",
+              "right": 212
+            }
+          ]
+        },
+        {
+          "name": "error",
+          "statusHeight": 172.4453125,
+          "overflow": false,
+          "width": 320,
+          "notice": "执行失败：网站未返回可读取的结果。请核对原请求与权限，不会自动重试。",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 311
+            },
+            {
+              "text": "查看详情",
+              "right": 311
+            }
+          ]
+        },
+        {
+          "name": "idle",
+          "statusHeight": 108,
+          "overflow": false,
+          "width": 360,
+          "notice": "",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "no-candidate",
+          "statusHeight": 156,
+          "overflow": false,
+          "width": 360,
+          "notice": "本条未执行 · 未生成任务候选",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看详情",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "draft",
+          "statusHeight": 132.1484375,
+          "overflow": false,
+          "width": 360,
+          "notice": "草稿尚未发送 · 请在 ChatGPT 发送",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "disconnected",
+          "statusHeight": 200.296875,
+          "overflow": false,
+          "width": 360,
+          "notice": "",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看连接恢复操作",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "unknown",
+          "statusHeight": 180.1484375,
+          "overflow": false,
+          "width": 360,
+          "notice": "结果未知 · 请核对原请求",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看原请求记录",
+              "right": 313
+            }
+          ]
+        },
+        {
+          "name": "pending",
+          "statusHeight": 156,
+          "overflow": false,
+          "width": 360,
+          "notice": "待批准 · 尚未执行",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "审阅授权",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "history",
+          "statusHeight": 132.1484375,
+          "overflow": false,
+          "width": 360,
+          "notice": "历史回复 · 未触发新任务",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            }
+          ]
+        },
+        {
+          "name": "running",
+          "statusHeight": 180.1484375,
+          "overflow": false,
+          "width": 360,
+          "notice": "正在读取网页结果",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看进度 / 停止",
+              "right": 297.8671875
+            }
+          ]
+        },
+        {
+          "name": "combined-error",
+          "statusHeight": 200.296875,
+          "overflow": false,
+          "width": 360,
+          "notice": "结果未知 · 保存回执失败：原连接已断开；请核对原请求，不会补发。",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看原请求记录",
+              "right": 214
+            }
+          ]
+        },
+        {
+          "name": "error",
+          "statusHeight": 156,
+          "overflow": false,
+          "width": 360,
+          "notice": "执行失败：网站未返回可读取的结果。请核对原请求与权限，不会自动重试。",
+          "detailsOpen": false,
+          "reachable": [
+            {
+              "text": "运行与授权",
+              "right": 349
+            },
+            {
+              "text": "查看详情",
+              "right": 349
+            }
+          ]
+        }
+      ],
+      "interaction": {
+        "keyboardOpen": true,
+        "imeEscapeKeptOpen": true,
+        "escape": {
+          "closed": true,
+          "focus": true
+        },
+        "touchOpen": true
+      },
+      "stability": {
+        "polls": 5,
+        "maxShift": 0,
+        "focusKept": true,
+        "openKept": true
+      },
+      "failure": {
+        "message": "模拟连接已断开，请核对原请求",
+        "visible": true,
+        "state": "监听状态未确认"
+      }
+    },
+    "stability": [
+      {
+        "width": 320,
+        "open": false,
+        "polls": 5,
+        "maxShift": 0,
+        "focusKept": true,
+        "openKept": true,
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "open": true,
+        "polls": 5,
+        "maxShift": 0,
+        "focusKept": true,
+        "openKept": true,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "open": false,
+        "polls": 5,
+        "maxShift": 0,
+        "focusKept": true,
+        "openKept": true,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "open": true,
+        "polls": 5,
+        "maxShift": 0,
+        "focusKept": true,
+        "openKept": true,
+        "overflow": false
+      }
+    ],
+    "panelAndManual": {
+      "draftPreserved": true,
+      "panel": {
+        "closed": true,
+        "focusReturned": true
+      },
+      "manualJoin": {
+        "reads": 79,
+        "busy": "true",
+        "disabled": true,
+        "readsBefore": 79,
+        "finished": true
+      }
+    },
+    "onboarding": {
+      "keyboardOpen": true,
+      "escapeClosed": true,
+      "focusReturned": true,
+      "criterion": "Native details[open]/:not([open]) and summary:focus selectors inside iframe; screenshots. Full-page snapshot includes collapsed descendants and was not used as visibility assertion."
+    },
+    "limitations": [
+      "最终候选的系统 Chrome 侧栏未验证。",
+      "production、Native 执行/停止/文件读写、安装升级、读屏未验证。",
+      "未运行完整 CI、全量构建或业务验收。"
+    ],
+    "driverCorrections": [
+      {
+        "oldObservation": "早期320px/details关闭样本40.84375px位移。",
+        "classification": "场景从 no-candidate 切到 idle 尚未等待 notice 消失，测到了场景变化；不是已证实的轮询缺陷。",
+        "finalEvidence": "最终先等待 ready 且无 homeNotice，再测四组各5轮，均0px。"
+      },
+      {
+        "oldObservation": "full_page snapshot 仍包含教学步骤，误判 Esc 未关闭。",
+        "classification": "驱动可见性断言错误；snapshot 包含折叠后代。",
+        "finalEvidence": "原生 iframe details:not([open]) 与 summary:focus 选择器及截图均确认关闭。"
+      },
+      {
+        "oldObservation": "授权面板填充失败。",
+        "classification": "驱动在tab与details切换后未等待对应可见状态。",
+        "finalEvidence": "等待tab选中/editor open后，原输入正常编辑，关闭重开草稿保留。"
+      }
+    ]
+  },
+  "independentReviews": {
+    "codeReviewer": {
+      "id": "01a1b652-b921-7f52-86ab-f565a462f2c4",
+      "name": "Ptolemy",
+      "report": "**COMMENT — no blockers or new actionable findings in this bounded iteration.**\n\n- [main.js:461](/Users/shopme/Documents/workspace/opendesk-browser/projects/webflow/src/ui/main.js:461): Native `details` defaults closed. No handler intercepts Enter, Space or clicks; Escape closes and focuses the summary with IME guards. Script/help/refresh actions remain outside the disclosure.\n- [style.css:60](/Users/shopme/Documents/workspace/opendesk-browser/projects/webflow/src/ui/style.css:60): Overview typography and button sizing are locally scoped.\n- AutoSettings changes preserve the previously reviewed behavior and authority boundaries. All three changed-file hashes match the candidate manifest; CurrentTask remains unchanged from the reviewed version.\n\nFresh checks: JavaScript syntax, diff whitespace and the targeted overview navigation/no-execution test passed. Native keyboard/touch behavior and visual confirmation remain with the parent’s browser checks; LSP diagnostics remain unavailable. No score assigned."
+    },
+    "uiReviewer": {
+      "id": "01a1b656-332b-7f93-bbe8-d795e99f2897",
+      "name": "Schrodinger",
+      "score": 96,
+      "report": "# Independent final Web Flow home UI review — 96/100\n\n**The final candidate meets the ≥95 target within the reviewed UI scope.** The earlier **92/100 is historical**. The increase reflects reduced onboarding space, improved readability and control sizing, and corrected stability evidence using the same rubric.\n\n## Final candidate identity\n\nAll **11 source files** matched their entries in `artifacts/webflow-home-hierarchy-20261107/candidate-sha256.json`.\n\n| Candidate source | SHA256 |\n|---|---|\n| `projects/webflow/trusted/AutoSettings.tsx` | `fbcd83c6871da6c34024d079f634aead59d0a10b9b2e3b6288325cca81164888` |\n| `projects/webflow/trusted/CurrentTask.tsx` | `aab1ae40b1a007263f6f7c3bd19d9cb74e2516e744c03437e55933af4db5de1f` |\n| `projects/webflow/trusted/RuntimePanel.tsx` | `a843e5986f82526329ab1da5b3181c8d075fb8abbc4268e621059cef962fd399` |\n| `projects/webflow/src/ui/main.js` | `554ce2bdbf78d87f6b5f9c5c3851d7188bd00e30be6ddd9a6b99c68bd87bb156` |\n| `projects/webflow/src/ui/style.css` | `64cdf4761397d58a4963bf413e30129bcb9e77924726a4f6d843e1f4d5f51ccc` |\n| `projects/webflow/src/ui/model.js` | `dee959d35a73c8003977da8d6d4b953ebd959111eec544380157438967e607f8` |\n\n## Rubric and remaining deductions\n\n| Criterion | Score | Evidence and deduction |\n|---|---:|---|\n| Information hierarchy | **19/20** | Automatic-run controls, listener status, critical notices, and application content remain clearly ordered. Collapsed onboarding gives recent activity greater prominence. **−1:** interpreting “已关闭” alongside green “监听就绪” still requires understanding independent states; the fuller explanation is inside details. |\n| Space efficiency | **19/20** | The idle onboarding/action card occupies approximately **168–173 px**, compared with approximately 344 px previously at 320 px width. Recent manual activity is fully visible in both 900 px-high idle/no-candidate captures. **−1:** refresh occupies a separate action row at both widths, leaving some avoidable whitespace. |\n| Interaction | **19/20** | Recorded keyboard/touch/IME/Escape behavior passes. Panel drafts survive closing/reopening, and Escape returns focus. Manual checking acknowledges a pending read with busy/disabled state without creating another request. **−1:** stopping requires opening the progress/stop panel before reaching cancellation. |\n| Accessibility | **14/15** | Overview text and actions are larger; key homepage actions and disclosures have 44 px minimum heights. Focus indicators remain conspicuous in light and dark captures. **−1:** compact help/settings controls and smaller secondary text remain. Trusted homepage notes map to the **13 px body token**, so typography is not uniformly 14 px. |\n| Narrow-screen stability | **15/15** | All **20 state/width cases** report no horizontal overflow. All four settled 320/360 × details closed/open cases record **five polls, zero shift, preserved focus, and preserved disclosure state**. Critical messages wrap without hiding actions. |\n| Visual consistency | **10/10** | Trusted shell and sandbox remain visually cohesive through color, spacing, surfaces, borders, typography, and state treatments. Larger controls preserve the established visual language. |\n| **Total** | **96/100** | **Four points deducted; UI target met.** |\n\n## Critical-state findings\n\n- **Unknown plus error:** both widths retain “结果未知” and the full concrete receipt failure, including original-request guidance and the statement that results will not be resent.\n- **Approval:** “待批准 · 尚未执行” and “审阅授权” remain visible outside collapsed details.\n- **Running:** “任务执行中” and progress/stop access remain visible at both widths. This establishes discoverability, not real Native cancellation.\n- **Execution/read failure:** concrete errors remain visible. Failed reads show “监听状态未确认” rather than retaining green readiness.\n- **Onboarding:** final screenshots and interaction records support keyboard opening, Escape closing, and focus return.\n\n**Blocking UI issue: none identified within the inspected scope.**\n\nThe earlier **40.84375 px** sample is superseded by settled measurements that wait for the idle/no-notice state. It is not retained as a confirmed polling defect.\n\nThe initial snapshot-based onboarding Escape assertion was invalid driver evidence: the full-page snapshot included collapsed descendants. The final screenshot and iframe `details:not([open])` / `summary:focus` selectors establish actual closing and focus retention. No product change was required for that assertion failure.\n\n## Exact final images inspected\n\nAll **27 images** below were visually inspected under:\n\n`artifacts/webflow-home-hierarchy-20261107/`\n\n| State | Images |\n|---|---|\n| Idle | `idle-320.png`, `idle-360.png` |\n| No candidate | `no-candidate-320.png`, `no-candidate-360.png` |\n| Draft | `draft-320.png`, `draft-360.png` |\n| Disconnected | `disconnected-320.png`, `disconnected-360.png` |\n| Unknown | `unknown-320.png`, `unknown-360.png` |\n| Pending approval | `pending-320.png`, `pending-360.png` |\n| History | `history-320.png`, `history-360.png` |\n| Running | `running-320.png`, `running-360.png` |\n| Combined error | `combined-error-320.png`, `combined-error-360.png` |\n| Execution error | `error-320.png`, `error-360.png` |\n| Keyboard details | `details-keyboard-360.png` |\n| Dark details | `details-dark-360.png` |\n| Read failure | `read-failure-360.png` |\n| Onboarding | `onboarding-open-360.png`, `onboarding-closed-360.png` |\n| Panel draft | `panel-draft-360.png` |\n| Manual check acknowledgement | `manual-check-ack-360.png` |\n\n## Supporting evidence inspected\n\n- `candidate-sha256.json`: all 11 listed files matched current source hashes.\n- `browser-results.json`: **20 scenarios**, no recorded horizontal overflow; keyboard, touch, IME-safe Escape, closing, and focus results.\n- `stability-details.json`: four settled width/disclosure combinations, each with five polls, **0 px shift**, retained focus/open state, and no recorded overflow.\n- `panel-and-manual.json`: draft preserved; panel closed with focus returned; manual check acknowledged as busy and disabled while joining the existing read. Read count remained **79 before/after the join**, then completed.\n- `onboarding-interaction.json`: keyboard opening, Escape closing, and focus return confirmed using iframe visibility/focus selectors.\n- `browser-check.mjs` and `interactions-check.mjs`: inspected capture and measurement procedures.\n- Final component/current-task/sandbox recovery test log, inspected at `/tmp/webflow-home-final-components.log` and copied `components-test.log`: **83 tests passed, 0 failed**.\n- Relevant trusted component, sandbox UI, and styling source was inspected to ground interaction, typography, sizing, and disclosure findings.\n\n## Evidence limitations\n\nThis is an **independent UI-only assessment** of actual React Shell/components and real sandbox UI source rendered in **ego Chromium with mocked Host boundaries**.\n\nI inspected source, hashes, screenshots, recorded interactions, measurement procedures, and test logs. I did **not** independently rerun tests, operate browsers/services, or modify files.\n\n**Final-candidate system Chrome, production, Native execution, and assistive-technology validation remain NOT_TESTED.** The score does not establish real authorization enforcement, task execution, cancellation, delivery, installation, or release readiness. The parallel AI Proxy source-pin validation blocker is separate from this UI assessment.\n\nThe review is complete for the frozen candidate and supplied UI evidence."
+    }
+  },
+  "scoreHistory": [
+    {
+      "score": 92,
+      "candidateAutoSettingsSHA256": "e722d522f64ab08517a6b1a547fa3b497f94f2d65efa6c8eae96273f632a9fde",
+      "status": "HISTORICAL_BELOW_TARGET",
+      "followup": "折叠原沙箱教学步骤，增大正文/触控尺寸，补全稳定测量；同一评分表复评96。"
+    },
+    {
+      "score": 96,
+      "candidateAutoSettingsSHA256": "fbcd83c6871da6c34024d079f634aead59d0a10b9b2e3b6288325cca81164888",
+      "status": "FINAL_UI_SCOPE_TARGET_MET"
+    }
+  ],
+  "developmentOutput": {
+    "checkedAt": "2026-11-07T14:24:51.979354+00:00",
+    "sourceMap": {
+      "projects/webflow/trusted/AutoSettings.tsx": {
+        "found": 1,
+        "matches": false
+      },
+      "projects/webflow/trusted/CurrentTask.tsx": {
+        "found": 1,
+        "matches": false
+      }
+    },
+    "installedFinalCandidate": "NOT_TESTED"
+  },
+  "delivery": {
+    "source": "本次源码保留在 main 未提交；无推送、分支、worktree 或发布。",
+    "installation": "原正式工具包/版本保持；此次为源码 UI 迭代，未进入安装包晋升或安装阶段。沙箱 UI 后续须通过原同 ID 更新链交付。",
+    "watcher": "保留原 npm run dev writer PID26234、固定 dist/development 与扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf；不启动第二 writer、不覆盖输出。",
+    "blocker": "日常输出 source map 中两份最终 UI 与源码均不一致；共享 AI Proxy 来源 pin 仍失败。不能报告日常 Chrome 已加载最终候选。",
+    "draftProtection": "原系统 Chrome 中未发送的文件回执草稿保留；没有发送、刷新、重跑或重放旧请求。"
+  },
+  "artifacts": {
+    "root": "../../../artifacts/webflow-home-hierarchy-20261107",
+    "screenshotCount": 27,
+    "home": "../../../artifacts/webflow-home-hierarchy-20261107/no-candidate-360.png",
+    "idle": "../../../artifacts/webflow-home-hierarchy-20261107/idle-320.png",
+    "scripts": [
+      "browser-check.mjs",
+      "interactions-check.mjs"
+    ],
+    "captureNote": "仅在测试文档隐藏 ego 的无关 reading-toc 装饰，未更改产品代码。"
+  },
+  "resources": {
+    "egoTaskSpace": 17,
+    "egoFinished": true,
+    "keptPages": [],
+    "fixturePID": 44255,
+    "fixtureStopped": true,
+    "sharedWatcherPreserved": 26234,
+    "reviewAgentsClosed": true,
+    "CUAComplete": true,
+    "egoUpdateNotice": "提示有更新，未执行升级。"
+  },
+  "nextBoundary": "本轮UI源码/组件及独立评审已完成。最终日常Chrome应用须先由对应owner收尾AI Proxy来源锁，再复用原writer，并经正常沙箱更新与草稿安全栅栏核对；不扩展为本轮业务/Native/production验收。"
+}

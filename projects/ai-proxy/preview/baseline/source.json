@@ -1,0 +1,18 @@
+{
+  "commit": "fcfc32a10ab656133547c43e46818c9a8e63c163",
+  "purpose": "Read-only pre-redesign business sidebar inputs. No production source rollback.",
+  "files": {
+    "projects/ai-proxy/src/QuickPanel.tsx": {
+      "snapshot": "projects/ai-proxy/preview/baseline/QuickPanel.tsx",
+      "sha256": "aecd2aa9bcc43e1d4b9b3f80b565601c7ba27792d5d3d21d518e1d891c523731"
+    },
+    "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+      "snapshot": "projects/ai-proxy/preview/baseline/sidepanel-r86.css",
+      "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+    },
+    "projects/ai-proxy/src/style.css": {
+      "snapshot": "projects/ai-proxy/preview/baseline/style.css",
+      "sha256": "bbdb6730c22e5f51177705e6b838fe4593d80c6bb8efb125c03917767d90da74"
+    }
+  }
+}

@@ -26,7 +26,8 @@ function harness(){
   const state={permitted:true,tab:{id:source.tabId,url:source.url},
     frame:{documentId:source.documentId,url:source.url,documentLifecycle:'active'},
     slot:null,runs:[],results:[],snapshots:[],deliveries:[],ensures:0,submits:0,
-    afterWrite:null,afterRead:null,deliveryReply:{ok:true},deliveryError:null};
+    afterWrite:null,afterRead:null,deliveryReply:{ok:true},deliveryError:null,
+    installedTask:{taskId:scope.taskId,...clone(scope.installation),manifest:{deadlineMs:120000}}};
   const id='extension-under-test',getURL=path=>`chrome-extension://${id}/${path}`;
   const page={id,tab:clone(state.tab),frameId:0,documentId:source.documentId,
     url:source.url,documentLifecycle:'active'};
@@ -59,7 +60,10 @@ function harness(){
     assert.deepEqual(stores,['runs']);assert.equal(mode,'readonly');
     return read({get(store,key){assert.equal(store,'runs');assert.equal(key,'@slot');return clone(state.slot);},
       all(store){assert.equal(store,'runs');return clone(state.runs);}});
-  }},authority:{async snapshotControllerRun(query,sender){
+  }},authority:{async resolveInstalledTask(query,sender){
+    assert.deepEqual(query,{taskId:scope.taskId});assert.deepEqual(sender,host);
+    return clone(state.installedTask);
+  },async snapshotControllerRun(query,sender){
     state.snapshots.push({query:clone(query),sender:clone(sender)});
     return {run:clone(state.runs.find(run=>run.runId===query.runId)),results:clone(state.results)};
   }}};
@@ -93,6 +97,23 @@ function harness(){
       return admitted;
     }};
 }
+
+for(const deadlineMs of [1000,120000,undefined])test(`background run respects installed Task deadline ${deadlineMs??'default'}`,async()=>{
+  const h=harness();h.state.installedTask.manifest={...(deadlineMs===undefined?{}:{deadlineMs})};
+  const before=Date.now(),{request}=await h.claimed(),after=Date.now();
+  assert(request.deadlineAt>=before+(deadlineMs??30000));
+  assert(request.deadlineAt<=after+(deadlineMs??30000));
+  assert.equal(h.state.submits,0);
+});
+
+for(const key of ['taskId','version','manifestHash','contentHash','scriptId','revision','installationId','generation'])
+test(`deadline resolution rejects changed installed ${key} without submitting`,async()=>{
+  const h=harness();await h.approve();await h.admit();
+  h.state.installedTask[key]=typeof h.state.installedTask[key]==='number'?99:'changed';
+  await assert.rejects(h.handle('claim',{},h.host),{code:'E_REVISION'});
+  assert.equal(h.state.submits,0);
+  assert.equal(await h.handle('claim',{},h.host),null);
+});
 
 for(const [name,patch] of [
   ['foreign extension',{id:'forged-extension'}],['iframe',{frameId:2}],

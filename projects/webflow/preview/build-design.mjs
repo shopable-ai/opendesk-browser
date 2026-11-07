@@ -1,73 +1,50 @@
-// The existing project entry now freezes its existing real component fixture.
-// It no longer fills a hand-drawn kit application or produces an installable package.
+// One source-bound preview of the current worktree. No Git-era UI or presentation patches.
 import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
 import {createWebflowUIFixture} from '../tests/auto-trigger-ui-server.mjs';
 const root=fileURLToPath(new URL('../../../',import.meta.url));
 const dir=fileURLToPath(new URL('.',import.meta.url));
 const sha=value=>createHash('sha256').update(value).digest('hex');
-// The last recorded native installation was 0.3.6. Both panes deliberately use
-// those SAME application bytes; the current trusted component includes the
-// generated-text visibility and draft fixes from 875ca5a4b.
-const appRevision='246fd012a67d3b5e221ee7d1716df4ecc46fb93c';
-// Rebuilding this style comparison must not silently consume parallel normal-chat work.
-const uiSourceRevision='9418a5d1aa0f88cc0f60de108620149801b7eb1d';
-const fixture=await createWebflowUIFixture({selfContained:true,appRevision,sourceRevision:uiSourceRevision});
-// Compare against the fixed 654 reference layout, including its seven existing
-// accessibility/presentation fixes. Do not compare against an artificial RED UI.
-const layoutBaselineRevision='c0d45f7a7ad5b2fb97e224cce209c9d36713a632';
-const baselinePaths=['runtime-layout.css','runtime-presentation.json'];
-const baselineSources=Object.fromEntries(baselinePaths.map(name=>[name,execFileSync('git',
- ['show',layoutBaselineRevision+':projects/webflow/preview/'+name],{cwd:root,encoding:'utf8'})]));
-const baselineFixture=await createWebflowUIFixture({selfContained:true,appRevision,sourceRevision:uiSourceRevision,
- sourcePatches:[JSON.parse(baselineSources['runtime-presentation.json'])]});
-const presentation=JSON.parse(await readFile(dir+'runtime-presentation.json','utf8'));
-const candidateFixture=await createWebflowUIFixture({selfContained:true,appRevision,sourceRevision:uiSourceRevision,sourcePatches:[presentation]});
-if(candidateFixture.applicationHtml!==fixture.applicationHtml)throw Error('Candidate changed the business application');
-const candidateCSS=await readFile(dir+'runtime-layout.css','utf8');
+export async function createWebflowPreview(){
+const fixture=await createWebflowUIFixture({selfContained:true});
 const script=value=>String(value).replaceAll('</script','<\\/script');
-const htmlFor=(layout,js)=>`<!doctype html><html lang="zh-CN" data-opendesk-tab="tools"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src about:; connect-src 'none'; img-src data:"><title>Web Flow · 真实源码组件 / 模拟边界</title><style>${fixture.css}\n${layout}</style><body><div id="fixture-close" hidden></div><div id="fixture-open" hidden></div><div id="fixture-fail" hidden></div><div id="fixture-result" hidden></div><p id="fixture-events" hidden></p><section id="fixture-return" hidden><p>已返回模拟工具列表，应用草稿仍保留。</p><button id="fixture-reopen" class="od-button">重新打开 Web Flow</button></section><div id="opendesk-react-app" class="opendesk-react-app"></div><script type="module">${script(js)}</script></body></html>`;
-const documents={baseline:htmlFor(baselineSources['runtime-layout.css'],baselineFixture.js),candidate:htmlFor(candidateCSS,candidateFixture.js)};
+const candidate=`<!doctype html><html lang="zh-CN" data-opendesk-tab="tools"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src about:; connect-src 'none'; img-src data:"><title>Web Flow · 当前源码 / 模拟边界</title><style>${fixture.css}</style><body><div id="fixture-close" hidden></div><div id="fixture-open" hidden></div><div id="fixture-fail" hidden></div><div id="fixture-result" hidden></div><p id="fixture-events" hidden></p><section id="fixture-return" hidden><p>已返回模拟工具列表，应用草稿仍保留。</p><button id="fixture-reopen" class="od-button">重新打开 Web Flow</button></section><div id="opendesk-react-app" class="opendesk-react-app"></div><script type="module">${script(fixture.js)}</script></body></html>`;
 const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+const sourcePaths=[...new Set([...fixture.dependencyPaths,'package.json','package-lock.json','projects/webflow/tool.config.json',
+ ...['main.js','model.js','style.css'].map(name=>'projects/webflow/src/ui/'+name),
+ 'src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/extension-center.css',
+ 'projects/webflow/tests/auto-trigger-ui-server.mjs',
+ ...['build-design.mjs','design-app.fragment','design-app.js'].map(name=>'projects/webflow/preview/'+name)])].sort();
+const inputs=Object.fromEntries(await Promise.all(sourcePaths.map(async path=>[path,sha(await readFile(root+path))])));
+const candidateHash=sha(JSON.stringify(inputs));
 const template=await readFile(dir+'design-app.fragment','utf8');
 const behavior=await readFile(dir+'design-app.js','utf8');
-const tokens=await readFile(root+'src/ui/design-tokens.css','utf8');
-const components=await readFile(root+'src/ui/design-system.css','utf8');
-// Function replacers keep literal $&, $' and $` in bundled source unchanged.
-const html=template.replace('/* SOURCE_STYLES */',()=>tokens+'\n'+components)
- .replace('<!-- SOURCE_REVISION -->',()=>sourceCommit+' / app '+appRevision.slice(0,9))
- .replace('/* SOURCE_DOCUMENTS */',()=>JSON.stringify(documents).replaceAll('<','\\u003c'))
+const html=template.replace('/* SOURCE_STYLES */',()=>fixture.css)
+ .replace('<!-- SOURCE_REVISION -->',()=> '当前工作区 · '+candidateHash.slice(0,12))
+ .replace('/* SOURCE_DOCUMENTS */',()=>JSON.stringify({candidate}).replaceAll('<','\\u003c'))
  .replace('/* PREVIEW_BEHAVIOR */',()=>script(behavior));
-const sourcePaths=[...new Set([...fixture.dependencyPaths,'package.json','package-lock.json','projects/webflow/tool.config.json','src/ui/extension-center.css','src/ui/react/app-shell.tsx','src/ui/react/tabs/tool-host.tsx','src/ui/design-tokens.css',
- 'src/ui/design-system.css','src/ui/tool-shell.css','src/ui/react/components/ui/button.tsx',
- 'src/ui/react/components/ui/switch.tsx','src/ui/react/components/ui/sidebar-shared.css',
- 'projects/webflow/trusted/AutoSettings.tsx','projects/webflow/trusted/RuntimePanel.tsx','projects/webflow/trusted/CurrentTask.tsx',
- 'projects/webflow/tests/auto-trigger-ui-server.mjs',
- ...['build-design.mjs','design-app.fragment','design-app.js','runtime-layout.css','runtime-presentation.json'].map(name=>'projects/webflow/preview/'+name)])];
-const sourceRevisions=Object.fromEntries(sourcePaths.filter(path=>path.startsWith('src/')||/^projects\/[^/]+\/trusted\//.test(path)||path==='projects/webflow/tool.config.json').map(path=>[path,uiSourceRevision]));
-const inputs=Object.fromEntries(await Promise.all(sourcePaths.map(async path=>[path,sha(sourceRevisions[path]?
- execFileSync('git',['show',sourceRevisions[path]+':'+path],{cwd:root}):await readFile(root+path))])));
-const manifest={format:'webflow.source-comparison.v1',date:'2026-11-03',sourceCommit,uiSourceRevision,sourceRevisions,appRevision,
- evidence:'OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES',sourceParity:'FIXED_654_REFERENCE_VS_STRUCTURED_SCOPE_ROWS',
- comparisonBaseline:{revision:layoutBaselineRevision,description:'654cc4244052 delivered layout with its seven presentation fixes',
-  inputs:Object.fromEntries(baselinePaths.map(name=>['projects/webflow/preview/'+name,sha(baselineSources[name])])),
-  js:sha(baselineFixture.js),css:sha(baselineSources['runtime-layout.css'])},
- installedVersionReference:'0.3.6; historical native record, not a fresh installation read',
+const manifest={format:'webflow.current-source-preview.v2',date:'2026-11-07',sourceCommit,sourceMode:'CURRENT_WORKTREE',candidateHash,
+ evidence:'OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES',sourceParity:'CURRENT_SOURCE_WITHOUT_PRESENTATION_PATCHES',
  applicationSources:Object.fromEntries([...fixture.appSources].map(([path,bytes])=>[path,sha(bytes)])),
- fixtureJS:sha(fixture.js),embeddedFixtureJS:sha(script(baselineFixture.js)),candidateJS:sha(candidateFixture.js),embeddedCandidateJS:sha(script(candidateFixture.js)),
- applicationDocumentSHA:sha(fixture.applicationHtml),presentationPatch:presentation,fixtureCSS:sha(fixture.css),candidateCSS:sha(candidateCSS),
- documents:Object.fromEntries(Object.entries(documents).map(([name,bytes])=>[name,sha(bytes)])),
- htmlSha256:sha(html),inputs,nativeChrome:'NOT_TESTED',production:'NOT_TESTED',userPreferredVersion:'NOT_CONFIRMED'};
+ fixtureJS:sha(fixture.js),embeddedCandidateJS:sha(script(fixture.js)),fixtureCSS:sha(fixture.css),
+ applicationDocumentSHA:sha(fixture.applicationHtml),documents:{candidate:sha(candidate)},htmlSha256:sha(html),inputs,
+ historicalComparison:'runtime-layout.css and runtime-presentation.json are unused historical design material',
+ installedPackage:'NOT_UPDATED',nativeChrome:'NOT_TESTED',native:'NOT_TESTED',production:'NOT_TESTED'};
+const context={view:'完整宿主 → Web Flow 首页、当前任务、任务授权、使用说明',
+ scenario:'当前源码、模拟监听就绪、自动运行开启、无当前任务；外部可切换状态',source:manifest.evidence,sourceMode:manifest.sourceMode,
+ candidateHash,htmlSha256:manifest.htmlSha256,
+ hostInteractions:['原运行与授权面板','键盘/触摸状态详情','原生开关','原请求停止','授权编辑与草稿保留'],
+ simulation:'Only in-memory SDK/storage/permission/task/clipboard boundaries; no network, Chrome, Native or real execution.',
+ historicalComparison:manifest.historicalComparison,installedPackage:'NOT_UPDATED',nativeChrome:'NOT_TESTED',production:'NOT_TESTED'};
+return {html,manifest,context,fixture};
+}
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
+const {html,manifest,context}=await createWebflowPreview();
 await writeFile(dir+'webflow-v0.3-preview.html',html);
 await writeFile(dir+'webflow-v0.3-preview.manifest.json',JSON.stringify(manifest,null,2)+'\n');
-await writeFile(dir+'webflow-v0.3-preview.context.json',JSON.stringify({view:'完整宿主 → Web Flow：654 标签/值参考 / 按信息类型排版',
- scenario:'同一模拟百度批准、自动运行开启、无当前任务',source:manifest.evidence,
- scope:['精确地址标签/值横向对齐；参数JSON标题在上、内容整行，不使用字符阈值','批准时间与撤销操作并排',
- '编辑框与生成指令保持整行并正常换行','保留原页签停留、按钮层级、审核就绪焦点/播报与错误关联'],
- comparisonBaseline:manifest.comparisonBaseline,
- unchanged:'相同0.3.6业务源码、原可信组件与底部Sheet；候选仅应用公开记录的表现补丁，不改生产源、权限、业务状态机或安装包',
- simulation:'Only in-memory SDK/storage/permission/task/clipboard boundaries; no network, Chrome, Native or real execution.',
- htmlSha256:manifest.htmlSha256,nativeChrome:'NOT_TESTED',production:'NOT_TESTED'},null,2)+'\n');
-console.log(JSON.stringify({path:dir+'webflow-v0.3-preview.html',sha256:manifest.htmlSha256,bytes:Buffer.byteLength(html)},null,2));
+await writeFile(dir+'webflow-v0.3-preview.context.json',JSON.stringify(context,null,2)+'\n');
+console.log(JSON.stringify({path:dir+'webflow-v0.3-preview.html',sha256:manifest.htmlSha256,candidateHash:manifest.candidateHash,inputs:Object.keys(manifest.inputs).length,bytes:Buffer.byteLength(html)},null,2));
+}

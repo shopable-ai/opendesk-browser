@@ -2,7 +2,7 @@
 
 ## 默认安装与回复工具组（2026-11-07）
 
-**2026-11-08 最新状态：用户反馈当前浏览器看不见扩展运行。** 下述 PASS 只适用于 ego TaskSpace 20 的 Profile 1 和独立默认安装测试环境；用户当前窗口/Profile 的实际显示尚未验证，需由续接对话优先定位并修通，整体未完成。
+**2026-11-08 最新状态：用户已确认功能测试通过，按钮与思维导图只做增量验证。** 日常「您的 Chrome」已由原侧栏更新并恢复 **0.4.10/r14**，新标签页自动显示回复三按钮及左下角导航，回复回顶已实际点击生效；见 `artifacts/ai-answer-tools-20261107/daily-chrome-before-clicks-20261108.png`、`daily-chrome-reply-top-20261108.png`。其余完整点击链复用下述既有证据。本轮将独立导图 owner 统一为 [`projects/ai-reply-mindmap/`](../ai-reply-mindmap/README.zh-CN.md)，导航源码和冻结包不变，不重复完整功能测试。
 
 当前源码与唯一 Page 包更新为 **0.4.10/r14**，回复按钮与思维导图共用 `span[data-ai-answer-tools]` 并保持左对齐；兼容复用旧安装版的共享容器，不替换对方按钮或原生操作。已适配当前 ChatGPT 的 `data-markdown-text-style="assistant-message"` 正文及将重新生成收进「更多」的完成回复；继续拒绝重复正文、页脚或操作按钮等歧义布局。
 

@@ -36,8 +36,9 @@ export function developmentChanges(previous,next) {
   // Catalog/package JSON is read on explicit installation or by the separate
   // local preview handoff. Updating these bytes does not replace loaded code.
   // Retiring the extension here would sever the Native source and live iframe.
-  const packageData=file=>file==='official-tools/catalog.json'||
-    /^official-tools\/([a-z][a-z0-9-]{1,39})\/\1\.opendesk-tool\.json$/.test(file);
+  const packageData=file=>file==='official-tools/catalog.json'||file==='official-pages/catalog.json'||
+    /^official-tools\/([a-z][a-z0-9-]{1,39})\/\1\.opendesk-tool\.json$/.test(file)||
+    /^official-pages\/(opendesk\.[a-z][a-z0-9.-]{1,79})\/\1\.opendesk-page\.json$/.test(file);
   return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>[SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file)),
     extension:changed.some(file=>!packageData(file)&&!['ui/tool-shell.css',SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file))};
 }

@@ -703,7 +703,7 @@ test('persistent Listener stays visible outside management; refresh requires aut
  await f.click('webflow-listener-confirm',false);assert.equal(calls.length,0);
  const event=await f.click('webflow-listener-confirm',true);
  assert.deepEqual(calls[0],{value:{source:view.source},event});
- assert.match(status.textContent,/监听就绪/);
+ assert.match(status.textContent,/消息检测就绪/);
  view={...view,listener:{state:'refresh-required',recovery:{allowed:false,reason:'仍有任务'}}};
  await f.click('webflow-listener-check');assert.equal(f.find('webflow-listener-refresh').disabled,true);
  view={...view,source:null,listener:{state:'refresh-required',recovery:{allowed:true}}};
@@ -717,13 +717,13 @@ test('context invalidation removes stale ready immediately and ignores late read
  host.api.subscribeBridgeContext=fn=>{invalidate=fn;return ()=>{invalidate=null;};};
  host.api.readBridgeState=()=>++reads===1?Promise.resolve(ready):pending.promise;
  const f=await fixture(t,{entry:true,host});
- assert.match(f.find('webflow-listener').textContent,/监听就绪/);
+ assert.match(f.find('webflow-listener').textContent,/消息检测就绪/);
  assert.ok(f.find('webflow-listener-records'));
  await f.click('webflow-listener-check');
  await React.act(async()=>invalidate());
- assert.doesNotMatch(f.find('webflow-listener').querySelector('[aria-live]').textContent,/监听就绪/);
+ assert.doesNotMatch(f.find('webflow-listener').querySelector('[aria-live]').textContent,/消息检测就绪/);
  await React.act(async()=>pending.resolve(ready));
- assert.doesNotMatch(f.find('webflow-listener').querySelector('[aria-live]').textContent,/监听就绪/);
+ assert.doesNotMatch(f.find('webflow-listener').querySelector('[aria-live]').textContent,/消息检测就绪/);
  host.api.readBridgeState=async()=>{throw Error('离线');};
  await f.click('webflow-listener-check');
  assert.match(f.find('webflow-listener').textContent,/未确认/);
@@ -741,13 +741,68 @@ test('Listener polling is single-flight across the closed and open task panel an
  await React.act(async()=>t.mock.timers.tick(5600));
  assert.match(f.find('webflow-listener').querySelector('[aria-live]').textContent,/未确认/);
  await f.click('webflow-listener-check');assert.equal(reads,2);
- assert.equal(f.find('webflow-listener').querySelector('[aria-live]').textContent,'监听就绪');
+ assert.equal(f.find('webflow-listener').querySelector('[aria-live]').textContent,'消息检测就绪');
  const live=f.find('webflow-listener').querySelector('[aria-live]');
  ready.listener.checkedAt=2;
  await React.act(async()=>t.mock.timers.tick(1200));assert.equal(reads,3);
  assert.equal(f.find('webflow-listener').querySelector('[aria-live]'),live,'poll timestamps do not replace the live region');
  await React.act(async()=>pending.resolve({listener:{state:'refresh-required'}}));
- assert.equal(live.textContent,'监听就绪','a timed out read cannot overwrite fresh state');
+ assert.equal(live.textContent,'消息检测就绪','a timed out read cannot overwrite fresh state');
+});
+
+test('background listener checks keep the homepage text and controls stable until facts change',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});
+ const host=controller(),poll=deferred();let reads=0;
+ const view={source:{documentId:'stable-home'},session:{status:'等待新的完整任务',fields:{},tasks:[],actions:{}},
+  listener:{state:'ready',reason:'已连接当前对话，正在等待新的完整任务。',recovery:{allowed:true}},work:{state:'idle'}};
+ host.api.readBridgeState=()=>++reads===1?Promise.resolve(structuredClone(view)):poll.promise;
+ host.api.refreshBridge=async()=>view;
+ const f=await fixture(t,{entry:true,host});
+ const surface=f.document.querySelector('[aria-label="Web Flow 运行状态"]');
+ const before=surface.textContent;
+ const buttons=['webflow-listener-check','webflow-listener-refresh'].map(id=>f.find(id));
+ assert.ok(buttons.every(button=>!button.disabled));
+ await React.act(async()=>t.mock.timers.tick(1200));
+ assert.equal(reads,2);
+ assert.equal(surface.textContent,before,'a pending background check must not insert a temporary warning row');
+ assert.ok(buttons.every(button=>!button.disabled),'background reads must not pulse the buttons between enabled and disabled');
+ await React.act(async()=>t.mock.timers.tick(1200));assert.equal(reads,2,'quiet reads remain single-flight');
+ await React.act(async()=>poll.resolve({...view,listener:{...view.listener,checkedAt:2}}));
+ assert.equal(surface.textContent,before);
+});
+
+test('manual listener checks do not turn a safe refresh into a temporary blocked-reason paragraph',async t=>{
+ const host=controller(),pending=deferred();let reads=0;
+ const view={source:{documentId:'manual-check'},session:null,
+  listener:{state:'ready',recovery:{allowed:true,reason:'刷新只重新连接当前对话，不重发消息或重跑任务。'}},work:{state:'idle'}};
+ host.api.readBridgeState=()=>++reads===1?Promise.resolve(view):pending.promise;
+ host.api.refreshBridge=async()=>view;
+ const f=await fixture(t,{entry:true,host});
+ const before=f.find('webflow-listener').textContent;
+ await f.click('webflow-listener-check');
+ assert.equal(f.find('webflow-listener-refresh').disabled,true,'manual checks still block competing recovery controls');
+ assert.equal(f.find('webflow-listener').textContent,before);
+ assert.equal(f.find('webflow-listener-refresh-reason'),null);
+ await React.act(async()=>pending.resolve(view));
+});
+
+test('quiet listener checks still clear stale readiness on failure and recover without a loading pulse',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});
+ const host=controller(),poll=deferred();let reads=0;
+ const view={source:{documentId:'quiet-failure'},session:null,
+  listener:{state:'ready',recovery:{allowed:true}},work:{state:'idle'}};
+ host.api.readBridgeState=()=>++reads===1?Promise.resolve(view):poll.promise;
+ host.api.refreshBridge=async()=>view;
+ const f=await fixture(t,{entry:true,host});
+ const live=f.find('webflow-listener').querySelector('[aria-live]');
+ await React.act(async()=>t.mock.timers.tick(1200));
+ assert.equal(live.textContent,'消息检测就绪');
+ await React.act(async()=>poll.reject(Error('连接已断开')));
+ assert.equal(live.textContent,'监听状态未确认');
+ assert.equal(f.find('webflow-listener-refresh').disabled,true);
+ host.api.readBridgeState=async()=>view;
+ await React.act(async()=>t.mock.timers.tick(1200));
+ assert.equal(live.textContent,'消息检测就绪');
 });
 
 test('controller replacement rejects old reads and refresh replies; unmount unsubscribes',async t=>{
@@ -802,7 +857,7 @@ test('Listener exposes native keyboard buttons, stable state-only announcements 
  const escape=new f.window.Event('keydown',{bubbles:true});Object.defineProperty(escape,'key',{value:'Escape'});
  await React.act(async()=>confirm.dispatchEvent(escape));
  assert.equal(f.find('webflow-listener-confirmation'),null);assert.equal(refreshes,0);
- for(const [state,label] of [['ready','监听就绪'],['not-applicable','当前页面不适用'],['unconfirmed','监听状态未确认']]){
+ for(const [state,label] of [['ready','消息检测就绪'],['not-applicable','当前页面不适用'],['unconfirmed','监听状态未确认']]){
   view={...view,listener:{state,reason:'新的原因',checkedAt:2,recovery:{allowed:false}}};
   await f.click('webflow-listener-check');
   assert.equal(live.textContent,label);assert.equal(f.find('webflow-listener').querySelector('[aria-live]'),live);
@@ -876,13 +931,13 @@ test('blocked refresh explains its own reason independently of ready status; fir
  const f=await fixture(t,{entry:true,host});
  const live=f.find('webflow-listener').querySelector('[aria-live]');
  assert.equal(live.textContent,'正在检查监听状态…');
- await React.act(async()=>first.resolve(view));assert.equal(live.textContent,'监听就绪');
- assert.equal(live.style.color,'var(--od-positive)');
+ await React.act(async()=>first.resolve(view));assert.equal(live.textContent,'消息检测就绪');
+ assert.equal(live.style.color,'var(--od-sub)','closed automation keeps detection visually neutral');
  const button=f.find('webflow-listener-refresh');assert.equal(button.disabled,true);
  const reason=f.document.getElementById(button.getAttribute('aria-describedby'));
  assert.ok(reason);assert.match(reason.textContent,/请先保存当前草稿/);
  assert.match(f.find('webflow-listener').textContent,/当前文档监听已核实/);
- await f.click('webflow-listener-check');assert.equal(live.textContent,'监听就绪');
+ await f.click('webflow-listener-check');assert.equal(live.textContent,'消息检测就绪');
  await React.act(async()=>poll.resolve(view));
 });
 
@@ -961,4 +1016,120 @@ test('refresh confirmation and its keyboard focus survive harmless polling; auth
  await React.act(async()=>t.mock.timers.tick(1200));
  assert.equal(f.find('webflow-listener-confirmation'),null);
  assert.equal(f.find('webflow-listener-refresh').disabled,true);
+});
+
+test('status details preserve full explanations and disclosure focus across quiet reads',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});
+ const host=controller(),pending=deferred();let reads=0;
+ const explanation='本条未执行：AI 已回复，但没有产生可执行任务候选。'+ '完整原因无需截断。'.repeat(20);
+ const view={source:{documentId:'details-doc'},session:{status:explanation,messageStage:'no-candidate',fields:{},tasks:[],actions:{}},
+  listener:{state:'ready',reason:'已连接当前对话',recovery:{allowed:false,reason:'请先保存草稿'}},work:{state:'idle'}};
+ host.api.readBridgeState=()=>++reads===1?Promise.resolve(view):pending.promise;
+ const f=await fixture(t,{entry:true,host});
+ const details=f.find('webflow-status-details'),summary=details.querySelector('summary');
+ assert.equal(details.hasAttribute('open'),false);
+ assert.equal(summary.getAttribute('aria-label'),'状态详情与维护操作');
+ assert.equal(f.find('webflow-runtime-summary').textContent,explanation);
+ assert.equal(f.find('webflow-runtime-summary').closest('details'),details);
+ assert.equal(f.find('webflow-home-notice').closest('details'),null);
+ assert.match(f.find('webflow-home-notice').textContent,/未生成任务候选/);
+ t.mock.method(f.window.HTMLElement.prototype,'focus',function(){
+  Object.defineProperty(f.document,'activeElement',{configurable:true,value:this});
+ });
+ // Native summary toggling is covered in Chromium; Linkedom has no default action.
+ details.open=true;summary.focus();
+ await React.act(async()=>t.mock.timers.tick(1200));
+ assert.equal(details.open,true);assert.equal(f.document.activeElement,summary);
+ await React.act(async()=>pending.resolve(structuredClone(view)));
+ assert.equal(f.find('webflow-status-details'),details);assert.equal(details.open,true);
+ const escape=new f.window.Event('keydown',{bubbles:true,cancelable:true});
+ Object.defineProperty(escape,'key',{value:'Escape'});
+ await React.act(async()=>summary.dispatchEvent(escape));
+ assert.equal(details.open,false);assert.equal(f.document.activeElement,summary);
+ assert.deepEqual(host.calls.map(([name])=>name),['read'],'reading details does not authorize or execute');
+});
+
+test('pending approval, unknown results, errors and stop access remain outside collapsed details',async t=>{
+ const host=controller();
+ let view={source:{documentId:'attention-doc'},session:{status:'参数范围尚未批准',pendingAuto:{scope:{args:{}}},fields:{},tasks:[],actions:{}},
+  listener:{state:'ready',recovery:{allowed:false}},work:{state:'idle'}};
+ host.api.readBridgeState=async()=>structuredClone(view);
+ const f=await fixture(t,{entry:true,host});
+ assert.match(f.find('webflow-home-notice').textContent,/待批准/);
+ assert.equal(f.find('webflow-home-notice').closest('details'),null);
+ view={...view,session:{status:'完整错误原因',error:true,fields:{},tasks:[],actions:{}},work:{state:'running'}};
+ await f.click('webflow-listener-check');
+ assert.equal(f.find('webflow-home-notice').textContent,'完整错误原因');
+ assert.equal(f.find('webflow-listener-records').textContent,'查看进度');
+ assert.equal(f.find('webflow-listener-records').closest('details'),null);
+ view={...view,session:{...view.session,error:false,actions:{cancel:true}},work:{state:'idle'}};
+ await f.click('webflow-listener-check');
+ assert.equal(f.find('webflow-listener-work').hasAttribute('hidden'),false,'waiting original requests must still expose stop access');
+ assert.equal(f.find('webflow-listener-records').textContent,'查看进度');
+ view={...view,session:{...view.session,error:false},receipt:{execution:'completed',delivery:'unknown'},work:{state:'unknown',reason:'请核对原请求'}};
+ await f.click('webflow-listener-check');
+ assert.match(f.find('webflow-home-notice').textContent,/结果未知/);
+ assert.equal(f.find('webflow-listener-work').closest('details'),null);
+ await f.click('webflow-listener-records');
+ assert.equal(f.find('webflow-runtime-panel').closest('[hidden]'),null);
+ assert.deepEqual(host.calls.map(([name])=>name),['read']);
+});
+
+test('a manual check joins and acknowledges a pending quiet read without duplicating it',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});
+ const host=controller(),poll=deferred();let reads=0;
+ const view={source:{documentId:'manual-join'},session:null,
+  listener:{state:'ready',recovery:{allowed:true}},work:{state:'idle'}};
+ host.api.readBridgeState=()=>++reads===1?Promise.resolve(view):poll.promise;
+ const f=await fixture(t,{entry:true,host});
+ await React.act(async()=>t.mock.timers.tick(1200));
+ const button=f.find('webflow-listener-check');
+ assert.equal(button.disabled,false,'quiet polling alone never pulses manual controls');
+ await f.click('webflow-listener-check');
+ assert.equal(reads,2,'manual intent joins the existing request');
+ assert.equal(button.disabled,true);
+ assert.equal(button.getAttribute('aria-busy'),'true','manual check is now acknowledged');
+ await React.act(async()=>poll.resolve({...view,listener:{...view.listener,state:'unconfirmed',reason:'需要核对原请求'}}));
+ assert.equal(button.disabled,false);assert.equal(button.getAttribute('aria-busy'),'false');
+ assert.equal(f.find('webflow-listener').querySelector('[aria-live]').textContent,'监听状态未确认');
+});
+
+test('an unknown receipt keeps its concrete error visible on the homepage',async t=>{
+ const host=controller();
+ const message='保存回执失败：原连接已断开；请核对原请求，不会补发。';
+ host.api.readBridgeState=async()=>({source:{documentId:'combined-error'},
+  session:{status:message,error:true,fields:{},tasks:[],actions:{}},
+  listener:{state:'ready',recovery:{allowed:false}},work:{state:'unknown'},
+  receipt:{execution:'unknown',delivery:'unknown'}});
+ const f=await fixture(t,{entry:true,host});
+ const notice=f.find('webflow-home-notice');
+ assert.match(notice.textContent,/结果未知/);assert.ok(notice.textContent.includes(message));
+ assert.equal(notice.closest('details'),null);assert.equal(f.find('webflow-status-details').hasAttribute('open'),false);
+});
+
+// Opening progress or Stop must never send a control or bury it in historical records.
+test('home progress targets current status and stop targets the original guarded action',async t=>{
+ const host=controller();let controls=0;
+ const view={source:{documentId:'current-before-history'},
+  session:{requestId:'current-request',status:'当前请求执行中',fields:{},tasks:[],actions:{cancel:true}},
+  listener:{state:'ready',recovery:{allowed:false}},work:{state:'running'},
+  history:[{requestId:'old-request',scope:{taskId:'search'},createdAt:1,receipt:{execution:'unknown',delivery:'unknown'}}]};
+ host.api.readBridgeState=async()=>structuredClone(view);
+ host.api.controlBridge=async()=>{controls++;return view;};
+ const f=await fixture(t,{entry:true,host});
+ t.mock.method(f.window.HTMLElement.prototype,'focus',function(){
+  Object.defineProperty(f.document,'activeElement',{configurable:true,value:this});
+ });
+ await f.click('webflow-listener-records');
+ assert.equal(f.document.activeElement.hasAttribute('data-webflow-current-status'),true);
+ assert.equal(f.document.querySelector('[data-webflow-original-records]').hasAttribute('open'),false);
+ assert.equal(controls,0);
+ await React.act(async()=>f.document.querySelector('[aria-label="关闭运行与授权"]').click());
+ await f.click('webflow-home-stop');
+ assert.equal(f.document.activeElement.getAttribute('data-webflow-action'),'cancel');
+ assert.equal(controls,0,'home Stop only opens the original controlled action');
+ const button=f.document.activeElement;
+ const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:true});
+ await React.act(async()=>button.dispatchEvent(event));
+ assert.equal(controls,1,'only original trusted cancel invokes the Host');
 });

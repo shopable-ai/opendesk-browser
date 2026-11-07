@@ -1,22 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {EventEmitter} from 'node:events';
+import {writeFileSync} from 'node:fs';
 import {createHooks} from 'hookable';
 import {mkdtemp,mkdir,readFile,writeFile,rm,stat,symlink,rename} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
-import {configureDevelopment,closeDevelopment,drainDevelopment} from '../../scripts/wxt-development.mjs';
+import {configureDevelopment,configureDevelopmentRestarts,closeDevelopment,drainDevelopment} from '../../scripts/wxt-development.mjs';
 import {buildOfficialTools,writeOfficialToolResources} from '../../scripts/build-official-tools.mjs';
+import {buildOfficialPages,officialPageInputs} from '../../scripts/build-official-pages.mjs';
+import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH} from '../../src/scripting/user-scripts/official-page-catalog.js';
+import {digest as payloadDigest} from '../../src/platform/protocol.js';
 import {buildSidebarTool,promoteSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {OFFICIAL_CATALOG_PATH,OFFICIAL_SOURCE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY} from '../../src/sidebar-tools/official-catalog.js';
 import {SDK_RESOURCE_PATHS} from '../../src/framework/sdk/resource-contract.js';
 import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {BROWSER_EDITION_RECORD,editionRecordText} from '../../scripts/browser-editions-r245.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
+import config from '../../wxt.config.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-async function fixture(t,{starting=false,buildError}={}){
+async function fixture(t,{starting=false,buildError,pages=false}={}){
   const root=await mkdtemp(join(tmpdir(),'opendesk-official-update-'));
   const publicDir=join(root,'public'),outDir=join(root,'output');
   const write=async(path,bytes)=>{await mkdir(dirname(join(root,path)),{recursive:true});await writeFile(join(root,path),bytes);};
@@ -42,6 +47,12 @@ async function fixture(t,{starting=false,buildError}={}){
   const saveCatalog=()=>write(OFFICIAL_CATALOG_PATH,JSON.stringify(catalog));
   await saveCatalog();
   const generated=await buildOfficialTools(publicDir,{root});await writeOfficialToolResources(generated,outDir);
+  let pageResources=[];
+  if(pages){
+    for(const path of await officialPageInputs())await write(path,await readFile(new URL('../../'+path,import.meta.url)));
+    const result=await buildOfficialPages(publicDir,{root});await buildOfficialPages(outDir,{root});
+    pageResources=[...result.resources.keys()];
+  }
   // Include unrelated resources under the same prefix: only generator-owned
   // catalog/package paths may be replaced, and WXT metadata must survive.
   const sandbox='sidebar-tools/sandbox.html';
@@ -52,7 +63,7 @@ async function fixture(t,{starting=false,buildError}={}){
   const watcher=new EventEmitter(),watched=[];watcher.add=paths=>watched.push(...paths);watcher.close=async()=>{};
   let restarts=0;
   const errors=[];
-  const output={manifest,steps:[],publicAssets:[...staticAssets,...[...generated.resources.keys()].map(fileName=>({type:'asset',fileName}))]};
+  const output={manifest,steps:[],publicAssets:[...staticAssets,...[...generated.resources.keys(),...pageResources].map(fileName=>({type:'asset',fileName}))]};
   const server={watcher,currentOutput:starting?undefined:output,restart:async()=>{restarts++;}};
   const wxt={hooks:createHooks(),config:{root,publicDir,outDir},builder:{async build(){if(buildError)throw buildError;},async importEntrypoints(){}},logger:{info(){},error:error=>errors.push(String(error))}};
   configureDevelopment(wxt,server);
@@ -97,6 +108,105 @@ test('official catalog data and declared source edits publish without restarting
   await f.write(path,'void "changed source";');f.change(path);
   f.change('examples/sidebar-tools/alpha-tool/README.md');await f.flush();
   assert.notEqual((await f.assertPublished()).revision,policy.revision);
+});
+
+async function changeScrollPackage(f){
+  const path='projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json';
+  const old=JSON.parse(await readFile(join(f.root,path),'utf8'));
+  const {packageHash,...payload}=old;payload.revision++;
+  const pkg={...payload,packageHash:await payloadDigest(payload)};
+  const catalog=JSON.parse(await readFile(join(f.root,OFFICIAL_PAGE_SOURCE_PATH),'utf8'));
+  catalog.programs.find(row=>row.programId===pkg.programId).revision=pkg.revision;
+  await f.write(path,JSON.stringify(pkg));await f.write(OFFICIAL_PAGE_SOURCE_PATH,JSON.stringify(catalog));
+  return {path,pkg,catalog};
+}
+
+test('frozen Page package and catalog edits update the live development resources without restarting',async t=>{
+  const f=await fixture(t,{pages:true}),before=await f.marker();
+  const {path,pkg}=await changeScrollPackage(f);
+  f.change(path);f.change(OFFICIAL_PAGE_SOURCE_PATH);await f.flush();
+  const release=JSON.parse(await readFile(join(f.outDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8'));
+  const row=release.apps.find(row=>row.programId===pkg.programId);
+  assert.equal(row.revision,pkg.revision);
+  assert.equal(row.packageHash,pkg.packageHash);
+  assert.deepEqual(JSON.parse(await readFile(join(f.outDir,row.packagePath),'utf8')),pkg);
+  const after=await f.marker();assert.notEqual(after.revision,before.revision);
+  for(const fileName of [OFFICIAL_PAGE_CATALOG_PATH,row.packagePath]){
+    assert.equal(after.files[fileName],digest(await readFile(join(f.outDir,fileName))));
+    assert.equal(f.output.publicAssets.filter(asset=>asset.fileName===fileName).length,1);
+  }
+  assert(f.watched.includes(join(f.root,'official-pages')));
+  assert.deepEqual(f.errors,[]);await f.assertIntact();
+});
+
+test('Page edits arriving during resource publication are not lost by the active batch',async t=>{
+  const f=await fixture(t,{pages:true});
+  const {path,catalog}=await changeScrollPackage(f);
+  let assets=f.output.publicAssets,received=false;
+  Object.defineProperty(f.output,'publicAssets',{
+    configurable:true,
+    get(){
+      if(!received){
+        received=true;
+        catalog.programs[0].description='A second Page save during publication';
+        writeFileSync(join(f.root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(catalog));
+        f.change(OFFICIAL_PAGE_SOURCE_PATH);
+      }
+      return assets;
+    },
+    set(value){assets=value;}
+  });
+  f.change(path);await f.flush();
+  assert(received);
+  const release=JSON.parse(await readFile(join(f.outDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8'));
+  assert.equal(release.apps[0].description,catalog.programs[0].description);
+  const marker=await f.marker();
+  assert.equal(marker.files[OFFICIAL_PAGE_CATALOG_PATH],digest(await readFile(join(f.outDir,OFFICIAL_PAGE_CATALOG_PATH))));
+  assert.deepEqual(f.errors,[]);await f.assertIntact();
+});
+
+test('serve config recovery regenerates current Page resources before WXT copies public assets',async t=>{
+  const f=await fixture(t,{pages:true});const {pkg}=await changeScrollPackage(f);
+  await config.hooks['build:before']({config:{root:f.root,publicDir:f.publicDir,command:'serve'}});
+  const catalog=JSON.parse(await readFile(join(f.publicDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8'));
+  const row=catalog.apps.find(row=>row.programId===pkg.programId);
+  assert.equal(row.revision,pkg.revision);
+  assert.deepEqual(JSON.parse(await readFile(join(f.publicDir,row.packagePath),'utf8')),pkg);
+});
+
+for(const source of ['official-pages/sources.json','examples/programs/fixed/fixed.opendesk-page.json'])
+test('failed Page configuration retries after repairing '+source,async()=>{
+  const watcher=new EventEmitter(),errors=[];let attempts=0;
+  const server={watcher,async restart(){
+    if(++attempts===1)throw Error('E_OFFICIAL_PAGE_BUILD: invalid frozen Page input');
+  }};
+  const control=configureDevelopmentRestarts(server,{root:'/project',onError:error=>errors.push(error.message)});
+  try{
+    await server.restart();assert.equal(errors.length,1);
+    watcher.emit('all','change','/project/dist/development/official-pages/catalog.json');
+    await control.drain();assert.equal(attempts,1);
+    watcher.emit('all','change','/project/'+source);
+    await control.drain();assert.equal(attempts,2);
+    assert.equal(watcher.listenerCount('all'),0);
+  }finally{control.stop();}
+});
+
+test('invalid frozen Page bytes block publication until repaired; blocked releases remove only their owned package',async t=>{
+  const f=await fixture(t,{pages:true}),before=await f.marker();
+  const {path,pkg,catalog}=await changeScrollPackage(f);
+  await f.write(path,'{"broken":true}');f.change(path);f.change(OFFICIAL_PAGE_SOURCE_PATH);await f.flush();
+  assert.equal((await f.marker()).revision,before.revision);
+  assert(f.errors.length>0);
+  await f.write(path,JSON.stringify(pkg));f.change(path);await f.flush();
+  const good=await f.marker();assert.notEqual(good.revision,before.revision);
+  const row=JSON.parse(await readFile(join(f.outDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8')).apps[0];
+  const scope=catalog.programs[0];scope.publication='blocked';scope.blockedReason='fixture release withdrawn';
+  await f.write(OFFICIAL_PAGE_SOURCE_PATH,JSON.stringify(catalog));f.change(OFFICIAL_PAGE_SOURCE_PATH);await f.flush();
+  const blocked=await f.marker();
+  assert.equal(blocked.files[row.packagePath],undefined);
+  assert.equal(f.output.publicAssets.some(asset=>asset.fileName===row.packagePath),false);
+  await assert.rejects(readFile(join(f.outDir,row.packagePath)),{code:'ENOENT'});
+  await f.assertIntact();
 });
 
 test('catalog-owned projects sources publish on save, retain the last good package on error, and recover',async t=>{

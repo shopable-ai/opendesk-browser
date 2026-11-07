@@ -8,7 +8,14 @@ const assistantText=node=>{
   for(const control of body.querySelectorAll('[data-assistant-message-actions],[data-testid="copy-turn-action-button"],[data-markdown-copy="exclude"] button'))control.remove();
   return body.textContent||'';
 };
-const describe=(node,text=node.textContent||'')=>{
+const userText=node=>{
+  const content=node.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||node;
+  return content.innerText??content.textContent??'';
+};
+// Match the same exact body used for the native send witness. Long messages
+// gain an ellipsis and expand controls after mounting; these are outside the
+// official body and must not turn unchanged file data into a user edit.
+const describe=(node,text=userText(node))=>{
   // Distinct local messages can share a fallback-turn-0 key. Use the real
   // message IDs across remounts; a fallback key proves no shared identity.
   const ids=node.getAttribute?.('data-chatgpt-search-message-ids');
@@ -18,11 +25,7 @@ const describe=(node,text=node.textContent||'')=>{
     (key&&!key.startsWith('fallback-')?key:null)};
 };
 const sameIdentity=(before,node)=>before.node===node||Boolean(before.id&&before.id===describe(node).id);
-const same=(before,node,text=node.textContent||'')=>before.text===text&&sameIdentity(before,node);
-const userText=node=>{
-  const content=node.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||node;
-  return content.innerText??content.textContent??'';
-};
+const same=(before,node,text=userText(node))=>before.text===text&&sameIdentity(before,node);
 const appended=(before,nodes,multiple=false)=>{
   if(!before.length)return multiple?nodes.length>=1:nodes.length===1;
   if(multiple){

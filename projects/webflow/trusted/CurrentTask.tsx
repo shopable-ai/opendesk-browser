@@ -6,22 +6,22 @@ import {autoParameterOptions} from '../src/authorization-policy.js';
 // tool package and its iframe never receive this controller or its projection.
 // One owner per mounted settings surface; standalone consumers keep polling.
 export function useWebflowBridgeState(controller,enabled=true){
- const [snapshot,setSnapshot]=React.useState<any>({controller:null,view:null,error:'',busy:false,revision:0});
+ const [snapshot,setSnapshot]=React.useState<any>({controller:null,view:null,error:'',busy:false,polling:false,revision:0});
  const lifecycle=React.useRef<any>(null);
  React.useEffect(()=>{
   if(!enabled)return;
-  const life={active:true,sequence:0,pending:null,mutation:null};lifecycle.current=life;
-  setSnapshot({controller,view:null,error:'',busy:false,revision:0});
+  const life={active:true,sequence:0,pending:null,mutation:null,readPromise:null};lifecycle.current=life;
+  setSnapshot({controller,view:null,error:'',busy:false,polling:false,revision:0});
   const invalidate=()=>{
    life.sequence++;life.pending?.();life.pending=null;life.mutation=null;
-   if(life.active)setSnapshot(current=>({controller,view:null,error:'监听状态未确认，请重新检查',busy:false,revision:current.revision+1}));
+   if(life.active)setSnapshot(current=>({controller,view:null,error:'监听状态未确认，请重新检查',busy:false,polling:false,revision:current.revision+1}));
   };
   const unsubscribe=controller?.subscribeBridgeContext?.(invalidate);
   void read();
-  const timer=controller?.readBridgeState?setInterval(()=>void read(),1200):undefined;
+  const timer=controller?.readBridgeState?setInterval(()=>void read(true),1200):undefined;
   return ()=>{life.active=false;life.sequence++;life.pending?.();clearInterval(timer);unsubscribe?.();};
  },[controller,enabled]);
- const execute=async(operation,replace=false,control=null)=>{
+ const execute=async(operation,replace=false,control=null,background=false)=>{
   const life=lifecycle.current;
   // Only cancellation of the same original control request may supersede a
   // pending mutation. Refresh has no control identity and remains exclusive.
@@ -36,21 +36,39 @@ export function useWebflowBridgeState(controller,enabled=true){
   const cancelled=new Promise(resolve=>{cancel=()=>resolve(null);});
   life.pending=cancel;life.mutation=replace?(control?{kind:'control',...control}:{kind:'refresh'}):null;
   const valid=()=>life.active&&life===lifecycle.current&&ticket===life.sequence;
-  setSnapshot(current=>({...current,busy:true}));
+  // Routine reads keep the last verified presentation. The pending ticket still
+  // serializes reads; context changes, failures and timeouts invalidate it as usual.
+  setSnapshot(current=>({...current,busy:!background,polling:background}));
   try{
    const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('读取超时，请重新检查；不会自动重试操作')),8000);});
    // Call synchronously so mutations retain the original native gesture.
    const next=await Promise.race([operation(),timeout,cancelled]);
-   if(valid())setSnapshot(current=>({controller,view:next,error:'',busy:false,revision:current.revision}));
+   if(valid())setSnapshot(current=>({controller,view:next,error:'',busy:false,polling:false,revision:current.revision}));
    return valid()?next:null;
   }catch(ex){
-   if(valid())setSnapshot(current=>({controller,view:current.view?.history?.length?{history:current.view.history,work:{state:'unknown',reason:'读取失败，请核对原请求记录'}}:null,error:String(ex?.message||ex),busy:false,revision:current.revision+1}));
+   if(valid())setSnapshot(current=>({controller,view:current.view?.history?.length?{history:current.view.history,work:{state:'unknown',reason:'读取失败，请核对原请求记录'}}:null,error:String(ex?.message||ex),busy:false,polling:false,revision:current.revision+1}));
    return null;
   }finally{clearTimeout(timer);if(valid()){life.pending=null;life.mutation=null;}}
  };
- const read=()=>controller?.readBridgeState?execute(()=>controller.readBridgeState()):Promise.resolve(null);
+ const read=(background=false)=>{
+  if(!controller?.readBridgeState)return Promise.resolve(null);
+  const life=lifecycle.current;
+  if(life?.pending){
+   // A manual check joins the current read and acknowledges the gesture. Do not
+   // start a duplicate request or supersede a pending mutation.
+   if(!background&&!life.mutation){
+    setSnapshot(current=>({...current,busy:true,polling:false}));
+    return life.readPromise??Promise.resolve(null);
+   }
+   return Promise.resolve(null);
+  }
+  const promise=execute(()=>controller.readBridgeState(),false,null,background);
+  if(life)life.readPromise=promise;
+  return promise;
+ };
  return {view:snapshot.controller===controller?snapshot.view:null,
   error:snapshot.controller===controller?snapshot.error:'',busy:snapshot.controller===controller&&snapshot.busy,
+  polling:snapshot.controller===controller&&snapshot.polling,
   revision:snapshot.revision,read,execute};
 }
 
@@ -97,7 +115,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  },[session?.status,session?.error,session?.requestId,Boolean(view),error,noSessionTitle,onSummary]);
  const labels={'prepare':'建立请求','approve-once':'批准本次自动执行','run':'执行本次任务',
   'cancel':'停止/取消原请求','adopt':'采用对话任务','view':'查看执行页面','preapprove':'预批准一次 · 5 分钟'};
- const action=name=><Button key={name} variant={name==='cancel'?'danger':name==='run'?'primary':'secondary'}
+ const action=name=><Button key={name} data-webflow-action={name} variant={name==='cancel'?'danger':name==='run'?'primary':'secondary'}
   disabled={!session?.actions?.[name]||working==='cancel'||Boolean(working)&&name!=='cancel'}
   onClick={event=>void command(name,event.nativeEvent)}>{labels[name]}</Button>;
  const edit=(key,value)=>setDraft(current=>({...current,[key]:value}));
@@ -130,7 +148,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      <strong className="od-field-label">原对话</strong>
      <p className="od-note" style={{overflowWrap:'anywhere',margin:0}}>{session.url}</p>
     </div>
-    <p role="status" className={session.error?'od-field-error':'od-body'}
+    <p data-webflow-current-status tabIndex={-1} role="status" className={session.error?'od-field-error':'od-body'}
      style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{session.status}</p>
    </div>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}

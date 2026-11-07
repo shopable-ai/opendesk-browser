@@ -103,6 +103,10 @@ async function safeDir(path){
 }
 export async function buildOfficialPages(outputRoot,{root=ROOT}={}){
   const result=await createOfficialPageResources({root});
+  await writeOfficialPageResources(result,outputRoot);
+  return result;
+}
+export async function writeOfficialPageResources(result,outputRoot,{ownedPaths=[]}={}){
   await mkdir(resolve(outputRoot),{recursive:true});
   const output=await realpath(resolve(outputRoot));
   await safeDir(resolve(output,'official-pages'));
@@ -118,13 +122,15 @@ export async function buildOfficialPages(outputRoot,{root=ROOT}={}){
     try{await writeFile(temp,bytes,{flag:'wx'});await rename(temp,target);}
     finally{await rm(temp,{force:true});}
   }
-  for(const row of previous?.apps||[]){
-    if(row.status!=='available'||result.resources.has(row.packagePath))continue;
-    const old=resolve(output,row.packagePath);
-    if(await realpath(dirname(old))!==dirname(old))fail('旧输出目录存在符号链接');
+  const allowed=new Set(result.catalog.apps.map(row=>officialPagePackagePath(row.programId)));
+  const obsolete=new Set([...ownedPaths,...(previous?.apps||[]).filter(row=>row.status==='available').map(row=>row.packagePath)]);
+  for(const path of obsolete){
+    if(result.resources.has(path)||path===OFFICIAL_PAGE_CATALOG_PATH)continue;
+    if(!allowed.has(path))fail('不安全的旧官方资源路径');
+    const old=resolve(output,path);
+    await safeDir(dirname(old));
     await rm(old,{force:true});
   }
-  return result;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   const flag=process.argv.indexOf('--out');

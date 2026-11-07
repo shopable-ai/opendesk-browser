@@ -6,8 +6,8 @@
       "programId": "opendesk.ai-scroll-navigation",
       "project": "projects/ai-scroll-navigation",
       "packageFile": "ai-scroll-navigation.opendesk-page.json",
-      "version": "0.4.8",
-      "revision": 9,
+      "version": "0.4.10",
+      "revision": 14,
       "title": "AI 对话滚动导航",
       "description": "ChatGPT、DeepSeek、Gemini 的长内容及对话导航。",
       "sites": [
@@ -15,13 +15,12 @@
         "https://chat.deepseek.com/*",
         "https://gemini.google.com/*"
       ],
-      "installationPolicy": "reviewed",
-      "publication": "blocked",
-      "blockedReason": "0.4.8/r9 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。"
+      "installationPolicy": "preinstalled",
+      "publication": "approved"
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
-      "project": "projects/chatgpt-mindmap",
+      "project": "projects/ai-reply-mindmap",
       "packageFile": "ai-reply-mindmap.opendesk-page.json",
       "version": "0.2.7",
       "revision": 1,

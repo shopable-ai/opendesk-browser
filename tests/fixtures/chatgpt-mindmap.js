@@ -1,7 +1,7 @@
 // Browser fixture only. Real vendor bytes must be supplied by the offline probe.
 // No fetch/loader for vendor JS exists in the product or this fixture.
-import {createAnswerRegistry} from '../../examples/programs/chatgpt-mindmap/src/answer-registry.js';
-const css=await (await fetch('../../examples/programs/chatgpt-mindmap/assets/ui.css')).text();
+import {createAnswerRegistry} from '../../projects/ai-reply-mindmap/src/answer-registry.js';
+const css=await (await fetch('../../projects/ai-reply-mindmap/assets/ui.css')).text();
 let active=true;const cleanups=[];const calls={created:0,closed:0,controllers:[]};
 if(window._SB_){
  const create=window._SB_.createWorkbookEditor;

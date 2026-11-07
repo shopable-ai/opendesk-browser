@@ -13,7 +13,8 @@
 .wf-sub,.wf-meta{font-size:11px;line-height:1.5}
 .wf-head-actions{display:flex;gap:4px;flex:none}
 .wf-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;flex:1;min-width:0}
-.wf-tab{border:0;border-radius:7px;background:transparent;color:var(--sub);padding:8px 4px;min-height:36px;font-weight:640}
+.wf-tab{border:0;border-radius:7px;background:transparent;color:var(--sub);padding:8px 4px;min-width:44px;min-height:44px;font-weight:640}
+.wf-head-actions .wf-icon{width:44px;min-width:44px;min-height:44px}
 .wf-tab[aria-selected=true]{background:var(--tint);color:var(--ink);font-weight:750}
 .wf-body{display:grid;gap:12px;align-content:start;padding:13px 12px 22px;min-width:0}
 .wf-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
@@ -57,6 +58,19 @@
 .wf-error{color:#b94a56}.wf-ok{color:var(--good)}.wf-warn{color:var(--warn)}
 .wf-help{font-size:12px;line-height:1.75;color:var(--sub)}
 .wf-help summary{font-weight:700;color:var(--ink);cursor:pointer}
+.wf-overview{font-size:14px}
+.wf-overview :is(.wf-sub,.wf-metrics,.wf-help){font-size:14px}
+.wf-overview .wf-heading{align-items:center}
+.wf-overview .wf-metrics>span{white-space:nowrap}
+.wf-overview .wf-warning .wf-btn{flex:none}
+.wf-overview h3{font-size:14px}
+.wf-overview .wf-btn{min-height:44px;font-size:14px}
+.wf-onboarding>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-weight:700;list-style:none}
+.wf-onboarding>summary::-webkit-details-marker{display:none}
+.wf-onboarding>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
+.wf-onboarding[open]>summary::before{transform:rotate(45deg)}
+.wf-onboarding>div{padding-top:9px}
+.wf-onboarding ol{margin:0;padding-inline-start:22px}
 .wf-history{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .wf-loading{padding:20px;color:var(--sub)}
 @media(min-width:520px){.wf-body{padding:17px 18px 25px}.wf-head{padding:13px 18px}}

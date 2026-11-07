@@ -138,3 +138,29 @@ test('local app URL parser rejects remote, credential-bearing, opaque, ambiguous
   for(const bad of ['https://127.0.0.1:3000/','http://127.0.0.1.evil.test:3000/','http://127.0.0.1:3000@evil.test/',
     'http://me:secret@localhost:3000/','javascript:alert(1)','file:///tmp/index.html','http://localhost:3000/#token','https://example.com','http://[::1]:8080/'])assert.throws(()=>validatePreviewURL(bad));
 });
+
+for(const action of ['stop','close'])for(const method of ['files.read','files.list','files.write']){
+  test(`trusted ${action} during permission await prevents ${method} dispatch`,async t=>{
+    let release,active=true,guards=0;
+    const f=fixture({permission:()=>new Promise(resolve=>{release=resolve;})});t.after(f.service.dispose);
+    const pending=f.service.request(method,{}, {beforeDispatch(){guards++;if(!active)throw {code:'E_STOPPED',outcome:'OUTCOME_UNKNOWN'};}});
+    const rejected=assert.rejects(pending,error=>error.code==='E_STOPPED'&&error.outcome==='NOT_DISPATCHED');
+    active=false;release(true);
+    // Drain a legacy implementation's request without leaving a live timer.
+    await tick();if(f.sent.length)f.reply(f.sent[0],{result:{saved:true,sha256:'a'.repeat(64)}});
+    await rejected;
+    assert.equal(guards,1);assert.equal(f.sent.length,0);
+  });
+}
+test('Native dispatch guard rejects thenables and stays off the wire',async t=>{
+  const f=fixture();t.after(f.service.dispose);
+  for(const result of [Promise.resolve(),{then(){}}]){
+    const pending=f.service.request('files.read',{}, {beforeDispatch:()=>result});
+    const rejected=assert.rejects(pending,error=>error.outcome==='NOT_DISPATCHED');
+    await tick();if(f.sent.length)f.reply(f.sent.at(-1),{result:{ok:true}});await rejected;
+  }
+  assert.equal(f.sent.length,0);
+  let checked=0;const pending=f.service.request('files.read',{}, {beforeDispatch(){checked++;}});
+  await tick();assert.equal(checked,1);assert.equal(Object.hasOwn(f.sent[0],'beforeDispatch'),false);
+  f.reply(f.sent[0],{result:{ok:true}});await pending;
+});

@@ -146,13 +146,11 @@ export default function App() {
         : config.defaultTarget.action==='endpoint'
           ? endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name ?? t('missingProxy2')
           : t('directConnection2');
-  const orderedProfiles = [...profiles].sort((a,b)=>{
-    const selectedId = config.selection.profileId;
-    if (a.id===selectedId) return -1;
-    if (b.id===selectedId) return 1;
-    return profiles.indexOf(b)-profiles.indexOf(a);
-  });
-  const visibleProfiles = orderedProfiles.slice(0,4);
+  // Keep selected and confirmed active records visible, then preserve data order.
+  const priority = (profile: Profile) => profile.id===config.selection.profileId ? 0
+    : profile.id===state?.runtime.activeSelection?.profileId ? 1 : 2;
+  const orderedProfiles = [...profiles].sort((a,b)=>priority(a)-priority(b));
+  const visibleProfiles = orderedProfiles.slice(0,3);
 
   function handleProxyPaste(event: React.ClipboardEvent<HTMLInputElement>) {
     const text = event.clipboardData.getData('text').trim();
@@ -508,31 +506,12 @@ export default function App() {
   const browserRoute = browserRoutes[state.runtime.browserMode ?? ''] ?? t('unableToVerify');
   return <main className="popup sidepanel r86Panel" data-ui-version="R8.6">
     <div className="r86Scroll" ref={mainScroll}>
-      <section className="r86Section" data-r86-section="modes">
-        <div className="r86Head">
-          <h2>{t('sideChooseRoute')}</h2>
-          <div className="proxy-route-actions">
-      <Button ref={addButton} className="r86Icon r86IconFirst" title={t('sideAddProxyTitle')}
-        aria-label={t('sideAddProxyTitle')} onClick={()=>beginAdd('server','header')}>
-        <SideIcon name="plus"/>
-      </Button>
-      <Button className="r86Icon" title={t('openSettings')} aria-label={t('openSettings')}
-        id="quick-settings" onClick={()=>{rememberView('quick-settings');void getEnvironment().openSettings();}}><SideIcon name="settings"/></Button>
-          </div>
-
-          
-        </div>
-        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
-          {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
-            className={'modeButton '+(config.selection.mode===m.mode?'selected':'')}
-            aria-label={m.name} aria-pressed={config.selection.mode===m.mode}
-            title={m.description} onClick={()=>void useMode(m.mode)}>
-            <SideIcon name={m.mode}/><span className="sideModeLabel">{m.name}</span>
-          </Button>)}
-        </div>
-        
-      </section>
       <section className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
+        <div className="r86Head">
+          <h2>{t('browserStatus')}</h2>
+          <Button className="textAction" title={t('openSettings')} aria-label={t('openSettings')}
+            id="quick-settings" onClick={()=>{rememberView('quick-settings');void getEnvironment().openSettings();}}>{t('apManageSettings')}</Button>
+        </div>
         <div className="r86StatusCard">
           <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>
           <Button type="button" ref={primaryActionButton} data-testid="side-proxy-toggle"
@@ -546,6 +525,14 @@ export default function App() {
             <span>{t(primaryLabels[primaryAction])}</span>
           </Button>
         </div>
+        <p className="quickActual">{t('apBrowserSetting')} · <strong data-testid="side-current-route">{
+          state.runtime.activeSelection?.mode==='profile'
+            ? profiles.find(p=>p.id===state.runtime.activeSelection?.profileId)?.name||browserRoute
+            : modes.find(m=>m.mode===state.runtime.activeSelection?.mode)?.name||browserRoute
+        }</strong></p>
+        {(!managing||state.runtime.pendingChanges)&&<p className="quickSelection">{t('apPendingSelection')} · {
+          config.selection.mode==='profile'?selected?.name||t('noProfileSelected'):modes.find(m=>m.mode===config.selection.mode)?.name
+        }</p>}
         {config.selection.mode==='direct'&&!blocked&&!state.runtime.proxyError&&
           <p className="r86Help" data-testid="side-direct-hint">
           {t(state.runtime.applied && !state.runtime.pendingChanges && appliedSelection?.mode==='direct' ? 'sideDirectAppliedHint'
@@ -556,6 +543,19 @@ export default function App() {
           {t('applySelection')}
         </Button>}
         {error&&<p className="notice error" role="alert">{error}</p>}
+      </section>
+      <section className="r86Section" data-r86-section="modes">
+        <div className="r86Head">
+          <h2>{t('sideChooseRoute')}</h2>
+        </div>
+        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
+          {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
+            className={'modeButton '+(config.selection.mode===m.mode?'selected':'')}
+            aria-label={m.name} aria-pressed={config.selection.mode===m.mode}
+            title={m.description} onClick={()=>void useMode(m.mode)}>
+            <SideIcon name={m.mode}/><span className="sideModeLabel">{m.name}</span>
+          </Button>)}
+        </div>
       </section>
       {savedHint&&<p className="r86Notice" role="status">{t('sideProxySavedNotApplied')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
@@ -599,6 +599,8 @@ export default function App() {
         </div>}
         {profiles.length>visibleProfiles.length&&
           <p className="r86Help">{t('r86More',{count:profiles.length-visibleProfiles.length})}</p>}
+        {profiles.length>0&&<Button ref={addButton} className="quickAddProxy r86IconFirst" onClick={()=>beginAdd('server','header')}>
+          <SideIcon name="plus"/>{t('sideAddProxyTitle')}</Button>}
       </section>
       <section className="r86Section" data-r86-section="site" aria-label={t('currentWebsite')}>
         <div className="r86Head">
@@ -610,29 +612,29 @@ export default function App() {
           <span className="siteSource">{t(siteInfo.source==='preview'?'apSimulatedSite':site?'apCurrentPageSource':'apSiteManualHint')}</span>
         </div>
         <dl className="siteRouteSummary">
-          <div><dt>{t('apBrowserSetting')}</dt><dd data-testid="side-current-route">{browserRoute}</dd></div>
-          <div><dt>{t(state.runtime.applied&&!state.runtime.pendingChanges?'apSavedSelection':'apPendingSelection')}</dt><dd data-testid="side-selected-route">{site?expectedRoute:t('apSiteRouteUnknown')}</dd></div>
+          <div><dt>{t('expectedRouteNotTested')}</dt><dd data-testid="side-selected-route">{site?expectedRoute:t('apSiteRouteUnknown')}</dd></div>
         </dl>
         {site&&config.selection.mode==='rules'&&currentRule&&<p className="r86Help">{t('apMatchedSavedRule',{domain:currentRule.domain})}</p>}
-        <p className="r86Help">{t('apSiteRouteHelp')}</p>
+        <details className="quickSiteDetails"><summary>{t('r86Tech')}</summary><p className="r86Help">{t('apSiteRouteHelp')}</p>
+          <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>{t(siteLoading?'apSiteLoading':'apRefreshSite')}</Button>
+        </details>
         <div className="r86Actions">
           <Button ref={siteEditorButton} id="quick-site-rule" type="button" onClick={beginSiteRule}>
             {t(currentRule?'apEditMatchedRule':'addRule')}
           </Button>
-          <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>{t(siteLoading?'apSiteLoading':'apRefreshSite')}</Button>
         </div>
         {ruleHint&&<p role="status" className="r86Notice">{t('r86Saved')}</p>}
       </section>
+      <nav className="r86Bottom" aria-label={t('openSettings')}>
+        <Button type="button" onClick={()=>void openOptions('subscriptions')}>
+          {t('popupSourceSubscriptions')}</Button>
+        <Button type="button" onClick={()=>void openOptions('diagnostic')}>
+          {t('popupFooterDiagnostics')}</Button>
+      </nav>
       <div className="r86CollectorMount" data-r86-section="collector">
         <RotationEntry/>
       </div>
       <p className="r86Legal">{t('managesBrowserProxySettingsOnlyNotADeviceWide')}</p>
     </div>
-    <nav className="r86Bottom" aria-label={t('openSettings')}>
-      <Button type="button" onClick={()=>void openOptions('subscriptions')}>
-        {t('popupSourceSubscriptions')}</Button>
-      <Button type="button" onClick={()=>void openOptions('diagnostic')}>
-        {t('popupFooterDiagnostics')}</Button>
-    </nav>
   </main>;
 }

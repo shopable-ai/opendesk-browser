@@ -153,7 +153,7 @@ projects/<id>/                         # 或已核实的现有项目根
 - 项目 `AGENTS.md`：有项目独有 AI 边界才添加短的差异规则并链接上述事实。简单工具不强制创建；复杂也不自动要求。本轮 Stay Focus 的命令/可信边界由原 README 与可信 Skill 足以表达，无需新增 AGENTS。
 - 现有 [Skill 路由](../../.agents/skills/README.md)与[唯一工作流](../../.agents/workflows/extension-creation.md)：按类型发现、选择、开发与交付，目录细则链接本文。开发、打包、可信功能入口同步当前 owner 和适用条件；不为目录工作新增重复 Skill，也不改内置系统 Skill。
 
-组合项目已有 `adapters/`、`controller/`、`engine/`、`vendor/` 等职责子模块时按原合同保留；第三方固定来源、哈希及许可继续随依赖维护。一个项目可以含 Sidebar UI 和受委托 Controller，但二者配置、安装身份、源码摘要及 Authority 各自独立，不能把整棵项目树塞进 Tool JSON。正式 Page 项目例如 `projects/chatgpt-mindmap/` 也保持实际 owner，不因默认示例路径而迁回 examples。
+组合项目已有 `adapters/`、`controller/`、`engine/`、`vendor/` 等职责子模块时按原合同保留；第三方固定来源、哈希及许可继续随依赖维护。一个项目可以含 Sidebar UI 和受委托 Controller，但二者配置、安装身份、源码摘要及 Authority 各自独立，不能把整棵项目树塞进 Tool JSON。正式 Page 项目例如 `projects/ai-reply-mindmap/` 也保持实际 owner，不因默认示例路径而迁回 examples。
 
 `tool.config.json.files`、dependencies、assets 选择安装内容；不是递归打包整个目录。测试、Mock、日志不能进入执行文件清单。`trusted/` 代码只有通过原静态入口审计编译才有对应执行身份，不能从安装 JSON 动态导入特权世界。预览只做代理和模拟数据，不维护第二份产品实现。
 
@@ -249,7 +249,7 @@ CI 是提交后的回归保障，开发是定位本次变化，两者不使用�
 | [最小 HTML Demo](../../examples/sidebar-tools/minimal-html-starter/tool.config.json) | 直接选 src，无项目独立 npm/Vite | 不强制构建依赖、CI profile、空测试目录或项目 AGENTS |
 | [React Starter](../../examples/sidebar-tools/react-starter/tool.config.json) / [Vue Starter](../../examples/sidebar-tools/vue-starter/tool.config.json) | 配置 ID 与目录名不同；自带固定框架依赖，预编译 IIFE/CSS 与来源收据 | 不沿用示例身份，不复制旧产物，不把一方修改变成双 Starter 必跑，也不冒称 Shared UI |
 | [Stay Focus](../../projects/stay-focus/tool.config.json) | src UI、trusted 固定入口、preview 模拟与 dist 输入各有消费者 | 允许复杂目录，生成物可能是当前必要输入；旧预览不自动等于当前可安装 UI |
-| [Mindmap Page](../../projects/chatgpt-mindmap/package.json) | 正式 owner 在 projects，Page USER_SCRIPT 配置/站点与资源合同 | 不因新默认 examples 或最小 Sidebar 树搬家/改类型，不用 Tool JSON 与 App CI 代替 Page 安装链 |
+| [Mindmap Page](../../projects/ai-reply-mindmap/package.json) | 正式 owner 在 projects，Page USER_SCRIPT 配置/站点与资源合同 | 不因新默认 examples 或最小 Sidebar 树搬家/改类型，不用 Tool JSON 与 App CI 代替 Page 安装链 |
 | [零参数 Controller](../../examples/programs/controller-globals-zero-arg/package.json) | 原 Controller 配置、受控 page/Locator 与独立冻结合同 | 不注入 Page DOM/Sidebar bridge，不复制 Sidebar 身份/包格式 |
 
 独立评审采用同一 100 分量表：所有权与类型边界（含目录存在条件）20；测试归属与有效性 20；开发验证成本 15；现有入口、模板/指导分工与缺口诚实性 15；权限/生命周期/产物隔离 15；渐进迁移与并行安全 10；证据与完成边界 5。每项扣分须引用具体缺陷；有丢失覆盖、隐藏扩权、绕过安装审阅或伪造验证等阻断项时不通过。

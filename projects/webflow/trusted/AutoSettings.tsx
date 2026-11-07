@@ -133,7 +133,7 @@ function ApprovedTaskPrompt({scope,enabled,disabled=false}:{scope:WebflowAutoSco
    <label className="od-field-label">本次 ChatGPT 指令
     <textarea ref={field} className="od-field od-technical" value={prompt} readOnly rows={8} spellCheck={false}/>
    </label>
-   <p className="od-field-help">{enabled?'保持侧栏打开，将指令发送给 ChatGPT。':'总开关已关闭：请先在上方开启自动运行，再发送指令。'}
+   <p className="od-field-help">{enabled?'将指令发送给 ChatGPT；关闭侧栏后仍会接收新任务。':'总开关已关闭：请先在上方开启自动运行，再发送指令。'}
     每次新任务先生成新指令；重复候选不会重新执行。生成或复制本身不会运行任务。</p>
   </div>}
   {!prompt&&notice&&<p role="status" className="od-note">{notice}</p>}
@@ -179,28 +179,36 @@ function ChatGPTConnection({tasks,scopes,disabled}:{tasks:AutoTask[];scopes:unkn
  </div>;
 }
 
-function ListenerStatus({controller,bridge,onRecords}){
+function ListenerStatus({controller,bridge,onRecords,onStop,enabled,summary='',compact=false}){
  const [confirmation,setConfirmation]=React.useState<any>(null);
  const trigger=React.useRef<HTMLButtonElement>(null),confirm=React.useRef<HTMLButtonElement>(null);
+ const details=React.useRef<HTMLDetailsElement>(null);
  const {view,error,busy,revision}=bridge;
- const labels={checking:['◌','正在检查监听状态…','var(--od-sub)'],ready:['●','监听就绪','var(--od-positive)'],
+ const labels={checking:['◌','正在检查监听状态…','var(--od-sub)'],ready:['●','消息检测就绪',enabled===false?'var(--od-sub)':'var(--od-positive)'],
   'refresh-required':['↻','需要刷新当前对话','var(--od-warning-ink)'],
   'not-applicable':['○','当前页面不适用','var(--od-sub)'],
   unconfirmed:['?','监听状态未确认','var(--od-warning-ink)']};
  const workState=view?.work?.state??'unknown';
+ const canStop=view?.session?.actions?.cancel===true;
+ const actionStyle=compact?{minHeight:44}:undefined;
  const state=error?'unconfirmed':busy&&!view?'checking':view?.listener?.state;
  const [icon,text,color]=labels[state]??labels.unconfirmed;
  const identity=JSON.stringify(view?.source??null);
  const recoveryAllowed=view?.listener?.recovery?.allowed===true&&Boolean(view?.source?.documentId)&&
   Boolean(controller?.refreshBridge);
- const allowed=recoveryAllowed&&!busy;
- const refreshReason=!allowed?(view?.listener?.recovery?.reason||(busy?'正在核对状态，请稍候再刷新。':
+ const allowed=recoveryAllowed&&!busy&&!bridge.polling;
+ // A pending status read is not a new recovery restriction. Keep the Host's
+ // explanation tied to recovery facts so checks cannot insert/remove a paragraph.
+ const refreshReason=!recoveryAllowed?(view?.listener?.recovery?.reason||(
   !view?.source?.documentId?'尚未确认当前对话身份，暂不能刷新。':
    !controller?.refreshBridge?'当前环境暂不支持受控刷新。':'尚未确认可以安全刷新，请重新检查。')):'';
  const wasOpen=React.useRef(false);
  React.useLayoutEffect(()=>{
   if(confirmation)confirm.current?.focus();
-  else if(wasOpen.current)trigger.current?.focus();
+  else if(wasOpen.current){
+   if(details.current?.open&&!trigger.current?.disabled)trigger.current?.focus();
+   else details.current?.querySelector('summary')?.focus();
+  }
   wasOpen.current=Boolean(confirmation);
  },[confirmation]);
  React.useEffect(()=>{setConfirmation(null);},[controller,identity,revision,view?.listener?.recovery?.allowed]);
@@ -209,23 +217,48 @@ function ListenerStatus({controller,bridge,onRecords}){
   setConfirmation(null);
   void bridge.execute(()=>controller.refreshBridge({source:view.source},event),true);
  };
- return <section id="webflow-listener" className="od-stack" aria-label="Listener 监听状态" style={{gap:'var(--space-1)'}}>
-  <div className="od-toolbar" style={{flexWrap:'wrap'}}>
+ // Native disclosure keeps explanations reachable by touch and keyboard without
+ // another overlay or focus owner. Polls update facts, never its open state.
+ return <section id="webflow-listener" className="od-stack" aria-label="Listener 监听状态" style={{gap:'var(--space-1)',minWidth:0,overflowWrap:'anywhere'}}>
+  <details ref={details} id="webflow-status-details" className="od-disclosure od-disclosure--flat" onKeyDown={event=>{
+   if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229&&details.current?.open){
+    event.preventDefault();event.stopPropagation();details.current.open=false;
+    details.current.querySelector('summary')?.focus();
+   }
+  }}>
+  <summary aria-label="状态详情与维护操作" style={{fontWeight:400,minHeight:44}}>
    <span aria-hidden="true" style={{color}}>{icon}</span>
    <span role="status" aria-live="polite" aria-atomic="true" style={{color}}>{text}</span>
-   <Button id="webflow-listener-check" variant="quiet" disabled={busy||!controller?.readBridgeState}
+   {workState==='idle'&&<span className="od-note">{enabled===false?'· 不接收新任务':'· 空闲'}</span>}
+   <span style={{marginInlineStart:'auto',fontSize:'var(--od-note-size)'}}>ⓘ 详情</span>
+  </summary>
+  <div className="od-stack" style={{gap:'var(--space-2)'}}>
+  {compact&&<>
+   <p id="webflow-runtime-summary" className="od-note" style={{margin:0,whiteSpace:'pre-wrap'}}>{summary}</p>
+   <p className="od-field-help" style={{margin:0}}>自动运行仅接收已批准范围的新任务；关闭开关只阻止新任务。ChatGPT 标签页需保持打开，侧栏可关闭。</p>
+  </>}
+  {!error&&view?.listener?.reason&&<p className="od-note" style={{margin:0}}>{view.listener.reason}</p>}
+  {refreshReason&&<p id="webflow-listener-refresh-reason" className="od-note" style={{margin:0}}>暂不能刷新：{refreshReason}</p>}
+  <p className="od-field-help" style={{margin:0}}>监听就绪仅表示可检测新消息；授权、任务执行和结果交付分别核验。</p>
+  <div className="od-toolbar" style={{flexWrap:'wrap'}}>
+   <Button id="webflow-listener-check" variant="quiet" style={actionStyle} aria-busy={busy} disabled={busy||!controller?.readBridgeState}
     onClick={()=>void bridge.read()}>重新检查</Button>
-   <Button ref={trigger} id="webflow-listener-refresh" variant="quiet" disabled={!allowed} aria-describedby={refreshReason?"webflow-listener-refresh-reason":undefined}
+   <Button ref={trigger} id="webflow-listener-refresh" variant="quiet" style={actionStyle} disabled={!recoveryAllowed||busy} aria-describedby={refreshReason?"webflow-listener-refresh-reason":undefined}
     aria-expanded={Boolean(confirmation)} aria-controls="webflow-listener-confirmation"
     onClick={()=>setConfirmation(identity)}>刷新当前对话</Button>
   </div>
-  {(error||view?.listener?.reason)&&<p className="od-note" style={{margin:0}}>{error||view.listener.reason}</p>}
-  {refreshReason&&<p id="webflow-listener-refresh-reason" className="od-note" style={{margin:0}}>暂不能刷新：{refreshReason}</p>}
-  <p className="od-field-help" style={{margin:0}}>监听就绪仅表示可检测新消息；授权、任务执行和结果交付分别核验。</p>
-  <div id="webflow-listener-work" className="od-toolbar" style={{flexWrap:'wrap'}}>
-   <strong className="od-field-label">{workState==='running'?'任务执行中':workState==='idle'?'任务工作状态：空闲':'任务状态未知'}</strong>
+  </div>
+  </details>
+  {error&&<p role="alert" className="od-field-error" style={{margin:0}}>{error}</p>}
+  {!error&&state!=='ready'&&view?.listener?.reason&&<p className="od-note" style={{margin:0}}>{view.listener.reason}</p>}
+  {state==='refresh-required'&&<Button variant="quiet" style={actionStyle} onClick={()=>{
+   if(details.current){details.current.open=true;details.current.querySelector('summary')?.focus();}
+  }}>查看连接恢复操作</Button>}
+  <div id="webflow-listener-work" className="od-toolbar" style={{flexWrap:'wrap'}} hidden={workState==='idle'&&!canStop}>
+   <strong className="od-field-label">{workState==='running'?'任务执行中':workState==='idle'?'原请求待处理':'任务状态未知'}</strong>
    {view?.work?.reason&&<span className="od-note">{view.work.reason}</span>}
-   {workState!=='idle'&&workState!=='running'&&<Button id="webflow-listener-records" variant="quiet" onClick={onRecords}>查看原请求记录</Button>}
+   {(workState!=='idle'||canStop)&&<Button id="webflow-listener-records" variant="quiet" style={actionStyle} onClick={onRecords}>{workState==='running'||canStop?'查看进度':'查看原请求记录'}</Button>}
+   {canStop&&<Button id="webflow-home-stop" variant="secondary" style={actionStyle} aria-haspopup="dialog" aria-controls="webflow-runtime-panel" onClick={onStop}>停止…</Button>}
   </div>
   {confirmation===identity&&recoveryAllowed&&<div id="webflow-listener-confirmation" role="group" aria-label="确认刷新当前对话"
    className="od-surface od-surface--padded od-stack" onKeyDown={event=>{
@@ -234,9 +267,9 @@ function ListenerStatus({controller,bridge,onRecords}){
    <p id="webflow-listener-impact" className="od-note">刷新将重新加载当前对话，可能丢失未发送的草稿或中断网页中的操作。不会重新执行任务、补发未知结果或改变授权。请先保存草稿。</p>
    {/* aria-disabled preserves keyboard focus during a harmless poll. The
        commit handler also rejects busy state before calling the Host. */}
-   <Button ref={confirm} id="webflow-listener-confirm" variant="danger" aria-disabled={!allowed} aria-describedby="webflow-listener-impact"
+   <Button ref={confirm} id="webflow-listener-confirm" variant="danger" style={actionStyle} aria-disabled={!allowed} aria-describedby="webflow-listener-impact"
     onClick={event=>refresh(event.nativeEvent)}>确认刷新当前对话</Button>
-   <Button id="webflow-listener-cancel" onClick={()=>setConfirmation(null)}>取消</Button>
+   <Button id="webflow-listener-cancel" style={actionStyle} onClick={()=>setConfirmation(null)}>取消</Button>
   </div>}
  </section>;
 }
@@ -244,15 +277,20 @@ function ListenerStatus({controller,bridge,onRecords}){
 export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAuto?:WebflowAutoController|null;compact?:boolean}){
  const bridge=useWebflowBridgeState(webflowAuto);
  const [panelOpen,setPanelOpen]=React.useState(false);
- const [recordsRequested,setRecordsRequested]=React.useState(false);
+ const [taskFocus,setTaskFocus]=React.useState<string|null>(null);
  const taskPanel=React.useRef<HTMLDivElement>(null);
  React.useLayoutEffect(()=>{
-  if(!recordsRequested||!panelOpen)return;
+  if(!taskFocus||!panelOpen)return;
   const records=taskPanel.current?.querySelector<HTMLDetailsElement>('[data-webflow-original-records]');
-  if(records){records.open=true;records.querySelector('summary')?.focus();}
-  else taskPanel.current?.querySelector<HTMLButtonElement>('button')?.focus();
-  setRecordsRequested(false);
- },[recordsRequested,panelOpen]);
+  if(taskFocus==='records'&&records)records.open=true;
+  const target=taskFocus==='records'&&records?records.querySelector<HTMLElement>('summary'):
+   taskPanel.current?.querySelector<HTMLElement>(taskFocus==='stop'?'[data-webflow-action="cancel"]':'[data-webflow-current-status]');
+  // The original panel establishes its focus boundary first; this intent then
+  // positions the existing status or control, without issuing a Host operation.
+  let active=true;
+  queueMicrotask(()=>{if(!active)return;target?.focus({preventScroll:true});target?.scrollIntoView?.({block:'nearest'});setTaskFocus(null);});
+  return ()=>{active=false;};
+ },[taskFocus,panelOpen]);
  const [tab,setTab]=React.useState('task');
  const [summary,setSummary]=React.useState('正在读取任务状态…');
  const closePanel=React.useCallback(()=>setPanelOpen(false),[]);
@@ -380,7 +418,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  const scopeRules=<>
   <p className="od-field-help">
    自动运行决定是否接收新任务，任务授权决定能做什么。批准允许更换关键词后，同一任务、目标和安装版本内的合法关键词无需逐次确认；其他固定参数继续核验。
-   保持可信 OpenDesk 侧栏打开的窗口中，ChatGPT 官方网页的各对话均可在批准范围内触发；真实结果将自动发送至触发任务的原聊天。
+   ChatGPT 官方网页的各对话完成一次能力接入后，均可在批准范围内触发；侧栏可关闭，真实结果自动返回发起任务的原聊天。
    关闭总开关或撤销任务只阻止未来准入，不会回滚已经开始的动作。未知结果不会自动重放。
   </p>
   <p className="od-field-help">{compact?'开关和授权即时保存。':'批准、开关和撤销即时保存，不受「保存 AI 设置」或「取消」影响。'}</p>
@@ -414,8 +452,8 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    {(!compact||panelOpen)&&switchControl}
   </div>
   <p id="webflow-auto-risk" className="od-field-help" style={{margin:0,lineHeight:1.65}}>
-   {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 需要保持侧栏打开。':
-    '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 当前需要保持侧栏打开，普通网站的已准入任务由后台执行。'}
+   {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 标签页需保持打开，侧栏可关闭。':
+    '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 标签页需保持打开；侧栏关闭后仍接收新任务，由后台执行。'}
   </p>
   {(!compact||panelOpen)&&feedback}
   </div>
@@ -562,22 +600,45 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   </ScopeSection>
   </div>
  </section>;
- const listener=<ListenerStatus controller={webflowAuto} bridge={bridge} onRecords={()=>{
-  setTab('task');setPanelOpen(true);setRecordsRequested(true);
- }}/>;
+ const openTask=(focus='current')=>{
+  setTab('task');setPanelOpen(true);setTaskFocus(focus);
+ };
+ const session=bridge.view?.session,receipt=bridge.view?.receipt;
+ // Short labels use structured facts; unrecognized messages remain fully visible.
+ // The complete explanation stays in the disclosure and the original task view.
+ const homeNotice=session?.pendingAuto?'待批准 · 尚未执行':
+  receipt&&(receipt.execution==='unknown'||receipt.delivery==='unknown')?
+   (session?.error?'结果未知 · '+summary:'结果未知 · 请核对原请求'):
+  session?.error?summary:
+  session?.messageStage==='no-candidate'?'本条未执行 · 未生成任务候选':
+  session?.messageStage==='cancelled'?'本条未执行 · 回复已停止':
+  summary.startsWith('指令仍在 ChatGPT 草稿中')?'草稿尚未发送 · 请在 ChatGPT 发送':
+  !session?.requestId&&['submitted','waiting-reply'].includes(session?.observation?.stage)?'已发送 · 等待完整任务回复':
+  !session?.requestId&&summary.startsWith('尚未触发新请求。')?'':
+  summary.startsWith('当前可见回复属于历史或未见证的发送')?'历史回复 · 未触发新任务':
+  session?summary:'';
+ const listener=<ListenerStatus controller={webflowAuto} bridge={bridge} summary={summary} compact={compact} enabled={snapshot?.enabled}
+  onRecords={()=>openTask(bridge.view?.work?.state==='running'||session?.actions?.cancel?'current':'records')} onStop={()=>openTask('stop')}/>;
  if(!compact)return <>{listener}{content}</>;
  return <>
-  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)'}}>
-   <div className="od-toolbar">
+  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)', '--od-note-size':'var(--od-body-size)'} as React.CSSProperties}>
+   <div className="od-toolbar" style={{flexWrap:'wrap'}}>
     <strong className="od-field-label">自动运行</strong>
     {!panelOpen&&switchControl}
     <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):'状态未确认'}</span>
     <Button id="webflow-runtime-open" variant="secondary" aria-haspopup="dialog" aria-expanded={panelOpen}
-     aria-controls="webflow-runtime-panel" style={{marginInlineStart:'auto'}} onClick={()=>setPanelOpen(true)}>运行与授权</Button>
+     aria-controls="webflow-runtime-panel" style={{marginInlineStart:'auto',minHeight:44}} onClick={()=>setPanelOpen(true)}>运行与授权</Button>
    </div>
-   {webflowAuto?.readBridgeState&&<p id="webflow-runtime-summary" className="od-note" role="status" title={summary}
-    style={{margin:0,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{summary}</p>}
    {listener}
+   {homeNotice&&<div className="od-toolbar" style={{flexWrap:'wrap',minWidth:0}}>
+    <p id="webflow-home-notice" role="status" className={session?.error?'od-field-error':'od-note'}
+     style={{margin:0,flex:'1 1 160px',overflowWrap:'anywhere',whiteSpace:'pre-wrap',
+      color:session?.pendingAuto||receipt?.execution==='unknown'||receipt?.delivery==='unknown'?'var(--od-warning-ink)':undefined}}>{homeNotice}</p>
+    {(bridge.view?.work?.state==='idle')&&(session?.pendingAuto||session?.error||receipt?.execution==='unknown'||receipt?.delivery==='unknown'||
+      session?.messageStage==='no-candidate'||session?.messageStage==='cancelled')&&
+     <Button variant="quiet" style={{minHeight:44}} onClick={()=>openTask()}>
+      {session?.pendingAuto?'审阅授权':'查看详情'}</Button>}
+   </div>}
    {!panelOpen&&feedback}
   </section>
   <WebflowRuntimePanel open={panelOpen} onClose={closePanel}>{content}</WebflowRuntimePanel>

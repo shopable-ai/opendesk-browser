@@ -1,9 +1,9 @@
-name: ChatGPT Mind Map original JS direct preview and browser proof
+name: AI Reply Mind Map original JS direct preview and browser proof
 on:
   push:
     branches: [main]
     paths:
-      - 'projects/chatgpt-mindmap/**'
+      - 'projects/ai-reply-mindmap/**'
       - 'tests/environment/chatgpt-mindmap-preview.test.mjs'
       - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
@@ -34,12 +34,12 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify original four in-place JS before all source tests
-        run: node projects/chatgpt-mindmap/preview/verify-assets.mjs
+        run: node projects/ai-reply-mindmap/preview/verify-assets.mjs
       - name: Audit exact XMind bytes and verify production license is still blocked
         shell: bash
         run: |
           set -euo pipefail
-          node projects/chatgpt-mindmap/scripts/audit-runtime-license.mjs \
+          node projects/ai-reply-mindmap/scripts/audit-runtime-license.mjs \
             --out "${{ runner.temp }}/r393-license-audit.json"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: ignore
       - name: Real XMind adapter and preview source/regression checks
         env:
-          XMIND_REFERENCE_DIR: ${{ github.workspace }}/projects/chatgpt-mindmap/preview
+          XMIND_REFERENCE_DIR: ${{ github.workspace }}/projects/ai-reply-mindmap/preview
         run: |
           node --test --test-reporter=spec \
             tests/environment/chatgpt-mindmap-r1.test.mjs \
@@ -74,13 +74,13 @@ jobs:
             tests/environment/page-program-library.test.mjs
       - name: Validate authoring and deterministic program build (not runtime installation)
         run: |
-          node scripts/validate-program-project.mjs projects/chatgpt-mindmap
-          npm run build:program -- projects/chatgpt-mindmap
+          node scripts/validate-program-project.mjs projects/ai-reply-mindmap
+          npm run build:program -- projects/ai-reply-mindmap
       - name: Audit current compiled Program candidate (NOT installed)
         shell: bash
         run: |
           set -euo pipefail
-          node projects/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r36-program-build-audit.json"
+          node projects/ai-reply-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r36-program-build-audit.json"
           test -s "${{ runner.temp }}/r36-program-build-audit.json"
       - name: Upload actual candidate bytes and verified hashes (NOT Chrome installation)
         if: always()
@@ -88,9 +88,9 @@ jobs:
         with:
           name: r36-program-build-candidate
           path: |
-            artifacts/programs/opendesk.chatgpt-mindmap/**/program.js
-            artifacts/programs/opendesk.chatgpt-mindmap/**/program.opendesk-draft.json
-            artifacts/programs/opendesk.chatgpt-mindmap/**/artifact.json
+            artifacts/programs/opendesk.ai-reply-mindmap/**/program.js
+            artifacts/programs/opendesk.ai-reply-mindmap/**/program.opendesk-draft.json
+            artifacts/programs/opendesk.ai-reply-mindmap/**/artifact.json
             ${{ runner.temp }}/r36-program-build-audit.json
           retention-days: 7
           if-no-files-found: warn
@@ -122,7 +122,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dir="projects/chatgpt-mindmap/preview"
+          dir="projects/ai-reply-mindmap/preview"
           for name in jszip.min.js polyfill-45b9836beb.min.js xmind-sdk.bundle.js snowbrush-2c2b5d62b5.js; do
             git ls-files --error-unmatch "$dir/$name" > /dev/null
             test -s "$dir/$name"
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          import {startXmindPreview} from './projects/chatgpt-mindmap/preview/serve.mjs';
+          import {startXmindPreview} from './projects/ai-reply-mindmap/preview/serve.mjs';
           const session=await startXmindPreview();
           try{
             const urls=['/index.html','/chatgpt.html',
@@ -157,7 +157,7 @@ jobs:
           import {spawn} from 'node:child_process';
           import assert from 'node:assert/strict';
           const child=spawn(process.execPath,[
-            'projects/chatgpt-mindmap/preview/serve.mjs','--no-open'
+            'projects/ai-reply-mindmap/preview/serve.mjs','--no-open'
           ],{env:{...process.env,CI:'true'},stdio:['ignore','pipe','pipe']});
           let output='',errors='';
           child.stderr.on('data',b=>{errors+=b;});
@@ -260,8 +260,8 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
           node scripts/verify-package.mjs dist/production
-          npm run build:program -- projects/chatgpt-mindmap
-          node projects/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r38-candidate-audit.json"
+          npm run build:program -- projects/ai-reply-mindmap
+          node projects/ai-reply-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r38-candidate-audit.json"
       - name: Prepare real Chromium driver
         shell: bash
         run: |
@@ -281,7 +281,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          program="$(find artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production -name program.js -print -quit)"
+          program="$(find artifacts/programs/opendesk.ai-reply-mindmap/0.2.7/r31-production -name program.js -print -quit)"
           test -n "$program" || { echo E_CURRENT_PROGRAM_BUILD_MISSING; exit 1; }
           mkdir -p "${{ runner.temp }}/r38-native-proof"
           xvfb-run -a node tests/framework/chatgpt-mindmap-r38-native-probe.mjs \
@@ -327,8 +327,8 @@ jobs:
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
-          npm run build:program -- projects/chatgpt-mindmap
-          node projects/chatgpt-mindmap/scripts/audit-build.mjs
+          npm run build:program -- projects/ai-reply-mindmap
+          node projects/ai-reply-mindmap/scripts/audit-build.mjs
           node --check tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs
       - name: Prepare unbranded native Chromium test environment
         shell: bash
@@ -344,7 +344,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          program="$(find artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production -name program.js -print -quit)"
+          program="$(find artifacts/programs/opendesk.ai-reply-mindmap/0.2.7/r31-production -name program.js -print -quit)"
           test -n "$program"
           mkdir -p "${{ runner.temp }}/r393-sandbox-proof"
           xvfb-run -a node tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs \

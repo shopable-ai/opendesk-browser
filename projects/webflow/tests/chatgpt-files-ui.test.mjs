@@ -4,7 +4,7 @@ import {initChatGPTFilesUI} from '../trusted/chatgpt-files-ui.js';
 
 // Only trusted-page UI scheduling is exercised here; sender/Native authority
 // is verified separately by the controller and actual browser tests.
-function fixture({reply,externalApi={}}={}){
+function fixture({reply,fillReply,externalApi={}}={}){
   const ids=['workspace','path','operation','task','consent','prepare','state','approve','inspect','reconcile','observe',
     'fill-prompt','fill-result','source','connection','prompt','result','request','proposal','proposal-path','sha',
     'before','after','result-status','delivery','observed','message','error','task-description','generate-task','task-prompt',
@@ -24,6 +24,7 @@ function fixture({reply,externalApi={}}={}){
   const api={...externalApi,runtime:{...externalApi.runtime,async sendMessage(message){
     calls.push(message);
     if(reply)return reply(message);
+    if(message.action==='fill'&&fillReply)return fillReply(message,structuredClone(snapshot));
     if(message.action==='prepare')snapshot={...snapshot,request:{requestId:'fresh'},prompt:'real rules',
       promptPacketId:'prompt-1',promptDelivery:'ready',automation:{active:true,phase:'watching'}};
     if(message.action==='pause')snapshot={...snapshot,automation:{active:false,phase:'paused'}};
@@ -41,6 +42,22 @@ function fixture({reply,externalApi={}}={}){
     async openConnection(){this.start();nodes.state.emit('click');await settle();},
     async tick(){const [id,fn]=queue.entries().next().value;queue.delete(id);await fn();}};
 }
+test('only a ready acknowledgement for the same prompt re-enables its explicit fill control',async()=>{
+  let attempts=0;
+  const h=fixture({fillReply:(_message,state)=>({ok:true,data:{...state,promptDelivery:++attempts===1?'ready':'filled'}})});
+  await h.openConnection();await h.prepare();
+  h.nodes['fill-prompt'].emit('click');await h.settle();assert.equal(h.nodes['fill-prompt'].disabled,false);
+  h.nodes['fill-prompt'].emit('click');await h.settle();assert.equal(h.nodes['fill-prompt'].disabled,true);
+  h.nodes['fill-prompt'].emit('click');await h.settle();assert.equal(attempts,2);
+  assert.deepEqual(h.calls.filter(call=>call.action==='fill').map(call=>call.packetId),['prompt-1','prompt-1']);
+});
+test('a failed or missing prompt reply never re-enables fill based on a stale ready snapshot',async()=>{
+  const h=fixture({fillReply:()=>({ok:false,error:{code:'E_CHAT_COMPOSER',outcome:'NOT_DISPATCHED',message:'unverified'}})});
+  await h.openConnection();await h.prepare();h.nodes['fill-prompt'].emit('click');await h.settle();
+  assert.equal(h.nodes['fill-prompt'].disabled,true);
+  h.nodes.state.emit('click');await h.settle();assert.equal(h.nodes['fill-prompt'].disabled,true);
+  h.nodes['fill-prompt'].emit('click');await h.settle();assert.equal(h.calls.filter(call=>call.action==='fill').length,1);
+});
 test('automatic scheduling requires explicit prepare and never confirms a write',async()=>{
   const h=fixture();await h.openConnection();assert.equal(h.queue.size,0);
   await h.prepare();assert.equal(h.queue.size,1);await h.tick();await h.tick();
@@ -98,10 +115,26 @@ test('trusted clicks carry the exact displayed proposal and composer packet iden
   h.nodes['fill-prompt'].emit('click');await h.settle();
   assert.equal(h.calls.at(-1).packetId,'prompt-1');
   h.respond({proposal:{reviewId:'review-shown',path:'demo.txt',content:'new',before:'old',baseSha256:'baseline',requestId:'stable-write'},
-    automation:{active:false,phase:'review'}});
+    canApprove:true,automation:{active:false,phase:'review'}});
   await h.tick();assert.equal(h.nodes.approve.disabled,false);
   h.nodes.approve.emit('click');await h.settle();
   assert.equal(h.calls.at(-1).action,'approve');assert.equal(h.calls.at(-1).reviewId,'review-shown');
+});
+
+test('revalidated recovery permits only the newly displayed concrete confirmation while automation stays paused',async()=>{
+  const h=fixture();await h.openConnection();
+  h.respond({proposal:{reviewId:'reissued-review',path:'demo.txt',content:'new',before:'old'},canApprove:true,
+    automation:{active:false,phase:'paused'}});
+  h.nodes.state.emit('click');await h.settle();
+  assert.equal(h.nodes.approve.disabled,false);assert.equal(h.queue.size,0);
+  h.nodes.approve.emit('click');await h.settle();
+  assert.equal(h.calls.at(-1).action,'approve');assert.equal(h.calls.at(-1).reviewId,'reissued-review');
+  for(const canApprove of [false,undefined]){
+    h.respond({proposal:{reviewId:'stale-review'},canApprove,automation:{active:false,phase:'paused'}});
+    h.nodes.state.emit('click');await h.settle();
+    assert.equal(h.nodes.approve.disabled,true);
+    const before=h.calls.length;h.nodes.approve.emit('click');await h.settle();assert.equal(h.calls.length,before);
+  }
 });
 
 function watchExternalCalls(t){

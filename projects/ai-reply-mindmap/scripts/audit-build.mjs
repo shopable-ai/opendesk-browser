@@ -1,5 +1,5 @@
 // Audits the CURRENT source-matched local Program candidate, not a Chrome installation.
-// Run immediately after: npm run build:program -- projects/chatgpt-mindmap
+// Run immediately after: npm run build:program -- projects/ai-reply-mindmap
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -8,10 +8,10 @@ import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const repo=resolve(fileURLToPath(new URL('../../../',import.meta.url)));
-const project=join(repo,'projects/chatgpt-mindmap');
+const project=join(repo,'projects/ai-reply-mindmap');
 const pkg=JSON.parse(await readFile(join(project,'package.json'),'utf8'));
 const id=pkg.opendesk.id;
-assert.equal(id,'opendesk.chatgpt-mindmap');
+assert.equal(id,'opendesk.ai-reply-mindmap');
 assert.equal(pkg.opendesk.runtimeKind,'page-userscript');
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const outputRoot=join(repo,'artifacts/programs',id,pkg.version,'r31-production');

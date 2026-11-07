@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-07",
+  "scope": "WebFlow homepage listener polling presentation only",
+  "stage": "development",
+  "rootCause": "A 1200 ms routine read toggled visible busy state and temporarily inserted refresh-reason text, changing the homepage height.",
+  "fix": "Separate polling from foreground busy state; show refresh reasons only for authoritative recovery restrictions. Final confirmation, context invalidation, timeout and late-reply fences remain.",
+  "sources": {
+    "projects/webflow/trusted/AutoSettings.tsx": "8018b3449290839b00569280421f054d934b1d92",
+    "projects/webflow/trusted/CurrentTask.tsx": "2ba29265a4fdd8c49949d437caf2c118f7dbc476"
+  },
+  "tests": {
+    "commands": [
+      "node --test projects/webflow/tests/auto-settings-ui.test.mjs projects/webflow/tests/current-task.test.mjs",
+      "node --test tests/environment/webflow-fixed-source.test.mjs"
+    ],
+    "passed": 52,
+    "failed": 0,
+    "regressionBeforeFix": {
+      "passed": 1,
+      "failed": 2
+    }
+  },
+  "componentBrowser": {
+    "engine": "ego(lite)",
+    "scope": "Actual trusted React components and tokens; mock controller, no real task, authorization or ChatGPT send",
+    "before": {
+      "mode": "before",
+      "width": 360,
+      "reads": 5,
+      "frames": 13,
+      "businessTop": [
+        287.65625,
+        310.25
+      ],
+      "surfaceHeight": [
+        202.0625,
+        224.65625
+      ],
+      "warningStates": [
+        false,
+        true
+      ],
+      "disabledStates": [
+        false,
+        true
+      ]
+    },
+    "after": [
+      {
+        "mode": "after",
+        "width": 360,
+        "reads": 5,
+        "frames": 7,
+        "businessTop": [
+          287.65625
+        ],
+        "surfaceHeight": [
+          202.0625
+        ],
+        "warningStates": [
+          false
+        ],
+        "disabledStates": [
+          false
+        ],
+        "overflow": false
+      },
+      {
+        "mode": "after",
+        "width": 320,
+        "reads": 5,
+        "frames": 8,
+        "businessTop": [
+          287.65625
+        ],
+        "surfaceHeight": [
+          202.0625
+        ],
+        "warningStates": [
+          false
+        ],
+        "disabledStates": [
+          false
+        ],
+        "overflow": false
+      }
+    ],
+    "dynamicFailure": "Listener changed to unconfirmed, original-record guidance remained visible and refresh stayed blocked."
+  },
+  "codeReview": {
+    "result": "No findings or blocking changes requested",
+    "reviewer": "native code-reviewer subagent",
+    "lsp": "NOT_TESTED: diagnostic tool unavailable"
+  },
+  "installedChrome": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "initialObservation": "Native accessibility matched the reported homepage text.",
+    "afterFix": "NOT_TESTED"
+  },
+  "developmentOutput": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "writerPid": 26234,
+    "status": "Published by the existing development writer; source-map bytes and published tool-shell SHA verified",
+    "revision": "0c55bfa3a4bde4b107dc5d443aeeaae19c6252175d8e87a45b750f2284aaa2c9",
+    "toolShellSha256": "00a131f69bffc07b98702eca2c788297cbb7f2c07cab9882a122488381404a7a",
+    "exactSources": {
+      "projects/webflow/trusted/AutoSettings.tsx": true,
+      "projects/webflow/trusted/CurrentTask.tsx": true
+    }
+  },
+  "noChange": [
+    "Installed tool JSON and task identities",
+    "Permissions, execution and delivery contracts",
+    "Parallel file-business source edits",
+    "Production release and full acceptance"
+  ]
+}

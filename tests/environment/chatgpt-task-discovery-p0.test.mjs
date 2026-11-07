@@ -63,6 +63,31 @@ test('discovery refuses multiple new assistant replies for one new user turn',()
   assert.equal(probe.observe(snap),null);
   assert.equal(probe.observe(snap),null);
 });
+test('discovery keeps exact long user body when the official expand controls mount',()=>{
+  const {document}=parseHTML('<main><div data-message-id="u0"><div class="whitespace-pre-wrap">prior prompt</div></div><div data-message-id="u1"><div class="whitespace-pre-wrap">exact file result</div></div></main>');
+  const [prior,user]=document.querySelectorAll('[data-message-id]');
+  const snap=snapshot(),probe=createChatGPTTaskDiscovery();snap.users=[prior];
+  witness(probe,snap,'exact file result');snap.users.push(user);
+  assert.equal(probe.observe(snap),null);
+  for(const node of [prior,user]){
+    const controls=document.createElement('div');
+    controls.innerHTML='<span aria-hidden="true">…</span><button aria-expanded="false" data-markdown-copy="exclude">展开</button>';
+    node.append(controls);
+  }
+  const answer=document.createElement('div');answer.setAttribute('data-message-id','a1');answer.textContent='new complete proposal';
+  user.after(answer);snap.assistants.push(answer);
+  assert.equal(probe.observe(snap)?.answer,snap.assistants.at(-1));
+  assert.equal(probe.observe(snap),null);
+});
+test('discovery still rejects a changed user body inside the official long-message wrapper',()=>{
+  const {document}=parseHTML('<div data-message-id="u1"><div class="whitespace-pre-wrap">exact file result</div><button aria-expanded="false" data-markdown-copy="exclude">展开</button></div>');
+  const user=document.firstElementChild,snap=snapshot(),probe=createChatGPTTaskDiscovery();
+  witness(probe,snap,'exact file result');snap.users.push(user);probe.observe(snap);
+  user.querySelector('.whitespace-pre-wrap').textContent+=' ';
+  snap.assistants.push(message('a1','new complete proposal'));
+  assert.equal(probe.observe(snap),null);
+  assert.equal(probe.observe(snap),null);
+});
 test('P0 discovery does not mistake remounts or regeneration under an old user for a new task',()=>{
   const probe=createChatGPTTaskDiscovery(),snap=snapshot();probe.reset(snap);
   snap.users=snap.users.map(node=>message(node.getAttribute('data-message-id'),node.textContent));

@@ -255,7 +255,7 @@ test('R1 SDK-first ownership routes six positive and counterexample scenarios wi
   const rows=section.split('\n').filter(line=>/^\| [A-F] /.test(line));
   assert.equal(rows.length,6,'all six scenarios must appear exactly once');
   const expected=[
-    ['A ChatGPT Mind Map','Page USER_SCRIPT','examples/programs/chatgpt-mindmap/','opendesk-script-authoring','SDK_GAP_NOT_PROVEN'],
+    ['A AI 回复思维导图','Page USER_SCRIPT','projects/ai-reply-mindmap/','opendesk-script-authoring','SDK_GAP_NOT_PROVEN'],
     ['B Cookie Editor','Sidebar Tool','examples/sidebar-tools/cookie-editor/','opendesk-sidebar-tool-dev','打包'],
     ['C Prompt Shortcuts','Sidebar Tool v2','examples/sidebar-tools/prompt-shortcuts/','opendesk-sidebar-tool-dev','page.prompts'],
     ['D Bookmark Manager','Sidebar Tool','examples/sidebar-tools/bookmark-manager/','opendesk-sidebar-tool-dev','Installer'],

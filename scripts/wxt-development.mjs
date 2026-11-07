@@ -6,6 +6,8 @@ import {watch} from 'node:fs';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
 import {BROWSER_EDITION_RECORD,readEditionRecord} from './browser-editions-r245.mjs';
 import {buildOfficialTools,officialToolInputs,writeOfficialToolResources} from './build-official-tools.mjs';
+import {createOfficialPageResources,officialPageInputs,writeOfficialPageResources} from './build-official-pages.mjs';
+import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH,validateOfficialPageReleases} from '../src/scripting/user-scripts/official-page-catalog.js';
 import {buildAdblockReact} from './build-adblock-react.mjs';
 import {buildStayFocusReact} from './build-stay-focus-react.mjs';
 import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs';
@@ -27,6 +29,7 @@ export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosin
     if(isClosing()||!['add','change','unlink'].includes(event))return;
     const path=relative(root,resolve(file));
     if(!path.startsWith('src/')&&!path.startsWith('scripts/')&&!path.startsWith('official-tools/')&&
+      !path.startsWith('official-pages/')&&!path.startsWith('examples/programs/')&&
       !path.startsWith('examples/sidebar-tools/')&&!path.startsWith('projects/')&&
       !['wxt.config.mjs','manifest.json','package.json','package-lock.json'].includes(path))return;
     clearRecovery();void server.restart();
@@ -140,6 +143,10 @@ export function configureDevelopment(wxt,server) {
   const officialRoot=resolve(wxt.config.root,'official-tools');
   const toolRoot=resolve(wxt.config.root,'examples/sidebar-tools');
   const projectRoot=resolve(wxt.config.root,'projects');
+  const pageRoot=resolve(wxt.config.root,'official-pages');
+  const programRoot=resolve(wxt.config.root,'examples/programs');
+  let pageGeneration=0,pageOwned=new Set();
+  const pageChanges=new Set();
   let officialGeneration=0,catalogDirty=false,changeId=0;
   // Keep validated ownership across partial writer failures: its catalog rename
   // precedes stale-package removal, so disk alone cannot recover the old set.
@@ -160,21 +167,46 @@ export function configureDevelopment(wxt,server) {
       input.startsWith(resolve(toolRoot,'cookie-editor/dist')+'/'))return;
     const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
       input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/');
-    if(!dest&&!style&&!official)return;
+    const page=input===resolve(wxt.config.root,OFFICIAL_PAGE_SOURCE_PATH)||
+      input.endsWith('.opendesk-page.json')&&[toolRoot,projectRoot,programRoot].some(root=>input.startsWith(root+'/'));
+    if(!dest&&!style&&!official&&!page)return;
     const version=++changeId;sourceVersions.set(input,version);
-    const errorKey=official?'official':input;
-    if(event==='unlink'&&!official){
+    const errorKey=page?'official-pages':official?'official':input;
+    if(event==='unlink'&&!official&&!page){
       const error=new Error('Required Workspace/static source removed: '+relative(wxt.config.root,file));
       copyErrors.set(input,error);wxt.logger.error('[OpenDesk dev] '+error.message);
       return;
     }
     // Failed compile must not publish a revision, but correcting the source
     // allows the next change to recover without restarting dev.
-    let failureKey=errorKey;
-    if(official)officialChanges.add(relative(wxt.config.root,input));
+    let failureKey=errorKey,pageBatch;
+    if(page)pageChanges.add(relative(wxt.config.root,input));
+    else if(official)officialChanges.add(relative(wxt.config.root,input));
     if(input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH))catalogDirty=true;
-    const generation=official?++officialGeneration:0;
+    const generation=page?++pageGeneration:official?++officialGeneration:0;
     copying=copying.catch(()=>{}).then(async()=>{
+      if(page){
+        if(generation!==pageGeneration)return;
+        pageBatch=[...pageChanges];pageChanges.clear();
+        const inputs=await officialPageInputs(wxt.config.root);
+        if(!pageBatch.some(path=>inputs.includes(path)))return;
+        await ready;
+        let previous;
+        try{previous=validateOfficialPageReleases(JSON.parse(
+          await readFile(resolve(wxt.config.outDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8')));}
+        catch(error){if(error.code!=='ENOENT')throw error;}
+        for(const row of previous?.apps||[])if(row.status==='available')pageOwned.add(row.packagePath);
+        const generated=await createOfficialPageResources({root:wxt.config.root});
+        for(const path of generated.resources.keys())pageOwned.add(path);
+        await writeOfficialPageResources(generated,wxt.config.publicDir,{ownedPaths:pageOwned});
+        await writeOfficialPageResources(generated,wxt.config.outDir,{ownedPaths:pageOwned});
+        const output=server.currentOutput||initialOutput;
+        const existing=new Map(output.publicAssets.map(asset=>[asset.fileName,asset]));
+        output.publicAssets=[...output.publicAssets.filter(asset=>!pageOwned.has(asset.fileName)),
+          ...[...generated.resources.keys()].map(fileName=>existing.get(fileName)||{type:'asset',fileName})];
+        pageOwned=new Set(generated.resources.keys());copyErrors.delete(errorKey);
+        void publish();return;
+      }
       if(official){
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
@@ -271,6 +303,8 @@ export function configureDevelopment(wxt,server) {
       if(dest)server.watcher.emit('all','change',resolve(wxt.config.publicDir,dest));
       if(sourceVersions.get(input)===version)copyErrors.delete(input);
     }).catch(error=>{
+      // Retain failed inputs without consuming saves queued during this batch.
+      for(const path of pageBatch||[])pageChanges.add(path);
       copyErrors.set(failureKey,error);
       wxt.logger.error('[OpenDesk dev] Workspace/static publish failed: '+error.message);
     });
@@ -278,7 +312,7 @@ export function configureDevelopment(wxt,server) {
   const watcher=server.watcher;
   const checkCopyErrors=()=>{if(copyErrors.size)throw copyErrors.values().next().value;};
   publicationGuard=async()=>{await copying;checkCopyErrors();};
-  watcher.add([...new Set([...sources.keys(),...styleSources,officialRoot,toolRoot,projectRoot])]);watcher.on('all',sync);
+  watcher.add([...new Set([...sources.keys(),...styleSources,officialRoot,toolRoot,projectRoot,pageRoot,programRoot])]);watcher.on('all',sync);
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();

@@ -1,0 +1,175 @@
+/* Adapted from the read-only original sidepanel-r86.css. Geometry and cascade preserved; root selectors scoped to this app. */
+@scope (.proxy-app) {
+/* AI Proxy R8.6 canonical Side Panel geometry.
+ * The same component styles are mirrored into the ONE offline HTML prototype.
+ * Do not use legacy .popupScroll/.siteBox/.footerActions for this surface.
+ */
+:scope .popup.sidepanel.r86Panel{
+  width:100%;max-width:none;height:100dvh;max-height:none;min-height:0;overflow:hidden;
+  --r86-surface:var(--surface);--r86-soft:var(--soft);--r86-ink:var(--ink);
+  --r86-muted:var(--muted);--r86-line:var(--line);--r86-accent:var(--accent);
+  --r86-fill:var(--accentFill);--r86-on-accent:var(--primaryText);
+  --r86-good:var(--good);--r86-bad:var(--bad);
+  background:var(--r86-surface);color:var(--r86-ink);
+}
+:scope .r86Panel .r86Header{display:flex;align-items:center;gap:9px;flex:none;padding:12px 15px;border-bottom:1px solid var(--r86-line)}
+:scope .r86Panel .r86Brand{display:grid;min-width:0;gap:0;line-height:1.35}
+:scope .r86Panel .r86Brand strong{font-size:15px;font-weight:750;letter-spacing:-.02em}
+:scope .r86Panel .r86Brand small{font-size:11px;color:var(--r86-muted)}
+:scope .r86Panel .r86Header .brandSymbol{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:7px;background:var(--r86-ink);color:var(--r86-surface);font-size:11px;font-weight:800}
+:scope .r86Panel .r86Icon{display:grid;place-items:center;flex:none;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border:1px solid var(--r86-line);border-radius:8px;background:var(--r86-soft);color:var(--r86-ink)}
+:scope .r86Panel .r86Icon:hover:not(:disabled){border-color:var(--r86-accent);background:var(--r86-fill)}
+:scope .r86Panel .r86Header .r86IconFirst{margin-left:auto}
+:scope .r86Panel .r86Scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain}
+:scope .r86Panel .r86Section{border-top:1px solid var(--r86-line);padding:12px 15px}
+:scope .r86Panel .r86Section:first-child{border-top:0}
+:scope .r86Panel .r86Head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin-bottom:8px}
+:scope .r86Panel .r86Head h2{margin:0;min-width:0;font-size:13px;font-weight:720;line-height:1.4}
+:scope .r86Panel .r86Head .textAction{min-height:28px;white-space:nowrap;font-size:11px;font-weight:650}
+:scope .r86Panel .r86Chip{display:inline-flex;align-items:center;min-width:0;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:650;color:var(--r86-muted);background:var(--r86-soft);border-radius:99px;padding:3px 8px}
+:scope .popup.sidepanel.r86Panel .r86Modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0;padding:4px;border-radius:9px;background:var(--r86-soft)}
+:scope .popup.sidepanel.r86Panel .r86Modes button{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:52px;padding:7px 2px;border:0;border-radius:7px;background:transparent;color:var(--r86-muted);font-size:11px;font-weight:550;line-height:1.35;letter-spacing:0;white-space:nowrap;position:relative}
+:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]{background:var(--r86-accent);color:var(--r86-on-accent);font-weight:720}
+:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]::after{content:'✓';position:absolute;top:3px;right:5px;font-size:10px;line-height:1}
+:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]:hover:not(:disabled){background:var(--r86-accent)}
+:scope .popup.sidepanel.r86Panel .r86Modes button:not([aria-pressed="true"]):hover:not(:disabled){background:var(--r86-fill)}
+:scope .popup.sidepanel.r86Panel .r86Modes svg{display:block;flex:none;width:19px;height:19px}
+:scope .popup.sidepanel.r86Panel .r86Modes button span{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+:scope .r86Panel .r86RouteSummary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin-top:7px;font-size:11px;color:var(--r86-muted)}
+:scope .r86Panel .r86RouteSummary strong{font-weight:650;color:var(--r86-ink)}
+:scope .r86Panel .r86Good{color:var(--r86-good);white-space:nowrap;font-size:10px}
+:scope .r86Panel .r86Help{margin:6px 0 0;color:var(--r86-muted);font-size:11px;line-height:1.5}
+:scope .r86Panel .r86Runtime{position:sticky;top:0;z-index:2;padding-top:9px;padding-bottom:9px;background:var(--r86-surface)}
+:scope .r86Panel .r86StatusCard{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;background:var(--r86-soft);border-radius:9px}
+:scope .r86Panel .r86StatusCard .statusCompact{flex:1 1 auto;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:transparent}
+:scope .r86Panel .r86StatusCard .statusTop{margin:0}
+:scope .r86Panel .r86StatusCard .statusTop strong{font-size:12px;line-height:1.4}
+:scope .r86Panel .r86StatusCard .r86StatusDetails{margin:4px 0 0;color:var(--r86-muted);font-size:10px}
+:scope .r86Panel .r86StatusDetails summary{cursor:pointer;font-size:10px}
+:scope .r86Panel .r86StatusDetails small{display:block;margin:4px 0 0;overflow-wrap:anywhere;font-size:10px}
+:scope .r86Panel .r86StatusCard .notice{margin:6px 0 0;padding:7px;font-size:11px}
+:scope .r86Panel .r86Toggle{display:inline-flex;align-items:center;justify-content:center;align-self:center;gap:5px;flex:0 0 96px;width:96px;min-width:96px;min-height:42px;padding:6px;border:1px solid var(--r86-line);border-radius:8px;background:var(--r86-surface);color:var(--r86-accent);font-size:12px;font-weight:720;white-space:normal;text-align:center}
+:scope .r86Panel .r86Toggle span{min-width:0;white-space:normal;overflow-wrap:anywhere}
+:scope .r86Panel .r86Toggle.isPaused:not(:disabled){border-color:var(--r86-accent);background:var(--r86-accent);color:var(--r86-on-accent)}
+:scope .r86Panel .r86Toggle svg{width:16px;height:16px;flex:none}
+/* Keep the canonical touch target when shared status styles are also loaded. */
+:scope .popup.sidepanel.r86Panel .r86Toggle{font-size:12px;flex-basis:96px;width:96px;min-width:96px;min-height:42px}
+:scope .r86Panel .r86ApplyPending{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:40px;margin-top:8px;padding:7px 10px;border:1px solid var(--warn);border-radius:8px;background:var(--warnBg);color:var(--warn);font-size:12px;font-weight:700}
+:scope .r86Panel .r86ApplyPending:hover:not(:disabled){background:var(--r86-soft)}
+:scope .r86Panel .r86Notice{margin:7px 15px;padding:7px 9px;background:var(--r86-soft);border-left:3px solid var(--r86-accent);color:var(--r86-ink);font-size:11px}
+:scope .r86Panel .r86ProxyList{display:grid;gap:6px;max-height:none;overflow:visible;padding:0}
+:scope .r86Panel .r86ProxyList button{display:flex;align-items:center;gap:9px;min-width:0;width:100%;min-height:48px;padding:8px 10px;border:1px solid var(--r86-line);border-radius:9px;background:var(--r86-surface);text-align:left}
+:scope .r86Panel .r86ProxyList button[aria-pressed="true"]{border-color:var(--r86-accent);background:var(--r86-fill)}
+:scope .r86Panel .r86ProxyList button:hover:not(:disabled){border-color:var(--r86-accent)}
+:scope .r86Panel .r86ProxyList .sideProfileBadge{display:grid;place-items:center;flex:none;width:29px;height:29px;padding:0;border:1px solid var(--r86-line);border-radius:6px;background:var(--r86-surface);color:var(--r86-muted);font-size:12px}
+:scope .r86Panel .r86ProxyList .sideProfileInfo{display:grid;flex:1 1 auto;gap:1px;min-width:0}
+:scope .r86Panel .r86ProxyList .sideProfileInfo strong{font-size:12px;font-weight:680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:scope .r86Panel .r86ProxyList .sideProfileInfo small{font-size:10.5px;color:var(--r86-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:scope .r86Panel .r86ProxyList .quickChoice{flex:none;margin-left:auto;font-size:11px;color:var(--r86-accent);white-space:nowrap}
+:scope .r86Panel .r86Empty{padding:11px;border:1px dashed var(--r86-line);border-radius:9px;background:var(--r86-soft)}
+:scope .r86Panel .r86Empty strong{font-size:12px}
+:scope .r86Panel .r86Empty .r86Help{margin-top:4px}
+:scope .r86Panel .r86SiteDomain{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+:scope .r86Panel .r86SiteRoute{margin:3px 0 0;color:var(--r86-muted);font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+:scope .r86Panel .r86SiteRoute strong{color:var(--r86-ink);font-weight:650}
+:scope .r86Panel .r86Actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:9px}
+:scope .r86Panel .r86Actions button{min-height:31px;padding:5px 9px;border:1px solid var(--r86-line);border-radius:7px;background:var(--r86-surface);font-size:11px;font-weight:600}
+:scope .r86Panel .r86Actions button.primary{background:var(--r86-accent);border-color:var(--r86-accent);color:var(--r86-on-accent)}
+/* The canonical prototype's current-site actions are two equal, stable touch targets. */
+:scope .r86Panel [data-r86-section="site"] > .r86Actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+:scope .r86Panel [data-r86-section="site"] > .r86Actions button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:40px;padding:7px 5px}
+:scope .r86Panel .r86Editor{display:grid;gap:9px;margin:11px 0 0;padding:10px;border:1px solid var(--r86-line);border-radius:9px;background:var(--r86-soft)}
+:scope .r86Panel .r86Editor label{display:block;margin:0 0 4px;font-size:11px;font-weight:650}
+:scope .r86Panel .r86Editor input,:scope .r86Panel .r86Editor select{width:100%;min-width:0;min-height:34px;padding:6px 8px;font-size:12px;background:var(--r86-surface);color:var(--r86-ink);border:1px solid var(--r86-line);border-radius:7px}
+:scope .r86Panel .r86EditorRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+:scope .r86Panel .r86EditorRow>div{min-width:0}
+:scope .r86Panel .r86Editor>button{min-height:34px}
+:scope .r86Panel .r86Legal{margin:0;padding:8px 15px;background:var(--r86-soft);color:var(--r86-muted);font-size:10px;line-height:1.5}
+:scope .r86Panel .r86Bottom{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;flex:none;padding:9px 15px 10px;border-top:1px solid var(--r86-line);background:var(--r86-surface)}
+:scope .r86Panel .r86Bottom button{min-width:0;min-height:42px;padding:7px;border:1px solid var(--r86-line);border-radius:8px;background:var(--r86-soft);color:var(--r86-ink);font-size:12px;font-weight:650}
+:scope .r86Panel .r86Bottom button:hover:not(:disabled){background:var(--r86-fill);border-color:var(--r86-accent)}
+:scope .r86Panel :where(button,input,select,summary):focus-visible{outline:2px solid var(--r86-accent);outline-offset:2px}
+@media(max-width:410px){
+ :scope .r86Panel .r86Header,:scope .r86Panel .r86Section,:scope .r86Panel .r86Legal,:scope .r86Panel .r86Bottom,:scope .r86Panel .r86CollectorMount .r93CollectorLink{padding-left:11px;padding-right:11px}
+}
+@media(max-width:400px){
+ :scope .popup.sidepanel.r86Panel .r86Toggle{font-size:11px;flex-basis:94px;width:94px;min-width:94px}
+}
+@media(max-width:355px){
+ :scope .r86Panel .r86Header{gap:6px}
+ :scope .r86Panel .r86Brand small{display:none}
+ :scope .r86Panel .r86EditorRow{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){:scope .r86Panel *{scroll-behavior:auto;transition:none!important}}
+
+/* R10.1: the status card owns first-run Add; keep only alternate setup choices below. */
+:scope .r86Panel .r86Empty.r91Start { border:0; padding:0; background:transparent; border-radius:0; }
+:scope .r86Panel .r91StartActions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0; }
+:scope .r86Panel .r91StartActions button { min-width:0; white-space:normal; border-radius:10px; text-align:center; }
+:scope .r86Panel .r91StartActions .r91StartPrimary { grid-column:1/-1; display:flex; justify-content:flex-start;
+  align-items:center; gap:12px; min-height:76px; padding:13px; border-radius:10px;
+  background:var(--r86-accent); color:var(--r86-on-accent); text-align:left; }
+:scope .r86Panel .r91StartIcon { display:grid; place-items:center; width:36px; height:36px; border:1px solid currentColor; border-radius:9px; flex:none; }
+:scope .r86Panel .r91StartIcon svg { width:22px; height:22px; }
+:scope .r86Panel .r91StartCopy { display:grid; gap:3px; flex:1; min-width:0; }
+:scope .r86Panel .r91StartCopy strong { font-size:15px; font-weight:730; line-height:1.3; }
+:scope .r86Panel .r91StartCopy small { color:inherit; font-size:11px; }
+:scope .r86Panel .r91StartPrimary > span:last-child { font-size:21px; line-height:1; }
+:scope .r86Panel .r91StartActions .r91StartSecondary { display:flex; flex-direction:column; justify-content:center;
+  align-items:center; gap:5px; min-height:82px; padding:10px 8px; background:var(--r86-soft); }
+:scope .r86Panel .r91StartSecondary svg { width:20px; height:20px; color:var(--r86-accent); }
+:scope .r86Panel .r91StartSecondary strong { font-size:12px; line-height:1.35; }
+:scope .r86Panel .r91StartSecondary small { font-size:10px; color:var(--r86-muted); }
+
+/* R9.2: clear affordances must not overlap narrow Side Panel text. */
+:scope .r86Panel .r86Editor .fieldWithClear > input { padding-right:35px; }
+
+/* Compact add view: the same surface and spacing as the persistent Side Panel. */
+:scope .r86Panel .sideAddHeader { gap:10px; padding:10px 15px; }
+:scope .r86Panel .sideAddHeader h1 { margin:0; font-size:15px; font-weight:720; line-height:1.4; }
+:scope .r86Panel .sideAddHeader .quickBack { flex:none; min-height:32px; color:var(--r86-muted); }
+:scope .r86Panel .quickSetupBody { flex:1 1 auto; min-height:0; padding:16px 15px; overflow-y:auto; overscroll-behavior:contain; }
+:scope .r86Panel .sideAddKind { margin:0; gap:4px; padding:4px; border-radius:9px; background:var(--r86-soft); }
+:scope .r86Panel .sideAddKind button { min-height:36px; padding:7px 6px; border:1px solid transparent;
+  border-radius:7px; background:transparent; color:var(--r86-muted); font-size:12px; }
+:scope .r86Panel .sideAddKind button.active { border-color:var(--r86-line); background:var(--r86-surface); color:var(--r86-accent); }
+:scope .r86Panel .sideAddForm { gap:14px; margin-top:16px; }
+:scope .r86Panel .sideAddForm label { margin-bottom:5px; font-size:12px; font-weight:650; }
+:scope .r86Panel .sideAddForm input,:scope .r86Panel .sideAddForm select { min-height:40px; font-size:13px; }
+:scope .r86Panel .sideAddForm input:disabled,:scope .r86Panel .sideAddForm select:disabled { opacity:.6; cursor:wait; }
+:scope .r86Panel .sideAddTwo { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+:scope .r86Panel .sideAddFieldHint { display:block; margin-top:5px; font-size:11px; }
+:scope .r86Panel .sideAddFixedHost { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;
+  font-size:12px; color:var(--r86-muted); }
+:scope .r86Panel .sideAddFixedHost strong { font-size:12px; font-weight:550; color:var(--r86-ink); }
+:scope .r86Panel .sideAddForm > .hint { font-size:12px; }
+:scope .r86Panel .sideAddOptional { min-width:0; border-top:1px solid var(--r86-line); padding-top:8px; }
+:scope .r86Panel .sideAddOptional summary { min-height:32px; padding:6px 0; color:var(--r86-muted); font-size:12px; cursor:pointer; }
+:scope .r86Panel .sideAddOptionalValue { float:right; max-width:50%; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; color:var(--r86-ink); }
+:scope .r86Panel .sideAddOptionalBody { margin-top:7px; }
+:scope .r86Panel .sideAddVisuallyHidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+:scope .r86Panel .sideAddActions { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+:scope .r86Panel .sideAddActions button { min-width:0; min-height:40px; padding:8px 6px; font-size:12px; }
+:scope .r86Panel .sideAddForm > .sideAddSaveHint { font-size:11px; }
+:scope .r86Panel .sideAddHelp { min-width:0; color:var(--r86-muted); font-size:12px; }
+:scope .r86Panel .sideAddHelp summary { min-height:28px; padding:4px 0; cursor:pointer; }
+:scope .r86Panel .sideAddHelp p { margin-top:7px; font-size:11px; overflow-wrap:anywhere; }
+:scope .r86Panel .sideAddHelp .textAction { display:block; margin-top:5px; text-align:left; font-size:11px; }
+
+/* Browser zoom can reduce a 320px panel to 160 CSS pixels. Keep whole words
+ * and controls usable; the normal 320–500px panel retains its compact layout. */
+@media (max-width:280px) {
+  :scope .r86Panel .r86Header .brandSymbol { display:none; }
+  :scope .r86Panel .r86Brand strong { white-space:nowrap; font-size:13px; }
+  :scope .popup.sidepanel.r86Panel .r86Modes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :scope .r86Panel .r86StatusCard { flex-direction:column; align-items:stretch; }
+  :scope .popup.sidepanel.r86Panel .r86Toggle { flex:none; align-self:stretch; width:100%; min-width:0; }
+  :scope .r86Panel .r86Bottom,:scope .r86Panel .sideAddTwo,:scope .r86Panel .sideAddActions,:scope .r86Panel [data-r86-section="site"] > .r86Actions { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:280px), (max-height:480px) {
+  :scope .r86Panel .r86Runtime { position:static; }
+}
+
+}

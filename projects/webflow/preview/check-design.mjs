@@ -1,70 +1,48 @@
-// Guard against the original failure: a preview that drifts from its sources.
-// This verifies frozen bytes and scope; browser interaction evidence is separate.
-import {readFile,mkdir,writeFile} from 'node:fs/promises';
+// Verify current-worktree parity and the offline boundary; browser evidence is separate.
+import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {load} from 'cheerio';
 import {parse} from 'acorn';
-const project=new URL('../',import.meta.url),root=new URL('../../../',import.meta.url);
+import {createWebflowPreview} from './build-design.mjs';
+import {pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
+const root=new URL('../../../',import.meta.url);
 const sha=value=>createHash('sha256').update(value).digest('hex');
-const html=await readFile(new URL('preview/webflow-v0.3-preview.html',project),'utf8');
-const manifest=JSON.parse(await readFile(new URL('preview/webflow-v0.3-preview.manifest.json',project)));
-const $=load(html),documents=JSON.parse($('#webflow-preview-sources').text());
-assert.equal(sha(html),manifest.htmlSha256,'delivered HTML must match manifest');
-const changedSources=[];
+export async function verifyWebflowPreview({html,manifest}){
+assert.equal(manifest.sourceMode,'CURRENT_WORKTREE');
+assert.equal(sha(html),manifest.htmlSha256,'delivered HTML differs');
 for(const [path,expected]of Object.entries(manifest.inputs))
- if(sha(await readFile(new URL(path,root)))!==expected)changedSources.push(path);
-for(const [path,revision]of Object.entries(manifest.sourceRevisions??{}))
- assert.equal(sha(execFileSync('git',['show',revision+':'+path],{cwd:root})),manifest.inputs[path],'recorded Git source differs: '+path);
-if(!process.argv.includes('--frozen'))assert.deepEqual(changedSources,[],'current source differs; regenerate intentionally, or verify the disclosed frozen snapshot with --frozen');
-for(const [route,expected]of Object.entries(manifest.applicationSources)){
- const bytes=execFileSync('git',['show',manifest.appRevision+':projects/webflow/src/ui/'+route.split('/').at(-1)],{cwd:root,encoding:'utf8'});
- assert.equal(sha(bytes),expected,'historical installed application source: '+route);
+ assert.equal(sha(await readFile(new URL(path,root))),expected,'current input differs: '+path+'; regenerate preview');
+assert.equal(sha(JSON.stringify(manifest.inputs)),manifest.candidateHash);
+const rebuilt=await createWebflowPreview(),{fixture}=rebuilt;
+assert.deepEqual(manifest.inputs,rebuilt.manifest.inputs,'manifest must contain the complete current input closure');
+assert.equal(manifest.candidateHash,rebuilt.manifest.candidateHash);
+assert.equal(html,rebuilt.html,'delivered HTML must equal the current generated source bytes, including wrapper and behavior');
+assert.equal(sha(fixture.js),manifest.fixtureJS,'compiled current trusted UI differs');
+assert.equal(sha(fixture.css),manifest.fixtureCSS,'current shared styles differ');
+assert.equal(sha(fixture.applicationHtml),manifest.applicationDocumentSHA,'current sandbox application differs');
+for(const [path,bytes]of fixture.appSources)assert.equal(sha(bytes),manifest.applicationSources[path]);
+const $=load(html),documents=JSON.parse($('#webflow-preview-sources').text());
+assert.deepEqual(Object.keys(documents),['candidate'],'only the current candidate is shown');
+const doc=documents.candidate,d=load(doc),code=d('script[type=module]').text();
+assert.equal(sha(doc),manifest.documents.candidate);
+assert.equal(sha(code),manifest.embeddedCandidateJS);
+parse(code,{ecmaVersion:'latest',sourceType:'module'});
+parse($('script').last().text(),{ecmaVersion:'latest'});
+assert.equal(d('#opendesk-react-app').length,1);
+assert.match(d('meta[http-equiv=Content-Security-Policy]').attr('content'),/connect-src 'none'/);
+assert.match(code,/allow-scripts/);assert.doesNotMatch(code,/allow-same-origin/);
+assert.equal($('iframe').length,1);assert.equal($('#candidate').attr('sandbox'),'allow-scripts');
+assert.equal($('.preview-device #lab-task').length,0,'diagnostics must remain outside the device');
+assert.doesNotMatch(html,/<script[^>]+src=|<link[^>]+href=/,'offline HTML must contain all runtime assets');
+return {level:'CURRENT_SOURCE_PARITY_AND_OFFLINE_SCOPE',candidateHash:manifest.candidateHash,
+ htmlSha256:manifest.htmlSha256,sourceInputs:Object.keys(manifest.inputs).length,sourceState:'MATCHES_CURRENT_WORKTREE',
+ checks:['current source and dependency hashes','rebuilt trusted components and sandbox bytes','one source implementation without presentation patches','opaque sandbox; no network; external diagnostics'],
+ visualInteraction:'SEPARATE_BROWSER_EVIDENCE',nativeChrome:'NOT_TESTED',production:'NOT_TESTED'};
 }
-const css=await readFile(new URL('preview/runtime-layout.css',project),'utf8');
-const withoutRuntime=doc=>{const d=load(doc);d('style').remove();d('script[type=module]').remove();return d.html();};
-assert.equal(withoutRuntime(documents.candidate),withoutRuntime(documents.baseline),'host markup must remain identical');
-const baselineStyle=load(documents.baseline)('style').text(),candidateStyle=load(documents.candidate)('style').text();
-const comparison=manifest.comparisonBaseline;
-const baselineCSS=execFileSync('git',['show',comparison.revision+':projects/webflow/preview/runtime-layout.css'],{cwd:root,encoding:'utf8'});
-for(const [path,expected]of Object.entries(comparison.inputs))
- assert.equal(sha(execFileSync('git',['show',comparison.revision+':'+path],{cwd:root})),expected,'previous delivered layout differs: '+path);
-assert.equal(sha(baselineCSS),comparison.css);
-assert.equal(candidateStyle.replace(css,''),baselineStyle.replace(baselineCSS,''),'only declared runtime CSS may differ');
-const patch=JSON.parse(await readFile(new URL('preview/runtime-presentation.json',project)));
-assert.deepEqual(patch,manifest.presentationPatch);
-assert.equal(patch.file,'projects/webflow/trusted/AutoSettings.tsx');
-for(const row of patch.replacements){
- assert.ok(!/webflowAuto\.|chrome\.|fetch\(|request\(|setSnapshot|setDraft|approveAutoTask|setAutoEnabled/.test(row.to),'presentation patch must not change authority or business state');
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
+const html=await readFile(new URL('webflow-v0.3-preview.html',import.meta.url),'utf8');
+const manifest=JSON.parse(await readFile(new URL('webflow-v0.3-preview.manifest.json',import.meta.url)));
+console.log(JSON.stringify(await verifyWebflowPreview({html,manifest}),null,2));
 }
-const noComments=css.replace(/\/\*[\s\S]*?\*\//g,'');
-for(const rule of noComments.trim().split('}').filter(value=>value.trim())){
- const selector=rule.split('{')[0].trim();
- assert.ok(selector.startsWith('#webflow-runtime-panel '),'layout escaped runtime panel');
- assert.doesNotMatch(rule,/--(?:bg|ink|brand)|color:|font:|display:\s*none|visibility:|opacity:/,'layout must not replace the palette or hide features');
-}
-for(const [name,doc]of Object.entries(documents)){
- assert.equal(sha(doc),manifest.documents[name]);
- const d=load(doc);
- assert.equal(d('#opendesk-react-app').length,1);
- const code=d('script[type=module]').text();
- parse(code,{ecmaVersion:'latest',sourceType:'module'});
- assert.equal(sha(code),name==='candidate'?manifest.embeddedCandidateJS:manifest.embeddedFixtureJS,'compiled UI must match its disclosed presentation source');
- assert.match(d('meta[http-equiv=Content-Security-Policy]').attr('content'),/connect-src 'none'/);
- assert.match(code,/allow-scripts/);
- assert.doesNotMatch(code,/allow-same-origin/);
-}
-assert.equal($('iframe').length,2);
-$('iframe').each((_,node)=>assert.equal($(node).attr('sandbox'),'allow-scripts'));
-assert.doesNotMatch(html,/<script[^>]+src=|<link[^>]+href=/,'single file must not fetch runtime assets');
-const out=new URL('artifacts/sidebar-tools/webflow/source-preview-20261103/',root);
-await mkdir(out,{recursive:true});
-const result={date:'2026-11-03',htmlSha256:manifest.htmlSha256,level:'STATIC_SOURCE_AND_SCOPE',
- sourceInputs:Object.keys(manifest.inputs).length,applicationRevision:manifest.appRevision,
- sourceState:changedSources.length?'FROZEN_SNAPSHOT_CURRENT_SOURCE_DIFFERS':'MATCHES_CURRENT_INPUTS',changedSources,
- checks:['HTML and pinned source hashes','same application and host markup in both panes',
- 'candidate only runtime CSS and declared presentation patch','real JavaScript parses','opaque sandbox and no network or external runtime'],
- nativeChrome:'NOT_TESTED',visualInteraction:'SEPARATE_BROWSER_EVIDENCE'};
-await writeFile(new URL('source-checks.json',out),JSON.stringify(result,null,2)+'\n');
-console.log(JSON.stringify(result,null,2));

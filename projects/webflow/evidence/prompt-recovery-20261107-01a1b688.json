@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1b688-c034-73d0-9913-cc6960d6632b",
+  "observedAt": "2026-11-07T15:16:04.255005+00:00",
+  "status": "SOURCE_FIX_VERIFIED_ORIGINAL_ROUND2_BLOCKED",
+  "latestVisibleRetest": {
+    "evidence": "visible-retest-20261107-01a1b64a.json",
+    "baiduPassed": 2,
+    "fixedFilesPassed": 1,
+    "fixedFilesBlocked": 1,
+    "allFourPassed": false,
+    "notRerunInThisThread": true
+  },
+  "originalRound2": {
+    "conversationUrl": "https://chatgpt.com/c/6aef3825-7274-83ec-b7a8-ea994e57a654",
+    "requestId": "da70fed7-d56b-467c-8648-7f081f8f7b9b",
+    "bindingId": "75799e57-d20d-4518-b7bb-e3bd0ce9964b",
+    "workspaceId": "workspace-3082cf75-86dc-4f40-b251-f67fe77b48c1",
+    "lastObservedDelivery": "unknown (previous owner evidence; not read directly in this thread)",
+    "currentBrowserObservation": "CUA native Chrome AX and read-only tab inventory: original round2 URL and trusted file-review tab absent. Existing first-round receipt chat and Baidu chat remain listed. Current active tab shows a different old chat with a load error.",
+    "recoveryDecision": "Blocked: original exact source document unavailable; no durable NOT_DISPATCHED proof in the historical fill entry. Do not infer non-insertion from an empty composer, rebind, clear the ledger or replay through a new identity.",
+    "nativeReadInThisThread": false,
+    "nativeWriteInThisThread": false,
+    "promptSentInThisThread": false,
+    "oldLedgerChangedInThisThread": false,
+    "originalChatNavigatedOrReloadedInThisThread": false
+  },
+  "diagnosis": {
+    "pageFunction": "src/native-agent/workspace-chatgpt.js:fillChatGPTComposerOnPage",
+    "evidence": "The exact no-unique-composer branch returns E_CHAT_COMPOSER / NOT_DISPATCHED before setting local.fills or calling execCommand. Shared helper verifies exact frame/document before forwarding that error.",
+    "controllerDefect": "Previously every attempt reserved unknown before calling the helper, then failed to preserve the definite failure proof. UI also retained its attempted-fill guard on every response.",
+    "safeStopDistinction": "The runtime error code alone is insufficient; only an explicit NOT_DISPATCHED acknowledgement from the fixed trusted helper qualifies. Unclassified errors, response loss, post-insertion mismatches, result fills and historical unknown entries remain fenced."
+  },
+  "fix": {
+    "scope": "Fixed trusted file prompt delivery only; no shared Host, Sender validation, Native grant or general filler changes.",
+    "behavior": [
+      "Persist a failure proof before restoring the same prompt packet to ready.",
+      "Require matching fill ID, source document/URL, workspace/path and failure proof for explicit retry.",
+      "Persist attempted on the packet; missing whole ledger entry cannot become a first fill, including after restart.",
+      "Prevent prepare from replacing an attempted unfinished prompt with a new identity.",
+      "UI re-enables only on an identity-matched successful ready snapshot; transport/errors retain local guard.",
+      "UI shows promptDelivery before a result exists.",
+      "Corrected existing AutoSettings and sandbox usage text: sidebar can close; ordinary chat requires one capability message, project instructions optional."
+    ],
+    "review": "Independent code review found a missing-entry case; fixed, regression added, reviewer explicitly closed the MEDIUM finding with no new findings in that scope."
+  },
+  "verification": [
+    {
+      "command": "node --test projects/webflow/tests/chatgpt-files.test.mjs projects/webflow/tests/chatgpt-files-ui.test.mjs",
+      "passed": 95,
+      "failed": 0,
+      "level": "simulated sender/storage/Native and trusted UI behavior; not Chrome/Native acceptance"
+    },
+    {
+      "command": "node --test projects/webflow/tests/chatgpt-file-lifecycle.test.mjs",
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='composer|editing failure|rolled-back|fill' tests/environment/workspace-chat-request.test.mjs",
+      "passed": 18,
+      "failed": 0
+    },
+    {
+      "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs",
+      "passed": 49,
+      "failed": 0,
+      "level": "real TSX compiled in memory with simulated DOM; product output untouched"
+    },
+    {
+      "command": "node --test tests/environment/chatgpt-files-provenance.test.mjs tests/environment/webflow-fixed-source.test.mjs",
+      "passed": 5,
+      "failed": 2,
+      "failure": "Both positive cases blocked by existing parallel projects/ai-proxy/src/App.jsx source-pin drift; negative source mutation/path/symlink cases pass. Did not re-pin AI Proxy or weaken the gate."
+    },
+    {
+      "check": "Exact current controller/UI/AutoSettings blob hashes equal enumerated source pins; file pin fixtures also match.",
+      "status": "PASS"
+    },
+    {
+      "check": "node --check changed JavaScript and bundle-provenance; git diff --check targeted files",
+      "status": "PASS"
+    }
+  ],
+  "environment": {
+    "mode": "existing continuous-development output; not production",
+    "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "browserPidObserved": 57348,
+    "uiExtensionIdObserved": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "actualLoadedPathRecheckedInThisThread": false,
+    "watcherPidObserved": 26234,
+    "listeningPortsObserved": [
+      43119,
+      43120
+    ],
+    "serveClientConnectionRecheckedInThisThread": false,
+    "diskRevisionObserved": "98530fe401087df05b94fad98402909d0bfea657046977881da1fb6136e40c4c",
+    "sourceMaps": {
+      "native-agent/transport.js.map": {
+        "source": "projects/webflow/trusted/chatgpt-files-controller.js",
+        "matchesCurrentSource": false
+      },
+      "native-agent/settings.js.map": {
+        "source": "projects/webflow/trusted/chatgpt-files-ui.js",
+        "matchesCurrentSource": false
+      },
+      "agents/chatgpt-fixed-bridge.js.map": {
+        "source": "projects/webflow/trusted/chatgpt-files-ui.js",
+        "matchesCurrentSource": false
+      },
+      "ui/tool-shell.js.map": {
+        "source": "projects/webflow/trusted/AutoSettings.tsx",
+        "matchesCurrentSource": false
+      }
+    },
+    "newFixInDiskProduct": false,
+    "newFixLoadedInChrome": "NOT_TESTED",
+    "newWriterStarted": false,
+    "buildStarted": false,
+    "sharedOutputManuallyWritten": false
+  },
+  "fixtureFinalIndependentRead": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt",
+    "bytes": 63,
+    "text": "OpenDesk local file test\nstatus=visible-retest-20261107-round1\n",
+    "sha256": "fd06e9aea785d77a3f29400571e76cf855520cad1a6c43262488bf530534f137",
+    "unchanged": true
+  },
+  "sourceBlobs": {
+    "projects/webflow/trusted/chatgpt-files-controller.js": "007ef46dc1979ee3deb56cbd802d527ddd7a619a",
+    "projects/webflow/trusted/chatgpt-files-ui.js": "7a661e87756992620944a565ec4b6f555031f8a4",
+    "projects/webflow/trusted/AutoSettings.tsx": "97356fd691436deba7fd1ed59ccc234064fada88",
+    "projects/webflow/src/ui/main.js": "7b37ff128ee32552ab1439920cb0d1411e455262",
+    "projects/webflow/tests/chatgpt-files.test.mjs": "8afc12afff6dea1bffa803acf71441fdc5566eb9",
+    "projects/webflow/tests/chatgpt-files-ui.test.mjs": "6aed3dae65eb66f59098e484dcd86ac4d6873b1a"
+  },
+  "resourceCleanup": {
+    "uiLeaseAcquiredAndReleased": true,
+    "browserTabsCreatedOrClosed": false,
+    "firstRoundReceiptChatNotTouched": true,
+    "watcherRetained": true
+  },
+  "repositoryActions": {
+    "branch": "main",
+    "committed": false,
+    "pushed": false,
+    "branchOrWorktreeCreated": false,
+    "formalToolPackageChanged": false,
+    "otherOwnersChangesPreserved": true
+  },
+  "deferred": [
+    "Original round2 Native read/edit/save/final draft still incomplete.",
+    "Natural-language autonomous project discovery and MCP.",
+    "Chrome application of this source fix, production/full CI/stress/version matrix/independent product score.",
+    "Sandbox help source text not promoted into a new formal installed package in this thread."
+  ]
+}

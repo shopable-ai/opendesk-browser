@@ -9,8 +9,8 @@ export const OFFICIAL_PAGE_SOURCE_PATH='official-pages/sources.json';
 export const OFFICIAL_PAGE_CATALOG_PATH='official-pages/catalog.json';
 const scopes=Object.freeze({
   'opendesk.ai-scroll-navigation':Object.freeze({project:'projects/ai-scroll-navigation',
-    sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'reviewed',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
-  'opendesk.ai-reply-mindmap':Object.freeze({project:'projects/chatgpt-mindmap',
+    sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'preinstalled',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
+  'opendesk.ai-reply-mindmap':Object.freeze({project:'projects/ai-reply-mindmap',
     sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'}),
   'opendesk.ai-send-queue':Object.freeze({project:'examples/sidebar-tools/ai-send-queue',
     sites:['https://chatgpt.com/*'],policy:'reviewed',packageFile:'ai-send-queue.opendesk-page.json'})

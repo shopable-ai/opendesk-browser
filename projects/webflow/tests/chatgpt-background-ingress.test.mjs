@@ -40,7 +40,8 @@ function fixture(){
     all:async name=>structuredClone(name==='runs'?runs:results)})},authority:{captureInstalledTaskFence:()=>{
       const ticket=state.taskEpoch;
       return ()=>{if(ticket!==state.taskEpoch)throw Object.assign(Error('installation changed'),{code:'E_REVISION'});};
-    },snapshotControllerRun:async({runId})=>{
+    },resolveInstalledTask:async()=>({taskId:scope.taskId,...scope.installation,manifest:{deadlineMs:120000}}),
+    snapshotControllerRun:async({runId})=>{
       await state.onSnapshot?.();
       return {run:structuredClone(runs.find(row=>row.runId===runId)),results:state.resultDenied?[]:structuredClone(results),
         resultDeliveryDenied:state.resultDenied?[runId]:[]};}}};

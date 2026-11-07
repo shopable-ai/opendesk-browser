@@ -96,9 +96,13 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const row=await ledger.claimWebTask({documentId:actual.documentId,verify:verifySite});
     if(!row)return null;
     const pin=row.scope.installation;
+    const installed=await broker.authority.resolveInstalledTask({taskId:row.scope.taskId},actual);
+    if(installed.taskId!==row.scope.taskId||Object.keys(pin).some(key=>installed[key]!==pin[key]))
+      throw fail('E_REVISION','任务安装在后台领取期间改变，禁止提交原请求');
     return {requestId:row.requestId,source:{kind:'saved',scriptId:pin.scriptId,revision:pin.revision,contentHash:pin.contentHash},
       params:row.scope.args,target:{mode:'owned',url:row.scope.targetUrl},
-      expectedTaskGeneration:pin.generation,expectedTaskInstallationId:pin.installationId,deadlineAt:Date.now()+30000};
+      expectedTaskGeneration:pin.generation,expectedTaskInstallationId:pin.installationId,
+      deadlineAt:Date.now()+(installed.manifest.deadlineMs??30000)};
   }
   async function observation(requestId){
     const row=await ledger.inspectWebTask(requestId);

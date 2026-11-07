@@ -29,9 +29,9 @@ const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-bridge-page.js':'b0d87d65e2f890974d3824723432777563c74f4b',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'27d7e6f577f161a5cb5b86f195c3c6775d4b84ee',
+  'projects/webflow/trusted/AutoSettings.tsx':'97356fd691436deba7fd1ed59ccc234064fada88',
   // Reviewed read-only background history, UNKNOWN guidance and distinct AI acknowledgement.
-  'projects/webflow/trusted/CurrentTask.tsx':'4a0ae8c66fbba416f8b8ca23e87bddb8fb4bff6e',
+  'projects/webflow/trusted/CurrentTask.tsx':'263cb461d970571b43aa5cbc0f265096892e327a',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){
@@ -69,12 +69,12 @@ function reviewedCompiledChatGPTImages(target,path,root){
 // Each source has only its actual static consumers; installed packages and
 // arbitrary project files never inherit this compiled-source admission.
 const compiledChatGPTFilesInputs=Object.freeze({
-  'projects/webflow/trusted/chatgpt-files-service.js':'3980119c5b8bb67c7d913f27ef3ab59a4e1f5652',
-  'projects/webflow/trusted/chatgpt-files-controller.js':'5691dbe42f066dbd1333a853a10ca742c7a780dc',
+  'projects/webflow/trusted/chatgpt-files-service.js':'9b1520dd9d1a19b15bdc88250f486a5f6aad9cce',
+  'projects/webflow/trusted/chatgpt-files-controller.js':'007ef46dc1979ee3deb56cbd802d527ddd7a619a',
   'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
-  'projects/webflow/trusted/chatgpt-file-intent-page.js':'e75e6efab8d2fd824036a933dc018dc824117023',
+  'projects/webflow/trusted/chatgpt-file-intent-page.js':'96f8ea7753ee55fde54f134c5f8919b8f6555b8e',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'301005927d9160e25698c3fa63ddf2ca9b3fba53',
-  'projects/webflow/trusted/chatgpt-files-ui.js':'e3e8f1c09cbd22e226c0ab618bd12a5fc5d674de',
+  'projects/webflow/trusted/chatgpt-files-ui.js':'7a661e87756992620944a565ec4b6f555031f8a4',
   'projects/webflow/trusted/chatgpt-file-intent-gate.js':'09e7e29cc827fdd7baa549092f3a6b08031ea10d',
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
   'projects/webflow/trusted/chatgpt-files.html':'0968cdebc7256f7ffccc49babec89f37810b548d',

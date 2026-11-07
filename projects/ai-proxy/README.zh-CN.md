@@ -1,5 +1,7 @@
 # AI Proxy · 真实 OpenDesk 扩展代码
 
+**2026-11-08 当前只交付图标入口预览。** [打开离线 HTML](preview/preview.html) / [本机查看](http://127.0.0.1:43263/projects/ai-proxy/preview/preview.html)。管理全部、管理规则改为现有对象图标＋↗，34px 命中区，悬停/聚焦显示操作和目标说明；主要操作、四条代理及原排版保留。独立设计评审六维均 ≥95（最低 **95**），实现评审 **97**，只覆盖本轮两个预览入口。三语提示、Enter/空格、仅悬停时 Esc 关闭且保留原焦点、关闭管理页后侧栏留驻已验证；同候选 APPLY/STOP/SAVE 均为 0。查看[设计说明与评分](DESIGN.md)、[常态截图](../../artifacts/ai-proxy/icon-actions-20261108/final-normal-viewport.png)、[独立评审记录](../../artifacts/ai-proxy/icon-actions-20261108/expert-review.json)。仅修改预览、原预览生成器和说明；74 个受保护业务/正式包/冻结基线文件未变，之前未提交业务改动保留。预览采用冻结的原侧栏和既有管理组件，不是当前业务工作树完全同源或已安装证明。真实 Host、代理、正式包及原生验收仍为 NOT_TESTED；用户确认前不进入业务接线。11 月 7 日 PC 七区、保存/草稿链为上轮观察，本轮未重跑；下文历史记录不覆盖当前阶段。
+
 **2026-10-31 官方可信 React 核心完成（0.3.8）：** 官方安装使用工作台唯一 React Root 和 Shared UI；录入弹窗、长表单滚动、焦点与草稿保护已在保留的 CFT155 验证，并附本轮增量对照。查看[本轮审阅入口](evidence/trusted-react-20261031/README.md)，其中分开记录组件验证、包验证及实际 Browser 运行证据；下文旧阶段记录不替代本轮结果。
 
 **最新核心运行结果见[第 18 节](#18-035-跟随系统运行中切换与重开状态2026-10-31)：0.3.5 已在保留的可见 CFT155 原位更新；跟随系统、指定本地代理→直连切换、重开回读及最终释放已验证。** 第17节独立UI评分仍只覆盖它的冻结预览；本轮没有重新评分。
@@ -137,7 +139,7 @@ opendesk browser dev .
 - 本项目保留：[preview/legacy-ai-proxy.html](preview/legacy-ai-proxy.html)。保留原始字节，其 SHA-256 为 `dadd797a809daca0254013c36f8ffb09f7ef5dcb4638b0d7d604d9337df2f027`，385,487 bytes。
 - 这是旧独立扩展的交互模拟，包含 Side Panel 与 Options 场景；不是 OpenDesk 壳，也不证明它与旧工作树全部最新 React 页面一致。原 CSP 禁止网络连接；公开跳转链接仍属于历史交互，不作为本阶段真实访问授权。
 - 当前 0.2.0 预览入口：[preview/index.html](preview/index.html)，应用入口为 `src/App.jsx`，复用 `src/QuickPanel.tsx` 与 `src/Settings.tsx` 的界面结构。诊断与统计为模拟，无真实网络、浏览器代理变更或浏览行为采集；不能替代真实可信挂载证据。legacy 副本继续保留。
-- 当前同源预览命令（仓库根目录）：`node projects/ai-proxy/scripts/stage-preview.mjs --serve`，地址 `http://127.0.0.1:43263/ai-proxy-preview`。先核对是否已有该服务，不能重复启动。省略 `--serve` 生成 `.opendesk-preview/` 内离线快照；该入口直接编译 UI 源码，不以 Browser 构建、官方安装或正式 JSON 为前置。不依赖预先生成的 `dist/`。原版实际 React/CSS 对照先运行 `node projects/ai-proxy/scripts/reference-preview.mjs`，再打开 [preview/compare.html](preview/compare.html)。原仓库不写入、不安装依赖、不运行其构建。
+- 当前同源预览命令（仓库根目录）：`node projects/ai-proxy/scripts/stage-preview.mjs --serve`，地址 `http://127.0.0.1:43263/ai-proxy-preview`。先核对是否已有该服务，不能重复启动。省略 `--serve` 生成 `.opendesk-preview/` 内离线快照；加 `--out projects/ai-proxy/preview/preview.html` 同步稳定离线入口及来源 manifest/context（可用 `--view settings` 指定初始 PC 面）；该入口直接编译 UI 源码，不以 Browser 构建、官方安装或正式 JSON 为前置。不依赖预先生成的 `dist/`。原版实际 React/CSS 对照先运行 `node projects/ai-proxy/scripts/reference-preview.mjs`，再打开 [preview/compare.html](preview/compare.html)。原仓库不写入、不安装依赖、不运行其构建。
 - 现有公共 preview 生成器按已验证工具白名单工作，不能仅新增本目录就假报支持。若当前入口不足，先用项目自有 preview（可参考其他项目实际入口），必要的公共适配另按 owner 协调；不覆盖正在并行修改的 preview 脚本。
 
 ## 6. 当前完成条件与明确延期

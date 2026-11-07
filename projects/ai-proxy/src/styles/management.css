@@ -1,0 +1,32 @@
+/* Full-page presentation of the same Settings components. Sidebar form and
+ * record styling stays shared; only this surface owns its desktop geometry. */
+@scope (.proxy-management) {
+  :scope .options { max-width:1280px; margin:0 auto; }
+  :scope .options .optionsHead { min-height:64px; padding:12px 24px; justify-content:space-between; }
+  :scope .managementTitle { margin:0; font-size:16px; line-height:1.5; }
+  :scope .options .settingsRefresh { display:inline-flex; align-items:center; gap:8px; min-height:36px; }
+  :scope .options .layout { display:grid; grid-template-columns:196px minmax(0,1fr); align-items:start; }
+  :scope .managementNav { display:grid; gap:4px; position:sticky; top:64px; padding:20px 12px; }
+  :scope .managementNav button { display:flex; align-items:center; gap:10px; position:relative; width:100%; min-height:44px; padding:10px 12px; border:0; background:transparent; color:var(--muted); text-align:left; }
+  :scope .managementNav button[aria-current="page"] { background:var(--accentFill); color:var(--accent); font-weight:650; }
+  :scope .managementNav button[aria-current="page"]::before { content:''; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:3px; background:var(--accent); }
+  :scope .managementNav .optionsNavIcon { flex:none; }
+  :scope .managementNav button span { min-width:0; }
+  :scope .managementNav .managementOptional { margin-top:16px; flex-wrap:wrap; border-top:1px solid var(--line); border-radius:0; }
+  :scope .managementNav small { padding-left:28px; width:100%; font-size:11px; color:var(--muted); }
+  :scope .options .panel.optionsContent { padding:28px 32px 48px; border-left:1px solid var(--line); min-height:calc(100dvh - 64px); gap:24px; }
+  :scope .options .optionsPageHead { flex-direction:row; align-items:flex-start; justify-content:space-between; gap:20px; }
+  :scope .options .panelHeadIntro { flex:1; }
+  :scope .options .optionsPageHead h2 { font-size:23px; }
+  :scope .options .optionsPageHead .panelHeadActions { flex:none; }
+  :scope .options .optionsModeGrid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  :scope .options .profileRecords .proxyRecord { min-height:72px; }
+  :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :scope .options .proxyEditorDialog { width:calc(100% - 48px); max-width:640px; }
+  @media(max-width:720px) {
+    :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }
+    :scope .options .panel.optionsContent { padding:20px 16px; }
+    :scope .options .optionsPageHead { flex-direction:column; }
+    :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:1fr; }
+  }
+}

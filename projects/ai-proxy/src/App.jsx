@@ -25,14 +25,14 @@ function Confirmation({title,text,accept,cancel,onDone,id='proxy-confirm'}) {
   <div className="actions"><Button id={id+'-cancel'} autoFocus onClick={()=>onDone(false)}>{cancel}</Button><Button id={id+'-accept'} variant="primary" onClick={()=>onDone(true)}>{accept}</Button></div>
  </dialog>;
 }
-function Workspace() {
+function Workspace({surface}) {
  const env=getEnvironment(),{t}=useI18n();
  const [route,setRoute]=useState(()=>env.navigation.getRoute()),[dirty,setDirty]=useState(false);
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
- const settings=route.startsWith('#/');
+ const settings=surface==='management'||route.startsWith('#/');
  useEffect(()=>{env.setConfirmHandler(text=>new Promise(resolve=>setConfirmation({text,resolve})));return()=>env.setConfirmHandler(null);},[env]);
  useEffect(()=>{const changed=event=>{busyRef.current=event.detail.busy===true;setBusy(busyRef.current);};env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
  useEffect(()=>{
@@ -60,7 +60,7 @@ function Workspace() {
   env.clearDrafts();markDirty(false);focusAfterDiscard.current=true;setPageEpoch(value=>value+1);
   env.setState({dirty:false,busy:false});
  }
- return <div className="proxy-app" id="proxy-ready" data-ready="true"
+ return <div className={'proxy-app'+(surface==='management'?' proxy-management':'')} id="proxy-ready" data-ready="true" data-surface={surface}
  onClick={event=>submitLocally(event,event.target.closest('button[type="submit"]'))}
  onKeyDown={event=>{
   const input=event.target;
@@ -71,9 +71,9 @@ function Workspace() {
   // Bubble after the field's own controlled update. Capture can restore its old value.
   env.markDraftFrom(event.target);
  }}>
-  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings onClose={()=>env.navigation.navigate('')} navigationBusy={busy}/>:<QuickPanel/>}</div>
+  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy}/>:<QuickPanel/>}</div>
   {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={ok=>{confirmation.resolve(ok);setConfirmation(null);}}/>}
   {pendingRoute!==null&&<Confirmation id="proxy-draft" title={t('apUnsaved')} text={t('apDiscardHelp')} cancel={t('apKeepEditing')} accept={t('apDiscardLeave')} onDone={leaveDraft}/>}
  </div>;
 }
-export default function App(){return <LocaleProvider><Workspace/></LocaleProvider>;}
+export default function App({surface='side-panel'}={}){return <LocaleProvider><Workspace surface={surface}/></LocaleProvider>;}

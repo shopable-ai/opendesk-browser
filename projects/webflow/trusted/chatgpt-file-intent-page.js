@@ -3,9 +3,14 @@ import {createTaskPrompt} from './chatgpt-files-ui.js';
 import {createChatGPTBridgeSite} from '../../../src/native-agent/chatgpt-bridge-site.js';
 import {CHATGPT_FILES_CONFIG_KEY,normalizeChatGPTFilesPreferences} from './chatgpt-files-config.js';
 import {isChatGPTFileTask} from './chatgpt-conversation-route.js';
+import {inspectChatGPTEditsOnPage} from '../../../src/native-agent/workspace-chatgpt.js';
 import {showPageToast} from '../../../src/scripting/user-scripts/page-toast.js';
 
 const PROJECT_PROTOCOL='opendesk.chatgpt.project.v1';
+const isFixedFilePrompt=text=>typeof text==='string'&&/opendesk\.workspace\.(?:request|edit)\.v1/.test(
+  text.replace(/\\u([a-f0-9]{4})/gi,(_escape,unit)=>String.fromCharCode(parseInt(unit,16))));
+const sha256=async text=>Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),
+  byte=>byte.toString(16).padStart(2,'0')).join('');
 
 // First-party ISOLATED UI. Project authority and execution stay in the service;
 // this page only submits trusted intents and never sends the ChatGPT composer.
@@ -66,6 +71,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   let disposed=false,pending=false,projectPending=false,taskActive=false,projectExists=false,taskUrl='',awaitingTask=false,stopRequested=false,stopPending=false;
   let preferences=normalizeChatGPTFilesPreferences(),preferencesReady=false,dismissed=false,lastData=null,preferencesRevision=0;
   let notificationUnavailable=false,taskSequence=0;
+  let awaitingFixed=false,fixedEvent=null;
   const announced=new Set();
   const dismissNotification=()=>{try{notify({id:'chatgpt-files'},'dismiss');}catch{/* Display cleanup never dispatches file operations. */}};
   const active=()=>{
@@ -75,6 +81,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   const update=()=>{
     if(disposed)return;
     if(taskUrl&&taskUrl!==win.location.href){
+      if(awaitingFixed||fixedEvent)retireFixed(true);
       taskActive=false;projectExists=false;awaitingTask=false;stopRequested=false;taskUrl='';
       receipt.textContent='';receipt.hidden=true;status.textContent='';dismissed=false;lastData=null;
       announced.clear();notificationUnavailable=false;dismissNotification();
@@ -139,7 +146,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   async function request(message){
     let reply;
     try{reply=await api.runtime.sendMessage(message);}
-    catch(error){throw Object.assign(error,{outcome:error.outcome||'OUTCOME_UNKNOWN'});}
+    catch(error){throw Object.assign(error,{transport:true,outcome:error.outcome||'OUTCOME_UNKNOWN'});}
     if(reply?.ok!==true)throw Object.assign(new Error(reply?.error?.message||'未收到有效任务回执'),{
       code:reply?.error?.code||'E_PROJECT_TASK',outcome:reply?.error?.outcome||'OUTCOME_UNKNOWN'});
     return reply.data||{};
@@ -182,16 +189,83 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       update();
     }
   }
+  // Fixed events retain the original discovery nodes, never a reconstructed
+  // historic turn. They cannot enter projectRun/conversation or its wake path.
+  const retireFixed=(notifyStop=false)=>{
+    const exists=awaitingFixed||!!fixedEvent;
+    if(fixedEvent)fixedEvent.retired=true;
+    fixedEvent=null;awaitingFixed=false;
+    if(exists){
+      awaitingTask=false;
+      retireObservation();taskActive=false;projectExists=false;
+      if(notifyStop)void request({protocol:PROJECT_PROTOCOL,action:'stop'}).catch(()=>{
+        if(!disposed)say('停止回执未知 · 请在可信文件审阅页核对；不会重发固定事件。',true);
+      });
+    }
+    return exists;
+  };
+  const fixedSnapshot=record=>{
+    if(record.retired||fixedEvent!==record||!preferences.enabled||!validSource(record.url))throw Error('原页面见证已失效');
+    const snapshot=inspectChatGPTEditsOnPage({expectedUrl:record.url,identityOnly:true,requireComplete:true,
+      fileRequest:true,readUserMessage:true,eventText:true,witness:{user:record.user,answer:record.answer}});
+    if(!snapshot?.ok||snapshot.answerComplete!==true||snapshot.taskIntentPresent||
+      !snapshot.readerEpoch||!snapshot.turnKey||!snapshot.answerKey||typeof snapshot.userText!=='string'||typeof snapshot.answerText!=='string')
+      throw Error(snapshot?.error?.message||'无法核对原固定回答见证');
+    if(record.snapshot&&['readerEpoch','turnKey','answerKey','userText','answerText'].some(key=>snapshot[key]!==record.snapshot[key]))
+      throw Error('原节点、原文或回答版本已改变');
+    return snapshot;
+  };
+  const pauseFixed=(record,error)=>{
+    record.retired=true;taskActive=false;awaitingTask=false;
+    say('固定文件事件已暂停 · '+error.message+'。请核对可信审阅页；不会自动补跑。',true);update();
+  };
+  async function dispatchFixed(record){
+    try{
+      record.snapshot=fixedSnapshot(record);
+      const [userSha256,answerSha256]=await Promise.all([sha256(record.snapshot.userText),sha256(record.snapshot.answerText)]);
+      fixedSnapshot(record);
+      record.message={protocol:PROJECT_PROTOCOL,action:'fixed-complete',readerEpoch:record.snapshot.readerEpoch,
+        turnKey:record.snapshot.turnKey,answerKey:record.snapshot.answerKey,userSha256,answerSha256};
+      let data;
+      try{data=await request(record.message);}
+      catch(error){
+        if(!error.transport)throw error;
+        if(record.retired||fixedEvent!==record||!validSource(record.url))return;
+        // Lost ACK is not permission to replay. Query the same seven-field
+        // identity first; only a proved non-acceptance permits one retry.
+        data=await request({...record.message,action:'fixed-status'});
+        fixedSnapshot(record);
+        if(data.status==='not-accepted'){
+          data=await request(record.message);
+        }else if(!['accepted','in-flight','completed'].includes(data.status)){
+          throw Error(data.message||'接纳状态未知');
+        }
+      }
+      if(record.retired||fixedEvent!==record||!validSource(record.url))return;
+      if(!['accepted','in-flight','completed'].includes(data.status)||['unknown','paused','failed','stopped'].includes(data.phase))
+        throw Error(data.message||'固定事件状态未知或已暂停');
+      record.acknowledged=true;
+      projectExists=!['completed','paused','stopped','failed'].includes(data.phase)&&data.status!=='completed';
+      showResult(data);
+      if(data.phase==='review')say(data.message||'修改提案已生成 · 请在可信文件审阅页确认；尚未写入。');
+      update();
+    }catch(error){
+      if(!record.retired&&fixedEvent===record&&validSource(record.url))pauseFixed(record,error);
+    }
+  }
   // Called only by the original Web Flow discovery after its native gesture
   // and complete-turn checks. This adapter has NO independent send observer.
   const submission=snap=>{
-    if(disposed||!preferencesReady||!preferences.enabled||!active()||!isChatGPTFileTask(snap.draft))return;
+    if(disposed||!preferencesReady||!preferences.enabled||!active()||(!isFixedFilePrompt(snap.draft)&&!isChatGPTFileTask(snap.draft)))return;
+    if(fixedEvent&&!fixedEvent.acknowledged){say('原固定事件尚未核对，已暂停；不会采用新回答。',true);retireFixed(true);return;}
+    fixedEvent=null;awaitingFixed=isFixedFilePrompt(snap.draft);
     awaitingTask=true;taskUrl=win.location.href;projectExists=true;
     detail.hidden=true;toggle.setAttribute('aria-expanded','false');
     say('等待本轮回答后处理文件需求…');update();
   };
   const cancellation=()=>{
     if(disposed)return;
+    if(retireFixed(true)){update();return;}
     awaitingTask=false;update();
     if(projectExists&&(taskActive||projectPending))void projectRun('stop');
     else{projectExists=false;update();}
@@ -200,11 +274,18 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(disposed||!awaitingTask||!preferencesReady||!preferences.enabled||!validSource(taskUrl))return false;
     const content=observed.user.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||observed.user;
     const description=content.innerText??content.textContent??'';
+    if(awaitingFixed){
+      if(!isFixedFilePrompt(description))return false;
+      awaitingFixed=false;awaitingTask=false;
+      fixedEvent={url:taskUrl,user:observed.user,answer:observed.answer,retired:false,acknowledged:false};
+      say('正在核对固定文件回答…');update();void dispatchFixed(fixedEvent);return true;
+    }
     if(!isChatGPTFileTask(description))return false;
     awaitingTask=false;
     void projectRun('conversation',description);return true;
   };
   const conflict=()=>{
+    retireFixed(false);
     awaitingTask=false;projectExists=taskActive||projectPending;
     say('任务路由冲突：本轮同时包含文件需求和网页 Task 候选；两者均未启动。请明确一种操作后提出新请求。',true);update();
   };
@@ -216,6 +297,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   });
   stop.addEventListener('click',event=>{
     if(!event.isTrusted||stop.disabled)return;
+    if(retireFixed(true)){say('固定文件事件已停止；已派发操作以实际回执为准。');update();return;}
     if(awaitingTask){
       retireObservation();awaitingTask=false;
       if(!taskActive&&!projectPending){projectExists=false;say('本次项目需求已停止，未启动文件访问。');update();return;}
@@ -263,6 +345,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(changed){
       if(awaitingTask)retireObservation();awaitingTask=false;
       if(!next.enabled){
+        retireFixed(true);
         const needsStop=projectExists&&(taskActive||projectPending);taskActive=false;
         if(needsStop){
           void projectRun('stop');
@@ -293,7 +376,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(taskActive&&validSource(taskUrl))void projectRun('wake');
   },2500);
   const dispose=()=>{
-    if(disposed)return;disposed=true;win.clearInterval(poll);root.remove();
+    if(disposed)return;retireFixed(true);disposed=true;win.clearInterval(poll);root.remove();
     dismissNotification();
     api.storage.onChanged.removeListener(onPreferences);
     win.removeEventListener('pagehide',dispose);

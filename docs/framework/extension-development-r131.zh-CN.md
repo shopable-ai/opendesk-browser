@@ -136,6 +136,8 @@ npm run verify
 
 `official-tools/catalog.json` 登记可信项目，正式与开发构建从其实际 `projects/<id>/` 或 `examples/sidebar-tools/<id>/` 生成发行资源。有唯一正式 `<id>.opendesk-tool.json`（或明确的 `packageFile`）时，验证并逐字节发布该包，输入指纹只跟踪正式包；未晋升的源码编辑和未完成编译不阻塞其他工具发行。没有正式包的项目才按原源码/编译回执合同打包；已存在但无效的正式包必须报错，不能回退源码。`npm run dev` 监听这两个项目根并沿用原发布队列，失败不发布新就绪标记；资源写入 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。
 
+官方 Page Program 同样沿用该开发发布队列：监听 `official-pages/sources.json` 和其声明的冻结 `.opendesk-page.json`，校验后将同一份资源写入 public 与开发输出，包先于目录，更新 WXT 资产清单和开发指纹。配置恢复时先重新生成当前 Page 资源；坏包或复制失败保留上一就绪指纹，修正后恢复，撤下发行仅移除目录拥有的包。Page 目录/JSON 变化不退役 Native 预览、不自动更新已安装程序，也不授予网站或用户脚本许可。首次装载旧版开发脚本的现有进程仍须由其 owner 协调更新，不能仅凭磁盘源码已修正宣称当前 watcher 已接入。
+
 官方目录的数据修改及工具增删只刷新其自有资源清单，沿原子写入队列发布，不触发 WXT 重启或清空 `dist/development`。所有工具共用的 `sidebar-tools/sandbox.html` 保持可用；纯目录/JSON 更新也不重载现有工具页。源码、构建配置或可信运行时代码的更新仍按上文安全刷新合同处理。本规则修复了目录变化可能造成共享沙箱短暂缺失的开发环境问题，不代表已经复现并确认每一次 Chrome 文件丢失报错。
 
 Sidebar 导入在解析能力前、审阅时和确认提交前核对安装器与实际 Worker 的能力合同。不一致或 Worker 不支持核对时保留旧安装并停止本次操作；真正未知的能力仍由唯一包校验器拒绝。技术详情显示实际扩展 ID、版本及双方合同摘要。合同一致只证明所声明的包能力/格式/预算一致，不证明所有 Host 功能、已注入网页代码或整个 bundle 同版，也不能代替正式来源、权限和撤权检查。

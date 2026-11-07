@@ -55,15 +55,16 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     el('after').value=show(proposal?.content);
     text('result-status',snapshot.resultStatus?`执行状态：${show(snapshot.resultStatus)}`:'尚无执行结果');
     const phase=snapshot.automation?.phase;
+    const delivery=snapshot.resultText?snapshot.delivery:snapshot.promptDelivery;
     const deliveryHint=phase==='completed'?'本轮已结束，无需再发送。需要模型查看结果时可自行发送。':
-      snapshot.delivery==='unknown'?'回填结果未知，请核对原对话；不会自动重填。':
+      delivery==='unknown'?'回填结果未知，请核对原对话；不会自动重填，也不能重新准备或换身份补填。':
       phase==='paused'?'自动处理已暂停，请核对当前状态。':
       proposal?'请在本页审阅修改前后内容，再确认写入。':
       snapshot.result?.operation==='write'?'保存结果等待回填，请核对最终回执；无需再次发送读取结果。':
       snapshot.resultText&&el('operation').value==='read-edit'?'发送真实读取结果后，模型才能提出修改。':
       snapshot.resultText?'真实只读结果等待回填确认；无需发送给模型。':
       snapshot.request?'尚未取得真实结果；发送完整请求提示词后等待自动处理。':'尚未准备文件请求。';
-    text('delivery',`草稿填入状态：${show(snapshot.delivery)||'未确认'}。`+deliveryHint);
+    text('delivery',`草稿填入状态：${show(delivery)||'未确认'}。`+deliveryHint);
     text('observed',`发送后原对话用户消息中的结果标记：${show(snapshot.observed)||'未确认'}（仅由检查回执确认收到）`);
     text('message',el('error').hidden?(snapshot.proposal?'请审阅并确认具体修改。':automatic&&snapshot.automation?.active?'自动等待原对话的完整协议回答；结果将填入原对话草稿。'+show(snapshot.message):snapshot.message):'');
     for(const control of root.querySelectorAll('button,input,select,textarea:not([readonly])'))control.disabled=busy||!claimed;
@@ -80,7 +81,7 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     el('revoke-project').disabled=busy||!claimed||!project?.grantId;
     el('prepare').disabled=busy||!claimed||snapshot.connected!==true||!workspaceId||!consent||
       (el('operation').value!=='list'&&!el('path').value.trim());
-    el('approve').disabled=busy||!claimed||snapshot.connected!==true||!proposal||snapshot.automation?.phase==='paused'||attemptedWrites.has(proposalKey());
+    el('approve').disabled=busy||!claimed||snapshot.connected!==true||snapshot.canApprove!==true||!proposal||attemptedWrites.has(proposalKey());
     for(const packet of ['prompt','result'])el(`fill-${packet}`).disabled=busy||!claimed||
       !snapshot[packet==='prompt'?'prompt':'resultText']||filled.has(packetKey(packet))||
       snapshot[packet==='prompt'?'promptDelivery':'delivery']!=='ready'||snapshot.automation?.phase==='paused';
@@ -104,6 +105,11 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     if(key)filled.add(key);
     try{
       snapshot=await send({protocol:'opendesk.chatgpt.files.v1',action,...fields});
+      // A successful, identity-matched ready snapshot is the controller's
+      // persisted pre-insertion failure proof. Errors/transport loss retain
+      // the local replay fence even if our old snapshot still says ready.
+      if(action==='fill'&&fields.packet==='prompt'&&snapshot.promptPacketId===fields.packetId&&
+        snapshot.promptDelivery==='ready')filled.delete(key);
       if(action==='prepare')automatic=true;
     }
     catch(error){automatic=false;text('error',`${error.code||'E_REQUEST'}：${error.message||'操作失败，结果未确认。'}`);el('error').hidden=false;}

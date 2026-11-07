@@ -26,7 +26,11 @@ const appSources=new Map(await Promise.all(['main.js','model.js','style.css'].ma
 const appRuntime=await build({stdin:{contents:`import * as React from 'react';
  import {createRoot} from 'react-dom/client';window.OpenDeskPageReact={...React,createRoot};`,resolveDir:root},
  bundle:true,write:false,minify:selfContained,format:'iife',platform:'browser',logLevel:'silent'});
-const sdk=`const pins=${JSON.stringify(config.delegatedTasks)},store=new Map();
+const sdk=`const pins=${JSON.stringify(config.delegatedTasks)},store=new Map(${selfContained?JSON.stringify([['webflow.settings.v1',{theme:'light',favorites:[]}]]):'[]'});
+ window.addEventListener('message',event=>{
+  if(event.source!==parent||event.data?.protocol!=='webflow.application-preview.v1'||!['light','dark'].includes(event.data.theme))return;
+  const app=document.querySelector('.wf-app');if(app)app.dataset.theme=event.data.theme;
+ });
  window.OpenDeskTool={root:document.getElementById('fixture-root'),async request(name,args){
   if(name==='storage.get')return {value:store.get(args.key)??null,etag:'fixture'};
   if(name==='storage.set'){store.set(args.key,args.value);return {};}
@@ -66,9 +70,23 @@ const bridge=createChatGPTFixedBridgeHost({isVerifiedSidePanel:()=>true,
  client:{request:async method=>method==='listTaskCatalog'?{installed:[installed],catalog:[{
   taskId:pin.taskId,version:pin.version,manifestHash:pin.manifestHash,stage:'available',manifest}]}:{...installed,manifest},
   controller:{snapshotControllerRun:denied}},host:{start:denied}});
-let writes=0,failNext=false,taskView={session:null,receipt:null};
+const previewSource={documentId:'fixture-document',url:'https://chatgpt.com/c/fixture-only'};
+const previewListener={state:'ready',reason:'当前模拟对话可检测新消息。',recovery:{allowed:true}};
+let writes=0,failNext=false,taskView={source:previewSource,listener:previewListener,work:{state:'idle'},session:null,receipt:null};
 let readFailure=false,readPending=false,invalid=false,pendingReads=[];
-const webflowAuto={...bridge,readBridgeState:async()=>structuredClone(taskView),controlBridge:denied,setAutoEnabled(value,event){
+// UI-only state scenarios. Never forwards an operation to Chrome or Native.
+window.webflowUIFixture={reads:0,reading:false,delay:0,failNextRead:false,
+ setView(next){taskView=structuredClone(next);}};
+const webflowAuto={...bridge,readBridgeState:async()=>{
+ const probe=window.webflowUIFixture;probe.reads++;probe.reading=true;
+ try{
+  if(probe.delay)await new Promise(resolve=>setTimeout(resolve,probe.delay));
+  if(probe.failNextRead){probe.failNextRead=false;throw Error('模拟连接已断开，请核对原请求');}
+  return structuredClone(taskView);
+ }finally{probe.reading=false;}
+},controlBridge:denied,refreshBridge:async()=>{
+ taskView={...taskView,listener:previewListener};return structuredClone(taskView);
+},setAutoEnabled(value,event){
  document.getElementById('fixture-events').textContent='开关事件 isTrusted='+event.isTrusted+'；写入次数='+ ++writes;
  if(failNext){failNext=false;return Promise.reject(Error('模拟存储不可用'));}
  return bridge.setAutoEnabled(value,event);
@@ -83,10 +101,19 @@ ${selfContained?`const approvedScope={taskId:pin.taskId,targetUrl:'https://www.b
  installation:Object.fromEntries(['version','manifestHash','contentHash','scriptId','revision','installationId','generation'].map(key=>[key,installation[key]]))};
 await ledger.approveAuto(approvedScope);
 await ledger.setAutoEnabled(true);
-webflowAuto.controlBridge=async({source,requestId,action},event)=>{
- if(!event?.isTrusted||source.documentId!==taskView.source?.documentId||requestId!==taskView.session?.requestId||action!=='cancel')throw Error('模拟边界拒绝此操作');
- taskView.session={...taskView.session,status:'已停止原请求（模拟）',actions:{}};
- taskView.receipt={execution:'stopped',persistence:'unverified',release:'retiring',delivery:'尚未交付'};
+webflowAuto.controlBridge=async({source,requestId,action,parameterPolicy},event)=>{
+ if(!event?.isTrusted||source.documentId!==taskView.source?.documentId||requestId!==taskView.session?.requestId||!['cancel','approve-range'].includes(action))throw Error('模拟边界拒绝此操作');
+ if(action==='approve-range'){
+  if(!taskView.session.pendingAuto)throw Error('模拟任务没有待审核范围');
+  await ledger.approveAuto({...taskView.session.pendingAuto.scope,...(parameterPolicy?{parameterPolicy}:{})});
+  taskView.session={...taskView.session,pendingAuto:null,status:'已批准并开始执行（模拟）',actions:{cancel:true}};
+  taskView.work={state:'running'};
+  taskView.receipt={execution:'running',persistence:'unverified',release:'retiring',delivery:'尚未交付'};
+ }else{
+  taskView.session={...taskView.session,status:'已停止原请求（模拟）',actions:{}};
+  taskView.work={state:'idle'};
+  taskView.receipt={execution:'stopped',persistence:'unverified',release:'retiring',delivery:'尚未交付'};
+ }
  return structuredClone(taskView);
 };
 // Only the clipboard API boundary is replaced. The actual component handles feedback.
@@ -117,7 +144,7 @@ app.render(React.createElement(React.Fragment,null,React.createElement('style',n
 document.getElementById('fixture-close').onclick=()=>view.patch('sidebar-tool-display',{hidden:true});
 document.getElementById('fixture-open').onclick=()=>view.patch('sidebar-tool-display',display);
 document.getElementById('fixture-fail').onclick=()=>{failNext=true;};
-document.getElementById('fixture-result').onclick=()=>{taskView={source:{documentId:'fixture-document'},session:{
+document.getElementById('fixture-result').onclick=()=>{taskView={source:previewSource,listener:previewListener,work:{state:'idle'},session:{
  url:'https://chatgpt.com/c/fixture-only',requestId:'fixture-request',runId:'fixture-run',resultId:'fixture-result',
  status:'百度搜索已完成',fields:{},tasks:[],actions:{}},receipt:{execution:'completed',persistence:'verified',
  release:'released',delivery:'confirmed',value:{status:'success',count:3,results:[{title:'模拟结果，仅供界面验证',url:'https://example.com'}]}}};};
@@ -127,7 +154,22 @@ document.getElementById('fixture-reopen').onclick=()=>{view.patch('sidebar-tool-
 window.addEventListener('message',async event=>{
  if(event.source!==parent||event.data?.protocol!=='webflow.source-preview.v1')return;
  const {action,value}=event.data;
- if(action==='view'&&['overview','scope','task','help'].includes(value)){
+ if(action==='theme'&&['light','dark'].includes(value)){
+  // Scope existing canonical dark tokens to the workspace and its original portal.
+  // The host navigation and header stay light; there is no alternate UI stylesheet.
+  const regions=[document.querySelector('[aria-label="Web Flow 运行状态"]'),document.getElementById('webflow-runtime-panel')];
+  const keys=['ink','sub','line','brand','paper','bg','input-border','accent-ink','warning','muted','positive','negative','warning-bg','warning-border','warning-ink'];
+  for(const region of regions)if(region){
+   for(const key of keys)region.style.setProperty('--od-'+key,value==='dark'?'var(--od-dark-'+key+')':'');
+   region.style.background='var(--od-bg)';region.style.color='var(--od-ink)';region.style.colorScheme=value;
+  }
+  document.querySelector('.sidebar-tool-iframe')?.contentWindow.postMessage({protocol:'webflow.application-preview.v1',theme:value},'*');
+ }else if(action==='enabled'&&['true','false'].includes(value)){
+  await ledger.setAutoEnabled(value==='true');document.getElementById('webflow-auto-refresh')?.click();
+ }else if(action==='listener'&&['ready','disconnected','error'].includes(value)){
+  if(value==='error')window.webflowUIFixture.failNextRead=true;
+  else taskView={...taskView,listener:value==='ready'?previewListener:{state:'refresh-required',reason:'模拟连接中断，请先保存草稿再恢复。',recovery:{allowed:true}}};
+ }else if(action==='view'&&['overview','scope','task','help'].includes(value)){
   if(value==='overview')document.querySelector('[aria-label="关闭运行与授权"]')?.click();
   else{document.getElementById('webflow-runtime-open')?.click();
    requestAnimationFrame(()=>document.getElementById('webflow-runtime-tab-'+value)?.click());}
@@ -140,17 +182,23 @@ window.addEventListener('message',async event=>{
   if(!readPending)pendingReads.splice(0).forEach(resolve=>resolve());
   document.getElementById('webflow-auto-refresh')?.click();
  }else if(action==='copy'&&['success','error'].includes(value))copyFailure=value==='error';
- else if(action==='task'&&['empty','waiting','running','success','failed','unknown','history'].includes(value)){
-  if(value==='empty'){taskView={session:null,receipt:null};return;}
+ else if(action==='task'&&['empty','draft','no-candidate','pending','waiting','running','success','failed','unknown','combined-error','history'].includes(value)){
+  if(value==='empty'){taskView={...taskView,work:{state:'idle'},session:null,receipt:null};return;}
   document.getElementById('fixture-result').click();
   const waiting=value==='waiting',running=value==='running',history=value==='history';
-  taskView.session.status={history:'当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。完成一次 ChatGPT 能力接入后，正常发送新需求；已用候选不会重新执行。',waiting:'等待 ChatGPT 完整回复',running:'百度搜索执行中',success:'百度搜索已完成',failed:'执行失败：模拟网站读取失败',unknown:'结果未知：请查询原请求，不会自动重试'}[value];
-  if(history){taskView.session.requestId=null;taskView.session.url='https://chatgpt.com/g/g-p-fixture-opendesk-browser/c/fixture-conversation';}
+  const unknown=value==='unknown'||value==='combined-error';
+  taskView.work={state:running?'running':unknown?'unknown':'idle',reason:unknown?'执行或交付尚未确认，不会重放。':''};
+  taskView.session.status={draft:'指令仍在 ChatGPT 草稿中，请亲自发送。','no-candidate':'本条回复未生成任务候选。',pending:'新任务等待批准，尚未执行。',history:'当前可见回复属于历史或未见证的发送，未触发新请求，也不会补跑。',waiting:'等待 ChatGPT 完整回复',running:'百度搜索执行中',success:'百度搜索已完成',failed:'执行失败：模拟网站读取失败',unknown:'结果未知：请查询原请求，不会自动重试','combined-error':'E_FIXTURE_READ：模拟目标页面读取失败'}[value];
+  if(value==='no-candidate')taskView.session.messageStage='no-candidate';
+  if(['failed','combined-error'].includes(value))taskView.session.error='E_FIXTURE_READ';
+  if(value==='pending')taskView.session.pendingAuto={scope:approvedScope,candidate:{protocol:'webflow.task.intent.v1',candidateId:'fixture-only'}};
+  if(history||value==='draft'||value==='no-candidate')taskView.session.requestId=null;
   taskView.session.fields={disabled:true,task:'baidu',query:'OpenDesk Browser',target:'https://www.baidu.com/',args:'{}'};
-  taskView.session.actions={cancel:waiting||running||value==='unknown'};
-  if(waiting||history)taskView.receipt=null;
-  else if(value!=='success'){taskView.receipt={execution:running?'running':value==='failed'?'failed':'unknown',persistence:'unverified',release:'retiring',delivery:value==='unknown'?'unknown':'尚未交付'};}
+  taskView.session.actions={cancel:waiting||running||unknown};
+  if(waiting||history||value==='draft'||value==='no-candidate'||value==='pending')taskView.receipt=null;
+  else if(value!=='success')taskView.receipt={execution:running?'running':value==='failed'?'failed':'unknown',persistence:'unverified',release:'retiring',delivery:unknown?'unknown':'尚未交付'};
  }
+
 });`:''}
 `,resolveDir:root,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'browser',
  minify:selfContained,metafile:true,outfile:'fixture.js',logLevel:'silent',alias:{'@opendesk/ui':resolve(root,'src/ui/react/components/ui/button.tsx')},plugins:[{name:'raw-css',setup(builder){
