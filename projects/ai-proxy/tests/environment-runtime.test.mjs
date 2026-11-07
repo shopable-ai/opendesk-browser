@@ -313,3 +313,91 @@ test('another writer during release prevents enabling or overwriting its new sel
   assert.equal(f.stored().managed,false);
  }finally{env.dispose();}
 });
+
+
+test('R14 environment adapts trusted and sandbox navigation, falls back immediately and disposes subscriptions',()=>{
+ for(const trusted of [true,false])for(const feature of [true,false])for(const reject of [true,false]){
+  const f=fixture(),snapshots=[],root=new EventTarget();let subscribed,removed=0;
+  const adapter={navigationFeatures:{headerActions:feature},setNavigation(value){snapshots.push(value);return reject&&'headerActions'in value?false:true;},
+   subscribe(handler){subscribed=handler;return()=>{removed++;subscribed=null;};}};
+  f.bridge.root=root;
+  if(trusted)f.bridge.toolNavigation=adapter;
+  else{f.bridge.navigationFeatures=adapter.navigationFeatures;f.bridge.setNavigation=adapter.setNavigation;}
+  // trusted here selects the adapter, not the app's independent URL transport.
+  const env=f.open(),base={page:'home',title:'AI Proxy',canBack:false,primary:null},actions=[{id:'settings',label:'设置',icon:'settings'}];
+  assert.equal(env.toolNavigation.setNavigation(base,actions),feature&&!reject);
+  assert.deepEqual(snapshots,feature?[{...base,headerActions:actions},...(reject?[base]:[])]:[base]);
+  let seen=0;env.toolNavigation.subscribe(()=>seen++);
+  if(trusted)subscribed({action:'back'});else root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:'back'}}));
+  assert.equal(seen,1);env.dispose();
+  if(trusted)assert.equal(removed,1);else root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:'back'}}));
+  assert.equal(seen,1);assert.equal(env.toolNavigation.setNavigation(base,actions),false);assert.equal(f.calls.length,0);
+ }
+});
+
+test('R14 environment retains unknown write navigation lock without replaying or applying proxy',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  env.setDraftDirty(true,'editor');assert.equal(env.toolNavigation.isLocked(),true);
+  env.setDraftDirty(false,'editor');assert.equal(env.toolNavigation.isLocked(),false);
+  f.writeReply={};const result=await env.request({type:'SELECT',selection:{mode:'direct'}});
+  assert.equal(result.errorCode,'E_OUTCOME_UNKNOWN');assert.equal(env.toolNavigation.isLocked(),true);
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,1);
+  assert.equal(f.calls.some(([name])=>['enable','disable'].includes(name)),false);
+ }finally{env.dispose();}
+});
+
+test('R14 navigation unknown lock clears only after service status reconciliation, never an unrelated success',async()=>{
+ const f=fixture(),states=[];f.bridge.setState=state=>states.push(state);
+ const env=f.open();
+ try{
+  f.writeReply={};
+  assert.equal((await env.request({type:'SELECT',selection:{mode:'direct'}})).errorCode,'E_OUTCOME_UNKNOWN');
+  assert.equal(env.toolNavigation.isLocked(),true);
+  assert.equal(states.at(-1).busy,true);
+  assert.equal((await env.request({type:'EXPORT'})).ok,true);
+  assert.equal(env.toolNavigation.isLocked(),true);
+  f.sdk.browser.proxy.managed.getStatus=async()=>({...disabled,control:'unknown'});
+  assert.equal((await env.request({type:'GET_STATE'})).state.runtime.outcomeUnknown,true);
+  assert.equal(env.toolNavigation.isLocked(),true);
+  f.sdk.browser.proxy.managed.getStatus=async()=>({...disabled,browserMode:'system',activeConfig:null});
+  assert.equal((await env.request({type:'GET_STATE'})).state.runtime.outcomeUnknown,false);
+  assert.equal(env.toolNavigation.isLocked(),false);
+  assert.equal(states.at(-1).busy,false);
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,1);
+  assert.equal(f.calls.some(([name])=>['enable','disable'].includes(name)),false);
+ }finally{env.dispose();}
+});
+
+test('R14 a successful GET_STATE with unknown runtime locks navigation until confirmed STOP',async()=>{
+ const f=fixture();let status={...enabled,control:'unknown',activeConfig:null};
+ f.sdk.browser.proxy.managed.getStatus=async()=>status;
+ const env=f.open();
+ try{
+  assert.equal((await env.request({type:'GET_STATE'})).state.runtime.outcomeUnknown,true);
+  assert.equal(env.toolNavigation.isLocked(),true);
+  status={...enabled,activeConfig:null};
+  await env.request({type:'GET_STATE'});
+  assert.equal(env.toolNavigation.isLocked(),true);
+  const result=await env.request({type:'STOP'});
+  assert.equal(result.ok,true,JSON.stringify(result));
+  assert.equal(result.state.runtime.outcomeUnknown,false);
+  assert.equal(env.toolNavigation.isLocked(),false);
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,1);
+  assert.equal(f.calls.some(([name])=>name==='enable'),false);
+ }finally{env.dispose();}
+});
+
+test('R14 trusted navigation preserves handler rejection for the Host await boundary',async()=>{
+ const f=fixture();let deliver;
+ f.bridge.toolNavigation={subscribe(handler){deliver=handler;return()=>{};}};
+ const env=f.open();let calls=0;
+ const stop=env.toolNavigation.subscribe(async()=>{calls++;throw Object.assign(Error('未确认完成'),{code:'E_OUTCOME_UNKNOWN'});});
+ const stale=deliver;
+ await assert.rejects(deliver({action:'header',actionId:'settings',page:'home'}),{code:'E_OUTCOME_UNKNOWN'});
+ assert.equal(calls,1);
+ stop();assert.equal(stale({action:'header'}),undefined);
+ env.dispose();assert.equal(stale({action:'header'}),undefined);
+ assert.equal(calls,1);
+ assert.equal(f.calls.filter(row=>['enable','disable'].includes(row[0])).length,0);
+});

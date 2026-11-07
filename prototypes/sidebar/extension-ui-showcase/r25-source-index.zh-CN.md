@@ -13,7 +13,7 @@
 | 树形数据 + 详情/编辑 | **P05** Tree + **P06** List→Detail→Edit + **P15** Wide Inspector | `examples/sidebar-tools/bookmark-manager/src/react/App.jsx` |
 | 紧凑文本表单、选填设置 | **P07** Form/Input Group + **P13** Recovery | `examples/sidebar-tools/prompt-shortcuts/src/index.html`、`src/style.css` |
 | 代码编辑器 + 运行和回执 | **P08** Code Workbench | `src/ui/react/tabs/develop-editor.tsx`、`develop-execution.tsx` |
-| Cookie 属性、权限及敏感值 | **P09** Dense Data + **P11** Permission | `examples/sidebar-tools/cookie-editor/src/index.html`、`src/react.css` |
+| Cookie 属性、权限及敏感值 | **P09** Dense Data + **P11** Permission | `projects/cookie-editor/src/index.html`、`src/react.css` |
 | 导入、格式检查、权限确认 | **P10** Import + **P11** Permission + **P12** Dialog | `src/ui/react/tabs/tool-host.tsx`、`tools.tsx` |
 | 更多菜单、删除、撤权 | **P12** Menu/Dialog + **P13** Feedback | `src/ui/react/tabs/tools.tsx`、`bookmark-manager/src/react/App.jsx` |
 | 语言与翻译资源 | **P14** Locale Daily/Advanced | `src/ui/react/tabs/locale-manager.tsx` |
@@ -31,7 +31,7 @@
 | P06 | [Bookmark Inspector / draft](../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx) | SOURCE_TOOL_REACT | 已有 dirtyDraft/error |
 | P07 | [Prompt Shortcuts HTML](../../../examples/sidebar-tools/prompt-shortcuts/src/index.html) | SOURCE_TOOL_HTML | 已有正文、选填设置 |
 | P08 | [DevelopExecution](../../../src/ui/react/tabs/develop-execution.tsx) | SOURCE_HOST_REACT | 已有运行状态与诊断 |
-| P09 | [Cookie Editor HTML](../../../examples/sidebar-tools/cookie-editor/src/index.html) | SOURCE_TOOL_HTML | 已有属性与权限状态 |
+| P09 | [Cookie Editor HTML](../../../projects/cookie-editor/src/index.html) | SOURCE_TOOL_HTML | 已有属性与权限状态 |
 | P10 | [ToolHost ImportSheet](../../../src/ui/react/tabs/tool-host.tsx) | SOURCE_HOST_REACT | 已有可信导入入口 |
 | P11 | [ToolHost capabilities](../../../src/ui/react/tabs/tool-host.tsx) | SOURCE_HOST_REACT | 已有能力预览 |
 | P12 | [ExtensionRowMenu / UninstallDialog](../../../src/ui/react/tabs/tools.tsx) | SOURCE_HOST_REACT | 已有 Portal/焦点逻辑 |

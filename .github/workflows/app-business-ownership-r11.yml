@@ -17,7 +17,7 @@ on:
       - 'src/reading-toc/**'
       - 'examples/sidebar-tools/stay-focus/trusted/**'
       - 'examples/sidebar-tools/time-review/trusted/**'
-      - 'examples/sidebar-tools/ai-vip-share/trusted/**'
+      - 'projects/ai-vip-share/trusted/**'
       - 'examples/sidebar-tools/reading-toc/**'
       - 'examples/sidebar-tools/web-markdown-clipper/**'
       - 'tests/environment/app-business-ownership-r1.test.mjs'

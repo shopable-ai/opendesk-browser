@@ -1,0 +1,89 @@
+import {defineConfig} from 'vite';
+import {compileSharedToolCss} from '../../scripts/preview/shared-tool-design.mjs';
+import {createHash,randomUUID} from 'node:crypto';
+import {readFile,writeFile,rename,readdir} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
+
+const root=fileURLToPath(new URL('.',import.meta.url));
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+// The receipt fingerprints product inputs as well as compiled bytes. Stale JSX
+// must never be silently packaged with a previous successful Vite output.
+export const SCRAPYJS_REACT_SOURCE_FILES=[
+  'src/App.jsx','src/main.jsx','src/app-model.js','src/style.css',
+  'src/index.html','tool.config.json','vite.config.mjs','package.json',
+  'adapters/app-sdk.js'
+];
+export const DESIGN_SOURCE_FILES=['scripts/preview/shared-tool-design.mjs','src/ui/design-tokens.css',
+  'src/ui/design-system.css','src/ui/react/components/ui/sidebar-shared.css'];
+async function designSnapshot(){return Object.fromEntries(await Promise.all(DESIGN_SOURCE_FILES.map(async name=>
+  [name,fingerprint(await readFile(resolve(root,'../..',name)))])));}
+const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});
+async function sourceFiles(){
+  // Include every local UI helper (including editor.js when present).
+  const walk=async directory=>(await Promise.all((await readdir(join(root,directory),{withFileTypes:true}))
+    .map(async row=>row.isDirectory()?walk(directory+'/'+row.name):
+      /\.(?:jsx?|css|html)$/.test(row.name)?[directory+'/'+row.name]:[]))).flat();
+  return [...new Set([...SCRAPYJS_REACT_SOURCE_FILES,...await walk('src'),
+    ...await walk('controller'),...await walk('engine'),...await walk('adapters')])].sort();
+}
+async function sourceSnapshot(){
+  return Object.fromEntries(await Promise.all((await sourceFiles()).map(async file=>
+    [file,fingerprint(await readFile(join(root,file)))])));
+}
+export function sharedDesignPlugin(){
+  return {name:'scrapyjs-canonical-design',enforce:'pre',
+    async transform(source,id){
+      if(id.split('?')[0]!==join(root,'src/style.css'))return;
+      // Reuse the public, non-privileged subset; never import the host stylesheet.
+      return {code:await compileSharedToolCss('/* @opendesk-shared-design */\n')+'\n'+source,map:null};
+    }};
+}
+function receiptPlugin(){
+  let before,designBefore,controllerBuild;
+  return {name:'scrapyjs-react-build-ready',apply:'build',
+    async buildStart(){
+      before=await sourceSnapshot();designBefore=await designSnapshot();
+      controllerBuild=await buildProgramProjectInMemory(root,{mode:'production'});
+    },
+    generateBundle(_,bundle){
+      const chunks=Object.values(bundle).filter(item=>item.type==='chunk');
+      if(chunks.length!==1||chunks[0].dynamicImports.length||
+        chunks[0].imports.some(name=>!['react','react-dom/client',
+          'react/jsx-runtime','@opendesk/ui'].includes(name)))
+        throw Error('scrapyjs must emit one Classic JS chunk with host-owned React externals');
+    },
+    async writeBundle(){
+      await writeFile(join(root,'dist/controller.js'),controllerBuild.sourceUtf8);
+      const files={},inputs=await sourceSnapshot(),designSources=await designSnapshot();
+      if(JSON.stringify(before)!==JSON.stringify(inputs)||JSON.stringify(designBefore)!==JSON.stringify(designSources))
+        throw Error('scrapyjs sources changed during compilation; discard this build');
+      for(const file of ['dist/tool.css','dist/tool.js','dist/controller.js'])
+        files[file]=fingerprint(await readFile(join(root,file)));
+      // Identical sources and compiled bytes have an identical receipt.
+      const buildId=hash(Buffer.from(JSON.stringify({sources:inputs,files,designSources})));
+      const ready={format:'opendesk.ui-build-ready.v1',buildId,
+        sources:inputs,files,designSources};
+      const destination=join(root,'dist/build-ready.json');
+      const temporary=destination+'.'+randomUUID()+'.new';
+      await writeFile(temporary,JSON.stringify(ready,null,2)+'\n',{flag:'wx'});
+      await rename(temporary,destination);
+    }
+  };
+}
+// React and shared components are host-owned resources, never tool authority.
+export default defineConfig({
+  root,base:'./',esbuild:{jsx:'automatic'},plugins:[sharedDesignPlugin(),receiptPlugin()],
+  define:{'process.env.NODE_ENV':JSON.stringify('production')},
+  build:{target:'es2022',minify:'esbuild',cssCodeSplit:false,
+    outDir:resolve(root,'dist'),emptyOutDir:true,
+    lib:{entry:resolve(root,'src/main.jsx'),name:'OpenDeskScrapyjs',
+      formats:['iife'],fileName:()=>'tool.js',cssFileName:'tool'},
+    rollupOptions:{external:['react','react-dom/client','react/jsx-runtime','@opendesk/ui'],
+      output:{inlineDynamicImports:true,globals:{
+        react:'OpenDeskPageReact','react-dom/client':'OpenDeskPageReact',
+        'react/jsx-runtime':'OpenDeskPageReact','@opendesk/ui':'OpenDeskSidebarUI'
+      }}}
+  }
+});

@@ -117,7 +117,7 @@ test('R4.10 native case driver uses real approved metadata toggle and inline dis
 });
 
 test('R4.10.2 upgrade verifies historical 2.0.15 bytes, same ID and unchanged capabilities',async()=>{
-  const candidateConfig=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/cookie-editor/tool.config.json',import.meta.url),'utf8'));
+  const candidateConfig=JSON.parse(await readFile(new URL('../../projects/cookie-editor/tool.config.json',import.meta.url),'utf8'));
   assert.match(candidateConfig.version,/^\d+\.\d+\.\d+$/);
   assert.equal(COOKIE_EDITOR_UPGRADE_FROM.version,'2.0.15');
   assert.equal(COOKIE_EDITOR_UPGRADE_FROM.sha256,

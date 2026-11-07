@@ -8,9 +8,9 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parse} from 'acorn';
 import {build} from 'vite';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
-import {COOKIE_REACT_SOURCE_FILES} from '../examples/sidebar-tools/cookie-editor/vite.config.mjs';
+import {COOKIE_REACT_SOURCE_FILES} from '../projects/cookie-editor/vite.config.mjs';
 
-const root=fileURLToPath(new URL('../examples/sidebar-tools/cookie-editor/',import.meta.url));
+const root=fileURLToPath(new URL('../projects/cookie-editor/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const fingerprint=bytes=>({bytes:bytes.length,sha256:sha(bytes)});
 const sources=async()=>Object.fromEntries(await Promise.all(

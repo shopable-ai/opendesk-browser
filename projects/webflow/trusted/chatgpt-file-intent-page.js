@@ -23,21 +23,45 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   root.hidden=true;
   // Only active task controls or explicitly requested diagnostics/details live
   // here. Never attach business feedback to the site's composer/layout.
-  root.style.cssText='position:fixed;top:72px;right:16px;z-index:2147483646;max-width:400px;width:calc(100vw - 32px)';
+  root.style.cssText='position:fixed;top:72px;right:16px;z-index:2147483646;max-width:360px;width:calc(100vw - 32px)';
   const shadow=root.attachShadow({mode:'closed'});
   const style=doc.createElement('style');
-  style.textContent=':host{all:initial}:host([hidden]){display:none!important}*{box-sizing:border-box}.card{font:12px/1.45 system-ui,-apple-system,sans-serif;color:#1b2c49;background:#fff;border:1px solid #e1e8f1;border-radius:12px;padding:9px;box-shadow:0 4px 16px #0002}.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.head .status{flex:1;min-width:140px}.card[hidden],[hidden]{display:none!important}a{color:inherit}.diagnostic{margin-top:8px;display:grid;gap:8px}button{font:inherit;border-radius:8px;min-height:34px;cursor:pointer;padding:7px 10px;border:1px solid #8795a9;background:#f5f7fb;color:inherit}button.primary{background:#365eda;border-color:#365eda;color:#fff}button:disabled{opacity:.55;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #365eda;outline-offset:2px}.detail{margin-top:8px;display:grid;gap:8px;max-height:70vh;overflow:auto}.detail[hidden]{display:none}label{display:grid;gap:4px;color:#4b5e77}input,textarea{font:inherit;min-height:34px;width:100%;min-width:0;border:1px solid #8795a9;border-radius:8px;padding:7px;background:inherit;color:inherit}textarea{resize:vertical}.note,.status{overflow-wrap:anywhere;color:#52647c}.status.error{color:#a8243f}@media(prefers-color-scheme:dark){.card{color:#ebf1f9;background:#182233;border-color:#374457}button{color:inherit;background:#28374c;border-color:#71849c}button.primary{color:#fff;background:#365eda;border-color:#365eda}input,textarea{border-color:#71849c}.note,.status,label{color:#bbc8db}.status.error{color:#ff9fae}}';
+  style.textContent=`:host{all:initial}:host([hidden]){display:none!important}*{box-sizing:border-box}
+    .card{font:13px/1.5 system-ui,-apple-system,sans-serif;color:#1b2c49;background:#fff;border:1px solid #e1e8f1;border-radius:12px;padding:12px;box-shadow:0 4px 16px #0002;max-height:calc(100dvh - 88px);overflow:auto}
+    .toolbar{display:flex;align-items:center;gap:8px}.title{flex:1;min-width:0;font-size:13px}
+    .head{display:flex;align-items:flex-start;gap:8px;margin-top:8px;flex-wrap:wrap}.head .status{flex:1;min-width:140px}
+    [hidden]{display:none!important}a{color:inherit}.diagnostic{margin-top:12px;border-top:1px solid #e1e8f1;padding-top:8px}
+    summary{cursor:pointer;padding:8px 0;color:#52647c}details>details,details>label,details>button,details>.note{margin-top:8px}
+    button{font:inherit;border-radius:8px;min-height:34px;cursor:pointer;padding:6px 10px;border:1px solid #8795a9;background:#f5f7fb;color:inherit}
+    button.close{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;padding:0;border-color:transparent;background:transparent;font-size:22px;line-height:1}
+    button.close:hover{background:#edf1f6}button.primary{background:#365eda;border-color:#365eda;color:#fff}
+    button:disabled{opacity:.55;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}
+    .detail{margin-top:8px;display:grid;gap:8px}label{display:grid;gap:4px;color:#4b5e77}
+    input,textarea{font:inherit;min-height:34px;width:100%;min-width:0;border:1px solid #8795a9;border-radius:8px;padding:7px;background:inherit;color:inherit}textarea{resize:vertical}
+    .note,.status{overflow-wrap:anywhere;color:#52647c}.status.error,.title.error{color:#a8243f}.feedback{white-space:pre-wrap;margin:0;font:inherit}
+    .compact{padding:8px 12px}.compact .title{font-weight:500}
+    @media(max-width:480px){:host{top:12px!important;right:12px!important;width:calc(100vw - 24px)!important}.card{max-height:calc(100dvh - 24px)}}
+    @media(prefers-color-scheme:dark){.card{color:#ebf1f9;background:#182233;border-color:#374457}button{color:inherit;background:#28374c;border-color:#71849c}button.close{background:transparent}button.close:hover{background:#28374c}button.primary{color:#fff;background:#365eda;border-color:#365eda}input,textarea{border-color:#71849c}.diagnostic{border-color:#374457}.note,.status,label,summary{color:#bbc8db}.status.error,.title.error{color:#ff9fae}}`;
   const card=doc.createElement('section');card.className='card';
+  card.setAttribute('aria-label','项目文件');
+  const toolbar=doc.createElement('div');toolbar.className='toolbar';
+  const title=doc.createElement('strong');title.className='title';title.textContent='项目文件';
+  const panel=doc.createElement('div');panel.id='opendesk-project-panel';
+  const restore=doc.createElement('button');restore.type='button';restore.id='opendesk-project-restore';restore.textContent='展开';restore.hidden=true;
+  restore.setAttribute('aria-label','展开项目文件面板');restore.setAttribute('aria-controls',panel.id);
   const head=doc.createElement('div');head.className='head';
   const toggle=doc.createElement('button');toggle.type='button';
   toggle.textContent='查看回执';toggle.id='opendesk-project-details-toggle';
   toggle.setAttribute('aria-expanded','false');
   const detail=doc.createElement('div');detail.className='detail';detail.hidden=true;detail.id='opendesk-project-details';
   toggle.setAttribute('aria-controls',detail.id);
-  const dismiss=doc.createElement('button');dismiss.type='button';dismiss.id='opendesk-project-dismiss';dismiss.textContent='收起状态';
-  const diagnostic=doc.createElement('div');diagnostic.id='opendesk-project-diagnostics';diagnostic.className='diagnostic';diagnostic.hidden=true;
-  const diagnosticTitle=doc.createElement('strong');diagnosticTitle.textContent='项目文件诊断';
+  const dismiss=doc.createElement('button');dismiss.type='button';dismiss.id='opendesk-project-dismiss';dismiss.className='close';dismiss.textContent='×';
+  dismiss.setAttribute('aria-label','关闭项目文件面板');dismiss.title='关闭面板；进行中的任务保留停止入口';
+  const diagnostic=doc.createElement('details');diagnostic.id='opendesk-project-diagnostics';diagnostic.className='diagnostic';diagnostic.hidden=true;diagnostic.open=false;
+  const diagnosticTitle=doc.createElement('summary');diagnosticTitle.textContent='更多文件操作';
   const settings=doc.createElement('a');settings.href=api.runtime.getURL('native-agent/settings.html#chatgpt-files-controls');settings.target='_blank';settings.rel='noopener';settings.textContent='文件处理设置';
+  settings.className='note';
+  const entryNote=doc.createElement('p');entryNote.className='note';entryNote.textContent='在原对话提出文件需求；授权与文件审阅在扩展页完成。';
   const taskLabel=doc.createElement('label');taskLabel.textContent='项目任务';
   const task=doc.createElement('textarea');task.id='opendesk-project-task';task.rows=3;
   task.placeholder='例如：读取当前项目 README.md，说明需要修改的内容';taskLabel.append(task);
@@ -45,6 +69,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   const stop=doc.createElement('button');stop.type='button';stop.textContent='停止项目任务';
   const receipt=doc.createElement('pre');receipt.id='opendesk-project-receipt';receipt.hidden=true;
   receipt.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:32vh;overflow:auto;margin:0';
+  const feedback=doc.createElement('pre');feedback.id='opendesk-project-feedback';feedback.className='note feedback';feedback.hidden=true;
   const generate=doc.createElement('button');generate.type='button';generate.textContent='生成任务提示词';
   const promptLabel=doc.createElement('label');promptLabel.textContent='本地提示词（可选中复制）';promptLabel.hidden=true;
   const prompt=doc.createElement('textarea');prompt.id='opendesk-project-prompt';prompt.rows=6;prompt.readOnly=true;promptLabel.append(prompt);
@@ -54,7 +79,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   const optionalSummary=doc.createElement('summary');optionalSummary.textContent='可选：本地提示词与手动任务';
   optional.append(optionalSummary,taskLabel,start,generate,promptLabel);
   const legacy=doc.createElement('details');
-  const legacySummary=doc.createElement('summary');legacySummary.textContent='可选：旧版文件请求';
+  const legacySummary=doc.createElement('summary');legacySummary.textContent='高级：固定协议请求';
   const caption=doc.createElement('label');caption.textContent='.txt 文件名（可选，仅作提示）';
   const filename=doc.createElement('input');filename.type='text';filename.maxLength=512;
   filename.placeholder='例如 demo.txt';
@@ -65,11 +90,11 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   open.textContent='审阅当前对话的文件请求';
   const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
   legacy.append(legacySummary,caption,note,open);
-  head.append(status,stop,toggle,dismiss);detail.append(taskNote,receipt,settings);
-  diagnostic.append(diagnosticTitle,optional,legacy);card.append(head,detail,diagnostic);
+  toolbar.append(title,stop,restore,dismiss);head.append(status,toggle);detail.append(feedback,taskNote,receipt);
+  diagnostic.append(diagnosticTitle,optional,legacy);panel.append(head,detail,entryNote,diagnostic,settings);card.append(toolbar,panel);
   shadow.append(style,card);(doc.body||doc.documentElement).append(root);
   let disposed=false,pending=false,projectPending=false,taskActive=false,projectExists=false,taskUrl='',awaitingTask=false,stopRequested=false,stopPending=false;
-  let preferences=normalizeChatGPTFilesPreferences(),preferencesReady=false,dismissed=false,lastData=null,preferencesRevision=0;
+  let preferences=normalizeChatGPTFilesPreferences(),preferencesReady=false,dismissed=false,panelClosed=false,panelRequested=false,lastData=null,preferencesRevision=0;
   let notificationUnavailable=false,taskSequence=0;
   let awaitingFixed=false,fixedEvent=null;
   const announced=new Set();
@@ -88,18 +113,31 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       detail.hidden=true;toggle.setAttribute('aria-expanded','false');
     }
     const running=preferencesReady&&preferences.enabled;
-    const controlsNeeded=projectPending||stopPending||taskActive||awaitingTask||projectExists&&!stopRequested||
+    const activeWork=pending||projectPending||stopPending||taskActive||awaitingTask||projectExists&&!stopRequested;
+    const attentionNeeded=!!taskUrl&&status.classList.contains('error')&&!dismissed;
+    const controlsNeeded=activeWork||attentionNeeded||
       !!(lastData?.result||lastData?.resultText)&&!dismissed;
-    root.hidden=!active()||(!preferences.diagnosticsVisible&&!controlsNeeded&&
+    root.hidden=!active()||panelClosed&&!activeWork||(!preferences.diagnosticsVisible&&!controlsNeeded&&
       (dismissed||detail.hidden&&!notificationUnavailable));
+    // Persisted diagnostic opt-in offers a small launcher, never an expanded
+    // developer panel. File activity still owns its status/Stop independently.
+    const idleEntry=!activeWork&&!status.textContent&&!panelRequested;
+    const compact=panelClosed&&activeWork||idleEntry;
+    root.style.maxWidth=idleEntry?'220px':'360px';
+    panel.hidden=compact;restore.hidden=!compact;dismiss.hidden=compact&&activeWork;card.classList.toggle('compact',compact);
+    restore.textContent=idleEntry?'打开':'展开';
+    restore.setAttribute('aria-expanded',String(!compact));
+    title.textContent=compact&&activeWork?(status.classList.contains('error')?'项目文件 · 需核对状态':stopRequested?'项目文件 · 正在停止':'项目文件 · 处理中'):'项目文件';
+    title.classList.toggle('error',compact&&status.classList.contains('error'));
     diagnostic.hidden=!preferencesReady||!preferences.diagnosticsVisible;
     open.disabled=pending||projectPending||stopPending||!active()||!running;
     start.disabled=pending||projectPending||stopPending||!active()||!running;
     stop.disabled=!active()||!projectExists||stopRequested||stopPending;stop.hidden=!projectExists;
-    dismiss.hidden=projectPending||stopPending||taskActive||awaitingTask;toggle.hidden=!status.textContent;
+    head.hidden=!status.textContent;toggle.hidden=!status.textContent;toggle.textContent=feedback.hidden?'查看回执':'查看详情';
   };
-  const say=(value,error=false,{key,variant=error?'error':'info',persistent=error}={})=>{
+  const say=(value,error=false,{key,variant=error?'error':'info',persistent=error,details=''}={})=>{
     status.textContent=value;status.classList.toggle('error',error);
+    feedback.textContent=details;feedback.hidden=!details;
     if(key!==undefined&&announced.has(key))return;
     dismissed=false;
     // Record before rendering. A failed/dismissed notification cannot replay or
@@ -159,7 +197,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(!initiating&&!validSource(taskUrl)){update();return;}
     const url=win.location.href;
     if(stopping){stopPending=true;stopRequested=true;taskActive=false;}else projectPending=true;
-    if(initiating){stopRequested=false;taskSequence++;}
+    if(initiating){stopRequested=false;taskSequence++;if(action==='start')panelClosed=false;}
     if(initiating){taskUrl=url;projectExists=true;receipt.textContent='';receipt.hidden=true;detail.hidden=true;toggle.setAttribute('aria-expanded','false');lastData=null;}
     if(action==='conversation'){
       awaitingTask=false;say('正在通过 Native 处理文件需求…');
@@ -183,7 +221,10 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       }
     }catch(error){
       taskActive=false;
-      if(validSource(url))say((error.outcome==='OUTCOME_UNKNOWN'?'任务回执未知 · ':'文件任务失败 · ')+(error.code||'E_PROJECT_TASK')+' · '+error.message+'。请核对任务状态；扩展失效时保存草稿后刷新。',true);
+      if(validSource(url))say(/Extension context invalidated/i.test(error.message)?'连接已失效，请查看恢复指引。':
+        error.outcome==='OUTCOME_UNKNOWN'?'任务回执未知，请查看详情。':'文件任务失败，请查看详情。',true,{details:
+        (error.code||'E_PROJECT_TASK')+' · '+error.message+
+        '。请先查看已有文件审阅页并核对真实回执；确未打开时，保存原对话草稿后刷新本页。不会自动重发文件操作。'});
     }finally{
       if(stopping)stopPending=false;else projectPending=false;
       update();
@@ -217,7 +258,8 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   };
   const pauseFixed=(record,error)=>{
     record.retired=true;taskActive=false;awaitingTask=false;
-    say('固定文件事件已暂停 · '+error.message+'。请核对可信审阅页；不会自动补跑。',true);update();
+    say('文件事件已暂停，请查看详情；不会自动补跑。',true,{details:error.message+
+      '。请先查看已有文件审阅页并核对真实回执；确未打开时，保存原对话草稿后刷新本页。'});update();
   };
   async function dispatchFixed(record){
     try{
@@ -259,6 +301,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(disposed||!preferencesReady||!preferences.enabled||!active()||(!isFixedFilePrompt(snap.draft)&&!isChatGPTFileTask(snap.draft)))return;
     if(fixedEvent&&!fixedEvent.acknowledged){say('原固定事件尚未核对，已暂停；不会采用新回答。',true);retireFixed(true);return;}
     fixedEvent=null;awaitingFixed=isFixedFilePrompt(snap.draft);
+    panelClosed=false;
     awaitingTask=true;taskUrl=win.location.href;projectExists=true;
     detail.hidden=true;toggle.setAttribute('aria-expanded','false');
     say('等待本轮回答后处理文件需求…');update();
@@ -315,9 +358,20 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     toggle.setAttribute('aria-expanded',String(!detail.hidden));
     update();
   });
-  dismiss.addEventListener('click',event=>{
-    if(!event.isTrusted||disposed||projectPending||stopPending||taskActive||awaitingTask)return;
-    dismissed=true;detail.hidden=true;toggle.setAttribute('aria-expanded','false');update();
+  const closePanel=()=>{
+    const ownedFocus=!!shadow.activeElement;
+    panelClosed=true;panelRequested=false;dismissed=true;detail.hidden=true;diagnostic.open=false;
+    toggle.setAttribute('aria-expanded','false');dismissNotification();update();
+    // Keep keyboard focus reachable when the expanded controls disappear.
+    if(!root.hidden)restore.focus();else if(ownedFocus)site.inspect?.().editor?.focus?.();
+  };
+  dismiss.addEventListener('click',event=>{if(event.isTrusted&&!disposed)closePanel();});
+  restore.addEventListener('click',event=>{
+    if(!event.isTrusted||disposed)return;
+    panelClosed=false;panelRequested=true;dismissed=false;update();dismiss.focus();
+  });
+  card.addEventListener('keydown',event=>{
+    if(event.isTrusted&&!disposed&&event.key==='Escape'&&!event.isComposing){event.preventDefault();closePanel();}
   });
   open.addEventListener('click',event=>{
     if(!event.isTrusted||disposed||pending||projectPending||!preferencesReady||!preferences.enabled||!active())return;
@@ -335,12 +389,15 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       if(reply?.ok!==true)throw Object.assign(new Error(reply?.error?.message||'可信入口未接线'),{
         code:reply?.error?.code||'E_FILE_HANDOFF'});
       say('已打开文件审阅页。请在扩展中批准精确目录和路径；本次没有读取或共享文件。');
-    }).catch(error=>{if(!disposed)say((error.code||'E_FILE_HANDOFF')+' · '+error.message+
-      '。请先查看是否已有文件审阅页；若未打开，保存原对话草稿后刷新本页，再手动打开入口。',true);})
+    }).catch(error=>{if(!disposed)say(/Extension context invalidated/i.test(error.message)?
+      '连接已失效，请查看恢复指引。':'文件审阅页未能确认打开，请查看详情。',true,{details:
+      (error.code||'E_FILE_HANDOFF')+' · '+error.message+
+      '。请先查看是否已有文件审阅页；若未打开，保存原对话草稿后刷新本页，再手动打开入口。'});})
       .finally(()=>{pending=false;update();});
   });
   const applyPreferences=value=>{
     const next=normalizeChatGPTFilesPreferences(value),changed=!preferencesReady||next.enabled!==preferences.enabled;
+    if(preferencesReady&&!preferences.diagnosticsVisible&&next.diagnosticsVisible){panelClosed=false;panelRequested=false;}
     preferences=next;preferencesReady=true;
     if(changed){
       if(awaitingTask)retireObservation();awaitingTask=false;

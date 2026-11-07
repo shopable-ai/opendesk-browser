@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-const root=resolve('examples/sidebar-tools/cookie-editor');
+const root=resolve('projects/cookie-editor');
 const get=name=>readFile(resolve(root,name),'utf8');
 function assertSharedApp(preview){
   assert.match(preview,/import CookieEditorApp from ['"]\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx/);

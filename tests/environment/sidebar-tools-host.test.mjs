@@ -9,13 +9,14 @@ import {createSidebarTools,checkSidebarToolRequestBudget} from '../../src/ui/sid
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../projects/stay-focus/trusted/tool-host.js';
 import {createStayFocusPermissionControls} from '../../projects/stay-focus/trusted/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../projects/stay-focus/trusted/policy.js';
-import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
+import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../projects/ai-vip-share/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../projects/adblock/trusted/policy.js';
 import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
+import {normalizeToolNavigation} from '../../src/sidebar-tools/navigation-state.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {COOKIE_ACCOUNT_PROTOCOL} from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
+import {COOKIE_ACCOUNT_PROTOCOL} from '../../projects/cookie-editor/trusted/account-contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
@@ -161,7 +162,7 @@ test('installed Clipper navigation rejects malformed state without hijacking Bac
  assert.equal(f.runtime.frameRoot.children.length,0,'back returns to the extension list');
 });
 test('installed ScrapyJS uses its shared navigation without a matching release catalog',async t=>{
-  const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json',import.meta.url),'utf8'));
+  const tool=JSON.parse(await readFile(new URL('../../projects/scrapyjs/scrapyjs.opendesk-tool.json',import.meta.url),'utf8'));
   const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
     fetcher:async()=>{throw Error('Catalog unavailable');}});
   assert.equal(f.loaded.navigationAllowed,true);
@@ -998,7 +999,311 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null}={}){
+
+test('R14 optional snapshots preserve every legacy navigation shape and reject unsafe declarations',()=>{
+  for(const primary of [undefined,null,'new','edit','save'])for(const secondary of [undefined,null,'transfer','more']){
+    const old={page:'home',title:'  旧工具  ',canBack:false,...(primary===undefined?{}:{primary}),
+      ...(secondary===undefined?{}:{secondary})};
+    const expected={page:'home',title:'旧工具',canBack:false,primary:primary??null};
+    if(secondary){expected.secondary=secondary;expected.secondaryExpanded=false;}
+    assert.deepEqual(normalizeToolNavigation(old),expected);
+  }
+  const base={page:'home',title:'工具',canBack:false};
+  const actions=[{id:'library',label:' 配置库 ',icon:'library',priority:-1},
+    {id:'add',label:'添加',icon:'new',priority:2},
+    {id:'diagnostics',label:'诊断',disabledReason:'请先完成当前操作',priority:2}];
+  const state=normalizeToolNavigation({...base,headerActions:actions});
+  assert.deepEqual(state.headerActions.map(item=>item.id),['add','diagnostics','library']);
+  assert.equal(state.headerActions[2].label,'配置库');
+  assert(Object.isFrozen(state)&&Object.isFrozen(state.headerActions)&&state.headerActions.every(Object.isFrozen));
+  actions[0].label='changed';assert.equal(state.headerActions[2].label,'配置库');
+  for(const item of [
+    {id:'Bad',label:'x'},{id:'a'.repeat(33),label:'x'},{id:'a',label:''},
+    {id:'a',label:'x'.repeat(41)},{id:'a',label:'x\u202ey'},{id:'a',label:'\tx'},
+    {id:'a',label:'x',icon:'chrome'},{id:'a',label:'x',priority:1.1},
+    {id:'a',label:'x',priority:11},{id:'a',label:'x',priority:-11},
+    {id:'a',label:'x',disabledReason:''},{id:'a',label:'x',disabledReason:'x'.repeat(81)},
+    {id:'a',label:'x',disabledReason:'\u0000'},
+    ...['permission','url','html','script','callback'].map(key=>({id:'a',label:'x',[key]:'anything'}))
+  ])assert.equal(normalizeToolNavigation({...base,headerActions:[item]}),null,JSON.stringify(item));
+  for(const value of [null,{},'x',Array(1),[...Array(7)].map((_,i)=>({id:'a'+i,label:'x'})),
+    [{id:'same',label:'x'},{id:'same',label:'y'}]])
+    assert.equal(normalizeToolNavigation({...base,headerActions:value}),null);
+  assert.equal(normalizeToolNavigation({...base,headerActions:[],permission:'all'}),null);
+  assert.equal(normalizeToolNavigation({...base,secondary:'more',headerActions:[{id:'a',label:'x'}]}),null);
+  assert.equal(normalizeToolNavigation({...base,secondary:'more',headerActions:[]}).secondary,'more');
+  assert.equal(normalizeToolNavigation({...base,secondary:'transfer',headerActions:[{id:'a',label:'x'}]}).secondary,'transfer');
+});
+
+function headerMessage(f,state,revision=1){
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:f.loaded.tool.id,instance:f.loaded.instance,
+    kind:'navigation-state',state,revision}});
+}
+const headerHome={page:'home',title:'工具',canBack:false,
+  headerActions:[{id:'library',label:'配置库',icon:'library'}]};
+const headerClicks=f=>f.frame.contentWindow.sent.filter(row=>row.kind==='navigation-action'&&row.action==='header');
+const clickHeader=(f,scope=f.elements['sidebar-tool-header-actions'].data.scope,actionId='library')=>
+  f.emit(f.elements['sidebar-tool-header-actions'],'activate',{scope,actionId});
+
+test('R14 current snapshot completes the Host round trip without remounting or business RPCs',async t=>{
+  const f=await hostFixture(t);headerMessage(f,headerHome);
+  assert.equal(f.loaded.headerActionsAllowed,true);
+  const field=f.elements['sidebar-tool-header-actions'];
+  assert.equal(field.hidden,false);assert.equal(field.data.actions[0].id,'library');
+  clickHeader(f);await pause();
+  assert.equal(headerClicks(f).length,1);
+  assert.deepEqual(headerClicks(f)[0],{protocol:f.loaded.protocol,kind:'navigation-action',
+    instance:f.loaded.instance,toolId:sample.id,action:'header',actionId:'library',page:'home',revision:1});
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  headerMessage(f,{...headerHome,secondary:'more'},2);
+  assert.equal(field.data.actions.length,1,'invalid conflict retains previous accepted state');
+  headerMessage(f,{page:'home',title:'旧工具',canBack:false,secondary:'more'},3);
+  assert.equal(field.hidden,true);assert.equal(f.elements['sidebar-tool-secondary-action'].hidden,false);
+  f.emit(f.elements['sidebar-tool-secondary-action'],'click');
+  assert.equal(f.frame.contentWindow.sent.at(-1).action,'secondary');
+});
+
+for(const scenario of ['page','busy','dirty','settings','close','switch','epoch','disable','update','uninstall','stored-epoch'])
+test('R14 drops a queued action after '+scenario+' changes its owner or guard',async t=>{
+  const other={...sample,id:'other-tool'},store=new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]);
+  const gate=deferred(),entered=deferred();let holding=false;
+  const f=await hostFixture(t,{store,getHook:async keys=>{
+    if(holding&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      entered.resolve();await gate.promise;
+    }
+  }});
+  headerMessage(f,headerHome);const oldScope=f.elements['sidebar-tool-header-actions'].data.scope;
+  holding=true;clickHeader(f);await entered.promise;
+  if(scenario==='page')headerMessage(f,{...headerHome,page:'library',canBack:true},2);
+  if(scenario==='busy'||scenario==='dirty')f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',
+      dirty:scenario==='dirty',busy:scenario==='busy'}});
+  if(scenario==='settings')f.emit(f.elements['sidebar-tool-settings-open'],'click');
+  if(scenario==='close')f.host.closeTool();
+  if(scenario==='switch'){
+    f.host.closeTool();f.host.openTool(other.id);
+    const next=f.runtime.frameRoot.firstElementChild;await next.onload();
+    f.win.emit('message',{origin:'null',source:next.contentWindow,data:{...next.contentWindow.sent[0],
+      kind:'navigation-state',state:headerHome,revision:1}});
+  }
+  if(scenario==='epoch'||scenario==='stored-epoch'){
+    store.set(TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'revoked'});
+    if(scenario==='epoch')f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:store.get(TOOL_REVOCATION_EPOCHS_STORE)}});
+  }
+  if(scenario==='disable'){
+    store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+    f.changeStorage({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:store.get(SIDEBAR_TOOL_ENABLE_STORE)}});
+  }
+  if(scenario==='update'||scenario==='uninstall'){
+    const next=scenario==='update'?[{...sample,js:'void 2;'},other]:[other];
+    store.set(SIDEBAR_TOOL_STORE,next);f.change(next);
+  }
+  gate.resolve();await pause();await pause();
+  assert.equal(headerClicks(f).length,0);
+  clickHeader(f,oldScope);await pause();assert.equal(headerClicks(f).length,0);
+  if(scenario==='switch')assert.equal(f.runtime.frameRoot.firstElementChild.contentWindow.sent
+    .filter(row=>row.action==='header').length,0,'same action ID in another tool cannot receive a stale click');
+});
+
+for(const failure of ['read','package','epoch'])test('R14 Header reports current '+failure+' failure without retiring or retrying the app',async t=>{
+  let reads=0;
+  const f=await hostFixture(t,{getHook:keys=>{
+    if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      reads++;throw new Error('header storage unavailable');
+    }
+  }});
+  headerMessage(f,headerHome);
+  if(failure!=='read'){
+    // Corrupt only the authoritative read, without a storage-change event
+    // retiring the instance before the Header checks its identity.
+    f.api.storage.local.get=async keys=>{
+      reads++;
+      return Object.fromEntries(keys.map(key=>[key,
+        key===(failure==='package'?SIDEBAR_TOOL_STORE:TOOL_REVOCATION_EPOCHS_STORE)?
+          (failure==='package'?{}:[]):structuredClone(f.store.get(key))]));
+    };
+  }
+  const before=reads;
+  clickHeader(f);await pause();await pause();
+  const status=f.elements['sidebar-tool-status'];
+  assert.equal(status.hidden,false);
+  assert.equal(status.attributes['data-state'],'error');
+  assert.match(status.textContent,/Header/);
+  if(failure==='read')assert.match(status.textContent,/E_TOOL_HEADER_READ.*header storage unavailable/);
+  assert.equal(headerClicks(f).length,0);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.frame.isConnected,true);
+  assert.equal(reads-before,1,'failure does not automatically retry the action');
+});
+
+for(const mode of ['sync','async','busy'])test('R14 Header reports trusted handler failure and preserves its owner: '+mode,async t=>{
+  const tool=await officialToolFixture('ai-proxy');
+  let mounted,calls=0,disposals=0;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    trustedAIProxyPilot:{enabled:true,version:'0.3.8',mount(options){
+      mounted=options;return ()=>{disposals++;};
+    }}});
+  const token=f.host.openTool(tool.id);
+  await settle(()=>f.runtime.frameRoot.dataset.aiProxyTrusted==='true');
+  mounted.toolNavigation.setNavigation(headerHome);
+  mounted.toolNavigation.subscribe(()=>{
+    calls++;
+    if(mode==='busy')mounted.onStateChange({dirty:true,busy:true});
+    if(mode==='async')return Promise.reject(new Error('header handler failed'));
+    throw new Error('header handler failed');
+  });
+  clickHeader(f);await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-status'].attributes['data-state'],'error');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/E_TOOL_HEADER_ACTION.*Header.*header handler failed/);
+  assert.equal(calls,1,'a handler may have produced effects before failing; never replay it');
+  assert.equal(disposals,0);
+  assert.equal(f.host.openTool(tool.id),token,'the original business instance remains usable');
+});
+
+test('R14 stale trusted Header rejection cannot report into a replacement instance',async t=>{
+  const tool=await officialToolFixture('ai-proxy');
+  const gate=deferred(),entered=deferred();let mounted,calls=0;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool,sample]]]),
+    trustedAIProxyPilot:{enabled:true,version:'0.3.8',mount(options){
+      mounted=options;return ()=>{};
+    }}});
+  f.host.openTool(tool.id);
+  await settle(()=>f.runtime.frameRoot.dataset.aiProxyTrusted==='true');
+  mounted.toolNavigation.setNavigation(headerHome);
+  mounted.toolNavigation.subscribe(async()=>{
+    calls++;entered.resolve();await gate.promise;throw new Error('retired handler failed');
+  });
+  clickHeader(f);await entered.promise;
+  f.host.closeTool();f.host.openTool(sample.id);
+  const next=f.runtime.frameRoot.firstElementChild;await next.onload();
+  const status=f.elements['sidebar-tool-status'];
+  const before={text:status.textContent,state:status.attributes['data-state'],hidden:status.hidden};
+  gate.resolve();await pause();await pause();
+  assert.deepEqual({text:status.textContent,state:status.attributes['data-state'],hidden:status.hidden},before);
+  assert.equal(calls,1);
+  assert.equal(next.isConnected,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,next);
+  assert.equal(next.contentWindow.sent.filter(row=>row.action==='header').length,0);
+});
+
+test('R14 stale Header read rejection cannot overwrite the newly opened app status',async t=>{
+  const other={...sample,id:'next-header-tool'};
+  const gate=deferred(),entered=deferred();let holding=false;
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]),getHook:async keys=>{
+    if(holding&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      entered.resolve();await gate.promise;throw new Error('old header read failed');
+    }
+  }});
+  headerMessage(f,headerHome);holding=true;clickHeader(f);await entered.promise;
+  f.host.closeTool();f.host.openTool(other.id);
+  const next=f.runtime.frameRoot.firstElementChild;await next.onload();
+  const status=f.elements['sidebar-tool-status'];
+  const before={text:status.textContent,state:status.attributes['data-state'],hidden:status.hidden};
+  gate.resolve();await pause();await pause();
+  assert.deepEqual({text:status.textContent,state:status.attributes['data-state'],hidden:status.hidden},before);
+  assert.equal(next.isConnected,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,next);
+  assert.equal(headerClicks(f).length,0);
+  assert.equal(next.contentWindow.sent.filter(row=>row.action==='header').length,0);
+});
+
+test('R14 optional projection can be disabled while legacy navigation remains usable',async t=>{
+  const f=await hostFixture(t,{headerActionsEnabled:false});
+  assert.equal(f.loaded.headerActionsAllowed,false);
+  headerMessage(f,headerHome);assert.equal(f.elements['sidebar-tool-header-actions'].hidden,true);
+  headerMessage(f,{page:'library',title:'配置库',canBack:true});
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.frame.contentWindow.sent.at(-1).action,'back');
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+});
+
+for(const enhanced of [false,true])test('R14 actual Bridge negotiates snapshots and fences stale actions: '+enhanced,async t=>{
+  const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),events=[],sent=[];
+  root.dispatchEvent=event=>{events.push(structuredClone(event.detail));return true;};
+  const parent={postMessage(data){sent.push(data);f.win.emit('message',{
+    origin:'null',source:f.frame.contentWindow,data});}};
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
+    window:sandboxWindow,parent,CustomEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:header-contract',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:{...f.loaded,headerActionsAllowed:enhanced}});
+  const sdk=sandboxWindow.OpenDeskTool;
+  assert.equal(sdk.navigationFeatures.headerActions,enhanced);
+  assert.equal(sdk.setNavigation(headerHome),enhanced);
+  if(!enhanced){
+    assert.equal(sdk.setNavigation({page:'home',title:'旧导航',canBack:false,primary:'new'}),true);
+    assert.equal(sent.filter(row=>row.kind==='navigation-state').length,1);
+    assert.equal(Object.hasOwn(sent.find(row=>row.kind==='navigation-state'),'revision'),false);
+    return;
+  }
+  clickHeader(f);await pause();
+  const click=headerClicks(f).at(-1);
+  sandboxWindow.emit('message',{source:parent,data:click});
+  assert.deepEqual(events.at(-1),{action:'header',actionId:'library',page:'home'});
+  assert.equal(sdk.setNavigation({...headerHome,page:'library',canBack:true}),true);
+  const count=events.length;sandboxWindow.emit('message',{source:parent,data:click});
+  assert.equal(events.length,count,'previous page revision is rejected even with a reused ID');
+  const current={...click,page:'library',revision:2};
+  for(const invalid of [{...current,instance:'stale'},{...current,toolId:'other'},
+    {...current,actionId:'permission'}, {...current,revision:1}])
+    sandboxWindow.emit('message',{source:parent,data:invalid});
+  assert.equal(events.length,count);
+  for(const state of [{dirty:true,busy:false},{dirty:false,busy:true}]){
+    sdk.setState(state);
+    sandboxWindow.emit('message',{source:parent,data:current});
+    assert.equal(events.length,count,'queued delivery cannot bypass locally changed dirty/busy');
+  }
+  sdk.setState({dirty:false,busy:false});
+  sandboxWindow.emit('message',{source:parent,data:current});
+  assert.equal(events.length,count+1,'idle current snapshot remains usable');
+  sandboxWindow.emit('message',{source:parent,data:{...current,action:'back'}});
+  assert.deepEqual(events.at(-1),{action:'back'},'legacy event detail remains unchanged');
+});
+
+test('R14 stale storage corruption cannot retire the newly opened tool',async t=>{
+  const other={...sample,id:'next-tool'},store=new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]);
+  const gate=deferred(),entered=deferred();let holding=false;
+  const f=await hostFixture(t,{store,getHook:async keys=>{
+    if(holding&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      entered.resolve();await gate.promise;
+    }
+  }});
+  headerMessage(f,headerHome);holding=true;clickHeader(f);await entered.promise;
+  f.host.closeTool();f.host.openTool(other.id);
+  const next=f.runtime.frameRoot.firstElementChild;await next.onload();
+  store.set(TOOL_REVOCATION_EPOCHS_STORE,[]);
+  gate.resolve();await pause();await pause();
+  assert.equal(next.isConnected,true,'stale receipts cannot change the new instance lifecycle');
+  assert.equal(f.runtime.frameRoot.firstElementChild,next);
+  assert.equal(headerClicks(f).length,0);
+});
+
+test('R14 Clipper legacy fallback replaces the enhanced snapshot without remounting',async t=>{
+  const tool={...sample,id:'web-markdown-clipper'};
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  headerMessage(f,headerHome);
+  const oldScope=f.elements['sidebar-tool-header-actions'].data.scope;
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,
+    kind:'navigation-state',page:'library'}});
+  assert.equal(f.elements['sidebar-tool-header-actions'].hidden,true);
+  assert.notEqual(f.elements['sidebar-tool-header-actions'].data.scope,oldScope);
+  clickHeader(f,oldScope);await pause();assert.equal(headerClicks(f).length,0);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.frame.contentWindow.sent.at(-1).action,'back');
+  headerMessage(f,{...headerHome,page:'detail',title:'详情',canBack:true},2);
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true,
+    'enhanced navigation does not inherit the old Clipper primary action');
+  assert.match(f.elements['sidebar-tool-title'].textContent,/详情/);
+});
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -1021,7 +1326,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
   configureApi?.(api);
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -4853,7 +5158,7 @@ test('fixed Task local installation review shows approved ID, version and both h
 async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
   const tool=await officialToolFixture('ai-send-queue');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
-  const pkg=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
   const calls=[],store=new Map([[SIDEBAR_TOOL_STORE,existingTool?[tool]:[]]]);
   let pages=[],granted=false,toolWritten=false,inClick=false,toolAttempted=false;
   const pendingRead=deferred(),readEntered=deferred();

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 
-const module = await import('../../examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js').catch(error => {
+const module = await import('../../projects/cookie-editor/trusted/account-session-crypto.js').catch(error => {
   if (error.code === 'ERR_MODULE_NOT_FOUND') return {};
   throw error;
 });

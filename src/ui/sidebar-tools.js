@@ -41,8 +41,8 @@ import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS,
   COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
-import {presentCookieServiceState} from '../../examples/sidebar-tools/cookie-editor/trusted/service-view.js';
+  from '../../projects/cookie-editor/trusted/account-contract.js';
+import {presentCookieServiceState} from '../../projects/cookie-editor/trusted/service-view.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
 import {resumeDefaultPagePreinstall} from '../scripting/user-scripts/default-preinstall.js';
@@ -73,7 +73,7 @@ import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_O
 import {TIME_REVIEW_KEY} from '../../projects/time-review/trusted/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../projects/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../projects/adblock/trusted/policy.js';
-import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
+import {AI_ID,AI_CAPABILITY} from '../../projects/ai-vip-share/trusted/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../projects/prompt-shortcuts/trusted/policy.js';
 import {PROMPT_ASSET_OPERATIONS} from '../../projects/prompt-shortcuts/trusted/asset-contract.js';
 import {executePromptAsset} from '../../projects/prompt-shortcuts/trusted/asset-host.js';
@@ -165,7 +165,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -235,6 +235,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const title=view.fields["sidebar-tool-title"],openTabButton=view.fields["sidebar-tool-open-tab"];
   const primaryAction=view.fields["sidebar-tool-primary-action"];
   const secondaryAction=view.fields["sidebar-tool-secondary-action"];
+  const headerActions=view.fields["sidebar-tool-header-actions"];
   const conversationToggle=view.fields['sidebar-tool-conversation-toggle'];
   let conversationVisible=false,conversationOpen=false;
   function setConversationState({visible,open}){
@@ -253,6 +254,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipPage=null;
   // A display-only page hint; the sandbox remains the only business history owner.
   let toolNavigation=null,navigationAllowed=false;
+  let toolNavigationRevision=0,navigationProjectionRevision=0,trustedNavigationHandler=null;
   // The signed static Bookmark React editor alone may register a real Back target.
   let bookmarkNavigation=null,bookmarkNavigationBack=null;
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
@@ -889,8 +891,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (nativePending||nativeUI?.kind==='knowledge')));
   const toolById=id=>installed.find(row=>row.id===id);
   const hasCurrentNavigation=()=>navigationAllowed&&!readOnlyPreview&&active&&
+    !enableReadError&&sidebarToolEnabled(enableRecords,active.id)&&
     frameRevocationEpoch===(revocationEpochs[active.id]??null)&&
     samePackage(active,toolById(active.id));
+  const headerScope=()=>JSON.stringify([active?.id,instance,toolNavigation?.page,navigationProjectionRevision]);
+  function acceptNavigation(value,revision){
+    const next=normalizeToolNavigation(value);
+    if(!next)return false;
+    if(Object.hasOwn(next,'headerActions')&&(!headerActionsEnabled||
+       !Number.isSafeInteger(revision)||revision<=toolNavigationRevision))return false;
+    toolNavigation=next;clipPage=null;
+    if(Number.isSafeInteger(revision)&&revision>toolNavigationRevision)toolNavigationRevision=revision;
+    navigationProjectionRevision++;
+    render();return true;
+  }
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
   // Bind to the actual installed package and epoch; consent and one-shot
   // write intents remain separate from official release discovery.
@@ -1059,7 +1073,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     trustedPromptPilot?.releaseConversation?.();
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;toolParked=false;frameDraft='';clipPage=null;
-    toolNavigation=null;navigationAllowed=false;
+    toolNavigation=null;navigationAllowed=false;toolNavigationRevision=0;
+    navigationProjectionRevision++;trustedNavigationHandler=null;
     bookmarkNavigation=null;bookmarkNavigationBack=null;
     bookmarkFallbackNotice='';
     nativePending=false;
@@ -1460,7 +1475,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const visibleTitle=trustedTocTitle?
       uiMessage(toolLocaleContext(active).localization||readingTocCatalog,currentTocLocale,'title'):active?.title;
     const clipNavigation=hasCurrentNavigation()&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
-    const navigation=hasCurrentNavigation()&&frame&&toolNavigation?toolNavigation:null;
+    const navigation=hasCurrentNavigation()&&(frame||nativeUI?.kind==='ai-proxy')&&toolNavigation?toolNavigation:null;
     const nativeBookmarkNavigation=active?.id===TRUSTED_BOOKMARK_ID&&
       nativeUI?.kind==='bookmark'?bookmarkNavigation:null;
     // Display only. Trusted Settings overrides an admitted editor/sandbox page.
@@ -1494,6 +1509,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setToolFieldAttribute(view,secondaryAction,'aria-label',secondaryLabel);
     setToolFieldAttribute(view,secondaryAction,'aria-expanded',
       String(Boolean(secondary&&navigation?.secondaryExpanded)));
+    const optionalActions=headerActionsEnabled&&!tocSettingsOpen&&!toolParked&&visible?
+      navigation?.headerActions??[]:[];
+    const headerBlocked=busy||toolSaving||toolDirty||Boolean(pendingAction);
+    const headerReason=toolDirty?'请先保存或取消未保存的草稿':
+      headerBlocked?'请先完成当前操作；结果未知时请核对原操作':'';
+    patchToolField(view,headerActions,{hidden:!optionalActions.length,disabled:headerBlocked,
+      data:{scope:optionalActions.length?headerScope():'',
+        disabledReason:headerReason,
+        actions:optionalActions.map(action=>({...action,
+          ...(headerReason?{disabledReason:headerReason}:{})}))}});
 
     patchToolField(view, removeButton, {title: readOnlyPreview?'只读预览尚未安装，不能卸载':
       active?(trustedTocTitle?
@@ -1643,9 +1668,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){fallback();return;}
         try{
+          navigationAllowed=true;
           const dispose=trustedAIProxyPilot.mount({container:frameRoot,
             request:(operation,payload)=>requestTrustedAIProxy(tool,token,epoch,operation,payload),
             locale:toolLocaleContext(tool).locale,
+            toolNavigation:Object.freeze({
+              navigationFeatures:Object.freeze({headerActions:headerActionsEnabled===true}),
+              setNavigation(state){
+                if(!sameInstance(trustedAIProxySource,token)||!hasCurrentNavigation())return false;
+                return acceptNavigation(state,toolNavigationRevision+1);
+              },
+              subscribe(handler){
+                if(typeof handler!=='function'||!sameInstance(trustedAIProxySource,token))return ()=>{};
+                trustedNavigationHandler=handler;
+                return ()=>{if(instance===token&&trustedNavigationHandler===handler)trustedNavigationHandler=null;};
+              }
+            }),
             onStateChange:state=>{
               if(disposed||active!==tool||instance!==token)return;
               const changed=toolDirty!==Boolean(state?.dirty)||toolSaving!==Boolean(state?.busy);
@@ -1908,6 +1946,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
+        headerActionsAllowed:approvedNavigation&&headerActionsEnabled===true,
         ...toolLocaleContext(tool)},'*',transferred);
       // A pre-load hint may have arrived before the sandbox bound its instance.
       lastHostHeight=null;
@@ -3694,6 +3733,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(message.kind==='dirty'){
       toolDirty=true;
       if(readOnlyPreview)previewDirty=true;
+      render();
       return;
     }
     if(message.kind==='edit-state'){
@@ -3708,10 +3748,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!hasCurrentNavigation())return;
       if(active?.id==='web-markdown-clipper'&&
          Object.hasOwn(clipNavigationTitles,message.page)){
+        toolNavigation=null;navigationProjectionRevision++;
         clipPage=message.page;render();
       }else{
-        const next=normalizeToolNavigation(message.state);
-        if(next){toolNavigation=next;render();}
+        acceptNavigation(message.state,message.revision);
       }
       return;
     }
@@ -4737,15 +4777,54 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return true;
   };
   const requestBusinessNavigation=action=>{
-    if(!hasCurrentNavigation()||!toolNavigation||!frame?.contentWindow||!instance)return false;
+    if(!hasCurrentNavigation()||!toolNavigation||!instance||
+       (!frame?.contentWindow&&!trustedNavigationHandler))return false;
     if(action==='back'&&!toolNavigation.canBack||
        action==='primary'&&!toolNavigation.primary||
        action==='secondary'&&!toolNavigation.secondary)return false;
     if(toolSaving){notice(toolBusyNotice,true);return true;}
+    if(nativeUI?.kind==='ai-proxy'&&trustedNavigationHandler){
+      trustedNavigationHandler({action});return true;
+    }
     frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
       kind:'navigation-action',instance,toolId:active.id,action},'*');
     return true;
   };
+  // UI declarations never authorize operations. Re-read the actual installation
+  // before delivery, then recheck the captured page/snapshot after that await.
+  // No original trusted click or permission token is forwarded to the app.
+  const requestHeaderNavigation=async({actionId,scope}={})=>{
+    const current=()=>headerActionsEnabled&&hasCurrentNavigation()&&visible&&!toolParked&&
+      !tocSettingsOpen&&!busy&&!toolSaving&&!toolDirty&&!pendingAction&&
+      scope===headerScope()&&toolNavigation?.headerActions?.some(action=>
+        action.id===actionId&&!action.disabledReason);
+    if(!current())return;
+    const tool=active,token=instance,epoch=frameRevocationEpoch;
+    let failureCode='E_TOOL_HEADER_READ';
+    try{
+      const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+      if(active!==tool||instance!==token||!current())return;
+      failureCode='E_TOOL_HEADER_IDENTITY';
+      const installedTool=requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]).find(row=>row.id===tool.id);
+      const epochs=requireToolRevocationEpochs(state[TOOL_REVOCATION_EPOCHS_STORE]);
+      if(!installedTool||!samePackage(tool,installedTool)||
+         !sidebarToolEnabled(state[SIDEBAR_TOOL_ENABLE_STORE],tool.id)||
+         (epochs[tool.id]??null)!==epoch||active!==tool||instance!==token||!current())return;
+      const detail={action:'header',actionId,page:toolNavigation.page};
+      failureCode='E_TOOL_HEADER_ACTION';
+      if(nativeUI?.kind==='ai-proxy'&&trustedNavigationHandler)await trustedNavigationHandler(detail);
+      else if(frame?.contentWindow)frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
+        kind:'navigation-action',instance:token,toolId:tool.id,...detail,revision:toolNavigationRevision},'*');
+    }catch(error){
+      // Retired requests must not overwrite a newer instance/page's receipt.
+      // A handler may already have produced effects: report, never replay or
+      // destroy its business instance, even if it became dirty/busy before failing.
+      if(disposed||active!==tool||instance!==token||scope!==headerScope()||!hasCurrentNavigation())return;
+      notice((error?.code||failureCode)+'：Header 操作未确认完成：'+
+        String(error?.message||error).slice(0,240)+'；请在原应用核对，不会自动重试。',true);
+    }
+  };
+  listen(headerActions,'activate',event=>{void requestHeaderNavigation(event);});
   listen(backButton,'click',()=>{
     if(busy)return;
     if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}

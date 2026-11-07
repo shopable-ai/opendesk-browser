@@ -9,7 +9,7 @@ const reviewed=[
   ['examples/sidebar-tools/time-review/trusted/host-controls.js','6cb8a7e357a5a9f8011ae755dcbbbde6cde8578b'],
   ['examples/sidebar-tools/stay-focus/trusted/host-controls.js','65346648494b88fbf434a5a951769edba445c32e'],
   ['examples/sidebar-tools/stay-focus/trusted/service.js','8106c72e1009c662b8af7376a1aace51009ae198','sw.js'],
-  ['examples/sidebar-tools/ai-vip-share/trusted/host-controls.js','d00a67b654d109ac854fbd0691f263daabf6f607']
+  ['projects/ai-vip-share/trusted/host-controls.js','d00a67b654d109ac854fbd0691f263daabf6f607']
 ];
 const describe=(source,root=process.cwd(),target='ui/sidebar-tool-host.js')=>describeBundle({
   chunk:{fileName:target,modules:{[resolve(root,source)]:{originalLength:1,renderedLength:1}}},root,lock:{packages:{}}

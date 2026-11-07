@@ -2,6 +2,28 @@
 
 状态：目录设计与渐进整理合同；2026-10-30。本文只规定项目组织和验证选择，整体开发仍走[唯一扩展工作流](../../.agents/workflows/extension-creation.md)。现有项目没有因本文自动迁移，命令能力以实际脚本为准。
 
+## 五项目迁移执行目标与关键条件（2026-11-08）
+
+本轮已授权将五个现有业务 owner 由 `examples/sidebar-tools/<id>/` 迁至 `projects/<id>/`：`projects/ai-vip-share/`、`projects/cookie-editor/`、`projects/ai-send-queue/`、`projects/browser-fingerprint/`、`projects/scrapyjs/`。这是对下文早期单项目试点范围的本轮明确扩展；不改业务职责，不保留同 ID 副本，不扩为全仓历史资料改写。
+
+关键验证条件：保持配置 ID、安装身份、权限/能力、数据合同及正式包字节；当前有效文档路径、外部相对链接、构建输入和 CI/测试发现须指向新 owner，相关测试不漏选、不重复。`app:update` 已按配置 `id` 在 `projects/` 与 `examples/sidebar-tools/` 唯一发现，重复 owner/ID 和符号链接拒绝；主代理 2026-11-08 回报相关 7 项测试通过，仍不自动发现全部业务 tests，须显式执行相关测试。移动导致的来源路径绑定仅按原审查规则重绑，来源 pin、SHA、执行世界、撤权与未知副作用保护不得放宽；已有失败保留，不以路径更新冒充 PASS。
+
+文档同步仅检查本轮有效引用和必要链接；历史 evidence、prompts、workstreams、旧验收报告、发布账本与原始证据保留当时路径。迁移的定向源码/构建/发现证据由对应 owner 提供；production、真实安装、完整矩阵及评分等正式验收延期，未执行仍为 `NOT_TESTED`。
+
+### 本次目录迁移验证结果（2026-11-08）
+
+| 关键条件 | 本轮结果 |
+| --- | --- |
+| 唯一 owner 与文件保全 | 五个旧目录均已移除；771 个原已跟踪文件在新 owner 齐全，已有忽略产物随整目录移动；历史 evidence 字节保留 |
+| 身份与交付不漂移 | 五项配置 ID、版本、能力、数据合同未改；原正式 Sidebar/Page/Controller 包字节和 SHA 保留，不因目录移动晋升 |
+| 开发与发现可用 | 五个项目均完成局部编译；CI `inspect` 五项通过，声明脚本存在且无重复；原 fixture symlink 已指向 `projects/scrapyjs/fixtures` |
+| 公共迁移门禁 | App update、CI、官方 Tool/Page Catalog、Queue 安装身份及 Cookie 选择等定向 105 项通过；Cookie 精确来源/目标、漂移和符号链接拒绝 10 项通过；唯一业务 owner 检查通过 |
+| 项目同组回归 | AI VIP 前后均 227 通过 / 9 失败；Cookie 前后均 459 通过 / 10 失败 / 1 跳过；其余三个项目合计前后均 115 通过 / 4 失败。保留原失败，不宣称业务全绿 |
+| 来源锁保持 | 七个可信文件仅修正外部静态 import 的父目录层级，解析目标相同；精确 blob pin 随受审新字节更新，准入目标和拒绝规则保持 |
+| 既有与并行缺口 | 项目同组既有失败保留，未改正式包制造 PASS。AI VIP、队列和指纹已在迁移前观察到正式包不同源；Cookie 的迁移前同源检查因迁移接线先行而未取得有效基线，不能断言其当前漂移早已存在；ScrapyJS 迁移前被编译回执阻断。四项最新检查能到达“正式包与源码不同”，不能当作同源通过。ScrapyJS 在迁移后有并行 `src/App.jsx` 新编辑，已生成的编译回执随之失效；须由该源码 owner 在自己的迭代中重编，不能沿用此前编译 PASS 证明最新源码 |
+
+本轮受影响根测试的较大组合曾因 AI VIP fixture 失败持有事件循环而中止；该组合没有完整回执，不计 PASS。最终仅上述明确完成的定向门禁计通过。并行 AI Proxy 源码的精确 pin 漂移还会阻断部分共享包检查，本轮保留保护、不代替 owner 重绑。正式安装、Chrome、production 和完整业务回归仍未执行。本机详细日志保存在忽略目录 `artifacts/project-owner-migration/`，不作为正式发行或原生回执。
+
 ## 执行目标与关键条件（2026-10-30 补充）
 
 **总目标：让维护者在扩展的唯一项目中找到业务源码、必要测试、预览和交付入口，用与本次变化相称的验证完成日常修改；减少无关构建与重复检查，保留真实功能及权限保护。** 不以删除多少测试文件、覆盖率数字或目录外观作为成果。
@@ -198,7 +220,7 @@ projects/<id>/                         # 或已核实的现有项目根
 日常从仓库根直接选已有文件，例如：
 
 ```sh
-node --test examples/sidebar-tools/ai-vip-share/tests/cookie-journal.test.mjs
+node --test projects/ai-vip-share/tests/cookie-journal.test.mjs
 # 单个行为可再加 --test-name-pattern，文件选择仍保持明确
 ```
 
@@ -208,7 +230,7 @@ CI 是提交后的回归保障，开发是定位本次变化，两者不使用�
 
 ## 6. 当前支持与明确缺口
 
-以下是 2026-10-30 的源码核对，不是命令执行或产品验收结果：
+以下以 2026-10-30 的源码核对为基线；`app:update` 行补充主代理 2026-11-08 的实现与定向测试回报，不代表本轮文档同步执行了这些命令或完成产品验收：
 
 | 入口 | 当前支持 | 约束 / 后续动作 |
 | --- | --- | --- |
@@ -217,7 +239,7 @@ CI 是提交后的回归保障，开发是定位本次变化，两者不使用�
 | 同一 CI 的 `node` 子命令 | 运行公共 BASE_TESTS 与项目测试，然后检查候选收据 | 依赖前面的 build 产物；不是无需构建的本地快速入口 |
 | 同一 CI 的 plan | 根 `tests/`、`scripts/`、`src/` 等变化会选择全部应用 | 路径过宽是候选优化点；迁本工具测试后可减少部分无关选择，不能声称已实现精确影响分析 |
 | `scripts/build-sidebar-tool.mjs` | 接受实际项目路径，按配置选文件，原打包器负责同源晋升 | 不创建第二打包器；移动构建输入后原来源证据可能失效 |
-| `scripts/app-update.mjs` | 目前固定解析 `examples/sidebar-tools/<id>/`；只运行硬编码的部分根测试 | 尚不支持任意 projects owner，也不自动发现项目 tests；不能用“app:update 成功”替代项目业务验证。迁移前由平台 owner 最小修复该入口，或使用原路径参数打包/晋升命令并显式执行相关项目测试 |
+| `scripts/app-update.mjs` | 已按配置 `id` 在 `projects/` 与 `examples/sidebar-tools/` 唯一发现 owner，拒绝重复 owner/ID 及符号链接；主代理回报相关 7 项测试通过 | 仍不自动发现全部业务 tests，须显式执行相关业务测试；也可继续原路径参数打包/晋升链。此处不证明真实安装或正式验收 |
 | Page / Controller | 各自已有配置、验证与安装链 | Sidebar app-ci 发现规则不自动适用；在原项目 README 显式保留定向命令，不伪造统一 runner |
 
 ## 7. 渐进整理顺序与完成标准
@@ -240,7 +262,7 @@ CI 是提交后的回归保障，开发是定位本次变化，两者不使用�
 
 审计另发现 AI VIP 的会员测试读取 `artifacts/sidebar-tools/.../candidate`，而通用 CI 构建写入 `artifacts/app-ci/.../candidate`；干净环境是否失败尚未运行验证。scrapyjs 声明 React runtime 却没有 app.ci.json，当前通用 CI 的显式 profile 要求不满足。二者作为原 owner 的具体待办，不在本文假报修复，也不触碰正在并行修改的文件。它们不改变新目录设计，但相应项目的自动执行状态不能报 PASS。
 
-源码依据：根 [package.json](../../package.json) 的 pretest/test；[app-ci](../../scripts/app-ci.mjs) 的 projects/ownedTests/load/plan/testNode；[app-update](../../scripts/app-update.mjs) 的 updateApp；[唯一打包器](../../scripts/build-sidebar-tool.mjs) 的 create/promote；[正式 Catalog](../../official-tools/catalog.json) 的 project；[现行测试指南](../framework/testing-guide.md)。测试分类样例：[混合工具/宿主测试](../../tests/environment/ai-vip-share-r5-ui.test.mjs)、[公共 Shared UI](../../tests/environment/sidebar-shared-ui-r16.test.mjs)、[项目内行为测试](../../examples/sidebar-tools/ai-vip-share/tests/cookie-journal.test.mjs)。
+源码依据：根 [package.json](../../package.json) 的 pretest/test；[app-ci](../../scripts/app-ci.mjs) 的 projects/ownedTests/load/plan/testNode；[app-update](../../scripts/app-update.mjs) 的 updateApp；[唯一打包器](../../scripts/build-sidebar-tool.mjs) 的 create/promote；[正式 Catalog](../../official-tools/catalog.json) 的 project；[现行测试指南](../framework/testing-guide.md)。测试分类样例：[混合工具/宿主测试](../../tests/environment/ai-vip-share-r5-ui.test.mjs)、[公共 Shared UI](../../tests/environment/sidebar-shared-ui-r16.test.mjs)、[项目内行为测试](../../projects/ai-vip-share/tests/cookie-journal.test.mjs)。
 
 本次补充的静态反例核对（只读源码/配置，不是运行结果）：
 

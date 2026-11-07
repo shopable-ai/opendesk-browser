@@ -302,8 +302,8 @@ test('R2.6 actual draft bridge retains account names but excludes React Cookie v
   const require=createRequire(import.meta.url),React=require('react');
   const {renderToStaticMarkup}=require('react-dom/server');
   const built=buildSync({stdin:{contents:`
-    export {CookieValueField} from './examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx';
-    export {default as CookieImport} from './examples/sidebar-tools/cookie-editor/app/components/CookieImport.jsx';`,
+    export {CookieValueField} from './projects/cookie-editor/app/components/CookieEditorView.jsx';
+    export {default as CookieImport} from './projects/cookie-editor/app/components/CookieImport.jsx';`,
     resolveDir:new URL('../..',import.meta.url).pathname},bundle:true,write:false,
     platform:'node',format:'cjs',external:['react','@opendesk/ui']}).outputFiles[0].text;
   const module={exports:{}};

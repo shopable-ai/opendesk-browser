@@ -16,7 +16,7 @@ async function render(props){
   component??=(async()=>{
     try{
       const result=await build({
-        entryPoints:[resolve('examples/sidebar-tools/cookie-editor/app/components/CookiePermissions.jsx')],
+        entryPoints:[resolve('projects/cookie-editor/app/components/CookiePermissions.jsx')],
         bundle:true,write:false,platform:'node',format:'esm',jsx:'transform',
         alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},
         plugins:[{name:'shared-react',setup(builder){

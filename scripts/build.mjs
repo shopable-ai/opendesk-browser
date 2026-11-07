@@ -37,7 +37,7 @@ await buildAdblockReact({log:false});
 await buildCookieEditorReactIfOfficial({log:false});
 // AI VIP Share is a compiled official React tool. Build source-bound JS/CSS
 // before officialToolInputs reads the verified compiled artifacts.
-await buildVite({configFile:resolve('examples/sidebar-tools/ai-vip-share/vite.config.mjs'),
+await buildVite({configFile:resolve('projects/ai-vip-share/vite.config.mjs'),
   logLevel:'warn',clearScreen:false});
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;

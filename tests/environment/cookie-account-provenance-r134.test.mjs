@@ -13,15 +13,15 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 // Current source fixtures must match exact reviewed Git blobs before admission;
 // no generated or installed package can inherit this approval.
 // No source is executed, transformed, built or installed by these tests.
-const prefix='examples/sidebar-tools/cookie-editor/';
+const prefix='projects/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
-  'trusted/account-service.js':'4703267b35a50933374368d289415ffaf2d38baf',
-  'trusted/account-share.js':'6aa681f2c82299471f55586e9783d21dee95128e',
-  'trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
+  'trusted/account-service.js':'2fa963b57e188471702bf83e55d3e859ccc7dcdc',
+  'trusted/account-share.js':'cd29280b08bddac083ad14a678666f11603596dd',
+  'trusted/account-session-share.js':'b211f3558ad2109817653277b384b07ab64ff27b',
   'trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
   'trusted/service-connections.js':'fcba7f4eae2d3dcc43a066eedc0f0b6f7d284bd9',
-  'trusted/service-session.js':'a688d521257c7c3f686aaf4f1d7f33d65192e88c',
+  'trusted/service-session.js':'ad06ade11c2a3bca095e4b698f64e7f57a8b1835',
   'trusted/service-view.js':'437172f359d0f9008fb81d932cce4ee179856515',
   'trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
@@ -207,22 +207,22 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   for(const name of Object.keys(pins))deps(name);
   assert.deepEqual(deps(contract),[]);
   assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
-    './account-session-crypto.js','../../../../src/platform/protocol.js']);
+    './account-session-crypto.js','../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
-    '../../../../src/platform/protocol.js']);
+    '../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-crypto.js'),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
   assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);
-  assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js',
-    '../../../../src/platform/protocol.js']);
+  assert.deepEqual(deps('trusted/service-session.js'),['../../../src/native-agent/managed-service-protocol.js',
+    '../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/service-view.js'),[]);
   assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
-    './account-session-crypto.js','../../../../src/platform/protocol.js']);
+    './account-session-crypto.js','../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
-    '../../../../src/platform/protocol.js']);
+    '../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-crypto.js'),[]);
-  assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
+  assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../src/')),
     ['../app/domain/account-switch-url.js','./account-vault.js','./account-share.js','./service-connections.js','./service-session.js','./account-contract.js','./account-contract.js']);
 });
 

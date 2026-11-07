@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {runControllerVm} from '../../examples/sidebar-tools/ai-vip-share/tests/helpers/controller-vm.mjs';
+import {runControllerVm} from '../../projects/ai-vip-share/tests/helpers/controller-vm.mjs';
 import {performance} from 'node:perf_hooks';
 import {createHash,webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const sourcePath='examples/sidebar-tools/ai-vip-share/src/main.js';
-const htmlPath='examples/sidebar-tools/ai-vip-share/src/App.jsx';
+const sourcePath='projects/ai-vip-share/src/main.js';
+const htmlPath='projects/ai-vip-share/src/App.jsx';
 const BOUND='https://members.example.org'; // VM-only fixture; never a production endpoint.
 const originalConfig="const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:'',voucherStatus:''});";
 const testConfig="const BUSINESS_ENDPOINTS=Object.freeze({member:'"+BOUND+
@@ -95,7 +95,7 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 candidate package matches current source and grants only reviewed capabilities',async()=>{
   const pkg=JSON.parse(await readFile('artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json','utf8'));
-  assert.deepEqual(pkg,await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share'),
+  assert.deepEqual(pkg,await createSidebarToolPackage('projects/ai-vip-share'),
     'temporary candidate must match the current source-bound compiled output');
   assert.equal(pkg.version,'1.4.10');
   const view=await readFile(htmlPath,'utf8');

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as service from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
+import * as service from '../../projects/cookie-editor/trusted/account-service.js';
 
 const origin='https://example.com';
 const context=()=>({origin,host:'example.com',storeId:'receiver-store',

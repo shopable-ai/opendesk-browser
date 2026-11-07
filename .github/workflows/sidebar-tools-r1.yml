@@ -88,7 +88,7 @@ jobs:
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
       - name: Compile AI VIP Share React before package-consuming tests
-        run: npm run build --prefix examples/sidebar-tools/ai-vip-share
+        run: npm run build --prefix projects/ai-vip-share
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
           node --test tests/environment/ai-vip-share-r2.test.mjs tests/environment/ai-vip-share-r21-lifecycle.test.mjs tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tool-multiscript-r72.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
@@ -144,15 +144,15 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile AI VIP Share React before package-consuming tests
-        run: npm run build --prefix examples/sidebar-tools/ai-vip-share
+        run: npm run build --prefix projects/ai-vip-share
       - name: R5.8 durable redemption recovery, member UI parity and trusted STOP
         run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-ui-parity.test.mjs
       - name: AI VIP Share confirmed HTML preview UX and interactions (Node fixtures)
-        run: node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs examples/sidebar-tools/ai-vip-share/preview/test-ui.mjs
+        run: node --test projects/ai-vip-share/preview/test-r41.mjs projects/ai-vip-share/preview/test-ui.mjs
       - name: Package current AI VIP Share standalone tool and verify exact source version
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
-          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json','utf8'));const source=JSON.parse(readFileSync('examples/sidebar-tools/ai-vip-share/tool.config.json','utf8'));if(p.id!=='ai-vip-share'||p.version!==source.version||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS',p.version)"
+          node scripts/build-sidebar-tool.mjs projects/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json','utf8'));const source=JSON.parse(readFileSync('projects/ai-vip-share/tool.config.json','utf8'));if(p.id!=='ai-vip-share'||p.version!==source.version||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS',p.version)"
       - name: R5 source validation
         run: npm run check
       - name: R5 production and development Browser candidates

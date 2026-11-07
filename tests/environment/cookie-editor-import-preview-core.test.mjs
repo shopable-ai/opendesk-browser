@@ -5,7 +5,7 @@ import {transformSync} from 'esbuild';
 
 // Execute the actual component handlers with a small hook/element harness.
 // No browser, Host, persistent outputs or package build is involved.
-const source=readFileSync(new URL('../../examples/sidebar-tools/cookie-editor/app/components/CookieImport.jsx',import.meta.url),'utf8');
+const source=readFileSync(new URL('../../projects/cookie-editor/app/components/CookieImport.jsx',import.meta.url),'utf8');
 const code=transformSync(source.replace(/^import .*;\n/gm,'').replace('export default function','function'),
   {loader:'jsx',jsx:'transform'}).code;
 function mount(overrides={}){

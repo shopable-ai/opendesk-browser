@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createCookieAccountService,validateAccountCookieRow}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
+  from '../../projects/cookie-editor/trusted/account-service.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_STORE_KEY}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
+  from '../../projects/cookie-editor/trusted/account-contract.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash}
   from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';

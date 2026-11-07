@@ -511,9 +511,12 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : undefined;
           const errorCode = code ? safeStatusCode(code) : errorCodeOf(detail);
           // Retain known business validation text, never arbitrary adapter error details.
-          latestError = errorCodeOf(detail) !== 'errGeneric' ? detail : 'Operation failed; check status before retrying';
+          const requestError = errorCodeOf(detail) !== 'errGeneric' ? detail : 'Operation failed; check status before retrying';
+          // Failed reads belong to their requester, not the shared operation state.
+          // Otherwise subscriber GET_STATE refreshes can clear the error and loop.
+          if (!['GET_STATE', 'GET_DIAGNOSTICS', 'GET_USAGE', 'EXPORT'].includes(message.type)) latestError = requestError;
           notify();
-          return { ok: false, error: latestError, errorCode, ...(code ? { code: errorCode } : {}) };
+          return { ok: false, error: requestError, errorCode, ...(code ? { code: errorCode } : {}) };
         }
       });
     },

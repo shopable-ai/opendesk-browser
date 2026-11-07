@@ -75,6 +75,139 @@ function MarketCapabilityRow({code,isNew=false}){
 }
 
 
+// Fixed local geometry only; extension-provided strings never become SVG paths.
+const HEADER_ACTION_ICONS=Object.freeze({
+  new:'M12 5v14M5 12h14',
+  edit:'M12 20h9M16 4l4 4M4 20l1-5L16 4l4 4L9 19z',
+  settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',
+  diagnostics:'M3 12h4l3-8 4 16 3-8h4',
+  subscriptions:'M5 17h14l-2-3V9a5 5 0 0 0-10 0v5z M10 21h4',
+  library:'M4 4h4v16H4z M10 4h4v16h-4z M16 5l4-1 3 15-4 1z',
+  list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
+  refresh:'M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M18 18A8 8 0 0 1 4 12'
+});
+function HeaderActionIcon({icon}) {
+  if(!Object.hasOwn(HEADER_ACTION_ICONS,icon))return null;
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={HEADER_ACTION_ICONS[icon]}/>
+  </svg>;
+}
+
+// Display-only actions: schema validation and ordering belong to the Host.
+class HeaderActionsBoundary extends React.Component {
+  state={failed:false,scope:this.props.scope};
+  static getDerivedStateFromProps(props,state){
+    return props.scope!==state.scope?{failed:false,scope:props.scope}:null;
+  }
+  static getDerivedStateFromError(){return {failed:true};}
+  render(){return this.state.failed?null:this.props.children;}
+}
+
+function ToolHeaderActions({view,field,available}) {
+  const triggerRef=React.useRef(null),menuRef=React.useRef(null);
+  const [opened,setOpened]=React.useState(null);
+  const menuId=React.useId();
+  const scope=field?.data?.scope||'';
+  const projected=field?.data?.actions;
+  const actions=Array.isArray(projected)?projected.slice(0,6).filter(action=>
+    action&&typeof action.id==='string'&&typeof action.label==='string'&&
+    (action.disabledReason===undefined||typeof action.disabledReason==='string')):[];
+  const disabledReason=typeof field?.data?.disabledReason==='string'?field.data.disabledReason:'';
+  const visible=available&&field?.hidden===false&&actions.length>0;
+  const snapshotKey=JSON.stringify([scope,actions,field?.disabled,disabledReason,visible]);
+  const open=visible&&!field.disabled&&opened===snapshotKey;
+  const close=(restore=false)=>{
+    if(restore)triggerRef.current?.focus({preventScroll:true});
+    setOpened(null);
+  };
+  React.useLayoutEffect(()=>{setOpened(null);},[snapshotKey,view]);
+  React.useLayoutEffect(()=>{
+    if(!open)return;
+    const menu=menuRef.current,doc=menu.ownerDocument,win=doc.defaultView;
+    let focusDeparted=false;
+    menu.querySelector('[role="menuitem"]')?.focus({preventScroll:true});
+    const onWindowBlur=()=>{
+      // Opaque iframe focus blurs the host window without a host pointer/key
+      // event. activeElement can still be BODY during this transition.
+      focusDeparted=true;close();
+    };
+    const onFocus=event=>{
+      if(!menu.contains(event.target)&&!triggerRef.current?.contains(event.target)){
+        focusDeparted=true;close();
+      }
+    };
+    const onPointer=event=>{
+      if(!menu.contains(event.target)&&!triggerRef.current?.contains(event.target))close();
+    };
+    const onKey=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopPropagation();close(true);
+      }else if(event.key==='Tab'){
+        // Return to the trigger before native Tab advances in document order.
+        close(true);
+      }else if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+        event.preventDefault();
+        const items=[...menu.querySelectorAll('[role="menuitem"]')];
+        const index=items.indexOf(doc.activeElement);
+        const next=event.key==='Home'?0:event.key==='End'?items.length-1:
+          (index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;
+        items[next]?.focus({preventScroll:true});
+      }
+    };
+    doc.addEventListener('pointerdown',onPointer,true);
+    doc.addEventListener('keydown',onKey,true);
+    doc.addEventListener('focusin',onFocus,true);
+    win?.addEventListener('blur',onWindowBlur);
+    return ()=>{
+      doc.removeEventListener('pointerdown',onPointer,true);
+      doc.removeEventListener('keydown',onKey,true);
+      doc.removeEventListener('focusin',onFocus,true);
+      win?.removeEventListener('blur',onWindowBlur);
+      const trigger=triggerRef.current;
+      const controls=[trigger,...(trigger?.closest('.sidebar-tool-view-head')?.querySelectorAll('button')||[])];
+      const target=controls.find(node=>node?.isConnected&&!node.disabled&&!node.closest('[hidden],[inert]'));
+      if(!focusDeparted&&(menu.contains(doc.activeElement)||doc.activeElement===doc.body))
+        target?.focus({preventScroll:true});
+    };
+  },[open,view]);
+  if(!visible)return null;
+  return <div className="sidebar-tool-header-menu-slot">
+    <IconButton ref={triggerRef} id="sidebar-tool-header-actions-trigger"
+      label="更多操作" className="sidebar-tool-icon-action" disabled={field.disabled}
+      title={disabledReason||'更多操作'} aria-describedby={disabledReason?menuId+'-disabled':undefined}
+      aria-haspopup="menu" aria-expanded={open} aria-controls={open?menuId:undefined}
+      onKeyDown={event=>{
+        if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+          event.preventDefault();setOpened(snapshotKey);
+        }
+      }}
+      onClick={()=>open?close():setOpened(snapshotKey)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>
+      </svg>
+    </IconButton>
+    {disabledReason&&<span id={menuId+'-disabled'} className="visually-hidden">{disabledReason}</span>}
+    {open&&<div ref={menuRef} id={menuId} role="menu" aria-label="更多操作"
+      className="sidebar-tool-header-menu">
+      {actions.map((action,index)=><button key={action.id} type="button" role="menuitem"
+        tabIndex={-1} aria-disabled={Boolean(action.disabledReason)}
+        aria-describedby={action.disabledReason?menuId+'-reason-'+index:undefined}
+        onClick={()=>{
+          if(action.disabledReason)return;
+          close(true);
+          view.dispatch('sidebar-tool-header-actions','activate',{actionId:action.id,scope});
+        }}>
+        <span className="sidebar-tool-header-menu-label">
+          {action.icon&&<HeaderActionIcon icon={action.icon}/>}<span>{action.label}</span>
+        </span>
+        {action.disabledReason&&<span id={menuId+'-reason-'+index}
+          className="sidebar-tool-header-menu-reason">{action.disabledReason}</span>}
+      </button>)}
+    </div>}
+  </div>;
+}
+
 
 export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
   trustedControls=null,active=true}) {
@@ -495,6 +628,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
   : <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>}
 </svg>
 </ToolField>
+<HeaderActionsBoundary scope={snapshot.fields['sidebar-tool-header-actions']?.data?.scope||''}>
+<ToolHeaderActions view={view} field={snapshot.fields['sidebar-tool-header-actions']}
+  available={active&&!concealed&&snapshot.fields['sidebar-tool-display']?.hidden===false&&
+    snapshot.fields['sidebar-tool-settings-view']?.hidden!==false&&!importOpen&&!reviewing&&!actionReviewVisible}/>
+</HeaderActionsBoundary>
 <TrustedConversationHeaderSlot/>
 
 <ToolField as="button" type="button" id="sidebar-tool-conversation-toggle"

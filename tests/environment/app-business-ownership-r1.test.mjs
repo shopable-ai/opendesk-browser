@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {existsSync,readFileSync,readdirSync} from 'node:fs';
 import {resolve,dirname,relative} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
+import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 
 const file=path=>new URL('../../'+path,import.meta.url);
 const read=path=>readFileSync(file(path),'utf8');
@@ -18,8 +19,8 @@ test('R1 app-owned trusted business has one implementation and no src re-export 
   for(const [id,files] of Object.entries(business)){
     assert.equal(existsSync(file('src/'+id)),false,'obsolete src folder must be absent: '+id);
     const app=id==='ai-smart-access'?'ai-vip-share':id==='page-clip'?'web-markdown-clipper':id;
-    for(const name of files)assert.ok(read('examples/sidebar-tools/'+app+'/trusted/'+name).length>80,id+'/'+name);
-    const config=JSON.parse(read('examples/sidebar-tools/'+app+'/tool.config.json'));
+    for(const name of files)assert.ok(read(officialSourceProjectPath(app)+'/trusted/'+name).length>80,id+'/'+name);
+    const config=JSON.parse(read(officialSourceProjectPath(app)+'/tool.config.json'));
     assert.equal(config.id,app);
     assert.deepEqual(Object.keys(config.files).filter(key=>key!=='dependencies').sort(),['css','html','js']);
     if(config.files.dependencies!==undefined){
@@ -61,10 +62,10 @@ test('R1 approved fixed runtime entrypoints use app-owned sources and existing H
   assert.ok(read('src/entrypoints/time-review-host.js').includes('examples/sidebar-tools/time-review/trusted/service.js'));
   assert.ok(read('src/ui/sidebar-tools.js').includes('examples/sidebar-tools/time-review/trusted/host-controls.js'));
   assert.ok(read('src/ui/sidebar-tools/installation.js').includes('examples/sidebar-tools/time-review/trusted/model.js'));
-  assert.ok(sw.includes('examples/sidebar-tools/ai-vip-share/trusted/service.js'));
+  assert.ok(sw.includes('projects/ai-vip-share/trusted/service.js'));
   const sidebarHost=read('src/entrypoints/sidebar-tool-host.js');
   assert.ok(sidebarHost.includes('examples/sidebar-tools/time-review/trusted/trusted-native-ui.js'));
-  assert.ok(sidebarHost.includes('examples/sidebar-tools/ai-vip-share/trusted/tool-host.js'));
+  assert.ok(sidebarHost.includes('projects/ai-vip-share/trusted/tool-host.js'));
 });
 
 test('R1.3 page clip plugin owns trusted page, policy and converter, with shared browser site grants',()=>{

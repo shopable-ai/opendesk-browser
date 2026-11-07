@@ -12,7 +12,7 @@ import net from 'node:net';
 import http from 'node:http';
 import https from 'node:https';
 import tls from 'node:tls';
-import {openProxyTunnel} from '../../examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.mjs';
+import {openProxyTunnel} from '../../projects/ai-vip-share/dev/local-test/proxy-line-probe.mjs';
 import {compileManagedProxyPac} from '../../src/platform/chrome/browser-managed-proxy.js';
 
 const chromeBinary=process.env.CHROME_FOR_TESTING_BIN;

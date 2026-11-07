@@ -20,7 +20,7 @@ import {buildOfficialPages} from './scripts/build-official-pages.mjs';
 const browserEdition=resolveBrowserEdition();
 const aiLocalTest=process.env.OPENDESK_BUILD_MODE==='development'&&process.env.OPENDESK_AI_LOCAL_TEST==='1';
 const aiLocalPackageHash=aiLocalTest?await sidebarToolPackageHash(
-  await createSidebarToolPackage(resolve('examples/sidebar-tools/ai-vip-share'))):null;
+  await createSidebarToolPackage(resolve('projects/ai-vip-share'))):null;
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 // Build-time metadata only: the Bookmark config JSON must never be imported
 // into the fixed Sidebar Host's runtime module graph.

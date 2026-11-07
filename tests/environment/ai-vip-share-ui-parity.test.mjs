@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const base='examples/sidebar-tools/ai-vip-share/';
+const base='projects/ai-vip-share/';
 const read=relative=>readFile(base+relative,'utf8');
 const [view,controller,style,entry,configRaw,preview,previewEntry]=await Promise.all(
   ['src/App.jsx','src/main.js','src/style.css','src/main.jsx',

@@ -435,6 +435,7 @@
 
 .sidebar-tool-view-head>.sidebar-tool-icon-action,
 .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
+.sidebar-tool-header-menu-slot>.sidebar-tool-icon-action,
 .sidebar-tool-header-actions>.sidebar-tool-icon-action{
   box-sizing:border-box;flex:0 0 30px;width:30px;min-width:30px;max-width:30px;
   height:30px;min-height:30px;max-height:30px;padding:0;
@@ -455,6 +456,7 @@
 @media(pointer:coarse){
   .sidebar-tool-view-head>.sidebar-tool-icon-action,
   .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
+  .sidebar-tool-header-menu-slot>.sidebar-tool-icon-action,
   .sidebar-tool-header-actions>.sidebar-tool-icon-action{
     flex-basis:44px;width:44px;min-width:44px;max-width:44px;
     height:44px;min-height:44px;max-height:44px
@@ -1619,3 +1621,37 @@
   :root .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
   :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
 }
+
+/* Optional display actions keep their own bounded slot; fixed controls retain size. */
+.sidebar-tool-view-head:has(.sidebar-tool-header-menu-slot){flex-wrap:wrap}
+/* Reserve readable title space before controls wrap, including coarse 320px.
+   Keep the existing <=240px Back/title first-row calculation untouched. */
+@media(min-width:241px){
+  .sidebar-tool-view-head:has(.sidebar-tool-header-menu-slot)>#sidebar-tool-title{
+    flex-basis:10ch;min-width:min(10ch,100%)
+  }
+}
+.sidebar-tool-header-menu-slot{position:static;flex:0 0 auto;min-width:0}
+.sidebar-tool-header-menu{
+  position:absolute;inset-block-start:100%;inset-inline-end:0;z-index:4;
+  box-sizing:border-box;display:grid;width:max-content;min-width:min(160px,100%,calc(100vw - 24px));
+  max-width:min(100%,calc(100vw - 24px));max-height:60vh;overflow:auto;
+  padding:var(--space-1);border:1px solid var(--od-line);
+  border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)
+}
+.sidebar-tool-header-menu [role="menuitem"]{
+  display:grid;gap:var(--space-1);min-width:0;min-height:36px;
+  padding:var(--space-2);border:0;border-radius:var(--radius-control);
+  background:transparent;color:inherit;font:inherit;text-align:start;overflow-wrap:anywhere;cursor:pointer
+}
+.sidebar-tool-header-menu [role="menuitem"]:hover,
+.sidebar-tool-header-menu [role="menuitem"]:focus-visible{background:var(--od-muted)}
+.sidebar-tool-header-menu [aria-disabled="true"]{color:var(--od-sub);cursor:default}
+.sidebar-tool-header-menu-label{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.sidebar-tool-header-menu-label svg{flex:0 0 17px;width:17px;height:17px}
+.sidebar-tool-header-menu-reason{font-size:12px;line-height:1.4}
+@media(max-width:240px), (pointer:coarse){
+  .sidebar-tool-view-head{flex-wrap:wrap}
+  .sidebar-tool-header-actions{flex-wrap:wrap;max-width:100%}
+}
+@media(pointer:coarse){.sidebar-tool-header-menu [role="menuitem"]{min-height:44px}}

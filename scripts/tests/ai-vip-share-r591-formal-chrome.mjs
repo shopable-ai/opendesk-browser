@@ -10,9 +10,9 @@ import {tmpdir} from 'node:os';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sidebar-tool.mjs';
 const out=resolve(process.argv[2]||'artifacts/ai-vip-share-r591/chromium');
 await mkdir(out,{recursive:true});
-const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
+const pkg=await createSidebarToolPackage('projects/ai-vip-share');
 assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.4.1');
-const preview=await readFile('examples/sidebar-tools/ai-vip-share/preview/index.html','utf8');
+const preview=await readFile('projects/ai-vip-share/preview/index.html','utf8');
 const escape=s=>s.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 function fixture(){
  const idle={state:'disabled',control:'controllable_by_this_extension',permission:true,canStop:false,reason:null};

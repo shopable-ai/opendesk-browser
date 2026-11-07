@@ -9429,7 +9429,7 @@
       "scopedNativeEvidence": {
         "stage": "CORE_DEVELOPMENT",
         "result": "CORE_PASS",
-        "evidence": "examples/sidebar-tools/browser-fingerprint/evidence/r19-core-development.zh-CN.md",
+        "evidence": "projects/browser-fingerprint/evidence/r19-core-development.zh-CN.md",
         "limits": "Real Mac headless CFT Side Panel core chain only; full nativeTestConditions and production formal acceptance remain NOT_TESTED."
       }
     },

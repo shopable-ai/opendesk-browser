@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const base='examples/sidebar-tools/cookie-editor';
+const base='projects/cookie-editor';
 test('R5.25 official Cookie release uses one source-bound React sandbox and exact current version',async()=>{
   const [cfg,html,pkg,host]=await Promise.all([
     'tool.config.json','src/root.html','cookie-editor.opendesk-tool.json',

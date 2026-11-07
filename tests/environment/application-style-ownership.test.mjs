@@ -39,7 +39,7 @@ test('scope extraction respects comments and strings containing braces',async()=
   assert.doesNotThrow(()=>assertLayoutOnly(shared('@scope (.sample-app){.sample-button::after{content:"a\\'+newline+'b"}}')));
 });
 test('business names and single-app variants do not enter shared sources or unrelated packages',async()=>{
- const [tokens,components,cookie]=await Promise.all(['src/ui/design-tokens.css','src/ui/design-system.css','examples/sidebar-tools/cookie-editor/src/react.css'].map(p=>readFile(p,'utf8')));
+ const [tokens,components,cookie]=await Promise.all(['src/ui/design-tokens.css','src/ui/design-system.css','projects/cookie-editor/src/react.css'].map(p=>readFile(p,'utf8')));
  for(const css of [tokens,components])assert.doesNotMatch(css,/od-cookie|od-theme-cookie-editor|cookie-button--|workbench-nav|sidebar-tool-remove/);
  assert.match(cookie,/@scope \(.cookie-editor-react\)/);
  assert.match(cookie,/light-dark\(/);

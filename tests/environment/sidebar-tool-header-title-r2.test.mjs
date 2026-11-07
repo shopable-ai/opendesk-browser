@@ -76,10 +76,11 @@ test('Host uses trusted navigation and one accessible heading, not a nested path
   assert.ok(host.includes('isSettings:tocSettingsOpen'));
   assert.ok(host.includes("['home','index'].includes(navigation?.page)"));
   assert.ok(host.includes('pageTitle:nativeBookmarkNavigation?.title'));
-  assert.match(host,/const hasCurrentNavigation=\(\)=>navigationAllowed&&!readOnlyPreview&&active&&\s*frameRevocationEpoch===\(revocationEpochs\[active.id\]\?\?null\)&&\s*samePackage\(active,toolById\(active.id\)\)/);
-  assert.ok(host.includes('const navigation=hasCurrentNavigation()&&frame&&toolNavigation?toolNavigation:null'));
+  assert.match(host,/const hasCurrentNavigation=\(\)=>navigationAllowed&&!readOnlyPreview&&active&&[\s\S]*?frameRevocationEpoch===\(revocationEpochs\[active.id\]\?\?null\)&&\s*samePackage\(active,toolById\(active.id\)\)/);
+  assert.ok(host.includes("const navigation=hasCurrentNavigation()&&(frame||nativeUI?.kind==='ai-proxy')&&toolNavigation?toolNavigation:null"));
   assert.ok(host.includes('navigationAllowed=false;toolNavigation=null;clipPage=null;'));
-  assert.ok(host.includes('approvedNavigation=Boolean(release&&await matchesOfficialRelease(release,tool))'));
+  assert.ok(host.includes('const approvedNavigation=!readOnly;'),
+    'reviewed installation identity still gates navigation; release discovery is not a runtime gate');
   assert.ok(host.includes("if(tocSettingsOpen){closePromptSettings();"));
   assert.ok(host.includes("const backLabel=tocSettingsOpen?'返回上一页'"));
   assert.ok(bridge.includes('navigationAllowed=message.navigationAllowed===true'));

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {createCookieAccountVault,COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,
   COOKIE_ACCOUNT_STORE_KEY}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-vault.js';
+  from '../../projects/cookie-editor/trusted/account-vault.js';
 
 function storageFixture(){
   const local=new Map(),session=new Map(),records=new Map(),access=[];

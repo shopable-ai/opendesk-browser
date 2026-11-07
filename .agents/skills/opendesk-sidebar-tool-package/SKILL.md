@@ -11,7 +11,7 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 
 应用创建、修改、预览由 `opendesk-sidebar-tool-dev` 面向用户统筹。交付安装包由本 Skill 执行；**普通用户只看到版本、能力变化、确认安装/更新与结果**，不是让用户执行 `npm run build` 或重装 Browser。见 [普通用户操作流程](../../../docs/product/extension-app-user-workflow.zh-CN.md)。
 
-先查唯一 owner：`app:update` 当前只适用于仍在 `examples/sidebar-tools/<id>/` 的实际项目，且不自动发现全部业务测试；以下 `<id>` 必须替换为核实过的配置 ID。`projects/` 产品直接使用下文原路径参数打包/验证/晋升链，不照抄旧 reading-toc 命令，也不迁回 examples。限制详见[目录合同第 6 节](../../../docs/architecture/extension-project-layout.zh-CN.md#6-当前支持与明确缺口)。
+先查唯一 owner：`app:update` 已按 `tool.config.json` 的 `id` 在 `projects/` 与 `examples/sidebar-tools/` 唯一发现项目，拒绝重复 owner/ID 及符号链接（主代理 2026-11-08 回报：相关 7 项测试通过）。以下 `<id>` 必须替换为核实过的配置 ID，不以目录名代替；也可继续使用下文原路径参数打包/验证/晋升链，不迁回 examples。该命令仍不自动发现全部业务 tests，项目业务测试须显式核对并执行。状态详见[目录合同第 6 节](../../../docs/architecture/extension-project-layout.zh-CN.md#6-当前支持与明确缺口)。
 
 ```bash
 # AI/Codex 在真实仓库 main 上执行；只查版本、身份和变化，不修改文件。

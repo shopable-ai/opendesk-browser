@@ -24,7 +24,7 @@ No new Chrome permission, arbitrary fetch, command runner, installer or Host.
 ## Independent business ownership
 
 The business backend is the standalone Node project at
-`../../examples/sidebar-tools/cookie-editor/ai-account-usage/`. Its ordinary
+`../../projects/cookie-editor/ai-account-usage/`. Its ordinary
 `serve` entry and terminal management must remain usable without the OpenDesk
 desktop program. Account/provider rules, credentials, cached resources, account
 bindings, synchronization policy and management UI stay in that project and the
@@ -131,7 +131,7 @@ Browser business integration test (substitute your existing Go toolchain path):
 mkdir -p .runtime/tests/browserbridge/managed-services
 go test -c ./internal/browserbridge -o .runtime/tests/browserbridge/managed-services/browserbridge.test
 # /Users/shopme/Documents/workspace/opendesk-browser
-OPENDESK_MANAGED_HOST_TEST_BINARY=/Users/shopme/Documents/workspace/opendesk/.runtime/tests/browserbridge/managed-services/browserbridge.test node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-host-process.test.mjs
+OPENDESK_MANAGED_HOST_TEST_BINARY=/Users/shopme/Documents/workspace/opendesk/.runtime/tests/browserbridge/managed-services/browserbridge.test node --test projects/cookie-editor/tests/ai-account-usage/native-host-process.test.mjs
 ```
 
 The Node test uses synthetic accounts/installation and temporary state, with no

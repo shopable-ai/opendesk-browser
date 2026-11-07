@@ -1,3 +1,9 @@
+**2026-11-08 R14 HeaderActions 源码接入（本轮覆盖下方旧“仅预览”阶段）。** `src/environment.ts` 统一适配可信 pilot 的 `toolNavigation` 和沙箱公开 Bridge；`src/App.jsx` 提交完整导航快照，只有 feature 严格为 true 才增强，返回 false 立即回退 base。Header 添加代理仅打开原添加表单，诊断、订阅、完整设置及返回均复用原路由；内容入口保留。草稿、忙态、确认及结果 unknown 阻断新动作，旧页面/卸载后的事件无效，不应用或停止代理、不自动保存。unknown 导航锁只在服务 GET_STATE / STOP 明确确认已知状态后解除；EXPORT 等无关成功响应不清锁，不重放操作。
+
+定向验证：导航、环境与服务共 119 项通过，覆盖增强/fallback、trusted/sandbox、草稿/busy/unknown、清理、读取失败通知循环及无危险副作用。ego 中真实 Host/React/App 的内存服务夹具已验证四个 Header 入口及返回，原 App 实例保留、状态读取稳定；没有应用/停止代理、网络诊断或保存。它不是实际安装或代理核心链证据。详见[唯一导航合同与分层记录](../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)。
+
+真实产品入口是「开发 → 本地项目 → projects/ai-proxy → 在侧栏调试」，继续复用项目 watcher。冻结 preview 未重生成；本轮未改版本或正式 JSON、未更新用户安装、提交或推送。
+
 # AI Proxy · 真实 OpenDesk 扩展代码
 
 **2026-11-08 当前只交付图标入口预览。** [打开离线 HTML](preview/preview.html) / [本机查看](http://127.0.0.1:43263/projects/ai-proxy/preview/preview.html)。管理全部、管理规则改为现有对象图标＋↗，34px 命中区，悬停/聚焦显示操作和目标说明；主要操作、四条代理及原排版保留。独立设计评审六维均 ≥95（最低 **95**），实现评审 **97**，只覆盖本轮两个预览入口。三语提示、Enter/空格、仅悬停时 Esc 关闭且保留原焦点、关闭管理页后侧栏留驻已验证；同候选 APPLY/STOP/SAVE 均为 0。查看[设计说明与评分](DESIGN.md)、[常态截图](../../artifacts/ai-proxy/icon-actions-20261108/final-normal-viewport.png)、[独立评审记录](../../artifacts/ai-proxy/icon-actions-20261108/expert-review.json)。仅修改预览、原预览生成器和说明；74 个受保护业务/正式包/冻结基线文件未变，之前未提交业务改动保留。预览采用冻结的原侧栏和既有管理组件，不是当前业务工作树完全同源或已安装证明。真实 Host、代理、正式包及原生验收仍为 NOT_TESTED；用户确认前不进入业务接线。11 月 7 日 PC 七区、保存/草稿链为上轮观察，本轮未重跑；下文历史记录不覆盖当前阶段。
@@ -68,7 +74,7 @@ opendesk browser dev .
 - [扩展创建与发现工作流](../../.agents/workflows/extension-creation.md#二-b发现与复用)、[目录与测试归属](../../docs/architecture/extension-project-layout.zh-CN.md)。
 - [Sidebar 开发合同](../../docs/api/sidebar-tool-development.zh-CN.md)、[公开 Browser SDK 生成参考](../../docs/api/browser-sdk.developer.generated.md)、[批准 Schema](../../docs/api/browser-sdk-interface-matrix.json)。
 - React 编译/独立沙箱结构可参考 [quick-notes-react 配置](../quick-notes-react/tool.config.json) 与 [README](../quick-notes-react/README.md)，不复制其 ID、构建产物或业务。沿用现有 React 构建依赖；当前不引入新依赖。
-- 现有代理消费者 [ai-vip-share 配置](../../examples/sidebar-tools/ai-vip-share/tool.config.json) 只作为最小接线证据，不复制它的账号或业务，不将特定本机 HTTP 例外推广成公共能力。
+- 现有代理消费者 [ai-vip-share 配置](../../projects/ai-vip-share/tool.config.json) 只作为最小接线证据，不复制它的账号或业务，不将特定本机 HTTP 例外推广成公共能力。
 
 ### 已核对的能力差异
 

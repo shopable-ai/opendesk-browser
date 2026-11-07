@@ -483,7 +483,7 @@ try{
   const catalog=JSON.parse(await readFile(path.join(extension,'official-tools/catalog.json'),'utf8'));
   const release=catalog.apps.find(row=>row.toolId==='cookie-editor');assert(release,'Official Cookie release missing');
   const pkgBytes=await readFile(path.join(extension,'official-tools/cookie-editor/cookie-editor.opendesk-tool.json'));
-  const pkg=JSON.parse(pkgBytes);const declared=JSON.parse(await readFile(path.join(root,'examples/sidebar-tools/cookie-editor/tool.config.json'),'utf8'));
+  const pkg=JSON.parse(pkgBytes);const declared=JSON.parse(await readFile(path.join(root,'projects/cookie-editor/tool.config.json'),'utf8'));
   assert.equal(pkg.version,process.env.COOKIE_NATIVE_VERSION||declared.version);assert.equal(pkg.version,release.version);
   assert.equal(hash(pkgBytes),release.sha256);assert.equal(manifest.manifest_version,3);
   if(gapStage){

@@ -78,8 +78,8 @@ test('unverified rename and wrong old identity never gain deletion authority',()
 
 test('React Save binds the rename origin to one trusted Host receipt',async()=>{
   const [app,adapter,panel]=await Promise.all([
-    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
-    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8'),
+    readFile(new URL('../../projects/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
+    readFile(new URL('../../projects/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8'),
     readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8')
   ]);
   assert.match(app,/const renameFrom=original&&original.name!==row.name\?original.name:null/);
@@ -102,8 +102,8 @@ test('one trusted Delete click authorizes only the exact Cookie removal',()=>{
 test('single-delete React and Host use the existing write-intent gate',async()=>{
   const [panel,app,adapter]=await Promise.all([
     readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
-    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
-    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8')
+    readFile(new URL('../../projects/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
+    readFile(new URL('../../projects/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8')
   ]);
   assert.match(panel,/\['browser\.cookies\.set','browser\.cookies\.remove'\]\.includes\(operation\)/);
   assert.match(panel,/action:operation==='browser\.cookies\.remove'\?'remove':'set'/);

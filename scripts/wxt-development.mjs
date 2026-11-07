@@ -164,7 +164,7 @@ export function configureDevelopment(wxt,server) {
     // Generated AdBlock files are a consequence, never a watcher trigger.
     if(input.startsWith(resolve(toolRoot,'adblock/dist')+'/')||
       input.startsWith(resolve(toolRoot,'stay-focus/dist')+'/')||
-      input.startsWith(resolve(toolRoot,'cookie-editor/dist')+'/'))return;
+      input.startsWith(resolve(projectRoot,'cookie-editor/dist')+'/'))return;
     const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
       input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/');
     const page=input===resolve(wxt.config.root,OFFICIAL_PAGE_SOURCE_PATH)||
@@ -227,7 +227,7 @@ export function configureDevelopment(wxt,server) {
           /^examples\/sidebar-tools\/stay-focus\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
         if(stayFocusSourceChanged)await buildStayFocusReact({log:false});
         const cookieSourceChanged=changes.some(path=>
-          /^examples\/sidebar-tools\/cookie-editor\/(?:app\/|src\/react\.css$|src\/root\.html$|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
+          /^projects\/cookie-editor\/(?:app\/|src\/react\.css$|src\/root\.html$|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
         const cookieReactBuilt=cookieSourceChanged&&
           Boolean(await buildCookieEditorReactIfOfficial({log:false}));
         const inputs=await officialToolInputs(wxt.config.root);

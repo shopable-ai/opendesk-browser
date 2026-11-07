@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
+import {createAiAccessPermissionControls} from '../../projects/ai-vip-share/trusted/host-controls.js';
 
 function find(node,id){
   if(node.id===id)return node;
@@ -16,11 +16,11 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const tool={id:'ai-vip-share',capabilities:['ai.access']};
 
 test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
+  const pkg=await createSidebarToolPackage('projects/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
   assert.equal(pkg.version,'1.4.11');
-  const view=await readFile('examples/sidebar-tools/ai-vip-share/src/App.jsx','utf8');
-  const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
+  const view=await readFile('projects/ai-vip-share/src/App.jsx','utf8');
+  const script=await readFile('projects/ai-vip-share/src/main.js','utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
@@ -47,7 +47,7 @@ test('R5 existing host shows isolated product and a single trusted proxy card',a
   assert.match(host,/aiPermissions\?\.render\(active,readOnlyPreview,enabled,Boolean\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)\)/);
   assert(!host.includes('frameRoot.hidden=id===AI_ID'));
   assert.match(host,/const show=managed&&tocSettingsOpen/);
-  const css=await readFile('examples/sidebar-tools/ai-vip-share/trusted/host.css','utf8');
+  const css=await readFile('projects/ai-vip-share/trusted/host.css','utf8');
   assert.match(css,/\.sidebar-tool-ai-proxy-native/);
   const entry=await readFile('src/ui/react/main.tsx','utf8');
   assert.match(entry,/import aiVipShareHostCSS from '[^']*ai-vip-share\/trusted\/host\.css\?raw'/);
@@ -117,8 +117,8 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async t
 });
 
 test('R5 no Provider, SKU or shop can invent business success',async t=>{
-  const html=await readFile('examples/sidebar-tools/ai-vip-share/src/App.jsx','utf8');
-  const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
+  const html=await readFile('projects/ai-vip-share/src/App.jsx','utf8');
+  const script=await readFile('projects/ai-vip-share/src/main.js','utf8');
   assert.match(html,/正在核验会员信息/);
   assert.match(html,/id="ai-vip-member-empty"/);
   assert.match(html,/会员服务接入后可使用激活码/);

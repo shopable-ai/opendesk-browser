@@ -1,0 +1,11 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "host": "development",
+  "afterBuild": [
+    "projects/browser-fingerprint/preview/react/build-preview.mjs"
+  ],
+  "browser": [
+    "projects/browser-fingerprint/preview/react/chromium.mjs"
+  ]
+}

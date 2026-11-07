@@ -7,7 +7,7 @@ import {createRequire} from 'node:module';
 // Host transport are substituted; this is component evidence, not Chrome.
 const require=createRequire(import.meta.url);
 const built=buildSync({entryPoints:[
-  'examples/sidebar-tools/cookie-editor/app/components/CookieAccountSharing.jsx'
+  'projects/cookie-editor/app/components/CookieAccountSharing.jsx'
 ],bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform'});
 const nodes=node=>node&&typeof node==='object'?[node,...node.children.flatMap(nodes)]:[];
 const text=node=>node&&typeof node==='object'?node.children.map(text).join(''):String(node??'');

@@ -532,7 +532,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   });
 
   // Use the checked-in package as inert installed metadata; no sandbox, build or browser service runs.
-  const bytes = await readFile(new URL('../../examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json', import.meta.url));
+  const bytes = await readFile(new URL('../../projects/cookie-editor/cookie-editor.opendesk-tool.json', import.meta.url));
   const tool = JSON.parse(bytes), store = new Map([[SIDEBAR_TOOL_STORE, [tool]]]);
   const catalog = {schema: 'opendesk.official-tools.releases.v1',
     sourceRepository: 'https://github.com/shopable-ai/opendesk-browser', apps: [{

@@ -341,6 +341,72 @@ test('preview diagnostics generation/cancel and configuration revisions discard 
   assert.equal(complete.preview, true);
 });
 
+test('denied diagnostic and usage reads cannot feed subscriber state refreshes', async () => {
+  const f = fixture();
+  const before = (await ok(f.service, { type: 'GET_STATE' })).state;
+  const stored = f.stored();
+  const feedback = [];
+  let notifications = 0;
+  let nextRead = 0;
+  const deniedReads = ['GET_DIAGNOSTICS', 'GET_USAGE'];
+  const denied = async type => {
+    const response = await f.service.request({ type });
+    assert.equal(response.ok, false);
+    assert.equal(response.errorCode, 'E_NOT_CONNECTED');
+    assert.ok(response.error);
+    return response;
+  };
+  const unsubscribe = f.service.subscribe(() => {
+    notifications++;
+    // Model useProxy's GET_STATE and the page's config-triggered read effect.
+    // Bound the broken implementation so a regression fails instead of hanging.
+    if (notifications <= 12) feedback.push((async () => {
+      await ok(f.service, { type: 'GET_STATE' });
+      await denied(deniedReads[nextRead++ % deniedReads.length]);
+    })());
+  });
+  try {
+    for (let i = 0; i < 6; i++) {
+      await denied(deniedReads[i % deniedReads.length]);
+      for (let j = 0; j < feedback.length; j++) await feedback[j];
+      assert.deepEqual((await ok(f.service, { type: 'GET_STATE' })).state, before);
+    }
+    assert.equal(notifications, 0);
+    assert.equal(operations(f, 'status').length, 7);
+    assert.deepEqual(f.stored(), stored);
+    for (const operation of ['save', 'apply', 'stop']) assert.equal(operations(f, operation).length, 0);
+  } finally { unsubscribe(); f.service.dispose(); }
+});
+
+test('failed reads preserve shared operation errors and unknown outcome fences', async () => {
+  const f = fixture();
+  const observed = [];
+  f.service.subscribe(state => observed.push(state));
+  f.options.apply = async () => {
+    f.calls.push(['apply']); f.setNative(enabled);
+    throw Object.assign(Error('Chrome 未确认设置与控制权，不能视为应用成功'), { code: 'E_OUTCOME_UNKNOWN' });
+  };
+  const failed = await f.service.request({ type: 'APPLY' });
+  assert.equal(failed.errorCode, 'E_OUTCOME_UNKNOWN');
+  assert.equal(observed.at(-1).runtime.proxyError, failed.error);
+  const before = (await ok(f.service, { type: 'GET_STATE' })).state;
+  const notifications = observed.length;
+  for (const type of ['GET_DIAGNOSTICS', 'GET_USAGE']) {
+    const response = await f.service.request({ type });
+    assert.equal(response.ok, false);
+    assert.equal(response.errorCode, 'E_NOT_CONNECTED');
+    assert.deepEqual((await ok(f.service, { type: 'GET_STATE' })).state, before);
+  }
+  assert.equal(before.runtime.proxyError, failed.error);
+  assert.equal(before.runtime.outcomeUnknown, true);
+  assert.equal(observed.length, notifications);
+  assert.equal((await f.service.request({ type: 'APPLY' })).errorCode, 'E_OUTCOME_UNKNOWN');
+  assert.equal(operations(f, 'apply').length, 1);
+  assert.equal(operations(f, 'stop').length, 0);
+  assert.equal(operations(f, 'save').length, 0);
+  f.service.dispose();
+});
+
 test('subscriptions are isolated, unsubscribe works and read notifications do not loop', async () => {
   const f = fixture();
   let events = 0;

@@ -128,7 +128,7 @@ Portal 挂载点必须位于**同一 ownerDocument、同一显式主题边界内
 | 页面布局与示例 | [sidebar-preview.html](../../scripts/templates/sidebar-preview.html)、[原生成器](../../scripts/sidebar-preview-kit.mjs)及本节 | 先选任务组合，再使用控件；模板仅是设计起点，不是运行时工具脚手架 |
 | AI 开发与预览路由 | [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)、[预览 Skill](../../.agents/skills/opendesk-ui-preview/SKILL.md) | 继续使用现有入口；Skill 不会自动附到外部模型上下文，须交付实际附件 |
 
-参考依据是当前源码，不能把参考工具当成组件库：[Cookie Editor App](../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx)使用共享 Button，其 [react.css](../../examples/sidebar-tools/cookie-editor/src/react.css)还定义应用作用域主题与业务布局；[书签 App](../../projects/bookmark-manager/src/react/App.jsx)使用共享 Button/IconButton，其 [style.css](../../projects/bookmark-manager/src/react/style.css)负责树、搜索、详情与编辑。可复用紧凑密度、就近操作和渐进展开；不复制它们的业务 CSS、颜色、私有服务或可信组件作为全局默认。两项目有并行工作，本节不声明其当前包或安装验收通过。
+参考依据是当前源码，不能把参考工具当成组件库：[Cookie Editor App](../../projects/cookie-editor/app/CookieEditorApp.jsx)使用共享 Button，其 [react.css](../../projects/cookie-editor/src/react.css)还定义应用作用域主题与业务布局；[书签 App](../../projects/bookmark-manager/src/react/App.jsx)使用共享 Button/IconButton，其 [style.css](../../projects/bookmark-manager/src/react/style.css)负责树、搜索、详情与编辑。可复用紧凑密度、就近操作和渐进展开；不复制它们的业务 CSS、颜色、私有服务或可信组件作为全局默认。两项目有并行工作，本节不声明其当前包或安装验收通过。
 
 ### 从样板提炼标准：Tokens、控件、组合分别处理
 
@@ -186,7 +186,7 @@ Portal 挂载点必须位于**同一 ownerDocument、同一显式主题边界内
 | 状态列表 | Cookie `CookieHttpConnections` | 状态有文字、空态有下一步、恢复就地发生 | 网络连接/账号状态机 |
 | 草稿与完整工具栏 Chat | 原消费者及公开 Chat 合同 | 保持视图/会话、取消与焦点；复用现有 Dock/Frame/session | 业务提案、Provider、真实授权 |
 
-样板源码对应 `examples/sidebar-tools/cookie-editor/app/components/` 与 `projects/bookmark-manager/src/react/App.jsx`。Atlas 的书签旧目录和 Cookie React 来源已修正；历史构建仍保持历史标签，不靠改链接升级证据。
+样板源码对应 `projects/cookie-editor/app/components/` 与 `projects/bookmark-manager/src/react/App.jsx`。Atlas 的书签旧目录和 Cookie React 来源已修正；历史构建仍保持历史标签，不靠改链接升级证据。
 
 **实施顺序**：先修预览可达性与来源 → 在原组件消费者中展示完整组合 → 当前候选操作/截图 → 独立评审 → 只有发现多个真实消费者需要同一种新语义时，才由公共组件 owner 在原位置提取。CSS 数值继续只在 canonical Tokens 中维护；Markdown 写角色、密度选择、组合和反例；Skill 负责发现顺序、生成及验收入口。可导入控件使用已有 Shared UI，工具布局归自身，禁止将成熟工具整份 CSS 或特权业务搬进公共模板。
 

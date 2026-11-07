@@ -1,5 +1,41 @@
 # Web Flow / AI Workflow Bridge · 连续任务执行计划
 
+## 网页文件面板交互修复（2026-11-08；独立 UI 范围）
+
+本轮重新审查正式 / 辅助 / 临时边界，不以上轮增加关闭按钮为最终设计。正式文件 adapter、首次连接、停止、回执和 UNKNOWN 对账保留；可选文本生成、手动执行与固定协议均有真实消费者。本轮退役“诊断偏好使空闲页面展开开发区”的展示和“旧版”命名，没有删除服务或数据。默认空闲不显示；显式开启网页工具入口也只出现 220×52px 小入口，点击后才展开更多操作。设置文案同步区分处理开关与展示开关。
+
+独立复核发现并修复“诊断关闭时未知 Stop 的详情不可达”，回归修前 FAIL、修后 79 项行为 PASS；独立来源审查批准 blob `79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6`，仅更新该项 pin，目标不扩。语法、设置控件关联、3 项来源负例与本文件固定目标正向检查 PASS。完整来源正向测试仍被并行 AI Proxy `App.jsx` 来源漂移阻断。ego 实际组件 / 模拟消息边界验证了紧凑入口、主动展开、错误详情、Escape 焦点、320px 浅深色及未知 Stop 后两次轮询无派发。
+
+**Chrome 尚未应用：** 原 writer 已退出、开发端口未监听，磁盘 source map 不同源；共享 serve 的只读预检同样在 AI Proxy 来源锁失败。没有启动已知会失败的构建、改写产物或重载聊天。保存的 Chrome 配置路径 / ID 仍为原 `dist/development` / `ccfcjegpkdlgbclopjmadlcjedelidmf`，运行客户端和页面效果未证实。下一步由 AI Proxy owner 完成其来源复核后恢复原持续开发服务，再通过原安全栅栏验证系统 Chrome；CUA 超时、Apple 事件页面脚本关闭的观察限制也已记录。具体边界、恢复顺序和证据见[本地文件说明](chatgpt-local-files.zh-CN.md#网页文件面板2026-11-08)。
+
+写入仅该页面源、项目测试、可信设置原静态控件的两处文案、原来源门禁及测试中的对应一项 pin、本节 / 本地文件说明 / README 导航及专属证据。保留其他 owner 并行改动，不提交推送。实际文件 / Native、production 与评分没有新 PASS；下方 ego 安装、百度核心链和旧文件 UNKNOWN 的阶段与 owner 不变。
+
+## ego 真实安装与核心链（2026-11-08）
+
+**本轮核心链已完成，ego 普通需求搜索 2/2。** 当前 owner `01a1b764-5b8d-77f0-9a44-f72ae0f329b0` 只完成核心功能及必要真实验证。源对话 `01a1b74b-13a0-7743-9ffd-0b0a333ca834` 的目标保持上次实读的 **paused**，本轮没有改变或重启它；不恢复延期验收。
+
+- **最新纠偏：** 用户指出之前已多次成功，不应反复测试百度脚本。复用历史证据，下一步只诊断当前 ego 安装实际超时及尚缺的普通聊天 / 关闭侧栏产品链，不重新跑全组脚本测试。
+- **安装与控制：** 沿授权接管原 TaskSpace 22，没有另建空间。Web Flow 0.3.11 原安装回执保留；百度 1.1.4 已沿“核对运行证据 → 设为本地可用 → 安装确定版本”完成，目录读回“本地可用 · v1.1.4 · 已安装”。安装身份 `bc4621c4-6f52-4621-8e74-2f7e938f1fdd`、generation=1、scriptId=`task:baidu.search.top3:1.1.4`、revision=1。
+- **安装材料：** 唯一正式 Web Flow 0.3.11 包 SHA256 `44a5f683a1b33c15d0b443681f0a6c9a910f55572c32f94f4820a3ef8e481ed9`，54,506 bytes。原打包器候选、36/36 包与恢复行为检查、晋升及同源核对通过；能力和委托身份未改，没有提交推送。
+- **原超时及必要验证：** 只读取得原 Run `a072d899-599c-45ca-8b97-8feaa17a5a7b` 的完整 trace 与 Result `d288e36b-e7d5-43be-bd3f-e2bb53bbe19a`：输入返回，`#chat-submit-button` 点击开始后超时，无点击返回。首页命中检测确认阅读目录挡住按钮。用原拖动入口移开后，必要验证 Run `b2855f3b-62c2-463e-aa22-ac48cf2750a7` / Result `5e88d6c0-4e07-456f-a4d6-a86844a69067` 返回 `success / count=3`，completed / released；此运行仅用于安装验证，不计普通聊天两轮。
+- **固定 Task：** 1.1.4 包 SHA256 `e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62`；manifest SHA=`3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac`，源码 SHA=`14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269`。query 1–120 字，limit 固定 3，禁止额外参数，目标仅 `https://www.baidu.com`，期限 120 秒。
+- **环境：** 实际启用 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 与加载路径 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development` 已从扩展详情核对。磁盘 revision `98530fe401087df05b94fad98402909d0bfea657046977881da1fb6136e40c4c`，本轮未发现 dev watcher 或 43119/43120 监听，serve 未证明连接；未核对 live revision。AutoSettings / 文件控制器源码映射落后，不能据此推断百度超时原因。未启动 writer、构建或写 Browser 输出，未改 ID / Native 配对。
+- **持续授权与接入：** 通过真实 Web Flow“运行与授权”批准 ChatGPT 来源、百度首页和任务固定安装身份；允许 query 在 Schema 的 1–120 字内变化，limit 固定 3，开启自动运行。将真实生成的能力说明发送到普通新聊天一次，后续只发送中文需求，AI 自行生成全新候选。没有手动“采用”或粘贴执行 JSON。
+- **首次自动失败保留：** candidate `wf-93f0c6e2-8b47-4f19-9c35-2da861e072bf`、Run `90726f7d-aebc-4f02-9790-43ab4e6dbd97` 同样在点击阶段 `E_TIMEOUT / count=0`；其持久结果、释放及失败回传均完成，AI 没有编造成功。随后将百度站点目录移至左侧，新页面恢复为 x=8 / y≈280，按钮中心命中真实按钮；原候选不重放，以全新普通需求继续。没有为此改动百度脚本或产品源码。
+
+| 成功轮次 | 普通需求关键词 / 真实侧栏 | Run / Result |
+| --- | --- | --- |
+| 1 | `OpenDesk Browser`；侧栏打开 | `eb0f9f7f-b966-4239-911e-9d0f2621af5f` / `a0eb7140-7978-4341-a1bb-80f297c6db73` |
+| 2 | `OpenDesk Browser automation`；发送前关闭真实 Side Panel，交付与 AI 续答后才重开 | `213d438e-e45f-4fc7-b8ee-06b2f6c6e0b9` / `9d426a98-a4fe-4d35-8e4e-b08218fad02a` |
+
+两轮均返回 `success / count=3`；原持久账本与 Controller Run / Result 逐项核对结果值及固定源码身份一致，`execution=completed / persistence=verified / release=released / delivery=confirmed / aiReplyObserved=true`，Worker 均已 retired。原聊天真实展示标题、链接、摘要并完成续答，第二轮复用相同安装和关键词范围，无重装或逐词批准。搜索结果包含同名及 OpenClaw 内容，AI 明确指出相关性有限，没有冒称属于本项目。
+
+**最低防误触发检查：** 在同一聊天依次发送普通闲聊、明确“不执行”、要求“五条结果”，三次均无任务候选；五条没有静默改为三条。结果消息及三条检查均未新增请求；重开侧栏读回三条原请求（一次失败、两次成功），没有重跑或补发。这里只证明可见消息与账本，raw dispatch exactly-once 继续 **NOT_TESTED**，不扩展为撤权/故障注入矩阵。
+
+**收尾与使用：** [当前结果聊天](https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921)已完成一次接入，继续发送三条自然结果的普通搜索需求即可。TaskSpace 22 已 `finish({keep:['p4','p3']})`，仅保留结果聊天和逐字恢复的 488 字未发送草稿；真实侧栏已关闭。发现草稿后先保存，未误发原内容；旧文件 UNKNOWN、旧聊天草稿及 fixture 均未操作。
+
+本轮证据统一维护在 [ego-core-20261108.json](../evidence/ego-core-20261108.json)，不建立平行总计划。MCP、自然语言文件发现、production、完整 CI、评分、版本及压力矩阵继续延期。main 上公共侧栏及文件业务并行改动保留；接收 owner 只更新本项目 README、本节和原证据，未修改配置、正式包、源码、来源 pin 或 Browser 输出，没有提交推送。前一 owner 的包准备及检查作为历史证据保留，不重复运行。
+
 ## 百度怎么测、成功看哪里（2026-11-07）
 
 1. Chrome → OpenDesk → 扩展 → Web Flow → **运行与授权**：在“任务授权”复用有效批准，确认自动运行开关已开；缺少范围时走原审阅，不重复批准有效范围。
@@ -172,7 +208,7 @@
 - 原五字段 `opendesk.task.intent.v1` 保留手动/五分钟功能；2026-11-02 V0.1-R2 新增 `webflow.task.intent.v1` 专用于持续自动准入，仍为严格五字段，见第 12 节；现有 Workflow v1 单站范围不变。
 - Page、Sidebar、Controller 的安装与权限身份分别保留；一个产品入口不合并授权。
 - 新增 Web Flow 应用业务、专属测试与文档归 `projects/webflow/`；框架只承接通用能力，目录与包身份不会授予权限。
-- 现有 AI Send Queue 的业务目录为 `examples/sidebar-tools/ai-send-queue/`；不迁回旧目录、不创建同名副本。Sidebar 当前只提供提示，不恢复旧消息列表。
+- 现有 AI Send Queue 的业务目录为 `projects/ai-send-queue/`；不迁回旧目录、不创建同名副本。Sidebar 当前只提供提示，不恢复旧消息列表。
 - 方案中的状态/接口是设计责任，不可当作已有公开 API；平台修改必须先证明公共 SDK 缺口。
 - 不自动重放 UNKNOWN 的点击、提交或结果发送；取消不能撤销已发生的副作用。
 - `SOURCE_IMPLEMENTED`、组件验证、真实 Chrome 验收、业务通过和正式发行分别记账。
@@ -192,7 +228,7 @@
 
 | 用户操作 | 已有实现/历史依据 | 当前缺口与证据等级 |
 | --- | --- | --- |
-| 同一 ChatGPT 页顺序发送消息 | [队列 README](../../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)、`src/page/main.js`、`engine.js`、`site.js`；诊断明确 `memory-only`。README 记录 Page `0.1.13/r13` 的 2026-10-29 两条 FIFO 实测 | 原始证据本机未取得；只有历史文档记录。单页内存队列不是刷新/跨日恢复 |
+| 同一 ChatGPT 页顺序发送消息 | [队列 README](../../../projects/ai-send-queue/README.zh-CN.md)、`src/page/main.js`、`engine.js`、`site.js`；诊断明确 `memory-only`。README 记录 Page `0.1.13/r13` 的 2026-10-29 两条 FIFO 实测 | 原始证据本机未取得；只有历史文档记录。单页内存队列不是刷新/跨日恢复 |
 | A→新对话 B 的固定计算接力 | [计算接力 README](../../../examples/tasks/chatgpt-relay-calculator-r1.README.zh-CN.md) 和同目录 `.js`；Controller + 公开 AppStorage 保存两轮 prompt/answer/result/conversation 及副作用前检查点 | `SOURCE_IMPLEMENTED / CHROME_NOT_TESTED`；固定 active key、未完成记录报 `E_RELAY_RECONCILE`，无续跑或多任务档案。假 Page 测试没有执行真实 DOM；textarea 分支的 value setter / synthetic InputEvent 与现行输入约束需先对齐；New chat 后 document/route 变化未实测 |
 | 固定协议触发已安装 Task 并回原聊天 | `src/native-agent/chatgpt-fixed-bridge-host.js`、`chatgpt-bridge-trigger-gate.js`、`chatgpt-bridge-site.js`；已有持久防重放与最终发送前复核 | 当前目标为已打开的 ChatGPT `/c/...` 原会话；新对话、Gemini 及目标仓库绑定没有取得本轮实现证据 |
 | 本机可见搜索动作 | [Task README](../../../examples/tasks/README.zh-CN.md)、`visible-search-navigation.js` / `.opendesk-task.json`；有历史手动/自动及原聊天续答记录 | 原始本机证据未在本轮取得；只属于 `workflow.visible-search` 测试网页，不代表百度/Google 真实业务通过 |
@@ -227,7 +263,7 @@
 
 ### AWB-01 · 复用入口与执行合同
 
-**涉及文件：** 本文件、产品合同、项目 README/AGENTS；只读 `examples/sidebar-tools/ai-send-queue/README.zh-CN.md`、公开 Page/Sidebar API、当前执行/存储模块。**依赖：** 无。
+**涉及文件：** 本文件、产品合同、项目 README/AGENTS；只读 `projects/ai-send-queue/README.zh-CN.md`、公开 Page/Sidebar API、当前执行/存储模块。**依赖：** 无。
 
 **接口责任：** 固定完整输出、交接、仓库证据和队列记录的字段语义；源码 API 名称由消费者与 owner 在同一合同内确定，不从文档凭空调用。
 
@@ -254,7 +290,7 @@
 
 ### AWB-03 · 完整 AI 回复持久化
 
-**涉及文件：** 先复用 `examples/sidebar-tools/ai-send-queue/src/page/site.js` 和 `src/native-agent/workspace-chatgpt.js` 的对应轮次判断；完整产物通过既有 Durable Result/存储 owner；`chatgpt-fixed-bridge-host.js` 的小消息合同保持显式边界。**依赖：** AWB-01；可与 AWB-02 的独立任务文件并行。
+**涉及文件：** 先复用 `projects/ai-send-queue/src/page/site.js` 和 `src/native-agent/workspace-chatgpt.js` 的对应轮次判断；完整产物通过既有 Durable Result/存储 owner；`chatgpt-fixed-bridge-host.js` 的小消息合同保持显式边界。**依赖：** AWB-01；可与 AWB-02 的独立任务文件并行。
 
 **接口责任：** 产出 `artifactRef`、来源/轮次、byteLength、hash、completeness、citationRefs、attachmentRefs；摘要独立。字段为设计合同，实际实现前在唯一 owner 内定稿。
 
@@ -308,7 +344,7 @@
 
 ### AWB-07 · 持久队列、取消及恢复
 
-**涉及文件：** Web Flow 的多步任务模型、编排与恢复业务及专属测试归 `projects/webflow/`；`examples/sidebar-tools/ai-send-queue/` 继续负责其现有网页发送队列，通过已审阅公开边界协作。底座优先复用 `src/platform/tasks/schedule-repository.js`、`schedule-service.js`、`src/platform/storage/idb.js` 的原事务/准入模式。只有 AWB-01 证明缺口后才确定最小平台写入。**依赖：** AWB-04/05；Gemini 恢复另依赖 AWB-06。
+**涉及文件：** Web Flow 的多步任务模型、编排与恢复业务及专属测试归 `projects/webflow/`；`projects/ai-send-queue/` 继续负责其现有网页发送队列，通过已审阅公开边界协作。底座优先复用 `src/platform/tasks/schedule-repository.js`、`schedule-service.js`、`src/platform/storage/idb.js` 的原事务/准入模式。只有 AWB-01 证明缺口后才确定最小平台写入。**依赖：** AWB-04/05；Gemini 恢复另依赖 AWB-06。
 
 **接口责任：** 单一持久 job 关联 workflow/step/attempt、输入结果、依赖、owner 代次、取消和 UNKNOWN；Queue UI 为投影，不保存第二份权威状态。
 
@@ -384,8 +420,8 @@
 
 | 待验证行为 | 原有最小入口（存在不代表本轮运行） |
 | --- | --- |
-| FIFO 和对应回复栅栏 | `node --test examples/sidebar-tools/ai-send-queue/tests/engine.test.mjs` |
-| 输入恢复、草稿和用户入口 | `node --test examples/sidebar-tools/ai-send-queue/tests/main-recovery.test.mjs` |
+| FIFO 和对应回复栅栏 | `node --test projects/ai-send-queue/tests/engine.test.mjs` |
+| 输入恢复、草稿和用户入口 | `node --test projects/ai-send-queue/tests/main-recovery.test.mjs` |
 | 唯一编辑器、一次点击、消息回读 | `node --test tests/environment/chatgpt-bridge-site-r13.test.mjs` |
 | 持久一次性记录、撤权、document 身份 | `node --test tests/environment/chatgpt-fixed-bridge-r12.test.mjs` |
 | 已安装 Task、参数及结果上限 | `node --test tests/environment/chatgpt-installed-task-host.test.mjs` |
@@ -518,7 +554,7 @@ ChatGPT 新的完整回复：opendesk-task 代码块，恰好五字段
 | 2026-10-27/28，“完成 AI Workflow Bridge 核心闭环”，`01a17e1f-cc5c-76d0-860a-a9e0ec3e26cd` | 固定命令触发、真实结果回原聊天及 AI 中文处理；该对话同时列出仍需完善的可见性/任务对应问题 | 不把原聊天续答升级为跨对话、仓库执行或调度已完成 |
 | 2026-10-29，“AI 消息队列｜系统 Chrome 核心闭环”，`01a18400-031b-7d70-a76f-8fcc6e5b7b45` | 最终回执记录网页 FIFO 两条各一次，当前 README 记 A→回复→B→回复；侧栏按最新要求仅使用提示 | `src/page/engine.js` 是单文档内存队列，页面关闭/刷新恢复未实现；不是持久业务工作队列，公开发行仍 blocked |
 
-计算接力的当前 [README](../../../examples/programs/chatgpt-calculation-relay/README.zh-CN.md)、[输入输出合同](../../../examples/programs/chatgpt-calculation-relay/CONTRACT.zh-CN.md) 和 [EVIDENCE.json](../../../examples/programs/chatgpt-calculation-relay/EVIDENCE.json) 与历史相互印证。本轮只读核对其构建索引中七个源码/配置文件，SHA 均与记录一致；这证明当前文件仍对应历史来源，**不证明今天 Chrome 的安装/登录仍相同**。发送队列以[当前 README](../../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)和现有 `src/page/engine.js` 为准，不恢复已被取代的侧栏同步目标。
+计算接力的当前 [README](../../../examples/programs/chatgpt-calculation-relay/README.zh-CN.md)、[输入输出合同](../../../examples/programs/chatgpt-calculation-relay/CONTRACT.zh-CN.md) 和 [EVIDENCE.json](../../../examples/programs/chatgpt-calculation-relay/EVIDENCE.json) 与历史相互印证。本轮只读核对其构建索引中七个源码/配置文件，SHA 均与记录一致；这证明当前文件仍对应历史来源，**不证明今天 Chrome 的安装/登录仍相同**。发送队列以[当前 README](../../../projects/ai-send-queue/README.zh-CN.md)和现有 `src/page/engine.js` 为准，不恢复已被取代的侧栏同步目标。
 
 其他现有基础也须按实际边界复用：
 

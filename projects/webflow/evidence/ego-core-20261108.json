@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1b764-5b8d-77f0-9a44-f72ae0f329b0",
+  "date": "2026-11-08",
+  "phase": "core functionality and necessary real verification",
+  "status": "CORE_TWO_SEARCH_ROUNDS_AND_MINIMUM_REFUSALS_PASS",
+  "egoRoundsPassed": 2,
+  "egoRoundsExecuted": 3,
+  "browserControl": {
+    "taskSpaceId": 22,
+    "attempt": "takeOverTaskSpace(22) after explicit user reply",
+    "result": "Agent control restored in original TaskSpace 22",
+    "userQuestionPending": false,
+    "retriedOrRoutedAround": false,
+    "installationReviewObservedThisThread": true,
+    "softwareInstalledThisThread": true,
+    "chatMessagesSentThisThread": true,
+    "continueInstruction": "继续接管 TaskSpace 22",
+    "handoffExecuted": true,
+    "retainedPages": [
+      "p4",
+      "p3"
+    ],
+    "directChatMessagesSentThisThread": 7,
+    "automaticResultMessagesObserved": 3,
+    "currentOwnerHandoffExecuted": false,
+    "finishExecuted": true,
+    "finishKeep": [
+      "p4",
+      "p3"
+    ],
+    "retainedReasons": {
+      "p4": "Result chat to inspect or continue",
+      "p3": "Exact restored unrelated unsent homepage draft"
+    },
+    "otherTaskSpacesOperated": false,
+    "trueSidePanelClosedAtFinish": true
+  },
+  "sidebarPackage": {
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "previousVersion": "0.3.10",
+    "previousSha256": "01433fbaae1f728d6d49ba0b60f45f25a9ac4d94b38f65e6973aa33d65d36d7b",
+    "trigger": "Original --check-project rejected stale CSS and JS relative to existing project source",
+    "version": "0.3.11",
+    "bytes": 54506,
+    "sha256": "44a5f683a1b33c15d0b443681f0a6c9a910f55572c32f94f4820a3ef8e481ed9",
+    "capabilitiesChanged": false,
+    "delegatedTaskIdentitiesChanged": false,
+    "status": "INSTALLED_UI_RECEIPT_OBSERVED",
+    "reviewRequirement": "Source owner completed installation review and observed the receipt; current owner reused it without reinstalling.",
+    "installationReceipt": "已安装「Web Flow」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。",
+    "installationId": "NOT_READ"
+  },
+  "baiduTask": {
+    "path": "examples/tasks/baidu.search.top3.v1.opendesk-task.json",
+    "version": "1.1.4",
+    "packageSha256": "e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62",
+    "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+    "sourceSha256": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "sourceMatchesManifest": true,
+    "queryLength": [
+      1,
+      120
+    ],
+    "limit": 3,
+    "additionalArgsAllowed": false,
+    "siteOrigin": "https://www.baidu.com",
+    "deadlineMs": 120000,
+    "egoVerificationInstallationAndAuthorization": "VERIFIED_AVAILABLE_INSTALLED_AND_QUERY_SCHEMA_APPROVED",
+    "verificationRun": {
+      "runId": "a072d899-599c-45ca-8b97-8feaa17a5a7b",
+      "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "args": {
+        "query": "OpenDesk Browser",
+        "limit": 3
+      },
+      "deadlineMs": 120000,
+      "runtimeUi": "已完成 · 资源已释放",
+      "businessStatus": "stopped",
+      "count": 0,
+      "error": {
+        "code": "E_TIMEOUT",
+        "message": "E_TIMEOUT"
+      },
+      "sourceUrl": "https://www.baidu.com/",
+      "observedAt": "2026-11-07T18:56:45.237Z",
+      "visibleInputObserved": "OpenDesk Browser",
+      "resultTextTruncatedByAX": true,
+      "resultId": "d288e36b-e7d5-43be-bd3f-e2bb53bbe19a",
+      "fullTrace": [
+        {
+          "action": "input",
+          "at": "2026-11-07T18:56:31.473Z",
+          "documentId": "55D57F351E8FF326B139DBD8781F5848",
+          "locator": "#chat-textarea",
+          "state": "before",
+          "url": "https://www.baidu.com/",
+          "value": ""
+        },
+        {
+          "action": "input",
+          "at": "2026-11-07T18:56:31.473Z",
+          "locator": "#chat-textarea",
+          "state": "started"
+        },
+        {
+          "action": "input",
+          "at": "2026-11-07T18:56:32.058Z",
+          "locator": "#chat-textarea",
+          "state": "returned",
+          "value": "OpenDesk Browser"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-07T18:56:35.101Z",
+          "locator": "#chat-submit-button",
+          "state": "started",
+          "url": "https://www.baidu.com/"
+        },
+        {
+          "action": "operation",
+          "at": "2026-11-07T18:56:45.237Z",
+          "code": "E_TIMEOUT",
+          "message": "E_TIMEOUT",
+          "state": "stopped"
+        }
+      ],
+      "replayed": false,
+      "countsAsOrdinaryChatRound": false,
+      "fullReturnReadOnContinuation": true,
+      "retirementState": "released",
+      "workerRetired": true
+    },
+    "installationId": "bc4621c4-6f52-4621-8e74-2f7e938f1fdd",
+    "generation": 1,
+    "scriptId": "task:baidu.search.top3:1.1.4",
+    "revision": 1,
+    "installationReadback": "本地可用 · v1.1.4 · 已安装",
+    "installationVerification": {
+      "runId": "b2855f3b-62c2-463e-aa22-ac48cf2750a7",
+      "resultId": "5e88d6c0-4e07-456f-a4d6-a86844a69067",
+      "reason": "Existing reading-TOC drag UI moved the observed click obstruction; one necessary verification before installation",
+      "replayedOriginalRun": false,
+      "countsAsOrdinaryChatRound": false,
+      "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "state": "completed",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "baidu.search.top3.result",
+        "observedAt": "2026-11-07T19:09:16.422Z",
+        "query": "OpenDesk Browser",
+        "results": [
+          {
+            "directUrl": "https://opendesk.bitclub.ai/",
+            "evidence": {
+              "slot": "1",
+              "tpl": "www_index"
+            },
+            "position": 1,
+            "summary": "OpenDesk 不把智能体限制在聊天窗口里。它可以读取本地上下文、调用插件、通过消息渠道持续工作,并把复杂配置过程变成自然语言交互。 01 描述目标 告诉OpenDesk 你要连接飞书、整理目录、查找文件或准备开发环境。 02 装配能力 它按任务选择模型、插件、MCP 与 Skills,自动完成依赖安装和配置。 03 交付结果 任务",
+            "title": "OpenDesk | OpenDesk",
+            "url": "http://www.baidu.com/link?url=A7kF-Oh_vXoQn42FxBm-fJ7TriqEwz2UC8wkyauxmcTD2U4Xyyq6qjiAnlXaDIUK"
+          },
+          {
+            "directUrl": "https://www.openproject.org/opendesk/",
+            "evidence": {
+              "slot": "2",
+              "tpl": "www_index"
+            },
+            "position": 2,
+            "summary": "OpenProject brings comprehensive project management features to openDesk, enabling teams to manage their projects efficiently throughout the entire project lifecycle, from planning to execution. Docum",
+            "title": "openDesk - OpenProject brings open source project management to openDesk",
+            "url": "http://www.baidu.com/link?url=1vL7DhCryAhC_sgvGHXR_MlQwrtLt6GF_XVeCgCZsOiKJZaVOHwcb6xxcd6wnxky"
+          },
+          {
+            "directUrl": "https://github.com/topics/opendesk",
+            "evidence": {
+              "slot": "5",
+              "tpl": "www_index"
+            },
+            "position": 3,
+            "summary": "2026年10月21日openDesk bridge for sovereign meeting transcripts: a Synaplan plugin that turns Jitsi meetings into written notes on your own servers. With friendly support by iabg.de. plugin speech-to-tex",
+            "title": "opendesk · GitHub Topics · GitHub",
+            "url": "http://www.baidu.com/link?url=aVHc_il7LvLV2gjmGgCJebNa3jG_5R-YVQsjUvVb-KUyyPZYXIafIZc2ZZPWWWI_"
+          }
+        ],
+        "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe4e5f9e300115f0f&rsv_t=5802RE7BWLQUKYmogM6YUi50r8q94u6%2BWG%2FF68okg63crNr03RBnXvjnChF5&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_btype=i",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-07T19:09:05.139Z",
+            "documentId": "55D57F351E8FF326B139DBD8781F5848",
+            "locator": "#chat-textarea",
+            "state": "before",
+            "url": "https://www.baidu.com/",
+            "value": "OpenDesk Browser"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-07T19:09:05.139Z",
+            "locator": "#chat-textarea",
+            "state": "started"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-07T19:09:05.599Z",
+            "locator": "#chat-textarea",
+            "state": "returned",
+            "value": "OpenDesk Browser"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-07T19:09:08.650Z",
+            "locator": "#chat-submit-button",
+            "state": "started",
+            "url": "https://www.baidu.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-07T19:09:08.853Z",
+            "locator": "#chat-submit-button",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-07T19:09:08.973Z",
+            "documentId": "55D57F351E8FF326B139DBD8781F5848",
+            "state": "observed",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe4e5f9e300115f0f&rsv_t=5802RE7BWLQUKYmogM6YUi50r8q94u6%2BWG%2FF68okg63crNr03RBnXvjnChF5&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_btype=i"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-07T19:09:13.417Z",
+            "count": 3,
+            "state": "read",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe4e5f9e300115f0f&rsv_t=5802RE7BWLQUKYmogM6YUi50r8q94u6%2BWG%2FF68okg63crNr03RBnXvjnChF5&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_btype=i"
+          }
+        ],
+        "version": 2
+      }
+    },
+    "approval": {
+      "sourceOrigin": "https://chatgpt.com",
+      "targetUrl": "https://www.baidu.com/",
+      "parameterPolicy": {
+        "mode": "schema",
+        "variableKeys": [
+          "query"
+        ],
+        "queryLength": [
+          1,
+          120
+        ],
+        "fixedLimit": 3,
+        "additionalArgsAllowed": false
+      },
+      "installationId": "bc4621c4-6f52-4621-8e74-2f7e938f1fdd",
+      "generation": 1,
+      "approvedAtDisplayed": "2026/11/8 03:12:58",
+      "autoEnabled": true,
+      "readback": "授权有效（自动核验网站权限，无需逐次确认）",
+      "differentQueryReapproval": false
+    }
+  },
+  "environment": {
+    "mode": "static development output; browser loaded state not rechecked",
+    "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "diskRevision": "98530fe401087df05b94fad98402909d0bfea657046977881da1fb6136e40c4c",
+    "devWatcherFound": false,
+    "ports43119And43120Listening": false,
+    "serveConnection": "NOT_PROVEN",
+    "autoSettingsSourceMapMatchesCurrentSource": false,
+    "fileControllerSourceMapMatchesCurrentSource": false,
+    "browserBuildOrWriterStarted": false,
+    "browserOutputWritten": false,
+    "nativeConfigurationChanged": false,
+    "extensionIdObserved": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionEnabledObserved": true,
+    "trueSidePanelObserved": true,
+    "actualExtensionPathObserved": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "actualLiveRevision": "NOT_READ",
+    "observationScope": "Initial path/ID verified; prior static-output observations retained. No current serve connection or live revision claimed."
+  },
+  "checks": [
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json",
+      "status": "PASS"
+    },
+    {
+      "command": "node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs",
+      "passed": 36,
+      "failed": 0,
+      "scope": "Original package validation and UI recovery with simulated SDK; no real installation or browser run"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/webflow --promote-from artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json",
+      "status": "PROJECT_PACKAGE_PROMOTED"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/webflow --check-project",
+      "status": "PROJECT_PACKAGE_MATCH"
+    },
+    {
+      "command": "node --check projects/webflow/src/ui/main.js",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check -- projects/webflow",
+      "status": "PASS before documentation update"
+    }
+  ],
+  "repository": {
+    "branch": "main",
+    "committed": false,
+    "pushed": false,
+    "parallelPublicSidebarChangesPreserved": true,
+    "currentOwnerChangedFiles": [
+      "projects/webflow/README.md",
+      "projects/webflow/docs/execution-plan.zh-CN.md",
+      "projects/webflow/evidence/ego-core-20261108.json"
+    ],
+    "currentOwnerProductSourceChanged": false
+  },
+  "deferred": [
+    "Original file UNKNOWN recovery",
+    "Natural-language file discovery",
+    "MCP",
+    "Production",
+    "Full CI",
+    "Independent score",
+    "Version and stress matrices"
+  ],
+  "rawDispatchExactlyOnce": "NOT_TESTED",
+  "installationConfirmation": {
+    "requiredBy": "Computer/Browser Use Confirmation Policy: installs or runs software from an unrecognized source",
+    "questionPending": false,
+    "scope": "Install local Web Flow 0.3.11; verify, install and run fixed Baidu Task 1.1.4 for two core search rounds",
+    "finalInstallClicked": true,
+    "userAnswer": "确认安装并继续百度测试"
+  },
+  "sourceGoal": {
+    "threadId": "01a1b74b-13a0-7743-9ffd-0b0a333ca834",
+    "statusReadFromTool": "paused",
+    "objectiveAchieved": false,
+    "lastReadOwner": "01a1b74b-13a0-7743-9ffd-0b0a333ca834",
+    "modifiedByCurrentOwner": false
+  },
+  "latestUserCorrection": "Reuse historical successful script evidence; do not restart script tests on each continuation. Only diagnose the concrete ego installation timeout and verify missing end-to-end product behavior.",
+  "previousOwner": "01a1b74b-13a0-7743-9ffd-0b0a333ca834",
+  "plannedSearchCases": 2,
+  "ordinaryFailedAttempts": 1,
+  "roundCounting": "One retained automatic click timeout, followed by two successful fresh ordinary requests; installation verification excluded.",
+  "chatUrl": "https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921",
+  "diagnosis": {
+    "originalFailure": "Input returned; #chat-submit-button click started and timed out without returned trace",
+    "originalObservedHitAtButtonCenter": "[data-opendesk-toc-root]",
+    "originalButtonRect": {
+      "x": 774,
+      "y": 19,
+      "width": 104,
+      "height": 38
+    },
+    "originalTocRect": {
+      "x": 803,
+      "y": 8,
+      "width": 220,
+      "height": 91.3984375
+    },
+    "firstAdjustment": "Move widget down; borrowed-page installation verification succeeded, but first owned automatic request later timed out at the same click",
+    "finalAdjustment": "Move Baidu-origin TOC left through its existing drag UI; fresh page restored x=8 / y=280.0078125 and button center hit #chat-submit-button",
+    "freshPageDiagnosticSubmittedSearch": false,
+    "automaticFailureCause": "Same-step obstruction inferred from original hit test and success after moving left; failed owned tab retired before direct hit test",
+    "businessSourceChanged": false,
+    "actionabilityBypassed": false,
+    "oldCandidatesReplayed": false
+  },
+  "ordinaryAttempts": [
+    {
+      "candidateId": "wf-93f0c6e2-8b47-4f19-9c35-2da861e072bf",
+      "candidate": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-93f0c6e2-8b47-4f19-9c35-2da861e072bf",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser",
+          "limit": 3
+        }
+      },
+      "requestId": "79f13b5a-e7d2-4b04-b053-862b0d9fa2c9",
+      "source": {
+        "documentId": "A2EF82104FCA8C0FB9FB18DE2BE8889E",
+        "tabId": 1114138022,
+        "url": "https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921"
+      },
+      "scope": {
+        "args": {
+          "limit": 3,
+          "query": "OpenDesk Browser"
+        },
+        "installation": {
+          "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "generation": 1,
+          "installationId": "bc4621c4-6f52-4621-8e74-2f7e938f1fdd",
+          "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+          "revision": 1,
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "version": "1.1.4"
+        },
+        "sourceOrigin": "https://chatgpt.com",
+        "targetUrl": "https://www.baidu.com/",
+        "taskId": "baidu.search.top3"
+      },
+      "createdAt": 1794079026745,
+      "status": "consumed",
+      "receipt": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "7071c340-0370-402e-9e98-0845d42e16a8",
+        "runId": "90726f7d-aebc-4f02-9790-43ab4e6dbd97",
+        "value": {
+          "count": 0,
+          "error": {
+            "code": "E_TIMEOUT",
+            "message": "E_TIMEOUT"
+          },
+          "inputMode": "isolated-dom",
+          "kind": "baidu.search.top3.result",
+          "observedAt": "2026-11-07T19:17:25.427Z",
+          "query": "OpenDesk Browser",
+          "results": [],
+          "sourceUrl": "https://www.baidu.com/",
+          "status": "stopped",
+          "trace": [
+            {
+              "action": "input",
+              "at": "2026-11-07T19:17:10.955Z",
+              "documentId": "2A5A05007D4AD3B1EF9A906467229F6F",
+              "locator": "#chat-textarea",
+              "state": "before",
+              "url": "https://www.baidu.com/",
+              "value": ""
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:17:10.955Z",
+              "locator": "#chat-textarea",
+              "state": "started"
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:17:12.261Z",
+              "locator": "#chat-textarea",
+              "state": "returned",
+              "value": "OpenDesk Browser"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-07T19:17:15.307Z",
+              "locator": "#chat-submit-button",
+              "state": "started",
+              "url": "https://www.baidu.com/"
+            },
+            {
+              "action": "operation",
+              "at": "2026-11-07T19:17:25.427Z",
+              "code": "E_TIMEOUT",
+              "message": "E_TIMEOUT",
+              "state": "stopped"
+            }
+          ],
+          "version": 2
+        }
+      },
+      "controllerRun": {
+        "runId": "90726f7d-aebc-4f02-9790-43ab4e6dbd97",
+        "state": "completed",
+        "runRevision": 4,
+        "retirementState": "released",
+        "workerRetired": true,
+        "resultId": "7071c340-0370-402e-9e98-0845d42e16a8",
+        "sourceKind": "saved",
+        "revision": {
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "e91d4af435d901060b7a68de2ae2ea089c1c6ce803768d3309576dac943d0fde"
+          },
+          "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"90726f7d-aebc-4f02-9790-43ab4e6dbd97\",\"83486ae0-9efa-4cd0-88cd-245ce9ad17f6\",\"task:baidu.search.top3:1.1.4\",1]"
+        },
+        "target": {
+          "tabId": 1114138023,
+          "frameId": 0,
+          "documentId": "2A5A05007D4AD3B1EF9A906467229F6F",
+          "url": "https://www.baidu.com/",
+          "allowedOrigin": "https://www.baidu.com",
+          "creationId": "6934d2ad-e7d2-4478-9fd7-c47813883075",
+          "targetSessionId": "83badeba-d031-4fe4-a522-71f3c4a0c11e",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "086ebf3b-be31-422c-b07e-5658c71f6f59"
+        }
+      },
+      "persistentValueEqualsChatData": true,
+      "trueSidePanelOpenAtSend": true,
+      "manuallyAdoptedOrExecuted": false,
+      "candidateGeneratedByOfficialAI": true,
+      "oldCandidateReplayed": false
+    },
+    {
+      "candidateId": "wf-5c7e92a4-13b6-4d8f-a0e9-76bc2451d3af",
+      "candidate": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-5c7e92a4-13b6-4d8f-a0e9-76bc2451d3af",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser",
+          "limit": 3
+        }
+      },
+      "requestId": "b0a78f44-1f75-417a-b861-abcb3b940d07",
+      "source": {
+        "documentId": "A2EF82104FCA8C0FB9FB18DE2BE8889E",
+        "tabId": 1114138022,
+        "url": "https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921"
+      },
+      "scope": {
+        "args": {
+          "limit": 3,
+          "query": "OpenDesk Browser"
+        },
+        "installation": {
+          "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "generation": 1,
+          "installationId": "bc4621c4-6f52-4621-8e74-2f7e938f1fdd",
+          "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+          "revision": 1,
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "version": "1.1.4"
+        },
+        "sourceOrigin": "https://chatgpt.com",
+        "targetUrl": "https://www.baidu.com/",
+        "taskId": "baidu.search.top3"
+      },
+      "createdAt": 1794079243546,
+      "status": "consumed",
+      "receipt": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "a0eb7140-7978-4341-a1bb-80f297c6db73",
+        "runId": "eb0f9f7f-b966-4239-911e-9d0f2621af5f",
+        "value": {
+          "count": 3,
+          "inputMode": "isolated-dom",
+          "kind": "baidu.search.top3.result",
+          "observedAt": "2026-11-07T19:21:00.121Z",
+          "query": "OpenDesk Browser",
+          "results": [
+            {
+              "directUrl": "https://opendesk.bitclub.ai/",
+              "evidence": {
+                "slot": "1",
+                "tpl": "www_index"
+              },
+              "position": 1,
+              "summary": "OpenDesk 不把智能体限制在聊天窗口里。它可以读取本地上下文、调用插件、通过消息渠道持续工作,并把复杂配置过程变成自然语言交互。 01 描述目标 告诉OpenDesk 你要连接飞书、整理目录、查找文件或准备开发环境。 02 装配能力 它按任务选择模型、插件、MCP 与 Skills,自动完成依赖安装和配置。 03 交付结果 任务",
+              "title": "OpenDesk | OpenDesk",
+              "url": "http://www.baidu.com/link?url=Tj2laowmevZs8LFkyBnt3uoEhvJOzNPTVijIIv3CkYXp5dlxLwFL5-Lz2hAU9EMb"
+            },
+            {
+              "directUrl": "https://www.openproject.org/opendesk/",
+              "evidence": {
+                "slot": "2",
+                "tpl": "www_index"
+              },
+              "position": 2,
+              "summary": "OpenProject brings comprehensive project management features to openDesk, enabling teams to manage their projects efficiently throughout the entire project lifecycle, from planning to execution. Docum",
+              "title": "openDesk - OpenProject brings open source project management to openDesk",
+              "url": "http://www.baidu.com/link?url=N-mVs_4B625oCoG6yGjY7Wi6GyeC1OaGuy-4kq9qLtOAUTTA0NpSoQrOeuG9iCGB"
+            },
+            {
+              "directUrl": "https://github.com/topics/opendesk",
+              "evidence": {
+                "slot": "5",
+                "tpl": "www_index"
+              },
+              "position": 3,
+              "summary": "2026年10月21日openDesk bridge for sovereign meeting transcripts: a Synaplan plugin that turns Jitsi meetings into written notes on your own servers. With friendly support by iabg.de. plugin speech-to-tex",
+              "title": "opendesk · GitHub Topics · GitHub",
+              "url": "http://www.baidu.com/link?url=NQW5sSQ7A8nyNphhZW4VvTqzzim2_y2Ovo4l5ycnrA9uuGBQGO51Z435UrX9hh2v"
+            }
+          ],
+          "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe5897a080018e112&rsv_t=35e9heWdFMtxqvNOhlWbIGhRKKfCsQpEc8rdbVauCrtTgCDT0YHeirEGXsyp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i",
+          "status": "success",
+          "trace": [
+            {
+              "action": "input",
+              "at": "2026-11-07T19:20:47.002Z",
+              "documentId": "A80861BFFD43ED17AADFC712EF2C56BA",
+              "locator": "#chat-textarea",
+              "state": "before",
+              "url": "https://www.baidu.com/",
+              "value": ""
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:20:47.002Z",
+              "locator": "#chat-textarea",
+              "state": "started"
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:20:48.255Z",
+              "locator": "#chat-textarea",
+              "state": "returned",
+              "value": "OpenDesk Browser"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-07T19:20:51.305Z",
+              "locator": "#chat-submit-button",
+              "state": "started",
+              "url": "https://www.baidu.com/"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-07T19:20:53.207Z",
+              "locator": "#chat-submit-button",
+              "state": "returned"
+            },
+            {
+              "action": "navigation",
+              "at": "2026-11-07T19:20:53.323Z",
+              "documentId": "A80861BFFD43ED17AADFC712EF2C56BA",
+              "state": "observed",
+              "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe5897a080018e112&rsv_t=35e9heWdFMtxqvNOhlWbIGhRKKfCsQpEc8rdbVauCrtTgCDT0YHeirEGXsyp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+            },
+            {
+              "action": "results",
+              "at": "2026-11-07T19:20:57.116Z",
+              "count": 3,
+              "state": "read",
+              "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser&fenlei=256&rsv_pq=0xe5897a080018e112&rsv_t=35e9heWdFMtxqvNOhlWbIGhRKKfCsQpEc8rdbVauCrtTgCDT0YHeirEGXsyp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+            }
+          ],
+          "version": 2
+        }
+      },
+      "controllerRun": {
+        "runId": "eb0f9f7f-b966-4239-911e-9d0f2621af5f",
+        "state": "completed",
+        "runRevision": 4,
+        "retirementState": "released",
+        "workerRetired": true,
+        "resultId": "a0eb7140-7978-4341-a1bb-80f297c6db73",
+        "sourceKind": "saved",
+        "revision": {
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "e91d4af435d901060b7a68de2ae2ea089c1c6ce803768d3309576dac943d0fde"
+          },
+          "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"eb0f9f7f-b966-4239-911e-9d0f2621af5f\",\"2b627a41-d25c-496f-973b-d6108b548fef\",\"task:baidu.search.top3:1.1.4\",1]"
+        },
+        "target": {
+          "tabId": 1114138029,
+          "frameId": 0,
+          "documentId": "A80861BFFD43ED17AADFC712EF2C56BA",
+          "url": "https://www.baidu.com/",
+          "allowedOrigin": "https://www.baidu.com",
+          "creationId": "fb1ac6c1-5333-4c7e-a0cf-28c6e34ee69c",
+          "targetSessionId": "ddefcd51-9b97-460d-85a1-dbb90b73bb80",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "086ebf3b-be31-422c-b07e-5658c71f6f59"
+        }
+      },
+      "persistentValueEqualsChatData": true,
+      "trueSidePanelOpenAtSend": true,
+      "manuallyAdoptedOrExecuted": false,
+      "candidateGeneratedByOfficialAI": true,
+      "oldCandidateReplayed": false,
+      "successfulRound": 1,
+      "aiContinuation": "OpenDesk 百度搜索执行结果\n搜索成功 · 返回 3 条结果\n\n本次 OpenDesk 本机自动化脚本已返回真实执行回执，搜索关键词为 OpenDesk Browser。\n\n脚本状态：completed\n\n业务状态：success\n\n返回数量：3 / 3\n\n执行模式：isolated-dom\n\n脚本版本：1.1.4\n\n百度前三条自然网页结果\n\n第 1 条 · OpenDesk\n\nOpenDesk | OpenDesk\n\nOpenDesk 可以读取本地上下文、调用插件，并根据任务选择模型、MCP 和 Skills，帮助用户完成文件管理、环境配置和自动化工作。\n\n第 2 条 · OpenProject\n\nopenDesk - OpenProject\n\nOpenProject 为 openDesk 提供开源项目管理能力，支持团队从项目规划到执行的全生命周期管理。\n\n第 3 条 · GitHub\n\nopendesk · GitHub Topics\n\nGitHub 上的 opendesk 主题页面，包含相关开源项目，例如面向自主托管会议记录的集成插件。\n\n实际执行链路核验\n\n19:20:48 — 输入操作返回，关键词为 OpenDesk Browser。\n\n19:20:53 — 点击操作返回，随后观察到百度搜索结果页导航。\n\n19:20:57 — 读取到 3 条结果。\n\n19:21:00 — 记录本次业务结果 success。\n\n与上一轮 E_TIMEOUT 不同，本轮具有点击返回、导航观测和结果读取的完整轨迹证据。\n\n结论：本次 OpenDesk Web Flow 搜索链路成功完成，真实返回了 3 条搜索结果。\n\n需要区分的是，这证明了本次浏览器任务执行成功，不代表搜索结果中的三个网站均属于当前开发的 OpenDesk Browser 项目，也不代表已经核验这些网站的具体内容。"
+    },
+    {
+      "candidateId": "wf-7e4c91b2-5a08-4d63-9f21-c8b0e67a34d5",
+      "candidate": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "wf-7e4c91b2-5a08-4d63-9f21-c8b0e67a34d5",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {
+          "query": "OpenDesk Browser automation",
+          "limit": 3
+        }
+      },
+      "requestId": "154b4548-ff74-4bf5-ac46-c611fe68a2f5",
+      "source": {
+        "documentId": "A2EF82104FCA8C0FB9FB18DE2BE8889E",
+        "tabId": 1114138022,
+        "url": "https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921"
+      },
+      "scope": {
+        "args": {
+          "limit": 3,
+          "query": "OpenDesk Browser automation"
+        },
+        "installation": {
+          "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "generation": 1,
+          "installationId": "bc4621c4-6f52-4621-8e74-2f7e938f1fdd",
+          "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+          "revision": 1,
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "version": "1.1.4"
+        },
+        "sourceOrigin": "https://chatgpt.com",
+        "targetUrl": "https://www.baidu.com/",
+        "taskId": "baidu.search.top3"
+      },
+      "createdAt": 1794079391504,
+      "status": "consumed",
+      "receipt": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "9d426a98-a4fe-4d35-8e4e-b08218fad02a",
+        "runId": "213d438e-e45f-4fc7-b8ee-06b2f6c6e0b9",
+        "value": {
+          "count": 3,
+          "inputMode": "isolated-dom",
+          "kind": "baidu.search.top3.result",
+          "observedAt": "2026-11-07T19:23:31.099Z",
+          "query": "OpenDesk Browser automation",
+          "results": [
+            {
+              "directUrl": "https://blog.csdn.net/weixin_42523670/article/details/169520804",
+              "evidence": {
+                "slot": "4",
+                "tpl": "www_index"
+              },
+              "position": 1,
+              "summary": "2026年10月29日import subprocess import json def test_login_flow(): # 打开登录页面 subprocess.run([ \"openclaw\", \"browser\", \"--browser-profile\", \"tester\", \"open\", \"https://example.com/login\" ], check=True) # 执行登",
+              "title": "OpenClaw Browser Relay:AI驱动的浏览器自动化技术解析-CSDN博客",
+              "url": "http://www.baidu.com/link?url=FakLVXhqL-sWNfvkDWZ2yJdozPqhHboKzn9jF90Wz0zRJOCn7pAT6bx5fgmQjTNr_5BKeBNwFUKpcYy0cHMdYtnAWYCz2aoU5DIILIi7auW"
+            },
+            {
+              "directUrl": "https://blog.csdn.net/weixin_42546508/article/details/169656872",
+              "evidence": {
+                "slot": "5",
+                "tpl": "www_index"
+              },
+              "position": 2,
+              "summary": "8天前通过CDP协议可接入主流云浏览器服务: // Browserless配置示例 { browser: { enabled: true, defaultProfile: \"browserless\", profiles: { browserless: { cdpUrl: \"wss://production-sfo.browserless.io?token=<API_KEY>\", color: \"#",
+              "title": "OpenClaw浏览器自动化核心技术解析与实战指南-CSDN博客",
+              "url": "http://www.baidu.com/link?url=FakLVXhqL-sWNfvkDWZ2yJdozPqhHboKzn9jF90Wz0zRJOCn7pAT6bx5fgmQjTNrFrPAbZ_3SX7i2fheivNRrFak1Ud0FBum_Lm998x6-ku"
+            },
+            {
+              "directUrl": "https://blog.51cto.com/u_16213632/14600086",
+              "evidence": {
+                "slot": "6",
+                "tpl": "www_index"
+              },
+              "position": 3,
+              "summary": "2026年5月15日/bin/bash # OpenClaw 浏览器自动化登录示例 # 1. 启动浏览器 openclaw browser start ...",
+              "title": "OpenClaw:深入解析浏览器自动化实战与应用_mob64ca14040d22的技术博客_51CTO博客",
+              "url": "http://www.baidu.com/link?url=mXVW_THgb56TeyvKb2Nt_NOar-COAAysrU7vtWEbIvUp3Wi-cOPVcVnvrlWJJSdL6sQOn-pQOkAXoIDUzSa32q"
+            }
+          ],
+          "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser%20automation&fenlei=256&rsv_pq=0xd52522880035e555&rsv_t=e6c4Rfzk6w%2FJrK2lklkC4bV7dQmgfq4zh9rWv73Fn09Buzte3ND6hbJVumH8&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i",
+          "status": "success",
+          "trace": [
+            {
+              "action": "input",
+              "at": "2026-11-07T19:23:16.239Z",
+              "documentId": "986DF39067C2CD9F0B2DFF106D89B20B",
+              "locator": "#chat-textarea",
+              "state": "before",
+              "url": "https://www.baidu.com/",
+              "value": ""
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:23:16.239Z",
+              "locator": "#chat-textarea",
+              "state": "started"
+            },
+            {
+              "action": "input",
+              "at": "2026-11-07T19:23:18.298Z",
+              "locator": "#chat-textarea",
+              "state": "returned",
+              "value": "OpenDesk Browser automation"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-07T19:23:21.375Z",
+              "locator": "#chat-submit-button",
+              "state": "started",
+              "url": "https://www.baidu.com/"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-07T19:23:23.231Z",
+              "locator": "#chat-submit-button",
+              "state": "returned"
+            },
+            {
+              "action": "navigation",
+              "at": "2026-11-07T19:23:23.343Z",
+              "documentId": "986DF39067C2CD9F0B2DFF106D89B20B",
+              "state": "observed",
+              "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser%20automation&fenlei=256&rsv_pq=0xd52522880035e555&rsv_t=e6c4Rfzk6w%2FJrK2lklkC4bV7dQmgfq4zh9rWv73Fn09Buzte3ND6hbJVumH8&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+            },
+            {
+              "action": "results",
+              "at": "2026-11-07T19:23:28.093Z",
+              "count": 3,
+              "state": "read",
+              "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=OpenDesk%20Browser%20automation&fenlei=256&rsv_pq=0xd52522880035e555&rsv_t=e6c4Rfzk6w%2FJrK2lklkC4bV7dQmgfq4zh9rWv73Fn09Buzte3ND6hbJVumH8&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+            }
+          ],
+          "version": 2
+        }
+      },
+      "controllerRun": {
+        "runId": "213d438e-e45f-4fc7-b8ee-06b2f6c6e0b9",
+        "state": "completed",
+        "runRevision": 4,
+        "retirementState": "released",
+        "workerRetired": true,
+        "resultId": "9d426a98-a4fe-4d35-8e4e-b08218fad02a",
+        "sourceKind": "saved",
+        "revision": {
+          "scriptId": "task:baidu.search.top3:1.1.4",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "e91d4af435d901060b7a68de2ae2ea089c1c6ce803768d3309576dac943d0fde"
+          },
+          "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"213d438e-e45f-4fc7-b8ee-06b2f6c6e0b9\",\"84e7b0d8-4c4c-4b34-82c2-bbf96904e585\",\"task:baidu.search.top3:1.1.4\",1]"
+        },
+        "target": {
+          "tabId": 1114138031,
+          "frameId": 0,
+          "documentId": "986DF39067C2CD9F0B2DFF106D89B20B",
+          "url": "https://www.baidu.com/",
+          "allowedOrigin": "https://www.baidu.com",
+          "creationId": "eaf5811d-c85c-4be0-9881-4e7f6d65c492",
+          "targetSessionId": "375f7d05-5831-48b0-b76a-a2fc9612ac75",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "086ebf3b-be31-422c-b07e-5658c71f6f59"
+        }
+      },
+      "persistentValueEqualsChatData": true,
+      "trueSidePanelOpenAtSend": false,
+      "manuallyAdoptedOrExecuted": false,
+      "candidateGeneratedByOfficialAI": true,
+      "oldCandidateReplayed": false,
+      "successfulRound": 2,
+      "aiContinuation": "OpenDesk 百度搜索执行结果\n搜索成功 · 返回 3 条\n\n本次 OpenDesk Web Flow 返回了真实执行回执，成功读取百度搜索结果。\n\n搜索关键词\n\nOpenDesk Browser automation\n\n脚本状态\n\ncompleted\n\n业务状态\n\nsuccess\n\n返回数量\n\n3 / 3\n\n脚本版本\n\n1.1.4\n\n百度前三条自然网页结果\n\n第 1 条 · CSDN · 2026-10-29\n\nOpenClaw Browser Relay：AI驱动的浏览器自动化技术解析\n\n摘要涉及通过 OpenClaw Browser CLI 启动指定浏览器 Profile、打开登录页面，以及使用 Python subprocess 编排自动化操作。\n\n第 2 条 · CSDN\n\nOpenClaw浏览器自动化核心技术解析与实战指南\n\n摘要介绍通过 CDP 协议连接云浏览器服务，包括 Browserless 的 cdpUrl 配置示例。\n\n第 3 条 · 51CTO · 2026-05-15\n\nOpenClaw：深入解析浏览器自动化实战与应用\n\n摘要包含 OpenClaw 浏览器自动化登录示例，以及 openclaw browser start 等操作命令。\n\n执行链路核验\n\n19:23:18 UTC — 输入操作返回，关键词为 OpenDesk Browser automation。\n\n19:23:23 UTC — 点击操作返回，随后观察到百度搜索结果页导航。\n\n19:23:28 UTC — 从结果页读取到 3 条搜索结果。\n\n19:23:31 UTC — 记录业务状态 success。\n\n结果判断\n\n本次回执支持以下结论：\n\n浏览器搜索链路成功： 输入、点击、导航观察、结果提取均有相应轨迹。\n\n搜索数据成功返回： 三条结果均有标题、摘要、排名及目标链接。\n\n搜索相关性有限： 三条结果实际上都涉及 OpenClaw，而不是直接介绍 OpenDesk Browser。\n\n尚未验证网页正文： 当前只有搜索结果摘要，并未进一步访问或核验这些文章。\n\n最终结论：本次 OpenDesk Web Flow 百度搜索任务成功，返回 3 条自然网页结果；但结果与 OpenDesk Browser 的直接相关性不高。\n\n没有额外执行搜索，也没有将 OpenClaw 的搜索结果视为 OpenDesk Browser 项目本身的资料。"
+    }
+  ],
+  "closedSidePanelRound": {
+    "successfulRound": 2,
+    "nativeCloseObserved": true,
+    "nativeScreenshotConfirmedClosed": true,
+    "closedBeforeOrdinaryMessage": true,
+    "reopenedOnlyAfterResultAndAIContinuation": true,
+    "originalTruePanelHostInstanceId": "edff58b9-33c7-450d-9ba9-2c66ee8d7301",
+    "originalPanelTargetAbsentBefore": true,
+    "originalPanelTargetAbsentOnReturn": true,
+    "absenceChecksScope": "Exact original Side Panel host, not all sidepanel pages in the shared browser profile",
+    "originalPanelAbsentBeforeAt": "2026-11-07T19:23:06.470Z",
+    "originalPanelAbsentOnReturnAt": "2026-11-07T19:23:31.623Z",
+    "newVisibleHostAfterReopen": "560d743a-488e-4299-85ea-b483e481c1bf",
+    "catalogTabClosedAsSubstitute": false
+  },
+  "refusalChecks": [
+    {
+      "case": "casual",
+      "prompt": "先聊聊：浏览器自动化通常适合做什么？请用一句话回答。",
+      "reply": "浏览器自动化适合代替人工完成重复性网页操作，例如数据采集、自动填表、登录验证、批量处理、业务流程执行和网页功能测试。",
+      "newCandidate": false,
+      "status": "PASS_VISIBLE_CHAT_AND_FINAL_PERSISTENT_LEDGER"
+    },
+    {
+      "case": "explicit-no-execute",
+      "prompt": "只讨论，不执行：如果用百度搜索 OpenDesk Browser，你会怎样处理？不要开始搜索，请简短回答。",
+      "reply": "我会先确认关键词为 OpenDesk Browser，然后通过已安装的 OpenDesk Web Flow 百度搜索任务生成执行候选，等待本机授权执行及真实结果回执，最后整理前三条自然网页结果的标题、链接和摘要。\n\n本次仅讨论，不生成任务候选，也不执行搜索。",
+      "newCandidate": false,
+      "status": "PASS_VISIBLE_CHAT_AND_FINAL_PERSISTENT_LEDGER"
+    },
+    {
+      "case": "five-results",
+      "prompt": "请用百度搜索 OpenDesk Browser，返回前五条自然网页结果。",
+      "reply": "当前 OpenDesk Web Flow 已安装的百度搜索任务 baidu.search.top3 仅支持返回 3 条自然网页结果（limit=3）。\n\n你要求返回 5 条（limit=5），不符合当前任务 Schema，因此不能生成执行候选，也不能擅自改成 3 条。\n\n本次未执行搜索。 如需返回 5 条，需要先扩展并核验本机任务对 limit=5 的支持。",
+      "newCandidate": false,
+      "status": "PASS_VISIBLE_CHAT_AND_FINAL_PERSISTENT_LEDGER"
+    }
+  ],
+  "minimumSafetyScope": {
+    "resultsDidNotRetrigger": true,
+    "refusalsDidNotCreateLedgerEntries": true,
+    "ledgerRequestCountAfterAllChecks": 3,
+    "fiveNotSilentlyReducedToThree": true,
+    "rawDispatchExactlyOnce": "NOT_TESTED",
+    "revocationAndFaultInjectionMatrix": "NOT_TESTED_THIS_CONTINUATION",
+    "scope": "Real ordinary chat and original persistent ledger; historical safety evidence retained, no security source changed"
+  },
+  "draftPreservation": {
+    "page": "p3",
+    "url": "https://chatgpt.com/",
+    "exact": true,
+    "characters": 488,
+    "sha256": "71fabd761cbc3c2b829b4283ca550004abdb29b8583d7b246ce26cd758737687",
+    "sent": false
+  },
+  "checksInheritedFromOwner": "01a1b74b-13a0-7743-9ffd-0b0a333ca834",
+  "verificationThisOwner": {
+    "type": "real core browser operations and persistent result consistency",
+    "ordinarySuccesses": 2,
+    "refusalCases": 3,
+    "sourceTestsRerun": false,
+    "reasonNoNewSourceTests": "No source/package changes; actual browser operations and artifact consistency cover this scope",
+    "dataIdentityConsistency": "PASS",
+    "documentationCheck": "PASS",
+    "documentationDetails": {
+      "jsonParsed": true,
+      "ordinaryAttemptReceiptConsistency": 3,
+      "successfulRounds": 2,
+      "refusalCases": 3,
+      "closedSidePanelEvidenceConsistent": true,
+      "sourceAndPackageHashesUnchanged": true,
+      "newSectionLocalLinksExist": true,
+      "gitDiffCheck": "PASS"
+    }
+  },
+  "egoUpdateNotice": "ego lite 0.6.2.8 reports an update; not upgraded during task",
+  "currentGoal": {
+    "threadId": "01a1b764-5b8d-77f0-9a44-f72ae0f329b0",
+    "statusReadFromTool": "complete",
+    "objectiveAchieved": true,
+    "timeUsedSeconds": 2122,
+    "tokensUsed": 409915,
+    "tokenBudget": null,
+    "sourceGoalModified": false
+  }
+}

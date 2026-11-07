@@ -1,8 +1,8 @@
 // Local assistant entry: package a Sidebar App update without re-installing Chrome.
 // This only creates a verified JSON release. Installation remains in the trusted UI.
-import {readFile,writeFile,lstat,realpath,open,mkdir,unlink} from 'node:fs/promises';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {readFile,writeFile,lstat,realpath,open,mkdir,unlink,readdir} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {
   createSidebarToolPackage,encodeSidebarToolPackage,buildSidebarTool,
@@ -58,12 +58,40 @@ async function readPrevious(project,id){
     fail('E_APP_PACKAGE','formal release is not canonical; do not silently replace it');
   return {pkg,bytes};
 }
-async function updateApp(id,{check=false}={}){
+// Discover the installed project's source by its declared ID, just as App CI
+// does across the two supported namespaces. Never choose between duplicate owners.
+export async function resolveSidebarAppProject(id,sourceRoot=root){
   if(!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(id))
     fail('E_APP_ID','provide a valid Sidebar App ID');
-  const project=join(root,'examples','sidebar-tools',id);
-  const actual=await realpath(project);
-  if(actual!==project)fail('E_APP_PATH','app path must not be a symlink');
+  const matches=[];
+  for(const namespace of ['projects','examples/sidebar-tools']){
+    const base=resolve(sourceRoot,namespace);
+    const info=await lstat(base).catch(error=>{
+      if(error.code==='ENOENT')return null;throw error;
+    });
+    if(!info)continue;
+    if(!info.isDirectory()||await realpath(base)!==base)
+      fail('E_APP_PATH','app namespace must be a real directory');
+    for(const entry of await readdir(base,{withFileTypes:true})){
+      if(entry.isSymbolicLink())fail('E_APP_PATH','app directory must not be a symlink');
+      if(!entry.isDirectory())continue;
+      const project=join(base,entry.name),configFile=join(project,'tool.config.json');
+      const configInfo=await lstat(configFile).catch(error=>{
+        if(error.code==='ENOENT')return null;throw error;
+      });
+      if(!configInfo)continue;
+      if(!configInfo.isFile()||configInfo.isSymbolicLink())
+        fail('E_APP_PATH','app config must be a regular file');
+      const config=JSON.parse(await readFile(configFile,'utf8'));
+      if(config.id===id)matches.push(project);
+    }
+  }
+  if(matches.length>1)fail('E_APP_IDENTITY','duplicate app source owners for '+id);
+  if(!matches.length)fail('E_APP_NOT_FOUND','no source project for '+id);
+  return matches[0];
+}
+async function updateApp(id,{check=false}={}){
+  const project=await resolveSidebarAppProject(id);
   const configFile=join(project,'tool.config.json');
   const original=await readFile(configFile,'utf8'),config=JSON.parse(original);
   if(config.id!==id)fail('E_APP_IDENTITY','tool.config.json ID differs from project ID');
@@ -146,9 +174,11 @@ async function guardedUpdate(id,options){
     await unlink(lock);
   }
 }
-const args=process.argv.slice(2),id=args[0],check=args.length===2&&args[1]==='--check';
-if(args.length<1||args.length>2||(args.length===2&&!check)||!id){
-  console.error(usage);process.exitCode=2;
-}else guardedUpdate(id,{check}).catch(error=>{
-  console.error(String(error.message||error));process.exitCode=1;
-});
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
+  const args=process.argv.slice(2),id=args[0],check=args.length===2&&args[1]==='--check';
+  if(args.length<1||args.length>2||(args.length===2&&!check)||!id){
+    console.error(usage);process.exitCode=2;
+  }else guardedUpdate(id,{check}).catch(error=>{
+    console.error(String(error.message||error));process.exitCode=1;
+  });
+}

@@ -25,7 +25,7 @@ import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/confi
 type Page = OptionsSection;
 const emptyEndpoint = {name:'', scheme:'http' as ProxyScheme,host:'',port:''};
 
-export default function App({onClose,navigationBusy=false,presentation='sidebar'}:{onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management'}={}) {
+export default function App({onClose,navigationBusy=false,presentation='sidebar',headerNavigation=false}:{onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean}={}) {
   const { t, preference, setPreference } = useI18n();
   const modes:{mode:RouteMode;name:string}[]=[
   // Keep the same primary action order as the persistent R8.3 Side Panel.
@@ -511,8 +511,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <ProxyIcon name="refresh"/>{t('refreshStatus')}
         </Button>
       </div></details>
-      <Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
-        title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>
+      {!headerNavigation&&<Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
+        title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>}
       </>}
     </header>
     <div className="layout">

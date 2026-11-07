@@ -1,0 +1,265 @@
+{
+  "date": "2026-11-08",
+  "scope": "ChatGPT project-file product boundary and on-demand presentation; core development only",
+  "source": "projects/webflow/trusted/chatgpt-file-intent-page.js",
+  "reviewedBlob": "79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6",
+  "sourceSha256": "401b9b1b775c12580ecda2889be598e7e6b48fd3de5d0af4120055521c2fc4ac",
+  "productBoundary": {
+    "formal": [
+      "witnessed conversation file intents",
+      "trusted project connection",
+      "Stop",
+      "real local receipts",
+      "unknown reconciliation"
+    ],
+    "auxiliary": {
+      "prompt": "local text only; two production consumers remain",
+      "manualTask": "real file action behind explicit controls",
+      "fixedProtocol": "active review, write proposal and unknown reconciliation consumers remain"
+    },
+    "retired": [
+      "persistent expanded idle diagnostic panel",
+      "misleading legacy request label"
+    ],
+    "removedServices": [],
+    "removedData": false
+  },
+  "verification": {
+    "entryBehavior": {
+      "command": "node --test projects/webflow/tests/chatgpt-file-intent.test.mjs",
+      "passed": 79,
+      "failed": 0
+    },
+    "regressions": [
+      {
+        "name": "stored diagnostic opt-in / restoration starts compact",
+        "before": "2 FAIL",
+        "after": "PASS"
+      },
+      {
+        "name": "unknown Stop keeps recovery details reachable without diagnostics",
+        "before": "FAIL",
+        "after": "PASS"
+      }
+    ],
+    "syntax": "PASS",
+    "settingsDescriptionAssociation": "PASS",
+    "independentSourceReview": {
+      "reviewer": "native subagent Turing",
+      "reviewedBlob": "79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6",
+      "result": "approved only for agents/chatgpt-fixed-bridge.js; no remaining blocker"
+    },
+    "sourceProtection": {
+      "negativeTests": 3,
+      "changedSourceFixedTarget": "PASS",
+      "fullPositive": "BLOCKED: Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/App.jsx"
+    },
+    "browserFixture": {
+      "browser": "ego(lite) 0.6.2.8",
+      "taskSpace": 26,
+      "kind": "actual source UI with mocked Chrome messaging; not installed extension or Native",
+      "idleOptIn": {
+        "width": 220,
+        "height": 52,
+        "expanded": false,
+        "calls": 0
+      },
+      "observed": [
+        "explicit open and nested advanced controls",
+        "short invalidated-context error and on-demand technical details",
+        "Escape returns focus to original composer and preserves draft",
+        "unknown Stop recovery visible with diagnostics false",
+        "two 2500ms poll periods after unknown Stop produce no calls",
+        "explicit close hides panel after unknown Stop"
+      ],
+      "screenshots": [
+        "artifacts/project-file-panel-20261108/product-idle-320.png",
+        "artifacts/project-file-panel-20261108/product-error-details-320.png",
+        "artifacts/project-file-panel-20261108/product-stop-unknown-320-dark.png"
+      ],
+      "stopObservation": "artifacts/project-file-panel-20261108/product-stop-observations.json",
+      "driverNotes": [
+        "closed-shadow summary used snapshot ref after text selector could not resolve",
+        "element press could not focus closed-shadow button; native keyboard Escape verified focus return"
+      ],
+      "updateNotice": "Ego Lite update available; not upgraded"
+    }
+  },
+  "application": {
+    "mode": "existing static development output; no serve listener observed",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "storedChromeExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "storedConfigEvidence": "filtered extension metadata from Default/Profile 1/Profile 3 Secure Preferences; saved config, not live activation proof",
+    "outputRevision": "98530fe401087df05b94fad98402909d0bfea657046977881da1fb6136e40c4c",
+    "sourceMapMatches": false,
+    "mappedSourceSha256": "6f5b48d22193f76472cbb9bbb2c96d8558e7b5ec9dacc2917f2af80e6f632171",
+    "watcher": {
+      "previousPid": 26234,
+      "pidAlive": false,
+      "ports43119And43120Listening": false,
+      "started": false
+    },
+    "sourcePreflight": "BLOCKED: Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/App.jsx",
+    "liveChrome": "NOT_APPLIED / NOT_TESTED",
+    "controlLimitations": [
+      "CUA getState/getBrowser timed out twice",
+      "Chrome Apple Events JavaScript disabled; no setting change"
+    ],
+    "writesToDist": false,
+    "extensionReload": false,
+    "userChatRefresh": false,
+    "nativePairingChange": false,
+    "next": "AI Proxy owner reviews its exact source lock; restore sole npm run dev writer via existing output guard; use original draft/task/UNKNOWN gates, then verify live Chrome client/fingerprint and a safe new document"
+  },
+  "notTested": [
+    "real file I/O or Native new candidate",
+    "system Chrome loaded source and visible new UI",
+    "production",
+    "independent product score"
+  ],
+  "previousRound": {
+    "date": "2026-11-08",
+    "scope": "ChatGPT project-file panel presentation only",
+    "source": "projects/webflow/trusted/chatgpt-file-intent-page.js",
+    "reviewedBlob": "099c0ba5ec685bf42c00fa795a041b9c4f7573e8",
+    "sourceSha256": "31cd3da4ce430b8c46455200979e5da2976109a8493621e2940132005eef7748",
+    "baseline": {
+      "dismissLeftVisible": true,
+      "error": "E_FILE_HANDOFF / Extension context invalidated"
+    },
+    "verification": {
+      "entryBehavior": {
+        "command": "node --test projects/webflow/tests/chatgpt-file-intent.test.mjs",
+        "passed": 78,
+        "failed": 0
+      },
+      "sourceProtection": {
+        "negativeTests": 3,
+        "changedSourceFixedTarget": "PASS"
+      },
+      "syntax": "PASS",
+      "browserFixture": {
+        "kind": "actual-source UI fixture with mocked Chrome messaging; not an installed extension or Native test",
+        "sourceSha256": "31cd3da4ce430b8c46455200979e5da2976109a8493621e2940132005eef7748",
+        "shortError": {
+          "hidden": false,
+          "panelHidden": false,
+          "diagnosticOpen": false,
+          "detailsHidden": true,
+          "status": "连接已失效，请查看恢复指引。",
+          "feedback": "E_FILE_HANDOFF · Extension context invalidated.。请先查看是否已有文件审阅页；若未打开，保存原对话草稿后刷新本页，再手动打开入口。",
+          "calls": [
+            {
+              "protocol": "opendesk.chatgpt.file-intent.v1",
+              "kind": "open",
+              "pathHint": ""
+            }
+          ],
+          "draft": "这份草稿需要保留",
+          "rects": {
+            "opendesk-chatgpt-files-entry": {
+              "x": 12,
+              "y": 12,
+              "width": 336,
+              "height": 158.5
+            },
+            "opendesk-project-panel": {
+              "x": 25,
+              "y": 67,
+              "width": 310,
+              "height": 90.5
+            },
+            "opendesk-project-details-toggle": {
+              "x": 261,
+              "y": 67,
+              "width": 74,
+              "height": 34
+            },
+            "opendesk-project-dismiss": {
+              "x": 301,
+              "y": 25,
+              "width": 34,
+              "height": 34
+            },
+            "opendesk-project-diagnostics": {
+              "x": 25,
+              "y": 113,
+              "width": 310,
+              "height": 44.5
+            },
+            "opendesk-project-task": {
+              "x": 25,
+              "y": 232.5,
+              "width": 310,
+              "height": 74.5
+            }
+          }
+        },
+        "details": {
+          "visible": true,
+          "feedback": "E_FILE_HANDOFF · Extension context invalidated.。请先查看是否已有文件审阅页；若未打开，保存原对话草稿后刷新本页，再手动打开入口。"
+        },
+        "closed": {
+          "hidden": true,
+          "panelHidden": false,
+          "diagnosticOpen": false,
+          "detailsHidden": true,
+          "status": "连接已失效，请查看恢复指引。",
+          "feedback": "E_FILE_HANDOFF · Extension context invalidated.。请先查看是否已有文件审阅页；若未打开，保存原对话草稿后刷新本页，再手动打开入口。",
+          "calls": [
+            {
+              "protocol": "opendesk.chatgpt.file-intent.v1",
+              "kind": "open",
+              "pathHint": ""
+            }
+          ],
+          "draft": "这份草稿需要保留",
+          "rects": {},
+          "focus": "composer"
+        },
+        "compact": {
+          "viewportWidth": 320,
+          "width": 296,
+          "height": 52,
+          "stop": "visible and usable; original stop message observed",
+          "themes": [
+            "light",
+            "dark"
+          ],
+          "observedActions": [
+            "start",
+            "wake",
+            "stop"
+          ],
+          "composerDraft": "这份草稿需要保留"
+        },
+        "baseline": {
+          "dismissLeftVisible": true,
+          "error": "E_FILE_HANDOFF / Extension context invalidated"
+        },
+        "screenshots": [
+          "before.png",
+          "after-error-360.png",
+          "compact-320.png",
+          "compact-320-dark.png"
+        ]
+      }
+    },
+    "environment": {
+      "mode": "source and local browser fixture; existing dist/development is an older static development output",
+      "browser": "ego(lite)",
+      "taskSpace": 25,
+      "taskSpaceFinished": true,
+      "extensionReloaded": false,
+      "browserOutputWritten": false,
+      "fileRequestsReplayed": false
+    },
+    "notTested": [
+      "Actual installed extension application",
+      "Native filesystem operations",
+      "Production",
+      "Independent numeric score"
+    ],
+    "parallelWork": "Only the file-intent-page pin was edited in the shared provenance gate; other owners’ changes retained."
+  }
+}

@@ -28,13 +28,13 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and default
   assert.deepEqual(source.programs.map(row=>row.publication),['approved','blocked','blocked']);
   assert.equal(source.programs[0].project,'projects/ai-scroll-navigation');
   assert.deepEqual(await officialPageInputs(),[
-    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH,
-    'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json']);
+    OFFICIAL_PAGE_SOURCE_PATH,'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json',
+    'projects/ai-send-queue/ai-send-queue.opendesk-page.json']);
   assert.equal(source.programs[0].installationPolicy,'preinstalled');
   for(const row of source.programs.slice(1))assert.match(row.blockedReason,/./);
 });
 
-test('migrated Scroll project is the only projects/ source explicitly admitted by the official builder',async t=>{
+test('migrated Scroll and Queue projects retain exact source admission in the official builder',async t=>{
   const root=await mkdtemp(join(tmpdir(),'official-scroll-project-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
   const source=clone(await readOfficialPageSources());
@@ -51,7 +51,7 @@ test('migrated Scroll project is the only projects/ source explicitly admitted b
   }
   const inputs=await officialPageInputs(root);
   assert.ok(inputs.includes('projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
-  assert.ok(inputs.includes('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
+  assert.ok(inputs.includes('projects/ai-send-queue/ai-send-queue.opendesk-page.json'));
 });
 
 test('default Scroll ships frozen bytes while blocked releases retain their gates',async()=>{
@@ -64,7 +64,7 @@ test('default Scroll ships frozen bytes while blocked releases retain their gate
     'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
   assert.deepEqual([...resources.keys()],[scroll.packagePath,candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
   assert.deepEqual(resources.get(candidatePath),await readFile(
-    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
+    'projects/ai-send-queue/ai-send-queue.opendesk-page.json'));
   assert.equal(catalog.apps.length,3);
   for(const row of catalog.apps.slice(1)){
     assert.equal(row.kind,'page-program');

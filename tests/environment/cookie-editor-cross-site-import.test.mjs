@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectImport,cookieImportTarget,nativeInput} from '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
-import {createMockSdk} from '../../examples/sidebar-tools/cookie-editor/preview/react/src/mock-sdk.js';
-import {createCookieSdkAdapter} from '../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js';
-import {createCookieController} from '../../examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js';
+import {inspectImport,cookieImportTarget,nativeInput} from '../../projects/cookie-editor/app/domain/cookie-model.js';
+import {createMockSdk} from '../../projects/cookie-editor/preview/react/src/mock-sdk.js';
+import {createCookieSdkAdapter} from '../../projects/cookie-editor/app/adapters/browser-sdk.js';
+import {createCookieController} from '../../projects/cookie-editor/app/controller/cookie-controller.js';
 import {readFile} from 'node:fs/promises';
 
 test('cross-site Cookie parsing requires explicit all-sites mode and preserves identity',()=>{

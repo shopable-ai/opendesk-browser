@@ -46,4 +46,4 @@ node --test services/cookie-share-relay/server.test.mjs
 - `POST /v1/invites/:id/revoke`：管理密钥撤销并清空待领取密文。
 - `GET /i/:id`：静态引导页，指导接收端在目标网站的「Cookie Editor → 账号 → 领取分享配置」中粘贴链接。具体已安装版本、包摘要和配套固定后台以 Cookie Editor 当前原生证据为准，不能以源码或本页作为安装证明。页面本身不执行 Cookie 读写，也不会自动登录。
 
-服务在启动、每次请求和每分钟定时清理已过期/撤销/领取完毕的密文及配对公钥。跨设备必须先人工核对设备指纹，再由可信 Host 完成 ECDH 加密、Cookie Store/Partition 映射、原始会话保护与网站独立登录验证。**服务器接口测试通过不代表浏览器接线或真实登录已通过。** 当前固定账号服务通过原 `src/platform/storage/device-keys.js` 连接设备键存储，运行时缺少该能力仍拒绝 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`；SOURCE_WIRED 不等于真实双机已通过，不能改用明文或导出私钥规避。配置候选、既有回归失败和真实双设备缺口见 [Cookie Editor 当前状态](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。对不允许会话移交的网站，只能领取配置并通过网站正常登录。
+服务在启动、每次请求和每分钟定时清理已过期/撤销/领取完毕的密文及配对公钥。跨设备必须先人工核对设备指纹，再由可信 Host 完成 ECDH 加密、Cookie Store/Partition 映射、原始会话保护与网站独立登录验证。**服务器接口测试通过不代表浏览器接线或真实登录已通过。** 当前固定账号服务通过原 `src/platform/storage/device-keys.js` 连接设备键存储，运行时缺少该能力仍拒绝 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`；SOURCE_WIRED 不等于真实双机已通过，不能改用明文或导出私钥规避。配置候选、既有回归失败和真实双设备缺口见 [Cookie Editor 当前状态](../../projects/cookie-editor/README.zh-CN.md)。对不允许会话移交的网站，只能领取配置并通过网站正常登录。

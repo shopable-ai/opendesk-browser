@@ -153,6 +153,10 @@ function pageFixture(sendMessage,{site,preferences,loadPreferences,toastFailure=
     details:nodes.find(node=>node.id==='opendesk-project-details'),
     toggle:nodes.find(node=>node.id==='opendesk-project-details-toggle'),
     dismiss:nodes.find(node=>node.id==='opendesk-project-dismiss'),
+    restore:nodes.find(node=>node.id==='opendesk-project-restore'),
+    panel:nodes.find(node=>node.id==='opendesk-project-panel'),
+    feedback:nodes.find(node=>node.id==='opendesk-project-feedback'),
+    card:nodes.find(node=>node.tagName==='SECTION'&&node.classList.contains('card')),
     preferences(value){savedPreferences=value;changes.emit({'opendesk.chatgpt.files.preferences.v1':{newValue:value}},'local');},
     open:nodes.find(node=>node.textContent==='审阅当前对话的文件请求'),
     task:nodes.find(node=>node.id==='opendesk-project-task'),
@@ -538,8 +542,9 @@ test('entry reports synchronous messaging failure instead of staying locked',asy
     assert.doesNotThrow(()=>h.open.click());
     await h.settle();
     assert.equal(h.open.disabled,false);
-    assert.match(h.status.textContent,/E_FILE_HANDOFF/);
-    assert.match(h.status.textContent,/刷新/);
+    assert.match(h.feedback.textContent,/E_FILE_HANDOFF/);
+    assert.match(h.status.textContent,/恢复指引/);
+    assert.match(h.feedback.textContent,/刷新/);
     assert.equal(calls,1); // No automatic retry of an uncertain handoff.
   }finally{h.entry.dispose();}
 });
@@ -647,7 +652,10 @@ test('synchronous project messaging throw clears pending state and never retries
   try{
     await h.ready;
     h.task.value='检查项目';assert.doesNotThrow(()=>h.start.click());await h.settle();
-    assert.equal(h.start.disabled,false);assert.match(h.status.textContent,/E_PROJECT_TASK/);
+    assert.equal(h.start.disabled,false);assert.match(h.status.textContent,/连接已失效/);
+    assert.doesNotMatch(h.status.textContent,/E_PROJECT_TASK|Extension context/);
+    assert.match(h.feedback.textContent,/E_PROJECT_TASK.*Extension context invalidated/);
+    assert.match(h.feedback.textContent,/先查看已有文件审阅页.*确未打开时.*保存原对话草稿后刷新/);
     h.tick();await h.settle();assert.equal(calls,1);
   }finally{h.entry.dispose();}
 });
@@ -673,7 +681,8 @@ test('uncertain project handoff is attempted once and unlocks controls without r
     await h.ready;
     h.task.value='检查项目';h.start.click();await h.settle();
     assert.equal(h.start.disabled,false);assert.equal(h.open.disabled,false);
-    assert.match(h.status.textContent,/E_PROJECT_TASK/);
+    assert.match(h.status.textContent,/连接已失效/);
+    assert.match(h.feedback.textContent,/E_PROJECT_TASK.*Extension context invalidated/);
     h.tick();h.tick();await h.settle();
     assert.deepEqual(calls,[{protocol:projectProtocol,action:'start',task:'检查项目'},
       {protocol:CHATGPT_FILE_INTENT_PROTOCOL,kind:'open',pathHint:''}]);
@@ -694,7 +703,11 @@ test('synchronous wake or stop failures release pending state and disable automa
       if(action==='wake')h.tick();else h.stop.click();
       await h.settle();
       assert.equal(h.start.disabled,false);assert.equal(h.open.disabled,false);
-      assert.match(h.status.textContent,/E_PROJECT_LEASE.*租约已失效/);
+      assert.match(h.status.textContent,/任务回执未知/);
+      assert.match(h.feedback.textContent,/E_PROJECT_LEASE.*租约已失效/);
+      assert.equal(h.root.hidden,false,'unknown Stop must retain a reachable recovery entry without diagnostics');
+      assert.equal(h.toggle.hidden,false);
+      h.toggle.click();assert.equal(h.details.hidden,false);
       h.tick();h.tick();await h.settle();
       assert.deepEqual(calls.map(message=>message.action),['start',action]);
     }finally{h.entry.dispose();}
@@ -770,6 +783,82 @@ test('idle file UI is hidden by default and diagnostics display never changes fi
     assert.equal(h.calls.length,1);assert.equal(h.root.hidden,false);assert.equal(h.diagnostic.hidden,true);
     assert.equal(h.details.hidden,true,'receipt content is available on demand');
     h.dismiss.click();assert.equal(h.root.hidden,true);
+  }finally{h.entry.dispose();}
+});
+
+test('stored diagnostic opt-in exposes only an entry until explicitly opened',async()=>{
+  const calls=[],h=pageFixture(message=>{calls.push(message);},{preferences:{enabled:true,diagnosticsVisible:true}});
+  try{
+    await h.ready;
+    assert.equal(h.root.hidden,false);
+    assert.equal(h.panel.hidden,true,'stored opt-in must not expand developer forms into normal chat');
+    assert.equal(h.restore.hidden,false);
+    assert.equal(h.dismiss.hidden,false,'even the small entry can be dismissed');
+    h.tick();await h.settle();assert.equal(h.panel.hidden,true);assert.deepEqual(calls,[]);
+    h.restore.click(false);assert.equal(h.panel.hidden,true);
+    h.restore.click();assert.equal(h.panel.hidden,false);assert.equal(h.diagnostic.open,false);
+    h.dismiss.click();h.tick();assert.equal(h.root.hidden,true);assert.deepEqual(calls,[]);
+  }finally{h.entry.dispose();}
+});
+
+test('closing diagnostics survives polling and unchanged preferences without dispatching file work',async()=>{
+  const calls=[],h=pageFixture(message=>{calls.push(message);},{preferences:{enabled:true,diagnosticsVisible:true}});
+  try{
+    await h.ready;
+    assert.equal(h.diagnostic.open,false,'diagnostics start collapsed');
+    assert.equal(h.dismiss.getAttribute('aria-label'),'关闭项目文件面板');
+    h.dismiss.click(false);assert.equal(h.root.hidden,false);
+    h.dismiss.click();assert.equal(h.root.hidden,true);
+    h.tick();h.preferences({enabled:true,diagnosticsVisible:true});await h.settle();
+    assert.equal(h.root.hidden,true,'settings refresh must not undo a deliberate close');
+    assert.deepEqual(calls,[]);
+    h.preferences({enabled:true,diagnosticsVisible:false});
+    h.preferences({enabled:true,diagnosticsVisible:true});
+    assert.equal(h.root.hidden,false,'explicitly enabling diagnostics restores its entry');
+    assert.equal(h.panel.hidden,true,'restoring the entry does not reopen advanced forms');
+    assert.equal(h.diagnostic.open,false);
+  }finally{h.entry.dispose();}
+});
+
+test('Escape closes only a trusted non-composing panel interaction',async()=>{
+  const calls=[],h=pageFixture(message=>{calls.push(message);},{preferences:{enabled:true,diagnosticsVisible:true}});
+  try{
+    await h.ready;let prevented=0;
+    const key=(isTrusted,isComposing)=>h.card.handlers.keydown({key:'Escape',isTrusted,isComposing,preventDefault(){prevented++;}});
+    key(false,false);key(true,true);assert.equal(h.root.hidden,false);assert.equal(prevented,0);
+    key(true,false);assert.equal(h.root.hidden,true);assert.equal(prevented,1);assert.deepEqual(calls,[]);
+  }finally{h.entry.dispose();}
+});
+
+test('closing an active task preserves Stop and drafts in a compact strip until completion',async()=>{
+  const h=conversationFixture(message=>({ok:true,data:{phase:message.action==='stop'?'stopped':'watching',message:'正在处理项目文件'}}));
+  try{
+    await h.ready;h.submit('读取当前项目 demo.txt，只读');await h.settle();
+    h.task.value='保留手动任务草稿';h.prompt.value='保留提示词';
+    const count=h.calls.length;
+    h.dismiss.click();
+    assert.equal(h.root.hidden,false);assert.equal(h.panel.hidden,true);assert.equal(h.stop.hidden,false);
+    assert.equal(h.stop.disabled,false);assert.equal(h.restore.hidden,false);
+    assert.equal(h.calls.length,count,'closing changes presentation only');
+    h.restore.click();assert.equal(h.panel.hidden,false);
+    assert.equal(h.task.value,'保留手动任务草稿');assert.equal(h.prompt.value,'保留提示词');
+    h.dismiss.click();h.stop.click();await h.settle();h.tick();await h.settle();
+    assert.equal(h.calls.at(-1).action,'stop');assert.equal(h.root.hidden,true);
+  }finally{h.entry.dispose();}
+});
+
+test('closing a pending handoff does not revive the panel on a late failure or retry the request',async()=>{
+  let reject;const calls=[];
+  const h=pageFixture(message=>{calls.push(message);return new Promise((_resolve,fail)=>{reject=fail;});},
+    {preferences:{enabled:true,diagnosticsVisible:true}});
+  try{
+    await h.ready;h.open.click();await h.settle();h.dismiss.click();
+    reject(new Error('Extension context invalidated.'));await h.settle();h.tick();await h.settle();
+    assert.equal(h.root.hidden,true);assert.equal(calls.length,1);
+    assert.match(h.status.textContent,/连接已失效/);
+    assert.doesNotMatch(h.status.textContent,/E_FILE_HANDOFF|Extension context/);
+    assert.match(h.feedback.textContent,/E_FILE_HANDOFF.*Extension context invalidated/);
+    assert.match(h.feedback.textContent,/已有文件审阅页/);
   }finally{h.entry.dispose();}
 });
 
@@ -898,8 +987,9 @@ test('separate tasks notify the same ordinary error while never replaying either
   try{
     await h.ready;h.submit('读取当前项目 first.txt');await h.settle();
     h.submit('读取当前项目 second.txt');await h.settle();
-    const errors=h.notifications.filter(row=>row.options.message?.includes('same failure'));
+    const errors=h.notifications.filter(row=>row.options.message==='任务回执未知，请查看详情。');
     assert.equal(errors.length,2);assert.equal(h.calls.length,2);
+    assert.match(h.feedback.textContent,/same failure/);
     h.tick();await h.settle();assert.equal(h.calls.length,2);
   }finally{h.entry.dispose();}
 });

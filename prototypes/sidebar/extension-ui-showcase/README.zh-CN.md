@@ -111,7 +111,7 @@ R2.5 新增参考成果：
 - 统一 Tokens：[design-tokens.css](../../../src/ui/design-tokens.css)；宿主样式：[design-system.css](../../../src/ui/design-system.css)。
 - 正式可信 React：[src/ui/react/](../../../src/ui/react/)；真实 UI 组件：[components/ui/](../../../src/ui/react/components/ui/)。
 - 主业务参考：[开发](../../../src/ui/react/tabs/develop.tsx)、[扩展中心](../../../src/ui/react/tabs/tools.tsx)、[ToolHost](../../../src/ui/react/tabs/tool-host.tsx)、[语言管理](../../../src/ui/react/tabs/locale-manager.tsx)。
-- 独立扩展示例：[Prompt Shortcuts](../../../examples/sidebar-tools/prompt-shortcuts/)、[Bookmark Manager](../../../examples/sidebar-tools/bookmark-manager/)、[Cookie Editor](../../../examples/sidebar-tools/cookie-editor/)。
+- 独立扩展示例：[Prompt Shortcuts](../../../examples/sidebar-tools/prompt-shortcuts/)、[Bookmark Manager](../../../examples/sidebar-tools/bookmark-manager/)、[Cookie Editor](../../../projects/cookie-editor/)。
 - **不可把 `design-tokens.css` 当成允许注入独立 iframe / 网页的公共全局 stylesheet。** 沙箱工具只复用获批准的扩展样式契约或自身受限样式。
 
 ## R2.6 优先使用与复用边界

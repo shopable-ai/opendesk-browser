@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/scrapyjs-execution-v1.yml'
-      - 'examples/sidebar-tools/scrapyjs/contracts/**'
-      - 'examples/sidebar-tools/scrapyjs/tests/execution-*.test.mjs'
-      - 'examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs'
-      - 'examples/sidebar-tools/scrapyjs/app.ci.json'
-      - 'examples/sidebar-tools/scrapyjs/contracts/fixtures/**'
-      - 'examples/sidebar-tools/scrapyjs/docs/EXECUTION-FRAMEWORK-R2.2.zh-CN.md'
+      - 'projects/scrapyjs/contracts/**'
+      - 'projects/scrapyjs/tests/execution-*.test.mjs'
+      - 'projects/scrapyjs/tests/ci-chromium.mjs'
+      - 'projects/scrapyjs/app.ci.json'
+      - 'projects/scrapyjs/contracts/fixtures/**'
+      - 'projects/scrapyjs/docs/EXECUTION-FRAMEWORK-R2.2.zh-CN.md'
   workflow_dispatch:
 
 permissions:
@@ -28,12 +28,12 @@ jobs:
         with:
           node-version: '22'
       - name: Validate canonical contract structure, policies and negative cases
-        run: node --test examples/sidebar-tools/scrapyjs/tests/execution-v1.test.mjs examples/sidebar-tools/scrapyjs/tests/execution-interop.test.mjs
+        run: node --test projects/scrapyjs/tests/execution-v1.test.mjs projects/scrapyjs/tests/execution-interop.test.mjs
       - name: Rebuild portable JSON Schema and reject manual drift
         run: |
-          node examples/sidebar-tools/scrapyjs/contracts/generate-schema.mjs
-          git diff --exit-code -- examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json
-          sha256sum examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json examples/sidebar-tools/scrapyjs/contracts/fixtures/execution-v1-vectors.json
+          node projects/scrapyjs/contracts/generate-schema.mjs
+          git diff --exit-code -- projects/scrapyjs/contracts/execution-v1.schema.json
+          sha256sum projects/scrapyjs/contracts/execution-v1.schema.json projects/scrapyjs/contracts/fixtures/execution-v1-vectors.json
 
   chromium-react-mock:
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
       - name: Restore pinned React compiler without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile only original ScrapyJS React, without rebuilding broken Host
-        run: npm --prefix examples/sidebar-tools/scrapyjs run build
+        run: npm --prefix projects/scrapyjs run build
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
@@ -56,7 +56,7 @@ jobs:
       - name: Real Chromium runs original React under explicit mocked SDK and minimal UI component shim
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: xvfb-run -a node examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs artifacts/scrapyjs/r22-contract/chromium
+        run: xvfb-run -a node projects/scrapyjs/tests/ci-chromium.mjs artifacts/scrapyjs/r22-contract/chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:

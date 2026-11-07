@@ -4,10 +4,11 @@ import {mkdtempSync,mkdirSync,copyFileSync,appendFileSync,rmSync,symlinkSync,rea
 import {tmpdir} from 'node:os';
 import {resolve,dirname} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
+import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 
-const paths=[...['stay-focus','ai-vip-share'].map(id=>`examples/sidebar-tools/${id}/trusted/react-controls.tsx`),
+const paths=[...['stay-focus','ai-vip-share'].map(id=>`${officialSourceProjectPath(id)}/trusted/react-controls.tsx`),
   ...['time-review','bookmark-manager','cookie-editor','ai-vip-share','prompt-shortcuts','reading-toc']
-    .map(id=>`examples/sidebar-tools/${id}/trusted/host.css`)];
+    .map(id=>`${officialSourceProjectPath(id)}/trusted/host.css`)];
 const describe=(root,path,target)=>describeBundle({root,lock:{packages:{}},chunk:{fileName:target,
   modules:{[resolve(root,path)]:{originalLength:100,renderedLength:80}}}});
 for(const path of paths){

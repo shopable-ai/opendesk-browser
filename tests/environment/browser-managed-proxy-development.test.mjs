@@ -36,7 +36,7 @@ function runIsolated(checks,{mode='development'}={}){
       id,version:'1.0.0',title:'Development proxy fixture',description:'Test only',
       capabilities:['browser.proxy.managed'],html:'<main>fixture</main>',css:'',js:'void 0;',
       requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}});
-    const tool=await createSidebarToolPackage(resolve('examples/sidebar-tools/ai-vip-share'));
+    const tool=await createSidebarToolPackage(resolve('projects/ai-vip-share'));
     const packageHash=await sidebarToolPackageHash(tool);
     // Runtime globals deliberately disagree with production literals: they
     // cannot turn a production-compiled route on.

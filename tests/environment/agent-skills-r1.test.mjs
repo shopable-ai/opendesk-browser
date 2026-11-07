@@ -256,7 +256,7 @@ test('R1 SDK-first ownership routes six positive and counterexample scenarios wi
   assert.equal(rows.length,6,'all six scenarios must appear exactly once');
   const expected=[
     ['A AI 回复思维导图','Page USER_SCRIPT','projects/ai-reply-mindmap/','opendesk-script-authoring','SDK_GAP_NOT_PROVEN'],
-    ['B Cookie Editor','Sidebar Tool','examples/sidebar-tools/cookie-editor/','opendesk-sidebar-tool-dev','打包'],
+    ['B Cookie Editor','Sidebar Tool','projects/cookie-editor/','opendesk-sidebar-tool-dev','打包'],
     ['C Prompt Shortcuts','Sidebar Tool v2','examples/sidebar-tools/prompt-shortcuts/','opendesk-sidebar-tool-dev','page.prompts'],
     ['D Bookmark Manager','Sidebar Tool','examples/sidebar-tools/bookmark-manager/','opendesk-sidebar-tool-dev','Installer'],
     ['E 通用 Page Program','Browser Framework','src/','opendesk-extension-runtime','允许'],

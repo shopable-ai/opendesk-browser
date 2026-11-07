@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/cookie-editor-r32.yml'
-      - 'examples/sidebar-tools/cookie-editor/**'
+      - 'projects/cookie-editor/**'
       - 'tests/environment/cookie-editor-ui.test.mjs'
       - 'tests/environment/cookie-editor-preview-r46.test.mjs'
       - 'tests/environment/cookie-editor-r43-parity.test.mjs'
@@ -85,7 +85,7 @@ jobs:
             tests/environment/browser-sdk-contract-compat.test.mjs
       - name: Pack Cookie Editor declared version and official reviewed tools independently
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
+          node scripts/build-sidebar-tool.mjs projects/cookie-editor \
             --out artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json
           node scripts/build-official-tools.mjs --out artifacts/cookie-editor-r33/official
           node --input-type=module -e "
@@ -94,7 +94,7 @@ jobs:
             import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
             const bytes=readFileSync('artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json');
             const tool=validateSidebarToolPackage(JSON.parse(bytes.toString()));
-            const manifest=JSON.parse(readFileSync('examples/sidebar-tools/cookie-editor/tool.config.json','utf8'));
+            const manifest=JSON.parse(readFileSync('projects/cookie-editor/tool.config.json','utf8'));
             if(tool.id!=='cookie-editor'||tool.version!==manifest.version)
               throw Error('Wrong Cookie Editor release version');
             const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r33/official/official-tools/catalog.json'));
@@ -107,7 +107,7 @@ jobs:
       - name: Verify checked-in Cookie Editor installable package is source-identical
         run: |
           node --check tests/framework/cookie-editor-r33-native.mjs
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
+          node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
       - name: Source guard and two production/development builds
         run: |
           npm run check

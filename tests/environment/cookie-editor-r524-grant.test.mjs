@@ -7,8 +7,8 @@ test('R2.8 trusted Host shows one compact first-use consent above the existing C
   const [host,view,fields,app,rows]=await Promise.all([
     source('src/ui/sidebar-tools.js'),source('src/ui/react/tabs/tool-host.tsx'),
     source('src/ui/sidebar-tools-fields.js'),
-    source('examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx'),
-    source('examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx')]);
+    source('projects/cookie-editor/app/CookieEditorApp.jsx'),
+    source('projects/cookie-editor/app/components/CookieEditorView.jsx')]);
   // The single CookieSettings card remains in explicit Settings; first use
   // now belongs to the Host's centered trusted dialog, not a second card.
   assert.equal((view.match(/<CookieSettings onRevoke=\{actions\.revoke\}\/>/g)||[]).length,1);
@@ -101,7 +101,7 @@ test('R5.38 Cookie Editor keeps infrequent app stop out of its toolbar',async()=
   const [view,center,app]=await Promise.all([
     source('src/ui/react/tabs/tool-host.tsx'),
     source('src/ui/extension-center.js'),
-    source('examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx')
+    source('projects/cookie-editor/app/CookieEditorApp.jsx')
   ]);
   assert.match(view,/className="sidebar-tool-header-actions"/);
   assert.match(view,/id="sidebar-tool-settings-open"/);

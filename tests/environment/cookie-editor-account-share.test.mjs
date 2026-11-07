@@ -6,9 +6,9 @@ import {join} from 'node:path';
 import {once} from 'node:events';
 import {createShareRelay,createShareHttpServer} from '../../services/cookie-share-relay/server.mjs';
 import {createCookieAccountShare,cookieShareAddress,COOKIE_SHARE_STORAGE_KEY}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-share.js';
+  from '../../projects/cookie-editor/trusted/account-share.js';
 import {createCookieAccountVault,COOKIE_ACCOUNT_STORE_KEY}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-vault.js';
+  from '../../projects/cookie-editor/trusted/account-vault.js';
 import {captureBackup} from '../../src/platform/storage/idb.js';
 import {createDeviceKeyStorage} from '../../src/platform/storage/device-keys.js';
 

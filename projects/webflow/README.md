@@ -4,6 +4,20 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**
 
+**网页项目文件 UI（2026-11-08）：** 正式文件能力保留；空闲默认隐藏，显式开启辅助入口也只显示小按钮，手动任务和固定协议按需展开。关闭展示与停用处理分别管理，UNKNOWN 不重放。源码 / 组件验证通过，**系统 Chrome 尚未应用**：原 dev writer 已退出，共享来源预检被并行 AI Proxy 锁漂移阻断。边界、当前证据与唯一下一步见[网页文件面板](docs/chatgpt-local-files.zh-CN.md#网页文件面板2026-11-08)，不改变下方其他任务阶段。
+
+## 当前 ego 安装与搜索验证（2026-11-08）
+
+本轮 ego 普通需求搜索已 **2/2 完成**：一次能力接入后，分别搜索 `OpenDesk Browser` 和 `OpenDesk Browser automation`，两次均返回三条真实结果、保存同一 Run / Result、释放资源并回到原聊天由 AI 续答。第二条发送前已关闭真实 Side Panel，直到结果交付及 AI 续答结束才重开。**Web Flow 0.3.11、百度任务 1.1.4 已真实安装，关键词范围授权及自动运行有效。**
+
+唯一正式包 SHA256 `44a5f683a1b33c15d0b443681f0a6c9a910f55572c32f94f4820a3ef8e481ed9`；原打包器候选 / 36 项包与恢复检查 / 晋升 / 同源核对通过。扩展详情已核对真实 ID 与 `dist/development` 加载路径。当前仍是旧静态开发产物，serve 未证明连接；没有构建或覆盖 Browser 输出。
+
+**超时处理：** 先读回原失败运行，确认停在搜索按钮点击；现场命中检测发现百度上的阅读目录遮挡按钮。通过原拖动入口移开后做一次必要安装验证成功。首条自动请求仍在同一步超时；将该站点目录移到左侧并核对新页面恢复位置后，以新需求、新候选完成两轮。未修改百度源码、重放旧请求或绕过点击保护。
+
+**防误触发：** 普通闲聊、明确不执行、要求五条结果均未产生任务候选；五条没有被改成三条。回传数据及这些回复未新增原请求，账本保留一次失败和两次成功共三条；raw dispatch 次数仍 **NOT_TESTED**。实际搜索结果可能涉及同名或其他产品，AI 已明确区分。
+
+直接在[已接入的结果聊天](https://chatgpt.com/c/6aef78a7-6c40-83ec-a189-831eec649921)继续用普通中文提出三条结果的搜索需求即可，无需每轮填写 JSON 或重新批准关键词。TaskSpace 22 已释放，仅保留结果聊天和逐字恢复的未发送草稿。源目标保持上次实读的 **paused**，本轮不改变它；production、完整 CI、评分与文件 UNKNOWN 恢复继续延期。详见[本轮执行记录](docs/execution-plan.zh-CN.md#ego-真实安装与核心链2026-11-08)及[安装与运行证据](evidence/ego-core-20261108.json)。
+
 ## 百度怎么测、成功看哪里（2026-11-07）
 
 1. Chrome → OpenDesk → 扩展 → Web Flow → **运行与授权**：在“任务授权”复用有效批准，确认自动运行开关已开；缺少范围时走原审阅，不重复批准有效范围。
@@ -108,7 +122,7 @@ v0.3.6 同步沙箱中的百度固定任务为已验证的 1.1.2，解决升级�
 
 现有复用入口：
 
-- [AI Send Queue](../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)：唯一 owner 为 `examples/sidebar-tools/ai-send-queue/`。
+- [AI Send Queue](../../projects/ai-send-queue/README.zh-CN.md)：唯一 owner 为 `projects/ai-send-queue/`。
 - [ChatGPT 计算接力](../../examples/tasks/chatgpt-relay-calculator-r1.README.zh-CN.md)：已有 Controller + AppStorage 的固定 A→新对话 B 源码样例，真实 Chrome 仍按该 README 的证据等级。
 - [公开 Sidebar API](../../docs/api/sidebar-tools.zh-CN.md)、[Page API](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)：接入以真实公开能力与目标执行世界为准。
 

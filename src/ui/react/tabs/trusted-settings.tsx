@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useSettingsEffect} from '../use-settings-effect.ts';
 
 export {StayFocusQuickAdd,StayFocusSettings} from '../../../../projects/stay-focus/trusted/react-controls.tsx';
-export {AiAccessSettings} from '../../../../examples/sidebar-tools/ai-vip-share/trusted/react-controls.tsx';
+export {AiAccessSettings} from '../../../../projects/ai-vip-share/trusted/react-controls.tsx';
 
 export function TimeReviewSettings({model,actions}){
   const ref=useSettingsEffect(model);

@@ -28,7 +28,7 @@ test('R37 trusted settings controllers have no legacy DOM renderer',async()=>{
 import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
-import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
+import {createAiAccessPermissionControls} from '../../projects/ai-vip-share/trusted/host-controls.js';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('R37 React settings forwards the original native click synchronously and escapes site labels',t=>{

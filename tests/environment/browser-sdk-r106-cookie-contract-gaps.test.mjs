@@ -46,7 +46,7 @@ const epochsKey = 'opendesk.sidebar-tools.revocation-epochs.v1';
 const enabledKey = 'opendesk.sidebar-tools.enabled.v1';
 // Read only the existing official package; do not rebuild or promote it.
 const official = validateSidebarToolPackage(JSON.parse(await readFile(resolve(sourceRoot,
-  'examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json'), 'utf8')));
+  'projects/cookie-editor/cookie-editor.opendesk-tool.json'), 'utf8')));
 const officialBytes = Buffer.from(serializeSidebarToolPackage(official));
 const release = {id: 'opendesk/cookie-editor', toolId: official.id, kind: 'sidebar-tool',
   installationPolicy: 'optional', version: official.version, packageTitle: official.title,

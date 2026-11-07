@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createAccountSwitchUrl,inspectAccountSwitchUrl
-} from '../../examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js';
+} from '../../projects/cookie-editor/app/domain/account-switch-url.js';
 
 const origin='https://example.com';
 const approved={

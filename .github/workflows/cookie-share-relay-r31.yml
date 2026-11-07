@@ -4,9 +4,9 @@ on:
     branches: [main]
     paths:
       - 'services/cookie-share-relay/**'
-      - 'examples/sidebar-tools/cookie-editor/trusted/account-share.js'
-      - 'examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
-      - 'examples/sidebar-tools/cookie-editor/trusted/account-vault.js'
+      - 'projects/cookie-editor/trusted/account-share.js'
+      - 'projects/cookie-editor/trusted/account-contract.js'
+      - 'projects/cookie-editor/trusted/account-vault.js'
       - 'tests/environment/cookie-editor-account-share.test.mjs'
       - '.github/workflows/cookie-share-relay-r31.yml'
   workflow_dispatch:

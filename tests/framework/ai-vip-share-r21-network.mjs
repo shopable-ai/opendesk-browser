@@ -131,7 +131,7 @@ try {
   write('system-proxy-readonly.txt',execFileSync('/usr/sbin/scutil',['--proxy'],{encoding:'utf8'}));
   write('driver-source.mjs',fs.readFileSync(fileURLToPath(import.meta.url)));
   report.driverSha256=sha(fs.readFileSync(fileURLToPath(import.meta.url)));
-  const policyPath=path.join(root,'examples/sidebar-tools/ai-vip-share/trusted/policy.js'), policyBytes=fs.readFileSync(policyPath);
+  const policyPath=path.join(root,'projects/ai-vip-share/trusted/policy.js'), policyBytes=fs.readFileSync(policyPath);
   report.policy={path:policyPath,sha256:sha(policyBytes)};write('policy-source.js',policyBytes);
   const policy=await import(pathToFileURL(policyPath).href);
   const hosts=[...policy.AI_DOMAINS,...policy.AI_DOMAINS.map(h=>'sub.'+h),'ordinary.network.test',

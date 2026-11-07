@@ -1,0 +1,24 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "node": [
+    "projects/ai-vip-share/tests/member-presentation.test.mjs",
+    "projects/ai-vip-share/tests/preview-isolation.test.mjs",
+    "tests/environment/ai-vip-share-r2.test.mjs",
+    "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+    "tests/environment/ai-vip-share-r5-ui.test.mjs",
+    "tests/environment/ai-vip-share-r51-member.test.mjs",
+    "tests/environment/ai-vip-share-local-development.test.mjs",
+    "tests/environment/ai-vip-share-r53-development.test.mjs",
+    "tests/environment/ai-vip-share-r59-proxy-ui.test.mjs",
+    "tests/environment/ai-vip-share-ui-parity.test.mjs",
+    "projects/ai-vip-share/dev/local-test/local-fixture-server.test.mjs",
+    "projects/ai-vip-share/dev/local-test/proxy-line-probe.test.mjs"
+  ],
+  "afterBuild": [
+    "projects/ai-vip-share/tests/prepare-browser.mjs"
+  ],
+  "browser": [
+    "projects/ai-vip-share/preview/test-react-chromium.mjs"
+  ]
+}

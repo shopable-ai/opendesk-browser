@@ -14,7 +14,7 @@ const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src
 const {translate}=await bundle('../src/i18n/locale.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
-function fixture({locale='en',OptionsPageHeader}={}){
+function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
   const values=[],refs=[],effects=[],drafts=new Map(),calls=[],focus=[],scroll=[],frames=[];
   let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
@@ -86,7 +86,7 @@ function fixture({locale='en',OptionsPageHeader}={}){
     if(element.props.ref&&typeof element.props.ref==='object')element.props.ref.current={...node(element.props.id||element.props.className),closest:()=>scroller,querySelector:()=>null};
     return result;
   }
-  function render(){cursor=refCursor=effectCursor=0;tree=expand(module.exports.default());
+  function render(){cursor=refCursor=effectCursor=0;tree=expand(module.exports.default({headerNavigation}));
     for(const effect of effects)if(effect?.pending){effect.pending=false;effect.fn();}
     for(const fn of frames.splice(0))fn();return tree;}
   function all(predicate,value){if(arguments.length===1)value=tree;if(Array.isArray(value))return value.flatMap(v=>all(predicate,v));if(!value||typeof value!=='object')return [];
@@ -316,4 +316,12 @@ test('successful deletion clears an earlier save receipt while failed deletion r
   await f.clickRule('delete');
   assert.equal(f.all(n=>n.props.role==='status').length,0);
   assert.equal(f.focus.at(-1),'settings-rule-add');
+});
+
+test('R14 Settings uses the Host return only after optional navigation was accepted',()=>{
+ for(const headerNavigation of [false,true]){
+  const f=fixture({headerNavigation});
+  assert.equal(f.all(node=>node.props.id==='settings-close').length,headerNavigation?0:1);
+  assert.ok(f.all(node=>node.props.id==='settings-section').length,'all settings sections remain reachable');
+ }
 });

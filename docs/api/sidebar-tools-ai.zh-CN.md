@@ -75,8 +75,8 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 | Dock / Frame / 内存 session | 书签的 `TrustedConversationWorkspace`；ScrapyJS 正式 `src/AiPanel.jsx` | 各视图实例独立草稿、消息和 round；公共 Frame/session 无领域 import | `src/ui/react/components/conversation.tsx`、`src/ui/conversation/session.js`、`src/entrypoints/sidebar-shared-ui.js`；ScrapyJS 离线预览刻意显示占位，不能作为正式 Chat 证据 |
 | 可信会话编排 | 书签、Prompt、任务、知识问答各自构造策略 | 通用核心持有 lease、权限、Provider generation、取消、订阅和迟到围栏；提示词、refs 格式、续轮预算和特定授权留可信消费者 | `src/ui/conversation/provider-consumer.js` 与 `src/ui/tool-shell.js`；这些策略不导出到沙箱，不授予业务写权限 |
 | 唯一 Provider Runtime / 设置 | 可信与沙箱公共 Dock 内的设置入口；Host 持有唯一设置面板 | 来源、Endpoint、模型、凭据属于可信 Shell；工具仅获得安全 info 投影 | `src/ui/ai/provider-runtime.js`、`src/ui/react/components/provider-settings.tsx`、`src/ui/react/tabs/tool-host.tsx`；沙箱与可信入口差异源自信任边界，不需要复制设置表单 |
-| 沙箱 AI bridge | 已声明 `ai.generate` 的 ScrapyJS 安装实例 | 真实发送手势、安装代际、撤权及 unknown 归原 Host；提案校验与 `business.config.propose/apply` 归 ScrapyJS | `examples/sidebar-tools/scrapyjs/src/AiPanel.jsx`、`src/business-api.js`；源码验证不证明最新源码已安装或真实推理成功 |
-| Cookie Editor 当前正式入口 | `app/entries/official.jsx` → `CookieEditorApp` | 未声明 `ai.generate`，未发现 Dock/Frame/session 或 Chat bridge 接线；“AI 账号额度管理”和 Cookie 权限是其他功能 | `examples/sidebar-tools/cookie-editor/tool.config.json`、`app/components/CookieHttpConnections.jsx`、`ai-account-usage/web/main.jsx`；用户记忆中的历史 Chat 版本仍未知，不据此新增 AI 或读取凭据 |
+| 沙箱 AI bridge | 已声明 `ai.generate` 的 ScrapyJS 安装实例 | 真实发送手势、安装代际、撤权及 unknown 归原 Host；提案校验与 `business.config.propose/apply` 归 ScrapyJS | `projects/scrapyjs/src/AiPanel.jsx`、`src/business-api.js`；源码验证不证明最新源码已安装或真实推理成功 |
+| Cookie Editor 当前正式入口 | `app/entries/official.jsx` → `CookieEditorApp` | 未声明 `ai.generate`，未发现 Dock/Frame/session 或 Chat bridge 接线；“AI 账号额度管理”和 Cookie 权限是其他功能 | `projects/cookie-editor/tool.config.json`、`app/components/CookieHttpConnections.jsx`、`ai-account-usage/web/main.jsx`；用户记忆中的历史 Chat 版本仍未知，不据此新增 AI 或读取凭据 |
 
 开合、卸载和请求退休需分开：Dock 收起保留挂载；卸载销毁本地 session。书签在 Shell 中按同一 installEpoch 缓存展示用草稿/消息供重开，重置 refs 和 needsReview，原 conversation/lease 已销毁；这不是跨扩展模型历史或授权共享。ScrapyJS 展示 session 随实例销毁，但原 `ai-pending` 持久围栏可在重开后恢复 unknown，只处理原 requestId。可信编排与沙箱请求状态机因信任边界保留不同接线；它们复用公共展示和本地会话规则，不合并业务持久化或推理授权。
 
@@ -91,9 +91,9 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 - Provider 表单的取消、关闭、Escape 只丢弃未保存内容；重新打开读取已保存配置。本机连接开关沿原 `nativeConnection.setEnabled` 即时生效，取消或保存 AI 表单均不回滚连接。采集字段、分页和 CSV 等继续归扩展业务模型。
 - 设置往返验证未保存内容、返回焦点和原 Chat 草稿；普通发送只点击一次，直接请求当前保存来源，保留停止、错误与原请求围栏。没有逐次发送审阅或其取消步骤。高度异常先复现第一个错误边界并记录候选与容器变化，不写死高度或新增尺寸管理器。
 - 普通解释不写业务配置。明确修改的提案必须经消费者校验完整结果仅包含本轮指定变化；夹带其他字段、URL、分页或执行动作时整批拒绝，保留原输入和业务草稿供修改后重发。是否自动应用已明确的配置修改由业务合同决定，无需为此增加通用差异确认或重复工具栏。
-- 纯配置修改与基于网页观察推导规则分开。网页观察须绑定可信文档身份及当前业务版本；URL 相同不能证明是同一文档。没有该绑定时不得自动应用依赖旧观察的提案。ScrapyJS 消费者差异和当前限制只在其[项目合同](../../examples/sidebar-tools/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md)维护。
+- 纯配置修改与基于网页观察推导规则分开。网页观察须绑定可信文档身份及当前业务版本；URL 相同不能证明是同一文档。没有该绑定时不得自动应用依赖旧观察的提案。ScrapyJS 消费者差异和当前限制只在其[项目合同](../../projects/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md)维护。
 
-**AI Panel 入口与执行模式（2026-11-04）**：以 AI Panel 为默认入口，不表示每次业务运行都重新请求模型。领域 adapter 决定提案的具体参数、作者阶段准备与校验，并通过原业务接口应用；已保存配置由原执行器重复运行。公共 Frame/session/bridge 不强制通用的“先推断再执行”阶段，不解析 ScrapyJS 的 `_listContainer/_listItem`，也不新增跨工具 `mode` 参数。不同业务可以有自己的确定性规则格式；ScrapyJS 的默认记录模式与尚未通过的实际链只见[对应项目合同](../../examples/sidebar-tools/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md#ai-panel-默认列表规则与执行方式2026-11-04)，不把某个消费者的测试结果提升为框架整体能力证明。
+**AI Panel 入口与执行模式（2026-11-04）**：以 AI Panel 为默认入口，不表示每次业务运行都重新请求模型。领域 adapter 决定提案的具体参数、作者阶段准备与校验，并通过原业务接口应用；已保存配置由原执行器重复运行。公共 Frame/session/bridge 不强制通用的“先推断再执行”阶段，不解析 ScrapyJS 的 `_listContainer/_listItem`，也不新增跨工具 `mode` 参数。不同业务可以有自己的确定性规则格式；ScrapyJS 的默认记录模式与尚未通过的实际链只见[对应项目合同](../../projects/scrapyjs/docs/SHARED-AI-CHAT-CONTRACT.zh-CN.md#ai-panel-默认列表规则与执行方式2026-11-04)，不把某个消费者的测试结果提升为框架整体能力证明。
 
 ## 沙箱复用 Chat 展示
 

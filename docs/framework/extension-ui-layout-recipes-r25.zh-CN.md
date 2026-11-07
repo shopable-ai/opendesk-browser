@@ -37,7 +37,7 @@
 | P06 List→Detail→Edit | 对象选择 + 完整详情 + 编辑草稿 | `examples/sidebar-tools/bookmark-manager/src/react/App.jsx`：`function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}` | 完整子页面 / 并列 | 未保存离开保护、冲突保留草稿 |
 | P07 Form/Input | 正文先行 + 选填按钮设置 Group | `examples/sidebar-tools/prompt-shortcuts/src/index.html`：`<textarea id="ps-body" class="od-field" rows="3"` | 主字段上置 / 紧凑字段适当同行 | 必填、8192 B、失败/未知状态 |
 | P08 Code+Result | 编辑器 + Run/Stop + 回执 + 诊断折叠 | `src/ui/react/tabs/develop-execution.tsx`：`className="developer-run-feedback" role="status" aria-live="polite"` | 上下 / 可并排 | 区分运行/停止/未知，不虚报真正执行 |
-| P09 Dense Data | Cookie 属性以 key-value 分组 | `examples/sidebar-tools/cookie-editor/src/index.html`：`id="browser-state" class="browser-state" role="group"` | 堆叠 / 非敏感项可两列 | 眼睛按钮、无权限保护、错误恢复 |
+| P09 Dense Data | Cookie 属性以 key-value 分组 | `projects/cookie-editor/src/index.html`：`id="browser-state" class="browser-state" role="group"` | 堆叠 / 非敏感项可两列 | 眼睛按钮、无权限保护、错误恢复 |
 | P10 Import | 选择 → 校验 → 预览 → 确认 | `src/ui/react/tabs/tool-host.tsx`：`<ImportSheet open={importOpen}` | 独立全宽页 / 可摘要对照 | 取消零写入，解析不等于正式包 Schema |
 | P11 Permission | 可信来源、网站范围、撤权后果 | `src/ui/react/tabs/tool-host.tsx`：`className="sidebar-tool-capabilities od-surface"` | 权限子页 / 可详情 | 真实状态只由 Host 查询，撤权二次确认 |
 | P12 Menu/Dialog | 已定位 Popover + 高风险 Dialog | `src/ui/react/tabs/tools.tsx`：`menu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';` | 避免裁剪 / 保留定位 | Esc/Tab/方向键、焦点限制和恢复 |
@@ -191,7 +191,7 @@ function humanError(error){
 }
 ~~~
 
-**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 目前生产目录 `examples/sidebar-tools/browser-fingerprint/src/` 仍是只读检测实现；本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。
+**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 目前生产目录 `projects/browser-fingerprint/src/` 仍是只读检测实现；本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。
 
 
 ## 4. HTML、React、Vue 的复用边界

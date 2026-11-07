@@ -10,8 +10,8 @@ const paths={
   "settings": "src/ui/react/components/trusted-settings.css",
   "time-review": "examples/sidebar-tools/time-review/trusted/host.css",
   "bookmark-manager": "examples/sidebar-tools/bookmark-manager/trusted/host.css",
-  "cookie-editor": "examples/sidebar-tools/cookie-editor/trusted/host.css",
-  "ai-vip-share": "examples/sidebar-tools/ai-vip-share/trusted/host.css",
+  "cookie-editor": "projects/cookie-editor/trusted/host.css",
+  "ai-vip-share": "projects/ai-vip-share/trusted/host.css",
   "prompt-shortcuts": "examples/sidebar-tools/prompt-shortcuts/trusted/host.css",
   "reading-toc": "examples/sidebar-tools/reading-toc/trusted/host.css"
 };

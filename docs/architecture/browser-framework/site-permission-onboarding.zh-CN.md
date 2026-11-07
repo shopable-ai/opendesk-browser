@@ -56,14 +56,14 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 | 阅读目录 / 可信网页 UI | 官方 1.0.8 核验通过后安装即用，现有标签页补注入 | 是：合法页面、未停用且 Chrome 允许时 | 官方包固定 SHA、市场来源、停用与 Chrome Site Access | `src/reading-toc/policy.js`、`page.js`、`src/sidebar-tools/official-reading-toc.js`；已修复 ID 冒用 |
 | Prompt Shortcuts / Sidebar + 固定页面 UI | 可直接打开，已批准站点展示快捷入口 | 是：仅原已批准规则 | 第三方网站范围与右键菜单权限，使用文本仍由用户点击 | `examples/sidebar-tools/prompt-shortcuts/trusted/page.js`、`tool.config.json`；未见可直接删除的额外安装授权 |
 | ChatGPT Mind Map / Page Program | 固定版本/ChatGPT 范围获准后可使用 | 已安装且启用的固定程序按网页规则运行；导图开关由用户操作 | Installed Page identity、网页规则、Chrome User Scripts | `examples/programs/chatgpt-mindmap/`、`src/scripting/user-scripts/installed-programs.js`；沿用原有授权 |
-| Cookie Editor / Sidebar Tool | 预装后可直接打开编辑界面 | 否 | Cookie 值读取/写入/清理与浏览器网站权限，危险删除仍由用户确认 | `examples/sidebar-tools/cookie-editor/tool.config.json`；不可因预装默认读取全部 Cookie |
+| Cookie Editor / Sidebar Tool | 预装后可直接打开编辑界面 | 否 | Cookie 值读取/写入/清理与浏览器网站权限，危险删除仍由用户确认 | `projects/cookie-editor/tool.config.json`；不可因预装默认读取全部 Cookie |
 | Bookmark Manager / Sidebar Tool | 安装后可打开书签管理 | 否 | Chrome Bookmarks 原生许可及写操作 | `examples/sidebar-tools/bookmark-manager/tool.config.json`、`src/platform/chrome/permission-gate.js`；保留按需检查 |
 | AdBlock / Sidebar Tool + Trusted Service | 当前内置官方包经安装审阅、DNR 权限及会话就绪后默认开启；正常审阅更新保留开启状态与网站例外 | 已批准的固定网络规则及页面样式自动生效 | 精确内置包身份、DNR 权限、撤权与清理围栏；主动关闭或停用不得自动恢复 | `examples/sidebar-tools/adblock/tool.config.json`、`trusted/lifecycle.js`、`trusted/service.js`；1.2.4 在原安装事务内延续有效状态 |
 | Quick Notes / Sidebar Tool | 预装后立即可打开笔记 | 否 | Storage 与用户主动打开 Task | `examples/sidebar-tools/quick-notes/tool.config.json`；不增加启用步骤 |
 | Knowledge Inbox / Sidebar Tool | 安装后可打开收集界面，支持的 ChatGPT 网站显示保存入口 | 固定入口显示，点击才保存 | 安装审阅中的 `page.capture`、`knowledge.store`，Chrome 访问及站点停用例外 | `examples/sidebar-tools/knowledge-inbox/tool.config.json`；保留原固定网站和正文读取边界 |
 | Time Review / Trusted UI | 首次安装默认希望记录；网站范围与 Chrome `idle` 单独批准后自动开始，安装本身不触发采集 | 两项授权满足后；尊重主动暂停 | 明确网站采集范围、Chrome `idle`；撤销、停用后立即停止 | `examples/sidebar-tools/time-review/trusted/service.js` 与原可信 Host；保留独立授权、安装代际及撤权保护 |
 | Stay Focus / Trusted Service | 安装后可配置限制 | 不因安装自动创建限制规则 | 规则启用、阻断与可恢复控制 | `examples/sidebar-tools/stay-focus/tool.config.json`、`src/stay-focus/lifecycle.js` |
-| AI VIP Share / Sidebar + Proxy | 安装后可打开代理配置 | 否 | `browser.proxy.managed`、`network`、目标站点与明确代理启用 | `examples/sidebar-tools/ai-vip-share/tool.config.json`；不自动切换代理 |
+| AI VIP Share / Sidebar + Proxy | 安装后可打开代理配置 | 否 | `browser.proxy.managed`、`network`、目标站点与明确代理启用 | `projects/ai-vip-share/tool.config.json`；不自动切换代理 |
 | 其他官方工具 / Sidebar | Markdown Workbench、Web Markdown Clipper 按需安装后可打开；剪藏直接提取 | 剪藏仍由点击触发 | 安装批准的基础能力、Chrome 网站访问及站点停用例外；导出由用户动作触发 | `official-tools/catalog.json` 和各自 `tool.config.json` |
 | Page Program / Task / Workflow | 已保存、已安装或已批准才具有运行资格 | 仅固定 Page Program 在匹配范围自动运行 | Task/Workflow 的 Run 或既有定时触发；不可由安装自动执行 | `src/scripting/user-scripts/page-install-authorization.js`、`src/ui/installed-page-tools.js` |
 

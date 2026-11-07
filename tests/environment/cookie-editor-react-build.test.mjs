@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
 const repo=resolve('.');
-const root=resolve(repo,'examples/sidebar-tools/cookie-editor');
+const root=resolve(repo,'projects/cookie-editor');
 // The R5 candidate workflow and App CI intentionally stage into different
 // directories. Always rebuild the canonical package in this test; compare any
 // already-staged candidate byte-for-byte instead of relying on either path.

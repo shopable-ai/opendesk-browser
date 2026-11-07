@@ -7,9 +7,9 @@ import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from 
 import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/host-controls.js';
 import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../projects/adblock/trusted/tool-host.js';
 import {trustedTimeReviewUI} from '../../projects/time-review/trusted/trusted-native-ui.js';
-import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
-import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
-import {runTrustedAiAccessOperation,requestAiAccessOperation,probeAiAccessService} from '../../examples/sidebar-tools/ai-vip-share/trusted/tool-host.js';
+import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../../projects/ai-vip-share/trusted/policy.js';
+import {createAiAccessPermissionControls} from '../../projects/ai-vip-share/trusted/host-controls.js';
+import {runTrustedAiAccessOperation,requestAiAccessOperation,probeAiAccessService} from '../../projects/ai-vip-share/trusted/tool-host.js';
 export default defineUnlistedScript(()=>{
   // Bundled only into this existing audited extension entry, never loaded
   // from an installed sidebar-tool package or dynamically imported at runtime.

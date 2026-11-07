@@ -1,0 +1,139 @@
+{
+  "date": "2026-11-08",
+  "scope": "Only the three project owners; no commits, browser, installation, root build or dist/development writes.",
+  "projects": {
+    "ai-send-queue": {
+      "baselineFiles": 61,
+      "missing": [],
+      "protectedChanges": [],
+      "formalPackages": [
+        {
+          "file": "ai-send-queue.opendesk-tool.json",
+          "sha256Before": "b1ddcc7245c414e1e8dc94b7c3d671c20ddbf9b77d4155cbeb819b643a014236",
+          "sha256After": "b1ddcc7245c414e1e8dc94b7c3d671c20ddbf9b77d4155cbeb819b643a014236",
+          "unchanged": true,
+          "format": "opendesk.sidebar-tool.v1",
+          "id": "ai-send-queue",
+          "version": "0.1.16",
+          "revision": null
+        },
+        {
+          "file": "ai-send-queue.opendesk-page.json",
+          "sha256Before": "a1ebbe80cc12e4d76fc5f8318fd666a538c2f76a5a6e4f5f37e41f9e82f22ca8",
+          "sha256After": "a1ebbe80cc12e4d76fc5f8318fd666a538c2f76a5a6e4f5f37e41f9e82f22ca8",
+          "unchanged": true,
+          "format": "opendesk.page-install.v1",
+          "id": "opendesk.ai-send-queue",
+          "version": "0.1.15",
+          "revision": 15
+        }
+      ]
+    },
+    "browser-fingerprint": {
+      "baselineFiles": 55,
+      "missing": [],
+      "protectedChanges": [],
+      "formalPackages": [
+        {
+          "file": "browser-fingerprint.opendesk-tool.json",
+          "sha256Before": "65a2fe2c03498d2cc349f484ba24819415ac7eb4c3928be15ab66f5d4cac5a5d",
+          "sha256After": "65a2fe2c03498d2cc349f484ba24819415ac7eb4c3928be15ab66f5d4cac5a5d",
+          "unchanged": true,
+          "format": "opendesk.sidebar-tool.v2",
+          "id": "browser-fingerprint",
+          "version": "0.2.6",
+          "revision": null
+        }
+      ]
+    },
+    "scrapyjs": {
+      "baselineFiles": 1297,
+      "missing": [],
+      "protectedChanges": [],
+      "formalPackages": [
+        {
+          "file": "scrapyjs.opendesk-tool.json",
+          "sha256Before": "7693fdc7f3f310f41a173c1c8aa0a67b3335b42ac8714f8027dd15b3f39f35d6",
+          "sha256After": "7693fdc7f3f310f41a173c1c8aa0a67b3335b42ac8714f8027dd15b3f39f35d6",
+          "unchanged": true,
+          "format": "opendesk.sidebar-tool.v2",
+          "id": "scrapyjs",
+          "version": "1.9.13",
+          "revision": null
+        },
+        {
+          "file": "controller/scrapyjs.opendesk-task.json",
+          "sha256Before": "1292a48b13c1d299c2e7cdc785f00ae7d4ee446c5d960f033ba357d8b897e76c",
+          "sha256After": "1292a48b13c1d299c2e7cdc785f00ae7d4ee446c5d960f033ba357d8b897e76c",
+          "unchanged": true,
+          "format": "opendesk.task-package.v1",
+          "id": "scrapyjs.capture",
+          "version": "0.6.2",
+          "revision": null
+        }
+      ]
+    }
+  },
+  "verification": {
+    "projectViteBuilds": "3 PASS",
+    "targetedTestsBefore": {
+      "pass": 115,
+      "fail": 4
+    },
+    "sameTargetedTestsAfter": {
+      "pass": 115,
+      "fail": 4
+    },
+    "existingFailures": [
+      "ai-send-queue/tests/view.test.mjs: product preview keeps the locked crown; historical calibration tool stays archived",
+      "scrapyjs/tests/results-model.test.mjs: independent display sorting leaves rule order, custom CSV names/order and original exports intact",
+      "scrapyjs/tests/results-model.test.mjs: display preference survives same-profile reruns and tab returns, merges result keys and resets with the session",
+      "scrapyjs/tests/results-model.test.mjs: display keyboard cancel and locking preserve the committed order without changing CSV controls"
+    ],
+    "scrapyjsPreviewRuntimeTests": "5/5 PASS",
+    "programValidation": [
+      "opendesk.ai-send-queue: AUTHORING_VALID_NOT_PACKAGED",
+      "scrapyjs.capture: AUTHORING_VALID_NOT_PACKAGED"
+    ],
+    "changedJsSyntax": "PASS",
+    "checkProjectBefore": {
+      "ai-send-queue": "formal package differs from current source",
+      "browser-fingerprint": "formal package differs from current source",
+      "scrapyjs": "compiled UI source changed since successful build: tool.config.json"
+    },
+    "checkProjectAfter": "All three: formal package differs from current source. Original formal packages retained; no promotion or version changes."
+  },
+  "remainingRootReferencesLastObserved": [
+    "docs/api/browser-sdk-interface-matrix.json:9432:        \"evidence\": \"examples/sidebar-tools/browser-fingerprint/evidence/r19-core-development.zh-CN.md\",",
+    "tests/environment/official-tools-catalog-r45.test.mjs:58:    ['ai-send-queue','examples/sidebar-tools/ai-send-queue'],",
+    "docs/framework/extension-ui-layout-recipes-r25.zh-CN.md:194:**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 目前生产目录 `examples/sidebar-tools/browser-fingerprint/src/` 仍是只读检测实现；本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。"
+  ],
+  "notes": [
+    "Full directory renames preserved ignored files and historical evidence; no baseline files missing.",
+    "Old owners absent, including symlinks.",
+    "Existing evidence, legacy packages, preview snapshots, tool.config.json and all formal package bytes unchanged.",
+    "Project-only Vite builds refreshed ignored dist receipts; no root watcher controlled."
+  ],
+  "rootOwnerFollowUp": {
+    "examples/tasks/scrapyjs-fixtures": {
+      "lastObservedSymlinkTarget": "../sidebar-tools/scrapyjs/fixtures",
+      "requiredTarget": "../../projects/scrapyjs/fixtures",
+      "action": "Root owner should repoint or retire the existing fixture mount; left untouched by this task."
+    }
+  },
+  "rootFollowUpCompleted20261108": {
+    "source": "User confirmation in this conversation; prior remainingRootReferencesLastObserved and rootOwnerFollowUp retained unchanged.",
+    "items": [
+      "Root official-tools test unsafe table intentionally retains old examples paths as rejection cases; these are not stale references.",
+      "Root fixture symlink safely repointed to ../../projects/scrapyjs/fixtures.",
+      "Interface matrix current evidence entry updated.",
+      "Layout recipes documentation synchronized."
+    ],
+    "baselineAssessment": {
+      "ai-send-queue": "Pre-migration --check-project already reported formal package differs from current source; this mismatch predates migration.",
+      "browser-fingerprint": "Pre-migration --check-project already reported formal package differs from current source; this mismatch predates migration.",
+      "scrapyjs": "Pre-migration --check-project already failed on stale tool.config.json build receipt. This proves a pre-existing source/build/package verification failure, but that early rejection did not prove byte-level package mismatch after a fresh pre-migration build. Post-migration rebuilt package mismatch cannot be attributed entirely to the same cause from this evidence alone.",
+      "packagePolicy": "No formal package edits, version changes or promotion. All recorded formal package SHA-256 values remain unchanged."
+    }
+  }
+}

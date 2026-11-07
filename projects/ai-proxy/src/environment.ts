@@ -13,9 +13,9 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  if(environment)throw Error('E_AI_PROXY_ALREADY_MOUNTED');
  // Only the separate preview entry may supply a mock. main.jsx never does.
  const preview=previewBoundary;
- let uiDirty=false,pending=0,disposed=false;
+ let uiDirty=false,pending=0,disposed=false,outcomeUnknown=false;
  const assertLive=()=>{if(disposed)fail('E_TOOL_CHANGED','AI Proxy 会话已关闭；不要重放未确认操作。');};
- const uiState=()=>{if(!disposed){const state={dirty:uiDirty,busy:pending>0};bridge?.setState?.(state);events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:state}));}};
+ const uiState=()=>{if(!disposed){const state={dirty:uiDirty,busy:pending>0||outcomeUnknown};bridge?.setState?.(state);events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:state}));}};
  const events=new EventTarget();
  const drafts=new Map<string,number>();
  let draftRevision=0;
@@ -28,6 +28,33 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   publishDrafts();return true;
  };
  const navigation=createNavigation({initialRoute:trusted?'':location.hash});
+ // One adapter for the trusted pilot and the public sandbox bridge.
+ const navigationBridge=bridge?.toolNavigation??bridge;
+ const navigationSubscriptions=new Set<()=>void>();
+ const toolNavigation={
+  setNavigation(base:any,headerActions:any[]){
+   if(disposed||typeof navigationBridge?.setNavigation!=='function')return false;
+   if(navigationBridge.navigationFeatures?.headerActions===true){
+    if(navigationBridge.setNavigation({...base,headerActions})!==false)return true;
+   }
+   navigationBridge.setNavigation(base);return false;
+  },
+  subscribe(handler:(detail:any)=>unknown){
+   if(disposed)return ()=>{};
+   let active=true;
+   const deliver=(detail:any)=>{if(active&&!disposed)return handler(detail);};
+   let release:()=>void;
+   if(typeof navigationBridge?.subscribe==='function')release=navigationBridge.subscribe(deliver);
+   else {
+    const listener=(event:any)=>deliver(event.detail);
+    bridge?.root?.addEventListener('opendesk-tool-navigation',listener);
+    release=()=>bridge?.root?.removeEventListener('opendesk-tool-navigation',listener);
+   }
+   const unsubscribe=()=>{if(!active)return;active=false;release?.();navigationSubscriptions.delete(unsubscribe);};
+   navigationSubscriptions.add(unsubscribe);return unsubscribe;
+  },
+  isLocked:()=>disposed||uiDirty||pending>0||outcomeUnknown
+ };
  const configKey='ai-proxy.full-config.v2';
  const entries=new Map<string,any>(),listeners=new Set<Function>();
  const changed={addListener(fn:Function){listeners.add(fn);},removeListener(fn:Function){listeners.delete(fn);}};
@@ -82,11 +109,23 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  let quickView:any=null;
  const pageChanged=()=>events.dispatchEvent(new Event('ai-proxy-page-changed'));
  bridge?.root?.addEventListener('opendesk-page-changed',pageChanged);
- const current={service,storage,navigation,events,trusted,preview:!!preview,request:async(m:any)=>{
+ const current={service,storage,navigation,toolNavigation,events,trusted,preview:!!preview,request:async(m:any)=>{
    assertLive();
    const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT'].includes(m.type);
    if(mutation){pending++;uiState();}
-   try{const r=await service.request(m);assertLive();return r;}
+   try{
+    const r=await service.request(m);assertLive();
+    const previous=outcomeUnknown;
+    if(r?.ok===false&&r.errorCode==='E_OUTCOME_UNKNOWN')outcomeUnknown=true;
+    if(r?.ok===true){
+     if(r.state?.runtime?.outcomeUnknown===true)outcomeUnknown=true;
+     // Only the service's status/release reconciliation can confirm recovery.
+     // A successful edit/export is not evidence that an earlier effect is known.
+     else if(['GET_STATE','STOP'].includes(m.type)&&r.state?.runtime?.outcomeUnknown===false)outcomeUnknown=false;
+    }
+    if(previous!==outcomeUnknown)uiState();
+    return r;
+   }
    finally{if(mutation){pending--;uiState();}}
   },
   locale:bridge?.locale||navigator.language,
@@ -123,6 +162,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   markDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)setDraftDirty(true,source);},
   setState:(_state:any)=>{uiState();},
   dispose(){if(disposed)return;disposed=true;bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);navigation.destroy();service.dispose();listeners.clear();
+   for(const unsubscribe of navigationSubscriptions)unsubscribe();
    for(const unsubscribe of proxyListeners.values())unsubscribe();proxyListeners.clear();confirmHandler=null;
    if(environment===current)environment=null;
   }

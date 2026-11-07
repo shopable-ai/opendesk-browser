@@ -3,14 +3,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/cookie-editor/preview/react/**'
+      - 'projects/cookie-editor/preview/react/**'
       # The preview imports the real CookieEditorApp, not a copied UI.
-      - 'examples/sidebar-tools/cookie-editor/app/**'
-      - 'examples/sidebar-tools/cookie-editor/src/react.css'
-      - 'examples/sidebar-tools/cookie-editor/tool.config.json'
-      - 'examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json'
-      - 'examples/sidebar-tools/cookie-editor/ui/**'
-      - 'examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx'
+      - 'projects/cookie-editor/app/**'
+      - 'projects/cookie-editor/src/react.css'
+      - 'projects/cookie-editor/tool.config.json'
+      - 'projects/cookie-editor/cookie-editor.opendesk-tool.json'
+      - 'projects/cookie-editor/ui/**'
+      - 'projects/cookie-editor/app/components/CookieEditorView.jsx'
       - 'src/ui/react/cookie-editor/**'
       - '.github/workflows/cookie-editor-r49-react-preview.yml'
   workflow_dispatch:
@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install pinned React 19, Vite and Playwright
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Build existing fixed Shared UI asset (filtered WXT entry only)
         run: |
@@ -41,7 +41,7 @@ jobs:
           OPENDESK_BUILD_MODE=development npx wxt build --mode development --filter-entrypoint sidebar-shared-ui
           test -s dist/development/sidebar-shared-ui.js
       - name: Build and verify exact offline React HTML
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         run: |
           npm run build
           npm run check
@@ -60,7 +60,7 @@ jobs:
             htmlBytes:(await stat('index.html')).size}));
           NODE
       - name: Build single-file A/B wrapper from approved HTML + actual React
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         run: node build-a-b.mjs
       - name: Cookie React controller regression (Node)
         run: node --test tests/environment/cookie-editor-react-controller.test.mjs
@@ -78,22 +78,22 @@ jobs:
           fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | tee /tmp/cookie-editor-cjk-family
           grep -Eq 'Noto Sans CJK|WenQuanYi' /tmp/cookie-editor-cjk-family
       - name: Account spacing, search and receive return (current source, fresh evidence)
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run check:accounts -- --fresh
       - name: Real built React 19 Chromium UI E2E
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run test:chromium
       - name: R3.5 A/B iframe interactive smoke (two actual sources)
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node smoke-a-b.mjs
       - name: R3.5 approved HTML / actual React DOM and screenshot audit (report-only)
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: |
@@ -112,9 +112,9 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
-            examples/sidebar-tools/cookie-editor/preview/react/index.html
-            examples/sidebar-tools/cookie-editor/preview/react/a-b.html
-            examples/sidebar-tools/cookie-editor/preview/cookie-editor.html
+            projects/cookie-editor/preview/react/index.html
+            projects/cookie-editor/preview/react/a-b.html
+            projects/cookie-editor/preview/cookie-editor.html
             artifacts/cookie-editor-r523/
             artifacts/cookie-editor-r35-visual/
             artifacts/cookie-editor-account-ui/

@@ -4,8 +4,8 @@ import {
   parseTarget,normalizeCookie,key,redactMetadata,
   nativeInput,inspectImport,rejectImportDuplicates,exportText,
   scopedLiveCookies,readAllCookies
-} from '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
-import {createCookieSdkAdapter,safeCode} from '../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js';
+} from '../../projects/cookie-editor/app/domain/cookie-model.js';
+import {createCookieSdkAdapter,safeCode} from '../../projects/cookie-editor/app/adapters/browser-sdk.js';
 
 const site=parseTarget('https://shop.example.com/cart?session=private#token');
 const row=(patch={})=>({

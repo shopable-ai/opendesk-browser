@@ -335,7 +335,7 @@ async function screenshot(name,session=page){
     path:'artifacts/'+screenshotPrefix+name+'.png'});
 }
 async function startCookieFixture(extensionId){
-  const fixtureFile=join(candidateRoot,'examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs');
+  const fixtureFile=join(candidateRoot,'projects/ai-vip-share/dev/local-test/local-fixture-server.mjs');
   const {createLocalFixture}=await import(fixtureFile);
   const extensionOrigin='chrome-extension://'+extensionId;
   cookieFixture=createLocalFixture({proxyPort:7897,proxyKind:'http',extensionOrigin});
@@ -608,8 +608,8 @@ async function main(){
   receipt.driverSha256=hash(await readFile(new URL(import.meta.url)));
   if(developmentCore)receipt.developmentCoreDriverSha256=hash(await readFile(new URL('./managed-proxy-development-core.mjs',import.meta.url)));
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
-  const candidate=await createSidebarToolPackage(join(candidateRoot,'examples/sidebar-tools/ai-vip-share'));
-  const config=JSON.parse(await readFile(join(candidateRoot,'examples/sidebar-tools/ai-vip-share/tool.config.json'),'utf8'));
+  const candidate=await createSidebarToolPackage(join(candidateRoot,'projects/ai-vip-share'));
+  const config=JSON.parse(await readFile(join(candidateRoot,'projects/ai-vip-share/tool.config.json'),'utf8'));
   assert.equal(candidate.id,'ai-vip-share');assert.equal(candidate.version,config.version,
     'Candidate version must match same-SHA official tool configuration');
   assert.deepEqual(REVIEWED_MANAGED_PROXY_PROFILES,[]);

@@ -365,7 +365,7 @@ async function restartDevelopment(){
 async function upgradeSameId(){
   // Keep the historical upgrade input stable after this candidate is committed.
   const baselineCommit=process.env.COOKIE_NATIVE_BASELINE_COMMIT||'b0fb4f4afc0f066494bf4c5f338a4392dbebc707';
-  const oldBytes=process.env.COOKIE_NATIVE_OLD_TOOL?await readFile(process.env.COOKIE_NATIVE_OLD_TOOL):execFileSync('git',['show',baselineCommit+':examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json'],{cwd:root,maxBuffer:8*1024*1024});
+  const oldBytes=process.env.COOKIE_NATIVE_OLD_TOOL?await readFile(process.env.COOKIE_NATIVE_OLD_TOOL):execFileSync('git',['show',baselineCommit+':projects/cookie-editor/cookie-editor.opendesk-tool.json'],{cwd:root,maxBuffer:8*1024*1024});
   const old=JSON.parse(oldBytes);assert.equal(old.version,'2.0.29','This release upgrades the historical 2.0.29 baseline');
   const oldPath=process.env.COOKIE_NATIVE_OLD_TOOL||path.join(directory,'upgrade-from-2.0.29.opendesk-tool.json');
   if(!process.env.COOKIE_NATIVE_OLD_TOOL)await writeFile(oldPath,oldBytes);

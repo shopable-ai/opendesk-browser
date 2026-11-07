@@ -3,23 +3,23 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {localExpirationText,parseLocalExpiration,compareCookieExpiration} from
-  '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-expiration.js';
+  '../../projects/cookie-editor/app/domain/cookie-expiration.js';
 import {normalizeCookie,nativeInput} from
-  '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
+  '../../projects/cookie-editor/app/domain/cookie-model.js';
 import {createMockSdk} from
-  '../../examples/sidebar-tools/cookie-editor/preview/react/src/mock-sdk.js';
+  '../../projects/cookie-editor/preview/react/src/mock-sdk.js';
 import {createCookieSdkAdapter} from
-  '../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js';
+  '../../projects/cookie-editor/app/adapters/browser-sdk.js';
 import {createCookieController} from
-  '../../examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js';
+  '../../projects/cookie-editor/app/controller/cookie-controller.js';
 
-const root='examples/sidebar-tools/cookie-editor/';
+const root='projects/cookie-editor/';
 const sample={name:'demo',value:'fictional',domain:'shop.example.com',
   path:'/',hostOnly:true,secure:true,httpOnly:false,sameSite:'lax'};
 
 function inZone(zone,input){
   const script=`import {parseLocalExpiration,localExpirationText} from
-    './examples/sidebar-tools/cookie-editor/app/domain/cookie-expiration.js';
+    './projects/cookie-editor/app/domain/cookie-expiration.js';
   const result=parseLocalExpiration(process.argv[2]);
   console.log(JSON.stringify({...result,text:result.seconds===undefined?null:
     localExpirationText(result.seconds)}));`;

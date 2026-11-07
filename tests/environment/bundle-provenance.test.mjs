@@ -311,7 +311,7 @@ test('AdBlock session fence is a fixed audited source and rejects byte drift',as
 
 test('R1.3 app-owned trusted background inputs require an exact reviewed Git blob',async t=>{
   const approved=[
-    ['examples/sidebar-tools/ai-vip-share/trusted/provider-config.js','sw.js',
+    ['projects/ai-vip-share/trusted/provider-config.js','sw.js',
       'd09c57ef4bbc96f406bb2092feb9ff9b2465cf43'],
     ['examples/sidebar-tools/time-review/trusted/service.js','time-review/time-review-host.js',
       '3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6']
@@ -332,7 +332,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
     assert.throws(()=>make(target,changed,project),/Trusted app-owned source changed/);
   }
   for(const unknown of [
-    'examples/sidebar-tools/ai-vip-share/trusted/remote-supplied.js',
+    'projects/ai-vip-share/trusted/remote-supplied.js',
     'examples/sidebar-tools/time-review/trusted/unsafe-background.js',
     'examples/programs/local-controller/src/main.js'
   ])assert.throws(()=>make('sw.js',resolve(unknown)),/cannot enter/);

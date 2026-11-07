@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {mkdtemp,mkdir,writeFile,rm,symlink,realpath} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {decideSidebarAppUpdate,nextPatchVersion} from '../../scripts/app-update-plan.mjs';
+import {resolveSidebarAppProject} from '../../scripts/app-update.mjs';
 const app=(version='1.0.9')=>({id:'reading-toc',format:'opendesk.sidebar-tool.v1',version,capabilities:['page.toc']});
 
 test('user app update: new, unchanged, patch, and explicitly versioned releases',()=>{
@@ -40,4 +44,40 @@ test('CLI rejects app IDs that could escape their project directory',()=>{
     {cwd:root,encoding:'utf8',timeout:15000});
   assert.equal(result.status,1);
   assert.match(result.stderr,/E_APP_ID/);
+});
+
+// Existing update tests did not cover source ownership after a project move.
+test('app updates find either source namespace by ID and reject duplicate owners',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'app-update-owner-'));
+  // macOS may expose /var as a symlink; use the canonical root like the CLI.
+  const sourceRoot=await realpath(root);
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  for(const [namespace,id] of [['projects','moved-tool'],['examples/sidebar-tools','legacy-tool']]){
+    const dir=join(sourceRoot,namespace,'directory-'+id);
+    await mkdir(dir,{recursive:true});
+    await writeFile(join(dir,'tool.config.json'),JSON.stringify({id}));
+    assert.equal(await resolveSidebarAppProject(id,sourceRoot),dir);
+  }
+  const duplicate=join(sourceRoot,'examples/sidebar-tools','duplicate');
+  await mkdir(duplicate);
+  await writeFile(join(duplicate,'tool.config.json'),JSON.stringify({id:'moved-tool'}));
+  await assert.rejects(resolveSidebarAppProject('moved-tool',sourceRoot),/E_APP_IDENTITY/);
+  await assert.rejects(resolveSidebarAppProject('missing-tool',sourceRoot),/E_APP_NOT_FOUND/);
+});
+
+test('app source discovery refuses symlinked namespaces, projects and configs',async t=>{
+  const root=await realpath(await mkdtemp(join(tmpdir(),'app-update-symlink-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const actual=join(root,'actual');
+  await mkdir(actual);
+  await writeFile(join(actual,'tool.config.json'),JSON.stringify({id:'moved-tool'}));
+  await symlink(actual,join(root,'projects'));
+  await assert.rejects(resolveSidebarAppProject('moved-tool',root),/E_APP_PATH/);
+  await rm(join(root,'projects'));await mkdir(join(root,'projects'));
+  await symlink(actual,join(root,'projects','moved-tool'));
+  await assert.rejects(resolveSidebarAppProject('moved-tool',root),/E_APP_PATH/);
+  await rm(join(root,'projects','moved-tool'));
+  await mkdir(join(root,'projects','moved-tool'));
+  await symlink(join(actual,'tool.config.json'),join(root,'projects','moved-tool','tool.config.json'));
+  await assert.rejects(resolveSidebarAppProject('moved-tool',root),/E_APP_PATH/);
 });

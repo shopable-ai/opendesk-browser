@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCookieController} from '../../examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js';
-import {createCookieSdkAdapter} from '../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js';
+import {createCookieController} from '../../projects/cookie-editor/app/controller/cookie-controller.js';
+import {createCookieSdkAdapter} from '../../projects/cookie-editor/app/adapters/browser-sdk.js';
 
 const site='https://shop.example.com/account';
 const base={name:'sid',value:'SECRET_FIXTURE',domain:'shop.example.com',path:'/',

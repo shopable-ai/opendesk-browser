@@ -102,7 +102,7 @@ test('cookie privileges still require an explicit App CI profile',async()=>{
 });
 test('AI VIP Share declares its Cookie and lifecycle tests before discovery',async()=>{
   const profile=JSON.parse(await readFile(join(ROOT,
-    'examples/sidebar-tools/ai-vip-share/app.ci.json'),'utf8'));
+    'projects/ai-vip-share/app.ci.json'),'utf8'));
   for(const file of ['ai-vip-share-local-development','ai-vip-share-r21-lifecycle',
     'ai-vip-share-r53-development','ai-vip-share-r59-proxy-ui'])
     assert.ok(profile.node.includes('tests/environment/'+file+'.test.mjs'),file);

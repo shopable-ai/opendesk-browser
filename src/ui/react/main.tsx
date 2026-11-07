@@ -15,8 +15,8 @@ import conversationDockCSS from './components/conversation-dock.css?raw';
 import trustedSettingsCSS from './components/trusted-settings.css?raw';
 import timeReviewHostCSS from '../../../projects/time-review/trusted/host.css?raw';
 import bookmarkManagerHostCSS from '../../../projects/bookmark-manager/trusted/host.css?raw';
-import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';
-import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';
+import cookieEditorHostCSS from '../../../projects/cookie-editor/trusted/host.css?raw';
+import aiVipShareHostCSS from '../../../projects/ai-vip-share/trusted/host.css?raw';
 import promptShortcutsHostCSS from '../../../projects/prompt-shortcuts/trusted/host.css?raw';
 import readingTocHostCSS from '../../../projects/reading-toc/trusted/host.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
@@ -187,14 +187,14 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
-    mountAIProxyPilot({container,request,locale,onStateChange}={}){
+    mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation}={}){
       if(disposed||aiProxyPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
         typeof request!=='function'||typeof onStateChange!=='function')
         throw Error('E_AI_PROXY_REACT_OWNER');
       const managed=Object.freeze(Object.fromEntries(['getStatus','requestEnable','requestDisable']
         .map(name=>[name,payload=>request('browser.proxy.managed.'+name,payload||{})])));
-      const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange},
+      const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange,toolNavigation},
         {browser:{proxy:{managed}}},{trusted:true});
       aiProxyPilot={container,environment};container.dataset.opendeskReactOwner='ai-proxy';
       const release=()=>{

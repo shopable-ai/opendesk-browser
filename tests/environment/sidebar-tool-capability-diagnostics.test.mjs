@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
-const formal = JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json', import.meta.url), 'utf8'));
+const formal = JSON.parse(await readFile(new URL('../../projects/ai-vip-share/ai-vip-share.opendesk-tool.json', import.meta.url), 'utf8'));
 
 test('current importer accepts every declared AI VIP Share capability', () => {
   const tool = validateSidebarToolPackage(formal);

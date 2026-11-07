@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Script} from 'node:vm';
 
-const p='examples/sidebar-tools/cookie-editor/preview/index.html';
+const p='projects/cookie-editor/preview/index.html';
 async function harness(){
   const html=await readFile(p,'utf8');
   const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];

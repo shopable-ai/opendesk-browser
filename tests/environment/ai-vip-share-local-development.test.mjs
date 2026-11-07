@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {createLocalFixture} from '../../examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs';
+import {createLocalFixture} from '../../projects/ai-vip-share/dev/local-test/local-fixture-server.mjs';
 import {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest}
-  from '../../examples/sidebar-tools/ai-vip-share/tests/helpers/controller-fixture.mjs';
+  from '../../projects/ai-vip-share/tests/helpers/controller-fixture.mjs';
 
 function cookieAttempt(env){
   const journal=env.store.get(COOKIE_KEY);

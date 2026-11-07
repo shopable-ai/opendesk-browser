@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/ai-vip-share/**'
+      - 'projects/ai-vip-share/**'
       - 'tests/environment/ai-vip-share-*.test.mjs'
       - '.github/workflows/ai-vip-share-r591-ui.yml'
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile one formal sandbox React IIFE with public Shared UI externals
-        run: npm run build --prefix examples/sidebar-tools/ai-vip-share
+        run: npm run build --prefix projects/ai-vip-share
       - name: Verify old transaction, Cookie, STOP and React source contracts
         run: |
           node --test tests/environment/ai-vip-share-r5-ui.test.mjs \
@@ -30,11 +30,11 @@ jobs:
             tests/environment/ai-vip-share-r59-proxy-ui.test.mjs \
             tests/environment/ai-vip-share-ui-parity.test.mjs \
             tests/environment/ai-vip-share-local-development.test.mjs
-          node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs \
-            examples/sidebar-tools/ai-vip-share/preview/test-ui.mjs
+          node --test projects/ai-vip-share/preview/test-r41.mjs \
+            projects/ai-vip-share/preview/test-ui.mjs
       - name: Produce UNPROMOTED candidate from canonical build, keep previous release
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share \
+          node scripts/build-sidebar-tool.mjs projects/ai-vip-share \
             --out artifacts/ai-vip-share-react/candidate.opendesk-tool.json
           node --input-type=module <<'CHECK'
           import assert from 'node:assert/strict';
@@ -48,14 +48,14 @@ jobs:
           console.log('UNPROMOTED_REACT_CANDIDATE',createHash('sha256').update(bytes).digest('hex'));
           CHECK
       - name: Build preview from SAME App.jsx and Shared UI source, isolated SDK fixture
-        run: npm run build:preview --prefix examples/sidebar-tools/ai-vip-share
+        run: npm run build:preview --prefix projects/ai-vip-share
       - name: Publish source-bound preview immediately after compilation
         uses: actions/upload-artifact@v4
         with:
           name: ai-vip-share-preview-${{ github.sha }}
           path: |
-            examples/sidebar-tools/ai-vip-share/preview/dist/
-            examples/sidebar-tools/ai-vip-share/dist/build-ready.json
+            projects/ai-vip-share/preview/dist/
+            projects/ai-vip-share/dist/build-ready.json
             artifacts/ai-vip-share-react/candidate.opendesk-tool.json
           if-no-files-found: error
           retention-days: 14
@@ -69,7 +69,7 @@ jobs:
       - name: Exercise source-bound React in real Chromium, SDK mocked, not installed
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node examples/sidebar-tools/ai-vip-share/preview/test-react-chromium.mjs
+        run: node projects/ai-vip-share/preview/test-react-chromium.mjs
       - name: Preserve separate trusted Browser build-source gates
         run: |
           npm run build:dev
@@ -81,7 +81,7 @@ jobs:
           name: ai-vip-share-react-${{ github.sha }}
           path: |
             artifacts/ai-vip-share-react/
-            examples/sidebar-tools/ai-vip-share/dist/build-ready.json
-            examples/sidebar-tools/ai-vip-share/preview/dist/
+            projects/ai-vip-share/dist/build-ready.json
+            projects/ai-vip-share/preview/dist/
           if-no-files-found: warn
           retention-days: 14

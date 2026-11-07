@@ -6,14 +6,14 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {once} from 'node:events';
 import {createShareRelay, createShareHttpServer} from '../../services/cookie-share-relay/server.mjs';
-import {COOKIE_SHARE_STORAGE_KEY} from '../../examples/sidebar-tools/cookie-editor/trusted/account-share.js';
-import {createCookieAccountVault} from '../../examples/sidebar-tools/cookie-editor/trusted/account-vault.js';
+import {COOKIE_SHARE_STORAGE_KEY} from '../../projects/cookie-editor/trusted/account-share.js';
+import {createCookieAccountVault} from '../../projects/cookie-editor/trusted/account-vault.js';
 import {createDeviceKeyStorage} from '../../src/platform/storage/device-keys.js';
-import {createCookieSessionCrypto} from '../../examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js';
+import {createCookieSessionCrypto} from '../../projects/cookie-editor/trusted/account-session-crypto.js';
 import {storageError} from '../../src/platform/storage/idb.js';
-import {validateAccountCookieRow} from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
+import {validateAccountCookieRow} from '../../projects/cookie-editor/trusted/account-service.js';
 
-const module = await import('../../examples/sidebar-tools/cookie-editor/trusted/account-session-share.js')
+const module = await import('../../projects/cookie-editor/trusted/account-session-share.js')
   .catch(error => { if (error.code === 'ERR_MODULE_NOT_FOUND') return {}; throw error; });
 const SITE = 'https://accounts.example.test', RELAY = 'https://relay.example.test';
 const OWNER = 'cookie-editor:' + 'a'.repeat(64);

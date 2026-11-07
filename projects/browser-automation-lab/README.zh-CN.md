@@ -2,7 +2,7 @@
 
 > **产品决策更新（2026-10-30）：不再创建 Automation Lab 独立扩展。** 本目录只是先前进行竞品调研和产品设想时建立的**历史设计资料**，并非正式业务源码、可安装工具或待开发的第二个产品。以下原 R1.0/R1.1 内容供差量参考，不得作为新的产品安装 ID、独立应用目录或新的 CDP Host 实施依据。
 >
-> **唯一正式产品：** `browser-fingerprint`（浏览器指纹）。当前 `main` 源码仍位于 `examples/sidebar-tools/browser-fingerprint/`，已迁移的产品统一进入 `projects/<id>/`；Browser Fingerprint 的迁移应由现有项目迁移任务按合同完成，而不是另建 `projects/browser-automation-lab` 的平行业务源。
+> **唯一正式产品：** `browser-fingerprint`（浏览器指纹）。2026-11-08 迁移目标中的唯一业务 owner 为 `projects/browser-fingerprint/`；迁移由现有项目任务按合同完成，不另建 `projects/browser-automation-lab` 的平行业务源。
 >
 > **差量开发只修改原产品：** 复用已有 React、环境预设、受控 Chrome Host、参数应用/读回/恢复、HTTP 独立诊断页和存储。值得新增的只有：(1) 将真实只读检测提升为直达入口，(2) 在经授权的检测链路中扩展自动化状态等网页可观察信号，(3) 必要时对 Canvas/WebGL/跨字段一致性提供来源明确的只读诊断。每项先查已有实现及权限，真实修改后必须独立读回；不要重复开发现有四项环境覆盖能力。
 >

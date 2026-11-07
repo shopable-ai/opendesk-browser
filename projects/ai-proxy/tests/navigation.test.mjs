@@ -74,11 +74,14 @@ const appSource = await readFile(new URL('../src/App.jsx', import.meta.url), 'ut
 const appCode = (await transform(appSource, { loader: 'jsx', format: 'cjs' })).code;
 const routeContent = tree => tree.props.children.find(child => child?.props?.className === 'proxy-route');
 const draftDialog = tree => tree.props.children.find(child => child?.props?.id === 'proxy-draft');
-function workspaceFixture(preview = false) {
+function workspaceFixture(preview = false, enhanced = true) {
   const hooks = [], effects = [], events = new EventTarget();
   let cursor = 0, focused = 0;
   const navigation = createNavigation({ initialRoute: '#/rules' });
   const env = { navigation, events, preview, navigate: navigation.navigate, setConfirmHandler() {}, setState() {},hasDrafts:()=>false,clearDrafts(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));},markDraftFrom(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));} };
+  const snapshots=[],headerListeners=new Set();
+  env.toolNavigation={setNavigation(base,headerActions){snapshots.push({...base,...(enhanced?{headerActions}:{})});return enhanced;},
+    subscribe(handler){headerListeners.add(handler);return()=>headerListeners.delete(handler);},isLocked:()=>false};
   const react = {
     createElement(type, props, ...children) { return { type, props: { ...props, children } }; },
     useState(initial) {
@@ -107,9 +110,9 @@ function workspaceFixture(preview = false) {
     document: {activeElement:null}
   });
   const Workspace = module.exports.default().props.children[0].type;
-  return { navigation, events, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
+  return { navigation, events, snapshots, header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
     cursor = 0;
-    const tree = Workspace();
+    const tree = Workspace({surface:'side-panel'});
     const content = routeContent(tree);
     content.props.ref.current = { focus: () => focused++, contains: () => false };
     while (effects.length) effects.shift()();
@@ -245,4 +248,38 @@ test('actual copy action copies only an internal route and reports clipboard fai
     assert.equal(success.at(-1), !fail);
     assert.equal(failure.at(-1), fail);
   }
+});
+
+
+test('R14 Workspace header opens existing routes only, rejects stale pages and releases listeners',()=>{
+ const f=workspaceFixture();f.render();
+ assert.equal(routeContent(f.render()).props.children[0].props.headerNavigation,true,
+  'only accepted enhanced navigation owns the settings return');
+ const page=f.snapshots.at(-1).page;
+ assert.match(page,/^[a-z][a-z0-9-]{0,31}$/);
+ assert.equal(f.snapshots.at(-1).headerActions.length,4);
+ f.header({action:'header',actionId:'add-proxy',page:'stale'});
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ f.header({action:'header',actionId:'apply',page});assert.equal(f.navigation.getRoute(),'#/rules');
+ f.header({action:'header',actionId:'add-proxy',page});assert.equal(f.navigation.getRoute(),'#/profiles/add');
+ f.header({action:'header',actionId:'settings',page});assert.equal(f.navigation.getRoute(),'#/profiles/add');
+ f.render();
+ for(const [actionId,target] of [['diagnostics','#/diagnostic'],['subscriptions','#/subscriptions'],['settings','#/profiles']]){
+  f.header({action:'header',actionId,page:f.snapshots.at(-1).page});assert.equal(f.navigation.getRoute(),target);f.render();
+ }
+ f.header({action:'back'});assert.equal(f.navigation.getRoute(),'');f.render();
+ f.unmount();f.header({action:'header',actionId:'settings',page:'home'});assert.equal(f.navigation.getRoute(),'');
+});
+
+test('R14 Workspace blocks header with drafts/busy and ignores enhanced events on fallback hosts',()=>{
+ for(const lock of ['draft','busy','fallback']){
+  const f=workspaceFixture(false,lock!=='fallback');f.render();
+  if(lock==='draft')f.events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));
+  if(lock==='busy')f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:true}}));
+  f.render();const snapshot=f.snapshots.at(-1);
+  assert.equal(routeContent(f.render()).props.children[0].props.headerNavigation,lock!=='fallback');
+  if(lock!=='fallback')assert.ok(snapshot.headerActions.every(action=>action.disabledReason));
+  f.header({action:'header',actionId:'add-proxy',page:snapshot.page});assert.equal(f.navigation.getRoute(),'#/rules');
+  f.unmount();
+ }
 });

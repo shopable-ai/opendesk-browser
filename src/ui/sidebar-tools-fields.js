@@ -162,6 +162,10 @@ export const SIDEBAR_TOOL_FIELDS = {
     "data": {"action": ""},
     "attributes": {"aria-label": "当前页面操作"}
   },
+  "sidebar-tool-header-actions": {
+    "hidden": true,
+    "data": {"scope": "", "actions": []}
+  },
   "sidebar-tool-secondary-action": {
     "hidden": true,
     "title": "",

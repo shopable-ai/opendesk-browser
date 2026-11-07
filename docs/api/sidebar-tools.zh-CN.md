@@ -166,7 +166,92 @@ Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent�
 
 ### 受限页头导航发现入口
 
-`OpenDeskTool.setNavigation` 是可选的受限导航能力，仅获准入的完整官方包具备；先用 `typeof OpenDeskTool.setNavigation === 'function'` 做特性检测，方法存在本身不替代完整包、来源、实例与安装代际核验。接入与返回层级见[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)。工具上报当前导航展示状态，由宿主统一呈现页头；返回/主操作交回工具处理，并保留草稿、忙态和结果未知保护。未准入或未接入的工具不能直接移除唯一可用的内部导航；此入口不授予宿主 DOM 或额外权限。
+`OpenDeskTool.setNavigation` 是可选的受限导航能力，所有已审阅安装的工具均可使用导航展示。按用户 2026-11-04 决定，不再以当前官方 Catalog 版本、包 SHA 或发行来源记录匹配作为运行门槛；旧版本、本地审阅包、来源记录缺失/过期和目录不可用不因此停止使用。真实安装包身份、能力、来源/实例和安装代际（epoch）及撤权核验仍保留。先用 `typeof OpenDeskTool.setNavigation === 'function'` 做特性检测，方法存在不表示获得权限。接入与返回层级见[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)。工具上报当前导航展示状态，由宿主统一呈现页头；返回/主操作交回工具处理，并保留草稿、忙态和结果未知保护。未接入或调用被拒绝时保留原内部导航；此入口不授予宿主 DOM 或额外权限。
+
+#### R14 HeaderActions 可选接入示例
+
+R14 在原 `setNavigation` 状态中增加可选 `headerActions` 完整快照，每次替换，不合并。旧字段仍为 `page/title/canBack/primary/secondary/secondaryExpanded`；不含 `headerActions` 的 normalize 返回值完全不变。动作最多 6 个，未知字段和重复 ID 拒绝；`id` 匹配 `^[a-z][a-z0-9-]{0,31}$`，`label` 去首尾空格后 1..40 且拒控制字符；可选 `icon` 仅 `new/edit/settings/diagnostics/subscriptions/library/list/refresh`，`priority` 为 -10..10 整数（默认 0），`disabledReason` 去首尾空格后 1..80 且拒控制字符，存在即禁用。精确校验、生命周期及安全边界见[现有导航合同 R14](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#r14--可选-header-动作完整快照)。
+
+只有 `OpenDeskTool.navigationFeatures?.headerActions === true` 表示 SDK 与 Host 两端支持；增强调用返回 `false` 时须立即重新提交不含该字段的旧 base。非空动作与 `secondary:'more'` 冲突时整次返回 `false`，`secondary:'transfer'` 可共存。Host 可用 `headerActionsEnabled:false` 关闭新动作投影，原导航继续；旧 v1/v2 包不改 schema、不迁移、不强制重包。以下为完整的纯导航示例，内容区“资料库”保留为业务入口，旧 Bridge 和关闭投影时同样可达；它不读取数据、不申请权限，不作为运行验证证据。
+
+```js
+(() => {
+  const tool = globalThis.OpenDeskTool;
+  const root = tool.root;
+  let page = 'home';
+  let disposed = false;
+  let dirty = false;
+  let busy = false;
+  // 这些元素由应用创建，始终位于自己的 root，不访问宿主 Header DOM。
+  const view = document.createElement('section');
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  const library = document.createElement('button');
+  library.textContent = '资料库';
+  const back = document.createElement('button');
+  back.textContent = '返回首页';
+  root.append(view, library, back, status);
+
+  function render() {
+    view.textContent = page === 'home' ? '首页业务内容' : '资料库业务内容';
+    library.hidden = page !== 'home';
+    back.hidden = page === 'home';
+    tool.setState({dirty, busy});
+    const base = {
+      page, title: page === 'home' ? '首页' : '资料库',
+      canBack: page !== 'home', primary: null,
+    };
+    let accepted = false;
+    if (typeof tool.setNavigation === 'function') {
+      if (tool.navigationFeatures?.headerActions === true) {
+        accepted = tool.setNavigation({...base, headerActions: page === 'home'
+          ? [{id: 'library', label: '资料库', icon: 'library', priority: 0}]
+          : []});
+        if (accepted === false) accepted = tool.setNavigation(base);
+      } else {
+        accepted = tool.setNavigation(base);
+      }
+    }
+    // 仅接入原返回成功时去掉重复返回；核心资料库入口始终保留。
+    back.hidden = page === 'home' || accepted === true;
+  }
+  function go(next) {
+    if (disposed || busy || dirty || !['home', 'library'].includes(next)) return;
+    page = next;
+    render(); // 每次切页替换快照，离开首页即清除 library 动作。
+  }
+  const openLibrary = () => go('library');
+  const goBack = () => go('home');
+  function onNavigation({detail}) {
+    if (disposed || busy || dirty || !detail) return;
+    if (detail.action === 'header') {
+      if (detail.page !== page) return;
+      if (page === 'home' && detail.actionId === 'library') go('library');
+    } else if (detail.action === 'back' && page === 'library') {
+      go('home');
+    }
+    // 原 primary/secondary 仍只带 {action}；本示例没有声明它们。
+  }
+  function cleanup() {
+    if (disposed) return;
+    disposed = true;
+    root.removeEventListener('opendesk-tool-navigation', onNavigation);
+    library.removeEventListener('click', openLibrary);
+    back.removeEventListener('click', goBack);
+    window.removeEventListener('pagehide', cleanup);
+    view.remove(); library.remove(); back.remove(); status.remove();
+  }
+  library.addEventListener('click', openLibrary);
+  back.addEventListener('click', goBack);
+  root.addEventListener('opendesk-tool-navigation', onNavigation);
+  window.addEventListener('pagehide', cleanup);
+  render();
+})();
+```
+
+Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 detail 为 `{action:'header',actionId,page}`；旧 `back/primary/secondary` detail 完全不变，仍为 `{action}`。Host 的点击绑定真实实例、页面与快照 revision，旧快照失效；`busy/dirty/actionReview` 时新动作不可执行，应用也须复核状态。真实编辑器要在输入、保存开始/确认及页面切换时同步 dirty/busy，保存失败或结果未知不能清锁或重放；组件卸载时调用自身 cleanup/Effect 清理，不能只依赖 pagehide。
+
+框架拥有 Header，应用拥有页面和业务；动作只携带展示字段，不传 `permission/js/url/html/callback`，CustomEvent 不等于 `isTrusted`。危险授权、代理应用配置、Cookie 操作及采集等只能进入原审阅界面，不能借 Header 无确认执行；实际权限、身份、能力和 epoch 继续经原安装/Authority。源码接入与定向 Node 证据的范围见[导航合同状态](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；本示例不是运行证据，构建、真实浏览器及 Native 验收仍为 `NOT_TESTED`。
 
 ### 普通第三方小工具的基础操作
 
@@ -260,7 +345,7 @@ App 在 `tool.config.json` 声明 `format: "opendesk.sidebar-tool.v2"`、capabil
 
 ## 4. 维护和排错入口
 
-- **Cookie Editor**：[已安装工具与权限说明](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。默认通过 `OpenDeskSDK.browser.cookies.*` 管理已授权网站的真实 Cookie；元数据、敏感值和修改分别授权，离线工作区仍只操作临时内存。`cookies.set` 可选 `ifAbsent:true`（须显式 Path）在真实确认后的写入前拒绝同身份冲突，用于新建和改名；Chrome 不提供原子改名。
+- **Cookie Editor**：[已安装工具与权限说明](../../projects/cookie-editor/README.zh-CN.md)。默认通过 `OpenDeskSDK.browser.cookies.*` 管理已授权网站的真实 Cookie；元数据、敏感值和修改分别授权，离线工作区仍只操作临时内存。`cookies.set` 可选 `ifAbsent:true`（须显式 Path）在真实确认后的写入前拒绝同身份冲突，用于新建和改名；Chrome 不提供原子改名。
 - **开发方法**：[统一开发规范](sidebar-tool-development.zh-CN.md)。
 - **示例**：[quick-notes](../../examples/sidebar-tools/quick-notes/README.md)、[React starter](../../examples/sidebar-tools/react-starter/README.md)、[Vue starter](../../examples/sidebar-tools/vue-starter/README.md)。
 - **专项网页工具**：[阅读目录](../../examples/sidebar-tools/reading-toc/README.md)（含文章/AI 对话手工 fixture）、[网页剪藏](../../examples/sidebar-tools/web-markdown-clipper/README.md)、[知识收件箱](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)。

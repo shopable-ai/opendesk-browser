@@ -14,7 +14,7 @@ const sources={
   'chatgpt-files-service.js':{pin:'9b1520dd9d1a19b15bdc88250f486a5f6aad9cce',targets:['native-agent/transport.js']},
   'chatgpt-files-controller.js':{pin:'007ef46dc1979ee3deb56cbd802d527ddd7a619a',targets:['native-agent/transport.js']},
   'chatgpt-project-policy.js':{pin:'647fcd233f662e9239c46d348205329b39db15e9',targets:['native-agent/transport.js']},
-  'chatgpt-file-intent-page.js':{pin:'96f8ea7753ee55fde54f134c5f8919b8f6555b8e',targets:['agents/chatgpt-fixed-bridge.js']},
+  'chatgpt-file-intent-page.js':{pin:'79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6',targets:['agents/chatgpt-fixed-bridge.js']},
   'chatgpt-files-settings-ui.js':{pin:'301005927d9160e25698c3fa63ddf2ca9b3fba53',targets:['native-agent/settings.js']},
   'chatgpt-files-ui.js':{pin:'7a661e87756992620944a565ec4b6f555031f8a4',targets:['native-agent/settings.js','agents/chatgpt-fixed-bridge.js']},
   'chatgpt-file-intent-gate.js':{pin:'09e7e29cc827fdd7baa549092f3a6b08031ea10d',targets:['native-agent/transport.js','agents/chatgpt-fixed-bridge.js']},

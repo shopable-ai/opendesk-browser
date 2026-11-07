@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const root='examples/sidebar-tools/cookie-editor';
+const root='projects/cookie-editor';
 const read=name=>readFile(root+'/'+name,'utf8');
 
 test('R4.3 preview retains its design while fixing pristine draft prompts',async()=>{

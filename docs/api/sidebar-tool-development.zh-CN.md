@@ -18,7 +18,7 @@
 
 1. **需求与分类**：明确用户实际操作场景、P0/P1、动态沙箱还是经审计的第一方可信功能；需要全量 Chrome 私人数据的需求不得直接给任意动态工具赋权。
 2. **独立项目事实核对**：优先读取 AGENTS、对应 Skill、公开 SDK 与当前工具源码；只有已证实的通用平台缺口才由平台维护者检查 Host。界面规范可查 [R27](../architecture/ui-layout-conventions-r27.zh-CN.md) 和 [R28](../architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，列出可复用能力、缺口及写入文件所有权。
-3. **信息架构与用户旅程**：先确定 Index → Detail / Form / Management / Confirm 的视图和空态、失败态、撤权态、返回路径；先核对宿主已有返回、标题与主操作，按[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)发现公开导航能力、真实消费者及受信准入；同一宿主页头显示工具/子页路径，内容不重复标题、用途说明、返回或同一主操作；集合“＋ 新建”贴近集合标题。
+3. **信息架构与用户旅程**：先确定 Index → Detail / Form / Management / Confirm 的视图和空态、失败态、撤权态、返回路径；先核对宿主已有返回、标题与主操作，按[唯一导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)发现公开导航能力、真实消费者及真实安装状态；新生成扩展优先复用原导航。同一宿主页头显示工具/子页路径，成功接入后内容不重复标题、用途说明、返回或同一主操作；未接入或旧 Bridge 必须保留核心业务入口。集合“＋ 新建”贴近集合标题。
 4. **需要交互原型时**：创建独立、可打开、无网络/无真实权限副作用的 HTML + 模拟数据；在客户端支持时直接呈现可交互预览，同时提供完整 HTML 文件。不支持嵌入时说明限制，不谎称已经显示；已有明确需求的修复不以重画原型为前置条件。
 5. **要求独立设计评分时**：按当前要求/正式合同选择功能、可发现性、层级、可访问性、安全/隔离、解耦与验证等维度；适用 ≥95/100 目标时仍逐项达标，未达标修订。宽度/缩放专项须用户针对当前任务明确要求；原型评分不得冒充原生 Chrome 产品通过。普通开发不启动评分。
 6. **源码实施**：交互要求明确后以既有 Host/权限/注册与生命周期最小增量实现；沿用已批准设计，不额外要求重复确认，不另建通用安装器或 Browser SDK。
@@ -60,7 +60,7 @@
 
 必需/条件必需/可选、生成物/历史资料的消费者、提交与清理证据只在[目录合同第 2 节](../architecture/extension-project-layout.zh-CN.md#21-目录选择与存在条件)维护；此摘要不要求新建或删除目录。复用 [最小 HTML 示例](../../examples/sidebar-tools/minimal-html-starter/README.md)或已有 React/Vue Starter；`scripts/templates` 是预览壳，不是源码脚手架。不强制项目级 AGENTS，也不复制根规则；特殊边界才就近补充，命令仍以 README 为准。
 
-教学示例位于 `examples/sidebar-tools/<id>/`，采用相同配置；简单工具不强制新增 package.json、测试层次或构建依赖。业务测试优先归 `<owner>/tests/`，混合业务/宿主测试按职责拆分，原生驱动先保留 `tests/framework/` 的现行路径。开发只选相关验证；新增测试须指出实际行为/安全覆盖缺口，不按版本复制测试，不为可逆文案/样式添加机械源码断言。`app:update` 的 projects 路径和自有测试发现尚有缺口，不能将目录约定当作该命令已支持，具体见目录合同第 6 节。
+教学示例位于 `examples/sidebar-tools/<id>/`，采用相同配置；简单工具不强制新增 package.json、测试层次或构建依赖。业务测试优先归 `<owner>/tests/`，混合业务/宿主测试按职责拆分，原生驱动先保留 `tests/framework/` 的现行路径。开发只选相关验证；新增测试须指出实际行为/安全覆盖缺口，不按版本复制测试，不为可逆文案/样式添加机械源码断言。`app:update` 已按配置 `id` 唯一发现 `projects/` 与 `examples/sidebar-tools/`，拒绝重复 owner/ID 和符号链接（主代理 2026-11-08 回报：相关 7 项测试通过）；仍不自动发现全部业务 tests，项目业务测试须显式核对并执行，具体见目录合同第 6 节。
 
 ### 一个项目，多种执行环境（不是多个插件）
 
@@ -344,9 +344,11 @@ npm run verify
 
 - **直接复用入口**：[组件与组合用法](sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)随原预览套件生成可操作 `components.html` 和 HTML/JSX 片段。React 复用实际 `@opendesk/ui`；HTML 的原共享样式构建器输出同源 Card 子集。控件按上方试点区分 RAC 与原生适配，不假定存在 Field/Select/Dialog 导出。
 - **先选页面组合**：按[风格来源与页面组合](sidebar-preview-kit.zh-CN.md#风格来源与页面组合2026-11-01)选择列表/表单/详情/设置；Shared UI 不自动决定业务布局。紧凑列表不逐条套 Card，不复制 Cookie/书签的局部主题和业务 CSS。模板变化选来源保护与受影响离线交互，纯文档变化只检查内容/链接；具体通过条件在同节维护。
-- **信息架构**：单一主操作，必要的次级操作；标题/表单/反馈/内容分区明确；避免重复标题、重复状态文本和密集按钮。宿主已有返回/工具标题时，按[导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)接入同一页头，不复制导航。scrapyjs 根页标题“scrapyjs 采集”，配置库标题“scrapyjs 采集/配置库”；唯一返回按配置库→采集根页→扩展列表，内容只保留业务。能力已存在，先区分工具/预览未接入与真实平台缺陷，旧候选接入根因见同一导航合同的根因与修复记录；正式 scrapyjs 导航准入不得放宽，实际安装接入仍为 `NOT_TESTED`。验证使用同候选完整宿主视图，覆盖唯一返回、层级与草稿/忙态及未知保护；评分适用时明确扣重复导航与冗余，不以同源 PASS 抵消。
+- **信息架构**：单一主操作，必要的次级操作；标题/表单/反馈/内容分区明确；避免重复标题、重复状态文本和密集按钮。宿主已有返回/工具标题时，按[导航合同](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)接入同一页头，不复制导航。scrapyjs 根页标题“scrapyjs 采集”，配置库标题“scrapyjs 采集/配置库”；唯一返回按配置库→采集根页→扩展列表，内容只保留业务。先区分工具/预览未接入与真实平台缺陷；按 2026-11-04 决定，所有已审阅安装工具可显示导航，取消当前官方 Catalog 版本、包 SHA、发行来源匹配门槛，真实安装身份、能力、epoch 与撤权保护不变。历史实际安装接入仍为 `NOT_TESTED`，不由文档修订变为通过。验证使用同候选完整宿主视图，覆盖唯一返回、层级与草稿/忙态及未知保护；评分适用时明确扣重复导航与冗余，不以同源 PASS 抵消。
 - **内容区与状态行**：当主体已明确操作对象且没有可切换目标时，不额外常驻「当前网页／对象类型／已检测」说明行。刷新等区域动作放在所属内容区标题右上角，保留可访问名称、焦点与忙碌禁用，不为按钮保留一整行。删除说明行时同步移除对应 DOM 查询与渲染分支，加载、空态、权限和失败仍由实际状态区告知。状态文案自然换行，不用固定高度、`min-height` 或纵向均分制造底部留白；默认复用 8px 分隔间距、12px 卡片内边距，并同步交互 HTML 的位置与状态排版。
 - **可信工具栏操作归属（R1.9.5）**：正式 Side Panel 工具详情应保持「返回图标 — 工具标题 — 设置图标 — 卸载图标」的同一水平行。返回到标题建议使用共享 8px 间距，标题不额外缩进；工具专属设置优先复用既有 `#sidebar-tool-settings-open`，由可信宿主调用工具已有设置视图，不在内容区增建一行浮动齿轮或 Logo 标题。正常窗口验证受影响的同排、点击和焦点返回，不能用绝对定位覆盖；历史 320/360/400/480px 专项仅在当前任务明确要求时执行。自定义 HTML/Vue/React 沙箱工具不因此取得 Host DOM 或新的权限。
+- **R14 可选 Header 动作**：框架拥有 Header，应用拥有业务。沿现有 `setNavigation` 的可选 `headerActions` 提交至多 6 个动作的完整快照，切页/状态替换不合并旧动作；字段、未知字段/重复 ID 拒绝规则见[唯一导航合同 R14](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#r14--可选-header-动作完整快照)。仅 `OpenDeskTool.navigationFeatures?.headerActions === true` 表示 SDK/Host 两端支持；增强调用返回 `false` 立即重提不含该字段的旧 base，非空动作与 `secondary:'more'` 冲突，`secondary:'transfer'` 可共存。旧 normalize 输出不变；Host `headerActionsEnabled:false` 可关闭新投影，原导航和内容业务入口继续可用；v1/v2 包不改 schema、不做持久化迁移或强制重包。完整示例含 feature fallback 和事件解绑见[公开 API](sidebar-tools.zh-CN.md#r14-headeractions-可选接入示例)。
+- **Header 状态与安全**：原 `navigation-action`/`opendesk-tool-navigation` 仅新增 `{action:'header',actionId,page}`，旧 `back/primary/secondary` detail 保持 `{action}`。Host 绑定真实实例、页面和快照 revision，`busy/dirty/actionReview` 时新动作不可执行；应用同步真实页面及 `setState({dirty,busy})` 并复核动作，切页、撤权和卸载清理投影/监听，未知效果不重放。动作不传 `permission/js/url/html/callback`，CustomEvent 不当作 `isTrusted`；危险授权、代理应用配置、Cookie、采集不允许无确认快捷执行，仍经原安装/Authority 与可信审阅。源码与定向 Node 证据见[导航合同状态](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；AI Proxy / ScrapyJS 已接入并完成定向 Node 与浏览器源码夹具验证；构建、安装与 Native 分层记录，夹具不证明实际安装，不据此编造正式分数。
 - **紧凑一致**：优先复用项目现有语义、圆角、间距、字体等级与浅色/深色方案；但沙箱 CSS 不自动继承宿主样式，需在工具自己的 CSS 显式定义统一 token 或使用本地构建出的静态样式。不新建第三套共享设计系统。
 - **尺寸**：正常窗口默认缩放，验证当前受影响的自然换行、内容滚动和可见操作；不可依赖固定宽度。历史 360/400/600 CSS px、200% 缩放及物理宽度专项仅在当前任务明确要求时执行。Chrome 的实际最小侧栏宽度以实测为准，不能声称所有设备能达到 320px。
 - **无障碍**：表单 `label`，图标按钮 `aria-label`，键盘焦点/Enter/Escape，动态状态 `role=status`，足够对比度，不仅凭颜色表示状态；加载中、错误、无数据、权限不足、只读预览、保存成功都需明确反馈。

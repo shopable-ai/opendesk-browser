@@ -23,7 +23,7 @@ node --test tests/environment/stay-focus-r1.test.mjs
 
 日常从[开发 → 本地项目 → 在侧栏调试](../../docs/api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)使用实际项目；Workspace 只读预览另走原合同。`preview/build.mjs` 仍有读取原 src 和旧仓库相对定位的逻辑，不能假设它已同步当前配置的 dist；本轮仅记录，未运行或修复预览生成器。后续确需此预览时先核对这两处来源/路径，不将旧 HTML 当当前包证据。
 
-需要正式 UI 包时，按[打包 Skill](../../.agents/skills/opendesk-sidebar-tool-package/SKILL.md)传实际项目路径，完成候选→相关验证→同源晋升→check；`app:update` 当前固定 examples owner，不用于本项目。固定可信模块变化另由 Browser 维护者沿现有 `dist/development` watcher 和安全刷新合同处理，JSON 更新不替换后台；不默认执行 production/dev 双构建。目录条件、测试归属及生成物保留规则见[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)。本项目无需为重复这些说明新建 AGENTS。
+需要正式 UI 包时，按[打包 Skill](../../.agents/skills/opendesk-sidebar-tool-package/SKILL.md)传实际项目路径，完成候选→相关验证→同源晋升→check；`app:update` 已按配置 `id` 在 `projects/` 与 `examples/sidebar-tools/` 唯一发现 owner，并拒绝重复 owner/ID 和符号链接（主代理 2026-11-08 回报：相关 7 项测试通过）；仍不自动发现全部业务 tests，须显式执行相关测试，也可继续上述原路径参数链。固定可信模块变化另由 Browser 维护者沿现有 `dist/development` watcher 和安全刷新合同处理，JSON 更新不替换后台；不默认执行 production/dev 双构建。目录条件、测试归属及生成物保留规则见[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)。本项目无需为重复这些说明新建 AGENTS。
 
 ## 历史阶段记录
 

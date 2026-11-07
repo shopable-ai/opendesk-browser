@@ -4,17 +4,17 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/cookie-editor-r56-react-candidate.yml'
-      - 'examples/sidebar-tools/cookie-editor/app/**'
-      - 'examples/sidebar-tools/cookie-editor/trusted/**'
+      - 'projects/cookie-editor/app/**'
+      - 'projects/cookie-editor/trusted/**'
       - 'src/sw.js'
       - 'src/ui/sidebar-tools/installation.js'
       - 'tests/environment/cookie-editor-account-*.test.mjs'
-      - 'examples/sidebar-tools/cookie-editor/src/react.css'
-      - 'examples/sidebar-tools/cookie-editor/src/root.html'
-      - 'examples/sidebar-tools/cookie-editor/package.json'
-      - 'examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json'
-      - 'examples/sidebar-tools/cookie-editor/app.ci.json'
-      - 'examples/sidebar-tools/cookie-editor/preview/react/**'
+      - 'projects/cookie-editor/src/react.css'
+      - 'projects/cookie-editor/src/root.html'
+      - 'projects/cookie-editor/package.json'
+      - 'projects/cookie-editor/cookie-editor.opendesk-tool.json'
+      - 'projects/cookie-editor/app.ci.json'
+      - 'projects/cookie-editor/preview/react/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/react/tabs/tool-host.tsx'
       - 'src/ui/sidebar-tools-fields.js'
@@ -26,8 +26,8 @@ on:
       - 'src/ui/sidebar-tools/cookie-clear-intent.js'
       - 'tests/environment/cookie-editor-clear-intent.test.mjs'
       - 'src/ui/tool-shell.css'
-      - 'examples/sidebar-tools/cookie-editor/vite.config.mjs'
-      - 'examples/sidebar-tools/cookie-editor/scripts/**'
+      - 'projects/cookie-editor/vite.config.mjs'
+      - 'projects/cookie-editor/scripts/**'
       - 'tests/environment/cookie-editor-react-*.test.mjs'
       - 'tests/environment/cookie-editor-import-intent.test.mjs'
       - 'tests/environment/cookie-editor-write-intent.test.mjs'
@@ -68,19 +68,19 @@ jobs:
       # test passes may this generated JSON and preview HTML be committed.
       - name: Compile canonical React and stage source-bound candidate
         run: |
-          npm run build --prefix examples/sidebar-tools/cookie-editor
-          npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor             --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
+          npm run build --prefix projects/cookie-editor
+          npm run stage:candidate --prefix projects/cookie-editor
+          node scripts/build-sidebar-tool.mjs projects/cookie-editor             --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
       - name: R2.4 trusted vault and canonical background-switch regressions
         run: |
-          node --check examples/sidebar-tools/cookie-editor/trusted/account-contract.js
-          node --check examples/sidebar-tools/cookie-editor/trusted/account-vault.js
-          node --check examples/sidebar-tools/cookie-editor/trusted/account-service.js
+          node --check projects/cookie-editor/trusted/account-contract.js
+          node --check projects/cookie-editor/trusted/account-vault.js
+          node --check projects/cookie-editor/trusted/account-service.js
           node --check src/sw.js
           node --check src/ui/sidebar-tools/installation.js
           node --test \
             tests/environment/cookie-editor-account-vault.test.mjs \
-            examples/sidebar-tools/cookie-editor/tests/account-description.test.mjs \
+            projects/cookie-editor/tests/account-description.test.mjs \
             tests/environment/cookie-editor-account-switch-url.test.mjs \
             tests/environment/cookie-editor-account-switch-host.test.mjs
       - name: R5.24 independent trusted grant and native Host regressions
@@ -88,27 +88,27 @@ jobs:
           node --test tests/environment/cookie-editor-r524-grant.test.mjs
           node --test tests/environment/browser-sdk-r9-installed-host.test.mjs
       - name: R5.24 preview and controller source-bound scenarios
-        run: node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
+        run: node --test projects/cookie-editor/preview/react/preview.test.mjs
       - name: Verify real Vite bytes and staged official packer artifact
         run: node --test tests/environment/cookie-editor-react-build.test.mjs
       - name: Build official React prerequisites, real WXT and Shared UI Demo
         run: |
           # The official tools catalog now includes the AI VIP React source project.
           # Its build-ready CSS/JS must exist before WXT fingerprints all official inputs.
-          npm run build --prefix examples/sidebar-tools/ai-vip-share
+          npm run build --prefix projects/ai-vip-share
           npm run build:dev
           npm run build --prefix examples/sidebar-tools/shared-ui-demo
       - name: R5.25 actual Host navigation, Cookie controller and failure recovery regressions
         run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
       - name: Domain, controller, SDK and exact legacy release regressions
         run: |
-          node --check examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js
-          node --check examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js
+          node --check projects/cookie-editor/app/domain/cookie-model.js
+          node --check projects/cookie-editor/app/adapters/browser-sdk.js
           node --check src/ui/sidebar-tools.js
           node --check src/ui/sidebar-tools/cookie-write-intent.js
           node --check src/ui/sidebar-tools/cookie-clear-intent.js
-          node --check examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js
-          node --check examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs
+          node --check projects/cookie-editor/app/controller/cookie-controller.js
+          node --check projects/cookie-editor/scripts/stage-react-candidate.mjs
           node --test \
             tests/environment/cookie-editor-react-domain.test.mjs \
             tests/environment/cookie-editor-react-expiration.test.mjs \
@@ -132,23 +132,23 @@ jobs:
             tests/environment/sidebar-tools.test.mjs
       - name: Test real preview adapter and build source-coupled HTML artifact
         run: |
-          node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
-          npm ci --prefix examples/sidebar-tools/cookie-editor/preview/react --ignore-scripts --no-audit --no-fund
-          npm run build --prefix examples/sidebar-tools/cookie-editor/preview/react
-          npm run check --prefix examples/sidebar-tools/cookie-editor/preview/react
+          node --test projects/cookie-editor/preview/react/preview.test.mjs
+          npm ci --prefix projects/cookie-editor/preview/react --ignore-scripts --no-audit --no-fund
+          npm run build --prefix projects/cookie-editor/preview/react
+          npm run check --prefix projects/cookie-editor/preview/react
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Chromium interaction verification for the built React sheet
-        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        working-directory: projects/cookie-editor/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run test:chromium
       - name: Assert source-bound candidate equals the installable project package
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
+          node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
           git diff --exit-code -- \
-            examples/sidebar-tools/cookie-editor/tool.config.json \
-            examples/sidebar-tools/cookie-editor/src/main.js
+            projects/cookie-editor/tool.config.json \
+            projects/cookie-editor/src/main.js
           git status --short
       - uses: actions/upload-artifact@v4
         if: always()
@@ -157,10 +157,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: |
-            examples/sidebar-tools/cookie-editor/dist/
-            examples/sidebar-tools/cookie-editor/preview/cookie-editor.html
-            examples/sidebar-tools/cookie-editor/preview/react/index.html
-            examples/sidebar-tools/cookie-editor/preview/compare-r34.html
+            projects/cookie-editor/dist/
+            projects/cookie-editor/preview/cookie-editor.html
+            projects/cookie-editor/preview/react/index.html
+            projects/cookie-editor/preview/compare-r34.html
             artifacts/sidebar-tools/cookie-editor/
             artifacts/cookie-editor-r523/
       - name: Promote only Chromium-tested preview and source-bound package to main
@@ -168,12 +168,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add -- examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json \
-            examples/sidebar-tools/cookie-editor/preview/react/index.html
+          git add -- projects/cookie-editor/cookie-editor.opendesk-tool.json \
+            projects/cookie-editor/preview/react/index.html
           if git diff --cached --quiet; then
             echo 'Exact build artifacts already checked in'; exit 0
           fi
-          release_version="$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/cookie-editor/tool.config.json','utf8')).version")"
+          release_version="$(node -p "JSON.parse(require('fs').readFileSync('projects/cookie-editor/tool.config.json','utf8')).version")"
           git -c user.name='OpenDesk Cookie CI' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -m "build(cookie-editor): promote tested ${release_version} installable JSON and React preview"
@@ -197,7 +197,7 @@ jobs:
               echo "::error::main diverged; no promotion"; exit 1
             fi
             overlap="$(git diff --name-only "$GITHUB_SHA" "$remote_head" -- \
-              examples/sidebar-tools/cookie-editor/ \
+              projects/cookie-editor/ \
               .github/workflows/cookie-editor-r56-react-candidate.yml)"
             if [ -n "$overlap" ]; then
               echo "::error::Parallel Cookie Editor changes; refuse to overwrite"

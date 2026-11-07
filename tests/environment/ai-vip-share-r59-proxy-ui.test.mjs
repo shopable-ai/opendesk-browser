@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runControllerVm} from '../../examples/sidebar-tools/ai-vip-share/tests/helpers/controller-vm.mjs';
+import {runControllerVm} from '../../projects/ai-vip-share/tests/helpers/controller-vm.mjs';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 
-const base='examples/sidebar-tools/ai-vip-share/';
+const base='projects/ai-vip-share/';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const released={state:'disabled',control:'controllable_by_this_extension',permission:true,canStop:false,reason:null};
 const owned={...released,state:'enabled',control:'controlled_by_this_extension',canStop:true};

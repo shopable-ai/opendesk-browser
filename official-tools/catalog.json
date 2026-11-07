@@ -10,7 +10,7 @@
     },
     {
       "id": "ai-send-queue",
-      "project": "examples/sidebar-tools/ai-send-queue",
+      "project": "projects/ai-send-queue",
       "kind": "sidebar-tool",
       "installationPolicy": "optional",
       "packageFile": "ai-send-queue.opendesk-tool.json"
@@ -73,13 +73,13 @@
     },
     {
       "id": "ai-vip-share",
-      "project": "examples/sidebar-tools/ai-vip-share",
+      "project": "projects/ai-vip-share",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },
     {
       "id": "cookie-editor",
-      "project": "examples/sidebar-tools/cookie-editor",
+      "project": "projects/cookie-editor",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled",
       "packageFile": "cookie-editor.opendesk-tool.json"

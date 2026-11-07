@@ -1,0 +1,7 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "browser": [
+    "projects/scrapyjs/tests/ci-chromium.mjs"
+  ]
+}

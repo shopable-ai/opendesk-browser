@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {SHARED_DESIGN_MARKER,assertLayoutOnly,compileSharedToolCss} from '../../scripts/preview/shared-tool-design.mjs';
 
-const root='examples/sidebar-tools/cookie-editor/';
+const root='projects/cookie-editor/';
 
 test('installed CSS owns the approved icon and row geometry without preview overrides',async()=>{
   const css=await readFile(root+'src/react.css','utf8');

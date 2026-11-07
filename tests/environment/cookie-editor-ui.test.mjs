@@ -7,7 +7,7 @@ import {browserTextDownloadUrl} from '../../src/framework/sdk/browser-schemas.js
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
-const project='examples/sidebar-tools/cookie-editor';
+const project='projects/cookie-editor';
 const get=path=>readFile(path,'utf8');
 
 test('Editing or renaming preserves the exact untouched persistent expiration',async()=>{

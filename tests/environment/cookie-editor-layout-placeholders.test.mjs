@@ -14,8 +14,8 @@ const React={
 };
 const built=buildSync({
   stdin:{contents:[
-    "export {CookieAccounts} from './examples/sidebar-tools/cookie-editor/app/components/CookieAccounts.jsx';",
-    "export {CookieEnterprisePanel} from './examples/sidebar-tools/cookie-editor/app/components/CookieBusinessPanels.jsx';"
+    "export {CookieAccounts} from './projects/cookie-editor/app/components/CookieAccounts.jsx';",
+    "export {CookieEnterprisePanel} from './projects/cookie-editor/app/components/CookieBusinessPanels.jsx';"
   ].join('\n'),resolveDir:new URL('../../',import.meta.url).pathname},
   bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform'
 });

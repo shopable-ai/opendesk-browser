@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   COOKIE_ACCOUNT_STORE_KEY,COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
+  from '../../projects/cookie-editor/trusted/account-contract.js';
 import {planAccountCookieEffects,validateAccountCookieRow,
   sameAccountAutoSwitchAttempt,autoSwitchFenceBlocks,sameAccountAutoSwitchFence,
   createCookieAccountService,installCookieAccountService,inspectAccountSnapshotUpdate}
-  from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
+  from '../../projects/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
-import {COOKIE_SHARE_STORAGE_KEY} from '../../examples/sidebar-tools/cookie-editor/trusted/account-share.js';
+import {COOKIE_SHARE_STORAGE_KEY} from '../../projects/cookie-editor/trusted/account-share.js';
 import {createDeviceKeyStorage} from '../../src/platform/storage/device-keys.js';
-import {createCookieSessionCrypto} from '../../examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js';
+import {createCookieSessionCrypto} from '../../projects/cookie-editor/trusted/account-session-crypto.js';
 
 const original=(overrides={})=>({
   name:'demo',value:'fiction',domain:'example.com',path:'/',
@@ -69,7 +69,7 @@ test('one private Host protocol has no raw Cookie or key RPC',async()=>{
   const [host,worker,app]=await Promise.all([
     readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
     readFile(new URL('../../src/sw.js',import.meta.url),'utf8'),
-    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',
+    readFile(new URL('../../projects/cookie-editor/app/CookieEditorApp.jsx',
       import.meta.url),'utf8')
   ]);
   assert.match(host,/COOKIE_ACCOUNT_PROTOCOL/);

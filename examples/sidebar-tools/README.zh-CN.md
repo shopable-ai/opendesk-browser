@@ -2,7 +2,7 @@
 
 [返回 examples 中文统一入口](../README.zh-CN.md) · [目录归属审计](../OWNERSHIP-AUDIT-2026-11-02.zh-CN.md)
 
-本目录既有教学 Starter/SDK 体验，也保留尚未完成目录迁移的正式业务。不要把 ai-send-queue、browser-fingerprint、cookie-editor、scrapyjs 或 ai-vip-share 当作可以删除的演示：真实 owner 与安装来源须以项目 README、official-tools/catalog.json 和当前并行迁移结果核对。dev-hot-preview-p0、import-max-probe、papaparse-csv-export、shared-ui-demo 各有明确验证或 SDK 演示职责，不是同一份重复源码。
+本目录保留教学 Starter/SDK 体验及尚未迁移的项目。2026-11-08 迁移目标中，ai-send-queue、browser-fingerprint、cookie-editor、scrapyjs、ai-vip-share 的唯一业务 owner 统一为 `projects/<id>/`；真实路径与安装来源须以项目 README、official-tools/catalog.json 和当前并行迁移结果核对，不在本目录保留同 ID 副本。dev-hot-preview-p0、import-max-probe、papaparse-csv-export、shared-ui-demo 各有明确验证或 SDK 演示职责，不是同一份重复源码。
 
 
 **正式产品入口**：Side Panel「扩展」中的「应用」类型；普通用户不必下载 `examples/` 源码。技术包、目录和宿主协议不因产品改名而迁移。与 Page「网页增强」的区别见 [R4 产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
@@ -11,7 +11,7 @@
 
 | 入口 | 适用场景 | 示例/模板 |
 | --- | --- | --- |
-| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](minimal-html-starter/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](cookie-editor/README.zh-CN.md) |
+| **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](minimal-html-starter/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](../../projects/cookie-editor/README.zh-CN.md) |
 | **React 预编译** | 组件较多，需要 React 状态/UI | [React Starter](react-starter/README.md)、[Quick Notes React 正式产品](../../projects/quick-notes-react/README.md) |
 | **Vue 预编译** | 组件较多，需要 Vue | [vue-starter](vue-starter/README.md) |
 | **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](../../projects/reading-toc/README.md) |

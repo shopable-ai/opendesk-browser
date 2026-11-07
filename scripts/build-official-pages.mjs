@@ -37,7 +37,7 @@ async function approvedFile(root,row){
   const directory=resolve(root,row.project);
   // Exact single-product exception, not a generalized publication permission.
   const oneQueueProduct=row.programId==='opendesk.ai-send-queue'&&
-    directory===resolve(root,'examples/sidebar-tools/ai-send-queue');
+    directory===resolve(root,'projects/ai-send-queue');
   const scrollNavigationProduct=row.programId==='opendesk.ai-scroll-navigation'&&
     directory===resolve(root,'projects/ai-scroll-navigation');
   if(await realpath(directory)!==directory||

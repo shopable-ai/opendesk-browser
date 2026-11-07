@@ -72,7 +72,7 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-service.js':'9b1520dd9d1a19b15bdc88250f486a5f6aad9cce',
   'projects/webflow/trusted/chatgpt-files-controller.js':'007ef46dc1979ee3deb56cbd802d527ddd7a619a',
   'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
-  'projects/webflow/trusted/chatgpt-file-intent-page.js':'96f8ea7753ee55fde54f134c5f8919b8f6555b8e',
+  'projects/webflow/trusted/chatgpt-file-intent-page.js':'79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'301005927d9160e25698c3fa63ddf2ca9b3fba53',
   'projects/webflow/trusted/chatgpt-files-ui.js':'7a661e87756992620944a565ec4b6f555031f8a4',
   'projects/webflow/trusted/chatgpt-file-intent-gate.js':'09e7e29cc827fdd7baa549092f3a6b08031ea10d',
@@ -244,11 +244,13 @@ function reviewedCompiledAdblock(target,path,root){
 // Display composition now consumes redacted facts only in the existing fixed
 // Sidebar Host. Its UI-only blob is explicitly rejected in the SW and all
 // other entries; no tool package or arbitrary trusted/ file gains admission.
+// 2026-11-08 owner migration: only parent-depth imports changed to resolve
+// the same src modules. Exact blob pins and fixed-target restrictions remain.
 const compiledCookieAccountInputs=Object.freeze({
   // S3 fixed Relay session transport: exact HTTPS paths, explicit fingerprints,
   // nonexportable device identities and authenticated encrypted snapshots.
   // The shared contract remains pure; session helpers may enter only the SW.
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
+  'projects/cookie-editor/trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
   // Verified same-site manual recovery settles only the unchanged tab fence;
@@ -260,22 +262,22 @@ const compiledCookieAccountInputs=Object.freeze({
   // 2026-11-05 independently reviewed: canonicalize validated Partition keys
   // and restore legal expired identities as verified absence only after full
   // scope validation; exact authority and unknown-effect fences remain.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'4703267b35a50933374368d289415ffaf2d38baf',
+  'projects/cookie-editor/trusted/account-service.js':'2fa963b57e188471702bf83e55d3e859ccc7dcdc',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
   // Reuse the exact independently reviewed upgrade-order DTO source; pending
   // invitations remain separated from complete metadata and cannot re-dispatch.
-  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6aa681f2c82299471f55586e9783d21dee95128e',
+  'projects/cookie-editor/trusted/account-share.js':'cd29280b08bddac083ad14a678666f11603596dd',
   // Full saved-Cookie scope is checked before and after encryption and again
   // before POST; durable unknown fences never replay a consumed request.
-  'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
-  'examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
-  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'fcba7f4eae2d3dcc43a066eedc0f0b6f7d284bd9',
-  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'a688d521257c7c3f686aaf4f1d7f33d65192e88c',
-  'examples/sidebar-tools/cookie-editor/trusted/service-view.js':'437172f359d0f9008fb81d932cce4ee179856515',
+  'projects/cookie-editor/trusted/account-session-share.js':'b211f3558ad2109817653277b384b07ab64ff27b',
+  'projects/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
+  'projects/cookie-editor/trusted/service-connections.js':'fcba7f4eae2d3dcc43a066eedc0f0b6f7d284bd9',
+  'projects/cookie-editor/trusted/service-session.js':'ad06ade11c2a3bca095e4b698f64e7f57a8b1835',
+  'projects/cookie-editor/trusted/service-view.js':'437172f359d0f9008fb81d932cce4ee179856515',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
-  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
-  'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
+  'projects/cookie-editor/trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
+  'projects/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 });
 const cookieAccountContractTargets=new Set([
   'sw.js','ui/tool-shell.js','ui/stay-focus-controls.js',
@@ -284,9 +286,9 @@ const cookieAccountContractTargets=new Set([
 ]);
 function reviewedCompiledCookieAccounts(target,path,root){
   if(!Object.hasOwn(compiledCookieAccountInputs,path))return null;
-  if(path==='examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
+  if(path==='projects/cookie-editor/trusted/account-contract.js'
     ?!cookieAccountContractTargets.has(target):
-    path==='examples/sidebar-tools/cookie-editor/trusted/service-view.js'
+    path==='projects/cookie-editor/trusted/service-view.js'
       ?target!=='ui/sidebar-tool-host.js':target!=='sw.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
@@ -488,14 +490,16 @@ function reviewedCompiledStayFocus(target,path,root){
 // reviewed Git blobs may be included; installed/user JSON, unsigned updates,
 // symlinks and arbitrary examples/ files remain explicitly prohibited.
 // Updating application source requires a new source review and pin revision.
+// 2026-11-08 owner migration: only parent-depth imports changed to resolve
+// the same src modules. Exact blob pins and fixed-target restrictions remain.
 const compiledAppOwnedBackgroundInputs=Object.freeze({
-  'examples/sidebar-tools/ai-vip-share/trusted/react-controls.tsx':'7f951bcaf8bc18450d03e450258a8024c3e71906',
-  'examples/sidebar-tools/ai-vip-share/trusted/host-controls.js':'d00a67b654d109ac854fbd0691f263daabf6f607',
-  'examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js':'340de54ab4aabec78b3e0c05145a7a752b74e506',
-  'examples/sidebar-tools/ai-vip-share/trusted/policy.js':'949ae514645f5691244f185b07e835e7e132cb5d',
-  'examples/sidebar-tools/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
-  'examples/sidebar-tools/ai-vip-share/trusted/service.js':'861861cfea1a02ccf4e7c3535372c4aba389a30c',
-  'examples/sidebar-tools/ai-vip-share/trusted/tool-host.js':'5fe63cd1351f29e59c77da914e9cd5ef87a2ae4e',
+  'projects/ai-vip-share/trusted/react-controls.tsx':'7f951bcaf8bc18450d03e450258a8024c3e71906',
+  'projects/ai-vip-share/trusted/host-controls.js':'d00a67b654d109ac854fbd0691f263daabf6f607',
+  'projects/ai-vip-share/trusted/lifecycle.js':'123cb38a78e6176c5c1e7324e2ea457f15d2ee5d',
+  'projects/ai-vip-share/trusted/policy.js':'949ae514645f5691244f185b07e835e7e132cb5d',
+  'projects/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
+  'projects/ai-vip-share/trusted/service.js':'ee52d2fdc964ea7be80cee76b8e3f0e739695756',
+  'projects/ai-vip-share/trusted/tool-host.js':'727b570d17d55a226fa876cb58547067cb9b95aa',
   'projects/time-review/trusted/host-controls.js':'8157ad15d99dd43d21836e5654c3eba5b13b1c6c',
   'projects/time-review/trusted/model.js':'ef7cb2281334b7161c39f68a768992e3527b9d5c',
   'projects/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
@@ -617,8 +621,8 @@ function reviewedCompiledReadingToc(target,path,root){
 const compiledHostStyleInputs=Object.freeze({
   'projects/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
   'projects/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
-  'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
-  'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
+  'projects/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
+  'projects/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
   'projects/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
   'projects/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
 });

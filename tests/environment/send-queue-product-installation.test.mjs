@@ -10,8 +10,8 @@ import {serializeSidebarToolPackage,SIDEBAR_TOOL_STORE} from '../../src/ui/sideb
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createExtensionCenterDOM} from '../helpers/extension-center-react-dom.mjs';
 
-const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
-const pagePackage=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url)));
+const tool=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
+const pagePackage=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url)));
 const makePage=()=>({programId:SEND_QUEUE_PIN.pageProgramId,revision:SEND_QUEUE_PIN.pageRevision,
   sourceHash:SEND_QUEUE_PIN.pageSourceHash,manifestHash:'a'.repeat(64),enabled:true,nativeState:'registered',
   authorization:{installationId:'queue-install',generation:4,status:'active'},
@@ -220,7 +220,8 @@ for(const missingPage of [false,true])test(`legacy Tool upgrade uses joint revie
   assert.equal(f.calls[0][2].sha256,SEND_QUEUE_PIN.toolPackageSha256);
 });
 
-for(const change of [{toolId:'other-tool'},{version:'0.1.16'},{sha256:'0'.repeat(64)}])
+// Use an actually different version; 0.1.16 is now the pinned release.
+for(const change of [{toolId:'other-tool'},{version:'0.0.0'},{sha256:'0'.repeat(64)}])
   test(`candidate requires exact target release ${Object.keys(change)[0]}`,()=>{
     const entries=composeExtensionEntries({installed:[{...tool,version:'0.1.13'}],pages:[makePage()],
       official:[{...release,...change}],queueToolHash:SEND_QUEUE_PIN.toolPackageSha256});

@@ -39,11 +39,15 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 **开发前发现与复用**：先执行[唯一工作流的发现与复用步骤](../../workflows/extension-creation.md#二-b发现与复用)，记录实际 owner/入口、下一条操作、已有消费者、公开边界及复用判断。新正式 Sidebar 产品默认 `projects/<id>/`，教学示例位于 `examples/sidebar-tools/<id>/`；已有正式项目服从自身 README/配置及实际消费者，不重建旧目录。AI Chat 先读[公共职责与最小接入](../../../docs/api/sidebar-tools-ai.zh-CN.md#独立-chat-的职责与最小接入)，复用业务无关展示/会话和受控推理；最小消费者片段仅作辅助，不复制书签 App，不把书签业务当成共享合同。业务 adapter 留工具，公共出口不足先按工作流取证再交 Runtime owner，不让普通作者先研究 Go。真实 Native/平台故障仍由对应 owner 处理，不能以此建立路径禁令。
 
-**页头与子页接入**：先核对完整宿主已有返回/标题/主操作，再查公开导航能力、真实消费者与受信准入，按[唯一导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)复用 `OpenDeskTool.setNavigation`，不把未接入当成 API 缺失。同一宿主页头显示工具/子页路径；scrapyjs 配置库返回采集根页，再回扩展列表，可见标题为“scrapyjs 采集/配置库”。内容仅业务，去掉重复标题/说明/返回和同一主操作。对同候选完整宿主视图验证唯一返回、层级、草稿/忙态及未知保护；评分适用时显式扣重复导航/冗余。旧候选工具/预览未接入及正式准入边界见同一导航合同的根因与修复记录；实际安装接入仍为 `NOT_TESTED`，不得放宽准入。
+**页头与子页接入**：先核对完整宿主已有返回/标题/主操作，再查公开导航能力、真实消费者与真实安装状态，按[唯一导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#开发与预览的接入及验证顺序)复用 `OpenDeskTool.setNavigation`，新生成扩展优先导航复用，不把未接入当成 API 缺失。同一宿主页头显示工具/子页路径；scrapyjs 配置库返回采集根页，再回扩展列表，可见标题为“scrapyjs 采集/配置库”。成功接入后内容去掉重复标题/说明/返回和同一主操作；未接入、旧 Bridge 或增强关闭时保留核心业务内容入口。按用户 2026-11-04 决定，所有已审阅安装工具可显示导航，不能恢复“仅完整官方包”或当前 Catalog 版本、包 SHA、发行来源匹配门槛；真实安装包身份绑定、能力、epoch 与撤权保护不变。对同候选完整宿主视图验证唯一返回、层级、草稿/忙态及未知保护；评分适用时显式扣重复导航/冗余。历史实际安装接入仍为 `NOT_TESTED`，不因文档更正宣称通过。
+
+**R14 Header 动作接入**：框架拥有 Header，应用拥有业务。在原 `setNavigation` 上可选提交 `headerActions` 完整快照（最多 6 项），每次替换，不合并；无该字段的旧 normalize 输出完全不变。动作字段及精确校验只按[现有导航合同 R14](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#r14--可选-header-动作完整快照)，未知字段、重复 ID 拒绝，不传 `permission/js/url/html/callback`。先检测方法，再仅在 `OpenDeskTool.navigationFeatures?.headerActions === true` 时使用增强；返回 `false` 立即提交不含该字段的旧 base。非空动作与 `secondary:'more'` 冲突时整体拒绝，`secondary:'transfer'` 可共存。Host `headerActionsEnabled:false` 关闭新动作投影，原导航继续；v1/v2 包无 schema 变化，不迁移或强制重包。使用[含 fallback 与事件解绑的完整示例](../../../docs/api/sidebar-tools.zh-CN.md#r14-headeractions-可选接入示例)，不新建导航规范、Bridge 或权限链。
+
+**R14 事件与安全**：复用 `navigation-action` 和 root 的 `opendesk-tool-navigation`，新增 detail `{action:'header',actionId,page}`；原 `back/primary/secondary` detail 保持 `{action}`。点击绑定真实实例、页面和快照 revision，`busy/dirty/actionReview` 时新动作不可执行；应用及时上报真实页面和 `setState({dirty,busy})`、再次核对动作，页面替换/撤权/卸载清理旧投影及监听，不能为导航清锁或重放未知效果。CustomEvent 不当作 `isTrusted`；危险授权、代理应用配置、Cookie、采集只能进入原业务审阅界面，不能无确认快捷执行，实际权限仍经原安装/Authority。源码与定向 Node 证据以[导航合同状态](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)为准；AI Proxy / ScrapyJS 已接入；定向 Node、浏览器源码夹具、构建、安装与 Native 分层记录，夹具不证明实际安装，不编造 PASS/分数。
 
 ## 工具项目归属与演进顺序（2026-10-30 更新）
 
-**目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的当前限制与迁移顺序以该合同第 6–7 节为准，不能把目录设计说成 runner 已修复。
+**目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的支持范围及迁移顺序以该合同第 6–7 节为准；app:update 已按配置 id 在 projects/ 与 examples/sidebar-tools/ 唯一发现，拒绝重复 owner/ID 和符号链接（主代理 2026-11-08 回报：相关 7 项测试通过），但仍不自动发现全部业务 tests，须显式核对并执行。
 
 **结构与起点按需选择**：按合同第 2 节的存在条件复用最小 HTML、React/Vue Starter；先区分自带框架与 Shared UI 模式，重设新项目身份和最小能力，不复制 dist/收据/正式包。预览模板只生成预览壳，不作源码脚手架。已有复杂目录由真实消费者决定必要性，不按最小树清理；项目级 AGENTS 只承载确有差异的边界/禁改项，命令事实由 README 维护，不强制每个项目创建。
 
@@ -99,7 +103,7 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 **内容区精简与状态间距**：按[统一 UI 规范](../../../docs/api/sidebar-tool-development.zh-CN.md#6-统一-uiux-与代码质量规范)移除不提供目标选择的重复对象/检测说明，刷新放在所属区域右上角；不为刷新另留空行。同步删除失效的 DOM 查询和冗余渲染，保留实际状态、忙碌锁及可访问名称。状态行自然撑高，检查分隔线到文字、文字到卡片底部的留白，不用固定最小高度或纵向均分填充。正式源码与已有交互 HTML 同步修改，只验证受影响的操作与状态。
 
-**子视图标题同步**：业务沿原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 上报真实业务页名；共享 Header 按[现行导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)显示工具/子页路径，替代 R2.2 的末级短标题限制。未验真同 ID 包不能控制可信标题。书签新建/编辑 Sheet 仍走真实 `requestCloseSheet()` 与草稿 Back，详情 PreviewPane、菜单不伪装子路由；权限、保存锁和返回操作不由标题字符串决定。纯 Host 修复无需重打未改动的 JSON 包。
+**子视图标题同步**：业务沿原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 上报真实业务页名；共享 Header 按[现行导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)显示工具/子页路径，替代 R2.2 的末级短标题限制。真实安装身份或活动实例校验失败的同 ID 消息不能控制标题；这不要求匹配当前官方发行包。书签新建/编辑 Sheet 仍走真实 `requestCloseSheet()` 与草稿 Back，详情 PreviewPane、菜单不伪装子路由；权限、保存锁和返回操作不由标题字符串决定。纯 Host 修复无需重打未改动的 JSON 包。
 
 R2.2 增量约束：新建/编辑表单的区域 ARIA 名称复用已有业务导航标题；不要另写一套状态映射。旧实例收到撤权后即使保留可复制草稿，也不能再更新可信标题或接收宿主导航动作；延迟恢复回调须绑定原实例。书签本轮已执行记录见[R2.2 本地证据](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)。只复验当前变更影响的操作；不重复已通过矩阵，不为静态可信 React/Host 修复重打未变化的 JSON。
 

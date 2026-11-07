@@ -26,7 +26,7 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'tests/environment/bundle-provenance.test.mjs'
       - 'examples/sidebar-tools/time-review/trusted/**'
-      - 'examples/sidebar-tools/ai-vip-share/trusted/**'
+      - 'projects/ai-vip-share/trusted/**'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/cloud-control/**'

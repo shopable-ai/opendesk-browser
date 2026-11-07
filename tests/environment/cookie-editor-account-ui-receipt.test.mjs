@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {transformSync} from 'esbuild';
-import {createCookieController} from '../../examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js';
-import {parseTarget} from '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
+import {createCookieController} from '../../projects/cookie-editor/app/controller/cookie-controller.js';
+import {parseTarget} from '../../projects/cookie-editor/app/domain/cookie-model.js';
 
 // Execute the real app handlers/effects and real controller, with only the
 // transport, leaf components and React scheduling replaced. No browser/storage.
-const source=readFileSync(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8');
+const source=readFileSync(new URL('../../projects/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8');
 const code=transformSync(source.replace(/^import .*;\n/gm,'').replace('export default function','function'),
   {loader:'jsx',jsx:'transform'}).code;
 const alpha={alias:'acct_alpha',origin:'https://example.com',displayName:'Alpha',version:1,allowAuto:false};

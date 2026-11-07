@@ -47,7 +47,8 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false, navigationAllowed=false;
-  let currentNavigation=null;
+  let currentNavigation=null,navigationRevision=0,headerActionsAllowed=false;
+  let navigationDirty=false,navigationBusy=false;
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
   const apply=Reflect.apply,NativePromise=Promise,NativeError=Error;
@@ -311,7 +312,7 @@ export function initSidebarToolSandbox() {
     parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'draft',instance,toolId,text,truncated},'*');
   };
   root.addEventListener('input',event=>{
-    if(instance&&event.isTrusted){sendDraft();parent.postMessage({
+    if(instance&&event.isTrusted){navigationDirty=true;sendDraft();parent.postMessage({
       protocol:SIDEBAR_TOOL_PROTOCOL,kind:'dirty',instance,toolId
     },'*');}
   },true);
@@ -399,6 +400,15 @@ export function initSidebarToolSandbox() {
     }
     // Presentation-only navigation request. Sandbox owns its business history.
     if(message.kind==='navigation-action'){
+      if(message.action==='header'){
+        const action=currentNavigation?.headerActions?.find(item=>item.id===message.actionId);
+        if(message.instance===instance&&message.toolId===toolId&&navigationAllowed&&
+           headerActionsAllowed&&!disposed&&!navigationDirty&&!navigationBusy&&message.page===currentNavigation?.page&&
+           message.revision===navigationRevision&&action&&!action.disabledReason)
+          root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{
+            detail:{action:'header',actionId:action.id,page:currentNavigation.page}}));
+        return;
+      }
       if(message.instance===instance&&message.toolId===toolId&&
          navigationAllowed&&(['back','primary'].includes(message.action)||
            (message.action==='secondary'&&currentNavigation?.secondary)))
@@ -416,9 +426,10 @@ export function initSidebarToolSandbox() {
     if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
       exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
-    // This is a presentation opt-in granted only after the trusted Host checks
-    // exact official release bytes. A same-ID imported tool never earns it.
+    // Display-only opt-in from the Host after reviewed installation checks.
+    // Release discovery does not grant identity or business permissions.
     navigationAllowed=message.navigationAllowed===true;
+    headerActionsAllowed=navigationAllowed&&message.headerActionsAllowed===true;
     // Snapshot installed capabilities before any package script can run.
     cookieExports=Array.isArray(tool.capabilities)&&tool.capabilities.some(capability=>
       typeof capability==='string'&&capability.startsWith('browser.cookies.'));
@@ -433,20 +444,26 @@ export function initSidebarToolSandbox() {
     // Bounded first-party visual hint, never a new privilege or route owner.
     const setNavigation=value=>{
       if(disposed||!navigationAllowed)return false;
-      if(toolId==='web-markdown-clipper'){
+      if(Object.hasOwn(value??{},'headerActions')&&!headerActionsAllowed)return false;
+      if(toolId==='web-markdown-clipper'&&!Object.hasOwn(value??{},'headerActions')){
         const page=value?.page;
         if(!['home','library','reader','edit','new'].includes(page))return false;
+        currentNavigation=null;navigationRevision++;
         parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,page},'*');
         return true;
       }
       const state=normalizeToolNavigation(value);
       if(!state)return false;
+      if(navigationRevision===Number.MAX_SAFE_INTEGER)return false;
+      navigationRevision++;
       currentNavigation=state;
-      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,state},'*');
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,state,
+        ...(Object.hasOwn(state,'headerActions')?{revision:navigationRevision}:{})},'*');
       return true;
     };
     const setState=({dirty,busy})=>{
       if(typeof dirty!=='boolean'||typeof busy!=='boolean')return;
+      navigationDirty=dirty;navigationBusy=busy;
       if(dirty||busy)sendDraft();
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
     };
@@ -469,6 +486,7 @@ export function initSidebarToolSandbox() {
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
       root,request,prepareAI,setState,setConversationState,openAISettings,
       ...(navigationAllowed?{setNavigation}:{}),
+      navigationFeatures:freeze({headerActions:headerActionsAllowed}),
       get locale(){return uiLocale;},
       get messages(){return uiMessages;},
       onLocaleChange(callback){
