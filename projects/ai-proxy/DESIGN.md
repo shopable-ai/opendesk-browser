@@ -1,3 +1,32 @@
+# AI Proxy 交互预览 · PC R16 优化与源码落实
+
+## 2026-11-08：PC 管理页 R16（本轮当前状态）
+
+**需求基准**：用户认可 R14 Side Panel，PC 以用户上传的高质量旧版完整七区 HTML 和 R15 改进稿作为设计参照。本轮授权写入当前仓库 `main`；主目标为修复按钮文字/背景颜色、调整 PC 备份名称与操作优先级、保留实际表单/草稿/路由。不是正式扩展安装或网络执行。
+
+**已写入源码**：
+
+- `projects/ai-proxy/src/Settings.tsx`：只在 `presentation==='management'` 的 PC 左导航、页面标题及代理页导入入口把「导入与备份／导入设置」统一显示为既有本地化的「导入备份」；侧栏保留旧标签和原翻译键。将备份页 DOM 顺序调整为先导入、后导出，使视觉顺序与键盘焦点顺序一致，不改导入验证、覆盖确认、显式应用或导出 handler。
+- `projects/ai-proxy/preview/management.css`：替换 PC 独立标签页布局与控件配色；采用唯一 `@scope (.proxy-management)`，宽屏约 214px 侧导航 + 右侧内容，响应式导航、PC 四模式均衡、编辑/删除图标 34px 命中区、主次按钮/危险操作/焦点轮廓。
+- 特别修复禁用主按钮“蓝底灰字”的低对比度组合：禁用状态在 PC 内改为中性软底 + muted 文字 + 显式禁用光标，正常 primary 依旧使用现有 `--primaryFill / --primaryText`，并复用已有 dark-mode tokens。
+- 保留七区（代理、规则、订阅、备份、诊断、通用设置、官方网络）；不修改 `QuickPanel.tsx`、冻结侧栏基线、`frame.jsx`、Browser Framework、Host/Authority 或任何网络、订阅和代理业务 SDK。
+
+**已提交到 `main` 的增量（顺序）**：
+
+- `739b1d9516b1386a1771ac158d87360c75f8f72c`：PC 专属备份标签与入口。
+- `466898655ba3da1cf1a982e495d3f0615fa7ee4e`：PC 管理页 scoped 样式与按钮可读性。
+- `9aa55733513589f269b8394d744e4b83e302dcbe`：备份页先导入后导出的 DOM/键盘顺序。
+
+**当前验证等级，不混淆候选**：
+
+- 独立离线 R16 HTML（由已认可的 R14 Side Panel 与旧完整管理 HTML 改进）在 headless Chromium 的 **25/25 定向检查通过**：R14 Side Panel 初态截图逐像素一致、七区可达、备份顺序、规则编辑/计算、订阅详情/返回、显式应用语义、390/680/900/1280px 外层无溢出，以及深浅主题的禁用/启用主按钮文字对比度。示例对比度：亮色禁用 5.16、亮色启用 6.57、暗色禁用 6.74、暗色启用 9.00。此证据属于**独立设计稿**，不等于相同 SHA 的 React 页面已加载。
+- **正式 React 同源预览：BUILD_PENDING / NOT_TESTED**。当前 `projects/ai-proxy/preview/preview.html` 及 `preview.manifest.json` 仍是旧生成候选，不得因源码已有新提交而称其已更新，也禁止手工修改内联 bundle 或改写 SHA 伪造同源。须从仓库根使用原有生成器 `node projects/ai-proxy/scripts/stage-preview.mjs --out projects/ai-proxy/preview/preview.html` 同时重建三件套（HTML/manifest/context），按生成结果、真实 Chromium 截图、路由与表单回执核验后才能升级为 SOURCE_PARITY_PASS。
+- **正式扩展安装、真实浏览器代理、Mac Chrome、独立专家 ≥95 复评：NOT_TESTED / NOT_SCORED**。不能把 25/25 离线交互或历史 R14 专家分数直接外推为新候选完整质量 95+。
+
+**本轮 PC 专属后续核对**：在真实生成候选上记录 primary/secondary/disabled/danger/link 的 computed `color/background-color` 与对比度（建议文字 ≥4.5:1，图标/边框状态 ≥3:1），检查鼠标与键盘路径、七个 PC 分区、无草稿丢失与无隐式 APPLY；逐页评估信息架构、视觉、反馈、可访问性、响应式、源一致性。上述六项均有当前同候选证据且最低 95/100、无阻断时才可以声称满足用户 95+ 门槛。
+
+---
+
 # AI Proxy 交互预览 · 2026-11-08 图标管理入口
 
 当前阶段是**先完善预览，交付用户确认，再修改扩展业务代码**。上一轮侧栏改版未经认可，不再作为设计基线；旧 R2 Host/多文档计划只作历史参考。本轮已交付可操作预览，状态 `AWAITING_USER_REVIEW`，不代表设计已获确认。
