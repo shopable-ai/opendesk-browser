@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
-<meta name="od-preview-inherits" content="ai_scroll_navigation_r31_preview.html">
-<title>AI 对话滚动导航 · R3.8 交互预览</title>
+<meta name="od-preview-inherits" content="projects/ai-scroll-navigation/preview/index.html@R3.8">
+<title>AI 对话滚动导航 · R3.9 交互预览</title>
 <style>
 /* Inherit the R3.1 visual contract and the official OpenDesk semantic tokens.
  * Design review only; no Chrome authority, page.config, SDK or React is executed. */
@@ -73,6 +73,8 @@ h1,h2,h3,p{margin:0}h1,h2,h3{letter-spacing:-.015em}
 .review-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
 .review-controls label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--od-sub)}
 .review-controls select{font-size:11px;min-height:32px;background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);border-radius:8px;padding:5px 7px;max-width:200px}
+.review-picker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-basis:100%;font-size:11px;color:var(--od-sub);border-top:1px solid var(--od-line);padding-top:8px;margin-top:4px}
+.review-picker span{flex:1;min-width:160px}
 .review-stage{display:flex;align-items:flex-start;justify-content:center;gap:18px;flex-wrap:wrap;padding:9px 12px 45px}
 .device{width:360px;max-width:100%;height:755px;flex:none;min-width:0;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg);box-shadow:0 10px 34px #1b2c4915}
 .workbench-nav{display:flex;flex:none;min-height:43px;white-space:nowrap;overflow-x:auto;scrollbar-width:thin;background:var(--od-paper);padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line)}
@@ -129,20 +131,9 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .selector-row--advanced{padding:0;border:0;gap:6px}
 .selector-row--advanced+.selector-row--advanced{border:0}
 .selector-state[data-invalid="true"]{color:var(--od-negative)}
-.builtin-all-link{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:650;color:var(--od-accent-ink);background:transparent;border:0;padding:4px 2px;min-height:32px;white-space:nowrap}
-.builtin-all-link svg{width:14px;height:14px}
-.mock-anchor{display:flex;align-items:center;justify-content:center;min-height:30px;border:1px dashed var(--od-input-border);border-radius:7px;margin:12px 0;background:var(--od-paper);color:var(--od-sub)}
-.mock-message{display:flex;align-items:center;justify-content:center;color:var(--od-sub);font-size:11px}
 @media(max-width:340px){.selector-edit-line{gap:6px}.selector-edit-line .od-button{min-width:68px;padding-inline:7px}}
 .notice{border:1px solid var(--od-line);background:var(--od-muted);border-radius:10px;padding:10px;font-size:12px;color:var(--od-sub);line-height:1.55}
 
-/* The existing R3.1 detached test bench stays outside the actual Side Panel. */
-.mock-stage{width:315px;max-width:100%;min-width:0;display:grid;align-content:start;gap:10px;padding:13px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper);box-shadow:0 10px 26px #1b2c4912}
-.mock-head{display:flex;align-items:center;gap:8px}.mock-head strong{font-size:13px;flex:1}.mock-site{padding:10px;border:1px solid var(--od-line);border-radius:8px}
-.mock-scroll{height:230px;overflow:auto;position:relative;border:1px solid var(--od-line);border-radius:8px}
-.mock-content{min-height:490px;margin:10px;padding:12px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:8px;font-size:12px}
-.mock-block{height:93px;border:1px solid var(--od-line);border-radius:7px;margin:12px 0;background:var(--od-paper)}
-.mock-target{cursor:crosshair}.mock-target.picker-hover{outline:3px solid #3675ef;outline-offset:-3px}.mock-target.picker-picked{box-shadow:inset 0 0 0 2px var(--od-positive)}
 .dialog{position:relative;border-radius:12px;border:1px solid var(--od-line);padding:16px;max-width:min(330px,calc(100vw - 32px));width:100%;background:var(--od-paper);color:var(--od-ink)}
 .dialog::backdrop{background:#11233899}.dialog h2{font-size:15px;font-weight:650}.dialog p{font-size:12px;color:var(--od-sub);line-height:1.6;margin:9px 0 15px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px}.dialog-actions button{flex:1}
 .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;background:#22324c;color:#fff;padding:10px 13px;border-radius:9px;max-width:calc(100vw - 24px);width:max-content;font-size:12px;box-shadow:0 10px 30px #0004}
@@ -172,7 +163,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 </style>
 </head>
 <body>
-<!-- R3.8 retains the inherited one-page editor and simulates current-tab address autofill. -->
+<!-- R3.9 refines the inherited editor: exact current origin + path suggestion, inline clear, compact icon actions. -->
 <!-- Use symbol icons rather than Unicode glyphs, to avoid fallback-font drift. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
@@ -181,6 +172,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
   <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4.5-1 11-11-3.5-3.5-11 11L4 20Z"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 14l7-7 7 7M12 7v12"/></symbol>
@@ -188,11 +180,16 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
-  <div><strong>AI 对话滚动导航 · R3.8 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
+  <div><strong>AI 对话滚动导航 · R3.9 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
   <div class="review-controls">
     <label>宽度 <select id="review-width" aria-label="Side Panel 宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>520</option></select></label>
     <label>当前网页 <select id="review-site" aria-label="模拟活动网页"><option value="chatgpt">ChatGPT · 内置</option><option value="deepseek">DeepSeek · 内置</option><option value="gemini">Gemini · 内置</option><option value="new">example.ai · 未授权</option><option value="pending">example.ai · 已授权</option><option value="broken">example.ai · 结构变化</option><option value="internal">Chrome 内部页</option></select></label>
     <label>主题 <select id="review-theme" aria-label="预览主题"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+  </div>
+  <div id="review-pick-tools" class="review-picker" hidden aria-label="仅供预览的点选结果操作">
+    <span id="review-pick-copy">等待网页点选（离线模拟）</span>
+    <button id="review-pick-success" type="button" class="od-button od-button--secondary od-button--small">模拟点选完成</button>
+    <button id="review-pick-timeout" type="button" class="od-button od-button--quiet od-button--small">模拟超时</button>
   </div>
 </header>
 <div class="review-stage">
@@ -220,11 +217,11 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
           <div class="state-line" id="runtime-row" data-state="pending" hidden><span class="state-dot"></span><span class="od-note grow" id="runtime-copy"></span><button id="runtime-action" type="button" class="od-button od-button--quiet od-button--small" hidden>添加</button></div>
         </div>
         <section class="section" aria-labelledby="builtin-title">
-          <div class="section-title"><h2 id="builtin-title">内置网站</h2><button id="home-builtin-all" type="button" class="builtin-all-link" aria-label="查看全部内置网站">查看全部<svg aria-hidden="true"><use href="#i-chevron"/></svg></button></div>
+          <div class="section-title"><h2 id="builtin-title">内置网站</h2><button id="home-builtin-all" type="button" class="od-icon-button od-icon-button--quiet" aria-label="查看全部内置网站" title="查看全部内置网站"><svg aria-hidden="true"><use href="#i-list"/></svg></button></div>
           <div class="od-surface site-list" id="builtins" aria-label="首页主要内置网站"></div>
         </section>
         <section class="section" aria-labelledby="custom-title">
-          <div class="section-title"><h2 id="custom-title">自定义网站</h2><div class="section-actions"><button class="od-button od-button--quiet od-button--small" id="home-manage" type="button">管理</button><button class="od-icon-button" id="home-add" type="button" aria-label="添加自定义网站" title="添加自定义网站"><svg><use href="#i-plus"/></svg></button></div></div>
+          <div class="section-title"><h2 id="custom-title">自定义网站</h2><div class="section-actions"><button class="od-icon-button od-icon-button--quiet" id="home-manage" type="button" aria-label="管理自定义网站" title="管理自定义网站"><svg aria-hidden="true"><use href="#i-edit"/></svg></button><button class="od-icon-button" id="home-add" type="button" aria-label="添加自定义网站" title="添加自定义网站"><svg><use href="#i-plus"/></svg></button></div></div>
           <div class="od-surface" id="home-custom-list"><p class="simple-empty" id="home-custom-empty">尚未添加自定义网站</p></div>
         </section>
       </section>
@@ -243,7 +240,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
         <header class="od-page-head"><button class="od-icon-button od-icon-button--quiet" id="editor-back" type="button" aria-label="返回上一页" title="返回上一页"><svg><use href="#i-back"/></svg></button><h1 id="editor-title">添加网站</h1></header>
         <section class="od-surface od-surface--padded compact-editor">
           <h2 class="editor-caption">网站信息</h2>
-          <div class="form-field"><label for="site-url">网站地址</label><div class="url-field"><input id="site-url" class="od-field" type="url" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="site-url-help" placeholder="https://example.ai/chat"><button id="clear-site-url" class="url-clear" type="button" aria-label="清空网站地址" title="清空网站地址" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div><p id="site-url-help" class="od-meta">新增网站时自动填入当前模拟网页地址。</p></div>
+          <div class="form-field"><label for="site-url">网站地址</label><div class="url-field"><input id="site-url" class="od-field" type="url" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="site-url-help" placeholder="https://example.ai"><button id="clear-site-url" class="url-clear" type="button" aria-label="清空网站地址" title="清空网站地址" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div><p id="site-url-help" class="od-meta">自动使用当前网页域名；仅匹配相同网站，页面路径请单独设置。</p></div>
           <div class="form-field"><label for="site-path">适用路径</label><input id="site-path" class="od-field" value="/" autocomplete="off" spellcheck="false" aria-describedby="site-path-help"><p id="site-path-help" class="od-meta">按路径前缀匹配；如果网址含有会话编号，可改为稳定路径前缀。</p></div>
           <p id="url-feedback" class="od-error" role="alert" hidden></p>
           <p id="editor-detected" class="od-meta" hidden></p>
@@ -255,7 +252,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
             <div class="selector-row"><div class="selector-head"><label for="css-message">消息节点（可选）</label><small id="message-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-message" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="message-state" placeholder="CSS 或点选"><button id="pick-message" type="button" class="od-icon-button selector-pick" aria-label="选取消息节点" title="在网页选取消息节点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
             <div class="selector-row"><div class="selector-head"><label for="css-anchor">按钮锚点（可选）</label><small id="anchor-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-anchor" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="anchor-state" placeholder="CSS 或点选"><button id="pick-anchor" type="button" class="od-icon-button selector-pick" aria-label="选取按钮锚点" title="在网页选取按钮锚点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
           </div>
-          <p id="picking-notice" class="notice picking-inline" role="status" hidden>在右侧离线测试台点选；鼠标悬停高亮，点击确认；Esc 取消。<button id="cancel-pick" type="button" class="od-button od-button--quiet od-button--small">取消</button></p>
+          <p id="picking-notice" class="notice picking-inline" role="status" hidden><span id="picking-message">请在目标网页点选元素；Esc 可取消。本页面只模拟点选结果。</span><button id="cancel-pick" type="button" class="od-button od-button--quiet od-button--small">取消</button></p>
           
           <div class="save-row"><p id="editor-feedback" class="od-error" role="alert" hidden></p><button id="adapt-save" class="od-button" type="button" disabled>保存网站</button></div>
         </section>
@@ -281,13 +278,6 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       <section class="screen" id="view-other" aria-label="其余工作台导航" hidden><header class="od-page-head"><h1 id="other-title">其他</h1></header><p class="od-note">这份设计预览只覆盖扩展中的 AI 对话滚动导航，不模拟其他工作台业务。</p><button id="other-return" class="od-button od-button--secondary">返回扩展</button></section>
     </main>
   </div>
-  <aside class="mock-stage" id="mock-stage" aria-label="离线网页选取测试台（非产品 UI）" hidden>
-    <div class="mock-head"><strong>网页点选测试台</strong><button id="mock-close" class="od-icon-button" aria-label="关闭测试台" title="关闭测试台"><svg><use href="#i-close"/></svg></button></div>
-    <p class="od-meta">这是预览环境中的独立测试台；正式产品不在 Side Panel 中显示模拟网页。</p>
-    <div class="mock-site"><div id="mock-scroll" class="mock-scroll mock-target" tabindex="0" aria-label="模拟滚动容器"><div id="mock-content" class="mock-content mock-target" tabindex="0" aria-label="模拟对话主区域"><strong>网页主内容区域</strong><p class="od-note">点击此区域，模拟网页元素选取。</p><div id="mock-message" class="mock-block mock-message mock-target" tabindex="0" aria-label="模拟单条消息">单条消息节点</div><div class="mock-block"></div><div id="mock-anchor" class="mock-anchor mock-target" tabindex="0" aria-label="模拟导航锚点">操作栏锚点</div><p class="od-note">页面末尾</p></div></div></div>
-    <p class="od-note" id="mock-state" role="status">点击 Side Panel 的“在网页选取”开始。</p>
-    <button class="od-button od-button--secondary" id="mock-reset">模拟滚动至中间</button>
-  </aside>
 </div>
 <dialog class="dialog" id="discard-dialog" aria-labelledby="discard-title"><h2 id="discard-title">放弃未保存的修改？</h2><p>当前页面有尚未保存的编辑内容。离开后将保留此前已保存的规则。</p><div class="dialog-actions"><button class="od-button od-button--secondary" id="discard-keep">继续编辑</button><button class="od-button od-button--danger" id="discard-confirm">放弃修改</button></div></dialog>
 <dialog class="dialog" id="uninstall-dialog" aria-labelledby="uninstall-title"><h2 id="uninstall-title">卸载「AI 对话滚动导航」？</h2><p>卸载会停止自动运行并移除本机安装记录，不会删除网站本身的数据。此预览不会真正调用卸载。</p><div class="dialog-actions"><button class="od-button od-button--secondary" id="uninstall-cancel">取消</button><button class="od-button od-button--danger" id="uninstall-confirm">确认卸载</button></div></dialog>
@@ -314,7 +304,10 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     row.append(mark,copy,current);return row;
   }
   function renderBuiltins(){
-    $('builtins').replaceChildren(...builtinSites.slice(0,3).map(builtinRow));
+    $('builtins').replaceChildren(...builtinSites.slice(0,2).map(builtinRow));
+    $('home-builtin-all').hidden=builtinSites.length<=2;
+    $('home-builtin-all').setAttribute('aria-label','查看全部内置网站（'+builtinSites.length+' 个）');
+    $('home-builtin-all').title='查看全部内置网站（'+builtinSites.length+' 个）';
     $('builtin-all-list').replaceChildren(...builtinSites.map(builtinRow));
     $('builtin-all-count').textContent='当前已内置 '+builtinSites.length+' 个网站';
   }
@@ -324,7 +317,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       authorizedInPreview=new Set(['https://chatgpt.com','https://chat.deepseek.com','https://gemini.google.com']);
   let toastTimer=null,exitCallback=null;
   function toast(msg){clearTimeout(toastTimer);$('toast').textContent=msg;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3500);}
-  function show(v,focusId){if(!views.includes(v))return;view=v;for(const name of views)$('view-'+name).hidden=name!==v;$('workspace').scrollTop=0;if(v!=='editor'){stopPick(false);$('mock-stage').hidden=true;}if(focusId)requestAnimationFrame(()=>$(focusId)?.focus({preventScroll:true}));}
+  function show(v,focusId){if(!views.includes(v))return;view=v;for(const name of views)$('view-'+name).hidden=name!==v;$('workspace').scrollTop=0;if(v!=='editor')stopPick(false);if(focusId)requestAnimationFrame(()=>$(focusId)?.focus({preventScroll:true}));}
   function leave(current,target,focus){if(draftDirty&&current==='editor'){$('discard-dialog').showModal();exitCallback=()=>{draftDirty=false;show(target,focus)};return;}show(target,focus);}
   $('discard-keep').onclick=()=>{$('discard-dialog').close();exitCallback=null;};
   $('discard-confirm').onclick=()=>{const cb=exitCallback;exitCallback=null;$('discard-dialog').close();cb?.();};
@@ -359,6 +352,8 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       line.hidden=false;line.dataset.state='pending';label.textContent='当前网页尚未添加适配';action.hidden=false;action.textContent='添加';action.onclick=()=>startEditor('home');
     }
     $('home-manage').hidden=savedRules.length===0;
+    $('home-manage').setAttribute('aria-label','管理自定义网站（'+savedRules.length+' 个）');
+    $('home-manage').title='管理自定义网站（'+savedRules.length+' 个）';
     const summary=$('home-custom-list');summary.replaceChildren();
     if(!savedRules.length){const p=document.createElement('p');p.className='simple-empty';p.textContent='尚未添加自定义网站';summary.append(p);return;}
     for(const [i,r] of savedRules.entries())summary.append(makeRuleRow(r,i,true));
@@ -383,7 +378,17 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   function renderSites(){const area=$('sites-list');area.replaceChildren();if(!savedRules.length){const p=document.createElement('p');p.className='simple-empty';p.textContent='尚无自定义网站，点击右上角 ＋ 添加。';area.append(p);return;}savedRules.forEach((r,i)=>area.append(makeRuleRow(r,i)));}
   function validateUrl(raw){let url;try{url=new URL(raw.trim())}catch{return {error:'请输入完整的 HTTP(S) 网站地址'}}
     if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return {error:'仅允许没有账号密码的 HTTP(S) 网址'};
-    return {url,origin:url.origin,path:url.pathname||'/'};
+    if(url.pathname!=='/'||url.search||url.hash)return {error:'网站地址仅填写域名；请将网页路径填写在「适用路径」'};
+    return {url:new URL(url.origin),origin:url.origin,path:'/'};
+  }
+  function currentPrefill(){
+    try{
+      const page=new URL(currentUrl());
+      if(!['http:','https:'].includes(page.protocol)||page.username||page.password)return null;
+      const parts=page.pathname.split('/').filter(Boolean);
+      const scope=parts.length>=2?'/'+parts.slice(0,-1).join('/')+'/':parts.length?'/'+parts[0]:'/';
+      return {origin:page.origin,path:scope};
+    }catch{return null;}
   }
   function safePath(p){return p.startsWith('/')&&!p.startsWith('//')&&!/[?#\\*\u0000-\u001f]/.test(p);}
   function editorTarget(){const v=validateUrl($('site-url').value);if(v.error)return v;
@@ -406,21 +411,21 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     const hasValue=$('site-url').value.length>0;
     $('clear-site-url').hidden=!hasValue;
     $('site-url-help').textContent=!hasValue?'请输入完整的 HTTP(S) 网站地址。':
-      urlFillMode==='current'?'已填入当前模拟网页地址，可直接修改或清空。':
-      urlFillMode==='existing'?'已载入原规则地址，可修改或清空。':
-      '网址已修改；保存前请检查适用路径与授权范围。';
+      urlFillMode==='current'?'已填入当前网页域名，尚未保存；可修改或清空。':
+      urlFillMode==='existing'?'已载入原规则的网站域名，可修改或清空。':
+      '网站域名已修改；保存前请检查适用路径及访问权限。';
   }
   function startEditor(from='home',index=-1){
     editorFrom=from;editIndex=index;draftDirty=false;pathTouched=index>=0;pendingAction=null;stopPick(false);
     const r=index>=0?savedRules[index]:null;
-    const current=validateUrl(currentUrl()),prefill=!r&&!current.error?current:null;
+    const prefill=!r?currentPrefill():null;
     urlFillMode=r?'existing':prefill?'current':'empty';
     $('editor-title').textContent=index<0?'添加网站':'编辑网站';
-    $('site-url').value=r?.url||prefill?.url.href||'';
+    $('site-url').value=r?.origin||prefill?.origin||'';
     $('site-path').value=r?.path||prefill?.path||'/';
     updateUrlField();
     for(const [field,key] of [['main','main'],['scroll','scroll'],['message','message'],['anchor','anchor']])$('css-'+field).value=r?.[key]||'';
-    updateEditorScope();show('editor','site-url');$('mock-stage').hidden=false;renderDraft();
+    updateEditorScope();show('editor','site-url');renderDraft();
   }
   function exitEditor(){leave('editor',editorFrom,editorFrom==='sites'?'sites-add':editorFrom==='builtin'?'builtin-add-custom':'home-add');}
   $('home-add').onclick=()=>startEditor('home');
@@ -429,7 +434,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   $('home-builtin-all').onclick=()=>show('builtin','builtin-back');
   $('builtin-back').onclick=()=>show('home','home-builtin-all');
   $('builtin-add-custom').onclick=()=>startEditor('builtin');
-  $('sites-back').onclick=()=>show('home','home-add');
+  $('sites-back').onclick=()=>show('home',savedRules.length?'home-manage':'home-add');
   $('editor-back').onclick=exitEditor;
   $('site-url').addEventListener('input',()=>{
     draftDirty=true;urlFillMode='manual';
@@ -450,13 +455,13 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     reviewScroll=$('workspace').scrollTop;pendingAction=next;$('install-host').textContent=target.origin;$('install-path-copy').textContent='申请范围：'+target.path;
     stopPick(false);show('install','simulate-authorize');return false;
   }
-  function returnFromReview(){show('editor');$('mock-stage').hidden=false;updateEditorScope();renderDraft();requestAnimationFrame(()=>{$('workspace').scrollTop=reviewScroll;});}
+  function returnFromReview(){show('editor');updateEditorScope();renderDraft();requestAnimationFrame(()=>{$('workspace').scrollTop=reviewScroll;});}
   $('install-back').onclick=()=>{pendingAction=null;returnFromReview();};
   $('simulate-authorize').onclick=()=>{const target=editorTarget();if(target.error){returnFromReview();urlError(target.error);return;}
     authorizedInPreview.add(target.origin);const next=pendingAction;pendingAction=null;returnFromReview();
     toast('仅模拟 Installer 允许，未获得真实浏览器权限');
     if(next?.type==='pick')beginPick(next.field);
-    if(next?.type==='save')savePreviewRule();
+    if(next?.type==='save'){toast('网站访问已模拟允许，编辑内容未保存；请再次点击「保存网站」');requestAnimationFrame(()=>$('adapt-save').focus({preventScroll:true}));}
   };
   $('simulate-deny').onclick=()=>{pendingAction=null;returnFromReview();toast('仅模拟拒绝授权；原编辑草稿保留');};
   // Offline preview performs syntax checks, not live-page DOM verification.
@@ -493,37 +498,40 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('adapt-save').disabled=!status.ok;
     $('adapt-save').textContent=editIndex>=0?'保存更改':'保存网站';
   }
-  function stopPick(cancel=true){if(!pick)return;pick=null;$('picking-notice').hidden=true;document.querySelectorAll('.picker-hover').forEach(n=>n.classList.remove('picker-hover'));if(cancel)$('mock-state').textContent='已取消选择。';}
+  // No simulated webpage region: only an external, preview-only result control.
+  let pickTimer=null;
   const pickingLabels={main:'对话主区域',scroll:'滚动容器',message:'消息节点',anchor:'按钮锚点'};
+  const previewPickSelectors={main:'.conversation-main',scroll:'.conversation-scroll',message:'.message',anchor:'.message-actions'};
+  function stopPick(cancel=true){
+    if(!pick)return;
+    const which=pick;pick=null;clearTimeout(pickTimer);pickTimer=null;
+    $('picking-notice').hidden=true;$('review-pick-tools').hidden=true;
+    if(cancel){toast('点选已取消，表单内容仍保留（离线模拟）');requestAnimationFrame(()=>$('css-'+which).focus({preventScroll:true}));}
+  }
+  function finishPreviewPick(result){
+    if(!pick)return;
+    const which=pick;stopPick(false);
+    if(result==='success'){
+      $('css-'+which).value=previewPickSelectors[which];
+      draftDirty=true;renderDraft();
+      toast('已模拟填入'+pickingLabels[which]+'选择器，未验证目标网页');
+    }else toast('点选超时，原有内容已保留（离线模拟）');
+    requestAnimationFrame(()=>$('css-'+which).focus({preventScroll:true}));
+  }
   function beginPick(which){
     if(!pickingLabels[which])return;
-    pick=which;$('mock-stage').hidden=false;$('picking-notice').hidden=false;
-    if(!permissionFor({type:'pick',field:which})){pick=null;$('picking-notice').hidden=true;return;}
-    $('mock-state').textContent='正在选取'+pickingLabels[which]+'：在右侧测试台移动鼠标查看高亮，点击目标。';
+    if(pick)stopPick(false);
+    if(!permissionFor({type:'pick',field:which}))return;
+    pick=which;
+    $('picking-notice').hidden=false;$('review-pick-tools').hidden=false;
+    $('picking-message').textContent='正在等待网页选取「'+pickingLabels[which]+'」。Esc 或取消可退出，原输入不会丢失。';
+    $('review-pick-copy').textContent='「'+pickingLabels[which]+'」选取中 · 仅模拟结果';
+    pickTimer=setTimeout(()=>finishPreviewPick('timeout'),30000);
   }
   for(const which of Object.keys(pickingLabels))$('pick-'+which).onclick=()=>beginPick(which);
-  $('cancel-pick').onclick=()=>stopPick();$('mock-close').onclick=()=>{stopPick();$('mock-stage').hidden=true};
-  const mockStage=$('mock-stage');
-  mockStage.addEventListener('pointerover',event=>{
-    if(!pick)return;document.querySelectorAll('.picker-hover').forEach(n=>n.classList.remove('picker-hover'));
-    const target=event.target.closest?.('.mock-target');if(target&&mockStage.contains(target))target.classList.add('picker-hover');
-  });
-  mockStage.addEventListener('click',event=>{
-    if(!pick)return;
-    let node=null;
-    if(pick==='main')node=event.target.closest?.('#mock-content');
-    else if(pick==='scroll')node=event.target.closest?.('#mock-scroll');
-    else if(pick==='message')node=event.target.closest?.('#mock-message');
-    else if(pick==='anchor')node=event.target.closest?.('#mock-anchor');
-    if(!node){$('mock-state').textContent='请选择对应的'+pickingLabels[pick]+'，不要选到其他区域。';return;}
-    event.preventDefault();event.stopPropagation();const which=pick;
-    $('css-'+which).value='#'+node.id;
-    if(which==='main'&&!$('css-scroll').value.trim())$('css-scroll').value='#mock-scroll';
-    $('mock-state').textContent='已生成 '+pickingLabels[which]+' CSS：#'+node.id+'（仅离线预览）';
-    draftDirty=true;stopPick(false);renderDraft();
-  });
-  mockStage.addEventListener('keydown',event=>{if(pick&&(event.key==='Enter'||event.key===' ')){const target=event.target.closest?.('.mock-target');if(target){event.preventDefault();target.click();}}});
-  $('mock-reset').onclick=()=>{$('mock-scroll').scrollTop=110;$('mock-state').textContent='已移动到中段，便于验证滚动。'};
+  $('cancel-pick').onclick=()=>stopPick();
+  $('review-pick-success').onclick=()=>finishPreviewPick('success');
+  $('review-pick-timeout').onclick=()=>finishPreviewPick('timeout');
   for(const id of ['css-main','css-scroll','css-message','css-anchor']){
     $(id).addEventListener('input',()=>{draftDirty=true;renderDraft();});
   }
@@ -555,14 +563,14 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   $('other-return').onclick=()=>changeTab('tools');
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
-    if(pick){e.preventDefault();const field=pick;stopPick();$('pick-'+field).focus({preventScroll:true});return;}
+    if(pick){e.preventDefault();stopPick();return;}
     if(document.querySelector('dialog[open]'))return;
     if(view==='editor'){e.preventDefault();exitEditor();}
     else if(view==='install'){e.preventDefault();pendingAction=null;returnFromReview();}
     else if(view==='settings'||view==='sites'||view==='builtin'){e.preventDefault();show('home');}
   });
   document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
-  renderBuiltins();updateHome();renderSites();$('mock-scroll').scrollTop=110;
+  renderBuiltins();updateHome();renderSites();
 })();
 </script>
 </body>
