@@ -16,10 +16,12 @@
 - `739b1d9516b1386a1771ac158d87360c75f8f72c`：PC 专属备份标签与入口。
 - `466898655ba3da1cf1a982e495d3f0615fa7ee4e`：PC 管理页 scoped 样式与按钮可读性。
 - `9aa55733513589f269b8394d744e4b83e302dcbe`：备份页先导入后导出的 DOM/键盘顺序。
+- `10cf00836c50f0c5635350e165c97c6a38927702`：收窄次级按钮的样式作用域，避免覆盖 PC 导航和刷新按钮；危险操作保持红色。
+
 
 **当前验证等级，不混淆候选**：
 
-- 独立离线 R16 HTML（由已认可的 R14 Side Panel 与旧完整管理 HTML 改进）在 headless Chromium 的 **25/25 定向检查通过**：R14 Side Panel 初态截图逐像素一致、七区可达、备份顺序、规则编辑/计算、订阅详情/返回、显式应用语义、390/680/900/1280px 外层无溢出，以及深浅主题的禁用/启用主按钮文字对比度。示例对比度：亮色禁用 5.16、亮色启用 6.57、暗色禁用 6.74、暗色启用 9.00。此证据属于**独立设计稿**，不等于相同 SHA 的 React 页面已加载。
+- 独立离线 R16 HTML（由已认可的 R14 Side Panel 与旧完整管理 HTML 改进）在 headless Chromium 的 **25/25 定向检查通过**：R14 Side Panel 初态截图逐像素一致、七区可达、备份顺序、规则编辑/计算、订阅详情/返回、显式应用语义、390/680/900/1280px 外层无溢出，以及深浅主题的禁用/启用主按钮文字对比度。示例对比度：亮色禁用 5.16、亮色启用 6.57、暗色禁用 6.74、暗色启用 9.00。此证据属于**独立设计稿**，不等于相同 SHA 的 React 页面已加载。 追加执行了 **7 个分区 × 浅/深 2 主题共 256 个可见文本按钮/导航项的计算样式对比度检查，低于 4.5:1 的项目为 0**（仅覆盖离线 R16 渲染，不含正式 React 页或非文本 SVG 对比度）。
 - **正式 React 同源预览：BUILD_PENDING / NOT_TESTED**。当前 `projects/ai-proxy/preview/preview.html` 及 `preview.manifest.json` 仍是旧生成候选，不得因源码已有新提交而称其已更新，也禁止手工修改内联 bundle 或改写 SHA 伪造同源。须从仓库根使用原有生成器 `node projects/ai-proxy/scripts/stage-preview.mjs --out projects/ai-proxy/preview/preview.html` 同时重建三件套（HTML/manifest/context），按生成结果、真实 Chromium 截图、路由与表单回执核验后才能升级为 SOURCE_PARITY_PASS。
 - **正式扩展安装、真实浏览器代理、Mac Chrome、独立专家 ≥95 复评：NOT_TESTED / NOT_SCORED**。不能把 25/25 离线交互或历史 R14 专家分数直接外推为新候选完整质量 95+。
 
