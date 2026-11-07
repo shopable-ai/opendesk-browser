@@ -36,7 +36,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   {id:'profiles',name:t('proxyProfiles'),caption:t('haveAnHttpHttpsSocksProxyOrLocalGateway')},
   {id:'rules',name:t('websiteRules2'),caption:t('routeByDomainThroughAProxyOrDirect')},
   {id:'subscriptions',name:t('subscriptionManageTitle'),caption:t('subscriptionManageDescription')},
-  {id:'backup',name:t('importAndBackup'),caption:t('importAndExportNonSecretSettings')},
+  {id:'backup',name:presentation==='management'?t('backupImportTitle'):t('importAndBackup'),caption:t('importAndExportNonSecretSettings')},
   {id:'diagnostic',name:t('networkDiagnostics2'),caption:t('statusExtensionProbesAndTroubleshooting')},
   {id:'general',name:t('generalSettings'),caption:t('privacyPermissionsAndLimitations')},
   {id:'official',name:t('officialNetwork'),caption:t('officialIntro')}
@@ -533,8 +533,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           className={tab==='profiles'?'profilePanelHead':''}
           actions={tab==='profiles'?<>
             <Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addProxy2')}</Button>
-            <Button id="settings-import" className="settingsImport" title={t('importSettings')} aria-label={t('importSettings')}
-              onClick={()=>navigate('backup')}><ProxyIcon name="import"/>{t('importSettings')}</Button>
+            <Button id="settings-import" className="settingsImport" title={presentation==='management'?t('backupImportTitle'):t('importSettings')} aria-label={presentation==='management'?t('backupImportTitle'):t('importSettings')}
+              onClick={()=>navigate('backup')}><ProxyIcon name="import"/>{presentation==='management'?t('backupImportTitle'):t('importSettings')}</Button>
           </>:undefined}
           badge={tab==='profiles'?endpoints.length:undefined}
         />}
