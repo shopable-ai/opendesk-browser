@@ -419,7 +419,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('site-url').value=r?.url||prefill?.url.href||'';
     $('site-path').value=r?.path||prefill?.path||'/';
     updateUrlField();
-    for(const [field,key] of [['main','main'],['scroll','message','anchor']].map(key=>[key,key]))$('css-'+field).value=r?.[key]||'';
+    for(const [field,key] of [['main','main'],['scroll','scroll'],['message','message'],['anchor','anchor']])$('css-'+field).value=r?.[key]||'';
     updateEditorScope();show('editor','site-url');$('mock-stage').hidden=false;renderDraft();
   }
   function exitEditor(){leave('editor',editorFrom,editorFrom==='sites'?'sites-add':editorFrom==='builtin'?'builtin-add-custom':'home-add');}
