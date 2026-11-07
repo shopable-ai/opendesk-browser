@@ -791,13 +791,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           quickEntry={parseSubscriptionRoute(locationHash).kind==='local'?'local':locationHash==='#/subscriptions/new'?'subscription':null}/>}
         {tab==='backup' && <div className="backupPage">
           <div className="backupGrid">
-            <section className="backupCard backupExport">
-              
-              <h2>{t('backupExportTitle')}</h2>
-              <p className="hint">{t('shareBackupsContainNonSecretSettingsOnlyExcludingPac')}</p>
-              <Button variant="primary" className="primary" onClick={()=>void exportConfig()}>{t('exportShareableBackupV2NoPasswords')}</Button>
-              <p className="hint">{t('aShareableBackupCannotFullyRestoreLocalPacScripts')}</p>
-            </section>
             <section className="backupCard backupImport" data-draft-scope="settings-backup">
               
               <h2>{t('backupImportTitle')}</h2>
@@ -823,6 +816,13 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 {t('validateAndImportStopManagingFirst')}
               </Button>
               {backupImported&&<p role="status" className="backupSuccess">{t('backupImportSucceeded')}</p>}
+            </section>
+            <section className="backupCard backupExport">
+              
+              <h2>{t('backupExportTitle')}</h2>
+              <p className="hint">{t('shareBackupsContainNonSecretSettingsOnlyExcludingPac')}</p>
+              <Button variant="primary" className="primary" onClick={()=>void exportConfig()}>{t('exportShareableBackupV2NoPasswords')}</Button>
+              <p className="hint">{t('aShareableBackupCannotFullyRestoreLocalPacScripts')}</p>
             </section>
           </div>
         </div>}
