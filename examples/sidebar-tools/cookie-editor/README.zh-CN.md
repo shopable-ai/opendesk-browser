@@ -16,6 +16,8 @@ Cookie 页复用原列表自动同步，增加对应 Key 行的短暂淡出高�
 node --test examples/sidebar-tools/cookie-editor/tests/cookie-changes.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
 ```
 
+本轮检查范围、限制与收尾源码摘要见[开发记录](evidence/live-changes-development-20261107.json)。
+
 ## 团队账号分配与明确应用（2026-11-06，合成核心开发）
 
 已增加原管理页的团队账号元数据发布、精确成员设备分配和撤销，以及原「企业」页的获授权列表、设备配对、加密领取和核对后应用。领取只进入私有账号库；应用必须另行确认。元数据、用量缓存、加密会话及 Cookie 效果回执分别处理，均不冒充第三方网站登录身份。

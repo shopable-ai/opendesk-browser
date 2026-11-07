@@ -533,7 +533,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   async function syncMetadata({canApply=()=>true,events=[]}={}){
     if(closed||busy||phase!=='ready'||!target||!canApply()||
       syncPending?.ticket===epoch)return false;
-    const at=target,ticket=epoch,token={ticket,generation:syncGeneration};
+    const at=target,ticket=epoch,token={ticket,generation:syncGeneration},markRevision=changeRevision;
     syncPending=token;
     const safe=()=>current(ticket,at)&&syncPending===token&&
       token.generation===syncGeneration&&!busy&&canApply();
@@ -547,7 +547,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       const previous=new Map(rows.map(row=>[row.id,row]));
       const changed=next.length!==rows.length||next.some(row=>
         JSON.stringify(previous.get(row.id))!==JSON.stringify(row));
-      const updates=cookieChanges(rows,next,events,changeRevision+1);
+      const updates=markRevision===changeRevision?cookieChanges(rows,next,events,changeRevision+1):[];
       if(updates.length){
         changeRevision++;
         const updatedIds=new Set(updates.map(row=>row.id));
@@ -565,7 +565,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       return false;
     }finally{if(syncPending===token)syncPending=null;}
   }
-  function clearChanges(){changes=[];notify();}
+  function clearChanges(){changeRevision++;changes=[];notify();}
   function dispose(){
     retireSync();syncStale=false;changes=[];
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;

@@ -1,0 +1,57 @@
+{
+  "recordedAt": "2026-11-07T08:25:15.326079+00:00",
+  "stage": "CORE_SOURCE_DEVELOPMENT",
+  "entry": "preview/react/dev.html (http://127.0.0.1:43134/dev.html)",
+  "browser": "ego lite; TaskSpace 12 released",
+  "transport": "Existing public Cookie SDK adapter; fictional preview responses",
+  "behaviorsVerified": [
+    "same-length value overwrite marks its Key without reading values",
+    "overwrite removal/addition events collapse to one update",
+    "metadata sync marks additions, changed attributes and deletions",
+    "only-changed filter retains theme alone; clearing restores full list",
+    "open editor pauses monitoring; navigation clears old marks",
+    "late reads and starts are discarded; revoked authority clears rows",
+    "bounded 30-second observation expires without renewal",
+    "100-identity in-memory change ledger; no raw-value history",
+    "clear-during-read cannot restore retired marks",
+    "320px dark preview has no horizontal overflow",
+    "reduced-motion preference disables highlight animation"
+  ],
+  "verification": {
+    "targetedBehaviorTests": {
+      "passed": 75,
+      "failed": 0
+    },
+    "relatedSourceBoundaryTests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "relatedSharedDesignTests": {
+      "passed": 3,
+      "failed": 0
+    },
+    "jsx": "App and preview parsed using in-memory esbuild; no output build",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Native Chrome installation, Cookie event delivery, permissions and production validation: NOT_TESTED",
+    "Observation covers current-page unpartitioned Cookies; other Paths and partitioned value-only changes are not promised",
+    "No package build, promotion, installation, commit or push performed",
+    "Ego actions briefly toggle document visibility and correctly stop monitoring; uninterrupted mock event sequence was exercised within one page evaluation without bypassing visibility protection",
+    "Additional full source checks still fail four unrelated import/package/version assertions; these four also reproduce with pre-change source snapshots. An unrelated inline-import layout assertion also remains. These were left outside this change."
+  ],
+  "parallelWork": "Existing account, service, site-scope and framework changes preserved",
+  "closeoutSourceSha256": {
+    "app/CookieEditorApp.jsx": "f6762aa7ae4b223cca110105aafec3375024eec5569b352fcbc0a8e7510da137",
+    "app/adapters/browser-sdk.js": "102e34743b5c9e7c8c2afadb3d63b05ba7895db48809d3dc7888a1e83f090196",
+    "app/controller/cookie-controller.js": "d6abfaae45573e58bdb553544b730d0d559f943b32cc7dced9dbb46428e93c89",
+    "app/controller/cookie-observation.js": "ac2624d7434cc0a798e785734bb28ce70d3660c7e861b1f73faf0debe9e99183",
+    "app/domain/cookie-changes.js": "b4f6fbae486dd8510ec7f2f01978a9c5b64864351ba2cdabaeb7171675c50513",
+    "app/components/CookieChangeMonitor.jsx": "efa7f54d69bb0b3169bb8136150bb75cd85230b4059bdf55770f5900d9985a5d",
+    "app/components/CookieEditorView.jsx": "628df617155f405c0c6bed1a4e05273703188dbe097f991ebbbf0b795460e901",
+    "src/react.css": "805734d2aa84b44d6a679eaf7fd7e844de07f109673ee9031a6e73afe5d38ecd",
+    "preview/react/src/mock-sdk.js": "c2e3a09aabd713d48df0f4da8268f4c93a8c7af0104a9364a9f707ee5c2380e9",
+    "preview/react/src/App.jsx": "1e8c25b79638bf29b4db068896f4fe72b4e50d17c7e921f1aaa505cb951de40e",
+    "tests/cookie-changes.test.mjs": "ce5508a3f23651f6ad0a7da08a1757e877710f6b85e193439f10d3b55e2db563"
+  }
+}

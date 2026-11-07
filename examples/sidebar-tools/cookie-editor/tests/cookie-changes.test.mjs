@@ -148,3 +148,15 @@ test('a malformed observer receipt stops cleanly without accepting its events',a
     assert.doesNotMatch(JSON.stringify(f.snapshots),/UNTRUSTED_VALUE/);
   }finally{f.dispose();}
 });
+test('clearing marks during a read accepts current rows without restoring retired marks',async()=>{
+  const f=fixture(),pending=deferred();
+  try{
+    await f.controller.load();
+    const row=f.controller.snapshot().rows[0];
+    f.adapter.list=()=>pending.promise;
+    const reading=f.controller.syncMetadata();f.controller.clearChanges();
+    pending.resolve([{...row,name:'new_key'}]);await reading;
+    assert.equal(f.controller.snapshot().rows[0].name,'new_key');
+    assert.deepEqual(f.controller.snapshot().changes,[]);
+  }finally{f.dispose();}
+});
