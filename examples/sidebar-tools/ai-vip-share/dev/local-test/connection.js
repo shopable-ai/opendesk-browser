@@ -22,7 +22,17 @@ export function createDevelopmentConnection(root){
   const websiteButton=document.createElement('button');
   websiteButton.id='ai-vip-test-sites';websiteButton.type='button';
   websiteButton.className='od-button od-button--secondary';websiteButton.textContent='测试网站登录';
-  section.append(title,description,button,websiteButton,status);
+  const auth=document.createElement('div');
+  auth.id='ai-vip-source-auth';auth.hidden=true;
+  const label=document.createElement('label');
+  label.textContent='受控测试来源凭据';
+  const input=document.createElement('input');
+  input.id='ai-vip-source-credential';input.type='password';input.autocomplete='off';input.className='od-field';
+  label.append(input);
+  const clear=document.createElement('button');
+  clear.id='ai-vip-source-clear';clear.type='button';clear.textContent='清除测试凭据';clear.className='od-button';
+  auth.append(label,clear);
+  section.append(title,description,button,websiteButton,status,auth);
   root.append(section);
   return {section,button,websiteButton,status,dispose:()=>section.remove()};
 }

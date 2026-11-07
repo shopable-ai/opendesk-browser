@@ -5,6 +5,7 @@ import {validateChatGPTTaskIntent,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTa
 import {validateWebFlowTaskIntent,WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {createLegacyChatGPTTaskPanel} from './legacy-chatgpt-panel.js';
+import {chatGPTConversationRoute} from './chatgpt-conversation-route.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -199,7 +200,7 @@ export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={},selecti
 // Fixed, first-party, isolated extension content script. No page-provided
 // event, model text, site JS or USER_SCRIPT receives a Chrome authority object.
 export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
-  site=createChatGPTBridgeSite({doc,win}),readPage=inspectChatGPTEditsOnPage,showLegacyPanel=false}={}){
+  site=createChatGPTBridgeSite({doc,win}),readPage=inspectChatGPTEditsOnPage,showLegacyPanel=false,createConversationAdapter}={}){
   if(win!==win.top||win.location.origin!=='https://chatgpt.com')return null;
   if(activeBridgeDocuments.has(doc)||doc.getElementById('opendesk-fixed-bridge-r12'))return null;
   const {root,fields,taskSelect,queryField,queryInput,targetField,targetInput,argsField,argsInput,argsHelp,selection,prepareButton,autoButton,runButton,cancelButton,status,viewStatus,result,details,summary,identity,adoptButton,viewButton,preapproveButton,conversationButton,revokeConversationButton,approvalHint}=createLegacyChatGPTTaskPanel({
@@ -228,6 +229,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   // Deny-only diagnostics, never input to admission. No prompt/result bytes.
   const discovery=createChatGPTTaskDiscovery({onStatus:value=>root.setAttribute('data-webflow-discovery',JSON.stringify(value))});
   discovery.reset(site.inspect());
+  const conversationAdapter=createConversationAdapter?.({api,doc,win,site,
+    retireObservation:()=>{discovery.reset(site.inspect());deferredDiscovery=null;}});
   // Native form submissions are witnessed by their initiating click/Enter.
   // requestSubmit() can create a trusted SubmitEvent without either gesture;
   // never let that event alone create or re-arm a consumed witness.
@@ -237,6 +240,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(!snapshot.ok)return;
     if(event.type==='click'&&event.button===0&&snapshot.stopButton&&
       (event.target===snapshot.stopButton||snapshot.stopButton.contains?.(event.target))){
+      conversationAdapter?.cancellation();
       if(discovery.witnessCancellation(snapshot)){
         deferredDiscovery=null;messageNotice={url:win.location.href,stage:'cancelled',
           text:'本条未执行：官网已停止本轮回复，没有完整任务候选。需要执行时请正常提出新需求。'};
@@ -255,6 +259,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }else return;
     refreshProbe=null; // a new native submission invalidates Host recovery intent
     if(discovery.witnessSubmission(snapshot)){
+      conversationAdapter?.submission(snapshot);
       proposal=null;messageNotice=null;
       if(state?.settled){state=null;clearReceipt();update();}
       else if(state?.executionFinished&&!state.settled){
@@ -509,6 +514,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         }
         throw fail(page.error.code,page.error.message);
       }
+      const user=snap.users?.at(-1),content=user?.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||user;
+      if(chatGPTConversationRoute({userText:content?.innerText??content?.textContent??'',
+        answerText:(snap.assistants?.at(-1)?.textContent||'')+'\n'+page.blocks[0]})==='conflict')
+        throw fail('E_CHAT_ROUTE','文件需求和网页 Task 候选不能在同一轮执行');
       const persistentAuto=JSON.parse(page.blocks[0]).protocol===WEBFLOW_TASK_INTENT_PROTOCOL;
       const intent=(persistentAuto?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(page.blocks[0]);
       if(grant){
@@ -854,8 +863,19 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(deferredDiscovery&&!approvalUnknown&&!pending&&!cancelPending&&!deliveryPending&&
       (!state||state.cancelled||state.settled||state.future&&!state.attempted)){
       const event=deferredDiscovery;deferredDiscovery=null;
-      if(matchesDiscovery(event,snapshot))void adoptLatest({automatic:true,discovered:event,
-        grant:state?.future&&!state.cancelled&&!state.attempted?state:null});
+      if(matchesDiscovery(event,snapshot)){
+        const route=chatGPTConversationRoute(event);
+        if(route==='conflict'){
+          conversationAdapter?.conflict();
+          note('任务路由冲突：文件需求和网页 Task 候选不能在同一轮执行；两者均未启动。',true);return;
+        }
+        if(route==='files'){
+          if(!conversationAdapter?.conversation(event))note('本轮文件接入未就绪或已停止，未执行，也不会改由网页 Task 执行。',true);
+          return;
+        }
+        void adoptLatest({automatic:true,discovered:event,
+          grant:state?.future&&!state.cancelled&&!state.attempted?state:null});
+      }
       return;
     }
     if(state?.future){
@@ -1157,13 +1177,14 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return true;
   };
   api.runtime.onMessage.addListener(onMessage);
-  const restoreFromCache=event=>{if(event.persisted)initChatGPTFixedBridgePage({api,doc,win,site,readPage});};
+  const restoreFromCache=event=>{if(event.persisted)initChatGPTFixedBridgePage({api,doc,win,site,readPage,showLegacyPanel,createConversationAdapter});};
   const onPageHide=event=>{
     dispose();
     if(event.persisted)win.addEventListener('pageshow',restoreFromCache,{once:true});
   };
   const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;activeBridgeDocuments.delete(doc);lifecycleEpoch++;
     discovery.reset(null);
+    conversationAdapter?.dispose();
     if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;discoveryObserver?.disconnect();win.clearInterval(poll);
     for(const [target,type] of wakeEvents)target.removeEventListener(type,scheduleCheck,true);
     for(const type of refreshNavigationEvents)refreshNavigation?.removeEventListener(type,invalidateRefreshNavigation);

@@ -159,7 +159,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
   });
   receive?.addEventListener('click',event=>{
     if(event.isTrusted!==true||receive.disabled)return;
-    if(current())void acquire();else if(select.value==='commercial')void commercialReceive();
+    if(current())void acquire();else if(select.value==='commercial')void commercialReceive(event);
   });
   return {
     enableTests(){testsRequested=true;onChange();if(section)section.open=true;},
@@ -251,13 +251,13 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       }
       receive.disabled=Boolean(locked||controllerBusy||loading||(!context&&!commercial));
       const pending=Boolean(delivery);
-      authPanel.hidden=!context||pending;
+      if(authPanel)authPanel.hidden=!context||pending;
       if(clear)clear.hidden=!credentialInput?.value;
       receive.hidden=pending;
-      receive.textContent=loading?'正在准备…':'准备登录';
+      receive.textContent=loading?'正在准备…':context?'准备测试会话':'登录并打开网站';
       cancel.hidden=!pending&&!loading;
-      if(accountRow)accountRow.hidden=!pending;
-      clear.disabled=Boolean(controllerBusy);cancel.disabled=Boolean(controllerBusy);
+      if(accountRow)accountRow.hidden=!pending&&!commercial;
+      if(clear)clear.disabled=Boolean(controllerBusy);cancel.disabled=Boolean(controllerBusy);
       summary.textContent=context?context.site.label+' · '+new URL(context.site.targetUrl).host:
         commercial?(commercialLabel||'会员网站')+' · '+new URL(commercial).host:
           rows.length?'选择网站':'暂无可用网站';
@@ -268,7 +268,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         (commercial&&commercialNotice?commercialNotice:
         (storageFailed?'网站选择未能保存；仍可手动选择，重新打开后请核对。':
           context?'填写网站服务签发的登录凭据后，点击「准备登录」。':
-            commercial?'准备登录后核对账号，再由浏览器确认。':rows.length?'请选择要登录的网站。':''));
+            commercial?'点击登录后完成浏览器确认；已有网站登录可直接打开。':rows.length?'请选择要登录的网站。':''));
       status.hidden=!status.textContent;
       status.setAttribute('data-tone','neutral');
     },

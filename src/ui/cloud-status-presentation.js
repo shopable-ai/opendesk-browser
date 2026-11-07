@@ -78,8 +78,19 @@ const REQUEST_STATE_LABELS=Object.freeze({waiting:'等待执行',prepared:'已�
 const RUN_STATE_LABELS=Object.freeze({preparing:'准备中',running:'运行中',stopping:'停止中',settling:'结果结算中',retiring:'资源回收中',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'结果待核对'});
 const RETIREMENT_LABELS=Object.freeze({'not-started':'资源尚未释放',fenced:'资源释放中',released:'资源已释放'});
 const REASON_LABELS=Object.freeze({E_CLOUD_CANCELLED:'云请求已取消或租约已到期',E_CLOUD_REVOKED:'本机托管授权已撤销',E_CLOUD_FENCED:'执行许可已失效',E_LEASE:'执行许可已到期',E_RUN_REF:'请求与原运行不一致',E_OUTCOME_UNKNOWN:'原执行副作用或结果待核对，暂不重试'});
+const STARTUP_LABELS=Object.freeze({E_BUILTIN_VERSION_UNAVAILABLE:'内置运行时与已验证版本不一致',
+  E_PERMISSION:'任务或网站授权不满足',E_REVISION:'任务版本或安装授权已变化',E_HASH:'程序完整性不匹配',
+  E_TASK:'固定任务不可用',E_VERIFICATION:'任务验证未通过',E_TIMEOUT:'启动期限已到',
+  E_CLOUD_REVOKED:'托管授权已变化',E_CLOUD_FENCED:'执行许可已失效'});
 const SAVED_RUN_STATES=new Set(['completed','failed','stopped','interrupted']);
 const label=(labels,value,fallback)=>typeof value==='string'&&Object.hasOwn(labels,value)?labels[value]:fallback;
+function startupHistory(row){
+  const failure=row?.startupFailure;
+  if(row?.runId||row?.runState!=null||!['waiting','cancelled'].includes(row?.state)||
+    !['resolve','admission'].includes(failure?.stage)||!Number.isSafeInteger(failure?.at)||failure.at<0)return '';
+  return '首次启动记录（'+(failure.stage==='resolve'?'解析程序':'创建运行前')+'）：'+
+    label(STARTUP_LABELS,failure.code,'启动异常，待核对');
+}
 
 function requestProgress(row,status){
   if(!REQUEST.has(row?.state))return '请求状态待核对';
@@ -139,7 +150,7 @@ export function projectCloudRequestSamples(raw,limit=5){
       result:SAVED_RUN_STATES.has(row?.runState)?'结果已保存':'结果保存未确认',
       settlement:label(RETIREMENT_LABELS,row?.retirementState,'资源释放未确认'),
       receipt:row?.receipt!=null?'回执已确认':'回执未确认',
-      reason:[requestProgress(row,raw),row?.outcomeUnknown===true?'网页副作用待核对，请勿重试该请求':'',reason].filter(Boolean).join('；')
+      reason:[requestProgress(row,raw),row?.outcomeUnknown===true?'网页副作用待核对，请勿重试该请求':'',reason,startupHistory(row)].filter(Boolean).join('；')
     };
   });
 }

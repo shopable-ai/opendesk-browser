@@ -219,6 +219,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       E_PAIR_ACTIVE:'此浏览器已在提供者配对，请先撤销旧配对',
       E_EXECUTOR_TARGET:'外部请求没有指向已配对的浏览器',
       E_REVISION:'任务版本或安装授权已变化，请停止后重新批准',
+      E_BUILTIN_VERSION_UNAVAILABLE:'任务验证所用的内置运行时已改变；请对同一固定包重新试运行、验证并确认更新安装，再批准云控',
       E_CLOUD_REVOKED:'云控授权已停止，任务不能继续执行',
       E_PERMISSION:'网站或本地 Task 授权已失效，请重新审核',
       E_PROVIDER:'提供者连接异常，请核对 HTTPS 地址和网络',
@@ -525,12 +526,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     if(disposed||lastTrial!==trial)throw {code:'E_HOST_CLOSED'};
     const candidate=await client.request('getTaskCandidate',{
       taskId:trial.taskId,version:trial.version});
-    if(candidate?.stage!=='available'||candidate.manifestHash!==trial.manifestHash||
+    if(candidate?.stage!=='available'||candidate.runtimeCurrent===false||candidate.manifestHash!==trial.manifestHash||
       candidate.package?.manifest?.program?.sourceHash!==trial.sourceHash)
       throw {code:'E_REVISION'};
     const catalog=await client.request('listTaskCatalog',{}),
       previous=catalog.installed?.find(item=>item.taskId===trial.taskId);
-    if(previous?.version===trial.version&&previous.manifestHash===trial.manifestHash){
+    if(previous?.version===trial.version&&previous.manifestHash===trial.manifestHash&&previous.runtimeCurrent!==false){
       trial.installed=true;trial.message=previous.enabled
         ?'该固定版本已安装；若需云控执行，请另外批准这一安装身份。'
         :'该固定版本已安装但停用；请在「我的」启用。';

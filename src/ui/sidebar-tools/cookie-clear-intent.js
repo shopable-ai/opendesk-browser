@@ -1,5 +1,5 @@
 // Trusted Side Panel only. A verified click on the Cookie Editor's existing
-// clear-preview dialog authorizes ONE exact Host-only clear, not a whole site
+// clear-preview dialog authorizes ONE exact preview-bound clear, not a whole site
 // permission, blanket SDK operation, or retry of an uncertain native effect.
 export const COOKIE_CLEAR_INTENT_TTL_MS=120000;
 const error=(code,message)=>Object.assign(new Error(message),{code});
@@ -26,27 +26,27 @@ export function createCookieClearIntentGate({now=()=>Date.now()}={}){
       document.documentId,document.url,document.origin]);
   };
   return Object.freeze({
-    start({owner,url,previewRef,expectedCount,grantEpoch,document,verifiedUserActivation}){
+    start({owner,url,previewRef,expectedCount,scope,grantEpoch,document,verifiedUserActivation}){
       if(verifiedUserActivation!==true)
         throw error('E_USER_GESTURE_REQUIRED','请重新点击清理确认');
       if(typeof owner!=='string'||!owner||!validUrl(url)||!uuid.test(previewRef)||
-        !validCount(expectedCount)||typeof grantEpoch!=='string'||!grantEpoch||
+        !validCount(expectedCount)||scope!==undefined&&scope!=='site-exact-host'||typeof grantEpoch!=='string'||!grantEpoch||
         !documentKey(document)||new URL(url).origin!==document.origin)
         throw error('E_SCHEMA','Cookie 清理范围或预览凭据无效');
       if(pending&&now()<pending.expiresAt)
         throw error('E_BUSY','上一笔 Cookie 清理尚未完成');
-      pending={owner,url,previewRef,expectedCount,grantEpoch,
+      pending={owner,url,previewRef,expectedCount,scope,grantEpoch,
         documentKey:documentKey(document),
         ref:++sequence,expiresAt:now()+COOKIE_CLEAR_INTENT_TTL_MS};
       return {authorized:true,ref:pending.ref,expiresAt:pending.expiresAt};
     },
     // Consume BEFORE minting the existing one-use Browser Host approval. Any
     // mismatch burns the intent instead of falling back to a second dialog.
-    consume({owner,url,previewRef,expectedCount,maxCookies,grantEpoch,document}){
+    consume({owner,url,previewRef,expectedCount,scope,maxCookies,grantEpoch,document}){
       if(!pending||pending.owner!==owner)return false;
       const original=pending;pending=null;
       if(now()>=original.expiresAt||url!==original.url||
-        previewRef!==original.previewRef||expectedCount!==original.expectedCount||
+        previewRef!==original.previewRef||expectedCount!==original.expectedCount||scope!==original.scope||
         maxCookies!==50||grantEpoch!==original.grantEpoch||
         documentKey(document)!==original.documentKey)
         throw error('E_DOCUMENT_CHANGED','Cookie 清理预览、授权或操作范围已改变');

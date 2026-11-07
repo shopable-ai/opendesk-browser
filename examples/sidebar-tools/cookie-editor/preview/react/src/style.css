@@ -29,3 +29,8 @@ body{margin:0;background:var(--od-bg);color:var(--od-ink);font-family:-apple-sys
 .preview-global-grant button{min-height:40px;width:100%;max-width:360px}
 
 .cookie-app[hidden]{display:none}
+.cookie-team-development{flex:0 0 auto;width:100%;max-width:var(--preview-panel-width,380px);max-height:35dvh;overflow:auto;margin:0 auto 8px;padding:8px 12px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);font-size:11px;color:var(--od-sub)}
+.cookie-team-development summary{cursor:pointer;font-weight:650;color:var(--od-ink)}
+.cookie-team-development select{max-width:100%;background:var(--od-paper);color:var(--od-ink);min-height:32px}
+.cookie-team-development .cookie-business-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cookie-team-development button{font:inherit;white-space:normal;min-height:32px}

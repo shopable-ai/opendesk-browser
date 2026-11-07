@@ -1,4 +1,5 @@
-// Fictional transport only. Policy and parsing belong to the real app/ Controller and Domain.
+// Fictional Cookie/account transport; explicit isolated HTTP mode uses only the dev relay.
+// Policy and parsing belong to the real app Controller and Domain.
 import {key,sameNativeSlot} from '../../../app/domain/cookie-model.js';
 import {normalizeAccountDescription} from '../../../trusted/account-contract.js';
 import cookiePackage from '../../../package.json' with {type:'json'};
@@ -38,12 +39,17 @@ export function approvedParityCookies(now=Date.now()){
 }
 const clone=value=>structuredClone(value);
 const error=code=>Object.assign(Error(code),{code});
-export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
+export function createMockSdk({scenario='ready',onFailureConsumed=()=>{},isolatedHttp=null,storage=null,fetchImpl=globalThis.fetch,initialSite=demoSite}={}){
  const parity=scenario==='approvedParity';
+ const isolated=scenario==='isolatedHttp';
+ if(isolated&&(!isolatedHttp||!storage))throw error('E_PREVIEW_HTTP_CONFIG');
+ const storageKey=isolated?'cookie-editor.preview.isolated-http.v1:'+isolatedHttp.origin:null;
+ const persist=()=>{if(isolated)storage.setItem(storageKey,JSON.stringify(Object.fromEntries(storedItems)));};
  let rows=scenario==='empty'?[]:parity?approvedParityCookies():fictionalCookies(),failure='',clearPlan=null,releaseLoading;
- let currentSite=demoSite,globalGrant=scenario!=='first';
- const siteRows=new Map([[demoSite,rows]]);
- const storedItems=new Map();
+ if(isolated)rows=rows.filter(row=>!row.partitionKey);
+ let currentSite=initialSite,globalGrant=scenario!=='first';
+ const siteRows=new Map([[initialSite,rows]]);
+ const storedItems=new Map(isolated ? Object.entries(JSON.parse(storage.getItem(storageKey)||'{}')) : []);
  // Only this explicit preview scene seeds fictional saved configurations.
  // Match the real service adapter's durable format; no session or remote data.
  if(scenario==='serviceConnections')storedItems.set('cookie-http-services.v1',{
@@ -55,7 +61,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    usageCache:{},bindings:[],policy:null,pending:null,history:[]}))
  });
  // Preview-only account fixture. No real account, Cookie, Host or storage.
- const accountDemo=parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown'].includes(scenario);
+ const accountDemo=isolated||parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown'].includes(scenario);
  const fictionalAccounts=parity?[
    {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:false},
    {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
@@ -74,7 +80,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  if(accountDemo)for(const item of fictionalAccounts){
    // HTML supplies counts 8/8/7, not saved Cookie contents. The backup subset
    // here is synthetic, not evidence of a real account snapshot or Host write.
-   const snapshot=parity?rows.slice(0,item.alias==='backup'?7:8):fictionalCookies();
+   const snapshot=isolated?rows.filter(row=>row.domain.replace(/^\./,'')===currentSite):
+     parity?rows.slice(0,item.alias==='backup'?7:8):fictionalCookies();
    demoSnapshots.set(item.alias,clone(snapshot));
  }
  const accountMeta=()=>({...clone(demoAccounts),
@@ -95,7 +102,16 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  };
  let importRef=0,writeRef=0;
  const loading=scenario==='loading'?new Promise(resolve=>{releaseLoading=resolve;}):null;
- const calls=[],deliveries=[],observations=new Set();
+ const calls=[],deliveries=[],observations=new Map();
+ const emitChange=(row,removed=false,cause='explicit')=>{
+  if(row.partitionKey)return;
+  for(const observation of observations.values()){
+   if(Date.now()>=observation.expiresAt||new URL(observation.url).hostname!==currentSite)continue;
+   observation.events.push({seq:observation.nextSeq++,name:row.name,
+    domain:row.domain.replace(/^\./,''),path:row.path,removed,cause,at:Date.now()});
+   if(observation.events.length>50)observation.events.shift();
+  }
+ };
  const fail=operation=>{
   if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
   if(scenario==='readonly'&&['save','import','clear','remove'].includes(operation))throw error('E_PERMISSION_REQUIRED');
@@ -132,6 +148,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     const {value,...metadata}=row;return {...clone(metadata),valueRedacted:true};
    });
   },
+  getAllPage:async args=>({cookies:(await cookies.getAll(args)).filter(row=>
+   args.scope!=='site-exact-host'||row.domain.replace(/^\./,'')===new URL(args.url).hostname)}),
   getPartitionKey:async()=>({partitionKey:clone(partitionKey)}),
   getCurrentStore:async()=>({storeId:'0'}),
   get:async args=>{
@@ -151,14 +169,34 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
   },
   clearSite:async args=>{
    record('clearSite',args);const host=new URL(args.url).hostname;
-   const eligible=rows.filter(row=>row.domain===host&&row.hostOnly&&row.storeId==='0'&&!row.partitionKey).slice(0,50);
-   if(args.preview){clearPlan={ref:'12345678-1234-1234-1234-123456789abc',url:args.url,ids:eligible.map(key)};return {matched:eligible.length,previewRef:clearPlan.ref};}
+   const visible=rows.filter(row=>matches(row,{url:args.url,storeId:'0',...(row.partitionKey?{partitionKey}:{})}));
+   const all=args.scope==='site-exact-host';
+   if(args.scope!==undefined&&!all)throw error('E_SCHEMA');
+   const eligible=visible.filter(row=>row.domain.replace(/^\./,'')===host&&
+     (all||row.hostOnly&&!row.partitionKey));
+   const excluded=all?visible.filter(row=>row.domain.replace(/^\./,'')!==host).length:0;
+   if(eligible.length>50)throw error('E_LIMIT');
+   const scope=all?'SITE_EXACT_HOST':'EXACT_HOST_HOST_ONLY';
+   if(args.preview){clearPlan={ref:'12345678-1234-1234-1234-123456789abc',url:args.url,scope:args.scope,ids:eligible.map(key)};return {matched:eligible.length,excluded,scope,previewRef:clearPlan.ref};}
    fail('clear');
-   if(!clearPlan||args.previewRef!==clearPlan.ref||args.url!==clearPlan.url||args.expectedCount!==eligible.length||JSON.stringify(eligible.map(key))!==JSON.stringify(clearPlan.ids))throw error('E_COOKIE_CONFLICT');
+   if(!clearPlan||args.scope!==clearPlan.scope||args.previewRef!==clearPlan.ref||args.url!==clearPlan.url||args.expectedCount!==eligible.length||JSON.stringify(eligible.map(key))!==JSON.stringify(clearPlan.ids))throw error('E_COOKIE_CONFLICT');
    rows=rows.filter(row=>!clearPlan.ids.includes(key(row)));clearPlan=null;
-   return {preview:false,scope:'EXACT_HOST_HOST_ONLY',matched:eligible.length,removed:eligible.length,remaining:0};
+   return {preview:false,scope,matched:eligible.length,removed:eligible.length,remaining:0,excluded};
   },
-  observe:{start:async()=>{observations.add('preview-observation');return {sessionRef:'preview-observation'};},read:async()=>({events:[],nextCursor:'0'}),stop:async({sessionRef})=>{observations.delete(sessionRef);return {stopped:true};}}
+  observe:{start:async({url,durationMs=30000})=>{
+   if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+   const sessionRef=crypto.randomUUID(),expiresAt=Date.now()+durationMs;
+   observations.set(sessionRef,{url,expiresAt,events:[],nextSeq:1});
+   return {sessionRef,expiresAt,status:'running'};
+  },read:async({sessionRef,cursor='0'})=>{
+   if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+   const observation=observations.get(sessionRef);
+   if(!observation||Date.now()>=observation.expiresAt)throw error('E_SESSION_EXPIRED');
+   const events=observation.events.filter(event=>event.seq>Number(cursor));
+   return {sessionRef,events:clone(events),nextCursor:String(observation.nextSeq-1),
+    gapCount:Math.max(0,(observation.events[0]?.seq??observation.nextSeq)-Number(cursor)-1),
+    droppedCount:Math.max(0,observation.nextSeq-51),expiresAt:observation.expiresAt};
+  },stop:async({sessionRef})=>{observations.delete(sessionRef);return {stopped:true};}}
  };
  return {
   browser:{cookies,capabilities:{getStatus:async()=>({callableNow:globalGrant&&scenario!=='chromeDenied',
@@ -173,6 +211,22 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {started:true};
    }}},
   request:async(operation,payload)=>{
+   if(operation==='browser.network.request'){
+    if(!isolated)throw error('E_PREVIEW_ONLY');
+    let target;try{target=new URL(payload.url);}catch{throw error('E_PREVIEW_NETWORK_SCOPE');}
+    if(target.origin!==isolatedHttp.origin||target.username||target.password||target.search||target.hash||
+      !['/opendesk/client/pair','/opendesk/client/pair-result','/opendesk/client/request'].includes(target.pathname)||
+      payload.method!=='POST')throw error('E_PREVIEW_NETWORK_SCOPE');
+    // Same-origin dev relay owns the exact destination. No headers, credentials,
+    // real SDK or arbitrary URL can be supplied by the preview caller.
+    const response=await fetchImpl(isolatedHttp.rpc,{method:'POST',credentials:'omit',redirect:'error',
+      headers:{'content-type':'application/json'},body:JSON.stringify({url:target.href,method:'POST',data:payload.data}),
+      signal:AbortSignal.timeout(12000)});
+    const data=await response.json();
+    if(!response.ok)throw Object.assign(error('E_HTTP'),{message:'HTTP '+response.status,status:response.status});
+    return {status:response.status,data};
+   }
+
    if(operation==='browser.storage.local.get'){
     record(operation,payload??{});
     const keys=payload?.keys??[...storedItems.keys()];
@@ -180,9 +234,10 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       .map(key=>[key,storedItems.get(key)])))};
    }
    if(operation==='browser.storage.local.set'){
-    record(operation,payload);
+    record(operation,isolated?{keys:Object.keys(payload.items)}:payload);
     const entries=Object.entries(clone(payload.items));
     for(const [key,value] of entries)storedItems.set(key,value);
+    persist();
     return {written:entries.length};
    }
    if(operation.startsWith('cookieAccount.')){
@@ -285,7 +340,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    if(operation==='cookieEditor.clear.begin'){
      if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
      if(payload?.url!=='https://'+currentSite+'/'||
-       payload.previewRef!==clearPlan?.ref||payload.expectedCount!==clearPlan.ids.length)
+       payload.scope!==clearPlan?.scope||payload.previewRef!==clearPlan?.ref||payload.expectedCount!==clearPlan.ids.length)
        throw error('E_COOKIE_CONFLICT');
      const ref=++writeRef;
      record(operation,{url:payload.url,expectedCount:payload.expectedCount});
@@ -314,13 +369,25 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
   grantAllSites:()=>{globalGrant=true;record('globalGrant',{scope:'http-https-all'});return {authorized:true};},
   revokeAllSites:()=>{globalGrant=false;record('globalRevoke',{scope:'http-https-all'});return {revoked:true};},
   switchSite:hostname=>{
-   if(!demoSites.includes(hostname))throw error('E_COOKIE_SCOPE');
+   if(![...demoSites,initialSite].includes(hostname))throw error('E_COOKIE_SCOPE');
    siteRows.set(currentSite,rows);currentSite=hostname;
    rows=siteRows.get(hostname)||seedRows(hostname);
    siteRows.set(hostname,rows);clearPlan=null;
    record('pageChanged',{hostname});
   },
   setFailure:value=>{failure=value;},dispose:()=>{releaseLoading?.();observations.clear();},
-  inspect:()=>({rows:clone(rows),currentSite,globalGrant,calls:clone(calls),deliveries:clone(deliveries),observations:[...observations]})
+  simulateCookieChange:kind=>{
+   if(kind==='value'){
+    const row=rows.find(row=>row.name==='theme');if(!row)return;
+    emitChange(row,true,'overwrite');row.value=row.value==='light'?'night':'light';emitChange(row);
+   }else if(kind==='added'&&!rows.some(row=>row.name==='live_demo')){
+    const row={...fictionalCookies()[0],domain:currentSite,name:'live_demo',value:'fictional',httpOnly:false};
+    rows.push(row);emitChange(row);
+   }else if(kind==='removed'){
+    const row=rows.find(row=>row.name==='live_demo')||rows.find(row=>row.name==='locale');if(!row)return;
+    rows=rows.filter(item=>item!==row);emitChange(row,true);
+   }
+  },
+  inspect:()=>({rows:clone(rows),currentSite,globalGrant,calls:clone(calls),deliveries:clone(deliveries),observations:[...observations.keys()]})
  };
 }

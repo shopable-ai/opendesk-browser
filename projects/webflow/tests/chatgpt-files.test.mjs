@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL} from '../../src/native-agent/chatgpt-files-controller.js';
-import {installChatGPTFilesService} from '../../src/native-agent/chatgpt-files-service.js';
+import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL} from '../trusted/chatgpt-files-controller.js';
+import {installChatGPTFilesService} from '../trusted/chatgpt-files-service.js';
 const sha=text=>createHash('sha256').update(text).digest('hex');
 const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
 const source={tabId:7,documentId:'source-doc',url:'https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456',windowId:3};
 const owner={id:'extension',url:'chrome-extension://extension/native-agent/settings.html#chatgpt-files',frameId:0,documentId:'owner-doc',tab:{id:51,windowId:3}};
 function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initialContent='safe original\n'}={}){
-  let userText='',content=initialContent,answer,reads=0,writes=0,fills=0,epoch='',access='read-write',sessionId='native-session-123456',turnKey='turn-1',answerKey='answer-1',complete=true,observed=false,readError,afterReadError;
+  let userText='',content=initialContent,answer,reads=0,writes=0,fills=0,epoch='',access='read-write',sessionId='native-session-123456',turnKey='turn-1',answerKey='answer-1',complete=true,observed=false,taskIntentPresent=false,readError,afterReadError;
   const storage={async get(key){return {[key]:ledger[key]};},async set(value){Object.assign(ledger,structuredClone(value));}};
   const files={state:()=>({connected:true,sessionId,devLeaseEpoch:1}),async request(method,params,expected){
     assert.equal(expected.sessionId,sessionId);
@@ -24,7 +24,7 @@ function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initial
   const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path},storage:{local:storage},
     tabs:{async get(){return {id:7,windowId:3,url:source.url};}},webNavigation:{async getFrame(){return {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
   const readAnswer=async(_api,_source,_id,options={})=>{if(readError){const error=readError;readError=null;throw error;}return ({url:source.url,turnKey,answerKey,answerComplete:complete,
-    resultObserved:observed,...(options.readUserMessage?{userText}:{}),blocks:[answer]});};
+    resultObserved:observed,...(options.readUserMessage?{userText,...(options.identityOnly?{taskIntentPresent}:{})}:{}),blocks:[answer]});};
   const controller=createChatGPTFilesController({api,files,readAnswer,fillComposer:async()=>{fills++;if(fillError)throw fillError;if(fillUnknown)throw {code:'E_CHAT_FILL_UNKNOWN',outcome:'OUTCOME_UNKNOWN'};return {filled:true,sent:false};}});
   controller.claim({source,workspaceTab:owner.tab},owner);
   let last;
@@ -32,26 +32,68 @@ function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initial
     const bound=action==='approve'?{reviewId:last?.proposal?.reviewId}:action==='fill'?{packetId:last?.[extra.packet==='prompt'?'promptPacketId':'resultPacketId']}:{};
     return last=await controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action,...bound,...extra},sender);
   };
-  const prepare=async(path='demo.txt',operation='read')=>{
-    const state=await call('prepare',{workspaceId,path,operation,task:'test'});answer=JSON.stringify(state.request);return state;
+  const prepare=async(path='demo.txt',operation='read',allowEdit=true)=>{
+    const state=await call('prepare',{workspaceId,path,operation,allowEdit,task:'test'});answer=JSON.stringify(state.request);return state;
   };
   const proposal=async()=>{await prepare();const state=await call('inspect');
     const result=JSON.parse(state.resultText.slice(state.resultText.indexOf('{')));
     answer=JSON.stringify({...result.editProposal,content:'safe modified\n'});
     await call('inspect');};
-  return {userText:value=>{userText=value;},call,prepare,proposal,controller,api,files,readAnswer,ledger,answer:value=>{answer=value;},content:value=>{content=value;},
+  return {userText:value=>{userText=value;},taskIntent:value=>{taskIntentPresent=value;},call,prepare,proposal,controller,api,files,readAnswer,ledger,answer:value=>{answer=value;},content:value=>{content=value;},
     epoch:value=>{epoch=value;},access:value=>{access=value;},session:value=>{sessionId=value;},turn:value=>{turnKey=value;},revision:value=>{answerKey=value;},complete:value=>{complete=value;},observed:value=>{observed=value;},readError:value=>{readError=value;},afterReadError:value=>{afterReadError=value;},counts:()=>({reads,writes,fills}),text:()=>content};
 }
+test('backend refuses file admission when the independently read reply contains a Task candidate',async()=>{
+  const h=setup();h.userText('读取 isolated-test 项目 demo.txt，只读');h.controller.dispose();
+  const controller=createChatGPTFilesController({api:h.api,files:h.files,
+    readAnswer:async(...args)=>({...await h.readAnswer(...args),taskIntentPresent:true})});
+  try{
+    await assert.rejects(controller.conversationTask({task:'读取 isolated-test 项目 demo.txt，只读'},
+      {id:'extension',frameId:0,documentId:source.documentId,url:source.url,tab:{id:7,windowId:3}}),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{controller.dispose();}
+});
 test('web content cannot call the trusted controller or grant itself a directory',async()=>{
   const h=setup();await assert.rejects(h.call('state',{}, {...owner,url:source.url}),{code:'E_FILE_OWNER'});
   await assert.rejects(h.call('prepare',{workspaceId,path:'../secret.txt',operation:'read'}),{code:'E_FILES_PATH'});
   assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+});
+test('first manual project connection rejects a current Task reply before file I/O',async()=>{
+  const h=setup();
+  await h.controller.projectTask({task:projectTask},pageSender);
+  h.taskIntent(true);
+  await assert.rejects(h.call('connect-project',{workspaceId}),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+  assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  assert.equal((await h.controller.projectStatus(pageSender)).automation.active,false);
 });
 test('locked read refuses a model-chosen path and reads only approved bytes',async()=>{
   const h=setup(),state=await h.prepare();h.answer(JSON.stringify({...state.request,path:'other.txt'}));
   await assert.rejects(h.call('inspect'),{code:'E_FILE_SCOPE'});assert.equal(h.counts().reads,0);
   h.answer(JSON.stringify(state.request));const result=await h.call('inspect');assert.match(result.resultText,/safe original/);
   await assert.rejects(h.call('inspect'),{code:'E_FILE_REPLAY'});assert.equal(h.counts().reads,1);
+});
+test('a fixed file reply containing a Task candidate cannot dispatch a read or write',async()=>{
+  const read=setup();await read.prepare('demo.txt','read',false);read.turn('turn-2');read.taskIntent(true);
+  await assert.rejects(read.call('poll'),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+  assert.deepEqual(read.counts(),{reads:0,writes:0,fills:0});
+  const write=setup();await write.proposal();write.taskIntent(true);
+  await assert.rejects(write.call('approve'),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+  assert.equal(write.counts().writes,0);assert.equal(write.text(),'safe original\n');
+});
+
+test('a file reply changed between full parsing and the conflict probe cannot dispatch',async()=>{
+  const h=setup();h.controller.dispose();let changed=false;
+  const controller=createChatGPTFilesController({api:h.api,files:h.files,
+    readAnswer:async(...args)=>{
+      const value=await h.readAnswer(...args);
+      return changed&&args[3]?.identityOnly?{...value,answerKey:'replacement-answer'}:value;
+    }});
+  try{
+    controller.claim({source,workspaceTab:owner.tab},owner);
+    const state=await controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'prepare',workspaceId,path:'demo.txt',operation:'read'},owner);
+    h.answer(JSON.stringify(state.request));changed=true;
+    await assert.rejects(controller.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'inspect'},owner),{code:'E_CHAT_ANSWER'});
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{controller.dispose();}
 });
 test('write requires exact proposal confirmation, stable ID, SHA, and independent readback',async()=>{
   const h=setup();await h.proposal();assert.equal(h.counts().writes,0);
@@ -69,6 +111,7 @@ test('unknown writes are reconciled by reads, never by another mutation',async()
   const h=setup({unknown:true});await h.proposal();const result=await h.call('approve');
   assert.equal(result.resultStatus,'unknown');await assert.rejects(h.call('approve'),{code:'E_FILE_REPLAY'});
   const reconciled=await h.call('reconcile');assert.match(reconciled.resultText,/readBackVerified/);
+  assert.deepEqual(reconciled.comparison,{before:'safe original\n',proposed:'safe modified\n',readBack:'safe modified\n'});
   assert.equal(h.counts().writes,1);assert.equal(reconciled.resultStatus,'unknown');
 });
 test('unknown write recovery acquires current authority after Native reconnect without reusing the proposal',async()=>{
@@ -78,11 +121,19 @@ test('unknown write recovery acquires current authority after Native reconnect w
   assert.match(result.resultText,/"readBackVerified":true/);assert.equal(result.resultStatus,'unknown');
   assert.equal(h.counts().writes,1);await assert.rejects(h.call('approve'),{code:'E_FILE_REPLAY'});
 });
+test('unknown write reconciliation shows different current bytes without claiming the original receipt',async()=>{
+  const h=setup({unknown:true});await h.proposal();await h.call('approve');h.content('external later edit\n');
+  const result=await h.call('reconcile');
+  assert.equal(result.resultStatus,'unknown');assert.match(result.resultText,/"readBackVerified":false/);
+  assert.deepEqual(result.comparison,{before:'safe original\n',proposed:'safe modified\n',readBack:'external later edit\n'});
+  assert.equal(h.counts().writes,1);
+});
 test('the durable unknown fence survives service restart and blocks a new mutation ID for the same path',async()=>{
   const ledger={},first=setup({ledger,unknown:true});await first.proposal();await first.call('approve');first.controller.dispose();
   const next=setup({ledger,initialContent:first.text()});await next.proposal();
   await assert.rejects(next.call('approve'),{code:'E_FILE_UNKNOWN'});assert.equal(next.counts().writes,0);
   const reconciled=await next.call('reconcile');assert.match(reconciled.resultText,/"readBackVerified":true/);
+  assert.deepEqual(reconciled.comparison,{readBack:'safe modified\n'},'a new proposal cannot be presented as the interrupted write');
   await assert.rejects(next.call('approve'),{code:'E_FILE_REPLAY'});assert.equal(next.counts().writes,0);
 });
 test('read-only grants and a retired source document cannot dispatch writes',async()=>{
@@ -124,7 +175,109 @@ test('automatic mode only stages a proposal, binds exact review and fills the co
   await h.call('poll');assert.equal(h.counts().writes,0);
   await assert.rejects(h.call('approve',{reviewId:'stale-review'}),{code:'E_FILE_REVIEW'});assert.equal(h.counts().writes,0);
   const written=await h.call('approve',{reviewId:staged.proposal.reviewId});assert.equal(written.resultStatus,'success');
-  await h.call('poll');await h.call('poll');assert.deepEqual(h.counts(),{reads:3,writes:1,fills:2});
+  const done=await h.call('poll');await h.call('poll');assert.deepEqual(h.counts(),{reads:3,writes:1,fills:2});
+  assert.equal(done.automation.phase,'completed');assert.equal(done.automation.active,false);
+  assert.equal(done.delivery,'filled');assert.equal(done.observed,false);
+});
+
+test('read-only completes after confirmed fill without sending, and fresh rounds use current bytes',async()=>{
+  const h=setup();let previous;
+  for(let i=0;i<2;i++){
+    const prepared=await h.call('prepare',{workspaceId,path:'demo.txt',operation:'read',task:'只读'});
+    assert.deepEqual(h.counts(),{reads:i,writes:0,fills:i});
+    assert.ok(prepared.prompt.includes(JSON.stringify(prepared.request)),'prompt includes complete exact JSON');
+    if(previous){assert.notEqual(prepared.request.requestId,previous.requestId);assert.notEqual(prepared.request.bindingId,previous.bindingId);}
+    h.answer(JSON.stringify(prepared.request));h.turn(`read-only-${i}`);
+    const done=await h.call('poll');
+    assert.equal(done.result.editProposal,undefined);assert.equal(done.proposal,null);
+    assert.equal(done.automation.phase,'completed');assert.equal(done.automation.active,false);
+    assert.equal(done.delivery,'filled');assert.equal(done.observed,false);
+    const observation=await h.call('observe');assert.match(observation.message,/本轮已结束，无需再发送/);
+    assert.equal(observation.automation.phase,'completed');assert.equal(observation.observed,false);
+    assert.equal(done.result.data.content,i?'second baseline\n':'safe original\n');
+    h.answer('已收到');h.turn(`ack-${i}`);await h.call('poll');
+    assert.deepEqual(h.counts(),{reads:i+1,writes:0,fills:i+1});
+    await assert.rejects(h.call('inspect'),{code:'E_FILE_COMPLETED'});
+    previous=prepared.request;h.content('second baseline\n');
+  }
+});
+test('editing is trusted opt-in and model fields cannot grant it',async()=>{
+  const h=setup();const prepared=await h.prepare('demo.txt','read',false);
+  h.answer(JSON.stringify({...prepared.request,allowEdit:true}));
+  await assert.rejects(h.call('inspect'),{code:'E_REQUEST_FORMAT'});assert.equal(h.counts().reads,0);
+  h.answer(JSON.stringify(prepared.request));const read=await h.call('inspect');
+  assert.equal(read.result.editProposal,undefined);
+  h.answer(JSON.stringify({protocol:'opendesk.workspace.edit.v1',requestId:crypto.randomUUID(),
+    bindingId:prepared.request.bindingId,workspaceId,path:'demo.txt',baseSha256:sha(h.text()),content:'forged'}));
+  await assert.rejects(h.call('inspect'),{code:'E_FILES_ACCESS'});
+  await assert.rejects(h.call('approve'),{code:'E_FILES_ACCESS'});assert.equal(h.counts().writes,0);
+  await assert.rejects(h.call('prepare',{workspaceId,path:'demo.txt',operation:'read',allowEdit:'true'}),{code:'E_FILE_SCHEMA'});
+});
+test('unknown read-only fill cannot become successful completion or be filled again',async()=>{
+  const h=setup({fillUnknown:true});await h.prepare('demo.txt','read',false);h.turn('readonly-fill');
+  await assert.rejects(h.call('poll'),{code:'E_CHAT_FILL_UNKNOWN'});
+  const state=await h.call('poll');assert.notEqual(state.automation.phase,'completed');
+  assert.equal(state.automation.active,false);assert.equal(state.delivery,'unknown');
+  await assert.rejects(h.prepare('demo.txt','read',false),{code:'E_FILE_DELIVERY_UNKNOWN'});
+  await h.call('poll');assert.deepEqual(h.counts(),{reads:1,writes:0,fills:1});
+});
+test('two read-edit rounds finish after receipt fill and reject old confirmations',async()=>{
+  const h=setup();let previousRead,previousResult,previousReview;
+  for(let i=0;i<2;i++){
+    const prepared=await h.prepare();h.turn(`write-read-${i}`);h.observed(false);
+    const read=await h.call('poll');assert.equal(read.automation.active,true);
+    assert.equal(read.automation.phase,'watching');
+    assert.equal(read.result.editProposal.content,i?'changed-0\n':'safe original\n');
+    if(previousRead){
+      assert.notEqual(prepared.request.requestId,previousRead);assert.notEqual(read.resultPacketId,previousResult);
+    }
+    h.turn(`write-edit-${i}`);h.observed(true);
+    h.answer(JSON.stringify({...read.result.editProposal,content:`changed-${i}\n`}));
+    const staged=await h.call('poll');assert.equal(h.counts().writes,i);
+    if(previousReview)await assert.rejects(h.call('approve',{reviewId:previousReview}),{code:'E_FILE_REVIEW'});
+    await h.call('approve',{reviewId:staged.proposal.reviewId});
+    const done=await h.call('poll');assert.equal(done.automation.phase,'completed');assert.equal(done.automation.active,false);
+    assert.equal(done.result.data.saved,true);assert.equal(done.result.data.readBackVerified,true);
+    assert.equal(done.observed,false);assert.equal(done.delivery,'filled');
+    h.answer('已完成');await h.call('poll');assert.equal(h.counts().writes,i+1);
+    previousRead=prepared.request.requestId;previousResult=read.resultPacketId;previousReview=staged.proposal.reviewId;
+  }
+  assert.deepEqual(h.counts(),{reads:6,writes:2,fills:4});
+});
+test('saved write with unknown final fill never completes or dispatches another write',async()=>{
+  const h=setup({fillUnknown:true});await h.proposal();await h.call('approve');
+  await assert.rejects(h.call('poll'),{code:'E_CHAT_FILL_UNKNOWN'});
+  const state=await h.call('poll');assert.notEqual(state.automation.phase,'completed');
+  assert.equal(state.result.data.saved,true);assert.equal(state.delivery,'unknown');
+  await assert.rejects(h.prepare(),{code:'E_FILE_DELIVERY_UNKNOWN'});
+  await h.call('poll');assert.deepEqual(h.counts(),{reads:3,writes:1,fills:1});
+});
+test('a paused project cannot shadow an explicitly prepared advanced request',async()=>{
+  const h=setup();await h.controller.projectTask({task:projectTask},pageSender);
+  await h.controller.projectStop(pageSender);
+  const prepared=await h.prepare('demo.txt','read',false);h.turn('advanced-after-project');
+  const done=await h.call('poll');assert.equal(done.request.requestId,prepared.request.requestId);
+  assert.equal(done.automation.phase,'completed');assert.deepEqual(h.counts(),{reads:1,writes:0,fills:1});
+});
+test('directory listing binds the approved relative directory, fills once and completes without edits',async()=>{
+  const h=setup(),request=h.files.request;let lists=0;
+  h.files.request=(method,...args)=>{if(method==='files.list')lists++;return request(method,...args);};
+  const prepared=await h.prepare('','list',false);
+  h.answer(JSON.stringify({...prepared.request,path:'other'}));
+  await assert.rejects(h.call('inspect'),{code:'E_FILE_SCOPE'});assert.equal(lists,0);
+  h.answer(JSON.stringify(prepared.request));h.turn('list-root');const done=await h.call('poll');
+  assert.equal(done.result.operation,'list');assert.equal(done.result.path,'');assert.equal(done.result.editProposal,undefined);
+  assert.equal(done.automation.phase,'completed');assert.equal(done.delivery,'filled');assert.equal(done.observed,false);
+  await h.call('poll');assert.equal(lists,1);assert.deepEqual(h.counts(),{reads:0,writes:0,fills:1});
+  await assert.rejects(h.call('prepare',{workspaceId,path:'',operation:'list',allowEdit:true}),{code:'E_FILE_SCHEMA'});
+});
+test('a confirmed read failure stops without fabricated content, completion or automatic retry',async()=>{
+  const h=setup(),request=h.files.request;let attempts=0;
+  h.files.request=(method,...args)=>{if(method==='files.read'){attempts++;throw {code:'E_FILES_IO',message:'read failed',outcome:'FAILED_CONFIRMED'};}return request(method,...args);};
+  await h.prepare('demo.txt','read',false);h.turn('failed-read');
+  await assert.rejects(h.call('poll'),{code:'E_FILES_IO'});const stopped=await h.call('poll');
+  assert.equal(stopped.automation.phase,'paused');assert.equal(stopped.result,null);assert.equal(stopped.resultText,'');
+  assert.equal(attempts,1);assert.equal(h.counts().fills,0);
 });
 test('packet identities, scope changes and unknown writes fence automatic processing',async()=>{
   const h=setup();await h.prepare();h.turn('turn-2');const read=await h.call('poll');
@@ -223,6 +376,16 @@ test('revocation, retired source, and invalid restored grant each prevent automa
   const grants=invalid.ledger['opendesk.chatgpt.files.grants.v1'];Object.values(grants)[0].version++;
   const restarted=createChatGPTFilesController({api:invalid.api,files:invalid.files,readAnswer:invalid.readAnswer});
   await restarted.tick();assert.equal(invalid.counts().writes,0);
+});
+test('stop after grant revocation fences a pending proposal through restart without disclosing its contents',async()=>{
+  const h=setup();const active=await projectProposal(h);
+  h.ledger['opendesk.chatgpt.files.grants.v1'][active.projectConnection.grantId].revoked=true;
+  const stopped=await h.controller.projectStop(pageSender);
+  assert.equal(stopped.automation.phase,'paused');assert.doesNotMatch(JSON.stringify(stopped),/safe original|safe modified/);
+  await h.controller.tick();h.controller.dispose();
+  const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
+  try{await resumed.tick();assert.equal(h.counts().writes,0);}
+  finally{resumed.dispose();}
 });
 test('cancelled first connection has zero file access and cannot later be accepted as a pending task',async()=>{
   const h=setup();await h.controller.projectTask({task:projectTask},pageSender);
@@ -385,6 +548,7 @@ test('K6 ACK followed by ledger persistence failure retains the durable dispatch
     const result=await resumed.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'reconcile'},owner);
     assert.equal(result.resultStatus,'unknown');assert.match(result.resultText,/"readBackVerified":true/);
     assert.match(result.resultText,/"writeReceiptObserved":false/);
+    assert.deepEqual(result.comparison,{before:'safe original\n',proposed:'safe modified\n',readBack:'safe modified\n'});
     assert.deepEqual(h.counts(),{...before,reads:before.reads+1});
     assert.equal(h.ledger[writeLedger][entry.requestId].state,'readback-matched');
     await resumed.tick();assert.equal(h.counts().writes,1);
@@ -470,6 +634,67 @@ function conversationHarness(options={}){
   return h;
 }
 const readTask='读取 isolated-test 项目的 demo.txt，只读取，不修改任何文件';
+test('conversation mixed file and Task reply is denied before Native discovery',async()=>{
+  const h=conversationHarness();h.userText(readTask);h.taskIntent(true);
+  h.answer('读取文件，同时包含 Task 候选');
+  let calls=0;const request=h.files.request;
+  h.files.request=(...args)=>{calls++;return request(...args);};
+  try{
+    await assert.rejects(h.controller.conversationTask({task:readTask},pageSender),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+    assert.equal(calls,0);assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+    assert.deepEqual(h.ledger['opendesk.chatgpt.files.tasks.v1'],{});
+  }finally{h.controller.dispose();}
+});
+test('conversation admission requires a bound answer before planning a connection',async()=>{
+  const h=setup();h.userText(readTask);h.revision('');
+  try{
+    await assert.rejects(h.controller.conversationTask({task:readTask},pageSender),{code:'E_CHAT_ANSWER',outcome:'NOT_DISPATCHED'});
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{h.controller.dispose();}
+});
+test('first connection rejects changed answers and Task conflicts without reading or filling',async()=>{
+  for(const task of [readTask,projectTask])for(const conflict of [false,true]){
+    const h=setup();h.userText(task);
+    try{
+      const pending=await h.controller.conversationTask({task},pageSender);
+      assert.equal(pending.needsConnection,true);
+      const stored=h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'];
+      assert.equal(stored.project.entryAnswerKey,'answer-1');
+      if(conflict)h.taskIntent(true);else h.revision('answer-2');
+      await assert.rejects(h.call('connect-project',{workspaceId}),
+        {code:conflict?'E_CHAT_ROUTE':'E_CHAT_ANSWER',outcome:'NOT_DISPATCHED'});
+      assert.equal((await h.controller.projectStatus(pageSender)).automation.phase,'paused');
+      await h.controller.tick();assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+    }finally{h.controller.dispose();}
+  }
+});
+test('existing grant still rechecks the admitted answer before the initial file read',async()=>{
+  for(const conflict of [false,true]){
+    const h=conversationHarness();h.userText(readTask);
+    const request=h.files.request;
+    h.files.request=(...args)=>{if(args[0]==='workspaces.list'){
+      if(conflict)h.taskIntent(true);else h.revision('answer-2');
+    }return request(...args);};
+    try{
+      await assert.rejects(h.controller.conversationTask({task:readTask},pageSender),
+        {code:conflict?'E_CHAT_ROUTE':'E_CHAT_ANSWER',outcome:'NOT_DISPATCHED'});
+      assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+    }finally{h.controller.dispose();}
+  }
+});
+test('legacy pending connection cannot inherit the current answer after restart',async()=>{
+  const h=setup();h.userText(readTask);
+  await h.controller.conversationTask({task:readTask},pageSender);h.controller.dispose();
+  delete h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'].project.entryAnswerKey;
+  const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
+  try{
+    await assert.rejects(resumed.handle({protocol:CHATGPT_FILES_PROTOCOL,action:'connect-project',workspaceId},owner),
+      {code:'E_CHAT_ANSWER',outcome:'NOT_DISPATCHED'});
+    assert.equal(h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'].project.entryAnswerKey,undefined);
+    assert.equal((await resumed.projectStatus(pageSender)).automation.phase,'paused');
+    await resumed.tick();assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{resumed.dispose();}
+});
 test('first conversation connection preserves a terminal inline draft failure without retry',async()=>{
   for(const fillError of [{code:'E_CHAT_DRAFT',outcome:'NOT_DISPATCHED'},
     {code:'E_CHAT_FILL_UNKNOWN',outcome:'OUTCOME_UNKNOWN'}]){
@@ -516,7 +741,32 @@ test('conversation write fills actual read and edit context once and completes w
   assert.equal(done.observed,false);assert.match(done.resultText,/readBackVerified/);
   assert.equal(done.result.data.saved,true);assert.equal(done.result.data.readBackVerified,true);
   assert.equal(done.result.data.sha256,sha('safe modified\n'));
+  assert.deepEqual(done.comparison,{before:'safe original\n',proposed:'safe modified\n',readBack:'safe modified\n'});
+  const receipt=JSON.parse(done.resultText.slice(done.resultText.indexOf('{')));
+  assert.equal(Object.hasOwn(receipt,'comparison'),false,'comparison is not part of the model-facing receipt');
+  assert.equal(Object.hasOwn(receipt.data,'content'),false);
   assert.deepEqual(h.counts(),{reads:3,writes:1,fills:1});
+  h.controller.dispose();
+  const event=()=>{const listeners=new Set();return {listeners,addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};};
+  const messages=event();h.api.runtime.onMessage=messages;
+  Object.assign(h.api.webNavigation,{onCommitted:event(),onHistoryStateUpdated:event()});h.api.tabs.onRemoved=event();
+  const service=installChatGPTFilesService({api:h.api,files:h.files});
+  try{
+    const reply=await new Promise(resolve=>{for(const listener of messages.listeners)
+      listener({protocol:CHATGPT_PROJECT_PROTOCOL,action:'status'},pageSender,resolve);});
+    assert.equal(reply.ok,true);
+    assert.deepEqual(reply.data.projectConnection,{name:'isolated-test'});
+    assert.deepEqual(reply.data.comparison,done.comparison);
+    assert.deepEqual(h.counts(),{reads:3,writes:1,fills:1},'viewing the stored receipt performs no file I/O');
+    h.ledger['opendesk.chatgpt.files.grants.v1'].existing.revoked=true;
+    for(const action of ['stop','status','wake']){
+      const afterRevoke=await new Promise(resolve=>{for(const listener of messages.listeners)
+        listener({protocol:CHATGPT_PROJECT_PROTOCOL,action},pageSender,resolve);});
+      assert.doesNotMatch(JSON.stringify(afterRevoke),/safe original|safe modified/);
+      if(action==='stop')assert.equal(afterRevoke.ok,true);else assert.equal(afterRevoke.ok,false);
+    }
+    assert.deepEqual(h.counts(),{reads:3,writes:1,fills:1},'revoked stop and status do not access files');
+  }finally{service.dispose();}
 });
 test('conversation fill failure never retries, Stop blocks proposal, unknown write remains fenced',async()=>{
   const draft=conversationHarness({fillUnknown:true});draft.userText(projectTask);
@@ -531,7 +781,9 @@ test('conversation fill failure never retries, Stop blocks proposal, unknown wri
     await h.controller.tick();await h.controller.tick();
     assert.equal(h.counts().writes,stop?0:1);assert.equal(h.counts().fills,1);
     if(!stop){
-      assert.equal((await h.controller.projectStatus(pageSender)).resultStatus,'unknown');
+      const unknown=await h.controller.projectStatus(pageSender);
+      assert.equal(unknown.resultStatus,'unknown');
+      assert.deepEqual(unknown.comparison,{before:'safe original\n',proposed:'safe modified\n'});
       h.turn('turn-3');h.userText(projectTask);
       await assert.rejects(h.controller.conversationTask({task:projectTask},pageSender),{code:'E_FILE_UNKNOWN'});
     }

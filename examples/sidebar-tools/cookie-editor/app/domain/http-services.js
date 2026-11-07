@@ -22,15 +22,27 @@ const safeResource=row=>object(row)&&id(row.remoteAccountId)&&row.providerKey===
 const safeBinding=row=>object(row)&&id(row.bindingId)&&id(row.remoteAccountId)&&row.verificationState==='UNVERIFIED'&&
   row.providerKey==='codex'&&row.purpose==='usage'&&typeof row.revoked==='boolean'&&positive(row.revision)&&positive(row.authEpoch)&&
   object(row.localAccount)&&id(row.localAccount.alias)&&Number.isSafeInteger(row.localAccount.version);
-const readActions=new Set(['serviceStatus','serviceResources','serviceUsage','serviceReadPolicy','serviceReconcile']);
+const readActions=new Set(['serviceStatus','serviceCheck','serviceResources','serviceUsage','serviceReadPolicy','serviceReconcile']);
+// The sandbox bridge retains code/message only; the SDK's E_HTTP message is
+// exactly "HTTP <status>". Direct SDK consumers also carry response/status.
+const httpStatus=error=>error?.status??error?.response?.status??(error?.code==='E_HTTP'?Number(/^HTTP (\d{3})$/.exec(error.message)?.[1])||null:null);
+const safeErrors=new Set(['E_NETWORK','E_TIMEOUT','E_HTTP','E_NETWORK_NOT_SUBMITTED','E_CANCELLED','E_SITE_PERMISSION_REVOKED','E_PERMISSION','E_CAPABILITY','E_LIMIT','E_VALUE_SERIALIZATION','E_SERVICE_RESPONSE','E_SERVICE_IDENTITY',
+  'E_COOKIE_STORE','E_OUTCOME_UNKNOWN','E_SERVICE_BINDING','E_SERVICE_CONFLICT','E_SERVICE_EXISTS','E_SERVICE_INPUT','E_SERVICE_LIMIT','E_SERVICE_NOT_FOUND','E_SERVICE_PENDING','E_SERVICE_POLICY','E_SERVICE_RECEIPTS_ONLY','E_SERVICE_RESOURCE','E_SERVICE_SESSION_EXISTS','E_SERVICE_SESSION_EXPIRED','E_SERVICE_STORE','E_TOOL_CHANGED','E_VAULT_CONFLICT']);
+const errorCode=error=>safeErrors.has(error?.code)?error.code:'E_SERVICE_RESPONSE';
+const errorMessage=error=>({E_NETWORK:'无法连接服务，请确认服务正在运行并检查地址和网络。',E_TIMEOUT:'服务请求超时，请确认服务正在运行并检查网络。',E_SITE_PERMISSION_REVOKED:'服务访问权限已撤销，请检查网站访问权限。',E_PERMISSION:'缺少服务访问权限，请检查网站访问权限。',E_SERVICE_IDENTITY:'服务身份不匹配，请到服务后台核对后重新建立连接配置。'})[errorCode(error)]??'服务读取失败，请稍后重试；原配对和已有缓存仍保留。';
+const unreachable=new Set(['E_NETWORK','E_TIMEOUT']);
 // Only this Host error proves the HTTP RPC was never submitted. Cancellation
 // and permission loss can also happen after a remote write has committed.
 const notSent=new Set(['E_NETWORK_NOT_SUBMITTED']);
 export function createCookieHttpServices({request,version,context,clock=Date.now}={}){
   check(typeof request==='function'&&typeof context==='function'&&typeof version==='string');
   let busy=false;const transient=new Map();
-  const durable=state=>({...state,connections:state.connections.map(c=>({...c,resources:[],resourceCursor:null,usageCache:{},policy:null}))});
-  const remember=c=>transient.set(c.id,{session:c.session,resources:copy(c.resources),resourceCursor:c.resourceCursor??null,usageCache:copy(c.usageCache),policy:copy(c.policy)});
+  const durable=state=>({...state,connections:state.connections.map(c=>{
+    const {check:unusedCheck,resourceRead,usageErrors,...metadata}=c;
+    return {...metadata,resources:[],resourceCursor:null,usageCache:{},policy:null};
+  })});
+  const remember=c=>transient.set(c.id,{session:c.session,resources:copy(c.resources),resourceCursor:c.resourceCursor??null,usageCache:copy(c.usageCache),policy:copy(c.policy),
+    check:copy(c.check??null),resourceRead:copy(c.resourceRead??null),usageErrors:copy(c.usageErrors??{})});
   const archive=(c,p,outcome)=>c.history.push({operationId:p.operationId,action:p.action,outcome});
   async function read(){
     const raw=(await request('browser.storage.local.get',{keys:[KEY]}))?.items?.[KEY];
@@ -45,6 +57,7 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         (c.pending===null||object(c.pending)&&id(c.pending.operationId)&&typeof c.pending.action==='string')&&
         (c.session===null||typeof c.session==='string'&&/^[a-f0-9]{64}$/.test(c.session)),'E_SERVICE_STORE');
       cookieServiceOrigin(c.origin);seen.add(c.id);
+      c.check=null;c.resourceRead=null;c.usageErrors={};
       const cached=transient.get(c.id);
       if(cached?.session===c.session)Object.assign(c,copy(cached));
     }
@@ -54,7 +67,7 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
     const {session,version:ownerVersion,history,archivedOperations,...metadata}=copy(c);
     const status=c.status==='RETIRED'?'RETIRED':ownerVersion!==version?'INVALIDATED':c.pending?'OUTCOME_UNKNOWN':c.receiptOnly?'RECEIPTS_ONLY':
       c.status==='CONNECTED'&&clock()>=c.expiresAt?'SESSION_EXPIRED':c.status;
-    return {...metadata,status,canRetire:c.status!=='RETIRED'&&(ownerVersion!==version||c.receiptOnly||c.pending?.action==='connect'||c.status==='CONNECTED'&&clock()>=c.expiresAt),
+    return {check:null,resourceRead:null,usageErrors:{},...metadata,status,canRetire:c.status!=='RETIRED'&&(ownerVersion!==version||c.receiptOnly||c.pending?.action==='connect'||c.status==='CONNECTED'&&clock()>=c.expiresAt),
       pending:c.pending?{operationId:c.pending.operationId,action:c.pending.action,canArchive:c.pending.action==='open'}:null,
       history:history.map(r=>({operationId:r.operationId,action:r.action,outcome:r.outcome}))};
   })};}
@@ -71,7 +84,34 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
   async function wire(c,method,path,body){
     const response=await request('browser.network.request',{method:'POST',url:c.origin+'/opendesk/client/request',
       data:{session:c.session,method,path,...(body===undefined?{}:{body})},config:{responseType:'json',timeout:12000}});
-    check(response?.status===200&&object(response.data),'E_SERVICE_RESPONSE');return response.data;
+    if(response?.status!==200)throw Object.assign(fail('E_HTTP'),{status:response?.status});
+    check(object(response.data),'E_SERVICE_RESPONSE');return response.data;
+  }
+  async function pairReceipt(c,p){
+    const response=await request('browser.network.request',{method:'POST',url:c.origin+'/opendesk/client/pair-result',
+      data:{receiptKey:p.receiptKey,connectionId:c.id,operationId:p.operationId},config:{responseType:'json',timeout:12000}});
+    const receipt=response?.data;
+    check(response?.status===200&&receipt?.operationId===p.operationId&&['CONFIRMED','REJECTED'].includes(receipt.status),'E_SERVICE_RESPONSE');
+    if(receipt.status==='REJECTED')check(receipt.error==='PAIRING_INVALID','E_SERVICE_RESPONSE');
+    return receipt;
+  }
+  async function resources(c,cursor){
+    const result=await wire(c,'GET',cursor?'/opendesk/v1/accounts-page/'+cursor:'/opendesk/v1/accounts');
+    check(Array.isArray(result.accounts)&&result.accounts.length<=16&&result.accounts.every(safeResource)&&
+      (result.nextCursor===null||Number.isSafeInteger(result.nextCursor)&&result.nextCursor>cursor&&result.nextCursor<64),'E_SERVICE_RESPONSE');
+    const rows=cursor?[...c.resources,...result.accounts]:result.accounts;
+    check(rows.length<=64&&new Set(rows.map(r=>r.remoteAccountId)).size===rows.length,'E_SERVICE_RESPONSE');
+    return {rows,cursor:result.nextCursor};
+  }
+  async function readResources(c,cursor){
+    try{
+      const result=await resources(c,cursor);
+      c.resources=result.rows;c.resourceCursor=result.cursor;
+      c.resourceRead={checkedAt:clock(),status:'OK',errorCode:null};
+    }catch(error){
+      c.resourceRead={checkedAt:clock(),status:'FAILED',errorCode:errorCode(error),message:errorMessage(error)};
+      throw error;
+    }finally{remember(c);}
   }
   function apply(c,p,result){
     check(object(result),'E_SERVICE_RESPONSE');
@@ -80,6 +120,7 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         id(result.device?.deviceId)&&positive(result.device.authEpoch)&&result.device.serviceInstanceId===result.serviceInstanceId,'E_SERVICE_RESPONSE');
       c.session=result.session;c.expiresAt=result.expiresAt;c.serviceInstanceId=result.serviceInstanceId;c.deviceId=result.device.deviceId;
       c.authEpoch=result.device.authEpoch;c.status='CONNECTED';c.receiptOnly=false;c.resources=[];c.resourceCursor=null;c.usageCache={};c.policy=null;
+      c.check=null;c.resourceRead=null;c.usageErrors={};
     }else if(p.action==='bind'){
       check(safeBinding(result)&&result.remoteAccountId===p.body.remoteAccountId&&same(result.localAccount,p.body.localAccount)&&result.deviceId===c.deviceId&&!result.revoked,'E_SERVICE_RESPONSE');
       c.bindings.push(result);
@@ -109,7 +150,7 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         check(state.connections.length<8,'E_SERVICE_LIMIT');
         check(!state.connections.some(c=>c.origin===payload.serviceOrigin&&!['DISCONNECTED','RETIRED'].includes(c.status)),'E_SERVICE_EXISTS');
         state.connections.push({id:'http_'+uuid(),label:payload.label,origin:payload.serviceOrigin,version,status:'UNCONNECTED',session:null,
-          expiresAt:0,serviceInstanceId:'',deviceId:'',authEpoch:0,resources:[],resourceCursor:null,usageCache:{},bindings:[],policy:null,pending:null,history:[]});
+          expiresAt:0,serviceInstanceId:'',deviceId:'',authEpoch:0,resources:[],resourceCursor:null,usageCache:{},bindings:[],policy:null,pending:null,history:[],check:null,resourceRead:null,usageErrors:{}});
         await commit();return view(state);
       }
       const c=state.connections.find(c=>c.id===payload.connectionId);check(c,'E_SERVICE_NOT_FOUND');
@@ -121,18 +162,41 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         c.status='RETIRED';await commit();return view(state);
       }
       check(c.version===version,'E_TOOL_CHANGED');
+      if(action==='serviceCheck'){
+        check(!c.pending,'E_OUTCOME_UNKNOWN');check(!c.receiptOnly,'E_SERVICE_RECEIPTS_ONLY');
+        const result={checkedAt:clock(),reachable:null,session:'NOT_CHECKED',resources:'NOT_CHECKED',message:''};
+        if(!c.session||c.status!=='CONNECTED'){
+          result.session='UNPAIRED';result.message='尚未配对，请从服务后台获取连接码后连接。';
+        }else if(clock()>=c.expiresAt){
+          result.session='EXPIRED';result.message='会话已过期，请到服务后台核对并获取新连接码，重新建立连接配置。';
+        }else{
+          try{
+            const self=await wire(c,'GET','/opendesk/v1/self');
+            result.reachable=true;
+            check(self.serviceInstanceId===c.serviceInstanceId&&self.deviceId===c.deviceId&&self.connectionId===c.id,'E_SERVICE_IDENTITY');
+            result.session='OK';
+            await readResources(c,0);result.resources='OK';
+          }catch(error){
+            const status=httpStatus(error);
+            if(status)result.reachable=true;
+            else if(unreachable.has(error?.code))result.reachable=false;
+            if(result.session==='OK')result.resources=[403,404].includes(status)?'DENIED':'FAILED';
+            else if([401,403].includes(status)||error?.code==='E_SERVICE_IDENTITY')result.session='REVOKED';
+            result.message=errorMessage(error);
+            if(result.session==='REVOKED')result.message='会话已失效或撤销，请到服务后台核对并获取新连接码，重新建立连接配置；原配对记录仍保留。';
+            else if(result.resources==='DENIED')result.message='资源访问被拒绝，请联系服务管理员核对授权范围；原配对记录仍保留。';
+          }
+        }
+        result.checkedAt=clock();c.check=result;remember(c);return view(state);
+      }
       if(action==='serviceArchiveOpen'){
         check(c.pending?.action==='open','E_SERVICE_PENDING');
         archive(c,c.pending,'ARCHIVED_UNKNOWN');c.pending=null;await commit();return view(state);
       }
       if(action==='serviceReconcile'&&c.pending?.action==='connect'){
         const p=c.pending;
-        const response=await request('browser.network.request',{method:'POST',url:c.origin+'/opendesk/client/pair-result',
-          data:{receiptKey:p.receiptKey,connectionId:c.id,operationId:p.operationId},config:{responseType:'json',timeout:12000}});
-        const receipt=response?.data;
-        check(response?.status===200&&receipt?.operationId===p.operationId&&['CONFIRMED','REJECTED'].includes(receipt.status),'E_SERVICE_RESPONSE');
+        const receipt=await pairReceipt(c,p);
         if(receipt.status==='CONFIRMED')apply(c,p,receipt.result);
-        else check(receipt.error==='PAIRING_INVALID','E_SERVICE_RESPONSE');
         archive(c,p,receipt.status);c.pending=null;await commit();return view(state);
       }
       if(action==='serviceConnect'){
@@ -148,21 +212,23 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
       if(action==='serviceResources'){
         const cursor=payload.cursor??0;
         check(Number.isSafeInteger(cursor)&&cursor>=0&&cursor<64&&(!cursor||cursor===c.resourceCursor),'E_SERVICE_INPUT');
-        const result=await wire(c,'GET',cursor?'/opendesk/v1/accounts-page/'+cursor:'/opendesk/v1/accounts');
-        check(Array.isArray(result.accounts)&&result.accounts.length<=16&&result.accounts.every(safeResource)&&
-          (result.nextCursor===null||Number.isSafeInteger(result.nextCursor)&&result.nextCursor>cursor&&result.nextCursor<64),'E_SERVICE_RESPONSE');
-        c.resources=cursor?[...c.resources,...result.accounts]:result.accounts;c.resourceCursor=result.nextCursor;
-        check(c.resources.length<=64&&new Set(c.resources.map(r=>r.remoteAccountId)).size===c.resources.length,'E_SERVICE_RESPONSE');
-        await commit();return view(state);
+        await readResources(c,cursor);return view(state);
       }
       if(action==='serviceUsage'){
         check(c.resources.some(r=>r.remoteAccountId===payload.remoteAccountId),'E_SERVICE_RESOURCE');
-        const result=await wire(c,'GET','/opendesk/v1/accounts/'+payload.remoteAccountId+'/usage');
-        check(result.remoteAccountId===payload.remoteAccountId&&result.providerKey==='codex','E_SERVICE_RESPONSE');
-        // Server cache is sanitized; retain only quota display fields, never its
-        // entire profile or arbitrary provider fields in the installed app.
-        c.usageCache[payload.remoteAccountId]={status:result.status,observedAt:result.observedAt,sourceMode:result.sourceMode,
-          windows:copy(result.account?.windows??[])};await commit();return view(state);
+        try{
+          const result=await wire(c,'GET','/opendesk/v1/accounts/'+payload.remoteAccountId+'/usage');
+          check(result.remoteAccountId===payload.remoteAccountId&&result.providerKey==='codex','E_SERVICE_RESPONSE');
+          // Server cache is sanitized; retain only quota display fields, never its
+          // entire profile or arbitrary provider fields in the installed app.
+          c.usageCache[payload.remoteAccountId]={status:result.status,observedAt:result.observedAt,sourceMode:result.sourceMode,
+            windows:copy(result.account?.windows??[])};
+          delete (c.usageErrors??={})[payload.remoteAccountId];
+        }catch(error){
+          (c.usageErrors??={})[payload.remoteAccountId]={checkedAt:clock(),status:'FAILED',errorCode:errorCode(error),message:errorMessage(error)};
+          throw error;
+        }finally{remember(c);}
+        return view(state);
       }
       if(action==='serviceReadPolicy'){
         const result=await wire(c,'GET','/opendesk/v1/sync-policy');
@@ -217,7 +283,8 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         if(p.action==='connect'){
           const response=await request('browser.network.request',{method:'POST',url:c.origin+'/opendesk/client/pair',
             data:{code:payload.code,connectionId:c.id,label:c.label,operationId:p.operationId,receiptKey:p.receiptKey},config:{responseType:'json',timeout:12000}});
-          check(response?.status===200,'E_SERVICE_RESPONSE');result=response.data;
+          if(response?.status!==200)throw Object.assign(fail('E_HTTP'),{status:response?.status});
+          result=response.data;
         }else result=await wire(c,p.method,p.path,p.body);
         if(p.action==='open'){
           let url;try{url=new URL(result.url);}catch{throw fail('E_SERVICE_RESPONSE');}
@@ -230,6 +297,15 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         }else apply(c,p,result);
         archive(c,p,'CONFIRMED');c.pending=null;await commit();
       }catch(error){
+        // HTTP 401 is the protocol's invalid/expired/consumed-code response.
+        // Clear it only after reading this exact operation's definitive receipt.
+        if(p.action==='connect'&&httpStatus(error)===401){
+          let receipt;try{receipt=await pairReceipt(c,p);}catch{/* Keep unknown. */}
+          if(receipt){
+            if(receipt.status==='CONFIRMED')apply(c,p,receipt.result);
+            archive(c,p,receipt.status);c.pending=null;await commit();return view(state);
+          }
+        }
         if(notSent.has(error?.code)&&(!p.tabAttempted||error.code==='E_CANCELLED')){
           archive(c,p,'NOT_DISPATCHED');c.pending=null;await commit();throw error;
         }
@@ -239,7 +315,7 @@ export function createCookieHttpServices({request,version,context,clock=Date.now
         await commit();
       }
       return view(state);
-    }finally{busy=false;}
+    }catch(error){throw fail(errorCode(error));}finally{busy=false;}
   }
   return Object.freeze({dispatch});
 }

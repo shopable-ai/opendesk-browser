@@ -9,6 +9,7 @@ import CookieImport from './components/CookieImport.jsx';
 import CookieExport from './components/CookieExport.jsx';
 import CookiePermissions from './components/CookiePermissions.jsx';
 import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
+import CookieChangeMonitor from './components/CookieChangeMonitor.jsx';
 import {CookieAccounts} from './components/CookieAccounts.jsx';
 import {CookieAccountMarket} from './components/CookieAccountExperiences.jsx';
 import {CookieEnterprisePanel,CookieCustomizePanel,CookieCommunityPanel} from './components/CookieBusinessPanels.jsx';
@@ -16,7 +17,7 @@ import cookiePackage from '../package.json';
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
-export default function CookieEditorApp({request,hostRoot,setState,previewMode=false,initialSection='cookie'}){
+export default function CookieEditorApp({request,hostRoot,setState,previewMode=false,browser,initialSection='cookie',teamClient=null}){
   const [view,setView]=React.useState(null);
   const [mode,setMode]=React.useState('browser');
   const [section,setSection]=React.useState(initialSection);
@@ -47,6 +48,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const accountInFlight=React.useRef(false);
   // Session-only evidence of an applied or freshly matched snapshot, never login proof.
   const verifiedAccount=React.useRef(null);
+  // Display history is never proof that the live Cookie snapshot may be saved.
+  const appliedAccount=React.useRef(null);
+  const accountDisplayGeneration=React.useRef(0);
+  const [switchingAlias,setSwitchingAlias]=React.useState(null);
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
   const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false,exportOpen:false});
@@ -62,6 +67,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [sort,setSort]=React.useState('source');
   const [page,setPage]=React.useState(1);
   const [expanded,setExpanded]=React.useState(false);
+  const [changesOnly,setChangesOnly]=React.useState(false);
   const [dirty,updateDirty]=React.useState(false);
   const setDirty=value=>{syncGate.current.dirty=value;updateDirty(value);};
   const dirtyRef=React.useRef(false);
@@ -72,14 +78,18 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [importNotice,setImportNotice]=React.useState(null);
   const [working,updateWorking]=React.useState(false);
   const setWorking=value=>{syncGate.current.working=value;updateWorking(value);};
+  const clearScopeInFlight=React.useRef(false);
   const appliedSite=React.useRef('');
   const data=React.useRef(null);
   if(data.current===null){
     const adapter=createCookieSdkAdapter({
-      getBrowser:()=>globalThis.OpenDeskSDK?.browser,
+      getBrowser:()=>previewMode ? browser : globalThis.OpenDeskSDK?.browser,
       request,version:cookiePackage.version
     });
     const controller=createCookieController({adapter,onChange:s=>{
+      const applied=appliedAccount.current;
+      if(applied&&(s.epoch!==applied.epoch||s.target?.url!==applied.url||s.phase!=='ready'))
+        appliedAccount.current=null;
       const verified=verifiedAccount.current;
       if(verified){
         if(s.epoch!==verified.epoch||s.target?.url!==verified.url||
@@ -221,16 +231,36 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     // independent dirty state when an unrelated browser event fires.
     if(modeRef.current==='offline')return;
     if(snapshot.phase!=='ready'){
+      setChangesOnly(false);
       setSelected(null);setPanel(null);setExportOpen(false);setDirty(false);setConfirmation(null);
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
   const cookieReady=snapshot.phase==='ready';
+  const displayedAccount=appliedAccount.current||verifiedAccount.current;
+  const displayedAlias=cookieReady&&accountState?.unlocked&&displayedAccount&&
+    snapshot.epoch===displayedAccount.epoch&&target?.url===displayedAccount.url&&
+    accountState.accounts.some(item=>item.alias===displayedAccount.alias&&
+      item.version===displayedAccount.version&&item.origin===target?.origin)
+    ?displayedAccount.alias:null;
   const pageUnavailable=snapshot.phase==='blocked'&&[
     'E_UNSUPPORTED_SCHEME','E_INCOGNITO','E_NO_ACTIVE_TAB','E_WINDOW_UNAVAILABLE',
     'E_DOCUMENT_UNRESOLVED'
   ].includes(snapshot.problem);
-  const acceptAccountState=result=>{
+  const acceptAccountState=(result,readApplied=false)=>{
+    const recent=appliedAccount.current;
+    if(recent&&(!result.unlocked||!result.accounts.some(item=>
+      item.alias===recent.alias&&item.version===recent.version&&item.origin===target?.origin)))
+      appliedAccount.current=null;
+    if(readApplied){
+      const proof=result.lastApplied,live=controller.snapshot();
+      const account=result.accounts.find(item=>item.alias===proof?.alias&&
+        item.version===proof?.version&&item.origin===live.target?.origin);
+      appliedAccount.current=result.unlocked&&live.phase==='ready'&&account&&
+        proof.loginVerified===false&&['matches','differs'].includes(proof.snapshotState)
+        ?{alias:account.alias,version:account.version,kind:'applied',
+          epoch:live.epoch,url:live.target.url,snapshotState:proof.snapshotState}:null;
+    }
     const verified=verifiedAccount.current;
     if(verified&&(!result.unlocked||!result.accounts.some(item=>
       item.alias===verified.alias&&item.version===verified.version&&item.origin===target?.origin)))
@@ -239,23 +269,25 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
 
   React.useEffect(()=>{
-    if(mode!=='browser'||!['accounts','enterprise'].includes(section)||!target?.origin){
+    if(mode!=='browser'||!['accounts','enterprise'].includes(section)||!target?.origin||snapshot.phase!=='ready'){
+      appliedAccount.current=null;
       verifiedAccount.current=null;
       setAccountState(null);return;
     }
     let active=true;
+    const generation=accountDisplayGeneration.current;
     setAccountState(null);
     setAccountNotice(null);
     void adapter.accountRequest('status',{}).then(result=>{
       if(active&&result&&typeof result.configured==='boolean'&&
-         Array.isArray(result.accounts))acceptAccountState(result);
+         Array.isArray(result.accounts))acceptAccountState(result,generation===accountDisplayGeneration.current);
       else if(active)throw Error('E_ACCOUNT_HOST');
     }).catch(error=>{
       if(active)setAccountNotice({kind:'error',
         text:'账号服务不可用（'+String(error?.code||'E_ACCOUNT_HOST')+'）。请确认已安装最新正式版。'});
     });
     return ()=>{active=false;};
-  },[adapter,mode,section,target?.origin]);
+  },[adapter,mode,section,target?.origin,snapshot.epoch,snapshot.phase]);
   serviceContext.current=[mode,section,target?.origin,snapshot.epoch].join('|');
   React.useEffect(()=>{
     if(mode!=='browser'||section!=='enterprise'){setHttpServiceState(null);return;}
@@ -266,20 +298,36 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[adapter,mode,section]);
   const httpServiceAction=async(action,payload={})=>{
     if(serviceInFlight.current||mode!=='browser')return false;
+    const actionContext=serviceContext.current;
     serviceInFlight.current=true;setServiceBusy(true);setHttpServiceNotice('');
     try{
-      const result=await adapter.httpServiceRequest(action,payload);
+      let result=await adapter.httpServiceRequest(action,payload);
+      if(serviceContext.current!==actionContext)return false;
+      // Pairing is confirmed separately from the authorized read that follows.
+      if(action==='serviceConnect'&&!result.connections.some(c=>c.pending)){
+        const connection=result.connections.find(c=>c.id===payload.connectionId);
+        if(connection?.status==='CONNECTED'){
+          try{result=await adapter.httpServiceRequest('serviceResources',{connectionId:connection.id});}
+          catch{/* Domain preserves pairing and records the failed resource read. */
+            result=await adapter.httpServiceRequest('serviceStatus');
+          }
+        }
+      }
+      if(serviceContext.current!==actionContext)return false;
       setHttpServiceState(result);
       const unknown=result.connections.some(c=>c.pending);
-      const rejected=action==='serviceReconcile'&&result.connections.some(c=>c.history.at(-1)?.outcome==='REJECTED');
+      const rejected=['serviceConnect','serviceReconcile'].includes(action)&&result.connections.find(c=>c.id===payload.connectionId)?.history.at(-1)?.outcome==='REJECTED';
       setHttpServiceNotice(unknown?'原操作结果未知，已保留记录；请核对原回执，不要重复发送。':
         rejected?'服务已确认此配对码无效或过期，未创建设备。请获取新应用配对码后重新审阅连接。':
         action==='serviceSave'?'配置已保存，尚未连接。下一步填写应用一次性连接码并确认连接。':
         action==='serviceOpen'?'已打开对应管理页。':action==='serviceConnect'?'HTTP 服务已连接，不会上传 Cookie。':
         action==='serviceBind'?'关联已确认，登录身份仍未核验。':action==='serviceDisconnect'?'服务已确认断开。':
-        action==='serviceUsage'?'已读取缓存用量，没有查询上游。':'服务状态已更新。');
-      return !unknown;
+        action==='serviceUsage'?'已读取缓存用量，没有查询上游。':
+        action==='serviceCheck'?'连接检查已结束，请分别查看服务、会话和资源结果。':
+        action==='serviceStatus'?'已刷新本地配置；未检查远端服务。':'服务状态已更新。');
+      return unknown ? false : rejected ? {rejected:true,state:result} : {ok:true,state:result};
     }catch(error){
+      if(serviceContext.current!==actionContext)return false;
       const messages={E_SERVICE_INPUT:'请填写精确服务地址和 64 位应用配对码。',E_SERVICE_EXISTS:'该地址或资源已有连接，请使用现有记录。',
         E_SERVICE_CONFLICT:'状态已变化，请重新读取后核对。',E_VAULT_CONFLICT:'当前网站或保存账号版本已变化，请重新选择。',
         E_DOCUMENT_CHANGED:'当前网站已变化，请返回原网站后核对。',E_SERVICE_SESSION_EXPIRED:'会话已过期，原授权不会自动恢复。',
@@ -290,7 +338,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         E_SERVICE_PENDING:'该操作需要在后台管理页核对，不能重发。'};
       setHttpServiceNotice(messages[error?.code]||'请求未确认，请重新读取状态核对；不要重复写入。');
       try{
-        const current=await adapter.httpServiceRequest('serviceStatus');setHttpServiceState(current);
+        const current=await adapter.httpServiceRequest('serviceStatus');
+        if(serviceContext.current!==actionContext)return false;
+        setHttpServiceState(current);
         if(!current.connections.some(c=>c.pending)&&error?.code!=='E_OUTCOME_UNKNOWN')return {rejected:true};
       }catch{/* preserve visible state */}
       return false;
@@ -361,6 +411,13 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       return Promise.resolve(false);
     }
     accountInFlight.current=true;
+    if(action==='switch'){
+      accountDisplayGeneration.current++;
+      appliedAccount.current=null;
+      setSwitchingAlias(payload.alias);
+    }
+    if(action==='delete'&&payload.alias===appliedAccount.current?.alias)
+      appliedAccount.current=null;
     if(action==='switch'||
       (action==='delete'&&payload.alias===verifiedAccount.current?.alias))
       verifiedAccount.current=null;
@@ -372,7 +429,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         ...payload,revision:accountState.revision
       });
     }catch(error){
-      accountInFlight.current=false;
+      accountInFlight.current=false;setSwitchingAlias(null);
       setAccountNotice({kind:'error',text:'账号请求未能发出；未保存。('+
         String(error?.code||'E_ACCOUNT_HOST')+')'});
       return Promise.resolve(false);
@@ -391,7 +448,13 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     return Promise.resolve(intent).then(async receipt=>{
       if(!sameAccountContext())return false;
       if(action==='switch'){
-        if(receipt?.switched!==true||receipt?.verified!==true||controller.snapshot().phase!=='ready')
+        const effectReceipt=['verification','snapshotState','loginVerified']
+          .some(field=>field in Object(receipt));
+        if(receipt?.switched!==true||receipt?.verified!==true||controller.snapshot().phase!=='ready'||
+          (effectReceipt&&(receipt.verification!=='cookie-effects'||
+            !['matches','differs'].includes(receipt.snapshotState)||receipt.loginVerified!==false||
+            !Number.isSafeInteger(receipt.changed)||receipt.changed<0||
+            typeof receipt.reloadRequested!=='boolean')))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
         const account=accountState.accounts.find(item=>item.alias===payload.alias&&
           item.origin===requestedOrigin);
@@ -399,17 +462,22 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         const verified={alias:account.alias,version:account.version,kind:'applied',
           epoch:requestedEpoch,url:target.url,rows:JSON.stringify(controller.snapshot().rows),
           refreshing:!receipt.reloadRequested};
-        verifiedAccount.current=verified;
-        setAccountNotice({kind:'success',text:receipt.preview===true
-          ?'预览模拟：切换流程已返回虚构回执，未操作真实 Cookie。'
-          :receipt.reloadRequested
-            ?'已验证 Cookie 切换，正在刷新目标网页。'
-            :'已验证 Cookie 切换；自动刷新已关闭。'});
+        // Step-by-step Cookie effects remain successful even when the site has
+        // already changed them. Only a matching snapshot may authorize update.
+        verifiedAccount.current=effectReceipt&&receipt.snapshotState==='differs'?null:verified;
+        appliedAccount.current={...verified,snapshotState:receipt.snapshotState||'matches'};
         if(!receipt.reloadRequested){
           // Reconcile metadata without retiring the just-verified target/epoch.
           try{await controller.syncMetadata();}
           finally{verified.refreshing=false;}
         }
+        if(!sameAccountContext()||controller.snapshot().phase!=='ready')return false;
+        setAccountNotice({kind:'success',epoch:requestedEpoch,url:requestedUrl,
+          text:receipt.preview===true
+            ?'预览模拟：切换流程已返回虚构回执，未操作真实 Cookie。'
+            :receipt.reloadRequested
+              ?'已应用 Cookie 切换，正在刷新目标网页（非登录验证）。'
+              :'已应用 Cookie 切换；自动刷新已关闭（非登录验证）。'});
       }else{
         if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
@@ -491,7 +559,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或账号状态。')+
         '（'+code+'）'});
       return false;
-    }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
+    }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);setSwitchingAlias(null);});
   };
   const copyNonSecret=async text=>{
     const requested=controller.snapshot();
@@ -724,14 +792,28 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(!result)return;
     if(!result.count){
       controller.discardClear();
-      setStatus('当前清理范围内没有可删除的 Host-only Cookie。');
+      setStatus(result.excluded?'当前没有可清理的 Cookie；部分 Cookie 因权限或连接限制保留。':'当前清理范围内没有可删除的 Cookie。');
       return;
     }
     ask('',
       async()=>{setWorking(true);try{await controller.executeClear();}
         finally{setWorking(false);}},
       ()=>controller.discardClear(),'clear',
-      {hostname:result.hostname,count:result.count});
+      {hostname:result.hostname,count:result.count,excluded:result.excluded,includeShared:true,token:{}});
+  };
+  const changeClearScope=async includeShared=>{
+    const current=syncGate.current.confirmation;
+    if(!current||current.kind!=='clear'||clearScopeInFlight.current)return;
+    clearScopeInFlight.current=true;
+    setConfirmation({...current,includeShared,count:null});
+    setWorking(true);
+    try{
+      const next=await controller.previewClear(includeShared);
+      const live=syncGate.current.confirmation;
+      if(!live||live.token!==current.token)return;
+      if(!next){setConfirmation(null);return;}
+      setConfirmation({...live,...next});
+    }finally{clearScopeInFlight.current=false;setWorking(false);}
   };
   const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
   const focusSection=key=>hostRoot.querySelector('#cookie-product-tab-'+key)
@@ -800,6 +882,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onOffline={()=>switchMode('offline')}/>
       {!pageUnavailable&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
+          changes={snapshot.changes} changesOnly={changesOnly}
+          monitor={cookieReady?<CookieChangeMonitor key={snapshot.epoch}
+            adapter={adapter} controller={controller} changes={snapshot.changes}
+            stale={snapshot.syncStale}
+            available={selected===null&&panel===null&&!exportOpen&&!locked&&!dirty&&!serviceDirty}
+            canApply={()=>{
+              const gate=syncGate.current;
+              return modeRef.current==='browser'&&gate.selected===null&&gate.panel===null&&
+                !gate.exportOpen&&!gate.dirty&&!gate.confirmation&&!gate.working;
+            }}
+            onlyChanged={changesOnly} onOnlyChanged={value=>{setChangesOnly(value);setPage(1);}}/>:null}
           importOpen={panel==='import'}
           rows={cookieReady?snapshot.rows:[]} selected={cookieReady?selected:null} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -838,11 +931,13 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           setAccountDirty(false);action();
         },onCancel)}
         origin={target?.origin||''} accounts={accountState?.accounts||[]}
-        currentAlias={snapshot.phase==='ready'&&accountState?.unlocked&&verifiedAccount.current&&
-          snapshot.epoch===verifiedAccount.current.epoch&&target?.url===verifiedAccount.current.url&&
-          accountState.accounts.some(item=>item.alias===verifiedAccount.current.alias&&
-            item.version===verifiedAccount.current.version)?verifiedAccount.current.alias:null}
-        currentKind={verifiedAccount.current?.kind||'applied'}
+        currentAlias={displayedAlias}
+        currentKind={(appliedAccount.current||verifiedAccount.current)?.kind||'applied'}
+        snapshotMatches={Boolean(displayedAlias&&verifiedAccount.current&&
+          verifiedAccount.current.alias===displayedAlias&&
+          verifiedAccount.current.version===displayedAccount.version&&
+          verifiedAccount.current.epoch===snapshot.epoch&&verifiedAccount.current.url===target?.url)}
+        switchingAlias={switchingAlias}
         route={accountRoute} onRoute={setAccountRoute}
         accountReady={accountState?.unlocked===true}
         legacyLocked={accountState?.legacyLocked===true} switchReady={
@@ -853,7 +948,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         autoRefresh={accountState?.settings?.autoRefresh!==false}
         previewOnly={accountState?.preview===true}
         busy={accountBusy||locked}
-        feedback={accountNotice?.kind==='error'?accountNotice:null}
+        feedback={accountNotice?.kind==='error'||(accountNotice?.epoch===snapshot.epoch&&
+          accountNotice?.url===target?.url&&snapshot.phase==='ready')?accountNotice:null}
         cookieDetails={snapshot.phase==='ready'?snapshot.rows.slice(0,100).map(row=>({
           id:row.id,name:row.name,domain:row.domain,path:row.path,
           storeId:row.storeId,partition:row.partitionKey?.topLevelSite||''
@@ -916,7 +1012,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onAllowAlias={(item,enabled)=>accountAction('allowAlias',{
           alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
         onCopyLink={copyAccountLink}/>}
-      {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode}
+      {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode} teamClient={teamClient}
         httpServiceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
           accountReady:accountState?.unlocked===true,state:httpServiceState,busy:locked,
           notice:httpServiceNotice,onAction:httpServiceAction,onDirtyChange:setHttpServiceDirty,formRevision:serviceFormRevision,
@@ -979,7 +1075,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {importNotice.text}
     </div>}
     {confirmation?.kind==='clear'&&<CookieClearDialog
-      hostname={confirmation.hostname} count={confirmation.count} busy={working}
+      hostname={confirmation.hostname} count={confirmation.count} excluded={confirmation.excluded} busy={working}
+      includeShared={confirmation.includeShared} onScopeChange={changeClearScope}
       onCancel={()=>endConfirm(false)} onConfirm={()=>endConfirm(true)}/>}
     {confirmation?.kind==='discard'&&<div className="discard-row" role="status">
       <span>{confirmation.text}</span>

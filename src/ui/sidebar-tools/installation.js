@@ -536,10 +536,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
        (existing&&!sameSidebarToolPackage(existing,baseline)))
       throw error('安装状态已发生变化，请重新审阅','E_TOOL_CHANGED');
     const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
+    let sourceChanged=false;
     if(!identity&&existing&&provenance[tool.id]&&!sameSidebarToolPackage(existing,tool)){
       if(typeof approveSourceChange!=='function')
         throw error('官方来源工具不能被本地包静默接管，请审核来源替换','E_PUBLISHER_CONFLICT');
       if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
+      sourceChanged=true;
     }
     if(identity&&existing&&!sameSidebarToolPackage(existing,tool)){
       const record=provenance[tool.id];
@@ -547,6 +549,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         if(record||typeof approveSourceChange!=='function')
           throw error('此工具 ID 已被其他来源使用，必须明确审核来源替换','E_PUBLISHER_CONFLICT');
         if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
+        sourceChanged=true;
       }
     }
     if(identity&&await canonicalSha256(tool)!==identity.sha256)
@@ -673,19 +676,29 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       for(const [store,capability] of siteStores)
         if(!existing?.capabilities.includes(capability))await clearGrant(store);
       if(!existing)await clearGrant(BROWSER_MENU_GRANTS_STORE);
-      // Only menu preferences cross this explicitly reviewed update. Rebinding
-      // the shared row would also silently approve Cookie/Full Bookmarks data.
-      let rawBrowserGrants,browserGrants,previousBrowserGrant,previousMenu,preserveMenu=false;
-      if(existing?.capabilities.includes('browser.contextMenu')&&tool.capabilities.includes('browser.contextMenu')){
+      // Cookie consent may cross a reviewed same-source update only with its
+      // exact old identity and unchanged Cookie capabilities. Other grants in
+      // this shared row must not become valid merely because Cookie is rebound.
+      const cookieCaps=value=>value.capabilities.filter(cap=>cap.startsWith('browser.cookies.')).sort();
+      const oldCookieCaps=existing?cookieCaps(existing):[],newCookieCaps=cookieCaps(tool);
+      const mayPreserveCookies=existing&&!sourceChanged&&oldCookieCaps.length>0&&
+        sameStorageValue(oldCookieCaps,newCookieCaps);
+      const mayPreserveMenu=existing?.capabilities.includes('browser.contextMenu')&&tool.capabilities.includes('browser.contextMenu');
+      let rawBrowserGrants,browserGrants,previousBrowserGrant,previousMenu,preserveMenu=false,preserveCookies=false;
+      if(mayPreserveCookies||mayPreserveMenu){
         rawBrowserGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
         if(rawBrowserGrants!==undefined&&(!rawBrowserGrants||typeof rawBrowserGrants!=='object'||Array.isArray(rawBrowserGrants)))
           throw error('工具浏览器授权记录损坏','E_STORAGE_CORRUPT');
         browserGrants=rawBrowserGrants||{};previousBrowserGrant=browserGrants[tool.id];
         previousMenu=previousBrowserGrant?.contextMenu??previousBrowserGrant;
-        preserveMenu=previousMenu?.version===existing.version&&
+        preserveCookies=Boolean(mayPreserveCookies&&previousBrowserGrant?.version===existing.version&&
+          previousBrowserGrant.installEpoch===(epochs[tool.id]??null)&&
+          previousBrowserGrant.packageHash===await sidebarToolPackageHash(existing)&&
+          (Object.hasOwn(previousBrowserGrant,'cookieSites')||Object.hasOwn(previousBrowserGrant,'cookieAllSites')));
+        preserveMenu=Boolean(mayPreserveMenu&&previousMenu?.version===existing.version&&
           previousMenu.installEpoch===(epochs[tool.id]??null)&&
           previousMenu.packageHash===await sidebarToolPackageHash(existing)&&
-          Array.isArray(previousMenu.activeActions)&&Array.isArray(previousMenu.origins);
+          Array.isArray(previousMenu.activeActions)&&Array.isArray(previousMenu.origins));
       }
       // Only a new installation with a genuinely absent namespace may receive
       // reviewed initialData. Never seed on upgrades, empty saved libraries, or
@@ -698,15 +711,23 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         seeded=true;
       }
       let menuUpdate=null;
+      let reboundMenu;
       if(preserveMenu){
         const oldActions=existing.contributes.contextMenus.map(action=>action.actionId);
         const newActions=tool.contributes.contextMenus.map(action=>action.actionId);
         const activeActions=previousMenu.activeActions.length&&oldActions.every(id=>previousMenu.activeActions.includes(id))
           ?newActions:previousMenu.activeActions.filter(id=>newActions.includes(id));
-        menuUpdate={previous:rawBrowserGrants,next:{...browserGrants,[tool.id]:{
-          ...previousBrowserGrant,contextMenu:{...previousMenu,version:tool.version,
-            installEpoch:nextEpoch,packageHash:await sidebarToolPackageHash(tool),activeActions}
-        }}};
+        reboundMenu={...previousMenu,version:tool.version,
+          installEpoch:nextEpoch,packageHash:await sidebarToolPackageHash(tool),activeActions};
+      }
+      if(preserveCookies||preserveMenu){
+        const row=preserveCookies?{version:tool.version,installEpoch:nextEpoch,
+          packageHash:await sidebarToolPackageHash(tool),
+          ...(Object.hasOwn(previousBrowserGrant,'cookieSites')?{cookieSites:previousBrowserGrant.cookieSites}:{}),
+          ...(Object.hasOwn(previousBrowserGrant,'cookieAllSites')?{cookieAllSites:previousBrowserGrant.cookieAllSites}:{})}:
+          {...previousBrowserGrant};
+        if(reboundMenu)row.contextMenu=reboundMenu;
+        menuUpdate={previous:rawBrowserGrants,next:{...browserGrants,[tool.id]:row}};
       }
       const adblockUpdate=await prepareReviewedAdblockUpdate(api,{
         existing,candidate:tool,oldEpoch:epochs[tool.id]??null,newEpoch:nextEpoch});

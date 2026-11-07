@@ -4,6 +4,8 @@
 
 ## 先恢复当前任务
 
+后台自动 Task 续接时，先读[执行计划顶部“后台 Task 当前执行卡”](docs/execution-plan.zh-CN.md#后台-task-当前执行卡2026-11-06接续时先读)，从其中的当前阶段、完成度和下一条用户操作开始；再按需读取下面的项目说明与历史合同，不从旧 GOAL/历史 PASS 恢复延期范围。用户最新指令优先；该执行卡不接管并行本地文件业务。
+
 先读 [README](README.md)、[产品合同](docs/product-contract.zh-CN.md) 和[执行计划](docs/execution-plan.zh-CN.md)。固定检索词为 `OD-AI-WORKFLOW-BRIDGE`。
 
 只有项目内这两份文档维护完整需求和进度；旧根 docs 路径是迁移入口。保留 BR-01–12、AWB-01–08 与历史证据等级，当前步骤变化直接更新原执行计划。

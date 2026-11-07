@@ -339,15 +339,17 @@ test('a verified manual recovery allows a different automatic URL but never repl
   await dispatch('allowAlias',{revision:3,alias:b.alias,accountVersion:1,enabled:true});
   await dispatch('setAutoEnabled',{revision:4,enabled:true});
   await dispatch('setAutoRefresh',{revision:5,enabled:false});
-  const nativeSet=f.api.cookies.set;
-  // Native mutation happens, but its receipt is lost. A fresh service must
-  // preserve this durable fence until an explicit, verified manual recovery.
+  const nativeSet=f.api.cookies.set,nativeGetAll=f.api.cookies.getAll;
+  // Native mutation happens, but neither the optional result nor the exact
+  // readback confirms it. A fresh service must preserve the durable fence.
   f.api.cookies.set=(details,callback)=>nativeSet(details,()=>callback(undefined));
+  f.api.cookies.getAll=(details,callback)=>callback?callback(undefined):nativeGetAll(details);
   f.document.url='https://example.com/#od-account='+a.alias;
   const navigation=()=>service.navigation({frameId:0,tabId:1,url:f.document.url});
   await navigation();assert.equal(f.writes(),1);
   assert.equal(session[COOKIE_ACCOUNT_SEEN_KEY]['1'].phase,'in_flight');
   f.api.cookies.set=nativeSet;
+  f.api.cookies.getAll=nativeGetAll;
   service=createCookieAccountService({api:f.api,storage:f.storage});
   await navigation();assert.equal(f.writes(),1,'restart must not replay the uncertain write');
   assert.equal((await dispatch('switch',{revision:6,alias:b.alias})).verified,true);
@@ -361,7 +363,7 @@ test('a verified manual recovery allows a different automatic URL but never repl
   assert.equal(session[COOKIE_ACCOUNT_SEEN_KEY]['1'].phase,'applied');
 });
 
-for(const failure of ['lost native receipt','permission revoked','session write failed','newer fence','different website'])
+for(const failure of ['missing exact readback','permission revoked','session write failed','newer fence','different website'])
 test(`manual recovery preserves the automatic fence on ${failure}`,async t=>{
   const f=await serviceFixture(t);
   const saved=await f.dispatch('create',{revision:0,displayName:'A'}),alias=saved.accounts[0].alias;
@@ -379,12 +381,16 @@ test(`manual recovery preserves the automatic fence on ${failure}`,async t=>{
   const nativeSet=f.api.cookies.set;
   f.api.cookies.set=(details,callback)=>nativeSet(details,result=>{
     if(failure==='newer fence')session[COOKIE_ACCOUNT_SEEN_KEY]['1']=newer;
-    callback(failure==='lost native receipt'?undefined:result);
+    callback(failure==='missing exact readback'?undefined:result);
   });
+  if(failure==='missing exact readback'){
+    const nativeGetAll=f.api.cookies.getAll;
+    f.api.cookies.getAll=(details,callback)=>callback?callback(undefined):nativeGetAll(details);
+  }
   if(failure==='permission revoked')f.revoke();
   const operation=f.dispatch('switch',{revision:1,alias});
-  if(failure==='lost native receipt'||failure==='permission revoked')
-    await assert.rejects(operation,{code:failure==='lost native receipt'?'E_OUTCOME_UNKNOWN':'E_SITE_GRANT_REQUIRED'});
+  if(failure==='missing exact readback'||failure==='permission revoked')
+    await assert.rejects(operation,{code:failure==='missing exact readback'?'E_OUTCOME_UNKNOWN':'E_SITE_GRANT_REQUIRED'});
   else assert.equal((await operation).verified,true,'bookkeeping cannot undo a verified Cookie switch');
   assert.deepEqual(session[COOKIE_ACCOUNT_SEEN_KEY]['1'],failure==='newer fence'?newer:prior);
   assert.equal(f.writes(),failure==='permission revoked'?0:1);

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1afe0-c247-7eb2-9a1c-1b48faf23880",
+  "date": "2026-11-06",
+  "scope": "Web Flow file-protocol routing fence, complete answer identity recheck, stage-specific guidance; project business owner only",
+  "sourceReview": {
+    "reviewer": "Hubble",
+    "agentId": "01a1b028-24fd-7451-b9eb-31d3ba12553f",
+    "result": "No P1/P2 blocker in three changed sources; exact pins explicitly approved",
+    "blobs": {
+      "projects/webflow/trusted/chatgpt-conversation-route.js": "8e28adedd8cc2b49ff34897c0857d33cf2478c87",
+      "projects/webflow/trusted/chatgpt-files-controller.js": "5691dbe42f066dbd1333a853a10ca742c7a780dc",
+      "projects/webflow/trusted/chatgpt-files-ui.js": "e3e8f1c09cbd22e226c0ab618bd12a5fc5d674de"
+    },
+    "limitations": "Reviewer did not rerun supplied tests or browser; subsequent doc review failed with 429; no provider/model change."
+  },
+  "tests": {
+    "newRegressionRed": {
+      "pass": 0,
+      "fail": 5
+    },
+    "newRegressionGreen": {
+      "pass": 5,
+      "fail": 0
+    },
+    "affected": {
+      "pass": 390,
+      "fail": 0,
+      "skip": 0,
+      "files": [
+        "projects/webflow/tests/reply-admission.test.mjs",
+        "projects/webflow/tests/chatgpt-file-intent.test.mjs",
+        "projects/webflow/tests/chatgpt-files.test.mjs",
+        "projects/webflow/tests/chatgpt-files-ui.test.mjs",
+        "projects/webflow/tests/chatgpt-files-config.test.mjs",
+        "projects/webflow/tests/chatgpt-project-policy.test.mjs",
+        "tests/environment/workspace-chat-edit.test.mjs",
+        "tests/environment/workspace-chat-request.test.mjs",
+        "tests/environment/chatgpt-task-discovery-p0.test.mjs"
+      ]
+    },
+    "provenance": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "syntax": "node --check all three trusted sources passed",
+    "fullCI": "NOT_TESTED"
+  },
+  "development": {
+    "revision": "3534b57386f41c4e649293e8a9b193eea5d288185d0f5a70271dafa042ac3e2b",
+    "protocol": "opendesk.development.v1",
+    "files": {
+      "native-agent/transport.js": "92863d9c94bce796af40e61037b418137af356e0b27e6544c2f6665822571984",
+      "native-agent/settings.js": "4fba507027b297417ca8e7d31c1eb1cbcfdfd17bd0be2338991e9ec7af6bebcd",
+      "agents/chatgpt-fixed-bridge.js": "63e67927004c9a08afe9dffce074916ac9685d3c421923c5139ea397b3281206"
+    },
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "soleWriter": "existing exec session 4667, npm run dev; reviewed pins reloaded by content-preserving wxt.config.mjs mtime update",
+    "sourceMaps": "All three changed sources match generated targets exactly",
+    "liveServeClient": "NOT_CAPTURED"
+  },
+  "browser": {
+    "application": "Chrome for Testing",
+    "version": "149.0.7827.55",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "sourceUrl": "https://chatgpt.com/c/6aec9316-59c4-83ee-bc35-0bcf4d1b221b",
+    "native": "UI connected",
+    "target": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt",
+    "initial": {
+      "bytes": 65,
+      "sha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b",
+      "content": "OpenDesk local file test\nstatus=completion-two-20261106-01a1afe0\n"
+    },
+    "unusedRequest": {
+      "requestId": "32050b22-5f43-4e30-a1e3-2d4000eee1cc",
+      "bindingId": "5ddf0ac4-7b1a-491a-b0b9-0dc146b493b4",
+      "result": "Original chat temporarily failed to load; E_CHAT_COMPOSER, original composer verified empty after site retry. Review closed, no resend/replay."
+    },
+    "currentRequest": {
+      "requestId": "6f75880c-1484-43cd-a6d9-0d59f1cd83f8",
+      "bindingId": "5d09aa44-70bd-4362-80c1-1279539b87ae",
+      "result": "Official ChatGPT remained at 正在思考 with disabled Stop; no complete response, no real file result. Current candidate Native read/write and mixed-reply browser smoke NOT_TESTED."
+    },
+    "observationType": "Native AX tool observations and independent read-only disk checks; not raw Native packets or dispatch counters",
+    "projectConnection": "Remains revoked; advanced one-time disclosure only, no new Native permission",
+    "final": {
+      "bytes": 65,
+      "sha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b",
+      "unchanged": true,
+      "reviewPage": "closed; advanced poll stopped",
+      "diagnosticsVisible": false,
+      "composer": "empty",
+      "sourceChat": "preserved; official model generation still pending with disabled Stop",
+      "projectConnection": "revoked unchanged",
+      "writer": "preserved"
+    }
+  },
+  "historicalEvidence": {
+    "path": "projects/webflow/evidence/file-protocol-completion-20261106-01a1afe0.json",
+    "scope": "Prior candidate 2 reads, 2 writes, 1 list; not new candidate pass"
+  },
+  "currentCandidateScore": "NOT_SCORED",
+  "production": "NOT_TESTED"
+}

@@ -8,6 +8,8 @@ import {join} from 'node:path';
 import {startReadApi} from './read-api.mjs';
 import {ServiceBindingStore, bindingError, exact} from './service-binding-store.mjs';
 import {createServiceBindingService} from './service-binding.mjs';
+import {TeamAccountStore} from './team-account-store.mjs';
+import {createTeamAccountService} from './team-accounts.mjs';
 
 const headers = {'cache-control':'no-store','x-content-type-options':'nosniff',
   'referrer-policy':'no-referrer', 'cross-origin-resource-policy':'same-origin',
@@ -37,7 +39,7 @@ const pairingJS = `(() => {
 })();`;
 
 export async function startManagementServer({service,store,port=0,
-  assetsDirectory=fileURLToPath(new URL('./web/dist/',import.meta.url)),clock=Date.now,bindingStore=new ServiceBindingStore()}={}) {
+  assetsDirectory=fileURLToPath(new URL('./web/dist/',import.meta.url)),clock=Date.now,bindingStore=new ServiceBindingStore(),teamStore=new TeamAccountStore()}={}) {
   if (!service || typeof service.query!=='function' || !Number.isInteger(port) || port<0 || port>65535)
     throw Error('E_MANAGEMENT_CONFIG');
   // Only these compiled assets are ever served; never filesystem/config routes.
@@ -48,6 +50,7 @@ export async function startManagementServer({service,store,port=0,
   assets.set('/session.js',{body:pairingJS,type:'text/javascript'});
   const reader = await startReadApi({store});
   const bindings=createServiceBindingService({store:bindingStore,clock});
+  const teams=createTeamAccountService({store:teamStore,bindingStore,bindings,clock});
   const clients=new Map(),opens=new Map(),resourceSessions=new Map();
   let closed=false;
   const getClient=secret=>{
@@ -58,8 +61,9 @@ export async function startManagementServer({service,store,port=0,
   // Shared by HTTP and the authenticated, process-only Native adapter.
   async function bindingRequest(secret,{method,path,body}) {
     const context=getClient(secret);
-    if(clients.get(secret).receiptOnly && !(method==='GET'&&/^\/opendesk\/v1\/operations\/[A-Za-z0-9_-]+$/.test(path)))
+    if(clients.get(secret).receiptOnly && !(method==='GET'&&/^\/opendesk\/v1\/(?:operations|team-operations)\/[A-Za-z0-9_-]+$/.test(path)))
       throw bindingError('TRUSTED_SESSION_REQUIRED',403);
+    if(/^\/opendesk\/v1\/team-(?:accounts|operations)(?:\/|$)/.test(path))return teams.request(context,{method,path,body});
     if(method==='GET' && (path==='/opendesk/v1/accounts'||/^\/opendesk\/v1\/accounts\/[A-Za-z0-9_-]+\/usage$/.test(path))) {
       await bindings.request(context,{method:'GET',path:'/opendesk/v1/self'});
       const accounts=(await store.accounts()).filter(a=>context.resourceIds.includes(a.alias));
@@ -76,10 +80,10 @@ export async function startManagementServer({service,store,port=0,
   const hostname=`usage-${randomBytes(12).toString('hex')}.localhost`;
   const expires=clock()+5*60_000, session=randomBytes(32).toString('hex');
   let clientPairing;
-  async function issueClientPairing(){
+  async function issueClientPairing(memberId='local_http'){
     const resourceIds=(await store.accounts()).map(a=>a.alias);
     if(resourceIds.length>64||new Set(resourceIds).size!==resourceIds.length)throw bindingError('BAD_INPUT');
-    clientPairing={code:randomBytes(32).toString('hex'),expiresAt:clock()+5*60_000,resourceIds};
+    clientPairing={code:randomBytes(32).toString('hex'),expiresAt:clock()+5*60_000,resourceIds,memberId};
     return {code:clientPairing.code,origin:`http://${hostname}:${server.address().port}`,expiresAt:clientPairing.expiresAt};
   }
   const httpClients=new Set();
@@ -97,6 +101,8 @@ export async function startManagementServer({service,store,port=0,
     getClient(body.session);
     const {session:secret,method,path}=body;
     const known=typeof path==='string'&&(
+      method==='GET'&&(/^\/opendesk\/v1\/(?:team-accounts|team-operations\/[A-Za-z0-9_-]+)$/.test(path))||
+      method==='POST'&&/^\/opendesk\/v1\/team-accounts\/[A-Za-z0-9_-]+\/(?:claim|authorize-use)$/.test(path)||
       method==='GET'&&(/^(?:\/opendesk\/v1\/(?:self|accounts|sync-policy)|\/opendesk\/v1\/accounts-page\/(?:[1-9]|[1-5][0-9]|6[0-3])|\/opendesk\/v1\/accounts\/[A-Za-z0-9_-]+\/usage|\/opendesk\/v1\/operations\/[A-Za-z0-9_-]+)$/.test(path))||
       method==='POST'&&['/opendesk/v1/devices','/opendesk/v1/bindings','/opendesk/v1/policy-acceptances','/opendesk/v1/management-open'].includes(path)||
       method==='DELETE'&&/^\/opendesk\/v1\/(bindings|devices)\/[A-Za-z0-9_-]+$/.test(path));
@@ -179,8 +185,8 @@ export async function startManagementServer({service,store,port=0,
           row.receipt={operationId:body.operationId,status:'REJECTED',error:'PAIRING_INVALID'};
           return reply(res,401,{error:'PAIRING_INVALID'});
         }
-        const {resourceIds}=clientPairing;clientPairing=null; // Consume before asynchronous work.
-        const client=await serviceBinding.createLocalClient({connectionId:body.connectionId,installationId:randomUUID(),grantFamilyId:randomUUID(),userId:'local_http',resourceIds});
+        const {resourceIds,memberId}=clientPairing;clientPairing=null; // Consume before asynchronous work.
+        const client=await serviceBinding.createLocalClient({connectionId:body.connectionId,installationId:randomUUID(),grantFamilyId:randomUUID(),userId:memberId,resourceIds});
         try{
           const device=await bindingRequest(client.secret,{method:'POST',path:'/opendesk/v1/devices',body:{label:body.label,operationId:body.operationId}});
           httpClients.add(client.secret);
@@ -278,8 +284,14 @@ export async function startManagementServer({service,store,port=0,
         }
         if(req.method==='POST'&&url.pathname==='/opendesk/admin/api/client-pairing'){
           if(req.headers.origin!==origin||url.search)return reply(res,403,{error:'ORIGIN_REQUIRED'});
-          const body=await input(req);exact(body,[]);
-          return reply(res,200,await issueClientPairing());
+          const body=await input(req);exact(body,['memberId']);
+          if(Object.hasOwn(body,'memberId')&&(typeof body.memberId!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(body.memberId)))throw bindingError('BAD_INPUT');
+          return reply(res,200,await issueClientPairing(body.memberId));
+        }
+        if(/^\/opendesk\/admin\/api\/team-(?:accounts|assignments|revoke|operations)(?:\/|$)/.test(url.pathname)){
+          if(url.search)throw bindingError('BAD_URL');
+          if(req.method==='POST'&&req.headers.origin!==origin)throw bindingError('ORIGIN_REQUIRED',403);
+          return reply(res,200,await teams.admin({method:req.method,path:url.pathname,body:req.method==='POST'?await input(req,16384):undefined}));
         }
         const adminReceipt=/^\/opendesk\/admin\/api\/operations\/([A-Za-z0-9_-]+)$/.exec(url.pathname);
         if(req.method==='GET'&&adminReceipt && url.searchParams.size===1 && url.searchParams.has('device'))

@@ -1,0 +1,386 @@
+{
+  "format": "opendesk.cookie-account-selection-development.v1",
+  "date": "2026-11-06",
+  "stage": "DEVELOPMENT_NATIVE_CORE_ACCEPTED",
+  "goal": "成功切换后顶部账号名与唯一列表选中图标一致；以小勾、淡色背景和更新图标保持简洁；pending、失败和未知不误标",
+  "scope": [
+    "app/components/CookieAccounts.jsx",
+    "src/react.css",
+    "tests/account-applied-state.test.mjs"
+  ],
+  "inputs": {
+    "examples/sidebar-tools/cookie-editor/app/components/CookieAccounts.jsx": "4ab9c601985769703a8c9aef7109041ca9af995e2e565ae21ef34fcbf89607e1",
+    "examples/sidebar-tools/cookie-editor/src/react.css": "b277784de2343546edaefb013d8a349aac2815a24ea5e3f66186a06857c4608c",
+    "examples/sidebar-tools/cookie-editor/tests/account-applied-state.test.mjs": "c65f6d171d05a01fd3382a6b0edd43aedeaa0af4f0dc2067f476a2f9a4a78d17"
+  },
+  "checks": {
+    "component": {
+      "status": "PASS",
+      "passed": 6,
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/account-applied-state.test.mjs"
+    },
+    "appReceipt": {
+      "status": "PASS",
+      "passed": 28,
+      "executor": "native verifier subagent",
+      "command": "node --test tests/environment/cookie-editor-account-ui-receipt.test.mjs"
+    },
+    "relatedDesign": {
+      "status": "PASS",
+      "passed": 4,
+      "command": "node --test --test-name-pattern='official shared design|installed CSS owns|compiled Cookie development CSS|real React app' tests/environment/cookie-editor-react-design.test.mjs"
+    },
+    "browser": {
+      "status": "PASS",
+      "engine": "ego-browser",
+      "mode": "real React App with fictional SDK, no real Cookie writes",
+      "cases": [
+        "keyboard Enter switch to A preserves focus",
+        "A to B leaves only B selected and one badge",
+        "explicit reapply B leaves one selection",
+        "switch failure leaves no selection",
+        "unknown result leaves no selection",
+        "320px dark list clientWidth 290 equals scrollWidth 290"
+      ],
+      "screenshots": [
+        "artifacts/cookie-account-feedback/selected-light.png",
+        "artifacts/cookie-account-feedback/selected-dark-320.png"
+      ],
+      "evidenceVersion": "2.0.64 historical simulated SDK evidence; not current native visual evidence"
+    },
+    "knownUnrelatedFailure": {
+      "test": "inline import stays before Cookie rows inside the mounted list scroll area",
+      "file": "tests/environment/cookie-editor-react-design.test.mjs",
+      "reason": "Existing source-string assertion requires position:relative immediately after selector",
+      "patternMatchesHEAD": false,
+      "patternMatchesCurrent": false,
+      "relevantImportStyleUnchanged": true,
+      "status": "DEFERRED_UNRELATED"
+    },
+    "packageSafety": {
+      "status": "PASS",
+      "passed": 8,
+      "command": "node --test tests/environment/sidebar-tools.test.mjs"
+    },
+    "trustedServiceReview": {
+      "status": "PASS",
+      "passed": 77,
+      "executor": "independent native code-reviewer subagent",
+      "commands": [
+        "node --test examples/sidebar-tools/cookie-editor/tests/account-switch-readback.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs"
+      ],
+      "finding": "No required code/safety fixes; lastApplied is time-limited and bound to the original Host Document"
+    },
+    "nativeChrome": {
+      "status": "PASS_CORE",
+      "mode": "Installed v2.0.64 in the daily Chrome development extension; original installer, sandbox App and trusted Cookie service",
+      "testHost": "od-cookie-selection-01a1b020.localhost:43138",
+      "profileIsolation": "No independent Profile claimed; synthetic Cookie is scoped to this unique localhost host",
+      "cases": [
+        {
+          "case": "Same-ID 2.0.63 to 2.0.64 update",
+          "status": "PASS",
+          "observed": "Original installer showed unchanged permissions and retained data; installed tool heading showed v2.0.64"
+        },
+        {
+          "case": "Save A and B from actual browser Cookie",
+          "status": "PASS",
+          "observed": "Original Cookie editor and account save each succeeded; exactly two saved accounts; B initially had the only matched badge"
+        },
+        {
+          "case": "A to B to A with automatic refresh",
+          "status": "PASS",
+          "observed": "Each click changed the server-read HttpOnly Cookie to the expected synthetic value; exactly one applied badge and matching header after refresh"
+        },
+        {
+          "case": "Keyboard Enter reapply",
+          "status": "PASS",
+          "observed": "With auto refresh temporarily off, Shift+Tab focused Reapply A and Enter completed the real operation; following Tab reached A more actions and Shift+Tab returned to Reapply A; one badge remained. Auto refresh restored on"
+        },
+        {
+          "case": "Close and reopen",
+          "status": "PASS",
+          "observed": "Host changed from 3ddde2d3-11a1-4c79-88e5-93fe1af86401 to fe17dae5-7607-4d02-9a6a-9a50781f898d; both saved snapshots persisted; retired proof was not reused, current state was pending verification with no applied badge"
+        },
+        {
+          "case": "Native failure, unknown outcome and revocation fault injection",
+          "status": "NOT_TESTED",
+          "observed": "Original service and App receipt tests cover no false success and no replay; no real-browser fault injection was performed"
+        }
+      ],
+      "independentReadback": {
+        "artifact": "artifacts/cookie-account-feedback/native-site-receipts.jsonl",
+        "method": "Fixture server records Cookie received in browser HTTP requests; /state is fetched only when the page loads",
+        "switches": [
+          {
+            "account": "A",
+            "sequences": [
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "account": "B",
+            "sequences": [
+              10,
+              11,
+              12
+            ]
+          },
+          {
+            "account": "A",
+            "sequences": [
+              13,
+              14,
+              15
+            ]
+          }
+        ],
+        "scope": "Acceptance counts only sequences 7–15 paired with native AX evidence. Later server traffic is retained but is not attributed to or counted as these acceptance clicks."
+      },
+      "artifacts": {
+        "native-switch-a.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-switch-a.ax.txt",
+          "sha256": "d3d253aa36b91a8c12b9b9f3236ebeff44da39902f9d3c78f8bb9127650a6ab5"
+        },
+        "native-reopen.jpg": {
+          "path": "artifacts/cookie-account-feedback/native-reopen.jpg",
+          "sha256": "17e241d8cdd47a2762ba44da1f952c3c8736ef8d4c3b827d92eba4cb1aaebd68"
+        },
+        "native-reopen.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-reopen.ax.txt",
+          "sha256": "0145f7fb1ef033400639ddc444e1707924f6152ad60f36211ee77b1b5bf711c0"
+        },
+        "native-loaded-path.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-loaded-path.ax.txt",
+          "sha256": "58f4bb570152afd5f5e8529cc3b3897aae5d7591b2f0b9a416dfb0150adeceba"
+        },
+        "native-keyboard-reapply.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-keyboard-reapply.ax.txt",
+          "sha256": "adbdc0d69551b14cd7f50fb46109d52a548bdbc8c8c6404b3d23b558c033643d"
+        },
+        "native-serve.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-serve.ax.txt",
+          "sha256": "d8fefd82d5f5ce1a19c000ea897395c4b0a6329c0b3966475d2a9b1b9e6d7213"
+        },
+        "native-switch-b.ax.txt": {
+          "path": "artifacts/cookie-account-feedback/native-switch-b.ax.txt",
+          "sha256": "5d45d5d3911aa5c8083101aeddd8a169eb2af36d2a5ca4ab806ebdb24ecfdf9f"
+        },
+        "native-switch-b.jpg": {
+          "path": "artifacts/cookie-account-feedback/native-switch-b.jpg",
+          "sha256": "a315437efde110c7998cc0e3561c3c9b5d3b11a464ee9c4822d9e0969d7653ba"
+        },
+        "native-switch-a.jpg": {
+          "path": "artifacts/cookie-account-feedback/native-switch-a.jpg",
+          "sha256": "a60e8409455257d9d0138cc8e75383474c2e8f1e4b95a2483b1d058a061720e4"
+        },
+        "native-keyboard-reapply.jpg": {
+          "path": "artifacts/cookie-account-feedback/native-keyboard-reapply.jpg",
+          "sha256": "cef7aa03d5cfc05e3f18361901fa1e234f1ebde710ea74bc4cfbed70f918edef"
+        },
+        "native-site-receipts.jsonl": {
+          "path": "artifacts/cookie-account-feedback/native-site-receipts.jsonl",
+          "sha256": "30b13bd4c4e560503cdef3abee694639c3ede52a6069ef0d4b5bd5a57d2d661e"
+        }
+      },
+      "evidenceVersion": "2.0.64 historical; see compactUiIteration for installed 2.0.65"
+    }
+  },
+  "notTested": [
+    "actual native failure/unknown/revocation fault injection",
+    "real website login identity",
+    "production acceptance"
+  ],
+  "preserved": "Existing permissions, Cookie writes, strict snapshot update eligibility and unknown-outcome protections unchanged; all prior and parallel work retained",
+  "delivery": {
+    "status": "INSTALLED_2.0.65_NATIVE_COMPACT_UI_PASS",
+    "version": "2.0.65",
+    "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "bytes": 375829,
+    "sha256": "e4cbb653ceb0730f070076133f9bc2e2bdcccf0ab9662fe6123eab649c35112d",
+    "buildId": "697d730348f81760ff83a42e07453366d1dd21f0177ea715c49fa076e48c8c98",
+    "developmentResource": {
+      "path": "dist/development/official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "samePackageBytes": true
+    },
+    "runtime": {
+      "loadedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "pathAndServeEvidence": "Prior 2.0.64 native Chrome details/Debug observation retained; existing watcher and output path unchanged. Current native installed heading explicitly shows v2.0.65. No new serve-revision observation claimed."
+    }
+  },
+  "nativeAcceptance": {
+    "status": "PASS_CORE",
+    "reason": "User explicitly authorized direct Computer Use; original extension toolbar, installer and installed business UI completed the actual Cookie switch flow. No direct extension-protocol navigation was retried.",
+    "requiredCases": [
+      {
+        "case": "Same-ID installed update",
+        "result": "PASS"
+      },
+      {
+        "case": "Actual Chrome Cookie A to B to A and unique selected row",
+        "result": "PASS"
+      },
+      {
+        "case": "Automatic refresh and keyboard reapply",
+        "result": "PASS"
+      },
+      {
+        "case": "Close and reopen preserves accounts and retires old Host proof",
+        "result": "PASS"
+      },
+      {
+        "case": "Failure and unknown do not falsely select or automatically replay",
+        "result": "NODE_PASS_NATIVE_FAULT_INJECTION_NOT_TESTED"
+      }
+    ],
+    "priorBlockedAudit": {
+      "consecutiveGoalTurns": 3,
+      "condition": "Native account acceptance cannot proceed without allowed browser handoff and shared native UI availability",
+      "currentCheck": "ui-acquire refused as busy; owning task was independently confirmed inProgress via wait_threads",
+      "preserved": "No native input, reload, account write, permission change or blocked URL retry; prior source and package results retained",
+      "status": "RESOLVED_BY_USER_AUTHORIZED_NATIVE_UI"
+    }
+  },
+  "sourceStatus": "UNCOMMITTED_SHARED_WORKTREE: package includes pre-existing parallel Cookie business changes; no mixed commit or push was made",
+  "resourceCleanup": "Owned fixture PID 75357 stopped after 2.0.64; compact-UI fixture PID 89590 received SIGTERM after verified command ownership and final evidence capture. Existing Browser watcher PID 68812 remains untouched. Two task-owned synthetic snapshots retained; no user data or other task resources deleted.",
+  "priorDelivery": {
+    "status": "HISTORICAL_2.0.64_NATIVE_CORE_PASS",
+    "version": "2.0.64",
+    "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "bytes": 375869,
+    "sha256": "3e16f94917169c0fb20de6d2f1c6c0cb5d90018f3b8cb1be784e6fd55a1fe417",
+    "buildId": "0f05545e1f2f883f7224061507429d430066456ae093307e12bdcc2bd64ac49d",
+    "developmentResource": {
+      "path": "dist/development/official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "samePackageBytes": true
+    },
+    "fixedService": {
+      "gitBlob": "4703267b35a50933374368d289415ffaf2d38baf",
+      "pinMatches": true,
+      "developmentSourceMapMatches": true,
+      "sha256": "290c146aa78a9049f99687b233bd5fc9f8256b4916a2754433406a595718bf2b"
+    },
+    "runtime": {
+      "loadedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "serveClientConnection": "CONNECTED",
+      "extensionIdEvidence": "Original Chrome extension details and actual Side Panel document URL",
+      "loadedPathEvidence": "Original Chrome extension details: unpacked extension loaded from ~/文稿/workspace/opendesk-browser/dist/development",
+      "serveRevisionAtAcceptanceStart": "f3300cc5c0e04e4dccabb12460fab82cc0e1b6836c9763983d5c871eaa97570e",
+      "serveRevisionAtFinalObservation": "d06cd86c3c1f8b70ffe1c7f551709c39eb1702e4c66624e3aba6279686867f11",
+      "serveEvidence": "Native Debug > Local development service explicitly showed connected and the actual extension ID/revision; shared watcher performed safe updates during the session",
+      "nativeManifestAllowedOriginMatches": true,
+      "nativePairingScope": "Existing local doctor extension ID and manifest allowed origin match; no pairing configuration was modified; no new Native Messaging round-trip was required for Cookie switching"
+    }
+  },
+  "compactUiIteration": {
+    "date": "2026-11-06",
+    "version": "2.0.65",
+    "status": "PASS_NATIVE_DEVELOPMENT",
+    "goal": "保留原紧凑布局；选中仅小勾和淡色背景，当前行以更新图标操作，不显示已应用/已核对徽标或重新应用文字按钮",
+    "inputs": {
+      "examples/sidebar-tools/cookie-editor/app/components/CookieAccounts.jsx": "3f7527549e922d70be316f403dbe6ca4608d4ff9a43518025e73153797ed3cf1",
+      "examples/sidebar-tools/cookie-editor/src/react.css": "bd2232d0bdc8b00a4ec71306e9af4876138955ce2d5e1e5964c62476f71c0f26",
+      "examples/sidebar-tools/cookie-editor/tests/account-applied-state.test.mjs": "8b79f93d6bea73985550f52fca3f4aafab6c2b3061cf13db977c317932c3236c"
+    },
+    "changes": [
+      "Remove visible applied/verified badges and heavy accent stripe",
+      "Use brand check icon next to selected account name and subtle row background",
+      "Use refresh icon on the stable native selected-row button; retain accessible name and original switch handler",
+      "Move snapshot/login distinction to accessible description and hover text"
+    ],
+    "checks": {
+      "componentAndAppReceipt": {
+        "status": "PASS",
+        "passed": 34,
+        "command": "node --test examples/sidebar-tools/cookie-editor/tests/account-applied-state.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs"
+      },
+      "packageSafety": {
+        "status": "PASS",
+        "passed": 8,
+        "command": "npm run app:update -- cookie-editor"
+      },
+      "candidatePromotionAndSourceCheck": "PASS"
+    },
+    "nativeCases": [
+      {
+        "case": "Original importer 2.0.64 to 2.0.65 same-ID update",
+        "result": "PASS",
+        "observed": "Original review showed unchanged permissions and retained data; actual sandbox tool heading showed v2.0.65; both saved accounts retained."
+      },
+      {
+        "case": "Working account to personal account",
+        "result": "PASS",
+        "observed": "Unique check and highlighted row moved with the selected account; original fixture server independently received a then b; page auto-refresh preserved current marker."
+      },
+      {
+        "case": "Current row refresh icon",
+        "result": "PASS",
+        "observed": "Clicked the accessible icon-only apply action in the actual installed tool; browser page refreshed with b and exactly one selected check remained."
+      },
+      {
+        "case": "Compact appearance",
+        "result": "PASS_VISUAL",
+        "observed": "No inline applied/verified text badge, no reapply text button, no heavy stripe. Selected row shows a small brand check, light background and refresh icon."
+      }
+    ],
+    "testData": "Only the two existing task-owned synthetic accounts on the unique localhost fixture were renamed from 验收 A/B to 工作账号/个人账号 through the original edit UI. No real user account was renamed.",
+    "independentReadback": {
+      "artifact": "artifacts/cookie-account-feedback/native-compact-site-receipts.jsonl",
+      "workSequences": [
+        4,
+        5,
+        6
+      ],
+      "personalSequences": [
+        7,
+        8,
+        9
+      ],
+      "currentIconSequences": [
+        10,
+        11,
+        12
+      ]
+    },
+    "artifacts": {
+      "native-compact-work.ax.txt": {
+        "path": "artifacts/cookie-account-feedback/native-compact-work.ax.txt",
+        "sha256": "aece04d0eee07ae5cafe3a92883a0835b234b5d479fc09ffe56c84ac0e02f833"
+      },
+      "native-compact-work.jpg": {
+        "path": "artifacts/cookie-account-feedback/native-compact-work.jpg",
+        "sha256": "7b1f75dcec9afe8a65e5bee77f981d3b0cc6e71897156d49994df06570707792"
+      },
+      "native-compact-personal.ax.txt": {
+        "path": "artifacts/cookie-account-feedback/native-compact-personal.ax.txt",
+        "sha256": "ff8e02de22461b2b07fed76840a5284061897f19f7de93bcadf2305671280c4d"
+      },
+      "native-compact-personal.jpg": {
+        "path": "artifacts/cookie-account-feedback/native-compact-personal.jpg",
+        "sha256": "0c35f6ca6d4120d18d502b09d6edff401829875432d64d1457f76bb15897e04d"
+      },
+      "native-compact-site-receipts.jsonl": {
+        "path": "artifacts/cookie-account-feedback/native-compact-site-receipts.jsonl",
+        "sha256": "6cdca754166e630b61611f34b8f1f5e41a529dd034a9909948ba2ce4bb4c0d12"
+      }
+    },
+    "visualVerdict": {
+      "status": "PASS",
+      "evidence": "native-compact-personal.jpg",
+      "criteria": [
+        "unique subtle selected row",
+        "small check beside name",
+        "icon-only current action",
+        "original compact layout retained"
+      ]
+    },
+    "limitations": [
+      "No claim of independent browser Profile or real login identity",
+      "2.0.65 keyboard-only execution, dark/narrow visual matrix and production acceptance not rerun; prior 2.0.64 evidence remains historical"
+    ]
+  }
+}

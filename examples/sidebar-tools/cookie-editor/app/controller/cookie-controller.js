@@ -3,6 +3,7 @@ import {
   inspectImport,rejectImportDuplicates,exportText
 } from '../domain/cookie-model.js';
 import {safeCode} from '../adapters/browser-sdk.js';
+import {cookieChanges} from '../domain/cookie-changes.js';
 
 const badReceipt=()=>Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
 const isVerified=receipt=>receipt?.saved===true&&receipt.verified===true;
@@ -44,16 +45,17 @@ export function createCookieController({adapter,onChange=()=>{}}){
     message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
   let syncStale=false,syncPending=null,syncGeneration=0,effectPending=false;
+  let changes=[],changeRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,problem,message,messageType,syncStale,importOutcome});
+    phase,problem,message,messageType,syncStale,importOutcome,changes:structuredClone(changes)});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     // Reads and write preflights are safe to restart. Only a dispatched native
     // write or export can have an unknown side effect after invalidation.
     const uncertain=effectPending;
-    retireSync();syncStale=false;
+    retireSync();syncStale=false;changes=[];
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';problem=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;
@@ -79,7 +81,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     // Explicit readback clears a retired effect warning; repeated navigation
     // events alone must not erase an unconfirmed write/export outcome.
     effectPending=false;
-    retireSync();syncStale=false;
+    retireSync();syncStale=false;changes=[];
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';problem=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
@@ -222,19 +224,22 @@ export function createCookieController({adapter,onChange=()=>{}}){
       await load(guard.at.url,{preserveMessage:true});
     return removed;
   }
-  async function previewClear(){
+  async function previewClear(includeShared=true){
     const guard=lock();if(!guard)return null;
     clearPlan=null;
     const revision=++clearRevision;
     try{
-      const p=await adapter.clearPreview(guard.at);
+      const scope=includeShared?'site-exact-host':undefined;
+      const p=await adapter.clearPreview(guard.at,scope);
       if(!verifiedRead(guard)||revision!==clearRevision)return null;
-      if(!Number.isSafeInteger(p?.matched)||p.matched<0||p.matched>50||
+      if(p?.scope!==(scope?'SITE_EXACT_HOST':'EXACT_HOST_HOST_ONLY')||
+        scope&&(!Number.isSafeInteger(p.excluded)||p.excluded<0)||
+        !Number.isSafeInteger(p?.matched)||p.matched<0||p.matched>50||
         typeof p.previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(p.previewRef))
         throw badReceipt();
       clearPlan={epoch:guard.ticket,url:guard.at.url,
-        previewRef:p.previewRef,count:p.matched};
-      return {count:p.matched,hostname:guard.at.hostname};
+        previewRef:p.previewRef,count:p.matched,scope};
+      return {count:p.matched,excluded:p.excluded??0,hostname:guard.at.hostname};
     }catch(error){if(verifiedRead(guard)){
       if(rejectLostAccess(error))return null;
       if(revision===clearRevision)
@@ -252,19 +257,21 @@ export function createCookieController({adapter,onChange=()=>{}}){
       // This call begins synchronously inside the existing Clear dialog's
       // real Confirm click, before its activation can be lost to an await.
       // The trusted Side Panel still checks the exact preview and Host grant.
-      const allowed=await adapter.beginClearIntent(guard.at,plan.previewRef,plan.count);
+      const allowed=await adapter.beginClearIntent(guard.at,plan.previewRef,plan.count,plan.scope);
       if(!verifiedRead(guard))return false;
       if(allowed?.authorized!==true||!Number.isSafeInteger(allowed.ref)||allowed.ref<1)
         throw Object.assign(Error('清理确认未获得可信 Host 授权'),{code:'E_USER_GESTURE_REQUIRED'});
       ref=allowed.ref;
       effectPending=true;dispatched=true;
-      const p=await adapter.clearExecute(guard.at,plan.previewRef,plan.count);
+      const p=await adapter.clearExecute(guard.at,plan.previewRef,plan.count,plan.scope);
       if(!verifiedRead(guard))return false;
-      if(p?.preview!==false||p?.scope!=='EXACT_HOST_HOST_ONLY'||
+      if(p?.preview!==false||p?.scope!==(plan.scope?'SITE_EXACT_HOST':'EXACT_HOST_HOST_ONLY')||
         p?.matched!==plan.count||!Number.isSafeInteger(p.removed)||
-        !Number.isSafeInteger(p.remaining)||p.removed<0||p.removed>plan.count||
-        p.remaining<0||p.remaining>50)throw badReceipt();
-      verified=true;report('Chrome 清理 '+p.removed+' 条，剩余 '+p.remaining+' 条。','success');
+        !Number.isSafeInteger(p.remaining)||p.removed!==plan.count||
+        p.remaining<0||p.remaining>50||plan.scope&&
+        (!Number.isSafeInteger(p.excluded)||p.excluded<0))throw badReceipt();
+      verified=true;report('已清理 '+p.removed+' 条，当前范围剩余 '+p.remaining+' 条。'+
+        (p.excluded?' '+p.excluded+' 条因权限或连接限制保留。':''),p.remaining?'info':'success');
     }catch(error){if(verifiedRead(guard)){
       if(rejectLostAccess(error))return false;
       report((dispatched?'清理可能部分生效':'清理尚未执行')+
@@ -523,7 +530,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   function retireSync(){syncGeneration++;syncPending=null;}
   // Passive list refresh uses the public SDK and returns metadata only. It must
   // never erase a live editor, re-read Cookie values or trigger a write.
-  async function syncMetadata({canApply=()=>true}={}){
+  async function syncMetadata({canApply=()=>true,events=[]}={}){
     if(closed||busy||phase!=='ready'||!target||!canApply()||
       syncPending?.ticket===epoch)return false;
     const at=target,ticket=epoch,token={ticket,generation:syncGeneration};
@@ -540,8 +547,15 @@ export function createCookieController({adapter,onChange=()=>{}}){
       const previous=new Map(rows.map(row=>[row.id,row]));
       const changed=next.length!==rows.length||next.some(row=>
         JSON.stringify(previous.get(row.id))!==JSON.stringify(row));
+      const updates=cookieChanges(rows,next,events,changeRevision+1);
+      if(updates.length){
+        changeRevision++;
+        const updatedIds=new Set(updates.map(row=>row.id));
+        // A bounded in-memory ledger, shared by filtering and row indicators.
+        changes=[...updates,...changes.filter(row=>!updatedIds.has(row.id))].slice(0,100);
+      }
       if(changed)rows=next;
-      if(changed||syncStale){syncStale=false;notify();}
+      if(changed||updates.length||syncStale){syncStale=false;notify();}
       return true;
     }catch(error){
       if(current(ticket,at)&&rejectLostAccess(error))return false;
@@ -551,8 +565,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
       return false;
     }finally{if(syncPending===token)syncPending=null;}
   }
+  function clearChanges(){changes=[];notify();}
   function dispose(){
-    retireSync();syncStale=false;
+    retireSync();syncStale=false;changes=[];
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
     clearPlan=null;effectPending=false;
   }
@@ -560,5 +575,6 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,dismissImportReport,exportTo,syncMetadata,dispose};
+    discardImport,dismissImportReport,exportTo,syncMetadata,clearChanges,
+    observationAccessLost:rejectLostAccess,dispose};
 }

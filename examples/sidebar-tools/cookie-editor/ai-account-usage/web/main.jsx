@@ -7,6 +7,7 @@ import {evaluateHistory, reliableEstimate, windowOptions, windowLabel, selectedW
   OFFICIAL_MEMBER_GUIDES, OFFICIAL_WORKSPACE_URL} from './usage-insights.mjs';
 import './style.css';
 import {ServiceBindingSettings} from './ServiceBindingSettings.jsx';
+import {TeamAccounts} from './TeamAccounts.jsx';
 import {initializeManagementOpen} from './service-binding-api.mjs';
 
 const isDemo = __OD_PREVIEW__;
@@ -330,7 +331,7 @@ function App() {
     <header className="app-header">
       <div className="brand"><span className="mark" title="OpenDesk" aria-hidden="true">OD</span>
         <h1 id="page-title" className="app-title">AI 账号额度管理</h1></div>
-      <div className="head-right">{resourceView&&<button type="button" className="outline" onClick={async()=>{
+      <div className="head-right"><TeamAccounts resourceView={resourceView} isDemo={isDemo}/>{resourceView&&<button type="button" className="outline" onClick={async()=>{
         try{const response=await fetch('/opendesk/end-resource-session',{method:'POST',credentials:'same-origin',redirect:'error',headers:{'content-type':'application/json'},body:'{}'});
           if(!response.ok)throw Error();location.assign('/');}catch{setLoadError('无法返回管理员模式；请使用本机终端连接入口。');}
       }}>返回本机管理入口</button>}{!isDemo&&<div className="mini-toggle" role="group" aria-label="管理视图">

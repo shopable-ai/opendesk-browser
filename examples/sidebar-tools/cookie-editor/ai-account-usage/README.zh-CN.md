@@ -2,6 +2,20 @@
 
 唯一业务入口是[Cookie Editor 项目](../README.zh-CN.md)。本目录整体收拢原 `services/ai-account-usage/` 的实现；源码组织改变，Node 的独立执行边界保留，不复制服务、OAuth 或凭据仓库。以下 R1.x–R2.x 的记录仍只证明各自历史候选。
 
+## 团队账号控制面（2026-11-06，核心开发）
+
+`team-accounts.mjs` 与 `TeamAccountStore` 在原服务下保存版本化元数据、精确成员设备分配、单设备加密邀请引用及原操作回执；不保存 Cookie、Token、加密私钥或上游认证文件。原 React 管理页增加「团队账号管理」，成员和受限资源视图不显示管理入口。请求仍经原精确 Host/Origin、管理员会话或受限应用 session；这些路由不是新公共 Browser SDK。
+
+- 管理员：GET `team-accounts`、POST `team-accounts` / `team-assignments` / `team-revoke`、GET `team-operations/:operationId`，均位于 `/opendesk/admin/api/`。发布带 `expectedVersion`，分配/撤销带 `expectedRevision`；必须有新的明确操作 ID，不自动换 ID 重试。
+- 成员：原 `/opendesk/client/request` envelope 内允许 GET `/opendesk/v1/team-accounts`、POST `team-accounts/:id/claim` / `authorize-use`、GET `team-operations/:operationId`。服务器从已配对设备推导 tenant/user/device/epoch，正文只声明期望版本/分配修订/代际；只向该成员设备提供其授权的邀请。`authorize-use` 留存精确目标审阅记录，本身不赋予 Chrome Cookie 权限或证明本机效果。
+- 配对码沿用原一次性配对；管理员生成 `client-pairing` 时可显式指定 `memberId`，省略仍为 `local_http`。这只是本机管理员签发身份，尚未集成公司身份提供者。
+- 单设备邀请必须来自原加密分享功能，不跨设备复用；初次指纹可为空，原发送端交付后更新同一分配补填指纹。接收密钥仍留原可信本机库；原 Relay 要求在线发送者，未实现离线账号池或公司服务器部署。
+- 新的 claim / authorize-use 与设备撤权共用原 ServiceBindingStore 授权锁，事务内重读设备代际，持锁至团队回执落盘。撤权后只保留原上下文回执读取；已交付会话的上游失效须独立处理，不删除本机 Cookie 或自动登出。
+
+`--data-dir` 同时覆盖历史、服务绑定和团队存储。团队目录权限 0700、文件 0600、原子落盘、严格 schema/容量限制；未知操作不自动重放。管理员浏览器日志只保存操作 ID 和动作，使用 Web Locks 保护同源多页；日志不可读或锁不可用时禁写。
+
+当前源码通过真实 HTTP + 原加密/可信服务 + 合成 Chrome/Foundation/HTTPS 驱动完成双成员闭环；已安装工具仍缺少真实团队可信 adapter。操作与复现见 [QUICKSTART](../QUICKSTART.zh-CN.md#团队账号核心流程2026-11-06合成开发)。真实 Chrome/安装、公司身份与 TLS/LAN、上游登录、离线池及 production 继续为 NOT_TESTED/未实现；测试替身不构成这些证据。
+
 **独立启动已验证（2026-10-31，Node 24.16.0）：** 普通 `node manage.mjs serve` 不依赖 OpenDesk 桌面程序。业务测试 [`standalone-serve.test.mjs`](../tests/ai-account-usage/standalone-serve.test.mjs) 以原 `manage.mjs` CLI 主入口启动独立子进程，使用 `--data-dir` 指定的临时私有状态目录和合成账号配置：一次性配对成功，配对码重用返回 401；管理设置页 `/opendesk/admin/sync`、正式 JS/CSS、设置 API、账号缓存与历史均可读取；没有设备时返回空设备列表。SIGTERM 结束子进程后，管理端口拒绝连接。
 
 测试复用 [`fixtures/standalone-guard.mjs`](../tests/ai-account-usage/fixtures/standalone-guard.mjs) 校验禁止动作的拦截有效，再通过权限白名单及审计确认普通 `serve` 未尝试 Native 导入、安装/账号凭据读取或上游请求；子进程权限禁止启动桌面程序。没有读取真实状态或 `~/.codex/auth.json`，没有执行 refresh。该测试仅覆盖独立 CLI、HTTP API 和正式 UI 资产交付。另用隔离假账号在实际浏览器完成配对→账号页→「Cookie 同步设置」，确认空设备状态、零控制台错误；[截图](../../../../artifacts/cookie-service-binding-20261031/standalone-sync-settings.png)仅作本机开发证据。真实账号额度、企业页及 Native 权限不由这些检查证明。
@@ -13,7 +27,7 @@ npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
 node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalone-serve.test.mjs
 ```
 
-隔离开发数据可使用 `node manage.mjs serve --config /绝对路径/accounts.json --data-dir /绝对路径/state`。`--data-dir` 只切换 HistoryStore 和 ServiceBindingStore，不改变 HOME、Native 安装身份或凭据位置；省略时继续使用原默认目录。路径必须为绝对路径；启动不会刷新额度。需要连接已配对的 Browser 时再显式加 `--native`，普通后台继续独立运行。
+隔离开发数据可使用 `node manage.mjs serve --config /绝对路径/accounts.json --data-dir /绝对路径/state`。`--data-dir` 切换 HistoryStore、ServiceBindingStore 和 TeamAccountStore，不改变 HOME、Native 安装身份或凭据位置；省略时继续使用原默认目录。路径必须为绝对路径；启动不会刷新额度。需要连接已配对的 Browser 时再显式加 `--native`，普通后台继续独立运行。
 
 ## 服务连接协议与管理页状态（2026-10-31）
 

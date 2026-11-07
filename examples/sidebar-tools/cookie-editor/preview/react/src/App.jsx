@@ -1,28 +1,38 @@
 import * as React from 'react';
 import CookieEditorApp from '../../../app/CookieEditorApp.jsx';
 import {createMockSdk,demoSite,demoSites} from './mock-sdk.js';
+import {useTeamCorePreview} from './TeamCorePreview.jsx';
 
 // The shared product App owns compact editor copy, attribute/storage disclosures and the site header.
 // Scene controls live outside that App. Only SDK responses are fictional.
 export default function App(){
- const [scene,setScene]=React.useState('serviceConnections');
+ const teamRequested=new URLSearchParams(location.search).get('teamCore')==='1';
+ const team=useTeamCorePreview(teamRequested);
+ const isolatedRequested=new URLSearchParams(location.search).get('isolatedHttp')==='1';
+ const [httpConfig,setHttpConfig]=React.useState(null);
+ const [httpError,setHttpError]=React.useState('');
+ React.useEffect(()=>{
+  if(!isolatedRequested)return;
+  const controller=new AbortController();
+  fetch('/__isolated-http/config',{signal:controller.signal,credentials:'omit',redirect:'error'})
+   .then(response=>{if(!response.ok)throw Error('E_PREVIEW_HTTP_CONFIG');return response.json();})
+   .then(setHttpConfig).catch(error=>{if(error.name!=='AbortError')setHttpError('E_PREVIEW_HTTP_CONFIG');});
+  return ()=>controller.abort();
+ },[isolatedRequested]);
+ const [scene,setScene]=React.useState(isolatedRequested?'isolatedHttp':'serviceConnections');
  const [width,setWidth]=React.useState(380);
  const [revision,setRevision]=React.useState(0);
  const [dark,setDark]=React.useState(false);
  const [failure,setFailure]=React.useState('');
  const [hostRoot,setHostRoot]=React.useState(null);
- const [site,setSite]=React.useState(demoSite);
+ const [site,setSite]=React.useState(teamRequested?'team.example.test':demoSite);
  const [settingsOpen,setSettingsOpen]=React.useState(false);
  const [,bumpAccess]=React.useState(0);
- const mock=React.useMemo(()=>createMockSdk({scenario:scene,onFailureConsumed:()=>setFailure('')}),[scene,revision]);
- React.useLayoutEffect(()=>{
-  if(globalThis.OpenDeskSDK)throw Error('E_PREVIEW_REAL_SDK_PRESENT');
-  const sdk={browser:mock.browser};globalThis.OpenDeskSDK=sdk;
-  return ()=>{if(globalThis.OpenDeskSDK===sdk)delete globalThis.OpenDeskSDK;mock.dispose();};
- },[mock]);
+ const mock=React.useMemo(()=>scene==='isolatedHttp'&&!httpConfig?null:createMockSdk({scenario:scene,onFailureConsumed:()=>setFailure(''),isolatedHttp:httpConfig,storage:scene==='isolatedHttp'?localStorage:null,initialSite:teamRequested?'team.example.test':demoSite}),[scene,revision,httpConfig,teamRequested]);
+ React.useLayoutEffect(()=>()=>mock?.dispose(),[mock]);
  React.useLayoutEffect(()=>{document.documentElement.dataset.previewTheme=dark?'dark':'light';},[dark]);
  const useScene=value=>{setScene(value);setRevision(x=>x+1);setFailure('');setSite(demoSite);setSettingsOpen(false);};
- const granted=mock.hasGlobalCookieGrant();
+ const granted=mock?.hasGlobalCookieGrant();
  const grant=()=>{mock.grantAllSites();bumpAccess(v=>v+1);setSettingsOpen(false);};
  const revoke=()=>{
   mock.revokeAllSites();
@@ -33,11 +43,13 @@ export default function App(){
   mock.switchSite(hostname);setSite(hostname);
   hostRoot?.dispatchEvent(new Event('opendesk-page-changed'));
  };
+ if(!mock)return <p role="status">{httpError||'正在启动隔离 HTTP 预览…'}</p>;
  return <div className="r49-page" style={{'--preview-panel-width':width+'px'}}>
   <details className="demo-lab" aria-label="预览场景切换器">
    <summary className="lab-title"><span>Cookie Editor · React 同源预览</span><span>交互预览 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
+     {httpConfig&&<option value="isolatedHttp">隔离 HTTP · 合成账号</option>}
      <option value="serviceConnections">虚构服务（默认）</option>
      <option value="serviceConnectionsEmpty">虚构服务 · 空列表</option>
      <option value="accountsDemo">3 个虚构账号</option>
@@ -56,17 +68,20 @@ export default function App(){
       {[320,360,380,400,440,520].map(value=><option key={value} value={value}>{value}px</option>)}
     </select></label>
     <label>模拟网站 <select data-testid="site" value={site} onChange={e=>switchSite(e.target.value)}>
-     {demoSites.map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
+     {(teamRequested?['team.example.test']:demoSites).map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
     </select></label>
     <label>下次操作 <select data-testid="failure" value={failure} onChange={e=>{setFailure(e.target.value);mock.setFailure(e.target.value);}}>
      <option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option>
     </select></label>
     <button className="lab-button" type="button" onClick={()=>setDark(x=>!x)}>{dark?'浅色':'深色'}</button>
     <button className="lab-button" type="button" onClick={()=>useScene(scene)}>重置</button>
+    <button className="lab-button" type="button" onClick={()=>mock.simulateCookieChange('value')}>模拟值变化</button>
+    <button className="lab-button" type="button" onClick={()=>mock.simulateCookieChange('added')}>模拟新增 Cookie</button>
+    <button className="lab-button" type="button" onClick={()=>mock.simulateCookieChange('removed')}>模拟删除 Cookie</button>
    </div>
   </details>
   <div className="preview-host-controls">
-   <span>模拟环境 · 不读取真实 Cookie</span>
+   <span>{scene==='isolatedHttp'?'Preview＋隔离 HTTP · 合成账号 · '+httpConfig.origin:'模拟环境 · 不读取真实 Cookie'}</span>
    <button className="lab-button" type="button" aria-label="预览授权设置"
      aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(value=>!value)}>
       {settingsOpen?'← 返回 Cookie Editor':'⚙ 设置'}</button>
@@ -78,12 +93,13 @@ export default function App(){
     {granted?'撤销全站授权':'允许管理所有网站 Cookie'}
    </button>
   </section>}
+  {team.controls}
   <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" hidden={settingsOpen} ref={setHostRoot}>
    {hostRoot&&(granted
-    ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}
+    ?<CookieEditorApp key={scene+':'+revision+':'+team.member} request={mock.request} browser={mock.browser} hostRoot={hostRoot} teamClient={team.client}
       previewMode initialSection={['accountsFirst','accountSwitchFail',
         'accountSwitchUnknown'].includes(scene)?'accounts':
-        ['serviceConnections','serviceConnectionsEmpty'].includes(scene)?'enterprise':'cookie'}/>
+        ['serviceConnections','serviceConnectionsEmpty','isolatedHttp'].includes(scene)?'enterprise':'cookie'}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
       <h2 id="preview-grant-title">Cookie 访问授权</h2>
       <p>允许管理普通 HTTP/HTTPS 网站的 Cookie；敏感值单独授权。</p>

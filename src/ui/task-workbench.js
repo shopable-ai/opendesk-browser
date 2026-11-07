@@ -14,6 +14,7 @@ import {formatRunValue} from './run-value-format.js';
 import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
+const candidateState=row=>row.runtimeCurrent===false?'运行时已更新，待重新验证':states[row.stage]||row.stage;
 const terminal=new Set(['completed','failed','stopped','interrupted']);
 const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'保存结果中',completed:'成功',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
 const textValue=formatTaskValue;
@@ -221,7 +222,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const formatCandidate=row=>{
     if(!row)return '尚无候选任务';
     const manifest=row.manifest;
-    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机运行验证记录':''}`;
+    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${candidateState(row)}${row.verifiedAt?' · 有本机运行验证记录':''}`;
   };
   function renderForm(row) {
     const key=identity(row);
@@ -269,7 +270,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function update() {
     if(disposed)return;
     const row=installedRow(),info=candidateFor(row),selected=candidate();
-    const available=row?.enabled && info?.stage==='available';
+    const available=row?.enabled && row.runtimeCurrent!==false && info?.runtimeCurrent!==false && info?.stage==='available';
     let siteAvailable=false,origin='';
     if(currentPage?.status==='available') {
       origin=new URL(currentPage.url).origin;
@@ -291,11 +292,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-uninstall').disabled=!row||working;
     ui('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
     if(catalogList){
-    ui('task-verify').disabled=working||!selected||selected.stage!=='candidate';
-    ui('task-publish').disabled=working||!selected||selected.stage!=='verified';
-    ui('task-install').disabled=working||!selected||selected.stage!=='available'||
-      selected.installed&&selected.enabled||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
-    ui('task-install').text=selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
+    const selectedInstallation=installed.find(item=>item.taskId===selected?.taskId&&item.version===selected?.version);
+    const needsReinstall=selectedInstallation?.runtimeCurrent===false;
+    ui('task-verify').disabled=working||!selected||selected.stage!=='candidate'&&selected.runtimeCurrent!==false;
+    ui('task-publish').disabled=working||!selected||selected.stage!=='verified'||selected.runtimeCurrent===false;
+    ui('task-install').disabled=working||!selected||selected.stage!=='available'||selected.runtimeCurrent===false||
+      selected.installed&&selected.enabled&&!needsReinstall||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
+    ui('task-install').text=needsReinstall?'确认更新运行时安装':selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
     patchDeveloperField(developerView,developer('task-create-candidate'),{disabled:working});
     }
     syncRunDock();myView.publish();
@@ -392,7 +395,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const old=preserve||catalogList.value;
     myView.options('task-catalog-list',[
       {label:catalog.length?'请选择候选版本':'目录中没有任务',value:''},
-      ...catalog.map(row=>({label:`${row.manifest.title} · v${row.version} · ${states[row.stage]}`,value:identity(row)}))
+      ...catalog.map(row=>({label:`${row.manifest.title} · v${row.version} · ${candidateState(row)}`,value:identity(row)}))
     ]);
     catalogList.value=catalog.some(row=>identity(row)===old)?old:'';
     renderCatalogCards();renderCandidate();
@@ -400,8 +403,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderCatalogCards() {
     const rows=catalog.filter(row=>{
       if(catalogFilter==='installed'&&!row.installed)return false;
-      if(catalogFilter==='available'&&row.stage!=='available')return false;
-      if(catalogFilter==='candidate'&&row.stage!=='candidate')return false;
+      if(catalogFilter==='available'&&(row.stage!=='available'||row.runtimeCurrent===false))return false;
+      if(catalogFilter==='candidate'&&row.stage!=='candidate'&&row.runtimeCurrent!==false)return false;
       const manifest=row.manifest;
       return [manifest.title,manifest.description,manifest.author,manifest.source,...manifest.siteOrigins]
         .join(' ').toLocaleLowerCase().includes(catalogQuery);
@@ -409,7 +412,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-catalog-count').text=`共 ${rows.length} 个本地任务版本`;
     myView.project('catalogRows',{selectedKey:catalogList.value,filter:catalogFilter,rows:rows.map(row=>({
       key:identity(row),title:row.manifest.title,description:row.manifest.description,
-      state:`${states[row.stage]||row.stage} · v${row.version}${row.installed?' · 已安装':''}`
+      state:`${candidateState(row)} · v${row.version}${row.installed?' · 已安装':''}`
     }))});
   }
   function renderCandidate() {
@@ -420,13 +423,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       key:identity(row),title:row.manifest.title,description:row.manifest.description,
       facts:[['版本',row.version],['作者',row.manifest.author],['来源',row.manifest.source],
         ['适用网站',row.manifest.siteOrigins.join('、')],['所需权限',row.manifest.permissions.join('、')],
-        ['验证状态',states[row.stage]||row.stage]].map(([name,value])=>({name,value})),
+        ['验证状态',candidateState(row)]].map(([name,value])=>({name,value})),
       hashes:`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`,
       paramsNote:paramFields.length?'运行参数：'+paramFields.map(([name,rule])=>
         (rule.title||name)+'（'+rule.type+(schema.required.includes(name)?'，必填':'，可选')+
         (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；'):'运行参数：无',
       source:'展开后从正式任务目录读取固定版本；只查看，不运行。',sourceLoaded:false,
-      note:row.stage==='available'?'只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
+      note:row.runtimeCurrent===false?'保留原固定包和历史证明。请在当前运行时明确试运行同一源码，再核对新运行证据、设为可用并确认更新安装；云控需重新批准。':row.stage==='available'?'只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
         :'此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。',
       addedSites:addedTaskSites(row)
     });
@@ -604,6 +607,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           chosen[key]!==agentIntent.expected[key])))
         throw {code:'E_REVISION',message:'确认期间任务固定版本或安装授权已变化，请重新核查'};
       const info=candidateFor(chosen);
+      if(chosen?.runtimeCurrent===false||info?.runtimeCurrent===false)throw {code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'运行时已更新，请对同一固定任务重新验证并确认安装'};
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
       captured=currentPageTarget.capture();
       site=new URL(captured.url).origin;

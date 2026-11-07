@@ -357,13 +357,19 @@ export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
 }
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
-  pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site='',unavailable=false
+  pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site='',unavailable=false,
+  changes=[]
 }){
+  const changeMap=new Map(changes.map(change=>[change.id,change]));
   return <section className="cookie-list" aria-label="Cookie 列表">
     {beforeRows}
     {newEditor}
     {pinnedNote&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
     {rows.map(row=>{
+      const change=changeMap.get(row.id);
+      const changeLabel=change?.kind==='added'?'新增':change?.kind==='updated'?'更新':null;
+      const changeHint=changeLabel?[changeLabel,...change.fields,
+        new Date(change.at).toLocaleTimeString('zh-CN',{hour12:false})].join(' · '):'';
       const expired=row.session!==true&&Number.isFinite(row.expirationDate)&&
         row.expirationDate<=Date.now()/1000;
       const details=[
@@ -372,12 +378,20 @@ export function CookieRows({
         ...(row.path==='/'?[]:[row.path]),
         ...(row.hostOnly===false?['跨子域']:[])
       ].filter(Boolean);
-      return <article key={row.id} className={'cookie-row '+(selected===row.id?'expanded':'')}>
+      return <article key={row.id} className={'cookie-row '+(selected===row.id?'expanded':'')}
+        data-cookie-change={change?.kind}>
         <button className="row-trigger" data-row={row.id} type="button"
           aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
           onClick={()=>onSelect(row.id)}>
-          <span className="row-text"><strong>{row.name}</strong>
+          {changeLabel&&Date.now()-change.at<2200&&<span key={change.revision}
+            className="cookie-row-change-flash" aria-hidden="true"/>}
+          <span className="row-text"><span className="cookie-row-name"><strong>{row.name}</strong>
+            {changeLabel&&<span className={'cookie-change-badge is-'+change.kind}
+              title={changeHint}>{changeLabel}</span>}</span>
             <small className={expired?'cookie-row-expired':undefined}>{details.join(' · ')}</small>
+            {changeLabel&&change.fields.length>0&&<small className="cookie-change-fields" title={changeHint}>
+              {change.fields.join('、')}变化
+            </small>}
           </span>
           <span className="row-flags">
             {row.httpOnly===true&&<abbr title="HttpOnly" aria-label="HttpOnly">H</abbr>}
@@ -409,10 +423,12 @@ export function CookieEditorView({
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
   exportContent=null,onCloseExport,importOpen=false,
   editor=null,newEditor=null,busy=false,readonly=false,unavailable=false,
-  page=1,pageSize=40,onPage=()=>{},showSiteBar=true
+  page=1,pageSize=40,onPage=()=>{},showSiteBar=true,changes=[],changesOnly=false,monitor=null
 }){
+  const changedIds=new Set(changes.filter(row=>row.kind!=='removed').map(row=>row.id));
   const matching=row=>[row.name,row.domain,row.path].some(value=>
     String(value||'').toLowerCase().includes(query.toLowerCase()))&&
+    (!changesOnly||changedIds.has(row.id))&&
     (filter==='all'||(filter==='partitioned'?Boolean(row.partitionKey):
       filter==='session'?Boolean(row.session):Boolean(row[filter])));
   const visible=rows.filter(matching).sort((a,b)=>sort==='source'?0:sort==='name'
@@ -438,7 +454,9 @@ export function CookieEditorView({
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly}/>
+    {monitor}
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
+      changes={changes}
       newEditor={newEditor} unavailable={unavailable}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>

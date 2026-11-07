@@ -9,6 +9,7 @@ const root=fileURLToPath(new URL('.',import.meta.url));
 const repo=resolve(root,'../../../..');
 const app='examples/sidebar-tools/ai-vip-share/';
 const names=[...AI_VIP_REACT_SOURCES.map(name=>app+name),
+  app+'dev/main.jsx',app+'dev/local-test/connection.js',
   ...['index.html','main.jsx','sdk-fixture.js','shared-ui.jsx','vite.config.mjs'].map(name=>app+'preview/'+name),
   'package-lock.json','scripts/preview/shared-tool-design.mjs','src/ui/design-tokens.css','src/ui/design-system.css',
   ...['sidebar-shared.css','button.tsx','card.tsx','switch.tsx'].map(name=>'src/ui/react/components/ui/'+name)];

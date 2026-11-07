@@ -1,6 +1,7 @@
 // Offline DOM/CSS software regression only; no extension/profile/installation or real-site evidence.
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
+import {readFile} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -37,11 +38,11 @@ try{
   const measure=()=>page.evaluate(()=>{
     const host=document.querySelector('[data-opendesk-page-toast]');
     if(!host)return null;
-    const root=window.toastRoots.get(host),notice=root.querySelector('[role=status]'),text=notice.lastElementChild;
+    const root=window.toastRoots.get(host),frame=root.querySelector('.toast'),notice=root.querySelector('[role=status]'),text=notice.lastElementChild;
     const styles=el=>{const s=getComputedStyle(el);return Object.fromEntries(['display','visibility','opacity','filter','transform','fontSize','fontStyle','lineHeight','letterSpacing','textTransform','textShadow','color','backgroundColor','pointerEvents','animationName','clipPath'].map(key=>[key,s[key]]));};
-    const rect=notice.getBoundingClientRect();
+    const rect=frame.getBoundingClientRect();
     const range=document.createRange();range.selectNodeContents(text);const tr=range.getBoundingClientRect();
-    return {host:styles(host),notice:styles(notice),text:styles(text),message:text.textContent,
+    return {host:styles(host),frame:styles(frame),notice:styles(notice),text:styles(text),message:text.textContent,
       rect:{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height},
       textRect:{width:tr.width,height:tr.height},viewport:{width:innerWidth,height:innerHeight},
       parent:host.parentElement.id,popover:host.matches(':popover-open'),
@@ -68,7 +69,7 @@ try{
     assert.equal(m.host.visibility,'visible');assert.equal(m.host.pointerEvents,'none');assert.equal(m.host.clipPath,'none');
     assert.equal(m.text.fontSize,'14px');assert.equal(m.text.fontStyle,'normal');
     assert.equal(m.text.letterSpacing,'normal');assert.equal(m.text.textTransform,'none');assert.equal(m.text.textShadow,'none');
-    assert.equal(m.text.color,'rgb(27, 44, 73)');assert.equal(m.notice.backgroundColor,'rgb(255, 255, 255)');
+    assert.equal(m.text.color,'rgb(27, 44, 73)');assert.equal(m.frame.backgroundColor,'rgb(255, 255, 255)');
     assert.ok(m.textRect.width>40&&m.textRect.height>=14,JSON.stringify(m));
     assert.ok(m.rect.width>m.textRect.width&&m.rect.height>=38,JSON.stringify(m));
   });
@@ -122,6 +123,69 @@ try{
     await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide')));
     assert.equal(await measure(),null);
   });
+  const helper=await readFile(new URL('../../src/libs/page-frameworks/page-ui-helper-r243.js',import.meta.url),'utf8');
+  await page.evaluate(helper=>{window.toastHelper=(0,eval)(helper+';__opendeskPageUIR243');},helper);
+  const controls=()=>page.evaluate(()=>{
+    const host=document.querySelector('[data-opendesk-page-toast]');if(!host)return null;
+    const root=window.toastRoots.get(host),button=root.querySelector('button'),counter=root.querySelector('.countdown');
+    const status=root.querySelector('[role=status]'),text=status.lastElementChild;
+    const center=el=>{const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};};
+    const textPoint=center(text),buttonPoint=button&&center(button);
+    return {counter:counter?.textContent,counterHidden:counter?.getAttribute('aria-hidden'),
+      counterOutsideStatus:!!counter&&!status.contains(counter),message:text.textContent,
+      textPoint,textPassesThrough:document.elementFromPoint(textPoint.x,textPoint.y)!==host,
+      buttonPoint,buttonIsPointerTarget:!!button&&document.elementFromPoint(buttonPoint.x,buttonPoint.y)===host,
+      buttonLabel:button?.getAttribute('aria-label'),buttonType:button?.type,
+      autofocus:button?.hasAttribute('autofocus'),buttonFocused:!!button&&root.activeElement===button,
+      focusVisible:!!button&&button.matches(':focus-visible')&&parseFloat(getComputedStyle(button).outlineWidth)>=2};
+  });
+  for(const mode of ['serialized primitive','fixed helper']){
+    if(mode==='fixed helper')await page.evaluate(()=>window.toastUI=window.toastHelper.createPageUI({id:'regression'}));
+    const notify=mode==='fixed helper'?options=>page.evaluate(options=>window.toastUI.toast(options),options):show;
+    await check(mode+' countdown is visible outside live status and auto-closes',async()=>{
+      await notify({message:'Counting down',duration:2500,countdown:true});
+      const c=await controls();assert.equal(c.counter,'3s');assert.equal(c.counterHidden,'true');
+      assert.equal(c.counterOutsideStatus,true);assert.equal(c.buttonPoint,null);
+      await page.waitForFunction(()=>document.__opendeskPageToastV1?.countdown.textContent==='2s');
+      assert.equal((await controls()).message,'Counting down');
+      await page.waitForFunction(()=>!document.querySelector('[data-opendesk-page-toast]'),{},{timeout:4000});
+    });
+    for(const key of ['Enter','Space'])await check(mode+' persistent toast retains focus and closes with '+key,async()=>{
+      await page.locator('#edit').focus();
+      await notify({message:'Until closed',duration:0,dismissible:false});
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'edit');
+      const c=await controls();assert.equal(c.buttonLabel,'关闭提示');assert.equal(c.buttonType,'button');
+      assert.equal(c.autofocus,false);assert.equal(c.counter,undefined);
+      await page.waitForTimeout(1100);assert.equal((await controls()).message,'Until closed');
+      await page.locator('#fullscreen').focus();await page.keyboard.press('Tab');
+      const focused=await controls();assert.equal(focused.buttonFocused,true);assert.equal(focused.focusVisible,true);
+      await page.keyboard.press(key);assert.equal(await measure(),null);
+    });
+    await check(mode+' only close button intercepts pointer input',async()=>{
+      await notify({message:'Click through message',duration:0});
+      const c=await controls();assert.equal(c.textPassesThrough,true);assert.equal(c.buttonIsPointerTarget,true);
+      await page.evaluate(()=>document.addEventListener('click',event=>{window.toastClickTarget=event.target;},{once:true}));
+      await page.mouse.click(c.textPoint.x,c.textPoint.y);
+      assert.equal(await page.evaluate(()=>window.toastClickTarget!==document.querySelector('[data-opendesk-page-toast]')),true);
+      assert.equal((await controls()).message,'Click through message');
+      await page.mouse.click(c.buttonPoint.x,c.buttonPoint.y);assert.equal(await measure(),null);
+    });
+    await check(mode+' replacement and pagehide remove controls without resurrection',async()=>{
+      await notify({message:'Countdown before replacement',duration:1000,countdown:true,dismissible:true});
+      await notify({message:'Persistent replacement',duration:0});
+      await page.waitForTimeout(1100);assert.equal((await controls()).message,'Persistent replacement');
+      await notify({message:'Default replacement',duration:10000});
+      assert.equal((await controls()).buttonPoint,null);assert.equal((await controls()).counter,undefined);
+      await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide')));
+      assert.equal(await measure(),null);
+      await page.evaluate(()=>{
+        window.dispatchEvent(new PageTransitionEvent('pageshow'));
+        document.dispatchEvent(new Event('fullscreenchange'));
+      });
+      assert.equal(await measure(),null);
+    });
+    if(mode==='fixed helper')await page.evaluate(()=>{window.toastUI.destroy();delete window.toastUI;});
+  }
   console.log(JSON.stringify({grade:'OFFLINE_HEADLESS_DOM_CSS',browser:browser.version(),passed:checks.length,failed:failures.length,failures,nativeChrome:'NOT_TESTED',realSites:'NOT_TESTED'},null,2));
   if(failures.length)process.exitCode=1;
 }finally{await browser.close();}

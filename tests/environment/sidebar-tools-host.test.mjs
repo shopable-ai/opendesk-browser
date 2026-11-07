@@ -4143,6 +4143,14 @@ test('Cookie session Host forwards only reviewed metadata and its captured docum
   trusted=false;
   assert.equal((await ask('sharePair',{inviteUrl})).error.code,'E_USER_GESTURE_REQUIRED');
   assert.equal(messages.length,count,'no forged payload or gesture reaches the SW');
+  // Display recovery is read-only, but its tab/document must come from Host.
+  const status=await ask('status',{});
+  assert.equal(status.ok,true);
+  assert.equal(messages.at(-1).trustedClick,false);
+  assert.deepEqual(messages.at(-1).payload.document,target.capture());
+  const afterStatus=messages.length;
+  assert.equal((await ask('status',{document:{tabId:999}})).error.code,'E_ACCOUNT_REQUEST');
+  assert.equal(messages.length,afterStatus,'caller cannot select a different display target');
 });
 
 

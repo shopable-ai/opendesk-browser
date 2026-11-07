@@ -1,5 +1,9 @@
 # 本地云控表单示例（历史兼容入口）
 
+> **2026-11-07 基础开发入口**：[云控基础接入、源码交付、同版本运行时恢复与本次真实业务闭环](FOUNDATION.zh-CN.md)。本次 `sample.form-fill@1.0.2` 已由业务 BFF 通过指定配对 Chrome 完成一次独立提交，原文档、Run/Result、资源释放和 Provider 回执已关联；不代表完整业务 UI 或 production 验收。以下保留各阶段历史合同，不恢复已延期的全量验收。
+
+> **亲自操作**：[手动测试六步、通过条件和需要保存的记录](MANUAL-TEST.zh-CN.md)。
+
 > **当前产品级架构与下一轮真实验收入口（R19.4 → R19.5，2026-10-22）**：请先阅读 [统一架构、六项原始关键任务、Pull/Push、身份/状态、CI 事实及 T00–T10](../../docs/framework/workstreams/cloud-control-r19-4-architecture-r19-5-handoff.zh-CN.md)。本页是历史开发 CLI/演示说明，不代表独立业务网页表单、生产队列或跨设备已完成验收。
 
 > **最新 R5.2 导航（2026-10-13）**：本文前半段包含 R1–R5.1 历史示例，旧命令不一定适用于当前授权协议。整个 Cloud Control 应从 [完整产品功能树（110 项）](../../docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md)、[唯一接口与权限合同（Provider 27 HTTP / Host 10 RPC）](../../docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md)、[唯一执行手册（7 Gate / 30 任务包）](../../docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md)、[独立专家评分](../../docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json) 和 [真实工作流证据](../../docs/framework/workstreams/cloud-control-r5-02-product-closure.md) 查阅。Side Panel 的 39 项 UI 另见 [专门设计合同](../../docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md)，与 110 项产品矩阵有重叠、不额外相加。用户的正常浏览器操作请看本文 R5.2 / R5.2.4 小节；所有当前原生待验收保持待验收。

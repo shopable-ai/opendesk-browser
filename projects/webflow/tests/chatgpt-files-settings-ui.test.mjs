@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initChatGPTFilesSettingsUI} from '../../src/native-agent/chatgpt-files-settings-ui.js';
+import {initChatGPTFilesSettingsUI} from '../trusted/chatgpt-files-settings-ui.js';
 
 const protocol='opendesk.chatgpt.project.v1';
 const key='opendesk.chatgpt.files.preferences.v1';

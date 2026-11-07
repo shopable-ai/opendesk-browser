@@ -37,9 +37,17 @@ def update_binding(directory, request):
         approved = {
             '1.0.0': ('57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a', '1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63'),
             '1.0.1': ('8a39edc5ba519869ac5c74132b46830727d3ef8a8c2e4695bb2a0a995e1523c7', '9e74a9e089dda18fadc495e9c90b6851ad686eb20b40159d36547d5326c56153'),
+            '1.0.2': ('121561a42069c201658511e3dc8227e962c671d5149d3c50731f4fea5e99b05c', '9e74a9e089dda18fadc495e9c90b6851ad686eb20b40159d36547d5326c56153'),
         }
         assert pin['taskId'] == 'sample.form-fill' and approved.get(pin['version']) == (pin['manifestHash'], pin['sourceHash']), 'FIXED_PIN'
         existing = [b for b in config['bindings'] if b['deviceId'] == request['deviceId']]
+        if request.get('verifyOnly'):
+            # Reconcile an uncertain SSH response against the original intended
+            # binding. Never issue a Client or replace the config during recovery.
+            assert config.get('taskPin') == pin, 'BINDING_NOT_CONFIRMED'
+            assert len(existing) == 1 and existing[0] == request['binding'], 'BINDING_NOT_CONFIRMED'
+            assert existing[0]['userId'] == request['userId'], 'BINDING_NOT_CONFIRMED'
+            return {'verified': True}
         expected = request.get('expectedBindingId')
         if expected is None:
             assert not existing, 'DEVICE_ALREADY_BOUND'

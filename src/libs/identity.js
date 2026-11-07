@@ -12,5 +12,5 @@ export function assertBuiltinIdentity(expected,current) {
     /^[a-f0-9]{64}$/.test(expected.catalogSha256)&&
     /^[a-f0-9]{64}$/.test(expected.bundleSha256)&&
     canonical(expected)===canonical(current),'E_BUILTIN_VERSION_UNAVAILABLE',
-    '内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证');
+    '内置运行时已改变或旧版本未记录身份；请对同一固定程序包重新验证');
 }

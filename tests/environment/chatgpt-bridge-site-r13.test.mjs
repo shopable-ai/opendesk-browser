@@ -1,13 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {parseHTML} from 'linkedom';
 import {readFile} from 'node:fs/promises';
 import {createChatGPTBridgeSite} from '../../src/native-agent/chatgpt-bridge-site.js';
+import {createChatGPTTaskDiscovery} from '../../src/native-agent/chatgpt-task-discovery.js';
 import {claimChatGPTBridgeComposer} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
 import * as compatibilityBridge from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
 import * as projectBridge from '../../projects/webflow/trusted/chatgpt-bridge-page.js';
 
 // DOM component evidence only; does not prove live ChatGPT selectors or editing.
 const attr='data-opendesk-composer-owner';
+for(const cancelled of [false,true])test('actual completed heading-only DOM waits for body hydration; cancelled='+cancelled,()=>{
+  const {document:doc}=parseHTML('<html><body><div data-message-author-role="user">prior user</div>'+
+    '<article data-talvt-turn-state="complete"><div data-content-search-unit-key="prior:assistant">prior answer</div></article>'+
+    '<form><textarea id="prompt-textarea"></textarea><button data-testid="send-button"></button></form></body></html>');
+  const editor=doc.querySelector('textarea'),send=doc.querySelector('button');
+  for(const node of [editor,send])node.getClientRects=()=>[{}];
+  const win={location:new URL('https://chatgpt.com/c/12345678'),getComputedStyle:()=>({display:'block',visibility:'visible'})};win.top=win;
+  const site=createChatGPTBridgeSite({doc,win}),discovery=createChatGPTTaskDiscovery();
+  discovery.reset(site.inspect());editor.value='读取当前项目 demo.txt，只读';
+  assert.equal(discovery.witnessSubmission(site.inspect()),true);editor.value='';
+  const turn=doc.createElement('article');turn.setAttribute('data-talvt-turn-state','complete');
+  turn.innerHTML='<div data-chatgpt-search-unit-key="new:user">读取当前项目 demo.txt，只读</div>'+
+    '<div data-content-search-unit-key="new:assistant"><h4 data-conversation-role="assistant">ChatGPT 说：<span>ChatGPT</span></h4></div>';
+  doc.body.append(turn);const answer=turn.lastElementChild;
+  assert.equal(answer.textContent,'ChatGPT 说：ChatGPT');
+  assert.equal(site.inspect().answerComplete,false);assert.equal(discovery.observe(site.inspect()),null);
+  answer.insertAdjacentHTML('beforeend','<div data-assistant-message-actions><button>复制</button></div>');
+  assert.equal(site.inspect().answerComplete,false);assert.equal(discovery.observe(site.inspect()),null);
+  if(cancelled)assert.equal(discovery.witnessCancellation(site.inspect()),true);
+  const body=doc.createElement('div');body.textContent='等待文件上下文';answer.append(body);
+  const hydrated=site.inspect();assert.equal(hydrated.answerComplete,true);assert.equal(hydrated.assistants.at(-1),answer);
+  assert.equal(discovery.observe(hydrated)?.answer,cancelled?undefined:answer);
+  assert.equal(discovery.observe(site.inspect()),null,'hydration must not replay an emitted or cancelled operation');
+  body.textContent+=' ';assert.equal(discovery.observe(site.inspect()),null);
+});
+
 const message=text=>({innerText:text,parentElement:null,querySelector:()=>null,closest:()=>null});
 function fixture(){
   const state={users:[message('prior')],clicks:0,writes:0,focus(){},edit:text=>text,

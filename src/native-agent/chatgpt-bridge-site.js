@@ -81,6 +81,13 @@ function messageText(root) {
 }
 function assistantCompleted(root) {
   if (!root) return false;
+  // A completed turn can hydrate its body after the role heading. Do not
+  // consume the original discovery witness while only that shell is present.
+  if (root.cloneNode) {
+    const body = root.cloneNode(true);
+    for (const metadata of body.querySelectorAll('[data-conversation-role="assistant"],[data-assistant-message-actions],[data-testid="copy-turn-action-button"],[data-markdown-copy="exclude"]')) metadata.remove();
+    if (!body.textContent.trim()) return false;
+  }
   const turn = root.closest('[data-talvt-turn-state]') || root;
   if (turn.getAttribute('data-talvt-turn-state') === 'complete') return true;
   if (turn.getAttribute('data-talvt-turn-state') && turn.getAttribute('data-talvt-turn-state') !== 'complete') return false;

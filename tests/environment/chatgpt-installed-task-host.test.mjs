@@ -49,7 +49,7 @@ function harness(){
       result:{resultId:'result-article'}})};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,currentPageTarget:{snapshot:{windowId:2}},
     isVerifiedSidePanel:()=>true,checkTarget:async()=>{},
-    readReply:async()=>({turnKey:message.turnKey,answerKey:message.answerKey,blocks:[message.candidateText]})});
+    readReply:async()=>({turnKey:message.turnKey,answerKey:message.answerKey,userText:'读取 example.com 的文章',blocks:[message.candidateText]})});
   return {bridge,client,request,message,sender,installation,installed,resolved,candidate,events,snapshot,
     deny:()=>{permission=false;},onSend:fn=>{onSend=fn;},autoChange:()=>storageChanged({
       'opendesk.webflow.auto-trigger-grants.v1':{newValue:{enabled:false}}},'local')};

@@ -20,7 +20,7 @@ test('preview works beside read-only real SDK globals without using real capabil
   assert.equal(page.OpenDeskTool,realTool);
   assert.equal(page.OpenDeskSDK,realSdk);
   const request=page.__OpenDeskVipPreviewSDK.browser.network.request;
-  const member=await request({method:'GET',url:'http://127.0.0.1:7898/api/member'});
+  const member=await request({method:'GET',url:'https://vip.example.com/api/member'});
   assert.equal(member.data.account.state,'bound');
   await assert.rejects(request({method:'GET',url:'https://example.com/api/member'}),/NO_EXTERNAL_NETWORK/);
   const cookies=page.__OpenDeskVipPreviewSDK.browser.cookies;
@@ -44,16 +44,16 @@ test('only the session preview supplies a website directory, including after red
     const status=await sdk.proxy.managed.getStatus();
     assert.ok(status.developmentProfile,'member endpoints retain local preview configuration');
     const request=sdk.network.request;
-    const readMember=async()=>(await request({method:'GET',url:'http://127.0.0.1:7898/api/member'})).data;
+    const readMember=async()=>(await request({method:'GET',url:'https://vip.example.com/api/member'})).data;
     const member=await readMember();
     assert.equal(member.account.state,'bound');
     if(scene==='session'){
       assert.equal(member.sharedAccounts.accounts.length,1);
-      assert.equal(member.sharedAccounts.accounts[0].targetUrl,'http://127.0.0.1:7898/session/');
+      assert.equal(member.sharedAccounts.accounts[0].targetUrl,'https://chatgpt.com/');
     }else assert.equal(member.sharedAccounts,undefined,`${scene??'default'} has no website directory`);
     if(scene==='redeem'){
-      const preview=await request({method:'POST',url:'http://127.0.0.1:7898/api/preview',data:{code:'DEMO-VIP-01'}});
-      await request({method:'POST',url:'http://127.0.0.1:7898/api/redeem',data:{
+      const preview=await request({method:'POST',url:'https://vip.example.com/api/preview',data:{code:'DEMO-VIP-01'}});
+      await request({method:'POST',url:'https://vip.example.com/api/redeem',data:{
         accountId:member.account.id,previewId:preview.data.previewId,idempotencyKey:'preview-isolation'}});
       const redeemed=await readMember();
       assert.ok(redeemed.entitlements.length>0);

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL} from '../../src/native-agent/chatgpt-files-controller.js';
-import {installChatGPTFilesService} from '../../src/native-agent/chatgpt-files-service.js';
+import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL} from '../trusted/chatgpt-files-controller.js';
+import {installChatGPTFilesService} from '../trusted/chatgpt-files-service.js';
 const sha=text=>createHash('sha256').update(text).digest('hex');
 const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
 const source={tabId:7,documentId:'source-doc',url:'https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456',windowId:3};

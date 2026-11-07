@@ -21,6 +21,17 @@ function assignmentIdentity(c,a){
   if(c.pairingId)invariant(a.providerId===c.providerId&&a.pairingId===c.pairingId&&a.pairingGeneration===c.pairingGeneration&&Number.isSafeInteger(a.attemptEpoch)&&a.attemptEpoch>0,'E_ASSIGNMENT');
   return {pairing:pairingIdentity(c),jobId:a.jobId,claimId:a.claimId,assignmentId:a.assignmentId,attemptEpoch:a.attemptEpoch??0};
 }
+// Only finite, non-sensitive startup categories cross the trusted status boundary.
+const STARTUP_CODES=new Set(['E_SCHEMA','E_TASK','E_PERMISSION','E_REVISION','E_HASH',
+  'E_VERIFICATION','E_BUILTIN_VERSION_UNAVAILABLE','E_BUILTIN_RESOURCE','E_BUILTIN_MANIFEST',
+  'E_BUILTIN_HASH','E_TIMEOUT','E_REQUEST_CONFLICT','E_CLOUD_REVOKED',
+  'E_CLOUD_FENCED','E_HOST_CLOSED','E_DOCUMENT_STALE','E_DOCUMENT_REPLACED','E_OWNER',
+  'E_TARGET','E_LIMIT','E_VALUE_SERIALIZATION','E_WRITE_CONFLICT','E_TOOL_LOCK','E_TOOL_CHANGED',
+  'E_CLOUD_STARTUP']);
+function startupFailure(value){
+  if(!value||!['resolve','admission'].includes(value.stage)||!Number.isSafeInteger(value.at)||value.at<0)return null;
+  return {code:STARTUP_CODES.has(value.code)?value.code:'E_CLOUD_STARTUP',stage:value.stage,at:value.at};
+}
 const APPROVAL_FIELDS=['taskId','version','manifestHash','sourceHash','installationId','generation','siteOrigins','resultAllowed'];
 function acceptedCloudTarget(target,origins){
  if(!target||typeof target!=='object'||Array.isArray(target)||Object.keys(target).some(k=>!['mode','url'].includes(k))||target.mode!=='owned'||typeof target.url!=='string'||target.url.length>8192)return false;
@@ -191,6 +202,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
               !['completed','failed','stopped','interrupted','paused_unknown'].includes(run?.state),
             taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released',
+            ...(startupFailure(r.startupFailure)?{startupFailure:startupFailure(r.startupFailure)}:{}),
             ...(originalRunId?{runId:originalRunId,resultId:run?.resultId??null}:{})});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
@@ -635,7 +647,57 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       config.claimId=null;config.pendingRequestId=null;await tx.put(KV,config,CONFIG);return null;
     },'readwrite');
   }
-  async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const config=await read(),initial=await transaction('readonly',tx=>findRequest(tx,request.requestId,config),[KV]);invariant(initial,'E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.requestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
+  // Private service/Controller hook, never registered as a Broker RPC. Diagnostic
+  // transactions are best effort and cannot replace the original result/error.
+  async function startupSnapshot(tx,host,request,stage){
+    const c=await tx.get(KV,CONFIG),requestId=stage==='admission'?request?.cloudRequestId:request?.requestId;
+    if(typeof requestId!=='string'||!requestId.startsWith('cloud:'))return null;
+    const r=await findRequest(tx,requestId,c);
+    if(!c?.enabled||!nonempty(c.grantId)||c.unpairing||c.revokedAt||c.namespace!==host.namespace||
+      !r||r.namespace!==host.namespace||r.grantId!==c.grantId||!samePairing(r,c)||
+      r.state!=='waiting'||r.cancelRequestedAt||r.assignment?.cancelled||r.runId||r.runRef||r.startupFailure||
+      !(r.assignment?.leaseUntil>clock.now()))return null;
+    // Every original durable cloud admission writes this journal key in the
+    // same transaction as its Run. A missing row pointer cannot hide a Run.
+    if(await tx.get('commandJournal','cloud-start:'+requestId))return null;
+    if(r.identity&&canonical(assignmentIdentity(c,r.assignment))!==canonical(r.identity))return null;
+    if(stage==='admission'&&(request.requestId!==r.requestId||request.scriptId!==r.task.scriptId||
+      request.revision!==r.task.revision||request.contentHash!==r.task.contentHash||
+      request.expectedTaskInstallationId!==r.task.installationId||
+      request.expectedTaskGeneration!==r.task.generation||
+      canonical(decodeValue(request.paramsWire))!==canonical(r.params)||
+      canonical(request.target)!==canonical(r.assignment.target)))return null;
+    return {key:rowKey(r),pin:canonical({namespace:r.namespace,grantId:r.grantId,
+      pairing:pairingIdentity(c),requestId:r.requestId,digest:r.digest??null,
+      identity:effectiveIdentity(r,c),assignment:r.assignment,task:r.task,params:r.params})};
+  }
+  async function withStartupFailure(request,sender,stage,operation){
+    let snapshot,host,originalRequest;
+    if(['resolve','admission'].includes(stage))try{
+      originalRequest=structuredClone(request);
+      host=structuredClone(await assertHost(sender));
+      snapshot=await transaction('readonly',async tx=>{
+        await currentHost(tx,host,sender);return startupSnapshot(tx,host,originalRequest,stage);
+      },[KV,'commandJournal']);
+    }catch{/* Diagnostics must never gate the original operation. */}
+    try{return await operation();}catch(error){
+      if(snapshot)try{
+        await transaction('readwrite',async tx=>{
+          await currentHost(tx,host,sender);
+          const current=await startupSnapshot(tx,host,originalRequest,stage);
+          if(!current||current.key!==snapshot.key||current.pin!==snapshot.pin)return;
+          const r=await tx.get(KV,current.key);
+          r.startupFailure={code:STARTUP_CODES.has(error?.code)?error.code:'E_CLOUD_STARTUP',stage,at:clock.now()};
+          await tx.put(KV,r,current.key);
+        },[KV,'commandJournal']);
+      }catch{/* Preserve the exact original error even after quota/Host failure. */}
+      throw error;
+    }
+  }
+  function cloudResolve(request,sender){
+    return withStartupFailure(request,sender,'resolve',()=>resolveCloudRequest(request,sender));
+  }
+  async function resolveCloudRequest(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const config=await read(),initial=await transaction('readonly',tx=>findRequest(tx,request.requestId,config),[KV]);invariant(initial,'E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.requestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.cancelRequestedAt&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     // Fail at the resolver boundary, before RunHost admission, if an older or
     // malformed assignment points at any other locally installed source.
     invariant(t.taskId===r.task.taskId&&t.version===r.task.version&&
@@ -645,7 +707,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       'E_PERMISSION','Cloud task no longer matches the exact local installation');
     return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+Math.min(60000,t.manifest?.deadlineMs??30000),r.assignment.leaseUntil)};});}
   async function bind(tx,run,request,host){
-    const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.cloudRequestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
+    const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.cloudRequestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.cancelRequestedAt&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
     run.cloudRequestId=r.requestId;run.cloudRequestKey=rowKey(r);
     if(r.assignment.controlProtocol===2){run.cloudControlProtocol=2;run.cloudControlGeneration=r.assignment.controlGeneration;}
@@ -653,9 +715,9 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     if(c.pendingRequestId===r.requestId){c.pendingRequestId=null;await tx.put(KV,c,CONFIG);}
   }
   async function permit(run){
-    const c=await read(),r=await transaction('readonly',tx=>requestForRun(tx,run,c),[KV]);invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');const epoch=connectionEpoch,currentEpoch=()=>epoch===connectionEpoch;let p;
+    const c=await read(),r=await transaction('readonly',tx=>requestForRun(tx,run,c),[KV]);invariant(c?.enabled&&c.grantId===r?.grantId&&!r.cancelRequestedAt,'E_CLOUD_REVOKED');const epoch=connectionEpoch,currentEpoch=()=>epoch===connectionEpoch;let p;
     for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef,...(!legacyMapped(r,c)?{resultAllowed:r.task.resultAllowed===true}:{}),...requestBinding(r)},{isCurrent:currentEpoch});break;}catch(e){if(attempt||e.code)throw e;}}
-    await transaction('readwrite',async tx=>{const current=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(currentEpoch(),'E_CLOUD_FENCED');assertPermit(p,config,r);invariant(config?.enabled&&samePairing(r,config)&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);
+    await transaction('readwrite',async tx=>{const current=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(currentEpoch(),'E_CLOUD_FENCED');assertPermit(p,config,r);invariant(config?.enabled&&samePairing(r,config)&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&!current?.cancelRequestedAt&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);
       if(current.permit){
         assertPermit(current.permit,config,current);const issued={...p};
         if(legacyMapped(current,config))for(const key of ['executorId','pairingId','pairingGeneration','attemptEpoch','jobId','claimId'])if(!Object.hasOwn(current.permit,key))delete issued[key];
@@ -663,7 +725,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       }else current.permit=p;
       current.state='permitted';await history.put(tx,current);});
   }
-  async function assertActive(tx,run){if(!run.cloudRequestId)return;const c=await tx.get(KV,CONFIG),r=await requestForRun(tx,run,c);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&r.state==='permitted','E_CLOUD_FENCED');assertPermit(r.permit,c,r);
+  async function assertActive(tx,run){if(!run.cloudRequestId)return;const c=await tx.get(KV,CONFIG),r=await requestForRun(tx,run,c);invariant(c?.enabled&&r?.grantId===c.grantId&&r.runId===run.runId&&r.permit?.runRef.runId===run.runId&&r.permit?.leaseUntil>clock.now()&&r.state==='permitted'&&!r.cancelRequestedAt,'E_CLOUD_FENCED');assertPermit(r.permit,c,r);
     if(r.assignment.controlProtocol===2)invariant(run.cloudControlProtocol===2&&run.cloudControlGeneration===r.assignment.controlGeneration,'E_CONTROL_PROTOCOL');
   }
   async function controlContext(tx,run){
@@ -752,6 +814,9 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     for(const r of await rows()){
       if(!current())return;if(r.grantId!==c.grantId||!samePairing(r,c))continue;
       const run=r.runId?await transaction('readonly',tx=>tx.get('runs',r.runId)):null;
+      // Recover a cancellation registered before a crash without waiting for
+      // Provider acknowledgement. Only the original RunHost retires resources.
+      if(r.cancelRequestedAt)await fence(r,'E_CLOUD_CANCELLED');
       if(r.cancelRequestedAt&&!r.remoteCancelConfirmed){
         try{
           const ack=await post(c,'cancel',{assignmentId:r.assignment.assignmentId,
@@ -766,6 +831,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
             });
         }catch{/* Leave the original cancellation intent for the next reconnect. */}
       }
+      if(r.runId&&!run){await fence(r,'E_EFFECT_UNKNOWN');continue;}
       // Unknown native effects outrank a saved interruption Result or receipt.
       if(await transaction('readonly',tx=>unknownOutcome(tx,run))){
         await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,rowKey(r));row.state='OUTCOME_UNKNOWN';row.reason??='E_OUTCOME_UNKNOWN';await history.put(tx,row);});continue;
@@ -780,7 +846,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!a||a.runRef&&r.runRef&&canonical(a.runRef)!==canonical(r.runRef)){await fence(r,'E_RUN_REF');continue;}
       if(c.pairingId){const identity=assignmentIdentity(c,a);invariant(canonical(identity)===canonical(effectiveIdentity(r,c)),'E_ASSIGNMENT');}
       if(a.cancelled||a.leaseUntil<=clock.now()){await fence(r,'E_CLOUD_CANCELLED');if(!r.runId)continue;}
-      const active=run&&['preparing','running'].includes(run.state)&&!run.cancelSeq&&r.state==='permitted';
+      const active=!r.cancelRequestedAt&&run&&['preparing','running'].includes(run.state)&&!run.cancelSeq&&r.state==='permitted';
       if(active&&r.permit&&!r.receipt&&!a.cancelled&&a.leaseUntil>clock.now()){
         if(r.permit.leaseUntil<=clock.now())await fence(r,'E_LEASE');
         else try{
@@ -788,7 +854,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
           invariant(finiteLease(lease.leaseUntil),'E_LEASE');
           await transaction('readwrite',async tx=>{
             const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId);
-            invariant(current()&&config?.enabled&&config.grantId===r.grantId&&row?.state==='permitted'&&row.permit?.permitId===r.permit.permitId&&canonical(row.runRef)===canonical(r.runRef)&&row.permit.leaseUntil>clock.now()&&['preparing','running'].includes(stored?.state)&&!stored.cancelSeq&&lease.leaseUntil>clock.now(),'E_CLOUD_FENCED');
+            invariant(current()&&config?.enabled&&config.grantId===r.grantId&&row?.state==='permitted'&&!row.cancelRequestedAt&&row.permit?.permitId===r.permit.permitId&&canonical(row.runRef)===canonical(r.runRef)&&row.permit.leaseUntil>clock.now()&&['preparing','running'].includes(stored?.state)&&!stored.cancelSeq&&lease.leaseUntil>clock.now(),'E_CLOUD_FENCED');
             await assertRunTaskAuthorization(tx,stored);row.permit.leaseUntil=lease.leaseUntil;await history.put(tx,row);
           });
         }catch{if(current())await fence(r,'E_LEASE');}
@@ -845,7 +911,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudCancelRequest,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,bind,permit,start,controlFence,assertControlFence,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudCancelRequest,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,withStartupFailure,bind,permit,start,controlFence,assertControlFence,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
     setPullSession(reply){
       invariant(nonempty(reply?.sessionId)&&finiteLease(reply.expiresAt)&&reply.expiresAt>clock.now(),'E_PULL_SESSION');

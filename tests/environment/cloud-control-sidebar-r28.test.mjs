@@ -142,6 +142,23 @@ test('unknown states and reasons stay conservative, bounded and secret free',()=
   assert.equal(projectCloudRequestSamples({requests:Array(8).fill({state:'waiting'})},100).length,5);
 });
 
+test('startup history explains pre-Run failures without changing cancellation or exposing error bodies',()=>{
+  const row={state:'waiting',startupFailure:{stage:'resolve',code:'E_BUILTIN_VERSION_UNAVAILABLE',at:100,
+    message:'https://SECRET.example/token',params:{token:'SECRET'}}};
+  assert.match(sample(row).reason,/首次启动记录（解析程序）：内置运行时与已验证版本不一致/);
+  const cancelled=sample({...row,state:'cancelled',reason:'E_LEASE'});
+  assert.equal(cancelled.state,'已取消');
+  assert.match(cancelled.reason,/请求已取消.*执行许可已到期.*首次启动记录/);
+  assert.match(sample({...row,startupFailure:{stage:'admission',code:'SECRET',at:100}}).reason,
+    /首次启动记录（创建运行前）：启动异常，待核对/);
+  assert.doesNotMatch(JSON.stringify(sample(row)),/SECRET|https?:\/\//);
+  for(const override of [{runId:'original-run'},{runState:'running'},
+    {state:'finished',runState:'completed',retirementState:'released',receipt:true}])
+    assert.doesNotMatch(sample({...row,...override}).reason,/首次启动记录/);
+  for(const startupFailure of [{stage:'SECRET',code:'E_TASK',at:100},{stage:'resolve',code:'E_TASK',at:-1}])
+    assert.doesNotMatch(sample({...row,startupFailure}).reason,/首次启动记录|SECRET/);
+});
+
 function hostingFixture({tab='cloud'}={}){
   let current;
   const document={documentElement:{dataset:{opendeskTab:tab}},getElementById:()=>null};

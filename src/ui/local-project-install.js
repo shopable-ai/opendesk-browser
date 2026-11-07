@@ -3,7 +3,7 @@
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {preparePageCandidateDraft} from './page-candidate-source.js';
-import {createTaskPackage} from '../platform/tasks/contract.js';
+import {createTaskPackage,verifyTaskPackage} from '../platform/tasks/contract.js';
 import {localProjectAllowsOrigin} from '../platform/local-project-site-scope.js';
 
 const SHA=/^[a-f0-9]{64}$/;
@@ -76,7 +76,7 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   const siblings=rows.filter(row=>identity(row)===id);
   const previous=page?(catalog?.installed||[]).find(row=>row.programId===id):
     taskRows(catalog).installed.find(row=>row.taskId===id);
-  const version=page?String(1+Math.max(0,previous?.revision||0,...siblings.map(row=>row.revision||0))):
+  let version=page?String(1+Math.max(0,previous?.revision||0,...siblings.map(row=>row.revision||0))):
     taskVersion(siblings.map(row=>row.version));
   const rules=page?pageCandidate(source,target,id,Number(version)).request.pageRules:null;
   if(page&&!rules)throw fail('E_PAGE_MATCH','未取得可信的 Page 自动运行网站范围');
@@ -94,7 +94,13 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   const pageInputsMatch=!page||(installedCandidate?.entryFormat===source.entryFormat&&
     (installedCandidate?.sourceProfile?.importSourceUrl??null)===(source.importSourceUrl??null)&&
     (installedCandidate?.dependencyLockId??null)===(source.lockId??null));
-  const alreadyInstalled=!!previous&&sourceMatches&&scopeMatches&&pageInputsMatch;
+  const installationMatches=!!previous&&sourceMatches&&scopeMatches&&pageInputsMatch;
+  const recovering=!page&&installationMatches&&
+    (previous.runtimeCurrent===false||installedCandidate?.runtimeCurrent===false);
+  if(recovering&&(installedCandidate.manifestHash!==previous.manifestHash||!SHA.test(previous.manifestHash)))
+    throw fail('E_REVISION','原固定任务与安装身份不一致，请重新核对');
+  if(recovering)version=previous.version;
+  const alreadyInstalled=installationMatches&&!recovering;
   const installedSites=page?[...(previous?.pageRules?.matches||[])]:
     [...(installedCandidate?.manifest?.siteOrigins||[])];
   return Object.freeze({id,version,kind:source.runtimeKind,
@@ -106,9 +112,13 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
     installedSiteOrigins:Object.freeze(installedSites),
     scopeChanged:!!previous&&(page?JSON.stringify(previous.pageRules)!==JSON.stringify(rules):
       JSON.stringify(installedSites)!==JSON.stringify(sites)||!scopeMatches),
-    defaultTitle:(previous?.title||installedCandidate?.manifest?.title||project?.name||source.projectId||'我的本地工具').slice(0,100),
+    defaultTitle:(recovering?installedCandidate.manifest.title:
+      previous?.title||installedCandidate?.manifest?.title||project?.name||source.projectId||'我的本地工具').slice(0,100),
+    recoveryManifestHash:recovering?previous.manifestHash:null,
     installedVersion:previous?.revision??previous?.version??null,
     installedHash:previous?.manifestHash??null,
+    installedInstallationId:previous?.installationId??null,
+    installedGeneration:previous?.generation??null,
     alreadyInstalled,needsReexecution:page});
 }
 export function assertLocalInstallVersion(review,source,binding){
@@ -139,6 +149,9 @@ export async function commitLocalProjectInstallation({client,review,source,targe
   const current=await getInstalledLocalProject({client,review});
   if((current?.manifestHash??null)!==review.installedHash)
     throw fail('E_REVISION','已安装版本在审阅期间发生变化，请重新核对');
+  if(review.recoveryManifestHash&&
+    (current?.installationId!==review.installedInstallationId||current?.generation!==review.installedGeneration))
+    throw fail('E_REVISION','已安装任务授权在审阅期间发生变化，请重新核对');
   if(review.kind==='page-userscript'){
     const revision=Number(version);
     if(!Number.isSafeInteger(revision)||revision<1)throw fail('E_REVISION','Page revision 必须是正整数');
@@ -181,17 +194,26 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     ...(source.deadlineMs!==undefined?{deadlineMs:source.deadlineMs}:{}),
     entryFormat:'async-main',program:{revision:1,sourceHash:review.sourceHash},
     paramsSchema:source.paramsSchema||emptyParams()};
-  const pkg=await createTaskPackage(manifest,source.sourceUtf8);
+  let pkg,candidate;
+  if(review.recoveryManifestHash){
+    if(version!==review.version||title!==review.defaultTitle||current?.version!==review.installedVersion)
+      throw fail('E_REVISION','运行时恢复必须保留原固定任务版本和名称');
+    candidate=await client.request('getTaskCandidate',{taskId:review.id,version});
+    pkg=await verifyTaskPackage(candidate.package);
+    if(candidate.manifestHash!==review.recoveryManifestHash||pkg.manifestHash!==review.recoveryManifestHash||
+      pkg.manifest.taskId!==review.id||pkg.manifest.version!==version||pkg.sourceUtf8!==source.sourceUtf8)
+      throw fail('E_REVISION','原固定任务包已变化，请重新核对');
+  }else pkg=await createTaskPackage(manifest,source.sourceUtf8);
   await onCandidate(pkg.manifestHash);
-  let candidate=await client.request('importTaskPackage',{package:pkg});
-  if(candidate.stage==='candidate')candidate=await client.request('verifyTaskCandidate',{
+  if(!candidate)candidate=await client.request('importTaskPackage',{package:pkg});
+  if(candidate.stage==='candidate'||candidate.runtimeCurrent===false||review.recoveryManifestHash)candidate=await client.request('verifyTaskCandidate',{
     taskId:review.id,version,runId:review.runId});
   if(candidate.manifestHash!==pkg.manifestHash||!['verified','available'].includes(candidate.stage))throw fail('E_VERIFICATION','缺少同源码的持久 Controller 结果和原生页面操作回执');
   if(candidate.stage==='verified')await client.request('makeTaskAvailable',{
     taskId:review.id,version,manifestHash:candidate.manifestHash});
   const installed=await client.request('installTask',{taskId:review.id,version,manifestHash:candidate.manifestHash,
     expectedInstalledVersion:current?.version??null,
-    expectedGeneration:current?.generation??null,expectedInstallationId:current?.installationId??null});
+    expectedGeneration:review.installedGeneration??null,expectedInstallationId:review.installedInstallationId??null});
   if(installed.manifestHash!==candidate.manifestHash||installed.version!==version)
     throw fail('E_EFFECT_UNKNOWN','Task 安装结果未确认，请只读核对已安装状态');
   return {kind:review.kind,id:review.id,version,manifestHash:candidate.manifestHash};
@@ -227,11 +249,24 @@ export async function readLocalInstallOutcome({client,review,version}){
   const state=await client.request('listTaskCatalog',{});
   const installed=(state.installed||[]).find(row=>row.taskId===review.id);
   if(!installed)return {state:'not-installed'};
-  if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
+  if(review.recoveryManifestHash){
+    // Recovery keeps the package hash. Only the reviewed installation's next
+    // authorization generation can acknowledge this particular install attempt.
+    if(typeof review.installedInstallationId!=='string'||!review.installedInstallationId||
+      !Number.isSafeInteger(review.installedGeneration)||review.installedGeneration<1||
+      installed.installationId!==review.installedInstallationId||
+      installed.version!==review.installedVersion||version!==review.installedVersion||
+      review.recoveryManifestHash!==review.installedHash||installed.manifestHash!==review.installedHash)
+      return {state:'unconfirmed'};
+    if(installed.generation===review.installedGeneration)return {state:'baseline-unchanged'};
+    if(!Number.isSafeInteger(installed.generation)||installed.generation!==review.installedGeneration+1||
+      installed.runtimeCurrent!==true)return {state:'unconfirmed'};
+  }else if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
   const candidate=(state.catalog||[]).find(row=>row.taskId===review.id&&
     row.version===version&&row.manifestHash===installed.manifestHash);
   if(!SHA.test(review.attemptedManifestHash)||installed.manifestHash!==review.attemptedManifestHash||
     !candidate||candidate.stage!=='available'||installed.version!==version||
+    (review.recoveryManifestHash&&candidate.runtimeCurrent!==true)||
     candidate.manifest?.program?.sourceHash!==review.sourceHash||
     JSON.stringify(candidate.manifest?.siteOrigins)!==JSON.stringify(review.siteOrigins))
     return {state:'unconfirmed'};

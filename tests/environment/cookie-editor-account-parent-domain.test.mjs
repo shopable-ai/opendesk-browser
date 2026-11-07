@@ -354,7 +354,10 @@ test('CSDN uncertain native write stops the remaining steps and is not retried',
   f.replace(f.rows().map(row=>({...row,value:'fiction-b'})));
   const set=f.api.cookies.set;
   f.api.cookies.set=function(details,callback){
-    set.call(this,details,()=>callback(null));
+    set.call(this,details,()=>{
+      f.api.runtime.lastError={message:'Fictional native failure after dispatch'};
+      try{callback(null);}finally{f.api.runtime.lastError=null;}
+    });
   };
   await assert.rejects(f.dispatch('switch',{revision:1,alias:saved.accounts[0].alias}),
     {code:'E_OUTCOME_UNKNOWN'});

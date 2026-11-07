@@ -2300,7 +2300,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
         ...Object.fromEntries(optionalFields.filter(field=>Object.hasOwn(payload,field))
           .map(field=>[field,payload[field]]))};
-      if(['create','update','attach','switch','shareClaim','sharePair','shareDeliver','serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(action)||
+      if(['status','create','update','attach','switch','shareClaim','sharePair','shareDeliver','serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(action)||
         action==='shareCreate'&&payload.mode==='session'){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
@@ -2402,7 +2402,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!verifiedGesture)
         throw Object.assign(new Error('请在清理预览中重新点击确认'),{code:'E_USER_GESTURE_REQUIRED'});
       if(tool.id!=='cookie-editor'||!tool.capabilities.includes('browser.cookies.clear')||
-        !payload||Object.keys(payload).sort().join(',')!=='expectedCount,previewRef,url'||
+        !payload||!['expectedCount,previewRef,url','expectedCount,previewRef,scope,url'].includes(Object.keys(payload).sort().join(','))||
         typeof payload.url!=='string'||typeof payload.previewRef!=='string'||
         !Number.isSafeInteger(payload.expectedCount))
         throw Object.assign(new Error('无效的 Cookie 清理确认'),{code:'E_SCHEMA'});
@@ -2424,7 +2424,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         cookieSiteRecord(tool,origin)?.grantEpoch!==grant.grantEpoch)
         throw Object.assign(new Error('清理预览期间网站或授权已改变'),{code:'E_DOCUMENT_CHANGED'});
       return cookieClearGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        url:payload.url,previewRef:payload.previewRef,expectedCount:payload.expectedCount,
+        url:payload.url,previewRef:payload.previewRef,expectedCount:payload.expectedCount,scope:payload.scope,
         grantEpoch:grant.grantEpoch,document,verifiedUserActivation:verifiedGesture});
     }
     if(operation==='cookieEditor.clear.finish'){
@@ -3000,7 +3000,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           const grant=cookieSiteRecord(tool,origin);
           // Consume exactly once and fail closed on an expired, changed or
           // forged preview. Do not fall through to a second confirmation UI.
-          if(!cookieClearGate.consume({owner,url:payload.url,previewRef:payload.previewRef,
+          if(!cookieClearGate.consume({owner,url:payload.url,previewRef:payload.previewRef,scope:payload.scope,
             expectedCount:payload.expectedCount,maxCookies:payload.maxCookies,
             grantEpoch:grant?.grantEpoch??null,document}))
             throw Object.assign(new Error('本次清理未获得有效确认，请重新预览并点击清理'),
@@ -3021,7 +3021,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           }catch(error){cookieClearGate.revoke();throw error;}
         }
         if(!importBatchOwner&&!writeIntentOwner&&!clearIntentOwner){
-          const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
+          const kind=operation==='browser.cookies.clearSite'?(payload?.scope==='site-exact-host'?
+            '清理该页面的本主机 Cookie（包括跨子域和当前分区 Cookie）':'清理该网站的 Host-only Cookie'):
             operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
             operation==='browser.cookies.remove'?'删除指定 Cookie':
             operation==='browser.cookies.setMany'?'批量写入 '+payload.cookies.length+' 条 Cookie':'写入指定 Cookie';

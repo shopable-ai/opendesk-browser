@@ -6,6 +6,7 @@ import {createEditContext,parseEditProposal,validateEditProposal,createEditRecei
 import {inspectChatGPTEditsOnPage,readChatGPTEdit,isChatGPTURL} from '../../src/native-agent/workspace-chatgpt.js';
 import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 import {createMemoryWorkspace,DEMO_WORKSPACE_ID} from '../../src/native-agent/file-workspace-demo.js';
+import {createChatGPTFilesController} from '../../projects/webflow/trusted/chatgpt-files-controller.js';
 
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const record=()=>({workspaceId:'trusted-workspace',path:'README.md',content:'# Original\n',baseContent:'# Original\n',sha256:hash('# Original\n')});
@@ -121,6 +122,154 @@ test('reader reads the actual single-UUID roleless assistant with a unique immed
   const {read,text}=rolelessAnswerFixture(t),result=read();
   assert.equal(result.ok,true);assert.deepEqual(result.blocks,[text]);assert.equal(result.assistantFragments,1);
   assert.equal(read().answerKey,result.answerKey);
+});
+
+function readerControllerFixture(t,mutate){
+  const dom=rolelessAnswerFixture(t),task='读取 isolated-test 项目的 demo.txt，只读取，不修改任何文件';
+  dom.document.querySelector('[data-chatgpt-search-unit-key]').textContent=task;
+  const source={tabId:7,windowId:3,documentId:'source-doc',url:location.href};
+  const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
+  const ledger={'opendesk.chatgpt.files.grants.v1':{existing:{id:'existing',version:1,service:'https://chatgpt.com',
+    sourceUrl:source.url,scope:'task-named-existing-text',operations:['read'],authority:{workspaceId,sourceId:''}}}};
+  const counts={reads:0,writes:0,fills:0,inspections:0};
+  let mutated=false;
+  const api={runtime:{id:'extension'},storage:{local:{
+    async get(key){return {[key]:ledger[key]};},async set(value){Object.assign(ledger,structuredClone(value));}}},
+    tabs:{async get(){return {id:7,windowId:3,url:source.url};}},
+    webNavigation:{async getFrame(){return {...source,frameId:0,documentLifecycle:'active'};}},
+    scripting:{async executeScript({func,args,world}){
+      assert.equal(world,'ISOLATED');assert.equal(func,inspectChatGPTEditsOnPage);counts.inspections++;
+      // Exercise the serialized reader, as Chrome does, without module bindings.
+      return [{frameId:0,documentId:source.documentId,result:(0,eval)('('+func.toString()+')')(args[0])}];
+    }}};
+  const files={state:()=>({connected:true,sessionId:'native-session-123456',devLeaseEpoch:1}),
+    async request(method,params){
+      if(method==='workspaces.list'){
+        if(!mutated){mutated=true;mutate(dom);}
+        return {workspaces:[{workspaceId,name:'isolated-test',access:'read-only',sourceId:'',leaseEpoch:''}]};
+      }
+      if(method==='files.read'){counts.reads++;const content='safe original\n';
+        return {workspaceId,path:params.path,content,bytes:Buffer.byteLength(content),sha256:hash(content)};}
+      if(method==='files.write')counts.writes++;
+      throw Error('Unexpected Native request: '+method);
+    }};
+  const controller=createChatGPTFilesController({api,files,fillComposer:async()=>{counts.fills++;throw Error('Unexpected fill');}});
+  t.after(()=>controller.dispose());
+  return {...dom,counts,tick:()=>controller.tick(),start:()=>controller.conversationTask({task},
+    {id:'extension',frameId:0,documentId:source.documentId,url:source.url,tab:{id:7,windowId:3}})};
+}
+
+test('actual reader/controller rejects an empty completed admission and never replays it after hydration',async t=>{
+  const h=readerControllerFixture(t,()=>{});
+  h.parent.querySelector('[data-conversation-role]').remove();h.answer.setAttribute('data-content-search-unit-key','new:assistant');
+  h.answer.innerHTML='<h4 data-conversation-role="assistant">ChatGPT 说：<span>ChatGPT</span></h4>';
+  await assert.rejects(h.start(),{code:'E_CHAT_INCOMPLETE',outcome:'NOT_DISPATCHED'});
+  assert.equal(globalThis.__opendeskWorkspaceChatV1.answers?.has(h.answer)||false,false);
+  h.answer.append('等待文件上下文');await h.tick();
+  assert.equal(h.counts.reads,0);assert.equal(h.counts.writes,0);assert.equal(h.counts.fills,0);
+});
+
+test('actual reader/controller rejects body dehydration between admission and beginProject',async t=>{
+  const h=readerControllerFixture(t,({answer})=>{
+    answer.innerHTML='<h4 data-conversation-role="assistant">ChatGPT 说：<span>ChatGPT</span></h4>';
+  });
+  h.parent.querySelector('[data-conversation-role]').remove();h.answer.setAttribute('data-content-search-unit-key','new:assistant');
+  await assert.rejects(h.start(),{code:'E_CHAT_INCOMPLETE',outcome:'NOT_DISPATCHED'});
+  h.answer.append('等待文件上下文');await h.tick();
+  assert.equal(h.counts.reads,0);assert.equal(h.counts.writes,0);assert.equal(h.counts.fills,0);
+});
+
+for(const mode of ['file','Task','beginProject','requireComplete'])test('serialized reader rejects completed heading-only '+mode+' before binding',t=>{
+  const {read,answer,parent,document}=rolelessAnswerFixture(t);
+  parent.querySelector('[data-conversation-role]').remove();
+  answer.setAttribute('data-content-search-unit-key','new:assistant');
+  answer.innerHTML='<h4 data-conversation-role="assistant">ChatGPT 说：<span>ChatGPT</span></h4>';
+  const options={identityOnly:true,fileRequest:mode==='file',readUserMessage:true,
+    taskIntent:mode==='Task',requireComplete:mode==='requireComplete'};
+  assert.equal(read(options).error?.code,'E_CHAT_INCOMPLETE');
+  assert.equal(globalThis.__opendeskWorkspaceChatV1.answers?.has(answer)||false,false);
+  answer.insertAdjacentHTML('beforeend','<div data-assistant-message-actions><button>复制</button></div>');
+  assert.equal(read(options).error?.code,'E_CHAT_INCOMPLETE');
+  const body=document.createElement('div');body.textContent=' \n';answer.append(body);
+  assert.equal(read(options).error?.code,'E_CHAT_INCOMPLETE');
+  body.textContent='等待文件上下文';const hydrated=read(options);
+  assert.equal(hydrated.ok,true);assert.match(hydrated.answerKey,/:0$/);
+  assert.equal(globalThis.__opendeskWorkspaceChatV1.answers.get(answer).text,'ChatGPT 说：ChatGPT等待文件上下文');
+  assert.equal(read(options).answerKey,hydrated.answerKey);
+  body.textContent+=' ';assert.notEqual(read(options).answerKey,hydrated.answerKey,'substantive text remains exact');
+  const beforeReplacement=read(options).answerKey;answer.replaceWith(answer.cloneNode(true));
+  assert.notEqual(read(options).answerKey,beforeReplacement,'same-text replacement retains its identity fence');
+});
+
+for(const change of ['toolbar insertion','toolbar copied label','copy button insertion','code copied label']){
+  test('actual reader/controller keeps the admitted body stable after '+change,async t=>{
+    const h=readerControllerFixture(t,({answer,document})=>{
+      if(change==='toolbar insertion'){
+        const toolbar=document.createElement('div');toolbar.setAttribute('data-assistant-message-actions','');
+        toolbar.innerHTML='<button>复制</button><button>赞</button>';answer.append(toolbar);
+      }else if(change==='copy button insertion'){
+        const button=document.createElement('button');button.setAttribute('data-testid','copy-turn-action-button');
+        button.textContent='复制';answer.append(button);
+      }else if(change==='toolbar copied label')answer.querySelector('[data-assistant-message-actions] button').textContent='已复制';
+      else answer.querySelector('[data-markdown-copy="exclude"] button').textContent='已复制';
+    });
+    if(change==='toolbar copied label')h.answer.insertAdjacentHTML('beforeend',
+      '<div data-assistant-message-actions><button>复制</button></div>');
+    const before=h.read({identityOnly:true}).answerKey;
+    await h.start();
+    assert.equal(h.read({identityOnly:true}).answerKey,before);
+    assert.deepEqual(h.read({requireUserEcho:false}).blocks,[h.text]);
+    if(change==='code copied label')assert.equal(h.answer.querySelector('[data-markdown-copy="exclude"] button').textContent,'已复制');
+    assert.equal(h.counts.reads,1);assert.equal(h.counts.writes,0);assert.equal(h.counts.fills,0);
+    assert.ok(h.counts.inspections>=2);
+  });
+}
+
+for(const change of ['prose','code','body button','language label','same-text replacement','streaming','toolbar streaming','Task in button','Task in toolbar']){
+  test('actual reader/controller still rejects '+change+' before file I/O',async t=>{
+    const h=readerControllerFixture(t,({answer,document})=>{
+      if(change==='prose')answer.append('new prose outside the protocol block');
+      if(change==='code')answer.querySelector('code span').textContent+=' ';
+      if(change==='body button')answer.querySelector('#body-button').textContent='changed body';
+      if(change==='language label')answer.querySelector('[data-markdown-copy="exclude"] div').textContent='opendesk-task';
+      if(change==='same-text replacement')answer.replaceWith(answer.cloneNode(true));
+      if(change==='streaming')document.querySelector('article').setAttribute('data-talvt-turn-state','streaming');
+      if(change==='toolbar streaming')answer.insertAdjacentHTML('beforeend',
+        '<div data-assistant-message-actions><span data-is-streaming="true">生成中</span></div>');
+      if(change==='Task in button')answer.querySelector('#body-button').textContent='webflow.task.intent.v1';
+      if(change==='Task in toolbar')answer.insertAdjacentHTML('beforeend',
+        '<div data-assistant-message-actions><button>webflow.task.intent.v1</button></div>');
+    });
+    h.answer.insertAdjacentHTML('beforeend','<button id="body-button">body text</button>');
+    const before=h.read({identityOnly:true}).answerKey;
+    await assert.rejects(h.start(),{code:change.startsWith('Task in')?'E_CHAT_ROUTE':
+      change.includes('streaming')?'E_CHAT_TURN':'E_CHAT_ANSWER',outcome:'NOT_DISPATCHED'});
+    const after=h.read({identityOnly:true,readUserMessage:true});
+    if(change.includes('streaming')){assert.equal(after.answerKey,null);assert.equal(after.answerComplete,false);
+      assert.equal(h.read().error.code,'E_CHAT_STREAMING');}
+    else if(change==='Task in toolbar')assert.equal(after.answerKey,before);
+    else assert.notEqual(after.answerKey,before);
+    if(change.startsWith('Task in'))assert.equal(after.taskIntentPresent,true);
+    assert.equal(h.counts.reads,0);assert.equal(h.counts.writes,0);assert.equal(h.counts.fills,0);
+  });
+}
+
+test('identity inspection reports deny-only Task presence without granting a file or Task route',t=>{
+  const {read,answer,document}=rolelessAnswerFixture(t);
+  const options={identityOnly:true,readUserMessage:true};
+  assert.equal(read(options).taskIntentPresent,false);
+  const conflict=document.createElement('div');conflict.textContent='webflow.task.intent.v1';answer.append(conflict);
+  const mixed=read(options);
+  assert.equal(mixed.ok,true);assert.equal(mixed.taskIntentPresent,true);
+  assert.equal('blocks' in mixed,false);assert.equal('workspaceId' in mixed,false);
+  conflict.textContent='opendesk.task.request.v1';assert.equal(read(options).taskIntentPresent,true);
+  for(const protocol of ['webflow.task.intent.v1','opendesk.task.intent.v1','opendesk.task.request.v1']){
+    conflict.textContent=JSON.stringify({protocol}).replaceAll('.',String.raw`\u002e`);
+    assert.equal(read(options).taskIntentPresent,true,'escaped '+protocol+' must remain deny-only');
+    conflict.textContent='块外引号 "\n'+conflict.textContent;
+    assert.equal(read(options).taskIntentPresent,true,'unpaired prose quote cannot hide '+protocol);
+  }
+  conflict.remove();assert.equal(read(options).taskIntentPresent,false);
 });
 
 test('roleless answer still requires the newest user echo and positive completion',t=>{

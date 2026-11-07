@@ -1,5 +1,10 @@
 // style.css is compiled by the original public-style extractor in Vite.
 // This is the same approved CSS slice the installable packer embeds.
+import * as React from 'react';
+import {createRoot} from 'react-dom/client';
+import VipApp from '../src/App.jsx';
+import '../src/style.css';
+import '../src/main.js';
 import {installPreviewFixture} from './sdk-fixture.js';
 
 // The laboratory stays outside #tool-app. Nothing here is packaged into the
@@ -10,7 +15,7 @@ const tell=message=>{note.textContent=message+'（只修改隔离演示，未操
 
 const scene=document.getElementById('preview-scene');
 const allowed=new Set([
-  'first','empty','unconfigured','error','member','expired','link','permission',
+  'development','connect','first','empty','unconfigured','error','member','expired','link','permission',
   'proxy-on','conflict','stop-pending','session','redeem','quota','guest','offline'
 ]);
 const requested=new URL(location.href).searchParams.get('scene');
@@ -91,4 +96,10 @@ release.addEventListener('click',()=>{
   proxy.value='disabled';
   tell('模拟 STOP 已返回停用回执');
 });
-await import('../src/main.jsx');
+if(scene.value==='development'){
+  await import('../dev/main.jsx');
+}else{
+  const reactRoot=createRoot(document.getElementById('tool-app'));
+  reactRoot.render(<VipApp serviceDefinition={fixture.service}/>);
+  addEventListener('pagehide',()=>reactRoot.unmount(),{once:true});
+}

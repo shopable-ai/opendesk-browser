@@ -93,7 +93,7 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
     isVerifiedSidePanel:()=>verified,canRefresh,acquireRefresh,refreshIdle,checkTarget:async()=>{},readReply:async()=>structuredClone(observed)});
   const next=(id,changes={})=>{
     const intent={protocol:'webflow.task.intent.v1',candidateId:id,taskId:scope.taskId,targetUrl:scope.targetUrl,args:scope.args,...changes};
-    observed={turnKey:'turn-'+id,answerKey:'answer-'+id,blocks:[JSON.stringify(intent)],answerComplete:true};
+    observed={turnKey:'turn-'+id,answerKey:'answer-'+id,userText:'搜索 OpenDesk Browser',blocks:[JSON.stringify(intent)],answerComplete:true};
     return {protocol,kind:'auto-task',persistentAuto:true,candidateText:observed.blocks[0],turnKey:observed.turnKey,answerKey:observed.answerKey};
   };
   const run=async message=>{

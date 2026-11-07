@@ -12,7 +12,15 @@ function requireCurrentLibraries(candidate){
     invariant(candidate.package.manifest.siteOrigins.includes(candidate.verification?.origin),
       'E_VERIFICATION','Task verification must come from a declared exact origin');
   invariant(candidate?.verification?.builtinAbi===BUILTIN_ABI,
-    'E_BUILTIN_VERSION_UNAVAILABLE','任务所验证的内置库版本已更改；请创建新任务版本并重新验证');
+    'E_BUILTIN_VERSION_UNAVAILABLE','任务所验证的内置库版本已更改；请对同一固定任务包重新验证');
+}
+function identityCurrent(identity,current) {
+  try { assertBuiltinIdentity(identity,current); return true; }
+  catch(error) { if(error.code==='E_BUILTIN_VERSION_UNAVAILABLE')return false; throw error; }
+}
+function runtimeCurrent(row,current) {
+  return identityCurrent(row.builtinIdentity,current) && (row.stage==='candidate' ||
+    row.verification?.builtinAbi===BUILTIN_ABI && identityCurrent(row.verification?.builtinIdentity,current));
 }
 function fields(value,allowed,required=allowed) {
   invariant(value && typeof value==='object' && !Array.isArray(value) &&
@@ -20,8 +28,8 @@ function fields(value,allowed,required=allowed) {
     required.every(key=>Object.hasOwn(value,key)),'E_SCHEMA','Unexpected task operation fields');
 }
 function keyValue(value) {invariant(typeof value==='string' && value.length>0,'E_SCHEMA','Missing task identity');}
-function detail(row) {
-  return {taskId:row.taskId,version:row.version,manifest:structuredClone(row.package.manifest),
+function detail(row,current) {
+  return {taskId:row.taskId,version:row.version,runtimeCurrent:runtimeCurrent(row,current),manifest:structuredClone(row.package.manifest),
     manifestHash:row.package.manifestHash,stage:row.stage,verifiedAt:row.verification?.verifiedAt ?? null,
     verification:row.verification ? {runId:row.verification.runId,resultId:row.verification.resultId,
       sourceHash:row.verification.sourceHash,manifestHash:row.verification.manifestHash,origin:row.verification.origin} : null};
@@ -128,34 +136,35 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
         validCandidate(existing,ns);
         invariant(existing.package.manifestHash===pkg.manifestHash &&
           existing.package.sourceUtf8===pkg.sourceUtf8,'E_REQUEST_CONFLICT','Task version is immutable');
-      assertBuiltinIdentity(existing.builtinIdentity,current);
-        return detail(existing);
+        return detail(existing,current);
       }
       const row={tag:'task-candidate-v1',namespace:ns,taskId,version,package:pkg,builtinIdentity:current,
         stage:'candidate',verification:null,createdAt:clock.now()};
       await tx.put(TASK_STORE,row,key);
-      return detail(row);
+      return detail(row,current);
     });
   }
   async function listTaskCatalog(request,sender) {
+    const current=await environment();
     fields(request ?? {},[]);
     return scoped(sender,[TASK_STORE],'readonly',async (tx,ns)=>{
       const rows=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-candidate-v1'&&row.namespace===ns);
       const installed=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-installed-v1'&&row.namespace===ns);
       const byId=new Map(installed.map(row=>[row.taskId,row]));
-      return {catalog:rows.map(row=>({...detail(row),installed:byId.get(row.taskId)?.version===row.version,
+      return {catalog:rows.map(row=>({...detail(row,current),installed:byId.get(row.taskId)?.version===row.version,
         enabled:byId.get(row.taskId)?.version===row.version && byId.get(row.taskId).enabled})),
       installed:installed.map(row=>({taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
-        scriptId:row.scriptId,enabled:row.enabled,installedAt:row.installedAt,
+        scriptId:row.scriptId,enabled:row.enabled,installedAt:row.installedAt,runtimeCurrent:identityCurrent(row.builtinIdentity,current),
         installationId:row.authorization?.installationId??null,generation:row.authorization?.generation??null}))};
     });
   }
   async function getTaskCandidate(request,sender) {
+    const current=await environment();
     fields(request,['taskId','version']);keyValue(request.taskId);keyValue(request.version);
     return scoped(sender,[TASK_STORE],'readonly',async(tx,ns)=>{
       const row=validCandidate(await tx.get(TASK_STORE,taskKey(ns,request.taskId,request.version)),ns);
       await verifyTaskPackage(row.package);
-      return {...detail(row),package:structuredClone(row.package)};
+      return {...detail(row,current),package:structuredClone(row.package)};
     });
   }
   async function verifyTaskCandidate(request,sender) {
@@ -165,8 +174,8 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       const key=taskKey(ns,request.taskId,request.version);
       const row=validCandidate(await tx.get(TASK_STORE,key),ns);
       await verifyTaskPackage(row.package);
-      assertBuiltinIdentity(row.builtinIdentity,current);
-      if (row.stage!=='candidate') { requireCurrentLibraries(row); return detail(row); }
+      const recovering=!runtimeCurrent(row,current);
+      if (row.stage!=='candidate' && !recovering) { requireCurrentLibraries(row); return detail(row,current); }
       const run=await tx.get('runs',request.runId);
       const result=run?.resultId && await tx.get('results',run.resultId);
       const manifest=row.package.manifest, hash=manifest.program.sourceHash;
@@ -205,16 +214,23 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
         effects.push(value);
       }
       invariant(effects.length>0,'E_VERIFICATION','Exact successful native page-effect receipt is required');
-      assertBuiltinIdentity(row.builtinIdentity,run.builtinIdentity);
-      assertBuiltinIdentity(row.builtinIdentity,result.builtinIdentity);
+      assertBuiltinIdentity(run.builtinIdentity,current);
+      assertBuiltinIdentity(result.builtinIdentity,current);
       // This proves fixed-source execution on the recorded origin. Installation
       // reviews the complete manifest scope; it does not claim every site worked.
+      if(recovering){
+        row.runtimeHistory=[...(row.runtimeHistory??[]),{
+          builtinIdentity:structuredClone(row.builtinIdentity),stage:row.stage,
+          verification:structuredClone(row.verification),availableAt:row.availableAt}];
+        delete row.availableAt;
+      }
+      row.builtinIdentity=current;
       row.stage='verified';
       row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,builtinIdentity:current,builtinAbi:run.builtinAbi,
         manifestHash:row.package.manifestHash,origin:run.target.allowedOrigin,
         nativeReceiptCount:effects.length,verifiedAt:clock.now()};
       await tx.put(TASK_STORE,row,key);
-      return detail(row);
+      return detail(row,current);
     });
   }
   async function makeTaskAvailable(request,sender) {
@@ -231,7 +247,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       assertBuiltinIdentity(row.builtinIdentity,current);
       assertBuiltinIdentity(row.verification.builtinIdentity,current);
       row.stage='available';row.availableAt??=clock.now();
-      await tx.put(TASK_STORE,row,key);return detail(row);
+      await tx.put(TASK_STORE,row,key);return detail(row,current);
     });
   }
   async function installTask(request,sender) {
@@ -258,9 +274,16 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       const id=taskScriptId(request.taskId,request.version);
       const headKey=scriptStorageKey(ns,id),revisionKey=scriptStorageKey(ns,id,1);
       const head=await tx.get('scriptHeads',headKey),revision=await tx.get('scriptRevisions',revisionKey);
-      if (head || revision) invariant(head?.revision===1 && head.contentHash===pkg.manifest.program.sourceHash &&
+      if (head || revision) {
+        invariant(head?.revision===1 && head.contentHash===pkg.manifest.program.sourceHash &&
         !head.tombstoned && revision?.sourceUtf8===pkg.sourceUtf8 &&
         revision?.contentHash===pkg.manifest.program.sourceHash,'E_HASH','Installed script integrity differs');
+        if(!identityCurrent(revision.builtinIdentity,current)){
+          revision.builtinIdentityHistory=[...(revision.builtinIdentityHistory??[]),structuredClone(revision.builtinIdentity)];
+          revision.builtinIdentity=current;
+          await tx.put('scriptRevisions',revision,revisionKey);
+        }
+      }
       else {
         await tx.put('scriptRevisions',{tag:'script-revision',namespace:ns,scriptId:id,revision:1,
           parentRevision:0,contentHash:pkg.manifest.program.sourceHash,sourceUtf8:pkg.sourceUtf8,builtinIdentity:current},revisionKey);
@@ -270,6 +293,11 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       const row={tag:'task-installed-v1',namespace:ns,taskId:request.taskId,version:request.version,
         scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:old?.enabled??true,installedAt:old?.installedAt??clock.now(),
         authorization:installAuthorization(pkg.manifest,old?.authorization)};
+      if(old?.runtimeHistory)row.runtimeHistory=structuredClone(old.runtimeHistory);
+      if(old && !identityCurrent(old.builtinIdentity,current)){
+        const {runtimeHistory,...prior}=old;
+        row.runtimeHistory=[...(row.runtimeHistory??[]),structuredClone(prior)];
+      }
       await fenceInstalledRuns(tx,ns,old);
       await tx.put(TASK_STORE,row,installKey);
       return {taskId:row.taskId,version:row.version,enabled:row.enabled,manifestHash:row.manifestHash};

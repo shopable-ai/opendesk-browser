@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>OpenDesk 云控取消专用测试页</title>
+<h1>云控取消专用测试页</h1>
+<p>仅用于固定表单 Task 的取消验证。输入框在 25 秒内保持只读，随后开放并显示提交按钮；打开页面不会执行任务。</p>
+<p id="identity"></p>
+<form id="demo-form"><label>测试姓名 <input id="name" readonly></label><button id="submit" hidden>提交测试表单</button></form>
+<p id="facts">提交次数：0</p>
+<script>
+// Synthetic test data only. This fixture is not the standard demo document.
+const documentInstance=crypto.randomUUID();let eventSeq=0,submits=0;
+document.querySelector('#identity').textContent='原文档：'+documentInstance;
+function emit(type){navigator.sendBeacon('http://127.0.0.1:43114/events',JSON.stringify({documentInstance,eventSeq:++eventSeq,type,at:new Date().toISOString(),name:document.querySelector('#name').value,submits}));}
+emit('ready');
+document.querySelector('#name').addEventListener('input',()=>emit('input'));
+document.querySelector('#demo-form').addEventListener('submit',event=>{
+ event.preventDefault();submits++;emit('submit');
+ document.querySelector('#facts').textContent='提交次数：'+submits;
+ const done=document.createElement('p');done.id='done';done.textContent='已提交：'+document.querySelector('#name').value.trim();document.body.append(done);emit('done');
+});
+setTimeout(()=>{document.querySelector('#name').readOnly=false;document.querySelector('#submit').hidden=false;emit('button-ready');},25000);
+addEventListener('pagehide',()=>emit('pagehide'));
+</script>

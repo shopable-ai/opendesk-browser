@@ -289,7 +289,7 @@ function harness({disabled=false,available=true,permission=true,
     answerKey:'answer-1:0',candidateText};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,
     currentPageTarget:{snapshot:{windowId:2}},isVerifiedSidePanel:()=>true,
-    readReply:async()=>({turnKey:message.turnKey,answerKey:message.answerKey,
+    readReply:async()=>({turnKey:message.turnKey,answerKey:message.answerKey,userText:'搜索 OpenDesk Browser',
       blocks:[candidateText]})});
   return {bridge,message,sender,events,fx};
 }

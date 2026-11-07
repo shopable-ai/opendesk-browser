@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1afe0-c247-7eb2-9a1c-1b48faf23880",
+  "date": "2026-11-06",
+  "scope": "Fixed protocol read / reviewed edit-write / list initiation and natural completion in continuous development",
+  "evidenceType": "Operator observations of real CUA-visible UI plus independent read-only disk checks; not raw Native transport capture or dispatch counters",
+  "goal": "Complete fixed JSON prompt → unchanged AI echo → existing automatic listener → original Native file handler → real result → natural completion; consecutive requests use new identities and current baseline.",
+  "environment": {
+    "mode": "continuous-development",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "revision": "85af1a3c0736e6eb05ef5ff9046298300f68f91d17da51f0ec47355a899fa3e8",
+    "targets": [
+      {
+        "path": "native-agent/transport.js",
+        "sha256": "eb5063ed042fad3b52dc2780ed217447085c20de3ed621520fa9bd2011b482af",
+        "matchesPublished": true
+      },
+      {
+        "path": "native-agent/settings.js",
+        "sha256": "2dfae74d6609de0d8031af8693c7831ac090edf2aa1df14be2ab8a368952e539",
+        "matchesPublished": true
+      },
+      {
+        "path": "agents/chatgpt-fixed-bridge.js",
+        "sha256": "7afe991492b0f0bf67a8e3f6ab5d5c5e1cabb7c9634befe3bb682ee20d089a20",
+        "matchesPublished": true
+      }
+    ],
+    "browser": "Chrome for Testing 149.0.7827.55",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "conversation": "https://chatgpt.com/c/6aec9316-59c4-83ee-bc35-0bcf4d1b221b",
+    "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+    "workspacePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace",
+    "loadingPathCheck": "Read-only CFT Secure Preferences inspection maps extension ID to canonical dist/development. Fresh UI modes, generated short prompt and completed states observed. Separate live serve-client status / revision was not captured in UI this round.",
+    "nativeManifest": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "nativeHost": "/Users/shopme/.opendesk-browser/native-agent-instances/scrapyjs-react-01a186cc/native-host",
+    "allowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "nativeConnection": "Visible connected in current CFT settings and real file operations succeeded; default opendesk browser doctor reported another default Chrome instance disconnected and is not evidence for this CFT connection.",
+    "existingWatcher": "Reused existing npm run dev writer, no second writer or static build; source pin approval followed by mtime-only wxt.config.mjs touch to reload cached provenance gate."
+  },
+  "sourceReview": {
+    "reviewer": "Mendel",
+    "agentId": "01a1b010-f98a-7fd1-ae7c-e0a59bb18358",
+    "sourceBlobs": {
+      "projects/webflow/trusted/chatgpt-files-controller.js": "35779a77734ebd55ccf0141879ab9bfcb6a1ffa5",
+      "projects/webflow/trusted/chatgpt-files-ui.js": "1ab604a79359615e6876e5c3ed0765d90d3035a0",
+      "projects/webflow/trusted/chatgpt-files.html": "0968cdebc7256f7ffccc49babec89f37810b548d"
+    },
+    "sourceMaps": "Affected bundled sourceContent matched source for all three relevant targets",
+    "finalScore": 96,
+    "scoreScale": 100,
+    "finalReviewConfirmedAfterReadingEvidenceAndDocument": true,
+    "dimensions": {
+      "promptSelfSufficiency": "25/25",
+      "listenerDispatchAndCompletion": "25/25",
+      "identityAndSafety": "20/20",
+      "reproductionAndUsability": "19/20",
+      "evidenceCompleteness": "7/10"
+    },
+    "deductions": [
+      "Preparation-stage generic ready text still refers to model modification for read-only/list modes",
+      "Runtime evidence remains operator observations, without independent browser replay or raw Native dispatch capture"
+    ],
+    "scopeBoundary": "96 applies only to this fixed-protocol file read/write/list development chain; whole-product prior 92 and production NOT_TESTED remain unchanged",
+    "reviewerReplayedBrowserOrTests": false
+  },
+  "readRounds": [
+    {
+      "requestId": "7c12c9a9-89f2-404d-886e-e231098b6895",
+      "bindingId": "5d2d377a-9720-4580-9a2f-2cb8948694e9",
+      "resultId": "c81692af-a831-4d13-8597-c348c3277f2e",
+      "operation": "read",
+      "path": "demo.txt",
+      "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+      "status": "success",
+      "bytes": 59,
+      "sha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+      "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+      "prompt": "generated short prompt sent unchanged",
+      "aiEchoMatches": true,
+      "manualInspectClicked": false,
+      "editProposalPresent": false,
+      "delivery": "filled",
+      "observed": false,
+      "completionMessage": "本轮只读已完成：真实结果已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。",
+      "closedToFinish": false
+    },
+    {
+      "requestId": "07b320cc-3508-4b1c-895a-7bde916bd9a4",
+      "bindingId": "8e054c66-cd1c-409c-b6a2-617c3389b342",
+      "resultId": "03a338a0-a47f-46a7-af11-cfeaaefaa0dc",
+      "operation": "read",
+      "path": "demo.txt",
+      "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+      "status": "success",
+      "bytes": 59,
+      "sha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+      "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+      "prompt": "generated short prompt sent unchanged",
+      "aiEchoMatches": true,
+      "manualInspectClicked": false,
+      "editProposalPresent": false,
+      "delivery": "filled",
+      "observed": false,
+      "completionMessage": "本轮只读已完成：真实结果已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。",
+      "closedToFinish": false,
+      "sameOwnerDocumentAsPrevious": true,
+      "completionObservedBeforeDraftCleanup": true,
+      "optionalObservePreservesCompletion": true
+    }
+  ],
+  "writeRounds": [
+    {
+      "readRequestId": "bd97ec9e-a769-4015-a579-3a832f7d1913",
+      "bindingId": "89517012-0fce-473f-a931-e5ab23db6f32",
+      "readResultId": "67fd2005-c301-4a2c-ad02-d18e047f9ad5",
+      "writeRequestId": "fe51fc81-b445-49d1-b52d-309acc6b3ac5",
+      "writeResultId": "97f480bf-423e-4948-9538-fda05724fbd0",
+      "before": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+      "baseSha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+      "after": "OpenDesk local file test\nstatus=completion-one-20261106-01a1afe0\n",
+      "sha256": "a309728affbeb354206445f430bf3c2323cf8d578d5d7da53a43217341b51ded",
+      "bytes": 65,
+      "AIRequestEchoMatches": true,
+      "AIEditSevenFieldsVerified": true,
+      "stagedBeforeConfirmation": true,
+      "diskUnchangedBeforeConfirmation": true,
+      "explicitTrustedConfirmation": true,
+      "saved": true,
+      "readBackVerified": true,
+      "independentDisk": {
+        "bytes": 65,
+        "sha256": "a309728affbeb354206445f430bf3c2323cf8d578d5d7da53a43217341b51ded",
+        "content": "OpenDesk local file test\nstatus=completion-one-20261106-01a1afe0\n",
+        "lastByte": "0a"
+      },
+      "delivery": "filled",
+      "observed": false,
+      "naturalCompletion": true,
+      "manualInspectClicked": false,
+      "manualFinalFillClicked": false,
+      "finalReceiptSent": false
+    },
+    {
+      "round": 2,
+      "sameOwnerDocumentAsPrevious": true,
+      "readRequestId": "b2ee7bbc-9049-47e3-abfa-9a79f151b024",
+      "bindingId": "a30bf0f6-f8b2-4f24-ba04-7cce0ae63c91",
+      "readResultId": "fc0f2208-82d5-427b-81c9-0ea35dd2355d",
+      "writeRequestId": "6c0dd3c3-b139-4e97-94e8-86a2db1c393d",
+      "writeResultId": "8d49ad57-d214-4e02-a0aa-cc3748bf369b",
+      "baseSha256": "a309728affbeb354206445f430bf3c2323cf8d578d5d7da53a43217341b51ded",
+      "beforeConfirmDiskUnchanged": true,
+      "manualConfirmationCountObserved": 1,
+      "saved": true,
+      "readBackVerified": true,
+      "disk": {
+        "bytes": 65,
+        "sha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b",
+        "content": "OpenDesk local file test\nstatus=completion-two-20261106-01a1afe0\n",
+        "lastByte": "0a"
+      },
+      "delivery": "filled",
+      "observed": false,
+      "naturalCompletion": true,
+      "completionText": "本轮修改已完成：保存与独立读回均已确认，回执已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。",
+      "manualInspectClicked": false,
+      "finalResultSentToModel": false,
+      "closedOwnerToFinish": false
+    }
+  ],
+  "directoryList": {
+    "operation": "list",
+    "path": "",
+    "requestId": "80347719-0196-479f-b308-e53d131bf43a",
+    "bindingId": "db39e425-524d-4c78-ac7d-287f05f24dea",
+    "resultId": "4b66246d-f6af-4403-a5b6-a12b0f566d37",
+    "status": "success",
+    "data": {
+      "entries": [
+        {
+          "bytes": 65,
+          "kind": "file",
+          "name": "demo.txt",
+          "path": "demo.txt"
+        }
+      ],
+      "path": "",
+      "truncated": false,
+      "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f"
+    },
+    "noEditProposal": true,
+    "manualInspectClicked": false,
+    "delivery": "filled",
+    "observed": false,
+    "naturalCompletion": true,
+    "sameOwnerDocument": true,
+    "closedOwnerToFinish": false
+  },
+  "targetedTests": {
+    "command": "node --test projects/webflow/tests/chatgpt-files.test.mjs projects/webflow/tests/chatgpt-files-ui.test.mjs projects/webflow/tests/chatgpt-files-config.test.mjs tests/environment/workspace-chat-request.test.mjs tests/environment/chatgpt-files-provenance.test.mjs",
+    "exitCode": 0,
+    "summary": "ℹ tests 145\nℹ suites 0\nℹ pass 145\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 356.966125"
+  },
+  "realFlowObservations": {
+    "sameTrustedOwnerDocumentAcrossAllFiveRounds": true,
+    "sameSourceConversation": true,
+    "initialRequestAIOnlyEchoesProvidedSixFields": true,
+    "editAIUsesRealReadContextAndCompleteSevenFields": true,
+    "noManualInspectToTriggerExecution": true,
+    "finalReceiptsNotSentToModel": true,
+    "completionObservedBeforeClosingOwner": true,
+    "onlyProductConfirmationWritesFile": true,
+    "independentShellChecksAreReadOnly": true
+  },
+  "recoveryObservation": {
+    "issue": "After development extension reload, first handoff from old source document reported E_FILE_HANDOFF / Extension context invalidated.",
+    "recovery": "Confirmed source input empty, normally reloaded source page, opened fresh handoff before any target IO; all five successful rounds then used same fresh owner document.",
+    "notClaimed": "No assertion about target-effect retry, raw dispatch counts or fault recovery under in-flight write."
+  },
+  "protections": {
+    "freshNodeRegression": "Wrong identities / paths, model allowEdit, read-only write attempts, Stop, revocation, SHA conflict, unknown delivery/write fencing and replay protections covered by affected tests.",
+    "priorNativeEvidence": "Earlier same task observed Stop persistence through real SW restart and revoked connection denial. Not rerun as current candidate native races or unknown fault injection.",
+    "existingProjectConnectionRemainsRevoked": true
+  },
+  "cleanup": {
+    "sourceDraftEmptyVerified": true,
+    "ownReviewTabClosedAfterAllCompletions": true,
+    "diagnosticDisplayRestoredOff": true,
+    "nativeConnectionLeftOn": true,
+    "projectFileProcessingLeftOn": true,
+    "uiLeaseReleased": true,
+    "watcherAndBrowserPreserved": true,
+    "testFileLeftWithLastProductWrite": {
+      "bytes": 65,
+      "sha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b",
+      "content": "OpenDesk local file test\nstatus=completion-two-20261106-01a1afe0\n",
+      "lastByte": "0a"
+    }
+  },
+  "notTested": [
+    "production release / installation / formal acceptance",
+    "Native raw packets or actual total dispatch counts; cannot prove zero extra IO",
+    "this candidate real in-flight Stop / revocation race or unknown-write fault injection",
+    "standalone live serve-client UI status and fingerprint during this round",
+    "create/delete/rename/shell (not part of approved file protocol)"
+  ],
+  "changes": "No new protocol, Host, Native service, registry or permission layer. Existing trusted project owner, parser, Native read/list/write handlers and durable ledger reused. No commit/push."
+}

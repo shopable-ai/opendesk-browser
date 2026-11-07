@@ -15,7 +15,7 @@ const beta={...alpha,alias:'acct_beta',displayName:'Beta'};
 function mount(section='accounts'){
   const slots=[],effects=[],events=new Map(),timers=new Map();
   const copies=[];
-  let begin=async()=>({authorized:true,ref:7}),copy=async()=>({copied:true});
+  let begin=async()=>({authorized:true,ref:7}),copy=async()=>({copied:true}),list;
   let cursor=0,tree,changed=true,controller,url='https://example.com/',permission=true,rows=[];
   let metadata={configured:true,unlocked:true,revision:1,accounts:[alpha,beta],settings:{autoRefresh:false}};
   let respond=async action=>action==='status'?structuredClone(metadata):
@@ -35,7 +35,7 @@ function mount(section='accounts'){
     clearInterval:id=>timers.delete(id),addEventListener(){},removeEventListener(){}};
   const document={visibilityState:'visible',addEventListener(){},removeEventListener(){}};
   const adapter={targetFor:async()=>({target:parseTarget(url),reasonCode:null}),checkRead:async()=>({callableNow:permission}),
-    list:async()=>structuredClone(rows),accountRequest:(action,payload)=>respond(action,payload),
+    list:async()=>list?list():structuredClone(rows),accountRequest:(action,payload)=>respond(action,payload),
     beginExportIntent:(target,method)=>{copies.push(['begin',target.url,method]);return begin();},
     copy:text=>{copies.push(['copy',text]);return copy();},
     finishExportIntent:async ref=>{copies.push(['finish',ref]);}};
@@ -57,7 +57,7 @@ function mount(section='accounts'){
   return {flush,accounts,copies,get controller(){return controller;},
     copyHandler:()=>section==='accounts'?text=>accounts().onCopyLink(alpha,text):
       nodes(tree).find(node=>node.type==='CookieCustomizePanel').props.onCopyBrief,
-    setBegin:fn=>{begin=fn;},setCopy:fn=>{copy=fn;},
+    setBegin:fn=>{begin=fn;},setCopy:fn=>{copy=fn;},setList:fn=>{list=fn;},
     setResponse:fn=>{respond=fn;},setMetadata:value=>{metadata=value;},
     async action(name,...args){const result=accounts()[name](...args);await flush();await result;await flush();},
     async event(name){events.get(name)();await flush();},
@@ -78,6 +78,125 @@ test('verified Alpha/Beta switch survives its metadata refresh and unchanged pas
   await app.sync();assert.equal(app.accounts().currentAlias,alpha.alias);
   await app.action('onSwitch',beta);
   assert.equal(app.accounts().currentAlias,beta.alias);
+});
+
+function effectReceipt(snapshotState='differs',reloadRequested=false){
+  return {switched:true,verified:true,verification:'cookie-effects',snapshotState,
+    loginVerified:false,changed:2,reloadRequested};
+}
+
+test('Cookie effect receipts show applied/refreshing without login proof; drift cannot update a saved snapshot',async()=>{
+  for(const snapshotState of ['matches','differs'])for(const reloadRequested of [false,true]){
+    const app=mount();await app.flush();const calls=[];
+    app.setResponse(async action=>{
+      calls.push(action);
+      return action==='switch'?effectReceipt(snapshotState,reloadRequested):
+        {configured:true,unlocked:true,revision:1,accounts:[alpha,beta]};
+    });
+    await app.action('onSwitch',alpha);
+    assert.equal(app.accounts().feedback?.kind,'success');
+    assert.match(app.accounts().feedback.text,/已应用/);
+    assert.match(app.accounts().feedback.text,/非登录验证/);
+    assert.doesNotMatch(app.accounts().feedback.text,/已验证 Cookie 切换|已登录|登录已验证/);
+    assert.equal(app.accounts().feedback.text.includes('正在刷新'),reloadRequested);
+    assert.equal(app.accounts().currentAlias,alpha.alias);
+    assert.equal(app.accounts().snapshotMatches,snapshotState==='matches');
+    if(snapshotState==='differs'){
+      await app.sync();
+      assert.equal(app.accounts().currentAlias,alpha.alias,'passive metadata drift cannot erase applied history');
+      assert.equal(app.accounts().snapshotMatches,false);
+      await app.action('onUpdate',alpha);
+      assert.equal(calls.includes('update'),false,'even a direct callback must refuse the drifted snapshot');
+      assert.match(app.accounts().feedback.text,/未覆盖旧快照/);
+    }else{
+      await app.action('onUpdate',alpha);
+      assert.equal(calls.includes('update'),true,'matching receipts retain the existing update path');
+    }
+  }
+});
+
+test('a context retired during switch metadata reconciliation never receives the old success notice',async()=>{
+  const app=mount();await app.flush();let finish;
+  app.setResponse(async action=>action==='switch'?effectReceipt('matches'):
+    {configured:true,unlocked:true,revision:1,accounts:[alpha,beta]});
+  app.setList(()=>new Promise(resolve=>{finish=resolve;}));
+  const pending=app.accounts().onSwitch(alpha);await app.flush();
+  assert.equal(typeof finish,'function','the receipt has reached metadata reconciliation');
+  app.setList(null);
+  await app.controller.load();await app.flush();
+  finish([]);await pending;await app.flush();
+  assert.equal(app.accounts().currentAlias,null);
+  assert.notEqual(app.accounts().feedback?.kind,'success');
+});
+
+test('an already displayed switch notice retires with its document epoch',async()=>{
+  const app=mount();await app.flush();
+  app.setResponse(async action=>action==='switch'?effectReceipt('differs'):
+    {configured:true,unlocked:true,revision:1,accounts:[alpha,beta]});
+  await app.action('onSwitch',alpha);
+  assert.equal(app.accounts().feedback?.kind,'success');
+  await app.controller.load();await app.flush();
+  assert.notEqual(app.accounts().feedback?.kind,'success');
+});
+
+test('Cookie effect receipts cannot cross a retired epoch, document or permission context',async()=>{
+  for(const change of ['epoch','page','permission']){
+    const app=mount();await app.flush();let finish;
+    app.setResponse(action=>action==='switch'?new Promise(resolve=>{finish=resolve;}):
+      Promise.resolve({configured:true,unlocked:true,revision:1,accounts:[alpha,beta]}));
+    const pending=app.accounts().onSwitch(alpha);await app.flush();
+    if(change==='epoch'){await app.controller.load();await app.flush();}
+    if(change==='page'){app.setUrl('https://example.com/other');await app.event('opendesk-page-changed');}
+    if(change==='permission'){app.setPermission(false);await app.event('opendesk-cookie-grants-changed');}
+    finish(effectReceipt('matches'));await pending;await app.flush();
+    assert.equal(app.accounts().currentAlias,null,change);
+    assert.notEqual(app.accounts().feedback?.kind,'success',change);
+  }
+});
+
+test('partial new receipts cannot fall back to legacy success or permit snapshot updates',async()=>{
+  for(const fields of [
+    {snapshotState:'differs',loginVerified:false,changed:2},
+    {snapshotState:'differs'},
+    {loginVerified:false},
+    {verification:undefined},
+    {snapshotState:undefined},
+    {loginVerified:undefined}
+  ]){
+    const app=mount();await app.flush();const calls=[];
+    app.setResponse(async action=>{
+      calls.push(action);
+      return {switched:true,verified:true,reloadRequested:false,...fields};
+    });
+    const result=await app.accounts().onSwitch(alpha);await app.flush();
+    assert.equal(result,false);
+    assert.equal(app.accounts().currentAlias,null);
+    assert.equal(app.accounts().feedback?.kind,'error');
+    assert.match(app.accounts().feedback.text,/可能发生部分 Cookie 写入/);
+    await app.action('onUpdate',alpha);
+    assert.deepEqual(calls,['switch'],'no snapshot update or success reconciliation may dispatch');
+    assert.match(app.accounts().feedback.text,/未覆盖旧快照/);
+  }
+});
+
+test('unverified or incomplete effect receipts keep the unknown-outcome protection',async()=>{
+  for(const change of [
+    receipt=>{receipt.verified=false;},
+    receipt=>{receipt.verification='website-login';},
+    receipt=>{delete receipt.snapshotState;},
+    receipt=>{receipt.loginVerified=true;},
+    receipt=>{delete receipt.changed;},
+    receipt=>{receipt.changed=-1;},
+    receipt=>{delete receipt.reloadRequested;}
+  ]){
+    const app=mount();await app.flush();
+    const receipt=effectReceipt('matches');change(receipt);
+    app.setResponse(async()=>receipt);
+    await app.action('onSwitch',alpha);
+    assert.equal(app.accounts().currentAlias,null);
+    assert.equal(app.accounts().feedback?.kind,'error');
+    assert.match(app.accounts().feedback.text,/可能发生部分 Cookie 写入/);
+  }
 });
 
 test('first account creation uses the trusted save action without password or lock handlers',async()=>{
@@ -181,7 +300,8 @@ test('outside metadata changes and unrelated epoch loads retire the alias',async
     if(change==='rows'){
       app.setRows([{name:'outside',domain:'example.com',path:'/',storeId:'0'}]);await app.sync();
     }else{await app.controller.load();await app.flush();}
-    assert.equal(app.accounts().currentAlias,null,change);
+    assert.equal(app.accounts().currentAlias,change==='rows'?alpha.alias:null,change);
+    assert.equal(app.accounts().snapshotMatches,false);
   }
 });
 
@@ -326,4 +446,60 @@ test('context changes after clipboard dispatch suppress successful receipts for 
     assert.equal(app.copies.at(-1)[0],'finish');
     if(section==='accounts')assert.notEqual(app.accounts().feedback?.kind,'success');
   }
+});
+
+
+test('fresh trusted status restores applied display after reload without authorizing snapshot overwrite',async()=>{
+  const app=mount();await app.flush();const calls=[];
+  app.setResponse(async action=>{
+    calls.push(action);
+    return action==='switch'?effectReceipt('differs',true):
+      {configured:true,unlocked:true,revision:1,accounts:[alpha,beta],
+        lastApplied:{alias:alpha.alias,version:1,snapshotState:'differs',loginVerified:false}};
+  });
+  await app.action('onSwitch',alpha);
+  await app.event('opendesk-page-changed');
+  assert.equal(app.accounts().currentAlias,alpha.alias);
+  assert.equal(app.accounts().currentKind,'applied');
+  assert.equal(app.accounts().snapshotMatches,false);
+  await app.action('onUpdate',alpha);
+  assert.equal(calls.includes('update'),false);
+});
+
+test('switching feedback names only the pending target, unknown outcome clears applied history',async()=>{
+  const app=mount();await app.flush();await app.action('onSwitch',alpha);let reject;
+  app.setResponse(()=>new Promise((_resolve,no)=>{reject=no;}));
+  const pending=app.accounts().onSwitch(beta);await app.flush();
+  assert.equal(app.accounts().switchingAlias,beta.alias);
+  assert.equal(app.accounts().busy,true);
+  assert.equal(app.accounts().currentAlias,null);
+  reject(Object.assign(Error('unknown'),{code:'E_OUTCOME_UNKNOWN'}));
+  await pending;await app.flush();
+  assert.equal(app.accounts().currentAlias,null);
+  assert.equal(app.accounts().switchingAlias,null);
+  assert.equal(app.accounts().feedback.kind,'error');
+});
+
+test('incomplete or unrelated lastApplied metadata cannot select a saved account',async()=>{
+  for(const lastApplied of [
+    {alias:alpha.alias,version:99,snapshotState:'matches',loginVerified:false},
+    {alias:alpha.alias,version:1,snapshotState:'matches',loginVerified:true},
+    {alias:alpha.alias,version:1,loginVerified:false},
+    {alias:'absent',version:1,snapshotState:'differs',loginVerified:false}
+  ]){
+    const app=mount();await app.flush();
+    app.setResponse(async()=>({configured:true,unlocked:true,revision:1,accounts:[alpha,beta],lastApplied}));
+    await app.controller.load();await app.flush();
+    assert.equal(app.accounts().currentAlias,null);
+    assert.equal(app.accounts().snapshotMatches,false);
+  }
+});
+
+
+test('applied Alpha cannot borrow a newly saved Gamma snapshot match for its update button',async()=>{
+  const app=mount();await app.flush();await app.action('onSwitch',alpha);
+  app.setResponse(async()=>creationReceipt());
+  await app.action('onCreate','New account','');
+  assert.equal(app.accounts().currentAlias,alpha.alias);
+  assert.equal(app.accounts().snapshotMatches,false);
 });

@@ -49,7 +49,7 @@ function within(host,row,parents){
   const domain=String(row?.domain||'').replace(/^\./,'').toLowerCase();
   return domain===host||Boolean(parentDomain(host,row)&&parents?.has(domain));
 }
-function safeRow(row,host,storeId,partition,parents){
+function safeRow(row,host,storeId,partition,parents,{allowExpired=false}={}){
   if(!object(row)||!within(host,row,parents)||typeof row.name!=='string'||
     !row.name||row.name.length>256||/[;=\s\x00-\x1f\x7f]/.test(row.name)||
     typeof row.value!=='string'||new TextEncoder().encode(row.value).length>4096||
@@ -59,7 +59,9 @@ function safeRow(row,host,storeId,partition,parents){
     typeof row.httpOnly!=='boolean'||typeof row.session!=='boolean'||
     row.storeId!==storeId||!['lax','strict','no_restriction','unspecified'].includes(row.sameSite)||
     row.partitionKey&&!samePartition(row.partitionKey,partition)||
-    !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=Date.now()/1000)||
+    !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=0||
+      row.expirationDate>253402300799||
+      !allowExpired&&row.expirationDate<=Date.now()/1000)||
     row.name.startsWith('__Secure-')&&!row.secure||
     row.name.startsWith('__Host-')&&(!row.secure||!row.hostOnly||row.path!=='/')||
     (row.name.startsWith('__Http-')||row.name.startsWith('__Host-Http-'))&&
@@ -72,16 +74,22 @@ function safeRow(row,host,storeId,partition,parents){
     sameSite:row.sameSite,session:row.session,
     ...(!row.session?{expirationDate:row.expirationDate}:{}),
     storeId:row.storeId,
-    ...(row.partitionKey?{partitionKey:row.partitionKey}:{})
+    // Foundation and Chrome may serialize these fields in different orders.
+    // Normalize the already-validated native identity before snapshot equality;
+    // an omitted legacy ancestor flag has the same meaning as native false.
+    ...(row.partitionKey?{partitionKey:{topLevelSite:row.partitionKey.topLevelSite,
+      hasCrossSiteAncestor:Boolean(row.partitionKey.hasCrossSiteAncestor)}}:{})
   };
 }
 // Test the exact trusted validator, without exposing Cookie values via RPC.
-export {safeRow as validateAccountCookieRow};
-function validateRows(rows,host,storeId,partition,parents){
+export function validateAccountCookieRow(row,host,storeId,partition,parents){
+  return safeRow(row,host,storeId,partition,parents);
+}
+function validateRows(rows,host,storeId,partition,parents,options){
   if(!Array.isArray(rows)||rows.length>MAX_COOKIES)throw fail('E_ACCOUNT_LIMIT');
   const found=new Set();
   const checked=rows.map(row=>{
-    const result=safeRow(row,host,storeId,partition,parents);
+    const result=safeRow(row,host,storeId,partition,parents,options);
     const id=cookieId(result);
     if(found.has(id))throw fail('E_ACCOUNT_COOKIE_SCOPE');
     found.add(id);
@@ -171,6 +179,15 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
     await assertScope(context.scope);
     return true;
   }});
+  // Display-only, worker-session metadata. Never persist Cookie history.
+  const lastApplied=new Map(),displayTtl=15*60*1000;
+  const targetUrl=document=>{
+    const url=new URL(document.url);
+    return url.origin+url.pathname; // No query, fragment, credentials or Cookie data.
+  };
+  const clearTab=tabId=>{
+    for(const [host,entry] of lastApplied)if(entry.tabId===tabId)lastApplied.delete(host);
+  };
   let serial=Promise.resolve();
   const exclusive=fn=>{
     const run=serial.then(fn,fn);
@@ -260,8 +277,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       throw fail('E_DOCUMENT_CHANGED');
     return tab;
   }
-  async function scope(document,origin,grant,automatic=false,record){
-    await permission(origin,grant,true);
+  async function scope(document,origin,grant,automatic=false,record,write=true){
+    await permission(origin,grant,write);
     const tab=await validateDocument(document,origin,automatic);
     const stores=await api.cookies?.getAllCookieStores?.();
     const matches=Array.isArray(stores)?stores.filter(store=>
@@ -276,7 +293,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
        !samePartition(partition,grant.partitionKey))
       throw fail('E_COOKIE_PARTITION');
     return {origin,host:new URL(origin).hostname,storeId:grant.storeId,
-      partition,document,grant,automatic,record,parents:new Set()};
+      partition,document,grant,automatic,record,write,parents:new Set()};
   }
   async function assertScope(context){
     const latest=await installed();
@@ -287,7 +304,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       const at=new URL(context.origin);at.hostname=domain;return at.origin;
     })];
     for(const origin of origins){
-      const original=grantFor(before,origin,true),current=grantFor(after,origin,true);
+      const original=grantFor(before,origin,context.write),current=grantFor(after,origin,context.write);
       // An operation cannot continue under a different authorization source,
       // even when access was revoked and immediately granted again.
       if((original===before.cookieAllSites)!==(current===after.cookieAllSites)||
@@ -297,9 +314,10 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         original.partitionKey&&!samePartition(original.partitionKey,current.partitionKey)||
         current.partitionKey&&!samePartition(current.partitionKey,context.partition))
         throw fail('E_SITE_GRANT_REQUIRED');
-      await permission(origin,current,true);
+      await permission(origin,current,context.write);
     }
     await validateDocument(context.document,context.origin,context.automatic);
+    if(context.assertHost)await context.assertHost();
   }
   async function cookiesFor(context){
     const {origin,host,storeId,partition,document}=context;
@@ -346,10 +364,10 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         const at=new URL(origin);at.hostname=domain;
         let grant;
         try{
-          grant=grantFor(context.record.siteRecord,at.origin,true);
+          grant=grantFor(context.record.siteRecord,at.origin,context.write);
           if(grant.storeId!==storeId||grant.partitionKey&&
              !samePartition(grant.partitionKey,partition))continue;
-          await permission(at.origin,grant,true);
+          await permission(at.origin,grant,context.write);
         }catch(error){
           if(error?.code==='E_SITE_GRANT_REQUIRED')continue;
           throw error;
@@ -383,12 +401,22 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       const domain=parentDomain(context.host,row);
       if(domain)context.parents.add(domain);
     }
-    validateRows(desired,context.host,context.storeId,context.partition,context.parents);
+    // A valid saved expiry can pass while the snapshot is at rest. Validate
+    // EVERY row before deriving its present effect; expiry conveys no scope
+    // authority and must never hide a malformed or unauthorized saved row.
+    const saved=validateRows(desired,context.host,context.storeId,context.partition,
+      context.parents,{allowExpired:true});
     await assertScope(context);
     const current=await cookiesFor(context);
-    const expected=validateRows(desired,context.host,context.storeId,context.partition,context.parents);
-    if(context.origin.startsWith('http:')&&expected.some(row=>row.secure))
+    if(context.origin.startsWith('http:')&&saved.some(row=>row.secure))
       throw fail('E_ACCOUNT_COOKIE_SCOPE');
+    // Restoring an expired Cookie means verified ABSENCE, just like Chrome's
+    // expiry semantics. The complete replacement plan removes any live copy
+    // of that exact identity and the final readback verifies its absence. Do
+    // not extend expiry, convert to session, or alter the persisted snapshot.
+    const now=Date.now()/1000;
+    const expected=saved.filter(row=>row.session||row.expirationDate>now);
+    if(!expected.length)throw fail('E_ACCOUNT_EXPIRED');
     const steps=planAccountCookieEffects(current,expected);
     if(steps.length>MAX_COOKIES*2)throw fail('E_ACCOUNT_LIMIT');
     let dispatched=false;
@@ -408,7 +436,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
           {...driverContext,expectedCookieIdentity:row});
           if(result?.verified!==true)throw fail('E_OUTCOME_UNKNOWN');
         }else{
-          const result=await cookieDriver.set({url,name:row.name,value:row.value,
+          const result=await cookieDriver.setWithWitness({url,name:row.name,value:row.value,
             path:row.path,secure:row.secure,httpOnly:row.httpOnly,
             sameSite:row.sameSite,
             ...(!row.hostOnly?{domain:row.domain}:{}),
@@ -416,28 +444,37 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
             storeId:row.storeId,
             ...(row.partitionKey?{partitionKey:row.partitionKey}:{})},
           driverContext);
-          if(result?.saved!==true||result?.verified!==true)
+          if(result?.saved!==true||result?.verified!==true||
+             !['native-receipt','exact-readback'].includes(result.verificationBasis))
             throw fail('E_OUTCOME_UNKNOWN');
         }
       }
       const after=await cookiesFor(context);
-      if(!same(after,expected))throw fail('E_OUTCOME_UNKNOWN');
-      return {switched:true,verified:true,changed:steps.length};
+      // Every planned effect has its own exact native/absence witness. A later
+      // snapshot is a separate observation: concurrent site activity can change
+      // it, and cannot erase those witnesses or justify replaying the writes.
+      // Neither fact establishes the website's authenticated account identity.
+      return {switched:true,verified:true,verification:'cookie-effects',
+        snapshotState:same(after,expected)?'matches':'differs',loginVerified:false,
+        changed:steps.length};
     }catch(error){
       if(dispatched)throw fail('E_OUTCOME_UNKNOWN');
       throw error;
     }
   }
-  async function runSwitch(account,record,document,{automatic=false,refresh=true}={}){
+  async function runSwitch(account,record,document,{automatic=false,refresh=true,onConfirmed}={}){
+    clearTab(document?.tabId);
     const grant=grantFor(record.siteRecord,account.origin,true);
     const scoped=await scope(document,account.origin,grant,automatic,record);
     if(!account.cookies.length)throw fail('E_ACCOUNT_EMPTY');
     const result=await effect(scoped,account.cookies);
     if(refresh){
+      await assertScope(scoped);
       await validateDocument(document,account.origin,automatic);
       try{await api.tabs.reload(document.tabId,{bypassCache:false});}
       catch{throw fail('E_REFRESH_OUTCOME_UNKNOWN');}
     }
+    if(onConfirmed)await onConfirmed(scoped);
     return {...result,reloadRequested:refresh};
   }
   async function statusFor(origin){
@@ -449,7 +486,73 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         api?.webNavigation?.getFrame&&api?.storage?.session?.get&&
         api?.cookies?.getPartitionKey)};
   }
+  function displayBinding(record,context){
+    const origins=[context.origin,...[...context.parents].sort().map(domain=>{
+      const url=new URL(context.origin);url.hostname=domain;return url.origin;
+    })];
+    return JSON.stringify([record.packageHash,record.installEpoch,context.storeId,
+      context.partition.topLevelSite,Boolean(context.partition.hasCrossSiteAncestor),
+      origins.map(origin=>{
+        const grant=grantFor(record.siteRecord,origin);
+        return [origin,grant===record.siteRecord.cookieAllSites,grant.grantEpoch,grant.storeId,
+          grant.partitionKey?[grant.partitionKey.topLevelSite,
+            Boolean(grant.partitionKey.hasCrossSiteAncestor)]:null];
+      })]);
+  }
+  async function displayStatus(origin,document,message,sender,hostDocumentId,record){
+    const entry=lastApplied.get(hostDocumentId);
+    try{
+      // Even without a receipt, a supplied document is a live target assertion.
+      await validateDocument(document,origin);
+      await hostSender(sender,hostDocumentId);await installed(message);
+      const value=await statusFor(origin);
+      if(!entry){
+        await validateDocument(document,origin);
+        await installed(message);await hostSender(sender,hostDocumentId);
+        return value;
+      }
+      if(Date.now()-entry.at>displayTtl||entry.tabId!==document.tabId||
+        entry.url!==targetUrl(document))throw fail('E_DOCUMENT_CHANGED');
+      const context=await scope(document,origin,grantFor(record.siteRecord,origin),false,record,false);
+      context.assertHost=async()=>{await installed(message);await hostSender(sender,hostDocumentId);};
+      for(const domain of entry.parents)context.parents.add(domain);
+      const assertDisplay=async()=>{
+        await assertScope(context);
+        const latest=await installed(message);
+        if(displayBinding(latest,context)!==entry.binding)throw fail('E_SITE_GRANT_REQUIRED');
+        await hostSender(sender,hostDocumentId);
+      };
+      await assertDisplay();
+      const data=await vault.read();
+      const account=data.accounts.find(item=>item.origin===origin&&item.alias===entry.alias);
+      if(!account||account.version!==entry.version)throw fail('E_VAULT_CONFLICT');
+      const current=await cookiesFor(context);
+      const expected=validateRows(account.cookies,context.host,context.storeId,context.partition,
+        context.parents,{allowExpired:true}).filter(row=>row.session||row.expirationDate>Date.now()/1000);
+      const finalAccount=(await vault.status()).accounts.find(item=>item.alias===entry.alias&&item.origin===origin);
+      if(!finalAccount||finalAccount.version!==entry.version)throw fail('E_VAULT_CONFLICT');
+      await assertDisplay();
+      return {...value,lastApplied:{alias:entry.alias,version:entry.version,
+        snapshotState:same(current,expected)?'matches':'differs',loginVerified:false}};
+    }catch(error){
+      // A mismatch consumes the proof: returning to the old context cannot revive it.
+      lastApplied.delete(hostDocumentId);
+      // Invalid target/host/install still fail the request. Lost display authority
+      // merely removes optional metadata from the normal account status.
+      await validateDocument(document,origin);
+      await installed(message);await hostSender(sender,hostDocumentId);
+      const value=await statusFor(origin);
+      await validateDocument(document,origin);
+      await installed(message);await hostSender(sender,hostDocumentId);
+      return value;
+    }
+  }
   async function dispatch(message,sender){
+    // Consume prior manual display even when a subsequent attempt fails admission.
+    if(message?.operation==='switch'){
+      lastApplied.delete(sender?.documentId);
+      clearTab(message?.payload?.document?.tabId);
+    }
     if(!object(message)||message.protocol!==COOKIE_ACCOUNT_PROTOCOL||
        message.toolId!==ID||typeof message.operation!=='string'||
        !COOKIE_ACCOUNT_OPERATIONS.includes(message.operation)||
@@ -462,7 +565,14 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
     if(MUTATIONS.has(operation)&&message.trustedClick!==true)
       throw fail('E_USER_GESTURE_REQUIRED');
     const origin=originOf(payload.origin);
-    if(operation==='status')return statusFor(origin);
+    if(operation==='status'){
+      if(payload.document===undefined){
+        const value=await statusFor(origin);
+        await installed(message);await hostSender(sender,hostDocumentId);
+        return value;
+      }
+      return displayStatus(origin,payload.document,message,sender,hostDocumentId,record);
+    }
     if(operation.startsWith('share')){
       let outgoingScope;
       const authorize=async()=>{
@@ -611,7 +721,23 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
           if(prior?.phase==='in_flight'&&new URL(prior.url).origin===origin)priorFence=prior;
         }catch{/* Manual switching does not depend on automatic session storage. */}
         const result=await runSwitch(account,record,payload.document,
-          {refresh:data.settings.autoRefresh});
+          {refresh:data.settings.autoRefresh,onConfirmed:async context=>{
+            // Reload may already have replaced the page document. Bind the
+            // original target, but recheck the Host and actual install/grants.
+            const latest=await installed(message);
+            const binding=displayBinding(record,context);
+            if(displayBinding(latest,context)!==binding)throw fail('E_SITE_GRANT_REQUIRED');
+            for(const origin of [context.origin,...[...context.parents].map(domain=>{
+              const url=new URL(context.origin);url.hostname=domain;return url.origin;
+            })])await permission(origin,grantFor(latest.siteRecord,origin),false);
+            if(displayBinding(await installed(message),context)!==binding)
+              throw fail('E_SITE_GRANT_REQUIRED');
+            await hostSender(sender,hostDocumentId);
+            if(lastApplied.size>=MAX_ACCOUNTS)lastApplied.delete(lastApplied.keys().next().value);
+            lastApplied.set(hostDocumentId,{alias:account.alias,version:account.version,
+              tabId:payload.document.tabId,url:targetUrl(payload.document),
+              binding,parents:[...context.parents],at:Date.now()});
+          }});
         if(priorFence)try{
           const next=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
           if(sameAccountAutoSwitchFence(next[id],priorFence)){
@@ -760,6 +886,10 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
     try{
       if(event?.frameId!==0||!Number.isSafeInteger(event.tabId)||
          typeof event.url!=='string')return;
+      // Consume history on departure even if no status request occurs while
+      // away. Same-target reloads keep display history, never snapshot proof.
+      for(const [host,entry] of lastApplied)if(entry.tabId===event.tabId&&
+        entry.url!==targetUrl(event))lastApplied.delete(host);
       const url=new URL(event.url),origin=originOf(url.origin);
       // The supported generated contract is the site's canonical root.
       // Never transform an existing SPA path/query router into an implicit
@@ -819,9 +949,16 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
   // Queue from entry, including authorization and capture: cleanup must drain
   // older requests before deleting data, and later installs can then start fresh.
   return Object.freeze({
-    dispatch:(message,sender)=>exclusive(()=>dispatch(message,sender)),
+    dispatch:(message,sender)=>exclusive(async()=>{
+      try{return await dispatch(message,sender);}
+      catch(error){
+        if(['status','switch'].includes(message?.operation))lastApplied.delete(sender?.documentId);
+        throw error;
+      }
+    }),
     navigation:event=>exclusive(()=>navigation(event)),
     cleanup:()=>exclusive(async()=>{
+      lastApplied.clear();
       await createCookieAccountShare({api,storage,vault,
         // The original SW-only uninstall hook owns this cleanup, after normal
         // handles have been revoked. This callback never enters the RPC surface.

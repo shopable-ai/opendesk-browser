@@ -52,3 +52,14 @@ dialog{color:var(--ink);background:var(--paper)}dialog::backdrop{background:rgba
 .evidence .span2{grid-column:1}.drawer-controls{align-items:flex-start}}
 @media(hover:none){.icon-btn{width:38px;height:38px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Team account management owns only this native dialog. */
+.team-accounts{width:min(780px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:0;border:1px solid var(--line);border-radius:12px;overflow:auto;overflow-wrap:anywhere}
+.team-accounts>header{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.team-accounts h2{margin:0;font-size:18px}.team-accounts h3{font-size:14px;margin:12px 0}
+.team-accounts .team-accounts-body{padding:16px;display:grid;gap:16px}.team-accounts p{margin:0;color:var(--sub)}
+.team-accounts .team-accounts-tags{display:flex;flex-wrap:wrap;gap:8px}.team-accounts .team-accounts-tags span{padding:4px 8px;background:var(--soft);border-radius:6px;font-size:11px}
+.team-accounts fieldset{display:grid;gap:12px;min-width:0;margin:0;padding:12px;border:1px solid var(--line);border-radius:8px}.team-accounts legend{font-weight:700}
+.team-accounts label{display:grid;gap:4px}.team-accounts input,.team-accounts select{width:100%;min-width:0}.team-accounts button{justify-self:start}
+.team-accounts ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}.team-accounts li{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;background:var(--soft);border-radius:8px}
+.team-accounts [role=alert],.team-accounts [role=status]{padding:12px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}

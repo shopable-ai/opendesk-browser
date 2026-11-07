@@ -2,17 +2,19 @@ import * as Journal from './cookie-journal.js';
 import {LOCAL_CHATGPT} from './local-cookie-file.js';
 import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
 import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
+import {REVIEWED_SERVICE,validateServiceDefinition,parseServiceLink} from './service-links.js';
 import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} from './server-cookie-batches.js';
 // AI VIP Share business presentation stays inside the installed opaque sandbox.
 // This tool never treats an aiAccess proxy lease as a paid member entitlement.
 (function(){
   'use strict';
   let started=false,release=()=>{};
-  function mountController({createDevelopmentControls}={}){
+  function mountController({createDevelopmentControls,serviceDefinition=REVIEWED_SERVICE}={}){
   if(started)return release;
   const root=window.OpenDeskTool?.root;
   if(!root||!root.querySelector?.('#ai-vip-member-card'))return null;
   started=true;
+  let developmentControls=typeof createDevelopmentControls==='function'?createDevelopmentControls():null;
   const byId=id=>root.querySelector('#'+id);
   const memberCard=byId('ai-vip-member-card');
   const memberFacts=byId('ai-vip-member-facts');
@@ -63,7 +65,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     if(event.isTrusted===true&&developmentProfile){websiteController?.enableTests();}
   };
   testSites?.addEventListener('click',enableWebsiteTests);
-  let developmentControls=null,disposed=false;
+  let disposed=false;
   const cookieSection=byId('ai-vip-cookie-section'),cookieStatus=byId('ai-vip-cookie-status');
   const cookieInstall=byId('ai-vip-cookie-install'),cookieResults=byId('ai-vip-cookie-results');
   const sharedSection=byId('ai-vip-shared-section'),sharedAssigned=byId('ai-vip-shared-account');
@@ -79,11 +81,14 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     shopSection,proxySection,desktopSection,desktopOpen,desktopStatus]
       .some(element=>!element))return;
 
-  // Release-owned values: only populate after commercial/provider review.
-  // Do not use the technical proxy activate/verify URLs for these endpoints.
-  const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:'',voucherStatus:''});
-  const PRODUCT_CATALOG_URL='';
-  const DESKTOP_CLIENT_URL='';
+  // One release-reviewed service; user URLs select it, never define authority.
+  const service=serviceDefinition?validateServiceDefinition(serviceDefinition):null;
+  const connection=byId('ai-vip-connection'),connectionForm=byId('ai-vip-connection-form');
+  const serviceLink=byId('ai-vip-service-link'),connect=byId('ai-vip-connect');
+  const connectionStatus=byId('ai-vip-connection-status'),connectionSummary=byId('ai-vip-connection-summary');
+  const connectionChange=byId('ai-vip-connection-change'),usageCard=byId('ai-vip-usage-card');
+  const SERVICE_KEY='aiVipServiceConnectionR1';
+  let serviceConnected=false,connecting=false,editingConnection=true,connectionNotice='',activationFromLink=false;
   const plain=value=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value);
   const safeString=(value,max=100)=>typeof value==='string'&&value.trim()&&
     value.length<=max?value.trim():null;
@@ -91,44 +96,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     value<=4102444800000?value:null;
   const dateLabel=value=>new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'short',
     day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
-  function validCatalogUrl(value){
-    if(typeof value!=='string'||!value)return null;
-    try{
-      const url=new URL(value);
-      if(url.protocol!=='https:'||!url.hostname||url.username||url.password||
-        url.hash||url.search||url.port||url.href.length>2048)return null;
-      return url.href;
-    }catch{return null;}
-  }
-  // Promotion targets are release-owned, fixed public URLs. Do not relax the
-  // HTTPS-only commercial Provider validator or accept web-page URL overrides.
-  function validPromotionUrl(value){
-    if(typeof value!=='string'||!value||value.length>2048)return null;
-    try{
-      const url=new URL(value);
-      if(!['http:','https:'].includes(url.protocol)||!url.hostname||
-        url.username||url.password||url.hash||url.href.length>2048||
-        /^(localhost|.*\.localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1\])$/i.test(url.hostname))return null;
-      return url.href;
-    }catch{return null;}
-  }
-  function validProviderUrl(value){
-    const href=validCatalogUrl(value);
-    if(!href)return null;
-    const url=new URL(href);
-    return url.pathname!=='/'?href:null;
-  }
-  function validatedBusinessEndpoints(){
-    const member=validProviderUrl(BUSINESS_ENDPOINTS.member);
-    const voucherPreview=validProviderUrl(BUSINESS_ENDPOINTS.voucherPreview);
-    const voucherRedeem=validProviderUrl(BUSINESS_ENDPOINTS.voucherRedeem);
-    const voucherStatus=validProviderUrl(BUSINESS_ENDPOINTS.voucherStatus);
-    if(!member||!voucherPreview||!voucherRedeem||!voucherStatus)return null;
-    const origins=[member,voucherPreview,voucherRedeem,voucherStatus].map(url=>new URL(url).origin);
-    return new Set(origins).size===1?{member,voucherPreview,voucherRedeem,voucherStatus}:null;
-  }
-  const productionEndpoints=validatedBusinessEndpoints();
-  let endpoints=productionEndpoints;
+  const productionEndpoints=service?.endpoints??null;
+  let endpoints=null;
   const LEGACY_LOCAL_ORIGIN='http://127.0.0.1:7898',DEFAULT_LOCAL_ORIGIN='http://127.0.0.1:7903';
   const LOCAL_ORIGINS=[LEGACY_LOCAL_ORIGIN,DEFAULT_LOCAL_ORIGIN];
   let localOrigin=LEGACY_LOCAL_ORIGIN;
@@ -138,14 +107,14 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const LOCAL_DOMAINS=Object.freeze(['chatgpt.com','openai.com','claude.ai','anthropic.com',
     'gemini.google.com','generativelanguage.googleapis.com','perplexity.ai']);
   const LOCAL_PREFERENCE_KEY='aiVipLocalDevelopmentR136';
-  const catalog=validPromotionUrl(PRODUCT_CATALOG_URL);
-  const desktopClient=validPromotionUrl(DESKTOP_CLIENT_URL);
+  const catalog=service?.catalogUrl||null;
+  const desktopClient=service?.desktopClientUrl||null;
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.32';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.33';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28','1.4.29','1.4.30','1.4.31',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28','1.4.29','1.4.30','1.4.31','1.4.32',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -155,7 +124,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   let developmentProfile=null,developmentRead=0,localMode=false,localConnecting=false;
   let localChoiceLoaded=false,localChoice=false,localChoiceOrigin=LEGACY_LOCAL_ORIGIN,localNotice='',serviceRevision=0;
   // Release-owned exact URLs. No production Cookie source/target has been approved.
-  const COOKIE_TARGETS=Object.freeze([]),COOKIE_KEY='aiVipCookieDeliveryR137';
+  const COOKIE_TARGETS=Object.freeze(service?.cookieTargets||[]),COOKIE_KEY='aiVipCookieDeliveryR137';
   const COOKIE_CODES=new Set(['E_OUTCOME_UNKNOWN','E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE',
     'E_COOKIE_PARTITION','E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED',
     'E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT']);
@@ -451,12 +420,18 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       if((cookiePending&&cookiePending!==presentedCookiePending)||(issue&&issue!==presentedCookieIssue))
         siteSection.open=true;
     }
+    if((cookiePending&&cookiePending!==presentedCookiePending)||(issue&&issue!==presentedCookieIssue))cookieSection.open=true;
+    else if(presentedCookiePending&&!cookiePending&&record?.state==='success')cookieSection.open=false;
+    const cookieSummary=byId('ai-vip-cookie-summary');
+    if(cookieSummary)cookieSummary.textContent=cookiePending?'继续本次登录':issue?'核对上次操作':'查看上次网站操作';
     presentedCookiePending=cookiePending;presentedCookieIssue=issue;
     cookieInstall.hidden=!cookiePending;
-    cookieInstall.textContent=['local-file','server-batch'].includes(cookiePending?.kind)?'确认本批设置（'+cookiePending.payload.cookies.length+' 项）':'设置并打开网站';
+    cookieInstall.textContent=['local-file','server-batch'].includes(cookiePending?.kind)?'继续登录 · 确认本批（'+cookiePending.payload.cookies.length+' 项）':'继续登录并打开网站';
     cookieInstall.disabled=!cookieReady||cookieBusy||busy||!cookiePending||Boolean(cookieFault)||journalLocked()||
       (record?.scopeKey&&record.scopeKey===cookiePending?.scopeKey&&
         record.deliveryId===cookiePending?.deliveryId&&record.state!=='failed');
+    const resultDetails=byId('ai-vip-cookie-result-details');
+    if(resultDetails)resultDetails.hidden=!(currentRecord&&record?.results?.length);
     clear(cookieResults);
     for(const row of (currentRecord?record?.results:[])||[])addRow(cookieResults,'第 '+(row.index+1)+' 项',
       row.verified?'已写入并核验':row.saved?'已写入，尚未核验':
@@ -581,7 +556,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       value.verified===count?'success':value.saved>0?'partial':'failed';
     return {state,results};
   }
-  cookieInstall?.addEventListener('click',event=>{
+  function installCurrentSession(event){
     if(event?.isTrusted!==true||cookieInstall.disabled||cookieBusy||busy||!cookiePending)return;
     const returnFocus=document.activeElement===cookieInstall;
     let delivery;
@@ -589,7 +564,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     catch{cookiePending=null;cookieFault='缺少当前有效会话分配，未提交 Cookie。';renderRedeem();return;}
     cookiePending=delivery; // Preserve the exact intent for an explicit pre-dispatch cancellation.
     cookieBusy=true;cookieFault='';renderRedeem();
-    void (async()=>{
+    return (async()=>{
       let started=false,marker,cancelledBeforeDispatch=false;
       try{
         await validateCurrentDelivery(delivery,true);
@@ -656,7 +631,16 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
           cookieInstall.focus({preventScroll:true});
       }
     })();
-  });
+  }
+  cookieInstall?.addEventListener('click',event=>{void installCurrentSession(event);});
+  async function useWebsite(event){
+    if(event?.isTrusted!==true)return;
+    if(localMode)return requestSharedSession(); // Explicit developer staging only.
+    await requestSharedSession();
+    // Initial intent covers login. Every later batch still needs its own click.
+    // setMany retains the original trusted Host confirmation and all fences.
+    if(!disposed&&cookiePending&&!cookieInstall.disabled)await installCurrentSession(event);
+  }
   function validatedDevelopmentProfile(value){
     // Only getStatus supplies this field, after the platform's dev/package approval.
     // Storage or a member/lease response can never supply proxy availability.
@@ -669,7 +653,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   }
   function recoveryMatchesService(record=recovery,development=localMode,origin=localOrigin){
     return !record||(development?record.schemaVersion===2&&record.serviceOrigin===origin:
-      record.schemaVersion===1);
+      record.schemaVersion===3&&service&&record.serviceOrigin===new URL(service.url).origin);
   }
   function renderLocalDevelopment(){
     if(disposed)return;
@@ -735,7 +719,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     invalidateShared();sharedNotice='';acquireAfterActivation=false;
     localMode=development;
     if(development)localOrigin=origin;
-    endpoints=development?localEndpoints(localOrigin):productionEndpoints;
+    endpoints=development?localEndpoints(localOrigin):serviceConnected?productionEndpoints:null;
     ++serviceRevision;++seq;
     snapshot=null;serverSampleAt=null;pending=null;code.value='';busy=false;
     memberVerifiedFresh=false;activationHintCode=null;activationSeen=null;activationHint.hidden=true;
@@ -745,7 +729,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   }
   async function acceptDevelopmentStatus(state){
     const read=++developmentRead;
-    developmentProfile=validatedDevelopmentProfile(state?.developmentProfile);
+    developmentProfile=(createDevelopmentControls||localSection)?validatedDevelopmentProfile(state?.developmentProfile):null;
     if(!developmentProfile){
       changeBusinessMode(false);
       renderLocalDevelopment();renderRedeem();return;
@@ -797,11 +781,12 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   localConnect?.addEventListener('click',connectLocalDevelopment);
   function validRecovery(raw){
     if(raw===null)return null;
-    const development=raw?.schemaVersion===2;
+    const development=raw?.schemaVersion===2,connected=raw?.schemaVersion===3;
     const fields=['accountId','createdAt','idempotencyKey','packageVersion','schemaVersion','toolId',
-      ...(development?['serviceOrigin']:[])];
+      ...(development||connected?['serviceOrigin']:[])];
     if(!plain(raw)||Object.keys(raw).sort().join(',')!==fields.sort().join(',')||
-      (!development&&raw.schemaVersion!==1)||(development&&!LOCAL_ORIGINS.includes(raw.serviceOrigin))||
+      (!development&&!connected&&raw.schemaVersion!==1)||(development&&!LOCAL_ORIGINS.includes(raw.serviceOrigin))||
+      (connected&&(!safeString(raw.serviceOrigin,2048)||!/^https:\/\/[^/]+$/.test(raw.serviceOrigin)))||
       raw.toolId!=='ai-vip-share'||
       !RECOVERY_COMPAT_VERSIONS.includes(raw.packageVersion)||!safeString(raw.accountId,120)||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw.idempotencyKey)||
@@ -857,8 +842,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       (redemptionIntent.development&&(!developmentProfile||redemptionIntent.serviceOrigin!==localOrigin)))
       fail('E_RECOVERY_SERVICE_CHANGED','服务环境已变化，本次未写入兑换事务');
     // Once storage.set starts, retain this intent's service even if availability changes.
-    const record={schemaVersion:redemptionIntent.development?2:1,
-      ...(redemptionIntent.development?{serviceOrigin:redemptionIntent.serviceOrigin}:{}),
+    const record={schemaVersion:redemptionIntent.development?2:3,
+      serviceOrigin:redemptionIntent.serviceOrigin,
       toolId:'ai-vip-share',packageVersion:PACKAGE_VERSION,
       accountId,idempotencyKey:key,createdAt:Date.now()};
     await writeRecovery(before,record);
@@ -1038,6 +1023,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         redeemStatus.textContent==='服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。'))
         redeemNotice('输入兑换码并预检，确认后再领取。');
     }
+    if(memberVerifiedFresh&&redeemStatus.textContent==='服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。')
+      redeemNotice('激活成功，可登录并打开网站。');
     renderRedeem();
   }
   function renderRedeem(){
@@ -1054,9 +1041,15 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     code.disabled=!allowed||Boolean(pending);
     redeem.disabled=!allowed||Boolean(pending)||
       !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
-    redeem.textContent=busy?'正在处理…':'预检激活';
+    redeem.textContent=busy?'正在处理…':'查看激活内容';
     confirm.disabled=!allowed||!pending;
     previewPanel.hidden=!pending;
+    const redeemDetails=byId('ai-vip-redeem-details');
+    if(redeemDetails){
+      redeemDetails.hidden=Boolean(pending||locked);
+      if(assignedShared()&&!activationHintCode&&!code.value)redeemDetails.open=false;
+      else if(activationHintCode)redeemDetails.open=true;
+    }
     activationHint.hidden=!activationHintCode||Boolean(pending)||!memberVerifiedFresh;
     cancel.hidden=!pending;
     cancel.disabled=busy;
@@ -1065,21 +1058,22 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     redeemStatus.hidden=!recoveryPanel.hidden||!redeemError.hidden;
     refreshProxyPresentation();
     renderLocalDevelopment();
+    renderConnection();
     websiteController?.render({development:Boolean(developmentProfile),locked:journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable),
       busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label,
       commercialIdentity:assignedShared()?.displayNameMasked,
       commercialNotice:sharedBusy?'正在准备网站登录…':sharedNotice});
     const flow=byId('ai-vip-login-flow');
-    if(flow)flow.textContent=journalLocked()||cookieFault?'当前：先核对恢复记录；不会自动重复兑换或写入。':
-      cookiePending?'当前：核对会话 → 每批独立确认 → 网站核验。':
-      assignedShared()?'已有权益，无需再次兑换。准备服务器会话 → 每批独立确认 → 网站核验。':
-      accountReady&&snapshot.redemptions.some(row=>row.status==='redeemed')?
-        '当前没有可用的网站会话分配。请联系服务方核对授权；不会自动重复兑换。':
-      '激活权益 → 准备会话 → 逐批确认 → 网站核验';
+    if(flow){
+      flow.textContent=journalLocked()||cookieFault?'上次操作尚待核对，请查看下方记录。':
+        !assignedShared()&&accountReady&&snapshot.redemptions.some(row=>row.status==='redeemed')?
+          '当前没有可用的网站会话分配。请联系服务方核对授权，无需重复激活。':'';
+      flow.hidden=!flow.textContent;
+    }
     renderCookies();
     renderShared();
-    window.OpenDeskTool.setState?.({dirty:Boolean(code.value||pending||cookiePending),
-      busy:busy||cookieBusy||sharedBusy||Boolean(websiteController?.busy)});
+    window.OpenDeskTool.setState?.({dirty:Boolean(serviceLink?.value||code.value||pending||cookiePending),
+      busy:connecting||busy||cookieBusy||sharedBusy||Boolean(websiteController?.busy)});
   }
   function redeemNotice(message,error=false){
     redeemStatus.textContent=message;
@@ -1112,7 +1106,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       (selected&&(!replacement||replacement.targetUrl!==selected.targetUrl||replacement.cookieFormat!==selected.cookieFormat||
         replacement.label!==selected.label||replacement.displayNameMasked!==selected.displayNameMasked||
         assignedScope(replacement)!==assignedScope(selected)))){
-      const hadPrevious=Boolean(snapshot||sharedCatalog);
+      const hadPrevious=Boolean(sharedCatalog)||(snapshot?.account.id&&snapshot.account.id!==data.account.id);
       invalidateShared();sharedNotice=hadPrevious?'账号或授权目录已变化，请重新取得会话。':'';
     }
     sharedCatalog=next;
@@ -1245,7 +1239,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     }
     // A reviewed link may never be consumed after leaving its approved source.
     // The trusted user's confirmation is necessary but not sufficient.
-    if(activationHintCode){
+    if(activationHintCode&&!activationFromLink){
       busy=true;renderRedeem();
       try{
         if(!activationPageMatches(await storeRequest('currentPage.info'),activationHintCode))
@@ -1268,7 +1262,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       redeemNotice('无法安全生成兑换事务标识；本次兑换未提交。',true);return;
     }
     const accountId=pending.accountId,previewId=pending.id;
-    const redemptionIntent=Object.freeze({revision:serviceRevision,development:localMode,serviceOrigin:localOrigin});
+    const redemptionIntent=Object.freeze({revision:serviceRevision,development:localMode,serviceOrigin:localMode?localOrigin:new URL(service.url).origin});
     const intentRevision=redemptionIntent.revision;
     busy=true;renderRedeem();
     redeemNotice('正在重新核对当前账号与预检时限；尚未提交兑换。');
@@ -1293,7 +1287,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key,redemptionIntent); // Write-ahead and verified readback.
-      if(activationHintCode&&!activationPageMatches(await storeRequest('currentPage.info'),activationHintCode))
+      if(activationHintCode&&!activationFromLink&&!activationPageMatches(await storeRequest('currentPage.info'),activationHintCode))
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化，保留事务以便核对');
       if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化；保留事务供核对，不会提交');
@@ -1308,8 +1302,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
       cookiePending=null;cookieFault='';
-      acquireAfterActivation=true;
-      redeemNotice('服务端已确认兑换成功。正在更新权益与兑换记录；网络连接需要单独开启。');
+      acquireAfterActivation=localMode;
+      redeemNotice('服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。');
       busy=false;renderRedeem();
       await refreshMember();
     }catch(error){
@@ -1353,7 +1347,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         validateReceipt(data,saved.idempotencyKey);
         await clearRecovered(saved.idempotencyKey);
         cookiePending=null;cookieFault='';
-        acquireAfterActivation=true;
+        acquireAfterActivation=localMode;
         redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
         busy=false;
         await refreshMember();
@@ -1370,12 +1364,13 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   });
   focusRedeem.addEventListener('click',event=>{
     if(event?.isTrusted!==true||code.disabled)return;
+    const details=byId('ai-vip-redeem-details');if(details)details.open=true;
     redeemForm.scrollIntoView?.({block:'nearest',behavior:'smooth'});
     code.focus?.({preventScroll:true});
   });
   code.addEventListener('input',()=>{
     if(activationHintCode&&code.value.trim()!==activationHintCode){
-      activationHintCode=null;activationHint.hidden=true;
+      activationHintCode=null;activationFromLink=false;activationHint.hidden=true;
     }
     redeemNotice('兑换内容需先由服务端预检，确认后才会提交。');
     renderRedeem();
@@ -1423,7 +1418,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   });
   // Production activation origin/path/parameter are intentionally unconfigured.
   // Local fixture protocol only; metadata comes from the installed public Host.
-  const ACTIVATION_URLS=Object.freeze([]);
+  const ACTIVATION_URLS=Object.freeze(service?[{origin:new URL(service.url).origin,path:service.activation.path,parameter:service.activation.parameter}]:[]);
   const ACTIVATION_KEY='aiVipActivationR140';
   let urlChecking=false;
   function activationCodeFromPage(info){
@@ -1465,7 +1460,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     return revision===serviceRevision;
   }
   async function checkActivationPage(){
-    if(urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||
+    if(activationFromLink||urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||
       !memberVerifiedFresh||!endpoints||!recoveryReady||recovery||recoveryFault||
       !cookieReady||cookieFault||['unknown','partial'].includes(cookieRecord?.state)||
       snapshot?.account.state!=='bound')return;
@@ -1484,7 +1479,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       if(value===activationSeen&&info.url===activationSource)return;
       // Confirmation stays bound to the exact reviewed landing URL, even when
       // another approved page carries the same code.
-      activationSource=info.url;
+      activationSource=info.url;activationFromLink=false;
       activationSeen=value;activationHintCode=value;code.value=value;
       activationDetail.textContent='已批准来源的激活码 '+value.slice(0,3)+'****'+value.slice(-2)+
         ' 已带入；请预检并确认，不会自动领取。';
@@ -1494,8 +1489,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     finally{urlChecking=false;}
   }
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
-  shopSection.hidden=false;
-  desktopSection.hidden=false;
+  shopSection.hidden=!catalog;
+  desktopSection.hidden=!desktopClient;
   function bindPromotion(button,status,url,name){
     // A visible but unconfigured promotion explains the release blocker;
     // it never tries to navigate to an invented or unreviewed destination.
@@ -1587,6 +1582,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         (starting||stopping||reading||!ready);
       refreshProxy.hidden=!sdk&&!stop;
       refreshProxy.disabled=reading||starting||stopping||!sdk;
+      proxySection.hidden=!stop&&!controlIssue&&!safeEndpoint();
       proxySection.setAttribute('data-mode',stop||controlIssue?'critical':ready?'ready':'passive');
       status.hidden=!stop&&!controlIssue&&(!safeEndpoint()||!sdk||!hasEntitlement());
       const warning=controlIssue||Boolean(notice&&!current);
@@ -1686,7 +1682,85 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     paint();
     void update();
   }
+  function renderConnection(){
+    if(!connection)return;
+    connection.hidden=localMode;
+    connectionForm.hidden=!editingConnection&&serviceConnected;
+    connectionChange.hidden=!serviceConnected||editingConnection;
+    connectionChange.disabled=busy||cookieBusy||sharedBusy||connecting;
+    connect.disabled=busy||cookieBusy||sharedBusy||connecting;
+    serviceLink.disabled=connect.disabled;
+    connect.textContent=connecting?'正在连接…':'连接并查看权益';
+    connectionSummary.hidden=!serviceConnected;
+    connectionSummary.textContent=serviceConnected?service.label+' · '+new URL(service.url).host:'';
+    connectionStatus.textContent=connectionNotice||(serviceConnected?
+      memberVerifiedFresh?'服务身份与权益已核验。':'连接已选择，当前权益尚未核验；请刷新重试。':
+      service?'粘贴服务方提供的链接。激活前会先供你核对。':
+        '当前安装包尚未接入正式服务。请向服务提供方索取支持的链接，不能用网站地址代替。');
+    memberCard.hidden=!endpoints;
+    if(usageCard)usageCard.hidden=!endpoints&&!cookieFault&&!journalLocked()&&!recovery&&!recoveryFault;
+  }
+  async function readServiceChoice(){
+    const result=await storeRequest('storage.get',{key:SERVICE_KEY,withEtag:true});
+    if(result?.preview===true||typeof result?.etag!=='string'||!/^[a-f0-9]{64}$/.test(result.etag))
+      fail('E_SERVICE_STORAGE','服务连接记录无法核对');
+    if(result.value!==null&&(!exactKeys(result.value,['schemaVersion','serviceId','url'])||
+      result.value.schemaVersion!==1||!safeString(result.value.serviceId,80)||!safeString(result.value.url,2048)))
+      fail('E_SERVICE_STORAGE','服务连接记录无效');
+    return result;
+  }
+  async function connectService(event){
+    if(event?.isTrusted!==true||connect.disabled)return;
+    connecting=true;connectionNotice='正在核对服务链接…';renderConnection();
+    try{
+      const parsed=parseServiceLink(serviceLink.value,service);
+      if(cookieBusy||sharedBusy||busy||pending||cookiePending||localMode||localSwitchBlocked()||
+        (recovery&&!recoveryMatchesService()))fail('E_SERVICE_PENDING','上次操作尚未核对，请保留原服务');
+      const before=await readServiceChoice();
+      const value={schemaVersion:1,serviceId:service.id,url:service.url};
+      try{await storeRequest('storage.set',{key:SERVICE_KEY,value,ifMatch:before.etag});}catch{}
+      const after=await readServiceChoice();
+      if(JSON.stringify(after.value)!==JSON.stringify(value))fail('E_SERVICE_STORAGE','服务连接未能保存');
+      serviceConnected=true;endpoints=productionEndpoints;editingConnection=false;connectionNotice='';
+      serviceLink.value=''; // Never retain an activation link in storage or the input.
+      await refreshMember();
+      if(parsed.code){
+        activationHintCode=parsed.code;activationFromLink=true;activationSource=null;
+        code.value=parsed.code;
+        activationDetail.textContent='链接中的激活码已带入。先查看激活内容，再由你确认；尚未领取。';
+        redeemNotice('专属链接已识别，请查看并核对激活内容。');
+        if(memberVerifiedFresh&&snapshot?.account.state==='bound')await runActivation(parsed.code);
+      }
+    }catch(error){
+      connectionNotice=({E_SERVICE_NOT_CONFIGURED:'当前安装包尚未接入正式服务；请联系服务提供方提供接入配置。',
+        E_SERVICE_UNSUPPORTED:'此链接不属于已接入的服务。请使用服务方提供的连接链接或专属激活链接。',
+        E_SERVICE_LINK:'链接格式无效。请粘贴完整的 HTTPS 服务链接，不要填写目标网站或登录数据。',
+        E_SERVICE_PENDING:'上次操作尚待核对，已保留原服务与记录。',
+        E_SERVICE_STORAGE:'服务连接无法保存，未开始兑换或网站登录。'})[error?.code]||'服务尚未连接，请核对链接和存储授权后重试。';
+    }finally{connecting=false;renderRedeem();}
+  }
+  connect?.addEventListener('click',event=>{void connectService(event);});
+  serviceLink?.addEventListener('keydown',event=>{
+    if(event.key==='Enter'&&!event.isComposing){event.preventDefault?.();void connectService(event);}
+  });
+  connectionChange?.addEventListener('click',event=>{
+    if(event.isTrusted!==true||connectionChange.disabled)return;
+    editingConnection=true;renderConnection();serviceLink.focus?.();
+  });
+  async function restoreServiceChoice(){
+    if(!service)return;
+    try{
+      const {value}=await readServiceChoice();
+      if(disposed||!value)return;
+      if(value.serviceId!==service.id||value.url!==service.url){
+        connectionNotice='保存的服务与当前接入配置不同，请重新核对链接；原恢复记录保留。';renderConnection();return;
+      }
+      serviceConnected=true;editingConnection=false;
+      if(!localMode){endpoints=productionEndpoints;await refreshMember();}
+    }catch{connectionNotice='保存的服务无法核对，请重新连接；原记录保留。';renderConnection();}
+  }
   function renderBusinessConfiguration(){
+    renderConnection();
     if(!endpoints){
     memberCard.setAttribute('data-view','unconfigured');
     memberState.textContent='服务未配置';
@@ -1712,13 +1786,14 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       cookieJournal.attempts.filter(row=>row.state==='success').map(row=>JSON.parse(row.scopeKey)[6]).at(-1):null,
     getPending:()=>cookiePending,setPending:value=>{cookiePending=value;if(!value){serverSession=null;sharedNotice='';}
       if(value&&cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}},
-    validateDelivery:validateCookieDelivery,commercialReceive:requestSharedSession,
+    validateDelivery:validateCookieDelivery,commercialReceive:useWebsite,
     commercialTarget:()=>assignedShared()?.targetUrl||null,onChange:renderRedeem,
     blocked:()=>cookieBusy||busy||sharedBusy||journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable)});
   // Recover independently of Provider configuration; never silently drop a journal.
   void loadRecovery();
   void loadCookieRecord();
   renderBusinessConfiguration();
+  void restoreServiceChoice();
   setupManagedProxy();
   // Only the open installed app observes its current target; no background sandbox.
   const activationTimer=typeof window.setInterval==='function'?

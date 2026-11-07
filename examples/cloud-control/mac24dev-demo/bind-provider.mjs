@@ -53,6 +53,7 @@ const admin=await privateJson(resolve(root,'.local/cloud-control/admin.json'));
 const observed=await local('/admin/state',{},'Bearer '+admin.adminToken);
 if(observed.providerId!=='9c4f182d-7a5f-403d-9b4d-c2144ef35e5b'||!observed.executors[executorId])throw Error('REAL_PAIRED_EXECUTOR_REQUIRED');
 const grant=await local('/admin/client-grant',{executorId,tasks:[pin],allowResult:args.includes('--allow-result')},'Bearer '+admin.adminToken);
+let bindingAttempted=false;
 try{
   const ca=await readFile(resolve(root,'.local/cloud-control/mac24dev-demo-cert.pem'));
   const scope=await new Promise((yes,no)=>{
@@ -66,9 +67,17 @@ try{
   if(scope.providerId!==observed.providerId||scope.executorId!==executorId||scope.clientId!==grant.clientId||!Array.isArray(scope.tasks)||scope.tasks.length!==1||Object.keys(pin).some(k=>scope.tasks[0][k]!==pin[k]))throw Error('FIXED_SCOPE_REQUIRED');
   const binding={bindingId:randomUUID(),userId:person.data.id,deviceId:login.deviceId,executorId,
     clientId:scope.clientId,grantId:scope.grantId,clientToken:grant.credential};
-  await remote({...bindingRequest,binding});
+  bindingAttempted=true;
+  try{
+    await remote({...bindingRequest,binding});
+  }catch{
+    // A lost SSH response may follow a committed atomic replacement. Read back
+    // that exact binding; never retry the write or revoke a possibly bound Client.
+    await remote({...bindingRequest,binding,verifyOnly:true});
+  }
   console.log(JSON.stringify({bound:true,bindingId:binding.bindingId,userId:binding.userId,deviceId:binding.deviceId,executorId,clientId:binding.clientId,taskId:pin.taskId,version:pin.version,allowResult:scope.allowResult}));
 }catch(error){
+  if(bindingAttempted)throw Error('BIND_OUTCOME_UNKNOWN_RECONCILE_ORIGINAL_BINDING');
   await local('/admin/client-revoke',{clientId:grant.clientId},'Bearer '+admin.adminToken).catch(()=>{});
   throw Error('BIND_FAILED_NEW_CLIENT_REVOKED_OR_REQUIRES_RECONCILIATION');
 }

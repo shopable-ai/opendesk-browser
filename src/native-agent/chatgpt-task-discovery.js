@@ -1,16 +1,24 @@
 // Eligibility only. This observer never grants permission, parses a task, or
 // runs code. The existing Host and durable trigger ledger own those decisions.
-const describe=node=>{
+// Match the file reader's exact answer version: only known reply/copy controls
+// are decorations. Keep language headers, ordinary body buttons and whitespace.
+const assistantText=node=>{
+  if(!node.cloneNode)return node.textContent||'';
+  const body=node.cloneNode(true);
+  for(const control of body.querySelectorAll('[data-assistant-message-actions],[data-testid="copy-turn-action-button"],[data-markdown-copy="exclude"] button'))control.remove();
+  return body.textContent||'';
+};
+const describe=(node,text=node.textContent||'')=>{
   // Distinct local messages can share a fallback-turn-0 key. Use the real
   // message IDs across remounts; a fallback key proves no shared identity.
   const ids=node.getAttribute?.('data-chatgpt-search-message-ids');
   const key=node.getAttribute?.('data-chatgpt-search-unit-key')||node.getAttribute?.('data-content-search-unit-key');
-  return {node,text:node.textContent||'',id:node.getAttribute?.('data-message-id')||
+  return {node,text,id:node.getAttribute?.('data-message-id')||
     (ids?[...new Set(ids.trim().split(/\s+/))].join(' '):null)||
     (key&&!key.startsWith('fallback-')?key:null)};
 };
 const sameIdentity=(before,node)=>before.node===node||Boolean(before.id&&before.id===describe(node).id);
-const same=(before,node)=>before.text===(node.textContent||'')&&sameIdentity(before,node);
+const same=(before,node,text=node.textContent||'')=>before.text===text&&sameIdentity(before,node);
 const userText=node=>{
   const content=node.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||node;
   return content.innerText??content.textContent??'';
@@ -22,7 +30,7 @@ const appended=(before,nodes,multiple=false)=>{
     // The unchanged latest reply anchors this new answer; older placeholder
     // text is not part of its identity. User history remains checked below.
     // Exactly one reply may follow that anchor; multiple new replies are ambiguous.
-    const anchors=nodes.map((node,index)=>same(before.at(-1),node)?index:-1).filter(index=>index>=0);
+    const anchors=nodes.map((node,index)=>same(before.at(-1),node,assistantText(node))?index:-1).filter(index=>index>=0);
     return anchors.length===1&&anchors[0]===nodes.length-2&&
       !before.some(item=>sameIdentity(item,nodes.at(-1)));
   }
@@ -42,7 +50,8 @@ export function createChatGPTTaskDiscovery({now=Date.now,onStatus=()=>{}}={}){
     diagnostic={stage,reason,route};history.push({...diagnostic});if(history.length>8)history.shift();
     onStatus({...diagnostic,history:history.map(item=>({...item}))});
   };
-  const capture=snapshot=>({users:snapshot.users.map(describe),assistants:snapshot.assistants.map(describe)});
+  const capture=snapshot=>({users:snapshot.users.map(node=>describe(node)),
+    assistants:snapshot.assistants.map(node=>describe(node,assistantText(node)))});
   return {
     status(){return {...diagnostic,history:history.map(item=>({...item}))};},
     reset(snapshot,reason='baseline'){

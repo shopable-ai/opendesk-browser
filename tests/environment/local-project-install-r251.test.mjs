@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createTaskPackage} from '../../src/platform/tasks/contract.js';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
 import {prepareLocalProjectInstallation,assertLocalInstallVersion,
   commitLocalProjectInstallation,readLocalInstallOutcome} from '../../src/ui/local-project-install.js';
@@ -290,4 +291,209 @@ test('Task install review binds permission and deadline changes and recognizes l
   assert.deepEqual(storage.permissions,source.permissions);assert.equal(storage.deadlineMs,120000);
   assert.throws(()=>assertLocalInstallVersion(deadline,source,binding),{code:'E_DEV_CONFLICT'});
   assert.equal(storage.alreadyInstalled,false);assert.equal(storage.scopeChanged,true);
+});
+
+for(const outcome of ['verified','available','rejected'])test(`runtime recovery rechecks an existing available local Task before installation (${outcome})`,async()=>{
+  const source=await makeSource(),calls=[];
+  let hash;
+  const client={request:async(method,input)=>{
+    calls.push([method,input]);
+    if(method==='listTaskCatalog')return {catalog:[],installed:[]};
+    if(method==='importTaskPackage'){
+      hash=input.package.manifestHash;
+      return {stage:'available',runtimeCurrent:false,manifestHash:hash};
+    }
+    if(method==='verifyTaskCandidate'){
+      assert.equal(input.runId,'fresh-local-run');
+      if(outcome==='rejected')throw Object.assign(Error('No fresh proof'),{code:'E_VERIFICATION'});
+      return {stage:outcome,runtimeCurrent:true,manifestHash:hash};
+    }
+    if(method==='makeTaskAvailable')return {stage:'available',manifestHash:hash};
+    if(method==='installTask')return {...input};
+    throw Error('Unexpected '+method);
+  }};
+  const review=await prepareLocalProjectInstallation({client,source,binding,project,target,runId:'fresh-local-run'});
+  calls.length=0;
+  const install=()=>commitLocalProjectInstallation({client,review,source,target,title:'恢复任务',version:review.version});
+  if(outcome==='rejected')await assert.rejects(install,{code:'E_VERIFICATION'});
+  else assert.equal((await install()).manifestHash,hash);
+  assert.deepEqual(calls.map(([method])=>method),[
+    'listTaskCatalog','importTaskPackage','verifyTaskCandidate',
+    ...(outcome==='verified'?['makeTaskAvailable']:[]),
+    ...(outcome==='rejected'?[]:['installTask'])]);
+  assert.deepEqual(calls.find(([method])=>method==='verifyTaskCandidate')[1],{
+    taskId:review.id,version:review.version,runId:'fresh-local-run'});
+});
+
+async function installedRecoveryFixture({candidateCurrent=false,installedCurrent=false}={}){
+  const source=await makeSource(),calls=[];
+  const first=await prepareLocalProjectInstallation({client:{request:async()=>({catalog:[],installed:[]})},
+    source,binding,project,target,runId:'fresh-recovery-run'});
+  const pkg=await createTaskPackage({format:'opendesk.task.v1',taskId:first.id,version:'1.0.4',
+    title:'原固定任务',description:'保留原始描述',author:'original-author',source:'local-project',
+    siteOrigins:first.siteOrigins,permissions:['page.automation'],entryFormat:'async-main',
+    program:{revision:1,sourceHash:source.sourceHash},
+    paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}},source.sourceUtf8);
+  const candidate={taskId:first.id,version:pkg.manifest.version,manifestHash:pkg.manifestHash,
+    manifest:pkg.manifest,stage:'available',runtimeCurrent:candidateCurrent};
+  const installed={taskId:first.id,version:candidate.version,manifestHash:pkg.manifestHash,
+    runtimeCurrent:installedCurrent,generation:3,installationId:'original-installation'};
+  const client={request:async(method,input)=>{
+    calls.push([method,input]);
+    if(method==='listTaskCatalog')return {catalog:[structuredClone(candidate)],installed:[structuredClone(installed)]};
+    if(method==='getTaskCandidate')return {...structuredClone(candidate),package:structuredClone(pkg)};
+    if(method==='verifyTaskCandidate')return {...candidate,stage:candidateCurrent?'available':'verified',runtimeCurrent:true};
+    if(method==='makeTaskAvailable')return {...candidate,stage:'available',runtimeCurrent:true};
+    if(method==='installTask')return {...input};
+    throw Error('Unexpected '+method);
+  }};
+  const prepare=()=>prepareLocalProjectInstallation({client,source,binding,project,target,runId:'fresh-recovery-run'});
+  return {source,calls,pkg,candidate,installed,client,prepare};
+}
+
+for(const [candidateCurrent,installedCurrent] of [[false,false],[false,true],[true,false]])
+  test(`runtime recovery local review and commit reuse immutable installed Task (${candidateCurrent}/${installedCurrent})`,async()=>{
+    const f=await installedRecoveryFixture({candidateCurrent,installedCurrent});
+    const review=await f.prepare();
+    assert.equal(review.alreadyInstalled,false,'Save must reach installation review instead of returning early');
+    assert.equal(review.version,f.installed.version,'runtime changes do not allocate a new Task version');
+    assert.equal(review.defaultTitle,f.pkg.manifest.title);
+    assert.equal(review.scopeChanged,false);
+    f.calls.length=0;
+    const hashes=[];
+    const result=await commitLocalProjectInstallation({client:f.client,review,source:f.source,target,
+      title:review.defaultTitle,version:review.version,onCandidate:hash=>hashes.push(hash)});
+    assert.equal(result.manifestHash,f.pkg.manifestHash,'original author, description and complete manifest remain immutable');
+    assert.deepEqual(hashes,[f.pkg.manifestHash]);
+    assert.deepEqual(f.calls.map(([method])=>method),['listTaskCatalog','getTaskCandidate',
+      'verifyTaskCandidate',...(candidateCurrent?[]:['makeTaskAvailable']),'installTask']);
+    assert.deepEqual(f.calls.find(([method])=>method==='verifyTaskCandidate')[1],{
+      taskId:review.id,version:f.installed.version,runId:'fresh-recovery-run'});
+    assert.deepEqual(f.calls.at(-1)[1],{taskId:review.id,version:f.installed.version,
+      manifestHash:f.pkg.manifestHash,expectedInstalledVersion:f.installed.version,
+      expectedGeneration:f.installed.generation,expectedInstallationId:f.installed.installationId});
+  });
+
+test('runtime recovery local commit rejects edited version or title and drifted immutable package before verification',async()=>{
+  for(const drift of ['version','title','package','proof']){
+    const f=await installedRecoveryFixture(),review=await f.prepare();
+    const request=f.client.request;
+    f.client.request=async(method,input)=>{
+      const value=await request(method,input);
+      if(drift==='package'&&method==='getTaskCandidate'){
+        const changed=await createTaskPackage({...f.pkg.manifest,description:'changed metadata'},f.pkg.sourceUtf8);
+        return {...value,manifestHash:changed.manifestHash,package:changed};
+      }
+      if(drift==='proof'&&method==='verifyTaskCandidate')throw Object.assign(Error('Stale run'),{code:'E_VERIFICATION'});
+      return value;
+    };
+    f.calls.length=0;
+    await assert.rejects(()=>commitLocalProjectInstallation({client:f.client,review,source:f.source,target,
+      title:drift==='title'?'改名':review.defaultTitle,version:drift==='version'?'1.0.5':review.version}),
+      {code:drift==='proof'?'E_VERIFICATION':'E_REVISION'});
+    assert.equal(f.calls.some(([method])=>['importTaskPackage','makeTaskAvailable','installTask'].includes(method)),false,drift);
+    if(drift!=='proof')assert.equal(f.calls.some(([method])=>method==='verifyTaskCandidate'),false,drift);
+  }
+});
+
+test('runtime recovery local review still allocates a new version for changed Controller contracts',async()=>{
+  for(const change of [{sourceUtf8:'async function main(){return 99;}'},
+    {permissions:['page.automation','storage.persistent']},{deadlineMs:120000},
+    {paramsSchema:{type:'object',properties:{label:{type:'string',title:'Label'}},required:[],additionalProperties:false}}]){
+    const f=await installedRecoveryFixture();Object.assign(f.source,change);
+    f.source.sourceHash=await sha256Utf8(f.source.sourceUtf8);
+    f.source.sourceBytes=new TextEncoder().encode(f.source.sourceUtf8).length;
+    const review=await f.prepare();
+    assert.equal(review.alreadyInstalled,false);
+    assert.equal(review.version,'1.0.5');
+  }
+  const f=await installedRecoveryFixture({candidateCurrent:true,installedCurrent:true});
+  assert.equal((await f.prepare()).alreadyInstalled,true,'current exact installations retain their existing shortcut');
+});
+
+test('runtime recovery flags leave exact installed Page recognition and revision allocation unchanged',async()=>{
+  const source=await makeSource('page-userscript');
+  const first=await prepareLocalProjectInstallation({client:{request:async()=>({catalog:[],installed:[]})},
+    source,binding,project,target});
+  const installed={programId:first.id,revision:4,manifestHash:'a'.repeat(64),sourceHash:source.sourceHash,
+    pageRules:first.pageRules,runtimeCurrent:false};
+  const client={request:async method=>{
+    assert.equal(method,'listPagePrograms');
+    return {catalog:[{...installed,entryFormat:source.entryFormat,runtimeCurrent:false}],installed:[installed]};
+  }};
+  const review=await prepareLocalProjectInstallation({client,source,binding,project,target});
+  assert.equal(review.alreadyInstalled,true);assert.equal(review.version,'5');
+});
+
+async function lostRecoveryAcknowledgement(){
+  const f=await installedRecoveryFixture(),review=await f.prepare();
+  const pending={...review},request=f.client.request;
+  f.client.request=async(method,input)=>{
+    if(method==='installTask'){
+      assert.equal(input.expectedInstallationId,review.installedInstallationId);
+      assert.equal(input.expectedGeneration,review.installedGeneration);
+      await request(method,input);
+      Object.assign(f.candidate,{runtimeCurrent:true,stage:'available'});
+      Object.assign(f.installed,{runtimeCurrent:true,generation:input.expectedGeneration+1});
+      throw Object.assign(Error('Installation acknowledgement lost'),{code:'E_EFFECT_UNKNOWN'});
+    }
+    return request(method,input);
+  };
+  await assert.rejects(()=>commitLocalProjectInstallation({client:f.client,review,source:f.source,target,
+    title:review.defaultTitle,version:review.version,
+    onCandidate:hash=>{pending.attemptedManifestHash=hash;}}),{code:'E_EFFECT_UNKNOWN'});
+  f.calls.length=0;
+  return {...f,review:pending};
+}
+
+test('runtime recovery lost installation acknowledgement confirms same hash only at the expected next generation',async()=>{
+  const f=await lostRecoveryAcknowledgement();
+  assert.equal(f.review.installedInstallationId,f.installed.installationId);
+  assert.equal(f.review.installedGeneration,f.installed.generation-1);
+  const result=await readLocalInstallOutcome({client:f.client,review:f.review,version:f.review.version});
+  assert.equal(result.state,'confirmed');assert.equal(result.manifestHash,f.pkg.manifestHash);
+  assert.deepEqual(f.calls.map(([method])=>method),['listTaskCatalog'],'reconciliation must never replay installation or verification');
+});
+
+test('runtime recovery lost acknowledgement rejects replaced identities, unexpected generations and stale or conflicting proof',async()=>{
+  const changes=[
+    ['replacement',f=>{f.installed.installationId='replacement-installation';}],
+    ['missing identity',f=>{delete f.installed.installationId;}],
+    ['skipped generation',f=>{f.installed.generation++;}],
+    ['older generation',f=>{f.installed.generation=f.review.installedGeneration-1;}],
+    ['missing generation',f=>{delete f.installed.generation;}],
+    ['missing baseline identity',f=>{delete f.review.installedInstallationId;}],
+    ['missing baseline generation',f=>{delete f.review.installedGeneration;}],
+    ['stale installation',f=>{f.installed.runtimeCurrent=false;}],
+    ['unknown installation runtime',f=>{delete f.installed.runtimeCurrent;}],
+    ['stale candidate',f=>{f.candidate.runtimeCurrent=false;}],
+    ['unknown candidate runtime',f=>{delete f.candidate.runtimeCurrent;}],
+    ['wrong package',f=>{f.installed.manifestHash='f'.repeat(64);}],
+    ['wrong source',f=>{f.candidate.manifest.program.sourceHash='f'.repeat(64);}],
+    ['wrong version',f=>{f.installed.version='1.0.5';}],
+    ['wrong scope',f=>{f.candidate.manifest.siteOrigins=['https://other.example'];}],
+    ['unavailable candidate',f=>{f.candidate.stage='verified';}],
+    ['wrong attempt',f=>{f.review.attemptedManifestHash='f'.repeat(64);}]
+  ];
+  for(const [name,change] of changes){
+    const f=await lostRecoveryAcknowledgement();change(f);
+    assert.equal((await readLocalInstallOutcome({client:f.client,review:f.review,version:f.review.version})).state,'unconfirmed',name);
+    assert.deepEqual(f.calls.map(([method])=>method),['listTaskCatalog'],name);
+  }
+  const f=await lostRecoveryAcknowledgement();
+  f.installed.generation=f.review.installedGeneration;f.installed.runtimeCurrent=false;
+  assert.equal((await readLocalInstallOutcome({client:f.client,review:f.review,version:f.review.version})).state,'baseline-unchanged',
+    'an exact unchanged installation is not evidence that recovery committed');
+});
+
+test('runtime recovery rejects same-hash installation identity or generation conflicts against the reviewed CAS baseline',async()=>{
+  for(const changed of ['identity','generation']){
+    const f=await installedRecoveryFixture(),review=await f.prepare();
+    if(changed==='identity')f.installed.installationId='replacement-installation';
+    else f.installed.generation++;
+    f.calls.length=0;
+    await assert.rejects(()=>commitLocalProjectInstallation({client:f.client,review,source:f.source,target,
+      title:review.defaultTitle,version:review.version}),{code:'E_REVISION'},changed);
+    assert.deepEqual(f.calls.map(([method])=>method),['listTaskCatalog'],changed);
+  }
 });

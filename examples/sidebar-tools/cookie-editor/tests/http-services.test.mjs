@@ -195,3 +195,158 @@ test('an unresolved pairing can be explicitly retired after receipt expiry witho
   assert.equal(state.connections[0].history.at(-1).operationId,operationId);
   assert.equal(state.connections[0].history.at(-1).outcome,'ARCHIVED_UNKNOWN');
 });
+
+test('serviceCheck reports separate reachability/session/resource outcomes using only existing read envelopes',async()=>{
+  for(const outcome of ['ok','network','session','bridge-session','denied','cache-failure','identity','malformed']){
+    let mode='ok';const reads=[];
+    const s=await connected({intercept:(operation,input)=>{
+      if(operation!=='browser.network.request'||!input.data.path)return;
+      reads.push(structuredClone(input));
+      if(mode==='network')return Promise.reject(Object.assign(Error(),{code:'E_NETWORK'}));
+      if(input.data.path==='/opendesk/v1/self'){
+        if(mode==='session')return Promise.resolve({status:403,data:{error:'TRUSTED_SESSION_REQUIRED'}});
+        if(mode==='bridge-session')return Promise.reject(Object.assign(Error('HTTP 403'),{code:'E_HTTP'}));
+        return Promise.resolve({status:200,data:{serviceInstanceId:mode==='identity'?'other':'instance_01',deviceId:'device_01',connectionId:input.connectionId??s.connectionId}});
+      }
+      if(mode==='denied')return Promise.resolve({status:403,data:{error:'RESOURCE_REJECTED'}});
+      if(mode==='cache-failure')return Promise.resolve({status:503,data:{error:'REQUEST_FAILED'}});
+      if(mode==='malformed')return Promise.resolve({status:200,data:{accounts:[{remoteAccountId:'unsafe'}],nextCursor:null}});
+    }});
+    await s.service.dispatch('serviceResources',{connectionId:s.connectionId});
+    const before=await s.service.dispatch('serviceStatus'),callStart=s.f.calls.length;
+    mode=outcome;reads.length=0;
+    const state=await s.service.dispatch('serviceCheck',{connectionId:s.connectionId});
+    const c=state.connections[0],result=c.check;
+    assert.equal(state.revision,before.revision);
+    assert.equal(c.status,'CONNECTED');assert.equal(c.deviceId,before.connections[0].deviceId);
+    assert.deepEqual(c.history,before.connections[0].history);
+    assert.deepEqual(c.resources,before.connections[0].resources);
+    assert.ok(Number.isSafeInteger(result.checkedAt));
+    assert.equal(result.reachable,outcome==='network'?false:true);
+    assert.equal(result.session,['session','bridge-session','identity'].includes(outcome)?'REVOKED':outcome==='network'?'NOT_CHECKED':'OK');
+    assert.equal(result.resources,outcome==='ok'?'OK':outcome==='denied'?'DENIED':['cache-failure','malformed'].includes(outcome)?'FAILED':'NOT_CHECKED');
+    assert.equal(result.message==='',outcome==='ok');
+    if(outcome==='network')assert.match(result.message,/确认服务正在运行/);
+    if(['session','bridge-session','identity'].includes(outcome))assert.match(result.message,/服务后台核对.*重新建立连接配置/);
+    if(outcome==='denied')assert.match(result.message,/联系服务管理员/);
+    assert.equal(reads.length,['ok','denied','cache-failure','malformed'].includes(outcome)?2:1);
+    assert.ok(reads.every(r=>r.method==='POST'&&r.url.endsWith('/opendesk/client/request')&&r.data.method==='GET'&&!Object.hasOwn(r.data,'body')));
+    assert.equal(reads[0].data.path,'/opendesk/v1/self');
+    assert.ok(!s.f.calls.slice(callStart).some(r=>r.operation==='browser.storage.local.set'));
+    const next=await s.service.dispatch('serviceStatus');assert.deepEqual(next.connections[0].check,result);
+    // Even after a later durable edit, neither checks nor cache diagnostics persist.
+    if(outcome==='ok')await s.service.dispatch('serviceDisconnect',{revision:state.revision,connectionId:s.connectionId});
+    const saved=s.f.calls.filter(r=>r.operation==='browser.storage.local.set').at(-1).input.items['cookie-http-services.v1'];
+    assert.equal(Object.hasOwn(saved.connections[0],'check'),false);
+    assert.equal(Object.hasOwn(saved.connections[0],'resourceRead'),false);
+    assert.equal(Object.hasOwn(saved.connections[0],'usageErrors'),false);
+    const {createCookieHttpServices}=await load();
+    const reopened=createCookieHttpServices({...s.f,version:'2.0.58'});
+    assert.equal((await reopened.dispatch('serviceStatus')).connections[0].check,null);
+  }
+});
+
+test('unpaired and expired checks do not guess endpoints or renew sessions; status remains local',async()=>{
+  const {createCookieHttpServices}=await load(),f=fixture();let now=Date.now();
+  const service=createCookieHttpServices({...f,version:'2.0.58',clock:()=>now});
+  let state=await service.dispatch('serviceSave',{revision:0,label:'Local',serviceOrigin:'http://127.0.0.1:43119'});
+  const connectionId=state.connections[0].id;
+  const before=f.calls.length;
+  state=await service.dispatch('serviceCheck',{connectionId});
+  assert.deepEqual(state.connections[0].check,{checkedAt:now,reachable:null,session:'UNPAIRED',resources:'NOT_CHECKED',message:'尚未配对，请从服务后台获取连接码后连接。'});
+  await service.dispatch('serviceStatus');
+  assert.ok(f.calls.slice(before).every(c=>c.operation==='browser.storage.local.get'));
+  state=await service.dispatch('serviceConnect',{revision:state.revision,connectionId,code:'b'.repeat(64)});
+  now+=1000000;const start=f.calls.length;
+  state=await service.dispatch('serviceCheck',{connectionId});
+  assert.equal(state.connections[0].status,'SESSION_EXPIRED');
+  assert.equal(state.connections[0].check.session,'EXPIRED');
+  assert.ok(f.calls.slice(start).every(c=>c.operation==='browser.storage.local.get'));
+});
+
+test('failed resource and usage cache reads retain pairing, old data and transient failure diagnostics',async()=>{
+  let broken=false;
+  const s=await connected({intercept:(operation,input)=>{
+    if(operation!=='browser.network.request'||!input.data.path)return;
+    if(broken)return Promise.reject(Object.assign(Error('HTTP 503'),{code:'E_HTTP'}));
+    if(input.data.path.endsWith('/usage'))return Promise.resolve({status:200,data:{remoteAccountId:'remote_01',providerKey:'codex',status:'UNKNOWN',account:{windows:[]}}});
+  }});
+  await s.service.dispatch('serviceResources',{connectionId:s.connectionId});
+  const before=await s.service.dispatch('serviceUsage',{connectionId:s.connectionId,remoteAccountId:'remote_01'});
+  broken=true;const start=s.f.calls.length;
+  await assert.rejects(s.service.dispatch('serviceResources',{connectionId:s.connectionId}),{code:'E_HTTP'});
+  await assert.rejects(s.service.dispatch('serviceUsage',{connectionId:s.connectionId,remoteAccountId:'remote_01'}),{code:'E_HTTP'});
+  const state=await s.service.dispatch('serviceStatus'),c=state.connections[0];
+  assert.equal(c.status,'CONNECTED');assert.equal(state.revision,before.revision);
+  assert.deepEqual(c.resources,before.connections[0].resources);
+  assert.deepEqual(c.usageCache,before.connections[0].usageCache);
+  assert.equal(c.resourceRead.status,'FAILED');assert.equal(c.usageErrors.remote_01.status,'FAILED');
+  assert.equal(c.resourceRead.errorCode,'E_HTTP');
+  assert.ok(!s.f.calls.slice(start).some(c=>c.operation==='browser.storage.local.set'));
+  broken=false;
+  const recovered=await s.service.dispatch('serviceResources',{connectionId:s.connectionId});
+  assert.equal(recovered.connections[0].resourceRead.status,'OK');
+});
+
+test('check cannot bypass an unknown operation or a receipt-only connection',async()=>{
+  for(const action of ['serviceOpen','serviceDisconnect']){
+    const s=await connected();
+    const state=await s.service.dispatch(action,{revision:s.state.revision,connectionId:s.connectionId});
+    const start=s.f.calls.length;
+    await assert.rejects(s.service.dispatch('serviceCheck',{connectionId:s.connectionId}),{code:'E_OUTCOME_UNKNOWN'});
+    const after=await s.service.dispatch('serviceStatus');
+    assert.deepEqual(after.connections[0].pending,state.connections[0].pending);
+    assert.ok(s.f.calls.slice(start).every(c=>c.operation==='browser.storage.local.get'));
+  }
+});
+
+test('a rejected pairing reads its exact receipt once; only a proven rejection permits entering a new code',async()=>{
+  for(const outcome of ['rejected','unknown','mismatched']){
+    const f=fixture(),network=[];let sent;
+    const {createCookieHttpServices}=await load();
+    const request=async(operation,input)=>{
+      if(operation!=='browser.network.request')return f.request(operation,input);
+      network.push(structuredClone(input));
+      if(input.url.endsWith('/pair')){
+        sent=structuredClone(input.data);
+        // Model the bridge's code/message-only projection of the real SDK.
+        throw Object.assign(Error('HTTP 401'),{code:'E_HTTP'});
+      }
+      assert.ok(input.url.endsWith('/pair-result'));
+      assert.deepEqual(input.data,{receiptKey:sent.receiptKey,connectionId:sent.connectionId,operationId:sent.operationId});
+      if(outcome==='unknown')throw Object.assign(Error('HTTP 404'),{code:'E_HTTP'});
+      return {status:200,data:{operationId:outcome==='mismatched'?'other':sent.operationId,status:'REJECTED',error:'PAIRING_INVALID'}};
+    };
+    const service=createCookieHttpServices({request,context:f.context,version:'2.0.58'});
+    let state=await service.dispatch('serviceSave',{revision:0,label:'Local',serviceOrigin:'http://127.0.0.1:43119'});
+    const connectionId=state.connections[0].id;
+    state=await service.dispatch('serviceConnect',{revision:state.revision,connectionId,code:'b'.repeat(64)});
+    assert.equal(network.filter(r=>r.url.endsWith('/pair')).length,1);
+    assert.equal(network.filter(r=>r.url.endsWith('/pair-result')).length,1);
+    if(['unknown','mismatched'].includes(outcome)){
+      assert.equal(state.connections[0].status,'OUTCOME_UNKNOWN');
+      assert.equal(state.connections[0].pending.operationId,sent.operationId);
+    }else{
+      assert.equal(state.connections[0].status,'UNCONNECTED');
+      assert.equal(state.connections[0].pending,null);
+      assert.equal(state.connections[0].history.at(-1).outcome,'REJECTED');
+    }
+  }
+});
+
+test('untrusted errors and provider messages never enter checks, cache errors or thrown domain errors',async()=>{
+  const secret='PRIVATE_REMOTE_SECRET';let mode='resources';
+  const s=await connected({intercept:(operation,input)=>{
+    if(operation!=='browser.network.request'||!input.data.path)return;
+    if(mode==='self'||input.data.path.endsWith('/usage'))return Promise.reject(Object.assign(Error(secret),{code:secret}));
+  }});
+  await s.service.dispatch('serviceResources',{connectionId:s.connectionId});
+  await assert.rejects(s.service.dispatch('serviceUsage',{connectionId:s.connectionId,remoteAccountId:'remote_01'}),error=>{
+    assert.equal(error.code,'E_SERVICE_RESPONSE');assert.equal(error.message,'E_SERVICE_RESPONSE');return true;
+  });
+  let state=await s.service.dispatch('serviceStatus');
+  assert.equal(state.connections[0].usageErrors.remote_01.errorCode,'E_SERVICE_RESPONSE');
+  mode='self';state=await s.service.dispatch('serviceCheck',{connectionId:s.connectionId});
+  assert.equal(state.connections[0].check.reachable,null);
+  assert.ok(!JSON.stringify(state).includes(secret));
+});

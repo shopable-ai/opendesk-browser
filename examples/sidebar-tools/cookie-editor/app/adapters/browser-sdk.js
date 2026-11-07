@@ -113,6 +113,13 @@ export function createCookieSdkAdapter({getBrowser,request,version='development'
   }});
   return {
     targetFor,checkRead,list,exactList,readValue,
+    supportsObservation:()=>{
+      try{return ['start','read','stop'].every(method=>typeof browser().cookies.observe?.[method]==='function');}
+      catch{return false;}
+    },
+    observeStart:target=>browser().cookies.observe.start({url:target.url,durationMs:30000,maxEvents:50}),
+    observeRead:(target,sessionRef,cursor)=>browser().cookies.observe.read({url:target.url,sessionRef,cursor,limit:50}),
+    observeStop:(target,sessionRef)=>browser().cookies.observe.stop({url:target.url,sessionRef}),
     // Fixed first-party account RPC is admitted by the existing trusted Host.
     // No raw Cookie snapshot is returned to this adapter or to React.
     accountRequest:(action,payload={})=>request('cookieAccount.'+action,payload),
@@ -139,15 +146,15 @@ export function createCookieSdkAdapter({getBrowser,request,version='development'
       url:target.url,name:row.name,domain:row.domain,path:row.path,
       ...identityScope(row)
     }),
-    beginClearIntent:(target,previewRef,expectedCount)=>request('cookieEditor.clear.begin',{
-      url:target.url,previewRef,expectedCount
+    beginClearIntent:(target,previewRef,expectedCount,scope)=>request('cookieEditor.clear.begin',{
+      url:target.url,previewRef,expectedCount,...(scope?{scope}:{})
     }),
     finishClearIntent:ref=>request('cookieEditor.clear.finish',{ref}),
-    clearPreview:(target)=>browser().cookies.clearSite({
-      url:target.url,preview:true,maxCookies:50
+    clearPreview:(target,scope)=>browser().cookies.clearSite({
+      url:target.url,...(scope?{scope}:{}),preview:true,maxCookies:50
     }),
-    clearExecute:(target,previewRef,expectedCount)=>browser().cookies.clearSite({
-      url:target.url,previewRef,expectedCount,maxCookies:50
+    clearExecute:(target,previewRef,expectedCount,scope)=>browser().cookies.clearSite({
+      url:target.url,...(scope?{scope}:{}),previewRef,expectedCount,maxCookies:50
     }),
     copy:text=>browser().clipboard.writeText(text),
     download:(text,filename)=>browser().downloads.text({text,filename})

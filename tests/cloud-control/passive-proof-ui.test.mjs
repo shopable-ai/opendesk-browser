@@ -21,7 +21,7 @@ function fixture(answer){
   }});
   const submit=async()=>{$('proof-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await tick();};
   const input=value=>{$('proof-name').value=value;$('proof-name').dispatchEvent(new window.Event('input'));};
-  return {$,calls,submit,input};
+  return {$,calls,submit,input,leave:()=>window.dispatchEvent(new window.Event('pagehide'))};
 }
 
 test('manual lookup preserves exact name and never calls submit/status/cancel or displays an empty match as success',async()=>{
@@ -57,6 +57,34 @@ test('a response for another fixed source is rejected instead of rendered as the
   assert.match(f.$('proof-status').textContent,/未能确认/);
 });
 
+test('exact frozen packages render their own identity; mixed or unknown pins fail closed',async()=>{
+  const tasks=[
+    JSON.parse(readFileSync(new URL('../../tasks/form-fill.v1.opendesk-task.json',base),'utf8')),
+    JSON.parse(readFileSync(new URL('form-fill.v1.0.1.opendesk-task.json',base),'utf8')),
+    JSON.parse(readFileSync(new URL('form-fill.v1.0.2.opendesk-task.json',base),'utf8')),
+  ].map(pkg=>({taskId:pkg.manifest.taskId,version:pkg.manifest.version,
+    manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}));
+  for(const task of tasks){
+    const f=fixture(()=>({...snapshot(),task}));f.input('Alice');await f.submit();
+    assert.equal(f.$('proof-result').hidden,false);
+    assert.deepEqual(JSON.parse(f.$('proof-identity').textContent).task,task);
+  }
+  for(const task of [
+    {...tasks[1],version:'1.0.0'},
+    {...tasks[1],manifestHash:tasks[0].manifestHash},
+    {...tasks[1],sourceHash:tasks[0].sourceHash},
+    {...tasks[1],version:'1.0.2'},
+    {...tasks[2],version:'1.0.1'},
+    {...tasks[2],version:'1.0.3'},
+    {...tasks[1],taskId:'other.task'},
+    {...tasks[1],sourceHash:'a'.repeat(64)},
+  ]){
+    const f=fixture(()=>({...snapshot(),task}));f.input('Alice');await f.submit();
+    assert.equal(f.$('proof-result').hidden,true);
+    assert.equal(f.$('proof-identity').textContent,'');
+  }
+});
+
 test('changing the input invalidates a pending observation; failures clear the previous result',async()=>{
   let resolve;
   const pending=new Promise(r=>{resolve=r;});
@@ -71,4 +99,38 @@ test('changing the input invalidates a pending observation; failures clear the p
   assert.equal(g.$('proof-result').hidden,true);
   assert.equal(g.$('proof-identity').textContent,'');
   assert.doesNotMatch(g.$('proof-status').textContent,/private diagnostic/);
+});
+
+
+test('leaving the observation page clears private results and invalidates late responses',async()=>{
+  const f=fixture(snapshot);f.input('Alice');await f.submit();
+  assert.equal(f.$('proof-result').hidden,false);
+  f.leave();
+  assert.equal(f.$('proof-result').hidden,true);
+  assert.equal(f.$('proof-identity').textContent,'');
+  assert.doesNotMatch(f.$('proof-status').textContent,/已读取/);
+  let resolve;
+  const g=fixture(()=>new Promise(r=>{resolve=r;}));g.input('Alice');await g.submit();
+  g.leave();resolve(snapshot());await tick();
+  assert.equal(g.$('proof-result').hidden,true);
+  assert.equal(g.$('proof-session').textContent,'');
+  assert.doesNotMatch(g.$('proof-status').textContent,/已读取/);
+});
+
+test('redacted or non-boolean matches never reveal completion text',async()=>{
+  for(const flags of [{matchesName:true,completionRedacted:true},{matchesName:'true'},{}]){
+    const data=snapshot();data.documents=[{documentInstance:'document',htmlSha256:'f'.repeat(64),
+      submitCount:1,matchingSubmitCount:1,sequenceContinuous:true,
+      events:[{eventSeq:1,receiveSeq:1,type:'done',...flags,done:'other-private-name'}]}];
+    const f=fixture(()=>data);f.input('Alice');await f.submit();
+    assert.doesNotMatch(f.$('proof-documents').textContent,/other-private-name/);
+  }
+});
+
+test('identity details project only the reviewed task fields',async()=>{
+  const data=snapshot();data.task.error={stack:'private diagnostic',token:'private credential'};
+  const f=fixture(()=>data);f.input('Alice');await f.submit();
+  assert.equal(f.$('proof-result').hidden,false);
+  assert.deepEqual(JSON.parse(f.$('proof-identity').textContent).task,snapshot().task);
+  assert.doesNotMatch(f.$('proof-identity').textContent,/private/);
 });

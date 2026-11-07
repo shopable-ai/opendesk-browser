@@ -33,7 +33,7 @@ export default async function main() {
 | `ui.getAsset(path)` | 获取声明资产：CSS 为字符串、JSON 为解析后的值、图片为 data URL | `E_UI_RESOURCE`；未声明的路径会拒绝 |
 | `ui.on(target,event,handler,options?)` | 注册有实例归属的监听器，返回主动解绑函数 | `E_UI_LISTENER`；销毁或文档失效后不再调用回调 |
 | `ui.onDispose(fn)` | 注册一次性清理回调，返回取消登记函数 | `E_UI_CLEANUP`；回调只在销毁时触发 |
-| `ui.toast({message,variant='info',duration=2000,position='top'})` | 在当前网页指定位置显示短暂纯文本提示，返回 `{shown:true}`；连续调用更新同一条、调整位置并重新计时 | `E_UI_TOAST`；message 1～240 字符，duration 1000～10000 毫秒；非法选项不改变当前提示；已 Stop 拒绝 |
+| `ui.toast({message,variant='info',duration=2000,position='top',dismissible=false,countdown=false})` | 在当前网页指定位置显示纯文本提示，返回 `{shown:true}`；连续调用更新同一条、调整位置并重新计时 | `E_UI_TOAST`；message 1～240 字符且不可全为空白，duration 为 0 或 1000～10000 毫秒；两个新选项须为布尔值；duration 0 不允许 countdown true；非法选项不改变当前提示；已 Stop 拒绝 |
 | `ui.setTimeout(fn,ms)`、`ui.setInterval(fn,ms)` | 注册受管定时器，返回原生计时器句柄 | `E_UI_TIMER`；销毁时取消未结束计时器 |
 | `ui.observe(target,fn,options?)` | 创建并登记 `MutationObserver`，返回 observer | `E_UI_OBSERVER`；销毁时 disconnect |
 | `ui.objectURL(blob)` | 创建 Blob URL，返回字符串；销毁时 revoke | `E_UI_RESOURCE`；小图片默认内联，无须使用 |
@@ -46,15 +46,28 @@ export default async function main() {
 
 ### 网页消息反馈
 
-网页增强在已获得的 `ui` 上调用 `ui.toast({message:'已完成',variant:'success'})` 即可，无需手写提示 DOM 或安装组件库。`variant` 支持 `info / success / warning / error`；提示不接收 HTML、链接或按钮，不抢焦点、不拦截鼠标与快捷键，以 `role="status"` 礼貌播报。自动消失，无入场动画；浅色/暗色跟随系统。
+网页增强在已获得的 `ui` 上调用 `ui.toast({message:'已完成',variant:'success'})` 即可，无需手写提示 DOM 或安装组件库。`variant` 支持 `info / success / warning / error`；`message` 只按纯文本显示，不接受 HTML、链接或自定义按钮。默认 2000 毫秒自动消失，无倒计时、关闭按钮或入场动画；不抢焦点、不拦截鼠标与快捷键，以 `role="status"` 礼貌播报。浅色/暗色跟随系统。
+
+`dismissible:true` 增加框架自有的「关闭提示」原生按钮，可用 Tab 聚焦、Enter/Space 激活，有可见焦点且不自动聚焦。只有这个按钮可接收鼠标，其余提示区域仍可穿透。`duration:0` 表示持续显示直至关闭、被新提示替换或生命周期清理；不创建自动关闭计时器，并强制显示关闭按钮，即使显式传入 `dismissible:false`。
+
+`countdown:true` 在消息旁显示向上取整的剩余秒数（如 `3s → 2s → 1s`），到期自动关闭；剩余时间按单调时钟计算，延迟回调不会延长原到期时间。倒计时位于 live status 之外并对辅助技术隐藏，避免每秒重新播报消息。它默认关闭；与 `duration:0` 同用会抛出 `E_UI_TOAST`，保留已有提示不变。例如：
+
+```js
+ui.toast({message:'已保存，稍后自动关闭',duration:5000,countdown:true,dismissible:true});
+ui.toast({message:'请确认页面结果后关闭提示',duration:0});
+```
+
+上述新增选项已接入唯一源码 `showPageToast`、直接源码构建的 Page UI 及固定 ISOLATED 适配器。固定离线快照 `src/libs/page-frameworks/page-ui-helper-r243.js` 也已通过现有 `scripts/build-page-ui-helper-r243.mjs` 重新生成，并同步原 `contract.js` 的字节数和 SHA-256；使用该快照的编译入口具有相同选项、替换和清理语义。未构建或覆盖 dist，运行中的扩展是否已加载本次字节须另行核实。
 
 `position` 支持 `top-left / top / top-right / left / center / right / bottom-left / bottom / bottom-right`，默认顶部居中 `top`；边缘间距 16px。例如 `ui.toast({message:'已保存',variant:'success',position:'bottom-right',duration:5000})`。可调位置、类型、时长和内容的真实 Page 项目见 [page-toast-demo](../../examples/programs/page-toast-demo/README.zh-CN.md)：从扩展的既有开发入口在当前已授权网站显式运行，不需要专门的测试 HTML。
 
-同一执行世界、同一文档只保留一条最新提示。提示使用独立 Shadow DOM 与手动 Popover 顶层；全屏变化时重新定位，无 Popover 时按固定定位降级。该提示是唯一由框架管理、允许挂到网页/全屏容器的短暂反馈，业务弹层仍使用 `ui.overlay`。关闭 UI、受管 Stop 或 `pagehide` 时清理该实例的提示与计时器；旧实例不能清除另一个实例后来发布的提示，BFCache 返回不复活旧提示。
+同一执行世界、同一文档只保留一条最新提示。提示使用独立 Shadow DOM 与手动 Popover 顶层；全屏变化时重新定位，无 Popover 时按固定定位降级。该提示是唯一由框架管理、允许挂到网页/全屏容器的消息反馈，业务弹层仍使用 `ui.overlay`。关闭按钮、关闭 UI、受管 Stop 或 `pagehide` 时清理对应提示及自动关闭/倒计时计时器；替换时重设可选控件与时限，旧计时回调不能关闭或更新新提示；旧实例不能清除另一个实例后来发布的提示，BFCache 返回不复活旧提示。
 
 提示只在自有宿主使用 inline important 重置；内部文字和语义变量在 ShadowRoot 内独立设置，不继承网站的根字号、文字样式与 `--od-*` 值，也不向网页注入工作台 CSS 或全局 reset。closed ShadowRoot 是样式封装，不是安全沙箱；网页脚本移除节点、浏览器禁止注入或严格 CSP 等不属于任意网站必定可显示的承诺。
 
-框架维护者的固定 ISOLATED 适配器复用 `src/platform/chrome/page-toast.js` 的 `requestPageToast`，必须提供原有 `currentPageTarget`、`assertCurrent` 与 `assertInstalled`。它在核对活动文档和原授权后，仅向捕获的顶层 `documentId` 注入固定渲染函数。业务适配器负责真实结果与文案；提示失败不重放业务写入。此内部适配器没有新增沙箱 RPC、Controller `page.toast`、权限或安装格式，Sidebar 沙箱不能直接导入网页 DOM API。
+框架维护者的固定 ISOLATED 适配器复用 `src/platform/chrome/page-toast.js` 的 `requestPageToast`，必须提供原有 `currentPageTarget`、`assertCurrent` 与 `assertInstalled`，透传相同的 `message / variant / duration / position / dismissible / countdown` 选项。它在核对活动文档和原授权后，仅向捕获的顶层 `documentId` 注入固定渲染函数。业务适配器负责真实结果与文案；提示失败不重放业务写入。此内部适配器没有新增沙箱 RPC、Controller `page.toast`、权限或安装格式，Sidebar 沙箱不能直接导入网页 DOM API。
+
+2026-11-05 有界增强：常驻/关闭按钮、可见倒计时、替换与迟到回调、Stop/pagehide 清理，以及固定 helper 的字节身份和编译准备链通过定向 Node 验证。离线 headless Chromium 验证了原 CSS 冲突/九位置/容器全屏，以及源码序列化入口和固定 helper 的倒计时、Enter/Space 关闭、焦点保留、可见焦点、关闭按钮唯一鼠标目标及替换/pagehide 行为。另在当前 serve 连接的 Mac CFT 149 已加载扩展与真实 ChatGPT 新会话中，观察到 Native 读取成功通知的倒计时与自动消失、输入焦点和草稿保留，以及持续校验错误通知的保留与点击关闭，见[本轮真实证据](chatgpt-local-files-fixed-protocol-r1.zh-CN.md#本轮通知与真实读写核验2026-11-0501a1ac19)。此原生证据只覆盖该固定 ISOLATED 消费者；固定 helper 的已安装 Page 执行、原生全屏/键盘关闭、日常个人 Chrome 与 production 验收仍为 `NOT_TESTED`。
 
 2026-10-30 新增 toast：Node 生命周期、九位置、精确文档/授权、序列化与固定 helper 调用验证通过；独立 headless Chromium 的强冲突样式、普通/容器全屏九位置及网页交互回归 24 项通过。日常 Mac Chrome 中从真实「视频倍速」扩展侧栏分别在 W3Schools 和 W3C 视频页触发顶部提示，独立读回为 1.25×、1.50×，见 [当次证据与未测边界](../../projects/video-speed-controller/evidence/page-toast-20261030.md)。该结果不代表所有网站、原生全屏九位置或 production 验收通过；历史 R2.2 原生结果不作为此接口的证据。
 

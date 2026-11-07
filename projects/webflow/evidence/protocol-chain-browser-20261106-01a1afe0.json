@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "owner": "01a1afe0-c247-7eb2-9a1c-1b48faf23880",
+  "date": "2026-11-06",
+  "timezone": "Asia/Shanghai",
+  "finalDiskCheckAt": "2026-11-06T22:58:34+08:00",
+  "scope": "Existing fixed file protocol, advanced trusted review page polling; user-authorized browser sends and test-file write",
+  "evidenceKind": "Agent CUA accessibility observations plus independent read-only disk checks; not raw Native packets or dispatch counters",
+  "environment": {
+    "browser": "Chrome for Testing 149.0.7827.55",
+    "application": "/Applications/Google Chrome.app",
+    "sourceChatUrl": "https://chatgpt.com/c/6aec9316-59c4-83ee-bc35-0bcf4d1b221b",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "Existing loaded static development output; live serve not proven",
+    "originalDevWriterPid68812Present": false,
+    "devPort43120Listening": false,
+    "newWriterOrBuildStarted": false,
+    "nativeConnectedInUi": true,
+    "nativeHost": "/Users/shopme/.opendesk-browser/native-agent-instances/scrapyjs-react-01a186cc/native-host",
+    "nativeAllowedOrigins": ["chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"],
+    "diskArtifactSha256": {
+      "agents/chatgpt-fixed-bridge.js": "63e67927004c9a08afe9dffce074916ac9685d3c421923c5139ea397b3281206",
+      "native-agent/settings.js": "4fba507027b297417ca8e7d31c1eb1cbcfdfd17bd0be2338991e9ec7af6bebcd",
+      "native-agent/transport.js": "92863d9c94bce796af40e61037b418137af356e0b27e6544c2f6665822571984"
+    },
+    "artifactHashLimit": "Hashes are on-disk output observations, not a captured loaded runtime fingerprint"
+  },
+  "workspace": {
+    "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+    "root": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace",
+    "path": "demo.txt",
+    "ordinaryProjectConnectionRemainedRevoked": true,
+    "existingNativeScopeUsed": true
+  },
+  "baseline": {
+    "bytes": 65,
+    "content": "OpenDesk local file test\nstatus=completion-two-20261106-01a1afe0\n",
+    "sha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b"
+  },
+  "tests": [
+    {
+      "name": "Fixed complete read JSON echo and automatic completion",
+      "status": "PASS",
+      "request": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "90e85b05-ab8d-4a3d-bdf2-ed5ca57d1b86",
+        "bindingId": "98e28224-7155-4aa8-9137-6b6b6a528747",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "assistantEcho": "Observed one complete opendesk-request block matching generated six-field request",
+      "resultId": "c0d131bf-65bd-4262-88ff-1d78c421d08e",
+      "resultStatus": "success",
+      "resultMatchedBaselineContentAndSha": true,
+      "manualInspectClicked": false,
+      "automaticCompletionText": "本轮只读已完成：真实结果已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。",
+      "delivery": "filled",
+      "resultSentToAi": false,
+      "independentDiskUnchanged": true
+    },
+    {
+      "name": "Read context plus complete fixed edit JSON; review, write, independent readback and completion",
+      "status": "PASS",
+      "readRequest": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "7347fe8a-475a-45f4-8ca8-cd111dfd37dc",
+        "bindingId": "84afce40-aa8b-41fa-9020-45d83a58cbf3",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "readResultId": "ecd162f6-fee3-4e86-b6ea-5a1de017c40a",
+      "readResultMatchedBaseline": true,
+      "editPrompt": "Real read context retained; appended instruction to echo the full seven-field edit below unchanged, without reasoning or claiming save",
+      "edit": {
+        "protocol": "opendesk.workspace.edit.v1",
+        "requestId": "83170f33-e583-424b-bb11-ef82c1f2ac8f",
+        "bindingId": "84afce40-aa8b-41fa-9020-45d83a58cbf3",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "path": "demo.txt",
+        "baseSha256": "aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b",
+        "content": "OpenDesk local file test\nstatus=chain-verified-20261106-01a1afe0\n"
+      },
+      "assistantEcho": "Observed one complete opendesk-edit block exactly matching provided edit",
+      "proposalDiscoveredAutomatically": true,
+      "manualInspectClicked": false,
+      "independentDiskBeforeConfirmationMatchedBaseline": true,
+      "confirmationClicks": 1,
+      "writeResult": {
+        "protocol": "opendesk.workspace.result.v1",
+        "resultId": "a84f78a5-4078-4165-8bb0-100cc0b1d004",
+        "requestId": "83170f33-e583-424b-bb11-ef82c1f2ac8f",
+        "bindingId": "84afce40-aa8b-41fa-9020-45d83a58cbf3",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "write",
+        "path": "demo.txt",
+        "status": "success",
+        "data": {
+          "bytes": 65,
+          "path": "demo.txt",
+          "saved": true,
+          "sha256": "fad1a276d529db3eea85ed4cd0954226fe1792065ad3b2f622a92366f97f9a8a",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+          "readBackVerified": true
+        }
+      },
+      "automaticCompletionText": "本轮修改已完成：保存与独立读回均已确认，回执已填入草稿。尚未发送给 ChatGPT；需要模型查看时可自行发送。",
+      "delivery": "filled",
+      "finalReceiptSentToAi": false,
+      "independentDiskMatchedRequestedFullContentAndSha": true,
+      "shellWroteOrRestoredTestFile": false
+    },
+    {
+      "name": "New reply containing both file and webpage Task protocols",
+      "status": "OBSERVED_REJECTION",
+      "fileRequest": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "ebab6791-3b4c-4395-bf48-be838295f960",
+        "bindingId": "46d1965e-00a5-479d-992e-02f3143d491f",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "taskIntent": {
+        "protocol": "webflow.task.intent.v1",
+        "candidateId": "webflow-conflict-20261106-01a1afe0",
+        "taskId": "baidu.search.top3",
+        "targetUrl": "https://www.baidu.com/",
+        "args": {"query": "OpenDesk Browser", "limit": 3}
+      },
+      "assistantEcho": "Observed both complete blocks in the same finished reply",
+      "manualInspectClicked": false,
+      "automaticErrorText": "E_CHAT_ROUTE：同一回答包含文件协议和网页 Task；两者均不得执行",
+      "fileResultPresent": false,
+      "sourceComposerEmpty": true,
+      "finalDiskUnchangedFromSuccessfulWrite": true,
+      "nativeDispatchCount": "NOT_MEASURED",
+      "taskRunLedger": "NOT_READ"
+    }
+  ],
+  "finalDisk": {
+    "bytes": 65,
+    "content": "OpenDesk local file test\nstatus=chain-verified-20261106-01a1afe0\n",
+    "sha256": "fad1a276d529db3eea85ed4cd0954226fe1792065ad3b2f622a92366f97f9a8a",
+    "matchesExpected": true,
+    "trailingByteHex": "0a"
+  },
+  "cleanup": {
+    "ownReviewAndSettingsTabsClosed": true,
+    "diagnosticsRestoredHidden": true,
+    "sourceComposerEmpty": true,
+    "sourceChatAndBrowserRetained": true,
+    "nativeUiOwnerAfterRelease": null,
+    "oldRequest6f75880cReplayed": false
+  },
+  "notProven": [
+    "Original listener directly advances fixed file protocol with advanced page closed; this unified entry remains unimplemented",
+    "Exact Native dispatch counts or exactly-once execution",
+    "Normal webpage Task execution in this test run",
+    "Directory list, unknown write recovery, revocation races or restart matrix in this run",
+    "Current live serve connection or production acceptance",
+    "New independent expert score"
+  ],
+  "replayWarning": "All identities are recorded for correlation, not reusable test authorization"
+}

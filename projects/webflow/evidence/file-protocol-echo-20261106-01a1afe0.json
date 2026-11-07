@@ -1,0 +1,213 @@
+{
+  "scope": "Fixed file protocol prompt echo and automatic read, development only",
+  "date": "2026-11-06",
+  "observationMethod": "Operator-recorded CUA accessibility observations and independent read-only disk verification. This is not a raw Native transport capture or dispatch counter.",
+  "environment": {
+    "browser": "Google Chrome for Testing 149.0.7827.55",
+    "profile": "您的 Chromium / Default",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "sourceConversation": "https://chatgpt.com/c/6aec9316-59c4-83ee-bc35-0bcf4d1b221b",
+    "trustedPage": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/native-agent/settings.html#chatgpt-files",
+    "nativeStatusObserved": "Native 已连接",
+    "developmentOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "outputPathEvidence": "Canonical development output established in preceding session. No extension reinstall, build, watcher restart or new output performed in this round. HMR connection and full loaded-path pairing not re-audited in this round."
+  },
+  "rounds": [
+    {
+      "kind": "generator",
+      "requestPreparedInTrustedPage": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "3523e41b-3019-4b8e-a822-d4df798f98b0",
+        "bindingId": "ac68015e-ca50-4b30-a28e-fb52e7e1cfd4",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "sentPrompt": {
+        "generator": "src/native-agent/workspace-chat-request.js:createFileRequestContext",
+        "task": "本轮是只读协议回显测试，标记 echo-20261106-01a1afe0-g。你无需推理或访问文件：现在只原样返回本消息末尾的完整 opendesk-request JSON 代码块，保留全部字段和值，不输出解释，不调用工具，不生成编辑协议。只有我随后发送真实读取结果后，才回复“已收到只读结果”，到此结束。"
+      },
+      "assistantReply": {
+        "language": "opendesk-request",
+        "json": {
+          "protocol": "opendesk.workspace.request.v1",
+          "requestId": "3523e41b-3019-4b8e-a822-d4df798f98b0",
+          "bindingId": "ac68015e-ca50-4b30-a28e-fb52e7e1cfd4",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+          "operation": "read",
+          "path": "demo.txt"
+        },
+        "extraTextObserved": false
+      },
+      "trustedPage": {
+        "manualInspectClicked": false,
+        "resultStatus": "success",
+        "delivery": "filled",
+        "observed": false
+      },
+      "resultInOriginalUnsentDraft": {
+        "protocol": "opendesk.workspace.result.v1",
+        "resultId": "40217cc4-f7c8-48d0-b586-7bb0665ed4df",
+        "requestId": "3523e41b-3019-4b8e-a822-d4df798f98b0",
+        "bindingId": "ac68015e-ca50-4b30-a28e-fb52e7e1cfd4",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt",
+        "status": "success",
+        "data": {
+          "bytes": 59,
+          "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+          "path": "demo.txt",
+          "sha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f"
+        },
+        "editProposal": {
+          "protocol": "opendesk.workspace.edit.v1",
+          "requestId": "98dc0697-8ec2-4ad0-9add-14461a7e346a",
+          "bindingId": "ac68015e-ca50-4b30-a28e-fb52e7e1cfd4",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+          "path": "demo.txt",
+          "baseSha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+          "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n"
+        }
+      },
+      "resultSent": false,
+      "editProposalSent": false,
+      "writeApprovalClicked": false
+    },
+    {
+      "kind": "minimal",
+      "requestPreparedInTrustedPage": {
+        "protocol": "opendesk.workspace.request.v1",
+        "requestId": "535cc3db-67c9-4589-86db-b08628ade573",
+        "bindingId": "49b57446-519e-4817-b8db-625354ddf08e",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt"
+      },
+      "sentPrompt": "这是 OpenDesk 只读协议回显测试（echo-minimal-20261106-01a1afe0-h）。请只原样返回下面这一个完整代码块，所有字段和值保持不变，不添加解释、不调用工具、不生成编辑提案。文件读取由现有扩展脚本执行；不要声称已经读取。\n\n```opendesk-request\n{\"protocol\":\"opendesk.workspace.request.v1\",\"requestId\":\"535cc3db-67c9-4589-86db-b08628ade573\",\"bindingId\":\"49b57446-519e-4817-b8db-625354ddf08e\",\"workspaceId\":\"workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f\",\"operation\":\"read\",\"path\":\"demo.txt\"}\n```",
+      "assistantReply": {
+        "language": "opendesk-request",
+        "json": {
+          "protocol": "opendesk.workspace.request.v1",
+          "requestId": "535cc3db-67c9-4589-86db-b08628ade573",
+          "bindingId": "49b57446-519e-4817-b8db-625354ddf08e",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+          "operation": "read",
+          "path": "demo.txt"
+        },
+        "extraTextObserved": false
+      },
+      "trustedPage": {
+        "manualInspectClicked": false,
+        "resultStatus": "success",
+        "delivery": "filled",
+        "observed": false
+      },
+      "resultInOriginalUnsentDraft": {
+        "protocol": "opendesk.workspace.result.v1",
+        "resultId": "9bf9db45-fa45-486a-9277-bfaf052286f0",
+        "requestId": "535cc3db-67c9-4589-86db-b08628ade573",
+        "bindingId": "49b57446-519e-4817-b8db-625354ddf08e",
+        "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+        "operation": "read",
+        "path": "demo.txt",
+        "status": "success",
+        "data": {
+          "bytes": 59,
+          "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+          "path": "demo.txt",
+          "sha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f"
+        },
+        "editProposal": {
+          "protocol": "opendesk.workspace.edit.v1",
+          "requestId": "a66d5243-84c5-4918-bd8f-60a1a3bb147c",
+          "bindingId": "49b57446-519e-4817-b8db-625354ddf08e",
+          "workspaceId": "workspace-fe28c0b5-041a-4b4f-b37a-a5565944eb0f",
+          "path": "demo.txt",
+          "baseSha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+          "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n"
+        }
+      },
+      "resultSent": false,
+      "editProposalSent": false,
+      "writeApprovalClicked": false
+    }
+  ],
+  "independentDiskReadAfterBoth": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-files-20261103-01a1a1b4/workspace/demo.txt",
+    "bytes": 59,
+    "content": "OpenDesk local file test\nstatus=verified-20261106-01a1afe0\n",
+    "sha256": "52c7dae01bf20bf2b23af72fab425a4257ee28660a693d9a2d47600ce0ceaa90",
+    "unchangedFromPreviouslyRecordedBaseline": true
+  },
+  "verification": {
+    "command": "node --test --test-name-pattern='upfront rules|locked read|poll|web content cannot' tests/environment/workspace-chat-request.test.mjs projects/webflow/tests/chatgpt-files.test.mjs",
+    "passed": 4,
+    "failed": 0,
+    "claims": [
+      "Generated prompt contains complete parseable six-field request",
+      "Model-chosen path refused by controller",
+      "Incomplete replies and concurrent polling cannot duplicate the component fixture read",
+      "Web content cannot impersonate trusted owner"
+    ],
+    "level": "Node component evidence, separate from the two real browser observations"
+  },
+  "limitations": {
+    "nativeDispatchCounters": "NOT_CAPTURED",
+    "newWriteTest": "NOT_RUN",
+    "resultReceiptSentToModel": "NOT_DONE",
+    "production": "NOT_TESTED",
+    "wholeProductScore": "Previous 92/100 remains; this round does not reassess whole product"
+  },
+  "cleanup": {
+    "unsentResultDrafts": "Cleared using native editor select-all/backspace; not sent to model",
+    "reviewTab": "Closed, terminating UI timer",
+    "diagnosticDisplay": "Restored to off and observed",
+    "settingsTab": "Left open after a user-changed-app notice; further UI actions stopped",
+    "projectGrant": "Not reconnected or modified in this round"
+  },
+  "observedEnvironmentIssue": {
+    "symptom": "General connection settings at #chatgpt-files-controls reported E_OWNER",
+    "readOnlyRecovery": "Opened same native-agent/settings.html without hash; existing Native connection displayed online",
+    "sourceChange": "None"
+  },
+  "independentReview": {
+  "reviewer": "Mendel",
+  "agentId": "01a1b010-f98a-7fd1-ae7c-e0a59bb18358",
+  "status": "FINAL_AFTER_READING_DOC_AND_EVIDENCE",
+  "scope": "Fixed file protocol echo and automatic read only",
+  "score": 97,
+  "requiredMinimum": 95,
+  "dimensions": {
+    "promptSelfContainedMechanicalEcho": [
+      25,
+      25
+    ],
+    "actualListenerDispatch": [
+      25,
+      25
+    ],
+    "identityAndSafety": [
+      20,
+      20
+    ],
+    "reproductionInstructions": [
+      19,
+      20
+    ],
+    "evidenceHonesty": [
+      8,
+      10
+    ]
+  },
+  "deductions": [
+    "Advanced/diagnostic entry and observed E_OWNER handling add user effort",
+    "No raw Native transport capture; full loaded path/HMR pairing not re-audited"
+  ],
+  "evidenceAttribution": "Reviewer independently read source, documentation and structured observation record. Browser operation was not independently replayed; Native UI result observations are attributed to leader.",
+  "wholeProductScoreNotReassessed": 92,
+  "conclusion": "No necessary blocker remains for this scoped development test. Not production acceptance."
+}
+}

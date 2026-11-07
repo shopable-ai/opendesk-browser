@@ -1,0 +1,179 @@
+{
+  "date": "2026-11-06",
+  "stage": "CORE_DEVELOPMENT",
+  "owner": "examples/sidebar-tools/cookie-editor/",
+  "branch": "main",
+  "claim": "Same product App completed add → explicit pair → resources → optional UNVERIFIED local association → read-only connection check; synthetic unbind/disconnect verified separately.",
+  "entry": {
+    "url": "http://127.0.0.1:43135/dev.html",
+    "isolatedUrl": "http://127.0.0.1:43135/dev.html?isolatedHttp=1",
+    "mode": "Same-source Vite preview; isolated ordinary HTTP server; mock Cookie/account and SDK boundary; no Browser build output",
+    "lifetime": "Task-owned preview process retained for review while running; Ego TaskSpace released at completion"
+  },
+  "sourceInputs": {
+    "app/components/CookieBusinessPanels.jsx": "922f2cd185418f6de0091ef7098013d8b995420d1cd2b6540889e0a144c28332",
+    "app/components/CookieHttpConnections.jsx": "c0cda3c8ca98d2f981475ce26893c7eb64ed425ec7776d3183ac06d4dce0a14f",
+    "app/domain/http-services.js": "1fa540d99c771272bc0f77d86f25acceeb29127148166a861fd865981f76df4e",
+    "app/CookieEditorApp.jsx": "acdd81cbdd99d1a34b0f13005ab0bca6ab6d6451cdf1d897f4d84fea15c52218",
+    "src/react.css": "e4f5784cf7e2480fc92875f25a10a195ad2d1d7692cf243ec1c78f28d5ebff19",
+    "preview/react/src/App.jsx": "cd3625db636f5bcb14a599772466844f6070e84d2ef8a6785bc42ad137ca5db3",
+    "preview/react/src/mock-sdk.js": "e3623931209669db24808da45642371baf91c963cccd04db60dc93ad280a99f6",
+    "preview/react/isolated-http.mjs": "86bb1e70ef9a381a1231c16cbe0a771d342086908af346d23dbbc94fec122797",
+    "preview/react/isolated-http-evidence.mjs": "7dc6d8cff429fa02df225bf6684cf759cc2edf7bb0043ee1dba04b7ac15058e2",
+    "preview/react/isolated-http.test.mjs": "24dd95b2a544c3e675f385bacda4eb9dfc798f33ae1388255f3ae04432f92439",
+    "tests/http-connections-ui.test.mjs": "f7942563f657df37878663effeea360064cbd050255b7ff41d0b7e73fd2b05ff",
+    "tests/http-services.test.mjs": "c5bc145b746317760b5de0672ba1e8abbf47f412e8e1a4421128b8a2bbf4c962",
+    "tests/http-core-integration.test.mjs": "37b999a221179a7c20b7a670a00b9f2e1b42c16ee5baef03b854624793bdfddd",
+    "QUICKSTART.zh-CN.md": "6401493ad6dd7aff8a245060ca8e6ebefc4919ef388ef0667dad400771d4d5e2",
+    "README.zh-CN.md": "0b2cfa02f9fc682c3b1eeb2daf948b5bd92548c3e1e83fa2fe48c41d934e9421"
+  },
+  "sharedFiles": {
+    "app/CookieEditorApp.jsx": "Only explicit preview browser injection and httpServiceAction response/auto-resource/context handling owned by this task; parallel account changes preserved.",
+    "README.zh-CN.md": "Only the new enterprise service introduction owned by this task; parallel account sections preserved."
+  },
+  "browser": {
+    "engine": "ego(lite)",
+    "taskSpace": 6,
+    "panelWidth": 380,
+    "firstFixture": {
+      "backendOrigin": "http://usage-eb01a875e4665e57b76f2203.localhost:61296",
+      "confirmed": [
+        "save → exact pairing page",
+        "pairing device/session",
+        "synthetic resources",
+        "connection check service/session/resources OK",
+        "UNVERIFIED work → synthetic_01 association",
+        "no-cache guidance"
+      ],
+      "interruption": "Closing the helper agent terminated its task-owned server before unbind was confirmed. Original unbind pending preserved; exact receipt read failed because server was unavailable. No mutation replay or false success; this result is not included in completed revocation evidence."
+    },
+    "finalFixture": {
+      "backend": {
+        "evidence": "Preview + isolated HTTP",
+        "backendOrigin": "http://usage-e994e81161b1310224840dd3.localhost:52717",
+        "pairingExpired": false,
+        "syntheticAccounts": [
+          "synthetic_01"
+        ],
+        "devices": [
+          {
+            "revoked": true,
+            "authEpoch": 3,
+            "resourceCount": 1
+          }
+        ],
+        "bindings": [
+          {
+            "remoteAccountId": "synthetic_01",
+            "localAlias": "work",
+            "storeId": "0",
+            "partitionKey": {
+              "topLevelSite": "https://partner.example.net",
+              "hasCrossSiteAncestor": false
+            },
+            "verificationState": "UNVERIFIED",
+            "revoked": true
+          }
+        ],
+        "operations": [
+          {
+            "createdAt": 1793900502742,
+            "resultType": "DEVICE"
+          },
+          {
+            "createdAt": 1793900517247,
+            "resultType": "BINDING"
+          },
+          {
+            "createdAt": 1793900519978,
+            "resultType": "REVOKED"
+          },
+          {
+            "createdAt": 1793900524653,
+            "resultType": "REVOKED"
+          }
+        ]
+      },
+      "confirmed": [
+        "save → exact pairing page",
+        "pairing",
+        "automatic resource read",
+        "review both account labels",
+        "UNVERIFIED bind",
+        "confirmed unbind",
+        "confirmed disconnect",
+        "reload preserves disconnected config"
+      ],
+      "oldAuthorization": {
+        "method": "GET /opendesk/v1/accounts in existing client envelope",
+        "status": 403,
+        "error": "TRUSTED_SESSION_REQUIRED"
+      }
+    },
+    "usability": {
+      "confirmed": [
+        "empty list",
+        "two explicit fictional configs",
+        "local/company drafts",
+        "missing-address inline error and focus",
+        "Escape discard review",
+        "continue editing retains draft and input focus",
+        "discard restores add focus",
+        "380px light/dark readable",
+        "no horizontal overflow"
+      ],
+      "screenshots": [
+        "/tmp/cookie-enterprise-add-1106.png",
+        "/tmp/cookie-enterprise-bind-review-1106.png",
+        "/tmp/cookie-enterprise-dark-check-1106.png",
+        "/tmp/cookie-enterprise-dark-list-1106.png"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs",
+      "result": "31/31 PASS",
+      "scope": "UI actions, locks/stale state, exact saved connection, rejection recovery, App render"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-services.test.mjs examples/sidebar-tools/cookie-editor/tests/http-core-integration.test.mjs",
+      "result": "15/15 PASS",
+      "scope": "Real public SDK drivers plus isolated backend core, read-only checks, error boundaries, original receipts"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/preview/react/isolated-http.test.mjs",
+      "result": "4/4 PASS",
+      "scope": "Dev relay scope/isolation, real adapter ready, reopen, no replay, revoked credentials403, unchanged local accounts/Cookies and second service",
+      "upstreamQueries": 0
+    }
+  ],
+  "review": {
+    "role": "independent code-reviewer",
+    "initial": "One P2: confirmed rejected reconcile/disconnected reconnect failed to refresh pairing draft.",
+    "resolution": "Connect/Reconcile × UNCONNECTED/DISCONNECTED now clears only matching uncertainty, refreshes authoritative revision/fingerprint, clears invalid code. Two regressions pass; reviewer verified 5 cases and closed finding.",
+    "remainingRequiredFindings": []
+  },
+  "coverage": "T1–T10 actual evidence and partial NOT_TESTED cases are recorded in QUICKSTART.zh-CN.md",
+  "publicContractsChanged": false,
+  "browserFrameworkSourceChanged": false,
+  "backendProtocolChanged": false,
+  "notTested": [
+    "Real installed extension/Chrome source permission flow",
+    "Real Side Panel for this candidate",
+    "Company HTTPS/SSO deployment",
+    "Real quota/identity verification",
+    "Stale-cache browser case",
+    "Full width/zoom matrix",
+    "Formal package build/promotion/install",
+    "Production acceptance",
+    "Full CI",
+    "Independent95+score"
+  ],
+  "preserved": [
+    "Parallel account switching sources/package/version changes",
+    "Historical real E_OUTCOME_UNKNOWN requests and Cookie snapshots",
+    "Existing shared Browser watcher/output/extension ID and Native pairing"
+  ],
+  "delivery": "Source-only core development, no commit/push/publish; formal package belongs to a later explicit stage."
+}

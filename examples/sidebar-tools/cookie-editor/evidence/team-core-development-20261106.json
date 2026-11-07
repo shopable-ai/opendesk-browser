@@ -1,0 +1,164 @@
+{
+  "format": 1,
+  "recordedAt": "2026-11-05T18:55:13.478Z",
+  "stage": "SYNTHETIC_CORE_DEVELOPMENT",
+  "branch": "main",
+  "outcome": {
+    "administratorMetadataAndDeviceAssignments": true,
+    "memberAuthorizedListOnly": true,
+    "distinctSyntheticSessionsApplied": 2,
+    "receiveDoesNotWriteCookies": true,
+    "explicitUseVerified": true,
+    "websiteLoginConfirmed": false,
+    "revocationAndVersionsEnforced": true,
+    "unknownNeverReplayed": true
+  },
+  "boundaries": {
+    "real": [
+      "businessReactUI",
+      "teamHTTPProtocol",
+      "originalRelayLogic",
+      "originalDeviceKeyStorageAndCrypto",
+      "originalTrustedAccountService"
+    ],
+    "synthetic": [
+      "ChromeCookies",
+      "ChromeDocumentAndHostIdentity",
+      "FoundationMemoryDriver",
+      "virtualHTTPS-to-ownedLoopbackHTTP",
+      "administratorAndMemberCredentials"
+    ],
+    "productionTeamAdapter": "NOT_IMPLEMENTED",
+    "installedEntry": "teamClient=null; disabled with explicit notice",
+    "profile": "ego TaskSpace shares Profile; no independent Cookie/profile isolation claim",
+    "rawCookieOrKeysReturnedToReact": false,
+    "upstreamCalls": 0
+  },
+  "verification": {
+    "uniqueDirectedTestsPassed": 65,
+    "groups": [
+      {
+        "files": [
+          "tests/ai-account-usage/team-accounts.test.mjs",
+          "tests/ai-account-usage/service-binding.test.mjs",
+          "tests/ai-account-usage/team-accounts-cli.test.mjs",
+          "tests/ai-account-usage/http-client.test.mjs"
+        ],
+        "passed": 41
+      },
+      {
+        "files": [
+          "tests/ai-account-usage/team-accounts-ui.test.mjs",
+          "tests/http-app-integration.test.mjs"
+        ],
+        "passed": 12
+      },
+      {
+        "files": [
+          "tests/team-accounts-domain.test.mjs",
+          "tests/team-core-integration.test.mjs"
+        ],
+        "passed": 12
+      }
+    ],
+    "syntax": "node --check on domain, harness and trusted fixture; JSX compiled by actual targeted test/harness esbuild",
+    "finalCorrelationFence": "Latest source verified with real HTTP and original trusted service in Node integration; browser core sequence preceded this additional strict receipt check",
+    "review": {
+      "initialP1": 3,
+      "closedP1": 3,
+      "newReproducibleP0P1": 0,
+      "independentReview": true,
+      "scope": "bounded code review, not formal release approval"
+    },
+    "previewLifecycle": {
+      "mode": "Vite middleware with owned HTTP server",
+      "sigtermExitCode": 0,
+      "privateDirectoryRemoved": true,
+      "previewAndBackendPortsClosed": true
+    }
+  },
+  "browser": {
+    "engine": "ego(lite)",
+    "taskSpaceId": 12,
+    "finished": true,
+    "width": 380,
+    "horizontalOverflow": false,
+    "tabs": 6,
+    "syntheticObservation": "合成可信边界观察：{\"A\":{\"driver\":\"SYNTHETIC_CHROME\",\"writes\":2,\"reloads\":2,\"currentSyntheticAccount\":\"DESIGN\"},\"B\":{\"driver\":\"SYNTHETIC_CHROME\",\"writes\":0,\"reloads\":0,\"currentSyntheticAccount\":\"NONE\"}}",
+    "finalTeamText": "团队账号\n读取获授权账号\n\n管理员发布与分配 → 设备配对 → 加密领取 → 核对目标 → 明确应用。读取列表不会上传本机账号或改变当前登录。\n\n成员 synthetic_member_A · 设备 a18f527b-5578-4fea-b676-61b17defdfca · 授权代际 1\n\n合成运营账号 v2\n\nhttps://team.example.test\n\n来源：管理员发布的加密会话 · 分配到当前成员与设备\n\n可领取 · 登录身份未验证\n\n请求设备配对 · 合成运营账号\n数据方向与撤销边界",
+    "interactions": [
+      "A received and explicitly applied OPERATIONS then DESIGN, via keyboard confirmation",
+      "B read empty list and no writes",
+      "administrator updated one to version 2, revoked two, then reassigned one v2 revision3",
+      "member old confirmation rejected after revoke; new version offered only fresh pairing",
+      "final management assets refreshed after HTTP-denial parsing change; final dialog re-read"
+    ],
+    "screenshots": [
+      "artifacts/cookie-team-core/member-light.png",
+      "artifacts/cookie-team-core/member-dark.png",
+      "artifacts/cookie-team-core/admin-final.png"
+    ],
+    "limitation": "New metadata form datetime-local filling was not completed by ego driver; browser new-publish PASS is not claimed. Node actual handlers and HTTP cover new publication."
+  },
+  "safety": {
+    "noCommit": true,
+    "noPush": true,
+    "noBranchOrWorktree": true,
+    "noOfficialPackageOrPromotion": true,
+    "noBrowserBuildOrWatcherChange": true,
+    "noRealCredentials": true,
+    "noRealCookieApplication": true,
+    "noLANDeployment": true,
+    "parallelWorkPreserved": true,
+    "privateTemporaryPreviewStopped": true,
+    "existing43135ServiceUntouched": true,
+    "temporaryDataCleanup": "Initial Vite signal race was detected, owned residue removed, lifecycle fixed; fresh child-process regression passed."
+  },
+  "notTested": [
+    "installedChromeTeamFlow",
+    "actualHostSDKTeamAdapter",
+    "websiteLoginIdentity",
+    "companyTLSAndLANDeployment",
+    "companyIdentityProvider",
+    "offlineAccountPool",
+    "production",
+    "fullCI",
+    "formalScore"
+  ],
+  "ownership": "Hashes include pre-existing/parallel content in shared owner files; only team additions belong to this task. Original trusted account-service and official package changes belong to parallel work.",
+  "sourceSha256": {
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/team-accounts.mjs": "c24587b1dcb685b9f8c3a2f111fcf5f38918f5d9fdd105e854080635c833d4dc",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/team-account-store.mjs": "6bfeef67b0ddb59ef76dc2f156fe5226e63d48ed92dec176ea43a1f8cc75f2fa",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/service-binding-store.mjs": "d6faf0415d9393328de7ea508d8c690d3de9a3d659d855ab4d1156488d147b50",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/manage.mjs": "ee26c18cbb0fe777f8fea9b4109a1c93a379ca812cb89d8f299e3054e0dd3d21",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web-server.mjs": "9f696e24cb3d87faaa9880fe24e9602854b8d092ea9e9ecbf83900a19890b2ae",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/TeamAccounts.jsx": "bc3b1b828f52b4397f3232b8d67b4a1fddcb1ccb759a39e00591e6ce0af872a2",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/main.jsx": "57e3886fad0e94cafae834161270306fcbb44e684a4575fbdd8dd8926da00c71",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/style.css": "89c6b442448e704cd600a54ab5989ac64ae2dc6df13d927c9b91de1e00304beb",
+    "examples/sidebar-tools/cookie-editor/app/domain/team-accounts.js": "4d1ff7270af78515270bd9107689f57472a0a68c7375ad9f0aa9246d73101f8c",
+    "examples/sidebar-tools/cookie-editor/app/components/CookieTeamAccounts.jsx": "eb5f6a78b369b35c11e7017e044438b559a0577cdecf83e8c88053b71f28bbf1",
+    "examples/sidebar-tools/cookie-editor/app/components/CookieBusinessPanels.jsx": "dfe885355d1a6643e2ba493c5349931572a6d4dc97662d20f000b65449391c3c",
+    "examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx": "2b00b4af290c45be41f523f9c6c90c000cec4c06f1cb0667381d8297859bf367",
+    "examples/sidebar-tools/cookie-editor/src/react.css": "8020a01be5a388fb125d1dc5ab06d67df801941db093e80b84a0af7d19ac6c13",
+    "examples/sidebar-tools/cookie-editor/preview/react/team-http.mjs": "b3da8820a0ad7318b127b889b9b57a4a845644fdd435ec979d2787f7e9505a24",
+    "examples/sidebar-tools/cookie-editor/preview/react/src/TeamCorePreview.jsx": "9980b1e473d807bc857bb0f33d5efd60190eede8aa746adf64014fd9d5db8c4c",
+    "examples/sidebar-tools/cookie-editor/preview/react/src/App.jsx": "83b5c5a7d5179b17094a58e7d35f1ba72fbc82b5b03deaac36c5c779a42ce6de",
+    "examples/sidebar-tools/cookie-editor/preview/react/src/mock-sdk.js": "bef7fc12f7abbabc80fac7b1934a4c17b7b0984fe6511ef390e64fdcb311ca10",
+    "examples/sidebar-tools/cookie-editor/preview/react/src/style.css": "b9aaee713dc8a84c371ae6e10ee6a33b41b75cb0cb4dad65b46a17d2d0d0a727",
+    "examples/sidebar-tools/cookie-editor/tests/fixtures/team-trusted-runtime.mjs": "c06033f2c03e41b231864a342501fddad9bae1d5efb4c1cc1c6991ecbf8626f4",
+    "examples/sidebar-tools/cookie-editor/tests/team-accounts-domain.test.mjs": "8f5ce9b796f2de47e254576b59eef99d251f2b99e90f5d0bccb718835850a25a",
+    "examples/sidebar-tools/cookie-editor/tests/team-core-integration.test.mjs": "c338efe910127bcf3dccd3eb71f5441b2d1d921f77bc8a03e32e18b76e00839f",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/team-accounts.test.mjs": "5ab11dab36af8c6247e9f753df898dc796696f12ffa0dc892c353f9d14f92513",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/team-accounts-ui.test.mjs": "7642de1c2ad01fb6522f8d2d77b272fb1fff6e60313ffec84692ea1f9efc20f8",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/team-accounts-cli.test.mjs": "242a3d50da0745ef1f0df2b68dee7def75fad757c567dd3f0c849f55b713062f",
+    "examples/sidebar-tools/cookie-editor/README.zh-CN.md": "37f2284b3df2173a870fb52dd484aecd535ee54f8e9ba46c7910b1ceaf0e7a99",
+    "examples/sidebar-tools/cookie-editor/QUICKSTART.zh-CN.md": "cd1c204731281af3d4ccd64d4549a052575d1951c2ee9294ad9ccc0d659f71b8",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/README.zh-CN.md": "c6c2b1c0ef12ee12fbf5235bec71d9fc2b56b78784ada1e8e42dfb9fdd25fbe2"
+  },
+  "dependencySha256": {
+    "examples/sidebar-tools/cookie-editor/trusted/account-service.js": "290c146aa78a9049f99687b233bd5fc9f8256b4916a2754433406a595718bf2b",
+    "examples/sidebar-tools/cookie-editor/trusted/account-share.js": "7689b096cdcc1c0e1394e3e747c0449e0d0c2b14050ba0a1eb941b63a85bd082",
+    "examples/sidebar-tools/cookie-editor/trusted/account-session-share.js": "122f0516b9f91870ad008f45bc555b10c7346610f8d7f934d0cee246446e3923",
+    "examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js": "ea04109d571c93dcec14f74f76cd16214cce1840b6a54dab44e88af040951d68"
+  }
+}

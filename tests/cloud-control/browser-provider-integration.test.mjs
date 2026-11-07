@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {WebSocket} from 'ws';
 import {openProvider} from '../../scripts/cloud-control/provider.mjs';
+import {controllerMethods} from '../../src/platform/host/controller-methods.js';
 import {createCloudService} from '../../src/cloud-control/service.js';
 import {createCloudConnection} from '../../src/cloud-control/connection.js';
 import {canonical,digest} from '../../src/platform/protocol.js';
@@ -68,12 +69,12 @@ function apiWithGrants(mode='granted'){
   }}};
 }
 
-function serviceFixture({storage=memoryStorage(),grantMode='granted',onCurrentHost=async()=>{},resolvedTask=task}={}){
+function serviceFixture({storage=memoryStorage(),grantMode='granted',onCurrentHost=async()=>{},resolvedTask=task,resolver=async()=>resolvedTask}={}){
   const api=apiWithGrants(grantMode),emitted=[];
   const service=createCloudService({storage,api,clock:{now:()=>fixedNow},
     assertHost:async()=>host,
     currentHost:async(tx,h,sender)=>onCurrentHost(tx,h,sender),
-    resolveTask:async()=>resolvedTask,
+    resolveTask:resolver,
     emitToHost:async(registrationId,message)=>{emitted.push({registrationId,message});}
   });
   return {service,storage,api,emitted,sender:{id:'sender'}};
@@ -540,4 +541,163 @@ test('cloudResolve bounds reviewed Task deadlines by the original 60s ceiling an
     const resolved=await service.cloudResolve({requestId},sender);
     assert.equal(resolved.deadlineAt,fixedNow+expected);
   }
+});
+
+// Startup diagnostics use the original service transactions and Controller
+// entry. No live Provider/browser is needed to exercise pre-Run failures.
+async function startupFixture(options={}){
+  const f=serviceFixture(options),pairing={providerId:'startup-provider',executorId:'startup-executor',
+    pairingId:'startup-pair',pairingGeneration:1};
+  const assignment={...pairing,assignmentId:'startup-assignment',jobId:'startup-job',claimId:'startup-claim',
+    attemptEpoch:1,leaseUntil:fixedNow+90000,target:{mode:'owned',url:pkg.manifest.siteOrigins[0]+'/demo-form.html'}};
+  const requestId='cloud:'+assignment.assignmentId;
+  const row={tag:'cloud-request-v1',storageKey:PREFIX+await digest({pairing,requestId}),requestId,
+    digest:'startup-digest',namespace,grantId:'startup-grant',state:'waiting',createdAt:1,
+    identity:{pairing,jobId:assignment.jobId,claimId:assignment.claimId,
+      assignmentId:assignment.assignmentId,attemptEpoch:1},assignment,task,params:{secret:'private-param'}};
+  await f.storage.put(KV,{...pairing,namespace,grantId:row.grantId,enabled:true,tasks:[task]},CONFIG);
+  await f.storage.put(KV,row,rowKey(row));
+  const request={requestId,cloudRequestId:requestId,scriptId,revision:task.revision,
+    contentHash:task.contentHash,expectedTaskGeneration:task.generation,
+    expectedTaskInstallationId:task.installationId,paramsWire:encodeValue(row.params),
+    target:clone(assignment.target),deadlineAt:fixedNow+30000};
+  return {...f,row,request,getRow:()=>f.storage.get(KV,rowKey(row))};
+}
+const startupError=code=>Object.assign(new Error('private message / credential / source'),{code});
+const sameError=expected=>actual=>{assert.equal(actual,expected);return true;};
+
+test('original resolver saves only the first finite startup error and trusted status sanitizes it',async()=>{
+  let error=startupError('E_BUILTIN_VERSION_UNAVAILABLE');
+  const f=await startupFixture({resolver:async()=>{throw error;}});
+  await assert.rejects(f.service.cloudResolve({requestId:f.row.requestId},f.sender),sameError(error));
+  const first={code:error.code,stage:'resolve',at:fixedNow};
+  assert.deepEqual((await f.getRow()).startupFailure,first);
+  error=startupError('E_PERMISSION');
+  const put=f.storage.tx.put;let writes=0;
+  f.storage.tx.put=async(...args)=>{writes++;return put(...args);};
+  await assert.rejects(f.service.cloudResolve({requestId:f.row.requestId},f.sender),sameError(error));
+  assert.equal(writes,0,'polling must not rewrite the first failure');
+  const status=await f.service.cloudStatus({},f.sender);
+  assert.deepEqual(status.requests[0].startupFailure,first);
+  assert.equal(JSON.stringify(status).includes('private'),false);
+  const observer=await f.service.cloudObserve({});
+  assert.equal(JSON.stringify(observer).includes('startupFailure'),false,'observer remains ID-free');
+  const row=await f.getRow();row.startupFailure={code:'private-param',stage:'resolve',at:fixedNow,
+    message:'private message',params:row.params};await f.storage.put(KV,row,rowKey(row));
+  assert.deepEqual((await f.service.cloudStatus({},f.sender)).requests[0].startupFailure,
+    {code:'E_CLOUD_STARTUP',stage:'resolve',at:fixedNow});
+  row.startupFailure.stage='private-stage';await f.storage.put(KV,row,rowKey(row));
+  assert.equal(Object.hasOwn((await f.service.cloudStatus({},f.sender)).requests[0],'startupFailure'),false);
+});
+
+test('original Controller admission captures a matching resolved request without changing its error',async()=>{
+  const f=await startupFixture(),resolved=await f.service.cloudResolve({requestId:f.row.requestId},f.sender);
+  assert.equal((await f.getRow()).startupFailure,undefined,'successful resolve is not a failure');
+  const error=startupError('E_BUILTIN_VERSION_UNAVAILABLE'),event={addListener(){},removeListener(){}};
+  const methods=controllerMethods({storage:f.storage,api:{...f.api,
+    tabs:{onActivated:event,onUpdated:event,onRemoved:event},webNavigation:{onBeforeNavigate:event,
+      onCommitted:event,onHistoryStateUpdated:event,onReferenceFragmentUpdated:event}},
+    session:'startup-test',clock:{now:()=>fixedNow},assertHost:async()=>host,currentHost:async()=>{},
+    cloud:f.service,loadBuiltin:async()=>{throw error;}});
+  const {params,...pin}=resolved;
+  await assert.rejects(methods.startControllerRun({...pin,paramsWire:encodeValue(params)},f.sender),sameError(error));
+  assert.deepEqual((await f.getRow()).startupFailure,{code:error.code,stage:'admission',at:fixedNow});
+  assert.equal((await f.storage.all('runs')).length,0);
+});
+
+test('unknown startup codes are finite and diagnostics read/write failures preserve the original outcome',async()=>{
+  for(const code of ['E_TIMEOUT','E_BUILTIN_RESOURCE','E_BUILTIN_MANIFEST','E_BUILTIN_HASH']){
+    const error=startupError(code),f=await startupFixture({resolver:async()=>{throw error;}});
+    await assert.rejects(f.service.cloudResolve({requestId:f.row.requestId},f.sender),sameError(error));
+    const expected={code,stage:'resolve',at:fixedNow};
+    assert.deepEqual((await f.getRow()).startupFailure,expected);
+    assert.deepEqual((await f.service.cloudStatus({},f.sender)).requests[0].startupFailure,expected);
+  }
+  for(const code of ['private secret',undefined,'E_UNLISTED']){
+    const error=startupError(code),f=await startupFixture({resolver:async()=>{throw error;}});
+    await assert.rejects(f.service.cloudResolve({requestId:f.row.requestId},f.sender),sameError(error));
+    assert.deepEqual((await f.getRow()).startupFailure,{code:'E_CLOUD_STARTUP',stage:'resolve',at:fixedNow});
+  }
+  for(const failure of ['capture','reread','write']){
+    let checks=0;
+    const error=startupError('E_TASK'),f=await startupFixture({
+      onCurrentHost:async()=>{if(++checks===(failure==='capture'?1:2)&&failure!=='write')throw Error('diagnostic read failed');},
+      resolver:async()=>{throw error;}});
+    if(failure==='write'){
+      const put=f.storage.tx.put;
+      f.storage.tx.put=async(name,row,key)=>{if(row?.startupFailure)throw Error('quota');return put(name,row,key);};
+    }
+    await assert.rejects(f.service.cloudResolve({requestId:f.row.requestId},f.sender),sameError(error));
+    assert.equal((await f.getRow()).startupFailure,undefined,failure);
+  }
+  const f=await startupFixture({onCurrentHost:async()=>{throw Error('diagnostic capture failed');}});
+  assert.equal(await f.service.withStartupFailure(f.request,f.sender,'admission',async()=>42),42);
+});
+
+test('startup failure skips cancelled, expired, changed grant/pairing/attempt/Host and durable admissions',async()=>{
+  const mutations={
+    cancel:async(f,row)=>{row.cancelRequestedAt=fixedNow;},
+    remoteCancel:async(f,row)=>{row.assignment.cancelled=true;},
+    expired:async(f,row)=>{row.assignment.leaseUntil=fixedNow;},
+    state:async(f,row)=>{row.state='cancelled';},
+    grant:async f=>{const c=await f.storage.get(KV,CONFIG);c.grantId='new-grant';await f.storage.put(KV,c,CONFIG);},
+    disabled:async f=>{const c=await f.storage.get(KV,CONFIG);c.enabled=false;await f.storage.put(KV,c,CONFIG);},
+    pairing:async f=>{const c=await f.storage.get(KV,CONFIG);c.pairingGeneration++;await f.storage.put(KV,c,CONFIG);},
+    namespace:async(f,row)=>{row.namespace='tool:other';},
+    attempt:async(f,row)=>{row.assignment.attemptEpoch++;row.identity.attemptEpoch++;},
+    job:async(f,row)=>{row.assignment.jobId='new-job';row.identity.jobId='new-job';},
+    claim:async(f,row)=>{row.assignment.claimId='new-claim';row.identity.claimId='new-claim';},
+    assignment:async(f,row)=>{row.assignment.assignmentId='new-assignment';row.identity.assignmentId='new-assignment';},
+    digest:async(f,row)=>{row.digest='changed';},
+    requestKey:async(f,row)=>{row.storageKey+=':changed';},
+    params:async(f,row)=>{row.params.secret='changed';},
+    target:async(f,row)=>{row.assignment.target.url+='?changed';},
+    run:async(f,row)=>{row.runId='original-run';},
+    journal:async f=>{await f.storage.put('commandJournal',{tag:'controller-start',runId:'original-run'},'cloud-start:'+f.row.requestId);}
+  };
+  for(const [name,mutate]of Object.entries(mutations)){
+    const f=await startupFixture(),error=startupError('E_TASK');
+    await assert.rejects(f.service.withStartupFailure(f.request,f.sender,'admission',async()=>{
+      const row=await f.getRow();await mutate(f,row);await f.storage.put(KV,row,rowKey(f.row));throw error;
+    }),sameError(error));
+    assert.equal((await f.getRow()).startupFailure,undefined,name);
+  }
+  for(const field of ['registrationId','hostDocumentId','hostInstanceId']){
+    const live=clone(host),f=await startupFixture({onCurrentHost:async(_tx,captured)=>{
+      if(captured[field]!==live[field])throw startupError('E_OWNER');
+    }}),error=startupError('E_TASK');
+    await assert.rejects(f.service.withStartupFailure(f.request,f.sender,'admission',async()=>{
+      live[field]+=':changed';throw error;
+    }),sameError(error));
+    assert.equal((await f.getRow()).startupFailure,undefined,field);
+  }
+});
+
+test('admission diagnostic rejects every changed original resolved pin, params and target',async()=>{
+  for(const [field,value]of Object.entries({requestId:'wrong-request',cloudRequestId:'cloud:wrong-request',scriptId:'wrong-script',revision:2,
+    contentHash:'wrong-hash',expectedTaskGeneration:2,expectedTaskInstallationId:'wrong-install',
+    paramsWire:encodeValue({secret:'different'}),target:{mode:'owned',url:'https://different.example/'}})){
+    const f=await startupFixture(),error=startupError('E_TASK');
+    await assert.rejects(f.service.withStartupFailure({...f.request,[field]:value},f.sender,'admission',async()=>{throw error;}),sameError(error));
+    assert.equal((await f.getRow()).startupFailure,undefined,field);
+  }
+});
+
+test('failure after durable Run commit preserves the original Run and Result without startup replacement',async()=>{
+  const f=await startupFixture(),error=startupError('E_PERMISSION');
+  const run={...runFor({...f.row,runRef:{runId:'original-run',resultId:'original-result'}}),paramsWire:f.request.paramsWire};
+  const result={tag:'controller-result',runId:run.runId,resultId:run.resultId,namespace,state:'failed',outcome:{error:{code:error.code}}};
+  await assert.rejects(f.service.withStartupFailure(f.request,f.sender,'admission',async()=>{
+    await f.storage.transaction([KV,'runs','results','commandJournal'],'readwrite',async tx=>{
+      await f.service.bind(tx,run,f.request,host);run.state='failed';run.retirementState='released';
+      await tx.put('runs',run,run.runId);await tx.put('results',result,result.resultId);
+      await tx.put('commandJournal',{tag:'controller-start',runId:run.runId},'cloud-start:'+f.row.requestId);
+    });
+    throw error;
+  }),sameError(error));
+  assert.equal((await f.getRow()).startupFailure,undefined);
+  assert.deepEqual(await f.storage.get('runs',run.runId),run);
+  assert.deepEqual(await f.storage.get('results',result.resultId),result);
+  assert.equal((await f.storage.all('runs')).length,1);
+  assert.equal((await f.storage.all('results')).length,1);
 });

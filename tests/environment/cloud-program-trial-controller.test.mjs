@@ -186,3 +186,48 @@ test('Cloud trial refuses another origin receipt or verification identity drift'
     assert.equal(f.calls.some(([method])=>method==='installTask'),false,drift);
   }
 });
+
+for(const runtimeCurrent of [false,true])test(`runtime recovery cloud same-version same-hash install honors installed runtimeCurrent=${runtimeCurrent}`,async t=>{
+  const f=await fixture(t),previous={taskId:pkg.manifest.taskId,version:pkg.manifest.version,
+    manifestHash:pkg.manifestHash,enabled:true,runtimeCurrent,generation:7,
+    installationId:'33333333-3333-4333-8333-333333333333'};
+  const request=f.client.request;
+  f.client.request=async(method,input)=>{
+    const result=await request(method,input);
+    return method==='listTaskCatalog'?{catalog:[],installed:[previous]}:result;
+  };
+  await f.model().programs.onRefresh();await f.model().programs.onReview(deliveryId);
+  await f.model().programs.onTrial(deliveryId,'{}',{isTrusted:true});
+  await f.model().programs.onImport(deliveryId);
+  await f.model().programs.onVerifyTrial();
+  assert.equal(f.model().programs.trial.canInstall,true);
+  assert.equal(f.calls.some(([method])=>method==='installTask'),false);
+  await f.model().programs.onInstallTrial({isTrusted:true});
+  const installs=f.calls.filter(([method])=>method==='installTask');
+  assert.equal(installs.length,runtimeCurrent?0:1);
+  if(!runtimeCurrent)assert.deepEqual(installs[0][1],{
+    taskId:previous.taskId,version:previous.version,manifestHash:previous.manifestHash,
+    expectedInstalledVersion:previous.version,expectedGeneration:previous.generation,
+    expectedInstallationId:previous.installationId});
+  assert.equal(f.model().programs.trial.installed,true);
+  assert.equal(f.calls.filter(([method])=>method==='host.start').length,1,
+    'repairing installation cannot replay the trial');
+});
+
+test('runtime recovery cloud install rechecks candidate freshness after successful trial verification',async t=>{
+  const f=await fixture(t);
+  await f.model().programs.onRefresh();await f.model().programs.onReview(deliveryId);
+  await f.model().programs.onTrial(deliveryId,'{}',{isTrusted:true});
+  await f.model().programs.onImport(deliveryId);await f.model().programs.onVerifyTrial();
+  assert.equal(f.model().programs.trial.canInstall,true);
+  const request=f.client.request;
+  f.client.request=async(method,input)=>{
+    const result=await request(method,input);
+    return method==='getTaskCandidate'?{...result,runtimeCurrent:false}:result;
+  };
+  await f.model().programs.onInstallTrial({isTrusted:true});
+  assert.equal(f.calls.some(([method])=>method==='installTask'),false);
+  assert.equal(f.model().programs.trial.installed,false);
+  assert.match(f.model().pairing.status,/E_REVISION/);
+  assert.equal(f.calls.filter(([method])=>method==='host.start').length,1);
+});

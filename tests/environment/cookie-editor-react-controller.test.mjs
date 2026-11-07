@@ -16,6 +16,8 @@ function fixture({currentPage=async()=>({status:'available',url:site})}={}){
       calls.push(['getAll',copy(opts)]);
       return opts.partitionKey?[]:rows.filter(row=>!opts.name||row.name===opts.name).map(copy);
     },
+    getAllPage:async opts=>({cookies:(await cookies.getAll(opts)).filter(row=>
+      !opts.scope||row.domain.replace(/^\./,'')===new URL(opts.url).hostname)}),
     getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://shop.example.com'}}),
     getCurrentStore:async()=>({storeId:'0'}),
     get:async()=>({cookie:{...rows[0],valueRedacted:false}}),
@@ -30,8 +32,12 @@ function fixture({currentPage=async()=>({status:'available',url:site})}={}){
       rows=rows.filter(item=>item.name!==opts.name);
       return {removed:true,verified:true};
     },
-    clearSite:async opts=>opts.preview?{matched:rows.length,previewRef:'12345678-1234-1234-1234-123456789abc'}:
-      {preview:false,scope:'EXACT_HOST_HOST_ONLY',matched:1,removed:1,remaining:0}
+    clearSite:async opts=>{
+      calls.push(['clearSite',copy(opts)]);
+      const scope=opts.scope?'SITE_EXACT_HOST':'EXACT_HOST_HOST_ONLY';
+      return opts.preview?{matched:rows.length,excluded:0,scope,previewRef:'12345678-1234-1234-1234-123456789abc'}:
+        {preview:false,scope,matched:1,removed:1,remaining:0,excluded:0};
+    }
   };
   const browser={cookies,capabilities:{getStatus:async()=>({callableNow:allow,
     reasonCode:allow?undefined:'E_SITE_GRANT_REQUIRED'})},
@@ -325,6 +331,29 @@ test('clear preview and execute validate the Host result before declaring succes
   assert.equal(f.controller.snapshot().messageType,'success');
   f.controller.dispose();
 });
+test('clear scope changes replace the plan used for the confirmed operation',async()=>{
+  const f=fixture();await f.controller.load();
+  await f.controller.previewClear();
+  await f.controller.previewClear(false);
+  assert.equal(await f.controller.executeClear(),true);
+  const calls=f.calls.filter(([name])=>name==='clearSite').map(([,args])=>args);
+  assert.equal(calls[0].scope,'site-exact-host');
+  assert.equal(calls[1].scope,undefined);
+  assert.equal(calls[2].scope,undefined);
+  f.controller.dispose();
+});
+test('clear distinguishes incomplete receipts from cookies recreated after removal',async()=>{
+  for(const [removed,remaining,expected,type] of [[0,0,false,'error'],[1,1,true,'info']]){
+    const f=fixture();await f.controller.load();
+    f.cookies.clearSite=async opts=>opts.preview?
+      {matched:1,excluded:0,scope:'SITE_EXACT_HOST',previewRef:'12345678-1234-1234-1234-123456789abc'}:
+      {preview:false,scope:'SITE_EXACT_HOST',matched:1,removed,remaining,excluded:0};
+    await f.controller.previewClear();
+    assert.equal(await f.controller.executeClear(),expected);
+    assert.equal(f.controller.snapshot().messageType,type);
+    f.controller.dispose();
+  }
+});
 test('bulk import preflight and native partial failure never replay writes',async()=>{
   const f=fixture();await f.controller.load();
   let calls=0;f.cookies.setMany=async({cookies})=>{
@@ -503,7 +532,7 @@ test('R5.20 a dismissed in-flight clear preview never becomes executable',async(
   f.cookies.clearSite=async opts=>{if(opts.preview)return pending.promise;clears++;};
   const preview=f.controller.previewClear();
   f.controller.discardClear();
-  pending.resolve({matched:1,previewRef:'12345678-1234-1234-1234-123456789abc'});
+  pending.resolve({matched:1,excluded:0,scope:'SITE_EXACT_HOST',previewRef:'12345678-1234-1234-1234-123456789abc'});
   assert.equal(await preview,null);
   assert.equal(await f.controller.executeClear(),false);
   assert.equal(clears,0);
@@ -689,7 +718,7 @@ test('R5.20 a revoked clear plan and an unknown clear receipt are never replayed
   await f.controller.previewClear();
   f.controller.invalidate('撤权');await f.controller.load();
   f.cookies.clearSite=async opts=>{
-    if(opts.preview)return {matched:1,previewRef:'12345678-1234-1234-1234-123456789abc'};
+    if(opts.preview)return {matched:1,excluded:0,scope:'SITE_EXACT_HOST',previewRef:'12345678-1234-1234-1234-123456789abc'};
     clears++;throw Object.assign(Error('SECRET_FIXTURE'),{code:'E_OUTCOME_UNKNOWN'});
   };
   assert.equal(await f.controller.executeClear(),false);

@@ -6,7 +6,8 @@ import {createHash,randomUUID} from 'node:crypto';
 import {mkdir,open,readFile,realpath,stat,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {parseArgs} from 'node:util';
+import {readFixedDemoTaskPackage,taskPin} from '../../examples/cloud-control/mac24dev-demo/task-package.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -54,8 +55,11 @@ async function persist(filename,value,{append=false}={}){
   finally{await handle.close();}
 }
 
-export async function startPassiveFormProof({directory,port=43111}={}){
+export async function startPassiveFormProof({directory,port=43111,taskPackage}={}){
   if(!directory||!Number.isInteger(port)||port<0||port>65535)throw Error('PROOF_OPTIONS_REQUIRED');
+  // Select once for this fresh session. Never re-read the package for queries
+  // or relabel evidence from an earlier session when the selection changes.
+  const taskIdentity=taskPin(await readFixedDemoTaskPackage(taskPackage));
   directory=path.resolve(directory);
   // A fresh directory is mandatory: never overwrite/reuse an old evidence
   // session, or turn a service restart into apparent event continuity.
@@ -65,10 +69,6 @@ export async function startPassiveFormProof({directory,port=43111}={}){
   const staticRoot=await realpath(path.join(root,'examples/tasks'));
   const original=await readFile(path.join(staticRoot,'demo-form.html'),'utf8');
   if(!original.includes('</body>'))throw Error('STANDARD_PAGE_BODY_REQUIRED');
-  const task=await verifyTaskPackage(JSON.parse(await readFile(
-    path.join(staticRoot,'form-fill.v1.opendesk-task.json'),'utf8')));
-  const taskIdentity={taskId:task.manifest.taskId,version:task.manifest.version,
-    manifestHash:task.manifestHash,sourceHash:task.manifest.program.sourceHash};
   const viewerFiles=new Map([
     ['/cloud-proof.html',['proof.html','text/html; charset=utf-8']],
     ['/cloud-proof.js',['proof.js','text/javascript; charset=utf-8']],
@@ -243,9 +243,10 @@ export async function startPassiveFormProof({directory,port=43111}={}){
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const directory=process.argv[2];
-  if(!directory)throw Error('Usage: node tests/cloud-control/passive-form-proof.mjs <fresh-evidence-directory>');
-  const fixture=await startPassiveFormProof({directory});
+  const {values,positionals}=parseArgs({options:{package:{type:'string'}},allowPositionals:true});
+  const [directory]=positionals;
+  if(!directory||positionals.length!==1)throw Error('Usage: node tests/cloud-control/passive-form-proof.mjs <fresh-evidence-directory> [--package <fixed-task-package.json>]');
+  const fixture=await startPassiveFormProof({directory,taskPackage:values.package});
   console.log(JSON.stringify({ready:true,...fixture,close:undefined}));
   let closing=false;
   for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{

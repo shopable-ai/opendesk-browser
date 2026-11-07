@@ -114,6 +114,60 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   };
 }
 
+for(const phase of ['timeout','pagehide'])
+test(`account switch ${phase} preserves unknown outcome after dispatch`,async()=>{
+  let next=0;
+  const tasks=new Map();
+  const loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',
+    tool:{...tool,id:'cookie-editor'}};
+  const b=sandbox({loaded,timers:{
+    setTimeout(fn,ms){tasks.set(++next,{fn,ms});return next;},
+    clearTimeout(id){tasks.delete(id);}
+  }});
+  try{
+    const result=b.request('cookieAccount.switch',{alias:'fictional',revision:1});
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request'&&
+      row.operation==='cookieAccount.switch').length,1);
+    if(phase==='timeout'){
+      const timer=[...tasks.values()].find(task=>task.ms===8000);
+      assert.ok(timer);timer.fn();
+    }else b.win.emit('pagehide',{});
+    await assert.rejects(result,{code:'E_OUTCOME_UNKNOWN'});
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request').length,1);
+  }finally{await b.dispose();}
+});
+
+test('late account-switch success cannot resolve a later status request',async()=>{
+  let next=0;
+  const tasks=new Map();
+  const loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',
+    tool:{...tool,id:'cookie-editor'}};
+  const b=sandbox({loaded,timers:{
+    setTimeout(fn,ms){tasks.set(++next,{fn,ms});return next;},
+    clearTimeout(id){tasks.delete(id);}
+  }});
+  try{
+    const switchResult=b.request('cookieAccount.switch',{alias:'fictional',revision:1});
+    const sentSwitch=b.publicMessages.find(row=>row.kind==='request');
+    const timer=[...tasks.values()].find(task=>task.ms===8000);
+    assert.ok(timer);timer.fn();
+    await assert.rejects(switchResult,{code:'E_OUTCOME_UNKNOWN'});
+
+    let statusSettled=false;
+    const status=b.request('cookieAccount.status',{});
+    status.then(()=>{statusSettled=true;},()=>{statusSettled=true;});
+    const sentStatus=b.publicMessages.filter(row=>row.kind==='request').at(-1);
+    assert.notEqual(sentSwitch.requestId,sentStatus.requestId);
+    b.respond({...sentSwitch,kind:'response',ok:true,
+      result:{switched:true,verified:true,reloadRequested:true}});
+    await tick();assert.equal(statusSettled,false);
+    b.respond({...sentStatus,kind:'response',ok:true,result:{accounts:[]}});
+    assert.deepEqual(await status,{accounts:[]});
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request'&&
+      row.operation==='cookieAccount.switch').length,1);
+  }finally{await b.dispose();}
+});
+
 test('sandbox loads large UI and fixed dependencies while rejecting a changed dependency SHA',async()=>{
   const code='/*'+'界'.repeat(750000)+'*/',sha256=createHash('sha256').update(code).digest('hex');
   for(const valid of [true,false]){

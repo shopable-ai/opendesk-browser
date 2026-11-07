@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resolveProjectTask,assertOrdinaryProjectEdit} from '../../src/native-agent/chatgpt-project-policy.js';
+import {resolveProjectTask,assertOrdinaryProjectEdit} from '../trusted/chatgpt-project-policy.js';
 
 const alpha=Object.freeze({workspaceId:'workspace-11111111-1111-1111-1111-111111111111',name:'Alpha',access:'read-write',sourceId:'source-'+'a'.repeat(24)});
 const beta=Object.freeze({...alpha,workspaceId:'workspace-22222222-2222-2222-2222-222222222222',name:'Beta',sourceId:'source-'+'b'.repeat(24)});
@@ -9,7 +9,7 @@ const resolve=(task,extra={})=>resolveProjectTask({task,workspaces:[alpha,beta],
 const rejects=(fn,code)=>assert.throws(fn,error=>error.code===code&&typeof error.message==='string'&&error.message.length>0&&!error.message.includes('\n'));
 
 test('selects exact named metadata, preserves task and detects bilingual write intent',()=>{
-  for(const verb of ['update','modify','change','replace','编辑','修改','替换','改为','更新','写入']){
+  for(const verb of ['edit','Edit','update','modify','change','replace','编辑','修改','替换','改为','更新','写入']){
     const task=`${verb} Alpha 项目的 \`src/main.js\``;
     assert.deepEqual(resolve(task),{workspace:alpha,path:'src/main.js',write:true,task});
   }
@@ -23,6 +23,8 @@ test('explicit read-only instructions never request edit authority',()=>{
     '读取 Alpha demo.txt，不要修改文件。',
     '查看 Alpha demo.txt，无需更新或写入。',
     'Read Alpha demo.txt. Do not modify any file.',
+    'Read Alpha demo.txt. Do not edit any file.',
+    'Edit Alpha demo.txt only in an explanation; read-only.',
     "Read Alpha demo.txt, don't change it.",
     'Read-only: inspect Alpha demo.txt and explain the changes.'
   ]){
@@ -32,9 +34,10 @@ test('explicit read-only instructions never request edit authority',()=>{
 });
 
 test('project and file names cannot supply write intent to a read task',()=>{
-  for(const path of ['docs/update.md','src/change.js'])
+  for(const path of ['docs/update.md','src/change.js','docs/edit.md'])
     assert.equal(resolve(`Read Alpha ${path}`).write,false,path);
   assert.equal(resolve('Read Update demo.txt',{workspaces:[{...alpha,name:'Update'}]}).write,false);
+  assert.equal(resolve('Read Edit demo.txt',{workspaces:[{...alpha,name:'Edit'}]}).write,false);
   assert.equal(resolve('Read Alpha demo.txt and modify its second line').write,true);
 });
 
@@ -44,6 +47,32 @@ test('accepts quoted paths, spaces, Chinese names and repeated references to one
   assert.equal(resolve('Read Alpha README.md, then explain README.md.').path,'README.md');
   assert.equal(resolve('读取「示例」项目的 README.md',{workspaces:[{...alpha,name:'示例'}]}).workspace.name,'示例');
   assert.equal(resolve('read "Search Project" README.md',{workspaces:[{...alpha,name:'Search Project'}]}).workspace.name,'Search Project');
+});
+
+test('English project names and trailing path punctuation retain a single explicit scope',()=>{
+  for(const task of [
+    'Edit Alpha project demo.txt: keep its first line.',
+    'Edit Alpha project demo.txt. Keep its first line.',
+    'Edit project Alpha demo.txt. Keep its first line.',
+    'Edit "Alpha" project `demo.txt`: keep its first line.',
+    'Edit project "Alpha" demo.txt: keep its first line.',
+    'Edit Alpha demo.txt: keep its first line.'
+  ]){
+    const result=resolve(task);
+    assert.equal(result.workspace,alpha,task);
+    assert.equal(result.path,'demo.txt',task);
+    assert.equal(result.write,true,task);
+  }
+  for(const task of [
+    'Edit Alpha project demo.txt: then use project Gamma.',
+    'Edit project Alpha demo.txt. Use Gamma project.',
+    'Edit "Alpha" project demo.txt: use "Gamma" project.',
+    'Edit Gamma project Alpha demo.txt',
+    'Edit Alpha project Gamma demo.txt',
+    'Edit Gamma\x00 project Alpha demo.txt'
+  ])rejects(()=>resolve(task,{mapping}),'E_PROJECT_CLARIFY');
+  for(const path of ['C:\\temp\\demo.txt:','https://host/demo.txt:','src:demo.txt:'])
+    rejects(()=>resolve(`Edit Alpha ${path} keep its first line.`),'E_PROJECT_REVIEW');
 });
 
 test('never guesses first, substring, case-insensitive or duplicate-name projects',()=>{
@@ -95,6 +124,7 @@ test('requires authorized workspace metadata and honors read-only access',()=>{
   const readonly={...alpha,access:'read-only'};
   assert.equal(resolve('read Alpha README.md',{workspaces:[readonly]}).write,false);
   rejects(()=>resolve('modify Alpha README.md',{workspaces:[readonly]}),'E_PROJECT_REVIEW');
+  rejects(()=>resolve('Edit Alpha README.md',{workspaces:[readonly]}),'E_PROJECT_REVIEW');
 });
 
 test('requires exactly one explicit supported relative file without searching',()=>{

@@ -1,0 +1,888 @@
+{
+  "date": "2026-11-06",
+  "owner": "01a1b02e-00cb-7e32-8b3f-9774c9822c6f",
+  "stage": "核心功能与最小必要验证",
+  "status": "INCOMPLETE_TASK_CANDIDATE_IMPORTED_OBSERVATION_POLICY_BLOCKED",
+  "repository": {
+    "branch": "main",
+    "startingHead": "92378980e15a540e367f32d884fd96741826f559",
+    "parallelWorkPreserved": true,
+    "productSourceChangedByThisOwner": false,
+    "commitPushRelease": false
+  },
+  "environment": {
+    "mode": "持续开发",
+    "expectedOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "existingWriterPidObserved": 68812,
+    "existingServePorts": [
+      43119,
+      43120
+    ],
+    "writerStartedStoppedOrOutputOverwrittenByThisOwner": false,
+    "browserExecutable": "/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "liveSidebarServeConnected": true,
+    "liveSidebarRevisionObserved": "f3300cc5c0e04e4dccabb12460fab82cc0e1b6836c9763983d5c871eaa97570e",
+    "actualSystemChromeLoadPathRecheckedInExtensionsDetails": false,
+    "ego": {
+      "skillVersion": "2.2.0",
+      "taskSpaceId": 6,
+      "extensionPathChecked": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "webFlowInstalledInItsProfile": false,
+      "taskCatalogEmpty": true,
+      "reasonForOriginalChromeSpecialtyEnvironment": "ego 当前共享 Profile 未安装 Web Flow 或 Task，且账号上下文不同；不迁移登录态，不将普通网页能力当原 Chrome 专项证据"
+    }
+  },
+  "legacyReconciliation": {
+    "candidateId": "wf-9c6d4f2a-7b81-4e35-a920-6f1c8d3b5e74",
+    "conversationUrl": "https://chatgpt.com/c/6aec8b7a-a48c-83ee-8879-e9044c0ad01e",
+    "method": "原生 UI：已安装 Web Flow → 运行与授权 → 当前任务 → 按原聊天 URL 查询历史；只读展开原记录",
+    "requestId": "120018d3-65ce-4056-8c2c-01783cc5d260",
+    "runId": "49e4b1a7-0def-4c47-92f3-0e71b7f40bd9",
+    "resultId": "4983de79-2a70-4414-bd2f-9f25ca437414",
+    "source": {
+      "tabId": 560069845,
+      "documentId": "900F0E13B3F17DBD8F0AA55FE878D6A0",
+      "url": "https://chatgpt.com/c/6aec8b7a-a48c-83ee-8879-e9044c0ad01e"
+    },
+    "scope": {
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "limit": 3,
+        "query": "OpenDesk Browser"
+      },
+      "installationId": "4fb33bcf-ced1-43b0-8af2-584999f865e1",
+      "generation": 2,
+      "contentHash": "28d1d508a5fd8e04eb7dfbffb6ca36c6a545bb66feaa772b74a971a6e0bbb5e8"
+    },
+    "createdAt": 1793887169669,
+    "turnKey": "turn-1",
+    "statusObserved": "revoked",
+    "receiptObserved": {
+      "execution": "stopped",
+      "persistence": "not-confirmed",
+      "release": "released",
+      "delivery": "not-sent"
+    },
+    "businessOutcome": "UNKNOWN；未核对前三条业务数据或持久 Result 正文，不宣称成功",
+    "originalChatResultObserved": false,
+    "replayedOrCompensated": false
+  },
+  "taskRecovery": {
+    "installedWebFlowVersionObserved": "0.3.9",
+    "originalInstalledTaskVersion": "1.1.2",
+    "blocker": "E_BUILTIN_VERSION_UNAVAILABLE: 内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证",
+    "boundary": "保留固定编译运行时来源检查；没有强制官方 Catalog 版本或发行 SHA 匹配，也未绕过校验",
+    "taskId": "baidu.search.top3",
+    "candidateVersion": "1.1.4",
+    "package": "examples/tasks/baidu.search.top3.v1.opendesk-task.json",
+    "source": "examples/tasks/baidu-search-top3.js",
+    "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "deadlineMs": 120000,
+    "method": "原任务目录导入候选与 JS → 同窗口开发草稿 → 百度首页明确运行 → 用真实 runId 核对运行证据 → 设为本地可用 → 安装确定版本",
+    "validationRun": {
+      "runId": "591a0283-f1e0-4313-9207-6c7a58f8d000",
+      "initialTarget": "https://www.baidu.com/",
+      "args": {
+        "query": "OpenDesk Browser automation",
+        "limit": 3
+      },
+      "uiFinalState": "已完成 · 资源已释放",
+      "uiResult": {
+        "kind": "baidu.search.top3.result",
+        "query": "OpenDesk Browser automation",
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "observedAt": "2026-11-06T09:45:28.816Z",
+        "firstDirectUrl": "https://blog.csdn.net/weixin_42523670/article/details/169520804"
+      },
+      "actualSearchNavigationObserved": true,
+      "allThreeRowsIndependentlyCompared": false,
+      "verificationReceipt": "已核对本机持久运行及页面原生回执；不代表第三方审核",
+      "verificationState": "本机验证通过",
+      "countsAsRequestedClosedSidebarRun": false
+    },
+    "installButtonClickedOnce": true,
+    "installationFinalReceipt": "UNKNOWN；点击后窗口被切到并行 Cookie Editor 专项，未读回最终安装/升级状态，不重复安装",
+    "persistentGrantAfterInstallation": "NOT_TESTED",
+    "freshChatListenerHandshake": "NOT_TESTED"
+  },
+  "browserConflict": {
+    "nativeUiLeaseOwnedByThisTaskAtConflict": true,
+    "unexpectedForeground": "OpenDesk Cookie 会话技术验收 / od-cookie-selection-01a1b020.localhost:43138",
+    "relatedActiveChat": "01a1b020-69c1-7620-8e4e-ff001af48832",
+    "relatedChatTitle": "优化 Cookie Editor 账号切换反馈",
+    "actorIdentityConfirmed": false,
+    "action": "暂停争用原生窗口；未操作 Cookie Editor 页面，未抢占/关闭他人窗口",
+    "directBrowserBinding": "会话命名操作超时，未改用 shell/CDP 注入或读取浏览器私有状态",
+    "userSteering": "暂不发送协调消息，先做独立工作",
+    "crossChatMessageSent": false
+  },
+  "verification": {
+    "reason": "并行文件接入修改了完整回复身份与同轮路由，核对正常网页 Task、互斥、安装权限、原文档交付和 UNKNOWN 围栏",
+    "command": "node --test projects/webflow/tests/reply-admission.test.mjs projects/webflow/tests/background-task-verification.test.mjs projects/webflow/tests/chatgpt-background-ingress.test.mjs tests/environment/chatgpt-task-discovery-p0.test.mjs",
+    "exitCode": 0,
+    "tests": 142,
+    "pass": 142,
+    "fail": 0,
+    "boundary": "Node 夹具；不证明真实浏览器后台执行、IndexedDB、Native 或原聊天交付成功"
+  },
+  "requestedNewBusinessRuns": [],
+  "newBusinessMessagesSent": 0,
+  "closedSidebarCoreFlow": "NOT_TESTED",
+  "nextAction": "先在原Side Panel的开发Tab关闭“本地项目”开关，只确认是否出现“直接编辑”和源码框；暂不运行、不覆盖草稿、不要求用户先找Run ID。其后核对原草稿交接与已有Run，结果未知不重放。",
+  "preservedUnknownCandidates": [
+    "wf-084e05c5-0230-44fc-9ecb-4f94cea6e759",
+    "wf-8d7c2a91-4e63-4f20-a85b-91c6e3d702bf",
+    "wf-015d0f5e-ade3-4aea-95b5-b4093a67c471",
+    "wf-9c6d4f2a-7b81-4e35-a920-6f1c8d3b5e74"
+  ],
+  "deferred": [
+    "production",
+    "完整 CI",
+    "压力测试",
+    "全矩阵",
+    "95 分评分",
+    "跨日/跨对话编排",
+    "MCP 完整产品验收"
+  ],
+  "score": "NOT_SCORED",
+  "snapshotAt": "2026-11-06T09:55:09.090527+00:00",
+  "currentDiskRevisionAtSnapshot": "f3300cc5c0e04e4dccabb12460fab82cc0e1b6836c9763983d5c871eaa97570e",
+  "sourceSnapshotSha256": {
+    "projects/webflow/trusted/chatgpt-bridge-page.js": "8bf5037723f9881e4e67971b74d58d763bb60d9d4b66c900031d7f14f934e977",
+    "src/native-agent/chatgpt-background-adapter.js": "51c05cfecc08ee10a0d81e77b0ba9dfdd33310cc64e255316b56b4d33fd9522f",
+    "src/native-agent/chatgpt-task-discovery.js": "d927a2a7c979ff1b4bde7234ab6c104db44fff2cec0e44e77dd169f0100558f3",
+    "src/native-agent/workspace-chatgpt.js": "795911e5790520073b6567536c733851fc700da88348f50182a69d71b8886bb4",
+    "projects/webflow/trusted/chatgpt-conversation-route.js": "ef8e20f625dc240a8e968d647e27dfe47cbceeeace27c2272856d0fefae992f7",
+    "examples/tasks/baidu-search-top3.js": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "examples/tasks/baidu.search.top3.v1.opendesk-task.json": "e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62"
+  },
+  "cleanup": {
+    "nativeUiLeaseReleasedByOwnCommand": true,
+    "nativeUiOwnerAfterRelease": null,
+    "egoOwnTaskSpaceFinished": true,
+    "chromeTaskRecoveryTabsLeftForReconciliation": true,
+    "otherWindowsProfilesWriterAndServicesStopped": false
+  },
+  "continuations": [
+    {
+      "owner": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+      "observedAt": "2026-11-06T10:18:15.726734+00:00",
+      "stage": "核心功能与最小必要验证",
+      "completeCoreFlows": 0,
+      "requiredCoreFlows": 2,
+      "status": "INCOMPLETE_INSTALLATION_QUERY_BLOCKED_BY_SHARED_NATIVE_UI",
+      "branch": "main",
+      "productSourceChanged": false,
+      "commitPushRelease": false,
+      "environment": {
+        "existingWriterPid": 68812,
+        "listeningPorts": [
+          43119,
+          43120
+        ],
+        "mode": "持续开发",
+        "expectedOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "systemChromeLoadPathRechecked": false,
+        "systemChromeLiveRevisionRechecked": false,
+        "systemChromeServeClientRechecked": false,
+        "writerOrOutputChanged": false
+      },
+      "ego": {
+        "version": "2.2.0",
+        "taskSpaceId": 7,
+        "observedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "observedTaskCatalogCount": 0,
+        "originalChromeInstallationStateProven": false,
+        "finished": true,
+        "keep": [],
+        "profileOrLoginStateMigrated": false
+      },
+      "originalChrome": {
+        "visibleWindow": "OpenDesk Cookie 会话技术验收",
+        "visibleUrl": "http://od-cookie-selection-01a1b020.localhost:43138/",
+        "visibleSidePanel": "Cookie Editor · Cookie 管理",
+        "originalBaiduTabPresent": "560070210",
+        "originalTaskCatalogTopLevelTabFound": false,
+        "browserInventoryAvailable": true,
+        "browserSessionNamed": true,
+        "originalWindowInteractedWith": false,
+        "taskInstallationFinalReceipt": "UNKNOWN",
+        "effectiveTaskGrant": "UNKNOWN",
+        "currentLoadedExtensionIdObserved": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+      },
+      "resourceCoordination": {
+        "nativeUiOwnerObserved": "01a1b03f-7e8d-7ed0-8afc-6f3c49c94eeb",
+        "ownerThreadStatusObserved": "active / inProgress",
+        "nativeUiLeaseAcquiredByThisOwner": false,
+        "otherLeaseReleased": false,
+        "crossThreadMessageSent": false,
+        "independentReadOnlyWorkContinued": true
+      },
+      "sourceSnapshotComparison": {
+        "projects/webflow/trusted/chatgpt-bridge-page.js": {
+          "sha256": "8bf5037723f9881e4e67971b74d58d763bb60d9d4b66c900031d7f14f934e977",
+          "unchanged": true
+        },
+        "src/native-agent/chatgpt-background-adapter.js": {
+          "sha256": "51c05cfecc08ee10a0d81e77b0ba9dfdd33310cc64e255316b56b4d33fd9522f",
+          "unchanged": true
+        },
+        "src/native-agent/chatgpt-task-discovery.js": {
+          "sha256": "d927a2a7c979ff1b4bde7234ab6c104db44fff2cec0e44e77dd169f0100558f3",
+          "unchanged": true
+        },
+        "src/native-agent/workspace-chatgpt.js": {
+          "sha256": "795911e5790520073b6567536c733851fc700da88348f50182a69d71b8886bb4",
+          "unchanged": true
+        },
+        "projects/webflow/trusted/chatgpt-conversation-route.js": {
+          "sha256": "ef8e20f625dc240a8e968d647e27dfe47cbceeeace27c2272856d0fefae992f7",
+          "unchanged": true
+        },
+        "examples/tasks/baidu-search-top3.js": {
+          "sha256": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+          "unchanged": true
+        },
+        "examples/tasks/baidu.search.top3.v1.opendesk-task.json": {
+          "sha256": "e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62",
+          "unchanged": true
+        }
+      },
+      "verification": {
+        "previousNodeEvidenceReused": true,
+        "newTestsRun": false,
+        "newBuildRun": false,
+        "reason": "原证据的七项相关源码/Task SHA 未变，无新运行失败；本轮只读浏览器事实不构成产品缺陷或闭环通过"
+      },
+      "reinstallationAttempted": false,
+      "capabilityOnboardingSent": false,
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "nextAction": "不争用的原系统 Chrome 窗口可用后，先在原任务目录或我的只读查询 baidu.search.top3@1.1.4 最终安装与有效授权；不重复安装。随后新聊天必要接入及监听握手，关闭实际 Side Panel 后执行第一条独立新需求。",
+      "unknownCandidatesReplayed": false,
+      "deferredScopeRestored": false
+    },
+    {
+      "owner": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+      "observedAt": "2026-11-06T10:29:15.880178+00:00",
+      "status": "INSTALLED_BUT_RUNTIME_IDENTITY_UNAVAILABLE",
+      "completeCoreFlows": 0,
+      "nativeGoalStatusObserved": "active",
+      "nativeUiLeaseAcquiredWhenFree": true,
+      "nativeUiLeaseReleased": true,
+      "installationReadback": {
+        "method": "原系统 Chrome 百度窗口 → 原 Side Panel 我的 → 已安装百度 Task → 网站与权限",
+        "version": "1.1.4",
+        "source": "local-developer",
+        "siteOrigin": "https://www.baidu.com",
+        "capability": "page.automation",
+        "installed": true,
+        "reinstalled": false
+      },
+      "grantReadback": {
+        "method": "Web Flow v0.3.9 → 运行与授权 → 任务授权 → 刷新授权状态 → 诊断",
+        "automaticSwitch": "on",
+        "epoch": 6,
+        "effectiveGrant": false,
+        "code": "E_BUILTIN_VERSION_UNAVAILABLE",
+        "message": "内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证",
+        "oldExactGrantPreserved": true,
+        "oldGrantArgs": {
+          "limit": 3,
+          "query": "OpenDesk Browser"
+        },
+        "grantChanged": false
+      },
+      "diagnosis": {
+        "source": [
+          "src/libs/identity.js",
+          "src/platform/tasks/service.js",
+          "src/libs/loader.js"
+        ],
+        "identityFencePreserved": true,
+        "expectedInstalledBuiltinIdentityRead": false,
+        "currentDiskWorkerMtime": "2026-11-06T10:10:56.766174+00:00",
+        "olderValidationObservedAt": "2026-11-06T09:45:28.816Z",
+        "runtimeDrift": "INFERENCE_ONLY; expected/current identities not compared",
+        "actualChromeLoadPathRechecked": false,
+        "liveRevisionRechecked": false,
+        "productSourceChanged": false,
+        "testsOrBuildRun": false
+      },
+      "windowChange": {
+        "lastObservedTitle": "新标签页",
+        "actorIdentityConfirmed": false,
+        "action": "停止原生前台操作，释放自有租约",
+        "unrelatedPageInteractedWith": false
+      },
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "nextAction": "从原版本/验证入口核对已安装1.1.4固定运行时绑定与当前身份，按已确证失败沿原合法冻结/验证及批准链最小恢复；不盲目重装或放宽来源校验，随后新聊天监听及关闭侧栏首条需求。"
+    },
+    {
+      "owner": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+      "observedAt": "2026-11-06T10:36:12.967602+00:00",
+      "status": "WAITING_LEGAL_TASK_UI_AFTER_EXPLICIT_TOOL_POLICY_REJECTION",
+      "completeCoreFlows": 0,
+      "nativeGoalStatusObserved": "active",
+      "browserPolicy": {
+        "attempt": "navigate original owned blank tab 560070212 to original extension sidepanel.html",
+        "result": "REJECTED",
+        "allowedProtocols": [
+          "http:",
+          "https:"
+        ],
+        "restriction": "Tool explicitly forbids achieving the same blocked action through workarounds, indirect execution, raw CDP/browser commands, or alternate browser surfaces.",
+        "alternateSurfaceAttemptedAfterRejection": false,
+        "manualOriginalUiHandoffRequested": true,
+        "userBroadToolAuthorizationReceived": true,
+        "manualUiOpenedConfirmed": false
+      },
+      "resourceCoordination": {
+        "nativeUiOwnerLastObserved": "01a1b03f-7e8d-7ed0-8afc-6f3c49c94eeb",
+        "nativeUiLeaseHeldByThisOwner": false,
+        "crossThreadMessageSent": false
+      },
+      "candidatePreparation": {
+        "createdAt": "2026-11-06T10:32:38.627Z",
+        "candidatePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow/task-recovery-01a1b058/baidu.search.top3.candidate.opendesk-task.json",
+        "taskId": "baidu.search.top3",
+        "version": "1.1.5",
+        "manifestHash": "6e7dbf8758b43541d0d51442e5b67063c031d8eb46dac9195d536e0544792396",
+        "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "sourceMatchesExistingTask": true,
+        "permissionsChanged": false,
+        "siteOriginsChanged": false,
+        "diskOnlyBuiltinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "5209447d39719192f42307ebbfb69ff2f8a2eaffe72e3b882b1f8870e6df0eb1"
+        },
+        "diskRuntimeResources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 13060,
+            "sha256": "9770576ce51a5024584aa3d0120615350e2d155029425b656dcbf6eb22999d8c"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20529,
+            "sha256": "2798e6fe5a161d48039fcc2b73d3376dfd28938b84f644cd9c2d4b9e0bdf3ca2"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "bytes": 124367,
+            "sha256": "f6036a0132c3cec992cf84ac27b649291e0122791b09041f54b69a9c6fbb7f80"
+          }
+        ],
+        "diskManifestSha256": "684e11fd65404737333f81c140f4d1c3ec323c70b28d240a6619762d5718e074",
+        "browserInstalled": false,
+        "browserVerified": false,
+        "currentBrowserRuntimeIdentityProven": false,
+        "countsAsCoreFlow": false
+      },
+      "candidateBoundary": "Original createTaskPackage/verifyTaskPackage; only version 1.1.4 → 1.1.5 changed. Disk-only runtime snapshot is not loaded Chrome identity. No original package promoted or overwritten. Query actual catalog before importing.",
+      "productSourceChanged": false,
+      "newTestsRun": false,
+      "newBuildRun": false,
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "nextAction": "用户手动打开原系统 Chrome 的原任务详情并恢复可用操作时段后，沿原版本验证入口核对身份；如确需新版本，使用同源临时候选沿原验证/可用/安装/授权链恢复。随后完成首条关闭侧栏的独立正常需求，成功后再做第二条。"
+    },
+    {
+      "owner": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+      "observedAt": "2026-11-06T11:21:27.394075+00:00",
+      "status": "ORIGINAL_TASK_UI_UNAVAILABLE_LOCAL_PROVIDER_NOT_READY",
+      "completeCoreFlows": 0,
+      "nativeGoalStatusObserved": "active (user resumed)",
+      "previousTurnClassification": "progress: original installation already confirmed; current official local-provider diagnosis adds E_NATIVE_NOT_READY and changes the available recovery paths",
+      "officialLocalProjectPath": {
+        "documents": [
+          "docs/api/sidebar-local-projects.zh-CN.md",
+          "docs/api/mcp-local-development.zh-CN.md",
+          "docs/framework/local-directory-cli-r17.zh-CN.md"
+        ],
+        "goDoctorConnected": false,
+        "doctorExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "doctorSocketExists": false,
+        "cliVersion": "0.1.0-r17.1",
+        "cliPackageStatus": "verified",
+        "cliRegistrationEntryMatches": true,
+        "cliRegistrationContentMatches": true,
+        "nativeConnectionCode": "E_NATIVE_NOT_READY",
+        "originalResolverAuthenticatedReady": false,
+        "originalResolverConnection": "legacy",
+        "scopeBoundary": "This blocks local-project provider access; it does not by itself prove an installed-Task or background-RunHost product defect.",
+        "nativeSetupUpdateOrReinstallAttempted": false,
+        "providerStarted": false,
+        "workspaceAttached": false
+      },
+      "originalChromeReadOnly": {
+        "visibleUrl": "https://chatgpt.com/auth/login?next=%2F",
+        "sidePanelVisible": false,
+        "doesNotProveEveryTabOrAccountLoggedOut": true,
+        "originalOwnChatTab": "560070201",
+        "directedReadAttempts": 2,
+        "directedReadResult": "timeout, then same-tab retry timeout",
+        "originalProtectedChatMutated": false,
+        "newBrowserOrProfileStarted": false,
+        "blockedExtensionUrlRetriedOrBypassed": false,
+        "nativeInputActions": 0
+      },
+      "sourceDiagnosis": {
+        "fixedRuntimeFenceRequired": true,
+        "candidateVerificationInstallationIdentityChecksPresent": true,
+        "exactInstalledVsLoadedRuntimeMismatchNotYetRead": true,
+        "newProductDefectEstablished": false,
+        "productSourceChanged": false
+      },
+      "developmentWriter": {
+        "pid": 68812,
+        "alive": true,
+        "port43120Listening": true,
+        "restarted": false,
+        "chromeClientConnectionNotRechecked": true
+      },
+      "newTestsRun": false,
+      "newBuildRun": false,
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "nextAction": "原系统 Chrome 已打开的合法任务详情可用后继续同一安装的固定运行时核对及最小恢复；如选本地项目入口，先恢复其原合法 Native 连接。保留 v1.1.5 临时候选未导入状态，再完成新聊天监听与两次关闭侧栏的独立真实业务。"
+    },
+    {
+      "owner": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+      "observedAt": "2026-11-06T13:11:09.752159+00:00",
+      "status": "CANDIDATE_IMPORTED_BUT_INTERNAL_PAGE_OBSERVATION_REJECTED",
+      "previousTurnClassification": "progress: readable goal, three delivery stages, acceptance conditions and current discovery links corrected; business flow remains unproved",
+      "completeCoreFlows": 0,
+      "requiredCoreFlows": 2,
+      "originalEntryRecoveredThroughAlreadyOpenUi": true,
+      "nativeUiLeaseAcquiredWhenFree": true,
+      "nativeUiLeaseReleased": true,
+      "liveEnvironment": {
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "serveConnected": true,
+        "revision": "3534b57386f41c4e649293e8a9b193eea5d288185d0f5a70271dafa042ac3e2b",
+        "writerPid": 68812,
+        "writerAlive": true,
+        "port43120Listening": true,
+        "actualChromeExtensionLoadPathRechecked": false,
+        "writerOrOutputChanged": false
+      },
+      "installedTaskReadback": {
+        "version": "1.1.4",
+        "source": "local-developer",
+        "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+        "installed": true,
+        "grantEpoch": 6,
+        "effectiveGrant": false,
+        "code": "E_BUILTIN_VERSION_UNAVAILABLE",
+        "expectedAndCurrentBuiltinIdentitiesCompared": false
+      },
+      "candidateImport": {
+        "path": "artifacts/webflow/task-recovery-01a1b058/baidu.search.top3.candidate.opendesk-task.json",
+        "version": "1.1.5",
+        "manifestHash": "6e7dbf8758b43541d0d51442e5b67063c031d8eb46dac9195d536e0544792396",
+        "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "method": "原我的→更多操作→打开本地任务目录→原文件选择器导入",
+        "catalogBefore": 15,
+        "catalogAfter": 16,
+        "importConfirmed": true,
+        "state": "待验证",
+        "validationRunStarted": false,
+        "available": false,
+        "installed": false,
+        "oldInstallationPreserved": true,
+        "permissionsOrSiteChanged": false
+      },
+      "sourceHandoff": {
+        "file": "examples/tasks/baidu-search-top3.js",
+        "fileChooserSelectionConfirmed": true,
+        "openClickedOnce": true,
+        "acknowledgement": "UNKNOWN",
+        "afterOpenAccessibility": "Only native Chrome find bar workerRetired was readable; main page tree absent",
+        "actorOfFindBarChange": "UNKNOWN",
+        "screenshotResult": "native_hook_stdin_oversized",
+        "runClicked": false
+      },
+      "ownedPages": {
+        "catalogTabId": "560070231",
+        "catalogHostInstanceId": "8f6a9954-2779-43ce-83c4-4d9c54999cb2",
+        "sidePanelHostInstanceId": "bb35305b-d097-4605-94cd-487566c826fd",
+        "newBaiduHomeTabId": "560070232",
+        "newBaiduHomeUrl": "https://www.baidu.com/"
+      },
+      "browserPolicy": {
+        "blockedAction": "bind already-open extension catalog tab to observe its page content",
+        "result": "REJECTED: authority to observe not granted; protocol chrome-extension not allowed; only HTTP/HTTPS allowed",
+        "workaroundsAndAlternateSurfacesExplicitlyForbidden": true,
+        "alternateObservationAfterRejection": false,
+        "scopeChangeFromEarlierRejection": "Current refusal covers observation of already-open content, not just direct navigation. Reopening alone is no longer a sufficient recovery step."
+      },
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "productSourceChanged": false,
+      "newTestsRun": false,
+      "newBuildRun": false,
+      "nextAction": "无需重复打开入口。先由用户在现有原UI确认JS草稿交接，再在本任务新建百度首页完成一次120秒同源Controller验证，取得完整runId；用原目录v1.1.5核对证据，成功后才沿原可用/安装审阅链恢复。工具正常恢复内部页观察权限后再由agent继续。该前置验证不计关侧栏业务0/2。"
+    },
+    {
+      "owner": "01a1b109-87b7-7b63-b155-3e9fd9ce3adc",
+      "observedAt": "2026-11-06T22:45:03.274225+08:00",
+      "status": "WAITING_USER_VALIDATION_RECEIPT_EXPLICIT_EXTENSION_OBSERVATION_DENIAL_PRESERVED",
+      "previousTurnClassification": "progress: established receiving-thread native goal and verified same-source recovery materials; no business flow proved",
+      "completeCoreFlows": 0,
+      "requiredCoreFlows": 2,
+      "nativeGoal": {
+        "threadId": "01a1b109-87b7-7b63-b155-3e9fd9ce3adc",
+        "createdAt": 1793971601,
+        "statusLastObserved": "blocked",
+        "threeDeliveryStagesIncluded": true,
+        "criticalConditionsIncluded": [
+          "K1",
+          "K2",
+          "K3",
+          "K4",
+          "K5",
+          "K6",
+          "K7"
+        ],
+        "budgetSet": false,
+        "sourceThreadGoalChanged": false,
+        "blockedReceiptRecordedAt": "2026-11-06T22:46:08.144700+08:00"
+      },
+      "candidateStaticReadback": {
+        "path": "artifacts/webflow/task-recovery-01a1b058/baidu.search.top3.candidate.opendesk-task.json",
+        "version": "1.1.5",
+        "packageSha256": "7fd52e03cfe26739c2f51034af26c3d2e060c374a001900742dd5eec7282cb0d",
+        "sourceFile": "examples/tasks/baidu-search-top3.js",
+        "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "sourceBytes": 10299,
+        "embeddedSourceMatchesExactBytes": true,
+        "manifestHash": "6e7dbf8758b43541d0d51442e5b67063c031d8eb46dac9195d536e0544792396",
+        "onlyDifferencesFromFormal114": [
+          "manifest.version",
+          "manifestHash"
+        ],
+        "permissionsChanged": false,
+        "siteOriginsChanged": false,
+        "paramsSchemaChanged": false,
+        "deadlineMs": 120000,
+        "browserValidationProved": false,
+        "installedVsLoadedRuntimeIdentityCompared": false
+      },
+      "developmentWriter": {
+        "previousPid": 68812,
+        "psPidFound": false,
+        "checkedListenPorts": [
+          43119,
+          43120
+        ],
+        "lsofListenersFound": false,
+        "actualChromeLoadPathRechecked": false,
+        "serveClientConnectionRechecked": false,
+        "writerStartedOrStopped": false,
+        "outputOverwritten": false,
+        "extensionReloaded": false
+      },
+      "accessBoundary": {
+        "previousExplicitDenialPreserved": true,
+        "legalRestorationEvidenceReceived": false,
+        "browserPageReadAttempted": false,
+        "alternateSurfaceAttempted": false,
+        "browserStorageReadAttempted": false,
+        "newBrowserOrProfileStarted": false,
+        "taskSpaceCreated": false
+      },
+      "userAction": {
+        "requestSent": true,
+        "receiptReceived": false,
+        "instruction": "在已打开原开发页确认同源Controller草稿，且明确尚未运行时，在本任务百度首页以query=OpenDesk Browser、limit=3、120秒运行一次；返回完整Run ID、终态与released；任何状态未知只报告提示，不重复Run。",
+        "sameDraftLoadAcknowledgement": "UNKNOWN",
+        "validationRunOutcome": "UNKNOWN_NOT_REPLAYED",
+        "countsAsBusinessSuccess": false
+      },
+      "productSourceChanged": false,
+      "newTestsRun": false,
+      "newBuildRun": false,
+      "verificationReason": "仅核对前置候选与源码的一致性；无新产品缺陷或产品源码变化，不重复历史Node或构建。",
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "crossThreadMessagesSent": false,
+      "uiLeaseAcquired": false,
+      "deferredScopeRestored": false,
+      "nextAction": "无需重复打开入口。先由用户在现有原UI确认JS草稿交接，再在本任务新建百度首页完成一次120秒同源Controller验证，取得完整runId；用原目录v1.1.5核对证据，成功后才沿原可用/安装审阅链恢复。工具正常恢复内部页观察权限后再由agent继续。该前置验证不计关侧栏业务0/2。",
+      "blockedAudit": {
+        "sameBlockingConditionRepeatedForAtLeastThreeGoalTurns": true,
+        "condition": "Extension-page observation explicitly denied and alternate channels forbidden; no legal restoration evidence or user validation receipt received.",
+        "independentSafeChecksComplete": true,
+        "requiresExternalStateOrUserReceipt": true,
+        "noProductSourceChangeJustified": true,
+        "notCountedAsVerifiedProcessWait": true,
+        "lastResumedAudit": {
+          "observedAt": "2026-11-07T00:14:23.098592+08:00",
+          "consecutiveResumedGoalTurns": 3,
+          "previousGoalTurnClassification": "no progress; no live process wait",
+          "sameBlockingCondition": true,
+          "newValidationReceiptReceived": false,
+          "legalAccessRestorationEvidenceReceived": false,
+          "nativeGoalReturnedStatus": "blocked",
+          "completeCoreFlows": 0,
+          "newBusinessRuns": 0,
+          "productSourceChanged": false
+        }
+      }
+    },
+    {
+      "owner": "01a1b109-87b7-7b63-b155-3e9fd9ce3adc",
+      "observedAt": "2026-11-07T00:31:58.305650+08:00",
+      "status": "ENTRY_CLARIFIED_FROM_USER_FEEDBACK_CURRENT_UI_STILL_UNOBSERVED",
+      "previousGoalTurnClassification": "no progress: repeated same missing receipt; new user feedback now changes immediate next action",
+      "completeCoreFlows": 0,
+      "requiredCoreFlows": 2,
+      "nativeGoalStatusObserved": "active",
+      "userFeedback": {
+        "answer": "不知道，怎么感觉严重缺失。开发大概是sidepanel 里面的开发tab、本地项目。",
+        "draftLoadConfirmed": false,
+        "validationRunConfirmed": false,
+        "neverRunProved": false
+      },
+      "entryClarification": {
+        "kind": "single-file Controller",
+        "entry": "Side Panel → 开发 → 关闭本地项目开关 → 直接编辑与源码框",
+        "localProjectProviderRequired": false,
+        "currentSourceDirectButtonText": "运行",
+        "currentSourceLocalButtonText": "运行本地项目",
+        "currentSourcePersistsAndRestoresLocalMode": true,
+        "publicDocDefaultOffClaimConflictsWithCurrentSource": true,
+        "jsDraftImportAckRemains": "UNKNOWN",
+        "actualLoadedUiRead": false,
+        "actualProductDefectEstablished": false,
+        "sourceReferencesSha256": {
+          "src/ui/react/tabs/develop-editor.tsx": "a042262fed3d7e31387447ba8941a5c209d4b1e524a4d75c92d5656735aaa9bf",
+          "src/ui/script-editor.js": "0e36d1101bf9961719b5e12586a8fa23c0a0dd6b07f9ffb05263a85e11cc539e",
+          "src/ui/local-project.js": "e5eebbfd18ae1661152a9afd7a037c5c40fa6e716c9bc114a9277d733dfcf88e",
+          "docs/api/sidebar-local-projects.zh-CN.md": "4f7967fc5fa093859af3050812f1ed6dea03c5cef952422fd648aac50a6f5d2e",
+          "examples/tasks/README.zh-CN.md": "0f51761d0d410b7721f3fa124b4626f131ce8e3cacac21eecf07ecee14e27326"
+        }
+      },
+      "accessBoundary": {
+        "previousExplicitDenialPreserved": true,
+        "legalRestorationEvidenceReceived": false,
+        "browserPageReadAttempted": false,
+        "alternateSurfaceAttempted": false,
+        "browserStorageReadAttempted": false
+      },
+      "userAction": {
+        "requestSent": true,
+        "receiptReceived": false,
+        "instruction": "先在原Side Panel的开发Tab关闭“本地项目”开关，只确认是否出现“直接编辑”和源码框；暂不运行、不覆盖草稿、不要求用户先找Run ID。其后核对原草稿交接与已有Run，结果未知不重放。",
+        "runRequestedNow": false,
+        "countsAsBusinessSuccess": false
+      },
+      "productSourceChanged": false,
+      "newTestsRun": false,
+      "newBuildRun": false,
+      "newBusinessMessagesSent": 0,
+      "newBusinessRunIdentities": [],
+      "unknownCandidatesReplayed": false,
+      "nextAction": "先在原Side Panel的开发Tab关闭“本地项目”开关，只确认是否出现“直接编辑”和源码框；暂不运行、不覆盖草稿、不要求用户先找Run ID。其后核对原草稿交接与已有Run，结果未知不重放。",
+      "blockedAudit": {
+        "observedAt": "2026-11-07T00:34:04.671897+08:00",
+        "consecutiveGoalTurns": 3,
+        "condition": "No actual direct-editor entry confirmation; explicit extension-page observation denial and alternate-channel prohibition lack legal restoration evidence.",
+        "previousGoalTurnClassification": "no progress; no verified live process wait",
+        "nativeGoalReturnedStatus": "blocked",
+        "completeCoreFlows": 0,
+        "nextActionUnchanged": true
+      }
+    }
+  ],
+  "goalSetup": {
+    "threadId": "01a1b058-c3cb-7830-9a46-2b27434b8512",
+    "createdAt": 1793960540,
+    "statusObserved": "active",
+    "requestedByUser": true,
+    "criticalConditions": "execution-plan.zh-CN.md#原生目标与关键测试条件2026-11-06",
+    "targetCompleteCoreFlows": 2,
+    "completeCoreFlows": 0,
+    "budgetSet": false,
+    "scopeExpanded": false
+  },
+  "readableGoalAndTasks": {
+    "updatedAt": "2026-11-06T13:11:09.752159+00:00",
+    "requestedByUser": true,
+    "plan": "projects/webflow/docs/execution-plan.zh-CN.md#用户目标与任务拆分",
+    "desiredUserOutcome": "一次必要接入及任务范围审阅后，在 ChatGPT 只发普通需求，侧栏关闭期间自动完成真实搜索、持久保存及原聊天单次交付；再次更换获准关键词仍可重复使用同一已安装任务。",
+    "targetCompleteCoreFlows": 2,
+    "completeCoreFlows": 0,
+    "workItems": [
+      {
+        "id": "T1",
+        "name": "恢复任务可用",
+        "dependsOn": [],
+        "status": "1.1.4_installed_runtime_rejected_1.1.5_imported_pending_validation",
+        "conditions": [
+          "K1"
+        ]
+      },
+      {
+        "id": "T2",
+        "name": "接通正常聊天",
+        "dependsOn": [
+          "T1"
+        ],
+        "status": "not_tested",
+        "conditions": [
+          "K1",
+          "K2"
+        ]
+      },
+      {
+        "id": "T3",
+        "name": "侧栏关闭完成第一条需求",
+        "dependsOn": [
+          "T2"
+        ],
+        "status": "not_tested",
+        "conditions": [
+          "K2",
+          "K3",
+          "K4",
+          "K5"
+        ]
+      },
+      {
+        "id": "T4",
+        "name": "重开只查询同一结果",
+        "dependsOn": [
+          "T3"
+        ],
+        "status": "not_tested",
+        "conditions": [
+          "K6"
+        ]
+      },
+      {
+        "id": "T5",
+        "name": "换获准关键词重复使用",
+        "dependsOn": [
+          "T4"
+        ],
+        "status": "not_tested",
+        "conditions": [
+          "K1",
+          "K2",
+          "K3",
+          "K4",
+          "K5",
+          "K6"
+        ]
+      },
+      {
+        "id": "T6",
+        "name": "贯穿各步核对保护与交付证据",
+        "dependsOn": [],
+        "crossCutting": [
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "status": "existing_node_evidence_only_real_core_flows_missing",
+        "conditions": [
+          "K7"
+        ]
+      }
+    ],
+    "keywordPolicy": "Reuse existing reviewed search-input rule. Legacy exact-keyword grants must first be converted through one trusted review; no silent broadening.",
+    "userCooperation": [
+      "先在原Side Panel的开发Tab关闭“本地项目”开关，只确认是否出现“直接编辑”和源码框；暂不运行、不覆盖草稿、不要求用户先找Run ID。其后核对原草稿交接与已有Run，结果未知不重放。",
+      "工具合法恢复对原扩展页面的观察权限后，agent继续原界面操作；已有授权充分，无需泛化追加权限。"
+    ],
+    "localProjectNativeConnectionIsOptionalPathPrerequisite": true,
+    "permissionAlreadyGranted": true,
+    "manualUiReason": "Browser tool now explicitly refuses authority to observe already-open extension content and forbids alternate-surface circumvention. Original UI reopening has already been accomplished.",
+    "nativeGoalStatusLastObserved": "blocked (after entry clarification; update_goal receipt)",
+    "nativeGoalObjectiveRewritten": false,
+    "newBusinessMessagesSent": 0,
+    "productSourceChanged": false,
+    "productBuildOrTestsRun": false,
+    "deliveryStages": [
+      {
+        "id": "D1",
+        "name": "恢复可以正常发起任务的入口",
+        "workItems": [
+          "T1",
+          "T2"
+        ],
+        "status": "not_complete"
+      },
+      {
+        "id": "D2",
+        "name": "完整跑通第一次使用",
+        "workItems": [
+          "T3",
+          "T4"
+        ],
+        "status": "not_tested"
+      },
+      {
+        "id": "D3",
+        "name": "证明任务可以重复使用",
+        "workItems": [
+          "T5"
+        ],
+        "status": "not_tested"
+      }
+    ],
+    "crossCuttingWorkItem": "T6",
+    "readabilityRevision": {
+      "requestedBecause": "用户反馈看不懂、感觉有问题，要求继续完善",
+      "corrections": [
+        "先描述用户五步使用过程，再列三个交付阶段；T6 为贯穿检查，不单列用户操作阶段",
+        "解释0/2是两次完整使用的计数，非全部开发工作的完成百分比",
+        "项目README将当前目标置前，并明确旧版本侧栏开启的历史成功不证明本轮通过",
+        "区分真实安装已确认、自动执行入口被身份检查拒绝及测试工具无法导航内部地址三件事",
+        "人工恢复工具入口不构成产品每次使用的正常步骤；Native本地项目连接仅为可选路径条件"
+      ],
+      "fullNativeGoalPreserved": true,
+      "nativeGoalObjectiveRewritten": false,
+      "completeCoreFlows": 0,
+      "productSourceChanged": false,
+      "productTestsOrBuildRun": false,
+      "historicalPlanTailSha256AtWrite": "3b61067c71f8110ec9b59b3c2e0cb326c0704c773d0f81be38f56bd3660ebbef",
+      "historicalPlanTailPreservedAtWrite": true,
+      "concurrentHistoryUpdateObserved": "并行文件业务 owner 01a1afe0 更新了12.29.1；保留其变更，不将写入时的历史摘要当作整个文件的永久锁。",
+      "verification": {
+        "updatedAt": "2026-11-06T12:57:21.085704+00:00",
+        "initialWholeTailEqualityCheck": "CHANGED_AFTER_WRITE: concurrent file-business history update observed; not a product failure",
+        "scope": "documentation meaning, local links/anchors, JSON and whitespace only",
+        "businessSuccesses": "0/2",
+        "productTestsOrBuildRun": false
+      }
+    },
+    "currentNativeGoalThreadId": "01a1b109-87b7-7b63-b155-3e9fd9ce3adc"
+  },
+  "currentOwner": "01a1b109-87b7-7b63-b155-3e9fd9ce3adc"
+}

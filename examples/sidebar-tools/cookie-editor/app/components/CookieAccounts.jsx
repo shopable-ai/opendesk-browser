@@ -20,7 +20,7 @@ const ruleHelp={
 // This screen renders only metadata. Raw Cookie values stay in the trusted
 // controller/adapter and must never be passed to presentation props.
 export function CookieAccounts({
-  origin='',accounts=[],currentAlias=null,currentKind='applied',route='list',onRoute=()=>{},
+  origin='',accounts=[],currentAlias=null,currentKind='applied',snapshotMatches=false,switchingAlias=null,route='list',onRoute=()=>{},
   accountReady=false,legacyLocked=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,resumeRevision=0,
   autoEnabled=false,autoRefresh=true,cookieDetails=[],
@@ -227,7 +227,7 @@ export function CookieAccounts({
       ?[['关联当前 Cookie','refresh',()=>onAttach?.(item),
         Boolean(onAttach)&&switchReady]]
       :[['更新快照','refresh',()=>onUpdate?.(item),
-        Boolean(onUpdate)&&switchReady&&item.alias===currentAlias]]),
+        Boolean(onUpdate)&&switchReady&&snapshotMatches&&item.alias===currentAlias]]),
     ['生成切换链接','link',()=>onCopyLink?.(item,linkFor(item)),
       Boolean(onCopyLink)&&Boolean(linkFor(item))],
     ['分享账号配置','share',()=>setShareItem(item),true],
@@ -244,7 +244,10 @@ export function CookieAccounts({
       action();
     }}><CookieIcon name={icon}/><span>{label}</span></button>
     </React.Fragment>);
-  const currentItem=accounts.find(item=>item.alias===currentAlias);
+  const currentItem=!switchingAlias&&accounts.find(item=>item.alias===currentAlias&&item.cookieCount>0);
+  const switchingItem=accounts.find(item=>item.alias===switchingAlias);
+  const statusItem=switchingItem||currentItem;
+  const readFailed=!accountReady&&feedback?.kind==='error';
   if(route==='receive')return <CookieAccountReceive origin={origin} request={onShareRequest}
     onBack={()=>{formReturn.current={receive:true};onRoute('list');}}/>;
   if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
@@ -385,21 +388,27 @@ export function CookieAccounts({
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <div className="cookie-account-content cookie-account-content--list">
-      <div className="cookie-account-current" aria-label="当前账号状态">
-        <span className={avatarClass(currentItem)} aria-hidden="true">
-          {String(currentItem?.displayName||'?').slice(0,1)}</span>
-        <div><small>{currentItem?(currentKind==='matched'
-          ?'当前快照（保存时已核对）':'当前已应用的快照（非登录验证）'):'当前账号状态'}</small>
-          <strong>{currentItem?.displayName||
-            (!accountReady?'正在读取账号':accounts.length?'待核对':'尚未保存账号')}</strong></div>
+      <div className={'cookie-account-current'+(switchingAlias?' is-switching':currentItem?' is-current':'')}
+        aria-label="当前账号状态" role="status" aria-live="polite" aria-atomic="true">
+        <span className={avatarClass(statusItem)} aria-hidden="true">
+          {String(statusItem?.displayName||'?').slice(0,1)}</span>
+        <div><small title={currentItem?(currentKind==='matched'
+          ?'保存时已核对 Cookie 快照；不代表网站已经登录'
+          :'最近成功应用的 Cookie 快照；不代表网站已经登录'):undefined}>
+          {switchingAlias?'正在切换账号':currentItem?'当前快照':'当前账号状态'}</small>
+          <strong title={statusItem?.displayName}>{switchingAlias?'正在切换：'+(switchingItem?.displayName||'账号'):currentItem?.displayName||
+            (readFailed?'账号读取失败':!accountReady?'正在读取账号':accounts.length?'待核对':'尚未保存账号')}</strong></div>
         {currentItem
           ?<CookieIconButton name="refresh" appearance="quiet"
             label={'更新'+currentItem.displayName+'的 Cookie 快照'}
-            disabled={busy||!switchReady||typeof onUpdate!=='function'}
+            disabled={busy||!switchReady||!snapshotMatches||typeof onUpdate!=='function'}
             onClick={()=>onUpdate?.(currentItem)}/>
           :<span className="cookie-account-current-status" title="尚未确认当前 Cookie 对应哪个已保存快照">
-            {!accountReady?'读取中':accounts.length?'未确认':'未保存'}</span>}
+            {switchingAlias?'切换中':readFailed?'读取失败':!accountReady?'读取中':accounts.length?'未确认':'未保存'}</span>}
       </div>
+      {currentItem&&<p hidden id="cookie-account-selection-note">
+        {snapshotMatches?'Cookie 快照已匹配。':'当前 Cookie 是否匹配保存快照尚未确认。'}网站登录身份未自动验证。
+      </p>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
           <small title="仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失">仅目标标签页 · 未保存的网页内容可能丢失</small></span>
@@ -431,28 +440,34 @@ export function CookieAccounts({
       <button ref={receiveTrigger} type="button" className="od-button od-button--secondary"
         disabled={busy||!accountReady||typeof onShareRequest!=='function'}
         onClick={()=>{scroll.current=list.current?.scrollTop||0;onRoute('receive');}}>领取分享配置</button>
-      {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
-      {filtered.map(item=><article key={item.alias} data-account-alias={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')+
+      {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号" aria-busy={Boolean(switchingAlias)}>
+      {filtered.map(item=><article key={item.alias} aria-current={item===currentItem?'true':undefined} data-account-alias={item.alias} className={'cookie-account-card'+(item===currentItem?' is-current':'')+
+          (item.alias===switchingAlias?' is-switching':'')+
           (item.alias===justSavedAlias?' is-just-saved':'')}>
         <span className={avatarClass(item)} aria-hidden="true">
           {String(item.displayName||'?').slice(0,1)}
         </span>
         <div className="cookie-account-card-text">
-          <strong>{item.displayName}</strong>
+          <div className="cookie-account-name">
+            <strong title={item.displayName}>{item.displayName}</strong>
+            {item===currentItem&&<span className="cookie-account-current-mark" role="img"
+              aria-label={currentKind==='matched'?'此快照已核对':'此快照最近已应用'}
+              title="当前快照；网站登录身份未自动验证"><CookieIcon name="check"/></span>}
+          </div>
           {item.description&&<span className="cookie-account-description"
             title={item.description}>{item.description}</span>}
         </div>
         {item.cookieCount===0
           ?<span className="cookie-account-unlinked" title="账号已保存，尚未关联 Cookie">未关联</span>
-          :item.alias===currentAlias
-            ?<span className="cookie-account-applied"
-              title={currentKind==='matched'
-                ?'保存时已核对 Cookie 与快照一致；不代表网站已经登录'
-                :'最近一次可信切换确认；不代表网站已经登录'}>
-                {currentKind==='matched'?'● 已核对':'● 已应用'}</span>
-            :<button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
+          :<button type="button" className={item===currentItem
+              ?'od-icon-button od-icon-button--quiet'
+              :'od-button od-button--secondary cookie-button--compact cookie-button--row-action'}
+              title={item===currentItem?'应用此快照':undefined}
+              aria-label={(item===currentItem?'应用':'切换到')+item.displayName+(item===currentItem?'的 Cookie 快照':'')}
+              aria-describedby={item===currentItem?'cookie-account-selection-note':undefined}
               disabled={busy||!switchReady||typeof onSwitch!=='function'}
-              onClick={()=>onSwitch?.(item)}>切换</button>}
+              onClick={()=>onSwitch?.(item)}>{item===currentItem?<CookieIcon name="refresh"/>:
+                switchingAlias===item.alias?'切换中…':'切换'}</button>}
         <div className="cookie-account-menu-anchor">
           <button type="button" className="od-icon-button od-icon-button--quiet"
             disabled={busy||!accountReady}
@@ -485,7 +500,7 @@ export function CookieAccounts({
       </div>}
       {!filtered.length&&<p className="cookie-account-empty">
         {accounts.length?'没有匹配的账号。':
-          !accountReady?'正在读取账号。':'此网站尚未保存账号。'}
+          readFailed?'账号未能读取，请通过顶部刷新重新核对。':!accountReady?'正在读取账号。':'此网站尚未保存账号。'}
       </p>}
       {accounts.length===0&&!query&&<section className="cookie-account-examples"
         aria-label="账号布局示例">

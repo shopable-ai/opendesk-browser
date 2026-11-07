@@ -1,7 +1,7 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {initNativeAgentSettings} from '../native-agent/settings.js';
-import {initChatGPTFilesUI} from '../native-agent/chatgpt-files-ui.js';
-import chatGPTFilesHTML from '../native-agent/chatgpt-files.html?raw';
+import {initChatGPTFilesUI} from '../../projects/webflow/trusted/chatgpt-files-ui.js';
+import chatGPTFilesHTML from '../../projects/webflow/trusted/chatgpt-files.html?raw';
 import {mountWorkspace} from '../ui/react/workspace/main.tsx';
 import {initChatGPTImagesUI} from '../../projects/webflow/trusted/chatgpt-images-ui.js';
 export default defineUnlistedScript(() => {

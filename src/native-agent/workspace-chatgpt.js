@@ -1,4 +1,5 @@
 import {WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+import {assertChatGPTTaskRoute} from '../../projects/webflow/trusted/chatgpt-conversation-route.js';
 
 export function isChatGPTURL(value){
   try{const url=new URL(value);return !url.username&&!url.password&&
@@ -66,7 +67,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const turnKey=user?local.turns.get(user):'no-user';
   const userContent=user?.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||user;
   const userText=userContent?.innerText??userContent?.textContent??'';
-  const userIdentity=identityOnly&&readUserMessage&&user&&new TextEncoder().encode(userText).length<=32*1024?{userText}:{};
+  const userIdentity=readUserMessage&&user&&new TextEncoder().encode(userText).length<=32*1024?{userText}:{};
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
   const turnAnswers=lastUser<0?[]:messages.slice(lastUser+1);
   const answer=taskIntent?turnAnswers.slice(-1):turnAnswers;
@@ -87,8 +88,22 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     local.answers ||= new WeakMap();let total=0;
     const keys=[];
     for(const node of answer){
-      const text=node.textContent||'';total+=text.length;
+      let text=node.textContent||'';total+=text.length;
       if(total>400*1024)return error('E_CHAT_LIMIT','当前回答过长，无法核对完整版本。');
+      // Copy feedback and reply actions are not answer revisions. Retain the
+      // code language header and ordinary body buttons; only known controls
+      // are omitted, on a detached copy so the live node identity is unchanged.
+      if(node.cloneNode){
+        const body=node.cloneNode(true);
+        for(const control of body.querySelectorAll('[data-assistant-message-actions],[data-testid="copy-turn-action-button"],[data-markdown-copy="exclude"] button'))control.remove();
+        text=body.textContent||'';
+        // Readiness only: never normalize the exact version text above. The
+        // official complete marker may precede hydration of the actual body.
+        if(strictReply||taskIntent||requireComplete||readUserMessage){
+          for(const metadata of body.querySelectorAll('[data-conversation-role="assistant"],[data-markdown-copy="exclude"]'))metadata.remove();
+          if(!body.textContent.trim())return error('E_CHAT_INCOMPLETE','最新回答正文尚未就绪，未绑定任务。');
+        }
+      }
       let item=local.answers.get(node);
       if(!item){item={id:'answer-'+(++local.counter),revision:0,text};local.answers.set(node,item);}
       else if(item.text!==text){item.revision++;item.text=text;}
@@ -96,12 +111,20 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     }
     answerKey=keys.join('/');
   }
-  if(identityOnly&&!requireComplete)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,...userIdentity,
+  // A deny-only projection for the fixed file consumer. It never resolves or
+  // authorizes a Task; mixed/malformed/quoted Task text cannot cause fallback
+  // file I/O after the Task path refuses it.
+  const taskIdentity=identityOnly&&readUserMessage?{taskIntentPresent:answer.some(node=>{
+    const text=node.textContent||'',pattern=/(?:opendesk\.task\.(?:intent|request)|webflow\.task\.intent)\.v1/;
+    return text.length>400*1024||pattern.test(text)||pattern.test(text.replace(/\\u([a-f0-9]{4})/gi,
+      (_escape,unit)=>String.fromCharCode(parseInt(unit,16))));
+  })}:{};
+  if(identityOnly&&!requireComplete)return {ok:true,url,turnKey,answerKey,answerComplete:!!answerKey,...userIdentity,...taskIdentity,
     ...(resultId?{resultObserved:userText.includes(resultId)}:{})};
   if(streaming)return error('E_CHAT_STREAMING','ChatGPT 仍在生成，请等回答结束再处理。');
   if(lastUser<0)return error('E_CHAT_FORMAT','无法确认本轮回答边界，未执行请求。');
   if(lastUser===messages.length-1)return error('E_CHAT_PENDING','最新问题尚未出现回答，没有读取上一轮内容。');
-  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true,...userIdentity};
+  if(identityOnly)return {ok:true,url,turnKey,answerKey,answerComplete:true,...userIdentity,...taskIdentity};
   const ids=requestIds||[requestId];
   if(requireUserEcho&&!ids.some(id=>id&&userText.includes(id)))
     return error('E_CHAT_TURN','最新用户消息没有本轮请求身份，未使用旧回答。');
@@ -153,7 +176,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
       return error('E_CHAT_FORMAT','Web Flow 任务必须严格包含五个意图字段。');
   }
   if(!taskIntent&&!ids.some(id=>id&&blocks[0].includes(id)))return error('E_REQUEST_CONTEXT','回答的请求身份已过期，未执行。');
-  return {ok:true,url,turnKey,answerKey,blocks,assistantFragments:answer.length,resultObserved:!!resultId&&userText.includes(resultId)};
+  return {ok:true,url,turnKey,answerKey,blocks,...userIdentity,assistantFragments:answer.length,resultObserved:!!resultId&&userText.includes(resultId)};
 }
 
 // Uses the browser's editing command so the actual contenteditable editor can
@@ -309,7 +332,8 @@ export async function assertWebFlowReplyCandidate(api,target,candidate){
   const {candidateId,text,turnKey,answerKey}=candidate;
   if(validateWebFlowTaskIntent(text).candidateId!==candidateId)throw mismatch();
   const current=await readChatGPTEdit(api,target,undefined,{taskIntent:true,requireComplete:true,
-    protocols:[WEBFLOW_TASK_INTENT_PROTOCOL]});
+    protocols:[WEBFLOW_TASK_INTENT_PROTOCOL],readUserMessage:true});
+  assertChatGPTTaskRoute({userText:current.userText,answerText:text});
   if(current.turnKey!==turnKey||current.answerKey!==answerKey||current.blocks[0]!==text)
     throw mismatch();
 }

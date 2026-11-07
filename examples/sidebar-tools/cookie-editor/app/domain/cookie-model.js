@@ -225,6 +225,7 @@ function rejectImportDuplicates(records){
 async function readAllCookies(sdk,args,isCurrent=()=>true){
   if(!isCurrent())return null;
   if(typeof sdk.cookies.getAllPage!=='function'){
+    if(args.scope)throw Object.assign(Error('E_TOOL_RUNTIME_UNAVAILABLE'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
     const rows=await sdk.cookies.getAll(args);
     return isCurrent()?rows:null;
   }
@@ -243,13 +244,13 @@ async function readAllCookies(sdk,args,isCurrent=()=>true){
 async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>true}={}){
   if(typeof sdk?.cookies?.getAll!=='function'||typeof sdk.cookies.getPartitionKey!=='function')
     throw new Error('正式 Browser SDK 缺少真实 Cookie 分区查询接口');
-  const normal=await readAllCookies(sdk,{url:target.url,...(includeValues?{includeValues:true}:{})},isCurrent);
+  const normal=await readAllCookies(sdk,{url:target.url,scope:'site-exact-host',...(includeValues?{includeValues:true}:{})},isCurrent);
   if(!isCurrent())return null;
   if(!Array.isArray(normal))throw new Error('Host 的普通 Cookie 返回不是数组');
   const partition=await sdk.cookies.getPartitionKey({url:target.url});
   if(!isCurrent())return null;
   if(!partition?.partitionKey?.topLevelSite)throw new Error('无法确定已授权 Partition');
-  const partitioned=await readAllCookies(sdk,{url:target.url,
+  const partitioned=await readAllCookies(sdk,{url:target.url,scope:'site-exact-host',
     partitionKey:partition.partitionKey,...(includeValues?{includeValues:true}:{})},isCurrent);
   if(!isCurrent())return null;
   if(!Array.isArray(partitioned))throw new Error('Host 的分区 Cookie 返回不是数组');

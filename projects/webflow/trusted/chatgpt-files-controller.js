@@ -1,10 +1,10 @@
 import {CHATGPT_FILES_CONFIG_KEY,normalizeChatGPTFilesPreferences,readChatGPTFilesPreferences} from './chatgpt-files-config.js';
-import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL,WORKSPACE_ID} from './workspace-chat-request.js';
-import {createEditContext,parseEditProposal,validateEditProposal,EDIT_PROTOCOL} from './workspace-ai-proposal.js';
-import {readChatGPTEdit,fillChatGPTComposer,assertChatGPTTarget} from './workspace-chatgpt.js';
-import {validateWorkspaceRead,sameWorkspaceAuthority,verifyWorkspaceWriteReceipt,verifyWorkspaceWriteReadBack} from './workspace-domain.js';
-import {validateWorkspaceTreeListing} from './workspace-file-tree.js';
-import {agentDigest} from './protocol.js';
+import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL,WORKSPACE_ID} from '../../../src/native-agent/workspace-chat-request.js';
+import {createEditContext,parseEditProposal,validateEditProposal,EDIT_PROTOCOL} from '../../../src/native-agent/workspace-ai-proposal.js';
+import {readChatGPTEdit,fillChatGPTComposer,assertChatGPTTarget} from '../../../src/native-agent/workspace-chatgpt.js';
+import {validateWorkspaceRead,sameWorkspaceAuthority,verifyWorkspaceWriteReceipt,verifyWorkspaceWriteReadBack} from '../../../src/native-agent/workspace-domain.js';
+import {validateWorkspaceTreeListing} from '../../../src/native-agent/workspace-file-tree.js';
+import {agentDigest} from '../../../src/native-agent/protocol.js';
 import {resolveProjectTask,assertOrdinaryProjectEdit} from './chatgpt-project-policy.js';
 
 export const CHATGPT_FILES_PROTOCOL='opendesk.chatgpt.files.v1';
@@ -189,8 +189,9 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     connected:s.connected,prompt:s.promptPacket?.text||'',request:s.request?.request||null,
     promptPacketId:s.promptPacket?.id,promptDelivery:s.promptPacket?.delivery,
     resultPacketId:s.resultPacket?.result.resultId,result:s.resultPacket?.result||null,
-    automation:{active:!!s.request&&!s.paused&&!s.proposal&&!s.unknown,
-      phase:s.project?.phase==='completed'?'completed':s.paused?'paused':s.proposal?'review':s.project?.phase||'watching'},
+    comparison:s.resultPacket?.result.operation==='write'?s.comparison||null:null,
+    automation:{active:!!s.request&&!s.completed&&!s.paused&&!s.proposal&&!s.unknown,
+      phase:s.completed||s.project?.phase==='completed'?'completed':s.paused?'paused':s.proposal?'review':s.project?.phase||'watching'},
     proposal:s.proposal?{path:s.proposal.path,before:s.proposal.before,content:s.proposal.content,
       baseSha256:s.proposal.baseSha256,requestId:s.proposal.requestId,reviewId:s.proposal.reviewId}:null,
     resultText:s.resultPacket?.text||'',resultStatus:s.resultPacket?.result.status||'',
@@ -198,8 +199,16 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     projectConnection:connection(s.project?s:sessions.get(projectKey(s.source)))});
   async function answer(s){
     await authority(s,s.authority);
-    return readAnswer(api,s.source,s.request.request.requestId,{requireComplete:true,fileRequest:true,requireUserEcho:true,
+    const candidate=await readAnswer(api,s.source,s.request.request.requestId,{requireComplete:true,fileRequest:true,requireUserEcho:true,
       protocols:[REQUEST_PROTOCOL,EDIT_PROTOCOL],requestIds:[s.request.request.requestId,s.edit?.context.requestId].filter(Boolean)});
+    // The file parser deliberately selects only file blocks. Independently
+    // reject a Task in the SAME complete reply rather than letting either
+    // consumer execute its own block from a mixed response.
+    const identity=await readAnswer(api,s.source,'',{identityOnly:true,requireComplete:true,readUserMessage:true,fileRequest:true});
+    if(identity.taskIntentPresent===true)fail('E_CHAT_ROUTE','同一回答包含文件协议和网页 Task；两者均不得执行');
+    if(identity.turnKey!==candidate.turnKey||identity.answerKey!==candidate.answerKey)
+      fail('E_CHAT_ANSWER','文件回答在协议解析与路由核对之间改变，未执行');
+    return candidate;
   }
   async function sameAnswer(s,candidate){
     const current=await answer(s);
@@ -238,11 +247,11 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
   async function run(message,sender,internal){
     let s=internal||sessions.get(owner(sender));
     if(!s||!internal&&s.documentId!==sender.documentId)fail('E_FILE_OWNER','没有当前文档的一次性对话绑定');
-    if(!internal&&message.action!=='prepare'){
+    if(!internal&&!s.request&&message.action!=='prepare'){
       const project=sessions.get(projectKey(s.source));
       if(project?.project&&project.source.documentId===s.source.documentId)s=project;
     }
-    const fields={state:[],prepare:['workspaceId','path','operation','task'],inspect:[],approve:['reviewId'],reconcile:[],fill:['packet','packetId'],observe:[],poll:[],pause:[],
+    const fields={state:[],prepare:['workspaceId','path','operation','task','allowEdit'],inspect:[],approve:['reviewId'],reconcile:[],fill:['packet','packetId'],observe:[],poll:[],pause:[],
       'connect-project':['workspaceId'],'revoke-project':['grantId']};
     if(!Object.hasOwn(fields,message.action)||Object.keys(message).some(key=>!['protocol','action',...fields[message.action]].includes(key)))
       fail('E_FILE_SCHEMA','不支持的文件操作或字段');
@@ -279,6 +288,10 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     }
     if(message.action==='pause'){s.paused=true;s.message='自动处理已暂停；重新批准精确范围后才能继续。';return snapshot(s);}
     if(message.action==='prepare'){
+      if(message.allowEdit!==undefined&&typeof message.allowEdit!=='boolean'||message.allowEdit===true&&message.operation!=='read')
+        fail('E_FILE_SCHEMA','编辑选择必须由可信页面明确绑定到读取请求');
+      if(s.promptPacket?.delivery==='unknown'||s.resultPacket?.delivery==='unknown')
+        fail('E_FILE_DELIVERY_UNKNOWN','原草稿回填结果未知；请核对原对话，不会换身份重放');
       const request=createFileRequestContext({workspaceId:message.workspaceId,bindingId:crypto.randomUUID(),
         path:message.path,operation:message.operation,task:message.task||''});
       await discover(s);const a=s.workspaces.find(row=>row.workspaceId===message.workspaceId);
@@ -287,15 +300,24 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       const page=await readAnswer(api,s.source,'',{identityOnly:true});
       await enabled();if(generation!==stopGeneration)fail('E_FILE_PAUSED','任务已停止');
       s.authority=Object.freeze({...a});s.request=request;s.edit=null;s.proposal=null;s.resultPacket=null;
-      s.paused=false;s.pollKeys=new Set();s.baselineTurn=page.turnKey;
-      // Reuse the established protocol, rules and reader.
-      s.promptPacket={text:request.prompt,id:crypto.randomUUID(),turnKey:page.turnKey,delivery:'ready'};
+      s.paused=false;s.completed=false;s.observed=false;s.allowEdit=message.allowEdit===true;
+      s.comparison=null;s.comparisonRequestId=null;s.pollKeys=new Set();s.baselineTurn=page.turnKey;
+      // Only the trusted choice grants proposal staging. The model echoes the
+      // same six-field request, with no permission or dispatch decisions.
+      const prompt=[
+        '请只原样返回下方这一个完整代码块，所有字段和值保持不变，不添加解释、不调用工具。文件操作由现有 OpenDesk 扩展执行；不要声称已经读取。',
+        s.allowEdit?'本轮先读取文件。收到真实结果后，仅使用其中的 editProposal 提出完整新正文；写入仍须我在可信页面确认。':'本轮只读，结果回填后结束，不生成修改提案。',
+        ...(message.task?.trim()?['任务：'+message.task.trim()]:[]),
+        '```opendesk-request\n'+JSON.stringify(request.request)+'\n```'
+      ].join('\n\n');
+      s.promptPacket={text:prompt,id:crypto.randomUUID(),turnKey:page.turnKey,delivery:'ready'};
       s.message='已选择精确目录和路径；尚未读取文件。请求只回当前对话。';return snapshot(s);
     }
     if(!s.request)fail('E_REQUEST_CONTEXT','请先选择目录并批准具体读取范围');
+    if(s.completed&&['inspect','approve','fill'].includes(message.action))fail('E_FILE_COMPLETED','本轮已完成；请批准新请求，不会重放旧操作');
     if(s.paused&&['inspect','approve','fill'].includes(message.action))fail('E_FILE_PAUSED','处理已暂停，请重新批准当前范围');
     if(message.action==='poll'){
-      if(s.paused||s.proposal||s.unknown)return snapshot(s);
+      if(s.completed||s.paused||s.proposal||s.unknown)return snapshot(s);
       let key;
       const readWasConsumed=s.consumed.has(s.request.request.requestId);
       try{
@@ -347,7 +369,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
         if(request.operation==='read'){
           data=await disk(s,s.authority,request.path);
           const record={...data,baseContent:data.content};
-          s.edit=createEditContext(record,{bindingId:request.bindingId,authority:s.authority,source:s.source});
+          s.edit=s.allowEdit?createEditContext(record,{bindingId:request.bindingId,authority:s.authority,source:s.source}):null;
         }else{
           data=await files.request('files.list',params(s.authority,request.path),expected(s.authority));
           validateWorkspaceTreeListing(data,request.workspaceId,request.path);await authority(s,s.authority);
@@ -357,6 +379,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
           workspaceId:request.workspaceId,path:request.path,baseSha256:data.sha256,content:data.content}:undefined;
         packet(s,request,{data,edit},candidate);s.message='Native 读取成功，结果尚未发送。';
       }else if(protocol===EDIT_PROTOCOL){
+        if(!s.project&&!s.allowEdit)fail('E_FILES_ACCESS','本轮只读，不允许生成或执行编辑提案');
         if(!s.edit)fail('E_EDIT_CONTEXT','请先成功读取当前文件');
         const p=validateEditProposal(parseEditProposal(candidate.blocks[0]),s.edit.context,
           {...s.edit.context,sha256:s.edit.context.baseSha256,content:s.edit.context.baseContent,baseContent:s.edit.context.baseContent});
@@ -373,6 +396,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       return snapshot(s);
     }
     if(message.action==='approve'){
+      if(!s.project&&!s.allowEdit)fail('E_FILES_ACCESS','本轮只读，不允许写入');
       const p=s.proposal;if(!p||s.consumed.has(p.requestId))fail('E_FILE_REPLAY','没有可确认的新提案');
       if(message.reviewId!==p.reviewId)fail('E_FILE_REVIEW','确认不属于当前显示的具体提案，请重新核对');
       if(s.authority.access!=='read-write')fail('E_FILES_ACCESS','目录没有写入权限');
@@ -380,6 +404,10 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       const before=await disk(s,s.authority,p.path);
       if(before.sha256!==p.baseSha256||before.content!==p.before)fail('E_FILES_CONFLICT','原文件已变化，未写入');
       await sameAnswer(s,p.candidate);
+      // Keep comparison out of the model-facing result packet. Each value is
+      // tied to this proposal; a missing readback stays missing on failure.
+      s.comparison={before:before.content,proposed:p.content};
+      s.comparisonRequestId=p.requestId;
       const entry=await reserve(s,p);s.consumed.add(p.requestId);s.unknown={proposal:p,entry};
       if(s.project){s.project.phase='dispatching';await persist();}
       const request={...p,operation:'write'};let receipt;
@@ -390,6 +418,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
           {...expected(s.authority),requestId:p.requestId});
         verifyWorkspaceWriteReceipt(receipt,{workspaceId:p.workspaceId,path:p.path,sha256:entry.targetSha256});
         const after=await disk(s,s.authority,p.path,{recovery:true});
+        s.comparison.readBack=after.content;
         if(!verifyWorkspaceWriteReadBack(after,{workspaceId:p.workspaceId,path:p.path,content:p.content,sha256:entry.targetSha256}))
           fail('E_FILE_READBACK','写入回执后读回不一致','OUTCOME_UNKNOWN');
         await settle(p.requestId,'confirmed');s.unknown=null;if(s.project)s.project.phase='confirmed';
@@ -417,6 +446,8 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       if(!current||entry.sourceUrl!==s.source.url)fail('E_FILES_ACCESS','原目录已撤权或身份已改变，不能对账');
       s.authority=Object.freeze({...current});s.edit=null;s.proposal=null;
       const read=await disk(s,s.authority,entry.path,{recovery:true}),matches=read.sha256===entry.targetSha256;
+      s.comparison={...(s.comparisonRequestId===entry.requestId?s.comparison:{}),readBack:read.content};
+      s.comparisonRequestId=entry.requestId;
       // Readback proves current bytes, never attribution or an original ACK.
       const candidate=await readAnswer(api,s.source,'',{identityOnly:true});
       packet(s,{...s.request.request,requestId:entry.requestId,operation:'write',path:entry.path},
@@ -434,20 +465,35 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       await authority(s,s.authority);p.delivery='unknown';if(s.project)await persist();
       await running(s);
       await fillComposer(api,s.source,p.text,{operationId:p.id||p.result.resultId,turnKey:p.turnKey});
-      p.delivery='filled';s.message='已回填原对话草稿，请在 ChatGPT 点击发送。尚不能认定对话已收到。';return snapshot(s);
+      p.delivery='filled';s.message='已回填原对话草稿，请在 ChatGPT 点击发送。尚不能认定对话已收到。';
+      if(!s.project&&p===s.resultPacket&&(p.result.operation!=='read'||!s.allowEdit)){
+        if(p.result.status==='success'){
+          s.completed=true;
+          s.message=p.result.operation==='write'?'本轮修改已完成：保存与独立读回均已确认，回执已填入草稿。':'本轮只读已完成：真实结果已填入草稿。';
+          s.message+='尚未发送给 ChatGPT；需要模型查看时可自行发送。';
+        }else{s.paused=true;s.message='本轮未成功完成；结果已填入草稿，自动处理已停止。';}
+      }
+      return snapshot(s);
     }
     if(message.action==='observe'){
       if(!s.resultPacket)fail('E_REQUEST_CONTEXT','没有本轮结果');
       const page=await readAnswer(api,s.source,'',{identityOnly:true,resultId:s.resultPacket.result.resultId});
-      s.observed=page.resultObserved===true;s.message=s.observed?'原对话用户消息已包含本轮结果 ID。':'原对话尚未观察到本轮结果，请检查草稿并发送。';return snapshot(s);
+      s.observed=page.resultObserved===true;
+      s.message=s.completed||s.project?.phase==='completed'?
+        '本轮已结束，无需再发送。本次可选检查：'+(s.observed?'原对话用户消息已包含结果 ID。':'尚未观察到结果发送。'):
+        s.observed?'原对话用户消息已包含本轮结果 ID。':'原对话尚未观察到本轮结果，请检查草稿并发送。';
+      return snapshot(s);
     }
   }
   async function beginProject(s){
     await projectAuthority(s);await running(s);
     s.authority={...s.project.workspace};s.pollKeys=new Set();
-    const page=await readAnswer(api,s.source,'',{identityOnly:true,...(s.project.entryTurn?{readUserMessage:true}: {})});
+    const page=await readAnswer(api,s.source,'',{identityOnly:true,readUserMessage:true});
+    if(page.taskIntentPresent===true)fail('E_CHAT_ROUTE','当前回答包含 Task 意图，未读取文件');
     if(s.project.entryTurn&&(page.turnKey!==s.project.entryTurn||page.userText!==s.project.task||!page.answerComplete))
       fail('E_CHAT_TURN','发起任务的用户轮次已改变，未读取文件');
+    if(s.project.entryTurn&&(!s.project.entryAnswerKey||page.answerKey!==s.project.entryAnswerKey))
+      fail('E_CHAT_ANSWER','发起任务的回答未绑定或已改变，未读取文件');
     s.baselineTurn=page.turnKey;
     s.request=createFileRequestContext({workspaceId:s.authority.workspaceId,bindingId:crypto.randomUUID(),path:s.project.path,task:s.project.task});
     s.project.phase='reading';await persist();
@@ -460,7 +506,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     s.project.phase='watching';s.message='已按项目连接读取；请发送原对话草稿，普通修改将自动核验并保存。';
     await persist();await run({action:'fill',packet:'result',packetId:s.resultPacket.result.resultId},null,s);await persist();
   }
-  async function startProject(message,sender,entryTurn,ticket){
+  async function startProject(message,sender,entryTurn,ticket,entryAnswerKey){
     if(Object.keys(message).some(key=>!['task'].includes(key)))fail('E_FILE_SCHEMA','任务不接受网页授权字段');
     const generation=stopGeneration;
     await restore();await enabled();const source=await pageSource(sender),key=projectKey(source),previous=sessions.get(key);
@@ -481,10 +527,10 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       // Consent covers a stable directory and recipient. A new explicit task
       // captures CURRENT Native authority; no old proposal survives reconnect.
       const grant=matching.find(g=>sameProjectIdentity(g.authority,resolved.workspace)&&g.operations.includes(resolved.write?'write':'read'));
-      s.project={id:crypto.randomUUID(),version:1,...(entryTurn?{entryTurn,entrySource:{...source}}:{}),
+      s.project={id:crypto.randomUUID(),version:1,...(entryTurn?{entryTurn,entryAnswerKey,entrySource:{...source}}:{}),
         entryTurns:[...(previous?.source.documentId===source.documentId&&previous.source.url===source.url?previous.project?.entryTurns||[]:[]),...(entryTurn?[entryTurn]:[])],task:entryTurn?message.task:resolved.task,path:resolved.path,write:resolved.write,workspace:{...resolved.workspace},
         phase:'planned',...(grant?{grantId:grant.id,grantVersion:grant.version}:{})};
-      s.authority={...resolved.workspace};s.message=grant?'正在处理项目任务':'首次连接此项目到当前对话后即可继续；取消不会读写文件。';
+      s.authority={...resolved.workspace};s.message=grant?'正在处理项目任务':'当前对话没有有效的项目连接；审阅并连接后才能继续，取消不会读写文件。';
       await running(s);await persist();if(grant)await beginProject(s);
       return {...snapshot(s),needsConnection:!grant};
     }catch(error){
@@ -534,14 +580,16 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
         fail('E_FILE_SCHEMA','只接受已发送的有界用户任务原文');
       await restore();await enabled();const source=await pageSource(sender);
       const page=await readAnswer(api,source,'',{identityOnly:true,readUserMessage:true,fileRequest:true});
+      if(page.taskIntentPresent===true)fail('E_CHAT_ROUTE','当前回答包含 Task 意图，不接入文件任务');
       if(page.userText!==message.task||!page.turnKey||page.turnKey==='no-user')fail('E_CHAT_TURN','任务与最新已发送的用户原文不一致');
       if(!page.answerComplete)fail('E_CHAT_INCOMPLETE','请等待当前轮次完整结束');
+      if(!page.answerKey)fail('E_CHAT_ANSWER','无法绑定当前回答，不接入文件任务');
       const previous=sessions.get(projectKey(source));
       if(previous?.source.documentId===source.documentId&&previous.source.url===source.url&&
         (previous.project?.entryTurn===page.turnKey||previous.project?.entryTurns?.includes(page.turnKey)))
         fail('E_FILE_REPLAY','这个用户轮次已处理，不会重复读取、回填或写入');
       if((previous?.project?.entryTurns?.length||0)>=128)fail('E_FILES_LIMIT','当前对话任务记录已达上限');
-      assertGeneration(generation);assertPending(ticket);return startProject(message,sender,page.turnKey,ticket);
+      assertGeneration(generation);assertPending(ticket);return startProject(message,sender,page.turnKey,ticket,page.answerKey);
     },sender);},
     projectStatus(sender){return enqueue(async()=>{await restore();const source=await pageSource(sender),s=sessions.get(projectKey(source));
       if(!s||s.source.documentId!==source.documentId||s.source.url!==source.url||s.source.windowId!==source.windowId)return {message:'当前没有文件任务'};
@@ -556,7 +604,11 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       }
       return enqueue(async()=>{await restore();const source=await pageSource(sender),s=sessions.get(projectKey(source));
       if(!s||s.source.documentId!==source.documentId||s.source.url!==source.url||s.source.windowId!==source.windowId)return {message:'当前没有文件任务'};
-      s.paused=true;s.message='任务已停止；已派发写入不会重放。';await persist();return snapshot(s);});},
+      s.paused=true;s.message='任务已停止；已派发写入不会重放。';await persist();
+      // Stop remains effective after revocation, but cannot disclose a prior
+      // receipt or file contents without the still-current project grant.
+      if(s.project?.grantId){try{await projectAuthority(s);}catch{return {message:'任务已停止；项目授权不可用，文件详情已隐藏。',automation:{phase:'paused'}};}}
+      return snapshot(s);});},
     tick(){return enqueue(tick);},
     drop(tabId){return enqueue(async()=>{
       await restore();sessions.delete(tabId);

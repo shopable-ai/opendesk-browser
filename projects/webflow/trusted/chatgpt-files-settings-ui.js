@@ -1,4 +1,4 @@
-import {recoverControlFocus} from './control-focus.js';
+import {recoverControlFocus} from '../../../src/native-agent/control-focus.js';
 
 const PROTOCOL='opendesk.chatgpt.project.v1';
 const PREFERENCES_KEY='opendesk.chatgpt.files.preferences.v1';

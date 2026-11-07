@@ -90,6 +90,9 @@ function normalized(op,input={}){
 }
 export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={}){
   const approvals=new Map(),sessions=new Map(),clearPreviews=new Map();
+  // Fence in-flight execution against previews started while its fingerprint
+  // is being computed, even if the newer preview is already consumed.
+  let clearPreviewRevision=0;
   async function guard(target){
     if(!api.permissions?.contains||
        !await api.permissions.contains({permissions:['cookies']})||
@@ -329,8 +332,12 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     await check('pre');
     let result;
     if(op==='browser.cookies.get'||op==='browser.cookies.getAll'||op==='browser.cookies.getAllPage'){
-      const rows=await scan({url:args.url,...key,...(args.name?{name:args.name}:{})},
-        op==='browser.cookies.getAllPage'?10000:50);
+      const exactHost=op==='browser.cookies.getAllPage'&&args.scope==='site-exact-host';
+      const host=new URL(args.url).hostname;
+      const rows=(await scan({...(exactHost?{domain:host}:{url:args.url}),...key,...(args.name?{name:args.name}:{})},
+        op==='browser.cookies.getAllPage'?10000:50)).filter(row=>!exactHost||
+          typeof row.domain==='string'&&row.domain.replace(/^\./,'').toLowerCase()===host&&
+          (!row.secure||new URL(args.url).protocol==='https:'));
       if(op==='browser.cookies.get'){
         const matches=rows.filter(row=>row.name===args.name&&
           (args.domain===undefined||row.domain===args.domain)&&
@@ -378,7 +385,108 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if((await scan(query)).some(row=>row.name===chosen.name&&row.domain===chosen.domain&&
         row.hostOnly===chosen.hostOnly&&row.path===chosen.path))
         throw error('E_OUTCOME_UNKNOWN','Cookie still exists after native remove');
+    }else if(op==='browser.cookies.clearSite'&&args.scope==='site-exact-host'){
+      if(args.preview===true){
+        clearPreviewRevision++;
+        for(const [ref,preview] of clearPreviews)
+          if(preview.ownerKey===ownerKey&&preview.url===args.url&&preview.storeId===storeId)
+            clearPreviews.delete(ref);
+      }
+      const revision=clearPreviewRevision;
+      // Include every path on the authorized host and its approved partition.
+      // A child host cannot mutate a cookie owned by a parent domain.
+      const targetUrl=new URL(args.url),host=targetUrl.hostname;
+      const partitions=[null,...(partitionKey?[partitionKey]:[])];
+      const readVisible=async()=>{
+        const found=[];let excluded=0;
+        for(const part of partitions){
+          await authorize({operation:op,phase:'pre',url:args.url,storeId,partitionKey:part,includeValues:false});
+          const partitionQuery={storeId,...(part?{partitionKey:part}:{})};
+          const rows=await chromeCall(api,api.cookies,'getAll',{domain:host,...partitionQuery});
+          if(!Array.isArray(rows)||rows.length>10000)throw error('E_CHROME');
+          for(const row of rows){
+            if(row.storeId!==storeId||!samePartition(row.partitionKey??null,part))continue;
+            if(typeof row.domain!=='string'||typeof row.path!=='string'||typeof row.name!=='string'||
+              typeof row.hostOnly!=='boolean'||!row.path.startsWith('/'))
+              throw error('E_CHROME');
+            const domain=row.domain.replace(/^\./,'').toLowerCase();
+            if(domain!==host)continue;
+            if(row.secure&&targetUrl.protocol!=='https:'){excluded++;continue;}
+            found.push(row);
+          }
+          const visible=await chromeCall(api,api.cookies,'getAll',{url:args.url,...partitionQuery});
+          if(!Array.isArray(visible)||visible.length>10000)throw error('E_CHROME');
+          for(const row of visible){
+            if(row.storeId!==storeId||!samePartition(row.partitionKey??null,part)||
+              row.hostOnly!==false||typeof row.domain!=='string')continue;
+            const domain=row.domain.replace(/^\./,'').toLowerCase();
+            if(host.endsWith('.'+domain))excluded++;
+          }
+          await authorize({operation:op,phase:'pre',url:args.url,storeId,partitionKey:part,includeValues:false});
+        }
+        if(found.length>(args.maxCookies??50)||excluded>10000)throw error('E_LIMIT');
+        return {found,excluded};
+      };
+      const {found,excluded}=await readVisible();
+      const identity=row=>JSON.stringify([row.name,row.domain,row.hostOnly,row.path,row.storeId,
+        row.partitionKey?.topLevelSite??null,Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+      if(new Set(found.map(identity)).size!==found.length)throw error('E_COOKIE_AMBIGUOUS');
+      for(const [ref,preview] of clearPreviews)if(now()>=preview.expiresAt)clearPreviews.delete(ref);
+      const prior=args.preview===true?null:clearPreviews.get(args.previewRef);
+      if(args.preview!==true)clearPreviews.delete(args.previewRef);
+      const salt=args.preview===true?crypto.randomUUID():prior?.salt;
+      const fingerprints=salt?(await Promise.all(found.map(async row=>{
+        const bytes=new TextEncoder().encode(JSON.stringify([salt,identity(row),row.value??null,
+          row.secure===true,row.httpOnly===true,row.sameSite??null,row.session===true,row.expirationDate??null]));
+        const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+        return Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
+      }))).sort():[];
+      if(args.preview===true){
+        if(revision!==clearPreviewRevision)throw error('E_COOKIE_STALE');
+        if(clearPreviews.size>=16)throw error('E_LIMIT');
+        const previewRef=crypto.randomUUID();
+        clearPreviews.set(previewRef,{url:args.url,ownerKey,storeId,salt,scope:args.scope,
+          partition:JSON.stringify(partitionKey),fingerprints,count:found.length,excluded,expiresAt:now()+60000});
+        result={matched:found.length,removed:0,remaining:found.length,excluded,
+          preview:true,previewRef,scope:'SITE_EXACT_HOST'};
+      }else{
+        if(!prior||revision!==clearPreviewRevision||now()>=prior.expiresAt||prior.url!==args.url||prior.ownerKey!==ownerKey||
+          prior.storeId!==storeId||prior.scope!==args.scope||prior.partition!==JSON.stringify(partitionKey)||
+          [...clearPreviews.values()].some(p=>p.ownerKey===ownerKey&&p.url===args.url&&p.storeId===storeId)||
+          prior.count!==args.expectedCount||prior.excluded!==excluded||
+          JSON.stringify(prior.fingerprints)!==JSON.stringify(fingerprints))
+          throw error('E_COOKIE_STALE','Cookie values or identities changed; refresh the preview');
+        let removed=0;
+        for(const row of found){
+          const part=row.partitionKey??null;
+          const contents=c=>JSON.stringify([c.value??null,c.secure===true,c.httpOnly===true,
+            c.sameSite??null,c.session===true,c.expirationDate??null]);
+          const expectedContents=contents(row);
+          const selectedContext={cookieTool:{authorize:async(url,_method,phase)=>
+            authorize({operation:op,phase,url,storeId,partitionKey:part,includeValues:false})}};
+          try{
+            const receipt=await existing.remove({url:args.url,name:row.name,storeId,
+              ...(part?{partitionKey:part}:{})},
+              {...selectedContext,expectedCookieIdentity:redact(row),
+                expectedCookieCheck:current=>contents(current)===expectedContents});
+            if(receipt.removed!==true||receipt.verified!==true)throw error('E_OUTCOME_UNKNOWN');
+            removed++;
+          }catch{throw error('E_OUTCOME_UNKNOWN','Partial Cookie cleanup possible; reconcile before retry');}
+        }
+        try{
+          const after=await readVisible();
+          result={matched:found.length,removed,remaining:after.found.length,excluded:after.excluded,
+            preview:false,scope:'SITE_EXACT_HOST'};
+        }catch{throw error('E_OUTCOME_UNKNOWN','Cookie cleanup completed but readback is uncertain');}
+      }
     }else if(op==='browser.cookies.clearSite'){
+      if(args.preview===true){
+        clearPreviewRevision++;
+        for(const [ref,preview] of clearPreviews)
+          if(preview.ownerKey===ownerKey&&preview.url===args.url&&preview.storeId===storeId)
+            clearPreviews.delete(ref);
+      }
+      const revision=clearPreviewRevision;
       const host=new URL(args.url).hostname;
       const rows=await scan({domain:host,...key});
       const current=rows.filter(row=>row.hostOnly===true&&row.domain.replace(/^\./,'').toLowerCase()===host&&
@@ -390,6 +498,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(new Set(identities).size!==current.length)throw error('E_COOKIE_AMBIGUOUS');
       for(const [ref,preview] of clearPreviews)if(now()>=preview.expiresAt)clearPreviews.delete(ref);
       const prior=args.preview===true?null:clearPreviews.get(args.previewRef);
+      if(args.preview!==true)clearPreviews.delete(args.previewRef);
       // Store no Cookie plaintext in approval receipts. Bind a preview to the
       // exact values and attributes, not just name/path/count: another login
       // can replace a Cookie without changing its native identity.
@@ -404,6 +513,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
         return Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
       }))).sort():[];
       if(args.preview===true){
+        if(revision!==clearPreviewRevision)throw error('E_COOKIE_STALE');
         if(clearPreviews.size>=16)throw error('E_LIMIT','Too many pending Cookie clear previews');
         const previewRef=crypto.randomUUID();
         clearPreviews.set(previewRef,{url:args.url,ownerKey,storeId,salt,
@@ -413,14 +523,18 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
           preview:true,previewRef,scope:'EXACT_HOST_HOST_ONLY'};
       }else{
         const preview=prior;
-        clearPreviews.delete(args.previewRef); // one-use even on a stale/corrupt request
-        if(!preview||now()>=preview.expiresAt||preview.url!==args.url||
+        if(!preview||revision!==clearPreviewRevision||now()>=preview.expiresAt||preview.url!==args.url||
            preview.ownerKey!==ownerKey||preview.storeId!==storeId||
+           [...clearPreviews.values()].some(p=>p.ownerKey===ownerKey&&p.url===args.url&&p.storeId===storeId)||
            preview.partition!==JSON.stringify(key.partitionKey??null)||
            preview.count!==args.expectedCount||
            JSON.stringify(preview.fingerprints)!==JSON.stringify(fingerprints))
           throw error('E_COOKIE_STALE','Cookie values or identities changed; refresh the preview');
-        result={...await existing.clearSite({url:args.url,...key,maxCookies:args.maxCookies??50},context),
+        const contents=row=>JSON.stringify([row.value??null,row.secure===true,row.httpOnly===true,
+          row.sameSite??null,row.session===true,row.expirationDate??null]);
+        const expected=new Map(current.map(row=>[cookieIdentity(row),contents(row)]));
+        result={...await existing.clearSite({url:args.url,...key,maxCookies:args.maxCookies??50},
+          {...context,expectedCookieCheck:row=>expected.get(cookieIdentity(row))===contents(row)}),
           preview:false,scope:'EXACT_HOST_HOST_ONLY'};
       }
     }else if(op==='browser.cookies.observe.start'){

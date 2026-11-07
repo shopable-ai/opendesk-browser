@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 import {digest, digestUtf8} from '../../src/platform/protocol.js';
 import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey, installedKey,
-  TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
+  scriptStorageKey, TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {assertInstalledTask, assertRunTaskAuthorization, taskMethods} from '../../src/platform/tasks/service.js';
 import {selectInstalledTaskRoute} from '../../src/ui/workflow/installed-task-reuse.js';
 
@@ -30,7 +30,19 @@ function fixture() {
     put:async(store,value,key)=>{read(store).set(key,structuredClone(value));},
     delete:async(store,key)=>{read(store).delete(key);},
     all:async store=>[...read(store).values()].map(row=>structuredClone(row))};
-  const storage={transaction:async(stores,mode,fn)=>fn(tx)};
+  // Serialize like IndexedDB and roll back all stores if a transaction aborts.
+  let pending=Promise.resolve(),failCommit=false;
+  const storage={transaction:(stores,mode,fn)=>{
+    const next=pending.then(async()=>{
+      const before=structuredClone(data);
+      try {
+        const answer=await fn(tx);
+        if(failCommit){failCommit=false;throw new Error('fixture transaction aborted');}
+        return answer;
+      } catch(error) {data.clear();for(const [store,rows] of before)data.set(store,rows);throw error;}
+    });
+    pending=next.catch(()=>{});return next;
+  }};
   const host={namespace:'tool:fixture',registrationId:'host-1'};
   let builtinSource=fakeBuiltinSource;
   const runtime={getURL:path=>'chrome-extension://fixture/'+path};
@@ -39,7 +51,7 @@ function fixture() {
   },assertHost:async()=>host,currentHost:async()=>true,
     clock:{now:()=>1720000000000}});
   const send=(name,payload)=>service[name](payload,{});
-  return {tx,read,send,namespace:host.namespace,setBuiltin:value=>{builtinSource=value;}};
+  return {tx,read,send,namespace:host.namespace,setBuiltin:value=>{builtinSource=value;},abortNextCommit:()=>{failCommit=true;}};
 }
 const errorCode=code=>error=>error?.code===code;
 
@@ -228,14 +240,18 @@ test('Task enable refuses stale installation, candidate or proof without changin
   }
 });
 
-test('Task immutable runtime refuses missing legacy identity, changed ABI and changed fixed bytes',async()=>{
+test('Task exact import reports stale runtime read-only for missing identity, changed ABI and fixed bytes',async()=>{
   for(const kind of ['missing','abi','bundle','catalog']){
     const f=fixture(),pkg=await example();await f.send('importTaskPackage',{package:pkg});
     const candidate=(await f.tx.all('frameworkKV'))[0];
     if(kind==='missing'){
       delete candidate.builtinIdentity;await f.tx.put('frameworkKV',candidate,taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version));
     }else f.setBuiltin({...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})});
-    await assert.rejects(f.send('importTaskPackage',{package:pkg}),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    const before=await f.tx.all('frameworkKV');
+    assert.equal((await f.send('importTaskPackage',{package:pkg})).runtimeCurrent,false);
+    assert.equal((await f.send('getTaskCandidate',{taskId:pkg.manifest.taskId,version:pkg.manifest.version})).runtimeCurrent,false);
+    assert.equal((await f.send('listTaskCatalog',{})).catalog[0].runtimeCurrent,false);
+    assert.deepEqual(await f.tx.all('frameworkKV'),before);
     assert.equal((await f.tx.all('runs')).length,0);
     assert.equal((await f.tx.all('scriptRevisions')).length,0);
   }
@@ -426,4 +442,181 @@ test('multi-origin Task verifies shared source on one declared origin and preser
     await assert.rejects(assertInstalledTask(f.tx,f.namespace,{...admission,origin}),errorCode('E_PERMISSION'));
   await assert.rejects(assertRunTaskAuthorization(f.tx,active),errorCode('E_PERMISSION'));
   assert.equal((await f.tx.get('runs',active.runId)).state,'stopping');
+});
+
+async function recoveryProof(f,pkg,suffix,identity=environment) {
+  const runId='recovery-run-'+suffix,resultId='recovery-result-'+suffix,requestId='recovery-op-'+suffix;
+  const hash=pkg.manifest.program.sourceHash;
+  const run={tag:'controller-run',runId,resultId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,builtinIdentity:identity,
+    scriptId:'draft:recovery',hostInstanceId:'recovery-host',hostDocumentId:'recovery-doc',
+    state:'completed',retirementState:'released',workerRetired:true,
+    revision:{sourceHash:hash},target:{allowedOrigin:pkg.manifest.siteOrigins[0]}};
+  const result={tag:'controller-result',runId,resultId,namespace:f.namespace,builtinIdentity:identity,
+    state:'completed',revision:{sourceHash:hash},outcome:{ok:true}};
+  const envelope={requestId,identity:{tag:'controller-run',runId,scriptId:run.scriptId,
+    hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,contentHash:hash},
+    revision:{sourceHash:hash},target:run.target,operation:{kind:'packaged',method:'click',args:[]}};
+  const reply={requestId,value:{kind:'undefined'}};
+  const op={tag:'controller-operation',runId,state:'durable',envelope,reply,
+    requestDigest:await digest(envelope,{maxDepth:48}),nativeReceipts:[{stage:'result',requestId,receipt:reply}]};
+  await f.tx.put('runs',run,runId);await f.tx.put('results',result,resultId);
+  await f.tx.put('commandJournal',op,requestId);
+  return {run,result,op,runId,resultId,requestId};
+}
+async function installedRecoveryFixture({disabled=false}={}) {
+  const f=fixture(),pkg=await example();
+  const request={taskId:pkg.manifest.taskId,version:pkg.manifest.version};
+  await f.send('importTaskPackage',{package:pkg});
+  const proof=await recoveryProof(f,pkg,'old');
+  await f.send('verifyTaskCandidate',{...request,runId:proof.runId});
+  await f.send('makeTaskAvailable',{...request,manifestHash:pkg.manifestHash});
+  await f.send('installTask',{...request,manifestHash:pkg.manifestHash,expectedInstalledVersion:null});
+  const installed=(await f.send('listTaskCatalog',{})).installed[0];
+  if(disabled)await f.send('setInstalledTaskEnabled',{...request,enabled:false,
+    expectedGeneration:installed.generation,expectedInstallationId:installed.installationId});
+  const candidateKey=taskKey(f.namespace,request.taskId,request.version),installKey=installedKey(f.namespace,request.taskId);
+  const oldCandidate=await f.tx.get('frameworkKV',candidateKey),oldInstall=await f.tx.get('frameworkKV',installKey);
+  const revisionKey=scriptStorageKey(f.namespace,oldInstall.scriptId,1);
+  const oldRevision=await f.tx.get('scriptRevisions',revisionKey);
+  const freshAsset={...fakeBuiltinSource,sha256:'b'.repeat(64),catalogSha256:'c'.repeat(64)};
+  f.setBuiltin(freshAsset);
+  const current=builtinIdentity(freshAsset);
+  const verify=runId=>f.send('verifyTaskCandidate',{...request,runId});
+  const available=()=>f.send('makeTaskAvailable',{...request,manifestHash:pkg.manifestHash});
+  const install=()=>f.send('installTask',{...request,manifestHash:pkg.manifestHash,expectedInstalledVersion:request.version,
+    expectedGeneration:oldInstall.authorization.generation,expectedInstallationId:oldInstall.authorization.installationId});
+  return {f,pkg,request,proof,candidateKey,installKey,revisionKey,oldCandidate,oldInstall,oldRevision,current,verify,available,install};
+}
+
+test('same immutable Task recovers through fresh proof and atomic same-version reinstall with archived history',async()=>{
+  for(const disabled of [false,true]){
+    const c=await installedRecoveryFixture({disabled});
+    const {f,pkg,request,current,oldCandidate,oldInstall,oldRevision}=c;
+    const historical={runs:await f.tx.all('runs'),results:await f.tx.all('results'),journal:await f.tx.all('commandJournal')};
+    assert.equal((await f.send('importTaskPackage',{package:pkg})).runtimeCurrent,false);
+    let catalog=await f.send('listTaskCatalog',{});
+    assert.equal(catalog.catalog[0].runtimeCurrent,false);assert.equal(catalog.installed[0].runtimeCurrent,false);
+    await assert.rejects(c.available(),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    await assert.rejects(c.install(),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    const fresh=await recoveryProof(f,pkg,'fresh',current);
+    const verified=await c.verify(fresh.runId);
+    assert.equal(verified.stage,'verified');assert.equal(verified.runtimeCurrent,true);
+    const recovered=await f.tx.get('frameworkKV',c.candidateKey);
+    assert.deepEqual(recovered.package,pkg);
+    assert.deepEqual(recovered.runtimeHistory,[{builtinIdentity:oldCandidate.builtinIdentity,stage:oldCandidate.stage,
+      verification:oldCandidate.verification,availableAt:oldCandidate.availableAt}]);
+    assert.equal(Object.hasOwn(recovered,'availableAt'),false);
+    assert.equal(recovered.verification.runId,fresh.runId);
+    assert.deepEqual(recovered.builtinIdentity,current);
+    assert.deepEqual(recovered.verification.builtinIdentity,current);
+    // A current verified/available version keeps its existing idempotent behavior.
+    assert.deepEqual(await c.verify('not-a-run'),verified);
+    await assert.rejects(c.install(),errorCode('E_VERIFICATION'));
+    await c.available();
+    assert.equal((await c.verify('not-a-run')).stage,'available');
+    catalog=await f.send('listTaskCatalog',{});
+    assert.equal(catalog.catalog[0].runtimeCurrent,true);assert.equal(catalog.installed[0].runtimeCurrent,false);
+    const active={tag:'controller-run',runId:'recovery-active',namespace:f.namespace,scriptId:oldInstall.scriptId,
+      builtinAbi:BUILTIN_ABI,state:'running',cancelSeq:0,ownerEpoch:1,runRevision:1,eventSeq:1,
+      installedTaskAuthorization:{taskId:request.taskId,version:request.version,manifestHash:pkg.manifestHash,
+        authorization:oldInstall.authorization}};
+    await f.tx.put('runs',active,active.runId);
+    const leaseKey='controller-pin:'+active.runId,lease={cancelSeq:0,state:'running'};
+    await f.tx.put('commandJournal',lease,leaseKey);
+    const beforeInstall={kv:await f.tx.all('frameworkKV'),revisions:await f.tx.all('scriptRevisions'),
+      runs:await f.tx.all('runs'),journal:await f.tx.all('commandJournal')};
+    f.abortNextCommit();
+    await assert.rejects(c.install(),/transaction aborted/);
+    assert.deepEqual(await f.tx.all('frameworkKV'),beforeInstall.kv);
+    assert.deepEqual(await f.tx.all('scriptRevisions'),beforeInstall.revisions);
+    assert.deepEqual(await f.tx.all('runs'),beforeInstall.runs);
+    assert.deepEqual(await f.tx.all('commandJournal'),beforeInstall.journal);
+    // Two callers with the same installation snapshot cannot both advance it.
+    const results=await Promise.allSettled([c.install(),c.install()]);
+    assert.equal(results.filter(item=>item.status==='fulfilled').length,1);
+    assert.equal(results.find(item=>item.status==='rejected').reason.code,'E_REVISION');
+    const installation=await f.tx.get('frameworkKV',c.installKey),revision=await f.tx.get('scriptRevisions',c.revisionKey);
+    assert.deepEqual(await f.tx.get('runs',active.runId),{...active,state:'stopping',cancelSeq:1,ownerEpoch:2,
+      runRevision:2,eventSeq:2,terminalReason:'E_PERMISSION'});
+    assert.deepEqual(await f.tx.get('commandJournal',leaseKey),{...lease,cancelSeq:1,state:'stopping'});
+    assert.deepEqual(installation.runtimeHistory,[oldInstall]);
+    assert.equal(installation.authorization.installationId,oldInstall.authorization.installationId);
+    assert.equal(installation.authorization.generation,oldInstall.authorization.generation+1);
+    assert.equal(installation.enabled,!disabled);assert.equal(installation.installedAt,oldInstall.installedAt);
+    assert.deepEqual(revision,{...oldRevision,builtinIdentity:current,builtinIdentityHistory:[oldRevision.builtinIdentity]});
+    assert.deepEqual(await f.tx.get('runs',c.proof.runId),historical.runs[0]);
+    assert.deepEqual(await f.tx.get('results',c.proof.resultId),historical.results[0]);
+    assert.deepEqual(await f.tx.get('commandJournal',c.proof.requestId),historical.journal[0]);
+    const oldRun={scriptId:oldInstall.scriptId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,
+      installedTaskAuthorization:{taskId:request.taskId,version:request.version,manifestHash:pkg.manifestHash,
+        authorization:oldInstall.authorization}};
+    await assert.rejects(assertRunTaskAuthorization(f.tx,oldRun),errorCode('E_PERMISSION'));
+    assert.equal((await f.send('listTaskCatalog',{})).installed[0].runtimeCurrent,true);
+    if(disabled){
+      await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId}),errorCode('E_PERMISSION'));
+      await f.send('setInstalledTaskEnabled',{...request,enabled:true,expectedGeneration:installation.authorization.generation,
+        expectedInstallationId:installation.authorization.installationId});
+    }
+    const resolved=await f.send('resolveInstalledTask',{taskId:request.taskId});
+    assert.equal(resolved.version,request.version);assert.equal(resolved.contentHash,oldRevision.contentHash);
+    await assertInstalledTask(f.tx,f.namespace,{scriptId:resolved.scriptId,contentHash:resolved.contentHash,
+      builtinIdentity:current,origin:pkg.manifest.siteOrigins[0],params:{name:'Alice'}});
+  }
+});
+
+test('stale Task recovery rejects stale or incomplete proof without any candidate or installation writes',async()=>{
+  const mutations=[
+    ['old proof',null,'E_BUILTIN_VERSION_UNAVAILABLE'],
+    ['missing run',null,'E_VERIFICATION'],
+    ['missing receipt',({op})=>{op.nativeReceipts=[];},'E_VERIFICATION'],
+    ['wrong receipt',({op})=>{op.nativeReceipts[0].receipt={requestId:'other'};},'E_VERIFICATION'],
+    ['wrong digest',({op})=>{op.requestDigest='0'.repeat(64);},'E_VERIFICATION'],
+    ['wrong host',async({op})=>{op.envelope.identity.hostDocumentId='other';op.requestDigest=await digest(op.envelope,{maxDepth:48});},'E_VERIFICATION'],
+    ['stale run ABI',({run})=>{run.builtinAbi='old';},'E_BUILTIN_VERSION_UNAVAILABLE'],
+    ['stale run identity',({run})=>{run.builtinIdentity=environment;},'E_BUILTIN_VERSION_UNAVAILABLE'],
+    ['missing result identity',({result})=>{delete result.builtinIdentity;},'E_BUILTIN_VERSION_UNAVAILABLE'],
+    ['wrong result identity',({result})=>{result.builtinIdentity={...environment,bundleSha256:'d'.repeat(64)};},'E_BUILTIN_VERSION_UNAVAILABLE'],
+    ['wrong source',({result})=>{result.revision.sourceHash='0'.repeat(64);},'E_VERIFICATION'],
+    ['unretired worker',({run})=>{run.workerRetired=false;},'E_VERIFICATION'],
+    ['revoked delivery',({run})=>{run.resultDeliveryRevoked=true;},'E_VERIFICATION']
+  ];
+  for(const [reason,mutate,code] of mutations){
+    const c=await installedRecoveryFixture(),{f,pkg}=c;
+    let runId=reason==='old proof'?c.proof.runId:'missing';
+    if(mutate){
+      const proof=await recoveryProof(f,pkg,'negative',c.current);await mutate(proof);runId=proof.runId;
+      await f.tx.put('runs',proof.run,proof.runId);await f.tx.put('results',proof.result,proof.resultId);
+      await f.tx.put('commandJournal',proof.op,proof.requestId);
+    }
+    const before={kv:await f.tx.all('frameworkKV'),revisions:await f.tx.all('scriptRevisions')};
+    await assert.rejects(c.verify(runId),errorCode(code),reason);
+    assert.deepEqual(await f.tx.all('frameworkKV'),before.kv,reason);
+    assert.deepEqual(await f.tx.all('scriptRevisions'),before.revisions,reason);
+  }
+});
+
+test('runtime recovery preserves package hashes, revision integrity and install CAS before rebinding',async()=>{
+  const c=await installedRecoveryFixture(),{f,pkg,request}=c;
+  const changedSource=source+'\n// changed';
+  const changed=await createTaskPackage({...pkg.manifest,program:{...pkg.manifest.program,sourceHash:await digestUtf8(changedSource)}},changedSource);
+  const changedManifest=await createTaskPackage({...pkg.manifest,title:'different'},source);
+  for(const replacement of [changed,changedManifest])
+    await assert.rejects(f.send('importTaskPackage',{package:replacement}),errorCode('E_REQUEST_CONFLICT'));
+  const fresh=await recoveryProof(f,pkg,'integrity',c.current);
+  await c.verify(fresh.runId);await c.available();
+  for(const field of ['sourceUtf8','contentHash']){
+    await f.tx.put('scriptRevisions',{...c.oldRevision,[field]:'changed'},c.revisionKey);
+    const before=await f.tx.all('frameworkKV');
+    await assert.rejects(c.install(),errorCode('E_HASH'));
+    assert.deepEqual(await f.tx.all('frameworkKV'),before);
+  }
+  await f.tx.put('scriptRevisions',c.oldRevision,c.revisionKey);
+  for(const stale of [{expectedGeneration:0},{expectedInstallationId:'other'},{expectedInstalledVersion:null}]){
+    const before=await f.tx.all('scriptRevisions');
+    await assert.rejects(f.send('installTask',{...request,manifestHash:pkg.manifestHash,
+      expectedInstalledVersion:request.version,expectedGeneration:c.oldInstall.authorization.generation,
+      expectedInstallationId:c.oldInstall.authorization.installationId,...stale}),errorCode('E_REVISION'));
+    assert.deepEqual(await f.tx.all('scriptRevisions'),before);
+  }
+  await c.install();
 });

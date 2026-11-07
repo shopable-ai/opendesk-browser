@@ -110,3 +110,22 @@ test('Side Panel approves two distinct pinned Tasks with individual result scope
     assert.equal(model().authorization.resultConsent,false);
   }finally{control.dispose();}
 });
+
+// A runtime change must keep the fixed Task fence and explain the recovery.
+test('approval reports stale builtin verification without exposing remote details',async()=>{
+  const {doc,reactUI,model}=surface();
+  const control=createCloudHosting({client:{cloud:{
+    cloudStatus:async()=>({provider:{providerId:'p'},enabled:false,tasks:[],requests:[]}),
+    cloudApprove:async()=>{throw {code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'PRIVATE_RUNTIME_DETAIL'};}
+  },request:async()=>({catalog,installed})},host:{},document:doc,api:{},reactUI});
+  try{
+    for(let i=0;i<5;i++)await setImmediate();
+    model().authorization.onSelection(model().authorization.tasks[0].key,true);
+    model().authorization.onConsent(true);
+    await model().authorization.onApprove();
+    assert.match(model().pairing.status,/内置运行时已改变.*新任务版本.*重新试运行、验证并安装/);
+    assert.doesNotMatch(model().pairing.status,/PRIVATE_RUNTIME_DETAIL/);
+    assert.equal(model().authorization.hostingEnabled,false);
+    assert.equal(model().authorization.consent,false);
+  }finally{control.dispose();}
+});

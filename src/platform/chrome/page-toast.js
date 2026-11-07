@@ -2,7 +2,7 @@ import {showPageToast} from '../../scripting/user-scripts/page-toast.js';
 
 // Trusted adapters supply their existing authorization and live target checks.
 // This is not a sandbox RPC, permission grant, or arbitrary-script interface.
-export async function requestPageToast({api,currentPageTarget,assertCurrent,assertInstalled,id,message,variant,duration,position}){
+export async function requestPageToast({api,currentPageTarget,assertCurrent,assertInstalled,id,message,variant,duration,position,dismissible,countdown}){
   assertCurrent();
   const target=currentPageTarget.capture();
   let url;
@@ -17,7 +17,7 @@ export async function requestPageToast({api,currentPageTarget,assertCurrent,asse
   if(['windowId','tabId','documentId','url','origin'].some(key=>live[key]!==target[key]))
     throw Object.assign(new Error('Page changed before feedback'),{code:'E_DOCUMENT_STALE'});
   const results=await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},
-    world:'ISOLATED',func:showPageToast,args:[{id,message,variant,duration,position}]});
+    world:'ISOLATED',func:showPageToast,args:[{id,message,variant,duration,position,dismissible,countdown}]});
   const receipt=results?.find(row=>row.documentId===target.documentId&&row.frameId===0);
   return {shown:receipt?.result?.shown===true};
 }

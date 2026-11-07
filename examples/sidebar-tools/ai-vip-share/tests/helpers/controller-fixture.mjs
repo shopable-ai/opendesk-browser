@@ -42,14 +42,14 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   sessionTarget:(store.get(PREFERENCE)?.schemaVersion===1?ORIGIN:store.get(PREFERENCE)?.serviceOrigin??NEW_ORIGIN)+'/session/'}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
-  developmentControls=false,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
+  developmentControls=false,reviewedService,productionNetwork,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites',
     'ai-vip-service-mode','ai-vip-demo-availability','ai-vip-feature-member',
     'ai-vip-feature-redeem','ai-vip-feature-cookie','ai-vip-feature-shop',
     'ai-vip-feature-proxy','ai-vip-shared-section','ai-vip-shared-account',
-    'ai-vip-shared-status'];
+    'ai-vip-shared-status','ai-vip-source-auth','ai-vip-source-credential','ai-vip-source-clear'];
   const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id));
   assert(testOnly.every(id=>!ids.has(id)),
     'Development/account allocation diagnostics must not appear in shipped App.jsx');
@@ -76,6 +76,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   };
   const request=async args=>{
     calls.push(clone(args));
+    if(productionNetwork)return productionNetwork(args,fixture);
     if(ordinaryNetwork&&![ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin))return ordinaryNetwork(args);
     assert.equal(args.config.headers?.['X-OpenDesk-Local-Test'],'1');
     assert.ok([ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin));
@@ -107,7 +108,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   // lifecycle wrapper; do not add testing exports to production code.
   const anchor='  return release;\n  }\n  // Legacy Node VM fixtures';
   assert.ok(script.includes(anchor),'AI VIP controller instrumentation anchor changed');
-  const instrumented=script.replace(anchor,
+  const instrumented=script.replace('serviceDefinition=REVIEWED_SERVICE','serviceDefinition='+JSON.stringify(reviewedService??null)).replace(anchor,
     '  window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n'+anchor);
   const document=Object.assign(documentState??{},{createElement:()=>node()});
   await runControllerVm(instrumented,{window,document,URL,Date:dateClock,Intl,performance:performanceClock,

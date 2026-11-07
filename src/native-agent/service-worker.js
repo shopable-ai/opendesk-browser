@@ -3,7 +3,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_LAST_C
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
-import {installChatGPTFilesService} from './chatgpt-files-service.js';
+import {installChatGPTFilesService} from '../../projects/webflow/trusted/chatgpt-files-service.js';
 import {installChatGPTImageService} from '../../projects/webflow/trusted/chatgpt-images.js';
 import {createManagedServiceClient} from './managed-service-client.js';
 import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';

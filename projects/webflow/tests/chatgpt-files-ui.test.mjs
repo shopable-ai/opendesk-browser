@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initChatGPTFilesUI} from '../../src/native-agent/chatgpt-files-ui.js';
+import {initChatGPTFilesUI} from '../trusted/chatgpt-files-ui.js';
 
 // Only trusted-page UI scheduling is exercised here; sender/Native authority
 // is verified separately by the controller and actual browser tests.
@@ -58,6 +58,39 @@ test('uncertain responses stop automatic timers instead of retrying',async()=>{
 test('closing the trusted document ends automatic scheduling',async()=>{
   const h=fixture();await h.openConnection();await h.prepare();assert.equal(h.queue.size,1);
   h.window.emit('pagehide');assert.equal(h.queue.size,0);
+});
+
+test('read-only and read-edit choices bind trusted intent while keeping the read protocol',async()=>{
+  for(const mode of ['read','read-edit']){
+    const h=fixture();await h.openConnection();h.nodes.operation.value=mode;await h.prepare();
+    const sent=h.calls.find(call=>call.action==='prepare');
+    assert.equal(sent.operation,'read');assert.equal(sent.allowEdit,mode==='read-edit');
+  }
+});
+test('completion empties the timer queue and a fresh prepare starts a new round',async()=>{
+  const h=fixture();await h.openConnection();await h.prepare();
+  h.respond({automation:{active:false,phase:'completed'},message:'本轮只读已完成。',delivery:'filled'});
+  await h.tick();assert.equal(h.queue.size,0);assert.match(h.nodes.message.textContent,/已完成/);
+  assert.match(h.nodes.delivery.textContent,/无需再发送/);assert.doesNotMatch(h.nodes.delivery.textContent,/仍需用户点击发送/);
+  assert.doesNotMatch(h.nodes.message.textContent,/自动等待/);assert.equal(h.nodes.inspect.disabled,true);
+  h.nodes.prepare.emit('click');await h.settle();
+  assert.equal(h.queue.size,1);assert.equal(h.calls.filter(call=>call.action==='prepare').length,2);
+});
+
+test('read-only, list and edit review describe their actual next action',async()=>{
+  for(const mode of ['read','list','read-edit']){
+    const h=fixture();await h.openConnection();h.nodes.operation.value=mode;await h.prepare();
+    assert.doesNotMatch(h.nodes.delivery.textContent,/需在原对话发送读取结果/);
+    h.respond({resultText:'actual local result',delivery:'filled',
+      automation:{active:mode==='read-edit',phase:mode==='read-edit'?'watching':'completed'}});
+    await h.tick();
+    assert.match(h.nodes.delivery.textContent,mode==='read-edit'?/发送真实读取结果/:/无需再发送/);
+    if(mode==='read-edit'){
+      h.respond({proposal:{reviewId:'review-shown'},automation:{active:false,phase:'review'}});
+      await h.tick();assert.match(h.nodes.delivery.textContent,/审阅.*确认/);
+      assert.doesNotMatch(h.nodes.delivery.textContent,/发送读取结果/);
+    }
+  }
 });
 
 test('trusted clicks carry the exact displayed proposal and composer packet identities',async()=>{

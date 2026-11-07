@@ -479,12 +479,13 @@ export function normalizeBrowserOperation(operation,args={}){
       break;
 
     case 'browser.cookies.getAllPage':{
-      fields(args,['url','name','storeId','partitionKey','includeValues','cursor','limit'],['url']);
-      const {cursor,limit,...query}=args;
+      fields(args,['url','name','storeId','partitionKey','includeValues','scope','cursor','limit'],['url']);
+      const {cursor,limit,scope,...query}=args;
+      if(scope!==undefined&&scope!=='site-exact-host')throw fail('E_SCHEMA','Invalid Cookie listing scope');
       if(cursor!==undefined&&(typeof cursor!=='string'||! /^[a-f0-9]{64}:[1-9]\d{0,4}$/.test(cursor)))throw fail('E_SCHEMA');
       if(limit!==undefined&&(!Number.isSafeInteger(limit)||limit<1||limit>50))throw fail('E_SCHEMA');
       return {...normalizeBrowserOperation('browser.cookies.getAll',query),
-        ...(cursor!==undefined?{cursor}:{}),...(limit!==undefined?{limit}:{})};
+        ...(scope?{scope}:{}),...(cursor!==undefined?{cursor}:{}),...(limit!==undefined?{limit}:{})};
     }
     case 'browser.cookies.setMany':{
       fields(args,['url','cookies'],['url','cookies']);
@@ -520,7 +521,7 @@ export function normalizeBrowserOperation(operation,args={}){
         tail==='observe.start'?['url','durationMs','maxEvents']:
         tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey','ifAbsent']:
         tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
-        tail==='clearSite'?['url','storeId','partitionKey','preview','previewRef','expectedCount','maxCookies']:
+        tail==='clearSite'?['url','storeId','partitionKey','scope','preview','previewRef','expectedCount','maxCookies']:
         tail==='get'?['url','name','domain','path','storeId','partitionKey','includeValues']:
         tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
           ['url','storeId','partitionKey'];
@@ -575,6 +576,8 @@ export function normalizeBrowserOperation(operation,args={}){
           throw fail('E_COOKIE_SCOPE','Exact Cookie domain and path required');
       }
       if(tail==='clearSite'){
+        if(args.scope!==undefined&&(args.scope!=='site-exact-host'||args.partitionKey!==undefined))
+          throw fail('E_SCHEMA','Invalid Cookie clear scope');
         if(args.preview!==undefined&&typeof args.preview!=='boolean')throw fail('E_SCHEMA');
         if(args.previewRef!==undefined&&
           (typeof args.previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(args.previewRef)))

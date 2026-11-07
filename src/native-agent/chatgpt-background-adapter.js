@@ -14,7 +14,7 @@ const pinKeys=['version','manifestHash','contentHash','scriptId','revision','ins
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
 // Only confirmed mismatches retire a queued candidate. Browser/read failures,
 // incomplete replies and unavailable resources retain the original row.
-const invalidCandidateCodes=new Set(['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER']);
+const invalidCandidateCodes=new Set(['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER','E_CHAT_ROUTE']);
 const invalidTaskCodes=new Set(['E_BRIDGE_INSTALL','E_BRIDGE_UNSUPPORTED_SCOPE','E_BRIDGE_REVISION','E_BRIDGE_CONTEXT',
   'E_PERMISSION','E_REVISION','E_PARAMS','E_OWNER','E_HASH','E_BUILTIN_VERSION_UNAVAILABLE']);
 

@@ -12,6 +12,7 @@ const html = readFileSync(new URL('index.html', base), 'utf8');
 const script = readFileSync(new URL('app.js', base), 'utf8');
 const pkg = JSON.parse(readFileSync(new URL('../../examples/tasks/form-fill.v1.opendesk-task.json', import.meta.url), 'utf8'));
 const upgrade = JSON.parse(readFileSync(new URL('form-fill.v1.0.1.opendesk-task.json', base), 'utf8'));
+const upgrades = [upgrade, JSON.parse(readFileSync(new URL('form-fill.v1.0.2.opendesk-task.json', base), 'utf8'))];
 const key = '11111111-1111-4111-8111-111111111111';
 const otherKey = '22222222-2222-4222-8222-222222222222';
 const storedKey = 'opendesk.mac24dev-demo.request.v1.569';
@@ -26,7 +27,7 @@ const catalog = {
 const row = (overrides = {}) => ({requestKey: key, deviceId: 1288, taskId: 'sample.form-fill', version: '1.0.0',
   jobId: '33333333-3333-4333-8333-333333333333', state: 'queued', receiptConfirmed: false, cancelRequested: false, ...overrides});
 
-test('reviewed fixed upgrade submits its own version while old keys retain their original version', async () => {
+for (const upgrade of upgrades) test(`reviewed fixed ${upgrade.manifest.version} submits its own version while old keys retain their original version`, async () => {
   const data = structuredClone(catalog);
   Object.assign(data.task, {version: upgrade.manifest.version, manifestHash: upgrade.manifestHash,
     sourceHash: upgrade.manifest.program.sourceHash});
@@ -37,8 +38,8 @@ test('reviewed fixed upgrade submits its own version while old keys retain their
   await f.submit('submit-form');
   const submits = f.calls.filter(c => c.path.endsWith('/submit'));
   assert.equal(submits.length, 1);
-  assert.equal(submits[0].input.version, '1.0.1');
-  assert.match(f.$('request-details').textContent, /1\.0\.1/);
+  assert.equal(submits[0].input.version, upgrade.manifest.version);
+  assert.ok(f.$('request-details').textContent.includes(upgrade.manifest.version));
 
   const historical = fixture({catalogData: data});
   await historical.login(); await historical.lookup();
@@ -46,11 +47,12 @@ test('reviewed fixed upgrade submits its own version while old keys retain their
   assert.equal(historical.calls.some(c => c.path.endsWith('/submit')), false);
 });
 
-test('upgrade source and manifest remain exact pinned bytes; unknown versions cannot submit', async () => {
+for (const upgrade of upgrades) test(`fixed ${upgrade.manifest.version} source and manifest remain exact; unknown versions cannot submit`, async () => {
   for (const change of [
     task => {task.sourceHash = 'e'.repeat(64);},
     task => {task.manifestHash = 'f'.repeat(64);},
-    task => {task.version = '1.0.2';},
+    task => {task.version = '1.0.3';},
+    task => {task.version = upgrade.manifest.version === '1.0.2' ? '1.0.1' : '1.0.2';},
   ]) {
     const data = structuredClone(catalog);
     Object.assign(data.task, {version: upgrade.manifest.version, manifestHash: upgrade.manifestHash,

@@ -4,19 +4,21 @@ import {createCookieService} from '../../src/platform/chrome/cookies.js';
 const url='https://example.org/page';
 const context={origin:'https://example.org',documentId:'doc-1'};
 const reject=code=>err=>err?.code===code;
+const samePartition=(a,b)=>Boolean(a)===Boolean(b)&&(!a||
+  a.topLevelSite===b.topLevelSite&&Boolean(a.hasCrossSiteAncestor)===Boolean(b.hasCrossSiteAncestor));
 function fixture(){
   const records=[],calls=[];
   let approved=true,doc='doc-1',lostReceipt=false;
   const api={runtime:{lastError:null},cookies:{
     get(d,cb){calls.push('get');cb(records.filter(row=>row.name===d.name&&
       (!d.storeId||row.storeId===d.storeId)&&
-      JSON.stringify(row.partitionKey??null)===JSON.stringify(d.partitionKey??null)&&
+      samePartition(row.partitionKey,d.partitionKey)&&
       new URL(d.url).hostname===row.domain&&new URL(d.url).pathname.startsWith(row.path))
       .sort((a,b)=>b.path.length-a.path.length)[0]??null);},
     getAll(d,cb){calls.push('getAll');cb(records.filter(row=>
       (!d.name||d.name===row.name)&&
       (!d.storeId||d.storeId===row.storeId)&&
-      JSON.stringify(row.partitionKey??null)===JSON.stringify(d.partitionKey??null)&&
+      samePartition(row.partitionKey,d.partitionKey)&&
       (!d.path||d.path===row.path)&&
       (d.domain?row.domain.replace(/^\./,'')===d.domain:new URL(d.url).hostname===row.domain&&
         new URL(d.url).pathname.startsWith(row.path))));},
@@ -163,19 +165,81 @@ const corruptWrites=[
   ['Session',{session:true}],
   ['Expiry',{expirationDate:2000000001}]
 ];
-for(const phase of ['receipt','readback'])for(const [label,patch] of corruptWrites)
-test('R8 set rejects mismatched '+phase+' '+label+' without retry',async()=>{
-  const f=fixture();
-  if(phase==='receipt'){
-    const set=f.api.cookies.set;
-    f.api.cookies.set=(details,callback)=>set(details,row=>callback({...row,...patch}));
-  }else{
-    const getAll=f.api.cookies.getAll;
-    f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(rows.map(row=>({...row,...patch}))));
-  }
+for(const reply of [undefined,null])
+test('R8 set verifies a Path outside the request URL with an optional native result: '+reply,async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  f.api.cookies.set=(details,callback)=>set(details,()=>callback(reply));
+  const saved=await f.service.set(verifiedWrite,context);
+  assert.equal(saved.verified,true);
+  assert.equal(saved.cookie.path,'/account');
+  assert.equal(saved.cookie.storeId,'0');
+  assert.equal(saved.cookie.value,undefined);
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+  assert.equal(f.calls.includes('get'),false,'URL matching cannot verify an unrelated Path');
+});
+
+test('R8 an absent native result cannot guess an omitted Store',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  f.api.cookies.set=(details,callback)=>set(details,()=>callback(undefined));
+  const {storeId,...args}=verifiedWrite;
+  await assert.rejects(f.service.set(args,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+for(const [label,patch] of corruptWrites)
+test('R8 an absent set result still rejects exact readback '+label+' without retry',async()=>{
+  const f=fixture(),set=f.api.cookies.set,getAll=f.api.cookies.getAll;
+  f.api.cookies.set=(details,callback)=>set(details,()=>callback(undefined));
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(rows.map(row=>({...row,...patch}))));
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+test('R8 set verifies the requested Path when the native URL lookup returns a same-name sibling',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  const sibling={name:'sid',value:'ROOT_VALUE',domain:'example.org',path:'/',storeId:'0',
+    hostOnly:true,secure:true,httpOnly:true,sameSite:'lax',session:true,partitionKey:writePartition};
+  f.records.push(sibling);
+  f.api.cookies.set=(details,callback)=>set(details,()=>callback({...sibling}));
+  const saved=await f.service.set(verifiedWrite,context);
+  assert.equal(saved.verified,true);assert.equal(saved.cookie.path,'/account');
+  assert.equal(saved.cookie.sameSite,'strict');
+  assert.equal(f.records.includes(sibling),true);
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+for(const [label,patch] of corruptWrites)
+test('R8 set rejects mismatched readback '+label+' without retry',async()=>{
+  const f=fixture(),getAll=f.api.cookies.getAll;
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(rows.map(row=>({...row,...patch}))));
   await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
   assert.equal(f.calls.filter(method=>method==='set').length,1);
   assert.equal(f.calls.includes('remove'),false);
+});
+
+test('trusted effect witness survives a later readback change without changing public set semantics',async()=>{
+  for(const witnessed of [false,true]){
+    const f=fixture(),getAll=f.api.cookies.getAll;
+    f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>
+      callback(rows.map(row=>({...row,value:'LATER_WEBSITE_VALUE'}))));
+    if(!witnessed)await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+    else{
+      const receipt=await f.service.setWithWitness(verifiedWrite,context);
+      assert.equal(receipt.verified,true);
+      assert.equal(receipt.verificationBasis,'native-receipt');
+      assert.equal(receipt.cookie.value,undefined);
+    }
+    assert.equal(f.calls.filter(method=>method==='set').length,1);
+  }
+});
+
+for(const [label,patch] of corruptWrites)
+test('trusted effect witness rejects an unwitnessed '+label+' without replay',async()=>{
+  const f=fixture(),set=f.api.cookies.set,getAll=f.api.cookies.getAll;
+  f.api.cookies.set=(details,callback)=>set(details,row=>callback({...row,...patch}));
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(rows.map(row=>({...row,...patch}))));
+  await assert.rejects(f.service.setWithWitness(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
 });
 
 test('R8 set cannot verify a vanished target using its same-value shorter Path sibling',async()=>{

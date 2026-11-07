@@ -4883,7 +4883,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
-      "callSignature": "OpenDeskSDK.browser.cookies.getAllPage({url,name?,storeId?,partitionKey?,includeValues?,cursor?,limit?})",
+      "callSignature": "OpenDeskSDK.browser.cookies.getAllPage({url,name?,storeId?,partitionKey?,includeValues?,scope?,cursor?,limit?})",
       "returnSignature": "Promise<{cookies:Cookie[],nextCursor?:string}>",
       "inputSchema": {
         "type": "object",
@@ -4921,6 +4921,11 @@
           },
           "includeValues": {
             "type": "boolean"
+          },
+          "scope": {
+            "enum": [
+              "site-exact-host"
+            ]
           },
           "cursor": {
             "type": "string",

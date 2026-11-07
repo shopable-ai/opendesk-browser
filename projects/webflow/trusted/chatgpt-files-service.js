@@ -1,11 +1,15 @@
 import {installChatGPTFileIntentGate} from './chatgpt-file-intent-gate.js';
 import {createChatGPTFilesController,CHATGPT_FILES_PROTOCOL,CHATGPT_FILES_PAGE,CHATGPT_PROJECT_PROTOCOL} from './chatgpt-files-controller.js';
 
+// Fixed first-party feature over the original Native workspace transport.
+// A Web Flow sandbox installation cannot replace this source or grant file access.
 export function installChatGPTFilesService({api,files,development}){
   const controller=createChatGPTFilesController({api,files});
   const gate=installChatGPTFileIntentGate({api,targetPage:CHATGPT_FILES_PAGE,onClaim:controller.claim});
   const summary=data=>({needsConnection:data.needsConnection??data.projectConnection?.needsConnection??false,
     message:data.message,phase:data.automation?.phase,delivery:data.delivery,observed:data.observed,
+    projectConnection:data.projectConnection?{name:data.projectConnection.name}:null,
+    comparison:data.comparison||null,
     resultText:data.resultText||'',resultStatus:data.resultStatus||'',resultPacketId:data.resultPacketId,result:data.result||null});
   const onMessage=(message,sender,reply)=>{
     if(![CHATGPT_FILES_PROTOCOL,CHATGPT_PROJECT_PROTOCOL].includes(message?.protocol))return false;

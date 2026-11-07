@@ -1,4 +1,5 @@
 import {readChatGPTEdit,assertChatGPTTarget,chatGPTConversationId} from './workspace-chatgpt.js';
+import {assertChatGPTTaskRoute} from '../../projects/webflow/trusted/chatgpt-conversation-route.js';
 import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge-trigger-gate.js';
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
@@ -297,7 +298,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   };
   const assertIntent=async(source,message)=>{
     const persistent=message.persistentAuto===true;
-    const observed=await readReply(api,source,null,{protocols:[persistent?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+    const observed=await readReply(api,source,null,{protocols:[persistent?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true,readUserMessage:true});
+    assertChatGPTTaskRoute({userText:observed.userText,answerText:message.candidateText});
     if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
       observed.blocks?.length!==1||observed.blocks[0]!==message.candidateText)
       throw fail('E_BRIDGE_ANSWER','最新完整回答的候选字节或轮次已改变');
@@ -318,7 +320,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       return {...request,candidate};
     }
     const observed=await readReply(api,source,message.requestId,{
-      protocols:[CHATGPT_TASK_REQUEST_PROTOCOL],requireUserEcho:true});
+      protocols:[CHATGPT_TASK_REQUEST_PROTOCOL],requireUserEcho:true,readUserMessage:true});
+    assertChatGPTTaskRoute({userText:observed.userText,answerText:message.candidateText});
     if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
       observed.blocks[0]!==message.candidateText)
       throw fail('E_BRIDGE_ANSWER','官方回复已重新生成、被替换或不属于批准的用户轮次');

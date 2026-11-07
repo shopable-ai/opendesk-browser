@@ -49,7 +49,7 @@
     <p>以下流程会通过 Native 读取已授权目录中的文件，并将结果填入原始对话草稿。与上方本地生成任务提示词相互独立。</p>
     <label>Native 工作目录<select id="files-workspace" disabled><option value="">请选择目录（不自动选择）</option></select></label>
     <label>目录内相对路径<input id="files-path" value="demo.txt" autocomplete="off" disabled></label>
-    <label>操作<select id="files-operation" disabled><option value="read">读取文件</option><option value="list">列出目录</option></select></label>
+    <label>操作<select id="files-operation" disabled><option value="read">读取文件（只读，回填后结束）</option><option value="read-edit">读取后提出修改（保存需确认）</option><option value="list">列出目录</option></select></label>
     <label>本次文件请求说明<textarea id="files-task" rows="3" disabled></textarea></label>
     <label class="consent"><input id="files-consent" type="checkbox" disabled><span>我同意在本页保持打开时，自动处理上方原始对话的完整协议回答，读取所选目录内的此精确路径，并将文件内容或目录列表填入该对话草稿。发送由我确认；写入须另行审阅确认。</span></label>
     <div class="connection-actions"><button id="files-prepare" type="button" disabled>批准本次读取并准备提示词</button></div>
@@ -57,7 +57,7 @@
   <section class="settings-card connection-card" aria-label="提示词与回答">
     <label>已授权文件请求提示词<textarea id="files-prompt" rows="6" readonly></textarea></label>
     <div class="connection-actions"><button id="files-fill-prompt" type="button" disabled>填入原对话草稿</button><button id="files-inspect" type="button" class="secondary" disabled>读取完整回答并处理请求</button></div>
-    <p>提示词已包含固定调用规则与本次真实请求身份。发送后请保持本页打开：AI 完整回答会自动处理，读取结果自动填入原对话草稿；请自行点击发送。修改只生成下方待确认提案。更改范围会暂停自动处理。</p>
+    <p>提示词包含完整 JSON 和本次真实请求身份，AI 只需原样回显。发送后请保持本页打开：完整回答会自动触发读取并回填真实结果。只读在回填确认后结束；读取后修改需发送真实读取结果，生成提案后在下方确认保存，独立读回与回执回填确认后结束。更改范围会暂停处理；不会自动发送消息。</p>
     <pre id="files-request"></pre>
   </section>
   <section id="files-proposal" class="settings-card connection-card" aria-label="写入审阅" hidden>

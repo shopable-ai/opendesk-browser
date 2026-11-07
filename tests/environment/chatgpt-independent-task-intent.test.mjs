@@ -38,7 +38,7 @@ function harness({holdRun=false,clock}={}){
     tab:{id:source.tabId,url:source.url,windowId:2,incognito:false}};
   const intent={protocol:'opendesk.task.intent.v1',candidateId:'candidate-unique-123',taskId:request.taskId,
     targetUrl:request.targetUrl,args:{}};
-  const observed={turnKey:message.turnKey,answerKey:message.answerKey,blocks:[JSON.stringify(intent)]};
+  const observed={turnKey:message.turnKey,answerKey:message.answerKey,userText:'Read the article on example.com',blocks:[JSON.stringify(intent)]};
   let saved={},counter=0,losePrepare=false;
   const storage={get:async key=>({[key]:structuredClone(saved[key])}),set:async value=>{Object.assign(saved,structuredClone(value));}};
   const ledger=createChatGPTBridgeTriggerLedger({storage,clock,generateId:()=>`44444444-4444-4444-8444-${String(++counter).padStart(12,'0')}`});
@@ -116,6 +116,21 @@ async function adopt(h){
     ...adoption(h),kind:'execute',adoptedRequest};
 }
 const approve=(h,message)=>h.bridge.authorizeTask({...message,kind:'authorize-task'},h.sender);
+
+test('trusted task adoption refuses a real user file request even when the page bypasses routing',async()=>{
+  const h=harness();h.observed.userText='读取当前项目 demo.txt，只读不修改';
+  await assert.rejects(()=>h.bridge.adoptTask(adoption(h),h.sender),{code:'E_CHAT_ROUTE'});
+  assert.equal(h.events.gates.length,0);assert.equal(h.events.starts.length,0);
+});
+test('manual Task admission requires nonempty actual user context within the routing limit',async()=>{
+  for(const userText of [undefined,'','   ','x'.repeat(4097),'x'.repeat(32*1024)]){
+    const h=harness();h.observed.userText=userText;
+    await assert.rejects(h.bridge.adoptTask(adoption(h),h.sender),{code:'E_CHAT_ROUTE'});
+    assert.equal(h.events.gates.length,0);assert.equal(h.events.starts.length,0);
+  }
+  const h=harness();h.observed.userText='x'.repeat(4096);
+  await h.bridge.adoptTask(adoption(h),h.sender);
+});
 
 test('independent intent is strict and contains neither nonce nor installation pin',()=>{
   const h=harness();assert.equal(validateChatGPTTaskIntent(h.observed.blocks[0]).taskId,'article.read');

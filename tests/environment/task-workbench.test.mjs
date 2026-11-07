@@ -1261,3 +1261,71 @@ test('R23.37 formal Developer Task candidate hashes intent templates and visible
   assert.equal(importCount,1);
   assert.match(f.field('task-status').text,/E_SCHEMA/);
 });
+
+for(const stage of ['verified','available'])test(`runtime recovery exposes reverify but blocks stale ${stage} candidate publication, install and Run`,async t=>{
+  const f=make();t.after(()=>f.ui.dispose());
+  Object.assign(f.catalogState.catalog[0],{stage,runtimeCurrent:false});
+  await f.ui.refresh();await tick();await tick();
+  f.ui.showCatalogPage();f.action('taskCatalogSelect','demo.form@1.0.0');
+  await tick();await tick();
+  assert.equal(f.field('task-verify').disabled,false);
+  assert.equal(f.field('task-publish').disabled,true);
+  assert.equal(f.field('task-install').disabled,true);
+  assert.equal(f.field('task-run').disabled,true);
+  assert.match(f.myView.data.catalogRows.rows[0].state,/待重新验证/);
+  const calls=[],request=f.client.request.bind(f.client);
+  f.client.request=async(method,input)=>{calls.push(method);return request(method,input);};
+  await f.click('task-publish');await f.click('task-install');await f.click('task-run');
+  assert.deepEqual(calls,[]);
+  assert.equal(f.starts.length,0);
+  f.action('taskCatalogFilterClick','available');
+  assert.equal(f.myView.data.catalogRows.rows.length,0);
+  f.action('taskCatalogFilterClick','candidate');
+  assert.equal(f.myView.data.catalogRows.rows.length,1);
+});
+
+test('runtime recovery requires fresh proof and explicit same-version reinstall before Run',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());
+  const row=f.catalogState.catalog[0],previous={...f.catalogState.installed[0]};
+  row.runtimeCurrent=false;f.catalogState.installed[0].runtimeCurrent=false;
+  const calls=[],request=f.client.request.bind(f.client);
+  f.client.request=async(method,input)=>{
+    calls.push([method,input]);
+    if(method==='verifyTaskCandidate'){
+      assert.equal(input.runId,'fresh-runtime-run');
+      Object.assign(row,{stage:'verified',runtimeCurrent:true});
+      return {...row};
+    }
+    if(method==='makeTaskAvailable'){row.stage='available';return {...row};}
+    if(method==='installTask'){
+      const result=await request(method,input);
+      // A successful explicit reinstall returns a new current installation;
+      // the base harness otherwise deliberately reuses its original record.
+      Object.assign(f.catalogState.installed[0],{runtimeCurrent:true,generation:previous.generation+1,
+        installationId:'44444444-4444-4444-8444-444444444444'});
+      return {...result,...f.catalogState.installed[0]};
+    }
+    return request(method,input);
+  };
+  await f.ui.refresh();await tick();await tick();
+  f.ui.showCatalogPage();f.action('taskCatalogSelect','demo.form@1.0.0');
+  await tick();await tick();
+  f.field('task-verify-run').value='fresh-runtime-run';
+  await f.click('task-verify');
+  assert.equal(f.field('task-publish').disabled,false);
+  assert.equal(f.field('task-install').disabled,true);
+  assert.equal(f.field('task-run').disabled,true);
+  await f.click('task-publish');
+  assert.equal(f.field('task-install').disabled,false);
+  assert.equal(f.field('task-install').text,'确认更新运行时安装');
+  assert.equal(f.field('task-run').disabled,true,'fresh candidate proof does not repair the old installation');
+  assert.equal(calls.some(([method])=>method==='installTask'),false);
+  assert.equal(f.starts.length,0);
+  await f.click('task-install');
+  assert.deepEqual(calls.find(([method])=>method==='installTask')[1],{
+    taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
+    expectedInstalledVersion:previous.version,expectedGeneration:previous.generation,
+    expectedInstallationId:previous.installationId});
+  assert.equal(f.field('task-run').disabled,false);
+  assert.equal(f.starts.length,0,'reverification and reinstall never replay a Task');
+});

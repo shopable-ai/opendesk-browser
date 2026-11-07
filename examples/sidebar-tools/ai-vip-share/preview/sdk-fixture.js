@@ -1,7 +1,11 @@
 // Isolated, non-network, non-Chrome SDK Fixture for the production React App.
 // The installed JSON never imports or packages this module.
-const ORIGIN='http://127.0.0.1:7898';
-const SITE=ORIGIN+'/session/';
+const development=new URL(location.href).searchParams.get('scene')==='development';
+const ORIGIN=development?'http://127.0.0.1:7898':'https://vip.example.com';
+const SITE=development?ORIGIN+'/session/':'https://chatgpt.com/';
+export const PREVIEW_SERVICE=Object.freeze({id:'preview-only',label:'演示服务（无真实网络）',url:ORIGIN+'/',
+  endpoints:{member:ORIGIN+'/api/member',voucherPreview:ORIGIN+'/api/preview',voucherRedeem:ORIGIN+'/api/redeem',voucherStatus:ORIGIN+'/api/status'},
+  activation:{path:'/activate',parameter:'activation_code'},cookieTargets:[SITE],catalogUrl:'',desktopClientUrl:''});
 const DOMAIN_LIST=['chatgpt.com','openai.com','claude.ai','anthropic.com',
   'gemini.google.com','generativelanguage.googleapis.com','perplexity.ai'];
 const clone=value=>value===undefined?undefined:structuredClone(value);
@@ -30,8 +34,9 @@ export function installPreviewFixture(root){
   const offline=['offline','unconfigured'].includes(scene);
   let serviceError=scene==='error';
   const values=new Map();
-  if(!offline)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
-  let granted=!['redeem','empty','first','link','offline','unconfigured','guest','error'].includes(scene);
+  if(development)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
+  if(!['connect','unconfigured','offline','development'].includes(scene))values.set('aiVipServiceConnectionR1',{schemaVersion:1,serviceId:PREVIEW_SERVICE.id,url:PREVIEW_SERVICE.url});
+  let granted=!['redeem','empty','first','link','offline','unconfigured','guest','error','connect'].includes(scene);
   let assigned='A',serial=0,lastReceipt=null;
   let proxyState=idle(),proxyScenario='disabled',stopResolve=null;
   const devProfile=Object.freeze({endpoint:{scheme:'http',host:'127.0.0.1',port:7897},
@@ -56,7 +61,7 @@ export function installPreviewFixture(root){
       granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
     redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
       redeemedAt:Date.now()-1000,status:'redeemed',idempotencyKey:'preview-only'}]:[],
-    ...(granted&&scene==='session'?
+    ...(granted&&['session','link','connect','development'].includes(scene)?
       {sharedAccounts:{schemaVersion:1,companyId:'preview-company',
         assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
         accounts:[{id:'account-'+assigned,label:'网站体验账号 '+assigned,
@@ -143,7 +148,7 @@ export function installPreviewFixture(root){
     }}
   };
   const preview={
-    cookieOutcome:'success',
+    service:scene==='unconfigured'?null:PREVIEW_SERVICE,cookieOutcome:'success',
     activate(){granted=true;},
     setMemberFailure(value){serviceError=Boolean(value);},
     switchAccount(){assigned=assigned==='A'?'B':'A';return assigned;},

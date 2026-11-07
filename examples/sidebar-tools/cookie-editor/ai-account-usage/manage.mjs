@@ -5,6 +5,7 @@ import {join, isAbsolute, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {HistoryStore} from './history-store.mjs';
 import {ServiceBindingStore} from './service-binding-store.mjs';
+import {TeamAccountStore} from './team-account-store.mjs';
 import {createAccountService} from './account-service.mjs';
 import {codexAuthFileSource} from './authorized-sources.mjs';
 const fail = () => new Error('E_MANAGE_ARGUMENTS');
@@ -60,7 +61,8 @@ export async function main(argv = process.argv.slice(2)) {
     await service.initialize();
     const {startManagementServer} = await import('./web-server.mjs');
     const server = await startManagementServer({service, store, port,
-      bindingStore: new ServiceBindingStore(directory === undefined ? {} : {directory})});
+      bindingStore: new ServiceBindingStore(directory === undefined ? {} : {directory}),
+      teamStore: new TeamAccountStore(directory === undefined ? {} : {directory})});
     if(options.native){
       try{
         const {startUsageNativeConnection}=await import('./native-connection.mjs');

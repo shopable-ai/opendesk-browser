@@ -1,6 +1,7 @@
 // Component evidence, not real Chrome evidence.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {parseHTML} from 'linkedom';
 import {createChatGPTTaskDiscovery} from '../../src/native-agent/chatgpt-task-discovery.js';
 import {initChatGPTFixedBridgePage} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
 
@@ -96,6 +97,32 @@ test('P0 lazy history still requires the unchanged latest reply anchor',()=>{
     assert.equal(probe.observe(snap),null,change);
   }
 });
+test('discovery anchors exact assistant body while copy controls change',async t=>{
+  for(const selector of ['[data-testid="copy-turn-action-button"]','[data-assistant-message-actions] button','[data-markdown-copy="exclude"] button'])
+    await t.test(selector,()=>{
+      const {document}=parseHTML('<div data-message-id="a0"><p>Prior exact body </p><div data-markdown-copy="exclude"><span>javascript</span><button>Copy code</button></div><pre>const value = 1;</pre><button data-testid="copy-turn-action-button">Copy</button><div data-assistant-message-actions><button>Share</button></div></div>');
+      const probe=createChatGPTTaskDiscovery(),snap=snapshot(),prior=document.firstElementChild;
+      snap.assistants=[prior];witness(probe,snap);
+      snap.users.push(message('u1'));assert.equal(probe.observe(snap),null);
+      prior.querySelector(selector).textContent='Copied!';
+      snap.assistants.push(message('a1','new complete answer'));
+      assert.equal(probe.observe(snap)?.answer,snap.assistants.at(-1));
+      assert.equal(probe.observe(snap),null,'the same answer must only emit once');
+    });
+});
+test('assistant anchor still rejects exact body, language and ordinary button changes',async t=>{
+  for(const selector of ['p','[data-markdown-copy="exclude"] span','button.body-action'])
+    await t.test(selector,()=>{
+      const {document}=parseHTML('<div data-message-id="a0"><p>Prior exact body</p><div data-markdown-copy="exclude"><span>javascript</span><button>Copy code</button></div><button class="body-action">Ordinary content</button></div>');
+      const probe=createChatGPTTaskDiscovery(),snap=snapshot(),prior=document.firstElementChild;
+      snap.assistants=[prior];witness(probe,snap);
+      snap.users.push(message('u1'));probe.observe(snap);
+      prior.querySelector(selector).textContent+=' ';
+      snap.assistants.push(message('a1','new complete answer'));
+      assert.equal(probe.observe(snap),null);
+      assert.equal(probe.observe(snap),null);
+    });
+});
 test('P0 discovery rejects hydrated historical replies reused after the latest anchor',()=>{
   for(const remount of [false,true]){
     const probe=createChatGPTTaskDiscovery(),snap=snapshot();
@@ -122,7 +149,7 @@ const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
 function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbingo.org/html',
   grantReply=value=>value,bindReply=value=>value,adoptReply=value=>value,initialEmpty=false,
   intentProtocol='opendesk.task.intent.v1',autoTaskReply=value=>({ok:true,data:value}),executeReply=value=>value,
-  responseHost=()=> 'discovery-host'}={}){
+  responseHost=()=> 'discovery-host',createConversationAdapter,listTasksHook}={}){
   const nodes=[],sends=[],events=new Map(),windowEvents=new Map(),intervals=new Map(),snap=snapshot();
   let poll,autoRequests=0,nextTurn=0,nextInterval=0;
   if(initialEmpty){snap.users=[];snap.assistants=[];}
@@ -169,7 +196,7 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
   const api={runtime:{id:'extid',getURL:path=>'chrome-extension://extid/'+(path||''),
     onMessage:{addListener(){},removeListener(){}},async sendMessage(msg){
     if(msg.kind!=='list-tasks')sends.push(msg); // assertions below count effect-bearing messages
-    if(msg.kind==='list-tasks')return {ok:true,data:{tasks:[task]}};
+    if(msg.kind==='list-tasks'){await listTasksHook?.();return {ok:true,data:{tasks:[task]}};}
     if(msg.kind==='approve-conversation-task'){
       grant={grantId:'77777777-7777-4777-8777-777777777777',source,...scope,
         parameterPolicy:'installed-schema',expiresAt:Date.now()+1800000,remainingRuns:msg.adoptedRequest?9:10,
@@ -193,7 +220,7 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
   }}};
   const hostSend=api.runtime.sendMessage;
   api.runtime.sendMessage=async message=>({...await hostSend(message),bridgeHostId:responseHost(message)});
-  const page=initChatGPTFixedBridgePage({api,doc,win,site:{inspect:()=>({...snap})},readPage:identity});
+  const page=initChatGPTFixedBridgePage({api,doc,win,site:{inspect:()=>({...snap})},readPage:identity,createConversationAdapter});
   const buttons=nodes.filter(node=>node.tag==='button');
   const click=async index=>{await buttons[index].listeners.click({isTrusted:true});await flush();};
   const submit=(text='u'+(nextTurn+1),type='click',overrides={})=>{
@@ -286,6 +313,43 @@ test('P1 an existing complete task remains manually adoptable and executable wit
   await h.click(4);assert.deepEqual(h.sends.map(msg=>msg.kind),['adopt-task']);
   await h.click(2);await h.click(2);
   assert.deepEqual(h.sends.map(msg=>msg.kind),['adopt-task','authorize-task','execute']);
+});
+test('manual adoption rejects a file request mixed with a task candidate',async t=>{
+  const h=pageHarness();t.after(()=>h.page.dispose());
+  h.snap.users.push(message('mixed-user','读取当前项目 demo.txt'));
+  h.snap.assistants.push(message('mixed-answer',JSON.stringify(h.intent)));
+  await h.click(4);
+  assert.deepEqual(h.sends,[],'the mixed turn must not enter task admission');
+});
+test('an independent Task can be manually adopted while prior file work remains active',async t=>{
+  const adapter={busy:()=>true,dispose(){}};
+  const h=pageHarness({createConversationAdapter:()=>adapter});t.after(()=>h.page.dispose());
+  await h.click(4);
+  assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task']);
+});
+test('independent file work does not globally block an adopted Task',async t=>{
+  let fileBusy=false;
+  const adapter={busy:()=>fileBusy,dispose(){}};
+  const h=pageHarness({createConversationAdapter:()=>adapter});t.after(()=>h.page.dispose());
+  await h.click(4);assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task']);
+  fileBusy=true;
+  await h.click(2);
+  assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task','execute']);
+});
+test('independent file work beginning during host lookup does not discard a Task',async t=>{
+  let fileBusy=false,release;
+  const lookup=new Promise(resolve=>{release=resolve;});
+  const h=pageHarness({createConversationAdapter:()=>({busy:()=>fileBusy,dispose(){}}),listTasksHook:()=>lookup});
+  t.after(()=>h.page.dispose());
+  const adopting=h.click(4);await flush();fileBusy=true;release();await adopting;
+  assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task']);
+});
+test('a new independent automatic Task is discovered during prior file work',async t=>{
+  const h=pageHarness({intentProtocol:'webflow.task.intent.v1',
+    createConversationAdapter:()=>({busy:()=>true,submission(){},dispose(){}})});
+  t.after(()=>h.page.dispose());
+  h.next();await flush();
+  assert.deepEqual(h.sends.map(row=>row.kind),['auto-task','execute']);
 });
 test('P1 page removes submission listeners on dispose and reinstalls them once after BFCache',async()=>{
   const h=pageHarness({intentProtocol:'webflow.task.intent.v1'});

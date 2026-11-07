@@ -1,4 +1,4 @@
-import {initChatGPTFilesSettingsUI} from './chatgpt-files-settings-ui.js';
+import {initChatGPTFilesSettingsUI} from '../../projects/webflow/trusted/chatgpt-files-settings-ui.js';
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {initAnalyticsConsentControls} from '../analytics/consent-ui.js';
 import {createDevelopmentPairingRequest} from './pairing.js';

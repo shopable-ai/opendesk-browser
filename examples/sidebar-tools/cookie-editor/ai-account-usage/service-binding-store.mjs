@@ -103,7 +103,9 @@ export class ServiceBindingStore {
   }
   #serial(run){const task=this.#queue.then(run,run);this.#queue=task.catch(()=>{});return task;}
   read(){return this.#serial(()=>this.#load());}
-  transact(run){return this.#serial(async()=>{
+  // Uses the same queue and cross-instance file lock as device revocation.
+  withAuthorization(run){return this.transact(run,{readOnly:true});}
+  transact(run,{readOnly=false}={}){return this.#serial(async()=>{
     await this.#init();const path=join(this.#directory,lockFile);let lock;
     try{lock=await open(path,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);}
     catch(error){throw bindingError(error.code==='EEXIST'?'STORE_BUSY':'STORE_WRITE',503);}
@@ -114,6 +116,7 @@ export class ServiceBindingStore {
       const state=await this.#load(),result=await run(state);
       if(Buffer.byteLength(JSON.stringify(result)??'')>65536)throw bindingError('STORE_RESULT_SIZE',503);
       validate(state);
+      if(readOnly)return structuredClone(result);
       const body=JSON.stringify(state);if(Buffer.byteLength(body)>maxBytes)throw bindingError('STORE_SIZE',503);
       handle=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
       await handle.writeFile(body);await handle.sync();await handle.close();handle=null;

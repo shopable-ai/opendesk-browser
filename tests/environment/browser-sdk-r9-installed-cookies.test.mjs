@@ -4,6 +4,23 @@ import {createTrustedCookieHost} from '../../src/platform/chrome/browser-cookie-
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 
+test('exact-host listing and clear preview share every path and the authorized partition',async()=>{
+  const f=fixture();
+  f.state.records.push({name:'different-path',value:'PRIVATE',domain:'shop.example.test',path:'/other',
+    storeId:'0',hostOnly:true,secure:true,session:true});
+  f.state.records.push({name:'parent',value:'PRIVATE',domain:'.example.test',path:'/',
+    storeId:'0',hostOnly:false,secure:true,session:true});
+  const regular=await f.run('getAllPage',{scope:'site-exact-host'});
+  const partitioned=await f.run('getAllPage',{scope:'site-exact-host',partitionKey});
+  const preview=await f.run('clearSite',{scope:'site-exact-host',preview:true});
+  assert.equal(regular.cookies.length+partitioned.cookies.length,preview.matched);
+  assert(regular.cookies.some(row=>row.name==='different-path'));
+  assert(!regular.cookies.some(row=>row.domain==='.example.test'||row.storeId==='1'));
+  assert(!JSON.stringify(regular).includes('PRIVATE'));
+  assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAllPage',{url:target,scope:'foreign-host'}));
+  await assert.rejects(f.run('getAllPage',{scope:'site-exact-host',partitionKey:{topLevelSite:'https://foreign.test'}}),reject('E_COOKIE_PARTITION'));
+});
+
 test('getAllPage automatically fits the SDK budget and reads beyond 50 rows without leaking values',async()=>{
   const f=fixture();
   f.state.records=Array.from({length:131},(_,i)=>({name:'row_'+i,value:'PRIVATE_'+i,domain:'shop.example.test',
@@ -91,7 +108,11 @@ test('setMany verifies all rows with the existing native exact readback, includi
 
 test('setMany stops at the first native unknown and preserves only prior confirmed successes',async()=>{
   const f=fixture(),set=f.api.cookies.set;let writes=0;
-  f.api.cookies.set=(details,cb)=>set(details,row=>cb(++writes===2?null:row));
+  f.api.cookies.set=(details,cb)=>set(details,row=>{
+    if(++writes!==2){cb(row);return;}
+    f.api.runtime.lastError={message:'Fictional native failure after dispatch'};
+    try{cb(null);}finally{f.api.runtime.lastError=null;}
+  });
   const result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
     {name:'unknown',value:'PRIVATE'},{name:'unattempted',value:'PRIVATE'}]});
   assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
@@ -292,6 +313,111 @@ test('R9 host-only site cleanup is previewed, count-fenced and preserves domain/
   assert(f.state.records.some(row=>row.name==='chips'&&row.partitionKey));
   await assert.rejects(f.run('clearSite',{expectedCount:2,previewRef:refreshed.previewRef,maxCookies:50}),
     reject('E_COOKIE_STALE'),'A consumed preview must not permit a second deletion');
+});
+
+test('visible cleanup covers exact-host domain and partitioned cookies, preserves parent and other stores',async()=>{
+  const f=fixture();
+  f.state.records.push(
+    {name:'parent-site',value:'PRIVATE',domain:'.example.test',path:'/',storeId:'0',hostOnly:false,secure:true,session:true},
+    {name:'other-path',value:'PRIVATE',domain:'.shop.example.test',path:'/other',storeId:'0',hostOnly:false,secure:true,session:true},
+    {name:'other-partition',value:'PRIVATE',domain:'.shop.example.test',path:'/',storeId:'0',hostOnly:false,secure:true,session:true,partitionKey:{topLevelSite:'https://other.test'}}
+  );
+  const scope='site-exact-host',preview=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  assert.equal(preview.scope,'SITE_EXACT_HOST');
+  assert.equal(preview.matched,5);assert.equal(preview.excluded,1);
+  assert(!JSON.stringify(preview).includes('PRIVATE'));
+  const receipt=await f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:5,maxCookies:50});
+  assert.equal(receipt.removed,5);assert.equal(receipt.remaining,0);assert.equal(receipt.excluded,1);
+  assert.deepEqual(f.state.records.map(row=>row.name).sort(),['foreign','other-partition','parent-site']);
+  await assert.rejects(f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:5,maxCookies:50}),reject('E_COOKIE_STALE'));
+});
+
+test('visible cleanup refuses changed cookie values and mismatched preview scope before deleting',async()=>{
+  const scope='site-exact-host',f=fixture();
+  let preview=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  f.state.records[0].value='changed';
+  await assert.rejects(f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:preview.matched,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,0);
+  preview=await f.run('clearSite',{preview:true,maxCookies:50});
+  await assert.rejects(f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:preview.matched,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,0);
+});
+
+for(const scope of ['site-exact-host',undefined])test('cleanup stops if a later Cookie is replaced during the batch: '+(scope??'host-only'),async()=>{
+  const f=fixture(),selection=scope?{scope}:{};
+  const preview=await f.run('clearSite',{...selection,preview:true,maxCookies:50});
+  const nativeSet=f.api.cookies.set;let writes=0;
+  f.api.cookies.set=(details,cb)=>nativeSet(details,result=>{
+    if(++writes===1){
+      const next=f.state.records.find(row=>row.storeId==='0'&&!row.partitionKey&&
+        row.name==='sid'&&row.path!==details.path);
+      if(next)next.value='replacement';
+    }
+    cb(result);
+  });
+  await assert.rejects(f.run('clearSite',{...selection,previewRef:preview.previewRef,
+    expectedCount:preview.matched,maxCookies:50}),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(writes,1);
+  assert(f.state.records.some(row=>row.value==='replacement'));
+});
+
+test('repeated scope previews retire older previews for the same owner and site',async()=>{
+  const f=fixture();let first,latest;
+  for(let i=0;i<20;i++){
+    const selection=i%2?{scope:'site-exact-host'}:{};
+    latest=await f.run('clearSite',{...selection,preview:true,maxCookies:50});
+    first??=latest;
+  }
+  await assert.rejects(f.run('clearSite',{previewRef:first.previewRef,
+    expectedCount:first.matched,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert.equal((await f.run('clearSite',{scope:'site-exact-host',previewRef:latest.previewRef,
+    expectedCount:latest.matched,maxCookies:50})).removed,latest.matched);
+});
+for(const scope of ['site-exact-host',undefined])test('a clear preview is consumed once even under concurrent execution: '+(scope??'host-only'),async()=>{
+  const f=fixture(),selection=scope?{scope}:{};
+  const preview=await f.run('clearSite',{...selection,preview:true,maxCookies:50});
+  const args={...selection,previewRef:preview.previewRef,expectedCount:preview.matched,maxCookies:50};
+  const results=await Promise.allSettled([f.run('clearSite',args),f.run('clearSite',args)]);
+  assert.equal(results.filter(result=>result.status==='fulfilled').length,1);
+  assert.equal(results.filter(result=>result.status==='rejected'&&result.reason.code==='E_COOKIE_STALE').length,1);
+});
+test('a newer preview fences an older execution even after the newer preview is consumed',async()=>{
+  const f=fixture(),scope='site-exact-host';
+  const old=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  const subtle=crypto.subtle,original=subtle.digest.bind(subtle);
+  let release,startedResolve,hold=true;
+  const started=new Promise(resolve=>{startedResolve=resolve;});
+  const blocked=new Promise(resolve=>{release=resolve;});
+  Object.defineProperty(subtle,'digest',{configurable:true,value:async(...args)=>{
+    if(hold){hold=false;startedResolve();await blocked;}
+    return original(...args);
+  }});
+  try{
+    const oldResult=f.run('clearSite',{scope,previewRef:old.previewRef,expectedCount:old.matched,maxCookies:50})
+      .then(()=>null,error=>error);
+    await started;
+    const newer=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+    await f.run('clearSite',{scope,previewRef:newer.previewRef,expectedCount:newer.matched,maxCookies:50});
+    release();
+    assert.equal((await oldResult)?.code,'E_COOKIE_STALE');
+  }finally{release();delete subtle.digest;}
+});
+test('a newer preview invalidates an execution paused during its initial scan',async()=>{
+  const f=fixture(),scope='site-exact-host';
+  const old=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  const getAll=f.api.cookies.getAll;let release,startedResolve,hold=true;
+  const started=new Promise(resolve=>{startedResolve=resolve;});
+  f.api.cookies.getAll=(query,cb)=>{
+    if(hold){hold=false;release=()=>getAll(query,cb);startedResolve();}
+    else getAll(query,cb);
+  };
+  const oldResult=f.run('clearSite',{scope,previewRef:old.previewRef,expectedCount:old.matched,maxCookies:50})
+    .then(()=>null,error=>error);
+  await started;
+  const newer=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  await f.run('clearSite',{scope,previewRef:newer.previewRef,expectedCount:newer.matched,maxCookies:50});
+  release();
+  assert.equal((await oldResult)?.code,'E_COOKIE_STALE');
 });
 test('R9 exact expiration preserves same-name Store, Partition and domain peers without reading Value',async()=>{
   const f=fixture();

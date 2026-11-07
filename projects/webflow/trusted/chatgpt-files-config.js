@@ -1,4 +1,4 @@
-// Shared data only: these preferences never establish directory/chat authority.
+// Built-in Web Flow file-feature preferences; never directory/chat authority.
 export const CHATGPT_FILES_CONFIG_KEY='opendesk.chatgpt.files.preferences.v1';
 export const DEFAULT_CHATGPT_FILES_PREFERENCES=Object.freeze({enabled:true,diagnosticsVisible:false});
 export function normalizeChatGPTFilesPreferences(value=undefined){

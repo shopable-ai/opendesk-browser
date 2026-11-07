@@ -646,7 +646,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
 
   async function startControllerRun(request, sender) {
     request=structuredClone(request);
-    return withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender));
+    const operation=()=>withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender));
+    return request?.cloudRequestId&&cloud?.withStartupFailure?
+      cloud.withStartupFailure(request,sender,'admission',operation):operation();
   }
   async function startControllerRunDelegated(request, sender) {
     return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});

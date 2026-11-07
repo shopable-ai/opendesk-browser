@@ -348,7 +348,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       partitionKey=null;
       // All-site consent does not authorize a tool-selected foreign Partition.
       // Resolve partitioned access from the real, regular current document.
-      if(operation==='browser.cookies.getPartitionKey'||options.partitionKey||
+      if(operation==='browser.cookies.getPartitionKey'||options.partitionKey||options.scope==='site-exact-host'||
          options.cookies?.some(row=>row.partitionKey)){
         const tabs=await api.tabs.query({active:true,currentWindow:true});
         const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;

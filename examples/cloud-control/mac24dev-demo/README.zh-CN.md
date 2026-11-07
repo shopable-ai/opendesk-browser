@@ -1,6 +1,32 @@
 # mac24dev 云控表单演示页面
 
+## 最新开发状态（2026-11-06，owner 01a1ad30）
+
+当前系统 Chrome 持续开发包为 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；原生调试页确认 serve 已连接，观察指纹 `9a6427060a0f73117e391d721917feea914b0022113838940b68bb35a0d18fa2`。原 1.0.1 固定任务因内置运行时摘要变化正确拒绝重新批准；没有放宽身份保护。相同源码与权限的独立 1.0.2 已经源码审阅、真实单次试运行、验证、安装和重新批准，目前仅允许状态回传。
+
+新增原生证据：等待输入时停止原请求，原页面没有 input/submit/done，Run `ed89087f-a58c-494c-a8ed-b0c5b675d046` 停止且资源释放；侧栏关闭且未打开 SW DevTools 时，原 Provider 的单次回执响应丢失故障被消耗，Job `15d9f9ba-2e79-4ddd-bb1b-79467330cad9` 只产生一次真实 submit/done。重开侧栏仍关联同一 Run `2b505cf1-9e8b-4b60-90f1-b6067f38f9b9`、Result 和已确认回执，Provider Job 总数保持 6。两条新回执只包含状态与资源释放信息。强制 SW 休眠仍 NOT_TESTED。
+
+源码修复了取消意图对 resolve/bind/permit/renew/reconcile 的围栏、原 Run 缺失时保持未知、效果页的异步代际与输出白名单，并为内置运行时改变提供安全恢复说明。变更行为 44 项、隐私授权 13 项、后台归属和只读界面 49 项定向检查通过。原始证据与分项状态见 `.runtime/cloud-core-20261106-01a1ad30/matrix.json`、`native-observations.json`、`evidence-correlation.json`；原四条业务正向链继续保留为历史证据。
+
+**尚未恢复业务入口，不能宣称整体完成。** 为验证撤权，旧 Client `71001906-40d2-41f6-b16f-ccce47a597de` 已撤销；旧业务提交和结果查询均被拒绝，未新增 Job。当前 BFF 仅接受 1.0.0/1.0.1，恢复需增加已验证 1.0.2 精确 pin，再经原维护入口替换同一绑定。远端后端当前为非默认 `upgrade/cool8-operate` 分支，保持只读，已准备并验证最小补丁，等待本任务分支例外授权；未修改远端源码、数据库或支付。安装/网站撤权的全部原生组合、production、CWS、完整矩阵及评分仍 NOT_TESTED。新增独立 `examples/cloud-control/mac24dev-demo/form-fill.v1.0.2.opendesk-task.json`，未替换历史包；本地 JS/Python 绑定入口的精确版本清单已同步，6 项定向检查确认新版本必须有新 Grant、错哈希/改写源码拒绝且失败不覆盖绑定。远端未执行这些维护动作。证据索引为 `.runtime/cloud-core-20261106-01a1ad30/evidence-index.json`；没有提交或推送。
+
+补充 K2 原生证据：仅停用本轮表单任务后，「我的」运行按钮禁用、云控标记已停用与需重新批准；恢复任务并刷新后仍需新批准，已按原网站和不回传结果正文范围恢复连接，未执行新任务。Provider 停用快照仍保留旧 capabilities，因此不将本次 UI 证据写成 Provider 已删除能力；网站权限撤销保持 NOT_TESTED，未触碰共享 Chrome 权限。
+
+以下为此前观察，当前安装与绑定状态以上文为准。
+
 业务页面是后端同源提供的普通 HTML/CSS/JavaScript，不是可信 Side Panel、Provider 或执行器；不引入 React、SDK、第三方资源或前端构建步骤。本目录另有固定 Task 候选和受信维护脚本，页面不加载维护代码或持有 Provider 凭据。后端与 Provider 复用现有开发服务。
+
+## 当前核心结果（2026-11-06，owner 01a1acfe）
+
+四条真实系统 Chrome 持续开发链已完成：业务页经原 mac24dev BFF、本人设备1288和原 mac4g Provider 执行；固定版本新键重复及同键幂等／冲突；关闭全部 Side Panel 后的新请求由原 offscreen 宿主完成；原有1.0.1投递、源码／差异审阅、单次试运行、原生验证安装、新 Grant、精确 BFF 绑定及真实业务调用。四个业务 Job 都关联原目标 document 的一次 submit/done、原 Run/Result/sourceHash、一次释放和 Provider 回执。
+
+当前已安装并批准 `sample.form-fill@1.0.1`，仅 `http://127.0.0.1:43111` 和必要结果回传。最后业务键 `f9cb597d-e618-4181-911e-5154d618e807`、Job `ad773edc-4ce1-42f0-b0e9-8c31bf38ca3a` 已显示 `completed / receiptConfirmed:true / released`。Executor `460154c0-4cec-449a-8075-734d86f7f686`；新 Grant `ec437ccb-803d-42db-ad05-c583178cdf05`；新 binding `296cf33d-90d2-4d7d-adc1-9f210dfc606e`。旧版本 Grant 没有继承为新版本授权。
+
+本机原始证据索引 `.runtime/cloud-development-20261106-01a1acd5/evidence-index.json`，关联原生只读快照、原 Provider 四个 Job、两版独立观察会话及 `verify-evidence.py` 的关联检查 PASS。源码仅补固定包观察会话及效果页的两版精确 pin 识别，16项定向组件检查通过；未改变冻结包、Authority 或执行链。无后端代码部署、数据库变更、提交或推送。
+
+实际扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，真实「调试」显示 serve 已连接，观察到指纹 `7941a451b4a872aafbfb83211943cc26306e3945e26bd5cc0d441044c855bdd8`。收尾只读核对发现 dev writer 已由并行任务更替为35245（43119与原锁一致），本任务未启停它；以上指纹为 UI 上次观察，不能替代新 writer 的最新构建身份。原 Provider 和日常转发保留，本任务临时绑定维护转发已关闭；当前43111为本任务 `page-observation-v101` 会话。临时只读原文档观测器已移除，本任务 DevTools 已关闭。关闭 Side Panel 的验证期间 DevTools 保持 Service Worker 活跃，不能宣称验证了休眠 SW 恢复。production、CWS、跨设备、全矩阵及评分仍 NOT_TESTED。
+
+下文2026-10-30记录均为历史观察，旧 blocked 目标状态不由本次完成自动改写；其中“待安装／未连接／仅1.0.0”等不代表当前状态。后续开始时重查服务和身份，未知结果只查原键，不重放。
 
 ## 当前人工 demo（2026-10-30，owner 01a18c80）
 
@@ -20,6 +46,15 @@
 ```sh
 node tests/cloud-control/passive-form-proof.mjs /absolute/path/to/fresh-private-evidence-directory
 ```
+
+观察服务默认绑定原 `1.0.0`。观察现有 `1.0.1` 时，在确认原监听已由其 owner 正常释放后，用全新目录启动，并显式选择固定包：
+
+```sh
+node tests/cloud-control/passive-form-proof.mjs /absolute/path/to/new-private-evidence-directory \
+  --package examples/cloud-control/mac24dev-demo/form-fill.v1.0.1.opendesk-task.json
+```
+
+只接受本文两个固定包的精确版本及摘要；新会话将所选身份写入 `session.json`，不重标旧会话或随包文件后续变化改写身份。效果页同时识别这两组精确 pin，混合或未知摘要仍拒绝。会话标签只表示观察基线，不能代替原生目标／文档与 Run／Result 的关联。若 `43111` 被其他服务占用，先协调该 owner，不停止他人服务，也不换端口修改冻结 Task。
 
 当前服务已运行，无需执行启动命令。已实测业务登录、本人设备1288选择、空历史和效果页空查询。最后Provider实读executors=0/jobs=0、设备NOT_CONNECTED，本轮尚无本地Run或云控submit。正常SidePanel tooltip现已确认真实扩展ID为 `ljclbnojkhhgdpoaaggiihlmidgcoihi`，完整客户端revision为 `ed52e7aea28a2bfe5373a16b8f5024b89bb0ddb06b16d0b0824928eb9b3f5d55`，与发布磁盘记录一致；不再要求重给ID。实际Chrome加载路径、Task安装／配对／授权及执行关联ID仍未取得，旧网页SDK重注入与Native功能未验证。正式GOAL实读为blocked、未完成；当前Cookie持有桌面A/B短段，云控在明确交接前不并发输入／Run／Native。
 

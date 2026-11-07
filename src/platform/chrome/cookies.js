@@ -181,7 +181,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     return {cookies:filtered.slice(0,limit).map(redact),count:filtered.length,
       truncated:filtered.length>limit,scope:'URL_MATCHING_COOKIES',valuesRedacted:true};
   }
-  async function set(args,context){
+  async function write(args,context,witness=false){
     const details=scoped(args,'set');await verified(details.url,'set','pre',context);
     if(typeof api?.cookies?.set!=='function'||typeof api?.cookies?.getAll!=='function')throw fail('E_CHROME_UNSUPPORTED');
     try{
@@ -198,21 +198,35 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
         cookie.secure===(details.secure??false)&&cookie.httpOnly===(details.httpOnly??false)&&
         cookie.sameSite===(details.sameSite??'unspecified')&&
         cookie.session===(details.expirationDate===undefined)&&cookie.expirationDate===details.expirationDate);
-      if(!matchesWrite(result))throw Error('Unconfirmed exact Cookie set');
+      // Chromium selects set()'s optional return through the original URL.
+      // A different literal Path can therefore yield no Cookie or a same-name
+      // sibling. Verify the requested identity independently; never guess its
+      // Store when neither the request nor the native lookup identifies one.
+      if(typeof expected.storeId!=='string'||!expected.storeId)
+        throw Error('Unconfirmed Cookie Store');
       await verified(details.url,'set','post',context);
-      // A single get can select a same-value sibling. Bind getAll to the
-      // complete native receipt without URL-normalizing its literal Path.
-      const rows=await native('getAll',{domain:result.domain.replace(/^\./,'').toLowerCase(),
-        name:result.name,path:result.path,storeId:result.storeId,
-        ...(result.partitionKey?{partitionKey:result.partitionKey}:{})});
+      // Fixed trusted restore consumers can retain a complete native effect
+      // witness. It proves this exact state was observed, not that a website
+      // will keep it unchanged. Public SDK set() still requires current readback.
+      if(witness&&matchesWrite(result))
+        return {saved:true,verified:true,cookie:redact(result),verificationBasis:'native-receipt'};
+      // No URL filter: it would omit the requested nonmatching literal Path.
+      const rows=await native('getAll',{domain:expected.domain,
+        name:expected.name,path:expected.path,storeId:expected.storeId,
+        ...(expected.partitionKey?{partitionKey:expected.partitionKey}:{})});
       if(!Array.isArray(rows)||rows.length>10000)throw Error('Invalid exact Cookie readback');
-      const matches=rows.filter(row=>sameIdentity(row,result));
+      const matches=rows.filter(row=>sameIdentity({...row,
+        domain:row?.domain?.replace(/^\./,'').toLowerCase()},expected));
       const check=matches[0];
       if(matches.length!==1||!matchesWrite(check))throw Error('Cookie readback mismatch');
       await verified(details.url,'set','post',context);
-      return {saved:true,verified:true,cookie:redact(check)};
+      return {saved:true,verified:true,cookie:redact(check),
+        ...(witness?{verificationBasis:'exact-readback'}:{})};
     }catch{throw fail('E_OUTCOME_UNKNOWN','Cookie write effect uncertain; do not automatically retry');}
   }
+  const set=(args,context)=>write(args,context);
+  // Internal driver only: no Registry/Host/sandbox RPC exposes this method.
+  const setWithWitness=(args,context)=>write(args,context,true);
   async function remove(args,context){
     const details=scoped(args,'remove');await verified(details.url,'remove','pre',context);
     const expected=context?.expectedCookieIdentity;
@@ -238,6 +252,12 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     // Recheck immediately before dispatching the exact expiration.
     await verified(details.url,'remove','pre',context);
     try{
+      if(expected&&context?.expectedCookieCheck){
+        const latest=await exactRows(before);
+        if(latest.length!==1||!await context.expectedCookieCheck(latest[0]))
+          throw Error('Cookie changed after cleanup preview');
+        await verified(details.url,'remove','pre',context);
+      }
       await expireExact(before,details.url);
       await verified(details.url,'remove','post',context);
       if(await exactExists(before))throw Error('Exact Cookie still exists after remove');
@@ -280,6 +300,12 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
         ...(row.partitionKey?{partitionKey:row.partitionKey}:{})};
       try{
         await verified(key.url,'remove','pre',context);
+        if(context?.expectedCookieCheck){
+          const latest=await exactRows(row);
+          if(latest.length!==1||!await context.expectedCookieCheck(latest[0]))
+            throw Error('Cookie changed after cleanup preview');
+          await verified(key.url,'remove','pre',context);
+        }
         await expireExact(row,key.url);
         await verified(key.url,'remove','post',context);
         if(await exactExists(row))throw Error('Exact Cookie still present');
@@ -321,5 +347,5 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   }
 
   return Object.freeze({getCookies, setCookies, deleteCookiesByUrl, extractDomainFromUrl,
-    get,getAll,set,remove,clearSite,getStores,getPartitionKey});
+    get,getAll,set,setWithWitness,remove,clearSite,getStores,getPartitionKey});
 }

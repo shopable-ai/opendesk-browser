@@ -1,4 +1,4 @@
-// Fixed trusted extension UI: source binding and Native effects belong to the service.
+// Web Flow fixed trusted file UI: source binding and Native effects belong to the service.
 // Text only. A future task/start integration belongs to the service, not this generator.
 export function createTaskPrompt(task=''){
   const description=task.trim();
@@ -54,7 +54,16 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     el('before').value=show(proposal?.before);
     el('after').value=show(proposal?.content);
     text('result-status',snapshot.resultStatus?`执行状态：${show(snapshot.resultStatus)}`:'尚无执行结果');
-    text('delivery',`草稿填入状态：${show(snapshot.delivery)||'未确认'}。填入后仍需用户点击发送。`);
+    const phase=snapshot.automation?.phase;
+    const deliveryHint=phase==='completed'?'本轮已结束，无需再发送。需要模型查看结果时可自行发送。':
+      snapshot.delivery==='unknown'?'回填结果未知，请核对原对话；不会自动重填。':
+      phase==='paused'?'自动处理已暂停，请核对当前状态。':
+      proposal?'请在本页审阅修改前后内容，再确认写入。':
+      snapshot.result?.operation==='write'?'保存结果等待回填，请核对最终回执；无需再次发送读取结果。':
+      snapshot.resultText&&el('operation').value==='read-edit'?'发送真实读取结果后，模型才能提出修改。':
+      snapshot.resultText?'真实只读结果等待回填确认；无需发送给模型。':
+      snapshot.request?'尚未取得真实结果；发送完整请求提示词后等待自动处理。':'尚未准备文件请求。';
+    text('delivery',`草稿填入状态：${show(snapshot.delivery)||'未确认'}。`+deliveryHint);
     text('observed',`发送后原对话用户消息中的结果标记：${show(snapshot.observed)||'未确认'}（仅由检查回执确认收到）`);
     text('message',el('error').hidden?(snapshot.proposal?'请审阅并确认具体修改。':automatic&&snapshot.automation?.active?'自动等待原对话的完整协议回答；结果将填入原对话草稿。'+show(snapshot.message):snapshot.message):'');
     for(const control of root.querySelectorAll('button,input,select,textarea:not([readonly])'))control.disabled=busy||!claimed;
@@ -75,7 +84,7 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     for(const packet of ['prompt','result'])el(`fill-${packet}`).disabled=busy||!claimed||
       !snapshot[packet==='prompt'?'prompt':'resultText']||filled.has(packetKey(packet))||
       snapshot[packet==='prompt'?'promptDelivery':'delivery']!=='ready'||snapshot.automation?.phase==='paused';
-    el('inspect').disabled=busy||!claimed||!snapshot.request||snapshot.automation?.phase==='paused';
+    el('inspect').disabled=busy||!claimed||!snapshot.request||['paused','completed'].includes(snapshot.automation?.phase);
     el('reconcile').disabled=busy||!claimed||(!snapshot.request&&!proposal);
     el('observe').disabled=busy||!claimed||!snapshot.resultText;
   }
@@ -120,7 +129,8 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
   click('connect-project',()=>run('connect-project',{workspaceId:snapshot.projectConnection.workspaceId}));
   click('revoke-project',()=>run('revoke-project',{grantId:snapshot.projectConnection.grantId}));
   click('prepare',()=>run('prepare',{workspaceId,path:el('path').value,
-    operation:el('operation').value,task:el('task').value}));
+    operation:el('operation').value==='read-edit'?'read':el('operation').value,
+    allowEdit:el('operation').value==='read-edit',task:el('task').value}));
   for(const action of ['inspect','reconcile','observe'])click(action,()=>run(action));
   click('approve',()=>run('approve',{reviewId:snapshot.proposal?.reviewId}));
   for(const packet of ['prompt','result'])click(`fill-${packet}`,()=>run('fill',{packet,

@@ -1,21 +1,24 @@
 import {CHATGPT_FILE_INTENT_PROTOCOL,normalizeChatGPTFileHint} from './chatgpt-file-intent-gate.js';
 import {createTaskPrompt} from './chatgpt-files-ui.js';
-import {createChatGPTBridgeSite} from './chatgpt-bridge-site.js';
-import {createChatGPTTaskDiscovery} from './chatgpt-task-discovery.js';
+import {createChatGPTBridgeSite} from '../../../src/native-agent/chatgpt-bridge-site.js';
 import {CHATGPT_FILES_CONFIG_KEY,normalizeChatGPTFilesPreferences} from './chatgpt-files-config.js';
+import {isChatGPTFileTask} from './chatgpt-conversation-route.js';
+import {showPageToast} from '../../../src/scripting/user-scripts/page-toast.js';
 
 const PROJECT_PROTOCOL='opendesk.chatgpt.project.v1';
 
 // First-party ISOLATED UI. Project authority and execution stay in the service;
 // this page only submits trusted intents and never sends the ChatGPT composer.
-export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,site=createChatGPTBridgeSite({doc,win})}={}){
+export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,site=createChatGPTBridgeSite({doc,win}),notify=showPageToast,retireObservation=()=>{}}={}){
   if(win!==win.top||win.location.origin!=='https://chatgpt.com')return null;
   if(doc.getElementById('opendesk-chatgpt-files-entry'))return null;
   const root=doc.createElement('div');
   root.id='opendesk-chatgpt-files-entry';
   root.setAttribute('data-opendesk-ui-owner','chatgpt-files-entry');
   root.hidden=true;
-  root.style.cssText='display:block;margin:8px auto;max-width:768px;width:calc(100% - 24px)';
+  // Only active task controls or explicitly requested diagnostics/details live
+  // here. Never attach business feedback to the site's composer/layout.
+  root.style.cssText='position:fixed;top:72px;right:16px;z-index:2147483646;max-width:400px;width:calc(100vw - 32px)';
   const shadow=root.attachShadow({mode:'closed'});
   const style=doc.createElement('style');
   style.textContent=':host{all:initial}:host([hidden]){display:none!important}*{box-sizing:border-box}.card{font:12px/1.45 system-ui,-apple-system,sans-serif;color:#1b2c49;background:#fff;border:1px solid #e1e8f1;border-radius:12px;padding:9px;box-shadow:0 4px 16px #0002}.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.head .status{flex:1;min-width:140px}.card[hidden],[hidden]{display:none!important}a{color:inherit}.diagnostic{margin-top:8px;display:grid;gap:8px}button{font:inherit;border-radius:8px;min-height:34px;cursor:pointer;padding:7px 10px;border:1px solid #8795a9;background:#f5f7fb;color:inherit}button.primary{background:#365eda;border-color:#365eda;color:#fff}button:disabled{opacity:.55;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #365eda;outline-offset:2px}.detail{margin-top:8px;display:grid;gap:8px;max-height:70vh;overflow:auto}.detail[hidden]{display:none}label{display:grid;gap:4px;color:#4b5e77}input,textarea{font:inherit;min-height:34px;width:100%;min-width:0;border:1px solid #8795a9;border-radius:8px;padding:7px;background:inherit;color:inherit}textarea{resize:vertical}.note,.status{overflow-wrap:anywhere;color:#52647c}.status.error{color:#a8243f}@media(prefers-color-scheme:dark){.card{color:#ebf1f9;background:#182233;border-color:#374457}button{color:inherit;background:#28374c;border-color:#71849c}button.primary{color:#fff;background:#365eda;border-color:#365eda}input,textarea{border-color:#71849c}.note,.status,label{color:#bbc8db}.status.error{color:#ff9fae}}';
@@ -41,7 +44,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   const promptLabel=doc.createElement('label');promptLabel.textContent='本地提示词（可选中复制）';promptLabel.hidden=true;
   const prompt=doc.createElement('textarea');prompt.id='opendesk-project-prompt';prompt.rows=6;prompt.readOnly=true;promptLabel.append(prompt);
   const taskNote=doc.createElement('div');taskNote.className='note';
-  taskNote.textContent='直接在 ChatGPT 输入并发送，例如“读取当前项目 demo.txt，只读不修改”。扩展通过 Native 读写已授权项目，真实结果显示在这里。修改需要的文件上下文会填入原输入框，由你发送；保存后无需再发送回执。首次缺少连接时才审阅授权。';
+  taskNote.textContent='直接在 ChatGPT 输入并发送，例如“读取当前项目 demo.txt，只读不修改”。完成结果使用框架通知；长内容与真实回执可按需展开查看。修改上下文只填入原输入框，由你发送；保存后无需再发送回执。';
   const optional=doc.createElement('details');
   const optionalSummary=doc.createElement('summary');optionalSummary.textContent='可选：本地提示词与手动任务';
   optional.append(optionalSummary,taskLabel,start,generate,promptLabel);
@@ -60,9 +63,11 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   head.append(status,stop,toggle,dismiss);detail.append(taskNote,receipt,settings);
   diagnostic.append(diagnosticTitle,optional,legacy);card.append(head,detail,diagnostic);
   shadow.append(style,card);(doc.body||doc.documentElement).append(root);
-  let disposed=false,pending=false,projectPending=false,taskActive=false,projectExists=false,taskUrl='',composition=false,awaitingTask=false,stopRequested=false,stopPending=false;
+  let disposed=false,pending=false,projectPending=false,taskActive=false,projectExists=false,taskUrl='',awaitingTask=false,stopRequested=false,stopPending=false;
   let preferences=normalizeChatGPTFilesPreferences(),preferencesReady=false,dismissed=false,lastData=null,preferencesRevision=0;
-  const discovery=createChatGPTTaskDiscovery();discovery.reset(site.inspect());
+  let notificationUnavailable=false,taskSequence=0;
+  const announced=new Set();
+  const dismissNotification=()=>{try{notify({id:'chatgpt-files'},'dismiss');}catch{/* Display cleanup never dispatches file operations. */}};
   const active=()=>{
     if(win.location.origin!=='https://chatgpt.com')return false;
     return /^\/(?:g\/g-p-[A-Za-z0-9-]+\/)?c\/[A-Za-z0-9-]+\/?$/.test(win.location.pathname);
@@ -72,20 +77,33 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(taskUrl&&taskUrl!==win.location.href){
       taskActive=false;projectExists=false;awaitingTask=false;stopRequested=false;taskUrl='';
       receipt.textContent='';receipt.hidden=true;status.textContent='';dismissed=false;lastData=null;
-      discovery.reset(site.inspect());
+      announced.clear();notificationUnavailable=false;dismissNotification();
       detail.hidden=true;toggle.setAttribute('aria-expanded','false');
     }
     const running=preferencesReady&&preferences.enabled;
-    root.hidden=!active()||(!preferences.diagnosticsVisible&&(dismissed||!status.textContent));
+    const controlsNeeded=projectPending||stopPending||taskActive||awaitingTask||projectExists&&!stopRequested||
+      !!(lastData?.result||lastData?.resultText)&&!dismissed;
+    root.hidden=!active()||(!preferences.diagnosticsVisible&&!controlsNeeded&&
+      (dismissed||detail.hidden&&!notificationUnavailable));
     diagnostic.hidden=!preferencesReady||!preferences.diagnosticsVisible;
     open.disabled=pending||projectPending||stopPending||!active()||!running;
     start.disabled=pending||projectPending||stopPending||!active()||!running;
     stop.disabled=!active()||!projectExists||stopRequested||stopPending;stop.hidden=!projectExists;
     dismiss.hidden=projectPending||stopPending||taskActive||awaitingTask;toggle.hidden=!status.textContent;
-    const container=site.inspect()?.editor?.closest?.('form')?.parentElement;
-    if(container&&root.parentElement!==container)container.append(root);
   };
-  const say=(value,error=false)=>{status.textContent=value;status.classList.toggle('error',error);dismissed=false;};
+  const say=(value,error=false,{key,variant=error?'error':'info',persistent=error}={})=>{
+    status.textContent=value;status.classList.toggle('error',error);
+    if(key!==undefined&&announced.has(key))return;
+    dismissed=false;
+    // Record before rendering. A failed/dismissed notification cannot replay or
+    // reannounce the same file result on the next wake/preferences update.
+    if(key!==undefined)announced.add(key);
+    try{
+      notify({id:'chatgpt-files',message:value.slice(0,240),variant,
+        duration:persistent?0:8000,countdown:!persistent,dismissible:true,position:'top'});
+      notificationUnavailable=false;
+    }catch{notificationUnavailable=true;}
+  };
   const showResult=(data,{announce=true}={})=>{
     lastData=data;const r=data.result,d=r?.data;
     const outcome=r?.status||data.resultStatus;
@@ -99,15 +117,23 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       else if(d?.saved===true&&d.readBackVerified===true)message='已保存 '+r.path+' · 独立读回核验通过';
       else message='写入回执尚未核验 · 请查看详情';
     }
-    if(announce)say(message,unknown||failed);
+    const unverified=r?.operation==='write'&&r.status==='success'&&!(d?.saved===true&&d.readBackVerified===true);
+    if(announce)say(message,unknown||failed,{key:r?'result:'+(r.resultId||data.resultPacketId||JSON.stringify(r))+':'+outcome+':'+d?.saved+':'+d?.readBackVerified:'status:'+taskSequence+':'+message,
+      variant:unknown||unverified?'warning':failed?'error':r?.status==='success'?'success':'info',
+      persistent:unknown||failed||unverified});
+    const projectName=typeof data.projectConnection?.name==='string'&&data.projectConnection.name.trim()?data.projectConnection.name:'（未提供）';
     if(r){
-      receipt.textContent=[`文件：${r.path}`,`状态：${unknown?'结果未知':failed?'失败':'成功'}`,
+      const comparison=data.comparison;
+      const section=(label,value)=>label+'：\n'+(typeof value==='string'?(value||'（空文件）'):'（未提供）');
+      receipt.textContent=[`项目：${projectName}`,`相对路径：${typeof r.path==='string'?r.path:'（未提供）'}`,`状态：${unknown?'结果未知':failed?'失败':unverified?'写入未核验':'成功'}`,
         r.operation==='write'&&d?`已保存：${d.saved===true} · 独立读回通过：${d.readBackVerified===true}`:'',
         preferences.diagnosticsVisible&&d?.sha256?`SHA-256：${d.sha256}`:'',
         r.error?`${r.error.code} · ${r.error.message} · ${r.error.outcome}`:'',
+        ...(r.operation==='write'?[section('修改前',comparison?.before),section('提案后',comparison?.proposed),
+          section(r.error?.code==='E_FILE_RECONCILED'?'当前读回（原回执仍未知）':unknown||failed||unverified?'当前读回（写入结果未确认）':'独立读回',comparison?.readBack)]:[]),
         typeof d?.content==='string'?'文件内容（本机显示，未自动发送给模型）：\n'+d.content:''].filter(Boolean).join('\n');
       receipt.hidden=false;
-    }else if(data.resultText){receipt.textContent=data.resultText;receipt.hidden=false;}
+    }else if(data.resultText){receipt.textContent=`项目：${projectName}\n相对路径：（未提供）\n${data.resultText}`;receipt.hidden=false;}
   };
   const validSource=url=>!disposed&&active()&&win.location.href===url;
   async function request(message){
@@ -126,7 +152,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     if(!initiating&&!validSource(taskUrl)){update();return;}
     const url=win.location.href;
     if(stopping){stopPending=true;stopRequested=true;taskActive=false;}else projectPending=true;
-    if(initiating){stopRequested=false;}
+    if(initiating){stopRequested=false;taskSequence++;}
     if(initiating){taskUrl=url;projectExists=true;receipt.textContent='';receipt.hidden=true;detail.hidden=true;toggle.setAttribute('aria-expanded','false');lastData=null;}
     if(action==='conversation'){
       awaitingTask=false;say('正在通过 Native 处理文件需求…');
@@ -156,43 +182,32 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
       update();
     }
   }
-  // Reuse the fixed bridge's witnessed-native-send observer. DOM hydration,
-  // history and model/file bytes alone never start project I/O. This listener
-  // neither cancels the site's send nor edits or sends its composer.
-  const taskLike=text=>typeof text==='string'&&new TextEncoder().encode(text).length<=4096&&
-    !/opendesk\.(?:workspace|chatgpt)\.|OpenDesk 文件请求结果/.test(text)&&
-    /读取|查看|编辑|修改|替换|改为|更新|写入|\b(?:read|inspect|view|edit|update|modify|change|replace)\b/i.test(text)&&
-    /\.(?:md|markdown|txt|html|htm|json|css|js|jsx|ts|tsx|mjs)(?=$|[^A-Za-z0-9])/i.test(text);
-  const onSubmission=event=>{
-    if(disposed||!preferencesReady||!preferences.enabled||!active()||event.isTrusted!==true||event.defaultPrevented||composition||event.isComposing)return;
-    const snap=site.inspect();if(!snap.ok)return;
-    if(event.type==='click'&&event.button===0&&snap.stopButton&&
-      (event.target===snap.stopButton||snap.stopButton.contains?.(event.target))){
-      discovery.witnessCancellation(snap);
-      awaitingTask=false;update();
-      if(projectExists&&(taskActive||projectPending)){
-        void projectRun('stop');
-      }
-      return;
-    }
-    const {editor,sendButton}=snap;
-    if(editor.disabled||editor.readOnly||editor.getAttribute?.('aria-disabled')==='true'||
-      !sendButton||sendButton.disabled||sendButton.getAttribute?.('aria-disabled')==='true'||!taskLike(snap.draft))return;
-    if(event.type==='click'){
-      if(event.button!==0||!(event.target===sendButton||sendButton.contains?.(event.target)))return;
-    }else if(event.type==='keydown'){
-      if(event.key!=='Enter'||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey||event.repeat||
-        doc.activeElement!==editor||!(event.target===editor||editor.contains?.(event.target)))return;
-    }else return;
-    if(discovery.witnessSubmission(snap)){
-      awaitingTask=true;taskUrl=win.location.href;projectExists=true;
-      detail.hidden=true;toggle.setAttribute('aria-expanded','false');
-      say('等待本轮回答后处理文件需求…');update();
-    }
+  // Called only by the original Web Flow discovery after its native gesture
+  // and complete-turn checks. This adapter has NO independent send observer.
+  const submission=snap=>{
+    if(disposed||!preferencesReady||!preferences.enabled||!active()||!isChatGPTFileTask(snap.draft))return;
+    awaitingTask=true;taskUrl=win.location.href;projectExists=true;
+    detail.hidden=true;toggle.setAttribute('aria-expanded','false');
+    say('等待本轮回答后处理文件需求…');update();
   };
-  const onComposition=event=>{composition=event.type==='compositionstart';};
-  doc.addEventListener('click',onSubmission,true);doc.addEventListener('keydown',onSubmission,true);
-  doc.addEventListener('compositionstart',onComposition,true);doc.addEventListener('compositionend',onComposition,true);
+  const cancellation=()=>{
+    if(disposed)return;
+    awaitingTask=false;update();
+    if(projectExists&&(taskActive||projectPending))void projectRun('stop');
+    else{projectExists=false;update();}
+  };
+  const conversation=observed=>{
+    if(disposed||!awaitingTask||!preferencesReady||!preferences.enabled||!validSource(taskUrl))return false;
+    const content=observed.user.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||observed.user;
+    const description=content.innerText??content.textContent??'';
+    if(!isChatGPTFileTask(description))return false;
+    awaitingTask=false;
+    void projectRun('conversation',description);return true;
+  };
+  const conflict=()=>{
+    awaitingTask=false;projectExists=taskActive||projectPending;
+    say('任务路由冲突：本轮同时包含文件需求和网页 Task 候选；两者均未启动。请明确一种操作后提出新请求。',true);update();
+  };
   start.addEventListener('click',event=>{
     if(!event.isTrusted||disposed||pending||projectPending||!preferencesReady||!preferences.enabled||!active())return;
     const description=task.value.trim();
@@ -202,7 +217,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   stop.addEventListener('click',event=>{
     if(!event.isTrusted||stop.disabled)return;
     if(awaitingTask){
-      discovery.reset(site.inspect());awaitingTask=false;
+      retireObservation();awaitingTask=false;
       if(!taskActive&&!projectPending){projectExists=false;say('本次项目需求已停止，未启动文件访问。');update();return;}
     }
     say('正在停止；已派发操作将保留实际回执。');
@@ -246,7 +261,7 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
     const next=normalizeChatGPTFilesPreferences(value),changed=!preferencesReady||next.enabled!==preferences.enabled;
     preferences=next;preferencesReady=true;
     if(changed){
-      discovery.reset(site.inspect());awaitingTask=false;
+      if(awaitingTask)retireObservation();awaitingTask=false;
       if(!next.enabled){
         const needsStop=projectExists&&(taskActive||projectPending);taskActive=false;
         if(needsStop){
@@ -275,21 +290,15 @@ export function initChatGPTFileIntentPage({api=chrome,doc=document,win=window,si
   const poll=win.setInterval(()=>{
     update();
     if(disposed||projectPending||stopPending||!preferencesReady||!preferences.enabled)return;
-    const observed=discovery.observe(site.inspect());
-    if(observed&&active()){
-      const content=observed.user.querySelector?.('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap')||observed.user;
-      const description=content.innerText??content.textContent??'';
-      if(taskLike(description)){void projectRun('conversation',description);return;}
-    }
     if(taskActive&&validSource(taskUrl))void projectRun('wake');
   },2500);
   const dispose=()=>{
     if(disposed)return;disposed=true;win.clearInterval(poll);root.remove();
+    dismissNotification();
     api.storage.onChanged.removeListener(onPreferences);
-    doc.removeEventListener('click',onSubmission,true);doc.removeEventListener('keydown',onSubmission,true);
-    doc.removeEventListener('compositionstart',onComposition,true);doc.removeEventListener('compositionend',onComposition,true);
     win.removeEventListener('pagehide',dispose);
   };
   win.addEventListener('pagehide',dispose,{once:true});
-  return Object.freeze({dispose,ready});
+  return Object.freeze({dispose,ready,submission,cancellation,conversation,conflict,
+    busy:()=>projectPending||stopPending||taskActive||projectExists&&!stopRequested});
 }

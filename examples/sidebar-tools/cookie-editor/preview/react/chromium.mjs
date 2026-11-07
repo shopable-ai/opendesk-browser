@@ -336,19 +336,19 @@ try{
   await button('安全清理本站 Cookie').click();
   const dialog=page.getByRole('dialog',{name:'清理本站 Cookie'});await dialog.waitFor();
   assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true);
-  assert.match(await dialog.innerText(),/6 条/);assert.match(await dialog.innerText(),/Host-only/);
+  assert.match(await dialog.innerText(),/7 条/);assert.match(await dialog.innerText(),/跨子域/);
   assert.equal(await page.evaluate(()=>document.activeElement?.textContent?.trim()),'取消');
   await page.keyboard.press('Escape');await ready();
   assert.equal(await page.locator('dialog:modal').count(),0);
   await button('安全清理本站 Cookie').click();await dialog.getByRole('button',{name:'取消',exact:true}).click();await ready();
  });
- await test('one confirmed Host-only clear removes exact cookies without a second dialog',async()=>{
+ await test('one confirmed visible-host clear removes exact cookies without a second dialog',async()=>{
   await button('安全清理本站 Cookie').click();
   const dialog=page.getByRole('dialog',{name:'清理本站 Cookie'});
   await dialog.waitFor();
-  assert.match(await dialog.innerText(),/6 条/);
-  await dialog.getByRole('button',{name:'清理 6 条',exact:true}).click();
-  await page.waitForFunction(()=>document.querySelectorAll('.cookie-row').length===2);
+  assert.match(await dialog.innerText(),/7 条/);
+  await dialog.getByRole('button',{name:'清理 7 条',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.cookie-row').length===1);
   assert.equal(await page.locator('dialog:modal').count(),0,
     'the original confirmation must close after one clear attempt');
   assert.equal(await page.getByRole('button',{name:'确认本次 Cookie 操作'}).count(),0,

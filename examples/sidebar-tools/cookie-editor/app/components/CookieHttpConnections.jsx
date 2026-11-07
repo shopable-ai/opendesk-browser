@@ -4,7 +4,7 @@ import {CookieIcon, CookieIconButton} from './CookieEditorView.jsx';
 
 const secondary = 'od-button od-button--secondary cookie-button--compact';
 const primary = 'od-button od-button--primary cookie-button--compact';
-const statuses = {UNCONNECTED:'未连接', CONNECTED:'已连接', DISCONNECTED:'已断开',
+const statuses = {UNCONNECTED:'未连接', CONNECTED:'已配对', DISCONNECTED:'已断开',
   SESSION_EXPIRED:'会话已过期', OUTCOME_UNKNOWN:'结果未知', INVALIDATED:'已失效', RECEIPTS_ONLY:'仅可查回执', RETIRED:'已归档（远端状态未声明）'};
 const unresolved = connection => Boolean(connection.pending) || connection.status === 'OUTCOME_UNKNOWN';
 const openPending = connection => ['serviceOpen', 'open'].includes(connection?.pending?.action) && connection.pending.canArchive === true;
@@ -17,6 +17,7 @@ const observedTime = value => {
   return Number.isFinite(time.getTime()) ? time.toLocaleString('zh-CN') : '暂无';
 };
 const percentage = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value + '%' : '暂无';
+const checkStatus = value => value===true ? '成功' : value===false ? '无法访问' : ({OK:'成功', FAILED:'失败', NOT_CHECKED:'尚未检查', UNPAIRED:'尚未配对', EXPIRED:'已过期', REVOKED:'已撤销', DENIED:'拒绝访问', UNREACHABLE:'无法访问', UNKNOWN:'未知'})[value] || '尚未检查';
 const usageStatus = value => ({OK:'读取成功', SUCCESS:'读取成功', READY:'可用', FRESH:'最新缓存', STALE:'缓存已过期',
   ERROR:'读取失败', UNAVAILABLE:'暂不可用', EMPTY:'暂无缓存', UNKNOWN:'状态未知'})[value] || '状态待核对';
 function exactOrigin(value) {
@@ -29,7 +30,7 @@ function exactOrigin(value) {
 
 // HTTP transport, persistence and trusted permission reviews belong to the caller.
 export function CookieHttpConnections({origin = '', accounts = [], accountReady = false, state,
-  busy = false, notice = '', onAction, onDirtyChange, onAccounts, onDiscardRequest, onOverview}) {
+  busy = false, notice = '', onAction, onDirtyChange, onAccounts, onDiscardRequest}) {
   const [form, setForm] = React.useState(null);
   const [error, setError] = React.useState('');
   const [working, setWorking] = React.useState(false);
@@ -147,14 +148,45 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     lock.current = true; setWorking(true); setError('');
     try {
       const success = await current.onAction(action, {revision:draft.revision, ...payload});
-      if (!mounted.current) return;
-      if (success === true) {
+      if (!mounted.current || latest.current.origin!==draft.origin || latest.current.accountReady!==draft.accountReady || fingerprint(latest.current.accounts)!==draft.accounts) return;
+      if (success === true || success?.ok === true) {
         if (action === 'serviceStatus' || action === 'serviceReconcile' || action === 'serviceArchiveOpen' || action === 'serviceRetire') {
           setUncertain(previous => previous?.connectionId === payload.connectionId ? null : previous);
         }
-        if (!read) { restore.current = true; setForm(null); if (action==='serviceSave') setDetailId(null); }
+        if (action==='serviceReconcile' && success?.state && form?.kind==='connect') {
+          const refreshed=success.state.connections.find(item=>item.id===payload.connectionId);
+          if(refreshed?.status==='CONNECTED'){setForm(null);setDetailId(refreshed.id);}
+          else if(refreshed?.status==='UNCONNECTED'&&!refreshed.pending){
+            setForm(previous=>({...previous,...context(refreshed),revision:success.state.revision,code:''}));
+            setError('原连接码已无效、过期或已使用。请从目标服务管理页生成新应用连接码，再确认连接。');
+          }
+        }
+        if (!read) {
+          if (action==='serviceSave' && success?.state) {
+            const result=success.state;
+            const added=result.connections.filter(item=>!current.state.connections.some(old=>old.id===item.id));
+            const saved=added.length===1&&added[0].origin===payload.serviceOrigin&&added[0].label===payload.label&&added[0].status==='UNCONNECTED' ? added[0] : null;
+            if(saved && latest.current.origin===draft.origin && mounted.current){
+              setDetailId(saved.id);
+              setForm({kind:'connect', revision:result.revision, origin:latest.current.origin,
+                accounts:fingerprint(latest.current.accounts), accountReady:latest.current.accountReady,
+                connectionId:saved.id, connection:fingerprint(saved), code:'', confirmed:false});
+            } else {restore.current=true;setForm(null);setError('配置已保存，请从服务列表核对后继续连接。');}
+          } else {
+            restore.current = true; setForm(null);
+            if(action==='serviceConnect')setDetailId(payload.connectionId);
+          }
+        }
       } else if (success?.rejected === true) {
-        setError('操作未执行/已确认拒绝，请核对提示后重新审阅');
+        const rejectedConnection=success.state?.connections?.find(item=>item.id===payload.connectionId);
+        if(['serviceConnect','serviceReconcile'].includes(action)&&
+          ['UNCONNECTED','DISCONNECTED'].includes(rejectedConnection?.status)&&!rejectedConnection.pending){
+          setUncertain(previous=>previous?.connectionId===payload.connectionId?null:previous);
+          setForm(previous=>previous?.kind==='connect'&&previous.connectionId===payload.connectionId
+            ? {...previous,revision:success.state.revision,connection:fingerprint(rejectedConnection),code:'',confirmed:false}
+            : previous);
+          setError('连接码已无效、过期或已使用。请在目标服务管理页生成新应用连接码，再确认连接。');
+        } else setError('操作未执行/已确认拒绝，请核对提示后重新审阅');
       } else {
         if (!read) setUncertain({connectionId:payload.connectionId, action, revision:draft.revision});
         setError(read ? '未能读取服务回执，请检查服务地址与连接状态。' : '操作未获成功确认，已暂停写入。请先读取回执，勿重复提交。');
@@ -225,31 +257,32 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   const empty = Boolean(state && !connections.length);
   const needsReview = connection => unresolved(connection) || uncertain?.connectionId===connection.id;
   const connectedCount = connections.filter(connection=>connection.status==='CONNECTED' && !needsReview(connection)).length;
+  const showDetail = (connection, source=connection.id) => {detailSource.current=source;setDetailId(connection.id);};
   const listAction = connection => {
-    if (needsReview(connection)) return <CookieIconButton name="search" label={'核对原操作：' + connection.label}
-      className="cookie-http-review" disabled={unavailable || Boolean(form)} onClick={()=>reconcile(connection)}/>;
-    if (connection.status==='CONNECTED') return <CookieIconButton name="chart" label={'打开设备管理页：' + connection.label}
-      className="cookie-http-connect" disabled={blocked || Boolean(form)}
-      onClick={()=>dispatch('serviceOpen', {connectionId:connection.id,bindingId:''}, context(connection))}/>;
-    if (['UNCONNECTED','DISCONNECTED'].includes(connection.status)) return <CookieIconButton name="plug" label={'连接服务：' + connection.label}
-      className="cookie-http-connect" disabled={blocked || Boolean(form)} onClick={event=>open(event,'connect',connection)}/>;
-    return <CookieIconButton name="search" label={'查看连接状态：' + connection.label} disabled={unavailable || Boolean(form)}
-      buttonRef={detailButtons.current[connection.id+':state'] ||= {current:null}}
-      onClick={()=>{detailSource.current=connection.id+':state';setDetailId(connection.id);}}/>;
+    if (needsReview(connection)) return <button type="button" className={secondary} aria-label={'核对原操作：' + connection.label}
+      disabled={unavailable || Boolean(form)} onClick={()=>reconcile(connection)}>读取原回执</button>;
+    if (connection.status==='CONNECTED') return <button type="button" className={primary} aria-label={'查看服务账号：' + connection.label}
+      disabled={unavailable || Boolean(form)} onClick={()=>showDetail(connection)}>{connection.check&&(connection.check.reachable===false||['REVOKED','EXPIRED'].includes(connection.check.session)||['FAILED','DENIED'].includes(connection.check.resources))?'查看检查结果':'查看账号'}</button>;
+    if (['UNCONNECTED','DISCONNECTED'].includes(connection.status)) return <button type="button" className={primary} aria-label={'连接服务：' + connection.label}
+      disabled={blocked || Boolean(form)} onClick={event=>open(event,'connect',connection)}>继续连接</button>;
+    return <button type="button" className={secondary} aria-label={'查看连接状态：' + connection.label} disabled={unavailable || Boolean(form)}
+      ref={detailButtons.current[connection.id+':state'] ||= {current:null}}
+      onClick={()=>showDetail(connection,connection.id+':state')}>核对状态</button>;
   };
-  return <section className="cookie-http-connections" aria-label="服务连接" data-view={form?.kind === 'config' ? 'config' : detail ? 'detail' : 'list'}>
-    {form?.kind !== 'config' && <>
+  const pairingPage=form?.kind==='connect';
+  return <section className="cookie-http-connections" aria-label="服务连接" data-view={form ? 'config' : detail ? 'detail' : 'list'}>
+    {!form && <>
     <header className="cookie-http-list-header">
       {detail ? <><CookieIconButton name="right" className="cookie-http-back" label="返回服务列表" disabled={unavailable || Boolean(form)} onClick={()=>{detailTrigger.current=detailSource.current||detail.id;setDetailId(null);}}/>
         <h3 ref={detailHeading} tabIndex={-1}>服务详情</h3></> : <div className="cookie-http-heading-copy">
           <h3 ref={heading} tabIndex={-1}>服务连接 <small aria-label="服务数量">{state ? connections.length : '—'}</small>
-            {connectedCount>0 && <small aria-label="已连接服务数量"> · {connectedCount} 个已连接</small>}</h3>
-          <p>本机与公司服务</p>
+            {connectedCount>0 && <small aria-label="已连接服务数量"> · {connectedCount} 个已配对</small>}</h3>
+          <p>添加地址 → 配对 → 查看账号 → 按需关联</p>
         </div>}
       <div className="cookie-http-header-actions">
         <CookieIconButton name="refresh" label="刷新服务列表" appearance="quiet" disabled={unavailable || Boolean(form)}
           onClick={()=>dispatch('serviceStatus', {}, {revision:state.revision, origin, accounts:fingerprint(accounts), accountReady}, true)}/>
-        {!empty && <CookieIconButton name="plus" label="添加服务" buttonRef={addButton} className="cookie-http-add" disabled={blocked || Boolean(form)} onClick={event => open(event, 'config')}/>}
+        {!empty && <button type="button" aria-label="添加服务" ref={addButton} className={primary} disabled={blocked || Boolean(form)} onClick={event => open(event, 'config')}>＋添加服务</button>}
       </div>
     </header>
     {notice && <p role="status" className="cookie-business-callout">{notice}</p>}
@@ -258,7 +291,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     {busy && <p role="status">正在处理服务请求…</p>}
     {empty && <div className="cookie-http-empty"><span className="cookie-http-symbol"><CookieIcon name="plug"/></span>
       <strong>连接你的第一个服务</strong><p>尚未配置服务。先添加地址，再使用应用一次性配对码连接。</p>
-      <Button ref={addButton} aria-label="添加服务" variant="primary" disabled={blocked || Boolean(form)} onClick={event=>open(event,'config')}>添加服务</Button>
+      <Button ref={addButton} aria-label="添加服务" variant="primary" disabled={blocked || Boolean(form)} onClick={event=>open(event,'config')}>＋添加服务</Button>
     </div>}
     {unknown && <p role="alert" className="cookie-business-callout">存在未确认结果，所有服务写入已暂停。请读取回执；未知的管理页打开请手动核对后归档，不要重复打开。</p>}
     {uncertain && !uncertain.connectionId && <p>请重新读取应用的服务配置，核对刚才的保存结果后再操作。</p>}
@@ -271,7 +304,12 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
         <div className="cookie-http-card-name"><h4>{connection.label}</h4><p><span>{local ? '此电脑' : '公司'} · </span><span>{connection.origin}</span></p></div>
         <span className="cookie-http-status" data-status={status}><CookieIcon name={status==='CONNECTED' ? 'check' : status==='OUTCOME_UNKNOWN' ? 'clock' : status==='UNCONNECTED' || status==='DISCONNECTED' ? 'unplug' : 'info'}/>{statuses[status] || '状态未知'}</span>
       </div>
-      {needsReview(connection) && <p className="cookie-http-pending-note">原操作结果尚未确认，请先核对。</p>}
+      <p className="cookie-http-next">{needsReview(connection) ? '原操作结果尚未确认，请读取原回执，勿重新发送。' :
+        connection.status==='UNCONNECTED' ? '地址已保存，尚未连接。准备好应用连接码后继续。' :
+        connection.status==='CONNECTED' ? (connection.check?.reachable===false ? '上次检查无法访问服务，请确认后台正在运行。' :
+          connection.check?.session==='REVOKED' ? '上次检查会话无效或已撤销，请在后台核对设备授权。' :
+          ['FAILED','DENIED'].includes(connection.check?.resources) ? '配对事实保留；资源读取失败，请查看检查结果。' : '配对已确认；服务当前可用性以连接检查为准。') :
+        connection.status==='DISCONNECTED' ? '服务已确认断开；需要新的应用连接码才能再次连接。' : '请在详情核对原授权与恢复方式。'}</p>
       <div className="cookie-http-card-actions"><span className="cookie-http-associations" role="img" aria-label={'已关联账号：'+count+' 个'} title="已关联账号数；不代表身份已核验或同步已授权"><CookieIcon name="users"/><span aria-hidden="true">关联 <strong>{count}</strong></span></span>
         <div className="cookie-http-row-actions" role="group" aria-label={connection.label+'的操作'}>
         <CookieIconButton name="info" appearance="quiet" label={'服务详情：' + connection.label} disabled={unavailable || Boolean(form)}
@@ -281,23 +319,64 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     </article>;})}</div>}
     {connections.filter(connection=>connection.id===detailId).map(connection=><article key={connection.id} className="cookie-business-inquiry" aria-label={'服务：' + connection.label}>
       <h4>{connection.label}</h4><p>{connection.origin}</p>
-      <p>{statuses[connection.status] || '状态未知'}{connection.expiresAt ? ' · 会话到期：' + String(connection.expiresAt) : ''}</p>
+      <p>{statuses[connection.status] || '状态未知'}{connection.expiresAt ? ' · 会话到期：' + observedTime(connection.expiresAt) : ''}</p>
       {['SESSION_EXPIRED', 'INVALIDATED'].includes(connection.status) && <p>旧记录保留；重新添加此地址并使用新应用配对码连接，不代表旧设备已撤销</p>}
+      <div className="cookie-business-actions">
+        <button type="button" className={primary} disabled={unavailable || Boolean(form) || needsReview(connection) || ['RETIRED','INVALIDATED','RECEIPTS_ONLY'].includes(connection.status)}
+          aria-label={'检查连接：' + connection.label} onClick={()=>dispatch('serviceCheck',{connectionId:connection.id},context(connection),true)}>检查连接</button>
+        {<button type="button" className={secondary}
+          disabled={blocked || Boolean(form) || !['UNCONNECTED','DISCONNECTED'].includes(connection.status)} aria-label={'连接服务：' + connection.label}
+          onClick={event=>open(event,'connect',connection)}>继续连接</button>}
+      </div>
+      <section className="cookie-http-check" aria-label="连接检查结果" aria-live="polite">
+        <h4>检查结果</h4>
+        <p>地址：{connection.origin}</p>
+        <p>会话到期：{connection.expiresAt ? observedTime(connection.expiresAt) : '尚未建立'}</p>
+        <p>检查时间：{observedTime(connection.check?.checkedAt)}</p>
+        <dl><div><dt>服务可访问</dt><dd>{checkStatus(connection.check?.reachable)}</dd></div>
+          <div><dt>应用会话</dt><dd>{checkStatus(connection.check?.session)}</dd></div>
+          <div><dt>账号资源读取</dt><dd>{checkStatus(connection.check?.resources)}</dd></div></dl>
+        {connection.check?.message&&<p>{connection.check.message}</p>}
+        <p>仅检查已授权服务的会话与资源；不配对、不关联、不续期、不读取 Cookie、不查询上游额度。刷新列表仅重读本地配置。</p>
+      </section>
+      <h4>服务账号</h4>
+      <div className="cookie-business-actions">
+        <button type="button" className={secondary} disabled={unavailable || connection.status!=='CONNECTED' || Boolean(form)}
+          aria-label={'读取资源：' + connection.label} onClick={()=>dispatch('serviceResources',{connectionId:connection.id},context(connection),true)}>读取服务账号</button>
+        {Number.isSafeInteger(connection.resourceCursor)&&connection.resourceCursor>=0&&<button type="button" className={secondary}
+          disabled={unavailable || connection.status!=='CONNECTED' || Boolean(form)} aria-label={'读取更多资源：' + connection.label}
+          onClick={()=>dispatch('serviceResources',{connectionId:connection.id,cursor:connection.resourceCursor},context(connection),true)}>读取更多账号</button>}
+        <button type="button" className={secondary} disabled={blocked || Boolean(form) || connection.status!=='CONNECTED' || !connection.resources?.length}
+          onClick={event=>open(event,'bind',connection)} aria-label={'绑定账号：' + connection.label}>关联本站账号（可跳过）</button>
+      </div>
+      {connection.status === 'CONNECTED' && !connection.resources?.length && <p>{connection.resourceRead?.status==='OK' ? '服务已连接，后台尚未配置账号。请联系管理员添加；关联本站账号可跳过。' : connection.resourceRead?.status==='FAILED' ? '服务已配对，但账号资源读取失败。请查看检查结果或重新读取服务账号。' : '尚未读取服务账号；读取成功前无法判断后台是否有账号。'}</p>}
+      {connection.resourceRead?.checkedAt&&<p className="cookie-http-meta">资源来源：{connection.origin} · 读取时间：{observedTime(connection.resourceRead.checkedAt)}</p>}
+      {(connection.resources || []).map(resource => {
+        const cache = connection.usageCache?.[resource.remoteAccountId];
+        const windows = Array.isArray(cache?.windows) ? cache.windows :
+          Array.isArray(cache?.account?.windows) ? cache.account.windows : [];
+        return <div key={resource.remoteAccountId} className="cookie-business-usage-row">
+          <strong>{resource.displayName || resource.remoteAccountId}</strong>
+          <p>{resource.providerKey} · {resource.verificationState === 'VERIFIED' ? '已核验' : '未核验（UNVERIFIED）'} · 不传输 Cookie</p>
+          <button type="button" className={secondary} disabled={unavailable || connection.status !== 'CONNECTED'}
+            aria-label={'读取缓存用量：' + resource.remoteAccountId}
+            onClick={() => dispatch('serviceUsage', {connectionId:connection.id, remoteAccountId:resource.remoteAccountId}, context(connection), true)}>读取缓存用量</button>
+          {connection.usageErrors?.[resource.remoteAccountId]&&<p role="status">缓存用量读取失败；下方如有旧数据，保留供参考。</p>}
+          {cache ? <>
+            <p>来源：服务端缓存（未查询上游） · 缓存状态：{!cache.observedAt&&!windows.length&&['UNKNOWN','EMPTY'].includes(cache.status)?'暂无缓存（尚无观测）':usageStatus(cache.status)} · 观测时间：{observedTime(cache.observedAt)}</p>
+            {windows.length ? windows.map((window, index) => <p key={index}>
+              {window.key === 'primary' || window.slot === 'primary' ? '主要窗口' : window.key === 'secondary' || window.slot === 'secondary' ? '次要窗口' : '用量窗口'}：
+              已用 {percentage(window.usedPercent)} · 剩余 {percentage(window.remainingPercent)} · 重置时间：{observedTime(window.resetsAt)}
+            </p>) : <p>暂无用量窗口摘要。</p>}
+          </> : <p>尚未读取缓存用量。</p>}
+        </div>;
+      })}
+      <details className="cookie-business-disclosure"><summary>更多操作与同步策略</summary>
       <div className="cookie-business-actions">
         {connection.canRetire === true && connection.status !== 'RETIRED' && <button type="button" className={secondary} disabled={unavailable || Boolean(form)}
           aria-label={'归档旧连接：' + connection.label} onClick={event => open(event, 'retire', connection)}>归档旧连接</button>}
         <button type="button" className={secondary} disabled={unavailable || connection.status === 'RETIRED' && !connection.pending} onClick={() => reconcile(connection)}
           aria-label={'读取回执：' + connection.label}>读取回执</button>
-        <button type="button" className={primary} disabled={blocked || Boolean(form) || !['UNCONNECTED', 'DISCONNECTED'].includes(connection.status)}
-          onClick={event => open(event, 'connect', connection)} aria-label={'连接服务：' + connection.label}>连接</button>
-        <button type="button" className={secondary} disabled={blocked || connection.status !== 'CONNECTED'}
-          onClick={() => dispatch('serviceResources', {connectionId:connection.id}, context(connection), true)}
-          aria-label={'读取资源：' + connection.label}>读取资源</button>
-        {Number.isSafeInteger(connection.resourceCursor) && connection.resourceCursor >= 0 && <button type="button" className={secondary}
-          disabled={blocked || connection.status !== 'CONNECTED'} aria-label={'读取更多资源：' + connection.label}
-          onClick={() => dispatch('serviceResources', {connectionId:connection.id, cursor:connection.resourceCursor}, context(connection), true)}>读取更多资源</button>}
-        <button type="button" className={secondary} disabled={blocked || Boolean(form) || connection.status !== 'CONNECTED'}
-          onClick={event => open(event, 'bind', connection)} aria-label={'绑定账号：' + connection.label}>绑定账号</button>
         <button type="button" className={secondary} disabled={blocked || connection.status !== 'CONNECTED' || Boolean(form)}
           onClick={() => dispatch('serviceOpen', {connectionId:connection.id, bindingId:''}, context(connection))}
           aria-label={'打开设备管理页：' + connection.label}>打开设备管理页</button>
@@ -310,26 +389,6 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
           <button type="button" className={secondary} disabled={unavailable || Boolean(form)}
             onClick={event => open(event, 'archive', connection)}>核对并归档未知打开</button>}
       </div>
-      {connection.status === 'CONNECTED' && !connection.resources?.length && <p>尚无可选资源，请先读取资源；服务返回空列表时，请在服务端配置资源。</p>}
-      {(connection.resources || []).map(resource => {
-        const cache = connection.usageCache?.[resource.remoteAccountId];
-        const windows = Array.isArray(cache?.windows) ? cache.windows :
-          Array.isArray(cache?.account?.windows) ? cache.account.windows : [];
-        return <div key={resource.remoteAccountId} className="cookie-business-usage-row">
-          <strong>{resource.displayName || resource.remoteAccountId}</strong>
-          <p>{resource.providerKey} · {resource.verificationState === 'VERIFIED' ? '已核验' : '未核验（UNVERIFIED）'} · 不传输 Cookie</p>
-          <button type="button" className={secondary} disabled={unavailable || connection.status !== 'CONNECTED'}
-            aria-label={'读取缓存用量：' + resource.remoteAccountId}
-            onClick={() => dispatch('serviceUsage', {connectionId:connection.id, remoteAccountId:resource.remoteAccountId}, context(connection), true)}>读取缓存用量</button>
-          {cache ? <>
-            <p>缓存状态：{usageStatus(cache.status)} · 观测时间：{observedTime(cache.observedAt)}</p>
-            {windows.length ? windows.map((window, index) => <p key={index}>
-              {window.key === 'primary' || window.slot === 'primary' ? '主要窗口' : window.key === 'secondary' || window.slot === 'secondary' ? '次要窗口' : '用量窗口'}：
-              已用 {percentage(window.usedPercent)} · 剩余 {percentage(window.remainingPercent)} · 重置时间：{observedTime(window.resetsAt)}
-            </p>) : <p>暂无用量窗口摘要。</p>}
-          </> : <p>尚未读取缓存用量。</p>}
-        </div>;
-      })}
       {connection.policy && <>
         <p>已读取服务策略；读取不代表批准，不会自动接受或扩大权限。</p>
         <p>已接受策略：{connection.policy.acceptance ? '版本 ' + connection.policy.acceptance.desiredRevision : '尚未接受'}</p>
@@ -338,6 +397,9 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
           disabled={blocked || Boolean(form) || connection.status !== 'CONNECTED'} aria-label={'审阅同步策略：' + connection.label}
           onClick={event => open(event, 'accept', connection, {bindingIds:[], dataCategories:[], retentionDays:connection.policy.desired.scope.retentionDays})}>审阅同步策略</button>}
       </>}
+      </details>
+      <h4>本站账号关联</h4>
+      {!(connection.bindings||[]).some(binding=>!binding.revoked)&&<p>尚未关联本站账号。关联可跳过；配对与资源读取不依赖关联。</p>}
       {(connection.bindings || []).map(binding => <div key={binding.bindingId} className="cookie-business-usage-row">
         <strong>{binding.localAccount?.alias}</strong>
         <p>{binding.localAccount?.origin} · 账号版本 {binding.localAccount?.version} · 远端资源 {binding.remoteAccountId}</p>
@@ -352,17 +414,16 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
     </article>)}
     {!detail && <p className="cookie-http-safety"><CookieIcon name="shield"/><span>连接只建立服务入口。账号需单独关联，Cookie 不会自动上传。</span></p>}
     <details className="cookie-business-disclosure"><summary>连接与权限说明</summary>
-      <p>填写普通 HTTP 服务的地址即可连接，无需安装本机辅助程序。不会扫描端口或自动连接。</p>
+      <p>需要已实现 OpenDesk 服务协议的账号与额度管理后台。无需安装本机辅助程序；不是任意网址，也不能填写 chatgpt.com。不会扫描端口或自动部署服务。</p>
       <p>会话有效期为 15 分钟。请求仅发往已确认的服务地址，复用安装时批准的网络能力和已有网站访问权限；缺少网站访问权限时，由宿主提示一次授权。</p>
     </details>
-    {!detail && onOverview && <Button variant="quiet" className="cookie-http-overview" disabled={working || busy || Boolean(form)} onClick={onOverview}>返回企业概览</Button>}
     </>}
-    {form && <form className={form.kind === 'config' ? 'cookie-http-form' : 'cookie-business-inquiry'} aria-label="HTTP 服务连接编辑"
+    {form && <form className="cookie-http-form" aria-label="HTTP 服务连接编辑"
       onSubmit={submit} onKeyDown={keyDown} autoComplete="off">
-      {form.kind === 'config' ? <header className="cookie-http-form-header">
+      <header className="cookie-http-form-header">
         <CookieIconButton name="right" className="cookie-http-back" label={detail ? '返回服务详情' : '返回服务列表'} disabled={working || busy} onClick={close}/>
-        <h3>添加服务</h3>
-      </header> : <h4>{({connect:'应用配对', bind:'绑定账号', unbind:'确认解绑', disconnect:'确认断开', archive:'归档未知打开', accept:'审阅同步策略', retire:'归档旧连接'})[form.kind]}</h4>}
+        <h3>{({config:'添加服务',connect:'配对服务',bind:'关联本站账号',unbind:'确认解绑',disconnect:'确认断开',archive:'归档未知打开',accept:'审阅同步策略',retire:'归档旧连接'})[form.kind]}</h3>
+      </header>
       {formConnection && <p>{formConnection.label} · {formConnection.origin}</p>}
       {!fresh(form) && <p role="alert">站点、账号或状态版本已变化。请取消后重新核对，已有输入已保留。</p>}
       {form.kind === 'config' && <>
@@ -397,7 +458,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
         <label>应用一次性配对码<input ref={firstField} className="od-field" aria-label="应用一次性配对码" type="password"
           autoComplete="off" spellCheck={false} maxLength={64} value={form.code} disabled={formBlocked}
           onChange={event => update({code:event.target.value})}/></label>
-        <p>从服务端获取 64 位十六进制应用配对码。管理页链接不是应用配对码；配对码只用于此次连接，不会保存到配置。</p>
+        <p>在上方目标服务的管理页，打开「Cookie 同步设置 → 生成新应用连接码」。连接码为 64 位十六进制，5 分钟有效、仅可使用一次；管理页链接不是连接码。确认连接才会创建设备与 15 分钟应用会话。连接码不会保存到配置。</p>
       </>}
       {form.kind === 'bind' && <>
         <p>当前站点：{origin || '尚未确定'}。仅建立账号关联，不传输 Cookie。</p>
@@ -415,7 +476,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
             value={resource.remoteAccountId}>{resource.displayName || resource.remoteAccountId} · {resource.providerKey} · {resource.verificationState === 'VERIFIED' ? '已核验' : '未核验'}</option>)}
         </select></label>
         {form.confirmed && <div className="cookie-business-callout" aria-label="绑定确认">
-          <p>确认将 {form.origin} 的 {form.alias}（版本 {available.find(account => account.alias === form.alias)?.version}）绑定到 {formConnection?.origin} 的 {form.remoteAccountId}？</p>
+          <p>确认将 {form.origin} 的 {available.find(account => account.alias === form.alias)?.displayName || form.alias}（{form.alias}，版本 {available.find(account => account.alias === form.alias)?.version}）关联到 {formConnection?.label}（{formConnection?.origin}）的 {formConnection?.resources?.find(resource => resource.remoteAccountId===form.remoteAccountId)?.displayName || form.remoteAccountId}（{form.remoteAccountId}）？</p>
           <p>未核验（UNVERIFIED）：关联不证明同一登录身份，不传输 Cookie。</p>
         </div>}
       </>}
@@ -442,11 +503,13 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
       {form.kind === 'archive' && <p>请先手动核对管理页是否已打开。归档保留操作历史，不表示原打开失败，也不会再次打开管理页。</p>}
       <p id="cookie-http-form-error" role="alert" className="od-field-error" hidden={!error || Boolean(errorField)}>{errorField ? '' : error}</p>
       {error && notice && <p role="status">{notice}</p>}
+      {pairingPage&&formConnection&&needsReview(formConnection)&&<button type="button" className={secondary}
+        disabled={unavailable} onClick={()=>reconcile(formConnection)}>读取原回执</button>}
       <div className={form.kind === 'config' ? 'cookie-http-form-footer' : undefined}>
-      {form.kind === 'config' && <p>保存配置不会连接，也不会上传 Cookie。下一步再填写一次性连接码并审阅连接。</p>}
+      {form.kind === 'config' && <p>仅保存本地地址，不创建设备、不上传 Cookie；保存成功后进入配对，需再次明确确认连接。</p>}
       <div className="cookie-business-actions">
         {form.kind === 'config' && <Button variant="secondary" className="cookie-button--compact" disabled={working || busy} onClick={close}>取消</Button>}
-        {form.kind === 'config' ? <Button variant="primary" className="cookie-button--compact" disabled={formBlocked || !fresh(form)} onClick={submit}>保存配置</Button> :
+        {form.kind === 'config' ? <Button variant="primary" className="cookie-button--compact" disabled={formBlocked || !fresh(form)} onClick={submit}>保存并继续</Button> :
         <button ref={['unbind', 'disconnect', 'archive', 'retire'].includes(form.kind) ? firstField : undefined} type="button" className={primary}
           disabled={formBlocked || !fresh(form)} onClick={submit}>{({connect:'确认连接', bind:form.confirmed ? '确认绑定' : '核对绑定', unbind:'确认解绑', disconnect:'确认断开', archive:'确认归档', accept:'确认接受策略', retire:'确认归档旧连接'})[form.kind]}</button>}
         {form.kind !== 'config' && <button type="button" className={secondary} disabled={working || busy} onClick={close}>取消</button>}

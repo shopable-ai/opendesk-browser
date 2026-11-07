@@ -32,7 +32,7 @@ test('sandbox business controller through real SDK network/storage drivers compl
     const req=httpRequest({hostname:'127.0.0.1',port:target.port,path:target.pathname,method:options.method,
       headers:{...options.headers,host:target.host},signal:options.signal},res=>{
       const chunks=[];res.on('data',chunk=>chunks.push(chunk));res.on('end',()=>{
-        if(losePairReply&&target.pathname==='/opendesk/client/pair'){losePairReply=false;reject(Error('Synthetic lost committed reply'));return;}
+        if(losePairReply&&res.statusCode===200&&target.pathname==='/opendesk/client/pair'){losePairReply=false;reject(Error('Synthetic lost committed reply'));return;}
         resolve(new Response(Buffer.concat(chunks),{status:res.statusCode,headers:res.headers}));
       });
     });req.on('error',reject);req.end(options.body);
@@ -57,14 +57,40 @@ test('sandbox business controller through real SDK network/storage drivers compl
   let state=await service.dispatch('serviceSave',{revision:0,label:'Synthetic HTTP',serviceOrigin:origin});
   const connectionId=state.connections[0].id;
   const act=async(action,payload={})=>state=await service.dispatch(action,{revision:state.revision,connectionId,...payload});
+  const code=server.applicationPairing.code;
+  await act('serviceConnect',{code:(code[0]==='a'?'b':'a')+code.slice(1)});
+  assert.equal(state.connections[0].status,'UNCONNECTED');
+  assert.equal(state.connections[0].pending,null);
+  assert.equal(state.connections[0].history.at(-1).outcome,'REJECTED');
+  assert.equal((await bindingStore.read()).devices.length,0);
   await act('serviceConnect',{code:server.applicationPairing.code});assert.equal(state.connections[0].status,'OUTCOME_UNKNOWN');
   await act('serviceReconcile');assert.equal(state.connections[0].status,'CONNECTED');
   assert.equal((await bindingStore.read()).devices.length,1);
-  assert.equal(networkCalls.filter(c=>c.url.endsWith('/pair')).length,1);
+  assert.equal(networkCalls.filter(c=>c.url.endsWith('/pair')).length,2);
   await act('serviceResources');assert.equal(state.connections[0].resources[0].remoteAccountId,'acct_01');
   await act('serviceUsage',{remoteAccountId:'acct_01'});assert.equal(state.connections[0].usageCache.acct_01.status,'UNKNOWN');
   await act('serviceBind',{alias:account.alias,accountVersion:3,remoteAccountId:'acct_01'});
   const binding=state.connections[0].bindings[0];assert.equal(binding.verificationState,'UNVERIFIED');
+  const paired=await bindingStore.read(),readStart=networkCalls.length,revision=state.revision;
+  await act('serviceCheck');
+  assert.deepEqual({...state.connections[0].check,checkedAt:0},{checkedAt:0,reachable:true,session:'OK',resources:'OK',message:''});
+  assert.equal(state.revision,revision);
+  assert.deepEqual(await bindingStore.read(),paired);
+  assert.deepEqual(networkCalls.slice(readStart).map(c=>[c.data.method,c.data.path]),[
+    ['GET','/opendesk/v1/self'],['GET','/opendesk/v1/accounts']]);
+  // A real cache read failure returns HTTP 503 through the existing SDK driver;
+  // pairing and the previously displayed resource survive unchanged.
+  const accounts=store.accounts.bind(store);
+  store.accounts=async()=>{throw Error('SYNTHETIC_CACHE_READ_FAILURE');};
+  await act('serviceCheck');
+  assert.equal(state.connections[0].check.session,'OK');
+  assert.equal(state.connections[0].check.resources,'FAILED');
+  assert.equal(state.connections[0].resourceRead.status,'FAILED');
+  assert.equal(state.connections[0].status,'CONNECTED');
+  assert.equal(state.connections[0].resources[0].remoteAccountId,'acct_01');
+  assert.deepEqual(await bindingStore.read(),paired);
+  store.accounts=accounts;
+  await act('serviceCheck');assert.equal(state.connections[0].check.resources,'OK');
   revokeAfterDispatch=true;
   await act('serviceOpen',{bindingId:binding.bindingId});assert.equal(opened.length,0);
   assert.equal(state.connections[0].status,'OUTCOME_UNKNOWN');
@@ -88,6 +114,11 @@ test('sandbox business controller through real SDK network/storage drivers compl
   await act('serviceUnbind',{bindingId:binding.bindingId});assert.equal(state.connections[0].bindings[0].revoked,true);
   await act('serviceDisconnect');assert.equal(state.connections[0].status,'DISCONNECTED');
   assert.equal((await bindingStore.read()).devices[0].revoked,true);
+  state=await service.dispatch('serviceSave',{revision:state.revision,label:'Consumed code',serviceOrigin:origin});
+  state=await service.dispatch('serviceConnect',{revision:state.revision,connectionId:state.connections[1].id,code});
+  assert.equal(state.connections[1].status,'UNCONNECTED');
+  assert.equal(state.connections[1].history.at(-1).outcome,'REJECTED');
+  assert.equal((await bindingStore.read()).devices.length,1);
   assert.equal(upstream,0);assert.ok(phases.includes('post'));
   assert.ok(networkCalls.every(c=>c.url.startsWith(origin+'/opendesk/client/')));
   assert.ok(!JSON.stringify(state).includes(server.applicationPairing.code));

@@ -26,7 +26,7 @@ const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // Merge preserves exact Host binding, SW ownership and safe-refresh fences.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'dfa3fc3f9c172e39e6d203bbbaddb2b435f57678',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'b0d87d65e2f890974d3824723432777563c74f4b',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
   'projects/webflow/trusted/AutoSettings.tsx':'27d7e6f577f161a5cb5b86f195c3c6775d4b84ee',
@@ -63,6 +63,42 @@ function reviewedCompiledChatGPTImages(target,path,root){
   if(realpathSync(file)!==file)throw Error('Trusted ChatGPT image source must not be a symlink: '+path);
   const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledChatGPTImageInputs[path])throw Error('Trusted ChatGPT image source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+// Fixed Web Flow file handling reuses the image gate's exact source/blob checks.
+// Each source has only its actual static consumers; installed packages and
+// arbitrary project files never inherit this compiled-source admission.
+const compiledChatGPTFilesInputs=Object.freeze({
+  'projects/webflow/trusted/chatgpt-files-service.js':'3980119c5b8bb67c7d913f27ef3ab59a4e1f5652',
+  'projects/webflow/trusted/chatgpt-files-controller.js':'5691dbe42f066dbd1333a853a10ca742c7a780dc',
+  'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
+  'projects/webflow/trusted/chatgpt-file-intent-page.js':'e75e6efab8d2fd824036a933dc018dc824117023',
+  'projects/webflow/trusted/chatgpt-files-settings-ui.js':'301005927d9160e25698c3fa63ddf2ca9b3fba53',
+  'projects/webflow/trusted/chatgpt-files-ui.js':'e3e8f1c09cbd22e226c0ab618bd12a5fc5d674de',
+  'projects/webflow/trusted/chatgpt-file-intent-gate.js':'09e7e29cc827fdd7baa549092f3a6b08031ea10d',
+  'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
+  'projects/webflow/trusted/chatgpt-files.html':'0968cdebc7256f7ffccc49babec89f37810b548d',
+  'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87'
+});
+const chatGPTFilesTargets=Object.freeze({
+  'chatgpt-files-service.js':['native-agent/transport.js'],
+  'chatgpt-files-controller.js':['native-agent/transport.js'],
+  'chatgpt-project-policy.js':['native-agent/transport.js'],
+  'chatgpt-file-intent-page.js':['agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-files-settings-ui.js':['native-agent/settings.js'],
+  'chatgpt-files-ui.js':['native-agent/settings.js','agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-file-intent-gate.js':['native-agent/transport.js','agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-files-config.js':['native-agent/transport.js','agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-files.html':['native-agent/settings.js'],
+  'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js']
+});
+function reviewedCompiledChatGPTFiles(target,path,root){
+  if(!Object.hasOwn(compiledChatGPTFilesInputs,path)||
+    !chatGPTFilesTargets[path.split('/').at(-1)]?.includes(target))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted ChatGPT files source must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledChatGPTFilesInputs[path])throw Error('Trusted ChatGPT files source changed; review and re-pin before fixed build: '+path);
   return hash;
 }
 function reviewedCompiledTimeReview(target,path,root){
@@ -221,7 +257,10 @@ const compiledCookieAccountInputs=Object.freeze({
   // accounts unverified and preserves commit, ownership and unknown fences.
   // 2026-11-04 independently reviewed: installation and Cookie consent no
   // longer depend on current release matching; fixed SW source stays pinned.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'953e4792f7f2d5a102ca1db8ca861a703257b7c0',
+  // 2026-11-05 independently reviewed: canonicalize validated Partition keys
+  // and restore legal expired identities as verified absence only after full
+  // scope validation; exact authority and unknown-effect fences remain.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'4703267b35a50933374368d289415ffaf2d38baf',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
   // Reuse the exact independently reviewed upgrade-order DTO source; pending
@@ -668,6 +707,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
       reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
+      reviewedCompiledChatGPTFiles(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
       reviewedCompiledVideoSVIP(chunk.fileName,path,root)||
       reviewedCompiledVideoDownloader(chunk.fileName,path,root)||

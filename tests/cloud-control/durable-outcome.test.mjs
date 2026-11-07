@@ -19,8 +19,9 @@ const baseRequest={tag:'cloud-request-v1',namespace,requestId,runId:ref.runId,ru
 const baseConfig={namespace,enabled:true,grantId:'grant-one',providerId:'provider-one',
   url:'https://provider.example',credential:'private-credential',tasks:[]};
 
-function fixture({request=baseRequest,run=baseRun,result=baseResult,suspendAck=false}={}){
-  let db=new Map();const messages=[],posts=[];
+function fixture({request=baseRequest,run=baseRun,result=baseResult,suspendAck=false,
+  remoteCancelled=true,loseReceiptOnce=false}={}){
+  let db=new Map();const messages=[],posts=[],fenceObservations=[],cancelObservations=[];
   const store=(name,key,value)=>{if(value!==null)db.set(name+':'+key,structuredClone(value));};
   store('frameworkKV','cloud:config',baseConfig);
   store('frameworkKV','cloud:request:'+requestId,request);
@@ -46,25 +47,30 @@ function fixture({request=baseRequest,run=baseRun,result=baseResult,suspendAck=f
     storage,api:{runtime:{id:'trusted'}},clock:{now:()=>1000},
     assertHost:async()=>({namespace,registrationId:'host-one'}),
     currentHost:async()=>true,resolveTask:async()=>{throw Error('Must not resolve a Task');},
-    emitToHost:async(...args)=>{messages.push(args);},
+    emitToHost:async(...args)=>{
+      fenceObservations.push({run:read('runs',ref.runId),request:read('frameworkKV','cloud:request:'+requestId)});
+      messages.push(args);
+    },
     fetcher:async(url,options)=>{
       posts.push({url,body:JSON.parse(options.body)});
+      if(url.endsWith('/v1/cancel'))cancelObservations.push(read('runs',ref.runId));
       if(url.endsWith('/v1/reconcile'))return new Response(JSON.stringify({
         providerId:'provider-one',assignments:[{assignmentId:'assignment-one',
-          runRef:ref,cancelled:true,leaseUntil:200}]
+          runRef:ref,cancelled:remoteCancelled,leaseUntil:remoteCancelled?200:2000}]
       }),{status:200,headers:{'Content-Type':'application/json'}});
       if(url.endsWith('/v1/suspend')&&suspendAck)
         return new Response(JSON.stringify({suspended:true,grantId:'grant-one'}),{status:200});
       if(url.endsWith('/v1/receipt')){
         assert.deepEqual(posts.at(-1).body.result,{visibility:'status-only',
           state:'completed',retirementState:'released'});
+        if(loseReceiptOnce){loseReceiptOnce=false;throw TypeError('Receipt persisted remotely; reply lost');}
         return new Response(JSON.stringify({receiptId:'status-receipt',digest:await digest(JSON.parse(options.body))}),
           {status:200,headers:{'Content-Type':'application/json'}});
       }
       throw Error('Unexpected Provider call '+url);
     }
   });
-  return {service,read,messages,posts};
+  return {service,storage,read,messages,posts,fenceObservations,cancelObservations};
 }
 
 test('only matching original terminal released Run + Result can prove a cloud outcome',()=>{
@@ -195,4 +201,66 @@ test('unadmitted waiting claim with no Run association may still be cancelled',a
   assert.equal(row.state,'cancelled');
   assert.equal(row.reason,'E_CLOUD_REVOKED');
   assert.deepEqual(f.messages,[]);
+});
+
+const liveRun={...baseRun,state:'running',retirementState:'not-started',
+  cloudRequestKey:'cloud:request:'+requestId,cancelSeq:0,ownerEpoch:1,runRevision:1,eventSeq:0};
+const liveRequest={...baseRequest,assignment:{...baseRequest.assignment,leaseUntil:2000},
+  permit:{permitId:'permit-one',providerId:'provider-one',assignmentId:'assignment-one',runRef:ref,leaseUntil:2000}};
+
+test('persisted cancellation intent blocks execution before the Run fence commits',async()=>{
+  const f=fixture({request:{...liveRequest,cancelRequestedAt:900},run:liveRun,result:null});
+  await assert.rejects(f.storage.transaction(['frameworkKV'],'readonly',tx=>
+    f.service.assertActive(tx,liveRun)),{code:'E_CLOUD_FENCED'});
+  await assert.rejects(f.service.permit(liveRun),{code:'E_CLOUD_REVOKED'});
+  assert.deepEqual(f.posts,[],'A cancelled intent cannot obtain a new permit');
+});
+
+test('reconnect fences a registered cancellation before remote acknowledgement and never renews it',async()=>{
+  const f=fixture({request:{...liveRequest,cancelRequestedAt:900},run:liveRun,
+    result:null,remoteCancelled:false});
+  await f.service.reconcile();
+  const run=f.read('runs',ref.runId);
+  assert.equal(run.state,'stopping');assert.equal(run.cancelSeq,1);assert.equal(run.ownerEpoch,2);
+  assert.equal(run.retirementState,'not-started','Only RunHost may retire and release the Worker');
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).state,'cancellation-pending');
+  assert.equal(f.posts.some(p=>p.url.endsWith('/v1/renew')),false);
+  assert.equal(f.messages.length,1);
+  assert.equal(f.fenceObservations[0].request.cancelRequestedAt,900);
+  assert.equal(f.fenceObservations[0].request.state,'cancellation-pending');
+  assert.deepEqual(f.fenceObservations[0].run,run,'Fence commits before notifying RunHost');
+  assert.deepEqual(f.cancelObservations,[run],'Local fence precedes even an unsuccessful remote cancel');
+  await f.service.reconcile();
+  assert.deepEqual(f.read('runs',ref.runId),run);
+  assert.equal(f.messages.length,1,'Repeated reconciliation preserves the original fence');
+});
+
+test('missing admitted Run is unknown even while Provider still reports an active assignment',async()=>{
+  const f=fixture({run:null,result:null,remoteCancelled:false});
+  await f.service.reconcile();
+  const row=f.read('frameworkKV','cloud:request:'+requestId);
+  assert.equal(row.state,'OUTCOME_UNKNOWN');assert.equal(row.reason,'E_EFFECT_UNKNOWN');
+  assert.deepEqual(f.messages,[]);
+});
+
+test('lost receipt acknowledgement retries only the same receipt without Run or page execution',async()=>{
+  const f=fixture({loseReceiptOnce:true});
+  await assert.rejects(f.service.reconcile(),/reply lost/);
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).delivery.state,'pending');
+  await f.service.reconcile();
+  const receipts=f.posts.filter(p=>p.url.endsWith('/v1/receipt'));
+  assert.equal(receipts.length,2);assert.deepEqual(receipts[0].body,receipts[1].body);
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).delivery.state,'confirmed');
+  assert.deepEqual(f.read('runs',ref.runId),baseRun);
+  assert.deepEqual(f.read('results',ref.resultId),baseResult);
+  assert.deepEqual(f.messages,[]);
+  assert.ok(f.posts.every(p=>/\/v1\/(reconcile|receipt)$/.test(p.url)));
+});
+
+test('old Grant cannot authorize execution or obtain a new admission permit',async()=>{
+  const f=fixture({request:{...liveRequest,grantId:'retired-grant'},run:liveRun,result:null});
+  await assert.rejects(f.storage.transaction(['frameworkKV'],'readonly',tx=>
+    f.service.assertActive(tx,liveRun)),{code:'E_CLOUD_FENCED'});
+  await assert.rejects(f.service.permit(liveRun),{code:'E_CLOUD_REVOKED'});
+  assert.deepEqual(f.posts,[]);
 });

@@ -450,9 +450,18 @@ function hostHarness({override={},readReply=null}={}){
     isVerifiedSidePanel:()=>true,
     readReply:readReply||(async()=>{
       await override.onReadReply?.();
-      return {turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]};})});
+      return {turnKey:'turn-1',answerKey:'answer-1:0',userText:'读取 https://httpbingo.org/html 的网页内容',blocks:[candidateText]};})});
   return {bridge,events,sender,message,fx,api,installed,catalog,resolved,host,client};
 }
+test('legacy Task execution refuses missing or conflicting actual user context before reservation',async()=>{
+  for(const userText of [undefined,'读取当前项目 demo.txt，只读']){
+    const template=hostHarness();
+    const h=hostHarness({readReply:async()=>({turnKey:'turn-1',answerKey:'answer-1:0',userText,
+      blocks:[template.message.candidateText]})});
+    await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_CHAT_ROUTE',outcome:'NOT_DISPATCHED'});
+    assert.equal(h.events.reserve,0);assert.equal(h.events.start,0);assert.equal(h.events.send,0);
+  }
+});
 for(const outcome of ['success','target-receipt-lost','source-receipt-lost','unknown-run'])
 test('bridge focus lifecycle preserves single-run delivery: '+outcome,async()=>{
   const h=hostHarness(),order=[];
@@ -536,7 +545,7 @@ test('wrong document or re-generated assistant blocks admission without a run',a
     {code:'E_BRIDGE_SENDER'});
   assert.equal(bad.events.reserve,0);assert.equal(bad.events.start,0);
   const stale=hostHarness({readReply:async()=>({
-    turnKey:'turn-1',answerKey:'changed',blocks:[bad.message.candidateText]})});
+    turnKey:'turn-1',answerKey:'changed',userText:'读取网页内容',blocks:[bad.message.candidateText]})});
   await assert.rejects(stale.bridge.handle(stale.message,stale.sender),
     {code:'E_BRIDGE_ANSWER'});
   assert.equal(stale.events.reserve,0);assert.equal(stale.events.start,0);

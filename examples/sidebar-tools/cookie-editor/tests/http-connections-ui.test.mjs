@@ -17,10 +17,10 @@ const React={
   useLayoutEffect(fn,deps){React.useEffect(fn,deps);}
 };
 const built=buildSync({entryPoints:[new URL('../app/components/CookieHttpConnections.jsx',import.meta.url).pathname],
-  bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform',
-  alias:{'@opendesk/ui':new URL('../../../../src/ui/react/components/ui/button.tsx',import.meta.url).pathname}});
+  bundle:true,write:false,format:'cjs',platform:'node',external:['react','@opendesk/ui'],jsx:'transform'});
 const module={exports:{}};
 new Function('require','module','exports',built.outputFiles[0].text)(name=>{
+  if(name==='@opendesk/ui')return {Button:({children,...props})=>React.createElement('button',{type:'button',...props},...children)};
   assert.equal(name,'react');return React;
 },module,module.exports);
 const {CookieHttpConnections}=module.exports;
@@ -61,8 +61,9 @@ test('service list uses the existing connected, unknown and inactive actions wit
   const connected=mount({}, {details:false});
   assert.deepEqual(connected.calls,[]);
   assert.equal(connected.find(n=>n.props['aria-label']==='已关联账号：1 个').props.title.includes('不代表身份已核验'),true);
-  await invoke(connected,'打开设备管理页：HTTP 服务');
-  assert.deepEqual(connected.calls,[['serviceOpen',{revision:7,connectionId:'c1',bindingId:''}]]);
+  await invoke(connected,'查看服务账号：HTTP 服务');
+  assert.deepEqual(connected.calls,[],'Opening accounts only changes the local view');
+  assert.match(text(connected.tree),/服务账号/);
   const pending=mount({state:{revision:7,connections:[{...connection,status:'OUTCOME_UNKNOWN',pending:{action:'serviceOpen',operationId:'op1'}}]}},{details:false});
   assert.equal(pending.button('添加服务').props.disabled,true);
   await invoke(pending,'核对原操作：HTTP 服务');
@@ -117,7 +118,7 @@ test('service type changes preserve separate drafts and submit only the existing
   h.change('服务名称','');h.change('服务地址','');
   assert.equal(h.dirty.at(-1),false,'Clearing both drafts does not retain a stale active snapshot');
   type('company');h.change('服务名称','公司草稿');h.change('服务地址','https://team.example.com');
-  assert.deepEqual(h.calls,[]);await invoke(h,'保存配置');
+  assert.deepEqual(h.calls,[]);await invoke(h,'保存并继续');
   assert.deepEqual(h.calls,[['serviceSave',{revision:7,label:'公司草稿',serviceOrigin:'https://team.example.com'}]]);
 });
 
@@ -145,10 +146,10 @@ test('configuration accepts only exact HTTPS or HTTP loopback origins; sandbox u
   for(const value of ['http://remote.example','http://localhost:8787/','http://localhost:8787/path','http://localhost:8787?x=1',
     'http://localhost:8787#x','http://u:p@localhost:8787','http://127.0.0.1.evil:8787','http://127.1:8787','http://127.0.0.2:8787','http://127.10.0.1:8787',
     'http://usage-abc.localhost.evil:8787','http://usage-abc.localhost:8787/','https://service.example/']){
-    h.change('服务地址',value);await invoke(h,'保存配置');assert.equal(h.calls.length,0,value);
+    h.change('服务地址',value);await invoke(h,'保存并继续');assert.equal(h.calls.length,0,value);
   }
   for(const value of ['http://localhost:8787','http://usage-a1b2c3.localhost:8787','http://127.0.0.1:8787','http://[::1]:8787','https://service.example']){
-    h.change('服务地址',value);await invoke(h,'保存配置');
+    h.change('服务地址',value);await invoke(h,'保存并继续');
     assert.deepEqual(h.calls.at(-1),['serviceSave',{revision:7,label:'测试 HTTP',serviceOrigin:value}]);
     assert.equal(h.dirty.at(-1),false);configure(h);
   }
@@ -221,7 +222,7 @@ test('false open outcome immediately blocks duplicate writes until receipt; neve
 });
 test('failed configuration cannot manually unlock an unknown result; fresh authoritative revision releases it',async()=>{
   const h=mount({onAction:async()=>false});configure(h);h.change('服务地址','http://localhost:8787');
-  await invoke(h,'保存配置');assert.equal(h.button('保存配置').props.disabled,true);
+  await invoke(h,'保存并继续');assert.equal(h.button('保存并继续').props.disabled,true);
   assert.equal(h.find(n=>n.props['aria-label']==='服务地址').props.value,'http://localhost:8787');
   h.click('取消');assert.equal(h.button('添加服务').props.disabled,true);
   h.update({state:{revision:8,connections:[connection]}});assert.equal(h.button('添加服务').props.disabled,false);
@@ -368,4 +369,96 @@ test('retirement confirmation cannot survive eligibility or revision change',asy
     h.update({state:{revision:patch.revision,connections:[{...connection,status:'INVALIDATED',canRetire:patch.canRetire}]}});
     await handler();h.render();assert.deepEqual(h.calls,[]);assert.match(text(h.tree),/已变化/);
   }
+});
+
+test('confirmed save continues to the exact new configuration without pairing and cancelling retains it',async()=>{
+  const saved={...connection,id:'new_connection',label:'测试 HTTP',origin:'http://localhost:8787',status:'UNCONNECTED',resources:[],bindings:[]};
+  let h;
+  h=mount({onAction:async(action,payload)=>{
+    h.calls.push([action,payload]);
+    const state={revision:8,connections:[connection,saved]};h.update({state});
+    return {ok:true,state};
+  }},{details:false});
+  configure(h);h.change('服务地址',saved.origin);await invoke(h,'保存并继续');
+  assert.equal(h.calls.length,1);assert.equal(h.calls[0][0],'serviceSave');
+  assert.match(text(h.tree),/配对服务/);
+  assert.equal(h.find(n=>n.props['aria-label']==='应用一次性配对码').props.value,'');
+  h.change('应用一次性配对码','f'.repeat(64));h.click('取消');
+  assert.equal(h.props.state.connections.length,2);
+  assert.equal(h.props.state.connections[1].status,'UNCONNECTED');
+  assert.equal(h.calls.length,1,'Cancelling pairing does not create a remote device');
+  assert.match(text(h.tree),/测试 HTTP/);
+});
+
+test('save is single-flight and a late receipt on another site cannot open a pairing draft',async()=>{
+  let resolve;
+  const h=mount({onAction:(action,payload)=>{h.calls.push([action,payload]);return new Promise(ok=>{resolve=ok;});}},{details:false});
+  configure(h);h.change('服务地址','http://localhost:8787');
+  const first=h.click('保存并继续');const handler=h.button('保存并继续').props.onClick;
+  await handler();assert.equal(h.calls.length,1);
+  h.update({origin:'https://other.example'});
+  resolve({ok:true,state:{revision:8,connections:[connection,{...connection,id:'new',status:'UNCONNECTED'}]}});
+  await first;h.render();
+  assert.equal(h.find(n=>n.props['aria-label']==='应用一次性配对码'),undefined);
+  assert.match(text(h.tree),/已变化/);
+});
+
+test('remote check is explicit, read-only, and local refresh cannot claim a fresh check',async()=>{
+  const h=mount();
+  assert.match(text(h.tree),/检查时间：暂无/);
+  await invoke(h,'检查连接：HTTP 服务');
+  assert.deepEqual(h.calls,[['serviceCheck',{revision:7,connectionId:'c1'}]]);
+  assert.match(text(h.tree),/尚未检查/,'A callback alone is not remote evidence');
+  h.update({state:{revision:7,connections:[{...connection,check:{checkedAt:'2026-11-06T09:00:00Z',reachable:'OK',session:'OK',resources:'DENIED'}}]}});
+  assert.match(text(h.tree),/拒绝访问/);
+  await invoke(h,'刷新服务列表');assert.equal(h.calls.at(-1)[0],'serviceStatus');
+  assert.equal(h.props.state.connections[0].check.resources,'DENIED');
+});
+
+
+test('a definitive rejected pairing receipt refreshes the draft instead of claiming connection success',async()=>{
+  const unpaired={...connection,status:'UNCONNECTED',resources:[],bindings:[]};
+  let h;h=mount({state:{revision:7,connections:[unpaired]},onAction:async(action,payload)=>{
+    h.calls.push([action,payload]);
+    const state={revision:9,connections:[{...unpaired,history:[{action:'connect',outcome:'REJECTED'}]}]};
+    h.update({state});return {rejected:true,state};
+  }});
+  h.click('连接服务：HTTP 服务');h.change('应用一次性配对码','a'.repeat(64));await invoke(h,'确认连接');
+  assert.match(text(h.tree),/连接码已无效、过期或已使用/);
+  assert.equal(h.find(n=>n.props['aria-label']==='应用一次性配对码').props.value,'');
+  assert.equal(h.button('确认连接').props.disabled,false);
+  assert.equal(h.calls.length,1);assert.equal(h.props.state.connections[0].status,'UNCONNECTED');
+});
+
+test('a definitive rejected reconnect refreshes the disconnected pairing draft',async()=>{
+  const disconnected={...connection,status:'DISCONNECTED',resources:[],bindings:[]};
+  let h;h=mount({state:{revision:7,connections:[disconnected]},onAction:async()=>{
+    const state={revision:9,connections:[{...disconnected,history:[{action:'connect',outcome:'REJECTED'}]}]};
+    h.update({state});return {rejected:true,state};
+  }});
+  h.click('连接服务：HTTP 服务');h.change('应用一次性配对码','a'.repeat(64));await invoke(h,'确认连接');
+  assert.equal(h.find(n=>n.props['aria-label']==='应用一次性配对码').props.value,'');
+  assert.equal(h.button('确认连接').props.disabled,false);
+  assert.doesNotMatch(text(h.tree),/状态版本已变化/);
+});
+
+test('a rejected original pairing receipt clears only its uncertainty and refreshes the draft',async()=>{
+  const unpaired={...connection,status:'UNCONNECTED',resources:[],bindings:[]};
+  let h;h=mount({state:{revision:7,connections:[unpaired]},onAction:async(action,payload)=>{
+    h.calls.push([action,payload]);
+    if(action==='serviceConnect'){
+      h.update({state:{revision:8,connections:[{...unpaired,status:'OUTCOME_UNKNOWN',pending:{action:'connect'}}]}});
+      return false;
+    }
+    assert.equal(action,'serviceReconcile');
+    const state={revision:9,connections:[{...unpaired,history:[{action:'connect',outcome:'REJECTED'}]}]};
+    h.update({state});return {rejected:true,state};
+  }});
+  h.click('连接服务：HTTP 服务');h.change('应用一次性配对码','a'.repeat(64));await invoke(h,'确认连接');
+  assert.equal(h.button('确认连接').props.disabled,true);
+  await invoke(h,'读取原回执');
+  assert.equal(h.find(n=>n.props['aria-label']==='应用一次性配对码').props.value,'');
+  assert.equal(h.button('确认连接').props.disabled,false);
+  assert.doesNotMatch(text(h.tree),/所有服务写入已暂停|操作未获成功确认/);
+  assert.deepEqual(h.calls.map(([action])=>action),['serviceConnect','serviceReconcile']);
 });
