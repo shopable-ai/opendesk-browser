@@ -165,10 +165,37 @@ function validateLiveRule(rule,doc,win){
       return label+'选择器为空、过长或含无效字符。';
     if(value)try{doc.querySelectorAll(value);}catch{return label+' CSS 语法无效，请修改后保存。';}
   }
+  const matches=field=>field?[...doc.querySelectorAll(field)]:[];
+  const mainMatches=matches(rule.mainSelector);
+  if(mainMatches.length===0)return '对话主区域在当前页面无匹配；请检查 CSS 或重新点选。';
+  if(mainMatches.length>1)return '对话主区域匹配多个节点；请使用更精确的 CSS。';
+  const scrollers=matches(rule.scrollSelector);
+  if(scrollers.length===0)return '滚动容器在当前页面无匹配；请检查 CSS 或重新点选。';
+  if(scrollers.length>1)return '滚动容器匹配多个节点；请使用更精确的 CSS。';
+  const main=mainMatches[0],scroller=scrollers[0];
+  if(!shown(main,win)||!shown(scroller,win))
+    return '页面结构或可见性已变化，主要节点已隐藏或脱离页面。';
+  if(!scroller.contains(main)&&!main.contains(scroller))
+    return '对话主区域与滚动容器没有正确的包含关系。';
+  const rootScroller=scroller===doc.scrollingElement||scroller===doc.documentElement;
+  if(!rootScroller&&!/^(auto|scroll|overlay)$/.test(win.getComputedStyle(scroller).overflowY))
+    return '滚动容器没有可滚动的 overflow-y，请重新点选。';
+  if(!Number.isFinite(scroller.scrollHeight)||!Number.isFinite(scroller.clientHeight)||
+    scroller.scrollHeight-scroller.clientHeight<=1)
+    return '滚动容器目前不可滚动，请在较长对话中核对。';
+  if(rule.messageSelector){
+    const messages=[...main.querySelectorAll(rule.messageSelector)];
+    if(messages.length===0)return '消息节点在主区域内无匹配；可清空此可选字段。';
+    if(messages.length>2000)return '消息节点匹配过多，请缩小选择范围。';
+  }
+  if(rule.anchorSelector){
+    const anchors=matches(rule.anchorSelector);
+    if(anchors.length!==1)return anchors.length===0?
+      '按钮锚点无匹配；可清空此可选字段。':
+      '按钮锚点匹配多个节点，请选择唯一目标。';
+  }
   const binding=resolveConfiguredConversation({...rule,enabled:true},doc,win);
-  if(!binding)return '选择器未匹配到唯一、可见且共用滚动区域的真实对话；请检查四项 CSS。';
-  if(!(binding.scroller.scrollHeight-binding.scroller.clientHeight>1))
-    return '滚动容器没有实际可滚动距离，请在较长对话中核对后保存。';
+  if(!binding)return '页面结构已变化或选取节点不符合对话滚动关系，请重新点选并核对。';
   return null;
 }
 
@@ -511,5 +538,186 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   owner.onDispose(()=>{closed=true;++operationEpoch;stopPick();host.remove();});
   if(!closed)doc.documentElement?.append(host);
   void read();
+  return Object.freeze({activeRule,read});
+}
+
+// The installed Page Program retains a read-only config consumer and a
+// one-shot document-scoped selector picker. It never mounts website settings,
+// never grants a site Origin, and never writes rule storage from the webpage.
+export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
+  let current={version:1,sites:[]},disposed=false,flight=null,picking=null;
+  let block=null,move=null,keyHandler=null,releaseClick=null,pickDone=null;
+  let timeout=null,host=null,outline=null;
+  const activeRule=()=>applicableRule(current,win.location.href);
+  const read=()=>{
+    if(disposed||!api)return Promise.resolve(null);
+    if(flight)return flight;
+    flight=Promise.resolve().then(()=>api.read()).then(result=>{
+      if(disposed)return null;
+      if(result?.value?.version!==1||!Array.isArray(result.value.sites)||
+        typeof result.etag!=='string')throw Error('可信网站配置读回格式错误');
+      current=result.value;
+      onChange?.();
+      return result;
+    }).finally(()=>{flight=null;});
+    return flight;
+  };
+  if(!api||win!==win.top){
+    return Object.freeze({activeRule,read});
+  }
+  const ensureOverlay=()=>{
+    if(host)return;
+    host=doc.createElement('div');
+    host.setAttribute(OWN,'picker');
+    host.style.cssText='position:fixed;inset:0;z-index:2147483610;pointer-events:none';
+    const shadow=host.attachShadow({mode:'open'});
+    shadow.innerHTML='<style>:host{all:initial;pointer-events:none}' +
+      '.outline{position:fixed;border:3px solid #3677e5;' +
+      'background:#3677e522;box-sizing:border-box;pointer-events:none}</style>' +
+      '<div class="outline" hidden></div>';
+    outline=shadow.querySelector('.outline');
+    doc.documentElement?.append(host);
+  };
+  const clearOverlay=()=>{host?.remove();host=null;outline=null;};
+  function stopPick({consumeClick=false,gesture=null}={}){
+    releaseClick?.();
+    if(picking!==null){
+      for(const type of ['pointerdown','click','contextmenu'])
+        doc.removeEventListener(type,block,true);
+      doc.removeEventListener('pointermove',move,true);
+      doc.removeEventListener('keydown',keyHandler,true);
+      picking=null;block=null;move=null;keyHandler=null;
+    }
+    clearOverlay();
+    if(timeout!==null){win.clearTimeout(timeout);timeout=null;}
+    // Consume only the selected pointer's release + compatibility mouse
+    // events. A new gesture or lifecycle disposal releases the guard.
+    if(consumeClick){
+      const pointerId=gesture?.pointerId,otherPointers=new Set();
+      let compatibility=true;
+      const matches=event=>event.pointerId===undefined?
+        compatibility:event.pointerId===pointerId;
+      const eat=event=>{
+        if(!matches(event)){
+          if(['pointerup','pointercancel'].includes(event.type))
+            otherPointers.delete(event.pointerId);
+          return;
+        }
+        event.preventDefault();event.stopImmediatePropagation();
+        if(['pointerup','pointercancel'].includes(event.type))
+          compatibility=otherPointers.size===0;
+        if(event.type==='click')releaseClick?.();
+      };
+      const tail=['pointerup','pointercancel','mouseup','click'];
+      releaseClick=()=>{
+        for(const type of tail)doc.removeEventListener(type,eat,true);
+        doc.removeEventListener('pointerdown',release,true);
+        doc.removeEventListener('keydown',releaseKey,true);
+        releaseClick=null;
+      };
+      const release=event=>{
+        if(event===gesture)return;
+        if(!event||event.pointerId===pointerId)releaseClick?.();
+        else{otherPointers.add(event.pointerId);compatibility=false;}
+      };
+      const releaseKey=event=>{
+        if(['Shift','Control','Alt','Meta','AltGraph','CapsLock','NumLock','ScrollLock'].includes(event.key))return;
+        release();
+      };
+      for(const type of tail)doc.addEventListener(type,eat,true);
+      doc.addEventListener('pointerdown',release,true);
+      doc.addEventListener('keydown',releaseKey,true);
+    }
+  }
+  function beginPick(field,mainSelector){
+    if(disposed||picking!==null)return false;
+    ensureOverlay();picking=field;
+    const identify=event=>{
+      const hit=doc.elementFromPoint?.(event.clientX,event.clientY);
+      if(!hit||!allowedNode(hit,win))return null;
+      if(field==='messages'){
+        const main=sole(doc,mainSelector,win);
+        if(!main||!allowedNode(main,win)||!main.contains(hit))return null;
+        const group=safeMessageGroupSelector(main,hit,win);
+        return group?{node:group.node,selector:group.selector,count:group.count}:null;
+      }
+      if(field==='scroller'){
+        const main=sole(doc,mainSelector,win);
+        if(!main||!allowedNode(main,win)||(!hit.contains(main)&&!main.contains(hit)))return null;
+        const scroller=findConversationScroller(hit,doc,win,{includeSelf:true});
+        if(!scroller||(scroller!==doc.scrollingElement&&!allowedNode(scroller,win)))
+          return null;
+        const selector=safeUniqueSelector(doc,scroller);
+        if(!selector)return null;
+        const binding=resolveConfiguredConversation({
+          origin:win.location.origin,pathScope:'/',mainSelector,
+          scrollSelector:selector,messageSelector:'',anchorSelector:'',enabled:true
+        },doc,win);
+        return binding?.scroller===scroller?{node:scroller,selector}:null;
+      }
+      const selector=safeUniqueSelector(doc,hit);
+      return selector?{node:hit,selector}:null;
+    };
+    move=event=>{
+      const found=identify(event),r=found?.node?.getBoundingClientRect?.();
+      if(outline){outline.hidden=!r;
+        if(r){outline.style.left=r.left+'px';outline.style.top=r.top+'px';
+          outline.style.width=r.width+'px';outline.style.height=r.height+'px';}}
+    };
+    block=event=>{
+      event.preventDefault();event.stopImmediatePropagation();
+      if(event.type!=='pointerdown'||event.isTrusted!==true)return;
+      const selected=identify(event),done=pickDone;
+      pickDone=null;
+      stopPick({consumeClick:true,gesture:event});
+      done?.(selected?.selector?{state:'selected',field,selector:selected.selector,
+        count:selected.count||1}:{state:'invalid'});
+    };
+    keyHandler=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopImmediatePropagation();
+        const done=pickDone;pickDone=null;
+        stopPick();done?.({state:'cancelled'});
+      }
+    };
+    doc.addEventListener('pointermove',move,true);
+    for(const type of ['pointerdown','click','contextmenu'])
+      doc.addEventListener(type,block,true);
+    doc.addEventListener('keydown',keyHandler,true);
+    return true;
+  }
+  const editor=Object.freeze({
+    validate(rule){
+      const error=validateLiveRule(rule,doc,win);
+      return error?{ok:false,error}:{ok:true};
+    },
+    pick({field,mainSelector}={}){
+      if(typeof mainSelector!=='string'||mainSelector.length>256||
+        /[\u0000-\u001f\u007f{};]/.test(mainSelector)||
+        !['main','scroller','messages','anchor'].includes(field))
+        return Promise.resolve({state:'invalid'});
+      if(disposed||pickDone||picking!==null)return Promise.resolve({state:'busy'});
+      return new Promise(resolve=>{
+        pickDone=resolve;
+        if(!beginPick(field,mainSelector)){
+          pickDone=null;resolve({state:'busy'});return;
+        }
+        timeout=win.setTimeout(()=>{
+          if(pickDone!==resolve)return;
+          pickDone=null;stopPick();resolve({state:'timeout'});
+        },30000);
+      });
+    }
+  });
+  Object.defineProperty(globalThis,'__opendeskAiScrollEditorV1',
+    {configurable:true,value:editor});
+  owner.onDispose(()=>{
+    disposed=true;
+    if(globalThis.__opendeskAiScrollEditorV1===editor)
+      delete globalThis.__opendeskAiScrollEditorV1;
+    const done=pickDone;pickDone=null;
+    stopPick();done?.({state:'closed'});
+  });
+  void read().catch(()=>{if(!disposed)onChange?.();});
   return Object.freeze({activeRule,read});
 }

@@ -2,7 +2,7 @@ import {createPageUI} from '@opendesk/ui';
 import {installJumpToTop} from './conversation.js';
 import {findSiteBindings,findSiteConversation,siteForUrl} from './site-adapters.js';
 import {installFloatingNavigation} from './floating-navigation.js';
-import {installVisualSiteConfiguration,resolveConfiguredConversation} from './site-configuration.js';
+import {installScrollSiteRuntime,resolveConfiguredConversation} from './site-configuration.js';
 
 // A new Program ID is a separately reviewed installation, not an in-place
 // permission transfer. Existing legacy installations remain independent and
@@ -44,7 +44,7 @@ export default async function main() {
       conversationDirections:{top:false,bottom:false}
     });
     let dock=null;
-    const settings=installVisualSiteConfiguration({
+    const settings=installScrollSiteRuntime({
       doc:document,win:window,owner,api:configApi,onChange:()=>dock?.refresh()
     });
     dock=installFloatingNavigation({doc:document,win:window,owner,

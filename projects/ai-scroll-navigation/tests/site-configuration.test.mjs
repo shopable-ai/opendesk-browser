@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parseHTML} from 'linkedom';
-import {installVisualSiteConfiguration,resolveConfiguredConversation,scrollConfiguredEdge} from '../src/site-configuration.js';
+import {installVisualSiteConfiguration,installScrollSiteRuntime,resolveConfiguredConversation,scrollConfiguredEdge} from '../src/site-configuration.js';
 import {installFloatingNavigation} from '../src/floating-navigation.js';
 
 const rule={origin:'https://chatgpt.com',pathScope:'/c',mainSelector:'#thread',
@@ -49,6 +49,29 @@ function storage(){
   return {get writes(){return writes;},read:async()=>({value:structuredClone(value),etag}),
     async write(next,expected){writes++;assert.equal(expected,etag);value=structuredClone(next);etag='two';return {value:structuredClone(value),etag};}};
 }
+
+test('R4 Page runtime has no old settings panel and keeps a one-shot real element picker',async()=>{
+  const f=fixture(),api=storage();
+  f.win.top=f.win;f.win.setTimeout=setTimeout;f.win.clearTimeout=clearTimeout;
+  f.doc.elementFromPoint=()=>f.main;
+  const installed=installScrollSiteRuntime({...f,api});
+  await settle();
+  assert.equal(f.doc.querySelector('[data-opendesk-ai-scroll-navigation="settings"]'),null,
+    'old page settings gear and form are not mounted');
+  assert.deepEqual(installed.activeRule(),rule,'stored rule loads without Side Panel');
+  const editor=globalThis.__opendeskAiScrollEditorV1;
+  assert.equal(typeof editor?.validate,'function');
+  assert.equal(typeof editor?.pick,'function');
+  const result=editor.pick({field:'main',mainSelector:''});
+  const overlay=f.doc.querySelector('[data-opendesk-ai-scroll-navigation="picker"]');
+  assert.ok(overlay,'temporary highlighter appears only during selection');
+  assert.equal(overlay.shadowRoot.querySelector('#panel'),null);
+  f.dispatch('pointermove');f.dispatch('pointerdown');
+  assert.deepEqual(await result,{state:'selected',field:'main',selector:'#thread',count:1});
+  assert.equal(f.doc.querySelector('[data-opendesk-ai-scroll-navigation="picker"]'),null);
+  f.owner.dispose();
+  assert.equal(globalThis.__opendeskAiScrollEditorV1,undefined,'dispose removes the bridge');
+});
 
 test('configured selectors reject zero, multiple, hidden and detached targets',()=>{
   for(const mode of ['zero','multiple','hidden','detached']){

@@ -1,5 +1,15 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## R4.0 正式 Side Panel 迁移记录（2026-11-08，待同候选验证）
+
+- **正式入口**：复用 `src/ui/react/tabs/tools.tsx` 的唯一 `ScrollSiteManager`、原 `extension-center.js` 和可信 Page Installer；首页只展示 ChatGPT、DeepSeek，完整列表加入 Gemini。自定义网站管理、添加/编辑、四项 CSS、图标点选和单一保存操作区已接入源代码。
+- **权限与数据**：只用精确 HTTP(S) Origin + 既有 `pathScope` 合同；新范围先走原安装审阅，批准后返回表单继续保存。现有 `readScrollSiteConfig` / `saveScrollSiteRule`、etag CAS、精确活动文档检查与保存后读回未更换。不可将权限批准或预览选择器当作规则持久化。
+- **Page 运行时**：`main.js` 现在调用 `installScrollSiteRuntime`，不再向目标网页挂载旧齿轮或完整设置面板；仍使用原规则读回、`activeRule()` 和临时点选高亮，以保护 Side Panel 关闭后导航独立运行。为兼容已有测试与辅助函数，旧视觉模块目前仍保留不在生产页面挂载的内存代码；未声称完成源码级全面删除。
+- **尚未接入**：R4.0 五个按钮开关属于独立运行时/配置合同升级。当前 `scroll-config-contract.js` v1 严格限制网站规则字段，无全局开关；正式设置页把五项标记为只读、禁用，不虚构保存。导航继续沿用既有默认值。
+- **验证范围**：`node --test tests/environment/ai-scroll-react-manager-r38.test.mjs projects/ai-scroll-navigation/tests/site-configuration.test.mjs`；应进一步验证 CSS/权限/草稿回退和当前 Chrome 的真实网站点选、安装审阅以及保存读回。此条只列定向命令，不等于已经执行。`NODE_NOT_TESTED` / `CHROME_NOT_TESTED`，尚无本轮同候选安装与浏览器证据。既有 0.4.10/r14 导航及思维导图历史证据不自动迁移为新源码验收。
+- **打包边界**：仓库的 `.github/workflows/ai-scroll-navigation-r131.yml` 仍固定构建 `0.4.8/r9`，与当前 `0.4.10/r14` 不符；未验证该旧流程的版本/包晋升，不可据此替换已安装正式 Page 包。新源码进入正式用户环境还需要更新后续唯一 Page 包并原 Installer 审阅，不能用修改网页预览代替。
+
+
 ## 默认安装与回复工具组（2026-11-07）
 
 **2026-11-08 最新状态：用户已确认功能测试通过，按钮与思维导图只做增量验证。** 日常「您的 Chrome」已由原侧栏更新并恢复 **0.4.10/r14**，新标签页自动显示回复三按钮及左下角导航，回复回顶已实际点击生效；见 `artifacts/ai-answer-tools-20261107/daily-chrome-before-clicks-20261108.png`、`daily-chrome-reply-top-20261108.png`。其余完整点击链复用下述既有证据。本轮将独立导图 owner 统一为 [`projects/ai-reply-mindmap/`](../ai-reply-mindmap/README.zh-CN.md)，导航源码和冻结包不变，不重复完整功能测试。

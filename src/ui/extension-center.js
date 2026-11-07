@@ -821,6 +821,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
                 new Error(live.message||'当前窗口没有可用网页'),{code:live.reason||'E_DOCUMENT_STALE'});
               return live.origin;
             },
+            async onCurrentPageDetails(){
+              if(!currentPageTarget)throw Object.assign(new Error('当前网页不可用'),{code:'E_DOCUMENT_STALE'});
+              const live=await currentPageTarget.refresh();
+              if(live.status!=='available'||typeof live.url!=='string')throw Object.assign(
+                new Error(live.message||'当前窗口没有可用网页'),{code:live.reason||'E_DOCUMENT_STALE'});
+              const url=new URL(live.url);
+              if(url.origin!==live.origin||!['http:','https:'].includes(url.protocol))
+                throw Object.assign(new Error('当前网页不可用于网站配置'),{code:'E_CONFIG_SCOPE'});
+              return {origin:live.origin,url:live.url};
+            },
             builtIn:['ChatGPT','DeepSeek','Gemini'],
             isApproved(origin,pathScope){
               try{
@@ -836,6 +846,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             onDraftChange(draft,editKey){
               if(draft)scrollDraft={...draft,editKey:editKey??null};
               else {scrollDraft=null;scrollAwaitingReview=false;}
+            },
+            async onReviewSite(values,event){
+              if(event?.isTrusted!==true)
+                throw Object.assign(new Error('网站访问权限必须由真实用户操作审阅'),{code:'E_GESTURE'});
+              ensure();
+              const ok=await reviewScrollSite(values,event,pinned);
+              if(!ok)throw Object.assign(new Error('安装审阅未开始或被阻止'),{code:'E_SITE_REVIEW'});
+              return true;
             },
             async onPick(field,origin,mainSelector,event){
               if(event?.isTrusted!==true)throw Object.assign(new Error('请由真实网页操作发起点选'),{code:'E_GESTURE'});

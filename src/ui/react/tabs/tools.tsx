@@ -214,7 +214,7 @@ function extensionActionGlyph(id,label){
 // Capture the real gesture within the same React subtree and require it
 // before delegating to the original Controller/Authority. Never optimistically
 // change the displayed persisted state.
-function ManagedPageControl({control,title}){
+function ManagedPageControl({control,title,heading='启用此网页增强'}){
   const gesture=React.useRef(null);
   const capture=event=>{
     gesture.current=event.nativeEvent?.isTrusted===true?event.nativeEvent:null;
@@ -231,7 +231,7 @@ function ManagedPageControl({control,title}){
       onKeyUpCapture={capture} onClickCapture={capture}
       onBlurCapture={()=>{gesture.current=null;}}>
       <div className="ec-page-main-copy">
-        <h3>启用此网页增强</h3>
+        <h3>{heading}</h3>
         <p>在已授权的网站自动运行</p>
       </div>
       <Switch data-ec-detail-action="toggle" aria-label={'启用「'+title+'」'}
@@ -264,21 +264,76 @@ const EMPTY_SCROLL_SITE=Object.freeze({
   messageSelector:'',anchorSelector:'',enabled:true
 });
 const SCROLL_CSS_FIELDS=[
-  ['mainSelector','对话主区域','main'],
-  ['scrollSelector','滚动容器','scroller'],
-  ['messageSelector','消息节点（可选）','messages'],
-  ['anchorSelector','按钮锚点（可选）','anchor']
+  ['mainSelector','对话主区域','main',true],
+  ['scrollSelector','滚动容器','scroller',true],
+  ['messageSelector','消息节点','messages',false],
+  ['anchorSelector','按钮锚点','anchor',false]
 ];
-function ScrollSiteManager({model}){
+const SCROLL_BUILTINS=[
+  {name:'ChatGPT',origin:'https://chatgpt.com'},
+  {name:'DeepSeek',origin:'https://chat.deepseek.com'},
+  {name:'Gemini',origin:'https://gemini.google.com'}
+];
+const SCROLL_FLAGS=[
+  ['regionTop','回到回复顶部'],['regionBottom','跳到回复底部'],
+  ['conversationTop','回到对话顶部'],['conversationBottom','跳到对话底部'],
+  ['floatingTop','滚动后悬浮回顶']
+];
+function scrollOrigin(value){
+  try{
+    const url=new URL(value.trim());
+    if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
+      url.pathname!=='/'||url.search||url.hash)return null;
+    return url.origin;
+  }catch{return null;}
+}
+function suggestedScrollPath(href){
+  try{
+    const path=new URL(href).pathname, parts=path.split('/').filter(Boolean);
+    if(!parts.length)return '/';
+    // ChatGPT /c/<id>, DeepSeek /a/chat/s/<id> and similar SPA routes
+    // must not persist the session identifier as an authorization prefix.
+    const id=/^(?:[0-9a-f]{8,}(?:-[0-9a-f]{4,})*|[A-Za-z0-9_-]{18,}|\d{6,})$/i;
+    const prefix=parts.length>1&&(id.test(parts.at(-1))||
+      ['c','s','conversation','chat','app','session'].includes(parts.at(-2).toLowerCase()));
+    return '/'+(prefix?parts.slice(0,-1):parts).join('/');
+  }catch{return '/';}
+}
+function validScrollPath(value){
+  return typeof value==='string'&&value.length>0&&value.length<=512&&
+    value.startsWith('/')&&!value.startsWith('//')&&
+    !/[?#\\*\u0000-\u001f\u007f]/.test(value)&&
+    !value.includes('/../')&&!value.endsWith('/..')&&!value.includes('/./');
+}
+function scrollCssError(value,required){
+  if(!value.trim())return required?'请填写 CSS 选择器':'';
+  if(value.length>256||/[\u0000-\u001f\u007f{};]/.test(value))
+    return 'CSS 选择器过长或包含无效字符';
+  try{document.querySelector(value);}catch{return 'CSS 语法无效';}
+  return '';
+}
+function ScrollSiteManager({model,pageControl,title,detail}){
+  const resumed=model.resumeDraft||null;
   const [snapshot,setSnapshot]=React.useState(null);
   const [loading,setLoading]=React.useState(true);
+  const [view,setView]=React.useState(resumed?'editor':'home');
+  const [editorFrom,setEditorFrom]=React.useState('home');
+  const [editingKey,setEditingKey]=React.useState(resumed?.editKey??null);
+  const [draft,setDraft]=React.useState(resumed?Object.fromEntries(
+    Object.keys(EMPTY_SCROLL_SITE).map(key=>[key,resumed[key]??EMPTY_SCROLL_SITE[key]])):null);
+  const [touched,setTouched]=React.useState({});
+  const [busy,setBusy]=React.useState(false);
   const [error,setError]=React.useState('');
   const [notice,setNotice]=React.useState('');
-  const [busy,setBusy]=React.useState(false);
-  const [editingKey,setEditingKey]=React.useState(model.resumeDraft?.editKey??null);
-  const [draft,setDraft]=React.useState(model.resumeDraft||null);
   const [confirmDelete,setConfirmDelete]=React.useState(false);
+  const [needsReconcile,setNeedsReconcile]=React.useState(false);
   const ref=React.useRef(model);ref.current=model;
+  const originInput=React.useRef(null);
+  const selectorInputs=React.useRef({});
+  const seed=React.useRef(resumed?Object.fromEntries(
+    Object.keys(EMPTY_SCROLL_SITE).map(key=>[key,resumed[key]??EMPTY_SCROLL_SITE[key]])):null);
+  const fillEpoch=React.useRef(0);
+  const pathEdited=React.useRef(Boolean(resumed));
   React.useEffect(()=>{
     let live=true;setLoading(true);
     ref.current.onRead().then(value=>{
@@ -289,121 +344,283 @@ function ScrollSiteManager({model}){
     }).catch(e=>{if(live){setError('读取失败：'+(e?.code||e?.message||e));setLoading(false);}});
     return ()=>{live=false;};
   },[model.identityKey]);
-  const change=(key,value)=>{
+  const update=(key,value)=>{
+    fillEpoch.current++;
     const next={...(draft||EMPTY_SCROLL_SITE),[key]:value};
-    setDraft(next);
-    ref.current.onDraftChange(next,editingKey);
+    if(key==='origin'&&!pathEdited.current)next.pathScope='/';
+    if(key==='pathScope')pathEdited.current=true;
+    setDraft(next);ref.current.onDraftChange(next,editingKey);
+    setTouched(old=>({...old,[key]:true}));
     setError('');setNotice('');
   };
-  const open=(item=null)=>{
+  const open=async(item=null,from=view)=>{
     const value=item?{...item}:{...EMPTY_SCROLL_SITE};
     const key=item?item.origin+'\n'+item.pathScope:null;
-    setEditingKey(key);setDraft(value);setNotice('');setError('');setConfirmDelete(false);
+    const epoch=++fillEpoch.current;
+    setView('editor');setEditorFrom(from);setEditingKey(key);setDraft(value);
+    seed.current={...value};
+    setTouched({});pathEdited.current=Boolean(item);
+    setNotice('');setError('');setConfirmDelete(false);
+    ref.current.onDraftChange(value,key);
+    if(!item){
+      try{
+        const page=await ref.current.onCurrentPageDetails();
+        if(fillEpoch.current!==epoch)return;
+        const origin=scrollOrigin(page?.origin||'');
+        if(!origin)return;
+        const next={...value,origin,pathScope:suggestedScrollPath(page.url)};
+        seed.current={...next};setDraft(next);ref.current.onDraftChange(next,null);
+      }catch(e){if(fillEpoch.current===epoch)setNotice('当前网页不可用于自动填充，可手动输入网站地址。');}
+    }
+    queueMicrotask(()=>originInput.current?.focus({preventScroll:true}));
   };
-  const cancel=()=>{
-    const saved=editingKey?snapshot?.value?.sites?.find(x=>x.origin+'\n'+x.pathScope===editingKey):null;
-    if(draft&&JSON.stringify(draft)!==JSON.stringify(saved||EMPTY_SCROLL_SITE)&&
-      typeof window!=='undefined'&&window.confirm&&!window.confirm('放弃未保存的网站更改？'))return;
-    ref.current.onDraftChange(null,null);
-    setDraft(null);setEditingKey(null);setError('');setNotice('');setConfirmDelete(false);
+  const dirty=Boolean(draft)&&JSON.stringify(draft)!==JSON.stringify(seed.current);
+  const closeEditor=()=>{
+    if(busy)return;
+    if(dirty&&typeof window!=='undefined'&&!window.confirm('放弃未保存的网站更改？'))return;
+    fillEpoch.current++;
+    setView(editorFrom);setDraft(null);setEditingKey(null);setConfirmDelete(false);
+    setTouched({});setError('');ref.current.onDraftChange(null,null);
   };
-  const current=async()=>{
+  const goBack=()=>{
+    if(view==='editor')closeEditor();
+    else {setView('home');setError('');}
+  };
+  React.useEffect(()=>{
+    if(view==='home')return;
+    const handle=event=>{
+      if(event.key==='Escape'&&!event.defaultPrevented){
+        event.preventDefault();goBack();
+      }
+    };
+    window.addEventListener('keydown',handle);
+    return ()=>window.removeEventListener('keydown',handle);
+  },[view,draft,busy,editorFrom]);
+  const readAgain=async()=>{
+    if(busy)return;setBusy(true);
     try{
-      const origin=await ref.current.onCurrentPage();
-      change('origin',origin);
-    }catch(e){setError((e?.code||'E_DOCUMENT_STALE')+'：'+(e?.message||e));}
+      const result=await ref.current.onRead();
+      if(result?.value?.version!==1||!Array.isArray(result.value.sites)||
+        typeof result.etag!=='string')throw new Error('可信读回格式错误');
+      setSnapshot(result);setNeedsReconcile(false);setError('');
+      setNotice('已重新读取真实配置。保留当前草稿，请核对是否已写入后再操作。');
+    }catch(e){setError('重新读取失败：'+(e?.code||e?.message||e));}
+    finally{setBusy(false);}
   };
-  const pick=async(field,event)=>{
+  const origin=draft?scrollOrigin(draft.origin):null;
+  const pathValid=draft?validScrollPath(draft.pathScope.trim()):false;
+  const duplicateBuiltIn=Boolean(origin&&!editingKey&&SCROLL_BUILTINS.some(x=>x.origin===origin));
+  const duplicateSaved=Boolean(draft&&snapshot?.value?.sites?.some(x=>
+    x.origin===origin&&x.pathScope===draft.pathScope.trim()&&
+    x.origin+'\n'+x.pathScope!==editingKey));
+  const approved=Boolean(draft&&origin&&pathValid&&ref.current.isApproved(origin,draft.pathScope.trim()));
+  const needPermission=Boolean(origin&&pathValid&&!approved&&!duplicateBuiltIn&&!duplicateSaved);
+  const fieldErrors=Object.fromEntries(SCROLL_CSS_FIELDS.map(([key,, ,required])=>
+    [key,draft?scrollCssError(draft[key],required):'']));
+  const valid=Boolean(draft&&origin&&pathValid&&!duplicateBuiltIn&&!duplicateSaved&&
+    !Object.values(fieldErrors).some(Boolean));
+  const persist=async(event,rule,remove=false,editKey=editingKey,returnView=editorFrom)=>{
+    if(busy||loading||!snapshot||needsReconcile)return false;
+    setBusy(true);setError('');setNotice('');
+    try{
+      const result=await ref.current.onSave(rule,snapshot.etag,editKey,event.nativeEvent);
+      if(result?.review){
+        setNotice('已进入原安装器权限审阅；授权完成后仍需回来保存规则。');
+        return false;
+      }
+      if(result?.value?.version!==1||!Array.isArray(result.value.sites)||
+        typeof result.etag!=='string')throw new Error('持久化读回格式错误');
+      setSnapshot(result);setDraft(null);setEditingKey(null);setConfirmDelete(false);
+      seed.current=null;ref.current.onDraftChange(null,null);
+      setView(remove?'sites':returnView);
+      setNotice(remove?'已删除规则，并从可信存储确认。':'规则已保存并读回；实际页面运行需在目标网页确认。');
+      return true;
+    }catch(e){
+      if(e?.code==='E_CONFIG_UNKNOWN')setNeedsReconcile(true);
+      setError((e?.code||'E_SITE_SAVE')+'：'+(e?.message||e)+
+        '。草稿已保留；结果未知时请先只读对账。');
+      return false;
+    }finally{setBusy(false);}
+  };
+  const save=event=>{
+    event.preventDefault();
+    if(!valid||!approved||!dirty||busy)return;
+    const rule={...EMPTY_SCROLL_SITE,...Object.fromEntries(
+      Object.keys(EMPTY_SCROLL_SITE).map(key=>[key,
+        typeof draft[key]==='string'?draft[key].trim():Boolean(draft[key])])),
+      origin};
+    void persist(event,rule);
+  };
+  const review=async event=>{
+    if(!needPermission||busy)return;
+    setBusy(true);setError('');setNotice('');
+    try{
+      const ok=await ref.current.onReviewSite(
+        {origin,pathScope:draft.pathScope.trim()},event.nativeEvent);
+      if(!ok)throw new Error('安装审阅未开始；草稿仍保留。');
+      setNotice('已转入网站访问权限审阅；批准并不等于规则已保存。');
+    }catch(e){setError((e?.code||'E_SITE_REVIEW')+'：'+(e?.message||e));}
+    finally{setBusy(false);}
+  };
+  const pick=async(field,key,event)=>{
     if(busy||!draft)return;
-    setBusy(true);setError('');setNotice('请在当前网页悬停并单击目标；Esc 取消。');
+    setBusy(true);setError('');setNotice('请在当前网页点选目标，按 Esc 可取消。');
     try{
       const result=await ref.current.onPick(field,draft.origin,draft.mainSelector,event.nativeEvent);
       if(result?.state==='selected'&&typeof result.selector==='string'){
-        change(({main:'mainSelector',scroller:'scrollSelector',
-          messages:'messageSelector',anchor:'anchorSelector'})[field],result.selector);
-        setNotice('已从当前网页选取真实 CSS：'+result.selector);
-      }else if(result?.state==='cancelled')setNotice('已取消点选，其他输入保持不变。');
-      else throw new Error(result?.state==='timeout'?'点选已超时，请重新选取':'目标不可选或网页已变化，请重新选取');
+        update(key,result.selector);
+        setNotice('已取得当前网页的 CSS；保存前仍会验证真实 DOM。');
+        queueMicrotask(()=>selectorInputs.current[key]?.focus({preventScroll:true}));
+      }else if(result?.state==='cancelled'){
+        setNotice('点选已取消，所有输入保持不变。');
+      }else throw new Error(result?.state==='timeout'?'点选超时，请重新选择':
+        '当前目标不可选，或网页/授权状态已变化。');
     }catch(e){setError((e?.code||'E_PICK')+'：'+(e?.message||e));setNotice('');}
     finally{setBusy(false);}
   };
-  const submit=async(event,remove=false)=>{
-    event.preventDefault();if(busy||!snapshot||!draft)return;
-    setError('');setNotice('');setBusy(true);
-    try{
-      let rule=null;
-      if(!remove){
-        const url=new URL(draft.origin);
-        if(!['http:','https:'].includes(url.protocol)||url.username||url.password)
-          throw new Error('网站地址必须是有效的 HTTP(S) 地址');
-        rule={origin:url.origin,pathScope:draft.pathScope.trim()||'/',
-          mainSelector:draft.mainSelector.trim(),scrollSelector:draft.scrollSelector.trim(),
-          messageSelector:draft.messageSelector.trim(),anchorSelector:draft.anchorSelector.trim(),
-          enabled:Boolean(draft.enabled)};
-        // A new Origin needs Installer approval BEFORE DOM selection is legal.
-        // Do not force users to invent CSS for a site they cannot yet access.
-        if(model.isApproved(rule.origin,rule.pathScope)&&
-          (!rule.mainSelector||!rule.scrollSelector))
-          throw new Error('对话主区域和滚动容器为必填项');
-      }
-      const saved=await ref.current.onSave(rule,snapshot.etag,editingKey,event.nativeEvent);
-      if(saved?.review){setNotice('已转入原安装器审阅权限；授权后返回编辑，不代表保存成功。');return;}
-      if(saved?.value?.version!==1||typeof saved.etag!=='string')
-        throw new Error('缺少持久化确认');
-      setSnapshot(saved);setDraft(null);setEditingKey(null);setConfirmDelete(false);
-      setNotice(remove?'已删除规则并确认持久化。':'已保存网站并从可信 Host 读回；导航运行需在网页另外验证。');
-    }catch(e){setError((e?.code||'E_SITE_SAVE')+'：'+(e?.message||e)+
-      '。草稿保留；未知写入不能自动重试，请重新读取核对。');}
-    finally{setBusy(false);}
+  const toggleRule=(site,event)=>{
+    const key=site.origin+'\n'+site.pathScope;
+    void persist(event,{...site,enabled:!site.enabled},false,key,view);
   };
-  return <section className="ec-detail-card ec-scroll-site-manager" aria-label="AI 对话滚动导航 · 网站管理">
-    {!draft?<div className="ec-scroll-home">
-      <div className="ec-scroll-title"><h3>内置网站</h3><span>已有适配</span></div>
-      <ul className="ec-scroll-builtins">{model.builtIn.map(name=><li key={name}>{name}</li>)}</ul>
+  const siteList=(all=false)=>snapshot?.value?.sites?.length
+    ?<ul className="ec-scroll-saved">{snapshot.value.sites.map(site=><li key={site.origin+'\n'+site.pathScope}>
+      <div><strong>{site.origin}</strong><span>{site.pathScope} · {site.enabled?'已启用':'已停用'}</span></div>
+      <div className="ec-scroll-row-actions">
+        <IconButton label={'编辑 '+site.origin} disabled={busy||Boolean(model.disabledReason)}
+          onClick={()=>void open(site,all?'sites':'home')}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 11-11 4 4-11 11H4zM13 7l4 4"/></svg>
+        </IconButton>
+        {all&&<Button size="sm" disabled={busy||Boolean(model.disabledReason)}
+          onClick={event=>toggleRule(site,event)}>{site.enabled?'停用':'恢复'}</Button>}
+      </div>
+    </li>)}</ul>
+    :<p className="ec-scroll-empty">尚无自定义网站，点击 + 添加。</p>;
+  return <section className="ec-detail-card ec-scroll-site-manager" data-view={view}
+    aria-label="AI 对话滚动导航设置">
+    {view==='home'&&<div className="ec-scroll-home">
+      {pageControl&&<ManagedPageControl control={pageControl} title={title} heading="自动运行"/>}
+      <div className="ec-scroll-title"><h3>内置网站</h3>
+        <IconButton label="查看全部内置网站" onClick={()=>setView('builtins')}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </IconButton></div>
+      <ul className="ec-scroll-builtins">{SCROLL_BUILTINS.slice(0,2).map(x=><li key={x.origin}><strong>{x.name}</strong><span>{x.origin.replace('https://','')}</span></li>)}</ul>
       <div className="ec-scroll-title"><h3>自定义网站</h3>
-        <Button type="button" disabled={busy||loading||Boolean(model.disabledReason)}
-          onClick={()=>open()}>添加网站</Button></div>
-      {loading?<p role="status">正在从可信 Host 读取规则…</p>:
-        snapshot?.value?.sites?.length?<ul className="ec-scroll-saved">
-          {snapshot.value.sites.map(site=><li key={site.origin+site.pathScope}>
-            <div><strong>{site.origin}</strong><span>{site.pathScope}</span></div>
-            <Button type="button" disabled={Boolean(model.disabledReason)||busy}
-              onClick={()=>open(site)}>编辑</Button>
-          </li>)}</ul>:<p>尚未添加自定义网站。</p>}
-    </div>:<form className="ec-scroll-editor" onSubmit={submit}>
-      <div className="ec-scroll-title"><h3>{editingKey?'编辑网站':'添加网站'}</h3>
-        <Button type="button" disabled={busy} onClick={cancel}>返回</Button></div>
-      <label>网站地址
-        <div className="ec-scroll-origin"><input type="url" value={draft.origin} maxLength={256}
-          placeholder="https://example.com" autoComplete="off" required
-          disabled={busy} onChange={e=>change('origin',e.target.value)}/>
-          <Button type="button" disabled={busy} onClick={current}>当前页</Button></div>
-      </label>
-      <label>适用路径<input value={draft.pathScope} maxLength={512} required
-        autoComplete="off" disabled={busy} placeholder="/" onChange={e=>change('pathScope',e.target.value)}/></label>
-      {SCROLL_CSS_FIELDS.map(([key,label,field])=><label key={key}>{label}
-        <div className="ec-scroll-selector"><input type="text" value={draft[key]} maxLength={256}
-          required={(key==='mainSelector'||key==='scrollSelector')&&
-            model.isApproved(draft.origin,draft.pathScope)} spellCheck={false}
-          autoComplete="off" disabled={busy} placeholder={key==='anchorSelector'?'不填则自动定位':'CSS 或真实网页点选'}
-          onChange={e=>change(key,e.target.value)}/>
-          <IconButton type="button" disabled={busy} label={'在当前网页选取'+label}
-            title={'选取'+label} onClick={event=>void pick(field,event)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/>
-              <circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+        <div className="ec-scroll-title-actions">
+          <IconButton label="管理自定义网站" onClick={()=>setView('sites')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
           </IconButton>
-        </div></label>)}
-      <label className="ec-scroll-enabled"><input type="checkbox" checked={draft.enabled}
-        onChange={e=>change('enabled',e.target.checked)} disabled={busy}/>启用此规则</label>
-      <Button type="submit" className="ec-scroll-save" disabled={busy||loading||Boolean(model.disabledReason)}>
-        {busy?'正在核对…':'保存网站'}</Button>
-      {editingKey&&<div className="ec-scroll-delete">
-        {!confirmDelete?<Button type="button" disabled={busy} onClick={()=>setConfirmDelete(true)}>删除此规则…</Button>:
-          <><span>删除这条网站规则？</span>
-            <Button type="button" disabled={busy} onClick={e=>void submit(e,true)}>确认删除</Button>
-            <Button type="button" disabled={busy} onClick={()=>setConfirmDelete(false)}>取消</Button></>}
+          <IconButton label="添加自定义网站" disabled={loading||Boolean(model.disabledReason)}
+            onClick={()=>void open(null,'home')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+          </IconButton>
+        </div></div>
+      {loading?<p role="status">正在读取网站规则…</p>:siteList()}
+      <div className="ec-scroll-settings-action">
+        <Button variant="secondary" onClick={()=>setView('settings')}>导航设置</Button>
+      </div>
+    </div>}
+    {view==='builtins'&&<div className="ec-scroll-subview">
+      <div className="ec-scroll-title"><IconButton label="返回主页" onClick={goBack}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </IconButton><h3>内置网站</h3></div>
+      <ul className="ec-scroll-builtins">{SCROLL_BUILTINS.map(x=><li key={x.origin}>
+        <strong>{x.name}</strong><span>{x.origin.replace('https://','')}</span>
+      </li>)}</ul>
+    </div>}
+    {view==='sites'&&<div className="ec-scroll-subview">
+      <div className="ec-scroll-title"><IconButton label="返回主页" onClick={goBack}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </IconButton><h3>自定义网站</h3>
+      <IconButton label="添加网站" onClick={()=>void open(null,'sites')}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+      </IconButton></div>
+      {loading?<p>读取中…</p>:siteList(true)}
+    </div>}
+    {view==='settings'&&<div className="ec-scroll-subview">
+      <div className="ec-scroll-title"><IconButton label="返回主页" onClick={goBack}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </IconButton><h3>导航设置</h3></div>
+      <p className="ec-scroll-notice">当前配置协议尚未支持五项独立开关。为保护已有导航行为，设置保持原有运行默认值；此处不伪造保存。</p>
+      <div className="ec-scroll-flags">{SCROLL_FLAGS.map(([key,label])=><div key={key}
+        className="ec-scroll-flag"><span>{label}</span><Switch isSelected isDisabled aria-label={label}/></div>)}</div>
+      <h4>应用管理</h4>
+      <p className="ec-scroll-help">原有权限管理、停用与卸载继续由 OpenDesk 可信扩展中心处理。</p>
+      {detail&&<DetailActions model={detail}/>}
+    </div>
+    {view==='editor'&&draft&&<form className="ec-scroll-editor" onSubmit={save} noValidate>
+      <div className="ec-scroll-title"><IconButton label="返回上一页" disabled={busy} onClick={closeEditor}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </IconButton><h3>{editingKey?'编辑网站':'添加网站'}</h3></div>
+      <h4>网站信息</h4>
+      <label htmlFor="scroll-origin">网站地址<span className="ec-scroll-required" aria-hidden="true">*</span></label>
+      <div className="ec-scroll-origin">
+        <input id="scroll-origin" ref={originInput} type="url" value={draft.origin}
+          maxLength={256} autoComplete="off" placeholder="https://example.ai"
+          aria-required="true" aria-invalid={Boolean(touched.origin&&!origin)}
+          disabled={busy} onChange={event=>update('origin',event.target.value)}/>
+        {draft.origin&&<IconButton className="ec-scroll-clear" label="清空网站地址"
+          disabled={busy} onClick={()=>{update('origin','');originInput.current?.focus({preventScroll:true});}}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </IconButton>}
+      </div>
+      <p className="ec-scroll-help">仅填写 HTTP(S) 网站域名；当前网页会自动填入，修改地址不等于授权。</p>
+      {touched.origin&&!origin&&<p className="ec-scroll-error" role="alert">请输入精确的网站 Origin，网页路径请单独填写。</p>}
+      {duplicateBuiltIn&&<p className="ec-scroll-notice">此网站已内置支持，不需要重复添加规则。</p>}
+      <label htmlFor="scroll-path">适用路径<span className="ec-scroll-required" aria-hidden="true">*</span></label>
+      <input id="scroll-path" type="text" value={draft.pathScope} maxLength={512}
+        placeholder="/" autoComplete="off" aria-required="true"
+        aria-invalid={Boolean(touched.pathScope&&!pathValid)}
+        disabled={busy} onChange={event=>update('pathScope',event.target.value)}/>
+      <p className="ec-scroll-help">按路径前缀匹配，建议使用稳定的 /chat，而不是具体会话编号。</p>
+      {touched.pathScope&&!pathValid&&<p className="ec-scroll-error" role="alert">路径需以 / 开始，不能包含通配符、查询参数或跳转片段。</p>}
+      {duplicateSaved&&<p className="ec-scroll-error" role="alert">同一网站和路径已存在规则，请编辑已有配置。</p>}
+      {needPermission&&<div className="ec-scroll-permission">
+        <p>此网站尚未在已安装的 Page Program 范围内，需先完成原 Installer 网站访问权限审阅。</p>
+        <Button type="button" disabled={busy||Boolean(model.disabledReason)}
+          onClick={event=>void review(event)}>审阅网站权限</Button>
       </div>}
+      <h4>网站适配</h4>
+      {SCROLL_CSS_FIELDS.map(([key,label,field,required])=><div className="ec-scroll-field" key={key}>
+        <label htmlFor={'scroll-'+key}>{label}{required&&<span className="ec-scroll-required" aria-hidden="true">*</span>}</label>
+        <div className="ec-scroll-selector"><input type="text" id={'scroll-'+key}
+          ref={node=>{selectorInputs.current[key]=node;}} value={draft[key]} maxLength={256}
+          aria-required={required?'true':undefined}
+          aria-invalid={Boolean(fieldErrors[key]&&touched[key]&&draft[key].trim())}
+          spellCheck={false} autoComplete="off" disabled={busy}
+          placeholder="CSS 或点选" onChange={event=>update(key,event.target.value)}
+          onBlur={()=>setTouched(old=>({...old,[key]:true}))}/>
+          <IconButton label={'在网页选取'+label} className="ec-scroll-picker"
+            disabled={busy||!approved||Boolean(model.disabledReason)}
+            onClick={event=>void pick(field,key,event)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+          </IconButton>
+        </div>
+        {fieldErrors[key]&&touched[key]&&<p className="ec-scroll-error" role="alert">{fieldErrors[key]}</p>}
+      </div>)}
+      <label className="ec-scroll-enabled"><input type="checkbox" checked={draft.enabled}
+        disabled={busy} onChange={event=>update('enabled',event.target.checked)}/>启用此规则</label>
+      {editingKey&&<div className="ec-scroll-delete">
+        {!confirmDelete?<Button type="button" variant="danger" disabled={busy}
+          onClick={()=>setConfirmDelete(true)}>删除此规则…</Button>:
+          <><span>确认删除此网站规则？</span>
+          <Button type="button" variant="danger" disabled={busy||needsReconcile}
+            onClick={event=>void persist(event,null,true)}>确认删除</Button>
+          <Button type="button" disabled={busy} onClick={()=>setConfirmDelete(false)}>取消</Button></>}
+      </div>}
+      <div className="ec-scroll-actionbar">
+        <span role="status">{needsReconcile?'写入结果待核对':!approved?'需要先审阅权限':
+          !draft.mainSelector||!draft.scrollSelector?'请先完成必填项':
+          !valid?'请检查网站信息与 CSS':!dirty?'没有未保存的更改':'可保存网站规则'}</span>
+        <Button type="submit" variant="primary" className="ec-scroll-save"
+          disabled={busy||loading||needsReconcile||!dirty||!valid||!approved||
+            Boolean(model.disabledReason)}>
+          {busy?'正在核对…':editingKey?'保存更改':'保存网站'}
+        </Button>
+      </div>
     </form>}
+    {needsReconcile&&<Button type="button" disabled={busy} onClick={()=>void readAgain()}>
+      重新读取核对
+    </Button>}
     {model.disabledReason&&<p role="status">{model.disabledReason}</p>}
     {notice&&<p role="status" className="ec-scroll-notice">{notice}</p>}
     {error&&<p role="alert" className="ec-scroll-error">{error}</p>}
@@ -495,8 +712,9 @@ export function ExtensionDetail({model,container}){
       </div>
     </div>
     {model.description&&<p className="ec-detail-description">{model.description}</p>}
-    {managed&&<ManagedPageControl control={model.pageControl} title={model.title}/>}
-    {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey} model={model.scrollManager}/>}
+    {managed&&!model.scrollManager&&<ManagedPageControl control={model.pageControl} title={model.title}/>}
+    {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey}
+      model={model.scrollManager} pageControl={model.pageControl} title={model.title} detail={model}/>} 
     {!managed&&<DetailActions model={model}/>}
     {!managed&&<section className="ec-detail-card">
       <h3>安装与来源</h3>
@@ -520,7 +738,7 @@ export function ExtensionDetail({model,container}){
         <PageSiteUpgrade upgrade={model.siteUpgrade}/>
       </details>}
     </section>}
-    {managed&&<section className="ec-detail-card ec-page-management">
+    {managed&&!model.scrollManager&&<section className="ec-detail-card ec-page-management">
       <div className="ec-page-management-head">
         <h3>设置与管理</h3>
         <span className="ec-page-version">r{model.version}</span>

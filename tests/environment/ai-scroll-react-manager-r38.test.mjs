@@ -58,19 +58,41 @@ async function fixture(t){
   assert.ok(state.detailModel?.scrollManager);
   return {doc,state,requests,reviews,saved:()=>saved,installed,entry};
 }
-test('R3.8 actual React detail exposes only four CSS fields and one save action',async t=>{
+test('R4.0 formal React home, all built-ins and compact four-field editor',async t=>{
   const f=await fixture(t);
   await tick();
-  assert.equal(f.doc.querySelectorAll('.ec-scroll-builtins li').length,3);
+  assert.equal(f.doc.querySelectorAll('.ec-scroll-builtins li').length,2,
+    'the homepage shows only ChatGPT and DeepSeek');
   assert.equal(f.doc.querySelectorAll('.ec-scroll-selector').length,0);
-  const add=[...f.doc.querySelectorAll('.ec-scroll-title button')].find(b=>b.textContent.includes('添加网站'));
-  assert.ok(add);add.dispatch('click');
+  const all=f.doc.querySelector('button[aria-label="查看全部内置网站"]');
+  assert.ok(all);all.dispatch('click');await tick();
+  assert.equal(f.doc.querySelectorAll('.ec-scroll-builtins li').length,3);
+  f.doc.querySelector('button[aria-label="返回主页"]').dispatch('click');await tick();
+  const add=f.doc.querySelector('button[aria-label="添加自定义网站"]');
+  assert.ok(add);add.dispatch('click');await tick();
   assert.equal(f.doc.querySelectorAll('.ec-scroll-selector').length,4);
   assert.equal(f.doc.querySelectorAll('.ec-scroll-selector button').length,4);
+  assert.equal(f.doc.querySelectorAll('.ec-scroll-field .ec-scroll-required').length,2,
+    'only the two required CSS fields show red stars');
   assert.equal(f.doc.querySelectorAll('.ec-scroll-save').length,1);
+  assert.equal(f.doc.querySelector('.ec-scroll-save').disabled,true);
+  assert.equal(f.doc.querySelector('#scroll-origin').value,'https://chatgpt.com');
+  assert.equal(f.doc.querySelector('#scroll-path').value,'/c',
+    'current conversation ID must not be used as the default scope');
   assert.equal(f.doc.querySelectorAll('[name="buttonPosition"]').length,0);
-  assert.equal(f.doc.querySelectorAll('.ec-site-upgrade').length,0,
-    'permission-only legacy form must not replace the editor');
+  assert.equal(f.doc.querySelectorAll('.ec-site-upgrade').length,0);
+  assert.equal(f.doc.querySelectorAll('button[aria-label="当前页"]').length,0);
+});
+test('R4.0 passes a new origin to the original installer without saving selectors',async t=>{
+  const f=await fixture(t),manager=f.state.detailModel.scrollManager;
+  const details=await manager.onCurrentPageDetails();
+  assert.deepEqual(details,{origin:'https://chatgpt.com',
+    url:'https://chatgpt.com/c/example'});
+  const result=await manager.onReviewSite({
+    origin:'https://new-ai.example',pathScope:'/talk'},{isTrusted:true});
+  assert.equal(result,true);
+  assert.equal(f.reviews.length,1);
+  assert.equal(f.requests.filter(x=>x.method==='saveScrollSiteRule').length,0);
 });
 test('R3.8 React delegates real selection to installed Host with pinned active document',async t=>{
   const f=await fixture(t),manager=f.state.detailModel.scrollManager;
