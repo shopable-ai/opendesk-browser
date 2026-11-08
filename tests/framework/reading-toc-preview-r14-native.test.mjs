@@ -304,12 +304,13 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
     top:Math.min(...y),bottom:Math.max(...y)};
   };
   const panelBox=await bounds('.panel'),toggleBox=await bounds('.edge-toggle'),skinBox=await bounds('.edge-skin');
+  const modesBox=await bounds('.modes'),headingBox=await bounds('.heading');
   const geometry=await evaluate(trusted,`(()=>{
     const rect=document.querySelector('[data-opendesk-toc-root]').getBoundingClientRect();
     return {width:rect.width,right:rect.right,viewportWidth:innerWidth};
   })()`);
   const gutter=geometry.viewportWidth<=1100?8:12;
-  const expectedWidth=geometry.viewportWidth<=720?Math.min(254,geometry.viewportWidth-16):
+  const expectedWidth=geometry.viewportWidth<=720?Math.min(254,geometry.viewportWidth-24):
    geometry.viewportWidth<=1100?220:254;
   assert(Math.abs(panelBox.right-geometry.right)<1,
    'Expanded panel must occupy the whole TOC host, without an added 38px rail');
@@ -319,8 +320,12 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    'Expanded panel must retain the original right gutter');
   assert(Math.abs(geometry.viewportWidth-toggleBox.right)<1,
    'Only the expanded toggle should reach the right viewport edge');
-  assert(Math.abs(toggleBox.right-toggleBox.left-38)<1,
-   'Expanded 38px hitbox must remain constant while hovering and leaving');
+  assert(Math.abs(toggleBox.right-toggleBox.left-20)<1,
+   'Expanded toggle must reserve only a 20px click area to avoid covering the last mode');
+  assert(panelBox.right-modesBox.right>=11&&panelBox.right-modesBox.right<=16,
+   'Four modes must retain their original right margin with no extra toolbar padding');
+  assert(headingBox.right-headingBox.left>=60,
+   'CONTENTS heading must retain sufficient room beside the four mode controls');
   const expectedSkinWidth=hovered?38:20;
   assert(Math.abs(skinBox.right-skinBox.left-expectedSkinWidth)<1,
    'Visual skin must grow from 20px to 38px on hover without shifting the hitbox');
@@ -332,8 +337,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   }
  }
  await assertToggleRail();
- // The restored hover expands only the visible skin to the fixed 38px hitbox;
- // it must not steal any of the four mode clicks, and must shrink on mouseout.
+ // Hover expands only the visual background (20 -> 38px); the expanded
+ // click target stays at 20px so the fourth mode remains clickable.
  const toggleNode=await tocNode(trusted,shadow,'button.edge-toggle');
  const model=(await trusted.send('DOM.getBoxModel',{nodeId:toggleNode})).model.content;
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',
