@@ -30,7 +30,7 @@ const CSS=[
 // The 20px visual tab touches the panel edge, while its 38x46 hitbox stays
 // entirely in the dedicated rail. Hover/focus expands only outward into the rail.
 "@media(hover:none){.edge-toggle .edge-skin{width:38px}}",
-"@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}}",
+"@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}:host([data-toc-edge=left]) .edge-skin,:host([data-toc-collapsed]) .edge-skin{border-color:#4b505b}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
