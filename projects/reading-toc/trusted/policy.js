@@ -8,6 +8,8 @@ export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // A distinct storage key per HTTP(S) origin prevents unrelated sites from
 // overwriting one another's position when separate tabs save concurrently.
 export const READING_TOC_PLACEMENT_PREFIX='opendesk.sidebar-tools.toc-placement.v1:';
+// Trusted, presentation-only preference scoped to each HTTP(S) origin.
+export const READING_TOC_COLLAPSE_PREFIX='opendesk.sidebar-tools.toc-collapse.v1:';
 export const READING_TOC_TOOL_ID='reading-toc';
 export const READING_TOC_PROTOCOL='opendesk.reading-toc.v1';
 export const TOC_CAPABILITY='page.toc';
@@ -20,6 +22,10 @@ export const READING_TOC_RELEASE_IDENTITY_REQUIRED=false;
 export function readingTocPlacementKey(url) {
   const origin=websiteOrigin(url);
   return origin?READING_TOC_PLACEMENT_PREFIX+encodeURIComponent(origin):null;
+}
+export function readingTocCollapseKey(url) {
+  const origin=websiteOrigin(url);
+  return origin?READING_TOC_COLLAPSE_PREFIX+encodeURIComponent(origin):null;
 }
 export function admittedTocTool(rows,id) {
   if(!Array.isArray(rows)||typeof id!=='string')return null;

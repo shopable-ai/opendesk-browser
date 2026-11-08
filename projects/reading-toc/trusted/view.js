@@ -95,7 +95,7 @@ const ICONS=[
 export function readingTocDisplayMode(mode,compact,userSelected=false){
   return compact&&!userSelected?'top':mode;
 }
-export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onNavigate}) {
+export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialCollapsed=false,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onCollapseChange=()=>{},onNavigate}) {
   // Catalogs are admitted by the trusted controller, never read from page messages.
   let catalog=initialCatalog||readingTocCatalog;
   let locale=resolveUiLocale(initialLocale,Object.keys(catalog.messages),catalog.sourceLocale);
@@ -175,7 +175,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     host.setAttribute('data-toc-edge',edgeSide);
     refreshEdge();
   }
-  edgeToggle.addEventListener('click',()=>setCollapsed(!collapsed));
+  edgeToggle.addEventListener('click',()=>setCollapsed(!collapsed,{persist:true}));
   function updateAiCopy(){
     aiView.setAttribute('aria-label',t('aiLabel'));
     memberTitle.textContent=t('memberTitle');
@@ -240,8 +240,8 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;
   let restoredForContent=false;
-  function setCollapsed(next){
-    if(disposed||drag||next===collapsed)return;
+  function setCollapsed(next,{persist=false}={}){
+    if(typeof next!=='boolean'||disposed||drag||next===collapsed)return;
     if(next){
       const rect=host.getBoundingClientRect(),viewport=tocViewport(win);
       if(!rect.width||!rect.height)return;
@@ -268,6 +268,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       place();
     }
     syncEdge();
+    if(persist)onCollapseChange(collapsed);
   }
   function applyPoint(left,top) {
     const point=tocClampPoint(left,top,host.getBoundingClientRect(),tocViewport(win));
@@ -437,7 +438,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   if(placement)reposition();
   render();
-  return Object.freeze({render,setPlacement,
+  // Recover the origin preference after mount without generating a storage write.
+  if(initialCollapsed===true)setCollapsed(true);
+  return Object.freeze({render,setPlacement,setCollapsed,
     setLocale(next,nextCatalog=catalog){
       const updated=nextCatalog||readingTocCatalog;
       const resolved=resolveUiLocale(next,Object.keys(updated.messages),updated.sourceLocale);

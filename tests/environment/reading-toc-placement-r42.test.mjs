@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readTocPlacement,tocViewport,tocBounds,tocClampPoint,
   tocPlacementFromPoint,tocPlacementPoint} from '../../projects/reading-toc/trusted/placement.js';
-import {readingTocPlacementKey,READING_TOC_PLACEMENT_PREFIX} from '../../projects/reading-toc/trusted/policy.js';
+import {readingTocPlacementKey,READING_TOC_PLACEMENT_PREFIX,
+  readingTocCollapseKey,READING_TOC_COLLAPSE_PREFIX} from '../../projects/reading-toc/trusted/policy.js';
 import {createReadingTocView} from '../../projects/reading-toc/trusted/view.js';
 
 test('R4.2 placement math is bounded, proportional, edge-snapped and input-validated',()=>{
@@ -36,6 +37,19 @@ test('R4.2 placement preferences are scoped to exact HTTP(S) origin, never URL p
   assert(!first.includes('private')&&!first.includes('?'));
   assert.equal(readingTocPlacementKey('javascript:alert(1)'),null);
   assert.equal(readingTocPlacementKey('https://user:pass@example.com/'),null);
+});
+
+test('collapse preference keys use only exact site origin and reject unsafe URLs',()=>{
+ const a=readingTocCollapseKey('https://example.com/article?secret=abc#private');
+ assert(a.startsWith(READING_TOC_COLLAPSE_PREFIX));
+ assert.equal(a,readingTocCollapseKey('https://example.com/other'));
+ assert.notEqual(a,readingTocCollapseKey('https://sub.example.com/article'));
+ assert.notEqual(a,readingTocCollapseKey('https://elsewhere.example/article'));
+ assert.notEqual(a,readingTocCollapseKey('http://example.com/article'));
+ assert.notEqual(a,readingTocCollapseKey('https://example.com:8443/article'));
+ assert(!a.includes('secret')&&!a.includes('article')&&!a.includes('private'));
+ for(const url of ['javascript:alert(1)','file:///tmp/a','https://user:pass@example.com'])
+   assert.equal(readingTocCollapseKey(url),null);
 });
 
 class MockElement {
@@ -252,6 +266,45 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(host.removed,true,'dispose removes the recovery button with its host');
     assert.equal(f.win.events.get('resize').size,0);
   }finally{globalThis.CSSStyleSheet=oldSheet;}
+});
+
+test('site collapse restores on reload without writes and never leaks to another origin',()=>{
+ const oldSheet=globalThis.CSSStyleSheet,saved=new Map();
+ globalThis.CSSStyleSheet=class {replaceSync(){}};
+ const open=url=>{
+   const f=viewFixture(),key=readingTocCollapseKey(url),writes=[];
+   const view=createReadingTocView({doc:f.doc,win:f.win,initialCollapsed:saved.get(key)===true,
+     onNavigate:()=>{},onCollapseChange:next=>{writes.push(next);saved.set(key,next);}});
+   return {f,key,view,writes,toggle:f.host().shadow.children[1]};
+ };
+ try{
+   const a=open('https://site-a.example/first');
+   assert.equal(a.f.host().attributes.has('data-toc-collapsed'),false);
+   assert.equal(a.writes.length,0);
+   a.toggle.fire('click');
+   assert.equal(saved.get(a.key),true);
+   assert.deepEqual(a.writes,[true]);
+   a.view.dispose();
+   const b=open('https://site-b.example/first');
+   assert.equal(b.f.host().attributes.has('data-toc-collapsed'),false);
+   assert.equal(b.writes.length,0);
+   b.view.dispose();
+   const again=open('https://site-a.example/other?token=ignore');
+   assert.equal(again.f.host().attributes.has('data-toc-collapsed'),true);
+   assert.equal(again.writes.length,0,'restore is read-only');
+   again.toggle.fire('click');
+   assert.equal(saved.get(a.key),false);
+   assert.deepEqual(again.writes,[false]);
+   again.view.dispose();
+   const third=open('https://site-a.example/third');
+   assert.equal(third.f.host().attributes.has('data-toc-collapsed'),false);
+   third.view.setCollapsed(true);
+   assert.equal(saved.get(a.key),false,'storage sync must not write back');
+   assert.equal(third.writes.length,0);
+   third.view.setCollapsed('invalid');
+   assert.equal(third.f.host().attributes.has('data-toc-collapsed'),true);
+   third.view.dispose();
+ }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
 
 test('R4.3 webpage view shows adaptive summary and opens full outline only on request',()=>{
