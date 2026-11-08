@@ -23,10 +23,47 @@
   :scope .options .profileRecords .proxyRecord { min-height:72px; }
   :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   :scope .options .proxyEditorDialog { width:calc(100% - 48px); max-width:640px; }
+  /* R16 PC reference: one restrained, full-size management frame.
+   * This is presentation-only; business state, route and save remain shared. */
+  :scope { background:var(--bg); }
+  :scope .options {
+    width:min(100% - 32px,1250px);
+    min-height:calc(100dvh - 32px);
+    margin:16px auto;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:0 12px 40px color-mix(in srgb,var(--ink) 8%,transparent);
+    overflow:clip;
+  }
+  :scope .options .optionsHead {
+    min-height:70px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+  :scope .managementNav {
+    top:0;
+    background:var(--soft);
+    border-right:1px solid var(--line);
+    min-height:calc(100dvh - 102px);
+  }
+  :scope .managementNav button { border-radius:9px; min-height:42px; }
+  :scope .managementNav button[aria-current="page"]::before { display:none; }
+  :scope .options .panel.optionsContent { border-left:0; min-height:calc(100dvh - 102px); }
+  :scope .options .optionsPageHead { padding-bottom:18px; border-bottom:1px solid var(--line); }
   @media(max-width:720px) {
     :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }
+    :scope .options { width:calc(100% - 16px); margin:8px auto; }
     :scope .options .panel.optionsContent { padding:20px 16px; }
     :scope .options .optionsPageHead { flex-direction:column; }
     :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:1fr; }
+  }
+  @media(max-width:560px) {
+    :scope .options { width:100%; margin:0; border:0; border-radius:0; box-shadow:none; }
+    :scope .options .layout { display:block; }
+    :scope .managementNav { position:static; display:flex; flex-wrap:nowrap; overflow-x:auto; min-height:0; padding:8px; border-right:0; border-bottom:1px solid var(--line); }
+    :scope .managementNav button { flex:none; width:auto; white-space:nowrap; }
+    :scope .managementNav .managementOptional { margin:0; border-top:0; }
+    :scope .managementNav small { display:none; }
   }
 }

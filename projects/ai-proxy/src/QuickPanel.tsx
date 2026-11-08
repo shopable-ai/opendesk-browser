@@ -305,8 +305,17 @@ export default function App() {
   async function openOptions(section:'profiles'|'rules'|'subscriptions'|'official'|'diagnostic', rotation = false, action?: 'add' | 'new' | 'local') {
     try {
       rememberView(section==='profiles'?'quick-manage-profiles':section==='rules'?'quick-manage-rules':'quick-settings');
-      getEnvironment().navigate('#/'+section+(rotation?'/rotation':action?'/'+action:''));
-    } catch {setErrorKey('couldNotOpenTheSettingsTabOpenItFrom');}
+      const env=getEnvironment();
+      // Only a plain settings section is handed to the existing full tool tab.
+      // Add/edit/rotation keep their original in-app route and draft guards.
+      if(!rotation&&!action&&env.surface==='sidebar'){
+        const opened=env.openOwnPage({view:'settings',section});
+        if(opened!==null){await opened;return;}
+      }
+      env.navigate('#/'+section+(rotation?'/rotation':action?'/'+action:''));
+    } catch (error:any) {
+      setError(error?.message||t('couldNotOpenTheSettingsTabOpenItFrom'));
+    }
   }
 
   if (!state) return <main className="popup sidepanel">
@@ -510,7 +519,7 @@ export default function App() {
         <div className="r86Head">
           <h2>{t('browserStatus')}</h2>
           <Button className="textAction" title={t('openSettings')} aria-label={t('openSettings')}
-            id="quick-settings" onClick={()=>{rememberView('quick-settings');void getEnvironment().openSettings();}}>{t('apManageSettings')}</Button>
+            id="quick-settings" onClick={()=>void openOptions('profiles')}>{t('apManageSettings')}</Button>
         </div>
         <div className="r86StatusCard">
           <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>

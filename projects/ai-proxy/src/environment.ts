@@ -3,6 +3,7 @@ import {createProxyService} from './service';
 import {freshConfig,validateConfig} from './domain/config';
 import {toManagedRoute,configForManagedRoute} from './domain/managed-config';
 import {createNavigation} from './ui/navigation';
+import {OPTIONS_SECTIONS} from './ui/optionsRoute';
 let environment:any;
 const fail=(code:string,message:string):never=>{throw Object.assign(Error(message),{code});};
 // JSON object member order is not storage identity; array order remains significant.
@@ -27,7 +28,9 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   else return false;
   publishDrafts();return true;
  };
- const navigation=createNavigation({initialRoute:trusted?'':location.hash});
+ const pageHint=bridge?.initialPage;
+ const knownSection=pageHint?.view==='settings'&&OPTIONS_SECTIONS.some(section=>section===pageHint.section);
+ const navigation=createNavigation({initialRoute:knownSection?'#/'+pageHint.section:trusted?'':location.hash});
  // One adapter for the trusted pilot and the public sandbox bridge.
  const navigationBridge=bridge?.toolNavigation??bridge;
  const navigationSubscriptions=new Set<()=>void>();
@@ -139,6 +142,8 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
    finally{pending--;uiState();}
   },
   setNavigationGuard:navigation.setGuard,navigate:route,openSettings:()=>route('#/profiles'),
+  surface:bridge?.surface==='page'?'page':'sidebar',
+  openOwnPage:(target:any)=>typeof bridge?.openOwnPage==='function'?bridge.openOwnPage(target):null,
   rememberQuickView:(value:any)=>{quickView=value;},takeQuickView:()=>{const value=quickView;quickView=null;return value;},
   async currentSite(){
    assertLive();

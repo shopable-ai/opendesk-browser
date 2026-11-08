@@ -16,7 +16,30 @@ renderTool({surface});
 
 这是**展示提示**，不是 SDK 授权令牌、当前网页类型、页面执行世界或者操作浏览器标签页的能力；旧 Bridge 未提供时安全回退到 `sidebar`。同一安装版在两个容器中仍是独立 UI/iframe 实例，数据访问须走各自有权的 `OpenDeskTool.request`，按已有业务存储/乐观并发合同确认保存，不共享未保存草稿。
 
-**暂未提供**普通用户工具直接调用的“打开自身 PC 设置页面”公开 API；目前由现有宿主的 ↗ 操作打开固定标签页。未来入口将只允许当前工具自身、用户手势和有界显示路由，并经原 Host 身份/版本/启停/撤权验证，不开放 `chrome.tabs` 或任意 URL。具体设计、边界与 NOT_TESTED 项见[自定义工具 UI 合同](../architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。
+### 打开当前工具自己的 PC 页面（源码已接线；真实 Chrome 待验收）
+
+支持此版本的 Host 会向沙箱工具公开 `OpenDeskTool.openOwnPage({view:'settings',section:'preferences'})`，返回 Promise；仅供真实用户直接点击按钮或按 Enter 的同步回调中发起。必须**在第一个 `await` 之前调用方法**，再等待回执：
+
+```js
+button.addEventListener('click', () => {
+  if (typeof OpenDeskTool.openOwnPage !== 'function') {
+    showLegacySettings(); // 旧 Host：保留原侧栏设置，不显示无效链接
+    return;
+  }
+  const opening = OpenDeskTool.openOwnPage({view:'settings',section:'preferences'});
+  void opening.then(result => {
+    if (result.opened === true) showStatus('标签页已创建；页面加载和配置保存需单独确认');
+  }, error => showError(error.code || 'E_PAGE_UNKNOWN', error.message));
+});
+```
+
+- **精确请求**：仅接受普通对象的 `view:'settings'`、`section` 两字段；栏目为 1–40 位小写字母起始的字母、数字、短横线。禁止其他字段、工具 ID、URL、路径、脚本、凭证；栏目名称的业务含义由当前应用校验，不能赋权。固定目标为同一扩展的 `sidepanel.html?toolId=<当前工具>&view=settings&section=<栏目>`，真实 Host 补充独立 `hostInstanceId`。
+- **页面初始化**：`OpenDeskTool.surface` 为 `'page'` 时，读取**只读、非授权** `OpenDeskTool.initialPage`；如 `{view:'settings',section:'preferences'}`。应用自身必须验证栏目，不能用该对象选择跨工具访问或开启网络能力；用户直接打开旧版固定页时该值为 `null`。
+- **真实点击**：沙箱 Bridge 只消费闭包持有的单次可信点击/Enter 传输口；宿主拒绝纯 `postMessage`、合成事件、只读预览、安装代际不一致、已停用/撤权、dirty/busy 的旧实例。固定可信 React 入口也要求浏览器真实用户激活。API 是可选的，旧安装 UI 不要求迁移。
+- **结果含义**：`{opened:true}` 仅确认 `chrome.tabs.create` 的回执，**不代表工具页加载、配置保存或代理成功应用**。打开失败应展示明确错误，不自动重放，尤其在结果未知时。常见错误有 `E_PAGE_TARGET`、`E_USER_GESTURE_REQUIRED`、`E_TOOL_CHANGED`、`E_PAGE_BUSY`、`E_PAGE_UNAVAILABLE`、`E_OUTCOME_UNKNOWN`。
+- **共享数据**：两个 UI 各有独立实例和未保存草稿；只能通过原工具拥有的 `storage.get/storage.set`（需要 `storage.local` capability）和 `ifMatch`/ETag 回执实现保存、读回和跨实例冲突保护。该导航接口不增加任何存储/代理/Chrome 权限。
+
+可复用源码 Demo：[header-actions-demo](../../examples/sidebar-tools/header-actions-demo/README.zh-CN.md)，其中保留原页头动作并扩展独立 Side Panel / PC 工作台。当前是**SOURCE_IMPLEMENTED / NODE、BUILD、CHROME、PACKAGE 尚未复验**，不能将文档或 Demo 算作正式安装通过。
 
 ## 1. 工具源配置与运行包的区别
 

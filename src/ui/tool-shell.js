@@ -33,7 +33,7 @@ import {isActualSidePanelContext} from './sidepanel-context.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
-import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
+import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {panelPreviewStorageKey,validatePanelPreviewPointer,validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -661,7 +661,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   }
   await sidebarTools.ready;
   if(shellClosed)return;
-  sidebarTools.openTool(toolId);
+  sidebarTools.openTool(toolId,{initialPage:requestedOwnPageTarget(hostUrl.href)});
 }).catch(error => console.warn('Tool tab surface unavailable',error));
 // Native menu launch context is never posted to the sandbox. The trusted host
 // binds a one-shot ticket to the exact iframe instance first.

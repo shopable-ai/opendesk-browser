@@ -1,16 +1,57 @@
-<section class="header-demo" aria-label="页头插槽演示内容">
-  <p>从宿主右上角的「更多操作」打开资料库，再用宿主左侧返回。</p>
-  <label><input id="demo-enabled" type="checkbox" checked>使用右上角插槽</label>
-  <p id="demo-support" role="status" aria-live="polite">正在连接宿主…</p>
-  <dl>
-    <dt>当前页面</dt><dd id="demo-page"></dd>
-    <dt>本次实例</dt><dd id="demo-instance"></dd>
-    <dt>收到右上角动作</dt><dd id="demo-header-count">0</dd>
-    <dt>收到宿主返回</dt><dd id="demo-back-count">0</dd>
-  </dl>
-  <p id="demo-content"></p>
-  <button id="demo-library" type="button">打开资料库（内容入口）</button>
-  <button id="demo-back" type="button" hidden>返回首页</button>
-  <p>最近回传（仅本工具内存）：</p>
-  <ol id="demo-events" aria-live="polite"></ol>
+<section class="header-demo" aria-label="单应用多界面示例">
+  <div id="demo-sidebar" class="demo-sidebar">
+    <header class="demo-top"><div><h2>多展示界面 Demo</h2><p>Side Panel · 简洁操作区</p></div><span class="demo-mark">Sidebar</span></header>
+    <p>两种布局来自同一个已安装工具；操作只通过公共 SDK 与受控数据接口。</p>
+    <div class="demo-overview"><span>当前已保存</span><strong id="demo-summary">正在读取…</strong></div>
+    <div class="demo-action-row">
+      <button id="demo-open-page" type="button">打开 PC 首选项 ↗</button>
+      <button id="demo-open-about" type="button">打开 PC 关于栏目 ↗</button>
+    </div>
+    <button id="demo-reload" type="button">重新读取已保存设置</button>
+    <p id="demo-open-result" role="status" aria-live="polite"></p>
+    <section class="demo-legacy">
+      <h3>原有 Header Actions 功能</h3>
+      <p>从宿主右上角的「更多操作」打开资料库，再用宿主左侧返回。</p>
+      <label><input id="demo-enabled" type="checkbox" checked>使用右上角插槽</label>
+      <p id="demo-support" role="status" aria-live="polite">正在连接宿主…</p>
+      <dl>
+        <dt>当前页面</dt><dd id="demo-page"></dd>
+        <dt>本次实例</dt><dd id="demo-instance"></dd>
+        <dt>收到右上角动作</dt><dd id="demo-header-count">0</dd>
+        <dt>收到宿主返回</dt><dd id="demo-back-count">0</dd>
+      </dl>
+      <p id="demo-content"></p>
+      <button id="demo-library" type="button">打开资料库（内容入口）</button>
+      <button id="demo-back" type="button" hidden>返回首页</button>
+      <p>最近回传（仅本工具内存）：</p>
+      <ol id="demo-events" aria-live="polite"></ol>
+    </section>
+  </div>
+  <section id="demo-management" class="demo-management" hidden>
+    <header class="demo-management-head"><div><h2>工具管理工作台</h2><p>PC Page · 独立布局与滚动</p></div><span class="demo-mark">Desktop</span></header>
+    <div class="demo-management-layout">
+      <nav class="demo-nav" aria-label="Demo 设置栏目">
+        <button id="demo-preferences-tab" type="button">首选项</button>
+        <button id="demo-about-tab" type="button">关于本工具</button>
+      </nav>
+      <main class="demo-content">
+        <div id="demo-preferences">
+          <h3>首选项</h3><p>数据从同一个 OpenDeskTool.request('storage.*') 获取，非 PC 独立存储。</p>
+          <label class="demo-label" for="demo-alias">工作台名称</label>
+          <input id="demo-alias" type="text" maxlength="40" autocomplete="off">
+          <label class="demo-switch"><input id="demo-compact" type="checkbox">优先使用紧凑显示</label>
+          <div class="demo-toolbar">
+            <button id="demo-save" type="button">保存配置</button>
+            <button id="demo-reset" type="button">重新读取 / 丢弃草稿</button>
+          </div>
+        </div>
+        <div id="demo-about-panel" hidden>
+          <h3>关于本工具</h3>
+          <p>这是公用 SDK 的使用教学：同一 Tool ID、两个独立 UI 容器、一条受控存储链。</p>
+          <p>这里不模拟网络代理、权限授予或任何后台运行效果。</p>
+        </div>
+        <div class="demo-state"><strong id="demo-draft">无未保存修改</strong><p id="demo-result" role="status" aria-live="polite">正在读取配置…</p></div>
+      </main>
+    </div>
+  </section>
 </section>

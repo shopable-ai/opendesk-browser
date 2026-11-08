@@ -1,9 +1,11 @@
 {
   "id": "header-actions-demo",
-  "version": "1.0.0",
-  "title": "页头插槽示例",
-  "description": "演示可选 More 动作、原实例导航返回和无插槽回退；不申请业务权限。",
-  "capabilities": [],
+  "version": "1.1.0",
+  "title": "多界面与页头示例",
+  "description": "一个工具的侧栏与 PC 自定义界面，公共打开自身页面能力、同一受控存储与可选 More 动作演示。",
+  "capabilities": [
+    "storage.local"
+  ],
   "files": {
     "html": "src/index.html",
     "css": "src/style.css",

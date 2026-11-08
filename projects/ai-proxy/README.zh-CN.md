@@ -1,4 +1,4 @@
-**2026-11-09 · R18/R16 预览入库与首阶段正式 PC 展示接线。** 用户确认的独立、可点击单文件存档为 [ai-proxy-r18-r16-clickable-preview.html](preview/ai-proxy-r18-r16-clickable-preview.html)；保留 R18 侧栏与 R16 七区 PC 管理，但它只有离线模拟数据，**不属于安装包、编译输入或业务真相层**。正式产品继续由 `src/App.jsx` → `QuickPanel.tsx` / `Settings.tsx` → `environment.ts` / `service.ts` 实现，不将演示 JS、iframe/postMessage 复制为运行逻辑。
+**2026-11-09 · R18/R16 预览入库与首阶段正式 PC 展示接线。** 用户确认的独立、可点击单文件存档为 [ai-proxy-r18-r16-clickable-preview.html](preview/preview.html)；保留 R18 侧栏与 R16 七区 PC 管理，但它只有离线模拟数据，**不属于安装包、编译输入或业务真相层**。正式产品继续由 `src/App.jsx` → `QuickPanel.tsx` / `Settings.tsx` → `environment.ts` / `service.ts` 实现，不将演示 JS、iframe/postMessage 复制为运行逻辑。
 
 **首阶段已提交源码（尚待本机验证）**：宿主独立工具标签页的固定 `toolId` 入口现在只读传递 `displaySurface='page'`；沙箱通过 `OpenDeskTool.surface` 读取该显示提示，可信 AI Proxy React portal 也在原审核后获取同等提示。侧栏继续 `App surface='side-panel'`，独立工具标签页复用同一已安装 App/Settings，使用 `App surface='management'` 与已有 `styles/management.css` 七区 PC 布局；PC 容器不显示无效的侧栏关闭设置按钮。**它不新增 Chrome 权限、不更改安装身份、SDK 业务服务、保存/应用/暂停/回读语义。** 既有宿主右上角 ↗ 可以打开全页工具。用户在侧栏内点击「设置」当前仍走原**侧栏内** `#/profiles` 路由，**尚未完成一键直达 PC 页**，不能把这一行为写成已验收。
 
@@ -557,3 +557,14 @@ Browser实际加载dist/development，ID为ccfcjegpkdlgbclopjmadlcjedelidmf；�
 边界：本轮直连的谷歌测试iframe显示加载错误，最后根页面导航未完成，均不记全站可达PASS；只确认实际返回的国内／国外出口及最终独立回显。没有新增代码，因此不重复历史99项或全CI；原4项AI VIP Share development包pin失败继续延期，未放宽来源锁。production、认证／任意PAC／订阅联网、完整矩阵与评分仍未执行。
 
 原始AX／截图、请求URL、来源与失败分类见[本轮结果](evidence/selection-vs-apply-20261031/result.json)；核心截图：[只选直连仍为系统／东京](evidence/selection-vs-apply-20261031/09-direct-selected-system-still-active.jpg)、[跟随系统／东京](evidence/selection-vs-apply-20261031/08-follow-system-new-request.jpg)、[直连／最终成都](evidence/selection-vs-apply-20261031/11-final-direct-echo.jpg)。这些是原生UI观察，未伪称CDP网络trace或完整设备VPN证明。
+
+## 20. 单应用、多展示界面与 PC 管理导航（2026-11-09，源码候选，Chrome 未验收）
+
+- **已有成果直接复用**：固定安装的 AI Proxy `0.3.8`、`App.jsx → QuickPanel.tsx / Settings.tsx → environment.ts → service.ts`、七栏目、四种连接方式、受管代理请求、`storage.get/set` 的 ETag/`ifMatch`、候选预览 `preview/preview.html`。本阶段没有建立第二套代理数据或代理应用权限。
+- **通用导航路径**：真正的 Side Panel 点击 `QuickPanel` 设置/订阅/诊断等轻量入口时，通过 `getEnvironment().openOwnPage({view:'settings',section})` 向 Host 请求打开**当前 AI Proxy 已安装工具**的 `sidepanel.html` 标签页。旧 Host 不提供该入口时保留原内部 `#/...` 路由。编辑子页、PAC/轮换等子路径继续使用原内部导航，不发明新路由协议。
+- **PC 初始化**：框架仅转交有界的 `initialPage`；AI Proxy 应用自行核对 `OPTIONS_SECTIONS`，并由当前 `createNavigation` 初始化对应栏目。新的 `surface='page'` 仍只选择已有 `Settings` / `management.css` 桌面布局，不构成权限。
+- **视觉修正**：`styles/management.css` 的全页管理容器参照 R16 的单管理框、独立侧栏导航、轻背景与窄屏横向栏目；所有表单、业务操作和实时反馈继续归原 React 组件所有。R18/R16 单文件是视觉参照，不是要安装到扩展的业务 Mock。
+- **严格分离状态**：创建标签页回执、配置保存 + 读回、代理选择、代理实际应用、真实网络连接是至少五个独立事实。当前实现不会因为点击 PC 入口而申请代理控制权，也不会在写入未知后自动重试。并行 Side Panel/PC 写入仍使用原存储比较交换，不共享未保存草稿。
+- **当前证据**：截至本次远端源码提交阶段，仅完成 GitHub 代码审计及改动；本机 CodexPro 无法连接，未执行 Node/Vite 构建、真实 Chromium、安装包更新或独立专家评分。不要将源码入库写为完整业务验收。实际测试时优先沿用本项目现有 watcher、`dist/development` 构建规则和官方「开发 → 本地项目 → 在侧栏调试」入口。
+
+框架接口合同与可操作的双界面 HTML/JS 示例见 `docs/api/sidebar-tools.zh-CN.md`、`examples/sidebar-tools/header-actions-demo/`。

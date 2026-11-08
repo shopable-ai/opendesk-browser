@@ -35,7 +35,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
 import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
-import {toolPageHref} from './sidebar-tools/navigation.js';
+import {toolPageHref,normalizeOwnPageTarget} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
@@ -1607,7 +1607,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     return true;
   }
-  function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false,developmentSession=null}={}) {
+  function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false,developmentSession=null,initialPage=null}={}) {
     // Native official admission can fall back to a new sandbox session.
     // Preserve only that same verified launch intent across the fallback.
     const carryOpen=forceSandbox&&instance!==null&&pendingAnalyticsOpen===instance;
@@ -1672,7 +1672,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       notice('正在读取 AI Proxy 安装状态…');
       const fallback=()=>{
         if(disposed||active!==tool||instance!==token)return;
-        mountTool(tool,{forceSandbox:true});
+        mountTool(tool,{forceSandbox:true,initialPage});
         notice('已在应用沙箱中打开 AI Proxy。');
       };
       void (async()=>await admittedNativeAIProxy(tool,epoch)&&
@@ -1683,6 +1683,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           navigationAllowed=true;
           const dispose=trustedAIProxyPilot.mount({container:frameRoot,
             displaySurface:displaySurface==='page'?'page':'sidebar',
+            initialPage:displaySurface==='page'?initialPage:null,
+            openOwnPage:target=>openOwnToolPage({tool,token,epoch,target,trusted:true}),
             request:(operation,payload)=>requestTrustedAIProxy(tool,token,epoch,operation,payload),
             locale:toolLocaleContext(tool).locale,
             toolNavigation:Object.freeze({
@@ -1948,7 +1950,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
           if(!(message?.kind==='open-ai-settings'&&Object.keys(message).length===5||
-             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate'].includes(message.operation))||
+             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open'].includes(message.operation))||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -1961,6 +1963,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         navigationAllowed:approvedNavigation,
         headerActionsAllowed:approvedNavigation&&headerActionsEnabled===true,
         displaySurface:displaySurface==='page'?'page':'sidebar',
+        initialPage:displaySurface==='page'?initialPage:null,
         ...toolLocaleContext(tool)},'*',transferred);
       // A pre-load hint may have arrived before the sandbox bound its instance.
       lastHostHeight=null;
@@ -1971,7 +1974,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     mountSandbox(frameRoot);
   }
-  function openTool(id,{launchGate=null,userInitiated=false}={}) {
+  function openTool(id,{launchGate=null,userInitiated=false,initialPage=null}={}) {
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
@@ -1991,7 +1994,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active&&!canLeave(()=>{
       const target=toolById(id);
       if(target&&visible&&!busy){
-        mountTool(target);
+        mountTool(target,{initialPage});
         if(userInitiated===true)pendingAnalyticsOpen=instance;
       }
     }))return;
@@ -2002,7 +2005,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(enableReadError||!sidebarToolEnabled(enableRecords,id)){
       destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();requestToolFieldEffect(view, backButton, 'focus');return;
     }
-    mountTool(tool,{launchGate});
+    mountTool(tool,{launchGate,initialPage});
     if(userInitiated===true||launchGate!==null)pendingAnalyticsOpen=instance;
     return instance;
   }
@@ -2134,6 +2137,32 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active&&!canLeave(()=>{if(visible&&!busy)mountTool(tool,{readOnly:true,developmentSession});}))return false;
     // Installed-tool ID collisions NEVER inherit installed rights in a preview.
     mountTool(tool,{readOnly:true,developmentSession});
+  }
+  // Native tab creation is a side effect. Its acknowledgement is not proof
+  // that the tool page loaded, let alone saved or applied anything.
+  let ownPageOpening=false;
+  async function openOwnToolPage({tool,token,epoch,target,source=null,trusted=false}){
+    const page=normalizeOwnPageTarget(target);
+    const fail=(code,message)=>Object.assign(new Error(message),{code});
+    if(!page)throw fail('E_PAGE_TARGET','不支持的 PC 页面或栏目');
+    const current=()=>!disposed&&!busy&&visible&&displaySurface==='sidebar'&&
+      !readOnlyPreview&&!tocSettingsOpen&&!toolSaving&&!toolDirty&&!isDirty()&&
+      !installedReadError&&!enableReadError&&!revocationReadError&&
+      active===tool&&instance===token&&frameRevocationEpoch===epoch&&
+      (trusted?nativeUI?.kind==='ai-proxy':frame?.isConnected&&sameInstance(source,token));
+    if(!current())throw fail('E_TOOL_CHANGED','当前工具存在未保存内容、未完成操作或身份已变更，不能离开');
+    if(trusted&&!globalThis.navigator?.userActivation?.isActive)
+      throw fail('E_USER_GESTURE_REQUIRED','请直接点击工具按钮打开 PC 页面');
+    if(ownPageOpening)throw fail('E_PAGE_BUSY','正在打开 PC 页面，请勿重复提交');
+    ownPageOpening=true;
+    try{
+      await assertSidebarToolEnabled(api,tool.id);
+      await assertInstalledTool(tool,epoch,'工具安装身份已变化');
+      if(!current())throw fail('E_TOOL_CHANGED','工具实例已关闭、停用或撤权');
+      if(typeof api.tabs?.create!=='function')throw fail('E_PAGE_UNAVAILABLE','此浏览器无法打开工具标签页');
+      await api.tabs.create({url:toolPageHref(api.runtime,tool.id,page)});
+      return {opened:true};
+    }finally{ownPageOpening=false;}
   }
   async function openInTab(id=active?.id) {
     if(disposed||busy||!visible)return;
@@ -3695,6 +3724,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='request'&&message.operation==='tool.page.open'){
+      if(typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId))return;
+      const source=event.source,token=instance,tool=active,epoch=frameRevocationEpoch;
+      const reply=(ok,result,error)=>{if(sameInstance(source,token))source.postMessage({
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
+        requestId:message.requestId,ok,...(ok?{result}:{error:{
+          code:String(error?.code||'E_PAGE').slice(0,64),
+          message:String(error?.message||error).slice(0,250)}})
+      },'*');};
+      if(!exportPort||Object.keys(message).length!==7){
+        reply(false,null,Object.assign(new Error('缺少可信点击凭据'),{code:'E_USER_GESTURE_REQUIRED'}));
+        return;
+      }
+      void openOwnToolPage({tool,token,epoch,target:message.payload,source}).then(
+        result=>reply(true,result),error=>reply(false,null,error));
+      return;
+    }
     if(message.kind==='open-ai-settings'){
       // The closure-private port proves a current native click. This action can
       // only open the existing trusted Sheet; it cannot infer or write settings.

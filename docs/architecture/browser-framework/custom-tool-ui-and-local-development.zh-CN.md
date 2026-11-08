@@ -8,11 +8,15 @@
 
 ## 2026-11-09 · 自定义 PC 管理页面与 Side Panel 同一安装版 UI：现状及可复用方案
 
-**当前代码已接线，运行验收未完成。** 用户确认的 [AI Proxy R18/R16 单文件离线交互预览](../../../projects/ai-proxy/preview/ai-proxy-r18-r16-clickable-preview.html) 是产品设计基准，不是可执行扩展源码。正式实现仍复用同一安装包的业务服务、存储与页面组件，不在宿主复制 R16 演示 JavaScript，也不让管理页获得额外权限。
+**当前代码已接线，运行验收未完成。** 用户确认的 [AI Proxy R18/R16 单文件离线交互预览](../../../projects/ai-proxy/preview/preview.html) 是产品设计基准，不是可执行扩展源码。正式实现仍复用同一安装包的业务服务、存储与页面组件，不在宿主复制 R16 演示 JavaScript，也不让管理页获得额外权限。
 
-**已实施的首阶段入口与展示契约：** 固定 `ui/tool.html?toolId=<id>`（实际入口由 `toolPageHref` 生成）已有安装、启停、版本、包 SHA 与撤销代际校验。Host 依可信文档上下文把 **只读展示提示** `displaySurface` 限定为 `'sidebar' | 'page'`；沙箱 Bridge 暴露 `OpenDeskTool.surface` 供 HTML/Vue/React 用户应用调整栅格，不能拿它判断授权、执行世界或身份。可信静态 AI Proxy（仅严格原有审核版本）由同一个 React portal 接收展示提示；侧栏继续 `QuickPanel`，全页使用 **同一** `App / Settings / service` 和已有 `management.css` 七栏目。旧包不依赖该提示时可忽略，默认紧凑视图。**当前代码提交不等于编译/安装/Chromium 通过。**
+**已实施的首阶段入口与展示契约：** 固定 `sidepanel.html?toolId=<id>`（实际入口由 `toolPageHref` 生成）已有安装、启停、版本、包 SHA 与撤销代际校验。Host 依可信文档上下文把 **只读展示提示** `displaySurface` 限定为 `'sidebar' | 'page'`；沙箱 Bridge 暴露 `OpenDeskTool.surface` 供 HTML/Vue/React 用户应用调整栅格，不能拿它判断授权、执行世界或身份。可信静态 AI Proxy（仅严格原有审核版本）由同一个 React portal 接收展示提示；侧栏继续 `QuickPanel`，全页使用 **同一** `App / Settings / service` 和已有 `management.css` 七栏目。旧包不依赖该提示时可忽略，默认紧凑视图。**当前代码提交不等于编译/安装/Chromium 通过。**
 
-**下一阶段建议的通用、受限 PC 入口（设计目标，NOT_IMPLEMENTED）：** 提供自愿接入的 `OpenDeskTool.openOwnPage({view:'settings',section:'profiles'})`，正式命名与 Schema 须经公开 SDK 审核。它只能请求**当前已安装工具自身**的固定宿主标签页，不能携带 URL、JS、文件路径、能力声明、跨工具 ID、凭据或自定义扩展页；`view` 和 `section` 是长度/字符受限的显示与业务导航提示，**不能成为 Host 授权条件**。Host 只允许可信用户点击/键盘手势触发，按原活动实例、source、installEpoch、packageHash、enabled/permission 和 busy/dirty/unknown 状态复核，过期和撤权拒绝、不自动重放。内部路由由各应用拥有；可靠送达需要一次性启动参数围栏/确认机制，且不能仅靠 URL hash 或 `postMessage origin='null'` 自证可信。旧宿主不支持此接口时保留原侧栏内部设置入口，不能伪报已打开 PC。
+**新增通用、受限 PC 入口（源码已接线，NODE/CHROME NOT_TESTED）：** 提供自愿接入的 `OpenDeskTool.openOwnPage({view:'settings',section:'profiles'})`，正式命名与 Schema 须经公开 SDK 审核。它只能请求**当前已安装工具自身**的固定宿主标签页，不能携带 URL、JS、文件路径、能力声明、跨工具 ID、凭据或自定义扩展页；`view` 和 `section` 是长度/字符受限的显示与业务导航提示，**不能成为 Host 授权条件**。Host 只允许可信用户点击/键盘手势触发，按原活动实例、source、installEpoch、packageHash、enabled/permission 和 busy/dirty/unknown 状态复核，过期和撤权拒绝、不自动重放。内部路由由各应用拥有；可靠送达需要一次性启动参数围栏/确认机制，且不能仅靠 URL hash 或 `postMessage origin='null'` 自证可信。旧宿主不支持此接口时保留原侧栏内部设置入口，不能伪报已打开 PC。
+
+**源码实施补充（2026-11-09）：** 新入口遵循原有 `src/ui/sidebar-tools/navigation.js` 和 `src/tool-document-url.js` 的唯一固定工具页身份合同，除 `toolId/hostInstanceId` 外只允许成对的 `view=settings&section=<受限 slug>`；先规范化并验证后才能进入应用路由。普通沙箱 Bridge 新增 `OpenDeskTool.openOwnPage`（同步消耗单次真实点击/Enter 的闭包私有端口），Host 再核对当前安装包、活动实例、enable 状态、撤权代际、草稿/忙态，最后调用原生 `api.tabs.create`。第一方可信 AI Proxy React portal 只接受固定构建源码的回调，仍使用相同的 Host 校验；未添加安装器、全局路由、任意 URL 能力或权限。PC 入口的 `initialPage` 仅是启动提示；`opened:true` 只确认标签页创建，后续业务必须独立核验。
+
+**可复用的教学 Demo：** 直接扩展原 `examples/sidebar-tools/header-actions-demo/`，未创建第二 Tool ID：现有页头动作继续工作，同一工具根据 `surface` 显示紧凑侧栏或完整 PC 工作台。已增加固定栏目、受控 `storage.local` 读写、ETag 条件保存、跨实例冲突与读回提示；`preview/index.html` 搭配 `preview/serve.mjs` 是可点击的**源码夹具**，其中 Chrome 安装与浏览器标签创建由 fixture 模拟，只用浏览器本地持久化存储展示跨标签读取，不能拿它证明实际 Chrome 安装通过。
 
 **多工具使用方式：** 每个 Sidebar Tool 可自己决定是否提供 `compact` 与 `management` 两种布局，HTML/CSS/JS、React、Vue 均支持；可以选择一个页面自适应，也可以使用同一个包中的两个组件路由，但**不得另建安装身份/后台/Storage Owner**。共享宿主仅负责固定页面、实例、安装、权限、展示尺寸与受控打开；每个业务工具拥有自己的七区/多区内容、验证、草稿、保存与回滚。跨侧栏和 PC 标签页是两个独立 UI 实例，共用原受管业务存储并按既有 ETag/版本重新读取；**不能假设前一实例草稿被另一个实例自动同步**，更不能因为页面打开就应用代理、启动任务或重复提交未知副作用。宿主通用“工具设置/授权/停用/卸载”继续独立于应用内部 PC 设置。
 
@@ -20,7 +24,7 @@
 
 ## 已实施：同一安装版 UI 可在侧栏与标签页打开
 
-`src/ui/sidebar-tools.js` 继续作为唯一的安装版工具宿主。侧栏已安装工具列表和打开后标题栏提供 ↗，仅导航到固定扩展页 `ui/tool.html?toolId=<id>`。标签页复用 `createSidebarTools`：先读取已安装包及网站权限，随后创建 **`sidebar-tools/sandbox.html` opaque-origin iframe**，通过现有 postMessage 协议调用被批准的接口。工具 HTML/JS 不进入特权宿主 DOM。侧栏与全页面各有实例令牌，工具数据使用已有命名空间及 Chrome 锁；卸载/更新撤销过期实例。
+`src/ui/sidebar-tools.js` 继续作为唯一的安装版工具宿主。侧栏已安装工具列表和打开后标题栏提供 ↗，仅导航到固定扩展页 `sidepanel.html?toolId=<id>`。标签页复用 `createSidebarTools`：先读取已安装包及网站权限，随后创建 **`sidebar-tools/sandbox.html` opaque-origin iframe**，通过现有 postMessage 协议调用被批准的接口。工具 HTML/JS 不进入特权宿主 DOM。侧栏与全页面各有实例令牌，工具数据使用已有命名空间及 Chrome 锁；卸载/更新撤销过期实例。
 
 新增 `src/ui/sidebar-tools/navigation.js` 限制路由为固定页面和严格工具 ID。URL 不传任意路径、脚本、密钥或授权令牌。无须新增 WXT 入口、MV3 Manifest 权限、第二个工具 schema 或宿主。旧 `opendesk.sidebar-tool.v1` 包和 Task/RunHost/R17 均保留。
 

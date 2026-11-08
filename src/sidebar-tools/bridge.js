@@ -3,6 +3,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sideba
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {normalizeToolNavigation} from './navigation-state.js';
+import {normalizeOwnPageTarget} from '../ui/sidebar-tools/navigation.js';
 import {validateToolLocalization} from '../ui/sidebar-tools/localization.js';
 
 // Presentation data only, delivered by the verified parent. Never evaluate a
@@ -160,10 +161,11 @@ export function initSidebarToolSandbox() {
     catch{try{window[method]=blocked;}catch{/* Browser-level controls still apply. */}}
   }
   const consumeRequestGesture=operation=>{
-    const gesture=operation==='ai.generate'&&aiKey&&apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
+    const gesture=(operation==='ai.generate'||operation==='tool.page.open')&&aiKey&&
+      apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
     const clickTimeStamp=gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open'||operation==='tool.page.open')&&
       gesture&&apply(trustedGetter,gesture,[])===true&&
       apply(currentTargetGetter,gesture,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -180,7 +182,7 @@ export function initSidebarToolSandbox() {
       const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export';
       // This fixed first-party RPC writes Cookies outside the public Browser
       // operation catalog. Once dispatched its result can be unknown too.
-      const browserWrite=exporting||browserOperation(operation)?.effectClass==='write'||
+      const browserWrite=exporting||operation==='tool.page.open'||browserOperation(operation)?.effectClass==='write'||
         toolId==='cookie-editor'&&operation==='cookieAccount.switch';
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=later(()=>{
@@ -476,6 +478,17 @@ export function initSidebarToolSandbox() {
         visible:value.visible,open:value.open},'*');
       return true;
     };
+    // The closure-private, single-use click/Enter port is consumed BEFORE
+    // reading caller-supplied options. No plain postMessage can open a tab.
+    const openOwnPage=target=>{
+      const port=consumeRequestGesture('tool.page.open');
+      if(!port)return rejected(exportError('E_USER_GESTURE_REQUIRED','请直接点击工具中的打开 PC 页面按钮'));
+      if(navigationDirty||navigationBusy)return rejected(exportError('E_PAGE_BUSY','有未保存输入或未完成操作，请先保存或结束'));
+      let page;
+      try{page=normalizeOwnPageTarget(target);}catch{return rejected(exportError('E_PAGE_TARGET','不支持的页面参数'));}
+      if(!page)return rejected(exportError('E_PAGE_TARGET','不支持的页面参数'));
+      return sendRequest('tool.page.open',page,port);
+    };
     const openAISettings=()=>{
       const port=consumeRequestGesture('ai.settings.open');
       if(!port||!instance||disposed)return false;
@@ -486,7 +499,8 @@ export function initSidebarToolSandbox() {
       }catch{return false;}
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,prepareAI,setState,setConversationState,openAISettings,surface:displaySurface,
+      root,request,prepareAI,setState,setConversationState,openAISettings,openOwnPage,surface:displaySurface,
+      initialPage:displaySurface==='page'?normalizeOwnPageTarget(message.initialPage):null,
       ...(navigationAllowed?{setNavigation}:{}),
       navigationFeatures:freeze({headerActions:headerActionsAllowed}),
       get locale(){return uiLocale;},

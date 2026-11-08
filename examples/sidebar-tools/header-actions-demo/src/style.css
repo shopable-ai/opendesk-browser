@@ -1,12 +1,43 @@
-/* This CSS belongs only to the opaque tool iframe. */
+
+/* The same installed sandbox code uses independent page layouts. */
 body{margin:0;font:13px/1.6 system-ui,sans-serif;color-scheme:light dark}
-.header-demo{padding:12px;min-width:0;overflow-wrap:anywhere}
+.header-demo{margin:0 auto;min-width:0;overflow-wrap:anywhere;color:CanvasText}
+.header-demo h2{font-size:17px;margin:0;font-weight:700}
+.header-demo h3{margin:0 0 8px;font-size:15px}
 .header-demo p{margin:0 0 12px}
-.header-demo label{display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer}
-.header-demo dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0 0 12px}
-.header-demo dt{font-weight:600}
-.header-demo dd{margin:0}
-.header-demo button{font:inherit;min-height:36px;padding:6px 12px;margin-bottom:12px;border:1px solid ButtonBorder;border-radius:8px;background:ButtonFace;color:ButtonText;cursor:pointer}
-.header-demo :focus-visible{outline:2px solid Highlight;outline-offset:2px}
-.header-demo ol{margin:0;padding-left:20px}
-.header-demo [hidden]{display:none}
+.header-demo button{font:inherit;min-height:36px;padding:6px 12px;border:1px solid ButtonBorder;border-radius:8px;background:ButtonFace;color:ButtonText;cursor:pointer}
+.header-demo button:disabled{opacity:.55;cursor:not-allowed}
+.header-demo button:focus-visible,.header-demo input:focus-visible{outline:2px solid Highlight;outline-offset:2px}
+.header-demo [hidden]{display:none!important}
+.demo-sidebar{padding:14px;max-width:500px;margin:0 auto}
+.demo-top,.demo-management-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.demo-top p,.demo-management-head p{color:GrayText;margin:2px 0}
+.demo-mark{border:1px solid ButtonBorder;border-radius:999px;padding:2px 8px;font-size:11px;white-space:nowrap}
+.demo-overview{background:Canvas;border:1px solid ButtonBorder;border-radius:10px;padding:12px;display:grid;gap:4px;margin-bottom:12px}
+.demo-overview span{color:GrayText}
+.demo-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.demo-action-row button:first-child,.demo-toolbar button:first-child{background:#2563eb;color:white;border-color:#2563eb}
+#demo-reload{margin-bottom:10px}
+#demo-open-result,#demo-result{min-height:20px}
+.demo-legacy{border-top:1px solid ButtonBorder;padding-top:16px;margin-top:12px}
+.demo-legacy label{display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer}
+.demo-legacy dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0 0 12px}
+.demo-legacy dt{font-weight:600}
+.demo-legacy dd{margin:0}
+.demo-legacy button{margin:0 6px 8px 0}
+.demo-legacy ol{margin:0;padding-left:20px}
+.demo-management{min-height:90dvh;max-width:1200px;margin:0 auto;background:Canvas}
+.demo-management-head{padding:18px 24px;border-bottom:1px solid ButtonBorder}
+.demo-management-layout{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:calc(90dvh - 80px)}
+.demo-nav{padding:16px;display:flex;flex-direction:column;align-items:stretch;gap:6px;border-right:1px solid ButtonBorder}
+.demo-nav button{text-align:left;background:transparent;border-color:transparent}
+.demo-nav button[aria-current="page"]{border-color:Highlight;color:Highlight;font-weight:700}
+.demo-content{min-width:0;max-height:calc(100dvh - 115px);overflow:auto;padding:26px 32px}
+.demo-content p{color:GrayText;max-width:70ch}
+.demo-label{display:block;margin-top:18px;margin-bottom:5px;font-weight:600}
+#demo-alias{display:block;font:inherit;min-height:36px;box-sizing:border-box;width:min(100%,420px);border:1px solid ButtonBorder;border-radius:7px;padding:8px}
+.demo-switch{display:flex;align-items:center;gap:8px;margin-top:20px}
+.demo-toolbar{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+.demo-state{margin-top:30px;padding:14px;border:1px solid ButtonBorder;border-radius:9px}
+.demo-state p{margin:5px 0 0}
+@media(max-width:650px){.demo-management-layout{grid-template-columns:1fr}.demo-nav{flex-direction:row;border-right:0;border-bottom:1px solid ButtonBorder}.demo-content{padding:20px 14px;max-height:none}}

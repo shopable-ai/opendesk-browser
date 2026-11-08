@@ -1,9 +1,23 @@
 <!doctype html>
 <html lang="zh-CN" data-opendesk-tab="tools">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>页头插槽示例 · 源码演示</title><link rel="stylesheet" href="/style.css">
-<style>html,body{margin:0;min-width:0}body{max-width:480px;margin:0 auto}#preview-note{padding:12px;font:13px/1.6 system-ui;border-bottom:1px solid #aaa}#preview-note p{margin:0}#opendesk-react-app{min-height:0}</style>
+<title>单应用 · 双展示界面源码演示</title><link rel="stylesheet" href="/style.css">
+<style>
+html,body{margin:0;min-width:0}
+body{max-width:500px;margin:0 auto}
+html[data-demo-surface="page"] body{max-width:1280px}
+#preview-note{padding:12px;font:13px/1.6 system-ui;border-bottom:1px solid #aaa}
+#preview-note p{margin:0}
+#preview-note a{display:inline-block;margin-top:8px}
+#opendesk-react-app{min-height:0}
+</style>
 </head>
-<body><aside id="preview-note"><p>源码演示：真实框架菜单与 Bridge，使用内存安装记录；不改变已安装扩展。</p><p id="preview-status" role="status">正在加载…</p></aside>
+<body>
+<aside id="preview-note">
+  <p>源码交互 Demo：真实 ToolHost + SDK Bridge，模拟已安装记录；仅用此浏览器的本地存储作为示例数据。不是 Chrome 安装验收。</p>
+  <p id="preview-status" role="status">正在加载…</p>
+  <a href="/?surface=page&amp;view=settings&amp;section=preferences" target="_blank" rel="noopener noreferrer">直接打开 PC 演示（用于弹窗被拦截时）</a>
+</aside>
 <div id="opendesk-react-app" class="opendesk-react-app"></div>
-<script type="module" src="/app.js"></script></body></html>
+<script type="module" src="/app.js"></script>
+</body></html>
