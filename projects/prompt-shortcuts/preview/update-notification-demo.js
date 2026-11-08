@@ -262,7 +262,22 @@
     const until=r.snoozeUntil>state.now?Math.ceil((r.snoozeUntil-state.now)/HOUR)+' 小时后可再提醒':r.snoozeUntil?'已达到稍后时间；等待安全页面':'无';
     setText('odupd-frequency-note','当前模拟标签：'+state.tab+' · 已弹 '+r.count+'/2 次 · 稍后：'+until+'。'+state.status+'。打开 B/C 不会重弹；此计数只是预览。');
     sheet.hidden=!state.detail;
-    if(!state.detail||!d){return;}
+    if(!state.detail)return;
+    if(!d){
+      setText('odupd-detail-title','更新记录');
+      setText('odupd-current-version','暂无');
+      setText('odupd-next-version','新版本');
+      const list=el('odupd-changes');list.replaceChildren();
+      const li=document.createElement('li');li.textContent='当前没有可处理的更新候选';list.append(li);
+      el('odupd-permission-box').hidden=true;
+      el('odupd-review').hidden=true;
+      el('odupd-ignore').hidden=true;
+      el('odupd-snooze').textContent='关闭详情';
+      setText('odupd-detail-description','此时不会请求更新或修改已安装工具。');
+      setText('odupd-demo-status','仅交互模拟；没有真实更新数据或安装回执。');
+      return;
+    }
+    el('odupd-permission-box').hidden=false;
     setText('odupd-detail-title',d.title+' · 更新说明');
     setText('odupd-current-version',d.from);
     setText('odupd-next-version',d.to);
@@ -284,8 +299,12 @@
     else render();
   }
   el('odupd-scenario').addEventListener('change',event=>{
-    stopTimer();state.scenario=event.target.value;state.detail=false;state.confirm=false;
-    state.status='切换更新场景';showCurrent();
+    stopTimer();
+    const previous=record();
+    if(previous.shownTab){previous.shownTab='';previous.dismissed=true;persist();}
+    state.scenario=event.target.value;state.detail=false;state.confirm=false;
+    state.status='切换更新场景（已显示候选不会因来回切换重新弹）';
+    showCurrent();
   });
   el('odupd-mode').addEventListener('change',event=>{
     state.mode=event.target.value;
