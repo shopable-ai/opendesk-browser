@@ -245,7 +245,9 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'expanded idle chevron must already be visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'expanded idle chevron must be centered inside its 20px tab');
- const initial=await rect(host);
+ const initial=await rect(host),initialToggle=await rect(toggle);
+ // The header-aligned control must stay in one physical place when changing
+ // from the variable-height panel to the 46px collapsed host.
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
    'real mouse click did not collapse');
@@ -258,6 +260,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const folded=await rect(host);
  assert.equal(Math.round(folded.width),38,'collapsed host must have no 254px transparent hitbox');
  assert.equal(Math.round(folded.height),46);
+ assert(Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
+   'collapsing cannot move the button vertically');
  assert.equal((await attributes(toggle))['aria-label'],'展开目录');
  assert.equal((await attributes(arrow)).d,'M15 5l-7 7 7 7');
  const panel=await tocNode(trusted,shadow,'.panel');
@@ -285,6 +289,14 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const restored=await rect(host);
  assert(restored.width>200,'original directory width must be restored');
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
+ assert(Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
+   'expanding cannot move the arrow vertically');
+ // Variable-height modes must not shift the same anchored edge control.
+ for(const mode of ['full','ai','focus']){
+   await tocMouseClick(overlay.page,trusted,shadow,`button.mode[data-mode="${mode}"]`,frameRect);
+   assert(Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
+     `mode ${mode} must not move the edge button vertically`);
+ }
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
  // The preview site selector is outside the tool: A and B must not share collapse.
@@ -298,5 +310,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await select(overlay.page,'od-toc-site','a');
  await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===true'),
    'return to site A must restore its collapsed state');
- console.log('READING_TOC_EDGE_NATIVE_PASS: neutral-gray both-state idle 20px visible centered chevron, hover 38px, fixed hitbox, recovery');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: neutral gray, top-anchored zero vertical toggle shift, 20px idle, 38px hover, fixed hitbox');
 });

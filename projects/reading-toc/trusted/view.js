@@ -2,6 +2,8 @@ import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlac
 import readingTocCatalog from './locales.generated.js';
 import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
 
+// Fixed vertical anchor on the header row, independent of variable outline height.
+const EDGE_TOP=5;
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
 const CSS=[
@@ -11,7 +13,7 @@ const CSS=[
 '.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
-".edge-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}",
+`.edge-toggle{position:absolute;right:0;top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
 ".edge-skin{position:absolute;right:0;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
@@ -248,7 +250,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         rightGap:viewport.left+viewport.width-rect.right};
       const point=tocClampPoint(
         edgeSide==='right'?rect.right-EDGE_SIZE.width:rect.left,
-        rect.top+(rect.height-EDGE_SIZE.height)/2,EDGE_SIZE,viewport);
+        rect.top+EDGE_TOP,EDGE_SIZE,viewport);
       collapsed=true;
       panel.hidden=true;panel.inert=true;
       host.setAttribute('data-toc-collapsed','');
@@ -341,7 +343,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         const point=tocPlacementPoint(placement,expandedFrame,viewport);
         if(point){
           left=edgeSide==='right'?point.left+expandedFrame.width-EDGE_SIZE.width:point.left;
-          top=point.top+(expandedFrame.height-EDGE_SIZE.height)/2;
+          top=point.top+EDGE_TOP;
         }
       }else if(expandedFrame){
         left=edgeSide==='right'

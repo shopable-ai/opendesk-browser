@@ -219,6 +219,10 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     const arrowPath=toggle.children[0].children[0].children[0];
     assert.equal(arrowPath.attributes.get('d'),'M9 5l7 7-7 7');
     assert.match(css,/width:20px;height:46px/);
+    assert.match(css,/\.edge-toggle\{[^}]*top:5px;transform:none;/,
+      'expanded button must anchor to header rather than 50 percent of variable outline height');
+    assert.doesNotMatch(css,/\.edge-toggle\{[^}]*top:50%|translateY\(-50%\)/,
+      'card height must never influence the edge button vertical position');
     assert.match(css,/\.edge-toggle svg\{width:14px;height:14px;opacity:1;pointer-events:none\}/,
       'both states show an idle chevron inside their visible tab');
     assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
@@ -278,6 +282,41 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(host.removed,true,'dispose removes the recovery button with its host');
     assert.equal(f.win.events.get('resize').size,0);
   }finally{globalThis.CSSStyleSheet=oldSheet;}
+});
+
+test('edge button preserves vertical position across long and short outlines, both sides and site placement',()=>{
+  const originalSheet=globalThis.CSSStyleSheet;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try {
+    const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{}});
+    const host=f.host(),toggle=host.shadow.children[1];
+    const originalRect=host.getBoundingClientRect.bind(host);
+    let expandedHeight=160;
+    host.getBoundingClientRect=()=>{
+      const r=originalRect();
+      return host.attributes.has('data-toc-collapsed')?r:{...r,height:expandedHeight,bottom:r.top+expandedHeight};
+    };
+    const buttonTop=()=>host.getBoundingClientRect().top+(host.attributes.has('data-toc-collapsed')?0:5);
+    const first=buttonTop();
+    for(const height of [160,360,540,110]){
+      expandedHeight=height;
+      view.render();
+      assert.equal(buttonTop(),first,'mode/content height cannot move the expanded button');
+      toggle.fire('click');
+      assert.equal(buttonTop(),first,'collapsed button must retain the same Y coordinate');
+      toggle.fire('click');
+      assert.equal(buttonTop(),first,'expanding must return to same Y coordinate');
+    }
+    view.setPlacement({v:1,dock:'left',x:0,y:0.4});
+    const leftTop=buttonTop();
+    toggle.fire('click');assert.equal(buttonTop(),leftTop,'left-side collapsed button remains anchored');
+    toggle.fire('click');assert.equal(buttonTop(),leftTop,'left-side expanded button remains anchored');
+    view.setPlacement({v:1,dock:'right',x:1,y:0.4});
+    const rightTop=buttonTop();
+    toggle.fire('click');assert.equal(buttonTop(),rightTop,'right-side collapsed button remains anchored');
+    toggle.fire('click');assert.equal(buttonTop(),rightTop,'right-side expanded button remains anchored');
+    view.dispose();
+  } finally {globalThis.CSSStyleSheet=originalSheet;}
 });
 
 test('site collapse restores on reload without writes and never leaks to another origin',()=>{
