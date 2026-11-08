@@ -183,7 +183,11 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   function syncEdge(rect=host.getBoundingClientRect()){
     if(!collapsed){
       const viewport=tocViewport(win);
-      edgeSide=placement?.dock==='left'||placement?.dock==='right'?placement.dock:
+      // Without an explicit placement the CSS defaults to right docking.
+      // A very narrow viewport can center the full-width panel geometrically,
+      // but that must not unexpectedly flip the collapsed tab to the left.
+      edgeSide=!placement?'right':
+        placement.dock==='left'||placement.dock==='right'?placement.dock:
         rect.left+rect.width/2<=viewport.left+viewport.width/2?'left':'right';
     }
     host.setAttribute('data-toc-edge',edgeSide);
