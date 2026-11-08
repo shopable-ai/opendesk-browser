@@ -203,6 +203,10 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
     assert.match(css,/width:12px;height:46px/);
     assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-skin\{width:38px\}/,
+      'collapsed background stays full width without mouse hover');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{opacity:1\}/,
+      'collapsed recovery arrow stays visible without mouse hover');
     assert.match(css,/@media\(hover:none\)/);
     assert.match(css,/prefers-reduced-motion:reduce/);
     scroll.scrollTop=31;modes.children[2].fire('click');

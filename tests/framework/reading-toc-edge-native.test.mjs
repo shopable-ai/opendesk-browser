@@ -191,6 +191,7 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const toggle=await tocNode(trusted,shadow,'button.edge-toggle');
  const skin=await tocNode(trusted,shadow,'.edge-skin');
  const arrow=await tocNode(trusted,shadow,'.edge-toggle path');
+ const arrowSvg=await tocNode(trusted,shadow,'.edge-toggle svg');
  const attributes=async nodeId=>{
    const pairs=(await trusted.send('DOM.getAttributes',{nodeId})).attributes,result={};
    for(let i=0;i<pairs.length;i+=2)result[pairs[i]]=pairs[i+1];
@@ -207,6 +208,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    const value=computedStyle.find(item=>item.name==='width')?.value;
    return Number.parseFloat(value);
  };
+ const arrowOpacity=async()=>{
+   const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId:arrowSvg});
+   return Number.parseFloat(computedStyle.find(item=>item.name==='opacity')?.value);
+ };
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.edge-toggle'})).nodeIds.length,1,
    'one toggle component only');
  assert.equal(await evaluate(trusted,'!!document.getElementById("od-toc-edge-preview-toggle")'),false,
@@ -221,7 +226,9 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const firstWidth=await skinWidth();
  console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'edge width must be 12px for mouse or 38px for touch/no-hover');
+   'expanded idle edge width must be 12px on desktop');
+ await until(async()=>(await arrowOpacity())<0.01,
+   'expanded idle chevron remains hidden until hover or keyboard focus');
  const initial=await rect(host);
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
@@ -237,15 +244,22 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Object.hasOwn(await attributes(panel),'hidden'),
    'collapsed outline must be hidden from pointer and focus interaction');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
- await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'mouseout restores edge width for actual input capabilities');
+ await until(async()=>Math.abs((await skinWidth())-38)<1,
+   'collapsed recovery background must remain 38px without hover');
+ await until(async()=>(await arrowOpacity())>0.99,
+   'collapsed recovery arrow must remain visible without hover');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='true',
    'second real mouse click did not expand');
+ await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
+ await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
+   'expanded idle must restore the 12px edge');
+ await until(async()=>(await arrowOpacity())<0.01,
+   'expanded idle must hide the collapse chevron again');
  const restored=await rect(host);
  assert(restored.width>200,'original directory width must be restored');
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
- console.log('READING_TOC_EDGE_NATIVE_PASS: headed Chrome hover 12px->38px, mouse toggle, 38x46 hitbox, restore, four modes');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: expanded idle 12px, collapsed idle 38px/visible arrow, mouse recovery, four modes');
 });

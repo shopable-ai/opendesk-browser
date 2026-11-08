@@ -19,6 +19,10 @@ const CSS=[
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#ecf3ff}",
 ".edge-toggle:hover svg,.edge-toggle:focus-visible svg{opacity:1}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
+// The only recovery control must show its arrow at idle when the card is folded.
+// The expanded card still uses the narrower 12px edge until hover/focus.
+":host([data-toc-collapsed]) .edge-skin{width:38px}",
+":host([data-toc-collapsed]) .edge-toggle svg{opacity:1}",
 "@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}}",
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#a7c5ff}.edge-skin{background:#283b5a;border-color:#50688a}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#344b71}}",
 ':host([hidden]){display:none!important}',
