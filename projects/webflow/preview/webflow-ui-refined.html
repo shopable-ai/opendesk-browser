@@ -242,6 +242,31 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
 .wf-runtime-actions{flex-wrap:wrap}
 .wf-runtime-actions button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:350px){.wf-runtime-head-left{gap:6px}.wf-runtime-meta{font-size:10px}.wf-runtime-open{padding-inline:6px}}
+
+/* R2.3: icon-only runtime entry, owned by the trusted-status preview strip.
+   Preserve 34px icon geometry, accessible name, focus, and original switch. */
+#wf-preview-controls .wf-runtime-open{
+ display:grid;place-items:center;flex:0 0 34px;
+ width:34px;height:34px;min-width:34px;min-height:34px;
+ padding:0;gap:0;border-radius:8px;
+ border:1px solid var(--od-line);background:var(--od-paper);
+ color:var(--od-sub);position:relative;
+}
+#wf-preview-controls .wf-runtime-open svg{width:18px;height:18px}
+#wf-preview-controls .wf-runtime-open:hover,
+#wf-preview-controls .wf-runtime-open[aria-expanded="true"]{
+ background:var(--od-muted);color:var(--od-brand)
+}
+#wf-preview-controls .wf-runtime-open[data-attention="true"]::after{
+ content:"";position:absolute;width:6px;height:6px;
+ border-radius:50%;background:var(--od-warning,#a56b20);
+ right:3px;top:3px;box-shadow:0 0 0 2px var(--od-paper)
+}
+@media(max-width:350px){
+ #wf-preview-controls .wf-runtime-open{
+  flex-basis:34px;width:34px;min-width:34px;padding:0;
+ }
+}
 </style>
 </head>
 <body>
@@ -265,7 +290,7 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
 <section id="wf-preview-controls" aria-label="Web Flow 自动运行">
  <div class="wf-control-copy"><strong id="wf-preview-auto-label">自动触发已暂停</strong><span id="wf-control-note" role="status" aria-live="polite">仅对已批准的新任务生效</span></div>
  <button id="wf-preview-auto-switch" type="button" class="switch" role="switch" data-act="global-switch" aria-checked="false" aria-describedby="wf-control-note" aria-label="自动运行"></button>
- <button class="wf-runtime-open" type="button" data-wf-runtime="open" aria-haspopup="dialog" aria-expanded="false" aria-controls="wf-preview-runtime-cover" aria-label="运行状态与任务授权" title="运行状态、任务授权与使用说明"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span>管理</span></button>
+ <button class="wf-runtime-open" type="button" data-wf-runtime="open" aria-haspopup="dialog" aria-expanded="false" aria-controls="wf-preview-runtime-cover" aria-label="运行与授权：查看当前任务、任务授权和使用说明" title="运行与授权"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
 </section>
 <nav class="app-tabs" role="tablist" aria-label="Web Flow 内部页面"><button type="button" id="wf-tab-overview" class="app-tab" role="tab" aria-controls="appContent" aria-selected="true" tabindex="0" data-page="overview">概览</button><button type="button" id="wf-tab-scripts" class="app-tab" role="tab" aria-controls="appContent" aria-selected="false" tabindex="-1" data-page="scripts">脚本</button><button type="button" id="wf-tab-history" class="app-tab" role="tab" aria-controls="appContent" aria-selected="false" tabindex="-1" data-page="history">记录</button></nav>
     <div id="appContent" class="app-body" role="tabpanel" tabindex="0" aria-labelledby="wf-tab-overview"></div>
@@ -735,6 +760,8 @@ function wfRuntimeSync(){
  if(note)note.textContent=state.scenario==='unknown'?'UNKNOWN · 查看原请求':state.scenario==='running'?'有任务运行中 · 查看进度':state.scenario==='permission'?'待批准 · 尚未执行':state.scenario==='error'?'连接异常 · 需要检查':'仅对已批准的新任务生效';
  const el=document.getElementById('wf-preview-auto-switch');
  if(el)el.setAttribute('aria-checked',String(state.globalAuto));
+ const entry=document.querySelector('.wf-runtime-open');
+ if(entry){const urgent=['unknown','running','permission','error'].includes(state.scenario);entry.dataset.attention=String(urgent);}
  if(wfRuntimeVisible)wfRuntimeRender();
 }
 document.addEventListener('input',event=>{if(event.target.id==='wf-rt-site')wfGrantDraft.site=event.target.value;if(event.target.id==='wf-rt-rule')wfGrantDraft.rule=event.target.value;},true);
