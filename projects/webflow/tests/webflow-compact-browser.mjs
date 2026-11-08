@@ -158,12 +158,18 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("[role=tab]").length'),3);
   assert.equal(await evaluate('document.querySelectorAll(".wf-head").length'),1);
   assert.equal(await evaluate('document.querySelectorAll(".wf-history").length'),0);
+  const layouts=[];
   const assertLayout=async(width,label)=>{
     const sizes=await evaluate(`({html:document.documentElement.scrollWidth,
-      body:document.body.scrollWidth,viewport:document.documentElement.clientWidth})`);
+      body:document.body.scrollWidth,viewport:innerWidth,
+      content:document.documentElement.clientWidth})`);
     assert.equal(sizes.viewport,width,label+' viewport');
-    assert.ok(sizes.html<=width+1&&sizes.body<=width+1,
+    // Classic scrollbars reserve content width; overlay scrollbars do not.
+    // Check overflow against the actual content box on either platform.
+    assert.ok(sizes.content>0&&sizes.content<=width,label+' content width');
+    assert.ok(sizes.html<=sizes.content+1&&sizes.body<=sizes.content+1,
       label+' horizontal overflow at '+width+': '+JSON.stringify(sizes));
+    layouts.push({width,label,...sizes});
   };
   const expectFocus=async selector=>{
     await eventually('document.activeElement===document.querySelector('+JSON.stringify(selector)+')',
@@ -346,7 +352,7 @@ try{
     grade:'SOURCE_COMPONENT_CHROMIUM_MOCK_SDK',
     source:'projects/webflow/src/ui/{main.js,model.js,style.css}',
     inputs:fixtureInputs,browserVersion,harnessSha256,
-    widths:tested,screenshots:screenshots.length,tooltipEvidence,
+    widths:tested,screenshots:screenshots.length,layouts,tooltipEvidence,
     notTested:['native select popup keyboard interaction (DOM option selection used)',
       'ARIA tooltip keyboard disclosure (source uses title only)',
       'long arbitrary error messages (fixture exposes E_PERMISSION only)','native extension/Authority/IME/screen reader'],

@@ -10,6 +10,8 @@ on:
       - 'projects/webflow/src/ui/**'
       - 'projects/webflow/tests/webflow-ui.test.mjs'
       - 'projects/webflow/tests/webflow-recovery-ui.test.mjs'
+      - 'projects/webflow/tests/webflow-compact-browser.mjs'
+      - 'projects/webflow/tests/webflow-ui-server.mjs'
       - '!projects/webflow/*.opendesk-tool.json'
   workflow_dispatch:
 

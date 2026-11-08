@@ -26,7 +26,8 @@
     "准备 CAS 冲突/读回不一致禁止执行",
     "旧 Listener 首页断言按已有紧凑管理入口验证；标量断言避免 DOM 图格式化内存耗尽",
     "可信控制异步核验后的对话 epoch 检查",
-    "失败/停止历史按原 Authority 读回有限错误；单条与整批返回前撤销围栏"
+    "失败/停止历史按原 Authority 读回有限错误；单条与整批返回前撤销围栏",
+    "Linux 经典滚动条与窗口宽度分别核验；溢出改按实际内容区检查，保留严格断言；浏览器测试及 fixture 变更触发原 CI"
   ],
   "tests": {
     "requiredNode": {
@@ -80,13 +81,255 @@
         "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
         "jsVersion": "14.9.207.21"
       },
-      "harnessSha256": "4384c33dd4b6d2a16d69cf1f413194ef50030328eb5efd8881668aa13107eec5",
+      "harnessSha256": "59c264f0236cd471956d51e0f3cd622d32c2c70589e7f30132f438d6704adac7",
       "widths": [
         320,
         360,
         400
       ],
       "screenshots": 21,
+      "layouts": [
+        {
+          "width": 320,
+          "label": "Overview",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Scripts",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Empty search",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "More menu",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Long task identity",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Empty history",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Settings",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 360,
+          "label": "Overview",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Scripts",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Empty search",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "More menu",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Long task identity",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Empty history",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Settings",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 400,
+          "label": "Overview",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Scripts",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Empty search",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "More menu",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Long task identity",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Empty history",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Settings",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 320,
+          "label": "Recent activity",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 320,
+          "label": "Expanded record",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 360,
+          "label": "Recent activity",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 360,
+          "label": "Expanded record",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 400,
+          "label": "Recent activity",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 400,
+          "label": "Expanded record",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        },
+        {
+          "width": 320,
+          "label": "Permission errors",
+          "html": 320,
+          "body": 304,
+          "viewport": 320,
+          "content": 320
+        },
+        {
+          "width": 360,
+          "label": "Permission errors",
+          "html": 360,
+          "body": 344,
+          "viewport": 360,
+          "content": 360
+        },
+        {
+          "width": 400,
+          "label": "Permission errors",
+          "html": 400,
+          "body": 384,
+          "viewport": 400,
+          "content": 400
+        }
+      ],
       "tooltipEvidence": [
         {
           "width": 320,
@@ -171,7 +414,7 @@
     "projects/webflow/src/ui/model.js": "f5f1662c4a144d4f66d8c5b13805c958edc172a3f02aef9d998d2925440c96a7",
     "projects/webflow/src/ui/style.css": "deb058082ff74e9a7b348e475cfb88943fdb4a2d79925b77881481ffb106fa0f",
     "projects/webflow/tool.config.json": "0ead57e86f604733a6eba06e1ff7fabcdc6fef9e65441171e3b3656903e28dcf",
-    "projects/webflow/tests/webflow-compact-browser.mjs": "4384c33dd4b6d2a16d69cf1f413194ef50030328eb5efd8881668aa13107eec5",
+    "projects/webflow/tests/webflow-compact-browser.mjs": "59c264f0236cd471956d51e0f3cd622d32c2c70589e7f30132f438d6704adac7",
     "src/native-agent/chatgpt-fixed-bridge-host.js": "c802072d64c7191f4447ffaa04563880050932634dccd68be8b9b0929b3b2e0c",
     "src/native-agent/chatgpt-bridge-trigger-gate.js": "afef4a5ad1189078fec02e493fe1907d74c9536eb9bba36fc52689508346f50f",
     "src/page-events/web-task-ingress.js": "b066f623fb21e37fd33583f223f2792006e91241ea35c5a4e0826aea882437cb"
@@ -200,5 +443,22 @@
     "notMarkedComplete": true,
     "reason": "最新用户只要求 UI 核心；原正式验收 GOAL 未完成，不恢复延期项。"
   },
-  "evidenceBoundary": "真实 Chromium 中的正式源码交互 + 模拟 SDK；不是已安装 MV3/真实 Task/Native 验收。"
+  "evidenceBoundary": "真实 Chromium 中的正式源码交互 + 模拟 SDK；不是已安装 MV3/真实 Task/Native 验收。",
+  "githubActions": {
+    "sourceCommit": "6fadef04cfccbc7d4e210e21296a34283e5da6f5",
+    "previousWebflow": {
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/42512871289",
+      "status": "FAIL",
+      "node": "49/49 PASS",
+      "build": "PASS",
+      "chromium": "305 !== 320: Linux 竖向滚动条导致测试错误地将 clientWidth 与窗口宽度等同；已修测试，正式 UI 未改变。"
+    },
+    "previousAppCi": {
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/42513690132",
+      "status": "FAIL",
+      "stage": "discover",
+      "reason": "React App requires an explicit browser test profile；未进入 Web Flow 测试，跨项目配置问题留待原 owner。"
+    },
+    "correctedWebflow": "PENDING_REMOTE_RUN"
+  }
 }
