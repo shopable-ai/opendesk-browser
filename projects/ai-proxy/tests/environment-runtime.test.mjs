@@ -401,3 +401,26 @@ test('R14 trusted navigation preserves handler rejection for the Host await boun
  assert.equal(calls,1);
  assert.equal(f.calls.filter(row=>['enable','disable'].includes(row[0])).length,0);
 });
+
+test('PC initial section is an app-validated display hint and cannot apply a proxy',async()=>{
+  const f=fixture(),opened=[];
+  f.bridge.surface='page';
+  f.bridge.initialPage={view:'settings',section:'rules'};
+  f.bridge.openOwnPage=value=>{opened.push(value);return Promise.resolve({opened:true});};
+  let env=f.open();
+  try{
+    assert.equal(env.surface,'page');
+    assert.equal(env.navigation.getRoute(),'#/rules');
+    assert.deepEqual(await env.openOwnPage({view:'settings',section:'diagnostic'}),{opened:true});
+    assert.deepEqual(opened,[{view:'settings',section:'diagnostic'}]);
+    assert.equal(f.calls.filter(([name])=>['enable','disable','storage.set'].includes(name)).length,0);
+  }finally{env.dispose();}
+  const g=fixture();
+  g.bridge.surface='page';
+  g.bridge.initialPage={view:'settings',section:'not-a-real-section'};
+  env=g.open();
+  try{
+    assert.equal(env.navigation.getRoute(),'','unrecognized business section must not enter the app route');
+    assert.equal(env.openOwnPage({view:'settings',section:'profiles'}),null,'old Host keeps the original in-panel route');
+  }finally{env.dispose();}
+});

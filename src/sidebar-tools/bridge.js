@@ -499,8 +499,9 @@ export function initSidebarToolSandbox() {
       }catch{return false;}
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,prepareAI,setState,setConversationState,openAISettings,openOwnPage,surface:displaySurface,
+      root,request,prepareAI,setState,setConversationState,openAISettings,surface:displaySurface,
       initialPage:displaySurface==='page'?normalizeOwnPageTarget(message.initialPage):null,
+      ...(navigationAllowed&&exportPort&&displaySurface==='sidebar'?{openOwnPage}:{}),
       ...(navigationAllowed?{setNavigation}:{}),
       navigationFeatures:freeze({headerActions:headerActionsAllowed}),
       get locale(){return uiLocale;},

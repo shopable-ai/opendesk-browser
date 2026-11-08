@@ -491,7 +491,13 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className="optionsHead">
-      {presentation==='management'?<h2 className="managementTitle">{t('apManageSettings')}</h2>:<nav className="settingsSectionNav" aria-label={t('settingsSections')}>
+      {presentation==='management'?<div className="managementIdentity">
+        <span className="managementAppIcon" aria-hidden="true">AP</span>
+        <div className="managementBrandCopy">
+          <h2 className="managementTitle">AI Proxy</h2>
+          <p>{t('apManageSettings')}</p>
+        </div>
+      </div>:<nav className="settingsSectionNav" aria-label={t('settingsSections')}>
         <label htmlFor="settings-section" className="settingsSectionLabel">{t('settingsSections')}</label>
         <select id="settings-section" aria-label={t('settingsSections')} value={tab} disabled={busy}
           onChange={event=>navigate(event.target.value as Page)}>
@@ -515,6 +521,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>}
       </>}
     </header>
+    {presentation==='management'&&<div className="managementConnectionBar" role="status" aria-label={t('browserStatus')}>
+      <span className="managementConnectionLabel">{t('browserStatus')}</span>
+      <strong className={'controlChip ' + (statusTone(state.runtime)==='ok'?'isApplied':statusTone(state.runtime)==='danger'?'isError':statusTone(state.runtime)==='pending'?'isPending':'')}>
+        {t(statusLabelKey(state.runtime))}
+      </strong>
+      <span className="managementSelectionLabel">{t('browserRoutingMode')}</span>
+      <span>{modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')}</span>
+    </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
         {tabs.map(item=><Button key={item.id} disabled={busy||navigationBusy}

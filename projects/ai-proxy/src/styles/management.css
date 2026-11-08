@@ -45,12 +45,19 @@
     top:0;
     background:var(--soft);
     border-right:1px solid var(--line);
-    min-height:calc(100dvh - 102px);
+    min-height:calc(100dvh - 144px);
   }
   :scope .managementNav button { border-radius:9px; min-height:42px; }
   :scope .managementNav button[aria-current="page"]::before { display:none; }
-  :scope .options .panel.optionsContent { border-left:0; min-height:calc(100dvh - 102px); }
+  :scope .options .panel.optionsContent { border-left:0; min-height:calc(100dvh - 144px); }
   :scope .options .optionsPageHead { padding-bottom:18px; border-bottom:1px solid var(--line); }
+  :scope .managementIdentity { display:flex; align-items:center; gap:11px; min-width:0; }
+  :scope .managementAppIcon { display:grid; place-items:center; width:36px; height:36px; flex:none; border-radius:9px; background:var(--ink); color:var(--surface); font-size:12px; font-weight:800; }
+  :scope .managementBrandCopy { display:grid; min-width:0; gap:2px; }
+  :scope .managementBrandCopy p { color:var(--muted); font-size:11px; margin:0; }
+  :scope .managementConnectionBar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-height:42px; padding:8px 24px; background:var(--soft); color:var(--muted); font-size:12px; border-bottom:1px solid var(--line); }
+  :scope .managementConnectionBar .controlChip { margin-right:auto; }
+  :scope .managementConnectionLabel, :scope .managementSelectionLabel { font-weight:600; }
   @media(max-width:720px) {
     :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }
     :scope .options { width:calc(100% - 16px); margin:8px auto; }
