@@ -98,3 +98,54 @@ jobs:
             artifacts/reading-toc-r183/
             projects/reading-toc/preview/index.html
             artifacts/reading-toc-r41/*.png
+
+  # Focused source-derived preview delivery. Legacy R183 release gates are not bypassed.
+  edge-preview-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Trusted webpage TOC placement and edge control tests
+        run: node --test tests/environment/reading-toc-placement-r42.test.mjs
+      - name: Regenerate canonical HTML preview from production sources
+        run: node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/index.html
+      - name: Assert source hashes, localization and preview identity
+        run: node --test tests/environment/reading-toc-localization-preview-r12.test.mjs
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: stable
+      - name: Real Chromium offline preview interactive checks
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
+      - name: Fast-forward only canonical generated preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "MAIN_ADVANCED: preserve parallel changes; do not overwrite preview"
+            exit 1
+          fi
+          git add -- projects/reading-toc/preview/index.html
+          if git diff --cached --quiet; then
+            echo "READING_TOC_PREVIEW_ALREADY_CURRENT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(reading-toc): sync canonical trusted edge preview'
+          git push origin HEAD:main

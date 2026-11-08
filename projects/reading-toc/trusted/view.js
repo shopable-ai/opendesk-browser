@@ -421,6 +421,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       reposition();restoredForContent=true;
     }
     place();
+    if(collapsed)return; // Keep indexing, but hidden content must not auto-scroll.
     const current=list.querySelector('[aria-current="location"]');
     if(current){
       const outer=scroll.getBoundingClientRect(),inner=current.getBoundingClientRect();
