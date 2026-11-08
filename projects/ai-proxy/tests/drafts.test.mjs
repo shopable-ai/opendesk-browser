@@ -142,7 +142,7 @@ test('PAC replacement respects Cancel, confirmed discard and newer/sibling draft
   try{
    env.setDraftDirty(true,scope);env.setDraftDirty(true,'rotation');
    const edit=await handler('../src/Settings.tsx',`  async function ${name}(`,`  async function ${end}(`,{
-    setRuleSaved(){},getEnvironment:()=>env,t:key=>key,requestAnimationFrame:fn=>fn(),document:{getElementById:()=>({focus(){}})},
+    state:{configEtag:'pac-initial'},setRuleSaved(){},getEnvironment:()=>env,t:key=>key,requestAnimationFrame:fn=>fn(),document:{getElementById:()=>({focus(){}})},
     ...Object.fromEntries(['setEditingRuleId','setRuleError','setRule','setEditingPacId','setPacName','setPacText'].map(key=>[key,value=>writes.push([key,value])]))
    });
    env.setConfirmHandler(async()=>false);
@@ -155,6 +155,27 @@ test('PAC replacement respects Cancel, confirmed discard and newer/sibling draft
    await edit(item);assert.deepEqual(writes,[]);assert.equal(env.isDraftDirty(scope),true);assert.equal(env.isDraftDirty('rotation'),true);
   }finally{env.dispose();}
  }
+});
+test('PAC replacement retains the selected profile ETag while discard confirmation awaits a refreshed view',async()=>{
+ const {env}=fixture();const baselines=[],writes=[];let accept;
+ try{
+  env.setDraftDirty(true,'settings-pac');
+  env.setConfirmHandler(()=>new Promise(resolve=>accept=resolve));
+  const context={state:{configEtag:'selected-profile-etag'},getEnvironment:()=>({
+   getDraftRevision:env.getDraftRevision,isDraftDirty:env.isDraftDirty,
+   confirm:env.confirm,setDraftDirty:env.setDraftDirty,
+   beginDraft:(scope,etag)=>baselines.push({scope,etag})
+  }),t:key=>key,requestAnimationFrame:fn=>fn(),document:{getElementById:()=>({focus(){}})},
+   setEditingPacId:value=>writes.push(value),setPacName:value=>writes.push(value),setPacText:value=>writes.push(value)};
+  const edit=await handler('../src/Settings.tsx','  async function editPac(','  async function savePac(',context);
+  const pending=edit({id:'selected',kind:'pac-inline',name:'Original PAC',pacText:'original script'});
+  assert.equal(typeof accept,'function');assert.deepEqual(baselines,[]);
+  // A completed view refresh replaces the paired state while the user decides.
+  context.state={configEtag:'refreshed-view-etag'};
+  accept(true);await pending;
+  assert.deepEqual(baselines,[{scope:'settings-pac',etag:'selected-profile-etag'}]);
+  assert.deepEqual(writes,['selected','Original PAC','original script']);
+ }finally{env.dispose();}
 });
 test('implicit proxy close preserves a declined or newer draft and clears no sibling scope',async()=>{
  const {env}=fixture();let closes=0;
@@ -323,7 +344,7 @@ test('host state updates cannot clear tracked drafts; controls outside draft for
   env.clearDrafts();assert.equal(states.at(-1).dirty,false);
  }finally{env.dispose();}
 });
-test('Settings partial proxy save failure retains the original draft and editor',async()=>{
+test('Settings atomic proxy commit refusal retains the original draft without a second write',async()=>{
  const {env}=fixture();
  try{
   env.setDraftDirty(true,'settings-proxy');const calls=[];
@@ -331,11 +352,13 @@ test('Settings partial proxy save failure retains the original draft and editor'
    getEnvironment:()=>env,editingId:'',username:'',password:'',endpoints:[],locale:'en',
    proxy:{name:'draft',scheme:'https',host:'proxy.example.com',port:'443'},
    isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'new'},
-   act:async m=>{calls.push(m.type);return m.type==='SAVE_ENDPOINT';},
-   closeEditor:()=>assert.fail('partial save closed the draft')
+   act:async m=>{calls.push(JSON.parse(JSON.stringify(m)));return false;},
+   closeEditor:()=>assert.fail('refused atomic save closed the draft')
   });
   await save({preventDefault(){},nativeEvent:{}});
-  assert.deepEqual(calls,['SAVE_ENDPOINT','SAVE_PROFILE']);assert.equal(env.isDraftDirty('settings-proxy'),true);
+  assert.deepEqual(calls,[{type:'SAVE_ENDPOINT',draftScope:'settings-proxy',createProfile:true,endpoint:{
+   id:'new',name:'draft',scheme:'https',host:'proxy.example.com',port:443,sourceId:'manual'
+  }}]);assert.equal(env.isDraftDirty('settings-proxy'),true);
  }finally{env.dispose();}
 });
 test('QuickPanel failed final selection retains the completed endpoint draft for review',async()=>{
@@ -350,7 +373,7 @@ test('QuickPanel failed final selection retains the completed endpoint draft for
    setServer:()=>assert.fail('partial save reset inputs'),closeAdd:()=>assert.fail('partial save closed editor')
   });
   await save({preventDefault(){},nativeEvent:{}});
-  assert.deepEqual(calls,['SAVE_ENDPOINT','SAVE_PROFILE','SELECT']);assert.equal(env.isDraftDirty('quick-server'),true);
+  assert.deepEqual(calls,['SAVE_ENDPOINT','SELECT']);assert.equal(env.isDraftDirty('quick-server'),true);
  }finally{env.dispose();}
 });
 test('PAC save acknowledges only its form and does not release a rotation draft',async()=>{
@@ -410,7 +433,7 @@ test('late backup completion and QuickPanel cancel/reopen preserve newer and sib
   observed.backup={value:backupValue,dirty:env.isDraftDirty('settings-backup')};
 
   // Opening another kind must retain both owners, including after Cancel/Back.
-  const context={getEnvironment:()=>env,addKind:null,server:{host:'keep.example.com'},local:{port:'7890'},
+  const context={getEnvironment:()=>env,state:{configEtag:'quick-initial'},addKind:null,server:{host:'keep.example.com'},local:{port:'7890'},
    emptyServer:{host:''},emptyLocal:{port:''},entryOrigin:{current:'header'},returnTarget:{current:'header'},returnFocus:{current:false},
    setAddedAnother(){},setSavedHint(){},setAddressPasteError(){},setError(){}};
   for(const [name,key] of [['setAddKind','addKind'],['setServer','server'],['setLocal','local']])context[name]=value=>{context[key]=value;};

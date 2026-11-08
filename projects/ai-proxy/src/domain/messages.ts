@@ -3,9 +3,9 @@ import type { ErrorCode } from './error-codes';
 import type { DiagnosticsSnapshot, SitePriority } from '../diagnostics/types';
 import type { UsageSnapshot, UsageSort } from '../usage/types';
 import type { ConfigState, LocalClientInput, ProxyEndpoint, ProbeResult, Profile, RouteSelection, SiteRule, SubscriptionSource, ViewState } from './types';
-export type Request =
+export type Request = (
   | { type: 'GET_STATE' }
-  | { type: 'SAVE_ENDPOINT'; endpoint: ProxyEndpoint }
+  | { type: 'SAVE_ENDPOINT'; endpoint: ProxyEndpoint; createProfile?: boolean }
   | { type: 'SAVE_LOCAL_CLIENT'; client: LocalClientInput }
   | { type: 'SAVE_SUBSCRIPTION'; source: SubscriptionSource }
   | { type: 'DELETE_SUBSCRIPTION'; id: string }
@@ -33,7 +33,8 @@ export type Request =
   | { type: 'CLEAR_USAGE' }
   | { type: 'IGNORE_USAGE_SITE'; domain: string; ignored: boolean }
   | { type: 'IMPORT'; config: unknown }
-  | { type: 'EXPORT' };
+  | { type: 'EXPORT' }
+) & { ifMatch?: string; draftScope?: string };
 export type Response =
   | { ok: true; state: ViewState; share?: ConfigState; probe?: ProbeResult; diagnostics?: DiagnosticsSnapshot; usage?: UsageSnapshot }
   | { ok: false; error: string; errorCode?: ErrorCode };

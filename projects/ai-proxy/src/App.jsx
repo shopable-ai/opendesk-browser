@@ -107,6 +107,7 @@ function Workspace({surface}) {
   env.setState({dirty:false,busy:false});
  }
  return <div className={'proxy-app'+(surface==='management'?' proxy-management':'')} id="proxy-ready" data-ready="true" data-surface={surface}
+ onFocusCapture={event=>env.captureDraftFrom(event.target)}
  onClick={event=>submitLocally(event,event.target.closest('button[type="submit"]'))}
  onKeyDown={event=>{
   const input=event.target;

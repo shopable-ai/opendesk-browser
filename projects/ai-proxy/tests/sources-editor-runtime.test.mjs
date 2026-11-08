@@ -11,13 +11,14 @@ const {createNavigation} = await import(`data:text/javascript;base64,${Buffer.fr
 const translations=JSON.parse(await readFile(new URL('../src/i18n/locales/en.json',import.meta.url),'utf8'));
 const code = (await transform(await readFile(new URL('../src/ui/SourcesPage.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 function fixture(route={kind:'local'},quickEntry='local') {
-  const hooks=[],effects=[],drafts=new Map(),confirmations=[],actions=[];
+  const hooks=[],effects=[],drafts=new Map(),draftBases=new Map(),confirmations=[],actions=[];
   let cursor=0,revision=0,tree;
   const opener={isConnected:true,focus(){this.focused=true;}};
   const document={activeElement:opener,body:{},visibilityState:'visible',querySelectorAll:()=>[]};
   const navigation=createNavigation({initialRoute:routes.subscriptionRouteHash(route)});
   const env={navigation,getDraftRevision:scope=>drafts.get(scope)??0,isDraftDirty:scope=>drafts.has(scope),
-    setDraftDirty(value,scope,expected){if(value)drafts.set(scope,++revision);else if(expected===undefined||(drafts.get(scope)??0)===expected)drafts.delete(scope);else return false;return true;},
+    beginDraft(scope,etag=props.configEtag){if(!draftBases.has(scope))draftBases.set(scope,etag);},
+    setDraftDirty(value,scope,expected){if(value){env.beginDraft(scope);drafts.set(scope,++revision);}else if(expected===undefined||(drafts.get(scope)??0)===expected){drafts.delete(scope);draftBases.delete(scope);}else return false;return true;},
     confirm:message=>new Promise(resolve=>confirmations.push({message,resolve}))};
   navigation.setGuard(()=>!drafts.size);
   const react={useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=initial;return [hooks[i],value=>{hooks[i]=typeof value==='function'?value(hooks[i]):value;}];},
@@ -33,12 +34,12 @@ function fixture(route={kind:'local'},quickEntry='local') {
     if(name==='../domain/proxy-entry')return {isValidProxyPort:value=>Number(value)>0&&Number(value)<=65535};
     return new Proxy({}, {get:(_,key)=>key});
   },document,HTMLElement:class {static [Symbol.hasInstance](value){return value===opener;}},window:{addEventListener(){},removeEventListener(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},crypto:{randomUUID:()=> 'new-id'}});
-  const props={route,quickEntry,busy:false,config:{endpoints:[{id:'a',sourceId:'local',name:'First',scheme:'http',port:7891},{id:'b',sourceId:'local',name:'Second',scheme:'socks5',port:9000}],sources:[{id:'local',kind:'local-client'}],profiles:[],selection:{}},runtime:{},act:async message=>{actions.push(message);return {};},setError(){},setErrorKey(){},navigate:section=>navigation.navigate('#/'+section),navigateSubscription:route=>navigation.navigate(routes.subscriptionRouteHash(route))};
+  const props={route,quickEntry,busy:false,configEtag:'sources-initial',config:{endpoints:[{id:'a',sourceId:'local',name:'First',scheme:'http',port:7891},{id:'b',sourceId:'local',name:'Second',scheme:'socks5',port:9000}],sources:[{id:'local',kind:'local-client'}],profiles:[],selection:{}},runtime:{},act:async message=>{actions.push(message);return {};},setError(){},setErrorKey(){},navigate:section=>navigation.navigate('#/'+section),navigateSubscription:route=>navigation.navigate(routes.subscriptionRouteHash(route))};
   function render(update={}){Object.assign(props,update);for(let n=0;n<3;n++){cursor=0;tree=module.exports.SourcesPage(props);while(effects.length)effects.shift()();}return tree;}
   function all(node){if(!node||typeof node!=='object')return [];return [node,...[node.props?.children].flat(Infinity).flatMap(all)];}
   const find=predicate=>all(tree).find(predicate);
   const field=id=>find(node=>node.props.id===id);
-  return {env,props,navigation,confirmations,actions,opener,render,find,field,
+  return {env,props,draftBases,navigation,confirmations,actions,opener,render,find,field,
     editor:()=>find(node=>node.props.id==='source-editor'),
     cancel:()=>find(node=>node.props.children==='cancel').props.onClick(),
     change(id,value){field(id).props.onValueChange(value);env.setDraftDirty(true,'source-editor');render();}};
@@ -98,8 +99,11 @@ test('late discard cannot clear newer input or a new clean editor with revision 
 
 test('local route ID loads exact endpoint, updates within local type, and never replaces dirty input',()=>{
  const f=fixture({kind:'local',id:'a'});f.render();assert.equal(f.field('r72-local-port').props.value,'7891');
- f.render({route:{kind:'local',id:'b'}});assert.equal(f.field('r72-local-name').props.value,'Second');
- f.change('r72-local-port','8123');f.render({route:{kind:'local',id:'a'}});assert.equal(f.field('r72-local-port').props.value,'8123');
+ assert.equal(f.draftBases.get('source-editor'),'sources-initial');
+ f.render({route:{kind:'local',id:'b'},configEtag:'sources-second'});assert.equal(f.field('r72-local-name').props.value,'Second');
+ assert.equal(f.draftBases.get('source-editor'),'sources-second');
+ f.change('r72-local-port','8123');f.render({route:{kind:'local',id:'a'},configEtag:'sources-refreshed'});assert.equal(f.field('r72-local-port').props.value,'8123');
+ assert.equal(f.draftBases.get('source-editor'),'sources-second');
 });
 
 test('missing local endpoint ID cannot open an add form or retain another endpoint editor',()=>{
@@ -111,6 +115,7 @@ test('local edit saves original ID and returns profiles; new local returns subsc
  for(const id of ['a',undefined]){
   const f=fixture({kind:'local',...(id?{id}:{})});f.render();f.change('r72-local-port','8123');
   await f.find(node=>node.type==='form').props.onSubmit({preventDefault(){}});await new Promise(setImmediate);f.render();
+  assert.equal(f.actions.length,1);assert.equal(f.actions[0].type,'SAVE_LOCAL_CLIENT');assert.equal(f.actions[0].draftScope,'source-editor');
   assert.equal(f.actions[0].client.id,id??'new-id');assert.equal(f.navigation.getRoute(),id?'#/profiles':'#/subscriptions');assert.equal(f.confirmations.length,0);
  }
 });

@@ -69,7 +69,7 @@ test('editing an existing HTTP credential reference also rejects before changing
   assert.match(f.errors[0], /未保存/);
 });
 
-test('unauthenticated add/edit/save-another keep the existing save sequence and payload', async () => {
+test('unauthenticated add/edit/save-another use one conditional endpoint/profile commit', async () => {
   for (const scheme of ['http', 'https', 'socks4', 'socks5']) {
     for (const editingId of ['', 'existing']) {
       for (const another of [false, true]) {
@@ -78,7 +78,9 @@ test('unauthenticated add/edit/save-another keep the existing save sequence and 
         await f.submit(another);
         assert.deepEqual(f.errors, []);
         const actions = f.effects.filter(item => item?.type);
-        assert.deepEqual(actions.map(item => item.type), editingId ? ['SAVE_ENDPOINT'] : ['SAVE_ENDPOINT', 'SAVE_PROFILE']);
+        assert.deepEqual(actions.map(item => item.type), ['SAVE_ENDPOINT']);
+        assert.equal(actions[0].createProfile,!editingId);
+        assert.equal(actions[0].draftScope,'settings-proxy');
         assert.deepEqual(actions[0].endpoint, { id: editingId || 'new', name: 'Draft', scheme, host: 'proxy.example.com', port: 443, sourceId: 'manual' });
         assert.deepEqual(f.focuses, another && !editingId ? ['host'] : []);
         if (another && !editingId) {
@@ -100,8 +102,7 @@ test('failed unauthenticated endpoint write keeps the draft and does not save a 
 // Failed or superseded saves must leave the user's current focus and draft alone.
 test('save-another never moves focus or resets fields after a failed save', async () => {
   for (const overrides of [
-    {act: async () => false},
-    {act: async value => value.type !== 'SAVE_PROFILE'}
+    {act: async () => false}
   ]) {
     const f = fixture(overrides);
     await f.submit(true);

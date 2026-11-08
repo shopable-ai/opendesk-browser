@@ -31,6 +31,7 @@ export interface ProxyServiceOptions {
   preview?: boolean;
 }
 export type ServiceState = ViewState & {
+  configEtag: string;
   runtime: ViewState['runtime'] & { state: ManagedStatus['state']; canStop: boolean; reason: string | null; statusErrorCode?: string; permission?: boolean | null; outcomeUnknown: boolean; stopFinalizationPending: boolean; preview: boolean };
 };
 export type ServiceResponse =
@@ -129,8 +130,9 @@ export function createProxyService({ load, save, status, validateApply, apply, s
     assertLive();
     invalidate();
   }
-  async function edit(change: (state: ConfigState) => ConfigState): Promise<void> {
+  async function editConfig(change: (state: ConfigState) => ConfigState, ifMatch?: string): Promise<void> {
     await read();
+    if (ifMatch !== undefined && ifMatch !== etag) fail('E_CONFLICT', 'Draft configuration changed; reopen the editor');
     await persist(change(clone(config)));
   }
   function confirmedDisabled(value: ManagedStatus) {
@@ -185,7 +187,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
     const applied = actual.state === 'enabled' && actual.control === 'controlled_by_this_extension' && !!active && !unknown && !actual.statusErrorCode && actual.permission !== false;
     const followingSystem = config.selection.mode === 'system' && !config.managed &&
       confirmedDisabled(actual) && actual.browserMode === 'system' && !unknown;
-    return clone({ config, runtime: {
+    return clone({ config, configEtag: etag, runtime: {
       desired: config.selection, ...(active ? { activeSelection: active.selection } : {}),
       ...actual,
       managedIntent: config.managed,
@@ -234,6 +236,9 @@ export function createProxyService({ load, save, status, validateApply, apply, s
     }
     await read();
     assertLive();
+    if (message.ifMatch !== undefined && message.ifMatch !== etag)
+      fail('E_CONFLICT', 'Draft configuration changed; reopen the editor');
+    const edit = (change: (state: ConfigState) => ConfigState) => editConfig(change, message.ifMatch);
     if (message.type === 'GET_STATE' || message.type === 'APPLY' ||
         message.type === 'IMPORT' || message.type === 'DELETE_ENDPOINT' || message.type === 'DELETE_PROFILE') {
       try { await refresh(); }
@@ -304,6 +309,11 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           if (old?.credentialRef && (old.host !== e.host || old.port !== e.port || old.scheme !== e.scheme)) delete e.credentialRef;
           c.endpoints = upsert(c.endpoints, e);
           c.profiles = c.profiles.map(p => p.kind === 'endpoint' && p.id === 'profile-' + e.id && p.endpointId === e.id ? { ...p, name: e.name } : p);
+          if (message.createProfile && !old) {
+            const id = 'profile-' + e.id;
+            if (c.profiles.some(p => p.id === id)) fail('E_CONFLICT', 'Generated profile already exists');
+            c.profiles.push({id,name:e.name,kind:'endpoint',endpointId:e.id,sourceId:e.sourceId});
+          }
           return c;
         });
         break;

@@ -26,6 +26,91 @@ function fixture(initial=config()){
   open(){return configureEnvironment(f.bridge,f.sdk,{trusted:true});}
  };return f;
 }
+test('dirty drafts retain their original storage baseline through status refresh and preserve the newer writer',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  await env.request({type:'GET_STATE'});
+  env.setDraftDirty(true,'settings-proxy');
+  const newer=f.stored();newer.endpoints[0].name='Newer saved name';f.replace(newer);
+  await env.request({type:'GET_STATE'});
+  const r=await env.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,name:'Old editor draft'}});
+  assert.equal(r.errorCode,'E_CONFLICT');
+  assert.equal(f.stored().endpoints[0].name,'Newer saved name');
+  assert.equal(env.isDraftDirty('settings-proxy'),true);
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,0);
+ }finally{env.dispose();}
+});
+test('confirmed sequential writes advance only the unchanged draft baseline',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  await env.request({type:'GET_STATE'});env.setDraftDirty(true,'settings-proxy');
+  assert.equal((await env.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,name:'Saved name'}})).ok,true);
+  assert.equal((await env.request({type:'SAVE_PROFILE',profile:{id:'profile-core',name:'Saved name',kind:'endpoint',endpointId:'core',sourceId:'manual'}})).ok,true);
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,2);
+ }finally{env.dispose();}
+});
+test('an opened editor keeps its baseline even if storage refreshes before the first input',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  await env.request({type:'GET_STATE'});env.beginDraft('settings-proxy');
+  const newer=f.stored();newer.endpoints[0].name='Newer saved name';f.replace(newer);
+  await env.request({type:'GET_STATE'});env.setDraftDirty(true,'settings-proxy');
+  const r=await env.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,name:'Old opened editor'}});
+  assert.equal(r.errorCode,'E_CONFLICT');
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,0);
+ }finally{env.dispose();}
+});
+test('an unchanged editor save uses its exact clean scope baseline',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const opened=await env.request({type:'GET_STATE'});env.beginDraft('settings-proxy',opened.state.configEtag);
+  const newer=f.stored();newer.endpoints[0].name='Newer saved name';f.replace(newer);
+  await env.request({type:'GET_STATE'});
+  const r=await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint});
+  assert.equal(r.errorCode,'E_CONFLICT');
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,0);
+  assert.equal(f.stored().endpoints[0].name,'Newer saved name');
+ }finally{env.dispose();}
+});
+test('a record and ETag captured before confirmation cannot acquire a newer baseline',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const opened=await env.request({type:'GET_STATE'});
+  const newer=f.stored();newer.endpoints[0].name='Newer saved name';f.replace(newer);
+  await env.request({type:'GET_STATE'});
+  env.setDraftDirty(false,'settings-proxy');env.beginDraft('settings-proxy',opened.state.configEtag);
+  env.setDraftDirty(true,'settings-proxy');
+  const r=await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint});
+  assert.equal(r.errorCode,'E_CONFLICT');
+  assert.equal(f.calls.filter(([name])=>name==='storage.set').length,0);
+ }finally{env.dispose();}
+});
+test('own commit advances the same editor despite newer input while retaining the dirty revision',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  await env.request({type:'GET_STATE'});env.setDraftDirty(true,'settings-proxy');
+  const revision=env.getDraftRevision('settings-proxy');
+  f.afterWrite=()=>env.setDraftDirty(true,'settings-proxy');
+  assert.equal((await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint:{...endpoint,name:'First save'}})).ok,true);
+  assert.equal(env.setDraftDirty(false,'settings-proxy',revision),false);
+  assert.equal(env.isDraftDirty('settings-proxy'),true);
+  f.afterWrite=null;
+  assert.equal((await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint:{...endpoint,name:'Newer input'}})).ok,true);
+  assert.equal(f.stored().endpoints[0].name,'Newer input');
+ }finally{env.dispose();}
+});
+test('a late own commit cannot advance a cleared and reopened editor generation',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const opened=await env.request({type:'GET_STATE'});env.beginDraft('settings-proxy');env.setDraftDirty(true,'settings-proxy');
+  f.afterWrite=()=>{env.setDraftDirty(false,'settings-proxy');env.beginDraft('settings-proxy',opened.state.configEtag);};
+  assert.equal((await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint:{...endpoint,name:'First save'}})).ok,true);
+  f.afterWrite=null;
+  const r=await env.request({type:'SAVE_ENDPOINT',draftScope:'settings-proxy',endpoint:{...endpoint,name:'Reopened old record'}});
+  assert.equal(r.errorCode,'E_CONFLICT');
+  assert.equal(f.stored().endpoints[0].name,'First save');
+ }finally{env.dispose();}
+});
 test('real environment saves full v2 selection and rules, reopens, and never touches the legacy key or routing',async()=>{
  const f=fixture();let env=f.open();
  try{

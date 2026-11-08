@@ -41,6 +41,40 @@ async function ok(service, message) {
 }
 const operations = (f, name) => f.calls.filter(([type]) => type === name);
 
+test('a draft ETag survives intervening reads and rejects a newer saved record without writing', async () => {
+  const f=fixture();
+  const opened=await ok(f.service,{type:'GET_STATE'});
+  const newer=f.stored();newer.endpoints[0].name='Newer window';f.replace(newer);
+  await ok(f.service,{type:'GET_STATE'});
+  const result=await f.service.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,name:'Stale draft'},ifMatch:opened.state.configEtag});
+  assert.equal(result.errorCode,'E_CONFLICT');
+  assert.equal(f.stored().endpoints[0].name,'Newer window');
+  assert.equal(operations(f,'save').length,0);
+});
+
+test('a change between draft admission and the edit read cannot rebase an old draft', async () => {
+  const f=fixture();
+  const opened=await ok(f.service,{type:'GET_STATE'});
+  const load=f.options.load;let reads=0;
+  f.options.load=async()=>{if(++reads===2){const newer=f.stored();newer.endpoints[0].name='Racing writer';f.replace(newer);}return load();};
+  const result=await f.service.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,name:'Stale draft'},ifMatch:opened.state.configEtag});
+  assert.equal(result.errorCode,'E_CONFLICT');
+  assert.equal(f.stored().endpoints[0].name,'Racing writer');
+  assert.equal(operations(f,'save').length,0);
+});
+
+test('adding an endpoint and its generated profile is one conditional storage commit', async () => {
+  const f=fixture({config:empty()});
+  const opened=await ok(f.service,{type:'GET_STATE'});
+  await ok(f.service,{type:'SAVE_ENDPOINT',endpoint,createProfile:true,ifMatch:opened.state.configEtag});
+  assert.deepEqual(f.stored().profiles,[profile]);
+  assert.equal(operations(f,'save').length,1);
+  const conflict=await f.service.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,id:'b'},createProfile:true,ifMatch:opened.state.configEtag});
+  assert.equal(conflict.errorCode,'E_CONFLICT');
+  assert.equal(f.stored().endpoints.length,1);
+  assert.equal(f.stored().profiles.length,1);
+});
+
 test('closing a UI service drops queued operations and late diagnostic notifications without releasing the route', async () => {
   const f = fixture({preview:true});
   let notifications=0;

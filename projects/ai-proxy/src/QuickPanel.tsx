@@ -88,6 +88,7 @@ export default function App() {
     if (addKind) document.getElementById(addKind==='server'?'quick-host':'quick-port')?.focus();
   },[addKind,entryFocusRequest]);
   function beginAdd(kind:AddKind, origin:'header'|'primary'|'local'='header') {
+    getEnvironment().beginDraft('quick-'+kind,state?.configEtag);
     entryOrigin.current = origin;
     setAddedAnother(false);
     setSavedHint(false);
@@ -185,21 +186,18 @@ export default function App() {
       let name = '';
       if (addKind==='server') {
         name = server.name.trim() || defaultServerName(server.scheme,server.host.trim(),server.port);
-        if (!await act({type:'SAVE_ENDPOINT',endpoint:{
+        if (!await act({type:'SAVE_ENDPOINT',draftScope:'quick-'+addKind,createProfile:true,endpoint:{
           id,name,scheme:server.scheme,host:server.host.trim(),
           port:Number(server.port),sourceId:'manual'
         }})) return;
-        if (!await act({type:'SAVE_PROFILE',profile:{
-          id:'profile-'+id,name,kind:'endpoint',endpointId:id,sourceId:'manual'
-        }})) return;
       } else {
         name = local.name.trim() || (local.scheme==='http'?t('localHttp'):t('localSocks5'));
-        if (!await act({type:'SAVE_LOCAL_CLIENT',client:{
+        if (!await act({type:'SAVE_LOCAL_CLIENT',draftScope:'quick-'+addKind,client:{
           id,name,scheme:local.scheme,port:Number(local.port)
         }})) return;
       }
       if (!keepAdding) {
-        if (!await act({type:'SELECT',selection:{mode:'profile',profileId:'profile-'+id}})) return;
+        if (!await act({type:'SELECT',draftScope:'quick-'+addKind,selection:{mode:'profile',profileId:'profile-'+id}})) return;
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
         if (addKind==='server') setServer(emptyServer);
         else setLocal(emptyLocal);
@@ -240,7 +238,7 @@ export default function App() {
       action:ruleTarget,
       ...(ruleTarget==='endpoint'?{endpointId:quickEndpoint}:{})
     };
-    if (await act({type:'SAVE_RULE',rule})) {
+    if (await act({type:'SAVE_RULE',draftScope:'quick-rule',rule})) {
       if(!getEnvironment().setDraftDirty(false,'quick-rule',draftRevision))return;
       setSiteInput(domain);setSiteError(false);ruleReturn.current=true;setSiteEditorOpen(false);
       // Save and Apply are separate user actions, even while Rules mode is running.
@@ -325,6 +323,7 @@ export default function App() {
   </main>;
 
   function beginSiteRule(){
+    getEnvironment().beginDraft('quick-rule',state.configEtag);
     savedScroll.current=mainScroll.current?.scrollTop??0;
     setRuleSource(site);setEditingSiteRule(currentRule);setSiteInput(currentRule?.domain||site);
     setIncludeSubdomains(currentRule?.includeSubdomains??true);

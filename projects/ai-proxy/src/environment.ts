@@ -19,12 +19,17 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  const uiState=()=>{if(!disposed){const state={dirty:uiDirty,busy:pending>0||outcomeUnknown};bridge?.setState?.(state);events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:state}));}};
  const events=new EventTarget();
  const drafts=new Map<string,number>();
+ const draftBases=new Map<string,{etag:string}>();
+ let configEtag:string|undefined;
+ const beginDraft=(source:string,pairedEtag=configEtag)=>{
+  if(pairedEtag!==undefined&&!draftBases.has(source))draftBases.set(source,{etag:pairedEtag});
+ };
  let draftRevision=0;
  const publishDrafts=()=>{uiDirty=drafts.size>0;uiState();events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:uiDirty}));};
  const setDraftDirty=(value:boolean,source='legacy',revision?:number)=>{
   if(disposed)return;
-  if(value)drafts.set(source,++draftRevision);
-  else if(revision===undefined||(drafts.get(source)??0)===revision)drafts.delete(source);
+  if(value){beginDraft(source);drafts.set(source,++draftRevision);}
+  else if(revision===undefined||(drafts.get(source)??0)===revision){drafts.delete(source);draftBases.delete(source);}
   else return false;
   publishDrafts();return true;
  };
@@ -117,7 +122,20 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
    const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT'].includes(m.type);
    if(mutation){pending++;uiState();}
    try{
-    const r=await service.request(m);assertLive();
+    const draftWrites=['SAVE_ENDPOINT','SAVE_LOCAL_CLIENT','SAVE_SUBSCRIPTION','DELETE_SUBSCRIPTION','DELETE_ENDPOINT',
+     'SAVE_PROFILE','DELETE_PROFILE','SAVE_RULE','DELETE_RULE','SET_DEFAULT','SELECT','SELECT_AND_APPLY','IMPORT'];
+    const scopes=draftWrites.includes(m.type)?(m.draftScope?[m.draftScope]:[...drafts.keys()]):[];
+    const captured=scopes.map(source=>[source,draftBases.get(source)] as const);
+    const bases=captured.map(([,base])=>base?.etag).filter((base):base is string=>base!==undefined);
+    // A refresh must not silently rebase an editor's old inputs onto new storage.
+    const expected=bases[0];
+    if(bases.some(base=>base!==expected))fail('E_CONFLICT','草稿基线不同，请重新打开编辑器。');
+    const r=await service.request(expected===undefined?m:{...m,ifMatch:m.ifMatch??expected});assertLive();
+    if(r?.ok===true&&typeof r.state?.configEtag==='string'){
+     configEtag=r.state.configEtag;
+     for(const [source,base]of captured)
+      if(base&&draftBases.get(source)===base)base.etag=configEtag;
+    }
     const previous=outcomeUnknown;
     if(r?.ok===false&&r.errorCode==='E_OUTCOME_UNKNOWN')outcomeUnknown=true;
     if(r?.ok===true){
@@ -160,10 +178,11 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   },
   async official(message:any){if(message.type==='OFFICIAL_STATUS')return {ok:true,snapshot:{configured:false,auth:'guest',availability:'unconfigured',plans:[],lines:[],checkout:'none'}};return {ok:false,failure:'not-configured'};},
   async download(){fail('E_NOT_CONNECTED','订阅在线下载尚未接入；请使用文本或文件解析。');},
-  setDraftDirty,getDraftRevision:(source:string)=>drafts.get(source)??0,
+  beginDraft,setDraftDirty,getDraftRevision:(source:string)=>drafts.get(source)??0,
   isDraftDirty:(source:string)=>drafts.has(source),
   hasDrafts:()=>drafts.size>0,
-  clearDrafts:()=>{drafts.clear();publishDrafts();},
+  clearDrafts:()=>{drafts.clear();draftBases.clear();publishDrafts();},
+  captureDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)beginDraft(source);},
   markDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)setDraftDirty(true,source);},
   setState:(_state:any)=>{uiState();},
   dispose(){if(disposed)return;disposed=true;bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);navigation.destroy();service.dispose();listeners.clear();

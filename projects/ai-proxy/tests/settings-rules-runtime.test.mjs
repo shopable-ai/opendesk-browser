@@ -15,16 +15,17 @@ const {translate}=await bundle('../src/i18n/locale.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
 function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
-  const values=[],refs=[],effects=[],drafts=new Map(),calls=[],focus=[],scroll=[],frames=[];
+  const values=[],refs=[],effects=[],drafts=new Map(),draftBases=new Map(),calls=[],focus=[],scroll=[],frames=[];
   let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
-  const state={config,runtime:{control:'unknown',pendingChanges:true}};
+  const state={config,configEtag:'rules-initial',runtime:{control:'unknown',pendingChanges:true}};
   const scroller={scrollTop:320,scrollTo(value){this.scrollTop=value.top;scroll.push(value.top);}};
   const nodes=new Map();
   const node=id=>nodes.get(id)||(()=>{const value={id,isConnected:true,focus(){focus.push(id);},scrollIntoView(){scroll.push(id);}};nodes.set(id,value);return value;})();
   const env={navigation:{getRoute:()=>'#/rules',subscribe:()=>()=>{}},navigate(){},
     isDraftDirty:key=>drafts.has(key),getDraftRevision:key=>drafts.get(key)??0,
-    setDraftDirty(value,key,expected){if(value)drafts.set(key,++revision);else{if(expected!==undefined&&expected!==(drafts.get(key)??0))return false;drafts.delete(key);}return true;},
+    beginDraft(key,etag=state.configEtag){if(!draftBases.has(key))draftBases.set(key,etag);},
+    setDraftDirty(value,key,expected){if(value){env.beginDraft(key);drafts.set(key,++revision);}else{if(expected!==undefined&&expected!==(drafts.get(key)??0))return false;drafts.delete(key);draftBases.delete(key);}return true;},
     async confirm(message){calls.push({confirm:message});return typeof confirmResult==='function'?confirmResult():confirmResult;}};
   const hooks={...React,useState(initial){const index=cursor++;if(!(index in values))values[index]=typeof initial==='function'?initial():initial;
     return [values[index],next=>{values[index]=typeof next==='function'?next(values[index]):next;}];},
@@ -101,7 +102,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
   }
   function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
   render();render();
-  return {config,env,calls,focus,scroll,render,all,text,button,click,change,
+  return {config,state,env,draftBases,calls,focus,scroll,render,all,text,button,click,change,
     clickRule:(action,item=existing)=>click(translate(locale,action==='edit'?'editNamedRule':'deleteNamedRule',{
       domain:item.domain,scope:translate(locale,item.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})),
     setConfirm:value=>{confirmResult=value;},setSave:value=>{saveResult=value;},
@@ -126,7 +127,7 @@ test('settings rules list opens a separate editor; cancellation confirms only it
 test('settings rule edit/save retains identity, disabled state and priority; success returns receipt and never applies',async()=>{
   const f=fixture();await f.clickRule('edit');f.change('rule-domain','changed.example');
   await f.submit();assert.equal(f.hasEditor(),false);
-  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SAVE_RULE',rule:{...existing,domain:'changed.example'}}]);
+  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SAVE_RULE',draftScope:'settings-rule',rule:{...existing,domain:'changed.example'}}]);
   assert.ok(f.all(n=>n.props.role==='status'&&f.text(n)==='apRuleSavedNotice').length);
   assert.equal(f.focus.at(-1),'settings-rule-keep-id');
   assert.equal(f.env.isDraftDirty('settings-rule'),false);
@@ -134,7 +135,9 @@ test('settings rule edit/save retains identity, disabled state and priority; suc
 
 test('settings rule failed save and background refresh preserve draft; Escape uses confirmation',async()=>{
   const f=fixture();await f.click('addRule');f.change('rule-domain','draft.example');
-  f.config.endpoints=[];f.render();assert.equal(f.all(n=>n.props.id==='rule-domain')[0].props.value,'draft.example');
+  assert.equal(f.draftBases.get('settings-rule'),'rules-initial');
+  f.config.endpoints=[];f.state.configEtag='rules-refreshed';f.render();assert.equal(f.all(n=>n.props.id==='rule-domain')[0].props.value,'draft.example');
+  assert.equal(f.draftBases.get('settings-rule'),'rules-initial');
   f.setSave(false);await f.submit();assert.equal(f.hasEditor(),true);assert.equal(f.env.isDraftDirty('settings-rule'),true);
   f.setConfirm(false);const region=f.all(n=>typeof n.props.onKeyDown==='function')[0];assert.ok(region);
   await region.props.onKeyDown({key:'Escape',preventDefault(){},stopPropagation(){}});await new Promise(setImmediate);f.render();assert.equal(f.hasEditor(),true);
@@ -157,7 +160,7 @@ test('settings new rule normalizes domain, saves one enabled target and returns 
   const f=fixture();await f.click('addRule');f.change('rule-domain','https://new.example/path');
   f.change('rule-priority','73');await f.submit();
   assert.equal(f.hasEditor(),false);
-  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SAVE_RULE',rule:{id:'new-id',domain:'new.example',
+  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SAVE_RULE',draftScope:'settings-rule',rule:{id:'new-id',domain:'new.example',
     includeSubdomains:true,priority:73,enabled:true,action:'endpoint',endpointId:'proxy'}}]);
   assert.equal(f.focus.at(-1),'settings-rule-new-id');
   assert.equal(f.env.isDraftDirty('settings-rule'),false);
@@ -186,7 +189,7 @@ test('settings rule endpoint choice stays untouched when refreshed endpoints arr
 test('settings default route remains independently saveable without applying or clearing another draft',async()=>{
   const f=fixture();f.env.setDraftDirty(true,'settings-default');f.env.setDraftDirty(true,'settings-backup');
   await f.click('saveDefaultRoute');
-  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SET_DEFAULT',target:{action:'direct'}}]);
+  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SET_DEFAULT',draftScope:'settings-default',target:{action:'direct'}}]);
   assert.equal(f.env.isDraftDirty('settings-default'),false);
   assert.equal(f.env.isDraftDirty('settings-backup'),true);
 });

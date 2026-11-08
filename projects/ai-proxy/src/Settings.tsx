@@ -186,6 +186,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   function openEditor(endpoint?: ProxyEndpoint) {
     setError('');
+    getEnvironment().beginDraft('settings-proxy',state?.configEtag);
     editorOriginHash.current = navigation.getRoute();
     editorReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingId(endpoint?.id ?? '');
@@ -306,12 +307,11 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if (!isValidProxyPort(proxy.port)) { setErrorKey('errInvalidPort'); return; }
     const displayName = proxy.name.trim() || (proxy.scheme.toUpperCase() + ' · ' + proxy.host.trim() + ':' + proxy.port);
     const id = editingId || crypto.randomUUID();
-    const result = await act({type:'SAVE_ENDPOINT', endpoint:{
+    const result = await act({type:'SAVE_ENDPOINT', draftScope:'settings-proxy', createProfile:!existing, endpoint:{
       id,name:displayName,scheme:proxy.scheme,host:proxy.host,port:Number(proxy.port),
       sourceId:'manual'
     }});
     if (!result) return;
-    if (!existing && !await act({type:'SAVE_PROFILE',profile:{id:'profile-'+id,name:displayName,kind:'endpoint',endpointId:id,sourceId:'manual'}})) return;
     if(!getEnvironment().setDraftDirty(false,'settings-proxy',draftRevision))return;
     if (saveAnother) {
       setEditingId('');
@@ -324,10 +324,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   async function editPac(profile: Profile) {
     if (profile.kind !== 'pac-inline') return;
     const environment = getEnvironment();
+    const openedEtag=state.configEtag;
     const revision = environment.getDraftRevision('settings-pac');
     if (environment.isDraftDirty('settings-pac') &&
       !await environment.confirm(t('apReplacePacDraft'))) return;
     if (!environment.setDraftDirty(false,'settings-pac',revision)) return;
+    environment.beginDraft('settings-pac',openedEtag);
     setEditingPacId(profile.id);
     setPacName(profile.name);
     setPacText(profile.pacText);
@@ -336,7 +338,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   async function savePac(event: React.FormEvent) {
     event.preventDefault();
     const draftRevision=getEnvironment().getDraftRevision('settings-pac');
-    if (await act({type:'SAVE_PROFILE',profile:{
+    if (await act({type:'SAVE_PROFILE',draftScope:'settings-pac',profile:{
       id:editingPacId || crypto.randomUUID(),kind:'pac-inline',name:pacName,pacText,sourceId:'manual'
     }})) {if(!getEnvironment().setDraftDirty(false,'settings-pac',draftRevision))return;setPacName('');setPacText('');setEditingPacId('');}
   }
@@ -364,7 +366,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       includeSubdomains:rule.includeSubdomains,priority,enabled:config.rules.find(r=>r.id===editingRuleId)?.enabled??true,
       action:rule.action,...(rule.action==='endpoint'?{endpointId:rule.endpointId}:{})
     };
-    if (await act({type:'SAVE_RULE',rule:item})) {
+    if (await act({type:'SAVE_RULE',draftScope:'settings-rule',rule:item})) {
       if(generation!==ruleEditorGeneration.current||
         !getEnvironment().setDraftDirty(false,'settings-rule',draftRevision))return;
       finishRuleEditor('settings-rule-'+item.id);
@@ -394,6 +396,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     setRuleSaved(false);finishRuleEditor();
   }
   function editRule(item?: SiteRule) {
+    getEnvironment().beginDraft('settings-rule',state.configEtag);
     ruleListPosition.current={
       top:sectionContent.current?.closest('.proxy-route')?.scrollTop??0,
       focusId:item?'settings-rule-'+item.id:'settings-rule-add'
@@ -475,7 +478,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     // Confirmation only follows format validation. Background checks Chrome
     // proxy control and validates again before replacing any configuration.
     if (!await getEnvironment().confirm(t('importWillReplaceYourCurrentConfigurationWithoutEnablingIt'))) return;
-    if (await act({type:'IMPORT',config:incoming})) {
+    if (await act({type:'IMPORT',draftScope:'settings-backup',config:incoming})) {
       if(!getEnvironment().setDraftDirty(false,'settings-backup',draftRevision))return;
       setBackup('');
       setBackupImported(true);
@@ -795,12 +798,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             onChange={e=>setDefaultAction(e.target.value)}><option value="direct">DIRECT</option><option value="endpoint">{t('specificProxy')}</option></select></div>
             <div><label htmlFor="default-endpoint">{t('proxy')}</label><select id="default-endpoint" disabled={defaultAction==='direct'} value={defaultEndpointId}
               onChange={e=>setDefaultEndpointId(e.target.value)}><option value="">{t('pleaseSelect')}</option>{endpoints.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></div></div>
-          <div className="actions"><Button disabled={busy || (defaultAction==='endpoint' && !defaultEndpointId)} onClick={async()=>{const revision=getEnvironment().getDraftRevision('settings-default');if(await act({type:'SET_DEFAULT',target:defaultAction==='direct'?
+          <div className="actions"><Button disabled={busy || (defaultAction==='endpoint' && !defaultEndpointId)} onClick={async()=>{const revision=getEnvironment().getDraftRevision('settings-default');if(await act({type:'SET_DEFAULT',draftScope:'settings-default',target:defaultAction==='direct'?
             {action:'direct'}:{action:'endpoint',endpointId:defaultEndpointId}}))getEnvironment().setDraftDirty(false,'settings-default',revision);}}>{t('saveDefaultRoute')}</Button>
             <small>{t('current')}{config.defaultTarget.action==='direct'?'DIRECT':endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name}</small></div>
           </section>}
         </div>}
-        {tab==='subscriptions' && <SourcesPage config={config} runtime={state.runtime}
+        {tab==='subscriptions' && <SourcesPage config={config} configEtag={state.configEtag} runtime={state.runtime}
           busy={busy} act={act} setError={setError} setErrorKey={setErrorKey} navigate={navigate}
           route={parseSubscriptionRoute(locationHash)} navigateSubscription={navigateSubscription}
           quickEntry={parseSubscriptionRoute(locationHash).kind==='local'?'local':locationHash==='#/subscriptions/new'?'subscription':null}/>}

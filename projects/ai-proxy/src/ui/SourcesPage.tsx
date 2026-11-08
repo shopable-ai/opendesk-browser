@@ -17,6 +17,7 @@ import { isValidProxyPort } from '../domain/proxy-entry';
 
 interface Props {
   config: ConfigState;
+  configEtag?: string;
   runtime: RuntimeStatus;
   busy: boolean;
   act: (message: Request) => Promise<Response | null>;
@@ -55,7 +56,7 @@ function SourceIcon({ kind }: { kind: SourceIconKind }) {
  * A browser extension settings section, not a full-screen onboarding app.
  * Editing is progressive disclosure; no subscription URL ever leaves this component.
  */
-export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey, navigate,
+export function SourcesPage({ config, configEtag, runtime, busy, act, setError, setErrorKey, navigate,
   route, navigateSubscription, quickEntry = null }: Props) {
   const { t } = useI18n();
   const [editor, setEditor] = useState<Editor>(null);
@@ -159,6 +160,7 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     editorOpener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body
       ? document.activeElement : null;
     closeEditor(true);
+    getEnvironment().beginDraft('source-editor',configEtag);
     const endpoint = locals.find(candidate => candidate.id === id);
     // An obsolete edit link must never become an add form for a different entity.
     if (id !== undefined && !endpoint) return;
@@ -172,6 +174,7 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     editorOpener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body
       ? document.activeElement : null;
     closeEditor(true);
+    getEnvironment().beginDraft('source-editor',configEtag);
     const source = subscriptions.find(candidate => candidate.id === id);
     if (source) {
       setSubId(source.id);
@@ -184,7 +187,7 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
     event.preventDefault();
     if (!isValidProxyPort(local.port)) { setErrorKey('errInvalidPort'); return; }
     const displayName = local.name.trim() || (local.scheme.toUpperCase() + ' · 127.0.0.1:' + local.port);
-    if (await act({ type:'SAVE_LOCAL_CLIENT', client:{
+    if (await act({ type:'SAVE_LOCAL_CLIENT', draftScope:'source-editor', client:{
       id:localId || crypto.randomUUID(), name:displayName, scheme:local.scheme, port:Number(local.port)
     }})) closeEditor(false, revision);
   }
@@ -212,7 +215,7 @@ export function SourcesPage({ config, runtime, busy, act, setError, setErrorKey,
       displayName:sub.name, originHost, format:sub.format,
       syncStatus:'not-synced' as const, trustedByUser:true as const
     };
-    if (await act({ type:'SAVE_SUBSCRIPTION', source })) {
+    if (await act({ type:'SAVE_SUBSCRIPTION', draftScope:'source-editor', source })) {
       if(!getEnvironment().setDraftDirty(false,'source-editor',revision))return;
       if (sub.url.trim()) subscriptionUrls.current.set(source.id, sub.url.trim());
       closeEditor(true);
