@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button} from '../../../src/ui/react/components/ui/button.tsx';
+import {Button,IconButton} from '../../../src/ui/react/components/ui/button.tsx';
 import {Switch} from '../../../src/ui/react/components/ui/switch.tsx';
 import {WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 import {WebflowCurrentTask,useWebflowBridgeState} from './CurrentTask.tsx';
@@ -449,9 +449,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   <div className="od-toolbar">
    <strong id="webflow-auto-title" className="od-field-label" style={{flex:1}}>自动运行</strong>
    <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):''}</span>
-   {(!compact||panelOpen)&&switchControl}
+   {!compact&&switchControl}
   </div>
-  <p id="webflow-auto-risk" className="od-field-help" style={{margin:0,lineHeight:1.65}}>
+  <p id={compact?undefined:'webflow-auto-risk'} className="od-field-help" style={{margin:0,lineHeight:1.65}}>
    {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 标签页需保持打开，侧栏可关闭。':
     '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 标签页需保持打开；侧栏关闭后仍接收新任务，由后台执行。'}
   </p>
@@ -483,6 +483,9 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    {webflowAuto?.readBridgeState?
     <WebflowCurrentTask bridge={bridge} controller={webflowAuto} tasks={snapshot?.tasks} onSummary={setSummary} onAuthorizationChange={refresh}/>:
     <p role="status" className="od-note">当前任务状态暂不可用，请在原聊天查看。</p>}
+   {compact&&<ListenerStatus controller={webflowAuto} bridge={bridge} summary={summary} compact enabled={snapshot?.enabled}
+    onRecords={()=>openTask(bridge.view?.work?.state==='running'||bridge.view?.session?.actions?.cancel?'current':'records')}
+    onStop={()=>openTask('stop')}/>}
   </div>}
   <div id={compact?'webflow-runtime-help':undefined} role={compact?'tabpanel':undefined}
    aria-labelledby={compact?'webflow-runtime-tab-help':undefined} hidden={compact&&tab!=='help'} tabIndex={compact?0:undefined}>
@@ -620,23 +623,41 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  const listener=<ListenerStatus controller={webflowAuto} bridge={bridge} summary={summary} compact={compact} enabled={snapshot?.enabled}
   onRecords={()=>openTask(bridge.view?.work?.state==='running'||session?.actions?.cancel?'current':'records')} onStop={()=>openTask('stop')}/>;
  if(!compact)return <>{listener}{content}</>;
+
+ const needsAttention=Boolean(session?.pendingAuto||session?.error||receipt?.execution==='unknown'||
+  receipt?.delivery==='unknown'||bridge.view?.work?.state==='running');
  return <>
-  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)', '--od-note-size':'var(--od-body-size)'} as React.CSSProperties}>
-   <div className="od-toolbar" style={{flexWrap:'wrap'}}>
-    <strong className="od-field-label">自动运行</strong>
-    {!panelOpen&&switchControl}
-    <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):'状态未确认'}</span>
-    <Button id="webflow-runtime-open" variant="secondary" aria-haspopup="dialog" aria-expanded={panelOpen}
-     aria-controls="webflow-runtime-panel" style={{marginInlineStart:'auto',minHeight:44}} onClick={()=>setPanelOpen(true)}>运行与授权</Button>
+  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)'} as React.CSSProperties}>
+   <div className="od-toolbar" style={{flexWrap:'nowrap',gap:'var(--space-2)',minWidth:0}}>
+    <div style={{flex:'1 1 0',minWidth:0,overflowWrap:'anywhere'}}>
+     <strong className="od-field-label" role="status" aria-live="polite">
+      {snapshot?(snapshot.enabled?'自动触发已开启':'自动触发已暂停'):'自动运行状态待核验'}
+     </strong>
+     <p id="webflow-auto-risk" className="od-note" style={{margin:0,fontSize:'var(--od-note-size)'}}>
+      {snapshot?(snapshot.enabled?'仅对已批准的新任务生效':'暂不接收新的自动任务'):'可在运行与授权中检查状态'}
+     </p>
+    </div>
+    {switchControl}
+    <div style={{position:'relative',flex:'none'}}>
+     <IconButton id="webflow-runtime-open" label="运行与授权：当前任务、任务授权及使用说明"
+      title="运行与授权" aria-haspopup="dialog" aria-expanded={panelOpen}
+      aria-controls="webflow-runtime-panel" style={{minWidth:44,minHeight:44}} onClick={()=>setPanelOpen(true)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+       <path d="M4 7h16M7 12h10M10 17h4"/>
+      </svg>
+     </IconButton>
+     {needsAttention&&<span aria-hidden="true" style={{position:'absolute',width:6,height:6,right:2,top:2,
+      borderRadius:'50%',background:'var(--od-warning-ink)',pointerEvents:'none'}}/>}
+    </div>
    </div>
-   {listener}
    {homeNotice&&<div className="od-toolbar" style={{flexWrap:'wrap',minWidth:0}}>
     <p id="webflow-home-notice" role="status" className={session?.error?'od-field-error':'od-note'}
      style={{margin:0,flex:'1 1 160px',overflowWrap:'anywhere',whiteSpace:'pre-wrap',
       color:session?.pendingAuto||receipt?.execution==='unknown'||receipt?.delivery==='unknown'?'var(--od-warning-ink)':undefined}}>{homeNotice}</p>
     {(bridge.view?.work?.state==='idle')&&(session?.pendingAuto||session?.error||receipt?.execution==='unknown'||receipt?.delivery==='unknown'||
       session?.messageStage==='no-candidate'||session?.messageStage==='cancelled')&&
-     <Button variant="quiet" style={{minHeight:44}} onClick={()=>openTask()}>
+     <Button variant="quiet" style={{minHeight:40}} onClick={()=>openTask()}>
       {session?.pendingAuto?'审阅授权':'查看详情'}</Button>}
    </div>}
    {!panelOpen&&feedback}

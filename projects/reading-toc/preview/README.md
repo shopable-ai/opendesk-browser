@@ -18,9 +18,9 @@
 node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/index.html
 ```
 
-**已落地的单按钮边缘收起交互**：网页浮层的唯一边缘按钮由 `trusted/view.js` 在原闭合 ShadowRoot 内创建，展开与收起共用控件和尺寸；展开时无悬停仅显示 12px 窄标签，Hover/Focus 才扩展为 38px 图标；**收起后未悬停为 20px 窄标签，里面的展开箭头始终可见，鼠标经过/键盘聚焦时才展开到 38px 背景**，与默认收起状态明确区分。收起后的点击热区仍为 38×46px；触屏无 Hover 时直接显示完整 38px 操作区。右侧 `›` 收起、`‹` 展开，左侧镜像。收起时可信浮层仅占用 38×46px，不阻挡正文，仍保留原章节索引、模式、位置、滚动和生命周期，且不更改位置存储。生成脚本 `reading-toc-overlay-source.mjs` 已移除 `body` 独立模拟按钮，不再使用 `reading-toc-collapse-preview.js`；预览须由原生成器同步，实际 Chrome/网站验收仍独立标记。
+**单按钮边缘收起交互**：网页浮层唯一按钮由 `trusted/view.js` 在原闭合 ShadowRoot 内创建。展开时无悬停仅显示 12px 窄标签，Hover/Focus 展示完整 38px 背景；**收起后默认显示 20px 窄标签与可见的展开箭头，Hover/Focus 时仅将背景扩至 38px**。箭头位于背景自身的 Grid 居中容器中，左右停靠及宽度过渡期间都保持居中，不使用 `translateX` 固定补偿，也不移动目录或正文。收起后的点击热区仍为 38×46px；触屏无 Hover 时直接显示完整 38px 操作区。右侧 `›` 收起、`‹` 展开，左侧镜像。收起时可信浮层仅占用 38×46px，不阻挡正文，仍保留原章节索引、模式、位置、滚动和生命周期，且不更改位置存储。生成脚本 `reading-toc-overlay-source.mjs` 已移除 `body` 独立模拟按钮，不再使用 `reading-toc-collapse-preview.js`；预览须由原生成器同步，实际 Chrome/网站验收仍独立标记。
 
-**同步提醒：** `trusted/view.js` 的无悬停箭头修复必须在仓库本机通过上面的原生成命令更新 `index.html`，然后运行定向测试。未重生成以前，旧 HTML 不代表修复后的正式源码。
+**同源预览同步：** 每次修改 `trusted/view.js` 都必须通过原生成器重新生成 `index.html`；现有 Reading TOC 工作流在相关测试通过后可自动同步。不得手工修改生成 HTML 或把旧预览视为新源码的验收证据。
 
 不要手改生成后的 HTML。输出内嵌 manifest 的 UI、可信浮层源码及共享外壳摘要用于核对来源；同时生成的 `index.context.json` 是本机审阅辅助文件，不是第二个页面入口。定向来源、语言消息、隔离和多回答回归：
 

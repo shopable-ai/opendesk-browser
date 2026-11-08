@@ -76,3 +76,65 @@
 @media(min-width:520px){.wf-body{padding:17px 18px 25px}.wf-head{padding:13px 18px}}
 @media(max-width:350px){.wf-body{padding:10px 9px 20px}.wf-head{padding:9px}.wf-panel{padding:10px}.wf-btn{padding:5px 8px}}
 @media(prefers-reduced-motion:reduce){.wf-app *{animation:none!important;transition:none!important}}
+
+/* V0.3.2: compact sandbox body only. The single Host Header and trusted
+   runtime sheet live outside the opaque-origin iframe. */
+.wf-head{padding:0 9px;gap:4px;min-width:0}
+.wf-tabs{gap:0}
+.wf-tab{position:relative;min-height:43px;border-radius:0;padding:7px 4px;font-size:12px}
+.wf-tab[aria-selected=true]{background:transparent;color:var(--brand)}
+.wf-tab[aria-selected=true]::after{content:"";position:absolute;height:2px;left:21%;right:21%;bottom:0;background:var(--brand)}
+.wf-head-actions{gap:0}
+.wf-head-actions .wf-icon{width:36px;min-width:36px;min-height:40px}
+.wf-body{gap:10px;padding:12px;min-width:0}
+.wf-overview{font-size:13px}
+.wf-overview :is(.wf-sub,.wf-metrics,.wf-help){font-size:11px}
+.wf-overview .wf-btn{min-height:34px;font-size:11px}
+.wf-overview h3{font-size:12px}
+.wf-overview .wf-panel{padding:10px}
+.wf-metrics{gap:6px 14px;font-size:11px}
+.wf-task-list,.wf-history{border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
+.wf-task-row{position:relative;padding:9px 7px;min-width:0}
+.wf-task-row+.wf-task-row,.wf-record-row+.wf-record-row{border-top:1px solid var(--line)}
+.wf-task-main{display:grid;grid-template-columns:29px minmax(0,1fr) auto;align-items:center;gap:7px;min-width:0}
+.wf-task-icon{width:29px;height:29px;border:0;border-radius:8px;font-size:13px}
+.wf-task-info{min-width:0;overflow:hidden}
+.wf-task-name{display:block;max-width:100%;width:100%;padding:0;border:0;background:none;color:var(--ink);font-size:12px;font-weight:700;line-height:1.5;text-align:left;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.wf-task-meta{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden}
+.wf-task-meta .wf-badge{min-width:0;flex:none;font-size:10px}
+.wf-task-meta .wf-badge::before{width:6px;height:6px}
+.wf-truncate{display:inline-block;max-width:min(43%,125px);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:10px}
+.wf-item-buttons{display:flex;align-items:center;gap:0;flex:none}
+.wf-item-buttons .wf-icon{width:29px;min-width:29px;min-height:31px;padding:0;border-color:transparent}
+.wf-item-buttons .wf-icon svg,.wf-head-actions .wf-icon svg{width:17px;height:17px}
+.wf-item-buttons .wf-primary{background:var(--tint);color:var(--brand);border-color:transparent}
+.wf-item-buttons .wf-primary:hover:not(:disabled){background:var(--tint)}
+.wf-menu-anchor{position:relative}
+.wf-menu{position:absolute;right:0;top:35px;z-index:20;min-width:154px;display:grid;gap:2px;padding:5px;background:var(--paper);border:1px solid var(--line);border-radius:9px;box-shadow:0 12px 25px #142d4830}
+.wf-menu button{background:transparent;color:var(--ink);border:0;border-radius:6px;padding:8px 9px;text-align:left;min-height:34px;font-size:11px}
+.wf-menu button:hover:not(:disabled){background:var(--tint)}
+.wf-row-error{margin-top:7px}
+.wf-task-detail{background:var(--tint);border-radius:8px;margin-top:8px;padding:10px;min-width:0}
+.wf-search-row{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:6px;align-items:center;position:relative;min-width:0}
+.wf-search-input{min-width:0;min-height:36px}
+.wf-search-row>.wf-icon{width:34px;min-width:34px;height:34px;min-height:34px;padding:0}
+.wf-filter-popover{display:grid;gap:3px;position:absolute;z-index:19;right:0;top:43px;width:min(230px,100%);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);box-shadow:0 12px 26px #142d4830}
+.wf-filter-popover>strong{font-size:11px}
+.wf-filter-option{background:transparent;color:var(--ink);border:0;border-radius:6px;padding:8px;text-align:left;min-height:32px;font-size:11px}
+.wf-filter-option:hover,.wf-filter-option[aria-pressed=true]{background:var(--tint);color:var(--brand)}
+.wf-history{padding:0;gap:0;overflow:visible}
+.wf-record-row{list-style:none;min-width:0}
+.wf-record-details summary{cursor:pointer;list-style:none}
+.wf-record-details summary::-webkit-details-marker{display:none}
+.wf-record-summary{display:flex;align-items:center;gap:8px;padding:8px 9px;min-width:0}
+.wf-record-info{flex:1;min-width:0;overflow:hidden}
+.wf-record-info strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wf-record-info .wf-sub{display:block;font-size:10px}
+.wf-record-summary .wf-badge{max-width:90px;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.wf-chevron{flex:none;display:flex;color:var(--sub)}
+.wf-chevron svg{width:15px;height:15px}
+.wf-record-details[open] .wf-chevron{transform:rotate(90deg)}
+.wf-record-expanded{background:var(--tint);padding:10px;border-radius:8px;margin:0 8px 8px;min-width:0}
+.wf-record-expanded .wf-detail{grid-template-columns:minmax(70px,1fr) minmax(0,2fr)}
+@media(min-width:520px){.wf-head{padding:0 12px}.wf-body{padding:14px 15px}}
+@media(max-width:350px){.wf-head{padding:0 5px}.wf-body{padding:9px}.wf-task-main{gap:4px}.wf-task-row{padding:8px 5px}.wf-item-buttons .wf-icon{width:27px;min-width:27px}.wf-record-summary{padding:7px}}

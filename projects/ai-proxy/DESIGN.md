@@ -1,5 +1,20 @@
 # AI Proxy 交互预览 · PC R16 优化与源码落实
 
+## 2026-11-09：R18「我的代理」切换方式纠偏（独立交互预览，PC 不变）
+
+**仓库已归档可点击 R18 文件**：[`preview/ai-proxy-interactive-preview-r18.html`](preview/ai-proxy-interactive-preview-r18.html)，并从 `preview/index.html` 增加入口。上一版聊天交付的独立 R17 HTML 当时没有保存到仓库；仓库 `preview.html` 仍是未按这版重新编译的 React 同源预览，不得将 R18 独立设计稿覆盖该生成文件。
+
+**已修复的交互语义**：旧离线预览在运行中点击「我的代理」其他线路时将 `selected` 改为目标、同时直接将 `applied=false`，造成运行状态误报「已暂停」且「使用」按钮含糊。R18 使用明确的已选 `mode/selected` 与模拟已应用 `activeMode/activeProfile/applied` 分离，增加 `switchingTo` 过渡。侧栏运行中点击其他代理仅在模拟切换完成后更新已应用线路，过程中旧线路仍标记「使用中」，目标显示「切换中」并阻止重复操作；暂停后点击只预选为「待启用」，必须主动点「启用」才标记生效。重复点击当前线路无副作用，冲突/未知状态阻止切换并保持原异常，不伪装成功。
+
+连接方式切换保留已应用线路，不再自动变成「已暂停」：目标模式明确标记为待应用，用户点击「应用更改」后才在模拟状态中标记已应用。当前网站的浏览器设置来自模拟已应用模式，预期线路来自已选模式，避免二者混淆。侧栏底部订阅/诊断收敛逻辑保持 R17 方案。
+
+**PC 保护范围**：PC 管理模板与路由函数（`managementHeader` 至 `renderPc`）和 R17 相同，校验 SHA-256 为 `9aa1b9d9ea8dc8e2e53e29bb0d9eefb82bd410c0ec7ecb28d6fda42a001ac353`；PC 诊断正常状态文案仍使用旧分支。未改 `src/Settings.tsx`、`preview/management.css`、任何正式 Host、代理服务或包。
+
+**验收证据和界限**：`tests/preview-standalone-switching.test.mjs` 的 Node VM 状态回归 **3/3 通过**，包含运行中切换、暂停预选、连接方式待应用、冲突保护和 PC 模板哈希。另行执行 16 项本地状态逻辑检查通过。当前测试环境的 Chromium 导航被策略阻止（`ERR_BLOCKED_BY_ADMINISTRATOR`），**没有成功进行真实浏览器点击或截图验收**；交互为完全离线模拟，`300ms` 动画不表示真实代理切换成功。本地源码文件 SHA-256 为 `a941d678863e7e7cb611f8b4e8e9514fb96a4c07aadd182306095688228693ed`，Git blob SHA 为 `d8d29a1523ad2760a3b632178552bee808a2e141`，已远端回读对账。
+
+**下一阶段**：用户确认设计稿后，再核对并调整 React 同源 `QuickPanel` 的正式切换状态与真实授权/回执契约，用 `scripts/stage-preview.mjs` 生成 `preview.html`/manifest/context 并做浏览器端-to端验证；不能把 R18 模拟行为写成真实代理已完成或隐式改变 live runtime。
+
+
 ## 2026-11-08：用户确认侧边栏 R17 入口收敛，PC R16 保持不变
 
 本轮只批准 **侧边栏交互预览** 调整，不重做 PC 设置。侧边栏正常状态移除底部长期显示的「订阅来源」「网络诊断 ↗」双按钮；首次空配置继续由原「订阅来源」入口进入 `#/subscriptions/new`；代理错误、控制冲突、状态错误或结果未知时，运行状态附近展示仅导航到 `#/diagnostic` 的次级入口。**点击诊断入口不自动 PROBE、APPLY、STOP**。

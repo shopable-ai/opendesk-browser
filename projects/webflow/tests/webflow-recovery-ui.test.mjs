@@ -59,7 +59,14 @@ async function mount(t,host=sdk()){
   const close=async()=>{if(closed)return;closed=true;await React.act(async()=>roots.forEach(r=>r.unmount()));timers.clear();};
   t.after(close);
   const find=(label,scope=document)=>{
-    const found=[...scope.querySelectorAll('button')].filter(n=>n.textContent===label||n.getAttribute('aria-label')===label);
+    // The compact UI uses descriptive accessible names for icon-only actions;
+    // preserve legacy test intent without requiring the old visible text button.
+    const found=[...scope.querySelectorAll('button')].filter(n=>{
+      const name=n.getAttribute('aria-label')||'';
+      return n.textContent===label||name===label||
+        label==='运行'&&(name.startsWith('准备运行 ')||name.startsWith('无法运行 '))||
+        label==='刷新'&&name==='刷新脚本安装状态';
+    });
     assert.equal(found.length,1,'Unique visible control: '+label);return found[0];
   };
   const f={host,document,errors,close,find,text:()=>document.body.textContent,
@@ -88,6 +95,8 @@ test('opening Web Flow recognizes the verified Baidu upgrade by its exact packag
   await f.click('脚本');
   assert.match(f.text(),/百度搜索/);
   assert.match(taskCard(f).textContent,/可手动运行/);
+  // Technical identities now expand on demand instead of occupying the row.
+  await f.click('百度搜索 · 前三条自然结果',taskCard(f));
   assert.ok(taskCard(f).textContent.includes(pkg.manifest.version));
 });
 
@@ -101,17 +110,21 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
-test('overview leads to existing scripts and automatic usage help without creating an execution',async t=>{
+test('compact overview retains three tabs, on-demand help and no duplicate navigation',async t=>{
   const host=sdk(),f=await mount(t,host);
-  await f.click('查看可用脚本');
+  assert.equal(f.document.querySelectorAll('.wf-head').length,1,'one sandbox tab strip, no duplicate product header');
+  assert.equal(f.document.querySelectorAll('.wf-history').length,0,'no synthetic history');
+  assert.ok(!f.text().includes('快速开始')&&!f.text().includes('查看可用脚本'));
+  await f.click('脚本');
   assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
   assert.ok(taskCard(f));
-  await f.click('概览');await f.click('使用与排障');
-  assert.equal(f.document.querySelector('main h2').textContent,'帮助');
+  assert.equal(f.document.querySelectorAll('.wf-task-row').length,2);
+  await f.click('概览');await f.click('帮助');
+  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
   const keyboardTabs=()=>[...f.document.querySelectorAll('[role="tab"]')].filter(tab=>tab.getAttribute('tabindex')==='0');
   assert.equal(keyboardTabs().length,1,'help retains one keyboard entry into primary navigation');
   assert.equal(keyboardTabs()[0].getAttribute('data-page'),'overview');
-  await f.click('设置');
+  await f.click('应用设置');
   assert.equal(keyboardTabs().length,1,'settings retains one keyboard entry into primary navigation');
   await f.click('返回');
   assert.equal(f.document.querySelector('[data-page="overview"]').getAttribute('aria-selected'),'true');

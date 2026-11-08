@@ -19,6 +19,23 @@
       contentHash:'f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad',
       title:'Google 搜索 · 前三条自然结果',site:'https://www.google.com',icon:'G'})
   ]);
+  // Local presentation glyphs; neither these icons nor the preview grant abilities.
+  const Icon=(name,filled=false)=>{
+    const paths={
+      search:'M20 20l-4.2-4.2 M17 10a7 7 0 1 1-14 0a7 7 0 0 1 14 0',
+      filter:'M4 7h16 M7 12h10 M10 17h4',
+      refresh:'M20 7v5h-5 M4 17v-5h5 M6 6a8 8 0 0 1 14 6 M18 18A8 8 0 0 1 4 12',
+      play:'m8 5 11 7-11 7z',
+      star:'m12 2 3.1 6.5 7.1 1-5.1 5 1.2 7-6.3-3.3-6.3 3.3 1.2-7-5.1-5 7.1-1Z',
+      more:'M5 12h.01 M12 12h.01 M19 12h.01',
+      chevron:'m8 5 7 7-7 7',
+      help:'M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4 M12 17v.5 M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18',
+      settings:'M10 3h4l.8 2.5 2 .8 2.3-1 2 3.4-1.8 1.8v3l1.8 1.8-2 3.4-2.3-1-2 .8L14 21h-4l-.8-2.5-2-.8-2.3 1-2-3.4L4 13.5v-3L2.9 8.7l2-3.4 2.3 1 2-.8L10 3Z M12 9a3 3 0 1 0 0 6a3 3 0 0 0 0-6'
+    };
+    return h('svg',{viewBox:'0 0 24 24',width:17,height:17,fill:filled?'currentColor':'none',
+      stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round',
+      'aria-hidden':'true',focusable:'false'},h('path',{d:paths[name]||paths.chevron}));
+  };
   const labels={checking:'正在核验',available:'可手动运行',unavailable:'安装或授权不可用',
     changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
@@ -26,7 +43,8 @@
     key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
       (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
     title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,
-    'aria-expanded':opts.expanded
+    'aria-expanded':opts.expanded,'aria-haspopup':opts.popup,'aria-controls':opts.controls,
+    'aria-describedby':opts.describedBy,id:opts.id,'data-wf-menu':opts.menuId
   },label);
   const Status=({state,text})=>h('span',{className:'wf-badge','data-state':state,role:'status'},
     text||labels[state]||state||'未核验');
@@ -56,6 +74,9 @@
     const [active,setActive]=R.useState(null);
     const [saving,setSaving]=R.useState(false);
     const [showFilters,setShowFilters]=R.useState(false);
+    const [more,setMore]=R.useState(null);
+    const [hostNavigation,setHostNavigation]=R.useState({base:false,actions:false});
+    const returnTab=R.useRef('overview');
     const [recoveryReady,setRecoveryReady]=R.useState(false);
     const [staged,setStaged]=R.useState(null);
     const [snapshots,setSnapshots]=R.useState({});
@@ -134,6 +155,61 @@
       return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;
         if(timer.current)clearTimeout(timer.current);};
     },[readTasks,request]);
+
+    // Reuse the bounded Host Header. Never allow this sandbox event to authorize work.
+    R.useEffect(()=>{
+      const child=page==='settings'||page==='help';
+      const view=child?page:'home';
+      const base={page:view,title:child?(page==='help'?'帮助':'设置'):'Web Flow',
+        canBack:child,primary:null,secondary:null};
+      let accepted=false,actions=false;
+      if(typeof tool.setNavigation==='function'){
+        if(tool.navigationFeatures?.headerActions===true){
+          actions=tool.setNavigation({...base,headerActions:[
+            {id:'help',label:'帮助',icon:'diagnostics'},
+            {id:'settings',label:'应用设置',icon:'settings'}
+          ]})===true;
+        }
+        accepted=actions||tool.setNavigation(base)===true;
+      }
+      setHostNavigation(old=>old.base===accepted&&old.actions===actions?old:{base:accepted,actions});
+      const onNavigation=event=>{
+        const info=event.detail;
+        if(info?.action==='back'&&child){setPage(returnTab.current);setNotice('');return;}
+        if(info?.action!=='header'||!actions||info.page!==view)return;
+        if(info.actionId==='help'||info.actionId==='settings'){
+          if(!child)returnTab.current=page;
+          setPage(info.actionId);setNotice('');
+        }
+      };
+      tool.root.addEventListener('opendesk-tool-navigation',onNavigation);
+      return ()=>tool.root.removeEventListener('opendesk-tool-navigation',onNavigation);
+    },[page]);
+
+    R.useEffect(()=>{
+      if(!showFilters&&!more)return;
+      const onKey=event=>{
+        if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
+        event.preventDefault();
+        if(more){
+          setMore(null);
+          global.queueMicrotask(()=>tool.root.querySelector('[data-wf-menu="'+more+'"]')?.focus());
+        }else if(showFilters){
+          setShowFilters(false);
+          global.queueMicrotask(()=>tool.root.querySelector('#wf-filter-toggle')?.focus());
+        }
+      };
+      const onPointer=event=>{
+        if(showFilters&&!event.target.closest?.('.wf-search-row'))setShowFilters(false);
+        if(more&&!event.target.closest?.('.wf-menu-anchor'))setMore(null);
+      };
+      tool.root.addEventListener('keydown',onKey);
+      tool.root.addEventListener('pointerdown',onPointer);
+      return ()=>{
+        tool.root.removeEventListener('keydown',onKey);
+        tool.root.removeEventListener('pointerdown',onPointer);
+      };
+    },[showFilters,more]);
 
     const save=async(key,value,expected,guard=()=>alive.current)=>{
       // No optimistic success: conditional write followed by the real SDK readback.
@@ -349,76 +425,104 @@
         if(alive.current)setError('宿主任务管理入口不可用：'+safeError(e));
       });
     };
-    const setTab=name=>{setPage(name);setDetail(null);setNotice('');};
+    const setTab=name=>{
+      if((name==='help'||name==='settings')&&['overview','scripts','history'].includes(page))
+        returnTab.current=page;
+      setPage(name);
+      if(['overview','scripts','history'].includes(name)){
+        setDetail(null);setMore(null);setShowFilters(false);
+      }
+      setNotice('');
+    };
     const sameTarget=pin=>pageInfo.status==='available'&&sameSite(pageInfo.url,pin.site);
     const rows=M.filterTasks(tasks,search,filter,settings.favorites);
     const summary=M.summary(tasks,history);
     const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
+    const runStateLabel=state=>({
+      completed:'执行完成',failed:'执行失败',unknown:'结果未知',stopped:'已停止',
+      interrupted:'已中断',cancelled:'已取消',canceled:'已取消',
+      running:'执行中',saving:'保存中',checking:'核验中'
+    })[state]||state||'未核验';
     const gotoScripts=()=>setTab('scripts');
-    const banner=h('div',{className:'wf-banner'},
-      '本页核对 '+PINNED.length+' 个固定脚本的安装。ChatGPT 自动运行的实时开关与精确批准范围见应用上方“自动运行”。');
+    const runReason=pin=>!recoveryReady?'正在恢复原步骤，请先完成核验':
+      activeRef.current?'存在尚未释放的原请求，请先查询或停止':
+      pin.state!=='available'?labels[pin.state]||'任务不可用':
+      !pin.binding?'固定安装身份未取得':
+      !sameTarget(pin)?'请先切换到该任务获准的网站':'';
+    const inspect=pin=>{setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);};
+
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
     const taskCard=pin=>{
       const star=settings.favorites.includes(M.taskKey(pin));
-      return h('article',{key:pin.taskId,className:'wf-panel wf-task'},
-        h('div',{className:'wf-line wf-between'},
-          h('div',{className:'wf-task-title wf-grow'},
-            h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
-            h('div',{className:'wf-grow'},h('strong',null,pin.title),
-              h('span',{className:'wf-sub'},pin.site.replace('https://','')))),
-          Btn(star?'★':'☆',()=>toggleFavorite(pin),{icon:true,disabled:saving,
-            ariaLabel:star?'取消收藏 '+pin.title:'收藏 '+pin.title,pressed:star})),
-        h('div',{className:'wf-line wf-between'},
-          h(Status,{state:pin.state}),
-          h('span',{className:'wf-sub'},'v'+pin.version)),
-        pin.error&&h('p',{className:'wf-sub'},pin.error),
-        h('div',{className:'wf-actions'},
-          Btn('运行',()=>{setDetail(pin.taskId);setQuery('');},{
-            primary:true,disabled:runDisabled(pin)||!pin.binding,title:!sameTarget(pin)?'先切换到任务网站':'填写参数'}),
-          Btn('详情',()=>{setDetail(detail===pin.taskId?null:pin.taskId);setQuery('');},
-            {expanded:detail===pin.taskId}),
-          Btn('宿主管理',()=>openTask(pin),{disabled:pin.state!=='available'})),
-        detail===pin.taskId&&h('div',{className:'wf-stack'},
-          h('hr',{style:{border:0,borderTop:'1px solid var(--line)',width:'100%'}}),
+      const reason=runReason(pin),expanded=detail===pin.taskId;
+      return h('article',{key:pin.taskId,className:'wf-task-row'},
+        h('div',{className:'wf-task-main'},
+          h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
+          h('div',{className:'wf-task-info'},
+            h('button',{type:'button',className:'wf-task-name',title:pin.title,
+              'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
+            h('div',{className:'wf-task-meta'},
+              h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
+              h(Status,{state:pin.state}))),
+          h('div',{className:'wf-item-buttons'},
+            Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,disabled:saving,
+              title:star?'取消收藏':'收藏',ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
+            Btn(Icon('play'),()=>{setDetail(pin.taskId);setQuery('');setMore(null);},
+              {key:'run-'+pin.taskId,icon:true,primary:true,disabled:Boolean(reason),
+                title:reason||'填写参数并保存运行步骤',
+                ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
+            h('div',{className:'wf-menu-anchor'},
+              Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
+                {key:'more-'+pin.taskId,icon:true,ariaLabel:'更多操作：'+pin.title,
+                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'menu'}),
+              more===pin.taskId&&h('div',{className:'wf-menu',role:'menu','aria-label':pin.title+' 操作'},
+                h('button',{type:'button',role:'menuitem',onClick:()=>inspect(pin)},'查看详情'),
+                h('button',{type:'button',role:'menuitem',disabled:pin.state!=='available',
+                  onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
+        pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
+        expanded&&h('div',{className:'wf-task-detail wf-stack'},
           detailList([['网站',pin.site],['任务 ID',h('code',{className:'wf-mono'},pin.taskId)],
             ['精确版本',pin.version],['manifestHash',h('code',{className:'wf-mono'},pin.manifestHash)],
             ['contentHash',h('code',{className:'wf-mono'},pin.contentHash)],
             ['安装身份',pin.binding&&h('code',{className:'wf-mono'},pin.binding.installationId||'待核对')||'不可读取'],
             ['授权代次',pin.binding?String(pin.binding.generation):'不可读取']]),
           h('label',{className:'wf-label',htmlFor:'wf-query'},'搜索关键词',
-            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,disabled:Boolean(activeRef.current),
-              placeholder:'输入本次搜索关键词',onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
+            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,
+              disabled:Boolean(activeRef.current),placeholder:'输入本次搜索关键词',
+              onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
           h('p',{className:'wf-sub'},sameTarget(pin)?
-            '目标网站匹配；运行仍须经过原宿主的实时权限、站点及任务校验。':
-            '当前标签页不是该任务的获准网站。请切换页面后重新打开 Web Flow。'),
+            '目标网站匹配；实际派发仍须通过宿主的权限、安装及任务核验。':
+            '当前标签页不是获准网站；请切换页面后重新检查。'),
           h('div',{className:'wf-actions'},
             Btn('保存运行步骤',()=>{void prepare(pin);},{primary:true,
               disabled:runDisabled(pin)||!query.trim()||query.trim().length>120}),
-            Btn('关闭详情',()=>setDetail(null),{quiet:true}))
-        )
+            Btn('收起详情',()=>setDetail(null),{quiet:true})))
       );
     };
-    const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index},
-      h('article',{className:'wf-panel wf-stack'},
-        h('div',{className:'wf-line wf-between'},
-          h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
-          h('span',{className:'wf-meta'},time(entry.at))),
-        h('div',{className:'wf-line wf-between'},
-          h(Status,{state:entry.state,text:'保存时运行：'+entry.state}),
-          h('span',{className:'wf-sub'},entry.resultPersisted?'保存时曾观察持久结果':'持久结果未确认')),
-        h('p',{className:'wf-sub'},'摘要（当前授权及结果须重新查询）：'+businessLabel(entry.business)+
-          (entry.count!==null?' · '+entry.count+' 条':'')+
-          '；原聊天交付 / AI 续答：未观察'),
-        h('details',{className:'wf-help'},h('summary',null,'技术与证据'),
+    const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
+      h('details',{className:'wf-record-details'},
+        h('summary',{className:'wf-record-summary',title:'展开查看原请求证据'},
+          h('div',{className:'wf-record-info'},
+            h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
+            h('span',{className:'wf-sub'},time(entry.at)+' · 手动运行')),
+          h(Status,{state:entry.state,text:runStateLabel(entry.state)}),
+          h('span',{className:'wf-chevron','aria-hidden':'true'},Icon('chevron'))),
+        h('div',{className:'wf-record-expanded wf-stack'},
+          h('p',{className:'wf-sub'},'以下为保存时摘要，不是当前结果：'+businessLabel(entry.business)+
+            (entry.count!==null?' · '+entry.count+' 条':'')+'。'),
           detailList([['clientRequestId',h('code',{className:'wf-mono'},entry.clientRequestId)],
             ['runId',h('code',{className:'wf-mono'},entry.runId||'未取得')],
             ['resultId',h('code',{className:'wf-mono'},entry.resultId||'未取得')],
-            ['原运行结果',entry.runtimeOk?'Controller 结果 outcome.ok=true':'未核验或执行失败'],
+            ['持久结果',entry.resultPersisted?'保存时原快照匹配':'未确认'],
+            ['运行结果',entry.runtimeOk?'Controller outcome.ok=true（不等于网页业务成功）':'未核验或执行失败'],
             ['资源释放',entry.retirementState],
-            ['持久结果',entry.resultPersisted?'保存时原快照匹配':'未确认']])),
-        active?.clientRequestId!==entry.clientRequestId&&h('div',{className:'wf-actions'},
-          Btn('查询原请求',()=>readOriginal(entry)))
+            ['网页业务',businessLabel(entry.business)],
+            ['原聊天交付',entry.delivery==='not_observed'?'未观察':entry.delivery],
+            ['AI 续答',entry.aiReply==='not_observed'?'未观察':entry.aiReply]]),
+          active?.clientRequestId!==entry.clientRequestId&&Btn('查询原请求（只读）',()=>readOriginal(entry),
+            {disabled:Boolean(activeRef.current&&activeRef.current!==entry.clientRequestId),
+              title:activeRef.current&&activeRef.current!==entry.clientRequestId?'请先核对当前原请求':'读取同一请求，不重放执行'}))
       ));
     const activeCard=()=>{
       if(!active)return null;
@@ -452,82 +556,76 @@
     };
     function overview(){
       return h('div',{className:'wf-stack wf-overview'},
-        h('section',{className:'wf-stack','aria-label':'手动任务概况'},
-          h(Head,{title:'手动任务',action:Btn('刷新',()=>{void readTasks();},
-            {quiet:true,disabled:loading,ariaLabel:'刷新安装状态',title:'刷新安装状态'})}),
-          h('div',{className:'wf-metrics','aria-label':'任务概况'},
-            ...[['已审阅任务',summary.reviewed],['可手动运行',loading?'…':summary.available],
-              ['需处理',loading?'…':summary.attention]]
-              .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))),
-          summary.attention>0&&h('div',{className:'wf-banner wf-warning wf-line'},
-            h('p',{className:'wf-grow'},summary.attention+' 项手动任务需处理。请在脚本查看原因，并核对安装与授权。'),
-            Btn('查看原因',gotoScripts,{quiet:true}))),
         h(Card,{children:h('div',{className:'wf-stack'},
-          h('div',{className:'wf-line wf-between'},h('h3',null,'最近一次手动运行'),
-            Btn('查看记录',()=>setTab('history'),{quiet:true})),
-          summary.latest?historyCard(summary.latest,0):h('p',{className:'wf-sub'},'尚无手动运行摘要。自动运行的结果在触发任务的原聊天中查看。')
-        )}),
-        h(Card,{children:h('details',{className:'wf-onboarding',onKeyDown:event=>{
-          if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){
-            event.preventDefault();event.stopPropagation();event.currentTarget.open=false;
-            event.currentTarget.querySelector('summary').focus();
-          }
-        }},h('summary',null,'从 ChatGPT 自动运行 · 使用步骤'),
-          h('div',{className:'wf-stack'},h('ol',{className:'wf-help'},
-            h('li',null,'打开上方“运行与授权 → 任务授权”，核对脚本、地址与参数。'),
-            h('li',null,'在“使用说明”完成一次 ChatGPT 能力接入，再开启上方“自动运行”滑块。'),
-            h('li',null,'在已接入的 ChatGPT 聊天中正常提出需求，侧栏可关闭。AI 生成新候选后自动执行，无需每轮准备或复制指令。')),
-          h('p',{className:'wf-sub'},'在“运行与授权 → 当前任务”查看进度和结果；结果也会回到原聊天。“记录”保存手动运行。'),
-          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{quiet:true}),
-            Btn('使用与排障',()=>setTab('help'),{quiet:true}))))}));
+          h('div',{className:'wf-line wf-between'},
+            h('div',{className:'wf-grow'},
+              h('strong',null,active?'手动原步骤待核对':
+                summary.attention?'有固定脚本需要处理':'当前没有待处理异常'),
+              h('p',{className:'wf-sub'},active?'当前步骤须确认运行、只读查询或停止；不会自动补跑。':
+                summary.attention?'请核对固定任务的安装、版本和权限。':
+                '手动任务仅按已审阅的安装及网站范围使用。'),
+              active&&h('code',{className:'wf-mono wf-active-locator',
+                title:'待核对的原请求 clientRequestId'},active.clientRequestId)),
+            (active||summary.attention>0)&&Btn(active?'处理原步骤':'查看原因',
+              ()=>setTab(active?'history':'scripts'),{quiet:true})),
+          h('div',{className:'wf-metrics','aria-label':'固定任务概况'},
+            ...[['已审阅',summary.reviewed],['可运行',loading?'…':summary.available],
+              ['需处理',loading?'…':summary.attention]]
+              .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))))}),
+        h('section',{className:'wf-stack','aria-label':'最近活动'},
+          h('h3',null,'最近活动'),
+          history.length?h('ul',{className:'wf-history'},...history.slice(0,3).map(historyCard)):
+            h(Card,{children:h('p',{className:'wf-sub'},
+              '暂无手动运行摘要。自动任务请在上方“运行与授权 → 当前任务”查看。')})));
     }
     function scripts(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'脚本',note:'仅显示安装时审阅的固定 Controller Task',
-          action:Btn('刷新',()=>{void readTasks();},{disabled:loading})}),
-        h('label',{className:'wf-label',htmlFor:'wf-search'},'搜索任务',
-          h('input',{id:'wf-search',type:'search',className:'wf-input',placeholder:'名称、网站、任务 ID',
-            value:search,onChange:e=>setSearch(e.target.value)})),
-        h('div',{className:'wf-line wf-between'},
-          h('span',{className:'wf-sub'},rows.length+' / '+tasks.length+' 条'),
-          Btn(showFilters?'收起筛选':'筛选',()=>setShowFilters(!showFilters),
-            {quiet:true,expanded:showFilters})),
-        showFilters&&h('div',{className:'wf-filter',role:'group','aria-label':'状态筛选'},
-          ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
-            .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-chip',
-              'aria-pressed':filter===value,onClick:()=>setFilter(value)},label))),
-        !rows.length?h(Card,{extra:'wf-empty',children:[
-          h('strong',{key:'empty'},'没有匹配的固定任务'),
-          h('p',{key:'hint',className:'wf-sub'},'清除搜索或在宿主任务目录审阅安装。'),
-          Btn('清除筛选',()=>{setSearch('');setFilter('all');})
-        ]}):rows.map(taskCard),
-        h('div',{className:'wf-banner'},'安装、更新、停用和卸载仍由宿主可信任务目录处理；Web Flow 不修改原安装权限。'));
+        h('div',{className:'wf-search-row'},
+          h('input',{id:'wf-search',type:'search',className:'wf-input wf-search-input',
+            'aria-label':'搜索脚本',placeholder:'搜索脚本或网站',
+            value:search,onChange:e=>setSearch(e.target.value)}),
+          Btn(Icon('filter'),()=>{setShowFilters(!showFilters);setMore(null);},
+            {key:'filter',id:'wf-filter-toggle',icon:true,ariaLabel:'筛选脚本',title:'筛选脚本',
+              expanded:showFilters,popup:'true',controls:'wf-filter-options'}),
+          Btn(Icon('refresh'),()=>{void readTasks();},
+            {key:'refresh',icon:true,ariaLabel:'刷新脚本安装状态',title:'刷新脚本安装状态',
+              disabled:loading}),
+          showFilters&&h('div',{id:'wf-filter-options',className:'wf-filter-popover',role:'group',
+            'aria-label':'脚本状态筛选'},
+            h('strong',null,'显示任务'),
+            ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
+              .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-filter-option',
+                'aria-pressed':filter===value,onClick:()=>{setFilter(value);setShowFilters(false);}},label)))),
+        h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
+        rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
+          h(Card,{extra:'wf-empty',children:[
+            h('strong',{key:'empty'},'没有匹配的固定任务'),
+            h('p',{key:'hint',className:'wf-sub'},'可清除筛选，或在宿主任务目录核对安装。'),
+            Btn('清除筛选',()=>{setSearch('');setFilter('all');})
+          ]}),
+        h('p',{className:'wf-sub'},'任务安装、更新与停用仍由宿主可信任务目录负责。'));
     }
     function records(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'记录',note:'手动运行原步骤与最近 12 条摘要；自动结果见原聊天'}),
-        h('div',{className:'wf-banner'},'摘要仅用于定位。点击原记录的“查询原请求”，由当前宿主重新核验授权并读取原结果；不会重新运行。结果完成、资源释放、原聊天交付和 AI 续答分别核对。'),
+        h('p',{className:'wf-sub'},'仅展示手动原请求摘要；自动任务在“运行与授权 → 当前任务”核对。'),
         activeCard(),
         history.length?h('ul',{className:'wf-history'},...history.map(historyCard)):
           h(Card,{extra:'wf-empty',children:[
-            h('strong',{key:'empty'},'还没有可展示的执行摘要'),
-            h('p',{key:'note',className:'wf-sub'},'保存运行步骤后再确认手动运行。关闭重开可按原步骤查询，摘要本身不是权威结果。'),
-            Btn('前往脚本',gotoScripts)
+            h('strong',{key:'empty'},'暂无手动运行记录'),
+            h('p',{key:'note',className:'wf-sub'},
+              '记录是恢复定位信息，不是业务成功证明。可在脚本中保存步骤并确认运行。')
           ]}));
     }
     function settingsPage(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'设置',note:'Web Flow 专属偏好与运行边界',
-          action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
+        h(Head,{title:'应用偏好',action:!hostNavigation.base&&Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
         h(Card,{children:h('label',{className:'wf-label'},'外观主题',
           h('select',{className:'wf-select',value:settings.theme,disabled:saving,
             onChange:e=>{void savePrefs({...settings,theme:e.target.value});}},
             h('option',{value:'system'},'跟随系统'),h('option',{value:'light'},'浅色'),
             h('option',{value:'dark'},'深色')))}),
-        h(Card,{children:h('div',{className:'wf-stack'},
-          h('h3',null,'自动运行权限'),
-          h('p',{className:'wf-sub'},'使用本应用上方的“自动运行”滑块；打开“运行与授权 → 任务授权”核对已安装脚本、地址和参数并批准。开关与批准即时保存。'),
-          h('p',{className:'wf-sub'},'若上方没有自动运行控件，请更新 OpenDesk Browser。在 ChatGPT 发送新消息，侧栏可关闭；只有随后完整助手回复中的 webflow.task.intent.v1 候选可触发，用户消息、历史与引用不触发。'))}),
+        h(Card,{children:h('p',{className:'wf-sub'},
+          '自动运行及授权在上方可信控制区管理；关闭只阻止未来准入，不能撤销已发生的操作。UNKNOWN 必须查询原请求。')}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
           h('p',{className:'wf-sub'},'创建、导入、升级和卸载请使用宿主的「开发」或「我的 → 任务目录」；不会从沙箱打开私有宿主页面。'),
@@ -538,8 +636,7 @@
     }
     function helpPage(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'帮助',note:'首次使用或需要排障时查看',
-          action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
+        h(Head,{title:'使用与排障',action:!hostNavigation.base&&Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'从 ChatGPT 自动运行'),
           h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；允许更换关键词时，规则内换词无需重复批准。'),
@@ -576,16 +673,16 @@
               event.preventDefault();setTab(steps[index]);
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
             }},label))),
-        h('div',{className:'wf-head-actions'},
-          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助',title:'帮助'}),
-          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置',title:'设置'}))),
+        !hostNavigation.actions&&h('div',{className:'wf-head-actions'},
+          Btn(Icon('help'),()=>setTab('help'),{key:'help',icon:true,ariaLabel:'帮助',title:'帮助'}),
+          Btn(Icon('settings'),()=>setTab('settings'),{key:'settings',icon:true,ariaLabel:'应用设置',title:'应用设置'}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
         'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
-        page!=='history'&&activeCard(),
+        page==='scripts'&&activeCard(),
         sections[page]()));
   }
   function sameSite(url,origin){
