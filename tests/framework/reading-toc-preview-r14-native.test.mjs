@@ -294,7 +294,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  let shadow=await tocClosedShadow(trusted);
  // Keep the original card geometry: only the edge tab reaches the viewport
  // boundary. Inspect real input boxes so transparent hit areas cannot steal clicks.
- async function assertToggleRail(){
+ async function assertToggleRail({hovered=false}={}){
   const bounds=async selector=>{
    const node=await tocNode(trusted,shadow,selector);
    const {model}=await trusted.send('DOM.getBoxModel',{nodeId:node});
@@ -303,14 +303,14 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    return {left:Math.min(...x),right:Math.max(...x),
     top:Math.min(...y),bottom:Math.max(...y)};
   };
-  const panelBox=await bounds('.panel'),toggleBox=await bounds('.edge-toggle');
+  const panelBox=await bounds('.panel'),toggleBox=await bounds('.edge-toggle'),skinBox=await bounds('.edge-skin');
   const geometry=await evaluate(trusted,`(()=>{
     const rect=document.querySelector('[data-opendesk-toc-root]').getBoundingClientRect();
     return {width:rect.width,right:rect.right,viewportWidth:innerWidth};
   })()`);
   const gutter=geometry.viewportWidth<=1100?8:12;
-  const expectedWidth=geometry.viewportWidth<=1100&&geometry.viewportWidth>720?220:
-   Math.min(254,geometry.viewportWidth-24);
+  const expectedWidth=geometry.viewportWidth<=720?Math.min(254,geometry.viewportWidth-16):
+   geometry.viewportWidth<=1100?220:254;
   assert(Math.abs(panelBox.right-geometry.right)<1,
    'Expanded panel must occupy the whole TOC host, without an added 38px rail');
   assert(Math.abs((panelBox.right-panelBox.left)-expectedWidth)<1,
@@ -319,8 +319,11 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    'Expanded panel must retain the original right gutter');
   assert(Math.abs(geometry.viewportWidth-toggleBox.right)<1,
    'Only the expanded toggle should reach the right viewport edge');
-  assert(Math.abs(toggleBox.right-toggleBox.left-20)<1,
-   'Expanded button must have a compact 20px hitbox to avoid covering modes');
+  const expectedHitboxWidth=hovered?38:20;
+  assert(Math.abs(toggleBox.right-toggleBox.left-expectedHitboxWidth)<1,
+   'Expanded button must restore its 38px hover hitbox while resting at 20px');
+  assert(Math.abs(skinBox.right-skinBox.left-expectedHitboxWidth)<1,
+   'Expanded visual skin must grow together with its clickable hitbox');
   for(const name of ['top','focus','full','ai']){
    const buttonBox=await bounds('button[data-mode="'+name+'"]');
    const overlaps=toggleBox.left<buttonBox.right&&toggleBox.right>buttonBox.left&&
@@ -328,6 +331,18 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    assert(!overlaps,'Collapse hitbox intercepts the '+name+' mode button');
   }
  }
+ await assertToggleRail();
+ // The restored hover expands the SAME button and visual background to 38px;
+ // it must not steal any of the four mode clicks, and must shrink on mouseout.
+ const toggleNode=await tocNode(trusted,shadow,'button.edge-toggle');
+ const model=(await trusted.send('DOM.getBoxModel',{nodeId:toggleNode})).model.content;
+ await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',
+   x:frameRect.left+(model[0]+model[4])/2,
+   y:frameRect.top+(model[1]+model[5])/2});
+ await pause(240);
+ await assertToggleRail({hovered:true});
+ await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:2,y:2});
+ await pause(240);
  await assertToggleRail();
  // Reopen via real Chrome pointer input before exercising all four modes.
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
@@ -352,6 +367,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  assert.equal(await evaluate(trusted,
   "document.querySelector('[data-opendesk-toc-root]').hasAttribute('data-toc-collapsed')"),false);
  shadow=await tocClosedShadow(trusted);
+ await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:2,y:2});
+ await pause(240);
  await assertToggleRail();
  await tocMouseClick(overlay.page,trusted,shadow,'button[data-mode="full"]',frameRect);
  const expanded=await until(async()=>{
