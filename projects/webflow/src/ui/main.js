@@ -449,7 +449,11 @@
       pin.state!=='available'?labels[pin.state]||'任务不可用':
       !pin.binding?'固定安装身份未取得':
       !sameTarget(pin)?'请先切换到该任务获准的网站':'';
-    const inspect=pin=>{setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);};
+    const inspect=pin=>{
+      const fromMenu=more===pin.taskId;
+      setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);
+      if(fromMenu)global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());
+    };
 
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
@@ -460,7 +464,7 @@
         h('div',{className:'wf-task-main'},
           h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
           h('div',{className:'wf-task-info'},
-            h('button',{type:'button',className:'wf-task-name',title:pin.title,
+            h('button',{type:'button',className:'wf-task-name',title:pin.title,'data-wf-task-name':pin.taskId,
               'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
@@ -475,10 +479,10 @@
             h('div',{className:'wf-menu-anchor'},
               Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
                 {key:'more-'+pin.taskId,icon:true,ariaLabel:'更多操作：'+pin.title,
-                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'menu'}),
-              more===pin.taskId&&h('div',{className:'wf-menu',role:'menu','aria-label':pin.title+' 操作'},
-                h('button',{type:'button',role:'menuitem',onClick:()=>inspect(pin)},'查看详情'),
-                h('button',{type:'button',role:'menuitem',disabled:pin.state!=='available',
+                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'true'}),
+              more===pin.taskId&&h('div',{className:'wf-menu',role:'group','aria-label':pin.title+' 操作'},
+                h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
+                h('button',{type:'button',disabled:pin.state!=='available',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
         expanded&&h('div',{className:'wf-task-detail wf-stack'},
@@ -595,7 +599,10 @@
             h('strong',null,'显示任务'),
             ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
               .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-filter-option',
-                'aria-pressed':filter===value,onClick:()=>{setFilter(value);setShowFilters(false);}},label)))),
+                'aria-pressed':filter===value,onClick:()=>{
+                  setFilter(value);setShowFilters(false);
+                  global.queueMicrotask(()=>tool.root.querySelector('#wf-filter-toggle')?.focus());
+                }},label)))),
         h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
         rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
           h(Card,{extra:'wf-empty',children:[
