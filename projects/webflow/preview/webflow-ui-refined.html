@@ -38,13 +38,13 @@ body{background:#f4f6fa;font-size:var(--od-body-size)}
 .window{border-radius:12px;box-shadow:0 15px 42px #1d305d1f;border-color:#cad5e3;transition:width .18s ease}
 .chrome-head{height:29px;background:#eef2f7}.host-tabs{padding:6px 6px 0}.host-tab{font-size:11px;font-weight:580;padding:7px 9px}
 .compact-app-bar{padding:9px 10px;border-bottom:1px solid var(--od-line);min-height:56px;gap:7px}
-.mini-logo{width:30px;height:30px;flex:none;border-radius:9px;box-shadow:none;font-size:13px;background:var(--od-brand)}
+.mini-logo{width:30px;height:30px;flex:none;border-radius:9px;box-shadow:none;font-size:13px;background:var(--od-brand);display:grid;place-items:center;color:white}.mini-logo svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .app-identity{flex:1;min-width:0;display:grid;gap:0}.app-identity strong{font-size:13px;font-weight:700}.app-identity span{font-size:10px;color:var(--od-sub)}
 .back-icon{font-size:24px!important}.demo-badge{background:var(--od-muted);border-color:var(--od-line);color:var(--od-sub);font-size:10px;font-weight:500;padding:2px 5px}
 .app-tabs{padding:0 11px}.app-tab{font-size:12px;font-weight:580;min-width:66px;flex:none;min-height:39px;padding:10px 9px}
 .app-tab[aria-selected=true]{font-weight:690}.app-body{padding:14px 12px 22px}.footnote{font-size:10px}
 button.primary,button.secondary,button.quiet,button.danger{min-height:32px;border-radius:var(--radius-control);padding:6px 10px;font-size:12px;font-weight:580;line-height:1.2}
-button.iconbtn{width:30px;height:30px;min-height:30px;font-size:15px;color:var(--od-sub)}
+button.iconbtn{width:30px;height:30px;min-height:30px;font-size:15px;color:var(--od-sub)}button.iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 input[type=search],input[type=text],select{min-height:34px;font-size:12px;border-color:var(--od-line)}
 .card,.history-entry{box-shadow:none;border-color:var(--od-line)}.stack{gap:12px}.micro,.note{font-size:11px;line-height:1.55}
 .status{padding:3px 6px;font-size:10px;font-weight:600}.status::before{width:5px;height:5px}
@@ -232,7 +232,7 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
   <div class="window" id="window" data-width="440"><div class="chrome-head"><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span><b>OpenDesk Browser</b><span>侧边栏 · ✕</span></div>
    <section class="panel" aria-label="模拟 OpenDesk Web Flow 应用">
     <nav class="host-tabs" role="tablist" aria-label="OpenDesk 原有导航（演示）"><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="我的">我的</button><button type="button" class="host-tab" role="tab" aria-selected="true" tabindex="0" data-host="扩展">扩展</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="工作流">工作流</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="开发">开发</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="云控">云控</button></nav>
-    <div class="app-bar compact-app-bar"><button class="iconbtn back-icon" type="button" data-act="back-host" aria-label="返回扩展中心" title="返回扩展中心">‹</button><div class="app-identity"><strong>Web Flow</strong></div><button class="iconbtn" type="button" data-act="help" aria-label="帮助与使用说明" title="帮助与使用说明">?</button><button class="iconbtn" type="button" id="settingsButton" data-act="navigate" data-to="settings" aria-label="设置" title="设置">⚙</button></div>
+    <div class="app-bar compact-app-bar"><button class="iconbtn back-icon" type="button" data-act="back-host" aria-label="返回扩展中心" title="返回扩展中心">‹</button><div class="app-identity" style="display:flex;align-items:center;gap:7px"><span class="mini-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/><circle cx="8" cy="14" r="1.7"/><circle cx="16" cy="14" r="1.7"/><path d="M9.7 14h4.6"/></svg></span><strong>Web Flow</strong></div><button class="iconbtn" type="button" data-act="help" aria-label="帮助与使用说明" title="帮助与使用说明"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg></button><button class="iconbtn" type="button" id="settingsButton" data-act="navigate" data-to="settings" aria-label="设置" title="设置"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button></div>
  
 <section id="wf-preview-controls" aria-label="Web Flow 自动运行">
  <div class="wf-control-copy"><strong id="wf-preview-auto-label">自动触发已暂停</strong><span id="wf-control-note" role="status" aria-live="polite">仅对已批准的新任务生效</span></div>
