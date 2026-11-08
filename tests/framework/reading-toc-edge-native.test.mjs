@@ -245,11 +245,16 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'expanded idle chevron must already be visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'expanded idle chevron must be centered inside its 20px tab');
- const initial=await rect(host),initialToggle=await until(()=>rect(toggle),
+ console.log('EDGE_Y_STAGE','before-initial-geometry');
+ const initial=await rect(host);
+ console.log('EDGE_Y_STAGE','host-layout',JSON.stringify(initial));
+ const initialToggle=await until(()=>rect(toggle),
    'edge toggle must expose a real layout box before first click');
  // The header-aligned control must stay in one physical place when changing
  // from the variable-height panel to the 46px collapsed host.
+ console.log('EDGE_Y_STAGE','before-first-click',JSON.stringify(initialToggle));
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ console.log('EDGE_Y_STAGE','after-first-click');
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
    'real mouse click did not collapse');
  await until(async()=>Math.abs((await skinWidth())-38)<1,
@@ -258,7 +263,9 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'hover background must transition to neutral gray rather than blue');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'hovered arrow must be horizontally centered inside the 38px visible background');
+ console.log('EDGE_Y_STAGE','before-folded-host-layout');
  const folded=await rect(host);
+ console.log('EDGE_Y_STAGE','folded-host-layout',JSON.stringify(folded));
  assert.equal(Math.round(folded.width),38,'collapsed host must have no 254px transparent hitbox');
  assert.equal(Math.round(folded.height),46);
  await until(async()=>Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
