@@ -21,6 +21,7 @@
   "chromeWillRunTheLocalPacScriptYouProvided": "Chrome will run the local PAC script you provided, which may change request routes. Only apply trusted scripts. Continue?",
   "couldNotOpenNetworkDiagnosticsOpenItFromManage": "Could not open network diagnostics. Open it from Manage profiles.",
   "couldNotOpenTheSettingsTabOpenItFrom": "Could not open the settings tab. Open it from Manage profiles.",
+  "apOwnPageOutcomeUnknown": "The PC page opening is unconfirmed. Check existing tabs first; this request will not be retried automatically.",
   "addLocalProxyClient": "Add local proxy client",
   "useTheClientSLocalListeningPortForExample": "Use the client's local listening port, for example 7890",
   "eGMihomo": "e.g. Mihomo",

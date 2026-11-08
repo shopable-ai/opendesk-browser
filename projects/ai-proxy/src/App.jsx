@@ -31,8 +31,9 @@ function Workspace({surface}) {
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
  const [headerNavigation,setHeaderNavigation]=useState(false);
- const [navigationError,setNavigationError]=useState(false);
+ const [navigationError,setNavigationError]=useState(null);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
+ const navigationEpoch=useRef(0);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=surface==='management'||route.startsWith('#/');
  const headerPage=useRef({route:null,revision:0,page:'home'});
@@ -42,12 +43,12 @@ function Workspace({surface}) {
  useEffect(()=>{const changed=event=>{busyRef.current=event.detail.busy===true;setBusy(busyRef.current);};env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
  useEffect(()=>{
   env.navigation.setGuard(next=>{if(busyRef.current)return false;if(dirtyRef.current){setPendingRoute(next);return false;}return true;});
-  const change=()=>setRoute(env.navigation.getRoute());
+  const change=()=>{navigationEpoch.current++;setRoute(env.navigation.getRoute());setNavigationError(null);};
   const unsubscribe=env.navigation.subscribe(change);
   change();markDirty(env.hasDrafts());
   const draft=event=>markDirty(event.detail===true);
   env.events.addEventListener('ai-proxy-draft',draft);
-  return()=>{env.navigation.setGuard(null);unsubscribe();env.events.removeEventListener('ai-proxy-draft',draft);};
+  return()=>{navigationEpoch.current++;env.navigation.setGuard(null);unsubscribe();env.events.removeEventListener('ai-proxy-draft',draft);};
  },[env]);
  useEffect(()=>{
   if(focusAfterDiscard.current||lastRoute.current!==route){
@@ -81,7 +82,8 @@ function Workspace({surface}) {
     dirtyRef.current||env.toolNavigation.isLocked())return;
    const action=actions.find(item=>item.id===detail.actionId);
    if(!action)return;
-   setNavigationError(false);
+   setNavigationError(null);
+   const openingEpoch=navigationEpoch.current;
    try{
     // Sandbox Header notifications are asynchronous CustomEvents, not native
     // clicks. Keep their internal routes; direct content buttons own PC opens.
@@ -90,9 +92,10 @@ function Workspace({surface}) {
      if(opening!=null){await opening;return;}
     }
     env.navigation.navigate(action.route);
-   }catch{
+   }catch(error){
     // A failed/unknown opening is not permission to replay or navigate elsewhere.
-    setNavigationError(true);
+    if(navigationEpoch.current!==openingEpoch||env.navigation.getRoute()!==route||headerPage.current.page!==page)return;
+    setNavigationError(error?.code==='E_OUTCOME_UNKNOWN'?'apOwnPageOutcomeUnknown':'couldNotOpenTheSettingsTabOpenItFrom');
    }
   });
  },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t]);
@@ -115,7 +118,7 @@ function Workspace({surface}) {
   env.markDraftFrom(event.target);
  }}>
   <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy} headerNavigation={headerNavigation}/>:<QuickPanel/>}</div>
-  {navigationError&&<p className="notice error" role="alert">{t('couldNotOpenTheSettingsTabOpenItFrom')}</p>}
+  {navigationError&&<p className="notice error" role="alert">{t(navigationError)}</p>}
   {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={ok=>{confirmation.resolve(ok);setConfirmation(null);}}/>}
   {pendingRoute!==null&&<Confirmation id="proxy-draft" title={t('apUnsaved')} text={t('apDiscardHelp')} cancel={t('apKeepEditing')} accept={t('apDiscardLeave')} onDone={leaveDraft}/>}
  </div>;

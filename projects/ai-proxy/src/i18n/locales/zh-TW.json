@@ -21,6 +21,7 @@
   "chromeWillRunTheLocalPacScriptYouProvided": "你將讓 Chrome 執行自己提供的本機 PAC。只套用你信任的指令碼，可能改變請求線路。繼續嗎？",
   "couldNotOpenNetworkDiagnosticsOpenItFromManage": "無法開啟擴充套件內部診斷頁，請通過「管理設定檔」進入網路診斷。",
   "couldNotOpenTheSettingsTabOpenItFrom": "無法開啟設定標籤頁，請從「管理設定檔」進入。",
+  "apOwnPageOutcomeUnknown": "PC 頁面開啟結果尚未確認。請先檢查現有標籤頁；本次不會自動重試。",
   "addLocalProxyClient": "新增本機用戶端",
   "useTheClientSLocalListeningPortForExample": "按本機用戶端設定填寫，例如 7890",
   "eGMihomo": "例如：Mihomo",

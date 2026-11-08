@@ -21,6 +21,7 @@
   "chromeWillRunTheLocalPacScriptYouProvided": "你将让 Chrome 执行自己提供的本地 PAC。只应用你信任的脚本，可能改变请求线路。继续吗？",
   "couldNotOpenNetworkDiagnosticsOpenItFromManage": "无法打开扩展内部诊断页，请通过「管理配置」进入网络诊断。",
   "couldNotOpenTheSettingsTabOpenItFrom": "无法打开设置标签页，请从「管理配置」进入。",
+  "apOwnPageOutcomeUnknown": "PC 页面打开结果尚未确认。请先检查已有标签页；本次不会自动重试。",
   "addLocalProxyClient": "添加本地客户端",
   "useTheClientSLocalListeningPortForExample": "按本地客户端设置填写，例如 7890",
   "eGMihomo": "例如：Mihomo",

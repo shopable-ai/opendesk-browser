@@ -316,6 +316,58 @@ test('header management keeps old Host fallback and never replays failed or unkn
  }
 });
 
+test('header opening distinguishes an unknown outcome from a confirmed failure without replay',async()=>{
+ for(const [code,messageKey] of [['E_OUTCOME_UNKNOWN','apOwnPageOutcomeUnknown'],['E_PAGE_UNAVAILABLE','couldNotOpenTheSettingsTabOpenItFrom']]){
+  const f=workspaceFixture();let attempts=0;
+  f.env.surface='sidebar';f.env.trusted=true;
+  f.env.openOwnPage=()=>{attempts++;return Promise.reject(Object.assign(Error('internal detail'),{code}));};
+  f.render();f.header({action:'header',actionId:'settings',page:f.snapshots.at(-1).page});
+  await new Promise(setImmediate);
+  const alert=f.render().props.children.find(n=>n?.props?.role==='alert');
+  assert.equal(alert?.props.children[0],messageKey);
+  assert.equal(f.navigation.getRoute(),'#/rules');
+  assert.equal(attempts,1,'an error message must not replay or fall back to another opening');
+  f.unmount();
+ }
+});
+
+test('a successful internal navigation clears the previous header opening notice',async()=>{
+ const f=workspaceFixture();f.env.surface='sidebar';f.env.trusted=true;
+ f.env.openOwnPage=()=>Promise.reject(Object.assign(Error('unavailable'),{code:'E_PAGE_UNAVAILABLE'}));
+ f.render();f.header({action:'header',actionId:'settings',page:f.snapshots.at(-1).page});
+ await new Promise(setImmediate);
+ assert.ok(f.render().props.children.some(n=>n?.props?.role==='alert'));
+ assert.equal(f.navigation.navigate('#/profiles/add'),true);
+ assert.equal(f.render().props.children.some(n=>n?.props?.role==='alert'),false);
+ f.unmount();
+});
+
+test('a late opening rejection cannot put its notice on a different page',async()=>{
+ const f=workspaceFixture();let rejectOpening,attempts=0;
+ f.env.surface='sidebar';f.env.trusted=true;
+ f.env.openOwnPage=()=>{attempts++;return new Promise((_resolve,reject)=>{rejectOpening=reject;});};
+ f.render();f.header({action:'header',actionId:'settings',page:f.snapshots.at(-1).page});
+ f.navigation.navigate('#/profiles/add');f.render();
+ rejectOpening(Object.assign(Error('late internal detail'),{code:'E_OUTCOME_UNKNOWN'}));
+ await new Promise(setImmediate);
+ assert.equal(f.render().props.children.some(n=>n?.props?.role==='alert'),false);
+ assert.equal(f.navigation.getRoute(),'#/profiles/add');assert.equal(attempts,1);
+ f.unmount();
+});
+
+test('leaving and returning home invalidates an old opening even before a render',async()=>{
+ const f=workspaceFixture();let rejectOpening;
+ f.env.surface='sidebar';f.env.trusted=true;
+ f.env.openOwnPage=()=>new Promise((_resolve,reject)=>{rejectOpening=reject;});
+ f.navigation.navigate('');f.render();
+ f.header({action:'header',actionId:'settings',page:f.snapshots.at(-1).page});
+ f.navigation.navigate('#/profiles/add');f.navigation.navigate('');
+ rejectOpening(Object.assign(Error('late home request'),{code:'E_OUTCOME_UNKNOWN'}));
+ await new Promise(setImmediate);
+ assert.equal(f.render().props.children.some(n=>n?.props?.role==='alert'),false);
+ assert.equal(f.navigation.getRoute(),'');f.unmount();
+});
+
 test('header PC openings retain draft, busy, unknown and stale-page guards',()=>{
  for(const lock of ['draft','busy','unknown','stale']){
   const f=workspaceFixture();f.env.surface='sidebar';f.env.trusted=true;
