@@ -62,6 +62,7 @@ class MockElement {
   setAttribute(key,value){this.attributes.set(key,value);}
   removeAttribute(key){this.attributes.delete(key);}
   append(...nodes){
+    for(const node of nodes)if(node&&typeof node==='object')node.parent=this;
     this.children.push(...nodes);
     if(this.tagName==='SELECT')this.options.push(...nodes);
   }
@@ -69,7 +70,7 @@ class MockElement {
     this.children=nodes.flatMap(node=>node.tagName==='FRAGMENT'?node.children:[node]);
     if(this.tagName==='SELECT')this.options=[...this.children];
   }
-  attachShadow(){return this.shadow=new MockElement('shadow',this.win);}
+  attachShadow(){const root=new MockElement('shadow',this.win);root.owner=this;return this.shadow=root;}
   addEventListener(type,handler){
     if(!this.events.has(type))this.events.set(type,new Set());
     this.events.get(type).add(handler);
@@ -80,6 +81,16 @@ class MockElement {
   hasPointerCapture(id){return this.pointerCapture===id;}
   releasePointerCapture(id){if(this.pointerCapture===id)this.pointerCapture=null;}
   getBoundingClientRect(){
+    if(this.className==='edge-toggle'&&this.parent?.owner){
+      const host=this.parent.owner,rect=host.getBoundingClientRect();
+      const side=host.attributes.get('data-toc-edge')||'right';
+      const collapsed=host.attributes.has('data-toc-collapsed');
+      const gap=this.win.innerWidth<=1100?8:12,width=collapsed?38:20;
+      const left=collapsed?(side==='left'?rect.left:rect.right-width):
+        side==='left'?rect.left-gap:rect.right+gap-width;
+      const top=rect.top+(collapsed?0:5);
+      return {width,height:46,left,top,right:left+width,bottom:top+46};
+    }
     if(this.attributes.has('data-opendesk-toc-root')){
       const collapsed=this.attributes.has('data-toc-collapsed');
       const width=collapsed?38:this.win.innerWidth<=1100?220:254,height=collapsed?46:180;
@@ -100,6 +111,7 @@ class MockElement {
 function viewFixture(){
   const win={
     innerWidth:800,innerHeight:600,events:new Map(),
+    getComputedStyle(){return {getPropertyValue:key=>key==='--toc-edge-gap'?'8px':''};},
     addEventListener(type,fn){
       if(!this.events.has(type))this.events.set(type,new Set());
       this.events.get(type).add(fn);
@@ -244,8 +256,14 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
       'the expanded idle arrow must not disappear without hover');
     assert.doesNotMatch(css,/translateX\(/,
       'left/right centering cannot depend on magic pixel offsets');
-    assert.match(css,/@media\(hover:none\)\{\.edge-toggle \.edge-skin\{width:38px\}\}/,
-      'touch has a full-width control on both states');
+    assert.match(css,/@media\(hover:none\)\{:host\(\[data-toc-collapsed\]\) \.edge-toggle \.edge-skin\{width:38px\}\}/,
+      'touch shows the full 38px tab only while folded; expanded modes remain clear');
+    assert.match(css,/\.head\{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px\}/,
+      'toolbar must not reserve unnecessary 20px padding and truncate CONTENTS');
+    assert.match(css,/\.edge-toggle\{[^}]*width:20px;height:46px/,
+      'expanded click target stays narrow while the visual tab may grow on hover');
+    assert.match(css,/\.modes\{position:relative;z-index:2;/,
+      'mode icons remain visually above the hover background');
     assert.match(css,/@media\(hover:none\)/);
     assert.match(css,/prefers-reduced-motion:reduce/);
     scroll.scrollTop=31;modes.children[2].fire('click');
@@ -261,7 +279,7 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(arrowPath.attributes.get('d'),'M15 5l-7 7 7 7');
     assert.equal(writes.length,0,'toggle must never persist a placement');
     f.win.innerWidth=400;f.win.fire('resize');
-    assert(host.getBoundingClientRect().right<=f.win.innerWidth-8,'collapsed control remains in bounds');
+    assert(host.getBoundingClientRect().right<=f.win.innerWidth,'collapsed control reaches but never exceeds the viewport edge');
     toggle.fire('click');
     assert.equal(host.attributes.has('data-toc-collapsed'),false);
     assert.equal(host.getBoundingClientRect().width,220);
@@ -277,7 +295,7 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     toggle.fire('click');
     assert.equal(toggle.attributes.get('aria-label'),'Expand contents');
     assert.equal(arrowPath.attributes.get('d'),'M9 5l7 7-7 7');
-    assert.equal(host.getBoundingClientRect().left,8);
+    assert.equal(host.getBoundingClientRect().left,0,'left-docked folded tab must be flush with the viewport edge');
     view.dispose();view.dispose();
     assert.equal(host.removed,true,'dispose removes the recovery button with its host');
     assert.equal(f.win.events.get('resize').size,0);
