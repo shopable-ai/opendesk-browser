@@ -165,7 +165,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,displaySurface='sidebar',view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -1674,6 +1674,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         try{
           navigationAllowed=true;
           const dispose=trustedAIProxyPilot.mount({container:frameRoot,
+            displaySurface:displaySurface==='page'?'page':'sidebar',
             request:(operation,payload)=>requestTrustedAIProxy(tool,token,epoch,operation,payload),
             locale:toolLocaleContext(tool).locale,
             toolNavigation:Object.freeze({
@@ -1951,6 +1952,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
         headerActionsAllowed:approvedNavigation&&headerActionsEnabled===true,
+        displaySurface:displaySurface==='page'?'page':'sidebar',
         ...toolLocaleContext(tool)},'*',transferred);
       // A pre-load hint may have arrived before the sandbox bound its instance.
       lastHostHeight=null;

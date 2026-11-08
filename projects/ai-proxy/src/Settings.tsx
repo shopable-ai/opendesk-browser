@@ -511,7 +511,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <ProxyIcon name="refresh"/>{t('refreshStatus')}
         </Button>
       </div></details>
-      {!headerNavigation&&<Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
+      {presentation!=='management'&&!headerNavigation&&<Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
         title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>}
       </>}
     </header>

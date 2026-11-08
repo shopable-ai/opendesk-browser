@@ -426,6 +426,8 @@ export function initSidebarToolSandbox() {
     if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
       exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
+    // Display hint is not a permission or a trusted tool identity.
+    const displaySurface=message.displaySurface==='page'?'page':'sidebar';
     // Display-only opt-in from the Host after reviewed installation checks.
     // Release discovery does not grant identity or business permissions.
     navigationAllowed=message.navigationAllowed===true;
@@ -484,7 +486,7 @@ export function initSidebarToolSandbox() {
       }catch{return false;}
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,prepareAI,setState,setConversationState,openAISettings,
+      root,request,prepareAI,setState,setConversationState,openAISettings,surface:displaySurface,
       ...(navigationAllowed?{setNavigation}:{}),
       navigationFeatures:freeze({headerActions:headerActionsAllowed}),
       get locale(){return uiLocale;},

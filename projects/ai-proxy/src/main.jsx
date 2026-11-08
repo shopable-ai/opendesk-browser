@@ -9,5 +9,7 @@ const bridge=globalThis.OpenDeskTool;
 const target=bridge?.root?.querySelector('#ai-proxy-app');
 if(!target||typeof bridge?.request!=='function')throw Error('E_AI_PROXY_ENTRY');
 const environment=configureEnvironment(bridge,globalThis.OpenDeskSDK);
-const root=createRoot(target);root.render(<App/>);
+// A full tool tab presents the same installed settings React tree, not a preview.
+// Surface controls geometry only: it does not grant Chrome or Host access.
+const root=createRoot(target);root.render(<App surface={bridge.surface==='page'?'management':'side-panel'}/>);
 globalThis.addEventListener('pagehide',()=>{root.unmount();environment.dispose();},{once:true});
