@@ -39,9 +39,11 @@ if (OpenDeskTool.surface === 'page') {
 
 实际沙箱没有 `chrome.tabs`；Host 将接收单次真实用户交互产生的闭包私有凭据，并按活动安装、启停、撤权/代际、dirty/busy 防护打开**同一工具**的固定扩展页面。旧 Host 没有 `openOwnPage` 时，示例显示能力不可用，原页头和内容入口继续可用，不伪报成功。
 
-公开规范见 [Sidebar Tool API](../../../docs/api/sidebar-tools.zh-CN.md#打开当前工具自己的-pc-页面源码已接线真实-chrome-待验收) 和 [多界面框架合同](../../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。
+公开规范见 [Sidebar Tool API](../../../docs/api/sidebar-tools.zh-CN.md) 和 [多界面框架合同](../../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。
 
 ## 验收分级
+
+2026-11-09 最新：上述源码夹具另有 `SOURCE_FIXTURE_PASS`；相同1.1.0包也在隔离Chromium156真正SIDE_PANEL完成PC保存／侧栏读回、双PC旧ETag冲突、刷新重开、关于栏目及原页头／返回，记 `INSTALLED_CHROME_PASS`。唯一正式包 [header-actions-demo.opendesk-tool.json](header-actions-demo.opendesk-tool.json) 已由原打包器显式晋升、check-project MATCH，SHA-256 `cd27d6d80264a43d1569349cabaec1f06f5ea433875d3658438fd9b61ebd707c`，与已安装候选逐字节相同。受影响框架／Demo127项与开页生命周期4项通过；详细构建身份、证据边界和原始日志见 [本轮验收](../../../projects/ai-proxy/ACCEPTANCE-SINGLE-APP-SURFACES.zh-CN.md)。下文早期仅源码夹具记录保留历史，不覆盖最新结果。
 
 2026-11-09 本机源码夹具已实际完成侧栏打开 PC、保存读回、侧栏重新读取、旧 ETag 冲突保留草稿、关闭／刷新读回及原资料库／返回操作。修复 busy 时两个字段仍可编辑，以及弹窗被阻止后替换原侧栏并报告成功的问题。项目异步回归 **7/7**，与 Bridge 定向测试合计 **117/117** 通过。均为 `SOURCE_FIXTURE_PASS`，不代表 `INSTALLED_CHROME_PASS`；本机日志与截图保留在忽略目录 `docs/framework/evidence/single-app-surfaces-20261109/`。
 

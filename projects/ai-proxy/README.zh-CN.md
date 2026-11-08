@@ -1,12 +1,14 @@
-**2026-11-09 · Single App Multiple Surfaces 本地测试与修复，尚未达到原生发布门槛。** 可信 React 页头管理动作打开自己的 PC 栏目；沙箱页头异步通知保留原内部导航，由内容区直接点击打开 PC。旧 Host 保留侧栏回退，失败或结果未知不重放；PC 顶部将已保存选择明确标为“已选／待应用”，真实运行状态仍独立展示。最新项目测试 **246/246**、项目 Vite 构建及根源码检查通过。通用 Host 修复开页撤权竞态，Bridge 将已发送的 `storage.set` 超时／关闭明确归为 `E_OUTCOME_UNKNOWN`。完整 Browser 隔离快照构建被 Reading TOC `trusted/view.js` 的固定来源 pin 阻断，未放宽校验；本轮 AI Proxy 安装、实际代理应用及出口验证仍未完成。原正式包保持 **0.3.8**，未晋升或更新安装；候选包校验通过不等于发布通过。本机完整报告与原始日志位于忽略目录 `docs/framework/evidence/single-app-surfaces-20261109/`，不会作为源码快照或正式包提交。 续跑已修正页头开页反馈：`E_OUTCOME_UNKNOWN` 提醒先检查已有标签页，明确失败保留原回退说明；正常导航清除旧告警，跨页及返回首页后的迟到拒绝不污染新页面。三语文案与4项行为回归已补齐，导航文件22/22、项目246/246及Vite构建通过。完整Browser、真实安装和包晋升仍受上述门禁约束；原五角色评分只绑定原候选，不自动提升。
+**2026-11-09 · Single App Multiple Surfaces 核心验收完成，0.3.9 已晋升。** 同一安装工具的真实 Side Panel → PC 对应栏目 → 保存／读回 → 侧栏重开读取已验证；并发旧 ETag 拒绝覆盖，未知写入不自动重放，更新后旧实例退役。新版本原位安装保留原配置，选择不应用；明确申请并完成原 Host 审阅后取得 Chrome PAC 回执和本任务受控本地 HTTP 回显，暂停后回读 system。项目测试257/257，受影响框架／Demo127/127、开页生命周期4/4、来源锁2/2、包安全8/8通过；独立静态 development Browser 构建通过。唯一正式 JSON为0.3.9，SHA-256 `30615091d14dcb61b2a9b058f4dc4798963cba94cc011ee683240362cdb367b8`。五个同模型独立上下文角色审查综合97.45/100，不能称为五名外部专家。详细绑定、命令、扣分与限制见[本轮验收记录](ACCEPTANCE-SINGLE-APP-SURFACES.zh-CN.md)。公网出口、production、原生 OS 语言菜单及完整故障组合未验；诊断真实HTTP、认证／任意PAC／订阅联网／官方服务仍未实现。日常浏览器和已有 watcher 未变。
+
+下列早期阶段记录保留历史；当前结果以上述验收记录为准。
 
 **2026-11-09 · R18/R16 预览入库与首阶段正式 PC 展示接线。** 用户确认的独立、可点击单文件存档为 [preview/preview.html](preview/preview.html)；保留 R18 侧栏与 R16 七区 PC 管理，但它只有离线模拟数据，**不属于安装包、编译输入或业务真相层**。正式产品继续由 `src/App.jsx` → `QuickPanel.tsx` / `Settings.tsx` → `environment.ts` / `service.ts` 实现，不将演示 JS、iframe/postMessage 复制为运行逻辑。
 
-**2026-11-09 当前源码状态：双界面导航已实施，运行验收未完成。** 现有 Side Panel / PC 标签页仍共享同一已安装 AI Proxy 工具、原 `App → QuickPanel/Settings → environment/service` 与权限边界。框架在固定 `sidepanel.html` 工具页之间传递只读 `surface`，并新增只允许当前工具自身、合法 `view=settings&section=<栏目>` 的 `OpenDeskTool.openOwnPage`；沙箱需要闭包私有的真实用户点击/Enter 通道，旧 Host、只读预览或能力不可用时仍走原侧栏内设置。侧栏「管理设置」「管理全部」「管理网站规则」「网络诊断」「订阅管理」等浅层入口已接线到 PC，子级编辑、PAC、轮换保留原内部导航。新能力属于 Browser Framework，任何工具可选接入；AI Proxy 只是首个正式消费者。
+**2026-11-09 早期源码阶段记录（已由本轮验收更新）。** 现有 Side Panel / PC 标签页仍共享同一已安装 AI Proxy 工具、原 `App → QuickPanel/Settings → environment/service` 与权限边界。框架在固定 `sidepanel.html` 工具页之间传递只读 `surface`，并新增只允许当前工具自身、合法 `view=settings&section=<栏目>` 的 `OpenDeskTool.openOwnPage`；沙箱需要闭包私有的真实用户点击/Enter 通道，旧 Host、只读预览或能力不可用时仍走原侧栏内设置。侧栏「管理设置」「管理全部」「管理网站规则」「网络诊断」「订阅管理」等浅层入口已接线到 PC，子级编辑、PAC、轮换保留原内部导航。新能力属于 Browser Framework，任何工具可选接入；AI Proxy 只是首个正式消费者。
 
 **真实业务边界保持不变。** PC 使用同一个设置七区、Service、ETag/`ifMatch`、已保存与已应用状态；没有第二套代理存储、Host 或扩权。正式 PC 管理界面在 R16 的轻背景、桌面导航、身份与可信运行摘要方向做了最小布局适配，不将离线预览 Mock 复制到正式业务，也未宣称像素完全一致。任意 PC 栏目提示都不授予权限。
 
-**本轮证据等级：** 源码提交 [9393b53](https://github.com/shopable-ai/opendesk-browser/commit/9393b53d3d0f0e1b769631f80eece465fca70299) 与 [9a6b9d3](https://github.com/shopable-ai/opendesk-browser/commit/9a6b9d3347f5de2d8af64b4e9c9eccde473f4bf4)；[Sidebar R1 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/42515335960) 的新工具页 URL 与 Host 来源定向 Node 测试已通过。完整相关 Node/BUILD 以 CI 最终结果为准，源码已入库不等于本机 Codex、实际已安装 Chrome、网络诊断、代理线路或包晋升完成。此前 `0.3.8` 不自动升级，不覆盖唯一正式 JSON。完整缺口见[第 20 节](#20-单应用多展示界面与-pc-管理导航2026-11-09源码候选chrome-未验收)。
+**早期证据等级（不替代最新验收）：** 源码提交 [9393b53](https://github.com/shopable-ai/opendesk-browser/commit/9393b53d3d0f0e1b769631f80eece465fca70299) 与 [9a6b9d3](https://github.com/shopable-ai/opendesk-browser/commit/9a6b9d3347f5de2d8af64b4e9c9eccde473f4bf4)；[Sidebar R1 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/42515335960) 的新工具页 URL 与 Host 来源定向 Node 测试已通过。完整相关 Node/BUILD 以 CI 最终结果为准，源码已入库不等于本机 Codex、实际已安装 Chrome、网络诊断、代理线路或包晋升完成。此前 `0.3.8` 不自动升级，不覆盖唯一正式 JSON。完整缺口见[第 20 节](#20-单应用多展示界面与-pc-管理导航2026-11-09已完成核心验收)。
 
 **2026-11-08 R14 HeaderActions 源码接入（本轮覆盖下方旧“仅预览”阶段）。** `src/environment.ts` 统一适配可信 pilot 的 `toolNavigation` 和沙箱公开 Bridge；`src/App.jsx` 提交完整导航快照，只有 feature 严格为 true 才增强，返回 false 立即回退 base。Header 添加代理仅打开原添加表单，诊断、订阅、完整设置及返回均复用原路由；内容入口保留。草稿、忙态、确认及结果 unknown 阻断新动作，旧页面/卸载后的事件无效，不应用或停止代理、不自动保存。unknown 导航锁只在服务 GET_STATE / STOP 明确确认已知状态后解除；EXPORT 等无关成功响应不清锁，不重放操作。
 
@@ -562,13 +564,13 @@ Browser实际加载dist/development，ID为ccfcjegpkdlgbclopjmadlcjedelidmf；�
 
 原始AX／截图、请求URL、来源与失败分类见[本轮结果](evidence/selection-vs-apply-20261031/result.json)；核心截图：[只选直连仍为系统／东京](evidence/selection-vs-apply-20261031/09-direct-selected-system-still-active.jpg)、[跟随系统／东京](evidence/selection-vs-apply-20261031/08-follow-system-new-request.jpg)、[直连／最终成都](evidence/selection-vs-apply-20261031/11-final-direct-echo.jpg)。这些是原生UI观察，未伪称CDP网络trace或完整设备VPN证明。
 
-## 20. 单应用、多展示界面与 PC 管理导航（2026-11-09，源码候选，Chrome 未验收）
+## 20. 单应用、多展示界面与 PC 管理导航（2026-11-09，已完成核心验收）
 
 - **已有成果直接复用**：固定安装的 AI Proxy `0.3.8`、`App.jsx → QuickPanel.tsx / Settings.tsx → environment.ts → service.ts`、七栏目、四种连接方式、受管代理请求、`storage.get/set` 的 ETag/`ifMatch`、候选预览 `preview/preview.html`。本阶段没有建立第二套代理数据或代理应用权限。
 - **通用导航路径**：真正的 Side Panel 点击 `QuickPanel` 设置/订阅/诊断等轻量入口时，通过 `getEnvironment().openOwnPage({view:'settings',section})` 向 Host 请求打开**当前 AI Proxy 已安装工具**的 `sidepanel.html` 标签页。旧 Host 不提供该入口时保留原内部 `#/...` 路由。编辑子页、PAC/轮换等子路径继续使用原内部导航，不发明新路由协议。
 - **PC 初始化**：框架仅转交有界的 `initialPage`；AI Proxy 应用自行核对 `OPTIONS_SECTIONS`，并由当前 `createNavigation` 初始化对应栏目。新的 `surface='page'` 仍只选择已有 `Settings` / `management.css` 桌面布局，不构成权限。
 - **视觉修正**：`styles/management.css` 的全页管理容器参照 R16 的单管理框、独立侧栏导航、轻背景与窄屏横向栏目；所有表单、业务操作和实时反馈继续归原 React 组件所有。R18/R16 单文件是视觉参照，不是要安装到扩展的业务 Mock。
 - **严格分离状态**：创建标签页回执、配置保存 + 读回、代理选择、代理实际应用、真实网络连接是至少五个独立事实。当前实现不会因为点击 PC 入口而申请代理控制权，也不会在写入未知后自动重试。并行 Side Panel/PC 写入仍使用原存储比较交换，不共享未保存草稿。
-- **当前证据**：截至本次远端源码提交阶段，仅完成 GitHub 代码审计及改动；本机 CodexPro 无法连接，未执行 Node/Vite 构建、真实 Chromium、安装包更新或独立专家评分。不要将源码入库写为完整业务验收。实际测试时优先沿用本项目现有 watcher、`dist/development` 构建规则和官方「开发 → 本地项目 → 在侧栏调试」入口。
+- **当前证据**：本机 Codex 已执行源码检查、项目／公共定向 Node、Vite 与独立 Browser 静态构建；真实 Chromium156 Side Panel、PC、原位升级、保存回读、选择不应用、原可信审阅、受控本地流量及释放均有回执。HTML Demo、原 Vue 示例和可信／沙箱 React 分别记证；具体 Commit／Build／包身份、故障覆盖和未测试边界见本轮验收记录。日常开发仍沿用原 watcher 和「开发 → 本地项目 → 在侧栏调试」，不将验收快照替换日常安装。
 
 框架接口合同与可操作的双界面 HTML/JS 示例见 `docs/api/sidebar-tools.zh-CN.md`、`examples/sidebar-tools/header-actions-demo/`。

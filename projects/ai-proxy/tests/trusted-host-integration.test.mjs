@@ -64,7 +64,7 @@ test('active current-page subscription notifies trusted portal once per transiti
  callback();assert.equal(notifications,1);
  listeners.forEach(fn=>fn());assert.equal(unsubscribed,true);
 });
-test('trusted release version is the requested 0.3.8',()=>assert.equal(TRUSTED_AI_PROXY_VERSION,'0.3.8'));
+test('trusted release version is the requested 0.3.9',()=>assert.equal(TRUSTED_AI_PROXY_VERSION,'0.3.9'));
 
 test('existing Host permission guard rejects currentPage.info without currentPage.read',()=>{
  const start=host.indexOf("    if(!tool.capabilities.includes(operation.startsWith('storage.')?");

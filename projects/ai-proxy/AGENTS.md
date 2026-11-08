@@ -1,5 +1,7 @@
 # AI Proxy 本项目差异与最新开发顺序
 
+2026-11-09 最新阶段：Single App Multiple Surfaces 已在现有源码上完成定向测试、真实隔离 Chromium 核心验收与0.3.9候选晋升。当前结果及未验边界见 `ACCEPTANCE-SINGLE-APP-SURFACES.zh-CN.md`。下文10月31日的“本轮不提交／未安装／精确0.3.8准入”等仅是历史；安装运行遵守根AGENTS的2026-11-04规则，不以Catalog版本／包SHA匹配要求升级或停止。固定组件版本标记、安装身份、权限／撤权及静态来源保护各自保留。本轮源码与唯一正式包一起安全提交main；不创建分支/worktree/PR，不改日常Profile、Native配对或并行watcher。
+
 2026-10-31 当前可信 React 任务覆盖：用户已选官方可信 React + Shared UI，并授权“现在开始，持续执行到核心功能与审阅材料完成”。复用现有 App/Surface、唯一工作台 React Root、原 Host/SDK/Authority；仅精确官方安装版本0.3.8进入静态 portal，动态/改包/本地调试保持沙箱。本轮处理管理录入弹窗、容器高度、当前页桥接及受影响安全保护；审阅入口为 `evidence/trusted-react-20261031/README.md`。保留其他 dirty、现有 watcher、dist/development和浏览器；不提交/推送，不恢复production、全CI、评分或尺寸矩阵，源码/包/运行证据分别报告。
 
 2026-10-31 直连出口复核：用户确认在测试浏览器只选直连、未点启用。保留CFT155/已安装0.3.5实测重现：只选直连并关闭重开仍为system、未接管，新请求仍东京；明确启用并经原精确审阅后，已确认直连，新请求回显成都。跟随系统经原STOP释放自有线路后回读system、未接管，新请求三项东京。最终保留已应用直连和成都回显页，系统代理未改，UI锁已释放。详见README第19节与evidence/selection-vs-apply-20261031/result.json；本轮只补证据/文档，无业务或平台修复、构建、安装、提交或推送。直连谷歌项失败、最后根页面导航未完成，不能提升为全站可达；最终独立IP回显成功。
