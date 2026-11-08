@@ -107,7 +107,8 @@ async function tocMouseClick(page,target,shadow,selector,iframeRect){
 test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{timeout:120000},async t=>{
  assert(binary,'Chrome for Testing is required: no mock PREVIEW_PASS');
  const profile=await mkdtemp(join(tmpdir(),'toc-r14-chrome-'));
- const chrome=spawn(binary,['--headless=new','--window-size=1280,1500','--no-sandbox','--disable-gpu',
+ // Xvfb provides a genuine desktop hover device; headless reports hover:none.
+ const chrome=spawn(binary,['--window-size=1280,1500','--no-sandbox','--disable-gpu',
   '--disable-dev-shm-usage','--no-proxy-server','--no-first-run',
   '--disable-background-networking','--site-per-process','--remote-allow-origins=*',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
@@ -215,7 +216,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  const hoverless=await evaluate(trusted,'matchMedia("(hover:none)").matches');
- const idleWidth=hoverless?38:12;
+ assert.equal(hoverless,false,'headed Xvfb Chromium must validate the desktop 12px edge');
+ const idleWidth=12;
  const firstWidth=await skinWidth();
  console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
@@ -224,6 +226,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
    'real mouse click did not collapse');
+ await until(async()=>Math.abs((await skinWidth())-38)<1,
+   'real mouse hover must expand the same edge tab to 38px');
  const folded=await rect(host);
  assert.equal(Math.round(folded.width),38,'collapsed host must have no 254px transparent hitbox');
  assert.equal(Math.round(folded.height),46);
@@ -243,5 +247,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
- console.log('READING_TOC_EDGE_NATIVE_PASS: source-backed Chrome mouse toggle, hover, 38x46 hitbox, restore, four modes');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: headed Chrome hover 12px->38px, mouse toggle, 38x46 hitbox, restore, four modes');
 });
