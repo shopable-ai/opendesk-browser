@@ -15,6 +15,7 @@ import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/hos
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {normalizeToolNavigation} from '../../src/sidebar-tools/navigation-state.js';
+import {normalizeToolUiNotice} from '../../src/sidebar-tools/ui-notice.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {COOKIE_ACCOUNT_PROTOCOL} from '../../projects/cookie-editor/trusted/account-contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
@@ -1251,7 +1252,7 @@ for(const enhanced of [false,true])test('R14 actual Bridge negotiates snapshots 
     origin:'null',source:f.frame.contentWindow,data});}};
   runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
     SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
-    window:sandboxWindow,parent,CustomEvent,
+    normalizeToolUiNotice,window:sandboxWindow,parent,CustomEvent,
     document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
       head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:header-contract',revokeObjectURL(){}},
@@ -1259,6 +1260,9 @@ for(const enhanced of [false,true])test('R14 actual Bridge negotiates snapshots 
   });
   sandboxWindow.emit('message',{source:parent,data:{...f.loaded,headerActionsAllowed:enhanced}});
   const sdk=sandboxWindow.OpenDeskTool;
+  assert.equal(sdk.ui.notify({message:'可见的工具提示'}),true);
+  assert.match(f.view.getSnapshot().toast?.message||'',/可见的工具提示/);
+  assert.equal(sdk.ui.notify({message:'禁止 HTML',html:'<strong>not allowed</strong>'}),false);
   assert.equal(sdk.navigationFeatures.headerActions,enhanced);
   assert.equal(sdk.setNavigation(headerHome),enhanced);
   if(!enhanced){
