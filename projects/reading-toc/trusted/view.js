@@ -15,16 +15,15 @@ const CSS=[
 '.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
-`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:20px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
+`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
 ".edge-skin{position:absolute;right:0;left:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:calc(-1 * var(--toc-edge-gap));right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
-// Expanded: 20px at rest, 38px on hover/focus, both visually and interactively.
-// The header keeps a 20px inner clearance so neither state intercepts any
-// toolbar action. Host/card width and outer right gutter remain unchanged.
+// Keep the 38x46px hitbox fixed (no hover resizing or pointer jitter). The
+// visible skin is 20px at rest, grows to 38px on hover/focus. A 20px inner
+// clearance keeps all four toolbar buttons clickable without resizing the card.
 ":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
-".edge-toggle:hover,.edge-toggle:focus-visible{width:38px}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
 ":host([data-toc-collapsed]) .edge-toggle:hover .edge-skin,:host([data-toc-collapsed]) .edge-toggle:focus-visible .edge-skin{width:38px}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
