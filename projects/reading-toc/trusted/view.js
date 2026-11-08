@@ -257,6 +257,11 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       host.style.left=point.left+'px';host.style.top=point.top+'px';
       host.style.right='auto';host.style.bottom='auto';
     }else{
+      // The old collapsed hitbox's top is the exact user's on-screen anchor.
+      // A saved Y ratio must not shift the button when the article/AI panel
+      // changed height while folded. Re-clamp only if the larger panel would
+      // extend outside the current viewport.
+      const buttonTop=host.getBoundingClientRect().top;
       collapsed=false;
       host.removeAttribute('data-toc-collapsed');
       panel.hidden=false;panel.inert=false;
@@ -265,6 +270,12 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       if(placement)reposition();
       expandedFrame=null;
       place();
+      if(placement&&!host.hidden){
+        const rect=host.getBoundingClientRect(),viewport=tocViewport(win);
+        const point=tocClampPoint(rect.left,buttonTop-EDGE_TOP,rect,viewport);
+        host.style.top=point.top+'px';
+        place();
+      }
     }
     syncEdge();
     if(persist)onCollapseChange(collapsed);

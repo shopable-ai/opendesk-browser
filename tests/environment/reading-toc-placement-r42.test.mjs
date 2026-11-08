@@ -314,7 +314,10 @@ test('edge button preserves vertical position across long and short outlines, bo
     view.setPlacement({v:1,dock:'right',x:1,y:0.4});
     const rightTop=buttonTop();
     toggle.fire('click');assert.equal(buttonTop(),rightTop,'right-side collapsed button remains anchored');
-    toggle.fire('click');assert.equal(buttonTop(),rightTop,'right-side expanded button remains anchored');
+    // Simulate headings growing/shrinking while folded: the saved relative-Y
+    // preference must not recenter the expanded button on a different height.
+    expandedHeight=160;
+    toggle.fire('click');assert.equal(buttonTop(),rightTop,'right-side expanded button must not drift after content height changes');
     view.dispose();
   } finally {globalThis.CSSStyleSheet=originalSheet;}
 });
