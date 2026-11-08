@@ -15,13 +15,14 @@ const CSS=[
 '.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
-`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
+`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:20px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
 ".edge-skin{position:absolute;right:0;left:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:calc(-1 * var(--toc-edge-gap));right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
-// Keep the 38x46px hitbox fixed (no hover resizing or pointer jitter). The
-// visible skin is 20px at rest, grows to 38px on hover/focus. A 20px inner
-// clearance keeps all four toolbar buttons clickable without resizing the card.
+// Keep the four toolbar buttons in their original right-aligned position.
+// Expanded mode uses a narrow 20px click target outside the card; the visible
+// tab alone grows to 38px on hover/focus, with pointer-events:none, so it never
+// steals a mode click. Collapsed mode keeps the easy 38x46px target.
 ":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
@@ -30,11 +31,10 @@ const CSS=[
 ":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:38px;transform:none}",
 // Collapsed mode retains the larger click target, and touch has no hover
 // affordance, so show the entire target on touch devices.
-"@media(hover:none){.edge-toggle,.edge-toggle .edge-skin{width:38px}}", 
+"@media(hover:none){:host([data-toc-collapsed]) .edge-toggle .edge-skin{width:38px}}", 
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}:host([data-toc-edge=left]) .edge-skin,:host([data-toc-collapsed]) .edge-skin{border-color:#4b505b}}",
 ':host([hidden]){display:none!important}',
-'.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px;padding-right:20px}',
-":host([data-toc-edge=left]) .head{padding-right:0;padding-left:20px}",
+'.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:0 1 auto;overflow:hidden}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
@@ -80,7 +80,7 @@ const CSS=[
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
-'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
+'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.mode{width:24px}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const EDGE_SIZE=Object.freeze({width:38,height:46});
