@@ -200,14 +200,11 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    return {left:model.border[0],right:model.border[4],top:model.border[1],
      bottom:model.border[5],width:model.width,height:model.height};
  };
+ await trusted.send('CSS.enable');
  const skinWidth=async()=>{
-   const object=(await trusted.send('DOM.resolveNode',{nodeId:skin})).object;
-   const result=await trusted.send('Runtime.callFunctionOn',{
-     objectId:object.objectId,
-     functionDeclaration:'function(){return getComputedStyle(this).width}',
-     returnByValue:true
-   });
-   return Number.parseFloat(result.result.value);
+   const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId:skin});
+   const value=computedStyle.find(item=>item.name==='width')?.value;
+   return Number.parseFloat(value);
  };
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.edge-toggle'})).nodeIds.length,1,
    'one toggle component only');
@@ -215,9 +212,12 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'no body-level simulation button');
  assert.equal((await attributes(toggle))['aria-label'],'收起目录');
  assert.equal((await attributes(arrow)).d,'M9 5l7 7-7 7');
+ const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
+ await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
+ const firstWidth=await skinWidth();
+ console.log('EDGE_INITIAL_SKIN_WIDTH',firstWidth);
  await until(async()=>Math.abs((await skinWidth())-12)<1,'default edge is 12px');
  const initial=await rect(host);
- const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
    'real mouse click did not collapse');
