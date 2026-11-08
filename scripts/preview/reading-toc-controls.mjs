@@ -15,6 +15,7 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
 #od-toc-controls select{min-height:34px;padding:4px 8px;border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);color:var(--od-ink);font:inherit}
 #od-toc-controls select:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 #od-toc-feedback{width:100%;min-height:16px;font-size:12px;color:var(--od-sub)}
+#od-toc-site-control[hidden]{display:none!important}
 </style>
 <div id="od-toc-controls" role="group" aria-label="阅读目录离线交互模拟">
 <label>模拟界面位置<select id="od-toc-surface">
@@ -32,7 +33,10 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
 <option value="error"${select(scenario,'error')}>读取错误</option>
 <option value="permission-denied"${select(scenario,'permission-denied')}>未获授权</option>
 </select></label>
-<span id="od-toc-feedback" role="status" aria-live="polite">所有操作仅为模拟；网页标题不翻译。</span>
+<label id="od-toc-site-control">模拟网站<select id="od-toc-site">
+<option value="a" selected>网站 A</option><option value="b">网站 B</option>
+</select></label>
+<span id="od-toc-feedback" role="status" aria-live="polite">网站 A/B 的收起状态分别记忆；均为离线模拟。</span>
 </div>`;
   const hostScript=`
 <script>
@@ -42,6 +46,9 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
  const surface=document.getElementById('od-toc-surface');
  const language=document.getElementById('od-toc-language');
  const scenario=document.getElementById('od-toc-scenario');
+ const site=document.getElementById('od-toc-site');
+ const siteControl=document.getElementById('od-toc-site-control');
+ const collapsedBySite=Object.create(null); // preview-only memory, not Chrome storage
  const output=document.getElementById('od-toc-feedback');
  const frames=Object.freeze({
   'side-panel':${JSON.stringify(b64(sidePanelHtml))},
@@ -52,8 +59,10 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
  function sync(){
   post('opendesk-toc-preview-locale',{locale:language.value});
   post('opendesk-toc-preview-scenario',{scenario:scenario.value});
+  post('opendesk-toc-preview-site',{site:site.value,collapsed:collapsedBySite[site.value]===true});
  }
  function changeSurface(){
+  siteControl.hidden=surface.value!=='page-overlay';
   const value=frames[surface.value];
   if(!value)return;
   const content=decode(value);
@@ -64,11 +73,21 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
  surface.addEventListener('change',changeSurface);
  language.addEventListener('change',()=>{sync();output.textContent='已更新模拟应用语言；不会刷新或翻译网页章节。';});
  scenario.addEventListener('change',()=>{sync();output.textContent='已切换模拟状态；未读取网页或调用 Chrome 接口。';});
+ site.addEventListener('change',()=>{
+  post('opendesk-toc-preview-site',{site:site.value,collapsed:collapsedBySite[site.value]===true});
+  output.textContent='模拟网站 '+site.value.toUpperCase()+'：'+(collapsedBySite[site.value]===true?'恢复收起状态':'默认展开')+'，与其他网站独立。';
+ });
  iframe.addEventListener('load',sync);
  document.getElementById('od-preview-reset').addEventListener('click',changeSurface);
  window.addEventListener('message',event=>{
-  if(event.source!==iframe.contentWindow||event.data?.kind!=='opendesk-toc-preview-navigation')return;
-  if(typeof event.data.label==='string')
+  if(event.source!==iframe.contentWindow)return;
+  if(event.data?.kind==='opendesk-toc-preview-collapse'&&
+     (event.data.site==='a'||event.data.site==='b')&&typeof event.data.collapsed==='boolean'){
+   collapsedBySite[event.data.site]=event.data.collapsed;
+   output.textContent='模拟网站 '+event.data.site.toUpperCase()+' 已'+(event.data.collapsed?'收起':'展开')+'；仅本网站记忆。';
+   return;
+  }
+  if(event.data?.kind==='opendesk-toc-preview-navigation'&&typeof event.data.label==='string')
    output.textContent='模拟章节定位：'+event.data.label.slice(0,150)+'（未操作实际网页）';
  });
  changeSurface();

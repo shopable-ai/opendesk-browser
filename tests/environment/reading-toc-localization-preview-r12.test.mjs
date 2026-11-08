@@ -43,6 +43,9 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
   assert(preview.html.includes('id="od-toc-surface"'));
   assert(preview.html.includes('id="od-toc-language"'));
   assert(preview.html.includes('id="od-toc-scenario"'));
+  assert(preview.html.includes('id="od-toc-site"'));
+  assert(preview.html.includes('opendesk-toc-preview-site'));
+  assert(preview.html.includes('opendesk-toc-preview-collapse'));
   assert.match(preview.html,/srcdoc|FRAME_BASE64|atob\(/);
   assert.match(preview.html,/网页标题不翻译/);
   assert.match(preview.html,/sandbox="allow-scripts"/);
@@ -60,6 +63,13 @@ test('R1.2 source-backed webpage overlay uses actual trusted view+placement and 
   const overlay=await readingTocOverlayPreview({scenario:'success'});
   const expected=createHash('sha256').update(JSON.stringify(original)).digest('hex');
   assert.equal(overlay.sourceSha256,expected);
+  const encoded=overlay.html.match(/script type="module" src="data:text\/javascript;base64,([^"]+)"/);
+  assert(encoded,'must embed the original view as a single data module');
+  const moduleText=Buffer.from(encoded[1],'base64').toString('utf8');
+  assert(moduleText.includes('initialCollapsed'));
+  assert(moduleText.includes('onCollapseChange'));
+  assert(moduleText.includes('mountSite'));
+  assert(moduleText.includes('opendesk-toc-preview-site'));
   assert.equal(overlay.realView,true);
   assert.equal(overlay.mockData,true);
   assert.match(overlay.html,/script type="module" src="data:text\/javascript;base64,/);

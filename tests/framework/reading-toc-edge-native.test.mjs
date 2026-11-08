@@ -269,5 +269,16 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
+ // The preview site selector is outside the tool: A and B must not share collapse.
+ await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")'),
+   'site A user collapse must be reflected in the real view');
+ await pause(180); // Let the preview-only parent receive A's state before changing sites.
+ await select(overlay.page,'od-toc-site','b');
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===false'),
+   'unvisited site B must default expanded');
+ await select(overlay.page,'od-toc-site','a');
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===true'),
+   'return to site A must restore its collapsed state');
  console.log('READING_TOC_EDGE_NATIVE_PASS: collapsed idle 20px, hover 38px, centered visible arrow, fixed hitbox, recovery');
 });
