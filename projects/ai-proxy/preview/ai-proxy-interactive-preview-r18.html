@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>AI Proxy · 代理切换纠偏 · R18 交互预览</title>
+<title>AI Proxy · R18 侧栏 + R16 PC 管理交互预览</title>
 <style>
 :root{--brand:#365dd5;--brandHover:#2f50b7;--brandSoft:#ecf1ff;--ink:#1e293b;--sub:#64748b;--muted:#8794a7;--stroke:#e3e8f0;--soft:#f6f8fb;--white:#fff;--positive:#168566;--negative:#c3485a;--amber:#9a650a;--radius:10px;--shadow:0 18px 60px rgba(34,50,86,.10),0 1px 3px rgba(34,50,86,.08)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;}body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:#f2f5fa;font-size:13px;line-height:1.48}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}a{color:var(--brand)}:focus-visible{outline:2px solid var(--brand);outline-offset:2px}[hidden]{display:none!important}svg{display:inline-block;flex:none;vertical-align:middle}h1,h2,h3,p{margin:0}h1{font-size:16px;letter-spacing:-.3px}h2{font-size:15px;letter-spacing:-.15px}h3{font-size:13px}small{font-size:11px}.muted{color:var(--sub)}.meta{font-size:11px;color:var(--sub)}.strong{font-weight:650}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
@@ -32,12 +32,24 @@
 .runtime-tip.is-pending{padding:7px 9px;border-radius:7px;background:#fff8e9;color:#845514}
 .status-box .primary-btn:disabled{opacity:.7}
 @media(max-width:370px){.profile-row{gap:6px;padding:7px 8px}.profile-badge{width:25px;height:25px}.profile-action{font-size:10px}}
+
+/* R16 owns PC settings. This stage only manages composition and view switching. */
+body[data-view="pc"] .studio-controls .control-label,
+body[data-view="pc"] .studio-controls .segments,
+body[data-view="pc"] .studio-controls .scenario-select{display:none}
+.pc-embed-note{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1200px;margin:0 auto 10px;padding:0 2px;color:var(--sub);font-size:11px}
+.pc-embed-note strong{font-size:12px;color:var(--ink)}
+.pc-embed-surface{max-width:1200px;margin:0 auto;overflow:hidden;border:1px solid var(--stroke);border-radius:14px;background:#fff;box-shadow:var(--shadow)}
+.pc-embed-frame{display:block;width:100%;height:min(905px,calc(100dvh - 165px));min-height:660px;border:0;background:#fff}
+.pc-embed-footer{max-width:1200px;margin:11px auto 0;text-align:center;color:var(--sub);font-size:11px}
+@media(max-width:830px){.pc-embed-frame{height:calc(100dvh - 210px);min-height:600px}}
+@media(max-width:570px){.pc-embed-surface{border-radius:9px}.pc-embed-frame{height:calc(100dvh - 174px);min-height:530px}}
 </style>
 </head>
 <body>
 <header class="studio-header">
  <div class="studio-header-inner">
-  <div class="studio-brand"><div class="studio-mark">AP</div><div><h1>AI Proxy · 侧边栏入口优化</h1><p>R18 · 代理选择与实际应用分离 · PC 设置页面保持不变</p></div></div>
+  <div class="studio-brand"><div class="studio-mark">AP</div><div><h1>AI Proxy · 侧边栏入口优化</h1><p>R18 侧边栏 + R16 完整 PC 设置 · 离线交互预览</p></div></div>
   <div class="studio-controls" role="group" aria-label="预览控制">
    <span class="control-label">方案对比</span>
    <div class="segments" role="group" aria-label="优化前后对比"><button id="mode-before" data-ui="before" aria-pressed="false">优化前</button><button id="mode-after" data-ui="after" aria-pressed="true">优化后</button></div>
@@ -47,6 +59,11 @@
  </div>
 </header>
 <main class="studio-body" id="app" aria-live="off"></main>
+<section class="studio-body" id="pc-host" aria-label="AI Proxy PC 管理" hidden>
+ <div class="pc-embed-note"><strong>PC 设置 · R16 完整管理工作台</strong><span>七个栏目 · 设置更改仅在预览内存中生效</span></div>
+ <div class="pc-embed-surface"><iframe id="pc-preview-frame" class="pc-embed-frame" title="AI Proxy R16 PC 设置完整交互" sandbox="allow-scripts allow-downloads allow-modals" referrerpolicy="no-referrer" src="./ai-proxy-interactive-preview-r16.html?embed=pc#options/proxies"></iframe></div>
+ <p class="pc-embed-footer">离线原型：不连接订阅服务，不接管浏览器代理；返回侧栏请使用设置页右上角的返回按钮。</p>
+</section>
 <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
 <script>
 'use strict';
@@ -56,6 +73,25 @@ const icon=(key,size=18)=>`<svg aria-hidden="true" width="${size}" height="${siz
 const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const initial=()=>({comparison:'after',scene:'normal',view:'side',section:'profiles',mode:'profile',selected:'p1',applied:true,activeMode:'profile',activeProfile:'p1',switchingTo:null,site:'example.com',profiles:[{id:'p1',name:'香港节点 · 主用',host:'proxy.example.com:7890',scheme:'SOCKS5'},{id:'p2',name:'美国节点 · 备用',host:'us.example.net:1080',scheme:'SOCKS5'},{id:'p3',name:'本地 Clash',host:'127.0.0.1:7890',scheme:'HTTP'}],subs:[{id:'s1',name:'我的订阅',url:'https://example.com/my-subscription',enabled:true}],rules:[{id:'r1',domain:'example.com',target:'香港节点 · 主用',enabled:true}],editor:null,diagnosticRan:false,diagCount:0,notice:'',siteEditor:false,navTab:'扩展',subTab:'sources',startup:false});
 let s=initial();let toastTimer=null;let switchRevision=0;const app=document.getElementById('app');
+const pcHost=document.getElementById('pc-host'),pcFrame=document.getElementById('pc-preview-frame'),bridgeProtocol='ai-proxy.preview.bridge.v1';
+let pcReady=false,pcInitialized=false,sideScrollTop=0,bridgeNonce='r18-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+function sendPcInitialize(){
+ if(!pcReady||pcInitialized)return;
+ pcInitialized=true;
+ pcFrame.contentWindow?.postMessage({protocol:bridgeProtocol,type:'init',nonce:bridgeNonce,
+  profiles:s.scene==='empty'?[]:s.profiles,rules:s.scene==='empty'?[]:s.rules,site:s.site,
+  selection:{mode:s.mode,selected:s.selected,applied:s.applied,pending:isPending()}},'*');
+ if(s.view==='pc')sendPcNavigate();
+}
+function sendPcNavigate(){
+ if(!pcInitialized)return;
+ pcFrame.contentWindow?.postMessage({protocol:bridgeProtocol,type:'navigate',nonce:bridgeNonce,
+  section:s.section,editor:s.editor,selection:{mode:s.mode,selected:s.selected,applied:s.applied,pending:isPending()}},'*');
+}
+function resetPcPreview(){
+ pcInitialized=false;pcReady=false;bridgeNonce='r18-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+ pcFrame.src=pcFrame.getAttribute('src');
+}
 const popToast=(message)=>{const t=document.getElementById('toast');t.innerHTML=`${icon('info',16)}<span>${escapeHtml(message)}</span>`;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,2800)};
 const profilesNow=()=>s.scene==='empty'?[]:s.profiles;
 const modeLabels={profile:'使用代理',rules:'按规则',direct:'直接连接',system:'跟随系统'};
@@ -117,30 +153,21 @@ function renderSide(){
  <aside class="review-col" aria-label="改动对照说明"><div class="review-card"><div class="review-head"><span class="review-index">${s.comparison==='before'?'旧':'新'}</span><h2>${s.comparison==='before'?'旧版：按钮语义容易误解':'R18：切换状态清晰可控'}</h2></div>
  ${s.comparison==='before'?`<div class="review-item">${icon('alert',17)}<div><strong>低频动作固定占据位置</strong><p>不论是否需要诊断，两个大按钮始终在底部占据一整行。</p></div></div><div class="review-item">${icon('alert',17)}<div><strong>与设置入口重复</strong><p>订阅和诊断本身就是 PC 管理栏目，又被放在侧栏底部。</p></div></div><div class="review-item">${icon('alert',17)}<div><strong>操作优先级不清晰</strong><p>用户容易把配置、排障和代理启停理解成同一等级。</p></div></div>`:
  `<div class="review-item">${icon('check',17)}<div><strong>移除底部常驻双按钮</strong><p>代理状态、列表和当前网站保持原有结构，底部不再抢占高度。</p></div></div><div class="review-item">${icon('check',17)}<div><strong>订阅：放在需要它的位置</strong><p>未配置时提供「导入订阅」；其他时候通过 PC 管理集中维护。</p></div></div><div class="review-item">${icon('check',17)}<div><strong>诊断：只在出现问题时提示</strong><p>异常、控制冲突或状态未知时，在运行状态附近给出直接入口。</p></div></div>`}
- <div class="review-divider"></div><div class="review-footer">R18 同时优化了「我的代理」点击切换：运行中单击其他代理完成模拟切换；暂停时仅预选，点击启用才生效。切换期间保留旧的已应用线路，连接方式更改也不会误报暂停。PC 管理页面代码与样式保留 R17 原样。所有操作均为内存模拟。</div><div class="review-test"><button data-action="scene-shortcut" data-value="normal">正常</button><button data-action="scene-shortcut" data-value="empty">首次使用</button><button data-action="scene-shortcut" data-value="error">连接异常</button></div>
+ <div class="review-divider"></div><div class="review-footer">R18 同时优化了「我的代理」点击切换：运行中单击其他代理完成模拟切换；暂停时仅预选，点击启用才生效。切换期间保留旧的已应用线路，连接方式更改也不会误报暂停。PC 管理已切换为 R16 的完整七区设置页面；两处均为离线内存模拟。</div><div class="review-test"><button data-action="scene-shortcut" data-value="normal">正常</button><button data-action="scene-shortcut" data-value="empty">首次使用</button><button data-action="scene-shortcut" data-value="error">连接异常</button></div>
  <div class="legend">${s.comparison==='after'?'建议体验：正常运行时点击「美国节点 · 备用」，观察「切换中 → 使用中」；再暂停后选择「本地 Clash」，确认不会自动启用。也可点击直接连接，查看待应用状态。':'旧版点击其他代理后会把运行状态直接改成「已暂停」，无法区分已选和实际线路。'}</div>
  </div></aside></div>`;
 }
-function managementHeader(title,description,button=''){return `<div class="pc-heading"><div><div class="pc-breadcrumb">AI Proxy / 管理 / ${escapeHtml(title)}</div><h2>${escapeHtml(title)}</h2><p>${escapeHtml(description)}</p></div>${button}</div>`}
-function profileContent(){return `${managementHeader('我的代理','集中管理代理服务器、分组和连接配置。',`<button class="primary-btn" data-action="edit" data-editor="new-proxy">${icon('plus',15)} 添加代理</button>`)}
-<div class="pc-grid"><div class="stat-card"><p>已保存代理</p><div class="value">${s.profiles.length}</div><p>本次预览数据</p></div><div class="stat-card"><p>当前选择</p><div class="value" style="font-size:15px;margin-top:13px">${escapeHtml(s.profiles.find(p=>p.id===s.selected)?.name||'暂无')}</div><p>选择与应用分开</p></div><div class="stat-card"><p>管理范围</p><div class="value" style="font-size:16px;margin-top:12px">浏览器代理</div><p>非设备全局代理</p></div></div>
-<div class="pc-card"><header><div><h3>代理列表</h3><p>这里管理所有代理，侧栏只提供高频快捷选择。</p></div></header><div class="pc-list">${s.profiles.map(p=>`<div class="pc-list-row"><div class="p-icon">${icon('server')}</div><div class="info"><strong>${escapeHtml(p.name)}</strong><p>${escapeHtml(p.scheme)} · ${escapeHtml(p.host)}</p></div>${s.selected===p.id?'<span class="tag">已选择</span>':'<span class="tag neutral">可用</span>'}<button class="secondary-btn" data-action="select-profile" data-value="${p.id}">选择</button></div>`).join('')||`<div class="blank-slab">尚未添加代理</div>`}</div>
-<div style="display:flex;gap:8px;justify-content:flex-start;margin-top:14px"><button class="ghost-btn" data-action="go-pc" data-section="subscriptions">${icon('link',15)}添加订阅来源 ${icon('external',12)}</button></div></div>${renderEditor()}`}
-function rulesContent(){return `${managementHeader('网站规则','为指定网站选择代理、直连或按默认线路处理。',`<button class="primary-btn" data-action="edit" data-editor="new-rule">${icon('plus',15)} 新建规则</button>`)}<div class="pc-card"><header><div><h3>网站规则</h3><p>精确匹配与子域名规则统一管理。</p></div></header><div class="pc-list">${s.rules.length?s.rules.map(r=>`<div class="pc-list-row"><span class="p-icon">${icon('globe')}</span><div class="info"><strong>${escapeHtml(r.domain)}</strong><p>使用：${escapeHtml(r.target)} · 包含子域名</p></div><span class="tag">已启用</span></div>`).join(''):`<div class="blank-slab">还没有网站规则</div>`}</div></div>${renderEditor()}`}
-function subscriptionsContent(){return `${managementHeader('订阅与客户端','管理订阅来源及本地代理客户端。不是日常连接的快捷开关。',`<button class="primary-btn" data-action="edit" data-editor="new-sub">${icon('plus',15)} 新增订阅来源</button>`)}<nav class="subnav" role="tablist"><button data-action="subtab" data-value="sources" aria-selected="${s.subTab==='sources'}">订阅来源</button><button data-action="subtab" data-value="local" aria-selected="${s.subTab==='local'}">本地客户端</button></nav>${s.subTab==='sources'?`<div class="pc-card"><header><div><h3>已保存的订阅</h3><p>这里展示的是本次交互演示的数据，不代表真实订阅已联网同步。</p></div><span class="tag neutral">${s.subs.length} 条</span></header><div class="pc-list">${s.subs.map(sub=>`<div class="pc-list-row"><div class="p-icon">${icon('link')}</div><div class="info"><strong>${escapeHtml(sub.name)}</strong><p>${escapeHtml(sub.url)}</p></div><span class="tag neutral">演示来源</span></div>`).join('')||'<div class="blank-slab">尚未保存订阅</div>'}</div></div>`:`<div class="pc-card"><header><div><h3>本地客户端</h3><p>配置 Clash、sing-box 等本地代理应用的监听端口。</p></div><button class="secondary-btn" data-action="edit" data-editor="new-local">${icon('plus',14)} 添加客户端</button></header><div class="pc-list"><div class="pc-list-row"><span class="p-icon">${icon('network')}</span><div class="info"><strong>示例本地客户端</strong><p>SOCKS5 · 127.0.0.1:7890（演示）</p></div><span class="tag neutral">未验证</span></div></div></div>`}${renderEditor()}`}
-function diagnosticsContent(){const diagSt=status();const ran=s.diagnosticRan;return `${managementHeader('网络诊断','集中查看状态、权限与排障信息。仅在需要时从侧边栏快捷进入。',`<button class="primary-btn" data-action="run-diag">${icon('refresh',15)} ${ran?'重新模拟检测':'模拟检测'}</button>`)}<div class="notice warning" style="margin-bottom:18px">本页是离线交互预览。点击模拟检测不会连接网站、检测真实网络或改变代理配置。</div><div class="pc-grid"><div class="stat-card"><p>代理状态</p><div class="value" style="font-size:17px;margin-top:11px">${diagSt.label}</div><p>${diagSt.description}</p></div><div class="stat-card"><p>浏览器控制</p><div class="value" style="font-size:17px;margin-top:11px">${s.scene==='conflict'?'被其他扩展接管':'未执行实测'}</div><p>仅读取模拟状态</p></div><div class="stat-card"><p>诊断结果</p><div class="value" style="font-size:17px;margin-top:11px">${ran?'已模拟':'尚未检测'}</div><p>${ran?`第 ${s.diagCount} 次模拟`:'等待用户主动操作'}</p></div></div><div class="pc-card"><header><div><h3>诊断项目</h3><p>诊断时应先检查状态，不直接更改浏览器代理。</p></div></header><div class="diag-row"><span class="diag-icon">${icon('shield',16)}</span><div><strong>扩展控制权</strong><p>是否有其他扩展管理系统代理设置</p></div><span class="diag-status ${ran&&s.scene!=='conflict'?'good':''}">${ran?(s.scene==='conflict'?'模拟：存在冲突':'模拟：未发现冲突'):'待检测'}</span></div><div class="diag-row"><span class="diag-icon">${icon('server',16)}</span><div><strong>代理配置</strong><p>地址、协议、端口与选择状态</p></div><span class="diag-status ${ran&&s.scene==='normal'?'good':''}">${ran?(s.scene==='empty'?'模拟：尚未配置':s.scene==='error'?'模拟：代理无响应':'模拟：已读取配置'):'待检测'}</span></div><div class="diag-row"><span class="diag-icon">${icon('wifi',16)}</span><div><strong>目标网络连通性</strong><p>离线预览不发起真实网络请求</p></div><span class="diag-status">不执行</span></div></div><div class="pc-card" style="background:#fafcff"><h3>下一步建议</h3><p class="muted" style="font-size:12px;margin-top:8px">${s.scene==='conflict'?'检查其他代理扩展或浏览器的代理控制来源。':s.scene==='error'?'检查代理地址、端口及本地客户端是否正常启动。':s.scene==='unknown'?'先确认实际运行状态，再决定是否重试。':s.scene==='empty'?'先添加代理或订阅来源，再进行连接诊断。':'如需查看详细配置，可以进入「我的代理」或「订阅与客户端」。'}</p><button class="ghost-btn" style="margin-top:10px" data-action="go-pc" data-section="profiles">查看代理配置 ${icon('external',13)}</button></div>`}
-function backupContent(){return `${managementHeader('导入与备份','配置的导入、导出与恢复集中在这里。')}<div class="pc-card"><header><div><h3>导出模拟配置</h3><p>导出本次演示中的代理名称、网站规则与订阅示例，不包含真实凭据。</p></div><button class="secondary-btn" data-action="export">${icon('download',15)} 导出 JSON</button></header><div class="notice info">本预览导出的数据仅包含您在此演示页面中创建的信息。</div></div><div class="pc-card"><header><div><h3>从文件导入</h3><p>正式产品可以在这里验证结构与敏感字段。本预览不读取或写入真实扩展存储。</p></div></header><div class="blank-slab">当前只展示导入位置，不对真实配置进行变更</div></div>`}
-function generalContent(){return `${managementHeader('通用设置','管理界面行为与一般使用偏好。')}<div class="pc-card"><header><div><h3>基础偏好</h3><p>设置仅影响本次页面的模拟数据。</p></div></header><div class="diag-row"><span class="diag-icon">${icon('globe',17)}</span><div><strong>界面语言</strong><p>当前预览使用简体中文</p></div><span class="tag neutral">简体中文</span></div><div class="diag-row"><span class="diag-icon">${icon('play',17)}</span><div><strong>打开扩展时显示状态</strong><p>预览内偏好开关</p></div><input class="switch" data-action="toggle-startup" aria-label="打开扩展时显示状态" type="checkbox" ${s.startup?'checked':''}></div><div class="diag-row"><span class="diag-icon">${icon('info',17)}</span><div><strong>隐私与安全</strong><p>不在网页中直接暴露代理凭据</p></div><span class="tag">建议开启</span></div></div>`}
-function officialContent(){return `${managementHeader('可选官方网络','了解与官方网络相关的可选能力和说明。')}<div class="pc-card"><header><div><h3>官方网络</h3><p>这是独立的扩展管理栏目，不在日常代理侧栏底部显示。</p></div></header><div class="notice info">交互设计预览不连接官方服务，也不代表实际套餐、权限或网络状态。</div></div>`}
-function renderEditor(){if(!s.editor)return '';const e=s.editor;let body='';let heading='';if(e==='new-proxy'){heading='添加代理';body=`<div class="form-grid"><div class="field"><label for="edit-name">名称</label><input id="edit-name" name="name" placeholder="例如：自用代理" required></div><div class="field"><label for="edit-scheme">代理协议</label><select id="edit-scheme" name="scheme"><option>HTTP</option><option>HTTPS</option><option>SOCKS5</option></select></div><div class="field"><label for="edit-host">服务器地址</label><input id="edit-host" name="host" placeholder="proxy.example.com" required></div><div class="field"><label for="edit-port">端口</label><input id="edit-port" name="port" type="number" min="1" max="65535" placeholder="7890" required></div></div>`}
-else if(e==='new-sub'){heading='新增订阅来源';body=`<div class="form-grid"><div class="field"><label for="edit-name">来源名称</label><input id="edit-name" name="name" placeholder="例如：我的订阅" required></div><div class="field"><label for="edit-type">来源类型</label><select id="edit-type" name="type"><option value="subscription">订阅链接</option></select></div><div class="field full"><label for="edit-url">订阅链接</label><input id="edit-url" name="url" type="url" placeholder="https://example.com/subscription" required><span class="help">演示模式仅记录文本，不向该地址发送请求。</span></div></div>`}
-else if(e==='new-local'){heading='添加本地客户端';body=`<div class="form-grid"><div class="field"><label for="edit-name">客户端名称</label><input id="edit-name" name="name" placeholder="例如：我的 Clash" required></div><div class="field"><label for="edit-port">监听端口</label><input id="edit-port" name="port" type="number" min="1" max="65535" placeholder="7890" required></div></div>`}
-else if(e==='new-rule'){heading='新增网站规则';body=`<div class="form-grid"><div class="field"><label for="edit-domain">网站域名</label><input id="edit-domain" name="domain" value="${escapeHtml(s.site)}" required></div><div class="field"><label for="edit-target">线路</label><select id="edit-target" name="target"><option value="直连">直连</option>${s.profiles.map(p=>`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}</select></div></div>`}
-else return '';
-return `<div class="pc-card" id="editor" style="border-color:#b5c7f0;background:#fbfcff"><header><h3>${heading}</h3><button class="icon-btn" aria-label="取消编辑" title="取消编辑" data-action="cancel-editor">${icon('close')}</button></header><form id="editor-form" data-editor="${e}">${body}<div class="form-actions"><button class="secondary-btn" type="button" data-action="cancel-editor">取消</button><button class="primary-btn" type="submit">保存（模拟）</button></div></form></div>`}
-const sectionInfo={profiles:['我的代理','server'],rules:['网站规则','route'],subscriptions:['订阅与客户端','link'],backup:['导入与备份','folder'],diagnostic:['网络诊断','network'],general:['通用设置','gear'],official:['可选官方网络','globe']};
-function renderPc(){const titles={profiles:profileContent,rules:rulesContent,subscriptions:subscriptionsContent,backup:backupContent,diagnostic:diagnosticsContent,general:generalContent,official:officialContent};return `<div class="pc-wrapper"><div class="pc-top"><span class="pc-logo">AP</span><div><h2>AI Proxy</h2><span>管理中心 · PC 视图</span></div><div class="push"></div><span class="tag neutral" style="margin-right:8px">离线模拟</span><button class="secondary-btn" data-action="back-side">${icon('arrowLeft',15)} 返回侧栏</button></div><div class="pc-layout"><nav class="pc-nav" aria-label="设置导航"><div class="nav-label">管理导航</div>${Object.entries(sectionInfo).map(([k,[label,i]])=>`<button aria-current="${s.section===k?'page':'false'}" data-action="pc-section" data-section="${k}">${icon(i)}${label}</button>`).join('')}</nav><div class="pc-content" id="pc-scroll">${titles[s.section]()}</div></div></div>`}
-function render(){const sideTop=document.getElementById('sidebar-scroll')?.scrollTop??0;const pcTop=document.getElementById('pc-scroll')?.scrollTop??0;document.getElementById('mode-before').setAttribute('aria-pressed',String(s.comparison==='before'));document.getElementById('mode-after').setAttribute('aria-pressed',String(s.comparison==='after'));document.getElementById('scene').value=s.scene;app.innerHTML=s.view==='side'?renderSide():renderPc();const scrollSide=document.getElementById('sidebar-scroll');if(scrollSide)scrollSide.scrollTop=sideTop;const scrollPc=document.getElementById('pc-scroll');if(scrollPc)scrollPc.scrollTop=pcTop;document.title=`AI Proxy · ${s.comparison==='before'?'优化前':'优化后'} · ${s.view==='side'?'侧边栏':'PC管理'}交互预览`}
+function render(){
+ const scroll=document.getElementById('sidebar-scroll');
+ if(scroll&&!app.hidden)sideScrollTop=scroll.scrollTop;
+ document.getElementById('mode-before').setAttribute('aria-pressed',String(s.comparison==='before'));
+ document.getElementById('mode-after').setAttribute('aria-pressed',String(s.comparison==='after'));
+ document.getElementById('scene').value=s.scene;
+ document.body.dataset.view=s.view;
+ if(s.view==='pc'){app.hidden=true;pcHost.hidden=false;}
+ else{pcHost.hidden=true;app.hidden=false;app.innerHTML=renderSide();const side=document.getElementById('sidebar-scroll');if(side)side.scrollTop=sideScrollTop;}
+ document.title='AI Proxy · R18 侧栏 + R16 PC 设置 · '+(s.view==='pc'?'PC 管理':'侧边栏');
+}
 function selectScene(value){
  switchRevision++; s.switchingTo=null; s.scene=value;
  if(value==='empty'){s.applied=false;s.selected='';s.mode='profile';s.activeProfile='';s.activeMode='profile'}
@@ -148,15 +175,14 @@ function selectScene(value){
    s.mode='profile';s.selected=s.profiles[0]?.id||'';s.applied=true;
    s.activeMode='profile';s.activeProfile=s.selected;
  }else{s.applied=false;}
- s.editor=null;s.diagnosticRan=false;render();
+ s.editor=null;s.diagnosticRan=false;resetPcPreview();render();
 }
-function goPC(section,editor){s.view='pc';s.section=section||'profiles';s.editor=editor||null;if(s.section!=='subscriptions')s.subTab='sources';render();if(s.editor)document.getElementById('editor')?.scrollIntoView({block:'nearest'})}
+function goPC(section,editor){s.view='pc';s.section=section||'profiles';s.editor=editor||null;render();sendPcNavigate()}
 document.addEventListener('click',event=>{const el=event.target.closest('[data-action]');if(!el)return;const action=el.dataset.action;
  if(action==='host-tab'){s.navTab=el.dataset.value;render()}
  else if(action==='back-list'){s.navTab='扩展';popToast('当前仅预览 AI Proxy；扩展列表未在本稿中重建')}
  else if(action==='go-pc'){goPC(el.dataset.section,el.dataset.editor)}
- else if(action==='back-side'){if(s.editor){popToast('请先保存或取消当前编辑');return;}s.view='side';render()}
- else if(action==='pc-section'){if(s.editor){popToast('请先保存或取消当前编辑');return;}s.section=el.dataset.section;s.diagnosticRan=false;render()}
+ else if(action==='back-side'){s.view='side';s.editor=null;render()}
  else if(action==='set-mode'){
    if(s.switchingTo)return;
    if(s.view==='side' && s.comparison==='after' && ['conflict','unknown'].includes(s.scene)){
@@ -219,21 +245,32 @@ document.addEventListener('click',event=>{const el=event.target.closest('[data-a
  else if(action==='site-rule'){goPC('rules','new-rule')}
  else if(action==='refresh-site'){popToast('已刷新模拟网站信息：'+s.site)}
  else if(action==='scene-shortcut'){document.getElementById('scene').value=el.dataset.value;selectScene(el.dataset.value)}
- else if(action==='edit'){s.editor=el.dataset.editor;render();document.getElementById('editor')?.scrollIntoView({block:'nearest',behavior:'smooth'});document.getElementById('editor')?.querySelector('input')?.focus({preventScroll:true})}
- else if(action==='cancel-editor'){s.editor=null;render()}
- else if(action==='subtab'){s.subTab=el.dataset.value;s.editor=null;render()}
- else if(action==='run-diag'){s.diagnosticRan=true;s.diagCount++;render();popToast('模拟检测完成；未访问真实网络')}
- else if(action==='export'){const data=JSON.stringify({previewOnly:true,profiles:s.profiles,rules:s.rules,subscriptions:s.subs},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='ai-proxy-preview-demo.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);popToast('已导出本次演示数据')}
-});
-document.addEventListener('submit',event=>{if(event.target.id!=='editor-form')return;event.preventDefault();const form=event.target;const data=Object.fromEntries(new FormData(form));const editor=form.dataset.editor;
- if(editor==='new-proxy'){const name=String(data.name).trim(),host=String(data.host).trim(),port=Number(data.port);if(!name||!host||!Number.isInteger(port)||port<1||port>65535)return;const id='p'+Date.now();s.profiles.push({id,name,scheme:data.scheme,host:host+':'+port});s.selected=id;s.scene='normal';s.applied=false}
- else if(editor==='new-sub'){const name=String(data.name).trim(),url=String(data.url).trim();if(!name||!/^https?:\/\//.test(url))return;s.subs.push({id:'s'+Date.now(),name,url,enabled:true});s.subTab='sources'}
- else if(editor==='new-rule'){const domain=String(data.domain).trim();if(!domain)return;s.rules.push({id:'r'+Date.now(),domain,target:String(data.target),enabled:true})}
- else if(editor==='new-local'){const port=Number(data.port);if(!Number.isInteger(port)||port<1||port>65535)return;s.profiles.push({id:'p'+Date.now(),name:String(data.name).trim(),scheme:'SOCKS5',host:'127.0.0.1:'+port});s.scene='normal';s.applied=false}
- s.editor=null;render();popToast('已保存到本次预览内存；未修改真实配置');});
-document.addEventListener('change',event=>{if(event.target.id==='scene')selectScene(event.target.value);if(event.target.dataset.action==='toggle-startup'){s.startup=event.target.checked;popToast('预览偏好已更新')}});
+ });
+document.addEventListener('change',event=>{if(event.target.id==='scene')selectScene(event.target.value)});
 document.querySelectorAll('[data-ui]').forEach(el=>el.addEventListener('click',()=>{s.comparison=el.dataset.ui;render()}));
-document.getElementById('reset').addEventListener('click',()=>{switchRevision++;s=initial();render();popToast('已恢复初始预览')});
+pcFrame.addEventListener('load',()=>{pcReady=true;sendPcInitialize()});
+window.addEventListener('message',event=>{
+ if(event.source!==pcFrame.contentWindow)return;
+ const data=event.data;
+ if(!data||data.protocol!==bridgeProtocol)return;
+ if(data.type==='ready'){pcReady=true;sendPcInitialize();return;}
+ if(!pcInitialized||data.nonce!==bridgeNonce)return;
+ if(data.type==='back'){s.view='side';s.editor=null;render();return;}
+ if(data.type!=='snapshot'||!Array.isArray(data.profiles)||data.profiles.length>100)return;
+ const profiles=data.profiles.filter(p=>p&&typeof p.id==='string'&&/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(p.id)&&typeof p.name==='string'&&typeof p.host==='string'&&typeof p.scheme==='string').map(p=>({id:p.id,name:p.name.slice(0,80),host:p.host.slice(0,300),scheme:p.scheme.slice(0,12)}));
+ s.profiles=profiles;
+ if(Array.isArray(data.rules)&&data.rules.length<=100)s.rules=data.rules.filter(r=>r&&typeof r.domain==='string'&&typeof r.target==='string').map((r,i)=>({id:'r'+i,domain:r.domain.slice(0,253),target:r.target.slice(0,80),enabled:r.enabled!==false}));
+ if(data.selectedKind==='proxy'&&['profile','rules','direct','system'].includes(data.mode)){
+  s.mode=data.mode;s.selected=profiles.some(p=>p.id===data.selected)?data.selected:'';
+ }
+ if(data.applicationStatus==='applied'){
+  s.applied=true;
+  if(!data.pending){s.activeMode=s.mode;if(s.mode==='profile')s.activeProfile=s.selected;}
+ }else if(data.applicationStatus==='notApplied')s.applied=false;
+ if(s.scene==='empty'&&profiles.length)s.scene='normal';
+ if(s.view==='side')render();
+});
+document.getElementById('reset').addEventListener('click',()=>{switchRevision++;s=initial();sideScrollTop=0;resetPcPreview();render();popToast('已恢复初始预览')});
 render();
 </script>
 </body>
