@@ -173,6 +173,19 @@ test('Ctrl+Enter shares the button preflight and uncertain-clear recovery',async
   assert.equal(h.calls.clear,1,'recovery fence must block a second attempt');
 });
 
+test('Ctrl+Enter consumes empty and attachment-only drafts without native submission',async()=>{
+  for(const rich of [false,true]){
+    const h=fixture({preflight:{ok:false,reason:'原生草稿为空'}});await h.run();
+    h.snap.busy=false;h.snap.draft='';h.snap.rich=rich;
+    h.snap.sendButton={disabled:false,getAttribute:()=>null};
+    const event=h.key({ctrlKey:true});
+    assert.equal(event.prevented,true);assert.equal(event.stopped,true);
+    assert.equal(h.calls.preflight,1);assert.equal(h.calls.clear,0);
+    assert.equal(h.calls.enqueued,0);
+    assert.match(h.calls.toasts.at(-1),/草稿为空/);
+  }
+});
+
 test('Ctrl+Enter leaves other targets, IME and retired owners untouched',async()=>{
   const patches=[{ctrlKey:true,shiftKey:true},{ctrlKey:true,altKey:true},
     {ctrlKey:true,metaKey:true},{ctrlKey:true,isComposing:true},
