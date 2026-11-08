@@ -51,7 +51,13 @@ async function mount(t,host=sdk()){
   const errors=[],roots=[];
   const runtime={...React,createRoot(node){const root=createRoot(node,{onUncaughtError:e=>errors.push(e)});roots.push(root);return root;}};
   const timers=new Map();let timerId=0;
-  const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:{root:document.getElementById('root'),request:host.request.bind(host)},
+  const sdkTool={root:document.getElementById('root'),request:host.request.bind(host)};
+  if(host.withNavigation){
+    host.navigation=[];
+    sdkTool.navigationFeatures={headerActions:true};
+    sdkTool.setNavigation=value=>{host.navigation.push(value);return true;};
+  }
+  const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:sdkTool,
     crypto:globalThis.crypto,URL,console,queueMicrotask,addEventListener(){},
     setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}});
   await React.act(async()=>{vm.runInContext(source('model.js'),context);vm.runInContext(source('main.js'),context);});
@@ -131,6 +137,52 @@ test('compact overview retains three tabs, on-demand help and no duplicate navig
   assert.equal(starts(host).length,0);
   assert.equal(host.store.has('webflow.pending.v1'),false);
   assert.deepEqual([...new Set(host.calls.map(c=>c.name))].sort(),['currentPage.info','storage.get','tasks.read']);
+});
+
+test('compact filter and icon actions preserve real task scope and favorites',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  const rows=()=>[...f.document.querySelectorAll('.wf-task-row')];
+  assert.equal(rows().length,2);
+  const baidu=taskCard(f);
+  const favorite=[...baidu.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('收藏 '));
+  assert.ok(favorite,'favorite has a meaningful accessible name');
+  await React.act(async()=>favorite.dispatchEvent(new f.document.defaultView.Event('click',{bubbles:true})));
+  assert.equal(f.document.querySelectorAll('.wf-task-row').length,2,'favoriting does not navigate');
+  await f.click('筛选脚本');
+  assert.ok(f.document.getElementById('wf-filter-options'));
+  await f.click('收藏',f.document.getElementById('wf-filter-options'));
+  assert.equal(rows().length,1,'favorites come from saved preferences');
+  assert.ok(rows()[0].textContent.includes('百度搜索'));
+  await f.click('筛选脚本');await f.click('全部',f.document.getElementById('wf-filter-options'));
+  assert.equal(rows().length,2);
+  const google=rows().find(row=>row.textContent.toLowerCase().includes('google'));
+  const googleRun=[...google.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('无法运行 '));
+  assert.ok(googleRun?.disabled,'wrong target website must disable manual run');
+  assert.match(googleRun.getAttribute('aria-label'),/网站/);
+  assert.equal(starts(host).length,0,'UI controls cannot dispatch a Task');
+});
+
+test('R14 Host Header actions stay bounded and return to the original primary tab',async t=>{
+  const host=sdk();host.withNavigation=true;
+  const f=await mount(t,host);
+  assert.ok(host.navigation.length>0);
+  assert.equal(host.navigation.at(-1).page,'home');
+  assert.equal(host.navigation.at(-1).headerActions.length,2);
+  assert.equal(f.document.querySelector('.wf-head-actions'),null,'Host owns right-side icons');
+  const dispatch=async detail=>React.act(async()=>{
+    const event=new f.document.defaultView.Event('opendesk-tool-navigation',{bubbles:true});
+    event.detail=detail;
+    f.document.getElementById('root').dispatchEvent(event);
+  });
+  await f.click('脚本');
+  await dispatch({action:'header',actionId:'help',page:'home'});
+  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
+  assert.equal(host.navigation.at(-1).page,'help');
+  await dispatch({action:'back'});
+  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
+  assert.equal(host.navigation.at(-1).page,'home');
+  assert.equal(starts(host).length,0);
 });
 
 test('the step ID is durably read back before the direct manual start; duplicate clicks start once',async t=>{
