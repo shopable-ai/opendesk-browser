@@ -12,21 +12,19 @@ const CSS=[
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
 ".edge-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#4268bf;touch-action:manipulation}",
-".edge-skin{position:absolute;right:0;top:0;width:12px;height:46px;background:#dce8fa;border:1px solid #b1c5e7;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #243a6012;transition:width .14s ease,background .14s ease;pointer-events:none}",
+".edge-skin{position:absolute;right:0;top:0;display:grid;place-items:center;width:12px;height:46px;background:#dce8fa;border:1px solid #b1c5e7;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #243a6012;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #b1c5e7;border-left:0;border-radius:0 9px 9px 0}",
-".edge-toggle svg{position:relative;width:19px;height:19px;opacity:0;transition:opacity .1s ease,transform .14s ease,width .14s ease,height .14s ease;pointer-events:none}",
+".edge-toggle svg{width:16px;height:16px;opacity:0;transition:opacity .1s ease;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#ecf3ff}",
 ".edge-toggle:hover svg,.edge-toggle:focus-visible svg{opacity:1}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
-// Folded idle is a narrow 20px tab WITH a visible arrow, not the 38px hovered appearance.
-// The 38x46 host remains the single keyboard/pointer target and never covers the old card.
+// Fixed 38x46 pointer/focus hitbox; only the visual skin expands from 20px to 38px.
+// The chevron is nested in the grid-centered skin to stay centered at every width.
 ":host([data-toc-collapsed]) .edge-skin{width:20px}",
-":host([data-toc-collapsed]) .edge-toggle svg{width:14px;height:14px;opacity:1;transform:translateX(9px)}",
-":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle svg{transform:translateX(-9px)}",
+":host([data-toc-collapsed]) .edge-toggle svg{opacity:1}",
 ":host([data-toc-collapsed]) .edge-toggle:is(:hover,:focus-visible) .edge-skin{width:38px}",
-":host([data-toc-collapsed]) .edge-toggle:is(:hover,:focus-visible) svg{width:19px;height:19px;transform:none}",
-"@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}:host([data-toc-collapsed]) .edge-skin{width:38px}:host([data-toc-collapsed]) .edge-toggle svg{width:19px;height:19px;transform:none}}",
+"@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}:host([data-toc-collapsed]) .edge-skin{width:38px}}",
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#a7c5ff}.edge-skin{background:#283b5a;border-color:#50688a}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#344b71}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
@@ -159,7 +157,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   edgeSvg.setAttribute('stroke-width','2.5');edgeSvg.setAttribute('stroke-linecap','round');
   edgeSvg.setAttribute('stroke-linejoin','round');edgeSvg.setAttribute('aria-hidden','true');
   const edgePath=doc.createElementNS?.('http://www.w3.org/2000/svg','path')||make('path');
-  edgeSvg.append(edgePath);edgeToggle.append(edgeSkin,edgeSvg);root.append(panel,edgeToggle);
+  edgeSvg.append(edgePath);edgeSkin.append(edgeSvg);edgeToggle.append(edgeSkin);root.append(panel,edgeToggle);
   function refreshEdge(){
     const labels=EDGE_LABELS[locale]||EDGE_LABELS['zh-CN'];
     edgeToggle.setAttribute('aria-label',collapsed?labels.expand:labels.collapse);

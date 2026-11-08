@@ -212,6 +212,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId:arrowSvg});
    return Number.parseFloat(computedStyle.find(item=>item.name==='opacity')?.value);
  };
+ const horizontalCenterDelta=async()=>{
+   const [background,glyph]=await Promise.all([rect(skin),rect(arrowSvg)]);
+   return Math.abs((background.left+background.right-glyph.left-glyph.right)/2);
+ };
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.edge-toggle'})).nodeIds.length,1,
    'one toggle component only');
  assert.equal(await evaluate(trusted,'!!document.getElementById("od-toc-edge-preview-toggle")'),false,
@@ -235,6 +239,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'real mouse click did not collapse');
  await until(async()=>Math.abs((await skinWidth())-38)<1,
    'real mouse hover must expand the same edge tab to 38px');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'hovered arrow must be horizontally centered inside the 38px visible background');
  const folded=await rect(host);
  assert.equal(Math.round(folded.width),38,'collapsed host must have no 254px transparent hitbox');
  assert.equal(Math.round(folded.height),46);
@@ -248,6 +254,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'collapsed idle background must shrink to a narrow 20px tab without hover');
  await until(async()=>(await arrowOpacity())>0.99,
    'collapsed idle recovery arrow must stay visible without hover');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'idle arrow must be centered inside the 20px visible background');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='true',
    'second real mouse click did not expand');
@@ -261,5 +269,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
- console.log('READING_TOC_EDGE_NATIVE_PASS: expanded idle 12px, collapsed idle 20px/visible arrow, hover 38px, mouse recovery, four modes');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: collapsed idle 20px, hover 38px, centered visible arrow, fixed hitbox, recovery');
 });

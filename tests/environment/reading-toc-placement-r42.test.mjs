@@ -200,15 +200,20 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(toggle.tagName,'BUTTON');
     assert.equal(toggle.attributes.get('aria-expanded'),'true');
     assert.equal(toggle.attributes.get('aria-label'),'收起目录');
-    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
+    assert.equal(toggle.children.length,1,'one edge skin, no separate floating chevron');
+    assert.equal(toggle.children[0].children.length,1,'chevron resides inside edge skin');
+    const arrowPath=toggle.children[0].children[0].children[0];
+    assert.equal(arrowPath.attributes.get('d'),'M9 5l7 7-7 7');
     assert.match(css,/width:12px;height:46px/);
     assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
     assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-skin\{width:20px\}/,
       'collapsed idle tab must remain narrower than hovered 38px appearance');
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{width:14px;height:14px;opacity:1;transform:translateX\(9px\)\}/,
-      'collapsed idle arrow must be visible inside the right-edge narrow tab');
-    assert.match(css,/:host\(\[data-toc-collapsed\]\[data-toc-edge=left\]\) \.edge-toggle svg\{transform:translateX\(-9px\)\}/,
-      'left edge must mirror the narrow tab arrow position');
+    assert.match(css,/\.edge-skin\{[^}]*display:grid;place-items:center;/,
+      'visible tab grid always centers its chevron');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{opacity:1\}/,
+      'collapsed arrow remains visible with no hover');
+    assert.doesNotMatch(css,/translateX\(/,
+      'left/right centering cannot depend on magic pixel offsets');
     assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle:is\(:hover,:focus-visible\) \.edge-skin\{width:38px\}/,
       'only hovered or focused folded tab uses the full visual width');
     assert.match(css,/@media\(hover:none\)/);
@@ -223,7 +228,7 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(toggle.attributes.get('aria-expanded'),'false');
     assert.equal(toggle.attributes.get('aria-label'),'展开目录');
     assert.equal(toggle.title,'展开目录');
-    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M15 5l-7 7 7 7');
+    assert.equal(arrowPath.attributes.get('d'),'M15 5l-7 7 7 7');
     assert.equal(writes.length,0,'toggle must never persist a placement');
     f.win.innerWidth=400;f.win.fire('resize');
     assert(host.getBoundingClientRect().right<=f.win.innerWidth-8,'collapsed control remains in bounds');
@@ -236,12 +241,12 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(writes.length,0);
     view.setPlacement({v:1,dock:'left',x:0,y:0.5});
     assert.equal(host.attributes.get('data-toc-edge'),'left');
-    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M15 5l-7 7 7 7');
+    assert.equal(arrowPath.attributes.get('d'),'M15 5l-7 7 7 7');
     view.setLocale('en');
     assert.equal(toggle.attributes.get('aria-label'),'Collapse contents');
     toggle.fire('click');
     assert.equal(toggle.attributes.get('aria-label'),'Expand contents');
-    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
+    assert.equal(arrowPath.attributes.get('d'),'M9 5l7 7-7 7');
     assert.equal(host.getBoundingClientRect().left,8);
     view.dispose();view.dispose();
     assert.equal(host.removed,true,'dispose removes the recovery button with its host');
