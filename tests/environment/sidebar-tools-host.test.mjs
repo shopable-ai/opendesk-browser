@@ -43,7 +43,7 @@ function toolRuntimeFixture() {
   const createElement=doc.createElement.bind(doc);
   doc.createElement=tag=>{
     const node=createElement(tag);
-    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message){this.sent.push(message);}}});
+    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message,_origin,ports){this.sent.push(message);if(ports?.length)this.ports=ports;}}});
     return node;
   };
   const view=createSidebarToolsView();
@@ -1345,6 +1345,63 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
+test('own PC page rejects revocation arriving during an installation read', {timeout:3000},async t=>{
+  const epoch='own-page-installed',gate=deferred(),entered=deferred(),created=[];
+  t.after(()=>gate.resolve());
+  let holdRead=false;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:epoch}]]);
+  const f=await hostFixture(t,{store,configureApi(api){
+    api.tabs={create:async value=>{created.push(value);return {id:123};}};
+    const get=api.storage.local.get;
+    api.storage.local.get=async keys=>{
+      if(holdRead&&Array.isArray(keys)&&keys.includes(TOOL_REVOCATION_EPOCHS_STORE)){
+        const snapshot=Object.fromEntries(keys.map(key=>[key,structuredClone(store.get(key))]));
+        entered.resolve();await gate.promise;return snapshot;
+      }
+      return get(keys);
+    };
+  }});
+  holdRead=true;
+  f.frame.contentWindow.ports[0].postMessage({protocol:f.loaded.protocol,toolId:sample.id,
+    instance:f.loaded.instance,kind:'request',requestId:'1',operation:'tool.page.open',
+    payload:{view:'settings',section:'preferences'}});
+  await entered.promise;
+  const revoked={[sample.id]:'own-page-revoked'};
+  store.set(TOOL_REVOCATION_EPOCHS_STORE,revoked);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:revoked}});
+  gate.resolve();
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='1'));
+  const reply=f.frame.contentWindow.sent.find(row=>row.requestId==='1');
+  assert.equal(created.length,0,'a retained draft frame must not open a page after revocation');
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_TOOL_CHANGED');
+});
+test('own PC page shares the existing per-tool lifecycle lock', {timeout:3000},async t=>{
+  const locks=sharedLocks(),created=[],gate=deferred(),entered=deferred();
+  t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{locks,configureApi(api){
+    api.tabs={create:async value=>{created.push(value);return {id:123};}};
+  }});
+  const held=locks.request('opendesk.sidebar-tools:tool:'+sample.id,async()=>{entered.resolve();await gate.promise;});
+  await entered.promise;
+  f.frame.contentWindow.ports[0].postMessage({protocol:f.loaded.protocol,toolId:sample.id,
+    instance:f.loaded.instance,kind:'request',requestId:'1',operation:'tool.page.open',
+    payload:{view:'settings',section:'preferences'}});
+  for(let index=0;index<8;index++)await pause();
+  const whileLocked=created.length;
+  gate.resolve();await held;
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='1'));
+  assert.equal(whileLocked,0,'opening must wait for install, update and revoke operations');
+  assert.deepEqual(created,[{url:'chrome-extension://test/sidepanel.html?toolId=quick-notes&view=settings&section=preferences'}]);
+  assert.deepEqual(f.frame.contentWindow.sent.find(row=>row.requestId==='1').result,{opened:true});
+});
+test('own PC page denies a plain window message without its private click port',async t=>{
+  const created=[];
+  const f=await hostFixture(t,{configureApi(api){api.tabs={create:async value=>{created.push(value);}};}});
+  f.ask('tool.page.open',{view:'settings',section:'preferences'});
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='1'));
+  assert.equal(created.length,0);
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='1').error.code,'E_USER_GESTURE_REQUIRED');
+});
 test('Video SVIP epoch revocation disconnects the DOM-reading watch before old signals can run',async t=>{
   const tool=await officialToolFixture('video-svip');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
@@ -4945,14 +5002,14 @@ for(const corrupt of ['broken',[],null,{'notes-local':false}]){
   });
 }
 
-test('R1.8 corrupt installed event during catalog await retires load before dispatch',async t=>{
+test('R1.8 corrupt installed event during installation read retires load before dispatch',{timeout:3000},async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');
-  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
-  const gate=deferred(),entered=deferred(),digest=crypto.subtle.digest.bind(crypto.subtle);
-  t.mock.method(crypto.subtle,'digest',async(...args)=>{
-    entered.resolve();await gate.promise;return digest(...args);
-  });
+  const gate=deferred(),entered=deferred();let reading=false;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    getHook:async key=>{if(reading&&key===SIDEBAR_TOOL_STORE){entered.resolve();await gate.promise;}}});
+  t.after(()=>gate.resolve());
   f.host.openTool(tool.id);const frame=f.runtime.frameRoot.firstElementChild;
+  reading=true;
   const loading=frame.onload();await entered.promise;
   const damaged=[tool,{...sample,id:'invalid id'}];
   f.store.set(SIDEBAR_TOOL_STORE,damaged);f.change(damaged);

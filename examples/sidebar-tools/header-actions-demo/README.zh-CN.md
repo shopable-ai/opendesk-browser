@@ -19,7 +19,7 @@ node examples/sidebar-tools/header-actions-demo/preview/serve.mjs
 3. 仅当 `storage.set` 返回 `saved:true` 且 `storage.get` 读回匹配时，页面才显示“保存已确认”；遇到冲突、超时和未知结果不自动重放。
 4. 回到原侧栏点击“重新读取已保存设置”；显示 PC 页已保存的数据。再次从 PC 直接打开“关于”栏目确认栏目路由。
 5. 可并行打开两个 PC 实例修改同一设置：后写入者的旧 ETag 会被拒绝，草稿不会被静默覆盖。
-6. 原 R14 More → 资料库 → 宿主返回及关闭插槽后的内容入口仍正常；原演示的实例计数仍保留。
+6. 页头资料库入口 → 宿主返回及关闭插槽后的内容入口仍正常（当前宿主使用直接图标，旧宿主可在 More 菜单中显示）；原演示的实例计数仍保留。
 
 示例内的页面布局彼此独立：Side Panel 是短摘要 + 操作，PC 是带侧导航、独立滚动、表单和状态的完整管理工作台；**共用的是受控存储与同一安装身份，不共享 React state / 未保存草稿**。Demo 没有代理网络、自动脚本和跨权限调用。
 
@@ -42,6 +42,8 @@ if (OpenDeskTool.surface === 'page') {
 公开规范见 [Sidebar Tool API](../../../docs/api/sidebar-tools.zh-CN.md#打开当前工具自己的-pc-页面源码已接线真实-chrome-待验收) 和 [多界面框架合同](../../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。
 
 ## 验收分级
+
+2026-11-09 本机源码夹具已实际完成侧栏打开 PC、保存读回、侧栏重新读取、旧 ETag 冲突保留草稿、关闭／刷新读回及原资料库／返回操作。修复 busy 时两个字段仍可编辑，以及弹窗被阻止后替换原侧栏并报告成功的问题。项目异步回归 **7/7**，与 Bridge 定向测试合计 **117/117** 通过。均为 `SOURCE_FIXTURE_PASS`，不代表 `INSTALLED_CHROME_PASS`；本机日志与截图保留在忽略目录 `docs/framework/evidence/single-app-surfaces-20261109/`。
 
 - **SOURCE**：源码已接入该示例与 PC/Sidebar 公共 API；参照 `tests/environment/sidebar-own-page-contract.test.mjs`。
 - **NODE/BUILD**：新增代码必须由可用的本地 Node / Vite 测试与构建证据确认。

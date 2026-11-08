@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { build, transform } from 'esbuild';
 import { runInNewContext } from 'node:vm';
+import { SIDEBAR_TOOL_PROTOCOL } from '../../../src/ui/sidebar-tools/package.js';
 
 const bundled = await build({ entryPoints: [new URL('../src/ui/navigation.ts', import.meta.url).pathname], bundle: true, write: false, platform: 'node', format: 'esm' });
 const { createNavigation } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
@@ -110,7 +111,7 @@ function workspaceFixture(preview = false, enhanced = true) {
     document: {activeElement:null}
   });
   const Workspace = module.exports.default().props.children[0].type;
-  return { navigation, events, snapshots, header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
+  return { env, navigation, events, snapshots, header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
     cursor = 0;
     const tree = Workspace({surface:'side-panel'});
     const content = routeContent(tree);
@@ -281,5 +282,81 @@ test('R14 Workspace blocks header with drafts/busy and ignores enhanced events o
   if(lock!=='fallback')assert.ok(snapshot.headerActions.every(action=>action.disabledReason));
   f.header({action:'header',actionId:'add-proxy',page:snapshot.page});assert.equal(f.navigation.getRoute(),'#/rules');
   f.unmount();
+ }
+});
+
+
+test('trusted header management actions open the own PC page without changing the sidebar route',async()=>{
+ for(const [actionId,section] of [['settings','profiles'],['diagnostics','diagnostic'],['subscriptions','subscriptions']]){
+  const f=workspaceFixture();const opened=[];
+  f.env.surface='sidebar';f.env.trusted=true;
+  f.env.openOwnPage=target=>{opened.push(JSON.parse(JSON.stringify(target)));return Promise.resolve({opened:true});};
+  f.render();const page=f.snapshots.at(-1).page;
+  f.header({action:'header',actionId,page});
+  assert.deepEqual(opened,[{view:'settings',section}],'open before the trusted click callback yields');
+  await new Promise(setImmediate);
+  assert.equal(f.navigation.getRoute(),'#/rules');
+  f.header({action:'header',actionId:'add-proxy',page});
+  assert.equal(f.navigation.getRoute(),'#/profiles/add');assert.equal(opened.length,1);
+  f.unmount();
+ }
+});
+
+test('header management keeps old Host fallback and never replays failed or unknown openings',async()=>{
+ for(const kind of ['missing','unsupported','failed','unknown']){
+  const f=workspaceFixture();let attempts=0;
+  f.env.surface='sidebar';f.env.trusted=true;
+  if(kind!=='missing')f.env.openOwnPage=()=>{attempts++;return kind==='unsupported'?null:Promise.reject(Error(kind));};
+  f.render();f.header({action:'header',actionId:'settings',page:f.snapshots.at(-1).page});
+  await new Promise(setImmediate);
+  assert.equal(f.navigation.getRoute(),['missing','unsupported'].includes(kind)?'#/profiles':'#/rules');
+  assert.equal(attempts,kind==='missing'?0:1);
+  if(['failed','unknown'].includes(kind))assert.ok(f.render().props.children.some(n=>n?.props?.role==='alert'));
+  f.unmount();
+ }
+});
+
+test('header PC openings retain draft, busy, unknown and stale-page guards',()=>{
+ for(const lock of ['draft','busy','unknown','stale']){
+  const f=workspaceFixture();f.env.surface='sidebar';f.env.trusted=true;
+  f.env.openOwnPage=()=>assert.fail('locked header opened a page');
+  f.render();
+  if(lock==='draft')f.events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));
+  if(lock==='busy')f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:true}}));
+  if(lock==='unknown')f.env.toolNavigation.isLocked=()=>true;
+  f.render();f.header({action:'header',actionId:'settings',page:lock==='stale'?'stale':f.snapshots.at(-1).page});
+  assert.equal(f.navigation.getRoute(),'#/rules');f.unmount();
+ }
+});
+
+test('sandbox header notifications keep internal routes with the actual gesture-protected Bridge',async()=>{
+ const bundle=await build({entryPoints:[new URL('../../../src/sidebar-tools/bridge.js',import.meta.url).pathname],
+  bundle:true,write:false,platform:'browser',format:'iife',globalName:'ActualToolBridge',define:{'import.meta.env':'{"MODE":"test"}'}});
+ for(const [actionId,route] of [['settings','#/profiles'],['diagnostics','#/diagnostic'],['subscriptions','#/subscriptions']]){
+  const win=new EventTarget(),root=new EventTarget(),sent=[];
+  Object.assign(root,{replaceChildren(){},querySelectorAll:()=>[],getBoundingClientRect:()=>({top:0,bottom:100})});
+  const parent={postMessage:message=>sent.push(message)};
+  class Port{postMessage(message){sent.push(message);}close(){}}
+  const node=()=>({append(){},addEventListener(){}});
+  runInNewContext(bundle.outputFiles[0].text+';ActualToolBridge.initSidebarToolSandbox();',{
+   window:win,parent,Event,CustomEvent,MessagePort:Port,performance,crypto:globalThis.crypto,
+   Blob,TextEncoder,URL,structuredClone,setTimeout,clearTimeout,requestAnimationFrame:()=>0,
+   document:{getElementById:id=>id==='tool-root'?root:{dataset:{}},documentElement:{},head:node(),body:node(),createElement:node}
+  });
+  win.dispatchEvent(Object.assign(new Event('message'),{source:parent,ports:[new Port()],data:{
+   protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'test-bridge',navigationAllowed:true,
+   headerActionsAllowed:true,displaySurface:'sidebar',tool:{id:'ai-proxy',html:'',css:'',js:'void 0;',capabilities:[]}
+  }}));
+  const f=workspaceFixture();
+  try{
+   assert.equal(typeof win.OpenDeskTool.openOwnPage,'function');
+   await assert.rejects(win.OpenDeskTool.openOwnPage({view:'settings',section:'profiles'}),{code:'E_USER_GESTURE_REQUIRED'});
+   f.env.surface='sidebar';f.env.trusted=false;f.env.openOwnPage=win.OpenDeskTool.openOwnPage;
+   f.render();f.header({action:'header',actionId,page:f.snapshots.at(-1).page});
+   await new Promise(setImmediate);
+   assert.equal(f.navigation.getRoute(),route,'an asynchronous Header notification retains ordinary navigation');
+   assert.equal(f.render().props.children.some(n=>n?.props?.role==='alert'),false);
+   assert.equal(sent.some(row=>row.operation==='tool.page.open'),false,'Header notification does not forge a native click');
+  }finally{f.unmount();win.dispatchEvent(new Event('pagehide'));}
  }
 });

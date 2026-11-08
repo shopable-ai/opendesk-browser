@@ -180,9 +180,9 @@ export function initSidebarToolSandbox() {
     const requestId=''+(++sequence);
     return new Carrier((resolve,reject)=>{
       const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export';
-      // This fixed first-party RPC writes Cookies outside the public Browser
-      // operation catalog. Once dispatched its result can be unknown too.
-      const browserWrite=exporting||operation==='tool.page.open'||browserOperation(operation)?.effectClass==='write'||
+      // Tool storage and the fixed first-party Cookie RPC write outside the
+      // public Browser catalog. Once dispatched their results can be unknown too.
+      const browserWrite=exporting||operation==='storage.set'||operation==='tool.page.open'||browserOperation(operation)?.effectClass==='write'||
         toolId==='cookie-editor'&&operation==='cookieAccount.switch';
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=later(()=>{

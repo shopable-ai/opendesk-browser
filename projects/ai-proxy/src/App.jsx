@@ -31,6 +31,7 @@ function Workspace({surface}) {
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
  const [headerNavigation,setHeaderNavigation]=useState(false);
+ const [navigationError,setNavigationError]=useState(false);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=surface==='management'||route.startsWith('#/');
@@ -63,23 +64,36 @@ function Workspace({surface}) {
   const page=headerPage.current.page;
   const actions=[
    {id:'add-proxy',label:t('addProxy'),icon:'new',route:'#/profiles/add'},
-   {id:'diagnostics',label:t('networkDiagnostics2'),icon:'diagnostics',route:'#/diagnostic'},
-   {id:'subscriptions',label:t('subscriptionSources'),icon:'subscriptions',route:'#/subscriptions'},
-   {id:'settings',label:t('apManageSettings'),icon:'settings',route:'#/profiles'}
+   {id:'diagnostics',label:t('networkDiagnostics2'),icon:'diagnostics',route:'#/diagnostic',section:'diagnostic'},
+   {id:'subscriptions',label:t('subscriptionSources'),icon:'subscriptions',route:'#/subscriptions',section:'subscriptions'},
+   {id:'settings',label:t('apManageSettings'),icon:'settings',route:'#/profiles',section:'profiles'}
   ];
   const base={page,title:t(settings?'apManageSettings':'apProxyPanel'),canBack:settings,primary:null};
   const disabled=dirty||busy||Boolean(confirmation)||pendingRoute!==null||env.toolNavigation.isLocked();
-  const enhanced=env.toolNavigation.setNavigation(base,actions.map(({route:target,...action})=>({
+  const enhanced=env.toolNavigation.setNavigation(base,actions.map(({route:target,section,...action})=>({
    ...action,...(disabled?{disabledReason:t('apKeepEditing')}:{})
   })));
   setHeaderNavigation(enhanced);
-  return env.toolNavigation.subscribe(detail=>{
+  return env.toolNavigation.subscribe(async detail=>{
    if(busyRef.current||confirmation||pendingRoute!==null)return;
    if(detail?.action==='back'&&settings){env.navigation.navigate('');return;}
    if(!enhanced||detail?.action!=='header'||detail.page!==page||env.navigation.getRoute()!==route||
     dirtyRef.current||env.toolNavigation.isLocked())return;
    const action=actions.find(item=>item.id===detail.actionId);
-   if(action)env.navigation.navigate(action.route);
+   if(!action)return;
+   setNavigationError(false);
+   try{
+    // Sandbox Header notifications are asynchronous CustomEvents, not native
+    // clicks. Keep their internal routes; direct content buttons own PC opens.
+    if(action.section&&env.surface==='sidebar'&&env.trusted===true){
+     const opening=env.openOwnPage?.({view:'settings',section:action.section});
+     if(opening!=null){await opening;return;}
+    }
+    env.navigation.navigate(action.route);
+   }catch{
+    // A failed/unknown opening is not permission to replay or navigate elsewhere.
+    setNavigationError(true);
+   }
   });
  },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t]);
  function leaveDraft(confirmed) {
@@ -101,6 +115,7 @@ function Workspace({surface}) {
   env.markDraftFrom(event.target);
  }}>
   <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy} headerNavigation={headerNavigation}/>:<QuickPanel/>}</div>
+  {navigationError&&<p className="notice error" role="alert">{t('couldNotOpenTheSettingsTabOpenItFrom')}</p>}
   {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={ok=>{confirmation.resolve(ok);setConfirmation(null);}}/>}
   {pendingRoute!==null&&<Confirmation id="proxy-draft" title={t('apUnsaved')} text={t('apDiscardHelp')} cancel={t('apKeepEditing')} accept={t('apDiscardLeave')} onDone={leaveDraft}/>}
  </div>;

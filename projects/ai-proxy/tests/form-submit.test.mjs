@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
-import {pathToFileURL,fileURLToPath} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
+import {runInNewContext} from 'node:vm';
 import {parse} from '@babel/parser';
 import {build} from 'esbuild';
 import * as React from 'react';
@@ -13,10 +14,12 @@ import {load} from 'cheerio';
 const require=createRequire(import.meta.url);
 const project=fileURLToPath(new URL('..',import.meta.url));
 const sharedButton=fileURLToPath(new URL('../../../src/ui/react/components/ui/button.tsx',import.meta.url));
-const buttonBundle=await build({entryPoints:[sharedButton],bundle:true,write:false,platform:'node',format:'esm',plugins:[{
- name:'actual-react',setup(builder){builder.onResolve({filter:/^react$/},()=>({path:pathToFileURL(require.resolve('react')).href,external:true}));}
-}]});
-const {Button}=await import('data:text/javascript;base64,'+Buffer.from(buttonBundle.outputFiles[0].text).toString('base64'));
+// Match the project's CJS runtime harness: keep React and React Aria on
+// Node's real module graph instead of bundling their CommonJS require calls as ESM.
+const buttonBundle=await build({entryPoints:[sharedButton],bundle:true,write:false,platform:'node',format:'cjs',packages:'external'});
+const buttonModule={exports:{}};
+runInNewContext(buttonBundle.outputFiles[0].text,{module:buttonModule,exports:buttonModule.exports,require});
+const {Button}=buttonModule.exports;
 
 test('all form submit controls use the real Shared Button submit override; explicit actions remain buttons',async()=>{
  assert.equal(load(renderToStaticMarkup(React.createElement(Button,null,'action')))('button').attr('type'),'button');

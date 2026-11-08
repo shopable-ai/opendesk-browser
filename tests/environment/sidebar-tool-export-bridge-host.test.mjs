@@ -15,6 +15,7 @@ import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installat
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
+import {normalizeOwnPageTarget} from '../../src/ui/sidebar-tools/navigation.js';
 
 const tool={format:SIDEBAR_TOOL_FORMAT_V2,id:'export-example',version:'1.0.0',title:'Export',
   description:'generic export fixture',capabilities:['user.export'],html:'<main>Export</main>',css:'',js:'void 0;',
@@ -75,7 +76,7 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   const realm=runInNewContext(`const browserOperation=(${browserOperation.toString()});
     const sidebarToolRequestTimeout=(${sidebarToolRequestTimeout.toString()});
     (${initSidebarToolSandbox.toString()})(); ({Reflect,Function,Promise,Object,Map,Set,Number,globalThis})`,{
-    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,crypto:globalThis.crypto,
+    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,normalizeOwnPageTarget,sandboxToolMessages,performance:clock,crypto:globalThis.crypto,
     window:win,parent,Event:NativeEvent,KeyboardEvent:NativeKeyboardEvent,MessagePort:Port,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:{},head:node(),body:node(),createElement:node},
     Blob,TextEncoder,structuredClone,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:export-fixture';},revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
@@ -113,6 +114,131 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     async dispose(){win.emit('pagehide',{});await Promise.all(pending);}
   };
 }
+
+const ownPageLoad={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool,
+  navigationAllowed:true,displaySurface:'sidebar'};
+const ownPageTarget={view:'settings',section:'preferences'};
+test('own page Bridge accepts one direct native click or Enter on the private port',async()=>{
+  for(const gesture of ['click','key']){
+    const b=sandbox({loaded:ownPageLoad});
+    try{
+      let second;
+      const result=b[gesture](()=>{
+        const first=b.win.OpenDeskTool.openOwnPage(ownPageTarget);
+        second=b.win.OpenDeskTool.openOwnPage(ownPageTarget).catch(error=>error);
+        return first;
+      });
+      const message=b.port.sent.find(row=>row.operation==='tool.page.open');
+      assert.ok(message);assert.equal(b.publicMessages.some(row=>row.operation==='tool.page.open'),false);
+      assert.equal((await second).code,'E_USER_GESTURE_REQUIRED');
+      b.respond({...message,kind:'response',ok:true,result:{opened:true}});
+      assert.deepEqual(await result,{opened:true});
+      assert.equal(b.port.sent.filter(row=>row.operation==='tool.page.open').length,1);
+    }finally{await b.dispose();}
+  }
+});
+test('own page Bridge rejects missing, synthetic, delayed, Shift+Enter and composing gestures',async()=>{
+  const b=sandbox({loaded:ownPageLoad});
+  try{
+    const open=()=>b.win.OpenDeskTool.openOwnPage(ownPageTarget);
+    await assert.rejects(open(),{code:'E_USER_GESTURE_REQUIRED'});
+    await assert.rejects(b.synthetic(open),{code:'E_USER_GESTURE_REQUIRED'});
+    await assert.rejects(b.key(open,{shiftKey:true}),{code:'E_USER_GESTURE_REQUIRED'});
+    await assert.rejects(b.key(open,{isComposing:true}),{code:'E_USER_GESTURE_REQUIRED'});
+    await assert.rejects(b.click(()=>Promise.resolve().then(open)),{code:'E_USER_GESTURE_REQUIRED'});
+    assert.equal(b.port.sent.length,0);
+  }finally{await b.dispose();}
+});
+test('own page Bridge rejects busy drafts and unsafe targets before dispatch',async()=>{
+  const b=sandbox({loaded:ownPageLoad});
+  try{
+    for(const state of [{dirty:true,busy:false},{dirty:false,busy:true}]){
+      b.win.OpenDeskTool.setState(state);
+      await assert.rejects(b.click(()=>b.win.OpenDeskTool.openOwnPage(ownPageTarget)),{code:'E_PAGE_BUSY'});
+    }
+    b.win.OpenDeskTool.setState({dirty:false,busy:false});
+    for(const target of [{...ownPageTarget,toolId:'foreign'},{...ownPageTarget,url:'https://evil.test'},
+      {...ownPageTarget,section:'../profiles'}])
+      await assert.rejects(b.click(()=>b.win.OpenDeskTool.openOwnPage(target)),{code:'E_PAGE_TARGET'});
+    assert.equal(b.port.sent.length,0);
+  }finally{await b.dispose();}
+});
+test('own page Bridge is absent on read-only, page and legacy no-port hosts',async()=>{
+  for(const variation of [{navigationAllowed:false},{displaySurface:'page'},{withoutPort:true}]){
+    const b=sandbox({loaded:{...ownPageLoad,...variation}});
+    try{assert.equal(b.win.OpenDeskTool.openOwnPage,undefined);}
+    finally{await b.dispose();}
+  }
+});
+
+for(const phase of ['timeout','pagehide'])
+test(`storage.set ${phase}: a late write stays unknown without replay or receipt reuse`,async()=>{
+  let next=0,commits=0,persisted;
+  const tasks=new Map(),deliveries=[];
+  const b=sandbox({send:message=>{
+    if(message.kind==='request'&&message.operation==='storage.set')deliveries.push(()=>{
+      persisted=structuredClone(message.payload.value);commits++;
+      b.respond({...message,kind:'response',ok:true,result:{saved:true}});
+    });
+  },timers:{
+    setTimeout(fn,ms){tasks.set(++next,{fn,ms});return next;},
+    clearTimeout(id){tasks.delete(id);}
+  }});
+  try{
+    const result=b.request('storage.set',{key:'note',value:{text:'late write'}});
+    const outcome=result.catch(error=>error);
+    assert.equal(deliveries.length,1,'the real Bridge dispatched exactly one write');
+    assert.equal(commits,0,'the receiver has not committed yet');
+    if(phase==='timeout'){
+      const [id,timer]=[...tasks].find(([,task])=>task.ms===8000);
+      tasks.delete(id);timer.fn();
+    }else await b.dispose();
+    const error=await outcome;
+    let read,readSettled=false;
+    if(phase==='timeout'){
+      read=b.request('storage.get',{key:'note'});
+      read.then(()=>{readSettled=true;},()=>{readSettled=true;});
+    }
+    deliveries[0]();await tick();
+    assert.deepEqual(persisted,{text:'late write'},'the receiver may still commit after Bridge termination');
+    assert.equal(commits,1);
+    assert.equal(readSettled,false,'a late write receipt must not settle the next read');
+    if(read){
+      const message=b.publicMessages.filter(row=>row.kind==='request').at(-1);
+      b.respond({...message,kind:'response',ok:true,result:{value:persisted}});
+      assert.deepEqual(await read,{value:{text:'late write'}});
+    }
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request'&&row.operation==='storage.set').length,1,
+      'neither termination nor late success replays the write');
+    assert.equal(tasks.size,0);
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+  }finally{await b.dispose();}
+});
+
+for(const phase of ['timeout','pagehide'])
+test(`storage.get ${phase} preserves the read-only error`,async()=>{
+  let next=0;const tasks=new Map();
+  const b=sandbox({timers:{setTimeout(fn,ms){tasks.set(++next,{fn,ms});return next;},clearTimeout(id){tasks.delete(id);}}});
+  try{
+    const result=b.request('storage.get',{key:'note'});
+    if(phase==='timeout')for(const {fn} of [...tasks.values()])fn();
+    else await b.dispose();
+    await assert.rejects(result,{code:phase==='timeout'?'E_TOOL_TIMEOUT':'E_TOOL_DISPOSED'});
+  }finally{await b.dispose();}
+});
+
+test('storage.set preserves confirmed success and explicit Host rejection',async()=>{
+  const b=sandbox();
+  try{
+    for(const ok of [true,false]){
+      const result=b.request('storage.set',{key:'note',value:'saved'});
+      const message=b.publicMessages.filter(row=>row.kind==='request').at(-1);
+      b.respond({...message,kind:'response',ok,result:{saved:true},error:{code:'E_CAPABILITY',message:'denied'}});
+      if(ok)assert.deepEqual(await result,{saved:true});
+      else await assert.rejects(result,{code:'E_CAPABILITY'});
+    }
+  }finally{await b.dispose();}
+});
 
 for(const phase of ['timeout','pagehide'])
 test(`account switch ${phase} preserves unknown outcome after dispatch`,async()=>{

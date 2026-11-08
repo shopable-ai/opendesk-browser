@@ -72,7 +72,7 @@ try{
       const href='/?surface=page&view=settings&section='+encodeURIComponent(page);
       const opened=window.open(href,'_blank');
       if(opened){opened.opener=null;return {id:1};}
-      location.assign(href);return {id:0};
+      throw Error('E_DEMO_POPUP_BLOCKED: 浏览器阻止弹窗；原页面已保留，请使用顶部“直接打开 PC 演示”链接。');
     }}};
   const localeController={getLocale:()=> 'zh-CN',subscribe:()=>()=>{}};
   const view=createSidebarToolsView();

@@ -25,6 +25,8 @@
   const update=()=>{
     field('summary').textContent=data.alias+(data.compact?' · 紧凑':' · 常规');
     field('draft').textContent=busy?'正在操作，请勿离开':dirty?'有未保存草稿':'没有未保存草稿';
+    field('alias').disabled=busy;
+    field('compact').disabled=busy;
     field('save').disabled=!dirty||busy;
     field('reset').disabled=busy;
     field('reload').disabled=busy;

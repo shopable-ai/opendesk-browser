@@ -2149,6 +2149,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       !readOnlyPreview&&!tocSettingsOpen&&!toolSaving&&!toolDirty&&!isDirty()&&
       !installedReadError&&!enableReadError&&!revocationReadError&&
       active===tool&&instance===token&&frameRevocationEpoch===epoch&&
+      (revocationEpochs[tool.id]??null)===epoch&&
       (trusted?nativeUI?.kind==='ai-proxy':frame?.isConnected&&sameInstance(source,token));
     if(!current())throw fail('E_TOOL_CHANGED','当前工具存在未保存内容、未完成操作或身份已变更，不能离开');
     if(trusted&&!globalThis.navigator?.userActivation?.isActive)
@@ -2156,12 +2157,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(ownPageOpening)throw fail('E_PAGE_BUSY','正在打开 PC 页面，请勿重复提交');
     ownPageOpening=true;
     try{
-      await assertSidebarToolEnabled(api,tool.id);
-      await assertInstalledTool(tool,epoch,'工具安装身份已变化');
-      if(!current())throw fail('E_TOOL_CHANGED','工具实例已关闭、停用或撤权');
-      if(typeof api.tabs?.create!=='function')throw fail('E_PAGE_UNAVAILABLE','此浏览器无法打开工具标签页');
-      await api.tabs.create({url:toolPageHref(api.runtime,tool.id,page)});
-      return {opened:true};
+      return await locked('tool:'+tool.id,async()=>{
+        await assertSidebarToolEnabled(api,tool.id);
+        await assertInstalledTool(tool,epoch,'工具安装身份已变化');
+        if(!current())throw fail('E_TOOL_CHANGED','工具实例已关闭、停用或撤权');
+        if(typeof api.tabs?.create!=='function')throw fail('E_PAGE_UNAVAILABLE','此浏览器无法打开工具标签页');
+        await api.tabs.create({url:toolPageHref(api.runtime,tool.id,page)});
+        return {opened:true};
+      });
     }finally{ownPageOpening=false;}
   }
   async function openInTab(id=active?.id) {

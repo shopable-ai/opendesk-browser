@@ -526,8 +526,9 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       <strong className={'controlChip ' + (statusTone(state.runtime)==='ok'?'isApplied':statusTone(state.runtime)==='danger'?'isError':statusTone(state.runtime)==='pending'?'isPending':'')}>
         {t(statusLabelKey(state.runtime))}
       </strong>
-      <span className="managementSelectionLabel">{t('browserRoutingMode')}</span>
-      <span>{modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')}</span>
+      <span className="managementSelectionLabel">{state.runtime.pendingChanges
+        ? t('apPendingSelection')+' · '+(modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify'))
+        : t('selectedModeLabel',{mode:modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')})}</span>
     </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
