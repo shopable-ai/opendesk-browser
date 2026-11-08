@@ -4,6 +4,8 @@
 >
 > 本文是操作与交互指南，不是第二份产品需求真相层或项目进度账本。长期目标以 [产品合同](product-contract.zh-CN.md) 为准；功能进度、验证等级与当前阻塞以 [执行计划](execution-plan.zh-CN.md) 和真实源码为准。不得把本文描述的拟议按钮、Codex 自动集成或动态关联视为已发布功能。
 
+> 可点击交互原型：[脚本添加 / Codex 提示词 / 安装流程](../preview/script-onboarding.html)。这是单文件 HTML 设计演示，不连接真实 Task、Codex 或安装权限；正式 Web Flow V0.3.2 预览 `preview/index.html` 保持不变。
+
 ## 0. 先看结论
 
 **开发在顶部「开发」，安装由原可信安装器负责，Web Flow 的「脚本」用于查看、关联和运行其获准的 Controller Task。** Web Flow 不建立第二个编辑器、Task Catalog、Runner、安装器或授权层。
