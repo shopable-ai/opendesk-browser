@@ -203,10 +203,14 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
     assert.match(css,/width:12px;height:46px/);
     assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-skin\{width:38px\}/,
-      'collapsed background stays full width without mouse hover');
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{opacity:1\}/,
-      'collapsed recovery arrow stays visible without mouse hover');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-skin\{width:20px\}/,
+      'collapsed idle tab must remain narrower than hovered 38px appearance');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{width:14px;height:14px;opacity:1;transform:translateX\(9px\)\}/,
+      'collapsed idle arrow must be visible inside the right-edge narrow tab');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\[data-toc-edge=left\]\) \.edge-toggle svg\{transform:translateX\(-9px\)\}/,
+      'left edge must mirror the narrow tab arrow position');
+    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle:is\(:hover,:focus-visible\) \.edge-skin\{width:38px\}/,
+      'only hovered or focused folded tab uses the full visual width');
     assert.match(css,/@media\(hover:none\)/);
     assert.match(css,/prefers-reduced-motion:reduce/);
     scroll.scrollTop=31;modes.children[2].fire('click');
@@ -218,6 +222,7 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(panel.hidden,true);assert.equal(panel.inert,true);
     assert.equal(toggle.attributes.get('aria-expanded'),'false');
     assert.equal(toggle.attributes.get('aria-label'),'展开目录');
+    assert.equal(toggle.title,'展开目录');
     assert.equal(toggle.children[1].children[0].attributes.get('d'),'M15 5l-7 7 7 7');
     assert.equal(writes.length,0,'toggle must never persist a placement');
     f.win.innerWidth=400;f.win.fire('resize');
