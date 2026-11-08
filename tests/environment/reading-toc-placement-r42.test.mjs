@@ -67,7 +67,8 @@ class MockElement {
   releasePointerCapture(id){if(this.pointerCapture===id)this.pointerCapture=null;}
   getBoundingClientRect(){
     if(this.attributes.has('data-opendesk-toc-root')){
-      const width=this.win.innerWidth<=1100?220:254,height=180;
+      const collapsed=this.attributes.has('data-toc-collapsed');
+      const width=collapsed?38:this.win.innerWidth<=1100?220:254,height=collapsed?46:180;
       const left=this.style.left!==undefined?parseFloat(this.style.left):this.win.innerWidth-width-8;
       const top=this.style.top!==undefined?parseFloat(this.style.top):8;
       return {width,height,left,top,right:left+width,bottom:top+height};
@@ -183,6 +184,59 @@ test('R4.2 real view controls drag only from handle, persist at release, reset a
     view.dispose();view.dispose();
     assert.equal(f.host().removed,true);
     assert.equal(f.win.events.get('resize').size,0,'no window listener leak');
+  }finally{globalThis.CSSStyleSheet=oldSheet;}
+});
+
+test('trusted TOC single edge button collapses without blocking page clicks or writing placement',()=>{
+  const oldSheet=globalThis.CSSStyleSheet;let css='';
+  globalThis.CSSStyleSheet=class {replaceSync(value){css=value;}};
+  try{
+    const f=viewFixture(),writes=[];
+    const view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{},
+      onPlacementChange:value=>writes.push(value)});
+    const host=f.host(),panel=host.shadow.children[0],toggle=host.shadow.children[1];
+    const scroll=panel.children[1],modes=panel.children[0].children[1];
+    assert.equal(host.shadow.children.length,2,'one panel and one toggle in the same ShadowRoot');
+    assert.equal(toggle.tagName,'BUTTON');
+    assert.equal(toggle.attributes.get('aria-expanded'),'true');
+    assert.equal(toggle.attributes.get('aria-label'),'收起目录');
+    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
+    assert.match(css,/width:12px;height:46px/);
+    assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
+    assert.match(css,/@media\(hover:none\)/);
+    assert.match(css,/prefers-reduced-motion:reduce/);
+    scroll.scrollTop=31;modes.children[2].fire('click');
+    const selectedMode=modes.children[2].attributes.get('aria-pressed');
+    toggle.fire('click');
+    assert.equal(host.attributes.has('data-toc-collapsed'),true);
+    assert.equal(host.getBoundingClientRect().width,38,'no 254px transparent hit region');
+    assert.equal(host.getBoundingClientRect().height,46);
+    assert.equal(panel.hidden,true);assert.equal(panel.inert,true);
+    assert.equal(toggle.attributes.get('aria-expanded'),'false');
+    assert.equal(toggle.attributes.get('aria-label'),'展开目录');
+    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M15 5l-7 7 7 7');
+    assert.equal(writes.length,0,'toggle must never persist a placement');
+    f.win.innerWidth=400;f.win.fire('resize');
+    assert(host.getBoundingClientRect().right<=f.win.innerWidth-8,'collapsed control remains in bounds');
+    toggle.fire('click');
+    assert.equal(host.attributes.has('data-toc-collapsed'),false);
+    assert.equal(host.getBoundingClientRect().width,220);
+    assert.equal(panel.hidden,false);assert.equal(panel.inert,false);
+    assert.equal(scroll.scrollTop,31,'outline scroll position is retained');
+    assert.equal(modes.children[2].attributes.get('aria-pressed'),selectedMode,'selected mode retained');
+    assert.equal(writes.length,0);
+    view.setPlacement({v:1,dock:'left',x:0,y:0.5});
+    assert.equal(host.attributes.get('data-toc-edge'),'left');
+    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M15 5l-7 7 7 7');
+    view.setLocale('en');
+    assert.equal(toggle.attributes.get('aria-label'),'Collapse contents');
+    toggle.fire('click');
+    assert.equal(toggle.attributes.get('aria-label'),'Expand contents');
+    assert.equal(toggle.children[1].children[0].attributes.get('d'),'M9 5l7 7-7 7');
+    assert.equal(host.getBoundingClientRect().left,8);
+    view.dispose();view.dispose();
+    assert.equal(host.removed,true,'dispose removes the recovery button with its host');
+    assert.equal(f.win.events.get('resize').size,0);
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
 

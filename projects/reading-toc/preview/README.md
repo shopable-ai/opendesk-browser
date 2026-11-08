@@ -18,7 +18,7 @@
 node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/index.html
 ```
 
-**待正式落地的边缘收起交互（仅限预览）**：网页悬浮目录保留原有四个模式和正文，额外预览一个单独的边缘图标按钮。展开与收起共用同一控件、同一纵向位置；默认只露出 12px，鼠标经过或键盘聚焦时显示完整 38px 图标按钮；右侧收起 `›`、展开 `‹`，左侧停靠镜像；不显示文字、不叠加第二个按钮，也不改变现有隐藏/授权设置。预览模拟代码归属 `scripts/preview/reading-toc-collapse-preview.js`，由 `scripts/preview/reading-toc-overlay-source.mjs` 引入。**此时正式 `trusted/view.js` 尚未实现收起**，后续应基于本预览修改正式业务代码并重新生成本入口，不得把预览通过当作真实 Chrome 验收。
+**已落地的单按钮边缘收起交互**：网页浮层的唯一边缘按钮由 `trusted/view.js` 在原闭合 ShadowRoot 内创建，展开与收起共用控件和尺寸；鼠标未经过时只显示 12px 窄标签，Hover/Focus 显示 38px 图标，触屏显示完整图标。右侧 `›` 收起、`‹` 展开，左侧镜像。收起时可信浮层仅占用 38×46px，不阻挡正文，仍保留原章节索引、模式、位置、滚动和生命周期，且不更改位置存储。生成脚本 `reading-toc-overlay-source.mjs` 已移除 `body` 独立模拟按钮，不再使用 `reading-toc-collapse-preview.js`；预览须由原生成器同步，实际 Chrome/网站验收仍独立标记。
 
 不要手改生成后的 HTML。输出内嵌 manifest 的 UI、可信浮层源码及共享外壳摘要用于核对来源；同时生成的 `index.context.json` 是本机审阅辅助文件，不是第二个页面入口。定向来源、语言消息、隔离和多回答回归：
 

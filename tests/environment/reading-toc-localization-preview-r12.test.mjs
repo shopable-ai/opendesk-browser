@@ -64,6 +64,8 @@ test('R1.2 source-backed webpage overlay uses actual trusted view+placement and 
   assert.equal(overlay.mockData,true);
   assert.match(overlay.html,/script type="module" src="data:text\/javascript;base64,/);
   assert.match(overlay.html,/connect-src 'none'/);
+  assert.equal((overlay.html.match(/<script type="module"/g)||[]).length,1,
+    'the preview must not create a second body-level collapse toggle');
   assert.match(overlay.html,/OpenDesk Browser 阅读指南/);
   assert(!/https?:\/\//.test(overlay.html));
   const inPage=await generatePreview({tool:'reading-toc',surface:'page-overlay',

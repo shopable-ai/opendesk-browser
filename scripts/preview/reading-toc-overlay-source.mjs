@@ -96,8 +96,7 @@ window.addEventListener('message',event=>{
 });
 render();
 `;
-  // This extra icon toggle is offline preview-only; never included in the trusted production view.
-  const collapsePreviewScript=await read(new URL('./reading-toc-collapse-preview.js',import.meta.url));
+  // The sole edge toggle now lives inside the production trusted ShadowRoot.
   const moduleSource=placement+'\n'+uiLocale+'\n'+
     'const readingTocCatalog='+JSON.stringify(JSON.parse(catalog))+';\n'+viewCode+'\n'+fixture;
   const html=`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
@@ -121,7 +120,7 @@ article p{max-width:310px;color:#737987;line-height:1.8;margin:0}
 <section data-message-author-role="assistant"><div class="markdown"><h1 id="h-20">周末城市公园活动计划</h1><h2 id="h-21">出行路线</h2><p>第一条回答的第一部分。</p><h1 id="h-22">行程时间安排</h1><h2 id="h-23">注意事项</h2><p>同一条回答中的第二个 H1，不增加分隔线。</p></div></section>
 <section data-message-author-role="assistant"><div class="markdown"><h1 id="h-24">交通与预算</h1><h2 id="h-25">出行路线</h2><p>第二条 AI 回答，保留重名标题的独立跳转。</p></div></section>
 <section data-message-author-role="assistant"><div class="markdown"><h1 id="h-26">雨天备选</h1><h2 id="h-27">注意事项</h2><p>第三条 AI 回答。</p></div></section>
-</article><script type="module" src="${dataUrl(moduleSource)}"></script><script type="module" src="${dataUrl(collapsePreviewScript)}"></script></body></html>`;
+</article><script type="module" src="${dataUrl(moduleSource)}"></script></body></html>`;
   return Object.freeze({html,sourceSha256:sha256(JSON.stringify([view,placement,uiLocale,catalog])),
     moduleSha256:sha256(moduleSource),realView:true,mockData:true});
 }
