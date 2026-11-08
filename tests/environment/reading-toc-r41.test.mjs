@@ -122,7 +122,8 @@ class Element {
 }
 function docFor(headings,{chat=false,zhihu=false}={}){
   const body=new Element('body','BODY');
-  return {body,defaultView:{getComputedStyle:()=>({display:'block',visibility:'visible'})},
+  return {body,location:{hostname:chat?'chatgpt.com':'example.org'},
+    defaultView:{getComputedStyle:()=>({display:'block',visibility:'visible'})},
     querySelector(selector){
       if(selector.includes('assistant')&&chat)return new Element('assistant');
       if(selector==='.AnswerItem'&&zhihu)return new Element('zhihu');

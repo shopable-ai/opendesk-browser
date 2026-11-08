@@ -702,10 +702,10 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>
-{"网页快捷按钮"}
+{snapshot.fields['sidebar-tool-prompt-web-row'].attributes['data-label']}
 </strong>
 </span>
-<ToolField as="button" type="button" id="sidebar-tool-prompt-web-action" className="ps-host-switch" role="switch" aria-label="网页快捷按钮" aria-checked="true" disabled={true}>
+<ToolField as="button" type="button" id="sidebar-tool-prompt-web-action" className="ps-host-switch" role="switch" aria-checked="true" disabled={true}>
 
 </ToolField>
 
@@ -713,7 +713,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 <ToolField as="div" id="sidebar-tool-prompt-native-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>
-{"选中文字快速添加"}
+{snapshot.fields['sidebar-tool-prompt-native-row'].attributes['data-label']}
 </strong>
 </span>
 <ToolField as="button" id="sidebar-tool-prompt-native-action" type="button" aria-pressed="false" className="od-button od-button--secondary ps-host-switch">

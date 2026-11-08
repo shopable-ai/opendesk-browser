@@ -15,6 +15,7 @@ import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSharedAIProviderRuntime} from './ai/provider-runtime.js';
 import {createBusinessConversation} from './conversation/provider-consumer.js';
+import {scrollConversationPolicy} from '../../projects/ai-scroll-navigation/trusted/ai-configuration.js';
 import {createTrustedKnowledgeHost} from '../../projects/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
@@ -315,7 +316,10 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 extensionList.connectWorkflowPage(workflowView);
-const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList});
+const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
+  createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
+    consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
+  openAIProviderSettings:()=>extensionList?.openProviderSettings?.()});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
     myView.setText(id,message);

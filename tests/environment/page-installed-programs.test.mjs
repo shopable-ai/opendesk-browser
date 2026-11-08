@@ -785,36 +785,122 @@ test('uninstall fails closed and retains disabled recovery record until native u
   assert.equal(f.installation(),undefined);
 });
 
-test('R5.5 uncertain managed UI cleanup keeps a disabled installed record and requires deliberate recovery',async()=>{
-  const f=fixture(),installed=await f.install();
-  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
-  await fails(()=>f.service.uninstallPageProgram({programId:'script',
+test('uncertain managed cleanup uninstalls into the same-key tombstone and fences fresh grants',async()=>{
+  const f=fixture(),installed=await f.install(),oldBoot=f.message();
+  const [installKey,stored]=[...f.snapshot().get('frameworkKV')].find(([,row])=>row.tag==='page-installed-v1');
+  f.retireHook=async row=>({scope:'managed-ui-only',state:row.programId==='script'?'unknown':'retired',records:1});
+  const started=Date.now();
+  const result=await f.service.uninstallPageProgram({programId:'script',
     manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
-    expectedGeneration:installed.authorization.generation},{}),'E_PAGE_CLEANUP_PENDING');
-  const blocked=f.installation();
-  assert.equal(blocked.enabled,false);
-  assert.equal(blocked.authorization.status,'disabled');
-  assert.equal(blocked.managedCleanup.state,'unknown');
-  assert.equal(f.native.size,0,'native registration is already withdrawn');
-  const observed=await f.service.listPagePrograms({},{});
-  assert.equal(observed.installed.length,1,'do not hide a recoverable installation');
-  assert.equal(observed.installed[0].managedCleanup.state,'unknown');
-  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',
-    manifestHash:blocked.manifestHash,installationId:blocked.authorization.installationId,expectedGeneration:blocked.authorization.generation,
-    enabled:true},{}),'E_PAGE_CLEANUP_PENDING');
+    expectedGeneration:installed.authorization.generation},{});
+  assert.equal(result.uninstalled,true);
+  assert.equal(result.nativeState,'unregistered');
+  assert.equal(result.cleanupPending,true);
+  assert.equal(result.managedCleanup.state,'unknown');
+  const tombstone=f.snapshot().get('frameworkKV').get(installKey);
+  assert.equal(tombstone.tag,'page-uninstalled-v1');
+  assert.ok(tombstone.uninstalledAt>=started&&tombstone.uninstalledAt<=Date.now());
+  assert.equal(tombstone.enabled,false);
+  assert.equal(tombstone.authorization.status,'disabled');
+  assert.equal(tombstone.authorization.generation,installed.authorization.generation+1);
+  assert.equal(tombstone.authorization.installationId,installed.authorization.installationId);
+  for(const field of ['programId','revision','manifestHash','sourceHash','nativeId','installedAt','pageRules'])
+    assert.deepEqual(tombstone[field],stored[field]);
+  assert.equal(tombstone.managedCleanup.state,'unknown');
+  assert.equal(f.installation(),undefined);
+  assert.equal(f.native.size,0);
+  assert.deepEqual((await f.service.listPagePrograms({},{})).installed,[]);
+  await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+  for(const enabled of [true,false])await fails(()=>f.service.setInstalledPageEnabled({programId:'script',
+    manifestHash:tombstone.manifestHash,installationId:tombstone.authorization.installationId,
+    expectedGeneration:tombstone.authorization.generation,enabled},{}),'E_REVISION');
   const next=await f.prepare('document-idle',{revision:2});
   await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
-    manifestHash:next.manifestHash,expectedInstalledManifestHash:blocked.manifestHash,
-    expectedGeneration:blocked.authorization.generation},{}),'E_PAGE_CLEANUP_PENDING');
-  assert.equal(f.installation().manifestHash,blocked.manifestHash,
-    'upgrade cannot overwrite a pending recovery record');
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:null},{}),'E_PAGE_CLEANUP_PENDING');
+  const candidate=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.manifest.revision===2);
+  const payload={format:'opendesk.page-install.v1',programId:'script',version:'2.0.0',title:'Script',revision:2,
+    entryFormat:'async-main',sourceUtf8:candidate.sourceUtf8,sourceHash:candidate.manifest.sourceHash,pageRules:candidate.manifest.pageRules};
+  const pkg={...payload,packageHash:await digest(payload)};
+  await fails(()=>f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:null,expectedGeneration:null},{}),'E_PAGE_CLEANUP_PENDING');
+  assert.deepEqual(f.snapshot().get('frameworkKV').get(installKey),tombstone);
+  const second=await f.prepare('document-idle',{programId:'second'});
+  await f.service.installPageProgram({programId:'second',revision:1,manifestHash:second.manifestHash,expectedInstalledManifestHash:null},{});
+  const other=structuredClone(f.installation('second')),otherNative=structuredClone(f.native.get(other.nativeId));
+  await f.service.reconcile();
+  assert.equal(f.snapshot().get('frameworkKV').get(installKey).tag,'page-uninstalled-v1');
   f.retireHook=async()=>({scope:'managed-ui-only',state:'retired',records:1});
-  const result=await f.service.uninstallPageProgram({programId:'script',
-    manifestHash:blocked.manifestHash,installationId:blocked.authorization.installationId,
-    expectedGeneration:blocked.authorization.generation},{});
-  assert.equal(result.uninstalled,true);
-  assert.equal(result.managedCleanup.state,'retired');
-  assert.equal(f.installation(),undefined);
+  await f.service.reconcile();
+  assert.equal(f.snapshot().get('frameworkKV').has(installKey),false);
+  const again=await f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(again.nativeState,'registered');
+  assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+  assert.deepEqual(f.installation('second'),other);
+  assert.deepEqual(f.native.get(other.nativeId),otherNative);
+});
+
+test('tombstone reconciliation only observes cleanup and bypasses unavailable native APIs',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const nativeReads=f.nativeReads,unregisterCalls=f.unregisterCalls,executeCalls=f.executeCalls;
+  let state='unknown',observations=0;
+  f.retireHook=async(row,options)=>{
+    assert.deepEqual(row,tombstone);
+    assert.deepEqual(options,{includeCurrent:true,observeOnly:true});
+    observations++;
+    return {scope:'managed-ui-only',state,records:1};
+  };
+  f.access=false;
+  await f.service.reconcile();
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+  state='retired';
+  await f.service.reconcile();
+  assert.equal(observations,2);
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.nativeReads,nativeReads);assert.equal(f.unregisterCalls,unregisterCalls);
+  assert.equal(f.executeCalls,executeCalls);
+  f.access=true;
+  const again=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:installed.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(again.nativeState,'registered');
+  assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+});
+
+test('tombstone ledger observation failure preserves the tombstone and does not block other installation reconciliation',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  f.retireHook=undefined;
+  const candidate=await f.prepare('document-idle',{programId:'second'});
+  const second=await f.service.installPageProgram({programId:'second',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  const native=structuredClone(f.native.get(second.nativeId));
+  f.native.delete(second.nativeId);
+  let ledgerReads=0;
+  f.api.storage.session.get=async()=>{ledgerReads++;throw Error('session ledger unavailable');};
+  const observations=[];
+  f.retireHook=async(row,options)=>{
+    observations.push({programId:row.programId,options});
+    if(row.programId==='script')return f.previewExecutor.retireInstalled(row,options);
+    return {scope:'managed-ui-only',state:'retired',records:0};
+  };
+  const executeCalls=f.executeCalls,registerCalls=f.registerCalls;
+  await assert.doesNotReject(f.service.reconcile());
+  assert.equal(ledgerReads,1,'the real observe-only ledger read must fail');
+  assert.deepEqual(observations.map(row=>row.programId),['script','second']);
+  assert.deepEqual(observations[0].options,{includeCurrent:true,observeOnly:true});
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+  assert.equal(f.executeCalls,executeCalls,'failed observation cannot dispatch source or a disposer');
+  assert.equal(f.registerCalls,registerCalls+1,'the later installation must still restore its native registration');
+  assert.deepEqual(f.native.get(second.nativeId),native);
+  assert.deepEqual(f.installation('second').authorization,second.authorization);
+  assert.equal(f.installation('second').nativeState,'registered');
 });
 
 test('installed list reports unexpected native errors without inventing a disabled switch',async()=>{

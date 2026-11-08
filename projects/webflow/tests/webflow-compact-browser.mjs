@@ -4,10 +4,12 @@
 // extension, authorize a Task, or prove any webpage operation.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
+const harnessSha256=createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const output=process.argv[2]||'artifacts/app-ci/webflow/chrome';
 const chromeBin=process.env.CHROME_BIN;
@@ -16,14 +18,21 @@ const profile=await mkdtemp(join(tmpdir(),'webflow-compact-chrome-'));
 const fixture=spawn(process.execPath,['projects/webflow/tests/webflow-ui-server.mjs'],
   {cwd:process.cwd(),stdio:['ignore','pipe','pipe']});
 let chrome=null,socket=null,stderr='',fixtureErrors='',fixtureUrl='';
+let fixtureInputs=null;
 let sequence=0;
 const pending=new Map(),exceptions=[];
 const cleanup=async()=>{
   for(const entry of pending.values())entry.reject(Error('Test shutting down'));
   pending.clear();
   try{socket?.close();}catch{}
-  for(const child of [chrome,fixture])if(child&&!child.killed)child.kill('SIGTERM');
-  await rm(profile,{recursive:true,force:true});
+  // Chromium may still write profile files after SIGTERM; wait before removal.
+  await Promise.all([chrome,fixture].filter(Boolean).map(child=>new Promise(resolve=>{
+    if(child.exitCode!==null||child.signalCode!==null){resolve();return;}
+    const deadline=setTimeout(()=>{child.kill('SIGKILL');},5000);
+    child.once('exit',()=>{clearTimeout(deadline);resolve();});
+    child.kill('SIGTERM');
+  })));
+  await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});
 };
 const timer=setTimeout(()=>{fixture.kill('SIGTERM');chrome?.kill('SIGTERM');},90000);
 try{
@@ -42,6 +51,10 @@ try{
         const receipt=JSON.parse(stdout.slice(0,newline));
         assert.equal(receipt.level,'UI_COMPONENT_MOCK_SDK');
         assert.match(receipt.url,/^http:\/\/127\.0\.0\.1:\d+$/);
+        for(const file of ['main.js','model.js','style.css'])
+          assert.match(receipt.inputs?.[file]||'',/^[a-f0-9]{64}$/,
+            'Fixture source SHA256 missing: '+file);
+        fixtureInputs=receipt.inputs;
         clearTimeout(timeout);
         resolve(receipt.url);
       }catch(error){rejectOnce(error);}
@@ -97,6 +110,10 @@ try{
     socket.send(JSON.stringify({id,method,params}));
   });
   const evaluate=async expression=>{
+    // Parse the final generated expression too; node --check cannot see inside it.
+    try{new Function(expression);}catch(error){
+      throw Error("Invalid generated browser expression: "+expression,{cause:error});
+    }
     const result=await cdp('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
     if(result.exceptionDetails)
       throw Error('Browser evaluate failed: '+JSON.stringify(result.exceptionDetails));
@@ -121,14 +138,18 @@ try{
       type:'mouseReleased',button:'left',clickCount:1,x:coords.x,y:coords.y});
   };
   const key=async(value,code,virtual)=>{
-    await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:value,code,windowsVirtualKeyCode:virtual});
+    await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:value,code,windowsVirtualKeyCode:virtual,
+      text:value==='Enter'?'\r':value===' '?' ':undefined});
     await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:value,code,windowsVirtualKeyCode:virtual});
   };
+  const screenshots=[];
   const screenshot=async name=>{
+    screenshots.push(name);
     const data=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(output,name+'.png'),Buffer.from(data.data,'base64'));
   };
   await mkdir(output,{recursive:true});
+  const browserVersion=await cdp('Browser.getVersion');
   await cdp('Runtime.enable');await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride',{width:400,height:850,deviceScaleFactor:1,mobile:false});
   const navigation=await cdp('Page.navigate',{url:fixtureUrl});
@@ -137,60 +158,209 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("[role=tab]").length'),3);
   assert.equal(await evaluate('document.querySelectorAll(".wf-head").length'),1);
   assert.equal(await evaluate('document.querySelectorAll(".wf-history").length'),0);
-  const tested=[];
+  const assertLayout=async(width,label)=>{
+    const sizes=await evaluate(`({html:document.documentElement.scrollWidth,
+      body:document.body.scrollWidth,viewport:document.documentElement.clientWidth})`);
+    assert.equal(sizes.viewport,width,label+' viewport');
+    assert.ok(sizes.html<=width+1&&sizes.body<=width+1,
+      label+' horizontal overflow at '+width+': '+JSON.stringify(sizes));
+  };
+  const expectFocus=async selector=>{
+    await eventually('document.activeElement===document.querySelector('+JSON.stringify(selector)+')',
+      'focus returns to '+selector);
+    assert.equal(await evaluate(`(()=>{const e=document.activeElement,s=getComputedStyle(e);
+      return e.matches(':focus-visible')&&s.outlineStyle!=='none'&&parseFloat(s.outlineWidth)>=2})()`),
+      true,'Keyboard focus has a visible outline: '+selector);
+  };
+  const searchFor=async text=>{
+    await click('#wf-search');
+    await key('Home','Home',36);
+    // Native select-all works across platforms without synthesizing a React change.
+    await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'End',code:'End',
+      windowsVirtualKeyCode:35,modifiers:8});
+    await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'End',code:'End',
+      windowsVirtualKeyCode:35,modifiers:8});
+    await key('Backspace','Backspace',8);
+    if(text)await cdp('Input.insertText',{text});
+    await eventually('document.querySelector("#wf-search").value==='+JSON.stringify(text),'search input');
+  };
+  const selectSort=async value=>{
+    // Equivalent to selectOption: exercise React's change handler and row order.
+    // macOS headless CDP does not reliably drive the OS-owned select popup.
+    await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify('select[aria-label="脚本排序方式"]')});
+      e.focus();e.value=${JSON.stringify(value)};
+      e.dispatchEvent(new Event('input',{bubbles:true}));
+      e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  };
+  const filterBy=async index=>{
+    await click('#wf-filter-toggle');
+    await eventually('!!document.querySelector("#wf-filter-options")','filter opens');
+    assert.equal(await evaluate('document.querySelector("#wf-filter-toggle").getAttribute("aria-expanded")'),'true');
+    assert.equal(await evaluate('document.querySelector("#wf-filter-toggle").getAttribute("aria-controls")'),'wf-filter-options');
+    await click('.wf-filter-option:nth-of-type('+index+')');
+    await eventually('!document.querySelector("#wf-filter-options")','filter selection closes popover');
+    assert.equal(await evaluate('document.activeElement.id'),'wf-filter-toggle');
+  };
+  const tested=[],tooltipEvidence=[];
   for(const width of [320,360,400]){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
-    await sleep(100);
-    const dimension=await evaluate('({viewport:document.documentElement.clientWidth,'+
-      'htmlWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth})');
-    assert.ok(dimension.htmlWidth<=width+1&&dimension.bodyWidth<=width+1,
-      'Overview horizontal overflow at '+width+': '+JSON.stringify(dimension));
-    await screenshot('overview-'+width);
-    await click('[data-page="scripts"]');
-    await eventually('document.querySelectorAll(".wf-task-row").length===2','two live pinned tasks');
-    const metrics=await evaluate('({htmlWidth:document.documentElement.scrollWidth,'+
-      'bodyWidth:document.body.scrollWidth,'+
-      'disabled:[...document.querySelectorAll(".wf-task-row button[aria-label^=\\"无法运行 \\"]")].filter(b=>b.disabled).length,'+
-      'aria:[...document.querySelectorAll(".wf-item-buttons button")].every(b=>!!b.getAttribute("aria-label"))})');
-    assert.ok(metrics.htmlWidth<=width+1&&metrics.bodyWidth<=width+1,
-      'Scripts horizontal overflow at '+width+': '+JSON.stringify(metrics));
-    assert.ok(metrics.disabled>=1,'Website mismatch has an explicit disabled run');
-    assert.ok(metrics.aria,'Icon actions must be accessible');
-    await screenshot('scripts-'+width);
-    tested.push(width);
     await click('[data-page="overview"]');
+    await assertLayout(width,'Overview');
+    await screenshot('overview-'+width);
+    // Exercise real tab key handlers, including wrapping and Home/End.
+    for(const [value,code,virtual,page] of [
+      ['ArrowRight','ArrowRight',39,'scripts'],['End','End',35,'history'],
+      ['ArrowRight','ArrowRight',39,'overview'],['ArrowLeft','ArrowLeft',37,'history'],
+      ['Home','Home',36,'overview'],['ArrowRight','ArrowRight',39,'scripts']]){
+      await key(value,code,virtual);
+      await expectFocus('[data-page="'+page+'"]');
+      assert.equal(await evaluate('document.querySelector("[role=tab][aria-selected=true]").dataset.page'),page);
+      assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify('[role=tab][tabindex="0"]')}).length`),1);
+      assert.equal(await evaluate('document.querySelector("#wf-panel").getAttribute("aria-label")'),
+        {overview:'概览',scripts:'脚本',history:'记录'}[page]);
+    }
+    await eventually('document.querySelectorAll(".wf-task-row .wf-badge[data-state=available]").length===2','two fixed tasks checked');
+    await eventually(`!!document.querySelector(${JSON.stringify('button[aria-label^="准备运行 "]:not(:disabled)')})`,'recovery and current page ready');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-item-buttons button:disabled").length'),1,
+      'Wrong-site run remains disabled: '+JSON.stringify(await evaluate('[...document.querySelectorAll(".wf-item-buttons button:disabled")].map(e=>({name:e.getAttribute("aria-label"),title:e.title}))')));
+    assert.ok(await evaluate('[...document.querySelectorAll(".wf-icon")].every(e=>e.getAttribute("aria-label")&&e.title)'),
+      'Icon controls expose names and native title hints');
+    await assertLayout(width,'Scripts');
+    await screenshot('scripts-'+width);
+    await searchFor('百度');
+    await eventually('document.querySelectorAll(".wf-task-row").length===1','Chinese search');
+    await searchFor('www.google.com');
+    await eventually('document.querySelectorAll(".wf-task-row").length===1&&document.querySelector(".wf-task-name").textContent.includes("Google")','site search');
+    await searchFor('无匹配任务'.repeat(25));
+    await eventually('!!document.querySelector(".wf-empty")','long search empty state');
+    await assertLayout(width,'Empty search');
+    await screenshot('empty-'+width);
+    await click('.wf-empty button');
+    await eventually('document.querySelectorAll(".wf-task-row").length===2','clear empty search');
+    await filterBy(3);
+    await eventually('!!document.querySelector(".wf-empty")','no installation needs attention');
+    await filterBy(1);
+    const nameOrder=await evaluate('[...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName)');
+    const favorite='[data-wf-task-name="'+nameOrder[1]+'"]';
+    await click('.wf-task-row:nth-child(2) button[aria-pressed]');
+    await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
+    await filterBy(4);
+    await eventually('document.querySelectorAll(".wf-task-row").length===1','favorite filter');
+    await filterBy(1);
+    await filterBy(2);
+    await eventually('document.querySelectorAll(".wf-task-row").length===2','installed available filter');
+    // Available means installed, not that the current website matches both tasks.
+    await click('#wf-filter-toggle');
+    await selectSort('name');
+    await eventually(`document.querySelector(${JSON.stringify('select[aria-label="脚本排序方式"]')}).value==="name"`,'name sort selected');
+    await eventually('JSON.stringify([...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName))==='+JSON.stringify(JSON.stringify(nameOrder)),'name sort overrides favorite');
+    await key('Escape','Escape',27);
+    await eventually('!document.querySelector("#wf-filter-options")','Escape closes filter');
+    await expectFocus('#wf-filter-toggle');
+    // Native Tab reaches refresh; titles alone are not ARIA tooltips.
+    await key('Tab','Tab',9);
+    await expectFocus('button[aria-label="刷新脚本安装状态"]');
+    tooltipEvidence.push({width,...await evaluate(`(()=>{const e=document.activeElement;
+      return {title:e.title,describedBy:e.getAttribute('aria-describedby'),
+        tooltipCount:document.querySelectorAll('[role=tooltip]').length}})()`)});
+    const menu='[data-wf-menu="'+nameOrder[0]+'"]';
+    await click(menu);await key('Tab','Tab',9);
+    await expectFocus('.wf-menu button');
+    await assertLayout(width,'More menu');
+    await key('Escape','Escape',27);
+    await eventually('!document.querySelector(".wf-menu")','Escape closes more menu');
+    await expectFocus(menu);
+    await key('Enter','Enter',13);
+    await eventually('!!document.querySelector(".wf-menu")','Enter opens more menu');
+    await click('.wf-menu button');
+    await eventually('!!document.querySelector(".wf-task-detail")','menu opens task details');
+    assert.ok(await evaluate('document.querySelectorAll(".wf-task-detail .wf-mono").length>=3'));
+    await assertLayout(width,'Long task identity');
+    await screenshot('details-'+width);
+    await click('[data-page="history"]');
+    assert.ok(await evaluate('document.body.textContent.includes("暂无手动运行记录")'),'Honest empty manual history');
+    await assertLayout(width,'Empty history');
+    // Restore preferences through existing UI so each width starts identically.
+    await click('[data-page="scripts"]');
+    const favoriteButton=await evaluate('document.querySelector('+JSON.stringify(favorite)+').closest(".wf-task-row").querySelector("button[aria-pressed]").getAttribute("aria-label")');
+    await click('button[aria-label='+JSON.stringify(favoriteButton)+']');
+    await eventually('document.querySelectorAll("button[aria-pressed=true]").length===0','favorite removed');
+    await click('#wf-filter-toggle');
+    await selectSort('favorite');
+    await eventually('document.querySelector("select").value==="favorite"','restore favorite sort');
+    await key('Escape','Escape',27);
+    await click('[data-page="overview"]');
+    await click('.wf-head-actions button[aria-label="应用设置"]');
+    await eventually('!!document.querySelector(".wf-select")','settings available');
+    await assertLayout(width,'Settings');
+    await screenshot('settings-'+width);
+    tested.push(width);
   }
-  await click('[data-page="scripts"]');
-  await click('#wf-search');
-  await cdp('Input.insertText',{text:'百度'});
-  await eventually('document.querySelectorAll(".wf-task-row").length===1','search filters fixed pins');
-  await click('#wf-filter-toggle');
-  await eventually('!!document.getElementById("wf-filter-options")','open filter');
-  await key('Escape','Escape',27);
-  await eventually('!document.getElementById("wf-filter-options")','escape closes filter');
-  assert.equal(await evaluate('document.activeElement?.id'),'wf-filter-toggle');
-  await click('.wf-task-name');
-  await eventually('!!document.querySelector(".wf-task-detail")','expanded technical task detail');
-  assert.equal(await evaluate('document.querySelectorAll(".wf-task-detail .wf-mono").length>=3'),true);
-  await click('[data-page="history"]');
-  assert.ok(await evaluate('document.body.textContent.includes("暂无手动运行记录")'),
-    'History does not invent executed tasks');
-  await click('[data-page="overview"]');
-  await click('.wf-head-actions button[aria-label="应用设置"]');
-  await eventually('!!document.querySelector(".wf-select")','settings available');
-  await screenshot('settings-400');
+  // Seed only the isolated fixture through its existing SDK storage contract.
+  // Released summaries avoid creating a fake pending task or dispatching a Task.
+  const sdk=async(name,args)=>{
+    const response=await fetch(fixtureUrl+'/sdk',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,args})});
+    assert.ok(response.ok,'Fixture SDK setup failed: '+name);
+    return response.json();
+  };
+  const record={clientRequestId:'ui-record-'+('a'.repeat(65)),taskId:'baidu.search.top3',version:'1.1.4',
+    runId:'run-'+('b'.repeat(76)),resultId:'result-'+('c'.repeat(73)),state:'completed',
+    retirementState:'released',resultPersisted:true,runtimeOk:true,business:'reported-success',
+    count:3,at:Date.now()};
+  const before=await sdk('storage.get',{key:'webflow.recent.v1'});
+  await sdk('storage.set',{key:'webflow.recent.v1',value:[record],ifMatch:before.etag});
+  await cdp('Page.reload');
+  await eventually('!!document.querySelector(".wf-record-summary")','seeded record loads');
+  for(const width of [320,360,400]){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
+    await click('[data-page="overview"]');
+    await assertLayout(width,'Recent activity');
+    await click('[data-page="history"]');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-record-row").length'),1);
+    await click('.wf-record-summary');
+    await key('Enter','Enter',13); // Collapse with keyboard, then reopen with keyboard.
+    await eventually('!document.querySelector(".wf-record-details").open','record collapses with Enter');
+    await key('Enter','Enter',13);
+    await eventually('document.querySelector(".wf-record-details").open','record expands with Enter');
+    assert.ok(await evaluate('document.querySelector(".wf-record-expanded").textContent.includes('+JSON.stringify(record.runId)+')'),'Long original run ID remains readable');
+    assert.ok(await evaluate('document.querySelector(".wf-record-expanded").textContent.includes("未观察")'),'Summary does not claim chat delivery');
+    await assertLayout(width,'Expanded record');
+    await screenshot('records-'+width);
+    await key('Enter','Enter',13);
+    await eventually('!document.querySelector(".wf-record-details").open','leave record collapsed');
+  }
+  await fetch(fixtureUrl+'/control/revoked',{method:'POST'});
+  for(const width of [320,360,400]){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
+    await click('[data-page="scripts"]');
+    await click('button[aria-label="刷新脚本安装状态"]');
+    await eventually(`document.querySelectorAll(${JSON.stringify('.wf-row-error[role=status]')}).length===2&&!document.querySelector(${JSON.stringify('button[aria-label="刷新脚本安装状态"]')}).disabled`,'permission errors visible');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-task-row .wf-primary:disabled").length'),2);
+    await assertLayout(width,'Permission errors');
+    await screenshot('errors-'+width);
+  }
+  assert.equal((await (await fetch(fixtureUrl+'/counts')).json()).starts,0,'UI regression never dispatches a Task');
   assert.deepEqual(exceptions,[],'Source React UI must not throw in Chromium');
   await writeFile(join(output,'receipt.json'),JSON.stringify({
     grade:'SOURCE_COMPONENT_CHROMIUM_MOCK_SDK',
     source:'projects/webflow/src/ui/{main.js,model.js,style.css}',
-    widths:tested,screenshots:7,
+    inputs:fixtureInputs,browserVersion,harnessSha256,
+    widths:tested,screenshots:screenshots.length,tooltipEvidence,
+    notTested:['native select popup keyboard interaction (DOM option selection used)',
+      'ARIA tooltip keyboard disclosure (source uses title only)',
+      'long arbitrary error messages (fixture exposes E_PERMISSION only)','native extension/Authority/IME/screen reader'],
     checks:['responsive overview and scripts','three tabs, no duplicate header',
       'two real fixed Task projections','wrong-site run disabled','icon aria-labels',
-      'search','Escape and focus return','expanded Task identity','honest empty history','settings'],
+      'keyboard tab wrapping/Home/End and visible focus','Chinese/site/long empty search and clear',
+      'attention/available/favorite filters','favorite persistence and name sort',
+      'filter/menu Escape focus return','menu keyboard and task identity',
+      'empty history and long record keyboard disclosure','permission read errors','settings',
+      'zero Task dispatches'],
     browserExtensionInstalled:false,taskExecuted:false,trustedAutoReactVerified:false
   },null,2)+'\n');
   console.log('WEBFLOW_CHROMIUM_COMPONENT_PASS widths='+tested.join(',')+
-    ' screenshots=7 no_sdk_task_execution=true');
+    ' screenshots='+screenshots.length+' no_sdk_task_execution=true');
 }finally{
   clearTimeout(timer);
   await cleanup();

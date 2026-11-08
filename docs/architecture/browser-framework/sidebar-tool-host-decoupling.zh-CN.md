@@ -139,3 +139,25 @@ Browser main 已提交公共 `site-budget.v2` **源码候选**（首提交 `c6c9
 ### 接续实现：将展示合成移出 SW（同日）
 
 Cookie 的两个固定服务现只返回经过核验和脱敏的内部事实 DTO，原可信 Host 用项目的 `trusted/service-view.js` 恢复原 App 返回形状。新展示模块只有该 Host 的精确来源准入，拒绝进入 SW；原后台权限、存储事务、租约、撤权、未知操作和受限管理 URL 校验保留。没有删除现有账号服务静态注册或 Vault/分享/Native 导入，**尚未实现 App 包独立升级**。五份受影响行为检查96项、公共来源边界10项通过，另1项原分享Host转发检查通过；隔离 Cookie 组件减少1151 B，不代表完整 SW/WXT 或 Chrome PASS。实施细节和模块必要性以项目 README 为准，执行边界见[本轮记录](../../framework/workstreams/cookie-editor-react-shared-ui-20261017.md#2026-10-31-增量sw-展示职责拆分)。
+
+## 10. 设置文案与多语言的归属修复（2026-11-08）
+
+AI 对话滚动导航的侧栏设置原来直接定义于公共 `tools.tsx`，Time Review 权限表单位于公共 `trusted-settings.tsx`；Prompt 设置和公共管理文案也混在宿主及 Reading TOC 语言资源中。另一个真实逻辑问题是按钮图标按中文标签的“停用”前缀判断状态，换语言会选错图标。
+
+| 展示职责 | 当前唯一源码 |
+| --- | --- |
+| 滚动导航六个设置视图及业务文案 | `projects/ai-scroll-navigation/trusted/react-controls.tsx`、`host-localization.js` |
+| Time Review 可信权限设置及业务文案 | `projects/time-review/trusted/react-controls.tsx`、`localization.js`、原 `host-controls.js` |
+| Prompt 宿主设置的业务文案 | `projects/prompt-shortcuts/trusted/host-localization.js` |
+| 公共扩展列表、安装管理、卸载与诊断文案 | `src/ui/extension-center-localization.js`、`tool-management-localization.js` |
+
+展示统一复用现有 `uiMessage`、`resolveUiLocale` 与 Locale Controller；不建立第二套翻译引擎。偏好值 `auto` 只用于偏好控件，实际文案使用解析后的语言。逻辑按稳定动作 ID、布尔状态、授权事实和错误码判断，不按翻译后的文字判断。需要随语言重绘的通知、校验和确认保存语义键及参数；语言变化只改变展示，保留原视图、草稿、确认态与操作围栏。网站、CSS、用户自定义标题和外部错误按原文纯文本呈现。
+
+这些仍是固定编译的可信设置组件，框架保留静态接线、原 Installer、安装身份、可信点击、CAS、撤权与未知写入保护。精确源码 pin 只允许新的展示文件进入原 `ui/tool-shell.js`；动态 Page/Tool 包不能替换可信组件。这是源码归属和多语言修复，不等于 Page 包获得独立替换可信设置或后台算法的能力。Send Queue 专用后台协议等更深的业务边界不在本次改动中。
+
+关键回归位于项目 `tests/*localization.test.mjs`、`ai-scroll-react-manager-r38.test.mjs`、`extension-center*localization.test.mjs`、`sidebar-tools-view.test.mjs` 和原可信来源边界测试。检查四语言、原地切换保留草稿/确认/焦点、无操作重放、回退、插值安全、图标状态及原读回/权限保护；组件 DOM 证据不能代替真实 Chrome、IME、布局或安装验收。
+
+
+本轮另外复现并修复了已显示通知切语言残留、卸载失败提示残留旧译文，以及长 Origin 被短插值预算截断的问题。通知按当前 owner 重绘，后续消息会替换前一通知的语言投影；网站授权确认和撤权标签完整显示原始 Origin，保持纯文本和既有精确来源复核。
+
+验证结果：最终扩展中心／滚动导航／可信来源组合 150/150，通过语言包与可信设置组合 63/63、权限与语言偏好组合 32/32、定向 Host 检查 13/13；项目文案及真实 React ToolHost 检查也已通过。旧测试的已迁移资源路径、已删除副标题和过时源码拼接断言已对齐当前入口，未为测试修改有效产品行为。11 个受影响 JS 模块语法检查及 `git diff --check` 通过。未启动或覆盖 watcher、未构建／安装／重载浏览器；真实 Chrome、IME、布局和正式安装验收均为 `NOT_TESTED`。

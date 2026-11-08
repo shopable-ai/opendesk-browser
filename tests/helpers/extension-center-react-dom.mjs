@@ -18,10 +18,35 @@ const toggle=await compile('../../src/ui/react/components/ui/switch.tsx',{
   'react':import.meta.resolve('react'),
   'react-aria-components':import.meta.resolve('react-aria-components')
 });
+const rawModule=async path=>'data:text/javascript;base64,'+Buffer.from('export default '+
+  JSON.stringify(await readFile(new URL(path,import.meta.url),'utf8'))).toString('base64');
+const conversation=await compile('../../src/ui/react/components/conversation.tsx',{
+  'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
+  './ui/button.tsx':button,
+  './conversation-frame.css?raw':await rawModule('../../src/ui/react/components/conversation-frame.css'),
+  './conversation-layout.css?raw':await rawModule('../../src/ui/react/components/conversation-layout.css')
+});
+const scrollAI=await compile('../../projects/ai-scroll-navigation/trusted/ai-controls.tsx',{
+  'react':import.meta.resolve('react'),
+  '../../../src/ui/react/components/conversation.tsx':conversation,
+  '../../../src/ui/conversation/session.js':new URL('../../src/ui/conversation/session.js',import.meta.url).href,
+  './ai-configuration.js':new URL('../../projects/ai-scroll-navigation/trusted/ai-configuration.js',import.meta.url).href,
+  './host-localization.js':new URL('../../projects/ai-scroll-navigation/trusted/host-localization.js',import.meta.url).href
+});
+const scrollManager=await compile('../../projects/ai-scroll-navigation/trusted/react-controls.tsx',{
+  'react':import.meta.resolve('react'),
+  '../../../src/ui/react/components/ui/button.tsx':button,
+  '../../../src/ui/react/components/ui/switch.tsx':toggle,
+  './ai-controls.tsx':scrollAI,
+  './host-localization.js':new URL('../../projects/ai-scroll-navigation/trusted/host-localization.js',import.meta.url).href
+});
 export const {ExtensionCenterPage,UninstallDialog}=await import(await compile('../../src/ui/react/tabs/tools.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
+  '../../../../projects/ai-scroll-navigation/trusted/react-controls.tsx':scrollManager,
   '../components/ui/button.tsx':button,
   '../components/ui/switch.tsx':toggle,
+  '../components/conversation.tsx':conversation,
+  '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href
 }));
 const initial=parseHTML('<html><body></body></html>');

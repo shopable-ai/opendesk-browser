@@ -6,15 +6,26 @@ import {resolve,dirname} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 
-const paths=[...['stay-focus','ai-vip-share'].map(id=>`${officialSourceProjectPath(id)}/trusted/react-controls.tsx`),
+const paths=[
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx',
+  'projects/ai-scroll-navigation/trusted/host-localization.js',
+  'projects/ai-scroll-navigation/trusted/ai-controls.tsx',
+  'projects/ai-scroll-navigation/trusted/ai-configuration.js',
+  'projects/time-review/trusted/react-controls.tsx',
+  'projects/time-review/trusted/localization.js',
+  'projects/prompt-shortcuts/trusted/host-localization.js',
+  ...['stay-focus','ai-vip-share'].map(id=>`${officialSourceProjectPath(id)}/trusted/react-controls.tsx`),
   ...['time-review','bookmark-manager','cookie-editor','ai-vip-share','prompt-shortcuts','reading-toc']
     .map(id=>`${officialSourceProjectPath(id)}/trusted/host.css`)];
 const describe=(root,path,target)=>describeBundle({root,lock:{packages:{}},chunk:{fileName:target,
   modules:{[resolve(root,path)]:{originalLength:100,renderedLength:80}}}});
 for(const path of paths){
-  test(`${path}: exact static UI source enters only the existing Side Panel bundle`,()=>{
+  const hostLocale=['projects/prompt-shortcuts/trusted/host-localization.js',
+    'projects/time-review/trusted/localization.js'].includes(path);
+  test(`${path}: exact static UI source enters only its declared fixed UI targets`,()=>{
     assert.match(describe(process.cwd(),path,'ui/tool-shell.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
-    for(const target of ['sw.js','ui/sidebar-tool-host.js','sidebar-tools/bridge.js','cloud-control/runner.js','unregistered/custom.js'])
+    if(hostLocale)assert.match(describe(process.cwd(),path,'ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+    for(const target of ['sw.js',...(!hostLocale?['ui/sidebar-tool-host.js']:[]),'sidebar-tools/bridge.js','cloud-control/runner.js','unregistered/custom.js'])
       assert.throws(()=>describe(process.cwd(),path,target),/Historical\/user\/vendor code/);
   });
   test(`${path}: changed or symlinked UI cannot acquire trusted admission`,()=>{

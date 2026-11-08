@@ -2,25 +2,40 @@
 // enters this extension world; permission and Host authority stay here.
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,timeReviewSiteOrigin,requireTimeReviewSiteGrants} from './policy.js';
 import {TIME_REVIEW_KEY} from './model.js';
+import {timeReviewText,timeReviewOriginText} from './localization.js';
 
-export function createTimeReviewPermissionControls({api,ui,notice,runOperation}){
+export function createTimeReviewPermissionControls({api,ui,notice,runOperation,localeController=null,getLocale=()=>localeController?.getLocale?.()||'zh-CN'}){
   if(!ui)return {render(tool,readOnly=false){
     if(!readOnly&&tool?.id===TIME_REVIEW_ID&&tool.capabilities?.includes(TIME_REVIEW_CAPABILITY))
       throw Error('Time Review trusted controls are missing');
   },dispose(){}};
   let disposed=false,activeTool=null,epoch=0,busy=false,pendingSite=null,readGeneration=0,activeOrigin=null;
+  let locale=getLocale();
+  const text=(key,parameters)=>timeReviewText(locale,key,parameters);
+  let statusKey='reading',statusParameters={};
   let model={visible:false,busy:false,siteReview:false,allReview:false,clearReview:false,minuteReview:false,
-    confirmText:'',siteStatus:'正在读取网站授权…',origins:[],currentGrantHidden:false,allGrantHidden:false,
+    locale,confirmText:'',siteStatus:text('reading'),origins:[],currentGrantHidden:false,allGrantHidden:false,
     revokeAllHidden:true,idleGranted:false,nativeStart:false,effect:null};
   const publish=patch=>{if(!disposed){model=Object.freeze({...model,...patch});ui.render(model);}};
-  const say=(message,error=false)=>{if(!disposed)notice(message,error);};
+  const setStatus=(key,parameters={})=>{statusKey=key;statusParameters=parameters;return text(key,parameters);};
+  const localize=()=>{
+    locale=getLocale();
+    publish({locale,siteStatus:text(statusKey,statusParameters),
+      confirmText:pendingSite?timeReviewOriginText(locale,'siteConfirm',pendingSite):''});
+  };
+  const unsubscribe=localeController?.subscribe?.(localize);
+  const say=(message,error=false,project=null)=>{if(!disposed)notice(message,error,project);};
+  const sayText=(key,error=false,parameters={})=>{
+    const project=()=>timeReviewText(getLocale(),key,parameters);
+    say(project(),error,project);
+  };
   const setBusy=value=>{if(!disposed){busy=value;publish({busy:value});}};
   const trusted=event=>!disposed&&event?.isTrusted===true&&!busy&&model.visible;
   const effects=(kind,target)=>({kind,target,sequence:(model.effect?.sequence||0)+1});
   const actions={};
   const click=(id,fn)=>{actions[id]=fn;};
   function operation(name,payload,event){
-    if(!trusted(event)){if(event?.isTrusted!==true)say('请主动点击受信任工具设置中的按钮',true);return;}
+    if(!trusted(event)){if(event?.isTrusted!==true)sayText('trustedClick',true);return;}
     setBusy(true);
     const current=epoch;
     Promise.resolve().then(()=>current===epoch&&!disposed?runOperation(name,payload,event):null).then(result=>{
@@ -31,17 +46,17 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
         readGeneration++;
         renderGrants(result.siteGrants);
         void refresh();
-        say('网站采集授权已更新；未授权的网站不会记录。');
-      }else say(name==='time.start'?'已开始／恢复本机后台记录。':
-        name==='time.minuteConsent'?(payload.enabled?'未来分钟明细已开启。':'分钟明细已关闭并清除。'):
-        '本机统计已清空。');
-    }).catch(error=>{if(current===epoch)say((error?.code||'E_TIME_REVIEW')+'：'+String(error?.message||error),true);})
+        sayText('grantsUpdated');
+      }else sayText(name==='time.start'?'started':
+        name==='time.minuteConsent'?(payload.enabled?'minuteEnabled':'minuteDisabled'):
+        'cleared');
+    }).catch(error=>{if(current===epoch)sayText('operationError',true,{code:error?.code||'E_TIME_REVIEW',message:String(error?.message||error)});})
       .finally(()=>{if(current===epoch)setBusy(false);});
   }
   function renderGrants(raw){
     const grants=requireTimeReviewSiteGrants(raw);
-    publish({siteStatus:grants.allSites?'已授权全部普通网站':
-      grants.origins.length?'已授权 '+grants.origins.length+' 个网站':'尚未授权网站，不会记录时间',
+    publish({siteStatus:grants.allSites?setStatus('allGranted'):
+      grants.origins.length?setStatus('countGranted',{count:grants.origins.length}):setStatus('noneGranted'),
       currentGrantHidden:grants.allSites||grants.origins.includes(activeOrigin),
       allGrantHidden:grants.allSites,revokeAllHidden:!grants.allSites&&!grants.origins.length,
       origins:Object.freeze([...grants.origins])});
@@ -62,8 +77,8 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
     activeOrigin=site.status==='fulfilled'?site.value:null;
     if(stored.status==='fulfilled'){
       try{renderGrants(stored.value[TIME_REVIEW_KEY]?.siteGrants);}
-      catch{publish({siteStatus:'网站授权数据无效；请核查后重新授权'});}
-    }else publish({siteStatus:'授权状态不可读；采集已受保护'});
+      catch{publish({siteStatus:setStatus('invalidGrants')});}
+    }else publish({siteStatus:setStatus('unreadableGrants')});
     publish({idleGranted:idle.status==='fulfilled'&&idle.value===true});
   }
   async function currentOrigin(){
@@ -80,26 +95,25 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
     let request;
     try{request=api.permissions.request({permissions:['idle']});}
     catch(error){say(error.message,true);setBusy(false);return;}
-    Promise.resolve(request).then(ok=>{if(current===epoch)say(ok?'空闲检测已授权；网站范围也已批准时会自动开始记录。':
-      '未获得 Chrome 空闲检测权限，不能开始记录。',!ok);})
+    Promise.resolve(request).then(ok=>{if(current===epoch)sayText(ok?'idleGranted':'idleDenied',!ok);})
       .catch(error=>{if(current===epoch)say(error.message,true);}).finally(()=>{if(current===epoch){setBusy(false);void refresh();}});
   });
   click('time-review-revoke-idle',event=>{
     if(!trusted(event))return;
     setBusy(true);const current=epoch;
     Promise.resolve().then(()=>!disposed&&current===epoch&&api.permissions.remove({permissions:['idle']}))
-      .then(()=>{if(current===epoch)say('已撤销空闲检测，历史记录保留。');})
+      .then(()=>{if(current===epoch)sayText('idleRevoked');})
       .catch(error=>{if(current===epoch)say(error.message,true);}).finally(()=>{if(current===epoch){setBusy(false);void refresh();}});
   });
   click('time-review-site-current-open',async event=>{
     if(!trusted(event))return;const current=epoch;
     try{
       const origin=await currentOrigin();
-      if(!origin){say('请先打开要授权的普通网站。',true);return;}
+      if(!origin){sayText('openWebsite',true);return;}
       if(disposed||current!==epoch||!model.visible)return;
       pendingSite=origin;
-      publish({confirmText:'确认授权 '+origin+' 记录以后的前台非空闲时间？',siteReview:true,effect:effects('scroll','time-review-site-confirm')});
-    }catch{say('无法确认当前网站；本次没有授权。',true);}
+      publish({confirmText:timeReviewOriginText(locale,'siteConfirm',origin),siteReview:true,effect:effects('scroll','time-review-site-confirm')});
+    }catch{sayText('siteUnknown',true);}
   });
   click('time-review-site-current-approve',async event=>{
     if(!trusted(event)||!pendingSite)return;
@@ -108,7 +122,7 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
     const actual=await currentOrigin();
     if(disposed||current!==epoch||pendingSite!==origin)return;
     if(actual!==origin||!model.visible){
-      pendingSite=null;publish({siteReview:false});say('网站已切换，请重新审阅。',true);return;
+      pendingSite=null;publish({siteReview:false});sayText('siteChanged',true);return;
     }
     pendingSite=null;publish({siteReview:false});
     operation('time.siteGrant',{mode:'site',origin,allow:true},event);
@@ -154,6 +168,7 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
   ui.connect(Object.freeze(actions));publish({});
   return {render(tool,readOnly=false,nativeStart=false){
     if(disposed)return;
+    if(locale!==getLocale())localize();
     const enabled=!readOnly&&tool?.id===TIME_REVIEW_ID&&tool.capabilities.includes(TIME_REVIEW_CAPABILITY);
     if(tool!==activeTool){epoch++;readGeneration++;pendingSite=null;busy=false;
       publish({busy:false,siteReview:false,allReview:false,clearReview:false,minuteReview:false});}
@@ -164,6 +179,7 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
     }else {publish({visible:true,nativeStart});void refresh();}
   },dispose(){
     if(disposed)return;
+    unsubscribe?.();
     disposed=true;epoch++;readGeneration++;pendingSite=null;
     ui.connect(null);ui.render(null);
   }};

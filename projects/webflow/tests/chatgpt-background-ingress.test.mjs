@@ -71,7 +71,7 @@ function fixture(){
     if(lostStartAck)await assert.rejects(starting,/start ACK lost/);else await starting;
     return row;
   };
-  return {state,values,sent,page,owner,panel,runs,handle,admit,ready,completed,
+  return {state,values,sent,page,owner,panel,runs,results,handle,admit,ready,completed,
     get ledger(){return ledger;},get ingress(){return ingress;},
     restart:({newOwner=false}={})=>{if(newOwner)owner.documentId='replacement-offscreen';ledger=newLedger();ingress=newIngress();},
     get replyChecks(){return replyChecks;},get taskChecks(){return taskChecks;},
@@ -221,4 +221,91 @@ test('legacy history is denied to page, sandbox, runner and forged Side Panel be
     {...h.panel,url:h.panel.url+'&toolId=webflow'},{...h.panel,id:'other-extension'}])
     await assert.rejects(h.handle('history',{source,includeLegacy:true},sender));
   assert.equal(reads,0);assert.deepEqual(h.values,before);assert.equal(h.sent.length,0);
+});
+
+for(const terminal of ['failed','stopped']){
+  test(`${terminal} durable history survives restart without delivery or replay`,async()=>{
+    const h=fixture();await h.approve();const row=await h.completed();
+    h.runs[0].state=terminal;h.results[0].state=terminal;
+    h.results[0].outcome={ok:false,error:{code:'E_TASK_TIMEOUT',message:'original timeout',details:'PRIVATE'},
+      valueWire:encodeValue('PRIVATE')};
+    await h.handle('settle',{requestId:row.requestId});h.restart({newOwner:true});
+    const history=await h.handle('history',{source},h.panel),receipt=history[0].receipt;
+    assert.equal(history[0].requestId,row.requestId);assert.equal(receipt.execution,terminal);
+    assert.equal(receipt.persistence,'verified');assert.equal(receipt.release,'released');
+    assert.deepEqual(receipt.error,{code:'E_TASK_TIMEOUT',message:'original timeout'});
+    assert.equal(receipt.value,undefined);assert(!JSON.stringify(history).includes('PRIVATE'));
+    await h.handle('reconcile');assert.equal(await h.handle('claim'),null);
+    assert.equal(h.runs.length,1);assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,0);
+  });
+}
+
+test('terminal history rejects denied, ambiguous and mismatched durable Results',async()=>{
+  const mutations=[h=>{h.state.resultDenied=true;},h=>{h.results.push(structuredClone(h.results[0]));},
+    ...['runId','resultId','sourceKind','state'].map(key=>h=>{h.results[0][key]='other';}),
+    ...['scriptId','revision','sourceHash'].map(key=>h=>{h.results[0].revision[key]='other';}),
+    h=>{h.results[0].outcome.ok=true;},h=>{h.runs[0].contentHash='other';},
+    h=>{h.runs[0].sourceKind='draft';}];
+  for(const mutate of mutations){
+    const h=fixture();await h.approve();await h.completed();h.runs[0].state='failed';h.results[0].state='failed';
+    h.results[0].outcome={ok:false,error:{code:'E_PRIVATE',message:'PRIVATE'},valueWire:encodeValue('PRIVATE')};
+    mutate(h);h.restart();const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+    assert.notEqual(receipt.persistence,'verified');assert.equal(receipt.value,undefined);
+    assert(!JSON.stringify(receipt).includes('PRIVATE'));
+  }
+});
+
+test('history denies durable data after original auto grant or request revocation',async()=>{
+  for(const terminal of ['completed','failed','stopped'])for(const revoke of ['grant','request']){
+    const h=fixture();await h.approve();const row=await h.completed();
+    h.runs[0].state=terminal;h.results[0].state=terminal;
+    if(terminal!=='completed')h.results[0].outcome={ok:false,error:{code:'E_PRIVATE',message:'PRIVATE'}};
+    if(revoke==='grant')await h.ledger.revokeAuto(scope.taskId);
+    else await h.ledger.revokeRequest({source,requestId:row.requestId});
+    h.restart();const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+    assert.notEqual(receipt.persistence,'verified');assert.equal(receipt.value,undefined);
+    assert(!JSON.stringify(receipt).includes('PRIVATE'));
+  }
+});
+
+test('history fences revocation during snapshot and final asynchronous ledger reads',async()=>{
+  for(const phase of ['snapshot','final-read'])for(const revoke of ['grant','request','installation']){
+    const h=fixture();await h.approve();const row=await h.completed();
+    const deny=()=>revoke==='grant'?h.ledger.revokeAuto(scope.taskId):revoke==='request'?
+      h.ledger.revokeRequest({source,requestId:row.requestId}):h.state.taskEpoch++;
+    h.state.onSnapshot=async()=>{
+      h.state.onSnapshot=null;
+      if(phase==='snapshot')await deny();
+      else h.state.onStorageRead=()=>{h.state.onStorageRead=null;void deny();};
+    };
+    const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+    assert.notEqual(receipt.persistence,'verified',`${phase}/${revoke}`);assert.equal(receipt.value,undefined);
+  }
+});
+
+test('request revocation inside the last history ledger read denies durable disclosure',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.onSnapshot=()=>{
+    h.state.onSnapshot=null;let reads=0;
+    h.state.onStorageRead=()=>{
+      // Post-snapshot settings, assertConsumed row, its settings, final row.
+      if(++reads===4){h.state.onStorageRead=null;void h.ledger.revokeRequest({source,requestId:row.requestId});}
+    };
+  };
+  const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.notEqual(receipt.persistence,'verified');assert.equal(receipt.value,undefined);
+});
+
+
+test('terminal diagnostics are bounded and history never trusts cached errors',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.runs[0].state='failed';h.results[0].state='failed';
+  h.results[0].outcome={ok:false,error:{code:'C'.repeat(200),message:'M'.repeat(3000),private:'PRIVATE'}};
+  const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.equal(receipt.error.code.length,128);assert.equal(receipt.error.message.length,2048);
+  assert.deepEqual(Object.keys(receipt.error).sort(),['code','message']);
+  await h.ledger.recordWebTaskObservation(row.requestId,{persistence:'verified',error:{code:'E_PRIVATE',message:'PRIVATE'}});
+  h.state.resultDenied=true;
+  const denied=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.equal(denied.persistence,'not-available');assert(!JSON.stringify(denied).includes('PRIVATE'));
 });

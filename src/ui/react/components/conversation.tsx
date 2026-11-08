@@ -34,6 +34,7 @@ export function ConversationInput({id,value='',onChange,onKeyDown,placeholder=''
 export function SharedConversationFrame({
  open=true,rows=[],draft='',busy=false,blocked=false,inputDisabled=false,canSend=true,
  inputId,placeholder='描述要完成的操作',inputLabel='对话输入',maxLength=4000,stopLabel='停止对话',
+ sendLabel='发送',sendTitle='发送消息',logLabel='对话及已核实操作结果',
  onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
  intro=null,emptyPrompt=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
  onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry',
@@ -84,7 +85,7 @@ export function SharedConversationFrame({
      </OpenDeskIconButton>:
     <OpenDeskIconButton id={sendId||undefined}
       className="od-conversation-action od-conversation-action--primary"
-      type="button" onClick={submit} title="发送消息" label="发送"
+      type="button" onClick={submit} title={sendTitle} label={sendLabel}
       disabled={blocked||!canSend||!draft.trim()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
      </OpenDeskIconButton>}
@@ -96,7 +97,7 @@ export function SharedConversationFrame({
   {splitTargets
    ?transcriptTarget?createPortal(transcript,transcriptTarget):null
    :<div ref={log} className={logClassName} role="log" aria-live="polite"
-      aria-label="对话及已核实操作结果" onScroll={onLogScroll||undefined}>{transcript}</div>}
+      aria-label={logLabel} onScroll={onLogScroll||undefined}>{transcript}</div>}
   {feedback}
   {review}
   {technical}
@@ -110,6 +111,7 @@ export function SharedConversationFrame({
 // owns the workspace/business containers, session, focus restoration and actions.
 export function SharedConversationDock({open=false,onClose,id='opendesk-conversation-dock',
  title='AI 对话',className='',children,toolbar=null,onOpenSettings=null,expandedFeedback=false,
+ settingsLabel='AI 设置',closeLabel='收起对话',resizeLabel='调整对话与原扩展的高度',
  style,...props}){
  const dockRef=React.useRef(null),resizeRef=React.useRef(null);
  const [height,setHeight]=React.useState(null);
@@ -169,7 +171,7 @@ export function SharedConversationDock({open=false,onClose,id='opendesk-conversa
    style={{...style,height:dockHeight+'px'}}>
    <div className={"od-conversation-dragbar"+(toolbar?" od-conversation-dragbar--actions":"")}>
     <div className="od-conversation-separator" role="separator" tabIndex={0}
-     aria-label="调整对话与原扩展的高度" aria-orientation="horizontal"
+     aria-label={resizeLabel} aria-orientation="horizontal"
      aria-valuemin={limits.min} aria-valuemax={limits.max} aria-valuenow={dockHeight}
      onPointerDown={separatorDown} onPointerMove={separatorMove}
      onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
@@ -178,14 +180,14 @@ export function SharedConversationDock({open=false,onClose,id='opendesk-conversa
     <div className="od-conversation-toolbar">
     {toolbar}
     {onOpenSettings&&<OpenDeskIconButton className="od-conversation-control od-conversation-settings"
-     label="AI 设置" title="AI 设置" onClick={onOpenSettings}>
+     label={settingsLabel} title={settingsLabel} onClick={onOpenSettings}>
      <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="3"/>
       <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
      </svg>
     </OpenDeskIconButton>}
-    <OpenDeskIconButton className="od-conversation-control od-conversation-close" label="收起对话"
-     title="收起对话" onClick={onClose}>
+    <OpenDeskIconButton className="od-conversation-control od-conversation-close" label={closeLabel}
+     title={closeLabel} onClick={onClose}>
      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </OpenDeskIconButton>
     </div>

@@ -616,7 +616,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.equal(view.runtime.settingsControl, document.getElementById('sidebar-tool-settings-open'));
   assert.equal(storageListeners.size, 1);
   assert.equal(pageListeners.size, 1);
-  assert.equal(localeListeners.size, 1);
+  assert.equal(localeListeners.size, 2, 'the Host and Time Review controls each retain their locale subscription');
   assert.ok(reads.flat().includes(SIDEBAR_TOOL_STORE));
   assert.deepEqual(fetched, [api.runtime.getURL('official-tools/catalog.json'), OFFICIAL_FOCUS_LATEST_URL],
     'only local catalog and fixed Focus metadata load without the retired list DOM; no tool packages');
@@ -657,4 +657,54 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.deepEqual(view.resourceSnapshot(), {subscriptions: 0, bindings: 0, runtime: false, controllers: 0, effects: 0});
   assert.ok(Object.values(view.runtime).every(node => node === null));
   assert.ok(toolActivity.includes(true), 'the original task workbench receives tool visibility');
+});
+
+async function localizedToolHostFixture(t,toolIds){
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const previous={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  const {createRoot}=await import('react-dom/client');
+  const {createUiLocaleController}=await import('../../src/ui/app-localization.js');
+  const locale=createUiLocaleController(null,{languages:['en'],storage:()=>null,eventTarget:null});
+  const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
+  const tools=await Promise.all(toolIds.map(async id=>JSON.parse(await readFile(new URL(`../../projects/${id}/${id}.opendesk-tool.json`,import.meta.url),'utf8'))));
+  const store=new Map([[SIDEBAR_TOOL_STORE,tools]]),calls=[];
+  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
+    storage:{local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(store.get(key))]));},
+      async set(){assert.fail('locale presentation must not write storage');},async remove(){assert.fail('locale presentation must not remove storage');}},
+      onChanged:{addListener(){},removeListener(){}}},
+    permissions:{contains:async()=>false,request(){calls.push('permission');return Promise.resolve(false);}},
+    windows:{getLastFocused:async()=>({focused:true,type:'normal',id:1})},tabs:{query:async()=>[{url:'https://example.com/page'}]}};
+  const host=createSidebarTools({view,doc:document,api,localeController:locale,taskWorkbench:{},
+    lockManager:{request:async(_name,work)=>work()},fetcher:async()=>new Response('offline fixture',{status:503})});
+  t.after(async()=>{
+    await React.act(async()=>{host.dispose();root.unmount();});view.dispose();locale.dispose();
+    globalThis.window=previous.window;globalThis.document=previous.document;globalThis.IS_REACT_ACT_ENVIRONMENT=previous.act;
+  });
+  await React.act(async()=>{root.render(React.createElement(ToolHost,{view}));await nextTick();});
+  await React.act(async()=>{await host.ready;host.setVisible(true);});
+  return {document,view,host,locale,calls,api};
+}
+
+test('Prompt visible settings labels switch in the real React ToolHost for all four locales',async t=>{
+  const f=await localizedToolHostFixture(t,['prompt-shortcuts']);
+  const {promptHostText}=await import('../../projects/prompt-shortcuts/trusted/host-localization.js');
+  await React.act(async()=>{assert.equal(f.host.openSettings('prompt-shortcuts'),true);});
+  const web=f.document.querySelector('#sidebar-tool-prompt-web-row strong');
+  const selection=f.document.querySelector('#sidebar-tool-prompt-native-row strong');
+  const button=f.document.getElementById('sidebar-tool-prompt-web-action');
+  for(const language of ['en','ja','zh-TW','zh-CN','en']){
+    await React.act(async()=>{f.locale.setLocalePreference(language,{persist:false});});
+    assert.equal(web.textContent,promptHostText(language,'webButtonsLabel'));
+    assert.equal(selection.textContent,promptHostText(language,'selectionAddLabel'));
+    assert.equal(button.getAttribute('aria-label'),web.textContent);
+    assert.equal(f.document.getElementById('sidebar-tool-prompt-native-action').getAttribute('aria-label'),selection.textContent);
+    for(const node of [web,selection]){
+      for(let parent=node;parent;parent=parent.parentElement)assert.equal(parent.hidden,false,'label must be visible, not only translated in hidden markup');
+    }
+    assert.equal(f.document.querySelector('#sidebar-tool-prompt-web-row strong'),web);
+    assert.equal(f.document.querySelector('#sidebar-tool-prompt-native-row strong'),selection);
+    assert.equal(f.document.getElementById('sidebar-tool-prompt-web-action'),button);
+  }
+  assert.deepEqual(f.calls,[]);
 });

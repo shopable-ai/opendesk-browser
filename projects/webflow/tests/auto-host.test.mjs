@@ -32,7 +32,7 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
   const installed={taskId:scope.taskId,...installation,enabled:true},resolved={...installed,manifest};
   const catalog={taskId:scope.taskId,version:installation.version,manifestHash:installation.manifestHash,stage:'available',manifest};
   let data={},counter=0,permission=true,verified=true,afterGate=async()=>{},deliveryUnknown=false,runUnknown=false;
-  let observed,snapshot;
+  let observed,snapshot,contextListener;
   const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
   const ledger=createChatGPTBridgeTriggerLedger({storage,generateId:()=>`66666666-6666-4666-8666-${String(++counter).padStart(12,'0')}`});
   const events={starts:[],deliveries:[],gates:[],controls:[],order:[],permissions:[],profileWrites:[]};
@@ -60,7 +60,8 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
         msg.kind==='revoke-request'?ledger.revokeRequest(msg):ledger.assertConsumed(msg));
       await afterGate(msg);return {ok:true,data};
     }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
-  }},tabs:{query:async()=>[{...sender.tab}],get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
+  }},tabs:{onActivated:{addListener:fn=>{contextListener=fn;},removeListener(){}},
+    query:async()=>[{...sender.tab}],get:async()=>({...sender.tab}),async sendMessage(tab,msg,options){
     assert.equal(tab,source.tabId);assert.equal(options.documentId,source.documentId);
     if(msg.kind==='sidebar-probe')return {ok:true,data:{url:source.url,nonce:msg.nonce,runtimeId:'extension',session:session(),recovery:{allowed:true,reason:'当前对话空闲且没有草稿'}}};
     if(msg.kind==='sidebar-refresh'){events.controls.push(msg);return {ok:true,data:{refreshing:true,nonce:msg.nonce}};}
@@ -103,6 +104,7 @@ function harness({profiles=[],requestPermission=true,saveError=null,grantError=n
     return bridge.handle({...message,kind:'execute',mode:'auto',requestId:admitted.requestId,adoptedRequest,source,sourceUrl:source.url},sender);
   };
   return {bridge,api,host,ledger,next,run,events,scope,installed,resolved,catalog,sender,source,projectRequest:value=>{projectedRequest=value;},replaceProfiles:value=>{profiles=value;},
+    contextChanged:()=>contextListener({windowId:2}),
     denyPermission:()=>{permission=false;},unverify:()=>{verified=false;},
     afterGate:fn=>{afterGate=fn;},loseSend:()=>{deliveryUnknown=true;},unknownRun:()=>{runUnknown=true;},
     async approve(){const review=await bridge.prepareAutoGrant(scope);await bridge.approveAutoTask(review,{isTrusted:true});
@@ -196,6 +198,31 @@ test('lost pending-approval ACK never sends the execute control or allocates a r
  await assert.rejects(h.bridge.admitAutoTask(message,h.sender));
  assert.equal(h.events.controls.length,0);assert.equal(h.events.starts.length,0);
 });
+for(const [action,boundary] of [['run',1],['approve-range',1],['approve-range',2],['approve-range',3]]){
+ test(`${action} rejects context invalidation during awaited source validation ${boundary}`,async()=>{
+  const h=harness();await h.approve();const args={query:'SDK race',limit:3};
+  const admitted=await h.bridge.admitAutoTask(h.next('wf-control-race',{args}),h.sender);
+  h.projectRequest(admitted.requestId);await h.bridge.readBridgeState();
+  const command={action,source:h.source,requestId:admitted.requestId,
+   pendingAuto:{scope:{...h.scope,args},candidate:admitted.candidate}};
+  const originalGet=h.api.tabs.get;let calls=0,release,entered;
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  const resume=new Promise(resolve=>{release=resolve;});
+  h.api.tabs.get=async(...args)=>{
+   const tab=await originalGet(...args);
+   if(++calls===boundary){entered();await resume;}
+   return tab;
+  };
+  const grantsBefore=h.events.gates.filter(msg=>msg.kind==='auto-grant').length;
+  const pending=h.bridge.controlBridge(command,{isTrusted:true});
+  const rejected=assert.rejects(pending,{code:'E_BRIDGE_CONTEXT'});
+  await waiting;h.contextChanged();release();await rejected;
+  assert.equal(h.events.controls.length,0,'invalidated control must never reach the page');
+  assert.equal(h.events.gates.filter(msg=>msg.kind==='auto-grant').length-grantsBefore,
+   boundary===3?1:0,'only a grant written before invalidation may remain');
+  assert.equal(h.events.starts.length,0);
+ });
+}
 test('Host rejects missing gestures, sandbox/page attempts, disabled task, permissions and changed installation',async()=>{
   const h=harness();const review=await h.bridge.prepareAutoGrant(h.scope);
   for(const event of [undefined,{isTrusted:false}])await assert.rejects(h.bridge.approveAutoTask(review,event));

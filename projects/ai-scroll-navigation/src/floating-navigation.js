@@ -221,6 +221,11 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     // native control/composer collision. We never overlay other controls or
     // let an uncertain placement redirect scrolling to another region.
     const obstacles=controlObstacles(doc,win);
+    // Fixed slots can all collide after a page reflow. Reuse visible control
+    // edges for configured conversations too, retaining every collision gate.
+    const verticalGaps=obstacles.filter(r=>r.left<left+width&&r.right>left)
+      .map(r=>[left,Math.floor(r.top-height-12)])
+      .sort((a,b)=>b[1]-a[1]);
     const candidates=alignChatGPT?[
       // Keep the shared left edge when avoiding native controls.
       [left,topPos],
@@ -228,16 +233,15 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       [left,topPos-2*(height+12)],
       // A short viewport may need a gap above several stacked native or
       // shadow controls. Keep the same gutter and test their upper edges.
-      ...obstacles.filter(r=>r.left<left+width&&r.right>left)
-        .map(r=>[left,Math.floor(r.top-height-12)])
-        .sort((a,b)=>b[1]-a[1])
+      ...verticalGaps
     ]:[
       [left,topPos],
       [left,topPos-height-12],
       [left+width+12,topPos],
       [left-width-12,topPos],
       [Math.round(rect.right-width-12),topPos],
-      [left,topPos-2*(height+12)]
+      [left,topPos-2*(height+12)],
+      ...verticalGaps
     ];
     const chosen=candidates.find(([x,y])=>
       Number.isFinite(x)&&Number.isFinite(y)&&

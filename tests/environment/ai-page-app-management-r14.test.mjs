@@ -17,7 +17,8 @@ test('R1.4 only the two new AI Page identities receive the compact master-switch
     const view=describeManagedAiPage(installed(id));
     assert.equal(view.enabled,true);assert.equal(view.enabledKnown,true);
     assert.equal(view.state,'ready');assert.equal(view.canRestore,false);
-    assert.match(view.note,/并非对当前网页已实际运行的证明/);
+    assert.match(view.evidenceNote,/并非对当前网页已实际运行的证明/);
+    assert.doesNotMatch(view.status,/已实际运行|当前网页.*运行中/);
   }
   for(const id of ['opendesk.chatgpt-jump-top','opendesk.chatgpt-mindmap','reader']){
     assert.equal(describeManagedAiPage(installed(id)),null);
@@ -28,10 +29,52 @@ test('R1.4 disabled intent is distinct from native unregister and unknown cleanu
   const stopped=installed(undefined,{enabled:false,
     nativeState:'disabled',authorization:{status:'disabled',generation:4}});
   assert.equal(describeManagedAiPage(stopped).state,'off');
-  assert.match(describeManagedAiPage(stopped).status,/原生注销已确认/);
+  assert.equal(describeManagedAiPage(stopped).status,'自动运行已关闭');
   assert.equal(describeManagedAiPage(installed(undefined,{enabled:false,nativeState:'registered'})).state,'pending');
-  assert.equal(describeManagedAiPage(installed(undefined,{managedCleanup:{state:'unknown'}})).state,'restricted');
+  assert.equal(describeManagedAiPage(installed(undefined,{managedCleanup:{state:'unknown'}})).state,'pending');
   assert.equal(describeManagedAiPage(installed(undefined,{enabled:undefined})).enabledKnown,false);
+});
+
+test('AI Page cleanup uncertainty stays pending without changing persisted intent or allowing restore',()=>{
+  for(const id of ['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap']){
+    const page=installed(id,{managedCleanup:{state:'unknown'}});
+    const before=structuredClone(page);
+    const view=describeManagedAiPage(page);
+    assert.equal(view.state,'pending');
+    assert.equal(view.status,'运行状态待确认');
+    assert.equal(view.enabled,true);
+    assert.equal(view.canRestore,false);
+    assert.deepEqual(page,before,'status projection must not write installation state');
+    assert.deepEqual(describeInstalledPageControl(page),view);
+    const off=installed(id,{enabled:false,nativeState:'disabled',
+      authorization:{status:'disabled'},managedCleanup:{state:'unknown'}});
+    assert.equal(describeManagedAiPage(off).state,'pending');
+    assert.equal(describeManagedAiPage(off).enabled,false);
+    assert.equal(describeManagedAiPage(off).canRestore,false);
+  }
+  assert.equal(describeInstalledPageControl(installed('reader',{
+    managedCleanup:{state:'unknown'}})).state,'restricted',
+  'the revised uncertainty presentation is scoped to the two AI Pages');
+});
+
+test('AI Page actual failures remain restricted with actionable notes and original restore fences',()=>{
+  for(const id of ['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap']){
+    for(const failure of [{error:'E_REGISTER_FAILED'},{nativeState:'blocked'},
+      {authorization:{status:'suspended',generation:6}}]){
+      for(const unknown of [false,true]){
+        const page=installed(id,{...failure,...(unknown?{managedCleanup:{state:'unknown'}}:{})});
+        const before=structuredClone(page),view=describeManagedAiPage(page);
+        assert.equal(view.state,'restricted');
+        assert.equal(view.enabled,true);
+        assert.equal(view.canRestore,!unknown,'unknown cleanup still blocks restore');
+        assert.ok(view.note);
+        assert.match(view.note,/检查|查看|恢复|重新|确认/,'failure note gives an understandable next step');
+        assert.deepEqual(page,before);
+      }
+    }
+    const needsConsent=installed(id,{authorization:{status:'needs-confirmation'},nativeState:'blocked'});
+    assert.equal(describeManagedAiPage(needsConsent).canRestore,false);
+  }
 });
 
 test('R1.4 suspended grant does not turn master-switch OFF into restore ON',async()=>{
@@ -90,7 +133,7 @@ test('R1.4 absent native registration cannot be labelled as a running page',()=>
   assert.equal(noSite.state,'pending','no approved site cannot be labelled ready');
   const pending=describeManagedAiPage(installed(undefined,{nativeState:'unregistered'}));
   assert.equal(pending.state,'pending');
-  assert.match(pending.status,/待核对/);
+  assert.equal(pending.status,'运行状态待确认');
   const blocked=describeManagedAiPage(installed(undefined,{nativeState:'blocked'}));
   assert.equal(blocked.canRestore,true);
   assert.equal(blocked.state,'restricted');

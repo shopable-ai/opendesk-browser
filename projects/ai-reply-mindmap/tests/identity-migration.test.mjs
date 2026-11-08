@@ -8,14 +8,14 @@ const registry=readFileSync(new URL('../src/answer-registry.js',import.meta.url)
 
 test('new Mind Map is an independent ChatGPT-only Page Program',()=>{
   assert.equal(project.opendesk.id,'opendesk.ai-reply-mindmap');
-  assert.equal(project.version,'0.2.7');
+  assert.equal(project.version,'0.2.8');
   assert.deepEqual(project.opendesk.pageRules.matches,['https://chatgpt.com/*']);
   assert.deepEqual(project.opendesk.pageRules.excludeMatches,[]);
   assert.equal(project.opendesk.pageRules.world,'USER_SCRIPT');
   assert.match(source,/const PROGRAM_ID='opendesk\.ai-reply-mindmap'/);
   assert.match(source,/id:PROGRAM_ID\+'\.lifecycle'/);
   assert.match(source,/return \{programId:PROGRAM_ID,status:'active'/);
-  assert.match(source,/programRevision:\{version:'0\.2\.7',revision:3\}/);
+  assert.match(source,/programRevision:\{version:'0\.2\.8',revision:5\}/);
   assert.doesNotMatch(source,/opendesk\.chatgpt-mindmap/);
 });
 

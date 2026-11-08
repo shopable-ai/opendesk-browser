@@ -81,6 +81,8 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
           'E_PAGE_UNINSTALL_PENDING':'E_PAGE_CLEANUP_PENDING'});
       }
       programs.splice(index,1);
+      if(pageUninstallMode==='cleanup-pending')return {...receipt,cleanupPending:true,
+        managedCleanup:{scope:'managed-ui-only',state:'unknown',records:1}};
       if(pageUninstallMode==='outcome-unknown')throw Object.assign(
         Error('Host reply lost'),{code:'E_EFFECT_UNKNOWN'});
       return receipt;
@@ -125,7 +127,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   const button=(key,action)=>buttons(key).find(node=>node.dataset.extensionAction===action);
   const rowMenu=()=>doc.getElementById('extension-center-row-menu');
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
-  return {doc,nodes,ui,state,store,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
+  return {doc,nodes,ui,state,store,client,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
     setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
     setPageAckOnly:value=>{pageAckOnly=value;},
@@ -285,6 +287,53 @@ test('R5.5 stale Page generation invalidates an old uninstall confirmation befor
   assert.equal(action('confirm-uninstall'),null,'stale confirmation is no longer rendered');
   assert.equal(f.uninstalls.length,0);
   assert.match(f.nodes['extension-center-status'].textContent,/卸载确认已失效/);
+});
+
+for(const entry of ['list','detail'])test('Page '+entry+' uninstall removes a revoked installation while reporting retained cleanup',async t=>{
+  const f=fixture(t);f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
+  if(entry==='list'){
+    f.button('page:reader','more').dispatch('click');
+    f.menuItem('卸载…').dispatch('click');
+  }else{
+    f.button('page:reader','main').dispatch('click');
+    f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
+  }
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('清理记录会保留'));
+  assert.equal(f.state.statusModel.state,'info','revocation is confirmed, document cleanup is not');
+  assert.equal(f.programs.length,0);
+  assert.equal(f.button('page:reader','main'),undefined);
+  assert.deepEqual(f.uninstalls,[{programId:'reader',manifestHash:'a'.repeat(64),
+    installationId:'original-installation',expectedGeneration:5}]);
+  await f.ui.refresh();
+  assert.equal(f.button('page:reader','main'),undefined,'a retained cleanup is not an installed extension');
+  assert.equal(f.uninstalls.length,1,'readback never retries cleanup or uninstall');
+  assert.ok(f.button('app:quick-notes','main'),'unrelated installation remains');
+});
+
+test('Page uninstall readback survives passive installation refresh without replaying removal',async t=>{
+  const f=fixture(t);f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
+  const request=f.client.request.bind(f.client);
+  let release,reads=0;
+  f.client.request=(name,args)=>{
+    if(name==='listPagePrograms'&&++reads===1)
+      return new Promise(resolve=>{release=()=>request(name,args).then(resolve);});
+    return request(name,args);
+  };
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>Boolean(release));
+  f.doc.dispatch('opendesk:page-installation-changed');
+  f.emitStorage();
+  await tick();
+  release();
+  await settle(()=>!f.doc.querySelector('[role="dialog"]'));
+  assert.equal(f.state.statusModel.state,'info');
+  assert.match(f.state.statusModel.text,/清理记录会保留/);
+  assert.equal(f.button('page:reader','main'),undefined);
+  assert.equal(f.uninstalls.length,1,'notifications never replay the mutation');
+  await settle(()=>reads===2);
+  assert.ok(f.button('app:quick-notes','main'),'deferred refresh retains other installations');
 });
 
 for(const mode of ['native-fail','cleanup-unknown','ack-only','outcome-unknown'])
@@ -892,8 +941,9 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   await tick();await tick();
   f.button('page:'+row.programId,'main').dispatch('click');
   assert.ok(f.state.detailModel.pageControl.officialBlock,'the real catalog candidate is loaded');
-  [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='导航设置').dispatch('click');
+  f.doc.getElementById('scroll-settings').dispatch('click');
   [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');
+  await settle(()=>{const action=f.doc.querySelector('[data-ec-detail-action="uninstall"]');return action&&!action.disabled;});
   f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
   await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('卸载'));

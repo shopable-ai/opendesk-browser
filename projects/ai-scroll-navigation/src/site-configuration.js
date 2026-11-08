@@ -77,12 +77,12 @@ export function scrollConfiguredEdge(binding,direction,doc,win){
   else scroller.scrollTop=top;
   return Math.abs(scroller.scrollTop-top)<=3;
 }
-function safeUniqueSelector(doc,node){
+function safeUniqueSelector(doc,node,{structuralOnly=false}={}){
   const unique=selector=>{try{return doc.querySelectorAll(selector).length===1&&
     doc.querySelector(selector)===node;}catch{return false;}};
   const css=globalThis.CSS?.escape||((value)=>String(value).replace(/[^a-zA-Z0-9_-]/g,c=>'\\'+c));
-  if(node.id){const s='#'+css(node.id);if(unique(s))return s;}
-  for(const attr of ['data-testid','data-id','aria-label']){
+  if(!structuralOnly&&node.id){const s='#'+css(node.id);if(unique(s))return s;}
+  for(const attr of structuralOnly?[]:['data-testid','data-id','aria-label']){
     const value=node.getAttribute?.(attr);
     if(value&&value.length<=80&&!/["\\\u0000-\u001f]/.test(value)){
       const s='['+attr+'="'+value+'"]';
@@ -90,19 +90,21 @@ function safeUniqueSelector(doc,node){
     }
   }
   let parts=[],current=node;
-  for(let depth=0;depth<8&&current&&current.nodeType===1;depth++,current=current.parentElement){
+  const maxDepth=structuralOnly?64:8;
+  for(let depth=0;depth<maxDepth&&current&&current.nodeType===1;depth++,current=current.parentElement){
     let item=current.tagName.toLowerCase();
     const siblings=[...(current.parentElement?.children||[])].filter(n=>n.tagName===current.tagName);
     if(siblings.length>1)item+=':nth-of-type('+([...current.parentElement.children].filter(n=>
       n.tagName===current.tagName).indexOf(current)+1)+')';
     parts.unshift(item);
     const s=parts.join(' > ');
+    if(s.length>256)return null;
     if(unique(s))return s;
   }
   return null;
 }
 
-function safeMessageGroupSelector(main,hit,win){
+function safeMessageGroupSelector(main,hit,win,{structuralOnly=false}={}){
   if(!main?.contains(hit))return null;
   const escape=globalThis.CSS?.escape||((value)=>String(value).replace(/[^a-zA-Z0-9_-]/g,c=>'\\'+c));
   let best=null;
@@ -113,16 +115,20 @@ function safeMessageGroupSelector(main,hit,win){
     if(!tag)continue;
     const probes=[];
     if(node.hasAttribute?.('data-message-id'))probes.push(['[data-message-id]',140]);
+    if(structuralOnly)for(const attr of ['data-turn-key','data-turn-id','data-message-key','data-response-id'])
+      if(node.hasAttribute?.(attr))probes.push(['['+attr+']',135]);
     for(const [name,weight] of [['data-testid',125],['data-role',120],['role',115]]){
       const value=node.getAttribute?.(name);
       if(value&&value.length<=80&&!/["\\\u0000-\u001f]/.test(value)&&
+          (!structuralOnly||/^(message|turn|chat|response|assistant|user|article|bubble|reply|listitem)$/.test(value))&&
           /(message|turn|chat|response|assistant|user|article|bubble|reply|listitem)/i.test(value))
         probes.push(['['+name+'="'+value+'"]',weight]);
     }
     if(tag==='article')probes.push(['article',130]);
-    if(tag==='li')probes.push(['li',65]);
+    if(tag==='li'&&!structuralOnly)probes.push(['li',65]);
     for(const cls of [...(node.classList||[])].slice(0,6)){
-      if(!/^[a-zA-Z_][a-zA-Z0-9_-]{1,63}$/.test(cls))continue;
+      if(!/^[a-zA-Z_][a-zA-Z0-9_-]{1,63}$/.test(cls)||
+          (structuralOnly&&!/^(message|turn|chat|response|assistant|bubble|reply)$/.test(cls)))continue;
       const semantic=/(message|turn|chat|response|assistant|bubble|reply)/i.test(cls);
       if(semantic||node.parentElement===main)probes.push([tag+'.'+escape(cls),semantic?110:35]);
     }
@@ -197,6 +203,72 @@ function validateLiveRule(rule,doc,win){
   const binding=resolveConfiguredConversation({...rule,enabled:true},doc,win);
   if(!binding)return '页面结构已变化或选取节点不符合对话滚动关系，请重新点选并核对。';
   return null;
+}
+
+// Count the whole document before selector queries. Excluded controls never
+// become candidates; their internal depth must not hide a valid conversation.
+export function observeScrollSiteStructure({doc,win}={}){
+  const unavailable=()=>({state:'unavailable',reason:'NO_STRUCTURE'});
+  try{
+    if(!doc?.documentElement||!win)return unavailable();
+    const nodes=[],excluded=new Set();
+    let node=doc.documentElement,depth=0;
+    while(node){
+      if(nodes.length>=12000)return unavailable();
+      if(excluded.has(node.parentElement)||node.matches(EXCLUDE))excluded.add(node);
+      if(depth>64&&!excluded.has(node))return unavailable();
+      nodes.push(node);
+      if(node.firstElementChild){node=node.firstElementChild;depth++;continue;}
+      while(node&&!node.nextElementSibling){node=node.parentElement;depth--;}
+      if(node)node=node.nextElementSibling;
+    }
+    const visible=new Set();
+    for(const node of nodes){
+      if(excluded.has(node)||node.hasAttribute('hidden')||
+          (node.parentElement&&!visible.has(node.parentElement)))continue;
+      const style=win.getComputedStyle(node);
+      // display:contents has no box but can contain visible messages. Hidden
+      // ancestors still block descendants, even when a child overrides CSS.
+      if(style.display!=='none'&&!['hidden','collapse'].includes(style.visibility)&&
+          (style.display==='contents'||shown(node,win)))
+        visible.add(node);
+    }
+    const mains=nodes.filter(node=>node.matches('main,[role="main"],[role="log"],[role="feed"],section,[role="region"]')&&
+      visible.has(node)&&allowedNode(node,win));
+    if(mains.length>24)return unavailable();
+    const candidates=[],seen=new Set();
+    for(const main of mains){
+      if(candidates.length===8)break;
+      const hits=nodes.filter(node=>node!==main&&main.contains(node)&&visible.has(node)&&
+        node.matches('article,[data-message-id],[data-turn-key],[data-turn-id],[data-message-key],[data-response-id],[role="listitem"],.message,.turn,.response,.assistant,.bubble,.reply')&&
+        allowedNode(node,win)).slice(0,8);
+      for(const hit of hits){
+        const group=safeMessageGroupSelector(main,hit,win,{structuralOnly:true});
+        if(!group||group.count<2)continue;
+        const messages=[...main.querySelectorAll(group.selector)];
+        if(messages.some(node=>!visible.has(node)))continue;
+        const scroller=findConversationScroller(messages[0],doc,win,{includeSelf:true});
+        if(!scroller||!visible.has(scroller))continue;
+        const mainSelector=safeUniqueSelector(doc,main,{structuralOnly:true});
+        const scrollSelector=safeUniqueSelector(doc,scroller,{structuralOnly:true});
+        if(!mainSelector||!scrollSelector)continue;
+        const rule={origin:win.location.origin,pathScope:'/',enabled:true,
+          mainSelector,scrollSelector,messageSelector:group.selector,anchorSelector:''};
+        if(validateLiveRule(rule,doc,win))continue;
+        const binding=resolveConfiguredConversation(rule,doc,win);
+        if(!binding)continue;
+        const identity=mainSelector+'\n'+scrollSelector+'\n'+group.selector;
+        if(!seen.has(identity)){
+          seen.add(identity);
+          candidates.push({id:'candidate-'+(candidates.length+1),mainSelector,scrollSelector,
+            messageSelector:group.selector,anchorSelector:'',
+            metrics:{messageCount:messages.length,scrollable:scroller.scrollHeight-scroller.clientHeight>1}});
+        }
+        break;
+      }
+    }
+    return candidates.length?{state:'observed',candidates}:unavailable();
+  }catch{return unavailable();}
 }
 
 const html=`<style>
@@ -481,6 +553,11 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   // bridge is introduced and the original picker owns the pointer listeners.
   if(api&&win===win.top){
     const editor=Object.freeze({
+      observe(){
+        if(closed)return {state:'closed'};
+        if(busy||sidebarPickDone||selecting)return {state:'busy'};
+        return observeScrollSiteStructure({doc,win});
+      },
       validate(rule){
         const error=validateLiveRule(rule,doc,win);
         return error?{ok:false,error}:{ok:true};
@@ -542,7 +619,8 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
 }
 
 // The installed Page Program retains a read-only config consumer and a
-// one-shot document-scoped selector picker. It never mounts website settings,
+// bounded structural observer and one-shot document-scoped selector picker.
+// It never mounts website settings,
 // never grants a site Origin, and never writes rule storage from the webpage.
 const NAVIGATION_PENDING=Object.freeze({regionTop:false,regionBottom:false,
   conversationTop:false,conversationBottom:false,floatingTop:false});
@@ -692,6 +770,11 @@ export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
     return true;
   }
   const editor=Object.freeze({
+    observe(){
+      if(disposed)return {state:'closed'};
+      if(pickDone||picking!==null)return {state:'busy'};
+      return observeScrollSiteStructure({doc,win});
+    },
     validate(rule){
       const error=validateLiveRule(rule,doc,win);
       return error?{ok:false,error}:{ok:true};

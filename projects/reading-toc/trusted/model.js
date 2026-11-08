@@ -88,20 +88,26 @@ export function createReadingTocIndex(doc) {
     for(let node=heading;node;node=node.parentElement)if(node===root)return true;
     return false;
   }
+  function chatDisplayValue(heading) {
+    // Observed ChatGPT DIL metrics: a tabular-number title paired with its
+    // text label in a box/row. The same H1-H6 tags also render real sections;
+    // text alone (years, Roman numerals, short names) cannot distinguish them.
+    const container=heading.parentElement;
+    return heading.matches?.('[data-d-component="title"][data-d-tabular-nums="true"]')&&
+      container?.matches?.('[data-d-component="box"],[data-d-component="row"]')&&
+      Boolean(container.querySelector?.(':scope > p[data-d-component="text"]'));
+  }
   function rebuild() {
     const next=[],groupMap=new Map(),stacks=new Map(),nextSources=[];
     const host=String(doc.location?.hostname||doc.defaultView?.location?.hostname||'').toLowerCase();
     const onChatGPT=host==='chatgpt.com'||host==='chat.openai.com';
-    const hasChat=onChatGPT||Boolean(doc.querySelector('[data-message-author-role="assistant"]'));
-    const hasZhihu=!hasChat&&Boolean(doc.querySelector('.AnswerItem'));
-    adapter=hasChat?'chatgpt':hasZhihu?'zhihu':'article';
+    const hasZhihu=!onChatGPT&&Boolean(doc.querySelector('.AnswerItem'));
+    adapter=onChatGPT?'chatgpt':hasZhihu?'zhihu':'article';
     const headings=[];
     for(const heading of doc.querySelectorAll('h1,h2,h3,h4,h5,h6')){
       if(!visible(heading)||adapter==='chatgpt'&&!sourceRoot(heading,adapter))continue;
-      // Answer mockups and score cards also use H1-H6 for display values.
-      // Keep short/multilingual section names; reject textless labels before
-      // they can consume the heading quota or become a section's parent.
-      if(adapter==='chatgpt'&&!/\p{L}/u.test(heading.textContent))continue;
+      // Display components must not consume the quota or parent real sections.
+      if(adapter==='chatgpt'&&chatDisplayValue(heading))continue;
       headings.push(heading);
       if(headings.length>=300)break;
     }

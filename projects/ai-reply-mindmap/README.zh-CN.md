@@ -1,5 +1,11 @@
 # AI 回复思维导图 · OpenDesk 网页增强
 
+## 本机安装包（2026-11-08）
+
+当前源码已构建为 **0.2.8/r5**，安装显示名为「AI 回复思维导图」，可直接导入项目根目录的 [ai-reply-mindmap.local.opendesk-page.json](ai-reply-mindmap.local.opendesk-page.json)。在 OpenDesk「扩展 → 导入」选择此文件，核对名称及 `https://chatgpt.com/*` 范围后确认安装；随后打开或刷新 ChatGPT，使用回复操作栏的「思维导图」。已安装同 ID 时按原安装器更新，无需卸载。
+
+此 JSON 内嵌本机 XMind 资源，仅供本机使用（`LOCAL_VALIDATION_ONLY`）。XMind 再分发许可仍为 `NOT_APPROVED`，安装包被 Git 忽略，不作为公开发行物提交。包格式、源码及资源哈希已校验；本次未重新执行浏览器安装与功能验收。构建回执位于 `.opendesk-local/package-build-receipt.json`。
+
 ## 回复工具组优化（2026-11-07）
 
 **2026-11-08 最新状态：用户已确认功能测试通过，按钮与思维导图只做增量验证。** 日常「您的 Chrome」已通过原侧栏安装新身份 **0.2.7/r3**，与导航 r14 自动共现，回复回顶已实际点击生效。见 `artifacts/ai-answer-tools-20261107/daily-chrome-before-clicks-20261108.png`、`daily-chrome-reply-top-20261108.png`；下述 ego 两轮导图、原文一致及导航证据继续按原环境复用，不重跑完整点击链。

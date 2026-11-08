@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/ai-reply-mindmap",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "type": "module",
   "description": "AI 回复思维导图：ChatGPT 单站的 XMind 阅读、定位与导出；正式资源与授权边界见 README",

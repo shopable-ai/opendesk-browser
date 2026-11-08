@@ -33,8 +33,9 @@ function sdk(){
         if(args.ifMatch!==etag(args.key))throw problem('E_CONFLICT');
         store.set(args.key,structuredClone(args.value));await api.afterSet?.(args);return {};
       }
-      if(name==='currentPage.info')return {...api.page};
-      if(name==='tasks.read')return args.taskId?{task:pins.find(p=>p.taskId===args.taskId)}:api.read(args.clientRequestId);
+      if(name==='currentPage.info')return api.pageRead?api.pageRead():{...api.page};
+      if(name==='tasks.read')return args.taskId?
+        (api.taskRead?api.taskRead(args.taskId):{task:api.pins.find(p=>p.taskId===args.taskId)}):api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
       throw Error('Unexpected operation '+name);
@@ -136,6 +137,63 @@ test('missing fixed task is unavailable rather than a changed hash',async t=>{
   const f=await mount(t,host);await f.click('脚本');
   assert.match(taskCard(f).textContent,/安装或授权不可用/);
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  assert.equal(starts(host).length,0);
+});
+const pageChanged=f=>f.document.getElementById('root').dispatchEvent(new f.window.Event('opendesk-page-changed'));
+test('page recheck disables the old site and saved confirmation until the newest SDK read succeeds',async t=>{
+  const host=sdk(),f=await mount(t,host);await prepare(f);
+  const older=deferred(),newest=deferred();let reads=0;
+  host.pageRead=()=>++reads===1?older.promise:newest.promise;
+  const oldConfirmation=f.find('确认手动运行');
+  await f.flush(()=>{
+    pageChanged(f);
+    oldConfirmation.dispatchEvent(new f.window.Event('click',{bubbles:true}));
+  });
+  assert.equal(starts(host).length,0,'same-turn click cannot borrow the old page read');
+  assert.equal(f.find('确认手动运行').disabled,true,'pending page read cannot retain old-site permission');
+  assert.match(taskCard(f).textContent,/正在核验网页/);
+  await f.flush(()=>pageChanged(f));
+  await f.flush(()=>newest.resolve({status:'available',url:'https://www.google.com/'}));
+  await f.flush(()=>older.resolve({status:'available',url:'https://www.baidu.com/'}));
+  assert.equal(f.find('确认手动运行').disabled,true,'late old-site reply cannot override the new target');
+  assert.match(taskCard(f).textContent,/当前网站不可运行/);
+  host.pageRead=async()=>{throw problem('E_PERMISSION');};
+  await f.flush(()=>pageChanged(f));
+  assert.equal(f.find('确认手动运行').disabled,true,'read failure keeps admission disabled');
+  host.pageRead=async()=>({status:'available',url:'https://www.baidu.com/'});
+  await f.flush(()=>pageChanged(f));
+  assert.equal(f.find('确认手动运行').disabled,false);
+  assert.equal(starts(host).length,0,'page notifications never dispatch a task');
+});
+test('page event payload cannot grant permission and a late closed-page read cannot alter its replacement',async t=>{
+  const host=sdk(),late=deferred();let f=await mount(t,host);await f.click('脚本');
+  host.pageRead=()=>late.promise;
+  await f.flush(()=>{
+    const event=new f.window.Event('opendesk-page-changed');
+    event.detail={status:'available',url:'https://www.baidu.com/'};
+    f.document.getElementById('root').dispatchEvent(event);
+  });
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.close();host.pageRead=null;host.page={status:'unavailable'};
+  f=await mount(t,host);await f.click('脚本');
+  const before=host.calls.length;
+  await f.flush(()=>late.resolve({status:'available',url:'https://www.baidu.com/'}));
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  assert.equal(host.calls.length,before);
+  assert.deepEqual(f.errors,[]);
+});
+test('a fixed task requires a complete installation and refresh invalidates saved confirmation while pending',async t=>{
+  const host=sdk(),f=await mount(t,host);await prepare(f);
+  const pending=deferred();host.taskRead=id=>id==='baidu.search.top3'?pending.promise:{task:host.pins[1]};
+  await f.click('刷新');
+  assert.equal(f.find('确认手动运行').disabled,true,'refresh cannot retain a stale installation');
+  await f.flush(()=>pending.resolve({task:{...host.pins[0],installationId:''}}));
+  assert.equal(f.find('确认手动运行').disabled,true);
+  assert.match(taskCard(f).textContent,/安装或授权不可用/);
+  host.taskRead=null;host.pins[0]={...host.pins[0],version:'99.0.0'};
+  await f.click('刷新');
+  assert.match(taskCard(f).textContent,/固定版本不匹配/);
+  assert.equal(starts(host).length,0);
 });
 test('compact filter preserves the preview sort affordance',async t=>{
   const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
@@ -253,6 +311,24 @@ test('save failure never dispatches and does not present a runnable confirmation
   assert.equal(starts(host).length,0);assert.match(f.text(),/E_QUOTA/);
   assert.equal(f.document.querySelectorAll('button').length>0,true);
   assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='确认手动运行'&&!b.disabled),false);
+});
+
+test('preparation CAS conflict or mismatched readback never enables execution',async t=>{
+  for(const failure of ['cas','readback']){
+    const host=sdk();
+    if(failure==='cas')host.beforeSet=args=>{
+      if(args.key==='webflow.pending.v1')host.store.set(args.key,{clientRequestId:'webflow:other-original',taskId:host.pins[0].taskId,version:host.pins[0].version});
+    };
+    else host.afterSet=args=>{
+      if(args.key==='webflow.pending.v1')host.store.set(args.key,{...args.value,clientRequestId:'webflow:different-readback'});
+    };
+    const f=await mount(t,host);await prepare(f);
+    assert.equal(starts(host).length,0,failure+' cannot submit');
+    assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='确认手动运行'&&!b.disabled),false);
+    assert.match(f.text(),failure==='cas'?/E_CONFLICT/:/保存后读回不一致/);
+    assert.ok(host.store.get('webflow.pending.v1'),'the conflicting original is retained');
+    await f.close();
+  }
 });
 
 test('Stop before start ACK ignores late start/read callbacks and never enables another run',async t=>{

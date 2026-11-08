@@ -161,7 +161,7 @@ Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Doc
 
 `OpenDeskTool.setConversationState({visible: boolean, open: boolean})` 将展示状态同步到 Host 固定 AI 按钮；默认隐藏。参数只能含这两个布尔字段，无效调用返回 false。监听 `OpenDeskTool.root` 的 `opendesk:conversation-action`，收到固定 `detail: {action: 'toggle'}` 后，由工具切换自己的 open 并重新同步状态。完整合同与示例见 [Sidebar Tool API](sidebar-tools.zh-CN.md)。此通知不携带原事件、HTML、任意动作名或 AI 授权，不可作为模型请求的用户手势。
 
-公开 `OpenDeskSidebarUI.SharedConversationDock` 可搭配 `SharedConversationFrame`：Dock 接受 `open` / `onClose`，提供底部展示容器与 resizer；Frame 负责对话内容。关闭时更新工具 open 并调用上述 API 同步页头 aria 状态。Dock、Frame 和 session 仍在工具自己的 iframe 内；它们不公开 TrustedWorkspace / HeaderSlot，也不改变 AI 调用、权限或安装合同。Host 清理实例后入口隐藏，迟到状态消息被拒绝；可信 Workspace 保留自身固定入口，避免重复。
+公开 `OpenDeskSidebarUI.SharedConversationDock` 可搭配 `SharedConversationFrame`：Dock 接受 `open` / `onClose`，提供底部展示容器与 resizer；Frame 负责对话内容。Dock 可选 `settingsLabel`、`closeLabel`、`resizeLabel`，Frame 可选 `sendLabel`、`sendTitle`、`logLabel`，供消费者传入当前语言的展示文案，默认文案保持不变。关闭时更新工具 open 并调用上述 API 同步页头 aria 状态。Dock、Frame 和 session 仍在工具自己的 iframe 内；它们不公开 TrustedWorkspace / HeaderSlot，也不改变 AI 调用、权限或安装合同。Host 清理实例后入口隐藏，迟到状态消息被拒绝；可信 Workspace 保留自身固定入口，避免重复。
 
 共享 Chat 面向各扩展复用。根容器使用 `od-conversation-workspace`，原扩展界面放在 `od-conversation-business` 中，Dock 与业务区并列；展开对话后仍保留可操作的业务区域，收起后归还空间，开合不卸载业务或丢弃草稿。共享区沿用公共分隔条、收起按钮、消息和输入样式，不增加「AI 采集助手」等业务标题或覆盖公共控件布局。扩展只提供允许发送的上下文、提案审阅与确认后的业务回调；自动配置和业务执行仍通过该扩展原有能力及真实回执完成。
 

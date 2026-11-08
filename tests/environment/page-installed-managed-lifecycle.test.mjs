@@ -32,7 +32,7 @@ function documentDouble(){
   doc.querySelectorAll=()=>{const nodes=[];const visit=node=>{if(node.attrs['data-opendesk-ui-owner'])nodes.push(node);node.children.forEach(visit);};visit(doc.documentElement);return nodes;};
   return doc;
 }
-const uiSource=['page-ui-mount','page-program-rules','page-ui'].map(name=>readFileSync('src/scripting/user-scripts/'+name+'.js','utf8')
+const uiSource=['page-ui-mount','page-program-rules','page-toast','page-ui'].map(name=>readFileSync('src/scripting/user-scripts/'+name+'.js','utf8')
   .replace(/^import .*\n/gm,'').replaceAll('export ','')).join('\n');
 const source=(body='return 42;')=>'// ==UserScript==\n// @match https://example.com/*\n// @noframes\n// @run-at document-idle\n// ==/UserScript==\n'+uiSource+
   '\nasync function main(){var ui=createPageUI({id:"installed"});var child=document.createElement("iframe");ui.content.append(child);ui.onDispose(()=>{globalThis.disposals=(globalThis.disposals||0)+1;child.remove();});globalThis.ui=ui;'+body+'}';
@@ -47,15 +47,22 @@ function fixture(){
       delete:async(name,key)=>{assert.equal(mode,'readwrite');table(name).delete(key);}});
     if(mode==='readwrite')db=copy;return result;
   });queue=next.catch(()=>{});return next;}};
-  const doc=documentDouble(),contexts=new Map(),session={},native=new Map();
+  let doc=documentDouble();
+  const contexts=new Map(),session={},native=new Map();
   const target={tabId:1,frameId:0,documentId:'document-one',expectedUrl:'https://example.com/demo',expectedWindowId:1};
-  const f={doc,target,permission:true,gone:false,cached:false,observationError:false,cleanupReplies:reply=>reply,calls:[],worldConfigurations:[],frameQueries:[],storage};
+  const f={doc,target,goneDocuments:new Set(),sessionReadError:false,nativeAccess:true,nativeAccessReads:0,permission:true,gone:false,cached:false,observationError:false,cleanupReplies:reply=>reply,calls:[],worldConfigurations:[],frameQueries:[],storage};
   f.tamper=change=>{const rows=Object.values(session).flat().filter(row=>row.installed);change(rows[0]);};
   f.loseSession=()=>{for(const key of Object.keys(session))delete session[key];};
-  const api={runtime:{id:'test'},storage:{session:{get:async key=>({[key]:structuredClone(session[key])}),set:async value=>Object.assign(session,structuredClone(value))}},
+  f.navigate=documentId=>{
+    f.goneDocuments.add(target.documentId);target.documentId=documentId;f.gone=false;
+    doc=documentDouble();f.doc=doc;contexts.clear();
+  };
+  const api={runtime:{id:'test'},storage:{session:{get:async key=>{if(f.sessionReadError)throw Error('session ledger unavailable');return {[key]:structuredClone(session[key])};},set:async value=>Object.assign(session,structuredClone(value))}},
     permissions:{contains:async()=>f.permission},tabs:{get:async()=>({id:1,windowId:1,active:true,status:'complete',url:target.expectedUrl}),query:async()=>[{id:1}]},
     webNavigation:{getAllFrames:async()=>[{...target,url:target.expectedUrl}],getFrame:async details=>{
-      f.frameQueries.push(details);const {documentId}=details;assert.equal(documentId,target.documentId);
+      f.frameQueries.push(details);const {documentId}=details;
+      if(f.goneDocuments.has(documentId))return null;
+      assert.equal(documentId,target.documentId);
       assert.deepEqual(details,Object.hasOwn(details,'tabId')?{tabId:1,frameId:0,documentId}:{documentId});
       if(f.observationError)throw Error('cannot observe');
       if(f.gone||f.frameMismatch&&Object.hasOwn(details,'tabId'))return null;
@@ -71,6 +78,8 @@ function fixture(){
         const replies=[{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
         return code.includes('return r.retire(')?f.cleanupReplies(replies):replies;
       }}};
+  const nativeScripts=api.userScripts;
+  Object.defineProperty(api,'userScripts',{get:()=>{f.nativeAccessReads++;return f.nativeAccess?nativeScripts:undefined;}});
   const assertHost=async()=>host,dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
   const make=()=>{
     const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:'session'});
@@ -95,7 +104,7 @@ function fixture(){
   f.boot=()=>{const row=f.installation();return f.service.handleBoot({protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token},
     {id:'test',documentId:target.documentId,frameId:0,url:target.expectedUrl,tab:{id:1}});};
   f.disable=()=>{const row=f.installation();return f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,enabled:false,expectedGeneration:row.authorization.generation},{});};
-  f.uninstall=()=>{const row=f.installation();return f.service.uninstallPageProgram({programId:'script',manifestHash:row.manifestHash,expectedGeneration:row.authorization.generation},{});};
+  f.uninstall=()=>{const row=f.installation();return f.service.uninstallPageProgram({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation},{});};
   f.dispose=()=>{for(const context of contexts.values())vm.runInContext('globalThis.ui?.destroy()',context);};
   return f;
 }
@@ -326,16 +335,94 @@ test('navigation clears an active upgrade cleanup warning without reinstalling o
   assert.equal(recovered.enabled,true);
   assert.equal(f.calls.length,calls);
 });
-test('unknown cleanup fences upgraded source in the same document, including after uninstall and reinstall',async t=>{
-  for(const uninstall of [false,true]){
-    const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
-    await f.disable();if(uninstall)await f.uninstall();
-    let row=await f.install('return 43;',2);
-    if(!row.enabled)row=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,enabled:true,expectedGeneration:row.authorization.generation},{});
-    const count=f.calls.filter(r=>r.js.at(-1).code.includes('return 43;')).length;
-    await assert.rejects(f.boot(),{code:'E_UI_CLEANUP_FAILED'});
-    assert.equal(f.calls.filter(r=>r.js.at(-1).code.includes('return 43;')).length,count,'new source must not dispatch past unknown cleanup');
+test('unknown cleanup rejects upgraded source without dispatching it',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
+  await f.disable();
+  const calls=f.calls.length;
+  await assert.rejects(f.install('return 43;',2),{code:'E_PAGE_CLEANUP_PENDING'});
+  assert.equal(f.calls.length,calls,'unknown cleanup cannot dispatch upgraded source');
+});
+for(const recovery of ['navigation','reconcile'])test('lost-session live document uninstall keeps a cleanup tombstone until exact document death: '+recovery,async t=>{
+  const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
+  const oldBoot={protocol:PAGE_BOOT_PROTOCOL,nativeId:installed.nativeId,token:installed.token};
+  const sender={id:'test',documentId:f.target.documentId,frameId:0,url:f.target.expectedUrl,tab:{id:1}};
+  f.loseSession();f.restart();
+  const calls=f.calls.length,result=await f.uninstall();
+  assert.equal(result.uninstalled,true);assert.equal(result.nativeState,'unregistered');
+  assert.equal(result.cleanupPending,true);assert.equal(result.managedCleanup.state,'unknown');
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  assert.ok(Number.isFinite(tombstone.uninstalledAt));
+  assert.equal(tombstone.authorization.installationId,installed.authorization.installationId);
+  assert.equal(tombstone.authorization.status,'disabled');
+  assert.equal(tombstone.authorization.generation,installed.authorization.generation+1);
+  assert.equal(f.installation(),undefined);
+  assert.deepEqual((await f.service.listPagePrograms({},{})).installed,[]);
+  assert.equal(f.doc.querySelectorAll().length,1,'lost ledger cannot select a disposer');
+  await assert.rejects(f.service.handleBoot(oldBoot,sender),{code:'E_PERMISSION'});
+  await assert.rejects(f.install('return 43;',2),{code:'E_PAGE_CLEANUP_PENDING'});
+  const observe=()=>recovery==='reconcile'?f.service.reconcile():f.service.observeManagedCleanup({tabId:1,documentId:'replacement-document'});
+  for(const kind of ['live','cached','observationError']){
+    f.cached=kind==='cached';f.observationError=kind==='observationError';
+    await observe();
+    assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+    assert.equal(f.calls.length,calls,'live/cached/unobservable documents never replay cleanup or source');
   }
+  f.cached=false;f.observationError=false;f.gone=true;
+  await observe();
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.calls.length,calls,'document death only retires metadata');
+  f.navigate('replacement-document');
+  const again=await f.install('return 43;',2);
+  assert.equal(again.nativeState,'registered');
+  assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+  await f.boot();
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').at(-1).state,'completed');
+});
+test('tombstone reconciliation never dispatches a recovered disposer after the first ledger read failed',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  assert.equal(f.records()[0].installed.state,'evaluated');
+  const calls=f.calls.length;
+  f.sessionReadError=true;
+  const receipt=await f.uninstall();
+  assert.equal(receipt.uninstalled,true);assert.equal(receipt.cleanupPending,true);
+  assert.equal(receipt.managedCleanup.state,'unknown');
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  f.sessionReadError=false;f.restart();
+  const nativeReads=f.nativeAccessReads;
+  await f.service.reconcile();
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+  assert.equal(f.records()[0].installed.state,'evaluated','recovered ready ledger is only observed');
+  assert.equal(f.doc.querySelectorAll().length,1);
+  assert.equal(vm.runInContext('globalThis.disposals||0',f.context()),0);
+  assert.equal(f.calls.length,calls,'a recovered ledger cannot authorize background disposer dispatch');
+  assert.equal(f.nativeAccessReads,nativeReads,'confirmed native withdrawal needs no native API');
+  f.gone=true;
+  await f.service.reconcile();
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.calls.length,calls);
+  assert.equal(f.nativeAccessReads,nativeReads);
+});
+test('exact document death clears the tombstone while userScripts is unavailable and allows a later fresh install',async t=>{
+  const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
+  f.loseSession();f.restart();
+  const receipt=await f.uninstall();
+  assert.equal(receipt.cleanupPending,true);
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const calls=f.calls.length,nativeReads=f.nativeAccessReads;
+  f.nativeAccess=false;
+  await f.service.reconcile();
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone,'API loss cannot block a confirmed native uninstall');
+  f.gone=true;
+  await f.service.reconcile();
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.calls.length,calls);
+  assert.equal(f.nativeAccessReads,nativeReads,'document retirement is independent of native access');
+  f.nativeAccess=true;f.navigate('replacement-document');
+  const again=await f.install('return 43;',2);
+  assert.equal(again.nativeState,'registered');
+  assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+  await f.boot();
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').at(-1).state,'completed');
 });
 test('disable waits for the registered async disposer before confirming retirement',async t=>{
   const f=fixture();t.after(f.dispose);await f.install('ui.onDispose(()=>new Promise(r=>globalThis.finishDispose=r));return 42;');await f.boot();

@@ -86,35 +86,49 @@
     const observation=R.useRef(0), pendingRef=R.useRef(null), stagedRef=R.useRef(null),cancelledRef=R.useRef(null);
     const recordWrites=R.useRef(Promise.resolve());
     const pageReadEpoch=R.useRef(0);
+    const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
     const localCancellation=R.useRef(null);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
 
     const readTasks=R.useCallback(async()=>{
       const epoch=++seq.current;
+      taskReadPending.current=true;
       setLoading(true);
+      setTasks(old=>old.map(pin=>({...pin,state:'checking',binding:null})));
       const rows=await Promise.all(PINNED.map(async pin=>{
         try{
           const reply=await request('tasks.read',{taskId:pin.taskId});
           if(!reply?.task)return {...pin,state:'unavailable',binding:null};
           if(!M.pinsEqual(pin,reply.task))
             return {...pin,state:'changed',binding:null};
+          if(typeof reply.task.installationId!=='string'||!reply.task.installationId.trim()||
+            !Number.isSafeInteger(reply.task.generation)||reply.task.generation<1)
+            return {...pin,state:'unavailable',binding:null};
           return {...pin,state:'available',binding:reply.task};
         }catch(e){return {...pin,state:M.errorState(e),binding:null,error:safeError(e)};}
       }));
-      if(alive.current&&epoch===seq.current){setTasks(rows);setLoading(false);}
+      if(alive.current&&epoch===seq.current){taskReadPending.current=false;setTasks(rows);setLoading(false);}
     },[request]);
 
     // Host notifications are hints only. Never trust event details as task scope.
     // Re-read the bounded SDK operation and ignore stale replies.
     const readCurrentPage=R.useCallback(async()=>{
       const epoch=++pageReadEpoch.current;
+      // Invalidate synchronously as well as in React: another click in this
+      // event turn must not use the previous document's eligibility.
+      currentPageRef.current={status:'checking'};
+      setPageInfo(currentPageRef.current);
       try{
         const info=await request('currentPage.info',{});
-        if(alive.current&&epoch===pageReadEpoch.current)
-          setPageInfo(info&&typeof info==='object'?info:{status:'unavailable'});
+        if(alive.current&&epoch===pageReadEpoch.current){
+          currentPageRef.current=info&&typeof info==='object'?info:{status:'unavailable'};
+          setPageInfo(currentPageRef.current);
+        }
       }catch(e){
-        if(alive.current&&epoch===pageReadEpoch.current)
-          setPageInfo({status:'unavailable',message:safeError(e)});
+        if(alive.current&&epoch===pageReadEpoch.current){
+          currentPageRef.current={status:'unavailable',message:safeError(e)};
+          setPageInfo(currentPageRef.current);
+        }
       }
     },[request]);
 
@@ -330,8 +344,8 @@
       catch(e){failObservation(id,pin,epoch,e);}
     };
     const prepare=async pin=>{
-      if(!recoveryReady||busy.current||activeRef.current||pin.state!=='available'||!pin.binding||!query.trim())return;
-      if(pageInfo.status!=='available'||!sameSite(pageInfo.url,pin.site)){
+      if(!recoveryReady||busy.current||taskReadPending.current||activeRef.current||pin.state!=='available'||!pin.binding||!query.trim())return;
+      if(currentPageRef.current.status!=='available'||!sameSite(currentPageRef.current.url,pin.site)){
         setError('请先切换至该任务获准网站，再从 Web Flow 点击运行。');return;
       }
       const id='webflow:'+global.crypto.randomUUID();
@@ -362,11 +376,14 @@
       // Nothing asynchronous precedes this SDK start. Preparation was saved
       // by the preceding button, so the trusted parent sees the actual click.
       const ready=stagedRef.current;
-      if(!ready||busy.current||cancelledRef.current===ready.clientRequestId||
+      if(!ready||busy.current||taskReadPending.current||cancelledRef.current===ready.clientRequestId||
         activeRef.current!==ready.clientRequestId)return;
       if(!pin||pin.state!=='available'||!M.pinsEqual(pin.binding,ready.task)||
         pin.binding.installationId!==ready.task.installationId||pin.binding.generation!==ready.task.generation){
         setError('固定安装身份发生变化；不能执行已保存步骤，请查询或停止原请求。');return;
+      }
+      if(currentPageRef.current.status!=='available'||!sameSite(currentPageRef.current.url,pin.site)){
+        setError('当前网页尚未核验或不是获准网站；请核对后再确认原步骤。');return;
       }
       const id=ready.clientRequestId,epoch=++observation.current;
       stagedRef.current=null;setStaged(null);setError('');setNotice('');
@@ -492,7 +509,8 @@
               'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
-              h(Status,{state:pin.state}))),
+              h(Status,{state:pin.state,text:pin.state==='available'?
+                (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined}))),
           h('div',{className:'wf-item-buttons'},
             Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,disabled:saving,
               title:star?'取消收藏':'收藏',ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
@@ -566,7 +584,8 @@
         h('p',{className:'wf-sub'},'资源释放：'+(snapshot?.retirementState||'未确认')+'；后续 B：不自动执行'),
         staged&&h('p',null,'已保存参数：'+staged.params.query),
         staged&&Btn('确认手动运行',()=>run(tasks.find(p=>p.taskId===staged.task.taskId)),{
-          primary:true,disabled:tasks.find(p=>p.taskId===staged.task.taskId)?.state!=='available'||busy.current}),
+          primary:true,disabled:tasks.find(p=>p.taskId===staged.task.taskId)?.state!=='available'||
+            !sameTarget(PINNED.find(p=>p.taskId===staged.task.taskId))||busy.current}),
         h('div',{className:'wf-actions'},Btn('查询原请求',readActive,{
           disabled:active.state==='saving'||active.state==='cancelling-local'}),
           staged?Btn('取消未运行步骤',cancelStaged):localCancellation.current?

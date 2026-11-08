@@ -500,7 +500,7 @@ const compiledAppOwnedBackgroundInputs=Object.freeze({
   'projects/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
   'projects/ai-vip-share/trusted/service.js':'ee52d2fdc964ea7be80cee76b8e3f0e739695756',
   'projects/ai-vip-share/trusted/tool-host.js':'727b570d17d55a226fa876cb58547067cb9b95aa',
-  'projects/time-review/trusted/host-controls.js':'8157ad15d99dd43d21836e5654c3eba5b13b1c6c',
+  'projects/time-review/trusted/host-controls.js':'133a2117ff96224bc66ad77ec6d5fba3894a7b85',
   'projects/time-review/trusted/model.js':'ef7cb2281334b7161c39f68a768992e3527b9d5c',
   'projects/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
   'projects/time-review/trusted/service.js':'87e438ee574bc4180123b1dec2cd4cf6be369f50',
@@ -525,6 +525,38 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   if(hash!==compiledAppOwnedBackgroundInputs[path])
     throw Error('Trusted app-owned source changed; review and re-pin before fixed build: '+path+
       ' (pinned='+compiledAppOwnedBackgroundInputs[path]+' actual='+hash+')');
+  return hash;
+}
+
+// Settings UI and locale data are statically imported, reviewed first-party
+// sources. Moving them to their business owner never permits installed Page or
+// sandbox code to replace them, or admits these UI files into the SW/relay.
+// Scroll review: bounded structural observation and same-lease continuation;
+// original installed identity, exact-document save, CAS/readback and cancellation remain authoritative.
+const compiledExtensionSettingsInputs=Object.freeze({
+  'projects/ai-scroll-navigation/trusted/ai-configuration.js':'ecec6df2621355503c26d0e24eaae4f84db99699',
+  'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'455fde0f38396488adf8945b2a01835313642e30',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'ea011ece7b1986e9643a4d94c797c9c9db062a1a',
+  'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
+  'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
+  'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'
+});
+function reviewedCompiledExtensionSettings(target,path,root){
+  if(!Object.hasOwn(compiledExtensionSettingsInputs,path))return null;
+  // The standalone ToolHost statically uses these two inert locale tables via
+  // sidebar-tools.js. UI components and business policies remain shell-only.
+  const hostLocale=target==='ui/sidebar-tool-host.js'&&[
+    'projects/prompt-shortcuts/trusted/host-localization.js',
+    'projects/time-review/trusted/localization.js'
+  ].includes(path);
+  if(target!=='ui/tool-shell.js'&&!hostLocale)return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted extension settings source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledExtensionSettingsInputs[path])
+    throw Error('Trusted extension settings source changed; review and re-pin before fixed build: '+path);
   return hash;
 }
 
@@ -586,16 +618,18 @@ function reviewedCompiledWebClipper(target,path,root){
 // 2026-10-30 relocation review: four parent-depth import corrections resolve
 // to the same existing src modules after examples/ -> projects/. Business logic,
 // target ownership, permissions and fail-closed source/symlink guards are unchanged.
-// 2026-11-08 ChatGPT index review: omit letterless display values before the
-// heading quota/tree; short multilingual titles, DOM identity and article
-// extraction remain intact. This changes only the existing Page Relay index.
+// 2026-11-08 ChatGPT index review: omit observed labeled tabular DIL metrics
+// before the quota/tree, never headings by alphabet. Limit ChatGPT dispatch
+// to its exact hosts; preserve DOM identity and existing content boundaries.
 const compiledReadingTocInputs=Object.freeze({
   'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
-  'projects/reading-toc/trusted/model.js':'e0f6ae0b8616874b908fe8380f2e9b06c1a996b3',
+  'projects/reading-toc/trusted/model.js':'8edf7c90dd26a63da0bd3da47bd1ebd956ba1d50',
   'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'projects/reading-toc/trusted/page.js':'fe9fa7093b570c280bf9f3304002f50eda4bdae9',
-  'projects/reading-toc/trusted/view.js':'af923d91c57904138245b3741c4bbbdb7a873014',
-  'projects/reading-toc/trusted/policy.js':'2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2',
+  'projects/reading-toc/trusted/page.js':'b15e1f0993a6ce02a04e20c5b049f078b5d3dc42',
+  // Committed a934da3e0/934ff2165: one collapse control inside the existing
+  // closed ShadowRoot; no new host capability, origin or executable source.
+  'projects/reading-toc/trusted/view.js':'de641c7a8eaddbf19335e9b665346ba5d153fd9e',
+  'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
   'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff',
   'projects/reading-toc/trusted/existing-tabs.js':'e82a3e3b43debfff756180ccf1da110b7dfd8172'
 });
@@ -725,6 +759,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledKnowledge(chunk.fileName,path,root)||
       reviewedCompiledStayFocus(chunk.fileName,path,root)||
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
+      reviewedCompiledExtensionSettings(chunk.fileName,path,root)||
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||

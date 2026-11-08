@@ -19,6 +19,7 @@ import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../platform/host/send-que
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",
+  PAGE_UNINSTALL_TAG="page-uninstalled-v1",
   INSTALL_KEY_KIND="installed",
   PAGE_WRITE="readwrite",
   PAGE_PERMISSION_ERROR="E_PERMISSION",
@@ -38,6 +39,59 @@ const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='
 const identityFields=['builtinIdentity','candidateId','namespace','manifestHash','runtimeKind','entryFormat','programId','revision',
   'sourceHash','dependencyLockId','dependencyManifestDigest','approvedPageRules'];
 const equal=(a,b)=>canonical(a)===canonical(b);
+// Observation is a data-only boundary, including non-enumerable/symbol keys
+// and accessors that Object.keys alone would silently overlook.
+function scrollObservationFields(value,keys){
+  invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
+    [Object.prototype,null].includes(Object.getPrototypeOf(value))&&
+    Reflect.ownKeys(value).length===keys.length&&keys.every(key=>{
+      const descriptor=Object.getOwnPropertyDescriptor(value,key);
+      return descriptor?.enumerable&&Object.hasOwn(descriptor,'value');
+    }),'E_CONFIG_SCHEMA','网页观察包含无效字段');
+}
+function boundedScrollObservation(value){
+  const state=value&&typeof value==='object'?Object.getOwnPropertyDescriptor(value,'state')?.value:undefined;
+  if(state==='busy'||state==='closed'){
+    scrollObservationFields(value,['state']);
+    throw new FoundationError('E_CONFIG_DOM','网页编辑器正在点选或已关闭');
+  }
+  scrollObservationFields(value,state==='unavailable'?['state','reason']:['state','candidates']);
+  if(value.state==='unavailable'){
+    invariant(['NO_STRUCTURE','BUSY','DISPOSED'].includes(value.reason),
+      'E_CONFIG_SCHEMA','网页观察状态无效');
+    return {state:'unavailable',reason:value.reason};
+  }
+  invariant(value.state==='observed'&&Array.isArray(value.candidates)&&
+    Object.getPrototypeOf(value.candidates)===Array.prototype&&
+    value.candidates.length>0&&value.candidates.length<=8&&
+    Reflect.ownKeys(value.candidates).length===value.candidates.length+1,
+    'E_CONFIG_SCHEMA','网页观察候选数量无效');
+  const seen=new Set(),candidates=[];
+  for(let index=0;index<value.candidates.length;index++){
+    const descriptor=Object.getOwnPropertyDescriptor(value.candidates,String(index));
+    invariant(descriptor?.enumerable&&Object.hasOwn(descriptor,'value'),
+      'E_CONFIG_SCHEMA','网页观察候选无效');
+    const candidate=descriptor.value;
+    scrollObservationFields(candidate,['id','mainSelector','scrollSelector','messageSelector','anchorSelector','metrics']);
+    invariant(typeof candidate.id==='string'&&/^candidate-[1-8]$/.test(candidate.id)&&
+      !seen.has(candidate.id)&&candidate.anchorSelector==='',
+      'E_CONFIG_SCHEMA','网页观察候选身份无效');
+    seen.add(candidate.id);
+    for(const key of ['mainSelector','scrollSelector','messageSelector'])
+      invariant(typeof candidate[key]==='string'&&candidate[key].trim().length>0&&
+        candidate[key].length<=256&&!/[\u0000-\u001f\u007f{};]/.test(candidate[key]),
+        'E_CONFIG_SCHEMA','网页观察 CSS 选择器无效');
+    scrollObservationFields(candidate.metrics,['messageCount','scrollable']);
+    invariant(Number.isSafeInteger(candidate.metrics.messageCount)&&
+      candidate.metrics.messageCount>=1&&candidate.metrics.messageCount<=2000&&
+      typeof candidate.metrics.scrollable==='boolean',
+      'E_CONFIG_SCHEMA','网页观察指标无效');
+    candidates.push({id:candidate.id,mainSelector:candidate.mainSelector,
+      scrollSelector:candidate.scrollSelector,messageSelector:candidate.messageSelector,anchorSelector:'',
+      metrics:{messageCount:candidate.metrics.messageCount,scrollable:candidate.metrics.scrollable}});
+  }
+  return {state:'observed',candidates};
+}
 function installedURLMatches(row,href){
   return row.programId===SCROLL_CONFIG_PROGRAM_ID?scrollProgramUrlMatches(row.pageRules,href):
     pageProgramUrlMatches(row.pageRules,href);
@@ -121,7 +175,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   let mutations=Promise.resolve(),executions=Promise.resolve();
   const removals=[];
   const permissionEpoch=row=>removals.filter(removed=>pageInstallAffectedByRemoval(row.pageRules,removed)).length;
-  const active=row=>row?.enabled&&assertPageInstallAuthorization(row).status==='active';
+  const active=row=>row?.tag===PAGE_INSTALL_TAG&&row.enabled&&assertPageInstallAuthorization(row).status==='active';
   const ordered=work=>{const next=mutations.then(work,work);mutations=next.catch(()=>{});return next;};
   const read=work=>storage.transaction([PAGE_STORE],'readonly',work);
   async function scoped(sender,mode,work){
@@ -210,6 +264,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     await scoped(sender,'readonly',()=>{});
     const pkg=await validatePageInstallPackage(request.package);
     const previous=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,pkg.programId)));
+    invariant(previous?.tag!==PAGE_UNINSTALL_TAG,'E_PAGE_CLEANUP_PENDING',
+      '旧安装已卸载，但原网页清理尚未确认；请保存并刷新相关网页后重新安装');
     invariant((previous?.manifestHash??null)===request.expectedInstalledManifestHash&&
       (previous?previous.authorization?.generation===request.expectedGeneration:request.expectedGeneration===null),
       PAGE_REVISION_ERROR,'安装授权在确认期间改变；请刷新后核对');
@@ -296,6 +352,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const {candidate}=await material(request.programId,request.revision);await proofFor(candidate,{available:true});
       invariant(candidate.manifestHash===request.manifestHash,PAGE_REVISION_ERROR,'安装必须引用固定版本');
       const previous=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,request.programId)));
+      invariant(previous?.tag!==PAGE_UNINSTALL_TAG,'E_PAGE_CLEANUP_PENDING',
+        '旧安装已卸载，但原网页清理尚未确认；请保存并刷新相关网页后重新安装');
       invariant((previous?.manifestHash??null)===request.expectedInstalledManifestHash&&
         (!previous||request.expectedGeneration===(previous.authorization?.generation??null)),
         PAGE_REVISION_ERROR,'安装授权在确认期间改变；请刷新后核对');
@@ -447,24 +505,26 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const native=await nativeAPI();
       invariant((await native.getScripts({ids:[row.nativeId]})).length===0,
         'E_PAGE_UNINSTALL_PENDING','原生注册仍存在，不能标记已卸载');
-      // Managed UI retirement has a separate outcome: UNKNOWN is not
-      // success. Preserve the disabled installation until the original
-      // document is gone or the existing cleanup broker confirms retirement.
-      invariant(!after.managedCleanup||after.managedCleanup.state==='retired',
-        'E_PAGE_CLEANUP_PENDING','受管网页界面清理未确认；安装已停用，请刷新原网页后重新核对并主动卸载');
+      // Revoked installation and old document cleanup have separate outcomes.
+      // Keep uncertain effects under the same Authority key as a tombstone:
+      // it cannot boot, appear installed or be overwritten by a fresh grant.
+      const cleanupPending=Boolean(after.managedCleanup&&after.managedCleanup.state!=='retired');
       await scoped(sender,PAGE_WRITE,async tx=>{
         const current=await tx.get(PAGE_STORE,installKey);
         invariant(current?.token===row.token&&current.nativeState==='disabled'&&
           current.authorization?.installationId===request.installationId&&
           current.authorization?.generation===row.authorization.generation,
           PAGE_REVISION_ERROR,'最终卸载时安装身份已改变');
-        await tx.delete(PAGE_STORE,installKey);
+        if(cleanupPending)await tx.put(PAGE_STORE,{...current,tag:PAGE_UNINSTALL_TAG,uninstalledAt:clock.now()},installKey);
+        else await tx.delete(PAGE_STORE,installKey);
       });
-      invariant(!await read(tx=>tx.get(PAGE_STORE,installKey)),
+      const removed=await read(tx=>tx.get(PAGE_STORE,installKey));
+      invariant(cleanupPending?removed?.tag===PAGE_UNINSTALL_TAG&&removed.token===row.token:!removed,
         'E_PAGE_UNINSTALL_PENDING','安装记录删除后读回未确认，请重新核对');
       return {programId:row.programId,manifestHash:row.manifestHash,
         installationId:request.installationId,
         uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true,
+        ...(cleanupPending?{cleanupPending:true}:{}),
         ...(after.managedCleanup?{managedCleanup:after.managedCleanup}:{})};
     });
   }
@@ -556,9 +616,26 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function reconcile(){return ordered(async()=>{
-    const rows=await read(async tx=>(await tx.all(PAGE_STORE)).filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace));
+    const rows=await read(async tx=>(await tx.all(PAGE_STORE)).filter(r=>
+      [PAGE_INSTALL_TAG,PAGE_UNINSTALL_TAG].includes(r?.tag)&&r.namespace===namespace));
     if(!rows.length)return;
-    for(const row of rows)await reconcileOne(await migrateLegacy(row));
+    for(const row of rows){
+      if(row.tag===PAGE_UNINSTALL_TAG){
+        if(!preview.retireInstalled)continue;
+        // Native removal was already confirmed before this tombstone existed.
+        // Background reconciliation may only observe old document lifetime.
+        let cleanup;
+        try{cleanup=await preview.retireInstalled(row,{includeCurrent:true,observeOnly:true});}
+        catch{continue;} // An unavailable observation leaves the tombstone intact.
+        if(cleanup.state==='retired')await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+          const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
+          if(current?.tag===PAGE_UNINSTALL_TAG&&current.token===row.token&&
+            current.authorization?.installationId===row.authorization?.installationId&&
+            current.authorization?.generation===row.authorization?.generation)
+            await tx.delete(PAGE_STORE,installKey);
+        });
+      }else await reconcileOne(await migrateLegacy(row));
+    }
   });}
   // Navigation/closure is a wake hint, never proof of document death (BFCache
   // may retain it). Recheck pending cleanup through the existing exact-document
@@ -566,7 +643,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   async function observeManagedCleanup(details){return ordered(async()=>{
     if(!preview.retireInstalled)return;
     const rows=await read(tx=>tx.all(PAGE_STORE));
-    const pending=rows.filter(row=>row?.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&
+    const pending=rows.filter(row=>[PAGE_INSTALL_TAG,PAGE_UNINSTALL_TAG].includes(row?.tag)&&row.namespace===namespace&&
       row.managedCleanup?.state==='unknown'&&rows.some(execution=>execution?.tag==='page-execution-v1'&&
         execution.namespace===namespace&&execution.programId===row.programId&&
         execution.installationId===row.authorization?.installationId&&execution.tabId===details.tabId&&
@@ -578,8 +655,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
         const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
         if(current?.token===row.token&&current.authorization?.installationId===row.authorization.installationId&&
-          current.authorization?.generation===row.authorization.generation&&current.managedCleanup?.state==='unknown')
-          await tx.put(PAGE_STORE,{...current,managedCleanup},installKey);
+          current.authorization?.generation===row.authorization.generation&&current.managedCleanup?.state==='unknown'){
+          if(current.tag===PAGE_UNINSTALL_TAG&&current.nativeState==='disabled')await tx.delete(PAGE_STORE,installKey);
+          else await tx.put(PAGE_STORE,{...current,managedCleanup},installKey);
+        }
       });
     }
   });}
@@ -1056,10 +1135,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       execution.browserSessionIncarnation===session&&
       typeof execution.managedUI?.worldId==='string',
       'E_SCROLL_PAGE_NOT_READY','此网页尚未运行当前安装版本，请刷新目标网页后再试');
-    const method=operation==='pick'?'pick':'validate';
+    invariant(['pick','validate','observe'].includes(operation),'E_SCHEMA','未知网页编辑操作');
+    const method=operation;
     const js='(()=>{const editor=globalThis.__opendeskAiScrollEditorV1;'+
       'return editor?editor.'+method+'('+JSON.stringify(payload)+'):'+
-      JSON.stringify({state:'unavailable',ok:false,error:'网页编辑能力未运行'})+';})()';
+      JSON.stringify(operation==='observe'?{state:'unavailable',reason:'DISPOSED'}:
+        {state:'unavailable',ok:false,error:'网页编辑能力未运行'})+';})()';
     // Serialized with disable/revoke mutations; do NOT await the pointer
     // interaction while holding the Authority mutation queue.
     const pending=await ordered(async()=>{
@@ -1122,6 +1203,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       value.selector.length>0&&value.selector.length<=256,
       'E_CONFIG_SCHEMA','网页返回的 CSS 选择器无效');
     return value;
+  }
+  async function observeScrollSitePage(request,sender){
+    scrollObservationFields(request,['programId','manifestHash','installationId','expectedGeneration','target']);
+    scrollObservationFields(request.target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
+    const row=await scrollHostInstall(request,sender);
+    return boundedScrollObservation(await executeScrollSiteEditor(row,request.target,'observe',{},sender));
   }
   async function saveScrollSiteRule(request,sender){
     fields(request,['programId','manifestHash','installationId','expectedGeneration','target','etag','editKey','rule'],
@@ -1353,5 +1440,5 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return {...response,receiptId};
   }
   return Object.freeze({importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
+    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }

@@ -412,16 +412,17 @@
   flex:none;min-height:34px;padding:0 0 0 42px;border:0;gap:var(--space-2)}
 #extension-center-detail[data-scroll-app] .ec-detail-copy{flex:1}
 #extension-center-detail[data-scroll-app] .ec-detail-head strong{
-  display:block;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
-#extension-center-detail[data-scroll-app] .ec-detail-head>.od-icon-button{
-  flex:none;background:transparent;border-color:transparent}
-#extension-center-detail[data-scroll-app] .ec-detail-head svg{
-  width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  display:block;font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+#extension-center-detail[data-scroll-app] .ec-detail-head .ec-detail-action{
+  width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size)}
 .ec-scroll-site-manager{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}
+.ec-scroll-ai-feedback{margin:0;padding:0 var(--space-2);font-size:12px;overflow-wrap:anywhere}
 .ec-scroll-content{flex:1;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
   scrollbar-width:thin;padding:2px 2px var(--space-4);scroll-padding-block:var(--space-2)}
 .ec-scroll-site-manager h3,.ec-scroll-site-manager h4{margin:0;font-size:12px;line-height:1.4;font-weight:650}
 .ec-scroll-home,.ec-scroll-subview{display:grid;gap:var(--space-4);min-width:0;align-content:start}
+.ec-scroll-management p{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ec-scroll-diagnostics{display:grid;gap:var(--space-2);min-width:0}
 .ec-scroll-group{display:grid;gap:var(--space-2);min-width:0}
 .ec-scroll-title{display:flex;align-items:center;gap:var(--space-2);min-height:34px;min-width:0}
 .ec-scroll-title h3{flex:1}
@@ -504,6 +505,7 @@
 @media(pointer:coarse){
   #extension-center-detail[data-scroll-app]>.ec-detail-back{width:44px;height:44px;min-width:44px;min-height:44px}
   #extension-center-detail[data-scroll-app] .ec-detail-head{min-height:44px;padding-left:52px}
+  #extension-center-detail[data-scroll-app] .ec-detail-head .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }

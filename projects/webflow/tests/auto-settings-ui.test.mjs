@@ -687,14 +687,19 @@ test('pending keyword review exposes one ordinary approval and forwards only the
  assert.equal(host.calls.filter(([kind])=>kind==='read').length,2,'successful approval refreshes the parent authorization summary');
 });
 
-test('persistent Listener stays visible outside management; refresh requires authoritative permission and explicit trusted confirmation',async t=>{
+test('compact Listener is reachable in runtime management; refresh requires authoritative permission and explicit trusted confirmation',async t=>{
  const host=controller(),calls=[];
  let view={source:{tabId:9,documentId:'listener-doc',url:'https://chatgpt.com/c/listener'},session:null,receipt:null,
   listener:{state:'refresh-required',reason:'旧文档尚未加载监听器',checkedAt:1,recovery:{allowed:true}},work:{state:'idle'}};
  host.api.readBridgeState=async()=>structuredClone(view);
  host.api.refreshBridge=async(value,event)=>{calls.push({value,event});return {...view,listener:{state:'ready',recovery:{allowed:false}}};};
  const f=await fixture(t,{entry:true,host});
- const status=f.find('webflow-listener');assert.ok(status);assert.equal(status.closest('[hidden]'),null);
+ const status=f.find('webflow-listener');assert.ok(status);
+ // Compare a scalar: formatting a failed DOM equality walks React's cyclic graph.
+ assert.equal(Boolean(status.closest('[hidden]')),true,'compact homepage keeps diagnostic controls inside runtime management');
+ assert.equal(f.document.querySelectorAll('#webflow-listener').length,1);
+ await f.click('webflow-runtime-open');
+ assert.equal(status.closest('[hidden]')===null,true,'the real management entry exposes Listener controls');
  assert.match(status.textContent,/需要刷新/);assert.ok(status.querySelector('[aria-hidden="true"]'));
  assert.equal(status.querySelectorAll('[aria-live]').length,1);
  assert.equal(status.querySelector('[aria-live]').querySelector('button'),null);

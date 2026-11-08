@@ -113,6 +113,28 @@ test('closed fixed peer hosts reserve their whole rectangle without reading priv
   assert.ok(parseFloat(host.style.top)+90<400);
 });
 
+test('configured conversation finds a free gap above peers after fixed slots collide',()=>{
+  const f=fixture();
+  Object.assign(f.win,{innerWidth:1031,innerHeight:703});
+  Object.assign(f.context,{custom:true,site:'custom'});
+  f.rects.set(f.main,box(340,0,691,703));
+  f.rects.set(f.first,box(365.75,-17000,640,1200));
+  f.rects.set(f.last,box(365.75,-12000,640,12500));
+  f.rects.set(f.editor,box(417.75,635,410,36));
+  for(const rect of [box(373.75,635,36,36),box(359.75,507.8,64,32),box(961.75,635,36,36)]) {
+    const button=f.doc.createElement('button');f.main.append(button);f.rects.set(button,rect);
+  }
+  const peer=f.doc.createElement('div');peer.style.position='fixed';
+  peer.attachShadow({mode:'closed'});f.doc.documentElement.append(peer);
+  f.rects.set(peer,box(349,261.5,52,181));
+  const {host}=f.mount();
+  assert.ok(host,'navigation remains available without moving or covering a peer');
+  assert.equal(host.style.left,'378px');
+  assert.equal(host.style.top,'159px');
+  assert.equal(host.shadowRoot.querySelectorAll('button').length,2);
+  assert.equal(peer.isConnected,true);
+});
+
 test('aligned dock scrolls both directions and updates boundary disabled states',()=>{
   const f=fixture(),{dock,host}=f.mount();
   const [top,bottom]=host.shadowRoot.querySelectorAll('button');

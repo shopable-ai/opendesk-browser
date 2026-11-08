@@ -10,8 +10,8 @@ import {
   createUiLocaleController,UI_LOCALE_STORE
 } from '../../src/ui/app-localization.js';
 
-import {createReadingTocView} from '../../examples/sidebar-tools/reading-toc/trusted/view.js';
-const root='examples/sidebar-tools/reading-toc/';
+import {createReadingTocView} from '../../projects/reading-toc/trusted/view.js';
+const root='projects/reading-toc/';
 const getCatalog=async()=>JSON.parse(await readFile(root+'locales.json','utf8'));
 
 test('R1.2 language resolution prefers exact, falls back to base then source',()=>{
@@ -94,8 +94,8 @@ test('R1.2 application choice is stored only by trusted host; read/write errors 
 
 test('R1.2 source wiring covers both trusted webpage overlay and sandbox without a new SDK',async()=>{
   const [overlay,page,bridge,host,pkgBuilder,official] = await Promise.all([
-    readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/trusted/page.js','utf8'),
+    readFile('projects/reading-toc/trusted/view.js','utf8'),
+    readFile('projects/reading-toc/trusted/page.js','utf8'),
     readFile('src/sidebar-tools/bridge.js','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('scripts/build-sidebar-tool.mjs','utf8'),
@@ -115,11 +115,12 @@ test('R1.2 source wiring covers both trusted webpage overlay and sandbox without
 test('R1.3 trusted TOC settings change language without importing tool permission copy',async()=>{
   const {readingTocHostText,READING_TOC_HOST_KEYS}=await import('../../src/ui/reading-toc-settings-localization.js');
   assert(READING_TOC_HOST_KEYS.includes('eyePageExcluded'));
-  assert.equal(readingTocHostText('en','languageLabel'),'Interface language');
+  const {toolManagementText}=await import('../../src/ui/tool-management-localization.js');
+  assert.equal(toolManagementText('en','languageLabel'),'Interface language');
   assert.equal(readingTocHostText('zh-CN','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en-US','siteDisable'),'Disable on this website');
   assert.equal(readingTocHostText('en','noPages'),'No excluded pages');
-  assert.equal(readingTocHostText('ja','languageLabel'),'表示言語');
+  assert.equal(toolManagementText('ja','languageLabel'),'表示言語');
   for(const key of READING_TOC_HOST_KEYS)assert(readingTocHostText('ja',key).trim(),key);
   assert.equal(readingTocHostText('fr','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en','unknown'),'');
@@ -130,7 +131,7 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   ]);
   assert.match(host,/readingTocHostText/);
   assert.match(host,/isToc\?tocLocale:null/);
-  assert.match(host,/if\(active\?\.localization\)render\(\)/);
+  // Locale repaint and dirty-frame retention are covered by sidebar-tools-host behavior tests.
   assert.match(host,/tocLocale=isToc\?toolLocaleContext\(active\)\.locale/,'TOC settings use effective tool language');
   assert.match(host,/view\.patchLabels\(/,'trusted Host must update locale state');
   assert.match(react,/snapshot\.labels\[name\]/,'React must consume trusted, localized labels');
@@ -210,7 +211,7 @@ function viewFixture(){
 test('R2.1 dynamic Japanese catalog replaces same-language text and removal falls back without remount',async()=>{
  const {readFile}=await import('node:fs/promises');
  const pkg=await createSidebarToolPackage(root);
- const pack=JSON.parse(await readFile('examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json','utf8'));
+ const pack=JSON.parse(await readFile('projects/reading-toc/languages/ja.opendesk-locale.json','utf8'));
  const prior=globalThis.CSSStyleSheet;globalThis.CSSStyleSheet=class{replaceSync(){}};
  try{
   const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate(){}});

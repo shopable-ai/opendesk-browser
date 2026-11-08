@@ -80,7 +80,7 @@ test('R4.3 trusted index publishes per-answer overview, parent identity and stab
     node.closest=sel=>sel==='[data-message-author-role="assistant"]'?node.parentElement.parentElement:
       sel==='.markdown'?node.parentElement:null;
   }
-  const doc={body:{},defaultView:{getComputedStyle:()=>({display:'block',visibility:'visible'})},
+  const doc={body:{},location:{hostname:'chatgpt.com'},defaultView:{getComputedStyle:()=>({display:'block',visibility:'visible'})},
     querySelector:sel=>sel==='[data-message-author-role="assistant"]'?assistantA:null,
     querySelectorAll:()=>headings};
   const index=createReadingTocIndex(doc),first=index.rebuild();

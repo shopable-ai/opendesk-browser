@@ -177,6 +177,46 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     delivery:row.webDelivery==='delivered'?'confirmed':row.webDelivery==='dispatching'?'unknown':
       row.webObservation?.delivery??'not-sent',runId:run?.runId??null,resultId:run?.resultId??null};
   }
+  // Failure diagnostics are a read projection only. The Host validator remains
+  // the sole success/value validator and failed/stopped never enter delivery.
+  function terminalError(snapshot,run,pin){
+    const saved=snapshot?.run;
+    if(!saved||!['failed','stopped'].includes(run.state)||saved.state!==run.state||
+      saved.runId!==run.runId||saved.resultId!==run.resultId||
+      saved.retirementState!=='released'||saved.sourceKind!=='saved'||
+      saved.scriptId!==pin.scriptId||saved.contentHash!==pin.contentHash||
+      saved.revision?.scriptId!==pin.scriptId||saved.revision?.revision!==pin.revision||
+      saved.revision?.sourceHash!==pin.contentHash||snapshot.resultDeliveryDenied?.includes(run.runId)||
+      !Array.isArray(snapshot.results))throw fail('E_BRIDGE_DURABLE','失败运行身份或结果读取权限不匹配');
+    const matches=snapshot.results.filter(result=>result?.runId===run.runId),result=matches[0];
+    if(matches.length!==1||result.tag!=='controller-result'||result.resultId!==saved.resultId||
+      typeof result.resultId!=='string'||!result.resultId||result.resultId.length>128||
+      result.state!==saved.state||result.sourceKind!=='saved'||
+      result.revision?.scriptId!==pin.scriptId||result.revision?.revision!==pin.revision||
+      result.revision?.sourceHash!==pin.contentHash||result.outcome?.ok!==false)
+      throw fail('E_BRIDGE_RESULT','失败持久结果缺失、版本不符或存在歧义');
+    const error=result.outcome.error;
+    return {code:typeof error?.code==='string'?error.code.slice(0,128):'E_WEB_TASK_UNKNOWN',
+      message:typeof error?.message==='string'?error.message.slice(0,2048):'任务未成功完成'};
+  }
+  async function historyReadFence(row,broker,approval){
+    const final=broker.authority.captureInstalledTaskFence(row.scope.taskId);
+    const assertPolicy=()=>{
+      if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','历史读取期间持续批准改变');
+      final();
+    };
+    assertAutoGrant(await ledger.readAutoSettings(),row.scope,{sourceUrl:row.source.url,
+      grantId:row.autoGrantId,epoch:row.autoEpoch});
+    await ledger.assertConsumed({requestId:row.requestId,source:row.source,mode:row.mode,
+      turnKey:row.turnKey,answerKey:row.answerKey,candidate:row.candidate,...row.scope});
+    const current=await ledger.inspectWebTask(row.requestId);
+    if(row.status!=='consumed'||!row.controllerSubmitted||current?.status!==row.status||
+      current.webHostDocumentId!==row.webHostDocumentId||current.autoGrantId!==row.autoGrantId||
+      current.autoEpoch!==row.autoEpoch||!sameSource(current.source,row.source)||
+      JSON.stringify(current.scope)!==JSON.stringify(row.scope))
+      throw fail('E_BRIDGE_REVOKED','原网页请求已撤销或身份改变');
+    assertPolicy();return assertPolicy;
+  }
   async function history(message,sender){
     const actual=await settingsSender(sender);
     if(message.source&&!validWebTaskSource(message.source))throw fail('E_WEB_TASK_SOURCE','历史来源身份无效');
@@ -193,11 +233,18 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
             persistence:'not-confirmed',runId:null,resultId:null}};
       }
       const {run,broker}=await observation(row.requestId),receipt=receiptFor(row,run);
-      if(run?.state==='completed'&&run.retirementState==='released'){
+      // Cached observations carry no authority to disclose Result bytes/errors.
+      delete receipt.value;delete receipt.error;receipt.persistence='not-confirmed';
+      if(['completed','failed','stopped'].includes(run?.state)&&run.retirementState==='released'){
         try{
+          const approval=ledger.captureAutoPolicyEpoch();
+          const final=await historyReadFence(row,broker,approval);
           const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-          const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
-          Object.assign(receipt,{persistence:'verified',value:durable.value});
+          const projection=run.state==='completed'?
+            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope).value}:
+            {error:terminalError(snapshot,run,row.scope.installation)};
+          await historyReadFence(row,broker,approval);
+          final();Object.assign(receipt,{persistence:'verified',...projection});
         }catch(error){
           receipt.persistence='not-available';delete receipt.value;
           receipt.error={code:error.code||'E_WEB_TASK_UNKNOWN',message:String(error.message).slice(0,2048)};

@@ -1,13 +1,95 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 当前：真实 AI 自动配置核心已完成（2026-11-09）
+
+在真实 ChatGPT 长对话中，经原共享 AI Chat 发送“自动配置当前网站的滚动导航”，本机 Codex 已完成观察、候选选择和原保存流程。界面返回“已保存并读回”，配置版本为 `c759aaf2-5762-4883-b276-2e5bc8f12182`；关闭重开侧栏以及真实 Stop 后，只读核对的配置与 ETag 完全一致。实际点击网页原导航按钮，滚动位置从 3430.5 回到 0，再到 3430.5（最大 3431）。
+
+仅新增 `https://chatgpt.com` 的根路径规则，五个原为 true 的导航开关全部保留，内置站点适配保留。Chat 展开时原设置可操作，开合与共享 AI 设置往返保留草稿；新增适用路径默认空，× 清空并聚焦，返回不弹放弃确认。自有测试草稿已清空，没有向 ChatGPT 网站发送消息。
+
+**本轮修复：** 业务观察器现在识别 `display: contents` 的可见后代；排除控件的内部深度不会遮挡有效对话，仍计入整个文档的 12000 节点预算。真实滚动容器需要 11 层结构路径，自动观察的结构选择器查找现限制为原有 64 层/256 字符；手动点选仍用原 8 层。观察不读取正文、标题、输入值或私有标识值。三个新增回归先复现失败，修复后观察/配置/提案 169 项、Chat 续问及安全保护定向 18 项通过，语法和定向 diff 检查通过。旧 318 项及 Native 36 项属于既有证据，未机械全量重跑，不能与本轮重叠计数。
+
+用户授权直接判断处理旧页后，先将两份明确识别的旧文档保存到本机私有恢复目录，再安全重载并由原协议确认清理完成；另一任务的 Space 33 已归还用户。随后经原安装器审阅更新临时候选 **0.4.13/r20261110**，保留原六条范围、原 installationId `c821cc8a-62be-4a85-9c0f-d1ac13eeb7b0`，generation 7、active、registered，managedCleanup 已真实读回 retired（19 条记录）。未清空未知状态或重放安装。
+
+临时候选在 `artifacts/ai-scroll-chat-20261108-receiver/observer-fix-depth-20261109/`：sourceHash `4158885879d9acb0ec4c24c1e3f9a08d2beca1be339b9b3574bc403a1e07e878`，packageHash `ea74f21a1196dab90d806064a590a851908f869394cd2161e6665225ab5a7b9d`。原 Builder/打包器产物逐字节一致，五个业务模块哈希与当前源码复核一致；目录正式 r17 包未晋升，已不代表本轮修复源码。
+
+**证据边界：** 真实请求、业务回执、安装身份、重开读回及实际滚动已保存。原受控链仅接受本次观察候选，并持有同一轮授权至续问和读回；模型原始 JSON、candidateId 与 lease ID 为临时数据，产品未单独留存，本记录没有重建或编造这些回包。真实窗口截图含私有对话，仅保存在本机受限恢复目录，公开证据采用脱敏侧栏文本。Stop 已在真实 UI 验证；其他身份、文档、Provider、撤权和 unknown 保护以本轮定向与既有未改动边界测试为证据，不声称全部重新做过真实浏览器故障注入。
+
+继续使用既有 `npm run dev`、`dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 与 127.0.0.1:43119。TaskSpace 38 已完成并归还，保留原长对话 p2 与成功测试页 p11，临时 p4/p12/p13 已关闭，另外两份非本任务页面保留；watcher、原配对及其他服务未停止。Browser main / Native master 保留并行未提交改动，未提交、推送或正式发行。
+
+证据：[核心结果](../../artifacts/ai-scroll-chat-20261108-receiver/observer-fix-depth-20261109/core-result.json)、[最终配置与 ETag](../../artifacts/ai-scroll-chat-20261108-receiver/observer-fix-depth-20261109/final-readback.json)、[实际导航](../../artifacts/ai-scroll-chat-20261108-receiver/observer-fix-depth-20261109/navigation.json)、[总台账](../../artifacts/ai-scroll-chat-20261108-receiver/verification.json)。production、正式发行、完整矩阵、独立评分和真实双浏览器 Native 滚动更新均未开展，不属于本轮核心完成声明。原对话 `01a1bbef-aaee-7cc2-b7cf-ba260511fb04` 的旧 goal 上次实读 blocked，未修改或恢复；本对话核心完成不改变其生命周期。
+
+本对话原生 goal 已返回 complete，随后查询无活动 goal；原旧对话的 blocked 状态未修改。
+
+以下保留历史观察。旧“候选未安装”“等待维护窗口”“模型闭环未验证”等状态均不覆盖本节当前结果。
+
+## 历史：Native 已按授权完成更新，当时真实 AI 闭环待续接（2026-11-09）
+
+用户明确要求直接强制结束阻止更新的旧连接并继续安装，完成后创建新对话。已通过 socket、真实可执行路径、UID 与完整进程命令核实两条当前连接，只对其 Native Host（PID 40335、40327）发送 SIGTERM，均正常退出；未停止 Chrome、ego、其他 Native 实例或 watcher。随后原官方 `browser update` 成功，将共用 Native 入口切到 `~/.opendesk-browser/native-agent-r1/build-native-rolling-update-20261109/OpenDesk.app/Contents/MacOS/opendesk`，扩展 ID、配对凭据、批准来源和 Profile 不变，旧 `/Applications/OpenDesk.app` 保留。未访问此前被 Browser Use 拒绝的扩展 URL，也未改浏览器设置。
+
+安装后预检为 CLI 0.162.1、`READY_FOR_TURN / inferenceVerified:false`；连接清单暂为空，真实浏览器重连及 AI 观察→选择→保存→持久化仍未验证，配置写入仍为 0。进程结束不证明旧请求结果，未知状态不重放。证据在 sibling `.runtime/tests/native-rolling-update-20261109/authorized-install.json`。原目标工具仍返回 blocked；当前工具不能原地改写目标正文或恢复该状态，续接对话需建立完整新目标，不将旧目标伪报完成。
+
+交接前只读观察：Browser main HEAD 已为 `16e85aaafdc9dc76da34aeb8c12fd6a99579733a`，唯一 watcher PID 16888、43119 仍监听；磁盘 tool-shell SHA256 已变为 `94d30fe895d0b985e0d8965f0e4dc3e04305e2a2c9edbd1ab0552718627ab4ce`。接收方须核对相关变更及实际运行产物，不能把旧 UI 指纹当作当前证据；不因无关 main 更新重复全量构建。TaskSpace 38 仍存在、ownership 为 agent，保留所有页面交接。以下未部署及迁移阻塞段落为历史观察，以本节为准。
+
+## 共享 AI 自动配置当前网站（2026-11-08，核心开发中）
+
+在已打开的长对话页进入「AI 对话」，输入「自动配置当前网站的滚动导航」。复用框架 `SharedConversationDock` / `SharedConversationFrame`、共享 AI 设置和独立消费者会话，展开后原设置仍可操作，开合保留草稿。原导航开关命令及明确提供网站、路径和 CSS 的手动配置方式继续保留；内置站点适配不因测试而删除或停用。
+
+新增流程为：明确的当前网站配置意图 → 模型请求观察 → 已安装 Page 在当前精确文档中只读提取有限结构候选 → 同一受控推理会话继续选择候选 → 原设置保存。用户不必提供 CSS；模型不能自行编造选择器或网站范围。观察不采集正文、标题、HTML、输入值或属性值；仅发送精确 Origin、结构选择器及消息数量、是否可滚动等有限指标，完整私有 URL 留在本地校验。没有可用对话结构时明确失败，不把空首页视为已完成配置。
+
+领域适配器位于 `trusted/ai-configuration.js` / `trusted/ai-controls.tsx`，Page 观察位于 `src/site-configuration.js`。观察沿原 Installed Page Broker 的身份、权限、执行世界和文档检查；保存前再次核对原安装及原文档，仍经原安装范围审阅、CAS/ETag、实时选择器校验和保存后读回。停止、页面或 Provider 改变、撤权和未知结果均保留原保护；未请求的导航开关、其他网站和本地草稿不随提案保存。
+
+**已验证：** 领域校验 121 项、真实 React Chat 组件 45 项、只读 Page 观察 8 项、本地化及可信来源 38 项、Broker 观察与保护 69 项、原网站保存/CAS 37 项，共 318 项定向检查通过。Page 观察包含约 2500 节点、`data-turn-key` 消息结构；组件与 Broker 测试覆盖停止、文档变化、撤权及拒绝额外数据。这些属于自动化证据，不能代替真实模型和网页结果。
+
+**当前真实入口：** ego 原生 Side Panel 已显示新提示词、保留原设置，并能在重新打开后读回设置。自动配置请求已填入草稿，尚未发送。2026-11-08 15:47:46 UTC 只读复核：自定义网站仍为 0，五项导航开关均为 `true`，本接续尚未写入配置。真实模型选择 → 原保存及 ETag 读回 → 重开持久化仍为 `NOT_TESTED`。先前 `E_AI_RESPONSE` 的真实原因是推理前的 `CODEX_UNSUPPORTED`；现已显示固定的四语言状态指引，不再将已知本机状态误报为提案错误。
+
+连续开发目录为 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，serve 为 `127.0.0.1:43119`；11/08 交接产物 revision 为 `71e869d13f69909d451404613f8e97b378f4b5ba4646081470c3593d8116ac0a`，`ui/tool-shell.js` SHA-256 为 `b8d8076232fc7fdd5247466b16f1d8cd092bdb8517ef3afde18c1816d2365998`，最新运行时 revision 见下方接续复核。本轮继续使用唯一现有 watcher；未替换加载目录或扩展 ID。
+
+**真实模型阻塞：** 独立 Native App 候选携带已审计、通过官方 npm 完整性核验的 CLI `0.162.1`，签名检查及无推理 `ai doctor` 通过，返回 `READY_FOR_TURN` / `inferenceVerified:false`。候选尚未安装：官方 `browser update` 被现有连接以 `E_SOCKET_IN_USE` 拒绝。未放宽 `0.164.0` 门禁，未修改系统 CLI、模型路由或现有安装文件。浏览器安全策略拒绝 Agent 打开日常 Chrome 的 `chrome-extension:` 本机连接设置页，已请求用户确认无任务后暂时关闭该连接；不经其他界面或命令绕过此拒绝。详细本机证据见 sibling OpenDesk 的 `.runtime/build/ai-scroll-chat-20261108/candidate-evidence.json`。
+
+**2026-11-09 接续复核：** 原生侧栏沿目录页真实按钮打开，Chat 展开保留原设置，收起重开及共享 AI 设置往返均保留未发送草稿。北京时间 00:21 的只读核对确认 `sites=[]`、五项开关均为 `true`、ETag 与上次一致；安装身份及 generation 5 不变，`managedCleanup=unknown`（13 条 managed UI 记录）仍保留，没有重试安装或派发清理。此读回是只读诊断，不是保存回执。当前 Native 仍为 `CODEX_UNSUPPORTED`，候选仍为 `READY_FOR_TURN / inferenceVerified:false`；两条连接均响应 `bridge.status`，未再次尝试覆盖活动安装。真实模型、原保存及重开持久化仍未完成，等待日常 Chrome 的安全维护窗口。唯一 watcher 仍运行，运行时 applied/output revision 同为 `acf64ff7aef3226131add1a5a3cb5b8ce5917a9c0752f7d7505e44beef5f32fd`，侧栏 JS 指纹不变；详细证据见 `artifacts/ai-scroll-chat-20261108-receiver/receiver-recheck-20261109.json`。无源码变更，复用原定向检查，不启动全组回归或正式验收。
+
+### 本轮目标与关键通过条件（2026-11-09）
+
+已建立本对话原生目标，末次阻塞审计后状态为 `blocked`（目标未完成）：在上述持续开发环境的真实 ChatGPT 长对话中，使用真实 `local_codex` 完成「自动配置当前网站的滚动导航」→ 模型请求观察 → 同一推理 lease 选择实际观察的 `candidateId` → 原权限、实时 DOM 与 CAS 保存 → 同 ETag 读回 → 关闭重开后配置一致且导航可用。仅补当前阻塞和定向验证；production、发行、全量矩阵、独立评分及提交推送继续延期。
+
+**并行运行与更新的边界：** 日常 Chrome、ego 及其对话页可以保持打开，同一 Native 安装支持多连接。每条连接有独立 socket、凭据和连接 ID；有多条连接时 CLI 必须显式指定 `--connection`，连接失效不得转投另一条。共享文件操作锁仍可能返回 `E_FILES_BUSY`，不承诺所有业务操作无竞争。当前已安装旧版更新器仍要求相关 Native 连接全部暂时断开，活动连接返回 `E_SOCKET_IN_USE`；这不是日常并行运行的前置条件，也不要求关闭浏览器或对话。用户随后授权完善多连接更新，本轮 sibling Native 源码候选已新增精确 scope 绑定的滚动更新：支持新合同的旧连接保留原版本，新连接使用新版本，原任务不强断或重放；旧版首次迁移仍保守拒绝，自动空闲交接未实现。新源码尚未部署，不能据此声称当前维护阻塞已经解除。合同见 sibling `docs/integrations/browser/native-messaging-host.zh-CN.md` 的“多连接期间滚动更新”。
+
+| 关键条件 | 当前证据与状态 |
+| --- | --- |
+| 两条连接各自可选、响应身份正确；相同 requestId 并发及逆序响应不串线；关闭一条不损坏另一条 | 两条真实连接以显式 CLI 选择并行响应 `bridge.status`；Host 定向测试通过。真实双浏览器同时推理业务为 `NOT_TESTED` |
+| 省略多连接选择器、已失效连接均拒绝，不回退或误投；共享文件锁竞争明确返回 busy，释放后可恢复 | 现有连接选择、授权隔离和共享操作锁定向测试；本次结果见 verification.json |
+| 旧版活动连接拒绝更新且文件不变；新版连接可保留并更新默认运行路径，在途响应继续回到原连接 | `TestLegacyNativeConnectionsRejectUpdateWithoutChangingInstallation` 及 `TestRollingNativeUpdate*` 通过；临时 HOME/Host fixture，不触碰真实安装 |
+| 默认安装与命名实例并存，更新只影响自身；伪造其他实例身份不能绕过保护 | 精确验证另一实例归属的回归通过；实际候选 CLI/Native 进程与模拟 Chrome 帧联调通过，真实双浏览器更新仍 `NOT_TESTED` |
+| Chat 展开保留原设置；收起重开、共享 AI 设置往返保留未发送草稿 | 真实原生 Side Panel 已通过 |
+| 模型只收到有限结构，不采集正文等额外数据；同 lease 只能选择本次实际观察的候选 | 原定向自动化通过；真实模型闭环 `NOT_TESTED`，当前仍受 `CODEX_UNSUPPORTED` 阻塞 |
+| 只保存当前精确 Origin 的规则；保存前重验文档/安装/权限/实时 DOM，并经原 CAS 与同 ETag 读回 | 原定向自动化通过；本轮真实保存 `NOT_TESTED`，配置写入仍为 0 |
+| 其他网站、五个原为 true 的导航开关不变；关闭重开配置及 ETag 一致，页面导航生效 | 未写入基线已复核；保存后的真实持久化及导航 `NOT_TESTED` |
+| Stop、文档/安装/Provider 变化、撤权及未知结果不继续保存或自动重放 | 复用未变输入的原定向自动化；本轮真实模型执行未发生 |
+| managedCleanup=unknown 不冒报安装成功，不自动重试、清除状态或重复清理 | 原未知状态保留；完整安装完成仍未证明 |
+
+前次 Native 更新拒绝验证记录保留在 sibling `.runtime/tests/ai-scroll-chat-20261109/`，仅表示修复前基线。本次多连接子目标是保留旧连接和在途响应、让新连接使用新版、维持实例隔离与撤权保护；核心源码及隔离验证已完成，日常部署未完成。候选基于同一 `f42d26c246fc7c57a03a664d6b3b49e59e23aa48` 和必要任务改动生成独立 overlay，排除并行无关改动；race 定向回归 29 个顶层测试、36 项含子测试通过，实际新编译 CLI/Native 的临时 HOME 联调也通过（Chrome 为模拟帧客户端），证据在 sibling `.runtime/tests/native-rolling-update-20261109/verification.json`。源码复审未发现未解决的 P0/P1/P2；真实浏览器迁移、真实模型及签名 App 部署仍 `NOT_TESTED`。本项目运行源码及 Page 包未改动，不覆盖既有 watcher 输出。原真实模型、CAS 保存与持久化仍为 `NOT_TESTED`，末次审计后的目标状态为 `blocked`。
+
+**本轮续跑已补齐签名开发候选：** `~/.opendesk-browser/native-agent-r1/build-native-rolling-update-20261109/OpenDesk.app` 同时包含滚动更新修复与内置已审计 CLI 0.162.1，使用原固定开发证书签名，严格验证通过；预检为 `READY_FOR_TURN / inferenceVerified:false`。真实旧/新签名 App 在临时 HOME 中的首次迁移联调通过，未触碰日常安装；证据见 sibling `.runtime/build/native-rolling-update-20261109/candidate-evidence.json` 及 `.runtime/tests/native-rolling-update-20261109/legacy-candidate-smoke.json`。当前只读检查得到两条不同于上次的 ready 连接，仍均为能力版本 0、运行 `/Applications/OpenDesk.app`；安装扩展 ID 保持不变。旧版安全重连与日常部署尚未完成，不自动断连或绕过此前浏览器 URL 策略；真实推理、保存及重开持久化未执行。
+
+**2026-11-09 01:16 阻塞审计：** 只读复核确认两条 ready 连接 `27c547f679efa058800479f180f9aed9`、`d38f42b654d2b3be56fdc1cd83fa8758` 仍为能力版本 0，运行日常 `/Applications/OpenDesk.app`，新签名候选摘要未变。源码修复、签名准备及本次复核连续三轮均受同一首次迁移条件阻挡；此前自动浏览器 URL 策略拒绝原日常扩展设置入口，并禁止换入口绕过。原生目标工具已返回 `blocked`，完整目标保留，真实推理/保存/持久化未完成。恢复条件是旧 Native 连接经正常生命周期安全结束，或原设置入口的工具限制解除；浏览器与对话页可以保持打开。不重复构建、测试、安装或强断其他任务。复核证据：sibling `.runtime/tests/native-rolling-update-20261109/blocked-audit-recheck.json`。
+
+## 当前编译包与测试安装（2026-11-08，0.4.13/r17）
+
+项目唯一正式可导入文件为 [`ai-scroll-navigation.opendesk-page.json`](./ai-scroll-navigation.opendesk-page.json)，项目和官方目录版本已同步为 **0.4.13 / revision 17**，目录发行仍为 `blocked`。原 Program Builder、Page 包校验及源码/编译字节同源检查通过；源码 SHA-256 为 `211d2b2aafa67f0bfa9423ca3d1c50b480ef4aec404bd8c674139c59ffe20c53`，安装合同内 `packageHash` 为 `5c606fcce5d5e3854468dc16edae51f4f1b18be157bc9efaf2eb5df877ad2710`。正式包仍只有原三站范围；本轮未将它安装到含额外本地测试范围的现有安装中。
+
+为保留现有六条已批准范围，以同一源码和原打包器另生成 `artifacts/ai-scroll-chat-20261108-receiver/local/` 临时 **0.4.13/r20261108** 测试候选。原 Installer 的一次更新已持久化并注册，installationId 保持 `c821cc8a-62be-4a85-9c0f-d1ac13eeb7b0`，generation 为 5，原范围未变；源码 SHA-256 为 `4c8d3c3315c52123f8ea2406e6af1d4e22c15f24c7e129e1597a12192b93a44a`。安装器同时返回 `E_PAGE_INSTALL_PENDING`，`managedCleanup=unknown`；这不是完整安装成功，不自动重试、清除未知状态或重复更新。新文档已打开，实际 Page 观察仍待真实模型流程调用。
+
+“添加网站”的可选适用路径新增时留空，有内容时可点 × 清除；相关表单证据保留。可信设置 UI 随 Browser 固定编译分发，**不包含在 Page JSON 中**。本轮未提交或推送；production、正式发行、全量矩阵及独立评分均未执行。下方各版本记录仅保留历史证据，不自动构成本候选通过。当前本机核对详情见 `artifacts/ai-scroll-chat-20261108-receiver/verification.json`。
+
 ## R4.0 正式 Side Panel 迁移记录（2026-11-08，待同候选验证）
 
-- **正式入口**：复用 `src/ui/react/tabs/tools.tsx` 的唯一 `ScrollSiteManager`、原 `extension-center.js` 和可信 Page Installer；首页只展示 ChatGPT、DeepSeek，完整列表加入 Gemini。自定义网站管理、添加/编辑、四项 CSS、图标点选和单一保存操作区已接入源代码。
+- **正式入口**：使用项目自身 `trusted/react-controls.tsx` 的唯一 `ScrollSiteManager`（由 `src/ui/react/tabs/tools.tsx` 固定导入）、原 `extension-center.js` 和可信 Page Installer；首页只展示 ChatGPT、DeepSeek，完整列表加入 Gemini。自定义网站管理、添加/编辑、四项 CSS、图标点选和单一保存操作区已接入源代码。
+- **设置文案归属**：`trusted/host-localization.js` 持有简中、英文、繁中、日文，复用框架 `uiMessage` 和已解析的全局语言；组件状态使用语义键，切换语言保留当前视图与草稿。通用安装、卸载和诊断文案留框架目录。此处为固定编译的可信设置 UI；Page 包不取得可信页面执行权，修改设置 UI 随 Browser 源码分发。
 - **权限与数据**：只用精确 HTTP(S) Origin + 既有 `pathScope` 合同；新范围先走原安装审阅，批准后返回表单继续保存。现有 `readScrollSiteConfig` / `saveScrollSiteRule`、etag CAS、精确活动文档检查与保存后读回未更换。不可将权限批准或预览选择器当作规则持久化。
 - **Page 运行时**：`main.js` 现在调用 `installScrollSiteRuntime`，不再向目标网页挂载旧齿轮或完整设置面板；仍使用原规则读回、`activeRule()` 和临时点选高亮，以保护 Side Panel 关闭后导航独立运行。为兼容已有测试与辅助函数，旧视觉模块目前仍保留不在生产页面挂载的内存代码；未声称完成源码级全面删除。
-- **尚未接入**：R4.0 五个按钮开关属于独立运行时/配置合同升级。当前 `scroll-config-contract.js` v1 严格限制网站规则字段，无全局开关；正式设置页把五项标记为只读、禁用，不虚构保存。导航继续沿用既有默认值。
+- **导航设置**：五个开关沿现有 `saveScrollNavigationSettings` 与 etag CAS 保存并读回，切换语言只重绘展示，不保存开关。此为当前源码及定向组件证据；目标网页是否已使用新配置仍需同候选实测。
 - **验证范围**：`node --test tests/environment/ai-scroll-react-manager-r38.test.mjs projects/ai-scroll-navigation/tests/site-configuration.test.mjs`；应进一步验证 CSS/权限/草稿回退和当前 Chrome 的真实网站点选、安装审阅以及保存读回。此条只列定向命令，不等于已经执行。`NODE_NOT_TESTED` / `CHROME_NOT_TESTED`，尚无本轮同候选安装与浏览器证据。既有 0.4.10/r14 导航及思维导图历史证据不自动迁移为新源码验收。
-- **打包边界**：仓库的 `.github/workflows/ai-scroll-navigation-r131.yml` 仍固定构建 `0.4.8/r9`，与当前 `0.4.10/r14` 不符；未验证该旧流程的版本/包晋升，不可据此替换已安装正式 Page 包。新源码进入正式用户环境还需要更新后续唯一 Page 包并原 Installer 审阅，不能用修改网页预览代替。
+- **打包边界**：`.github/workflows/ai-scroll-navigation-r131.yml` 已按项目版本和冻结包计算候选 Revision；本地 **0.4.12/r16** 已通过原打包器和同源校验，尚未执行远端发行。安装仍经原 Page Installer 审阅；可信设置 UI 随 Browser 源码分发，不能用 Page 包或网页预览替代。
 
 
 ## 默认安装与回复工具组（2026-11-07）

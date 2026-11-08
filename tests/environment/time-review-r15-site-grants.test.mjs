@@ -215,7 +215,9 @@ test('R1.5 sandbox cannot grant website or all-sites permissions',async t=>{
 });
 
 test('R1.5 trusted permission elements are owned by the real React tool host',async t=>{
-  const react=await readFile('src/ui/react/tabs/trusted-settings.tsx','utf8');
+  const forwarding=await readFile('src/ui/react/tabs/trusted-settings.tsx','utf8');
+  assert.match(forwarding,/export \{TimeReviewSettings\} from '\.\.\/\.\.\/\.\.\/\.\.\/projects\/time-review\/trusted\/react-controls\.tsx'/);
+  const react=await readFile('projects/time-review/trusted/react-controls.tsx','utf8');
   const html=await renderSidebarFixture();
   assert.match(react,/export function TimeReviewSettings/);
   for(const id of ['time-review-permission-settings','time-review-site-grants-list',

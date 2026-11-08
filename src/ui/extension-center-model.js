@@ -1,3 +1,5 @@
+import {scrollNavigationText} from '../../projects/ai-scroll-navigation/trusted/host-localization.js';
+import {extensionCenterText} from './extension-center-localization.js';
 // Read-only unified view of existing installed registries and bundled official releases.
 import {sidebarToolPackageHash} from './sidebar-tools/package.js';
 import {SEND_QUEUE_PIN,admitsPinnedQueuePage,admitsPinnedQueueTool} from '../platform/host/send-queue-admission.js';
@@ -5,12 +7,13 @@ import {describeSendQueueProduct,queuePageIdentity} from './send-queue-product.j
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE}
   from '../scripting/user-scripts/scroll-config-contract.js';
 
-export async function describeInstalledAppSource(tool,record){
+export async function describeInstalledAppSource(tool,record,locale='zh-CN'){
+  const t=(key,params)=>extensionCenterText(locale,key,params);
   const sha256=await sidebarToolPackageHash(tool);
-  if(record===undefined)return {kind:'unknown',label:'来源未记录',sha256};
+  if(record===undefined)return {kind:'unknown',label:t('unknownSource'),sha256};
   if(record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===sha256)
-    return {kind:'market',label:'OpenDesk 官方市场 · '+record.marketId,sha256};
-  return {kind:'unverified',label:'安装来源记录与当前固定包不一致',sha256};
+    return {kind:'market',label:t('sourceMarket',{id:record.marketId}),sha256};
+  return {kind:'unverified',label:t('sourceMismatch'),sha256};
 }
 
 const lower=value=>String(value??'').trim().toLocaleLowerCase();
@@ -22,7 +25,7 @@ const newer=(a,b)=>{
   for(let i=0;i<3;i++){if(aa[i]!==bb[i])return aa[i]>bb[i];}
   return false;
 };
-export function composeExtensionEntries({installed=[],pages=[],official=[],pageReleases=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[],queueToolHash=null}={}){
+export function composeExtensionEntries({installed=[],pages=[],official=[],pageReleases=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[],queueToolHash=null,locale='zh-CN'}={}){
   const entries=[],releases=new Map(official.map(row=>[row.toolId,row])),ids=new Set();
   const pendingCleanups=new Set(cleanupPendingIds);
   // Do not hide an installed Page unless the Companion App has the exact
@@ -66,8 +69,8 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
       release.revision<SCROLL_SITE_REVISION_BASE;
     entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
       description:p.programId===SCROLL_CONFIG_PROGRAM_ID?
-        '快速跳到回复和对话的开头或结尾，管理适用网站与导航按钮。':
-        (p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
+        scrollNavigationText(locale,'listDescription'):
+        (p.pageRules?.matches||[]).join('、')||extensionCenterText(locale,'installedPage'),version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
       release,officialReview,update:Boolean(release?.status==='available'&&
         (release.revision>p.revision||officialReview)),
@@ -112,7 +115,8 @@ const AI_PAGE_LEGACY_IDS=Object.freeze({
   'opendesk.ai-reply-mindmap':'opendesk.chatgpt-mindmap'
 });
 
-export function describeManagedAiPage(page,installedPrograms=[]){
+export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
+  const t=(key,params)=>extensionCenterText(locale,key,params);
   const legacyProgramId=AI_PAGE_LEGACY_IDS[page?.programId];
   if(!legacyProgramId)return null;
   const enabledKnown=typeof page.enabled==='boolean';
@@ -122,26 +126,40 @@ export function describeManagedAiPage(page,installedPrograms=[]){
   const sitesKnown=Array.isArray(page.pageRules?.matches)&&page.pageRules.matches.length>0;
   const cleanupUnknown=page.managedCleanup?.state==='unknown';
   const error=Boolean(page.error);
-  let state='pending',status='运行条件待核对';
-  if(!enabledKnown){status='启用状态尚未核实';}
+  let state='pending',status=t('runPending'),note=t('recheckNote');
+  if(!enabledKnown){status=t('autoPending');}
   else if(!enabled){
     if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
-      state='off';status='已停用 · 原生注销已确认';
-    }else status='已停用 · 原生清理待核对';
+      state='off';status=t('autoOff');note='';
+    }else{
+      status=t('offPending');
+      note=t('removedPending');
+    }
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
-    state='ready';status='自动运行条件已就绪';
+    state='ready';status=t('autoOn');note='';
   }else if(authorization==='suspended'){
-    state='restricted';status='网站访问权限已暂停';
+    state='restricted';status=t('accessSuspended');
+    note=t('accessRestoreNote');
   }else if(native==='blocked'){
-    state='restricted';status='Chrome 注册受阻';
-  }else if(error||cleanupUnknown){
-    state='restricted';status='注册或清理异常，需核对';
-  }else status='已请求启用 · 原生状态待核对';
+    state='restricted';status=t('autoUnavailable');
+    note=t('chromeBlockedNote');
+  }else if(error){
+    state='restricted';status=t('autoError');
+    note=t('autoErrorNote');
+  }else if(cleanupUnknown){
+    // An unconfirmed cleanup receipt is not proof of a failed registration.
+    // The runtime's same-document cleanup fence still applies unchanged.
+    note=t('cleanupUnknownNote');
+  }else if(!sitesKnown){
+    note=t('sitesUnknownNote');
+  }else{
+    note=t('runUnknownNote');
+  }
   const legacyInstalled=installedPrograms.some(row=>
     (row?.installed??row)?.programId===legacyProgramId);
   return {
-    enabled,enabledKnown,state,status,
-    note:'显示的是本机授权和 Chrome 注册读回，并非对当前网页已实际运行的证明。',
+    enabled,enabledKnown,state,status,note,
+    evidenceNote:t('aiEvidence'),
     legacyProgramId:legacyInstalled?legacyProgramId:null,
     canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
       (authorization==='suspended'||
@@ -163,30 +181,31 @@ export function resolveExtensionRowIntent(row){
 }
 // All installed Page Programs use the same trusted management projection.
 // The existing AI projection retains its legacy identity/restore semantics.
-export function describeInstalledPageControl(page,installedPrograms=[]){
-  const ai=describeManagedAiPage(page,installedPrograms);
+export function describeInstalledPageControl(page,installedPrograms=[],locale='zh-CN'){
+  const t=(key,params)=>extensionCenterText(locale,key,params);
+  const ai=describeManagedAiPage(page,installedPrograms,locale);
   if(ai)return ai;
   const enabledKnown=typeof page?.enabled==='boolean',enabled=page?.enabled===true;
   const authorization=page?.authorization?.status,native=page?.nativeState;
   const sitesKnown=Array.isArray(page?.pageRules?.matches)&&page.pageRules.matches.length>0;
   const cleanupUnknown=page?.managedCleanup?.state==='unknown',error=Boolean(page?.error);
-  let state='pending',status='运行条件待核对';
-  if(!enabledKnown)status='启用状态尚未核实';
+  let state='pending',status=t('conditionsPending');
+  if(!enabledKnown)status=t('enabledPending');
   else if(!enabled){
     if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
-      state='off';status='已停用 · 原生注销已确认';
-    }else status='已停用 · 原生清理待核对';
+      state='off';status=t('disabledConfirmed');
+    }else status=t('disabledPending');
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
-    state='ready';status='自动运行条件已就绪';
+    state='ready';status=t('conditionsReady');
   }else if(authorization==='suspended'){
-    state='restricted';status='网站访问权限已暂停';
+    state='restricted';status=t('accessSuspended');
   }else if(native==='blocked'){
-    state='restricted';status='Chrome 注册受阻';
+    state='restricted';status=t('registrationBlocked');
   }else if(error||cleanupUnknown){
-    state='restricted';status='注册或清理异常，需核对';
-  }else status='已请求启用 · 原生状态待核对';
+    state='restricted';status=t('registrationIssue');
+  }else status=t('enableRequested');
   return {enabled,enabledKnown,state,status,
-    note:'状态来自 Page Authority 和 Chrome 注册读回，并非当前网页的运行证明。',
+    note:t('pageEvidence'),
     legacyProgramId:null,
     canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
       (authorization==='suspended'||(authorization==='active'&&(native!=='registered'||error)))

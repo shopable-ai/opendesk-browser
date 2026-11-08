@@ -1303,7 +1303,7 @@ test('R14 Clipper legacy fallback replaces the enhanced snapshot without remount
     'enhanced navigation does not inherit the old Clipper primary action');
   assert.match(f.elements['sidebar-tool-title'].textContent,/详情/);
 });
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null,localeController=null,toolLocaleService=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -1326,7 +1326,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
   configureApi?.(api);
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,localeController,toolLocaleService,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -5356,4 +5356,103 @@ test('queue joint review: closing the review invalidates its previous confirmati
   assert.equal(f.calls.includes('page-import'),false);assert.equal(f.calls.includes('tool-write'),false);
   f.host.dispose();
   assert.throws(()=>f.host.openSendQueueProductReview(f.pkg,f.release),/E_SIDEBAR_TOOL_VIEW_DISPOSED/);
+});
+
+
+test('host management follows global locale independently of tool catalogs and preserves dirty frames',async t=>{
+  let locale='en',notify;
+  const localeController={getLocale:()=>locale,subscribe(fn){notify=fn;return ()=>{notify=null;};}};
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const writes=[];
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),localeController,
+    setHook:values=>writes.push(values)});
+  assert.equal(f.elements['sidebar-tool-settings-open'].title,'Tool settings');
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-label'],'Enable tool');
+  assert.equal(f.view.getSnapshot().labels.appManagement,'App management');
+  const frame=f.frame;
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,kind:'edit-state',dirty:true,busy:false}});
+  const baseline=writes.length;
+  const {promptHostText}=await import('../../projects/prompt-shortcuts/trusted/host-localization.js');
+  const {toolManagementText}=await import('../../src/ui/tool-management-localization.js');
+  for(const next of ['zh-CN','ja','zh-TW','en']){
+    locale=next;notify(next);
+    assert.equal(f.elements['sidebar-tool-settings-open'].title,toolManagementText(next,'settingsTitle'));
+    assert.equal(f.elements['sidebar-tool-prompt-web-row'].attributes['data-label'],promptHostText(next,'webButtonsLabel'));
+    assert.equal(f.elements['sidebar-tool-prompt-native-action'].attributes['aria-label'],promptHostText(next,'selectionAddLabel'));
+    assert.equal(f.runtime.frameRoot.firstElementChild,frame);
+    assert.equal(f.host.isDirty(),true,'language changes retain the dirty editor');
+  }
+  assert.equal(writes.length,baseline,'presentation cannot write tool data or permissions');
+  assert.equal(f.elements['sidebar-tool-prompt-web-action'].attributes['aria-label'],'On-page shortcut buttons');
+  assert.equal(f.elements['sidebar-tool-prompt-native-action'].attributes['aria-label'],'Quickly add selected text');
+});
+
+test('Reading TOC product text keeps tool locale while management follows global locale',async t=>{
+  const tool=await officialToolFixture('reading-toc');
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    localeController:{getLocale:()=> 'en',subscribe:()=>()=>{}},
+    toolLocaleService:{getCatalog:()=>({locale:'ja',sourceLocale:'zh-CN',messages:tool.localization.messages.ja}),
+      getAvailableLocales:()=>['zh-CN','en','ja'],getToolLocale:()=> 'ja',subscribe:()=>()=>{},ready:Promise.resolve()}});
+  assert.equal(f.view.getSnapshot().labels.overlayHeading,'フローティング目次の表示');
+  assert.equal(f.view.getSnapshot().labels.appManagement,'App management');
+  assert.equal(f.elements['sidebar-tool-settings-open'].title,'Tool settings');
+});
+
+
+test('Prompt settings repaint in place without persisting preferences or replaying writes',async t=>{
+  let locale='en',notify;
+  const localeController={getLocale:()=>locale,subscribe(fn){notify=fn;return ()=>{};}};
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const writes=[];
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),localeController,
+    setHook:values=>writes.push(values)});
+  f.emit(f.elements['sidebar-tool-settings-open'],'click',{isTrusted:true});
+  const web=f.elements['sidebar-tool-prompt-web-action'];
+  await settle(()=>!web.disabled);
+  const before=writes.length,frame=f.frame,checked=web.attributes['aria-checked'];
+  const {promptHostText}=await import('../../projects/prompt-shortcuts/trusted/host-localization.js');
+  const {toolManagementText}=await import('../../src/ui/tool-management-localization.js');
+  for(const next of ['zh-CN','ja','zh-TW','en']){
+    locale=next;notify(next);
+    assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+    assert.equal(web.title,promptHostText(next,'webHint'));
+    assert.equal(web.attributes['aria-checked'],checked);
+    assert.ok(f.elements['sidebar-tool-title'].textContent.endsWith('/'+toolManagementText(next,'settingsPage')));
+    assert.equal(f.runtime.frameRoot.firstElementChild,frame);
+  }
+  assert.equal(writes.length,before);
+  f.emit(web,'click',{isTrusted:false});
+  assert.equal(writes.length,before,'synthetic clicks still cannot change settings');
+  f.emit(web,'click',{isTrusted:true});
+  await settle(()=>!web.disabled&&web.attributes['aria-checked']!==checked);
+  assert.equal(writes.length,before+1,'only the explicit trusted toggle persists the preference');
+  const namespace=sidebarToolStorageKey(tool.id);
+  assert.equal(f.store.get(namespace).library.settings.webButtons,web.attributes['aria-checked']==='true');
+});
+
+test('current Time Review notice relocalizes without writes and cannot replace a newer Host notice',async t=>{
+  const {createUiLocaleController}=await import('../../src/ui/app-localization.js');
+  const {timeReviewText}=await import('../../projects/time-review/trusted/localization.js');
+  const locale=createUiLocaleController(null,{languages:['en'],storage:()=>null,eventTarget:null});
+  t.after(()=>locale.dispose());
+  const tool={...sample,id:'time-review',capabilities:['time.review']},writes=[];
+  const f=await hostFixture(t,{tool,startTool:false,localeController:locale,
+    store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),setHook:value=>writes.push(value),fetcher:async()=>new Response('',{status:503})});
+  assert.equal(f.host.openSettings(tool.id),true);
+  f.view.trustedSettingsActions.timeReview['time-review-trusted-start']({isTrusted:false});
+  const status=f.elements['sidebar-tool-status'];
+  assert.equal(status.textContent,timeReviewText('en','trustedClick'));
+  const before=[...writes];
+  for(const language of ['ja','zh-TW','zh-CN','en']){
+    locale.setLocalePreference(language,{persist:false});
+    assert.equal(status.textContent,timeReviewText(language,'trustedClick'));
+    assert.equal(status.attributes['data-state'],'error');
+  }
+  assert.deepEqual(writes,before,'presentation changes cannot write or grant permission');
+  f.host.openTool('missing-fixture');
+  const newer=status.textContent;assert.notEqual(newer,timeReviewText('en','trustedClick'));
+  locale.setLocalePreference('ja',{persist:false});
+  assert.equal(status.textContent,newer,'an older tool notification must not overwrite a later message');
+  assert.deepEqual(writes,before);
 });

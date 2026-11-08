@@ -40,7 +40,8 @@ const compile=async(path,replacements)=>{
   }
   return 'data:text/javascript;base64,'+Buffer.from(output).toString('base64');
 };
-const deps={'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom')};
+const deps={'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
+  'react-aria-components':import.meta.resolve('react-aria-components')};
 const {createExtensionCenterDOM}=await import(await compile('../helpers/extension-center-react-dom.mjs',{
   ...deps,'react-dom/client':import.meta.resolve('react-dom/client'),
   esbuild:import.meta.resolve('esbuild'),linkedom:import.meta.resolve('linkedom')
@@ -49,7 +50,14 @@ const button=await compile('../../src/ui/react/components/ui/button.tsx',deps);
 const toggle=await compile('../../src/ui/react/components/ui/switch.tsx',{
   ...deps,'react-aria-components':import.meta.resolve('react-aria-components')
 });
+const scrollManager=await compile('../../projects/ai-scroll-navigation/trusted/react-controls.tsx',{...deps,
+  '../../../src/ui/react/components/ui/button.tsx':button,
+  '../../../src/ui/react/components/ui/switch.tsx':toggle,
+  './host-localization.js':new URL('../../projects/ai-scroll-navigation/trusted/host-localization.js',import.meta.url).href
+});
 const tools=await compile('../../src/ui/react/tabs/tools.tsx',{...deps,'../components/ui/button.tsx':button,
+  '../../../../projects/ai-scroll-navigation/trusted/react-controls.tsx':scrollManager,
+  '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href,
   '../components/ui/switch.tsx':toggle,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href});
 const {default:LocaleManager}=await import(await compile('../../src/ui/react/tabs/locale-manager.tsx',{
@@ -256,7 +264,7 @@ test('cancel import and delete are read-only and preserve installed content',asy
 
 test('confirmed Japanese import reaches the running official TOC through real manager, service, host and sandbox',async t=>{
   const tool=await officialToolFixture('reading-toc');
-  const pack=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json',import.meta.url),'utf8'));
+  const pack=JSON.parse(await readFile(new URL('../../projects/reading-toc/languages/ja.opendesk-locale.json',import.meta.url),'utf8'));
   // Distinguish imported data from the current built-in Japanese catalog.
   pack.messages.refreshLabel.text='インポート済み目次を更新';
   pack.messages.panelLabel.text='インポート済み目次';
@@ -865,7 +873,7 @@ for(const locale of ['en','ja']){
 }
 
 for(const panelLocale of ['en','ja'])for(const customName of [false,true]){
-  test('current tool title uses its actual catalog only for a source metadata name: '+panelLocale+' custom='+customName,async t=>{
+  test('language pack deletion review uses the actual catalog only for a source metadata name: '+panelLocale+' custom='+customName,async t=>{
     const f=await setup(t);
     f.tool.title=customName?'我的自定义目录':'标题';
     f.saved[SIDEBAR_TOOL_STORE]=[f.tool];
@@ -877,17 +885,27 @@ for(const panelLocale of ['en','ja'])for(const customName of [false,true]){
     const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
       tools:[f.tool],toolId:f.tool.id,service:f.service,localeController:controller,onClose(){}}}}),{doc}=ui;
     const title=customName?f.tool.title:actualLocale==='ja'?'見出し':'Title';
-    assert.ok(doc.body.textContent.includes(msg(panelLocale,'currentTool',{title})),
-      'panel prose follows global locale while a default tool title follows the actual tool locale');
+    // The current UI presents this resolved title in the deletion review.
+    // Test that actual consumer rather than the retired daily-page subtitle.
+    openPacks(doc);
+    await settle(()=>resourceAction(doc,'ja',1)&&!resourceAction(doc,'ja',1).disabled);
+    resourceAction(doc,'ja',1).dispatch('click');
+    assert.ok(doc.body.textContent.includes(msg(panelLocale,'deleteQuestion',{title,locale:'ja'})),
+      'panel prose follows global locale while the review title follows the actual tool locale');
     const before=structuredClone(f.saved);
     await controller.setLocale('zh-CN');
-    await settle(()=>doc.body.textContent.includes(msg('zh-CN','currentTool',{title})));
+    await settle(()=>doc.body.textContent.includes(msg('zh-CN','deleteQuestion',{title,locale:'ja'})));
     assert.equal(f.service.getToolLocale(f.tool.id),actualLocale);
     assert.deepEqual(f.saved,{...before,'opendesk.ui.locale.v1':'zh-CN'},
       'only the explicitly selected global locale is saved; presenting the title does not alter tool metadata or preferences');
+    buttonNamed(doc,msg('zh-CN','cancelDelete')).dispatch('click');backLocale(doc);
     selectValue(doc.getElementById('od-locale-tool-language'),'follow');
     await settle(()=>f.service.getToolLocale(f.tool.id)===null&&!doc.getElementById('od-locale-tool-language').disabled);
-    assert.ok(doc.body.textContent.includes(msg('zh-CN','currentTool',{title:customName?f.tool.title:'标题'})));
+    openPacks(doc);
+    await settle(()=>resourceAction(doc,'ja',1)&&!resourceAction(doc,'ja',1).disabled);
+    resourceAction(doc,'ja',1).dispatch('click');
+    assert.ok(doc.body.textContent.includes(msg('zh-CN','deleteQuestion',{title:customName?f.tool.title:'标题',locale:'ja'})));
+    assert.ok(f.service.exportPack(f.tool.id,'ja'),'opening and canceling reviews never deletes a pack');
   });
 }
 

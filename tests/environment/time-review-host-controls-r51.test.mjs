@@ -118,7 +118,9 @@ test('R1.5.1 trusted native Time Review and sandbox fallback retain identity-gat
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]/);
   assert.match(css,/#sidebar-tool-settings-view\{order:1/);
-  const react=await readFile('src/ui/react/tabs/trusted-settings.tsx','utf8');
+  const forwarding=await readFile('src/ui/react/tabs/trusted-settings.tsx','utf8');
+  assert.match(forwarding,/export \{TimeReviewSettings\} from '\.\.\/\.\.\/\.\.\/\.\.\/projects\/time-review\/trusted\/react-controls\.tsx'/);
+  const react=await readFile('projects/time-review/trusted/react-controls.tsx','utf8');
   assert.match(react,/export function TimeReviewSettings/);
   for(const id of ['time-review-site-current-approve','time-review-site-all-approve','time-review-grant-idle'])
     assert.match(react,new RegExp('id="'+id+'"'));
@@ -136,8 +138,9 @@ test('R1.5.1 trusted authorization uses React-owned siblings and ordered CSS',as
   const settings=jsx.indexOf('id="sidebar-tool-settings-view"',display);
   assert(display>=0&&frame>display&&settings>frame,'settings and live frame remain under the same React display');
   assert.match(shell,/const trustedInline=show&&/);
-  assert.match(shell,/patchToolField\(view, settingsView, \{hidden: !show\|\|id==='cookie-editor'\}\)/);
-  assert.match(shell,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)\|\|legacyAdblock\|\|/);
+  // Settings visibility is shared; Cookie now owns a visible trusted settings view too.
+  assert.match(shell,/patchToolField\(view, settingsView, \{hidden: !show\}\)/);
+  // The preceding identity test checks each visibility fence independently.
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]\{display:flex;flex-direction:column\}/);
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-settings-view\{order:1/);
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-frame\{order:2/);
