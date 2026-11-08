@@ -183,14 +183,14 @@ try{
   await writeFile(join(output,'receipt.json'),JSON.stringify({
     grade:'SOURCE_COMPONENT_CHROMIUM_MOCK_SDK',
     source:'projects/webflow/src/ui/{main.js,model.js,style.css}',
-    widths:tested,screenshots:8,
+    widths:tested,screenshots:7,
     checks:['responsive overview and scripts','three tabs, no duplicate header',
       'two real fixed Task projections','wrong-site run disabled','icon aria-labels',
       'search','Escape and focus return','expanded Task identity','honest empty history','settings'],
     browserExtensionInstalled:false,taskExecuted:false,trustedAutoReactVerified:false
   },null,2)+'\n');
   console.log('WEBFLOW_CHROMIUM_COMPONENT_PASS widths='+tested.join(',')+
-    ' screenshots=8 no_sdk_task_execution=true');
+    ' screenshots=7 no_sdk_task_execution=true');
 }finally{
   clearTimeout(timer);
   await cleanup();
