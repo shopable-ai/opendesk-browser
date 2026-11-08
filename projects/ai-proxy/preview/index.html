@@ -4,6 +4,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Proxy · 同源离线预览</title>
 <h1>AI Proxy 同源离线预览</h1>
+<p><strong>最新交互设计稿 R18（独立单文件）</strong>：<a href="ai-proxy-interactive-preview-r18.html">打开 AI Proxy R18 · 代理切换与侧栏入口预览</a>。支持优化前后对比、运行中切换与暂停预选；PC 管理页面沿用 R17 交互布局。此设计稿是离线内存模拟，不能替代下方 React 同源生成预览或真实扩展执行。</p>
 <p>在仓库根运行 <code>node projects/ai-proxy/scripts/stage-preview.mjs --serve</code>，打开 <a href="http://127.0.0.1:43263/ai-proxy-preview">可交互同源预览</a>。该命令直接编译 UI 源码，无需 Browser 构建、正式安装包或可信挂载；已有该服务时直接复用。</p>
 <p>原版对照：先运行 <code>node projects/ai-proxy/scripts/reference-preview.mjs</code>，再打开 <a href="compare.html">四种状态逐屏对照</a>。原工作树只读；两侧仅使用内存数据。</p>
 <p>省略 <code>--serve</code> 生成不可变离线快照及来源清单。</p>
