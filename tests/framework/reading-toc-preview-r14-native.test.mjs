@@ -292,6 +292,37 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   frameRect.top+visible.bottom<=frameRect.viewportHeight,
   'Floating card is clipped out of the outer screenshot viewport: '+JSON.stringify({frameRect,visible}));
  let shadow=await tocClosedShadow(trusted);
+ // The collapse control has a larger, transparent click target than its visual
+ // tab. Assert the ACTUAL input boxes never overlap any toolbar mode.
+ async function assertToggleRail(){
+  const bounds=async selector=>{
+   const node=await tocNode(trusted,shadow,selector);
+   const {model}=await trusted.send('DOM.getBoxModel',{nodeId:node});
+   const x=[model.border[0],model.border[2],model.border[4],model.border[6]];
+   const y=[model.border[1],model.border[3],model.border[5],model.border[7]];
+   return {left:Math.min(...x),right:Math.max(...x),
+    top:Math.min(...y),bottom:Math.max(...y)};
+  };
+  const panelBox=await bounds('.panel'),toggleBox=await bounds('.edge-toggle');
+  assert(toggleBox.left>=panelBox.right-.5||toggleBox.right<=panelBox.left+.5,
+   'Collapse hitbox must sit beside, not on top of, the actual TOC card');
+  for(const name of ['top','focus','full','ai']){
+   const buttonBox=await bounds('button[data-mode="'+name+'"]');
+   const overlaps=toggleBox.left<buttonBox.right&&toggleBox.right>buttonBox.left&&
+    toggleBox.top<buttonBox.bottom&&toggleBox.bottom>buttonBox.top;
+   assert(!overlaps,'Collapse hitbox intercepts the '+name+' mode button');
+  }
+ }
+ await assertToggleRail();
+ // Reopen via real Chrome pointer input before exercising all four modes.
+ await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ assert.equal(await evaluate(trusted,
+  "document.querySelector('[data-opendesk-toc-root]').hasAttribute('data-toc-collapsed')"),true);
+ await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ assert.equal(await evaluate(trusted,
+  "document.querySelector('[data-opendesk-toc-root]').hasAttribute('data-toc-collapsed')"),false);
+ shadow=await tocClosedShadow(trusted);
+ await assertToggleRail();
  await tocMouseClick(overlay.page,trusted,shadow,'button[data-mode="full"]',frameRect);
  const expanded=await until(async()=>{
   shadow=await tocClosedShadow(trusted);
