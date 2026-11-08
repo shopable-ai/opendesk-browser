@@ -1,3 +1,9 @@
+**2026-11-09 · R18/R16 预览入库与首阶段正式 PC 展示接线。** 用户确认的独立、可点击单文件存档为 [ai-proxy-r18-r16-clickable-preview.html](preview/ai-proxy-r18-r16-clickable-preview.html)；保留 R18 侧栏与 R16 七区 PC 管理，但它只有离线模拟数据，**不属于安装包、编译输入或业务真相层**。正式产品继续由 `src/App.jsx` → `QuickPanel.tsx` / `Settings.tsx` → `environment.ts` / `service.ts` 实现，不将演示 JS、iframe/postMessage 复制为运行逻辑。
+
+**首阶段已提交源码（尚待本机验证）**：宿主独立工具标签页的固定 `toolId` 入口现在只读传递 `displaySurface='page'`；沙箱通过 `OpenDeskTool.surface` 读取该显示提示，可信 AI Proxy React portal 也在原审核后获取同等提示。侧栏继续 `App surface='side-panel'`，独立工具标签页复用同一已安装 App/Settings，使用 `App surface='management'` 与已有 `styles/management.css` 七区 PC 布局；PC 容器不显示无效的侧栏关闭设置按钮。**它不新增 Chrome 权限、不更改安装身份、SDK 业务服务、保存/应用/暂停/回读语义。** 既有宿主右上角 ↗ 可以打开全页工具。用户在侧栏内点击「设置」当前仍走原**侧栏内** `#/profiles` 路由，**尚未完成一键直达 PC 页**，不能把这一行为写成已验收。
+
+**明确的第二阶段框架能力（仅方案，NOT_IMPLEMENTED）**：通用“打开本工具 PC 页/可选设置栏目”，由 Host 按真实已安装身份、当前活动实例、用户手势与代际核验，只生成固定工具标签页 URL；应用仍拥有任意业务路由、草稿与保护。不得使用 `window.open`、自行传任意扩展 URL 或将自定义工具代码注入可信页面，也不得把通用宿主「工具设置/授权管理」齿轮与 AI Proxy 自有「管理设置」混合。规范及多消费者接入原则见 [自定义工具 UI 合同](../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。**Node / 构建 / 安装 / 真实 Chrome PC 页 / 跨实例数据同步 / 来源与权限撤销负例均为 NOT_TESTED**；历史截图、旧 0.3.x 包、离线预览通过都不构成此候选运行证据。本轮未晋升正式工具 JSON、未实际安装或控制代理。
+
 **2026-11-08 R14 HeaderActions 源码接入（本轮覆盖下方旧“仅预览”阶段）。** `src/environment.ts` 统一适配可信 pilot 的 `toolNavigation` 和沙箱公开 Bridge；`src/App.jsx` 提交完整导航快照，只有 feature 严格为 true 才增强，返回 false 立即回退 base。Header 添加代理仅打开原添加表单，诊断、订阅、完整设置及返回均复用原路由；内容入口保留。草稿、忙态、确认及结果 unknown 阻断新动作，旧页面/卸载后的事件无效，不应用或停止代理、不自动保存。unknown 导航锁只在服务 GET_STATE / STOP 明确确认已知状态后解除；EXPORT 等无关成功响应不清锁，不重放操作。
 
 定向验证：导航、环境与服务共 120 项通过，覆盖增强/fallback、trusted/sandbox、草稿/busy/unknown、清理、读取失败通知循环及无危险副作用。ego 中真实 Host/React/App 的内存服务夹具已验证四个 Header 入口及返回，原 App 实例保留、状态读取稳定；没有应用/停止代理、网络诊断或保存。它不是实际安装或代理核心链证据。详见[唯一导航合同与分层记录](../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)。
