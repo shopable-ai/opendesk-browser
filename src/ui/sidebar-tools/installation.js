@@ -522,10 +522,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       '当前浏览器未实现此受管后台合同',response?.error?.code||'E_TOOL_RUNTIME_UNAVAILABLE');
     assertManagedSitePolicySupported(tool,response.data);
   }
-  // An imported package cannot impersonate the built-in reader. Bundled App
-  // resources can advance independently of this compiled installer; a release
-  // beyond its original pin must pass the SAME trusted catalog/byte verifier.
-  if(tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
+  // Official provenance needs a verified release. A user-reviewed local file
+  // can use any tool ID without claiming that provenance; source replacement
+  // below clears the old official record only after the package commits.
+  if(identity&&tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
      (identity?.marketId!==OFFICIAL_READING_TOC_RELEASE.marketId||
       identity.sha256!==OFFICIAL_READING_TOC_RELEASE.sha256||
       tool.version!==OFFICIAL_READING_TOC_RELEASE.version)){

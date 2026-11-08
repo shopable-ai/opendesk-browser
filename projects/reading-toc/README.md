@@ -10,7 +10,7 @@
 
 按用户当前要求，阅读目录暂不以固定发行版本、SHA-256 或官方来源记录作为读取章节的前置条件。旧版本、本地开发版本及缺少来源记录的已安装目录可直接使用，不再因此要求重新安装。此策略由 `trusted/policy.js` 的 `READING_TOC_RELEASE_IDENTITY_REQUIRED=false` 统一控制网页浮层、侧栏读取和既有标签页接入；以后确有发行需求再评估开启。
 
-仍要求唯一有效的已安装 `reading-toc`、`page.toc` 能力、未主动停用、允许的 HTTP(S) 网站/页面及 Chrome 实际访问许可。第三方目录仍按原网站授权执行；安装器的官方 ID 保留规则和沙箱边界不变。已安装包的自定义翻译仍走原精确来源校验，失败时回退扩展内置文案，不阻止章节读取。
+仍要求唯一有效的已安装 `reading-toc`、`page.toc` 能力、未主动停用、允许的 HTTP(S) 网站/页面及 Chrome 实际访问许可。第三方目录仍按原网站授权执行；用户可以审阅本地包后直接覆盖同 ID 安装，包括同版本修改或版本回退，覆盖后清除旧官方来源标记。官方目录发行校验及沙箱边界保留。已安装包的自定义翻译仍走原精确来源校验，失败时回退扩展内置文案，不阻止章节读取。
 
 ## 最快使用
 
@@ -40,11 +40,11 @@ npm run build:sidebar-tool -- projects/reading-toc
 
 可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.12）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.12/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
-2026-11-09 修复：独立更新的官方资源可能比已编译安装器中的阅读目录版本更新，旧安装器因此误报 `E_OFFICIAL_ID_RESERVED`。安装器现在复用内置官方目录和逐字节校验确认新版身份，继续拒绝未校验的本地包冒用官方 ID。此修复属于 Browser 宿主，必须进入当前加载的 Browser 产物；仅更新工具 JSON 不足以修复旧宿主。
+2026-11-09 修复：最初发现独立更新的官方资源领先于宿主编译 pin，会误报 `E_OFFICIAL_ID_RESERVED`。按用户进一步纠偏，本地文件现在独立走用户审阅和确认覆盖，不再被官方 ID、发行版本、SHA 或 Catalog 可用性限制；本地包不会获得官方来源标记。官方目录入口继续校验其发行包。修复属于 Browser 宿主，必须进入当前加载的 Browser 产物；仅更新工具 JSON 不足以修复旧宿主。
 
 ## 当前证据与边界
 
-- 2026-11-09：ego lite 原生 Side Panel 实际完成正式 JSON 的 **1.0.11 → 1.0.12** 更新。另在 CFT 155 的空临时 Profile、`dist/development` 独立静态快照中通过**全新安装 → 打开 → 点击第三章跳转**；读回 v1.0.12、官方来源及正确 SHA，安装后未启动沙箱。定向测试验证更新保留私有数据、网站/页面/浮层设置及主动停用状态，继续拒绝伪造和过期候选。目标、关键条件及证据见[安装修复记录](INSTALLATION-TESTS.zh-CN.md)。未卸载用户现有目录；日常 Chrome、production、真实 ChatGPT/知乎仍为 `NOT_TESTED`。
+- 2026-11-09 最新：CFT 155 真实原生 Side Panel，用修改代码的 **同版本 1.0.12 本地包**覆盖已停用的官方安装成功；审阅显示同版本内容与来源变化，覆盖后保持停用、清除官方来源、未自动启动沙箱。定向 42 项测试验证本地新装/升级/降级、目录离线、数据与设置保留，以及官方发行校验、取消/过期审阅和未知写入保护。此前正式包的新装、1.0.11 → 1.0.12 更新与文章章节跳转证据保留为历史候选结果，详见[目标与关键测试记录](INSTALLATION-TESTS.zh-CN.md)。用户现有目录未卸载；日常 Chrome、production、真实 ChatGPT/知乎仍为 `NOT_TESTED`。
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
 - R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。

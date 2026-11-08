@@ -1958,7 +1958,7 @@ test('a Worker contract change after review cannot commit the candidate',async t
   assert.deepEqual([...f.store],before);
 });
 
-test('local official import updates the reviewed release and preserves app data',async t=>{
+test('local import updates a reviewed package and preserves app data and the trusted component',async t=>{
   const candidate=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===candidate.id);
   const previous={...candidate,version:'0.3.11',js:'void 0;'};
@@ -1975,15 +1975,13 @@ test('local official import updates the reviewed release and preserves app data'
   const text=JSON.stringify(Object.fromEntries(Object.entries(candidate).reverse()),null,2);
   f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
-  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/本地安装包/);
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,previous.version,'review cannot install');
   f.emit(f.elements['sidebar-tool-install'],'click');
   await settle(()=>f.elements['sidebar-tool-import'].hidden);
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,candidate.version);
   assert.deepEqual(f.store.get(dataKey),data);
-  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],{
-    marketId:release.id,version:release.version,sha256:release.sha256
-  });
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],undefined);
   assert.notEqual(f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[candidate.id],'old-install');
   assert.equal(f.runtime.frameRoot.children.length,0,'installation cannot run the app');
   assert.equal(mounts.length,0,'review and installation cannot mount React');
@@ -1996,7 +1994,7 @@ test('local official import updates the reviewed release and preserves app data'
   assert.deepEqual(f.store.get(dataKey),data,'opening React preserves existing app data');
 });
 
-test('local official import refreshes a catalog published after the sidebar opened',async t=>{
+test('local import remains independent of a catalog published after the sidebar opened',async t=>{
   const candidate=await officialToolFixture('bookmark-manager');
   const {catalog}=await officialFixtures();
   const release=catalog.apps.find(row=>row.toolId===candidate.id);
@@ -2017,19 +2015,17 @@ test('local official import refreshes a catalog published after the sidebar open
   const text=JSON.stringify(candidate);
   f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
-  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/本地安装包/);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous],'refresh only prepares a review');
   f.emit(f.elements['sidebar-tool-install'],'click');
   await settle(()=>f.elements['sidebar-tool-import'].hidden);
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,candidate.version);
-  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],{
-    marketId:release.id,version:release.version,sha256:release.sha256
-  });
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],undefined);
   assert.deepEqual(f.store.get(dataKey),data);
   assert.equal(f.runtime.frameRoot.children.length,0,'refresh and installation cannot run the app');
 });
 
-test('local official import cannot reuse a cached catalog when its refresh fails',async t=>{
+test('local import replaces an official install when the catalog is unavailable',async t=>{
   const candidate=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===candidate.id);
   const previous={...candidate,version:'0.0.1',js:'void 0;'};
@@ -2048,14 +2044,13 @@ test('local official import cannot reuse a cached catalog when its refresh fails
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   assert.doesNotMatch(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden);
-  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PUBLISHER_CONFLICT/);
-  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
-  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE),provenance);
+  await settle(()=>f.elements['sidebar-tool-import'].hidden);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[candidate]);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],undefined);
   assert.deepEqual(f.store.get(dataKey),data);
 });
 
-test('local official import of identical bytes prevents reinstall and retains the React owner',async t=>{
+test('local import of identical bytes prevents reinstall and retains the React owner',async t=>{
   const tool=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
   const epoch='identical-local-import',dataKey=sidebarToolStorageKey(tool.id),data={note:'keep'};
@@ -2072,7 +2067,7 @@ test('local official import of identical bytes prevents reinstall and retains th
   const text=JSON.stringify(tool);
   f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
-  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/本地安装包/);
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);
   assert.equal(f.elements['sidebar-tool-install'].textContent,'已安装相同工具');
   f.emit(f.elements['sidebar-tool-import-close'],'click');
@@ -2088,7 +2083,7 @@ test('local official import of identical bytes prevents reinstall and retains th
   assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
-test('unverified local replacement reports the source conflict and preserves the official install',async t=>{
+test('reviewed local replacement clears official provenance and permits a version rollback',async t=>{
   const previous=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===previous.id);
   const candidate={...previous,version:'0.3.13',js:previous.js+'\nvoid 0;'};
@@ -2102,13 +2097,47 @@ test('unverified local replacement reports the source conflict and preserves the
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   assert.doesNotMatch(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden);
-  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PUBLISHER_CONFLICT.*官方/);
-  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
-  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE),provenance);
+  await settle(()=>f.elements['sidebar-tool-import'].hidden);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[candidate]);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],undefined);
+  assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
-test('local official import rechecks packaged bytes before updating',async t=>{
+test('local Reading TOC replacement reviews same-version edits and downgrades without catalog access',async t=>{
+  const previous=await officialToolFixture('reading-toc');
+  for(const version of [previous.version,'0.0.1'])await t.test(version,async t=>{
+    const candidate={...previous,version,js:previous.js+'\n/* user local override */'};
+    const dataKey=sidebarToolStorageKey(previous.id),data={note:'保留原数据'};
+    const provenance={[previous.id]:{marketId:'opendesk/reading-toc',version:previous.version,
+      sha256:await sidebarToolPackageHash(previous)}};
+    let offline=false,requests=0;
+    const f=await hostFixture(t,{startTool:false,store:new Map([
+      [SIDEBAR_TOOL_STORE,[previous]],[MARKET_PROVENANCE_STORE,provenance],
+      [dataKey,data],[SIDEBAR_TOOL_ENABLE_STORE,{[previous.id]:false}]
+    ]),fetcher:async(url,options)=>{requests++;if(offline)throw Error('catalog offline');return officialFixtureFetch(url,options);}});
+    offline=true;const beforeRequests=requests;
+    f.host.openImport();
+    const text=JSON.stringify(candidate);
+    f.selectFile({name:'reading-toc.json',size:Buffer.byteLength(text),text:async()=>text});
+    await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+    assert.match(f.elements['sidebar-tool-preview-source'].textContent,/本地安装包/);
+    assert.match(f.elements['sidebar-tool-update-impact'].textContent,/不保留官方来源标记/);
+    assert.match(f.elements['sidebar-tool-update-warning'].textContent,
+      version===previous.version?/相同版本/:/版本回退/);
+    assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+    assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous],'review alone cannot replace');
+    f.emit(f.elements['sidebar-tool-install'],'click');
+    await settle(()=>f.elements['sidebar-tool-import'].hidden);
+    assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[candidate]);
+    assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[previous.id],undefined);
+    assert.deepEqual(f.store.get(dataKey),data);
+    assert.equal(f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[previous.id],false);
+    assert.equal(f.runtime.frameRoot.children.length,0);
+    assert.equal(requests,beforeRequests,'local review/confirmation never fetches catalog or packages');
+  });
+});
+
+test('official catalog install rechecks packaged bytes before updating',async t=>{
   const candidate=await officialToolFixture('bookmark-manager');
   const previous={...candidate,version:'0.3.11',js:'void 0;'};
   let tamper=false;
@@ -2116,9 +2145,7 @@ test('local official import rechecks packaged bytes before updating',async t=>{
     fetcher:async(url,options)=>tamper&&url.endsWith('/bookmark-manager.opendesk-tool.json')
       ?{ok:true,url,arrayBuffer:async()=>new TextEncoder().encode('{}').buffer}
       :officialFixtureFetch(url,options)});
-  f.host.openImport();
-  const text=JSON.stringify(candidate);
-  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  assert.equal(f.host.openOfficialReview(candidate.id),true);
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   tamper=true;
   f.emit(f.elements['sidebar-tool-install'],'click');

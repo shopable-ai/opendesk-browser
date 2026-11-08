@@ -1,54 +1,46 @@
 # 阅读目录安装与更新：目标和关键测试条件
 
-2026-11-09，开发阶段核心目标 **COMPLETE**。安装器修复提交：`536ad9d4c`；正式包升级提交：`8aa5b0ef1`。本记录只证明下列安装/更新与最小使用闭环，不表示 production 发布验收。
+2026-11-09 最新用户决定：**用户选择的本地包可以确认覆盖，不以官方 ID 或发行匹配为安装门槛。** 开发阶段本轮完成；正式包保持 v1.0.12，改动属于 Browser 的通用安装/导入路径。
 
-用户操作：在「扩展 → 导入扩展 / 更换安装包」选择正式 JSON，审阅确认后安装或更新，再打开目录并点击章节。
+## 根因与框架规则修正
 
-故障原因：官方 App 资源可以独立前进，旧宿主编译的阅读目录 pin 却仍停留在旧版，导致已由当前官方目录校验的新版包被安装器误拒为 `E_OFFICIAL_ID_RESERVED`。修复复用扩展自身的官方 Catalog 与逐字节包校验；保留编译 pin 快路径、审阅、来源替换、身份、权限及撤权保护。**宿主必须包含该修复，仅换 JSON 不能修复旧宿主。**
+旧实现把两个判断混在一起：是否允许用户安装自己的包，以及能否标记为官方发行。阅读目录 ID 还被单独保留，只有宿主编译 pin 或当前官方 Catalog 中的版本和 SHA 才能安装；资源独立更新后，旧 pin 误拒新版。即使安装器接受了它，导入 UI 仍把匹配目录的本地文件变成官方更新，并拒绝本地文件替换官方来源。
 
-## 完成条件与结果
+前一轮提交 `536ad9d4c` 只修通了新版官方发行的校验路径，没有消除用户主动覆盖的限制。本轮修正的是框架行为，适用于其他 Sidebar 应用，不只为阅读目录新增例外：
 
-| 关键条件 | 结果与证据 |
+- 本地文件始终按本地导入处理，不查 Catalog；在同一审阅中展示版本、权限、来源及同版本内容变化或版本回退，确认即可替换。
+- 更新保留应用数据、已有有效设置和主动停用状态；成功提交后移除旧官方来源记录，不能把用户包显示为官方发行。完全相同的包保留幂等处理，无需重装。
+- 官方目录入口保留发行包字节、摘要、来源校验及版本策略。用户确认本地替换不等于伪造官方身份。
+- 包 Schema、能力与 Chrome 权限、运行世界、锁内安装基线、撤权/代际和未知写入结果保护继续生效；安装不执行动态包代码。
+
+## 关键完成条件与当前证据
+
+| 条件 | 结果 |
 | --- | --- |
-| 正式包与源码、内置 Catalog/包逐字节一致 | PASS：原打包器 `--check-project`；快照包与正式 JSON 相等，Catalog ID/版本/字节数/SHA 一致 |
-| 本地 JSON 全新安装，不再误报保留 ID | PASS：CFT 155、空临时 Profile、真实 `SIDE_PANEL`；确认前无 reading-toc，审阅显示「OpenDesk 官方发行 · 安装包已校验」，确认后唯一 v1.0.12 与正确来源/SHA |
-| 同 ID 1.0.11 → 1.0.12 更新 | PASS：本对话上一轮 ego lite 原生 Side Panel，本地正式 JSON 实际确认更新，详情读回 v1.0.12、官方来源与 SHA |
-| 更新保留数据、设置和主动停用状态 | PASS：定向安装器测试保留私有数据、网站/页面/浮层设置及主动停用状态，安装 epoch 正常轮换 |
-| 安装本身不执行包 JS | PASS：Node 测试中的执行标记不存在；原生确认安装后沙箱为 0，主动打开才出现受限 iframe |
-| 打开后读取章节并精准跳转 | PASS：本机受控文章列出标题及三章；点击第三章，scrollY 从 0 到 1940.5，目标顶部进入视口（87.89px） |
-| 不接受未经校验的官方身份声明 | PASS：未审阅、本地伪造来源、伪造摘要、缺失目录、篡改字节、审阅后改包和过期基线均拒绝且不写存储 |
-| 未知安装写入不盲目重放 | PASS：复用上一轮相关市场安装测试；注册写入丢失回执/不可读时保留恢复屏障，事务身份及只读最终确认仍校验 |
-| 修复已进入实际测试宿主 | PASS：两个已加载 bundle 的源图中安装器源码逐字节等于当前修复文件；当前 CFT 快照编译 pin 已为 1.0.12，超出 pin 的新发行分支由定向测试覆盖 |
-| 不损坏用户现有环境 | PASS：仅卸载空测试 Profile 自身的预装项来模拟新装；未卸载用户目录、未修改 Native 配对、未停止 watcher；测试浏览器已退出，临时 Profile 已清理，无残留 |
+| 阅读目录可以本地新装、更新、同版本修改、回退 | PASS：安装器测试覆盖；原生侧栏实际完成同版本修改覆盖 |
+| 所有应用的本地替换不受官方来源或 Catalog 可用性硬拦截 | PASS：真实 Host 控制器验证阅读目录、Bookmark Manager；离线不请求目录资源 |
+| 覆盖前明确展示变化，取消或旧批准不能生效 | PASS：版本/来源变化可见；取消异步摘要、跨窗口基线变化及两窗口审阅回归通过 |
+| 数据、网站/页面/浮层设置及主动停用状态保留 | PASS：安装器定向测试；原生侧栏额外读回停用状态仍为 false |
+| 覆盖后正确标记本地来源 | PASS：原生读回旧官方 provenance 已清除，实际包等于用户选定文件 |
+| 安装不自动运行沙箱 | PASS：原生确认后 iframe 数量 0；Node 执行标记不存在 |
+| 官方目录来源不能伪造，坏字节仍拒绝 | PASS：官方冒用身份、摘要变化、目录包篡改/移除及审阅后变化均拒绝 |
+| 未知写入、损坏注册表不盲目重放或覆盖数据 | PASS：相关安装器恢复和损坏注册表测试 |
+| 开发产物包含本轮修复且不干扰用户环境 | PASS：独立快照源码映射与本轮源码相等；现有 watcher 16888 保留，专用 CFT/Profile 已清理 |
 
-## 包与宿主身份
+本轮定向结果：identity **19/19**、Host 导入/官方校验/审阅生命周期 **13/13**、安装器来源/未知结果恢复 **10/10**，合计 **42/42**。语法检查和 diff 检查通过。运行命令及输出保留在本机 `artifacts/local-package-override-20261109/{identity,host,installer}.tap`；未执行全量 Browser 构建或根测试。
 
-正式包：[reading-toc.opendesk-tool.json](reading-toc.opendesk-tool.json)，ID `reading-toc`，版本 `1.0.12`，42146 bytes。官方来源 `opendesk/reading-toc`，SHA-256：
+## 原生覆盖场景和包身份
 
-```text
-8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a
-```
+CFT 155.0.8059.39 加载既有 `dist/development` 的独立静态开发快照 `artifacts/local-package-override-20261109/development-snapshot`，扩展 ID `hmlohjgofebonljpcnfnenaijohbkpdb`。通过产品已有按钮打开侧栏，由 `chrome.runtime.getContexts` 确认真实 SIDE_PANEL。
 
-本轮 CFT `155.0.8059.39` 从原产品「打开 OpenDesk 侧栏」按钮打开侧栏，`chrome.runtime.getContexts` 验证 `SIDE_PANEL`，不把普通扩展标签页当侧栏。加载路径为本机 `artifacts/reading-toc-installation-20261109/development-snapshot`，扩展 ID `oaocgdhibalmnpeemblbolmjpechigdl`。它是现有 `dist/development` 的独立静态开发快照；复制前后与快照文件哈希相等，不另起 Browser 构建覆盖 watcher。
+仅在空临时 Profile 自身的官方阅读目录中点击停用，然后选择测试专属本地文件。文件保持 1.0.12，仅在 JS 末尾增加用户修改注释。审阅显示「当前 v1.0.12 → 新 v1.0.12」「相同版本的代码内容发生变化」「本地安装包」及来源替换说明；确认后读回包等于选定文件，停用保留、官方来源清除、沙箱为 0。未卸载或改写用户日常目录。
 
-受测安装器源码 SHA-256：`ba3309d0e57a6ede3158178d3b8b1667d9806d1638ab0c374a21bcdb08ffef39`。`ui/tool-shell.js` SHA-256：`94d30fe895d0b985e0d8965f0e4dc3e04305e2a2c9edbd1ab0552718627ab4ce`；`ui/sidebar-tool-host.js`：`64861b9caa6f653bc5cc4416be7e3407edd3bbdd499de2959a69fb3fb9d8a2d2`。这些身份限定证据对应的开发候选，后续变更需按实际影响补测。
+测试本地包 SHA-256：`b9a5e95852cf12c014c8d78e5bf78fbba8ae03589986424fdce414451ba33d26`。正式项目仍只保留[唯一正式 JSON](reading-toc.opendesk-tool.json)，v1.0.12、42146 bytes、SHA-256 `8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a`；测试包留 artifacts，不晋升或交付为第二份正式包。
 
-## 定向验证与复用
+原始截图、宿主源码绑定、前后安装状态和清理回执在本机上述 artifacts 目录，摘要 `acceptance.json`。安装器源码 SHA-256 `03eda8e226ede41b0bd25ccb52dd8ed9542f6f7510469a6697e13326f5958bdb`；受测 Host 源码为工作区快照，包含保留的并行 UI 改动。本轮提交只纳入安装相关补丁，未收走那些 UI 改动。
 
-本轮运行：
+## 历史证据与未测边界
 
-```sh
-node --test tests/environment/reading-toc-official-identity-r11.test.mjs
-node scripts/build-sidebar-tool.mjs projects/reading-toc --check-project
-git diff --check
-```
+此前 ego 原生侧栏的 1.0.11 → 1.0.12 更新、CFT 新装及受控文章第三章点击跳转通过，记录在本机 `artifacts/reading-toc-installation-20261109/`。这些证据对应此前候选；当时本地文件仍匹配官方发行，不能用来证明本轮本地覆盖规则，故本轮另做上述实际覆盖。
 
-Identity 测试 **16/16 PASS**。本轮为原更新测试增加网站、页面与浮层设置保留断言。安装器源码与 `536ad9d4c` 一致，因此复用本对话上一轮 **11 项**相关 `app-market-r3.test.mjs` 结果：官方保留 ID、来源替换确认、不执行代码、幂等/过期基线、两项未知注册写入结果、事务身份、升级只读恢复、摘要与损坏注册表。本轮未重复不变输入的测试，也未执行全量 Browser 构建或根测试。
-
-本机原始证据、截图、文件哈希、原生 Profile 身份与清理回执保留在 `artifacts/reading-toc-installation-20261109/`，汇总为 `acceptance.json`；包含原始证据哈希和清理结果的本机索引为 `docs/framework/workstreams/reading-toc-installation-20261109.json`。这些日志/快照按仓库规则不提交。
-
-## 未测边界与旁路问题
-
-用户日常 Chrome、production、真实 ChatGPT/知乎为 **NOT_TESTED**；受控文章通过不替代真实网站验收。上一轮 ego 更新与本轮 CFT 新装属于不同环境，分别记录，不冒称为同一个 production 候选。
-
-测试 Profile 首次预装另报既有 `E_PAGE_RELEASE_CHANGED` Page 发行提示；阅读目录自身安装和使用闭环成功。此不相关 Page 预装问题未扩大进本次修复，不宣称整个框架无错误。
+用户日常 Chrome、production、真实 ChatGPT/知乎仍为 NOT_TESTED；开发快照结果不提升为 production 验收。旧测试环境首次预装另报的 E_PAGE_RELEASE_CHANGED 属于不相关 Page 发行问题，本轮没有扩大修复范围。

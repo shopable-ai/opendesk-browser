@@ -34,7 +34,7 @@ import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.j
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
-import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
+import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
@@ -4262,19 +4262,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const runtimeIdentity=await assertSidebarToolRuntime(api);
     if(disposed||selection!==fileSelection)return;
     requireToolRuntime(candidate);
-    // A local file may contain the exact bundled official release. Its file
-    // name/ID cannot establish provenance; reuse the catalog's byte/hash check
-    // and the existing official install revalidation instead.
-    if(!release){
-      // A long-lived sidebar may predate the bundled release. Refresh before
-      // matching local bytes; a failed refresh cannot reuse stale provenance.
-      await loadOfficial();
-      if(disposed||selection!==fileSelection)return;
-      const official=officialLoaded&&officialReleases.find(row=>row.toolId===candidate.id&&row.version===candidate.version);
-      if(official&&await matchesOfficialRelease(official,candidate)){
-        release=official;sourceLabel+=' · 来源：已核对内置官方发行';
-      }
-    }
+    // Selecting a local file is an explicit local installation intent. Catalog
+    // discovery must not turn it into a restricted official update or require
+    // the bundled release to match the user's reviewed bytes.
     const previous=toolById(candidate.id);
     const [candidateHash,previousHash]=await Promise.all([
       sidebarToolPackageHash(candidate),previous?sidebarToolPackageHash(previous):null,
@@ -4306,7 +4296,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const change=versionOrder(candidate.version,previous.version);
       patchToolField(view, updatePanel, {hidden: false});
       patchToolField(view, updateVersions, {textContent: '当前 v'+previous.version+' → 新 v'+candidate.version});
-      patchToolField(view, updateImpact, {textContent:'更新将替换现有代码；原有应用数据保留。'});
+      patchToolField(view, updateImpact, {textContent:'更新将替换现有代码；原有应用数据保留。'+
+        (!release?'本次使用用户选择的本地包，不保留官方来源标记。':'')});
       patchToolField(view, updateCapabilities, {textContent: [
         ...(added.length?['新增能力：'+added.map(readableCapability).join('、')]:[]),
         ...(removed.length?['移除能力：'+removed.map(readableCapability).join('、')]:[])
@@ -4618,12 +4609,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
-        // Only the exact verified official release explicitly reviewed by the
-        // user may replace a different local provenance (no modal, no autopush).
+        // The visible review includes the replacement source and exact bytes.
+        // Its confirmation approves a local override as well as an official
+        // update; a changed or cancelled review cannot reuse that approval.
         approveSourceChange:()=>{
-          if(release&&pendingRelease===release&&samePackage(candidate,pending))return true;
-          throw Object.assign(new Error('此文件未匹配当前官方发行，不能替换已安装的官方应用。请从官方应用入口更新，或选择与官方发行一致的安装包；原应用和数据保留。'),
-            {code:'E_PUBLISHER_CONFLICT'});
+          return pendingRelease===release&&samePackage(candidate,pending);
         },
         approveUpdate:(previous,next)=>{
           const added=addedCapabilities(next,previous);

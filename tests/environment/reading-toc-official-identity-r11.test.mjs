@@ -117,16 +117,36 @@ test('R1.1 unrelated page.toc tools still require positive site permission',asyn
   assert.equal(tocGrantAllowed([other],{'third-party':['https://example.com']},other.id,'https://evil.example'),false);
 });
 
-test('R1.1 the installer reserves the official ID from all local imports and forged reviews',async()=>{
+test('official Reading TOC source claims still reject forged release reviews',async()=>{
   const tool=await officialToolFixture(pin.id);
   const uuid='123e4567-e89b-42d3-a456-426614174000';
   for(const options of [
-    {candidate:tool,market:null},
-    {candidate:{...tool,js:tool.js+'/* unreviewed */'},market:null},
     {candidate:tool,market:{marketId:pin.marketId,sha256:'0'.repeat(64),operationId:uuid}}
   ])await assert.rejects(installReviewedSidebarTool({
     ...options,reviewApproved:true
   }),error=>error?.code==='E_OFFICIAL_ID_RESERVED');
+});
+
+test('reviewed local Reading TOC installs and replaces any version without an official catalog',async t=>{
+  for(const version of [pin.version,'0.0.1','99.0.0'])await t.test(version,async()=>{
+    const f=await newerBundledRelease({updating:true}),saved=structuredClone(f.values);
+    f.options.market=null;f.options.approveSourceChange=()=>true;
+    f.options.candidate={...f.options.candidate,version};
+    f.options.fetcher=()=>{throw Error('local installation must not fetch official resources');};
+    const result=await installReviewedSidebarTool(f.options);
+    assert.equal(result.state,'installed');
+    assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[f.options.candidate]);
+    for(const key of [sidebarToolStorageKey(pin.id),SIDEBAR_TOOL_ENABLE_STORE,
+      READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE])
+      assert.deepEqual(f.values[key],saved[key],key);
+    assert.equal(f.values[MARKET_PROVENANCE_STORE][pin.id],undefined);
+    assert.equal(globalThis.readingTocInstallMustNotRun,undefined);
+    assert.equal(f.requests.length,0);
+  });
+  const f=await newerBundledRelease();f.options.market=null;
+  assert.equal((await installReviewedSidebarTool(f.options)).state,'installed');
+  assert.equal(f.values[MARKET_PROVENANCE_STORE],undefined);
+  assert.equal(f.requests.length,0);
 });
 
 async function newerBundledRelease({updating=false}={}){
@@ -201,7 +221,6 @@ test('a newer reviewed Reading TOC update preserves data and the user stop while
 test('newer Reading TOC admission rejects unreviewed, unlisted, altered and stale candidates without writes',async t=>{
   for(const [name,change,code] of [
     ['no user approval',f=>{f.options.reviewApproved=false;},'E_REVIEW_REQUIRED'],
-    ['unverified local source',f=>{f.options.market=null;},'E_OFFICIAL_ID_RESERVED'],
     ['self-reported digest',f=>{f.options.market.sha256='0'.repeat(64);},'E_OFFICIAL_ID_RESERVED'],
     ['missing trusted catalog',f=>{f.resources.delete(OFFICIAL_CATALOG_PATH);},'E_PACKAGE_MISSING'],
     ['altered bundled bytes',f=>{f.resources.set(f.release.packagePath,
