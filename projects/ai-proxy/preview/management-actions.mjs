@@ -5,7 +5,7 @@ export function managementActionsPreview(source){
     [`<Button id="quick-manage-profiles" className="textAction" onClick={()=>void openOptions('profiles')}>
             {t('sideManageAll')}
           </Button>`, `<ManagementAction id="quick-manage-profiles" icon="profile" label={t('sideManageAll')} destination={t('proxyProfiles')} onClick={()=>void openOptions('profiles')}/>`],
-    [`<Button id="quick-manage-rules" className="textAction" onClick={()=>void openOptions('rules')}>{t('sideManageRules')}</Button>`, `<ManagementAction id="quick-manage-rules" icon="rules" label={t('sideManageRules')} destination={t('websiteRules2')} onClick={()=>void openOptions('rules')}/>`]
+    [`<Button id="quick-manage-rules" className="textAction" onClick={()=>void openOptions('rules')}>{t('sideManageRules')}</Button>`, `<ManagementAction id="quick-manage-rules" icon="rules" label={t('sideManageRules')} destination={t('websiteRules2')} onClick={()=>void openOptions('rules')}/>`],
     // R17: Remove the duplicate footer entry pair only in the sidebar preview.
     ["    <nav className=\"r86Bottom\" aria-label={t('openSettings')}>\n      <Button type=\"button\" onClick={()=>void openOptions('subscriptions')}>\n        {t('popupSourceSubscriptions')}</Button>\n      <Button type=\"button\" onClick={()=>void openOptions('diagnostic')}>\n        {t('popupFooterDiagnostics')}</Button>\n    </nav>\n", ""],
     // A navigation-only diagnostics shortcut appears beside runtime failures.
