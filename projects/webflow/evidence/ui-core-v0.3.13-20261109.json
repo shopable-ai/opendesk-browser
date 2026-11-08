@@ -10,7 +10,9 @@
     "startingHead": "271ade34f74cc2a384d875f5ae6a3587746b3da0",
     "webflowBaseline": "8898f35afef88a2dac8cf14e78cf8f34dbf39acc",
     "parallelCommitObserved": "6fadef04cfccbc7d4e210e21296a34283e5da6f5",
-    "parallelNote": "另一会话将共享工作区进行中的文件一并提交并推送；已保留，后续仅提交本任务剩余文件。"
+    "parallelNote": "另一会话将共享工作区进行中的文件一并提交并推送；已保留，后续仅提交本任务剩余文件。",
+    "coreDeliveryCommit": "b0da271d9b67b063ddea5d5112a54605ae7972a5",
+    "uiCiFixCommit": "82a34afb532769df4c4c4adfe4f23cf42a6aa2e4"
   },
   "reused": [
     "V0.3.2 三 Tab 紧凑 UI",
@@ -459,6 +461,31 @@
       "stage": "discover",
       "reason": "React App requires an explicit browser test profile；未进入 Web Flow 测试，跨项目配置问题留待原 owner。"
     },
-    "correctedWebflow": "PENDING_REMOTE_RUN"
+    "correctedWebflow": {
+      "commit": "82a34afb532769df4c4c4adfe4f23cf42a6aa2e4",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/42514171412",
+      "jobId": 128833440000,
+      "status": "PASS",
+      "node": {
+        "passed": 49,
+        "failed": 0
+      },
+      "chromium": {
+        "platform": "Linux",
+        "version": "157.0.8103.38",
+        "widths": [
+          320,
+          360,
+          400
+        ],
+        "screenshots": 21,
+        "taskExecuted": false
+      },
+      "build": "PASS",
+      "promoteAndCheck": "PROJECT_PACKAGE_MATCH",
+      "packageSha256": "9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4",
+      "repositoryPackagePublication": "Previously committed in b0da271d9b67b063ddea5d5112a54605ae7972a5; push CI publication step intentionally skipped.",
+      "sourceUiUnchanged": true
+    }
   }
 }

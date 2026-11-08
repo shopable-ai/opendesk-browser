@@ -6,7 +6,7 @@
 
 **验证与包：** 必需 Node 49/49、可信设置组件 49/49、可信 Host 43/43、后台历史 22/22 PASS；额外全局来源检查被并行 AI Proxy 来源锁不一致阻断，未放宽。唯一正式包已由原打包器候选→晋升→`--check-project` 核对，版本 **0.3.13**，SHA256 `9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4`；**PACKAGE_READY，安装 NOT_TESTED**。已收尾的可信控制／历史撤销围栏修复继续留在原 owner，不另建运行器。
 
-**UI CI 补证：** 共享提交 `6fadef04c` 的 Node 49/49 与候选构建已通过；Linux Chrome 在长任务详情处因 15px 竖向滚动条误报窗口宽度。仅修浏览器测试，分别检查窗口与内容区宽度，并按内容区继续严格验证无横向溢出；本机三宽度 / 21 截图 PASS。已补浏览器测试及 fixture 的原工作流路径监听，等待远端同项验证。正式 UI／包字节未改变，不扩展缩放专项。App CI 在跨项目 discover 配置阶段失败，未执行 Web Flow 用例，不代替 UI 结论。
+**UI CI 补证：** 共享提交 `6fadef04c` 的 Node 49/49 与候选构建已通过；Linux Chrome 在长任务详情处因 15px 竖向滚动条误报窗口宽度。仅修浏览器测试，分别检查窗口与内容区宽度，并按内容区继续严格验证无横向溢出；本机三宽度 / 21 截图 PASS。已补浏览器测试及 fixture 的原工作流路径监听；提交 `82a34afb5` 的 [Linux CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/42514171412) 已全部 PASS：Node 49/49、Chrome 157 三宽度 / 21 截图、候选构建与晋升同源核对。正式 UI／包字节未改变，不扩展缩放专项。App CI 在跨项目 discover 配置阶段失败，未执行 Web Flow 用例，不代替 UI 结论。
 
 **下一条用户操作：** 在既有 Web Flow 安装入口审阅并更新唯一正式包，打开三 Tab 使用核心 UI。当前未在被其他任务占用的原生侧栏中执行安装；不抢占其窗口或冒称新版已加载。需要可信宿主修复的部署仍归 Browser 原构建入口，工具 JSON 不更新可信源码。
 
