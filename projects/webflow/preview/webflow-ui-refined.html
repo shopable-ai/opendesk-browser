@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Web Flow V0.3.2 · 独立产品交互原型（仅模拟）</title>
+<title>Web Flow · V0.3.2 基线局部优化（可点击设计候选）</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#f0f4fa;--od-warning:#80510d;--od-warning-bg:#fff9ec;--od-positive:#117a5d;--od-positive-bg:#e8f7f1;--od-negative:#ae3d4b;--od-negative-bg:#fff0f1;--od-focus:#365eda;--od-input-border:#7f8da1;--radius-control:8px;--radius-surface:12px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--od-body-size:13px;--od-note-size:12px;--od-meta-size:11px;color:var(--od-ink);background:#edf1f8}
 *{box-sizing:border-box}body{margin:0;min-width:300px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filter:brightness(.97)}:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}a{color:var(--od-brand)}[hidden]{display:none!important}p{margin:0;line-height:1.55}h1,h2,h3,h4{margin:0;letter-spacing:-.016em}h1{font-size:18px}h2{font-size:16px}h3{font-size:14px}small{font-size:11px}.muted{color:var(--od-sub)}.micro{font-size:11px;color:var(--od-sub)}.strong{font-weight:700}.mono{font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -232,10 +232,10 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
   <div class="window" id="window" data-width="440"><div class="chrome-head"><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span><b>OpenDesk Browser</b><span>侧边栏 · ✕</span></div>
    <section class="panel" aria-label="模拟 OpenDesk Web Flow 应用">
     <nav class="host-tabs" role="tablist" aria-label="OpenDesk 原有导航（演示）"><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="我的">我的</button><button type="button" class="host-tab" role="tab" aria-selected="true" tabindex="0" data-host="扩展">扩展</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="工作流">工作流</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="开发">开发</button><button type="button" class="host-tab" role="tab" aria-selected="false" tabindex="-1" data-host="云控">云控</button></nav>
-    <div class="app-bar compact-app-bar"><button class="iconbtn back-icon" type="button" data-act="back-host" aria-label="返回扩展中心" title="返回扩展中心">‹</button><div class="app-logo mini-logo" aria-hidden="true">W</div><div class="app-identity"><strong>Web Flow</strong><span>自动化任务</span></div><span class="demo-badge">模拟</span><button class="iconbtn" type="button" data-act="help" aria-label="帮助与使用说明" title="帮助与使用说明">?</button><button class="iconbtn" type="button" id="settingsButton" data-act="navigate" data-to="settings" aria-label="设置" title="设置">⚙</button></div>
+    <div class="app-bar compact-app-bar"><button class="iconbtn back-icon" type="button" data-act="back-host" aria-label="返回扩展中心" title="返回扩展中心">‹</button><div class="app-identity"><strong>Web Flow</strong></div><button class="iconbtn" type="button" data-act="help" aria-label="帮助与使用说明" title="帮助与使用说明">?</button><button class="iconbtn" type="button" id="settingsButton" data-act="navigate" data-to="settings" aria-label="设置" title="设置">⚙</button></div>
  
 <section id="wf-preview-controls" aria-label="Web Flow 自动运行">
- <div class="wf-control-copy"><strong id="wf-preview-auto-label">自动触发已暂停</strong><span id="wf-control-note">仅对已批准的新任务生效</span></div>
+ <div class="wf-control-copy"><strong id="wf-preview-auto-label">自动触发已暂停</strong><span id="wf-control-note" role="status" aria-live="polite">仅对已批准的新任务生效</span></div>
  <button id="wf-preview-auto-switch" type="button" class="switch" role="switch" data-act="global-switch" aria-checked="false" aria-describedby="wf-control-note" aria-label="自动运行"></button>
  <button class="wf-runtime-open" type="button" data-wf-runtime="open" aria-haspopup="dialog" aria-controls="wf-preview-runtime-cover" title="运行与授权">运行与授权 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 14 5-5 5 5"/></svg></button>
 </section>
@@ -356,7 +356,7 @@ function renderHistory(){
 }
 function renderSettings(){
  const c=counts();return `<div class="stack"><div class="page-heading"><div><h2>设置</h2><p class="micro">自动运行与权限管理</p></div><button class="link-button" type="button" data-act="navigate" data-to="overview">返回概览 ›</button></div><section class="setting-list">
- <div class="setting-line"><div class="grow"><strong>允许自动触发</strong><p>只接受独立批准范围内的新任务</p></div><button type="button" class="switch" role="switch" data-act="global-switch" aria-label="自动执行总开关" aria-checked="${state.globalAuto}"></button></div>
+ <div class="setting-line"><div class="grow"><strong>自动运行管理</strong><p>开关、原请求和可信授权在同一运行与授权入口</p></div><button class="link-button" type="button" data-wf-runtime="open">查看 ›</button></div>
  <div class="setting-line"><div class="grow"><strong>单脚本授权</strong><p>${c.granted} 条已模拟批准；网站权限独立管理</p></div><button type="button" class="link-button" data-act="navigate" data-to="scripts">查看 ›</button></div>
  <div class="setting-line"><div class="grow"><strong>异常与记录</strong><p>包含结果未知与交付待核实</p></div><button type="button" class="link-button" data-act="navigate" data-to="history">查看 ›</button></div></section>
  <p class="note">总开关不会安装脚本或扩大其权限；不能撤销已发生的网页动作。这里仅改变本页内存中的模拟设置。</p>
@@ -677,6 +677,8 @@ function wfRuntimeRender(){
 function wfRuntimeSync(){
  const label=document.getElementById('wf-preview-auto-label');
  if(label)label.textContent=state.globalAuto?'自动触发已开启':'自动触发已暂停';
+ const note=document.getElementById('wf-control-note');
+ if(note)note.textContent=state.scenario==='unknown'?'UNKNOWN · 查看原请求':state.scenario==='running'?'有任务运行中 · 查看进度':state.scenario==='permission'?'待批准 · 尚未执行':state.scenario==='error'?'连接异常 · 需要检查':'仅对已批准的新任务生效';
  const el=document.getElementById('wf-preview-auto-switch');
  if(el)el.setAttribute('aria-checked',String(state.globalAuto));
  if(wfRuntimeVisible)wfRuntimeRender();
