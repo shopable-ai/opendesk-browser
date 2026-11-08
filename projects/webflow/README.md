@@ -103,6 +103,7 @@ v0.3.6 同步沙箱中的百度固定任务为已验证的 1.1.2，解决升级�
 | ChatGPT 本地文件、权限、手动操作及历史证据 | [本地文件文档](docs/chatgpt-local-files.zh-CN.md) |
 | 本项目的代码与文档维护边界 | [AGENTS.md](AGENTS.md)，同时继承[仓库规则](../../AGENTS.md) |
 | 脚本怎样开发、安装、交给 Codex 与关联 Web Flow | [脚本开发、安装、关联与维护指南](docs/script-development-installation-guide.zh-CN.md)（明确现有能力与拟议功能） |
+| 可点击脚本添加与 Codex 交互预览 | [script-onboarding.html](preview/script-onboarding.html)（独立 HTML 演示，尚未整合正式 UI） |
 | 公开 SDK、程序类型和安装流程 | [扩展创建工作流](../../.agents/workflows/extension-creation.md)、[项目目录合同](../../docs/architecture/extension-project-layout.zh-CN.md) |
 
 旧的 `docs/product/ai-workflow-bridge.zh-CN.md` 和 `docs/framework/workstreams/web-flow-20261101.md` 仅保留迁移入口，不再维护第二份正文或进度。后续更新本项目内文档，不按聊天新建总 GOAL。
