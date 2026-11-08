@@ -4,6 +4,13 @@
 
 **需求基准**：用户认可 R14 Side Panel，PC 以用户上传的高质量旧版完整七区 HTML 和 R15 改进稿作为设计参照。本轮授权写入当前仓库 `main`；主目标为修复按钮文字/背景颜色、调整 PC 备份名称与操作优先级、保留实际表单/草稿/路由。不是正式扩展安装或网络执行。
 
+**R16 原始可点击 HTML 已正式归档（2026-11-08）**：
+
+- [R16 离线完整交互参考稿](preview/ai-proxy-interactive-preview-r16.html)（仓库路径 `projects/ai-proxy/preview/ai-proxy-interactive-preview-r16.html`）。
+- 完整文件 **407,330 UTF-8 字节 / 4,216 行**；Git blob SHA `7b92d13008ea483e01f00933f0735ed9a4a2a432`；SHA-256 `e9b82618e2477006d7e76b2913b72799cb360cfa51f8ccf8cbc0de7957fb9ddf`。保存时与对话交付文件逐字节一致，远端已回读校验。
+- 此文件是**设计参考稿、离线模拟**，与 [React 同源生成预览](preview/preview.html) 不同；后者必须由既有 `scripts/stage-preview.mjs` 重新生成，不允许复制本文件覆盖。
+- 若本轮新对话继续优化正式业务代码，应参考这个固定 R16 文件以及已认可的 R14 侧栏，且以当前 `main` 正式 `src/`、现有测试和真实交互回执为准。
+
 **已写入源码**：
 
 - `projects/ai-proxy/src/Settings.tsx`：只在 `presentation==='management'` 的 PC 左导航、页面标题及代理页导入入口把「导入与备份／导入设置」统一显示为既有本地化的「导入备份」；侧栏保留旧标签和原翻译键。将备份页 DOM 顺序调整为先导入、后导出，使视觉顺序与键盘焦点顺序一致，不改导入验证、覆盖确认、显式应用或导出 handler。
