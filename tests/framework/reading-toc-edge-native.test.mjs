@@ -214,9 +214,12 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert.equal((await attributes(arrow)).d,'M9 5l7 7-7 7');
  const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
+ const hoverless=await evaluate(trusted,'matchMedia("(hover:none)").matches');
+ const idleWidth=hoverless?38:12;
  const firstWidth=await skinWidth();
- console.log('EDGE_INITIAL_SKIN_WIDTH',firstWidth);
- await until(async()=>Math.abs((await skinWidth())-12)<1,'default edge is 12px');
+ console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
+ await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
+   'edge width must be 12px for mouse or 38px for touch/no-hover');
  const initial=await rect(host);
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
@@ -230,8 +233,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Object.hasOwn(await attributes(panel),'hidden'),
    'collapsed outline must be hidden from pointer and focus interaction');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
- await until(async()=>Math.abs((await skinWidth())-12)<1,
-   'mouseout must restore same 12px edge');
+ await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
+   'mouseout restores edge width for actual input capabilities');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='true',
    'second real mouse click did not expand');
