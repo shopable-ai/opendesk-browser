@@ -16,9 +16,10 @@
 .opendesk-react-app{display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;width:100%}
 .opendesk-react-dock-host{flex:none;min-width:0}
 /* Six official tabs and development Debug share one trusted RunHost; only the tablist scrolls. */
-.workbench-nav{--od-nav-active:var(--od-brand);flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
-.workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
-.workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
+/* A quiet, preview-aligned Host strip; visual semantics stay in canonical tokens. */
+.workbench-nav{--od-nav-active:var(--od-brand);flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:color-mix(in srgb,var(--od-paper) 60%,var(--od-muted))}
+.workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:var(--od-sub);border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
+.workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active);background:transparent}
 /* The horizontally scrolling tablist clips outward outlines vertically. */
 .workbench-nav button:focus-visible{outline-offset:-3px}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
@@ -403,7 +404,8 @@
 .sidebar-tool-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
-.sidebar-tool-view-head{display:flex;align-items:center;gap:var(--space-1);min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
+/* Only the trusted tool header owns this full-width surface; od-toolbar remains layout-only. */
+.sidebar-tool-view-head{position:relative;z-index:3;display:flex;align-items:center;gap:var(--space-1);min-width:0;min-height:48px;margin:0 calc(0px - var(--od-page-gutter));padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
 #sidebar-tool-back{color:var(--od-ink);border-color:transparent;background:transparent}
 #sidebar-tool-remove{border-color:transparent;color:var(--od-sub);background:transparent}
 
@@ -421,7 +423,6 @@
 #sidebar-tool-settings-open:hover{background:var(--od-muted);color:var(--od-ink);border-color:transparent}
 /* Shared installed-tool management: only two visible header actions.
  * State-changing enable/disable and site features belong in Settings. */
-.sidebar-tool-view-head{position:relative;z-index:3;gap:2px;min-height:32px;margin-bottom:6px}
 .sidebar-tool-view-head>strong{font-size:13px}
 /* One left-aligned current-page label fills the space between Back and fixed
    actions. No flex-growing parent text or redundant breadcrumb segments. */

@@ -627,7 +627,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  const needsAttention=Boolean(session?.pendingAuto||session?.error||receipt?.execution==='unknown'||
   receipt?.delivery==='unknown'||bridge.view?.work?.state==='running');
  return <>
-  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',paddingBlock:'var(--space-2)'} as React.CSSProperties}>
+  <section className="od-stack" aria-label="Web Flow 运行状态" style={{gap:'var(--space-1)',padding:'var(--space-2) var(--od-page-gutter)',marginInline:'calc(0px - var(--od-page-gutter))',background:'var(--od-paper)',borderBottom:'1px solid var(--od-line)'} as React.CSSProperties}>
    <div className="od-toolbar" style={{flexWrap:'nowrap',gap:'var(--space-2)',minWidth:0}}>
     <div style={{flex:'1 1 0',minWidth:0,overflowWrap:'anywhere'}}>
      <strong className="od-field-label" role="status" aria-live="polite">

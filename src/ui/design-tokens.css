@@ -3,11 +3,11 @@
  * Trusted extension UI only; never inject into tools, iframes or web pages. */
 :root{
   --od-ink:#1b2c49;
-  --od-sub:#53647e;
-  --od-line:#e1e8f1;
+  --od-sub:#5b6e86;
+  --od-line:#dfe6ef;
   --od-brand:#365eda;
   --od-paper:#fff;
-  --od-bg:#f5f7fb;
+  --od-bg:#f4f6fa;
   --od-input-border:#7f8da1;
   --od-accent-ink:var(--od-brand);
   --od-focus:var(--od-brand);
