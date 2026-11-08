@@ -31,9 +31,10 @@ import {fileURLToPath} from 'node:url';
 import {createInterface} from 'node:readline';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {connect, evaluate} from './sidebar-native-session.mjs';
+import {attachVerifiedSidePanel} from './helpers/verified-side-panel-native.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const packageFile = path.join(root, 'examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json');
+const packageFile = path.join(root, 'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json');
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const output = value => console.log(JSON.stringify(value));
@@ -99,7 +100,9 @@ const domRead = `(()=>{const rows=[];function walk(root,chain=[]){
     }if(e.shadowRoot)walk(e.shadowRoot,[...chain,e.id?'#'+e.id:e.localName]);
   }}walk(document);return {url:location.href,title:document.title,text:document.body?.innerText.slice(0,18000),
     viewport:{width:innerWidth,height:innerHeight,scale:devicePixelRatio},
-    scroll:{top:document.scrollingElement?.scrollTop,height:document.scrollingElement?.scrollHeight,client:document.scrollingElement?.clientHeight},controls:rows};})()`;
+    scroll:{top:document.scrollingElement?.scrollTop,height:document.scrollingElement?.scrollHeight,client:document.scrollingElement?.clientHeight},
+    scrollers:[...document.querySelectorAll('#chat-scroll')].map(e=>({id:e.id,top:e.scrollTop,height:e.scrollHeight,client:e.clientHeight})),
+    pickerClickCount:document.querySelector('#click-count')?.textContent,controls:rows};})()`;
 
 async function start() {
   assert.equal(process.argv[2], 'start', 'Use start; browser is never started on import');
@@ -213,19 +216,13 @@ async function start() {
   }
   async function panel() {
     await click('catalog', '#catalog-open-dev-sidebar');
-    const row = await until(async () => {
-      const contexts = await read('chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})', worker.sessionId);
-      const infos = (await client.send('Target.getTargets')).targetInfos;
-      for (const context of contexts.filter(c => c.documentId && c.documentUrl?.startsWith(`chrome-extension://${report.extensionId}/`))) {
-        for (const info of infos.filter(t => t.url === context.documentUrl && !['service_worker', 'iframe'].includes(t.type) && t.targetId !== targets.get('catalog').targetId)) {
-          const attached = await attach(info.targetId);
-          const identity = await read('(async()=>({url:location.href,tab:await chrome.tabs.getCurrent(),ready:!!document.querySelector("#tab-tools")}))()', attached.sessionId);
-          if (identity.tab?.id || !identity.ready) continue;
-          report.nativePanel = {context, target: info, identity}; return attached;
-        }
-      }
-      return null;
-    }, 'genuine SIDE_PANEL runtime context and non-tab document');
+    const verified=await attachVerifiedSidePanel({client,extensionId:report.extensionId,
+      excludeTargetIds:[targets.get('catalog').targetId],
+      attachTarget:async id=>(await attach(id)).sessionId,
+      evaluate:(session,expression)=>read(expression,session),until,
+      onFailure:details=>record('SIDE_PANEL_DISCOVERY_FAILED',details)});
+    const row={targetId:verified.target.targetId,sessionId:verified.session};
+    report.nativePanel={context:verified.context,target:verified.target,identity:verified.identity};
     targets.set('panel', row); record('VERIFIED_SIDE_PANEL', report.nativePanel);
     return checkpoint('Side panel verified; next command import');
   }
@@ -239,6 +236,29 @@ async function start() {
       case 'manager': await navigate('manager', `chrome://extensions/?id=${report.extensionId}`); return checkpoint('Chrome original details UI; observe userscript state before trusted toggle');
       case 'navigate': await navigate(cmd.target, cmd.url); return checkpoint('Navigated named owned tab');
       case 'click': return click(cmd.target, cmd.selector);
+      case 'key': {
+        assert(['Escape','r'].includes(cmd.key),'Only picker cancellation or native refresh is allowed');
+        const row=await target(cmd.target);
+        await client.send('Target.activateTarget',{targetId:row.targetId});
+        const modifiers=cmd.key==='r'?(process.platform==='darwin'?4:2):0;
+        const key={key:cmd.key,code:cmd.key==='r'?'KeyR':'Escape',modifiers};
+        await client.send('Input.dispatchKeyEvent',{type:'keyDown',...key},row.sessionId);
+        await client.send('Input.dispatchKeyEvent',{type:'keyUp',...key},row.sessionId);
+        record('TRUSTED_KEY',{target:cmd.target,...key});await save();return {sent:true};
+      }
+      case 'point': {
+        assert(['move','click'].includes(cmd.kind),'Native pointer move/click only');
+        const row=await target(cmd.target);
+        const viewport=await read('({width:innerWidth,height:innerHeight})',row.sessionId);
+        assert(Number.isFinite(cmd.x)&&Number.isFinite(cmd.y)&&cmd.x>=0&&cmd.y>=0&&cmd.x<viewport.width&&cmd.y<viewport.height);
+        await client.send('Target.activateTarget',{targetId:row.targetId});
+        await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cmd.x,y:cmd.y},row.sessionId);
+        if(cmd.kind==='click'){
+          await client.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x:cmd.x,y:cmd.y},row.sessionId);
+          await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:cmd.x,y:cmd.y},row.sessionId);
+        }
+        record('TRUSTED_POINTER',{target:cmd.target,kind:cmd.kind,x:cmd.x,y:cmd.y});await save();return {sent:true};
+      }
       case 'type': {
         assert(typeof cmd.text === 'string' && cmd.text.length <= 4096, 'Bounded input text required');
         const row = await target(cmd.target);

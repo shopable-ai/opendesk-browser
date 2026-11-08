@@ -1,0 +1,12 @@
+{
+  "id": "header-actions-demo",
+  "version": "1.0.0",
+  "title": "页头插槽示例",
+  "description": "演示可选 More 动作、原实例导航返回和无插槽回退；不申请业务权限。",
+  "capabilities": [],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  }
+}

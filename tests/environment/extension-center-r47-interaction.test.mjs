@@ -892,6 +892,8 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   await tick();await tick();
   f.button('page:'+row.programId,'main').dispatch('click');
   assert.ok(f.state.detailModel.pageControl.officialBlock,'the real catalog candidate is loaded');
+  [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='导航设置').dispatch('click');
+  [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');
   f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
   await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('卸载'));

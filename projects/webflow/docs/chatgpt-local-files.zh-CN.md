@@ -4,6 +4,8 @@
 
 ## 网页文件面板（2026-11-08）
 
+**当前应用结果（01a1b79c）：** ego 原扩展 / Native 配对已确认，实际 bridge 与 settings 脚本 SHA 匹配 revision `9f4f5184db15…` 的磁盘产物。同一聊天与可信页完成固定协议文件读改保存 **2/2**，确认前文件不变，两次 saved / readBackVerified 与独立全文 / SHA 均相符；第二组重新读取第一组保存结果。最终回执只保留原聊天草稿。两组文件实测时原 dev 已因 Node heap OOM 退出，属于已加载静态 development 证据。收尾已恢复原唯一 writer PID 68082；浏览器实读已应用 `049e094b4a4b…`，新聊天 SPA 入口无需刷新即可核验和领取正确来源。后续自动候选不继承同候选正式验收；见[当前文件执行卡](execution-plan.zh-CN.md#当前文件核心执行卡2026-11-0801a1b79c)和[本轮证据](../evidence/file-core-20261108-01a1b79c.json)。下文前轮阻塞和未应用结论均为历史观察。
+
 **产品边界：** 唯一页面源 `trusted/chatgpt-file-intent-page.js` 固定编译进 `agents/chatgpt-fixed-bridge.js`，在 ChatGPT 顶层文档的 ISOLATED 环境运行；文件授权与执行仍属于原后台 / Native 服务。它不是可任意注释删除的临时模块。
 
 | 内容 | 定位与本轮决定 |
@@ -25,6 +27,15 @@
 **尚未进入系统 Chrome。** 固定 `dist/development` 的 source map 仍不等于当前源；旧 writer PID 26234 已退出、43119/43120 未监听。启动共享 serve 的只读来源预检被并行 `projects/ai-proxy/src/App.jsx` 与原来源锁不一致阻断，来源测试完整正向项也在同处失败；没有放宽门禁。Chrome 保存配置中的 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 仍指向原目录，但运行加载 / 客户端连接未证实。CUA 连接两次超时，Apple 事件页面脚本执行被 Chrome 关闭，未修改该设置。没有启动 watcher、覆盖 Browser 产物、强制重载、刷新用户聊天或改 Native 配对。
 
 下一步仅在 AI Proxy owner 完成其精确来源复核后，恢复原 `npm run dev`，通过现有任务 / 草稿 / UNKNOWN 安全栅栏，再取得系统 Chrome 的客户端、加载指纹和新安全文档中的实际 UI 证据；不得靠刷新旧 UNKNOWN 对话绕过。实际文件 / Native、production 与评分没有本轮新 PASS。证据见[网页面板记录](../evidence/project-file-panel-20261108.json)。
+
+## 当前固定文件入口怎么用
+
+1. 在原 ChatGPT 对话，通过「项目文件 → 打开 → 更多文件操作 → 高级：固定协议请求」打开可信审阅页，点击「检查当前对话与项目连接」。Native 目录须已有授权；网页文字不授予权限。
+2. 选择精确目录和相对文件路径，选「读取后提出修改」，写清任务并同意本轮披露，点击「批准本次读取并准备提示词」。将完整提示词填入原草稿，再由你发送；保持可信页打开。
+3. 真实读取结果自动回到原草稿。核对后发送这份上下文；模型生成提案后，在可信页比较修改前后全文，再点一次「确认写入此文件」。
+4. 以真实 `saved=true` 和 `readBackVerified=true` 为成功依据。最终回执填回原草稿即可结束，无需再发送。下一轮完成前一轮并保留回执，再准备新身份；结果 unknown 时停下只读对账，不能换 ID 补跑。
+
+本轮两次业务写入均经上述原 Native 链，终端仅准备初始夹具和独立只读核对。该固定协议路径不代表自然语言自主发现任意项目 / 文件已实现。
 
 ## 最新浏览器补测结果（2026-11-06，01a1afe0，22:58）
 

@@ -307,6 +307,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let taskDelegationHost=null;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let developmentStorage=null;
+  let pagePackageReviewReturn=null;
   let bookmarkFallbackNotice='';
   let frameExportPort=null;
   let promptHost=null;
@@ -866,11 +867,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     fileSelection++;resetReview();
     patchToolField(view, fileInput, {value: ''});setFileError();
   }
-  function setImportOpen(open) {
+  function setImportOpen(open,{returnToCaller=false}={}) {
     if(open&&view.getSnapshot().market?.review)return;
+    const resume=!open&&returnToCaller?pagePackageReviewReturn:null;
+    pagePackageReviewReturn=null;
     patchToolField(view, importPanel, {hidden: !open});
     setToolFieldAttribute(view, importTrigger, 'aria-expanded', String(open));
     if(!open)clearImport();
+    if(resume)queueMicrotask(()=>{if(!disposed)void resume();});
   }
   // Only a private Symbol lets statically compiled JSX reuse the existing
   // Browser SDK dispatcher; no postMessage or user package can forge it.
@@ -2074,8 +2078,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // confirmation and Page Authority import as a user-selected install file.
   // Review-only materialization from the original trusted Page broker.
   // The existing ImportSheet exclusively owns user Chrome consent and install.
-  function openPagePackageReview(pkg,origin){
+  function openPagePackageReview(pkg,origin,onReturn){
     if(!pkg||pkg.programId!=='opendesk.ai-scroll-navigation'||!openImport())return false;
+    pagePackageReviewReturn=typeof onReturn==='function'?onReturn:null;
     const selection=++fileSelection;
     resetReview();setFileError();notice('正在校验自定义网站安装候选…');
     void (async()=>{
@@ -4503,7 +4508,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return;
       }
       showPageInstallReceipt(pkg,recorded);
-      setImportOpen(false);
+      setImportOpen(false,{returnToCaller:true});
       notice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version+
         (recorded.enabled?'；打开或刷新目标网页即可使用。':'；原有停用状态已保留。'));
     }catch(error){
@@ -4756,11 +4761,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listen(importTrigger,'click',()=>{
     if(busy||view.getSnapshot().market?.review)return;
     const next=importPanel.hidden;
-    setImportOpen(next);notice('');
+    setImportOpen(next,{returnToCaller:!next});notice('');
   });
   listen(importClose,'click',()=>{
     if(busy)return;
-    setImportOpen(false);notice('');requestToolFieldEffect(view, importTrigger, 'focus');
+    setImportOpen(false,{returnToCaller:true});notice('');requestToolFieldEffect(view, importTrigger, 'focus');
   });
   listen(fileInput,'change',event=>chooseFile(event?.target?.files?.[0]).catch(error=>setFileError(String(error?.message||error))));
   listen(fileInput,'drop',event=>reviewDroppedFiles(event?.dataTransfer?.files));

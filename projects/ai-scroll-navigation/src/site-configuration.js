@@ -335,7 +335,7 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       const error=validateLiveRule(rule,doc,win);
       if(error){say(error,true);return;}
     }
-    const candidate={version:1,sites:current.sites.filter(r=>{
+    const candidate={...current,sites:current.sites.filter(r=>{
       const storedKey=r.origin+'\n'+r.pathScope;
       return remove?storedKey!==(editingKey||key):
         storedKey!==key&&storedKey!==editingKey;
@@ -544,11 +544,15 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
 // The installed Page Program retains a read-only config consumer and a
 // one-shot document-scoped selector picker. It never mounts website settings,
 // never grants a site Origin, and never writes rule storage from the webpage.
+const NAVIGATION_PENDING=Object.freeze({regionTop:false,regionBottom:false,
+  conversationTop:false,conversationBottom:false,floatingTop:false});
 export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
-  let current={version:1,sites:[]},disposed=false,flight=null,picking=null;
+  let current={version:1,sites:[]},loaded=false,disposed=false,flight=null,picking=null;
   let block=null,move=null,keyHandler=null,releaseClick=null,pickDone=null;
   let timeout=null,host=null,outline=null;
   const activeRule=()=>applicableRule(current,win.location.href);
+  // Missing flags mean legacy defaults only after a trusted read succeeds.
+  const navigation=()=>loaded?(current.navigation||{}):NAVIGATION_PENDING;
   const read=()=>{
     if(disposed||!api)return Promise.resolve(null);
     if(flight)return flight;
@@ -556,14 +560,15 @@ export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
       if(disposed)return null;
       if(result?.value?.version!==1||!Array.isArray(result.value.sites)||
         typeof result.etag!=='string')throw Error('可信网站配置读回格式错误');
-      current=result.value;
-      onChange?.();
+      const changed=!loaded||JSON.stringify(current)!==JSON.stringify(result.value);
+      current=result.value;loaded=true;
+      if(changed)onChange?.();
       return result;
     }).finally(()=>{flight=null;});
     return flight;
   };
   if(!api||win!==win.top){
-    return Object.freeze({activeRule,read});
+    return Object.freeze({activeRule,navigation,read});
   }
   const ensureOverlay=()=>{
     if(host)return;
@@ -718,6 +723,14 @@ export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
     const done=pickDone;pickDone=null;
     stopPick();done?.({state:'closed'});
   });
-  void read().catch(()=>{if(!disposed)onChange?.();});
-  return Object.freeze({activeRule,read});
+  // Read the same authorized snapshot after Side Panel writes; no DOM bridge
+  // or second store. Owner timers stop with the installed Page lifecycle.
+  function poll(){
+    if(disposed)return;
+    void read().catch(()=>{}).finally(()=>{
+      if(!disposed)owner.setTimeout(poll,1100);
+    });
+  }
+  poll();
+  return Object.freeze({activeRule,navigation,read});
 }

@@ -574,3 +574,57 @@ test('R3.7 path editing updates old rule instead of creating a second one',async
   assert.equal(saved.sites.length,1);
   assert.equal(saved.sites[0].pathScope,'/c/one');
 });
+
+test('legacy Page site writes retain navigation flags through save, deletion and readback',async()=>{
+  const api=storage(),navigation={regionTop:false,regionBottom:true,conversationTop:false,conversationBottom:true,floatingTop:false};
+  await api.write({version:1,sites:[rule],navigation},'one');
+  const f=await settings(api);
+  f.click(f.el('save'));await settle();
+  assert.deepEqual((await api.read()).value.navigation,navigation);
+  f.click(f.el('reset'));f.click(f.el('reset'));await settle();
+  assert.deepEqual((await api.read()).value,{version:1,sites:[],navigation});
+  f.owner.dispose();
+});
+
+test('formal Page consumer observes persisted flags, updates dock and restores after restart',async()=>{
+  const api=storage(),f=fixture();f.win.top=f.win;
+  let dock;
+  const runtime=installScrollSiteRuntime({...f,api,onChange:()=>dock?.refresh()});
+  dock=installFloatingNavigation({...f,resolveNavigation:()=>runtime.navigation(),
+    resolveConversation:()=>resolveConfiguredConversation(runtime.activeRule(),f.doc,f.win)});
+  await settle();
+  const controls=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
+  assert.equal(controls().length,2);
+  const navigation={regionTop:false,regionBottom:false,conversationTop:false,conversationBottom:false,floatingTop:false};
+  await api.write({version:1,sites:[rule],navigation},'one');
+  f.owner.flush();await settle();
+  assert.equal(controls().length,0,'poll removes an existing dock after persistence');
+  assert.deepEqual(runtime.navigation(),navigation);
+  f.owner.dispose();
+  const fresh=fixture();fresh.win.top=fresh.win;
+  const restored=installScrollSiteRuntime({...fresh,api});await settle();
+  assert.deepEqual(restored.navigation(),navigation,'new document recovers the same flags');
+  fresh.owner.dispose();
+});
+
+test('main wires the formal snapshot to live navigation and subsequent persistence',async()=>{
+  const f=fixture(),api=storage();f.win.top=f.win;
+  f.owner.host=f.doc.createElement('div');f.doc.body.append(f.owner.host);
+  f.owner.destroy=()=>f.owner.dispose();
+  const previous=new Map(['window','document','__scrollTestOwner','__openDeskScrollConfig'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  try{
+    Object.assign(globalThis,{window:f.win,document:f.doc,__scrollTestOwner:f.owner,__openDeskScrollConfig:api});
+    let source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+    source=source.replace("import {createPageUI} from '@opendesk/ui';",'const createPageUI=()=>globalThis.__scrollTestOwner;')
+      .replace(/from '(\.\/[^']+)'/g,(_match,path)=>"from '"+new URL('../src/'+path,import.meta.url).href+"'");
+    const module=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+    assert.equal((await module.default()).status,'active');await settle();
+    const controls=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
+    assert.equal(controls().length,2);
+    await api.write({version:1,sites:[rule],navigation:{conversationTop:false,floatingTop:false,conversationBottom:true}},'one');
+    f.owner.flush();await settle();
+    assert.deepEqual(controls().map(button=>button.dataset.scrollNavKey),['conversationBottom']);
+  }finally{
+    f.owner.dispose();for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+  }
+});

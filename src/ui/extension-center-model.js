@@ -65,7 +65,9 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
       p.revision>=SCROLL_SITE_REVISION_BASE&&release?.status==='available'&&
       release.revision<SCROLL_SITE_REVISION_BASE;
     entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
-      description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
+      description:p.programId===SCROLL_CONFIG_PROGRAM_ID?
+        '快速跳到回复和对话的开头或结尾，管理适用网站与导航按钮。':
+        (p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
       release,officialReview,update:Boolean(release?.status==='available'&&
         (release.revision>p.revision||officialReview)),
@@ -147,9 +149,11 @@ export function describeManagedAiPage(page,installedPrograms=[]){
   };
 }
 
-// Presentation-only decision. No installed Page UI / candidate-preview entry is verified yet.
-// Null is intentional: rows without a real high-frequency action lead to details.
+// Opening a trusted product manager is distinct from launching a sandbox app.
+// The installed Page identity, execution and permission contracts stay intact.
 export function resolveExtensionPrimaryAction(row){
+  if(row?.kind==='page'&&row.id===SCROLL_CONFIG_PROGRAM_ID&&row.installed===true&&row.stateKnown!==false)
+    return {id:'manage',label:'打开'};
   if(row?.kind==='app'&&row.installed===true&&row.enabled===true&&row.stateKnown!==false)
     return {id:'open',label:'打开'};
   return null;

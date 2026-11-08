@@ -30,8 +30,8 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
   },setTimeout(){},observe(){return {disconnect(){}};},
     onDispose:fn=>disposals.push(fn),dispose:()=>disposals.forEach(fn=>fn())};
   const context={main,first,last,scroller:main,site:'chatgpt',selector:'article'};
-  const mount=()=>{
-    const dock=installFloatingNavigation({doc,win,owner,resolveConversation:()=>context});
+  const mount=(resolveNavigation=()=>({}))=>{
+    const dock=installFloatingNavigation({doc,win,owner,resolveNavigation,resolveConversation:()=>context});
     return {dock,host:doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')};
   };
   return {doc,win,main,column,first,last,editor,nav,rects,owner,context,mount};
@@ -130,4 +130,34 @@ test('custom selected anchor retains its existing positioning',()=>{
   f.rects.set(anchor,box(450,100,100,100));
   Object.assign(f.context,{custom:true,anchor});
   const {host}=f.mount();assert.equal(host.style.left,'462px');
+});
+
+test('conversation and floating top flags share one button across every combination and threshold',()=>{
+  for(const conversationTop of [false,true])for(const floatingTop of [false,true]){
+    const f=fixture();let flags={conversationTop,floatingTop,conversationBottom:false};
+    const {dock}=f.mount(()=>flags);
+    const buttons=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
+    for(const position of [0,1000,0]){
+      f.main.scrollTop=position;dock.refresh();
+      const expected=conversationTop||(floatingTop&&position===1000);
+      assert.equal(buttons().length,expected?1:0,JSON.stringify({flags,position}));
+      if(expected)assert.equal(buttons()[0].dataset.scrollNavKey,
+        floatingTop&&position===1000?'floatingTop':'conversationTop');
+    }
+    flags={conversationTop:true,conversationBottom:true,floatingTop:true};dock.refresh();
+    assert.equal(buttons().length,2,'restoring flags reuses the dock');
+    const stale=buttons()[0];flags={conversationTop:false,conversationBottom:false,floatingTop:false};
+    f.main.scrollTop=1000;f.owner.click(stale);
+    assert.equal(f.main.scrollTop,1000,'disabled intent cannot act before refresh');
+    dock.refresh();assert.equal(buttons().length,0);
+    f.owner.dispose();
+  }
+});
+
+test('bottom can remain enabled when both top modes are disabled',()=>{
+  const f=fixture(),{host}=f.mount(()=>({conversationTop:false,floatingTop:false}));
+  const controls=host.shadowRoot.querySelectorAll('button');
+  assert.equal(controls.length,1);assert.equal(controls[0].dataset.scrollNavKey,'conversationBottom');
+  f.owner.click(controls[0]);assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
+  f.owner.dispose();
 });

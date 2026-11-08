@@ -98,6 +98,10 @@ export function createReadingTocIndex(doc) {
     const headings=[];
     for(const heading of doc.querySelectorAll('h1,h2,h3,h4,h5,h6')){
       if(!visible(heading)||adapter==='chatgpt'&&!sourceRoot(heading,adapter))continue;
+      // Answer mockups and score cards also use H1-H6 for display values.
+      // Keep short/multilingual section names; reject textless labels before
+      // they can consume the heading quota or become a section's parent.
+      if(adapter==='chatgpt'&&!/\p{L}/u.test(heading.textContent))continue;
       headings.push(heading);
       if(headings.length>=300)break;
     }

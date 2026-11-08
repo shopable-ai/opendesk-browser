@@ -45,8 +45,31 @@ jobs:
       - name: Reuse production Program Builder and Page Installer
         run: |
           set -euo pipefail
+          revision="$(node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const compareVersion=(a,b)=>{
+            const parts=value=>{assert.match(value,/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/,
+              'official package requires a stable version');return value.split('.').map(BigInt);};
+            const left=parts(a),right=parts(b);
+            for(let i=0;i<3;i++)if(left[i]!==right[i])return left[i]>right[i]?1:-1;
+            return 0;
+          };
+          const root='projects/ai-scroll-navigation';
+          const project=JSON.parse(readFileSync(`${root}/package.json`));
+          const frozen=JSON.parse(readFileSync(`${root}/ai-scroll-navigation.opendesk-page.json`));
+          assert.equal(project.opendesk.id,frozen.programId);
+          assert.ok(Number.isSafeInteger(frozen.revision)&&frozen.revision>0&&frozen.revision<1_000_000_000,
+            'frozen package uses invalid or dynamic reserved revision');
+          const order=compareVersion(project.version,frozen.version);
+          assert.ok(order>=0,'official package version rollback');
+          const revision=frozen.revision+(order>0?1:0);
+          assert.ok(revision<1_000_000_000,'official revision enters dynamic reserved range');
+          console.log(revision);
+          NODE
+          )"
           node scripts/build-program-project.mjs projects/ai-scroll-navigation --out "$RUNNER_TEMP/ai-scroll-nav-build"
-          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json --revision 9 --title "AI 对话滚动导航"
+          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json --revision "$revision" --title "AI 对话滚动导航"
       - name: Verify byte identity, revision, scope and blocked release
         run: |
           set -euo pipefail
@@ -56,6 +79,13 @@ jobs:
           import {join} from 'node:path';
           import {execFileSync} from 'node:child_process';
           import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
+          const compareVersion=(a,b)=>{
+            const parts=value=>{assert.match(value,/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/,
+              'official package requires a stable version');return value.split('.').map(BigInt);};
+            const left=parts(a),right=parts(b);
+            for(let i=0;i<3;i++)if(left[i]!==right[i])return left[i]>right[i]?1:-1;
+            return 0;
+          };
           const root='projects/ai-scroll-navigation';
           const [current,source,manifest]=await Promise.all([
             readFile(join(root,'ai-scroll-navigation.opendesk-page.json'),'utf8'),
@@ -66,14 +96,16 @@ jobs:
             'retired legacy import package must not remain in the current project');
           const value=await validatePageInstallPackage(JSON.parse(current));
           assert.equal(value.programId,'opendesk.ai-scroll-navigation');
-          assert.equal(value.version,'0.4.8');
-          assert.equal(value.revision,9);
+          const project=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
+          assert.equal(value.version,project.version);
+          assert.equal(value.programId,project.opendesk.id);
           const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${root}/ai-scroll-navigation.opendesk-page.json`]);
           const frozen=JSON.parse(frozenBytes);
           assert.equal(frozen.programId,value.programId,'frozen package identity changed');
           assert.ok(Number.isSafeInteger(frozen.revision)&&frozen.revision>0&&frozen.revision<1_000_000_000,
             'frozen package uses invalid or dynamic reserved revision');
           assert.ok(value.revision>=frozen.revision,'official package revision rollback');
+          assert.ok(compareVersion(value.version,frozen.version)>=0,'official package version rollback');
           if(value.revision===frozen.revision)assert.ok(
             frozenBytes.equals(await readFile(join(root,'ai-scroll-navigation.opendesk-page.json'))),
             'same programId/revision requires identical raw package bytes');
@@ -83,15 +115,15 @@ jobs:
             'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
           const publication=JSON.parse(manifest);
           const entry=publication.programs.find(row=>row.programId===value.programId);
-          assert.ok(entry&&entry.publication==='blocked');
-          assert.ok((entry.version==='0.4.1'&&entry.revision===2)||
-            (entry.version==='0.4.2'&&entry.revision===3)||
-            (entry.version==='0.4.6'&&entry.revision===7)||
-            (entry.version==='0.4.8'&&entry.revision===8)||
-            (entry.version===value.version&&entry.revision===value.revision));
-          entry.version=value.version;
-          entry.revision=value.revision;
-          entry.blockedReason='0.4.8/r9 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
+          assert.ok(entry&&['approved','blocked'].includes(entry.publication));
+          assert.equal(entry.version,frozen.version,'catalog version must match frozen package');
+          assert.equal(entry.revision,frozen.revision,'catalog revision must match frozen package');
+          if(value.revision!==frozen.revision){
+            entry.version=value.version;
+            entry.revision=value.revision;
+            entry.publication='blocked';
+            entry.blockedReason=`${value.version}/r${value.revision} 同源构建；新候选 Chrome/Mac 安装及三站操作 NOT_TESTED，发行保持阻断。`;
+          }
           await writeFile('official-pages/sources.json',JSON.stringify(publication,null,2)+'\n');
           const record={programId:value.programId,version:value.version,
             revision:value.revision,sourceHash:value.sourceHash,packageHash:value.packageHash,
@@ -134,6 +166,13 @@ jobs:
           import {readFile,writeFile} from 'node:fs/promises';
           import {execFileSync} from 'node:child_process';
           import {join} from 'node:path';
+          const compareVersion=(a,b)=>{
+            const parts=value=>{assert.match(value,/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/,
+              'official package requires a stable version');return value.split('.').map(BigInt);};
+            const left=parts(a),right=parts(b);
+            for(let i=0;i<3;i++)if(left[i]!==right[i])return left[i]>right[i]?1:-1;
+            return 0;
+          };
           const path='official-pages/sources.json',id='opendesk.ai-scroll-navigation';
           const at=ref=>JSON.parse(execFileSync('git',['show',`${ref}:${path}`],{encoding:'utf8'}));
           const base=at(process.env.AI_SCROLL_INPUT_HEAD),latest=at(process.env.AI_SCROLL_LATEST);
@@ -149,20 +188,25 @@ jobs:
           const packagePath='projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json';
           const packageBytes=await readFile(packagePath),pkg=JSON.parse(packageBytes);
           assert.equal(pkg.programId,id);
-          assert.equal(pkg.revision,9);
+          const project=JSON.parse(await readFile('projects/ai-scroll-navigation/package.json','utf8'));
+          assert.equal(pkg.version,project.version);
+          assert.equal(pkg.programId,project.opendesk.id);
           const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${packagePath}`]);
           const frozen=JSON.parse(frozenBytes);
           assert.equal(frozen.programId,pkg.programId,'frozen package identity changed');
           assert.ok(Number.isSafeInteger(frozen.revision)&&frozen.revision>0&&frozen.revision<1_000_000_000,
             'frozen package uses invalid or dynamic reserved revision');
           assert.ok(pkg.revision>=frozen.revision,'official package revision rollback');
+          assert.ok(compareVersion(pkg.version,frozen.version)>=0,'official package version rollback');
           if(pkg.revision===frozen.revision)assert.ok(frozenBytes.equals(packageBytes),
             'same programId/revision requires identical raw package bytes');
           const record=JSON.parse(await readFile(join(process.env.RUNNER_TEMP,'ai-scroll-release-record.json'),'utf8'));
           for(const key of ['programId','version','revision','sourceHash','packageHash'])
             assert.equal(record[key],pkg[key],`release record ${key} mismatch`);
           for(const key of ['programId','version','revision'])assert.equal(entry[key],record[key]);
-          assert.equal(entry.publication,'blocked');
+          assert.ok(entry.publication==='blocked'||
+            (entry.publication===one(base).publication&&frozenBytes.equals(packageBytes)),
+            'new package must remain blocked pending native evidence');
           assert.equal(record.publication,entry.publication);
           assert.ok(Number.isSafeInteger(record.revision)&&record.revision<1_000_000_000);
           latest.programs=remoteRows.map(row=>row.programId===id?entry:row);
@@ -185,7 +229,7 @@ jobs:
             git diff --cached --check "$latest"
             tree="$(git write-tree)"
             package_commit="$(git commit-tree "$tree" -p "$latest" \
-              -m 'Keep AI Scroll 0.4.8/r9 install bytes aligned with verified inputs' \
+              -m 'Keep AI Scroll install bytes aligned with verified inputs' \
               -m 'Constraint: Official publication remains blocked pending native evidence.
           Confidence: high
           Scope-risk: narrow
@@ -201,7 +245,7 @@ jobs:
       - name: Preserve verified package and matching release record
         uses: actions/upload-artifact@v4
         with:
-          name: ai-scroll-navigation-0.4.8-r9
+          name: ai-scroll-navigation-${{ github.sha }}
           path: |
             projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json
             official-pages/sources.json

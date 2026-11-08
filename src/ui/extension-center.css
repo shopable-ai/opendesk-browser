@@ -394,89 +394,116 @@
 }
 
 
-/* AI Scroll: React detail uses the same Host-owned card typography and spacing. */
-/* AI 对话滚动导航 R4.0: one trusted React owner, one scrolling work area. */
-.ec-scroll-site-manager{display:grid;gap:var(--space-3);min-width:0}
-#extension-center-detail section.ec-scroll-site-manager{gap:var(--space-3)}
-#extension-center-detail:has(.ec-scroll-site-manager:not([data-view="home"]))>.ec-detail-back{display:none}
-.ec-scroll-site-manager h3,.ec-scroll-site-manager h4{margin:0;font-size:13px;line-height:1.4;font-weight:680}
-.ec-scroll-site-manager h4{padding-top:var(--space-2);border-top:1px solid var(--od-line)}
-.ec-scroll-title{display:flex;align-items:center;gap:var(--space-2);min-height:36px;min-width:0}
+/* AI Scroll R4.0: the existing React subtree owns one content scroller and an
+ * external save bar. This full-height chain is active only for this app. */
+#workspace-content:has(#workbench-tools:not([hidden]) #sidebar-tool-list-view:not([hidden]) #extension-center-detail[data-scroll-app]:not([hidden])){
+  display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+#workspace-content #workbench-tools:not([hidden]):has(#sidebar-tool-list-view:not([hidden]) #extension-center-detail[data-scroll-app]:not([hidden])),
+#sidebar-tools:has(#sidebar-tool-list-view:not([hidden]) #extension-center-detail[data-scroll-app]:not([hidden])),
+#sidebar-tool-list-view:not([hidden]):has(#extension-center-detail[data-scroll-app]:not([hidden])),
+#extension-center:has(#extension-center-detail[data-scroll-app]:not([hidden])),
+.ec-drop-surface:has(>#extension-center-detail[data-scroll-app]:not([hidden])),
+#extension-center-detail[data-scroll-app]:not([hidden]),
+#extension-center-detail[data-scroll-app]>#extension-center-detail-body{
+  display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+#extension-center-detail[data-scroll-app]>#extension-center-detail-body{gap:var(--space-4)}
+#extension-center-detail[data-scroll-app]>.ec-detail-back{top:0}
+#extension-center-detail[data-scroll-app] .ec-detail-head{
+  flex:none;min-height:34px;padding:0 0 0 42px;border:0;gap:var(--space-2)}
+#extension-center-detail[data-scroll-app] .ec-detail-copy{flex:1}
+#extension-center-detail[data-scroll-app] .ec-detail-head strong{
+  display:block;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+#extension-center-detail[data-scroll-app] .ec-detail-head>.od-icon-button{
+  flex:none;background:transparent;border-color:transparent}
+#extension-center-detail[data-scroll-app] .ec-detail-head svg{
+  width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ec-scroll-site-manager{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}
+.ec-scroll-content{flex:1;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;padding:2px 2px var(--space-4);scroll-padding-block:var(--space-2)}
+.ec-scroll-site-manager h3,.ec-scroll-site-manager h4{margin:0;font-size:12px;line-height:1.4;font-weight:650}
+.ec-scroll-home,.ec-scroll-subview{display:grid;gap:var(--space-4);min-width:0;align-content:start}
+.ec-scroll-group{display:grid;gap:var(--space-2);min-width:0}
+.ec-scroll-title{display:flex;align-items:center;gap:var(--space-2);min-height:34px;min-width:0}
 .ec-scroll-title h3{flex:1}
-.ec-scroll-title-actions{display:flex;align-items:center;gap:var(--space-1)}
+.ec-scroll-title-actions{display:flex;align-items:center;gap:var(--space-2)}
+.ec-scroll-title .od-icon-button{background:transparent;border-color:transparent}
 .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{
-  width:34px;min-width:34px;height:34px;min-height:34px;padding:7px;
-  display:grid;place-items:center;color:var(--od-accent-ink)}
+  width:34px;min-width:34px;height:34px;min-height:34px;padding:7px;display:grid;place-items:center}
 .ec-scroll-title svg,.ec-scroll-row-actions svg,.ec-scroll-selector svg,.ec-scroll-clear svg{
-  width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;
-  stroke-linecap:round;stroke-linejoin:round}
-.ec-scroll-home,.ec-scroll-subview,.ec-scroll-editor{display:grid;gap:var(--space-3);min-width:0}
-.ec-scroll-home .ec-page-control{border:0;border-radius:var(--radius-control);padding:var(--space-3);background:var(--od-muted)}
+  width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ec-scroll-home .ec-page-control{padding:var(--space-3);background:var(--od-paper)}
 .ec-scroll-home .ec-page-control .ec-page-main{padding:0}
-.ec-scroll-builtins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);
-  list-style:none;margin:0;padding:0}
-.ec-scroll-builtins li{min-width:0;display:grid;gap:2px;padding:10px 11px;
-  border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
-.ec-scroll-builtins li strong{font-size:12px}
-.ec-scroll-builtins li span{font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
-.ec-scroll-saved{margin:0;padding:0;list-style:none;display:grid;gap:var(--space-2)}
-.ec-scroll-saved li{display:flex;align-items:center;justify-content:space-between;
-  gap:var(--space-2);min-width:0;padding:9px 10px;border:1px solid var(--od-line);
-  border-radius:var(--radius-control);background:var(--od-paper)}
-.ec-scroll-saved li>div:first-child{display:grid;min-width:0;gap:3px}
-.ec-scroll-saved strong{font-size:12px;overflow-wrap:anywhere}
-.ec-scroll-saved li span{font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
+.ec-scroll-home .ec-page-control .ec-page-state{border-top:1px solid var(--od-line);padding-top:var(--space-2);font-weight:500}
+.ec-scroll-builtins,.ec-scroll-saved{display:grid;list-style:none;margin:0;padding:0;min-width:0;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.ec-scroll-builtins>li,.ec-scroll-site-row{display:flex;align-items:center;gap:10px;padding:10px 12px;min-height:55px;min-width:0}
+.ec-scroll-builtins>li+li,.ec-scroll-saved>li+li{border-top:1px solid var(--od-line)}
+.ec-scroll-saved>li{min-width:0}
+.ec-scroll-mark{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:9px;
+  border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-accent-ink);font-size:12px;font-weight:750}
+.ec-scroll-site-copy{display:grid;gap:3px;flex:1;min-width:0}
+.ec-scroll-site-copy strong{font-size:13px;font-weight:650;overflow-wrap:anywhere}
+.ec-scroll-site-copy>span{font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
 .ec-scroll-row-actions{display:flex;align-items:center;gap:var(--space-1);flex:none}
-.ec-scroll-row-actions>.od-button{font-size:11px;min-height:32px;padding:4px 8px}
-.ec-scroll-empty{padding:8px 0;color:var(--od-sub);font-size:12px}
-.ec-scroll-settings-action{display:flex;justify-content:flex-end}
-.ec-scroll-settings-action .od-button{font-size:12px}
-.ec-scroll-editor{padding-bottom:var(--space-3)}
-.ec-scroll-editor>label,.ec-scroll-field>label{font-size:12px;font-weight:650;line-height:1.5}
-.ec-scroll-editor input:not([type=checkbox]){width:100%;min-width:0;min-height:36px;
-  border:1px solid var(--od-input-border);border-radius:var(--radius-control);
-  padding:7px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:12px}
+.ec-scroll-row-actions>.od-button{min-height:32px;font-size:12px;padding:5px 7px}
+.ec-scroll-rule-actions,.ec-scroll-discard{display:flex;gap:var(--space-2);flex-wrap:wrap;padding:var(--space-3);border-top:1px solid var(--od-line)}
+.ec-scroll-rule-actions p,.ec-scroll-discard p{flex-basis:100%;margin:0;overflow-wrap:anywhere}
+.ec-scroll-discard{border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-warning-bg);margin-bottom:var(--space-3)}
+.ec-scroll-empty{padding:var(--space-3);margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-sub);font-size:12px}
+.ec-scroll-editor{display:grid;gap:10px;min-width:0}
+.ec-scroll-editor h4{padding-top:6px;font-weight:750}
+.ec-scroll-editor h4:not(:first-child){border-top:1px solid var(--od-line);padding-top:var(--space-3);margin-top:var(--space-1)}
+.ec-scroll-field{display:grid;gap:5px;min-width:0}
+.ec-scroll-field>label{margin:0;font-size:12px;font-weight:650;line-height:1.5}
+.ec-scroll-field>div[id$="-error"]:empty{display:none}
+.ec-scroll-css-field{padding:9px 0}
+.ec-scroll-css-field+.ec-scroll-css-field{border-top:1px solid var(--od-line)}
+.ec-scroll-editor input{width:100%;min-width:0;min-height:36px;border:1px solid var(--od-input-border);
+  border-radius:var(--radius-control);padding:7px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:12px}
 .ec-scroll-editor input[aria-invalid=true]{border-color:var(--od-negative)}
 .ec-scroll-editor input:focus-visible{outline:2px solid var(--od-focus);outline-offset:1px}
 .ec-scroll-origin{display:flex;align-items:center;position:relative;min-width:0}
-.ec-scroll-origin>input{flex:1;padding-right:40px!important}
+.ec-scroll-origin>input{flex:1;padding-right:43px}
 .ec-scroll-origin>.ec-scroll-clear{position:absolute;right:2px;top:50%;transform:translateY(-50%);
-  width:34px;height:34px;min-width:34px;min-height:34px;padding:8px;border:0;background:transparent;
-  color:var(--od-sub)}
-.ec-scroll-field{display:grid;gap:var(--space-1);min-width:0}
+  width:34px;height:34px;min-width:34px;min-height:34px;padding:8px;border:0;background:transparent;color:var(--od-sub)}
 .ec-scroll-selector{display:flex;align-items:center;gap:var(--space-2);min-width:0}
-.ec-scroll-selector>input{flex:1}
-.ec-scroll-selector>.ec-scroll-picker{display:grid;place-items:center;width:36px;min-width:36px;
-  height:36px;min-height:36px;padding:7px;color:var(--od-accent-ink)}
-.ec-scroll-required{display:inline-block;color:var(--od-negative);margin-left:3px;font-weight:800}
+.ec-scroll-selector>input{flex:1;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.ec-scroll-selector>.ec-scroll-picker{display:grid;place-items:center;flex:none;width:36px;min-width:36px;
+  height:36px;min-height:36px;padding:7px;color:var(--od-sub)}
+.ec-scroll-required{display:inline-block;color:var(--od-negative);margin-left:2px;font-size:13px;font-weight:750}
 .ec-scroll-help,.ec-scroll-notice,.ec-scroll-error,.ec-scroll-permission p{
   margin:0;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
-.ec-scroll-help{color:var(--od-sub)}
-.ec-scroll-notice{color:var(--od-sub)}
-.ec-scroll-error{color:var(--od-negative)}
-.ec-scroll-permission{display:grid;gap:var(--space-2);padding:var(--space-3);
-  background:var(--od-warning-bg);border:1px solid var(--od-line);border-radius:var(--radius-control)}
-.ec-scroll-permission .od-button{justify-self:start;font-size:12px}
-.ec-scroll-enabled{display:flex;align-items:center;gap:var(--space-2);min-height:36px;font-size:12px}
-.ec-scroll-enabled input{accent-color:var(--od-brand)}
-.ec-scroll-delete{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
-.ec-scroll-delete span{font-size:11px;color:var(--od-negative)}
-.ec-scroll-actionbar{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;
-  gap:var(--space-2);min-height:60px;padding:var(--space-2) 0 calc(var(--space-2) + env(safe-area-inset-bottom,0px));
-  background:var(--od-paper);border-top:1px solid var(--od-line)}
-.ec-scroll-actionbar>span{flex:1;min-width:0;font-size:11px;line-height:1.35;color:var(--od-sub)}
-.ec-scroll-actionbar .ec-scroll-save{flex:none;min-width:112px;min-height:36px;justify-content:center}
-.ec-scroll-flags{border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
-.ec-scroll-flag{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
-  min-height:46px;padding:8px 12px;font-size:12px;font-weight:650}
+.ec-scroll-site-manager .ec-scroll-help{font-size:11px;line-height:1.55}
+.ec-scroll-help,.ec-scroll-notice{color:var(--od-sub)}
+#extension-center-detail .ec-scroll-error{color:var(--od-negative)}
+.ec-scroll-permission{display:grid;gap:var(--space-2);padding:var(--space-3);background:var(--od-warning-bg);
+  border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.ec-scroll-permission .od-button{justify-self:start;font-size:12px;max-width:100%}
+.ec-scroll-actionbar{display:flex;flex:none;align-items:center;gap:var(--space-3);min-height:60px;
+  padding:var(--space-2) 0 max(10px,env(safe-area-inset-bottom,0px));background:var(--od-paper);border-top:1px solid var(--od-line)}
+.ec-scroll-actionbar>span{flex:1;min-width:0;font-size:11px;line-height:1.35;color:var(--od-sub);overflow-wrap:anywhere}
+.ec-scroll-actionbar .ec-scroll-save{flex:none;min-width:116px;min-height:36px;justify-content:center}
+.ec-scroll-flags{border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden;background:var(--od-paper)}
+.ec-scroll-site-manager h3.ec-scroll-flag-group{padding:8px 12px;background:var(--od-muted);font-size:11px;font-weight:700;color:var(--od-sub)}
+.ec-scroll-flag{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:9px 12px;font-size:12px;font-weight:600}
+.ec-scroll-flag>span{min-width:0;overflow-wrap:anywhere}
+.ec-scroll-flag .od-shared-switch{flex:none}
 .ec-scroll-flag+.ec-scroll-flag{border-top:1px solid var(--od-line)}
-.ec-scroll-flag .od-shared-switch{opacity:.55}
 @media(max-width:360px){
-  .ec-scroll-builtins{grid-template-columns:1fr 1fr}
+  .ec-scroll-builtins>li,.ec-scroll-site-row{padding:9px 10px}
+  .ec-scroll-mark{width:28px;height:28px}
   .ec-scroll-selector{gap:6px}
-  .ec-scroll-saved li{padding:8px}
-  .ec-scroll-actionbar .ec-scroll-save{min-width:104px}
+  .ec-scroll-actionbar{gap:var(--space-2)}
+  .ec-scroll-actionbar .ec-scroll-save{min-width:108px}
+}
+@media(max-width:240px){
+  .ec-scroll-site-row{flex-wrap:wrap}
+  .ec-scroll-row-actions{margin-left:auto}
+  .ec-scroll-actionbar{align-items:stretch;flex-direction:column}
 }
 @media(pointer:coarse){
+  #extension-center-detail[data-scroll-app]>.ec-detail-back{width:44px;height:44px;min-width:44px;min-height:44px}
+  #extension-center-detail[data-scroll-app] .ec-detail-head{min-height:44px;padding-left:52px}
+  .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }

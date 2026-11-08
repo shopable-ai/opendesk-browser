@@ -17,7 +17,7 @@ const sources={
   'chatgpt-file-intent-page.js':{pin:'79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6',targets:['agents/chatgpt-fixed-bridge.js']},
   'chatgpt-files-settings-ui.js':{pin:'301005927d9160e25698c3fa63ddf2ca9b3fba53',targets:['native-agent/settings.js']},
   'chatgpt-files-ui.js':{pin:'7a661e87756992620944a565ec4b6f555031f8a4',targets:['native-agent/settings.js','agents/chatgpt-fixed-bridge.js']},
-  'chatgpt-file-intent-gate.js':{pin:'09e7e29cc827fdd7baa549092f3a6b08031ea10d',targets:['native-agent/transport.js','agents/chatgpt-fixed-bridge.js']},
+  'chatgpt-file-intent-gate.js':{pin:'3dce19043bb41322b8c3f9bd4b73636db7f0291a',targets:['native-agent/transport.js','agents/chatgpt-fixed-bridge.js']},
   'chatgpt-files-config.js':{pin:'622509c3ecf38fa40b32275b705e068a49c6c530',targets:['native-agent/transport.js','agents/chatgpt-fixed-bridge.js']},
   'chatgpt-files.html':{pin:'0968cdebc7256f7ffccc49babec89f37810b548d',targets:['native-agent/settings.js']},
   'chatgpt-conversation-route.js':{pin:'8e28adedd8cc2b49ff34897c0857d33cf2478c87',targets:['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js']}

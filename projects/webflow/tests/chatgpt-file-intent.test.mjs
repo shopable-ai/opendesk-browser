@@ -22,20 +22,20 @@ function emitter(){
     emit(...args){for(const callback of callbacks)callback(...args);},
     get first(){return [...callbacks][0];}};
 }
-function setup(){
+function setup({tab={},frame={}}={}){
   const messages=emitter(),history=emitter(),committed=emitter(),removed=emitter();
   let created=0,now=1000,frameUrl=sourceUrl,frameDocument='document-a';
   const api={
     runtime:{id:'test-extension',getURL:path=>'chrome-extension://test-extension/'+path,
       onMessage:messages},
     tabs:{onRemoved:removed,
-      async get(id){assert.equal(id,7);return {id,windowId:3,url:frameUrl,incognito:false};},
+      async get(id){assert.equal(id,7);return {id,windowId:3,url:frameUrl,incognito:false,...tab};},
       async create(options){created++;assert.equal(options.url,workspaceUrl);
         assert.equal(options.windowId,3);assert.equal(options.openerTabId,7);
         return {id:51,windowId:3};}},
     webNavigation:{onCommitted:committed,onHistoryStateUpdated:history,
       async getFrame({tabId,frameId}){assert.equal(tabId,7);assert.equal(frameId,0);
-        return {url:frameUrl,documentId:frameDocument,documentLifecycle:'active'};}}
+        return {url:frameUrl,documentId:frameDocument,documentLifecycle:'active',...frame};}}
   };
   const gate=installChatGPTFileIntentGate({api,clock:()=>now});
   async function call(kind,sender,extras={}){
@@ -81,6 +81,58 @@ test('official main-document click opens Workspace but never creates Native auth
     assert.equal('requestId' in claimed.data,false);
     assert.equal((await h.call('claim',workspaceSender)).error.code,'E_FILE_REPLAY');
   }finally{h.gate.dispose();}
+});
+
+test('same-document SPA from the official homepage opens and claims the live conversation',async()=>{
+  const h=setup(),url='https://chatgpt.com/c/6af02448-0cb8-83ec-88bc-b8c6aa809310';
+  try{
+    h.navigate(url);
+    h.history.emit({tabId:7,frameId:0});
+    const sender={...pageSender,url:'https://chatgpt.com/'};
+    assert.deepEqual(await h.call('open',sender,{pathHint:'demo.txt'}),{ok:true,data:{opened:true}});
+    assert.equal(h.created(),1);
+    const claimed=await h.call('claim',workspaceSender);
+    assert.equal(claimed.ok,true);
+    assert.deepEqual(claimed.data.source,{tabId:7,documentId:'document-a',url,
+      conversationId:'6af02448-0cb8-83ec-88bc-b8c6aa809310',windowId:3});
+    assert.equal(claimed.data.pathHint,'demo.txt');
+    assert.equal((await h.call('claim',workspaceSender)).error.code,'E_FILE_REPLAY');
+  }finally{h.gate.dispose();}
+});
+
+test('SPA admission preserves sender identity and live source checks',async t=>{
+  const homepage={...pageSender,url:'https://chatgpt.com/'};
+  const cases=[
+    {name:'foreign extension',sender:{id:'foreign'},code:'E_FILE_SENDER'},
+    {name:'child sender frame',sender:{frameId:1},code:'E_FILE_SENDER'},
+    {name:'missing document',sender:{documentId:undefined},code:'E_FILE_SENDER'},
+    {name:'stale document',sender:{documentId:'document-old'}},
+    {name:'incognito sender',sender:{tab:{...pageSender.tab,incognito:true}},code:'E_FILE_SENDER'},
+    {name:'missing sender tab',sender:{tab:undefined},code:'E_FILE_SENDER'},
+    ...['https://example.com/','https://chatgpt.com.evil.test/',
+      'http://chatgpt.com/','https://user:pass@chatgpt.com/','invalid'].map(url=>
+      ({name:`untrusted sender ${url}`,sender:{url},code:'E_FILE_SENDER'})),
+    {name:'live homepage',tab:{url:'https://chatgpt.com/'},frame:{url:'https://chatgpt.com/'}},
+    {name:'live foreign origin',tab:{url:'https://example.com/c/abc12345'},frame:{url:'https://example.com/c/abc12345'}},
+    {name:'replaced live document',frame:{documentId:'document-new'}},
+    {name:'child live frame',frame:{frameId:1}},
+    {name:'inactive live document',frame:{documentLifecycle:'cached'}},
+    {name:'frame error',frame:{errorOccurred:true}},
+    {name:'tab and frame disagree',tab:{url:'https://chatgpt.com/c/another'}},
+    {name:'pending navigation',tab:{pendingUrl:'https://chatgpt.com/c/another'}},
+    {name:'incognito live tab',tab:{incognito:true}},
+    {name:'wrong live tab',tab:{id:8}},
+    {name:'missing live window',tab:{windowId:undefined}}
+  ];
+  for(const item of cases)await t.test(item.name,async()=>{
+    const h=setup(item);
+    try{
+      const result=await h.call('open',{...homepage,...item.sender});
+      assert.equal(result.ok,false);
+      assert.equal(result.error.code,item.code||'E_FILE_SOURCE');
+      assert.equal(h.created(),0);
+    }finally{h.gate.dispose();}
+  });
 });
 
 test('page spoofing and page-provided grants are rejected before opening',async()=>{

@@ -34,20 +34,23 @@ export default async function main() {
   owner.host.style.setProperty('display','none','important');
   try {
     const site=siteForUrl(window.location.href);
+    let replies=null,dock=null,settings=null;
+    const resolveNavigation=()=>settings?.navigation()||{};
+    settings=installScrollSiteRuntime({
+      doc:document,win:window,owner,api:configApi,onChange:()=>{
+        replies?.refresh();dock?.refresh();
+      }
+    });
     // Reply actions are site-specific. Gemini has only proven transcript edge
     // navigation; never guess its native per-answer toolbar.
-    if (builtIn&&origin!=='https://gemini.google.com') installJumpToTop({
+    if (builtIn&&origin!=='https://gemini.google.com') replies=installJumpToTop({
       doc:document,win:window,owner,
-      resolveBindings:findSiteBindings,
+      resolveBindings:findSiteBindings,resolveNavigation,
       regionSelector:'main,[role="main"],header,#root,.ds-message',
       regionDirections:{top:true,bottom:true},
       conversationDirections:{top:false,bottom:false}
     });
-    let dock=null;
-    const settings=installScrollSiteRuntime({
-      doc:document,win:window,owner,api:configApi,onChange:()=>dock?.refresh()
-    });
-    dock=installFloatingNavigation({doc:document,win:window,owner,
+    dock=installFloatingNavigation({doc:document,win:window,owner,resolveNavigation,
       resolveConversation:()=>{
         const custom=settings.activeRule();
         // An explicitly enabled but invalid user rule fails closed instead

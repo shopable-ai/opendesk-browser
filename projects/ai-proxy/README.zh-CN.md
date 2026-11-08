@@ -1,6 +1,6 @@
 **2026-11-08 R14 HeaderActions 源码接入（本轮覆盖下方旧“仅预览”阶段）。** `src/environment.ts` 统一适配可信 pilot 的 `toolNavigation` 和沙箱公开 Bridge；`src/App.jsx` 提交完整导航快照，只有 feature 严格为 true 才增强，返回 false 立即回退 base。Header 添加代理仅打开原添加表单，诊断、订阅、完整设置及返回均复用原路由；内容入口保留。草稿、忙态、确认及结果 unknown 阻断新动作，旧页面/卸载后的事件无效，不应用或停止代理、不自动保存。unknown 导航锁只在服务 GET_STATE / STOP 明确确认已知状态后解除；EXPORT 等无关成功响应不清锁，不重放操作。
 
-定向验证：导航、环境与服务共 119 项通过，覆盖增强/fallback、trusted/sandbox、草稿/busy/unknown、清理、读取失败通知循环及无危险副作用。ego 中真实 Host/React/App 的内存服务夹具已验证四个 Header 入口及返回，原 App 实例保留、状态读取稳定；没有应用/停止代理、网络诊断或保存。它不是实际安装或代理核心链证据。详见[唯一导航合同与分层记录](../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)。
+定向验证：导航、环境与服务共 120 项通过，覆盖增强/fallback、trusted/sandbox、草稿/busy/unknown、清理、读取失败通知循环及无危险副作用。ego 中真实 Host/React/App 的内存服务夹具已验证四个 Header 入口及返回，原 App 实例保留、状态读取稳定；没有应用/停止代理、网络诊断或保存。它不是实际安装或代理核心链证据。详见[唯一导航合同与分层记录](../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)。
 
 真实产品入口是「开发 → 本地项目 → projects/ai-proxy → 在侧栏调试」，继续复用项目 watcher。冻结 preview 未重生成；本轮未改版本或正式 JSON、未更新用户安装、提交或推送。
 

@@ -1,5 +1,5 @@
 // One standalone conversation dock per installed Page Program.
-// The five navigation behaviors share two physical buttons (one top, one bottom).
+// Conversation top and floating top share one physical button.
 import {findSiteConversation} from './site-adapters.js';
 import {jumpConversationEdge} from './conversation.js';
 import {scrollConfiguredEdge} from './site-configuration.js';
@@ -92,13 +92,20 @@ function chatGPTGutterLeft(main,doc,win) {
   return Math.max(8,left+8,safeLeft+8);
 }
 
-export function installFloatingNavigation({doc,win,owner,resolveConversation=null}) {
+export function installFloatingNavigation({doc,win,owner,resolveConversation=null,resolveNavigation=()=>({})}) {
   sessions.get(doc)?.dispose();
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
   let binding=null,lastHref=win.location.href;
   const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
     binding.root===doc.documentElement&&binding.href===win.location.href;
+  const enabled=next=>{
+    const flags=resolveNavigation()||{};
+    const floating=next.scroller.scrollTop>Math.max(320,Math.min(win.innerHeight,next.scroller.clientHeight)*.65);
+    return {top:flags.conversationTop!==false||(flags.floatingTop!==false&&floating),
+      bottom:flags.conversationBottom!==false,
+      topKey:floating&&flags.floatingTop!==false?'floatingTop':'conversationTop'};
+  };
   function click(direction,event) {
     event.preventDefault();
     event.stopPropagation();
@@ -111,7 +118,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     }
     // Invalidate stale buttons before navigation/React reconciliation finishes.
     const next=context();
-    if (!next||next.main!==binding.main||next.scroller!==binding.scroller) return;
+    if (!next||!enabled(next)[direction]||next.main!==binding.main||next.scroller!==binding.scroller) return;
     if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
     else jumpConversationEdge(next.main,next.selector,direction,doc,win);
     schedule();
@@ -177,19 +184,20 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     if (existing&&existing!==host) {
       host?.remove();binding=null;return;
     }
+    const directions=enabled(next);
+    if(!directions.top&&!directions.bottom){host?.remove();binding=null;return;}
     prepare();
-    // This product owns exactly two physical controls. A native back-to-top
-    // is an obstacle to position around, not permission to remove our top key.
-    const options=[buttons.top,buttons.bottom];
+    // At most two physical controls; configured modes share the top key.
+    // A native back-to-top remains an obstacle to position around.
+    const options=[...(directions.top?[buttons.top]:[]),...(directions.bottom?[buttons.bottom]:[])];
     if (options.length!==buttons.stack.children.length||
         options.some((button,index)=>buttons.stack.children[index]!==button))
       buttons.stack.replaceChildren(...options);
     const scroller=next.scroller;
     const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-    const floating=scroller.scrollTop>Math.max(320,Math.min(win.innerHeight,scroller.clientHeight)*.65);
     // A visible conversationTop and scroll-triggered floatingTop reuse the
     // same physical top control; no second arrow is created.
-    buttons.top.dataset.scrollNavKey=floating?'floatingTop':'conversationTop';
+    buttons.top.dataset.scrollNavKey=directions.topKey;
     buttons.bottom.dataset.scrollNavKey='conversationBottom';
     buttons.top.disabled=scroller.scrollTop<=2;
     buttons.bottom.disabled=scroller.scrollTop>=max-2;
@@ -255,6 +263,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     observer?.disconnect();
     observedRoot=doc.documentElement;
     if (!observedRoot) return;
+    // Custom CSS may depend on any attribute (including data-*, id or inert).
+    // Filter our own host/children below to avoid refresh loops.
     observer=owner.observe(observedRoot,records=>{
       if (records.every(record=>{
         const node=record.target;
@@ -264,8 +274,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
         return false;
       })) return;
       schedule();
-    },{subtree:true,childList:true,attributes:true,
-      attributeFilter:['hidden','aria-hidden','class','style']});
+    },{subtree:true,childList:true,attributes:true});
   }
   function poll() {
     if (disposed) return;

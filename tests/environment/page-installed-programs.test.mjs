@@ -9,7 +9,7 @@ import {createDependencyManager} from '../../src/scripting/user-scripts/dependen
 import {createInstalledPagePrograms,PAGE_BOOT_PROTOCOL,PAGE_BOOT_WORLD} from '../../src/scripting/user-scripts/installed-programs.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
-import {canonical,digest} from '../../src/platform/protocol.js';
+import {canonical,digest,FoundationError} from '../../src/platform/protocol.js';
 import {JQUERY_371} from '../../src/scripting/user-scripts/packaged-dependencies.js';
 import {pageInstallScope,pageInstallScopeDelta,pageInstallAffectedByRemoval} from '../../src/scripting/user-scripts/page-install-authorization.js';
 globalThis.crypto ||= webcrypto;
@@ -959,6 +959,264 @@ async function scrollConfigFixture(options={}){
     anchorSelector:'',enabled:true};
   return {f,installed,message,site};
 }
+const navigationFlags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true};
+const scrollHostRequest=installed=>({programId:installed.programId,manifestHash:installed.manifestHash,
+  installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation});
+async function savedScrollHostFixture(){
+  const result=await scrollConfigFixture(),{f,message,site,installed}=result;
+  const saved=await f.service.handleBoot({...message,operation:'write',etag:'0',
+    value:{version:1,sites:[site]}},f.sender);
+  return {...result,saved,request:scrollHostRequest(installed)};
+}
+test('US-06 frozen Page writer omitting navigation preserves current flags while updating sites',async()=>{
+  const {f,request,message,site,saved}=await savedScrollHostFixture();
+  const configured=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{});
+  const legacyValue={version:1,sites:[{...site,enabled:false}]};
+  const updated=await f.service.handleBoot({...message,operation:'write',etag:configured.etag,value:legacyValue},f.sender);
+  assert.deepEqual(updated.value,{...legacyValue,navigation:navigationFlags});
+  assert.deepEqual(await f.service.handleBoot({...message,operation:'write',etag:configured.etag,value:legacyValue},f.sender),updated);
+  f.restart();
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),updated);
+  const explicit=await f.service.handleBoot({...message,operation:'write',etag:updated.etag,
+    value:{...legacyValue,navigation:{}}},f.sender);
+  assert.deepEqual(explicit.value.navigation,Object.fromEntries(Object.keys(navigationFlags).map(key=>[key,true])));
+  const fromUI=await f.service.saveScrollNavigationSettings({...request,etag:explicit.etag,navigation:navigationFlags},{});
+  assert.deepEqual(fromUI.value,{...legacyValue,navigation:navigationFlags});
+});
+test('US-06 stale frozen Page write cannot roll back a concurrent navigation update',async()=>{
+  const {f,request,message,site,saved}=await savedScrollHostFixture();
+  const configured=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{});
+  const latest=await f.service.saveScrollNavigationSettings({...request,etag:configured.etag,
+    navigation:{...navigationFlags,regionTop:false}},{});
+  await fails(()=>f.service.handleBoot({...message,operation:'write',etag:configured.etag,
+    value:{version:1,sites:[{...site,enabled:false}]}},f.sender),'E_CONFIG_CONFLICT');
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),latest);
+});
+test('US-05 cross-site disable, restore and delete require no target and preserve navigation',async()=>{
+  const {f,request,site,saved}=await savedScrollHostFixture();
+  let current=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{});
+  f.target.expectedUrl='https://unrelated.test/';
+  const reads=f.tabReads,executes=f.executeCalls;
+  for(const enabled of [false,true]){
+    current=await f.service.saveScrollSiteRule({...request,etag:current.etag,
+      ...(enabled?{}:{target:structuredClone(f.target)}),
+      editKey:site.origin+'\n'+site.pathScope,rule:{...site,enabled}},{});
+    assert.equal(current.value.sites[0].enabled,enabled);
+    assert.deepEqual(current.value.navigation,navigationFlags);
+  }
+  current=await f.service.saveScrollSiteRule({...request,etag:current.etag,
+    editKey:site.origin+'\n'+site.pathScope,rule:null},{});
+  assert.deepEqual(current.value,{version:1,sites:[],navigation:navigationFlags});
+  assert.equal(f.tabReads,reads);assert.equal(f.executeCalls,executes);
+  assert.equal(f.permissionRequests.length,0);
+});
+test('US-05 dormant scope can be disabled or deleted but restoration has an explicit scope error',async()=>{
+  const {f,request,site,saved,message}=await savedScrollHostFixture();
+  const dormant={...site,origin:'https://formerly-approved.test'};
+  const configKey='page-config:'+canonical(['tool:test',message.programId]);
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
+    tag:'page-config-v1',etag:saved.etag,value:{version:1,sites:[dormant]}
+  },configKey));
+  const editKey=dormant.origin+'\n'+dormant.pathScope;
+  const disabled=await f.service.saveScrollSiteRule({...request,etag:saved.etag,editKey,
+    rule:{...dormant,enabled:false}},{});
+  await fails(()=>f.service.saveScrollSiteRule({...request,etag:disabled.etag,editKey,rule:dormant},{}),
+    'E_SCROLL_RESTORE_SCOPE');
+  const removed=await f.service.saveScrollSiteRule({...request,etag:disabled.etag,editKey,rule:null},{});
+  assert.deepEqual(removed.value.sites,[]);
+});
+test('US-05 selector and scope edits never use the enabled-toggle bypass',async()=>{
+  const {f,request,site,saved}=await savedScrollHostFixture();
+  for(const patch of [{mainSelector:'#changed'},{pathScope:'/other'},{origin:'https://other.test'}]){
+    await fails(()=>f.service.saveScrollSiteRule({...request,etag:saved.etag,
+      editKey:site.origin+'\n'+site.pathScope,rule:{...site,enabled:false,...patch}},{}),'E_SCHEMA');
+  }
+  await fails(()=>f.service.saveScrollSiteRule({...request,etag:saved.etag,
+    target:{...f.target,documentId:'old-document'},editKey:site.origin+'\n'+site.pathScope,
+    rule:{...site,mainSelector:'#changed'}},{}),'E_DOCUMENT_STALE');
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),saved);
+});
+test('US-06 navigation shares the config CAS, preserves sites and survives restart',async()=>{
+  const {f,request,saved}=await savedScrollHostFixture();
+  const result=await f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{});
+  assert.deepEqual(result.value.sites,saved.value.sites);
+  assert.deepEqual(result.value.navigation,navigationFlags);
+  await fails(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,
+    navigation:{...navigationFlags,regionTop:false}},{}),'E_CONFIG_CONFLICT');
+  await fails(()=>f.service.saveScrollSiteRule({...request,etag:saved.etag,editKey:null,rule:null},{}),'E_CONFIG_CONFLICT');
+  f.restart();assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),result);
+  assert.equal(f.rows().filter(row=>row.tag==='page-config-v1').length,1);
+  assert.equal(f.permissionRequests.length,0);
+});
+test('US-06 navigation rejects extra request fields and invalid flags before writing',async()=>{
+  const {f,request,saved}=await savedScrollHostFixture();
+  for(const navigation of [null,[],{regionTop:'true'},{unapproved:true}])
+    await fails(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation},{}),'E_CONFIG_SCHEMA');
+  await fails(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,
+    navigation:navigationFlags,target:f.target},{}),'E_SCHEMA');
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),saved);
+});
+test('US-06 simultaneous site and navigation writes cannot overwrite each other',async()=>{
+  const {f,request,saved,site}=await savedScrollHostFixture();
+  const outcomes=await Promise.allSettled([
+    f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{}),
+    f.service.saveScrollSiteRule({...request,etag:saved.etag,editKey:site.origin+'\n'+site.pathScope,
+      rule:{...site,enabled:false}},{}),
+  ]);
+  const accepted=outcomes.filter(row=>row.status==='fulfilled'),rejected=outcomes.filter(row=>row.status==='rejected');
+  assert.equal(accepted.length,1);assert.equal(rejected.length,1);
+  assert.equal(rejected[0].reason.code,'E_CONFIG_CONFLICT');
+  assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),accepted[0].value);
+});
+for(const scenario of ['identity','generation','permission','native','host','late permission','late identity'])
+test('US-06 config write fences '+scenario,async()=>{
+  const {f,request,saved}=await savedScrollHostFixture();
+  let expected='E_PAGE_AUTHORIZATION';
+  if(scenario==='identity'){request.installationId='another-install';expected='E_REVISION';}
+  if(scenario==='generation'){request.expectedGeneration--;expected='E_REVISION';}
+  if(scenario==='permission'){f.granted=false;expected='E_PERMISSION';}
+  if(scenario==='native')f.native.clear();
+  if(scenario==='host'){
+    await f.storage.transaction(['commandJournal'],'readwrite',async tx=>{
+      const host=await tx.get('commandJournal','host:host');host.revoked=true;await tx.put('commandJournal',host,'host:host');
+    });expected='E_OWNER';
+  }
+  if(scenario.startsWith('late')){
+    const contains=f.api.permissions.contains;let checks=0;
+    f.api.permissions.contains=async input=>{
+      if(++checks===3){
+        if(scenario==='late permission')f.granted=false;
+        else await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+          const key='page-installed:'+canonical(['tool:test',request.programId]);
+          const row=await tx.get('frameworkKV',key);row.token='replacement';await tx.put('frameworkKV',row,key);
+        });
+      }
+      return contains(input);
+    };
+    if(scenario==='late permission')expected='E_PERMISSION';
+  }
+  await fails(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{}),expected);
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-config-v1').value,saved.value);
+});
+for(const scenario of ['abort','commit lost reply','typed storage error','commit authorization error','read authorization error','read throws','read mismatch'])
+test('US-06 unknown write is explicit without automatic replay: '+scenario,async()=>{
+  const {f,request,saved}=await savedScrollHostFixture();
+  const transaction=f.storage.transaction.bind(f.storage);let committed=false,writes=0;
+  f.storage.transaction=async(stores,mode,work)=>{
+    const result=await transaction(stores,mode,async tx=>{
+      const put=tx.put,get=tx.get;
+      tx.put=async(store,value,key)=>{
+        if(value?.tag==='page-config-v1'){
+          writes++;if(scenario==='abort')throw Error('transaction aborted');
+          committed=true;
+        }
+        return put(store,value,key);
+      };
+      tx.get=async(store,key)=>{
+        const row=await get(store,key);
+        if(mode==='readonly'&&committed&&row?.tag==='page-config-v1'){
+          if(scenario==='read throws')throw Error('readback unavailable');
+          if(scenario==='read authorization error')throw new FoundationError('E_PAGE_AUTHORIZATION','readback rejected');
+          if(scenario==='read mismatch')row.etag='unconfirmed';
+        }
+        return row;
+      };
+      return work(tx);
+    });
+    if(mode==='readwrite'&&committed&&scenario==='commit lost reply')throw Error('reply lost');
+    if(mode==='readwrite'&&committed&&scenario==='typed storage error')throw new FoundationError('E_STORAGE','receipt lost');
+    if(mode==='readwrite'&&committed&&scenario==='commit authorization error')throw new FoundationError('E_PAGE_AUTHORIZATION','commit reply rejected');
+    return result;
+  };
+  await fails(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{}),'E_CONFIG_UNKNOWN');
+  assert.equal(writes,1);
+  f.storage.transaction=transaction;
+  const current=await f.service.readScrollSiteConfig(request,{});
+  assert.deepEqual(current.value,scenario==='abort'?saved.value:{...saved.value,navigation:navigationFlags});
+});
+test('US-06 revocation during native preflight remains fenced even after Chrome permission returns',async()=>{
+  const {f,request,saved}=await savedScrollHostFixture();
+  const getScripts=f.api.userScripts.getScripts;let revoke;
+  f.api.userScripts.getScripts=async input=>{
+    const scripts=await getScripts(input);
+    f.api.userScripts.getScripts=getScripts;
+    revoke=f.service.revokePermissions({origins:['https://example.com/*']});
+    return scripts;
+  };
+  await assert.rejects(()=>f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{}),
+    error=>['E_PAGE_AUTHORIZATION','E_REVISION'].includes(error.code));
+  await revoke;
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-config-v1').value,saved.value);
+});
+for(const method of ['navigation','site'])for(const loss of ['permission','installation','host'])
+test('US-05/06 post-commit '+loss+' loss is unknown, never a safe rejection: '+method,async()=>{
+  const {f,request,saved,site}=await savedScrollHostFixture();
+  const transaction=f.storage.transaction.bind(f.storage);let writes=0;
+  f.storage.transaction=async(stores,mode,work)=>{
+    let config=false;
+    const result=await transaction(stores,mode,async tx=>{
+      const put=tx.put;tx.put=async(store,value,key)=>{
+        if(value?.tag==='page-config-v1'){config=true;writes++;}
+        return put(store,value,key);
+      };return work(tx);
+    });
+    if(config){
+      if(loss==='permission')f.granted=false;
+      if(loss==='installation')await transaction(['frameworkKV'],'readwrite',async tx=>{
+        const key='page-installed:'+canonical(['tool:test',request.programId]);
+        const row=await tx.get('frameworkKV',key);row.token='replacement';await tx.put('frameworkKV',row,key);
+      });
+      if(loss==='host')await transaction(['commandJournal'],'readwrite',async tx=>{
+        const host=await tx.get('commandJournal','host:host');host.revoked=true;await tx.put('commandJournal',host,'host:host');
+      });
+    }
+    return result;
+  };
+  await fails(()=>method==='navigation'?
+    f.service.saveScrollNavigationSettings({...request,etag:saved.etag,navigation:navigationFlags},{}):
+    f.service.saveScrollSiteRule({...request,etag:saved.etag,editKey:site.origin+'\n'+site.pathScope,
+      rule:{...site,enabled:false}},{}),'E_CONFIG_UNKNOWN');
+  assert.equal(writes,1);
+  const current=f.rows().find(row=>row.tag==='page-config-v1');
+  assert.notEqual(current.etag,saved.etag);
+  assert.deepEqual(current.value,method==='navigation'?{...saved.value,navigation:navigationFlags}:
+    {...saved.value,sites:[{...site,enabled:false}]});
+});
+for(const scenario of ['valid second tab','wrong document','cached document','navigated after validation','cached after validation','revoked during validation','DOM rejected'])
+test('US-05 selector validation binds its own installed document: '+scenario,async()=>{
+  const {f,request,site,saved,message}=await savedScrollHostFixture();
+  const executionKey=message.executionKey;
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const execution=await tx.get('frameworkKV',executionKey);
+    execution.managedUI={worldId:'target-world'};await tx.put('frameworkKV',execution,executionKey);
+    const key='page-installed:'+canonical(['tool:test',request.programId]);
+    const row=await tx.get('frameworkKV',key);
+    row.lastExecution={managedUI:{worldId:'another-tab-world'}};await tx.put('frameworkKV',row,key);
+  });
+  const target=structuredClone(f.target);let executions=0,revoke;
+  if(scenario==='wrong document')target.documentId='obsolete';
+  if(scenario==='cached document')f.documentLifecycle='cached';
+  f.api.userScripts.execute=async input=>{
+    executions++;
+    assert.deepEqual(input.target,{tabId:target.tabId,documentIds:[target.documentId]});
+    assert.equal(input.world,'USER_SCRIPT');assert.equal(input.worldId,'target-world');
+    if(scenario==='navigated after validation')f.navigate('new-document');
+    if(scenario==='cached after validation')f.documentLifecycle='cached';
+    if(scenario==='revoked during validation')revoke=f.service.revokePermissions({origins:['https://example.com/*']});
+    return [{frameId:0,documentId:target.documentId,result:{ok:scenario!=='DOM rejected'}}];
+  };
+  const save=()=>f.service.saveScrollSiteRule({...request,target,etag:saved.etag,
+    editKey:site.origin+'\n'+site.pathScope,rule:{...site,mainSelector:'#new-main'}},{});
+  if(scenario==='valid second tab')assert.equal((await save()).value.sites[0].mainSelector,'#new-main');
+  else{
+    await assert.rejects(save,error=>scenario==='revoked during validation'?
+      ['E_REVISION','E_PAGE_AUTHORIZATION'].includes(error.code):
+      error.code===(scenario==='DOM rejected'?'E_CONFIG_DOM':'E_DOCUMENT_STALE'));
+    assert.deepEqual(f.rows().find(row=>row.tag==='page-config-v1').value,saved.value);
+  }
+  await revoke;
+  assert.equal(executions,['wrong document','cached document'].includes(scenario)?0:1);
+});
 test('R132 installed Page config survives readback/restart and uses CAS with idempotent retry',async()=>{
   const {f,message,site}=await scrollConfigFixture();
   assert.deepEqual(await f.service.handleBoot(message,f.sender),{etag:'0',value:{version:1,sites:[]}});

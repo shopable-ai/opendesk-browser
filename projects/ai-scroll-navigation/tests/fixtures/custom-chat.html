@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>AI 滚动导航 · 受控验收网站</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;font:16px/1.6 system-ui;background:#f5f7fb;color:#172033}
+  header,footer{padding:12px 24px}#chat-scroll{height:65vh;overflow:auto;margin:0 24px;border:1px solid #a9b8d0;background:white;scroll-behavior:auto}
+  main{max-width:780px;margin:auto;padding:24px}article{min-height:240px;padding:24px;border-bottom:1px solid #dde3ef}
+  button,a{margin:4px}#click-count{font-weight:bold}
+</style>
+<header><h1>受控 AI 对话测试网站</h1><p>仅用于本机验收，无账号、无网络数据提交。</p>
+  <button id="spa-next">切换会话（SPA）</button><a href="/outside/">离开批准路径</a>
+  <span>网页按钮点击次数：<output id="click-count">0</output></span></header>
+<div id="chat-scroll"><main id="chat" data-ready="yes"></main></div>
+<footer>点选测试：选择 main#chat 为对话主区域，#chat-scroll 为滚动容器，article 为消息节点。</footer>
+<script>
+  for(let i=1;i<=24;i++){
+    const article=document.createElement('article');
+    article.id='reply-'+i;
+    article.innerHTML='<h2>回复 '+i+'</h2><p>这是受控测试对话的第 '+i+' 条内容，用于验证真实滚动位置。</p><button>网页动作 '+i+'</button>';
+    article.querySelector('button').onclick=()=>document.querySelector('#click-count').value++;
+    document.querySelector('main').append(article);
+  }
+  document.querySelector('#spa-next').onclick=()=>{history.pushState({},'', '/chat/next-session');dispatchEvent(new PopStateEvent('popstate'));};
+</script></html>

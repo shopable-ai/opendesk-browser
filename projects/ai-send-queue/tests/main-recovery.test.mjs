@@ -6,9 +6,9 @@ import vm from 'node:vm';
 // Exercise the real entry's action wiring without sending a website message.
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
-  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false}={}){
+  reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
-    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0};
+    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[]};
   let actions,unload,poll,hasRecovery=false,active=true,legacy=false;
   const listeners=new Map(),editor={contains:()=>false};
   const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
@@ -23,6 +23,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     wait(){},
     reclaimPrepared(){calls.reclaimPrepared=(calls.reclaimPrepared||0)+1;return reclaimPrepared;},
     uncertain(...args){calls.uncertain=args;},
+    remove(id){calls.removed.push(id);return removeResult;},
     requestNow(){calls.now++;return {ok:true};},
     tick(options){calls.ticks++;calls.canSubmit=options?.canSubmit;}};
   const owner={host:{style:{setProperty(){}},hidden:false},
@@ -176,6 +177,39 @@ test('force-send click calls the engine once without a second confirmation',asyn
   assert.equal(h.calls.now,1);assert.equal(h.calls.confirms,0);
   h.enqueue();h.actions.sendNow('q1');
   assert.equal(h.calls.now,1,'a retained recovery copy vetoes stopping too');
+});
+
+test('unknown message deletion uses a nonblocking toast without resending or changing the draft',async()=>{
+  const h=fixture({queued:true});await h.run();
+  h.state.items[0].state='unknown';h.state.phase='unknown';
+  h.state.inFlight={id:'q1',phase:'unknown'};
+  const draft=h.snap.draft;
+  assert.equal(h.actions.remove('q1'),true);
+  assert.deepEqual(h.calls.removed,['q1']);assert.equal(h.calls.confirms,0);
+  assert.match(h.calls.toasts.at(-1),/已从队列删除.*发送结果可能已生效.*检查原对话/);
+  assert.equal(h.snap.draft,draft);
+  assert.equal(h.calls.clear,0);assert.equal(h.calls.restores,0);
+  assert.equal(h.calls.enqueued,0);assert.equal(h.calls.ticks,0);assert.equal(h.calls.now,0);
+});
+
+test('rejected deletions do not show a success toast or request confirmation',async()=>{
+  for(const phase of ['unknown','await-confirm']){
+    const h=fixture({queued:true,removeResult:false});await h.run();
+    h.state.items[0].state=phase==='unknown'?'unknown':'sending';
+    h.state.inFlight={id:'q1',phase};
+    assert.equal(h.actions.remove('q1'),false);
+    assert.deepEqual(h.calls.removed,['q1']);assert.equal(h.calls.confirms,0);
+    assert.deepEqual(h.calls.toasts,[]);
+  }
+});
+
+test('deleting an unsent message does not warn about another unknown message',async()=>{
+  const h=fixture({queued:true});await h.run();
+  h.state.items.push({id:'q2',text:'another message',state:'unknown'});
+  h.state.phase='unknown';h.state.inFlight={id:'q2',phase:'unknown'};
+  assert.equal(h.actions.remove('q1'),true);
+  assert.deepEqual(h.calls.removed,['q1']);assert.equal(h.calls.confirms,0);
+  assert.deepEqual(h.calls.toasts,[]);
 });
 
 for(const allowed of [false,true]){

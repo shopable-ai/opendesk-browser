@@ -879,29 +879,59 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   const readScrollConfig=async()=>scrollSnapshot(await read(tx=>tx.get(PAGE_STORE,scrollConfigKey)));
   // USER_SCRIPT and the authenticated Side Panel write the SAME persistent CAS
   // record, with the same no-scope-widening and unknown-result semantics.
-  async function persistScrollConfig(row,input,etag,epoch){
+  async function persistScrollConfig(row,input,etag,epoch,sender){
     invariant(typeof etag==='string'&&etag.length<=128,'E_CONFIG_SCHEMA','缺少配置的版本校验值');
-    const value=normalizeScrollConfig(input);
-    const saved=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+    const normalized=normalizeScrollConfig(input);
+    const legacyPageWrite=sender===undefined&&!Object.hasOwn(input,'navigation');
+    await requireSiteGrant(row);
+    let writeAttempted=false;
+    const commit=async tx=>{
       const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID));
       invariant(current?.token===row.token&&current.manifestHash===row.manifestHash&&
-        current.authorization?.generation===row.authorization.generation&&active(current)&&
+        current.authorization?.installationId===row.authorization.installationId&&
+        current.authorization?.generation===row.authorization.generation&&
+        current.nativeState==='registered'&&!current.error&&active(current)&&
         permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','配置提交前安装权限已改变');
       const old=await tx.get(PAGE_STORE,scrollConfigKey);
+      // Frozen Page sources only know {version,sites}. Omission must not erase
+      // newer settings; explicit navigation keeps its normal replacement rules.
+      const value=legacyPageWrite&&Object.hasOwn(old?.value??{},'navigation')?
+        normalizeScrollConfig({...normalized,navigation:old.value.navigation}):normalized;
       for(const site of value.sites)invariant(scrollConfigScopeCovered(row.pageRules,site)||
-        old?.value.sites.some(previous=>equal(previous,site)),
+        old?.value.sites.some(previous=>equal(previous,site)||
+          !site.enabled&&equal({...previous,enabled:false},site)),
         'E_PAGE_AUTHORIZATION','该网站未获安装或升级审阅授权');
       if(old&&equal(old.value,value))return scrollSnapshot(old);
       invariant((old?.etag??'0')===etag,'E_CONFIG_CONFLICT',
         '网站规则已被其他窗口修改；请重新读取后合并，草稿仍保留');
       const record={tag:'page-config-v1',namespace,programId:SCROLL_CONFIG_PROGRAM_ID,
         etag:crypto.randomUUID(),value,updatedAt:clock.now()};
+      writeAttempted=true;
       await tx.put(PAGE_STORE,record,scrollConfigKey);
       return scrollSnapshot(record);
-    });
-    const confirmed=await read(tx=>tx.get(PAGE_STORE,scrollConfigKey));
-    invariant(confirmed?.etag===saved.etag&&equal(confirmed.value,saved.value),
-      'E_CONFIG_UNKNOWN','配置写入后的持久化读回未知；不得当作成功');
+    };
+    let saved;
+    try{
+      saved=await (sender?scoped(sender,PAGE_WRITE,commit):
+        storage.transaction([PAGE_STORE],PAGE_WRITE,commit));
+    }catch(error){
+      if(!writeAttempted&&['E_OWNER','E_PAGE_AUTHORIZATION','E_CONFIG_CONFLICT'].includes(error?.code))throw error;
+      throw new FoundationError('E_CONFIG_UNKNOWN','配置写入结果未知；请只读核对，不要自动重试');
+    }
+    // After a possible commit, authorization/owner failures cannot prove that
+    // nothing was written. Keep every confirmation failure behind one fence.
+    try{
+      const confirmed=await read(tx=>tx.get(PAGE_STORE,scrollConfigKey));
+      invariant(confirmed?.etag===saved.etag&&equal(confirmed.value,saved.value),
+        'E_CONFIG_UNKNOWN','配置写入后的持久化读回未知；不得当作成功');
+      await requireSiteGrant(row);
+      const check=tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
+      const current=await (sender?scoped(sender,'readonly',check):read(check));
+      invariant(current?.token===row.token&&current.authorization?.generation===row.authorization.generation&&
+        active(current)&&permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','配置读回前安装权限已改变');
+    }catch(error){
+      throw new FoundationError('E_CONFIG_UNKNOWN','配置写入后的核验失败；请只读核对，不要自动重试');
+    }
     return saved;
   }
   // Same native USER_SCRIPT broker, same persistent Page Authority; no page-facing
@@ -964,11 +994,20 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       PAGE_REVISION_ERROR,'网站设置引用的安装身份已经改变');
     invariant(row.revision>=SCROLL_CONFIG_MIN_REVISION&&row.nativeState==='registered'&&
       active(row)&&!row.error,'E_PAGE_AUTHORIZATION','网站配置需要已启用并注册的安装');
+    const epoch=permissionEpoch(row);
     await requireSiteGrant(row);
     const descriptorValue=await descriptor(row),native=await nativeAPI();
     const scripts=await native.getScripts({ids:[row.nativeId]});
     invariant(scripts.length===1&&nativeEqual(scripts[0],descriptorValue.script),
       'E_PAGE_AUTHORIZATION','原生安装注册内容发生变化');
+    const current=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+      key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID)));
+    await requireSiteGrant(row);
+    invariant(current?.token===row.token&&current.manifestHash===row.manifestHash&&
+      current.authorization?.installationId===row.authorization.installationId&&
+      current.authorization?.generation===row.authorization.generation&&active(current)&&
+      current.nativeState==='registered'&&!current.error&&permissionEpoch(row)===epoch,
+      'E_PAGE_AUTHORIZATION','网站配置核验期间安装权限已改变');
     return row;
   }
   async function readScrollSiteConfig(request,sender){
@@ -976,7 +1015,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     await scrollHostInstall(request,sender);
     return readScrollConfig();
   }
+  async function saveScrollNavigationSettings(request,sender){
+    fields(request,['programId','manifestHash','installationId','expectedGeneration','etag','navigation']);
+    invariant(request.navigation&&typeof request.navigation==='object'&&!Array.isArray(request.navigation),
+      'E_CONFIG_SCHEMA','导航设置必须是布尔选项对象');
+    const row=await scrollHostInstall(request,sender),epoch=permissionEpoch(row);
+    const before=await readScrollConfig();
+    invariant(before.etag===request.etag,'E_CONFIG_CONFLICT','配置已被其他窗口修改，请读取并核对');
+    return persistScrollConfig(row,{...before.value,navigation:request.navigation},request.etag,epoch,sender);
+  }
   async function executeScrollSiteEditor(row,target,operation,payload,sender){
+    const epoch=permissionEpoch(row);
     fields(target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
     invariant(Number.isSafeInteger(target.tabId)&&target.tabId>=0&&
       target.frameId===0&&typeof target.documentId==='string'&&
@@ -1016,13 +1065,18 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const pending=await ordered(async()=>{
       const latest=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
         key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID)));
+      const currentExecution=await read(tx=>tx.get(PAGE_STORE,execution.executionKey));
       invariant(latest?.token===row.token&&latest.manifestHash===row.manifestHash&&
         latest.authorization?.generation===row.authorization.generation&&
-        latest.lastExecution?.managedUI?.worldId===execution.managedUI.worldId&&
-        permissionEpoch(row)===permissionEpoch(latest)&&active(latest),
+        currentExecution?.state==='completed'&&
+        currentExecution.managedUI?.worldId===execution.managedUI.worldId&&
+        currentExecution.installationId===row.authorization.installationId&&
+        currentExecution.grantGeneration===row.authorization.generation&&
+        permissionEpoch(row)===epoch&&active(latest),
         'E_PAGE_AUTHORIZATION','网页点选前安装身份已变化');
       await requireSiteGrant(latest);
       const native=await nativeAPI();
+      invariant(permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','网页操作派发前网站权限已撤销');
       const completion=Promise.resolve(native.execute({target:{tabId:tab.id,
         documentIds:[frame.documentId]},world:'USER_SCRIPT',
         worldId:execution.managedUI.worldId,js:[{code:js}]}));
@@ -1040,14 +1094,19 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const confirmedExecution=await read(tx=>tx.get(PAGE_STORE,execution.executionKey));
     invariant(current.token===row.token&&confirmedExecution?.state==='completed'&&
       confirmedExecution.managedUI?.worldId===execution.managedUI.worldId&&
-      confirmedExecution.installationId===row.authorization.installationId,
+      confirmedExecution.installationId===row.authorization.installationId&&
+      confirmedExecution.grantGeneration===row.authorization.generation&&permissionEpoch(row)===epoch,
       'E_PAGE_AUTHORIZATION','点选期间安装执行身份已发生变化');
     const [renewedTab,renewedFrames]=await Promise.all([
       api.tabs.get(target.tabId),api.webNavigation.getAllFrames({tabId:target.tabId})]);
+    const selectedAgain=await api.tabs.query({active:true,windowId:target.expectedWindowId});
     invariant(renewedTab?.url===target.expectedUrl&&!renewedTab.pendingUrl&&
+      renewedTab.active===true&&renewedTab.incognito===false&&renewedTab.windowId===target.expectedWindowId&&
+      selectedAgain?.length===1&&selectedAgain[0]?.id===target.tabId&&
       renewedFrames?.some(value=>value.frameId===0&&
         value.documentId===target.documentId&&value.url===target.expectedUrl&&
-        !value.errorOccurred),'E_DOCUMENT_STALE','点选期间网页已经导航，不能采用旧结果');
+        !value.errorOccurred&&(!value.documentLifecycle||value.documentLifecycle==='active')),
+      'E_DOCUMENT_STALE','点选期间网页已经导航，不能采用旧结果');
     return results[0].result;
   }
   async function pickScrollSiteElement(request,sender){
@@ -1065,7 +1124,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return value;
   }
   async function saveScrollSiteRule(request,sender){
-    fields(request,['programId','manifestHash','installationId','expectedGeneration','target','etag','editKey','rule']);
+    fields(request,['programId','manifestHash','installationId','expectedGeneration','target','etag','editKey','rule'],
+      ['programId','manifestHash','installationId','expectedGeneration','etag','editKey','rule']);
     invariant(request.editKey===null||
       typeof request.editKey==='string'&&request.editKey.length<=800,
       'E_CONFIG_SCHEMA','编辑目标无效');
@@ -1077,22 +1137,27 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(request.editKey===null||source,'E_CONFIG_CONFLICT','原始规则已经改变');
     if(request.rule===null){
       invariant(source,'E_CONFIG_SCHEMA','删除必须指向已存在的规则');
-      return persistScrollConfig(row,{version:1,sites:before.value.sites.filter(r=>r!==source)},request.etag,epoch);
+      return persistScrollConfig(row,{...before.value,sites:before.value.sites.filter(r=>r!==source)},request.etag,epoch,sender);
     }
     const rule=normalizeScrollConfig({version:1,sites:[request.rule]}).sites[0];
-    const page=new URL(request.target.expectedUrl),key=rule.origin+'\n'+rule.pathScope;
-    invariant(rule.origin===page.origin&&scrollPathMatches(rule.pathScope,page.pathname),
-      'E_CONFIG_SCOPE','请在目标网站的适用路径中保存');
+    const key=rule.origin+'\n'+rule.pathScope;
     invariant(!before.value.sites.some(r=>r.origin+'\n'+r.pathScope===key&&r!==source),
       'E_CONFIG_CONFLICT','同一网站路径已经有规则');
-    const unchangedDisabled=source&&!rule.enabled&&
-      ['mainSelector','scrollSelector','messageSelector','anchorSelector'].every(k=>source[k]===rule[k]);
-    if(!unchangedDisabled){
+    // Existing inert selectors are already reviewed data. Only an enabled
+    // toggle may bypass a live DOM check, never an origin/path/selector edit.
+    const management=source&&equal({...source,enabled:rule.enabled},rule);
+    if(management&&rule.enabled)invariant(scrollConfigScopeCovered(row.pageRules,rule),
+      'E_SCROLL_RESTORE_SCOPE','无法安全恢复：当前安装未授权完整网站路径，请先审阅并恢复安装范围');
+    if(!management){
+      fields(request.target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
+      let page;try{page=new URL(request.target.expectedUrl);}catch{}
+      invariant(page&&rule.origin===page.origin&&scrollPathMatches(rule.pathScope,page.pathname),
+        'E_CONFIG_SCOPE','请在目标网站的适用路径中保存');
       const verified=await executeScrollSiteEditor(row,request.target,'validate',rule,sender);
       invariant(verified?.ok===true,'E_CONFIG_DOM',verified?.error||'真实网页选择器未通过校验');
     }
-    const next={version:1,sites:[...before.value.sites.filter(r=>r!==source),rule]};
-    return persistScrollConfig(row,next,request.etag,epoch);
+    const next={...before.value,sites:[...before.value.sites.filter(r=>r!==source),rule]};
+    return persistScrollConfig(row,next,request.etag,epoch,sender);
   }
   // Fixed, authenticated USER_SCRIPT dispatch: no caller-provided code or browser world.
   async function sendQueueOperation(request,sender){
@@ -1288,5 +1353,5 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return {...response,receiptId};
   }
   return Object.freeze({importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,saveScrollSiteRule,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
+    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }

@@ -532,6 +532,7 @@ function newButton(doc, kind, directions, sessionKey) {
 }
 export function installJumpToTop({doc, win, owner, resolveBindings = findRegionBindings,
   regionSelector = 'main,[role="main"],header', sessionKey = 'default',
+  resolveNavigation = () => ({}),
   regionDirections = {top: true, bottom: false},
   conversationDirections = {top: true, bottom: false}}) {
   // An old session may delete the WeakMap entry when it was the last owner.
@@ -579,7 +580,9 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       const programTop = sessionKey !== 'default' &&
         [...binding.header.querySelectorAll(`[${OWN}="host"]`)].some(host => host.isConnected);
       const directions = ['top', 'bottom'].filter(direction =>
-        options[direction] === true && !(direction === 'top' && programTop));
+        options[direction] === true &&
+        resolveNavigation()?.[(binding.kind === 'conversation' ? 'conversation' : 'region') +
+          (direction === 'top' ? 'Top' : 'Bottom')] !== false && !(direction === 'top' && programTop));
       return {...binding, directions};
     }).filter(binding => binding.directions.length);
     for (const header of mounted.keys()) {
@@ -624,7 +627,9 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
             node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
         // The old Page can mount between scheduled refresh and a click.
         // Revalidate the DOM owner before any scroll side effect.
-        if (button.disabled || legacyNavigationPresent(doc) || active !== item.host) {
+        if (resolveNavigation()?.[(binding.kind === 'conversation' ? 'conversation' : 'region') +
+            (direction === 'top' ? 'Top' : 'Bottom')] === false ||
+            button.disabled || legacyNavigationPresent(doc) || active !== item.host) {
           schedule();return;
         }
         const current = resolveBindings(doc, win).find(next => next.header === binding.header

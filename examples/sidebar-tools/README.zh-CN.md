@@ -12,6 +12,7 @@
 | 入口 | 适用场景 | 示例/模板 |
 | --- | --- | --- |
 | **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](minimal-html-starter/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](../../projects/cookie-editor/README.zh-CN.md) |
+| **可选页头插槽** | 查看 More 动作声明、点击回传、原实例返回及无插槽回退 | [页头插槽示例与源码演示](header-actions-demo/README.zh-CN.md) |
 | **React 预编译** | 组件较多，需要 React 状态/UI | [React Starter](react-starter/README.md)、[Quick Notes React 正式产品](../../projects/quick-notes-react/README.md) |
 | **Vue 预编译** | 组件较多，需要 Vue | [vue-starter](vue-starter/README.md) |
 | **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](../../projects/reading-toc/README.md) |

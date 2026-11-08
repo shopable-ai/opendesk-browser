@@ -164,3 +164,35 @@ for(const mode of ['stale','unknown','disabled'])test(`AI Scroll install handles
     assert.doesNotMatch(f.get('sidebar-tool-status').textContent,/已更新网页增强|已安装网页增强/);
   }
 });
+
+for(const denied of [false,true])test(`AI Scroll original Installer returns its caller draft after ${denied?'permission denial':'cancel'}`,async t=>{
+  const f=await fixture(t,{permissionGranted:!denied,grantPermission:async()=>false});
+  const pkg=await installPackage();let returns=0;
+  assert.equal(f.host.openPagePackageReview(pkg,'https://example.com',()=>{returns++;}),true);
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  if(denied){
+    f.event('sidebar-tool-install','click',{trusted:true});
+    await settle(()=>!f.get('page-install-import-status').hidden&&
+      f.get('page-install-import-status').attributes['data-state']==='permission-denied');
+  }
+  f.event('sidebar-tool-import-close','click',{trusted:true});await tick();
+  assert.equal(returns,1);
+  assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0);
+  f.event('sidebar-tool-import-close','click',{trusted:true});await tick();
+  assert.equal(returns,1,'a closed review cannot return or replay twice');
+});
+
+test('AI Scroll original Installer returns after a durable success and does not auto-save a rule',async t=>{
+  const pkg=await installPackage(),accepted=receipt(pkg);let returns=0;
+  const f=await fixture(t,{requestPage(operation){
+    if(operation==='importPageInstallPackage')return accepted;
+  }});
+  assert.equal(f.host.openPagePackageReview(pkg,'https://example.com',()=>{returns++;}),true);
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('sidebar-tool-import').hidden);await tick();
+  assert.equal(returns,1);
+  assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,1);
+  assert.ok(f.requests.some(r=>r.operation==='listPagePrograms'));
+  assert.equal(f.requests.filter(r=>r.operation==='saveScrollSiteRule').length,0);
+});

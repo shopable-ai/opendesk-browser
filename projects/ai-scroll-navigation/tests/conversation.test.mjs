@@ -1501,3 +1501,21 @@ test('r7 single turn uses its conversation ancestor and rejects its own scrollpo
   assert.equal(conversation.jumpConversationEdge(main,selector,'bottom',doc,view),false);
   assert.deepEqual(main.calls,[]);assert.deepEqual(target.calls,[]);
 });
+
+test('region flags remove existing controls independently without removing Mind Map',t=>{
+  const f=nativeMessages({assistant:true}),owner=observerOwner();
+  let flags={};
+  const session=conversation.installJumpToTop({doc:f.doc,win:f.view,owner,
+    regionDirections:{top:true,bottom:true},conversationDirections:{top:false,bottom:false},
+    resolveNavigation:()=>flags});
+  t.after(()=>session.dispose());
+  const host=()=>f.doc.querySelector('[data-opendesk-ai-scroll-navigation="reply"]');
+  const peer=element({tag:'span',attributes:{'data-opendesk-chatgpt-mindmap':'button'}});
+  conversation.mountAnswerTool(f.toolbar,peer);
+  for(const regionTop of [false,true])for(const regionBottom of [false,true]){
+    flags={regionTop,regionBottom};session.refresh();
+    assert.deepEqual(host()?.shadowRoot.querySelectorAll('button').map(node=>node.dataset.scrollNavKey)||[],
+      [...(regionTop?['regionTop']:[]),...(regionBottom?['regionBottom']:[])]);
+    assert.equal(peer.isConnected,true);
+  }
+});

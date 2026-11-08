@@ -11,6 +11,7 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 const requireValue=(ok,code,message)=>{if(!ok)throw error(code,message);};
 const keys=(obj,expected)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&
   Object.keys(obj).every(k=>expected.includes(k))&&expected.every(k=>Object.hasOwn(obj,k));
+const NAVIGATION_KEYS=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop'];
 const RULE_KEYS=['origin','pathScope','mainSelector','scrollSelector','messageSelector','anchorSelector','enabled'];
 function urlOrigin(value) {
   requireValue(typeof value==='string'&&value.length<=256,'E_CONFIG_SCHEMA','站点 Origin 无效');
@@ -40,7 +41,8 @@ export function scrollPathMatches(scope,pathname){
   return scope==='/'||pathname===scope||pathname.startsWith(scope.endsWith('/')?scope:scope+'/');
 }
 export function normalizeScrollConfig(input){
-  requireValue(keys(input,['version','sites'])&&input.version===SCROLL_CONFIG_VERSION&&
+  const hasNavigation=Object.hasOwn(input||{},'navigation');
+  requireValue(keys(input,hasNavigation?['version','sites','navigation']:['version','sites'])&&input.version===SCROLL_CONFIG_VERSION&&
     Array.isArray(input.sites)&&input.sites.length<=24,'E_CONFIG_SCHEMA','配置格式、版本或条目数无效');
   const seen=new Set(),sites=input.sites.map(value=>{
     requireValue(keys(value,RULE_KEYS)&&typeof value.enabled==='boolean',
@@ -57,6 +59,13 @@ export function normalizeScrollConfig(input){
       enabled:value.enabled};
   });
   const normalized={version:SCROLL_CONFIG_VERSION,sites};
+  if(hasNavigation){
+    const flags=input.navigation;
+    requireValue(flags&&typeof flags==='object'&&!Array.isArray(flags)&&
+      Object.keys(flags).every(key=>NAVIGATION_KEYS.includes(key)&&typeof flags[key]==='boolean'),
+      'E_CONFIG_SCHEMA','导航开关必须是已知的布尔字段');
+    normalized.navigation=Object.fromEntries(NAVIGATION_KEYS.map(key=>[key,flags[key]??true]));
+  }
   requireValue(new TextEncoder().encode(JSON.stringify(normalized)).byteLength<=16384,
     'E_CONFIG_SCHEMA','网站规则数据超过 16 KiB');
   return normalized;

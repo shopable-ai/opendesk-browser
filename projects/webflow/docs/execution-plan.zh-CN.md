@@ -1,5 +1,35 @@
 # Web Flow / AI Workflow Bridge · 连续任务执行计划
 
+## 当前文件核心执行卡（2026-11-08；01a1b79c）
+
+本轮 owner `01a1b79c-85f7-7c50-8142-4e8c9840a562`。原生目标现为 **complete**：现有文件读写链已完成两组全新身份的真实读取、合法确认保存、独立读回和原聊天反馈，并修复新聊天入口身份误判。未设置 token budget；旧目标不迁移、不改状态。百度核心链已完成，不重复搜索验证。
+
+**当前核心结果：2/2 已通过。** 从原 ChatGPT 聊天 `6af02448-0cb8-83ec-88bc-b8c6aa809310` 领取全新身份，经原发现器 / adapter / controller 自动读取、回填真实正文，发送上下文后生成提案，可信页具体确认，Native 保存并读回；两次独立磁盘全文 / 字节 / SHA 都相符。未点击手动 inspect，未从终端写业务结果。第二组在同一聊天、同一审阅 owner 内重新读取第一组保存后的版本，最终状态 `status=round2-complete / revision=2`，109 bytes，SHA256 `8030f370ebad1c814668a4d044e630d3b371a74fd3336a35e15ad43c3792131d`。最终回执保留原聊天草稿，未发送；第一组回执已逐字留存后才清空自己的草稿进行第二组。
+
+**当前阶段与收尾结果：** 核心开发及必要验证已完成。新聊天从首页经 SPA 切换后，Sender URL 仍可能是首页，原入口因此报 `E_FILE_SENDER`；最小修复仅将官方 origin 用于 Sender 初筛，当前 tab/frame/document/正式会话精确校验保持。回归修前 FAIL、修后 103/103 PASS，独立审查批准精确 blob `3dce19043…`。新浏览器对话 `6af02b28-396c-83e8-b155-9a661467afd5` 的初始文档仍是首页、当前地址是正式聊天；无需刷新就打开审阅并领取正确来源。该入口验证未准备或执行第三组文件请求。
+
+**运行身份与环境：** main 原 HEAD `285524e993f8b40a10a4d4aeaae88d681fd249f5`；其他 owner 的导航、AI Proxy 文档、包检查及示例改动保留。ego TaskSpace 28，实际启用 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载原 `dist/development`。初始旧产物不匹配当前源，沿原守卫恢复唯一 `npm run dev`，生成 revision `9f4f5184db15b7abea81f3346779d3ebc2e319b46fa8b7c591531b84f1ac6885`，六项相关映射同源。实际 p6 / p7 的 `Debugger.scriptParsed` 分别确认 bridge SHA `c400c7e8f496…` 与 settings SHA `3809ee902255…`，和磁盘字节一致；本轮新 UI 确实加载。writer PID 51665 随后因 Node heap OOM 退出，当前批是已加载静态 development 证据，不能冒称 serve 连接。
+
+**Native 与夹具：** 原权限阻塞已解除，无需用户再次操作。显式 connection `3867689560319bb2b8c31231b81b5570` 的 `bridge.status` 返回 `nativeConnected=true`、原 extensionId；旧默认 `doctor` 仅核对 legacy socket，不能据此判定当前多连接 Native 离线。经原命令授权隔离 workspace `workspace-eaef3e53-d817-4a01-95b5-0304cd2dad01`，路径 `artifacts/webflow-file-loop-20261108-01a1b79c/workspace/note.txt`。初始 99 bytes / SHA `f9f76d0a32fbb6040dfaf0f2307b5be38414e263e200dbc6eb7b6390245a127b`；两次后均保留 owner、context、LF 和末尾换行。
+
+**必要共享构建修复与最终服务：** 主干并行提交使 AI Proxy `Settings.tsx` 新字节与原锁不符，来源测试先为 5 PASS / 2 FAIL；独立审查确认仅文案 / 卡片顺序变化且无来源安全阻断后，仅同步该精确锁项 `3c9bd01a…`，原目标不扩。reviewer 整体结论仍为 COMMENT，类型环境缺口保留，不冒称产品 / 类型批准。首次构建随后在 `src/ui/react/tabs/tools.tsx` 设置视图少一个 JSX `}` 处失败；只补该字符，单文件 TSX transform PASS 后恢复构建。原路径唯一 writer PID **68082**、43119/43120 同 PID，Node 堆上限仅本进程设为 8192MB；构建及来源检查 **7/7 PASS**。浏览器实读已应用 revision `049e094b4a4b…` 并完成新入口验证；之后 watcher 的其他候选与本轮业务证据分开记录，不补跑文件或冒称同候选正式验收。
+
+**来源与保护：** 先前 AI Proxy 9 项精确来源审查仍保留，本轮只另同步上述已审查的一个锁项，不改该业务源码。保存后原重复确认按钮禁用；关闭网页展示不改变最终回执草稿，诊断恢复隐藏、文件处理保持开启。原权限、基线、停止及 UNKNOWN 保护未改；本轮没有新跑完整 Stop / 撤权矩阵，raw Native dispatch 次数仍 **NOT_TESTED**。TaskSpace 28 已 finish，仅保留原结果聊天；最终回执逐字保留、未发送。没有提交推送。完整身份、历史阻塞、来源审查限制、回执与产物 SHA 见[本轮证据](../evidence/file-core-20261108-01a1b79c.json)。
+
+| 条件 | 本轮必须取得的证据 |
+| --- | --- |
+| K1 真实运行身份 | 实际扩展路径 / ID、加载字节或指纹、Native 配对与已批准 workspace / path；源码和磁盘产物分别记录 |
+| K2 原监听入口 | 真实原聊天发送、完整回答和原发现事件进入 controller；不以手动 inspect、终端或私改 storage 代替 |
+| K3 准确读取 | 正文 / 字节 / SHA 与独立只读核对一致；草稿回填和模型发送分开记录，仅披露已批准内容 |
+| K4 基于正文修改 | 只发送真实读取上下文，保留编辑身份及 baseSha256；拒绝历史、流式、不完整或混合 Task / 文件回答 |
+| K5 合法确认 | 固定非 project 路径按具体前后全文和当前 reviewId 可信确认，确认前磁盘不变；已有 project 合同不扩权 |
+| K6 保存及反馈 | saved=true、readBackVerified=true，独立全文 / SHA 相符；原聊天明确结果，最终回执仅草稿、不自动发送 |
+| K7 连续两组 | 各自完整通过且 request / binding / result 全新；第二组读取当前磁盘，可信审阅 owner 按原生命周期有效 |
+| K8 必要保护 | 按实际影响回归权限 / 路径 / 来源、基线变化、重复确认、Stop / 撤权和 UNKNOWN；无原始派发计数则 exactly-once 为 NOT_TESTED |
+| K9 面板兼容 | 涉及入口时核对空闲隐藏、显式展开、关闭不重发、草稿 / 回执保留及未知详情可达；展示关闭不停止正式处理 |
+
+**保全与延期：** 旧 unknown `da70fed7-d56b-467c-8648-7f081f8f7b9b` / binding `75799e57-d20d-4518-b7bb-e3bd0ce9964b` 及其聊天、草稿、文件不重放、不清账本、不覆盖。原受保护 demo.txt 开始时仍为 63 bytes / SHA256 `fd06e9aea785d77a3f29400571e76cf855520cad1a6c43262488bf530534f137`。新测试使用没有未知屏障的独立文本夹具。仅现有 main，不创建分支 / worktree / PR，不擅自提交推送或停止他人服务；业务修改归 `projects/webflow/`，无 Native 缺陷证据不改 Go。自然语言自主项目 / 未知文件发现、MCP、production、完整 CI、评分和压力矩阵继续延期。完成两组真实链及必要保护后才将目标 complete。
+
 ## 网页文件面板交互修复（2026-11-08；独立 UI 范围）
 
 本轮重新审查正式 / 辅助 / 临时边界，不以上轮增加关闭按钮为最终设计。正式文件 adapter、首次连接、停止、回执和 UNKNOWN 对账保留；可选文本生成、手动执行与固定协议均有真实消费者。本轮退役“诊断偏好使空闲页面展开开发区”的展示和“旧版”命名，没有删除服务或数据。默认空闲不显示；显式开启网页工具入口也只出现 220×52px 小入口，点击后才展开更多操作。设置文案同步区分处理开关与展示开关。

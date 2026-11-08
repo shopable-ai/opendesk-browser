@@ -59,6 +59,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: ChatGPT heading quality and Writing regression
+        run: node --test projects/reading-toc/tests/*.test.mjs tests/environment/reading-toc-chatgpt-writing.test.mjs
       # Official release fixtures include AdBlock's source-bound React assets.
       # These direct node --test commands do not invoke npm's pretest hook.
       - name: Compile official catalog React prerequisite

@@ -1,16 +1,8 @@
 # Sidebar Tool Navigation Contract R1 · 已安装可信框架上的最小层级协作
 
-状态：R14 源码合同（2026-11-08）；R1.2 保留历史试点。同一宿主页头展示工具/子页路径与唯一分层返回，R14 在现有 `setNavigation` 上增加可选动作快照，不创建 Router 或第二条导航栏。Bridge、Host、React More 与 AI Proxy / ScrapyJS 消费者已接入。当前证据为定向 Node 与真实浏览器中的源码夹具，分层记录见下表；它们不证明用户实际安装、Native 或发布批准。R2.2 的“仅短标题、完整路径只在 title/ARIA”限制仍由现行可见路径规则替代。
+状态：R14 源码合同（2026-11-08）；R1.2 保留历史试点。同一宿主页头展示工具/子页路径与唯一分层返回，R14 在现有 `setNavigation` 上提供可选的右上角 More 动作插槽。扩展按需要选择接入；未声明动作时保持原有界面与行为。AI Proxy、ScrapyJS 是已有消费者，不决定框架接口，也不要求其他扩展迁移。R2.2 的“仅短标题、完整路径只在 title/ARIA”限制仍由现行可见路径规则替代。
 
-| R14 证据 | 范围 |
-| --- | --- |
-| [Host 回归](../../artifacts/r14-header-actions/host-final.tap) | 30 项：完整快照、实例/页面/revision、身份/撤权、状态围栏与异步失败隔离 |
-| [AI 消费者](../../artifacts/r14-header-actions/ai-final.tap) | 119 项：导航、环境与服务；unknown 恢复和失败只读请求的通知循环 |
-| [ScrapyJS](../../artifacts/r14-header-actions/scrapy-final.tap)、[旧消费者](../../artifacts/r14-header-actions/legacy-final.tap) | 分别 3 / 15 项定向检查；不是完整工具回归 |
-| [浏览器布局](../../artifacts/r14-header-actions/browser-matrix.json) | ego 源码夹具，三语 × 明暗主题 × 280/320/330/380/390/500 CSS px，共 36 项；长标题、六动作、禁用原因、固定控件与 Escape |
-| [AI 操作](../../artifacts/r14-header-actions/ai-browser-final.json)、[ScrapyJS 操作](../../artifacts/r14-header-actions/scrapy-browser.json) | 四个 AI 入口及返回、配置库及返回不重挂载；iframe 外点关闭 More 并保留输入焦点；内存适配器，不是代理/采集/真实安装证据 |
-
-夹具复用真实 Host/Bridge/React/App；ego 使用共享 Profile。为避免已装 Page SDK 的 HTTP 注入冲突，ScrapyJS 夹具以 data-origin 文档运行，补足 `crypto.randomUUID`，只允许固定夹具脚本且禁止 connect；这些适配不是 production CSP 或真实安装验证。源码输入/输出指纹保存在[夹具清单](../../artifacts/r14-header-actions/browser-fixture/inputs-sha256.json)。production、实际安装及独立复评以对应新回执为准，未有回执不得外推。
+当前是核心功能完善阶段，最短检查链为“打开支持插槽的消费者 → More → 普通导航 → 返回原页面”。已有证据及其范围见下方记录；实际安装与正式验收分别取证。历史评分、语言/主题/宽度矩阵、缩放和 production 验收不作为本阶段的执行清单，核心完成后也不自动转入这些阶段。
 
 ## 同一宿主页头的可见路径与唯一返回（现行）
 
@@ -51,12 +43,26 @@ ScrapyJS 的历史 AI 请求或本机任务尚未确认结束时，可能持续�
 
 ## R14 · 可选 Header 动作完整快照
 
-**框架拥有 Header，应用拥有业务。** 新生成扩展优先复用原 `OpenDeskTool.setNavigation`，不另建页级工具栏或宿主 DOM 接口。Header 只投影展示信息并把点击交回原应用；业务页面、草稿、请求、确认、权限申请及结果处理仍由应用负责。旧 v1/v2 安装包没有任何 schema 变化，不做持久化迁移或强制重包。
+**框架拥有 Header，应用拥有业务。** 需要右上角快捷导航的扩展可沿原 `OpenDeskTool.setNavigation` 声明动作。框架校验、排序和显示动作，提供唯一 More 菜单，将点击交回正确的原应用实例，并在状态替换或实例退役时清理投影；应用决定是否接入、有哪些动作、如何导航与返回，继续拥有页面、草稿、请求、确认、权限申请及结果处理。整条链复用原 Bridge 与 Host，不创建 Router、Authority 或特权业务通道。旧 v1/v2 安装包没有 schema 变化，不做持久化迁移或强制重包。
+
+### 选择性接入与退出
+
+| 扩展的选择或当前能力 | 框架与应用行为 |
+| --- | --- |
+| 不调用 `setNavigation` | 保持原工具界面、内容入口和宿主根操作 |
+| 使用原导航，未声明 `headerActions` | 保持原返回、主/次操作；不生成新的 More 菜单 |
+| 方法不存在，或 `navigationFeatures?.headerActions !== true` | 保留内容入口；方法存在时可只提交原导航 base，不提交增强字段 |
+| 增强调用返回 `false` | 立即重提不含 `headerActions` 的当前页 base；base 也失败时保留原内部导航 |
+| 有效的新快照省略 `headerActions`，或声明 `[]` | 清除上一快照的插槽动作；原导航字段仍按新快照生效 |
+
+最小接入顺序是检测原方法及增强特性 → 提交当前页完整快照 → 在原 root 监听动作并复核页面/状态 → 由原应用导航与返回。可直接参考[公开 API 的完整示例](../api/sidebar-tools.zh-CN.md#r14-headeractions-可选接入示例)；需要实际操作 More、观察回传与无插槽回退时，使用[独立教学示例](../../examples/sidebar-tools/header-actions-demo/README.zh-CN.md)。无需复制框架骨架或某个消费者的业务。
+
+保持工具打开但主动停止使用插槽时，先提交当前页 base（省略 `headerActions`，兼容旧 Bridge 和关闭增强的 Host），再解绑本组件的动作监听。只移除监听不会清除宿主仍持有的动作；不需要更新安装包或销毁原应用实例。工具退出、替换或撤权时，框架按原生命周期清除投影，应用清理自己的监听和订阅。
 
 ### 状态与兼容
 
 - 原字段 `page/title/canBack/primary/secondary/secondaryExpanded` 的合同保留；无 `headerActions` 的旧调用，其 normalize 返回值完全不变，不补动作字段或默认数组。
-- `headerActions` 可选，为至多 6 项的数组。每次 `setNavigation` 都替换完整导航状态及动作快照，不合并旧动作；省略该字段或传 `[]` 不保留上一页动作。顶层及动作对象未知字段仍拒绝，重复动作 ID 拒绝，不裁剪、不部分接受。
+- `headerActions` 可选，为至多 6 项的数组。每次有效快照都替换完整导航状态及动作，不合并旧动作；省略该字段或传 `[]` 不保留上一页动作。顶层及动作对象未知字段仍拒绝，重复动作 ID 拒绝，不裁剪、不部分接受。被拒绝的调用保留上一份有效状态，不能用它清空动作；应按上方规则重提 base。
 - `headerActions` 非空且 `secondary:'more'` 时整次调用返回 `false`，应用立即重新提交不含 `headerActions` 的旧 base。`secondary:'transfer'` 可共存；空动作数组与 `more` 不构成此冲突。
 - 先检测 `typeof OpenDeskTool.setNavigation === 'function'`；只有 `OpenDeskTool.navigationFeatures?.headerActions === true` 才表示 SDK 与 Host 两端支持增强。增强接入可选，增强 `setNavigation` 返回 `false` 时立即提交旧 base；没有特性、旧 Bridge 或 base 也被拒绝时保留业务内容入口和原导航，不能切断核心功能。
 - Host 可设 `headerActionsEnabled:false` 关闭新动作投影，原返回、主/次操作继续工作。能力声明不替代当前状态接收、显示或授权的判断；应用仍保留核心业务内容入口，不以 Header 是否出现决定功能可用性。
@@ -66,7 +72,7 @@ ScrapyJS 的历史 AI 请求或本机任务尚未确认结束时，可能持续�
 | `id` | 必填字符串，正则 `^[a-z][a-z0-9-]{0,31}$`；同一快照唯一 |
 | `label` | 必填字符串，去首尾空格后长度 1..40，拒绝控制字符 |
 | `icon` | 可选，仅 `new/edit/settings/diagnostics/subscriptions/library/list/refresh` |
-| `priority` | 可选，整数 -10..10，默认 0 |
+| `priority` | 可选，整数 -10..10，默认 0；值大者靠前，同值保持声明顺序 |
 | `disabledReason` | 可选字符串，去首尾空格后长度 1..80，拒绝控制字符；存在即禁用，空串不是启用方式，启用须省略字段 |
 
 控制字符拒绝规则沿用导航文本规则，包括 C0/C1（U+0000–001F、U+007F–009F）及双向文本控制 U+202A–202E、U+2066–2069；不能用修剪来吞掉非法控制字符。动作对象只允许上表字段，不传 `permission/js/url/html/callback`。label 是展示文本，不是命令、HTML、可信授权文案或任意图标源码。
@@ -81,13 +87,28 @@ Host→app 复用 `kind:'navigation-action'`；原 root 事件 `opendesk-tool-na
 
 导航不授予权限或用户手势，root 上的 CustomEvent 不能当作 `isTrusted`。权限、安装身份、能力与 epoch 继续走原安装/Authority。危险授权、代理应用/应用代理配置、Cookie 修改或导出、正文采集等敏感动作不得由 Header 无确认快捷执行；按钮可打开原业务审阅界面，实际执行必须经过对应可信确认和权限链。完整最小接入及事件解绑见[公开 API 示例](../api/sidebar-tools.zh-CN.md#r14-headeractions-可选接入示例)。
 
-More 支持方向键、Home/End、Escape、Tab 与外点关闭；焦点进入 iframe 等其他文档时同样关闭，保留新的输入焦点。读取、身份解析或可信 handler 的同步/异步失败只在仍属当前快照时提示，保留原应用实例，不自动重试。AI Proxy 的 unknown 导航锁只在服务 `GET_STATE` 或 `STOP` 明确返回 `outcomeUnknown:false` 时解除；无关成功响应不能当作未知效果已核实。
+More 支持方向键、Home/End、Escape、Tab 与外点关闭；焦点进入 iframe 等其他文档时同样关闭，保留新的输入焦点。读取、身份解析或可信 handler 的同步/异步失败只在仍属当前快照时提示，保留原应用实例，不自动重试。具体业务的 unknown 核实与解除由原应用负责，无关成功响应不能当作未知效果已核实。
+
+### 已有证据与未验证边界
+
+以下是可按源码输入复用的历史记录，不是本轮待执行清单。2026-11-08 只读核对确认：[最终源码清单](../../artifacts/r14-header-actions/source-final.json)中的 8 个框架主链/消费者文件，以及[夹具清单](../../artifacts/r14-header-actions/browser-fixture/inputs-sha256.json)中的 64 个框架与 ScrapyJS 源码输入，均与当前文件 SHA-256 一致。本次整理未修改产品源码或重跑矩阵。
+
+| R14 证据 | 范围 |
+| --- | --- |
+| [Host 回归](../../artifacts/r14-header-actions/host-final.tap) | 30 项：完整快照、实例/页面/revision、身份/撤权、状态围栏与异步失败隔离 |
+| [More 菜单](../../artifacts/r14-header-actions/menu-final.tap) | 3 项：旧次操作、动作回传、键盘/禁用原因及关闭 |
+| [ScrapyJS 操作](../../artifacts/r14-header-actions/scrapy-browser.json) | More → 配置库 → 返回，原 iframe 保留且没有采集请求；包含 iframe 外点关闭并保留输入焦点 |
+| [ScrapyJS](../../artifacts/r14-header-actions/scrapy-final.tap)、[旧消费者](../../artifacts/r14-header-actions/legacy-final.tap) | 分别 3 / 15 项定向检查；不是完整工具回归 |
+| [AI 消费者](../../artifacts/r14-header-actions/ai-final.tap)、[AI 操作](../../artifacts/r14-header-actions/ai-browser-final.json) | 120 项导航/环境/服务定向检查及四个导航入口返回；业务修复细节留在[消费者 README](../../projects/ai-proxy/README.zh-CN.md)，不作为其他扩展接入条件 |
+| [历史布局记录](../../artifacts/r14-header-actions/browser-matrix.json) | 三语 × 明暗主题 × 280/320/330/380/390/500 CSS px，共 36 项；本阶段不扩大或重跑 |
+
+浏览器记录为源码夹具，复用真实 Host/Bridge/React/App 和内存适配器，不证明代理、采集或用户实际安装。ego 使用共享 Profile；为避免已装 Page SDK 的 HTTP 注入冲突，ScrapyJS 夹具以 data-origin 文档运行，补足 `crypto.randomUUID`，只允许固定夹具脚本且禁止 connect。这些适配不证明 production CSP 或真实安装通过。当前源码的两个消费者实际安装 Header 链仍为 `NOT_TESTED`，不以历史构建、加载或重开记录代替；本阶段不补做正式安装、Native 或评分验收。
 
 ## 用户原则
 
 顶部固定唯一 `←` 按钮：根页面回扩展列表，工具内子页面逐级返回；右侧按上下文保留最多必要操作，低频新标签页入口归入可信设置。最近摘录是网页剪藏首页内容，不是中间独立层级。设置由原页面进入时保留原页面实例，返回后恢复；未保存草稿先走原有安全保护。任何扩展未经显式适配，不擅自删掉自己的导航 UI。
 
-R2.2 本地证据与验证缺口见[增量记录](../framework/workstreams/sidebar-tool-title-r22-local-20261026.md)。原生已安装业务操作、源码绑定布局夹具和 Node 安全测试分别记录，不能互相替代；用户最新要求只保留增量检查，不自动扩展完整验收。
+现有可复核证据与验证缺口见本页[已有证据与未验证边界](#已有证据与未验证边界)。原生已安装业务操作、源码绑定布局夹具和 Node 安全测试分别记录，不能互相替代；用户最新要求只保留增量检查，不自动扩展完整验收。
 
 ## R1.2 历史试点的 owner 与消息边界
 

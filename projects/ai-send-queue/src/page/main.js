@@ -95,9 +95,10 @@ export default async function main({assets}={}) {
       },
       remove(id){
         const state=engine.view();
-        if(state.inFlight?.id===id&&state.inFlight.phase==='unknown'&&
-          !window.confirm('发送结果可能已生效。请先检查原对话。确定仍要删除这条消息吗？'))return false;
-        return engine.remove(id);
+        const unknown=state.inFlight?.id===id&&state.inFlight.phase==='unknown';
+        const removed=engine.remove(id);
+        if(removed&&unknown)notify('已从队列删除；发送结果可能已生效，请检查原对话');
+        return removed;
       },
       pause(id){
         const ok=engine.pause(id);

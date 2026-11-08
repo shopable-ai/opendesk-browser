@@ -1,0 +1,16 @@
+<section class="header-demo" aria-label="页头插槽演示内容">
+  <p>从宿主右上角的「更多操作」打开资料库，再用宿主左侧返回。</p>
+  <label><input id="demo-enabled" type="checkbox" checked>使用右上角插槽</label>
+  <p id="demo-support" role="status" aria-live="polite">正在连接宿主…</p>
+  <dl>
+    <dt>当前页面</dt><dd id="demo-page"></dd>
+    <dt>本次实例</dt><dd id="demo-instance"></dd>
+    <dt>收到右上角动作</dt><dd id="demo-header-count">0</dd>
+    <dt>收到宿主返回</dt><dd id="demo-back-count">0</dd>
+  </dl>
+  <p id="demo-content"></p>
+  <button id="demo-library" type="button">打开资料库（内容入口）</button>
+  <button id="demo-back" type="button" hidden>返回首页</button>
+  <p>最近回传（仅本工具内存）：</p>
+  <ol id="demo-events" aria-live="polite"></ol>
+</section>

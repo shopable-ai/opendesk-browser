@@ -95,6 +95,12 @@ const HTML_REFERENCES = Object.freeze({
   ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
     'managed-site/blocked-'+reason+'.html',['./blocked.css']]))
 });
+// These existing Settings links navigate within one packaged document; they
+// are not executable resource inputs. Keep the admission exact and separate
+// from the script/stylesheet reference list.
+const HTML_NAVIGATION_REFERENCES = Object.freeze({
+  'native-agent/settings.html': ['settings.html#chatgpt-files', '#chatgpt-images']
+});
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
@@ -539,7 +545,7 @@ function inspectReactMountHTML(text, file, rootId) {
 }
 
 export async function inspectHTML(root, file) {
-  const text = await readFile(join(root, file), 'utf8'), references = [], policies = [];
+  const text = await readFile(join(root, file), 'utf8'), references = [], policies = [], navigation = [];
   if (/\son[a-z]+\s*=|<script\b(?![^>]*\bsrc\s*=)[^>]*>|(?:src|href)\s*=\s*['"](?:https?:|\/\/|data:|javascript:)/i.test(text)) throw new Error(`Unsafe HTML resources in ${file}`);
   for (const match of text.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)) {
     const tag = match[1].toLowerCase(), attributes = new Map();
@@ -552,6 +558,14 @@ export async function inspectHTML(root, file) {
       if (attributes.has(key) || /^on/.test(key) || ['srcdoc', 'srcset', 'style', 'action', 'formaction'].includes(key)) throw new Error(`Unsafe HTML attribute in ${file}: ${key}`);
       attributes.set(key, value); tail = tail.slice(attr[0].length);
       if (['src', 'href', 'poster', 'data'].includes(key)) {
+        if (tag === 'a' && key === 'href' && attr[4] === undefined &&
+          HTML_NAVIGATION_REFERENCES[file]?.includes(value)) {
+          const target = resolve(root, dirname(file), value.split('#')[0] || basename(file));
+          if (!target.startsWith(root + '/') || !(await stat(target)).isFile()) throw new Error(`Missing/escaped navigation in ${file}: ${value}`);
+          navigation.push(value);
+          continue;
+        }
+        if (tag === 'a' && key === 'href') throw new Error(`Unsafe HTML navigation in ${file}: ${value}`);
         if (attr[4] !== undefined || !value || /[&%\\?#:]|^\//.test(value)) throw new Error(`Unsafe HTML resources in ${file}: ${value}`);
         const target = resolve(root, dirname(file), value);
         if (!target.startsWith(root + '/') || !(await stat(target)).isFile()) throw new Error(`Missing/escaped resource in ${file}: ${value}`);
@@ -560,11 +574,15 @@ export async function inspectHTML(root, file) {
     }
     if (tag === 'meta' && attributes.get('http-equiv')?.toLowerCase() === 'content-security-policy') policies.push(attributes.get('content'));
     if (tag === 'script' && (attributes.size !== 1 || !attributes.has('src') || !attributes.get('src').endsWith('.js'))) throw new Error(`Unsafe HTML script in ${file}`);
-    if (attributes.has('href') && (tag !== 'link' || attributes.get('rel') !== 'stylesheet' || !attributes.get('href').endsWith('.css'))) throw new Error(`Unsafe HTML stylesheet in ${file}`);
+    if (tag === 'a') {
+      if (attributes.size !== 3 || !HTML_NAVIGATION_REFERENCES[file]?.includes(attributes.get('href')) ||
+        attributes.get('target') !== '_blank' || attributes.get('rel') !== 'noopener') throw new Error(`Unsafe HTML navigation in ${file}`);
+    } else if (attributes.has('href') && (tag !== 'link' || attributes.get('rel') !== 'stylesheet' || !attributes.get('href').endsWith('.css'))) throw new Error(`Unsafe HTML stylesheet in ${file}`);
     if (attributes.has('src') && tag !== 'script') throw new Error(`Unsafe HTML resource consumer in ${file}`);
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
+  if (!same(navigation, HTML_NAVIGATION_REFERENCES[file] || [])) throw new Error(`Unapproved HTML navigation references in ${file}`);
   if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : file === 'network-request.html' ? [NETWORK_REQUEST_META_CSP] : file === 'native-agent/http-relay.html' ? [HTTP_RELAY_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
   if (file === SIDEPANEL_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
   if (file === 'native-agent/workspace.html') inspectReactMountHTML(text, file, 'workspace-root');

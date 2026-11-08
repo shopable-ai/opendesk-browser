@@ -8,6 +8,13 @@ const WORKSPACE_PAGE='native-agent/workspace.html';
 const TTL_MS=120_000;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 
+function officialOrigin(url){
+  try{
+    const parsed=new URL(url);
+    return parsed.origin==='https://chatgpt.com'&&!parsed.username&&!parsed.password;
+  }catch{return false;}
+}
+
 function officialConversation(url){
   try{
     const parsed=new URL(url);
@@ -61,7 +68,9 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now(),ta
   const pageSender=async sender=>{
     if(sender?.id!==api.runtime.id||sender.frameId!==0||sender.tab?.incognito||
       !Number.isSafeInteger(sender.tab?.id)||typeof sender.documentId!=='string'||
-      !officialConversation(sender.url))
+      // Sender URL can remain the homepage after same-document SPA navigation.
+      // currentSource verifies the live conversation and exact document below.
+      !officialOrigin(sender.url))
       throw fail('E_FILE_SENDER','仅接受官方 ChatGPT 主文档的第一方入口');
     return currentSource(sender.tab.id,sender.documentId);
   };

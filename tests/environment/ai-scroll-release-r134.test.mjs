@@ -19,8 +19,8 @@ const packagePath='projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-p
 const catalogPath='official-pages/sources.json';
 const id='opendesk.ai-scroll-navigation';
 const row={programId:id,version:'0.4.1',revision:2,publication:'blocked'};
-const desired={...row,version:'0.4.8',revision:9};
-const pkg={programId:id,version:'0.4.8',revision:9,sourceHash:'a'.repeat(64),packageHash:'b'.repeat(64)};
+const desired={...row,version:'0.4.11',revision:15};
+const pkg={programId:id,version:'0.4.11',revision:15,sourceHash:'a'.repeat(64),packageHash:'b'.repeat(64)};
 const catalog=(entry= row,other='original')=>({schema:'test',programs:[entry,{programId:'other',version:other}]});
 const write=(root,path,value)=>{mkdirSync(dirname(join(root,path)),{recursive:true});
   writeFileSync(join(root,path),typeof value==='string'?value:JSON.stringify(value,null,2)+'\n');};
@@ -37,6 +37,7 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
   git(root,'init','--bare',remote);git(root,'init','-b','main',author);
   git(author,'config','user.name','Test');git(author,'config','user.email','test@example.invalid');
   write(author,packagePath,initialPackage);
+  write(author,'projects/ai-scroll-navigation/package.json',{version:pkg.version,opendesk:{id}});
   write(author,catalogPath,initialCatalog);write(author,'README.md','base\n');
   git(author,'add','.');git(author,'commit','-m','fixture');
   git(author,'remote','add','origin',remote);git(author,'push','origin','main');
@@ -47,6 +48,15 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
   return {root,remote,author,runner,temp,base,
     advance(path,value){write(author,path,value);git(author,'add','.');git(author,'commit','-m','parallel change');git(author,'push','origin','main');},
     run(env={}){return command('bash',['-c',publish],runner,{AI_SCROLL_INPUT_HEAD:base,RUNNER_TEMP:temp,...env});},
+    runBuild(version=pkg.version){
+      write(runner,packagePath,initialPackage);
+      write(runner,'projects/ai-scroll-navigation/package.json',{version,opendesk:{id}});
+      write(runner,'scripts/build-program-project.mjs','// No compilation: exercise release selection only.\n');
+      write(runner,'scripts/build-page-install-package.mjs',
+        `console.log('SELECTED_REVISION='+process.argv[process.argv.indexOf('--revision')+1]);`);
+      return command('bash',['-c',runBlock('Reuse production Program Builder and Page Installer')],runner,
+        {AI_SCROLL_INPUT_HEAD:base,RUNNER_TEMP:temp});
+    },
     runVerify(){
       // Isolate the release fence from the production validator: package schema
       // validation has its own CI suite; this executes the actual workflow gate.
@@ -54,15 +64,16 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
       write(runner,'src/scripting/user-scripts/page-install-package.js',
         `export const validatePageInstallPackage=async value=>({...value,sourceUtf8:'built source',pageRules:{matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']}});`);
       write(temp,'ai-scroll-nav-build/program.js','built source');
+      write(runner,catalogPath,initialCatalog);
       return command('bash',['-c',verify],runner,{AI_SCROLL_INPUT_HEAD:base,RUNNER_TEMP:temp});
     },
     remoteFile(path){return JSON.parse(git(author,'show',`refs/remotes/origin/main:${path}`));}};
 }
 
-test('official r9 uses reserved-range guard and a matching hash record without native claims',()=>{
-  assert.match(workflow,/--revision 9 /);
-  assert.match(verify,/value.version,'0.4.8'/);
-  assert.match(verify,/value.revision,9/);
+test('official release uses reserved-range guard and a matching hash record without native claims',()=>{
+  assert.match(workflow,/--revision "\$revision" /);
+  assert.match(verify,/value.version,project.version/);
+  assert.doesNotMatch(workflow,/0\.4\.8|--revision 9|pkg.revision,9/);
   assert.match(verify,/value.revision<1_000_000_000/);
   assert.match(verify,/sourceHash:value.sourceHash,packageHash:value.packageHash/);
   assert.match(verify,/chromeNative:'NOT_TESTED',macNative:'NOT_TESTED'/);
@@ -212,14 +223,14 @@ test('Node CI includes affected install, catalog and tool-local regressions',()=
 
 for(const stage of ['publish','verify']){
   for(const [label,initial,error] of [
-    ['same r9 with different source',{...pkg,sourceUtf8:'committed A'},/identical raw package bytes/],
-    ['same r9 with only different formatting',JSON.stringify(pkg),/identical raw package bytes/],
+    ['same revision with different source',{...pkg,sourceUtf8:'committed A'},/identical raw package bytes/],
+    ['same revision with only different formatting',JSON.stringify(pkg),/identical raw package bytes/],
     ['revision rollback',{...pkg,revision:pkg.revision+1},/revision rollback/],
     ['dynamic reserved revision',{...pkg,revision:1_000_000_000},/dynamic reserved revision/]
   ]){
     test(`${stage} rejects frozen ${label} in a real Git fixture`,t=>{
       const f=fixture(t,initial,catalog(desired));
-      if(label==='same r9 with different source')write(f.runner,packagePath,{...pkg,sourceUtf8:'rebuilt B'});
+      if(label==='same revision with different source')write(f.runner,packagePath,{...pkg,sourceUtf8:'rebuilt B'});
       const before=git(f.author,'rev-parse','origin/main');
       const result=stage==='publish'?f.run():f.runVerify();
       assert.notEqual(result.status,0,result.stdout+result.stderr);
@@ -229,14 +240,14 @@ for(const stage of ['publish','verify']){
       assert.equal(git(f.runner,'rev-parse','HEAD'),f.base);
     });
   }
-  test(`${stage} accepts frozen r2 to r9 upgrade`,t=>{
+  test(`${stage} accepts frozen r2 to r15 upgrade`,t=>{
     const f=fixture(t),result=stage==='publish'?f.run():f.runVerify();
     assert.equal(result.status,0,result.stdout+result.stderr);
     if(stage==='publish'){
       git(f.author,'fetch','origin','main');assert.deepEqual(f.remoteFile(packagePath),pkg);
     }
   });
-  test(`${stage} accepts identical frozen r9 without replacing package bytes`,t=>{
+  test(`${stage} accepts identical frozen r15 without replacing package bytes`,t=>{
     const f=fixture(t,pkg,catalog(desired)),before=git(f.author,'rev-parse','origin/main');
     const result=stage==='publish'?f.run():f.runVerify();
     assert.equal(result.status,0,result.stdout+result.stderr);
@@ -245,3 +256,46 @@ for(const stage of ['publish','verify']){
     if(stage==='publish')assert.match(result.stdout,/no duplicate commit/);
   });
 }
+
+for(const stage of ['publish','verify']){
+  test(`${stage} rejects version rollback even with a higher candidate revision`,t=>{
+    const f=fixture(t,{...pkg,version:'0.4.12',revision:14},catalog({...desired,version:'0.4.12',revision:14}));
+    const result=stage==='publish'?f.run():f.runVerify();
+    assert.notEqual(result.status,0,result.stdout+result.stderr);
+    assert.match(result.stderr,/version rollback/);
+  });
+}
+for(const [label,base,version,expected] of [
+  ['r14 to r15',{...pkg,version:'0.4.10',revision:14},'0.4.11',15],
+  ['identical r15',pkg,'0.4.11',15],
+  ['higher existing release',{...pkg,version:'0.4.12',revision:16},'0.4.12',16],
+  ['numeric semver ordering',{...pkg,version:'0.4.9',revision:13},'0.4.10',14]
+])test(`shipping builder selects ${label} without pinning a release`,t=>{
+  const f=fixture(t,base),result=f.runBuild(version);
+  assert.equal(result.status,0,result.stdout+result.stderr);
+  assert.match(result.stdout,new RegExp(`SELECTED_REVISION=${expected}\\b`));
+});
+test('shipping builder rejects downgrade before invoking either builder',t=>{
+  const f=fixture(t,{...pkg,version:'0.4.12',revision:16}),result=f.runBuild('0.4.11');
+  assert.notEqual(result.status,0,result.stdout+result.stderr);
+  assert.match(result.stderr,/version rollback/);
+  assert.doesNotMatch(result.stdout,/SELECTED_REVISION/);
+});
+test('identical approved package keeps its existing approval',t=>{
+  const approved={...desired,publication:'approved'};
+  const f=fixture(t,pkg,catalog(approved)),result=f.runVerify();
+  assert.equal(result.status,0,result.stdout+result.stderr);
+  assert.equal(JSON.parse(readFileSync(join(f.runner,catalogPath))).programs[0].publication,'approved');
+});
+
+test('new r15 candidate cannot inherit approved r14 native publication',t=>{
+  const previous={...desired,version:'0.4.10',revision:14,publication:'approved'};
+  const f=fixture(t,{...pkg,version:previous.version,revision:previous.revision},catalog(previous));
+  const result=f.runVerify();
+  assert.equal(result.status,0,result.stdout+result.stderr);
+  const entry=JSON.parse(readFileSync(join(f.runner,catalogPath))).programs[0];
+  assert.equal(entry.version,pkg.version);
+  assert.equal(entry.revision,pkg.revision);
+  assert.equal(entry.publication,'blocked');
+  assert.match(entry.blockedReason,/NOT_TESTED/);
+});

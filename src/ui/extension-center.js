@@ -30,7 +30,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let sources={};
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
-  let siteUpgradeError='',scrollDraft=null,scrollAwaitingReview=false;
+  let siteUpgradeError='',scrollDraft=null,scrollAwaitingReview=false,scrollWriteUnknown=false;
   let pageDiscovery=null,discoveryGeneration=0;
   let marketDiscoveryAvailable=false,discoveryChannelGeneration=0;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
@@ -534,10 +534,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(sidebarTools.openOfficialPageReview?.(row.release)!==true)
       message('网页增强安装审阅暂不可用；请核对未保存编辑或安装器状态。','error');
   }
-  // An installed, enabled, verified app may open; all other rows lead to details.
+  // Product management opens in the existing trusted root; Page code is never
+  // passed to the sandbox ToolHost or executed by this presentation action.
   function openRow(key){
     const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed&&!row.queueProduct?.pageInstalled))return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
+    if(resolveExtensionPrimaryAction(row)?.id==='manage'){openDetail(key,'main');return;}
     if(resolveExtensionPrimaryAction(row)?.id==='open'){
       try{
         if(!sidebarTools.openTool(row.id))
@@ -652,7 +654,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(pkg?.programId!==SCROLL_CONFIG_PROGRAM_ID||!Number.isSafeInteger(pkg.revision)||pkg.revision===install.revision)
         throw Object.assign(new Error('可信宿主未返回新的固定安装候选'),{code:'E_SITE_REVIEW'});
       backIfNeeded();
-      if(sidebarTools.openPagePackageReview?.(pkg,values.origin.trim())!==true)
+      if(sidebarTools.openPagePackageReview?.(pkg,values.origin.trim(),async()=>{
+        // Closing either a cancelled/denied review or a successful review
+        // returns the same draft. Only a fresh Authority read decides access.
+        if(disposed||!scrollAwaitingReview||!scrollDraft||selectedKey)return;
+        scrollAwaitingReview=false;
+        await refresh();
+        if(!disposed&&find(baseline.key)?.installed&&!selectedKey)openDetail(baseline.key,'main');
+      })!==true)
         throw Object.assign(new Error('原 Page Installer 审阅入口当前不可用'),{code:'E_SITE_REVIEW'});
       if(scrollDraft)scrollAwaitingReview=true;
       return true;
@@ -811,6 +820,31 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             return {tabId:live.tabId,frameId:0,documentId:live.documentId,
               expectedUrl:live.url,expectedWindowId:live.windowId};
           };
+          const unknown=error=>Object.assign(new Error(
+            '写入结果尚未确认，请先重新读取核对：'+String(error?.message||error)),{code:'E_CONFIG_UNKNOWN'});
+          const mutate=async(method,payload,verify)=>{
+            if(scrollWriteUnknown)throw unknown('上次写入仍待核对');
+            let result;
+            try{result=await client.request(method,payload);}
+            catch(error){
+              // Explicit pre-commit rejections are safe. Lost/transport replies
+              // might follow a committed CAS and must never be auto-replayed.
+              if(['E_CONFIG_SCHEMA','E_CONFIG_SCOPE','E_CONFIG_DOM','E_CONFIG_CONFLICT',
+                'E_PAGE_AUTHORIZATION','E_PERMISSION','E_GESTURE','E_DOCUMENT_STALE',
+                'E_REVISION','E_SCROLL_RESTORE_SCOPE'].includes(error?.code))throw error;
+              scrollWriteUnknown=true;throw unknown(error);
+            }
+            try{
+              if(typeof result?.etag!=='string'||result?.value?.version!==1||
+                !Array.isArray(result.value.sites)||!verify(result.value))
+                throw new Error('可信写入回执与本次修改不一致');
+              const confirmed=await client.request('readScrollSiteConfig',request);
+              ensure();
+              if(confirmed?.etag!==result.etag||JSON.stringify(confirmed.value)!==JSON.stringify(result.value))
+                throw new Error('保存后的持久化读回不一致');
+              return confirmed;
+            }catch(error){scrollWriteUnknown=true;throw unknown(error);}
+          };
           return {
             identityKey:pinned.manifestHash+':'+pinned.expectedGeneration,
             resumeDraft:scrollDraft?{...scrollDraft}:null,
@@ -842,7 +876,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             disabledReason:!page?.enabled?'已停用；请先启用应用':
               page?.authorization?.status!=='active'||page?.nativeState!=='registered'||page?.error?
                 '尚未获得有效的网站授权与原生注册':null,
-            async onRead(){ensure();return client.request('readScrollSiteConfig',request);},
+            async onRead(){
+              ensure();const result=await client.request('readScrollSiteConfig',request);ensure();
+              if(result?.value?.version!==1||!Array.isArray(result.value.sites)||typeof result.etag!=='string')
+                throw Object.assign(new Error('可信读回格式无效'),{code:'E_CONFIG_UNKNOWN'});
+              scrollWriteUnknown=false;return result;
+            },
+            async onSaveNavigation(navigation,etag,event){
+              if(event?.isTrusted!==true)throw Object.assign(new Error('请由真实操作更改导航设置'),{code:'E_GESTURE'});
+              ensure();
+              return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>
+                Object.keys(navigation).length===5&&Object.entries(navigation).every(([key,flag])=>
+                  typeof flag==='boolean'&&value.navigation?.[key]===flag));
+            },
             onDraftChange(draft,editKey){
               if(draft)scrollDraft={...draft,editKey:editKey??null};
               else {scrollDraft=null;scrollAwaitingReview=false;}
@@ -865,21 +911,26 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             async onSave(rule,etag,editKey,event){
               if(event?.isTrusted!==true)throw Object.assign(new Error('请单击保存网站'),{code:'E_GESTURE'});
               ensure();
-              if(rule!==null&&!scrollProgramUrlMatches(page.pageRules,rule.origin+rule.pathScope)){
+              if(rule!==null&&!(editKey&&rule.enabled===false)&&
+                !scrollProgramUrlMatches(page.pageRules,rule.origin+rule.pathScope)){
                 scrollDraft={...rule,editKey:editKey??null};
                 const reviewed=await reviewScrollSite(
                   {origin:rule.origin,pathScope:rule.pathScope},event,pinned);
                 if(!reviewed)throw Object.assign(new Error('尚未完成新网站的安装权限审阅'),{code:'E_SITE_REVIEW'});
                 return {review:true};
               }
-              const where=rule===null?null:await target();ensure();
-              const result=await client.request('saveScrollSiteRule',{
-                ...request,target:where,rule,etag,editKey:editKey??null});
-              if(typeof result?.etag!=='string'||!Array.isArray(result?.value?.sites))
-                throw Object.assign(new Error('可信写入回执不完整'),{code:'E_CONFIG_UNKNOWN'});
-              const confirmed=await client.request('readScrollSiteConfig',request);
-              if(confirmed?.etag!==result.etag||JSON.stringify(confirmed.value)!==JSON.stringify(result.value))
-                throw Object.assign(new Error('保存后的持久化读回不一致，请先刷新核对'),{code:'E_CONFIG_UNKNOWN'});
+              // Management of saved rules need not require an active webpage.
+              // The Host decides which edits still require live DOM validation.
+              let where=null;
+              if(rule!==null){try{where=await target();}catch(error){if(!editKey)throw error;}}
+              ensure();
+              const confirmed=await mutate('saveScrollSiteRule',{
+                ...request,target:where,rule,etag,editKey:editKey??null},value=>{
+                const at=key=>value.sites.find(site=>site.origin+'\n'+site.pathScope===key);
+                if(rule===null)return !at(editKey);
+                const key=rule.origin+'\n'+rule.pathScope;
+                return JSON.stringify(at(key))===JSON.stringify(rule)&&(!editKey||editKey===key||!at(editKey));
+              });
               scrollDraft=null;scrollAwaitingReview=false;
               return confirmed;
             }

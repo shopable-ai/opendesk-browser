@@ -75,7 +75,7 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-file-intent-page.js':'79b1f9ff03e3d79e67718e7b0a499a3fd0f5bde6',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'301005927d9160e25698c3fa63ddf2ca9b3fba53',
   'projects/webflow/trusted/chatgpt-files-ui.js':'7a661e87756992620944a565ec4b6f555031f8a4',
-  'projects/webflow/trusted/chatgpt-file-intent-gate.js':'09e7e29cc827fdd7baa549092f3a6b08031ea10d',
+  'projects/webflow/trusted/chatgpt-file-intent-gate.js':'3dce19043bb41322b8c3f9bd4b73636db7f0291a',
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
   'projects/webflow/trusted/chatgpt-files.html':'0968cdebc7256f7ffccc49babec89f37810b548d',
   'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87'
@@ -586,9 +586,12 @@ function reviewedCompiledWebClipper(target,path,root){
 // 2026-10-30 relocation review: four parent-depth import corrections resolve
 // to the same existing src modules after examples/ -> projects/. Business logic,
 // target ownership, permissions and fail-closed source/symlink guards are unchanged.
+// 2026-11-08 ChatGPT index review: omit letterless display values before the
+// heading quota/tree; short multilingual titles, DOM identity and article
+// extraction remain intact. This changes only the existing Page Relay index.
 const compiledReadingTocInputs=Object.freeze({
   'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
-  'projects/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
+  'projects/reading-toc/trusted/model.js':'e0f6ae0b8616874b908fe8380f2e9b06c1a996b3',
   'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
   'projects/reading-toc/trusted/page.js':'fe9fa7093b570c280bf9f3304002f50eda4bdae9',
   'projects/reading-toc/trusted/view.js':'af923d91c57904138245b3741c4bbbdb7a873014',
