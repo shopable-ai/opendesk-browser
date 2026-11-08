@@ -146,7 +146,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       button.addStyle(buttonCss);
       blue=element(doc,'button','sq-send');
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
-      blue.title='OpenDesk 队列 · 当前草稿加入发送队列 · 皇冠仅为装饰';
+      blue.setAttribute('aria-keyshortcuts','Control+Enter');
+      blue.title='OpenDesk 队列 · 点击或 Ctrl + Enter 加入发送队列 · 皇冠仅为装饰';
       const crown=element(doc,'span','sq-crown');
       crown.setAttribute('aria-hidden','true');
       blue.append(svg(doc,ICON.send),crown);
