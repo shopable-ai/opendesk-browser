@@ -318,6 +318,21 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  assert.equal(await evaluate(trusted,
   "document.querySelector('[data-opendesk-toc-root]').hasAttribute('data-toc-collapsed')"),true);
+ const folded=await evaluate(trusted,`(()=>{
+  const host=document.querySelector('[data-opendesk-toc-root]');
+  const r=host.getBoundingClientRect();
+  const viewport=visualViewport;
+  return {left:r.left,right:r.right,top:r.top,width:r.width,
+   viewportLeft:viewport?.offsetLeft??0,
+   viewportRight:(viewport?.offsetLeft??0)+(viewport?.width??innerWidth)};
+ })()`);
+ assert(Math.abs(folded.width-38)<1,'Collapsed hitbox must stay exactly 38px');
+ assert(Math.abs(folded.right-folded.viewportRight)<1,
+  'Default collapsed tab must be flush with the physical right viewport edge');
+ const skin=await tocNode(trusted,shadow,'.edge-skin');
+ const skinBorder=(await trusted.send('DOM.getBoxModel',{nodeId:skin})).model.border;
+ assert(Math.abs(Math.max(skinBorder[0],skinBorder[2],skinBorder[4],skinBorder[6])-
+  folded.viewportRight)<1,'20px visible tab must touch the viewport border, not only its transparent hitbox');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  assert.equal(await evaluate(trusted,
   "document.querySelector('[data-opendesk-toc-root]').hasAttribute('data-toc-collapsed')"),false);
