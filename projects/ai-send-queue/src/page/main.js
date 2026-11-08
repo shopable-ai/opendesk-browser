@@ -136,7 +136,8 @@ export default async function main({assets}={}) {
       if(!queueShortcut&&!state.items.length)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
       if(!snap.ok||(!queueShortcut&&snap.route!==state.route)||!snap.editor||
-        (target!==snap.editor&&!snap.editor.contains?.(target))||!snap.draft)return;
+        (target!==snap.editor&&!snap.editor.contains?.(target))||
+        (!queueShortcut&&!snap.draft))return;
       if(queueShortcut){
         // Consume the key before enqueuing so ChatGPT cannot also submit it.
         event.preventDefault();event.stopImmediatePropagation();
