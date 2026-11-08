@@ -131,7 +131,8 @@ test('normal native Enter, missing ambiguous controls and an empty queue are unt
 });
 
 test('newlines, modified Enter, composition and unrelated targets keep native behavior',async()=>{
-  for(const patch of [{shiftKey:true},{altKey:true},{ctrlKey:true},{metaKey:true},
+  for(const patch of [{shiftKey:true},{altKey:true},{metaKey:true},
+    {ctrlKey:true,shiftKey:true},{ctrlKey:true,altKey:true},{ctrlKey:true,metaKey:true},
     {isComposing:true},{keyCode:229},{defaultPrevented:true},{key:'a'},{target:{} }]){
     const h=fixture({queued:true});await h.run();
     assert.equal(h.key(patch).prevented,false,JSON.stringify(patch));assert.equal(h.calls.clear,0);
@@ -140,6 +141,57 @@ test('newlines, modified Enter, composition and unrelated targets keep native be
   assert.equal(h.key().prevented,false);
   h.composition('compositionend');assert.equal(h.key().prevented,false,'IME commit Enter is not a queue shortcut');
   assert.equal(h.calls.clear,0);
+});
+
+test('Ctrl+Enter queues the first draft exactly once even when native Send is available',async()=>{
+  const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
+  h.snap.busy=false;
+  h.snap.sendButton={disabled:false,getAttribute:()=>null};
+  const event=h.key({ctrlKey:true});
+  assert.equal(event.prevented,true);assert.equal(event.stopped,true);
+  assert.equal(h.listeners.get('keydown').options,true);
+  assert.equal(h.calls.preflight,1);assert.equal(h.calls.clear,1);
+  assert.equal(h.calls.enqueued,1);assert.equal(h.calls.ticks,1);
+  assert.match(h.calls.toasts.at(-1),/加入发送队列/);
+  h.key({ctrlKey:true,repeat:true});
+  assert.equal(h.calls.clear,1,'key repeat must not enqueue a second time');
+});
+
+test('Ctrl+Enter shares the button preflight and uncertain-clear recovery',async()=>{
+  const denied=fixture({preflight:{ok:false,reason:'发送队列已满'}});await denied.run();
+  const rejected=denied.key({ctrlKey:true});
+  assert.equal(rejected.prevented,true);
+  assert.equal(denied.calls.preflight,1);assert.equal(denied.calls.clear,0);
+  assert.equal(denied.calls.enqueued,0);
+  assert.match(denied.calls.toasts.at(-1),/队列已满/);
+
+  const h=fixture();await h.run();
+  assert.equal(h.key({ctrlKey:true}).prevented,true);
+  assert.equal(h.calls.clear,1);assert.equal(h.calls.enqueued,0);
+  assert.equal(h.calls.recovery.text,'private draft');
+  h.key({ctrlKey:true});
+  assert.equal(h.calls.clear,1,'recovery fence must block a second attempt');
+});
+
+test('Ctrl+Enter leaves other targets, IME and retired owners untouched',async()=>{
+  const patches=[{ctrlKey:true,shiftKey:true},{ctrlKey:true,altKey:true},
+    {ctrlKey:true,metaKey:true},{ctrlKey:true,isComposing:true},
+    {ctrlKey:true,keyCode:229},{ctrlKey:true,defaultPrevented:true},
+    {ctrlKey:true,target:{}},{ctrlKey:true,key:'a'}];
+  for(const patch of patches){
+    const h=fixture();await h.run();
+    assert.equal(h.key(patch).prevented,false,JSON.stringify(patch));
+    assert.equal(h.calls.clear,0);
+  }
+  const h=fixture();await h.run();h.composition('compositionstart');
+  assert.equal(h.key({ctrlKey:true}).prevented,false);
+  h.composition('compositionend');
+  assert.equal(h.key({ctrlKey:true}).prevented,false);
+  assert.equal(h.calls.clear,0);
+  h.retire();assert.equal(h.key({ctrlKey:true}).prevented,false);
+  const legacy=fixture();await legacy.run();legacy.setLegacy(true);
+  assert.equal(legacy.key({ctrlKey:true}).prevented,false);
+  assert.equal(legacy.calls.clear,0);
 });
 
 test('Enter follows editor replacement and becomes inert after retirement or late legacy owner',async()=>{
