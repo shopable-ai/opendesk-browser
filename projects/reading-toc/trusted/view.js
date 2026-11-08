@@ -4,32 +4,33 @@ import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
 
 // Fixed vertical anchor on the header row, independent of variable outline height.
 const EDGE_TOP=5;
-// Reserve the entire 38px interaction rail OUTSIDE the card, never above its four mode buttons.
+// Keep the original card width and right gutter. Only the edge tab may
+// protrude into that gutter; its clickable area must clear the toolbar.
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
 const CSS=[
-':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:292px;max-width:calc(100vw - 24px);z-index:2147483000;',
+':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:254px;max-width:calc(100vw - 24px);z-index:2147483000;--toc-edge-gap:12px;',
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
 '*{box-sizing:border-box}button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #426cff;outline-offset:2px}',
-'.panel{width:calc(100% - 38px);background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
-":host([data-toc-edge=left]) .panel{margin-left:38px}",
+'.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
-`.edge-toggle{position:absolute;right:0;top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
-".edge-skin{position:absolute;left:0;right:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
-":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
-":host([data-toc-edge=left]) .edge-skin{left:auto;right:0;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px}",
-// Only the folded tab is visually flush with the viewport. The expanded tab
-// stays attached to the card, with its entire interaction rail outside it.
-":host([data-toc-collapsed][data-toc-edge=right]) .edge-skin{left:auto;right:0;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px}",
-":host([data-toc-collapsed][data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
+`.edge-toggle{position:absolute;right:calc(-1 * var(--toc-edge-gap));top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:20px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
+".edge-skin{position:absolute;right:0;left:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
+":host([data-toc-edge=left]) .edge-toggle{left:calc(-1 * var(--toc-edge-gap));right:auto}",
+":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
+// The expanded hitbox is only 20px wide, positioned flush with the viewport
+// or immediately outside a freely dragged card. A 38px target here covered
+// the fourth mode button, even when the visible skin was only 20px.
+":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
-".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
+".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#e8ebef}",
+":host([data-toc-collapsed]) .edge-toggle:hover .edge-skin,:host([data-toc-collapsed]) .edge-toggle:focus-visible .edge-skin{width:38px}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
-":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
-// The 20px visual tab touches the panel edge, while its 38x46 hitbox stays
-// entirely in the dedicated rail. Hover/focus expands only outward into the rail.
-"@media(hover:none){.edge-toggle .edge-skin{width:38px}}",
+":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:38px;transform:none}",
+// Keep the folded tab's 38x46 target, with 20px visible at rest;
+// expanded mode uses the compact target so no transparent hitbox blocks modes.
+"@media(hover:none){:host([data-toc-collapsed]) .edge-toggle .edge-skin{width:38px}}", 
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}:host([data-toc-edge=left]) .edge-skin,:host([data-toc-collapsed]) .edge-skin{border-color:#4b505b}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
@@ -77,8 +78,8 @@ const CSS=[
 '.ai-member-copy,.ai-member-status{color:#abb8d0}',
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
-'@media(max-width:1100px){:host{right:8px;top:8px;width:258px;opacity:.95}.heading{font-size:11px}}',
-'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(292px,calc(100vw - 16px));opacity:.94}}',
+'@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
+'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const EDGE_SIZE=Object.freeze({width:38,height:46});
@@ -267,9 +268,12 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       expandedFrame={width:rect.width,height:rect.height,
         leftGap:rect.left-viewport.left,
         rightGap:viewport.left+viewport.width-rect.right};
+      // Preserve the ACTUAL visible trigger location through the transition,
+      // including custom placement and responsive gutter changes.
+      const toggleRect=edgeToggle.getBoundingClientRect();
       const point=foldPoint(
-        edgeSide==='right'?rect.right-EDGE_SIZE.width:rect.left,
-        rect.top+EDGE_TOP,edgeSide,placement,viewport);
+        edgeSide==='right'?toggleRect.right-EDGE_SIZE.width:toggleRect.left,
+        toggleRect.top,edgeSide,placement,viewport);
       collapsed=true;
       panel.hidden=true;panel.inert=true;
       host.setAttribute('data-toc-collapsed','');
@@ -369,16 +373,17 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     if(collapsed){
       const viewport=tocViewport(win),rect=host.getBoundingClientRect();
       let left=rect.left,top=rect.top;
+      const tabGap=Number.parseFloat(win.getComputedStyle(host).getPropertyValue('--toc-edge-gap'))||0;
       if(placement&&expandedFrame){
         const point=tocPlacementPoint(placement,expandedFrame,viewport);
         if(point){
-          left=edgeSide==='right'?point.left+expandedFrame.width-EDGE_SIZE.width:point.left;
+          left=edgeSide==='right'?point.left+expandedFrame.width+tabGap-EDGE_SIZE.width:point.left-tabGap;
           top=point.top+EDGE_TOP;
         }
       }else if(expandedFrame){
         left=edgeSide==='right'
-          ?viewport.left+viewport.width-expandedFrame.rightGap-EDGE_SIZE.width
-          :viewport.left+expandedFrame.leftGap;
+          ?viewport.left+viewport.width-expandedFrame.rightGap+tabGap-EDGE_SIZE.width
+          :viewport.left+expandedFrame.leftGap-tabGap;
       }
       const point=foldPoint(left,top,edgeSide,placement,viewport);
       host.style.left=point.left+'px';host.style.top=point.top+'px';
