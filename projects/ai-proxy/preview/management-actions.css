@@ -1,4 +1,4 @@
-/* Only the two contextual management shortcuts opt in. No global restyling. */
+/* Sidebar-only preview entry styles; PC management remains unchanged. */
 @scope (.proxy-app) {
   :scope .r86Panel .apManagementAction { position:relative; display:inline-flex; flex:none; }
   :scope .r86Panel .apManagementAction .apManagementIcon {
@@ -19,4 +19,15 @@
   :scope .r86Panel .apManagementTooltip > span { font-size:11px; }
   /* A transparent bridge keeps the tooltip hoverable across its visual gap. */
   :scope .r86Panel .apManagementTooltip::before { content:''; position:absolute; inset: -6px 0 auto; height:6px; }
+  /* Shown only after runtime conflict/error/unknown; navigation does not probe. */
+  :scope .r86Panel .apDiagnosticEntry {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    min-height:34px; margin-top:8px; padding:5px 10px;
+    border:1px solid var(--r86-line); border-radius:8px;
+    background:var(--r86-surface); color:var(--r86-ink);
+    font-size:11px; font-weight:650;
+  }
+  :scope .r86Panel .apDiagnosticEntry:hover:not(:disabled) {
+    border-color:var(--r86-accent); background:var(--r86-fill);
+  }
 }
