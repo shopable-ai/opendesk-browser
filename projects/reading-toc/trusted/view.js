@@ -42,7 +42,7 @@ const CSS=[
 ':host([data-toc-dragging]){transition:none!important}',
 ':host([data-toc-dragging]) .panel{box-shadow:0 9px 25px #1018272b}',
 '.heading{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:650;letter-spacing:.045em;color:#727685}',
-'.modes{display:flex;align-items:center;gap:1px;margin-left:auto;padding:2px;border:1px solid #e9e9ef;border-radius:8px;background:#fafafd;flex:none}',
+'.modes{position:relative;z-index:2;display:flex;align-items:center;gap:1px;margin-left:auto;padding:2px;border:1px solid #e9e9ef;border-radius:8px;background:#fafafd;flex:none}',
 '.mode{display:grid;place-items:center;flex:none;width:25px;height:27px;border:0;border-radius:5px;background:transparent;color:#858996;padding:0}',
 '.mode svg{width:13px;height:13px}.mode[aria-pressed=true]{background:#fff;box-shadow:0 1px 3px #171d2a15;color:#303342}',
 '.scroll[hidden],.ai-view[hidden]{display:none!important}',
