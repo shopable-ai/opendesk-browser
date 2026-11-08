@@ -9,7 +9,7 @@
 同一已安装 Sidebar Tool 可由原宿主在侧栏和固定扩展标签页运行，不需要创建另一个安装包。当前源码开始为沙箱 `OpenDeskTool` 提供**只读** `surface` 字段，其值为 `'sidebar'`（缺省）或 `'page'`（宿主工具标签页）；原有 `root/request/setNavigation` 和所有安装/存储/浏览器权限保持不变。可选示例：
 
 ```js
-const surface = OpenDeskTool?.surface === 'page' ? 'management' : 'sidebar';
+const surface = globalThis.OpenDeskTool?.surface === 'page' ? 'management' : 'sidebar';
 // 仅选择本工具自己的布局；不能以 surface 推断权限或信任级别。
 renderTool({surface});
 ```
