@@ -6,6 +6,18 @@
 
 功能与数据为主体，UI 可选；经典 HTML/CSS/JS 与预构建 Vue/React 可复用同一安装包机制；Side Panel 和扩展标签页只是不同的容器。AI/工作流通过经授权的功能接口访问业务数据，不依赖知识库管理 UI 开启。客服自动监听属于 Task/RunHost，不能依赖工具 iframe 计时器。真实写入必须有权限、版本检查、日志及审核，不信任外部聊天内容产生的授权指令。
 
+## 2026-11-09 · 自定义 PC 管理页面与 Side Panel 同一安装版 UI：现状及可复用方案
+
+**当前代码已接线，运行验收未完成。** 用户确认的 [AI Proxy R18/R16 单文件离线交互预览](../../../projects/ai-proxy/preview/ai-proxy-r18-r16-clickable-preview.html) 是产品设计基准，不是可执行扩展源码。正式实现仍复用同一安装包的业务服务、存储与页面组件，不在宿主复制 R16 演示 JavaScript，也不让管理页获得额外权限。
+
+**已实施的首阶段入口与展示契约：** 固定 `ui/tool.html?toolId=<id>`（实际入口由 `toolPageHref` 生成）已有安装、启停、版本、包 SHA 与撤销代际校验。Host 依可信文档上下文把 **只读展示提示** `displaySurface` 限定为 `'sidebar' | 'page'`；沙箱 Bridge 暴露 `OpenDeskTool.surface` 供 HTML/Vue/React 用户应用调整栅格，不能拿它判断授权、执行世界或身份。可信静态 AI Proxy（仅严格原有审核版本）由同一个 React portal 接收展示提示；侧栏继续 `QuickPanel`，全页使用 **同一** `App / Settings / service` 和已有 `management.css` 七栏目。旧包不依赖该提示时可忽略，默认紧凑视图。**当前代码提交不等于编译/安装/Chromium 通过。**
+
+**下一阶段建议的通用、受限 PC 入口（设计目标，NOT_IMPLEMENTED）：** 提供自愿接入的 `OpenDeskTool.openOwnPage({view:'settings',section:'profiles'})`，正式命名与 Schema 须经公开 SDK 审核。它只能请求**当前已安装工具自身**的固定宿主标签页，不能携带 URL、JS、文件路径、能力声明、跨工具 ID、凭据或自定义扩展页；`view` 和 `section` 是长度/字符受限的显示与业务导航提示，**不能成为 Host 授权条件**。Host 只允许可信用户点击/键盘手势触发，按原活动实例、source、installEpoch、packageHash、enabled/permission 和 busy/dirty/unknown 状态复核，过期和撤权拒绝、不自动重放。内部路由由各应用拥有；可靠送达需要一次性启动参数围栏/确认机制，且不能仅靠 URL hash 或 `postMessage origin='null'` 自证可信。旧宿主不支持此接口时保留原侧栏内部设置入口，不能伪报已打开 PC。
+
+**多工具使用方式：** 每个 Sidebar Tool 可自己决定是否提供 `compact` 与 `management` 两种布局，HTML/CSS/JS、React、Vue 均支持；可以选择一个页面自适应，也可以使用同一个包中的两个组件路由，但**不得另建安装身份/后台/Storage Owner**。共享宿主仅负责固定页面、实例、安装、权限、展示尺寸与受控打开；每个业务工具拥有自己的七区/多区内容、验证、草稿、保存与回滚。跨侧栏和 PC 标签页是两个独立 UI 实例，共用原受管业务存储并按既有 ETag/版本重新读取；**不能假设前一实例草稿被另一个实例自动同步**，更不能因为页面打开就应用代理、启动任务或重复提交未知副作用。宿主通用“工具设置/授权/停用/卸载”继续独立于应用内部 PC 设置。
+
+**交付门禁：** (1) 单文件预览及正式源码边界；(2) 同一已安装工具的侧栏与 PC 两实例展示、七区功能；(3) 点击 PC 入口/后退/关闭/重开/键盘焦点/dirty、busy、unknown；(4) 选择/保存与应用仍分离；(5) 任意工具伪造 id/URL/source、旧 epoch、撤权、只读预览不能提权；(6) HTML/Vue/React 老工具无 `surface` 时零退化；(7) 明确划分代码、Node/Build、Chrome 安装与实际路由证据。各级验收单独报告，不以评分或离线原型替代。
+
 ## 已实施：同一安装版 UI 可在侧栏与标签页打开
 
 `src/ui/sidebar-tools.js` 继续作为唯一的安装版工具宿主。侧栏已安装工具列表和打开后标题栏提供 ↗，仅导航到固定扩展页 `ui/tool.html?toolId=<id>`。标签页复用 `createSidebarTools`：先读取已安装包及网站权限，随后创建 **`sidebar-tools/sandbox.html` opaque-origin iframe**，通过现有 postMessage 协议调用被批准的接口。工具 HTML/JS 不进入特权宿主 DOM。侧栏与全页面各有实例令牌，工具数据使用已有命名空间及 Chrome 锁；卸载/更新撤销过期实例。
