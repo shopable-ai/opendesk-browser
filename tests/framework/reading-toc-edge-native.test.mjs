@@ -182,12 +182,14 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const overlay=await open('index.html'),trusted=await child(browser,overlay.page);
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
    'trusted overlay failed to mount');
- const shadow=await tocClosedShadow(trusted);
+ const dom=(await trusted.send('DOM.getDocument',{depth:1,pierce:true})).root.nodeId;
+ const host=await tocNode(trusted,dom,'[data-opendesk-toc-root]');
+ const described=(await trusted.send('DOM.describeNode',{nodeId:host,pierce:true})).node;
+ assert.equal(described.shadowRoots?.[0]?.shadowRootType,'closed');
+ const shadow=described.shadowRoots[0].nodeId;
  const toggle=await tocNode(trusted,shadow,'button.edge-toggle');
  const skin=await tocNode(trusted,shadow,'.edge-skin');
  const arrow=await tocNode(trusted,shadow,'.edge-toggle path');
- const host=await tocNode(trusted,(await trusted.send('DOM.getDocument',{depth:1,pierce:true})).root.nodeId,
-   '[data-opendesk-toc-root]');
  const attributes=async nodeId=>{
    const pairs=(await trusted.send('DOM.getAttributes',{nodeId})).attributes,result={};
    for(let i=0;i<pairs.length;i+=2)result[pairs[i]]=pairs[i+1];
