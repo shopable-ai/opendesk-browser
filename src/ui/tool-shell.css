@@ -405,7 +405,7 @@
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
 /* Only the trusted tool header owns this full-width surface; od-toolbar remains layout-only. */
-.sidebar-tool-view-head{position:relative;z-index:3;display:flex;align-items:center;gap:var(--space-1);min-width:0;min-height:48px;margin:0 calc(0px - var(--od-page-gutter));padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
+.sidebar-tool-view-head{position:relative;z-index:3;display:flex;align-items:center;gap:2px;min-width:0;min-height:48px;margin:0 calc(0px - var(--od-page-gutter));padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
 #sidebar-tool-back{color:var(--od-ink);border-color:transparent;background:transparent}
 #sidebar-tool-remove{border-color:transparent;color:var(--od-sub);background:transparent}
 

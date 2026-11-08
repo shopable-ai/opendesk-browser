@@ -205,7 +205,7 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(html,/id="task-open-catalog"/);
   assert.match(css,/\.sidebar-tools-head\{margin:0 0 8px\}/,'Tools header uses the same 8px vertical rhythm as My');
   assert.match(css,/\.sidebar-tool-import\{min-width:0;margin:0 0 8px;padding:10px;/,'import panel stays compact below the header');
-  assert.match(css,/\.sidebar-tool-view-head\{[^}]*min-height:34px;margin-bottom:8px;/,'opened tool header matches the compact toolbar rhythm');
+  assert.match(css,/\.sidebar-tool-view-head\{[^}]*min-height:48px;[^}]*border-bottom:1px solid var\(--od-line\);/,'opened tool header owns the continuous 48px surface and divider');
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
   assert.match(host,/setVisible\(next(?:,destination=null)?\)/);
   assert.doesNotMatch(host,/function render(?:Installed|Official)Tools|className='sidebar-tool-row'/,'the Host cannot render a second extension list');
