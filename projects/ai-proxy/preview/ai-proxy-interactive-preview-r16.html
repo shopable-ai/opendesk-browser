@@ -6,6 +6,7 @@
 <meta name="description" content="AI Proxy R16：修复禁用按钮对比度与 PC 文案，保留 R14 侧栏和完整七区交互。所有网络、账号状态均为离线模拟。">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>AI Proxy · R16 桌面管理工作台（离线模拟）</title>
+<script>if(new URLSearchParams(window.location.search).get("embed")==="pc")document.documentElement.dataset.apEmbedded="pc";</script>
 <style>
 html,body{margin:0;padding:0}
 #ai-proxy-app{color-scheme:light dark;--ap-bg:light-dark(#f3f5f8,#15191f);--ap-surface:light-dark(#ffffff,#20262f);--ap-soft:light-dark(#f7f8fb,#282f3a);--ap-ink:light-dark(#202736,#f0f2f8);--ap-muted:light-dark(#606a79,#aeb8c9);--ap-line:light-dark(#dce1e9,#424c5c);--ap-control-line:light-dark(#838fa2,#8493a8);--ap-accent:light-dark(#414fca,#b4bdff);--ap-accent-fill:light-dark(#edf0ff,#303958);--ap-on-accent:light-dark(#ffffff,#171f3b);--ap-good:light-dark(#196542,#92dbb5);--ap-good-bg:light-dark(#edf7f1,#1d3930);--ap-warn:light-dark(#855300,#ffd18d);--ap-warn-bg:light-dark(#fff5e3,#41321f);--ap-bad:light-dark(#ae303c,#ffb0b9);--ap-bad-bg:light-dark(#fff0f1,#432932);--ap-shadow:0 12px 40px light-dark(#26345212,#00000035);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;color:var(--ap-ink);background:var(--ap-bg);min-height:680px;isolation:isolate;text-align:left}
@@ -1501,6 +1502,14 @@ html,body{margin:0;padding:0}
 #ai-proxy-app[data-scene="options"] .r15Pc .r86-import-card{order:0}
 #ai-proxy-app[data-scene="options"] .r15Pc .r86-export-card{order:1}
 @media(max-width:720px){#ai-proxy-app[data-scene="options"] .r15Pc .r86-backup-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* R18: opt-in PC-only embedding. Standalone R16 keeps its original presentation. */
+html[data-ap-embedded="pc"],html[data-ap-embedded="pc"] body{margin:0;min-height:0;background:#fff}
+html[data-ap-embedded="pc"] #ai-proxy-app{min-height:0;background:var(--ap-surface)}
+html[data-ap-embedded="pc"] #ai-proxy-app :is(.preview-top,.preview-note,.r13ScenarioShell,.preview-caption,.r15DocumentNote){display:none!important}
+html[data-ap-embedded="pc"] #ai-proxy-app[data-scene="options"] .preview-stage{max-width:none;margin:0;padding:0}
+html[data-ap-embedded="pc"] #ai-proxy-app[data-scene="options"] .r15Pc{max-width:none;border:0;border-radius:0;box-shadow:none}
+html[data-ap-embedded="pc"] #ai-proxy-app[data-scene="options"] .r15Pc .options-layout{min-height:650px}
 </style>
 </head>
 <body>
@@ -1874,6 +1883,9 @@ const ProxyCore = (() => {
 (() => {
   'use strict';
   const root = document.getElementById('ai-proxy-app');
+  const embeddedPC = document.documentElement.dataset.apEmbedded === 'pc';
+  const embedProtocol = 'ai-proxy.preview.bridge.v1';
+  let embedInitialized = false, embedNonce = '', embedLastSnapshot = '';
   const stage = root.querySelector('#preview-stage');
   const modal = root.querySelector('#prototype-modal');
   const modalContent = root.querySelector('#modal-content');
@@ -3552,6 +3564,7 @@ const R5=createWorkspace({openPage,selectedText});
     function safeURL(hash = serialize(current())) {
       const url = new URL(window.location.href);
       url.username = ''; url.password = ''; url.search = '';
+       if (embeddedPC) url.searchParams.set('embed','pc');
       url.hash = serialize(parse(hash));
       return url.href;
     }
@@ -3781,6 +3794,7 @@ const R5=createWorkspace({openPage,selectedText});
     }
     PreviewLinks.sync();
     syncProfileListHint();
+    if (embeddedPC && embedInitialized) emitEmbeddedSnapshot();
   }
 
   // Draft edits never apply. Only an explicit user action (or an authorized
@@ -4205,6 +4219,84 @@ const R5=createWorkspace({openPage,selectedText});
     }
     root.querySelectorAll('[data-expiry]').forEach(element=>{ element.textContent = `剩余 ${Math.max(1,Math.ceil((Number(element.dataset.expiry)-now)/60000))} 分钟`; });
   },1000);
+
+  /* R18 preview bridge: gated by ?embed=pc; no passwords or tokens leave this page. */
+  function emitEmbeddedSnapshot() {
+    if (!embeddedPC || !embedInitialized) return;
+    const snapshot = {
+      protocol:embedProtocol, type:'snapshot', nonce:embedNonce,
+      profiles:state.proxies.map(p=>({id:p.id,name:p.name,scheme:p.protocol.toUpperCase(),host:p.host+':'+p.port})),
+      rules:state.rules.map(r=>({id:r.id,domain:r.host,target:r.action==='direct'?'直连':proxyName(r.proxyId),enabled:r.enabled})),
+      mode:state.settings.mode==='fixed'?'profile':state.settings.mode,
+      selectedKind:state.settings.selectedKind,
+      selected:state.settings.selectedProxyId || '',
+      applicationStatus:application.status,
+      pending:Boolean(application.pending)
+    };
+    const signature=JSON.stringify(snapshot);
+    if (signature===embedLastSnapshot) return;
+    embedLastSnapshot=signature;
+    window.parent.postMessage(snapshot,'*');
+  }
+  function restoreEmbeddedSelection(input) {
+    if (!input || typeof input!=='object') return;
+    const mapped={profile:'fixed',rules:'rules',direct:'direct',system:'system'}[input.mode];
+    if (mapped) state.settings.mode=mapped;
+    if (state.settings.mode==='fixed') state.settings.selectedKind='proxy';
+    if (typeof input.selected==='string' && state.proxies.some(p=>p.id===input.selected)) state.settings.selectedProxyId=input.selected;
+    application={status:input.applied?'applied':'notApplied',mode:state.settings.mode,pending:Boolean(input.pending)};
+    if (!input.applied) lastApplied=null;
+    else if (!input.pending) lastApplied={...application,revision,snapshot:JSON.parse(JSON.stringify(state)),route:routeNow(),selection:selectedText()};
+  }
+  if (embeddedPC) {
+    document.addEventListener('click',event=>{
+      const target=event.target instanceof Element ? event.target.closest('.r15Return') : null;
+      if (!target || !stage.contains(target) || event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();event.stopImmediatePropagation();
+      window.parent.postMessage({protocol:embedProtocol,type:'back',nonce:embedNonce},'*');
+    },true);
+    window.addEventListener('message',event=>{
+      if(event.source!==window.parent)return;
+      const data=event.data;
+      if(!data || data.protocol!==embedProtocol || typeof data.nonce!=='string' || data.nonce.length>128)return;
+      if(data.type==='init' && !embedInitialized) {
+        embedNonce=data.nonce;
+        const used=new Set();
+        state.proxies=(Array.isArray(data.profiles)?data.profiles:[]).slice(0,100).flatMap(p=>{
+          if(!p || typeof p.id!=='string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(p.id) || used.has(p.id) || typeof p.name!=='string' || p.name.length>80 || typeof p.host!=='string')return [];
+          const endpoint=/^(.+):([0-9]{1,5})$/.exec(p.host.trim());
+          const port=Number(endpoint?.[2]),scheme=String(p.scheme||'').toLowerCase();
+          if(!endpoint || !Number.isInteger(port) || port<1 || port>65535 || !['http','https','socks4','socks5'].includes(scheme))return [];
+          used.add(p.id);
+          return [{id:p.id,name:p.name,host:endpoint[1],port,protocol:scheme,username:'',favorite:true,source:'demo'}];
+        });
+        credentials.clear();
+        state.rules=(Array.isArray(data.rules)?data.rules:[]).slice(0,100).flatMap((r,i)=>{
+          if(!r || typeof r.domain!=='string' || typeof r.target!=='string')return [];
+          const p=state.proxies.find(p=>p.name===r.target);
+          return [{id:'bridge-rule-'+(i+1),host:r.domain,includeSubdomains:true,action:p?'proxy':'direct',proxyId:p?.id||null,priority:(i+1)*10,enabled:r.enabled!==false}];
+        });
+        if(typeof data.site==='string' && data.site.length<=253)state.host=data.site;
+        restoreEmbeddedSelection(data.selection);
+        if(state.settings.mode==='fixed'&&!state.proxies.length)state.settings.mode='system';
+        embedInitialized=true;render();
+        return;
+      }
+      if(data.type==='navigate' && embedInitialized && data.nonce===embedNonce) {
+        const sections={profiles:'proxies',rules:'rules',subscriptions:'thirdparty',backup:'import',diagnostic:'diagnostics',general:'general',official:'official'};
+        const page=sections[data.section];
+        if(!page)return;
+        if(modal.open)closeModal();
+        restoreEmbeddedSelection(data.selection);
+        openPage(page);
+        if(data.editor==='new-proxy')openProxyEditor();
+        else if(data.editor==='new-rule')openRuleEditor();
+        else if(data.editor==='new-sub')root.querySelector('[data-action="tp-add"]')?.click();
+        else if(data.editor==='new-local')root.querySelector('[data-action="tp-local"]')?.click();
+      }
+    });
+    window.parent.postMessage({protocol:embedProtocol,type:'ready'},'*');
+  }
   PreviewLinks.mount();
   // Historical Popup fixture only; Side Panel and Options deep links do not auto-apply.
   if(scene==='popup')applyConfiguration();
