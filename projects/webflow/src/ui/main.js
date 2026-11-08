@@ -19,6 +19,23 @@
       contentHash:'f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad',
       title:'Google 搜索 · 前三条自然结果',site:'https://www.google.com',icon:'G'})
   ]);
+  // Local presentation glyphs; neither these icons nor the preview grant abilities.
+  const Icon=(name,filled=false)=>{
+    const paths={
+      search:'M20 20l-4.2-4.2 M17 10a7 7 0 1 1-14 0a7 7 0 0 1 14 0',
+      filter:'M4 7h16 M7 12h10 M10 17h4',
+      refresh:'M20 7v5h-5 M4 17v-5h5 M6 6a8 8 0 0 1 14 6 M18 18A8 8 0 0 1 4 12',
+      play:'m8 5 11 7-11 7z',
+      star:'m12 2 3.1 6.5 7.1 1-5.1 5 1.2 7-6.3-3.3-6.3 3.3 1.2-7-5.1-5 7.1-1Z',
+      more:'M5 12h.01 M12 12h.01 M19 12h.01',
+      chevron:'m8 5 7 7-7 7',
+      help:'M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4 M12 17v.5 M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18',
+      settings:'M10 3h4l.8 2.5 2 .8 2.3-1 2 3.4-1.8 1.8v3l1.8 1.8-2 3.4-2.3-1-2 .8L14 21h-4l-.8-2.5-2-.8-2.3 1-2-3.4L4 13.5v-3L2.9 8.7l2-3.4 2.3 1 2-.8L10 3Z M12 9a3 3 0 1 0 0 6a3 3 0 0 0 0-6'
+    };
+    return h('svg',{viewBox:'0 0 24 24',width:17,height:17,fill:filled?'currentColor':'none',
+      stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round',
+      'aria-hidden':'true',focusable:'false'},h('path',{d:paths[name]||paths.chevron}));
+  };
   const labels={checking:'正在核验',available:'可手动运行',unavailable:'安装或授权不可用',
     changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
@@ -26,7 +43,8 @@
     key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
       (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
     title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,
-    'aria-expanded':opts.expanded
+    'aria-expanded':opts.expanded,'aria-haspopup':opts.popup,'aria-controls':opts.controls,
+    'aria-describedby':opts.describedBy
   },label);
   const Status=({state,text})=>h('span',{className:'wf-badge','data-state':state,role:'status'},
     text||labels[state]||state||'未核验');
@@ -56,6 +74,9 @@
     const [active,setActive]=R.useState(null);
     const [saving,setSaving]=R.useState(false);
     const [showFilters,setShowFilters]=R.useState(false);
+    const [more,setMore]=R.useState(null);
+    const [hostNavigation,setHostNavigation]=R.useState({base:false,actions:false});
+    const returnTab=R.useRef('overview');
     const [recoveryReady,setRecoveryReady]=R.useState(false);
     const [staged,setStaged]=R.useState(null);
     const [snapshots,setSnapshots]=R.useState({});
@@ -134,6 +155,61 @@
       return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;
         if(timer.current)clearTimeout(timer.current);};
     },[readTasks,request]);
+
+    // Reuse the bounded Host Header. Never allow this sandbox event to authorize work.
+    R.useEffect(()=>{
+      const child=page==='settings'||page==='help';
+      const view=child?page:'home';
+      const base={page:view,title:child?(page==='help'?'帮助':'设置'):'Web Flow',
+        canBack:child,primary:null,secondary:null};
+      let accepted=false,actions=false;
+      if(typeof tool.setNavigation==='function'){
+        if(tool.navigationFeatures?.headerActions===true){
+          actions=tool.setNavigation({...base,headerActions:[
+            {id:'help',label:'帮助',icon:'diagnostics'},
+            {id:'settings',label:'应用设置',icon:'settings'}
+          ]})===true;
+        }
+        accepted=actions||tool.setNavigation(base)===true;
+      }
+      setHostNavigation(old=>old.base===accepted&&old.actions===actions?old:{base:accepted,actions});
+      const onNavigation=event=>{
+        const info=event.detail;
+        if(info?.action==='back'&&child){setPage(returnTab.current);setNotice('');return;}
+        if(info?.action!=='header'||!actions||info.page!==view)return;
+        if(info.actionId==='help'||info.actionId==='settings'){
+          if(!child)returnTab.current=page;
+          setPage(info.actionId);setNotice('');
+        }
+      };
+      tool.root.addEventListener('opendesk-tool-navigation',onNavigation);
+      return ()=>tool.root.removeEventListener('opendesk-tool-navigation',onNavigation);
+    },[page]);
+
+    R.useEffect(()=>{
+      if(!showFilters&&!more)return;
+      const onKey=event=>{
+        if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
+        event.preventDefault();
+        if(more){
+          setMore(null);
+          global.queueMicrotask(()=>tool.root.querySelector('[data-wf-menu="'+more+'"]')?.focus());
+        }else if(showFilters){
+          setShowFilters(false);
+          global.queueMicrotask(()=>tool.root.querySelector('#wf-filter-toggle')?.focus());
+        }
+      };
+      const onPointer=event=>{
+        if(showFilters&&!event.target.closest?.('.wf-search-row'))setShowFilters(false);
+        if(more&&!event.target.closest?.('.wf-menu-anchor'))setMore(null);
+      };
+      tool.root.addEventListener('keydown',onKey);
+      tool.root.addEventListener('pointerdown',onPointer);
+      return ()=>{
+        tool.root.removeEventListener('keydown',onKey);
+        tool.root.removeEventListener('pointerdown',onPointer);
+      };
+    },[showFilters,more]);
 
     const save=async(key,value,expected,guard=()=>alive.current)=>{
       // No optimistic success: conditional write followed by the real SDK readback.
@@ -349,14 +425,27 @@
         if(alive.current)setError('宿主任务管理入口不可用：'+safeError(e));
       });
     };
-    const setTab=name=>{setPage(name);setDetail(null);setNotice('');};
+    const setTab=name=>{
+      if((name==='help'||name==='settings')&&['overview','scripts','history'].includes(page))
+        returnTab.current=page;
+      setPage(name);
+      if(['overview','scripts','history'].includes(name)){
+        setDetail(null);setMore(null);setShowFilters(false);
+      }
+      setNotice('');
+    };
     const sameTarget=pin=>pageInfo.status==='available'&&sameSite(pageInfo.url,pin.site);
     const rows=M.filterTasks(tasks,search,filter,settings.favorites);
     const summary=M.summary(tasks,history);
     const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
     const gotoScripts=()=>setTab('scripts');
-    const banner=h('div',{className:'wf-banner'},
-      '本页核对 '+PINNED.length+' 个固定脚本的安装。ChatGPT 自动运行的实时开关与精确批准范围见应用上方“自动运行”。');
+    const runReason=pin=>!recoveryReady?'正在恢复原步骤，请先完成核验':
+      activeRef.current?'存在尚未释放的原请求，请先查询或停止':
+      pin.state!=='available'?labels[pin.state]||'任务不可用':
+      !pin.binding?'固定安装身份未取得':
+      !sameTarget(pin)?'请先切换到该任务获准的网站':'';
+    const inspect=pin=>{setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);};
+
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
     const taskCard=pin=>{
