@@ -36,7 +36,7 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
 <label id="od-toc-site-control">模拟网站<select id="od-toc-site">
 <option value="a" selected>网站 A</option><option value="b">网站 B</option>
 </select></label>
-<span id="od-toc-feedback" role="status" aria-live="polite">网站 A/B 的收起状态分别记忆；均为离线模拟。</span>
+<span id="od-toc-feedback" role="status" aria-live="polite">网站 A/B 的收起状态分别记忆；均为离线模拟，网页标题不翻译。</span>
 </div>`;
   const hostScript=`
 <script>

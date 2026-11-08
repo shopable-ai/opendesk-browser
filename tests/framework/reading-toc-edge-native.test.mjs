@@ -181,6 +181,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  }
 
  const overlay=await open('index.html'),trusted=await child(browser,overlay.page);
+ assert.equal(await evaluate(overlay.page,'Boolean(document.getElementById("od-toc-site"))'),true,
+   'site selector must be visible outside the production overlay for A/B preview testing');
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
    'trusted overlay failed to mount');
  const dom=(await trusted.send('DOM.getDocument',{depth:1,pierce:true})).root.nodeId;
