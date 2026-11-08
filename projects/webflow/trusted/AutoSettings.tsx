@@ -451,7 +451,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    <span className="od-note" role="status">{snapshot?(snapshot.enabled?'已开启':'已关闭'):''}</span>
    {!compact&&switchControl}
   </div>
-  <p id="webflow-auto-risk" className="od-field-help" style={{margin:0,lineHeight:1.65}}>
+  <p id={compact?undefined:'webflow-auto-risk'} className="od-field-help" style={{margin:0,lineHeight:1.65}}>
    {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 标签页需保持打开，侧栏可关闭。':
     '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 标签页需保持打开；侧栏关闭后仍接收新任务，由后台执行。'}
   </p>
@@ -633,7 +633,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
      <strong className="od-field-label" role="status" aria-live="polite">
       {snapshot?(snapshot.enabled?'自动触发已开启':'自动触发已暂停'):'自动运行状态待核验'}
      </strong>
-     <p className="od-note" style={{margin:0,fontSize:'var(--od-note-size)'}}>
+     <p id="webflow-auto-risk" className="od-note" style={{margin:0,fontSize:'var(--od-note-size)'}}>
       {snapshot?(snapshot.enabled?'仅对已批准的新任务生效':'暂不接收新的自动任务'):'可在运行与授权中检查状态'}
      </p>
     </div>
@@ -641,7 +641,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     <div style={{position:'relative',flex:'none'}}>
      <IconButton id="webflow-runtime-open" label="运行与授权：当前任务、任务授权及使用说明"
       title="运行与授权" aria-haspopup="dialog" aria-expanded={panelOpen}
-      aria-controls="webflow-runtime-panel" onClick={()=>setPanelOpen(true)}>
+      aria-controls="webflow-runtime-panel" style={{minWidth:44,minHeight:44}} onClick={()=>setPanelOpen(true)}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
        <path d="M4 7h16M7 12h10M10 17h4"/>
