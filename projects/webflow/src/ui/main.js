@@ -30,19 +30,19 @@
       more:'M5 12h.01 M12 12h.01 M19 12h.01',
       chevron:'m8 5 7 7-7 7',
       help:'M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4 M12 17v.5 M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18',
-      settings:'M10 3h4l.8 2.5 2 .8 2.3-1 2 3.4-1.8 1.8v3l1.8 1.8-2 3.4-2.3-1-2 .8L14 21h-4l-.8-2.5-2-.8-2.3 1-2-3.4L4 13.5v-3L2.9 8.7l2-3.4 2.3 1 2-.8L10 3Z M12 9a3 3 0 1 0 0 6a3 3 0 0 0 0-6'
+      settings:'M4 7h7m4 0h5M4 17h3m4 0h9 M15 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0 M11 17a2 2 0 1 0-4 0 2 2 0 0 0 4 0'
     };
     return h('svg',{viewBox:'0 0 24 24',width:17,height:17,fill:filled?'currentColor':'none',
       stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round',
       'aria-hidden':'true',focusable:'false'},h('path',{d:paths[name]||paths.chevron}));
   };
-  const labels={checking:'正在核验',available:'可手动运行',unavailable:'安装或授权不可用',
+  const labels={checking:'正在核验',available:'可手动运行',unavailable:'任务不可用',
     changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
   const Btn=(label,click,opts={})=>h('button',{
     key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
       (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
-    title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,
+    title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,'aria-current':opts.current,
     'aria-expanded':opts.expanded,'aria-haspopup':opts.popup,'aria-controls':opts.controls,
     'aria-describedby':opts.describedBy,id:opts.id,'data-wf-menu':opts.menuId
   },label);
@@ -57,6 +57,17 @@
     error&&error.message||'操作失败',190);
   const defaultPrefs=()=>({theme:'system',favorites:[]});
   const pendingKey='webflow.pending.v1';
+  // Storage may return JSON object fields in a different order. Compare all
+  // values while preserving array order, types, and missing/extra fields.
+  const sameSavedValue=(a,b)=>{
+    if(a===b)return true;
+    if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+    if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&
+      a.length===b.length&&a.every((value,index)=>sameSavedValue(value,b[index]));
+    const keys=Object.keys(a);
+    return keys.length===Object.keys(b).length&&keys.every(key=>
+      Object.hasOwn(b,key)&&sameSavedValue(a[key],b[key]));
+  };
 
   function App(){
     const [page,setPage]=R.useState('overview');
@@ -94,18 +105,19 @@
       const epoch=++seq.current;
       taskReadPending.current=true;
       setLoading(true);
-      setTasks(old=>old.map(pin=>({...pin,state:'checking',binding:null})));
+      setTasks(old=>old.map(pin=>({...pin,state:'checking',binding:null,error:'',diagnostic:''})));
       const rows=await Promise.all(PINNED.map(async pin=>{
         try{
           const reply=await request('tasks.read',{taskId:pin.taskId});
-          if(!reply?.task)return {...pin,state:'unavailable',binding:null};
+          if(!reply?.task)return {...pin,state:'unavailable',binding:null,error:M.taskReadMessage()};
           if(!M.pinsEqual(pin,reply.task))
-            return {...pin,state:'changed',binding:null};
+            return {...pin,state:'changed',binding:null,error:M.taskReadMessage({code:'E_REVISION'})};
           if(typeof reply.task.installationId!=='string'||!reply.task.installationId.trim()||
             !Number.isSafeInteger(reply.task.generation)||reply.task.generation<1)
-            return {...pin,state:'unavailable',binding:null};
+            return {...pin,state:'unavailable',binding:null,error:M.taskReadMessage()};
           return {...pin,state:'available',binding:reply.task};
-        }catch(e){return {...pin,state:M.errorState(e),binding:null,error:safeError(e)};}
+        }catch(e){return {...pin,state:M.errorState(e),binding:null,
+          error:M.taskReadMessage(e),diagnostic:safeError(e)};}
       }));
       if(alive.current&&epoch===seq.current){taskReadPending.current=false;setTasks(rows);setLoading(false);}
     },[request]);
@@ -196,24 +208,24 @@
     R.useEffect(()=>{
       const child=page==='settings'||page==='help';
       const view=child?page:'home';
-      const base={page:view,title:child?(page==='help'?'帮助':'设置'):'Web Flow',
+      const base={page:view,title:child?(page==='help'?'帮助':'应用偏好'):'Web Flow',
         canBack:child,primary:null,secondary:null};
-      let accepted=false,actions=false;
+      let actions=false,accepted=false;
       if(typeof tool.setNavigation==='function'){
         if(tool.navigationFeatures?.headerActions===true){
           actions=tool.setNavigation({...base,headerActions:[
             {id:'help',label:'帮助',icon:'diagnostics'},
-            {id:'settings',label:'应用设置',icon:'settings'}
+            {id:'settings',label:'应用偏好',icon:'settings'}
           ]})===true;
         }
         accepted=actions||tool.setNavigation(base)===true;
       }
-      setHostNavigation(old=>old.base===accepted&&old.actions===actions?old:{base:accepted,actions});
+      setHostNavigation({base:accepted,actions});
       const onNavigation=event=>{
         const info=event.detail;
-        if(info?.action==='back'&&child){setPage(returnTab.current);setNotice('');return;}
-        if(info?.action!=='header'||!actions||info.page!==view)return;
-        if(info.actionId==='help'||info.actionId==='settings'){
+        if(info?.action==='back'&&child){setPage(returnTab.current);setNotice('');}
+        else if(actions&&info?.action==='header'&&info.page===view&&
+          (info.actionId==='help'||info.actionId==='settings')){
           if(!child)returnTab.current=page;
           setPage(info.actionId);setNotice('');
         }
@@ -271,7 +283,7 @@
       await request('storage.set',args);
       if(!guard())return false;
       const after=await request('storage.get',{key});
-      if(JSON.stringify(after&&after.value)!==JSON.stringify(value))
+      if(!sameSavedValue(after&&after.value,value))
         throw Error('保存后读回不一致；请在宿主检查真实状态');
       return true;
     };
@@ -524,10 +536,12 @@
                   menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'true'}),
               more===pin.taskId&&h('div',{className:'wf-menu',role:'group','aria-label':pin.title+' 操作'},
                 h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
-                h('button',{type:'button',disabled:pin.state!=='available',
+                pin.state==='available'&&h('button',{type:'button',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
         expanded&&h('div',{className:'wf-task-detail wf-stack'},
+          pin.diagnostic&&h('details',{className:'wf-help'},h('summary',null,'诊断信息'),
+            h('p',{className:'wf-mono'},pin.diagnostic)),
           detailList([['网站',pin.site],['任务 ID',h('code',{className:'wf-mono'},pin.taskId)],
             ['精确版本',pin.version],['manifestHash',h('code',{className:'wf-mono'},pin.manifestHash)],
             ['contentHash',h('code',{className:'wf-mono'},pin.contentHash)],
@@ -679,14 +693,16 @@
             onChange:e=>{void savePrefs({...settings,theme:e.target.value});}},
             h('option',{value:'system'},'跟随系统'),h('option',{value:'light'},'浅色'),
             h('option',{value:'dark'},'深色')))}),
-        h(Card,{children:h('p',{className:'wf-sub'},
-          '自动运行及授权在上方可信控制区管理；关闭只阻止未来准入，不能撤销已发生的操作。UNKNOWN 必须查询原请求。')}),
+        h(Card,{children:h('div',{className:'wf-stack'},
+          h('h3',null,'运行与授权'),
+          h('p',{className:'wf-sub'},
+            '自动运行及授权在上方可信控制区管理；关闭只阻止未来准入，不能撤销已发生的操作。UNKNOWN 必须查询原请求。'))}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
           h('p',{className:'wf-sub'},'创建、导入、升级和卸载请使用宿主的「开发」或「我的 → 任务目录」；不会从沙箱打开私有宿主页面。'),
           h('p',{className:'wf-sub'},'当前绑定：'+PINNED.length+' 个固定版本 Task；版本变化需重新审阅并更新应用包。'))}),
-        h(Card,{children:h('details',{className:'wf-help'},
-          h('summary',null,'未来的多步骤流程'),
+        h(Card,{children:h('div',{className:'wf-stack wf-help'},
+          h('h3',null,'未来的多步骤流程'),
           h('p',null,'流程需要逐站授权、步骤依赖、原持久 Run/Result、恢复和 UNKNOWN 对账。项目现有队列只是离线状态模块；尚未接入真实派发，不显示流程启动按钮。'))}));
     }
     function helpPage(){
@@ -696,14 +712,18 @@
           h('h3',null,'从 ChatGPT 自动运行'),
           h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；允许更换关键词时，规则内换词无需重复批准。'),
           h('p',null,'2. 在“运行与授权 → 使用说明”复制能力说明，向普通新聊天发送一次；也可选择保存为项目指令。已接入聊天无需重复。开启自动运行后可关闭侧栏，保留 ChatGPT 标签页。'),
-          h('p',null,'3. 此后正常发送需求即可，AI 每次生成新候选。当前消息的等待、未执行、运行和结果在“当前任务”查看，真实结果单次回原聊天；结果未知时只查询或停止原请求，不补跑。'),
+          h('p',null,'3. 此后正常发送需求即可，AI 每次生成新候选。当前消息的等待、未执行、运行和结果在“当前任务”查看，真实结果单次回原聊天；结果未知时只查询或停止原请求，不补跑。'))}),
+        h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'未触发或需要停止'),
           h('p',null,'先核对上方开关、任务批准和“运行与授权 → 当前任务”的错误。未批准时在可信界面审核；协议格式、重复候选、安装变化或网站权限失败时按原错误处理。关闭开关只阻止新任务；已开始的任务在“运行与授权 → 当前任务”停止。'),
-          h('p',null,'若上方没有自动运行或一次接入说明，请更新 OpenDesk Browser 后重开应用。它们来自 Browser 的可信组件，单独升级工具包不会更新该组件。'),
+          h('p',null,'若上方没有自动运行或一次接入说明，请更新 OpenDesk Browser 后重开应用。它们来自 Browser 的可信组件，单独升级工具包不会更新该组件。'))}),
+        h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'手动运行一个真实任务'),
+          h('p',null,'若显示“尚未安装或已停用”，请到“我的”核对任务：未安装时通过“添加”审阅安装，主动停用过的任务可恢复。安装 Web Flow 不会同时安装其依赖任务；处理后回到“脚本”刷新状态，已有有效授权无需重复批准。'),
           h('p',null,'1. 在宿主任务目录安装并核验与本应用相同版本、哈希的 Controller Task。'),
           h('p',null,'2. 打开对应的 Google / 百度获准网站，再在 Web Flow → 脚本选择任务、输入关键词并点击运行。'),
-          h('p',null,'3. 保存运行步骤并确认手动运行。关闭重开后在“记录 → 原步骤 → 查询原请求”核对同一执行；网页业务状态须单独核对。'),
+          h('p',null,'3. 保存运行步骤并确认手动运行。关闭重开后在“记录 → 原步骤 → 查询原请求”核对同一执行；网页业务状态须单独核对。'))}),
+        h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'出现版本不匹配或 UNKNOWN'),
           h('p',null,'回到可信宿主核对安装身份、权限、站点和结果。不通过自动重试绕开未知副作用。'),
           h('p',null,'持续自动使用 webflow.task.intent.v1 严格五字段；原手动与一次批准使用 opendesk.task.intent.v1，保留各自授权、防重放与回执。'))}));
@@ -728,11 +748,15 @@
               event.preventDefault();setTab(steps[index]);
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
             }},label))),
-        !hostNavigation.actions&&h('div',{className:'wf-head-actions'},
-          Btn(Icon('help'),()=>setTab('help'),{key:'help',icon:true,ariaLabel:'帮助',title:'帮助'}),
-          Btn(Icon('settings'),()=>setTab('settings'),{key:'settings',icon:true,ariaLabel:'应用设置',title:'应用设置'}))),
+        !hostNavigation.actions&&h('div',{className:'wf-head-actions',role:'group','aria-label':'帮助与偏好'},
+          Btn(h(R.Fragment,null,Icon('help'),h('span',null,'帮助')),()=>setTab('help'),
+            {key:'help',quiet:true,ariaLabel:'帮助',title:'帮助与使用说明',controls:'wf-panel',
+              current:page==='help'?'page':undefined}),
+          Btn(h(R.Fragment,null,Icon('settings'),h('span',null,'偏好')),()=>setTab('settings'),
+            {key:'settings',quiet:true,ariaLabel:'应用偏好',title:'应用偏好',controls:'wf-panel',
+              current:page==='settings'?'page':undefined}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
-        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'设置',help:'帮助'})[page],tabIndex:0},
+        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'应用偏好',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},

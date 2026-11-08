@@ -409,7 +409,10 @@
     ],
     "builder": "scripts/build-sidebar-tool.mjs",
     "candidateThenPromoteThenCheck": true,
-    "installed": false
+    "installationStatusByBrowser": {
+      "chrome149": "OBSERVED_IN_SOURCE_THREAD_HANDOFF",
+      "ego": "0.3.13 installed; same-ID0.3.14 updated and core UI verified; see latestEvidence"
+    }
   },
   "sourceSha256": {
     "projects/webflow/src/ui/main.js": "0a9985939877f7625d0d8f8bff80abb23e3628247a5fcf55f368bfee04b77494",
@@ -422,17 +425,20 @@
     "src/page-events/web-task-ingress.js": "b066f623fb21e37fd33583f223f2792006e91241ea35c5a4e0826aea882437cb"
   },
   "native": {
-    "status": "NOT_TESTED",
-    "reason": "ego TaskSpace 41 可用入口未发现 Web Flow/固定百度任务；原生侧栏属于另一活动任务，未抢占或改写安装状态。仅保留本轮入口观察，不覆盖旧版历史证据。",
+    "status": "PARTIAL",
+    "reason": "本对话 ego TaskSpace42 经用户当次确认安装0.3.13；原生搜索/清空及三Tab可用，复现收藏读回误报，最小修复后同ID0.3.14更新并验证收藏保存/排序/设置。原开发服务已连接且revision已实读；后来并行0.3.16未继承此安装证据。",
+    "latestEvidence": "projects/webflow/evidence/ego-ui-core-v0.3.13-20261109.json",
     "notTested": [
-      "0.3.13 安装/升级",
-      "同候选完整可信 Header/Logo/自动运行区域",
-      "真实目标网站执行及持久结果/原聊天交付",
-      "同候选 Stop/撤权/UNKNOWN/关闭重开恢复",
-      "production Browser 与实际 serve 连接"
+      "native keyboard/Escape and record disclosure with real history",
+      "real fixed Task execution and persisted Result/chat delivery",
+      "same-candidate real Stop/revocation/UNKNOWN recovery",
+      "production Browser",
+      "later parallel package0.3.16 installation"
     ],
-    "taskSpaceReleased": true,
-    "existingDevWriterPreserved": 16888
+    "historicalTaskSpace41Released": true,
+    "currentTaskSpace42": "finished keep[]; own resources released",
+    "existingDevWriterPreserved": 16888,
+    "liveEgoRevision": "fc74f1aeb3ae99de5bdc9047ed1672570cf537f68ee295d0e67b5a1d7df9c70a"
   },
   "deferred": [
     "缩放与更窄视口专项",
@@ -445,7 +451,7 @@
     "notMarkedComplete": true,
     "reason": "最新用户只要求 UI 核心；原正式验收 GOAL 未完成，不恢复延期项。"
   },
-  "evidenceBoundary": "真实 Chromium 中的正式源码交互 + 模拟 SDK；不是已安装 MV3/真实 Task/Native 验收。",
+  "evidenceBoundary": "Historical0.3.13 component/CI inputs retained. New attributed Chrome observation and real ego installed0.3.13/0.3.14 UI checks are separate in latestEvidence; actual Task/production and later parallel candidate not proved.",
   "githubActions": {
     "sourceCommit": "6fadef04cfccbc7d4e210e21296a34283e5da6f5",
     "previousWebflow": {

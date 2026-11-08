@@ -1,0 +1,307 @@
+{
+  "schema": "opendesk.webflow.ego-ui-core-evidence.v1",
+  "date": "2026-11-09",
+  "ownerThreadId": "01a1bca2-3f05-7ae3-8aad-ff0ab52bd893",
+  "sourceThreadId": "01a1bc77-27e3-76c1-80d3-66cf4a51e614",
+  "stage": "CORE_UI_VERIFIED_SHARED_DELIVERY_PREPARED",
+  "gitBaseline": "566b5853a3a70509c42e72c9b737531b542ce122",
+  "branch": "main",
+  "parallelFilePreserved": "projects/ai-scroll-navigation/README.zh-CN.md",
+  "package": {
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "id": "webflow",
+    "version": "0.3.13",
+    "bytes": 67679,
+    "sha256": "9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4",
+    "freshFileHashAndReviewHashMatch": true,
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "tasks.open",
+      "tasks.run"
+    ],
+    "delegatedTasksMatchConfig": true,
+    "sourceInputsUnchangedFromComponentEvidence": false,
+    "rebuiltOrPromotedThisTask": false,
+    "initiallyInstalled": true
+  },
+  "sourceThreadChromeObservation": {
+    "provenance": "User-provided delegation body; not re-observed by this thread",
+    "browser": "Google Chrome for Testing 149",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "observedRevision": "fc74f1aeb3ae99de5bdc9047ed1672570cf537f68ee295d0e67b5a1d7df9c70a",
+    "devServiceConnectedAtObservation": true,
+    "installedAndOpenedVersion": "0.3.13",
+    "reviewSha256MatchedFormalPackage": true,
+    "visibleUi": [
+      "trusted automatic-run area",
+      "run and authorization entry",
+      "sandbox",
+      "overview/scripts/records tabs"
+    ],
+    "taskStatus": "Both fixed tasks: E_PERMISSION: Task is disabled or not installed; Run disabled",
+    "automaticRun": "paused",
+    "searchAndTabInteraction": "NOT_TESTED",
+    "realTaskExecuted": false,
+    "userChromeControlledThisThread": false
+  },
+  "ego": {
+    "version": "0.6.2.8",
+    "upgradeNoticeObserved": true,
+    "upgraded": false,
+    "taskSpaceId": 42,
+    "taskSpaceName": "Web Flow 0.3.13 core 01a1bca2",
+    "ownershipLastRead": "finished",
+    "extensionName": "OpenDesk Browser Developer",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionVersion": "0.1.0",
+    "extensionEnabled": true,
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "hostMode": "development serve connected",
+    "currentPage": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=29f446b3-537f-42f3-9369-6566c824843a",
+    "currentPageUi": "Local task catalog, separate from the native OpenDesk Side Panel",
+    "nativeSidePanelObserved": true,
+    "installedList": "Web Flow present among eight installed extensions",
+    "formalImportReview": {
+      "entry": "Native Side Panel → 扩展 → 导入扩展",
+      "version": "0.3.13",
+      "sha256": "9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4",
+      "taskIdentities": "baidu.search.top3@1.1.4 and google.search.top3@1.0.0; full manifest/source hashes matched tool.config.json",
+      "installerWorkerContractSha256": "e65091fb0c494cd825c876742273d59052c39e3c5a9d425da56b2ac5cbeec76f",
+      "confirmationButtonClicked": true,
+      "actionTimeConfirmationRequested": true,
+      "confirmationReceived": true,
+      "confirmationAnswer": "确认安装并继续核心 UI 检查"
+    },
+    "control": {
+      "pageCommands": "ego-browser Skill v2.2.0; one TaskSpace reused",
+      "nativeUi": "CUA only for own native Side Panel, file chooser and revealing own space",
+      "limitation": "task.tabs() lists ordinary tabs, not the native Side Panel",
+      "browserVersionCdp": "Browser.getVersion unsupported; no Chromium version inferred",
+      "handedOff": true,
+      "finished": true,
+      "reason": "Finished core checks and released own TaskSpace42; other spaces preserved",
+      "takenOverAfterConfirmation": true,
+      "keptPages": [],
+      "keyboardLimitation": "CUA AXPress/AX value actions worked; native typing initially focused the ordinary catalog tab. Escape did not change the native filter state, so keyboard delivery/focus remains unproven and is not counted PASS."
+    },
+    "realTaskExecuted": false,
+    "automaticRunChanged": false,
+    "oldRequestsReplayed": false,
+    "liveRevision": "fc74f1aeb3ae99de5bdc9047ed1672570cf537f68ee295d0e67b5a1d7df9c70a",
+    "devServiceConnected": true,
+    "installedAndOpenedVersion": "0.3.14",
+    "nativeUiChecks": [
+      {
+        "operation": "scripts search 百度",
+        "version": "0.3.13 and 0.3.14",
+        "result": "1 / 2 fixed scripts; Google absent"
+      },
+      {
+        "operation": "clear search",
+        "result": "2 / 2 fixed scripts restored"
+      },
+      {
+        "operation": "overview and records",
+        "result": "all three tabs switch; overview needs2/available0; manual history empty"
+      },
+      {
+        "operation": "favorite filter / available filter / clear filters",
+        "result": "1/2 Baidu favorite; 0/2 available; clear restores2/2"
+      },
+      {
+        "operation": "0.3.13 favorite",
+        "result": "FAIL: false readback-mismatch notice; reopen proves favorite was persisted"
+      },
+      {
+        "operation": "0.3.14 favorite removal/addition",
+        "result": "PASS: preference saved and read back; Google rises first under favorite priority; name sort restores Baidu first"
+      },
+      {
+        "operation": "settings",
+        "result": "application preferences opens; trusted tool settings enabled; return restores scripts tab"
+      },
+      {
+        "operation": "run and authorization",
+        "result": "opens current-task view; automatic run off; current extension catalog page inapplicable for ChatGPT listener; no authorization or Task started"
+      },
+      {
+        "operation": "reopen",
+        "result": "0.3.14 overview opens; automatic run still paused; temporary favorites removed before finish"
+      }
+    ]
+  },
+  "keyConditions": [
+    {
+      "id": "K1",
+      "status": "PASS_DEVELOPMENT_HOST",
+      "evidence": "Real enabled extension ID/path, 0.3.13 import and 0.3.14 update hashes/version, native sandbox UI and live development-service revision observed; production not tested"
+    },
+    {
+      "id": "K2",
+      "status": "PARTIAL_NATIVE_UI",
+      "evidence": "Three tabs/search/clear/filter/favorite/sort/settings verified in installed UI; manual history empty, so disclosure not tested; native keyboard/Escape not proved; prior component evidence remains separately graded"
+    },
+    {
+      "id": "K3",
+      "status": "PASS_MISSING_TASK_RUN_DISABLED",
+      "evidence": "Both fixed tasks return E_PERMISSION disabled/not-installed; Run disabled; did not simulate availability or alter task installations"
+    },
+    {
+      "id": "K4",
+      "status": "CONDITIONAL_NOT_TESTED",
+      "evidence": "No valid installed/enabled fixed tasks; target authorization not established. No Task run or dispatch/replay; reordered-storage step preparation and mismatch/CAS fences tested using real React with mock transport."
+    },
+    {
+      "id": "K5",
+      "status": "CONDITIONAL_NOT_TESTED",
+      "evidence": "No new Run/Result; no real task retirement/chat delivery/Stop/revocation/UNKNOWN recovery; existing safety tests pass, not native proof"
+    },
+    {
+      "id": "K6",
+      "status": "PASS_PAUSED_READ_ONLY",
+      "evidence": "Automatic run stayed off; trusted settings and current-task entry accessible; approval scope not expanded; old requests untouched"
+    },
+    {
+      "id": "K7",
+      "status": "PASS_INSTALLED_0314_SNAPSHOT",
+      "evidence": "Existing builder promoted 0.3.14, same-source match before update; same ID/pins/capabilities, old favorite survived; later parallel source/package edits are distinct uninstalled candidates"
+    },
+    {
+      "id": "K8",
+      "status": "PASS_REVIEWABLE_DELIVERY_PREPARED",
+      "evidence": "Human explicitly authorized the shared11-file commit and push. Current0.3.19 snapshot passed51 UI/recovery tests, JS syntax and original builder source parity. Commit/push receipts are verified separately after writing; native proof remains0.3.14."
+    }
+  ],
+  "reusedEvidence": "projects/webflow/evidence/ui-core-v0.3.13-20261109.json",
+  "freshChecks": [
+    "main/origin and scoped git status",
+    "formal package bytes/SHA",
+    "unchanged UI/config SHA",
+    "watcher PID16888 and TCP43119 listening",
+    "ego extensions details and own native import review",
+    "space42 ownership after handoff",
+    "native installation after explicit user confirmation",
+    "native same-ID0.3.14 update and persisted favorite preservation",
+    "three tabs/search/clear/filters/favorite/name sort/settings/trusted paused runtime",
+    "live development revision/serve connected",
+    "TaskSpace42 finished keep[]"
+  ],
+  "sourceChanges": [
+    "projects/webflow/src/ui/main.js: sameSavedValue comparison only; object field order ignored, values/types/array order/field presence preserved",
+    "projects/webflow/tests/webflow-recovery-ui.test.mjs: reordered favorite/nested step readback and changed-value/field/type/array-order rejection tests"
+  ],
+  "productDefectReproduced": true,
+  "testsReRun": {
+    "reason": "Native favorite falsely reported readback mismatch; same save helper protects original steps",
+    "beforeFix": "reordered storage positive test FAIL; changed-value negative test PASS",
+    "afterFix": "48/48 UI/model/recovery tests PASS; strengthened negative cases2/2 PASS; subsequent parallel changes not attributed to this task",
+    "finalSharedSnapshot": "51/51 PASS on0.3.19 after latest user authorization; no Browser build or full CI"
+  },
+  "devWriterPreserved": 16888,
+  "deferred": [
+    "zoom-specific checks",
+    "full production acceptance",
+    "six-expert final scoring",
+    "full App CI",
+    "unrelated source-lock failures"
+  ],
+  "evidenceBoundary": "Installed native UI0.3.13/0.3.14 only; storage fix native recheck PASS. Real Task and native keyboard/Escape/record disclosure remain NOT_TESTED. Later parallel0.3.19 package does not inherit installed0.3.14 proof. No production/full acceptance claim.",
+  "installedUpdate": {
+    "version": "0.3.14",
+    "bytes": 67649,
+    "sha256": "4c3d7e9db8e751b6c6a1f9e3c9f68ed06104d778c88877604994d661349d8a2f",
+    "capabilitiesChanged": false,
+    "delegatedTasksChanged": false,
+    "dataPreserved": true,
+    "sameIdUpdateReviewedAndConfirmed": true,
+    "builder": "scripts/build-sidebar-tool.mjs via existing app:update",
+    "promotionOwner": "parallel inline-actions owner; included this task storage fix",
+    "projectPackageMatchObservedBeforeInstall": true,
+    "installedUiVersionObserved": true,
+    "laterParallelPackage": "0.3.19 / fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd; not installed by this task; does not inherit0.3.14 observations"
+  },
+  "parallelOwnership": {
+    "inlineActionsThread": "01a1bcaf-800c-7360-9038-a6ab609780bd",
+    "sameFileChangesPreserved": true,
+    "additionalObservedFiles": [
+      "src/ui/model.js",
+      "src/ui/style.css",
+      "tests/webflow-ui-server.mjs",
+      "tool.config.json",
+      "webflow.opendesk-tool.json"
+    ],
+    "commitAndPush": "Human-authorized shared11-file delivery by01a1bca2; platform, generated preview and other owner files excluded. Git results checked separately after commit/push.",
+    "coordinationAcknowledged": true,
+    "acknowledgement": "Inline-actions owner acknowledged preservation of storage fix/tests/evidence and limited native proof to0.3.14. Menu/Host work completed as0.3.18; no commit or push by that owner.",
+    "lateStyleAndVersionChange": {
+      "validatedVersion": "0.3.19",
+      "workingConfigVersionAtFreeze": "0.3.20",
+      "validatedStyleSha256": "571219b2b50bf03834abe726575b0864db326790bf7f4eddf7eb1ea0a98d578f",
+      "workingStyleSha256AtFreeze": "0bb7734fe3373c25b88bbf71e5f6e86a80d2c7f7b3f5fd3f7616e7042fe6f3d2",
+      "handling": "Stage verified0.3.19 snapshot bytes only; preserve later working CSS/config. No package JSON rewriting, new installer, branch or Git worktree."
+    }
+  },
+  "finalScopedValidation": {
+    "sourceSyntax": "main.js/model.js/webflow-ui-server.mjs node --check PASS",
+    "evidenceJson": "both current evidence files parse PASS",
+    "documentationRelativeTargets": "README and execution-plan relative file targets exist PASS",
+    "ownRegressionAfterParallelEdits": "2/2 PASS: reordered readback and changed value/field/type/array-order rejection",
+    "documentationWhitespace": "scoped git diff --check PASS",
+    "commitBoundary": "Exact human-approved11 paths frozen for delivery. Later working CSS/config and unrelated owner files preserved. Upstream README preview link integrated without stashing parallel work.",
+    "coordination": "One human-authorized coordination message acknowledged; menu owner completed source/package work. Human subsequently authorized this task to commit and push exactly11 core files.",
+    "projectPackageMatch": "Original builder verifies the frozen selected-source0.3.19 snapshot, not later working0.3.20 input."
+  },
+  "sharedDeliveryRevalidation": {
+    "head": "b3ce015479165425d12d7751117412bb9bc3aebb",
+    "branch": "main",
+    "storageFixInHead": false,
+    "index": "empty",
+    "latestCandidate": "0.3.19",
+    "latestCandidateSha256": "fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd",
+    "scopeChangedSinceApprovalRequest": [
+      "README.md",
+      "docs/execution-plan.zh-CN.md",
+      "src/ui/main.js",
+      "tests/webflow-recovery-ui.test.mjs",
+      "tool.config.json",
+      "webflow.opendesk-tool.json"
+    ],
+    "pendingHumanAuthorization": false,
+    "nextAction": "Commit exact verified11-file snapshot on main, merge existing upstream documents without overwriting parallel work, push normally and read back remote commit.",
+    "validation": "Fresh51/51 UI/recovery PASS, source syntax PASS and original builder PROJECT_PACKAGE_MATCH after approval; native0.3.19 remains NOT_TESTED.",
+    "consecutiveGoalTurnsWithSameBlocker": 3,
+    "goalStatusBeforeAuthorization": "blocked"
+  },
+  "goalStatusBeforeLatestUserAuthorization": "blocked",
+  "latestUserAuthorization": {
+    "answer": "允许统一提交并推送",
+    "scope": [
+      "projects/webflow/README.md",
+      "projects/webflow/docs/execution-plan.zh-CN.md",
+      "projects/webflow/evidence/ego-ui-core-v0.3.13-20261109.json",
+      "projects/webflow/evidence/ui-core-v0.3.13-20261109.json",
+      "projects/webflow/src/ui/main.js",
+      "projects/webflow/src/ui/model.js",
+      "projects/webflow/src/ui/style.css",
+      "projects/webflow/tests/webflow-recovery-ui.test.mjs",
+      "projects/webflow/tests/webflow-ui-server.mjs",
+      "projects/webflow/tool.config.json",
+      "projects/webflow/webflow.opendesk-tool.json"
+    ],
+    "candidateReviewedAfterAuthorization": "0.3.19",
+    "capabilitiesAndTaskPinsChanged": false,
+    "installationNotAuthorizedByThisDeliveryStep": true
+  },
+  "deliverySnapshot": {
+    "version": "0.3.19",
+    "bytes": 71295,
+    "sha256": "fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd",
+    "sourceAndPackageMatch": true,
+    "nativeInstalledVersion": "0.3.14",
+    "currentCandidateInstalled": false,
+    "coreFileCount": 11,
+    "sourceScope": "Frozen verified0.3.19 selected sources, tested with existing tests and original packager. Working0.3.20 CSS/config changes preserved with their owner."
+  }
+}

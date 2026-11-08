@@ -8,6 +8,19 @@
   const terminal=new Set(['completed','failed','stopped','interrupted','cancelled','canceled','unknown']);
   const errorState=error=>error&&error.code==='E_REVISION'?'changed':
     error&&['E_PERMISSION','E_TOOL_DISABLED','E_OWNER'].includes(error.code)?'unavailable':'error';
+  // tasks.read cannot distinguish an absent installation from a disabled one.
+  // Its diagnostics are not user-facing instructions or authorization evidence.
+  function taskReadMessage(error){
+    if(!error)return '未读取到有效的任务安装。请到“我的”安装或恢复此任务，再刷新脚本状态。';
+    if(error.code==='E_PERMISSION')return error.message==='Task is disabled or not installed'?
+      '此任务尚未安装或已停用。请到“我的”安装或恢复此任务，再刷新脚本状态。':
+      '任务或网站授权不可用。请到“我的”核对任务与网站授权，再刷新脚本状态。';
+    return ({
+      E_REVISION:'任务安装版本或验证状态已变化。请到“我的”核对固定版本与验证状态，再刷新脚本状态。',
+      E_TOOL_DISABLED:'Web Flow 已停用。请到“扩展”恢复应用后重新打开。',
+      E_OWNER:'当前应用无权读取此任务。请到“扩展”核对 Web Flow 的任务授权后重新打开。'
+    })[error.code]||'任务状态读取失败。请刷新脚本状态；仍失败时展开详情查看诊断信息。';
+  }
   function filterTasks(rows,query,filter,starred,sort='favorite'){
     const q=String(query||'').trim().toLocaleLowerCase();
     const saved=new Set(Array.isArray(starred)?starred:[]);
@@ -90,7 +103,7 @@
     latest:Array.isArray(records)?records[0]||null:null
   });
   global.OpenDeskWebFlowModel=Object.freeze({
-    taskKey,pinsEqual,errorState,filterTasks,businessState,projectRun,recentRecords,summary,
+    taskKey,pinsEqual,errorState,taskReadMessage,filterTasks,businessState,projectRun,recentRecords,summary,
     isTerminal:s=>terminal.has(s),pendingRecord,released,bounded
   });
 })(globalThis);

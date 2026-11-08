@@ -56,7 +56,7 @@ async function mount(t,host=sdk()){
   if(host.withNavigation){
     host.navigation=[];
     sdkTool.navigationFeatures={headerActions:true};
-    sdkTool.setNavigation=value=>{host.navigation.push(value);return true;};
+    sdkTool.setNavigation=value=>{host.navigation.push(value);return !(host.rejectHeaderActions&&'headerActions' in value);};
   }
   const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:sdkTool,
     crypto:globalThis.crypto,URL,console,queueMicrotask,addEventListener(){},
@@ -135,9 +135,48 @@ test('trusted page-change notifications recheck eligibility without executing a 
 test('missing fixed task is unavailable rather than a changed hash',async t=>{
   const host=sdk();host.pins=host.pins.filter(pin=>pin.taskId!=='baidu.search.top3');
   const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/安装或授权不可用/);
+  assert.match(taskCard(f).textContent,/任务不可用/);
+  assert.match(taskCard(f).textContent,/未读取到有效的任务安装/);
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   assert.equal(starts(host).length,0);
+});
+test('uninstalled or disabled task has a readable recovery path, optional diagnostics and a read-only refresh',async t=>{
+  const host=sdk();
+  host.taskRead=async id=>{
+    if(id==='baidu.search.top3')throw Object.assign(Error('Task is disabled or not installed'),{code:'E_PERMISSION'});
+    return {task:host.pins[1]};
+  };
+  const f=await mount(t,host);await f.click('脚本');
+  assert.match(taskCard(f).textContent,/此任务尚未安装或已停用/);
+  assert.match(taskCard(f).textContent,/“我的”.*安装或恢复.*刷新/);
+  assert.ok(!taskCard(f).textContent.includes('Task is disabled or not installed'));
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
+  assert.ok(!taskCard(f).textContent.includes('宿主管理'),'SDK cannot open an unavailable task');
+  await f.click('查看详情',taskCard(f));
+  assert.match(taskCard(f).textContent,/E_PERMISSION：Task is disabled or not installed/);
+  const pending=deferred();host.taskRead=id=>id==='baidu.search.top3'?pending.promise:{task:host.pins[1]};
+  await f.click('刷新');
+  assert.ok(!taskCard(f).textContent.includes('此任务尚未安装或已停用'),'refresh clears the previous failure');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.flush(()=>pending.resolve({task:host.pins[0]}));
+  assert.match(taskCard(f).textContent,/可手动运行/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.ok(!taskCard(f).textContent.includes('E_PERMISSION'));
+  assert.equal(starts(host).length,0,'metadata recovery never dispatches or replays a task');
+  assert.ok(host.calls.every(call=>['storage.get','currentPage.info','tasks.read'].includes(call.name)));
+});
+test('permission denial and unreadable metadata are not misreported as a missing task',async t=>{
+  for(const code of ['E_PERMISSION','E_OWNER','E_TOOL_DISABLED','E_NETWORK']){
+    const host=sdk();host.taskRead=async()=>{throw Object.assign(Error('internal transport failure'),{code});};
+    const f=await mount(t,host);await f.click('脚本');
+    assert.equal(f.find('运行',taskCard(f)).disabled,true);
+    assert.ok(!taskCard(f).textContent.includes('尚未安装或已停用'));
+    assert.ok(!taskCard(f).textContent.includes('internal transport failure'));
+    await f.click('百度搜索 · 前三条自然结果',taskCard(f));
+    assert.ok(taskCard(f).textContent.includes(code+'：internal transport failure'));
+    assert.equal(starts(host).length,0);await f.close();
+  }
 });
 const pageChanged=f=>f.document.getElementById('root').dispatchEvent(new f.window.Event('opendesk-page-changed'));
 test('page recheck disables the old site and saved confirmation until the newest SDK read succeeds',async t=>{
@@ -189,7 +228,7 @@ test('a fixed task requires a complete installation and refresh invalidates save
   assert.equal(f.find('确认手动运行').disabled,true,'refresh cannot retain a stale installation');
   await f.flush(()=>pending.resolve({task:{...host.pins[0],installationId:''}}));
   assert.equal(f.find('确认手动运行').disabled,true);
-  assert.match(taskCard(f).textContent,/安装或授权不可用/);
+  assert.match(taskCard(f).textContent,/任务不可用/);
   host.taskRead=null;host.pins[0]={...host.pins[0],version:'99.0.0'};
   await f.click('刷新');
   assert.match(taskCard(f).textContent,/固定版本不匹配/);
@@ -198,6 +237,34 @@ test('a fixed task requires a complete installation and refresh invalidates save
 test('compact filter preserves the preview sort affordance',async t=>{
   const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
   assert.equal(f.document.querySelector('select[aria-label="脚本排序方式"]')?.value,'favorite');
+});
+test('storage readback may reorder object fields without losing saved favorites or the original step',async t=>{
+  const host=sdk();
+  const reordered=value=>Array.isArray(value)?value.map(reordered):value&&typeof value==='object'?
+    Object.fromEntries(Object.keys(value).sort().map(key=>[key,reordered(value[key])])):value;
+  host.afterSet=({key,value})=>host.store.set(key,reordered(value));
+  const f=await mount(t,host);await f.click('脚本');
+  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+  assert.equal(f.find('取消收藏 百度搜索 · 前三条自然结果',taskCard(f)).getAttribute('aria-pressed'),'true');
+  assert.match(f.text(),/偏好已保存并读回/);
+  assert.ok(!f.text().includes('保存后读回不一致'));
+  await prepare(f);
+  assert.equal(f.find('确认手动运行').disabled,false);
+  assert.equal(starts(host).length,0,'saving preferences or a step never dispatches');
+});
+test('changed values, fields, types and array order still fail preference readback',async t=>{
+  for(const mutate of [value=>({...value,favorites:[]}),value=>({...value,extra:true}),
+    value=>({favorites:value.favorites}),value=>({...value,theme:1}),
+    value=>({...value,favorites:[...value.favorites].reverse()})]){
+    const host=sdk();host.store.set('webflow.settings.v1',{theme:'system',favorites:[
+      ['taskId','version','manifestHash','contentHash'].map(key=>config.delegatedTasks[1][key]).join('|')]});
+    host.afterSet=({key,value})=>{if(key==='webflow.settings.v1')host.store.set(key,mutate(value));};
+    const f=await mount(t,host);await f.click('脚本');
+    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+    assert.match(f.text(),/偏好未确认保存：保存后读回不一致/);
+    assert.equal(f.find('收藏 百度搜索 · 前三条自然结果',taskCard(f)).getAttribute('aria-pressed'),'false');
+    assert.equal(starts(host).length,0);await f.close();
+  }
 });
 test('compact overview retains three tabs, on-demand help and no duplicate navigation',async t=>{
   const host=sdk(),f=await mount(t,host);
@@ -213,7 +280,7 @@ test('compact overview retains three tabs, on-demand help and no duplicate navig
   const keyboardTabs=()=>[...f.document.querySelectorAll('[role="tab"]')].filter(tab=>tab.getAttribute('tabindex')==='0');
   assert.equal(keyboardTabs().length,1,'help retains one keyboard entry into primary navigation');
   assert.equal(keyboardTabs()[0].getAttribute('data-page'),'overview');
-  await f.click('应用设置');
+  await f.click('应用偏好');
   assert.equal(keyboardTabs().length,1,'settings retains one keyboard entry into primary navigation');
   await f.click('返回');
   assert.equal(f.document.querySelector('[data-page="overview"]').getAttribute('aria-selected'),'true');
@@ -246,25 +313,56 @@ test('compact filter and icon actions preserve real task scope and favorites',as
   assert.equal(starts(host).length,0,'UI controls cannot dispatch a Task');
 });
 
-test('R14 Host Header actions stay bounded and return to the original primary tab',async t=>{
+test('help and settings use Host header icons and return to the original tab',async t=>{
   const host=sdk();host.withNavigation=true;
   const f=await mount(t,host);
   assert.ok(host.navigation.length>0);
   assert.equal(host.navigation.at(-1).page,'home');
-  assert.equal(host.navigation.at(-1).headerActions.length,2);
-  assert.equal(f.document.querySelector('.wf-head-actions'),null,'Host owns right-side icons');
+  assert.deepEqual(Array.from(host.navigation.at(-1).headerActions,a=>[a.id,a.label,a.icon]),
+    [['help','帮助','diagnostics'],['settings','应用偏好','settings']]);
+  assert.equal(f.document.querySelector('.wf-head-actions'),null,'no duplicate content controls');
   const dispatch=async detail=>React.act(async()=>{
     const event=new f.document.defaultView.Event('opendesk-tool-navigation',{bubbles:true});
     event.detail=detail;
     f.document.getElementById('root').dispatchEvent(event);
   });
   await f.click('脚本');
+  await dispatch({action:'header',actionId:'help',page:'settings'});
+  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true',
+    'stale page actions cannot navigate');
   await dispatch({action:'header',actionId:'help',page:'home'});
   assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
   assert.equal(host.navigation.at(-1).page,'help');
+  assert.equal(f.document.querySelectorAll('main .wf-panel').length,4,'all original help topics are expanded');
+  assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='返回'),false,
+    'Host retains the only back control');
+  await dispatch({action:'header',actionId:'settings',page:'help'});
+  assert.equal(f.document.querySelector('main h2').textContent,'应用偏好');
+  assert.equal(host.navigation.at(-1).page,'settings');
+  assert.equal(host.navigation.at(-1).title,'应用偏好');
+  assert.equal(f.document.querySelector('main select').querySelectorAll('option').length,3,'theme choices retained');
+  assert.equal(f.document.querySelector('main details'),null,'settings sections need no second expansion');
+  assert.match(f.text(),/开发与安装/);
+  assert.match(f.text(),/未来的多步骤流程/);
   await dispatch({action:'back'});
   assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
   assert.equal(host.navigation.at(-1).page,'home');
+  assert.ok(host.navigation.every(state=>state.headerActions?.length===2));
+  assert.equal(starts(host).length,0);
+});
+
+test('rejected Host header projection retains content controls and base navigation',async t=>{
+  const host=sdk();host.withNavigation=true;host.rejectHeaderActions=true;
+  const f=await mount(t,host);
+  assert.ok('headerActions' in host.navigation.at(-2));
+  assert.equal('headerActions' in host.navigation.at(-1),false);
+  assert.equal(f.document.querySelectorAll('.wf-head-actions button').length,2);
+  await f.click('帮助');
+  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
+  const event=new f.window.Event('opendesk-tool-navigation',{bubbles:true});
+  event.detail={action:'header',actionId:'settings',page:'help'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(event));
+  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障','rejected actions ignored');
   assert.equal(starts(host).length,0);
 });
 
