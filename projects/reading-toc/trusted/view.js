@@ -19,21 +19,23 @@ const CSS=[
 ".edge-skin{position:absolute;right:0;left:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:calc(-1 * var(--toc-edge-gap));right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
-// The expanded hitbox is only 20px wide, positioned flush with the viewport
-// or immediately outside a freely dragged card. A 38px target here covered
-// the fourth mode button, even when the visible skin was only 20px.
+// Expanded: 20px at rest, 38px on hover/focus, both visually and interactively.
+// The header keeps a 20px inner clearance so neither state intercepts any
+// toolbar action. Host/card width and outer right gutter remain unchanged.
 ":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
-".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#e8ebef}",
+".edge-toggle:hover,.edge-toggle:focus-visible{width:38px}",
+".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
 ":host([data-toc-collapsed]) .edge-toggle:hover .edge-skin,:host([data-toc-collapsed]) .edge-toggle:focus-visible .edge-skin{width:38px}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:38px;transform:none}",
-// Keep the folded tab's 38x46 target, with 20px visible at rest;
-// expanded mode uses the compact target so no transparent hitbox blocks modes.
-"@media(hover:none){:host([data-toc-collapsed]) .edge-toggle .edge-skin{width:38px}}", 
+// Collapsed mode retains the larger click target, and touch has no hover
+// affordance, so show the entire target on touch devices.
+"@media(hover:none){.edge-toggle,.edge-toggle .edge-skin{width:38px}}", 
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}:host([data-toc-edge=left]) .edge-skin,:host([data-toc-collapsed]) .edge-skin{border-color:#4b505b}}",
 ':host([hidden]){display:none!important}',
-'.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
+'.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px;padding-right:20px}',
+":host([data-toc-edge=left]) .head{padding-right:0;padding-left:20px}",
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:0 1 auto;overflow:hidden}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
