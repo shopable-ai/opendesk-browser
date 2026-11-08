@@ -19,6 +19,10 @@ const CSS=[
 ".edge-skin{position:absolute;left:0;right:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:auto;right:0;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px}",
+// Only the folded tab is visually flush with the viewport. The expanded tab
+// stays attached to the card, with its entire interaction rail outside it.
+":host([data-toc-collapsed][data-toc-edge=right]) .edge-skin{left:auto;right:0;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px}",
+":host([data-toc-collapsed][data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
@@ -78,6 +82,15 @@ const CSS=[
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const EDGE_SIZE=Object.freeze({width:38,height:46});
+// Keep the deliberately free-floating placement intact. Edge docking applies
+// only to default or user-snapped left/right positions, not an arbitrary drag.
+const edgeDocked=placement=>!placement||placement.dock==='left'||placement.dock==='right';
+function foldPoint(left,top,side,placement,viewport){
+  const point=tocClampPoint(left,top,EDGE_SIZE,viewport);
+  if(edgeDocked(placement))point.left=side==='right'
+    ?viewport.left+Math.max(0,viewport.width-EDGE_SIZE.width):viewport.left;
+  return point;
+}
 // Trusted page-overlay-only action names. The installable locale catalog (and
 // its pinned language-pack hash) must not change for this presentation control.
 const EDGE_LABELS=Object.freeze({
@@ -250,9 +263,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       expandedFrame={width:rect.width,height:rect.height,
         leftGap:rect.left-viewport.left,
         rightGap:viewport.left+viewport.width-rect.right};
-      const point=tocClampPoint(
+      const point=foldPoint(
         edgeSide==='right'?rect.right-EDGE_SIZE.width:rect.left,
-        rect.top+EDGE_TOP,EDGE_SIZE,viewport);
+        rect.top+EDGE_TOP,edgeSide,placement,viewport);
       collapsed=true;
       panel.hidden=true;panel.inert=true;
       host.setAttribute('data-toc-collapsed','');
@@ -363,7 +376,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
           ?viewport.left+viewport.width-expandedFrame.rightGap-EDGE_SIZE.width
           :viewport.left+expandedFrame.leftGap;
       }
-      const point=tocClampPoint(left,top,EDGE_SIZE,viewport);
+      const point=foldPoint(left,top,edgeSide,placement,viewport);
       host.style.left=point.left+'px';host.style.top=point.top+'px';
       return;
     }
