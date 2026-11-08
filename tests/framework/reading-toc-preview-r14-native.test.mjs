@@ -319,11 +319,11 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    'Expanded panel must retain the original right gutter');
   assert(Math.abs(geometry.viewportWidth-toggleBox.right)<1,
    'Only the expanded toggle should reach the right viewport edge');
-  const expectedHitboxWidth=hovered?38:20;
-  assert(Math.abs(toggleBox.right-toggleBox.left-expectedHitboxWidth)<1,
-   'Expanded button must restore its 38px hover hitbox while resting at 20px');
-  assert(Math.abs(skinBox.right-skinBox.left-expectedHitboxWidth)<1,
-   'Expanded visual skin must grow together with its clickable hitbox');
+  assert(Math.abs(toggleBox.right-toggleBox.left-38)<1,
+   'Expanded 38px hitbox must remain constant while hovering and leaving');
+  const expectedSkinWidth=hovered?38:20;
+  assert(Math.abs(skinBox.right-skinBox.left-expectedSkinWidth)<1,
+   'Visual skin must grow from 20px to 38px on hover without shifting the hitbox');
   for(const name of ['top','focus','full','ai']){
    const buttonBox=await bounds('button[data-mode="'+name+'"]');
    const overlaps=toggleBox.left<buttonBox.right&&toggleBox.right>buttonBox.left&&
@@ -332,7 +332,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   }
  }
  await assertToggleRail();
- // The restored hover expands the SAME button and visual background to 38px;
+ // The restored hover expands only the visible skin to the fixed 38px hitbox;
  // it must not steal any of the four mode clicks, and must shrink on mouseout.
  const toggleNode=await tocNode(trusted,shadow,'button.edge-toggle');
  const model=(await trusted.send('DOM.getBoxModel',{nodeId:toggleNode})).model.content;
