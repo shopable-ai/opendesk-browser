@@ -270,8 +270,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert.equal(Math.round(folded.height),46);
  await until(async()=>Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
    'collapsing cannot move the button vertically after layout settles');
+ console.log('EDGE_Y_STAGE','collapsed-button-y-checked');
  assert.equal((await attributes(toggle))['aria-label'],'展开目录');
  assert.equal((await attributes(arrow)).d,'M15 5l-7 7 7 7');
+ console.log('EDGE_Y_STAGE','before-panel-query');
  const panel=await tocNode(trusted,shadow,'.panel');
  assert(Object.hasOwn(await attributes(panel),'hidden'),
    'collapsed outline must be hidden from pointer and focus interaction');
@@ -284,7 +286,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'collapsed idle recovery arrow must stay visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'idle arrow must be centered inside the 20px visible background');
+ console.log('EDGE_Y_STAGE','collapsed-idle-checks-finished');
+ console.log('EDGE_Y_STAGE','before-second-click');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ console.log('EDGE_Y_STAGE','after-second-click');
  await until(async()=>(await attributes(toggle))['aria-expanded']==='true',
    'second real mouse click did not expand');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
