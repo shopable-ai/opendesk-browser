@@ -124,17 +124,25 @@ export default async function main({assets}={}) {
         [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
-    // One managed capture listener follows React editor replacements. Intercept
-    // only a plain Enter that the visible native controls prove cannot send.
+    // One managed capture listener follows native editor replacements.
+    // Ctrl+Enter reuses the crown button's guarded enqueue action; plain Enter
+    // only falls back to the queue when native sending is unavailable.
     owner.on(document,'keydown',event=>{
-      if(event.key!=='Enter'||event.shiftKey||event.altKey||event.ctrlKey||event.metaKey||
+      if(event.key!=='Enter'||event.shiftKey||event.altKey||event.metaKey||
         event.defaultPrevented||event.isComposing||event.keyCode===229||composing||
         Date.now()-compositionEndedAt<100||!owner.active()||retireForLegacy())return;
+      const queueShortcut=event.ctrlKey===true;
       const state=engine.view();
-      if(!state.items.length)return;
+      if(!queueShortcut&&!state.items.length)return;
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
-      if(!snap.ok||snap.route!==state.route||!snap.editor||
+      if(!snap.ok||(!queueShortcut&&snap.route!==state.route)||!snap.editor||
         (target!==snap.editor&&!snap.editor.contains?.(target))||!snap.draft)return;
+      if(queueShortcut){
+        // Consume the key before enqueuing so ChatGPT cannot also submit it.
+        event.preventDefault();event.stopImmediatePropagation();
+        if(!event.repeat&&actions.enqueue())notify('草稿已加入发送队列');
+        return;
+      }
       const send=snap.sendButton;
       const disabled=!!send&&(send.disabled||send.getAttribute('aria-disabled')==='true');
       // An enabled official send always keeps its normal keyboard behavior,
