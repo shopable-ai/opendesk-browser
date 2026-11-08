@@ -201,9 +201,10 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
   }
   async function historyReadFence(row,broker,approval){
     const final=broker.authority.captureInstalledTaskFence(row.scope.taskId);
+    const requestFinal=ledger.captureWebTaskReadFence(row.requestId,row.source);
     const assertPolicy=()=>{
       if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','历史读取期间持续批准改变');
-      final();
+      final();requestFinal();
     };
     assertAutoGrant(await ledger.readAutoSettings(),row.scope,{sourceUrl:row.source.url,
       grantId:row.autoGrantId,epoch:row.autoEpoch});
@@ -221,7 +222,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const actual=await settingsSender(sender);
     if(message.source&&!validWebTaskSource(message.source))throw fail('E_WEB_TASK_SOURCE','历史来源身份无效');
     const rows=await ledger.listWebTasks({source:message.source,includeLegacy:true});
-    return Promise.all(rows.map(async row=>{
+    const disclosures=[];
+    const history=await Promise.all(rows.map(async row=>{
       if(!row.site){
         // Old Side Panel/manual requests did not record the original execution
         // host document. Request ID alone cannot correlate a Run or its bytes.
@@ -245,6 +247,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
             {error:terminalError(snapshot,run,row.scope.installation)};
           await historyReadFence(row,broker,approval);
           final();Object.assign(receipt,{persistence:'verified',...projection});
+          disclosures.push({receipt,final});
         }catch(error){
           receipt.persistence='not-available';delete receipt.value;
           receipt.error={code:error.code||'E_WEB_TASK_UNKNOWN',message:String(error.message).slice(0,2048)};
@@ -253,6 +256,15 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       return {requestId:row.requestId,source:row.source,scope:row.scope,candidate:row.candidate,status:row.status,
         createdAt:row.createdAt,receipt};
     }));
+    // One row can finish before another awaits. Recheck every disclosure at
+    // the batch return boundary so a later revocation removes earlier bytes.
+    for(const {receipt,final} of disclosures){
+      try{final();}catch(error){
+        delete receipt.value;receipt.persistence='not-available';
+        receipt.error={code:error.code||'E_WEB_TASK_UNKNOWN',message:String(error.message).slice(0,2048)};
+      }
+    }
+    return history;
   }
   async function reconcile(sender){
     const actual=await runner(sender),rows=await ledger.listWebTasks();

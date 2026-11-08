@@ -309,3 +309,18 @@ test('terminal diagnostics are bounded and history never trusts cached errors',a
   const denied=(await h.handle('history',{source},h.panel))[0].receipt;
   assert.equal(denied.persistence,'not-available');assert(!JSON.stringify(denied).includes('PRIVATE'));
 });
+
+test('revocation while another history row is pending also removes an earlier row result',async()=>{
+  const h=fixture();await h.approve();const first=await h.completed('first-candidate','run-first','result-first');
+  await h.completed('second-candidate','run-second','result-second');
+  let reads=0;
+  h.state.onSnapshot=async()=>{
+    if(++reads!==2)return;
+    // Let the first row finish all its asynchronous checks before revoking it.
+    await new Promise(setImmediate);
+    await h.ledger.revokeRequest({source,requestId:first.requestId});
+  };
+  const history=await h.handle('history',{source},h.panel);
+  const earlier=history.find(item=>item.requestId===first.requestId).receipt;
+  assert.notEqual(earlier.persistence,'verified');assert.equal(earlier.value,undefined);
+});

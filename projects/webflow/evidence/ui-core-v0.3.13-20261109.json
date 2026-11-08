@@ -1,0 +1,204 @@
+{
+  "schema": "opendesk.webflow.ui-core-evidence.v1",
+  "date": "2026-11-09",
+  "stage": "UI_CORE_PACKAGE_READY",
+  "fullReleaseAcceptance": "NOT_COMPLETED",
+  "latestUserScope": "现在不需要考虑缩放，优先完成核心部分。UI 核心优先；缩放、完整原生验收及六专家评分延期。",
+  "originalGoalRetained": "V0.3.2 紧凑 UI 整合、业务与可信授权保真、可安装包及真实浏览器验收；未把核心交付冒充正式验收。",
+  "git": {
+    "branch": "main",
+    "startingHead": "271ade34f74cc2a384d875f5ae6a3587746b3da0",
+    "webflowBaseline": "8898f35afef88a2dac8cf14e78cf8f34dbf39acc",
+    "parallelCommitObserved": "6fadef04cfccbc7d4e210e21296a34283e5da6f5",
+    "parallelNote": "另一会话将共享工作区进行中的文件一并提交并推送；已保留，后续仅提交本任务剩余文件。"
+  },
+  "reused": [
+    "V0.3.2 三 Tab 紧凑 UI",
+    "原 tasks.start/read/stop 与安装身份",
+    "storage CAS、同 clientRequestId 恢复及 UNKNOWN 围栏",
+    "原 Authority/Runner/RunHost 与可信自动运行组件"
+  ],
+  "fixes": [
+    "SDK fixture 改为读取可变 api.pins，真实模拟任务缺失",
+    "网页变化同步失效、SDK 重读、乱序与卸载围栏；事件数据不授予许可",
+    "脚本刷新期间禁用旧确认，缺安装 ID/代次时不可运行",
+    "网页核验与网站不匹配状态不再显示可手动运行",
+    "准备 CAS 冲突/读回不一致禁止执行",
+    "旧 Listener 首页断言按已有紧凑管理入口验证；标量断言避免 DOM 图格式化内存耗尽",
+    "可信控制异步核验后的对话 epoch 检查",
+    "失败/停止历史按原 Authority 读回有限错误；单条与整批返回前撤销围栏"
+  ],
+  "tests": {
+    "requiredNode": {
+      "status": "PASS",
+      "passed": 49,
+      "failed": 0,
+      "files": [
+        "projects/webflow/tests/webflow-ui.test.mjs",
+        "projects/webflow/tests/webflow-recovery-ui.test.mjs",
+        "tests/environment/task-delegation-package.test.mjs"
+      ],
+      "log": "artifacts/sidebar-tools/webflow/node.log"
+    },
+    "trustedAutoSettings": {
+      "status": "PASS",
+      "passed": 49,
+      "failed": 0,
+      "log": "artifacts/sidebar-tools/webflow/auto-settings-node.log"
+    },
+    "trustedHost": {
+      "status": "PASS",
+      "passed": 43,
+      "newRaceTests": 4
+    },
+    "backgroundHistory": {
+      "status": "PASS",
+      "passed": 22,
+      "failed": 0,
+      "log": "artifacts/sidebar-tools/webflow/background-node.log"
+    },
+    "expandedSecurity": {
+      "status": "PARTIAL",
+      "passed": 205,
+      "failed": 1,
+      "log": "artifacts/sidebar-tools/webflow/security-final.log",
+      "failure": "tests/environment/webflow-fixed-source.test.mjs 的全局 describeBundle 被并行 AI Proxy Settings.tsx 来源锁不一致阻断；未修改或放宽来源锁。此后历史围栏的最新证据以 22/22 单项为准。"
+    },
+    "syntax": "PASS: main.js/model.js/可信 Host/Ledger/Ingress",
+    "chromiumSourceComponent": {
+      "grade": "SOURCE_COMPONENT_CHROMIUM_MOCK_SDK",
+      "source": "projects/webflow/src/ui/{main.js,model.js,style.css}",
+      "inputs": {
+        "model.js": "f5f1662c4a144d4f66d8c5b13805c958edc172a3f02aef9d998d2925440c96a7",
+        "main.js": "0a9985939877f7625d0d8f8bff80abb23e3628247a5fcf55f368bfee04b77494",
+        "style.css": "deb058082ff74e9a7b348e475cfb88943fdb4a2d79925b77881481ffb106fa0f"
+      },
+      "browserVersion": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/149.0.7827.55",
+        "revision": "@3188f8a607ae7e067593be8aab7f02d2451fec07",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+        "jsVersion": "14.9.207.21"
+      },
+      "harnessSha256": "4384c33dd4b6d2a16d69cf1f413194ef50030328eb5efd8881668aa13107eec5",
+      "widths": [
+        320,
+        360,
+        400
+      ],
+      "screenshots": 21,
+      "tooltipEvidence": [
+        {
+          "width": 320,
+          "title": "刷新脚本安装状态",
+          "describedBy": null,
+          "tooltipCount": 0
+        },
+        {
+          "width": 360,
+          "title": "刷新脚本安装状态",
+          "describedBy": null,
+          "tooltipCount": 0
+        },
+        {
+          "width": 400,
+          "title": "刷新脚本安装状态",
+          "describedBy": null,
+          "tooltipCount": 0
+        }
+      ],
+      "notTested": [
+        "native select popup keyboard interaction (DOM option selection used)",
+        "ARIA tooltip keyboard disclosure (source uses title only)",
+        "long arbitrary error messages (fixture exposes E_PERMISSION only)",
+        "native extension/Authority/IME/screen reader"
+      ],
+      "checks": [
+        "responsive overview and scripts",
+        "three tabs, no duplicate header",
+        "two real fixed Task projections",
+        "wrong-site run disabled",
+        "icon aria-labels",
+        "keyboard tab wrapping/Home/End and visible focus",
+        "Chinese/site/long empty search and clear",
+        "attention/available/favorite filters",
+        "favorite persistence and name sort",
+        "filter/menu Escape focus return",
+        "menu keyboard and task identity",
+        "empty history and long record keyboard disclosure",
+        "permission read errors",
+        "settings",
+        "zero Task dispatches"
+      ],
+      "browserExtensionInstalled": false,
+      "taskExecuted": false,
+      "trustedAutoReactVerified": false
+    }
+  },
+  "package": {
+    "status": "PROJECT_PACKAGE_MATCH",
+    "id": "webflow",
+    "version": "0.3.13",
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "sha256": "9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4",
+    "bytes": 67679,
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "tasks.open",
+      "tasks.run"
+    ],
+    "delegatedTasks": [
+      {
+        "taskId": "baidu.search.top3",
+        "version": "1.1.4",
+        "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+        "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269"
+      },
+      {
+        "taskId": "google.search.top3",
+        "version": "1.0.0",
+        "manifestHash": "c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261",
+        "contentHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad"
+      }
+    ],
+    "builder": "scripts/build-sidebar-tool.mjs",
+    "candidateThenPromoteThenCheck": true,
+    "installed": false
+  },
+  "sourceSha256": {
+    "projects/webflow/src/ui/main.js": "0a9985939877f7625d0d8f8bff80abb23e3628247a5fcf55f368bfee04b77494",
+    "projects/webflow/src/ui/model.js": "f5f1662c4a144d4f66d8c5b13805c958edc172a3f02aef9d998d2925440c96a7",
+    "projects/webflow/src/ui/style.css": "deb058082ff74e9a7b348e475cfb88943fdb4a2d79925b77881481ffb106fa0f",
+    "projects/webflow/tool.config.json": "0ead57e86f604733a6eba06e1ff7fabcdc6fef9e65441171e3b3656903e28dcf",
+    "projects/webflow/tests/webflow-compact-browser.mjs": "4384c33dd4b6d2a16d69cf1f413194ef50030328eb5efd8881668aa13107eec5",
+    "src/native-agent/chatgpt-fixed-bridge-host.js": "c802072d64c7191f4447ffaa04563880050932634dccd68be8b9b0929b3b2e0c",
+    "src/native-agent/chatgpt-bridge-trigger-gate.js": "afef4a5ad1189078fec02e493fe1907d74c9536eb9bba36fc52689508346f50f",
+    "src/page-events/web-task-ingress.js": "b066f623fb21e37fd33583f223f2792006e91241ea35c5a4e0826aea882437cb"
+  },
+  "native": {
+    "status": "NOT_TESTED",
+    "reason": "ego TaskSpace 41 可用入口未发现 Web Flow/固定百度任务；原生侧栏属于另一活动任务，未抢占或改写安装状态。仅保留本轮入口观察，不覆盖旧版历史证据。",
+    "notTested": [
+      "0.3.13 安装/升级",
+      "同候选完整可信 Header/Logo/自动运行区域",
+      "真实目标网站执行及持久结果/原聊天交付",
+      "同候选 Stop/撤权/UNKNOWN/关闭重开恢复",
+      "production Browser 与实际 serve 连接"
+    ],
+    "taskSpaceReleased": true,
+    "existingDevWriterPreserved": 16888
+  },
+  "deferred": [
+    "缩放与更窄视口专项",
+    "完整原生业务验收",
+    "六专家最终评分/算术平均与正式发布结论",
+    "无关 AI Proxy 来源锁和全量 App CI"
+  ],
+  "goalLifecycle": {
+    "originalGoalStatusLastRead": "active",
+    "notMarkedComplete": true,
+    "reason": "最新用户只要求 UI 核心；原正式验收 GOAL 未完成，不恢复延期项。"
+  },
+  "evidenceBoundary": "真实 Chromium 中的正式源码交互 + 模拟 SDK；不是已安装 MV3/真实 Task/Native 验收。"
+}

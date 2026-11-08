@@ -330,6 +330,18 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     // Outside-queue read/delivery verification must notice replacement grants
     // as well as synchronous denials while its browser observations await.
     captureAutoPolicyEpoch(){return autoPolicyRevision;},
+    captureWebTaskReadFence(requestId,source){
+      requireRequestId(requestId);
+      if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');
+      const ticket=revocationRevision;
+      // Async ledger reads establish row identity; this existing revocation
+      // epoch closes the final read-to-disclosure race without another read.
+      return ()=>{
+        if(ticket!==revocationRevision||revokeAll||revokedTabs.has(source.tabId)||
+          revokedRequests.some(item=>item.requestId===requestId&&sameSource(source,item.source)))
+          throw fail('E_BRIDGE_REVOKED','原网页请求已撤销，禁止读取结果');
+      };
+    },
     assertWebTaskDelivery(requestId,source){
       requireRequestId(requestId);
       if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','网页来源身份不合法');

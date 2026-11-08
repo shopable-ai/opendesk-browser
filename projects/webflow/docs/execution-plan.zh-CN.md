@@ -1,15 +1,16 @@
-## V0.3.13 发布续接（2026-11-09；01a1bc77）
+## V0.3.13 UI 核心执行卡（2026-11-09；01a1bc77）
 
-当前阶段由本轮明确请求更新为：残余缺陷修复 → 定向业务与安全回归 → 源码 Chromium → 唯一正式包晋升 → 远端交付；真实安装与六项独立审查分别取证。下方其他 owner 的历史延期与原 UNKNOWN 不被重放。
+**最新阶段：UI 核心优先。** 用户最新明确“现在不需要考虑缩放，优先完成核心部分”。本轮只完成现有紧凑 UI 的真实源码交互、状态修复和同源安装包；缩放、完整原生验收、六专家最终评分及正式验收结论延期，自动续跑不得恢复旧全量清单。原始最高产品目标保留。
 
-- 起始 main HEAD：`271ade34f74cc2a384d875f5ae6a3587746b3da0`；Web Flow 基线 `8898f35af` 已在祖先中。项目没有初始未提交改动；根宿主与其他扩展有并行修改，保持只读和保留。
-- 类型与复用：原 v2 Sidebar Tool、opaque-origin iframe、公开 `OpenDeskTool.request`、原 React Runtime、Task Authority/Runner/RunHost 和 CAS 存储；业务 owner 为本项目，不改框架或重做预览。
-- 已复现原 45 项的 44 PASS / 1 FAIL。SDK fixture 闭包误读旧 pins 已修复；新增用例先确认网页/安装刷新仍保留旧许可，再修复即时失效、确认前站点复核与完整安装身份检查。当前 48 项 PASS。
-- `IN_PROGRESS`：本次源码组件 Chromium 320/360/400px、可信自动任务/撤权/恢复定向检查、正式包晋升与远端检查。资源仅自有临时 source fixture/Profile 与 `artifacts/sidebar-tools/webflow/`；原 `dist/development` watcher PID 16888 未变更、停止或覆盖，不以进程存在证明客户端连接。
-- 原生入口：ego TaskSpace 41 已释放；列表未见 Web Flow，任务目录仅见 sample.form-fill，未见固定百度 Task。原生侧栏存在其他活动任务占用，不抢占，不导入或改变授权。当前候选安装/真实网站执行/恢复与自动运行为 `NOT_TESTED`。ego 页面/组件不是系统 Chrome 与 production 证据。
-- 最新结果统一写入本节和 `evidence/release-v0.3.13-20261109.json`；不新建并列产品计划。仍不创建分支、worktree、Runner、Authority 或任务库；不发布其他 owner 尚未发布的本地提交。
+**核心结果：** 保留已整合的概览／脚本／记录及原 SDK 执行链；任务缺失 fixture、网页切换核验、迟到回包、卸载及缺失安装身份已修复。核验中／错误网站不再显示“可手动运行”。搜索、筛选、收藏排序、图标、键盘焦点、Escape、记录展开与只读查询通过 320/360/400px 正式源码 Chromium 检查，共 21 张截图；SDK 为模拟，未真实执行 Task。
 
-# Web Flow / AI Workflow Bridge · 连续任务执行计划
+**验证与包：** 必需 Node 49/49、可信设置组件 49/49、可信 Host 43/43、后台历史 22/22 PASS；额外全局来源检查被并行 AI Proxy 来源锁不一致阻断，未放宽。唯一正式包已由原打包器候选→晋升→`--check-project` 核对，版本 **0.3.13**，SHA256 `9447f6802bf00b1dfcfddf5613b82ee6fbc23f32bc92be0d2a210736c81381b4`；**PACKAGE_READY，安装 NOT_TESTED**。已收尾的可信控制／历史撤销围栏修复继续留在原 owner，不另建运行器。
+
+**下一条用户操作：** 在既有 Web Flow 安装入口审阅并更新唯一正式包，打开三 Tab 使用核心 UI。当前未在被其他任务占用的原生侧栏中执行安装；不抢占其窗口或冒称新版已加载。需要可信宿主修复的部署仍归 Browser 原构建入口，工具 JSON 不更新可信源码。
+
+**连续性与资源：** 起始 HEAD `271ade34f74cc2a384d875f5ae6a3587746b3da0`；Web Flow 基线 `8898f35af`。另一会话的共享提交 `6fadef04c` 已含进行中的本轮文件并推送，保留该历史，后续只收尾本任务文件。不创建分支／worktree、不重置他人内容。原 `dist/development` writer PID 16888 保留，serve 连接及 production 未验证。ego TaskSpace 41 已释放；旧版 0.3.11 的历史成功不提升为 0.3.13 PASS。
+
+**证据与生命周期：** [当前 UI 核心证据](../evidence/ui-core-v0.3.13-20261109.json)。旧正式发布 GOAL 实读仍 active，未伪报完成／暂停；当前仅按上述最新阶段收尾，不以旧目标恢复延期验收。GitHub 交付由本次后续窄提交核对，提交成功不等于原生验收。
 
 ## 当前文件核心执行卡（2026-11-08；01a1b79c）
 
