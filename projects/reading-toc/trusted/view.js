@@ -4,25 +4,27 @@ import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
 
 // Fixed vertical anchor on the header row, independent of variable outline height.
 const EDGE_TOP=5;
+// Reserve the entire 38px interaction rail OUTSIDE the card, never above its four mode buttons.
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
 const CSS=[
-':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:254px;max-width:calc(100vw - 24px);z-index:2147483000;',
+':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:292px;max-width:calc(100vw - 24px);z-index:2147483000;',
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
 '*{box-sizing:border-box}button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #426cff;outline-offset:2px}',
-'.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
+'.panel{width:calc(100% - 38px);background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
+":host([data-toc-edge=left]) .panel{margin-left:38px}",
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
 `.edge-toggle{position:absolute;right:0;top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
-".edge-skin{position:absolute;right:0;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
+".edge-skin{position:absolute;left:0;right:auto;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
-":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
+":host([data-toc-edge=left]) .edge-skin{left:auto;right:0;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px}",
 ".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
-// Both expanded and collapsed states use one visible 20px tab and centered chevron.
-// Hover/focus grows only the visual skin to 38px; the 38x46 input hitbox is fixed.
+// The 20px visual tab touches the panel edge, while its 38x46 hitbox stays
+// entirely in the dedicated rail. Hover/focus expands only outward into the rail.
 "@media(hover:none){.edge-toggle .edge-skin{width:38px}}",
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}}",
 ':host([hidden]){display:none!important}',
@@ -71,8 +73,8 @@ const CSS=[
 '.ai-member-copy,.ai-member-status{color:#abb8d0}',
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
-'@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
-'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
+'@media(max-width:1100px){:host{right:8px;top:8px;width:258px;opacity:.95}.heading{font-size:11px}}',
+'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(292px,calc(100vw - 16px));opacity:.94}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const EDGE_SIZE=Object.freeze({width:38,height:46});
