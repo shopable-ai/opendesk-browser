@@ -255,7 +255,7 @@ window.addEventListener('message',event=>{
  if(!data||data.protocol!==bridgeProtocol)return;
  if(data.type==='ready'){pcReady=true;sendPcInitialize();return;}
  if(!pcInitialized||data.nonce!==bridgeNonce)return;
- if(data.type==='back'){s.view='side';s.editor=null;render();return;}
+ if(data.type==='back'){s.view='side';s.editor=null;render();document.querySelector('.tool-host-header [data-action="go-pc"]')?.focus({preventScroll:true});return;}
  if(data.type!=='snapshot'||!Array.isArray(data.profiles)||data.profiles.length>100)return;
  const profiles=data.profiles.filter(p=>p&&typeof p.id==='string'&&/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(p.id)&&typeof p.name==='string'&&typeof p.host==='string'&&typeof p.scheme==='string').map(p=>({id:p.id,name:p.name.slice(0,80),host:p.host.slice(0,300),scheme:p.scheme.slice(0,12)}));
  s.profiles=profiles;
