@@ -38,6 +38,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref,normalizeOwnPageTarget} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
+import {normalizeToolUiNotice,createToolUiNoticeRateGate} from '../sidebar-tools/ui-notice.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
@@ -315,6 +316,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let promptHost=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0,revocationReadError=false;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
+  const toolUiNoticeRate=createToolUiNoticeRateGate();
   function refreshMenuStatus(tool,origin){
     const key=JSON.stringify([tool.id,tool.version,revocationEpochs[tool.id]??null,origin,
       menuGrants[tool.id]??null,sidebarToolEnabled(enableRecords,tool.id)]);
@@ -3727,6 +3729,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='ui-notify'){
+      // Tool-local presentation only: no page toast, no update badge, no
+      // trusted install/review action and no arbitrary HTML or callbacks.
+      // The already-checked opaque iframe source and instance are required,
+      // and the active installed package/epoch must remain usable.
+      if(exportPort!==null||Object.keys(message).length!==5||
+         !visible||disposed||readOnlyPreview||toolParked||frameRoot.hidden||
+         installedReadError||enableReadError||revocationReadError||
+         !sidebarToolEnabled(enableRecords,active.id)||
+         frameRevocationEpoch!==(revocationEpochs[active.id]??null)||
+         !samePackage(active,toolById(active.id)))return;
+      const payload=normalizeToolUiNotice(message.payload);
+      if(payload&&toolUiNoticeRate.allow(instance))
+        view.showToast('「'+active.title+'」：'+payload.message);
+      return;
+    }
     if(message.kind==='request'&&message.operation==='tool.page.open'){
       if(typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId))return;
       const source=event.source,token=instance,tool=active,epoch=frameRevocationEpoch;

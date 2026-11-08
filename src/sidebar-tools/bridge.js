@@ -3,6 +3,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sideba
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {normalizeToolNavigation} from './navigation-state.js';
+import {normalizeToolUiNotice} from './ui-notice.js';
 import {normalizeOwnPageTarget} from '../ui/sidebar-tools/navigation.js';
 import {validateToolLocalization} from '../ui/sidebar-tools/localization.js';
 
@@ -489,6 +490,17 @@ export function initSidebarToolSandbox() {
       if(!page)return rejected(exportError('E_PAGE_TARGET','不支持的页面参数'));
       return sendRequest('tool.page.open',page,port);
     };
+    // Bounded tool-local feedback only. It does not open a webpage notification,
+    // claim an installed update or call the trusted Installer.
+    const notifyUi=value=>{
+      if(disposed||!instance)return false;
+      const payload=normalizeToolUiNotice(value);
+      if(!payload)return false;
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify',
+        instance,toolId,payload},'*');
+      // This only means the sandbox queued a message, not that the Host showed it.
+      return true;
+    };
     const openAISettings=()=>{
       const port=consumeRequestGesture('ai.settings.open');
       if(!port||!instance||disposed)return false;
@@ -499,7 +511,8 @@ export function initSidebarToolSandbox() {
       }catch{return false;}
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,prepareAI,setState,setConversationState,openAISettings,surface:displaySurface,
+      root,request,prepareAI,setState,setConversationState,openAISettings,
+      ui:freeze({notify:notifyUi}),surface:displaySurface,
       initialPage:displaySurface==='page'?normalizeOwnPageTarget(message.initialPage):null,
       ...(navigationAllowed&&exportPort&&displaySurface==='sidebar'?{openOwnPage}:{}),
       ...(navigationAllowed?{setNavigation}:{}),

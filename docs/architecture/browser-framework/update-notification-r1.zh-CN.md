@@ -159,6 +159,21 @@ UNSEEN / DISMISSED / VIEWED / IGNORED
 12. 单个提示词按钮/其他网页按钮可照常使用；Toast 不读取、发送或修改草稿。
 
 
+### 2.8 \`ui.notify\` 与更新提醒的实现边界（2026-11-09）
+
+仓库此前已经有可信 React \`ToolToast\` 与内部 \`view.showToast(message)\`，**但没有向 Sidebar Tool 公开 \`ui.notify\`**；\`browser.notifications.create\` 在公开 SDK 文档中明确为 \`NOT_EXPOSED\`，且含系统通知含义，不宜用来实现普通工具内提示。
+
+本轮最小代码实现 **\`OpenDeskTool.ui.notify({message})\`**，复用现有 Side Panel \`ToolToast\`。详见 \`docs/api/sidebar-tools.zh-CN.md\`、\`src/sidebar-tools/ui-notice.js\`、\`src/sidebar-tools/bridge.js\`、\`src/ui/sidebar-tools.js\`。它只允许 1–160 字符纯文本和每实例每分钟 3 次，宿主验证同一个活动安装实例 / 启停 / 包版本 / 撤权代次 / 可见性，不能注入网页、打开窗口、请求权限或运行安装器。**工具自报的“更新已完成”文字不能变成可信更新事件。**
+
+必须继续实施的独立基础能力：
+
+- \`UpdateNoticeCoordinator\`：接收**可信** Browser 本体 \`runtime.onInstalled\` / \`onUpdateAvailable\` 和已经核验的官方工具候选 / 安装回执，产生只读版本事件。
+- \`UpdateNoticeStateStore\`：在同 Profile 的原可信数据所有权下保持 releaseKey、\`impressionCount\`、\`snoozeUntil\`、\`viewed/ignored\`，使用原可用串行/锁机制，跨多标签先 claim 后 visible ACK，避免刷新/重启重复通知。
+- \`UpdateNoticeSlot\`：在可信 Side Panel / PC 框架共享 UI 中显示 NEW、详情/历史、稍后/忽略；升级动作**必须调用原 \`installReviewedSidebarTool\`**，不得复用 \`ui.notify\` 当作已安装回执。
+- \`PageUpdateToast\`：仅由可信宿主在**已授权且支持**的目标网站选择安全时机显示，不能由普通动态工具控制；默认一次，明确首次“稍后”后 24 小时可第二次，最多两次。
+
+**验收分级**：\`OpenDeskTool.ui.notify\` 为已写入源码（SOURCE_IMPLEMENTED），对应测试源码已加入，Node/真实 Chrome/production 结果分别记录；本轮并未把持久化框架更新中心接入真实 Chrome，不能声明全系统更新提醒已完成。
+
 ## 3. 事件来源、证据与状态判定
 
 | 对象 | 可信事件 / 数据 | 可宣称状态 | 禁止推断 |

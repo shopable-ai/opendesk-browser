@@ -41,6 +41,31 @@ button.addEventListener('click', () => {
 
 可复用源码 Demo：[header-actions-demo](../../examples/sidebar-tools/header-actions-demo/README.zh-CN.md)，其中保留原页头动作并扩展独立 Side Panel / PC 工作台。当前是**SOURCE_IMPLEMENTED / NODE、BUILD、CHROME、PACKAGE 尚未复验**，不能将文档或 Demo 算作正式安装通过。
 
+### 非阻断消息：\`OpenDeskTool.ui.notify\`（2026-11-09 最小源码实现）
+
+普通已安装 Sidebar Tool 可以在自己的 Side Panel / PC 工具宿主内，使用原有可信 React \`ToolToast\` 显示**纯文本、非阻断、临时**状态反馈（例如“已保存”“导出失败”）。这不是网页注入通知、Chrome 系统通知、更新消息中心，也**不具有任何安装/权限/重载能力**。
+
+\`\`\`js
+// 在工具自己的 Classic JS 中，由用户操作或已验证的业务结果触发：
+if (typeof OpenDeskTool.ui?.notify === 'function') {
+  const queued = OpenDeskTool.ui.notify({message: '配置已保存'});
+  // queued=true 只表示沙箱已提交展示请求，不保证用户实际看到。
+} else {
+  const status = OpenDeskTool.root.querySelector('[role="status"]');
+  if (status) status.textContent = '配置已保存'; // 旧 Host 兼容降级
+}
+\`\`\`
+
+**当前输入合同：**必须为\`{message: string}\`一个字段，不接受 \`html\`、\`url\`、\`action\`、\`onClick\`、\`title\`、\`type\` 或额外字段；去除两端空白后长度 1–160 个 JavaScript 字符，不允许控制字符、换行和双向控制字符；非法输入返回 \`false\`。有效请求返回 \`true\` 仅代表已向 Host 投递，**不等于显示或任何业务完成的回执**。不得用它替代真正的保存读回、安装确认或权限审阅。
+
+- **仅宿主内展示**：宿主复用 \`src/ui/react/tabs/tool-host.tsx\` 的 \`ToolToast\` 及 \`src/ui/sidebar-tools-view.js\` 的 \`showToast\`，当前为 5 秒后自然消失，悬浮/聚焦期间暂停；页面内不会自动安装、打开新标签、展示 URL 或执行回调。
+- **来源和生命期**：仅接受同一活动 iframe 的受信任 \`source\`、opaque origin、实例 ID、工具 ID，并重验当前安装包、启停、撤权代次和宿主可见性；只读开发预览和旧实例无法驱动正式 Toast。
+- **限频**：每个活动工具实例 60 秒最多 3 条消息；超额安全忽略。卸载、关闭或切换工具后旧实例不能再投递。不保证跨侧栏/PC 统一队列；它不是更新公告的 Profile 级持久计数器。
+- **安全**：只是文字，React 以文本渲染；无 HTML 注入、通知图标、操作按钮、系统弹窗或自动执行。页面与业务仍属于工具自己的沙箱，不向工具暴露 \`chrome.*\`。
+- **兼容与验收**：旧 Host 没有 \`ui.notify\` 时必须回退工具内状态栏；本轮只说明源码接线与定向测试入口，尚未确认真实 Chrome / production / 安装包端到端运行：\`NOT_TESTED\`。
+
+**更新提醒走独立的可信发布链**：\`docs/architecture/browser-framework/update-notification-r1.zh-CN.md\`。例如“提示词快捷按钮有新版本”只能由宿主依据可信发行与真实安装状态产生；**工具调用 \`ui.notify\` 不能创建框架级 NEW、跨标签 Toast、更新记录，更不能安装新版**。
+
 ## 1. 工具源配置与运行包的区别
 
 开发者维护的 `tool.config.json`：
