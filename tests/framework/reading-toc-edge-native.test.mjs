@@ -227,14 +227,16 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  const hoverless=await evaluate(trusted,'matchMedia("(hover:none)").matches');
- assert.equal(hoverless,false,'headed Xvfb Chromium must validate the desktop 12px edge');
- const idleWidth=12;
+ assert.equal(hoverless,false,'headed Xvfb Chromium must validate the desktop 20px edge');
+ const idleWidth=20;
  const firstWidth=await skinWidth();
  console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'expanded idle edge width must be 12px on desktop');
- await until(async()=>(await arrowOpacity())<0.01,
-   'expanded idle chevron remains hidden until hover or keyboard focus');
+   'expanded idle tab must be 20px wide on desktop');
+ await until(async()=>(await arrowOpacity())>0.99,
+   'expanded idle chevron must already be visible without hover');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'expanded idle chevron must be centered inside its 20px tab');
  const initial=await rect(host);
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
@@ -263,9 +265,11 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'second real mouse click did not expand');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'expanded idle must restore the 12px edge');
- await until(async()=>(await arrowOpacity())<0.01,
-   'expanded idle must hide the collapse chevron again');
+   'expanded idle must return to a 20px tab after the pointer exits');
+ await until(async()=>(await arrowOpacity())>0.99,
+   'expanded idle must keep its collapse chevron visible');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'expanded idle must keep its chevron centered');
  const restored=await rect(host);
  assert(restored.width>200,'original directory width must be restored');
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
@@ -282,5 +286,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await select(overlay.page,'od-toc-site','a');
  await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===true'),
    'return to site A must restore its collapsed state');
- console.log('READING_TOC_EDGE_NATIVE_PASS: collapsed idle 20px, hover 38px, centered visible arrow, fixed hitbox, recovery');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: both states idle 20px visible centered chevron, hover 38px, fixed hitbox, recovery');
 });

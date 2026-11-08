@@ -218,18 +218,20 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
     assert.equal(toggle.children[0].children.length,1,'chevron resides inside edge skin');
     const arrowPath=toggle.children[0].children[0].children[0];
     assert.equal(arrowPath.attributes.get('d'),'M9 5l7 7-7 7');
-    assert.match(css,/width:12px;height:46px/);
+    assert.match(css,/width:20px;height:46px/);
+    assert.match(css,/\.edge-toggle svg\{width:14px;height:14px;opacity:1;pointer-events:none\}/,
+      'both states show an idle chevron inside their visible tab');
     assert.match(css,/width:38px!important;max-width:38px!important;height:46px!important/);
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-skin\{width:20px\}/,
-      'collapsed idle tab must remain narrower than hovered 38px appearance');
+    assert.match(css,/\.edge-toggle:hover \.edge-skin,\.edge-toggle:focus-visible \.edge-skin\{width:38px;/,
+      'hover/focus expands background without shifting the button hitbox');
     assert.match(css,/\.edge-skin\{[^}]*display:grid;place-items:center;/,
       'visible tab grid always centers its chevron');
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle svg\{opacity:1\}/,
-      'collapsed arrow remains visible with no hover');
+    assert.doesNotMatch(css,/\.edge-toggle svg\{[^}]*opacity:0/,
+      'the expanded idle arrow must not disappear without hover');
     assert.doesNotMatch(css,/translateX\(/,
       'left/right centering cannot depend on magic pixel offsets');
-    assert.match(css,/:host\(\[data-toc-collapsed\]\) \.edge-toggle:is\(:hover,:focus-visible\) \.edge-skin\{width:38px\}/,
-      'only hovered or focused folded tab uses the full visual width');
+    assert.match(css,/@media\(hover:none\)\{\.edge-toggle \.edge-skin\{width:38px\}\}/,
+      'touch has a full-width control on both states');
     assert.match(css,/@media\(hover:none\)/);
     assert.match(css,/prefers-reduced-motion:reduce/);
     scroll.scrollTop=31;modes.children[2].fire('click');
