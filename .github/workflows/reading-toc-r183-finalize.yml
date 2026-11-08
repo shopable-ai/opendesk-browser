@@ -130,7 +130,7 @@ jobs:
       - name: Real Chromium offline preview interactive checks
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
+        run: xvfb-run -a node --test tests/framework/reading-toc-edge-native.test.mjs
       - name: Fast-forward only canonical generated preview
         shell: bash
         run: |
