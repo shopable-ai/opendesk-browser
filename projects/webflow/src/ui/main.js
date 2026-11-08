@@ -563,7 +563,9 @@
                 summary.attention?'有固定脚本需要处理':'当前没有待处理异常'),
               h('p',{className:'wf-sub'},active?'当前步骤须确认运行、只读查询或停止；不会自动补跑。':
                 summary.attention?'请核对固定任务的安装、版本和权限。':
-                '手动任务仅按已审阅的安装及网站范围使用。')),
+                '手动任务仅按已审阅的安装及网站范围使用。'),
+              active&&h('code',{className:'wf-mono wf-active-locator',
+                title:'待核对的原请求 clientRequestId'},active.clientRequestId)),
             (active||summary.attention>0)&&Btn(active?'处理原步骤':'查看原因',
               ()=>setTab(active?'history':'scripts'),{quiet:true})),
           h('div',{className:'wf-metrics','aria-label':'固定任务概况'},
