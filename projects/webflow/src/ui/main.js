@@ -44,7 +44,7 @@
       (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
     title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,
     'aria-expanded':opts.expanded,'aria-haspopup':opts.popup,'aria-controls':opts.controls,
-    'aria-describedby':opts.describedBy
+    'aria-describedby':opts.describedBy,id:opts.id,'data-wf-menu':opts.menuId
   },label);
   const Status=({state,text})=>h('span',{className:'wf-badge','data-state':state,role:'status'},
     text||labels[state]||state||'未核验');
@@ -438,6 +438,11 @@
     const rows=M.filterTasks(tasks,search,filter,settings.favorites);
     const summary=M.summary(tasks,history);
     const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
+    const runStateLabel=state=>({
+      completed:'执行完成',failed:'执行失败',unknown:'结果未知',stopped:'已停止',
+      interrupted:'已中断',cancelled:'已取消',canceled:'已取消',
+      running:'执行中',saving:'保存中',checking:'核验中'
+    })[state]||state||'未核验';
     const gotoScripts=()=>setTab('scripts');
     const runReason=pin=>!recoveryReady?'正在恢复原步骤，请先完成核验':
       activeRef.current?'存在尚未释放的原请求，请先查询或停止':
@@ -450,64 +455,74 @@
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
     const taskCard=pin=>{
       const star=settings.favorites.includes(M.taskKey(pin));
-      return h('article',{key:pin.taskId,className:'wf-panel wf-task'},
-        h('div',{className:'wf-line wf-between'},
-          h('div',{className:'wf-task-title wf-grow'},
-            h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
-            h('div',{className:'wf-grow'},h('strong',null,pin.title),
-              h('span',{className:'wf-sub'},pin.site.replace('https://','')))),
-          Btn(star?'★':'☆',()=>toggleFavorite(pin),{icon:true,disabled:saving,
-            ariaLabel:star?'取消收藏 '+pin.title:'收藏 '+pin.title,pressed:star})),
-        h('div',{className:'wf-line wf-between'},
-          h(Status,{state:pin.state}),
-          h('span',{className:'wf-sub'},'v'+pin.version)),
-        pin.error&&h('p',{className:'wf-sub'},pin.error),
-        h('div',{className:'wf-actions'},
-          Btn('运行',()=>{setDetail(pin.taskId);setQuery('');},{
-            primary:true,disabled:runDisabled(pin)||!pin.binding,title:!sameTarget(pin)?'先切换到任务网站':'填写参数'}),
-          Btn('详情',()=>{setDetail(detail===pin.taskId?null:pin.taskId);setQuery('');},
-            {expanded:detail===pin.taskId}),
-          Btn('宿主管理',()=>openTask(pin),{disabled:pin.state!=='available'})),
-        detail===pin.taskId&&h('div',{className:'wf-stack'},
-          h('hr',{style:{border:0,borderTop:'1px solid var(--line)',width:'100%'}}),
+      const reason=runReason(pin),expanded=detail===pin.taskId;
+      return h('article',{key:pin.taskId,className:'wf-task-row'},
+        h('div',{className:'wf-task-main'},
+          h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
+          h('div',{className:'wf-task-info'},
+            h('button',{type:'button',className:'wf-task-name',title:pin.title,
+              'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
+            h('div',{className:'wf-task-meta'},
+              h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
+              h(Status,{state:pin.state}))),
+          h('div',{className:'wf-item-buttons'},
+            Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,disabled:saving,
+              title:star?'取消收藏':'收藏',ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
+            Btn(Icon('play'),()=>{setDetail(pin.taskId);setQuery('');setMore(null);},
+              {key:'run-'+pin.taskId,icon:true,primary:true,disabled:Boolean(reason),
+                title:reason||'填写参数并保存运行步骤',
+                ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
+            h('div',{className:'wf-menu-anchor'},
+              Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
+                {key:'more-'+pin.taskId,icon:true,ariaLabel:'更多操作：'+pin.title,
+                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'menu'}),
+              more===pin.taskId&&h('div',{className:'wf-menu',role:'menu','aria-label':pin.title+' 操作'},
+                h('button',{type:'button',role:'menuitem',onClick:()=>inspect(pin)},'查看详情'),
+                h('button',{type:'button',role:'menuitem',disabled:pin.state!=='available',
+                  onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
+        pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
+        expanded&&h('div',{className:'wf-task-detail wf-stack'},
           detailList([['网站',pin.site],['任务 ID',h('code',{className:'wf-mono'},pin.taskId)],
             ['精确版本',pin.version],['manifestHash',h('code',{className:'wf-mono'},pin.manifestHash)],
             ['contentHash',h('code',{className:'wf-mono'},pin.contentHash)],
             ['安装身份',pin.binding&&h('code',{className:'wf-mono'},pin.binding.installationId||'待核对')||'不可读取'],
             ['授权代次',pin.binding?String(pin.binding.generation):'不可读取']]),
           h('label',{className:'wf-label',htmlFor:'wf-query'},'搜索关键词',
-            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,disabled:Boolean(activeRef.current),
-              placeholder:'输入本次搜索关键词',onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
+            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,
+              disabled:Boolean(activeRef.current),placeholder:'输入本次搜索关键词',
+              onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
           h('p',{className:'wf-sub'},sameTarget(pin)?
-            '目标网站匹配；运行仍须经过原宿主的实时权限、站点及任务校验。':
-            '当前标签页不是该任务的获准网站。请切换页面后重新打开 Web Flow。'),
+            '目标网站匹配；实际派发仍须通过宿主的权限、安装及任务核验。':
+            '当前标签页不是获准网站；请切换页面后重新检查。'),
           h('div',{className:'wf-actions'},
             Btn('保存运行步骤',()=>{void prepare(pin);},{primary:true,
               disabled:runDisabled(pin)||!query.trim()||query.trim().length>120}),
-            Btn('关闭详情',()=>setDetail(null),{quiet:true}))
-        )
+            Btn('收起详情',()=>setDetail(null),{quiet:true})))
       );
     };
-    const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index},
-      h('article',{className:'wf-panel wf-stack'},
-        h('div',{className:'wf-line wf-between'},
-          h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
-          h('span',{className:'wf-meta'},time(entry.at))),
-        h('div',{className:'wf-line wf-between'},
-          h(Status,{state:entry.state,text:'保存时运行：'+entry.state}),
-          h('span',{className:'wf-sub'},entry.resultPersisted?'保存时曾观察持久结果':'持久结果未确认')),
-        h('p',{className:'wf-sub'},'摘要（当前授权及结果须重新查询）：'+businessLabel(entry.business)+
-          (entry.count!==null?' · '+entry.count+' 条':'')+
-          '；原聊天交付 / AI 续答：未观察'),
-        h('details',{className:'wf-help'},h('summary',null,'技术与证据'),
+    const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
+      h('details',{className:'wf-record-details'},
+        h('summary',{className:'wf-record-summary',title:'展开查看原请求证据'},
+          h('div',{className:'wf-record-info'},
+            h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
+            h('span',{className:'wf-sub'},time(entry.at)+' · 手动运行')),
+          h(Status,{state:entry.state,text:runStateLabel(entry.state)}),
+          h('span',{className:'wf-chevron','aria-hidden':'true'},Icon('chevron'))),
+        h('div',{className:'wf-record-expanded wf-stack'},
+          h('p',{className:'wf-sub'},'以下为保存时摘要，不是当前结果：'+businessLabel(entry.business)+
+            (entry.count!==null?' · '+entry.count+' 条':'')+'。'),
           detailList([['clientRequestId',h('code',{className:'wf-mono'},entry.clientRequestId)],
             ['runId',h('code',{className:'wf-mono'},entry.runId||'未取得')],
             ['resultId',h('code',{className:'wf-mono'},entry.resultId||'未取得')],
-            ['原运行结果',entry.runtimeOk?'Controller 结果 outcome.ok=true':'未核验或执行失败'],
+            ['持久结果',entry.resultPersisted?'保存时原快照匹配':'未确认'],
+            ['运行结果',entry.runtimeOk?'Controller outcome.ok=true（不等于网页业务成功）':'未核验或执行失败'],
             ['资源释放',entry.retirementState],
-            ['持久结果',entry.resultPersisted?'保存时原快照匹配':'未确认']])),
-        active?.clientRequestId!==entry.clientRequestId&&h('div',{className:'wf-actions'},
-          Btn('查询原请求',()=>readOriginal(entry)))
+            ['网页业务',businessLabel(entry.business)],
+            ['原聊天交付',entry.delivery==='not_observed'?'未观察':entry.delivery],
+            ['AI 续答',entry.aiReply==='not_observed'?'未观察':entry.aiReply]]),
+          active?.clientRequestId!==entry.clientRequestId&&Btn('查询原请求（只读）',()=>readOriginal(entry),
+            {disabled:Boolean(activeRef.current&&activeRef.current!==entry.clientRequestId),
+              title:activeRef.current&&activeRef.current!==entry.clientRequestId?'请先核对当前原请求':'读取同一请求，不重放执行'}))
       ));
     const activeCard=()=>{
       if(!active)return null;
