@@ -122,6 +122,8 @@
 .wf-filter-popover>strong{font-size:11px}
 .wf-filter-option{background:transparent;color:var(--ink);border:0;border-radius:6px;padding:8px;text-align:left;min-height:32px;font-size:11px}
 .wf-filter-option:hover,.wf-filter-option[aria-pressed=true]{background:var(--tint);color:var(--brand)}
+.wf-filter-popover .wf-label{margin-top:4px}
+.wf-filter-popover .wf-select{min-height:34px;font-size:11px}
 .wf-history{padding:0;gap:0;overflow:visible}
 .wf-record-row{list-style:none;min-width:0}
 .wf-record-details summary{cursor:pointer;list-style:none}

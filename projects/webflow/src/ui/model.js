@@ -8,7 +8,7 @@
   const terminal=new Set(['completed','failed','stopped','interrupted','cancelled','canceled','unknown']);
   const errorState=error=>error&&error.code==='E_REVISION'?'changed':
     error&&['E_PERMISSION','E_TOOL_DISABLED','E_OWNER'].includes(error.code)?'unavailable':'error';
-  function filterTasks(rows,query,filter,starred){
+  function filterTasks(rows,query,filter,starred,sort='favorite'){
     const q=String(query||'').trim().toLocaleLowerCase();
     const saved=new Set(Array.isArray(starred)?starred:[]);
     return rows.filter(row=>{
@@ -17,7 +17,8 @@
       if(filter==='favorite'&&!saved.has(taskKey(row)))return false;
       return !q||[row.title,row.taskId,row.site,row.version].some(s=>
         String(s||'').toLocaleLowerCase().includes(q));
-    }).sort((a,b)=>Number(saved.has(taskKey(b)))-Number(saved.has(taskKey(a)))||
+    }).sort((a,b)=>(sort==='name'?0:
+      Number(saved.has(taskKey(b)))-Number(saved.has(taskKey(a))))||
       a.title.localeCompare(b.title,'zh-CN'));
   }
   function businessState(snapshot){

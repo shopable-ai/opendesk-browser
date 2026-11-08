@@ -19,7 +19,7 @@ const problem=code=>Object.assign(Error(code),{code});
 function sdk(){
   const store=new Map(),calls=[],pins=config.delegatedTasks.map(p=>({...p,installationId:'install-'+p.taskId,generation:1}));
   const etag=key=>createHash('sha256').update(JSON.stringify(store.get(key)??null)).digest('hex');
-  const api={store,calls,pins,read:async id=>({clientRequestId:id,state:'unknown',semantic:'UNKNOWN'}),
+  const api={store,calls,pins,page:{status:'available',url:'https://www.baidu.com/'},read:async id=>({clientRequestId:id,state:'unknown',semantic:'UNKNOWN'}),
     start:async id=>({clientRequestId:id,state:'running'}),stop:async id=>({clientRequestId:id,state:'stopping'}),
     async request(name,args){
       calls.push({name,args:structuredClone(args)});
@@ -33,7 +33,7 @@ function sdk(){
         if(args.ifMatch!==etag(args.key))throw problem('E_CONFLICT');
         store.set(args.key,structuredClone(args.value));await api.afterSet?.(args);return {};
       }
-      if(name==='currentPage.info')return {status:'available',url:'https://www.baidu.com/'};
+      if(name==='currentPage.info')return {...api.page};
       if(name==='tasks.read')return args.taskId?{task:pins.find(p=>p.taskId===args.taskId)}:api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
@@ -75,7 +75,7 @@ async function mount(t,host=sdk()){
     });
     assert.equal(found.length,1,'Unique visible control: '+label);return found[0];
   };
-  const f={host,document,errors,close,find,text:()=>document.body.textContent,
+  const f={host,window,document,errors,close,find,text:()=>document.body.textContent,
     async click(label,scope){const node=find(label,scope);assert.equal(node.disabled,false,label+' enabled');
       await React.act(async()=>node.dispatchEvent(new window.Event('click',{bubbles:true})));},
     async duplicateClick(label){const node=find(label);await React.act(async()=>{
@@ -116,6 +116,31 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
+test('trusted page-change notifications recheck eligibility without executing a task',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  host.page={status:'available',url:'https://www.google.com/'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
+    new f.window.Event('opendesk-page-changed')));
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  host.page={status:'available',url:'https://www.baidu.com/'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
+    new f.window.Event('opendesk-page-changed')));
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.equal(starts(host).length,0);
+  assert.ok(host.calls.filter(call=>call.name==='currentPage.info').length>=3);
+});
+test('missing fixed task is unavailable rather than a changed hash',async t=>{
+  const host=sdk();host.pins=host.pins.filter(pin=>pin.taskId!=='baidu.search.top3');
+  const f=await mount(t,host);await f.click('脚本');
+  assert.match(taskCard(f).textContent,/安装或授权不可用/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+});
+test('compact filter preserves the preview sort affordance',async t=>{
+  const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
+  assert.equal(f.document.querySelector('select[aria-label="脚本排序方式"]')?.value,'favorite');
+});
 test('compact overview retains three tabs, on-demand help and no duplicate navigation',async t=>{
   const host=sdk(),f=await mount(t,host);
   assert.equal(f.document.querySelectorAll('.wf-head').length,1,'one sandbox tab strip, no duplicate product header');
