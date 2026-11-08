@@ -3,6 +3,7 @@
 import {SIDEBAR_TOOL_STORE, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash,verifySidebarToolBackground} from './package.js';
 import {revokeLocalTasks} from '../../platform/host/local-tasks.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
+import {loadOfficialCatalog,verifyReviewedOfficialTool} from '../../sidebar-tools/official-catalog.js';
 export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../../projects/reading-toc/trusted/policy.js';
@@ -505,7 +506,8 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
     }));
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
-  market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null}){
+  market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null,
+  fetcher=globalThis.fetch}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=await verifySidebarToolBackground(candidate);
   const identity=marketIdentity(market,tool);
@@ -520,13 +522,23 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       '当前浏览器未实现此受管后台合同',response?.error?.code||'E_TOOL_RUNTIME_UNAVAILABLE');
     assertManagedSitePolicySupported(tool,response.data);
   }
-  // An imported package cannot reserve or impersonate the built-in reader ID.
-  // The trusted bundled release must match BOTH the reviewed source and bytes.
+  // An imported package cannot impersonate the built-in reader. Bundled App
+  // resources can advance independently of this compiled installer; a release
+  // beyond its original pin must pass the SAME trusted catalog/byte verifier.
   if(tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
      (identity?.marketId!==OFFICIAL_READING_TOC_RELEASE.marketId||
       identity.sha256!==OFFICIAL_READING_TOC_RELEASE.sha256||
-      tool.version!==OFFICIAL_READING_TOC_RELEASE.version))
-    throw error('阅读目录是官方保留 ID，请从内置官方目录安装经过校验的发行包','E_OFFICIAL_ID_RESERVED');
+      tool.version!==OFFICIAL_READING_TOC_RELEASE.version)){
+    if(identity?.marketId!==OFFICIAL_READING_TOC_RELEASE.marketId||
+       typeof api?.runtime?.getURL!=='function')
+      throw error('阅读目录是官方保留 ID，请从内置官方目录安装经过校验的发行包','E_OFFICIAL_ID_RESERVED');
+    const {apps}=await loadOfficialCatalog({api,fetcher});
+    const release=apps.find(row=>row.toolId===tool.id&&row.id===identity.marketId&&
+      row.version===tool.version&&row.sha256===identity.sha256);
+    if(!release)
+      throw error('阅读目录安装包与内置官方目录不一致，请重新选择经过校验的发行包','E_OFFICIAL_ID_RESERVED');
+    await verifyReviewedOfficialTool(release,tool,{api,fetcher});
+  }
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   const lock=(name,work)=>lockManager.request('opendesk.sidebar-tools:'+name,work);
   return lock('tool:'+tool.id,()=>lock('catalog',async()=>{

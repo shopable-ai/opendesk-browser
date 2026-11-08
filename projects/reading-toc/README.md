@@ -40,8 +40,11 @@ npm run build:sidebar-tool -- projects/reading-toc
 
 可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.12）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.12/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
+2026-11-09 修复：独立更新的官方资源可能比已编译安装器中的阅读目录版本更新，旧安装器因此误报 `E_OFFICIAL_ID_RESERVED`。安装器现在复用内置官方目录和逐字节校验确认新版身份，继续拒绝未校验的本地包冒用官方 ID。此修复属于 Browser 宿主，必须进入当前加载的 Browser 产物；仅更新工具 JSON 不足以修复旧宿主。
+
 ## 当前证据与边界
 
+- 2026-11-09：ego lite 原生 Side Panel，加载本仓库 `dist/development` 并复用既有持续开发服务，通过「扩展 → 导入扩展」选择正式 JSON，实际完成 **1.0.11 → 1.0.12** 更新；详情读回官方来源及 SHA-256 `8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a`。新装、保留数据/主动停用状态的更新、伪造包拒绝及未知结果恢复有定向 Node 证据；本次未卸载现有目录模拟新装，用户日常 Chrome 与 production 包仍为 `NOT_TESTED`。
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
 - R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。

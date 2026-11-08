@@ -9,8 +9,11 @@ import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {tocGrantAllowed,verifyOfficialReadingToc as verifyInstalledReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
   readingTocPageAllowed} from '../../projects/reading-toc/trusted/policy.js';
-import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {serializeSidebarToolPackage,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
+import {OFFICIAL_RELEASE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY,OFFICIAL_CATALOG_PATH,officialPackagePath}
+  from '../../src/sidebar-tools/official-catalog.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const pin=OFFICIAL_READING_TOC_RELEASE;
 const official=()=>({[pin.id]:{marketId:pin.marketId,sha256:pin.sha256,version:pin.version}});
@@ -123,4 +126,86 @@ test('R1.1 the installer reserves the official ID from all local imports and for
   ])await assert.rejects(installReviewedSidebarTool({
     ...options,reviewApproved:true
   }),error=>error?.code==='E_OFFICIAL_ID_RESERVED');
+});
+
+async function newerBundledRelease({updating=false}={}){
+  const previous=await officialToolFixture(pin.id),parts=previous.version.split('.');
+  parts[2]=String(Number(parts[2])+1);
+  const candidate={...previous,version:parts.join('.'),
+    js:previous.js+'\nglobalThis.readingTocInstallMustNotRun = true;'};
+  const bytes=serializeSidebarToolPackage(candidate),sha256=createHash('sha256').update(bytes).digest('hex');
+  const release={id:pin.marketId,toolId:pin.id,kind:'sidebar-tool',installationPolicy:'preinstalled',
+    version:candidate.version,packageTitle:candidate.title,description:candidate.description,
+    capabilities:candidate.capabilities,packagePath:officialPackagePath(pin.id),
+    bytes:Buffer.byteLength(bytes),sha256};
+  const resources=new Map([
+    [OFFICIAL_CATALOG_PATH,JSON.stringify({schema:OFFICIAL_RELEASE_SCHEMA,
+      sourceRepository:OFFICIAL_SOURCE_REPOSITORY,apps:[release]})],
+    [release.packagePath,bytes]
+  ]);
+  const values=updating?{
+    [SIDEBAR_TOOL_STORE]:[structuredClone(previous)],
+    [MARKET_PROVENANCE_STORE]:official(),
+    [TOOL_REVOCATION_EPOCHS_STORE]:{[pin.id]:'previous-install'},
+    [SIDEBAR_TOOL_ENABLE_STORE]:{[pin.id]:false},
+    [sidebarToolStorageKey(pin.id)]:{note:'保留原目录设置与数据'}
+  }:{};
+  const writes=[],requests=[];
+  const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path},
+    storage:{local:{
+      async get(key){return {[key]:structuredClone(values[key])};},
+      async set(rows){writes.push(structuredClone(rows));Object.assign(values,structuredClone(rows));}
+    }}};
+  const fetcher=async address=>{
+    requests.push(address);
+    const url=new URL(address),path=url.pathname.slice(1);
+    return url.protocol==='chrome-extension:'&&resources.has(path)
+      ?new Response(resources.get(path)):new Response('',{status:404});
+  };
+  const options={api,lockManager:{request:async(_name,work)=>work()},candidate,
+    baseline:updating?previous:null,reviewApproved:true,fetcher,
+    market:{marketId:pin.marketId,sha256,operationId:crypto.randomUUID()}};
+  return {options,values,writes,requests,resources,release,previous};
+}
+
+test('a newer byte-verified bundled Reading TOC installs without rebuilding the original installer pin',async()=>{
+  const f=await newerBundledRelease();
+  assert.notEqual(f.options.candidate.version,pin.version);
+  const result=await installReviewedSidebarTool(f.options);
+  assert.equal(result.state,'installed');
+  assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[f.options.candidate]);
+  assert.equal(f.values[MARKET_PROVENANCE_STORE][pin.id].sha256,f.release.sha256);
+  assert.equal(f.requests.filter(url=>url.endsWith('/'+f.release.packagePath)).length,1);
+  assert.equal(globalThis.readingTocInstallMustNotRun,undefined,'installing never runs package JS');
+});
+
+test('a newer reviewed Reading TOC update preserves data and the user stop while rotating install identity',async()=>{
+  const f=await newerBundledRelease({updating:true}),dataKey=sidebarToolStorageKey(pin.id);
+  const saved=structuredClone(f.values[dataKey]);
+  const result=await installReviewedSidebarTool(f.options);
+  assert.equal(result.state,'installed');
+  assert.deepEqual(f.values[dataKey],saved);
+  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][pin.id],false);
+  assert.notEqual(f.values[TOOL_REVOCATION_EPOCHS_STORE][pin.id],'previous-install');
+  assert.equal(f.values[MARKET_PROVENANCE_STORE][pin.id].version,f.options.candidate.version);
+  assert.equal(globalThis.readingTocInstallMustNotRun,undefined);
+});
+
+test('newer Reading TOC admission rejects unreviewed, unlisted, altered and stale candidates without writes',async t=>{
+  for(const [name,change,code] of [
+    ['no user approval',f=>{f.options.reviewApproved=false;},'E_REVIEW_REQUIRED'],
+    ['unverified local source',f=>{f.options.market=null;},'E_OFFICIAL_ID_RESERVED'],
+    ['self-reported digest',f=>{f.options.market.sha256='0'.repeat(64);},'E_OFFICIAL_ID_RESERVED'],
+    ['missing trusted catalog',f=>{f.resources.delete(OFFICIAL_CATALOG_PATH);},'E_PACKAGE_MISSING'],
+    ['altered bundled bytes',f=>{f.resources.set(f.release.packagePath,
+      f.resources.get(f.release.packagePath).slice(0,-1)+' ');},'E_PACKAGE_INTEGRITY'],
+    ['changed reviewed candidate',f=>{f.options.candidate={...f.options.candidate,js:'void 0;'};},'E_PACKAGE_IDENTITY'],
+    ['stale installation baseline',f=>{f.options.baseline=null;},'E_TOOL_CHANGED']
+  ])await t.test(name,async()=>{
+    const f=await newerBundledRelease({updating:true});change(f);
+    const saved=structuredClone(f.values);
+    await assert.rejects(installReviewedSidebarTool(f.options),{code});
+    assert.deepEqual(f.values,saved);
+    assert.equal(f.writes.length,0);
+  });
 });
