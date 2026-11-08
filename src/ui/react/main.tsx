@@ -113,7 +113,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {previewContents&&previewPortal&&createPortal(previewContents,previewPortal)}
-      {aiProxyPilot&&createPortal(<AIProxySurface/>,aiProxyPilot.container)}
+      {aiProxyPilot&&createPortal(<AIProxySurface surface={aiProxyPilot.displaySurface==='page'?'management':'side-panel'}/>,aiProxyPilot.container)}
       {knowledgePilot&&createPortal(<KnowledgeWorkspace host={knowledgePilot.host}
         onOpenSettings={openSharedProviderSettings}/>,knowledgePilot.container)}
       {promptPilot&&createPortal(
@@ -187,7 +187,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
-    mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation}={}){
+    mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation,displaySurface='sidebar'}={}){
       if(disposed||aiProxyPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
         typeof request!=='function'||typeof onStateChange!=='function')
@@ -196,7 +196,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         .map(name=>[name,payload=>request('browser.proxy.managed.'+name,payload||{})])));
       const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange,toolNavigation},
         {browser:{proxy:{managed}}},{trusted:true});
-      aiProxyPilot={container,environment};container.dataset.opendeskReactOwner='ai-proxy';
+      aiProxyPilot={container,environment,displaySurface};container.dataset.opendeskReactOwner='ai-proxy';
       const release=()=>{
         if(aiProxyPilot?.environment!==environment)return;
         aiProxyPilot=null;
