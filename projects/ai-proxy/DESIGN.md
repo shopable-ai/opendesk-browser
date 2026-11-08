@@ -1,5 +1,16 @@
 # AI Proxy 交互预览 · PC R16 优化与源码落实
 
+## 2026-11-08：用户确认侧边栏 R17 入口收敛，PC R16 保持不变
+
+本轮只批准 **侧边栏交互预览** 调整，不重做 PC 设置。侧边栏正常状态移除底部长期显示的「订阅来源」「网络诊断 ↗」双按钮；首次空配置继续由原「订阅来源」入口进入 `#/subscriptions/new`；代理错误、控制冲突、状态错误或结果未知时，运行状态附近展示仅导航到 `#/diagnostic` 的次级入口。**点击诊断入口不自动 PROBE、APPLY、STOP**。
+
+已在 `preview/management-actions.mjs` 增加针对冻结侧栏基线的精确替换，在 `preview/management-actions.css` 增加仅作用于侧栏的条件入口样式，并添加 `tests/preview-sidebar-actions.test.mjs` 防止重复底部入口回归；保留原管理图标、四种模式、代理行、当前网站、轮换计划、真实来源和导航契约。
+
+**明确排除修改**：`src/Settings.tsx`、`preview/management.css`、PC 七个栏目、`src/QuickPanel.tsx`、冻结的 `preview/baseline/*`、`trusted/*`、Host/SDK、真实代理操作和正式安装包。仓库 PC R16 的既有行为与样式维持原样。
+
+**验证状态**：预览编译替换器已对当前冻结基线完成语法解析、四项替换、底部入口删除及空态/诊断路由存在性检查；独立 R17 单文件侧栏演示完成 23 项浏览器交互/状态/窄屏检查，PC 模拟实现相对于前版 R15 字节未变。这些结果不等于仓库最新 React 生成预览已构建。由于本机 CodexPro 连接不可用，`preview/preview.html`、`preview.manifest.json`、`preview.context.json` 仍需使用原生成器重新构建并完成同源浏览器回归，不得手工改写内联 bundle 或伪造哈希。
+
+
 ## 2026-11-08：PC 管理页 R16（本轮当前状态）
 
 **需求基准**：用户认可 R14 Side Panel，PC 以用户上传的高质量旧版完整七区 HTML 和 R15 改进稿作为设计参照。本轮授权写入当前仓库 `main`；主目标为修复按钮文字/背景颜色、调整 PC 备份名称与操作优先级、保留实际表单/草稿/路由。不是正式扩展安装或网络执行。
