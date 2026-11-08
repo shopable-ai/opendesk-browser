@@ -7,7 +7,8 @@ import {createOfficialToolResources} from '../../scripts/build-official-tools.mj
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
-import {tocGrantAllowed,verifyOfficialReadingToc as verifyInstalledReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
+import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
+  tocGrantAllowed,verifyOfficialReadingToc as verifyInstalledReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
   readingTocPageAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {serializeSidebarToolPackage,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
@@ -148,7 +149,10 @@ async function newerBundledRelease({updating=false}={}){
     [MARKET_PROVENANCE_STORE]:official(),
     [TOOL_REVOCATION_EPOCHS_STORE]:{[pin.id]:'previous-install'},
     [SIDEBAR_TOOL_ENABLE_STORE]:{[pin.id]:false},
-    [sidebarToolStorageKey(pin.id)]:{note:'保留原目录设置与数据'}
+    [sidebarToolStorageKey(pin.id)]:{note:'保留原目录设置与数据'},
+    [READING_TOC_SITE_STORE]:{[pin.id]:['https://example.com']},
+    [READING_TOC_PAGE_RULES_STORE]:{[pin.id]:['https://example.com/private']},
+    [READING_TOC_VISIBILITY_STORE]:{[pin.id]:{hiddenSites:['https://example.com'],hiddenPages:[]}}
   }:{};
   const writes=[],requests=[];
   const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path},
@@ -182,9 +186,12 @@ test('a newer byte-verified bundled Reading TOC installs without rebuilding the 
 test('a newer reviewed Reading TOC update preserves data and the user stop while rotating install identity',async()=>{
   const f=await newerBundledRelease({updating:true}),dataKey=sidebarToolStorageKey(pin.id);
   const saved=structuredClone(f.values[dataKey]);
+  const settings=Object.fromEntries([READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,
+    READING_TOC_VISIBILITY_STORE].map(key=>[key,structuredClone(f.values[key])]));
   const result=await installReviewedSidebarTool(f.options);
   assert.equal(result.state,'installed');
   assert.deepEqual(f.values[dataKey],saved);
+  for(const [key,value] of Object.entries(settings))assert.deepEqual(f.values[key],value,key);
   assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][pin.id],false);
   assert.notEqual(f.values[TOOL_REVOCATION_EPOCHS_STORE][pin.id],'previous-install');
   assert.equal(f.values[MARKET_PROVENANCE_STORE][pin.id].version,f.options.candidate.version);

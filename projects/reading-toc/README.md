@@ -44,7 +44,7 @@ npm run build:sidebar-tool -- projects/reading-toc
 
 ## 当前证据与边界
 
-- 2026-11-09：ego lite 原生 Side Panel，加载本仓库 `dist/development` 并复用既有持续开发服务，通过「扩展 → 导入扩展」选择正式 JSON，实际完成 **1.0.11 → 1.0.12** 更新；详情读回官方来源及 SHA-256 `8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a`。新装、保留数据/主动停用状态的更新、伪造包拒绝及未知结果恢复有定向 Node 证据；本次未卸载现有目录模拟新装，用户日常 Chrome 与 production 包仍为 `NOT_TESTED`。
+- 2026-11-09：ego lite 原生 Side Panel 实际完成正式 JSON 的 **1.0.11 → 1.0.12** 更新。另在 CFT 155 的空临时 Profile、`dist/development` 独立静态快照中通过**全新安装 → 打开 → 点击第三章跳转**；读回 v1.0.12、官方来源及正确 SHA，安装后未启动沙箱。定向测试验证更新保留私有数据、网站/页面/浮层设置及主动停用状态，继续拒绝伪造和过期候选。目标、关键条件及证据见[安装修复记录](INSTALLATION-TESTS.zh-CN.md)。未卸载用户现有目录；日常 Chrome、production、真实 ChatGPT/知乎仍为 `NOT_TESTED`。
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
 - R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。
