@@ -2,7 +2,7 @@ import {isSidebarToolHostSender} from '../../../src/sidebar-tools/sender.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
-  websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
+  websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,readingTocCollapseKey,READING_TOC_VISIBILITY_STORE,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
 import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../../../src/sidebar-tools/official-reading-toc.js';
 import {createReadingTocIndex} from './model.js';
@@ -114,7 +114,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     for(const remove of removers.splice(0))remove();
     activeId='';
   }
-  function start(showWidget,placementKey=null,initialPlacement=null,installEpoch=null) {
+  function start(showWidget,placementKey=null,initialPlacement=null,installEpoch=null,collapseKey=null,initialCollapsed=false) {
     if(!enabled){
       enabled=true;href=win.location.href;
       observer=new MutationObserver(scheduleRebuild);
@@ -138,7 +138,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(showWidget&&!view){
       viewEpoch=installEpoch;
       const key=placementKey||readingTocPlacementKey(win.location.href);
-      view=createReadingTocView({doc,win,initialPlacement,initialLocale:uiLocale,initialCatalog:uiCatalog,
+      const collapseStoreKey=collapseKey||readingTocCollapseKey(win.location.href);
+      view=createReadingTocView({doc,win,initialPlacement,initialCollapsed,initialLocale:uiLocale,initialCatalog:uiCatalog,
         onNavigate:(id,sourceId,userGesture)=>void navigate(
           id,sourceId,READING_TOC_TOOL_ID,installEpoch).then(result=>{
           // Only an actual trusted click plus measured visible heading qualifies.
@@ -160,6 +161,14 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
             const operation=next?api.storage.local.set({[key]:next}):api.storage.local.remove(key);
             void Promise.resolve(operation).catch(()=>{});
           }catch{/* The TOC remains movable even if preference storage fails. */}
+        },
+        onCollapseChange:next=>{
+          if(disposed||!enabled||!collapseStoreKey||
+             readingTocCollapseKey(win.location.href)!==collapseStoreKey)return;
+          // No site-wide/global grant mutation: one origin-scoped boolean only.
+          try{
+            void Promise.resolve(api.storage.local.set({[collapseStoreKey]:next})).catch(()=>{});
+          }catch{/* UI stays responsive if preference storage is unavailable. */}
         }});
     }
     if(!showWidget&&view){view.dispose();view=null;}
@@ -208,8 +217,9 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const token=++refreshEpoch,languageToken=++localeEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
+      const collapseKey=readingTocCollapseKey(currentUrl);
       const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
-        READING_TOC_PAGE_RULES_STORE,UI_LOCALE_STORE,...(key?[key]:[])];
+        READING_TOC_PAGE_RULES_STORE,UI_LOCALE_STORE,...(key?[key]:[]),...(collapseKey?[collapseKey]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       policyFailures=0;
@@ -235,7 +245,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
         readingTocPageAllowed(pageRules,READING_TOC_TOOL_ID,currentUrl)&&
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
-      start(official,key,key?stored[key]:null,stored[TOOL_REVOCATION_EPOCHS_STORE]?.[READING_TOC_TOOL_ID]??null);
+      start(official,key,key?stored[key]:null,stored[TOOL_REVOCATION_EPOCHS_STORE]?.[READING_TOC_TOOL_ID]??null,
+        collapseKey,collapseKey?stored[collapseKey]===true:false);
     }catch{
       if(token!==refreshEpoch||disposed||suspended)return;
       if(enabled)stop(); // Policy storage failed: never serve a stale authorized index.
@@ -396,6 +407,9 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(Object.hasOwn(changes,UI_LOCALE_STORE)||Object.hasOwn(changes,localeKey))void refreshLocale();
     const key=readingTocPlacementKey(win.location.href);
     if(key&&Object.hasOwn(changes,key))view?.setPlacement(changes[key].newValue);
+    const collapseKey=readingTocCollapseKey(win.location.href);
+    if(collapseKey&&Object.hasOwn(changes,collapseKey))
+      view?.setCollapsed(changes[collapseKey]?.newValue===true);
   };
   api.storage.onChanged.addListener(storageListener);
   const close=()=>{

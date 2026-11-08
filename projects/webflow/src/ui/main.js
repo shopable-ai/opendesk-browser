@@ -1,4 +1,4 @@
-// Web Flow V0.3.1. The tool runs in its own opaque-origin Sidebar iframe.
+// Web Flow V0.3.2. The tool runs in its own opaque-origin Sidebar iframe.
 // Its only privileged interactions are reviewed OpenDeskTool.request calls.
 (function(global){
   'use strict';
@@ -69,6 +69,7 @@
     const [notice,setNotice]=R.useState('');
     const [search,setSearch]=R.useState('');
     const [filter,setFilter]=R.useState('all');
+    const [sort,setSort]=R.useState('favorite');
     const [detail,setDetail]=R.useState(null);
     const [query,setQuery]=R.useState('');
     const [active,setActive]=R.useState(null);
@@ -84,6 +85,7 @@
     const busy=R.useRef(false), activeRef=R.useRef(null), historyRef=R.useRef([]);
     const observation=R.useRef(0), pendingRef=R.useRef(null), stagedRef=R.useRef(null),cancelledRef=R.useRef(null);
     const recordWrites=R.useRef(Promise.resolve());
+    const pageReadEpoch=R.useRef(0);
     const localCancellation=R.useRef(null);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
 
@@ -93,7 +95,8 @@
       const rows=await Promise.all(PINNED.map(async pin=>{
         try{
           const reply=await request('tasks.read',{taskId:pin.taskId});
-          if(!reply||!M.pinsEqual(pin,reply.task))
+          if(!reply?.task)return {...pin,state:'unavailable',binding:null};
+          if(!M.pinsEqual(pin,reply.task))
             return {...pin,state:'changed',binding:null};
           return {...pin,state:'available',binding:reply.task};
         }catch(e){return {...pin,state:M.errorState(e),binding:null,error:safeError(e)};}
@@ -101,15 +104,29 @@
       if(alive.current&&epoch===seq.current){setTasks(rows);setLoading(false);}
     },[request]);
 
+    // Host notifications are hints only. Never trust event details as task scope.
+    // Re-read the bounded SDK operation and ignore stale replies.
+    const readCurrentPage=R.useCallback(async()=>{
+      const epoch=++pageReadEpoch.current;
+      try{
+        const info=await request('currentPage.info',{});
+        if(alive.current&&epoch===pageReadEpoch.current)
+          setPageInfo(info&&typeof info==='object'?info:{status:'unavailable'});
+      }catch(e){
+        if(alive.current&&epoch===pageReadEpoch.current)
+          setPageInfo({status:'unavailable',message:safeError(e)});
+      }
+    },[request]);
+
     R.useEffect(()=>{
       alive.current=true;
       let disposed=false;
       async function load(){
         try{
-          const [prefs,records,site,pending]=await Promise.allSettled([
+          const [prefs,records,pending]=await Promise.allSettled([
             request('storage.get',{key:'webflow.settings.v1'}),
             request('storage.get',{key:'webflow.recent.v1'}),
-            request('currentPage.info',{}),request('storage.get',{key:pendingKey})
+            request('storage.get',{key:pendingKey})
           ]);
           if(disposed)return;
           if(prefs.status==='fulfilled'&&prefs.value&&prefs.value.value){
@@ -122,7 +139,6 @@
             setHistory(historyRef.current);
           }
           else setError('记录读取失败：'+safeError(records.reason));
-          if(site.status==='fulfilled')setPageInfo(site.value||{status:'unavailable'});
           if(pending.status==='rejected'){
             setError('原步骤恢复入口读取失败：'+safeError(pending.reason));return;
           }
@@ -151,10 +167,16 @@
           setRecoveryReady(true);
         }catch(e){if(!disposed)setError(safeError(e));}
       }
-      void load();void readTasks();
-      return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;
+      void load();void readTasks();void readCurrentPage();
+      return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;pageReadEpoch.current++;
         if(timer.current)clearTimeout(timer.current);};
-    },[readTasks,request]);
+    },[readTasks,readCurrentPage,request]);
+
+    R.useEffect(()=>{
+      const onPageChanged=()=>{void readCurrentPage();};
+      tool.root.addEventListener('opendesk-page-changed',onPageChanged);
+      return ()=>tool.root.removeEventListener('opendesk-page-changed',onPageChanged);
+    },[readCurrentPage]);
 
     // Reuse the bounded Host Header. Never allow this sandbox event to authorize work.
     R.useEffect(()=>{
@@ -429,19 +451,21 @@
       if((name==='help'||name==='settings')&&['overview','scripts','history'].includes(page))
         returnTab.current=page;
       setPage(name);
+      if(name==='scripts')void readCurrentPage();
       if(['overview','scripts','history'].includes(name)){
         setDetail(null);setMore(null);setShowFilters(false);
       }
       setNotice('');
     };
     const sameTarget=pin=>pageInfo.status==='available'&&sameSite(pageInfo.url,pin.site);
-    const rows=M.filterTasks(tasks,search,filter,settings.favorites);
+    const rows=M.filterTasks(tasks,search,filter,settings.favorites,sort);
     const summary=M.summary(tasks,history);
     const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
     const runStateLabel=state=>({
       completed:'执行完成',failed:'执行失败',unknown:'结果未知',stopped:'已停止',
       interrupted:'已中断',cancelled:'已取消',canceled:'已取消',
-      running:'执行中',saving:'保存中',checking:'核验中'
+      running:'执行中',saving:'保存中',checking:'核验中',ready:'待确认运行',
+      preparing:'正在提交',stopping:'停止请求中','cancelling-local':'取消保存中'
     })[state]||state||'未核验';
     const gotoScripts=()=>setTab('scripts');
     const runReason=pin=>!recoveryReady?'正在恢复原步骤，请先完成核验':
@@ -449,7 +473,11 @@
       pin.state!=='available'?labels[pin.state]||'任务不可用':
       !pin.binding?'固定安装身份未取得':
       !sameTarget(pin)?'请先切换到该任务获准的网站':'';
-    const inspect=pin=>{setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);};
+    const inspect=pin=>{
+      const fromMenu=more===pin.taskId;
+      setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);
+      if(fromMenu)global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());
+    };
 
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
       [h('dt',{key:k+'-key'},k),h('dd',{key:k+'-val'},v)]));
@@ -460,7 +488,7 @@
         h('div',{className:'wf-task-main'},
           h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
           h('div',{className:'wf-task-info'},
-            h('button',{type:'button',className:'wf-task-name',title:pin.title,
+            h('button',{type:'button',className:'wf-task-name',title:pin.title,'data-wf-task-name':pin.taskId,
               'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
@@ -475,10 +503,10 @@
             h('div',{className:'wf-menu-anchor'},
               Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
                 {key:'more-'+pin.taskId,icon:true,ariaLabel:'更多操作：'+pin.title,
-                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'menu'}),
-              more===pin.taskId&&h('div',{className:'wf-menu',role:'menu','aria-label':pin.title+' 操作'},
-                h('button',{type:'button',role:'menuitem',onClick:()=>inspect(pin)},'查看详情'),
-                h('button',{type:'button',role:'menuitem',disabled:pin.state!=='available',
+                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'true'}),
+              more===pin.taskId&&h('div',{className:'wf-menu',role:'group','aria-label':pin.title+' 操作'},
+                h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
+                h('button',{type:'button',disabled:pin.state!=='available',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
         expanded&&h('div',{className:'wf-task-detail wf-stack'},
@@ -531,7 +559,7 @@
       const projection=snapshot&&pin?M.projectRun(snapshot,pin):null;
       return h(Card,{children:h('div',{className:'wf-stack'},
         h('div',{className:'wf-line wf-between'},h('h3',null,'原步骤'),
-          h(Status,{state:active.state,text:'执行：'+active.state})),
+          h(Status,{state:active.state,text:'阶段：'+runStateLabel(active.state)})),
         h('strong',null,(pin?.title||active.taskId)+' · v'+(active.version||pin?.version||'未确认')),
         h('p',{className:'wf-sub'},'目标网站：'+(pin?.site||'未确认')),
         h('code',{className:'wf-mono'},active.clientRequestId),
@@ -587,7 +615,7 @@
           Btn(Icon('filter'),()=>{setShowFilters(!showFilters);setMore(null);},
             {key:'filter',id:'wf-filter-toggle',icon:true,ariaLabel:'筛选脚本',title:'筛选脚本',
               expanded:showFilters,popup:'true',controls:'wf-filter-options'}),
-          Btn(Icon('refresh'),()=>{void readTasks();},
+          Btn(Icon('refresh'),()=>{void readTasks();void readCurrentPage();},
             {key:'refresh',icon:true,ariaLabel:'刷新脚本安装状态',title:'刷新脚本安装状态',
               disabled:loading}),
           showFilters&&h('div',{id:'wf-filter-options',className:'wf-filter-popover',role:'group',
@@ -595,7 +623,15 @@
             h('strong',null,'显示任务'),
             ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
               .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-filter-option',
-                'aria-pressed':filter===value,onClick:()=>{setFilter(value);setShowFilters(false);}},label)))),
+                'aria-pressed':filter===value,onClick:()=>{
+                  setFilter(value);setShowFilters(false);
+                  global.queueMicrotask(()=>tool.root.querySelector('#wf-filter-toggle')?.focus());
+                }},label)),
+             h('label',{className:'wf-label'},'排序方式',
+               h('select',{className:'wf-select',value:sort,'aria-label':'脚本排序方式',
+                 onChange:e=>setSort(e.target.value)},
+                 h('option',{value:'favorite'},'收藏优先'),
+                 h('option',{value:'name'},'按名称'))))),
         h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
         rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
           h(Card,{extra:'wf-empty',children:[

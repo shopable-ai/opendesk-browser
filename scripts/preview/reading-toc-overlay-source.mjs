@@ -49,11 +49,15 @@ const chatItems=[
 let scenario=${JSON.stringify(scenario)};
 let locale=${JSON.stringify(locale)};
 let selected='h-2';
-let position=null;
+const positions={a:null,b:null};
+let site='a',surface=null;
 const stage=document.querySelector('#simulated-stage');
-const surface=createReadingTocView({
- doc:document,win:window,initialLocale:locale,
- onPlacementChange:next=>{position=next;},
+function mountSite(initialCollapsed=false){
+ surface?.dispose();
+ surface=createReadingTocView({
+ doc:document,win:window,initialLocale:locale,initialPlacement:positions[site],initialCollapsed,
+ onPlacementChange:next=>{positions[site]=next;},
+ onCollapseChange:next=>parent.postMessage({kind:'opendesk-toc-preview-collapse',site,collapsed:next},'*'),
  onNavigate:(id,sourceId)=>{
   const target=(scenario==='chatgpt-multi'?chatItems:sampleItems).find(row=>row.id===id&&row.sourceId===sourceId);
   if(!target)return;
@@ -63,15 +67,17 @@ const surface=createReadingTocView({
   parent.postMessage({kind:'opendesk-toc-preview-navigation',label:target.label},'*');
  }
 });
+ render();
+}
 function render(){
  const multi=scenario==='chatgpt-multi',show=scenario==='success';
  document.getElementById('preview-article').hidden=multi;
  document.getElementById('preview-chat').hidden=!multi;
- stage.textContent=multi?'ChatGPT 三条 AI 回答 · 目录按来源分隔（模拟数据）':show?'模拟文章 · 章节保留原文':
+ stage.textContent=(site==='a'?'模拟网站 A · ':'模拟网站 B · ')+(multi?'ChatGPT 三条 AI 回答 · 目录按来源分隔（模拟数据）':show?'模拟文章 · 章节保留原文':
    scenario==='empty'?'模拟空目录：当前网页没有可识别的标题':
    scenario==='loading'?'模拟加载状态：网页章节暂未读取完成':
    scenario==='permission-denied'||scenario==='untrusted'?'模拟授权受限：未读取真实页面':
-   '模拟读取错误：不访问网页或网络';
+   '模拟读取错误：不访问网页或网络');
  const items=multi?chatItems:show?sampleItems:[];
  const sources=multi?['s-1','s-2','s-3'].map((id,i)=>({id,label:'回答 '+(i+1),kind:'answer'})):
    show?[{id:'s-1',label:'当前文章'}]:[];
@@ -93,8 +99,14 @@ window.addEventListener('message',event=>{
   ['success','empty','error','loading','permission-denied','untrusted','chatgpt-multi'].includes(event.data.scenario)){
    scenario=event.data.scenario;render();
  }
+ // Preview-only A/B origin simulation; no real website or browser storage.
+ if(event.data.kind==='opendesk-toc-preview-site'&&
+    (event.data.site==='a'||event.data.site==='b')&&typeof event.data.collapsed==='boolean'){
+   if(site!==event.data.site){site=event.data.site;mountSite(event.data.collapsed);}
+   else surface?.setCollapsed(event.data.collapsed);
+ }
 });
-render();
+mountSite(false);
 `;
   // The sole edge toggle now lives inside the production trusted ShadowRoot.
   const moduleSource=placement+'\n'+uiLocale+'\n'+

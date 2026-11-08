@@ -29,7 +29,7 @@ const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-bridge-page.js':'b0d87d65e2f890974d3824723432777563c74f4b',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  'projects/webflow/trusted/AutoSettings.tsx':'97356fd691436deba7fd1ed59ccc234064fada88',
+  'projects/webflow/trusted/AutoSettings.tsx':'d4db66d9679744d0cee9ed1c064caf8f60805a9e',
   // Reviewed read-only background history, UNKNOWN guidance and distinct AI acknowledgement.
   'projects/webflow/trusted/CurrentTask.tsx':'263cb461d970571b43aa5cbc0f265096892e327a',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'

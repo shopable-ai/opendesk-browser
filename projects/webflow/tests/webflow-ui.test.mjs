@@ -61,6 +61,12 @@ test('search, availability, attention and favorites filter 100 tasks without rel
   assert.equal(M.filterTasks(rows,'','favorite',fav).length,1);
   assert.equal(M.filterTasks(rows,'','all',fav)[0].taskId,rows[9].taskId);
 });
+test('name sort ignores favorite priority while default preserves it',()=>{
+  const first={...base(),title:'Alpha'},last={...base('google.search.top3'),title:'Zulu'};
+  const rows=[first,last],fav=[M.taskKey(last)];
+  assert.equal(M.filterTasks(rows,'','all',fav).map(x=>x.title).join(','),'Zulu,Alpha');
+  assert.equal(M.filterTasks(rows,'','all',fav,'name').map(x=>x.title).join(','),'Alpha,Zulu');
+});
 test('completed alone does not mean persisted result or business success',()=>{
   const pin=base();
   const s={clientRequestId:'wf-1',runId:'run-1',resultId:'result-1',state:'completed',

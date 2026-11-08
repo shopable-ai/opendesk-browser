@@ -2,6 +2,8 @@ import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlac
 import readingTocCatalog from './locales.generated.js';
 import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
 
+// Fixed vertical anchor on the header row, independent of variable outline height.
+const EDGE_TOP=5;
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
 const CSS=[
@@ -11,21 +13,18 @@ const CSS=[
 '.panel{background:#fff;border:1px solid #e9e9ef;border-radius:12px;padding:12px;box-shadow:0 3px 13px #10182716}',
 ":host([data-toc-collapsed]){width:38px!important;max-width:38px!important;height:46px!important;transition:none!important}",
 ":host([data-toc-collapsed]) .panel{display:none!important}",
-".edge-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#4268bf;touch-action:manipulation}",
-".edge-skin{position:absolute;right:0;top:0;display:grid;place-items:center;width:12px;height:46px;background:#dce8fa;border:1px solid #b1c5e7;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #243a6012;transition:width .14s ease,background .14s ease;pointer-events:none}",
+`.edge-toggle{position:absolute;right:0;top:${EDGE_TOP}px;transform:none;z-index:1;display:grid;place-items:center;width:38px;height:46px;border:0;padding:0;background:transparent;color:#5b6472;touch-action:manipulation}`,
+".edge-skin{position:absolute;right:0;top:0;display:grid;place-items:center;width:20px;height:46px;background:#f3f4f6;border:1px solid #d6dbe2;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #2027330e;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
-":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #b1c5e7;border-left:0;border-radius:0 9px 9px 0}",
-".edge-toggle svg{width:16px;height:16px;opacity:0;transition:opacity .1s ease;pointer-events:none}",
-".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#ecf3ff}",
-".edge-toggle:hover svg,.edge-toggle:focus-visible svg{opacity:1}",
+":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #d6dbe2;border-left:0;border-radius:0 9px 9px 0}",
+".edge-toggle svg{width:14px;height:14px;opacity:1;pointer-events:none}",
+".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
+".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
-// Fixed 38x46 pointer/focus hitbox; only the visual skin expands from 20px to 38px.
-// The chevron is nested in the grid-centered skin to stay centered at every width.
-":host([data-toc-collapsed]) .edge-skin{width:20px}",
-":host([data-toc-collapsed]) .edge-toggle svg{opacity:1}",
-":host([data-toc-collapsed]) .edge-toggle:is(:hover,:focus-visible) .edge-skin{width:38px}",
-"@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}:host([data-toc-collapsed]) .edge-skin{width:38px}}",
-"@media(prefers-color-scheme:dark){.edge-toggle{color:#a7c5ff}.edge-skin{background:#283b5a;border-color:#50688a}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#344b71}}",
+// Both expanded and collapsed states use one visible 20px tab and centered chevron.
+// Hover/focus grows only the visual skin to 38px; the 38x46 input hitbox is fixed.
+"@media(hover:none){.edge-toggle .edge-skin{width:38px}}",
+"@media(prefers-color-scheme:dark){.edge-toggle{color:#c4c9d4}.edge-skin{background:#2f323a;border-color:#4b505b}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#393e47}.edge-toggle:hover,.edge-toggle:focus-visible{color:#e5e7eb}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
@@ -95,7 +94,7 @@ const ICONS=[
 export function readingTocDisplayMode(mode,compact,userSelected=false){
   return compact&&!userSelected?'top':mode;
 }
-export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onNavigate}) {
+export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialCollapsed=false,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onCollapseChange=()=>{},onNavigate}) {
   // Catalogs are admitted by the trusted controller, never read from page messages.
   let catalog=initialCatalog||readingTocCatalog;
   let locale=resolveUiLocale(initialLocale,Object.keys(catalog.messages),catalog.sourceLocale);
@@ -175,7 +174,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     host.setAttribute('data-toc-edge',edgeSide);
     refreshEdge();
   }
-  edgeToggle.addEventListener('click',()=>setCollapsed(!collapsed));
+  edgeToggle.addEventListener('click',()=>setCollapsed(!collapsed,{persist:true}));
   function updateAiCopy(){
     aiView.setAttribute('aria-label',t('aiLabel'));
     memberTitle.textContent=t('memberTitle');
@@ -240,8 +239,8 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;
   let restoredForContent=false;
-  function setCollapsed(next){
-    if(disposed||drag||next===collapsed)return;
+  function setCollapsed(next,{persist=false}={}){
+    if(typeof next!=='boolean'||disposed||drag||next===collapsed)return;
     if(next){
       const rect=host.getBoundingClientRect(),viewport=tocViewport(win);
       if(!rect.width||!rect.height)return;
@@ -251,13 +250,18 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         rightGap:viewport.left+viewport.width-rect.right};
       const point=tocClampPoint(
         edgeSide==='right'?rect.right-EDGE_SIZE.width:rect.left,
-        rect.top+(rect.height-EDGE_SIZE.height)/2,EDGE_SIZE,viewport);
+        rect.top+EDGE_TOP,EDGE_SIZE,viewport);
       collapsed=true;
       panel.hidden=true;panel.inert=true;
       host.setAttribute('data-toc-collapsed','');
       host.style.left=point.left+'px';host.style.top=point.top+'px';
       host.style.right='auto';host.style.bottom='auto';
     }else{
+      // The old collapsed hitbox's top is the exact user's on-screen anchor.
+      // A saved Y ratio must not shift the button when the article/AI panel
+      // changed height while folded. Re-clamp only if the larger panel would
+      // extend outside the current viewport.
+      const buttonTop=host.getBoundingClientRect().top;
       collapsed=false;
       host.removeAttribute('data-toc-collapsed');
       panel.hidden=false;panel.inert=false;
@@ -266,8 +270,15 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       if(placement)reposition();
       expandedFrame=null;
       place();
+      if(placement&&!host.hidden){
+        const rect=host.getBoundingClientRect(),viewport=tocViewport(win);
+        const point=tocClampPoint(rect.left,buttonTop-EDGE_TOP,rect,viewport);
+        host.style.top=point.top+'px';
+        place();
+      }
     }
     syncEdge();
+    if(persist)onCollapseChange(collapsed);
   }
   function applyPoint(left,top) {
     const point=tocClampPoint(left,top,host.getBoundingClientRect(),tocViewport(win));
@@ -343,7 +354,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         const point=tocPlacementPoint(placement,expandedFrame,viewport);
         if(point){
           left=edgeSide==='right'?point.left+expandedFrame.width-EDGE_SIZE.width:point.left;
-          top=point.top+(expandedFrame.height-EDGE_SIZE.height)/2;
+          top=point.top+EDGE_TOP;
         }
       }else if(expandedFrame){
         left=edgeSide==='right'
@@ -437,7 +448,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   if(placement)reposition();
   render();
-  return Object.freeze({render,setPlacement,
+  // Recover the origin preference after mount without generating a storage write.
+  if(initialCollapsed===true)setCollapsed(true);
+  return Object.freeze({render,setPlacement,setCollapsed,
     setLocale(next,nextCatalog=catalog){
       const updated=nextCatalog||readingTocCatalog;
       const resolved=resolveUiLocale(next,Object.keys(updated.messages),updated.sourceLocale);

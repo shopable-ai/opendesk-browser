@@ -181,6 +181,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  }
 
  const overlay=await open('index.html'),trusted=await child(browser,overlay.page);
+ assert.equal(await evaluate(overlay.page,'Boolean(document.getElementById("od-toc-site"))'),true,
+   'site selector must be visible outside the production overlay for A/B preview testing');
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
    'trusted overlay failed to mount');
  const dom=(await trusted.send('DOM.getDocument',{depth:1,pierce:true})).root.nodeId;
@@ -212,6 +214,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId:arrowSvg});
    return Number.parseFloat(computedStyle.find(item=>item.name==='opacity')?.value);
  };
+ const computed=async(nodeId,name)=>{
+   const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId});
+   return computedStyle.find(item=>item.name===name)?.value;
+ };
  const horizontalCenterDelta=async()=>{
    const [background,glyph]=await Promise.all([rect(skin),rect(arrowSvg)]);
    return Math.abs((background.left+background.right-glyph.left-glyph.right)/2);
@@ -225,25 +231,39 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  const frameRect=await evaluate(overlay.page,'(()=>{const r=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {left:r.left,top:r.top};})()');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  const hoverless=await evaluate(trusted,'matchMedia("(hover:none)").matches');
- assert.equal(hoverless,false,'headed Xvfb Chromium must validate the desktop 12px edge');
- const idleWidth=12;
+ assert.equal(hoverless,false,'headed Xvfb Chromium must validate the desktop 20px edge');
+ const idleWidth=20;
  const firstWidth=await skinWidth();
  console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'expanded idle edge width must be 12px on desktop');
- await until(async()=>(await arrowOpacity())<0.01,
-   'expanded idle chevron remains hidden until hover or keyboard focus');
+   'expanded idle tab must be 20px wide on desktop');
+ assert.equal(await computed(skin,'background-color'),'rgb(243, 244, 246)',
+   'expanded idle must use neutral gray background instead of blue');
+ assert.equal(await computed(toggle,'color'),'rgb(91, 100, 114)',
+   'expanded idle arrow must use neutral gray ink');
+ await until(async()=>(await arrowOpacity())>0.99,
+   'expanded idle chevron must already be visible without hover');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'expanded idle chevron must be centered inside its 20px tab');
  const initial=await rect(host);
+ const initialToggle=await until(()=>rect(toggle),
+   'edge toggle must expose a real layout box before first click');
+ // The header-aligned control must stay in one physical place when changing
+ // from the variable-height panel to the 46px collapsed host.
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='false',
    'real mouse click did not collapse');
  await until(async()=>Math.abs((await skinWidth())-38)<1,
    'real mouse hover must expand the same edge tab to 38px');
+ await until(async()=>await computed(skin,'background-color')==='rgb(232, 235, 239)',
+   'hover background must transition to neutral gray rather than blue');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'hovered arrow must be horizontally centered inside the 38px visible background');
  const folded=await rect(host);
  assert.equal(Math.round(folded.width),38,'collapsed host must have no 254px transparent hitbox');
  assert.equal(Math.round(folded.height),46);
+ await until(async()=>Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
+   'collapsing cannot move the button vertically after layout settles');
  assert.equal((await attributes(toggle))['aria-label'],'展开目录');
  assert.equal((await attributes(arrow)).d,'M15 5l-7 7 7 7');
  const panel=await tocNode(trusted,shadow,'.panel');
@@ -252,6 +272,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  await until(async()=>Math.abs((await skinWidth())-20)<1,
    'collapsed idle background must shrink to a narrow 20px tab without hover');
+ await until(async()=>await computed(skin,'background-color')==='rgb(243, 244, 246)',
+   'collapsed idle uses the same neutral gray palette after pointer exit');
  await until(async()=>(await arrowOpacity())>0.99,
    'collapsed idle recovery arrow must stay visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
@@ -261,13 +283,29 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'second real mouse click did not expand');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
-   'expanded idle must restore the 12px edge');
- await until(async()=>(await arrowOpacity())<0.01,
-   'expanded idle must hide the collapse chevron again');
+   'expanded idle must return to a 20px tab after the pointer exits');
+ await until(async()=>(await arrowOpacity())>0.99,
+   'expanded idle must keep its collapse chevron visible');
+ await until(async()=>(await horizontalCenterDelta())<=1,
+   'expanded idle must keep its chevron centered');
  const restored=await rect(host);
  assert(restored.width>200,'original directory width must be restored');
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
+ await until(async()=>Math.abs((await rect(toggle)).top-initialToggle.top)<=1,
+   'expanding cannot move the arrow vertically after layout settles');
+ // Variable-height mode updates are covered by the source-backed geometry test.
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
- console.log('READING_TOC_EDGE_NATIVE_PASS: collapsed idle 20px, hover 38px, centered visible arrow, fixed hitbox, recovery');
+ // The preview site selector is outside the tool: A and B must not share collapse.
+ await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")'),
+   'site A user collapse must be reflected in the real view');
+ await pause(180); // Let the preview-only parent receive A's state before changing sites.
+ await select(overlay.page,'od-toc-site','b');
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===false'),
+   'unvisited site B must default expanded');
+ await select(overlay.page,'od-toc-site','a');
+ await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===true'),
+   'return to site A must restore its collapsed state');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: neutral gray, top-anchored zero vertical toggle shift, 20px idle, 38px hover, fixed hitbox');
 });

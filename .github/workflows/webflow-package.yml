@@ -43,6 +43,20 @@ jobs:
       - name: Build only through the original Sidebar Tool packager
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: webflow-chrome
+      - name: Verify compact source UI in real Chromium at 320/360/400 px
+        env:
+          CHROME_BIN: ${{ steps.webflow-chrome.outputs.chrome-path }}
+        run: xvfb-run -a node projects/webflow/tests/webflow-compact-browser.mjs artifacts/sidebar-tools/webflow/chromium
+      - name: Preserve source UI screenshots and evidence (not installed extension)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webflow-source-chromium-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/sidebar-tools/webflow/chromium/
       - name: Promote identical tested bytes and check canonical project package
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --promote-from artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json

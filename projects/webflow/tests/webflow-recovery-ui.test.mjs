@@ -19,7 +19,7 @@ const problem=code=>Object.assign(Error(code),{code});
 function sdk(){
   const store=new Map(),calls=[],pins=config.delegatedTasks.map(p=>({...p,installationId:'install-'+p.taskId,generation:1}));
   const etag=key=>createHash('sha256').update(JSON.stringify(store.get(key)??null)).digest('hex');
-  const api={store,calls,pins,read:async id=>({clientRequestId:id,state:'unknown',semantic:'UNKNOWN'}),
+  const api={store,calls,pins,page:{status:'available',url:'https://www.baidu.com/'},read:async id=>({clientRequestId:id,state:'unknown',semantic:'UNKNOWN'}),
     start:async id=>({clientRequestId:id,state:'running'}),stop:async id=>({clientRequestId:id,state:'stopping'}),
     async request(name,args){
       calls.push({name,args:structuredClone(args)});
@@ -33,7 +33,7 @@ function sdk(){
         if(args.ifMatch!==etag(args.key))throw problem('E_CONFLICT');
         store.set(args.key,structuredClone(args.value));await api.afterSet?.(args);return {};
       }
-      if(name==='currentPage.info')return {status:'available',url:'https://www.baidu.com/'};
+      if(name==='currentPage.info')return {...api.page};
       if(name==='tasks.read')return args.taskId?{task:pins.find(p=>p.taskId===args.taskId)}:api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
@@ -51,7 +51,13 @@ async function mount(t,host=sdk()){
   const errors=[],roots=[];
   const runtime={...React,createRoot(node){const root=createRoot(node,{onUncaughtError:e=>errors.push(e)});roots.push(root);return root;}};
   const timers=new Map();let timerId=0;
-  const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:{root:document.getElementById('root'),request:host.request.bind(host)},
+  const sdkTool={root:document.getElementById('root'),request:host.request.bind(host)};
+  if(host.withNavigation){
+    host.navigation=[];
+    sdkTool.navigationFeatures={headerActions:true};
+    sdkTool.setNavigation=value=>{host.navigation.push(value);return true;};
+  }
+  const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:sdkTool,
     crypto:globalThis.crypto,URL,console,queueMicrotask,addEventListener(){},
     setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}});
   await React.act(async()=>{vm.runInContext(source('model.js'),context);vm.runInContext(source('main.js'),context);});
@@ -69,7 +75,7 @@ async function mount(t,host=sdk()){
     });
     assert.equal(found.length,1,'Unique visible control: '+label);return found[0];
   };
-  const f={host,document,errors,close,find,text:()=>document.body.textContent,
+  const f={host,window,document,errors,close,find,text:()=>document.body.textContent,
     async click(label,scope){const node=find(label,scope);assert.equal(node.disabled,false,label+' enabled');
       await React.act(async()=>node.dispatchEvent(new window.Event('click',{bubbles:true})));},
     async duplicateClick(label){const node=find(label);await React.act(async()=>{
@@ -110,6 +116,31 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
+test('trusted page-change notifications recheck eligibility without executing a task',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  host.page={status:'available',url:'https://www.google.com/'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
+    new f.window.Event('opendesk-page-changed')));
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  host.page={status:'available',url:'https://www.baidu.com/'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
+    new f.window.Event('opendesk-page-changed')));
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.equal(starts(host).length,0);
+  assert.ok(host.calls.filter(call=>call.name==='currentPage.info').length>=3);
+});
+test('missing fixed task is unavailable rather than a changed hash',async t=>{
+  const host=sdk();host.pins=host.pins.filter(pin=>pin.taskId!=='baidu.search.top3');
+  const f=await mount(t,host);await f.click('脚本');
+  assert.match(taskCard(f).textContent,/安装或授权不可用/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+});
+test('compact filter preserves the preview sort affordance',async t=>{
+  const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
+  assert.equal(f.document.querySelector('select[aria-label="脚本排序方式"]')?.value,'favorite');
+});
 test('compact overview retains three tabs, on-demand help and no duplicate navigation',async t=>{
   const host=sdk(),f=await mount(t,host);
   assert.equal(f.document.querySelectorAll('.wf-head').length,1,'one sandbox tab strip, no duplicate product header');
@@ -131,6 +162,52 @@ test('compact overview retains three tabs, on-demand help and no duplicate navig
   assert.equal(starts(host).length,0);
   assert.equal(host.store.has('webflow.pending.v1'),false);
   assert.deepEqual([...new Set(host.calls.map(c=>c.name))].sort(),['currentPage.info','storage.get','tasks.read']);
+});
+
+test('compact filter and icon actions preserve real task scope and favorites',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  const rows=()=>[...f.document.querySelectorAll('.wf-task-row')];
+  assert.equal(rows().length,2);
+  const baidu=taskCard(f);
+  const favorite=[...baidu.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('收藏 '));
+  assert.ok(favorite,'favorite has a meaningful accessible name');
+  await React.act(async()=>favorite.dispatchEvent(new f.document.defaultView.Event('click',{bubbles:true})));
+  assert.equal(f.document.querySelectorAll('.wf-task-row').length,2,'favoriting does not navigate');
+  await f.click('筛选脚本');
+  assert.ok(f.document.getElementById('wf-filter-options'));
+  await f.click('收藏',f.document.getElementById('wf-filter-options'));
+  assert.equal(rows().length,1,'favorites come from saved preferences');
+  assert.ok(rows()[0].textContent.includes('百度搜索'));
+  await f.click('筛选脚本');await f.click('全部',f.document.getElementById('wf-filter-options'));
+  assert.equal(rows().length,2);
+  const google=rows().find(row=>row.textContent.toLowerCase().includes('google'));
+  const googleRun=[...google.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('无法运行 '));
+  assert.ok(googleRun?.disabled,'wrong target website must disable manual run');
+  assert.match(googleRun.getAttribute('aria-label'),/网站/);
+  assert.equal(starts(host).length,0,'UI controls cannot dispatch a Task');
+});
+
+test('R14 Host Header actions stay bounded and return to the original primary tab',async t=>{
+  const host=sdk();host.withNavigation=true;
+  const f=await mount(t,host);
+  assert.ok(host.navigation.length>0);
+  assert.equal(host.navigation.at(-1).page,'home');
+  assert.equal(host.navigation.at(-1).headerActions.length,2);
+  assert.equal(f.document.querySelector('.wf-head-actions'),null,'Host owns right-side icons');
+  const dispatch=async detail=>React.act(async()=>{
+    const event=new f.document.defaultView.Event('opendesk-tool-navigation',{bubbles:true});
+    event.detail=detail;
+    f.document.getElementById('root').dispatchEvent(event);
+  });
+  await f.click('脚本');
+  await dispatch({action:'header',actionId:'help',page:'home'});
+  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
+  assert.equal(host.navigation.at(-1).page,'help');
+  await dispatch({action:'back'});
+  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
+  assert.equal(host.navigation.at(-1).page,'home');
+  assert.equal(starts(host).length,0);
 });
 
 test('the step ID is durably read back before the direct manual start; duplicate clicks start once',async t=>{
