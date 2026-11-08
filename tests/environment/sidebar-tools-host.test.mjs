@@ -36,6 +36,31 @@ import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RUL
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {parseHTML} from 'linkedom';
 
+test('installed tool ui.notify is bounded, tool-scoped and cannot forge a new update',async t=>{
+  const f=await hostFixture(t);
+  const payload=message=>({protocol:f.loaded.protocol,kind:'ui-notify',
+    instance:f.loaded.instance,toolId:sample.id,payload:message});
+  const deliver=(message,{source=f.frame.contentWindow,origin='null'}={})=>
+    f.win.emit('message',{source,origin,data:message});
+  deliver(payload({message:'已保存'}));
+  const first=f.view.getSnapshot().toast;
+  assert.ok(first);
+  assert.match(first.message,/^「.+」：已保存$/);
+  // This API never interprets an install request, HTML or a URL as a Host action.
+  deliver(payload({message:'打开更新中心',html:'<script>alert(1)</script>'}));
+  assert.equal(f.view.getSnapshot().toast.id,first.id);
+  deliver(payload({message:'伪造消息'}),{source:{}});
+  deliver(payload({message:'伪造来源'}),{origin:'https://evil.example'});
+  deliver({...payload({message:'额外消息'}),operation:'tool.page.open'});
+  assert.equal(f.view.getSnapshot().toast.id,first.id);
+  deliver(payload({message:'第二条'}));
+  deliver(payload({message:'第三条'}));
+  const third=f.view.getSnapshot().toast;
+  assert.match(third.message,/第三条/);
+  deliver(payload({message:'超出一分钟配额'}));
+  assert.equal(f.view.getSnapshot().toast.id,third.id);
+});
+
 // Controller tests use ToolHost's state/actions and real runtime elements.
 // Only the iframe message transport is stubbed, never the retired product DOM.
 function toolRuntimeFixture() {
