@@ -292,8 +292,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   frameRect.top+visible.bottom<=frameRect.viewportHeight,
   'Floating card is clipped out of the outer screenshot viewport: '+JSON.stringify({frameRect,visible}));
  let shadow=await tocClosedShadow(trusted);
- // The collapse control has a larger, transparent click target than its visual
- // tab. Assert the ACTUAL input boxes never overlap any toolbar mode.
+ // Keep the original card geometry: only the edge tab reaches the viewport
+ // boundary. Inspect real input boxes so transparent hit areas cannot steal clicks.
  async function assertToggleRail(){
   const bounds=async selector=>{
    const node=await tocNode(trusted,shadow,selector);
@@ -304,8 +304,23 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
     top:Math.min(...y),bottom:Math.max(...y)};
   };
   const panelBox=await bounds('.panel'),toggleBox=await bounds('.edge-toggle');
-  assert(toggleBox.left>=panelBox.right-.5||toggleBox.right<=panelBox.left+.5,
-   'Collapse hitbox must sit beside, not on top of, the actual TOC card');
+  const geometry=await evaluate(trusted,`(()=>{
+    const rect=document.querySelector('[data-opendesk-toc-root]').getBoundingClientRect();
+    return {width:rect.width,right:rect.right,viewportWidth:innerWidth};
+  })()`);
+  const gutter=geometry.viewportWidth<=1100?8:12;
+  const expectedWidth=geometry.viewportWidth<=1100&&geometry.viewportWidth>720?220:
+   Math.min(254,geometry.viewportWidth-24);
+  assert(Math.abs(panelBox.right-geometry.right)<1,
+   'Expanded panel must occupy the whole TOC host, without an added 38px rail');
+  assert(Math.abs((panelBox.right-panelBox.left)-expectedWidth)<1,
+   'Expanded panel must retain its original responsive width');
+  assert(Math.abs(geometry.viewportWidth-panelBox.right-gutter)<1,
+   'Expanded panel must retain the original right gutter');
+  assert(Math.abs(geometry.viewportWidth-toggleBox.right)<1,
+   'Only the expanded toggle should reach the right viewport edge');
+  assert(Math.abs(toggleBox.right-toggleBox.left-20)<1,
+   'Expanded button must have a compact 20px hitbox to avoid covering modes');
   for(const name of ['top','focus','full','ai']){
    const buttonBox=await bounds('button[data-mode="'+name+'"]');
    const overlaps=toggleBox.left<buttonBox.right&&toggleBox.right>buttonBox.left&&
