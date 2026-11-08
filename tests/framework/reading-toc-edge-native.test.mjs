@@ -214,6 +214,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId:arrowSvg});
    return Number.parseFloat(computedStyle.find(item=>item.name==='opacity')?.value);
  };
+ const computed=async(nodeId,name)=>{
+   const {computedStyle}=await trusted.send('CSS.getComputedStyleForNode',{nodeId});
+   return computedStyle.find(item=>item.name===name)?.value;
+ };
  const horizontalCenterDelta=async()=>{
    const [background,glyph]=await Promise.all([rect(skin),rect(arrowSvg)]);
    return Math.abs((background.left+background.right-glyph.left-glyph.right)/2);
@@ -233,6 +237,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  console.log('EDGE_INPUT_MEDIA',JSON.stringify({hoverless,skinWidth:firstWidth}));
  await until(async()=>Math.abs((await skinWidth())-idleWidth)<1,
    'expanded idle tab must be 20px wide on desktop');
+ assert.equal(await computed(skin,'background-color'),'rgb(243, 244, 246)',
+   'expanded idle must use neutral gray background instead of blue');
+ assert.equal(await computed(toggle,'color'),'rgb(91, 100, 114)',
+   'expanded idle arrow must use neutral gray ink');
  await until(async()=>(await arrowOpacity())>0.99,
    'expanded idle chevron must already be visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
@@ -243,6 +251,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
    'real mouse click did not collapse');
  await until(async()=>Math.abs((await skinWidth())-38)<1,
    'real mouse hover must expand the same edge tab to 38px');
+ await until(async()=>await computed(skin,'background-color')==='rgb(232, 235, 239)',
+   'hover background must transition to neutral gray rather than blue');
  await until(async()=>(await horizontalCenterDelta())<=1,
    'hovered arrow must be horizontally centered inside the 38px visible background');
  const folded=await rect(host);
@@ -256,6 +266,8 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
  await until(async()=>Math.abs((await skinWidth())-20)<1,
    'collapsed idle background must shrink to a narrow 20px tab without hover');
+ await until(async()=>await computed(skin,'background-color')==='rgb(243, 244, 246)',
+   'collapsed idle uses the same neutral gray palette after pointer exit');
  await until(async()=>(await arrowOpacity())>0.99,
    'collapsed idle recovery arrow must stay visible without hover');
  await until(async()=>(await horizontalCenterDelta())<=1,
@@ -286,5 +298,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  await select(overlay.page,'od-toc-site','a');
  await until(()=>evaluate(trusted,'document.querySelector("[data-opendesk-toc-root]")?.hasAttribute("data-toc-collapsed")===true'),
    'return to site A must restore its collapsed state');
- console.log('READING_TOC_EDGE_NATIVE_PASS: both states idle 20px visible centered chevron, hover 38px, fixed hitbox, recovery');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: neutral-gray both-state idle 20px visible centered chevron, hover 38px, fixed hitbox, recovery');
 });

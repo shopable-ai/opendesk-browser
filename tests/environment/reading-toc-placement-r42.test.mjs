@@ -226,6 +226,16 @@ test('trusted TOC single edge button collapses without blocking page clicks or w
       'hover/focus expands background without shifting the button hitbox');
     assert.match(css,/\.edge-skin\{[^}]*display:grid;place-items:center;/,
       'visible tab grid always centers its chevron');
+    assert.match(css,/\.edge-toggle\{[^}]*color:#5b6472;/,
+      'idle control icon must be neutral gray, not an accent-blue action');
+    assert.match(css,/\.edge-skin\{[^}]*background:#f3f4f6;border:1px solid #d6dbe2;/,
+      'visible tab uses a neutral gray surface and border');
+    assert.match(css,/\.edge-toggle:hover \.edge-skin,\.edge-toggle:focus-visible \.edge-skin\{width:38px;background:#e8ebef\}/,
+      'hover/focus widens the tab with neutral feedback rather than blue tint');
+    assert.match(css,/prefers-color-scheme:dark\)\{\.edge-toggle\{color:#c4c9d4\}/,
+      'dark-mode recovery tab remains neutral and legible');
+    assert.doesNotMatch(css,/\.edge-toggle\{[^}]*color:#4268bf|\.edge-skin\{[^}]*background:#dce8fa/,
+      'old blue default must not return');
     assert.doesNotMatch(css,/\.edge-toggle svg\{[^}]*opacity:0/,
       'the expanded idle arrow must not disappear without hover');
     assert.doesNotMatch(css,/translateX\(/,
