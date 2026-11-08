@@ -214,6 +214,34 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
 .wf-runtime-sheet :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 @media(max-width:350px){#wf-preview-controls{gap:5px;padding:8px 9px}.wf-runtime-open{padding:5px 6px;font-size:10px}.wf-script-line{gap:5px}.wf-script-actions{gap:0}.wf-script-compact{padding:8px 6px}.wf-icon-action,.wf-script-menu>summary{width:28px;min-width:28px}.wf-script-subline>span:first-child{max-width:77px}}
 @media(prefers-reduced-motion:reduce){#wf-preview-controls *,.wf-history-item *{transition:none!important}}
+
+/* Runtime sheet R2.2: modal by design. Only the exterior switch is interactive.
+   Underlying content is inert while the sheet is open; no second switch is rendered. */
+.wf-runtime-open{gap:5px;padding-inline:9px;justify-content:center}
+.wf-runtime-open svg{width:16px;height:16px}
+.wf-runtime-sheet{max-height:min(76%,620px)}
+.wf-runtime-head{gap:8px}
+.wf-runtime-head-left{min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wf-runtime-meta{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--od-sub);font-weight:500;white-space:nowrap}
+.wf-runtime-status-dot{width:6px;height:6px;flex:none;background:var(--od-positive,#168569);border-radius:50%}
+.wf-runtime-status-dot[data-enabled="false"]{background:var(--od-sub)}
+.wf-runtime-head strong{font-size:13px}
+.wf-runtime-info{gap:10px}
+.wf-runtime-summary{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;flex-wrap:wrap}
+.wf-runtime-summary strong{font-size:12px}
+.wf-runtime-stage{display:grid;grid-template-columns:minmax(78px,1fr) minmax(0,1.5fr);gap:7px 10px;margin:0;font-size:11px}
+.wf-runtime-stage dt{color:var(--od-sub)}
+.wf-runtime-stage dd{margin:0;overflow-wrap:anywhere}
+.wf-runtime-minor{font-size:11px;color:var(--od-sub);line-height:1.55;margin:0}
+.wf-runtime-quiet-button{color:var(--od-brand)!important;border-color:transparent!important}
+.wf-runtime-warning{border:1px solid #d9c18f;background:var(--od-warning-bg,#fff8eb);color:var(--od-warning-ink,#76501b);border-radius:8px;padding:9px;font-size:11px;line-height:1.6}
+.wf-runtime-info details{min-width:0}
+.wf-runtime-info summary{cursor:pointer;font-size:12px;color:var(--od-ink);min-height:34px;display:flex;align-items:center}
+.wf-runtime-info details[open]{padding-top:4px;border-top:1px solid var(--od-line)}
+.wf-runtime-danger{color:var(--od-negative)!important}
+.wf-runtime-actions{flex-wrap:wrap}
+.wf-runtime-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:350px){.wf-runtime-head-left{gap:6px}.wf-runtime-meta{font-size:10px}.wf-runtime-open{padding-inline:6px}}
 </style>
 </head>
 <body>
@@ -237,7 +265,7 @@ body.dark .add-boundary,body.dark .add-readback{background:var(--od-muted);borde
 <section id="wf-preview-controls" aria-label="Web Flow 自动运行">
  <div class="wf-control-copy"><strong id="wf-preview-auto-label">自动触发已暂停</strong><span id="wf-control-note" role="status" aria-live="polite">仅对已批准的新任务生效</span></div>
  <button id="wf-preview-auto-switch" type="button" class="switch" role="switch" data-act="global-switch" aria-checked="false" aria-describedby="wf-control-note" aria-label="自动运行"></button>
- <button class="wf-runtime-open" type="button" data-wf-runtime="open" aria-haspopup="dialog" aria-controls="wf-preview-runtime-cover" title="运行与授权">运行与授权 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 14 5-5 5 5"/></svg></button>
+ <button class="wf-runtime-open" type="button" data-wf-runtime="open" aria-haspopup="dialog" aria-expanded="false" aria-controls="wf-preview-runtime-cover" aria-label="运行状态与任务授权" title="运行状态、任务授权与使用说明"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span>管理</span></button>
 </section>
 <nav class="app-tabs" role="tablist" aria-label="Web Flow 内部页面"><button type="button" id="wf-tab-overview" class="app-tab" role="tab" aria-controls="appContent" aria-selected="true" tabindex="0" data-page="overview">概览</button><button type="button" id="wf-tab-scripts" class="app-tab" role="tab" aria-controls="appContent" aria-selected="false" tabindex="-1" data-page="scripts">脚本</button><button type="button" id="wf-tab-history" class="app-tab" role="tab" aria-controls="appContent" aria-selected="false" tabindex="-1" data-page="history">记录</button></nav>
     <div id="appContent" class="app-body" role="tabpanel" tabindex="0" aria-labelledby="wf-tab-overview"></div>
@@ -628,7 +656,7 @@ document.addEventListener('pointerdown',ev=>{
 },true);
 
 
-let wfRuntimeVisible=false,wfRuntimeTab='task',wfRuntimeOpener=null,wfStopConfirm=false,wfGrantApproved=false,wfGrantEditing=false,wfGrantDraft={site:'https://www.baidu.com/',rule:'variable'};
+let wfRuntimeVisible=false,wfRuntimeTab='task',wfRuntimeOpener=null,wfStopConfirm=false,wfGrantApproved=false,wfGrantEditing=false,wfRevokeConfirm=false,wfGrantDraft={site:'https://www.baidu.com/',rule:'variable'};
 function wfSvg(kind){
  const p={
  star:'<path d="m12 2 3.1 6.5 7.1 1-5.1 5 1.2 7-6.3-3.3-6.3 3.3 1.2-7-5.1-5 7.1-1Z"/>',
@@ -647,31 +675,57 @@ function wfSvg(kind){
 function wfRuntimeEscape(value){
  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
-function wfRuntimeBody(){
- const statusText=state.scenario==='unknown'?'结果 UNKNOWN：必须只读对账':state.scenario==='running'?'任务执行中':state.scenario==='permission'?'待批准，尚未执行':state.scenario==='error'?'连接/执行异常':'当前没有待处理的自动任务';
+function wfRuntimeBody() {
+ const phase=state.scenario;
  if(wfRuntimeTab==='task'){
-  return `<div class="wf-runtime-info"><strong>${statusText}</strong><p>当前模拟来源：ChatGPT 对话 · 任务 baidu.search.top3 · 目标 https://www.baidu.com/。监听、执行、保存、交付分别核验。</p>${state.scenario==='unknown'?'<div class="wf-runtime-alert">结果未知不可自动重发或重试。</div>':''}<div class="wf-runtime-actions"><button data-wf-runtime="query">查询原请求（模拟）</button><button data-wf-runtime="stop">停止…</button></div>${wfStopConfirm?'<div class="wf-runtime-alert">停止操作仅演示；未知结果不能直接认定停止成功。<div class="wf-runtime-actions"><button data-wf-runtime="cancel-stop">取消</button><button data-wf-runtime="confirm-stop">确认模拟停止</button></div></div>':''}<details><summary>监听及连接恢复</summary><p>读取监听状态、手动恢复连接，不重放原请求。</p><button data-wf-runtime="check">重新检查（模拟）</button></details><details><summary>技术诊断</summary><p>原请求身份、结果 ID 与资源释放仍须读取真实持久记录。这里没有真实 ID。</p></details></div>`;
+   const running=phase==='running',pending=phase==='permission',unknown=phase==='unknown',failed=phase==='error';
+   const active=running||pending||unknown||failed;
+   const heading=running?'任务执行中':pending?'任务待审核 · 尚未执行':unknown?'结果未知 · 等待对账':failed?'监听或运行状态需要检查':'当前没有待处理的自动任务';
+   return `<div class="wf-runtime-info" aria-label="当前任务详情">
+    <div class="wf-runtime-summary"><strong>${heading}</strong>${active?`<span class="wf-runtime-meta">模拟状态</span>`:''}</div>
+    ${active?`<dl class="wf-runtime-stage"><dt>任务</dt><dd>百度搜索 · 前三条自然结果</dd><dt>来源</dt><dd>ChatGPT 原聊天（模拟）</dd><dt>目标网站</dt><dd>https://www.baidu.com/</dd><dt>任务版本</dt><dd>baidu.search.top3 · v1.1.4</dd>${running?'<dt>执行</dt><dd>模拟进行中 · 真实进度未核验</dd>':''}${unknown?'<dt>原请求</dt><dd>UNKNOWN · 无真实 Run/Result</dd>':''}</dl>`:`<p class="wf-runtime-minor">新请求会在已批准范围内自动准入。运行进度、原请求和结果只在实际存在时显示。</p>`}
+    ${unknown?'<div class="wf-runtime-warning">UNKNOWN 不等于失败或成功。只读核对原请求，不自动补发、重跑或换身份执行。</div>':''}
+    ${pending?'<div class="wf-runtime-warning">当前候选尚未获批准，禁止执行。请核对任务、网站与参数范围。</div>':''}
+    ${failed?'<div class="wf-runtime-warning">连接异常不能证明旧请求未执行。请先核对原持久记录和监听状态。</div>':''}
+    ${running||unknown||pending||failed?`<div class="wf-runtime-actions">${pending?'<button data-wf-runtime="to-scope" class="primary">审核任务授权</button>':''}${running||unknown||failed?'<button data-wf-runtime="query">查询原请求（模拟）</button>':''}${running?'<button data-wf-runtime="stop" class="wf-runtime-danger">停止任务…</button>':''}</div>`:''}
+    ${wfStopConfirm?'<div class="wf-runtime-warning" role="alert"><strong>确认停止模拟任务？</strong><p>停止请求不保证网页动作已回滚；若状态未知，仍需原请求对账。</p><div class="wf-runtime-actions"><button data-wf-runtime="cancel-stop">取消</button><button data-wf-runtime="confirm-stop" class="wf-runtime-danger">确认模拟停止</button></div></div>':''}
+    <details><summary>监听与连接恢复</summary><p class="wf-runtime-minor">只检查监听和当前请求状态，不重新运行已提交的任务。</p><div class="wf-runtime-actions"><button data-wf-runtime="check">重新检查（模拟）</button></div></details>
+    <details><summary>原请求与技术证据</summary><p class="wf-runtime-minor">运行结果、持久化、资源释放、原聊天交付与 AI 续答必须分别确认。本预览没有真实 requestId / RunId / ResultId。</p></details>
+   </div>`;
  }
  if(wfRuntimeTab==='scope'){
-  return `<div class="wf-runtime-info"><strong>逐任务授权（内存演示）</strong><p>百度搜索 · 固定目标与版本 · ${wfGrantApproved?'模拟范围已批准':'尚未模拟批准'}</p><dl style="display:grid;grid-template-columns:80px 1fr;gap:5px;font-size:11px;margin:0"><dt>Task ID</dt><dd style="margin:0">baidu.search.top3</dd><dt>来源</dt><dd style="margin:0">chatgpt.com</dd><dt>版本</dt><dd style="margin:0">1.1.4</dd><dt>目标网站</dt><dd style="margin:0">www.baidu.com</dd></dl><div class="wf-runtime-actions"><button data-wf-runtime="edit-grant">编辑 / 审核</button><button data-wf-runtime="revoke">撤销模拟批准</button></div>${wfGrantEditing?`<label class="wf-runtime-field">精确目标网址<input id="wf-rt-site" value="${wfRuntimeEscape(wfGrantDraft.site)}" /></label><label class="wf-runtime-field">参数规则<select id="wf-rt-rule"><option value="variable" ${wfGrantDraft.rule==='variable'?'selected':''}>关键词符合 Schema 可变</option><option value="fixed" ${wfGrantDraft.rule==='fixed'?'selected':''}>关键词固定</option></select></label><div class="wf-runtime-actions"><button data-wf-runtime="cancel-grant">取消</button><button data-wf-runtime="save-grant" class="primary">审核并模拟保存</button></div>`:''}<p>授权只控制新请求准入，不能撤回已完成的网站副作用。</p></div>`;
+   return `<div class="wf-runtime-info" aria-label="任务授权"><div class="wf-runtime-summary"><strong>已安装任务与授权范围</strong><span class="wf-runtime-meta">${wfGrantApproved?'1 项模拟批准':'尚未模拟批准'}</span></div>
+    <dl class="wf-runtime-stage"><dt>脚本</dt><dd>百度搜索 · 前三条自然结果</dd><dt>安装版本</dt><dd>v1.1.4（模拟身份）</dd><dt>发起网站</dt><dd>https://chatgpt.com</dd><dt>精确目标</dt><dd>https://www.baidu.com/</dd><dt>参数规则</dt><dd>query 可变（Schema 约束），limit:3 固定</dd></dl>
+    <div class="wf-runtime-actions"><button data-wf-runtime="edit-grant">${wfGrantApproved?'编辑授权范围':'审核并批准（模拟）'}</button>${wfGrantApproved?'<button class="wf-runtime-danger" data-wf-runtime="revoke">撤销…</button>':''}</div>
+    ${wfRevokeConfirm?'<div class="wf-runtime-warning" role="alert"><strong>确认撤销模拟授权？</strong><p>仅阻止未来准入，不会回滚已经执行的网页动作。</p><div class="wf-runtime-actions"><button data-wf-runtime="cancel-revoke">取消</button><button class="wf-runtime-danger" data-wf-runtime="confirm-revoke">确认撤销</button></div></div>':''}
+    ${wfGrantEditing?`<div class="wf-runtime-info"><strong>授权审核草稿</strong><label class="wf-runtime-field">精确目标网址<input id="wf-rt-site" value="${wfRuntimeEscape(wfGrantDraft.site)}" /></label><label class="wf-runtime-field">关键词规则<select id="wf-rt-rule"><option value="variable" ${wfGrantDraft.rule==='variable'?'selected':''}>允许 Schema 内变化</option><option value="fixed" ${wfGrantDraft.rule==='fixed'?'selected':''}>仅固定关键词</option></select></label><p class="wf-runtime-minor">本页仅保存模拟数据。正式批准需要可信页面的真实用户操作，并重新核验安装与范围。</p><div class="wf-runtime-actions"><button data-wf-runtime="cancel-grant">取消编辑</button><button data-wf-runtime="save-grant" class="primary">审核并模拟保存</button></div></div>`:''}
+    <details><summary>授权规则与数据边界</summary><p class="wf-runtime-minor">自动运行总开关决定是否接收新请求；授权决定可以运行哪些任务。网站权限与安装身份仍由原 Host 核验。真实撤权不影响已发生副作用。</p></details>
+   </div>`;
  }
- return `<div class="wf-runtime-info"><strong>ChatGPT 一次能力接入</strong><p>在已授权的新聊天提供一次已安装任务的能力说明。之后正常发送需求，不要求逐轮填写 JSON。</p><div class="wf-runtime-actions"><button data-wf-runtime="instructions">查看能力说明（模拟）</button></div></div><div class="wf-runtime-info"><strong>问题排查</strong><p>检查自动运行开关、任务身份、精确网站、参数与监听。UNKNOWN 时仅查询原请求，不重新发送。</p></div>`;
+ return `<div class="wf-runtime-info" aria-label="使用说明"><strong>在 ChatGPT 中正常使用</strong><p class="wf-runtime-minor">① 核对已安装脚本及目标网站的批准范围。</p><p class="wf-runtime-minor">② 新聊天完成一次能力说明接入；已有有效接入无需重复。</p><p class="wf-runtime-minor">③ 正常发送任务需求，查看当前任务及原聊天的真实结果。</p><div class="wf-runtime-actions"><button data-wf-runtime="instructions">查看能力说明（模拟）</button></div></div><div class="wf-runtime-info"><strong>问题排查</strong><p class="wf-runtime-minor">无响应先检查监听与精确授权范围；结果 UNKNOWN 必须查询原请求，不能直接重放。</p><div class="wf-runtime-actions"><button data-wf-runtime="tab-task">查看当前任务</button></div></div>`;
 }
 function wfRuntimeRender(){
  const cover=document.getElementById('wf-preview-runtime-cover');
  if(!cover)return;
  cover.hidden=!wfRuntimeVisible;
- const hostPanel=document.querySelector('#window > .panel');
- if(hostPanel)hostPanel.inert=wfRuntimeVisible;
- if(!wfRuntimeVisible)return;
+ const mainPanel=document.querySelector('#window > .panel');
+ if(mainPanel)mainPanel.inert=wfRuntimeVisible;
+ const trigger=document.querySelector('.wf-runtime-open');
+ if(trigger)trigger.setAttribute('aria-expanded',String(wfRuntimeVisible));
+ if(!wfRuntimeVisible){cover.innerHTML='';return;}
  cover.innerHTML=`<button class="wf-runtime-backdrop" data-wf-runtime="close" tabindex="-1" aria-label="关闭抽屉"></button>
  <section class="wf-runtime-sheet" role="dialog" aria-modal="true" aria-labelledby="wf-runtime-title" tabindex="-1">
- <div class="wf-runtime-head"><strong id="wf-runtime-title">运行与授权</strong><button class="wf-runtime-close" type="button" data-wf-runtime="close" aria-label="关闭运行与授权">${wfSvg('close')}</button></div>
- <div class="wf-runtime-sheet-body">
- <div class="wf-runtime-switch-line"><div><strong>自动运行</strong><p class="wf-runtime-note">按已批准范围接收新任务</p></div><button type="button" class="switch" data-act="global-switch" role="switch" aria-checked="${state.globalAuto}" aria-label="自动运行"></button></div>
- <div class="wf-runtime-tabs" role="tablist" aria-label="运行与授权">
- ${[['task','当前任务'],['scope','任务授权'],['help','使用说明']].map(([k,v])=>`<button role="tab" data-wf-runtime="tab-${k}" aria-selected="${wfRuntimeTab===k}">${v}</button>`).join('')}
- </div><div class="wf-runtime-content">${wfRuntimeBody()}</div></div>
+   <div class="wf-runtime-head">
+    <div class="wf-runtime-head-left"><strong id="wf-runtime-title">运行与授权</strong>
+    <span class="wf-runtime-meta" role="status"><i class="wf-runtime-status-dot" data-enabled="${state.globalAuto?'true':'false'}" aria-hidden="true"></i>自动运行 · ${state.globalAuto?'已开启':'已关闭'}</span></div>
+    <button class="wf-runtime-close" type="button" data-wf-runtime="close" aria-label="关闭运行与授权">${wfSvg('close')}</button>
+   </div>
+   <div class="wf-runtime-sheet-body">
+    <div class="wf-runtime-tabs" role="tablist" aria-label="运行与授权">
+      ${[['task','当前任务'],['scope','任务授权'],['help','使用说明']].map(([k,v])=>`<button type="button" role="tab" data-wf-runtime="tab-${k}" aria-controls="wf-runtime-content" aria-selected="${wfRuntimeTab===k}" tabindex="${wfRuntimeTab===k?0:-1}">${v}</button>`).join('')}
+    </div>
+    <div class="wf-runtime-content" id="wf-runtime-content" role="tabpanel" tabindex="0">${wfRuntimeBody()}</div>
+   </div>
  </section>`;
 }
 function wfRuntimeSync(){
@@ -689,8 +743,8 @@ document.addEventListener('click',event=>{
  const button=event.target.closest('[data-wf-runtime]');if(!button||!document.getElementById('window')?.contains(button))return;
  event.preventDefault();event.stopImmediatePropagation();
  const mode=button.dataset.wfRuntime;
- if(mode==='open'){wfRuntimeVisible=true;wfRuntimeOpener=button;wfRuntimeTab='task';wfStopConfirm=false;wfRuntimeRender();document.querySelector('.wf-runtime-close')?.focus();return;}
- if(mode==='close'){wfRuntimeVisible=false;wfStopConfirm=false;wfGrantEditing=false;wfRuntimeRender();if(wfRuntimeOpener?.isConnected)wfRuntimeOpener.focus();return;}
+ if(mode==='open'){wfRuntimeVisible=true;wfRuntimeOpener=button;wfRuntimeTab='task';wfStopConfirm=false;wfRevokeConfirm=false;wfRuntimeRender();document.querySelector('.wf-runtime-close')?.focus();return;}
+ if(mode==='close'){wfRuntimeVisible=false;wfStopConfirm=false;wfRevokeConfirm=false;wfRuntimeRender();if(wfRuntimeOpener?.isConnected)wfRuntimeOpener.focus();return;}
  if(mode.startsWith('tab-')){wfRuntimeTab=mode.slice(4);wfRuntimeRender();document.querySelector('[data-wf-runtime="'+mode+'"]')?.focus();return;}
  if(mode==='stop'){wfStopConfirm=true;wfRuntimeRender();return;}
  if(mode==='cancel-stop'){wfStopConfirm=false;wfRuntimeRender();return;}
@@ -698,12 +752,15 @@ document.addEventListener('click',event=>{
  if(mode==='edit-grant'){wfGrantEditing=true;wfRuntimeRender();document.getElementById('wf-rt-site')?.focus();return;}
  if(mode==='cancel-grant'){wfGrantEditing=false;wfRuntimeRender();return;}
  if(mode==='save-grant'){if(wfGrantDraft.site!=='https://www.baidu.com/'){alert('该固定任务的精确网站只能是 https://www.baidu.com/（演示）');return;}wfGrantApproved=true;wfGrantEditing=false;wfRuntimeRender();return;}
- if(mode==='revoke'){wfGrantApproved=false;wfRuntimeRender();return;}
+ if(mode==='revoke'){wfRevokeConfirm=true;wfRuntimeRender();return;}
+ if(mode==='cancel-revoke'){wfRevokeConfirm=false;wfRuntimeRender();return;}
+ if(mode==='confirm-revoke'){wfGrantApproved=false;wfRevokeConfirm=false;wfRuntimeRender();return;}
+ if(mode==='to-scope'){wfRuntimeTab='scope';wfRuntimeRender();document.querySelector('[data-wf-runtime="tab-scope"]')?.focus();return;}
  if(mode==='query'||mode==='check'||mode==='instructions'){const where=document.querySelector('.wf-runtime-content');const note=document.createElement('p');note.className='wf-runtime-note';note.textContent=mode==='query'?'仅模拟只读核对，未访问任何原请求。':mode==='check'?'监听检查仅模拟，未调用浏览器运行时。':'能力说明仅供演示，不会自动发送。';where?.append(note);}
 },true);
 document.addEventListener('keydown',event=>{
  if(!wfRuntimeVisible||event.isComposing)return;
- if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();wfRuntimeVisible=false;wfGrantEditing=false;wfStopConfirm=false;wfRuntimeRender();if(wfRuntimeOpener?.isConnected)wfRuntimeOpener.focus();return;}
+ if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();wfRuntimeVisible=false;wfStopConfirm=false;wfRevokeConfirm=false;wfRuntimeRender();if(wfRuntimeOpener?.isConnected)wfRuntimeOpener.focus();return;}
  if(event.key==='Tab'){const nodes=[...document.querySelectorAll('#wf-preview-runtime-cover button:not([disabled]),#wf-preview-runtime-cover input:not([disabled]),#wf-preview-runtime-cover select:not([disabled]),#wf-preview-runtime-cover summary')].filter(el=>el.getClientRects().length&&!el.closest('details:not([open]) > :not(summary)'));const first=nodes[0],last=nodes[nodes.length-1];if(!first)return;if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}else if(!document.getElementById('wf-preview-runtime-cover')?.contains(document.activeElement)){event.preventDefault();first.focus();}}
 },true);
 
