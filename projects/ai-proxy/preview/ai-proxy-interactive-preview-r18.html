@@ -65,7 +65,7 @@ const desiredRoute=()=>s.mode==='profile'?profileName(s.selected):modeLabels[s.m
 const activeRoute=()=>s.activeMode==='profile'?profileName(s.activeProfile):modeLabels[s.activeMode];
 const isPending=()=>s.applied && (s.mode!==s.activeMode || (s.mode==='profile' && s.selected!==s.activeProfile));
 const status=()=>{
- const before=s.comparison==='before';
+ const before=s.comparison==='before'||s.view==='pc';
  const normal=before
   ? {label:s.applied?'正在运行':'已暂停',description:s.applied?'已由本扩展管理浏览器代理':'已保留选择，尚未应用',tone:s.applied?'ok':'warn',button:s.applied?'暂停':'启用'}
   : s.switchingTo
