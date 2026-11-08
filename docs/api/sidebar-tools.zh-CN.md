@@ -4,6 +4,20 @@
 
 这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**第三方的开发合同由本文、[统一开发规范](sidebar-tool-development.zh-CN.md)、工具配置、示例及公开 SDK 确定，不依赖 Browser 内部 `src/`**。若文档与行为冲突，由平台维护者凭实际复现再核对 Host、Broker 和打包实现，不能要求第三方直接调用内部函数。
 
+### UI 展示容器提示（2026-11-09；运行验收待完成）
+
+同一已安装 Sidebar Tool 可由原宿主在侧栏和固定扩展标签页运行，不需要创建另一个安装包。当前源码开始为沙箱 `OpenDeskTool` 提供**只读** `surface` 字段，其值为 `'sidebar'`（缺省）或 `'page'`（宿主工具标签页）；原有 `root/request/setNavigation` 和所有安装/存储/浏览器权限保持不变。可选示例：
+
+```js
+const surface = OpenDeskTool?.surface === 'page' ? 'management' : 'sidebar';
+// 仅选择本工具自己的布局；不能以 surface 推断权限或信任级别。
+renderTool({surface});
+```
+
+这是**展示提示**，不是 SDK 授权令牌、当前网页类型、页面执行世界或者操作浏览器标签页的能力；旧 Bridge 未提供时安全回退到 `sidebar`。同一安装版在两个容器中仍是独立 UI/iframe 实例，数据访问须走各自有权的 `OpenDeskTool.request`，按已有业务存储/乐观并发合同确认保存，不共享未保存草稿。
+
+**暂未提供**普通用户工具直接调用的“打开自身 PC 设置页面”公开 API；目前由现有宿主的 ↗ 操作打开固定标签页。未来入口将只允许当前工具自身、用户手势和有界显示路由，并经原 Host 身份/版本/启停/撤权验证，不开放 `chrome.tabs` 或任意 URL。具体设计、边界与 NOT_TESTED 项见[自定义工具 UI 合同](../architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)。
+
 ## 1. 工具源配置与运行包的区别
 
 开发者维护的 `tool.config.json`：
