@@ -1,3 +1,13 @@
+## 真实安装核心检查与草稿状态修复（2026-11-09；01a1bcf7）
+
+本轮沿原安装器将已安装 **0.3.14 → 0.3.19** 同 ID 更新，使用已提交 `477a4c312` 的确切包，SHA256 `fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd`。ego TaskSpace 54 的真实侧栏确认版本、收藏与主题保留，三 Tab、搜索／清空、筛选／空状态、收藏排序、行菜单、中文任务不可用指引及运行禁用、帮助／应用偏好回退与独立可信设置均可用。测试标记已还原，自动运行保持关闭，未安装或运行 Task、授权或发送 ChatGPT。完整边界见[本轮证据](../evidence/installed-core-20261109-01a1bcf7.json)。
+
+当前是日常 **development**：实际加载 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，Debug 显示指纹 `fc74f1aeb3ae…` 和服务已连接；进程／43119 监听未能独立证明仍有 serve writer，不能据此声称持续更新有效。没有覆盖 dist、重建或重载 Browser，旧宿主仍使用 More 回退，新 Header 直接图标尚未生效。
+
+实际缺陷有两项。① 真实搜索输入／清空和主题保存读回后，宿主仍将应用视为未保存，禁用 More。公开 SDK 要求应用同步 `setState({dirty,busy})`，当前 Web Flow 漏报；只在 `src/ui/main.js` 补状态同步及偏好确认，不改公共宿主。视图搜索释放误标记，未保存参数及失败／不一致读回继续 dirty，持久写入期间 busy，确认保存后才释放。原 `tests/webflow-recovery-ui.test.mjs` 新增四项交互覆盖；前三项修前失败，修后应用／恢复 **55/55**、原包门禁 **8/8**、语法／定向 diff 检查通过，任务固定身份／CAS／UNKNOWN 恢复保持。② 约 600px 高真实窗口中页脚及详情仍被裁切且无法滚到；已恢复正常窗口。下段 0.3.20 高度源码及框架改动属于并行 owner，本轮未覆盖，其夹具证据不能当成真实安装通过。
+
+原打包器已生成本任务临时候选 `artifacts/webflow-installed-core-01a1bcf7/draft-state-candidate.opendesk-tool.json`：当前配置 **0.3.20**、71,761 bytes、SHA256 `f9020ac3bebdb6ec1ac2f91b945d538f52675f7cdf19f48ee5d3adee4908821d`，验证有效但**未晋升／未安装**。它包含当前并行高度源码，仅供协调核对；原 owner 的正式 0.3.20 包尚不包含本次草稿修复，当前源码不应继续声称与该旧包完全同源。已请求正式包／版本收尾移交，未收到答复前不改其配置、正式包、CSS、预览或 Host 文件，也不抢先制造会阻断 0.3.20 升级的新版。下一条操作是明确交付 owner 后由原链统一晋升，再验证安装后的草稿保护；高度还须对应宿主源码生效。真实 Task、Native、production、完整 CI、评分、缩放等继续 NOT_TESTED／延期，核心目标尚未全部达成。
+
 ## 核心 UI 与共享交付（2026-11-09；01a1bca2）
 
 真实 ego 安装与核心操作证据仍只对应 0.3.13／0.3.14：三 Tab、百度搜索／清空、筛选、收藏排序和设置可用，收藏保存误报已修复，自动运行保持暂停。固定任务未取得有效安装／启用状态，未派发真实 Task、重放 UNKNOWN 或扩大权限；空间 42 已释放。

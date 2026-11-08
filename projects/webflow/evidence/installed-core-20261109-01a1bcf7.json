@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-09",
+  "threadId": "01a1bcf7-0557-75b1-9760-cefe5807b98c",
+  "scope": "Installed Web Flow core checks and application draft-state repair",
+  "evidenceKind": "Observed native UI actions recorded from this chat; component tests are separate evidence",
+  "browser": {
+    "product": "ego lite",
+    "version": "0.6.2.8",
+    "taskSpaceId": 54,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "development",
+    "displayedBuildFingerprint": "fc74f1aeb3ae99de5bdc9047ed1672570cf537f68ee295d0e67b5a1d7df9c70a",
+    "serveConnection": "UI reported connected; no matching repo dev writer or port 43119 listener was observed, so a live serve connection is not independently verified",
+    "hostRebuiltOrReloaded": false
+  },
+  "installedUpdate": {
+    "method": "Original extension import review and explicit same-ID update confirmation",
+    "fromVersion": "0.3.14",
+    "toVersion": "0.3.19",
+    "sourceCommit": "477a4c3124787f62c6240d42ebed8c3f306722ad",
+    "packageBytes": 71295,
+    "packageSha256": "fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd",
+    "newCapabilities": [],
+    "openedVersionReadback": "0.3.19",
+    "dataPreservation": "PASS: Google favorite marker and explicit dark theme survived update and reopening",
+    "markersRestored": "Both favorites false; theme system; search empty; default favorite sort; clean overview reopened",
+    "autoRun": "OFF before and after; never enabled"
+  },
+  "nativeChecks": {
+    "PASS": [
+      "Overview, scripts and empty history tabs open",
+      "Search Baidu shows one of two tasks; clearing restores two",
+      "Favorite filter shows the marked Google task; available filter shows a readable empty state",
+      "Name sort orders Baidu before Google; restoring favorite sort prioritizes the marked task",
+      "Row menu and details expose fixed IDs, versions and hashes",
+      "Uninstalled or disabled Tasks show Chinese recovery guidance and disabled run controls",
+      "Old-host More fallback opens Help and Application Preferences; returning retains the previous tab",
+      "Trusted tool-settings gear opens the separate tool settings page",
+      "Runtime and authorization views open; no installed Task is reviewable and no Task authorization is approved"
+    ],
+    "FAIL": [
+      "After trusted search input, including clear, Host More stays disabled for an unsaved draft; successful theme save/readback has the same stale marker",
+      "At approximately 1428 by 600 logical window size, list footer and expanded detail content are clipped and cannot be reached by scrolling"
+    ],
+    "NOT_TESTED": [
+      "Direct Help and Application Preferences header icons in the current host source",
+      "Installed draft-state repair",
+      "Installed bounded-canvas height repair",
+      "Keyboard focus, IME and Escape",
+      "Nonempty real history and real Task execution",
+      "Native pairing, production, full CI, scoring and zoom matrix"
+    ],
+    "windowRestored": "Normal approximately 1428 by 800 logical window",
+    "taskInstallations": 0,
+    "taskStarts": 0,
+    "chatMessagesSent": 0
+  },
+  "applicationRepair": {
+    "files": ["src/ui/main.js", "tests/webflow-recovery-ui.test.mjs"],
+    "publicApi": "OpenDeskTool.setState({dirty,busy})",
+    "behavior": "Reconcile view inputs after rendering; keep unconfirmed preferences and nonempty query drafts dirty, keep writes busy, release only after SDK write/readback confirmation",
+    "mainSha256": "411f25e2601cae5703210ddeb674dde6dec427e86a537aff6c14b64db234c49a",
+    "testSha256": "099aa58f808fb12b83ed992be1907a88b60a413eec0b809a6b00014503c32937",
+    "regression": "First three added cases failed before the patch; four added cases plus existing application and recovery checks pass, 55/55 total",
+    "packageGates": "8/8 PASS in tests/environment/sidebar-tools.test.mjs",
+    "syntaxAndDiff": "PASS",
+    "transport": "Real React and delegated DOM events with SDK transport substituted; no installed repair evidence"
+  },
+  "temporaryCandidate": {
+    "path": "artifacts/webflow-installed-core-01a1bcf7/draft-state-candidate.opendesk-tool.json",
+    "version": "0.3.20",
+    "bytes": 71761,
+    "sha256": "f9020ac3bebdb6ec1ac2f91b945d538f52675f7cdf19f48ee5d3adee4908821d",
+    "validated": true,
+    "promoted": false,
+    "installed": false,
+    "note": "Includes the live parallel height source. Not an independent release; formal package and version ownership must be coordinated first."
+  },
+  "parallelReleaseBoundary": {
+    "version": "0.3.20",
+    "priorPromotedPackageSha256": "70e5ccb064c334593df73f4c4d779ba48123b8a49e6faaa8adb839b751a19c6e",
+    "ownerHandoff": "REQUESTED_NOT_CONFIRMED",
+    "formalPackageContainsThisRepair": false,
+    "protected": ["src/ui/style.css", "tool.config.json", "webflow.opendesk-tool.json", "preview", "Framework host and bridge files", "Other owners' changes and services"]
+  }
+}
