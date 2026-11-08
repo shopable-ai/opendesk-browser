@@ -15,15 +15,18 @@ const CSS=[
 ".edge-skin{position:absolute;right:0;top:0;width:12px;height:46px;background:#dce8fa;border:1px solid #b1c5e7;border-right:0;border-radius:9px 0 0 9px;box-shadow:-2px 2px 5px #243a6012;transition:width .14s ease,background .14s ease;pointer-events:none}",
 ":host([data-toc-edge=left]) .edge-toggle{left:0;right:auto}",
 ":host([data-toc-edge=left]) .edge-skin{left:0;right:auto;border:1px solid #b1c5e7;border-left:0;border-radius:0 9px 9px 0}",
-".edge-toggle svg{position:relative;width:19px;height:19px;opacity:0;transition:opacity .1s ease;pointer-events:none}",
+".edge-toggle svg{position:relative;width:19px;height:19px;opacity:0;transition:opacity .1s ease,transform .14s ease,width .14s ease,height .14s ease;pointer-events:none}",
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#ecf3ff}",
 ".edge-toggle:hover svg,.edge-toggle:focus-visible svg{opacity:1}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;transform:none}",
-// The only recovery control must show its arrow at idle when the card is folded.
-// The expanded card still uses the narrower 12px edge until hover/focus.
-":host([data-toc-collapsed]) .edge-skin{width:38px}",
-":host([data-toc-collapsed]) .edge-toggle svg{opacity:1}",
-"@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}}",
+// Folded idle is a narrow 20px tab WITH a visible arrow, not the 38px hovered appearance.
+// The 38x46 host remains the single keyboard/pointer target and never covers the old card.
+":host([data-toc-collapsed]) .edge-skin{width:20px}",
+":host([data-toc-collapsed]) .edge-toggle svg{width:14px;height:14px;opacity:1;transform:translateX(9px)}",
+":host([data-toc-collapsed][data-toc-edge=left]) .edge-toggle svg{transform:translateX(-9px)}",
+":host([data-toc-collapsed]) .edge-toggle:is(:hover,:focus-visible) .edge-skin{width:38px}",
+":host([data-toc-collapsed]) .edge-toggle:is(:hover,:focus-visible) svg{width:19px;height:19px;transform:none}",
+"@media(hover:none){.edge-toggle .edge-skin{width:38px}.edge-toggle svg{opacity:1}:host([data-toc-collapsed]) .edge-skin{width:38px}:host([data-toc-collapsed]) .edge-toggle svg{width:19px;height:19px;transform:none}}",
 "@media(prefers-color-scheme:dark){.edge-toggle{color:#a7c5ff}.edge-skin{background:#283b5a;border-color:#50688a}.edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{background:#344b71}}",
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
@@ -160,6 +163,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   function refreshEdge(){
     const labels=EDGE_LABELS[locale]||EDGE_LABELS['zh-CN'];
     edgeToggle.setAttribute('aria-label',collapsed?labels.expand:labels.collapse);
+    edgeToggle.title=collapsed?labels.expand:labels.collapse;
     edgeToggle.setAttribute('aria-expanded',String(!collapsed));
     edgePath.setAttribute('d',edgeSide==='right'
       ?(collapsed?EDGE_LEFT:EDGE_RIGHT):(collapsed?EDGE_RIGHT:EDGE_LEFT));

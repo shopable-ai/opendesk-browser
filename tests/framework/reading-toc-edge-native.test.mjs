@@ -244,10 +244,10 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Object.hasOwn(await attributes(panel),'hidden'),
    'collapsed outline must be hidden from pointer and focus interaction');
  await overlay.page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:frameRect.left+20,y:frameRect.top+20});
- await until(async()=>Math.abs((await skinWidth())-38)<1,
-   'collapsed recovery background must remain 38px without hover');
+ await until(async()=>Math.abs((await skinWidth())-20)<1,
+   'collapsed idle background must shrink to a narrow 20px tab without hover');
  await until(async()=>(await arrowOpacity())>0.99,
-   'collapsed recovery arrow must remain visible without hover');
+   'collapsed idle recovery arrow must stay visible without hover');
  await tocMouseClick(overlay.page,trusted,shadow,'button.edge-toggle',frameRect);
  await until(async()=>(await attributes(toggle))['aria-expanded']==='true',
    'second real mouse click did not expand');
@@ -261,5 +261,5 @@ test('trusted TOC edge toggle: real Chromium mouse collapse, hover and expand',{
  assert(Math.abs(restored.left-initial.left)<2,'directory X position should remain');
  assert.equal((await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'button.mode'})).nodeIds.length,4,
    'all four original directory modes remain');
- console.log('READING_TOC_EDGE_NATIVE_PASS: expanded idle 12px, collapsed idle 38px/visible arrow, mouse recovery, four modes');
+ console.log('READING_TOC_EDGE_NATIVE_PASS: expanded idle 12px, collapsed idle 20px/visible arrow, hover 38px, mouse recovery, four modes');
 });
