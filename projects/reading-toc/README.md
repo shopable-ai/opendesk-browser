@@ -38,7 +38,7 @@
 npm run build:sidebar-tool -- projects/reading-toc
 ```
 
-可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.9）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.9/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.12）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.12/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 ## 当前证据与边界
 
