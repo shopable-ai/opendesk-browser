@@ -556,82 +556,74 @@
     };
     function overview(){
       return h('div',{className:'wf-stack wf-overview'},
-        h('section',{className:'wf-stack','aria-label':'手动任务概况'},
-          h(Head,{title:'手动任务',action:Btn('刷新',()=>{void readTasks();},
-            {quiet:true,disabled:loading,ariaLabel:'刷新安装状态',title:'刷新安装状态'})}),
-          h('div',{className:'wf-metrics','aria-label':'任务概况'},
-            ...[['已审阅任务',summary.reviewed],['可手动运行',loading?'…':summary.available],
-              ['需处理',loading?'…':summary.attention]]
-              .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))),
-          summary.attention>0&&h('div',{className:'wf-banner wf-warning wf-line'},
-            h('p',{className:'wf-grow'},summary.attention+' 项手动任务需处理。请在脚本查看原因，并核对安装与授权。'),
-            Btn('查看原因',gotoScripts,{quiet:true}))),
         h(Card,{children:h('div',{className:'wf-stack'},
-          h('div',{className:'wf-line wf-between'},h('h3',null,'最近一次手动运行'),
-            Btn('查看记录',()=>setTab('history'),{quiet:true})),
-          summary.latest?historyCard(summary.latest,0):h('p',{className:'wf-sub'},'尚无手动运行摘要。自动运行的结果在触发任务的原聊天中查看。')
-        )}),
-        h(Card,{children:h('details',{className:'wf-onboarding',onKeyDown:event=>{
-          if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){
-            event.preventDefault();event.stopPropagation();event.currentTarget.open=false;
-            event.currentTarget.querySelector('summary').focus();
-          }
-        }},h('summary',null,'从 ChatGPT 自动运行 · 使用步骤'),
-          h('div',{className:'wf-stack'},h('ol',{className:'wf-help'},
-            h('li',null,'打开上方“运行与授权 → 任务授权”，核对脚本、地址与参数。'),
-            h('li',null,'在“使用说明”完成一次 ChatGPT 能力接入，再开启上方“自动运行”滑块。'),
-            h('li',null,'在已接入的 ChatGPT 聊天中正常提出需求，侧栏可关闭。AI 生成新候选后自动执行，无需每轮准备或复制指令。')),
-          h('p',{className:'wf-sub'},'在“运行与授权 → 当前任务”查看进度和结果；结果也会回到原聊天。“记录”保存手动运行。'),
-          h('div',{className:'wf-actions'},Btn('查看可用脚本',gotoScripts,{quiet:true}),
-            Btn('使用与排障',()=>setTab('help'),{quiet:true}))))}));
+          h('div',{className:'wf-line wf-between'},
+            h('div',{className:'wf-grow'},
+              h('strong',null,active?'手动原步骤待核对':
+                summary.attention?'有固定脚本需要处理':'当前没有待处理异常'),
+              h('p',{className:'wf-sub'},active?'当前步骤须确认运行、只读查询或停止；不会自动补跑。':
+                summary.attention?'请核对固定任务的安装、版本和权限。':
+                '手动任务仅按已审阅的安装及网站范围使用。')),
+            (active||summary.attention>0)&&Btn(active?'处理原步骤':'查看原因',
+              ()=>setTab(active?'history':'scripts'),{quiet:true})),
+          h('div',{className:'wf-metrics','aria-label':'固定任务概况'},
+            ...[['已审阅',summary.reviewed],['可运行',loading?'…':summary.available],
+              ['需处理',loading?'…':summary.attention]]
+              .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))))}),
+        h('section',{className:'wf-stack','aria-label':'最近活动'},
+          h('h3',null,'最近活动'),
+          history.length?h('ul',{className:'wf-history'},...history.slice(0,3).map(historyCard)):
+            h(Card,{children:h('p',{className:'wf-sub'},
+              '暂无手动运行摘要。自动任务请在上方“运行与授权 → 当前任务”查看。')})));
     }
     function scripts(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'脚本',note:'仅显示安装时审阅的固定 Controller Task',
-          action:Btn('刷新',()=>{void readTasks();},{disabled:loading})}),
-        h('label',{className:'wf-label',htmlFor:'wf-search'},'搜索任务',
-          h('input',{id:'wf-search',type:'search',className:'wf-input',placeholder:'名称、网站、任务 ID',
-            value:search,onChange:e=>setSearch(e.target.value)})),
-        h('div',{className:'wf-line wf-between'},
-          h('span',{className:'wf-sub'},rows.length+' / '+tasks.length+' 条'),
-          Btn(showFilters?'收起筛选':'筛选',()=>setShowFilters(!showFilters),
-            {quiet:true,expanded:showFilters})),
-        showFilters&&h('div',{className:'wf-filter',role:'group','aria-label':'状态筛选'},
-          ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
-            .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-chip',
-              'aria-pressed':filter===value,onClick:()=>setFilter(value)},label))),
-        !rows.length?h(Card,{extra:'wf-empty',children:[
-          h('strong',{key:'empty'},'没有匹配的固定任务'),
-          h('p',{key:'hint',className:'wf-sub'},'清除搜索或在宿主任务目录审阅安装。'),
-          Btn('清除筛选',()=>{setSearch('');setFilter('all');})
-        ]}):rows.map(taskCard),
-        h('div',{className:'wf-banner'},'安装、更新、停用和卸载仍由宿主可信任务目录处理；Web Flow 不修改原安装权限。'));
+        h('div',{className:'wf-search-row'},
+          h('input',{id:'wf-search',type:'search',className:'wf-input wf-search-input',
+            'aria-label':'搜索脚本',placeholder:'搜索脚本或网站',
+            value:search,onChange:e=>setSearch(e.target.value)}),
+          Btn(Icon('filter'),()=>{setShowFilters(!showFilters);setMore(null);},
+            {key:'filter',id:'wf-filter-toggle',icon:true,ariaLabel:'筛选脚本',title:'筛选脚本',
+              expanded:showFilters,popup:'true',controls:'wf-filter-options'}),
+          Btn(Icon('refresh'),()=>{void readTasks();},
+            {key:'refresh',icon:true,ariaLabel:'刷新脚本安装状态',title:'刷新脚本安装状态',
+              disabled:loading}),
+          showFilters&&h('div',{id:'wf-filter-options',className:'wf-filter-popover',role:'group',
+            'aria-label':'脚本状态筛选'},
+            h('strong',null,'显示任务'),
+            ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
+              .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-filter-option',
+                'aria-pressed':filter===value,onClick:()=>{setFilter(value);setShowFilters(false);}},label)))),
+        h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
+        rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
+          h(Card,{extra:'wf-empty',children:[
+            h('strong',{key:'empty'},'没有匹配的固定任务'),
+            h('p',{key:'hint',className:'wf-sub'},'可清除筛选，或在宿主任务目录核对安装。'),
+            Btn('清除筛选',()=>{setSearch('');setFilter('all');})
+          ]}),
+        h('p',{className:'wf-sub'},'任务安装、更新与停用仍由宿主可信任务目录负责。'));
     }
     function records(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'记录',note:'手动运行原步骤与最近 12 条摘要；自动结果见原聊天'}),
-        h('div',{className:'wf-banner'},'摘要仅用于定位。点击原记录的“查询原请求”，由当前宿主重新核验授权并读取原结果；不会重新运行。结果完成、资源释放、原聊天交付和 AI 续答分别核对。'),
+        h('p',{className:'wf-sub'},'仅展示手动原请求摘要；自动任务在“运行与授权 → 当前任务”核对。'),
         activeCard(),
         history.length?h('ul',{className:'wf-history'},...history.map(historyCard)):
           h(Card,{extra:'wf-empty',children:[
-            h('strong',{key:'empty'},'还没有可展示的执行摘要'),
-            h('p',{key:'note',className:'wf-sub'},'保存运行步骤后再确认手动运行。关闭重开可按原步骤查询，摘要本身不是权威结果。'),
-            Btn('前往脚本',gotoScripts)
+            h('strong',{key:'empty'},'暂无手动运行记录'),
+            h('p',{key:'note',className:'wf-sub'},
+              '记录是恢复定位信息，不是业务成功证明。可在脚本中保存步骤并确认运行。')
           ]}));
     }
     function settingsPage(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'设置',note:'Web Flow 专属偏好与运行边界',
-          action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
+        h(Head,{title:'应用偏好',action:!hostNavigation.base&&Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
         h(Card,{children:h('label',{className:'wf-label'},'外观主题',
           h('select',{className:'wf-select',value:settings.theme,disabled:saving,
             onChange:e=>{void savePrefs({...settings,theme:e.target.value});}},
             h('option',{value:'system'},'跟随系统'),h('option',{value:'light'},'浅色'),
             h('option',{value:'dark'},'深色')))}),
-        h(Card,{children:h('div',{className:'wf-stack'},
-          h('h3',null,'自动运行权限'),
-          h('p',{className:'wf-sub'},'使用本应用上方的“自动运行”滑块；打开“运行与授权 → 任务授权”核对已安装脚本、地址和参数并批准。开关与批准即时保存。'),
-          h('p',{className:'wf-sub'},'若上方没有自动运行控件，请更新 OpenDesk Browser。在 ChatGPT 发送新消息，侧栏可关闭；只有随后完整助手回复中的 webflow.task.intent.v1 候选可触发，用户消息、历史与引用不触发。'))}),
+        h(Card,{children:h('p',{className:'wf-sub'},
+          '自动运行及授权在上方可信控制区管理；关闭只阻止未来准入，不能撤销已发生的操作。UNKNOWN 必须查询原请求。')}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'开发与安装'),
           h('p',{className:'wf-sub'},'创建、导入、升级和卸载请使用宿主的「开发」或「我的 → 任务目录」；不会从沙箱打开私有宿主页面。'),
@@ -642,8 +634,7 @@
     }
     function helpPage(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'帮助',note:'首次使用或需要排障时查看',
-          action:Btn('返回',()=>setTab('overview'),{quiet:true})}),
+        h(Head,{title:'使用与排障',action:!hostNavigation.base&&Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'从 ChatGPT 自动运行'),
           h('p',null,'1. 打开应用上方“运行与授权 → 任务授权”，核对已批准任务的版本、精确地址和参数。已有有效批准可直接复用；允许更换关键词时，规则内换词无需重复批准。'),
@@ -680,16 +671,16 @@
               event.preventDefault();setTab(steps[index]);
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
             }},label))),
-        h('div',{className:'wf-head-actions'},
-          Btn('?',()=>setTab('help'),{icon:true,ariaLabel:'帮助',title:'帮助'}),
-          Btn('⚙',()=>setTab('settings'),{icon:true,ariaLabel:'设置',title:'设置'}))),
+        !hostNavigation.actions&&h('div',{className:'wf-head-actions'},
+          Btn(Icon('help'),()=>setTab('help'),{key:'help',icon:true,ariaLabel:'帮助',title:'帮助'}),
+          Btn(Icon('settings'),()=>setTab('settings'),{key:'settings',icon:true,ariaLabel:'应用设置',title:'应用设置'}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
         'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
-        page!=='history'&&activeCard(),
+        page==='scripts'&&activeCard(),
         sections[page]()));
   }
   function sameSite(url,origin){
