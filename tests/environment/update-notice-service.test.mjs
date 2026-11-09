@@ -22,9 +22,9 @@ function event(){
     emit(...args){for(const fn of listeners)fn(...args);}};
 }
 async function fixture({provenance=true,capabilities=[]}={}){
-  // This test checks the update coordinator, not the separate historical pin:
+  // This test checks the update coordinator using an installed page.prompts tool:
   // the package is validated and its ACTUAL installed digest is used as provenance.
-  const bytes=await readFile(new URL('../../projects/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
+  const bytes=await readFile(new URL('../../projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json',import.meta.url));
   const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
   const sha256=await sidebarToolPackageHash(tool);
   const newVersion=tool.version.split('.').map((item,index)=>index===2?String(Number(item)+1):item).join('.');
@@ -128,7 +128,7 @@ test('unknown local provenance and added capabilities fail closed',async()=>{
   const sensitive=await fixture({capabilities:['browser.tabs']});
   await sensitive.settled();
   const list=await sensitive.service.replyList();
-  assert.equal(list.records.find(row=>row.id==='reading-toc').status,'review_required');
+  assert.equal(list.records.find(row=>row.id==='prompt-shortcuts').status,'review_required');
   assert.deepEqual(list.records[0].newCapabilities,['browser.tabs']);
 });
 
