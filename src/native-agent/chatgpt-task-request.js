@@ -86,10 +86,11 @@ export function fixedPageReadTarget(request){
 // Independent assistant intent: no installation pin or authorization nonce.
 export const CHATGPT_TASK_INTENT_PROTOCOL='opendesk.task.intent.v1';
 export const WEBFLOW_TASK_INTENT_PROTOCOL='webflow.task.intent.v1';
+export const WEBFLOW_TASK_INTENT_V2_PROTOCOL='webflow.task.intent.v2';
 function validateTaskIntent(text,protocol){
   if(typeof text!=='string'||text.length>4096)throw fail('E_BRIDGE_LIMIT','任务意图超出长度限制');
   let value;try{value=JSON.parse(text);}catch{throw fail('E_BRIDGE_FORMAT','任务意图必须是完整 JSON');}
-  if(protocol===WEBFLOW_TASK_INTENT_PROTOCOL){
+  if(protocol===WEBFLOW_TASK_INTENT_PROTOCOL||protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL){
     // JSON.parse loses duplicate keys. Scan complete JSON strings and container
     // boundaries first, keeping a distinct key set for every object (also args).
     const objects=[];
@@ -105,16 +106,26 @@ function validateTaskIntent(text,protocol){
       }
     }
   }
-  if(!own(value,['protocol','candidateId','taskId','targetUrl','args'])||Object.keys(value).length!==5||
+  // V2 is a structural intent, NOT an authorization. The trusted layer must
+  // resolve an installed and reviewed target before any Task execution.
+  const v2=protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+  const fields=v2?['protocol','candidateId','taskId','args']:['protocol','candidateId','taskId','targetUrl','args'];
+  if(!own(value,fields)||Object.keys(value).length!==fields.length||
     value.protocol!==protocol||typeof value.candidateId!=='string'||!token.test(value.candidateId)||
-    typeof value.taskId!=='string'||!taskIdPattern.test(value.taskId)||!validTarget(value.targetUrl))
+    typeof value.taskId!=='string'||!taskIdPattern.test(value.taskId)||
+    (!v2&&!validTarget(value.targetUrl)))
     throw fail('E_BRIDGE_SCHEMA','任务意图字段、候选身份或目标不合法');
   return Object.freeze({protocol:value.protocol,candidateId:value.candidateId,taskId:value.taskId,
-    targetUrl:value.targetUrl,args:genericArgs(value.args)});
+    ...(!v2?{targetUrl:value.targetUrl}:{}),args:genericArgs(value.args)});
 }
 export function validateChatGPTTaskIntent(text){
   return validateTaskIntent(text,CHATGPT_TASK_INTENT_PROTOCOL);
 }
 export function validateWebFlowTaskIntent(text){
   return validateTaskIntent(text,WEBFLOW_TASK_INTENT_PROTOCOL);
+}
+
+// Deliberately separate: V1 approvals never imply V2 approval.
+export function validateWebFlowTaskIntentV2(text){
+  return validateTaskIntent(text,WEBFLOW_TASK_INTENT_V2_PROTOCOL);
 }
