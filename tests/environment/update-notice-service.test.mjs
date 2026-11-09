@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {installUpdateNoticeService} from '../../src/platform/chrome/update-notice-service.js';
 import {UPDATE_NOTICE_PROTOCOL,UPDATE_NOTICE_STORE,NOTICE_DAY_MS}
   from '../../src/platform/chrome/update-notice-state.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash}
+import {readFile} from 'node:fs/promises';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
   from '../../src/ui/sidebar-tools/package.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE}
   from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {officialToolFixture} from '../helpers/official-tools.mjs';
 
 const extensionId='a'.repeat(32);
 const origin='https://chatgpt.com';
@@ -22,7 +22,11 @@ function event(){
     emit(...args){for(const fn of listeners)fn(...args);}};
 }
 async function fixture({provenance=true,capabilities=[]}={}){
-  const tool=await officialToolFixture('reading-toc'),sha256=await sidebarToolPackageHash(tool);
+  // This test checks the update coordinator, not the separate historical pin:
+  // the package is validated and its ACTUAL installed digest is used as provenance.
+  const bytes=await readFile(new URL('../../projects/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
+  const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
+  const sha256=await sidebarToolPackageHash(tool);
   const newVersion=tool.version.split('.').map((item,index)=>index===2?String(Number(item)+1):item).join('.');
   const release={id:'opendesk/'+tool.id,toolId:tool.id,version:newVersion,
     sha256:'b'.repeat(64),capabilities:[...tool.capabilities,...capabilities],
