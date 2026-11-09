@@ -885,22 +885,42 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
   disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true||
     !snapshot.fields['sidebar-tool-cookie-help']?.textContent?.trim()}
   onClose={dismissCookieConsent} onAuthorize={requestCookieGrant}/>}
-{snapshot.toast&&<ToolToast key={snapshot.toast.id} view={view} toast={snapshot.toast}
-  visible={active&&!concealed}/>}
+{(snapshot.toasts?.length||snapshot.toast)&&
+  <ToolToastStacks view={view} toasts={snapshot.toasts?.length?snapshot.toasts:
+    (snapshot.toast?[snapshot.toast]:[])} visible={active&&!concealed}/>}
 </div></ToolContext.Provider>;
 }
 
+function ToolToastStacks({view,toasts,visible}){
+  const positions=[...new Set(toasts.map(row=>row.position||'top-center'))];
+  return <>{positions.map(position=><div key={position} className="sidebar-tool-toast-stack"
+    data-position={position} aria-label="工具通知">
+    {toasts.filter(row=>(row.position||'top-center')===position).map(toast=>
+      <ToolToast key={toast.id} view={view} toast={toast} visible={visible}/>)}
+  </div>)}</>;
+}
+
+const TOOL_TOAST_LABELS={info:'提示',success:'成功',warning:'注意',error:'错误'};
+const TOOL_TOAST_SYMBOLS={info:'i',success:'✓',warning:'!',error:'!'};
 function ToolToast({view,toast,visible}) {
   const [hovered,setHovered]=React.useState(false),[focused,setFocused]=React.useState(false);
   const priorFocus=React.useRef(null);
+  const duration=Number.isSafeInteger(toast.timeout)?toast.timeout:5000;
+  const remaining=React.useRef(duration);
+  React.useEffect(()=>{remaining.current=duration;},[duration,toast.count]);
   React.useEffect(()=>{
     if(!visible){view.dismissToast(toast.id);return;}
-    if(hovered||focused)return;
-    const timer=setTimeout(()=>view.dismissToast(toast.id),5000);
-    return ()=>clearTimeout(timer);
-  },[view,toast.id,visible,hovered,focused]);
+    if(hovered||focused||duration===0)return;
+    const start=Date.now(),delay=Math.max(1,remaining.current);
+    const timer=setTimeout(()=>view.dismissToast(toast.id),delay);
+    return ()=>{
+      remaining.current=Math.max(1,remaining.current-(Date.now()-start));
+      clearTimeout(timer);
+    };
+  },[view,toast.id,toast.count,visible,hovered,focused,duration]);
   if(!visible)return null;
-  return <div className="sidebar-tool-toast"
+  const type=Object.hasOwn(TOOL_TOAST_LABELS,toast.type)?toast.type:'info';
+  return <div className="sidebar-tool-toast" data-type={type}
     onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
     onFocus={event=>{
       if(!event.currentTarget.contains(event.relatedTarget))priorFocus.current=event.relatedTarget;
@@ -908,7 +928,15 @@ function ToolToast({view,toast,visible}) {
     }} onBlur={event=>{
       if(!event.currentTarget.contains(event.relatedTarget))setFocused(false);
     }}>
-    <span role="status" aria-live="polite" aria-atomic="true">{toast.message}</span>
+    <span className="sidebar-tool-toast-symbol" aria-hidden="true">{TOOL_TOAST_SYMBOLS[type]}</span>
+    <div className="sidebar-tool-toast-body" role={type==='error'?'alert':'status'}
+      aria-live={type==='error'?'assertive':'polite'} aria-atomic="true"
+      aria-label={TOOL_TOAST_LABELS[type]}>
+      <span className="sidebar-tool-toast-message">{toast.message}</span>
+      {toast.caption&&<small className="sidebar-tool-toast-caption">{toast.caption}</small>}
+    </div>
+    {toast.count>1&&<span className="sidebar-tool-toast-count"
+      aria-label={'同一通知出现 '+toast.count+' 次'}>×{toast.count}</span>}
     <IconButton label="关闭提示" onMouseDown={event=>event.preventDefault()}
       onClick={event=>{
         const doc=event.currentTarget.ownerDocument;
