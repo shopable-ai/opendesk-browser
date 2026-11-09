@@ -1,0 +1,83 @@
+{
+  "schema": "opendesk.reading-toc.daily-chrome-evidence.v1",
+  "date": "2026-11-09",
+  "environment": "daily Chrome, continuous development",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "nativeAllowedOriginMatched": true,
+  "initialAppliedRevision": "7a05ff6f4a2c6fc04d0a9e816550cec8a2c392d80315591f9bb9bae55d5ce57f",
+  "verifiedAppliedRevision": "655144df7b06bf9cdbb8a0019747c95fc6bc9db3f3e3fe962b5e078f34542ce6",
+  "developmentConnection": "开发服务已连接 · 构建指纹 655144df7b06；保存源码后自动安全更新。",
+  "recovery": [
+    "Read-only IDB inspection found an installed mindmap preview reservation whose original document no longer existed.",
+    "Preserved the saved conversation in a duplicate tab, verified no generation or input draft, then normally closed only the reservation's original tab. Official tabs.onRemoved cleanup released the preview slot.",
+    "Preserved 15 effect_unknown audit records. Each matched a retired Controller run with a released retirement receipt and releaseCount 1.",
+    "Read-only native ledger check found zero OUTCOME_UNKNOWN entries.",
+    "Seven of eight Side Panel hosts voted ready. The remaining Web Flow 0.3.18 host reported dirty while its search and query fields were both empty. Its installed source lacked the state reconciliation already present in current Web Flow source.",
+    "Left that empty editing instance through the existing visible leave-review flow. Did not edit host votes, clear IDB/storage, force a runtime reload, or replay unknown effects.",
+    "The existing development worker then safely applied revision 655144df7b06bf9cdbb8a0019747c95fc6bc9db3f3e3fe962b5e078f34542ce6; a new Side Panel showed that exact revision and an active development connection."
+  ],
+  "package": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/projects/reading-toc/reading-toc.opendesk-tool.json",
+    "id": "reading-toc",
+    "version": "1.1.1",
+    "format": "opendesk.sidebar-tool.v2",
+    "bytes": 123646,
+    "sha256": "9d0d1000b9f28dda4bd2ed3e72ad445c537343409b302477e2295064836832f5",
+    "pageSourceHash": "627e14ca9c996c980b878c53409c955f99846420b81f21d63addbb28d9251abd",
+    "workerCapabilityContractHash": "1a0c059c9c0b1605fcb9875fa8d19014d036d0e61b03092dbd69aa70feb44b9f"
+  },
+  "import": {
+    "entry": "Side Panel → 扩展 → 筛选和管理扩展 → 导入扩展 → 选择安装包",
+    "status": "NORMAL_REVIEW_REACHED",
+    "installedBefore": "1.0.15",
+    "candidate": "1.1.1",
+    "reviewMessage": "当前 v1.0.15 → 新 v1.1.1 更新将替换现有代码；原有应用数据保留。",
+    "unsupportedFieldError": false,
+    "newCapabilities": ["page.module", "storage.local", "currentPage.read"],
+    "matches": ["http://*/*", "https://*/*"],
+    "reviewSha256MatchedDisk": true,
+    "installation": "PASS_INSTALLED_1.1.1",
+    "userPermissionApproval": "批准这些权限并确认更新",
+    "installedReceipt": "已安装「阅读目录」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。",
+    "openedVersionHelp": "阅读目录 · v1.1.1"
+  },
+  "runtimeVerification": {
+    "method": "Native CUA accessibility, screenshots and read-only page DevTools Console in daily Chrome; normal user clicks performed through native UI",
+    "fixtureUrl": "http://127.0.0.1:43111/reading-toc-article.html",
+    "fixtureScope": "Static article with one H1 and twenty H2 headings, including two duplicate original IDs; not a production website acceptance test",
+    "headingCount": 21,
+    "headingIdsBeforeAndAfter": ["", "step-1", "step-2", "step-3", "step-4", "step-5", "step-6", "toc-duplicate-dom-id", "step-8", "step-9", "step-10", "step-11", "step-12", "step-13", "toc-duplicate-dom-id", "step-15", "step-16", "step-17", "step-18", "step-19", "step-20"],
+    "installedSidebarChapter20Click": {
+      "beforeScrollY": 139.5,
+      "afterScrollY": 5256,
+      "targetText": "第 20 节：更新步骤",
+      "targetTopInConsoleViewport": 299.3984375,
+      "urlBeforeAndAfter": "http://127.0.0.1:43111/reading-toc-article.html",
+      "headingIdsUnchanged": true,
+      "urlHashUnchanged": true
+    },
+    "freshDocument": {
+      "normalReloadPerformed": true,
+      "pageModuleOwner": {"owner": "opendesk.page-ui.v1", "id": "app.reading-toc", "managed": "1"},
+      "tocRootCount": 1,
+      "sidebarVersion": "1.1.1",
+      "chapter1ThenChapter20Clicks": "PASS_VISUALLY_OBSERVED_AFTER_SCROLL_SETTLED",
+      "finalCurrentHighlight": "第 20 节：更新步骤; blue current marker in the floating directory",
+      "headingIdsUnchanged": true,
+      "urlHash": ""
+    },
+    "observationLimits": "Screenshots and AX/Console results were observed in CUA tool output; this JSON is the saved evidence summary, not a raw browser trace. Smooth scrolling was allowed to settle before judging the final highlight."
+  },
+  "core": {
+    "K1_currentFrameworkSafelyApplied": "PASS",
+    "K2_officialPackageRecognized": "PASS",
+    "K3_installed111ChapterClick": "PASS",
+    "K4_affectedProtections": "No protection code changed; original guards and review retained",
+    "K5_lifecycleRegression": "NOT_REQUIRED_NO_SOURCE_CHANGE",
+    "K6_packagePromotion": "NOT_REQUIRED_NO_PACKAGE_CHANGE"
+  },
+  "sourceChangedByThisTask": false,
+  "packageChangedByThisTask": false,
+  "productionAcceptance": "NOT_TESTED"
+}
