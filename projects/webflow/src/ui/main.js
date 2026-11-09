@@ -3,6 +3,7 @@
 (function(global){
   'use strict';
   const tool=global.OpenDeskTool, R=global.OpenDeskPageReact, M=global.OpenDeskWebFlowModel;
+  const W=global.OpenDeskMdWorkflow;
   const mount=tool&&tool.root&&tool.root.querySelector('#webflow-app');
   if(!mount||!R||!M||typeof R.createRoot!=='function'||typeof tool.request!=='function'){
     if(mount)mount.textContent='Web Flow 无法加载受支持的公开 SDK / React 运行时。';
@@ -87,6 +88,10 @@
     const [sort,setSort]=R.useState('favorite');
     const [detail,setDetail]=R.useState(null);
     const [query,setQuery]=R.useState('');
+    const [mdSource,setMdSource]=R.useState('https://github.com/shopable-ai/opendesk-browser/blob/main/projects/webflow/examples/workflows/md-demo.md');
+    const [mdPreview,setMdPreview]=R.useState(null);
+    const [mdError,setMdError]=R.useState('');
+    const [mdBusy,setMdBusy]=R.useState(false);
     const [active,setActive]=R.useState(null);
     const [saving,setSaving]=R.useState(false);
     const [showFilters,setShowFilters]=R.useState(false);
@@ -218,9 +223,9 @@
 
     // Reuse the bounded Host Header. Never allow this sandbox event to authorize work.
     R.useEffect(()=>{
-      const child=page==='settings'||page==='help';
+      const child=page==='settings'||page==='help'||page==='md';
       const view=child?page:'home';
-      const base={page:view,title:child?(page==='help'?'帮助':'应用偏好'):'Web Flow',
+      const base={page:view,title:child?(page==='help'?'帮助':page==='md'?'Markdown 任务队列':'应用偏好'):'Web Flow',
         canBack:child,primary:null,secondary:null};
       let actions=false,accepted=false;
       if(typeof tool.setNavigation==='function'){
@@ -491,7 +496,7 @@
       });
     };
     const setTab=name=>{
-      if((name==='help'||name==='settings')&&['overview','scripts','history'].includes(page))
+      if((name==='help'||name==='settings'||name==='md')&&['overview','scripts','history'].includes(page))
         returnTab.current=page;
       setPage(name);
       if(name==='scripts')void readCurrentPage();
@@ -651,12 +656,65 @@
             ...[['自带脚本',summary.reviewed],['可运行',loading?'…':summary.available],
               ['需处理',loading?'…':summary.attention]]
               .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))))}),
+        h(Card,{children:h('div',{className:'wf-stack'},
+          h('strong',null,'Markdown 两任务接续'),
+          h('p',{className:'wf-sub'},'读取仓库任务文件，查看任务清单和输入版本；真实聊天自动执行接线仍待完成。'),
+          Btn('打开 MD 任务队列',()=>setTab('md'),{quiet:true}))}),
         h('section',{className:'wf-stack','aria-label':'最近活动'},
           h('h3',null,'最近活动'),
           history.length?h('ul',{className:'wf-history'},...history.slice(0,3).map(historyCard)):
             h(Card,{children:h('p',{className:'wf-sub'},
               '暂无手动运行摘要。自动任务请在上方“运行与授权 → 当前任务”查看。')})));
     }
+
+    // Preview is read-only. The sandbox has no authorized GitHub-private or
+    // ChatGPT create/submit contract, so this UI MUST NOT invent a run.
+    async function loadMdPreview(){
+      if(mdBusy)return;
+      setMdBusy(true);setMdError('');
+      try{
+        if(!W)throw Object.assign(new Error('当前安装包缺少 Markdown 解析资源，请从原安装器升级'),{code:'E_MD_MODULE'});
+        const value=await W.readGithub(mdSource);
+        let demoReady=true,demoReason='';
+        try{W.spec(value.workflow);}catch(e){demoReady=false;demoReason=e.message;}
+        if(alive.current)setMdPreview({value,demoReady,demoReason});
+      }catch(e){
+        if(alive.current){setMdPreview(null);setMdError((e.code||'E_MD_FETCH')+'：'+(e.message||'无法读取文件'));}
+      }finally{if(alive.current)setMdBusy(false);}
+    }
+    function markdownPage(){
+      const preview=mdPreview,workflow=preview?.value?.workflow;
+      return h('div',{className:'wf-stack'},
+        h(Head,{title:'Markdown 任务队列',note:'从真实 GitHub Markdown 读取并解析。读取和刷新只更新预览，不触发聊天或任务。',
+          action:Btn('返回概览',()=>setTab('overview'),{quiet:true})}),
+        h(Card,{children:h('div',{className:'wf-stack'},
+          h('label',{className:'wf-label',htmlFor:'wf-md-source'},'文件来源 · GitHub 公开 MD'),
+          h('input',{id:'wf-md-source',className:'wf-input',type:'url',value:mdSource,
+            onChange:e=>setMdSource(e.target.value),'aria-label':'Markdown 文件链接',
+            placeholder:'https://github.com/owner/repo/blob/main/path.md'}),
+          Btn(mdBusy?'正在读取…':'读取 / 刷新',()=>{void loadMdPreview();},{primary:true,disabled:mdBusy}),
+          mdError&&h('p',{className:'wf-warning',role:'alert'},mdError),
+          h('p',{className:'wf-sub'},'私有仓库及本地路径须通过已有可信工作区文件桥接另行授权。公开读取若被网络/CSP 阻止，会明确报错，不回退到内置假数据。'))}),
+        workflow&&h(Card,{children:h('div',{className:'wf-stack'},
+          h('strong',null,workflow.title),
+          h('p',null,workflow.goal),
+          h('p',{className:'wf-mono'},'输入版本 SHA-256：'+preview.value.version),
+          h('ul',{className:'wf-history'},...workflow.tasks.map(task=>
+            h('li',{key:task.id},
+              h('strong',null,task.id+' '+task.title),
+              h('p',{className:'wf-sub'},'输入：'+task.fields['输入'].replace(/\n/gu,' · ')),
+              h('p',{className:'wf-sub'},'验收：'+task.acceptance+' · 未开始')))),
+          !preview.demoReady&&h('p',{role:'alert',className:'wf-warning'},
+            '两任务自动验收条件不满足：'+preview.demoReason))}),
+        h(Card,{children:h('div',{className:'wf-stack'},
+          h('strong',null,'运行状态：未接入真实跨聊天执行'),
+          h('p',{className:'wf-sub'},'缺少可信原子领取、新聊天初始化/监听/发送、成果持久读回和独立验收的正式宿主接线；不会将离线计算或模拟消息宣称为真实聊天。'),
+          h('div',{className:'wf-line'},
+            Btn('开始（待接线）',()=>{}, {disabled:true,primary:true}),
+            Btn('暂停 / 继续',()=>{}, {disabled:true})),
+          h('p',{className:'wf-sub'},'聊天：尚未创建 · 成果：尚未保存。运行记录须进入原持久账本，而不是保存在 MD 或另建队列。'))}));
+    }
+
     function scripts(){
       return h('div',{className:'wf-stack'},
         h('div',{className:'wf-search-row'},
@@ -746,7 +804,7 @@
           h('p',null,'回到可信宿主核对安装身份、权限、站点和结果。不通过自动重试绕开未知副作用。'),
           h('p',null,'持续自动使用 webflow.task.intent.v1 严格五字段；原手动与一次批准使用 opendesk.task.intent.v1，保留各自授权、防重放与回执。'))}));
     }
-    const sections={overview,scripts,history:records,settings:settingsPage,help:helpPage};
+    const sections={overview,scripts,history:records,md:markdownPage,settings:settingsPage,help:helpPage};
     return h('div',{className:'wf-app', 'data-theme':settings.theme},
       h('div',{className:'wf-head'},
       h('div',{className:'wf-tabs',role:'tablist','aria-label':'Web Flow 主导航'},
@@ -774,7 +832,7 @@
             {key:'settings',quiet:true,ariaLabel:'应用偏好',title:'应用偏好',controls:'wf-panel',
               current:page==='settings'?'page':undefined}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
-        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',settings:'应用偏好',help:'帮助'})[page],tabIndex:0},
+        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',md:'Markdown 任务队列',settings:'应用偏好',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},

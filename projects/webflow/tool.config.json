@@ -36,7 +36,8 @@
     "css": "src/ui/style.css",
     "js": "src/ui/main.js",
     "dependencies": [
-      "src/ui/model.js"
+      "src/ui/model.js",
+      "src/ui/md-workflow.js"
     ]
   },
   "assets": []
