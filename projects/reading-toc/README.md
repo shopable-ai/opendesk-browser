@@ -38,11 +38,15 @@
 npm run build:sidebar-tool -- projects/reading-toc
 ```
 
-可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.14）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.14/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.15）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.15/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 2026-11-09 本地交付升版：按用户要求将安装包由 `1.0.12` 升至 `1.0.13`，仅更新包版本，`page.toc` 能力和包内业务代码保持不变。候选经包格式、来源字节及相关 Node 检查后晋升；本版本浏览器安装/升级为 `NOT_TESTED`。网页悬浮层 `trusted/` 不在 JSON 中，更新该代码仍需 Browser 对应产物。
 
 2026-11-09 按用户要求再次交付 **1.0.13 → 1.0.14**：重新构建、验证并晋升唯一正式 JSON，同步官方版本和摘要，权限及包内业务代码保持不变。“收起目录”按钮高于四模式按钮区域的修复位于 `trusted/view.js`，已进入 `dist/development` 并在 ego 实际网页验证悬停、收起和展开；它不随工具 JSON 更新。本版 JSON 的浏览器安装/升级仍为 `NOT_TESTED`。
+
+2026-11-09 最小层级修复交付 **1.0.14 → 1.0.15**：保持已验证的 `.edge-toggle { z-index:3 }`，高于四按钮区 `.modes { z-index:2 }`；仅此样式修复，不更改任务或更新机制。重新构建并晋升正式 JSON，同步版本、摘要和源码预览；系统 Chrome 中直接修改目标元素为 `3` 的验证有效，持久应用状态不以 JSON 升版替代。
+
+2026-11-09 系统 Google Chrome 复测：在专用 HTTP 文章测试页复现旧层级，DevTools 读回 `.edge-toggle` 实际仍为 `z-index:1`；Side Panel「调试 → 本地开发服务」显示安全刷新因任务、原生请求或未知结果未释放而延后，磁盘 `dist/development/agents/page-relay.js` 已为 `3`。仅在该测试页临时改为 `3` 后，悬停覆盖、收起/展开和四模式点击均正常；随后已正常刷新测试页撤回临时样式。此结果证明样式修正有效，**不证明系统 Chrome 已持久应用新 Browser 代码**。后续沿[已有扩展迭代与内部页限制处理](../../docs/framework/extension-development-r131.zh-CN.md#已有扩展迭代与内部页限制处理2026-11-09)核对安全更新与目标行为；访问 `chrome://extensions` 不是本工具迭代的前置条件。
 
 2026-11-09 修复：最初发现独立更新的官方资源领先于宿主编译 pin，会误报 `E_OFFICIAL_ID_RESERVED`。按用户进一步纠偏，本地文件现在独立走用户审阅和确认覆盖，不再被官方 ID、发行版本、SHA 或 Catalog 可用性限制；本地包不会获得官方来源标记。官方目录入口继续校验其发行包。修复属于 Browser 宿主，必须进入当前加载的 Browser 产物；仅更新工具 JSON 不足以修复旧宿主。
 
