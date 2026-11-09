@@ -24,7 +24,7 @@ const isPlain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value
 const errorText=error=>String(error?.code||error?.message||'E_UPDATE_UNKNOWN').slice(0,140);
 
 export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.now(),
-  lockManager=globalThis.navigator?.locks,loadCatalog=loadOfficialCatalog,
+  lockManager=globalThis.navigator?.locks,development=false,loadCatalog=loadOfficialCatalog,
   loadInstalled=getInstalledSidebarTools}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!api?.runtime?.getURL)
     throw fail('E_UPDATE_HOST');
@@ -321,7 +321,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   };
   api.runtime.onMessage.addListener(onMessage);
   api.runtime.onInstalled?.addListener(details=>{
-    if(details?.reason==='update'){
+    if(!development&&details?.reason==='update'){
       const current=manifest().version;
       if(details.previousVersion!==current)
         void recordBrowser('applied',current,details.previousVersion||null)
@@ -330,7 +330,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     void reconcile().then(ok=>{if(ok)void checkToast();});
   });
   api.runtime.onUpdateAvailable?.addListener(details=>{
-    if(typeof details?.version==='string')void recordBrowser('pending_browser_apply',details.version)
+    if(!development&&typeof details?.version==='string')void recordBrowser('pending_browser_apply',details.version)
       .catch(error=>console.warn('[update-notice browser]',errorText(error)));
   });
   api.storage.onChanged?.addListener((changes,area)=>{
