@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Web Flow · 图文发布与媒体保存技术演示</title>
+<style>
+:root{font:15px/1.5 system-ui,-apple-system,sans-serif;color:#172136;background:#f4f6fa}
+*{box-sizing:border-box}body{margin:0;padding:28px}main{max-width:760px;margin:auto}
+header{margin-bottom:20px}h1{font-size:24px;margin:0 0 6px}h2{font-size:16px;margin:0 0 10px}
+p{margin:6px 0;color:#536176}.panel{background:#fff;border:1px solid #dbe2ed;border-radius:14px;padding:20px;margin:14px 0}
+label{font-weight:650;display:block;margin:14px 0 6px}
+input[type=text],textarea{width:100%;border:1px solid #a1aec0;border-radius:8px;padding:11px;font:inherit}
+textarea{min-height:150px;resize:vertical}input[type=file]{display:block;width:100%;margin:8px 0}
+button{border:0;border-radius:9px;background:#1c5db3;color:white;font:inherit;font-weight:600;padding:10px 15px;cursor:pointer}
+button.secondary{background:#e5ebf6;color:#173052}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #86b6ff;outline-offset:2px}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.media-row{padding:10px;border-radius:9px;border:1px dashed #b3c0d2;margin-top:10px}
+.media-ready{color:#106949;font-size:13px;font-weight:650}.media-ready[hidden]{display:none}
+#save-state{padding:10px;background:#edf3ff;border-radius:8px;margin-top:14px}
+#save-state[data-state=saved],#save-state[data-state=demo-published]{background:#eaf7ef;color:#125b39}
+#save-state[data-state=error]{background:#fff2f1;color:#9e2d25}
+.preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.preview img,.preview video{width:140px;height:100px;object-fit:contain;border:1px solid #dbe2ed;border-radius:8px;background:#f3f6fb}
+small{color:#65758c}code{background:#e9edf4;border-radius:4px;padding:2px 4px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Web Flow · 文章图文 / 视频 Demo</h1>
+<p>仅本地测试页：模拟选择图片、视频、编辑文章、保存草稿和演示发布。媒体文件保存在本页 IndexedDB；不会向外部平台发送任何内容。</p>
+</header>
+<section class="panel" id="editor-demo">
+<h2>文章内容</h2>
+<label for="article-title">标题</label><input id="article-title" type="text" maxlength="120" placeholder="填写文章标题">
+<label for="article-body">正文</label><textarea id="article-body" maxlength="5000" placeholder="填写文章内容"></textarea>
+</section>
+<section class="panel">
+<h2>图文和视频</h2>
+<p>支持动态添加最多 3 张图片，以及 1 个可选视频。单个文件演示上限 1 MiB；正式大文件能力另行设计。</p>
+<div id="image-slots"></div>
+<label for="video-input">可选视频（MP4 / WebM）</label>
+<input id="video-input" type="file" accept="video/mp4,video/webm">
+<output id="video-ready" class="media-ready" hidden></output>
+<div id="media-preview" class="preview" aria-label="已选择媒体预览"></div>
+</section>
+<section class="panel">
+<div class="actions">
+<button id="save-draft" type="button">保存草稿到本地</button>
+<button id="demo-publish" type="button" class="secondary">演示发布（不联网）</button>
+</div>
+<output id="save-state" data-state="idle" role="status" aria-live="polite">尚未保存</output>
+<p id="restored-draft">尚未读取到之前保存的草稿。</p>
+<small>真正文章发布必须另行确认目标平台、账号、站点权限和最终发布动作；此页不能替代真实站点验收。</small>
+</section>
+</main>
+<script>
+(function(){
+  'use strict';
+  const MAX = 1048576;
+  const images = [], previews = new Map();
+  let video = null;
+  const $ = selector => document.querySelector(selector);
+  const MIME = new Set(['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm']);
+  function showState(state,text){
+    const out = $('#save-state');out.dataset.state=state;out.textContent=text;
+  }
+  function valid(file,kind){
+    return file && file.size>0 && file.size<=MAX && MIME.has(file.type) && file.type.startsWith(kind+'/');
+  }
+  function preview(key,file){
+    const old = previews.get(key);
+    if(old){URL.revokeObjectURL(old.url);old.node.remove();}
+    const node=document.createElement(file.type.startsWith('video/')?'video':'img');
+    const url=URL.createObjectURL(file);node.src=url;
+    if(node.tagName==='VIDEO'){node.controls=true;node.muted=true;}
+    node.title=file.name;node.alt=file.name;
+    $('#media-preview').append(node);previews.set(key,{url,node});
+  }
+  function appendImageSlot(index){
+    const root=$('#image-slots');
+    if(document.getElementById('image-'+index))return;
+    const row=document.createElement('div');row.className='media-row';
+    const label=document.createElement('label');label.htmlFor='image-'+index;label.textContent='图片 '+(index+1);
+    const input=document.createElement('input');
+    input.id='image-'+index;input.type='file';input.accept='image/png,image/jpeg,image/webp,image/gif';
+    const ready=document.createElement('output');
+    ready.id='image-ready-'+index;ready.className='media-ready';ready.hidden=true;
+    input.addEventListener('change',()=>{
+      const file=input.files && input.files[0];
+      if(!valid(file,'image')){
+        ready.hidden=false;ready.textContent='图片不支持或超过 1 MiB';images[index]=null;return;
+      }
+      images[index]=file;ready.hidden=false;ready.textContent='已选择图片：'+file.name+'（'+file.type+'）';
+      preview('image-'+index,file);
+      if(index<2)appendImageSlot(index+1);
+    });
+    row.append(label,input,ready);root.append(row);
+  }
+  appendImageSlot(0);
+  $('#video-input').addEventListener('change',()=>{
+    const file=$('#video-input').files && $('#video-input').files[0];
+    const ready=$('#video-ready');ready.hidden=false;
+    if(!valid(file,'video')){ready.textContent='视频不支持或超过 1 MiB';video=null;return;}
+    video=file;ready.textContent='已选择视频：'+file.name+'（'+file.type+'）';
+    preview('video',file);
+  });
+
+  function openDb(){
+    return new Promise((resolve,reject)=>{
+      const request=indexedDB.open('opendesk-webflow-article-demo',1);
+      request.onupgradeneeded=()=>request.result.createObjectStore('drafts');
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>reject(request.error || Error('IndexedDB unavailable'));
+    });
+  }
+  async function writeDraft(status){
+    const title=$('#article-title').value.trim(),body=$('#article-body').value.trim();
+    if(!title || !body)throw Error('请先填写标题和正文');
+    const selected=images.filter(Boolean);
+    if(!selected.length)throw Error('请至少添加一张图片');
+    // Store File/Blob bytes, not only media filenames, in local origin IndexedDB.
+    const record={title,body,images:selected,video,status,updatedAt:Date.now()};
+    const db=await openDb();
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('drafts','readwrite');
+        tx.objectStore('drafts').put(record,'latest');
+        tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+        tx.onabort=()=>reject(tx.error || Error('storage aborted'));
+      });
+    }finally{db.close();}
+    const prefix=status==='demo-published'?'演示发布已记录':'草稿已保存';
+    showState(status==='demo-published'?'demo-published':'saved',
+      prefix+'（本地 IndexedDB）：'+selected.length+' 图'+(video?' + 1 视频':'')+'；未向外部平台发布');
+    $('#restored-draft').textContent='本次已保存：'+title;
+  }
+  async function handle(status){
+    showState('saving','正在写入本地文件和正文…');
+    try{await writeDraft(status);}
+    catch(error){showState('error','保存失败：'+(error?.message||'未知错误'));}
+  }
+  $('#save-draft').addEventListener('click',()=>{void handle('draft');});
+  $('#demo-publish').addEventListener('click',()=>{void handle('demo-published');});
+  (async()=>{
+    try{
+      const db=await openDb();
+      const saved=await new Promise((resolve,reject)=>{
+        const tx=db.transaction('drafts','readonly');
+        const request=tx.objectStore('drafts').get('latest');
+        request.onsuccess=()=>resolve(request.result);
+        request.onerror=()=>reject(request.error);
+      });
+      db.close();
+      if(!saved)return;
+      $('#restored-draft').textContent='已恢复上一条本地记录：'+saved.title+
+        ' · '+saved.images.length+' 图'+(saved.video?' + 1 视频':'')+
+        ' · '+(saved.status==='draft'?'草稿':'演示发布');
+      // Display stored files after reload; upload inputs remain empty by browser design.
+      for(let i=0;i<saved.images.length;i++)preview('restored-image-'+i,saved.images[i]);
+      if(saved.video)preview('restored-video',saved.video);
+    }catch(error){$('#restored-draft').textContent='无法读取本地旧草稿：'+(error?.message||'未知错误');}
+  })();
+  window.addEventListener('pagehide',()=>{
+    for(const value of previews.values())URL.revokeObjectURL(value.url);
+  },{once:true});
+})();
+</script>
+</body>
+</html>
