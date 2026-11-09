@@ -8,7 +8,9 @@ export const TOOL_UI_NOTICE_WINDOW_MS=60000;
 export const TOOL_UI_NOTICE_DEFAULT_TIMEOUT_MS=5000;
 export const TOOL_UI_NOTICE_MAX_TIMEOUT_MS=15000;
 export const TOOL_UI_NOTICE_MAX_VISIBLE=3;
-export const TOOL_UI_NOTICE_TYPES=Object.freeze(['info','success','warning','error']);
+export const TOOL_UI_NOTICE_TYPES=Object.freeze([
+  'info','success','warning','error','positive','negative'
+]);
 export const TOOL_UI_NOTICE_POSITIONS=Object.freeze([
   'top-left','top-center','top-right','bottom-left','bottom-center','bottom-right'
 ]);
@@ -25,6 +27,8 @@ function textValue(value,max){
   return trimmed&&trimmed.length<=max&&!invalidText.test(trimmed)?trimmed:null;
 }
 export function normalizeToolUiNotice(value){
+  // Quasar-like shorthand remains pure text after normalizing the same schema.
+  if(typeof value==='string')value={message:value};
   if(!plainObject(value)||!Object.hasOwn(value,'message')||
      Object.keys(value).some(key=>!allowedKeys.has(key)))return null;
   const message=textValue(value.message,TOOL_UI_NOTICE_MAX_LENGTH);
@@ -33,7 +37,7 @@ export function normalizeToolUiNotice(value){
   if(Object.hasOwn(value,'type')){
     const type=value.type;
     if(!TOOL_UI_NOTICE_TYPES.includes(type))return null;
-    result.type=type;
+    result.type=type==='positive'?'success':type==='negative'?'error':type;
   }
   if(Object.hasOwn(value,'caption')){
     const caption=textValue(value.caption,TOOL_UI_NOTICE_CAPTION_MAX_LENGTH);
