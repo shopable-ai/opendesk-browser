@@ -53,7 +53,7 @@ test('identical old V1 grant never automatically approves a V2 candidate',async(
   assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].status,'prepared');
   assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoGrantId,undefined);
   await assert.rejects(h.ledger.approveAuto(scope,{pendingRequest:{source,requestId:request.requestId,candidate}}));
-  await assert.rejects(h.ledger.claimWebTask({documentId:'original-runner-document',verify:async()=>()=>{}}));
+  assert.equal(await h.ledger.claimWebTask({documentId:'original-runner-document',verify:async()=>()=>{}}),null);
   assert.equal(h.state[WEBFLOW_AUTO_GRANTS_KEY].grants[scope.taskId].grantId,originalGrant);
 });
 
@@ -105,6 +105,8 @@ test('V2 refuses a changed approved target, stale page identity, and unsupported
     text:JSON.stringify({protocol:'webflow.task.intent.v2',candidateId:'wf-v2-test-dynamic-1',
       taskId:'chatgpt.conversation.create',args:{send:false}})};
   await assert.rejects(h.ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,
-    ...scope,taskId:'chatgpt.conversation.create',candidate:dynamic,allowPending:true}),{
+    ...scope,taskId:'chatgpt.conversation.create',
+    installation:{...scope.installation,scriptId:`task:chatgpt.conversation.create:${pin.version}`},
+    candidate:dynamic,allowPending:true}),{
     code:'E_WEBFLOW_TARGET_UNBOUND'});
 });
