@@ -36,6 +36,11 @@ export function showTrustedUpdateToast(payload){
     const view=document.createElement('button');view.type='button';view.textContent='查看更新';
     const snooze=document.createElement('button');snooze.type='button';snooze.textContent='稍后';
     actions.append(view,snooze);panel.append(line,actions);shadow.append(style,panel);
+    // Shadow DOM retargets events, but composed clicks would otherwise reach
+    // the site's global handlers. Keep update-button input isolated without
+    // blocking its own click listeners or changing the page's focus/selection.
+    for(const type of ['click','pointerdown','pointerup','keydown','keyup'])
+      shadow.addEventListener(type,event=>event.stopPropagation());
     let removed=false,timer=null,entered=false;
     const protocol='opendesk.update-notice.v1';
     const remove=()=>{
