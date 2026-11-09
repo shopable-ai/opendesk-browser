@@ -1,7 +1,7 @@
 import {resolveToolSender,permissionPattern} from '../environment.js';
 import {requireCloudRunnerSender,requireCloudSidePanelSender} from '../platform/host/cloud-observer.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../tool-document-url.js';
-import {validateWebFlowTaskIntent} from '../native-agent/chatgpt-task-request.js';
+import {validateWebFlowTaskIntent,WEBFLOW_TASK_INTENT_V2_PROTOCOL} from '../native-agent/chatgpt-task-request.js';
 import {verifyChatGPTTaskDurableResult} from '../native-agent/chatgpt-fixed-bridge-host.js';
 import {assertAutoGrant} from '../../projects/webflow/src/auto-grants.js';
 import {registeredSiteRegistry,loadSiteProfiles} from './site-catalog.js';
@@ -70,6 +70,15 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       throw fail('E_WEB_TASK_REVOKED','验证期间网站配置、权限或来源文档已改变');taskFinal?.();};
     final();return final;
   }
+  // V2 has an independent one-candidate grant in the original ledger.
+  // Never consult V1 task-wide approvals when disclosing V2 Run results.
+  async function assertTaskApproval(row,requestId,source=row.source){
+    if(row.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL)
+      return ledger.assertV2WebTaskGrant({requestId,source,scope:row.scope,
+        grantId:row.autoGrantId,epoch:row.autoEpoch});
+    return assertAutoGrant(await ledger.readAutoSettings(),row.scope,{
+      sourceUrl:source.url,grantId:row.autoGrantId,epoch:row.autoEpoch});
+  }
   async function verifySubmission(row,sender){
     const actual=await runner(sender);
     if(row.webHostDocumentId!==actual.documentId)throw fail('E_WEB_TASK_OWNER','已消费请求不能转交新宿主');
@@ -129,9 +138,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const pin=row.scope.installation;
     const approval=ledger.captureAutoPolicyEpoch();
     const assertAuthorized=async()=>{
-      const final=await verifySite(row),settings=await ledger.readAutoSettings();
-      assertAutoGrant(settings,row.scope,{sourceUrl:row.source.url,
-        grantId:row.autoGrantId,epoch:row.autoEpoch});
+      const final=await verifySite(row);
+      await assertTaskApproval(row,message.requestId);
       if(approval!==ledger.captureAutoPolicyEpoch())
         throw fail('E_WEBFLOW_AUTO_DENIED','查看过程中批准或权限已改变');
       final();
@@ -161,8 +169,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const source=await captureSource(sender),{row,run}=await observation(message.requestId);
     if(!sameSource(row.source,source))throw fail('E_WEB_TASK_SOURCE','不能查询其他网页文档的请求');
     const final=await verifySite(row);
-    assertAutoGrant(await ledger.readAutoSettings(),row.scope,{sourceUrl:source.url,
-      grantId:row.autoGrantId,epoch:row.autoEpoch});
+    await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','查询期间持续批准已改变');
     final();
     return {requestId:message.requestId,state:run?.state??(row.status==='consumed'?'UNKNOWN':row.status),
@@ -252,8 +259,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','历史读取期间持续批准改变');
       final();requestFinal();
     };
-    assertAutoGrant(await ledger.readAutoSettings(),row.scope,{sourceUrl:row.source.url,
-      grantId:row.autoGrantId,epoch:row.autoEpoch});
+    await assertTaskApproval(row,row.requestId);
     await ledger.assertConsumed({requestId:row.requestId,source:row.source,mode:row.mode,
       turnKey:row.turnKey,answerKey:row.answerKey,candidate:row.candidate,...row.scope});
     const current=await ledger.inspectWebTask(row.requestId);
@@ -352,7 +358,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
     verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
     const approval=ledger.captureAutoPolicyEpoch(),final=await verifySite(row);
-    assertAutoGrant(await ledger.readAutoSettings(),row.scope,{sourceUrl:source.url,grantId:row.autoGrantId,epoch:row.autoEpoch});
+    await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付核验期间持续批准改变');
     const deliveryFinal=await ledger.assertWebTaskDelivery(message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付核验期间持续批准改变');
