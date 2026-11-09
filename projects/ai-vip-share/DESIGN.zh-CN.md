@@ -237,25 +237,25 @@ Framework 仍唯一持有 Market Policy、原安装审阅/操作日志、Install
 
 ## 8. 核心矩阵、评分与证据边界（现行）
 
-每一行固定“前置 → 动作 → 原始回执/持久状态 → 禁止副作用 → 证据/状态”。本轮准备中的**新源码尚未跑测试**，下列 NOT_TESTED 不得凭文档改 PASS；旧 1.4.32 账本只证明当时的安装/登录，不替代本次来源/取消流程。
+每一行固定“前置 → 动作 → 原始回执/持久状态 → 禁止副作用 → 证据/状态”。**2026-11-10 GitHub App CI**（提交 `e0d4b43`，运行 [42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891)）完成：本轮链接/取消 **9/9 PASS**，LAN 静态入口 **4/4 PASS**，但整组 **424 项中 342 PASS / 68 FAIL / 14 CANCELLED**；历史测试环境/旧版本断言存在明显漂移，整体 CI **FAIL**。这是受控 Node/fixture 结果，不是 Chrome 已安装、商业 Provider 或真实网站验收。旧 1.4.32 账本证明的登录范围仍独立。
 
 | 前置 → 动作 | 必须观察的回执或持久事实 | 禁止副作用 | 证据及当前状态 |
 | --- | --- | --- | --- |
-| 合法 LAN、已装、已绑定 → 打开、确认 | 自动 `/preview` 一次，确认后 `/redeem` 一次 | 确认前零核销、零 Cookie/代理 | `tests/controller-lan-activation.test.mjs` NOT_TESTED |
+| 合法 LAN、模拟已安装且已绑定 → 打开、确认 | 自动 `/preview` 一次，确认后 `/redeem` 一次 | 确认前零核销、零 Cookie/代理 | Node fixture **PASS**（CI 用例 40）；真实 Chrome NOT_TESTED |
 | 已安装兼容 / Market 离线 → 打开 | Installed Authority 原身份复用 | 不重新导入/安装 | 原安装合同；新链实机 NOT_TESTED |
 | 有本次匹配授权 / 同笔已领取 → 再开 | 原权限或稳定 receipt 回读 | 不重复确认/发放 | Provider 依赖 NOT_TESTED |
 | 缺宿主/缺工具 → 点击专属链接 | 安装指引/原安装器审阅、继续未消费意图 | 不静默装 Chrome | 原 Market，生产 channel 未配置，NOT_TESTED |
-| 假来源/额外字段/编码别名 → 打开 | 拒绝来源与码，零预检请求 | 零核销/安装 | `tests/activation-links.test.mjs` NOT_TESTED |
+| 假来源/额外字段/编码别名 → 打开 | 拒绝来源与码，零预检请求 | 零核销/安装 | 纯解析器与模拟 Host **PASS**（用例 38、41），浏览器真实来源归一化 NOT_TESTED |
 | 主体/权益/数量/规则变更，或扩权撤权 → 确认 | 实时失配停止；必要权限重新审批 | 不继承旧授权 | 原 controller + Provider，NOT_TESTED |
-| 预检后取消 → 刷新/换票据/重开/双 Surface | 原 CAS 暂停范围、可人工恢复 | 不自动再预检/发放 | `tests/controller-lan-activation.test.mjs`、跨 Surface 实机 NOT_TESTED |
-| 自动预检请求未完成 → 取消 | 迟到预检被丢弃、暂停范围持久核对 | 不弹新确认、不兑换 | 新 LAN controller 测试 NOT_TESTED |
-| 确认中 GET 未完成 → 取消 | 停在 POST 前、零兑换 | 不执行晚到 POST | 同上 NOT_TESTED |
-| POST 派发后主动取消 → 等原回执 | 按真实 receipt 更新，仅停止后续会话/导航 | 不假装撤销，不再次 POST | 新 LAN controller 测试 NOT_TESTED |
-| 已提交后丢回执、离线/重启 → 查询 | journal + 原 Provider 原笔状态；终局和未知分离 | 不换幂等键重发 | 原恢复测试/服务端，NOT_TESTED |
+| 预检后取消 → 刷新/换票据/重开/双 Surface | 原 CAS 暂停范围、可人工恢复 | 不自动再预检/发放 | 同存储模拟重开及换票据 **PASS**（用例 39、43）；真实双 Surface NOT_TESTED |
+| 自动预检请求未完成 → 取消 | 迟到预检被丢弃、暂停范围持久核对 | 不弹新确认、不兑换 | Node fixture **PASS**（用例 45） |
+| 确认中 GET 未完成 → 取消 | 停在 POST 前、零兑换 | 不执行晚到 POST | Node fixture **PASS**（用例 44，首轮失败后修复请求头回放及取消状态） |
+| POST 派发后主动取消 → 等原回执 | 按真实 receipt 更新，仅停止后续会话/导航 | 不假装撤销，不再次 POST | Node fixture **PASS**（用例 46）；真实 Provider NOT_TESTED |
+| 已提交后丢回执、离线/重启 → 查询 | journal + 原 Provider 原笔状态；终局和未知分离 | 不换幂等键重发 | 原业务恢复测试有历史记录；本轮真实 Provider、浏览器重启 NOT_TESTED |
 | 多标签、多 Surface、跨客户端 → 同笔领取 | 服务端同稳定实例只有一条原子核销记录 | 本地锁不能冒充服务端唯一 | Provider 未配置，NOT_TESTED |
 | Cookie 逐批确认/导航失败/旧手动流程 → 继续 | Cookie journal 和原会员 receipt 分别真实 | 不假装网站 VIP，不启用代理 | 原定向测试/Chrome，NOT_TESTED |
 
-项目定向命令：`node --test projects/ai-vip-share/tests/activation-links.test.mjs projects/ai-vip-share/tests/controller-lan-activation.test.mjs projects/ai-vip-share/tests/lan-activation-server.test.mjs`，再运行受影响的旧手动兑换/恢复测试；构建、晋升与真实安装另计。唯一长期原生账本为 `dev/local-test/EXTENSION-VIP-TEST.zh-CN.md`，不新建第二份。
+项目定向命令：`node --test projects/ai-vip-share/tests/activation-links.test.mjs projects/ai-vip-share/tests/controller-lan-activation.test.mjs projects/ai-vip-share/tests/lan-activation-server.test.mjs`。GitHub CI 已执行这些受控测试（13/13），再用本地 Codex 按实际源码身份核查旧手动兑换/恢复的相关失败；**整体 app-ci 和旧版专项工作流均 FAIL，正式包未晋升，Chrome 与 Provider 仍 NOT_TESTED**。唯一长期验收账本为 `dev/local-test/EXTENSION-VIP-TEST.zh-CN.md`，不新建第二份。
 
 **五角色评分固定五项 × 每项 20 分**：产品与体验（点击/等待、状态续接、取消、恢复、可读性）；架构与协议（单 owner、最小字段、权限合同、两 Surface、兼容）；权限与事务（主体、最后提交、持久取消、服务端原子、unknown）；实施与验收（核心源码、定向测试、同源包、Chrome、Provider）；指令清晰与防漂移（原目标、决策理由、可执行条件、禁止项、证据矩阵）。角色满分 100，五个**已评分角色**的算术平均才是综合分，未取得独立执行者不得冒充专家，缺证据标 NOT_SCORED。提示词质量、方案设计质量与实现验收分别评；硬性越权/重复核销风险不得用平均分抵消。反方须攻击错误主体、重复核销、撤权后执行、取消后换票据、unknown 重兑、重复 Host、无效链接安装、重复点击；失败修复写回唯一账本，评分不预设 95。
 

@@ -19,6 +19,8 @@ node scripts/build-sidebar-tool.mjs projects/ai-vip-share --check-project
 
 **交付状态**：本次 GitHub 上的源码差量不等于正式发行安装包：下述 1.4.32 包及其既有历史验收保持原样，新的源码需要本地定向测试、构建、原打包器候选→同源晋升和 Chrome 原安装器审阅。生产 HTTPS 可信入口、Market channel 和商业 Provider 尚未配置；跨客户端唯一核销、实际安装/双 Surface、真实网站套餐权益均为 NOT_TESTED。开发 LAN fixture 的自动预检不能当作生产自动安装或商业核销成功。
 
+**2026-11-10 受控验证**：修复提交 [`e0d4b43`](https://github.com/shopable-ai/opendesk-browser/commit/e0d4b43d1c00af9cc35eb5c4239275e4bc62c4a9) 后，[App CI 42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891) 中本轮链接/取消 9/9 PASS、LAN 安全入口 4/4 PASS；但全组 424 项为 342 PASS / 68 FAIL / 14 CANCELLED，整体 **FAIL**，不能作为正式包晋升凭据。详细首轮失败、修复和未测边界已回写原 [EXTENSION-VIP-TEST 验收账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。
+
 
 <a id="user-journey-current"></a>
 
