@@ -1,0 +1,36 @@
+<section class="notify-demo" aria-label="OpenDesk 通知组件实验室">
+  <header class="notify-demo-head">
+    <h2>通知组件实验室</h2>
+    <p>在这里触发真实的 <code>OpenDeskTool.ui.notify</code>。消息由宿主展示，不会注入网页或安装任何内容。</p>
+  </header>
+  <div class="notify-demo-control">
+    <label for="notify-demo-position">显示位置</label>
+    <select id="notify-demo-position">
+      <option value="top-center">顶部居中</option>
+      <option value="top-left">左上角</option>
+      <option value="top-right">右上角</option>
+      <option value="bottom-center">底部居中</option>
+      <option value="bottom-left">左下角</option>
+      <option value="bottom-right">右下角</option>
+    </select>
+  </div>
+  <div class="notify-demo-grid" role="group" aria-label="消息类型">
+    <button data-sample="info" type="button">ⓘ 普通信息</button>
+    <button data-sample="success" type="button">✓ 成功</button>
+    <button data-sample="warning" type="button">! 警告</button>
+    <button data-sample="error" type="button">× 错误</button>
+  </div>
+  <h3>交互行为</h3>
+  <div class="notify-demo-grid" role="group" aria-label="高级行为">
+    <button data-sample="group" type="button">重复消息 ×2</button>
+    <button data-sample="separate" type="button">两条不合并</button>
+    <button data-sample="persistent" type="button">手动关闭</button>
+    <button data-sample="duration" type="button">延长显示</button>
+    <button data-sample="legacy" type="button">旧版调用</button>
+    <button data-sample="invalid" type="button">非法参数拒绝</button>
+  </div>
+  <div class="notify-demo-readback" role="status" aria-live="polite" id="notify-demo-result">
+    已就绪：每实例 60 秒最多 3 条；被限频的请求不会执行业务操作。
+  </div>
+  <p class="notify-demo-hint">“已提交请求”不代表宿主实际显示；错误和持久任务状态仍应保留在工具正文。</p>
+</section>
