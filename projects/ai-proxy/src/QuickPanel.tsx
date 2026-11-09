@@ -482,9 +482,9 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
     : needsProxySelection ? (needsNewProxy ? 'add' : 'choose')
     : state.runtime.proxyError ? 'retry' : 'enable';
   const primaryLabels = {
-    finalize:'apFinishStop', pause: 'r83Pause', apply:'applySelection', details: 'sideProxyViewReason',
+    finalize:'apFinishStop', pause: 'r83Pause', apply:config.selection.mode==='direct'?'apApplyDirect':'applySelection', details: 'sideProxyViewReason',
     add: 'sideAddProxyTitle', choose: 'sideProxyChooseAction',
-    retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: 'r83Enable'
+    retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: config.selection.mode==='direct'?'apEnableDirect':'r83Enable'
   } as const;
   const idleStatusLabel = !managing && !blocked && !state.runtime.proxyError &&
     config.selection.mode === 'profile'
@@ -563,7 +563,7 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
         {managing&&(!state.runtime.applied||state.runtime.pendingChanges)&&!cannotEnable&&!canApplyPending&&
           !state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&<Button type="button"
           ref={applyPendingButton} className="r86ApplyPending" disabled={busy} onClick={()=>void apply()}>
-          {t('applySelection')}
+          {t(config.selection.mode==='direct'?'apApplyDirect':'applySelection')}
         </Button>}
         {canApplyPending&&state.runtime.canStop&&<Button type="button" className="r86PendingPause"
           disabled={busy} onClick={()=>void act({type:'STOP'})}>{t('r83Pause')}</Button>}

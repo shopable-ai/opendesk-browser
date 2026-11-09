@@ -662,9 +662,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             {config.selection.mode==='rules' && <Button className="textAction" onClick={()=>navigate('rules')}>
               {t('viewAndEditWebsiteRules')}
             </Button>}
+            {config.selection.mode==='direct'&&<p className="hint">{t('apDirectScope')}</p>}
             <div className="actions modeActions">
               <Button variant="primary" className="primary" disabled={busy||(config.selection.mode==='profile'&&!selectedProfile)}
-                onClick={()=>void applyRoute()}>{t('applySelection')}</Button>
+                onClick={()=>void applyRoute()}>{t(config.selection.mode==='direct'?'apApplyDirect':'applySelection')}</Button>
               <Button disabled={busy||!(state.runtime.canStop||state.runtime.stopFinalizationPending)} onClick={()=>void act({type:'STOP'})}>{t(state.runtime.stopFinalizationPending?'apFinishStop':'stopManagingProxy')}</Button>
               <small>{t('appliedSettingsWebsiteAccess')}</small>
             </div>

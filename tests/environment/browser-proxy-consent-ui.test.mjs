@@ -10,7 +10,8 @@ function fixture({remembered=false,active=true,denied=false}={}){
     if(denied)return {ok:false,error:{code:'E_TOOL_CHANGED'}};
     if(request.proxyConsent==='reuse'&&!remembered)
       return {ok:false,error:{code:'E_PROXY_CONSENT_REQUIRED'}};
-    remembered=true;return {ok:true,data:{approvalRef:'intent-'+messages.length}};
+    if(request.proxyConsent==='remember')remembered=true;
+    return {ok:true,data:{approvalRef:'intent-'+messages.length}};
   }}};
   const run=(op=operation,extra={})=>requestManagedProxyIntent({api,
     identity:{toolId:'proxy-probe'},title:'Proxy probe',operation:op,payload,
@@ -27,6 +28,34 @@ test('owned STOP has zero reviews and still requests an exact one-use Host inten
   const f=fixture();await f.run('browser.proxy.managed.requestDisable');
   assert.equal(f.reviews.length,0);assert.equal(f.messages.length,1);
   assert.equal(f.messages[0].targetOperation,'browser.proxy.managed.requestDisable');
+});
+test('trusted Direct click needs no review and does not remember a route grant',async()=>{
+  const f=fixture();
+  assert.equal(await f.run(operation,{trustedDirectAction:true}),'intent-1');
+  assert.equal(await f.run(operation,{trustedDirectAction:true}),'intent-2');
+  assert.equal(f.reviews.length,0);
+  assert.ok(f.messages.every(message=>!('proxyConsent' in message)));
+  // A later sandbox call still needs its own exact route review.
+  await f.run();assert.equal(f.reviews.length,1);
+});
+test('trusted Direct without activation refuses inline, with no modal or Host intent',async()=>{
+  const f=fixture({active:false,remembered:true});
+  await assert.rejects(f.run(operation,{trustedDirectAction:true}),{code:'E_USER_GESTURE_REQUIRED'});
+  assert.equal(f.reviews.length,0);assert.equal(f.messages.length,0);
+});
+test('trusted Direct shortcut cannot skip another route review or lifecycle fencing',async()=>{
+  const f=fixture();
+  await f.run(operation,{trustedDirectAction:true,payload:{config:{mode:'fixed_servers',
+    endpoint:{scheme:'https',host:'proxy.example.com',port:443}}}});
+  assert.equal(f.reviews.length,1);
+  const g=fixture({denied:true});
+  await assert.rejects(g.run(operation,{trustedDirectAction:true}),{code:'E_TOOL_CHANGED'});
+  assert.equal(g.reviews.length,0);assert.equal(g.messages.length,1);
+  const gate=createManagedProxyActionGate(),action=gate.begin('proxy-probe',operation);
+  gate.stop('proxy-probe');
+  await assert.rejects(g.run(operation,{trustedDirectAction:true,assertCurrent:action.assertCurrent}),
+    {code:'E_PROXY_ACTION_CANCELLED'});
+  assert.equal(g.messages.length,1);
 });
 test('missing activation cannot silently enable even a remembered route',async()=>{
   const f=fixture({remembered:true,active:false});await f.run();

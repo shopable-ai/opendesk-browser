@@ -58,6 +58,19 @@ test('cancelled route review leaves native state and config untouched without a 
   assert.ok(observed.every(error=>error===null),'cancel never publishes a shared operation failure');
 });
 
+test('missing direct click is a known preflight refusal and a fresh click can retry',async()=>{
+  const f=fixture({config:{...empty(),selection:{mode:'direct'}}});
+  const apply=f.options.apply;
+  f.options.apply=async()=>{throw Object.assign(Error('click required'),{code:'E_USER_GESTURE_REQUIRED'});};
+  const result=await f.service.request({type:'APPLY'});
+  assert.equal(result.errorCode,'E_USER_GESTURE_REQUIRED');
+  const {state}=await ok(f.service,{type:'GET_STATE'});
+  assert.equal(state.runtime.outcomeUnknown,false);assert.equal(state.runtime.applied,false);
+  assert.equal(operations(f,'save').length,0);
+  f.options.apply=apply;
+  assert.equal((await ok(f.service,{type:'APPLY'})).state.runtime.applied,true);
+});
+
 test('a draft ETag survives intervening reads and rejects a newer saved record without writing', async () => {
   const f=fixture();
   const opened=await ok(f.service,{type:'GET_STATE'});

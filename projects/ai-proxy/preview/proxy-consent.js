@@ -17,6 +17,7 @@ export function createPreviewProxyConsent({requestReview,hasUserActivation=()=>t
     authorize(config){
       return requestManagedProxyIntent({api,identity:{toolId:'ai-proxy'},title:'AI Proxy',
         operation:'browser.proxy.managed.requestEnable',payload:{config:normalizeManagedProxyConfig(config)},
+        trustedDirectAction:true,
         hasUserActivation:hasUserActivation(),assertCurrent(){},
         requestReview:review=>{reviews++;return requestReview(review);}});
     },

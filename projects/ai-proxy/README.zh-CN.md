@@ -1,3 +1,7 @@
+**2026-11-09 · 直连免二次确认（覆盖本轮早先弹窗方案）。** 在已安装 AI Proxy 的固定可信界面，选择「直连」只保存；点击「启用直连／切换为直连」直接执行，不再弹“允许并记住”。侧栏及管理页均在操作旁说明所有标签页绕过系统代理、暂停恢复原设置；成功状态依真实操作回执更新。复用原 Host 的精确一次性 intent，不创建长期直连授权；没有原生激活仅行内提示再次点击。新代理线路仍保留原审阅，第三方／动态沙箱不能自报可信来源绕过；身份、权限、撤权与 unknown 保护继续保留。
+
+[直连同源交互预览](preview/direct-consent-preview.html) 已包含此流程；原 [R18/R16 布局稿](preview/preview.html) 保持不变。当前 133 项定向 Node 检查通过，ego(lite) 验证选择不应用、首次直连／暂停再启用零弹窗、新代理审阅、切回直连及跟随系统；管理页同步验证明确直连操作。预览 SHA-256 `11d29c803cda993f02143fa2ef043930e68a24d96b34f1da47dd3deee56d50d4`，[manifest](preview/direct-consent-preview.manifest.json) 锁定 92 项输入，[context](preview/direct-consent-preview.context.json) 明确模拟边界。复建：`node projects/ai-proxy/scripts/stage-preview.mjs --current-sources --out projects/ai-proxy/preview/direct-consent-preview.html`。本轮证据在 `artifacts/ai-proxy/direct-consent-20261109/no-modal-*`；此前的首次弹窗截图／120 项记录为已取代方案的历史证据。当前仅源码与离线预览验证：未更新／安装正式 JSON、未验证当前原生界面及真实网络；固定 Host 改动须由 Browser 开发构建更新，工具 JSON 不能替换它。此前扩大宿主回归的其他工具／草稿导航失败仍属无关延期，未宣称全仓通过。
+
 **2026-11-09 · R18/R16 正式业务源码接线（Vite CI 构建成功，开发门禁未全部完成）。** 已按唯一预览完成侧栏选择/应用状态、底部重复入口清理、可配置公共 Header 快捷操作及 PC 通用设置持久化；本次源码尚未在本地 Node/Vite 及 Chromium 验证，不继承下述 0.3.9 历史验收结果。查看 [本轮逐项实现与缺口](IMPLEMENTATION-R18-R16.zh-CN.md)。唯一正式安装包未更新。
 
 **2026-11-09 · 可查看完成情况入口。** 仓库根运行 `node projects/ai-proxy/progress/serve.mjs`，打开 [本地总览](http://127.0.0.1:43264/)，查看已完成/未完成/失败/未验证，并进入原双界面源码 Demo 或 AI Proxy 视觉参考。性质、启动和检查见 [网页说明](progress/README.zh-CN.md)。c1a95457b 的远端 CI 未通过；已定位 AI Proxy 缺显式 app.ci.json，其他 Provider/工具回归另有失败，见 [CI 定位记录](progress/CI.zh-CN.md)。以下核心验收结果仅绑定其冻结 development 候选，不意味着整体发布完成。

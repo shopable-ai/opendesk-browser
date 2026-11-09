@@ -6,6 +6,7 @@ const sdkErrorKeys: Record<string, TranslationKey> = {
   E_PREVIEW_READONLY:'apProxyDebugUnavailable', E_PREVIEW_CAPABILITY:'apProxyDebugUnavailable',
   E_PREVIEW_GRANT:'apSourceChanged', E_TOOL_CHANGED:'apSourceChanged', E_REVOKED:'apSourceChanged',
   E_PERMISSION_DENIED:'apProxyPermissionDenied', E_CAPABILITY_DENIED:'apProxyPermissionDenied',
+  E_USER_GESTURE_REQUIRED:'apProxyClickRequired',
   E_NOT_CONNECTED:'apProxyNotConnected', E_UNAVAILABLE:'apProxyNotConnected',
   E_UNSUPPORTED:'apProxyUnsupported', E_PROXY_PROFILE_NOT_APPROVED:'apProxyPermissionDenied',
   E_CONFLICT:'apConfigConflict', E_QUOTA:'apConfigQuota', E_OUTCOME_UNKNOWN:'apOutcomeUnknown',

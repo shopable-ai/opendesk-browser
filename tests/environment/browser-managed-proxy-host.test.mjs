@@ -164,6 +164,32 @@ test('real UI to Host and Driver applies, stops and reapplies with only the init
     operation:'browser.intent.confirm',targetOperation:'browser.proxy.managed.requestEnable',
     targetArgs:{config:{mode:'direct'}},proxyConsent:'reuse'},sender),code('E_PROXY_CONSENT_REQUIRED'));
 });
+test('trusted Direct actions mint fresh one-use intents without a modal or persistent grant',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner'),refs=[];
+  const operation='browser.proxy.managed.requestEnable',payload={config:{mode:'direct'}};
+  f.api.runtime.sendMessage=async request=>{
+    try{return {ok:true,data:await f.host.handleHost(request,sender)}}
+    catch(error){return {ok:false,error:{code:error.code,message:error.message}}}
+  };
+  const intent=op=>requestManagedProxyIntent({api:f.api,identity:actor.identity,
+    operation:op,payload:op===operation?payload:{},trustedDirectAction:true,
+    hasUserActivation:true,assertCurrent(){},requestReview(){assert.fail('Direct must not open a modal');}});
+  for(let i=0;i<2;i++){
+    const approvalRef=await intent(operation);refs.push(approvalRef);
+    const request={...actor.identity,operation,args:payload,approvalRef};
+    assert.equal((await f.host.handleTool(request,sender)).state,'enabled');
+    await assert.rejects(f.host.handleTool(request,sender),code('E_USER_GESTURE_REQUIRED'));
+    const stop='browser.proxy.managed.requestDisable';
+    await f.host.handleTool({...actor.identity,operation:stop,args:{},approvalRef:await intent(stop)},sender);
+  }
+  assert.notEqual(refs[0],refs[1]);
+  assert.deepEqual(f.effects,{set:2,clear:2});
+  assert.equal(f.data.get(BROWSER_MENU_GRANTS_STORE)?.[actor.identity.toolId]?.proxyConfigs?.length??0,0);
+  await assert.rejects(actor.approve(operation,payload,{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+  f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[actor.identity.toolId]:'epoch-2'});
+  await assert.rejects(intent(operation),code('E_TOOL_CHANGED'));
+  assert.deepEqual(f.effects,{set:2,clear:2});
+});
 test('unpinned installed package ENABLE and STOP use exact Host intent with static profiles empty',async()=>{
   const f=await fixture(),actor=await f.user('proxy-owner');
   assert.equal((await actor.sdk.proxy.managed.getStatus()).state,'disabled');

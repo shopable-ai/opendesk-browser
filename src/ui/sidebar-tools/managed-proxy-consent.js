@@ -19,7 +19,7 @@ export function createManagedProxyActionGate(){
 
 // Presentation only: the existing Host owns grants, identity and one-use intents.
 export async function requestManagedProxyIntent({api,identity,title,operation,payload,
-  hasUserActivation,assertCurrent,requestReview}){
+  hasUserActivation,assertCurrent,requestReview,trustedDirectAction=false}){
   const confirm=async proxyConsent=>{
     assertCurrent();
     const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
@@ -32,6 +32,13 @@ export async function requestManagedProxyIntent({api,identity,title,operation,pa
   };
   // STOP only releases exact owned state. It never grants another route.
   if(operation==='browser.proxy.managed.requestDisable')return confirm();
+  // The admitted, statically compiled AI Proxy UI already presents the scope
+  // beside its explicit Apply button. That click authorizes this exact action,
+  // not a durable route grant. Sandboxed callers cannot opt into this branch.
+  if(trustedDirectAction&&payload.config.mode==='direct'){
+    if(!hasUserActivation)throw Object.assign(new Error('请再次点击直连操作按钮'),{code:'E_USER_GESTURE_REQUIRED'});
+    return confirm();
+  }
   // Chrome propagates a child-frame activation to its ancestor. Capture that
   // native fact in the trusted parent, never a sandbox-supplied gesture flag.
   if(hasUserActivation){

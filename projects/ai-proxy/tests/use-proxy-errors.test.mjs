@@ -73,6 +73,16 @@ test('cancelling a route review returns normally without a failure alert or succ
   }
 });
 
+test('missing activation shows a localized inline retry instead of internal details',async()=>{
+  const f=await fixture();
+  f.respond(async message=>message.type==='GET_STATE'?success({revision:2})
+    :{ok:false,error:'private adapter detail',errorCode:'E_USER_GESTURE_REQUIRED'});
+  assert.equal(await f.render().act({type:'APPLY'}),null);
+  assert.equal(f.render().error,'请再次点击操作按钮以切换线路。');
+  f.setLocale('en');assert.equal(f.render().error,'Click the action button again to switch routes.');
+  f.unmount();
+});
+
 test('invalid input keys render localized text and follow locale changes without a request', async () => {
   const f = await fixture();
   f.render().setErrorKey('errInvalidPort');

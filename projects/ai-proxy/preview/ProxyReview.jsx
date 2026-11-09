@@ -14,7 +14,7 @@ export function createPreviewReview(){
     request(review){
       if(pending)return Promise.reject(Object.assign(Error('已有待决审阅'),{code:'E_UI_CONFIRM_BUSY'}));
       return new Promise((resolve,reject)=>{
-        let settled=false;
+        let settled=false,submitted=false;
         const finish=(ok,value)=>{
           if(settled)return;settled=true;clearTimeout(timer);pending=null;
           root.render(null);
@@ -24,9 +24,11 @@ export function createPreviewReview(){
         const timer=setTimeout(()=>finish(false,cancelled()),90000);
         root.render(<Confirmation open identity={++sequence} source="AI Proxy"
           title={review.title} message={review.message} confirmLabel={review.button}
-          onCancel={()=>finish(false,cancelled())}
+          onCancel={()=>{if(!submitted)finish(false,cancelled());}}
           onConfirm={event=>{
             // Execute in the actual click stack, as the trusted Host does.
+            if(settled||submitted)return;
+            submitted=true;clearTimeout(timer);root.render(null);
             try{Promise.resolve(review.run(event)).then(value=>finish(true,value),error=>finish(false,error));}
             catch(error){finish(false,error);}
           }}/>);

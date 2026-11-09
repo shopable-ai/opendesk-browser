@@ -3016,6 +3016,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           envelope.approvalRef=await requestManagedProxyIntent({api,
             identity:{toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,
               packageHash,toolInstance:token,hostInstanceId},title:tool.title,operation,payload,
+            trustedDirectAction:source===trustedAIProxySource,
             hasUserActivation:proxyAction.hasUserActivation,assertCurrent:()=>{
               assertSession(source,token);proxyAction.assertCurrent();
             },

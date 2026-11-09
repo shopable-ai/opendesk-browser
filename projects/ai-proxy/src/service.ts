@@ -415,7 +415,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
           // Only explicit preflight/authorization refusals prove no Enable effect.
           if (!['E_NOT_CONNECTED', 'E_UNSUPPORTED', 'E_PERMISSION_DENIED', 'E_REVOKED',
-            'E_TOOL_CHANGED', 'E_CONFLICT', 'E_CANCELLED', 'E_PROXY_PROFILE_NOT_APPROVED'].includes(String(code))) unknown = true;
+            'E_TOOL_CHANGED', 'E_CONFLICT', 'E_CANCELLED', 'E_USER_GESTURE_REQUIRED', 'E_PROXY_PROFILE_NOT_APPROVED'].includes(String(code))) unknown = true;
           throw error;
         }
         const refusal = statusRefusal(actual);
