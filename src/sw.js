@@ -18,6 +18,7 @@ import {readAnalyticsAuthorityProjection} from './analytics/authority-projection
 import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 import {installChatGPTBridgeTriggerGate} from './native-agent/chatgpt-bridge-trigger-gate.js';
 import {installGlobalVideoSpeedService} from '../projects/video-speed-controller/trusted/service.js';
+import {installUpdateNoticeService} from './platform/chrome/update-notice-service.js';
 import {handleSidebarToolRuntimeQuery} from './sidebar-tools/runtime-compatibility.js';
 import {createWebTaskIngress} from './page-events/web-task-ingress.js';
 import {createSiteContentRegistration} from './page-events/content-script-registration.js';
@@ -33,6 +34,9 @@ let webTaskIngress;
 const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome,
   verifyWebTask:(row,sender)=>webTaskIngress.verifySubmission(row,sender)});
 installGlobalVideoSpeedService({api:chrome});
+// Existing MV3 Worker owns update-notice state and admission; no second background.
+try{installUpdateNoticeService({api:chrome});}
+catch(error){console.warn('E_UPDATE_NOTICE_INIT',error?.code||error?.message);}
 // Isolated trusted telemetry sidecar attaches after the single Foundation
 // instance is created. This must never create a second IndexedDB owner.
 // Validated foundation ports are shared only with the fixed local Native
