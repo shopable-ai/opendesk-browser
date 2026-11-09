@@ -40,6 +40,7 @@ test('actual portal bridge receives root, emits no URL payload, and removes page
  ${method};return mountAIProxyPilot;
  `)(doc,configureEnvironment);
  const release=mount({container,locale:'en',onStateChange(){},request:async()=>({status:'available',url:'https://Example.com/private?token=secret'})});
+ assert.equal(container.dataset.opendeskPageHeader,undefined,'Side Panel keeps its shared Host header');
  const {getEnvironment}=await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`);
  const env=getEnvironment();let notices=0;
  env.events.addEventListener('ai-proxy-page-changed',event=>{notices++;assert.equal(event.detail,undefined)});
@@ -47,6 +48,10 @@ test('actual portal bridge receives root, emits no URL payload, and removes page
  container.dispatchEvent(new Event('opendesk-page-changed'));assert.equal(notices,1);
  release();container.dispatchEvent(new Event('opendesk-page-changed'));assert.equal(notices,1);
  assert.equal(container.dataset.opendeskReactOwner,undefined);
+ const releasePage=mount({container,displaySurface:'page',locale:'en',onStateChange(){},request:async()=>({})});
+ assert.equal(container.dataset.opendeskPageHeader,'content','fixed PC component owns one page header in the original Host');
+ releasePage();
+ assert.equal(container.dataset.opendeskPageHeader,undefined,'released page cannot hide the next tool header');
 });
 test('active current-page subscription notifies trusted portal once per transition and unsubscribes',()=>{
  const start=host.indexOf('  if(currentPageTarget?.subscribe){'),end=host.indexOf('\n  if(tocLanguageSelect)',start);

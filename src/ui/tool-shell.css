@@ -896,9 +896,12 @@
 .sidebar-tool-list-tab{margin-right:var(--space-1);border-color:transparent;background:transparent;color:#44669d;font-size:17px;line-height:1}
 .sidebar-tool-list-tab:hover:not(:disabled){background:#eef3ff;border-color:#d4e2fa}
 #sidebar-tool-open-tab{background:#f5f8ff;color:#345dac;border-color:#dce5f6}
-[data-opendesk-surface=tool-page] #workspace-content{max-width:1200px;padding:20px clamp(12px,3vw,30px)}
+[data-opendesk-surface=tool-page] .workbench-nav{display:none}
+[data-opendesk-surface=tool-page] #workspace-content{max-width:none;padding:0;--od-page-gutter:0px}
+/* A fixed full-page component may already supply its own identity/actions.
+ * Keep the original ToolHost, permissions and confirmation UI underneath it. */
+[data-opendesk-surface=tool-page] #sidebar-tool-display:has(> #sidebar-tool-frame[data-opendesk-page-header=content]) > .sidebar-tool-view-head{display:none}
 [data-opendesk-surface=tool-page] .sidebar-tool-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
-@media(max-width:600px){[data-opendesk-surface=tool-page] #workspace-content{padding:12px}}
 
 /* R18: shared accessible icon actions. Hover uses title; focus exposes label. */
 .sidebar-tool-icon-action{color:var(--od-sub)}

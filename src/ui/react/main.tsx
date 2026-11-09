@@ -82,7 +82,10 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     finally{
       try{root.unmount();}
       finally{
-        aiProxyPilot?.environment.dispose();aiProxyPilot=null;
+        if(aiProxyPilot){
+          delete aiProxyPilot.container.dataset.opendeskPageHeader;
+          aiProxyPilot.environment.dispose();aiProxyPilot=null;
+        }
         mountedDocuments.delete(doc);
         if(bookmarkPilot?.container.dataset.opendeskReactOwner==='bookmark-react-pilot')
           delete bookmarkPilot.container.dataset.opendeskReactOwner;
@@ -198,10 +201,13 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         surface:displaySurface==='page'?'page':'sidebar',initialPage,openOwnPage},
         {browser:{proxy:{managed}}},{trusted:true});
       aiProxyPilot={container,environment,displaySurface};container.dataset.opendeskReactOwner='ai-proxy';
+      // Only fixed components may own a full-page header. Installed code still
+      // stays in its iframe and cannot opt itself into this trusted projection.
+      if(displaySurface==='page')container.dataset.opendeskPageHeader='content';
       const release=()=>{
         if(aiProxyPilot?.environment!==environment)return;
         aiProxyPilot=null;
-        try{if(!disposed)paint();}finally{environment.dispose();delete container.dataset.opendeskReactOwner;}
+        try{if(!disposed)paint();}finally{environment.dispose();delete container.dataset.opendeskReactOwner;delete container.dataset.opendeskPageHeader;}
       };
       try{paint();}catch(error){release();throw error;}
       return release;
