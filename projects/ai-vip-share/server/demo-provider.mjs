@@ -23,6 +23,11 @@ export function openDemoLedger(filename){
     throw Error('An absolute SQLite database filename is required');
   const db=new DatabaseSync(filename);
   db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;");
+  const schemaVersion=db.prepare('PRAGMA user_version').get().user_version;
+  if(schemaVersion!==0&&schemaVersion!==1){
+    db.close();
+    throw Error('Unsupported development ledger schema version');
+  }
   db.exec([
     'CREATE TABLE IF NOT EXISTS grants (',
     ' grant_id TEXT PRIMARY KEY, intent_id TEXT NOT NULL, issue_id TEXT NOT NULL,',
@@ -39,6 +44,7 @@ export function openDemoLedger(filename){
     ' redeemed_at INTEGER NOT NULL, receipt_json TEXT NOT NULL,',
     ' UNIQUE(intent_id,issue_id,account_id,sku_id));'
   ].join('\n'));
+  db.exec('PRAGMA user_version=1');
   return db;
 }
 function transaction(db,work){
