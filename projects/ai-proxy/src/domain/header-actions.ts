@@ -1,7 +1,7 @@
 /** The shared Header owns presentation; this list only selects trusted navigation IDs. */
-export const HEADER_ACTION_IDS = ['add-proxy','diagnostics','subscriptions','settings'] as const;
+export const HEADER_ACTION_IDS = ['add-proxy','diagnostics','subscriptions','settings','official'] as const;
 export type HeaderActionId = typeof HEADER_ACTION_IDS[number];
-export const DEFAULT_HEADER_ACTIONS: HeaderActionId[] = [...HEADER_ACTION_IDS];
+export const DEFAULT_HEADER_ACTIONS: HeaderActionId[] = ['add-proxy','diagnostics','subscriptions','settings'];
 export function validateHeaderActions(value: unknown): HeaderActionId[] {
   if (!Array.isArray(value) || value.length > HEADER_ACTION_IDS.length)
     throw new Error('快捷操作应为长度受限的列表');

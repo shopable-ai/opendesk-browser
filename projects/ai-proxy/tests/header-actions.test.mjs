@@ -13,28 +13,51 @@ const {createHeaderActions,HEADER_ACTIONS_KEY:KEY,DEFAULT_HEADER_ACTIONS}=await 
 const {configureEnvironment}=await bundle('../src/environment.ts');
 const headerActionsDomain=await bundle('../src/domain/header-actions.ts');
 const domainConfig=await bundle('../src/domain/config.ts');
-// Separate surfaces have separate module instances, including adapter ETag caches.
+// Separate surfaces have separate module instances and Service/adapter caches.
 const {configureEnvironment:configureOtherEnvironment}=await bundle('../src/environment.ts');
+const CONFIG_KEY='ai-proxy.full-config.v2';
 function storageHost(){
- const values=new Map(),etags=new Map();let writes=0,reads=0,gate=null,failure=null;
+ const values=new Map([[CONFIG_KEY,domainConfig.freshConfig()]]),etags=new Map();
+ let writes=0,reads=0,gate=null,failure=null;
+ const writtenKeys=[],nativeWrites=[],messages=[];
  const host={
-  mutate(value){values.set(KEY,value);etags.set(KEY,(etags.get(KEY)??0)+1);},
-  get writes(){return writes;},
-  get reads(){return reads;},
+  mutate(value){const config=structuredClone(values.get(CONFIG_KEY));
+   if(value==null)delete config.headerActions;else config.headerActions=value;
+   values.set(CONFIG_KEY,config);etags.set(CONFIG_KEY,(etags.get(CONFIG_KEY)??0)+1);},
+  legacy(value){values.set(KEY,value);},
+  stored:()=>structuredClone(values.get(CONFIG_KEY)),
+  writtenKeys,nativeWrites,messages,
+  get writes(){return writes;},get reads(){return reads;},
   set gate(value){gate=value;},set failure(value){failure=value;},
+  instrument(env){const request=env.request;
+   env.request=async message=>{
+    messages.push(structuredClone(message));
+    if(message.type==='GET_STATE')reads++;
+    if(message.type==='SET_HEADER_ACTIONS'){
+     writes++;if(gate)await gate;
+     if(failure)return {ok:false,error:'Injected failure',errorCode:failure};
+    }
+    return request(message);
+   };
+   return env;
+  },
+  sdk:{browser:{proxy:{managed:{
+   async getStatus(){return {state:'disabled',canStop:false,control:'controllable_by_this_extension',reason:null};},
+   async requestEnable(){nativeWrites.push('enable');throw Error('Unexpected enable');},
+   async requestDisable(){nativeWrites.push('disable');throw Error('Unexpected disable');}
+  }}}},
   bridge:{setState(){},async request(method,{key,value,ifMatch}){
-   if(method==='storage.get'){reads++;return {value:values.get(key)??null,etag:String(etags.get(key)??0)};}
-   assert.equal(method,'storage.set');writes++;
-   if(gate)await gate;
-   if(failure)throw Object.assign(Error(failure),{code:failure});
+   if(method==='storage.get')return {value:structuredClone(values.get(key)??null),etag:String(etags.get(key)??0)};
+   assert.equal(method,'storage.set');writtenKeys.push(key);
+   assert.equal(key,CONFIG_KEY,'legacy preference must remain read-only');
    if(ifMatch!==String(etags.get(key)??0))throw Object.assign(Error('conflict'),{code:'E_CONFLICT'});
-   values.set(key,value);etags.set(key,(etags.get(key)??0)+1);return {saved:true};
+   values.set(key,structuredClone(value));etags.set(key,(etags.get(key)??0)+1);return {saved:true};
   }}
  };
  return host;
 }
 function mount(host,surface={},configure=configureEnvironment){
- const env=configure(host.bridge,null,{trusted:true});
+ const env=host.instrument(configure(host.bridge,host.sdk,{trusted:true}));
  const previous={window:globalThis.window,document:globalThis.document};
  let store;
  try{
@@ -58,7 +81,75 @@ function nativeSurface(){
  return {window,document,focus(){window.dispatchEvent(new Event('focus'));},
   visibility(value){document.visibilityState=value;document.dispatchEvent(new Event('visibilitychange'));}};
 }
-async function settle(){for(let i=0;i<12;i++)await Promise.resolve();}
+async function settle(){for(let i=0;i<80;i++)await Promise.resolve();}
+
+test('canonical full-config preferences override legacy Header preferences without native writes',async()=>{
+ const host=storageHost();host.mutate(['diagnostics']);host.legacy(['settings']);
+ const app=mount(host);
+ try{
+  await app.store.reload();assert.deepEqual(app.store.getSnapshot().saved,['diagnostics']);
+  const before=host.stored();app.store.edit(['subscriptions']);await app.store.save();
+  assert.deepEqual(host.stored(),{...before,headerActions:['subscriptions']});
+  assert.deepEqual(host.writtenKeys,[CONFIG_KEY]);assert.deepEqual(host.nativeWrites,[]);
+  assert.deepEqual((await app.env.storage.local.get(KEY))[KEY],['settings']);
+ }finally{app.close();}
+});
+
+test('absent canonical preferences read legacy order without migrating until an explicit changed save',async()=>{
+ const host=storageHost();host.legacy(['official','settings']);const app=mount(host);
+ try{
+  await app.store.reload();assert.deepEqual(app.store.getSnapshot().saved,['official','settings']);
+  assert.equal(host.stored().headerActions,undefined);assert.deepEqual(host.writtenKeys,[]);
+  app.store.edit(['settings','official']);await app.store.save();
+  assert.deepEqual(host.stored().headerActions,['settings','official']);
+  assert.deepEqual(host.writtenKeys,[CONFIG_KEY]);
+  assert.deepEqual((await app.env.storage.local.get(KEY))[KEY],['official','settings']);
+  assert.deepEqual(host.nativeWrites,[]);
+ }finally{app.close();}
+});
+
+test('canonical empty list wins without reading legacy; invalid canonical data never falls back',async()=>{
+ const host=storageHost();host.mutate([]);host.legacy(['settings']);const app=mount(host);
+ const get=app.env.storage.local.get;let legacyReads=0;
+ app.env.storage.local.get=async key=>{legacyReads++;return get(key);};
+ try{
+  await app.store.reload();assert.deepEqual(app.store.getSnapshot().saved,[]);assert.equal(legacyReads,0);
+  host.mutate(['not-allowed']);await app.store.reload();
+  assert.equal(app.store.getSnapshot().readRequired,true);assert.equal(app.store.getSnapshot().error,'apHeaderReadFailed');
+  assert.equal(legacyReads,0);assert.deepEqual(host.writtenKeys,[]);
+ }finally{app.close();}
+});
+
+test('unrelated Service reads cannot rebase a dirty Header draft; own receipts advance subsequent saves',async()=>{
+ const host=storageHost(),app=mount(host);
+ try{
+  await app.store.reload();app.store.edit(['settings']);
+  const baseline=host.messages.find(message=>message.type==='GET_STATE');assert.ok(baseline);
+  host.mutate(['diagnostics']);await app.env.request({type:'GET_STATE'});
+  await app.store.save();
+  assert.equal(app.store.getSnapshot().error,'apHeaderConflict');
+  assert.equal(host.messages.at(-1).ifMatch,'0');
+  assert.deepEqual(host.stored().headerActions,['diagnostics']);assert.deepEqual(host.writtenKeys,[]);
+  await app.store.reload();app.store.edit(['settings']);await app.store.save();
+  app.store.edit(['subscriptions']);await app.store.save();
+  assert.equal(app.store.getSnapshot().savedNotice,true);
+  assert.deepEqual(host.messages.filter(message=>message.type==='SET_HEADER_ACTIONS').map(message=>message.ifMatch),['0','1','2']);
+  assert.deepEqual(host.stored().headerActions,['subscriptions']);assert.deepEqual(host.nativeWrites,[]);
+ }finally{app.close();}
+});
+
+test('false GET_STATE and missing read receipt block saves and never consult legacy fallback',async()=>{
+ for(const response of [{ok:false,errorCode:'E_DENIED'},
+  {ok:true,state:{config:{headerActions:['settings']}}}]){
+  const host=storageHost(),app=mount(host);let legacyReads=0;
+  app.env.request=async()=>response;app.env.storage.local.get=async()=>{legacyReads++;return {[KEY]:['settings']};};
+  try{
+   await app.store.reload();assert.equal(app.store.getSnapshot().ready,false);
+   assert.equal(app.store.getSnapshot().readRequired,true);assert.equal(app.store.getSnapshot().error,'apHeaderReadFailed');
+   await app.store.save();assert.equal(host.writes,0);assert.equal(legacyReads,0);
+  }finally{app.close();}
+ }
+});
 
 test('two real surface stores: focus and visible resume read PC commits into a clean sidebar',async()=>{
  const host=storageHost(),surface=nativeSurface(),sidebar=mount(host,surface),pc=mount(host,{},configureOtherEnvironment);
@@ -81,7 +172,7 @@ test('two real surface stores: focus and visible resume read PC commits into a c
  }finally{sidebar.close();pc.close();}
 });
 
-test('dirty resume preserves the real adapter CAS baseline and requires explicit reread',async()=>{
+test('dirty resume preserves the captured full-config CAS baseline and requires explicit reread',async()=>{
  const host=storageHost(),surface=nativeSurface(),sidebar=mount(host,surface),pc=mount(host,{},configureOtherEnvironment);
  try{
   await sidebar.store.reload();await pc.store.reload();sidebar.store.edit(['official']);
@@ -92,8 +183,8 @@ test('dirty resume preserves the real adapter CAS baseline and requires explicit
   assert.deepEqual(sidebar.store.getSnapshot().saved,DEFAULT_HEADER_ACTIONS);
   assert.deepEqual(sidebar.store.getSnapshot().draft,['official']);assert.equal(sidebar.env.hasDrafts(),true);
   await sidebar.store.save();assert.equal(host.writes,1);
-  // Bypass only the store guard to prove notifications did not refresh ETag.
-  await assert.rejects(sidebar.env.storage.local.set({[KEY]:['official']}),{code:'E_CONFLICT'});
+  // An explicit stale Service baseline must still conflict.
+  assert.equal((await sidebar.env.request({type:'SET_HEADER_ACTIONS',actions:['official'],ifMatch:'0'})).errorCode,'E_CONFLICT');
   sidebar.env.clearDrafts();surface.focus();await settle();
   assert.equal(host.reads,reads);assert.equal(sidebar.store.getSnapshot().readRequired,true);
   await sidebar.store.reload();assert.deepEqual(sidebar.store.getSnapshot().draft,['diagnostics']);
@@ -109,7 +200,7 @@ test('resume skips busy/unknown without deferred reads or automatic writes',asyn
   await app.store.reload();app.store.edit(['official']);let release;
   host.gate=new Promise(resolve=>{release=resolve;});const saving=app.store.save(),reads=host.reads;
   surface.focus();surface.visibility('visible');await settle();assert.equal(host.reads,reads);
-  release();await saving;await settle();assert.equal(host.reads,reads+1);assert.equal(host.writes,1);
+  release();await saving;await settle();assert.equal(host.reads,reads);assert.equal(host.writes,1);
   host.gate=null;host.failure='E_OUTCOME_UNKNOWN';app.store.edit([]);await app.store.save();
   const before=app.store.getSnapshot(),unknownReads=host.reads;
   surface.focus();surface.visibility('visible');await settle();
@@ -118,18 +209,18 @@ test('resume skips busy/unknown without deferred reads or automatic writes',asyn
  }finally{app.close();}
 });
 
-test('editing during resume blocks save despite late adapter read; disposal removes listeners and ignores late reads',async()=>{
+test('editing during resume blocks save despite late Service read; disposal removes listeners and ignores late reads',async()=>{
  const host=storageHost(),surface=nativeSurface(),app=mount(host,surface);
  try{
-  await app.store.reload();const get=app.env.storage.local.get;let release;
-  app.env.storage.local.get=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
+  await app.store.reload();const get=app.env.request;let release;
+  app.env.request=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
   surface.focus();app.store.edit(['official']);host.mutate(['diagnostics']);release();await settle();
   assert.deepEqual(app.store.getSnapshot().draft,['official']);
   assert.deepEqual(app.store.getSnapshot().saved,DEFAULT_HEADER_ACTIONS);
   assert.equal(app.store.getSnapshot().readRequired,true);await app.store.save();assert.equal(host.writes,0);
-  app.env.storage.local.get=get;await app.store.reload();
+  app.env.request=get;await app.store.reload();
   let reads=0,notifications=0;
-  app.env.storage.local.get=async key=>{reads++;await new Promise(resolve=>{release=resolve;});return get(key);};
+  app.env.request=async key=>{reads++;await new Promise(resolve=>{release=resolve;});return get(key);};
   app.store.subscribe(()=>notifications++);surface.visibility('visible');
   assert.equal(reads,1);app.store.dispose();const before=app.store.getSnapshot(),count=notifications;
   assert.equal(surface.window.listeners.size,0);assert.equal(surface.document.listeners.size,0);
@@ -139,7 +230,7 @@ test('editing during resume blocks save despite late adapter read; disposal remo
  }finally{app.close();}
 });
 
-test('default four, ordered whitelist and empty selection save with original CAS/readback and survive reopening',async()=>{
+test('default four, domain-validated order and empty selection save with Service CAS and survive reopening',async()=>{
  const host=storageHost();let app=mount(host);
  await app.store.reload();assert.deepEqual(app.store.getSnapshot().saved,DEFAULT_HEADER_ACTIONS);
  app.store.edit(['official','settings','add-proxy']);assert.equal(app.env.hasDrafts(),true);
@@ -211,11 +302,11 @@ test('real settings checkbox, up/down, save/cancel handlers persist order and re
  assert.deepEqual(app.store.getSnapshot().draft,['add-proxy','diagnostics','subscriptions','official','settings']);
  render().find(node=>node.props['aria-label']==='apHeaderMoveDown officialNetwork').props.onClick();
  await render().find(node=>node.type==='button'&&node.props.children[0]==='saveChanges').props.onClick();
- // Handler intentionally consumes async errors; wait for the storage readback.
- for(let i=0;i<8;i++)await Promise.resolve();
+ // Handler intentionally consumes async errors; wait for the Service receipt.
+ for(let i=0;i<80;i++)await Promise.resolve();
  assert.equal(app.store.getSnapshot().saved.at(-1),'official');
  app.store.edit([]);render().find(node=>node.type==='button'&&node.props.children[0]==='cancel').props.onClick();
- for(let i=0;i<8;i++)await Promise.resolve();
+ for(let i=0;i<80;i++)await Promise.resolve();
  assert.equal(app.store.getSnapshot().draft.at(-1),'official');
  app.store.edit([]);host.failure='E_OUTCOME_UNKNOWN';await app.store.save();
  const reload=render().find(node=>node.type==='button'&&node.props.children[0]==='apHeaderReload');
@@ -229,7 +320,7 @@ function workspace(host,enhanced=true,surface={}){
  host.bridge.navigationFeatures={headerActions:enhanced};
  host.bridge.setNavigation=value=>{snapshots.push(value);return true;};
  host.bridge.subscribe=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
- const env=configureEnvironment(host.bridge,null,{trusted:true});
+ const env=host.instrument(configureEnvironment(host.bridge,host.sdk,{trusted:true}));
  const hooks=[],effects=[];let cursor=0,store;
  const react={
   createElement:(type,props,...children)=>({type,props:{...props,children}}),
@@ -242,7 +333,7 @@ function workspace(host,enhanced=true,surface={}){
    });}
  };
  const headerModule={exports:{}};
- runInNewContext(hookCode,{module:headerModule,exports:headerModule.exports,require:()=>react,...surface});
+ runInNewContext(hookCode,{module:headerModule,exports:headerModule.exports,require(name){if(name==='react')return react;if(name==='../domain/header-actions')return headerActionsDomain;throw Error(name);},...surface});
  const appModule={exports:{}},t=key=>key;
  runInNewContext(appCode,{module:appModule,exports:appModule.exports,document:{activeElement:null},require(name){
   if(name==='react')return react;
@@ -257,7 +348,7 @@ function workspace(host,enhanced=true,surface={}){
   replayEffects(){for(const hook of hooks)if(hook?.effect){hook.cleanup?.();hook.cleanup=hook.effect();}},
   render(){cursor=0;const tree=Workspace({surface:'side-panel'});
   while(effects.length)effects.shift()();return tree;},
-  async settle(){for(let i=0;i<8;i++)await Promise.resolve();return this.render();},
+  async settle(){for(let i=0;i<80;i++)await Promise.resolve();return this.render();},
   async header(id,page=snapshots.at(-1).page){for(const fn of [...listeners])await fn({action:'header',actionId:id,page});},
   close(){for(const hook of hooks)hook?.cleanup?.();env.dispose();}
  };
@@ -319,8 +410,8 @@ test('real App hook publishes focus-refreshed Header without remounting, includi
 
 test('late read cannot overwrite a newer draft or silently rebase its next save',async()=>{
  const host=storageHost(),app=mount(host);await app.store.reload();app.store.edit(['official']);
- const get=app.env.storage.local.get;let release;
- app.env.storage.local.get=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
+ const get=app.env.request;let release;
+ app.env.request=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
  const reading=app.store.reload();app.store.edit(['settings']);host.mutate(['diagnostics']);release();await reading;
  assert.deepEqual(app.store.getSnapshot().draft,['settings']);
  assert.equal(app.store.getSnapshot().error,'apHeaderConflict');
@@ -343,11 +434,11 @@ test('abandoned render registers no Header listeners or storage work',()=>{
 
 test('StrictMode effect cleanup/setup restores the same Header store and fences the abandoned read',async()=>{
  const host=storageHost(),surface=nativeSurface(),app=workspace(host,true,surface);
- const get=app.env.storage.local.get;let release;
- app.env.storage.local.get=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
+ const get=app.env.request;let release;
+ app.env.request=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
  try{
   app.render();const store=app.store;
-  app.env.storage.local.get=get;host.mutate(['official']);
+  app.env.request=get;host.mutate(['official']);
   app.replayEffects();await app.settle();
   assert.equal(app.store,store);assert.equal(store.getSnapshot().busy,false);
   assert.deepEqual(Array.from(store.getSnapshot().saved),['official']);
@@ -377,7 +468,7 @@ test('effect replay preserves dirty CAS base and reinstalls exactly one set of l
   surface.focus();await settle();assert.equal(host.reads,reads);
   assert.deepEqual(Array.from(app.store.getSnapshot().draft),['official']);
   assert.equal(app.store.getSnapshot().readRequired,true);
-  await assert.rejects(app.env.storage.local.set({[KEY]:['official']}),{code:'E_CONFLICT'});
+  assert.equal((await app.env.request({type:'SET_HEADER_ACTIONS',actions:['official'],ifMatch:'0'})).errorCode,'E_CONFLICT');
  }finally{app.close();}
  assert.equal(counts.size,0);assert.equal(surface.window.listeners.size,0);assert.equal(surface.document.listeners.size,0);
 });
@@ -404,17 +495,17 @@ test('remount during an outstanding write preserves unknown and ignores late suc
 });
 
 
-test('remount fences a pending focus read and blocks saving against its late adapter CAS base',async()=>{
+test('remount fences a pending focus read and blocks saving against its late Service CAS base',async()=>{
  const host=storageHost(),surface=nativeSurface(),app=workspace(host,true,surface);
  try{
-  app.render();await app.settle();const get=app.env.storage.local.get;let release;
-  app.env.storage.local.get=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
+  app.render();await app.settle();const get=app.env.request;let release;
+  app.env.request=async key=>{await new Promise(resolve=>{release=resolve;});return get(key);};
   surface.focus();app.replayEffects();app.store.edit(['official']);
   host.mutate(['diagnostics']);release();await settle();
   assert.deepEqual(Array.from(app.store.getSnapshot().draft),['official']);
   assert.equal(app.store.getSnapshot().readRequired,true);
   await app.store.save();assert.equal(host.writes,0);
-  app.env.storage.local.get=get;await app.store.reload();
+  app.env.request=get;await app.store.reload();
   app.store.edit(['settings']);await app.store.save();assert.equal(host.writes,1);
  }finally{app.close();}
 });

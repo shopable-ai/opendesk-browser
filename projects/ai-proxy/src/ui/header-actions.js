@@ -1,21 +1,22 @@
 import {useEffect,useRef,useState} from 'react';
+import {DEFAULT_HEADER_ACTIONS,HEADER_ACTION_IDS,validateHeaderActions} from '../domain/header-actions';
+export {DEFAULT_HEADER_ACTIONS,HEADER_ACTION_IDS};
 
 export const HEADER_ACTIONS_KEY='ai-proxy.header-actions.v1';
-export const DEFAULT_HEADER_ACTIONS=['add-proxy','diagnostics','subscriptions','settings'];
-export const HEADER_ACTION_IDS=[...DEFAULT_HEADER_ACTIONS,'official'];
 const scope='settings-header-actions';
-function validate(value){
- if(value==null)return [...DEFAULT_HEADER_ACTIONS];
- if(!Array.isArray(value)||value.length>6||new Set(value).size!==value.length||
-  value.some(id=>!HEADER_ACTION_IDS.includes(id)))throw new Error('Invalid header actions');
- return [...value];
+const validate=validateHeaderActions;
+function accepted(response){
+ if(response?.ok!==true)throw Object.assign(new Error(response?.error||'Header actions request failed'),{code:response?.errorCode});
+ if(typeof response.state?.configEtag!=='string'||!response.state.configEtag)
+  throw Object.assign(new Error('Configuration receipt missing'),{code:'E_OUTCOME_UNKNOWN'});
+ return response.state;
 }
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 
 // One instance belongs to the App, not to the Settings section's mount lifetime.
 export function createHeaderActions(env){
  let state={saved:[...DEFAULT_HEADER_ACTIONS],draft:[...DEFAULT_HEADER_ACTIONS],ready:false,busy:false,unknown:false,readRequired:false,error:null,savedNotice:false};
- let active=false,revision=0,reading=0,lifetime=0,writing=false;
+ let active=false,revision=0,reading=0,lifetime=0,writing=false,baseline;
  const focusTarget=globalThis.window,visibilityTarget=globalThis.document;
  const subscribers=new Set();
  const publish=patch=>{if(!active)return;state={...state,...patch};for(const fn of subscribers)fn();};
@@ -37,12 +38,21 @@ export function createHeaderActions(env){
    const generation=++reading,started=revision;
    publish({busy:true,error:null,savedNotice:false});
    try{
-    const items=await env.storage.local.get(HEADER_ACTIONS_KEY);
-    const saved=validate(items[HEADER_ACTIONS_KEY]);
+    const current=accepted(await env.request({type:'GET_STATE'}));
+    if(!current.config||typeof current.config!=='object')throw new Error('Configuration missing');
+    let saved;
+    if(Object.hasOwn(current.config,'headerActions'))saved=validate(current.config.headerActions);
+    else {
+     // Old preferences remain read-only; migration happens only on explicit save.
+     if(!active||generation!==reading)return;
+     const items=await env.storage.local.get(HEADER_ACTIONS_KEY);
+     saved=items[HEADER_ACTIONS_KEY]==null?[...DEFAULT_HEADER_ACTIONS]:validate(items[HEADER_ACTIONS_KEY]);
+    }
     if(!active||generation!==reading)return;
     if(revision!==started){publish({readRequired:true,error:'apHeaderConflict'});return;}
+    baseline=current.configEtag;
     publish({saved,draft:[...saved],ready:true,unknown:false,readRequired:false});mark();
-   }catch{if(active&&generation===reading&&revision===started)publish({readRequired:true,error:'apHeaderReadFailed'});}
+   }catch{if(active&&generation===reading)publish({readRequired:true,error:revision===started?'apHeaderReadFailed':'apHeaderConflict'});}
    finally{if(active&&generation===reading)publish({busy:false});}
   },
   edit(next){
@@ -52,13 +62,14 @@ export function createHeaderActions(env){
   },
   async save(){
    if(!active||!state.ready||state.busy||state.unknown||state.readRequired||!dirty())return;
-   const submitted=[...state.draft],started=revision,owner=lifetime;
+   const submitted=[...state.draft],started=revision,owner=lifetime,ifMatch=baseline;
    writing=true;
    publish({busy:true,error:null,savedNotice:false});
    try{
-    await env.storage.local.set({[HEADER_ACTIONS_KEY]:submitted});
+    const current=accepted(await env.request({type:'SET_HEADER_ACTIONS',actions:submitted,ifMatch}));
     if(!active||owner!==lifetime)return;
-    // The storage adapter resolves only after the CAS receipt and readback.
+    // Advance only from this live save receipt, never an unrelated Service read.
+    baseline=current.configEtag;
     publish({saved:submitted,savedNotice:revision===started});mark();
    }catch(error){
     if(!active||owner!==lifetime)return;
@@ -69,7 +80,7 @@ export function createHeaderActions(env){
   dispose(){
    if(!active)return;
    active=false;reading++;lifetime++;
-   // Late adapter reads may change the CAS base; writes may have reached storage.
+   // Late reads cannot change our baseline; writes may have reached storage.
    // Remounting must require an explicit reread rather than silently rebase/retry.
    state={...state,busy:false,...(writing?{unknown:true,readRequired:true,error:'apHeaderUnknown'}:
     state.busy&&state.ready?{readRequired:true,error:'apHeaderConflict'}:{})};
@@ -80,8 +91,7 @@ export function createHeaderActions(env){
  };
  function resume(){
   if(!active||state.busy||state.unknown||state.readRequired||visibilityTarget?.visibilityState==='hidden')return;
-  // Even a read updates the adapter's CAS ETag. Never rebase an existing draft
-  // on a focus notification; only the explicit cancel/reread may do that.
+  // Never rebase an existing draft on focus; only explicit cancel/reread may do so.
   if(dirty()){publish({readRequired:true,error:'apHeaderConflict',savedNotice:false});return;}
   void store.reload();
  }

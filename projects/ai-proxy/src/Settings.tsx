@@ -20,7 +20,6 @@ import { OfficialServicePage } from './ui/OfficialServicePage';
 import { HeaderActionsEditor } from './ui/HeaderActionsEditor';
 import { useProxy } from './ui/useProxy';
 import type { Profile, ProxyEndpoint, ProxyScheme, RouteMode, SiteRule } from './domain/types';
-import {DEFAULT_HEADER_ACTIONS,HEADER_ACTION_IDS,type HeaderActionId} from './domain/header-actions';
 import { createPacStarter, type PacStarterMode } from './domain/pac-starters';
 import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/config';
 
@@ -306,16 +305,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     <p>{t('readingBrowserState')}</p>{error && <p role="alert" className="notice error">{error}</p>}
     <Button onClick={() => void refresh()}>{t('retry')}</Button></main>;
   const config = state.config;
-  const headerActionIds:HeaderActionId[] = config.headerActions ?? DEFAULT_HEADER_ACTIONS;
-  const headerActionRows:HeaderActionId[] = [...headerActionIds,...HEADER_ACTION_IDS.filter(id=>!headerActionIds.includes(id))];
-  const headerActionNames:Record<HeaderActionId,string> = {
-    'add-proxy':t('addProxy'),diagnostics:t('networkDiagnostics2'),
-    subscriptions:t('subscriptionSources'),settings:t('apManageSettings')
-  };
-  function updateHeaderActions(next:HeaderActionId[]) {
-    // The latest persisted ETag is mandatory even on a clean PC settings page.
-    if(!busy)void act({type:'SET_HEADER_ACTIONS',actions:next,ifMatch:state.configEtag});
-  }
   const endpoints = config.endpoints;
   const profiles = config.profiles;
   let ruleDomain='';
@@ -971,29 +960,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             <article className="record generalInfoCard"><div><strong>{t('helpAndFeedback')}</strong><small>{t('theRepositoryIsPrivateAPublicCommunityIsNot')}</small></div>
               <a href="https://github.com/shopable-ai/ai-proxy" target="_blank" rel="noreferrer">{t('projectRepository')}</a></article>
           </div>
-          {!headerActionsStore&&<section className="record headerActionsEditor" aria-label={t('headerActionsTitle')}>
-            <div><strong>{t('headerActionsTitle')}</strong><p className="hint">{t('headerActionsHelp')}</p></div>
-            <div className="headerActionsList">{headerActionRows.map(id=>{
-              const index=headerActionIds.indexOf(id),enabled=index!==-1;
-              return <div className="headerActionRow" key={id}>
-                <strong>{headerActionNames[id]}</strong>
-                <div className="headerActionControls">
-                  <Button type="button" disabled={busy} aria-pressed={enabled}
-                    onClick={()=>updateHeaderActions(enabled?headerActionIds.filter(action=>action!==id):[...headerActionIds,id])}>
-                    {t(enabled?'headerActionShown':'headerActionHidden')}
-                  </Button>
-                  <Button type="button" disabled={busy||index<=0}
-                    aria-label={t('headerActionMoveUp',{name:headerActionNames[id]})}
-                    onClick={()=>{const next=[...headerActionIds];[next[index-1],next[index]]=[next[index],next[index-1]];updateHeaderActions(next);}}>↑</Button>
-                  <Button type="button" disabled={busy||!enabled||index===headerActionIds.length-1}
-                    aria-label={t('headerActionMoveDown',{name:headerActionNames[id]})}
-                    onClick={()=>{const next=[...headerActionIds];[next[index+1],next[index]]=[next[index],next[index+1]];updateHeaderActions(next);}}>↓</Button>
-                </div>
-              </div>;
-            })}</div>
-            <div className="headerActionFoot"><Button type="button" disabled={busy}
-              onClick={()=>updateHeaderActions([...DEFAULT_HEADER_ACTIONS])}>{t('headerActionsRestoreDefaults')}</Button></div>
-          </section>}
           <p className="hint">{t('thisExtensionDoesNotGuaranteeProxyCoverageForDns')}</p>
         </div>}
         {tab==='official' && <OfficialServicePage onBack={()=>navigate('profiles')}

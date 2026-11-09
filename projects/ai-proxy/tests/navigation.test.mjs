@@ -82,9 +82,9 @@ function workspaceFixture(preview = false, enhanced = true) {
   const hooks = [], effects = [], events = new EventTarget();
   let cursor = 0, focused = 0;
   const navigation = createNavigation({ initialRoute: '#/rules' });
-  const serviceListeners=new Set();
+  let savedHeaderActions=[...headerActions.DEFAULT_HEADER_ACTIONS];
+  const headerStore={getSnapshot:()=>({saved:savedHeaderActions,busy:false,unknown:false})};
   const env = { navigation, events, preview, navigate: navigation.navigate, setConfirmHandler() {}, setState() {},
-    service:{subscribe(fn){serviceListeners.add(fn);return()=>serviceListeners.delete(fn);}},
     request:async()=>({ok:true,state:{config:{}}}),hasDrafts:()=>false,clearDrafts(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));},markDraftFrom(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));} };
   let answer;
   env.confirm=(_text,{signal}={})=>new Promise(resolve=>{
@@ -112,6 +112,7 @@ function workspaceFixture(preview = false, enhanced = true) {
   runInNewContext(appCode, { AbortController, module, exports: module.exports,
     require(name) {
       if (name === './domain/header-actions') return headerActions;
+      if (name === './ui/header-actions') return {useHeaderActions:()=>headerStore};
       if (name === 'react') return react;
       if (name === './environment') return { getEnvironment: () => env };
       if (name === './i18n/LocaleProvider') return { LocaleProvider: 'locale', useI18n: () => ({ t: key => key }) };
@@ -123,7 +124,7 @@ function workspaceFixture(preview = false, enhanced = true) {
   });
   const Workspace = module.exports.default().props.children[0].type;
   return { env, navigation, events, snapshots, async answer(value){answer(value);await new Promise(setImmediate);},
-    notifyHeaderConfig(config){for(const fn of serviceListeners)fn({config});},
+    notifyHeaderConfig(config){savedHeaderActions=config.headerActions??headerActions.DEFAULT_HEADER_ACTIONS;},
     header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
     cursor = 0;
     const tree = Workspace({surface:'side-panel'});

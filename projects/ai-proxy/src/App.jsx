@@ -37,23 +37,9 @@ function Workspace({surface}) {
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
  const [headerNavigation,setHeaderNavigation]=useState(false);
- const [headerActionIds,setHeaderActionIds]=useState([...DEFAULT_HEADER_ACTIONS]);
  const [navigationError,setNavigationError]=useState(null);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  const navigationEpoch=useRef(0),routeDecision=useRef(null);
- // Shared Service changes refresh Header preferences in this surface as well.
- useEffect(()=>{
-  if(headerStore)return;
-  let alive=true;
-  const accept=state=>{
-   if(!alive||!state?.config)return;
-   const actions=state.config.headerActions??DEFAULT_HEADER_ACTIONS;
-   setHeaderActionIds(previous=>JSON.stringify(previous)===JSON.stringify(actions)?previous:[...actions]);
-  };
-  const off=env.service.subscribe(accept);
-  void env.request({type:'GET_STATE'}).then(result=>{if(result?.ok)accept(result.state);}).catch(()=>{});
-  return()=>{alive=false;off?.();};
- },[env,headerStore]);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=surface==='management'||route.startsWith('#/');
  const headerPage=useRef({route:null,revision:0,page:'home'});
@@ -118,8 +104,7 @@ function Workspace({surface}) {
    {id:'settings',label:t('apManageSettings'),icon:'settings',route:'#/profiles',section:'profiles'},
    {id:'official',label:t('officialNetwork'),icon:'settings',route:'#/official',section:'official'}
   ];
-  // The App-owned editor takes precedence; retain Service preferences for legacy consumers.
-  const selected=(headerState?.saved??headerActionIds).map(id=>catalog.find(action=>action.id===id)).filter(Boolean);
+  const selected=(headerState?.saved??DEFAULT_HEADER_ACTIONS).map(id=>catalog.find(action=>action.id===id)).filter(Boolean);
   const base={page,title:t(settings?'apManageSettings':'apProxyPanel'),canBack:settings,primary:null};
   const disabled=dirty||busy||headerLocked()||Boolean(confirmation)||pendingRoute!==null||env.toolNavigation.isLocked();
   const enhanced=env.toolNavigation.setNavigation(base,selected.map(({route:target,section,...action})=>({
@@ -149,7 +134,7 @@ function Workspace({surface}) {
     setNavigationError(error?.code==='E_OUTCOME_UNKNOWN'?'apOwnPageOutcomeUnknown':'couldNotOpenTheSettingsTabOpenItFrom');
    }
   });
- },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t,headerState,headerActionIds]);
+ },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t,headerState]);
  return <div className={'proxy-app'+(surface==='management'?' proxy-management':'')} id="proxy-ready" data-ready="true" data-surface={surface}
  onFocusCapture={event=>env.captureDraftFrom(event.target)}
  onClick={event=>submitLocally(event,event.target.closest('button[type="submit"]'))}

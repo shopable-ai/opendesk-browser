@@ -838,20 +838,4 @@
   :scope .subscriptionDetailStats > div {grid-template-columns:minmax(0,1fr) auto;align-items:center;}
 }
 
-  /* Action Slot preferences: business-owned layout, shared Host header remains the owner. */
-  :scope .headerActionsEditor { display:grid; gap:13px; min-width:0; padding:16px; }
-  :scope .headerActionsEditor > div:first-child strong { font-size:14px; }
-  :scope .headerActionsEditor .hint { margin:5px 0 0; }
-  :scope .headerActionsList { display:grid; gap:7px; }
-  :scope .headerActionRow { display:flex; align-items:center; gap:12px; min-width:0; padding:8px 10px; border:1px solid var(--line); border-radius:9px; }
-  :scope .headerActionRow > strong { flex:1; min-width:0; overflow-wrap:anywhere; font-size:12px; }
-  :scope .headerActionControls { display:flex; align-items:center; gap:5px; }
-  :scope .headerActionControls button { min-width:32px; min-height:32px; padding:5px 8px; }
-  :scope .headerActionControls button[aria-pressed="true"] { color:var(--accent); }
-  :scope .headerActionFoot { display:flex; justify-content:flex-end; }
-  @media(max-width:540px) {
-    :scope .headerActionRow { align-items:flex-start; flex-wrap:wrap; }
-    :scope .headerActionControls { margin-left:auto; }
-  }
-
 }

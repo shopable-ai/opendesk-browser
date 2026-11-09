@@ -85,3 +85,19 @@
 最终实际截图：`artifacts/ai-proxy/r18-r16-alignment/final-shell-r16.png`、`final-shell-r18.png`；实读回执 `pc-shell-runtime.json`。唯一主预览 SHA-256 仍为 `3e43c52564b702830979b21994d35a3fc16ab6afa4700dcce2119f3a6910ea40`，未修改。专属 CFT 保留干净 PC 页供查看；关闭其标签页可回到原侧栏。
 
 独立延期事项：旧/本地包的固定 UI 展示版本/整包 gate 仍为 P1；移除它须同时保留用户原包界面选择，不能按相同 ID 静默替换自定义 UI。并行合并后的 Header 存在 `ai-proxy.header-actions.v1` 与 `full-config.v2.headerActions` 两套草稿/存储入口，当前 App 优先前者；本轮未迁移或删改另一 owner 的数据。正式候选整合、这两项 P1、代理流量、production 和评分均不在本次壳验证 PASS 范围内。
+
+## 2026-11-09 合并后 Header 收敛与 0.3.12 实装
+
+用户确认可以直接完善后，继续处理已合并代码的 Header 遮蔽。PC 壳已独立提交 `0996d9d3a`；以下结果更新上一节 Header 延期及“源码未入安装候选”的状态，不扩大为生产验收。
+
+Header 编辑器现在只使用一个 App-owned 草稿 store，读写原 Service 的 `ai-proxy.full-config.v2.headerActions`，保存携带已接受读取的 `configEtag/ifMatch`。新字段缺失时，只读回退旧 `ai-proxy.header-actions.v1`；没有自动迁移写入或删除。原四项默认值及可选“官方网络”保留，校验复用 domain 单一白名单；删除了第二份即时保存编辑器、备用订阅和无消费者样式。render 不注册监听；StrictMode 重挂、迟到回执、dirty、冲突和 unknown 保护继续生效。
+
+- 先复现新字段被旧 store 忽略，再修正。相关 Header、Service、导航、配置、环境、设置、QuickPanel 和准入检查共 **212/212 PASS**；不是根全量 CI。定向源码复核未发现本次 Header 路径的 P0/P1，未评分。
+- 项目 Vite PASS；固定源码 lock 审核与校验 PASS。原打包器候选→定向门禁→晋升→`PROJECT_PACKAGE_MATCH` 完成。唯一正式包 **0.3.12 / 964650 bytes**，SHA-256 `32c6d9a6f0b41eb18bad302a2d2b079707fd5d05a38faa2c76e1ed2e7b88acb1`，原三项权限未变。
+- 相同专属 Profile、扩展 ID 和隔离输出，Browser 静态 development 构建 PASS，packageHash `ef84e9d5b8c51e4aac38429b7eede9f210ce576e0a9a8170fbc3fbd53db7babf`。候选包含当前完整 AI Proxy .12 源码及公共壳修正，仍不包含当前 main 的其他并行框架改动。
+- 通过扩展中心原「审阅新版」链真实更新 **.11→.12**，原应用数据完全保留，实际安装内容与唯一正式 JSON 完全相等。PC 保存“管理设置→添加代理→官方网络”，重开侧栏读回相同顺序；重新加载 PC 后也读回相同配置。随后经 UI 保存恢复默认四项，其余配置与更新前一致。
+- .12 真实 PC 仍只有一个业务框架、七个栏目，1054px 视口无横向溢出；Side Panel 保留原紧凑工具头。实际代理保持 `system / controllable_by_this_extension`，没有调用 Enable/Disable 或进行网络测试。
+
+最新证据：`header-0.3.12-runtime.json`、`upgrade-0.3.12-review.png`、`header-0.3.12-saved.png`、`header-0.3.12-sidebar-readback.png`、`final-0.3.12-r16.png`、`final-0.3.12-r18.png`（均在原 artifacts 目录）。主预览仍未改。日常 Chrome、原 watcher、根 `dist/development` 及 Native 配对未动；只导入 JSON 不能更新 Browser 固定壳。专属可见 CFT 留在干净候选供查看。
+
+仍延期：旧/本地包的固定 UI 展示 gate、当前并行框架整合、production、代理流量和独立评分；不将 .12 开发候选视为这些项目已通过。
