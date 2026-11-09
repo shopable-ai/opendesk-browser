@@ -1,3 +1,6 @@
+import {APP_PAGE_ACTION,verifyAppPageTool,readAppPageParent,appPageStorage} from './app-page-contract.js';
+import {appPageDispatchSource} from './app-page-runtime.js';
+import {sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
 import {readNativeUserScripts} from './native-access.js';
 import {validatePageInstallPackage} from './page-install-package.js';
 import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platform/protocol.js';
@@ -155,7 +158,7 @@ async function verifiedEnvironment(candidate,receipt){
   if(frameworkId)invariant(receipt.packagedFrameworkId===frameworkId&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[frameworkId].sha256,'E_PAGE_ENVIRONMENT');
 }
-const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
+const publicInstall=row=>row?{...(row.appOwner?{appOwner:structuredClone(row.appOwner)}:{}),programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   title:row.title??row.programId,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
   authorization:row.authorization?structuredClone(row.authorization):null,
@@ -238,7 +241,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     return {compiled,optionalSources,frameworkSource,jqueryCode};
   }
+  async function assertAppParent(row,{requireEnabled=row.enabled!==false}={}){
+    if(!row.appOwner){invariant(!row.programId?.startsWith('app.'),'E_APP_PAGE_OWNER','Reserved companion identity');return;}
+    const tool=await readAppPageParent(api,row.appOwner,{requireEnabled});
+    invariant(tool.pageModule.programId===row.programId&&tool.pageModule.sourceHash===row.sourceHash&&
+      tool.pageModule.revision===row.revision&&equal(tool.pageModule.pageRules,row.pageRules),'E_APP_PAGE_OWNER','Companion source changed');
+  }
   async function descriptor(row,{legacy=false}={}){
+    await assertAppParent(row);
     const {candidate,resolution}=await material(row.programId,row.revision),proof=await proofFor(candidate,{available:true});
     assertBuiltinIdentity(row.builtinIdentity,candidate.builtinIdentity);
     invariant(row.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&row.manifestHash===candidate.manifestHash&&
@@ -258,11 +268,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       js:[{code:'const '+marker+' = '+JSON.stringify(row.token)+';\n'+
         'chrome.runtime.sendMessage('+JSON.stringify(message)+').catch(error=>console.error("[OpenDesk Page bootstrap]",error));'}]};
   }
-  async function importPageInstallPackage(request,sender){
+  async function importPageInstallPackage(request,sender,appOwner=null){
     fields(request,['package','expectedInstalledManifestHash','expectedGeneration']);
     request=structuredClone(request);
     await scoped(sender,'readonly',()=>{});
     const pkg=await validatePageInstallPackage(request.package);
+    invariant(!pkg.programId.startsWith('app.')||appOwner&&pkg.programId==='app.'+appOwner.toolId,'E_APP_PAGE_OWNER','Companions require parent installation');
     const previous=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,pkg.programId)));
     invariant(previous?.tag!==PAGE_UNINSTALL_TAG,'E_PAGE_CLEANUP_PENDING',
       '旧安装已卸载，但原网页清理尚未确认；请保存并刷新相关网页后重新安装');
@@ -298,7 +309,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const proof=await proofFor(candidate);
     if(proof.status!=='Available')await makePageAvailable({programId:pkg.programId,revision:pkg.revision,manifestHash:candidate.manifestHash},sender);
     return installPageProgram({programId:pkg.programId,revision:pkg.revision,manifestHash:candidate.manifestHash,
-      expectedInstalledManifestHash:request.expectedInstalledManifestHash,expectedGeneration:request.expectedGeneration,title:pkg.title},sender);
+      expectedInstalledManifestHash:request.expectedInstalledManifestHash,expectedGeneration:request.expectedGeneration,title:pkg.title},sender,appOwner);
   }
   async function verifyPageCandidate(request,sender){
     fields(request,['programId','revision','target']);
@@ -342,7 +353,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       return {stage:'Available',manifestHash:candidate.manifestHash};
     });
   }
-  async function installPageProgram(request,sender){
+  async function installPageProgram(request,sender,appOwner=null){
+    invariant(!request?.programId?.startsWith('app.')||appOwner&&request.programId==='app.'+appOwner.toolId,'E_APP_PAGE_OWNER','Companions require parent installation');
     request=structuredClone(request);
     fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash','expectedGeneration','title'],
       ['programId','revision','manifestHash','expectedInstalledManifestHash']);
@@ -381,14 +393,15 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
         'E_PAGE_CLEANUP_PENDING','旧安装的受管界面清理尚未确认；请核对原网页后主动完成清理，不能覆盖恢复记录');
       const scope=pageInstallScope(candidate.manifest.pageRules,candidate.manifest.programId,candidate.manifest.revision),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
-      const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
+      const parentEnabled=appOwner?(await readAppPageParent(api,appOwner,{requireEnabled:false,withState:true})).enabled:true;
+      const row={tag:PAGE_INSTALL_TAG,namespace,...(appOwner?{appOwner:structuredClone(appOwner)}:{}),programId:request.programId,revision:request.revision,
         title:request.title?.trim()??previous?.title??request.programId,
-        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:previous?.enabled??true,
+        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:parentEnabled&&(previous?.enabled??true),
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
         nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
         authorization:{tag:'page-install-authorization-v1',installationId:previous?.authorization?.installationId??crypto.randomUUID(),
           generation:(previous?.authorization?.generation??0)+1,
-          status:previous?.enabled===false?'disabled':'active',scope,
+          status:!parentEnabled||previous?.enabled===false?'disabled':'active',scope,
           approvedAt:delta.requiresConfirmation?clock.now():previous.authorization.approvedAt}};
       const epoch=permissionEpoch(row);
       const desired=await descriptor(row);
@@ -432,6 +445,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function setInstalledPageEnabled(request,sender){
+    invariant(!request?.programId?.startsWith('app.'),'E_APP_PAGE_OWNER','Manage companion through parent');
     request=structuredClone(request);
     fields(request,['programId','manifestHash','installationId','enabled','expectedGeneration']);
     invariant(typeof request.enabled==='boolean','E_SCHEMA','启用状态必须是布尔值');
@@ -472,6 +486,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   // A failed native unregister leaves a disabled recoverable record, never an
   // apparent successful uninstall. This does not undo effects in live pages.
   async function uninstallPageProgram(request,sender){
+    invariant(!request?.programId?.startsWith('app.'),'E_APP_PAGE_OWNER','Manage companion through parent');
     request=structuredClone(request);
     fields(request,['programId','manifestHash','installationId','expectedGeneration']);
     return ordered(async()=>{
@@ -828,6 +843,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
     invariant(admitted,'E_REQUEST_CONFLICT','此固定版本已在本 document 准入；不会自动重放');
     const authorize=async()=>{
+      await assertAppParent(row);
       const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
       invariant(current&&active(current)&&current.token===row.token&&current.manifestHash===row.manifestHash&&
         permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
@@ -1371,6 +1387,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return value;
   }
   function handleBoot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
+    if(message?.action===APP_PAGE_ACTION)return handleAppPageBridge(message,sender);
     if(message?.action==='page-config')return handlePageConfig(message,sender);
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
     const next=executions.then(()=>boot(message,sender,source,manualReceiptId,manualHostDocumentId)).catch(async error=>{
@@ -1439,6 +1456,168 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     }
     return {...response,receiptId};
   }
-  return Object.freeze({importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
+  async function prepareAppPage(request,sender){
+    fields(request,['tool']);await scoped(sender,'readonly',()=>{});
+    const tool=await verifyAppPageTool(request.tool),pkg=tool.pageModule;
+    await nativeAPI();
+    invariant(await api.permissions.contains({origins:pageHostPermissionOrigins(pkg.pageRules.matches)}),
+      PAGE_PERMISSION_ERROR,'Companion sites require Chrome permission');
+    return {status:'prepared',toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),programId:pkg.programId,sourceHash:pkg.sourceHash};
+  }
+  const appOwnerOf=request=>({toolId:request.toolId,packageHash:request.packageHash,installEpoch:request.installEpoch});
+  async function importAppPage(request,sender){
+    fields(request,['toolId','packageHash','installEpoch']);await scoped(sender,'readonly',()=>{});
+    const owner=appOwnerOf(request),tool=await readAppPageParent(api,owner,{requireEnabled:false});
+    const previous=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,tool.pageModule.programId)));
+    // Never revive or overwrite another parent incarnation, including same-source upgrades.
+    if(previous)invariant(previous.appOwner&&equal(previous.appOwner,owner),'E_APP_PAGE_OWNER','Retire previous parent companion first');
+    await importPageInstallPackage({package:tool.pageModule,expectedInstalledManifestHash:previous?.manifestHash??null,
+      expectedGeneration:previous?.authorization?.generation??null},sender,owner);
+    return {...await verifyAppPage(request,sender),status:'installed'};
+  }
+  async function verifyAppPage(request,sender){
+    fields(request,['toolId','packageHash','installEpoch']);await scoped(sender,'readonly',()=>{});
+    const owner=appOwnerOf(request),tool=await readAppPageParent(api,owner,{requireEnabled:false});
+    const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,tool.pageModule.programId)));
+    invariant(row?.appOwner&&equal(row.appOwner,owner)&&row.tag===PAGE_INSTALL_TAG,
+      'E_APP_PAGE_OWNER','Companion installation missing or changed');
+    const desired=await descriptor(row),scripts=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
+    if(row.enabled){
+      invariant(active(row)&&row.nativeState==='registered'&&!row.error&&scripts.length===1&&nativeEqual(scripts[0],desired.script),
+        'E_PAGE_INSTALLATION','Companion native registration unverified');await requireSiteGrant(row);
+    }else invariant(row.authorization?.status==='disabled'&&row.nativeState==='disabled'&&!scripts.length,
+      'E_PAGE_INSTALLATION','Companion disable not confirmed');
+    await readAppPageParent(api,owner,{requireEnabled:row.enabled});
+    await scoped(sender,'readonly',async tx=>{
+      const latest=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
+      invariant(latest?.token===row.token&&latest.authorization?.generation===row.authorization.generation&&
+        latest.nativeState===row.nativeState,'E_PAGE_INSTALLATION','Companion changed during verification');
+    });
+    return {status:'verified',appOwner:owner,programId:row.programId,manifestHash:row.manifestHash,
+      sourceHash:row.sourceHash,nativeState:row.enabled?'registered':'disabled',ready:true};
+  }
+  async function synchronizeAppPages(request={},sender){
+    fields(request,['toolId'],[]);if(sender)await scoped(sender,'readonly',()=>{});
+    return ordered(async()=>{
+      const rows=await read(tx=>tx.all(PAGE_STORE)),retired=[],cleanupPending=[];
+      for(const previous of rows.filter(row=>row?.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&row.appOwner&&
+        (!request.toolId||row.appOwner.toolId===request.toolId))){
+        try{
+          await assertAppParent(previous,{requireEnabled:previous.enabled!==false});
+          if(previous.enabled!==false)continue;
+          // A queued wake after a disabled parent update must retain its inert
+          // companion. Disabled flags alone cannot prove native/resource cleanup.
+          assertPageInstallAuthorization(previous);
+          if(previous.authorization.status==='disabled'&&previous.nativeState==='disabled'&&!previous.error){
+            const scripts=await (await nativeAPI()).getScripts({ids:[previous.nativeId]});
+            if(!scripts.length){
+              const cleanup=preview.retireInstalled
+                ?await preview.retireInstalled(previous,{includeCurrent:true,observeOnly:true})
+                :previous.managedCleanup??{state:rows.some(execution=>execution?.tag==='page-execution-v1'&&
+                  execution.namespace===namespace&&execution.programId===previous.programId&&
+                  execution.installationId===previous.authorization.installationId)?'unknown':'retired'};
+              if(cleanup.state==='retired')continue;
+            }
+          }
+        }catch{/* Only revoke; never infer retirement from an unknown read. */}
+        const row={...previous,enabled:false,token:crypto.randomUUID().replaceAll('-',''),nativeState:'pending',
+          authorization:{...previous.authorization,generation:previous.authorization.generation+1,status:'disabled'}};
+        await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+          const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
+          invariant(current?.token===previous.token,PAGE_REVISION_ERROR,'Companion changed during cleanup');
+          await tx.put(PAGE_STORE,row,key(INSTALL_KEY_KIND,namespace,row.programId));
+        });
+        await reconcileOne(row);
+        const after=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
+        if(after.nativeState!=='disabled'||after.managedCleanup&&after.managedCleanup.state!=='retired'){
+          cleanupPending.push(row.programId);continue;
+        }
+        await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+          const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
+          if(current?.token===row.token)await tx.delete(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
+        });retired.push(row.programId);
+      }
+      return {status:'synchronized',retired,cleanupPending};
+    });
+  }
+  async function appExecution(row,executionKey,receiptNonce,target){
+    await assertAppParent(row);await requireSiteGrant(row);
+    const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
+    const execution=await read(tx=>tx.get(PAGE_STORE,executionKey));
+    invariant(current?.token===row.token&&active(current)&&current.nativeState==='registered'&&!current.error&&
+      execution?.tag==='page-execution-v1'&&execution.namespace===namespace&&execution.programId===row.programId&&
+      execution.executionKey===executionKey&&execution.receiptNonce===receiptNonce&&
+      ['dispatched','completed'].includes(execution.state)&&execution.browserSessionIncarnation===session&&
+      execution.installationToken===row.token&&execution.installationId===row.authorization.installationId&&
+      execution.grantGeneration===row.authorization.generation&&execution.manifestHash===row.manifestHash&&
+      execution.sourceHash===row.sourceHash&&typeof execution.managedUI?.worldId==='string'&&
+      execution.tabId===target.tabId&&execution.documentId===target.documentId,
+      'E_PAGE_AUTHORIZATION','Companion execution expired');
+    const [tab,frames,desired]=await Promise.all([api.tabs.get(target.tabId),api.webNavigation.getAllFrames({tabId:target.tabId}),descriptor(row)]);
+    const frame=frames?.find(frame=>frame.frameId===0&&frame.documentId===target.documentId);
+    invariant(frame&&!frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active')&&
+      !tab.incognito&&!tab.pendingUrl&&tab.url===frame.url&&frame.url===target.expectedUrl&&
+      (target.expectedWindowId===undefined||tab.windowId===target.expectedWindowId)&&installedURLMatches(row,frame.url),
+      'E_DOCUMENT_STALE','Companion document changed');
+    const scripts=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
+    invariant(scripts.length===1&&nativeEqual(scripts[0],desired.script),'E_PAGE_AUTHORIZATION','Native companion changed');
+    await assertAppParent(row);
+    const latest=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
+    invariant(latest?.token===row.token&&active(latest)&&latest.nativeState==='registered'&&!latest.error,
+      'E_PAGE_AUTHORIZATION','Companion changed during authorization');
+    return execution;
+  }
+  async function handleAppPageBridge(message,sender){
+    fields(message,['protocol','action','programId','executionKey','receiptNonce','worldId','operation','payload']);
+    invariant(message.protocol===PAGE_BOOT_PROTOCOL&&sender?.id===api.runtime.id&&sender.frameId===0&&
+      typeof sender.documentId==='string'&&Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito,
+      'E_OWNER','Companion requires original USER_SCRIPT sender');
+    const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,message.programId)));
+    invariant(row?.appOwner,'E_APP_PAGE_OWNER','Missing companion');
+    const authorize=async()=>{
+      const frames=await api.webNavigation.getAllFrames({tabId:sender.tab.id});
+      const frame=frames?.find(frame=>frame.frameId===sender.frameId&&frame.documentId===sender.documentId);
+      // MessageSender retains the injection URL across same-document history.
+      // Re-resolve the exact document and current URL on every authorization.
+      invariant(frame&&httpUrl(frame.url).origin===httpUrl(sender.url).origin,
+        'E_DOCUMENT_STALE','Companion sender document changed');
+      return appExecution(row,message.executionKey,message.receiptNonce,
+        {tabId:sender.tab.id,documentId:sender.documentId,expectedUrl:frame.url});
+    };
+    const execution=await authorize();
+    invariant(message.worldId===execution.managedUI.worldId&&
+      (sender.userScriptWorldId===undefined||sender.userScriptWorldId===message.worldId),
+      'E_PAGE_AUTHORIZATION','Companion world changed');
+    if(message.operation==='authorize')return {ready:true};
+    return appPageStorage({api,owner:row.appOwner,operation:message.operation,payload:message.payload,authorize});
+  }
+  async function requestAppPage(request,sender){
+    fields(request,['toolId','packageHash','installEpoch','target','operation','payload']);
+    await verifyAppPage(appOwnerOf(request),sender);
+    await readAppPageParent(api,appOwnerOf(request));
+    fields(request.target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
+    invariant(request.target.frameId===0&&typeof request.operation==='string'&&
+      /^[a-zA-Z][a-zA-Z0-9._-]{0,79}$/.test(request.operation),'E_SCHEMA','Invalid companion request');
+    invariant(new TextEncoder().encode(canonical(request.payload)).byteLength<=32768,'E_LIMIT','Companion request too large');
+    const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,'app.'+request.toolId)));
+    const executions=await read(tx=>tx.all(PAGE_STORE));
+    const matches=executions.filter(value=>value?.tag==='page-execution-v1'&&value.programId===row.programId&&
+      value.installationToken===row.token&&value.documentId===request.target.documentId&&value.tabId===request.target.tabId&&
+      ['dispatched','completed'].includes(value.state)&&value.browserSessionIncarnation===session);
+    invariant(matches.length===1,'E_PAGE_AUTHORIZATION','No unique live companion execution');
+    const execution=matches[0];
+    await appExecution(row,execution.executionKey,execution.receiptNonce,request.target);
+    let results;
+    try{results=await (await nativeAPI()).execute({target:{tabId:request.target.tabId,documentIds:[request.target.documentId]},
+      world:'USER_SCRIPT',worldId:execution.managedUI.worldId,
+      js:[{code:appPageDispatchSource(execution.receiptNonce,request.operation,request.payload)}]});}
+    catch(cause){throw new FoundationError(PAGE_UNKNOWN_ERROR,'Companion request outcome unknown; do not replay: '+String(cause.message||cause));}
+    invariant(results?.length===1&&results[0].frameId===0&&results[0].documentId===request.target.documentId&&
+      results[0].error===undefined,'E_EFFECT_UNKNOWN','Companion result unknown; do not replay');
+    await appExecution(row,execution.executionKey,execution.receiptNonce,request.target);
+    invariant(new TextEncoder().encode(canonical(results[0].result)).byteLength<=131072,'E_LIMIT','Companion result too large');
+    return results[0].result;
+  }
+  return Object.freeze({prepareAppPage,importAppPage,verifyAppPage,synchronizeAppPages,requestAppPage,importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
     listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }

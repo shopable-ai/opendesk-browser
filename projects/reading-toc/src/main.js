@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const {root,request}=globalThis.OpenDeskTool;
+const {root,request,setState}=globalThis.OpenDeskTool;
 const bundledCatalog=__OPENDESK_TOOL_MESSAGES__;
 let catalog=globalThis.OpenDeskTool.messages||bundledCatalog;
 let locale=globalThis.OpenDeskTool.locale||catalog.sourceLocale;
@@ -70,6 +70,7 @@ function paintStatus(){
  error.dataset.state=statusState;error.hidden=!statusKey;
 }
 function paintLanguage(){
+ settingsLanguage();
  root.querySelector('.toc-panel').setAttribute('aria-label',t('panelLabel'));
  root.querySelector('.toc-title').textContent=t('contents');
  root.querySelector('.toc-modes').setAttribute('aria-label',t('modesLabel'));
@@ -131,7 +132,7 @@ function render(){
    button.addEventListener('click',async()=>{
     if(stale)return;
     showStatus('');
-    try{const result=await request('toc.navigate',{id:item.id,sourceId:item.sourceId});
+    try{const result=await request('page.request',{operation:'toc.navigate',payload:{id:item.id,sourceId:item.sourceId}});
      if(!result?.ok)throw Error(t('navigateChanged'));
      data.activeId=item.id;render();
     }catch(e){showStatus('navigateChanged',{},'error');}
@@ -170,10 +171,10 @@ async function refresh(){
  reload.setAttribute('aria-busy','true');
  if(!hasSnapshot)showStatus('loading',{},'loading');
  try{
-  const snapshot=await request('toc.snapshot',force?{refresh:true}:{});
+  const snapshot=await request('page.request',{operation:'toc.snapshot',payload:force?{refresh:true}:{}});
   if(closed)return;
   if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))throw Error(t('invalidData'));
-  data=snapshot;hasSnapshot=true;stale=false;failures=0;
+  data=snapshot;void loadSettings(snapshot);hasSnapshot=true;stale=false;failures=0;
   missing=snapshot.items.length===0?Math.min(3,missing+1):0;
   showStatus('');render();
  }catch(e){
@@ -198,6 +199,70 @@ globalThis.OpenDeskTool.onLocaleChange?.(next=>{
  catalog=globalThis.OpenDeskTool.messages||bundledCatalog;
  locale=next;paintLanguage();render(); // Same data; never makes a network or TOC request.
 });
+// App-owned site/page controls. Each change merges just one list membership
+// against the latest ETag; capacity/unknown failures preserve all existing data.
+const settings=root.querySelector('#toc-settings'),settingsError=root.querySelector('#toc-settings-error');
+let settingsIdentity=null,settingsBusy=false,settingsToken=0;
+const settingFields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
+const settingsLabels=['本站启用目录','本页启用目录','本站显示悬浮目录','本页显示悬浮目录'];
+function settingsLanguage(){
+ const en=String(locale).startsWith('en');
+ const summary=settings?.querySelector('summary');
+ if(summary)summary.textContent=en?'Site and page settings':'网站与页面设置';
+ const labels=en?['Enable on this site','Enable on this page','Show overlay on this site','Show overlay on this page']:settingsLabels;
+ settings?.querySelectorAll('[data-setting-label]').forEach((node,i)=>{node.textContent=labels[i];});
+}
+async function loadSettings(snapshot){
+ if(!settings||settingsBusy||!snapshot?.url)return;
+ const token=++settingsToken;
+ const url=new URL(snapshot.url);url.hash='';
+ const identity={origin:url.origin,page:url.origin+url.pathname};
+ try{
+  const stored=await request('storage.get',{key:'preferences',withEtag:true});
+  if(closed||settingsBusy||token!==settingsToken)return;
+  settingsIdentity=identity;settings.hidden=false;
+  for(const input of settings.querySelectorAll('input[data-toc-setting]')){
+   const field=input.dataset.tocSetting;
+   input.checked=!(stored.value?.[field]||[]).includes(field.endsWith('Origins')||field==='hiddenSites'?identity.origin:identity.page);
+   input.disabled=false;
+  }
+ }catch{if(token===settingsToken){settingsIdentity=null;settings.hidden=true;}}
+}
+settings?.addEventListener('change',async event=>{
+ const input=event.target,field=input.dataset?.tocSetting;
+ if(!settingFields.includes(field)||!settingsIdentity||settingsBusy)return;
+ const identity=settingsIdentity,target=field==='blockedOrigins'||field==='hiddenSites'?identity.origin:identity.page;
+ const excluded=!input.checked;settingsBusy=true;settingsToken++;
+ let saved=false;
+ setState({dirty:true,busy:true});
+ for(const node of settings.querySelectorAll('input'))node.disabled=true;
+ try{
+  for(let attempt=0;attempt<4;attempt++){
+   const before=await request('storage.get',{key:'preferences',withEtag:true});
+   if(closed)return;
+   if(typeof before?.etag!=='string'||!before.etag)throw Error('Missing storage ETag');
+   const value=before.value??{};
+   if(typeof value!=='object'||Array.isArray(value))throw Error('Invalid preferences');
+   const items=value[field]||[];
+   if(!Array.isArray(items)||items.some(item=>typeof item!=='string'))throw Error('Invalid preferences');
+   const next=items.filter(item=>item!==target);if(excluded)next.push(target);
+   try{
+    const receipt=await request('storage.set',{key:'preferences',value:{...value,[field]:next},ifMatch:before.etag});
+    if(receipt?.saved!==true)throw Error('Storage write not confirmed');
+    saved=true;break;
+   }catch(error){if(error?.code!=='E_STORAGE_CONFLICT'||attempt===3)throw error;}
+  }
+  if(saved&&settingsError){settingsError.hidden=true;settingsError.textContent='';}
+ }catch(error){
+  if(settingsError){settingsError.hidden=false;settingsError.textContent=(String(locale).startsWith('en')?'Settings were not saved: ':'设置未保存：')+String(error?.message||error).slice(0,150);}
+ }
+ finally{
+  settingsBusy=false;
+  try{if(!closed){await loadSettings(data);requestRefresh();}}
+  finally{setState({dirty:!saved,busy:false});}
+ }
+});
+settingsLanguage();
 paintLanguage();
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));
 const modeGroup=root.querySelector('.toc-modes');

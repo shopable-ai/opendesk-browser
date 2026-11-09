@@ -7,6 +7,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey} from '.
 import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {readMarketInstallStatus} from '../../src/marketplace/status.js';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 
 // Exercise the trusted UI with the real intent, journal, installer and status.
 // Distribution and panel ownership are injected: real owner validation has separate backend tests.
@@ -55,11 +56,11 @@ async function harness(t){
   globalThis.window={close(){h.closes++;}};
   globalThis.__marketTrustedTestLoad=async()=>{
     h.downloads++;await h.beforeLoad?.(h.downloads);if(h.offline)throw Error('市场暂时无法连接');
-    const candidate=h.changed?{...tool,js:'void 1;'}:tool;
+    const candidate=h.changed?{...tool,js:'void 1;'}:(h.reviewTool||tool);
     return {tool:structuredClone(candidate),release:{sha256:await sidebarToolPackageHash(candidate)}};
   };
   h.mount=()=>{
-    h.ui=createMarketInstallReview({api,lockManager,reviewId:row.reviewId,assertOwner:()=>h.assertOwner(),
+    h.ui=createMarketInstallReview({api,lockManager,reviewId:row.reviewId,pageClient:h.pageClient,assertOwner:()=>h.assertOwner(),
       assertCanInstall:id=>h.assertCanInstall(id),
       openInstalledApp:identity=>h.openApp(identity),
       onChange:model=>{h.model=model;h.models.push(model);},onClose:()=>{h.closes++;}});
@@ -323,4 +324,157 @@ test('legacy initMarketInstall only renders guidance and cannot approve or cance
   assert.equal(ui.act,undefined);assert.equal(ui.dismiss,undefined);ui.dispose();
   assert.equal(h.downloads,0);assert.deepEqual(h.writes,[]);assert.deepEqual(h.row(),before);
   assert.deepEqual(h.opened,[]);assert.equal(h.closes,0);
+});
+
+async function companionHarness(t){
+  const h=await harness(t),sourceUtf8='document.documentElement.dataset.companion="ready";';
+  const payload={format:'opendesk.page-install.v1',programId:'app.'+tool.id,version:tool.version,
+    title:tool.title,revision:1,entryFormat:'classic-userscript',sourceUtf8,
+    sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:['https://example.com/articles/*'],
+      excludeMatches:['https://example.com/articles/private/*'],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  h.reviewTool={...tool,format:'opendesk.sidebar-tool.v2',capabilities:['storage.local','page.module'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...payload,packageHash:await digest(payload)}};
+  h.permissionCalls=[];h.pageCalls=[];h.granted=false;h.allowPermission=true;h.nativeInstalled=false;
+  const added=new Set(),removed=new Set();
+  h.api.permissions={
+    onAdded:{addListener:fn=>added.add(fn),removeListener:fn=>added.delete(fn)},
+    onRemoved:{addListener:fn=>removed.add(fn),removeListener:fn=>removed.delete(fn)},
+    async contains(request){h.permissionCalls.push(['contains',structuredClone(request)]);return h.granted;},
+    request(request){
+      h.permissionCalls.push(['request',structuredClone(request)]);
+      h.requestInClick=h.inClick===true;
+      if(h.allowPermission)h.granted=true;
+      return Promise.resolve(h.allowPermission);
+    }
+  };
+  h.invalidatePermission=()=>{h.granted=false;for(const fn of removed)fn();};
+  h.pageClient={async request(type,payload){
+    h.pageCalls.push({type,payload:structuredClone(payload)});
+    if(type==='prepareAppPage')return {status:'prepared',toolId:tool.id,
+      packageHash:await sidebarToolPackageHash(h.reviewTool),programId:h.reviewTool.pageModule.programId,
+      sourceHash:h.reviewTool.pageModule.sourceHash};
+    if(type==='synchronizeAppPages')return {status:'synchronized',cleanupPending:[]};
+    if(type==='importAppPage'){
+      h.nativeInstalled=true;
+      if(h.loseImportAcknowledgement){h.loseImportAcknowledgement=false;throw Error('lost Page import acknowledgement');}
+    }
+    assert.ok(['importAppPage','verifyAppPage'].includes(type));
+    assert.equal(h.nativeInstalled,true);
+    return {status:type==='importAppPage'?'installed':'verified',nativeState:'registered',ready:true,
+      manifestHash:'a'.repeat(64),appOwner:payload,programId:h.reviewTool.pageModule.programId,
+      sourceHash:h.reviewTool.pageModule.sourceHash};
+  }};
+  h.confirm=event=>{
+    h.inClick=true;const pending=h.ui.act('commit',event);h.inClick=false;return pending;
+  };
+  t.after(()=>h.ui?.dispose());
+  return h;
+}
+
+test('companion market review prepares scope, explains combined identity, and requests only in the trusted click stack',async t=>{
+  const h=await companionHarness(t);await h.start();
+  assert.deepEqual(h.buttons(),['确认安装','取消安装']);
+  assert.deepEqual(h.permissionCalls,[['contains',{origins:['https://example.com/*']}]]);
+  assert.deepEqual(h.pageCalls,[]);assert.equal(h.row().consumedAt,null);
+  for(const detail of ['https://example.com/articles/*','https://example.com/articles/private/*','USER_SCRIPT','document_idle'])
+    assert.ok(h.model.details.description.includes(detail));
+  for(const identity of [h.reviewTool.pageModule.programId,h.reviewTool.pageModule.sourceHash,h.reviewTool.pageModule.packageHash])
+    assert.ok(h.model.technical.join('\n').includes(identity));
+  const pending=h.confirm({isTrusted:true});
+  assert.equal(h.requestInClick,true,'permission request must precede the first awaited operation');
+  assert.deepEqual(h.permissionCalls.filter(([name])=>name==='request'),[['request',{origins:['https://example.com/*']}]]);
+  await pending;
+  assert.equal(h.model.phase,'installed',h.message());
+  assert.ok(h.row().settledAt);assert.deepEqual(h.values[SIDEBAR_TOOL_STORE],[h.reviewTool]);
+  assert.deepEqual(h.pageCalls.map(row=>row.type),['prepareAppPage','synchronizeAppPages','importAppPage','verifyAppPage']);
+  assert.equal(h.pageCalls.at(-1).payload.packageHash,await sidebarToolPackageHash(h.reviewTool));
+});
+
+test('companion permission denial or an untrusted/missing click preserves original install and unconsumed intent',async t=>{
+  for(const mode of ['denied','untrusted','missing','invalidated'])await t.test(mode,async t=>{
+    const h=await companionHarness(t),previous={...tool,version:'0.9.0'};
+    h.values[SIDEBAR_TOOL_STORE]=[previous];await h.start();
+    if(mode==='denied')h.allowPermission=false;
+    if(mode==='invalidated')h.invalidatePermission();
+    await h.confirm(mode==='missing'?undefined:{isTrusted:mode!=='untrusted'});
+    assert.equal(h.model.phase,'error');assert.equal(h.row().consumedAt,null);
+    assert.deepEqual(h.values[SIDEBAR_TOOL_STORE],[previous]);
+    assert.equal(h.values[MARKET_OPERATIONS_STORE],undefined);assert.deepEqual(h.pageCalls,[]);
+    assert.equal(h.permissionCalls.filter(([name])=>name==='request').length,mode==='denied'?1:0);
+  });
+});
+
+test('already granted companion sites require a trusted confirmation without requesting again',async t=>{
+  const h=await companionHarness(t);h.granted=true;await h.start();
+  await h.confirm({isTrusted:true});
+  assert.equal(h.model.phase,'installed',h.message());
+  assert.equal(h.permissionCalls.filter(([name])=>name==='request').length,0);
+  assert.ok(h.permissionCalls.filter(([name])=>name==='contains').length>=2,'the original gate rechecks existing access');
+});
+
+test('companion installation recovers verified native identity after lost acknowledgement without importing or prompting again',async t=>{
+  const h=await companionHarness(t);await h.start();h.loseImportAcknowledgement=true;
+  await h.confirm({isTrusted:true});
+  assert.equal(h.model.phase,'error');assert.ok(h.row().consumedAt);assert.equal(h.row().settledAt,null);
+  const calls=h.pageCalls.length,downloads=h.downloads,requests=h.permissionCalls.filter(([name])=>name==='request').length;
+  h.ui.dispose();h.offline=true;await h.start();
+  assert.equal(h.model.phase,'installed',h.message());assert.ok(h.row().settledAt);
+  assert.equal(h.downloads,downloads);
+  assert.ok(h.pageCalls.slice(calls).length>0);
+  assert.ok(h.pageCalls.slice(calls).every(row=>row.type==='verifyAppPage'));
+  assert.equal(h.pageCalls.filter(row=>row.type==='importAppPage').length,1);
+  assert.equal(h.permissionCalls.filter(([name])=>name==='request').length,requests);
+});
+
+test('missing companion client fails before confirmation while ordinary packages keep their existing path',async t=>{
+  const h=await companionHarness(t);h.pageClient=null;await h.start();
+  assert.equal(h.model.phase,'error');assert.match(h.message(),/E_HOST_UNAVAILABLE/);
+  assert.ok(!h.buttons().includes('确认安装'));assert.equal(h.row().consumedAt,null);
+  assert.equal(h.permissionCalls.filter(([name])=>name==='request').length,0);
+});
+
+test('changed companion bytes after review cannot reuse the combined package approval',async t=>{
+  const h=await companionHarness(t);await h.start();
+  h.beforeLoad=async()=>{
+    const {packageHash,...page}=h.reviewTool.pageModule;
+    page.sourceUtf8+='\nvoid 1;';page.sourceHash=await digestUtf8(page.sourceUtf8);
+    h.reviewTool={...h.reviewTool,pageModule:{...page,packageHash:await digest(page)}};
+  };
+  await h.confirm({isTrusted:true});
+  assert.equal(h.model.phase,'error');assert.match(h.message(),/E_PACKAGE_IDENTITY/);
+  assert.equal(h.row().consumedAt,null);assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);
+  assert.deepEqual(h.pageCalls,[]);
+});
+
+test('recovery with a mismatched companion owner remains unknown without replay',async t=>{
+  const h=await companionHarness(t);await h.start();h.loseImportAcknowledgement=true;
+  await h.confirm({isTrusted:true});h.ui.dispose();
+  const request=h.pageClient.request;
+  h.pageClient.request=async(type,payload)=>{
+    const receipt=await request(type,payload);
+    return type==='verifyAppPage'?{...receipt,appOwner:{...receipt.appOwner,packageHash:'0'.repeat(64)}}:receipt;
+  };
+  h.offline=true;await h.start();
+  assert.equal(h.model.phase,'unknown');assert.equal(h.row().settledAt,null);
+  assert.equal(h.pageCalls.filter(row=>row.type==='importAppPage').length,1);
+  assert.ok(!h.buttons().includes('确认安装'));
+});
+
+test('market sheet forwards the same optional pageClient and trusted event synchronously',async t=>{
+  const entry=new URL('../../src/ui/market-install-sheet.js',import.meta.url);
+  let received,clicked,actions;
+  globalThis.__marketCompanionSheet={create(options){received=options;return {ready:Promise.resolve(),
+    getSnapshot:()=>({phase:'review'}),act:(...args)=>{clicked=args;},dispose(){}};}};
+  t.after(()=>delete globalThis.__marketCompanionSheet);
+  const source=(await readFile(entry,'utf8'))
+    .replace("import {createMarketInstallReview} from '../marketplace/install.js';",'const createMarketInstallReview=options=>globalThis.__marketCompanionSheet.create(options);')
+    .replace("import {requestPendingMarketReviews,claimMarketReview} from '../marketplace/panel.js';",'const requestPendingMarketReviews=async()=>[];const claimMarketReview=async()=>({});')
+    .replace(/from '([^']+)'/g,(_match,path)=>'from '+JSON.stringify(new URL(path,entry).href));
+  const {createMarketInstallSheet}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+  const pageClient={request(){}},api={storage:{onChanged:{addListener(){},removeListener(){}}}};
+  const sheet=createMarketInstallSheet({api,pageClient,view:{setMarketInstall(){},connectMarketInstall(value){actions=value;}}});
+  t.after(()=>sheet.dispose());await actions.open('review-id');
+  assert.equal(received.pageClient,pageClient);
+  const event={isTrusted:true};actions.act('commit',event);
+  assert.deepEqual(clicked,['commit',event]);assert.equal(clicked[1],event);
 });

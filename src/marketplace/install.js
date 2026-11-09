@@ -7,19 +7,23 @@ import {readMarketInstallStatus,marketExpectedIdentity} from './status.js';
 import {getInstalledSidebarTools,installReviewedSidebarTool,recoverMarketOperation,sameSidebarToolPackage,MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../projects/stay-focus/trusted/policy.js';
 import {probeStayFocusService} from '../../projects/stay-focus/trusted/tool-host.js';
+import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
+import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 
 // Transaction owner for the existing ImportSheet. Presentation receives text
 // and bounded actions only; dynamic package JS remains in the original sandbox.
 export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockManager=globalThis.navigator?.locks,
   onChange=()=>{},onClose=()=>{},assertOwner=()=>claimMarketReview(api,reviewId),
-  assertCanInstall=()=>{},openInstalledApp=null}={}){
+  assertCanInstall=()=>{},openInstalledApp=null,pageClient=null}={}){
   let handoff,candidate,baseline,operation,status,closed=false;
+  const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
   let model={title:'安装应用',phase:'loading',message:'正在核对本机安装交接…',summary:[],technical:[],actions:[],busy:false};
   let actions=new Map();
   const publish=patch=>{model={...model,...patch};if(!closed)onChange(model);};
   const say=message=>publish({message});
   function controls(items){actions=new Map(items.map(([id,label,run])=>[id,run]));publish({actions:items.map(([id,label])=>({id,label}))});}
-  function finish(){if(model.busy)return false;closed=true;onClose();return true;}
+  function close(){closed=true;pageConsent?.dispose();onClose();}
+  function finish(){if(model.busy)return false;close();return true;}
   async function localState(){
     handoff=await loadReviewIntent(api,reviewId);
     if(handoff.subject.kind!=='app')throw marketError('E_INTENT_FIELDS','套装请使用原批次审阅入口。');
@@ -46,15 +50,15 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
         !await openInstalledApp({marketId:handoff.subject.marketId,id,
           version:handoff.subject.version,sha256}))
         throw marketError('E_APP_OPEN_DEFERRED','安装已完成，但尚未打开应用；请检查侧边栏的未保存内容与安装状态后重试。');
-      closed=true;onClose();
+      close();
     }]);
-    items.push(['done','完成',()=>{closed=true;onClose();}]);
+    items.push(['done','完成',close]);
     controls(items);
   }
   function recoveryControls(){
     if(status.installation==='installed'){showOpen();return;}
     if(status.installation==='cancelled'){
-      publish({phase:'cancelled',message:'已取消，未提交安装。'});controls([['done','完成',()=>{closed=true;onClose();}]]);return;
+      publish({phase:'cancelled',message:'已取消，未提交安装。'});controls([['done','完成',close]]);return;
     }
     const items=[['recover','核对原安装结果',recover]];
     if(handoff.consumedAt!==null&&!operation&&handoff.settledAt===null)
@@ -62,9 +66,9 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
         await assertOwner();
         await closeUnjournaledReview({api,lockManager,reviewId,operationId:handoff.operationId,subject:handoff.subject,approved:true});
         await localState();publish({phase:'unknown',message:'已结束此交接，安装结果仍未知；未标记成功或取消。'});
-        controls([['done','完成',()=>{closed=true;onClose();}]]);
+        controls([['done','完成',close]]);
       }]);
-    items.push(['later','稍后继续',()=>{closed=true;onClose();}]);controls(items);
+    items.push(['later','稍后继续',close]);controls(items);
   }
   function retryControls(){controls([['reload','重新加载审阅',loadCandidate],['cancel','取消安装',cancel]]);}
   async function failed(error){
@@ -83,7 +87,7 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
   async function recover(){
     await localState();
     if(operation){
-      await recoverMarketOperation({api,lockManager,operationId:handoff.operationId,expectedIdentity:marketExpectedIdentity(handoff,operation)});
+      await recoverMarketOperation({api,lockManager,operationId:handoff.operationId,expectedIdentity:marketExpectedIdentity(handoff,operation),pageClient});
       await settleReviewIntent({api,lockManager,reviewId});await localState();
     }
     const labels={review:'尚未提交',failed:'安装失败',unknown:'安装结果未知',installing:'安装中'};
@@ -105,7 +109,7 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
       await probeStayFocusService({api,tool:candidate.tool});
     }
     if(closed)return;
-    const result=await installReviewedSidebarTool({api,lockManager,candidate:candidate.tool,baseline,reviewApproved:true,
+    const result=await installReviewedSidebarTool({api,lockManager,candidate:candidate.tool,baseline,reviewApproved:true,pageClient,
       market:{marketId:handoff.subject.marketId,sha256:candidate.release.sha256,operationId:handoff.operationId},
       approveSourceChange:()=>true,approveUpdate:()=>true,
       commitIntent:async()=>{
@@ -134,7 +138,17 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
     await assertOwner();if(closed)return;
     candidate=await loadMarketTool(handoff.subject,{api,origin:handoff.origin});if(closed)return;
     baseline=(await getInstalledSidebarTools(api)).find(tool=>tool.id===candidate.tool.id)||null;
-    const capability=cap=>cap==='storage.local'?'在本机保存此应用的数据':cap==='tasks.run'?'运行固定任务、读取结果及停止原实例':cap==='controllers.run'?'运行应用包内已审阅的网页自动化、读取结果及停止原实例':'使用受限能力（'+cap+'）';
+    const page=candidate.tool.pageModule;
+    if(page){
+      if(!pageClient?.request||!pageConsent)throw marketError('E_HOST_UNAVAILABLE','应用网页安装服务或网站权限服务未连接，请重新打开 OpenDesk。');
+      const prepared=await pageConsent.prepare({origins:pageHostPermissionOrigins(page.pageRules.matches)});
+      if(closed)return;
+      if(!prepared)throw marketError('E_PERMISSION_CHECK_REQUIRED','网站权限状态已变化，请重新加载审阅。');
+    }
+    const pageReview=page?'\n网页模块：安装后在 '+page.pageRules.matches.join('、')+' 自动运行；'+
+      (page.pageRules.excludeMatches.length?'排除 '+page.pageRules.excludeMatches.join('、')+'；':'')+
+      '仅顶层 USER_SCRIPT / document_idle；关闭侧栏后继续可用。停用或卸载应用会同时停止网页模块。':'';
+    const capability=cap=>cap==='storage.local'?'在本机保存此应用的数据':cap==='page.module'?'在已审阅网站自动运行应用内网页模块':cap==='tasks.run'?'运行固定任务、读取结果及停止原实例':cap==='controllers.run'?'运行应用包内已审阅的网页自动化、读取结果及停止原实例':'使用受限能力（'+cap+'）';
     const capabilityCodes=[...candidate.tool.capabilities];
     const addedCodes=capabilityCodes.filter(cap=>!baseline?.capabilities.includes(cap));
     const removedCodes=(baseline?.capabilities??[]).filter(cap=>!capabilityCodes.includes(cap));
@@ -144,7 +158,7 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
     publish({title:candidate.tool.title,phase:'review',details:{
       id:handoff.subject.marketId,version:candidate.tool.version,
       previousVersion:baseline?.version??null,origin:handoff.origin,
-      description:candidate.tool.description+taskDelegationReview(candidate.tool)+appControllerReview(candidate.tool),capabilities,addedCapabilities,
+      description:candidate.tool.description+taskDelegationReview(candidate.tool)+appControllerReview(candidate.tool)+pageReview,capabilities,addedCapabilities,
       capabilityCodes,addedCodes,removedCodes,
       packageBytes:candidate.release.bytes,sha256:candidate.release.sha256,
       previousDisabled:Boolean(baseline&&status.enabled===false),
@@ -152,12 +166,14 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
       identicalInstalledPackage:Boolean(baseline&&sameSidebarToolPackage(baseline,candidate.tool))
     },summary:[
       '固定版本：v'+candidate.tool.version+(baseline?' · 当前 v'+baseline.version+'，保留工具数据':''),
-      '来源：'+handoff.origin+'（本扩展配置的市场）',candidate.tool.description+taskDelegationReview(candidate.tool)+appControllerReview(candidate.tool),
+      '来源：'+handoff.origin+'（本扩展配置的市场）',candidate.tool.description+taskDelegationReview(candidate.tool)+appControllerReview(candidate.tool)+pageReview,
       '申请能力：'+(candidate.tool.capabilities.map(capability).join('、')||'无'),
       '新增能力：'+(candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability).join('、')||'无'),
       '应用在受限沙箱中运行。网站或敏感能力仍按原权限检查；安装后无需再次启用，已停用的应用更新后保持停用。',
       ...(baseline?['本次确认会替换此 ID 的已安装代码，请核对来源和能力。']:[])],
       technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、'),
+       ...(page?['网页程序：'+page.programId+' · v'+page.version+' · Revision '+page.revision+' · '+page.entryFormat,
+         '网页源码 SHA-256：'+page.sourceHash,'网页安装包 SHA-256：'+page.packageHash]:[]),
        ...(Number.isSafeInteger(candidate.release.bytes)&&candidate.release.bytes>0?
          ['安装包字节：'+candidate.release.bytes]:[])],
       message:'请确认安装版本、来源和权限。'});
@@ -165,14 +181,21 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
   }
   const ready=loadCandidate().catch(failed);
   return {ready,getSnapshot:()=>model,dismiss:finish,
-    async act(id){
+    async act(id,event){
       const run=actions.get(id);if(!run||model.busy||closed)return;
       publish({busy:true});
-      try{await run();}catch(error){await failed(error);}finally{publish({busy:false});}
+      try{
+        // The original gate must request missing origins in the trusted click
+        // stack, before local state, ownership, downloads or any other await.
+        const permission=id==='commit'&&candidate?.tool.pageModule?pageConsent.confirm(event,{
+          origins:pageHostPermissionOrigins(candidate.tool.pageModule.pageRules.matches)}):null;
+        if(permission)await permission;
+        await run();
+      }catch(error){await failed(error);}finally{publish({busy:false});}
     },
     // Document destruction is NOT cancellation. In-flight installer outcomes
     // are recovered from the existing intent/journal, never resubmitted.
-    dispose(){closed=true;}
+    dispose(){closed=true;pageConsent?.dispose();}
   };
 }
 

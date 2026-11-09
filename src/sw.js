@@ -278,6 +278,7 @@ chrome.storage.onChanged.addListener((changes,area)=>{
   if(area!=='local'||!['opendesk.sidebar-tools.installed.v1','opendesk.sidebar-tools.enabled.v1','opendesk.sidebar-tools.revocation-epochs.v1','opendesk.market.provenance.v1'].some(key=>Object.hasOwn(changes,key)))return;
   void foundation.then(async broker=>{
     await broker.authority.invalidateAppServices();
+    await broker.synchronizeAppPages({});
     await broker.authority.schedules.reconcile();
     await ensureCloudRunner(broker);
   }).catch(error=>console.warn('[app service revoke]',error?.code||error?.message));

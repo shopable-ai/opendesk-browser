@@ -29,6 +29,7 @@ import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../..
 import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
 import {prepareLegacyFocusUpgrade,writeLegacyFocusUpgradeSnapshot,
   finishLegacyFocusUpgradeLocked} from './legacy-focus-upgrade.js';
+import {prepareLegacyReadingTocUpgrade,writeLegacyReadingTocUpgrade} from './legacy-reading-toc-upgrade.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export {TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
@@ -107,7 +108,7 @@ async function stopInstalledToolOwnedServices(api,toolId){
   if(localFailure)throw localFailure;
 }
 
-export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled}){
+export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled,pageClient=null}){
   if(typeof enabled!=='boolean')throw error('工具启停状态无效','E_TOOL_SCHEMA');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   return lockManager.request('opendesk.sidebar-tools:tool:'+tool.id,()=>
@@ -122,8 +123,12 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
           // A previous STOP might have persisted the disabled flag before
           // a native DNR or proxy cleanup failed. Reconcile again on STOP.
           await stopInstalledToolOwnedServices(api,tool.id);
+          if(current.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
           return {enabled:false,cleanupAttempted:true};
         }
+        if(current.pageModule)await requestAppLifecycle(pageClient,'verifyAppPage',{
+          toolId:tool.id,packageHash:await sidebarToolPackageHash(current),
+          installEpoch:requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE])[tool.id]},current);
         return {enabled};
       }
       const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
@@ -145,6 +150,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
           {...previous,[tool.id]:false},raw,'工具启停');
         await stopInstalledToolOwnedServices(api,tool.id);
+        if(current.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
       }
       if(enabled){
         // Resume cannot bless an interrupted STOP with stale native effects.
@@ -160,6 +166,11 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
           ...(preserveMenu?{contextMenu:{...menu,installEpoch:nextEpoch}}:{})}},rawGrants,'工具网站授权保留');
       if(enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
         {...previous,[tool.id]:true},raw,'工具启停');
+      if(current.pageModule&&enabled){
+        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+        await requestAppLifecycle(pageClient,'importAppPage',{
+          toolId:tool.id,packageHash:await sidebarToolPackageHash(current),installEpoch:nextEpoch},current);
+      }
       return {enabled};
     }));
 }
@@ -200,7 +211,7 @@ export async function recordToolUninstall(api,tool){
   const revisions=requireToolRevocationEpochs(rawEpochs);
   await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
     {...revisions,[tool.id]:globalThis.crypto.randomUUID()},rawEpochs,'工具旧实例撤销');
-  const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
+  const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now(),...(tool.pageModule?{pageModule:true}:{})}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
 }
 async function removeVerifiedStorageKey(storage,key,scope='卸载后的数据清理'){
@@ -230,7 +241,7 @@ async function retireUninstalledToolSchedules(api,id){
 }
 // Must be called while BOTH opendesk.sidebar-tools:tool:<id> and :catalog
 // locks are held, in that order. Never delete by an old instance's ID alone.
-export async function cleanupUninstalledToolLocked(api,id){
+export async function cleanupUninstalledToolLocked(api,id,{pageClient=null}={}){
   if(!toolIdPattern.test(id))throw error('工具 ID 无效','E_TOOL_SCHEMA');
   const pending=await getPendingToolCleanups(api);
   if(!pending[id])return {state:'not-pending',toolId:id};
@@ -238,6 +249,7 @@ export async function cleanupUninstalledToolLocked(api,id){
   if(installed.some(row=>row.id===id))
     return {state:'still-installed',toolId:id};
   try{
+    if(pending[id].pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:id});
     let localFailure;
     try{await revokeLocalTasks(api,id);}catch(cause){localFailure=cause;}
     // Keep the existing durable journal and install locks until the original
@@ -282,7 +294,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     }
     if(id===READING_TOC_TOOL_ID){
       const entries=await api.storage.local.get(null);
-      const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
+      const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX)||key.startsWith('opendesk.sidebar-tools.toc-collapse.v1:'));
       for(const key of keys)await removeVerifiedKey(api,key);
     }
     if(localFailure)throw localFailure;
@@ -297,10 +309,31 @@ export async function cleanupUninstalledToolLocked(api,id){
   }
   return {state:'cleaned',toolId:id};
 }
-export async function retryUninstalledToolCleanup({api,lockManager,id}){
+export async function retryUninstalledToolCleanup({api,lockManager,id,pageClient=null}){
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   return lockManager.request('opendesk.sidebar-tools:tool:'+id,()=>
-    lockManager.request('opendesk.sidebar-tools:catalog',()=>cleanupUninstalledToolLocked(api,id)));
+    lockManager.request('opendesk.sidebar-tools:catalog',()=>cleanupUninstalledToolLocked(api,id,{pageClient})));
+}
+async function requestAppLifecycle(pageClient,type,payload,tool=null){
+  if(typeof pageClient?.request!=='function')throw error('应用网页安装服务未连接；原安装与数据保留','E_HOST_UNAVAILABLE');
+  const result=await pageClient.request(type,payload);
+  if(type==='synchronizeAppPages'){
+    if(result?.status!=='synchronized'||!Array.isArray(result.cleanupPending)||result.cleanupPending.length)
+      throw unknownStorageOutcome(null,'应用网页模块清理');
+  }else if(type==='prepareAppPage'){
+    if(result?.status!=='prepared'||result.toolId!==payload.tool.id||
+       result.packageHash!==await sidebarToolPackageHash(payload.tool)||
+       result.programId!==payload.tool.pageModule.programId||result.sourceHash!==payload.tool.pageModule.sourceHash)
+      throw error('应用网页模块预检回执不匹配','E_PAGE_INSTALL_PENDING');
+  }else{
+    const validState=result?.nativeState==='registered'&&result.ready===true||result?.nativeState==='disabled';
+    if(result?.status!==(type==='importAppPage'?'installed':'verified')||!validState||
+       !shaPattern.test(result.manifestHash)||result.appOwner?.toolId!==payload.toolId||
+       result.appOwner?.packageHash!==payload.packageHash||result.appOwner?.installEpoch!==payload.installEpoch||
+       result.programId!=='app.'+payload.toolId||tool&&result.sourceHash!==tool.pageModule.sourceHash)
+      throw unknownStorageOutcome(null,'应用网页安装回执');
+  }
+  return result;
 }
 async function canonicalSha256(tool){
   const bytes=new TextEncoder().encode(serializeSidebarToolPackage(tool));
@@ -414,7 +447,7 @@ function matchesPreviousProvenance(row,source){
 }
 // Never replay an unknown operation. The installed package and local provenance,
 // not the market directory, are the only inputs for recovery.
-export async function reconcileMarketOperation(api,operationId,expectedPackage=null){
+export async function reconcileMarketOperation(api,operationId,expectedPackage=null,{pageClient=null}={}){
   if(!opPattern.test(operationId))throw error('事务 ID 无效','E_MARKET_IDENTITY');
   const [stored,installed,provenance]=await Promise.all([
     api.storage.local.get(MARKET_OPERATIONS_STORE),getInstalledSidebarTools(api),
@@ -436,13 +469,21 @@ export async function reconcileMarketOperation(api,operationId,expectedPackage=n
   const source=(provenance[MARKET_PROVENANCE_STORE]||{})[row.toolId];
   const sourceMatched=source?.marketId===row.marketId&&source.sha256===row.sha256&&source.version===row.version;
   const sourceConflicts=Boolean(source&&!sourceMatched&&!matchesPreviousProvenance(row,source));
+  let appPageVerified=!current?.pageModule;
+  if(matched&&current?.pageModule){
+    try{
+      await requestAppLifecycle(pageClient,'verifyAppPage',{toolId:current.id,
+        packageHash:await sidebarToolPackageHash(current),installEpoch:row.installEpoch},current);
+      appPageVerified=true;
+    }catch{/* Unknown native effects stay unresolved; never import on recovery. */}
+  }
   let state;
-  if(!matched||sourceConflicts)state=row.state==='failed'?'failed':'outcome-unknown';
+  if(!matched||sourceConflicts||!appPageVerified)state=row.state==='failed'?'failed':'outcome-unknown';
   else state=sourceMatched&&row.state==='succeeded'?'succeeded':'needs-finalization';
   return {state,operationId,toolId:row.toolId,marketId:row.marketId,
     installedVersion:current?.version||null,packageVerified:matched,provenanceVerified:sourceMatched};
 }
-export async function recoverMarketOperation({api,lockManager,operationId,expectedIdentity=null}){
+export async function recoverMarketOperation({api,lockManager,operationId,expectedIdentity=null,pageClient=null}){
   if(!opPattern.test(operationId))throw error('事务 ID 无效','E_MARKET_IDENTITY');
   const stored=await api.storage.local.get(MARKET_OPERATIONS_STORE);
   const row=recoverableOperations(stored[MARKET_OPERATIONS_STORE])[operationId];
@@ -462,7 +503,7 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
       const locked=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
       if(!matchesIdentity(recoverableOperations(locked)[operationId]))
         throw unknownStorageOutcome(null,'市场事务身份已变化');
-      const checked=await reconcileMarketOperation(api,operationId);
+      const checked=await reconcileMarketOperation(api,operationId,null,{pageClient});
       if(checked.state!=='needs-finalization')return checked;
       const saved=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
       // Only the exact baseline accepted under the original install lock may
@@ -502,15 +543,16 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
         ...original,[operationId]:{...active,state:'succeeded',reason:'reconciled-local',
           ...(migrationReceipt?{migrationReceipt}:{}),
           updatedAt:Date.now()}}),original,'市场事务恢复');
-      return reconcileMarketOperation(api,operationId);
+      return reconcileMarketOperation(api,operationId,null,{pageClient});
     }));
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
   market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null,
-  fetcher=globalThis.fetch}){
+  fetcher=globalThis.fetch,pageClient=null}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=await verifySidebarToolBackground(candidate);
   const identity=marketIdentity(market,tool);
+  if(tool.pageModule)await requestAppLifecycle(pageClient,'prepareAppPage',{tool});
   // Managed policy compatibility is decided by the running, precompiled Worker
   // BEFORE the registry's commit boundary. Installation never executes package JS.
   if(tool.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)){
@@ -544,6 +586,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   return lock('tool:'+tool.id,()=>lock('catalog',async()=>{
     const installed=await getInstalledSidebarTools(api);
     const existing=installed.find(row=>row.id===tool.id)||null;
+    if(existing?.pageModule&&!pageClient?.request)
+      throw error('应用网页服务未连接；无法安全更换现有网页模块','E_HOST_UNAVAILABLE');
     if(Boolean(existing)!==Boolean(baseline)||
        (existing&&!sameSidebarToolPackage(existing,baseline)))
       throw error('安装状态已发生变化，请重新审阅','E_TOOL_CHANGED');
@@ -567,6 +611,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(identity&&await canonicalSha256(tool)!==identity.sha256)
       throw error('待安装包的规范化摘要与市场审阅记录不一致','E_MARKET_IDENTITY');
     if(existing&&sameSidebarToolPackage(existing,tool)){
+      // Read-only reconciliation never submits a second native install to
+      // guess the outcome of an earlier commit.
+      if(tool.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+      if(tool.pageModule)await requestAppLifecycle(pageClient,'verifyAppPage',{
+        toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),
+        installEpoch:requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE])[tool.id]},tool);
       if(identity){
         const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
         if(original[identity.operationId])throw error('事务已存在，请先核对原结果','E_OUTCOME_UNKNOWN');
@@ -627,6 +677,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         toEpoch:nextEpoch,toHash:await sidebarToolPackageHash(tool)}):null;
     const requiresLegacyFocusMigration=Boolean(existing?.capabilities.includes('focus.control')&&
       !tool.capabilities.includes('focus.control'));
+    const legacyReadingUpgrade=await prepareLegacyReadingTocUpgrade({api,existing,candidate:tool});
     // Same-source provenance and old epoch/hash MUST be proven before any
     // package/ledger mutation; candidate JavaScript is never evaluated.
     let legacyFocusUpgrade=null;
@@ -663,6 +714,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         await writeOp('migration-prepared');
       }
       await writeOp('committing');
+      await writeLegacyReadingTocUpgrade(api,legacyReadingUpgrade);
       if(!existing){
         // Never delete a previous owner's private data before the registry
         // commit boundary. Explicit cleanup is required for orphaned IDs.
@@ -756,7 +808,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // Removing a capability makes its prior grant unusable immediately;
       // now clear that record after the successful registry boundary.
       for(const [store,capability] of siteStores)
-        if(existing?.capabilities.includes(capability)&&!tool.capabilities.includes(capability))await clearGrant(store);
+        if(existing?.capabilities.includes(capability)&&!tool.capabilities.includes(capability)&&
+           !(legacyReadingUpgrade&&[READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE].includes(store)))await clearGrant(store);
       if(identity){
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{...provenance,[tool.id]:{
           marketId:identity.marketId,sha256:identity.sha256,version:tool.version}},provenance,'市场来源');
@@ -764,6 +817,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         const updated={...provenance};delete updated[tool.id];
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,updated,provenance,'旧市场来源清理');
       }
+      if(tool.pageModule){
+        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+        await requestAppLifecycle(pageClient,'importAppPage',{
+          toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),installEpoch:nextEpoch},tool);
+      }
+      else if(existing?.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
       // Publish the scope on the same original Installer path, AFTER the
       // package, source and epoch have been read back. Any write ambiguity
       // leaves an unresolved market journal, not a fabricated success.

@@ -1,13 +1,13 @@
 import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
 import readingTocCatalog from './locales.generated.js';
-import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
+import {uiMessage,resolveUiLocale} from '../src/page/localization.js';
 
 // Fixed vertical anchor on the header row, independent of variable outline height.
 const EDGE_TOP=5;
 // Keep the original card width and right gutter. Only the edge tab may
 // protrude into that gutter; its clickable area must clear the toolbar.
-// Same compact R3 layout as the official sandbox tool, but implemented only in
-// trusted extension code. No untrusted website text is parsed as markup.
+// Shared compact view delivered by the application's USER_SCRIPT module.
+// No untrusted website text is parsed as markup.
 const CSS=[
 ':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:254px;max-width:calc(100vw - 24px);z-index:2147483000;--toc-edge-gap:12px;',
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
@@ -29,6 +29,7 @@ const CSS=[
 ".edge-toggle:hover .edge-skin,.edge-toggle:focus-visible .edge-skin{width:38px;background:#e8ebef}",
 ":host([data-toc-collapsed]) .edge-toggle:hover .edge-skin,:host([data-toc-collapsed]) .edge-toggle:focus-visible .edge-skin{width:38px}",
 ".edge-toggle:hover,.edge-toggle:focus-visible{color:#404854}",
+".edge-toggle:focus-visible{outline-width:3px;border-radius:9px}",
 ":host([data-toc-collapsed]) .edge-toggle{top:0;right:0;left:auto;width:38px;transform:none}",
 // Collapsed mode retains the larger click target, and touch has no hover
 // affordance, so show the entire target on touch devices.

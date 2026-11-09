@@ -527,7 +527,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       if(Number.isSafeInteger(panelWindow?.id))
         void attachPanelPreview(panelWindow.id).catch(error=>
           panelPreviewStatus('应用调试连接失败：'+String(error.message||error),true));
-      marketInstallSheet=createMarketInstallSheet({api:chrome,view:toolView,
+      marketInstallSheet=createMarketInstallSheet({api:chrome,view:toolView,pageClient:foundationClient,
         assertCanInstall:id=>sidebarTools.assertCanInstallMarketTool(id),
         hasOtherReview:()=>sidebarTools.hasInstallReview()||Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')),
         // The Sheet overlays the existing workspace without disposing editors.

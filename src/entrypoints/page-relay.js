@@ -1,6 +1,5 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {initPageRelay} from '../agents/page-relay.js';
-import {initReadingToc} from '../../projects/reading-toc/trusted/page.js';
 import {initPageClip} from '../../projects/web-markdown-clipper/trusted/page.js';
 import {initKnowledgeCapture} from '../knowledge/page.js';
 import {installFocusPageNotice} from '../../projects/stay-focus/trusted/page-notice.js';
@@ -16,6 +15,6 @@ export default defineUnlistedScript(() => {
   initPageRelay();
   initGlobalVideoSpeed();
   if(globalThis.window?.top===globalThis.window){
-    initReadingToc();initPageClip();initKnowledgeCapture();installFocusPageNotice();installManagedSiteNoticePage();initPromptShortcuts();initAdblockCosmetics();
+    initPageClip();initKnowledgeCapture();installFocusPageNotice();installManagedSiteNoticePage();initPromptShortcuts();initAdblockCosmetics();
   }
 });

@@ -1,0 +1,24 @@
+{
+  "name": "@opendesk-apps/reading-toc",
+  "version": "1.1.1",
+  "private": true,
+  "type": "module",
+  "description": "阅读目录应用的内嵌 Page 模块源码项目",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "app.reading-toc",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

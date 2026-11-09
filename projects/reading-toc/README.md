@@ -1,44 +1,64 @@
-# 官方阅读目录 R4.1（悬浮交互 R4.2 / 智能概览 R4.3）
+# 阅读目录 · 动态组合应用
 
-> [阅读目录现行功能需求与验收规格（源码反向整理）](REQUIREMENTS.zh-CN.md)：按实际代码区分已完成的「主要章节」文案修改与仍待真实浏览器验收的功能。
+「阅读目录」是 OpenDesk Browser「扩展」中的应用，使用 **`opendesk.sidebar-tool.v2` + `pageModule`** 在同一个工具 JSON 内交付侧栏 UI 和网页模块。网页模块通过既有 Page Program 安装链在 **USER_SCRIPT** 世界执行；目录索引、观察器、滚动定位和悬浮视图属于应用项目，不再作为 Browser 固定 Content Script 业务交付。
 
-> 预览唯一入口：[preview/index.html](preview/index.html)。2026-10-31 已清理 R12/R17/R183 的六份旧 HTML，侧栏/网页浮层、文章/多回答及语言切换均在同一入口中操作；生成与来源说明见 [预览 README](preview/README.md)。下文提到的旧原型和预览成绩仅为历史记录，原文件可从 Git 找回，不作为当前 UI 依据。
+当前实现与交付边界见[动态应用试点记录](DYNAMIC-PILOT.zh-CN.md)，公共安装、生命周期及通信合同见[应用内网页模块 API](../../docs/api/sidebar-tool-page-module.zh-CN.md)。[功能需求与验收规格](REQUIREMENTS.zh-CN.md)中的旧版本记录须结合本页当前状态阅读。[离线预览](preview/index.html)仅用于界面检查，不证明动态安装、运行代码或原生验收；本轮不更新预览。
 
-「阅读目录」是 OpenDesk Browser 内**可安装的 Side Panel 工具**，不是第二个 Chrome 扩展。UI 包继续使用 `opendesk.sidebar-tool.v1`；导入的经典 JS 只在 opaque sandbox 中运行，网页内容索引/滚动/浮动 TOC 则由扩展内置可信 Content Script 执行。
+## 当前源码与公开接口
 
-## 未上线阶段的运行校验（2026-10-26）
+- `src/main.js`、`src/index.html`、`src/style.css`：侧栏沙箱 UI，以及应用自己管理的网站/页面启用和悬浮目录显示设置。
+- `src/page/main.js`、`src/page/engine.js`：网页入口与生命周期调度；复用项目内 `trusted/model.js`、`view.js`、`placement.js`、`overview.js` 和 `locales.generated.js`。这里的历史目录名 `trusted/` 不赋予动态模块可信宿主权限。
+- 侧栏通过 `OpenDeskTool.request('page.request', {operation:'toc.snapshot'|'toc.navigate', payload:{...}})` 请求当前网页实例，不取得任意 DOM 或其他标签页控制权。
+- 网页模块通过 `globalThis.OpenDeskAppPage.readContext()` 读取语言、目录与应用数据，通过 `onRequest(({operation,payload}) => ...)` 响应侧栏，并使用同命名空间的 `storage.get/set` 和 ETag/CAS 保存偏好；只在明确 CAS 冲突时重读并合并本次字段变更。容量或未知写入失败不截断数据、不自动重放。
+- `@opendesk/ui` 的 `createPageUI/onDispose` 管理资源清理；授权读取失败立即停止。位置和折叠按完整 Origin 校验，页面设置按 `Origin + pathname` 匹配，忽略查询参数和锚点。
+
+版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 `reading-toc.opendesk-tool.json`。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
+
+## 最快使用
+
+1. 在现有 OpenDesk Browser Side Panel →「扩展」导入或更新阅读目录组合包。安装审阅一次展示应用能力与网页模块自动运行范围，再由用户确认；复用现有 Chrome 网站访问和用户脚本权限链，不增加安装后的通用“启用”步骤，也不逐站重复审阅已经合法授予的权限。
+2. 打开已允许访问、符合已批准规则的 HTTP(S) 网页。网页目录自动运行；受限页面或缺少实际 Chrome 权限的页面仍不可读。安装/更新回执未知时先核查原状态，不重放操作。
+3. 网页与侧栏保留**主要章节 / 当前章节 / 完整目录 / AI** 四种模式。切换模式不滚动正文，点击章节才定位，并以目标进入可读区域的实测结果确认成功；AI 模式仍显示未开放信息，不请求模型或伪造目录。
+4. 拖动标题手柄调整悬浮目录位置，支持边缘吸附、方向键及 Home/双击归位；位置和折叠状态保存在应用私有存储。正文变化约 280ms 合并重建，滚动更新当前章节；URL、目录修订、文档、权限或实例生命周期变化会取消过期定位。
+5. 打开侧栏应用中的“网站与页面设置”，分别控制本站/本页启用和悬浮目录显示。停用停止网页索引；隐藏只移除网页浮层，侧栏快照与定位仍可用。恢复设置由页面模块定期重查，不需要重新安装。
+6. 关闭侧栏后网页模块继续运行。父应用停用、卸载、替换或网站权限撤销时，由既有 Authority 与受管生命周期处理停止和清理；动态代码不获得 Background、Native 或 Controller 权限。
+
+## 本地构建与定向验证
+
+继续使用原打包器，它会调用原 Page 项目编译器，将 `opendesk.page-install.v1` 嵌入组合包，无需另发第二个 Page JSON：
+
+```sh
+node scripts/build-sidebar-tool.mjs projects/reading-toc --out artifacts/sidebar-tools/reading-toc/candidate.opendesk-tool.json
+node --test projects/reading-toc/tests/dynamic-page.test.mjs
+```
+
+按本次改动补充受影响的包身份、权限或视图检查。候选通过相应检查后，使用同一打包器核对当前源码并晋升唯一正式包：
+
+```sh
+node scripts/build-sidebar-tool.mjs projects/reading-toc --promote-from artifacts/sidebar-tools/reading-toc/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/reading-toc --check-project
+```
+
+普通构建不会覆盖正式 JSON，也不会更改已安装应用。用户安装与更新继续经过「扩展」原有审阅链；日常 Browser 开发复用已有 `dist/development` watcher，不覆盖其输出或停止其他会话服务。应用网页业务随组合包更新；通用桥和 Authority 的框架变更仍须进入实际运行的 Browser。默认只做当前改动所需验证，不把全量 CI、production 构建或历史验收矩阵作为每次迭代前置。
+
+## 当前证据与未验证项（2026-11-09）
+
+- **1.1.1 已通过原生组合包审阅更新并运行**。旧 1.0.12 → A 1.1.0 → B 1.1.1 使用原安装链；A→B 期间 Browser 构建指纹及 116 个固定文件哈希一致，正常刷新文章后，应用内焦点样式从 2px 变为 3px，章节定位成功。
+- 同候选已验证隐藏/恢复浮层仍保留侧栏 21 个章节，设置保存后返回不再误报草稿，主动停用清理受管 UI，恢复后可用；关闭本任务侧栏后网页目录继续定位。唯一正式 JSON 已由同源候选晋升并通过 `--check-project`；最终 9 个受影响测试文件通过。
+- 随后的提交前复核修复了网页请求写存储时的重入锁和同文档地址变化误停问题，均有失败前/修复后回归；这两处最终框架补丁未重跑原生浏览器。上述 A→B 证据只对应记录中的冻结 Browser 基线，应用包未再变化。
+- 原生卸载、真实 Chrome 网站撤权、production、真实登录网站完整验收及独立评分仍为 `NOT_TESTED` / `NOT_SCORED`。身份、撤权、未知结果和清理负向行为已有定向自动检查，不能替代上述原生验收。哈希、范围和历史断言缺口见[动态应用试点记录](DYNAMIC-PILOT.zh-CN.md)。
+
+## 历史记录（旧固定 Content / v1 阶段）
+
+以下保留原版本、候选、预览及验收事实，仅对应各自历史基线。出现的固定 Content Script、`page.toc`、宿主齿轮设置、旧源码路径、版本/SHA 与全量构建命令均不代表当前动态组合应用合同，也不是日常开发默认步骤。
+
+### 历史 · 未上线阶段的运行校验（2026-10-26）
 
 按用户当前要求，阅读目录暂不以固定发行版本、SHA-256 或官方来源记录作为读取章节的前置条件。旧版本、本地开发版本及缺少来源记录的已安装目录可直接使用，不再因此要求重新安装。此策略由 `trusted/policy.js` 的 `READING_TOC_RELEASE_IDENTITY_REQUIRED=false` 统一控制网页浮层、侧栏读取和既有标签页接入；以后确有发行需求再评估开启。
 
 仍要求唯一有效的已安装 `reading-toc`、`page.toc` 能力、未主动停用、允许的 HTTP(S) 网站/页面及 Chrome 实际访问许可。第三方目录仍按原网站授权执行；用户可以审阅本地包后直接覆盖同 ID 安装，包括同版本修改或版本回退，覆盖后清除旧官方来源标记。官方目录发行校验及沙箱边界保留。已安装包的自定义翻译仍走原精确来源校验，失败时回退扩展内置文案，不阻止章节读取。
 
-## 最快使用
-
-1. 安装/加载 OpenDesk Browser 正式构建，打开一篇普通 HTTP(S) 文章。
-2. 打开 Chrome Side Panel →「工具」→ 官方推荐「阅读目录」→「安装」。
-3. 查看名称、版本、`page.toc` 能力和来源，再明确「确认安装」。首次安装时的启用状态遵守宿主设置；内置工具安装并启用后默认读取普通网页的章节。
-4. 阅读目录默认可用于所有 HTTP(S) 网页，无需逐网站授权。可在详情齿轮设置中“停用当前网站”；浏览器受限页面或 Chrome 不允许扩展访问的网站仍不可读。
-5. 网页右侧显示紧凑 `CONTENTS`。现有**主要章节 / 当前章节 / 完整目录 / AI** 四个图标保持同一行；AI 暂时只显示未开放的会员与合作信息。网页浮动目录与侧栏目录均默认选中**当前章节**，普通文章展开当前章节，ChatGPT 等 AI 对话沿用来源自动跟随。切换视图不滚正文，点击章节才跳转。
-   - 主要章节（自适应概览）：仅有 1–4 个顶层标题时，逐层补充子标题，争取展示至少 5 条；最多自动深入至第 4 个逻辑层级。5 个及以上顶层标题则保持顶层概览。
-   - 12 条以内直接显示当前来源的所有真实标题；更长目录保留主要章节概览并照顾当前位置。需要全部标题时点击顶部已有的「完整目录」图标，不增加「还有 N 个章节」按钮。
-   - 滚动高亮指向当前可见章节；当目标被概览折叠时，指向最近的可见父级，而非永远高亮唯一 H1。文章、无 H1 的 H2 文档和每个 AI 回答都按独立标题树处理。
-   - 按住标题栏的六点手柄拖动目录，支持鼠标、触摸和笔；拖动目录项不会移动卡片。
-   - 放到距左右边缘约 32 CSS px 以内，会吸附到距边缘 8 CSS px 的安全位置；放到中间则自由停留，不强制磁吸。
-   - 拖动完成后会**自动按网站 Origin 记忆位置**。同一网站刷新、换文章或重启 Chrome 后恢复；不同网站独立，位置随视口大小自动调整以防离屏。
-   - 网页悬浮目录已取消外观类似刷新的圆箭头按钮，正文与 SPA 变化会自动更新目录；双击标题拖动手柄，或聚焦手柄后按 **Home**，均可恢复默认位置并清除此网站的位置记忆。侧边栏自身的刷新按钮不受影响。
-   - 键盘聚焦拖动手柄后，方向键移动 12 CSS px，Shift + 方向键移动 32 CSS px，Home 归位。
-6. 从 Side Panel 工具列表「打开」还可以查看同一网页目录；关闭 Side Panel 不停止已启用的网页卡片。
-7. 齿轮设置可以停用当前网站，并在“已停用的网站”中恢复其他网站，无需再次访问。单页排除和网页浮层隐藏偏好独立生效；卸载同时清理网站例外、工具私有数据与 TOC 位置记忆。暂时停用网站不清除显示偏好和位置。
-
-受控目录快照与点击定位接口为 `toc.snapshot` / `toc.navigate`；工具包不获取任意网页 DOM、`chrome.tabs`、远程代码注入或额外 Task 运行权限。
-
-## 从本地工具包安装
-
-```sh
-npm run build:sidebar-tool -- projects/reading-toc
-```
-
-可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.15）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.15/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+### 历史 · 1.0.x 本地交付与宿主更新
 
 2026-11-09 本地交付升版：按用户要求将安装包由 `1.0.12` 升至 `1.0.13`，仅更新包版本，`page.toc` 能力和包内业务代码保持不变。候选经包格式、来源字节及相关 Node 检查后晋升；本版本浏览器安装/升级为 `NOT_TESTED`。网页悬浮层 `trusted/` 不在 JSON 中，更新该代码仍需 Browser 对应产物。
 
@@ -50,14 +70,14 @@ npm run build:sidebar-tool -- projects/reading-toc
 
 2026-11-09 修复：最初发现独立更新的官方资源领先于宿主编译 pin，会误报 `E_OFFICIAL_ID_RESERVED`。按用户进一步纠偏，本地文件现在独立走用户审阅和确认覆盖，不再被官方 ID、发行版本、SHA 或 Catalog 可用性限制；本地包不会获得官方来源标记。官方目录入口继续校验其发行包。修复属于 Browser 宿主，必须进入当前加载的 Browser 产物；仅更新工具 JSON 不足以修复旧宿主。
 
-## 当前证据与边界
+### 历史 · 当前证据与边界
 
 - 2026-11-09 最新：CFT 155 真实原生 Side Panel，用修改代码的 **同版本 1.0.12 本地包**覆盖已停用的官方安装成功；审阅显示同版本内容与来源变化，覆盖后保持停用、清除官方来源、未自动启动沙箱。定向 42 项测试验证本地新装/升级/降级、目录离线、数据与设置保留，以及官方发行校验、取消/过期审阅和未知写入保护。此前正式包的新装、1.0.11 → 1.0.12 更新与文章章节跳转证据保留为历史候选结果，详见[目标与关键测试记录](INSTALLATION-TESTS.zh-CN.md)。用户现有目录未卸载；日常 Chrome、production、真实 ChatGPT/知乎仍为 `NOT_TESTED`。
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
 - R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。
 
-## R4.2 悬浮位置验收
+### 历史 · R4.2 悬浮位置验收
 
 自动回归：
 ```sh
@@ -73,7 +93,7 @@ xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
 
 R4.2 改动在可信 Content Script 的悬浮视图与位置存储；R4.3 将官方阅读目录工具包从 1.0.0 升级到 1.0.1；R4.4 因 Side Panel 自动来源跟随改动继续升级到 1.0.2，包格式与权限仍为 v1。已安装 1.0.0 的用户可以在 Side Panel 看到「更新」入口，审阅后确认升级，不会自动运行或扩权。新的位置存储键只包含 HTTP(S) Origin（不存完整 URL、标题或网页正文）。真实线上 ChatGPT／知乎、用户 Mac Chrome 以及极端缩放仍须按照证据等级单独验收；组件测试通过不等于真实网站通过。
 
-## R4.3 智能概览专项测试
+### 历史 · R4.3 智能概览专项测试
 
 ```sh
 node --test tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-r41.test.mjs
@@ -84,7 +104,7 @@ npm run build && node scripts/verify-package.mjs dist/production
 
 最重要的手工场景：单 H1 + 20 H2 的文章应出现多条导航与「查看完整目录」；5 个 H1 的页面应只显示 H1；只有 H2/H3 的文档仍应有实用的顶层/子层列表；有 2 个 H1 且有多个 H2 的 AI 回答应显示两种层级。多回答网页切换来源不串章节；三种视图保持正常点击定位和滚动高亮。具体候选证据见 `docs/framework/workstreams/reading-toc-r43-20261011.md`。
 
-## R4.4：长文章当前位置与多回答自动跟随
+### 历史 · R4.4：长文章当前位置与多回答自动跟随
 
 - 在智能概览被限制为最多 12 条时，自动保留**当前阅读章节与附近章节**，同时保留各顶层章节、尽可能兼顾其他章节；不再始终高亮第一个 H1。深层正文则显示最近的可见父章节。
 - ChatGPT / 知乎等多回答页面如果含多个来源，默认目录来源选择为「自动跟随 · 回答 N」，正文导航切到其他回答时，网页悬浮卡片和 Side Panel 目录一起切换。
@@ -102,7 +122,7 @@ npm run build && node scripts/verify-package.mjs dist/production
 
 R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流](../../docs/framework/workstreams/official-tools-catalog-r45-20261011.md)；本页早期 Chrome 记录仍绑定原候选。
 
-## R4.6 · 长目录自适应高度与 Side Panel 设置（2026-10-11）
+### 历史 · R4.6 · 长目录自适应高度与 Side Panel 设置（2026-10-11）
 
 - 网页内目录的 `CONTENTS` 采用四种图标模式（概览 / 当前 / 完整 / AI），另有拖动手柄；**网页上没有独立刷新、归位或设置图标**。Chrome Side Panel →「工具」→「阅读目录」列表行的齿轮位于卸载图标左侧，设置属于可信扩展宿主而非网页内脚本。
 - 在齿轮设置中可为当前 HTTP(S) 网站选择网页悬浮目录 **显示 / 隐藏**，也可以**仅在当前页面隐藏**；单个页面范围为 `Origin + pathname`，不保存查询参数或片段。每条规则按工具 ID 本地存储到 `opendesk.sidebar-tools.toc-visibility.v1`，不加入工具包，不改变 `page.toc` 授权。切换设置立即通知所有同 Origin 标签页，SPA 路由变化重新判断。网页目录隐藏后 Side Panel 仍可读取已授权章节。
@@ -112,7 +132,7 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 **检查要点**：已授权单 H1 + 20 H2 长文章在页面宽度 900px、420px 和 700–820px 高度下能展示明显多于旧 125/160px 的悬浮目录；隐藏当前页面不影响其他路径，隐藏当前网站覆盖同 Origin 页面；此时 Side Panel `toc.snapshot` 和 `toc.navigate` 仍可用；恢复显示、刷新、SPA 切换、多标签、撤权、归位、卸载后均不泄露偏好。受控 CFT 原生测试见 `tests/framework/reading-toc-native-r41.test.mjs`，单元测试见 `tests/environment/reading-toc-visibility-r46.test.mjs`。
 
-## R4.8 · 空目录自动恢复与刷新（2026-10-15）
+### 历史 · R4.8 · 空目录自动恢复与刷新（2026-10-15）
 
 - Side Panel 的 `CONTENTS` 标题右侧新增“刷新阅读目录”；它与“概览 / 当前章节 / 完整目录”分组分离，只重新提取当前已授权网页的章节，不重新加载网页或修改权限。
 - 打开时立即读取、空标题时短时补扫、之后约每 4 秒自动更新。读取失败有上限地退避重试，焦点恢复可主动更新；请求单飞，手动点击刷新不会被正在执行的旧请求吞掉。
@@ -124,19 +144,19 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 定向验证：`node --test tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs`。
 真实 Chrome Side Panel、用户 Profile、SPA、授权撤销和最终安装需另外按原生验收等级核对；离线隔离测试不构成生产 95+ 实测结论。
 
-## R1.2 双语言 UI 与升级
+### 历史 · R1.2 双语言 UI 与升级
 
 阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
 **发行版本（R1.8.6 复核）：** `tool.config.json`、根目录正式安装包、官方 Catalog 的 `reading-kit` revision 7 均指向 **`1.0.8`**。根目录正式 JSON 为 28,481 UTF-8 字节，SHA-256 为 `df3ab8fb74c4b32ae5932333c521f326d72a71256ebfeda412b3d6155f990c42`；CI 已加入 `--check-project` 校验步骤，须以对应 CI 实际结果认定 MATCH；本轮不重复晋升或更改版本。历史 R1.8.1 时尚未晋升的 1.0.7/1.0.8 说明不再代表当前仓库状态。**用户本机 Mac Chrome 1.0.7 → 1.0.8 主动升级、持久化、撤权、回滚与卸载仍须独立验收，不得仅凭发行包一致性宣称通过。**
 
-### 语言资源与可信悬浮 UI 的边界
+#### 语言资源与可信悬浮 UI 的边界
 
 - 可编辑唯一源：`projects/reading-toc/locales.json`。独立包构建器在 `src/main.js` 中编入校验通过的文案。
 - 可信代码使用 `src/reading-toc/locales.generated.js`，由 `node scripts/generate-reading-toc-locales.mjs --write` 确定性生成并带源 blob 摘要；生成后审阅差异再提交。`npm run check`、`npm run build`、`npm run dev` 都会拒绝未经同步的资源，保持 Content Script 安全来源检查。不得在可信 bundle 中直接 import 工具项目。
 - 本地可交互主预览为 [preview/index.html](preview/index.html)，由唯一 `scripts/preview/build-preview.mjs` 官方生成器输出；示例命令见 [preview/README.md](preview/README.md)。它复用正式安装包与可信 `src/reading-toc/view.js`，并不代表真实网站、授权或 Mac Chrome 验收。
 
-## R1.8 · 已批准 AI 侧栏 UI 的正式源码迁移（2026-10-17）
+### 历史 · R1.8 · 已批准 AI 侧栏 UI 的正式源码迁移（2026-10-17）
 
 - 正式源码候选从 v1.0.7 升到 **v1.0.8**；保持 `reading-toc`、`opendesk.sidebar-tool.v1`、唯一 `page.toc` 能力和三个免费视图的全部索引/跳转/自动跟随流程。该阶段最初只在 Side Panel 提供第四个 **AI** 模式；后续 R1.8.4 已同步至正式网页悬浮目录，目前两侧均有四个模式图标。
 - AI 视图默认显示**服务暂未开放**的权益卡及**合作招募**。没有受信会员、支付、AI 生成合同，因此当前不会请求模型、上传正文、生成章节或伪造付款。入口禁用且隐藏，已具备会员/额度/AI 结果不作猜测。
@@ -144,36 +164,36 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 后续真实接入必须复用受信 Broker 与身份权限合同，并对来源、页面、文档、请求世代和取消/刷新/撤权进行严格校验；未接入时 UI 安全降级。
 - R1.8 新增 `tests/environment/reading-toc-ai-r18.test.mjs`，包括正式打包后的 UI、会员可用性、默认推广、locale、四种模式和免费回归断言。必须结合正式 Chromium/Chrome 安装验收及构建结果判断可发布性。
 
-## R1.8.1 · 构建和预览证据（2026-10-17）
+### 历史 · R1.8.1 · 构建和预览证据（2026-10-17）
 
 - 候选生成器 GitHub Actions [#38959360526](https://github.com/shopable-ai/opendesk-browser/actions/runs/38959360526) PASS：`node scripts/build-sidebar-tool.mjs`、双份 `scripts/preview/build-preview.mjs`、19 项定向 Node 测试、`npm run check`、`npm run build`、`npm run build:dev` 与 `npm run verify`；均是 **Linux hosted CI**，不是用户 Mac Chrome。
 - 1.0.8 候选 JSON 27,778 UTF-8 字节，SHA-256 `7cb40e48d3e9f5f801f9fd8e181fa7ab15d030cfc15e62585d706579d041be0d`。保存的两份生成 HTML 各 211,846 / 220,396 字节，并由严格同源回归测试核对来源与内容；不修改已批准 R1.7.4 原型。
 - 本轮 320 / 360 / 420 / 520px × 中文/英文 × 100/125/150/200% CSS zoom × 四个 Side Panel 模式，共 128 个 Linux Chromium 144 离线布局/交互组合全部通过；实测的是工具包 JS/CSS 的沙箱离线预览，不等于真实 Chrome 缩放、网站 DOM、安装升级验收。
 - AI 默认展示会员权益卡和合作招募，会员、支付与 AI Provider 未接入；**用户 Mac Chrome 的 1.0.7 → 1.0.8 安装升级、数据保留、回滚与卸载仍为 `NOT_TESTED`**，不可声称正式发行或产品 95+ 验收已通过。更细证据见 `docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md`。
 
-## R1.8.4 · 网页悬浮目录四模式与概览去重（2026-10-17）
+### 历史 · R1.8.4 · 网页悬浮目录四模式与概览去重（2026-10-17）
 
 - 网页可信 `src/reading-toc/view.js` 已补齐与 Side Panel 同顺序的第四个 AI 星芒图标，普通短文章和多条 ChatGPT 回答都保留四个图标；保留原有拖动与 Home / 双击归位。
 - **彻底移除**网页悬浮目录的冗余“还有 N 个章节 · 查看完整目录”按钮及其 DOM。短目录（≤12 条）概览直接显示全部有效标题；长目录仍允许选择顶部“完整目录”，ChatGPT 完整视图保持回答之间的分隔线。
 - AI 模式仅显示已经审核的未开放会员卡和合作招募卡；没有模型请求、额度、支付操作或假 AI 章节。切回免费模式保留原快照和标题跳转，撤权、SPA、DOM 自动更新均仍由现有可信 Content Script 管理。
 - `reading-toc-r183-inpage-preview.html` 是历史离线快照，不再作为最新 UI 证据。以唯一正式生成器输出的 [preview/index.html](preview/index.html) 为默认主入口；旧版本同源 HTML 已于 2026-10-31 清理，CI 改用唯一入口。离线预览与真实 Chrome 安装升级分别验收。
 
-## R1.8.6 · 主预览与正式版隔离
+### 历史 · R1.8.6 · 主预览与正式版隔离
 
 默认预览入口为 `preview/index.html`，显示模拟文章和可信网页悬浮目录；Side Panel 直接在同一入口切换，不再保留历史同源验证页。以下为 R1.8.6 历史证据边界：正式工具的手柄支持双击与 Home 归位；当时原生测试采用真实 Home 键检查存储清除，不能在 CI 完成前声称测试通过，且不恢复网页独立归位图标。当时正式 `reading-toc.opendesk-tool.json` 为唯一可安装包（`1.0.8`）；离线 HTML、Linux Chromium 与 hosted macOS 均不能冒充用户本机 Mac 的 1.0.7→1.0.8 主动升级结果。
 
-## R1.9 · 主要章节短 tooltip（2026-10-18）
+### 历史 · R1.9 · 主要章节短 tooltip（2026-10-18）
 
 - 四种视图保持原顺序；第一个模式在网页悬浮目录与 Side Panel 显示“主要章节”/“Main sections”，无障碍名称保留按需要补充子章节的说明。
 - 正式工具包版本 1.0.9；默认当前章节、章节识别、跳转、授权和 AI 未开放状态保持不变。源码、包和离线 HTML 需同候选重新测试；没有真实 Mac Chrome 证据时不得称验收通过。
 
-## R1.9.1 · 1.0.9 市场修订与验收状态
+### 历史 · R1.9.1 · 1.0.9 市场修订与验收状态
 
 - 当前正式 `reading-toc` 包与受信身份为 **1.0.9**；上述“R1.8.6 发行版本 1.0.8”记录是历史基线，不代表现行版本。
 - 原最新阅读组合 revision 7 仍固定 1.0.8，现追加不可变 revision 8 固定 1.0.9，保留历史版本及每个成员身份；源码提交见 [`c0060a0`](https://github.com/shopable-ai/opendesk-browser/commit/c0060a080754a5f5a33b72b605e218ad7ec1ccf0)。
 - CI 中的通用安装器测试不再借用官方保留 `reading-toc` ID；伪造官方 ID 仍须失败。真实网页目录、Site Panel、扩展安装升级和 Mac Chrome 未经同候选验证前不可标记 PASS，详细失败与状态见 [唯一需求规格](REQUIREMENTS.zh-CN.md#7-r191-版本一致性修复与真实验收边界2026-10-18)。
 
-## R2.1 · 语言包试点（2026-10-25）
+### 历史 · R2.1 · 语言包试点（2026-10-25）
 
 唯一正式包已晋升为 **1.0.10**，官方 pin 同步；源码/包自动验证通过，真实 Chrome 安装仍为 `NOT_TESTED`。详细证据见 [R2.1 交付记录](../../docs/framework/workstreams/locale-packs-r21-reading-toc.md)。旧章节的 1.0.9 是此前正式基线，不能当作本轮语言包已安装的证据。
 

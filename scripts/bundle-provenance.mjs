@@ -639,17 +639,10 @@ function reviewedCompiledWebClipper(target,path,root){
 // before the quota/tree, never headings by alphabet. Limit ChatGPT dispatch
 // to its exact hosts; preserve DOM identity and existing content boundaries.
 const compiledReadingTocInputs=Object.freeze({
-  'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
-  'projects/reading-toc/trusted/model.js':'8edf7c90dd26a63da0bd3da47bd1ebd956ba1d50',
-  'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'projects/reading-toc/trusted/page.js':'b15e1f0993a6ce02a04e20c5b049f078b5d3dc42',
-  // 2026-11-09 stacking review: raise the edge control above the mode toolbar;
-  // retain the reviewed collapse/placement behavior, closed ShadowRoot, source,
-  // target, permissions, heading parsing, hitbox and lifecycle fences.
-  'projects/reading-toc/trusted/view.js':'5571dd5955469e043a244a0c74ed55f622669885',
+  // Legacy metadata/admission only. Webpage algorithms and view styles are
+  // delivered by the reviewed application Page module, never fixed bundles.
   'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
-  'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff',
-  'projects/reading-toc/trusted/existing-tabs.js':'e82a3e3b43debfff756180ccf1da110b7dfd8172'
+  'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;

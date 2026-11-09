@@ -35,7 +35,7 @@ function validPlan(plan,releases){
 }
 // A trusted host restart may continue only a *persisted install intent* bound to
 // the same extension version, never an update or an existing profile.
-export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThis.fetch}){
+export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThis.fetch,pageClient=null}){
   return locked(lockManager,async()=>{
     let marker=await read(api);
     if(marker===undefined)return {state:'not-requested'};
@@ -51,6 +51,7 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
       marker=await save(api,marker,{...marker,plan});
     }
     validPlan(plan,apps);
+    let needsHost=false;
     for(const entry of plan){
       if(marker.completed.includes(entry.toolId))continue;
       const release=apps.find(row=>row.toolId===entry.toolId);
@@ -74,9 +75,9 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
         // finalized through the existing market recovery journal.
         if(journal){
           const checked=await reconcileMarketOperation(api,entry.operationId,
-            await matchesOfficialRelease(release,existing)?existing:null);
+            await matchesOfficialRelease(release,existing)?existing:null,{pageClient});
           if(checked.state==='needs-finalization'){
-            const recovered=await recoverMarketOperation({api,lockManager,operationId:entry.operationId,
+            const recovered=await recoverMarketOperation({api,lockManager,operationId:entry.operationId,pageClient,
               expectedIdentity:{toolId:entry.toolId,marketId:release.id,
                 version:entry.version,sha256:entry.sha256}});
             if(recovered.state!=='succeeded')throw fail('预装事务需要人工核对','E_OUTCOME_UNKNOWN');
@@ -102,9 +103,12 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
         entry.operationId=revised.find(row=>row.toolId===entry.toolId).operationId;
       }
       const {tool}=await loadOfficialTool(release,{api,fetcher});
+      // The original Page Authority requires a real registered Host. A Worker
+      // can persist first-install intent, but cannot impersonate that document.
+      if(tool.pageModule&&!pageClient?.request){needsHost=true;continue;}
       try{
         const result=await installReviewedSidebarTool({api,lockManager,candidate:tool,
-          baseline:null,reviewApproved:true,
+          baseline:null,reviewApproved:true,pageClient,
           market:{marketId:release.id,sha256:release.sha256,operationId:entry.operationId},
           approveUpdate:()=>false,approveSourceChange:()=>false});
         if(!['installed','already-installed'].includes(result.state))
@@ -119,6 +123,7 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
       }
       marker=await save(api,marker,{...marker,completed:[...marker.completed,entry.toolId]});
     }
+    if(needsHost)return {state:'pending',reason:'host-required',installed:marker.completed.length};
     marker=await save(api,marker,{...marker,state:'complete'});
     return {state:'complete',installed:marker.completed.length};
   });

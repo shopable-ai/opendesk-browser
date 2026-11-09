@@ -1314,7 +1314,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(results[1].status!=='fulfilled')throw results[1].reason;
       const response=results[1].value;
       if(!Array.isArray(response?.installed))throw uiError('invalidPageList');
-      pages=response.installed;pageStatusKnown=true;
+      // Embedded Page modules share their parent application's install and
+      // lifecycle; they are not a second independently manageable extension.
+      pages=response.installed.filter(row=>!row.appOwner);pageStatusKnown=true;
     }catch(error){pages=[];pageStatusKnown=false;errors.push({key:'pagesError',error});}
     dataError=errors.length?errors:null;hasLoaded=true;
     if(dataError&&statusOrigin!=='action')

@@ -1,3 +1,4 @@
+import {appPageBootstrapSource} from './app-page-runtime.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION} from './scroll-config-contract.js';
 import {readNativeUserScripts} from './native-access.js';
 import {httpUrl, permissionPattern} from '../../environment.js';
@@ -533,7 +534,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const frameResources=await readPageFrameResources(candidate.sourceUtf8);
       const scrollConfig=installation.programId===SCROLL_CONFIG_PROGRAM_ID&&
         installation.revision>=SCROLL_CONFIG_MIN_REVISION;
-      if(frameResources.length||scrollConfig)await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
+      if(frameResources.length||scrollConfig||installation.appOwner)await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
       const frameBootstrap=frameResources.length?pageFrameBootstrapSource({executionKey:installation.executionKey,
         receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)}):'';
       const configBootstrap=scrollConfig?(()=>{
@@ -548,7 +549,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           ',read:()=>send("read"),write:(value,etag)=>send("write",{value,etag})'+
           '})});})();';
       })():'';
-      const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+frameBootstrap+';\n'+
+      const appBootstrap=installation.appOwner?appPageBootstrapSource({protocol:'opendesk.page-installed.boot.v1',action:'app-page',
+        programId:installation.programId,executionKey:installation.executionKey,receiptNonce,worldId}):'';
+      const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+appBootstrap+';\n'+frameBootstrap+';\n'+
         configBootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
       const compiledSha256=await sha256Utf8(js[0].code);
       // Persist the world/code binding in the original Authority execution too;

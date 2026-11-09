@@ -159,13 +159,14 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await recoverPersistedHosts({api, storage, session, authority, consumer});
   await consumer?.reconcileRetirements();
   await installedPages.recoverExecutions();
+  await installedPages.synchronizeAppPages();
   await installedPages.reconcile();
   await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
     ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
-    ...createMethodRoutes(installedPages,['importPageInstallPackage','prepareScrollSitePackage','readScrollSiteConfig','pickScrollSiteElement','observeScrollSitePage','saveScrollSiteRule','saveScrollNavigationSettings','listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','runInstalledPageProgram','sendQueueOperation','setInstalledPageEnabled','uninstallPageProgram']),
+    ...createMethodRoutes(installedPages,['prepareAppPage','importAppPage','verifyAppPage','synchronizeAppPages','requestAppPage','importPageInstallPackage','prepareScrollSitePackage','readScrollSiteConfig','pickScrollSiteElement','observeScrollSitePage','saveScrollSiteRule','saveScrollNavigationSettings','listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','runInstalledPageProgram','sendQueueOperation','setInstalledPageEnabled','uninstallPageProgram']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? createMethodRoutes(downloads,['prepareAttempts']) : {}),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
@@ -268,6 +269,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   return {handle,issueGestureTicket,disconnectHost,recoverHostTab:recoverHostTabForBroker,
     handleInstalledPageBoot:(message,sender)=>message?.action==='page-frame'&&Object.hasOwn(message,'previewId')
       ?pageScriptPreview.handlePreviewFrame(message,sender):installedPages.handleBoot(message,sender),
+    synchronizeAppPages:installedPages.synchronizeAppPages,
     reconcileInstalledPages:installedPages.reconcile,
     revokeInstalledPagePermissions:installedPages.revokePermissions,
     async cleanupPagePreviewWorlds(details){

@@ -5,7 +5,7 @@ import {MARKET_OPERATIONS_STORE} from './sidebar-tools/installation.js';
 
 // Presentation coordinator on the existing trusted Root. No navigation or
 // sandbox disposal occurs when review is opened, deferred, or dismissed.
-export function createMarketInstallSheet({api,view,canAutoOpen=()=>false,hasOtherReview=()=>false,
+export function createMarketInstallSheet({api,view,pageClient=null,canAutoOpen=()=>false,hasOtherReview=()=>false,
   assertCanInstall=()=>{},openInstalledApp}={}){
   let closed=false,current=null,currentId=null,refreshing=false,again=false,opening=null,activeTicket=null;
   const deferred=new Set();
@@ -44,7 +44,7 @@ export function createMarketInstallSheet({api,view,canAutoOpen=()=>false,hasOthe
       if(hasOtherReview()||automatic&&!canAutoOpen())return;
       activeTicket=ticket;
       currentId=reviewId;
-      current=createMarketInstallReview({api,reviewId,
+      current=createMarketInstallReview({api,reviewId,pageClient,
         assertCanInstall,
         onChange:review=>{if(!closed&&activeTicket===ticket)view.setMarketInstall({review,error:''});},
         onClose:()=>{
@@ -64,7 +64,7 @@ export function createMarketInstallSheet({api,view,canAutoOpen=()=>false,hasOthe
     }catch(problem){if(!closed)error(problem);}
     finally{if(opening===ticket)opening=null;}
   }
-  const actions={open,refresh,act:id=>current?.act(id),dismiss:()=>current?.dismiss()};
+  const actions={open,refresh,act:(id,event)=>current?.act(id,event),dismiss:()=>current?.dismiss()};
   view.connectMarketInstall(actions);
   const changed=(changes,area)=>{
     if(area==='local'&&(Object.hasOwn(changes,MARKET_INTENTS_STORE)||Object.hasOwn(changes,MARKET_OPERATIONS_STORE)))void refresh();

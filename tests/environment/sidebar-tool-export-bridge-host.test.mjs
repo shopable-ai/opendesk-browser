@@ -16,6 +16,9 @@ import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js
 import {officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 import {normalizeOwnPageTarget} from '../../src/ui/sidebar-tools/navigation.js';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
+import {sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {appPageStorage,appPageEtag} from '../../src/scripting/user-scripts/app-page-contract.js';
 
 const tool={format:SIDEBAR_TOOL_FORMAT_V2,id:'export-example',version:'1.0.0',title:'Export',
   description:'generic export fixture',capabilities:['user.export'],html:'<main>Export</main>',css:'',js:'void 0;',
@@ -866,11 +869,12 @@ test('prepareText: after send a lost acknowledgement remains unknown and never r
   }finally{await b.dispose();}
 });
 
-async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,openAIProviderSettings}={}){
-  const installed={...tool,capabilities};
+async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,openAIProviderSettings,
+  toolOverrides={},foundationClient,currentPageTarget,lockManager={request:(_key,run)=>run()}}={}){
+  const installed={...tool,capabilities,...toolOverrides};
   const descriptors=new Map(['window','navigator','location','MessageChannel'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   const win=new Events(),copied=[],downloads=[],calls=[],store=new Map([[SIDEBAR_TOOL_STORE,[installed]]]);
-  if(providerRuntime||capabilities.includes('ai.generate'))store.set(TOOL_REVOCATION_EPOCHS_STORE,{[installed.id]:'ai-install-epoch'});
+  if(providerRuntime||capabilities.includes('ai.generate')||capabilities.includes('page.module'))store.set(TOOL_REVOCATION_EPOCHS_STORE,{[installed.id]:'ai-install-epoch'});
   const {document:doc}=parseHTML('<html><body></body></html>');
   const create=doc.createElement.bind(doc);
   doc.createElement=tag=>{
@@ -899,9 +903,9 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,ope
   const view=createSidebarToolsView(),runtime={frameRoot:doc.createElement('div'),settingsControl:doc.createElement('button')};
   doc.body.append(runtime.frameRoot,runtime.settingsControl);view.attachRuntime(runtime);
   const settingsCalls=[];
-  const host=createSidebarTools({api,doc,view,providerRuntime,
+  const host=createSidebarTools({api,doc,view,providerRuntime,foundationClient,currentPageTarget,
     openAIProviderSettings:(...args)=>{settingsCalls.push(args);return openAIProviderSettings?.(...args);},
-    taskWorkbench:{},lockManager:{request:(_key,run)=>run()},fetcher:officialFixtureFetch});
+    taskWorkbench:{},lockManager,fetcher:officialFixtureFetch});
   t.after(()=>{host.dispose();view.dispose();for(const [key,descriptor] of descriptors){
     if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
   }});
@@ -920,6 +924,53 @@ async function hostFixture(t,{capabilities=tool.capabilities,providerRuntime,ope
     change(key,value){store.set(key,value);changed.emit('change',{[key]:{newValue:value}},'local');}
   };
 }
+
+async function appPageHostFixture(t,dispatch){
+  const sourceUtf8='async function main(){return 1;}',page={format:'opendesk.page-install.v1',
+    programId:'app.'+tool.id,version:tool.version,title:tool.title,revision:1,entryFormat:'async-main',
+    sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:['https://example.com/*'],
+      excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  const held=new Set(),lockManager={async request(name,run){
+    assert.equal(held.has(name),false,'Page handler storage must not wait on its caller’s tool lock');
+    held.add(name);try{return await run();}finally{held.delete(name);}
+  }};
+  const target={tabId:1,windowId:2,documentId:'page-doc',url:'https://example.com/article'};
+  const currentPageTarget={snapshot:target,capture:()=>({...target}),async revalidate(captured){
+    assert.deepEqual(captured,target,'the captured document must remain current');
+  }};
+  let f;
+  f=await hostFixture(t,{capabilities:['page.module','storage.local'],lockManager,currentPageTarget,
+    toolOverrides:{pageModule:{...page,packageHash:await digest(page)}},foundationClient:{
+      request:async(type,payload)=>{
+        assert.equal(type,'requestAppPage');
+        return dispatch({f,payload,lockManager,target});
+      }}});
+  return f;
+}
+
+test('app Page request handler can await a private storage write without a nested caller lock',async t=>{
+  const f=await appPageHostFixture(t,async({f,payload,lockManager})=>{
+    const owner={toolId:payload.toolId,packageHash:payload.packageHash,installEpoch:payload.installEpoch};
+    const saved=await appPageStorage({api:f.api,owner,operation:'storage.set',
+      payload:{key:'settings',value:{hidden:true},ifMatch:await appPageEtag(null)},authorize:async()=>{},lockManager});
+    return {saved:saved.saved};
+  });
+  f.windowRequest('page.request',{operation:'settings.save',payload:{}},'page-write');
+  await settle(()=>f.response('page-write'));
+  assert.equal(f.response('page-write').ok,true,JSON.stringify(f.response('page-write')));
+  assert.deepEqual(f.response('page-write').result,{saved:true});
+  assert.deepEqual(f.store.get(sidebarToolStorageKey(tool.id)),{settings:{hidden:true}});
+});
+
+test('app Page request cannot deliver a success after its installation epoch changes',async t=>{
+  const f=await appPageHostFixture(t,async({f})=>{
+    f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'replacement-epoch'});return {saved:true};
+  });
+  f.windowRequest('page.request',{operation:'settings.save',payload:{}},'page-replaced');
+  await settle(()=>f.response('page-replaced'));
+  assert.equal(f.response('page-replaced').ok,false);
+  assert.match(f.response('page-replaced').error.code,/^E_TOOL(?:_CHANGED)?$/);
+});
 
 test('AI settings: sandbox sends a synchronous fixed action only on its original private port',async()=>{
   const b=sandbox();

@@ -507,7 +507,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
       <p className="od-market-footer-note">确认一次即可提交此固定版本；关闭可以稍后继续审阅。</p>}
     <div className="od-market-actions">{marketReview.actions.map((action,index)=>
       <Button key={action.id} variant={index===0?'primary':'secondary'}
-        disabled={marketReview.busy} onClick={()=>{if(!marketReviewRef.current?.busy)view.marketInstallActions?.act(action.id);}}>
+        disabled={marketReview.busy} onClick={event=>{if(!marketReviewRef.current?.busy)view.marketInstallActions?.act(action.id,event);}}>
         {action.label}
       </Button>)}</div>
   </div>

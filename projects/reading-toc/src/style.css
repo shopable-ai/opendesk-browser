@@ -51,3 +51,5 @@
 /* R1.8.1: keep 200% zoomed narrow toolbars inside their own scroll area. */
 .toc-actions{flex:0 1 auto;margin-left:auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
 .toc-actions::-webkit-scrollbar{display:none}
+
+.toc-settings{margin:0 0 8px;font-size:12px;color:inherit}.toc-settings summary{cursor:pointer}.toc-settings label{display:flex;align-items:center;gap:6px;margin-top:6px}.toc-settings input{accent-color:#426cff}.toc-settings[hidden]{display:none}

@@ -1,7 +1,8 @@
 import {SIDEBAR_TOOL_LIMITS} from '../src/ui/sidebar-tools/limits.js';
 // Deterministic local packer for standalone Sidebar UI tools.
 // React/Vue/Tailwind may be compiled BEFORE packing; no npm or remote code runs in Chrome.
-import {readFile,writeFile,mkdir,realpath,stat,lstat,readdir,rename,unlink} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm,realpath,stat,lstat,readdir,rename,unlink} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
@@ -83,7 +84,7 @@ export async function createSidebarToolPackage(projectPath) {
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks','controller']
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks','controller','pageModule']
        :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
@@ -94,6 +95,28 @@ export async function createSidebarToolPackage(projectPath) {
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
   if(Object.hasOwn(meta.files,'background')&&!v2)
     fail('files.background requires a v2 tool.config.json');
+  let pageModule;
+  if(meta.pageModule!==undefined||(Array.isArray(meta.capabilities)&&meta.capabilities.includes('page.module'))){
+    if(!v2||!Array.isArray(meta.capabilities)||!meta.capabilities.includes('page.module')||
+       !meta.pageModule||typeof meta.pageModule!=='object'||Array.isArray(meta.pageModule)||
+       Object.keys(meta.pageModule).join(',')!=='revision'||
+       !Number.isSafeInteger(meta.pageModule.revision)||meta.pageModule.revision<1)
+      fail('pageModule requires v2 page.module capability and a fixed positive revision');
+    const program=JSON.parse(await source(root,'package.json',65536));
+    if(program.opendesk?.id!=='app.'+meta.id||program.version!==meta.version||
+       program.opendesk?.runtimeKind!=='page-userscript')
+      fail('Page project must bind app.<tool id>, parent version and page-userscript runtime');
+    const {buildProgramProject}=await import('./build-program-project.mjs');
+    const {buildPageInstallPackage}=await import('./build-page-install-package.mjs');
+    const outputDirectory=await mkdtemp(join(tmpdir(),'opendesk-app-page-'));
+    try{
+      const artifact=await buildProgramProject(root,{outputDirectory,mode:'production'});
+      const draft=JSON.parse(await readFile(join(outputDirectory,artifact.draftFile),'utf8'));
+      pageModule=await buildPageInstallPackage(draft,{revision:meta.pageModule.revision,title:meta.title});
+    }finally{
+      await rm(outputDirectory,{recursive:true,force:true});
+    }
+  }
   let controller;
   if(Object.hasOwn(meta,'controller')||Object.hasOwn(meta.files,'controller')){
     const metadata=meta.controller;
@@ -175,6 +198,7 @@ export async function createSidebarToolPackage(projectPath) {
     ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),
       ...(background?{background}:{}),
       ...(controller?{controller}:{}),
+      ...(pageModule?{pageModule}:{}),
       ...(meta.delegatedTasks!==undefined?{delegatedTasks:meta.delegatedTasks}:{}),
       ...(meta.initialData!==undefined?{initialData:meta.initialData}:{})}:{})});
   return pkg;

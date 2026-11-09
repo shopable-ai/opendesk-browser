@@ -10,6 +10,7 @@ export function requirePendingToolCleanups(value){
     Object.entries(value).some(([id,row])=>
       !toolIdPattern.test(id)||!row||typeof row!=='object'||Array.isArray(row)||
       typeof row.version!=='string'||!/^\d+\.\d+\.\d+$/.test(row.version)||
+      (Object.hasOwn(row,'pageModule')&&row.pageModule!==true)||
       (Object.hasOwn(row,'createdAt')&&(!Number.isSafeInteger(row.createdAt)||row.createdAt<0))))
     throw Object.assign(new Error('工具卸载恢复记录损坏；已停止安装与卸载清理以保护原始数据'),{code:'E_STORAGE_CORRUPT'});
   return value;

@@ -5,6 +5,8 @@ import {canonical} from '../../platform/protocol.js';
 import {validateToolLocalization,verifyToolLocalization} from './localization.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3} from './background-policy.js';
+import {validatePageProgramRules} from '../../scripting/user-scripts/page-program-rules.js';
+import {PAGE_FRAME_DRAFT_LIMIT} from '../../scripting/user-scripts/page-frame-resources.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 // Sidebar tool UI package contract. This is NOT a Task v1 program or an authority grant.
 export const SIDEBAR_TOOL_FORMAT = 'opendesk.sidebar-tool.v1';
@@ -17,7 +19,7 @@ export const SIDEBAR_TOOL_BACKGROUND_KIND='opendesk.app-service.v1';
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
 const LIMITS = Object.freeze({title:80,description:300});
 const CAPABILITIES = Object.freeze(['ai.generate','storage.local','currentPage.read','tasks.open','page.toc','page.clip','page.videoSpeed','page.videoContext','page.mediaDownload','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
-const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'localTasks','browser.page.environment.read','browser.fingerprint.control','tasks.run','controllers.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
+const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.module','localTasks','browser.page.environment.read','browser.fingerprint.control','tasks.run','controllers.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
@@ -35,13 +37,36 @@ export async function sidebarToolPackageContractHash(){
     value=>value.toString(16).padStart(2,'0')).join('');
 }
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
-const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background','delegatedTasks','controller']);
+const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background','delegatedTasks','controller','pageModule']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
   (Object.getPrototypeOf(value)===Object.prototype || Object.getPrototypeOf(value)===null);
 const fields=(obj,keys) => Object.keys(obj).every(key=>keys.includes(key));
 const validText=(text,max,optional=false) => typeof text==='string' && text.length<=max && (optional || text.trim().length>0);
+
+// Shape-only admission has no dependency on installed Page authority. Full
+// source/package digest and executable-source checks run at the async boundary.
+function normalizePageModule(value,tool){
+  const keys=['format','programId','version','title','revision','entryFormat','sourceUtf8','sourceHash','pageRules','packageHash'];
+  if(!plain(value)||Object.keys(value).length!==keys.length||!fields(value,keys)||
+     value.format!=='opendesk.page-install.v1'||value.programId!=='app.'+tool.id||
+     value.version!==tool.version||!validText(value.title,100)||
+     !Number.isSafeInteger(value.revision)||value.revision<1||
+     !['classic-userscript','async-main'].includes(value.entryFormat)||
+     typeof value.sourceUtf8!=='string'||!value.sourceUtf8.trim()||
+     !['sourceHash','packageHash'].every(key=>typeof value[key]==='string'&&/^[a-f0-9]{64}$/.test(value[key])))
+    fail('Page 模块必须是绑定当前应用 ID 和版本的完整安装包','E_TOOL_PAGE_MODULE');
+  const pageRules=validatePageProgramRules(value.pageRules);
+  if(pageRules.allFrames||pageRules.runAt!=='document_idle')
+    fail('Page 模块只支持顶层 document_idle / USER_SCRIPT','E_TOOL_PAGE_MODULE');
+  // Canonical encoding rejects cyclic/non-JSON data before cloning or hashing.
+  const normalized={...value,pageRules};
+  const encoded=canonical(normalized);
+  if(new TextEncoder().encode(encoded).byteLength>PAGE_FRAME_DRAFT_LIMIT)
+    fail('Page 模块超过离线资源预算','E_TOOL_PAGE_MODULE');
+  return normalized;
+}
 
 export function validateSidebarToolPackage(value) {
   const v2=value?.format===SIDEBAR_TOOL_FORMAT_V2;
@@ -69,6 +94,11 @@ export function validateSidebarToolPackage(value) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
     fail('当前安装器不支持此工具格式的能力：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+
       '。请核对工具包格式与扩展运行身份；确认新版支持这些能力后再更新 OpenDesk Browser。','E_TOOL_CAPABILITY_UNSUPPORTED');
+  }
+  if(value.pageModule!==undefined||value.capabilities.includes('page.module')){
+    if(!v2||!value.capabilities.includes('page.module')||value.pageModule===undefined)
+      fail('Page 模块与 v2 page.module 能力必须同时声明','E_TOOL_PAGE_MODULE');
+    normalizePageModule(value.pageModule,value);
   }
   if(value.capabilities.includes('tasks.run')||value.delegatedTasks!==undefined){
     if(!v2||!value.capabilities.includes('tasks.run'))fail('固定任务委托必须在 v2 包中审阅 tasks.run');
@@ -196,6 +226,7 @@ export function serializeSidebarToolPackage(value){
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
   if(isV2){
+    if(tool.pageModule!==undefined)stable.pageModule=JSON.parse(canonical(normalizePageModule(tool.pageModule,tool)));
     if(tool.controller!==undefined)stable.controller=JSON.parse(canonical(normalizeAppController(tool.controller)));
     if(tool.delegatedTasks!==undefined)stable.delegatedTasks=normalizeTaskDelegations(tool.delegatedTasks).map(({taskId,version,manifestHash,contentHash})=>({taskId,version,manifestHash,contentHash}));
     if(tool.background!==undefined)stable.background={
@@ -239,6 +270,12 @@ export async function verifySidebarToolBackground(value){
   const tool=validateSidebarToolPackage(value);
   if(tool.localization!==undefined)await verifyToolLocalization(tool.localization);
   if(tool.controller!==undefined)await verifyAppController(tool.controller);
+  if(tool.pageModule!==undefined){
+    // Lazy data validation keeps synchronous schema admission independent of
+    // the Page installation graph and never imports its authority/runner.
+    const {validatePageInstallPackage}=await import('../../scripting/user-scripts/page-install-package.js');
+    tool.pageModule=await validatePageInstallPackage(tool.pageModule);
+  }
   if(tool.background===undefined)return tool;
   const bytes=new TextEncoder().encode(tool.background.js);
   const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
