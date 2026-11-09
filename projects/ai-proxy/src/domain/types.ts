@@ -1,3 +1,4 @@
+import type {HeaderActionId} from './header-actions';
 /** 配置只存储非秘密数据；凭证值另存于 storage.session。 */
 export type ProxyScheme = 'http' | 'https' | 'socks4' | 'socks5';
 export type RouteMode = 'system' | 'direct' | 'profile' | 'rules';
@@ -45,6 +46,8 @@ export interface ConfigState {
   selection: RouteSelection;
   /** false = do not set chrome.proxy on startup, even if a selection remains. */
   managed: boolean;
+  /** Optional to preserve existing 0.3.9 records before preference editing. */
+  headerActions?: HeaderActionId[];
 }
 export type ControlLevel =
   | 'not_controllable' | 'controlled_by_other_extensions'

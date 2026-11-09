@@ -1,4 +1,12 @@
 {
+  "headerActionsTitle": "頂部快捷操作",
+  "headerActionsHelp": "設定側邊欄共用頁首顯示的入口及順序。變更會儲存至本工具設定；這些入口只負責導覽，不會啟用代理。",
+  "headerActionShown": "顯示中 · 點擊隱藏",
+  "headerActionHidden": "已隱藏 · 點擊顯示",
+  "headerActionMoveUp": "上移{name}",
+  "headerActionMoveDown": "下移{name}",
+  "headerActionsRestoreDefaults": "還原預設快捷操作",
+  "sideChoiceSelect": "選擇",
   "manifestName": "AI Proxy",
   "manifestDescription": "免費、無需登入的瀏覽器代理管理工具。支援第三方代理，並非全裝置 VPN。",
   "manifestTitle": "AI Proxy — 瀏覽器代理管理工具",

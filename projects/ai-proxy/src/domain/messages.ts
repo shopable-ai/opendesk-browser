@@ -1,4 +1,5 @@
 import {getEnvironment} from '../environment';
+import type {HeaderActionId} from './header-actions';
 import type { ErrorCode } from './error-codes';
 import type { DiagnosticsSnapshot, SitePriority } from '../diagnostics/types';
 import type { UsageSnapshot, UsageSort } from '../usage/types';
@@ -15,6 +16,7 @@ export type Request = (
   | { type: 'SAVE_RULE'; rule: SiteRule }
   | { type: 'DELETE_RULE'; id: string }
   | { type: 'SET_DEFAULT'; target: ConfigState['defaultTarget'] }
+  | { type: 'SET_HEADER_ACTIONS'; actions: HeaderActionId[] }
   | { type: 'SELECT'; selection: RouteSelection }
   /** One-click use: select and apply a saved route in one serialized background operation. */
   | { type: 'SELECT_AND_APPLY'; selection: RouteSelection; approvedPac?: boolean }

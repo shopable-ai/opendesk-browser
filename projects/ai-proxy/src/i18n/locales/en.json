@@ -1,4 +1,12 @@
 {
+  "headerActionsTitle": "Header shortcuts",
+  "headerActionsHelp": "Choose which shortcuts appear in the shared Side Panel header and reorder them. These settings only navigate; they never enable a proxy.",
+  "headerActionShown": "Shown · hide",
+  "headerActionHidden": "Hidden · show",
+  "headerActionMoveUp": "Move {name} up",
+  "headerActionMoveDown": "Move {name} down",
+  "headerActionsRestoreDefaults": "Restore default shortcuts",
+  "sideChoiceSelect": "Select",
   "manifestName": "AI Proxy",
   "manifestDescription": "Free browser proxy manager. Use your own proxies without an account. Not a device-wide VPN.",
   "manifestTitle": "AI Proxy — Browser proxy manager",
