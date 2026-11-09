@@ -365,7 +365,7 @@ test('expanded list shows all 20 items and retains scroll position after state c
 });
 
 test('compact row keeps secondary actions in an accessible toggle',()=>{
-  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  const h=fixture();assert.equal(h.view.place(h.snap),true);h.view.render();
   const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   const first=()=>panel(h).querySelectorAll('[data-id-row]')[0];
   const buttons=first().querySelectorAll('button');
