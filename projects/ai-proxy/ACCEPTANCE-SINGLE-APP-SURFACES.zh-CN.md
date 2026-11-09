@@ -1,5 +1,7 @@
 # Single App · Multiple Surfaces 本地验收与交付记录
 
+> 2026-11-09 后续状态：本记录为冻结候选的核心验收证据，不是整体完成声明。已补 [可查看网页与启动器](progress/README.zh-CN.md)，本地入口 http://127.0.0.1:43264/ 。c1a95457b 的远端 Actions 11个中1成功、10失败；App CI 已定位 AI Proxy 缺显式 app.ci.json，其他 Provider/工具回归另有失败，详见 [实际日志分类](progress/CI.zh-CN.md)。下文历史“当前核心无阻断”不消除这些 CI 缺口；production/公网等延期范围保持。
+
 日期：2026-11-09。仓库 `opendesk-browser`，现有 `main`。本轮测试和修复既有实现；没有新建 Host、Installer、代理 Service、数据存储、应用 ID、分支、worktree 或并列 GOAL。
 
 ## 1. 原始目标与真实可用操作

@@ -1,3 +1,5 @@
+**2026-11-09 · 可查看完成情况入口。** 仓库根运行 `node projects/ai-proxy/progress/serve.mjs`，打开 [本地总览](http://127.0.0.1:43264/)，查看已完成/未完成/失败/未验证，并进入原双界面源码 Demo 或 AI Proxy 视觉参考。性质、启动和检查见 [网页说明](progress/README.zh-CN.md)。c1a95457b 的远端 CI 未通过；已定位 AI Proxy 缺显式 app.ci.json，其他 Provider/工具回归另有失败，见 [CI 定位记录](progress/CI.zh-CN.md)。以下核心验收结果仅绑定其冻结 development 候选，不意味着整体发布完成。
+
 **2026-11-09 · Single App Multiple Surfaces 核心验收完成，0.3.9 已晋升。** 同一安装工具的真实 Side Panel → PC 对应栏目 → 保存／读回 → 侧栏重开读取已验证；并发旧 ETag 拒绝覆盖，未知写入不自动重放，更新后旧实例退役。新版本原位安装保留原配置，选择不应用；明确申请并完成原 Host 审阅后取得 Chrome PAC 回执和本任务受控本地 HTTP 回显，暂停后回读 system。项目测试257/257，受影响框架／Demo127/127、开页生命周期4/4、来源锁2/2、包安全8/8通过；独立静态 development Browser 构建通过。唯一正式 JSON为0.3.9，SHA-256 `30615091d14dcb61b2a9b058f4dc4798963cba94cc011ee683240362cdb367b8`。五个同模型独立上下文角色审查综合97.45/100，不能称为五名外部专家。详细绑定、命令、扣分与限制见[本轮验收记录](ACCEPTANCE-SINGLE-APP-SURFACES.zh-CN.md)。公网出口、production、原生 OS 语言菜单及完整故障组合未验；诊断真实HTTP、认证／任意PAC／订阅联网／官方服务仍未实现。日常浏览器和已有 watcher 未变。
 
 下列早期阶段记录保留历史；当前结果以上述验收记录为准。

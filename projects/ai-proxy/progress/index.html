@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>OpenDesk · 双界面与 AI Proxy 完成情况</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header><a class="brand" href="/" aria-label="OpenDesk 完成情况首页"><span class="mark">O</span>OpenDesk <span class="muted">/ 交付进度</span></a><a href="#how">如何体验 <span aria-hidden="true">↗</span></a></header>
+<main>
+  <section class="hero" aria-labelledby="title">
+    <div class="eyebrow">SINGLE APP · MULTIPLE SURFACES</div>
+    <h1 id="title">同一个应用，<br class="mobile">侧栏与完整页面。</h1>
+    <p class="lead">核心链已在隔离 Chrome 跑通；<strong>整体尚未完成正式发布。</strong><br>这里可以查看完成情况、打开已有演示，并追溯每项结论。</p>
+    <p class="meta">证据候选 <a href="https://github.com/shopable-ai/opendesk-browser/commit/c1a95457b63cfcc06e07752fc878337a8ac72aee"><code>c1a95457b</code></a> · AI Proxy 0.3.9 · 本地查看页 · 非实时监控</p>
+  </section>
+
+  <section class="summary" aria-label="当前完成情况">
+    <article><span class="badge done">DONE · 已完成</span><h2>双界面与核心操作</h2><p>同一安装身份；PC 保存读回、侧栏重开读取；主动申请代理、Host 回执及受控本地流量通过。</p><a href="#completed">查看已完成项 ↓</a></article>
+    <article><span class="badge partial">PARTIAL · 部分完成</span><h2>七个管理栏目</h2><p>栏目已实际展示。配置可用；订阅、认证、官方服务与真实诊断仍有明确功能缺口。</p><a href="#remaining">查看功能边界 ↓</a></article>
+    <article><span class="badge failed">FAILED · CI 未通过</span><h2>远端门禁有失败</h2><p>候选 11 个 workflow：1 成功、10 失败。App 发现和侧栏断言失败已知，不能宣称全 CI 通过。</p><a href="#ci">查看失败与链接 ↓</a></article>
+    <article><span class="badge untested">NOT_TESTED · 未验证</span><h2>正式环境与公网</h2><p>production、公网出口/IP、完整故障/焦点/尺寸矩阵未验；日常 Chrome 未升级。</p><a href="#remaining">查看未完成项 ↓</a></article>
+  </section>
+
+  <section aria-labelledby="experience-title">
+    <div class="section-head"><h2 id="experience-title">现在就能打开看</h2><span class="muted">两种页面，两种证据性质</span></div>
+    <div class="experiences">
+      <article class="experience primary"><div class="miniature" aria-hidden="true"><div class="mini-side"><i></i><i></i><i></i></div><span>↗</span><div class="mini-page"><i></i><i></i><i></i></div></div><span class="badge fixture">SOURCE_FIXTURE · 源码交互</span><h3>试用侧栏 ↔ PC 双界面</h3><p>复用原 Header Actions Demo、真实 ToolHost 与 SDK Bridge。可修改、保存读回，并跨界面重新读取示例数据。</p><a class="button" href="/demo" target="_blank" rel="noopener">打开双界面 Demo <span aria-hidden="true">↗</span></a><p class="fine">本浏览器示例数据；模拟安装记录。此操作不控制 Chrome 代理，也不构成安装验收。</p></article>
+      <article class="experience"><div class="preview-label" aria-hidden="true">AI Proxy <span>侧栏 / PC 管理</span><div class="preview-lines"><i></i><i></i><i></i></div></div><span class="badge reference">VISUAL_REFERENCE · 视觉参考</span><h3>查看 AI Proxy 界面</h3><p>直接打开原 R18/R16 参考，查看紧凑侧栏、七区 PC 管理与交互。保存、应用和检测均为模拟。</p><a class="button secondary" href="/ai-proxy" target="_blank" rel="noopener">打开 AI Proxy 视觉参考 <span aria-hidden="true">↗</span></a><p class="fine">只在预览内存中变化；无真实 Host、网络探测或代理控制。正式功能须在已安装扩展内运行。</p></article>
+    </div>
+  </section>
+
+  <section id="completed" aria-labelledby="completed-title">
+    <div class="section-head"><h2 id="completed-title">实际完成了什么</h2><span class="badge done">INSTALLED_CHROME · 历史候选实测</span></div>
+    <div class="panel"><ol class="steps"><li><strong>侧栏打开自己的 PC 栏目</strong><span>同一工具、身份、Service、数据和权限；七区实际内容已核对。</span></li><li><strong>编辑 → 保存读回 → 关闭 PC → 侧栏重开读取</strong><span>旧 ETag 冲突保留草稿；结果未知不自动重放。</span></li><li><strong>选择与应用分开</strong><span>仅选择时 Chrome 仍为 system；主动申请并完成原 Host 审阅才应用。</span></li><li><strong>实际流量与释放</strong><span>取得 Chrome PAC 回执、受控 loopback HTTP 回显；暂停后回读 system。</span></li><li><strong>0.3.8 原位更新到 0.3.9</strong><span>原安装器更新，三条配置保留；没有先卸载。</span></li></ol><div class="evidence-note">以上绑定 2026-11-09 冻结的<strong>静态 development</strong>候选，非 serve、非 production；不代表当前工作区或日常 Chrome 已通过。398 项相关 Node 用例通过，范围见原报告。</div><div class="links"><a href="/report" target="_blank" rel="noopener">已提交验收报告 ↗</a><a href="/evidence/side-panel.png" target="_blank" rel="noopener">当时的侧栏截图 ↗</a><a href="/evidence/pc.png" target="_blank" rel="noopener">当时的 PC 截图 ↗</a><a href="/evidence/native-result.json" target="_blank" rel="noopener">本机原始结果 ↗</a></div><p class="fine">原始结果与截图属于本机忽略目录，换机器可能缺失；缺失时以明确提示为准。</p></div>
+  </section>
+
+  <section id="remaining" aria-labelledby="remaining-title">
+    <div class="section-head"><h2 id="remaining-title">还没有完成什么</h2></div>
+    <div class="remaining-grid"><article class="panel"><span class="badge partial">MISSING · 功能未实现</span><h3>产品能力缺口</h3><ul><li>联网订阅、代理认证。</li><li>任意 PAC、多节点实际应用。</li><li>官方登录、计费、订购。</li><li>诊断栏真实 HTTP 探测。</li></ul><p class="fine">这些入口保留边界提示，不把模拟结果显示成真实成功。</p></article><article class="panel"><span class="badge untested">NOT_TESTED · 后续验证</span><h3>本阶段未开展</h3><ul><li>production 静态候选与专属 Profile。</li><li>公网出口、IP、任意网站可达性。</li><li>OS 原生语言菜单、完整语义类型检查。</li><li>完整故障时序、焦点、尺寸矩阵。</li><li>日常 Chrome 的版本更新。</li></ul></article></div>
+  </section>
+
+  <section id="ci" aria-labelledby="ci-title">
+    <div class="section-head"><h2 id="ci-title">CI 失败公开保留</h2><a href="/ci" target="_blank" rel="noopener">定位记录 ↗</a></div>
+    <p class="muted ci-time">候选 c1a95457b · 2026-11-09 交接时观察：11 个 workflow 已结束，1 成功、10 失败；当前并非全绿。下列为已知失败范围，其余尚未逐项分类。</p>
+    <div class="ci-list"><article><span class="badge failed">BLOCKED</span><div><h3>OpenDesk App CI</h3><p>已定位 AI Proxy 缺少 app.ci.json，触发显式 React profile 门禁；后续验证被跳过。本地网页可查看，正式 CI 仍阻断。</p></div><a href="https://github.com/shopable-ai/opendesk-browser/actions/runs/42530381579" target="_blank" rel="noopener">查看 run ↗</a></article><article><span class="badge failed">FAIL</span><div><h3>Sidebar R1 P0</h3><p>17 PASS / 4 FAIL。三项仍断言旧 Provider 的三个 radio，实际为本地/HTTPS 两项；另一项 mounted control 失败待进一步复现。</p></div><a href="https://github.com/shopable-ai/opendesk-browser/actions/runs/42530381654" target="_blank" rel="noopener">查看 run ↗</a></article><article><span class="badge failed">FAIL</span><div><h3>Sidebar user tools R1</h3><p>480 PASS / 67 FAIL，分布于 8 个测试文件；含 AI VIP Share 旧版本断言、缺失候选/Reading TOC 包及 Host/布局夹具问题。独立 AI VIP job 为 9 PASS / 35 FAIL。</p></div><a href="https://github.com/shopable-ai/opendesk-browser/actions/runs/42530381576" target="_blank" rel="noopener">查看 run ↗</a></article></div>
+    <p class="fine">2026-11-09 15:31（上海）读取上述四个 job 的实际日志并核对候选源码；问题尚未修复。其余失败 workflow 未扩展排查，详见定位记录。</p>
+  </section>
+
+  <section id="how" aria-labelledby="how-title"><div class="section-head"><h2 id="how-title">如何查看与体验</h2><a href="/guide" target="_blank" rel="noopener">启动与检查记录 ↗</a></div><div class="panel how"><div><h3>先看网页</h3><p>打开上面的 Demo，在 PC 首选项修改名称并保存读回，回侧栏重新读取。AI Proxy 参考页用于看界面，所有动作均为模拟。</p><h3>再看真实扩展</h3><p>在已有 OpenDesk 扩展中打开 AI Proxy → 管理设置 → PC 栏目 → 编辑保存 → 关闭 PC → 侧栏重开读取。实际代理申请与流量验证须进入受控隔离环境和原权限审阅。</p></div><div><h3>本地启动</h3><p>在本仓库根目录运行；Demo 复用已有依赖，需要已安装 node_modules。</p><pre><code>node projects/ai-proxy/progress/serve.mjs</code></pre><p class="fine">默认 127.0.0.1:43264。服务保持运行才能访问；Ctrl+C 只关闭本启动器与它启动的 Demo。网页不是 Browser 构建或安装环境。</p><a href="/health" target="_blank" rel="noopener">检查本地服务状态 ↗</a></div></div></section>
+
+  <details class="panel packages"><summary>正式包与候选身份</summary><p>下面是已有正式包；下载不会自动安装。扩展中心经原审阅同 ID 更新，不先卸载。JSON 不替换 Browser 内固定编译的可信组件。</p><p><a href="/downloads/ai-proxy.opendesk-tool.json">下载 AI Proxy 0.3.9</a> · 946159 字节</p><code class="hash">SHA-256 30615091d14dcb61b2a9b058f4dc4798963cba94cc011ee683240362cdb367b8</code><p><a href="/downloads/header-actions-demo.opendesk-tool.json">下载 Header Actions Demo 1.1.0</a> · 16612 字节</p><code class="hash">SHA-256 cd27d6d80264a43d1569349cabaec1f06f5ea433875d3658438fd9b61ebd707c</code><p class="fine">原生候选：Chrome 156.0.8078.4 · extension chacagjgggacgpeigkalhkegiiedehjp · Browser packageHash 14632d9ee26fa26f20fc98fd06c2d7d71e36b3a9ebb0cb9356b36319ef896ea9。</p></details>
+</main>
+<footer>OpenDesk · 当前阶段：本地可查看交付与最小完善 <a href="#title">回到顶部 ↑</a></footer>
+</body></html>
