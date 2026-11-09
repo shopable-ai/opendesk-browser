@@ -10,11 +10,11 @@
 
 ```sh
 # 读取已有正式构建，不运行/覆盖编译器、packager 或 watcher。
-node examples/sidebar-tools/ai-send-queue/preview/prepare.mjs
+node projects/ai-send-queue/preview/prepare.mjs
 python3 -m http.server 43827 --bind 127.0.0.1 --directory .
 ```
 
-打开 http://127.0.0.1:43827/examples/sidebar-tools/ai-send-queue/preview/index.html 。点“加入示例消息”显示三条明确模拟消息。
+打开 http://127.0.0.1:43827/projects/ai-send-queue/preview/index.html 。点“加入示例消息”显示三条明确模拟消息。
 
 必需前置产物由构建 owner 提供：
 
@@ -25,8 +25,8 @@ python3 -m http.server 43827 --bind 127.0.0.1 --directory .
 最小验证：
 
 ```sh
-node --test examples/sidebar-tools/ai-send-queue/preview/preview.test.mjs examples/sidebar-tools/ai-send-queue/tests/crown-preview.test.mjs
-node --check examples/sidebar-tools/ai-send-queue/preview/boot.js
+node --test projects/ai-send-queue/preview/preview.test.mjs projects/ai-send-queue/tests/crown-preview.test.mjs
+node --check projects/ai-send-queue/preview/boot.js
 ```
 
 `preview/browser-smoke.js` 可作为可选的 Playwright 入口，只检查正式侧栏使用提示及队列数据仅在网页区显示；当前改动没有运行浏览器预览测试。历史双端同步、宽度、主题和 FIFO 脚本清单已被本次收敛取代。
