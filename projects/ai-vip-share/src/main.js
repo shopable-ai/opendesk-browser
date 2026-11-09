@@ -1303,7 +1303,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         fail('E_PRE_SUBMIT','账号或预检状态发生变化');
     }catch(error){
       pending=null;code.value='';busy=false;
-      if(error?.code==='E_ACTIVATION_CANCELLED'){
+      if(error?.code==='E_ACTIVATION_CANCELLED'||disposed||
+        confirmationGeneration!==activationCancelGeneration){
         activationHintCode=null;activationHint.hidden=true;
         redeemNotice('已停止尚未提交的兑换；需要领取时请重新主动预检。',true);
       }else redeemNotice('账号或预检状态无法重新核验，本次未提交兑换；请重新预检。',true);

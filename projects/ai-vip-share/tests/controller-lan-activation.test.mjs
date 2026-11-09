@@ -80,10 +80,12 @@ test('cancellation is durable for the account/service even after a changed link 
 });
 
 test('cancel during current-recipient recheck prevents an unsubmitted redemption',async()=>{
-  let intercept=false;
+  let intercept=false,heldGet=null;
   const gate=deferred();
   const e=await runtime({currentPage:page(LAN),network:(args,fixture)=>{
-    if(intercept&&args.method==='GET'&&args.url.endsWith('/api/member'))return gate.promise;
+    if(intercept&&args.method==='GET'&&args.url.endsWith('/api/member')){
+      heldGet={args,fixture};return gate.promise;
+    }
     return fixtureRequest(fixture,{...args,headers:args.config.headers||{}});
   }});
   await e.click('local-connect');await e.checkPage();
@@ -91,7 +93,9 @@ test('cancel during current-recipient recheck prevents an unsubmitted redemption
   await e.click('redeem-confirm'); // GET member held before write-ahead and redeem POST
   await e.click('redeem-cancel');
   intercept=false;
-  gate.resolve(await fixtureRequest(e.fixture,{method:'GET',url:'http://127.0.0.1:7903/api/member',headers:{}}));
+  assert.ok(heldGet,'original authenticated member GET was intercepted');
+  gate.resolve(await fixtureRequest(heldGet.fixture,{...heldGet.args,
+    headers:heldGet.args.config.headers||{}}));
   await e.flush();
   assert.equal(posts(e,'/redeem').length,0);
   assert.equal(e.fixture.ledger.size,0);
