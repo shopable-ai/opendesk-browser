@@ -147,6 +147,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     reconciling=(async()=>{
       try{
         const observed=await inventory();
+        const expiredToastClaims=new Map();
         await mutate(async state=>{
           // Prevent a stale read from reviving an update after a concurrent
           // install, disable, source change or revocation in the original owner.
@@ -160,6 +161,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
           let next=state,dirty=false;
           for(const candidate of observed.candidates){
             const old=next.records[candidate.key];
+            if(old?.claim?.ackedAt>0&&['applied','unknown'].includes(candidate.status))
+              expiredToastClaims.set(old.claim.token,old.claim.tabId);
             if(old&&old.status===candidate.status&&old.title===candidate.title&&
                JSON.stringify(old.newCapabilities)===JSON.stringify(candidate.newCapabilities))continue;
             next=appendTrustedRelease(next,candidate,time);dirty=true;
@@ -167,6 +170,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
           for(const row of Object.values(next.records)){
             if(row.kind!=='sidebar-tool'||active.has(row.key)||row.status==='unknown'||
                row.status==='applied')continue;
+            if(row.claim?.ackedAt>0)expiredToastClaims.set(row.claim.token,row.claim.tabId);
             next=appendTrustedRelease(next,{kind:'sidebar-tool',key:row.key,id:row.id,
               version:row.version,sha256:row.sha256,title:row.title,
               fromVersion:row.fromVersion,status:'unknown',
@@ -175,6 +179,11 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
           return dirty?next:null;
         });
         lastInventoryAt=now();verifiedInventory=true;lastError=null;
+        for(const [token,tabId] of expiredToastClaims){
+          liveClaims.delete(token);
+          void Promise.resolve(api.tabs.sendMessage(tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
+            kind:'hide',token})).catch(()=>{});
+        }
         return true;
       }catch(error){
         // Never use a cached catalog as proof of a newly offered update.
