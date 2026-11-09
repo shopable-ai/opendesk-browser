@@ -6,16 +6,21 @@
   const taskKey=task=>fields.map(k=>task[k]).join('|');
   const pinsEqual=(a,b)=>fields.every(k=>a&&b&&a[k]===b[k]);
   const terminal=new Set(['completed','failed','stopped','interrupted','cancelled','canceled','unknown']);
-  const errorState=error=>error&&error.code==='E_REVISION'?'changed':
-    error&&['E_PERMISSION','E_TOOL_DISABLED','E_OWNER'].includes(error.code)?'unavailable':'error';
-  // tasks.read cannot distinguish an absent installation from a disabled one.
-  // Its diagnostics are not user-facing instructions or authorization evidence.
+  const taskStates={E_TASK_NOT_INSTALLED:'missing',E_TASK_REMOVED:'removed',
+    E_TASK_DISABLED:'disabled',E_TASK_INITIALIZATION:'initialization'};
+  const errorState=error=>taskStates[error?.code]|| (error&&error.code==='E_REVISION'?'changed':
+    error&&['E_PERMISSION','E_TOOL_DISABLED','E_OWNER'].includes(error.code)?'unavailable':'error');
+  // Installation state comes from the Task Authority, never from display seeds.
   function taskReadMessage(error){
     if(!error)return '未读取到有效的任务安装。请到“我的”安装或恢复此任务，再刷新脚本状态。';
     if(error.code==='E_PERMISSION')return error.message==='Task is disabled or not installed'?
       '此任务尚未安装或已停用。请到“我的”安装或恢复此任务，再刷新脚本状态。':
       '任务或网站授权不可用。请到“我的”核对任务与网站授权，再刷新脚本状态。';
     return ({
+      E_TASK_NOT_INSTALLED:'此脚本尚未安装。打开安装审阅，确认固定任务后再刷新。',
+      E_TASK_REMOVED:'你已卸载此脚本，不会自动装回。需要使用时可打开安装审阅重新安装。',
+      E_TASK_DISABLED:'此脚本已停用。打开任务管理可恢复，刷新或升级不会自动启用。',
+      E_TASK_INITIALIZATION:'内置脚本初始化失败。请重试初始化；仍失败时展开诊断或打开安装审阅。',
       E_REVISION:'任务安装版本或验证状态已变化。请到“我的”核对固定版本与验证状态，再刷新脚本状态。',
       E_TOOL_DISABLED:'Web Flow 已停用。请到“扩展”恢复应用后重新打开。',
       E_OWNER:'当前应用无权读取此任务。请到“扩展”核对 Web Flow 的任务授权后重新打开。'
@@ -26,7 +31,7 @@
     const saved=new Set(Array.isArray(starred)?starred:[]);
     return rows.filter(row=>{
       if(filter==='available'&&row.state!=='available')return false;
-      if(filter==='attention'&&!['changed','unavailable','error'].includes(row.state))return false;
+      if(filter==='attention'&&!['changed','unavailable','error',...Object.values(taskStates)].includes(row.state))return false;
       if(filter==='favorite'&&!saved.has(taskKey(row)))return false;
       return !q||[row.title,row.taskId,row.site,row.version].some(s=>
         String(s||'').toLocaleLowerCase().includes(q));
@@ -99,7 +104,7 @@
   }
   const summary=(tasks,records)=>({
     reviewed:tasks.length,available:tasks.filter(x=>x.state==='available').length,
-    attention:tasks.filter(x=>['changed','unavailable','error'].includes(x.state)).length,
+    attention:tasks.filter(x=>['changed','unavailable','error',...Object.values(taskStates)].includes(x.state)).length,
     latest:Array.isArray(records)?records[0]||null:null
   });
   global.OpenDeskWebFlowModel=Object.freeze({

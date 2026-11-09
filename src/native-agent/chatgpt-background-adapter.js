@@ -3,7 +3,8 @@ import {assertWebFlowReplyCandidate} from './workspace-chatgpt.js';
 import {validateWebFlowTaskIntent} from './chatgpt-task-request.js';
 import {CHATGPT_TASK_PROFILE} from '../page-events/web-task-contract.js';
 import {formatChatGPTInstalledResult} from './chatgpt-fixed-bridge-host.js';
-import {assertInstalledTask} from '../platform/tasks/service.js';
+import {assertInstalledTask,ensureBuiltinTasks} from '../platform/tasks/service.js';
+import {BUILTIN_TASK_RELEASES,taskRemovalKey} from '../platform/tasks/builtin-releases.js';
 import {installedKey,taskKey,validateTaskParams} from '../platform/tasks/contract.js';
 import {loadBuiltinWorkerSource} from '../libs/loader.js';
 import {builtinIdentity} from '../libs/identity.js';
@@ -16,15 +17,26 @@ const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.u
 // incomplete replies and unavailable resources retain the original row.
 const invalidCandidateCodes=new Set(['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER','E_CHAT_ROUTE']);
 const invalidTaskCodes=new Set(['E_BRIDGE_INSTALL','E_BRIDGE_UNSUPPORTED_SCOPE','E_BRIDGE_REVISION','E_BRIDGE_CONTEXT',
+  'E_TASK_NOT_INSTALLED','E_TASK_REMOVED','E_TASK_DISABLED',
   'E_PERMISSION','E_REVISION','E_PARAMS','E_OWNER','E_HASH','E_BUILTIN_VERSION_UNAVAILABLE']);
 
 // Read the existing installed Task through its original integrity/permission
-// validator. This creates no Host, installation, grant, revision or Run.
+// validator. Builtin initialization only installs packaged fixed Tasks; it
+// creates no execution approval, Host or Run and preserves removal decisions.
 export async function verifyChatGPTBackgroundTask({api,broker,scope}){
   const namespace='tool:'+api.runtime.id,current=builtinIdentity(await loadBuiltinWorkerSource({runtime:api.runtime}));
+  const builtin=BUILTIN_TASK_RELEASES.some(row=>row.taskId===scope.taskId);
+  const initialization=builtin?await ensureBuiltinTasks({storage:broker.storage,namespace,environment:current}):null;
   return broker.storage.transaction(['frameworkKV','scriptRevisions'],'readonly',async tx=>{
     const installed=await tx.get('frameworkKV',installedKey(namespace,scope.taskId));
-    if(!installed)throw fail('E_BRIDGE_INSTALL','任务尚未安装，请在可信界面审阅');
+    if(!installed){
+      if(await tx.get('frameworkKV',taskRemovalKey(namespace,scope.taskId)))
+        throw fail('E_TASK_REMOVED','此脚本已卸载，不会自动装回。请在 Web Flow 脚本列表打开安装审阅。');
+      if(initialization?.status==='failed')throw fail('E_TASK_INITIALIZATION',
+        '内置脚本初始化失败：'+initialization.message+'。请在脚本列表重试初始化。');
+      throw fail('E_TASK_NOT_INSTALLED','此任务尚未安装。请在 Web Flow 脚本列表打开安装审阅。');
+    }
+    if(!installed.enabled)throw fail('E_TASK_DISABLED','此脚本已停用。请从 Web Flow 脚本列表打开任务管理恢复。');
     const stored=await tx.get('frameworkKV',taskKey(namespace,scope.taskId,installed.version));
     const contentHash=stored?.package?.manifest?.program?.sourceHash;
     const checked=await assertInstalledTask(tx,namespace,{scriptId:installed.scriptId,contentHash,

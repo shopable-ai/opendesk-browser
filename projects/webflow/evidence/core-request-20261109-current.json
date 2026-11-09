@@ -1,0 +1,279 @@
+{
+  "observedAt": "2026-11-09T10:32:29.564635+00:00",
+  "phase": "core-development",
+  "browser": {
+    "kind": "ego-lite",
+    "spaceId": 7,
+    "sharedProfile": true,
+    "chatUrl": "https://chatgpt.com/c/6af19ad4-ae48-83ec-9bd1-e073248c49cd",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "controlReleased": true,
+    "retainedPages": [
+      "p1: real result conversation",
+      "p2: original user draft"
+    ]
+  },
+  "claims": {
+    "aiCandidateFiveFields": "PASS",
+    "listenerAdmission": "PASS",
+    "trustedAuthorization": "PASS_EXISTING_APPROVED_SCOPE_REUSED",
+    "websiteExecution": "PASS",
+    "threeOrganicResults": "PASS_COUNT_3",
+    "durableResult": "PASS_SAME_RUN_RESULT_NATIVE_SIDEBAR",
+    "resourceRelease": "PASS_RELEASED_NATIVE_SIDEBAR",
+    "chatBackfill": "PASS_REAL_NATIVE_EDITOR_TO_NEW_USER_MESSAGE",
+    "chatSend": "PASS_VISIBLE_EXACT_RECEIPT_AND_PERSISTED_DELIVERY_CONFIRMED",
+    "aiContinuation": "PASS_VISIBLE_COMPLETE_RESPONSE",
+    "production": "NOT_TESTED"
+  },
+  "recovery": {
+    "authorization": "user explicitly allowed takeover and safe restart in latest reply",
+    "oldWriterPid": 85127,
+    "oldWriterStopped": "graceful SIGTERM; parent and esbuild children exited",
+    "newWriterPid": 30477,
+    "singleWriter": true,
+    "originalPathAndIdPreserved": true,
+    "firstRestartFailure": "fixed cloud-host transitive import of packaged Task JSON rejected by existing provenance gate",
+    "fix": "mechanically extract unchanged assertRunTaskAuthorization into run-authorization.js; cloud service imports it directly; keep package admission SW-only",
+    "secondRestart": "complete; original Side Panel opened and connected",
+    "initialPageRecovery": "current request history 0, composer empty, no generation; normal page reload; old candidate remained historical"
+  },
+  "protectedHistory": {
+    "chatId": "6aef78a7-6c40-83ec-a189-831eec649921",
+    "requestId": "c1ac3f73-48b9-4a3b-b9c8-926a5dcaf70b",
+    "runId": "f2468976-eea0-4bb2-ac7b-0d301b2953e0",
+    "resultId": "7e430153-6ab6-4183-b28a-52164dc08841",
+    "delivery": "UNKNOWN; not replayed or cleared",
+    "newRunIdsInvented": false
+  },
+  "excluded": [
+    "production",
+    "full CI",
+    "scores",
+    "Google initialization as Baidu prerequisite",
+    "manual Task adoption",
+    "direct background execution"
+  ],
+  "priorUnobservedCandidate": {
+    "kind": "ordinary-search-with-existing-capability-protocol-instructions",
+    "query": "中国国家博物馆 开放时间",
+    "candidateOrigin": "real ChatGPT response; not manually constructed/adopted",
+    "candidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-9c7b64e2-1f85-4a30-bd96-83e72f0a5c41",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "query": "中国国家博物馆 开放时间",
+        "limit": 3
+      }
+    },
+    "disposition": "historical after listener reconnection; not admitted or replayed"
+  },
+  "request": {
+    "kind": "ordinary-search-follow-up-after-existing-capability-instructions",
+    "prompt": "请使用 Web Flow 在百度搜索“故宫博物院 开放时间”，取前三条自然网页结果。等本机真实执行回执后，再用中文整理标题、链接和摘要。",
+    "candidateOrigin": "real ChatGPT response; not manually constructed/adopted",
+    "candidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-3e1a8d57-c964-4f02-a7b3-5d6e920bc148",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "query": "故宫博物院 开放时间",
+        "limit": 3
+      }
+    },
+    "admission": "original listener witnessed new user submission and complete reply; reused existing approved keyword rule"
+  },
+  "receipt": {
+    "protocol": "opendesk.task.result.v1",
+    "taskId": "baidu.search.top3",
+    "requestId": "1e5a8f4c-167b-42ec-b228-9dd89a34b57f",
+    "targetUrl": "https://www.baidu.com/",
+    "scriptId": "task:baidu.search.top3:1.1.4",
+    "runId": "1edc061a-953c-4cb9-8f0c-b1123c9cb4fb",
+    "resultId": "7691cd4b-bc71-4f27-9f15-ed4378b0c26a",
+    "revision": 1,
+    "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "status": "completed",
+    "data": {
+      "count": 3,
+      "inputMode": "isolated-dom",
+      "kind": "baidu.search.top3.result",
+      "observedAt": "2026-11-09T10:26:11.557Z",
+      "query": "故宫博物院 开放时间",
+      "results": [
+        {
+          "directUrl": "https://intl.dpm.org.cn/visit.html?l=tc",
+          "evidence": {
+            "slot": "3",
+            "tpl": "www_index"
+          },
+          "position": 1,
+          "summary": "*故宫博物院逢週一休館(公眾假期除外),請参觀人士提前安排好參觀時間。 *故宫博物院逢公眾假期會調整開放時間,如遇大型活動或特殊情況導致開放時間變更,本網站将另行發出公告,敬請留意最新消息。 *故宮博物院在您參觀當日不售票,請提前安排。 預訂 <table><tr><th>4月1日-10月31日(旺季)</th><th>人民幣 ￥60</",
+          "title": "參觀_故宮博物院_故宮博物院",
+          "url": "http://www.baidu.com/link?url=SDB0QgfYqHtkj2MOk1iB969fpQfDlFT0sSK57ZpdITcrXWxEvYtAEcBNVGab_qlOAb491ciud3zm0GVTcx5hIq"
+        },
+        {
+          "directUrl": "https://www.dpm.org.cn/?page_index=4",
+          "evidence": {
+            "slot": "5",
+            "tpl": "www_index"
+          },
+          "position": 2,
+          "summary": "故宫博物院成立于1925年10月10日,是以明清两代皇宫和宫廷旧藏文物为基础建立起来的大型...",
+          "title": "故宫博物院",
+          "url": "http://www.baidu.com/link?url=nbi18-PhTbyoxKKCeS50YrnENMHFgEoyPd5w3Pk33rgaZtWEbzWxEdtjvnEK9_uP"
+        },
+        {
+          "directUrl": "https://ticket.dpm.org.cn/?utm_source=openai",
+          "evidence": {
+            "slot": "6",
+            "tpl": "www_index"
+          },
+          "position": 3,
+          "summary": "2天前5、故宫博物院每日预约分为上午、下午两个时段。预约上午时段的观众最迟检票时间为当日12:00,预约下午时段的观众最早检票时间为当日11:00。请按照预约时间来院,以免无法检票入院,影响参观游览活动。 6、天安门地区旅游线路规划为南向北单向通行,如您仅预约或前往故宫参观,可经东、西筒子河路至午门入口检票入场;如您同...",
+          "title": "在线订票 - 故宫博物院",
+          "url": "http://www.baidu.com/link?url=O6zfVet86-SXjqS1AsXsIAPcGvCZB92lFFxfuNm8dzsl2Mqj-dHiZCq9Ik18iwFaRGAHTBOZx_IQGpR-EVwh-K"
+        }
+      ],
+      "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%95%85%E5%AE%AB%E5%8D%9A%E7%89%A9%E9%99%A2%20%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x980c6fed00a0cfc5&rsv_t=fe8aCHHqVV7kIoDuo9xYEWOzBPGkRIwCI8vme28vr6Q3U19Xw5H4Vx5ss2RE&rqlang=en&rsv_dl=tb_pre&rsv_enter=1",
+      "status": "success",
+      "trace": [
+        {
+          "action": "input",
+          "at": "2026-11-09T10:25:57.302Z",
+          "documentId": "4E7561C5028A5C28F6F255DBFCE70FA6",
+          "locator": "#chat-textarea",
+          "state": "before",
+          "url": "https://www.baidu.com/",
+          "value": ""
+        },
+        {
+          "action": "input",
+          "at": "2026-11-09T10:25:57.302Z",
+          "locator": "#chat-textarea",
+          "state": "started"
+        },
+        {
+          "action": "input",
+          "at": "2026-11-09T10:25:59.034Z",
+          "locator": "#chat-textarea",
+          "state": "returned",
+          "value": "故宫博物院 开放时间"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T10:26:02.108Z",
+          "locator": "#chat-submit-button",
+          "state": "started",
+          "url": "https://www.baidu.com/"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T10:26:03.968Z",
+          "locator": "#chat-submit-button",
+          "state": "returned"
+        },
+        {
+          "action": "navigation",
+          "at": "2026-11-09T10:26:04.154Z",
+          "documentId": "4E7561C5028A5C28F6F255DBFCE70FA6",
+          "state": "observed",
+          "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%95%85%E5%AE%AB%E5%8D%9A%E7%89%A9%E9%99%A2%20%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x980c6fed00a0cfc5&rsv_t=fe8aCHHqVV7kIoDuo9xYEWOzBPGkRIwCI8vme28vr6Q3U19Xw5H4Vx5ss2RE&rqlang=en&rsv_dl=tb_pre&rsv_enter=1"
+        },
+        {
+          "action": "results",
+          "at": "2026-11-09T10:26:08.553Z",
+          "count": 3,
+          "state": "read",
+          "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%95%85%E5%AE%AB%E5%8D%9A%E7%89%A9%E9%99%A2%20%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x980c6fed00a0cfc5&rsv_t=fe8aCHHqVV7kIoDuo9xYEWOzBPGkRIwCI8vme28vr6Q3U19Xw5H4Vx5ss2RE&rqlang=en&rsv_dl=tb_pre&rsv_enter=1"
+        }
+      ],
+      "version": 2
+    }
+  },
+  "nativeObservations": {
+    "automatic": "ON; only existing approved scopes",
+    "authorizationApprovedAt": "2026/11/9 17:06:27",
+    "authorizationSource": "https://chatgpt.com",
+    "authorizationTarget": "https://www.baidu.com/",
+    "queryRule": "1–120 characters; other parameters fixed",
+    "originalRequestCount": 1,
+    "execution": "已完成",
+    "persistence": "已核实同一 Run / Result",
+    "release": "已释放",
+    "persistedDeliveryAfterSidebarReopen": "原聊天交付已确认",
+    "aiText": "已收到本机执行回执：脚本状态为 completed，数据状态为 success，实际返回 3 条结果。",
+    "aiComplete": true,
+    "draftEmpty": true,
+    "noRepeatedRun": true,
+    "laterListenerState": "refresh-required after development context changed; prior result preserved; not refreshed or replayed"
+  },
+  "priorDevelopmentBlocker": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "writerPid": 85127,
+    "writerParentPid": 85107,
+    "ports": [
+      43119,
+      43120
+    ],
+    "missing": [
+      "manifest.json",
+      "sidepanel.html",
+      "development-update.json"
+    ],
+    "nativeSidebarError": "ERR_FILE_NOT_FOUND",
+    "cachedHostStatus": "开发输出暂不可用；保留当前宿主与任务。",
+    "cachedHostRevision": "79432ef89e38aa3da39377ca9b0a701df83d248c445188e7a5eb0064f940474a",
+    "sourcePinRepair": "parallel owner repaired exact Web Flow page blob; source evidence does not prove runtime loaded"
+  },
+  "development": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "writerPid": 30477,
+    "mode": "continuous-development",
+    "connection": "开发服务已连接",
+    "loadedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "observedRevision": "664618b74dbdcd09f53b7d7565842782c845965ac0b62aa3c75eaf7a5b60c784",
+    "requiredOutputsPresent": [
+      "manifest.json",
+      "sidepanel.html"
+    ],
+    "runtimeEvidenceScope": "current shared development tree including parallel listener/site fixes; not a frozen commit or production candidate"
+  },
+  "verification": {
+    "sourceChecks": "three affected JS syntax checks and git diff --check passed",
+    "provenance": "3/3 including actual in-memory cloud-host dependency graph; new closure regression failed before fix and passed after",
+    "builtinInitialization": "16/16",
+    "taskPackageFlow": "15/15 after scoping package assertions to the Task under test and keeping initialized built-ins as baseline; ABI rejection and E_TASK_DISABLED preserved",
+    "cloudCancellation": "1/1 fixed-Task cancellation fences only original Run",
+    "historicalPackageAndUiChecks": "see staged builtin-onboarding evidence; not rerun without changed inputs",
+    "formalPackage": "PROJECT_PACKAGE_MATCH: Web Flow 0.3.22, 72888 bytes, sha256 f26c676719f8090002272ea601d32d791b7733913b557ad3d6019ee2ebd92b15"
+  },
+  "localArtifacts": [
+    {
+      "path": "artifacts/webflow/core-1109/ai-candidate.json",
+      "sha256": "54b850c0173961cba28e64d607ab08a269f302b804d2f602e2bb8e69faa1ac22"
+    },
+    {
+      "path": "artifacts/webflow/core-1109/real-receipt.json",
+      "sha256": "65968052d94e6ef3ebc8002cd0a6b3cf8da58cb7d1581f4956211da2736c1c54"
+    },
+    {
+      "path": "artifacts/webflow/core-1109/chat-final.json",
+      "sha256": "700c867688b565fffb8ca55ca8eb29374d9752003348fb579f671dd522d90141"
+    }
+  ],
+  "completion": "core development user operation achieved; production, full CI and formal scoring deferred",
+  "review": {
+    "status": "no blocking findings in scoped initialization, authorization and provenance changes",
+    "independentAgent": "code-reviewer, inherited model/provider",
+    "knownUnrelatedFailures": [
+      "tests/environment/task-workbench.test.mjs:557 Run dock assertion; implementation unchanged from HEAD",
+      "tests/environment/task-workbench.test.mjs:1039 Run dock assertion; implementation unchanged from HEAD"
+    ],
+    "typeAnalysis": "LSP unavailable; no type safety approval",
+    "scope": "core development; failures recorded rather than expanding to unrelated Run dock fixes"
+  }
+}

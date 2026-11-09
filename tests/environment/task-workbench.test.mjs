@@ -1329,3 +1329,122 @@ test('runtime recovery requires fresh proof and explicit same-version reinstall 
   assert.equal(f.field('task-run').disabled,false);
   assert.equal(f.starts.length,0,'reverification and reinstall never replay a Task');
 });
+
+
+test('tasks.open recovery focuses disabled installations without enabling, installing or running',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();
+  f.catalogState.installed[0].enabled=false;
+  let authorized=0;
+  assert.equal(await f.ui.openTaskReview('demo.form',{assertAuthorized:()=>{authorized++;}}),true);
+  assert.equal(authorized,1);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(f.field('task-run').disabled,true);
+  assert.equal(f.catalogState.installed[0].enabled,false);
+  assert.deepEqual(f.catalogOpens,[]);assert.deepEqual(f.starts,[]);assert.deepEqual(f.permissions,[]);
+});
+
+test('tasks.open recovery uses only the original full-page directory and validates task identity',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
+  assert.equal(await f.ui.openTaskReview('demo.form'),true);
+  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/sidepanel.html?taskReviewId=demo.form');
+  assert.deepEqual(f.catalogState.installed,[]);assert.deepEqual(f.starts,[]);assert.deepEqual(f.permissions,[]);
+  for(const id of ['https://evil.example','../sidepanel.html','demo.form&toolId=evil','<img src=x>',null])
+    await assert.rejects(f.ui.openTaskReview(id),error=>error.code==='E_SCHEMA');
+  assert.equal(f.catalogOpens.length,1);
+  await assert.rejects(f.ui.openTaskReview('demo.form',{assertAuthorized:()=>{throw Error('revoked');}}),/revoked/);
+  assert.equal(f.catalogOpens.length,1,'revocation during refresh must prevent navigation');
+});
+
+test('full-page recovery selects latest reviewable fixed candidate and presents builtin release without runId',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
+  const base=f.catalogState.catalog[0];
+  f.catalogState.catalog=[base,...[
+    {version:'2.0.0',stage:'available'},
+    {version:'10.0.0',stage:'available',verification:{kind:'builtin-release'},verifiedAt:1},
+    {taskId:'demo.other',version:'99.0.0',stage:'available'},
+    {version:'20.0.0',stage:'candidate'},
+    {version:'30.0.0',stage:'available',runtimeCurrent:false}
+  ].map(extra=>({...base,...extra}))];
+  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=demo.form'};
+  f.ui.showCatalogPage();await tick();await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@10.0.0');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
+  assert.match(f.myView.data.catalogDetail.facts.find(fact=>fact.name==='来源').value,/内置发行/);
+  assert.match(f.myView.data.catalogDetail.note,/无需填写本机运行 ID/);
+  assert.equal(f.field('task-verify-run').value,'');
+  assert.equal(f.field('task-verify').disabled,true);
+  assert.equal(f.field('catalog-verification').hidden,true);
+  assert.equal(f.field('task-install').disabled,false,'available builtin can use the original install review without runId');
+  assert.equal(f.catalogOpens.length,0);assert.deepEqual(f.catalogState.installed,[]);
+  await f.ui.openTaskReview('demo.missing');
+  assert.equal(f.myView.data.catalogRows.selectedKey,'');
+  assert.match(f.field('task-catalog-status').text,/E_TASK_NOT_AVAILABLE.*导入.*初始化/);
+  f.action('taskCatalogSelect','demo.form@1.0.0');
+  assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@1.0.0','original directory remains usable');
+  assert.deepEqual(f.starts,[]);assert.deepEqual(f.permissions,[]);
+});
+
+test('full-page recovery treats hostile URL hints as invalid and preserves a choice made while loading',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
+  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=%3Cimg%20src=x%3E'};
+  f.ui.showCatalogPage();await tick();await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'');
+  assert.match(f.field('task-catalog-status').text,/任务标识无效/);
+  f.doc.location.href='chrome-extension://extension/sidepanel.html?taskReviewId=demo.missing';
+  f.ui.showCatalogPage();
+  f.action('taskCatalogSelect','demo.form@1.0.0');
+  await tick();await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@1.0.0');
+  assert.deepEqual(f.catalogOpens,[]);assert.deepEqual(f.starts,[]);
+});
+
+
+test('directory refresh exposes initialization failure details and never equates ready with installed',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
+  const original=f.client.request;
+  let initialization={status:'failed',code:'E_TASK_INITIALIZATION',causeCode:'E_STORAGE',
+    message:'内置目录写入失败 <img src=x>',taskId:'demo.form'};
+  f.client.request=async(method,args)=>{
+    const response=await original(method,args);
+    return method==='listTaskCatalog'?{...response,initialization}:response;
+  };
+  await f.ui.refresh(undefined,{skipUnchanged:true});
+  assert.match(f.field('task-catalog-status').text,/E_TASK_INITIALIZATION.*E_STORAGE.*demo.form.*内置目录写入失败/);
+  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=demo.missing'};
+  f.ui.showCatalogPage();await tick();await tick();
+  assert.match(f.field('task-catalog-status').text,/E_TASK_NOT_AVAILABLE/);
+  assert.match(f.field('task-catalog-status').text,/E_TASK_INITIALIZATION.*E_STORAGE.*demo.form/);
+  assert.deepEqual(f.catalogState.installed,[]);
+  initialization={status:'ready',tasks:[{taskId:'demo.form',status:'installed'}]};
+  await f.ui.refresh(undefined,{skipUnchanged:true});
+  assert.doesNotMatch(f.field('task-catalog-status').text,/E_TASK_INITIALIZATION|全部.*安装/);
+  assert.deepEqual(f.myView.data.installedRows?.rows??[],[]);
+  assert.deepEqual(f.catalogState.installed,[]);
+});
+
+
+test('recovery keeps pending candidates reviewable and builtin installation uses the existing permission and CAS path',async t=>{
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
+  f.ui.showCatalogPage();await tick();await tick();
+  f.catalogState.catalog[0].stage='candidate';
+  await f.ui.openTaskReview('demo.form');await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@1.0.0');
+  assert.equal(f.field('task-install').disabled,true);
+  assert.equal(f.field('catalog-verification').hidden,false);
+  Object.assign(f.catalogState.catalog[0],{stage:'available',verification:{kind:'builtin-release'}});
+  await f.ui.openTaskReview('demo.form');await tick();
+  const request=f.client.request,installs=[];
+  f.client.request=async(method,args)=>{
+    if(method==='verifyTaskCandidate'||method==='makeTaskAvailable')assert.fail('builtin release needs no runId verification');
+    if(method==='installTask')installs.push(structuredClone(args));
+    return request(method,args);
+  };
+  await f.click('task-install',false);
+  assert.equal(installs.length,0,'navigation never bypasses the trusted install gesture');
+  await f.click('task-install');
+  assert.deepEqual(installs,[{taskId:'demo.form',version:'1.0.0',manifestHash:'b'.repeat(64),
+    expectedInstalledVersion:null,expectedGeneration:null,expectedInstallationId:null}]);
+  assert.equal(f.catalogState.installed.length,1);
+  assert.deepEqual(f.starts,[]);
+});

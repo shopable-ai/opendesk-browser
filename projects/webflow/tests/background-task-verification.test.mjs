@@ -6,6 +6,7 @@ import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {storageError} from '../../../src/platform/storage/idb.js';
 import {installedKey,taskKey,taskScriptId} from '../../../src/platform/tasks/contract.js';
+import {taskRemovalKey} from '../../../src/platform/tasks/builtin-releases.js';
 import {loadBuiltinWorkerSource} from '../../../src/libs/loader.js';
 import {builtinIdentity} from '../../../src/libs/identity.js';
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG as catalog,BUILTIN_RESOURCE_PATHS as paths} from '../../../src/libs/runtime-contract.js';
@@ -39,16 +40,20 @@ async function fixture(t){
   const candidate={tag:'task-candidate-v1',namespace,taskId,version,stage:'available',package:pkg,builtinIdentity:environment,
     verification:{builtinAbi:BUILTIN_ABI,builtinIdentity:environment,sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash}};
   const rows=new Map([[installedKey(namespace,taskId),installed],[taskKey(namespace,taskId,version),candidate]]);
+  const storesByName=new Map([['frameworkKV',rows],...['scriptHeads','scriptRevisions','runs','commandJournal'].map(name=>[name,new Map()])]);
   const broker={storage:{transaction:async(stores,mode,work)=>{
-    assert.deepEqual(stores,['frameworkKV','scriptRevisions']);assert.equal(mode,'readonly');
-    try{return await work({get:async(store,key)=>{assert.equal(store,'frameworkKV');return structuredClone(rows.get(key));}});}
+    const store=name=>{assert.ok(stores.includes(name));return storesByName.get(name);};
+    try{return await work({get:async(name,key)=>structuredClone(store(name).get(key)),
+      all:async name=>[...store(name).values()].map(v=>structuredClone(v)),
+      put:async(name,value,key)=>{assert.equal(mode,'readwrite');store(name).set(key,structuredClone(value));},
+      delete:async(name,key)=>{assert.equal(mode,'readwrite');store(name).delete(key);}});}
     catch(error){throw storageError(error);}
   }}};
   const scope=validateWebFlowTaskIntent(JSON.stringify({protocol:'webflow.task.intent.v1',
     candidateId:'wf-11111111-1111-4111-8111-111111111111',taskId,targetUrl:'https://www.baidu.com/',
     args:{query:'OpenDesk Browser',limit:3}}));
   const verify=value=>verifyChatGPTBackgroundTask({api:{runtime},broker,scope:value??scope});
-  return {verify,scope,installed,rows,namespace,manifest:pkg.manifest};
+  return {verify,scope,installed,rows,namespace,storesByName,manifest:pkg.manifest};
 }
 
 test('a complete new candidate verifies its installed Task regardless of parameter key order',async t=>{
@@ -78,7 +83,28 @@ test('site, closed parameters, fixed limit, installation absence and revocation 
   await assert.rejects(f.verify({...f.scope,args:{...f.scope.args,admin:true}}),{code:'E_SCHEMA'});
   await assert.rejects(f.verify({...f.scope,args:{...f.scope.args,limit:4}}),{code:'E_PARAMS'});
   f.installed.enabled=false;
-  await assert.rejects(f.verify(),{code:'E_PERMISSION'});
+  await assert.rejects(f.verify(),{code:'E_TASK_DISABLED'});
   f.rows.delete(installedKey(f.namespace,f.scope.taskId));
-  await assert.rejects(f.verify(),{code:'E_BRIDGE_INSTALL'});
+  await assert.rejects(f.verify(),{code:'E_TASK_NOT_INSTALLED'});
+  f.rows.set(taskRemovalKey(f.namespace,f.scope.taskId),{tag:'task-removed-v1'});
+  await assert.rejects(f.verify(),{code:'E_TASK_REMOVED'});
+});
+
+test('a fresh ordinary candidate initializes both real packaged Tasks before admission without a developer Run',async t=>{
+  const f=await fixture(t);f.rows.clear();
+  const checked=await f.verify();
+  assert.equal(checked.taskId,'baidu.search.top3');
+  assert.ok(checked.installation.installationId);
+  const installed=[...f.rows.values()].filter(row=>row.tag==='task-installed-v1');
+  assert.deepEqual(installed.map(row=>row.taskId).sort(),['baidu.search.top3','google.search.top3']);
+  for(const row of installed){
+    const candidate=f.rows.get(taskKey(f.namespace,row.taskId,row.version));
+    assert.equal(candidate.verification.kind,'builtin-release');
+    assert.equal(candidate.verification.runId,undefined);
+    assert.equal(candidate.verification.resultId,undefined);
+  }
+  assert.equal(f.storesByName.get('runs').size,0);
+  const identities=installed.map(row=>row.authorization);
+  await f.verify();
+  assert.deepEqual([...f.rows.values()].filter(row=>row.tag==='task-installed-v1').map(row=>row.authorization),identities);
 });

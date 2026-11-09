@@ -1,0 +1,134 @@
+{
+  "kind": "webflow.core-regression.observation",
+  "observedAt": "2026-11-09T09:14:15.065851+00:00",
+  "phase": "Targeted core regression after UI changes; no full acceptance",
+  "status": "INCOMPLETE_CORE_SUCCESS",
+  "environment": {
+    "browser": "ego lite",
+    "taskSpace": 63,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "packageVersion": "0.3.21",
+    "packageSha256": "87ab1892ead64582418c7da1ddf5f2da0d3d312f8e06f114dbb877512e4c43ac",
+    "mode": "existing development environment",
+    "liveServe": "observed connected",
+    "lastObservedRevision": "fb2c649d02ba34f2e0abafb2827272c870232310f06446cc827e9b69c4f629aa",
+    "revisionLimit": "This is the observed Debug revision, not a freeze of the complete run. Shared writer remained under its existing owner."
+  },
+  "recoveries": [
+    "Restored missing baidu.search.top3@1.1.4 through the original catalog verification and installation UI, reusing completed run b89f1324-ed1f-4595-9d3f-fff54640b785. This verifies fixed-source native execution receipts, not successful search results.",
+    "Reconnected listener on the same empty, idle original chat. Old visible candidates stayed historical and were not replayed."
+  ],
+  "task": {
+    "id": "baidu.search.top3",
+    "version": "1.1.4",
+    "sourceSha256": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+    "packageSha256": "e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62",
+    "sourceChanged": false
+  },
+  "requestA": {
+    "prompt": "请用百度搜索 OpenDesk Browser，返回前三条自然网页结果。",
+    "candidateId": "wf-6a91d3e8-42bc-4f70-a19d-83e5c0b72f46",
+    "receipt": {
+      "protocol": "opendesk.task.result.v1",
+      "taskId": "baidu.search.top3",
+      "requestId": "c1ac3f73-48b9-4a3b-b9c8-926a5dcaf70b",
+      "targetUrl": "https://www.baidu.com/",
+      "scriptId": "task:baidu.search.top3:1.1.4",
+      "runId": "f2468976-eea0-4bb2-ac7b-0d301b2953e0",
+      "resultId": "7e430153-6ab6-4183-b28a-52164dc08841",
+      "revision": 1,
+      "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "status": "completed",
+      "data": {
+        "count": 0,
+        "error": {
+          "code": "E_TIMEOUT",
+          "message": "E_TIMEOUT"
+        },
+        "inputMode": "isolated-dom",
+        "kind": "baidu.search.top3.result",
+        "observedAt": "2026-11-09T09:06:44.287Z",
+        "query": "OpenDesk Browser",
+        "results": [],
+        "sourceUrl": "https://www.baidu.com/",
+        "status": "stopped",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T09:06:29.920Z",
+            "documentId": "8D52170333171D747315E5449ECF1FE3",
+            "locator": "#chat-textarea",
+            "state": "before",
+            "url": "https://www.baidu.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T09:06:29.920Z",
+            "locator": "#chat-textarea",
+            "state": "started"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T09:06:31.104Z",
+            "locator": "#chat-textarea",
+            "state": "returned",
+            "value": "OpenDesk Browser"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T09:06:34.152Z",
+            "locator": "#chat-submit-button",
+            "state": "started",
+            "url": "https://www.baidu.com/"
+          },
+          {
+            "action": "operation",
+            "at": "2026-11-09T09:06:44.287Z",
+            "code": "E_TIMEOUT",
+            "message": "E_TIMEOUT",
+            "state": "stopped"
+          }
+        ],
+        "version": 2
+      }
+    },
+    "persistence": "trusted UI verified same Run / Result",
+    "resources": "trusted UI released",
+    "draftBackfill": "1494 characters read from real original-chat composer; full text saved in artifacts/webflow-core-regression-20261109/ordinary-request-a.json",
+    "sent": false,
+    "newResultUserTurnsObserved": 0,
+    "delivery": "UNKNOWN: E_CHAT_DELIVERY_UNKNOWN: 准备发送期间原生编辑器、草稿或消息记录已变化",
+    "aiContinuation": "NOT_TESTED: result was not sent"
+  },
+  "requestB": {
+    "prompt": "请用百度搜索 OpenDesk Browser automation，返回前三条自然网页结果。",
+    "candidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-a73c91e5-4b28-4df0-9a62-e5c7b18d304f",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "query": "OpenDesk Browser automation",
+        "limit": 3
+      }
+    },
+    "execution": "NOT_RUN: prior delivery UNKNOWN remained fenced",
+    "authorizationReuse": "NOT_TESTED: no second execution request admitted",
+    "ledgerCountAtEnd": 1
+  },
+  "classification": {
+    "targetWebsite": "User identified the blank target page as a website-internal issue. Actual first-run trace returned input, started click, then E_TIMEOUT; zero results. No script defect was established and no script was edited.",
+    "delivery": "Actual native composer backfill succeeded; send preflight rejected a changed editor/draft/message record. Exact changed predicate and cause are not established. Preserve UNKNOWN; never replay or resend this receipt.",
+    "secondRequest": "A different ordinary prompt produced a new candidate, but did not create another execution request while the first delivery remained unknown."
+  },
+  "cleanup": {
+    "autoRun": "restored OFF and read back in real Side Panel",
+    "taskSpace": "finished once, kept original chat p1 for user, closed intermediate p3",
+    "finalComposer": "empty after sending the distinct second request; first actual result draft retained in evidence, not manually restored or sent",
+    "services": "no watcher/build/Native pairing changes",
+    "sourceChanges": []
+  },
+  "nextOperation": "Inspect only the original delivery preflight failure and target website availability. Do not restart Controller script tests, import duplicate packages, replay old candidates, relax UNKNOWN or safety checks, or resume deferred full acceptance.",
+  "validation": "No product/source changes; no repeated unit tests, build, package promotion, production acceptance, or scoring."
+}

@@ -791,7 +791,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const target={snapshot:{status:'available',url:'https://example.com/a',title:'Example'}};
   let taskOpened='';
   let toolVisible=false;
-  const workbench={focusInstalledTask(id){taskOpened=id;return true;},
+  const workbench={async openTaskReview(id,{assertAuthorized}){await assertAuthorized();taskOpened=id;return true;},
     setToolActive(value){toolVisible=value;}};
   let host;
   try{
@@ -1358,7 +1358,7 @@ test('R14 Clipper legacy fallback replaces the enhanced snapshot without remount
     'enhanced navigation does not inherit the old Clipper primary action');
   assert.match(f.elements['sidebar-tool-title'].textContent,/详情/);
 });
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null,localeController=null,toolLocaleService=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null,localeController=null,toolLocaleService=null,taskReview=null,taskNavigationDone=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -1381,7 +1381,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
   configureApi?.(api);
-  const host=createSidebarTools({api,doc,view,localeController,toolLocaleService,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,localeController,toolLocaleService,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{async openTaskReview(id,{assertAuthorized}){await taskReview?.(id);await assertAuthorized();focused++;await taskNavigationDone?.();return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -5500,4 +5500,44 @@ test('current Time Review notice relocalizes without writes and cannot replace a
   locale.setLocalePreference('ja',{persist:false});
   assert.equal(status.textContent,newer,'an older tool notification must not overwrite a later message');
   assert.deepEqual(writes,before);
+});
+
+
+test('tasks.open recovery rejects URL and injected payloads before navigating',async t=>{
+  const f=await hostFixture(t);
+  for(const [index,payload] of [
+    {taskId:'https://evil.example'}, {taskId:'demo&toolId=evil'}, {taskId:'<script>alert(1)</script>'},
+    {taskId:'installed-task',url:'https://evil.example'}, {taskId:'installed-task',version:'9.0.0'}, ['installed-task']
+  ].entries()){
+    const id='bad-'+index;f.ask('tasks.open',payload,id);await pause();await pause();
+    const reply=f.frame.contentWindow.sent.find(row=>row.requestId===id);
+    assert.equal(reply?.ok,false);
+  }
+  assert.equal(f.focused,0);
+  f.ask('tasks.open',{taskId:'installed-task'},'valid');await pause();await pause();
+  assert.equal(f.focused,1,'valid ID reaches the original task management/review navigation');
+});
+
+for(const revoke of ['close','uninstall','disable'])test('tasks.open recovery rechecks authority after directory read: '+revoke,async t=>{
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{taskReview:async()=>{entered.resolve();await gate.promise;}});
+  f.ask('tasks.open',{taskId:'missing-task'});await entered.promise;
+  if(revoke==='close')f.host.closeTool();
+  if(revoke==='uninstall')f.store.set(SIDEBAR_TOOL_STORE,[]);
+  if(revoke==='disable')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+  gate.resolve();await pause();await pause();
+  assert.equal(f.focused,0,'stale app must not navigate after its asynchronous catalog read');
+});
+
+
+test('tasks.open recovery late tab completion cannot close a replacement app',async t=>{
+  const gate=deferred(),entered=deferred(),other={...sample,id:'second-tool'};t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]),
+    taskNavigationDone:async()=>{entered.resolve();await gate.promise;}});
+  f.ask('tasks.open',{taskId:'missing-task'});await entered.promise;
+  f.host.openTool(other.id);
+  const replacement=f.elements['sidebar-tool-frame'].children[0];
+  assert.ok(replacement);assert.notEqual(replacement,f.frame);
+  gate.resolve();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],replacement);
 });

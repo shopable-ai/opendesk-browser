@@ -217,7 +217,7 @@ test('ChatGPT ready ACK binds the exact source once and does not authorize or re
 
 test('deterministic candidate and task mismatches retire the original row and claim the next candidate',async()=>{
   const failures={candidate:['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER','E_CHAT_ROUTE'],
-    task:['E_BRIDGE_INSTALL','E_BRIDGE_UNSUPPORTED_SCOPE','E_BRIDGE_REVISION','E_BRIDGE_CONTEXT',
+    task:['E_BRIDGE_INSTALL','E_TASK_NOT_INSTALLED','E_TASK_REMOVED','E_TASK_DISABLED','E_BRIDGE_UNSUPPORTED_SCOPE','E_BRIDGE_REVISION','E_BRIDGE_CONTEXT',
       'E_PERMISSION','E_REVISION','E_PARAMS','E_OWNER','E_HASH','E_BUILTIN_VERSION_UNAVAILABLE']};
   for(const [stage,codes] of Object.entries(failures))for(const code of codes){
     const h=harness();await h.approve();

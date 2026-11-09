@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-09",
+  "scope": "Built-in fixed Task onboarding and existing management/review recovery",
+  "stage": "core development; fixed runtime activation and fresh ordinary-chat smoke pending",
+  "baseHead": "7c16570799a9293e5aa2f05191df2b058fa6f2cb",
+  "implementation": {
+    "initializer": "original Task installation transaction",
+    "tasks": [
+      {
+        "id": "baidu.search.top3",
+        "version": "1.1.4"
+      },
+      {
+        "id": "google.search.top3",
+        "version": "1.0.0"
+      }
+    ],
+    "verification": {
+      "kind": "builtin-release",
+      "source": "packaged",
+      "fabricatedRunReceipt": false
+    },
+    "automaticExecution": false,
+    "automaticTriggerGrant": false,
+    "chromePermissionGrant": false,
+    "uninstallTombstone": true,
+    "oldInstallationPreserved": true,
+    "defaultInstallForLegacyUninstalledCandidate": false
+  },
+  "verification": {
+    "coreAndPackage": {
+      "pass": 100,
+      "fail": 0,
+      "core": 92,
+      "package": 8
+    },
+    "navigation": {
+      "pass": 20,
+      "fail": 0
+    },
+    "syntax": "PASS",
+    "inMemoryBrowserBundles": "PASS; JSON inputs only, no task JS source modules",
+    "packagePromotion": "PROJECT_PACKAGE_PROMOTED",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "nativeTaskRun": "NOT_TESTED",
+    "production": "NOT_TESTED"
+  },
+  "package": {
+    "id": "webflow",
+    "version": "0.3.22",
+    "bytes": 72888,
+    "sha256": "f26c676719f8090002272ea601d32d791b7733913b557ad3d6019ee2ebd92b15"
+  },
+  "browser": {
+    "tool": "ego-browser",
+    "spaceId": 64,
+    "surface": "owned extension document tab, not trusted native Side Panel",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "packageUpdate": "original extension-center local import/review; 0.3.21 -> 0.3.22; same ID; permissions unchanged",
+    "installedReadback": {
+      "version": "0.3.22",
+      "sha256": "f26c676719f8090002272ea601d32d791b7733913b557ad3d6019ee2ebd92b15"
+    },
+    "autoTriggerEnabled": false,
+    "runtime": {
+      "mode": "continuous development",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "connected": true,
+      "observedFingerprint": "79432ef89e38",
+      "diskRevision": "79432ef89e38aa3da39377ca9b0a701df83d248c445188e7a5eb0064f940474a",
+      "swSha256": "6c9fdec1482083eaeaf7ef6a6f1e410fbafbc6920bed17bc71fec1cde95cc5f9",
+      "newInitializerInCurrentSW": false
+    },
+    "actualTaskAvailability": {
+      "baidu": true,
+      "google": false
+    },
+    "ordinaryChatSmoke": "NOT_TESTED: fixed runtime is still old"
+  },
+  "blocker": {
+    "kind": "parallel fixed-source input not ready",
+    "path": "projects/webflow/trusted/chatgpt-bridge-page.js",
+    "diagnostic": "Trusted Web Flow source changed; review and re-pin before fixed build",
+    "action": "Preserve parallel input and original writer; do not restart writer or bypass source pin. After owner review, normal writer config reload/safe update must load the exact packaged-Task data admission and new Task initializer."
+  },
+  "oldUnknown": {
+    "requestId": "c1ac3f73-48b9-4a3b-b9c8-926a5dcaf70b",
+    "replayed": false,
+    "resent": false,
+    "originalChatModified": false
+  },
+  "limitations": [
+    "Tests are component/state-machine evidence, not actual native Task or business-website success.",
+    "Tool JSON update does not replace fixed SW/Content/Host code.",
+    "Existing target-site and delivery UNKNOWN outcomes remain independent."
+  ],
+  "sourceHashes": {
+    "src/platform/tasks/builtin-releases.js": "0a8d8794d874e10e7d71b0bf50b626ba06f390323a788a7485aef82732ffcca7",
+    "src/platform/tasks/service.js": "fe7214341d2c6467c842bae8694bad05cee3f530ef67fbb0f05f247c7d112541",
+    "src/native-agent/chatgpt-background-adapter.js": "39a868ed33d8263fda5775c8064d060d9e4966aafa1db5da4cd4e8f575de8511",
+    "src/ui/task-workbench.js": "0fdce780d9cca675e76a8ecdbeec6c1af8f40ef3a9c8ed9ba54529c5540503ca",
+    "scripts/bundle-provenance.mjs": "fe889818b04853ec05c2c8cc3f89cd8e0e97df054538480ff78211893d8d125f",
+    "projects/webflow/src/ui/main.js": "f9741cfc7bd4a940eb8310663f6750512cb930968fac1f38d16b0805b9429183",
+    "projects/webflow/src/ui/model.js": "b6c21682f9268ecbec8cf77a356df7fca591fd30243fbc9c135367ea72967f02",
+    "examples/tasks/baidu.search.top3.v1.opendesk-task.json": "e55cc2ad83f0b62b6c5de824fd643aa07b497e527a446d9d10b3dd10a7cd8d62",
+    "examples/tasks/google.search.top3.v1.opendesk-task.json": "a012ffb3ae53840f5ad1b59d37058bdb7f779d1be5969bbf53e4c3f3039bf362"
+  }
+}

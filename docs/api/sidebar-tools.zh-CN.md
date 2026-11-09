@@ -322,7 +322,7 @@ Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 
 | `storage.local` | `storage.get`：`{key,withEtag?}` | `{value}` 或 `{value,etag}`，数据属于当前工具命名空间 |
 | `storage.local` | `storage.set`：`{key,value,ifMatch?}` | `{saved:true}`；若提供 `ifMatch`，按相同工具 Web Lock 下的 ETag 防冲突写入 |
 | `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
-| `tasks.open` | `tasks.open`：`{taskId}` | 聚焦已安装、已启用任务的 UI，不执行/停止任务 |
+| `tasks.open` | `tasks.open`：`{taskId}` | 已安装（含停用）任务聚焦原「我的」管理；未安装则打开原全页任务目录，优先预选同 taskId 最新可用固定候选，否则预选其最新待审阅候选；无候选时提示导入/初始化并可恢复。不接受 URL，不隐式安装、启用、运行或停止任务 |
 | `user.export` | `browser.clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
 | `user.export` | `browser.downloads.text`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` / `.csv` 纯文本；返回 `{started:true}` 仅表示下载已发起，不证明真实落盘 |
 

@@ -38,6 +38,7 @@ function sdk(){
         (api.taskRead?api.taskRead(args.taskId):{task:api.pins.find(p=>p.taskId===args.taskId)}):api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
+      if(name==='tasks.open')return {opened:true};
       throw Error('Unexpected operation '+name);
     }};
   return api;
@@ -179,6 +180,43 @@ test('permission denial and unreadable metadata are not misreported as a missing
     assert.ok(taskCard(f).textContent.includes(code+'：internal transport failure'));
     assert.equal(starts(host).length,0);await f.close();
   }
+});
+test('Authority installation states expose recovery without pretending to run or re-enable',async t=>{
+  for(const [code,label,action] of [
+    ['E_TASK_REMOVED','已卸载','打开安装审阅'],
+    ['E_TASK_NOT_INSTALLED','尚未安装','打开安装审阅'],
+    ['E_TASK_DISABLED','已停用','打开任务管理'],
+    ['E_TASK_INITIALIZATION','初始化失败','打开安装审阅']
+  ]){
+    const host=sdk();host.taskRead=async id=>{
+      if(id==='baidu.search.top3')throw Object.assign(Error('exact storage diagnostic'),{code});
+      return {task:host.pins[1]};
+    };
+    const f=await mount(t,host);await f.click('脚本');
+    const card=taskCard(f);
+    assert.match(card.textContent,new RegExp(label));
+    assert.equal(f.find('运行',card).disabled,true);
+    assert.ok(!card.textContent.includes('exact storage diagnostic'));
+    await f.click(action,card);
+    assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
+    assert.equal(starts(host).length,0);
+    await f.click('概览');assert.match(f.text(),/有固定脚本需要处理/);
+    await f.close();
+  }
+});
+test('retrying failed initialization re-reads Authority and never submits a task',async t=>{
+  const host=sdk();let unavailable=true;
+  host.taskRead=async id=>{
+    if(unavailable)throw Object.assign(Error('initial storage failure'),{code:'E_TASK_INITIALIZATION'});
+    return {task:host.pins.find(p=>p.taskId===id)};
+  };
+  const f=await mount(t,host);await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  unavailable=false;await f.click('重试初始化',taskCard(f));
+  assert.match(taskCard(f).textContent,/可手动运行/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.equal(starts(host).length,0);
+  assert.equal(host.calls.filter(c=>c.name==='tasks.open').length,0);
 });
 const pageChanged=f=>f.document.getElementById('root').dispatchEvent(new f.window.Event('opendesk-page-changed'));
 test('page recheck disables the old site and saved confirmation until the newest SDK read succeeds',async t=>{

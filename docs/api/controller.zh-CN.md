@@ -102,6 +102,8 @@ run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾�
 
 ## 已安装 Task 的存储与调用
 
+随 Browser 固定发行的百度 1.1.4 与 Google 1.0.0 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
+
 Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。
 
 固定 ChatGPT bridge 的单站 intent 入口和 Cloud 程序交付审阅入口暂不接收多 origin Task，分别明确返回 `E_BRIDGE_UNSUPPORTED_SCOPE` / `E_CLOUD_UNSUPPORTED_SCOPE`；不会自动选择列表首项。多 origin 的本地项目审阅安装和带真实目标的 Task/委托运行遵守上述通用合同。

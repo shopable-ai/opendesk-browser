@@ -14,7 +14,10 @@ import {formatRunValue} from './run-value-format.js';
 import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
-const candidateState=row=>row.runtimeCurrent===false?'运行时已更新，待重新验证':states[row.stage]||row.stage;
+const validTaskId=value=>typeof value==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(value);
+const builtinRelease=row=>row?.verification?.kind==='builtin-release';
+const candidateState=row=>row.runtimeCurrent===false?'运行时已更新，待重新验证':
+  builtinRelease(row)?'内置发行 · '+(row.stage==='available'?'可安装':states[row.stage]||row.stage):states[row.stage]||row.stage;
 const terminal=new Set(['completed','failed','stopped','interrupted']);
 const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'保存结果中',completed:'成功',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
 const textValue=formatTaskValue;
@@ -52,7 +55,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return previous&&row?row.manifest.siteOrigins.filter(origin=>!manifest?.siteOrigins.includes(origin)):[];
   }
   let latestResultDisplay=null;
-  let catalogSurface=false, catalogQuery='', catalogFilter='all';
+  let catalogSurface=false, catalogQuery='', catalogFilter='all', catalogInitialization=null;
   let localQuery='', localFilter='all', taskManagementMode=false, pendingTaskUninstall=null;
   const parameterDrafts=new Map();
   let parameterDraftKey, parametersEdited=false, parameterSerial='', parameterWrites=Promise.resolve();
@@ -171,6 +174,28 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       hidden:taskHidden&&developHidden});
 
   }
+  function catalogNotice(message='') {
+    const state=catalogInitialization;
+    const failure=state?.status==='failed'
+      ? [state.code||'E_TASK_INITIALIZATION',state.causeCode,state.taskId,state.message].filter(Boolean).join('：') : '';
+    ui('task-catalog-status').text=[message,failure].filter(Boolean).join('\n');
+    myView.publish();
+  }
+  function selectTaskReview(taskId) {
+    // URL data is only a selection hint. Resolve identity from the authoritative
+    // catalog; no URL, source, permission or installation data is accepted.
+    catalogQuery='';catalogFilter='all';
+    ui('task-search').value='';
+    const matches=catalog.filter(row=>row.taskId===taskId&&row.runtimeCurrent!==false)
+      .sort((a,b)=>b.version.localeCompare(a.version,'en',{numeric:true}));
+    const selected=matches.find(row=>row.stage==='available')||matches[0];
+    catalogList.value=selected?identity(selected):'';
+    ui('task-verify-run').value='';
+    renderCatalogCards();renderCandidate();
+    catalogNotice(selected
+      ? `已定位 ${identity(selected)} 固定版本；请审阅来源、源码与权限后确认安装。未自动安装、启用或运行。`
+      : 'E_TASK_NOT_AVAILABLE：此任务暂无可审阅候选，请导入任务包或完成内置目录初始化后重试。');
+  }
   function showCatalogPage() {
     const selectionAtOpen=catalogSelectionEpoch;
     catalogSurface=true;
@@ -182,7 +207,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       await client.ready;
       if(disposed||!catalogSurface)return;
       await refresh();
-      if(disposed||!catalogSurface||!api.storage?.session||!api.windows?.getCurrent)return;
+      if(disposed||!catalogSurface||catalogSelectionEpoch!==selectionAtOpen)return;
+      const reviewId=new URL(doc.location?.href||globalThis.location?.href||api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH)).searchParams.get('taskReviewId');
+      if(reviewId!==null){
+        if(validTaskId(reviewId))selectTaskReview(reviewId);
+        else fail({code:'E_SCHEMA',message:'任务标识无效；请从目录重新选择或导入任务包'});
+        return;
+      }
+      if(!api.storage?.session||!api.windows?.getCurrent)return;
       const windowId=(await api.windows.getCurrent())?.id;
       const key=taskReviewHandoffKey(windowId);
       if(!key)return;
@@ -198,10 +230,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       renderCatalogCards();renderCandidate();
       // Never carry a prior candidate's verification receipt into this version.
       ui('task-verify-run').value=selected.runId || '';
-      ui('task-catalog-status').text=selected.runId
+      catalogNotice(selected.runId
         ? '已根据同窗口固定版本预选候选并预填真实运行 ID；仍需亲自核对运行证据、设为可用并确认安装。'
-        : '已定位候选固定版本；请先用相同源码真实运行，然后核对证据。未自动验证或安装。';
-    })().catch(error=>console.warn('Task review shortcut unavailable; use manual catalog review',error));
+        : '已定位候选固定版本；请先用相同源码真实运行，然后核对证据。未自动验证或安装。');
+    })().catch(error=>{fail(error);console.warn('Task review shortcut unavailable; use manual catalog review',error);});
   }
   const identity=row=>`${row.taskId}@${row.version}`;
   const candidate=()=>catalogList?catalog.find(row=>identity(row)===catalogList.value):undefined;
@@ -222,7 +254,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const formatCandidate=row=>{
     if(!row)return '尚无候选任务';
     const manifest=row.manifest;
-    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${candidateState(row)}${row.verifiedAt?' · 有本机运行验证记录':''}`;
+    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${candidateState(row)}${row.verifiedAt&&!builtinRelease(row)?' · 有本机运行验证记录':''}`;
   };
   function renderForm(row) {
     const key=identity(row);
@@ -294,6 +326,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(catalogList){
     const selectedInstallation=installed.find(item=>item.taskId===selected?.taskId&&item.version===selected?.version);
     const needsReinstall=selectedInstallation?.runtimeCurrent===false;
+    ui('catalog-verification').hidden=builtinRelease(selected)&&selected.runtimeCurrent!==false;
     ui('task-verify').disabled=working||!selected||selected.stage!=='candidate'&&selected.runtimeCurrent!==false;
     ui('task-publish').disabled=working||!selected||selected.stage!=='verified'||selected.runtimeCurrent===false;
     ui('task-install').disabled=working||!selected||selected.stage!=='available'||selected.runtimeCurrent===false||
@@ -421,7 +454,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const schema=row.manifest.paramsSchema,paramFields=Object.entries(schema.properties);
     myView.project('catalogDetail',{
       key:identity(row),title:row.manifest.title,description:row.manifest.description,
-      facts:[['版本',row.version],['作者',row.manifest.author],['来源',row.manifest.source],
+      facts:[['版本',row.version],['作者',row.manifest.author],['来源',builtinRelease(row)?'内置发行（随扩展提供）':row.manifest.source],
         ['适用网站',row.manifest.siteOrigins.join('、')],['所需权限',row.manifest.permissions.join('、')],
         ['验证状态',candidateState(row)]].map(([name,value])=>({name,value})),
       hashes:`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`,
@@ -429,7 +462,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         (rule.title||name)+'（'+rule.type+(schema.required.includes(name)?'，必填':'，可选')+
         (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；'):'运行参数：无',
       source:'展开后从正式任务目录读取固定版本；只查看，不运行。',sourceLoaded:false,
-      note:row.runtimeCurrent===false?'保留原固定包和历史证明。请在当前运行时明确试运行同一源码，再核对新运行证据、设为可用并确认更新安装；云控需重新批准。':row.stage==='available'?'只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
+      note:row.runtimeCurrent===false?'保留原固定包和历史证明。请在当前运行时明确试运行同一源码，再核对新运行证据、设为可用并确认更新安装；云控需重新批准。':builtinRelease(row)?'此固定候选来自内置发行，无需填写本机运行 ID；请审阅后明确安装。浏览器网站权限仍需单独批准。':row.stage==='available'?'只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
         :'此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。',
       addedSites:addedTaskSites(row)
     });
@@ -454,9 +487,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const seq=++catalogSequence;
     const result=await client.request('listTaskCatalog',{});
     if(disposed||seq!==catalogSequence)return;
+    const initializationChanged=JSON.stringify(catalogInitialization)!==JSON.stringify(result.initialization??null);
+    const hadInitializationFailure=catalogInitialization?.status==='failed';
+    catalogInitialization=result.initialization??null;
+    if(initializationChanged&&(hadInitializationFailure||catalogInitialization?.status==='failed'))catalogNotice();
     if(skipUnchanged&&JSON.stringify([catalog,installed])===JSON.stringify([result.catalog,result.installed]))return;
     catalog=result.catalog;installed=result.installed;
     renderInstalled();renderCatalog(preferred);
+    if(catalogInitialization?.status==='failed')catalogNotice();
   }
   function describeHistoryResult(run,result) {
     if(!result)return run?.state==='paused_unknown'
@@ -934,6 +972,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // No runId yet: run() checks this flag before host.start, then cancels
     // the late claim if the RPC already crossed the RunHost boundary.
     return Promise.resolve({requested:true,pending:agentStartSubmitted});
+  },async openTaskReview(taskId,{assertAuthorized=()=>{}}={}) {
+    if(!validTaskId(taskId))throw {code:'E_SCHEMA',message:'任务标识无效'};
+    await client.ready;
+    await refresh();
+    await assertAuthorized();
+    if(disposed)return false;
+    if(installed.some(row=>row.taskId===taskId))return this.focusInstalledTask(taskId);
+    if(catalogSurface){selectTaskReview(taskId);return true;}
+    const url=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
+    url.searchParams.set('taskReviewId',taskId);
+    await api.tabs.create({url:url.href});
+    return true;
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.
     // The Run button is gated separately by the installed enabled state.

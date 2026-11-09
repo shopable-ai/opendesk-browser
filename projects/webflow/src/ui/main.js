@@ -37,6 +37,7 @@
       'aria-hidden':'true',focusable:'false'},h('path',{d:paths[name]||paths.chevron}));
   };
   const labels={checking:'正在核验',available:'可手动运行',unavailable:'任务不可用',
+    missing:'尚未安装',removed:'已卸载',disabled:'已停用',initialization:'初始化失败',
     changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
   const Btn=(label,click,opts={})=>h('button',{
@@ -481,7 +482,7 @@
     };
     const stop=()=>stopOriginal(active);
     const openTask=pin=>{
-      if(pin.state!=='available')return;
+      if(pin.state==='checking')return;
       setError('');void request('tasks.open',{taskId:pin.taskId}).catch(e=>{
         if(alive.current)setError('宿主任务管理入口不可用：'+safeError(e));
       });
@@ -549,6 +550,10 @@
                 pin.state==='available'&&h('button',{type:'button',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
+        ['missing','removed','initialization','disabled','changed'].includes(pin.state)&&
+          h('div',{className:'wf-actions'},
+            Btn(pin.state==='disabled'?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
+            pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading})),
         expanded&&h('div',{className:'wf-task-detail wf-stack'},
           pin.diagnostic&&h('details',{className:'wf-help'},h('summary',null,'诊断信息'),
             h('p',{className:'wf-mono'},pin.diagnostic)),
@@ -640,7 +645,7 @@
             (active||summary.attention>0)&&Btn(active?'处理原步骤':'查看原因',
               ()=>setTab(active?'history':'scripts'),{quiet:true})),
           h('div',{className:'wf-metrics','aria-label':'固定任务概况'},
-            ...[['已审阅',summary.reviewed],['可运行',loading?'…':summary.available],
+            ...[['自带脚本',summary.reviewed],['可运行',loading?'…':summary.available],
               ['需处理',loading?'…':summary.attention]]
               .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))))}),
         h('section',{className:'wf-stack','aria-label':'最近活动'},
@@ -729,7 +734,7 @@
           h('p',null,'若上方没有自动运行或一次接入说明，请更新 OpenDesk Browser 后重开应用。它们来自 Browser 的可信组件，单独升级工具包不会更新该组件。'))}),
         h(Card,{children:h('div',{className:'wf-stack wf-help'},
           h('h3',null,'手动运行一个真实任务'),
-          h('p',null,'若显示“尚未安装或已停用”，请到“我的”核对任务：未安装时通过“添加”审阅安装，主动停用过的任务可恢复。安装 Web Flow 不会同时安装其依赖任务；处理后回到“脚本”刷新状态，已有有效授权无需重复批准。'),
+          h('p',null,'首次使用会安装两个自带固定搜索脚本，不会自动运行或开启自动触发。主动卸载或停用的选择会保留；可从脚本行打开安装审阅或任务管理恢复。初始化失败可重试并查看诊断。网站及任务执行授权仍需原可信审阅，已有有效授权无需重复批准。'),
           h('p',null,'1. 在宿主任务目录安装并核验与本应用相同版本、哈希的 Controller Task。'),
           h('p',null,'2. 打开对应的 Google / 百度获准网站，再在 Web Flow → 脚本选择任务、输入关键词并点击运行。'),
           h('p',null,'3. 保存运行步骤并确认手动运行。关闭重开后在“记录 → 原步骤 → 查询原请求”核对同一执行；网页业务状态须单独核对。'))}),

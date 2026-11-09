@@ -1,6 +1,6 @@
 import {canonical,digest,invariant,newId} from '../platform/protocol.js';
 import {validateTaskParams,verifyTaskPackage} from '../platform/tasks/contract.js';
-import {assertRunTaskAuthorization} from '../platform/tasks/service.js';
+import {assertRunTaskAuthorization} from '../platform/tasks/run-authorization.js';
 import {requireGrant} from '../platform/target/index.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createCloudHistoryIndex} from './history-index.js';

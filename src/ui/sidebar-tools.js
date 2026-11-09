@@ -409,7 +409,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
-    'tasks.open':'打开已安装任务',
+    'tasks.open':'打开任务管理或安装审阅',
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'controllers.run':'运行应用包内已审阅的网页自动化、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
@@ -3620,11 +3620,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertSession(source,token);return data;
       }
       if(operation==='tasks.open'){
-        if(typeof payload?.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
+        if(!payload||Array.isArray(payload)||Object.keys(payload).length!==1||
+          typeof payload.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
           throw new Error('任务标识无效');
-        const opened=taskWorkbench.focusInstalledTask(payload.taskId);
-        if(!opened)throw new Error('该任务未安装或未启用');
-        suspendTool();
+        const opened=await taskWorkbench.openTaskReview(payload.taskId,{assertAuthorized:async()=>{
+          await assertInstalledTool(tool,revocationEpoch,'任务导航期间安装或授权已变更');
+          await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+        }});
+        if(!opened)throw new Error('任务管理或安装审阅未打开，请重试');
+        // Opening a Chrome tab can finish after the user switched tools.
+        if(sameInstance(source,token))suspendTool();
         return {opened:true};
       }
       if(operation!=='storage.get'&&operation!=='storage.set')throw new Error('不支持此操作');

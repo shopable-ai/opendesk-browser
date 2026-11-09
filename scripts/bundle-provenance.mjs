@@ -18,6 +18,21 @@ const compiledTimeReviewInputs=Object.freeze({
   'projects/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
   'projects/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
 });
+// Fixed Task packages are JSON data consumed by the original Task installer.
+// Their sourceUtf8 stays frozen data; only Controller may execute it after
+// installation and run authorization. Never admit their JS source modules.
+const packagedTaskInputs=Object.freeze({
+  'examples/tasks/baidu.search.top3.v1.opendesk-task.json':'a6de803966dc852bfda005d0d572ebee593e01fe',
+  'examples/tasks/google.search.top3.v1.opendesk-task.json':'9ef0c0f53c92729bb15db262f4c274c113d036cf'
+});
+function reviewedPackagedTask(target,path,root){
+  if(target!=='sw.js'||!Object.hasOwn(packagedTaskInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Packaged Task data must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==packagedTaskInputs[path])throw Error('Packaged Task data changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
 // Web Flow's trigger policy is pure data validation; only its compiled settings
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
@@ -748,7 +763,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
   const modules=Object.entries(chunk.modules).map(([id,info])=>{
     const path=modulePath(id,root);
     assertLibraryModuleBoundary(chunk.fileName,path);
-    const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
+    const reviewedSource=reviewedPackagedTask(chunk.fileName,path,root)||
+      reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
       reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
       reviewedCompiledChatGPTFiles(chunk.fileName,path,root)||

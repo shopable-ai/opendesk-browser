@@ -1,4 +1,5 @@
 const TASK_STORE="frameworkKV";
+import {BUILTIN_TASK_RELEASES,loadPackagedTask,assertPackagedTask,builtinTaskStateKey,taskRemovalKey} from './builtin-releases.js';
 import {canonical, digest, invariant} from '../protocol.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
@@ -8,7 +9,12 @@ import {installedKey, taskKey, taskScriptId, scriptStorageKey,
 
 const candidateStates = new Set(['candidate','verified','available']);
 function requireCurrentLibraries(candidate){
-  if(candidate?.package?.manifest.siteOrigins.length>1)
+  if(candidate?.verification?.kind==='builtin-release'){
+    invariant(candidate.verification.source==='packaged' &&
+      candidate.verification.manifestHash===candidate.package.manifestHash &&
+      candidate.verification.sourceHash===candidate.package.manifest.program.sourceHash,
+      'E_VERIFICATION','Invalid packaged release evidence');
+  } else if(candidate?.package?.manifest.siteOrigins.length>1)
     invariant(candidate.package.manifest.siteOrigins.includes(candidate.verification?.origin),
       'E_VERIFICATION','Task verification must come from a declared exact origin');
   invariant(candidate?.verification?.builtinAbi===BUILTIN_ABI,
@@ -31,8 +37,10 @@ function keyValue(value) {invariant(typeof value==='string' && value.length>0,'E
 function detail(row,current) {
   return {taskId:row.taskId,version:row.version,runtimeCurrent:runtimeCurrent(row,current),manifest:structuredClone(row.package.manifest),
     manifestHash:row.package.manifestHash,stage:row.stage,verifiedAt:row.verification?.verifiedAt ?? null,
-    verification:row.verification ? {runId:row.verification.runId,resultId:row.verification.resultId,
-      sourceHash:row.verification.sourceHash,manifestHash:row.verification.manifestHash,origin:row.verification.origin} : null};
+    verification:row.verification ? {...(row.verification.kind ? {kind:row.verification.kind,source:row.verification.source} : {}),
+      ...(row.verification.runId ? {runId:row.verification.runId,resultId:row.verification.resultId} : {}),
+      sourceHash:row.verification.sourceHash,manifestHash:row.verification.manifestHash,
+      ...(row.verification.origin ? {origin:row.verification.origin} : {})} : null};
 }
 function validCandidate(row,namespace) {
   invariant(row?.tag==='task-candidate-v1' && row.namespace===namespace &&
@@ -91,30 +99,135 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
   return {candidate,installation:structuredClone(install)};
 }
 
-export async function assertRunTaskAuthorization(tx,run) {
-  if(!run.scriptId?.startsWith('task:'))return;
-  const bound=run.installedTaskAuthorization;
-  invariant(bound?.taskId&&bound.authorization,'E_PERMISSION','旧任务运行没有可恢复的安装授权，请重新运行');
-  invariant(run.builtinAbi===BUILTIN_ABI,'E_BUILTIN_VERSION_UNAVAILABLE','旧任务运行内置库身份已改变，禁止继续执行');
-  const current=await tx.get(TASK_STORE,installedKey(run.namespace,bound.taskId));
-  invariant(current?.tag==='task-installed-v1'&&current.enabled&&current.scriptId===run.scriptId&&
-    current.version===bound.version&&current.manifestHash===bound.manifestHash&&
-    canonical(current.authorization)===canonical(bound.authorization),
-    'E_PERMISSION','任务已停用、卸载或授权版本改变；旧运行不能恢复');
-}
+export {assertRunTaskAuthorization} from './run-authorization.js';
 
-export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinWorkerSource}) {
-  async function fenceInstalledRuns(tx,ns,old){
-    if(!old)return;
-    for(const run of await tx.all('runs')){
-      if(run.tag!=='controller-run'||run.namespace!==ns||!['preparing','running','stopping'].includes(run.state)||
-        (run.installedTaskAuthorization?.taskId!==old.taskId&&run.scriptId!==old.scriptId))continue;
-      run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason='E_PERMISSION';
-      await tx.put('runs',run,run.runId);
-      const leaseKey='controller-pin:'+run.runId,lease=await tx.get('commandJournal',leaseKey);
-      if(lease)await tx.put('commandJournal',{...lease,cancelSeq:run.cancelSeq,state:run.state},leaseKey);
+async function fenceInstalledRuns(tx,ns,old){
+  if(!old)return;
+  for(const run of await tx.all('runs')){
+    if(run.tag!=='controller-run'||run.namespace!==ns||!['preparing','running','stopping'].includes(run.state)||
+      (run.installedTaskAuthorization?.taskId!==old.taskId&&run.scriptId!==old.scriptId))continue;
+    run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.eventSeq++;run.state='stopping';run.terminalReason='E_PERMISSION';
+    await tx.put('runs',run,run.runId);
+    const leaseKey='controller-pin:'+run.runId,lease=await tx.get('commandJournal',leaseKey);
+    if(lease)await tx.put('commandJournal',{...lease,cancelSeq:run.cancelSeq,state:run.state},leaseKey);
+  }
+}
+async function installInTransaction(tx,ns,request,current,clock) {
+  const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(ns,request.taskId,request.version)),ns);
+  const pkg=await verifyTaskPackage(candidate.package);
+  invariant(candidate.stage==='available' && candidate.verification?.manifestHash===pkg.manifestHash &&
+    candidate.verification?.sourceHash===pkg.manifest.program.sourceHash &&
+    pkg.manifestHash===request.manifestHash,'E_VERIFICATION','Only exact Available task versions can install');
+  const installKey=installedKey(ns,request.taskId),old=await tx.get(TASK_STORE,installKey);
+  const retainingInstalled=old?.tag==='task-installed-v1'&&old.taskId===request.taskId&&
+    old.version===request.version&&old.manifestHash===pkg.manifestHash&&
+    old.scriptId===taskScriptId(request.taskId,request.version);
+  // A persisted reviewed installation is not pinned to today's catalog.
+  // New installations/restores still require exact fixed release bytes.
+  if(candidate.verification?.kind==='builtin-release'&&!retainingInstalled)await assertPackagedTask(pkg);
+  requireCurrentLibraries(candidate);
+  assertBuiltinIdentity(candidate.builtinIdentity,current);
+  assertBuiltinIdentity(candidate.verification.builtinIdentity,current);
+  invariant((old?.version ?? null)===request.expectedInstalledVersion&&
+    (!old?(request.expectedGeneration??null)===null&&(request.expectedInstallationId??null)===null:
+      request.expectedGeneration===(old.authorization?.generation??null)&&
+      request.expectedInstallationId===(old.authorization?.installationId??null)),
+    'E_REVISION','Installed version or authorization changed');
+  const id=taskScriptId(request.taskId,request.version);
+  const headKey=scriptStorageKey(ns,id),revisionKey=scriptStorageKey(ns,id,1);
+  const head=await tx.get('scriptHeads',headKey),revision=await tx.get('scriptRevisions',revisionKey);
+  if (head || revision) {
+    invariant(head?.revision===1 && head.contentHash===pkg.manifest.program.sourceHash &&
+    !head.tombstoned && revision?.sourceUtf8===pkg.sourceUtf8 &&
+    revision?.contentHash===pkg.manifest.program.sourceHash,'E_HASH','Installed script integrity differs');
+    if(!identityCurrent(revision.builtinIdentity,current)){
+      revision.builtinIdentityHistory=[...(revision.builtinIdentityHistory??[]),structuredClone(revision.builtinIdentity)];
+      revision.builtinIdentity=current;
+      await tx.put('scriptRevisions',revision,revisionKey);
     }
   }
+  else {
+    await tx.put('scriptRevisions',{tag:'script-revision',namespace:ns,scriptId:id,revision:1,
+      parentRevision:0,contentHash:pkg.manifest.program.sourceHash,sourceUtf8:pkg.sourceUtf8,builtinIdentity:current},revisionKey);
+    await tx.put('scriptHeads',{tag:'script-head',namespace:ns,scriptId:id,revision:1,
+      contentHash:pkg.manifest.program.sourceHash,tombstoned:false},headKey);
+  }
+  const row={tag:'task-installed-v1',namespace:ns,taskId:request.taskId,version:request.version,
+    scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:old?.enabled??true,installedAt:old?.installedAt??clock.now(),
+    authorization:installAuthorization(pkg.manifest,old?.authorization)};
+  if(old?.runtimeHistory)row.runtimeHistory=structuredClone(old.runtimeHistory);
+  if(old && !identityCurrent(old.builtinIdentity,current)){
+    const {runtimeHistory,...prior}=old;
+    row.runtimeHistory=[...(row.runtimeHistory??[]),structuredClone(prior)];
+  }
+  await fenceInstalledRuns(tx,ns,old);
+  await tx.put(TASK_STORE,row,installKey);
+  await tx.delete(TASK_STORE,taskRemovalKey(ns,request.taskId));
+  return {taskId:row.taskId,version:row.version,enabled:row.enabled,manifestHash:row.manifestHash};
+}
+/** Trusted callers supply their authenticated namespace and current builtinIdentity.
+ * Uses one original readwrite transaction; failed means all writes rolled back.
+ * ready tasks may be installed, removed or available (legacy recovery).
+ * No task is run, no website permission is granted and no native proof is made.
+ */
+export async function ensureBuiltinTasks({storage,namespace,environment:current,
+  loadBuiltinTask=loadPackagedTask,clock={now:()=>Date.now()}}) {
+  invariant(typeof namespace==='string'&&namespace.length>0,'E_SCHEMA','Task namespace required');
+  assertBuiltinIdentity(current,current);
+  let initializingTaskId=null;
+  try {
+    return await storage.transaction([TASK_STORE,'scriptHeads','scriptRevisions','runs','commandJournal'],'readwrite',async tx=>{
+      const ns=namespace;
+      const states=[];
+      for(const release of BUILTIN_TASK_RELEASES){
+        const {taskId,version}=release;
+        initializingTaskId=taskId;
+        const stateKey=builtinTaskStateKey(ns,taskId);
+        const installed=await tx.get(TASK_STORE,installedKey(ns,taskId));
+        if(installed){
+          if(!await tx.get(TASK_STORE,stateKey))await tx.put(TASK_STORE,
+            {tag:'task-builtin-state-v1',namespace:ns,taskId,status:'adopted'},stateKey);
+          states.push({taskId,status:'installed'});continue;
+        }
+        const removed=await tx.get(TASK_STORE,taskRemovalKey(ns,taskId));
+        const state=await tx.get(TASK_STORE,stateKey);
+        const prior=(await tx.all(TASK_STORE)).some(row=>row?.namespace===ns&&row.taskId===taskId&&row.tag==='task-candidate-v1');
+        // Old candidates without an install cannot distinguish an earlier
+        // uninstall from an unfinished import. Never silently install them.
+        const automatic=!removed&&!state&& !prior;
+        const key=taskKey(ns,taskId,version);
+        const existing=await tx.get(TASK_STORE,key);
+        const pkg=await assertPackagedTask(await loadBuiltinTask(release));
+        invariant(pkg.manifest.taskId===taskId&&pkg.manifest.version===version,
+          'E_VERIFICATION','Packaged task identity differs');
+        if(existing){
+          validCandidate(existing,ns);
+          await verifyTaskPackage(existing.package);
+          invariant(existing.taskId===taskId&&existing.version===version&&existing.package.manifestHash===pkg.manifestHash&&existing.package.sourceUtf8===pkg.sourceUtf8,
+            'E_REQUEST_CONFLICT','Task version is immutable');
+        }
+        const candidate={...(existing??{tag:'task-candidate-v1',namespace:ns,taskId,version,createdAt:clock.now()}),
+          package:pkg,builtinIdentity:current,stage:'available',availableAt:existing?.availableAt??clock.now(),
+          verification:{kind:'builtin-release',source:'packaged',sourceHash:pkg.manifest.program.sourceHash,
+            manifestHash:pkg.manifestHash,builtinIdentity:current,builtinAbi:BUILTIN_ABI}};
+        // Preserve local run evidence; refresh only uninstalled packaged trust.
+        if(!existing||existing.stage==='candidate'||existing.verification?.kind==='builtin-release')await tx.put(TASK_STORE,candidate,key);
+        if(automatic)await installInTransaction(tx,ns,{taskId,version,manifestHash:pkg.manifestHash,expectedInstalledVersion:null},current,clock);
+        const status=automatic?'installed':removed?'removed':'available';
+        await tx.put(TASK_STORE,{tag:'task-builtin-state-v1',namespace:ns,taskId,status},stateKey);
+        states.push({taskId,status});
+      }
+      return {status:'ready',tasks:states};
+    });
+  } catch(error) {
+    // The original transaction aborts every write, including install records
+    // and revisions. Each subsequent access retries; no success marker leaks.
+    if(error.code==='E_OWNER')throw error;
+    return {status:'failed',code:'E_TASK_INITIALIZATION',taskId:initializingTaskId,causeCode:error.code??'E_STORAGE',message:error.message};
+  }
+}
+
+export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinWorkerSource,loadBuiltinTask=loadPackagedTask}) {
   async function scoped(sender,stores,mode,run) {
     const host=await assertHost(sender);
     return storage.transaction([...new Set([...stores,'commandJournal'])],mode,async tx=>{
@@ -144,14 +257,23 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       return detail(row,current);
     });
   }
+  async function initializeBuiltins(sender,current) {
+    const host=await assertHost(sender);
+    return ensureBuiltinTasks({namespace:host.namespace,environment:current,loadBuiltinTask,clock,
+      storage:{transaction:(stores,mode,work)=>scoped(sender,stores,mode,async(tx,ns)=>{
+        invariant(ns===host.namespace,'E_OWNER','Task host namespace changed');
+        return work(tx);
+      })}});
+  }
   async function listTaskCatalog(request,sender) {
     const current=await environment();
     fields(request ?? {},[]);
+    const initialization=await initializeBuiltins(sender,current);
     return scoped(sender,[TASK_STORE],'readonly',async (tx,ns)=>{
       const rows=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-candidate-v1'&&row.namespace===ns);
       const installed=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-installed-v1'&&row.namespace===ns);
       const byId=new Map(installed.map(row=>[row.taskId,row]));
-      return {catalog:rows.map(row=>({...detail(row,current),installed:byId.get(row.taskId)?.version===row.version,
+      return {initialization,catalog:rows.map(row=>({...detail(row,current),installed:byId.get(row.taskId)?.version===row.version,
         enabled:byId.get(row.taskId)?.version===row.version && byId.get(row.taskId).enabled})),
       installed:installed.map(row=>({taskId:row.taskId,version:row.version,manifestHash:row.manifestHash,
         scriptId:row.scriptId,enabled:row.enabled,installedAt:row.installedAt,runtimeCurrent:identityCurrent(row.builtinIdentity,current),
@@ -257,50 +379,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       ['taskId','version','manifestHash','expectedInstalledVersion']);
     invariant(request.expectedInstalledVersion===null || typeof request.expectedInstalledVersion==='string','E_SCHEMA');
     return scoped(sender,[TASK_STORE,'scriptHeads','scriptRevisions','runs'],'readwrite',async(tx,ns)=>{
-      const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(ns,request.taskId,request.version)),ns);
-      const pkg=await verifyTaskPackage(candidate.package);
-      invariant(candidate.stage==='available' && candidate.verification?.manifestHash===pkg.manifestHash &&
-        candidate.verification?.sourceHash===pkg.manifest.program.sourceHash &&
-        pkg.manifestHash===request.manifestHash,'E_VERIFICATION','Only exact Available task versions can install');
-      requireCurrentLibraries(candidate);
-      assertBuiltinIdentity(candidate.builtinIdentity,current);
-      assertBuiltinIdentity(candidate.verification.builtinIdentity,current);
-      const installKey=installedKey(ns,request.taskId),old=await tx.get(TASK_STORE,installKey);
-      invariant((old?.version ?? null)===request.expectedInstalledVersion&&
-        (!old?(request.expectedGeneration??null)===null&&(request.expectedInstallationId??null)===null:
-          request.expectedGeneration===(old.authorization?.generation??null)&&
-          request.expectedInstallationId===(old.authorization?.installationId??null)),
-        'E_REVISION','Installed version or authorization changed');
-      const id=taskScriptId(request.taskId,request.version);
-      const headKey=scriptStorageKey(ns,id),revisionKey=scriptStorageKey(ns,id,1);
-      const head=await tx.get('scriptHeads',headKey),revision=await tx.get('scriptRevisions',revisionKey);
-      if (head || revision) {
-        invariant(head?.revision===1 && head.contentHash===pkg.manifest.program.sourceHash &&
-        !head.tombstoned && revision?.sourceUtf8===pkg.sourceUtf8 &&
-        revision?.contentHash===pkg.manifest.program.sourceHash,'E_HASH','Installed script integrity differs');
-        if(!identityCurrent(revision.builtinIdentity,current)){
-          revision.builtinIdentityHistory=[...(revision.builtinIdentityHistory??[]),structuredClone(revision.builtinIdentity)];
-          revision.builtinIdentity=current;
-          await tx.put('scriptRevisions',revision,revisionKey);
-        }
-      }
-      else {
-        await tx.put('scriptRevisions',{tag:'script-revision',namespace:ns,scriptId:id,revision:1,
-          parentRevision:0,contentHash:pkg.manifest.program.sourceHash,sourceUtf8:pkg.sourceUtf8,builtinIdentity:current},revisionKey);
-        await tx.put('scriptHeads',{tag:'script-head',namespace:ns,scriptId:id,revision:1,
-          contentHash:pkg.manifest.program.sourceHash,tombstoned:false},headKey);
-      }
-      const row={tag:'task-installed-v1',namespace:ns,taskId:request.taskId,version:request.version,
-        scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:old?.enabled??true,installedAt:old?.installedAt??clock.now(),
-        authorization:installAuthorization(pkg.manifest,old?.authorization)};
-      if(old?.runtimeHistory)row.runtimeHistory=structuredClone(old.runtimeHistory);
-      if(old && !identityCurrent(old.builtinIdentity,current)){
-        const {runtimeHistory,...prior}=old;
-        row.runtimeHistory=[...(row.runtimeHistory??[]),structuredClone(prior)];
-      }
-      await fenceInstalledRuns(tx,ns,old);
-      await tx.put(TASK_STORE,row,installKey);
-      return {taskId:row.taskId,version:row.version,enabled:row.enabled,manifestHash:row.manifestHash};
+      return installInTransaction(tx,ns,request,current,clock);
     });
   }
   async function setInstalledTaskEnabled(request,sender) {
@@ -337,6 +416,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
         request.expectedInstallationId===(row.authorization?.installationId??null),'E_REVISION','Installed task authorization changed');
       // Preserve immutable revision bytes for existing run/result pins and history.
       await tx.delete(TASK_STORE,key);
+      await tx.put(TASK_STORE,{tag:'task-removed-v1',namespace:ns,taskId:row.taskId,version:row.version,removedAt:clock.now()},taskRemovalKey(ns,row.taskId));
       await fenceInstalledRuns(tx,ns,row);
       return {taskId:row.taskId,version:row.version,uninstalled:true};
     });
@@ -344,9 +424,17 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
   async function resolveInstalledTask(request,sender) {
     const current=await environment();
     fields(request,['taskId']);
+    const initialization=await initializeBuiltins(sender,current);
     return scoped(sender,[TASK_STORE,'scriptRevisions'],'readonly',async(tx,ns)=>{
       const row=await tx.get(TASK_STORE,installedKey(ns,request.taskId));
-      invariant(row?.tag==='task-installed-v1' && row.enabled,'E_PERMISSION','Task is disabled or not installed');
+      if(row?.tag!=='task-installed-v1'){
+        const removed=await tx.get(TASK_STORE,taskRemovalKey(ns,request.taskId));
+        invariant(!removed,'E_TASK_REMOVED','Task was explicitly removed');
+        invariant(initialization.status!=='failed'||!BUILTIN_TASK_RELEASES.some(item=>item.taskId===request.taskId),
+          'E_TASK_INITIALIZATION',initialization.message);
+        invariant(false,'E_TASK_NOT_INSTALLED','Task is not installed');
+      }
+      invariant(row.enabled,'E_TASK_DISABLED','Task is disabled');
       const stored=validCandidate(await tx.get(TASK_STORE,taskKey(ns,row.taskId,row.version)),ns);
       // Metadata resolution has no execution target. A representative member
       // checks installation integrity here; run admission checks the REAL origin.

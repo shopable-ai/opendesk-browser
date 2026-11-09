@@ -54,6 +54,12 @@ function fixture() {
   return {tx,read,send,namespace:host.namespace,setBuiltin:value=>{builtinSource=value;},abortNextCommit:()=>{failCommit=true;}};
 }
 const errorCode=code=>error=>error?.code===code;
+// Package-authority cases assert their own Task alongside initialized built-ins.
+async function catalogForTask(f,taskId='example.dom-click') {
+  const reply=await f.send('listTaskCatalog',{});
+  return {...reply,catalog:reply.catalog.filter(row=>row.taskId===taskId),
+    installed:reply.installed.filter(row=>row.taskId===taskId)};
+}
 
 test('package hashes and closed schema reject forged status, altered source, extra permissions and invalid params',async()=>{
   const pkg=await example();
@@ -71,7 +77,7 @@ test('candidate cannot install without matching trustworthy native run, then exa
   const f=fixture(),pkg=await example();
   const initial=await f.send('importTaskPackage',{package:pkg});
   assert.equal(initial.stage,'candidate');
-  assert.equal((await f.send('listTaskCatalog',{})).catalog.length,1);
+  assert.equal((await catalogForTask(f)).catalog.length,1);
   await assert.rejects(f.send('installTask',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null}),errorCode('E_VERIFICATION'));
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId:'nonexistent'}),errorCode('E_VERIFICATION'));
@@ -100,7 +106,7 @@ test('candidate cannot install without matching trustworthy native run, then exa
   assert.equal((await f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId})).stage,'verified');
   assert.equal((await f.send('makeTaskAvailable',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash})).stage,'available');
-  const realCatalog=(await f.send('listTaskCatalog',{})).catalog[0];
+  const realCatalog=(await catalogForTask(f)).catalog[0];
   assert.equal(realCatalog.verification.manifestHash,pkg.manifestHash,
     'Cloud UI must receive the real immutable verified manifest digest');
   assert.equal(realCatalog.verification.sourceHash,pkg.manifest.program.sourceHash);
@@ -110,7 +116,7 @@ test('candidate cannot install without matching trustworthy native run, then exa
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null}),errorCode('E_REVISION'));
   const scriptId=taskScriptId(pkg.manifest.taskId,pkg.manifest.version);
   assert.equal((await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).scriptId,scriptId);
-  assert.equal((await f.send('listTaskCatalog',{})).installed[0].version,'1.0.0');
+  assert.equal((await catalogForTask(f)).installed[0].version,'1.0.0');
   await assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}});
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
@@ -140,8 +146,9 @@ test('candidate cannot install without matching trustworthy native run, then exa
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
   await f.send('uninstallTask',{taskId:pkg.manifest.taskId,version:'1.0.0',expectedGeneration:2,expectedInstallationId:installationId});
-  assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
-  assert.equal((await f.tx.all('scriptRevisions')).length,1,'uninstall keeps immutable version for result history');
+  assert.equal((await catalogForTask(f)).installed.length,0);
+  assert.equal((await f.tx.all('scriptRevisions')).filter(row=>row.scriptId===scriptId).length,1,
+    'uninstall keeps this Task immutable version for result history');
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
 });
@@ -243,17 +250,20 @@ test('Task enable refuses stale installation, candidate or proof without changin
 test('Task exact import reports stale runtime read-only for missing identity, changed ABI and fixed bytes',async()=>{
   for(const kind of ['missing','abi','bundle','catalog']){
     const f=fixture(),pkg=await example();await f.send('importTaskPackage',{package:pkg});
-    const candidate=(await f.tx.all('frameworkKV'))[0];
+    await catalogForTask(f); // Initialize unrelated built-ins before the read-only snapshot.
+    const revisionsBefore=await f.tx.all('scriptRevisions');
+    const candidate=await f.tx.get('frameworkKV',taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version));
     if(kind==='missing'){
       delete candidate.builtinIdentity;await f.tx.put('frameworkKV',candidate,taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version));
     }else f.setBuiltin({...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})});
     const before=await f.tx.all('frameworkKV');
     assert.equal((await f.send('importTaskPackage',{package:pkg})).runtimeCurrent,false);
     assert.equal((await f.send('getTaskCandidate',{taskId:pkg.manifest.taskId,version:pkg.manifest.version})).runtimeCurrent,false);
-    assert.equal((await f.send('listTaskCatalog',{})).catalog[0].runtimeCurrent,false);
+    if(kind==='abi')await assert.rejects(catalogForTask(f),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    else assert.equal((await catalogForTask(f)).catalog[0].runtimeCurrent,false);
     assert.deepEqual(await f.tx.all('frameworkKV'),before);
     assert.equal((await f.tx.all('runs')).length,0);
-    assert.equal((await f.tx.all('scriptRevisions')).length,0);
+    assert.deepEqual(await f.tx.all('scriptRevisions'),revisionsBefore);
   }
 });
 
@@ -276,7 +286,7 @@ test('R23.37 real Task Service versioned-intent import -> Verify -> Available ->
   const pkg=await createTaskPackage(manifest,source);
   const candidate=await f.send('importTaskPackage',{package:pkg});
   assert.equal(candidate.stage,'candidate');
-  assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
+  assert.equal((await catalogForTask(f,manifest.taskId)).installed.length,0);
   await assert.rejects(f.send('makeTaskAvailable',{
     taskId:manifest.taskId,version:manifest.version,manifestHash:pkg.manifestHash
   }),errorCode('E_VERIFICATION'));
@@ -310,7 +320,7 @@ test('R23.37 real Task Service versioned-intent import -> Verify -> Available ->
     taskId:manifest.taskId,version:manifest.version,
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null});
   assert.equal(install.enabled,true);
-  const catalog=await f.send('listTaskCatalog',{});
+  const catalog=await catalogForTask(f,manifest.taskId);
   assert.equal(catalog.installed.length,1);
   assert.deepEqual(catalog.catalog[0].manifest.intent,manifest.intent);
   const target={status:'available',frameId:0,origin:manifest.siteOrigins[0]};
@@ -471,7 +481,7 @@ async function installedRecoveryFixture({disabled=false}={}) {
   await f.send('verifyTaskCandidate',{...request,runId:proof.runId});
   await f.send('makeTaskAvailable',{...request,manifestHash:pkg.manifestHash});
   await f.send('installTask',{...request,manifestHash:pkg.manifestHash,expectedInstalledVersion:null});
-  const installed=(await f.send('listTaskCatalog',{})).installed[0];
+  const installed=(await catalogForTask(f)).installed[0];
   if(disabled)await f.send('setInstalledTaskEnabled',{...request,enabled:false,
     expectedGeneration:installed.generation,expectedInstallationId:installed.installationId});
   const candidateKey=taskKey(f.namespace,request.taskId,request.version),installKey=installedKey(f.namespace,request.taskId);
@@ -494,7 +504,7 @@ test('same immutable Task recovers through fresh proof and atomic same-version r
     const {f,pkg,request,current,oldCandidate,oldInstall,oldRevision}=c;
     const historical={runs:await f.tx.all('runs'),results:await f.tx.all('results'),journal:await f.tx.all('commandJournal')};
     assert.equal((await f.send('importTaskPackage',{package:pkg})).runtimeCurrent,false);
-    let catalog=await f.send('listTaskCatalog',{});
+    let catalog=await catalogForTask(f);
     assert.equal(catalog.catalog[0].runtimeCurrent,false);assert.equal(catalog.installed[0].runtimeCurrent,false);
     await assert.rejects(c.available(),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
     await assert.rejects(c.install(),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
@@ -514,7 +524,7 @@ test('same immutable Task recovers through fresh proof and atomic same-version r
     await assert.rejects(c.install(),errorCode('E_VERIFICATION'));
     await c.available();
     assert.equal((await c.verify('not-a-run')).stage,'available');
-    catalog=await f.send('listTaskCatalog',{});
+    catalog=await catalogForTask(f);
     assert.equal(catalog.catalog[0].runtimeCurrent,true);assert.equal(catalog.installed[0].runtimeCurrent,false);
     const active={tag:'controller-run',runId:'recovery-active',namespace:f.namespace,scriptId:oldInstall.scriptId,
       builtinAbi:BUILTIN_ABI,state:'running',cancelSeq:0,ownerEpoch:1,runRevision:1,eventSeq:1,
@@ -551,9 +561,9 @@ test('same immutable Task recovers through fresh proof and atomic same-version r
       installedTaskAuthorization:{taskId:request.taskId,version:request.version,manifestHash:pkg.manifestHash,
         authorization:oldInstall.authorization}};
     await assert.rejects(assertRunTaskAuthorization(f.tx,oldRun),errorCode('E_PERMISSION'));
-    assert.equal((await f.send('listTaskCatalog',{})).installed[0].runtimeCurrent,true);
+    assert.equal((await catalogForTask(f)).installed[0].runtimeCurrent,true);
     if(disabled){
-      await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId}),errorCode('E_PERMISSION'));
+      await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId}),errorCode('E_TASK_DISABLED'));
       await f.send('setInstalledTaskEnabled',{...request,enabled:true,expectedGeneration:installation.authorization.generation,
         expectedInstallationId:installation.authorization.installationId});
     }

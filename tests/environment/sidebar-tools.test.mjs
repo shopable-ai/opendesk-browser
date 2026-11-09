@@ -164,11 +164,10 @@ test('promotion rejects same-version changed bytes and downgrade while retaining
   assert.equal(await readFile(first.output,'utf8'),'invalid previous release');
 });
 test('new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol',async()=>{
-  const [manifest,runner,host,toolHtml,buildContract,verify,taskHost]=await Promise.all([
+  const [manifest,runner,host,toolHtml,buildContract,verify]=await Promise.all([
     readFile('manifest.json','utf8').then(JSON.parse),readFile('src/sidebar-tools/bridge.js','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),renderSidebarFixture(),
-    readFile('scripts/build-contract.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8'),
-    readFile('src/ui/task-workbench.js','utf8')
+    readFile('scripts/build-contract.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8')
   ]);
   assert.deepEqual(manifest.sandbox.pages,['scripting/sandbox/sandbox.html','sidebar-tools/sandbox.html']);
   assert.equal(manifest.side_panel.default_path,'sidepanel.html');
@@ -178,13 +177,11 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
   assert.match(toolHtml,/id="tab-my-tasks"/);
   assert.match(host,/event.origin!=='null'/);
   assert.match(host,/frame.contentWindow===source/);
-  assert.match(host,/taskWorkbench.focusInstalledTask/);
   assert.match(host,/sidebarToolStorageKey\(tool.id\)/);
   assert.match(runner,/new Blob\(\[tool.js\]/);
   assert.match(runner,/event.source!==parent/);
   assert.match(buildContract,/'sidebar-tools\/bridge'/);
   assert.match(verify,/TOOL_SANDBOX_META_CSP/);
-  assert.match(taskHost,/focusInstalledTask\(taskId\)/);
 });
 
 
