@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal,flushSync} from 'react-dom';
 import {SidebarAppShell} from './app-shell.tsx';
+import {claimExtensionCenterNodes} from './extension-center-ownership.js';
 import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
 import '../../../projects/bookmark-manager/src/model.js';
@@ -60,6 +61,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
   if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
   const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
+  const pageSurface=doc.documentElement?.dataset?.opendeskEntry==='app'?'app':'sidebar';
   const root=createRoot(mount);
   // Only the offline signed preview document may add an extra portal to this same
   // trusted React root. Production pages and installed tools cannot enter this path.
@@ -106,7 +108,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS}</style>
-      <SidebarAppShell activeTab={navigationTab} pageSurface={doc.documentElement?.dataset?.opendeskEntry==='app'?'app':'sidebar'} localeController={localeController}
+      <SidebarAppShell activeTab={navigationTab} pageSurface={pageSurface} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} onStopAppDebug={onStopAppDebug}
@@ -142,18 +144,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         </>,bookmarkPilot.container)}
     </>));
   }
-  const owners={'extension-center':'extension-center','extension-center-list':'extension-list',
-    'extension-center-detail-body':'extension-detail','extension-center-cleanups':'extension-cleanups',
-    'extension-center-empty':'extension-empty','extension-center-count':'extension-count',
-    'extension-center-status':'extension-status'};
   try{
     paint();
-    for(const [id,owner]of Object.entries(owners)){
-      const node=doc.getElementById(id);if(!node)throw new Error('E_REACT_EXTENSION_MOUNT');
-      node.dataset.opendeskReactOwner=owner;ownedNodes.push([node,owner]);
-    }
-    const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
-    if(toolbar){toolbar.dataset.opendeskReactOwner='extension-toolbar';ownedNodes.push([toolbar,'extension-toolbar']);}
+    ownedNodes.push(...claimExtensionCenterNodes(doc,pageSurface));
   }catch(error){
     try{dispose();}catch{/* Preserve the initial mount failure after attempting all cleanup. */}
     throw error;
