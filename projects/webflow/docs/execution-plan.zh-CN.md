@@ -1,5 +1,7 @@
 ## Markdown 两任务 Demo 当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
 
+**最新安全接线修复：** main 源码提交 [`06e50a676f78e433b3619baa4b21518ec2a30089`](https://github.com/shopable-ai/opendesk-browser/commit/06e50a676f78e433b3619baa4b21518ec2a30089)，共 8 个本业务文件；针对已确认的 sandbox CSP `connect-src 'none'`，取消不可能工作的沙箱直接 `fetch`，改走原受控 `browser.network.request`，新增安装需审阅的 `network` capability；不修改通用 Host/Driver/CSP。真实 MD 文本、解析、80/160、81/162、错误权限/私有文件、SDK 接口/语法等在隔离 V8 共 12/12 条 **smoke 通过**（使用模拟网络回包，不是 Node runner/真实 Chrome）；实际 `node --test`、网络/安装/双会话仍 **NOT_TESTED**。此前提交 `0137685b` 是第一阶段预览，必须以此次修复后的源码为后续候选，不把旧直接 fetch 当成可用功能。
+
 **已推送 main 的源码提交：** [`0137685b4ccf3e593bd67235560b383fc3df37bb`](https://github.com/shopable-ai/opendesk-browser/commit/0137685b4ccf3e593bd67235560b383fc3df37bb)，基于当时最新 HEAD `78bf7e51f86296dfca179735ac1d9c0b200cf75c`，仅提交本执行卡列出的 9 个文件，已逐一从 GitHub main 读回。后来补做 JS 静态解析：新 Node 用例与现有 UI fixture 的源码在隔离 V8 中语法解析通过；**真实 `node --test` 仍 NOT_TESTED**，真实 Chrome 与正式打包器同源验证也仍 NOT_TESTED。当前提交并未启用真实跨聊天执行。
 
 **目标/下一条用户操作：** 在 WebFlow → 概览 → Markdown 两任务中输入仓库 MD 链接、点击“读取 / 刷新”，看到 T01/T02、来源和版本；最终由用户点击开始，产生两条不同的真实 ChatGPT 会话、独立验收和读回交接。目前只是源码阶段，**运行按钮仍禁用**，不得将预览或离线计算写成跨聊天已成功。
