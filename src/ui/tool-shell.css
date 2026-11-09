@@ -588,36 +588,36 @@
 .sidebar-tool-cookie-consent-overlay button:focus-visible,
 .sidebar-tool-cookie-grant-compact:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
-.sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
+.sidebar-tool-iframe{display:block;flex:1 1 auto;width:100%;min-width:0;min-height:0;height:100%;max-height:none;border:0;border-radius:0;background:var(--od-paper,#fff)}
 
-/* Verified full-height chain: admitted first-party React or catalog-verified official
- * sandbox workspace. Ordinary user tools/settings retain content-height flow. */
-#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])){
+/* One Host-owned height chain for every sandbox and admitted trusted React UI.
+ * Package identity/permissions never decide eligibility for normal layout. */
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-display:not([hidden]) > #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])){
   display:flex;
   flex-direction:column;
   overflow:hidden;
   padding-bottom:0;
 }
-#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])){
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-display:not([hidden]) > #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools,
-#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host,
-#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
+#workbench-tools:has(#sidebar-tool-display:not([hidden]) > #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])) > #sidebar-tools,
+#sidebar-tools:has(#sidebar-tool-display:not([hidden]) > #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])) > .sidebar-tool-host,
+#sidebar-tools:has(#sidebar-tool-display:not([hidden]) > #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-view-head{
+#sidebar-tool-display:not([hidden]):has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])) > :not(#sidebar-tool-frame){
   flex:none;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
+#sidebar-tool-display:not([hidden]):has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-ai-proxy-trusted="true"],[data-sandbox-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
   flex:0 1 auto;
   min-height:0;
   max-height:min(38%,280px);
@@ -625,13 +625,22 @@
   overscroll-behavior:contain;
 }
 
-/* The verified official iframe owns its scroll; the Host never adds a second
- * scrollbar or guesses fixed viewport offsets for workspace applications. */
+/* Exceptionally tall Host controls remain reachable in a short window. In
+ * normal layouts this fallback has no scroll range; only the iframe scrolls. */
+#sidebar-tool-display:not([hidden]):has(> #sidebar-tool-frame[data-sandbox-workspace="true"]:not([hidden])){
+  width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));
+  margin-inline:calc(0px - var(--od-page-gutter));
+  padding-inline:var(--od-page-gutter);
+  overflow:auto;overscroll-behavior:contain;
+}
+
+/* The iframe owns ordinary content scrolling. Workspace apps can keep their
+ * own body scroller; Host never guesses fixed viewport offsets. */
 #sidebar-tool-frame[data-ai-proxy-trusted="true"],
-#sidebar-tool-frame[data-official-workspace="true"]{
+#sidebar-tool-frame[data-sandbox-workspace="true"]{
   display:flex;flex:1 1 0;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
 }
-#sidebar-tool-frame[data-official-workspace="true"]>.sidebar-tool-iframe{
+#sidebar-tool-frame[data-sandbox-workspace="true"]>.sidebar-tool-iframe{
   flex:1 1 auto;height:auto;min-height:0;max-height:none;
 }
 
@@ -889,7 +898,6 @@
 #sidebar-tool-open-tab{background:#f5f8ff;color:#345dac;border-color:#dce5f6}
 [data-opendesk-surface=tool-page] #workspace-content{max-width:1200px;padding:20px clamp(12px,3vw,30px)}
 [data-opendesk-surface=tool-page] .sidebar-tool-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
-[data-opendesk-surface=tool-page] .sidebar-tool-iframe{height:calc(100vh - 160px);min-height:400px;max-height:none}
 @media(max-width:600px){[data-opendesk-surface=tool-page] #workspace-content{padding:12px}}
 
 /* R18: shared accessible icon actions. Hover uses title; focus exposes label. */

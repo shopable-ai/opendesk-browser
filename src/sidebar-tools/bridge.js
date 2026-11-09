@@ -122,23 +122,6 @@ export function initSidebarToolSandbox() {
   const acceptedLocale=value=>typeof value==='string'&&value.length<=45&&/^[A-Za-z0-9-]+$/.test(value)?
     (()=>{try{return Intl.getCanonicalLocales(value)[0]||'zh-CN';}catch{return 'zh-CN';}})():'zh-CN';
   const waiting=new Map();
-  let resizePending=false,lastHeight=0;
-  const sendSize=()=>{
-    if(!instance)return;
-    const bounds=root.getBoundingClientRect();
-    // Do not measure documentElement.scrollHeight: viewport height prevents shrinking.
-    const height=Math.max(80,Math.min(4000,Math.ceil(Math.max(bounds.bottom,bounds.top+root.scrollHeight)+8)));
-    if(height===lastHeight)return;
-    lastHeight=height;
-    parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'resize',instance,toolId,height},'*');
-  };
-  const scheduleSize=()=>{
-    if(!instance||resizePending)return;
-    resizePending=true;
-    requestAnimationFrame(()=>{resizePending=false;sendSize();});
-  };
-  if(typeof ResizeObserver==='function')new ResizeObserver(scheduleSize).observe(root);
-  window.addEventListener('resize',scheduleSize);
   const report=(state,message)=>{
     // Classic scripts can report a runtime error and still fire their load event.
     if(state==='error')startupFailed=true;
@@ -146,7 +129,6 @@ export function initSidebarToolSandbox() {
     status.textContent=message || '';
     status.dataset.state=state;
     status.hidden=state==='ready';
-    scheduleSize();
     parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'status',instance,toolId,state,message:String(message||'').slice(0,300)},'*');
   };
   // Sandboxed user tools must not open synchronous browser dialogs.
@@ -346,16 +328,13 @@ export function initSidebarToolSandbox() {
       // Host-owned dimensions only; untrusted tools receive a CSS constraint,
       // not an API for resizing or changing the trusted Side Panel.
       if(message.instance===instance&&message.toolId===toolId&&
-         Number.isInteger(message.availableHeight)&&
-         message.availableHeight>=80&&message.availableHeight<=1600){
+         Number.isSafeInteger(message.availableHeight)&&message.availableHeight>0&&
+         ['workspace','content'].includes(message.layoutMode)){
         const size=message.availableHeight+'px';
-        const previousMode=root.dataset.opendeskHeightMode;
         if(message.layoutMode==='workspace')root.dataset.opendeskHeightMode='workspace';
         else delete root.dataset.opendeskHeightMode;
-        if(previousMode!==root.dataset.opendeskHeightMode)scheduleSize();
         if(root.style.getPropertyValue('--opendesk-host-available-height')!==size){
           root.style.setProperty('--opendesk-host-available-height',size);
-          scheduleSize();
         }
       }
       return;
@@ -389,7 +368,6 @@ export function initSidebarToolSandbox() {
         uiMessages=messages;
         if(next!==uiLocale||catalogChanged){uiLocale=next;document.documentElement.lang=next;
           for(const callback of localeListeners)try{callback(next);}catch{/* Isolated tool UI callback. */}
-          scheduleSize();
         }
       }
       return;

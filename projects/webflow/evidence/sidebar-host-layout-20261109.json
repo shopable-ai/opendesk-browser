@@ -1,0 +1,627 @@
+{
+  "date": "2026-11-09",
+  "status": "SOURCE_BROWSER_PASS_PACKAGE_READY_INSTALL_NOT_TESTED",
+  "version": "0.3.20",
+  "package": {
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "bytes": 71179,
+    "sha256": "70e5ccb064c334593df73f4c4d779ba48123b8a49e6faaa8adb839b751a19c6e",
+    "check": "PROJECT_PACKAGE_MATCH",
+    "installed": false,
+    "version": "0.3.20"
+  },
+  "environment": {
+    "browser": "Chromium 156.0.8078.4",
+    "fixture": "tests/helpers/sidebar-tool-layout-server.mjs",
+    "test": "tests/environment/sidebar-tool-layout-browser.test.mjs",
+    "realSources": [
+      "React AppShell",
+      "ToolHost",
+      "sidebar-tools controller",
+      "manifest-equivalent opaque sandbox CSP",
+      "bridge",
+      "fixed shared React UI runtime",
+      "WebflowAutoControls"
+    ],
+    "mocks": [
+      "local fixture storage/catalog",
+      "Task metadata (read only)",
+      "auto-run state (off)"
+    ],
+    "realTaskStarts": 0,
+    "privilegedMutations": 0,
+    "ego": {
+      "taskSpace": 52,
+      "released": true,
+      "reasonForFallback": "Ego installed development extension injected non-configurable OpenDeskSDK into the HTTP sandbox, colliding with the actual bridge. Used existing clean Chromium test path; did not alter the installed extension."
+    },
+    "installedExtension": {
+      "id": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "path": "dist/development",
+      "serveConnected": "NOT_CONFIRMED",
+      "outputChanged": false,
+      "reloaded": false
+    }
+  },
+  "changes": [
+    "Host owns every sandbox canvas independent of tool ID/release metadata",
+    "Removed content ResizeObserver feedback and legacy resize authority",
+    "Sandbox percent-height chain and optional CSS workspace/scroll primitives",
+    "Web Flow mounts at 100% without host-size formulas",
+    "Visible display scoping preserves parked-instance list scroll",
+    "Full-width display avoids negative-margin clipping; generic flex iframe supports nested auto-height targets"
+  ],
+  "baseline": {
+    "source": "Four framework files snapshotted before edits; same current Web Flow application sources",
+    "artifact": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tool-layout/baseline-945cd02f-7645-41df-92b4-9c106e0f3c12",
+    "result": {
+      "viewport": 600,
+      "nodes": [
+        {
+          "selector": "#workspace-content",
+          "rect": {
+            "x": 0,
+            "y": 105,
+            "width": 400,
+            "height": 495,
+            "top": 105,
+            "right": 400,
+            "bottom": 600,
+            "left": 0
+          },
+          "ch": 495,
+          "sh": 1209,
+          "cw": 400,
+          "sw": 400
+        },
+        {
+          "selector": "#sidebar-tool-display",
+          "rect": {
+            "x": 11,
+            "y": 115,
+            "width": 378,
+            "height": 1189,
+            "top": 115,
+            "right": 389,
+            "bottom": 1304,
+            "left": 11
+          },
+          "ch": 1189,
+          "sh": 1189,
+          "cw": 378,
+          "sw": 389
+        },
+        {
+          "selector": "#sidebar-tool-frame",
+          "rect": {
+            "x": 0,
+            "y": 224,
+            "width": 400,
+            "height": 1080,
+            "top": 224,
+            "right": 400,
+            "bottom": 1304,
+            "left": 0
+          },
+          "ch": 1080,
+          "sh": 1080,
+          "cw": 400,
+          "sw": 400
+        },
+        {
+          "selector": "iframe",
+          "rect": {
+            "x": 0,
+            "y": 224,
+            "width": 400,
+            "height": 1080,
+            "top": 224,
+            "right": 400,
+            "bottom": 1304,
+            "left": 0
+          },
+          "ch": 1080,
+          "sh": 1080,
+          "cw": 400,
+          "sw": 400
+        }
+      ]
+    }
+  },
+  "fresh": {
+    "artifact": "artifacts/sidebar-tool-layout/freshsource-e8fb2bb5-555b-4faa-b326-24d4969edc0b",
+    "measurements": [
+      {
+        "label": "Web Flow overview with trusted controls",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "trusted runtime panel open",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "Web Flow help",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "help bottom",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "expanded outer controls",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 324,
+          "width": 400,
+          "height": 276,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "narrow short help",
+        "viewport": [
+          320,
+          300
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 222,
+          "width": 320,
+          "height": 78,
+          "bottom": 300
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "Web Flow 脚本",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "Web Flow 记录",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "Web Flow 概览",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "Web Flow preferences",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 224,
+          "width": 400,
+          "height": 376,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "standalone page surface",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 1,
+          "y": 226,
+          "width": 398,
+          "height": 374,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "unchanged HTML",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 163,
+          "width": 400,
+          "height": 437,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "unchanged vue",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 163,
+          "width": 400,
+          "height": 437,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "vue natural document scroll",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 163,
+          "width": 400,
+          "height": 437,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "unchanged react",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 163,
+          "width": 400,
+          "height": 437,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      },
+      {
+        "label": "react natural document scroll",
+        "viewport": [
+          400,
+          600
+        ],
+        "opaque": true,
+        "iframe": {
+          "x": 0,
+          "y": 163,
+          "width": 400,
+          "height": 437,
+          "bottom": 600
+        },
+        "outerOverflow": [
+          {
+            "selector": "#workspace-content",
+            "vertical": 0,
+            "horizontal": 0
+          },
+          {
+            "selector": "#sidebar-tool-display",
+            "vertical": 0,
+            "horizontal": 0
+          }
+        ]
+      }
+    ],
+    "sourceHashes": {
+      "src/ui/sidebar-tools.js": {
+        "source": "src/ui/sidebar-tools.js",
+        "bytes": 355539,
+        "sha256": "3618fd3ac4840f230314dd7cdbe08ee07b292439c0b5366d89fd1ea43b26567f"
+      },
+      "src/ui/tool-shell.css": {
+        "source": "src/ui/tool-shell.css",
+        "bytes": 138407,
+        "sha256": "e6aeb8b7f851ff2abf1cf23817c6e6a030e9e7a26f9f194010b90a9325aa1ec0"
+      },
+      "src/sidebar-tools/bridge.js": {
+        "source": "src/sidebar-tools/bridge.js",
+        "bytes": 35275,
+        "sha256": "a04e41ebb741881b9343fd7d6608b49a8ccab28fa96357e15a9b909eff922186"
+      },
+      "src/sidebar-tools/sandbox.html": {
+        "source": "src/sidebar-tools/sandbox.html",
+        "bytes": 1147,
+        "sha256": "253db34294ad30e66532422f359d42ac63a1cd789b4d85734470dd8e1902b1ed"
+      },
+      "projects/webflow/src/ui/style.css": {
+        "source": "projects/webflow/src/ui/style.css",
+        "bytes": 12521,
+        "sha256": "0bb7734fe3373c25b88bbf71e5f6e86a80d2c7f7b3f5fd3f7616e7042fe6f3d2"
+      }
+    },
+    "nestedTarget": {
+      "target": 300,
+      "iframe": 300
+    },
+    "additionalBehaviors": [
+      "wheel scroll and bottom reachability",
+      "stable frame height and deduplicated hints",
+      "expanded outer controls shrink actual iframe by matching amount",
+      "standalone tool-page surface",
+      "busy HTML instance survives Back; long list is keyboard-scrollable",
+      "unchanged HTML reads currentPage.info",
+      "unchanged Vue/React save through real bridge and preserve data after reopen",
+      "legacy textarea resize scrolls iframe document without resizing Host",
+      "React original chart and raw-data disclosure work"
+    ]
+  },
+  "validation": {
+    "hostLayout": "9/9 PASS; positive 36/2400px, zoom, load/ready resend, stale identity/source, hidden/zero allocation and real bridge",
+    "applicationAndRecovery": "51/51 PASS",
+    "package": "8/8 PASS",
+    "syntax": "PASS",
+    "diffCheck": "PASS",
+    "existingFailures": "Complete Host file observed 274 PASS / 16 FAIL. Targeted pre-change loader reproduced revoked draft navigation, missing Reading TOC package and Bookmark confirmation failures. Old R10 Dock source-string assertion also fails in unrelated migrated CSS.",
+    "localCustomizedPackage": "1/1 PASS",
+    "iframeCSSContract": "1/1 PASS"
+  },
+  "notTested": [
+    "current installed extension reload and 0.3.20 installation",
+    "real Task/Native/ChatGPT execution",
+    "production build or acceptance",
+    "full CI and independent score",
+    "real Knowledge workspace integration (generic nested target CSS tested)"
+  ]
+}

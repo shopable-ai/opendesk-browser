@@ -935,6 +935,32 @@ test('actual sandbox state object clears host dirty state only after busy work e
   assert.equal(sent.at(-1).kind,'edit-state');assert.equal(sent.at(-1).dirty,false);assert.equal(sent.at(-1).busy,false);
 });
 
+test('actual sandbox accepts only current parent layout without reporting intrinsic resize',async t=>{
+  const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),sent=[];
+  const values=new Map();root.style={getPropertyValue:key=>values.get(key),setProperty:(key,value)=>values.set(key,value)};
+  const parent={postMessage:data=>sent.push(data)};
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
+    window:sandboxWindow,parent,CustomEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:layout-contract',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:callback=>callback()
+  });
+  sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  const layout={protocol:f.loaded.protocol,kind:'layout',instance:f.loaded.instance,
+    toolId:sample.id,availableHeight:36,layoutMode:'workspace'};
+  const send=(change={},source=parent)=>sandboxWindow.emit('message',{source,data:{...layout,...change}});
+  send({},{});send({instance:'old'});send({toolId:'other'});send({availableHeight:0});
+  send({availableHeight:NaN});send({availableHeight:Infinity});send({layoutMode:'invalid'});
+  assert.equal(values.size,0,'foreign or invalid layout cannot affect the root');
+  send();assert.equal(values.get('--opendesk-host-available-height'),'36px');
+  assert.equal(root.dataset.opendeskHeightMode,'workspace');
+  send({availableHeight:2400});assert.equal(values.get('--opendesk-host-available-height'),'2400px');
+  sandboxWindow.emit('resize');
+  assert.equal(sent.filter(row=>row.kind==='resize').length,0,'viewport/root dimensions never feed back to the Host');
+});
+
 test('Host Back preserves a busy sandbox while returning to the list and other tabs',async t=>{
   const other={...sample,id:'other-app'};
   const store=new Map([[SIDEBAR_TOOL_STORE,[sample,other]]]);
@@ -2581,42 +2607,25 @@ test('stopped tool detail opens a fixed full-page route without running sidebar 
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
-test('R1.2 verified official Markdown workspace ignores content-resize hints and cleans up layout',async t=>{
-  const official=await officialToolFixture('markdown-workbench');
-  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
-  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,'true',
-    'only exact official released bytes may opt in to the shared workspace height');
+test('every installed sandbox gets a workspace independently of ID or release metadata',async t=>{
+  const f=await hostFixture(t);
+  assert.equal(f.runtime.frameRoot.dataset.sandboxWorkspace,'true');
+  assert.equal(f.loaded.tool.id,sample.id);
   assert.equal(f.frame.style.height,'');
-  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
-    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
-    toolId:official.id,height:1400
-  }});
-  assert.equal(f.frame.style.height,'','an intrinsic content resize cannot override verified flex sizing');
   f.host.closeTool();
-  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
-    'closing a tool revokes the layout mode along with its frame session');
+  assert.equal(f.runtime.frameRoot.dataset.sandboxWorkspace,undefined);
 });
 
-test('installed local Markdown package keeps its source UI in the shared workspace',async t=>{
+test('local customized packages retain their bytes and the same workspace layout',async t=>{
   const official=await officialToolFixture('markdown-workbench');
   const altered={...official,css:official.css+'\n.mdw{outline:0}'};
   const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
-  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,'true');
-  assert.equal(f.loaded.tool.css,altered.css,'the custom package remains the sandbox source');
-  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
-    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
-    toolId:altered.id,height:240
-  }});
-  assert.equal(f.frame.style.height,'','layout is independent of current release metadata');
+  assert.equal(f.runtime.frameRoot.dataset.sandboxWorkspace,'true');
+  assert.equal(f.loaded.tool.css,altered.css);
 });
 
 for(const phase of ['load','authenticated ready'])test('Host initial layout delivery resends cached hint on '+phase,async t=>{
-  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
-  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
-  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:900});
   const f=await hostFixture(t,{startTool:false});
-  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
-  workspace.getBoundingClientRect=()=>({bottom:2400});f.doc.body.append(workspace);
   const createElement=f.doc.createElement.bind(f.doc);
   f.doc.createElement=tag=>{
     const node=createElement(tag);
@@ -2626,16 +2635,13 @@ for(const phase of ['load','authenticated ready'])test('Host initial layout deli
   f.host.openTool(sample.id);
   const frame=f.runtime.frameRoot.firstElementChild;
   const layouts=()=>frame.contentWindow.sent.filter(message=>message.kind==='layout');
-  assert.equal(layouts().length,1,'mount measures and caches a hint before sandbox load');
-  const initial=layouts()[0];assert.equal(initial.availableHeight,688);
+  assert.equal(layouts().length,1);
+  const initial=layouts()[0];assert.equal(initial.availableHeight,800);
   await frame.onload();
   const loaded=frame.contentWindow.sent.find(message=>message.kind==='load');
-  assert.ok(loaded);
   if(phase==='load'){
-    assert.deepEqual(frame.contentWindow.sent.map(message=>message.kind),['layout','load','layout'],
-      'load must be followed by a new hint even when geometry has not changed');
-    assert.deepEqual(layouts().at(-1),initial);
-    return;
+    assert.deepEqual(frame.contentWindow.sent.map(message=>message.kind),['layout','load','layout']);
+    assert.deepEqual(layouts().at(-1),initial);return;
   }
   const ready={protocol:loaded.protocol,kind:'status',state:'ready',instance:loaded.instance,toolId:sample.id};
   const before=layouts().length;
@@ -2645,94 +2651,47 @@ for(const phase of ['load','authenticated ready'])test('Host initial layout deli
     ...[{instance:'retired-instance'},{toolId:'another-tool'},{protocol:'invalid-protocol'},{state:'error'}]
       .map(change=>({source:frame.contentWindow,origin:'null',data:{...ready,...change}}))
   ])f.win.emit('message',event);
-  assert.equal(layouts().length,before,'forged peers and non-ready status cannot force a hint');
+  assert.equal(layouts().length,before);
   f.win.emit('message',{source:frame.contentWindow,origin:'null',data:ready});
-  assert.equal(layouts().length,before+1,'authenticated readiness resends the cached hint');
+  assert.equal(layouts().length,before+1);
   assert.deepEqual(layouts().at(-1),initial);
-  f.win.emit('message',{source:frame.contentWindow,origin:'null',data:{...ready,kind:'resize',height:800}});
-  assert.equal(layouts().length,before+1,'ordinary resize still deduplicates unchanged geometry');
+  f.win.emit('message',{source:frame.contentWindow,origin:'null',data:{...ready,kind:'resize',height:4000}});
+  assert.equal(layouts().length,before+1,'intrinsic content never changes allocated geometry');
 });
 
-for(const {label,viewport,bottom,zoom=1,expected} of [
-  {label:'visible viewport',viewport:900,bottom:2400,expected:688},
-  {label:'Host CSS zoom',viewport:900,bottom:2400,zoom:1.25,expected:548},
-  {label:'short workspace',viewport:900,bottom:760,expected:548},
-  {label:'missing workspace bounds',viewport:900,bottom:undefined,expected:688},
-  {label:'missing viewport fallback',viewport:undefined,bottom:760,expected:548},
-  {label:'invalid viewport fallback',viewport:NaN,bottom:760,expected:548},
-  {label:'zero viewport fallback',viewport:0,bottom:760,expected:548}
-])test('Host available height content hint uses '+label,async t=>{
-  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
-  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
-  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:viewport});
+for(const {height,zoom=1,expected} of [
+  {height:688,expected:688},{height:1000,zoom:1.25,expected:800},
+  {height:36,expected:36},{height:2400,expected:2400}
+])test('Host reports actual iframe CSS height '+height+' at zoom '+zoom,async t=>{
   const f=await hostFixture(t);
-  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
-  let workspaceBottom=bottom;
-  workspace.getBoundingClientRect=()=>({bottom:workspaceBottom});
-  f.doc.body.append(workspace);
-  f.frame.getBoundingClientRect=()=>({top:200,height:1600*zoom});
+  f.frame.getBoundingClientRect=()=>({top:200,height});
   Object.defineProperty(f.frame,'currentCSSZoom',{value:zoom});
-  const resize=height=>f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
-    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,toolId:sample.id,height
-  }});
-  resize(800);
+  const send=(source,origin,instance=f.loaded.instance,kind='status',more={state:'ready'})=>
+    f.win.emit('message',{source,origin,data:{protocol:f.loaded.protocol,kind,instance,toolId:sample.id,...more}});
   const layouts=()=>f.frame.contentWindow.sent.filter(message=>message.kind==='layout');
-  assert.equal(layouts().at(-1)?.layoutMode,'content');
-  assert.equal(layouts().at(-1)?.availableHeight,expected,
-    'the hint uses visible space below the iframe top in tool CSS coordinates');
-  assert.equal(f.frame.style.height,'800px','the hint does not grant full-height layout');
-  if(Number.isFinite(viewport)&&viewport>0&&bottom>viewport){
-    const count=layouts().length;
-    workspaceBottom+=800;resize(1600);
-    assert.equal(layouts().at(-1).availableHeight,expected,'intrinsic growth cannot inflate the hint');
-    assert.equal(layouts().length,count,'unchanged available height stays deduplicated');
-  }
+  const count=layouts().length;
+  send({},'null');send(f.frame.contentWindow,'https://evil.example');send(f.frame.contentWindow,'null','retired');
+  assert.equal(layouts().length,count);
+  send(f.frame.contentWindow,'null');
+  assert.equal(layouts().at(-1)?.layoutMode,'workspace');
+  assert.equal(layouts().at(-1)?.availableHeight,expected,'no viewport offsets, floor or presentation ceiling');
+  for(const value of [240,2500,90000,NaN])
+    send(f.frame.contentWindow,'null',f.loaded.instance,'resize',{height:value});
+  assert.equal(f.frame.style.height,'','sandbox cannot resize the trusted host');
+  assert.equal(layouts().length,count+1);
 });
 
-test('Host available height workspace hint preserves measured frame height under CSS zoom',async t=>{
-  const previous=Object.getOwnPropertyDescriptor(globalThis,'innerHeight');
-  t.after(()=>{if(previous)Object.defineProperty(globalThis,'innerHeight',previous);else delete globalThis.innerHeight;});
-  Object.defineProperty(globalThis,'innerHeight',{configurable:true,value:900});
-  const official=await officialToolFixture('markdown-workbench');
-  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
-  const workspace=f.doc.createElement('div');workspace.id='workspace-content';
-  workspace.getBoundingClientRect=()=>({bottom:2400});f.doc.body.append(workspace);
-  f.frame.getBoundingClientRect=()=>({top:200,height:1000});
-  Object.defineProperty(f.frame,'currentCSSZoom',{value:1.25});
-  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
-    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,toolId:official.id,height:1400
-  }});
-  const layout=f.frame.contentWindow.sent.findLast(message=>message.kind==='layout');
-  assert.equal(layout?.layoutMode,'workspace');
-  assert.equal(layout?.availableHeight,800,'verified workspace uses real frame height in tool CSS coordinates');
-  assert.equal(f.frame.style.height,'','content resize does not override verified flex sizing');
-});
-
-test('R18 resize and status messages accept only the live opaque frame and bounded sizes',async t=>{
+test('hidden and zero-sized frames cannot replace the last valid layout',async t=>{
   const f=await hostFixture(t);
-  const loaded=f.frame.contentWindow.sent[0];
-  const send=(source,origin,kind,more={},instance=loaded.instance)=>{
-    globalThis.window.emit('message',{source,origin,data:{
-      protocol:loaded.protocol,kind,instance,toolId:sample.id,...more}});
-  };
-  send({},'null','resize',{height:260});
-  send(f.frame.contentWindow,'https://evil.example','resize',{height:260});
-  send(f.frame.contentWindow,'null','resize',{height:260},'forged');
-  send(f.frame.contentWindow,'null','resize',{height:NaN});
-  send(f.frame.contentWindow,'null','resize',{height:90000});
-  assert.equal(f.frame.style.height,'','forged or unbounded size never applies');
-  send(f.frame.contentWindow,'null','resize',{height:240});
-  assert.equal(f.frame.style.height,'240px');
-  send(f.frame.contentWindow,'null','resize',{height:2500});
-  assert.equal(f.frame.style.height,'1600px','size hints may not exceed the safety cap');
-  send(f.frame.contentWindow,'null','status',{state:'ready',message:'工具已就绪'});
-  assert.equal(f.elements['sidebar-tool-status'].hidden,true,'no duplicate ready banner');
-  send(f.frame.contentWindow,'null','status',{state:'error',message:'测试异常'});
-  assert.equal(f.elements['sidebar-tool-status'].hidden,false,'error stays visible');
-  assert.match(f.elements['sidebar-tool-status'].textContent,/测试异常/);
-  f.host.closeTool();
-  send(f.frame.contentWindow,'null','resize',{height:600});
-  assert.equal(f.frame.style.height,'1600px','retired frame has no authority');
+  let height=500;f.frame.getBoundingClientRect=()=>({height});
+  const ready=()=>f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'status',state:'ready',instance:f.loaded.instance,toolId:sample.id}});
+  ready();const layouts=()=>f.frame.contentWindow.sent.filter(message=>message.kind==='layout');
+  const count=layouts().length;
+  height=0;ready();height=NaN;ready();height=600;f.runtime.frameRoot.hidden=true;ready();
+  assert.equal(layouts().length,count);
+  f.runtime.frameRoot.hidden=false;ready();assert.equal(layouts().at(-1).availableHeight,600);
+  f.host.closeTool();height=900;ready();assert.equal(layouts().at(-1).availableHeight,600);
 });
 
 test('uninstalled read-only preview cannot write, run Task or invoke page operations',async t=>{

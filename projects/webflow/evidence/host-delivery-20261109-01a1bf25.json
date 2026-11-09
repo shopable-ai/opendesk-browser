@@ -1,0 +1,621 @@
+{
+  "date": "2026-11-09",
+  "owner": "01a1bf25-da8f-70a0-8b9f-f19b58a656e7",
+  "status": "CORE_NATIVE_HEIGHT_PASS",
+  "phase": "Core development delivery; not production acceptance",
+  "authorization": {
+    "packageVersion": "Explicitly transferred earlier; delivered in aaca631703976c973d5dbb16c445c7bfe65e798c",
+    "hostHeight": "User replied 你可以继续推进 to explicit Host height commit/native verification transfer and one writer coordination request",
+    "writerCoordination": "One authorized message sent to 01a1bf2d-5cdc-78c0-8574-592f30819182; owner identified sole npm run dev writer PID 85127 / parent 85107 and existing dist/development; no overlapping height hunks reported"
+  },
+  "ownershipGate": {
+    "type": "General Sidebar Tool Host layout; Web Flow remains independent sandbox application",
+    "publicBoundary": "Existing read-only Host layout hint and optional sandbox workspace/scroll CSS; no new privileged SDK API",
+    "reproduction": "Installed Web Flow outer canvas exceeded native viewport and content could not reach its end; historical source baseline iframe bottom 1304 at viewport 600",
+    "whyToolCannotFix": "Sandbox business code cannot bound or resize the trusted Host ancestors safely",
+    "crossToolValue": "One Host canvas policy for all installed sandbox IDs; unchanged HTML/Vue/React consumers verified",
+    "minimumSources": [
+      "src/sidebar-tools/bridge.js",
+      "src/sidebar-tools/sandbox.html",
+      "src/ui/sidebar-tools.js",
+      "src/ui/tool-shell.css"
+    ],
+    "safety": "Parent/source/session/tool identity checks and opaque sandbox CSP retained; content resize has no Host sizing authority; permissions, installation and task execution unchanged"
+  },
+  "package": {
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "bytes": 71761,
+    "sha256": "87ab1892ead64582418c7da1ddf5f2da0d3d312f8e06f114dbb877512e4c43ac",
+    "version": "0.3.21",
+    "previousDelivery": "projects/webflow/evidence/core-delivery-20261109-01a1bf25.json",
+    "sameIdUpgrade": "Prior ego 0.3.19 -> 0.3.21; Google favorite retained; auto-run OFF. This Chromium layout run is a fresh independent install, not another upgrade."
+  },
+  "stagedSourceIdentity": {
+    "src/sidebar-tools/bridge.js": {
+      "stagedSha256": "a04e41ebb741881b9343fd7d6608b49a8ccab28fa96357e15a9b909eff922186",
+      "worktreeSha256": "a04e41ebb741881b9343fd7d6608b49a8ccab28fa96357e15a9b909eff922186",
+      "fixtureInputMatch": true
+    },
+    "src/sidebar-tools/sandbox.html": {
+      "stagedSha256": "253db34294ad30e66532422f359d42ac63a1cd789b4d85734470dd8e1902b1ed",
+      "worktreeSha256": "253db34294ad30e66532422f359d42ac63a1cd789b4d85734470dd8e1902b1ed",
+      "fixtureInputMatch": true
+    },
+    "src/ui/sidebar-tools.js": {
+      "stagedSha256": "3618fd3ac4840f230314dd7cdbe08ee07b292439c0b5366d89fd1ea43b26567f",
+      "worktreeSha256": "c1e47d339db33942ee43b910cd64053071ff6a80a6e84b8b70cee7be1f343734",
+      "fixtureInputMatch": true
+    },
+    "src/ui/tool-shell.css": {
+      "stagedSha256": "f67302d27b99cd60e2b5d664d3e8eefa0bf1b1dfcfa2eeda449ff3328aa465bc",
+      "worktreeSha256": "e6aeb8b7f851ff2abf1cf23817c6e6a030e9e7a26f9f194010b90a9325aa1ec0",
+      "fixtureInputMatch": true
+    }
+  },
+  "stagedFixture": {
+    "status": "PASS",
+    "artifact": "artifacts/sidebar-tool-layout/freshsource-7aa25140-30dc-42ad-abe1-984c23fcb6d8",
+    "browser": "156.0.8078.4",
+    "measurementCount": 16,
+    "errors": [],
+    "inputs": {
+      "src/sidebar-tools/bridge.js": {
+        "source": "src/sidebar-tools/bridge.js",
+        "bytes": 35275,
+        "sha256": "a04e41ebb741881b9343fd7d6608b49a8ccab28fa96357e15a9b909eff922186"
+      },
+      "src/sidebar-tools/sandbox.html": {
+        "source": "src/sidebar-tools/sandbox.html",
+        "bytes": 1147,
+        "sha256": "253db34294ad30e66532422f359d42ac63a1cd789b4d85734470dd8e1902b1ed"
+      },
+      "src/ui/sidebar-tools.js": {
+        "source": "src/ui/sidebar-tools.js",
+        "bytes": 355539,
+        "sha256": "3618fd3ac4840f230314dd7cdbe08ee07b292439c0b5366d89fd1ea43b26567f"
+      },
+      "src/ui/tool-shell.css": {
+        "source": "src/ui/tool-shell.css",
+        "bytes": 138195,
+        "sha256": "f67302d27b99cd60e2b5d664d3e8eefa0bf1b1dfcfa2eeda449ff3328aa465bc"
+      },
+      "src/ui/react/tabs/tool-host.tsx": {
+        "source": "src/ui/react/tabs/tool-host.tsx",
+        "bytes": 61708,
+        "sha256": "b1cf4b22f13fff97eb8530f63ee4ac6ec304760119511482d4626cfca2980279"
+      },
+      "projects/webflow/src/ui/main.js": {
+        "source": "projects/webflow/src/ui/main.js",
+        "bytes": 49844,
+        "sha256": "411f25e2601cae5703210ddeb674dde6dec427e86a537aff6c14b64db234c49a"
+      },
+      "projects/webflow/src/ui/style.css": {
+        "source": "projects/webflow/src/ui/style.css",
+        "bytes": 12521,
+        "sha256": "0bb7734fe3373c25b88bbf71e5f6e86a80d2c7f7b3f5fd3f7616e7042fe6f3d2"
+      }
+    },
+    "headerSource": "HEAD old More menu, not parallel worktree direct icons",
+    "headHeaderSha256": "b1cf4b22f13fff97eb8530f63ee4ac6ec304760119511482d4626cfca2980279",
+    "inputSelection": "Temporary read-only fs input adapter /tmp/webflow-height-staged-inputs.mjs selected git index blobs for four framework files and HEAD ToolHost; no worktree, dist or branch mutation",
+    "log": "/tmp/webflow-staged-height-browser.log",
+    "testSha256": "605fb4dae07157f17a87ab4f845064fcfc6d656ac72eb740fb84ccf247014276",
+    "helperSha256": "f99c8cadc10cfe29697cf076e5c43ac13cebbdd3fdc91127279ad69cbd0e2c88",
+    "behaviors": [
+      "400x600 and 320x300 real React/Host/opaque sandbox fixture",
+      "Help wheel to bottom; stable height and deduplicated hints",
+      "Expanded controls reduce canvas by 100px; nested flex target 300px",
+      "Five app views, standalone surface, busy instance preserved and list reachable",
+      "Unchanged HTML reads currentPage.info; Vue/React save and reopen through real bridge; natural iframe document scroll and original chart"
+    ],
+    "mocks": [
+      "Catalog and storage",
+      "Read-only Task metadata",
+      "Auto-run OFF"
+    ],
+    "realTaskStarts": 0,
+    "currentWorktreeFixture": "artifacts/sidebar-tool-layout/freshsource-466e0e63-f82b-4679-902f-a60eb189e1bb: independently PASS, 16 measurements, errors=[]"
+  },
+  "ego": {
+    "taskSpace": 59,
+    "finished": true,
+    "keptPages": 0,
+    "multiWindowOverview": "Owned page API and native AX navigation usable while main window shows several Spaces; native keyboard/focus still shared, so select owned Space before native input",
+    "observedNativeViewport": [
+      360,
+      663
+    ],
+    "observedIframe": {
+      "y": 160,
+      "height": 503,
+      "bottom": 663
+    },
+    "observedDevelopmentRevision": "e4f3bac9501ab24c6284c4658facc32d304c3ac4c5b87436cc514a1dacf5098a",
+    "limitations": "Native wheel/keys did not change business scrollTop; setWindowBounds returned success but actual bounds unchanged. Ego short/scroll verification is not claimed PASS. Switched only this native Side Panel test to existing isolated Chromium path.",
+    "cleanup": "Own temporary read-only probe relay/listeners and CDP sessions closed, overview restored, auto-run OFF; Space finished with keep=[]"
+  },
+  "nativeChromium": {
+    "environment": "headful Chromium; existing live development output; independent temporary Profile",
+    "browser": "Chrome/156.0.8078.4",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "isolation": "Fresh temporary test Profile, no personal login/cookies, existing dist loaded directly; no build, copy, writer restart or Native pairing",
+    "installation": "Original file import and visible install review confirmed v0.3.21 and exact package SHA; fixed Task pins and permissions reviewed. No Task installed or run.",
+    "normal": {
+      "status": "NORMAL_OBSERVATIONS_PASS_LATER_DRIVER_RESIZE_FAILED",
+      "raw": {
+        "path": "artifacts/webflow-host-01a1bf25/native-normal-observed.json",
+        "bytes": 12185,
+        "sha256": "c99ce1e2c3ccff01589a364e77e9518ac3210efddd75f71880c50deb1236c3ff"
+      },
+      "windowBounds": {
+        "left": 22,
+        "top": 55,
+        "width": 1100,
+        "height": 800,
+        "windowState": "normal"
+      },
+      "identity": {
+        "hostInstanceId": "dee62282-f9ab-4bd2-ab44-82092db8fd1a",
+        "realPanel": true,
+        "currentTabId": null,
+        "context": {
+          "contextId": "3df6bed8-34be-4b5b-8045-26548cebaee2",
+          "contextType": "SIDE_PANEL",
+          "documentId": "03C95442BD355C9AC7AAD38D5AFFE1E6",
+          "documentOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf",
+          "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=dee62282-f9ab-4bd2-ab44-82092db8fd1a",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      },
+      "measurements": [
+        {
+          "label": "normal overview",
+          "viewport": {
+            "width": 360,
+            "height": 665
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 505,
+            "bottom": 665,
+            "ch": 505,
+            "sh": 505,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 505,
+            "body": {
+              "top": 0,
+              "ch": 461,
+              "sh": 461
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "normal help bottom",
+          "viewport": {
+            "width": 360,
+            "height": 665
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 505,
+            "bottom": 665,
+            "ch": 505,
+            "sh": 505,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 505,
+            "body": {
+              "top": 650.5,
+              "ch": 461,
+              "sh": 1112
+            },
+            "documentTop": 0
+          }
+        }
+      ],
+      "loadedRevision": "NOT_RECORDED; do not infer from short run",
+      "excludedFailure": [
+        "Error: actual short native window: timed out\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow-host-01a1bf25/native-height.mjs:17:175)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow-host-01a1bf25/native-height.mjs:74:3"
+      ],
+      "classification": "Normal overview and actual Help wheel bottom succeeded; later resizing this browser did not change native viewport. Raw run overall FAIL is retained. Separate short launch below supplies the missing size evidence."
+    },
+    "short": {
+      "status": "PASS",
+      "raw": {
+        "path": "artifacts/webflow-host-01a1bf25/native-result.json",
+        "bytes": 13440,
+        "sha256": "cc158b36da2a04819e6a60cc11c2a0b448c92cb03e236f3f2ef24cc1b28be207"
+      },
+      "windowBounds": {
+        "left": 22,
+        "top": 55,
+        "width": 1100,
+        "height": 500,
+        "windowState": "normal"
+      },
+      "identity": {
+        "hostInstanceId": "2e2b92e7-d2ce-469b-b92d-b39aa1b4e924",
+        "realPanel": true,
+        "currentTabId": null,
+        "context": {
+          "contextId": "6aac7104-f74e-4180-aeae-7f5142aeb96d",
+          "contextType": "SIDE_PANEL",
+          "documentId": "5F60B6B86E94E1AF869D409872ED7B82",
+          "documentOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf",
+          "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=2e2b92e7-d2ce-469b-b92d-b39aa1b4e924",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      },
+      "loadedDevelopment": {
+        "text": "开发服务已连接 · 构建指纹 e5d1061c1be6；保存源码后自动安全更新。",
+        "title": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：e5d1061c1be6b8d6c96f6bee0e83274d32309868722c04a4d4370d683384b07b。这不证明已打开的网页重新注入了 SDK。"
+      },
+      "finalDevelopment": {
+        "text": "开发服务已连接 · 构建指纹 e5d1061c1be6；保存源码后自动安全更新。",
+        "title": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：e5d1061c1be6b8d6c96f6bee0e83274d32309868722c04a4d4370d683384b07b。这不证明已打开的网页重新注入了 SDK。"
+      },
+      "measurements": [
+        {
+          "label": "short overview",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 0,
+              "ch": 161,
+              "sh": 199
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short initial help bottom",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 950.5,
+              "ch": 161,
+              "sh": 1112
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short help",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 950.5,
+              "ch": 161,
+              "sh": 1112
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short help bottom",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 950.5,
+              "ch": 161,
+              "sh": 1112
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short scripts",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 134.5,
+              "ch": 161,
+              "sh": 296
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short preferences",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 342.5,
+              "ch": 161,
+              "sh": 503
+            },
+            "documentTop": 0
+          }
+        },
+        {
+          "label": "short sheet closed",
+          "viewport": {
+            "width": 360,
+            "height": 365
+          },
+          "iframe": {
+            "s": "#sidebar-tool-frame iframe",
+            "y": 160,
+            "height": 205,
+            "bottom": 365,
+            "ch": 205,
+            "sh": 205,
+            "cw": 360,
+            "sw": 360
+          },
+          "outerOverflow": [
+            {
+              "selector": "#workspace-content",
+              "vertical": 0,
+              "horizontal": 0
+            },
+            {
+              "selector": "#sidebar-tool-display",
+              "vertical": 0,
+              "horizontal": 0
+            }
+          ],
+          "app": {
+            "height": 205,
+            "body": {
+              "top": 134.5,
+              "ch": 161,
+              "sh": 296
+            },
+            "documentTop": 0
+          }
+        }
+      ],
+      "errors": [],
+      "runtimeSheet": "Opened through native trusted control, screenshot inspected, closed through its actual Close control; layout retained",
+      "autoRun": "OFF before and after; never activated"
+    },
+    "screenshots": [
+      {
+        "path": "artifacts/webflow-host-01a1bf25/normal-help-bottom.png",
+        "bytes": 205819,
+        "sha256": "d68b1f5b5fe42ca5d3a4bafe8229e134daedd430db15d484f49802f767b62919"
+      },
+      {
+        "path": "artifacts/webflow-host-01a1bf25/short-help-bottom.png",
+        "bytes": 56703,
+        "sha256": "5f0372fd78d506a807f282a8884402c03ccff568a8ca61d25db34ea4f62203b1"
+      },
+      {
+        "path": "artifacts/webflow-host-01a1bf25/short-runtime-sheet.png",
+        "bytes": 71983,
+        "sha256": "355797f07659b6fd52eb45b6d59a7224690f0545884487b7152074518e45880d"
+      }
+    ],
+    "cleanup": "Driver CDP closed and its Chromium process terminated in finally; temporary Profiles retained as local scratch, no owned test browser left running"
+  },
+  "validation": {
+    "hostLayout": "10/10 PASS: actual bridge parent/source/instance validation, all installs including local customized packages, load/ready, zoom/36/2400px, hidden/zero/closed canvas, legacy resize ignored",
+    "hostLog": "/tmp/webflow-height-node.log",
+    "r10IframeCss": "1/1 PASS targeted sandbox iframe fills its canvas",
+    "syntax": "PASS bridge.js, sidebar-tools.js and layout browser test",
+    "diffCheck": "PASS staged scope",
+    "applicationRecovery": "55/55 previous same-input PASS reused; no app source changes in Host phase",
+    "package": "8/8 and original promote/check-project already completed in package phase; only hash rechecked here",
+    "review": "Native readonly reviewer found no blocking height issue; test navigation fixed to support both HEAD More menu and parallel direct icons; staged-only browser fixture then passed",
+    "historical": "projects/webflow/evidence/sidebar-host-layout-20261109.json preserves original 0.3.20 development evidence and its then-NOT_TESTED status"
+  },
+  "sideEffects": {
+    "taskInstallations": 0,
+    "taskAuthorizations": 0,
+    "taskStarts": 0,
+    "chatMessagesSent": 0,
+    "autoRunActivations": 0,
+    "unknownEffectsReplayed": 0,
+    "sharedDistWritesByThisOwner": 0,
+    "sharedWriterRestartsByThisOwner": 0
+  },
+  "NOT_TESTED": [
+    "Production/static release acceptance",
+    "Native messaging and pairing",
+    "IME, keyboard focus and Escape matrix",
+    "Real nonempty history, Task execution and actual Knowledge workspace integration",
+    "Full CI, independent score, cross-version/zoom matrices"
+  ],
+  "preservedParallelChanges": [
+    "ToolHost direct header icons and inline-actions CSS",
+    "Page installation pending/readback hunk",
+    "Web Flow preview/auto-trigger fixture",
+    "Other projects and unrelated documentation"
+  ]
+}

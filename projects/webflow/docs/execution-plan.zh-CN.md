@@ -1,3 +1,17 @@
+## 高度宿主核心交付（2026-11-09；01a1bf25）
+
+用户随后回复“你可以继续推进”，明确承接前一问题中的宿主高度修复提交、真实正常／矮侧栏复验及一次 writer 协调授权。原高度 owner 的四份框架源码和定向测试归本轮收尾；已向皮肤 owner 发出一次资源协调消息，核对其唯一 writer PID 85127（父进程 85107）及原 `dist/development`。本对话未启动／重启 writer、覆盖输出或修改 Native 配对，仍在 main。正式应用交付已由 `aaca631703976c973d5dbb16c445c7bfe65e798c` 推送，唯一包保持 **0.3.21** 与原 SHA。
+
+本轮先用 ego TaskSpace 59，确认真实侧栏 360×663、iframe y=160 / h=503 / bottom=663，以及开发服务连接。ego 主界面显示多个窗口列表时，目标 Page API 及本窗口原生导航仍可操作；原生键盘和桌面焦点共享，输入前先选中自有窗口。此次其滚轮／键盘未改变业务滚动位置，缩放命令返回成功但实际窗口未变，不能记为滚动或矮窗口 PASS。只读探针、CDP 会话已关闭，恢复概览且自动运行关闭，空间 59 以 `keep:[]` 释放。
+
+为解除该具体能力缺口，专项复验改用已有 Chromium **156.0.8078.4**、独立临时 Profile，直接加载现有持续开发目录，实际扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。经原目录打开真实 Side Panel，并用现有身份验证 helper 核对唯一当前 `SIDE_PANEL` context、documentId、hostInstanceId 及无普通 Tab 身份。原安装器文件导入／审阅 **0.3.21** 及 SHA `87ab1892ead64582418c7da1ddf5f2da0d3d312f8e06f114dbb877512e4c43ac` 后安装；本次是临时 Profile 的新安装，高度检查不替代此前 ego 的同 ID 升级与收藏保留证据。
+
+正常实际窗口 **1100×800**，原生内容区 **360×665**：iframe y=160 / h=505 / bottom=665，帮助真实滚轮到底 `scrollTop=650.5 / clientHeight=461 / scrollHeight=1112`，iframe 文档未滚动，外层无尺寸溢出。该次原始报告后续尝试缩窗超时，整体状态仍为 FAIL；只采信已经完成的两项正常尺寸观察，且该次未记录 loaded revision。随后以真实 **1100×500** 矮窗口重新启动专用 Profile，内容区 **360×365**，iframe y=160 / h=205 / bottom=365；帮助到底 `950.5 / 161 / 1112`，脚本、应用偏好及返回、可信“运行与授权”面板开合通过，七项记录、errors=[]。Debug 前后均显示开发服务已连接、同一 revision `e5d1061c1be6b8d6c96f6bee0e83274d32309868722c04a4d4370d683384b07b`。截图已检查；驱动和自有浏览器已收尾，不把此开发证据提升为 production。
+
+Host 来源／会话／布局定向 **10/10**、R10 iframe CSS 定向 **1/1**、相关 JS 语法通过。源码夹具先在当前工作区通过，再仅用 index 中四份高度源码与 HEAD 的旧 More 菜单复验 **1/1、16 组尺寸、errors=[]**，证明提交不依赖并行直接图标和 Page 安装状态改动；未改源码 HTML / Vue / React 的原行为仍通过。只读 reviewer 未发现阻塞高度问题，修正夹具导航使其兼容旧菜单及直接图标。应用／恢复 **55/55** 与包 **8/8** 复用相同输入的已有结果，不重复构建或打包。
+
+本轮只提交四份框架高度源码、对应测试／fixture、本节、README 与两代高度证据，保留混合文件内并行页头 CSS、Page 安装状态 hunk、预览及其他项目。未安装／授权／启动 Task，未发送 ChatGPT、开启自动运行或重放 UNKNOWN。Native 配对、IME／完整键盘矩阵、真实非空记录与 Knowledge 集成、production、全 CI、独立评分及跨版本／缩放矩阵继续 **NOT_TESTED／延期**。来源哈希、两次原生报告的准确边界、截图及定向验证见[本轮证据](../evidence/host-delivery-20261109-01a1bf25.json)；下列段落全部保留各轮当时状态，不覆盖本轮移交与结果。
+
 ## 草稿修复同源交付（2026-11-09；01a1bf25）
 
 用户已在本对话明确移交 Web Flow 正式包与版本收尾，允许保留高度修复并按原链交付下一补丁版。当前 owner 为 `01a1bf25-da8f-70a0-8b9f-f19b58a656e7`；只在现有 main，接续 `main.js` 的公开 `setState` 修复与恢复测试，不重写业务。包版本为 **0.3.21**，能力、固定任务及其精确 hashes 不变。
@@ -21,6 +35,20 @@
 实际缺陷有两项。① 真实搜索输入／清空和主题保存读回后，宿主仍将应用视为未保存，禁用 More。公开 SDK 要求应用同步 `setState({dirty,busy})`，当前 Web Flow 漏报；只在 `src/ui/main.js` 补状态同步及偏好确认，不改公共宿主。视图搜索释放误标记，未保存参数及失败／不一致读回继续 dirty，持久写入期间 busy，确认保存后才释放。原 `tests/webflow-recovery-ui.test.mjs` 新增四项交互覆盖；前三项修前失败，修后应用／恢复 **55/55**、原包门禁 **8/8**、语法／定向 diff 检查通过，任务固定身份／CAS／UNKNOWN 恢复保持。② 约 600px 高真实窗口中页脚及详情仍被裁切且无法滚到；已恢复正常窗口。下段 0.3.20 高度源码及框架改动属于并行 owner，本轮未覆盖，其夹具证据不能当成真实安装通过。
 
 原打包器已生成本任务临时候选 `artifacts/webflow-installed-core-01a1bcf7/draft-state-candidate.opendesk-tool.json`：当前配置 **0.3.20**、71,761 bytes、SHA256 `f9020ac3bebdb6ec1ac2f91b945d538f52675f7cdf19f48ee5d3adee4908821d`，验证有效但**未晋升／未安装**。它包含当前并行高度源码，仅供协调核对；原 owner 的正式 0.3.20 包尚不包含本次草稿修复，当前源码不应继续声称与该旧包完全同源。已请求正式包／版本收尾移交，未收到答复前不改其配置、正式包、CSS、预览或 Host 文件，也不抢先制造会阻断 0.3.20 升级的新版。下一条操作是明确交付 owner 后由原链统一晋升，再验证安装后的草稿保护；高度还须对应宿主源码生效。真实 Task、Native、production、完整 CI、评分、缩放等继续 NOT_TESTED／延期，核心目标尚未全部达成。
+
+## 框架统一高度与滚动（2026-11-09；V0.3.20，历史开发验证）
+
+以下为原高度 owner 的当时记录；现已由上方 0.3.21 与宿主核心交付接续。当时完成范围为源码开发与对应最小验证。已在 ego 原安装入口复现外层溢出；没有覆盖 `dist/development`、重载扩展或操作 Native。正式包和 Browser 宿主分别交付，不继承旧包的安装证据。
+
+通用 Host 为所有 opaque 沙箱提供同一有界画布，去掉官方 ID 白名单、Cookie / Time Review 的高度分支、固定偏移和高度上限；内容尺寸不再反馈改变 Host。Sandbox 保留自然文档滚动，并提供可选 workspace / scroll CSS。Web Flow 唯一业务改动为挂载节点 `height:100%`，保留原导航、偏好、说明、存储和任务绑定。额外修正可见 display 作用域，保证忙碌实例保留时列表仍能滚动；全宽滚动容器避免左右裁切，通用 iframe flex 支持已有嵌套目标。
+
+真实 React Shell / ToolHost / controller / Sandbox / bridge / WebflowAutoControls 浏览器夹具通过 16 组尺寸记录：400×600 时沙箱 y=224 / h=376 / bottom=600；可信授权 Sheet 开合尺寸不变；外层控件增加 100px 后画布对应缩小 100px；320×300 时仍有 78px 画布。五个应用页面、帮助滚到底、稳定高度与消息去重、独立工具页、保留实例返回长列表，以及未改源码 HTML / Vue / React 的读取、保存重开、自然滚动与原 React 图表均通过。嵌套 flex 目标与 iframe 同为 300px。修改前四份框架快照的同夹具对照为 iframe bottom=1304（窗口 600px），工作区 scrollHeight=1209。
+
+先尝试 ego，但其当前开发扩展向 HTTP 沙箱注入不可重新定义的 `OpenDeskSDK`，与实际 bridge 冲突；本轮使用仓库既有独立 Chromium 156 测试入口验证源码，没有修改用户扩展或 Profile。ego 空间 52 和本任务夹具 / 浏览器已释放。mock 仅为目录、存储、只读任务元数据及关闭的自动运行状态，真实 Task 派发与特权修改均为 0。
+
+相关 Host 高度 / 来源 / 实例检查 **9/9**、Web Flow 应用与恢复 **51/51**、原包门禁 **8/8 PASS**，JS 语法与定向 diff 检查通过。完整 Host 文件此前为 274 PASS / 16 FAIL：撤销草稿导航、缺失 Reading TOC 正式包、Bookmark 确认均由修前快照定向复现；旧 R10 的 Dock 源码字符串断言也属于已有迁移问题，未扩大修复范围。真实 Knowledge 工作区集成、当前扩展重载、应用安装、Task / Native、production、全 CI 与评分保持 **NOT_TESTED**。
+
+唯一包 **0.3.20** 经原打包器候选→门禁→晋升→`PROJECT_PACKAGE_MATCH`，71,179 bytes，SHA256 `70e5ccb064c334593df73f4c4d779ba48123b8a49e6faaa8adb839b751a19c6e`；尚未安装。自动更新器遇到配置内多个 version 字段不能安全替换，故仅精确提升配置顶层版本并沿原打包器执行，没有修改更新器。全部本轮修改留在 main 工作区，未提交或推送。详细来源、截图位置与未测项见[本轮证据](../evidence/sidebar-host-layout-20261109.json)。下方 0.3.19 及更早段落保留各 owner 的历史记录。
 
 ## 核心 UI 与共享交付（2026-11-09；01a1bca2）
 

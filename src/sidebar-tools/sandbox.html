@@ -1,5 +1,15 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>OpenDesk 隔离工具界面</title></head>
+<title>OpenDesk 隔离工具界面</title>
+<style>
+/* Host owns the viewport. Legacy content stays in normal document flow and
+   scrolls here; applications may opt into their own bounded workspace. */
+html,body{height:100%;min-height:0}
+body{margin:0}
+#tool-root{height:100%;min-width:0;box-sizing:border-box}
+.opendesk-tool-workspace{display:flex;flex-direction:column;box-sizing:border-box;height:100%;min-height:0;min-width:0;overflow:auto}
+.opendesk-tool-workspace>header,.opendesk-tool-workspace>footer{flex:none}
+.opendesk-tool-scroll{flex:1 1 0;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}
+</style></head>
 <body><p id="tool-status" role="status">正在加载工具…</p><div id="tool-root"></div><script src="bridge.js"></script></body></html>

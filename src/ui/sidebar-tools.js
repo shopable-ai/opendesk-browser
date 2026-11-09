@@ -145,12 +145,6 @@ export function checkSidebarToolRequestBudget(message){
   )?{ok:true}:{ok:false,code:'E_LIMIT'};
 }
 
-// Only exact official release matches opt in. Same-ID user packages remain
-// opaque-origin, content-height iframes; this cannot grant API privileges.
-const FULL_HEIGHT_OFFICIAL_TOOLS=new Set([
-  'markdown-workbench','knowledge-inbox','web-markdown-clipper','cookie-editor'
-]);
-
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools(options={}) {
@@ -358,54 +352,31 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let pendingAdblockSettingsInstance=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
-  // Verified workspaces inherit the measured flex frame height. Other
-  // tools continue to grow to intrinsic height and receive a read-only hint.
+  // Every sandbox gets the space allocated by Host CSS, independently of
+  // package identity. Content scrolls inside the iframe, never resizes it.
   let lastHostHeight=null;
   const sendToolAvailableHeight=()=>{
     if(!frame||!instance||!active||frameRoot.hidden||disposed)return;
-    const workspace=doc.getElementById('workspace-content');
     const bounds=frame.getBoundingClientRect?.();
-    if(!bounds)return;
-    const viewportBottom=globalThis.innerHeight;
-    let bottom=workspace?.getBoundingClientRect?.().bottom??viewportBottom;
-    const mode=frameRoot.dataset?.officialWorkspace==='true'?'workspace':'content';
-    // Intrinsic content can extend the workspace beyond the visible Host viewport.
-    if(mode==='content'&&Number.isFinite(viewportBottom)&&viewportBottom>0){
-      bottom=Number.isFinite(bottom)?Math.min(bottom,viewportBottom):viewportBottom;
-    }
-    if(!Number.isFinite(bottom)||!Number.isFinite(bounds.top))return;
+    if(!bounds||!Number.isFinite(bounds.height)||bounds.height<=0)return;
     // DOM bounds include Host CSS zoom; the sandbox consumes unzoomed CSS pixels.
     const zoom=Number.isFinite(frame.currentCSSZoom)&&frame.currentCSSZoom>0?frame.currentCSSZoom:1;
-    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height/zoom:null;
-    const height=mode==='workspace'&&frameHeight!==null?frameHeight:(bottom-bounds.top)/zoom-12;
-    const availableHeight=Math.max(mode==='workspace'?80:220,
-      Math.min(1600,Math.floor(height)));
-    const cacheKey=mode+':'+availableHeight;
-    if(cacheKey===lastHostHeight)return;
-    lastHostHeight=cacheKey;
+    const availableHeight=Math.max(1,Math.floor(bounds.height/zoom));
+    if(!Number.isSafeInteger(availableHeight)||availableHeight===lastHostHeight)return;
+    lastHostHeight=availableHeight;
     frame.contentWindow?.postMessage({
       protocol:SIDEBAR_TOOL_PROTOCOL,kind:'layout',instance,toolId:active.id,
-      availableHeight,layoutMode:mode
+      availableHeight,layoutMode:'workspace'
     },'*');
   };
-  // Preserve the prior fallback for unverified/older Cookie installations.
-  const fitCookieFrame=()=>{
-    if(!frame||active?.id!=='cookie-editor'||frameRoot.hidden||disposed||
-       frameRoot.dataset?.officialWorkspace==='true')return;
-    const workspace=doc.getElementById('workspace-content');
-    const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
-    const top=frame.getBoundingClientRect?.()?.top;
-    if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
-    const height=Math.max(260,Math.min(1600,Math.floor(bottom-top-12)));
-    if(frame.style.height!==height+'px')frame.style.height=height+'px';
-  };
-  const syncFrameLayout=()=>{fitCookieFrame();sendToolAvailableHeight();};
+  const syncFrameLayout=sendToolAvailableHeight;
+  let frameLayoutObserver=null;
   if(typeof globalThis.addEventListener==='function'){
     globalThis.addEventListener('resize',syncFrameLayout);
     listeners.push(()=>globalThis.removeEventListener('resize',syncFrameLayout));
   }
   if(typeof ResizeObserver==='function'){
-    const observer=new ResizeObserver(syncFrameLayout);
+    const observer=frameLayoutObserver=new ResizeObserver(syncFrameLayout);
     for(const node of [doc.getElementById('workspace-content'),frameRoot]){
       if(node)observer.observe(node);
     }
@@ -1092,10 +1063,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     bookmarkFallbackNotice='';
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
-    if(frame){frame.onload=null;frame.remove();frame=null;}
+    if(frame){frameLayoutObserver?.unobserve?.(frame);frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
-    if(frameRoot.dataset){delete frameRoot.dataset.aiProxyTrusted;delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.officialWorkspace;}
+    if(frameRoot.dataset){delete frameRoot.dataset.aiProxyTrusted;delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.sandboxWorkspace;}
   }
   // Preserve text for recovery while retiring every executable old instance.
   function retireUntrustedTool(){
@@ -1802,7 +1773,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               cached={etag:value.etag,generation};return value;
             }});
           nativeUI={kind:'knowledge',...portal};nativePending=false;
-          frameRoot.dataset.knowledgeAi='true';frameRoot.dataset.officialWorkspace='true';
+          frameRoot.dataset.knowledgeAi='true';frameRoot.dataset.sandboxWorkspace='true';
           mountSandbox(portal.frameTarget);notice('');
         }catch(error){destroyFrame();render();notice('知识 AI 启动失败：'+String(error.message),true);}
       }).catch(error=>{
@@ -1858,7 +1829,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             onReconcile:host.reconcile,recovery});
           if(disposed||active!==tool||instance!==token){host.dispose();portal.dispose();return;}
           promptHost=host;nativeUI={kind:'prompt',dispose:portal.dispose};nativePending=false;
-          frameRoot.dataset.promptAi='true';frameRoot.dataset.officialWorkspace='true';
+          frameRoot.dataset.promptAi='true';frameRoot.dataset.sandboxWorkspace='true';
           mountSandbox(portal.frameTarget);
           notice('');
         }catch(error){
@@ -1937,11 +1908,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         retireUntrustedTool();return;
       }
       navigationAllowed=approvedNavigation;
-      if(approvedNavigation&&FULL_HEIGHT_OFFICIAL_TOOLS.has(tool.id)){
-        frameRoot.dataset.officialWorkspace='true';
-        frame.style.height='';
-        frame.style.maxHeight='';
-      }
       const source=frame.contentWindow;
       let transferred=[];
       if(!readOnly&&typeof MessageChannel==='function'){
@@ -1971,7 +1937,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       lastHostHeight=null;
       syncFrameLayout();
     };
-    target.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+    frameRoot.dataset.sandboxWorkspace='true';
+    target.append(frame);frameLayoutObserver?.observe(frame);
+    render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
     }
     mountSandbox(frameRoot);
@@ -3838,18 +3806,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='resize'){
-      // Only live frame, null origin, matching tool ID and session are accepted above.
-      if(frameRoot.dataset?.officialWorkspace==='true'){sendToolAvailableHeight();return;}
-      if(active?.id==='cookie-editor'){fitCookieFrame();return;}
-      if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000){
-        // The Time Review long-form settings / zoomed Canvas can legitimately
-        // exceed the general tool limit. Keep one outer workspace scroll,
-        // without changing other installed tools' height policy.
-        const isTimeReview=active?.id===TIME_REVIEW_ID;
-        frame.style.height=Math.max(140,Math.min(isTimeReview?4000:1600,message.height))+'px';
-        if(isTimeReview)frame.style.maxHeight='none';
-        sendToolAvailableHeight();
-      }
+      // Legacy content hints have no sizing authority. Host CSS is the sole
+      // owner; accepting them again creates viewport/content feedback loops.
       return;
     }
     if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||typeof message.operation!=='string')return;
