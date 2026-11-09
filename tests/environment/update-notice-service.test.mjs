@@ -41,7 +41,7 @@ async function fixture({provenance=true,capabilities=[]}={}){
   const changed=event(),onMessage=event(),onInstalled=event(),onUpdateAvailable=event(),
     onStartup=event(),onActivated=event(),onUpdated=event();
   let time=100000;
-  const views=[],opens=[];
+  const views=[],opens=[],hides=[];
   const api={
     runtime:{id:extensionId,getManifest:()=>({version:'0.1.0',name:'OpenDesk Browser'}),
       getURL:path=>'chrome-extension://'+extensionId+'/'+String(path).replace(/^\/+/,''),onMessage,onInstalled,
@@ -65,7 +65,7 @@ async function fixture({provenance=true,capabilities=[]}={}){
       {id:41,url:pageUrl,active:true,incognito:false},
       {id:42,url:pageUrl,active:true,incognito:false},
       {id:43,url:pageUrl,active:true,incognito:false}
-    ];},async sendMessage(){},async create(args){opens.push(args);}},
+    ];},async sendMessage(tabId,message){hides.push({tabId,message});},async create(args){opens.push(args);}},
     scripting:{async executeScript(request){views.push(request);return [{result:true}];}},
     webNavigation:{async getFrame({tabId}){return {documentId:source(tabId).documentId,
       documentLifecycle:'active',url:pageUrl,errorOccurred:false};}},
@@ -81,7 +81,7 @@ async function fixture({provenance=true,capabilities=[]}={}){
   async function send(message,sender=source()){
     return new Promise(resolve=>onMessage.emit({protocol:UPDATE_NOTICE_PROTOCOL,...message},sender,resolve));
   }
-  return {api,service,store,views,opens,release,tool,source,send,at(value){time=value;},
+  return {api,service,store,views,opens,hides,release,tool,source,send,at(value){time=value;},
     async settled(){await service.reconcile();await queue;}};
 }
 
@@ -144,4 +144,25 @@ test('untrusted webpage or sandbox sender cannot spoof update center commands',a
   const badPage=await f.send({kind:'list'},source());
   assert.equal(badPage.ok,false);
   assert.equal(badPage.error.code,'E_UPDATE_OPERATION');
+});
+
+
+test('sidepanel ignore immediately hides an already visible Toast and preserves installed tool',async()=>{
+  const f=await fixture();
+  await f.settled();
+  await f.service.checkToast();
+  assert.equal(f.views.length,1);
+  const token=f.views[0].args[0].token;
+  assert.equal((await f.send({kind:'page-visible',token})).ok,true);
+  const key='sidebar-tool:'+f.tool.id+':'+f.release.version+':'+f.release.sha256;
+  const sender={id:extensionId,url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  const reply=await f.send({kind:'action',key,action:'ignore'},sender);
+  assert.equal(reply.ok,true);
+  assert.equal(f.hides.length,1);
+  assert.equal(f.hides[0].message.token,token);
+  assert.equal(f.store[UPDATE_NOTICE_STORE].records[key].ignoredAt,100000);
+  assert.equal(f.store[SIDEBAR_TOOL_STORE][0].version,f.tool.version);
+  f.at(100000+NOTICE_DAY_MS*2);
+  await f.service.checkToast();
+  assert.equal(f.views.length,1);
 });
