@@ -1,4 +1,4 @@
-import {PageError, requireValue, selector, duration, options, VALUE_LIMITS, encodeValue, newPageRequestId} from '../../framework/control/value.js';
+import {PageError, requireValue, selector, duration, options, VALUE_LIMITS, encodeValue, newPageRequestId, normalizeUploadMetadata} from '../../framework/control/value.js';
 import {createLocatorDOM} from './locator-dom.js';
 
 // This registry runs only in the broker-selected ISOLATED document agent. It is
@@ -150,11 +150,12 @@ export function createPackagedPageSession({document: doc = document, window: win
     requireValue(upload.total === total && upload.offset === offset, 'E_UPLOAD_FORMAT');
     upload.bytes.set(Uint8Array.from(binary, c => c.charCodeAt(0)), offset); upload.offset += binary.length; return undefined;
   }
-  function uploadCommit(css, id, total) {
+  function uploadCommit(css, id, total, metadata = {}) {
     const upload = uploads.get(id); uploads.delete(id);
     requireValue((total === 0 && !upload) || (upload && upload.total === total && upload.offset === total), 'E_UPLOAD_FORMAT');
     const el = element(css); requireValue(el.tagName === 'INPUT' && el.type === 'file' && !el.disabled && !el.multiple && !el.webkitdirectory, 'E_INPUT_TARGET_UNSUPPORTED');
-    const transfer = new win.DataTransfer(); transfer.items.add(new win.File([upload?.bytes || new Uint8Array()], 'filename.jpg', {type: 'image/jpeg'}));
+    const {name, type} = normalizeUploadMetadata(metadata);
+    const transfer = new win.DataTransfer(); transfer.items.add(new win.File([upload?.bytes || new Uint8Array()], name, {type}));
     check(); el.files = transfer.files; event(el, new win.Event('change', {bubbles: true})); return undefined;
   }
   async function addTag(method, value) {

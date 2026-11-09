@@ -4,6 +4,13 @@ on:
     branches: [main]
     paths:
       - 'src/ui/sidepanel.html'
+      - 'src/ui/app.html'
+      - 'src/tool-document-url.js'
+      - 'src/environment.js'
+      - 'src/ui/app-page-routes.js'
+      - 'src/ui/sidebar-tools/navigation.js'
+      - 'projects/ai-proxy/trusted/app-page-routes.js'
+      - 'projects/webflow/src/ui/app-page-routes.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
       - 'src/ui/task-workbench.js'
@@ -13,6 +20,9 @@ on:
       - 'scripts/tests/react-sidebar-r352-browser.mjs'
       - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
       - 'tests/environment/react-sidebar-app-shell-r351.test.mjs'
+      - 'tests/environment/react-app-surface-ownership.test.mjs'
+      - 'tests/environment/sidebar-own-page-contract.test.mjs'
+      - 'tests/environment/react-sidebar-render-r3331.test.mjs'
       - 'tests/environment/react-sidebar-schedule-r341.test.mjs'
       - 'tests/environment/sidebar-quick-notes-react-r21.test.mjs'
       - 'scripts/check-source.mjs'
@@ -33,6 +43,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: App Shell and React source contracts
         run: |
+          node --test tests/environment/sidebar-own-page-contract.test.mjs
+          node --test tests/environment/react-app-surface-ownership.test.mjs
           node --test tests/environment/react-sidebar-app-shell-r351.test.mjs
           node --test tests/environment/react-sidebar-r333.test.mjs
           node --test tests/environment/react-sidebar-render-r3331.test.mjs

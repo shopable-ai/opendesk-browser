@@ -1,4 +1,4 @@
-import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from './tool-document-url.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from './tool-document-url.js';
 export const PROTOCOL = 'opendesk.environment.v1';
 export const HEALTH_FILE = 'agents/health.js';
 export const SELECTION_FILE = 'agents/selection-entry.js';
@@ -22,10 +22,13 @@ export function isToolSender(api, sender) {
   // sender.tab and sender.frameId. If a tab is present, require its top frame;
   // otherwise accept only the packaged top-level extension document.
   const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
-  const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
+  const panel=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
+  const app=toolDocumentIdentity(api.runtime.getURL(APP_DOCUMENT_PATH),sender?.url);
+  const route=panel||app;
   const offscreen=sender?.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)&&!sender?.tab;
+  const tabOwner=Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0;
   return sender?.id === api.runtime.id && (Boolean(route)||offscreen) &&
-    (offscreen||!route.hasLocator||Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0) &&
+    (offscreen||(app?tabOwner:!route.hasLocator||tabOwner)) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
     topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
 }

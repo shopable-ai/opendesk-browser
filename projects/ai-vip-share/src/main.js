@@ -1,7 +1,8 @@
 import * as Journal from './cookie-journal.js';
 import {LOCAL_CHATGPT} from './local-cookie-file.js';
 import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
-import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
+import {DEVELOPMENT_ACTIVATION_URLS,activationCodeFromVerifiedPage,AUTO_PREPARATION_PAUSE_KEY,
+  readAutoPreparationPauses,isAutoPreparationPaused,addAutoPreparationPause} from './activation-links.js';
 import {REVIEWED_SERVICE,validateServiceDefinition,parseServiceLink} from './service-links.js';
 import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} from './server-cookie-batches.js';
 // AI VIP Share business presentation stays inside the installed opaque sandbox.
@@ -119,6 +120,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
   let memberVerifiedFresh=false,activationHintCode=null,activationSeen=null,activationSource=null;
+  let activationCancelGeneration=0,redeemPostStarted=false,stopAfterRedeem=false;
+  let preflightAccountId=null;
+  const pausedScopesInMemory=new Set();
   let recoveryReady=false,busy=false,seq=0;
   let refreshProxyPresentation=()=>{};
   let developmentProfile=null,developmentRead=0,localMode=false,localConnecting=false;
@@ -1043,7 +1047,13 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
     redeem.textContent=busy?'正在处理…':'查看激活内容';
     confirm.disabled=!allowed||!pending;
-    previewPanel.hidden=!pending;
+    previewPanel.hidden=!pending&&!preflightAccountId;
+    confirm.hidden=!pending;
+    if(preflightAccountId&&!pending){
+      previewTitle.textContent='正在核对激活内容';
+      previewDescription.textContent='尚未领取权益，可以取消本次预检。';
+      previewAccount.textContent='接收账号：'+(snapshot?.account?.name||'待核对');
+    }
     const redeemDetails=byId('ai-vip-redeem-details');
     if(redeemDetails){
       redeemDetails.hidden=Boolean(pending||locked);
@@ -1051,7 +1061,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       else if(activationHintCode)redeemDetails.open=true;
     }
     activationHint.hidden=!activationHintCode||Boolean(pending)||!memberVerifiedFresh;
-    cancel.hidden=!pending;
+    cancel.hidden=!pending&&!preflightAccountId;
     cancel.disabled=busy;
     codeClear.disabled=code.disabled||!code.value;
     showRecovery();
@@ -1171,7 +1181,11 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     }finally{
       if(current===seq){
         busy=false;refresh.disabled=false;if(snapshot)renderMember();else renderRedeem();
-        if(acquireAfterActivation&&snapshot){acquireAfterActivation=false;void requestSharedSession();}
+        if(acquireAfterActivation&&snapshot){
+          const continueSession=!stopAfterRedeem&&!disposed;
+          acquireAfterActivation=false;
+          if(continueSession)void requestSharedSession();
+        }
       }
     }
   }
@@ -1209,21 +1223,26 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       recovery||recoveryFault||['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
     if(!pending){
       if(!/^[A-Za-z0-9._-]{6,120}$/.test(value))return;
+      stopAfterRedeem=false;
       const accountId=snapshot.account.id;
+      const preflightGeneration=activationCancelGeneration;
+      preflightAccountId=accountId;
       sharedGeneration++;sharedBusy=false;cookiePending=null;sharedNotice='';
       busy=true;renderRedeem();redeemNotice('正在请求服务端核验兑换内容…');
       try{
         const result=validatePreview(await businessRequest('POST',endpoints.voucherPreview,{code:value}));
+        if(disposed||preflightGeneration!==activationCancelGeneration)fail('E_ACTIVATION_CANCELLED','已取消预检');
         if(snapshot?.account.id!==accountId)fail('E_IDENTITY_CHANGED','预检过程中账号已变化');
         pending=result;code.value='';
         previewTitle.textContent=result.title;
         previewDescription.textContent=result.summary+' · '+result.masked+'；确认后才会兑换。';
         previewAccount.textContent='接收账号：'+snapshot.account.name;
         redeemNotice('请核对商品与账号，再点击「确认激活」。');
-      }catch{
-        redeemNotice('无法核验兑换码，请检查账号、兑换码或网络后重试。',true);
+      }catch(error){
+        redeemNotice(error?.code==='E_ACTIVATION_CANCELLED'?'已取消预检，未提交兑换。':
+          '无法核验兑换码，请检查账号、兑换码或网络后重试。',error?.code!=='E_ACTIVATION_CANCELLED');
       }finally{
-        busy=false;renderRedeem();
+        preflightAccountId=null;busy=false;renderRedeem();
         // The input becomes disabled after preflight; move focus to the review.
         if(pending&&!automatic)confirm.focus?.({preventScroll:true});
       }
@@ -1262,6 +1281,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       redeemNotice('无法安全生成兑换事务标识；本次兑换未提交。',true);return;
     }
     const accountId=pending.accountId,previewId=pending.id;
+    const confirmationGeneration=activationCancelGeneration;
+    redeemPostStarted=false;stopAfterRedeem=false;
     const redemptionIntent=Object.freeze({revision:serviceRevision,development:localMode,serviceOrigin:localMode?localOrigin:new URL(service.url).origin});
     const intentRevision=redemptionIntent.revision;
     busy=true;renderRedeem();
@@ -1271,6 +1292,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       // The Provider must also bind the actual POST to its authenticated session.
       const latest=verifiedMember(await businessRequest('GET',endpoints.member));
       acceptMemberSnapshot(latest);
+      if(disposed||confirmationGeneration!==activationCancelGeneration)
+        fail('E_ACTIVATION_CANCELLED','确认已取消，未提交兑换');
       const currentServerNow=estimatedServerNow();
       if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化');
@@ -1278,9 +1301,13 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         pending?.id!==previewId||currentServerNow===null||
         pending.expiresAt<=currentServerNow)
         fail('E_PRE_SUBMIT','账号或预检状态发生变化');
-    }catch{
+    }catch(error){
       pending=null;code.value='';busy=false;
-      redeemNotice('账号或预检状态无法重新核验，本次未提交兑换；请重新预检。',true);
+      if(error?.code==='E_ACTIVATION_CANCELLED'||disposed||
+        confirmationGeneration!==activationCancelGeneration){
+        activationHintCode=null;activationHint.hidden=true;
+        redeemNotice('已停止尚未提交的兑换；需要领取时请重新主动预检。',true);
+      }else redeemNotice('账号或预检状态无法重新核验，本次未提交兑换；请重新预检。',true);
       renderRedeem();
       return;
     }
@@ -1295,6 +1322,14 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       if(intentRevision!==serviceRevision||snapshot?.account.id!==accountId||pending?.id!==previewId||
         submitNow===null||pending.expiresAt<=submitNow)
         fail('E_PRE_SUBMIT','事务持久化后账号或预检时限变化；禁止提交');
+      if(disposed||confirmationGeneration!==activationCancelGeneration){
+        // No redeem POST has started: clear only the original verified write-ahead record.
+        await clearRecovered(key);
+        pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
+        redeemNotice('已取消，服务端兑换尚未提交。');
+        return;
+      }
+      redeemPostStarted=true;
       const result=await businessRequest('POST',endpoints.voucherRedeem,{
         previewId,accountId,idempotencyKey:key});
       validateReceipt(result,key);
@@ -1302,8 +1337,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
       cookiePending=null;cookieFault='';
-      acquireAfterActivation=localMode;
-      redeemNotice('服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。');
+      acquireAfterActivation=localMode&&!stopAfterRedeem&&!disposed;
+      redeemNotice(stopAfterRedeem?'服务端已确认兑换成功；已停止后续自动操作，结果仍可查看。':
+        '服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。');
       busy=false;renderRedeem();
       await refreshMember();
     }catch(error){
@@ -1315,7 +1351,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         redeemNotice(recovery?'兑换结果未确认。请使用「核对上次兑换」查询服务端状态，切勿重复兑换。':
           '无法确认本地兑换状态，已禁止提交。请检查存储授权。',true);
       }
-    }finally{busy=false;renderRedeem();}
+    }finally{busy=false;redeemPostStarted=false;renderRedeem();}
   }
   async function checkRecoveryClick(event){
     if(event?.isTrusted!==true||busy||cookieBusy||!recoveryReady)return;
@@ -1347,7 +1383,8 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         validateReceipt(data,saved.idempotencyKey);
         await clearRecovered(saved.idempotencyKey);
         cookiePending=null;cookieFault='';
-        acquireAfterActivation=localMode;
+        // Status recovery is not a new consent to write a website session.
+        acquireAfterActivation=false;
         redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
         busy=false;
         await refreshMember();
@@ -1400,14 +1437,32 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   confirm.addEventListener('click',event=>{void redeemClick(event);});
   recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
   function cancelPendingPreview(){
-    if(busy||!pending)return;
+    if(!pending&&!preflightAccountId)return;
+    const wasLink=Boolean(activationHintCode),accountId=pending?.accountId||preflightAccountId;
+    const serviceOrigin=localMode?localOrigin:service?new URL(service.url).origin:null;
+    ++activationCancelGeneration;stopAfterRedeem=true;
+    if(wasLink&&serviceOrigin&&accountId){
+      const scope={serviceOrigin,accountId};
+      pausedScopesInMemory.add(serviceOrigin+'|'+accountId);
+      void persistAutoPreparationPause(scope).catch(()=>{
+        redeemNotice('已停止本次操作；取消状态未能持久核验，下次请手动确认。',true);
+      });
+    }
+    if(busy){
+      if(preflightAccountId&&!pending){
+        code.value='';activationHintCode=null;activationHint.hidden=true;
+        redeemNotice('已停止当前预检，尚未提交兑换。');
+      }else redeemNotice(redeemPostStarted?
+        '服务端请求已提交，不能撤销；已停止后续自动操作，请核对原事务结果。':
+        '正在阻止尚未提交的兑换并核对原事务，请勿重复操作。');
+      renderRedeem();return;
+    }
     pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
-    redeemNotice('已取消本次预检，未提交任何兑换。');
-    renderRedeem();
-    code.focus?.({preventScroll:true});
+    redeemNotice('已取消预检，未提交兑换；后续不自动重新预检。');
+    renderRedeem();code.focus?.({preventScroll:true});
   }
   previewPanel.addEventListener('keydown',event=>{
-    if(event?.isTrusted!==true||event.key!=='Escape'||busy||!pending)return;
+    if(event?.isTrusted!==true||event.key!=='Escape'||!pending&&!preflightAccountId)return;
     event.preventDefault?.();
     event.stopPropagation?.();
     cancelPendingPreview();
@@ -1421,18 +1476,30 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const ACTIVATION_URLS=Object.freeze(service?[{origin:new URL(service.url).origin,path:service.activation.path,parameter:service.activation.parameter}]:[]);
   const ACTIVATION_KEY='aiVipActivationR140';
   let urlChecking=false;
-  function activationCodeFromPage(info){
-    if(!plain(info)||info.status!=='available'||typeof info.url!=='string'||info.url.length>2048)return null;
+  async function mayAutoPrepare(scope){
+    if(pausedScopesInMemory.has(scope.serviceOrigin+'|'+scope.accountId))return false;
     try{
-      const url=new URL(info.url);
-      const rules=localMode&&developmentProfile?DEVELOPMENT_ACTIVATION_URLS:ACTIVATION_URLS;
-      const rule=rules.find(row=>url.origin===row.origin&&url.pathname===row.path);
-      if(!rule||url.username||url.password||url.hash)return null;
-      const entries=[...url.searchParams.entries()];
-      if(entries.length!==1||entries[0][0]!==rule.parameter||
-        !/^[A-Za-z0-9._-]{6,120}$/.test(entries[0][1]))return null;
-      return entries[0][1];
-    }catch{return null;}
+      const saved=await storeRequest('storage.get',{key:AUTO_PREPARATION_PAUSE_KEY,withEtag:true});
+      return !isAutoPreparationPaused(readAutoPreparationPauses(saved.value),scope);
+    }catch{return false;} // Unknown cancellation state cannot authorize auto-preparation.
+  }
+  async function persistAutoPreparationPause(scope){
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const before=await storeRequest('storage.get',{key:AUTO_PREPARATION_PAUSE_KEY,withEtag:true});
+        const current=readAutoPreparationPauses(before.value);
+        if(isAutoPreparationPaused(current,scope))return;
+        const next=addAutoPreparationPause(current,scope);
+        await storeRequest('storage.set',{key:AUTO_PREPARATION_PAUSE_KEY,value:next,ifMatch:before.etag});
+        const after=await storeRequest('storage.get',{key:AUTO_PREPARATION_PAUSE_KEY,withEtag:true});
+        if(isAutoPreparationPaused(readAutoPreparationPauses(after.value),scope))return;
+      }catch(error){if(attempt===2)throw error;}
+    }
+    fail('E_ACTIVATION_PAUSE_UNKNOWN','取消状态未能持久确认');
+  }
+  function activationCodeFromPage(info){
+    const rules=localMode&&developmentProfile?DEVELOPMENT_ACTIVATION_URLS:ACTIVATION_URLS;
+    return activationCodeFromVerifiedPage(info,rules);
   }
   function activationPageMatches(info,value){
     return activationCodeFromPage(info)===value&&info.url===activationSource;
@@ -1482,9 +1549,20 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       activationSource=info.url;activationFromLink=false;
       activationSeen=value;activationHintCode=value;code.value=value;
       activationDetail.textContent='已批准来源的激活码 '+value.slice(0,3)+'****'+value.slice(-2)+
-        ' 已带入；请预检并确认，不会自动领取。';
-      redeemNotice('激活链接已识别。请预检并确认，不会自动领取。');
+        ' 已带入；正在自动预检，确认后才会领取。';
+      redeemNotice('已识别专属链接，正在核对领取内容；不会自动领取。');
       renderRedeem();
+      const scope={accountId:snapshot.account.id,serviceOrigin:localMode?localOrigin:new URL(service.url).origin};
+      if(!(await mayAutoPrepare(scope))){
+        redeemNotice('此前已取消自动继续，或取消状态无法核验；可主动点击「查看激活内容」。');
+        return;
+      }
+      // Double-check current Host source and recipient after async storage read.
+      const fresh=await storeRequest('currentPage.info');
+      if(disposed||revision!==serviceRevision||!memberVerifiedFresh||
+        snapshot?.account.id!==scope.accountId||activationCodeFromPage(fresh)!==value||
+        fresh.url!==activationSource||pending)return;
+      await runActivation(value);
     }catch{/* No page permission never issues a voucher POST. */}
     finally{urlChecking=false;}
   }
@@ -1814,7 +1892,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     },1200):null;
   renderRedeem();
   release=()=>{
-    disposed=true;
+    disposed=true;++activationCancelGeneration;stopAfterRedeem=true;
     websiteController?.dispose();
     localConnect?.removeEventListener?.('click',connectLocalDevelopment);
     developmentControls?.dispose();

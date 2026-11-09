@@ -1,4 +1,4 @@
-import {PageError, requireValue, functionSource, options, selector, duration, httpURL, VALUE_LIMITS, newPageRequestId} from './control/value.js';
+import {PageError, requireValue, functionSource, options, selector, duration, httpURL, VALUE_LIMITS, newPageRequestId, normalizeUploadMetadata} from './control/value.js';
 import {createLocator} from './locator.js';
 import {validateObservationOptions, MODERN_PAGE_CAPABILITIES} from './control/locator-contract.js';
 
@@ -156,14 +156,15 @@ export class ChromePage {
     requireValue(typeof fullPage === 'boolean', 'E_ARGUMENT_TYPE'); requireValue(!fullPage, 'E_FULL_PAGE_UNSUPPORTED');
     return dispatch(this, 'screenshot', [{format, fullPage: false}], {kind: 'browser'});
   }
-  async uploadFile(css, value) {
+  async uploadFile(css, value, metadata = {}) {
     selector(css);
+    const media = normalizeUploadMetadata(metadata);
     if (typeof value === 'string') {
-      if (value.startsWith('data:')) await this._uploadFromDataUrl(css, value);
-      else await this._uploadFromUrl(css, value);
-    } else await this._uploadFromBlob(css, value);
+      if (value.startsWith('data:')) await this._uploadFromDataUrl(css, value, media);
+      else await this._uploadFromUrl(css, value, media);
+    } else await this._uploadFromBlob(css, value, media);
   }
-  async _uploadFromBlob(css, value) {
+  async _uploadFromBlob(css, value, media) {
     const binding = state(this), target = binding.capture(); binding.guard(target); selector(css);
     requireValue(value instanceof ArrayBuffer || (typeof Blob !== 'undefined' && value instanceof Blob), 'E_ARGUMENT_TYPE');
     requireValue((value.byteLength ?? value.size) <= VALUE_LIMITS.uploadBytes, 'E_UPLOAD_TOO_LARGE');
@@ -177,17 +178,17 @@ export class ChromePage {
       let binary = ''; for (const byte of chunk) binary += String.fromCharCode(byte);
       await binding.request('uploadChunk', [uploadId, offset, bytes.length, btoa(binary)], {target});
     }
-    binding.guard(target); await binding.request('uploadCommit', [selector(css), uploadId, bytes.length], {target}); return true;
+    binding.guard(target); await binding.request('uploadCommit', [selector(css), uploadId, bytes.length, media], {target}); return true;
   }
-  async _uploadFromDataUrl(css, value) {
+  async _uploadFromDataUrl(css, value, media) {
     requireValue(typeof value === 'string' && /^data:[^,]*;base64,[A-Za-z0-9+/]*={0,2}$/.test(value), 'E_UPLOAD_FORMAT');
     const encoded = value.slice(value.indexOf(',') + 1); requireValue(encoded.length % 4 === 0, 'E_UPLOAD_FORMAT');
     requireValue(encoded.length <= Math.ceil(VALUE_LIMITS.uploadBytes / 3) * 4, 'E_UPLOAD_TOO_LARGE');
     let binary; try { binary = atob(encoded); } catch { throw new PageError('E_UPLOAD_FORMAT'); }
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-    await this._uploadFromBlob(css, bytes.buffer);
+    await this._uploadFromBlob(css, bytes.buffer, media);
   }
-  async _uploadFromUrl(css, url) { await dispatch(this, 'uploadFromUrl', [selector(css), httpURL(url)], {kind: 'browser'}); return true; }
+  async _uploadFromUrl(css, url, media) { await dispatch(this, 'uploadFromUrl', [selector(css), httpURL(url), media], {kind: 'browser'}); return true; }
   eval(code, opts = {}) {
     requireValue(typeof code === 'string' && code.length > 0, 'E_ARGUMENT_TYPE');
     options(opts, ['mode', 'debug']);
@@ -215,11 +216,11 @@ export class ChromeElement {
   }
   click(opts = {}) { const {binding, target} = elements.get(this); return binding.request('click', [this.selector, clickOptions(opts)], {target}); }
   type(text, opts = {}) { const {binding, target} = elements.get(this); return binding.request('type', [this.selector, ...typeArgs(text, opts)], {target}); }
-  uploadFile(value) {
+  uploadFile(value, metadata = {}) {
     const {binding, target} = elements.get(this); binding.guard(target);
     // A bound view pins every helper request, including async Blob conversion and chunks.
     const view = createBoundPage({...binding, capture: () => target, guard: () => binding.guard(target), request: (method, args, extra) => binding.request(method, args, {...extra, target})});
-    return view.uploadFile(this.selector, value);
+    return view.uploadFile(this.selector, value, metadata);
   }
 }
 export class Keyboard {

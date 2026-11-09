@@ -2,6 +2,11 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "react",
   "node": [
+    "projects/ai-vip-share/tests/lan-activation-server.test.mjs",
+    "projects/ai-vip-share/tests/controller-recovery-upgrade.test.mjs",
+    "projects/ai-vip-share/tests/controller-service-flow.test.mjs",
+    "projects/ai-vip-share/tests/controller-lan-activation.test.mjs",
+    "projects/ai-vip-share/tests/activation-links.test.mjs",
     "projects/ai-vip-share/tests/member-presentation.test.mjs",
     "projects/ai-vip-share/tests/preview-isolation.test.mjs",
     "tests/environment/ai-vip-share-r2.test.mjs",

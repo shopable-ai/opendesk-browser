@@ -8,6 +8,7 @@ import {registeredSiteRegistry,loadSiteProfiles} from './site-catalog.js';
 import {SITE_PROFILES_KEY,WEB_TASK_PROTOCOL,validWebTaskSource} from './web-task-contract.js';
 import {CHATGPT_TASK_PROFILE} from './web-task-contract.js';
 import {createChatGPTBackgroundAdapter} from '../native-agent/chatgpt-background-adapter.js';
+import {activateWebFlowExecutionTarget} from '../native-agent/webflow-execution-view.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
@@ -113,6 +114,47 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       run.requestId===requestId&&run.hostDocumentId===row.webHostDocumentId);
     if(matches.length>1)throw fail('E_WEB_TASK_UNKNOWN','存在歧义执行身份，只能人工对账');
     return {row,broker,run:matches[0]};
+  }
+  // Trusted Side Panel ONLY. View an EXISTING background Run in its exact
+  // owned document. No Task params, new Run, result delivery, or focus retry.
+  async function activateRun(message,sender){
+    await settingsSender(sender);
+    if(!validWebTaskSource(message?.source)||typeof message.requestId!=='string'||
+      typeof message.runId!=='string')
+      throw fail('E_WEB_TASK_VIEW','没有可核验的原请求与目标来源');
+    const initial=await observation(message.requestId),row=initial.row;
+    if(row.site?.adapter!=='chatgpt'||row.status!=='consumed'||!row.controllerSubmitted||
+      !sameSource(row.source,message.source)||!row.webHostDocumentId)
+      throw fail('E_WEB_TASK_VIEW','仅能查看当前原聊天已经提交的后台任务');
+    const pin=row.scope.installation;
+    const approval=ledger.captureAutoPolicyEpoch();
+    const assertAuthorized=async()=>{
+      const final=await verifySite(row),settings=await ledger.readAutoSettings();
+      assertAutoGrant(settings,row.scope,{sourceUrl:row.source.url,
+        grantId:row.autoGrantId,epoch:row.autoEpoch});
+      if(approval!==ledger.captureAutoPolicyEpoch())
+        throw fail('E_WEBFLOW_AUTO_DENIED','查看过程中批准或权限已改变');
+      final();
+    };
+    const readRun=async()=>{
+      const current=await observation(message.requestId);
+      const run=current.run;
+      if(!sameSource(current.row.source,row.source)||current.row.status!=='consumed'||
+        current.row.webHostDocumentId!==row.webHostDocumentId||
+        JSON.stringify(current.row.scope)!==JSON.stringify(row.scope)||
+        run?.runId!==message.runId||run.requestId!==message.requestId||
+        run.namespace!=='tool:'+api.runtime.id||run.hostDocumentId!==row.webHostDocumentId||
+        run.sourceKind!=='saved'||run.scriptId!==pin.scriptId||
+        run.contentHash!==pin.contentHash||run.revision?.scriptId!==pin.scriptId||
+        run.revision?.revision!==pin.revision||run.revision?.sourceHash!==pin.contentHash)
+        throw fail('E_WEB_TASK_VIEW','运行、安装或原后台 Host 身份不匹配');
+      const slot=await current.broker.storage.transaction(['runs'],'readonly',
+        tx=>tx.get('runs','@slot'));
+      return {run,slot};
+    };
+    return activateWebFlowExecutionTarget({api,runId:message.runId,readRun,
+      assertAuthorized,reserveActivation:()=>ledger.reserveWebTaskActivation({
+        requestId:message.requestId,source:row.source,runId:message.runId})});
   }
   async function query(message,sender){
     const approval=ledger.captureAutoPolicyEpoch();
@@ -342,6 +384,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     if(message.kind==='settle')return settle(message,sender);
     if(message.kind==='reconcile')return reconcile(sender);
     if(message.kind==='history')return history(message,sender);
+    if(message.kind==='activate-run')return activateRun(message,sender);
     if(message.kind==='profiles-read'){await settingsSender(sender);return {profiles:await loadSiteProfiles(api)};}
     if(message.kind==='profiles-save'){
       const result=profileWrites.then(()=>saveProfiles(message,sender));profileWrites=result.catch(()=>{});return result;

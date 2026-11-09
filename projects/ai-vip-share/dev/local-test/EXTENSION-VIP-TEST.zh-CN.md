@@ -1,5 +1,25 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+
+## 2026-11-10：可信专属链接自动预检与取消（Node/fixture 证据，未发布新包）
+
+**范围**：仅 AI VIP Share 原业务源码与定向测试；提交 [0452bff](https://github.com/shopable-ai/opendesk-browser/commit/0452bff3090718254677fe0b39fb92712bbe2b55)、取消迟到响应修复 [e0d4b43](https://github.com/shopable-ai/opendesk-browser/commit/e0d4b43d1c00af9cc35eb5c4239275e4bc62c4a9)。不修改原 Market/Installed Authority/SDK/Cookie 事实源，不发布安装包；当前历史正式包仍 1.4.32，既有真实 ChatGPT 登录证据不升级为新链接/商业 VIP 验收。
+
+| 前置 → 动作 | 真实测试结果及禁止副作用 | 原始证据 |
+| --- | --- | --- |
+| 当前合法开发来源、模拟已装/绑定 → 自动预检、用户明确确认 | **PASS**；确认前仅有无核销预检，确认后原兑换仅 1 POST；不写 Cookie、不启代理 | [App CI 42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891)，用例 40 |
+| 假源、编码别名、多余参数、跨已批准来源切换 → 检查 | **PASS**；不带码/不擅自预检或兑换；浏览器本机真实地址归一化仍 NOT_TESTED | 同运行用例 38、41–42 |
+| 取消 → 同账号不同码/模拟重开 → 人工再预检 | **PASS**；持久暂停自动预检，手动领取合法新兑换仍可完成；真正双 Surface/双客户端未测 | 同运行用例 39、43 |
+| 自动预检迟到 → 取消 | **PASS**；晚到预检不恢复待确认状态，零兑换 | 同运行用例 45 |
+| 确认期间会员 GET 等待 → 取消再返回 | **PASS**；未发兑换 POST；首轮测试遗漏原 HTTP 请求头造成断言失败，第二提交修复夹具并使取消状态优先 | 首轮 [42675696828](https://github.com/shopable-ai/opendesk-browser/actions/runs/42675696828) 用例 44 FAIL；次轮 42676450891 用例 44 PASS |
+| 兑换 POST 已派发 → 取消后回执到达 | **PASS**；仍显示原服务端成功 receipt，不重复发放、不自动写网站 Cookie 或跳转 | 次轮用例 46 |
+| LAN 指引及原拒绝策略 → 非法方法/路径/跨源 | **PASS**；静态指引不代替安装许可，HTTP 夹具严格来源 | 次轮用例 180–183 |
+
+本轮新链接/取消 **9/9 PASS**，LAN 安全入口 **4/4 PASS**，**仅受控 Node/fixture 证据**。同次整个 App CI 为 **424 个测试：342 PASS / 68 FAIL / 14 CANCELLED**，状态 **FAIL**；遗留故障包含历史 URL/端口、版本断言与旧 UI 文案不一致，还有部分 HTTP/setup 与 Cookie 测试未完成，**没有证明全部是本轮引入或全部是历史遗留**。旧版 [AI VIP Share R2 专项工作流 42675696733](https://github.com/shopable-ai/opendesk-browser/actions/runs/42675696733) 同样 FAIL，旧断言含 1.4.11 而当前包配置 1.4.32。禁止用局部 PASS 抵消失败；只修具体受影响或安全核心缺口，其他问题分开由原 owner 处理。
+
+**生产阻断（NOT_TESTED）**：正式 HTTPS 入口、Market channel/固定发行、短时受限业务引用、Provider 稳定领取意图及跨客户端原子唯一、完整 SKU 数量/起效/动作范围、双 Surface/宿主安装、实际 Chrome/网站登录与第三方 VIP。没有可验证 Provider 时不开放生产自动核销；旧 voucher/Cookie unknown 记录不能清除或换 key 重兑。下一动作仅本地 Codex 定向核查失败输入、无歧义修复受影响核心项、通过原 App CI/打包链再考虑安装与真实服务验收。
+
+
 <a id="independent-login-1432-20261107"></a>
 
 ## 2026-11-07：独立对话使用当前安装完成 ChatGPT 新登录（1.4.32）

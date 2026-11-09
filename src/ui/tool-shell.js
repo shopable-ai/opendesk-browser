@@ -33,7 +33,8 @@ import {isActualSidePanelContext} from './sidepanel-context.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
-import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
+import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,requestedAppPageLocator,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
+import {resolveAppPageTarget} from './app-page-routes.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {panelPreviewStorageKey,validatePanelPreviewPointer,validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -42,13 +43,11 @@ import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {AGENT_CONFIG_PROTOCOL} from '../native-agent/protocol.js';
 import {createChatGPTFixedBridgeHost,routeChatGPTBridgeMessage} from '../native-agent/chatgpt-fixed-bridge-host.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../native-agent/chatgpt-bridge-trigger-gate.js';
-import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
+import {SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATHNAME} from '../tool-document-url.js';
 import {isToolSender} from '../environment.js';
 
-// The Side Panel and full-size tool/catalog share the official document.
-// Chrome can expose a tab-like current context in some builds; classify the
-// exact current document positively before choosing the catalog-only UI.
-// Match the full hostInstanceId URL, not just the extension origin/path.
+// Both fixed HTML surfaces run this same trusted Host, SDK and React root.
+// Native Side Panel classification still uses exact Chrome context identity.
 export {isActualSidePanelContext};
 
 // A source-only UI handoff. It never grants permissions, saves or starts a run.
@@ -67,6 +66,38 @@ export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,
 
 export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   const hostUrl = new URL(location.href);
+  // A fixed app.html route may select only a real installed App UI, never
+  // arbitrary JS. Its Host identity is minted and bound to the native tab.
+  if(hostUrl.pathname===APP_DOCUMENT_PATHNAME&&!globalThis.__opendeskAppPageBound){
+    const locator=requestedAppPageLocator(hostUrl.href);
+    const content=document.getElementById('opendesk-react-app');
+    const refuse=message=>{
+      document.documentElement.dataset.opendeskSurface='app-page-error';
+      if(content){content.setAttribute('role','alert');content.textContent=message;}
+    };
+    if(globalThis.top!==globalThis||!locator||
+       locator.page&&!resolveAppPageTarget(locator.toolId,locator.page)){
+      refuse('无效或不受当前应用支持的页面地址。请从应用界面重新打开。');return;
+    }
+    if(globalThis.__opendeskAppPagePending)return;
+    globalThis.__opendeskAppPagePending=true;
+    Promise.resolve(chrome.tabs.getCurrent?.()).then(tab=>{
+      if(!Number.isSafeInteger(tab?.id)||tab.id<0||tab.incognito)
+        throw new Error('E_APP_TOP_LEVEL_TAB');
+      const key='opendesk.app.host-instance.v1',route=JSON.stringify([locator.toolId,locator.page]);
+      let saved=null;
+      try{saved=JSON.parse(sessionStorage.getItem(key)||'null');}catch{/* An unreadable binding is not trusted. */}
+      if(!locator.hostInstanceId||saved?.tabId!==tab.id||saved?.route!==route||
+         saved?.hostInstanceId!==locator.hostInstanceId){
+        const fresh=crypto.randomUUID();
+        sessionStorage.setItem(key,JSON.stringify({tabId:tab.id,route,hostInstanceId:fresh}));
+        location.replace(canonicalToolHostUrl(hostUrl.href,fresh));return;
+      }
+      globalThis.__opendeskAppPageBound=true;
+      initToolShell(installDevelopment,{debugEnabled});
+    }).catch(()=>refuse('无法确认应用页面的可信标签页身份，已拒绝加载。'));
+    return;
+  }
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
   if (!hostInstanceId) {
     // Commit a new sender identity, preserving only a validated installed-tool
@@ -238,7 +269,8 @@ const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
 chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
-const sidebarTools=createSidebarTools({displaySurface:(requestedToolId(hostUrl.href)||requestedPreviewId(hostUrl.href))?'page':'sidebar',providerRuntime,openAIProviderSettings:()=>extensionList?.openProviderSettings?.(),api:chrome,currentPageTarget,taskWorkbench,foundationClient,runHost:sharedRunHost,localeController,toolLocaleService,view:toolView,
+const sidebarTools=createSidebarTools({displaySurface:(requestedToolId(hostUrl.href)||requestedPreviewId(hostUrl.href))?'page':'sidebar',
+  validateOwnPageTarget:(id,target)=>resolveAppPageTarget(id,target)!==null,providerRuntime,openAIProviderSettings:()=>extensionList?.openProviderSettings?.(),api:chrome,currentPageTarget,taskWorkbench,foundationClient,runHost:sharedRunHost,localeController,toolLocaleService,view:toolView,
   trustedAIProxyPilot:{enabled:true,version:TRUSTED_AI_PROXY_VERSION,mount:args=>extensionList.mountAIProxyPilot(args)},
   trustedKnowledgePilot:{enabled:true,mount:args=>{
     const conversation=createKnowledgeConversation({providerRuntime,api:chrome,hostInstanceId,
@@ -661,7 +693,14 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   }
   await sidebarTools.ready;
   if(shellClosed)return;
-  sidebarTools.openTool(toolId,{initialPage:requestedOwnPageTarget(hostUrl.href)});
+  const page=requestedOwnPageTarget(hostUrl.href);
+  if(hostUrl.pathname===APP_DOCUMENT_PATHNAME&&page&&!resolveAppPageTarget(toolId,page)){
+    document.documentElement.dataset.opendeskSurface='app-page-error';
+    const content=document.getElementById('opendesk-react-app');
+    if(content)content.textContent='当前应用不支持该页面。';
+    return;
+  }
+  sidebarTools.openTool(toolId,{initialPage:page});
 }).catch(error => console.warn('Tool tab surface unavailable',error));
 // Native menu launch context is never posted to the sandbox. The trusted host
 // binds a one-shot ticket to the exact iframe instance first.

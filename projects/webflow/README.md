@@ -1,5 +1,8 @@
 # Web Flow
 
+> **2026-11-10 · V2 协议 / ChatGPT 新对话 / 执行页可视化（OD-AI-WORKFLOW-BRIDGE）：** 在保留 `webflow.task.intent.v1` 严格五字段与旧授权的基础上，新增 `webflow.task.intent.v2` **四字段独立解析器**及内置百度/Google 的已审阅固定入口解析模块。AI 意图不带 `targetUrl`，执行层仍持有精确目标；V2 独立授权与真实运行、后台任务的**当前运行前台查看**已完成源码接线但仍未执行 Node/Chrome 实测；可在启动前选择的自动前台模式、新对话自动创建/Gemini 仍未完成，**不得把协议解析等于 V2 自动执行**。真实状态和下一步看 [原执行计划当前卡](docs/execution-plan.zh-CN.md#v2-协议--新对话--执行页可视化当前执行卡2026-11-10od-ai-workflow-bridge)；规范看[原产品合同](docs/product-contract.zh-CN.md)。
+
+
 OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输入输出、跨对话交接和任务恢复组织成可追溯的连续工作。
 
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**

@@ -1,3 +1,35 @@
+## 2026-11-10 · 四字段 V2 与跨对话任务增量合同（OD-AI-WORKFLOW-BRIDGE）
+
+**目标保持不变：** 让用户在 ChatGPT 中直接要求创建新聊天、选择已支持的模型/推理、经授权发送提示词，并把真实对话 URL 和持久结果交回；同时能在默认后台运行的搜索任务上按需查看实际执行标签页。打开新聊天、不明回执、脚本 completed 均不等于业务成功。
+
+### 两个并存且互不自动继承授权的意图版本
+
+- V1：`webflow.task.intent.v1`，严格五字段 `protocol/candidateId/taskId/targetUrl/args`。现有解析器、审批、安装身份、精确 URL、回传和防重放保持原状。
+- V2：`webflow.task.intent.v2`，严格四字段 `protocol/candidateId/taskId/args`，**禁止** `targetUrl`、回调 URL、tabId、windowId、runId、安装身份及顶层 `activateTab`；重复字段与额外字段拒绝。
+- V2 只表示任务意图，不携带或继承旧 V1 执行许可。现有 V1 授权仍精确绑定原任务、目标、输入、安装代次、来源；**没有独立 V2 授权合同及可信执行准入之前，V2 只能解析与安全地解析固定目标，不能执行**。
+- 真实执行仍使用原 Controller/Authority/Host/Installed Task、Chrome 权限、持久防重放和结果交付。内部请求可以继续有 `targetUrl`；退役的是**AI 候选字段**，不是执行层需要的精确 URL。
+
+### 目标解析与信任边界
+
+1. **固定入口：** 原已审阅 Task Manifest 的 `siteOrigins` 只约束网站 Origin，不能直接作为 `entryUrl`。首批经固定编译/内置发布哈希核验的 `baidu.search.top3` → `https://www.baidu.com/`、`google.search.top3` → `https://www.google.com/`。解析后还须复核当前真实安装、任务参数、权限、用户授权与来源文档。
+2. **当前页面：** 只用可信执行层预先捕获并绑定的目标 tab/document/url，不以“当前激活的任意标签页”回退。
+3. **动态目标：** 单独的经审阅绑定或 Task 专属引用，缺少绑定/权限/唯一身份时拒绝。不能让 AI 通过编造 URL 或 Origin 直接取得新目标。
+4. 来源 ChatGPT/Gemini 与执行目标 Google/Baidu 必须分别绑定；安装版本、权限、Tab 文档身份、Grant 状态发生变化时停止，不在 UNKNOWN 状态自动重发/重建。
+5. 长提示词和交接包采用受控、具备完整性及生命周期检查的持久引用；**不**无限扩大 `args` 或让自由文本承载身份和授权。
+
+### 两项业务的执行合同
+
+- `chatgpt.conversation.create` 与后续 `gemini.conversation.create` 应为两个独立受审阅的 Task，参数由各自 `paramsSchema` 管理（`prompt`, `send` 默认 `false`, 可选 `model`, `effort`, `thinking`）。未指定的设置不触碰；指定设置无法实际核验则停止发送，不悄悄降级。草稿准备成功与正式发送成功分别返回；只有核对实际新会话及消息身份，才能报告完整成功。
+- `activateTab` 属**可信宿主查看选项**，默认 `false`，不是搜索脚本业务参数，不增加 V2 顶层字段。查看已运行任务应读取原 RunHost 的 tab/document 身份并校验最新权限；只做一次可观察标签激活，不触发 Runner、Run/Result 新建或交付重试；用户自行切走后不抢焦点。若将来允许 AI 请求前台，需另立独立审核的版本化合同。
+- 先以 ChatGPT 官方网页和独立 Gemini adapter 验证；没有真实页面和新会话读取记录之前，不以 Mock 或相同四字段 JSON 声称多站完成。
+
+### 当前实现等级（截至 2026-11-10）
+
+**SOURCE_PARTIAL：** V2 独立结构解析及拒绝额外字段；内置百度/Google 固定启动入口的冻结版本/源码/Origin 解析模块与 Node 定向测试用例。V1 业务和旧批准没有迁移。**已接入但未实测：** 后台任务在可信侧栏通过当前请求的真实 Run 身份触发单次前台查看；共用原数据库、Host、权限校验和持久防重放记录（`webActivation`）。查看动作只激活同一自有目标 tab/document，不提交 Task、不发送结果，失败或回执未知禁止重复激活。
+**尚未接线：** 独立 V2 批准与运行准入、通用当前/动态目标绑定、可在任务开始前选择并自动激活的前台模式、新 ChatGPT Task、Gemini Task、受控交接引用。Node/包/Chrome/真实业务均待在可执行工作区补证，不能把孤立 smoke test 写成这些 PASS。阶段与下一步只维护在原 [执行计划](execution-plan.zh-CN.md) 中。
+
+---
+
 # Web Flow · AI Workflow Bridge — 长期产品目标与需求合同
 
 > **自带任务安装体验（2026-11-09）：** 新用户首次进入任务入口或产生后台候选时，百度 1.1.4 与 Google 1.0.0 由原 Task 安装事务按扩展自带的固定包建立真实安装、Revision 与安装授权，不要求先去“开发”Run 或提供 runId。`builtin-release / packaged` 是发行来源证明，不是伪造的本机运行证明。安装不代表网站权限、执行许可、自动触发或业务成功；这些仍按原可信链处理。初始化须幂等，既有安装身份、数据、授权及停用状态保持；主动卸载持久保留，缺失、卸载、停用和初始化失败须给出准确原因，并可进入原管理/安装审阅恢复。普通导入/用户 Task 的真实运行验证不变。当前实现与真实生效状态分开见[执行记录](execution-plan.zh-CN.md#内置任务接入与恢复2026-11-09v0322)。

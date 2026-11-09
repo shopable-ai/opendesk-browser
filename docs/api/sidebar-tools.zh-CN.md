@@ -16,30 +16,18 @@ renderTool({surface});
 
 这是**展示提示**，不是 SDK 授权令牌、当前网页类型、页面执行世界或者操作浏览器标签页的能力；旧 Bridge 未提供时安全回退到 `sidebar`。同一安装版在两个容器中仍是独立 UI/iframe 实例，数据访问须走各自有权的 `OpenDeskTool.request`，按已有业务存储/乐观并发合同确认保存，不共享未保存草稿。
 
-### 打开当前工具自己的 PC 页面（源码已接线；真实 Chrome 待验收）
+### 打开当前应用自己的 PC 页面（app.html · 源码接线、安装验收待完成）
 
-支持此版本的 Host 会向沙箱工具公开 `OpenDeskTool.openOwnPage({view:'settings',section:'preferences'})`，返回 Promise；仅供真实用户直接点击按钮或按 Enter 的同步回调中发起。必须**在第一个 `await` 之前调用方法**，再等待回执：
+同一安装身份的 `sidepanel.html` 与 `app.html` 共享现有 Host、SDK、Bridge、Authority、存储和公共 React ToolHost；UI 可以按只读 `OpenDeskTool.surface` 选择紧凑布局或完整管理布局，两个页面的 React 实例、内部路由、焦点及未保存草稿相互独立。
 
-```js
-button.addEventListener('click', () => {
-  if (typeof OpenDeskTool.openOwnPage !== 'function') {
-    showLegacySettings(); // 旧 Host：保留原侧栏设置，不显示无效链接
-    return;
-  }
-  const opening = OpenDeskTool.openOwnPage({view:'settings',section:'preferences'});
-  void opening.then(result => {
-    if (result.opened === true) showStatus('标签页已创建；页面加载和配置保存需单独确认');
-  }, error => showError(error.code || 'E_PAGE_UNKNOWN', error.message));
-});
-```
+`OpenDeskTool.openOwnPage({view:'scripts'})` 与 `OpenDeskTool.openOwnPage({view:'settings',section:'profiles'})` 只允许从**当前应用内**的真实用户点击/Enter 同步发起，在第一个 `await` 前调用；旧 Host 不支持时应保留侧栏原导航。参数只含 `view` 和可选 `section`（小写安全 slug，1–40 字符）。不能传递 URL、toolId、脚本、安装身份或新权限。Bridge 和 Host 双重校验，具体业务路由由应用自有声明核对。
 
-- **精确请求**：仅接受普通对象的 `view:'settings'`、`section` 两字段；栏目为 1–40 位小写字母起始的字母、数字、短横线。禁止其他字段、工具 ID、URL、路径、脚本、凭证；栏目名称的业务含义由当前应用校验，不能赋权。固定目标为同一扩展的 `sidepanel.html?toolId=<当前工具>&view=settings&section=<栏目>`，真实 Host 补充独立 `hostInstanceId`。
-- **页面初始化**：`OpenDeskTool.surface` 为 `'page'` 时，读取**只读、非授权** `OpenDeskTool.initialPage`；如 `{view:'settings',section:'preferences'}`。应用自身必须验证栏目，不能用该对象选择跨工具访问或开启网络能力；用户直接打开旧版固定页时该值为 `null`。
-- **真实点击**：沙箱 Bridge 只消费闭包持有的单次可信点击/Enter 传输口；宿主拒绝纯 `postMessage`、合成事件、只读预览、安装代际不一致、已停用/撤权、dirty/busy 的旧实例。固定可信 React 入口也要求浏览器真实用户激活。API 是可选的，旧安装 UI 不要求迁移。
-- **结果含义**：`{opened:true}` 仅确认 `chrome.tabs.create` 的回执，**不代表工具页加载、配置保存或代理成功应用**。打开失败应展示明确错误，不自动重放，尤其在结果未知时。常见错误有 `E_PAGE_TARGET`、`E_USER_GESTURE_REQUIRED`、`E_TOOL_CHANGED`、`E_PAGE_BUSY`、`E_PAGE_UNAVAILABLE`、`E_OUTCOME_UNKNOWN`。
-- **共享数据**：两个 UI 各有独立实例和未保存草稿；只能通过原工具拥有的 `storage.get/storage.set`（需要 `storage.local` capability）和 `ifMatch`/ETag 回执实现保存、读回和跨实例冲突保护。该导航接口不增加任何存储/代理/Chrome 权限。
+新 PC 页为同一个扩展内的 `app.html?toolId=<当前应用>&view=<应用支持视图>&section=<可选栏目>`；直接打开的 URL 只是展示定位符，顶层扩展页面须与真实 Chrome tab 身份创建并核对 session-scoped `hostInstanceId`。原安装身份、真实 sender document、epoch、权限和撤权校验保留；路由字段不会自动启用代理、运行任务或重放 unknown。`{opened:true}` 仅是 `tabs.create` 的回执，并不证明页面加载、持久化或业务动作成功。
 
-可复用源码 Demo：[header-actions-demo](../../examples/sidebar-tools/header-actions-demo/README.zh-CN.md)，其中保留原页头动作并扩展独立 Side Panel / PC 工作台。当前是**SOURCE_IMPLEMENTED / NODE、BUILD、CHROME、PACKAGE 尚未复验**，不能将文档或 Demo 算作正式安装通过。
+当前源码映射：AI Proxy 支持 `settings` 的已有七栏目；Web Flow 支持 `scripts` 的已有脚本 Tab（**旧正式工具包若尚未消费 initialPage，仍须走独立候选包晋升与安装验收**）；Bookmark Manager 目前没有已确认的独立 `settings` 业务视图，显示不支持而不是冒充成功。没有视图映射的其他 HTML/React/Vue 工具仍可打开 `app.html?toolId=...` 的自身默认页面，复用原 sandbox SDK、权限和存储。旧合法 `sidepanel.html` 的 settings/section 深链接继续兼容。
+
+失败代码 `E_PAGE_TARGET`、`E_USER_GESTURE_REQUIRED`、`E_TOOL_CHANGED`、`E_PAGE_BUSY`、`E_PAGE_UNAVAILABLE`、`E_OUTCOME_UNKNOWN` 不变；dirty/busy、失效实例、旧响应与未知副作用不会自动重放。源码定向测试、构建、隔离 Chromium 和已安装验收必须分层出证据。
+
 
 ### 非阻断消息：\`OpenDeskTool.ui.notify\`（2026-11-09 最小源码实现）
 

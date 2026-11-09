@@ -13,6 +13,15 @@ node scripts/build-sidebar-tool.mjs projects/ai-vip-share --check-project
 
 最新产品方向见[网站快速登录与 Cookie 会话方案](ROADMAP.zh-CN.md)。
 
+### 2026-11-10 专属链接安装与领取优化（源码阶段）
+
+当前有效产品决策详见 [DESIGN 第 5 节：专属链接、自动预检与取消恢复](DESIGN.zh-CN.md#5-专属链接自动准备必要时一次确认原事务恢复现行方案2026-11-10)，第 6–8 节同步 UI、边界与验收。优先自动识别可信开发链接并做无核销预检；缺少相符领取授权时保留“确认激活”这一次业务点击；已安装复用、不加三秒倒计时，取消/未知结果不擅自重新领取。新源码仅涉及原工具业务模块与开发 LAN 指引/定向测试，不新增安装器、Market 严格协议字段或第二套白名单。
+
+**交付状态**：本次 GitHub 上的源码差量不等于正式发行安装包：下述 1.4.32 包及其既有历史验收保持原样，新的源码需要本地定向测试、构建、原打包器候选→同源晋升和 Chrome 原安装器审阅。生产 HTTPS 可信入口、Market channel 和商业 Provider 尚未配置；跨客户端唯一核销、实际安装/双 Surface、真实网站套餐权益均为 NOT_TESTED。开发 LAN fixture 的自动预检不能当作生产自动安装或商业核销成功。
+
+**2026-11-10 受控验证**：修复提交 [`e0d4b43`](https://github.com/shopable-ai/opendesk-browser/commit/e0d4b43d1c00af9cc35eb5c4239275e4bc62c4a9) 后，[App CI 42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891) 中本轮链接/取消 9/9 PASS、LAN 安全入口 4/4 PASS；但全组 424 项为 342 PASS / 68 FAIL / 14 CANCELLED，整体 **FAIL**，不能作为正式包晋升凭据。详细首轮失败、修复和未测边界已回写原 [EXTENSION-VIP-TEST 验收账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。
+
+
 <a id="user-journey-current"></a>
 
 ## 当前开发交付（1.4.32，2026-11-07）

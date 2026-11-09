@@ -174,7 +174,10 @@ test('R35.1 React owns accessible five-tab navigation markup',async t=>{
   assert.match(html,/id="tab-develop"[^>]*aria-selected="true"[^>]*tabindex="0"/);
   assert.match(html,/id="tab-tools"[^>]*aria-selected="false"[^>]*tabindex="-1"/);
   assert.match(html,/id="tab-debug"[^>]*hidden=""/);
-  assert.equal((html.match(/role="tab"/g)||[]).length,6);
+  assert.match(html,/id="tab-app-debug"[^>]*hidden=""/);
+  // Five ordinary tabs, plus two normally hidden special tabs.
+  assert.equal((html.match(/role="tab"/g)||[]).length,7);
+  assert.equal((html.match(/role="tab"[^>]*hidden=""/g)||[]).length,2);
   assert.doesNotMatch(html,/onClick=|dangerouslySetInnerHTML/);
 });
 

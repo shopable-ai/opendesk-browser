@@ -1,78 +1,79 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../../src/tool-document-url.js';
+import {readFile} from 'node:fs/promises';
+import {APP_DOCUMENT_PATH,SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender,resolveToolSender} from '../../src/environment.js';
 import {toolPageHref,normalizeOwnPageTarget,requestedOwnPageTarget,
-  canonicalToolHostUrl,requestedToolId} from '../../src/ui/sidebar-tools/navigation.js';
-
+  requestedAppPageLocator,canonicalToolHostUrl,requestedToolId} from '../../src/ui/sidebar-tools/navigation.js';
+import {resolveAppPageTarget} from '../../src/ui/app-page-routes.js';
 const runtime={getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path};
-const base=runtime.getURL(SIDEPANEL_DOCUMENT_PATH);
-const page={view:'settings',section:'profiles'};
-
-test('own PC page URL keeps the exact installed tool locator and a bounded navigation hint',()=>{
-  const raw=toolPageHref(runtime,'ai-proxy',page);
+const appBase=runtime.getURL(APP_DOCUMENT_PATH),sideBase=runtime.getURL(SIDEPANEL_DOCUMENT_PATH);
+const proxy={view:'settings',section:'profiles'},scripts={view:'scripts'};
+test('one fixed app.html, with no pre-bootstrap sender authority',()=>{
+  const raw=toolPageHref(runtime,'ai-proxy',proxy);
+  assert.equal(new URL(raw).pathname,'/app.html');
   assert.equal(requestedToolId(raw),'ai-proxy');
-  assert.deepEqual(requestedOwnPageTarget(raw),page);
+  assert.deepEqual(requestedAppPageLocator(raw)?.page,proxy);
+  assert.equal(toolDocumentIdentity(appBase,raw),null);
   const canonical=canonicalToolHostUrl(raw,'host-99');
-  const url=new URL(canonical);
-  assert.equal(url.origin,new URL(base).origin);
-  assert.equal(url.pathname,'/sidepanel.html');
-  assert.equal(url.searchParams.get('hostInstanceId'),'host-99');
-  assert.deepEqual(requestedOwnPageTarget(canonical),page);
-  assert.equal(toolDocumentIdentity(base,canonical)?.toolId,'ai-proxy');
-  assert.equal(toolDocumentIdentity(base,canonical)?.hostInstanceId,'host-99');
-  assert.equal(url.hash,'');
+  assert.equal(new URL(canonical).searchParams.get('hostInstanceId'),'host-99');
+  assert.deepEqual(requestedOwnPageTarget(canonical),proxy);
+  assert.equal(toolDocumentIdentity(appBase,canonical)?.toolId,'ai-proxy');
+  assert.equal(toolDocumentIdentity(sideBase,canonical),null);
+  assert.equal(new URL(canonical).hash,'');
 });
-
-test('legacy tool pages and preview locators remain valid without a new page hint',()=>{
-  const legacy=canonicalToolHostUrl(toolPageHref(runtime,'header-actions-demo'),'host-100');
-  assert.equal(requestedOwnPageTarget(legacy),null);
-  assert.equal(toolDocumentIdentity(base,legacy)?.toolId,'header-actions-demo');
+test('app-defined views and closed sections; unregistered Bookmark settings refused',async()=>{
+  assert.deepEqual(normalizeOwnPageTarget(scripts),scripts);
+  assert.deepEqual(requestedOwnPageTarget(toolPageHref(runtime,'webflow',scripts)),scripts);
+  assert.deepEqual(resolveAppPageTarget('webflow',scripts),scripts);
+  assert.deepEqual(resolveAppPageTarget('ai-proxy',proxy),proxy);
+  assert.equal(resolveAppPageTarget('bookmark-manager',{view:'settings'}),null);
+  assert.equal(resolveAppPageTarget('webflow',{view:'scripts',section:'bad'}),null);
+  assert.equal(resolveAppPageTarget('ai-proxy',{view:'settings',section:'unknown'}),null);
+  assert.equal(requestedAppPageLocator(toolPageHref(runtime,'bookmark-manager'))?.page,null);
+  const typescript=await readFile('projects/ai-proxy/src/ui/optionsRoute.ts','utf8');
+  const declared=/export const OPTIONS_SECTIONS = \[([^\]]+)\]/.exec(typescript)?.[1]
+    ?.match(/'[^']+'/g)?.map(value=>value.slice(1,-1));
+  const js=await readFile('projects/ai-proxy/trusted/app-page-routes.js','utf8');
+  const registered=/const SECTIONS=Object\.freeze\(\[([^\]]+)\]\)/.exec(js)?.[1]
+    ?.match(/'[^']+'/g)?.map(value=>value.slice(1,-1));
+  assert.deepEqual(registered,declared,'route mapping must track the real AI Proxy sections');
 });
-
-test('foreign IDs, URLs, extra keys, malformed and duplicate fields cannot become tool-page authority',()=>{
-  const invalid=[
-    null,{},[],{view:'settings'},{view:'settings',section:''},
-    {view:'settings',section:'../../evil'},
-    {view:'settings',section:'credentials?token=x'},
-    {view:'settings',section:'Profiles'},
-    {view:'external',section:'profiles'},
-    {view:'settings',section:'profiles',url:'https://example.com/'},
-    {view:'settings',section:'x'.repeat(41)}
-  ];
-  for(const value of invalid)assert.equal(normalizeOwnPageTarget(value),null);
-  for(const value of invalid.filter(value=>value!==null))
-    assert.throws(()=>toolPageHref(runtime,'ai-proxy',value));
-  const good=canonicalToolHostUrl(toolPageHref(runtime,'ai-proxy',page),'host-111');
-  for(const attack of [
-    u=>u.searchParams.append('view','settings'),
-    u=>u.searchParams.append('section','rules'),
-    u=>u.searchParams.set('section','../evil'),
-    u=>u.searchParams.set('toolId','not_a_valid_tool_id'),
-    u=>u.searchParams.set('view','external'),
-    u=>u.searchParams.set('other','https://example.com'),
-    u=>u.searchParams.append('previewId','00000000-0000-0000-0000-000000000000')
-  ]){
-    const changed=new URL(good);attack(changed);
-    assert.equal(toolDocumentIdentity(base,changed.href),null);
+test('invalid parameter shapes, duplicates, fragments, foreign paths fail closed',()=>{
+  for(const target of [null,{},[],{view:''},{view:'Scripts'},{view:'../evil'},
+    {view:'scripts',section:'bad/path'},{view:'settings',section:''},
+    {view:'scripts',url:'https://example.com/'},{view:'scripts',toolId:'ai-proxy'}]){
+    assert.equal(normalizeOwnPageTarget(target),null);
+    if(target!==null)assert.throws(()=>toolPageHref(runtime,'ai-proxy',target));
   }
-  assert.equal(toolDocumentIdentity(base,'https://example.com/sidepanel.html?toolId=ai-proxy'),null);
+  const valid=canonicalToolHostUrl(toolPageHref(runtime,'ai-proxy',proxy),'host-1');
+  for(const change of [
+    url=>url.searchParams.append('toolId','webflow'),
+    url=>url.searchParams.append('view','scripts'),
+    url=>url.searchParams.append('section','rules'),
+    url=>url.searchParams.set('view','../script'),
+    url=>url.searchParams.set('section','PROFILES'),
+    url=>url.searchParams.set('extra','anything'),
+    url=>url.searchParams.set('previewId','00000000-0000-0000-0000-000000000000'),
+    url=>url.hash='#/profiles'
+  ]){
+    const url=new URL(valid);change(url);
+    assert.equal(requestedAppPageLocator(url.href),null);
+    assert.equal(toolDocumentIdentity(appBase,url.href),null);
+    assert.throws(()=>canonicalToolHostUrl(url.href,'host-2'));
+  }
+  assert.equal(requestedAppPageLocator('https://example.com/app.html?toolId=ai-proxy'),null);
 });
-
-test('canonical navigation drops foreign parameters and never carries fragment or arbitrary path',()=>{
-  const url=new URL(toolPageHref(runtime,'ai-proxy',page));
-  url.searchParams.set('token','secret');
-  url.hash='#/other';
-  const canonical=new URL(canonicalToolHostUrl(url.href,'host-44'));
-  assert.equal(canonical.searchParams.has('token'),false);
-  assert.equal(canonical.hash,'');
-  assert.deepEqual(requestedOwnPageTarget(canonical.href),page);
-  assert.throws(()=>canonicalToolHostUrl('https://example.com/sidepanel.html','host-44'));
+test('saved legacy sidepanel.html settings links remain independently valid',()=>{
+  const old=canonicalToolHostUrl(sideBase+'?toolId=ai-proxy&view=settings&section=profiles','host-100');
+  assert.equal(toolDocumentIdentity(sideBase,old)?.toolId,'ai-proxy');
+  assert.deepEqual(requestedOwnPageTarget(old),proxy);
+  assert.equal(toolDocumentIdentity(appBase,old),null);
+  assert.equal(new URL(canonicalToolHostUrl(sideBase,'host-panel')).pathname,'/sidepanel.html');
 });
-
-test('actual Host sender resolution permits only the canonical top-level own-tool page',async()=>{
+test('sender must be this active, top-level Chrome app document',async()=>{
   const api={runtime:{...runtime,id:'abcdefghijklmnopabcdefghijklmnop'}};
-  const url=canonicalToolHostUrl(toolPageHref(runtime,'ai-proxy',page),'host-300');
+  const url=canonicalToolHostUrl(toolPageHref(runtime,'ai-proxy',proxy),'host-300');
   const sender={id:api.runtime.id,url,documentId:'document-1',documentLifecycle:'active',
     frameId:0,tab:{id:3,incognito:false}};
   assert.equal(isToolSender(api,sender),true);
@@ -82,8 +83,8 @@ test('actual Host sender resolution permits only the canonical top-level own-too
     {tab:null},{url:url+'&toolId=evil'},{url:url+'&section=rules'},
     {url:url+'#route'},{url:url.replace('chrome-extension:','https:')}
   ]){
-    const altered={...sender,...variation};
-    assert.equal(isToolSender(api,altered),false);
-    await assert.rejects(resolveToolSender(api,altered),{code:'E_OWNER'});
+    const changed={...sender,...variation};
+    assert.equal(isToolSender(api,changed),false);
+    await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
   }
 });

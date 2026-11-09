@@ -1,3 +1,33 @@
+### 本轮补充 · 后台执行页的可信一次激活（同日）
+
+**本轮增加源码：** `src/native-agent/webflow-execution-view.js` 在原 Run/slot/target/document/permission 身份上进行只读验证并单次 `tabs.update`；`src/page-events/web-task-ingress.js` 新增仅受信 Side Panel 可访问的 `activate-run`；`src/native-agent/chatgpt-bridge-trigger-gate.js` 利用原持久账本预写 `webActivation`，重启、回执未知或重复点击均不重新激活；`src/native-agent/chatgpt-fixed-bridge-host.js` 只从可信侧栏真实用户手势发起；`projects/webflow/trusted/CurrentTask.tsx` 在“当前任务”显示有运行中后台原请求时的“前台显示本次任务页面”按钮。不向百度/Google 业务 args 写入任何 `activateTab` 字段，默认继续后台执行。
+
+**新增测试源码：** `projects/webflow/tests/background-execution-view.test.mjs` 验证唯一执行目标、生命周期变化、撤权与 ACK 丢失；在原 `chatgpt-background-ingress.test.mjs` 增加持久单次栅栏跨 worker 重启用例。隔离 JS 内存替身完成 6 项 smoke assertions（不是 Node runner，不是 Chrome）。**各真实验收仍 NOT_TESTED**。前台选项当前仅支持运行中任务的手动切换，未实现任务开始前设置自动前台；Chrome 多窗口焦点行为也尚未验证。
+
+**下一项 Codex/Chrome 验证：** 先在真实 repo 运行 `node --test projects/webflow/tests/task-intent-v2.test.mjs projects/webflow/tests/background-execution-view.test.mjs projects/webflow/tests/chatgpt-background-ingress.test.mjs projects/webflow/tests/auto-grants.test.mjs`，修复任何失败；浏览器用实际百度/Google Task 对照后台默认、运行中点前台、目标导航中点前台、无权限、撤权、重复点击、切回来源页和关闭标签页等情形，确认没有第二个 Run/Result、没有错 tab 或二次激活。原聊天任何草稿及 UNKNOWN 保留。
+
+---
+
+## V2 协议 + 新对话 + 执行页可视化当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
+
+**原始用户目标：** 让普通 ChatGPT 消息触发已授权的“创建新聊天→可选模型与推理→草稿或经授权发送→取回真正新 URL/回执”；百度/Google 默认后台运行，用户点击查看时只显示**原请求**真实目标标签页。新增 V2 `protocol/candidateId/taskId/args`，AI 不再传 `targetUrl`，保留 V1 严格五字段。严禁重复 Runner/Authority、自动迁移旧批准或用 completed 代替业务结果。
+
+**源审计：** main 在本轮审计过程中已有其他 owner 并行更新，必须以最终写入时 HEAD 和路径粒度比对为准。旧 `chatgpt-task-request.js` 只有 V1；`chatgpt-execution-page.js` 有经 Run/Document 核对的单次标签激活，但服务于当前旧 Host operation，后台 ingress 还缺可信查看链；`src/platform/tasks/contract.js` Task Manifest 只有 `siteOrigins`，并无完整 `entryUrl`。计算接力是演示性质，不能当正式新聊天创建已完成。
+
+**本轮差量（源码候选，需在 main 上确认提交）：**
+- `src/native-agent/chatgpt-task-request.js`：保留原 V1，新增独立四字段 V2 验证；重复 JSON 键、额外 targetUrl / 特权字段拒绝。
+- `src/native-agent/webflow-v2-target.js`：固定任务从内置发行 pin + 真实已核验 Manifest/安装身份检查解析启动 URL；未绑定其他任务拒绝，不从 `siteOrigins` 推断路径或从 active tab 猜测。
+- `projects/webflow/tests/task-intent-v2.test.mjs`：V1/V2、字段拒绝、固定入口、Origin/版本/安装变更、参数缺失的离线回归用例。
+- 本文件 / 产品合同 / README：以真实证据维护阶段，不另建总计划。
+
+**证据等级：** 仅独立 JS 函数结构 smoke check 验证解析器五类正负路径（使用 URL 测试替身），不是仓库 `node --test`，不是已安装包或 Chrome。现有 V1 搜索历史实测保留为历史，不继承给 V2。CodexPro 当前本地工作区连接不可用，无法核对本机未提交修改，也不能运行真实系统 Chrome：本次 `NODE_TESTED=NOT_TESTED`、`PACKAGE_READY=NOT_TESTED`、`CHROME_TESTED=NOT_TESTED`、`V2_BUSINESS=NOT_TESTED`。
+
+**后续最短纵向路径（不得在未证实时扩大成功口径）：** ①本地 Codex 拉取最新 main、读取 AGENTS 和未提交差异，运行新增 `node --test projects/webflow/tests/task-intent-v2.test.mjs` 与受影响 V1 回归；②实现独立版本化 V2 批准，接通源码解析与原 ingress/ledger/Authority，验证无 V1 权限继承；③以真实后台 Run/Document 身份为中心接通 Side Panel 的前台查看动作，验证不重跑与切走不抢焦点；④实现第一方 `chatgpt.conversation.create` 的 `send:false` 草稿和显式 `send:true`，核验新会话模型和路由、UNKNOWN；⑤只在 Gemini 真实 Task/网页通过后记录多站扩展完成。Chrome 原旧会话、草稿及 UNKNOWN 不要改动或重放。
+
+**验收口径与评分：** 分别评审协议简洁、兼容、安全、动态目标处理、工程可实现性五项百分制并用算术平均；只有具体源码和测试证据才可给工程正式分。目前缺少运行时 V2 准入、动态目标和 Chrome 证据，未达到整体 ≥95 出阶段门槛，`ENGINEERING_SCORE=NOT_SCORED`。独立反方检查：错误来源页、Origin 误当入口、V1 Grant 继承、重复候选、未知发送、新聊天模型未经核验和跨站扩权。
+
+---
+
 ## 两份提示词与 Google 核心测试（2026-11-09）
 
 用户明确要求的是新的 **ChatGPT 网页聊天**，未创建 Codex 对话。两份文件保存在本扩展 `prompts/`：`01-capability-setup.prompt.txt` 用于一次能力说明，`02-google-direct.prompt.txt` 独立请求 Google 搜索。执行候选分为一段中文等待说明和唯一 `opendesk-task` 五字段 JSON；参数、安装、网站权限和任务授权仍由原链核验。已有设置两处提示词生成器已同步源码，JSON 原样保留。新增真实行为回归证明说明文字不会进入协议、同一候选只进入原 durable gate 一次；相关检查 **113/113 PASS**，未增加纯文案字符串断言。
@@ -2617,3 +2647,19 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 原 CFT 149 中 Native 已连接，新阶段提示可见；官网加载失败恢复后，以全新身份 6f75880c-1484-43cd-a6d9-0d59f1cd83f8 回填完整协议并发送一次，官网持续“正在思考”且停止禁用，没有完整回答。新版真实读写及混合拒绝复测 NOT_TESTED，不继承 12.29 的原生 PASS/96 分；本轮 NOT_SCORED，后续文档独立复核因 429 未返回，未改 provider/model。磁盘仍为原 65B/SHA aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b。自有审阅页关闭停止轮询、诊断恢复隐藏、草稿为空、UI 释放，保留原环境和撤权状态。
 
 新说明明确区分普通聊天的原 Web Flow discovery/adapter/project 链与保持高级页打开的 JSON poll 链；逐步列明提示词完整 JSON、解析分派、Native read/list、真实上下文、edit、确认、SHA 保存及独立读回/完成，并保留未知写入只读对账和现有范围限制。见[最新链路](chatgpt-local-files.zh-CN.md#最新链路与本轮补漏2026-11-0601a1afe0)及[本轮独立记录](../evidence/file-protocol-routing-20261106-01a1afe0.json)。无提交、推送或其他项目改动。
+
+---
+
+## R2 差量 · ChatGPT→ChatGPT 交接合同与 GitHub 分工（2026-11-10）
+
+**用户目标**：复用 AI Send Queue、Web Flow 与 GitHub 完成多步骤、多对话日常任务；不重写原发送队列、不重复造 Host/任务库；以真实跨 ChatGPT 对话为下一阶段 MVP，而不是重新讨论旧 P0。补充技术决策见 [multi-conversation-github-r2.zh-CN.md](multi-conversation-github-r2.zh-CN.md)，BR-06/07/08/10/11/12 仍以本项目 product-contract 为权威。
+
+**本轮实际修改（main）**：
+- 新增 `projects/webflow/docs/multi-conversation-github-r2.zh-CN.md`：只记录 gh-aw/Actions 与 Web Flow 的执行分工、P1a 最短链、输入互斥、安全与验收，不另建需求真相/并行计划。
+- 新增 `projects/webflow/src/chat-handoff-contract.js`：**纯数据** `opendesk.workflow.handoff.v2`，仅允许同 Profile 的 ChatGPT 原 A → 最多一次新 ChatGPT B → 原 A 的有界交接候选；要求可信调用侧提供 expectedSource/Target/InputRefs/AuthorizationRef，拒绝错源、篡改证据、错误时间/预算/多余字段。它不会验证真实授权，也**不能**执行任何网页动作。
+- 新增 `projects/webflow/tests/chat-handoff-contract.test.mjs`：10 组 Node 顶层测试覆盖冻结、版本隔离、封闭 Schema、可信预期范围、期限/步数、恶意附加字段、UTF-8 长度与来源回填；在独立 Node 22 环境对**精确 Git blob 内容**验证 `10/10 PASS`（blob SHA 分别为 `05009811950a092c7f0da90523dd48256da36496`、`26e527e4652bd3af6436f92e75a4e1e2c4ebb0c8`）。非仓库 CI、非 Chrome/Native 原生测试。
+- 原 `handoff-contract.js` v1、`queue/state.js` v1、AI Send Queue Page / Host、Web Flow 自动执行/授权链、`dist/development` 与现有正式包**完全未改**；未触发任何 ChatGPT 发送、Codex、GitHub Issue 写入或权限申请。
+
+**证据分级**：`SOURCE_IMPLEMENTED=YES`（纯 v2 合同和测试已提交），`COMPONENT_TESTED=10/10`（独立 Node 22，Git blob 一致），`INTEGRATION=NOT_IMPLEMENTED`，`CHROME_NATIVE_VERIFIED=NOT_TESTED`，`PRODUCT_DONE=NOT_TESTED`，`ENGINEERING_SCORE=NOT_SCORED`。不能把数据解析测试当多对话已跑通。
+
+**下一条最小执行动作**：只读核查并行中的 `chatgpt.conversation.create` 是否已有正式可信入口和单次创建回执；若已合入，新增最小 ChatGPT site adapter 并接现有 Bridge/Authority/RunHost 做 A→B→A（一轮 B）实测；若仍未合入，先完成不执行真实网页的 v2 交接 Receipt 与读写对账测试，**不要重复开发新对话按钮/Runner**。测试时必须隔离原 Send Queue 的草稿、IME、附件与 unknown；真实结果基于 conversationId/turnId/Run/Result/唯一交付回执验证。GitHub 初期只读，写入评论须另行明确授权。

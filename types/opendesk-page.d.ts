@@ -99,6 +99,12 @@ export interface ModernPageCapabilities {
   readonly clickNavigation: readonly ('load' | 'domcontentloaded')[];
   readonly unsupported: readonly string[];
 }
+export interface OpenDeskUploadMetadata {
+  /** Safe basename including extension; e.g. cover.png or clip.mp4. */
+  name?: string;
+  /** Explicit MIME; image/jpeg, image/png, image/webp, image/gif, video/mp4 or video/webm. */
+  type?: string;
+}
 export interface OpenDeskPage {
   /** Get the complete HTML document including DOCTYPE (Playwright-compatible).
    * The framework transparently transfers a bounded, consistent snapshot.
@@ -112,6 +118,8 @@ export interface OpenDeskPage {
   /** Appends String(text); use Locator.fill() to replace or clear. */
   type(css: string, text: string | number | boolean | null | undefined,
     options?: {delay?: number}): Promise<'Typed'>;
+  /** One file input per call. Bounded to 1 MiB; does not imply website upload was saved. */
+  uploadFile(css: string, data: ArrayBuffer | Blob | string, metadata?: OpenDeskUploadMetadata): Promise<void>;
   readonly keyboard: OpenDeskKeyboard;
   locator(css: string): OpenDeskLocator;
   getByRole(role: OpenDeskRole, options?: RoleMatchOptions): OpenDeskLocator;

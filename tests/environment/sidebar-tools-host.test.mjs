@@ -1812,7 +1812,7 @@ test('own PC page shares the existing per-tool lifecycle lock', {timeout:3000},a
   gate.resolve();await held;
   await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='1'));
   assert.equal(whileLocked,0,'opening must wait for install, update and revoke operations');
-  assert.deepEqual(created,[{url:'chrome-extension://test/sidepanel.html?toolId=quick-notes&view=settings&section=preferences'}]);
+  assert.deepEqual(created,[{url:'chrome-extension://test/app.html?toolId=quick-notes&view=settings&section=preferences'}]);
   assert.deepEqual(f.frame.contentWindow.sent.find(row=>row.requestId==='1').result,{opened:true});
 });
 test('own PC page denies a plain window message without its private click port',async t=>{
@@ -2969,7 +2969,7 @@ test('stopped tool detail opens a fixed full-page route without running sidebar 
   f.host.openTool(sample.id);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   f.emit(f.elements['sidebar-tool-open-tab'],'click');await pause();await pause();
-  assert.deepEqual(opened,['chrome-extension://test/sidepanel.html?toolId=quick-notes']);
+  assert.deepEqual(opened,['chrome-extension://test/app.html?toolId=quick-notes']);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
