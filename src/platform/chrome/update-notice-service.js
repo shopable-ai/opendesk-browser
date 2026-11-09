@@ -262,15 +262,12 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       source:'Chrome',fromVersion,requiresReview:false};
     await mutate(state=>appendTrustedRelease(state,entry,now()));
   }
-  function openTrustedUpdates(tabId){
-    // sidePanel.open is only a navigation gesture. It is NOT install consent.
-    let opened;
-    try{opened=api.sidePanel?.open?.({tabId});}catch{/* Fall back to a fixed document. */}
-    Promise.resolve(opened).catch(()=>api.tabs.create({
-      url:api.runtime.getURL('sidepanel.html')}).catch(()=>{}));
-    if(!opened)void api.tabs.create({url:api.runtime.getURL('sidepanel.html')}).catch(()=>{});
+  function openFallbackUpdateTab(){
+    // Trusted document only. This cannot approve or install anything.
+    void Promise.resolve(api.tabs.create({url:api.runtime.getURL('sidepanel.html')}))
+      .catch(()=>{});
   }
-  async function handle(message,sender){
+  async function handle(message,sender,{openedOnGesture=null}={}){
     if(!isPlain(message)||message.protocol!==UPDATE_NOTICE_PROTOCOL)return null;
     const ui=trustedUi(sender),page=trustedPage(sender);
     if(!ui&&!page)throw fail('E_UPDATE_SENDER');
@@ -330,7 +327,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
           return ack?.duplicate?null:ack?.state||null;
         });
         if(!result)throw fail('E_UPDATE_CLAIM_STALE');
-        liveClaims.set(message.token,{token:message.token,tabId:sender.tab.id});
+        liveClaims.set(message.token,{token:message.token,tabId:sender.tab.id,
+          documentId:sender.documentId});
         return {ok:true};
       }
       const saved=await mutate(state=>actOnUpdateToast(state,{now:now(),
@@ -338,14 +336,34 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         documentId:sender.documentId}));
       if(!saved)throw fail('E_UPDATE_CLAIM_STALE');
       liveClaims.delete(message.token);
-      if(message.action==='view')openTrustedUpdates(sender.tab.id);
+      if(message.action==='view'){
+        // A real click opens the panel synchronously in onMessage, before any await.
+        // A SW restart may lose that hint; a verified persisted action can still
+        // open the existing fixed HTML in a normal tab. No install is performed.
+        if(openedOnGesture)
+          void Promise.resolve(openedOnGesture).catch(openFallbackUpdateTab);
+        else openFallbackUpdateTab();
+      }
       return {ok:true};
     }
     throw fail('E_UPDATE_OPERATION');
   }
   const onMessage=(message,sender,reply)=>{
     if(message?.protocol!==UPDATE_NOTICE_PROTOCOL)return false;
-    Promise.resolve().then(()=>handle(message,sender)).then(data=>
+    // Chrome's sidePanel.open requires the ORIGINAL user-gesture event stack.
+    // Opening after the awaited storage transaction loses that privilege.
+    // Synchronous sender + live visible-claim checks are presentation only;
+    // the async Host handler still verifies permissions and persists VIEWED.
+    let openedOnGesture=null;
+    if(message.kind==='page-action'&&message.action==='view'&&
+       typeof message.token==='string'&&trustedPage(sender)){
+      const claim=liveClaims.get(message.token);
+      if(claim?.tabId===sender.tab.id&&claim.documentId===sender.documentId){
+        try{openedOnGesture=api.sidePanel?.open?.({tabId:sender.tab.id})||null;}
+        catch(error){openedOnGesture=Promise.reject(error);}
+      }
+    }
+    Promise.resolve().then(()=>handle(message,sender,{openedOnGesture})).then(data=>
       reply({ok:true,data}),error=>reply({ok:false,error:{
         code:error?.code||'E_UPDATE_UNKNOWN',message:errorText(error)}}));
     return true;
