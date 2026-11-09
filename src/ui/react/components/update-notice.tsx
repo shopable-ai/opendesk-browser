@@ -61,7 +61,7 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy}){
       <strong>新增能力，须单独确认：</strong>
       <span>{row.newCapabilities.join('、')}</span></div>}
     <div className="od-update-release-actions">
-      {needsUpdate&&row.ignoredAt===null&&row.kind==='sidebar-tool'&&
+      {needsUpdate&&row.kind==='sidebar-tool'&&
         <button type="button" onClick={review} disabled={working||busy}>审阅并更新</button>}
       {needsUpdate&&row.viewedAt===null&&row.ignoredAt===null&&
         <button type="button" onClick={()=>action('view')} disabled={working||busy}>查看更新</button>}
@@ -118,8 +118,8 @@ export function UpdateNoticeSlot({surface='sidebar',activeTab='tools',onOpenTool
     document.addEventListener('keydown',esc);
     return ()=>{
       document.removeEventListener('keydown',esc);
-      if(dialog.current?.contains(document.activeElement))
-        (before?.isConnected?before:trigger.current)?.focus?.({preventScroll:true});
+      if(!dialog.current||dialog.current.contains(document.activeElement))
+        (trigger.current?.isConnected?trigger.current:before)?.focus?.({preventScroll:true});
     };
   },[opened]);
   const act=async(key,action)=>{
