@@ -3006,6 +3006,23 @@ test('default reader settings can restore a stopped website without revisiting i
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'revoke does not replace the tool package');
 });
 
+test('legacy reader settings restore an excluded page while preserving other exclusions',async t=>{
+  const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
+  const first='https://old.example/first',second='https://old.example/second';
+  const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_PAGE_RULES_STORE,{[toc.id]:[first,second]}]]);
+  const target={snapshot:{status:'available',url:'https://article.example/latest'}};
+  const f=await hostFixture(t,{store,startTool:true,tool:toc,target});
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');
+  const pages=f.elements['sidebar-tool-settings-pages'];
+  assert.deepEqual(pages.rows.map(row=>row.id),[first,second]);
+  f.view.activateRow(pages.key,first);
+  await settle(()=>store.get(READING_TOC_PAGE_RULES_STORE)?.[toc.id]?.length===1);
+  assert.deepEqual(store.get(READING_TOC_PAGE_RULES_STORE),{[toc.id]:[second]});
+  assert.equal(store.has(READING_TOC_SITE_STORE),false,'page restore does not change website availability');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc]);
+});
+
 
 for(const [toolId,key,url,origin] of [
   ['reading-toc',READING_TOC_SITE_STORE,'http://127.0.0.1:43111/demo-form.html','http://127.0.0.1:43111'],

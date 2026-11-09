@@ -1,6 +1,6 @@
 // Shared contract for trusted offline releases. Catalog policy controls only new installs. Reading these bytes
 // never installs a tool, changes site grants or creates a sandbox instance.
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,validateSidebarToolPackageMetadata,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 
@@ -76,22 +76,12 @@ export function validateOfficialReleaseCatalog(value){
       row.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(row.installationPolicy)||seen.has(row.id)||
       row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||
       typeof row.sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.sha256))throw error('官方发行身份、策略、路径或摘要无效');
-    // Reuse the existing package metadata/capability validator. These inert
-    // placeholders only validate the descriptor; executable bytes load later.
-    const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
-    const hasBudget=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.siteBudget');
-    // V2 may expose approved Browser SDK services beyond Cookies/Bookmarks.
-    // Reuse the one package validator; do not invent special product exceptions.
-    const hasSdk=hasMenus||Array.isArray(row.capabilities)&&row.capabilities.some(cap=>
-      cap.startsWith('browser.')||cap==='network'||cap==='page.prompts');
-    validateSidebarToolPackage({format:hasSdk?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
+    // Descriptors have no package format or executable fields. V2's metadata
+    // allowlist includes v1; the actual format and complete modules are checked
+    // against the bounded, digest-verified package by loadOfficialTool.
+    validateSidebarToolPackageMetadata({format:SIDEBAR_TOOL_FORMAT_V2,
       id:row.toolId,version:row.version,
-      title:row.packageTitle,description:row.description,capabilities:row.capabilities,
-      html:'<main></main>',css:'',js:'void 0;',
-      ...(hasBudget?{backgroundPolicy:{kind:'site-budget.v3',suggestions:[]}}:{}),
-      ...(hasSdk?{requires:{browserSdk:'1.0.0'},
-        contributes:{contextMenus:hasMenus?[{actionId:'sample-action',title:'Validation placeholder',
-          contexts:['page'],documentUrlPatterns:['https://example.com/*'],handler:'open-self'}]:[]}}:{})});
+      title:row.packageTitle,description:row.description,capabilities:row.capabilities});
     seen.add(row.id);
   }
   return structuredClone(value);

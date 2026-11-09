@@ -293,7 +293,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let officialReleases=[],officialError='',officialLoaded=false;
   let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0;
   let menuStatusKey='',menuStatus=null,menuStatusPending=false,menuStatusRequest=0;
-  let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
+  let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true,enableRecordsLoading=true;
   let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
@@ -1557,7 +1557,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>toolDirty||toolSaving||(!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty);
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
-  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1596,7 +1596,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY)||
       tool.id!=='cookie-editor'&&isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true||
       isFullBookmarkTool(tool)&&!bookmarkGranted);
-    tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
+    destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
     developmentStorage=readOnly?developmentSession:null;
@@ -1998,7 +1998,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!sameLiveCookie)destroyFrame();
       toolParked=false;
       active=tool;readOnlyPreview=false;previewDirty=false;
-      tocSettingsOpen=true;tocScope='site';render();
+      tocSettingsOpen=true;render();
       requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     };
     if(active&&!sameLiveCookie&&!canLeave(show))return false;
@@ -4265,20 +4265,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
     render();notice(allowed?'已恢复当前页面的目录运行':'当前页面不可用，目录监听将停止');
   }
-  async function setTocAvailability(allowed){
-    if(disposed||busy)return;
-    const url=currentPageTarget?.snapshot?.url,id=READING_TOC_TOOL_ID;
-    const origin=websiteOrigin(url);
-    if(!origin)throw new Error('当前未识别目标网页，请选中要设置的网站标签页');
-    const siteEnabled=tocSiteAllowed(siteGrants,id,url);
-    if(tocScope==='page'){
-      if(!siteEnabled)throw new Error('请先启用当前网站');
-      if(readingTocPageAllowed(tocPageRules,id,url)===allowed)return;
-      return setTocPageAvailability(allowed);
-    }
-    if(siteEnabled===allowed)return;
-    return toggleTocSite(id);
-  }
   async function toggleTocSite(id){
     if(disposed||busy) return;
     const item=toolById(id);
@@ -5118,9 +5104,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active.id===PROMPT_ID){
       if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
       if(toolDirty||toolSaving){notice(promptHostText(toolLocaleContext(active).locale,'saveDraftFirst'),true);return;}
-      tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;
+      tocSettingsOpen=true;refreshPromptSettings(active);requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;
     }
-    tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+    tocSettingsOpen=!tocSettingsOpen;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   if(adblockProductSettings)listen(adblockProductSettings,'click',event=>{
     if(event?.isTrusted!==true||!tocSettingsOpen||disposed||busy||toolSaving||toolDirty||
@@ -5138,7 +5124,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     frame.contentWindow?.postMessage({protocol:'opendesk.adblock.ui.v1',
       kind:'settings',toolId:ADBLOCK_ID,instance},'*');
   });
-  listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});
   const setSitePermission=allowed=>{
     const id=active?.id,capability=siteCapability(active),url=currentPageTarget?.snapshot?.url;
     if(!capability)return; // Basic prompt shortcuts use no per-site grant.

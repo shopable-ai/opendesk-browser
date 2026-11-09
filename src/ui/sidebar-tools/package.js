@@ -68,22 +68,16 @@ function normalizePageModule(value,tool){
   return normalized;
 }
 
-export function validateSidebarToolPackage(value) {
+// Catalog descriptors contain metadata only. Share the allowlist and bounds
+// without fabricating executable modules or treating a descriptor as a package.
+export function validateSidebarToolPackageMetadata(value) {
   const v2=value?.format===SIDEBAR_TOOL_FORMAT_V2;
-  if (!plain(value) || !fields(value,v2?V2_FIELDS:PACKAGE_FIELDS))
-    fail('工具包包含不支持的字段');
-  if (![SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2].includes(value.format) || typeof value.id!=='string' ||
+  if (!plain(value)||![SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2].includes(value.format) || typeof value.id!=='string' ||
       !/^[a-z][a-z0-9-]{1,39}$/.test(value.id) ||
       typeof value.version!=='string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value.version))
     fail('工具格式、ID 或版本无效');
-  if(value.localization!==undefined)validateToolLocalization(value.localization);
-  if(value.uiRuntime!==undefined&&value.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
-    fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
   for (const name of ['title','description'])
     if (!validText(value[name],LIMITS[name])) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
-  for (const name of ['html','css','js'])
-    if(typeof value[name]!=='string'||(name!=='css'&&!value[name].trim()))
-      fail('工具源码字段无效：'+name);
   const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;
   if (!Array.isArray(value.capabilities)) fail('工具能力声明必须是数组');
   if (value.capabilities.length>supportedCapabilities.length) fail('工具能力声明数量超出当前支持范围');
@@ -95,6 +89,19 @@ export function validateSidebarToolPackage(value) {
     fail('当前安装器不支持此工具格式的能力：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+
       '。请核对工具包格式与扩展运行身份；确认新版支持这些能力后再更新 OpenDesk Browser。','E_TOOL_CAPABILITY_UNSUPPORTED');
   }
+}
+
+export function validateSidebarToolPackage(value) {
+  const v2=value?.format===SIDEBAR_TOOL_FORMAT_V2;
+  if (!plain(value) || !fields(value,v2?V2_FIELDS:PACKAGE_FIELDS))
+    fail('工具包包含不支持的字段');
+  validateSidebarToolPackageMetadata(value);
+  if(value.localization!==undefined)validateToolLocalization(value.localization);
+  if(value.uiRuntime!==undefined&&value.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
+    fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
+  for (const name of ['html','css','js'])
+    if(typeof value[name]!=='string'||(name!=='css'&&!value[name].trim()))
+      fail('工具源码字段无效：'+name);
   if(value.pageModule!==undefined||value.capabilities.includes('page.module')){
     if(!v2||!value.capabilities.includes('page.module')||value.pageModule===undefined)
       fail('Page 模块与 v2 page.module 能力必须同时声明','E_TOOL_PAGE_MODULE');

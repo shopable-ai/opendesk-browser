@@ -9,6 +9,9 @@ import {validateSidebarToolPackage,serializeSidebarToolPackage,verifySidebarTool
 import {validatePageInstallPackage} from '../../src/scripting/user-scripts/page-install-package.js';
 import {createSidebarToolPackage,buildSidebarTool,promoteSidebarToolPackage}
   from '../../scripts/build-sidebar-tool.mjs';
+import {createOfficialToolResources} from '../../scripts/build-official-tools.mjs';
+import {validateOfficialReleaseCatalog,loadOfficialTool,OFFICIAL_SOURCE_SCHEMA,
+  OFFICIAL_SOURCE_REPOSITORY} from '../../src/sidebar-tools/official-catalog.js';
 
 const rules=()=>({matches:['https://example.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
@@ -25,6 +28,35 @@ async function fixture(){
 }
 const reverse=value=>Array.isArray(value)?value.map(reverse):value&&typeof value==='object'?
   Object.fromEntries(Object.entries(value).reverse().map(([key,row])=>[key,reverse(row)])):value;
+
+test('official offline producer and loader deliver a complete composite app without descriptor placeholders',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'official-page-module-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const pkg=await fixture(),project='examples/sidebar-tools/'+pkg.id;
+  await mkdir(join(root,project),{recursive:true});
+  await mkdir(join(root,'official-tools'));
+  await writeFile(join(root,project,pkg.id+'.opendesk-tool.json'),serializeSidebarToolPackage(pkg));
+  await writeFile(join(root,'official-tools/catalog.json'),JSON.stringify({schema:OFFICIAL_SOURCE_SCHEMA,
+    sourceRepository:OFFICIAL_SOURCE_REPOSITORY,tools:[{id:pkg.id,project,kind:'sidebar-tool',installationPolicy:'optional'}]}));
+  const {catalog,resources}=await createOfficialToolResources({root});
+  assert.deepEqual(validateOfficialReleaseCatalog(catalog),catalog);
+  const release=catalog.apps[0];
+  assert.deepEqual(release.capabilities,['page.module']);
+  assert.equal(Object.hasOwn(release,'pageModule'),false,'catalog metadata does not carry executable modules');
+  const api={runtime:{getURL:path=>'chrome-extension://fixture/'+path}};
+  const fetcher=async url=>new Response(resources.get(new URL(url).pathname.slice(1)));
+  assert.deepEqual((await loadOfficialTool(release,{api,fetcher})).tool,pkg);
+  for(const capabilities of [['page.module','page.module'],['page.module','page.unapproved'],['page.module',null]])
+    assert.throws(()=>validateOfficialReleaseCatalog({...catalog,apps:[{...release,capabilities}]}));
+  const missing={...pkg};delete missing.pageModule;
+  const missingBytes=JSON.stringify(missing),missingRelease={...release,
+    bytes:new TextEncoder().encode(missingBytes).length,sha256:await digestUtf8(missingBytes)};
+  await assert.rejects(loadOfficialTool(missingRelease,{api,fetcher:async()=>new Response(missingBytes)}),
+    {code:'E_TOOL_PAGE_MODULE'});
+  const changed=structuredClone(pkg);changed.pageModule.sourceUtf8+='\nvoid 1;';
+  await assert.rejects(loadOfficialTool(release,{api,fetcher:async()=>new Response(JSON.stringify(changed))}),
+    {code:'E_PACKAGE_INTEGRITY'});
+});
 
 test('embedded full Page package survives admission and canonical storage reordering',async()=>{
   const pkg=await fixture();
