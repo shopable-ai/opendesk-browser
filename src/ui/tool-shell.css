@@ -173,7 +173,7 @@
 #page-component-framework .page-component-choices label{position:relative;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:0;margin:0;color:var(--od-sub);font-size:12px;font-weight:600;line-height:1.5;text-align:center;white-space:nowrap;cursor:pointer}
 #page-component-framework .page-component-choices label>span{display:flex;align-items:center;justify-content:center;min-width:36px;min-height:28px;padding:0 var(--space-2);border:1px solid transparent;border-radius:var(--space-1)}
 #page-component-framework .page-component-choices input[type=radio]{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:0;margin:0;opacity:0;cursor:inherit}
-#page-component-framework .page-component-choices label:has(input:checked)>span{background:var(--od-paper);color:var(--od-brand);border-color:var(--od-input-border)}
+#page-component-framework .page-component-choices label:has(input:checked)>span{background:var(--od-paper);color:var(--od-accent-ink);border-color:var(--od-input-border)}
 #page-component-framework .page-component-choices label:has(input:focus-visible)>span{outline:2px solid var(--od-focus);outline-offset:1px}
 #page-component-framework:disabled .page-component-choices label{opacity:.55;cursor:not-allowed}
 #page-component-hint{font-size:12px;line-height:1.5;margin:0;color:var(--od-sub)}
