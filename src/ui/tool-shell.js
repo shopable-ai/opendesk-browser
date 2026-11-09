@@ -214,6 +214,20 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
   nativeConnection,localeController,webflowAuto,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false,
+  // Route verified update rows to the ORIGINAL Installer review; this never commits an install.
+  onOpenUpdateReview:async row=>{
+    if(shellClosed||!row||row.kind!=='sidebar-tool'||
+       !['available','review_required'].includes(row.status)||row.ignoredAt!==null)
+      return false;
+    const {apps}=await loadOfficialCatalog({api:chrome});
+    const same=apps.some(release=>release.toolId===row.id&&
+      release.version===row.version&&release.sha256===row.sha256&&
+      release.id===row.source);
+    if(!same||taskWorkbench.navigate('tools')===false)return false;
+    await sidebarTools.ready;
+    if(!sidebarTools.canPresentMarketReview())return false;
+    return sidebarTools.openOfficialReview(row.id)===true;
+  },
   onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
