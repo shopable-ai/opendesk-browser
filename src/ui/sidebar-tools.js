@@ -3849,7 +3849,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          !samePackage(active,toolById(active.id)))return;
       const payload=normalizeToolUiNotice(message.payload);
       if(payload&&toolUiNoticeRate.allow(instance))
-        view.showToast('「'+active.title+'」：'+payload.message);
+        view.showToast('「'+active.title+'」：'+payload.message,payload);
       return;
     }
     if(message.kind==='request'&&message.operation==='tool.page.open'){
