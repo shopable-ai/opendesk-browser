@@ -7,7 +7,8 @@ import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 test('Tool UI notice accepts only bounded plain-text messages',()=>{
   assert.deepEqual(normalizeToolUiNotice({message:'  已保存  '}),{message:'已保存'});
   assert.deepEqual(normalizeToolUiNotice({message:'✓ saved'}),{message:'✓ saved'});
-  for(const invalid of [undefined,null,'saved',[],{},Object.create(null),
+  assert.deepEqual(normalizeToolUiNotice('✓ saved'),{message:'✓ saved'});
+  for(const invalid of [undefined,null,[],{},Object.create(null),
     {text:'saved'},{message:42},{message:''},{message:'  '},
     {message:'valid',html:'<script>alert(1)</script>'},
     {message:'x'.repeat(TOOL_UI_NOTICE_MAX_LENGTH+1)},
@@ -39,6 +40,10 @@ test('typed toast contract rejects injected actions, unsafe text and abusive tim
     position:'bottom-right',timeout:10000,group:false});
   assert.deepEqual(normalizeToolUiNotice({message:'用户须手动关闭',timeout:0}),
     {message:'用户须手动关闭',timeout:0});
+  assert.deepEqual(normalizeToolUiNotice({message:'好',type:'positive'}),
+    {message:'好',type:'success'});
+  assert.deepEqual(normalizeToolUiNotice({message:'失败',type:'negative'}),
+    {message:'失败',type:'error'});
   assert.equal(TOOL_UI_NOTICE_POSITIONS.length,6);
   for(const invalid of [
     {message:'ok',type:'danger'}, {message:'ok',type:1},
