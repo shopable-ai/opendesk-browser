@@ -210,6 +210,32 @@ Cookie journal 继续使用原存储键、单键 CAS、8192 字节预算与未�
 
 ### 5.5 真实实现范围与解除条件
 
+**2026-11-10 Market × SQLite 开发 Demo 增量（以源码、CI、Chrome 三层分别验收）：** 保留原 5.1–5.4 的业务安全边界，新增 `src/market-site/vip-continuation.js` 和原网站客户端的 **VIP-only** 已安装查询、原 `OPEN_INSTALLED_APP`、原 `OPEN_INSTALL_REVIEW/GET_INSTALL_STATUS` 事务接续。入口只认开发 Market `http://127.0.0.1:43132/apps/opendesk/ai-vip-share/#vip-ref=…`；原 fragment 在同一标签页内仅保存 SHA-256 校验值，绝不加入严格 `opendesk.market.intent.v1` 或由网站调用兑换接口。只有安装事务确认已安装且当前 fragment 未变化，并得到原 Host 的 `APP_OPENED` 回执，才导航到发行方原批准的开发 `http://127.0.0.1:7898/activate?activation_code=…`，交由 **既有 AI VIP Share Controller** 做无消费预检、原本的一次明确确认、原恢复 journal 与可信 Cookie 逐批流程。Host `PANEL_REQUIRED`、取消、unknown、错误版本/发行溯源、禁用/撤权均停止自动导航并保留人工恢复入口；回执丢失只查原事务，网站不补发新安装。网站自身不能证明真正第三方会员。
+
+**本轮增加的最小 Provider 不是第二套 Market Host：** `projects/ai-vip-share/server/demo-provider.mjs` 仅在显式 `OPENDESK_VIP_DEMO_MODE=1`、固定扩展 Origin、绝对路径 SQLite DB 与 loopback `127.0.0.1:7898` 下运行。离线 CLI 发行一次短时合成领取引用并保存哈希；`/api/member`、`/api/preview`、`/api/redeem`、`/api/status` **沿用原业务 HTTP 路由**，预检不增加权益。SQLite `BEGIN IMMEDIATE` 和数据库 `UNIQUE(intent_id,issue_id,account_id,sku_id)`／`UNIQUE(grant_id)`／`UNIQUE(idempotency_key)` 的共同约束使同一发行实例只能提交一条模拟权益；可用原键或稳定业务四元组查回执。生产 `REVIEWED_SERVICE=null`、真实商业领取主体与 Provider 身份鉴别仍不具备；开发 HTTP Origin/header 可被其他本机程序伪造，**不得作为生产身份凭据**。服务端只发放开发额度，不生成、写入 Cookie，不授予第三方 VIP 或开启代理。
+
+**实际测试命令（仓库根，Node ≥22.12，优先在隔离工作目录中执行，不复用其他对话既有 7898 监听器或账本）：**
+
+```sh
+node --test projects/ai-vip-share/tests/demo-provider.test.mjs tests/environment/market-vip-continuation.test.mjs tests/environment/market-site-client-r5.test.mjs
+node --check projects/ai-vip-share/server/demo-provider.mjs
+node --check src/market-site/client.js
+npm run build:market-site
+```
+
+**手动 Demo 准备命令（严禁执行于真实用户密钥和已运行的旧 fixture DB）：**
+
+```sh
+mkdir -p /tmp/opendesk-vip-market-demo
+export OPENDESK_VIP_DEMO_MODE=1
+export OPENDESK_VIP_DEMO_DB=/tmp/opendesk-vip-market-demo/receipts.sqlite
+export OPENDESK_VIP_DEMO_EXTENSION_ORIGIN=chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf
+node projects/ai-vip-share/server/demo-provider.mjs issue demo-intent-01 demo-issue-01 20
+node projects/ai-vip-share/server/demo-provider.mjs
+```
+
+需要另行用实际同一 Chrome Profile 的扩展 ID 配置并构建开发 Market 与 Extension，访问 CLI 返回的 `marketUrl`，手动点击、审阅安装或打开已安装项；原 Controller 的开发服务入口必须匹配本 Provider，后续真实 Chrome 验收不能凭 Node 合成结果替代。1.4.32 正式 JSON 包不受本轮源码变更影响，不可冒充安装了新接续逻辑。正式 Market HTTPS、商业 Provider、受信链接精确发行及 1.4.33 源码的实际候选/Chrome/双 Surface 验证由独立任务承担。Demo 前先确定是否有其他对话占用 7898，不可停止、重置或覆盖它。
+
 唯一业务源码 owner：`projects/ai-vip-share/`。本轮差量是 `src/activation-links.js` 严格解析及取消范围模型、`src/main.js` 开发链接自动无副作用预检与取消代次、原 LAN 指引和定向 tests；不修改 `src/marketplace/intent.js`、`src/ui/sidebar-tools/installation.js`、共用 SDK 或并行 `app.html`。原 SDK/Host/Authority/权限不复制，HTML/Vue/React 兼容不受影响。
 
 生产解除条件依次为：运营方批准 HTTPS 来源及真实发行 channel；原 Provider 提供短期受限引用、完整权益/作用范围、稳定领取意图与跨端原子唯一/原笔查询；完成原严格协议升级和来源/身份/撤权审阅；本地 Codex 运行定向测试、同源打包并晋升新版、Chrome 实际安装及链接/站点验收。**当前 production Provider 和 Market channel 未配置，本候选未完成上述生产条件**；开发 fixture 不证明真实商业领券/网站 VIP。
