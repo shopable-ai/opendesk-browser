@@ -6,6 +6,7 @@ import {isToolSender,resolveToolSender} from '../../src/environment.js';
 import {toolPageHref,normalizeOwnPageTarget,requestedOwnPageTarget,
   requestedAppPageLocator,canonicalToolHostUrl,requestedToolId} from '../../src/ui/sidebar-tools/navigation.js';
 import {resolveAppPageTarget} from '../../src/ui/app-page-routes.js';
+import {initialToolSurface,verifiedToolSurface} from '../../src/ui/tool-surface.js';
 const runtime={getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path};
 const appBase=runtime.getURL(APP_DOCUMENT_PATH),sideBase=runtime.getURL(SIDEPANEL_DOCUMENT_PATH);
 const proxy={view:'settings',section:'profiles'},scripts={view:'scripts'};
@@ -87,4 +88,15 @@ test('sender must be this active, top-level Chrome app document',async()=>{
     assert.equal(isToolSender(api,changed),false);
     await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
   }
+});
+
+test('native Side Panel remains compact even with legacy toolId, but tabs keep PC layout',()=>{
+  assert.equal(initialToolSurface('/sidepanel.html',true),'page');
+  assert.equal(verifiedToolSurface('/sidepanel.html',true,true),'sidebar');
+  assert.equal(verifiedToolSurface('/sidepanel.html',true,false),'page');
+  assert.equal(verifiedToolSurface('/sidepanel.html',false,true),'sidebar');
+  assert.equal(initialToolSurface('/app.html',true),'page');
+  assert.equal(verifiedToolSurface('/app.html',true,true),'page',
+    'app.html can never masquerade as native Side Panel');
+  assert.equal(initialToolSurface('/unknown.html',true),'page');
 });
