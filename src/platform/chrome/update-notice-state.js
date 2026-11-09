@@ -51,7 +51,7 @@ export function trustedUpdateReleaseKey(release){
 }
 export function browserUpdateReleaseKey(browserId,versionValue){
   if(typeof browserId!=='string'||!/^[a-p]{32}$/.test(browserId)||
-     typeof versionValue!=='string'||!version.test(versionValue))
+     typeof versionValue!=='string'||!/^(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*)){2,3}$/.test(versionValue))
     fail('E_UPDATE_BROWSER_IDENTITY');
   return 'browser:'+browserId+':'+versionValue;
 }
@@ -120,7 +120,8 @@ export function noticeEligible(state,row,now){
     return false;
   if(row.claim&&row.claim.expiresAt>now)return false;
   // The second impression is permitted ONLY after the explicit first snooze.
-  if(row.impressionCount===1&&(!row.snoozeUntil||row.snoozeUntil>now))return false;
+  if(row.snoozeUntil!==null&&row.snoozeUntil>now)return false;
+  if(row.impressionCount===1&&!row.snoozeUntil)return false;
   return true;
 }
 export function claimUpdateToast(previous,{now,tabId,documentId,token}){
@@ -174,8 +175,12 @@ export function actOnUpdateToast(previous,{now,action,token,tabId=null,documentI
   }
   for(const row of rows){
     if(action==='snooze'){
-      if(row.impressionCount===1&&row.snoozeUntil===null&&row.ignoredAt===null&&row.viewedAt===null)
+      if(row.impressionCount===0&&row.snoozeUntil===null&&row.ignoredAt===null&&row.viewedAt===null)
         row.snoozeUntil=now+NOTICE_DAY_MS;
+      else if(row.impressionCount===1&&row.snoozeUntil===null&&row.ignoredAt===null&&row.viewedAt===null)
+        row.snoozeUntil=now+NOTICE_DAY_MS;
+      else if(row.impressionCount===1&&row.snoozeUntil<=now&&row.dismissedAt===null)
+        row.dismissedAt=now;
       else row.dismissedAt=now;
     }else if(action==='view')row.viewedAt=now;
     else if(action==='ignore')row.ignoredAt=now;
