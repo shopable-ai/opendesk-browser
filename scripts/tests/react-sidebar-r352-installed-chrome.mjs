@@ -27,6 +27,7 @@ const entry=manifest.side_panel?.default_path;
 assert.ok(entry,'Packaged manifest must declare side_panel.default_path');
 assert.ok(!entry.startsWith('/')&&!entry.includes('..')&&!entry.includes('://'),'Local packaged Side Panel entry required');
 assert.ok(existsSync(join(extension,entry.split(/[?#]/)[0])),'Manifest Side Panel document must exist in this candidate');
+assert.ok(existsSync(join(extension,'app.html')),'The same MV3 candidate must package fixed app.html');
 assert.ok(manifest.background?.service_worker,'Packaged MV3 service worker required');
 const keepBrowser=process.env.OPENDESK_KEEP_BROWSER==='1';
 const headful=process.env.OPENDESK_HEADFUL==='1';
@@ -148,6 +149,70 @@ async function openInstalledPage(){
   return state;
 }
 
+
+// Distinct evidence from the existing Side Panel smoke: a direct fixed App
+// document may bootstrap only its own presentation route. This empty test
+// profile does not install tools, claim business UI readiness or grant rights.
+async function inspectFixedAppRoute({toolId,view,section,allowed}){
+  const url=new URL('chrome-extension://'+extensionId+'/app.html');
+  url.searchParams.set('toolId',toolId);
+  if(view)url.searchParams.set('view',view);
+  if(section)url.searchParams.set('section',section);
+  const target=await call('Target.createTarget',{url:url.href});
+  targetId=target.targetId;
+  host=(await call('Target.attachToTarget',{targetId,flatten:true})).sessionId;
+  await call('Runtime.enable',{},host);
+  await call('Page.enable',{},host);
+  await call('Network.enable',{},host);
+  const expr=[
+    '(()=>{',
+    'const u=new URL(location.href),d=document;',
+    'return {',
+    'readyState:d.readyState,surface:d.documentElement.dataset.opendeskSurface||"",',
+    'entry:d.documentElement.dataset.opendeskEntry||"",',
+    'path:u.pathname,toolId:u.searchParams.get("toolId"),',
+    'view:u.searchParams.get("view"),section:u.searchParams.get("section"),',
+    'hostInstanceId:u.searchParams.get("hostInstanceId"),',
+    'runtimeId:chrome?.runtime?.id||null,',
+    'roots:d.querySelectorAll("#opendesk-react-app").length,',
+    'toolHosts:d.querySelectorAll("#sidebar-tool-display").length,',
+    'backHidden:d.getElementById("sidebar-tool-back")?.hidden??null,',
+    'sidebarNav:d.querySelectorAll(".workbench-nav").length,',
+    'extensionCenter:d.querySelectorAll("#extension-center").length,',
+    'message:d.getElementById("opendesk-react-app")?.textContent?.slice(0,350)||""',
+    '};})()'
+  ].join('');
+  const state=await until(async()=>{
+    const result=await evaluate(expr);
+    return result?.readyState==='complete'&&result.surface===
+      (allowed?'tool-page':'app-page-error')&&
+      (!allowed||result.toolHosts===1)?result:null;
+  },'app.html '+toolId+'/'+(view||'default')+' admission');
+  assert.equal(state.entry,'app');
+  assert.equal(state.path,'/app.html');
+  assert.equal(state.runtimeId,extensionId);
+  assert.equal(state.toolId,toolId);
+  assert.equal(state.view,view||null);
+  assert.equal(state.section,section||null);
+  assert.equal(state.roots,1);
+  assert.equal(state.sidebarNav,0,'App page must not render the Side Panel rail');
+  assert.equal(state.extensionCenter,0,'App page must not render a second Extension Center');
+  if(allowed){
+    assert.ok(state.hostInstanceId,'App Host must mint a tab-scoped identity');
+    assert.equal(state.toolHosts,1,'App page must use the shared React ToolHost');
+    assert.equal(state.backHidden,true,'No Side Panel-only list Back control on app.html');
+  }else{
+    assert.equal(state.toolHosts,0,'Unsupported route must refuse before Host mount');
+    assert.equal(state.hostInstanceId,null,'Rejected URL must not mint Host identity');
+    assert.match(state.message,/无效|不支持|拒绝/,'Unsupported route must show a reason');
+  }
+  report.steps.push({name:'fixed-app-page-bootstrap',toolId,view,
+    section:section||null,allowed,surface:state.surface,
+    hostBound:!!state.hostInstanceId,realInstalledBusinessUI:'NOT_TESTED'});
+  await call('Target.closeTarget',{targetId});
+  host=null;targetId=null;
+}
+
 try{
   profile=await mkdtemp(join(tmpdir(),'od-r352-installed-'));
   const options=['--no-first-run','--no-default-browser-check',
@@ -212,6 +277,13 @@ try{
   host=null;targetId=null;
   await openInstalledPage();
   report.reopens=1;
+  // Keep the old Side Panel smoke, then exercise the new exact App document
+  // in this isolated installation with no imported business applications.
+  await call('Target.closeTarget',{targetId});
+  host=null;targetId=null;
+  await inspectFixedAppRoute({toolId:'ai-proxy',view:'settings',section:'profiles',allowed:true});
+  await inspectFixedAppRoute({toolId:'webflow',view:'scripts',allowed:true});
+  await inspectFixedAppRoute({toolId:'bookmark-manager',view:'settings',allowed:false});
   assert.deepEqual(caught,[],'No uncaught extension runtime errors');
   assert.deepEqual(network,[],'No failed installed resources');
   assert.equal((await verifyPackage(extension,{mode:buildMode})).packageHash,packageBefore.packageHash);
