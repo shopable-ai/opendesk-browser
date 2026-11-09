@@ -123,7 +123,8 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const waiting=view?.listener?.state==='ready'&&view?.work?.state==='idle'&&!error;
  const noSessionTitle=view?.work?.state==='running'?'任务执行中，请核对原请求':
   waiting?'等待 ChatGPT 新任务':'任务状态未确认';
- const options=session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
+ const v2Pending=session?.pendingAuto?.protocol==='webflow.task.intent.v2';
+ const options=!v2Pending&&session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
  const executionLabel={validating:'核验中',starting:'正在启动',completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
  React.useEffect(()=>{
   onSummary?.(error?'任务状态未确认，请打开运行与授权查看':
@@ -175,7 +176,9 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
    {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">
     <strong>待批准 · 尚未执行</strong>
-    <p className="od-note">{options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
+    <p className="od-note">{v2Pending?
+     'V2 每条候选必须在可信侧栏独立批准一次，绝不沿用 V1 任务授权，也不会保存长期通配许可。':
+     options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
      '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
     <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
     {options&&<p className="od-note">{options.description}目标、任务版本或权限变化后仍需审核。</p>}
@@ -190,7 +193,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     {options?<details className="od-disclosure od-disclosure--flat"><summary>高级：仅允许此关键词</summary>
      <p className="od-note">仅保存这组固定输入，并替换旧授权；下次换关键词仍需批准。</p>
      <Button disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
-    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>}
+    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{v2Pending?'批准本条 V2 候选并执行一次':'批准此精确范围并执行'}</Button>}
    </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}
