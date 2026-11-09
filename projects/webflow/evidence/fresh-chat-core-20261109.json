@@ -1,0 +1,276 @@
+{
+  "recordedOn": "2026-11-09",
+  "phase": "core-development",
+  "scope": "全新 ChatGPT 聊天复制产品能力说明后，普通百度需求自动触发、真实执行、原聊天交付及 AI 续答。",
+  "outcome": "PASS_ON_CONNECTED_FRESH_CHAT",
+  "sourceChangeInThisPass": false,
+  "runtime": {
+    "browser": "ego(lite)",
+    "taskSpaceId": 9,
+    "mode": "continuous-development",
+    "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "webflowInstalledVersion": "0.3.22",
+    "autoRunObserved": "ON",
+    "availableInstalledTasksObserved": 2,
+    "writer": {
+      "pidObserved": 30477,
+      "action": "preserved; not restarted or replaced"
+    },
+    "sharedTree": "Existing uncommitted listener/site repairs and unrelated parallel changes were present. This pass does not claim authorship, isolated-commit validation, or production verification of those repairs.",
+    "debugRevisionBeforeSuccessfulChat": "dcc304b1523fc29e5dab2892bb9710bbf1b87482c3708bf4be7e6135706d3c6f",
+    "debugRevisionBoundary": "Read before the final successful chat; final loaded revision was not re-read. Final listener readiness and the actual completed workflow were observed separately.",
+    "installedPackage": {
+      "path": "projects/webflow/webflow.opendesk-tool.json",
+      "bytes": 72888,
+      "sha256": "f26c676719f8090002272ea601d32d791b7733913b557ad3d6019ee2ebd92b15",
+      "changed": false
+    },
+    "fixedBridgeArtifact": {
+      "path": "dist/development/agents/chatgpt-fixed-bridge.js",
+      "sha256": "2a34a3fa88dab6f5c872ba88e6eba4b54acee99bb87ad0202f4babde0fe04087",
+      "boundary": "Filesystem artifact observed after the run; not proof of the loaded document fingerprint."
+    }
+  },
+  "firstAttempt": {
+    "chatUrl": "https://chatgpt.com/c/6af1a69f-b10c-83ec-938c-d4670d7322e9",
+    "capturedAt": "2026-11-09T11:01:58.562Z",
+    "ordinaryDemand": "请用百度搜索“上海自然博物馆开放时间”，给我前三条自然网页结果。",
+    "aiCandidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-7b83e2d1-9a46-4f0c-8e52-c1d79a603b4f",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "query": "上海自然博物馆开放时间",
+        "limit": 3
+      }
+    },
+    "observations": [
+      "AI returned a valid five-field candidate.",
+      "Actual trusted Side Panel reported listener disconnected / version updated and refresh required.",
+      "Original request ledger showed 0 records."
+    ],
+    "action": "Preserved the old candidate without manual adoption or replay. With an empty composer and no pending own task, navigated the same managed page to the empty ChatGPT homepage.",
+    "conclusionBoundary": "Explains the observed failure in this attempt. It does not establish the cause of the user-reported earlier failure or prove that every failed first-chat case has this cause."
+  },
+  "successfulFreshChat": {
+    "chatUrl": "https://chatgpt.com/c/6af1a844-05f0-83e8-97ff-e290f21c604b",
+    "capturedAt": "2026-11-09T11:04:30.632Z",
+    "entry": "Started on empty https://chatgpt.com/, sent the product capability instructions once, waited for acknowledgment, then submitted the ordinary demand.",
+    "capabilityInstructions": {
+      "path": "artifacts/webflow/fresh-chat-1109/product-instructions.txt",
+      "sha256": "f15df16029b1943ff8332ebf5e4f5451e1591b4b0d048befa3c69ca7e08d3fbd",
+      "origin": "Current product AutoSettings template with the actual observed task catalog and scope; checked against the native product textarea. ChatGPT rich-text paste formatting is not treated as byte-identical transcript text."
+    },
+    "ordinaryDemand": "请用百度搜索“南京博物院开放时间”，给我前三条自然网页结果。",
+    "aiCandidate": {
+      "protocol": "webflow.task.intent.v1",
+      "candidateId": "wf-7f92c8d1-0b43-4e6a-9d57-2a84f1c0b935",
+      "taskId": "baidu.search.top3",
+      "targetUrl": "https://www.baidu.com/",
+      "args": {
+        "query": "南京博物院开放时间",
+        "limit": 3
+      }
+    },
+    "listenerObservation": "Original trusted listener witnessed native submit, matched the new user message and waited for the complete assistant candidate. No manual adoption, invented Run identity or direct backend execution.",
+    "installedTask": {
+      "taskId": "baidu.search.top3",
+      "version": "1.1.4",
+      "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+      "installationGeneration": 1,
+      "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+      "changed": false
+    },
+    "sourceDocumentId": "407A482FAA20A928FD2A5659A08D2F82",
+    "sourceTabId": 1114138538,
+    "authorization": "Reused the existing reviewed chatgpt.com → www.baidu.com grant: variable query length 1–120, fixed limit 3. No new scope or Google prerequisite.",
+    "actualDeliveredResult": {
+      "protocol": "opendesk.task.result.v1",
+      "taskId": "baidu.search.top3",
+      "requestId": "e13555ca-e03a-4dff-89a7-d1856a874707",
+      "targetUrl": "https://www.baidu.com/",
+      "scriptId": "task:baidu.search.top3:1.1.4",
+      "runId": "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+      "resultId": "bee67afa-295a-4799-bea0-70aeb4603fc7",
+      "revision": 1,
+      "sourceHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+      "status": "completed",
+      "data": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "baidu.search.top3.result",
+        "observedAt": "2026-11-09T11:04:00.926Z",
+        "query": "南京博物院开放时间",
+        "results": [
+          {
+            "directUrl": "https://www.njmuseum.com/zh/visitIndex/historyIndex",
+            "evidence": {
+              "slot": "3",
+              "tpl": "www_index"
+            },
+            "position": 1,
+            "summary": "小车停车入口处在南京博物院西门。 停车时间:星期二至星期天9:00-18:00 1. 开放时间: 每日9:00-17:00,16:00停止检票,周一闭馆(寒暑假、法定节假日开放时间另行通知,请及时关注官方公告)。 2. 预约参观: ①所有观众(包括享受优待政策的观众及其陪同人员) 均须实名预约 。放票时间为 每日18:00,可提前7日(不",
+            "title": "参观",
+            "url": "http://www.baidu.com/link?url=l1ZgPzC0F5xQfUp03mmAeQghoOym0kwb1XBofNk3v_IM_d3xyQdVz-Wgq1AhnIhjjrciB5qwXX-REhIeOuIFEK"
+          },
+          {
+            "directUrl": "https://www.njmuseum.com/",
+            "evidence": {
+              "slot": "4",
+              "tpl": "www_index"
+            },
+            "position": 2,
+            "summary": "开放时间 周一 全天 闭馆 周二- 周日 9:00 开馆 16:00 停止检票 17:00 闭馆 * 周一逢国家法定节假日全天开放,除夕、大年初一闭馆 * 非遗馆夜间开放时间请关注南京博物院官网 交通路线 公交5路、34路、36路、55路、59路、80路到中山门站 地铁2号线、6号线明故宫站,由一号出口向东300米 ...",
+            "title": "首页",
+            "url": "http://www.baidu.com/link?url=d9UHUC4nllyj-UYjtpvNZu6H4rOrmtt9W1MfzStGjjQpzJjODHcrlDaD3K7NDqHH"
+          },
+          {
+            "directUrl": "https://nj.bendibao.com/xiuxian/202116/100502.shtm",
+            "evidence": {
+              "slot": "6",
+              "tpl": "www_index"
+            },
+            "position": 3,
+            "summary": "2026年9月30日开放时间:每周二至周日9:00—17:00(16:00停止入馆),周一逢国家法定节假日全天开放,除夕、大年初一闭馆 南京博物馆每日放票时间 每日18:00开始放票,南京博物院提前7天一次性释放所有门票,预约时段分为上午(9:00-13:00)和下午(12:00-16:00)。 预约注意事项: 1、实行“免费实名预约、分时错峰限流”参观制,可...",
+            "title": "南京博物院游玩指南(开放时间+预约+展览信息)- 南京本地宝",
+            "url": "http://www.baidu.com/link?url=U7irskomgJbU4UNSPhwZ0anlfJhSMp0r78x1T_bnDHCtRvOUjDCP1mKSucMHszzKBafEfRnJETocEtk2BB4ma_"
+          }
+        ],
+        "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E5%8D%97%E4%BA%AC%E5%8D%9A%E7%89%A9%E9%99%A2%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x8e829470014decc3&rsv_t=dd2fihyXencxrPKSX2TikopRQeQQUCy7IlAcVa6GTjEzeILx4QmncqJC%2FUFp&rqlang=en&rsv_dl=tb_pre&rsv_enter=1",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T11:03:46.470Z",
+            "documentId": "83E6EC291A7E618701B0E85667EF113D",
+            "locator": "#chat-textarea",
+            "state": "before",
+            "url": "https://www.baidu.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T11:03:46.470Z",
+            "locator": "#chat-textarea",
+            "state": "started"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T11:03:47.961Z",
+            "locator": "#chat-textarea",
+            "state": "returned",
+            "value": "南京博物院开放时间"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T11:03:51.054Z",
+            "locator": "#chat-submit-button",
+            "state": "started",
+            "url": "https://www.baidu.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T11:03:54.919Z",
+            "locator": "#chat-submit-button",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-09T11:03:55.001Z",
+            "documentId": "83E6EC291A7E618701B0E85667EF113D",
+            "state": "observed",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E5%8D%97%E4%BA%AC%E5%8D%9A%E7%89%A9%E9%99%A2%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x8e829470014decc3&rsv_t=dd2fihyXencxrPKSX2TikopRQeQQUCy7IlAcVa6GTjEzeILx4QmncqJC%2FUFp&rqlang=en&rsv_dl=tb_pre&rsv_enter=1"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-09T11:03:57.921Z",
+            "count": 3,
+            "state": "read",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E5%8D%97%E4%BA%AC%E5%8D%9A%E7%89%A9%E9%99%A2%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0x8e829470014decc3&rsv_t=dd2fihyXencxrPKSX2TikopRQeQQUCy7IlAcVa6GTjEzeILx4QmncqJC%2FUFp&rqlang=en&rsv_dl=tb_pre&rsv_enter=1"
+          }
+        ],
+        "version": 2
+      }
+    },
+    "layeredEvidence": {
+      "execution": {
+        "status": "PASS",
+        "trustedUi": "脚本执行 已完成",
+        "basis": "Actual result status completed, data.status success and count 3; trace records input, click, navigation and reading three results."
+      },
+      "persistence": {
+        "status": "PASS",
+        "trustedUi": "持久结果 已核实同一 Run / Result",
+        "requestId": "e13555ca-e03a-4dff-89a7-d1856a874707",
+        "runId": "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+        "resultId": "bee67afa-295a-4799-bea0-70aeb4603fc7"
+      },
+      "resourceRelease": {
+        "status": "PASS",
+        "trustedUi": "资源释放 已释放"
+      },
+      "draftFill": {
+        "status": "SUPPORTED_BY_DELIVERY_CHAIN",
+        "boundary": "This pass did not capture the pre-send draft as a separate intermediate snapshot. Do not cite it as an independently observed standalone draft state."
+      },
+      "originalChatDelivery": {
+        "status": "PASS",
+        "trustedUi": "原聊天交付 已确认新增结果消息",
+        "resultUserMessageCount": 1,
+        "manuallyConstructedOrSent": false
+      },
+      "aiContinuation": {
+        "status": "PASS",
+        "trustedUi": "AI 续答 已观察到新回复",
+        "completeAssistantReply": "ChatGPT 说：\n\nOpenDesk Web Flow 已返回本机真实执行回执。\n\n脚本执行完成\n\n2026年11月9日 19:04（北京时间）\n\n搜索关键词：南京博物院开放时间\n\n本次返回 status=completed、data.status=success、count=3，执行轨迹包含输入关键词、点击搜索、观察结果页导航，以及读取三条结果。以下为实际返回的前三条自然网页结果。\n\n百度搜索结果\n\n1. 参观 — 南京博物院官网\n\n官方参观指南\n\n每日 9:00–17:00，16:00 停止检票，周一闭馆，特殊日期另行通知。所有观众均须实名预约，每日 18:00 放票，可提前 7 日预约。\n\n2. 首页 — 南京博物院官网\n\n官方网站\n\n周二至周日 9:00 开馆，16:00 停止检票，17:00 闭馆。周一遇国家法定节假日全天开放；除夕和正月初一闭馆。\n\n3. 南京博物院游玩指南 — 南京本地宝\n\n第三方游玩指南 · 摘要提及2026年9月30日\n\n周二至周日 9:00–17:00，16:00 停止入馆。免费实名预约，每日 18:00 放票，提前 7 天开放预约。\n\n开放时间汇总\n\n项目\n\n\t\n\n时间或规则\n\n\n\n\n开放日\n\n\t\n\n周二至周日\n\n\n\n\n开馆时间\n\n\t\n\n09:00\n\n\n\n\n停止检票\n\n\t\n\n16:00\n\n\n\n\n闭馆时间\n\n\t\n\n17:00\n\n\n\n\n周一\n\n\t\n\n通常闭馆，法定节假日例外\n\n\n\n\n预约放票\n\n\t\n\n每日 18:00\n\n\n\n\n预约方式\n\n\t\n\n免费实名预约，提前 7 日\n\n结论： 根据本次百度返回的南京博物院官网摘要，常规开放时间为 9:00–17:00，16:00 停止检票。建议通过官网预约，并关注特殊日期公告。\n\n执行说明：脚本版本 1.1.4；本次回执记录了搜索输入、点击、导航观察及三条结果读取。以上内容只依据本机返回数据，未另外打开网页核实实时公告。"
+      },
+      "finalTrustedStatus": "原对话已收到结果，且官方 AI 完成新回复",
+      "finalComposer": [
+        {
+          "text": "",
+          "html": "<p data-empty-paragraph=\"true\" data-placeholder=\"询问 ChatGPT\" class=\"placeholder before:composer-placeholder\"><br class=\"ProseMirror-trailingBreak\"></p>"
+        }
+      ],
+      "ledgerFinal": {
+        "records": 1,
+        "persistedLabel": "已完成 · 原聊天交付已确认",
+        "identityMatched": true
+      }
+    }
+  },
+  "preservedUnknownRequest": {
+    "requestId": "c1ac3f73-48b9-4a3b-b9c8-926a5dcaf70b",
+    "action": "No replay, resend, ledger clearing or recovery under a replacement request ID."
+  },
+  "localRawArtifacts": [
+    {
+      "path": "artifacts/webflow/fresh-chat-1109/disconnected-chat.json",
+      "sha256": "b2f494898dfbf8bf56b109720bde9e25671c3c6b05e5d7fc2a994eebd7d4dabe",
+      "availability": "Ignored local artifact; actual delivered result and candidate are embedded in this evidence."
+    },
+    {
+      "path": "artifacts/webflow/fresh-chat-1109/connected-chat.json",
+      "sha256": "49987be2fe2f595e946843780c0d0e52c0d0882ce4188da8eab36c366fd4afcc",
+      "availability": "Ignored local artifact; actual delivered result and candidate are embedded in this evidence."
+    }
+  ],
+  "completion": {
+    "taskSpaceFinished": true,
+    "keptPages": [
+      "p1"
+    ],
+    "keptReason": "Successful original chat retained for the user to inspect and continue.",
+    "otherSpacesAndWriter": "Untouched"
+  },
+  "notTestedOrDeferred": [
+    "production and frozen-candidate verification",
+    "complete CI, independent scoring and stress / cross-version matrices",
+    "Native pairing",
+    "Google search",
+    "universal diagnosis or automatic recovery for all disconnected existing chats"
+  ],
+  "validation": "Only JSON identity/content, local document links, and scoped diff checks are required for this documentation-only pass. No product source edits, new build, or repeated source tests."
+}
