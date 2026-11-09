@@ -166,3 +166,22 @@ test('sidepanel ignore immediately hides an already visible Toast and preserves 
   await f.service.checkToast();
   assert.equal(f.views.length,1);
 });
+
+
+test('page View opens the original side panel on the synchronous click stack, then persists seen state',async()=>{
+  const f=await fixture();
+  await f.settled();
+  await f.service.checkToast();
+  const token=f.views[0].args[0].token;
+  assert.equal((await f.send({kind:'page-visible',token})).ok,true);
+  const pending=f.send({kind:'page-action',token,action:'view'});
+  assert.deepEqual(f.opens,[{tabId:41}],
+    'browser sidePanel.open must run before awaited storage reads');
+  const result=await pending;
+  assert.equal(result.ok,true);
+  const row=Object.values(f.store[UPDATE_NOTICE_STORE].records)
+    .find(item=>item.kind==='sidebar-tool');
+  assert.equal(row.viewedAt,100000);
+  assert.equal(f.opens.length,1,'do not open another tab after the side panel succeeds');
+  assert.equal(f.store[SIDEBAR_TOOL_STORE][0].version,f.tool.version);
+});
