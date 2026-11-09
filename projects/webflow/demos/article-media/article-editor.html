@@ -153,6 +153,8 @@ small{color:#65758c}code{background:#e9edf4;border-radius:4px;padding:2px 4px}
       });
       db.close();
       if(!saved)return;
+      $('#article-title').value=saved.title;
+      $('#article-body').value=saved.body;
       $('#restored-draft').textContent='已恢复上一条本地记录：'+saved.title+
         ' · '+saved.images.length+' 图'+(saved.video?' + 1 视频':'')+
         ' · '+(saved.status==='draft'?'草稿':'演示发布');
