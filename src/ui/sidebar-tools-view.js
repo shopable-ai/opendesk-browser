@@ -15,7 +15,7 @@ export function createSidebarToolsView() {
   const runtime = Object.seal({frameRoot: null, settingsControl: null});
   const trustedSettingsActions=Object.create(null);
   let snapshot = {fields: Object.fromEntries(Object.entries(fields).map(([key, state]) => [key, {...state}])),
-    market: {pending: [], review: null, error: ''}, toast: null, labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+    market: {pending: [], review: null, error: ''}, toast: null, toasts: [], labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
   let nextToastId = 0;
   let marketInstallActions = null;
   let disposed = false, queued = false, attachment = null, connection = null;
@@ -108,13 +108,27 @@ export function createSidebarToolsView() {
   }
   return Object.freeze({
     fields, labels, actions, runtime, patch, bind, dispatch, trustedSettings, trustedSettingsActions,
-    showToast(message) {
-      if (disposed) return;
-      snapshot = {...snapshot, toast: {id: ++nextToastId, message}}; notify();
+    showToast(message,options={}) {
+      if (disposed || typeof message!=='string' || !message.trim()) return;
+      const type=['info','success','warning','error'].includes(options?.type)?options.type:'info';
+      const position=['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right']
+        .includes(options?.position)?options.position:'top-center';
+      const caption=typeof options?.caption==='string'?options.caption:'';
+      const timeout=Number.isSafeInteger(options?.timeout)&&
+        (options.timeout===0||options.timeout>=1000&&options.timeout<=15000)?options.timeout:5000;
+      // Group by visible content and position, never a caller-controlled command or URL.
+      const groupKey=JSON.stringify([message,caption,type,position]);
+      const list=snapshot.toasts||[];
+      const old=options?.group!==false?list.find(row=>row.groupKey===groupKey):null;
+      const row={id:old?.id||++nextToastId,message,caption,type,position,timeout,
+        groupKey:options?.group===false?null:groupKey,count:old?Math.min(old.count+1,99):1};
+      const toasts=[...list.filter(item=>item.id!==old?.id),row].slice(-3);
+      snapshot={...snapshot,toasts,toast:row};notify();
     },
     dismissToast(id) {
-      if (disposed || snapshot.toast?.id !== id) return;
-      snapshot = {...snapshot, toast: null}; notify();
+      if (disposed || !(snapshot.toasts||[]).some(item=>item.id===id)) return;
+      const toasts=snapshot.toasts.filter(item=>item.id!==id);
+      snapshot={...snapshot,toasts,toast:toasts.at(-1)||null};notify();
     },
     get marketInstallActions() {return marketInstallActions;},
     setMarketInstall(patch) {
@@ -213,7 +227,7 @@ export function createSidebarToolsView() {
       finally {
         subscribers.clear();
         marketInstallActions = null;
-        snapshot={...snapshot,toast:null,trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+        snapshot={...snapshot,toast:null,toasts:[],trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
         for(const key of Object.keys(trustedSettingsActions))delete trustedSettingsActions[key];
         for (const key of Object.keys(actions)) delete actions[key];
         rowActions.clear(); effects.length = 0;
