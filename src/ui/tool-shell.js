@@ -215,18 +215,30 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false,
   // Route verified update rows to the ORIGINAL Installer review; this never commits an install.
-  onOpenUpdateReview:async row=>{
+  onOpenUpdateReview:row=>{
     if(shellClosed||!row||row.kind!=='sidebar-tool'||
        !['available','review_required'].includes(row.status))
       return false;
-    const {apps}=await loadOfficialCatalog({api:chrome});
-    const same=apps.some(release=>release.toolId===row.id&&
-      release.version===row.version&&release.sha256===row.sha256&&
-      release.id===row.source);
-    if(!same||taskWorkbench.navigate('tools')===false)return false;
-    await sidebarTools.ready;
-    if(!sidebarTools.canPresentMarketReview())return false;
-    return sidebarTools.openOfficialReview(row.id)===true;
+    if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
+      // app.html is an App-owned PC workspace, NOT an Extension Center or
+      // Installer. Open the existing native Side Panel in the original click
+      // stack, then let its trusted Extension Center perform fresh review.
+      // No package, capability, saved draft or installed generation is touched.
+      try{
+        const pending=chrome.sidePanel.open({windowId:chrome.windows.WINDOW_ID_CURRENT});
+        return Promise.resolve(pending).then(()=>true,()=>false);
+      }catch{return false;}
+    }
+    return (async()=>{
+      const {apps}=await loadOfficialCatalog({api:chrome});
+      const same=apps.some(release=>release.toolId===row.id&&
+        release.version===row.version&&release.sha256===row.sha256&&
+        release.id===row.source);
+      if(!same||taskWorkbench.navigate('tools')===false)return false;
+      await sidebarTools.ready;
+      if(!sidebarTools.canPresentMarketReview())return false;
+      return sidebarTools.openOfficialReview(row.id)===true;
+    })();
   },
   onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
