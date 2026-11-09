@@ -20,6 +20,14 @@ npm run app:update -- <id> --check
 npm run app:update -- <id>
 ```
 
+### 更新版本与原样重建
+
+先区分用户要交付新版，还是只校验/原样重建。**用户明确要求更新版本时，即使内容相同，也要交付更高版本**；未指定目标版本的普通无扩权更新，默认提升 PATCH。先修改真实 owner 的 `tool.config.json.version`，再用原打包器生成候选，不能直接改正式 JSON。PATCH 计算可复用 `scripts/app-update-plan.mjs` 的 `nextPatchVersion`；当前 `app:update` 没有强制升版参数，`ALREADY_CURRENT` 不代表已满足升版请求。
+
+正式 JSON 缺失只表示产物缺失，不能仅凭 `NEW_APP` 判定没有既有版本。先核对配置、可用的 Git 正式包历史及该项目已有发行记录；更新已有工具时从已核实的版本继续提升，不把恢复旧版本文件当作新版交付。只有用户要求原样重建/校验、或明确的新工具首次打包，才沿用已确定的版本。历史身份未知或冲突时先做只读核对，不猜测版本或覆盖包。
+
+版本变更后同步当前安装说明和实际消费者需要的发行元数据。若项目有固定的官方包版本/SHA，按新候选的真实字节更新现有记录并保留既有历史身份；这不恢复发行匹配运行门槛，也不触发 Browser 全量构建、安装或线上发布。晋升前测试应验证候选，不能依赖“新版正式包已晋升”形成循环；晋升后再核对正式文件。交付写明 **旧版本 → 新版本、正式文件、校验结果与安装状态**，并区分 `trusted/` 改动是否进入 JSON。
+
 命令为 `scripts/app-update.mjs`，只调用**现有** `build-sidebar-tool.mjs`、规范包校验、`installation.js` 版本比较和 `--promote-from`。它不会创建第二个 Installer/Runner，也不会触摸 Browser 的 `dist/development` 或 Chrome Profile。若 React/Vue 构建回执过期，先按应用现有构建脚本预编译，**不允许**用旧 `dist/build-ready.json` 通过门禁。若权限、依赖、托管策略变更而版本未升级，禁止静默 PATCH，要求明确审阅并设置新版本。晋升前失败时保留旧正式包；自动版本回滚仅在源文件未被并行修改时执行。进入晋升后如校验失败，保留现场并读回对账，不盲目回滚或重试。
 
 命令完成意味着 **`PACKAGE_READY_INSTALL_NOT_TESTED`**：输出真实版本、SHA-256 和正式文件位置。实际安装/升级由 OpenDesk「扩展」的**原有可信安装器**审阅确认；之后再核对旧数据、功能和原生 Chrome 结果。阅读目录网页悬浮层、Stay Focus/AdBlock 的 `trusted/` SW/Content 修改不是这个 JSON 的内容，不得把包升级当成 Browser 可信代码升级。

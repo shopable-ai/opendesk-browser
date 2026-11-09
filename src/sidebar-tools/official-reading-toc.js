@@ -4,14 +4,18 @@
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const READING_TOC_CHROME_ACCESS_PROTOCOL='opendesk.reading-toc.chrome-access.v1';
 export const OFFICIAL_READING_TOC_RELEASE=Object.freeze({
-  id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.12',
-  sha256:'8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a'
+  id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.13',
+  sha256:'25990193f052831035d8f1f4383a2ce1ddb86a1e07f0906db1aa31deec245f34'
 });
 // Preserve previously reviewed canonical releases, including 1.0.10 from
 // cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2 (35,044 UTF-8 bytes).
 // The current pin above still owns builder promotion.
 export const OFFICIAL_READING_TOC_RELEASES=Object.freeze([
   OFFICIAL_READING_TOC_RELEASE,
+  Object.freeze({
+    id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.12',
+    sha256:'8f1f3ec7fda6417f3c971bea30cf11493492c528f476c584ef755e600f2df84a'
+  }),
   Object.freeze({
     id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.11',
     sha256:'dcf2bafe89556b4ab4c39733519037e5f7437669a869d0f0c7d6cf60daba2ed4'

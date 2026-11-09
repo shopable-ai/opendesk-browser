@@ -1,7 +1,7 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
-import {officialToolFixture} from '../helpers/official-tools.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -10,6 +10,7 @@ import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSit
   READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../projects/reading-toc/trusted/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {changeClipGrant,clipGrantAllowed} from '../../projects/web-markdown-clipper/trusted/policy.js';
 
 const pack={format:'opendesk.sidebar-tool.v1',id:'reading-toc',version:'1.0.0',
@@ -75,13 +76,19 @@ test('damaged default-site records cannot silently widen authority',()=>{
   assert.throws(()=>changeTocSiteAllowed(settings,id,'https://extra.example',false),/64/);
 });
 
-test('shared clip grants stay explicit even when the package uses the reading-toc ID',()=>{
+test('clip access reuses installation approval but preserves capability, disable and site stops',()=>{
   const clip={...pack,capabilities:['page.clip']},url='https://example.com/a';
-  assert.equal(clipGrantAllowed([clip],{},clip.id,url),false);
-  const grants=changeClipGrant({},clip.id,url,true);
-  assert.deepEqual(grants,{[clip.id]:['https://example.com']});
-  assert.equal(clipGrantAllowed([clip],grants,clip.id,url),true);
-  assert.equal(clipGrantAllowed([clip],grants,clip.id,'https://other.example'),false);
+  assert.equal(clipGrantAllowed([clip],{},clip.id,url),true);
+  assert.equal(clipGrantAllowed([pack],{},clip.id,url),false,'TOC capability never grants body access');
+  assert.equal(clipGrantAllowed([],{},clip.id,url),false,'installation is required');
+  assert.equal(clipGrantAllowed([clip],{},clip.id,url,{[clip.id]:false}),false);
+  const stopped=changeClipGrant({},clip.id,url,false);
+  assert.deepEqual(stopped,{[clip.id]:{mode:'all-except',blockedOrigins:['https://example.com']}});
+  assert.equal(clipGrantAllowed([clip],stopped,clip.id,url),false);
+  assert.equal(clipGrantAllowed([clip],stopped,clip.id,'https://other.example'),true);
+  assert.deepEqual(changeClipGrant(stopped,clip.id,url,true),{});
+  assert.equal(clipGrantAllowed([clip],{[clip.id]:null},clip.id,url),false,'corrupt preferences fail closed');
+  assert.equal(clipGrantAllowed([clip],{},clip.id,'chrome://settings'),false);
 });
 
 test('R4.7 current-page exclusions do not grant origin authority or capture URL queries',()=>{
@@ -211,14 +218,16 @@ test('R4.1 assistant answer fragment grouping is wrapper-based, never adjacent-t
   answerA[3].isConnected=false;
   assert.equal(index.resolve(result.items[3].id,result.items[3].sourceId),null,'unmounted heading is stale');
 });
-test('R4.1 official JSON is reproducible through existing packer and exact v1 validation',async()=>{
+test('R4.1 candidate JSON matches the reviewed release before formal promotion',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'reading-toc-package-'));
   try{
     const path=join(dir,'reading-toc.opendesk-tool.json');
     await buildSidebarTool('projects/reading-toc',{out:path});
-    const actual=JSON.parse(await readFile(path,'utf8'));
-    const bundled=await officialToolFixture('reading-toc');
-    assert.deepEqual(actual,bundled);
+    const bytes=await readFile(path),actual=JSON.parse(bytes.toString('utf8'));
+    const pin=OFFICIAL_READING_TOC_RELEASE;
+    assert.equal(actual.id,pin.id);
+    assert.equal(actual.version,pin.version);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),pin.sha256);
     assert.equal(validateSidebarToolPackage(actual).id,'reading-toc');
     assert.equal(actual.capabilities.includes('page.toc'),true);
     assert.doesNotMatch(actual.js,/chrome\.tabs|document\.querySelectorAll\('h1/);
