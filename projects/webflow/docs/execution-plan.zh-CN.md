@@ -2647,3 +2647,19 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 原 CFT 149 中 Native 已连接，新阶段提示可见；官网加载失败恢复后，以全新身份 6f75880c-1484-43cd-a6d9-0d59f1cd83f8 回填完整协议并发送一次，官网持续“正在思考”且停止禁用，没有完整回答。新版真实读写及混合拒绝复测 NOT_TESTED，不继承 12.29 的原生 PASS/96 分；本轮 NOT_SCORED，后续文档独立复核因 429 未返回，未改 provider/model。磁盘仍为原 65B/SHA aa6d37c4507adfcedac067b46ddf51a9beff1f0377d6de5de232645c259e3a6b。自有审阅页关闭停止轮询、诊断恢复隐藏、草稿为空、UI 释放，保留原环境和撤权状态。
 
 新说明明确区分普通聊天的原 Web Flow discovery/adapter/project 链与保持高级页打开的 JSON poll 链；逐步列明提示词完整 JSON、解析分派、Native read/list、真实上下文、edit、确认、SHA 保存及独立读回/完成，并保留未知写入只读对账和现有范围限制。见[最新链路](chatgpt-local-files.zh-CN.md#最新链路与本轮补漏2026-11-0601a1afe0)及[本轮独立记录](../evidence/file-protocol-routing-20261106-01a1afe0.json)。无提交、推送或其他项目改动。
+
+---
+
+## R2 差量 · ChatGPT→ChatGPT 交接合同与 GitHub 分工（2026-11-10）
+
+**用户目标**：复用 AI Send Queue、Web Flow 与 GitHub 完成多步骤、多对话日常任务；不重写原发送队列、不重复造 Host/任务库；以真实跨 ChatGPT 对话为下一阶段 MVP，而不是重新讨论旧 P0。补充技术决策见 [multi-conversation-github-r2.zh-CN.md](multi-conversation-github-r2.zh-CN.md)，BR-06/07/08/10/11/12 仍以本项目 product-contract 为权威。
+
+**本轮实际修改（main）**：
+- 新增 `projects/webflow/docs/multi-conversation-github-r2.zh-CN.md`：只记录 gh-aw/Actions 与 Web Flow 的执行分工、P1a 最短链、输入互斥、安全与验收，不另建需求真相/并行计划。
+- 新增 `projects/webflow/src/chat-handoff-contract.js`：**纯数据** `opendesk.workflow.handoff.v2`，仅允许同 Profile 的 ChatGPT 原 A → 最多一次新 ChatGPT B → 原 A 的有界交接候选；要求可信调用侧提供 expectedSource/Target/InputRefs/AuthorizationRef，拒绝错源、篡改证据、错误时间/预算/多余字段。它不会验证真实授权，也**不能**执行任何网页动作。
+- 新增 `projects/webflow/tests/chat-handoff-contract.test.mjs`：10 组 Node 顶层测试覆盖冻结、版本隔离、封闭 Schema、可信预期范围、期限/步数、恶意附加字段、UTF-8 长度与来源回填；在独立 Node 22 环境对**精确 Git blob 内容**验证 `10/10 PASS`（blob SHA 分别为 `05009811950a092c7f0da90523dd48256da36496`、`26e527e4652bd3af6436f92e75a4e1e2c4ebb0c8`）。非仓库 CI、非 Chrome/Native 原生测试。
+- 原 `handoff-contract.js` v1、`queue/state.js` v1、AI Send Queue Page / Host、Web Flow 自动执行/授权链、`dist/development` 与现有正式包**完全未改**；未触发任何 ChatGPT 发送、Codex、GitHub Issue 写入或权限申请。
+
+**证据分级**：`SOURCE_IMPLEMENTED=YES`（纯 v2 合同和测试已提交），`COMPONENT_TESTED=10/10`（独立 Node 22，Git blob 一致），`INTEGRATION=NOT_IMPLEMENTED`，`CHROME_NATIVE_VERIFIED=NOT_TESTED`，`PRODUCT_DONE=NOT_TESTED`，`ENGINEERING_SCORE=NOT_SCORED`。不能把数据解析测试当多对话已跑通。
+
+**下一条最小执行动作**：只读核查并行中的 `chatgpt.conversation.create` 是否已有正式可信入口和单次创建回执；若已合入，新增最小 ChatGPT site adapter 并接现有 Bridge/Authority/RunHost 做 A→B→A（一轮 B）实测；若仍未合入，先完成不执行真实网页的 v2 交接 Receipt 与读写对账测试，**不要重复开发新对话按钮/Runner**。测试时必须隔离原 Send Queue 的草稿、IME、附件与 unknown；真实结果基于 conversationId/turnId/Run/Result/唯一交付回执验证。GitHub 初期只读，写入评论须另行明确授权。
