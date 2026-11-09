@@ -219,7 +219,7 @@ async function perform(entry,operation){
   try{
     await configuration(true);
     if(operation==='primary'&&unresolved(entry)){await checkInstallation(entry);return;}
-    if(operation==='primary'&&entry.subject.kind==='app'){
+    if(operation==='primary'&&entry.subject.kind==='app'&&entry.subject.marketId==='opendesk/ai-vip-share'){
       const state=await send({protocol,action:'GET_APP_STATUS',subject:entry.subject});
       if(state.currentInstallation==='installed'&&state.enabled===true){
         const landing=vipContinuation(entry);
@@ -283,3 +283,4 @@ for(const button of document.querySelectorAll('[data-filter]'))button.addEventLi
   selected=button.dataset.filter;for(const peer of document.querySelectorAll('[data-filter]'))peer.setAttribute('aria-pressed',String(peer===button));filter();
 });
 void refreshStatuses();
+void refreshCurrentVipState();
