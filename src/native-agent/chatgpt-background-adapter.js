@@ -19,7 +19,8 @@ const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.u
 const invalidCandidateCodes=new Set(['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER','E_CHAT_ROUTE']);
 const invalidTaskCodes=new Set(['E_BRIDGE_INSTALL','E_BRIDGE_UNSUPPORTED_SCOPE','E_BRIDGE_REVISION','E_BRIDGE_CONTEXT',
   'E_TASK_NOT_INSTALLED','E_TASK_REMOVED','E_TASK_DISABLED',
-  'E_PERMISSION','E_REVISION','E_PARAMS','E_OWNER','E_HASH','E_BUILTIN_VERSION_UNAVAILABLE']);
+  'E_PERMISSION','E_REVISION','E_PARAMS','E_OWNER','E_HASH','E_BUILTIN_VERSION_UNAVAILABLE',
+  'E_WEBFLOW_TARGET_UNBOUND','E_WEBFLOW_TARGET_BINDING','E_WEBFLOW_V2_SCHEMA']);
 
 // Read the existing installed Task through its original integrity/permission
 // validator. Builtin initialization only installs packaged fixed Tasks; it
