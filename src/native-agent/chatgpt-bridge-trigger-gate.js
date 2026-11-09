@@ -166,10 +166,11 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     if(row.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL){
       const settings=await loadAuto(),grant=row.v2Authorization;
       if(!grant||grant.grantId!==row.autoGrantId||grant.epoch!==row.autoEpoch||
-        settings.enabled!==true||settings.epoch!==grant.epoch||
+        settings.epoch!==grant.epoch||
         !['approved','consumed'].includes(row.status)||row.mode!=='auto'||
         !Number.isSafeInteger(grant.approvedAt)||grant.approvedAt>clock()||
-        !Number.isSafeInteger(row.approvalExpiresAt)||clock()>=row.approvalExpiresAt||
+        !Number.isSafeInteger(row.approvalExpiresAt)||
+        (row.status==='approved'&&clock()>=row.approvalExpiresAt)||
         autoDenied||ticket!==autoDenialRevision)
         throw fail('E_WEBFLOW_V2_DENIED','V2 本候选的独立批准已过期、撤销或身份不匹配');
       return;
@@ -283,8 +284,8 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       if(!v2)try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
         if((site&&site.adapter!=='chatgpt')||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
       }
-      if(v2&&settings.enabled!==true)
-        throw fail('E_WEBFLOW_V2_DENIED','V2 任务发现尚未开启，绝不继承 V1 自动授权');
+      // A V2 candidate may be discovered with legacy V1 auto-run disabled.
+      // It is NEVER approved or executed until a separate native user click.
       const rows=await load(),now=clock();prune(rows,now);
       if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
         throw fail('E_BRIDGE_REPLAY','候选已准入或结果未知，禁止重放');
@@ -363,7 +364,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
           row.site?.adapter!=='chatgpt'||!row.pendingAuto||row.status!=='prepared'||
           row.v2Authorization||row.autoGrantId||row.controllerSubmitted||
           !sameSource(row.source,source)||!sameCandidate(row,candidate)||
-          stableJSON(row.scope)!==stableJSON(review)||settings.enabled!==true||
+          stableJSON(row.scope)!==stableJSON(review)||
           now>=row.expiresAt||autoDenied||revokeAll||revokedTabs.has(source.tabId)||
           revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
           throw fail('E_WEBFLOW_V2_DENIED','V2 候选已处理、状态未知或来源和授权不匹配');
