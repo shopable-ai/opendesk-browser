@@ -5611,9 +5611,19 @@ test('fixed Task local installation review shows approved ID, version and both h
 // Joint queue review: exercise the real Host actions and Tool installer. Only
 // Chrome permissions and the Page Authority transport are component doubles.
 async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
-  const tool=await officialToolFixture('ai-send-queue');
-  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
-  const pkg=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
+  // Keep legacy PIN safety coverage independent of the current single-v2 release.
+  const archived=await import('../../projects/ai-send-queue/tests/fixtures/legacy-installation.mjs');
+  const tool=structuredClone(archived.tool),pkg=structuredClone(archived.pagePackage);
+  const {serializeSidebarToolPackage}=await import('../../src/ui/sidebar-tools/package.js');
+  const bytes=Buffer.from(serializeSidebarToolPackage(tool));
+  const release={id:'opendesk/'+tool.id,toolId:tool.id,kind:'sidebar-tool',installationPolicy:'optional',
+    version:tool.version,packageTitle:tool.title,description:tool.description,
+    capabilities:tool.capabilities,packagePath:'official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json',
+    bytes:bytes.length,sha256:await sidebarToolPackageHash(tool)};
+  // Only this fixture's legacy package URL changes; current catalog and every
+  // other resource continue through the shared official fixture fetcher.
+  const fetcher=(url,options)=>new URL(url).pathname==='/'+release.packagePath
+    ?Promise.resolve(new Response(bytes,{status:200})):officialFixtureFetch(url,options);
   const calls=[],store=new Map([[SIDEBAR_TOOL_STORE,existingTool?[tool]:[]]]);
   let pages=[],granted=false,toolWritten=false,inClick=false,toolAttempted=false;
   const pendingRead=deferred(),readEntered=deferred();
@@ -5624,7 +5634,7 @@ async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
   if(mode==='page-blocked'){
     receipt.nativeState='blocked';receipt.error={code:'E_NATIVE',message:'原生注册失败'};
   }
-  const f=await hostFixture(t,{store,startTool:false,
+  const f=await hostFixture(t,{store,startTool:false,fetcher,
     chromePermissions:{contains:async()=>granted,request(request){
       assert.equal(inClick,true,'permission request must start synchronously inside the trusted click');
       assert.deepEqual(request,{origins:['https://chatgpt.com/*']});calls.push('permission');

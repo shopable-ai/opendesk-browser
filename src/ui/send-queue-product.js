@@ -1,7 +1,6 @@
 // Product presentation and fixed candidate verification only. Queue state stays in Page.
 import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../platform/host/send-queue-admission.js';
 import {loadBundledOfficialResource} from '../sidebar-tools/official-catalog.js';
-import {officialPagePackagePath} from '../scripting/user-scripts/official-page-catalog.js';
 import {validatePageInstallPackage,PAGE_INSTALL_INPUT_LIMIT} from '../scripting/user-scripts/page-install-package.js';
 
 export function describeSendQueueProduct({toolInstalled=false,toolEnabled=false,appStatusKnown=true,
@@ -23,10 +22,10 @@ export function describeSendQueueProduct({toolInstalled=false,toolEnabled=false,
       '。两份独立安装记录；唯一消息队列保留在网页内存，更新和恢复不迁移或重发消息。'};
 }
 
-// Explicit pre-release review is separate from official publication. Do not use
-// loadOfficialPagePackage: blocked releases must never acquire available status.
+// Legacy joint-review verification only. This resource is no longer distributed;
+// installed-record management below must not depend on the current release catalog.
 export async function loadSendQueuePageCandidate({api,fetcher=globalThis.fetch}={}){
-  const bytes=await loadBundledOfficialResource(officialPagePackagePath(SEND_QUEUE_PIN.pageProgramId),
+  const bytes=await loadBundledOfficialResource('official-pages/'+SEND_QUEUE_PIN.pageProgramId+'/'+SEND_QUEUE_PIN.pageProgramId+'.opendesk-page.json',
     PAGE_INSTALL_INPUT_LIMIT,{api,fetcher});
   const pkg=await validatePageInstallPackage(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
   if(!admitsPinnedQueuePage(pkg)||pkg.version!==SEND_QUEUE_PIN.pageVersion||

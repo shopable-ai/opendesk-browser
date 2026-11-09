@@ -1,9 +1,9 @@
 {
   "name": "@opendesk-examples/ai-send-queue",
-  "version": "0.1.16",
+  "version": "0.1.18",
   "private": true,
   "type": "module",
-  "description": "One OpenDesk Send Queue product: Page USER_SCRIPT FIFO sender and trusted React Sidebar control.",
+  "description": "One OpenDesk Sidebar app with an embedded USER_SCRIPT crown and FIFO sender.",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "build": "node ../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
@@ -11,7 +11,7 @@
   },
   "opendesk": {
     "format": "opendesk.project.v1",
-    "id": "opendesk.ai-send-queue",
+    "id": "app.ai-send-queue",
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
     "entry": "src/page/main.js",

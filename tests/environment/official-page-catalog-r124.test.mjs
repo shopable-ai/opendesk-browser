@@ -4,7 +4,7 @@ import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {
-  createOfficialPageResources,officialPageInputs,readOfficialPageSources
+  createOfficialPageResources,officialPageInputs,readOfficialPageSources,writeOfficialPageResources
 } from '../../scripts/build-official-pages.mjs';
 import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH}
   from '../../src/scripting/user-scripts/official-page-catalog.js';
@@ -14,7 +14,7 @@ import {
 } from '../../src/scripting/user-scripts/official-page-catalog.js';
 
 const clone=value=>structuredClone(value);
-const expectedIds=['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap','opendesk.ai-send-queue'];
+const expectedIds=['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap'];
 
 test('R1.2.4 official Page source keeps exact independent IDs, sites and default installation policy',async()=>{
   const source=await readOfficialPageSources();
@@ -23,50 +23,39 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and default
     'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'
   ]);
   assert.deepEqual(source.programs.slice(1).map(row=>row.sites),[
-    ['https://chatgpt.com/*'],['https://chatgpt.com/*']
+    ['https://chatgpt.com/*']
   ]);
-  assert.deepEqual(source.programs.map(row=>row.publication),['approved','blocked','blocked']);
+  assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked']);
   assert.equal(source.programs[0].project,'projects/ai-scroll-navigation');
-  assert.deepEqual(await officialPageInputs(),[
-    OFFICIAL_PAGE_SOURCE_PATH,'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json',
-    'projects/ai-send-queue/ai-send-queue.opendesk-page.json']);
+  assert.deepEqual(await officialPageInputs(),[OFFICIAL_PAGE_SOURCE_PATH]);
   assert.equal(source.programs[0].installationPolicy,'preinstalled');
   for(const row of source.programs.slice(1))assert.match(row.blockedReason,/./);
 });
 
-test('migrated Scroll and Queue projects retain exact source admission in the official builder',async t=>{
+test('standalone Page builder only includes its remaining approved project',async t=>{
   const root=await mkdtemp(join(tmpdir(),'official-scroll-project-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
   const source=clone(await readOfficialPageSources());
   const scroll=source.programs.find(row=>row.programId==='opendesk.ai-scroll-navigation');
   scroll.publication='approved';
   delete scroll.blockedReason;
-  const queue=source.programs.find(row=>row.programId==='opendesk.ai-send-queue');
   await mkdir(join(root,'official-pages'),{recursive:true});
   await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source,null,2)+'\n');
-  for(const row of [scroll,queue]){
+  for(const row of [scroll]){
     const directory=join(root,row.project);
     await mkdir(directory,{recursive:true});
     await writeFile(join(directory,row.packageFile),await readFile(join(row.project,row.packageFile)));
   }
   const inputs=await officialPageInputs(root);
   assert.ok(inputs.includes('projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
-  assert.ok(inputs.includes('projects/ai-send-queue/ai-send-queue.opendesk-page.json'));
+  assert.equal(inputs.some(path=>path.includes('ai-send-queue')),false);
 });
 
-test('default Scroll ships frozen bytes while blocked releases retain their gates',async()=>{
+test('remaining blocked releases provide metadata without standalone queue resources',async()=>{
   const {catalog,resources}=await createOfficialPageResources();
-  const candidatePath='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
-  const scroll=catalog.apps[0];
-  assert.equal(scroll.status,'available');
-  assert.equal(scroll.installationPolicy,'preinstalled');
-  assert.deepEqual(resources.get(scroll.packagePath),await readFile(
-    'projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
-  assert.deepEqual([...resources.keys()],[scroll.packagePath,candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
-  assert.deepEqual(resources.get(candidatePath),await readFile(
-    'projects/ai-send-queue/ai-send-queue.opendesk-page.json'));
-  assert.equal(catalog.apps.length,3);
-  for(const row of catalog.apps.slice(1)){
+  assert.deepEqual([...resources.keys()],[OFFICIAL_PAGE_CATALOG_PATH]);
+  assert.equal(catalog.apps.length,2);
+  for(const row of catalog.apps){
     assert.equal(row.kind,'page-program');
     assert.equal(row.status,'blocked');
     assert.equal('packagePath' in row,false);
@@ -74,6 +63,23 @@ test('default Scroll ships frozen bytes while blocked releases retain their gate
     assert.equal('sourceHash' in row,false);
   }
   assert.deepEqual(validateOfficialPageReleases(catalog),catalog);
+});
+
+test('regenerating an old bundled catalog removes only the retired standalone queue resource',async t=>{
+  const output=await mkdtemp(join(tmpdir(),'official-page-retirement-'));
+  t.after(()=>rm(output,{recursive:true,force:true}));
+  const result=await createOfficialPageResources();
+  const retired='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
+  await mkdir(join(output,'official-pages/opendesk.ai-send-queue'),{recursive:true});
+  await writeFile(join(output,retired),'historical generated bytes');
+  await writeFile(join(output,OFFICIAL_PAGE_CATALOG_PATH),JSON.stringify({...result.catalog,
+    apps:[...result.catalog.apps,{...result.catalog.apps[1],programId:'opendesk.ai-send-queue',
+      installationPolicy:'reviewed'}]}));
+  await writeOfficialPageResources(result,output);
+  await assert.rejects(readFile(join(output,retired)),{code:'ENOENT'});
+  assert.deepEqual(JSON.parse(await readFile(join(output,OFFICIAL_PAGE_CATALOG_PATH))),result.catalog);
+  await assert.rejects(writeOfficialPageResources(result,output,{ownedPaths:['official-pages/unowned.json']}),
+    /不安全的旧官方资源路径/);
 });
 
 test('R1.2.4 source catalog rejects spoofing IDs, site expansion, release, and package path',async()=>{
@@ -104,7 +110,5 @@ test('R1.2.4 extension-origin catalog fetch never authorizes a blocked install',
   assert.deepEqual(await loadOfficialPageCatalog({api,fetcher}),catalog);
   await assert.rejects(loadOfficialPagePackage(catalog.apps[1],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});
-  await assert.rejects(loadOfficialPagePackage(catalog.apps[2],{api,fetcher}),
-    {code:'E_PAGE_RELEASE_CHANGED'});
-  assert.equal(requests.length,3,'blocked candidates only read catalog, never package bytes');
+  assert.equal(requests.length,2,'blocked candidates only read catalog, never package bytes');
 });

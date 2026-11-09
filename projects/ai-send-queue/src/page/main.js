@@ -4,22 +4,24 @@ import {createQueueEngine} from './engine.js';
 import {createQueueView} from './view.js';
 import {createSendQueueRemote} from './remote.js';
 
-const ID='opendesk.ai-send-queue';
+const ID='app.ai-send-queue';
 // A separate installation must never take over the legacy in-memory queue.
-const LEGACY_LIFECYCLE='[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-send-queue.lifecycle"]';
+const LEGACY_LIFECYCLES=['opendesk.chatgpt-send-queue','opendesk.ai-send-queue']
+  .map(id=>'[data-opendesk-ui-owner][data-od-id="'+id+'.lifecycle"]');
+const legacyActive=()=>LEGACY_LIFECYCLES.some(selector=>document.querySelector(selector));
 const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 
 export default async function main({assets}={}) {
   if(window!==window.top||window.location.origin!=='https://chatgpt.com')
     return {programId:ID,status:'skipped'};
-  if(document.querySelector(LEGACY_LIFECYCLE))
+  if(legacyActive())
     return {programId:ID,status:'skipped',reason:'legacy-active'};
   const owner=createPageUI({id:ID+'.lifecycle',assets,pageRules,baseStyles:false});
   owner.host.hidden=true;
   owner.host.style.setProperty('display','none','important');
   function retireForLegacy(){
-    if(!document.querySelector(LEGACY_LIFECYCLE))return false;
+    if(!legacyActive())return false;
     owner.destroy();
     return true;
   }

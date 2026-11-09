@@ -73,9 +73,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
     if(row.queueProduct)return row.queueProduct.summary+' 官方发布仍受原目录状态限制；候选审阅不代表上架。';
-    if(row.id===SEND_QUEUE_PIN.toolId&&row.enabled===false)
+    if(row.id===SEND_QUEUE_PIN.toolId&&!row.record?.pageModule&&row.enabled===false)
       return '队列管理界面已停用；已安装的网页发送能力由 Page 单独运行，不会因此自动停用。';
-    if(row.id===SEND_QUEUE_PIN.toolId&&row.stateKnown===false)
+    if(row.id===SEND_QUEUE_PIN.toolId&&!row.record?.pageModule&&row.stateKnown===false)
       return '队列管理界面状态尚未核对；不能声称整个产品就绪。';
     if(row.pageCompanion){
       const state=row.pageCompanion.state;
@@ -768,7 +768,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         if(row.queueReviewRelease)
           add('联合安装 / 更新审阅','queue-review',event=>{void reviewQueueProduct(row,event);});
         if(row.queueProduct){
-          add('审阅网页候选 / 更新','queue-page-review',event=>{void reviewQueuePage(event);});
           const companion=find('page:'+SEND_QUEUE_PIN.pageProgramId);
           if(companion?.installed){
             add(pageActionLabel(companion.record.installed),'queue-page-toggle',
@@ -798,7 +797,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           }
           if(row.stateKnown!==false)
             add(t('settings'),'settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
-          if(row.update&&row.release&&!row.queueProduct&&!row.queueReviewRelease)add(t('reviewUpdate'),'update',()=>openReview(row.key));
+          if(row.update&&row.release&&!row.queueReviewRelease)add(t('reviewUpdate'),'update',()=>openReview(row.key));
         }
       }else if(row.kind==='page'&&!row.installed){
         if(row.release?.status==='available')add(t('reviewInstall'),'install',()=>openPageReview(row.key));
@@ -1072,23 +1071,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message('已打开产品统一版本与权限审阅；尚未安装，官方 Page 发布仍为 blocked。','info');
     }catch(error){message((error.code||'E_QUEUE_REVIEW')+'：'+String(error.message||error),'error');}
     finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();}}
-  }
-  async function reviewQueuePage(event){
-    if(!event?.isTrusted||disposed||busy||pendingKey)return;
-    busy=true;draw();if(selectedKey)renderDetail();
-    try{
-      const pkg=await loadSendQueuePageCandidate({api});
-      if(disposed)return;
-      // The original import review owns validation, Chrome consent and CAS.
-      const text=JSON.stringify(pkg);
-      backIfNeeded();
-      if(sidebarTools.openImportFiles?.([{name:'ai-send-queue.opendesk-page.json',
-        size:new TextEncoder().encode(text).byteLength,text:async()=>text}])!==true)
-        throw new Error('请先处理当前草稿或安装审阅');
-      message('已打开固定网页候选审阅；官方发布仍为 blocked，尚未安装。','info');
-      return true;
-    }catch(error){message((error.code||'E_QUEUE_CANDIDATE')+'：'+String(error.message||error),'error');return false;}
-    finally{busy=false;if(!disposed){draw();if(selectedKey)renderDetail();}}
   }
   function openQueueUninstall(row,event){
     if(!event?.isTrusted||disposed||busy||pendingKey||listUninstallReview||!row.queueProduct||

@@ -5,11 +5,12 @@ import vm from 'node:vm';
 
 const root=new URL('../',import.meta.url);
 const source=await readFile(new URL('src/page/main.js',root),'utf8');
-const ID='opendesk.ai-send-queue';
+const ID='app.ai-send-queue';
 const legacySelector='[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-send-queue.lifecycle"]';
+const previousSelector='[data-opendesk-ui-owner][data-od-id="opendesk.ai-send-queue.lifecycle"]';
 
 // Execute the actual entry with inert collaborators; no website or messages.
-function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
+function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatgpt.com',frame=false}={}){
   const calls={owners:0,sites:0,engines:0,views:0,ticks:0,destroy:0,inspect:0};
   const legacyHost={queue:['private legacy queue'],destroy(){throw Error('must not touch legacy');}};
   let active=true,interval,actions,disposer;
@@ -17,7 +18,8 @@ function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
     setInterval(fn){interval=fn;},onDispose(fn){disposer=fn;},
     destroy(){if(active){active=false;calls.destroy++;disposer?.();}}};
   const site={inspect(){calls.inspect++;return {ok:false};}};
-  const doc={querySelector(selector){assert.equal(selector,legacySelector);return legacy?legacyHost:null;}};
+  const doc={querySelector(selector){assert.ok([legacySelector,previousSelector].includes(selector));
+    return legacy&&selector===legacyMarker?legacyHost:null;}};
   const win={location:{origin}};win.top=frame?{}:win;
   const context=vm.createContext({window:win,document:doc,
     createPageUI(options){calls.owners++;assert.equal(options.id,ID+'.lifecycle');return owner;},
@@ -31,15 +33,12 @@ function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
     poll(){interval();},get actions(){return actions;}};
 }
 
-test('source manifest uses independent catalog identity without widening Page rules',async()=>{
+test('source manifest binds the embedded Page to the parent package without widening Page rules',async()=>{
   const pkg=JSON.parse(await readFile(new URL('package.json',root)));
-  const catalog=JSON.parse(await readFile(new URL('../../../official-pages/sources.json',import.meta.url)));
-  // The catalog is read-only; locate its entry independently of list container name.
-  const entries=Object.values(catalog).find(value=>Array.isArray(value)&&value.some(x=>x.programId===ID));
-  const entry=entries.find(x=>x.programId===ID);
-  assert.equal(pkg.opendesk.id,entry.programId);
-  assert.equal(pkg.version,'0.1.16');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,16);
-  assert.equal(entry.publication,'blocked','native acceptance is pending');
+  const tool=JSON.parse(await readFile(new URL('tool.config.json',root)));
+  assert.equal(pkg.opendesk.id,'app.'+tool.id);
+  assert.equal(pkg.version,'0.1.18');assert.equal(tool.version,pkg.version);
+  assert.equal(tool.pageModule.revision,17);
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 });
@@ -50,6 +49,24 @@ test('old active lifecycle blocks new owner, queue and site before any work',asy
   assert.equal(result.reason,'legacy-active');
   assert.deepEqual(h.calls,{owners:0,sites:0,engines:0,views:0,ticks:0,destroy:0,inspect:0});
   assert.deepEqual(h.legacyHost.queue,['private legacy queue']);
+});
+
+test('the previous standalone Page queue blocks composite startup without touching its memory',async()=>{
+  const h=harness({legacy:true,legacyMarker:previousSelector}),result=await h.run();
+  assert.equal(result.status,'skipped');assert.equal(result.reason,'legacy-active');
+  assert.equal(h.calls.owners,0);assert.equal(h.calls.sites,0);assert.equal(h.calls.engines,0);
+  assert.deepEqual(h.legacyHost.queue,['private legacy queue']);
+});
+
+test('a late previous standalone Page retires the composite before actions or poll',async()=>{
+  for(const action of ['poll','enqueue','edit','remove','sendNow']){
+    const h=harness({legacyMarker:previousSelector});await h.run();
+    const inspections=h.calls.inspect;h.setLegacy(true);
+    if(action==='poll')h.poll();else h.actions[action]('unused');
+    assert.equal(h.calls.destroy,1,action);assert.equal(h.calls.inspect,inspections,action);
+    assert.equal(h.calls.ticks,0,action);
+    assert.deepEqual(h.legacyHost.queue,['private legacy queue']);
+  }
 });
 
 test('new identity starts alone; late legacy lifecycle retires it before inspection or tick',async()=>{

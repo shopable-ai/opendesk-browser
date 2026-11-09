@@ -11,9 +11,7 @@ const scopes=Object.freeze({
   'opendesk.ai-scroll-navigation':Object.freeze({project:'projects/ai-scroll-navigation',
     sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'preinstalled',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
   'opendesk.ai-reply-mindmap':Object.freeze({project:'projects/ai-reply-mindmap',
-    sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'}),
-  'opendesk.ai-send-queue':Object.freeze({project:'projects/ai-send-queue',
-    sites:['https://chatgpt.com/*'],policy:'reviewed',packageFile:'ai-send-queue.opendesk-page.json'})
+    sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'})
 });
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const exact=(value,keys)=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&

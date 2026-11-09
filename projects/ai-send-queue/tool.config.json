@@ -1,9 +1,10 @@
 {
   "id": "ai-send-queue",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "title": "AI 消息发送队列",
   "description": "在 ChatGPT 网页输入框管理发送队列；侧栏提供使用说明。",
   "capabilities": [
+    "page.module",
     "currentPage.read"
   ],
   "uiRuntime": "opendesk.react-ui.v1",
@@ -11,5 +12,15 @@
     "html": "src/sidebar/root.html",
     "css": "dist/tool.css",
     "js": "dist/tool.js"
+  },
+  "format": "opendesk.sidebar-tool.v2",
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "pageModule": {
+    "revision": 17
   }
 }

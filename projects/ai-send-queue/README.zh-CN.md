@@ -8,13 +8,15 @@
 
 ## 本次 JSON 交付（2026-11-10）
 
-按用户要求更新版本并从当前源码编译：网页安装包 [ai-send-queue.opendesk-page.json](ai-send-queue.opendesk-page.json) 从 `0.1.15/r15` 升至 `0.1.16/r16`；侧栏安装包 [ai-send-queue.opendesk-tool.json](ai-send-queue.opendesk-tool.json) 从 `0.1.16` 升至 `0.1.17`。网页包含长文布局、完整正文读取、异步草稿交接保护及 Ctrl + Enter；侧栏保持使用说明。网站范围与能力未扩展。
+唯一正式安装包为 [ai-send-queue.opendesk-tool.json](ai-send-queue.opendesk-tool.json)，版本由 `0.1.17` 升至 **`0.1.18`**。采用既有 `opendesk.sidebar-tool.v2` 的 `pageModule`，内含同版本的 `app.ai-send-queue` **r17** 网页模块：皇冠、FIFO、Ctrl + Enter、长文布局与草稿保护均来自原 Page 源码；侧栏继续显示使用说明。
 
-两份包通过原编译器/打包器生成、候选校验后更新，侧栏通过 `--promote-from` 晋升和 `--check-project` 同源检查。网页 `sourceHash=d14eff3d42aa376a68b7cd3b2facc82eb39605bf5c1c511455c551e52df3a84f`；侧栏原始文件 `SHA-256=e74a009fb7f1c4c802e2568b783dec811b033abfc50a05113c978c31ad010463`。现有 Host pin 与 Page 来源目录已同步，官方 Page 资源准备链核对成功，公开发行保持 `blocked`。
+此前双 JSON 是旧“Sidebar + 独立 Page 联合安装”结构遗留；框架已有单包能力，项目尚未迁移。现已移除独立 Page 正式 JSON、两份无消费者的旧编译包及独立 Page 发行入口。只通过「扩展」原安装审阅导入一个 Sidebar JSON，统一审阅网页模块、固定 ChatGPT 范围与 `page.module` 能力；不再单独导入网页包。USER_SCRIPT 世界与原站点范围不变。
 
-功能、身份与侧栏定向检查 346 项通过；包准入和联合安装管理的 Node 检查 29 项通过。身份测试替身补齐只读 `engine.view()`，不改变产品逻辑。通用打包/沙箱检查 7 项通过；另有通用宿主旧字符串断言仍要求 `deferConfirmation||identical`，而当前实现为 `deferConfirmation||identical&&!repairCompanion`，该断言失败已记录，未修改无关宿主逻辑。临时回执在忽略目录 `artifacts/ai-send-queue-release-20261110/`。
+打包继续使用原编译器与打包器，经候选检查后 `--promote-from` 晋升，再 `--check-project` 核对同源。旧精确 PIN 仅保留用于已有独立安装的安全管理，不给新包另设准入；压缩历史夹具仅用于回归，不是第二个安装包。CI 的旧双包原生驱动已停用，原生结果明确为 `NOT_TESTED`。
 
-状态为 **PACKAGE_READY_INSTALL_NOT_TESTED**：本次未安装、未刷新原页面、未修改 Browser 构建产物或既有 Goal。源码中的 Host pin 更新不等于当前 Browser 已加载；当前候选的真实长文、IME、FIFO 和 Chrome 安装仍为 **NOT_TESTED**。以下较早的“未更新正式包”记录只描述当时阶段。
+正式包 `SHA-256=b8ad9343ed24554c3fc5f3df731eb22c1feccbf21e124c21abff287153d22a02`；内嵌网页 `sourceHash=e1e0dc16dbbf147c7719d2d0764d11a35da5770d7b8db5910c91a5b38686e071`。候选包、原队列行为、旧实例避让、扩展更新入口及通用 Page 模块安装边界均按受影响范围执行 Node 检查；该结果不等于真实安装。
+
+状态为 **PACKAGE_READY_INSTALL_NOT_TESTED**：本次未安装、未刷新原页面、未修改 Browser 构建产物或既有 Goal。新模块会避让两代旧生命周期标记，不覆盖旧页面内存队列；已安装的旧独立 Page 不会自动删除、迁移或重发。现有页面是否切换到新模块仍须核对真实安装与运行回执；长文、IME、FIFO 的本候选 Chrome 实测仍为 **NOT_TESTED**。以下较早的双包与“未更新正式包”记录只描述当时阶段。
 
 ## 长文与 DOM 变化（2026-11-10，开发中）
 
@@ -71,7 +73,7 @@ Page 已生成 `0.1.15/r15` 正式可安装候选，Tool 仍为 `0.1.16`。修�
 
 ## 不可漂移的合同
 
-- Page ID：`opendesk.ai-send-queue`，唯一队列与发送状态机：`src/page/engine.js`；ChatGPT DOM：`src/page/site.js`；远端协议：`src/page/remote.js`。
+- 内嵌 Page ID：`app.ai-send-queue`，由父应用管理；旧独立 ID `opendesk.ai-send-queue` 仅保留历史安装管理。唯一队列与发送状态机：`src/page/engine.js`；ChatGPT DOM：`src/page/site.js`；远端协议：`src/page/remote.js`。
 - Sidebar Tool ID：`ai-send-queue`；`src/sidebar/App.jsx` 和 `style.css` 为唯一正式 React UI；页面既有消息合同：`src/shared/queue-contract.js`。侧栏仅展示使用提示，不请求队列数据；不创建第二份队列、第二个 React Root 或第二套 Host。
 - Page 皇冠和队列采用已批准的 R5.4 CSS 和 `crown-premium.webp`，不改皇冠偏移、旋转、尺寸、不叠新图层。
 - 编辑为取回 ChatGPT 原生输入框；FIFO、草稿、IME、附件、会话身份和 unknown-effect 不重发是强制安全栅栏。
@@ -98,7 +100,7 @@ Page 已生成 `0.1.15/r15` 正式可安装候选，Tool 仍为 `0.1.16`。修�
 
 ## 历史待办（本轮不执行）
 
-以下保留远端待办，不作为当前核心链的前置清单；完整验收、评分、production 发布及全量 CI 继续延期。
+以下保留远端待办，不作为当前核心链的前置清单；其中双包发行与更新 PIN 的做法已由上述单包交付取代。完整验收、评分、production 发布及全量 CI 继续延期。
 
 1. 从最新 main 复核运行记录与新增 CI 脚本；修复本产品测试缺陷，跨产品 provenance 由对应所有者按原始审核流程修复。
 2. 使用正式 Vite + Tool packer 构建精确候选、核对 SHA-256，审计后更新唯一 Host pin，再以真实 MV3 Chromium 验证 **两份**安装回执和受信 RPC。
@@ -114,8 +116,8 @@ Page 已生成 `0.1.15/r15` 正式可安装候选，Tool 仍为 `0.1.16`。修�
 node --test projects/ai-send-queue/tests/*.test.mjs
 node scripts/validate-program-project.mjs projects/ai-send-queue
 npm run --prefix projects/ai-send-queue build
-npm run build:program -- projects/ai-send-queue
-npm run build:dev
+node scripts/build-sidebar-tool.mjs projects/ai-send-queue --out artifacts/sidebar-tools/ai-send-queue/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/ai-send-queue --check-project
 ```
 
 仅在 `main` 上提交，不创建分支、Worktree 或 PR；不交付 ZIP；明确区分已通过的源码测试、模拟 Chrome、正式原生安装与 Mac ChatGPT 发送证据。

@@ -4,13 +4,14 @@ import {readFile,realpath,lstat,mkdir,writeFile,rename,rm} from 'node:fs/promise
 import {resolve,dirname,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
-import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../src/platform/host/send-queue-admission.js';
 import {validatePageInstallPackage,PAGE_INSTALL_INPUT_LIMIT} from '../src/scripting/user-scripts/page-install-package.js';
 import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH,OFFICIAL_PAGE_RELEASE_SCHEMA,
   officialPagePackagePath,validateOfficialPageSources,validateOfficialPageReleases}
   from '../src/scripting/user-scripts/official-page-catalog.js';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+// Retired generated resource only; never an accepted source or install identity.
+const RETIRED_QUEUE_PATH='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const fail=message=>{throw Error('E_OFFICIAL_PAGE_BUILD: '+message);};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -35,13 +36,10 @@ async function approvedFile(root,row){
   if(row.programId==='opendesk.ai-reply-mindmap')
     fail('XMind 资源再分发许可尚未通过独立生产门禁，禁止晋升正式安装');
   const directory=resolve(root,row.project);
-  // Exact single-product exception, not a generalized publication permission.
-  const oneQueueProduct=row.programId==='opendesk.ai-send-queue'&&
-    directory===resolve(root,'projects/ai-send-queue');
   const scrollNavigationProduct=row.programId==='opendesk.ai-scroll-navigation'&&
     directory===resolve(root,'projects/ai-scroll-navigation');
   if(await realpath(directory)!==directory||
-    !(directory.startsWith(root+'/examples/programs/')||oneQueueProduct||scrollNavigationProduct))
+    !(directory.startsWith(root+'/examples/programs/')||scrollNavigationProduct))
     fail('项目目录越过许可的 Page 源码范围');
   const path=resolve(directory,row.packageFile);
   if(!path.startsWith(directory+'/'))fail('正式包路径越界');
@@ -50,8 +48,7 @@ async function approvedFile(root,row){
 export async function officialPageInputs(root=ROOT){
   root=await realpath(root);
   const rows=(await readOfficialPageSources(root)).programs;
-  return [OFFICIAL_PAGE_SOURCE_PATH,...await Promise.all(rows.filter(row=>row.publication==='approved'||
-    row.programId===SEND_QUEUE_PIN.pageProgramId)
+  return [OFFICIAL_PAGE_SOURCE_PATH,...await Promise.all(rows.filter(row=>row.publication==='approved')
     .map(async row=>relative(root,(await approvedFile(root,row)).path)))].sort();
 }
 export async function createOfficialPageResources({root=ROOT}={}){
@@ -66,17 +63,6 @@ export async function createOfficialPageResources({root=ROOT}={}){
       installationPolicy:row.installationPolicy};
     if(row.publication==='blocked'){
       apps.push({...descriptor,status:'blocked',blockedReason:row.blockedReason});
-      // A single reviewed pre-release product may offer explicit local review.
-      // The official descriptor remains blocked; the general official loader
-      // still refuses installation. No code is run or granted by copying bytes.
-      if(row.programId===SEND_QUEUE_PIN.pageProgramId){
-        const {bytes}=await approvedFile(root,row);
-        const pkg=await validatePageInstallPackage(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
-        if(!exactScope(pkg,row)||!admitsPinnedQueuePage(pkg)||
-          pkg.version!==SEND_QUEUE_PIN.pageVersion||pkg.packageHash!==SEND_QUEUE_PIN.pagePackageHash)
-          fail('Send Queue 审阅候选与精确准入不符');
-        resources.set(officialPagePackagePath(row.programId),bytes);
-      }
       continue;
     }
     const {bytes}=await approvedFile(root,row);
@@ -112,7 +98,11 @@ export async function writeOfficialPageResources(result,outputRoot,{ownedPaths=[
   await safeDir(resolve(output,'official-pages'));
   let previous=null;
   try{
-    previous=validateOfficialPageReleases(JSON.parse((await fileAt(resolve(output,OFFICIAL_PAGE_CATALOG_PATH),32768)).toString('utf8')));
+    const value=JSON.parse((await fileAt(resolve(output,OFFICIAL_PAGE_CATALOG_PATH),32768)).toString('utf8'));
+    // Existing build output may still have the retired descriptor. Ignore that
+    // exact ID for regeneration; all remaining metadata is still validated.
+    if(Array.isArray(value?.apps))value.apps=value.apps.filter(row=>row?.programId!=='opendesk.ai-send-queue');
+    previous=validateOfficialPageReleases(value);
   }catch(error){if(error.code!=='ENOENT')throw error;}
   for(const [path,bytes] of result.resources){
     const target=resolve(output,path);
@@ -122,8 +112,8 @@ export async function writeOfficialPageResources(result,outputRoot,{ownedPaths=[
     try{await writeFile(temp,bytes,{flag:'wx'});await rename(temp,target);}
     finally{await rm(temp,{force:true});}
   }
-  const allowed=new Set(result.catalog.apps.map(row=>officialPagePackagePath(row.programId)));
-  const obsolete=new Set([...ownedPaths,...(previous?.apps||[]).filter(row=>row.status==='available').map(row=>row.packagePath)]);
+  const allowed=new Set([RETIRED_QUEUE_PATH,...result.catalog.apps.map(row=>officialPagePackagePath(row.programId))]);
+  const obsolete=new Set([RETIRED_QUEUE_PATH,...ownedPaths,...(previous?.apps||[]).filter(row=>row.status==='available').map(row=>row.packagePath)]);
   for(const path of obsolete){
     if(result.resources.has(path)||path===OFFICIAL_PAGE_CATALOG_PATH)continue;
     if(!allowed.has(path))fail('不安全的旧官方资源路径');

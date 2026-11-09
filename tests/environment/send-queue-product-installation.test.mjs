@@ -6,12 +6,11 @@ import {composeExtensionEntries,filterExtensionEntries} from '../../src/ui/exten
 import {describeSendQueueProduct,queuePageIdentity,sameQueuePageIdentity,loadSendQueuePageCandidate} from '../../src/ui/send-queue-product.js';
 import {SEND_QUEUE_PIN} from '../../src/platform/host/send-queue-admission.js';
 import {digest} from '../../src/platform/protocol.js';
-import {serializeSidebarToolPackage,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {serializeSidebarToolPackage,sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createExtensionCenterDOM} from '../helpers/extension-center-react-dom.mjs';
+import {tool,pagePackage} from '../../projects/ai-send-queue/tests/fixtures/legacy-installation.mjs';
 
-const tool=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
-const pagePackage=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url)));
 const makePage=()=>({programId:SEND_QUEUE_PIN.pageProgramId,revision:SEND_QUEUE_PIN.pageRevision,
   sourceHash:SEND_QUEUE_PIN.pageSourceHash,manifestHash:'a'.repeat(64),enabled:true,nativeState:'registered',
   authorization:{installationId:'queue-install',generation:4,status:'active'},
@@ -54,7 +53,7 @@ async function fixture(t,{mode='success',disabled=false,missingPage=false,missin
   if(missingPage)pages=[];
   let tools=missingTool?[]:[installedTool];const calls=[];
   const officialRelease={...targetRelease,id:'opendesk/'+tool.id,kind:'sidebar-tool',installationPolicy:'optional',
-    capabilities:tool.capabilities,packagePath:'official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json',
+    capabilities:targetRelease.capabilities||tool.capabilities,packagePath:'official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json',
     bytes:new TextEncoder().encode(serializeSidebarToolPackage(tool)).length};
   t.mock.method(globalThis,'fetch',async url=>url.startsWith('https:')?new Response('',{status:404}):new Response(JSON.stringify(
     url.endsWith('official-tools/catalog.json')?{schema:'opendesk.official-tools.releases.v1',
@@ -131,9 +130,10 @@ for(const mode of ['success','unknown'])test(`joint uninstall ${mode} requires n
   assert.equal(f.calls.filter(c=>c[0]==='toolRemove').length,mode==='success'?1:0);
 });
 
-test('untrusted product actions do not mutate either installation',async t=>{
+test('legacy management omits the retired standalone candidate and untrusted actions do not mutate either installation',async t=>{
   const f=await fixture(t);
-  for(const id of ['queue-toggle','queue-remove','queue-page-review'])
+  assert.equal(f.state.detailModel.actions.some(a=>a.id==='queue-page-review'),false);
+  for(const id of ['queue-toggle','queue-remove'])
     f.state.detailModel.actions.find(a=>a.id===id).onClick({isTrusted:false});
   assert.equal(f.calls.length,0);assert.equal(f.state.uninstallModel,null);
 });
@@ -220,7 +220,7 @@ for(const missingPage of [false,true])test(`legacy Tool upgrade uses joint revie
   assert.equal(f.calls[0][2].sha256,SEND_QUEUE_PIN.toolPackageSha256);
 });
 
-// Use an actually different version; 0.1.16 is now the pinned release.
+// This target is the archived exact-PIN release, independent of the current composite.
 for(const change of [{toolId:'other-tool'},{version:'0.0.0'},{sha256:'0'.repeat(64)}])
   test(`candidate requires exact target release ${Object.keys(change)[0]}`,()=>{
     const entries=composeExtensionEntries({installed:[{...tool,version:'0.1.13'}],pages:[makePage()],
@@ -267,4 +267,34 @@ test('current pinned Tool with missing Page offers joint recovery without ordina
   f.state.detailModel.actions.find(a=>a.id==='queue-review').onClick(trusted);
   await settle(()=>f.calls.some(c=>c[0]==='productReview'));
   assert.deepEqual(f.calls.map(c=>c[0]),['productReview']);
+});
+
+test('legacy installation offers the current composite through ordinary Tool update without touching its queue',async t=>{
+  const current=JSON.parse(await readFile(process.env.SEND_QUEUE_PACKAGE_PATH||
+    new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
+  assert.ok(current.pageModule,'this regression must exercise the actual composite candidate');
+  const targetRelease={...release,version:current.version,capabilities:current.capabilities,
+    sha256:await sidebarToolPackageHash(current)};
+  const f=await fixture(t,{targetRelease});
+  const ids=f.state.detailModel.actions.map(a=>a.id);
+  assert.ok(ids.includes('update'));
+  assert.equal(ids.includes('queue-review'),false);
+  assert.equal(ids.includes('queue-page-review'),false);
+  assert.ok(ids.includes('queue-toggle'),'existing exact-PIN installation stays manageable');
+  f.state.detailModel.actions.find(a=>a.id==='update').onClick(trusted);
+  await settle(()=>f.calls.some(c=>c[0]==='toolReview'));
+  assert.deepEqual(f.calls,[['toolReview',tool.id]]);
+  assert.equal(f.pages[0].authorization.installationId,'queue-install');
+});
+
+test('disabled composite is not described as a legacy independent Page installation',async t=>{
+  const current=JSON.parse(await readFile(process.env.SEND_QUEUE_PACKAGE_PATH||
+    new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
+  assert.ok(current.pageModule);
+  const targetRelease={...release,version:current.version,capabilities:current.capabilities,
+    sha256:await sidebarToolPackageHash(current)};
+  const f=await fixture(t,{installedTool:current,targetRelease,disabled:true,missingPage:true});
+  assert.doesNotMatch(f.state.detailModel.usageText,/Page 单独运行|不会因此自动停用/);
+  assert.equal(f.state.detailModel.actions.some(a=>a.id.startsWith('queue-')),false);
+  assert.equal(f.calls.length,0);
 });

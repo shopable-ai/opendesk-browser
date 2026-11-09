@@ -33,21 +33,6 @@
       "installationPolicy": "on-demand",
       "publication": "blocked",
       "blockedReason": "XMind 生产资源许可及新身份正式包尚未满足发行条件。"
-    },
-    {
-      "programId": "opendesk.ai-send-queue",
-      "project": "projects/ai-send-queue",
-      "packageFile": "ai-send-queue.opendesk-page.json",
-      "version": "0.1.16",
-      "revision": 16,
-      "title": "AI 消息发送队列",
-      "description": "ChatGPT 主动入队的 FIFO 顺序发送与未知结果保护。",
-      "sites": [
-        "https://chatgpt.com/*"
-      ],
-      "installationPolicy": "reviewed",
-      "publication": "blocked",
-      "blockedReason": "0.1.16/r16：长文可见区域布局、完整正文读取、异步草稿交接保护与 Ctrl + Enter 已编入本地安装候选。真实安装、长文操作、IME 与当前候选 FIFO 尚未验证，官方发行保持 blocked；旧内存队列不自动迁移或重放。"
     }
   ]
 }

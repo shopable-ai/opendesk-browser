@@ -11,7 +11,7 @@ test('Sidebar is informational, never reads the Page queue, and has no parallel 
   const tool=JSON.parse(manifest);
   assert.equal(tool.id,'ai-send-queue');
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
-  assert.deepEqual(tool.capabilities,['currentPage.read']);
+  assert.deepEqual(tool.capabilities,['page.module','currentPage.read']);
   assert.equal(entry.match(/createRoot\(/g)?.length,1);
   assert.doesNotMatch(entry+ui,/request\(|QUEUE_READ|QUEUE_WRITE|setInterval|opendesk-page-changed/);
   assert.match(ui,/在 ChatGPT 网页中使用/);
