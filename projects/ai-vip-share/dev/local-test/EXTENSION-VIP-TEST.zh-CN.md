@@ -1,5 +1,25 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+## 2026-11-10：Market × AI VIP Share 开发 Provider 增量（源码/测试入口；未冒充 Chrome 通过）
+
+**源码 owner 及变更：** 新增 `projects/ai-vip-share/server/demo-provider.mjs`（Node 22 `node:sqlite`，仅 loopback + 显式开发 env + SQLite 原子一次领取）；新增 `tests/demo-provider.test.mjs`；Market 网站 `src/market-site/client.js` 仅对 VIP 使用原已安装状态/打开操作，`src/market-site/vip-continuation.js` 校验精确开发链接和不含原票据的接续摘要，`scripts/build-market-site.mjs` 输出模块，`tests/environment/market-vip-continuation.test.mjs` 是组件闭环；原旧 Market 测试仅替换 VM 的静态 ESM import stub，未更换安装协议或原业务校验。现存 1.4.32 包和本机运行资源不触碰。
+
+**真实结果与边界：** 此条最初只记录已提交代码和命令，非宣称测试 PASS。验收需取得原始 Node 测试/SQLite 文件 WAL/唯一约束回执、网页构建输出和同一 Profile 的原生 Chrome 安装/激活证据；当前仅可据源码确认存在数据库事务与唯一索引设计，不能把它标为已验证跨设备商业核销。SQLite 相同业务意图并发的两个 DB 句柄是开发约束测试，不是多物理设备/正式商业服务。生产 HTTPS/Market channel、商业会员与 Cookie/第三方身份核验均未配置，**BLOCKED**。其他对话正在处理 1.4.32→新候选，不能在此重做晋升或动原历史 journal。
+
+**安全矩阵（前置 → 动作 → 原回执 → 持久状态 → 禁止副作用 → 证据状态）：**
+
+| 前置与动作 | 需要的回执/持久状态 | 禁止副作用 | 当前证据 |
+| --- | --- | --- | --- |
+| 新短引用，读取 /api/preview | 完整账号、SKU 与固定范围；previews 有效，redemptions=0 | 不核销、不发 Cookie | 源码及新增 Node 用例；待真实 stdout |
+| 原卡业务确认一次，两次并发及刷新 | /api/redeem receipt、SQLite 同发放实例唯一行、同 idempotencyKey 返回同笔 | 不重复发放 | Node SQLite 双句柄用例；跨真实设备 NOT_TESTED |
+| 已领取，回执丢失/换客户端 | /api/status 按原键或稳定四元组返回先前收据 | 不换新 key 盲目 POST | 代码与 Node 用例；真实断网/Worker 重启 NOT_TESTED |
+| 页面改链接、取消、过期、Host 不存在 | 留原 intent/status 或显示手动入口 | 不静默重装/不触发兑换 | 市场 VM 单元用例；真实 Chrome NOT_TESTED |
+| 固定发行不符、站点权限与 Cookie | 原 Market provenance / SDK / 原批次显式授权 | 不发凭据、不启动代理 | 原框架代码未改；整条新链 Chrome NOT_TESTED |
+| 正式 HTTPS/真实权益 | 必须商业身份、真实 Provider、审核发布渠道 | 不把本地 demo 当正式权益 | BLOCKED |
+
+**命令（Node ≥22.12）：** `node --test projects/ai-vip-share/tests/demo-provider.test.mjs tests/environment/market-vip-continuation.test.mjs tests/environment/market-site-client-r5.test.mjs`；`node --check projects/ai-vip-share/server/demo-provider.mjs`；`npm run build:market-site`。服务运行及发行命令见 [DESIGN §5.5](../../DESIGN.zh-CN.md)。**如果 7898 被本机旧 fixture 占用，不重启、停止或清库；测试使用临时端口/隔离数据库。**
+
+
 
 ## 2026-11-10：可信专属链接自动预检与取消（Node/fixture 证据，未发布新包）
 
