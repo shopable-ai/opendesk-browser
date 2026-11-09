@@ -19,7 +19,7 @@ function shortStamp(time){
   try{return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',
     hour:'2-digit',minute:'2-digit'}).format(new Date(time));}catch{return '—';}
 }
-function ReleaseDetail({row,onUpdate,onOpenReview,busy}){
+function ReleaseDetail({row,onUpdate,onOpenReview,busy,surface='sidebar'}){
   const [working,setWorking]=React.useState(false);
   const [message,setMessage]=React.useState('');
   const needsUpdate=['available','review_required'].includes(row.status);
@@ -35,10 +35,11 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy}){
     if(working||busy)return;
     setWorking(true);setMessage('');
     try{
-      // The original trusted Installer is the only next action; this is not install.
-      await onUpdate(row.key,'view');
-      if(await onOpenReview?.(row)!==true)
-        setMessage('请在「扩展」中选择本工具的「审阅更新」；现有安装不变。');
+      // Request the real native surface from the original click stack.
+      // Marking viewed is a separate durable, permission-free operation.
+      const opened=onOpenReview?.(row);
+      if(await opened===true)await onUpdate(row.key,'view');
+      else setMessage('请在原有 Side Panel「扩展」中审阅更新；现有安装不变。');
     }catch(error){setMessage('审阅入口未开启：'+String(error?.message||error).slice(0,120));}
     finally{setWorking(false);}
   };
@@ -62,7 +63,7 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy}){
       <span>{row.newCapabilities.join('、')}</span></div>}
     <div className="od-update-release-actions">
       {needsUpdate&&row.kind==='sidebar-tool'&&
-        <button type="button" onClick={review} disabled={working||busy}>审阅并更新</button>}
+        <button type="button" onClick={review} disabled={working||busy}>{surface==='app'?'在 Side Panel 审阅':'审阅并更新'}</button>}
       {needsUpdate&&row.viewedAt===null&&row.ignoredAt===null&&
         <button type="button" onClick={()=>action('view')} disabled={working||busy}>查看更新</button>}
       {needsUpdate&&row.ignoredAt===null&&row.dismissedAt===null&&row.viewedAt===null&&
@@ -177,7 +178,7 @@ export function UpdateNoticeSlot({surface='sidebar',activeTab='tools',onOpenTool
       </div>
       <div className="od-update-release-list">
         {shown.length?shown.map(row=><ReleaseDetail key={row.key} row={row}
-          onUpdate={act} onOpenReview={onOpenReview} busy={busy}/>)
+          onUpdate={act} onOpenReview={onOpenReview} surface={surface} busy={busy}/>)
           :<p className="od-update-empty">{filter==='pending'?'暂无待处理更新':'暂无可信更新记录'}</p>}
       </div>
       {filter==='all'&&state.globalMode==='toast+inbox'&&
