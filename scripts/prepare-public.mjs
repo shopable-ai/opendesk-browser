@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT,PAGE_BROWSER_COMPILER} from '../src/libs/page-frameworks/contract.js';
-import {RESOURCE_LIMITS,SIDEPANEL_DOCUMENT_PATH} from './build-contract.mjs';
+import {RESOURCE_LIMITS,SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATH} from './build-contract.mjs';
 import {resolveBrowserEdition,compilerResourcesForEdition,BROWSER_EDITION_RECORD,editionRecordText} from './browser-editions-r245.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
@@ -20,6 +20,7 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/native-agent/http-relay.html':'native-agent/http-relay.html',
   'src/platform/chrome/network-request.html':'network-request.html',
   ['src/ui/'+SIDEPANEL_DOCUMENT_PATH]:SIDEPANEL_DOCUMENT_PATH,
+  ['src/ui/'+APP_DOCUMENT_PATH]:APP_DOCUMENT_PATH,
   'src/ui/cloud-control.html':'ui/cloud-control.html',
   'src/cloud-control/runner.html':'cloud-control/runner.html',
   'src/ui/cloud-control-console.css':'ui/cloud-control-console.css',

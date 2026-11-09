@@ -1667,3 +1667,8 @@
   .sidebar-tool-header-actions{flex-wrap:wrap;max-width:100%}
 }
 @media(pointer:coarse){.sidebar-tool-header-menu [role="menuitem"]{min-height:44px}}
+
+/* Dedicated app.html layout; same Design Tokens and existing ToolHost. */
+:root[data-opendesk-entry="app"] body{min-width:320px;background:var(--od-paper)}
+:root[data-opendesk-entry="app"] .opendesk-app-page-content{max-width:none;width:100%;padding:0;min-width:0;--od-page-gutter:0px}
+:root[data-opendesk-entry="app"] .opendesk-app-page-content #workbench-tools{min-height:100%;width:100%;margin:0;padding:0}

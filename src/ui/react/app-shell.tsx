@@ -19,7 +19,7 @@ const subscribeEmptyTool=()=>()=>{};
 const defaultUiLocale=()=> 'zh-CN';
 
 export function SidebarAppShell({
-  activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
+  activeTab='tasks',pageSurface='sidebar',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
   onStopAppDebug=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,webflowAuto=null,
@@ -47,6 +47,15 @@ export function SidebarAppShell({
   const developerCanStop=!developerStop.disabled&&!developerStop.hidden;
   const runDock=myView.data.runDock??{taskHidden:activeTab!=='tasks',developHidden:activeTab!=='develop',
     hidden:!['tasks','develop'].includes(activeTab),stopOnly:false};
+  // app.html is a small presentation adapter around the existing React ToolHost.
+  // Do not construct a second workbench, installer or SDK.
+  if(pageSurface==='app')return <main id="workspace-content" className="opendesk-app-page-content">
+    <div id="workbench-tools" className="od-page" data-workbench-page="tools">
+      <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
+        {toolView&&<ToolHost view={toolView} active trustedControls={null}/>}
+      </section>
+    </div>
+  </main>;
   return <>
     <nav className="workbench-nav" role="tablist" aria-label={translateSidebarNavigation('sidebar.navigation',uiLocale)}
       aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}

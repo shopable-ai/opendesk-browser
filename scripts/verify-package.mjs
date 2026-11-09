@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {load} from 'cheerio';
-import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH} from './build-contract.mjs';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH, APP_DOCUMENT_PATH} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
@@ -81,6 +81,7 @@ const HTML_REFERENCES = Object.freeze({
   'native-agent/http-relay.html': ['../ui/design-tokens.css','settings.css','http-relay-settings.js'],
   'network-request.html': ['network-request.js'],
   [SIDEPANEL_DOCUMENT_PATH]: ['ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/time-review.css', 'ui/cloud-hosting.css', 'ui/extension-center.css', 'ui/sidebar-tool-host.js', 'ui/stay-focus-controls.js', 'ui/trusted-cookie-ui.js', 'ui/tool-shell.js'],
+  [APP_DOCUMENT_PATH]: ['ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/time-review.css', 'ui/cloud-hosting.css', 'ui/extension-center.css', 'ui/sidebar-tool-host.js', 'ui/stay-focus-controls.js', 'ui/trusted-cookie-ui.js', 'ui/tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'cloud-control/runner.html': ['cloud-runner.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
@@ -583,8 +584,8 @@ export async function inspectHTML(root, file) {
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
   if (!same(navigation, HTML_NAVIGATION_REFERENCES[file] || [])) throw new Error(`Unapproved HTML navigation references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : file === 'network-request.html' ? [NETWORK_REQUEST_META_CSP] : file === 'native-agent/http-relay.html' ? [HTTP_RELAY_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
-  if (file === SIDEPANEL_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === APP_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : file === 'network-request.html' ? [NETWORK_REQUEST_META_CSP] : file === 'native-agent/http-relay.html' ? [HTTP_RELAY_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (file === SIDEPANEL_DOCUMENT_PATH || file === APP_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
   if (file === 'native-agent/workspace.html') inspectReactMountHTML(text, file, 'workspace-root');
 }
 export async function verifyPackage(directory, {mode: requestedMode} = {}) {

@@ -104,7 +104,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
-      <SidebarAppShell activeTab={navigationTab} localeController={localeController}
+      <SidebarAppShell activeTab={navigationTab} pageSurface={doc.documentElement?.dataset?.opendeskEntry==='app'?'app':'sidebar'} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} onStopAppDebug={onStopAppDebug} extensionProps={extensionProps}

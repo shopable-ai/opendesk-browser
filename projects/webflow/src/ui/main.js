@@ -71,7 +71,10 @@
   };
 
   function App(){
-    const [page,setPage]=R.useState('overview');
+    // A first-entry hint is read-only and NEVER starts/retries any Task.
+    const [page,setPage]=R.useState(
+      tool.surface==='page'&&tool.initialPage?.view==='scripts'&&
+      !Object.hasOwn(tool.initialPage,'section')?'scripts':'overview');
     const [settings,setSettings]=R.useState(defaultPrefs);
     const [tasks,setTasks]=R.useState(PINNED.map(pin=>({...pin,state:'checking',binding:null})));
     const [history,setHistory]=R.useState([]);

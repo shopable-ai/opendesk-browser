@@ -163,7 +163,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,displaySurface='sidebar',view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,displaySurface='sidebar',validateOwnPageTarget=()=>true,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -2203,7 +2203,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   async function openOwnToolPage({tool,token,epoch,target,source=null,trusted=false}){
     const page=normalizeOwnPageTarget(target);
     const fail=(code,message)=>Object.assign(new Error(message),{code});
-    if(!page)throw fail('E_PAGE_TARGET','不支持的 PC 页面或栏目');
+    if(!page||validateOwnPageTarget(tool.id,page)!==true)
+      throw fail('E_PAGE_TARGET','当前应用不支持请求的 PC 页面或栏目');
     const current=()=>!disposed&&!busy&&visible&&displaySurface==='sidebar'&&
       !readOnlyPreview&&!tocSettingsOpen&&!toolSaving&&!toolDirty&&!isDirty()&&
       !installedReadError&&!enableReadError&&!revocationReadError&&
