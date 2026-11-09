@@ -84,8 +84,9 @@ export function UpdateNoticeSlot({surface='sidebar',activeTab='tools',onOpenTool
   const dialog=React.useRef(null);
   const active=React.useRef(true);
   const refreshing=React.useRef(false);
+  const dirty=React.useRef(false);
   const refresh=React.useCallback(async()=>{
-    if(refreshing.current)return;
+    if(refreshing.current){dirty.current=true;return;}
     refreshing.current=true;
     try{
       const next=await call('list');
@@ -96,7 +97,10 @@ export function UpdateNoticeSlot({surface='sidebar',activeTab='tools',onOpenTool
         void call('clear-open').catch(()=>{});
       }
     }catch(e){if(active.current)setError(String(e?.message||e).slice(0,160));}
-    finally{refreshing.current=false;}
+    finally{
+      refreshing.current=false;
+      if(dirty.current){dirty.current=false;if(active.current)void refresh();}
+    }
   },[]);
   React.useEffect(()=>{
     active.current=true;void refresh();
