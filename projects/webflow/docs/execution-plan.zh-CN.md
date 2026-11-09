@@ -1,3 +1,20 @@
+## Web Flow V2 接线执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
+
+**原始业务目标：** 用户在来源 ChatGPT A 发起新会话任务，Web Flow 以已安装/审阅 Task 创建 ChatGPT B，可选模型/推理，默认草稿不发送；获得独立发信授权后确认真实消息、真实会话 URL 并把可信结果送回 A。百度/Google 默认后台执行；用户前台查看必须激活原 Run 的原标签，不能新开、重跑、重复通知。V2 AI 候选固定四字段，原 V1 五字段保持兼容。
+
+**本轮已直接提交 main 的源码增量：** `src/native-agent/webflow-v2-target.js`、`workspace-chatgpt.js`、`chatgpt-background-adapter.js`、`chatgpt-bridge-trigger-gate.js`、`chatgpt-fixed-bridge-host.js`、`src/page-events/web-task-ingress.js`、`projects/webflow/trusted/chatgpt-bridge-page.js`、`CurrentTask.tsx`。关键提交包含 `3e6a373`（独立授权账本）、`2894232`（可信侧栏单次批准）、`713c876`（Host 审阅）、`dc58cfa`（网页 V2 识别）、`8c90095`（查询/回传/原 Run 授权）、`3cd2db1`（不依赖 V1 开关）、`0ecf642`（UI）、`d6bffa9`（目标绑定失败栅栏）；此前 `6891965`、`94c1742`、`91446af` 负责目标解析与执行入口。**每个修改均使用现有文件 SHA 的条件写入；并行更新触发 409 时重读最新版本后合并，未强推。**
+
+**安全性质：** V2 仅支持编译确认的百度/Google 首页和有效内置 Task 版本、安装/Origin/参数，未知/动态/current-page 目标失败关闭；官网正式回答与原来源文档、轮次/文本再验证，原任务账本新建 `v2Authorization` 一次性候选批准，旧 `grants[]` 不变。使用同一 `webTaskIngress`、Authority/Controller、原 Run/Result 和 UNKNOWN 防重放。独立批准经可信 Side Panel 操作；审批记录落盘后的 ACK 不确定不创建第二次批准。原 `activate-run` 保留且复用，Controller 创建新 owned tab 默认 `active:false`；**启动前前台偏好尚未接线**。
+
+**本轮验证分层：**
+- SOURCE：相关 8 个 JS 文件通过隔离 V8 语法检查；真实 ledger 源码+模拟存储/浏览器回调的隔离行为验证完成 V1 禁止继承、V2 单次授权、重启续读及原 Controller 单次提交。模拟不可视为真实安装或 Chrome。
+- NODE_TEST：新增 `projects/webflow/tests/task-v2-live-ledger.test.mjs`（四组单元测试），并把既有 `task-intent-v2.test.mjs`、`background-execution-view.test.mjs` 和 V1 桥接测试加入 `.github/workflows/chatgpt-baidu-bridge-r20.yml` 的 main 检查；**执行结果 NOT_VERIFIED**，不能标记 Node PASS。
+- PACKAGE：**NOT_TESTED**；CHROME：**NOT_TESTED**；BUSINESS（A→B 真实新对话/模型/发送/网址/回传）：**NOT_TESTED**。
+
+**尚缺的唯一业务主线：** 通过原 Task/Authority 与已存在 `src/chat-handoff-contract.js`（只含数据合同）实现并测试 `chatgpt.conversation.create`。必须先验证 `send:false`、原来源草稿/IME/附件保护和 B 空会话不冒充 URL，再在真正的可信授权下完成一次 `send:true` 的 B 消息/会话 ID/URL/结果 A 回填；模型设置指定不可用时拒绝。通过后才做 Gemini，当前页/动态目标、前台启动偏好按独立审阅接续。**不能将本轮 P0 源码视为整条业务完成，不得重放既有 UNKNOWN。**
+
+---
+
 ## Markdown 两任务 Demo 当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
 
 **最新安全接线修复：** main 源码提交 [`06e50a676f78e433b3619baa4b21518ec2a30089`](https://github.com/shopable-ai/opendesk-browser/commit/06e50a676f78e433b3619baa4b21518ec2a30089)，共 8 个本业务文件；针对已确认的 sandbox CSP `connect-src 'none'`，取消不可能工作的沙箱直接 `fetch`，改走原受控 `browser.network.request`，新增安装需审阅的 `network` capability；不修改通用 Host/Driver/CSP。真实 MD 文本、解析、80/160、81/162、错误权限/私有文件、SDK 接口/语法等在隔离 V8 共 12/12 条 **smoke 通过**（使用模拟网络回包，不是 Node runner/真实 Chrome）；实际 `node --test`、网络/安装/双会话仍 **NOT_TESTED**。此前提交 `0137685b` 是第一阶段预览，必须以此次修复后的源码为后续候选，不把旧直接 fetch 当成可用功能。
