@@ -36,14 +36,14 @@ renderTool({surface});
 ```ts
 type NotifyOptions = {
   message: string;  // 必填，去空白后 1–160 字符
-  type?: 'info' | 'success' | 'warning' | 'error';
+  type?: 'info' | 'success' | 'warning' | 'error' | 'positive' | 'negative';
   caption?: string; // 可选，去空白后 1–120 字符
   position?: 'top-left' | 'top-center' | 'top-right'
     | 'bottom-left' | 'bottom-center' | 'bottom-right';
   timeout?: number; // 默认 5000ms；0 为仅手动关闭，或 1000–15000 整数
   group?: boolean;  // 默认 true：同文案/说明/类型/位置合并，false 独立显示
 };
-OpenDeskTool.ui.notify(options: NotifyOptions): boolean;
+OpenDeskTool.ui.notify(options: NotifyOptions | string): boolean; // string 为简写
 ```
 
 ```js
@@ -55,6 +55,8 @@ OpenDeskTool.ui?.notify({
   type: 'success',position: 'bottom-right',timeout: 3000
 });
 ```
+
+Quasar 常用别名 `positive` / `negative` 分别统一映射为 `success` / `error`；可简写 `OpenDeskTool.ui.notify('保存成功')`。但不支持 Quasar 的 HTML、JS 回调或自定义组件注入。
 
 **返回语义**：`true` 仅说明当前沙箱已排队向父宿主投递有效请求；不保证 Host 实际展示（可能因每实例限频、关闭、撤权而丢弃），也不是业务成功回执。`false` 代表输入不符合合同，或 Bridge 失效。旧 Browser Host 没有此方法时，仍需回退工具自己的普通状态文本，不用 `window.alert`。
 
