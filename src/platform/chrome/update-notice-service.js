@@ -8,7 +8,10 @@ import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../ui/sidebar-tools/
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled}
   from '../../ui/sidebar-tools/lifecycle.js';
 import {READING_TOC_SITE_STORE,tocSiteAllowed} from '../../../projects/reading-toc/trusted/policy.js';
-import {PROMPT_SITE_STORE,allowedPromptSite} from '../../../projects/prompt-shortcuts/trusted/policy.js';
+// Do NOT import Prompt Shortcuts model/policy into the fixed SW bundle.
+// Its dynamic model is intentionally excluded by the existing provenance gate.
+const PROMPT_SITE_STORE='opendesk.sidebar-tools.prompt-sites.v1';
+const PROMPT_ID='prompt-shortcuts';
 import {writeVerifiedLocalValue} from '../../ui/sidebar-tools/storage-state.js';
 import {showTrustedUpdateToast} from './update-notice-page.js';
 import {UPDATE_NOTICE_PROTOCOL,UPDATE_NOTICE_STORE,UPDATE_NOTICE_LOCK,
@@ -86,8 +89,11 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     const reader=rows.find(row=>row.id==='reading-toc'&&row.capabilities?.includes('page.toc'));
     if(reader&&sidebarToolEnabled(records,reader.id)&&
        tocSiteAllowed(sites[READING_TOC_SITE_STORE],reader.id,origin))return true;
-    return await allowedPromptSite({installed:rows,enabled:records,url:origin,
-      sites:sites[PROMPT_SITE_STORE]})===true;
+    // Only the framework-known fixed ChatGPT grant is recognized here.
+    // Dynamic site choices belong to the original tool/Page authority and
+    // may not be inferred from a user package, model or arbitrary DOM.
+    const prompt=rows.find(row=>row.id===PROMPT_ID&&row.capabilities?.includes('page.prompts'));
+    return Boolean(prompt&&sidebarToolEnabled(records,PROMPT_ID)&&origin==='https://chatgpt.com');
   }
   function isPublishedSource(tool,record,hash){
     return record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===hash;
