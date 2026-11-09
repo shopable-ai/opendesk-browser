@@ -887,11 +887,11 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||
       !['prepare','authorize','revoke-request','reserve','check-consumed','preapprove-next','bind-preapproved',
-        'auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit',
+        'auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit','v2-approve-pending',
         'approve-conversation','authorize-conversation'].includes(message.kind))return false;
     const receivedAutoEpoch=ledger.captureAutoDenialEpoch();
     const process=async()=>{
-      if(['auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit'].includes(message.kind)){
+      if(['auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit','v2-approve-pending'].includes(message.kind)){
         const panel=await actualSidepanel(sender);
         if(message.kind==='auto-settings')return ledger.readAutoSettings();
         if(message.kind==='auto-enable')return ledger.setAutoEnabled(message.enabled,{expectedDenialRevision:receivedAutoEpoch});
@@ -903,6 +903,23 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}
           return ledger.approveAuto(message.scope,{expectedDenialRevision:receivedAutoEpoch,pendingRequest:message.pendingRequest});
         }
         if(message.kind==='auto-revoke')return ledger.revokeAuto(message.taskId);
+        if(message.kind==='v2-approve-pending'){
+          const pending=message.pendingRequest;
+          if(!pending||!validWebTaskSource(pending.source))
+            throw fail('E_WEBFLOW_V2_DENIED','缺少本轮 V2 原对话的独立审批身份');
+          const permissions=permissionEpoch,source=pending.source;
+          await assertSource(source);
+          await assertWebFlowReplyCandidate(api,source,pending.candidate);
+          if(JSON.parse(pending.candidate.text).protocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL)
+            throw fail('E_WEBFLOW_V2_DENIED','本次并非四字段 V2 待审批候选');
+          await actualSidepanel(panel);
+          if(permissions!==permissionEpoch)throw fail('E_BRIDGE_REVOKED','网站权限已改变');
+          const approved=await ledger.approveV2Pending({...pending,scope:message.scope});
+          await assertSource(source);await actualSidepanel(panel);
+          if(permissions!==permissionEpoch)
+            throw fail('E_BRIDGE_REVOKED','V2 审批期间网站权限已改变，拒绝下发执行');
+          return approved;
+        }
         const permissions=permissionEpoch,tabId=message.source?.tabId;
         if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
         const epoch=sourceEpochs.get(tabId);
