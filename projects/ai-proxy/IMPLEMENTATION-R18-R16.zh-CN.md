@@ -31,6 +31,8 @@
 
 ## 文件和最小验证门禁
 
+补齐本项目显式 `app.ci.json`：选择现有 React App CI 编译，并使用已存在的 `scripts/trusted-dialog-browser.mjs` 做内存预览 Chromium 测试；App CI 会按目录自动收集所有 `tests/*.test.mjs`。这不是最终本机安装或真实 Chrome 代理网络验收；若 CI 失败，必须保留原日志，不伪造通过。
+
 新增 `src/domain/header-actions.ts` 的强类型动作白名单，`ConfigState.headerActions` 保持可选（旧 0.3.9 配置无迁移）；`SET_HEADER_ACTIONS` 的条件保存必须沿用 Service 的 ETag，绝不调用受管 Chrome 代理 `APPLY/STOP`。新增 `tests/header-actions.test.mjs` 及 `tests/service.test.mjs` 的保存顺序、隐藏、旧 ETag 冲突、拒绝未知动作与无代理副作用断言。
 
 当前 GitHub 连接可读取并创建源码提交，但本机 CodexPro `open_current_workspace` 返回 `UNAVAILABLE`。**本轮改动尚未在本地 Node/Vite 或 Chromium 安装运行，不得把以前 0.3.9 的通过结论沿用到当前源码。** 后续应在不触碰日常 Profile/并行 watcher 的前提下执行 `npm --prefix projects/ai-proxy test`、`npm --prefix projects/ai-proxy run build`，并单独验证两 Surface 的真实快捷操作同步、状态、撤权、ETag 与外观。正式 `ai-proxy.opendesk-tool.json` 本轮保持原样，不构造新工具包。

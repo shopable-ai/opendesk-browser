@@ -1,0 +1,8 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "build": "auto",
+  "browser": [
+    "projects/ai-proxy/scripts/trusted-dialog-browser.mjs"
+  ]
+}
