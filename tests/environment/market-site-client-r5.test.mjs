@@ -7,6 +7,11 @@ import {randomUUID} from 'node:crypto';
 import {readMarketInstallStatus} from '../../src/marketplace/status.js';
 import {MARKET_OPERATIONS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 const script=await readFile('src/market-site/client.js','utf8');
+// The original component VM is intentionally not an ESM loader. Stub the
+// source-bound VIP helper here; its real module has separate direct tests.
+const runnable=script.replace(
+  "import {vipActivationLanding,vipResumeProof} from './vip-continuation.js';",
+  'const vipActivationLanding=()=>null;const vipResumeProof=async()=>null;');
 const templates=await readFile('src/market-site/templates.mjs','utf8');
 const protocol='opendesk.market.intent.v1',origin='http://127.0.0.1:43132';
 const config={schema:'opendesk.market.channel.v1',protocol,enabled:true,extensionId:'a'.repeat(32),origin};
@@ -30,7 +35,7 @@ function client({receiver=true,configuration=config,fetchError=null,subjects=[ap
   const window={addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);},
     postMessage(...args){posted.push(args);}};
   const chrome={runtime:{...(receiver?{sendMessage(id,message,callback){sent.push({id,message,callback});}}:{})}};
-  runInNewContext(script,{document:{querySelector:selector=>nodes.get(selector)||null,
+  runInNewContext(runnable,{document:{querySelector:selector=>nodes.get(selector)||null,
     querySelectorAll:selector=>selector==='[data-open-review]'?controls.map(row=>row.button):[]},chrome,window,
     addEventListener:window.addEventListener,
     fetch:async()=>{if(fetchError)throw fetchError;return {ok:true,json:async()=>configuration};},location:{origin},crypto:{randomUUID},
@@ -134,7 +139,10 @@ test('browsing needs no receiver, probe or connection state; only install sends 
   assert.equal(h.nodes.get('#connection-state').textContent,'');
   assert.ok(h.controls.every(row=>row.button.textContent==='安装到浏览器'));
   await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
-  assert.doesNotMatch(script,/GET_APP_STATUS|OPEN_INSTALLED_APP/);
+  assert.match(script,/GET_APP_STATUS/);
+   assert.match(script,/OPEN_INSTALLED_APP/);
+   assert.equal(h.sent.some(row=>['GET_APP_STATUS','OPEN_INSTALLED_APP'].includes(row.message.action)),false,
+     'existing non-VIP market subjects retain the original review-only behavior');
   whitelist(h);
 });
 
