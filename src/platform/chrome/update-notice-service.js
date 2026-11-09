@@ -270,19 +270,35 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       if(message.kind==='set-mode'){
         if(typeof message.mode!=='string'||(message.toolId!==null&&message.toolId!==undefined&&
           typeof message.toolId!=='string'))throw fail('E_UPDATE_PREFERENCE');
-        await mutate(state=>setNoticePreference(state,
+        const saved=await mutate(state=>setNoticePreference(state,
           {mode:message.mode,toolId:message.toolId||null},now()));
-        const live=[...liveClaims.values()];
-        if(message.mode!=='toast+inbox')for(const claim of live)
-          void api.tabs.sendMessage(claim.tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
-            kind:'hide',token:claim.token}).catch(()=>{});
+        if(message.mode!=='toast+inbox'){
+          // Persisted leases survive a Worker restart, unlike an in-memory map.
+          const claims=new Map(Object.values(saved.records).filter(row=>row.claim?.ackedAt>0)
+            .map(row=>[row.claim.token,row.claim.tabId]));
+          for(const [token,tabId] of claims){
+            liveClaims.delete(token);
+            void Promise.resolve(api.tabs.sendMessage(tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
+              kind:'hide',token})).catch(()=>{});
+          }
+        }
         return replyList();
       }
       if(message.kind==='action'){
         if(typeof message.key!=='string')throw fail('E_UPDATE_ACTION');
-        const saved=await mutate(state=>actOnUpdateToast(state,
-          {now:now(),action:message.action,token:null,key:message.key}));
+        let toHide=null;
+        const saved=await mutate(state=>{
+          const row=state.records[message.key];
+          if(row?.claim?.ackedAt>0)toHide={token:row.claim.token,tabId:row.claim.tabId};
+          return actOnUpdateToast(state,
+            {now:now(),action:message.action,token:null,key:message.key});
+        });
         if(!saved)throw fail('E_UPDATE_NOT_FOUND');
+        if(toHide){
+          liveClaims.delete(toHide.token);
+          void Promise.resolve(api.tabs.sendMessage(toHide.tabId,{
+            protocol:UPDATE_NOTICE_PROTOCOL,kind:'hide',token:toHide.token})).catch(()=>{});
+        }
         return updateNoticeSnapshot(saved);
       }
       if(message.kind==='clear-open'){
