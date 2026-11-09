@@ -13,6 +13,7 @@ async function bundle(path){
  return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
 }
 const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src/ui/optionsRoute.ts');
+const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const settingsCode=(await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const statusCode=(await transform(await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
@@ -30,6 +31,7 @@ function render(locale,runtime){
  runInNewContext(settingsCode,{module,exports:module.exports,require(name){
   if(name==='react')return hooks;if(name==='react/jsx-runtime')return jsx;
   if(name==='./i18n/LocaleProvider')return i18n;
+  if(name==='./domain/header-actions')return headerActions;
   if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
   if(name==='./ui/Status')return statusModule.exports;
   if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>'#/rules'},isDraftDirty:()=>false})};
