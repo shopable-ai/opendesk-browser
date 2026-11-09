@@ -5,7 +5,7 @@
   :scope .options .optionsHead { min-height:64px; padding:12px 24px; justify-content:space-between; }
   :scope .managementTitle { margin:0; font-size:16px; line-height:1.5; }
   :scope .options .settingsRefresh { display:inline-flex; align-items:center; gap:8px; min-height:36px; }
-  :scope .options .layout { display:grid; grid-template-columns:196px minmax(0,1fr); align-items:start; }
+  :scope .options .layout { display:grid; grid-template-columns:215px minmax(0,1fr); align-items:start; }
   :scope .managementNav { display:grid; align-content:start; gap:4px; position:sticky; top:64px; padding:20px 12px; }
   :scope .managementNav button { display:flex; align-items:center; gap:10px; position:relative; width:100%; min-height:44px; padding:10px 12px; border:0; background:transparent; color:var(--muted); text-align:left; }
   :scope .managementNav button[aria-current="page"] { background:var(--accentFill); color:var(--accent); font-weight:650; }
@@ -20,6 +20,8 @@
   :scope .options .optionsPageHead h2 { font-size:23px; }
   :scope .options .optionsPageHead .panelHeadActions { flex:none; }
   :scope .options .optionsModeGrid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  :scope .options .optionsModeGrid button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:43px; }
+  :scope .options .listSection { padding:20px; border:1px solid var(--line); border-radius:11px; }
   :scope .options .profileRecords .proxyRecord { min-height:72px; }
   :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   :scope .options .proxyEditorDialog { width:calc(100% - 48px); max-width:640px; }
@@ -58,6 +60,14 @@
   :scope .managementConnectionBar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-height:42px; padding:8px 24px; background:var(--soft); color:var(--muted); font-size:12px; border-bottom:1px solid var(--line); }
   :scope .managementConnectionBar .controlChip { margin-right:auto; }
   :scope .managementConnectionLabel, :scope .managementSelectionLabel { font-weight:600; }
+  :scope .managementNav button { font-weight:500; }
+  :scope .optionsModeBar .settingsRuntimeStatus { display:none; }
+  :scope .options .optionsModeBar { gap:12px; padding:20px; }
+  :scope .optionsProfileSelect { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  :scope .optionsProfileSelect label { flex:none; }
+  :scope .optionsProfileSelect select { flex:1; min-width:180px; max-width:460px; }
+  :scope .options .modeActions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--line); }
+  :scope .options .modeActions small { order:-1; flex-basis:auto; margin-right:auto; }
   @media(max-width:720px) {
     :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }
     :scope .options { width:calc(100% - 16px); margin:8px auto; }

@@ -1,0 +1,11 @@
+@scope (.proxy-app) {
+ :scope .headerActionsEditor .headerActionsChoices { display:flex; flex-wrap:wrap; gap:8px 12px; }
+ :scope .headerActionsChoices label { display:inline-flex; align-items:center; gap:6px; margin:0; }
+ :scope .headerActionsChoices input[type="checkbox"] { width:16px; height:16px; min-height:0; padding:0; accent-color:var(--accent); }
+ :scope .headerActionsEditor ol { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+ :scope .headerActionsEditor li { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:4px; }
+ :scope .headerActionsEditor li span { min-width:0; overflow-wrap:anywhere; }
+ :scope .headerActionsEditor li button { padding:6px 8px; }
+ :scope .headerActionsEditor .actions { display:flex; flex-wrap:wrap; gap:8px; margin:0; }
+ :scope .headerActionsEditor p { margin:0; }
+}

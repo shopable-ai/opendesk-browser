@@ -5,6 +5,7 @@
 @import './styles/rotation-entry.css';
 @import './styles/sidebar-settings.css';
 @import './styles/management.css';
+@import './ui/header-actions.css';
 
 /* Shared Button supplies semantics, but its inline-flex/gap defaults must not
  * change the native-button layout used by the original UI. Scoped component

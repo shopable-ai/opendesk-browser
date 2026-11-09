@@ -109,7 +109,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   loadBuiltin=loadBuiltinPageSource}) {
   invariant(api && storage && typeof assertHost === 'function'&&typeof admission?.reserve==='function'&&typeof admission.release==='function', 'E_SCHEMA', 'Trusted preview dependencies missing');
   const dependencyManager = dependencies || createDependencyManager({api,storage,assertHost,fetchImpl});
-  const worlds = createPreviewWorlds({api});
+  const worlds = createPreviewWorlds({api,storage});
   const pageFrames=createPageFrameRuntime({api,worlds});
   const managed=managedFactory?.({worlds,assertHost,verifyTarget});
   // Developer authority is captured from the original trusted Host. A worker

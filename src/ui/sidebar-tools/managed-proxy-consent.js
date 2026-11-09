@@ -38,10 +38,12 @@ export async function requestManagedProxyIntent({api,identity,title,operation,pa
     try{return await confirm('reuse');}
     catch(error){if(error?.code!=='E_PROXY_CONSENT_REQUIRED')throw error;}
   }
+  const direct=payload.config.mode==='direct';
   return requestReview({toolId:identity.toolId,
-    message:'「'+title+'」请求'+managedProxyReview(payload.config)+
-      '。\n\n允许后，此安装重复使用同一线路不再确认；更换线路或扩大范围需重新审阅。可在工具设置中撤销并停止。',
-    button:'允许并记住此线路',run:event=>{
+    title:direct?'切换为直连？':'允许使用此代理线路？',
+    message:(direct?'所有标签页将绕过系统代理，直接连接网络。':managedProxyReview(payload.config)+'。')+
+      '\n\n记住此安装的'+(direct?'直连':'线路')+'授权，之后手动切换可复用。更换线路或扩大范围需重新审阅；可在工具设置中撤销并停止。',
+    button:direct?'允许直连':'允许此线路',run:event=>{
       if(!event?.isTrusted)throw Object.assign(new Error('请点击可信授权按钮'),{code:'E_USER_GESTURE_REQUIRED'});
       return confirm('remember');
     }});

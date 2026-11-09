@@ -56,7 +56,8 @@
       "externalBrand": "第三方展示区域",
       "externalKind": "广告 · 待审核",
       "externalTitle": "广告展示位",
-      "externalDescription": "尚无经过审核的广告素材；当前不加载外部广告。"
+      "externalDescription": "尚无经过审核的广告素材；当前不加载外部广告。",
+      "installationRepair": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。"
     },
     "en": {
       "title": {
@@ -278,6 +279,10 @@
       "externalDescription": {
         "source": "尚无经过审核的广告素材；当前不加载外部广告。",
         "text": "No approved materials are available. No external ads are loaded."
+      },
+      "installationRepair": {
+        "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
+        "text": "The companion page module is missing or has changed. Return to Extensions, import the Reading TOC package and choose “Verify and restore page module”, then refresh the outline."
       }
     },
     "ja": {
@@ -500,6 +505,10 @@
       "externalDescription": {
         "source": "尚无经过审核的广告素材；当前不加载外部广告。",
         "text": "審査済みの広告素材はありません。現在、外部広告は読み込まれません。"
+      },
+      "installationRepair": {
+        "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
+        "text": "連携するページモジュールが未完了、または変更されています。拡張機能に戻り、目次パッケージを再度読み込んで「ページモジュールを確認して復元」を選択し、完了後に目次を更新してください。"
       }
     }
   }

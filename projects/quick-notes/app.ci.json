@@ -2,6 +2,7 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "ui",
   "node": [
-    "tests/environment/sidebar-quick-notes.test.mjs"
+    "tests/environment/sidebar-quick-notes.test.mjs",
+    "projects/quick-notes/tests/confirmation.test.mjs"
   ]
 }

@@ -4,6 +4,7 @@ import {Button} from '@opendesk/ui';
 import {LocaleProvider,useI18n} from './i18n/LocaleProvider';
 import QuickPanel from './QuickPanel';
 import Settings from './Settings';
+import {useHeaderActions} from './ui/header-actions';
 import {getEnvironment} from './environment';
 import {DEFAULT_HEADER_ACTIONS} from './domain/header-actions';
 
@@ -21,13 +22,17 @@ function submitLocally(event,button) {
 function Confirmation({title,text,accept,cancel,onDone,id='proxy-confirm'}) {
  const dialog=useRef(null),origin=useRef(document.activeElement);
  useEffect(()=>{dialog.current.showModal();return()=>queueMicrotask(()=>origin.current?.focus());},[]);
- return <dialog ref={dialog} className="proxy-confirm-dialog" aria-labelledby={id+'-title'} onCancel={event=>{event.preventDefault();onDone(false);}}>
+ return <dialog ref={dialog} className="proxy-confirm-dialog" role="alertdialog" aria-labelledby={id+'-title'} onCancel={event=>{event.preventDefault();onDone(false);}}>
   <h2 id={id+'-title'}>{title}</h2><p>{text}</p>
   <div className="actions"><Button id={id+'-cancel'} autoFocus onClick={()=>onDone(false)}>{cancel}</Button><Button id={id+'-accept'} variant="primary" onClick={()=>onDone(true)}>{accept}</Button></div>
  </dialog>;
 }
 function Workspace({surface}) {
  const env=getEnvironment(),{t}=useI18n();
+ // Optional invocation also keeps legacy navigation-only fixtures usable.
+ const headerStore=useHeaderActions?.(env);
+ const headerState=headerStore?.getSnapshot();
+ const headerLocked=()=>Boolean(headerStore?.getSnapshot().busy||headerStore?.getSnapshot().unknown);
  const [route,setRoute]=useState(()=>env.navigation.getRoute()),[dirty,setDirty]=useState(false);
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
@@ -35,9 +40,10 @@ function Workspace({surface}) {
  const [headerActionIds,setHeaderActionIds]=useState([...DEFAULT_HEADER_ACTIONS]);
  const [navigationError,setNavigationError]=useState(null);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
- const navigationEpoch=useRef(0);
+ const navigationEpoch=useRef(0),routeDecision=useRef(null);
  // Shared Service changes refresh Header preferences in this surface as well.
  useEffect(()=>{
+  if(headerStore)return;
   let alive=true;
   const accept=state=>{
    if(!alive||!state?.config)return;
@@ -47,22 +53,50 @@ function Workspace({surface}) {
   const off=env.service.subscribe(accept);
   void env.request({type:'GET_STATE'}).then(result=>{if(result?.ok)accept(result.state);}).catch(()=>{});
   return()=>{alive=false;off?.();};
- },[env]);
+ },[env,headerStore]);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=surface==='management'||route.startsWith('#/');
  const headerPage=useRef({route:null,revision:0,page:'home'});
  if(headerPage.current.route!==route)headerPage.current={route,revision:headerPage.current.revision+1,
   page:route?'settings-'+(headerPage.current.revision+1):'home'};
- useEffect(()=>{env.setConfirmHandler(text=>new Promise(resolve=>setConfirmation({text,resolve})));return()=>env.setConfirmHandler(null);},[env]);
+ useEffect(()=>{
+  const unregister=env.setConfirmHandler((text,{signal}={})=>new Promise(resolve=>{
+   let done=false;
+   const finish=ok=>{if(done)return;done=true;signal?.removeEventListener('abort',cancel);resolve(ok);setConfirmation(value=>value?.resolve===finish?null:value);};
+   const cancel=()=>finish(false);
+   if(signal?.aborted){resolve(false);return;}
+   signal?.addEventListener('abort',cancel,{once:true});
+   setConfirmation({text,resolve:finish});
+  }));
+  return()=>{if(typeof unregister==='function')unregister();else env.setConfirmHandler(null);};
+ },[env]);
  useEffect(()=>{const changed=event=>{busyRef.current=event.detail.busy===true;setBusy(busyRef.current);};env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
  useEffect(()=>{
-  env.navigation.setGuard(next=>{if(busyRef.current)return false;if(dirtyRef.current){setPendingRoute(next);return false;}return true;});
+  env.navigation.setGuard(next=>{
+   if(busyRef.current||headerLocked()||routeDecision.current)return false;
+   if(!dirtyRef.current)return true;
+   const controller=new AbortController(),epoch=navigationEpoch.current,revision=env.getDraftVersion?.();
+   routeDecision.current=controller;setPendingRoute(next);
+   // Start in the original navigation event stack, before any async boundary.
+   const deciding=env.confirm(t('apDiscardHelp'),{signal:controller.signal});
+   Promise.resolve(deciding).then(accepted=>{
+    if(routeDecision.current!==controller||controller.signal.aborted||navigationEpoch.current!==epoch)return;
+    if(accepted===true&&revision===env.getDraftVersion?.()){
+     if(env.navigation.navigate(next,{force:true})){
+      env.clearDrafts();markDirty(false);focusAfterDiscard.current=true;setPageEpoch(value=>value+1);
+     }
+    }
+   },()=>{}).finally(()=>{
+    if(routeDecision.current===controller){routeDecision.current=null;setPendingRoute(null);}
+   }).catch(()=>{});
+   return false;
+  });
   const change=()=>{navigationEpoch.current++;setRoute(env.navigation.getRoute());setNavigationError(null);};
   const unsubscribe=env.navigation.subscribe(change);
   change();markDirty(env.hasDrafts());
   const draft=event=>markDirty(event.detail===true);
   env.events.addEventListener('ai-proxy-draft',draft);
-  return()=>{navigationEpoch.current++;env.navigation.setGuard(null);unsubscribe();env.events.removeEventListener('ai-proxy-draft',draft);};
+  return()=>{navigationEpoch.current++;routeDecision.current?.abort();routeDecision.current=null;env.navigation.setGuard(null);unsubscribe();env.events.removeEventListener('ai-proxy-draft',draft);};
  },[env]);
  useEffect(()=>{
   if(focusAfterDiscard.current||lastRoute.current!==route){
@@ -81,22 +115,23 @@ function Workspace({surface}) {
    {id:'add-proxy',label:t('addProxy'),icon:'new',route:'#/profiles/add'},
    {id:'diagnostics',label:t('networkDiagnostics2'),icon:'diagnostics',route:'#/diagnostic',section:'diagnostic'},
    {id:'subscriptions',label:t('subscriptionSources'),icon:'subscriptions',route:'#/subscriptions',section:'subscriptions'},
-   {id:'settings',label:t('apManageSettings'),icon:'settings',route:'#/profiles',section:'profiles'}
+   {id:'settings',label:t('apManageSettings'),icon:'settings',route:'#/profiles',section:'profiles'},
+   {id:'official',label:t('officialNetwork'),icon:'settings',route:'#/official',section:'official'}
   ];
-  // Public Header owns rendering; this saved whitelist only selects links.
-  const actions=headerActionIds.map(id=>catalog.find(action=>action.id===id)).filter(Boolean);
+  // The App-owned editor takes precedence; retain Service preferences for legacy consumers.
+  const selected=(headerState?.saved??headerActionIds).map(id=>catalog.find(action=>action.id===id)).filter(Boolean);
   const base={page,title:t(settings?'apManageSettings':'apProxyPanel'),canBack:settings,primary:null};
-  const disabled=dirty||busy||Boolean(confirmation)||pendingRoute!==null||env.toolNavigation.isLocked();
-  const enhanced=env.toolNavigation.setNavigation(base,actions.map(({route:target,section,...action})=>({
+  const disabled=dirty||busy||headerLocked()||Boolean(confirmation)||pendingRoute!==null||env.toolNavigation.isLocked();
+  const enhanced=env.toolNavigation.setNavigation(base,selected.map(({route:target,section,...action})=>({
    ...action,...(disabled?{disabledReason:t('apKeepEditing')}:{})
   })));
   setHeaderNavigation(enhanced);
   return env.toolNavigation.subscribe(async detail=>{
-   if(busyRef.current||confirmation||pendingRoute!==null)return;
+   if(busyRef.current||headerLocked()||confirmation||pendingRoute!==null)return;
    if(detail?.action==='back'&&settings){env.navigation.navigate('');return;}
    if(!enhanced||detail?.action!=='header'||detail.page!==page||env.navigation.getRoute()!==route||
     dirtyRef.current||env.toolNavigation.isLocked())return;
-   const action=actions.find(item=>item.id===detail.actionId);
+   const action=selected.find(item=>item.id===detail.actionId);
    if(!action)return;
    setNavigationError(null);
    const openingEpoch=navigationEpoch.current;
@@ -114,14 +149,7 @@ function Workspace({surface}) {
     setNavigationError(error?.code==='E_OUTCOME_UNKNOWN'?'apOwnPageOutcomeUnknown':'couldNotOpenTheSettingsTabOpenItFrom');
    }
   });
- },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t,headerActionIds]);
- function leaveDraft(confirmed) {
-  const next=pendingRoute;setPendingRoute(null);
-  if(!confirmed||next===null)return;
-  if(!env.navigation.navigate(next,{force:true}))return;
-  env.clearDrafts();markDirty(false);focusAfterDiscard.current=true;setPageEpoch(value=>value+1);
-  env.setState({dirty:false,busy:false});
- }
+ },[env,surface,route,settings,dirty,busy,confirmation,pendingRoute,t,headerState,headerActionIds]);
  return <div className={'proxy-app'+(surface==='management'?' proxy-management':'')} id="proxy-ready" data-ready="true" data-surface={surface}
  onFocusCapture={event=>env.captureDraftFrom(event.target)}
  onClick={event=>submitLocally(event,event.target.closest('button[type="submit"]'))}
@@ -134,10 +162,9 @@ function Workspace({surface}) {
   // Bubble after the field's own controlled update. Capture can restore its old value.
   env.markDraftFrom(event.target);
  }}>
-  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy} headerNavigation={headerNavigation}/>:<QuickPanel/>}</div>
+  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy||headerLocked()} headerNavigation={headerNavigation} headerActionsStore={headerStore}/>:<QuickPanel headerNavigation={headerNavigation} settingsFallback={headerNavigation&&headerState?.saved.length===0}/>}</div>
   {navigationError&&<p className="notice error" role="alert">{t(navigationError)}</p>}
-  {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={ok=>{confirmation.resolve(ok);setConfirmation(null);}}/>}
-  {pendingRoute!==null&&<Confirmation id="proxy-draft" title={t('apUnsaved')} text={t('apDiscardHelp')} cancel={t('apKeepEditing')} accept={t('apDiscardLeave')} onDone={leaveDraft}/>}
+  {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={confirmation.resolve}/>}
  </div>;
 }
 export default function App({surface='side-panel'}={}){return <LocaleProvider><Workspace surface={surface}/></LocaleProvider>;}

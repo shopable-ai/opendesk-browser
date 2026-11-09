@@ -156,11 +156,22 @@ test('commit permits waiting only before click; success and throwing clicks cons
     assert.equal(f.state.clicks,1);
   }
 });
-test('changed native draft, attachments, history node or history text deny commit',()=>{
-  for(const change of [f=>{f.editor.value='user draft';},f=>{f.state.attachment={};},
-    f=>{f.state.users=[message('prior')];},f=>{f.state.users[0].innerText='edited prior';}]){
+test('send preflight identifies the changed guard without sending draft or history bytes',()=>{
+  for(const [reason,change] of [
+    [/会话地址/,f=>{f.win.location.pathname='/c/other-chat';}],
+    [/输入表单/,f=>{f.editor.closest=selector=>selector==='form'?{...f.form}:null;}],
+    [/输入框身份/,f=>{f.state.editors=[{...f.editor}];}],
+    [/原生草稿/,f=>{f.editor.value='private user draft';}],
+    [/附件或富内容/,f=>{f.state.attachment={};}],
+    [/用户消息数量/,f=>{f.state.users.push(message('private next message'));}],
+    [/第 1 条用户消息节点/,f=>{f.state.users=[message('prior')];}],
+    [/第 1 条用户消息正文/,f=>{f.state.users[0].innerText='private edited prior';}]
+  ]){
     const f=fixture(),prepared=f.site.prepare('result',f.site.inspect());change(f);
-    assert.equal(f.site.commit(prepared.token).ok,false);assert.equal(f.state.clicks,0);
+    const outcome=f.site.commit(prepared.token);
+    assert.equal(outcome.ok,false);assert.equal(outcome.stage,'before-click');
+    assert.match(outcome.reason,reason);assert.doesNotMatch(outcome.reason,/private/);
+    assert.equal(f.state.clicks,0);
   }
 });
 test('confirm requires exact historical user node and text prefix plus exactly one new result',()=>{

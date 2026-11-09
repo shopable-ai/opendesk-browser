@@ -13,9 +13,10 @@ async function bundle(path){
 const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src/ui/optionsRoute.ts');
 const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
+const backupValidation=await bundle('../src/ui/backupImport.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
-function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
+function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/rules',gestureGate=false}={}){
   const values=[],refs=[],effects=[],drafts=new Map(),draftBases=new Map(),calls=[],focus=[],scroll=[],frames=[];
   let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
@@ -23,18 +24,20 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
   const scroller={scrollTop:320,scrollTo(value){this.scrollTop=value.top;scroll.push(value.top);}};
   const nodes=new Map();
   const node=id=>nodes.get(id)||(()=>{const value={id,isConnected:true,focus(){focus.push(id);},scrollIntoView(){scroll.push(id);}};nodes.set(id,value);return value;})();
-  const env={navigation:{getRoute:()=>'#/rules',subscribe:()=>()=>{}},navigate(){},
+  let eventStack=null,onNavigate=null;
+  const env={navigation:{getRoute:()=>route,subscribe:()=>()=>{}},navigate(target){calls.push({navigate:target});onNavigate?.(target);},
+    hasDrafts:()=>drafts.size>0,getDraftVersion:()=>revision,
     isDraftDirty:key=>drafts.has(key),getDraftRevision:key=>drafts.get(key)??0,
     beginDraft(key,etag=state.configEtag){if(!draftBases.has(key))draftBases.set(key,etag);},
     setDraftDirty(value,key,expected){if(value){env.beginDraft(key);drafts.set(key,++revision);}else{if(expected!==undefined&&expected!==(drafts.get(key)??0))return false;drafts.delete(key);draftBases.delete(key);}return true;},
-    async confirm(message){calls.push({confirm:message});return typeof confirmResult==='function'?confirmResult():confirmResult;}};
+    async confirm(message){calls.push({confirm:message,event:eventStack});if(gestureGate&&eventStack!=='click')throw Error('E_GESTURE');return typeof confirmResult==='function'?confirmResult():confirmResult;}};
   const hooks={...React,useState(initial){const index=cursor++;if(!(index in values))values[index]=typeof initial==='function'?initial():initial;
     return [values[index],next=>{values[index]=typeof next==='function'?next(values[index]):next;}];},
     useRef(initial){const index=refCursor++;return refs[index]??=( {current:initial} );},
     useEffect(fn,deps){const index=effectCursor++,previous=effects[index];if(!previous||deps.some((v,i)=>v!==previous.deps[i]))effects[index]={fn,deps,pending:true};}};
   const Button=({children,variant,...props})=>React.createElement('button',{type:'button',...props},children);
   const module={exports:{}};
-  runInNewContext(code,{module,exports:module.exports,crypto:{randomUUID:()=>'new-id'},document:{getElementById(id){
+  runInNewContext(code,{AbortController,module,exports:module.exports,crypto:{randomUUID:()=>'new-id'},document:{getElementById(id){
     // A deleted rule's action is absent, so focus must use a surviving row/Add.
     if(id.startsWith('settings-rule-')&&id!=='settings-rule-add'&&
       !config.rules.some(r=>'settings-rule-'+r.id===id))return null;
@@ -74,7 +77,8 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
         }
       })};
       if(name==='./domain/header-actions')return headerActions;
-  if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
+      if(name==='./ui/backupImport')return backupValidation;
+      if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
       if(name==='./ui/FormField')return {FormField:({id,label,children})=>React.createElement('label',null,label,children({id}))};
       if(name==='./ui/ProxyEntry')return {ClearableInput:({onValueChange,fieldLabel,...props})=>React.createElement('input',{...props,onChange:e=>onValueChange(e.target.value)})};
       if(name==='./ui/OptionsShell')return {OptionsPageHeader:OptionsPageHeader??(({title,actions})=>React.createElement('header',null,React.createElement('h2',null,title),actions))};
@@ -97,14 +101,20 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
   const text=value=>Array.isArray(value)?value.map(text).join(''):value&&typeof value==='object'?text(value.children):String(value??'');
   const button=label=>{const found=all(n=>n.type==='button'&&(n.props['aria-label']??text(n))===label)[0];assert.ok(found,'button '+label);return found;};
   async function click(label){
-    await button(label).props.onClick();
+    let result;try{eventStack='click';result=button(label).props.onClick();}finally{eventStack=null;}await result;
     // Advance immediate async work started by a void click handler before render.
     await new Promise(setImmediate);
     render();
   }
-  function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
+  function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,id==='import-data'?'settings-backup':'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
   render();render();
   return {config,state,env,draftBases,calls,focus,scroll,render,all,text,button,click,change,
+    setNavigate:fn=>{onNavigate=fn;},
+    chooseSection(value){const selector=all(n=>n.props.id==='settings-section')[0];
+      try{eventStack='change';selector.props.onChange({target:{value}});}finally{eventStack=null;}render();},
+    async chooseBackup(file){const input=all(n=>n.props.id==='backup-file')[0];
+      try{eventStack='change';input.props.onChange({stopPropagation(){},currentTarget:{files:[file],value:'file'}});}finally{eventStack=null;}
+      await new Promise(setImmediate);render();},
     clickRule:(action,item=existing)=>click(translate(locale,action==='edit'?'editNamedRule':'deleteNamedRule',{
       domain:item.domain,scope:translate(locale,item.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})),
     setConfirm:value=>{confirmResult=value;},setSave:value=>{saveResult=value;},
@@ -300,7 +310,7 @@ test('same-domain rules expose scope in action names and delete confirmation in 
 test('confirmed rule deletion returns focus to a surviving neighbor or Add; cancellation and failure preserve the record',async()=>{
   const f=fixture();f.config.rules.push({...existing,id:'neighbor',domain:'neighbor.example'});f.render();
   await f.clickRule('delete');assert.equal(f.focus.at(-1),'settings-rule-neighbor');
-  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'DELETE_RULE',id:existing.id}]);
+  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'DELETE_RULE',id:existing.id,ifMatch:'rules-initial'}]);
   await f.clickRule('delete',f.config.rules[0]);assert.equal(f.focus.at(-1),'settings-rule-add');assert.equal(f.config.rules.length,0);
   for(const mode of ['cancel','failed']){
     const untouched=fixture();if(mode==='cancel')untouched.setConfirm(false);else untouched.setSave(false);
@@ -329,4 +339,98 @@ test('R14 Settings uses the Host return only after optional navigation was accep
   assert.equal(f.all(node=>node.props.id==='settings-close').length,headerNavigation?0:1);
   assert.ok(f.all(node=>node.props.id==='settings-section').length,'all settings sections remain reachable');
  }
+});
+
+
+test('settings consumes confirmation rejection and blocks a second intent without losing the draft',async()=>{
+ const f=fixture();await f.click('addRule');f.change('rule-domain','draft.example');
+ f.setConfirm(()=>Promise.reject(Error('busy')));await f.click('cancel');
+ assert.equal(f.hasEditor(),true);assert.equal(f.env.isDraftDirty('settings-rule'),true);
+ let resolve;f.setConfirm(()=>new Promise(done=>resolve=done));
+ const first=f.click('cancel');await new Promise(setImmediate);
+ const count=f.calls.filter(c=>c.confirm).length;
+ await f.click('cancel');assert.equal(f.calls.filter(c=>c.confirm).length,count);
+ resolve(false);await first;assert.equal(f.hasEditor(),true);
+});
+
+test('settings does not delete after the config ETag changes while confirmation is pending',async()=>{
+ const f=fixture();let resolve;f.setConfirm(()=>new Promise(done=>resolve=done));
+ const pending=f.clickRule('delete');await new Promise(setImmediate);
+ f.state.configEtag='newer';f.render();resolve(true);await pending;
+ assert.equal(f.calls.filter(c=>c.type==='DELETE_RULE').length,0);
+});
+
+
+test('dirty native section selection prepares a click target without dispatching a confirmation',async()=>{
+ const f=fixture({gestureGate:true});f.env.setDraftDirty(true,'settings-rule');
+ const revision=f.env.getDraftVersion(),base=f.draftBases.get('settings-rule');
+ f.setNavigate(()=>{void f.env.confirm('Leave?').catch(()=>{});});
+ f.chooseSection('backup');
+ assert.equal(f.calls.filter(c=>c.confirm||c.navigate).length,0);
+ assert.equal(f.env.getDraftVersion(),revision);assert.equal(f.draftBases.get('settings-rule'),base);
+ assert.equal(f.all(n=>n.props.id==='settings-section')[0].props.value,'backup');
+ await f.click('apKeepEditing');assert.equal(f.all(n=>n.props.id==='settings-section')[0].props.value,'rules');
+ assert.equal(f.calls.filter(c=>c.confirm).length,0);
+ f.chooseSection('backup');await f.click('apConfirm · importAndBackup');
+ assert.equal(f.calls.filter(c=>c.confirm).length,1);
+ assert.equal(f.calls.find(c=>c.confirm).event,'click');
+ assert.equal(f.calls.find(c=>c.navigate).navigate,'#/backup');
+});
+
+test('a changed draft or config invalidates a prepared native section target; clean navigation needs no confirmation',async()=>{
+ for(const change of ['revision','etag']){
+  const f=fixture({gestureGate:true});f.env.setDraftDirty(true,'settings-rule');f.chooseSection('backup');
+  if(change==='revision')f.env.setDraftDirty(true,'settings-rule');else f.state.configEtag='newer';
+  f.render();await f.click('apConfirm · importAndBackup');
+  assert.equal(f.calls.filter(c=>c.confirm||c.navigate).length,0);assert.equal(f.env.isDraftDirty('settings-rule'),true);
+ }
+ const f=fixture({gestureGate:true});f.chooseSection('backup');
+ assert.equal(f.calls.filter(c=>c.confirm).length,0);assert.equal(f.calls.find(c=>c.navigate).navigate,'#/backup');
+});
+
+const backupFile=()=>({size:200,text:async()=>JSON.stringify(domain.freshConfig())});
+const backupText=f=>f.all(n=>n.props.id==='import-data')[0].props.value;
+test('backup replacement reads/validates without confirmation and the explicit click starts shared confirmation synchronously',async()=>{
+ for(const answer of [false,true,()=>Promise.reject(Error('E_UI_CONFIRM_BUSY'))]){
+  const f=fixture({route:'#/backup',gestureGate:true});f.change('import-data','original draft');
+  const revision=f.env.getDraftRevision('settings-backup'),base=f.draftBases.get('settings-backup');
+  await f.chooseBackup(backupFile());
+  assert.equal(f.calls.filter(c=>c.confirm).length,0);assert.equal(backupText(f),'original draft');
+  assert.equal(f.env.getDraftRevision('settings-backup'),revision);assert.equal(f.draftBases.get('settings-backup'),base);
+  f.setConfirm(answer);await f.click('apConfirm · backupChooseFile');
+  assert.equal(f.calls.filter(c=>c.confirm).length,1);assert.equal(f.calls.find(c=>c.confirm).event,'click');
+  assert.equal(backupText(f),answer===true?JSON.stringify(domain.freshConfig()):'original draft');
+  assert.equal(f.draftBases.get('settings-backup'),base);
+  assert.equal(f.calls.some(c=>c.type),false,'replacement only edits a draft; never imports/applies');
+  if(answer!==true){assert.equal(f.env.getDraftRevision('settings-backup'),revision);assert.equal(f.all(n=>n.props.id==='backup-replace-candidate').length,1);}
+ }
+});
+
+test('backup candidate cannot replace newer input, another file or refreshed config before or during confirmation',async()=>{
+ for(const when of ['before','during'])for(const change of ['revision','etag','file']){
+  const f=fixture({route:'#/backup',gestureGate:true});f.change('import-data','original draft');await f.chooseBackup(backupFile());
+  let accept;
+  if(when==='during'){
+   f.setConfirm(()=>new Promise(resolve=>accept=resolve));await f.click('apConfirm · backupChooseFile');
+   assert.equal(typeof accept,'function');
+   await f.click('apConfirm · backupChooseFile');assert.equal(f.calls.filter(c=>c.confirm).length,1,'single pending');
+  }
+  if(change==='revision')f.change('import-data','newer draft');
+  if(change==='etag'){f.state.configEtag='newer';f.render();}
+  if(change==='file')await f.chooseBackup({size:3,text:async()=>'{bad'});
+  if(when==='during'){accept(true);await new Promise(setImmediate);f.render();}
+  else if(f.all(n=>n.props.id==='backup-replace-candidate').length)await f.click('apConfirm · backupChooseFile');
+  assert.equal(backupText(f),change==='revision'?'newer draft':'original draft');
+  assert.equal(f.calls.filter(c=>c.confirm).length,when==='during'?1:0);
+  assert.equal(f.calls.some(c=>c.type),false);
+ }
+});
+
+test('empty backup accepts a validated read without confirmation; invalid files never create a replacement action',async()=>{
+ const f=fixture({route:'#/backup',gestureGate:true});await f.chooseBackup(backupFile());
+ assert.equal(backupText(f),JSON.stringify(domain.freshConfig()));assert.equal(f.calls.filter(c=>c.confirm).length,0);
+ assert.equal(f.all(n=>n.props.id==='backup-replace-candidate').length,0);
+ await f.chooseBackup({size:3,text:async()=>'{bad'});
+ assert.equal(f.all(n=>n.props.id==='backup-replace-candidate').length,0);
+ assert.equal(backupText(f),JSON.stringify(domain.freshConfig()));
 });

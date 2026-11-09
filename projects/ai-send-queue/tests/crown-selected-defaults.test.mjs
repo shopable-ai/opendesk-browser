@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createQueueEngine} from '../src/page/engine.js';
+import {createSendQueueRemote} from '../src/page/remote.js';
+import {createPreviewModel} from '../preview/model.js';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const text=path=>readFileSync(resolve(root,path),'utf8');
 const css=text('assets/queue.css'),html=text('preview/index.html'),tuner=text('legacy/preview/crown-tuner-r53.html');
@@ -31,14 +34,35 @@ test('archived tuner remembers R5.3 calibration without modifying the formal R5.
  assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"/);
 });
 
-test('preview keeps three initial rows, expansion, conservative draft protection',()=>{
- assert.match(html,/expanded\?items:items\.slice\(0,3\)/);
- assert.match(html,/items\.length<=3/);
- assert.match(html,/aria-expanded/);
- assert.match(html,/输入框已有草稿：不会覆盖/);
- assert.match(html,/暂停此条/);
- assert.doesNotMatch(html,/队列已暂停|id="toggle-pause"/);
+test('preview keeps a three-row window, expansion, conservative draft protection',()=>{
+ const boot=text('preview/boot.js');
+ assert.match(html,/<script type="module" src="\.\/boot.js"><\/script>/);
+ assert.match(boot,/state\.expanded\?items:items\.slice\(0,3\)/);
+ assert.match(boot,/\$\('more'\)\.hidden=items\.length<=3/);
+ assert.match(boot,/\$\('more'\)\.setAttribute\('aria-expanded',String\(state\.expanded\)\)/);
+ assert.match(boot,/\$\('more'\)\.onclick=\(\)=>model\.engine\.toggleExpanded\(\)/);
+ assert.match(boot,/item\.state==='paused'\?'恢复此条':'暂停此条'/);
+ assert.doesNotMatch(html+boot,/队列已暂停|id="toggle-pause"/);
  assert.match(html,/模拟 AI 回复完成/);
+ const model=createPreviewModel({createQueueEngine,createSendQueueRemote});
+ assert.equal(model.engine.view().items.length,0);
+ model.sample();
+ assert.equal(model.engine.view().items.length,3);
+ assert.equal(model.enqueue('第四条'),true);
+ assert.equal(model.engine.view().expanded,false);
+ model.engine.toggleExpanded();
+ assert.equal(model.engine.view().expanded,true);
+ model.engine.toggleExpanded();
+ assert.equal(model.engine.view().expanded,false);
+ const before=model.engine.view().items;
+ model.setDraft('已有草稿');
+ assert.equal(model.command('edit',before[0].id).effect,'rejected');
+ assert.equal(model.getDraft(),'已有草稿');
+ assert.deepEqual(model.engine.view().items,before);
+ model.setDraft('');
+ assert.equal(model.command('edit',before[0].id).effect,'applied');
+ assert.equal(model.getDraft(),before[0].text);
+ assert.deepEqual(model.engine.view().items,before.slice(1));
 });
 
 test('production queue view retains original three-item window and no crown behavior change',()=>{

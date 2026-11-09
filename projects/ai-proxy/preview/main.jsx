@@ -1,5 +1,14 @@
 // Offline preview host. Two actual documents, bounded postMessage, memory only.
 import {createPreviewBoundary} from './sdk-preview.js';
+import {createPreviewProxyConsent} from './proxy-consent.js';
+import {createPreviewReview} from './ProxyReview.jsx';
+import {toManagedRoute} from '../src/domain/managed-config';
+const reviewUI=createPreviewReview();
+let proxyConsent;
+function newBoundary(scenario){
+  proxyConsent=createPreviewProxyConsent({requestReview:review=>reviewUI.request(review)});
+  return createPreviewBoundary(scenario,{authorize:config=>proxyConsent.authorize(toManagedRoute(config))});
+}
 const byId=id=>document.getElementById(id);
 const iframe=byId('opendesk-preview-frame');
 const config=JSON.parse(byId('opendesk-preview-shell-data').textContent);
@@ -12,7 +21,7 @@ const token=linked?params.get('session'):crypto.randomUUID();
 const sections=['profiles','rules','subscriptions','backup','diagnostic','general','official'];
 const validRoute=route=>typeof route==='string'&&route.length<129&&/^#\/(profiles|rules|subscriptions|backup|diagnostic|general|official)(\/[a-zA-Z0-9_-]+){0,2}$/.test(route);
 let route=validRoute(location.hash)?location.hash:'#/'+(sections.includes(params.get('section'))?params.get('section'):'profiles');
-let boundary=createPreviewBoundary(params.get('scenario')||config.scenario),dirty=false,busy=false,uninstalled=false,managementWindow=null;
+let boundary=newBoundary(params.get('scenario')||config.scenario),dirty=false,busy=false,uninstalled=false,managementWindow=null;
 let rpcSequence=0,revision,sessionInvalid=false;
 const pending=new Map(),log=[];
 const children=new Set();
@@ -35,13 +44,13 @@ function showState(){
   byId('preview-return').disabled=busy||sessionInvalid;
   byId('preview-close').disabled=busy||sessionInvalid;
   byId('preview-draft-state').textContent=dirty?'有未保存更改':busy?'操作处理中':'配置只在本次预览内保存';
-  byId('preview-operation-receipt').textContent=JSON.stringify({apply:log.filter(m=>m==='apply').length,stop:log.filter(m=>m==='stop').length,save:log.filter(m=>m==='save').length});
+  byId('preview-operation-receipt').textContent=JSON.stringify({reviews:proxyConsent.reviewCount,apply:log.filter(m=>m==='apply').length,stop:log.filter(m=>m==='stop').length,save:log.filter(m=>m==='save').length});
 }
 function connectRpc(method,args){
   if(!linked)return invoke(method,args);
   if(!opener||opener.closed)return Promise.reject(Error('侧栏预览已关闭；不能恢复此内存会话。'));
   return new Promise((resolve,reject)=>{
-    const id=++rpcSequence,timer=setTimeout(()=>{pending.delete(id);reject(Error('预览会话未响应；未自动重试。'));},10000);
+    const id=++rpcSequence,timer=setTimeout(()=>{pending.delete(id);reject(Error('预览会话未响应；未自动重试。'));},method==='apply'?120000:10000);
     pending.set(id,{resolve,reject,timer});opener.postMessage({type:'ai-proxy-preview-host-rpc',token,id,method,args},'*');
   });
 }
@@ -76,7 +85,7 @@ function leave(){
 addEventListener('message',async event=>{
   const message=event.data;if(!message||typeof message.type!=='string')return;
   if(event.source===iframe.contentWindow){
-    if(message.type==='ai-proxy-preview-ready')sendFrame({type:'ai-proxy-preview-init',view:management?'settings':(params.get('view')==='add'||config.initialView==='add'?'add':'quick'),route});
+    if(message.type==='ai-proxy-preview-ready')sendFrame({type:'ai-proxy-preview-init',view:management?'settings':(params.get('view')==='add'||config.initialView==='add'?'add':'quick'),route,currentSources:config.currentSources===true});
     if(message.type==='ai-proxy-preview-state'){dirty=message.dirty===true;busy=message.busy===true;showState();}
     if(message.type==='ai-proxy-preview-open')openManagement(message.route);
     if(message.type==='ai-proxy-preview-route'&&management&&validRoute(message.route)){route=message.route;history.replaceState(null,'',location.pathname+location.search+route);}
@@ -110,7 +119,7 @@ const scenario=byId('od-preview-scenario');
 if(params.has('scenario')&&[...scenario.options].some(o=>o.value===params.get('scenario')))scenario.value=params.get('scenario');
 function reset(){
   if(dirty||busy||linked||children.size)return;
-  boundary=createPreviewBoundary(scenario.value);log.length=0;uninstalled=false;iframe.srcdoc=frameHtml;showState();
+  reviewUI.cancel();boundary=newBoundary(scenario.value);log.length=0;uninstalled=false;iframe.srcdoc=frameHtml;showState();
 }
 byId('od-preview-app').addEventListener('opendesk-preview-reset',reset);
 scenario.addEventListener('change',reset);
@@ -133,3 +142,4 @@ if(document.documentElement.dataset.previewWatch==='true')setInterval(async()=>{
 byId('sidebar-tool-back').setAttribute('aria-label','返回扩展列表');
 byId('sidebar-tool-back').title='返回扩展列表';
 showState();
+addEventListener('pagehide',()=>reviewUI.dispose(),{once:true});

@@ -10,7 +10,10 @@ const fail=(code:string,message:string):never=>{throw Object.assign(Error(messag
 const comparableJson=(value:any)=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)
  ?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a<b?-1:a>b?1:0)):item);
 export function getEnvironment(){if(!environment)throw Error('AI Proxy environment missing');return environment;}
-export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:previewBoundary=null}: {trusted?:boolean,preview?:any}={}){
+export type ConfirmOptions={title:string;message:string;confirmLabel:string;cancelLabel?:string;tone?:'neutral'|'danger'};
+export type ConfirmResult={action:'confirm'}|{action:'cancel';reason:'user'|'escape'|'aborted'|'invalidated'|'expired'};
+export type ConfirmationUI={confirm:(options:ConfirmOptions,client?:{signal?:AbortSignal})=>Promise<ConfirmResult>};
+export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:previewBoundary=null,ui=bridge?.ui}: {trusted?:boolean,preview?:any,ui?:ConfirmationUI}={}){
  if(environment)throw Error('E_AI_PROXY_ALREADY_MOUNTED');
  // Only the separate preview entry may supply a mock. main.jsx never does.
  const preview=previewBoundary;
@@ -113,6 +116,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  }};
  const proxyListeners=new Map<Function,Function>();
  let confirmHandler:any=null;
+ let confirmation:AbortController|null=null;
  const route=(hash:string)=>navigation.navigate(hash);
  let quickView:any=null;
  const pageChanged=()=>events.dispatchEvent(new Event('ai-proxy-page-changed'));
@@ -151,13 +155,50 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   },
   locale:bridge?.locale||navigator.language,
   proxy:{settings:{onChange:{addListener(fn:Function){if(!proxyListeners.has(fn))proxyListeners.set(fn,service.subscribe(fn));},removeListener(fn:Function){proxyListeners.get(fn)?.();proxyListeners.delete(fn);}}}},
-  setConfirmHandler:(fn:any)=>{if(!disposed)confirmHandler=fn;},
-  async confirm(text:string){
-   assertLive();
-   if(!confirmHandler)return false;
+  setConfirmHandler:(fn:any)=>{
+   if(disposed)return ()=>{};
+   if(confirmHandler!==fn)confirmation?.abort();
+   confirmHandler=fn;
+   return ()=>{if(confirmHandler===fn){confirmation?.abort();confirmHandler=null;}};
+  },
+  // Boolean business adapter: only an explicit confirm result permits continuation.
+  // Every rejection is consumed here, including late service/local-handler failures.
+  confirm(text:string,client?:{signal?:AbortSignal}){
+   if(disposed||confirmation||client?.signal?.aborted)return Promise.resolve(false);
+   if(typeof ui?.confirm!=='function'&&!confirmHandler)return Promise.resolve(false);
+   const controller=new AbortController();confirmation=controller;
    pending++;uiState();
-   try{const confirmed=await confirmHandler(text);assertLive();return confirmed;}
-   finally{pending--;uiState();}
+   return new Promise<boolean>(resolve=>{
+    let settled=false;
+    const finish=(accepted:boolean)=>{
+     if(settled)return;settled=true;
+     clearTimeout(timer);client?.signal?.removeEventListener('abort',abort);
+     controller.signal.removeEventListener('abort',cancel);
+     if(confirmation===controller)confirmation=null;
+     pending--;uiState();resolve(accepted&&!disposed);
+     // Release the original local/host UI after recording the first terminal result.
+     controller.abort();
+    };
+    const cancel=()=>finish(false),abort=()=>controller.abort();
+    const timer=setTimeout(cancel,120000);
+    controller.signal.addEventListener('abort',cancel,{once:true});
+    client?.signal?.addEventListener('abort',abort,{once:true});
+    const local=()=>{
+     if(settled||!confirmHandler){finish(false);return;}
+     try{Promise.resolve(confirmHandler(text,{signal:controller.signal})).then(value=>finish(value===true),()=>finish(false));}
+     catch{finish(false);}
+    };
+    if(typeof ui?.confirm!=='function'){local();return;}
+    const english=(bridge?.locale||navigator.language||'').startsWith('en');
+    const options:ConfirmOptions={title:english?'Confirm':'确认',message:text,
+     confirmLabel:english?'Confirm':'确认',cancelLabel:english?'Cancel':'取消'};
+    try{
+     Promise.resolve(ui.confirm(options,{signal:controller.signal})).then(
+      value=>finish(value?.action==='confirm'),
+      error=>{if(error?.code==='E_UI_CONFIRM_UNAVAILABLE')local();else finish(false);}
+     );
+    }catch(error:any){if(error?.code==='E_UI_CONFIRM_UNAVAILABLE')local();else finish(false);}
+   });
   },
   setNavigationGuard:navigation.setGuard,navigate:route,openSettings:()=>route('#/profiles'),
   surface:bridge?.surface==='page'?'page':'sidebar',
@@ -178,14 +219,14 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   },
   async official(message:any){if(message.type==='OFFICIAL_STATUS')return {ok:true,snapshot:{configured:false,auth:'guest',availability:'unconfigured',plans:[],lines:[],checkout:'none'}};return {ok:false,failure:'not-configured'};},
   async download(){fail('E_NOT_CONNECTED','订阅在线下载尚未接入；请使用文本或文件解析。');},
-  beginDraft,setDraftDirty,getDraftRevision:(source:string)=>drafts.get(source)??0,
+  beginDraft,setDraftDirty,getDraftVersion:()=>draftRevision,getDraftRevision:(source:string)=>drafts.get(source)??0,
   isDraftDirty:(source:string)=>drafts.has(source),
   hasDrafts:()=>drafts.size>0,
   clearDrafts:()=>{drafts.clear();draftBases.clear();publishDrafts();},
   captureDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)beginDraft(source);},
   markDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)setDraftDirty(true,source);},
   setState:(_state:any)=>{uiState();},
-  dispose(){if(disposed)return;disposed=true;bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);navigation.destroy();service.dispose();listeners.clear();
+  dispose(){if(disposed)return;disposed=true;confirmation?.abort();bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);navigation.destroy();service.dispose();listeners.clear();
    for(const unsubscribe of navigationSubscriptions)unsubscribe();
    for(const unsubscribe of proxyListeners.values())unsubscribe();proxyListeners.clear();confirmHandler=null;
    if(environment===current)environment=null;

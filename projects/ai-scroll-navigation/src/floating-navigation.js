@@ -95,6 +95,7 @@ function chatGPTGutterLeft(main,doc,win) {
 export function installFloatingNavigation({doc,win,owner,resolveConversation=null,resolveNavigation=()=>({})}) {
   sessions.get(doc)?.dispose();
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
+  let resizeObserver=null,resizeTargets=[];
   let binding=null,lastHref=win.location.href;
   const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
@@ -169,6 +170,14 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     pending=false;
     if (disposed) return;
     const next=context();
+    const targets=next?[...new Set([next.main,next.scroller])]:[];
+    if(win.ResizeObserver&&(targets.length!==resizeTargets.length||
+        targets.some((target,index)=>target!==resizeTargets[index]))) {
+      resizeObserver?.disconnect();
+      resizeTargets=targets;
+      resizeObserver??=new win.ResizeObserver(schedule);
+      targets.forEach(target=>resizeObserver.observe(target));
+    }
     // Existing old trusted-page navigation wins during extension upgrade.
     // Once that owner is removed, its DOM mutation permits standalone mounting.
     // Old reply-local buttons do not own the global two-key dock.
@@ -202,52 +211,57 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     buttons.top.disabled=scroller.scrollTop<=2;
     buttons.bottom.disabled=scroller.scrollTop>=max-2;
     const rect=next.main.getBoundingClientRect();
-    const first=next.first.getBoundingClientRect();
-    const last=next.last.getBoundingClientRect();
     const compact=win.innerWidth<600;
     buttons.stack.classList.toggle('compact',compact);
     const count=options.length,width=compact?count*SIZE+(count-1)*GAP:SIZE;
     const height=compact?SIZE:count*SIZE+(count-1)*GAP;
+    // The transcript content can extend far above/below the screen. Anchor to
+    // its visible scroll port, never to moving message boxes or document edges.
+    const viewport=win.visualViewport;
+    const viewportLeft=viewport?.offsetLeft??0,viewportTop=viewport?.offsetTop??0;
+    const viewportRight=viewportLeft+(viewport?.width??win.innerWidth);
+    const viewportBottom=viewportTop+(viewport?.height??win.innerHeight);
+    const documentScroller=scroller===doc.scrollingElement||scroller===doc.documentElement||scroller===doc.body;
+    let scrollRect={left:viewportLeft,top:viewportTop,right:viewportRight,bottom:viewportBottom};
+    if(!documentScroller){
+      const bounds=scroller.getBoundingClientRect();
+      const scaleX=scroller.offsetWidth>0?bounds.width/scroller.offsetWidth:1;
+      const scaleY=scroller.offsetHeight>0?bounds.height/scroller.offsetHeight:1;
+      const left=bounds.left+(scroller.clientLeft||0)*scaleX;
+      const top=bounds.top+(scroller.clientTop||0)*scaleY;
+      scrollRect={left,top,
+        right:left+(Number.isFinite(scroller.clientWidth)?scroller.clientWidth*scaleX:bounds.width),
+        bottom:top+(Number.isFinite(scroller.clientHeight)?scroller.clientHeight*scaleY:bounds.height)};
+    }
+    const port={left:Math.max(viewportLeft,rect.left,scrollRect.left),
+      top:Math.max(viewportTop,rect.top,scrollRect.top),
+      right:Math.min(viewportRight,rect.right,scrollRect.right),
+      bottom:Math.min(viewportBottom,rect.bottom,scrollRect.bottom)};
+    const minLeft=Math.ceil(port.left+8),maxLeft=Math.floor(port.right-width-8);
+    const minTop=Math.ceil(port.top+8);
+    const topPos=Math.floor(port.bottom-INSET-height);
+    if(maxLeft<minLeft||topPos<minTop){host.style.visibility='hidden';binding=null;return;}
     const chosenAnchor=next.custom?next.anchor?.getBoundingClientRect?.():null;
     const alignChatGPT=!next.custom&&next.site==='chatgpt'&&!compact;
     const desiredLeft=alignChatGPT
       ?chatGPTGutterLeft(next.main,doc,win)
-      :(chosenAnchor?.left??Math.max(rect.left,Math.min(first.left,last.left)))+12;
-    const left=between(desiredLeft,
-      8,Math.max(8,win.innerWidth-width-8));
-    const topPos=Math.round(Math.min(win.innerHeight,rect.bottom)-INSET-height);
-    const minTop=Math.max(8,rect.top+8);
-    // Reposition within the recognized conversation before hiding on a
-    // native control/composer collision. We never overlay other controls or
-    // let an uncertain placement redirect scrolling to another region.
+      :chosenAnchor?chosenAnchor.left+12:minLeft;
+    const left=between(Math.round(desiredLeft),minLeft,maxLeft);
+    // Avoid collisions locally: exhaust the lower-left row before a small
+    // upward adjustment. A distant free gap is not a bottom-left dock.
     const obstacles=controlObstacles(doc,win);
-    // Fixed slots can all collide after a page reflow. Reuse visible control
-    // edges for configured conversations too, retaining every collision gate.
-    const verticalGaps=obstacles.filter(r=>r.left<left+width&&r.right>left)
-      .map(r=>[left,Math.floor(r.top-height-12)])
-      .sort((a,b)=>b[1]-a[1]);
-    const candidates=alignChatGPT?[
-      // Keep the shared left edge when avoiding native controls.
-      [left,topPos],
-      [left,topPos-height-12],
-      [left,topPos-2*(height+12)],
-      // A short viewport may need a gap above several stacked native or
-      // shadow controls. Keep the same gutter and test their upper edges.
-      ...verticalGaps
-    ]:[
-      [left,topPos],
-      [left,topPos-height-12],
-      [left+width+12,topPos],
-      [left-width-12,topPos],
-      [Math.round(rect.right-width-12),topPos],
-      [left,topPos-2*(height+12)],
-      ...verticalGaps
-    ];
+    const limitLeft=Math.min(maxLeft,left+Math.min(160,(port.right-port.left)*.25));
+    const lowestTop=Math.max(minTop,Math.ceil(topPos-Math.min(SIZE+12,(port.bottom-port.top)*.15)));
+    const columns=[...new Set([left,...obstacles.flatMap(r=>[
+      Math.ceil(r.right+12),Math.floor(r.left-width-12)])])]
+      .filter(x=>x>=left&&x<=limitLeft).sort((a,b)=>a-b);
+    const rows=[...new Set([topPos,...obstacles.map(r=>Math.floor(r.top-height-12)),lowestTop])]
+      .filter(y=>y>=lowestTop&&y<=topPos).sort((a,b)=>b-a);
+    const candidates=rows.flatMap(y=>columns.map(x=>[x,y]));
     const chosen=candidates.find(([x,y])=>
       Number.isFinite(x)&&Number.isFinite(y)&&
-      x>=8&&x+width<=win.innerWidth-8&&
-      x>=Math.max(8,rect.left)&&x+width<=Math.min(win.innerWidth-8,rect.right)&&
-      y>=minTop&&y+height<=Math.min(win.innerHeight-8,rect.bottom-8)&&
+      x>=minLeft&&x+width<=port.right-8&&
+      y>=minTop&&y+height<=port.bottom-8&&
       !obstacles.some(r=>r.left<x+width&&r.right>x&&r.top<y+height&&r.bottom>y));
     if(!chosen){host.style.visibility='hidden';binding=null;return;}
     host.classList.toggle('dark',doc.documentElement?.classList?.contains('dark')||
@@ -289,7 +303,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   }
   function dispose() {
     if (disposed) return;
-    disposed=true;observer?.disconnect();observer=null;
+    disposed=true;observer?.disconnect();observer=null;resizeObserver?.disconnect();
     host?.remove();binding=null;
     if (sessions.get(doc)?.dispose===dispose) sessions.delete(doc);
   }
@@ -299,6 +313,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   // Element scrolls usually do not bubble to window; capture them on document
   // to update boundary-disabled keys after an actual transcript scroll.
   owner.on(doc,'scroll',schedule,true);
+  if(win.visualViewport)for(const type of ['resize','scroll'])owner.on(win.visualViewport,type,schedule);
   win.navigation&&owner.on(win.navigation,'navigatesuccess',schedule);
   const session={dispose,refresh};
   sessions.set(doc,session);

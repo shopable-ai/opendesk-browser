@@ -277,7 +277,7 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
             autoComplete="off" spellCheck={false} placeholder={'https://' + source.originHost + '/…'}
             onValueChange={setDownloadUrl} /></div>
         <p className="sourceFieldNote">{t('subscriptionDownloadNotice', { host: source.originHost })}</p>
-        <div className="actions"><Button type="submit" variant="primary" className="primary" disabled={disabled || !downloadUrl.trim()}>
+        <div className="actions"><Button type="submit" variant="primary" className="primary" disabled title={t('subscriptionDownloadNotice', { host: source.originHost })}>
           {t(report ? 'subscriptionDownloadUpdate' : 'subscriptionDownloadRead')}</Button></div>
       </form>
       {errorKey && <p role="alert">{t(errorKey)}</p>}

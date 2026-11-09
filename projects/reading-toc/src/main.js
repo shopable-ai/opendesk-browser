@@ -63,7 +63,7 @@ function paintAi(){
  }
 }
 let mode='focus',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='';
-let reading=false,closed=false,hasSnapshot=false,stale=false,failures=0,missing=0,timer=0,wantForce=false;
+let reading=false,closed=false,hasSnapshot=false,stale=false,failures=0,missing=0,timer=0,wantForce=false,installationBlocked=false;
 let statusKey='',statusValues={},statusState='',moreCount=0;
 function paintStatus(){
  error.textContent=statusKey?t(statusKey,statusValues):'';
@@ -174,7 +174,7 @@ async function refresh(){
   const snapshot=await request('page.request',{operation:'toc.snapshot',payload:force?{refresh:true}:{}});
   if(closed)return;
   if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))throw Error(t('invalidData'));
-  data=snapshot;void loadSettings(snapshot);hasSnapshot=true;stale=false;failures=0;
+  data=snapshot;void loadSettings(snapshot);hasSnapshot=true;stale=false;failures=0;installationBlocked=false;
   missing=snapshot.items.length===0?Math.min(3,missing+1):0;
   showStatus('');render();
  }catch(e){
@@ -183,11 +183,13 @@ async function refresh(){
    stale=hasSnapshot&&data.items.length>0;
    render();
    const detail=String(e?.message||t('readFail')).slice(0,150);
-   showStatus(stale?'stale':'retry',{detail},'error');
+   installationBlocked=e?.code==='E_APP_PAGE_OWNER'||e?.code==='E_PAGE_INSTALLATION';
+   showStatus(installationBlocked?'installationRepair':stale?'stale':'retry',{detail},'error');
   }
  }finally{
   reading=false;reload.removeAttribute('aria-busy');
   if(closed)return;
+  if(installationBlocked)return; // Requires explicit installation recovery, not background polling.
   if(wantForce)schedule(80);
   else if(failures)schedule(Math.min(8000,500*Math.pow(2,Math.min(failures-1,4))));
   else if(hasSnapshot&&missing>0&&missing<3)schedule(missing===1?600:1600);
@@ -225,12 +227,16 @@ function paintSettingsNavigation(){
  const base={page:settingsPage?'settings':'home',title,canBack:settingsPage,primary:null};
  let accepted=false,projected=false;
  if(typeof tool.setNavigation==='function'){
-  if(tool.navigationFeatures?.headerActions===true){
+  if(tool.navigationFeatures?.settingsPage===true){
+   accepted=tool.setNavigation({...base,settingsPage:'settings'});
+   projected=accepted===true;
+  }
+  if(!projected&&tool.navigationFeatures?.headerActions===true){
    accepted=tool.setNavigation({...base,headerActions:!settingsPage&&settingsIdentity
     ?[{id:'settings',label:settingsOpen?.title||title,icon:'settings'}]:[]});
    projected=accepted===true;
    if(accepted===false)accepted=tool.setNavigation(base);
-  }else accepted=tool.setNavigation(base);
+  }else if(!projected)accepted=tool.setNavigation(base);
  }
  const heading=root.querySelector('.toc-title');
  heading.textContent=title;heading.hidden=accepted===true;
@@ -244,14 +250,15 @@ function paintSettingsNavigation(){
  root.querySelector('.toc-head').hidden=settingsPage&&accepted===true;
 }
 function showSettings(next){
- if(closed||settingsBusy||settingsDirty||(!settingsIdentity&&next))return;
+ if(closed||settingsBusy||settingsDirty)return;
  settingsPage=next;paintSettingsNavigation();
  // The content stays mounted, preserving the selected mode and outline scroll.
  if(next)settings?.querySelector('input')?.focus?.();
  else if(settingsOpen&&!settingsOpen.hidden)settingsOpen.focus();
 }
 function onNavigation({detail}){
- if(detail?.action==='header'&&detail.page==='home'&&detail.actionId==='settings'&&!settingsPage)showSettings(true);
+ if(detail?.action==='settings'&&detail.page==='settings')showSettings(true);
+ else if(detail?.action==='header'&&detail.page==='home'&&detail.actionId==='settings'&&!settingsPage)showSettings(true);
  else if(detail?.action==='back'&&settingsPage)showSettings(false);
 }
 settingsOpen?.addEventListener('click',()=>showSettings(true));

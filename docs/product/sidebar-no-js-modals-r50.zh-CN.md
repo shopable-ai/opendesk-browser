@@ -1,5 +1,7 @@
 # R5.0 工具无 JavaScript 弹窗交互（2026-10-11）
 
+> 历史实施记录。2026-11-09 起，展示与异步调用按[统一确认、反馈与异步调用合同](../architecture/browser-framework/confirmation-and-feedback.zh-CN.md)，不再要求所有确认行内化。下文行内布局及分支名保留历史身份；同步原生 alert/confirm/prompt 禁令、沙箱和可信权限保护仍有效。新共享接口尚未实现，历史验收不证明新候选通过。
+
 目标：阅读目录、网页剪藏、知识收件箱及后续 Sidebar 工具的应用级站点开关，只用用户明确点击完成，不叠加 `confirm()`。
 
 - 授权/撤权、显示隐藏均不弹网页 JavaScript 模态框；仍保留逐 Origin、能力和当前文档的可信校验。

@@ -1,5 +1,5 @@
 // Offline service boundary only, excluded from production imports and any installable JSON.
-export function createPreviewBoundary(scenario='success') {
+export function createPreviewBoundary(scenario='success',{authorize=async()=>{}}={}) {
  const copy=v=>structuredClone(v),fail=(code,message)=>{throw Object.assign(Error('离线模拟 · '+message),{code});};
  const empty={schemaVersion:2,sources:[{id:'manual',kind:'manual',displayName:'手动创建',trustedByUser:true}],endpoints:[],profiles:[],rules:[],defaultTarget:{action:'direct'},selection:{mode:'profile'},managed:false};
  const config=copy(empty);
@@ -13,7 +13,7 @@ export function createPreviewBoundary(scenario='success') {
  }
  let value=copy(config),revision=1;
  const prefs=new Map();
- let status={state:'disabled',permission:true,control:'controllable_by_this_extension',canStop:false,reason:null};
+ let status={state:'disabled',permission:true,control:'controllable_by_this_extension',canStop:false,browserMode:'system',reason:null};
  if(scenario==='conflict')status={...status,state:'conflict',control:'controlled_by_other_extensions',reason:'离线模拟：其他扩展持有控制权'};
  if(scenario==='revoked')status={...status,state:'unavailable',permission:false,control:'unknown',reason:'离线模拟：授权已撤销'};
  function guard(){if(scenario==='error')fail('E_PREVIEW_FAILURE','服务读取失败');if(scenario==='revoked')fail('E_REVOKED','授权已撤销');}
@@ -21,8 +21,8 @@ export function createPreviewBoundary(scenario='success') {
   async load(){return {config:copy(value),etag:String(revision)};},
   async save(next,etag){if(etag!==String(revision))fail('E_CONFLICT','配置已改变');value=copy(next);return String(++revision);},
   async status(){if(scenario==='error')fail('E_PREVIEW_FAILURE','服务状态读取失败');return copy(status);},
-  async apply(){guard();if(scenario==='permission-denied')fail('E_PERMISSION_DENIED','用户拒绝权限审阅');if(scenario==='conflict')return copy(status);status={...status,state:'enabled',control:'controlled_by_this_extension',canStop:true};return copy(status);},
-  async stop(){guard();if(scenario==='permission-denied')fail('E_PERMISSION_DENIED','用户拒绝权限审阅');if(scenario==='conflict')return copy(status);status={...status,state:'disabled',control:'controllable_by_this_extension',canStop:false};return copy(status);}
+  async apply(next){guard();if(scenario==='permission-denied')fail('E_PERMISSION_DENIED','用户拒绝权限审阅');if(scenario==='conflict')return copy(status);await authorize(copy(next));status={...status,state:'enabled',control:'controlled_by_this_extension',canStop:true,browserMode:next.selection.mode==='direct'?'direct':'pac_script'};return copy(status);},
+  async stop(){guard();if(scenario==='permission-denied')fail('E_PERMISSION_DENIED','用户拒绝权限审阅');if(scenario==='conflict')return copy(status);status={...status,state:'disabled',control:'controllable_by_this_extension',canStop:false,browserMode:'system'};return copy(status);}
  };
  return Object.freeze({service,read:async key=>copy(prefs.get(key)),write:async(key,value)=>{prefs.set(key,copy(value));}});
 }

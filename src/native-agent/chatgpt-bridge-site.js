@@ -170,12 +170,20 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     // native button. A changed editor, draft, route, or prior user messages is
     // a hard failure before any send; it is never repaired with a second click.
     const fresh=inspect();
-    if(!fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
-      fresh.editor!==token.editor || fresh.rich ||
-      fresh.draft!==token.text ||
-      fresh.users.length!==token.before.users.length ||
-      fresh.users.some((node,i)=>node!==token.before.users[i] || messageText(node)!==token.before.userTexts[i]))
-      return {ok:false,stage:'before-click',reason:'准备发送期间原生编辑器、草稿或消息记录已变化'};
+    // Name the failed guard without exposing draft/result/history bytes.
+    // This is diagnostic only: every mismatch still blocks the sole send.
+    const changed=reason=>({ok:false,stage:'before-click',reason:'准备发送期间'+reason+'；未点击发送'});
+    if(!fresh.ok)return changed('原生输入框无法确认：'+fresh.reason);
+    if(fresh.route!==token.route)return changed('会话地址已变化');
+    if(fresh.form!==token.form)return changed('原生输入表单已替换');
+    if(fresh.editor!==token.editor)return changed('原生输入框身份已变化');
+    if(fresh.rich)return changed('原生输入框出现附件或富内容');
+    if(fresh.draft!==token.text)return changed('原生草稿与待发结果不一致');
+    if(fresh.users.length!==token.before.users.length)return changed('用户消息数量已变化');
+    for(let i=0;i<fresh.users.length;i++){
+      if(fresh.users[i]!==token.before.users[i])return changed('第 '+(i+1)+' 条用户消息节点已替换');
+      if(messageText(fresh.users[i])!==token.before.userTexts[i])return changed('第 '+(i+1)+' 条用户消息正文已变化');
+    }
     if(fresh.busy)return {ok:false,stage:'before-click',reason:'网站开始了其他回复'};
     if(!fresh.sendButton || !fresh.idle || fresh.sendButton.disabled ||
       fresh.sendButton.getAttribute('aria-disabled')==='true')

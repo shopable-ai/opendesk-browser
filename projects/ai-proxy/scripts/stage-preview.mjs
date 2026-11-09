@@ -15,6 +15,7 @@ const project=fileURLToPath(new URL('..',import.meta.url)),repo=resolve(project,
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const json=value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const serve=process.argv.includes('--serve');
+const currentSources=process.argv.includes('--current-sources');
 const cliValue=(name,fallback)=>{const i=process.argv.indexOf(name);return i<0?fallback:process.argv[i+1];};
 const initialView=cliValue('--view','quick');
 if(!['quick','settings','add'].includes(initialView))throw Error('Invalid --view');
@@ -22,9 +23,9 @@ const aliases={'@opendesk/ui':join(repo,'src/ui/react/components/ui/button.tsx')
 const entry=join(project,'preview/main.jsx');
 const frameEntry=join(project,'preview/frame.jsx');
 const sources={};
-const baseline=JSON.parse(await readFile(join(project,'preview/baseline/source.json'),'utf8'));
-for(const row of Object.values(baseline.files))if(hash(await readFile(join(repo,row.snapshot)))!==row.sha256)throw Error('Frozen sidebar input changed: '+row.snapshot);
-const replacements=new Map(Object.entries(baseline.files).map(([original,row])=>[join(repo,original),join(repo,row.snapshot)]));
+const baseline=currentSources?null:JSON.parse(await readFile(join(project,'preview/baseline/source.json'),'utf8'));
+for(const row of Object.values(baseline?.files||{}))if(hash(await readFile(join(repo,row.snapshot)))!==row.sha256)throw Error('Frozen sidebar input changed: '+row.snapshot);
+const replacements=new Map(Object.entries(baseline?.files||{}).map(([original,row])=>[join(repo,original),join(repo,row.snapshot)]));
 const snapshotPath=path=>replacements.get(path)||path;
 const baselinePlugin={name:'ai-proxy-frozen-sidebar',setup(builder){
   builder.onLoad({filter:/\.(tsx|css)$/},async args=>{
@@ -46,6 +47,14 @@ const cssRaw={name:'ai-proxy-raw-css',setup(builder){
     // Use the packer's public visual extraction, never the full host stylesheet.
     const bundled=(source.trimStart().startsWith(SHARED_DESIGN_MARKER)?SHARED_DESIGN_MARKER+'\n':'')+css.outputFiles[0].text;
     return {contents:await compileSharedToolCss(bundled),loader:'text'};
+  });
+}};
+// Only the outer preview imports the real Host confirmation styles. The tool
+// iframe continues to receive its own compiled, sandbox-safe visual resources.
+const outerStyles={name:'ai-proxy-preview-host-styles',setup(builder){
+  builder.onLoad({filter:/\.css$/},async args=>{
+    const css=await input(relative(repo,args.path));
+    return {contents:'const style=document.createElement("style");style.textContent='+JSON.stringify(css)+';document.head.append(style);',loader:'js'};
   });
 }};
 async function documentHtml({script,watch=false,initial={scenario:'success',view:'quick'}}={}){
@@ -70,9 +79,9 @@ async function documentHtml({script,watch=false,initial={scenario:'success',view
     '<style>html,body{margin:0;height:100%;}#ai-proxy-app{height:100dvh}</style>'+
     '<script type="application/json" id="ai-proxy-preview-config">'+json(initial)+'</script><div id="ai-proxy-app"></div>'+
     '<script src="data:text/javascript;base64,'+Buffer.from(frameBuild.outputFiles[0].text).toString('base64')+'"></script></html>';
-  const manifest={format:'ai-proxy.preview-only-dual-document.v3',productionParity:false,baselineSubstitution:true,baseline,
+  const manifest={format:'ai-proxy.preview-only-dual-document.v3',productionParity:false,currentSources,baselineSubstitution:!currentSources,baseline,
     commit:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),
-    presentation:'Preview-only baseline substitution + existing App/Settings; not current production parity',runtime:'React 19.2.0 + canonical @opendesk/ui',
+    presentation:currentSources?'Current App/QuickPanel/Settings + production confirmation; memory-only SDK boundary':'Preview-only baseline substitution + existing App/Settings; not current production parity',runtime:'React 19.2.0 + canonical @opendesk/ui',
     container:'sidebar-tool-frame > sandbox allow-scripts > same App/Surface',iframe:true,
     simulation:'Memory service/storage only. No Chrome, real proxy, network probes or persistence.',sources,
     nativeChrome:'NOT_TESTED',browserInteraction:'NOT_TESTED'};
@@ -80,8 +89,8 @@ async function documentHtml({script,watch=false,initial={scenario:'success',view
     SOURCE_COMMIT:manifest.commit,DESIGN_SHA:design.digest,SHELL_SHA:shell.digest,UI_SHA:hash(json(sources)),
     TOKENS:tokens,COMPONENTS:components+'\n'+shared,SHELL_CSS:shell.css,LIGHT_CSS:light,WIDTH:'400',HEIGHT:'800',NAV:shell.nav,HEADER:shell.head,
     APP_CONTENT:'<div id="od-preview-app"><div id="sidebar-tool-frame" class="sidebar-tool-frame"><iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="AI Proxy · 内存模拟" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></div></div>',
-    PREVIEW_CONTROLS:'<aside class="preview-diagnostic-area" aria-label="离线预览辅助"><p id="preview-sidebar-session" role="status">请点击侧栏齿轮或「管理全部」，在独立标签页打开 PC 管理。</p><details><summary>预览说明与辅助 · 非正式工具</summary><p>侧栏采用改版前业务源码快照；PC 复用现有管理组件。真实浏览器标签页仅演示导航，不代表正式 Host 已接线。两页共享本次内存模拟，不调用真实 Chrome、代理、网络或正式存储。</p><div class="preview-controls"><button type="button" class="od-button" data-preview-view="settings">PC 管理预览 ↗</button><label>模拟状态<select id="od-preview-scenario">'+['success','empty','permission-denied','conflict','error','revoked'].map(s=>'<option value="'+s+'"'+(s===initial.scenario?' selected':'')+'>'+s+'</option>').join('')+'</select></label><button id="od-preview-restore" class="od-button" type="button">恢复初始预览</button></div><p id="od-preview-controls-feedback" role="status">打开管理页或存在未保存内容时保留当前会话，不自动重置。</p><p>本次内存操作计数 <output id="preview-operation-receipt"></output></p></details></aside>',
-    SHELL_BEHAVIOR:behavior,SHELL_DATA_JSON:json({title:'AI Proxy',scenario:initial.scenario,theme:'light',initialView:initial.view,frameBase64:Buffer.from(frameHtml).toString('base64')}),MANIFEST_JSON:json(manifest),
+    PREVIEW_CONTROLS:'<aside class="preview-diagnostic-area" aria-label="离线预览辅助"><p id="preview-sidebar-session" role="status">体验直连：选择「直接连接」→ 启用 → 取消或允许直连；暂停后再次启用不重复审阅。齿轮或「管理全部」打开独立管理页。</p><details><summary>预览说明与辅助 · 非正式工具</summary><p>'+(currentSources?'侧栏和管理页使用当前业务源码，线路审阅复用正式确认组件与文案。':'侧栏采用改版前业务源码快照；PC 复用现有管理组件。')+' 真实浏览器标签页仅演示导航，不代表正式 Host 已接线。两页共享本次内存模拟，不调用真实 Chrome、代理、网络或正式存储；恢复初始预览同时清除模拟线路授权。</p><div class="preview-controls"><button type="button" class="od-button" data-preview-view="settings">PC 管理预览 ↗</button><label>模拟状态<select id="od-preview-scenario">'+['success','empty','permission-denied','conflict','error','revoked'].map(s=>'<option value="'+s+'"'+(s===initial.scenario?' selected':'')+'>'+s+'</option>').join('')+'</select></label><button id="od-preview-restore" class="od-button" type="button">恢复初始预览</button></div><p id="od-preview-controls-feedback" role="status">打开管理页或存在未保存内容时保留当前会话，不自动重置。</p><p>本次内存操作计数 <output id="preview-operation-receipt"></output></p></details></aside>',
+    SHELL_BEHAVIOR:behavior,SHELL_DATA_JSON:json({title:'AI Proxy',scenario:initial.scenario,theme:'light',initialView:initial.view,currentSources,frameBase64:Buffer.from(frameHtml).toString('base64')}),MANIFEST_JSON:json(manifest),
     ADBLOCK_SNAPSHOTS_JSON:'{}',ADBLOCK_HOST_CSS:'',ADBLOCK_HOST:'',ADBLOCK_RESTORE_DIALOG:'',ADBLOCK_PREVIEW_SCRIPT:''};
   const csp="default-src 'none'; script-src 'self' data: 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src "+(watch?"'self'":"'none'")+"; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self' about:";
   return {manifest,frameHtml,html:template.replace(/\{\{([A-Z_]+)\}\}/g,(_,name)=>{if(!Object.hasOwn(values,name))throw Error(name);return values[name];})
@@ -117,8 +126,9 @@ if(serve){
   for(const signal of ['SIGINT','SIGTERM'])process.once(signal,async()=>{await server.close();process.exit();});
 }else{
   const result=await build({entryPoints:[entry],bundle:true,write:false,format:'iife',platform:'browser',target:'es2022',
-    minify:true,jsx:'automatic',alias:aliases,plugins:[cssRaw,baselinePlugin],metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
+    minify:true,jsx:'automatic',alias:aliases,plugins:[cssRaw,baselinePlugin,outerStyles],metafile:true,define:{'process.env.NODE_ENV':'"production"','import.meta.env':'{"DEV":true,"MODE":"preview"}'}});
   for(const path of Object.keys(result.metafile.inputs)){
+    if(path.startsWith('<'))continue;
     const name=path.startsWith('raw-css:')?relative(repo,snapshotPath(path.slice(8))):relative(repo,snapshotPath(resolve(path)));
     if(!name.startsWith('../')&&!name.includes('node_modules/'))await input(name);
   }
@@ -137,7 +147,7 @@ if(serve){
   if(requestedOut){
     const file=resolve(repo,requestedOut);
     if(!file.startsWith(join(project,'preview')+'/')||!file.endsWith('.html'))throw Error('--out must be an HTML file in this project preview directory');
-    const context={tool:'ai-proxy',view:initialView,surface:initialView==='settings'?'management':'side-panel',source:'Frozen pre-redesign QuickPanel/CSS + reused current Settings; preview-only adapter',baseline,simulation:manifest.simulation,nativeChrome:'NOT_TESTED',htmlSha256:hash(html)};
+    const context={tool:'ai-proxy',view:initialView,surface:initialView==='settings'?'management':'side-panel',source:manifest.presentation,baseline,simulation:manifest.simulation,hostInteractions:['first-route-review','cancel-without-apply','remember-exact-route','stop-without-review','changed-route-review'],nativeChrome:'NOT_TESTED',htmlSha256:hash(html)};
     await writeFile(file,html);
     await writeFile(file.slice(0,-5)+'.manifest.json',json({...manifest,outputs:{[file.split('/').pop()]:hash(html)}}));
     await writeFile(file.slice(0,-5)+'.context.json',json(context));

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,
   MARKET_OPERATIONS_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
@@ -97,4 +97,105 @@ test('market recovery reads the companion identity and never repeats an unknown 
   const recovered=await recoverMarketOperation({...env,operationId,pageClient:pageClient(env,candidate,{verify:true})});
   assert.equal(recovered.state,'succeeded');
   assert.equal(env.events.filter(([type])=>type==='importAppPage').length,before);
+});
+
+async function identicalCompound({installed=[],queryResult,queryError,cleanupPending=[],verifyError,importError,badReceipt=false}={}){
+  const env=environment(),candidate=await tool(),epoch='original-install-epoch';
+  env.values[SIDEBAR_TOOL_STORE]=[candidate];
+  env.values[TOOL_REVOCATION_EPOCHS_STORE]={[candidate.id]:epoch};
+  env.values[sidebarToolStorageKey(candidate.id)]={draft:'保留网页设置和草稿'};
+  const before=structuredClone(env.values),owner={toolId:candidate.id,
+    packageHash:await sidebarToolPackageHash(candidate),installEpoch:epoch};
+  const client={async request(type,payload){
+    env.events.push([type,structuredClone(payload)]);
+    if(type==='prepareAppPage')return {status:'prepared',toolId:candidate.id,
+      packageHash:owner.packageHash,programId:candidate.pageModule.programId,sourceHash:candidate.pageModule.sourceHash};
+    if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],cleanupPending};
+    if(type==='listPagePrograms'){
+      if(queryError)throw queryError;
+      return queryResult===undefined?{catalog:[],installed}:queryResult;
+    }
+    assert.ok(['verifyAppPage','importAppPage'].includes(type));
+    assert.deepEqual(payload,owner,'repair must use the original parent hash and epoch');
+    if(type==='verifyAppPage'&&verifyError)throw verifyError;
+    if(type==='importAppPage'&&importError)throw importError;
+    return {status:type==='importAppPage'?'installed':'verified',appOwner:badReceipt?{...owner,installEpoch:'foreign'}:owner,
+      programId:candidate.pageModule.programId,sourceHash:candidate.pageModule.sourceHash,
+      manifestHash:'a'.repeat(64),nativeState:'registered',ready:true};
+  }};
+  return {...env,candidate,owner,
+    install:extra=>installReviewedSidebarTool({...env,candidate,baseline:candidate,reviewApproved:true,pageClient:client,...extra}),
+    operations:()=>env.events.filter(([type])=>type!=='write').map(([type])=>type),
+    assertParentUnchanged(){assert.deepEqual(env.values,before);assert.equal(env.events.filter(([type])=>type==='write').length,0);}};
+}
+test('explicit identical compound review restores only a missing companion with the original parent identity',async()=>{
+  const f=await identicalCompound();
+  assert.equal((await f.install({repairMissingPageModule:true})).state,'already-installed');
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms','importAppPage']);
+  f.assertParentUnchanged();
+});
+test('identical compound repair ignores unrelated Page programs when locating its missing companion',async()=>{
+  const f=await identicalCompound({installed:[{programId:'unrelated-page'}]});
+  await f.install({repairMissingPageModule:true});
+  assert.equal(f.operations().filter(type=>type==='importAppPage').length,1);
+  f.assertParentUnchanged();
+});
+for(const repairMissingPageModule of [undefined,false])
+test('default identical compound review only verifies without resubmitting (option='+repairMissingPageModule+')',async()=>{
+  const f=await identicalCompound();
+  await f.install(repairMissingPageModule===undefined?{}:{repairMissingPageModule});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','verifyAppPage']);
+  f.assertParentUnchanged();
+});
+test('default identical compound verification failure never falls through to repair',async()=>{
+  const f=await identicalCompound({verifyError:Object.assign(Error('missing companion'),{code:'E_PAGE_INSTALL_PENDING'})});
+  await assert.rejects(f.install({}),{code:'E_PAGE_INSTALL_PENDING'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','verifyAppPage']);
+  f.assertParentUnchanged();
+});
+for(const state of ['ready','foreign','pending','unknown'])
+test('identical compound repair verifies an existing '+state+' companion without importing',async()=>{
+  const verifyError=state==='ready'?undefined:Object.assign(Error(state),
+    {code:state==='foreign'?'E_APP_PAGE_OWNER':state==='unknown'?'E_EFFECT_UNKNOWN':'E_PAGE_INSTALL_PENDING'});
+  const f=await identicalCompound({installed:[{programId:'app.composite-fixture',state,
+    appOwner:{toolId:'composite-fixture',installEpoch:state==='foreign'?'foreign':'original-install-epoch'}}],verifyError});
+  if(verifyError)await assert.rejects(f.install({repairMissingPageModule:true}),{code:verifyError.code});
+  else await f.install({repairMissingPageModule:true});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms','verifyAppPage']);
+  f.assertParentUnchanged();
+});
+test('identical compound repair waits for old managed cleanup before querying or importing',async()=>{
+  const f=await identicalCompound({cleanupPending:['app.composite-fixture']});
+  await assert.rejects(f.install({repairMissingPageModule:true}),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');assert.match(error.message,/保存.*刷新/);return true;
+  });
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages']);
+  f.assertParentUnchanged();
+});
+for(const [name,queryResult] of [['null response',null],['missing installed',{}],['non-array installed',{installed:{}}],
+  ['null row',{installed:[null]}],['missing programId',{installed:[{}]}],['non-string programId',{installed:[{programId:42}]}]])
+test('identical compound repair rejects '+name+' without importing',async()=>{
+  const f=await identicalCompound({queryResult});
+  await assert.rejects(f.install({repairMissingPageModule:true}),{code:'E_OUTCOME_UNKNOWN'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms']);
+  f.assertParentUnchanged();
+});
+test('identical compound repair does not treat an unavailable Page query as absence',async()=>{
+  const f=await identicalCompound({queryError:Object.assign(Error('query unavailable'),{code:'E_EFFECT_UNKNOWN'})});
+  await assert.rejects(f.install({repairMissingPageModule:true}),{code:'E_EFFECT_UNKNOWN'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms']);
+  f.assertParentUnchanged();
+});
+for(const failure of ['lost receipt','foreign receipt'])
+test('identical compound repair never retries after '+failure,async()=>{
+  const f=await identicalCompound(failure==='lost receipt'
+    ?{importError:Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'})}:{badReceipt:true});
+  await assert.rejects(f.install({repairMissingPageModule:true}));
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms','importAppPage']);
+  f.assertParentUnchanged();
+});
+test('identical compound repair requires a fresh explicit installation review',async()=>{
+  const f=await identicalCompound();
+  await assert.rejects(f.install({repairMissingPageModule:true,reviewApproved:false}),{code:'E_REVIEW_REQUIRED'});
+  assert.deepEqual(f.operations(),[]);f.assertParentUnchanged();
 });

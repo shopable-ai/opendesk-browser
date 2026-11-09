@@ -8,7 +8,7 @@ const settle=async()=>{for(let n=0;n<8;n++)await new Promise(setImmediate);};
 
 // Keep discovery/admission real; replace Chrome transport and native gesture
 // delivery, which Node cannot supply. The interval is deliberately not fired.
-function fixture({background=true,visiblePanel=false,sendHook}={}){
+function fixture({background=true,visiblePanel=false,sendHook,commitHook}={}){
  const {document,window}=parseHTML('<html><body><main></main><form></form></body></html>');
  const docEvents=new Map(),winEvents=new Map(),sends=[];
  const add=document.addEventListener.bind(document);
@@ -55,6 +55,7 @@ function fixture({background=true,visiblePanel=false,sendHook}={}){
   inspect(){inspections++;return {...snapshot,users:[...snapshot.users],assistants:[...snapshot.assistants]};},
   prepare(text){resultText=text;snapshot.draft=text;return {ok:true,token:{before:{}}};},
   commit(){
+   if(commitHook)return commitHook();
    resultUser=document.createElement('p');resultUser.setAttribute('data-message-id','result-user');
    resultUser.textContent=resultText;document.querySelector('main').append(resultUser);
    snapshot.users.push(resultUser);snapshot.draft='';return {ok:true};
@@ -146,6 +147,52 @@ test('background delivery settlement wakes a complete deferred turn without wait
   assert.equal((await delivering).ok,true);await settle();
   assert.equal(h.sends.filter(row=>row.kind==='auto-task').length,2);
   assert.equal(h.sends.filter(row=>row.kind==='background-ready').length,2);
+ }finally{h.page.dispose();}
+});
+
+test('a new witnessed request explains the prior background delivery fence without admitting or resending',async()=>{
+ const h=fixture({commitHook:()=>({ok:false,stage:'before-click',reason:'原生草稿已变化'})});try{
+  h.reply();await settle();
+  const first=h.sends.find(row=>row.kind==='auto-task'),original=(await h.read()).data;
+  const delivered=await h.receive({kind:'deliver',mode:'auto',requestId:original.requestId,
+   runId:'first-run',resultId:'first-result',turnKey:first.turnKey,answerKey:first.answerKey,text:'real durable result'},
+   {id:'extension',url:'chrome-extension://extension/sw.js'});
+  assert.equal(delivered.ok,false);assert.equal(delivered.error.code,'E_CHAT_DELIVERY_UNKNOWN');
+  assert.equal((await h.read()).data.actions.cancel,true,'a confirmed preflight rejection did not click Send');
+  h.reply();await settle();h.poll();await settle();
+  const view=(await h.read()).data;
+  assert.ok(view.observation.history.some(row=>row.stage==='eligible'),'the new complete answer was observed');
+  assert.equal(view.messageStage,'previous-request-unknown');
+  assert.match(view.status,/原请求.*回传.*未确认/);assert.match(view.status,/本条.*未执行/);
+  assert.equal(view.requestId,original.requestId,'the original UNKNOWN remains the owner');
+  assert.equal(h.sends.filter(row=>row.kind==='auto-task').length,1);
+  assert.equal(h.sends.filter(row=>row.kind==='background-ready').length,1);
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+ }finally{h.page.dispose();}
+});
+
+test('a throwing native send keeps cancellation fenced and never repeats its click',async()=>{
+ let clicks=0;
+ const h=fixture({commitHook:()=>{clicks++;return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}});try{
+  h.reply();await settle();
+  const first=h.sends.find(row=>row.kind==='auto-task'),view=(await h.read()).data;
+  const delivered=await h.receive({kind:'deliver',mode:'auto',requestId:view.requestId,
+   runId:'first-run',resultId:'first-result',turnKey:first.turnKey,answerKey:first.answerKey,text:'real durable result'},
+   {id:'extension',url:'chrome-extension://extension/sw.js'});
+  assert.equal(delivered.ok,false);assert.equal((await h.read()).data.actions.cancel,false);
+  h.poll();h.emitWin('focus');await settle();assert.equal(clicks,1);
+ }finally{h.page.dispose();}
+});
+
+test('a late trusted delivery without a current request returns a refusal without editing or admission',async()=>{
+ let clicks=0;
+ const h=fixture({commitHook:()=>{clicks++;return {ok:true};}});try{
+  const reply=await h.receive({kind:'deliver',mode:'auto',requestId:'retired-request',
+   runId:'retired-run',resultId:'retired-result',turnKey:'old-user',answerKey:'old-answer',text:'late result'});
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_BRIDGE_DELIVERY');
+  assert.equal(reply.error.outcome,'OUTCOME_UNKNOWN');
+  assert.equal(h.snapshot.draft,'');assert.equal(clicks,0);assert.equal(h.sends.length,0);
+  assert.equal((await h.read()).data.requestId,null);
  }finally{h.page.dispose();}
 });
 

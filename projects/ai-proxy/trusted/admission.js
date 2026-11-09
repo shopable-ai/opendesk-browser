@@ -4,7 +4,7 @@ import {admitsInstalledSidebarTool} from '../../../src/ui/sidebar-tools/installa
 
 export const TRUSTED_AI_PROXY_ID='ai-proxy';
 // Fixed component source marker, independent of the installed package version.
-export const TRUSTED_AI_PROXY_VERSION='0.3.9';
+export const TRUSTED_AI_PROXY_VERSION='0.3.11';
 export async function admitsTrustedAIProxy({
  tool,installed,enableRecords,epochs,expectedEpoch
 }={}){

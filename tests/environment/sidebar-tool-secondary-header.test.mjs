@@ -44,7 +44,10 @@ test('R40 Host owns header trigger but sandbox retains actual file and export ge
   assert.match(react,/id="sidebar-tool-secondary-action"/);
   assert.match(toolCSS,/\.ps\.ps-host-nav \.ps-head\{position:absolute/);
   assert.match(toolCSS,/\.ps\.ps-host-nav #ps-new,\.ps\.ps-host-nav #ps-transfer/);
-  assert.match(hostCSS,/\.sidebar-tool-view-head\{position:relative;z-index:3;gap:2px/);
+  const headerRules=postcss.parse(hostCSS).nodes.find(node=>node.type==='rule'&&node.selector==='.sidebar-tool-view-head');
+  const headerDeclarations=Object.fromEntries(headerRules.nodes.filter(node=>node.type==='decl').map(node=>[node.prop,node.value]));
+  assert.equal(headerDeclarations.position,'relative');
+  assert.equal(headerDeclarations['z-index'],'3');
   assert.match(hostCSS,/\.sidebar-tool-header-actions\{/);
   assert.match(sharedCSS,/\.od-page-head \.od-icon-button\{border-color:transparent;background:transparent/);
   assert.match(preview,/Side Panel 交互预览 R4\.2/);
@@ -79,7 +82,8 @@ import {tick} from './workflow-react-fixture.mjs';
 
 test('R14 More dispatches captured scope and supports keyboard, disabled reasons and dismissal',async t=>{
   const vite=await createServer({configFile:false,root:process.cwd(),
-    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
+    appType:'custom',optimizeDeps:{noDiscovery:true,entries:[]},
+    server:{middlewareMode:true,ws:false,watch:null},logLevel:'error'});
   t.after(()=>vite.close());
   const {ToolHost}=await vite.ssrLoadModule('/src/ui/react/tabs/tool-host.tsx');
   const f=await mountWorkflowClient({activeTab:'tools'});
@@ -207,7 +211,7 @@ test('R14 More dispatches captured scope and supports keyboard, disabled reasons
   await f.clickNode(trigger());await f.clickNode(items()[0]);
   assert.deepEqual(calls.at(-1),{actionId:'refresh',scope:'scope-2'});
   await f.clickNode(trigger());
-  await patch('sidebar-tool-header-actions',{data:{actions:[{...actions[0],label:'重新刷新'}]}});
+  await patch('sidebar-tool-header-actions',{data:{actions:[{...actions[0],icon:undefined,label:'重新刷新'}]}});
   assert.equal(menu(),null,'a changed action snapshot closes the menu');
   await f.clickNode(trigger());
   await patch('sidebar-tool-header-actions',{disabled:true,data:{disabledReason:'正在保存'}});
@@ -311,16 +315,45 @@ test('R14 More dispatches captured scope and supports keyboard, disabled reasons
   await patch('sidebar-tool-header-actions',{hidden:true});
   assert.equal(declarations(title,320,true)['min-width'],'0','optional slot does not restyle legacy headers');
   await patch('sidebar-tool-header-actions',{hidden:false});
+  const inline=()=>mount.querySelector('.sidebar-tool-header-inline-actions');
+  const direct=()=>[...inline().querySelectorAll('button')];
+  const quickActions=[{id:'help',label:'帮助',icon:'diagnostics'},
+    {id:'settings',label:'应用设置',icon:'settings'}];
+  await patch('sidebar-tool-header-actions',{data:{actions:quickActions,scope:'quick-1'}});
+  assert.equal(trigger(),null,'two icon actions are directly exposed in the former More slot');
+  assert.deepEqual(direct().map(node=>node.getAttribute('aria-label')),['帮助','应用设置']);
+  assert.equal(inline().closest('.sidebar-tool-view-head'),header);
+  assert.equal(mount.querySelector('#sidebar-tool-remove'),remove,'Uninstall retains its original control');
+  await f.clickNode(direct()[0]);
+  assert.deepEqual(calls.at(-1),{actionId:'help',scope:'quick-1'});
+  await patch('sidebar-tool-header-actions',{data:{scope:'quick-2',actions:[quickActions[0],
+    {...quickActions[1],disabledReason:'请先保存'}]}});
+  assert.equal(direct()[1].disabled,true);
+  assert.equal(direct()[1].title,'请先保存');
+  assert.equal(f.document.getElementById(direct()[1].getAttribute('aria-describedby')).textContent,'请先保存');
+  const beforeDisabled=calls.length;
+  await f.clickNode(direct()[1]);assert.equal(calls.length,beforeDisabled);
+  await f.clickNode(direct()[0]);assert.deepEqual(calls.at(-1),{actionId:'help',scope:'quick-2'});
+  await patch('sidebar-tool-header-actions',{disabled:true,data:{disabledReason:'正在保存'}});
+  assert.ok(direct().every(node=>node.disabled&&node.title==='正在保存'));
+  await patch('sidebar-tool-header-actions',{disabled:false,data:{disabledReason:''}});
+  await render({active:false});assert.equal(inline(),null);
+  await render({active:true});assert.ok(inline());
+  await patch('sidebar-tool-header-actions',{data:{actions:[...quickActions,{id:'new',label:'新建',icon:'new'}]}});
+  assert.ok(trigger(),'larger action groups retain the menu');assert.equal(inline(),null);
+  await f.clickNode(trigger());
+  await patch('sidebar-tool-header-actions',{data:{actions:quickActions}});
+  assert.equal(menu(),null,'switching to inline closes the previous menu');assert.ok(inline());
   const icons=['new','edit','settings','diagnostics','subscriptions','library','list','refresh'];
   const renderedPaths=[];
   for(const icon of icons){
     await patch('sidebar-tool-header-actions',{data:{actions:[{id:'icon-action',label:'操作',icon}]}});
-    await f.clickNode(trigger());
-    const glyph=items()[0].querySelector('svg');
+    assert.equal(trigger(),null);
+    const glyph=direct()[0].querySelector('svg');
     assert.ok(glyph,icon+' has a local glyph');
     assert.equal(glyph.getAttribute('aria-hidden'),'true');
     renderedPaths.push(glyph.querySelector('path').getAttribute('d'));
-    assert.equal(items()[0].textContent,'操作','icon never replaces the accessible label');
+    assert.equal(direct()[0].getAttribute('aria-label'),'操作','icon retains an accessible label');
   }
   assert.equal(new Set(renderedPaths).size,icons.length,'each supported icon has distinct geometry');
   for(const icon of ['__proto__','M0 0L99 99','https://example.test/icon.svg']){

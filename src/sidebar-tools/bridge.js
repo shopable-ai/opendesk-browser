@@ -4,6 +4,7 @@ import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {normalizeToolNavigation} from './navigation-state.js';
 import {normalizeToolUiNotice} from './ui-notice.js';
+import {normalizeToolUiConfirmOptions,normalizeToolUiConfirmResult,TOOL_UI_CONFIRM_CLIENT_TIMEOUT_MS} from './ui-confirm.js';
 import {normalizeOwnPageTarget} from '../ui/sidebar-tools/navigation.js';
 import {validateToolLocalization} from '../ui/sidebar-tools/localization.js';
 
@@ -28,6 +29,7 @@ export const ADBLOCK_CONFIRM_OPERATIONS=Object.freeze([
 export function sidebarToolRequestTimeout(operation,toolId){
  // First-use exact-site review has a separate 90s budget. Native collection
  // still times out after 3s, and no late receipt is accepted.
+ if(operation==='ui.confirm')return TOOL_UI_CONFIRM_CLIENT_TIMEOUT_MS;
  if(operation==='ai.generate')return 190000;
  if(operation==='localTasks.request'||operation==='localTasks.export')return 180000;
  if(operation==='browser.page.readEnvironment')return 100000;
@@ -49,7 +51,7 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false, navigationAllowed=false;
-  let currentNavigation=null,navigationRevision=0,headerActionsAllowed=false;
+  let currentNavigation=null,navigationRevision=0,headerActionsAllowed=false,settingsPageAllowed=false;
   let navigationDirty=false,navigationBusy=false;
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
@@ -90,9 +92,28 @@ export function initSidebarToolSandbox() {
   const stopImmediate=eventPrototype?.stopImmediatePropagation;
   const portPrototype=globalThis.MessagePort?.prototype;
   const portPost=portPrototype?.postMessage,portClose=portPrototype?.close;
-  let exportPort=null,exportClick=null,aiKey=null;
+  let exportPort=null,exportClick=null,aiKey=null,confirmKey=null,confirmCancel=null,escapeCancel=null;
+  let confirmCancelStamp=null;
+  let uiConfirmAllowed=false,pendingConfirm=null,navigationConfirm=null,confirmationFocusRevision=0;
+  const nativeFrame=globalThis.requestAnimationFrame;
+  const abortGetter=globalThis.AbortSignal&&Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted')?.get;
+  const eventAdd=globalThis.EventTarget?.prototype.addEventListener;
+  const eventRemove=globalThis.EventTarget?.prototype.removeEventListener;
+  const targetGetter=eventPrototype&&Object.getOwnPropertyDescriptor(eventPrototype,'target')?.get;
+  const nativeClosest=globalThis.Element?.prototype.closest;
+  const dialogPrototype=globalThis.HTMLDialogElement?.prototype;
+  const dialogOpenGetter=dialogPrototype&&Object.getOwnPropertyDescriptor(dialogPrototype,'open')?.get;
+  const repeatGetter=globalThis.KeyboardEvent&&Object.getOwnPropertyDescriptor(KeyboardEvent.prototype,'repeat')?.get;
+  const ctrlGetter=globalThis.KeyboardEvent&&Object.getOwnPropertyDescriptor(KeyboardEvent.prototype,'ctrlKey')?.get;
+  const altGetter=globalThis.KeyboardEvent&&Object.getOwnPropertyDescriptor(KeyboardEvent.prototype,'altKey')?.get;
+  const metaGetter=globalThis.KeyboardEvent&&Object.getOwnPropertyDescriptor(KeyboardEvent.prototype,'metaKey')?.get;
   const consumedClickTimeStamps=new Set();
+  const clearEscapeCancel=()=>{
+    if(escapeCancel)cancelTimer(escapeCancel.timer);
+    escapeCancel=null;
+  };
   window.addEventListener('click',event=>{
+    clearEscapeCancel();
     if(trustedGetter&&apply(trustedGetter,event,[])===true)exportClick=event;
   },true);
   const keyboardPrototype=globalThis.KeyboardEvent?.prototype;
@@ -102,6 +123,41 @@ export function initSidebarToolSandbox() {
   window.addEventListener('keydown',event=>{
     if(trustedGetter&&keyGetter&&shiftGetter&&composingGetter&&apply(trustedGetter,event,[])===true&&
        apply(keyGetter,event,[])==='Enter'&&!apply(shiftGetter,event,[])&&!apply(composingGetter,event,[]))aiKey=event;
+  },true);
+  window.addEventListener('keydown',event=>{
+    if(trustedGetter&&keyGetter&&composingGetter&&repeatGetter&&ctrlGetter&&altGetter&&metaGetter&&
+      apply(trustedGetter,event,[])===true&&!apply(composingGetter,event,[])&&!apply(repeatGetter,event,[])&&
+      !apply(ctrlGetter,event,[])&&!apply(altGetter,event,[])&&!apply(metaGetter,event,[])&&
+      !apply(shiftGetter,event,[])&&['Enter',' '].includes(apply(keyGetter,event,[])))confirmKey=event;
+  },true);
+  window.addEventListener('keydown',event=>{
+    clearEscapeCancel();
+    if(!trustedGetter||!keyGetter||!composingGetter||!repeatGetter||!ctrlGetter||!altGetter||!metaGetter||
+       !targetGetter||!nativeClosest||!dialogOpenGetter||!timeStampGetter||
+       apply(trustedGetter,event,[])!==true||apply(keyGetter,event,[])!=='Escape'||
+       apply(composingGetter,event,[])||apply(repeatGetter,event,[])||apply(shiftGetter,event,[])||
+       apply(ctrlGetter,event,[])||apply(altGetter,event,[])||apply(metaGetter,event,[]))return;
+    try{
+      const dialog=apply(nativeClosest,apply(targetGetter,event,[]),['dialog']);
+      const stamp=apply(timeStampGetter,event,[]);
+      if(!dialog||apply(dialogOpenGetter,dialog,[])!==true||!finite(stamp)||
+         apply(setHas,consumedClickTimeStamps,[stamp]))return;
+      const candidate={dialog,stamp,timer:null};
+      escapeCancel=candidate;
+      candidate.timer=later(()=>{if(escapeCancel===candidate)escapeCancel=null;},0);
+    }catch{/* Escape outside a native open dialog is not a cancel gesture. */}
+  },true);
+  window.addEventListener('cancel',event=>{
+    const candidate=escapeCancel;clearEscapeCancel();
+    confirmCancel=null;confirmCancelStamp=null;
+    if(!candidate||!trustedGetter||!targetGetter||!dialogOpenGetter||
+       apply(trustedGetter,event,[])!==true)return;
+    try{
+      const dialog=apply(targetGetter,event,[]);
+      if(dialog===candidate.dialog&&apply(dialogOpenGetter,dialog,[])===true){
+        confirmCancel=event;confirmCancelStamp=candidate.stamp;
+      }
+    }catch{/* Script requestClose without its own real Escape is not admitted. */}
   },true);
   // Presentation-only acknowledgement. It is NOT a grant: only the trusted
   // Host checks official installation, locks and storage. The accepted sandbox
@@ -200,7 +256,99 @@ export function initSidebarToolSandbox() {
       }else parent.postMessage(message,'*');
     });
   };
+  const confirmUi=(options,client)=>{
+    if(disposed)return rejected(exportError('E_TOOL_DISPOSED','工具已关闭'));
+    let signal,payload;
+    try{
+      if(client!==undefined){
+        if(!client||typeof client!=='object'||![null,Object.prototype].includes(Object.getPrototypeOf(client))||
+           ownKeys(client).some(key=>key!=='signal'))throw new NativeError('client');
+        const field=Object.getOwnPropertyDescriptor(client,'signal');
+        if(field&&!Object.hasOwn(field,'value'))throw new NativeError('signal');
+        signal=field?.value;
+      }
+      if(signal!==undefined&&(!abortGetter||!eventAdd||!eventRemove))throw new NativeError('signal');
+      if(signal!==undefined&&apply(abortGetter,signal,[]))return apply(promiseResolve,Carrier,[freeze({action:'cancel',reason:'aborted'})]);
+      payload=normalizeToolUiConfirmOptions(options);
+      if(!payload)throw new NativeError('options');
+    }catch{return rejected(exportError('E_UI_CONFIRM_INPUT','确认参数无效'));}
+    if(!instance||!uiConfirmAllowed||!exportPort)
+      return rejected(exportError('E_UI_CONFIRM_UNAVAILABLE','当前宿主未提供确认通道'));
+    if(pendingConfirm)return rejected(exportError('E_UI_CONFIRM_BUSY','已有待决确认'));
+    const navigation=navigationConfirm;
+    navigationConfirm=null;
+    let gesture=confirmKey&&apply(currentTargetGetter,confirmKey,[])!==null?confirmKey:
+      confirmCancel&&apply(currentTargetGetter,confirmCancel,[])!==null?confirmCancel:exportClick;
+    if(navigation)gesture=null;
+    const stamp=gesture===confirmCancel&&gesture?confirmCancelStamp:
+      gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
+    if(!navigation&&(!gesture||apply(trustedGetter,gesture,[])!==true||
+       apply(currentTargetGetter,gesture,[])===null||!finite(stamp)||apply(setHas,consumedClickTimeStamps,[stamp])))
+      return rejected(exportError('E_USER_GESTURE_REQUIRED','确认需要当前真实用户操作'));
+    if(gesture){apply(setAdd,consumedClickTimeStamps,[stamp]);exportClick=null;confirmKey=null;confirmCancel=null;aiKey=null;}
+    // Host inerting may reset this document's activeElement to body. Keep the
+    // original local trigger and text selection before crossing that boundary.
+    let trigger=null,selection=null;
+    try{
+      const active=document.activeElement;
+      if(active&&root.contains(active)){
+        trigger=active;
+        if(typeof active.selectionStart==='number'&&typeof active.selectionEnd==='number')
+          selection={start:active.selectionStart,end:active.selectionEnd,direction:active.selectionDirection};
+      }
+    }catch{/* An unsupported selection must not prevent confirmation. */}
+    const focusRevision=++confirmationFocusRevision,focusInstance=instance,focusTool=toolId;
+    const restoreFocus=()=>{
+      if(!nativeFrame||disposed)return;
+      apply(nativeFrame,timerReceiver,[()=>{
+        if(disposed||instance!==focusInstance||toolId!==focusTool||pendingConfirm||
+           confirmationFocusRevision!==focusRevision)return;
+        const usable=element=>{
+          try{return element?.isConnected===true&&typeof element.focus==='function'&&
+            !element.disabled&&!element.matches?.(':disabled')&&element.getAttribute?.('aria-disabled')!=='true'&&
+            !element.closest?.('[hidden],[inert],[aria-hidden="true"]')&&
+            element.getClientRects?.().length>0&&
+            (!element.checkVisibility||element.checkVisibility({checkVisibilityCSS:true,checkOpacity:true}));}
+          catch{return false;}
+        };
+        try{
+          if(trigger&&root.contains(trigger)&&usable(trigger)){
+            trigger.focus({preventScroll:true});
+            if(selection&&typeof trigger.setSelectionRange==='function')
+              trigger.setSelectionRange(selection.start,selection.end,selection.direction);
+          }else if(usable(root)){
+            if(!root.hasAttribute('tabindex'))root.setAttribute('tabindex','-1');
+            root.focus({preventScroll:true});
+          }
+        }catch{/* A removed/unsupported focus target must not reject a settled request. */}
+      }]);
+    };
+    const port=exportPort,requestId=''+(++sequence);
+    return new Carrier((resolve,reject)=>{
+      let timeout,done=false;
+      const cancelHost=()=>{try{parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-confirm-cancel',instance,toolId,requestId},'*');}catch{/* No replay on uncertain transport. */}};
+      const finish=(result,error,cancel=false)=>{
+        if(done)return;done=true;
+        if(pendingConfirm?.requestId===requestId)pendingConfirm=null;
+        if(timeout!==undefined)cancelTimer(timeout);
+        if(signal!==undefined)apply(eventRemove,signal,['abort',aborted]);
+        if(cancel)cancelHost();
+        restoreFocus();
+        if(error)reject(error);else resolve(result);
+      };
+      const aborted=()=>finish(freeze({action:'cancel',reason:'aborted'}),null,true);
+      pendingConfirm={requestId,finish};
+      try{
+        if(signal!==undefined){apply(eventAdd,signal,['abort',aborted,{once:true}]);
+          if(apply(abortGetter,signal,[])){aborted();return;}}
+        timeout=later(()=>finish(freeze({action:'cancel',reason:'expired'}),null,true),TOOL_UI_CONFIRM_CLIENT_TIMEOUT_MS);
+        apply(portPost,port,[{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,
+          operation:'ui.confirm',payload,...(navigation?{navigation}:{})}]);
+      }catch{finish(null,exportError('E_UI_CONFIRM_TRANSPORT','确认传输结果未明'),true);}
+    });
+  };
   const request=(operation,payload={})=>{
+    if(operation==='ui.confirm')return confirmUi(payload);
     if(!instance)return rejected(new NativeError('工具界面尚未就绪'));
     return sendRequest(operation,payload,consumeRequestGesture(operation));
   };
@@ -317,6 +465,13 @@ export function initSidebarToolSandbox() {
     }
     if (message.kind==='response') {
       if (message.instance!==instance || message.toolId!==toolId)return;
+      if(pendingConfirm?.requestId===message.requestId){
+        if(message.ok===true){
+          const result=normalizeToolUiConfirmResult(message.result);
+          pendingConfirm.finish(result,result?null:exportError('E_UI_CONFIRM_PROTOCOL','确认结果无效'),!result);
+        }else pendingConfirm.finish(null,exportError(message.error?.code||'E_TOOL',message.error?.message||'确认被拒绝'));
+        return;
+      }
       const pending=apply(mapGet,waiting,[message.requestId]);
       if (!pending)return;
       apply(mapDelete,waiting,[message.requestId]);cancelTimer(pending.timeout);
@@ -381,6 +536,14 @@ export function initSidebarToolSandbox() {
     }
     // Presentation-only navigation request. Sandbox owns its business history.
     if(message.kind==='navigation-action'){
+      if(message.action==='settings'){
+        if(message.instance===instance&&message.toolId===toolId&&navigationAllowed&&
+           settingsPageAllowed&&!disposed&&!navigationDirty&&!navigationBusy&&
+           typeof message.page==='string'&&message.page===currentNavigation?.settingsPage&&message.revision===navigationRevision)
+          root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{
+            detail:{action:'settings',page:message.page}}));
+        return;
+      }
       if(message.action==='header'){
         const action=currentNavigation?.headerActions?.find(item=>item.id===message.actionId);
         if(message.instance===instance&&message.toolId===toolId&&navigationAllowed&&
@@ -407,12 +570,36 @@ export function initSidebarToolSandbox() {
     if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
       exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
+    uiConfirmAllowed=message.uiConfirm?.version===1&&!!exportPort;
+    if(exportPort)exportPort.onmessage=event=>{
+      const message=event.data;
+      if(!message||message.protocol!==SIDEBAR_TOOL_PROTOCOL||message.kind!=='navigation-action'||
+         disposed||!navigationAllowed||!currentNavigation||message.instance!==instance||message.toolId!==toolId||
+         message.page!==currentNavigation?.page||message.revision!==navigationRevision||
+         !['back','primary','secondary','header','settings'].includes(message.action))return;
+      if(message.action==='back'&&!currentNavigation.canBack)return;
+      if(message.action==='primary'&&!currentNavigation.primary)return;
+      if(message.action==='secondary'&&!currentNavigation.secondary)return;
+      if(message.action==='header'&&(!headerActionsAllowed||!currentNavigation?.headerActions?.some(
+        action=>action.id===message.actionId&&!action.disabledReason)))return;
+      if(message.action==='settings'&&(!settingsPageAllowed||!currentNavigation?.settingsPage))return;
+      const navigation=freeze({page:message.page,revision:message.revision,action:message.action,
+        ...(message.action==='header'?{actionId:message.actionId}:{})});
+      // No token enters CustomEvent or the SDK. The association exists only in
+      // this verified synchronous dispatch stack, and can be consumed once.
+      navigationConfirm=navigation;
+      try{root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:message.action,
+        ...(message.action==='header'?{actionId:message.actionId}:{}),
+        ...(message.action==='settings'?{page:currentNavigation.settingsPage}:{})}}));}
+      finally{navigationConfirm=null;}
+    };
     // Display hint is not a permission or a trusted tool identity.
     const displaySurface=message.displaySurface==='page'?'page':'sidebar';
     // Display-only opt-in from the Host after reviewed installation checks.
     // Release discovery does not grant identity or business permissions.
     navigationAllowed=message.navigationAllowed===true;
     headerActionsAllowed=navigationAllowed&&message.headerActionsAllowed===true;
+    settingsPageAllowed=navigationAllowed&&message.settingsPageAllowed===true;
     // Snapshot installed capabilities before any package script can run.
     cookieExports=Array.isArray(tool.capabilities)&&tool.capabilities.some(capability=>
       typeof capability==='string'&&capability.startsWith('browser.cookies.'));
@@ -428,7 +615,8 @@ export function initSidebarToolSandbox() {
     const setNavigation=value=>{
       if(disposed||!navigationAllowed)return false;
       if(Object.hasOwn(value??{},'headerActions')&&!headerActionsAllowed)return false;
-      if(toolId==='web-markdown-clipper'&&!Object.hasOwn(value??{},'headerActions')){
+      if(Object.hasOwn(value??{},'settingsPage')&&!settingsPageAllowed)return false;
+      if(toolId==='web-markdown-clipper'&&!Object.hasOwn(value??{},'headerActions')&&!Object.hasOwn(value??{},'settingsPage')){
         const page=value?.page;
         if(!['home','library','reader','edit','new'].includes(page))return false;
         currentNavigation=null;navigationRevision++;
@@ -441,7 +629,7 @@ export function initSidebarToolSandbox() {
       navigationRevision++;
       currentNavigation=state;
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,state,
-        ...(Object.hasOwn(state,'headerActions')?{revision:navigationRevision}:{})},'*');
+        ...((uiConfirmAllowed||Object.hasOwn(state,'headerActions')||Object.hasOwn(state,'settingsPage'))?{revision:navigationRevision}:{})},'*');
       return true;
     };
     const setState=({dirty,busy})=>{
@@ -490,11 +678,11 @@ export function initSidebarToolSandbox() {
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
       root,request,prepareAI,setState,setConversationState,openAISettings,
-      ui:freeze({notify:notifyUi}),surface:displaySurface,
+      ui:freeze({notify:notifyUi,confirm:confirmUi}),surface:displaySurface,
       initialPage:displaySurface==='page'?normalizeOwnPageTarget(message.initialPage):null,
       ...(navigationAllowed&&exportPort&&displaySurface==='sidebar'?{openOwnPage}:{}),
       ...(navigationAllowed?{setNavigation}:{}),
-      navigationFeatures:freeze({headerActions:headerActionsAllowed}),
+      navigationFeatures:freeze({headerActions:headerActionsAllowed,settingsPage:settingsPageAllowed}),
       get locale(){return uiLocale;},
       get messages(){return uiMessages;},
       onLocaleChange(callback){
@@ -577,6 +765,9 @@ export function initSidebarToolSandbox() {
   });
   window.addEventListener('pagehide',()=>{
     disposed=true;
+    clearEscapeCancel();confirmCancel=null;confirmCancelStamp=null;
+    pendingConfirm?.finish(null,exportError('E_TOOL_DISPOSED','工具已关闭'),true);
+    navigationConfirm=null;
     apply(setForEach,preparations,[reservation=>reservation.cancel()]);
     if(exportPort)apply(portClose,exportPort,[]);
     exportPort=null;exportClick=null;aiKey=null;

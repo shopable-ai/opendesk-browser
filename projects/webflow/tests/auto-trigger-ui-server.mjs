@@ -31,7 +31,13 @@ const sdk=`const pins=${JSON.stringify(config.delegatedTasks)},store=new Map(${s
   if(event.source!==parent||event.data?.protocol!=='webflow.application-preview.v1'||!['light','dark'].includes(event.data.theme))return;
   const app=document.querySelector('.wf-app');if(app)app.dataset.theme=event.data.theme;
  });
- window.OpenDeskTool={root:document.getElementById('fixture-root'),async request(name,args){
+ window.addEventListener('message',event=>{
+  if(event.source!==parent||event.data?.protocol!=='webflow.navigation-fixture.v1'||event.data.kind!=='action')return;
+  document.getElementById('fixture-root').dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:event.data.detail}));
+ });
+ window.OpenDeskTool={root:document.getElementById('fixture-root'),navigationFeatures:{headerActions:true},
+ setNavigation(state){parent.postMessage({protocol:'webflow.navigation-fixture.v1',kind:'state',state},'*');return true;},
+ async request(name,args){
   if(name==='storage.get')return {value:store.get(args.key)??null,etag:'fixture'};
   if(name==='storage.set'){store.set(args.key,args.value);return {};}
   if(name==='currentPage.info')return {status:'available',url:'https://www.baidu.com/'};
@@ -48,6 +54,7 @@ import {createDeveloperView} from './src/ui/develop-view.js';
 import {createMyWorkbenchView} from './src/ui/my-workbench-view.js';
 import sharedUiCSS from './src/ui/react/components/ui/sidebar-shared.css?raw';
 import {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
+import {normalizeToolNavigation} from './src/sidebar-tools/navigation-state.js';
 import {createChatGPTFixedBridgeHost} from './src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger} from './src/native-agent/chatgpt-bridge-trigger-gate.js';
 const pin=${JSON.stringify(config.delegatedTasks[0])};
@@ -122,6 +129,25 @@ Object.defineProperty(navigator,'clipboard',{value:{async writeText(text){
 }},configurable:true});
 let copyFailure=false,copiedText='';`:''}
 const view=createSidebarToolsView();
+// Navigation transport only. Production schema, view and Header render unchanged;
+// no installation, Authority or trusted business action is simulated as approved.
+let navigation=null,navigationScope=0;
+const applicationWindow=()=>document.querySelector('.sidebar-tool-iframe')?.contentWindow;
+const navigate=detail=>applicationWindow()?.postMessage({protocol:'webflow.navigation-fixture.v1',kind:'action',detail},'*');
+window.addEventListener('message',event=>{
+ if(event.source!==applicationWindow()||event.data?.protocol!=='webflow.navigation-fixture.v1'||event.data.kind!=='state')return;
+ const state=normalizeToolNavigation(event.data.state);if(!state)return;
+ navigation=state;const scope='fixture-navigation-'+(++navigationScope);
+ view.patch('sidebar-tool-title',{textContent:state.title});
+ view.patch('sidebar-tool-back',{attributes:{'aria-label':state.canBack?'返回原页签':'返回工具列表'},title:state.canBack?'返回原页签':'返回工具列表'});
+ view.patch('sidebar-tool-header-actions',{hidden:!state.headerActions?.length,disabled:false,
+  data:{scope,actions:state.headerActions||[]}});
+});
+view.bind('sidebar-tool-header-actions','activate',payload=>{
+ if(payload.scope!==view.fields['sidebar-tool-header-actions'].data.scope||!navigation?.headerActions?.some(action=>action.id===payload.actionId&&!action.disabledReason))return;
+ navigate({action:'header',actionId:payload.actionId,page:navigation.page});
+});
+view.bind('sidebar-tool-back','click',()=>{if(navigation?.canBack)navigate({action:'back',page:navigation.page});});
 const display={hidden:false,data:{toolId:'webflow',enabled:true,preview:false,settingsOpen:false}};
 view.patch('sidebar-tool-display',display);view.patch('sidebar-tool-title',{textContent:'Web Flow'});
 view.patch('sidebar-tool-settings-open',{hidden:true});view.patch('sidebar-tool-remove',{hidden:true});

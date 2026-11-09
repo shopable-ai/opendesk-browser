@@ -219,6 +219,118 @@ test('reply completion is tied to the confirmed user and one subsequent assistan
   assert.equal(site.replyComplete(before,user,snapshot),false,'disconnected nodes are not ordered evidence');
 });
 
+function followUpFixture(){
+  const f=fixture();
+  const turn={getAttribute:name=>name==='data-talvt-turn-state'?'complete':null,
+    hasAttribute:name=>name==='data-talvt-turn-state',querySelector:()=>null};
+  function node(role,text=''){
+    return {role,isConnected:true,parentElement:null,innerText:text,
+      closest:selector=>selector==='[data-talvt-turn-state]'?turn:null,
+      getAttribute:()=>null,hasAttribute:()=>false,matches:()=>false,querySelector:()=>null,
+      compareDocumentPosition(other){
+        const a=f.state.history.indexOf(this),b=f.state.history.indexOf(other);
+        return a<0||b<0?1:a<b?4:2;
+      }};
+  }
+  function history(nodes){
+    f.state.history=nodes;
+    f.state.users=nodes.filter(n=>n.role==='user');
+    f.state.assistants=nodes.filter(n=>n.role==='assistant');
+  }
+  const u0=node('user'),a0=node('assistant'),u1=node('user'),a1=node('assistant');
+  history([u0,a0,u1,a1]);
+  const before=f.site.inspect();
+  const confirmed=node('user','修改交互文件过后。需要修改优化对应的扩展业务逻辑。');
+  history([...f.state.history,confirmed]);
+  assert.equal(f.site.confirm(before,confirmed.innerText,f.site.inspect()),true);
+  const followUp=node('user','加载交互预览区域里面的4个按钮，变边距过度了…');
+  const reply=node('assistant');
+  return {...f,node,history,before,confirmed,followUp,reply,u0,a0,u1,a1};
+}
+
+test('reply gate accepts same-turn native follow-up only after the latest user answer completes',()=>{
+  const f=followUpFixture(),progress={};
+  f.history([...f.state.history,f.followUp]);
+  f.state.stopping=true;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  f.history([...f.state.history,f.reply]);
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false,'busy still vetoes complete turn markers');
+  f.state.stopping=false;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),true);
+  assert.equal(f.site.confirm(f.before,f.confirmed.innerText,f.site.inspect()),false,'follow-up must not weaken admission confirmation');
+});
+
+test('reply gate never uses an older completed assistant for a newer native user',()=>{
+  const f=followUpFixture(),progress={};
+  f.history([...f.state.history,f.reply,f.followUp]);
+  assert.equal(f.site.inspect().answerComplete,true,'the older assistant is complete');
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  const finalReply=f.node('assistant');
+  f.history([...f.state.history,finalReply]);
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),true);
+});
+
+for(const change of ['old node replaced','confirmed replaced','follow-up replaced','reordered','interior removed','all old anchors lost','route']){
+  test(`reply gate rejects native follow-up history with ${change}`,()=>{
+    const f=followUpFixture(),progress={};
+    f.history([...f.state.history,f.followUp]);f.state.stopping=true;
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+    let nodes=[...f.state.history,f.reply];
+    if(change==='old node replaced')nodes[1]=f.node('assistant');
+    if(change==='confirmed replaced')nodes[nodes.indexOf(f.confirmed)]=f.node('user',f.confirmed.innerText);
+    if(change==='follow-up replaced')nodes[nodes.indexOf(f.followUp)]=f.node('user',f.followUp.innerText);
+    if(change==='reordered'){
+      const i=nodes.indexOf(f.confirmed);[nodes[i],nodes[i+1]]=[nodes[i+1],nodes[i]];
+    }
+    if(change==='interior removed'){f.a1.isConnected=false;nodes=nodes.filter(n=>n!==f.a1);}
+    if(change==='all old anchors lost'){
+      for(const n of [f.u0,f.a0,f.u1,f.a1])n.isConnected=false;
+      nodes=[f.confirmed,f.followUp,f.reply];
+    }
+    if(change==='route')f.win.location.pathname='/c/87654321';
+    f.history(nodes);f.state.stopping=false;
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  });
+}
+
+test('reply gate accepts detached prefixes while preserving observed follow-up nodes',()=>{
+  const f=followUpFixture(),progress={};
+  f.history([...f.state.history,f.followUp]);f.state.stopping=true;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  f.u0.isConnected=false;f.a0.isConnected=false;
+  f.history([f.u1,f.a1,f.confirmed,f.followUp,f.reply]);f.state.stopping=false;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),true);
+});
+
+for(const restored of ['older prefix','last valid snapshot']){
+  test(`reply gate cannot recover from node replacement by restoring ${restored}`,()=>{
+    const f=followUpFixture(),progress={};
+    f.history([...f.state.history,f.reply]);
+    const prefix=[...f.state.history];
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),true);
+    f.history([...prefix,f.followUp,f.node('assistant')]);f.state.stopping=true;
+    const lastValid=[...f.state.history];
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+    const observed=progress.observed;
+    f.history(lastValid.map(n=>n===f.followUp?f.node('user',f.followUp.innerText):n));
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+    assert.equal(progress.observed,observed,'invalid history cannot overwrite the checkpoint');
+    f.history(restored==='older prefix'?prefix:lastValid);f.state.stopping=false;
+    assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false,
+      'identity failure must not be erased by replaying a previously valid snapshot');
+  });
+}
+
+test('reply gate can return to the original route without a history identity failure',()=>{
+  const f=followUpFixture(),progress={};
+  f.history([...f.state.history,f.followUp,f.reply]);f.state.stopping=true;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  f.win.location.pathname='/c/87654321';f.state.stopping=false;
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),false);
+  f.win.location.pathname='/c/12345678';
+  assert.equal(f.site.replyComplete(f.before,f.confirmed,f.site.inspect(),progress),true);
+});
+
 test('a bridge composer claim vetoes enqueuing, restoring and committing its draft',()=>{
   const {site,state,editor}=fixture();
   const prepared=site.prepare('bridge result',site.inspect());

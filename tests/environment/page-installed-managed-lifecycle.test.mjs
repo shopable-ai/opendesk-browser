@@ -7,7 +7,7 @@ import {createInstalledPagePrograms,PAGE_BOOT_PROTOCOL,PAGE_BOOT_WORLD} from '..
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
 import {PAGE_WORLD_CSP} from '../../src/scripting/user-scripts/execution-source.js';
 import {wrapPageFrameSource} from '../../src/scripting/user-scripts/page-frame-resources.js';
-import {createPreviewWorlds} from '../../src/scripting/user-scripts/preview-worlds.js';
+import {createPreviewWorlds,MAX_PREVIEW_WORLDS_PER_DOCUMENT} from '../../src/scripting/user-scripts/preview-worlds.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createManagedUIPreview} from '../../src/native-agent/managed-preview.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
@@ -53,6 +53,15 @@ function fixture(){
   const f={doc,target,goneDocuments:new Set(),sessionReadError:false,nativeAccess:true,nativeAccessReads:0,permission:true,gone:false,cached:false,observationError:false,cleanupReplies:reply=>reply,calls:[],worldConfigurations:[],frameQueries:[],storage};
   f.tamper=change=>{const rows=Object.values(session).flat().filter(row=>row.installed);change(rows[0]);};
   f.loseSession=()=>{for(const key of Object.keys(session))delete session[key];};
+  f.loseLegacyMetadata=async()=>{
+    await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      for(const row of await tx.all('frameworkKV'))if(row.tag==='page-execution-v1'&&row.managedUI){
+        const {lifecycle,...managedUI}=row.managedUI;
+        await tx.put('frameworkKV',{...row,managedUI},row.executionKey);
+      }
+    });
+    f.loseSession();
+  };
   f.navigate=documentId=>{
     f.goneDocuments.add(target.documentId);target.documentId=documentId;f.gone=false;
     doc=documentDouble();f.doc=doc;contexts.clear();
@@ -79,6 +88,7 @@ function fixture(){
         return code.includes('return r.retire(')?f.cleanupReplies(replies):replies;
       }}};
   const nativeScripts=api.userScripts;
+  f.api=api;
   Object.defineProperty(api,'userScripts',{get:()=>{f.nativeAccessReads++;return f.nativeAccess?nativeScripts:undefined;}});
   const assertHost=async()=>host,dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
   const make=()=>{
@@ -271,9 +281,9 @@ test('an asynchronous cleanup failure is retained even though the UI was removed
   assert.equal(f.records()[0].installed.state,'failed');assert.match(f.records()[0].installed.receipt.message,/CLOSE_FAILED/);
   const count=f.calls.length;await f.uninstall();assert.equal(f.calls.length,count);
 });
-test('lost session metadata does not erase persisted live executions or manufacture clean retirement',async t=>{
+test('legacy missing lifecycle metadata does not erase persisted live executions or manufacture clean retirement',async t=>{
   for(const gone of [false,true]){
-    const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.loseSession();f.restart();f.gone=gone;
+    const f=fixture();t.after(f.dispose);await f.install();await f.boot();await f.loseLegacyMetadata();f.restart();f.gone=gone;
     const count=f.calls.length,result=await f.disable();
     assert.equal(result.managedCleanup.state,gone?'retired':'unknown');assert.equal(f.calls.length,count);
   }
@@ -293,9 +303,9 @@ test('navigation observes pending cleanup after document death without replaying
   assert.equal(f.installation().token,before.token);
   assert.equal(f.calls.length,calls,'observation cannot execute source or cleanup');
 });
-test('navigation keeps live, cached and unobservable lost-ledger cleanup unknown',async t=>{
+test('navigation keeps live, cached and unobservable legacy missing-lifecycle cleanup unknown',async t=>{
   for(const kind of ['live','cached','observationError']){
-    const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.loseSession();f.restart();
+    const f=fixture();t.after(f.dispose);await f.install();await f.boot();await f.loseLegacyMetadata();f.restart();
     await f.disable();
     if(kind!=='live')f[kind]=true;
     const before=structuredClone(f.installation()),calls=f.calls.length,queries=f.frameQueries.length;
@@ -342,11 +352,11 @@ test('unknown cleanup rejects upgraded source without dispatching it',async t=>{
   await assert.rejects(f.install('return 43;',2),{code:'E_PAGE_CLEANUP_PENDING'});
   assert.equal(f.calls.length,calls,'unknown cleanup cannot dispatch upgraded source');
 });
-for(const recovery of ['navigation','reconcile'])test('lost-session live document uninstall keeps a cleanup tombstone until exact document death: '+recovery,async t=>{
+for(const recovery of ['navigation','reconcile'])test('legacy missing-lifecycle live document uninstall keeps a cleanup tombstone until exact document death: '+recovery,async t=>{
   const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
   const oldBoot={protocol:PAGE_BOOT_PROTOCOL,nativeId:installed.nativeId,token:installed.token};
   const sender={id:'test',documentId:f.target.documentId,frameId:0,url:f.target.expectedUrl,tab:{id:1}};
-  f.loseSession();f.restart();
+  await f.loseLegacyMetadata();f.restart();
   const calls=f.calls.length,result=await f.uninstall();
   assert.equal(result.uninstalled,true);assert.equal(result.nativeState,'unregistered');
   assert.equal(result.cleanupPending,true);assert.equal(result.managedCleanup.state,'unknown');
@@ -404,7 +414,7 @@ test('tombstone reconciliation never dispatches a recovered disposer after the f
 });
 test('exact document death clears the tombstone while userScripts is unavailable and allows a later fresh install',async t=>{
   const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
-  f.loseSession();f.restart();
+  await f.loseLegacyMetadata();f.restart();
   const receipt=await f.uninstall();
   assert.equal(receipt.cleanupPending,true);
   const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
@@ -436,4 +446,149 @@ test('a combined-query mismatch cannot be confused with exact UUID absence',asyn
   const count=f.calls.length,result=await f.disable();assert.equal(result.managedCleanup.state,'unknown');
   assert.equal(f.calls.length,count);assert.equal(f.doc.querySelectorAll().length,1);
   assert.deepEqual(f.frameQueries.at(-1),{documentId:f.target.documentId});
+});
+
+const disposerCalls=f=>f.calls.filter(request=>request.js?.at(-1)?.code.includes('return r.retire(')).length;
+for(const operation of ['disable','update'])test('durable lifecycle recovers '+operation+' cleanup once after session reset',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const context=f.context(),before=disposerCalls(f);
+  f.loseSession();f.restart();
+  const receipt=operation==='disable'?await f.disable():await f.install('return 43;',2);
+  assert.equal(receipt.managedCleanup.state,'retired');
+  assert.equal(f.doc.querySelectorAll().length,0);
+  assert.equal(vm.runInContext('disposals',context),1);
+  assert.equal(disposerCalls(f),before+1);
+  f.loseSession();f.restart();await f.service.reconcile();
+  assert.equal(disposerCalls(f),before+1,'a completed disposal is never redispatched after another reload');
+});
+for(const failure of ['unknown','failed'])test('durable '+failure+' cleanup remains non-replayable after session reset',async t=>{
+  const f=fixture();t.after(f.dispose);
+  await f.install(failure==='failed'?'ui.onDispose(()=>Promise.reject(new Error("CLOSE_FAILED")));return 42;':undefined);
+  await f.boot();
+  if(failure==='unknown')f.cleanupReplies=()=>[];
+  assert.equal((await f.disable()).managedCleanup.state,'unknown');
+  const calls=f.calls.length;
+  f.loseSession();f.restart();
+  await f.service.reconcile();const receipt=await f.uninstall();
+  assert.equal(receipt.managedCleanup.state,'unknown');assert.equal(receipt.cleanupPending,true);
+  assert.equal(f.calls.length,calls,'loss of the session ledger cannot authorize retrying an attempted disposer');
+  const rows=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  assert.ok(rows.some(row=>row.installed?.state===failure),'the terminal uncertainty remains available for lifecycle recovery');
+});
+for(const observation of ['live','cached','error','gone'])
+test('durable world recovery retains budget for '+observation+' original documents',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=structuredClone(f.records()[0]);
+  f.loseSession();f.restart();f.frameQueries.length=0;
+  f.cached=observation==='cached';f.observationError=observation==='error';f.gone=observation==='gone';
+  const rows=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  if(observation==='gone')assert.equal(rows.some(row=>row.worldId===original.worldId),false);
+  else assert.ok(rows.some(row=>row.worldId===original.worldId&&row.documentId===original.documentId),
+    'live, cached and unobservable documents still consume their original world slot');
+  assert.ok(f.frameQueries.some(query=>query.documentId===original.documentId&&!Object.hasOwn(query,'tabId')),
+    'recovery checks the original exact document UUID');
+});
+test('session reset cannot refund installed world slots in the same live document',async t=>{
+  const f=fixture();t.after(f.dispose);
+  for(let revision=1;revision<=MAX_PREVIEW_WORLDS_PER_DOCUMENT;revision++){
+    await f.install('return '+revision+';',revision);await f.boot();
+  }
+  assert.equal(f.records().length,MAX_PREVIEW_WORLDS_PER_DOCUMENT);
+  f.loseSession();f.restart();
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  await assert.rejects(worlds.allocate(f.api.userScripts,f.target),{code:'E_PREVIEW_WORLD_LIMIT'});
+});
+for(const state of ['retiring','unknown','retired'])
+test('durable '+state+' state survives a lost session write acknowledgement',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=structuredClone(f.records()[0]),set=f.api.storage.session.set;
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  f.api.storage.session.set=async()=>{throw Error('session write acknowledgement lost');};
+  await assert.rejects(worlds.editRecords(rows=>{
+    rows.find(row=>row.worldId===original.worldId).installed.state=state;
+  }),/session write acknowledgement lost/);
+  f.api.storage.session.set=set;f.loseSession();f.restart();
+  const calls=f.calls.length,recovered=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  const row=recovered.find(row=>row.worldId===original.worldId);
+  assert.ok(row,'Authority metadata must be committed before writing the session mirror');
+  assert.deepEqual(row.installed,{...original.installed,state});
+  await f.disable();assert.equal(f.calls.length,calls,'retiring, unknown and retired states never replay a disposer');
+});
+
+for(const changed of [false,true])
+test('durable stale '+(changed?'changed':'unchanged')+' editRecords row cannot overwrite a newer persisted unknown state', {timeout:5000},async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.loseSession();
+  let release,entered;
+  const gate=new Promise(resolve=>{release=resolve;}),snapshotRead=new Promise(resolve=>{entered=resolve;});
+  t.after(()=>release());
+  let hold=true;
+  const slowStorage={async transaction(stores,mode,work){
+    const result=await f.storage.transaction(stores,mode,work);
+    if(mode==='readonly'&&hold){hold=false;entered();await gate;}
+    return result;
+  }};
+  const staleWorlds=createPreviewWorlds({api:f.api,storage:slowStorage});
+  const staleEdit=staleWorlds.editRecords(rows=>{if(changed)rows[0].installed.state='retiring';});
+  // Observe both results before releasing either writer, including the expected
+  // CAS rejection when this writer changed a now-stale lifecycle snapshot.
+  const settled=Promise.allSettled([staleEdit]);
+  await snapshotRead;
+  await createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{rows[0].installed.state='unknown';});
+  release();const [outcome]=await settled;
+  assert.equal(outcome.status,changed?'rejected':'fulfilled');
+  if(changed)assert.equal(outcome.reason.code,'E_WORLD_ISOLATION');
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');
+  assert.equal(execution.managedUI.lifecycle.state,'unknown','a stale writer must not restore a dispatchable state');
+  const recovered=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  assert.equal(recovered[0].installed.state,'unknown');
+  const calls=f.calls.length;
+  assert.equal((await f.disable()).managedCleanup.state,'unknown');assert.equal(f.calls.length,calls);
+});
+
+async function failInitialLifecycleSessionWrite(f){
+  const original=structuredClone(f.records()[0]),ledger='opendeskPagePreviewWorldsD1';
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const execution=await tx.get('frameworkKV',original.installed.executionKey);
+    const {lifecycle,...managedUI}=execution.managedUI;
+    await tx.put('frameworkKV',{...execution,managedUI},execution.executionKey);
+  });
+  f.loseSession();
+  await f.api.storage.session.set({[ledger]:[{tabId:original.tabId,documentId:original.documentId,worldId:original.worldId}]});
+  const set=f.api.storage.session.set,installed={...original.installed,state:'ready'};
+  f.api.storage.session.set=async()=>{throw Error('initial lifecycle session write failed');};
+  try{
+    await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{
+      rows.find(row=>row.worldId===original.worldId).installed=installed;
+    }),/initial lifecycle session write failed/);
+  }finally{f.api.storage.session.set=set;}
+  assert.deepEqual(f.rows().find(row=>row.executionKey===installed.executionKey).managedUI.lifecycle,installed);
+  assert.equal(Object.hasOwn((await f.api.storage.session.get(ledger))[ledger][0],'installed'),false,
+    'failed mirror write leaves the exact original reservation, not an empty session ledger');
+  return {original,installed,ledger};
+}
+test('durable reservation-only mirror recovers DB lifecycle after the first session write fails',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const {original,installed}=await failInitialLifecycleSessionWrite(f);
+  const recovered=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  assert.equal(recovered.length,1,'recovery does not allocate or duplicate a world slot');
+  assert.deepEqual(recovered[0],{tabId:original.tabId,documentId:original.documentId,worldId:original.worldId,installed});
+  const calls=disposerCalls(f);
+  assert.equal((await f.disable()).managedCleanup.state,'retired');
+  assert.equal(disposerCalls(f),calls+1);assert.equal(f.doc.querySelectorAll().length,0);
+});
+for(const conflict of ['tab','document','nonce','compiled hash','preview'])
+test('durable reservation recovery denies conflicting '+conflict+' metadata',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const {installed,ledger}=await failInitialLifecycleSessionWrite(f);
+  const snapshot=await f.api.storage.session.get(ledger),row=snapshot[ledger][0];
+  if(conflict==='tab')row.tabId=2;
+  if(conflict==='document')row.documentId='other-document';
+  if(conflict==='nonce')row.installed={...installed,receiptNonce:'forged-nonce'};
+  if(conflict==='compiled hash')row.installed={...installed,compiledSha256:'0'.repeat(64)};
+  if(conflict==='preview')row.managed={previewId:'other-preview',state:'evaluated'};
+  await f.api.storage.session.set(snapshot);
+  const calls=f.calls.length;
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).records(),{code:'E_WORLD_ISOLATION'});
+  assert.equal(f.calls.length,calls,'conflicting mirrors cannot select a cleanup target');
+  assert.deepEqual(f.rows().find(value=>value.executionKey===installed.executionKey).managedUI.lifecycle,installed);
 });

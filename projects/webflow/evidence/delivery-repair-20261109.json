@@ -1,0 +1,370 @@
+{
+  "date": "2026-11-09",
+  "stage": "core-development",
+  "result": "PASS: fresh historical prompt and two consecutive ordinary Baidu requests",
+  "chatUrl": "https://chatgpt.com/c/6af1d06c-4000-83ec-95df-a5bf2f7efac6",
+  "taskSpace": 18,
+  "capabilityInput": {
+    "file": "artifacts/webflow/fresh-chat-1109/product-instructions.txt",
+    "sha256": "f15df16029b1943ff8332ebf5e4f5451e1591b4b0d048befa3c69ca7e08d3fbd",
+    "sameHistoricalInput": true,
+    "note": "官网富编辑器显示时重排链接与换行；哈希指输入文件字节。能力说明本身不触发任务。"
+  },
+  "runtime": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "webflowVersion": "0.3.22",
+    "applied": {
+      "revision": "801f64453f2477eda51d50dc34cb80f518b910faa64ef774328c006bcdda3451",
+      "sw": "6ab319c723438112e5d99691f85a5699c1dca89939813bb4d8e13f1945f4bf7f",
+      "bridge": "2a34a3fa88dab6f5c872ba88e6eba4b54acee99bb87ad0202f4babde0fe04087"
+    },
+    "backendSourceMapMatches": true,
+    "backendSourceSha256": "db25776c749140a3429c66d23a67c5440b0b632c15a4528fb4690cda4d25cc35",
+    "writerAtApply": 30477,
+    "writerAtClose": "Not found by read-only ps/pgrep; no restart performed; current serve connection not reverified",
+    "sharedTree": true
+  },
+  "fix": {
+    "files": [
+      "src/page-events/web-task-ingress.js",
+      "projects/webflow/tests/chatgpt-background-ingress.test.mjs"
+    ],
+    "behavior": [
+      "保留网页拒绝的具体 code/message（长度有界）",
+      "记录 dispatch 围栏后最终来源/权限核验的失败",
+      "UNKNOWN 和禁止自动重发保持"
+    ],
+    "notClaimed": "原失败的具体根因仍不可恢复；首次苏州成功早于本次后台诊断修复"
+  },
+  "validation": {
+    "command": "node --test projects/webflow/tests/chatgpt-background-ingress.test.mjs tests/environment/web-task-ingress.test.mjs",
+    "passed": 94,
+    "failed": 0,
+    "newRegressionsInitiallyFailed": 3,
+    "coverage": [
+      "E_CHAT_FILL / E_CHAT_ANSWER remain diagnosable",
+      "final source rejection after durable fence sends zero messages",
+      "reconcile / later settle never resends"
+    ]
+  },
+  "runs": [
+    {
+      "requestId": "4a1c7a5d-791c-41bb-8eaa-d9f9a2b6485b",
+      "candidateId": "wf-a6c4e8b2-73f1-4d09-9e5a-c21b7f903d68",
+      "source": {
+        "documentId": "E693BC0002A7314DDE4BCC9A3EBE1091",
+        "tabId": 1114138585,
+        "url": "https://chatgpt.com/c/6af1d06c-4000-83ec-95df-a5bf2f7efac6"
+      },
+      "installation": {
+        "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "generation": 1,
+        "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+        "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+        "revision": 1,
+        "scriptId": "task:baidu.search.top3:1.1.4",
+        "version": "1.1.4"
+      },
+      "scope": {
+        "limit": 3,
+        "query": "浙江省博物馆开放时间"
+      },
+      "observation": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "af795f89-8beb-4ac3-9e60-1938c99a89c6",
+        "runId": "216b0c6a-3013-4c24-af82-53873c0562d5"
+      },
+      "webDelivery": "delivered",
+      "result": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "baidu.search.top3.result",
+        "observedAt": "2026-11-09T13:54:48.831Z",
+        "query": "浙江省博物馆开放时间",
+        "results": [
+          {
+            "directUrl": "https://www.zhejiangmuseum.com/",
+            "evidence": {
+              "slot": "3",
+              "tpl": "www_index"
+            },
+            "position": 1,
+            "summary": "浙江省博物馆自2004年起全年免费对外开放(特殊临展除外)。周一闭馆,遇法定节假日正常开放,闭馆顺延至节后第一天。 周二至周日9:00-17:00,16:30观众停止入场,17:00闭馆。 个人参观免预约, 使用实体身份证件刷卡入馆。 团队参观请通过浙博官网提前预约。 散客参观预约 10 /27 2026 2026年度中国博物馆及相",
+            "title": "浙江省博物馆",
+            "url": "http://www.baidu.com/link?url=3pTOaBw1gz4n16TXylLu84ovhtBNDCupjbEWRzmCsa449UfQuGVyPHCSa1l9JUwE"
+          },
+          {
+            "directUrl": "https://hz.bendibao.com/tour/2020731/91024.shtm",
+            "evidence": {
+              "slot": "5",
+              "tpl": "www_index"
+            },
+            "position": 2,
+            "summary": "2025年10月27日浙江省博物馆自2004年起全年免费对外开放(特殊临展除外)。周一闭馆,遇法定节假日正常开放,闭馆顺延至节后第一天。 周二至周日9:00-17:00.16:30观众停止入场,17:00闭馆。个人参观免预约,使用实体身份证件刷卡入馆。 团队参观请通过浙博官网提前预约。 馆区简介 浙江省博物馆始建于1929年,缘起于首届杭州西湖博览会,...",
+            "title": "2024浙江省博物馆开放时间- 杭州本地宝",
+            "url": "http://www.baidu.com/link?url=3pTOaBw1gz4n16TXylLu82b-7xoRsyL86bg-2qwHVVCl0K0qxbfQHD9zMszcJNNgVI2VpyePYWWTEN7jJgMVr_"
+          },
+          {
+            "directUrl": "https://m.hz.bendibao.com/tour/93844.shtm",
+            "evidence": {
+              "slot": "6",
+              "tpl": "www_index"
+            },
+            "position": 3,
+            "summary": "2026年8月17日开放时间:周一闭馆,遇法定节假日正常开放,闭馆顺延至节后第一天。周二至周日9:00 - 17:00,16:30观众停止入场,17:00闭馆 入馆方式: 非周末(节假日)个人免预约参观,使用实体身份证件刷卡;周末、节假日参观仍需网上预约,每张预约单可预约人数不超过4人 馆区入口处设有预约一体机,观众可现场预约,预约成功后请刷预...",
+            "title": "2026浙江省博物馆参观攻略(时间地点+预约入口+展览活动+交通)- 杭州本地宝",
+            "url": "http://www.baidu.com/link?url=YsFxvohi7kwJPYLmUhj6ziUefKNg-KJQcKTcw-hggoZAGjajBo8G3EVDHJWBpXKfBNkMynprHXVZhM7XWbNKp_"
+          }
+        ],
+        "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%99%E6%B1%9F%E7%9C%81%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xd8a59be700345fd5&rsv_t=eda3xbSX0srkaOEBd%2FI7VAsGUQk7hupHVnX7EK%2BRWEPHFjhAvECEJbl3tege&rqlang=en&rsv_enter=1&rsv_dl=tb_pre",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T13:54:34.951Z",
+            "documentId": "7D1EA636DED6D5F836ACE2F95A833780",
+            "locator": "#chat-textarea",
+            "state": "before",
+            "url": "https://www.baidu.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T13:54:34.951Z",
+            "locator": "#chat-textarea",
+            "state": "started"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T13:54:37.002Z",
+            "locator": "#chat-textarea",
+            "state": "returned",
+            "value": "浙江省博物馆开放时间"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T13:54:40.121Z",
+            "locator": "#chat-submit-button",
+            "state": "started",
+            "url": "https://www.baidu.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T13:54:41.953Z",
+            "locator": "#chat-submit-button",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-09T13:54:42.133Z",
+            "documentId": "7D1EA636DED6D5F836ACE2F95A833780",
+            "state": "observed",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%99%E6%B1%9F%E7%9C%81%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xd8a59be700345fd5&rsv_t=eda3xbSX0srkaOEBd%2FI7VAsGUQk7hupHVnX7EK%2BRWEPHFjhAvECEJbl3tege&rqlang=en&rsv_enter=1&rsv_dl=tb_pre"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-09T13:54:45.826Z",
+            "count": 3,
+            "state": "read",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%99%E6%B1%9F%E7%9C%81%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xd8a59be700345fd5&rsv_t=eda3xbSX0srkaOEBd%2FI7VAsGUQk7hupHVnX7EK%2BRWEPHFjhAvECEJbl3tege&rqlang=en&rsv_enter=1&rsv_dl=tb_pre"
+          }
+        ],
+        "version": 2
+      },
+      "status": "completed",
+      "resultMessageCount": 1
+    },
+    {
+      "requestId": "8ef55383-e205-4407-99fb-64cd5b819ff1",
+      "candidateId": "wf-5a7e4c91-8d3b-4a6f-bc29-0e17d6f58a43",
+      "source": {
+        "documentId": "E693BC0002A7314DDE4BCC9A3EBE1091",
+        "tabId": 1114138585,
+        "url": "https://chatgpt.com/c/6af1d06c-4000-83ec-95df-a5bf2f7efac6"
+      },
+      "installation": {
+        "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269",
+        "generation": 1,
+        "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+        "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+        "revision": 1,
+        "scriptId": "task:baidu.search.top3:1.1.4",
+        "version": "1.1.4"
+      },
+      "scope": {
+        "limit": 3,
+        "query": "陕西历史博物馆开放时间"
+      },
+      "observation": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "774c4e6d-86c4-42d2-b3a1-1017f86fff2b",
+        "runId": "1b38d5c5-1684-4117-8608-ecf7afe34e85"
+      },
+      "webDelivery": "delivered",
+      "result": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "baidu.search.top3.result",
+        "observedAt": "2026-11-09T13:56:21.033Z",
+        "query": "陕西历史博物馆开放时间",
+        "results": [
+          {
+            "directUrl": "https://www.sxhm.com/",
+            "evidence": {
+              "slot": "3",
+              "tpl": "www_index"
+            },
+            "position": 1,
+            "summary": "10月30日,陕西历史博物馆“画里有话”美育课程走进西安市航天六小,开展两场“画里有话之金纹银彩”美育课程,为80余名学生带去生动鲜活的唐代金银器文化体验。课程依托陕历博丰富的唐代金银器馆藏... 陕历博协办国家文物局全国文物财务工作会... 11月3日,全国文物财务工作会议在陕西西安召开。文化和旅游部副部长、国家文物局",
+            "title": "陕西历史博物馆_陕西历史博物馆",
+            "url": "http://www.baidu.com/link?url=XeGFyC8SEjjwSnIt7VwIqKgt3gh4obkI9uRtzGxFo8y"
+          },
+          {
+            "directUrl": "https://www.sxhm.com/guide.html?_isa=1",
+            "evidence": {
+              "slot": "6",
+              "tpl": "www_index"
+            },
+            "position": 2,
+            "summary": "开放时间 国家法定节假日及延长开放时间详见最新公告 陕西历史博物馆(陕西省西安市雁塔区小寨东路91号) 08:30-19:00 18:00停止检票 3月15日-11月14日 08:30-19:00 ☑ 11月15日-3月14日 09:00-17:30 陕西历史博物馆秦汉馆(西咸新区秦汉新城兰池三路东段) ...",
+            "title": "导览_陕西历史博物馆_陕西历史博物馆",
+            "url": "http://www.baidu.com/link?url=e29pDoDd0rlaVsGS3kNT8NveOsa3nRyG_0DPz1PdKHMM-SPcMVIyIymaXj0SJC06"
+          },
+          {
+            "directUrl": "https://m.xa.bendibao.com/news/155115.shtm",
+            "evidence": {
+              "slot": "8",
+              "tpl": "www_index"
+            },
+            "position": 3,
+            "summary": "9小时前导语2026年11月15日至2027年3月14日,陕西历史博物馆将实行冬季开放时间。具体时间详见正文。 2026年陕西历史博物馆关于实行冬季开放时间的公告 2026年11月15日至2027年3月14日,我馆将实行冬季开放时间。 本馆 西安市雁塔区小寨东路91号 1.开放时间调整为: 9:00-17:30(16:30停止检票),每周一闭馆(国家法定节假...",
+            "title": "2026年陕西历史博物馆关于实行冬季开放时间的公告- 西安本地宝",
+            "url": "http://www.baidu.com/link?url=1Gd6vrHfLz2t5jGq6s528t39m8Y_1uC3beh7p4zDj-nlmmr6tJpu6eBT_bO_zT-iObG9wxnYGqS0Co5UObnZLK"
+          }
+        ],
+        "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E9%99%95%E8%A5%BF%E5%8E%86%E5%8F%B2%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xeca196c700295093&rsv_t=d153TssTvJhwMRKw13xnWcy4roKWOXGHDvsQS3mW%2FHVrcMPslujkl7NTLlcm&rqlang=en&rsv_enter=1&rsv_dl=tb_pre",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T13:56:07.416Z",
+            "documentId": "4D1B481C342160CBBD0B099159043A25",
+            "locator": "#chat-textarea",
+            "state": "before",
+            "url": "https://www.baidu.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T13:56:07.416Z",
+            "locator": "#chat-textarea",
+            "state": "started"
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T13:56:09.015Z",
+            "locator": "#chat-textarea",
+            "state": "returned",
+            "value": "陕西历史博物馆开放时间"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T13:56:12.085Z",
+            "locator": "#chat-submit-button",
+            "state": "started",
+            "url": "https://www.baidu.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T13:56:13.951Z",
+            "locator": "#chat-submit-button",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-09T13:56:14.120Z",
+            "documentId": "4D1B481C342160CBBD0B099159043A25",
+            "state": "observed",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E9%99%95%E8%A5%BF%E5%8E%86%E5%8F%B2%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xeca196c700295093&rsv_t=d153TssTvJhwMRKw13xnWcy4roKWOXGHDvsQS3mW%2FHVrcMPslujkl7NTLlcm&rqlang=en&rsv_enter=1&rsv_dl=tb_pre"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-09T13:56:18.027Z",
+            "count": 3,
+            "state": "read",
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E9%99%95%E8%A5%BF%E5%8E%86%E5%8F%B2%E5%8D%9A%E7%89%A9%E9%A6%86%E5%BC%80%E6%94%BE%E6%97%B6%E9%97%B4&fenlei=256&rsv_pq=0xeca196c700295093&rsv_t=d153TssTvJhwMRKw13xnWcy4roKWOXGHDvsQS3mW%2FHVrcMPslujkl7NTLlcm&rqlang=en&rsv_enter=1&rsv_dl=tb_pre"
+          }
+        ],
+        "version": 2
+      },
+      "status": "completed",
+      "resultMessageCount": 1
+    }
+  ],
+  "chatObservation": {
+    "users": 5,
+    "assistants": 5,
+    "allAssistantsComplete": true,
+    "draftEmpty": true,
+    "oneResultMessagePerRequest": true,
+    "manualAdoptionOrRuntimeDispatch": false,
+    "realChatArtifact": "artifacts/webflow/delivery-repair-1109/post-fix-chat.json",
+    "screenshot": "artifacts/webflow/delivery-repair-1109/final-chat.png"
+  },
+  "otherObservations": {
+    "prePatchSuccessChat": "https://chatgpt.com/c/6af1cbaa-0344-83e8-8bde-549737ba01ba",
+    "prePatchSuccessRequestId": "c205d6a4-bb47-4ae3-bf03-39cfc10745e8",
+    "prePatchSuccessRunId": "8aecb1f7-98bc-4b5e-b12c-f3c589af74ef",
+    "prePatchSuccessResultId": "e8d2b5e7-c063-4d7c-ab33-f7060b7b5efe",
+    "postUpdateMissedCandidates": [
+      "wf-85acb894-360d-4572-9530-63ca52df20e7",
+      "wf-29b7746a-07c0-4457-b8ef-9463b5c410ae"
+    ],
+    "postUpdateDiagnosis": "真实可信侧栏显示监听断开/版本更新，旧 URL 账本仅一条此前成功记录；没有执行两条候选。不能只归因于历史加载时机。",
+    "oldCandidatesReplayed": false
+  },
+  "originalUnknown": {
+    "requestId": "bf2cf792-c335-4385-be95-fc388a4ad10f",
+    "source": {
+      "documentId": "C6B51AC9702020562979101380DBAA14",
+      "tabId": 1114138555,
+      "url": "https://chatgpt.com/c/6af1af5a-cf4c-83ee-95f8-932b4eb1d6c8"
+    },
+    "webDelivery": "dispatching",
+    "cachedObservation": {
+      "delivery": "not-sent",
+      "execution": "completed",
+      "persistence": "verified",
+      "release": "released",
+      "resultId": "350bf82a-e98d-46c2-a2e3-178aa7daebee",
+      "runId": "2e6a63ac-0650-4de1-8eab-b174a7881ec0"
+    },
+    "statusAtRead": "revoked",
+    "actualDelivery": "UNKNOWN",
+    "preciseCause": "UNRECOVERABLE from existing receipt; no specific delivery error persisted",
+    "replayedOrResent": false,
+    "rawArtifact": "artifacts/webflow/delivery-repair-1109/original-request.json"
+  },
+  "notTested": [
+    "production",
+    "Google execution",
+    "full CI",
+    "independent score",
+    "all historical failure causes"
+  ],
+  "delivery": {
+    "sourceChanges": "uncommitted on existing main",
+    "officialToolPackage": "unchanged; backend is fixed Browser code",
+    "parallelFilesPreserved": true,
+    "otherBrowsersAndServicesStoppedByThisTask": false
+  }
+}

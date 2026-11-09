@@ -36,6 +36,11 @@ export default async function main({assets}={}) {
         if(view?.hasRecovery()){
           notify('请先复制上一条未入队的原草稿，再继续操作');return;
         }
+        // A flight can still own the text it placed in the native editor.
+        // Wait for exact admission before clearing it through either entry.
+        if(engine.view().inFlight){
+          notify('当前发送尚未确认，请先核对原对话；草稿已保留');return;
+        }
         const snap=site.inspect();
         if(!snap.ok){notify(snap.reason);return;}
         // Reject invalid/full/mismatched queues without changing website text.
@@ -128,7 +133,7 @@ export default async function main({assets}={}) {
     // Ctrl+Enter reuses the crown button's guarded enqueue action; plain Enter
     // only falls back to the queue when native sending is unavailable.
     owner.on(document,'keydown',event=>{
-      if(event.key!=='Enter'||event.shiftKey||event.altKey||event.metaKey||
+      if(event.isTrusted!==true||event.key!=='Enter'||event.shiftKey||event.altKey||event.metaKey||
         event.defaultPrevented||event.isComposing||event.keyCode===229||composing||
         Date.now()-compositionEndedAt<100||!owner.active()||retireForLegacy())return;
       const queueShortcut=event.ctrlKey===true;

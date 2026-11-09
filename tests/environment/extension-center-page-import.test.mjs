@@ -135,11 +135,11 @@ for(const v2 of [false,true])test(`extension center distinguishes developer Page
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchanged(f);
 });
 
-async function installPackage(){
+async function installPackage(overrides={}){
   const sourceUtf8='async function main(){document.title="Installed Page";}';
   const pkg={format:'opendesk.page-install.v1',programId:'local.page',title:'本地网页增强',version:'1.0.0',revision:1,
     entryFormat:'async-main',sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),
-    pageRules:{matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+    pageRules:{matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'},...overrides};
   return {...pkg,packageHash:await digest(pkg)};
 }
 function receipt(pkg,overrides={}){return {programId:pkg.programId,revision:pkg.revision,sourceHash:pkg.sourceHash,
@@ -259,17 +259,140 @@ test('valid Page receipt without a durable installed-list readback does not clos
   assert.equal(calls,1,'missing readback must not replay the installer');
 });
 
-for(const recover of [true,false])test(`lost Page install response is queried once without replay (recovered=${recover})`,async t=>{
-  const pkg=await installPackage();let sent=0;
-  const f=await fixture(t,{requestPage(operation){
-    if(operation==='importPageInstallPackage'){sent++;throw new Error('response lost');}
-    if(sent&&operation==='listPagePrograms')return {catalog:[],installed:recover?[receipt(pkg)]:[]};
+test('Page r15 to r17 cleanup uncertainty replaces stale review text without changing CAS or replaying',async t=>{
+  const pkg=await installPackage({revision:17,version:'1.7.0'});
+  const baseline=receipt(pkg,{revision:15,version:'1.5.0',sourceHash:'b'.repeat(64)});
+  const current=receipt(pkg,{authorization:{...baseline.authorization,generation:5},
+    managedCleanup:{scope:'managed-ui-only',state:'unknown',records:150}});
+  let sent=0;
+  const f=await fixture(t,{installed:[baseline],requestPage(operation,payload){
+    if(operation==='importPageInstallPackage'){
+      sent++;assert.equal(payload.expectedInstalledManifestHash,baseline.manifestHash);
+      assert.equal(payload.expectedGeneration,3);return current;
+    }
   }});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.match(f.get('sidebar-tool-preview-description').textContent,/已安装 r15；确认后/);
+  const originalTechnical=f.get('sidebar-tool-preview-file').textContent;
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
-  if(recover)assert.match(f.get('page-install-import-status').textContent,/已查询到原安装/);
+  const description=f.get('sidebar-tool-preview-description').textContent;
+  assert.match(description,/审阅时基线：r15/);
+  assert.match(description,/当前读回版本：r17/);
+  assert.match(description,/Chrome 注册：registered；授权：active/);
+  assert.match(description,/旧受管清理待核对：unknown（记录数：150）/);
+  assertReadbackDetails(f,pkg,current,originalTechnical);
+  assert.doesNotMatch(description,/已安装 r15|确认后|安装完成/);
+  assert.match(f.get('sidebar-tool-update-versions').textContent,/审阅时基线：r15；导入目标：v1\.7\.0 · r17；当前读回版本：r17/);
+  assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();
+  assert.equal(sent,1,'pending cleanup never replays or advances the reviewed CAS');
+  unchangedAuthoring(f);
+});
+
+function assertReadbackDetails(f,pkg,current,originalTechnical){
+  for(const field of ['sidebar-tool-preview-description','page-install-import-status']){
+    const summary=f.get(field).textContent;
+    assert.match(summary,/审阅时基线：r15；当前读回版本：/);
+    assert.match(summary,/本次请求仍未确认/);
+    assert.doesNotMatch(summary,/SHA-256|安装 ID|身份：|generation|enabled|managed-ui-only/);
+  }
+  const technical=f.get('sidebar-tool-preview-file').textContent;
+  assert.ok(technical.startsWith(originalTechnical+'\n当前安装状态读回：'),
+    'readback appends to the original file, package hash and source hash');
+  assert.ok(originalTechnical.includes('安装包 SHA-256：'+pkg.packageHash));
+  assert.ok(originalTechnical.includes('源码 SHA-256：'+pkg.sourceHash));
+  if(current){
+    const readback=technical.slice(originalTechnical.length);
+    assert.ok(readback.includes('身份：'+current.programId));
+    assert.ok(readback.includes('源码 SHA-256：'+current.sourceHash));
+    assert.ok(readback.includes('固定清单 SHA-256：'+current.manifestHash));
+    assert.ok(readback.includes('安装 ID：'+current.authorization.installationId));
+    assert.ok(readback.includes('generation：'+current.authorization.generation));
+    assert.ok(readback.includes('enabled：'+current.enabled));
+  }else assert.match(technical,/当前安装状态读回：未找到此 programId 的安装记录/);
+  assert.equal(f.get('sidebar-tool-technical-details').open,false);
+}
+
+for(const recovery of ['matching','missing','other-revision','other-source'])test(`lost Page install response is queried once without replay (${recovery})`,async t=>{
+  const pkg=await installPackage({revision:17,version:'1.7.0'});let sent=0;
+  const baseline=receipt(pkg,{revision:15,version:'1.5.0',sourceHash:'b'.repeat(64)});
+  const recovered=receipt(pkg,recovery==='other-revision'?{revision:16}:
+    recovery==='other-source'?{sourceHash:'c'.repeat(64)}:{});
+  const f=await fixture(t,{installed:[baseline],requestPage(operation,payload){
+    if(operation==='importPageInstallPackage'){
+      sent++;assert.equal(payload.expectedInstalledManifestHash,baseline.manifestHash);
+      assert.equal(payload.expectedGeneration,3);throw new Error('response lost');
+    }
+    if(sent&&operation==='listPagePrograms')return {catalog:[],installed:recovery==='missing'?[]:[recovered]};
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  const originalTechnical=f.get('sidebar-tool-preview-file').textContent;
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
+  const status=f.get('page-install-import-status').textContent;
+  assert.match(status,/response lost/);
+  if(recovery==='missing')assert.match(status,/当前读回版本：未找到此 programId 的安装记录；不能确认目标已安装/);
+  else{
+    assert.ok(status.includes('当前读回版本：r'+recovered.revision));
+    assert.match(status,/Chrome 注册：registered；授权：active/);
+    assert.match(status,recovery==='matching'?/只读回读不能确认本次请求成功/:/版本或源码不匹配，不能确认目标已安装/);
+  }
+  assertReadbackDetails(f,pkg,recovery==='missing'?null:recovered,originalTechnical);
+  for(const field of ['sidebar-tool-preview-description','sidebar-tool-update-versions']){
+    assert.match(f.get(field).textContent,/审阅时基线：r15.*当前读回版本：/);
+    assert.doesNotMatch(f.get(field).textContent,/已安装 r15|确认后|当前 .*r15.*→/);
+  }
+  assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();
+  assert.equal(f.requests.filter(r=>r.operation==='listPagePrograms').length,2,
+    'lost response permits only review and catch readback, with no extra query on disabled click');
   assert.equal(sent,1);assert.equal(f.get('sidebar-tool-install').disabled,true);unchangedAuthoring(f);
+});
+
+for(const lostResponse of [false,true])test(`failed Page list readback keeps only the review baseline and never replays (lostResponse=${lostResponse})`,async t=>{
+  const pkg=await installPackage({revision:17,version:'1.7.0'});
+  const baseline=receipt(pkg,{revision:15,version:'1.5.0',sourceHash:'b'.repeat(64)});
+  const gate=deferred();let sent=0,reads=0;
+  const f=await fixture(t,{installed:[baseline],requestPage(operation,payload){
+    if(operation==='importPageInstallPackage'){
+      sent++;assert.equal(payload.expectedInstalledManifestHash,baseline.manifestHash);
+      assert.equal(payload.expectedGeneration,3);
+      if(lostResponse)throw new Error('response lost');
+      return receipt(pkg,{authorization:{...baseline.authorization,generation:5}});
+    }
+    if(sent&&operation==='listPagePrograms'){
+      reads++;
+      if(!lostResponse&&reads===1)throw new Error('list unavailable');
+      return gate.promise.then(()=>{throw new Error('list unavailable');});
+    }
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  const originalTechnical=f.get('sidebar-tool-preview-file').textContent;
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>reads===(lostResponse?1:2));
+  for(const field of ['sidebar-tool-preview-description','sidebar-tool-update-versions']){
+    assert.match(f.get(field).textContent,/审阅时基线：r15.*当前状态未读回/,
+      'stale installation claims are cleared before the catch readback settles');
+    assert.doesNotMatch(f.get(field).textContent,/已安装 r15|确认后|当前 .*r15.*→/);
+  }
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  gate.resolve();
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
+  assert.match(f.get('page-install-import-status').textContent,/审阅时基线：r15；当前状态未读回；本次请求仍未确认/);
+  assert.match(f.get('page-install-import-status').textContent,lostResponse?/response lost/:/list unavailable/);
+  assert.equal(f.get('sidebar-tool-preview-file').textContent,originalTechnical,
+    'failed reads cannot invent current identity or overwrite the package details');
+  assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();
+  assert.equal(sent,1);
+  assert.equal(reads,lostResponse?1:2);
+  unchangedAuthoring(f);
 });
 
 for(const alreadyInstalled of [false,true])test(`untrusted click cannot install or claim success (alreadyInstalled=${alreadyInstalled})`,async t=>{

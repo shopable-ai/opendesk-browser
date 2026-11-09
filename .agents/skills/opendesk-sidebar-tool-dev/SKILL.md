@@ -45,6 +45,14 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 **R14 事件与安全**：复用 `navigation-action` 和 root 的 `opendesk-tool-navigation`，新增 detail `{action:'header',actionId,page}`；原 `back/primary/secondary` detail 保持 `{action}`。点击绑定真实实例、页面和快照 revision，`busy/dirty/actionReview` 时新动作不可执行；应用及时上报真实页面和 `setState({dirty,busy})`、再次核对动作，页面替换/撤权/卸载清理旧投影及监听，不能为导航清锁或重放未知效果。CustomEvent 不当作 `isTrusted`；危险授权、代理应用配置、Cookie、采集只能进入原业务审阅界面，不能无确认快捷执行，实际权限仍经原安装/Authority。源码与定向 Node 证据以[导航合同状态](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)为准；AI Proxy / ScrapyJS 已接入；定向 Node、浏览器源码夹具、构建、安装与 Native 分层记录，夹具不证明实际安装，不编造 PASS/分数。
 
+## 确认、反馈与异步接入（2026-11-09）
+
+涉及删除、覆盖、草稿退出或消息反馈时，先按[唯一交互与异步合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)分类：短状态非阻断，必要决策用公共展示，长表单保留业务。工具负责对象/后果、dirty/revision、执行与真实回执；跨工具离开由框架 guard 负责，不再业务重复确认。普通确认不替代可信权限审阅。
+
+`ui.notify` 与 `ui.confirm` 的真实状态/签名只看[公开 API](../../../docs/api/sidebar-tools.zh-CN.md)。当前 confirm 已有实现，调用前按原初始化支持声明准入；HTML/Vue/React 都传纯数据，旧 Host 按明确不可用条件保留原安全确认，不要求 React/升级。已有编辑器关闭确认须保留实例并让出/恢复模态锁。
+
+迁移同时检查 Promise/then、旧 boolean/callback adapter、return/await、reject 消费、重入、卸载时 resolver 结算、finally 与晚回包；确认对象只按 action 判断，等待后再核对原目标/版本。`void` 不等于捕获异常，then 本身不是缺陷。只增加能证明受影响业务行为的项目测试，不批量重写异步代码或在 Host 写业务判断。
+
 ## 工具项目归属与演进顺序（2026-10-30 更新）
 
 **目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的支持范围及迁移顺序以该合同第 6–7 节为准；app:update 已按配置 id 在 projects/ 与 examples/sidebar-tools/ 唯一发现，拒绝重复 owner/ID 和符号链接（主代理 2026-11-08 回报：相关 7 项测试通过），但仍不自动发现全部业务 tests，须显式核对并执行。

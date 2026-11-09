@@ -16,7 +16,7 @@ function fixture(){
   let serial=0,replyChecks=0,taskChecks=0;
   const state={deliveryError:false,replyValid:true,sourceValid:true,ensures:0,resultDenied:false,taskEpoch:0};
   const storage={get:async key=>{state.onStorageRead?.();return {[key]:structuredClone(values[key])};},
-    set:async next=>Object.assign(values,structuredClone(next))};
+    set:async next=>{Object.assign(values,structuredClone(next));state.onStorageWrite?.(next);}};
   const id='test-extension',getURL=path=>'chrome-extension://'+id+'/'+path;
   const page={id,frameId:0,documentId:source.documentId,url:source.url,tab:{id:4,url:source.url}};
   const owner={id,frameId:0,documentId:'original-offscreen',url:getURL('cloud-control/runner.html')};
@@ -31,6 +31,7 @@ function fixture(){
       sendMessage:async(tabId,message,options)=>{sent.push({tabId,message,options});
         if(message.kind==='progress')return {ok:true};
         if(state.deliveryError)throw Error('ACK lost');
+        if(state.deliveryReply)return structuredClone(state.deliveryReply);
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};}},
     webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getFrame:async()=>({
       documentId:source.documentId,url:source.url,documentLifecycle:'active'})}};
@@ -112,6 +113,30 @@ test('lost delivery ACK stays unknown through reconciliation and never resends',
   assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
   const history=await h.handle('history',{source},h.panel);
   assert.equal(history[0].receipt.delivery,'unknown');assert.equal(history[0].receipt.runId,'run-one');
+});
+for(const code of ['E_CHAT_FILL','E_CHAT_ANSWER'])test(`${code} delivery rejection remains diagnosable without another send`,async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.deliveryReply={ok:false,error:{code,message:'original delivery rejection',outcome:'OUTCOME_UNKNOWN'}};
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code,message:'original delivery rejection'});
+  const observation=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId].webObservation;
+  assert.equal(observation.delivery,'unknown');
+  assert.deepEqual(observation.error,{code,message:'original delivery rejection'});
+  await h.handle('reconcile');await h.handle('settle',{requestId:row.requestId});
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+});
+test('final source rejection after dispatch fencing records the error without sending',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.onStorageWrite=next=>{
+    if(next[CHATGPT_BRIDGE_LEDGER_KEY]?.[row.requestId]?.webDelivery==='dispatching')h.state.sourceValid=false;
+  };
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_WEB_TASK_SOURCE'});
+  const saved=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+  assert.equal(saved.webDelivery,'dispatching');assert.equal(saved.webObservation.delivery,'unknown');
+  assert.equal(saved.webObservation.error.code,'E_WEB_TASK_SOURCE');
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,0);
+  h.state.sourceValid=true;
+  await h.handle('settle',{requestId:row.requestId});
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,0);
 });
 test('new offscreen document can only read the original unknown run, never take it over',async()=>{
   const h=fixture();await h.approve();const row=await h.admit();await h.ready(row);await h.handle('claim');

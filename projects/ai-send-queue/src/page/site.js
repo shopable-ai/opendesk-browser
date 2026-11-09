@@ -38,6 +38,16 @@ function matchesConversationTail(before,snapshot,minAdded,maxAdded=minAdded) {
   return added>=minAdded && added<=maxAdded &&
     matchesHistoryTail(before.history,snapshot.history,added);
 }
+function matchesReplyHistory(before,snapshot) {
+  if(!Array.isArray(before?.users)||!Array.isArray(before.assistants)||
+    !Array.isArray(snapshot.users)||!Array.isArray(snapshot.assistants)||
+    !Array.isArray(snapshot.history))return false;
+  const usersAdded=snapshot.users.filter(node=>!before.users.includes(node)).length;
+  const assistantsAdded=snapshot.assistants.filter(node=>!before.assistants.includes(node)).length;
+  return matchesHistoryTail(before.users,snapshot.users,usersAdded) &&
+    matchesHistoryTail(before.assistants,snapshot.assistants,assistantsAdded) &&
+    matchesConversationTail(before,snapshot,usersAdded+assistantsAdded);
+}
 function editorText(editor) {
   if(typeof editor?.value==='string')return editor.value;
   // Rich editors render their one empty paragraph as a layout newline.
@@ -269,14 +279,38 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   function confirm(before,text,snapshot) {
     return confirmationIssue(before,text,snapshot)===null;
   }
-  function replyComplete(before,confirmedUser,snapshot) {
-    if(!before?.assistants || !confirmedUser || !snapshot.ok ||
-      snapshot.route!==before.route || snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
-      !matchesHistoryTail(before.users,snapshot.users,1) || snapshot.users.at(-1)!==confirmedUser ||
-      !matchesHistoryTail(before.assistants,snapshot.assistants,1) ||
-      !matchesConversationTail(before,snapshot,2))return false;
-    const order=confirmedUser.compareDocumentPosition(snapshot.assistants.at(-1));
-    return !(order&1) && Boolean(order&4);
+  function replyComplete(before,confirmedUser,snapshot,gate) {
+    if(gate?.historyInvalid || !confirmedUser || !snapshot.ok || snapshot.route!==before?.route)return false;
+    const rejectHistory=()=>{
+      // Once identity continuity is lost, replaying an old snapshot cannot
+      // restore this gate's proof. This latch lives only in the existing gate.
+      if(gate)gate.historyInvalid=true;
+      return false;
+    };
+    if(!matchesReplyHistory(before,snapshot) ||
+      (gate?.observed && !matchesReplyHistory(gate.observed,snapshot)))return rejectHistory();
+    const {users,assistants,history}=snapshot;
+    // The combined history must contain each role node exactly once, in DOM
+    // order. Extra users are native follow-ups, never admission evidence.
+    if(new Set(history).size!==history.length || history.length!==users.length+assistants.length ||
+      history.some(node=>users.includes(node)===assistants.includes(node)) ||
+      [users,assistants].some(nodes=>{
+        const ordered=history.filter(node=>nodes.includes(node));
+        return ordered.length!==nodes.length || ordered.some((node,i)=>node!==nodes[i]);
+      }))return rejectHistory();
+    const added=history.filter(node=>!before.history.includes(node));
+    if(added[0]!==confirmedUser || !users.includes(confirmedUser) ||
+      added.some((node,i)=>assistants.includes(node) && !users.includes(added[i-1])))return rejectHistory();
+    // Observe valid growth even while busy. Later polls cannot replace or
+    // reorder an already observed follow-up; only detached prefixes may go.
+    if(gate)gate.observed={users:[...users],assistants:[...assistants],history:[...history]};
+    const latestUser=users.at(-1),reply=assistants.at(-1);
+    if(snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
+      history.at(-1)!==reply || !added.includes(reply) ||
+      typeof latestUser?.compareDocumentPosition!=='function')return false;
+    const order=latestUser.compareDocumentPosition(reply);
+    if((order&1) || !(order&4))return rejectHistory();
+    return true;
   }
   function stop(snapshot) {
     const fresh=inspect();

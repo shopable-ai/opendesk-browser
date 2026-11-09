@@ -91,6 +91,8 @@ Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-deve
 
 **Chat 接入的关键检查**：按公共 Chat 合同核对可发现性、业务独立、输入/消息/停止、实例隔离与清理、推理和 unknown、领域显式应用、开发更新路径及当前阶段。纯指引修订以真实签名/路径、链接、Skill 元数据和反例决策检查为证，不启动浏览器或模型；实现变化才由对应 owner 选择受影响行为测试。源码导出、目标 Browser 已包含、实际运行及权限批准分别记录，未执行写 `NOT_TESTED`；现有消费者源码或历史分数不能替代本候选运行证据。
 
+**确认、反馈与异步调用的复用检查（2026-11-09）**：按[唯一确认与反馈合同](../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)选择 notify/持久错误/简短确认/复杂审阅，先核对[原 API](../../docs/api/sidebar-tools.zh-CN.md)的真实导出和状态；`ui.confirm` 已有 Bridge/Host/可信 adapter 实现，按目标 Host 初始化支持声明使用，不将源码状态冒充已安装能力。业务保留对象/后果、dirty/revision、执行与回执，框架提供展示/生命周期；内部路由与宿主离开各有唯一 guard，不重复确认。迁移同时检修同步 guard 的 Promise 真值、boolean adapter、return/await、reject、resolver/卸载与 finally、晚回包及真实手势；只修受影响链，不批量改 then。公共缺口交原 Runtime/React owner，业务留项目，旧 HTML/Vue 继续原栈；接口只在明确不支持且无待决 UI 时安全回退。
+
 **unknown 的依赖范围**：原请求/操作终态未证实时，只查询或停止原操作，不重放、不应用迟到结果，不换窗口、Provider、请求 ID、重载或清空会话绕过保护。明确受此状态影响的写入、授权、刷新/重载与同一生命周期仍受阻；没有该依赖的文档、展示与源码编辑继续。自动刷新可能被安全栅栏延后，如实记录，不能把“可继续编辑”写成“新画面已运行”。文档检查只核对内容、链接、格式与决策效果；正式原生验收仍按当前阶段授权，不因历史未知或旧清单扩大本轮任务。
 
 ## 三、核心新增：需求推理引擎（不是问卷）

@@ -27,7 +27,7 @@ function defaultServerName(scheme:ProxyScheme,host:string,port:string) {
   return prefix+shortHost+suffix;
 }
 
-export default function App() {
+export default function App({headerNavigation=false,settingsFallback=false}:{headerNavigation?:boolean;settingsFallback?:boolean}={}) {
   const { t } = useI18n();
   const { state, error, busy, act, refresh, setError, setErrorKey } = useProxy();
   const modes: {mode:RouteMode;name:string;description:string}[] = [
@@ -64,6 +64,7 @@ export default function App() {
   const [nameExpanded,setNameExpanded] = useState({server:false,local:false});
   const entryBusy = busy || saving;
   const addButton = useRef<HTMLButtonElement>(null);
+  const fallbackAddButton = useRef<HTMLButtonElement>(null);
   const siteEditorButton = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef(false);
   const entryOrigin = useRef<'header'|'primary'|'local'>('header');
@@ -78,7 +79,7 @@ export default function App() {
         ? applyPendingButton.current ?? primaryActionButton.current
         : returnTarget.current === 'primary' ? primaryActionButton.current
           : returnTarget.current === 'local' ? localEntryButton.current
-            : addButton.current;
+            : fallbackAddButton.current ?? addButton.current;
       (target ?? addButton.current)?.focus();
       returnFocus.current = false;
     }
@@ -512,6 +513,12 @@ export default function App() {
       <section className="r86Section" data-r86-section="modes">
         <div className="r86Head">
           <h2>{t('sideChooseRoute')}</h2>
+          {(!headerNavigation||settingsFallback)&&<div className="quickFallbackActions">
+            {!headerNavigation&&<Button ref={fallbackAddButton} className="quickManagementIcon" disabled={busy} title={t('sideAddProxyTitle')} aria-label={t('sideAddProxyTitle')}
+              onClick={()=>beginAdd('server','header')}><SideIcon name="plus"/></Button>}
+            <Button id="quick-settings" className="quickManagementIcon" disabled={busy} title={t('apManageSettings')} aria-label={t('openSettings')}
+              onClick={()=>void openOptions('profiles')}><SideIcon name="settings"/></Button>
+          </div>}
         </div>
         <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
           {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
@@ -525,8 +532,7 @@ export default function App() {
       <section className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
         <div className="r86Head">
           <h2>{t('browserStatus')}</h2>
-          <Button className="textAction" title={t('openSettings')} aria-label={t('openSettings')}
-            id="quick-settings" onClick={()=>void openOptions('profiles')}>{t('apManageSettings')}</Button>
+
         </div>
         <div className="r86StatusCard">
           <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>
@@ -567,9 +573,8 @@ export default function App() {
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
         <div className="r86Head">
           <h2>{t(profiles.length ? 'sideSavedProxies' : 'sideProxySources')}{profiles.length>0&&<span className="countTag">{profiles.length}</span>}</h2>
-          {profiles.length>0&&<Button id="quick-manage-profiles" className="textAction" onClick={()=>void openOptions('profiles')}>
-            {t('sideManageAll')}
-          </Button>}
+          {profiles.length>0&&<Button id="quick-manage-profiles" className="quickManagementIcon" title={t('sideManageAll')} aria-label={t('sideManageAll')} disabled={busy}
+            onClick={()=>void openOptions('profiles')}><SideIcon name="profile"/><SideIcon name="open"/></Button>}
         </div>
         {profiles.length===0?<div className="r86Empty r91Start">
            <div className="r86Actions r91StartActions">
@@ -610,7 +615,8 @@ export default function App() {
       <section className="r86Section" data-r86-section="site" aria-label={t('currentWebsite')}>
         <div className="r86Head">
           <h2>{t('currentWebsite')}</h2>
-          <Button id="quick-manage-rules" className="textAction" onClick={()=>void openOptions('rules')}>{t('sideManageRules')}</Button>
+          <Button id="quick-manage-rules" className="quickManagementIcon" title={t('sideManageRules')} aria-label={t('sideManageRules')} disabled={busy}
+            onClick={()=>void openOptions('rules')}><SideIcon name="rules"/><SideIcon name="open"/></Button>
         </div>
         <div className="siteContext">
           <strong className="r86SiteDomain">{site||t(siteInfo.status==='loading'?'apSiteLoading':'apSiteUnavailable')}</strong>
@@ -635,6 +641,7 @@ export default function App() {
       <div className="r86CollectorMount" data-r86-section="collector">
         <RotationEntry/>
       </div>
+      <details className="quickAdvanced"><summary>{t('apAdvancedProxy')}</summary><p className="hint">{t('apAdvancedHelp')}</p><Button className="textAction" disabled={busy} onClick={()=>void openOptions('profiles')}>{t('apManageAdvanced')} <SideIcon name="open"/></Button></details>
       <p className="r86Legal">{t('managesBrowserProxySettingsOnlyNotADeviceWide')}</p>
     </div>
   </main>;

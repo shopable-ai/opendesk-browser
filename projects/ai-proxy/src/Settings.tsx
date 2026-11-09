@@ -17,6 +17,7 @@ import { SourcesPage } from './ui/SourcesPage';
 import { RotationSettings } from './ui/RotationPlan';
 import { DiagnosticsPage } from './ui/DiagnosticsPage';
 import { OfficialServicePage } from './ui/OfficialServicePage';
+import { HeaderActionsEditor } from './ui/HeaderActionsEditor';
 import { useProxy } from './ui/useProxy';
 import type { Profile, ProxyEndpoint, ProxyScheme, RouteMode, SiteRule } from './domain/types';
 import {DEFAULT_HEADER_ACTIONS,HEADER_ACTION_IDS,type HeaderActionId} from './domain/header-actions';
@@ -26,7 +27,7 @@ import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/confi
 type Page = OptionsSection;
 const emptyEndpoint = {name:'', scheme:'http' as ProxyScheme,host:'',port:''};
 
-export default function App({onClose,navigationBusy=false,presentation='sidebar',headerNavigation=false}:{onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean}={}) {
+export default function App({onClose,navigationBusy=false,presentation='sidebar',headerNavigation=false,headerActionsStore}:{headerActionsStore?:any;onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean}={}) {
   const { t, preference, setPreference } = useI18n();
   const modes:{mode:RouteMode;name:string}[]=[
   // Keep the same primary action order as the persistent R8.3 Side Panel.
@@ -36,8 +37,8 @@ export default function App({onClose,navigationBusy=false,presentation='sidebar'
 const tabs: {id:Page; name:string; caption:string}[] = [
   {id:'profiles',name:t('proxyProfiles'),caption:t('haveAnHttpHttpsSocksProxyOrLocalGateway')},
   {id:'rules',name:t('websiteRules2'),caption:t('routeByDomainThroughAProxyOrDirect')},
-  {id:'subscriptions',name:t('subscriptionManageTitle'),caption:t('subscriptionManageDescription')},
-  {id:'backup',name:presentation==='management'?t('backupImportTitle'):t('importAndBackup'),caption:t('importAndExportNonSecretSettings')},
+  {id:'subscriptions',name:t('apSubscriptionsNav'),caption:t('subscriptionManageDescription')},
+  {id:'backup',name:t('importAndBackup'),caption:t('importAndExportNonSecretSettings')},
   {id:'diagnostic',name:t('networkDiagnostics2'),caption:t('statusExtensionProbesAndTroubleshooting')},
   {id:'general',name:t('generalSettings'),caption:t('privacyPermissionsAndLimitations')},
   {id:'official',name:t('officialNetwork'),caption:t('officialIntro')}
@@ -45,8 +46,55 @@ const tabs: {id:Page; name:string; caption:string}[] = [
 
   const {state, busy, error, setError, setErrorKey, clearErrorKey, act, refresh} = useProxy();
   const navigation = getEnvironment().navigation;
+  const confirmationRequest=useRef<AbortController|null>(null);
+  const mounted=useRef(true),latestEtag=useRef(state?.configEtag);
+  latestEtag.current=state?.configEtag;
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;confirmationRequest.current?.abort();};},[]);
+  async function confirmIntent(text:string) {
+    if(confirmationRequest.current||!mounted.current)return false;
+    const controller=new AbortController();confirmationRequest.current=controller;
+    const environment=getEnvironment(),draftVersion=environment.getDraftVersion?.();
+    const etag=latestEtag.current,generation=editorGeneration.current;
+    const dialog=editorDialog.current,focus=document.activeElement as HTMLElement|null;
+    const suspended=Boolean(dialog?.open);
+    if(suspended){editorSuspended.current=true;dialog!.close();}
+    let approved=false;
+    try {
+      const accepted=await environment.confirm(text,{signal:controller.signal});
+      approved=accepted===true&&mounted.current&&!controller.signal.aborted&&
+        generation===editorGeneration.current&&etag===latestEtag.current&&draftVersion===environment.getDraftVersion?.();
+      return approved;
+    } catch { return false; }
+    finally {
+      if(confirmationRequest.current===controller)confirmationRequest.current=null;
+      if(suspended&&mounted.current&&generation===editorGeneration.current){
+        if(dialog?.isConnected&&!dialog.open){try{dialog.showModal();if(focus?.isConnected)focus.focus();}catch{/* Detached dialogs cannot be restored. */}}
+        // Keep the flag through queued native close events; onClose also checks open.
+        editorSuspended.current=false;
+      }
+    }
+  }
   const [locationHash,setLocationHash] = useState(() => navigation.getRoute());
   const tab: Page = parseOptionsHash(locationHash);
+  const [pendingSection,setPendingSection]=useState<{section:Page;route:string;etag:string;revision:number}|null>(null);
+  function chooseSection(section:Page) {
+    if(!tabs.some(item=>item.id===section)||busy)return;
+    const environment=getEnvironment();
+    if(section===tab){setPendingSection(null);return;}
+    if(!environment.hasDrafts()){setPendingSection(null);navigate(section);return;}
+    // A native select change is not a click/key/cancel confirmation gesture.
+    setPendingSection({section,route:navigation.getRoute(),etag:latestEtag.current,
+      revision:environment.getDraftVersion()});
+  }
+  function activateSection() {
+    const target=pendingSection,environment=getEnvironment();
+    if(!target||busy)return;
+    setPendingSection(null);
+    if(target.route!==navigation.getRoute()||target.etag!==latestEtag.current||
+      target.revision!==environment.getDraftVersion())return;
+    // Invoke the existing guard synchronously in this explicit button click.
+    navigate(target.section);
+  }
   const [copiedPageLink,setCopiedPageLink] = useState(false);
   const [pageLinkCopyFailed,setPageLinkCopyFailed] = useState(false);
   const pageLinkCopyRequest = useRef(0);
@@ -70,6 +118,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   useEffect(() => {
     const syncLocation = () => {
       setLocationHash(navigation.getRoute());
+      setPendingSection(null);
       setCopiedPageLink(false);
       setPageLinkCopyFailed(false);
       pageLinkCopyRequest.current += 1;
@@ -144,10 +193,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const [defaultEndpointId,setDefaultEndpointId] = useState('');
   const [backup,setBackup] = useState('');
   const [backupImported,setBackupImported] = useState(false);
+  const [pendingBackup,setPendingBackup]=useState<any>(null);
+  const backupCandidate=useRef<any>(null);
+  function stageBackup(candidate:any){backupCandidate.current=candidate;setPendingBackup(candidate);}
   const backupReadGeneration = useRef(0);
   useEffect(()=>()=>{backupReadGeneration.current++;},[]);
   const [editorOpen,setEditorOpen] = useState(false);
   const editorDialog = useRef<HTMLDialogElement>(null);
+  const editorGeneration=useRef(0),editorSuspended=useRef(false);
   const editorReturnFocus = useRef<HTMLElement | null>(null);
   const deepLinkedEditor = useRef(false);
   const editorOriginHash = useRef<string | null>(null);
@@ -161,6 +214,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if (!editorOpen && dialog.open) dialog.close();
   }, [editorOpen]);
   function closeEditor() {
+    editorGeneration.current++;
     getEnvironment().setDraftDirty(false,'settings-proxy');
     // Validation errors belong to this editor, not to a different Options page.
     setError('');
@@ -180,12 +234,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if (busy) return;
     const environment = getEnvironment();
     const revision = environment.getDraftRevision('settings-proxy');
+    const generation=editorGeneration.current;
     if (environment.isDraftDirty('settings-proxy') &&
-      !await environment.confirm(t('apDiscardProxyDraft'))) return;
-    if (!environment.setDraftDirty(false,'settings-proxy',revision)) return;
+      !await confirmIntent(t('apDiscardProxyDraft'))) return;
+    if (!mounted.current||generation!==editorGeneration.current||!environment.setDraftDirty(false,'settings-proxy',revision)) return;
     closeEditor();
   }
   function openEditor(endpoint?: ProxyEndpoint) {
+    editorGeneration.current++;
     setError('');
     getEnvironment().beginDraft('settings-proxy',state?.configEtag);
     editorOriginHash.current = navigation.getRoute();
@@ -278,7 +334,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       return;
     }
     // Inserting a starter only edits the form. Saving and applying remain separate.
-    if (pacText.trim() && !await getEnvironment().confirm(t('pacStarterReplaceDraft'))) return;
+    if (pacText.trim() && !await confirmIntent(t('pacStarterReplaceDraft'))) return;
     if (getEnvironment().getDraftRevision('settings-pac') !== revision) return;
     getEnvironment().setDraftDirty(true,'settings-pac');
     setPacText(draft);
@@ -287,7 +343,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   async function applyRoute() {
     if(config.selection.mode==='profile' && selectedProfile?.kind==='pac-inline' &&
-      !await getEnvironment().confirm(t('chromeWillRunYourLocalPacScriptAndChange')))return;
+      !await confirmIntent(t('chromeWillRunYourLocalPacScriptAndChange')))return;
     await act({type:'APPLY',approvedPac:selectedProfile?.kind==='pac-inline'});
   }
   async function saveProxy(event: React.FormEvent) {
@@ -338,7 +394,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     const openedEtag=state.configEtag;
     const revision = environment.getDraftRevision('settings-pac');
     if (environment.isDraftDirty('settings-pac') &&
-      !await environment.confirm(t('apReplacePacDraft'))) return;
+      !await confirmIntent(t('apReplacePacDraft'))) return;
     if (!environment.setDraftDirty(false,'settings-pac',revision)) return;
     environment.beginDraft('settings-pac',openedEtag);
     setEditingPacId(profile.id);
@@ -402,7 +458,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if(busy)return;
     const environment=getEnvironment(),generation=ruleEditorGeneration.current;
     const revision=environment.getDraftRevision('settings-rule');
-    if(environment.isDraftDirty('settings-rule')&&!await environment.confirm(t('apDiscardHelp')))return;
+    if(environment.isDraftDirty('settings-rule')&&!await confirmIntent(t('apDiscardHelp')))return;
     if(generation!==ruleEditorGeneration.current||!environment.setDraftDirty(false,'settings-rule',revision))return;
     setRuleSaved(false);finishRuleEditor();
   }
@@ -435,13 +491,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       top:sectionContent.current?.closest('.proxy-route')?.scrollTop??0,
       focusId:neighbor?'settings-rule-'+neighbor.id:'settings-rule-add'
     };
-    if (!await environment.confirm(t('confirmDeleteRule',{
+    const ifMatch=state.configEtag;
+    if (!await confirmIntent(t('confirmDeleteRule',{
       domain:item.domain,
       scope:t(item.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')
     }))) return;
-    if(generation!==ruleEditorGeneration.current)return;
+    if(generation!==ruleEditorGeneration.current||environment.getDraftRevision('settings-rule')!==revision)return;
     if(parseOptionsHash(navigation.getRoute())!=='rules')return;
-    if (await act({type:'DELETE_RULE',id:item.id})) {
+    if (await act({type:'DELETE_RULE',id:item.id,ifMatch})) {
       if(generation!==ruleEditorGeneration.current)return;
       if(!environment.setDraftDirty(false,'settings-rule',revision))return;
       ruleListPosition.current=position;
@@ -452,10 +509,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   async function loadBackupFile(file: File) {
     const environment = getEnvironment();
     const generation = ++backupReadGeneration.current;
+    const etag=latestEtag.current;
+    stageBackup(null);
     const revision = environment.getDraftRevision('settings-backup');
     const current = () => {
       try { return generation === backupReadGeneration.current &&
-        getEnvironment() === environment && environment.getDraftRevision('settings-backup') === revision; }
+        getEnvironment() === environment && latestEtag.current===etag && environment.getDraftRevision('settings-backup') === revision; }
       catch { return false; } // The trusted portal may have been disposed while reading.
     };
     setBackupImported(false);
@@ -468,7 +527,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       const text = await file.text();
       if (!current()) return;
       parseBackupForImport(text);
-      if (backup.trim() && !await environment.confirm(t('apReplaceBackupDraft'))) return;
+      if (backup.trim()) {
+        // Reading and validation finish first; only the explicit button asks UI.
+        stageBackup({text,generation,revision,etag,environment});return;
+      }
       if (!current()) return;
       setBackup(text);
       environment.setDraftDirty(true,'settings-backup');
@@ -476,6 +538,21 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       if (!current()) return;
       setErrorKey(cause instanceof BackupImportValidationError ? cause.key : 'backupFileFailed');
     }
+  }
+  async function acceptBackupCandidate() {
+    const candidate=backupCandidate.current;
+    if(!candidate||busy||confirmationRequest.current)return;
+    const current=()=>mounted.current&&backupCandidate.current===candidate&&
+      candidate.generation===backupReadGeneration.current&&candidate.etag===latestEtag.current&&
+      candidate.environment===getEnvironment()&&
+      candidate.revision===candidate.environment.getDraftRevision('settings-backup');
+    try {
+      if(!current()){if(backupCandidate.current===candidate)stageBackup(null);return;}
+      // Start before the first await, in the new trusted click/key dispatch.
+      if(!await confirmIntent(t('apReplaceBackupDraft'))||!current())return;
+      stageBackup(null);setBackup(candidate.text);setBackupImported(false);
+      candidate.environment.setDraftDirty(true,'settings-backup');
+    } catch { /* Rejection retains the original draft and candidate; never replay. */ }
   }
   async function importBackup() {
     const draftRevision=getEnvironment().getDraftRevision('settings-backup');
@@ -488,7 +565,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     }
     // Confirmation only follows format validation. Background checks Chrome
     // proxy control and validates again before replacing any configuration.
-    if (!await getEnvironment().confirm(t('importWillReplaceYourCurrentConfigurationWithoutEnablingIt'))) return;
+    if (!await confirmIntent(t('importWillReplaceYourCurrentConfigurationWithoutEnablingIt'))) return;
+    if(getEnvironment().getDraftRevision('settings-backup')!==draftRevision)return;
     if (await act({type:'IMPORT',draftScope:'settings-backup',config:incoming})) {
       if(!getEnvironment().setDraftDirty(false,'settings-backup',draftRevision))return;
       setBackup('');
@@ -506,20 +584,26 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className="optionsHead">
       {presentation==='management'?<div className="managementIdentity">
-        <span className="managementAppIcon" aria-hidden="true">AP</span>
+        <span className="managementAppIcon" aria-hidden="true">AI</span>
         <div className="managementBrandCopy">
           <h2 className="managementTitle">AI Proxy</h2>
           <p>{t('apManageSettings')}</p>
         </div>
       </div>:<nav className="settingsSectionNav" aria-label={t('settingsSections')}>
         <label htmlFor="settings-section" className="settingsSectionLabel">{t('settingsSections')}</label>
-        <select id="settings-section" aria-label={t('settingsSections')} value={tab} disabled={busy}
-          onChange={event=>navigate(event.target.value as Page)}>
+        <select id="settings-section" aria-label={t('settingsSections')} value={pendingSection?.section??tab} disabled={busy}
+          onChange={event=>chooseSection(event.target.value as Page)}>
           <optgroup label={t('proxyManagement')}>
             {tabs.filter(item=>item.id!=='official').map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
           </optgroup>
           <optgroup label={t('optionalServices')}><option value="official">{t('officialNetwork')} · {t('officialOptional')}</option></optgroup>
         </select>
+        {pendingSection&&<span className="actions">
+          <Button id="settings-section-activate" type="button" disabled={busy} onClick={activateSection}>
+            {t('apConfirm')} · {tabs.find(item=>item.id===pendingSection.section)?.name}
+          </Button>
+          <Button type="button" disabled={busy} onClick={()=>setPendingSection(null)}>{t('apKeepEditing')}</Button>
+        </span>}
       </nav>}
       {presentation==='management'?<Button className="settingsRefresh" disabled={busy} onClick={()=>void refresh()}><ProxyIcon name="refresh"/>{t('refreshStatus')}</Button>:<>
       <details className="settingsMore"><summary title={t('copyPageLink')+' / '+t('refreshStatus')} aria-label={t('copyPageLink')+' / '+t('refreshStatus')}><ProxyIcon name="more"/></summary><div className="optionsHeadActions">
@@ -568,38 +652,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           badge={tab==='profiles'?endpoints.length:undefined}
         />}
         {tab==='profiles' && <>
-          <section className="listSection">
-            {endpoints.length===0 ? <p className="hint">{t('sideNoProxiesHelp')}</p> : <div className="records profileRecords">{endpoints.map(p=>{
-              const profile=endpointRefs(p.id)[0];
-              const source=config.sources.find(s=>s.id===p.sourceId);
-              const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
-              const applied=state.runtime.applied&&state.runtime.activeSelection?.mode==='profile'&&state.runtime.activeSelection.profileId===profile?.id;
-              return <article className={'record proxyRecord'+(chosen?' isChosen':'')} key={p.id}>
-                <Button className="proxyIconButton proxySelect" disabled={busy||!profile}
-                  title={chosen?t('selected'):t('selectNamedProxy',{name:p.name})}
-                  aria-label={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen}
-                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}><ProxyIcon name={chosen?'selected':'circle'}/></Button>
-                <div className="proxyRecordMain">
-                  <div className="proxyRecordText"><div className="proxyRecordTitle"><strong title={p.name}>{p.name}</strong>
-                    {source?.kind==='local-client'&&<span role="img" aria-label={t('localClientPortNotTested')} title={t('localClientPortNotTested')}><ProxyIcon name="system"/></span>}
-                    {p.credentialRef&&<span role="img" aria-label={t('sessionAuthenticationRequired')} title={t('sessionAuthenticationRequired')}><ProxyIcon name="lock"/></span>}
-                    {applied&&<span className="proxyApplied" role="img" aria-label={t('appliedToChrome2')} title={t('appliedToChrome2')}><ProxyIcon name="play"/></span>}
-                  </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
-                </div>
-                <div className="recordActions">
-                  <Button id={'settings-proxy-'+p.id} className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?editLocal(p):openEditor(p)}
-                    title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
-                  <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
-                    onClick={async()=>{if(await getEnvironment().confirm(t('confirmDeleteProxy',{name:p.name})))void act({type:'DELETE_ENDPOINT',id:p.id});}}
-                    aria-label={t('deleteNamedProxy',{name:p.name})}><ProxyIcon name="trash"/></Button>
-                </div>
-              </article>;
-            })}</div>}
-            <div className="profileSourceLinks">
-              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="link"/>{t('recordSubscriptionSource')}</Button>
-              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','local')}><ProxyIcon name="system"/>{t('addLocalProxyClient')}</Button>
-            </div>
-          </section>
           <section className="optionsModeBar" aria-label={t('browserRoutingMode')}>
             <div className="settingsRuntimeStatus" role="status"><span className={'controlChip ' + (statusTone(state.runtime) === 'ok' ? 'isApplied' : statusTone(state.runtime) === 'danger' ? 'isError' : statusTone(state.runtime) === 'pending' ? 'isPending' : '')}>{t(statusLabelKey(state.runtime))}</span></div>
             <div className="sectionHeading"><div><h2>{t('currentProxyMode')}</h2><p className="hint">{t('selectionSavesAPendingRouteOnlyApplySelectionRequests')}</p></div>
@@ -608,7 +660,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               {modes.map(item=><Button key={item.mode} variant={config.selection.mode===item.mode?'primary':'secondary'} disabled={busy}
                 className={config.selection.mode===item.mode?'selected':''}
                 aria-pressed={config.selection.mode===item.mode}
-                onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:item.mode}})}>{item.name}</Button>)}
+                onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:item.mode}})}><ProxyIcon name={item.mode}/><span>{item.name}</span></Button>)}
             </div>
             {config.selection.mode==='profile' && <div className="optionsProfileSelect">
               <label htmlFor="options-profile">{t('useASavedProfile')}</label>
@@ -634,6 +686,39 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <summary>{t('controlAndApplicationDetails')}</summary>
               <Status status={state.runtime} compact/>
             </details>
+          </section>
+          <section className="listSection">
+            {presentation==='management'&&<div className="sectionHeading"><div><h2>{t('apProxyServers')} <span className="countTag">{endpoints.length}</span></h2><p className="hint">{t('apProxyServersHelp')}</p></div></div>}
+            {endpoints.length===0 ? <p className="hint">{t('sideNoProxiesHelp')}</p> : <div className="records profileRecords">{endpoints.map(p=>{
+              const profile=endpointRefs(p.id)[0];
+              const source=config.sources.find(s=>s.id===p.sourceId);
+              const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
+              const applied=state.runtime.applied&&state.runtime.activeSelection?.mode==='profile'&&state.runtime.activeSelection.profileId===profile?.id;
+              return <article className={'record proxyRecord'+(chosen?' isChosen':'')} key={p.id}>
+                <Button className="proxyIconButton proxySelect" disabled={busy||!profile}
+                  title={chosen?t('selected'):t('selectNamedProxy',{name:p.name})}
+                  aria-label={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen}
+                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}><ProxyIcon name={chosen?'selected':'circle'}/></Button>
+                <div className="proxyRecordMain">
+                  <div className="proxyRecordText"><div className="proxyRecordTitle"><strong title={p.name}>{p.name}</strong>
+                    {source?.kind==='local-client'&&<span role="img" aria-label={t('localClientPortNotTested')} title={t('localClientPortNotTested')}><ProxyIcon name="system"/></span>}
+                    {p.credentialRef&&<span role="img" aria-label={t('sessionAuthenticationRequired')} title={t('sessionAuthenticationRequired')}><ProxyIcon name="lock"/></span>}
+                    {applied&&<span className="proxyApplied" role="img" aria-label={t('appliedToChrome2')} title={t('appliedToChrome2')}><ProxyIcon name="play"/></span>}
+                  </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
+                </div>
+                <div className="recordActions">
+                  <Button id={'settings-proxy-'+p.id} className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?editLocal(p):openEditor(p)}
+                    title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
+                  <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
+                    onClick={async()=>{const ifMatch=state.configEtag;if(await confirmIntent(t('confirmDeleteProxy',{name:p.name})))void act({type:'DELETE_ENDPOINT',id:p.id,ifMatch});}}
+                    aria-label={t('deleteNamedProxy',{name:p.name})}><ProxyIcon name="trash"/></Button>
+                </div>
+              </article>;
+            })}</div>}
+            <div className="profileSourceLinks">
+              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="link"/>{t('recordSubscriptionSource')}</Button>
+              <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','local')}><ProxyIcon name="system"/>{t('addLocalProxyClient')}</Button>
+            </div>
           </section>
           <details className="pacDetails" ref={pacDetails}>
             <summary><span><strong>{t('localPacProfiles')}</strong><small>{t('pacCount',{count:profiles.filter(p=>p.kind==='pac-inline').length})}</small></span><span className="summaryAction">{t('expandSettings')}</span></summary>
@@ -685,7 +770,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 <div className="recordActions">
                   <Button className="proxyIconButton" disabled={busy} title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})} onClick={()=>void editPac(p)}><ProxyIcon name="edit"/></Button>
                   <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})} aria-label={t('deleteNamedProxy',{name:p.name})} onClick={async()=>{
-                    if (await getEnvironment().confirm(t('confirmDeletePac',{name:p.name}))) void act({type:'DELETE_PROFILE',id:p.id});
+                    const ifMatch=state.configEtag;
+                    if (await confirmIntent(t('confirmDeletePac',{name:p.name}))) void act({type:'DELETE_PROFILE',id:p.id,ifMatch});
                   }}><ProxyIcon name="trash"/></Button>
                 </div>
               </article>)}</div>
@@ -834,9 +920,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                   if (file) void loadBackupFile(file);
                 }}/>
               <p id="backup-file-hint" className="hint">{t('backupFileSizeHelp')}</p>
+              {pendingBackup&&<div className="actions">
+                <Button id="backup-replace-candidate" type="button" disabled={busy} onClick={()=>void acceptBackupCandidate()}>
+                  {t('apConfirm')} · {t('backupChooseFile')}
+                </Button>
+                <Button type="button" disabled={busy} onClick={()=>stageBackup(null)}>{t('apKeepEditing')}</Button>
+              </div>}
               <label htmlFor="import-data">{t('pasteJsonBackup')}</label>
               <textarea id="import-data" value={backup} disabled={busy} onChange={e=>{
-                backupReadGeneration.current++;
+                backupReadGeneration.current++;stageBackup(null);
                 setBackup(e.target.value);
                 setBackupImported(false);
                 setError('');
@@ -860,6 +952,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           onStop={() => act({type:'STOP'})} onProfiles={() => navigate('profiles')} />}
         {tab==='general' && <div className="generalPage">
           <div className="generalGrid">
+            <HeaderActionsEditor store={headerActionsStore} disabled={busy||Boolean(state?.runtime?.outcomeUnknown)}/>
             <article className="record languageRecord"><div>
               <strong>{t('interfaceLanguage')}</strong>
               <small>{t('languageHelp')}</small>
@@ -878,7 +971,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             <article className="record generalInfoCard"><div><strong>{t('helpAndFeedback')}</strong><small>{t('theRepositoryIsPrivateAPublicCommunityIsNot')}</small></div>
               <a href="https://github.com/shopable-ai/ai-proxy" target="_blank" rel="noreferrer">{t('projectRepository')}</a></article>
           </div>
-          <section className="record headerActionsEditor" aria-label={t('headerActionsTitle')}>
+          {!headerActionsStore&&<section className="record headerActionsEditor" aria-label={t('headerActionsTitle')}>
             <div><strong>{t('headerActionsTitle')}</strong><p className="hint">{t('headerActionsHelp')}</p></div>
             <div className="headerActionsList">{headerActionRows.map(id=>{
               const index=headerActionIds.indexOf(id),enabled=index!==-1;
@@ -900,7 +993,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             })}</div>
             <div className="headerActionFoot"><Button type="button" disabled={busy}
               onClick={()=>updateHeaderActions([...DEFAULT_HEADER_ACTIONS])}>{t('headerActionsRestoreDefaults')}</Button></div>
-          </section>
+          </section>}
           <p className="hint">{t('thisExtensionDoesNotGuaranteeProxyCoverageForDns')}</p>
         </div>}
         {tab==='official' && <OfficialServicePage onBack={()=>navigate('profiles')}
@@ -913,7 +1006,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       onClose={event=>{
         // A queued close event from the previous opening must not dismiss a
         // dialog that the user has already reopened.
-        if (event.currentTarget.open) return;
+        if (event.currentTarget.open||editorSuspended.current) return;
         if(editorOpen)closeEditor();
         editorReturnFocus.current?.focus();
       }}>

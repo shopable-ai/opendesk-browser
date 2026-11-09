@@ -528,7 +528,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           const requestError = errorCodeOf(detail) !== 'errGeneric' ? detail : 'Operation failed; check status before retrying';
           // Failed reads belong to their requester, not the shared operation state.
           // Otherwise subscriber GET_STATE refreshes can clear the error and loop.
-          if (!['GET_STATE', 'GET_DIAGNOSTICS', 'GET_USAGE', 'EXPORT'].includes(message.type)) latestError = requestError;
+          if (code !== 'E_CANCELLED' && !['GET_STATE', 'GET_DIAGNOSTICS', 'GET_USAGE', 'EXPORT'].includes(message.type)) latestError = requestError;
           notify();
           return { ok: false, error: requestError, errorCode, ...(code ? { code: errorCode } : {}) };
         }

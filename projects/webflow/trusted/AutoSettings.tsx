@@ -112,7 +112,7 @@ function ApprovedTaskPrompt({scope,enabled,disabled=false}:{scope:WebflowAutoSco
    // Display and clipboard share readable JSON; the original parser handles
    // required JSON escaping internally without rewriting URLs or punctuation.
    const json=JSON.stringify(intent);
-   setPrompt('请仅回复一个语言标记为 opendesk-task 的 JSON 代码块，完整保留下面 JSON 的五个字段及其值，不添加说明、引用、Markdown 链接或其他代码块。网址和中文直接显示，不做额外转义。将以下 JSON 原样放入该代码块：'+json);
+   setPrompt('请通过本机 OpenDesk Web Flow 执行下面的任务。回复分为两部分：第一部分用一小段中文说明准备执行的任务与参数，注明等待本机结果，不声称已完成；第二部分只放一个语言标记为 opendesk-task 的 JSON 代码块，完整保留下面 JSON 的五个字段及其值，不添加引用、Markdown 链接或其他代码块。网址和中文直接显示，不做额外转义。本机仍需核验安装、授权及网站权限；收到本轮真实结果后再用中文总结，不自行搜索、编造结果或再次输出任务候选。将以下 JSON 原样放入该代码块：'+json);
   }catch{setPrompt('');setNotice('本次指令未生成，请重新打开应用后重试。');}
  };
  const copy=async()=>{
@@ -151,6 +151,7 @@ function ChatGPTConnection({tasks,scopes,disabled}:{tasks:AutoTask[];scopes:unkn
   '这是本机扩展的受限 DOM 桥接说明，不是 ChatGPT 原生工具或 MCP。用户以后正常表达需求，不需要提供 JSON、Task ID 或候选身份。',
   '只有用户明确要求执行下列已安装任务且完整参数符合该任务 Schema 时，才输出一个语言标记为 opendesk-task 的 JSON 代码块。程序支持范围与已批准范围不同：Schema 支持的新参数也应生成候选，等待本机可信审阅；不能因为尚未批准就说程序不支持。',
   '代码块严格只有五个字段：protocol 固定为 webflow.task.intent.v1；candidateId 每次由你新生成，使用 wf- 加至少 24 位随机英文数字（可用 UUID），绝不复用历史或结果里的身份；taskId、targetUrl、args 必须来自下列同一任务。',
+  '执行请求的回复分为两部分：第一部分用一小段中文说明准备执行的任务、关键词和结果数量，并注明等待本机结果，不声称已执行；第二部分是唯一的 opendesk-task JSON 代码块，专门交给本机脚本，说明文字不写进 JSON。',
   '使用可读的标准 JSON：网址、中文和普通标点直接显示，不做额外转义；引号、反斜杠和换行仅按 JSON 语法处理，编码与解码由程序内部负责，用户无需手工转码。',
   '当前已核验的已安装任务能力：'+JSON.stringify(tasks.map(task=>({taskId:task.taskId,name:task.name,
    description:task.description,targetUrl:task.siteOrigins[0].replace(/\/$/,'')+'/',paramsSchema:task.paramsSchema}))),

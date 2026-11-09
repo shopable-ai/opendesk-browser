@@ -1,0 +1,41 @@
+{
+  "format": "opendesk.ui-preview-context.v1",
+  "toolId": "reading-toc",
+  "surface": "page-overlay",
+  "view": "extension-tool-detail",
+  "activeTab": "扩展",
+  "hostInteractions": [
+    "五个顶部页签（非扩展仅占位）",
+    "返回精简列表与重新进入",
+    "模拟卸载、取消和确认",
+    "简体中文/English 原位切换（离线模拟）",
+    "Side Panel / 可信网页悬浮源代码切换",
+    "章节/空态/加载/错误模拟"
+  ],
+  "scenario": "success",
+  "previewControls": null,
+  "viewportCssPx": {
+    "width": 360,
+    "height": 760
+  },
+  "source": {
+    "commit": "c4619dfeb5f32a3e9ac3d1ebadcadf48929e4d82",
+    "designSha256": "c6f46acbd4c26f0fbaf3da95377d2566202ce1e46f55e864e06f0f3a0f8a613d",
+    "shellSha256": "5d619cd3d9b1497a35b9d47888bc016986461bfffdcfe169bc4df7128514787e",
+    "uiSha256": "5bf929ff649cc8ccee5d18aa6d96f4f2fa137770aa948ef4e29071376ca884da"
+  },
+  "simulation": {
+    "mock": true,
+    "installed": false,
+    "permissionsGranted": false,
+    "network": false,
+    "realUninstall": false,
+    "sdkOperations": [
+      "page.request",
+      "storage.get",
+      "storage.set"
+    ]
+  },
+  "html": "/Users/shopme/Documents/workspace/opendesk-browser/projects/reading-toc/preview/index.html",
+  "inlinePreview": "REQUIRES_CLIENT_RENDER_CHECK"
+}

@@ -551,7 +551,7 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
   market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null,
-  fetcher=globalThis.fetch,pageClient=null}){
+  fetcher=globalThis.fetch,pageClient=null,repairMissingPageModule=false}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=await verifySidebarToolBackground(candidate);
   const identity=marketIdentity(market,tool);
@@ -614,12 +614,22 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(identity&&await canonicalSha256(tool)!==identity.sha256)
       throw error('待安装包的规范化摘要与市场审阅记录不一致','E_MARKET_IDENTITY');
     if(existing&&sameSidebarToolPackage(existing,tool)){
-      // Read-only reconciliation never submits a second native install to
-      // guess the outcome of an earlier commit.
-      if(tool.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
-      if(tool.pageModule)await requestAppLifecycle(pageClient,'verifyAppPage',{
-        toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),
-        installEpoch:requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE])[tool.id]},tool);
+      // Ordinary reconciliation only verifies. A fresh explicit local review
+      // may complete a missing companion after original cleanup is confirmed;
+      // an existing/unknown installation must never be resubmitted.
+      if(tool.pageModule){
+        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+        let missing=false;
+        if(repairMissingPageModule===true&&!identity){
+          const snapshot=await pageClient.request('listPagePrograms',{});
+          if(!Array.isArray(snapshot?.installed)||snapshot.installed.some(row=>
+            !row||typeof row.programId!=='string'))throw unknownStorageOutcome(null,'应用网页安装状态');
+          missing=!snapshot.installed.some(row=>row.programId===tool.pageModule.programId);
+        }
+        await requestAppLifecycle(pageClient,missing?'importAppPage':'verifyAppPage',{
+          toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),
+          installEpoch:requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE])[tool.id]},tool);
+      }
       if(identity){
         const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
         if(original[identity.operationId])throw error('事务已存在，请先核对原结果','E_OUTCOME_UNKNOWN');

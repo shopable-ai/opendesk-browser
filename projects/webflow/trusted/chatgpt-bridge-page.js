@@ -262,9 +262,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       conversationAdapter?.submission(snapshot);
       proposal=null;messageNotice=null;
       if(state?.settled){state=null;clearReceipt();update();}
-      else if(state?.executionFinished&&!state.settled){
+      else if((state?.executionFinished||state?.deliveryFailed)&&!state.settled){
         messageNotice={url:win.location.href,stage:'previous-request-unknown',
-          text:'本条尚未执行：原请求的最终回执待确认。请查询或停止原请求；不会自动重放或改由其他宿主执行。'};
+          text:state.deliveryFailed?
+            '本条尚未执行：原请求回传尚未确认，后续候选保持等待。请在“运行与授权”查询原记录；不会补发、重放或改由其他宿主执行。':
+            '本条尚未执行：原请求的最终回执待确认。请查询或停止原请求；不会自动重放或改由其他宿主执行。'};
         note(messageNotice.text,true);update();
       }
       if(!state)note('已观察本次原生发送，尚未触发新请求。正在等待同一新消息及完整任务协议。');
@@ -963,6 +965,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const outcome=site.commit(prepared.token);
       if(outcome.ok===true){committed=true;break;}
       if(outcome.retry===true){state.sendSubmitted=false;update();continue;} // no native click was attempted
+      // A precise preflight rejection attempted no click. Keep the delivery
+      // UNKNOWN/no-retry fence, but allow stopping the original request.
+      // An after-click failure must retain the submitted-send barrier.
+      if(outcome.stage==='before-click'){state.sendSubmitted=false;update();}
       throw fail('E_CHAT_DELIVERY_UNKNOWN',outcome.reason||'原生发送状态不明');
     }
     if(!committed)throw fail('E_CHAT_DELIVERY_UNKNOWN','原生发送按钮未就绪；结果可能已写入输入框');
@@ -1171,7 +1177,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(owner?.backgroundOwner&&owner===state){owner.settled=true;owner.executionFinished=true;
         owner.runId=message.runId;owner.resultId=message.resultId;update();scheduleCheck();}
       reply({ok:true,data});},
-      error=>{if(!owner?.cancelled&&owner===state)note((error.code||'E_BRIDGE_DELIVERY')+'：'+(error.message||'回传未确认'),true);
+      error=>{if(owner&&!owner.cancelled&&owner===state){owner.deliveryFailed=true;
+          note((error.code||'E_BRIDGE_DELIVERY')+'：'+(error.message||'回传未确认'),true);}
         reply({ok:false,error:{code:error.code||'E_BRIDGE_DELIVERY',message:error.message||'回传未知',
           outcome:'OUTCOME_UNKNOWN'}});});
     return true;

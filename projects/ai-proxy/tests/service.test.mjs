@@ -41,6 +41,23 @@ async function ok(service, message) {
 }
 const operations = (f, name) => f.calls.filter(([type]) => type === name);
 
+test('cancelled route review leaves native state and config untouched without a shared failure',async()=>{
+  const f=fixture();
+  await ok(f.service,{type:'GET_STATE'});
+  const observed=[];f.service.subscribe(state=>observed.push(state.runtime.proxyError));
+  const before=f.stored();
+  f.options.apply=async()=>{throw Object.assign(Error('Browser action cancelled'),{code:'E_CANCELLED'});};
+  const cancelled=await f.service.request({type:'APPLY'});
+  assert.equal(cancelled.ok,false);assert.equal(cancelled.errorCode,'E_CANCELLED');
+  const state=(await ok(f.service,{type:'GET_STATE'})).state;
+  assert.equal(state.runtime.proxyError,null);
+  assert.equal(state.runtime.outcomeUnknown,false);
+  assert.equal(state.runtime.applied,false);
+  assert.deepEqual(f.stored(),before);
+  assert.equal(operations(f,'save').length,0);
+  assert.ok(observed.every(error=>error===null),'cancel never publishes a shared operation failure');
+});
+
 test('a draft ETag survives intervening reads and rejects a newer saved record without writing', async () => {
   const f=fixture();
   const opened=await ok(f.service,{type:'GET_STATE'});

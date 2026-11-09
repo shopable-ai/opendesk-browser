@@ -1,16 +1,19 @@
 (() => {
   'use strict';
-  const {root,request,setState}=globalThis.OpenDeskTool;
+  const tool=globalThis.OpenDeskTool;
+  const {root,request,setState}=tool;
   const el=id=>root.querySelector('#'+id);
   const STORAGE_KEY='notes';
   const MAX_NOTES=16;
   let notes=[],selectedId=null,dirty=false,pageInfo=null,busy=false,ready=false,activeView='list';
   let notesEtag=null,legacyPending=false,pageEpoch=0,deleting=false,confirmation=null;
+  let draftRevision=0,disposed=false,writeUnknown=false,navigationKey=null,navigationAccepted=false;
   const reportState=()=>{
     setState?.({dirty,busy});
     const badge=el('editor-unsaved');
     if(badge){badge.hidden=!dirty&&!busy;badge.textContent=busy?'保存中…':'未保存';}
   };
+  const validEtag=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
   const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
   const show=(message='',state='info')=>{
     const node=el('note-status');node.textContent=message;node.dataset.state=state;node.hidden=!message;
@@ -33,7 +36,18 @@
     if(edit)edit.hidden=activeView!=='edit';
     const title=el('editor-title');if(title)title.textContent=selected()?'编辑笔记':'新建笔记';
     const empty=el('note-empty');if(empty)empty.hidden=notes.length>0;
-    const close=el('back-to-notes');if(close)close.disabled=!ready||busy||Boolean(confirmation);
+    const close=el('back-to-notes');if(close){
+      close.disabled=!ready||busy||Boolean(confirmation);
+      const navigation={page:activeView==='edit'?'edit':'home',
+        title:activeView==='edit'?(selected()?'编辑笔记':'新建笔记'):'我的笔记',
+        canBack:activeView==='edit',primary:null};
+      const key=JSON.stringify(navigation);
+      if(key!==navigationKey){
+        navigationKey=key;
+        navigationAccepted=tool.setNavigation?.(navigation)===true;
+      }
+      close.hidden=navigationAccepted;
+    }
   }
   function renderList() {
     reportState();
@@ -58,35 +72,80 @@
       list.append(button);
     }
     el('note-count').textContent=notes.length+' 条';
-    el('delete-note').disabled=!ready||busy||Boolean(confirmation)||!selected();
+    el('delete-note').disabled=!ready||busy||writeUnknown||Boolean(confirmation)||!selected();
     el('add-note').disabled=!ready||busy||Boolean(confirmation);
-    el('save-note').disabled=!ready||busy||Boolean(confirmation);
+    el('save-note').disabled=!ready||busy||writeUnknown||Boolean(confirmation);
     el('open-task').disabled=!ready||busy||Boolean(confirmation);
     el('task-name').disabled=Boolean(confirmation);
     attachment();renderView();
   }
-  // MV3's opaque sandbox deliberately forbids native modal APIs.
-  function ask(message,action) {
-    if(confirmation)return;
-    confirmation={action,focus:root.ownerDocument.activeElement};
-    el('note-confirm-message').textContent=message;
-    el('note-confirm').hidden=false;
-    renderList();el('note-confirm')?.scrollIntoView?.({block:'nearest'});el('note-confirm-cancel').focus();
+  // Shared confirmation is display-only. The original local control is used only
+  // when the method is missing or Bridge explicitly rejects before sending.
+  const snapshot=()=>({id:selectedId,etag:notesEtag,revision:draftRevision,
+    view:activeView,text:el('note-text').value,include:el('attach-page').checked});
+  const unchanged=prior=>!disposed&&ready&&!busy&&selectedId===prior.id&&
+    notesEtag===prior.etag&&draftRevision===prior.revision&&activeView===prior.view&&
+    el('note-text').value===prior.text&&el('attach-page').checked===prior.include;
+  function ask(options,action) {
+    if(confirmation||disposed)return;
+    const pending={action,prior:snapshot(),focus:root.ownerDocument.activeElement,
+      controller:typeof AbortController==='function'?new AbortController():null,local:false};
+    confirmation=pending;
+    const fallback=()=>{
+      if(confirmation!==pending||!unchanged(pending.prior)){
+        finishConfirmation(pending,{action:'cancel',reason:'invalidated'});return;
+      }
+      pending.local=true;
+      el('note-confirm-message').textContent=options.message;
+      el('note-confirm').hidden=false;
+      renderList();el('note-confirm')?.scrollIntoView?.({block:'nearest'});el('note-confirm-cancel').focus();
+    };
+    const failed=error=>{
+      if(confirmation!==pending)return;
+      if(error?.code==='E_UI_CONFIRM_UNAVAILABLE'){fallback();return;}
+      finishConfirmation(pending,{action:'cancel',reason:'invalidated'});
+      if(!disposed)show('确认未完成，未执行操作。请保留草稿后重试。','error');
+    };
+    try{
+      if(typeof tool.ui?.confirm!=='function'){fallback();return;}
+      // Must remain in the original click/navigation dispatch stack.
+      const deciding=tool.ui.confirm(options,{signal:pending.controller?.signal});
+      renderList();
+      Promise.resolve(deciding).then(answer=>finishConfirmation(pending,answer),failed)
+        .catch(error=>{
+          if(confirmation===pending)finishConfirmation(pending,{action:'cancel',reason:'invalidated'});
+          if(!disposed)show('操作未完成，请保留草稿并重新核对。','error');
+        });
+    }catch(error){failed(error);}
   }
-  function finishConfirmation(accepted) {
-    if(!confirmation)return;
-    const pending=confirmation;confirmation=null;
-    el('note-confirm').hidden=true;renderList();
-    if(accepted)pending.action();
-    else (pending.focus?.isConnected?pending.focus:el('note-text')).focus();
+  function finishConfirmation(pending,answer) {
+    if(confirmation!==pending)return;
+    confirmation=null;
+    el('note-confirm').hidden=true;
+    if(disposed)return;
+    renderList();
+    if(answer?.action==='confirm'&&unchanged(pending.prior)){
+      // Return the write promise so rejection stays on the confirmation chain.
+      return pending.action(pending.prior);
+    }
+    (pending.focus?.isConnected?pending.focus:el('note-text')).focus();
+  }
+  function finishLocal(accepted,reason='user'){
+    if(!confirmation?.local)return;
+    try{
+      Promise.resolve(finishConfirmation(confirmation,accepted?{action:'confirm'}:{action:'cancel',reason}))
+        .catch(()=>{if(!disposed)show('操作未完成，请保留草稿并重新核对。','error');});
+    }catch{if(!disposed)show('操作未完成，请保留草稿并重新核对。','error');}
   }
   function confirmDiscard(action) {
     if(!dirty){action();return;}
-    ask('当前笔记有未保存的修改，确定放弃吗？',action);
+    ask({title:'放弃未保存的修改？',message:'当前笔记有未保存的修改，确定放弃吗？',
+      confirmLabel:'放弃修改',cancelLabel:'保留修改',tone:'danger'},action);
   }
   function selectNote(id) {
-    if(!ready||id===selectedId||busy||confirmation)return;
+    if(!ready||(id===selectedId&&activeView==='edit')||busy||confirmation||!notes.some(note=>note.id===id))return;
     confirmDiscard(()=>{
+      if(!notes.some(note=>note.id===id))return;
       selectedId=id;dirty=false;
       const note=selected();
       el('note-text').value=note?.text||'';
@@ -165,15 +224,17 @@
     catch{return false;}
   }
   async function saveNote() {
-    if(!ready||busy||confirmation)return;
+    if(!ready||busy||writeUnknown||confirmation||disposed)return;
     const text=el('note-text').value,include=el('attach-page').checked,prior=selected(),id=prior?.id||newId();
     if(!text.trim()){show('请输入笔记内容再保存。','error');return;}
     if(!prior&&notes.length>=MAX_NOTES){show('最多保存 '+MAX_NOTES+' 条笔记。','error');return;}
     const linked=pageInfo;
+    let writing=false;
     busy=true;renderList();
     try{
       if(include&&linked){
         const live=await request('currentPage.info');
+        if(disposed)return;
         if(live?.status!=='available'||live.url!==linked.url){
           pageEpoch++;pageInfo=null;
           el('page-summary').textContent='网页已切换，请刷新网页信息。';
@@ -191,61 +252,82 @@
       if(bytes(next)>8192){
         show('所有笔记共用一个 8 KiB 存储项，已超出上限；请精简或删除旧笔记。','error');return;
       }
+      writing=true;
       const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:notesEtag});
+      if(result?.saved!==true||!validEtag(result.etag))throw new Error('存储回执无效');
+      if(disposed)return;
       notes=next;notesEtag=result.etag;selectedId=id;
       dirty=el('note-text').value!==text||el('attach-page').checked!==include;
       const cleaned=await clearLegacy();
+      if(disposed)return;
       show(!cleaned?'保存成功，但旧版备份清理失败；下次保存将重试。':
         dirty?'已保存此前内容；新修改仍未保存。':'已保存到本机。',cleaned?'success':'error');
     }catch(error){
+      if(disposed)return;
+      writeUnknown=writing;
       show(/其他窗口修改/.test(String(error?.message))
         ?'其他窗口已更新笔记，此次未覆盖。请复制当前输入，重新打开后核对。'
         :'保存失败或结果未知，输入仍保留。请重新打开核对后重试：'+error.message,'error');
-    }finally{busy=false;renderList();}
+    }finally{busy=false;if(!disposed)renderList();}
   }
   function deleteNote() {
     const note=selected();
-    if(!ready||!note||busy||confirmation)return;
-    ask('删除这条笔记？删除后无法恢复。',()=>void deleteConfirmed(note.id));
+    if(!ready||!note||busy||writeUnknown||confirmation||disposed)return;
+    ask({title:'删除这条笔记？',message:'删除这条笔记？删除后无法恢复。',
+      confirmLabel:'删除笔记',cancelLabel:'保留笔记',tone:'danger'},deleteConfirmed);
   }
-  async function deleteConfirmed(id) {
-    const note=selected();
-    if(!ready||!note||note.id!==id||busy)return;
-    const next=notes.filter(row=>row.id!==note.id);
+  async function deleteConfirmed(prior) {
+    if(!unchanged(prior)||writeUnknown||!selected())return;
+    const next=notes.filter(row=>row.id!==prior.id);
     busy=true;deleting=true;renderList();
     try{
-      // The authoritative array/tombstone is committed before obsolete-field cleanup.
-      const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:notesEtag});
+      // The original ID and whole-array version remain fixed across confirmation.
+      const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:prior.etag});
+      if(result?.saved!==true||!validEtag(result.etag))throw new Error('存储回执无效');
+      if(disposed)return;
       notes=next;notesEtag=result.etag;selectedId=notes[0]?.id||null;dirty=false;activeView='list';
       el('note-text').value=selected()?.text||'';
       el('attach-page').checked=Boolean(selected()?.pageUrl);
       const cleaned=await clearLegacy();
+      if(disposed)return;
       show(cleaned?'笔记已删除。':'笔记已删除，但旧版备份清理失败，下次保存会重试。',
         cleaned?'success':'error');
     }catch(error){
+      if(disposed)return;
+      writeUnknown=true;
       show(/其他窗口修改/.test(String(error?.message))
         ?'其他窗口已更改笔记，删除被阻止，请重开核对。'
         :'删除失败或结果未知，请重新打开核对：'+error.message,'error');
-    }finally{busy=false;deleting=false;renderList();}
+    }finally{busy=false;deleting=false;if(!disposed)renderList();}
   }
-  el('note-confirm-cancel').addEventListener('click',()=>finishConfirmation(false));
-  el('note-confirm-accept').addEventListener('click',()=>finishConfirmation(true));
+  el('note-confirm-cancel').addEventListener('click',()=>finishLocal(false));
+  el('note-confirm-accept').addEventListener('click',()=>finishLocal(true));
+  root.addEventListener('opendesk-tool-navigation',event=>{
+    if(event.detail?.action==='back')backToList();
+  });
+  // Retire only this document's decision; late Host answers cannot execute it.
+  root.ownerDocument.defaultView?.addEventListener('pagehide',()=>{
+    disposed=true;
+    const pending=confirmation;confirmation=null;
+    pending?.controller?.abort();
+    el('note-confirm').hidden=true;
+  });
   root.addEventListener('keydown',event=>{
   if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){
     event.preventDefault();if(!confirmation)void saveNote();return;
   }
-    if(!confirmation){
+    if(!confirmation?.local){
       return;
     }
-    if(event.key==='Escape'){event.preventDefault();finishConfirmation(false);}
+    if(event.key==='Escape'){event.preventDefault();finishLocal(false,'escape');}
     if(event.key==='Tab'){
       event.preventDefault();
       const cancel=el('note-confirm-cancel'),accept=el('note-confirm-accept');
       (root.ownerDocument.activeElement===cancel?accept:cancel).focus();
     }
   });
-  el('note-text').addEventListener('input',()=>{if(!ready||deleting)return;dirty=true;reportState();show('当前修改尚未保存。');});
-  el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;dirty=true;reportState();show('当前修改尚未保存。');});
+  el('note-text').addEventListener('input',()=>{if(!ready||deleting)return;draftRevision++;dirty=true;reportState();show('当前修改尚未保存。');});
+  el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;draftRevision++;dirty=true;reportState();show('当前修改尚未保存。');});
   el('refresh-page').addEventListener('click',()=>void refreshPage());
   el('add-note').addEventListener('click',createNote);
   el('back-to-notes')?.addEventListener('click',backToList);

@@ -251,3 +251,20 @@
   :scope .siteRulePage .actions .primary { flex:1; }
   :scope .siteRulePage .hint { font-size:12px; line-height:1.6; }
 }
+
+/* R18 compact section actions; HeaderActions remains the primary action slot. */
+@scope (.proxy-app) {
+  :scope .r86Panel .quickFallbackActions { display: flex; gap: 4px; }
+  :scope .r86Panel .quickManagementIcon {
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    flex: none; width: 34px; height: 34px; min-height: 34px; padding: 4px;
+    border-color: transparent; background: transparent; color: var(--muted);
+  }
+  :scope .r86Panel .quickManagementIcon .sideUiIcon + .sideUiIcon { width: 12px; height: 12px; }
+  :scope .r86Panel .quickManagementIcon:hover:not(:disabled) { color: var(--accent); background: var(--soft); }
+  :scope .r86Panel .quickManagementIcon:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  :scope .r86Panel .quickAdvanced { padding:12px 0; border-top:1px solid var(--line); }
+  :scope .r86Panel .quickAdvanced summary { cursor:pointer; color:var(--muted); font-size:12px; }
+  :scope .r86Panel .quickAdvanced .hint { font-size:12px; margin:12px 0; }
+  :scope .r86Panel .quickAdvanced .textAction { display:inline-flex; align-items:center; gap:6px; min-height:34px; }
+}

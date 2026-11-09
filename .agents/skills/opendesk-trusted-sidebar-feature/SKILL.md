@@ -19,6 +19,12 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 **第三方与第一方的边界**：普通沙箱 Sidebar Tool、Page USER_SCRIPT 的独立业务仍在各自项目和公开 SDK 中维护，不触发本可信源码 Skill。只有经证实需第一方固定预编译特权、并完成来源/授权审计时，才最小修改其 `src/<feature>/`，通用宿主问题再交 Runtime Skill。缺乏通用能力证据记 `SDK_GAP_NOT_PROVEN`，第三方无法合规取得的 Chrome/Native 特权操作记 `BLOCKED`；不得因工具统一展示在「扩展」Tab 就将动态代码提升到可信页面。
 
+## 可信业务的确认适配（2026-11-09）
+
+删除、覆盖、编辑器退出和可信权限审阅按[公共确认与异步合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)处理。工具的 environment/host-controls adapter 提供业务上下文、版本与真实执行；框架只共享展示和生命周期。普通 confirm 不承载权限，Chrome 手势保留原同步可信入口；固定源码直挂不使动态同名包取得信任。
+
+检查可信入口是否实际注入公共 UI 服务，不能只改沙箱 Bridge。原编辑器暂停模态时不触发清稿 onClose，取消恢复，确认核验后才关闭；并发、卸载、abort 与拒绝全部结算原 Promise，finally 不清新实例，保留 ETag/草稿/unknown 保护。当前公开 `ui.confirm` 已接通沙箱和可信 adapter；按原 API 的实际能力和明确不可用回退，不复制第二套确认器或迁移无关业务。
+
 ## 先解释产品选择与独立升级边界
 
 普通开发者先读 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md)：Controller、Page、Sidebar Tool 各有现成合同；后台服务是独立使用场景，但没有任意第三方特权后台 JS 安装器；组合式应用是职责组合，不新增 Runtime。源码归产品、入口决定运行环境、权限由 Authority 核验；文件名、目录和 React/Vue 不决定信任。独立工具 UI 可以在自己的沙箱文档创建 React Root，不应因组件复杂就把业务放入主工作台。

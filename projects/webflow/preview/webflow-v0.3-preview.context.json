@@ -3,8 +3,8 @@
   "scenario": "当前源码、模拟监听就绪、自动运行开启、无当前任务；外部可切换状态",
   "source": "OFFLINE_REAL_SOURCE_COMPONENTS_MOCK_BOUNDARIES",
   "sourceMode": "CURRENT_WORKTREE",
-  "candidateHash": "9022d3736c8e471dfbbdad7be45856a5c67d3936f64ae33b083607aa103412a6",
-  "htmlSha256": "16647c5fa13799f6bcf3d590c5ad209cd21a4da21cb054bcca38711563e76d59",
+  "candidateHash": "1aacf89aef54368e2117e953d14846efd43e962be5a9f1a994d13450a20aaab5",
+  "htmlSha256": "9c8a06f655dbf74666cd3540781efe1ed1ee5c499d191b6c00e37a43692f9077",
   "hostInteractions": [
     "原运行与授权面板",
     "键盘/触摸状态详情",

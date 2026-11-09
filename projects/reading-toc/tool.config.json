@@ -1,6 +1,6 @@
 {
   "id": "reading-toc",
-  "version": "1.1.3",
+  "version": "1.1.5",
   "title": "阅读目录",
   "description": "在侧边栏或授权网页中查看章节并精准跳转。",
   "capabilities": [
@@ -23,6 +23,6 @@
     "contextMenus": []
   },
   "pageModule": {
-    "revision": 3
+    "revision": 5
   }
 }

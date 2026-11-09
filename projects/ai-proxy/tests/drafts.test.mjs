@@ -130,7 +130,11 @@ async function handler(file,start,end,context){
  const slice=source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));
  assert.ok(slice.startsWith(start));
  const {code}=await transform(slice,{loader:'tsx'});
- return runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`,context);
+ const additions=file.endsWith('Settings.tsx')?{
+  state:{configEtag:"original"},editorGeneration:{current:0},mounted:{current:true},latestEtag:{current:undefined},stageBackup(){},
+  confirmIntent:(text)=>context.getEnvironment().confirm(text)
+ }:{};
+ return runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`,{...additions,...context});
 }
 // Rules now use a separate list/editor; settings-rules-runtime covers its
 // Cancel/late-confirmation behavior through the rendered component.
@@ -277,28 +281,28 @@ test('late backup file reads cannot attach a draft to a replacement trusted envi
   assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);assert.equal(current.hasDrafts(),false);
  }finally{current.dispose();}
 });
-test('backup cleanup, late failure and pending confirmation stay inside their original component',async()=>{
+test('backup cleanup, late failure and prepared candidate stay inside their original component',async()=>{
  const source=await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8');
  const start=source.indexOf('  const backupReadGeneration =');
  const effect=source.slice(start,source.indexOf('\n',source.indexOf('useEffect(',start)));
- for(const boundary of ['unmount','failure','confirmation']){
-  const {env:original}=fixture();let current=original,complete,failRead,confirm,cleanup;
+ for(const boundary of ['unmount','failure','candidate']){
+  const {env:original}=fixture();let current=original,complete,failRead,cleanup,candidate;
   const generation={current:0},writes=[],errors=[];
   // Invoke the real component cleanup rather than simulating a generation bump.
   new Function('useRef','useEffect',effect)(()=>generation,fn=>{cleanup=fn();});
-  original.setConfirmHandler(()=>new Promise(resolve=>confirm=resolve));
+  original.setConfirmHandler(()=>assert.fail('file read must not request confirmation'));
   const load=await handler('../src/Settings.tsx','  async function loadBackupFile(','  async function importBackup(',{
    getEnvironment:()=>current,BACKUP_MAX_BYTES:8192,parseBackupForImport:JSON.parse,
-   BackupImportValidationError:class extends Error{},backup:boundary==='confirmation'?'existing':'',
-   backupReadGeneration:generation,t:key=>key,setBackup:value=>writes.push(value),
+   BackupImportValidationError:class extends Error{},backup:boundary==='candidate'?'existing':'',
+   backupReadGeneration:generation,t:key=>key,stageBackup:value=>{candidate=value;},setBackup:value=>writes.push(value),
    setBackupImported(){},setError(){},setErrorKey:value=>errors.push(value)
   });
   const pending=load({size:2,text:()=>new Promise((resolve,reject)=>{complete=resolve;failRead=reject;})});
-  if(boundary==='confirmation'){complete('{}');await new Promise(resolve=>setImmediate(resolve));assert.equal(typeof confirm,'function');}
+  if(boundary==='candidate'){complete('{}');await pending;assert.equal(candidate.text,'{}');}
   if(boundary==='unmount')cleanup();
   else{original.dispose();current=fixture().env;}
   try{
-   if(boundary==='confirmation')confirm(true);
+   if(boundary==='candidate')assert.equal(candidate.environment,original);
    else if(boundary==='failure')failRead(Error('late file failure'));
    else complete('{}');
    await pending;assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);assert.equal(current.hasDrafts(),false);

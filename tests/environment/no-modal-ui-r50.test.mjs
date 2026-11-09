@@ -1,11 +1,10 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {join,relative} from 'node:path';
 import {parse} from 'acorn';
 
-// Side Panel and official tools must use inline choices instead of blocking JS
+// Side Panel and official tools must use asynchronous choices instead of blocking JS
 // dialogs. PermissionConsent.confirm() is a trusted API method (not window.confirm)
 // and Chrome-native permission prompts remain owned by the browser.
 const TRUSTED_UI=[
@@ -19,11 +18,11 @@ const TRUSTED_UI=[
   'src/marketplace/page.js'
 ];
 const BUNDLED_TOOL_SOURCES=[
-  'examples/sidebar-tools/reading-toc/src/main.js',
-  'examples/sidebar-tools/web-markdown-clipper/src/main.js',
-  'examples/sidebar-tools/knowledge-inbox/src/main.js',
-  'examples/sidebar-tools/quick-notes/src/main.js',
-  'examples/sidebar-tools/markdown-workbench/src/main.js'
+  'projects/reading-toc/src/main.js',
+  'projects/web-markdown-clipper/src/main.js',
+  'projects/knowledge-inbox/src/main.js',
+  'projects/quick-notes/src/main.js',
+  'projects/markdown-workbench/src/main.js'
 ];
 test('R5.4 trusted UI and bundled tools contain no blocking JavaScript browser dialogs',async()=>{
   for(const path of [...TRUSTED_UI,...BUNDLED_TOOL_SOURCES]){
@@ -32,24 +31,19 @@ test('R5.4 trusted UI and bundled tools contain no blocking JavaScript browser d
       path+' must not call browser JS dialogs');
     // These selected files have no application-local confirm() callback.
     assert.doesNotMatch(content,/(^|[^.\w])(?:confirm|alert|prompt)\s*\(/m,
-      path+' must use inline permission/review controls');
+      path+' must use asynchronous UI or trusted permission controls');
     assert.doesNotMatch(content,/\b(?:onbeforeunload\s*=|addEventListener\s*\(\s*['"]beforeunload['"])/,
       path+' must not trigger a native leave-page confirmation');
   }
 });
 
 test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome authority boundaries',async()=>{
-  const [html,source,workflow,manifestText,markdown]=await Promise.all([
-    renderSidebarFixture(),
+  const [source,workflow,manifestText,markdown]=await Promise.all([
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('src/ui/workflow/workflow-view.js','utf8'),
     readFile('manifest.json','utf8'),
-    readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8')
+    readFile('projects/markdown-workbench/src/main.js','utf8')
   ]);
-  for(const id of [
-    'sidebar-tool-action-review','sidebar-tool-action-continue','sidebar-tool-action-cancel',
-    'sidebar-tool-inline-remove','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel'
-  ])assert.match(html,new RegExp('id="'+id+'"'),'missing inline action '+id);
   assert.match(source,/requireCompleteInstalledSidebarTools/,'uninstall still verifies installed identities');
   assert.match(source,/writeVerifiedLocalValue/,'installed changes retain verified writes');
   assert.doesNotMatch(workflow,/newReviewSignature|workflow-new-review/,'workflow New needs no discard review');
@@ -66,7 +60,9 @@ test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome auth
 const OWNED_UI_ROOTS=[
   'src/ui','src/native-agent','src/marketplace','src/sidebar-tools',
   'src/entrypoints','src/development','src/features','src/agents',
-  'src/knowledge','src/reading-toc','src/page-clip','src/time-review','examples/sidebar-tools',
+  'src/knowledge','examples/sidebar-tools',
+  'projects/reading-toc/src','projects/web-markdown-clipper/src','projects/knowledge-inbox/src',
+  'projects/quick-notes/src','projects/markdown-workbench/src','projects/time-review/trusted',
   // First-party page programs and browser support modules may also run in
   // extension-owned or user-visible contexts. Exclude vendored libraries.
   'src/platform','src/framework','src/scripting','examples/programs'
@@ -76,7 +72,7 @@ async function ownedScripts(directory){
   const paths=[];
   for(const entry of entries){
     const path=join(directory,entry.name);
-    if(entry.isDirectory())paths.push(...await ownedScripts(path));
+    if(entry.isDirectory()&&!['node_modules','dist','.opendesk-preview'].includes(entry.name))paths.push(...await ownedScripts(path));
     else if(entry.isFile()&&/\.(?:m?js)$/.test(entry.name))paths.push(path);
   }
   return paths;
@@ -113,9 +109,15 @@ test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',as
     const name=relative('.',path).replaceAll('\\','/');
     const syntax=parse(await readFile(path,'utf8'),{ecmaVersion:'latest',sourceType:'module',allowHashBang:true});
     let localConfirm=false;
-    if(['src/ui/local-project-install-ui.js','src/platform/chrome/permission-gate.js'].includes(name))
+    if(['src/ui/local-project-install-ui.js','src/platform/chrome/permission-gate.js',
+      'src/platform/host/local-tasks.js','src/ui/conversation/prompt-host.js',
+      'src/ui/sidebar-tools/managed-proxy-consent.js'].includes(name))
       visitSyntax(syntax,node=>{
-      if(node.type==='FunctionDeclaration'&&node.id?.name==='confirm')localConfirm=true;
+      if(node.type==='FunctionDeclaration'&&node.id?.name==='confirm'||
+        node.type==='VariableDeclarator'&&node.id?.name==='confirm'||
+        ['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type)&&
+        node.params.some(param=>{const pattern=param.type==='AssignmentPattern'?param.left:param;
+          return pattern.type==='ObjectPattern'&&pattern.properties.some(field=>field.value?.name==='confirm');}))localConfirm=true;
     });
     visitSyntax(syntax,node=>{
       const where=name+':'+(node.start??'unknown');
@@ -123,10 +125,6 @@ test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',as
         if(node.callee?.type==='Identifier'&&browserModalMethods.has(node.callee.name)&&
           !(localConfirm&&node.callee.name==='confirm'))
           violations.push(where+': unqualified '+node.callee.name+'()');
-        // HTMLDialogElement.showModal() is a blocking modal even though it
-        // does not call window.confirm()/alert()/prompt().
-        if(propertyName(node.callee)==='showModal')
-          violations.push(where+': blocking dialog.showModal()');
         if(propertyName(node.callee)==='addEventListener'&&
           node.arguments[0]?.type==='Literal'&&node.arguments[0].value==='beforeunload'&&
           (browserGlobal(node.callee.object)||node.callee.object?.name==='document'))
@@ -145,5 +143,5 @@ test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',as
         violations.push(where+': destructured browser modal function');
     });
   }
-  assert.deepEqual(violations,[],'first-party tools must use inline UI; Chrome-native permission prompts remain browser-owned');
+  assert.deepEqual(violations,[],'first-party tools must use asynchronous UI; Chrome-native permission prompts remain browser-owned');
 });

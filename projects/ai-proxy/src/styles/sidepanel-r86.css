@@ -29,9 +29,8 @@
 :scope .r86Panel .r86Chip{display:inline-flex;align-items:center;min-width:0;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:650;color:var(--r86-muted);background:var(--r86-soft);border-radius:99px;padding:3px 8px}
 :scope .popup.sidepanel.r86Panel .r86Modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0;padding:4px;border-radius:9px;background:var(--r86-soft)}
 :scope .popup.sidepanel.r86Panel .r86Modes button{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:44px;padding:7px 2px;border:0;border-radius:7px;background:transparent;color:var(--r86-muted);font-size:11px;font-weight:550;line-height:1.35;letter-spacing:0;white-space:nowrap;position:relative}
-:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]{background:var(--r86-fill);color:var(--r86-accent);font-weight:720}
-:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]::after{content:'✓';position:absolute;top:3px;right:5px;font-size:10px;line-height:1}
-:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]:hover:not(:disabled){background:var(--r86-fill)}
+:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]{background:var(--primaryFill);color:var(--r86-on-accent);font-weight:720}
+:scope .popup.sidepanel.r86Panel .r86Modes button[aria-pressed="true"]:hover:not(:disabled){background:var(--primaryFill)}
 :scope .popup.sidepanel.r86Panel .r86Modes button:not([aria-pressed="true"]):hover:not(:disabled){background:var(--r86-fill)}
 :scope .popup.sidepanel.r86Panel .r86Modes svg{display:block;flex:none;width:19px;height:19px}
 :scope .popup.sidepanel.r86Panel .r86Modes button span{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}

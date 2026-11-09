@@ -1,5 +1,7 @@
 // In-memory, single-document queue. Unknown side effects never auto-retry.
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
+const REPLY_WAIT='等待已确认消息及后续原生消息的回复完成（需保持原对话历史可核验）';
+const REPLY_HISTORY_CHANGED='原对话历史节点已变化，已停止自动发送；请核对原对话';
 export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   const items=[];
   const state={items,route:null,reason:'',phase:'waiting',
@@ -19,6 +21,19 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     idleSince=null;
     if(state.reason===reason)return;
     state.reason=reason;emit();
+  }
+  function newAnswerGate(before,snap) {
+    return {before,confirmedUser:snap.users.at(-1),started:clock(),sawBusy:snap.busy,
+      observed:{users:[...snap.users],assistants:[...snap.assistants],history:snap.history?.slice()}};
+  }
+  function answerReady(snap) {
+    // Keep observing exact history while busy, so a later completed snapshot
+    // cannot silently substitute nodes seen during an earlier poll.
+    const previous=state.answerGate.observed?.history?.at(-1);
+    const verified=typeof site.replyComplete==='function' &&
+      site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap,state.answerGate)===true;
+    if(previous && previous!==state.answerGate.observed?.history?.at(-1))idleSince=null;
+    return !snap.busy && snap.idle && snap.answerComplete && verified;
   }
   function uncertain(id,reason,before) {
     const item=items.find(v=>v.id===id);
@@ -65,7 +80,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       const before=state.inFlight.before||state.inFlight.token?.before;
       const snap=site.inspect();
       if(before&&snap.ok&&site.confirm(before,item.text,snap)){
-        state.answerGate={before,confirmedUser:snap.users.at(-1),started:clock(),sawBusy:snap.busy};
+        state.answerGate=newAnswerGate(before,snap);
       }
       state.inFlight=null;state.phase='waiting';state.reason='';idleSince=null;
     }
@@ -108,7 +123,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     items.splice(items.indexOf(flight.item),1);state.inFlight=null;
     state.phase='waiting';state.reason='';state.forceId=null;
     // A delayed acknowledgement proves admission, not reply completion.
-    state.answerGate={before,confirmedUser:snap.users.at(-1),started:clock(),sawBusy:snap.busy};
+    state.answerGate=newAnswerGate(before,snap);
     idleSince=null;emit();return true;
   }
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
@@ -200,20 +215,17 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(!snap.ok){wait(snap.reason||'原生控件暂不可用');return;}
     if(state.route && snap.route!==state.route){wait('等待返回原对话，队列不会跨会话发送');return;}
     if(state.inFlight?.phase==='await-stop') {
+      // Stop does not waive the exact history/latest-user proof for our prior send.
+      if(state.answerGate && !answerReady(snap)){
+        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:REPLY_WAIT);return;
+      }
       if(!canSubmit){idleSince=null;return;}
       if(snap.busy||!snap.idle){idleSince=null;return;}
-      // Stopping does not waive the exact-turn/history proof for our prior send.
-      // In particular, an older completed answer cannot release this flight.
-      if(state.answerGate && (!snap.answerComplete ||
-        typeof site.replyComplete!=='function' ||
-        site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap)!==true)){
-        idleSince=null;return;
-      }
       if(snap.rich || snap.composing || snap.draft!==''){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
       const item=state.inFlight.item;state.inFlight=null;state.forceId=null;
-      state.answerGate=null;
+      state.answerGate=null;state.reason='';
       startSubmit(snap,item);return;
     }
     if(state.inFlight?.phase==='await-native-ready') {
@@ -242,12 +254,12 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     }
     if(state.answerGate) {
       state.answerGate.sawBusy ||= snap.busy;
-      if(snap.busy || !snap.idle || !snap.answerComplete ||
-        typeof site.replyComplete!=='function' ||
-        site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap)!==true){idleSince=null;return;}
+      if(!answerReady(snap)){
+        wait(state.answerGate.historyInvalid?REPLY_HISTORY_CHANGED:REPLY_WAIT);return;
+      }
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
-      state.answerGate=null;idleSince=null;
+      state.answerGate=null;idleSince=null;state.reason='';
       if(!items.length)state.route=null;
       emit();
     }

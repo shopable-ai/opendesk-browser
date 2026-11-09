@@ -190,14 +190,14 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
-    mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation,displaySurface='sidebar',initialPage=null,openOwnPage=null}={}){
+    mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation,ui,displaySurface='sidebar',initialPage=null,openOwnPage=null}={}){
       if(disposed||aiProxyPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
         typeof request!=='function'||typeof onStateChange!=='function')
         throw Error('E_AI_PROXY_REACT_OWNER');
       const managed=Object.freeze(Object.fromEntries(['getStatus','requestEnable','requestDisable']
         .map(name=>[name,payload=>request('browser.proxy.managed.'+name,payload||{})])));
-      const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange,toolNavigation,
+      const environment=configureAIProxyEnvironment({root:container,request,locale,setState:onStateChange,toolNavigation,ui,
         surface:displaySurface==='page'?'page':'sidebar',initialPage,openOwnPage},
         {browser:{proxy:{managed}}},{trusted:true});
       aiProxyPilot={container,environment,displaySurface};container.dataset.opendeskReactOwner='ai-proxy';

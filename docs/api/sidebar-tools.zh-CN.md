@@ -66,6 +66,64 @@ if (typeof OpenDeskTool.ui?.notify === 'function') {
 
 **更新提醒走独立的可信发布链**：\`docs/architecture/browser-framework/update-notification-r1.zh-CN.md\`。例如“提示词快捷按钮有新版本”只能由宿主依据可信发行与真实安装状态产生；**工具调用 \`ui.notify\` 不能创建框架级 NEW、跨标签 Toast、更新记录，更不能安装新版**。
 
+### 异步确认：OpenDeskTool.ui.confirm
+
+<a id="异步确认opendesktooluiconfirm拟议尚未实现"></a>
+
+**SOURCE_IMPLEMENTED / NODE_PASS（2026-11-09）**。当前 Bridge/Host 与可信 React adapter 已接入；实际加载的 Host 须在初始化时声明支持，旧 Host/只读预览按下述明确不可用规则回退。真实安装、Side Panel 与 Chrome 权限验收仍为 **NOT_TESTED**。此节是唯一公开签名。跨工具职责、展示与 Promise/then 规则见[统一确认、反馈与异步调用合同](../architecture/browser-framework/confirmation-and-feedback.zh-CN.md)。迭代时核对本节能力状态，不另建 SDK；现有 `ui.notify({message})` 与 `setState` 合同不扩字段。
+
+```ts
+type ConfirmOptions = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string; // 默认当前 UI 语言的“取消”
+  tone?: 'neutral' | 'danger';
+};
+type ConfirmResult =
+  | {action: 'confirm'}
+  | {action: 'cancel'; reason: 'user' | 'escape' | 'aborted' | 'invalidated' | 'expired'};
+
+OpenDeskTool.ui.confirm(
+  options: ConfirmOptions,
+  client?: {signal?: AbortSignal}
+): Promise<ConfirmResult>;
+```
+
+用法（在原用户操作回调内同步发起）：
+
+```js
+// 在真实用户点击回调中同步发起；此示例只涉及应用自己的普通数据。
+const deciding = tool.ui.confirm({
+  title: '删除这条便签？',
+  message: '删除后无法恢复。',
+  confirmLabel: '删除便签',
+  cancelLabel: '保留便签',
+  tone: 'danger'
+});
+const answer = await deciding;
+if (answer.action !== 'confirm') return;
+// 再验原对象/版本，按原存储条件写与回执处理，不获取任何新权限。
+await removeOriginalNoteIfUnchanged();
+```
+
+输入和结果合同：
+
+1. 只接受普通对象的上述白名单字段；title 去空白后 1–80、message 1–1200、按钮文案 1–32 个 JS 字符；message 可换行，不接受 HTML 语义；拒绝其他控制符/双向控制符和超限内容，不静默截断后果。无效输入 reject `E_UI_CONFIRM_INPUT` 且不展示。
+2. 普通入口由真实点击/合法键盘触发，在当前回调内同步调用方法；已有编辑器原生 `cancel`（Escape）也可在其真实处理器中请求关闭确认。Bridge 复用原事件捕获/单次传输路径，Host 验证来源，最小扩展原两端白名单和真实 dialog-cancel 捕获。可信 React environment 注入同一展示服务；Event 留在固定源码处理器，不接受调用方伪造字段。**宿主页头内部返回**沿原 navigation-action 通道另作展示级关联：Host 绑定原实例/page/导航快照 revision/动作；Bridge 只在这次经校验的原消息同步派发期间，允许当前业务 guard 消费一次普通确认请求，随后立即清除关联。业务 guard 在该派发栈内调用，不能延到 React effect；普通自行派发/重放的 CustomEvent、延迟调用、过时代际/快照均不接受。此关联由原 Host/Bridge 私有维护，不新增公共令牌、长期手势租约或 callback 字段，不授权任何 Browser RPC；CustomEvent 仍非 isTrusted，不能传递 Chrome 激活。框架的跨工具离开 guard 则由自身原真实入口发起，不与内部 guard 重复确认。后台/计时器、合成事件、伪造 postMessage 不能强制弹窗；异步预处理须先准备数据，再提供明确入口。
+3. Host 补工具、宿主/iframe 实例和安装代际，Bridge 生成 requestId；工具不能指定别的 toolId、Host、Origin 或请求 ID。按同一安装的现有合法身份准入，不要求官方 Catalog 版本/SHA/来源记录匹配。
+4. 两种普通 tone 默认焦点均是保留/取消。丢弃、删除等确认使用 alertdialog；背景 inert，Tab 循环，Escape=取消；P0 点击遮罩不关闭、不执行。确认不会触发底层表单 Enter/Space；IME 合成不触发快捷确认。
+5. UI 被用户取消、Escape、调用方 abort、实例/导航/安装失效或期限到达时，只结算一次。client.signal 仅在 Bridge 本地处理，绝不 structuredClone/传输 AbortSignal；预先 aborted 直接返回取消且不发送。发送后 abort 或本地超时经原协议发送最小取消消息，绑定原 sender/instance/requestId，Host 只清理该请求；处理取消先到、请求/确认回包迟到，不能重新开窗。Bridge 首个已接收终态胜出，abort 先到时迟到 confirm 无效；confirm 已交付后 abort 不撤销已开始的业务操作。宿主可确认失效则返回 invalidated；文档已销毁无法交付时 Bridge 本地以既有关闭错误结算，绝不返回 confirm。
+6. 未结束的第二个不同请求 reject `E_UI_CONFIRM_BUSY`，当前请求不受影响。拒绝/取消后不自动弹出下一项；不持久保存弹窗正文或跨文档排队。P0 对展示等待设置 120 秒固定上限，Host 过期关闭并保留草稿；Bridge 为该 UI 操作设置略长回包清理预算，不提高普通 RPC 或原有可信授权/副作用期限。
+7. 能力探测用 `typeof tool.ui?.confirm === 'function'`，但存在方法不证明 Host 支持。**发送前准入**复用原初始化/加载快照：Host 声明支持本次确认协议和可用通道，Bridge 在闭包缓存；声明缺失的旧 Host、明确只读预览或通道未提供时，Bridge 本地 reject `E_UI_CONFIRM_UNAVAILABLE`，零发送、零待决 UI，不等旧 Host 为未知操作答复。可信 adapter 同样在注入时明确支持与否。只有方法缺失或这种确定不可用状态才可用工具已有安全本地确认；支持声明后若撤权/来源失效、busy、用户取消、abort、过期或传输结果不明均不再次打开本地确认。不得把缺手势、静默丢弃或超时推断成不支持。消费者处理所有 rejection；不能回退 `window.confirm`、默认同意或要求升级才能继续正常使用。P0 不新增另一套长期公共确认 SDK；旧工具不调用新接口也无需修改。
+8. 普通结果只是 UI 选择；不能返回 browser Event、userActivation、approvalRef、权限状态或业务执行成功。业务错误在原流程处理，取消确认不等于取消一个已经发出的任务或外部写入。
+
+可信授权的特殊接线：需要 Chrome 瞬时激活的 API，在**新的可信确认按钮点击处理器**内经原同步入口发起；准备工作在按钮可用前完成。不能把 `await ui.confirm()` 的 resolve 当成原点击仍有效；也不能笼统认定所有 await 都必然丢失激活。原 `requestBrowserClick` 的 run/event 仍是固定源码词法参数，不穿越普通公共接口。
+
+开发只读预览：可继续使用工具原本地确认，不取得正式安装或权限身份；新宿主确认是否支持预览，P0 默认不开放，明确 unavailable 并保留原安全回退，不借同 ID 正式安装准入。
+
+错误回退判据：输入错误先修调用；busy 保留原现场；取消/失效/过期终结本次意图，必要时温和说明“未执行”，由用户下一次主动操作重新发起。只有明确不支持且无宿主待决请求才回退；超时不是“不支持”的证据。
+
 ## 1. 工具源配置与运行包的区别
 
 开发者维护的 `tool.config.json`：
@@ -232,6 +290,8 @@ Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent�
 
 #### R14 HeaderActions 可选接入示例
 
+宿主将 1–2 项且均有受支持图标的动作直接显示在右上角；更多动作或缺少图标时使用唯一 More 菜单。按钮保留动作 label、提示与禁用原因；展示方式不改变事件、权限或调用参数。
+
 R14 在原 `setNavigation` 状态中增加可选 `headerActions` 完整快照，每次替换，不合并。旧字段仍为 `page/title/canBack/primary/secondary/secondaryExpanded`；不含 `headerActions` 的 normalize 返回值完全不变。动作最多 6 个，未知字段和重复 ID 拒绝；`id` 匹配 `^[a-z][a-z0-9-]{0,31}$`，`label` 去首尾空格后 1..40 且拒控制字符；可选 `icon` 仅 `new/edit/settings/diagnostics/subscriptions/library/list/refresh`，`priority` 为 -10..10 整数（默认 0），`disabledReason` 去首尾空格后 1..80 且拒控制字符，存在即禁用。精确校验、生命周期及安全边界见[现有导航合同 R14](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#r14--可选-header-动作完整快照)。
 
 只有 `OpenDeskTool.navigationFeatures?.headerActions === true` 表示 SDK 与 Host 两端支持；增强调用返回 `false` 时须立即重新提交不含该字段的旧 base。非空动作与 `secondary:'more'` 冲突时整次返回 `false`，`secondary:'transfer'` 可共存。Host 可用 `headerActionsEnabled:false` 关闭新动作投影，原导航继续；旧 v1/v2 包不改 schema、不迁移、不强制重包。以下为完整的纯导航示例，内容区“资料库”保留为业务入口，旧 Bridge 和关闭投影时同样可达；它不读取数据、不申请权限，不作为运行验证证据。
@@ -314,6 +374,26 @@ R14 在原 `setNavigation` 状态中增加可选 `headerActions` 完整快照，
 Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 detail 为 `{action:'header',actionId,page}`；旧 `back/primary/secondary` detail 完全不变，仍为 `{action}`。Host 的点击绑定真实实例、页面与快照 revision，旧快照失效；`busy/dirty/actionReview` 时新动作不可执行，应用也须复核状态。真实编辑器要在输入、保存开始/确认及页面切换时同步 dirty/busy，保存失败或结果未知不能清锁或重放；组件卸载时调用自身 cleanup/Effect 清理，不能只依赖 pagehide。
 
 框架拥有 Header，应用拥有页面和业务；动作只携带展示字段，不传 `permission/js/url/html/callback`，CustomEvent 不等于 `isTrusted`。危险授权、代理应用配置、Cookie 操作及采集等只能进入原审阅界面，不能借 Header 无确认执行；实际权限、身份、能力和 epoch 继续经原安装/Authority。源码接入与定向 Node 证据的范围见[导航合同状态](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；本示例不是运行证据，构建、真实浏览器及 Native 验收仍为 `NOT_TESTED`。
+
+### 高度与滚动归属
+
+宿主统一将页头、运行/授权控件、可见设置和底栏之外的剩余空间分配给沙箱 iframe；侧栏和独立工具标签页共用这条高度链。所有工具均可使用，不以工具 ID、官方目录、发行版本或来源记录为展示条件。沙箱 `html → body → OpenDeskTool.root` 提供明确的 `100%` 高度，默认画布填满空间。应用无需计算宿主高度、扣固定像素或向宿主上报内容高度。
+
+原 HTML、Vue、React 工具不必迁移：普通内容保持自然排版，长内容在 iframe 文档内滚动，短内容靠上。工作区需要固定导航/底部操作时，可在自己的 HTML 中使用沙箱提供的可选 CSS 类；React `className`、Vue `class` 同样可用：
+
+```html
+<section class="opendesk-tool-workspace">
+  <header>应用导航</header>
+  <main class="opendesk-tool-scroll" tabindex="0" aria-label="应用正文">
+    正文内容
+  </main>
+  <footer><button type="button">保存</button></footer>
+</section>
+```
+
+`opendesk-tool-workspace` 是满高列布局，直属 `header/footer` 不收缩，`opendesk-tool-scroll` 使用剩余高度并负责滚动。React/Vue 挂载节点也需 `height:100%;min-height:0`，只描述应用自己的布局。工作区本身保留可滚动回退，极矮窗口下控件和键盘焦点仍可达；不要对全部旧工具或文档强制 `overflow:hidden`。业务自行创建的菜单、正文与编辑器滚动仍由应用管理。
+
+既有 `--opendesk-host-available-height` 和 `data-opendesk-height-mode="workspace"` 继续投影到 `root`，供已有消费者读取；尺寸取真实 iframe 的 CSS 像素，随窗口和宿主控件变化更新，不是资源配额。内容回报不能改变宿主尺寸。关闭后旧实例、错误来源及其他窗口的尺寸消息不生效。这些类、属性和变量只有展示作用，不授予 API、网站或安装权限。
 
 ### 普通第三方小工具的基础操作
 
@@ -489,3 +569,9 @@ R1.3 历史实施、组件和原生状态及精确候选见 [R1.3 总表](../fra
 ### 受限本机长任务（v2 增量）
 
 工具可声明 `localTasks`，通过原 `OpenDeskTool.request` 使用首次可信配对、精确目标审阅及自身任务读取/停止/导出。凭证不进入沙箱，也不开放任意 localhost。完整端点、预算、未知结果及撤权合同见 [本地任务桥接](local-task-bridge.zh-CN.md)。
+
+### 将应用设置合并到工具设置齿轮
+
+检测 `OpenDeskTool.navigationFeatures?.settingsPage === true` 后，可在原 `setNavigation` 完整快照中声明 `settingsPage:'settings'`（与 `page` 相同的受限页面 ID）。宿主齿轮发出 `opendesk-tool-navigation`，`detail` 为 `{action:'settings',page:'settings'}`。应用显示自己的设置表单并提交 `{page:'settings',title:'设置',canBack:true,primary:null,settingsPage:'settings'}`；首页同样声明 `settingsPage`，不另加设置 `headerActions`。宿主同页保留可信管理设置，应用表单始终在原沙箱 iframe。
+
+返回沿原 `back` 事件；省略字段清除接入。增强调用返回 `false` 时立即提交不含字段的原快照，保留原有入口。此事件不授予权限、不继承可信点击；安装身份、当前导航修订和 dirty/busy 保护见[导航合同 R1.5](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md#r15--应用设置接入现有齿轮2026-11-09)。

@@ -470,7 +470,7 @@ for(const historyChange of ['detached prefix','connected prefix missing','tail r
   });
 }
 
-test('another user turn cannot release the confirmed message reply gate',()=>{
+test('another user turn without verified follow-up history cannot release the reply gate',()=>{
   const f=fixture();
   confirmFirst(f);
   f.step(2300,{ack:false,users:2,answers:2});
@@ -482,6 +482,104 @@ test('another user turn cannot release the confirmed message reply gate',()=>{
   assert.equal(f.state.clicks,1);
   assert.equal(f.engine.requestNow('q2').ok,false);
 });
+
+function followUpEngine(){
+  const f=fixture(),adapter=createChatGPTSite({doc:{},win:{}});
+  let history=[];
+  const node=(role,text='')=>({role,isConnected:true,innerText:text,querySelector:()=>null,
+    compareDocumentPosition(other){const a=history.indexOf(this),b=history.indexOf(other);return a<0||b<0?1:a<b?4:2;}});
+  const u0=node('user'),a0=node('assistant'),confirmed=node('user','first');
+  history=[u0,a0];
+  const inspect=f.site.inspect;
+  f.site.inspect=()=>({...inspect(),users:history.filter(n=>n.role==='user'),
+    assistants:history.filter(n=>n.role==='assistant'),history});
+  f.site.confirm=adapter.confirm;f.site.replyComplete=adapter.replyComplete;
+  f.engine.enqueue('first',f.state.route);f.engine.enqueue('second',f.state.route);
+  f.step(100,{busy:false,complete:true});f.step(1400);f.step(2100);
+  history=[...history,confirmed];f.step(2200);
+  assert.equal(f.engine.view().lastConfirmed,'q1');
+  return {...f,node,confirmed,a0,append:(...nodes)=>{history=[...history,...nodes];},
+    replaceHistory:fn=>{history=fn(history);}};
+}
+
+test('native follow-up gate reports waiting and resumes FIFO after latest completion and stable idle',()=>{
+  const f=followUpEngine(),followUp=f.node('user','follow-up'),reply=f.node('assistant');
+  f.append(followUp);f.step(2300,{busy:true,complete:false});
+  assert.match(f.engine.view().reason,/等待.*回复/);
+  f.append(reply);f.step(4000,{complete:true});f.step(5300);
+  assert.equal(f.state.clicks,1,'complete markers do not override a busy page');
+  f.step(6000,{busy:false});f.step(7000);
+  assert.ok(f.engine.view().answerGate,'stable idle remains required');
+  f.step(7100);
+  assert.equal(f.engine.view().answerGate,null);assert.equal(f.engine.view().reason,'');
+  f.step(8200);f.step(8300);
+  assert.deepEqual(f.state.committedTexts,['first','second']);
+});
+
+test('native follow-up gate waits past an older complete reply for the newest user',()=>{
+  const f=followUpEngine(),oldReply=f.node('assistant'),followUp=f.node('user','follow-up');
+  f.append(oldReply,followUp);f.step(2300);f.step(4000);f.step(60000);
+  assert.ok(f.engine.view().answerGate);assert.equal(f.state.clicks,1);
+  assert.match(f.engine.view().reason,/等待.*回复/);
+  f.append(f.node('assistant'));f.step(61000);f.step(62200);f.step(63400);f.step(63500);
+  assert.equal(f.state.clicks,2);assert.equal(f.engine.view().reason,'');
+});
+
+test('native follow-up gate restarts stable idle when a newer completed exchange appears',()=>{
+  const f=followUpEngine();
+  f.append(f.node('assistant'));f.step(2300);
+  f.append(f.node('user','follow-up'),f.node('assistant'));f.step(3400);
+  assert.ok(f.engine.view().answerGate,'new reply needs its own stable idle window');
+  f.step(4400);assert.ok(f.engine.view().answerGate);
+  f.step(4500);assert.equal(f.engine.view().answerGate,null);
+  f.step(5600);f.step(5700);assert.equal(f.state.clicks,2);
+});
+
+for(const change of ['replacement','reply replacement','reorder','route']){
+  test(`native follow-up gate preserves ${change} rejection after busy observation`,()=>{
+    const f=followUpEngine(),followUp=f.node('user','follow-up');
+    f.append(followUp);f.step(2300,{busy:true,complete:false});
+    const reply=f.node('assistant');
+    if(change==='reply replacement'){f.append(reply);f.step(2400);}
+    if(change==='replacement')f.replaceHistory(nodes=>nodes.map(n=>n===followUp?f.node('user','follow-up'):n));
+    if(change==='reply replacement')f.replaceHistory(nodes=>nodes.map(n=>n===reply?f.node('assistant'):n));
+    if(change==='reorder')f.replaceHistory(nodes=>[...nodes.slice(0,2),followUp,f.confirmed]);
+    if(change!=='reply replacement')f.append(reply);
+    f.step(4000,{busy:false,complete:true,...(change==='route'?{route:'c/87654321'}:{})});
+    f.step(6000);f.step(120000);
+    assert.ok(f.engine.view().answerGate);assert.equal(f.state.clicks,1);
+    assert.equal(f.engine.view().items[0].state,'queued');
+  });
+}
+
+test('unknown admission with native follow-up never replays or treats a later reply as confirmation',()=>{
+  const f=followUpEngine();
+  // A later queued send is clicked but cannot be confirmed from a different user.
+  f.append(f.node('assistant'));f.step(2300);f.step(3500);f.step(4700);f.step(4800,{failClick:true});
+  assert.equal(f.engine.view().phase,'unknown');
+  f.append(f.node('user','different native message'),f.node('assistant'));
+  f.step(6000);f.step(120000);
+  assert.equal(f.engine.view().phase,'unknown');assert.equal(f.state.clicks,2);
+});
+
+for(const restored of ['older prefix','last valid snapshot']){
+  test(`native follow-up gate never sends after node replacement and restored ${restored}`,()=>{
+    const f=followUpEngine(),followUp=f.node('user','follow-up');
+    f.append(f.node('assistant'));f.step(2300);
+    const prefix=f.site.inspect().history;
+    f.append(followUp,f.node('assistant'));f.step(2400,{busy:true,complete:false});
+    const lastValid=f.site.inspect().history,observed=f.engine.view().answerGate.observed;
+    f.replaceHistory(nodes=>nodes.map(n=>n===followUp?f.node('user','follow-up'):n));
+    f.step(2500);
+    assert.equal(f.engine.view().answerGate.observed,observed);
+    assert.equal(f.engine.view().answerGate.historyInvalid,true);
+    assert.match(f.engine.view().reason,/历史节点已变化.*停止自动发送/);
+    f.replaceHistory(()=>restored==='older prefix'?prefix:lastValid);
+    f.step(4000,{busy:false,complete:true});f.step(6000);f.step(7200);f.step(7300);f.step(120000);
+    assert.equal(f.state.clicks,1,'a stale restored snapshot must never resume automatic sending');
+    assert.ok(f.engine.view().answerGate);assert.equal(f.engine.view().items[0].state,'queued');
+  });
+}
 
 test('only this turn completion followed by stable idle releases the next send',()=>{
   const f=fixture();
@@ -758,7 +856,7 @@ test('real adapter manual send after prepare never permits a second prepare or c
   step(20000);step(22000);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);
   assert.equal(engine.remove('q1'),false,'already acknowledged, no deletion needed');
-  assert.equal(engine.view().reason,'');
+  assert.match(engine.view().reason,/等待.*回复/);
   editor.value=text; // The inspected unknown draft remains owned by the user.
   step(24000);step(26000);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,0,0,1]);

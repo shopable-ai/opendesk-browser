@@ -57,6 +57,22 @@ async function fixture() {
   };
 }
 
+test('cancelling a route review returns normally without a failure alert or success',async()=>{
+  for(const thrown of [false,true]){
+    const f=await fixture();
+    f.respond(async message=>{
+      if(message.type==='GET_STATE')return success({revision:2});
+      if(thrown)throw Object.assign(Error('Browser action cancelled'),{code:'E_CANCELLED'});
+      return {ok:false,error:'Browser action cancelled',errorCode:'E_CANCELLED'};
+    });
+    assert.equal(await f.render().act({type:'APPLY'}),null);
+    assert.equal(f.render().error,'');
+    assert.equal(f.render().busy,false);
+    assert.equal(f.render().state.revision,2);
+    f.unmount();
+  }
+});
+
 test('invalid input keys render localized text and follow locale changes without a request', async () => {
   const f = await fixture();
   f.render().setErrorKey('errInvalidPort');

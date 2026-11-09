@@ -149,15 +149,19 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     // Same durable trigger row carries only a delivery fence, never a second Result.
     const approval=ledger.captureAutoPolicyEpoch();
     await ledger.markWebTaskDelivery(message.requestId,'dispatching');
-    const final=await verifySubmission(row,actual);
-    const deliveryFinal=await ledger.assertWebTaskDelivery(message.requestId,row.source);
-    if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付期间持续批准已改变');
-    final();deliveryFinal();
     let reply;
     try{
+      // The dispatch fence already exists. Retain final-check failures too,
+      // without reopening this request for another delivery attempt.
+      const final=await verifySubmission(row,actual);
+      const deliveryFinal=await ledger.assertWebTaskDelivery(message.requestId,row.source);
+      if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付期间持续批准已改变');
+      final();deliveryFinal();
       reply=await api.tabs.sendMessage(row.source.tabId,isChatGPT?chatgpt.delivery(row,durable,message.requestId):
         {protocol:WEB_TASK_PROTOCOL,kind:'deliver',sourceUrl:row.source.url,requestId:message.requestId,result},
       {documentId:row.source.documentId});
+      if(isChatGPT&&reply?.ok===false&&typeof reply.error?.code==='string'&&typeof reply.error.message==='string')
+        throw fail(reply.error.code.slice(0,128),reply.error.message.slice(0,2048));
       if(reply?.ok!==true||isChatGPT&&(reply.data?.sent!==true||reply.data?.userObserved!==true))
         throw fail('E_WEB_TASK_UNKNOWN','结果交付回执未知，禁止自动重发');
     }catch(error){

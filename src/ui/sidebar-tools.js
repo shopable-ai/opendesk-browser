@@ -89,6 +89,7 @@ import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION} from 
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   bookmarkSandboxNotice} from './trusted-bookmark-admission.js';
 import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION} from './trusted-knowledge-admission.js';
+import {normalizeToolUiConfirmOptions,TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
 // whole sandbox postMessage. The host adds a bounded envelope separately.
@@ -849,6 +850,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, fileInput, {value: ''});setFileError();
   }
   function setImportOpen(open,{returnToCaller=false}={}) {
+    if(open&&pendingAction)return false;
     if(open&&view.getSnapshot().market?.review)return;
     const resume=!open&&returnToCaller?pagePackageReviewReturn:null;
     pagePackageReviewReturn=null;
@@ -880,11 +882,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     frameRevocationEpoch===(revocationEpochs[active.id]??null)&&
     samePackage(active,toolById(active.id));
   const headerScope=()=>JSON.stringify([active?.id,instance,toolNavigation?.page,navigationProjectionRevision]);
+  const hasAppSettings=()=>hasCurrentNavigation()&&Boolean(frame?.contentWindow&&toolNavigation?.settingsPage);
   function acceptNavigation(value,revision){
     const next=normalizeToolNavigation(value);
     if(!next)return false;
     if(Object.hasOwn(next,'headerActions')&&(!headerActionsEnabled||
        !Number.isSafeInteger(revision)||revision<=toolNavigationRevision))return false;
+    if(Object.hasOwn(next,'settingsPage')&&
+       (!Number.isSafeInteger(revision)||revision<=toolNavigationRevision))return false;
+    if(pendingAction?.confirmationNavigation||
+       toolNavigation?.page!==next.page&&pendingAction?.kind==='navigation')cancelActionReview('invalidated');
+    confirmationNavigation=null;
     toolNavigation=next;clipPage=null;
     if(Number.isSafeInteger(revision)&&revision>toolNavigationRevision)toolNavigationRevision=revision;
     navigationProjectionRevision++;
@@ -916,27 +924,40 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   };
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
-  function cancelActionReview(){
+  let editRevision=0,confirmationSequence=0,trustedNavigationDispatch=false;
+  let confirmationNavigation=null;
+  const cancelledConfirmations=new Set();
+  let confirmationCancellationOverflow=false;
+  function cancelActionReview(reason='user'){
     const old=pendingAction;pendingAction=null;patchToolField(view, actionReview, {hidden: true});
-    old?.cancel?.();
+    clearTimeout(old?.timer);
+    old?.cancel?.(reason);
   }
-  function requestActionReview({message,button='继续',run,toolId=null,cancel=null}){
-    if(disposed||busy)return;
-    if(pendingAction)cancelActionReview();
-    pendingAction={run,toolId,cancel};
+  function requestActionReview({message,button='继续',run,toolId=null,cancel=null,
+    title='确认操作',cancelLabel='取消',tone='neutral',kind='review',requestId=null,hidden=false}){
+    if(disposed||busy)return false;
+    if(pendingAction||pendingUninstallId||importPanel.hidden===false||view.getSnapshot().market?.review)return false;
+    const choice={run,toolId,cancel,kind,requestId,id:++confirmationSequence};
+    pendingAction=choice;
+    choice.timer=setTimeout(()=>{if(pendingAction===choice)cancelActionReview('expired');},TOOL_UI_CONFIRM_TIMEOUT_MS);
+    choice.timer.unref?.();
     patchToolField(view, actionSummary, {textContent: message});
     patchToolField(view, actionContinue, {textContent: button});
-    patchToolField(view, actionReview, {hidden: false});
-    requestToolFieldEffect(view, actionReview, 'scrollIntoView', {block:'nearest'});
+    patchToolField(view, actionReview, {hidden,data:{title,cancelLabel,tone,id:choice.id,
+      source:kind==='confirmation'?'应用请求 · '+(active?.title||toolId)+' ('+toolId+')':
+        toolId?(active?.title||toolId):'OpenDesk'}});
+    return choice;
   }
   async function applyActionReview(event){
     const choice=pendingAction;
     if(!choice||busy||disposed)return;
     pendingAction=null;patchToolField(view, actionReview, {hidden: true});
+    clearTimeout(choice.timer);
     await choice.run(event); // Do not defer actual Chrome user activation.
   }
-  function requestBrowserClick({message,button,toolId,run,signal=null}){
+  function requestBrowserClick({message,button,toolId,run,signal=null,title='确认操作'}){
     if(disposed||busy)return Promise.reject(Object.assign(new Error('Tool UI unavailable'),{code:'E_HOST_CLOSED'}));
+    if(pendingAction)return Promise.reject(Object.assign(new Error('Another decision is pending'),{code:'E_UI_CONFIRM_BUSY'}));
     return new Promise((resolve,reject)=>{
       let settled=false,timer=null;
       const settle=(ok,value)=>{
@@ -948,7 +969,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
       signal?.addEventListener('abort',abortReview,{once:true});
       if(signal?.aborted){abortReview();return;}
-      requestActionReview({message,button,toolId,cancel,run:event=>{
+      const requested=requestActionReview({message,button,toolId,title,cancel,run:event=>{
         if(!event?.isTrusted){cancel();return;}
         // Expiration only applies while approval has not been clicked. Once
         // submitted, a slow Chrome write must resolve from its real receipt.
@@ -956,14 +977,61 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         try{Promise.resolve(run(event)).then(v=>settle(true,v),e=>settle(false,e));}
         catch(e){settle(false,e);}
       }});
+      if(!requested){settle(false,Object.assign(new Error('Another decision is pending'),{code:'E_UI_CONFIRM_BUSY'}));return;}
       timer=setTimeout(()=>{
         if(pendingAction?.cancel!==cancel)return;
         if(toolId===ADBLOCK_ID){
-          pendingAction=null;patchToolField(view, actionReview, {hidden: true});
+          clearTimeout(pendingAction.timer);pendingAction=null;patchToolField(view, actionReview, {hidden: true});
           settle(false,Object.assign(new Error('可信确认等待超时，操作尚未提交'),{
             code:'E_ADBLOCK_CONFIRM_TIMEOUT'}));
         }else cancelActionReview();
       },90000);
+    });
+  }
+  function changedEditState(){
+    editRevision++;
+    if(pendingAction?.kind==='navigation'||pendingAction?.confirmationNavigation)cancelActionReview('invalidated');
+  }
+  function requestToolConfirmation(tool,token,epoch,options,{signal,requestId=null,navigation=null}={}){
+    const checked=normalizeToolUiConfirmOptions(options);
+    if(!checked)return Promise.reject(Object.assign(new Error('确认内容无效'),{code:'E_UI_CONFIRM_INPUT'}));
+    if(signal?.aborted||requestId&&cancelledConfirmations.has(requestId))
+      return Promise.resolve({action:'cancel',reason:'aborted'});
+    if(requestId&&confirmationCancellationOverflow)
+      return Promise.reject(Object.assign(new Error('当前实例的确认取消容量已耗尽'),{code:'E_UI_CONFIRM_OVERLOADED'}));
+    if(disposed||readOnlyPreview)return Promise.reject(Object.assign(new Error('确认界面不可用'),{code:'E_UI_CONFIRM_UNAVAILABLE'}));
+    const current=()=>!disposed&&instance===token&&active===tool&&frameRevocationEpoch===epoch&&
+      visible&&!toolParked&&samePackage(tool,toolById(tool.id))&&
+      (!navigation||navigation.snapshot===toolNavigation&&navigation.projectionRevision===navigationProjectionRevision&&
+        navigation.revision===toolNavigationRevision&&navigation.editRevision===editRevision&&!toolSaving);
+    if(!current())return Promise.resolve({action:'cancel',reason:'invalidated'});
+    return new Promise((resolve,reject)=>{
+      let settled=false;
+      const finish=(result,error)=>{
+        if(settled)return;settled=true;
+        signal?.removeEventListener('abort',abort);
+        if(error)reject(error);else resolve(result);
+      };
+      const abort=()=>{if(pendingAction===choice)cancelActionReview('aborted');};
+      const cancelLabel=checked.cancelLabel||({'zh-CN':'取消','zh-TW':'取消',en:'Cancel',ja:'キャンセル'}[toolLocaleContext(tool).locale]||'取消');
+      const choice=requestActionReview({...checked,cancelLabel,message:checked.message,button:checked.confirmLabel,
+        toolId:tool.id,requestId,kind:'confirmation',hidden:true,
+        run:()=>finish(current()?{action:'confirm'}:{action:'cancel',reason:'invalidated'}),
+        cancel:reason=>finish({action:'cancel',reason})});
+      if(!choice){finish(null,Object.assign(new Error('已有待决确认或审阅'),{code:'E_UI_CONFIRM_BUSY'}));return;}
+      choice.confirmationNavigation=navigation;
+      signal?.addEventListener('abort',abort,{once:true});
+      if(signal?.aborted){abort();return;}
+      void (async()=>{
+        await assertInstalledTool(tool,epoch,'确认期间安装身份已变化');
+        await assertSidebarToolEnabled(api,tool.id);
+        if(settled||pendingAction!==choice)return;
+        if(!current()){cancelActionReview('invalidated');return;}
+        patchToolField(view,actionReview,{hidden:false});
+      })().catch(error=>{
+        if(pendingAction===choice){pendingAction=null;clearTimeout(choice.timer);patchToolField(view,actionReview,{hidden:true});}
+        finish(null,error);
+      });
     });
   }
   // chrome.storage may reorder object properties; compare the validated schema values.
@@ -973,7 +1041,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const previous=toolById(pending.id);
     if(Boolean(previous)!==Boolean(pendingBaseline)||
       (previous&&!samePackage(previous,pendingBaseline)))return false;
-    if(previous&&samePackage(previous,pending))return false;
+    if(previous&&samePackage(previous,pending))return Boolean(pending.pageModule&&!pendingRelease);
     return !pendingRelease||!previous||versionOrder(pending.version,previous.version)>0;
   }
   const locked=(name,work)=>{
@@ -1047,6 +1115,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let sidebarAI=null;
   let localTaskBridge=null;
   function destroyFrame() {
+    cancelActionReview('invalidated');
+    confirmationNavigation=null;cancelledConfirmations.clear();confirmationCancellationOverflow=false;editRevision++;
     setConversationState({visible:false,open:false});
     videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate();
     sidebarAI?.dispose();sidebarAI=null;
@@ -1306,7 +1376,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // AdBlock product pages belong solely to the installed React sandbox.
     if(title)patchToolField(view, title, {hidden: false});
     patchToolField(view, settingsButton, {hidden: !managed});
-    patchToolField(view, settingsButton, {disabled: busy||sitePending});
+    patchToolField(view, settingsButton, {disabled: busy||sitePending||
+      Boolean(hasAppSettings()&&(toolSaving||toolDirty||pendingAction))});
     setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show));
     if(adblockProductSettings)patchToolField(view,adblockProductSettings,{
       hidden:!(show&&id===ADBLOCK_ID&&active?.uiRuntime==='opendesk.react-ui.v1'),
@@ -1317,6 +1388,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (isCookieTool(active)&&id!=='cookie-editor'));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
+    const appSettings=show&&hasAppSettings();
+    setToolFieldAttribute(view, display, 'data-app-settings', String(appSettings));
     // Cookie approval is in the dedicated trusted card above the frame.
     // The generic Settings page duplicates the management UI and must stay hidden.
     patchToolField(view, settingsView, {hidden: !show});
@@ -1350,7 +1423,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     // Unapproved Cookie operations remain gated by the Host, not iframe visibility.
-    frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||legacyAdblock;
+    frameRoot.hidden=(show&&!trustedInline&&!(appSettings&&toolNavigation.page===toolNavigation.settingsPage))||
+      !(frame||nativeUI)||legacyAdblock;
     renderCookieSettings(show);
     patchToolField(view,fullBookmarkSettings,{hidden:!(show&&managed&&isFullBookmarkTool(active))});
     const proxyTool=managed&&active.capabilities.includes('browser.proxy.managed');
@@ -1557,7 +1631,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>toolDirty||toolSaving||(!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty);
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
-  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview('invalidated');tocSettingsOpen=false;destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1568,14 +1642,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const toolBusyNotice='当前工具仍有未完成的操作，请完成或停止原操作后再切换。';
   function canLeave(onApproved) {
     if(toolSaving){notice(toolBusyNotice,true);return false;}
+    if(pendingAction)return false;
     // Prompt Shortcuts returns directly; pending and unknown writes report busy.
     if(active?.id===PROMPT_ID)return true;
     if(toolDirty||isDirty()){
-      const session=instance,toolId=active?.id;
+      const session=instance,toolId=active?.id,revision=editRevision,tool=active,epoch=frameRevocationEpoch;
       requestActionReview({
+        title:'放弃未保存内容？',tone:'danger',kind:'navigation',
         message:'「'+(active?.title||'当前工具')+'」有未保存内容。继续会丢弃本次未保存的编辑；也可以取消并先保存。',
         button:'放弃未保存内容并继续',toolId,
-        run:()=>{if(active?.id===toolId&&instance===session&&!toolSaving)return onApproved?.();}
+        run:()=>{if(active===tool&&instance===session&&editRevision===revision&&
+          frameRevocationEpoch===epoch&&!toolSaving&&isDirty())return onApproved?.();}
       });
       return false;
     }
@@ -1656,6 +1733,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         try{
           navigationAllowed=true;
           const dispose=trustedAIProxyPilot.mount({container:frameRoot,
+            ui:Object.freeze({confirm:(options,client)=>{
+              const event=doc.defaultView?.event;
+              if(!trustedNavigationDispatch&&!(event?.isTrusted&&
+                (event.type==='click'||event.type==='cancel'||event.type==='keydown'&&
+                  !event.isComposing&&!event.repeat&&['Enter',' ','Escape'].includes(event.key))))
+                return Promise.reject(Object.assign(new Error('请从当前用户操作发起确认'),{code:'E_GESTURE'}));
+              return requestToolConfirmation(tool,token,epoch,options,client);
+            }}),
             displaySurface:displaySurface==='page'?'page':'sidebar',
             initialPage:displaySurface==='page'?initialPage:null,
             openOwnPage:target=>openOwnToolPage({tool,token,epoch,target,trusted:true}),
@@ -1677,6 +1762,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               if(disposed||active!==tool||instance!==token)return;
               const changed=toolDirty!==Boolean(state?.dirty)||toolSaving!==Boolean(state?.busy);
               toolDirty=Boolean(state?.dirty);toolSaving=Boolean(state?.busy);
+              if(changed)changedEditState();
               if(changed)render();
             }});
           if(typeof dispose!=='function')throw new Error('可信 UI 未提供清理函数');
@@ -1919,7 +2005,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
           if(!(message?.kind==='open-ai-settings'&&Object.keys(message).length===5||
-             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open'].includes(message.operation))||
+             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open','ui.confirm'].includes(message.operation))||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -1931,6 +2017,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
         headerActionsAllowed:approvedNavigation&&headerActionsEnabled===true,
+        settingsPageAllowed:approvedNavigation,
+        ...(!readOnly&&transferred.length?{uiConfirm:{version:1}}:{}),
         displaySurface:displaySurface==='page'?'page':'sidebar',
         initialPage:displaySurface==='page'?initialPage:null,
         ...toolLocaleContext(tool)},'*',transferred);
@@ -3297,6 +3385,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(operation==='knowledge.editorState'){
       if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
       knowledgeDirty=payload.dirty;
+      changedEditState();
       return {dirty:knowledgeDirty};
     }
     // The SW owns the same per-tool lock as install/remove. Forward BEFORE
@@ -3724,6 +3813,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='ui-confirm-cancel'){
+      if(exportPort!==null||Object.keys(message).length!==5||
+        typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId))return;
+      // Window cancellation and port requests have no shared delivery order.
+      // Never evict a tombstone for a potentially undelivered request. Once
+      // capacity is exhausted, retire confirmation admission for this frame.
+      if(!cancelledConfirmations.has(message.requestId)){
+        if(cancelledConfirmations.size<128)cancelledConfirmations.add(message.requestId);
+        else confirmationCancellationOverflow=true;
+      }
+      if(pendingAction?.kind==='confirmation'&&pendingAction.requestId===message.requestId)
+        cancelActionReview('aborted');
+      else if(confirmationCancellationOverflow&&pendingAction?.kind==='confirmation')cancelActionReview('invalidated');
+      return;
+    }
     if(message.kind==='ui-notify'){
       // Tool-local presentation only: no page toast, no update badge, no
       // trusted install/review action and no arbitrary HTML or callbacks.
@@ -3809,13 +3913,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='dirty'){
       toolDirty=true;
+      changedEditState();
       if(readOnlyPreview)previewDirty=true;
       render();
       return;
     }
     if(message.kind==='edit-state'){
       if(typeof message.dirty==='boolean'&&typeof message.busy==='boolean'){
+        const changed=toolDirty!==message.dirty||toolSaving!==message.busy;
         toolDirty=message.dirty;toolSaving=message.busy;
+        if(changed)changedEditState();
         if(!toolSaving&&status.textContent===toolBusyNotice)notice('');
         render();
       }
@@ -3870,6 +3977,32 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const budget=checkSidebarToolRequestBudget(message);
     if(!budget.ok){
       reply(false,null,Object.assign(new Error('工具请求未通过容量或格式检查'),{code:budget.code}));
+      return;
+    }
+    if(message.operation==='ui.confirm'){
+      if(!exportPort){reply(false,null,Object.assign(new Error('确认需要当前用户操作'),{code:'E_GESTURE'}));return;}
+      const navigation=message.navigation;
+      let navigationContext=null;
+      if(navigation){
+        const original=confirmationNavigation;confirmationNavigation=null;
+        const expected=original&&{action:original.action,page:original.page,revision:original.revision,
+          ...(original.action==='header'?{actionId:original.actionId}:{})};
+        if(!original||original.tool!==tool||original.token!==token||original.epoch!==revocationEpoch||
+          original.page!==toolNavigation?.page||original.revision!==toolNavigationRevision||
+          original.snapshot!==toolNavigation||original.projectionRevision!==navigationProjectionRevision||
+          original.editRevision!==editRevision||toolSaving||
+          !navigation||typeof navigation!=='object'||Array.isArray(navigation)||
+          Object.keys(navigation).length!==Object.keys(expected).length||
+          !Object.keys(expected).every(key=>navigation[key]===expected[key])){
+          reply(false,null,Object.assign(new Error('原导航操作已失效'),{code:'E_GESTURE'}));return;
+        }
+        navigationContext=original;
+      }
+      if(Object.keys(message).length!==(navigation?8:7)){
+        reply(false,null,Object.assign(new Error('确认内容无效'),{code:'E_UI_CONFIRM_INPUT'}));return;
+      }
+      void requestToolConfirmation(tool,token,revocationEpoch,message.payload,{requestId:message.requestId,navigation:navigationContext})
+        .then(result=>reply(true,result),error=>reply(false,null,error));
       return;
     }
     if(message.operation==='knowledge.editorState'){
@@ -3950,7 +4083,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(active?.id==='cookie-editor')render();
     }
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
-      if(pendingAction?.cancel)cancelActionReview();
+      if(pendingAction)cancelActionReview('invalidated');
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
       enableReadEpoch++;enableRecords=changes[SIDEBAR_TOOL_ENABLE_STORE]?.newValue;
       try{requireToolEnableRecords(enableRecords);enableReadError=false;}catch{enableReadError=true;}
@@ -4370,8 +4503,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, updateWarning, {textContent: risks.join('；')});
       patchToolField(view, updateWarning, {hidden: !risks.length});
       const identical=samePackage(candidate,previous);
-      patchToolField(view, installButton, {textContent: identical?'已安装相同工具':'确认更新'});
-      patchToolField(view, installButton, {disabled: deferConfirmation||identical});
+      const repairCompanion=identical&&Boolean(candidate.pageModule)&&!release;
+      patchToolField(view, installButton, {textContent: repairCompanion?'核对并恢复网页模块':identical?'已安装相同工具':'确认更新'});
+      patchToolField(view, installButton, {disabled: deferConfirmation||identical&&!repairCompanion});
+      if(repairCompanion)patchToolField(view,updateImpact,{textContent:'应用包已保存。将核对网页模块，仅在原清理确认且模块缺失时补全安装；原有数据与启停状态保留，未知结果不会重放。'});
       if(release&&!identical&&change<=0){
         patchToolField(view, installButton, {disabled: true});
         patchToolField(view, updateWarning, {hidden: false});
@@ -4564,14 +4699,38 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, installButton, {disabled:true});
       // A stored readback alone cannot prove that this request registered in Chrome.
       // Query the original receipt, keep an explicit pending state, and never replay.
-      let readback='';
+      const baseline=installed?'r'+installed.revision:'未安装';
+      let readback=' 审阅时基线：'+baseline+'；当前状态未读回；本次请求仍未确认。';
+      patchToolField(view, previewDescription, {textContent:readback.trim()});
+      patchToolField(view, updateVersions, {textContent:
+        '审阅时基线：'+baseline+'；导入目标：v'+pkg.version+' · r'+pkg.revision+'；当前状态未读回'});
       try{
         if(!installationRequested)throw error;
         const response=await foundationClient.request('listPagePrograms',{});
         if(disposed||selection!==fileSelection)return;
         const result=response.installed?.find(row=>row.programId===pkg.programId);
-        if(result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash)
-          readback=' 已查询到原安装 r'+result.revision+'（'+result.nativeState+'）；仍需核对本次安装结果。';
+        const current=result?'r'+result.revision:'未找到此 programId 的安装记录';
+        const matches=result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash;
+        patchToolField(view, previewFile, {textContent:previewFile.textContent+
+          '\n当前安装状态读回：'+(result
+          ?'身份：'+result.programId+'；源码 SHA-256：'+(result.sourceHash||'未记录')+
+            '；固定清单 SHA-256：'+(result.manifestHash||'未记录')+
+            '；安装 ID：'+(result.authorization?.installationId||'未记录')+
+            '；generation：'+(result.authorization?.generation??'未记录')+
+            '；enabled：'+String(result.enabled)+
+            '；错误：'+(result.error?String(result.error.message||result.error):'无')
+          :current)});
+        readback=' 审阅时基线：'+baseline+'；当前读回版本：'+current+'；'+(result
+          ?'Chrome 注册：'+(result.nativeState||'未知')+'；授权：'+(result.authorization?.status||'未知')+'。'+
+            (result.managedCleanup&&result.managedCleanup.state!=='retired'
+              ?' 旧受管清理待核对：'+result.managedCleanup.state+
+                '（记录数：'+result.managedCleanup.records+'）。':'')+
+            (matches?' 版本与源码匹配导入目标，但只读回读不能确认本次请求成功。'
+              :' 当前记录与导入目标的版本或源码不匹配，不能确认目标已安装。')
+          :'不能确认目标已安装。')+' 本次请求仍未确认。';
+        patchToolField(view, previewDescription, {textContent:readback.trim()});
+        patchToolField(view, updateVersions, {textContent:
+          '审阅时基线：'+baseline+'；导入目标：v'+pkg.version+' · r'+pkg.revision+'；当前读回版本：'+current});
       }catch{/* Preserve the original failure; no mutation replay. */}
       const permissionDenied=!installationRequested&&error?.code==='E_PERMISSION';
       setToolFieldAttribute(view, pageInstallStatus, 'data-state', permissionDenied?'permission-denied':'pending-review');
@@ -4666,6 +4825,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,pageClient:foundationClient,
+        repairMissingPageModule:!release&&Boolean(candidate.pageModule)&&Boolean(baseline)&&samePackage(candidate,baseline),
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
         // The visible review includes the replacement source and exact bytes.
         // Its confirmation approves a local override as well as an official
@@ -4720,6 +4880,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '已安装「'+accepted.title+'」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。');
   }
   async function remove(id=active?.id,{confirmed=false,externalBaseline=null}={}) {
+    if(pendingAction)return false;
     if(installedReadError)throw new Error('安装记录待核对，无法卸载旧缓存中的工具');
     const item=toolById(id);
     if(!item||busy||disposed)return false;
@@ -4839,12 +5000,26 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        action==='secondary'&&!toolNavigation.secondary)return false;
     if(toolSaving){notice(toolBusyNotice,true);return true;}
     if(nativeUI?.kind==='ai-proxy'&&trustedNavigationHandler){
-      trustedNavigationHandler({action});return true;
+      try{
+        trustedNavigationDispatch=true;
+        Promise.resolve(trustedNavigationHandler({action})).catch(error=>notice(
+          '导航未完成：'+String(error?.message||error).slice(0,200),true));
+      }catch(error){notice('导航未完成：'+String(error?.message||error).slice(0,200),true);}
+      finally{trustedNavigationDispatch=false;}
+      return true;
     }
-    frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
-      kind:'navigation-action',instance,toolId:active.id,action},'*');
+    deliverBusinessNavigation({action});
     return true;
   };
+  function deliverBusinessNavigation(detail){
+    const message={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-action',instance,toolId:active.id,
+      ...detail,page:toolNavigation.page,revision:toolNavigationRevision};
+    confirmationNavigation={...detail,tool:active,token:instance,epoch:frameRevocationEpoch,
+      page:toolNavigation.page,revision:toolNavigationRevision,snapshot:toolNavigation,
+      projectionRevision:navigationProjectionRevision,editRevision};
+    if(frameExportPort)frameExportPort.postMessage(message);
+    else frame.contentWindow.postMessage(message,'*');
+  }
   // UI declarations never authorize operations. Re-read the actual installation
   // before delivery, then recheck the captured page/snapshot after that await.
   // No original trusted click or permission token is forwarded to the app.
@@ -4867,9 +5042,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          (epochs[tool.id]??null)!==epoch||active!==tool||instance!==token||!current())return;
       const detail={action:'header',actionId,page:toolNavigation.page};
       failureCode='E_TOOL_HEADER_ACTION';
-      if(nativeUI?.kind==='ai-proxy'&&trustedNavigationHandler)await trustedNavigationHandler(detail);
-      else if(frame?.contentWindow)frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
-        kind:'navigation-action',instance:token,toolId:tool.id,...detail,revision:toolNavigationRevision},'*');
+      if(nativeUI?.kind==='ai-proxy'&&trustedNavigationHandler){
+        let completion;
+        try{trustedNavigationDispatch=true;completion=trustedNavigationHandler(detail);}
+        finally{trustedNavigationDispatch=false;}
+        await completion;
+      }else if(frame?.contentWindow)deliverBusinessNavigation(detail);
     }catch(error){
       // Retired requests must not overwrite a newer instance/page's receipt.
       // A handler may already have produced effects: report, never replay or
@@ -5083,6 +5261,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       .finally(()=>{if(!disposed&&active&&samePackage(active,tool)){promptWebPending=false;render();}});
   }
   function closePromptSettings(){
+    if(hasAppSettings()){
+      if(toolDirty||toolSaving||pendingAction){notice(toolBusyNotice,true);return false;}
+      if(toolNavigation.page===toolNavigation.settingsPage)requestBusinessNavigation('back');
+    }
     const tool=active,remount=tool?.id===PROMPT_ID&&promptWebChanged;
     tocSettingsOpen=false;promptWebChanged=false;
     // The Extension Center's direct Settings action intentionally has no
@@ -5092,9 +5274,37 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       !enableReadError&&sidebarToolEnabled(enableRecords,tool.id);
     if(launchFromManagement||(remount&&!toolDirty&&!toolSaving))mountTool(tool);
     else render();
+    return true;
+  }
+  async function openAppSettings(){
+    const scope=headerScope(),tool=active,token=instance,epoch=frameRevocationEpoch;
+    const current=()=>hasAppSettings()&&active===tool&&instance===token&&scope===headerScope()&&
+      visible&&!toolParked&&!tocSettingsOpen&&!busy&&!toolSaving&&!toolDirty&&!pendingAction;
+    if(!current())return;
+    try{
+      const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+      if(!current())return;
+      const installedTool=requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]).find(row=>row.id===tool.id);
+      const epochs=requireToolRevocationEpochs(state[TOOL_REVOCATION_EPOCHS_STORE]);
+      if(!installedTool||!samePackage(tool,installedTool)||
+         !sidebarToolEnabled(state[SIDEBAR_TOOL_ENABLE_STORE],tool.id)||(epochs[tool.id]??null)!==epoch)return;
+      tocSettingsOpen=true;render();
+      frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-action',
+        instance:token,toolId:tool.id,action:'settings',page:toolNavigation.settingsPage,
+        revision:toolNavigationRevision},'*');
+      requestToolFieldEffect(view,backButton,'focus',{preventScroll:true});
+    }catch(error){
+      if(disposed||active!==tool||instance!==token||scope!==headerScope())return;
+      notice((error?.code||'E_TOOL_SETTINGS_READ')+'：设置入口未确认打开，请在原应用核对；不会自动重试。',true);
+    }
   }
   listen(settingsButton,'click',()=>{
     if(!active||readOnlyPreview||busy)return;
+    if(hasAppSettings()){
+      if(tocSettingsOpen)closePromptSettings();
+      else void openAppSettings();
+      return;
+    }
     if(active.id==='web-markdown-clipper'&&!tocSettingsOpen&&(toolDirty||toolSaving)){
       notice('请先保存或取消当前摘录的未保存修改，再打开工具设置。',true);return;
     }
@@ -5218,7 +5428,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
   listen(actionContinue,'click',event=>{void applyActionReview(event).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));});
-  listen(actionCancel,'click',()=>{cancelActionReview();view.showToast('已取消，原内容仍保留。');});
+  listen(actionCancel,'click',event=>{cancelActionReview(event?.reason==='escape'?'escape':'user');view.showToast('已取消，原内容仍保留。');});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{

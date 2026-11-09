@@ -12,10 +12,10 @@ function deferred() {
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
-function fixture({ save = async () => 'saved' } = {}) {
+function fixture({ save = async () => 'saved', ui } = {}) {
   const states = [];
   const env = configureEnvironment({ setState: value => states.push(value) }, null, {
-    trusted: true, preview: { service: {
+    trusted: true, ui, preview: { service: {
       async load() { return { etag: 'initial', config: {
         managed: false, schemaVersion: 2, selection: { mode: 'system' },
         endpoints: [], profiles: [], rules: [], sources: [], defaultTarget: { action: 'direct' }
@@ -59,7 +59,7 @@ test('confirmation finally releases busy on synchronous throw or asynchronous re
         if (asynchronous) return Promise.reject(failure);
         throw failure;
       });
-      await assert.rejects(async () => env.confirm('Delete?'), error => error === failure);
+      assert.equal(await env.confirm('Delete?'), false);
       assert.deepEqual(states.at(-1), { dirty: true, busy: false });
     } finally { env.dispose(); }
   }
@@ -103,21 +103,16 @@ test('confirmation and mutation release only their own pending count in either c
   }
 });
 
-test('overlapping confirmations keep busy until both settle', async () => {
-  const { env, states } = fixture();
-  const first = deferred(), second = deferred();
+test('second confirmation never overwrites the original resolver', async () => {
+  const {env,states}=fixture(),answer=deferred();let calls=0;
   try {
-    env.setConfirmHandler(() => first.promise);
-    const one = env.confirm('First?');
-    env.setConfirmHandler(() => second.promise);
-    const two = env.confirm('Second?');
-    first.resolve(false);
-    await one;
-    assert.equal(states.at(-1).busy, true);
-    second.resolve(true);
-    await two;
-    assert.equal(states.at(-1).busy, false);
-  } finally { env.dispose(); }
+    env.setConfirmHandler(()=>{calls++;return answer.promise;});
+    const first=env.confirm('First?');
+    assert.equal(await env.confirm('Second?'),false);
+    assert.equal(calls,1);assert.equal(states.at(-1).busy,true);
+    answer.resolve(true);assert.equal(await first,true);
+    assert.equal(states.at(-1).busy,false);
+  } finally {env.dispose();}
 });
 
 test('disposed confirmation cannot approve or publish into a replacement environment', async () => {
@@ -129,13 +124,90 @@ test('disposed confirmation cannot approve or publish into a replacement environ
   const replacement = fixture();
   try {
     answer.resolve(true);
-    await assert.rejects(confirmation, { code: 'E_TOOL_CHANGED' });
+    assert.equal(await confirmation,false);
     let invoked = false;
     old.env.setConfirmHandler(() => { invoked = true; return true; });
-    await assert.rejects(async () => old.env.confirm('Retry?'), { code: 'E_TOOL_CHANGED' });
+    assert.equal(await old.env.confirm('Retry?'),false);
     assert.equal(invoked, false);
     assert.equal(old.states.length, published);
     assert.deepEqual(replacement.states, []);
     assert.equal(await replacement.env.confirm('Delete?'), false);
   } finally { replacement.env.dispose(); }
+});
+
+
+test('injected UI is called synchronously with options and only action confirm approves',async()=>{
+ for(const result of [{action:'confirm'},{action:'cancel',reason:'escape'},true,{},null]){
+  let called=false;const {env}=fixture({ui:{confirm(options,client){
+   called=true;assert.equal(options.message,'Delete?');assert.equal(typeof options.title,'string');
+   assert.ok(client.signal instanceof AbortSignal);return Promise.resolve(result);
+  }}});
+  try {const answer=env.confirm('Delete?');assert.equal(called,true);assert.equal(await answer,result?.action==='confirm');}
+  finally {env.dispose();}
+ }
+});
+
+test('only explicit pre-send unavailable falls back; busy, timeout, rejection and cancel never do',async()=>{
+ for(const code of ['E_UI_CONFIRM_UNAVAILABLE','E_UI_CONFIRM_BUSY','E_TIMEOUT','E_UI_CONFIRM_INPUT','E_TOOL_CHANGED']){
+  for(const sync of [false,true]){
+   let local=0;const failure=Object.assign(Error(code),{code});
+   const {env}=fixture({ui:{confirm(){if(sync)throw failure;return Promise.reject(failure);}}});
+   try {env.setConfirmHandler(()=>{local++;return true;});assert.equal(await env.confirm('Delete?'),code==='E_UI_CONFIRM_UNAVAILABLE');assert.equal(local,code==='E_UI_CONFIRM_UNAVAILABLE'?1:0);}
+   finally {env.dispose();}
+  }
+ }
+});
+
+test('abort, expiry and handler cleanup settle promptly and consume late rejections',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ for(const ending of ['abort','expiry','cleanup','dispose']){
+  const answer=deferred();let signal;
+  const {env,states}=fixture();
+  const release=env.setConfirmHandler((_text,client)=>{signal=client.signal;return answer.promise;});
+  const client=new AbortController(),pending=env.confirm('Delete?',{signal:client.signal});
+  if(ending==='abort')client.abort();
+  if(ending==='expiry'){t.mock.timers.tick(119999);assert.equal(states.at(-1).busy,true);t.mock.timers.tick(1);}
+  if(ending==='cleanup')release();
+  if(ending==='dispose')env.dispose();
+  assert.equal(await pending,false);assert.equal(signal.aborted,true);
+  answer.reject(Error('late failure'));await new Promise(setImmediate);
+  env.dispose();
+ }
+});
+
+test('abort cannot replace an already delivered confirm and prevents a late confirm or unavailable fallback',async()=>{
+ for(const late of ['confirm','unavailable']){
+  const reply=deferred(),controller=new AbortController();let locals=0;
+  const {env}=fixture({ui:{confirm:()=>reply.promise}});
+  try {
+   env.setConfirmHandler(()=>{locals++;return true;});
+   const pending=env.confirm('Delete?',{signal:controller.signal});controller.abort();
+   assert.equal(await pending,false);
+   if(late==='confirm')reply.resolve({action:'confirm'});else reply.reject({code:'E_UI_CONFIRM_UNAVAILABLE'});
+   await new Promise(setImmediate);assert.equal(locals,0);
+  }finally {env.dispose();}
+ }
+ const controller=new AbortController(),{env}=fixture({ui:{confirm:async()=>({action:'confirm'})}});
+ try{assert.equal(await env.confirm('Delete?',{signal:controller.signal}),true);controller.abort();}
+ finally{env.dispose();}
+});
+
+test('tool.ui injection is the default and pre-aborted calls never reach it',async()=>{
+ let calls=0;
+ const env=configureEnvironment({ui:{async confirm(){calls++;return {action:'confirm'};}}},null,{trusted:true});
+ try{
+  const controller=new AbortController();controller.abort();
+  assert.equal(await env.confirm('Delete?',{signal:controller.signal}),false);assert.equal(calls,0);
+  assert.equal(await env.confirm('Delete?'),true);assert.equal(calls,1);
+ }finally{env.dispose();}
+});
+
+test('an obsolete handler cleanup cannot abort a new confirmation or clear its resolver',async()=>{
+ const {env}=fixture(),first=deferred(),second=deferred();
+ try{
+  const obsolete=env.setConfirmHandler(()=>first.promise),one=env.confirm('First?');
+  env.setConfirmHandler(()=>second.promise);assert.equal(await one,false);
+  const two=env.confirm('Second?');obsolete();second.resolve(true);assert.equal(await two,true);
+  first.reject(Error('obsolete late rejection'));await new Promise(setImmediate);
+ }finally{env.dispose();}
 });

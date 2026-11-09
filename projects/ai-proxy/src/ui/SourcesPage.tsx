@@ -303,8 +303,8 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
               <Button disabled={busy} aria-label={t('editNamedLocal',{name:endpoint.name})}
                 onClick={()=>openLocal(endpoint.id)}>{t('edit')}</Button>
               <Button disabled={busy||config.managed} className="quietDanger"
-                onClick={async()=>{if(await getEnvironment().confirm(t('confirmDeleteLocal',{name:endpoint.name})))
-                  void act({type:'DELETE_ENDPOINT',id:endpoint.id});}}>{t('delete')}</Button>
+                onClick={async()=>{const ifMatch=configEtag;if(await getEnvironment().confirm(t('confirmDeleteLocal',{name:endpoint.name})))
+                  void act({type:'DELETE_ENDPOINT',id:endpoint.id,ifMatch});}}>{t('delete')}</Button>
             </div>
           </article>;
         })}</div>}
@@ -339,8 +339,9 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
     && runtime.activeSelection?.mode === 'profile'
     && runtime.activeSelection.profileId === linkedProfile.id;
   async function deleteSource(id: string, name: string) {
+    const ifMatch=configEtag;
     if (!await getEnvironment().confirm(t('confirmDeleteSubscription',{name}))) return;
-    if (await act({type:'DELETE_SUBSCRIPTION',id})) navigateSubscription({kind:'list'});
+    if (await act({type:'DELETE_SUBSCRIPTION',id,ifMatch})) navigateSubscription({kind:'list'});
   }
   const back = () => route.kind === 'local' && route.id !== undefined
     ? navigate('profiles') : navigateSubscription({kind:'list'});

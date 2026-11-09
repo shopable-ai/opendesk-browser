@@ -62,6 +62,178 @@ test('installed tool ui.notify is bounded, tool-scoped and cannot forge a new up
   assert.equal(f.view.getSnapshot().toast.id,third.id);
 });
 
+const confirmOptions={title:'删除便签？',message:'删除后无法恢复。',confirmLabel:'删除',tone:'danger'};
+function confirmMessage(f,id='1',extra={}){
+  return {protocol:f.loaded.protocol,kind:'request',instance:f.loaded.instance,toolId:sample.id,
+    requestId:id,operation:'ui.confirm',payload:confirmOptions,...extra};
+}
+const confirmResponse=(f,id)=>f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+test('ui.confirm uses the private user-event port, reserves once, and returns only a choice',async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  assert.deepEqual(f.loaded.uiConfirm,{version:1});
+  f.ask('ui.confirm',confirmOptions,'forged');
+  assert.equal(confirmResponse(f,'forged').error.code,'E_GESTURE');
+  port.postMessage(confirmMessage(f));
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  const first=f.view.getSnapshot().fields['sidebar-tool-action-review'].data.id;
+  port.postMessage(confirmMessage(f,'2'));
+  await settle(()=>confirmResponse(f,'2'));
+  assert.equal(confirmResponse(f,'2').error.code,'E_UI_CONFIRM_BUSY');
+  assert.equal(f.view.getSnapshot().fields['sidebar-tool-action-review'].data.id,first);
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  await settle(()=>confirmResponse(f,'1'));
+  assert.deepEqual(confirmResponse(f,'1').result,{action:'confirm'});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+});
+for(const early of [true,false])test('ui.confirm cancellation wins before '+(early?'request delivery':'approval'),async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  const cancel=()=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,kind:'ui-confirm-cancel',instance:f.loaded.instance,toolId:sample.id,requestId:'1'}});
+  if(early)cancel();
+  port.postMessage(confirmMessage(f));
+  if(!early){await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);cancel();}
+  await settle(()=>confirmResponse(f,'1'));
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  assert.deepEqual(confirmResponse(f,'1').result,{action:'cancel',reason:'aborted'});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='response'&&row.requestId==='1').length,1);
+});
+test('ui.confirm validates text and retires on installation changes',async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  port.postMessage(confirmMessage(f,'1',{payload:{...confirmOptions,html:'<b>delete</b>'}}));
+  await settle(()=>confirmResponse(f,'1'));
+  assert.equal(confirmResponse(f,'1').error.code,'E_UI_CONFIRM_INPUT');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  port.postMessage(confirmMessage(f,'2'));
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:{[sample.id]:'changed'}}});
+  await settle(()=>confirmResponse(f,'2'));
+  assert.deepEqual(confirmResponse(f,'2').result,{action:'cancel',reason:'invalidated'});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+});
+test('ui.confirm navigation association matches the private original snapshot once',async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  headerMessage(f,{page:'editor',title:'编辑',canBack:true});
+  editMessage(f,{dirty:true,busy:false});
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='navigation-action'));
+  const sent=f.frame.contentWindow.sent.find(row=>row.kind==='navigation-action');
+  assert.equal(sent.page,'editor');assert.equal(sent.revision,1);
+  const navigation={action:'back',page:'editor',revision:1};
+  port.postMessage(confirmMessage(f,'1',{navigation:{...navigation,revision:2}}));
+  await settle(()=>confirmResponse(f,'1'));
+  assert.equal(confirmResponse(f,'1').error.code,'E_GESTURE');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  port.postMessage(confirmMessage(f,'2',{navigation}));
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  f.emit(f.elements['sidebar-tool-action-cancel'],'click',{reason:'escape'});
+  await settle(()=>confirmResponse(f,'2'));
+  assert.deepEqual(confirmResponse(f,'2').result,{action:'cancel',reason:'escape'});
+  port.postMessage(confirmMessage(f,'3',{navigation}));
+  await settle(()=>confirmResponse(f,'3'));
+  assert.equal(confirmResponse(f,'3').error.code,'E_GESTURE');
+});
+
+for(const change of ['page','snapshot','edit','input','busy','epoch'])
+for(const waitingForInstall of [false,true])
+test(`ui.confirm navigation invalidates on ${change} while ${waitingForInstall?'install read is pending':'visible'}`,async t=>{
+  let hold=false;
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{getHook:async()=>{if(hold){entered.resolve();await gate.promise;}}});
+  const port=f.frame.contentWindow.ports[0];
+  headerMessage(f,{page:'editor',title:'编辑',canBack:true});
+  editMessage(f,{dirty:true,busy:false});f.emit(f.elements['sidebar-tool-back'],'click');
+  hold=waitingForInstall;
+  port.postMessage(confirmMessage(f,'1',{navigation:{action:'back',page:'editor',revision:1}}));
+  if(waitingForInstall)await entered.promise;
+  else await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  if(change==='page')headerMessage(f,{page:'home',title:'首页',canBack:false},2);
+  if(change==='snapshot')headerMessage(f,{page:'editor',title:'新的编辑',canBack:true},2);
+  if(change==='edit')editMessage(f,{dirty:false,busy:false});
+  if(change==='busy')editMessage(f,{dirty:true,busy:true});
+  if(change==='input')f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,kind:'dirty',instance:f.loaded.instance,toolId:sample.id}});
+  if(change==='epoch')f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:{[sample.id]:'new-epoch'}}});
+  hold=false;gate.resolve();
+  // Clicking a stale presentation must never deliver confirm, even after the
+  // original async installation lookup completes.
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  await settle(()=>confirmResponse(f,'1'));
+  assert.deepEqual(confirmResponse(f,'1').result,{action:'cancel',reason:'invalidated'});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  await pause();
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='response'&&row.requestId==='1').length,1);
+});
+
+test('ui.confirm navigation rejects an edit revision changed before request delivery',async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  headerMessage(f,{page:'editor',title:'编辑',canBack:true});
+  editMessage(f,{dirty:true,busy:false});f.emit(f.elements['sidebar-tool-back'],'click');
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,kind:'dirty',instance:f.loaded.instance,toolId:sample.id}});
+  port.postMessage(confirmMessage(f,'1',{navigation:{action:'back',page:'editor',revision:1}}));
+  await settle(()=>confirmResponse(f,'1'));
+  assert.equal(confirmResponse(f,'1').error.code,'E_GESTURE');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+});
+
+test('ui.confirm cancellation overflow never evicts cancellations and retires instance confirmation admission',async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  const cancel=id=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,kind:'ui-confirm-cancel',instance:f.loaded.instance,toolId:sample.id,requestId:String(id)}});
+  // Repeated cancellation of one ID must not exhaust capacity.
+  for(let i=0;i<129;i++)cancel(1);
+  port.postMessage(confirmMessage(f,'2'));
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  for(let id=3;id<=130;id++)cancel(id);
+  await settle(()=>confirmResponse(f,'2'));
+  assert.deepEqual(confirmResponse(f,'2').result,{action:'cancel',reason:'invalidated'});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  // Delayed requests for both the retained and overflow IDs cannot reopen UI.
+  for(const id of ['3','130','131']){
+    port.postMessage(confirmMessage(f,id));await settle(()=>confirmResponse(f,id));
+    const response=confirmResponse(f,id);
+    if(id==='3')assert.deepEqual(response.result,{action:'cancel',reason:'aborted'});
+    else assert.equal(response.error.code,'E_UI_CONFIRM_OVERLOADED');
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  }
+  f.host.closeTool();f.host.openTool(sample.id);
+  const nextFrame=f.elements['sidebar-tool-frame'].children[0];await nextFrame.onload();
+  const nextLoad=nextFrame.contentWindow.sent.find(row=>row.kind==='load');
+  nextFrame.contentWindow.ports[0].postMessage({...confirmMessage(f,'1'),instance:nextLoad.instance});
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+});
+
+for(const early of [true,false])
+test(`ui.confirm navigation keeps repeated equal edit-state reports ${early?'before delivery':'while visible'}`,async t=>{
+  const f=await hostFixture(t),port=f.frame.contentWindow.ports[0];
+  headerMessage(f,{page:'editor',title:'编辑',canBack:true});
+  editMessage(f,{dirty:true,busy:false});f.emit(f.elements['sidebar-tool-back'],'click');
+  if(early)editMessage(f,{dirty:true,busy:false});
+  port.postMessage(confirmMessage(f,'1',{navigation:{action:'back',page:'editor',revision:1}}));
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  editMessage(f,{dirty:true,busy:false});
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  assert.equal(confirmResponse(f,'1'),undefined);
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  await settle(()=>confirmResponse(f,'1'));
+  assert.deepEqual(confirmResponse(f,'1').result,{action:'confirm'});
+});
+
+test('ui.confirm English default cancel label and application source preserve explicit labels',async t=>{
+  const f=await hostFixture(t,{localeController:{getLocale:()=> 'en',subscribe:()=>()=>{}}});
+  const port=f.frame.contentWindow.ports[0];
+  for(const [id,label] of [['1',undefined],['2','Keep note']]){
+    port.postMessage(confirmMessage(f,id,{payload:{...confirmOptions,...(label?{cancelLabel:label}:{})}}));
+    await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+    const data=f.view.getSnapshot().fields['sidebar-tool-action-review'].data;
+    assert.equal(data.cancelLabel,label||'Cancel');
+    assert.equal(data.source,'应用请求 · '+f.loaded.tool.title+' ('+sample.id+')');
+    f.emit(f.elements['sidebar-tool-action-cancel'],'click');await settle(()=>confirmResponse(f,id));
+  }
+});
+
 // Controller tests use ToolHost's state/actions and real runtime elements.
 // Only the iframe message transport is stubbed, never the retired product DOM.
 function toolRuntimeFixture() {
@@ -69,7 +241,10 @@ function toolRuntimeFixture() {
   const createElement=doc.createElement.bind(doc);
   doc.createElement=tag=>{
     const node=createElement(tag);
-    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message,_origin,ports){this.sent.push(message);if(ports?.length)this.ports=ports;}}});
+    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message,_origin,ports){
+      this.sent.push(message);
+      if(ports?.length){this.ports=ports;ports[0].on('message',message=>this.sent.push(message));}
+    }}});
     return node;
   };
   const view=createSidebarToolsView();
@@ -199,6 +374,7 @@ test('installed ScrapyJS uses its shared navigation without a matching release c
   }});
   assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+'/配置库');
   f.emit(f.elements['sidebar-tool-back'],'click');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='navigation-action'));
   assert.equal(f.frame.contentWindow.sent.length,before+1);
   assert.equal(f.frame.contentWindow.sent.at(-1).kind,'navigation-action');
   assert.equal(f.runtime.frameRoot.children.length,1,'the app handles its own Back without remounting');
@@ -212,9 +388,9 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
     protocol:f.loaded.protocol,toolId:official.id,instance:f.loaded.instance,
     kind:'navigation-state',state
   }});
-  const verifyAction=(field,action)=>{
+  const verifyAction=async(field,action)=>{
     const previous=f.frame.contentWindow.sent.length;
-    f.emit(f.elements[field],'click');
+    f.emit(f.elements[field],'click');await pause();
     assert.equal(f.frame.contentWindow.sent.length,previous+1,action+' stays inside the active sandbox');
     const message=f.frame.contentWindow.sent.at(-1);
     assert.equal(message.kind,'navigation-action');
@@ -227,17 +403,17 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.elements['sidebar-tool-title'].textContent,'提示词快捷按钮');
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,false);
   assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
-  verifyAction('sidebar-tool-primary-action','primary');
+  await verifyAction('sidebar-tool-primary-action','primary');
   send({page:'create',title:'新建提示词',canBack:true});
   assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/新建');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 新建提示词');
   assert.equal(f.elements['sidebar-tool-back'].title,'返回上一级');
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
-  verifyAction('sidebar-tool-back','back');
+  await verifyAction('sidebar-tool-back','back');
   send({page:'edit',title:'编辑提示词',canBack:true});
   assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/编辑');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 编辑提示词');
-  verifyAction('sidebar-tool-back','back');
+  await verifyAction('sidebar-tool-back','back');
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
   assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+'/设置');
   assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 设置');
@@ -900,6 +1076,38 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
+test('shared confirmation retains the first destination and executes it once',async t=>{
+  const f=await hostFixture(t);
+  editMessage(f,{dirty:true,busy:false});
+  assert.equal(f.host.setVisible(false),false);
+  const original=f.view.getSnapshot().fields['sidebar-tool-action-review'].data;
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.view.getSnapshot().fields['sidebar-tool-action-review'].data,original);
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  await pause();
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true,'the original hide destination wins');
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+for(const next of [{dirty:true,busy:true},{dirty:false,busy:false},{dirty:true,busy:false}])
+test('changed draft invalidates the pending leave intent '+JSON.stringify(next),async t=>{
+  const f=await hostFixture(t);
+  editMessage(f,{dirty:true,busy:false});
+  assert.equal(f.host.setVisible(false),false);
+  if(next.dirty&&!next.busy){
+    // The Bridge's dirty notification represents a new input. A repeated equal
+    // setState report alone is not evidence that the draft changed.
+    f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+      protocol:f.loaded.protocol,kind:'dirty',instance:f.loaded.instance,toolId:sample.id}});
+  }else editMessage(f,next);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+  await pause();
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame,'late approval cannot navigate');
+});
+
 test('actual sandbox state object clears host dirty state only after busy work ends',async t=>{
   const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),status=new Node(),sent=[];
   const parent={postMessage(data){sent.push(data);f.win.emit('message',{
@@ -1098,6 +1306,164 @@ const headerClicks=f=>f.frame.contentWindow.sent.filter(row=>row.kind==='navigat
 const clickHeader=(f,scope=f.elements['sidebar-tool-header-actions'].data.scope,actionId='library')=>
   f.emit(f.elements['sidebar-tool-header-actions'],'activate',{scope,actionId});
 
+const settingsHome={page:'home',title:'工具',canBack:false,settingsPage:'settings'};
+const settingsClicks=f=>f.frame.contentWindow.sent.filter(row=>row.kind==='navigation-action'&&row.action==='settings');
+function editMessage(f,state){
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:f.loaded.tool.id,instance:f.loaded.instance,kind:'edit-state',...state}});
+}
+async function settingsBridgeFixture(t,{allowed=true,navigationAllowed=true}={}){
+  const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),events=[],sent=[];
+  root.dispatchEvent=event=>{events.push(structuredClone(event.detail));return true;};
+  const parent={postMessage(data){sent.push(data);}};
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
+    normalizeToolUiNotice,window:sandboxWindow,parent,CustomEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:settings-contract',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:{...f.loaded,navigationAllowed,settingsPageAllowed:allowed}});
+  const deliver=(change={},source=parent)=>sandboxWindow.emit('message',{source,data:{
+    protocol:f.loaded.protocol,kind:'navigation-action',instance:f.loaded.instance,
+    toolId:sample.id,action:'settings',page:'settings',revision:1,...change}});
+  return {...f,sandboxWindow,sdk:sandboxWindow.OpenDeskTool,events,sent,deliver};
+}
+
+test('settings navigation accepts a bounded page id and omission clears the full snapshot',()=>{
+  const declared=normalizeToolNavigation({...settingsHome,settingsPage:'s'+'a'.repeat(31)});
+  assert.equal(declared.settingsPage,'s'+'a'.repeat(31));assert.ok(Object.isFrozen(declared));
+  const {settingsPage,...withoutSettings}=settingsHome;
+  assert.equal(Object.hasOwn(normalizeToolNavigation(withoutSettings),'settingsPage'),false);
+});
+for(const settingsPage of [null,{},[],true,1,'','Settings','a'.repeat(33),'https://example.com','../settings','settings\n'])
+test('settings navigation rejects unsafe page declaration '+JSON.stringify(settingsPage),()=>{
+  assert.equal(normalizeToolNavigation({...settingsHome,settingsPage}),null);
+});
+for(const [allowed,navigationAllowed] of [[false,true],[true,true],[true,false]])
+test(`settings Bridge feature requires Host negotiation (allowed=${allowed},navigation=${navigationAllowed})`,async t=>{
+  const f=await settingsBridgeFixture(t,{allowed,navigationAllowed}),enabled=allowed&&navigationAllowed;
+  assert.equal(f.sdk.navigationFeatures.settingsPage,enabled);
+  if(navigationAllowed)assert.equal(f.sdk.setNavigation(settingsHome),enabled);
+  else assert.equal(f.sdk.setNavigation,undefined);
+  assert.equal(f.sent.filter(row=>row.kind==='navigation-state').length,enabled?1:0);
+  f.deliver();assert.equal(f.events.length,enabled?1:0);
+});
+test('settings Bridge dispatches only the declared page and omission removes its route',async t=>{
+  const f=await settingsBridgeFixture(t);
+  assert.equal(f.sdk.setNavigation(settingsHome),true);f.deliver();
+  assert.deepEqual(f.events,[{action:'settings',page:'settings'}]);
+  assert.equal(f.sdk.setNavigation({page:'home',title:'工具',canBack:false}),true);
+  f.deliver({revision:2});assert.equal(f.events.length,1);
+});
+test('settings Bridge rejects a missing target when no settings page is declared',async t=>{
+  const f=await settingsBridgeFixture(t);
+  f.sdk.setNavigation({page:'home',title:'工具',canBack:false});f.deliver({page:undefined});
+  assert.deepEqual(f.events,[]);
+});
+for(const invalid of [{instance:'retired'},{toolId:'other-tool'},{page:'permissions'},
+  {revision:0},{revision:2},{revision:'1'}, {revision:undefined}])
+test('settings Bridge drops forged or stale '+JSON.stringify(invalid),async t=>{
+  const f=await settingsBridgeFixture(t);f.sdk.setNavigation(settingsHome);f.deliver(invalid);
+  assert.deepEqual(f.events,[]);
+});
+test('settings Bridge drops messages from a different window',async t=>{
+  const f=await settingsBridgeFixture(t);f.sdk.setNavigation(settingsHome);f.deliver({},{});
+  assert.deepEqual(f.events,[]);
+});
+test('settings Bridge rejects an earlier navigation revision after a new snapshot',async t=>{
+  const f=await settingsBridgeFixture(t);f.sdk.setNavigation(settingsHome);
+  f.sdk.setNavigation({...settingsHome,page:'library',canBack:true});f.deliver();
+  assert.deepEqual(f.events,[]);f.deliver({revision:2});
+  assert.deepEqual(f.events,[{action:'settings',page:'settings'}]);
+});
+for(const guard of ['dirty','busy','disposed'])test('settings Bridge blocks delivery while '+guard,async t=>{
+  const f=await settingsBridgeFixture(t);f.sdk.setNavigation(settingsHome);
+  if(guard==='disposed')f.sandboxWindow.emit('pagehide');
+  else f.sdk.setState({dirty:guard==='dirty',busy:guard==='busy'});
+  f.deliver();assert.deepEqual(f.events,[]);
+});
+
+for(const close of ['back','gear'])test('settings gear enters and returns through the same opaque iframe using '+close,async t=>{
+  const f=await hostFixture(t);headerMessage(f,settingsHome);
+  assert.equal(f.loaded.settingsPageAllowed,true);
+  const before=structuredClone([...f.store]);
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.deepEqual(settingsClicks(f),[{protocol:f.loaded.protocol,kind:'navigation-action',
+    instance:f.loaded.instance,toolId:sample.id,action:'settings',page:'settings',revision:1}]);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'home content is hidden until the app acknowledges its settings page');
+  headerMessage(f,{...settingsHome,page:'settings',title:'设置',canBack:true},2);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  f.emit(f.elements[close==='back'?'sidebar-tool-back':'sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(f.frame.contentWindow.sent.at(-1).action,'back');
+  headerMessage(f,settingsHome,3);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.deepEqual([...f.store],before,'presentation navigation cannot mutate installation, grants or private data');
+});
+for(const guard of ['dirty','busy'])test('settings gear cannot enter while the app is '+guard,async t=>{
+  const f=await hostFixture(t);headerMessage(f,settingsHome);
+  editMessage(f,{dirty:guard==='dirty',busy:guard==='busy'});
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(settingsClicks(f).length,0);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+});
+for(const close of ['back','gear'])for(const guard of ['dirty','busy'])
+test(`settings ${close} preserves the current iframe and mode while ${guard}`,async t=>{
+  const f=await hostFixture(t);headerMessage(f,settingsHome);
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(settingsClicks(f).length,1);
+  headerMessage(f,{...settingsHome,page:'settings',title:'设置',canBack:true},2);
+  editMessage(f,{dirty:guard==='dirty',busy:guard==='busy'});
+  const before=f.frame.contentWindow.sent.filter(row=>row.kind==='navigation-action').length;
+  f.emit(f.elements[close==='back'?'sidebar-tool-back':'sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='navigation-action').length,before);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+});
+test('settings gear no longer dispatches an app route after a full snapshot omits settingsPage',async t=>{
+  const f=await hostFixture(t);headerMessage(f,settingsHome);
+  headerMessage(f,{page:'home',title:'工具',canBack:false},2);
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');await pause();await pause();
+  assert.equal(settingsClicks(f).length,0);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+});
+for(const scenario of ['revision','omission','dirty','busy','instance','package','disabled','epoch'])
+test('settings gear drops queued delivery after '+scenario+' changes',async t=>{
+  const gate=deferred();let holding=false,entered=false;
+  t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{getHook:async keys=>{
+    if(holding&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      entered=true;await gate.promise;
+    }
+  }});
+  headerMessage(f,settingsHome);holding=true;
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');await settle(()=>entered);
+  if(scenario==='revision')headerMessage(f,{...settingsHome,page:'library',canBack:true},2);
+  if(scenario==='omission')headerMessage(f,{page:'home',title:'工具',canBack:false},2);
+  if(scenario==='dirty'||scenario==='busy')editMessage(f,{dirty:scenario==='dirty',busy:scenario==='busy'});
+  if(scenario==='instance'){
+    f.host.closeTool();f.host.openTool(sample.id);
+    await f.runtime.frameRoot.firstElementChild.onload();
+  }
+  if(scenario==='package')f.store.set(SIDEBAR_TOOL_STORE,[{...sample,js:'void 2;'}]);
+  if(scenario==='disabled')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+  if(scenario==='epoch')f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'revoked'});
+  holding=false;gate.resolve();await pause();await pause();
+  assert.equal(settingsClicks(f).length,0);
+  if(scenario==='instance')assert.equal(f.runtime.frameRoot.firstElementChild.contentWindow.sent
+    .filter(row=>row.kind==='navigation-action'&&row.action==='settings').length,0);
+});
+
 test('R14 current snapshot completes the Host round trip without remounting or business RPCs',async t=>{
   const f=await hostFixture(t);headerMessage(f,headerHome);
   assert.equal(f.loaded.headerActionsAllowed,true);
@@ -1113,7 +1479,7 @@ test('R14 current snapshot completes the Host round trip without remounting or b
   assert.equal(field.data.actions.length,1,'invalid conflict retains previous accepted state');
   headerMessage(f,{page:'home',title:'旧工具',canBack:false,secondary:'more'},3);
   assert.equal(field.hidden,true);assert.equal(f.elements['sidebar-tool-secondary-action'].hidden,false);
-  f.emit(f.elements['sidebar-tool-secondary-action'],'click');
+  f.emit(f.elements['sidebar-tool-secondary-action'],'click');await pause();
   assert.equal(f.frame.contentWindow.sent.at(-1).action,'secondary');
 });
 
@@ -1266,7 +1632,7 @@ test('R14 optional projection can be disabled while legacy navigation remains us
   assert.equal(f.loaded.headerActionsAllowed,false);
   headerMessage(f,headerHome);assert.equal(f.elements['sidebar-tool-header-actions'].hidden,true);
   headerMessage(f,{page:'library',title:'配置库',canBack:true});
-  f.emit(f.elements['sidebar-tool-back'],'click');
+  f.emit(f.elements['sidebar-tool-back'],'click');await pause();
   assert.equal(f.frame.contentWindow.sent.at(-1).action,'back');
   assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
 });
@@ -1351,7 +1717,7 @@ test('R14 Clipper legacy fallback replaces the enhanced snapshot without remount
   assert.notEqual(f.elements['sidebar-tool-header-actions'].data.scope,oldScope);
   clickHeader(f,oldScope);await pause();assert.equal(headerClicks(f).length,0);
   assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
-  f.emit(f.elements['sidebar-tool-back'],'click');
+  f.emit(f.elements['sidebar-tool-back'],'click');await pause();
   assert.equal(f.frame.contentWindow.sent.at(-1).action,'back');
   headerMessage(f,{...headerHome,page:'detail',title:'详情',canBack:true},2);
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true,

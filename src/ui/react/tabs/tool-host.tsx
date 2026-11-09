@@ -5,6 +5,7 @@ import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings}
 import {UninstallDialog} from './tools.tsx';
 import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
+import {Confirmation} from '../components/confirmation.tsx';
 
 const h=React.createElement.bind(React);
 const ToolContext = React.createContext(null);
@@ -79,8 +80,8 @@ function MarketCapabilityRow({code,isNew=false}){
 const HEADER_ACTION_ICONS=Object.freeze({
   new:'M12 5v14M5 12h14',
   edit:'M12 20h9M16 4l4 4M4 20l1-5L16 4l4 4L9 19z',
-  settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',
-  diagnostics:'M3 12h4l3-8 4 16 3-8h4',
+  settings:'M4 7h7m4 0h5M4 17h3m4 0h9 M15 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0 M11 17a2 2 0 1 0-4 0 2 2 0 0 0 4 0',
+  diagnostics:'M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0 M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4 M12 17h.01',
   subscriptions:'M5 17h14l-2-3V9a5 5 0 0 0-10 0v5z M10 21h4',
   library:'M4 4h4v16H4z M10 4h4v16h-4z M16 5l4-1 3 15-4 1z',
   list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
@@ -115,8 +116,9 @@ function ToolHeaderActions({view,field,available}) {
     (action.disabledReason===undefined||typeof action.disabledReason==='string')):[];
   const disabledReason=typeof field?.data?.disabledReason==='string'?field.data.disabledReason:'';
   const visible=available&&field?.hidden===false&&actions.length>0;
+  const inline=actions.length<=2&&actions.every(action=>Object.hasOwn(HEADER_ACTION_ICONS,action.icon));
   const snapshotKey=JSON.stringify([scope,actions,field?.disabled,disabledReason,visible]);
-  const open=visible&&!field.disabled&&opened===snapshotKey;
+  const open=visible&&!inline&&!field.disabled&&opened===snapshotKey;
   const close=(restore=false)=>{
     if(restore)triggerRef.current?.focus({preventScroll:true});
     setOpened(null);
@@ -172,6 +174,25 @@ function ToolHeaderActions({view,field,available}) {
     };
   },[open,view]);
   if(!visible)return null;
+  if(inline)return <div className="sidebar-tool-header-menu-slot sidebar-tool-header-inline-actions"
+    role="group" aria-label="应用操作">
+    {actions.map((action,index)=>{
+      const reason=disabledReason||action.disabledReason;
+      const disabled=field.disabled||Boolean(action.disabledReason);
+      return <React.Fragment key={action.id}>
+        <IconButton label={action.label} className="sidebar-tool-icon-action"
+          disabled={disabled} title={reason||action.label}
+          aria-describedby={reason?menuId+'-reason-'+index:undefined}
+          onClick={()=>{
+            if(disabled)return;
+            view.dispatch('sidebar-tool-header-actions','activate',{actionId:action.id,scope});
+          }}>
+          <HeaderActionIcon icon={action.icon}/>
+        </IconButton>
+        {reason&&<span id={menuId+'-reason-'+index} className="visually-hidden">{reason}</span>}
+      </React.Fragment>;
+    })}
+  </div>;
   return <div className="sidebar-tool-header-menu-slot">
     <IconButton ref={triggerRef} id="sidebar-tool-header-actions-trigger"
       label="更多操作" className="sidebar-tool-icon-action" disabled={field.disabled}
@@ -336,39 +357,18 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
     };
   },[importOpen,marketReview !== null,view]);
   const actionReviewVisible=snapshot.fields['sidebar-tool-action-review']?.hidden===false;
-  React.useEffect(()=>{
-    if(!actionReviewVisible)return;
-    const panel=refs.current.get('sidebar-tool-action-review');
-    const doc=panel?.ownerDocument,prior=doc?.activeElement;
-    refs.current.get('sidebar-tool-action-cancel')?.focus({preventScroll:true});
-    return ()=>{
-      if(prior?.isConnected&&(panel?.contains(doc.activeElement)||doc.activeElement===doc.body))
-        prior.focus?.({preventScroll:true});
-    };
-  },[actionReviewVisible,view]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
-  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" aria-describedby="sidebar-tool-action-summary" hidden={true}
-  onKeyDown={event=>{
-    if(event.key==='Escape'){
-      event.preventDefault();event.stopPropagation();
-      view.dispatch('sidebar-tool-action-cancel','click',event.nativeEvent);
-    }
-  }}>
-<h2 className="sidebar-tool-action-title">确认操作</h2>
-<ToolField as="p" id="sidebar-tool-action-summary" role="status">
-
-</ToolField>
-<div className="sidebar-tool-action-buttons">
-<ToolField as="button" type="button" id="sidebar-tool-action-continue" className="od-button">
-{"继续"}
-</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-action-cancel" className="od-button od-button--secondary">
-{"取消"}
-</ToolField>
-
-</div>
-
-</ToolField>
+  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack">
+<Confirmation open={actionReviewVisible}
+  identity={snapshot.fields['sidebar-tool-action-review']?.data?.id}
+  title={snapshot.fields['sidebar-tool-action-review']?.data?.title||'确认操作'}
+  source={snapshot.fields['sidebar-tool-action-review']?.data?.source}
+  message={snapshot.fields['sidebar-tool-action-summary']?.textContent||''}
+  confirmLabel={snapshot.fields['sidebar-tool-action-continue']?.textContent||'继续'}
+  cancelLabel={snapshot.fields['sidebar-tool-action-review']?.data?.cancelLabel||'取消'}
+  tone={snapshot.fields['sidebar-tool-action-review']?.data?.tone}
+  onConfirm={event=>view.dispatch('sidebar-tool-action-continue','click',event)}
+  onCancel={reason=>view.dispatch('sidebar-tool-action-cancel','click',{reason})}/>
 
 <ImportSheet open={importOpen} blockFiles={marketReview !== null} busy={Boolean(marketReview?.busy)}
   onBackdrop={event=>marketReview ? dismissImport() : view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}

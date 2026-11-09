@@ -30,7 +30,7 @@ function harness({taskScope=scope,taskIntent=intent}={}){
       querySelectorAll:selector=>$(node).find(selector).toArray().map(wrap)};
     nodes.set(node,value);return value;
   };
-  const sandbox=vm.createContext({location:new URL(source.url),TextEncoder,
+  const sandbox=vm.createContext({location:new URL(source.url),TextEncoder,crypto:globalThis.crypto,
     document:{querySelectorAll:selector=>$(selector).toArray().map(wrap)},
     getComputedStyle:node=>({display:node.getAttribute('data-hidden')==='true'?'none':'block'})});
   let data={},afterWrite=()=>{},afterRead=()=>{},frame={...source,documentLifecycle:'active'},contexts=[
@@ -95,6 +95,19 @@ test('unchanged complete candidate submits once through the original guard and c
   const h=harness(),admitted=await h.admit();let starts=0;
   const submit=async()=>{starts++;return {runId:'original-authority-run'};};
   assert.deepEqual(await h.gate.withControllerAdmission(h.request(admitted),panel,submit),{runId:'original-authority-run'});
+  await assert.rejects(h.gate.withControllerAdmission(h.request(admitted),panel,submit),{code:'E_BRIDGE_REPLAY'});
+  assert.equal(starts,1);
+});
+
+test('human explanation plus one task block admits only the exact task once',async()=>{
+  const h=harness();
+  h.$('pre').before('<p>准备通过本机百度搜索 OpenDesk Browser，读取前三条自然网页结果；等待本机执行。</p>');
+  const observed=await h.read();
+  assert.deepEqual(Array.from(observed.blocks),[JSON.stringify(intent)]);
+  const admitted=await h.admit();let starts=0;
+  const submit=async()=>{starts++;return {runId:'two-part-reply-run'};};
+  await assertWebFlowReplyCandidate(h.api,source,admitted.candidate);
+  assert.deepEqual(await h.gate.withControllerAdmission(h.request(admitted),panel,submit),{runId:'two-part-reply-run'});
   await assert.rejects(h.gate.withControllerAdmission(h.request(admitted),panel,submit),{code:'E_BRIDGE_REPLAY'});
   assert.equal(starts,1);
 });

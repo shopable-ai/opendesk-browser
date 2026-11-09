@@ -9,6 +9,7 @@ import {originStorageKey,preferenceState,updateStored,updateOrigin} from '../src
 import {resolveUiLocale,uiMessage} from '../src/page/localization.js';
 import catalog from '../trusted/locales.generated.js';
 
+const appCatalog=JSON.parse(await readFile(new URL('../locales.json',import.meta.url),'utf8'));
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function storage(initial={}){
  const values=structuredClone(initial),versions={},writes=[];
@@ -170,7 +171,7 @@ class SidebarNode{
   selector==='button'?n.tagName==='BUTTON':selector==='input'?n.tagName==='INPUT':
   selector==='input[data-toc-setting]'?n.dataset.tocSetting:selector==='[data-setting-label]'?n.settingLabel:false);}
 }
-async function sidebarFixture({navigation=false,rejectActions=false}={}){
+async function sidebarFixture({navigation=false,rejectActions=false,settingsPage=false,rejectSettings=false,snapshotError=null}={}){
  const fields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
  const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error','toc-settings-open','toc-settings-back','toc-free-view'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
  const modes=['top','focus','full','ai'].map(mode=>{const n=new SidebarNode('button');n.dataset.tocMode=mode;return n;});
@@ -184,7 +185,10 @@ async function sidebarFixture({navigation=false,rejectActions=false}={}){
  const states=[],navigations=[];
  const request=async(name,payload)=>{
   requests.push({name,payload});
-  if(name==='page.request')return payload.operation==='toc.snapshot'?data:{ok:true};
+  if(name==='page.request'){
+   if(payload.operation==='toc.snapshot'&&snapshotError)throw snapshotError;
+   return payload.operation==='toc.snapshot'?data:{ok:true};
+  }
   if(name==='storage.get')return store.get(payload);
   if(name==='storage.set'){
    if(saveGate)await saveGate;
@@ -198,17 +202,70 @@ async function sidebarFixture({navigation=false,rejectActions=false}={}){
   throw Error('Unexpected operation '+name);
  };
  const document=events({createElement:tag=>new SidebarNode(tag),createDocumentFragment:()=>new SidebarNode('fragment'),hidden:false});
- const sidebarCatalog={sourceLocale:catalog.sourceLocale,messages:Object.fromEntries(Object.entries(catalog.messages).map(([locale,rows])=>[locale,Object.fromEntries(Object.entries(rows).map(([key,value])=>[key,typeof value==='string'?value:value.text]))]))};
+ const sidebarCatalog={sourceLocale:appCatalog.sourceLocale,messages:Object.fromEntries(Object.entries(appCatalog.messages).map(([locale,rows])=>[locale,Object.fromEntries(Object.entries(rows).map(([key,value])=>[key,typeof value==='string'?value:value.text]))]))};
  const window=events(),timers=new Map();let serial=0;
  runInNewContext(await readFile(new URL('../src/main.js',import.meta.url),'utf8'),{
   globalThis:{OpenDeskTool:{root,request,setState(state){states.push({...state});},onLocaleChange(fn){localeChange=fn;},messages:sidebarCatalog,locale:'en',
-   ...(navigation?{navigationFeatures:{headerActions:true},setNavigation(state){navigations.push(state);return !(rejectActions&&state.headerActions);}}:{})}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
+   ...(navigation?{navigationFeatures:{headerActions:true,settingsPage},setNavigation(state){navigations.push(state);return !(rejectActions&&state.headerActions)&&!(rejectSettings&&state.settingsPage);}}:{})}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
   document,window,URL,Intl,setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id)});
  await tick();await tick();
- return {root,containers,navigations,nodes,inputs,modes,store,requests,window,states,conflict(){conflict=true;},quota(){quota=true;},
+ return {root,containers,navigations,nodes,inputs,modes,store,requests,window,document,timers,states,setSnapshotError(error){snapshotError=error;},
+  async runTimers(){const pending=[...timers];for(const [id,{fn}] of pending){timers.delete(id);fn();}await tick();await tick();},
+  conflict(){conflict=true;},quota(){quota=true;},
   unconfirmed(){unconfirmed=true;},holdSave(){saveGate=new Promise(resolve=>{releaseSave=resolve;});},
   releaseSave(){releaseSave();saveGate=null;},changeLocale(next){localeChange(next);}};
 }
+for(const code of ['E_APP_PAGE_OWNER','E_PAGE_INSTALLATION']){
+ test(`sidebar ${code} shows localized installation repair instructions`,async()=>{
+  const f=await sidebarFixture({snapshotError:Object.assign(Error('Companion installation missing or changed'),{code})});
+  try{
+   assert.equal(f.nodes['toc-error'].hidden,false);
+   assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages.en.installationRepair.text);
+   f.changeLocale('zh-CN');
+   assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages['zh-CN'].installationRepair);
+   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,1);
+  }finally{f.window.fire('pagehide');}
+ });
+ test(`sidebar ${code} stops timer polling until an explicit retry`,async()=>{
+  const f=await sidebarFixture({snapshotError:Object.assign(Error('Companion installation missing or changed'),{code})});
+  try{
+   assert.equal(f.timers.size,0);
+   await f.runTimers();
+   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,1);
+  }finally{f.window.fire('pagehide');}
+ });
+}
+test('sidebar manual refresh restores the outline and polling after companion repair',async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('Companion installation missing or changed'),{code:'E_PAGE_INSTALLATION'})});
+ try{
+  f.setSnapshotError(null);f.nodes['toc-refresh'].fire('click');await tick();await tick();
+  const snapshots=f.requests.filter(r=>r.payload?.operation==='toc.snapshot');
+  assert.equal(snapshots.length,2);assert.equal(snapshots[1].payload.payload.refresh,true);
+  assert.equal(f.nodes['toc-error'].hidden,true);assert.equal(f.nodes['toc-list'].children.length,1);
+  assert.equal(f.timers.size,1);
+  await f.runTimers();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,3);
+ }finally{f.window.fire('pagehide');}
+});
+test('sidebar visibility return retries a repaired companion without polling while hidden',async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('Companion installation missing or changed'),{code:'E_APP_PAGE_OWNER'})});
+ try{
+  f.setSnapshotError(null);f.document.hidden=true;f.document.fire('visibilitychange');await tick();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,1);
+  f.document.hidden=false;f.document.fire('visibilitychange');await tick();await tick();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,2);
+  assert.equal(f.nodes['toc-error'].hidden,true);assert.equal(f.nodes['toc-list'].children.length,1);
+ }finally{f.window.fire('pagehide');}
+});
+test('sidebar transient snapshot errors retain automatic timer retry',async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('Temporary disconnect'),{code:'E_TEMPORARY'})});
+ try{
+  assert.match(f.nodes['toc-error'].textContent,/Retrying automatically: Temporary disconnect/);
+  assert.equal(f.timers.size,1);f.setSnapshotError(null);await f.runTimers();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,2);
+  assert.equal(f.nodes['toc-error'].hidden,true);
+ }finally{f.window.fire('pagehide');}
+});
 test('sidebar uses page.request for snapshots/navigation and settings CAS merges independent edits',async()=>{
  const f=await sidebarFixture();assert.equal(f.nodes['toc-list'].children.length,1);
  f.nodes['toc-list'].children[0].children[0].fire('click');await tick();
@@ -251,6 +308,28 @@ test('settings use a header action and subpage while preserving the outline and 
  const count=f.navigations.length;f.window.fire('pagehide');
  f.root.fire('opendesk-tool-navigation',{detail:{action:'header',page:'home',actionId:'settings'}});
  assert.equal(f.navigations.length,count);
+});
+test('shared gear shows app settings without another header action and preserves outline on return',async()=>{
+ const f=await sidebarFixture({navigation:true,settingsPage:true});
+ assert.equal(f.navigations.at(-1).settingsPage,'settings');
+ assert.equal(f.navigations.at(-1).headerActions,undefined);
+ assert.equal(f.nodes['toc-settings-open'].hidden,true);
+ f.modes[2].fire('click');const outline=f.nodes['toc-list'].children;
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'settings',page:'settings'}});
+ assert.equal(f.nodes['toc-settings'].hidden,false);
+ assert.equal(f.navigations.at(-1).page,'settings');
+ assert.equal(f.navigations.at(-1).settingsPage,'settings');
+ assert.equal(f.requests.filter(r=>r.name==='storage.set').length,0);
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
+ assert.equal(f.nodes['toc-settings'].hidden,true);
+ assert.equal(f.modes[2].attributes.get('aria-pressed'),'true');
+ assert.equal(f.nodes['toc-list'].children,outline);f.window.fire('pagehide');
+});
+test('declined shared settings keep the existing header action fallback',async()=>{
+ const f=await sidebarFixture({navigation:true,settingsPage:true,rejectSettings:true});
+ assert.equal(f.navigations.at(-1).headerActions[0].id,'settings');
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'header',page:'home',actionId:'settings'}});
+ assert.equal(f.nodes['toc-settings'].hidden,false);f.window.fire('pagehide');
 });
 test('old or declined header actions keep a local gear and safe back navigation',async()=>{
  for(const options of [{},{navigation:true,rejectActions:true}]){

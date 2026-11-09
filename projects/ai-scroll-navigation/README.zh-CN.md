@@ -1,6 +1,57 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-## 当前：真实 AI 自动配置核心已完成（2026-11-09）
+## 当前：0.4.14 包已生成，本机新版运行与安装待核对（2026-11-09）
+
+左下角定位修正已通过原 Program Builder 和 Page 安装包生成器封装。工具目录唯一正式包为 **0.4.14/r18**，保留 ChatGPT、DeepSeek、Gemini 三个 HTTPS 匹配；本机更新候选为 **0.4.14/r20261112**，精确保留原安装的六条匹配（包含三条既有本地 fixture），不增加权限。两包五个业务模块逐字节相同，业务 bundle 相同，差异只来自匹配声明和 revision。两包来源、身份、SHA 与格式校验通过，相关安装包及导入定向测试通过；前述浮层 28 项测试继续复用，没有修改源码后重复全组检查。
+
+| 包 | sourceHash | packageHash |
+| --- | --- | --- |
+| 正式 r18 | `f7294eea10ca395a821b893d086fce487563c860368dbadffae1a7bdd2a57f0f` | `c088db930c72524075413bd788a96dc64ffc263b14a48aa18613af5a31852699` |
+| 本机 r20261112 | `7992b0f3bbc98df0bcdbee9903c13978363b816a289db49f3b9ee91d1f553aa2` | `37911761df8563afe6ae900fc5d61af0bcdc87bf6e92dcff03f2c056e2803873` |
+
+经用户授权，仅接管 Space 33 的原 ChatGPT 页，备份写作内容与聊天草稿、确认没有在途任务后关闭重开。两处编辑内容与备份完全一致，原文档已消失；随后保留重开页并归还空间。当时旧安装的 21 条清理记录已自动转为 `retired`，未重放清理或修改账本。私有草稿备份仅存本机受限目录，不纳入公开证据或提交。
+
+随后通过原生 Side Panel 审阅并提交一次本机更新。原 installationId 保留，generation 从 8 变为 9，当前为 `active / enabled / registered`，无安装记录 error；任务自身的真实 ChatGPT 长对话已执行上述 sourceHash，执行记录为 `completed`。网站规则、选择器、五项导航开关及 ETag 与安装前一致。真实网页检查结果：
+
+- 1031×703 时 dock 为 `(349,539)`、42×90，保留对话区左下位置，真实点击回顶到 `0`。
+- 390×600 时 dock 为 `(68,538)`、90×42 横排，真实回顶和稳定页面触底均有效；触底复查为 `10498 / 10498`。测试后已清除设备尺寸模拟。
+- ChatGPT 虚拟内容在第一次跳底后继续增加高度；正常尺寸首次未到最终底部，第二次真实点击到 `8576 / 8576`。不将该结果描述为动态加载过程中一次点击必达最终底部。
+
+**安装尚未完整核对：** 更新请求返回 `E_PAGE_INSTALL_PENDING`，当前 `managedCleanup=unknown`。共享开发运行时期间发生更新；只读核对仍有 Space 33 重开页及 Space 38 两个 ChatGPT 页的旧文档存活，任务自身旧文档已消失。另三页的处理授权尚待回复，未再次接管。原生设置界面仍返回 `E_REVISION`，本轮未完成新版设置页的停用/恢复复验；配置一致性是只读存储证据。未重复安装、放宽来源或身份校验、重放清理或改写运行记录。
+
+运行环境仍为 `dist/development`，原扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，原生扩展管理界面已核实实际加载路径。未启动或停止共享 watcher，未覆盖其输出；持续 serve 连接未证明，不能把已加载 development 包冒称 production。正式三站包真实安装、DeepSeek/Gemini、production、完整矩阵和独立评分均为 `NOT_TESTED`，发行继续 `blocked`。本任务未提交或推送；Ego Lite 有可用更新，本轮未升级。
+
+证据：[两包来源校验](../../artifacts/ai-scroll-navigation-0414-20261109/package-verification.json)、[授权单页处理](../../artifacts/ai-scroll-navigation-0414-20261109/old-document-resolution.json)、[安装读回及配置一致性](../../artifacts/ai-scroll-navigation-0414-20261109/final-readback.json)、[正常/窄屏导航](../../artifacts/ai-scroll-navigation-0414-20261109/custom-navigation.json)、[窄屏触底复查](../../artifacts/ai-scroll-navigation-0414-20261109/narrow-bottom-recheck.json)。
+
+## 前轮：左下角定位修正（2026-11-09）
+
+用户反馈 `data-opendesk-ai-scroll-navigation="dock"` 会跑到页面上方。定位确认：旧碰撞策略会不断寻找控件上方的空隙，原回归甚至接受 1031×703 视口中的 `top:159px`；自定义规则默认横坐标还会跟随首尾消息缩进。此轮在原业务模块修正，不改安装权限、网站规则或 Browser Framework。
+
+现在以主区域、实际滚动容器 client 区域和可见视口的交集为基准，排除边框与滚动条，并处理容器缩放。默认位置固定在可见对话区左下方；碰撞先在底部附近横向避让（最多 160px 且不超过区域宽度的 25%），再有限上移（最多 54px 且不超过区域高度的 15%），没有安全位置时隐藏，不跳到页面上方或最右侧。显式选择的锚点保留；容器尺寸及 visualViewport 变化会更新位置，窄屏保留底部横排。
+
+浮层及运行可靠性定向 **28 PASS、0 FAIL**，语法检查通过；只读复审发现的滚动条边界及观察器覆盖缺口已修正。ego 中用当前源码渲染的合成页面验证：拥挤布局 1031×703 的 dock 为 `(436,539)`，真实点击回顶/到底为 `0 → 2897`；390×600 窄屏为 `(8,538)`、90×42 横排。合成页面不是已安装脚本或真实网站更新证据。原 Program Builder 已生成当前固定字节 `78d6f99db7dab5b861540ce1a89a93bb934697d60c1585e345d510ffa4c52b34`，状态仍为 `BUILT_UNVERIFIED`，正式 r17 包未更新。
+
+**当前安装尚未更新：** 本轮只读实查 ego 仍为 r20261111、enabled / registered，`managedCleanup=unknown`、21 条记录。未重放清理、重复安装、改账本或干预其他 TaskSpace。浏览器验证资源已释放；共享 watcher 和日常加载目录未改动。证据：[定位验证](../../artifacts/ai-scroll-dock-position-20261109/result.json)、[合成页面桌面截图](../../artifacts/ai-scroll-dock-position-20261109/after-desktop.png)、[窄屏截图](../../artifacts/ai-scroll-dock-position-20261109/after-compact.png)。本轮未提交或推送，未做 production 或正式安装验收。
+
+## 前轮：日常可用性复验（2026-11-09）
+
+**ChatGPT 两个原有长对话均可刷新后自动显示导航，并真实点击回顶、到底。** 第一页滚动范围约 17156px，第二页约 1168px；未向网站发送消息。原真实 AI 自动配置与 Stop/Chat 草稿证据继续复用，本轮没有重复模型请求。DeepSeek、Gemini 未找到现有官方已登录长对话，均为 `NOT_TESTED`；不以非官方网站、空首页或 Node 测试代替。
+
+刷新复验发现一处业务缺陷：自定义规则的六个固定浮层位置全部与原生控件、提示词悬浮栏冲突时，即使上方仍有空隙也隐藏导航。本轮在原 `src/floating-navigation.js` 复用同列控件上方的候选位置，保留全部区域、视口与碰撞保护。新增真实几何回归先失败，修复后浮层/配置定向检查 **49 PASS、0 FAIL**，语法与定向 diff 检查通过；未机械重跑前轮测试。
+
+已通过原安装器审阅更新本机临时候选 **0.4.13/r20261111**，六条匹配范围、`page.dom`/`page.config`、USER_SCRIPT 世界及原 installationId 不变，generation 8、enabled / active / registered。五个业务模块与实际候选来源一致，两份当前文档均为 r20261111 / completed。候选 sourceHash `35b79377dccc5f1643c07972e7129754385f24c94d77b3b2d285bdafc2ad685e`，packageHash `8b4b5accaf1e6deea35a37e616a5059accea326319b50098aa75da5679008f3d`；仅为本机审阅更新，目录正式 r17 包未晋升。
+
+原生侧栏完成“停用规则 → 关闭重开仍停用 → 恢复规则 → 再次关闭重开”。**停用自定义规则会回退 ChatGPT 内置适配，不等于停用该网站全部导航。** 最终网站、路径、四个选择器及五项导航开关与本轮基线完全一致；两次保存后的 ETag 为 `5f85dd75-db94-4ae9-8d31-4f482812420a`，关闭重开后保持一致。
+
+**保留限制：** 期间共享 dev runtime revision 发生变化，末次安装读回 `managedCleanup=unknown`（21 条记录），界面提示部分旧网页状态待确认；当前两页可用不证明旧文档全部清理完成。未重放清理、改账本或再次安装，不将本轮称为安装生命周期或 production 验收通过。继续复用唯一 watcher 16888、43119 和 `dist/development`；原加载路径沿用前轮已核实设置，本轮复核 ID、serve 和 applied/output 指纹，未重新打开扩展加载路径界面。Native、模型配置与其他 TaskSpace 未修改。
+
+证据：[日常结果](../../artifacts/ai-scroll-usage-20261109/result.json)、[当前配置/来源/执行读回](../../artifacts/ai-scroll-usage-20261109/final-readback.json)、[脱敏原生 UI 记录](../../artifacts/ai-scroll-usage-20261109/native-ui.json)。源码与回归在复验期间已被并行提交 `6fadef04c` 纳入；本任务未发起提交或推送，当前文档追加尚未提交。production、正式发行、完整矩阵、独立评分及双浏览器 Native 验收继续延期。
+
+用户自查：打开已有 ChatGPT 长对话 → 刷新 → 点击浮层回顶/到底 → 在扩展中重开导航设置核对五项开关 → 管理自定义网站并停用/恢复规则 → 返回长对话确认导航正常。无须再次发送 AI 配置请求。
+
+TaskSpace 38 已执行一次 finish 并归还，保留两个原 ChatGPT 页面与两份非本任务页面，无剩余临时托管页；共享 watcher 和服务继续运行。Ego Lite 提示有更新，本轮未升级。
+
+## 前轮：真实 AI 自动配置核心已完成（2026-11-09）
 
 在真实 ChatGPT 长对话中，经原共享 AI Chat 发送“自动配置当前网站的滚动导航”，本机 Codex 已完成观察、候选选择和原保存流程。界面返回“已保存并读回”，配置版本为 `c759aaf2-5762-4883-b276-2e5bc8f12182`；关闭重开侧栏以及真实 Stop 后，只读核对的配置与 ETag 完全一致。实际点击网页原导航按钮，滚动位置从 3430.5 回到 0，再到 3430.5（最大 3431）。
 

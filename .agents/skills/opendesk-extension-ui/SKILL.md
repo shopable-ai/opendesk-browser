@@ -13,6 +13,12 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 **先核对当前主分支与本地未提交/并行差异，再改文件；不强推、不全仓重排 CSS。**
 
+## 确认与反馈的公共展示（2026-11-09）
+
+按[唯一确认、反馈与异步合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)分类，必要的短决策在当前宿主统一浮层，不再以顶部 sticky 确认挤正文；普通消息非阻断、错误就近持久、复杂表单保留原 owner。复用 `src/ui/react/`、原 React Aria/Tokens 和 Portal；默认安全焦点、Escape、IME、背景 inert、滚动/iframe 焦点恢复与单待决 owner 必须一致。
+
+原编辑器关闭确认要保留实例并让出/恢复模态锁，不能简单 busy 拒绝导致无法退出。业务执行与权限仍归原 owner；涉及 SDK/取消协议时交 Runtime，可信业务 adapter 交对应项目。公共 `ui.confirm` 已接原 Bridge/Host 与统一 React 展示，状态与签名只看原 API。异步 UI 清理不得留下悬挂 Promise、旧 resolver 或清除新实例状态；只验证本次受影响流程。
+
 ## 新扩展 UI Reference · 设计系统优先（2026-10-27）
 
 **目标：开发者和 AI 用现有视觉与组件迅速产出一致的新扩展，而不是优化某个专项 Tree。** 开始一项新 UI 时，先从 [统一参考入口](../../../prototypes/sidebar/extension-ui-showcase/index.html) 查 Foundation、Components、P01–P16、6 Business、Developer/AI Guide 与 Source & Proof，设计合同见 [Extension UI 参考规范](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)。主入口只是已有 Atlas 的别名，禁止再创建 Atlas、第二套 Token 或 React Root。
@@ -42,7 +48,7 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 1. **入口**：属于现行哪个一级 Tab？正式为 **我的 / 扩展 / 工作流 / 开发 / 云控**，开发版另有隐藏「调试」。旧「发现」的任务检索属于「我的」；旧「工具」和已安装 Page 的管理统一在「扩展」。无正式产品变更及验收，**不新建一级 Tab，不隐藏/合并五 Tab**。
 2. **用户对象**：索引页的主对象是什么（任务、计划、应用、网页增强、订阅等）；卡片只展示名称、状态、最重要数值与 1–2 个高频动作。
 3. **子视图**：`Index → Detail → Edit/Create / Management → Back` 是逻辑结构，不代表一次把所有内容同时显示。详情、表单、管理、历史各归其合法视图；轻量技术诊断才用 `details` 折叠。不因同一个 Tab 就把列表、详情、编辑全部混在一个无限滚动面板。
-4. **状态与返回**：明确 loading/empty/error/paused/running/unknown/draft-dirty 的可见反馈、返回目标、恢复滚动和焦点、用户修改未保存时的内联确认。扩展统一列表还需检查筛选和详情返回后的滚动/焦点、已安装/未安装/更新状态隔离。轮询不能重建正在编辑的 Select、丢失草稿或误触发 Save/Run。
+4. **状态与返回**：明确 loading/empty/error/paused/running/unknown/draft-dirty 的可见反馈、返回目标、恢复滚动和焦点、按公共合同展示的未保存确认。扩展统一列表还需检查筛选和详情返回后的滚动/焦点、已安装/未安装/更新状态隔离。轮询不能重建正在编辑的 Select、丢失草稿或误触发 Save/Run。
 5. **安全动作**：暂停/停止、权限、安装、保存、删除等由原业务/Authority 授权；UI 切换、获取数据、保存源码绝不隐式运行任务或扩大授权。
 
 **最小 UI 状态机**（示意，不要求新建全局路由器）：

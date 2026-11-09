@@ -42,10 +42,14 @@ export function useProxy(){
    const r=await env.request(message);
    if(!alive.current)return null;
    if(r.ok){setState(r.state);setErrorState(null);return r;}
+   if(r.errorCode==='E_CANCELLED'){await refresh();return null;}
    setErrorState({source:'backend',message:r.error,code:r.errorCode,operation:true});
    await refresh();return null;
   }catch(e){
    if(alive.current){
+    if(e&&typeof e==='object'&&'code' in e&&e.code==='E_CANCELLED'){
+     await refresh();return null;
+    }
     const message=e instanceof Error?e.message:'发生未知错误';
     setErrorState({source:'backend',message,code:errorCodeOf(message),operation:true});
     await refresh();

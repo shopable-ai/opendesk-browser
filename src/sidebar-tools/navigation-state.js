@@ -40,8 +40,8 @@ function headerActions(value){
 export function normalizeToolNavigation(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return null;
   const keys=Object.keys(value);
-  if(keys.length<3||keys.length>7||
-     keys.some(key=>!['page','title','canBack','primary','secondary','secondaryExpanded','headerActions'].includes(key)))return null;
+  if(keys.length<3||keys.length>8||
+     keys.some(key=>!['page','title','canBack','primary','secondary','secondaryExpanded','headerActions','settingsPage'].includes(key)))return null;
   if(typeof value.page!=='string'||!PAGE.test(value.page)||
      typeof value.title!=='string'||typeof value.canBack!=='boolean')return null;
   const title=value.title.trim();
@@ -53,6 +53,10 @@ export function normalizeToolNavigation(value){
   if(Object.hasOwn(value,'secondaryExpanded')&&
      (secondary===null||typeof value.secondaryExpanded!=='boolean'))return null;
   const state={page:value.page,title,canBack:value.canBack,primary};
+  if(Object.hasOwn(value,'settingsPage')){
+    if(typeof value.settingsPage!=='string'||!PAGE.test(value.settingsPage))return null;
+    state.settingsPage=value.settingsPage;
+  }
   if(secondary!==null){state.secondary=secondary;state.secondaryExpanded=value.secondaryExpanded===true;}
   if(Object.hasOwn(value,'headerActions')){
     const actions=headerActions(value.headerActions);

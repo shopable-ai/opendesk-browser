@@ -40,13 +40,14 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
-  // Merge preserves exact Host binding, SW ownership and safe-refresh fences.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'b0d87d65e2f890974d3824723432777563c74f4b',
+  // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
+  // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'2d164d73d8315e974746eb243f2e155baf2375fd',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
-  // 2026-11-09 independent review of 8e26ea9ae: section style only;
-  // controls, permissions, target and lifecycle boundaries unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'33864eb45d12655cfa8e0164e6273e181984e78f',
+  // 2026-11-09 reviewed prompt-only follow-up: readable intent then one JSON
+  // candidate; schema, local approval, permissions and execution are unchanged.
+  'projects/webflow/trusted/AutoSettings.tsx':'f179641bf4890258fecaa1c54272ade3d4cac45f',
   // Reviewed read-only background history, UNKNOWN guidance and distinct AI acknowledgement.
   'projects/webflow/trusted/CurrentTask.tsx':'263cb461d970571b43aa5cbc0f265096892e327a',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
@@ -642,7 +643,7 @@ const compiledReadingTocInputs=Object.freeze({
   // Legacy metadata/admission only. Webpage algorithms and view styles are
   // delivered by the reviewed application Page module, never fixed bundles.
   'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
-  'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff'
+  'projects/reading-toc/trusted/locales.generated.js':'397bd2c9ea29fe24b69f894e8c257e4bd99a8f23'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;

@@ -9,7 +9,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
     recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[]};
-  let actions,unload,poll,hasRecovery=false,active=true,legacy=false;
+  let actions,unload,poll,hasRecovery=false,active=true,legacy=false,now=1000;
   const listeners=new Map(),editor={contains:()=>false};
   const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
     busy:true,sendButton:null};
@@ -36,15 +36,15 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     hasRecovery(){return hasRecovery;}};
   const win={location:{origin:'https://chatgpt.com'},confirm(){calls.confirms++;return true;}};win.top=win;
   const doc={querySelector:()=>legacy?{}:null};
-  const ctx=vm.createContext({window:win,document:doc,
+  const ctx=vm.createContext({window:win,document:doc,Date:class extends Date {static now(){return now;}},
     createPageUI:()=>owner,createChatGPTSite:()=>site,
     createQueueEngine:()=>engine,
     createQueueView:options=>{actions=options.actions;return view;},
      createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),ctx);
-  return {calls,snap,state,listeners,setLegacy(value){legacy=value;},retire(){active=false;},
-    key(patch={}){const event={key:'Enter',target:editor,prevented:false,stopped:false,
+  return {calls,snap,state,listeners,setNow(value){now=value;},setLegacy(value){legacy=value;},retire(){active=false;},
+    key(patch={}){const event={key:'Enter',isTrusted:true,target:editor,prevented:false,stopped:false,
       preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...patch};
       listeners.get('keydown').callback(event);return event;},
     composition(type){listeners.get(type).callback();},
@@ -205,6 +205,45 @@ test('Ctrl+Enter leaves other targets, IME and retired owners untouched',async()
   const legacy=fixture();await legacy.run();legacy.setLegacy(true);
   assert.equal(legacy.key({ctrlKey:true}).prevented,false);
   assert.equal(legacy.calls.clear,0);
+});
+
+test('untrusted Enter events cannot clear or enqueue a native draft',async()=>{
+  for(const ctrlKey of [false,true]){
+    const h=fixture({queued:true,clear:{ok:true,text:'private draft'}});await h.run();
+    const event=h.key({ctrlKey,isTrusted:false});
+    assert.equal(event.prevented,false);assert.equal(event.stopped,false);
+    assert.equal(h.calls.clear,0);assert.equal(h.calls.enqueued,0);
+  }
+});
+
+test('Ctrl+Enter and the crown preserve drafts throughout an unconfirmed flight',async()=>{
+  for(const phase of ['preparing','await-native-ready','await-confirm','unknown','await-stop']){
+    const h=fixture({queued:true,clear:{ok:true,text:'private draft'}});await h.run();
+    h.state.inFlight={id:'q1',phase};
+    assert.equal(h.key({ctrlKey:true}).prevented,true,phase);
+    h.enqueue();
+    assert.equal(h.calls.clear,0,phase);assert.equal(h.calls.enqueued,0,phase);
+    assert.equal(h.snap.draft,'private draft',phase);
+    assert.match(h.calls.toasts.at(-1),/尚未确认.*草稿已保留/);
+  }
+});
+
+test('Ctrl+Enter resumes at the IME grace boundary and follows current editor descendants',async()=>{
+  const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
+  h.composition('compositionend');h.setNow(1099);
+  assert.equal(h.key({ctrlKey:true}).prevented,false);
+  h.setNow(1100);
+  const old=h.snap.editor,child={};
+  h.snap.editor={contains:target=>target===child};
+  assert.equal(h.key({ctrlKey:true,target:old}).prevented,false);
+  assert.equal(h.key({ctrlKey:true,target:{},composedPath:()=>[child]}).prevented,true);
+  assert.equal(h.calls.enqueued,1);
+  h.retire();
+  assert.equal(h.key({ctrlKey:true,target:h.snap.editor}).prevented,false);
+  assert.equal(h.calls.enqueued,1,'retirement is checked after the grace period');
+  const legacy=fixture();await legacy.run();legacy.setLegacy(true);
+  assert.equal(legacy.key({ctrlKey:true}).prevented,false);
+  assert.equal(legacy.calls.clear,0,'late legacy ownership independently blocks Ctrl+Enter');
 });
 
 test('Enter follows editor replacement and becomes inert after retirement or late legacy owner',async()=>{

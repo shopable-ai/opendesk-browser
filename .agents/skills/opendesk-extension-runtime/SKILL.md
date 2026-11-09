@@ -27,6 +27,14 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 **可复用 Runtime 与专属业务解耦门禁**：对 AdBlock / Stay Focus 等工具要优先遵循[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md)。L1 业务目录归属、L2 通用宿主去业务硬编码、L3 受限策略包独立升级、L4 新特权算法升级分别审查。现有 `src/platform/chrome/browser-managed-site-policy.js` 属于公共原语而非已发布的全量第三方 Browser SDK；新受管能力要经过原 Registry/Schema → Dispatcher/Host/Authority → Chrome Driver 与安装/撤权/原生读回全链，不可在 `src/sw.js`、安装器或 UI 总控继续复制产品专属分派。不创建第二套运行时，也不通过动态 JSON 执行 Worker JS。
 
+## 通用确认与异步生命周期（2026-11-09）
+
+用户要求公共确认能力时按[唯一确认与反馈合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)维护原 Bridge/Host、唯一可信 React 根和真实来源；公开签名/状态只在[原 API](../../../docs/api/sidebar-tools.zh-CN.md)维护，当前 `ui.confirm` 已有源码实现，须按目标 Host 初始化声明判断可用性。同时接通沙箱两端受控传输/合法键盘路径与可信 environment adapter；不新建 Authority 或把业务 DOM/执行回调穿过公开接口。
+
+保留 `requestBrowserClick` 的原真实 click/run/settle 链；普通确认结果不授予激活。旧同步 guard 的全部调用点须核对，避免 Promise 真值提前导航或回调＋await 双执行。原 pending owner 不得被新请求覆盖；取消消息绑定原实例/requestId，abort/超时/撤权/销毁及迟到回包恰好一次结算，清理 Host UI 与 Bridge 等待项，finally 不覆盖结果。
+
+只为当前展示等待安排预算，不整体放宽 RPC/可信授权期限；兼容、焦点、取消、busy、手势与未知不重放按受影响行为验证。工具 CRUD/草稿判断留原业务 owner，规范变化不算运行通过。
+
 ## 用户先选需求，再调查运行环境
 
 先用 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，界面用 Sidebar Tool，后台服务先核查固定可信能力，组合式应用跨现有职责协作。后台是独立产品场景，但不意味着普通作者可安装任意特权后台 JS；组合式应用不新增第五套 Runtime。触发源与 JS/React/Vue 技术分别选择。普通作者沿公开 API 与示例开发，不要求先读框架源码。

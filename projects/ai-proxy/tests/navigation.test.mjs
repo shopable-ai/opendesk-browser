@@ -86,6 +86,10 @@ function workspaceFixture(preview = false, enhanced = true) {
   const env = { navigation, events, preview, navigate: navigation.navigate, setConfirmHandler() {}, setState() {},
     service:{subscribe(fn){serviceListeners.add(fn);return()=>serviceListeners.delete(fn);}},
     request:async()=>({ok:true,state:{config:{}}}),hasDrafts:()=>false,clearDrafts(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));},markDraftFrom(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));} };
+  let answer;
+  env.confirm=(_text,{signal}={})=>new Promise(resolve=>{
+    answer=resolve;signal?.addEventListener('abort',()=>resolve(false),{once:true});
+  });
   const snapshots=[],headerListeners=new Set();
   env.toolNavigation={setNavigation(base,headerActions){snapshots.push({...base,...(enhanced?{headerActions}:{})});return enhanced;},
     subscribe(handler){headerListeners.add(handler);return()=>headerListeners.delete(handler);},isLocked:()=>false};
@@ -105,7 +109,7 @@ function workspaceFixture(preview = false, enhanced = true) {
     }
   };
   const module = { exports: {} };
-  runInNewContext(appCode, { module, exports: module.exports,
+  runInNewContext(appCode, { AbortController, module, exports: module.exports,
     require(name) {
       if (name === './domain/header-actions') return headerActions;
       if (name === 'react') return react;
@@ -118,7 +122,7 @@ function workspaceFixture(preview = false, enhanced = true) {
     document: {activeElement:null}
   });
   const Workspace = module.exports.default().props.children[0].type;
-  return { env, navigation, events, snapshots,
+  return { env, navigation, events, snapshots, async answer(value){answer(value);await new Promise(setImmediate);},
     notifyHeaderConfig(config){for(const fn of serviceListeners)fn({config});},
     header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
     cursor = 0;
@@ -130,7 +134,7 @@ function workspaceFixture(preview = false, enhanced = true) {
   } };
 }
 
-test('actual Workspace keeps/cancels draft, then confirms force navigation and resets form owner/focus', () => {
+test('actual Workspace keeps/cancels draft, then confirms force navigation and resets form owner/focus', async () => {
   const f = workspaceFixture();
   let tree = f.render();
   const initialKey = routeContent(tree).props.key;
@@ -138,13 +142,13 @@ test('actual Workspace keeps/cancels draft, then confirms force navigation and r
   assert.equal(f.navigation.navigate('#/profiles'), false);
   tree = f.render();
   assert.equal(f.navigation.getRoute(), '#/rules');
-  draftDialog(tree).props.onDone(false);
+  await f.answer(false);
   tree = f.render();
   assert.equal(draftDialog(tree), undefined);
   assert.equal(routeContent(tree).props.key, initialKey);
   assert.equal(f.navigation.navigate('#/profiles'), false);
   tree = f.render();
-  draftDialog(tree).props.onDone(true);
+  await f.answer(true);
   tree = f.render();
   assert.equal(f.navigation.getRoute(), '#/profiles');
   assert.notEqual(routeContent(tree).props.key, initialKey);
@@ -152,13 +156,14 @@ test('actual Workspace keeps/cancels draft, then confirms force navigation and r
   assert.equal(f.navigation.navigate('#/backup'), true);
 });
 
-test('actual Workspace ignores global saved events and updates its guard only from draft state', () => {
+test('actual Workspace ignores global saved events and updates its guard only from draft state', async () => {
   const f = workspaceFixture();
   f.render();
   f.events.dispatchEvent(new CustomEvent('ai-proxy-draft', { detail: true }));
   assert.equal(f.navigation.navigate('#/profiles'), false);
   f.events.dispatchEvent(new Event('ai-proxy-saved'));
   assert.equal(f.navigation.navigate('#/profiles'), false);
+  await f.answer(false);
   f.events.dispatchEvent(new CustomEvent('ai-proxy-draft', { detail: false }));
   assert.equal(f.navigation.navigate('#/profiles'), true);
 });
@@ -179,17 +184,17 @@ test('Workspace events stay per instance and effect cleanup removes its draft li
   assert.equal(a.navigation.navigate('#/backup'), true);
 });
 
-test('settings close shares draft protection without adding business tabs',()=>{
+test('settings close shares draft protection without adding business tabs',async()=>{
  const f=workspaceFixture();let tree=f.render();
  const settings=()=>routeContent(tree).props.children[0];
  assert.equal(tree.props.children.some(child=>child?.props?.role==='tablist'),false);
  tree.props.onChange({target:{}});
  settings().props.onClose();tree=f.render();
  assert.equal(f.navigation.getRoute(),'#/rules');
- draftDialog(tree).props.onDone(false);tree=f.render();
+ await f.answer(false);tree=f.render();
  assert.equal(f.navigation.getRoute(),'#/rules');
  settings().props.onClose();tree=f.render();
- draftDialog(tree).props.onDone(true);tree=f.render();
+ await f.answer(true);tree=f.render();
  assert.equal(f.navigation.getRoute(),'');
 });
 
@@ -222,7 +227,7 @@ const settingsSource = await readFile(new URL('../src/Settings.tsx', import.meta
 function settingsHandler(start, end, context) {
   const source = settingsSource.slice(settingsSource.indexOf(start), settingsSource.indexOf(end));
   assert.ok(source.startsWith(start));
-  return transform(source, { loader: 'tsx' }).then(({ code }) => runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`, context));
+  return transform(source, { loader: 'tsx' }).then(({ code }) => runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`, {editorGeneration:{current:0},...context}));
 }
 
 test('actual editor close replaces its internal deep link, clears drafts and bypasses the stale guard', async () => {

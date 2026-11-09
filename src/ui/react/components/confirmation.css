@@ -1,0 +1,6 @@
+.od-confirm-overlay{background:rgb(16 26 42 / 48%)}
+.od-confirm-dialog{display:flex;flex-direction:column;gap:var(--space-3);min-width:0;outline:none}
+.od-confirm-dialog .od-confirm-message{white-space:pre-wrap;color:var(--od-ink)}
+.od-confirm-dialog .sidebar-tool-action-buttons{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
+.od-confirm-dialog .sidebar-tool-action-buttons button{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.od-confirm-dialog .od-confirm-source{font-size:var(--od-note-size);color:var(--od-sub)}

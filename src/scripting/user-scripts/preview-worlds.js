@@ -9,21 +9,62 @@ export const MAX_PREVIEW_WORLDS_PER_DOCUMENT = 6;
 const LEDGER = 'opendeskPagePreviewWorldsD1';
 const PREFIX = 'opendesk-preview-d1-';
 const token = () => crypto.randomUUID().replaceAll('-', '');
+const INSTALLED_IDENTITY=['namespace','programId','revision','sourceHash','manifestHash',
+  'installationId','grantGeneration','executionKey','receiptNonce'];
 
-export function createPreviewWorlds({api}) {
+function assertInstalledBinding(row,execution){
+  const r=row.installed;
+  invariant(execution?.tag==='page-execution-v1'&&r&&
+    INSTALLED_IDENTITY.every(key=>r[key]===execution[key])&&
+    row.tabId===execution.tabId&&row.documentId===execution.documentId&&
+    r.target?.tabId===row.tabId&&r.target.documentId===row.documentId&&
+    row.worldId===execution.managedUI?.worldId&&
+    /^[a-f0-9]{64}$/.test(r.compiledSha256)&&r.compiledSha256===execution.managedUI.compiledSha256,
+    'E_WORLD_ISOLATION','安装执行世界与原始执行记录不一致');
+}
+
+export function createPreviewWorlds({api,storage}) {
   let serial = Promise.resolve();
   const ordered = work => {
     const next = serial.then(work, work);
     serial = next.catch(() => {});
     return next;
   };
-  async function ledger() {
+  async function ledger(persisted) {
     invariant(typeof api.storage?.session?.get === 'function' && typeof api.storage.session.set === 'function',
       'E_WORLD_ISOLATION', '缺少浏览器会话级执行世界账本');
     const value = (await api.storage.session.get(LEDGER))[LEDGER] ?? [];
     invariant(Array.isArray(value) && value.every(row => Number.isSafeInteger(row.tabId) &&
       typeof row.documentId === 'string' && typeof row.worldId === 'string' && row.worldId.startsWith(PREFIX)),
       'E_WORLD_ISOLATION', '执行世界账本损坏，请关闭当前标签页后重试');
+    if(!storage)return value;
+    const executions=await storage.transaction(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+    if(persisted)for(const execution of executions.filter(row=>row?.tag==='page-execution-v1'))
+      persisted.set(execution.executionKey,JSON.stringify(execution.managedUI?.lifecycle));
+    const documents=new Map();
+    for(const execution of executions.filter(row=>row?.tag==='page-execution-v1'&&row.managedUI?.lifecycle)){
+      const row={tabId:execution.tabId,documentId:execution.documentId,worldId:execution.managedUI.worldId,
+        installed:execution.managedUI.lifecycle};
+      assertInstalledBinding(row,execution);
+      const current=value.find(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey);
+      if(current){
+        // A stale state mirror may follow a lost session-write acknowledgement;
+        // a different identity must never be silently repaired into a dispatch.
+        if(current.installed)assertInstalledBinding(current,execution);
+        else invariant(current.tabId===row.tabId&&current.documentId===row.documentId&&current.worldId===row.worldId&&
+          Object.keys(current).every(key=>['tabId','documentId','worldId'].includes(key)),
+          'E_WORLD_ISOLATION','安装执行世界与原始预留记录不一致');
+        current.installed=row.installed;
+        continue;
+      }
+      if(!documents.has(row.documentId)){
+        let exists=true;
+        try{const frame=await api.webNavigation.getFrame({documentId:row.documentId});exists=frame!==null&&frame!==undefined;}
+        catch{/* Unobservable and BFCache documents still consume their budget. */}
+        documents.set(row.documentId,exists);
+      }
+      if(documents.get(row.documentId))value.push(row);
+    }
     return value;
   }
   async function reserve(target) {
@@ -93,8 +134,23 @@ export function createPreviewWorlds({api}) {
     });
   }
   const editRecords=work=>ordered(async()=>{
-    const rows=await ledger(),identities=rows.map(row=>[row.tabId,row.documentId,row.worldId]),result=work(rows);
+    const persisted=new Map(),rows=await ledger(persisted),
+      before=rows.map(row=>JSON.stringify(row.installed)),
+      identities=rows.map(row=>[row.tabId,row.documentId,row.worldId]),result=work(rows);
     invariant(!result?.then&&rows.length===identities.length&&rows.every((row,i)=>row.tabId===identities[i][0]&&row.documentId===identities[i][1]&&row.worldId===identities[i][2]),'E_WORLD_ISOLATION','受管元数据不能改变世界预算或身份');
+    // Keep lifecycle transitions in the original Authority execution before
+    // mirroring the session ledger or invoking a disposer. An extension reload
+    // must not turn an attempted cleanup into a fresh ready world.
+    if(storage)await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      for(const [index,row] of rows.entries()){
+        if(!row.installed||JSON.stringify(row.installed)===before[index])continue;
+        const execution=await tx.get('frameworkKV',row.installed.executionKey);
+        assertInstalledBinding(row,execution);
+        invariant(JSON.stringify(execution.managedUI?.lifecycle)===persisted.get(row.installed.executionKey),
+          'E_WORLD_ISOLATION','安装执行状态已变更，请重新核对，未重放清理');
+        await tx.put('frameworkKV',{...execution,managedUI:{...execution.managedUI,lifecycle:row.installed}},row.installed.executionKey);
+      }
+    });
     await api.storage.session.set({[LEDGER]:rows});return result;
   });
   return Object.freeze({allocate,cleanup,records:ledger,editRecords});

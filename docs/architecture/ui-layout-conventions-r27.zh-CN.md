@@ -108,7 +108,7 @@ Native Workspace 独立编译 Tailwind 时，同等关系可写为：
 
 **Side Panel 顶部和详情操作沿用 R30 记录的历史「工具」Tab 布局案例（现行产品入口是「扩展」）。** 使用 [R30 头部与垂直节奏细则](sidebar-design-system-r20.zh-CN.md#r30-工具-tab--工具详情作为跨-tab-排版基准2026-10-14)：12px 标题、34px 浅底带边框 icon、8px 同区域间隔、右侧所属区域动作。详情级动作进详情头部，结果/历史刷新等进各自区域头部；执行与权限确认仍保留明确的文字操作。本次开发页是首个增量消费者，不宣称其他历史页已全部迁移。
 
-当一个现有 Tab 包含多个列表、独立功能区、创建表单、详情或设置，不要仅凭 `od-page/od-stack` 随意堆叠卡片；继承 [R28 多功能区 Tab 布局契约](sidebar-multi-section-tab-contract-r28.zh-CN.md)，以历史「工具」Tab 的 Index → Detail/Management 切换作为结构案例（现行扩展中心以 R4 统一列表为准），统一主次区域、返回、内联确认、信息密度与首屏优先级。该契约**从属本 R27**，不重定义共享 Tokens 或扩展沙箱权限；首个完整改造目标为「我的 → 定时计划」及独立运行页。
+当一个现有 Tab 包含多个列表、独立功能区、创建表单、详情或设置，不要仅凭 `od-page/od-stack` 随意堆叠卡片；继承 [R28 多功能区 Tab 布局契约](sidebar-multi-section-tab-contract-r28.zh-CN.md)，以历史「工具」Tab 的 Index → Detail/Management 切换作为结构案例（现行扩展中心以 R4 统一列表为准），统一主次区域、返回、确认、信息密度与首屏优先级；确认展示按[公共确认与反馈合同](browser-framework/confirmation-and-feedback.zh-CN.md)选择，不固定要求行内插入。该契约**从属本 R27**，不重定义共享 Tokens 或扩展沙箱权限；首个完整改造目标为「我的 → 定时计划」及独立运行页。
 
 ## 4. 响应式、状态与无障碍验收
 

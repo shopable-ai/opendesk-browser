@@ -27,7 +27,8 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
     events.set(type,listener);listeners.set(target,events);
   },click(target,isTrusted=true){
     listeners.get(target)?.get('click')?.({isTrusted,preventDefault(){},stopPropagation(){}});
-  },setTimeout(){},observe(){return {disconnect(){}};},
+  },dispatch(target,type){listeners.get(target)?.get(type)?.();},
+  setTimeout(){},observe(){return {disconnect(){}};},
     onDispose:fn=>disposals.push(fn),dispose:()=>disposals.forEach(fn=>fn())};
   const context={main,first,last,scroller:main,site:'chatgpt',selector:'article'};
   const mount=(resolveNavigation=()=>({}))=>{
@@ -62,20 +63,20 @@ test('visible sibling navigation and full-height composer column reserve the lef
   dock.refresh();assert.equal(host.style.left,'8px','hidden sidebar reserves no gutter');
 });
 
-test('native composer collision moves navigation upward within the same left gutter',()=>{
+test('native composer collision moves navigation sideways before moving upward',()=>{
   const f=fixture(),native=f.doc.createElement('button');f.main.append(native);
   f.rects.set(native,box(330,710,80,100));
   const {host}=f.mount();
-  assert.equal(host.style.left,'328px');
-  assert.ok(parseFloat(host.style.top)+90<=710);
+  assert.equal(host.style.left,'422px');
+  assert.equal(host.style.top,'707px');
 });
 
-test('ChatGPT collision avoidance keeps the shared left gutter after two blocked slots',()=>{
+test('tall native controls do not push the dock to the upper half',()=>{
   const f=fixture(),native=f.doc.createElement('button');f.main.append(native);
   f.rects.set(native,box(320,600,100,200));
   const {host}=f.mount();
-  assert.equal(host.style.left,'328px');
-  assert.ok(parseFloat(host.style.top)+90<=600);
+  assert.equal(host.style.left,'432px');
+  assert.equal(host.style.top,'707px');
 });
 
 test('transparent sidebar action parents do not hide the conversation dock',()=>{
@@ -91,14 +92,14 @@ test('transparent sidebar action parents do not hide the conversation dock',()=>
   assert.equal(host.style.top,'707px');
 });
 
-test('visible shadow controls reserve space and additional vertical gaps remain usable',()=>{
+test('visible shadow controls reserve space while the dock stays near the bottom',()=>{
   const f=fixture(),peer=f.doc.createElement('div');f.doc.documentElement.append(peer);
   const shadow=peer.attachShadow({mode:'open'}),button=f.doc.createElement('button');
   shadow.append(button);f.rects.set(button,box(328,400,52,400));
   const {host}=f.mount();
   assert.ok(host);
-  assert.equal(host.style.left,'328px');
-  assert.ok(parseFloat(host.style.top)+90<400,'dock stays above the peer controls');
+  assert.equal(host.style.left,'392px');
+  assert.equal(host.style.top,'707px');
   assert.equal(peer.isConnected,true);
 });
 
@@ -109,11 +110,11 @@ test('closed fixed peer hosts reserve their whole rectangle without reading priv
   f.rects.set(peer,box(328,400,52,400));
   const {host}=f.mount();
   assert.ok(host);
-  assert.equal(host.style.left,'328px');
-  assert.ok(parseFloat(host.style.top)+90<400);
+  assert.equal(host.style.left,'392px');
+  assert.equal(host.style.top,'707px');
 });
 
-test('configured conversation finds a free gap above peers after fixed slots collide',()=>{
+test('configured conversation avoids crowded controls without jumping above the prompt rail',()=>{
   const f=fixture();
   Object.assign(f.win,{innerWidth:1031,innerHeight:703});
   Object.assign(f.context,{custom:true,site:'custom'});
@@ -129,8 +130,8 @@ test('configured conversation finds a free gap above peers after fixed slots col
   f.rects.set(peer,box(349,261.5,52,181));
   const {host}=f.mount();
   assert.ok(host,'navigation remains available without moving or covering a peer');
-  assert.equal(host.style.left,'378px');
-  assert.equal(host.style.top,'159px');
+  assert.equal(host.style.left,'436px');
+  assert.equal(host.style.top,'539px');
   assert.equal(host.shadowRoot.querySelectorAll('button').length,2);
   assert.equal(peer.isConnected,true);
 });
@@ -152,6 +153,116 @@ test('custom selected anchor retains its existing positioning',()=>{
   f.rects.set(anchor,box(450,100,100,100));
   Object.assign(f.context,{custom:true,anchor});
   const {host}=f.mount();assert.equal(host.style.left,'462px');
+});
+
+test('configured dock ignores message indentation and stays in the visible scroller',()=>{
+  const f=fixture();
+  Object.assign(f.context,{custom:true});
+  f.rects.set(f.first,box(900,-10000,400,500));
+  f.rects.set(f.last,box(1000,-500,300,800));
+  const scroller=f.doc.createElement('div');f.main.append(scroller);
+  Object.assign(scroller,{scrollTop:400,scrollHeight:9000,clientHeight:500});
+  f.rects.set(scroller,box(360,100,900,500));f.context.scroller=scroller;
+  const {dock,host}=f.mount();
+  assert.equal(host.style.left,'368px');
+  assert.equal(host.style.top,'490px');
+  f.rects.set(f.first,box(600,0,400,500));dock.refresh();
+  assert.equal(host.style.left,'368px','scrolling messages never moves the dock horizontally');
+});
+
+test('fully blocked bottom-left area hides instead of moving to the top or right edge',()=>{
+  const f=fixture(),obstacle=f.doc.createElement('button');f.main.append(obstacle);
+  f.rects.set(obstacle,box(320,550,400,267));
+  const {host}=f.mount();
+  assert.ok(!host||host.style.visibility==='hidden');
+});
+
+test('element client area excludes borders and scrollbar space, including scaled containers',()=>{
+  for(const scale of [1,1.5]){
+    const f=fixture(),scroller=f.doc.createElement('div'),anchor=f.doc.createElement('div');
+    f.main.append(scroller,anchor);
+    Object.assign(scroller,{scrollTop:400,scrollHeight:9000,clientWidth:285,clientHeight:496,
+      clientLeft:2,clientTop:2,offsetWidth:300,offsetHeight:500});
+    f.rects.set(scroller,box(360,0,300*scale,500*scale));
+    f.rects.set(anchor,box(650*scale,100,100,100));
+    Object.assign(f.context,{custom:true,scroller,anchor});
+    const {host}=f.mount();
+    const right=360+(2+285)*scale,bottom=(2+496)*scale;
+    assert.equal(parseFloat(host.style.left)+42,Math.floor(right-8));
+    assert.equal(parseFloat(host.style.top)+90,Math.floor(bottom-20));
+  }
+});
+
+test('document scroller uses the viewport instead of its moving document rectangle',()=>{
+  const f=fixture();Object.assign(f.context,{custom:true,scroller:f.doc.documentElement});
+  f.doc.scrollingElement=f.doc.documentElement;
+  Object.assign(f.doc.documentElement,{scrollTop:9000,scrollHeight:10000,clientHeight:817});
+  f.rects.set(f.doc.documentElement,box(0,-9000,1728,10000));
+  const {host}=f.mount();
+  assert.equal(host.style.left,'328px');assert.equal(host.style.top,'707px');
+});
+
+test('empty or undersized visible scroller intersection never places a dock outside it',()=>{
+  for(const rect of [box(320,900,1000,500),box(320,0,35,817),box(320,0,1000,70)]){
+    const f=fixture(),scroller=f.doc.createElement('div');f.main.append(scroller);
+    Object.assign(scroller,{scrollTop:400,scrollHeight:9000,clientHeight:rect.height});
+    f.context.scroller=scroller;f.rects.set(scroller,rect);
+    const {host}=f.mount();assert.ok(!host||host.style.visibility==='hidden');
+  }
+});
+
+test('compact horizontal dock remains fully inside the narrow bottom-left viewport',()=>{
+  const f=fixture({mainLeft:0,columnLeft:0});
+  Object.assign(f.win,{innerWidth:390,innerHeight:600});
+  f.rects.set(f.main,box(0,0,390,600));
+  const {host}=f.mount();
+  assert.equal(host.style.left,'8px');assert.equal(host.style.top,'538px');
+  assert.equal(host.shadowRoot.querySelector('.stack').classList.contains('compact'),true);
+});
+
+test('container resize schedules repositioning and disposal disconnects the observer',()=>{
+  const f=fixture();let resized,disconnected=0;const observed=[],timers=[];
+  f.win.ResizeObserver=class {
+    constructor(callback){resized=callback;}
+    observe(target){observed.push(target);}
+    disconnect(){disconnected++;}
+  };
+  f.owner.setTimeout=(callback,delay)=>{if(delay===120)timers.push(callback);};
+  const {host}=f.mount();assert.deepEqual(observed,[f.main]);
+  f.rects.set(f.main,box(320,0,1408,600));resized();timers.shift()();
+  assert.equal(host.style.top,'490px');
+  f.owner.dispose();assert.equal(disconnected,1);
+});
+
+test('resize observer follows replacement scrollers and queued work cannot remount after disposal',()=>{
+  const f=fixture(),observed=[],timers=[];let resized,disconnected=0;
+  f.win.ResizeObserver=class {
+    constructor(callback){resized=callback;}
+    observe(target){observed.push(target);}
+    disconnect(){disconnected++;}
+  };
+  f.owner.setTimeout=(callback,delay)=>{if(delay===120)timers.push(callback);};
+  const {dock,host}=f.mount();
+  const scroller=f.doc.createElement('div');f.main.append(scroller);
+  Object.assign(scroller,{scrollTop:400,scrollHeight:9000,clientHeight:500});
+  f.rects.set(scroller,box(360,100,900,500));f.context.scroller=scroller;dock.refresh();
+  assert.deepEqual(observed,[f.main,f.main,scroller]);assert.equal(disconnected,1);
+  assert.equal(host.style.top,'490px');
+  resized();f.owner.dispose();timers.shift()();
+  assert.equal(disconnected,2);assert.equal(host.isConnected,false);
+  assert.equal(f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]'),null);
+});
+
+test('visual viewport resize and scroll listeners reposition above the keyboard',()=>{
+  const f=fixture(),timers=[];
+  const viewport={offsetLeft:0,offsetTop:100,width:1728,height:500};
+  f.win.visualViewport=viewport;
+  f.owner.setTimeout=(callback,delay)=>{if(delay===120)timers.push(callback);};
+  const {host}=f.mount();assert.equal(host.style.top,'490px');
+  viewport.height=350;
+  f.owner.dispatch(viewport,'resize');timers.shift()();assert.equal(host.style.top,'340px');
+  viewport.offsetTop=50;f.owner.dispatch(viewport,'scroll');timers.shift()();
+  assert.equal(host.style.top,'290px');
 });
 
 test('conversation and floating top flags share one button across every combination and threshold',()=>{

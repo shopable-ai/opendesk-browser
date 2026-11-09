@@ -23,9 +23,9 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
   return <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud"
     className="od-page" data-workbench-page="cloud" hidden={hidden}>
     <section className="cloud-panel od-stack" aria-label="云控管理">
-      <header className="cloud-panel-head od-toolbar">
+      <header className="cloud-panel-head od-page-head">
         <strong className="od-page-title">云控</strong>
-        <div className="cloud-panel-actions od-action-group">
+        <div className="cloud-panel-actions od-page-actions">
           <button type="button" id="cloud-open-console" className="od-icon-button"
             disabled={typeof pageModel.onOpenConsole!=='function'}
             onClick={event=>trusted(event,pageModel.onOpenConsole)}

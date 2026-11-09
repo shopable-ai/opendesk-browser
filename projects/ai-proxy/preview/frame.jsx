@@ -13,7 +13,7 @@ const send=message=>parent.postMessage(message,'*');
 function rpc(method,args=[]){
   return new Promise((resolve,reject)=>{
     const id=++sequence;
-    const timer=setTimeout(()=>{pending.delete(id);reject(Error('预览会话未响应；未自动重试操作。'));},10000);
+    const timer=setTimeout(()=>{pending.delete(id);reject(Error('预览会话未响应；未自动重试操作。'));},method==='apply'?120000:10000);
     pending.set(id,{resolve,reject,timer});send({type:'ai-proxy-preview-rpc',id,method,args});
   });
 }
@@ -21,7 +21,7 @@ async function refresh(){
   if(!environment||environment.hasDrafts()||busy){refreshPending=true;return;}
   refreshPending=false;await environment.request({type:'GET_STATE'});
 }
-function boot({view,route,locale='zh-CN'}){
+function boot({view,route,locale='zh-CN',currentSources=false}){
   if(environment)return;
   clearInterval(ready);
   const boundary={service:{preview:true,...Object.fromEntries(['load','save','status','apply','stop'].map(method=>[method,(...args)=>rpc(method,args)]))},
@@ -44,7 +44,7 @@ function boot({view,route,locale='zh-CN'}){
     if(management&&next==='')send({type:'ai-proxy-preview-leave-approved'});
   });
   root=createRoot(document.getElementById('ai-proxy-app'));
-  root.render(<><AIProxySurface surface={management?'management':'side-panel'}/><style>{managementCss+managementActionsCss}</style></>);
+  root.render(<><AIProxySurface surface={management?'management':'side-panel'}/>{!currentSources&&<style>{managementCss+managementActionsCss}</style>}</>);
   if(view==='add'){
     const observer=new MutationObserver(()=>{const button=document.querySelector('.r86IconFirst');if(button){observer.disconnect();button.click();}});
     observer.observe(document.getElementById('ai-proxy-app'),{childList:true,subtree:true});

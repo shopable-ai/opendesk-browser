@@ -313,7 +313,9 @@ test('panel CSS consumes measured radius without any website selector',async()=>
 test('product preview keeps the locked crown; historical calibration tool stays archived',async()=>{
   const html=await readFile(new URL('../preview/index.html',import.meta.url),'utf8');
   const tool=await readFile(new URL('../legacy/preview/crown-tuner-r53.html',import.meta.url),'utf8');
-  assert.match(html,/显示 3 条示例消息/);
+  const boot=await readFile(new URL('../preview/boot.js',import.meta.url),'utf8');
+  assert.match(html,/<button id="sample-add" type="button">加入示例消息<\/button>/);
+  assert.match(boot,/\$\('sample-add'\)\.onclick=\(\)=>\{model\.sample\(\);refreshSidebar\(\);\}/);
   assert.doesNotMatch(html,/tools\/crown-tuner\.html/);
   assert.doesNotMatch(html,/id="angle"|id="scale"|detail-native/);
   assert.match(tool,/\.\.\/\.\.\/assets\/queue\.css/);

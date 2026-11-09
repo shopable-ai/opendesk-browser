@@ -54,6 +54,14 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **R33.3 源码归属：当前唯一可信 React 根 `src/ui/react/`（包括 `components/ui/`）；`packages/opendesk-ui-react/` 是未来第二独立消费者经验证后才可评估的候选，本轮禁止创建或复制。五 Tab 渐进迁移、单 DOM owner，具体以权威 R33 架构文档为准。**
 
+## 统一确认、反馈与异步调用（2026-11-09）
+
+按[唯一确认与反馈合同](docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)实施：业务拥有确认必要性、目标/后果、draft revision、执行与真实回执；框架在原 React 根、Bridge/Host 提供通用展示与生命周期。常规反馈非阻断，简短决策使用当前宿主内统一浮层，长表单保留业务 owner；不再要求所有确认插入正文行内区。同步原生 `alert/confirm/prompt` 禁令与沙箱/权限保护继续有效。
+
+`OpenDeskTool.ui.confirm` 当前已具 **Bridge/Host/可信 adapter 源码实现与定向 Node 证据**，签名/输入/错误只在[原公开 API](docs/api/sidebar-tools.zh-CN.md#异步确认opendesktooluiconfirm拟议尚未实现)维护；不能在工具中假定可调用或复制另一套 SDK。旧 HTML/Vue 无须迁移 React，旧 Host 只有明确不支持且无待决 UI 才安全回退；busy、超时、取消和撤权不再次弹框。普通选择不授权，原敏感审阅和 Chrome 真实手势保留。
+
+修改确认调用时同时核对 Promise/then：同步 boolean guard 不能机械改 async，结果对象显式判断 action，return/await 后续操作，捕获拒绝，所有 pending 恰好一次结算；卸载/取消/超时清理，finally 不覆盖结果或清新实例状态，确认后再核对原目标/版本。允许正确的 then 和 async/await，不开展无关全仓语法重写。公共测试归框架，CRUD/dirty/编辑器测试归原业务；规范更新不构成产品 PASS。
+
 ## 框架共享 AI Chat 与扩展插槽（2026-11-02）
 
 **AI Chat 是面向各扩展复用的框架能力，扩展是消费者。** 接入或迭代先复用现有 `SharedConversationDock` / `SharedConversationFrame`、独立会话和受控 AI bridge；小范围展示差异优先使用[公共 Chat 插槽合同](docs/api/sidebar-tools-ai.zh-CN.md#公共骨架与插槽)，不复制某个扩展的 Chat，也不在工具内重写公共控件或覆盖公共布局。公共组件只持有展示行为；领域上下文、提示词、提案校验、审阅与确认后的业务执行留在扩展 adapter。AI 协助自动配置、降低学习成本并完成关键操作的目标继续保留，以真实业务回执证明结果。
@@ -95,6 +103,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 ## 日常扩展加载目录（用户于2026-10-12明确要求）
 
 日常修改扩展源码时，Chrome 固定加载本仓库的 `dist/development`，由 `npm run dev` 持续更新；不得自行复制到 `~/.opendesk-browser/extensions/local-dev-<会话标识>` 等新目录并替换日常扩展。隔离构建、验收包只用于对应工作流的独立 CFT/Profile。修复本地项目开发或 Native 接入问题时，优先保留正常加载目录和扩展 ID，不把某次隔离候选安装进日常 Chrome 作为快捷修复。
+
+**已有扩展的迭代入口与内部页限制（用户于 2026-11-09 明确）：** 普通工具的安装/更新使用 Side Panel「扩展」现有审阅链，本地项目迭代使用「开发 → 本地项目 → 在侧栏调试」及原编译/快照 watcher；不要把访问或管理 `chrome://extensions` 设为这些操作的前置条件。与当前目标无关的内部页操作直接跳过；某次自动审批或浏览器工具拒绝访问，只约束被拒绝的操作，不据此停止其余已授权的源码修复、编译、打包和产品入口测试。继续使用已有独立入口，不换工具绕过同一项拒绝，也不反复请求无关权限。
+
+**简单样式问题先直接验证（用户于 2026-11-09 再次明确）：** 遮挡、层级等问题先检查目标元素及相邻区域的实际 `z-index` 和堆叠上下文，直接在目标页面临时修改该属性并验证悬停/点击；有效就将最小改动写回真实源码，编译、更新正式 JSON 及用户要求的版本号。只有这条验证失败或确有相关证据时才扩大排查，不把简单 CSS 修复扩展成任务、Native、历史账本或整体更新机制调查；编译交付与当前页面持久生效仍据实区分。
+
+**更新生效按真实代码归属核实：** 工具 JSON、本地调试快照与 Browser 固定编译的可信代码分别交付；前两者不能替换固定 Content/Background/Host 代码。固定代码复用现有 `npm run dev` 和安全刷新，诊断优先从 Side Panel「调试 → 本地开发服务」读取连接、已应用 revision 和等待原因，再检查目标网页的真实行为。源码/产物已更新、已安装版本及当前运行代码必须分别报告，临时 DevTools 样式验证不能当作持久更新成功。具体分流与排错见[已有扩展迭代与内部页限制处理](docs/framework/extension-development-r131.zh-CN.md#已有扩展迭代与内部页限制处理2026-11-09)；任务、原生请求、草稿及未知效果的原有安全栅栏继续保留。
 
 **开发修复与最终验收必须分清（用户于2026-10-14明确）：** 日常修复使用已有 `npm run dev` watcher 和上述固定目录，先核对实际加载路径、ID、开发服务连接及构建指纹；不得把每次修改后的全量 `build`、复制静态包、重装扩展作为默认迭代方式。正式版为五个产品 Tab；development 构建额外显示「调试」，但 `npm run build:dev` 仍是静态构建，只有 `npm run dev` 的 serve 客户端连接成功才启用持续更新。Chrome 的「开发者模式」、产品「开发」Tab、Standard/Developer edition 均不能替代这项检查。更新依当前实现分别为 CSS 热加载、工具文档安全刷新或扩展安全重载，不能承诺所有源码都原地 HMR，也不能绕过任务/原生请求/草稿的安全栅栏。
 

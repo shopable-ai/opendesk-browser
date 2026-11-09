@@ -167,6 +167,8 @@
 
 ## 5. 三种开发循环，避免每次都重编整个扩展
 
+布局先复用[公共高度与滚动合同](sidebar-tools.zh-CN.md#高度与滚动归属)：宿主提供满高沙箱画布，旧工具保留自然内容流；固定头部/正文/底部的工作区可用 `opendesk-tool-workspace` / `opendesk-tool-scroll`，无需复制宿主高度计算。HTML/Vue/React 共用该展示约定，业务与沙箱权限边界不变。
+
 ### A. 简单 HTML/CSS/JS 工具：最快的默认路线
 
 在仓库根目录操作，先核对 `git status --short --branch` 和现有 watcher/Chrome；**默认构建只写忽略目录，不再自动刷新工具根的正式包**。
@@ -326,6 +328,16 @@ npm run verify
 持续开发复用 [扩展增量开发指南](../framework/extension-development-r131.zh-CN.md) 的 `npm run dev`，保存声明源码可重新生成资源；完整 Catalog 结构变化会刷新 WXT 资源清单。新资源不会自动替换用户安装的旧包、启动脚本或增加网站许可。不允许两个 Agent 抢占同一份 dist、Chrome Profile 或构建进程。
 
 ## 6. 统一 UI/UX 与代码质量规范
+
+### 确认、反馈与 Promise/then（2026-11-09）
+
+统一按[确认、反馈与异步调用合同](../architecture/browser-framework/confirmation-and-feedback.zh-CN.md)选交互与划分 owner：普通消息非阻断，字段/unknown 就近持久，丢弃/删除/覆盖用统一简短浮层，复杂表单保留业务界面。浮层不向正文插入 sticky 确认区；默认保留/取消、焦点循环与恢复、IME/Escape、单待决 owner 和编辑器让出/恢复模态共同验证。
+
+业务决定必要性、目标/后果、dirty/revision、原服务条件写与真实回执；框架负责展示与生命周期。工具内部路由由业务 guard、跨工具离开由框架 guard 发起，同一意图一次确认；Web Flow 等消费者不因框架离开保护再复制弹窗。普通确认不替代权限审阅。
+
+公开能力及签名只在[原 API](sidebar-tools.zh-CN.md#异步确认opendesktooluiconfirm拟议尚未实现)维护：`ui.notify` 已有最小源码，`ui.confirm` 已有 Bridge/Host/可信 adapter 源码实现及定向 Node 证据，安装与运行另验。不能假定所有候选已有导出；明确不支持且无待决 UI 才回退原安全本地确认，busy/取消/超时/撤权不另弹第二框。HTML/Vue 不强制迁移 React。
+
+异步迁移须检查：不能将 Promise 或 cancel 对象当 boolean；同步 guard 全部调用点一致；then 返回/等待后续写入；void 任务有最终拒绝处理；并发/卸载/abort/超时全部结算；finally 只清本请求；确认后复核原对象/版本，回执后才清 dirty。正确 then 与 async/await 均可，不做全仓替换。完整行为条件由同一合同及其测试规格维护，不写每轮源码字符串断言。
 
 ### 获批官方风格试点（2026-11-01）
 
