@@ -10,7 +10,7 @@
 
 ### 来源、运行版本、授权与状态
 
-- 公共 GitHub Markdown 的浏览器读取仅允许明确的 HTTPS 仓库 blob/raw 文件 URL，不允许 URL 内密钥；内容必须来自真实网络回包并计算 SHA-256。读失败、沙箱 CSP/CORS 阻断或 401/403/404 时清楚展示失败，**不得回退预置示例**。私有仓库必须通过已有可信 GitHub 授权读取接口；本地相对路径按已绑定授权工作区解析，单纯绝对路径不是权限。公共文件 fetch 在实际沙箱的 CSP 能否成功 **NOT_TESTED**。
+- 公共 GitHub Markdown 仅允许明确 HTTPS blob/raw 文件 URL，不接受 URL 密钥。**已确认隔离页 `src/sidebar-tools/sandbox.html` 的 CSP 为 `connect-src 'none'`，直接 `fetch` 必然不通**；读取改走现有 `OpenDeskTool.request('browser.network.request',{method:'GET',url,config:{responseType:'text'}})`，工具包须审阅新增 `network` capability，原宿主在 Chrome 尚无 `raw.githubusercontent.com` 网站访问权限时提示用户批准。原网络服务禁用 credentials、禁止自动跳转；只处理真实 HTTP 文本回包、计算内容 SHA-256，网络/权限/文件缺失明确报错，**不得回退内嵌演示数据**。私有仓库须独立的可信 GitHub 授权读取接口；本地相对路径基于已绑定授权工作区，绝对路径不构成权限。实际安装后的公共网络读取与域名授权 **CHROME_NOT_TESTED**。
 - “读取/刷新”仅改变本地预览。不调用 Runner。真正“开始”须由可信后台在原持久运行账本中原子领取，冻结源 URL、内容 SHA-256、任务快照、工作区/账号/聊天模式、输入、随机 marker 与批准范围；运行中源文件更新只提示差异，不改当前 run。当前普通沙箱 `storage.get → storage.set → readback` 即使有版本核对也不是后台原子任务锁；离线 `src/queue/repository.js` 的单 owner 队列不能伪装跨标签 Runner。
 - MD 只描述任务，不存储执行状态。聊天 URL、消息、真实发送回执、成果及 SHA、验收、UNKNOWN、恢复点必须留原 Durable Run/Result/权限所有者。恢复只查询/对账原操作身份；只有用户明确重跑才产生新 run。文件中的 `[x]` 不证明执行。
 - 每个新聊天需在发送前确认账号/Origin、目标 conversationId、能力接入和监听 ready；新建、初始化、业务提交、工具结果回填分开计数。自动提交、成果写入、回填结果出现 UNKNOWN 时只按原身份对账，不重建/盲重发；草稿、IME、附件及其他 writer 占用必须停止。
@@ -18,7 +18,7 @@
 
 ### 当前可用与延期
 
-- **已有正式源码候选：** `src/ui/md-workflow.js` 的严格解析、只读公开 GitHub 获取、SHA-256 固定版本、随机 marker 和 T01/T02 纯计算验收；UI 能从概览进入 MD 预览，显示真实读取失败、任务和版本，**开始按钮明确禁用**，避免假完成。原 WebFlow 固定 Task 管理与旧流程保持不变。
+- **已有正式源码候选：** `src/ui/md-workflow.js` 的严格解析、借原 Browser Network SDK 获取公共 GitHub 文本、SHA-256 固定版本、随机 marker 和 T01/T02 纯计算验收；WebFlow 包声明新增受审 `network` 能力。UI 能从概览进入 MD 预览，显示读取失败、任务和版本，**开始按钮明确禁用**，避免假完成。原固定 Task 管理与旧流程保持不变。原安装包尚未重新构建/晋升，源码存在不代表用户已安装新 capability。
 - **尚待可信 owner 接线：** GitHub 私有/本地授权读取；独立 `chatgpt.conversation.create` 安装、批准、账号和监听；真正的单 run 后台原子 claim、原 Host/Authority/Runner 派发、持久 artifact 写回与独立 readback、两个真实聊天及恢复。当前 `chat-handoff-contract.js` 只负责数据验证；`queue/state.js` 为离线 Codex 目标，不能当作已完成接线。
 - **延期：** Project 运行、多账号、并行 DAG、全面看板、仓库自动写回。源码/V8/Node/真实 Chrome 等证据等级必须分别维护在原 [执行计划](execution-plan.zh-CN.md)；未覆盖的真实链为 **NOT_TESTED**。
 

@@ -674,7 +674,14 @@
       setMdBusy(true);setMdError('');
       try{
         if(!W)throw Object.assign(new Error('当前安装包缺少 Markdown 解析资源，请从原安装器升级'),{code:'E_MD_MODULE'});
-        const value=await W.readGithub(mdSource);
+        const value=await W.readGithub(mdSource,{fetcher:async url=>{
+          const result=await request('browser.network.request',{method:'GET',url,
+            config:{responseType:'text',timeout:20000}});
+          if(typeof result?.data!=='string'||!Number.isInteger(result.status))
+            throw Object.assign(new Error('网络回执不完整'),{code:'E_MD_FETCH'});
+          return {ok:result.status>=200&&result.status<300,status:result.status,
+            text:async()=>result.data};
+        }});
         let demoReady=true,demoReason='';
         try{W.spec(value.workflow);}catch(e){demoReady=false;demoReason=e.message;}
         if(alive.current)setMdPreview({value,demoReady,demoReason});
@@ -683,18 +690,18 @@
       }finally{if(alive.current)setMdBusy(false);}
     }
     function markdownPage(){
-      const preview=mdPreview,workflow=preview?.value?.workflow;
+      const preview=mdPreview?.value?.source===mdSource?mdPreview:null,workflow=preview?.value?.workflow;
       return h('div',{className:'wf-stack'},
         h(Head,{title:'Markdown 任务队列',note:'从真实 GitHub Markdown 读取并解析。读取和刷新只更新预览，不触发聊天或任务。',
           action:Btn('返回概览',()=>setTab('overview'),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('label',{className:'wf-label',htmlFor:'wf-md-source'},'文件来源 · GitHub 公开 MD'),
           h('input',{id:'wf-md-source',className:'wf-input',type:'url',value:mdSource,
-            onChange:e=>setMdSource(e.target.value),'aria-label':'Markdown 文件链接',
+            onChange:e=>{setMdSource(e.target.value);setMdError('');},'aria-label':'Markdown 文件链接',
             placeholder:'https://github.com/owner/repo/blob/main/path.md'}),
           Btn(mdBusy?'正在读取…':'读取 / 刷新',()=>{void loadMdPreview();},{primary:true,disabled:mdBusy}),
           mdError&&h('p',{className:'wf-warning',role:'alert'},mdError),
-          h('p',{className:'wf-sub'},'私有仓库及本地路径须通过已有可信工作区文件桥接另行授权。公开读取若被网络/CSP 阻止，会明确报错，不回退到内置假数据。'))}),
+          h('p',{className:'wf-sub'},'私有仓库及本地路径须通过已有可信工作区文件桥接另行授权。公开文件经现有 Browser Network SDK 读取；首次需要原宿主授予目标域名权限，失败时不使用假数据。'))}),
         workflow&&h(Card,{children:h('div',{className:'wf-stack'},
           h('strong',null,workflow.title),
           h('p',null,workflow.goal),

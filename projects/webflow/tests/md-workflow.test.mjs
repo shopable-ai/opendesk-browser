@@ -44,13 +44,15 @@ test('GitHub URL validation rejects tokens, wrong origins and wrong file types',
 });
 test('public read returns fetched content and version; 403, 404 and network fail closed',async()=>{
   const url='https://github.com/u/r/blob/main/demo.md';let count=0;
-  const reply=await W.readGithub(url,{fetcher:async(raw,init)=>{count++;
+  const reply=await W.readGithub(url,{fetcher:async raw=>{count++;
     assert.equal(raw,'https://raw.githubusercontent.com/u/r/main/demo.md');
-    assert.equal(init.credentials,'omit');return {ok:true,status:200,text:async()=>MD};}});
+    return {ok:true,status:200,text:async()=>MD};}});
   assert.equal(count,1);assert.equal(reply.content,MD);assert.match(reply.version,/^[a-f0-9]{64}$/);
   for(const [response,expected] of [[{status:403,ok:false},'E_MD_AUTH'],[{status:404,ok:false},'E_MD_FETCH']])
     await assert.rejects(W.readGithub(url,{fetcher:async()=>response}),code(expected));
   await assert.rejects(W.readGithub(url,{fetcher:async()=>{throw Error('offline');}}),code('E_MD_FETCH'));
+  await assert.rejects(W.readGithub(url),code('E_MD_FETCH'));
+  await assert.rejects(W.readGithub(url,{fetcher:async()=>{throw Object.assign(Error('denied'),{code:'E_NETWORK_NOT_SUBMITTED'});}}),code('E_MD_PERMISSION'));
 });
 test('T01 checks actual numbers, marker, version, and disallows extra keys',()=>{
   const w=W.parse(MD);

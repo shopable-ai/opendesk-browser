@@ -86,14 +86,25 @@
     if(!b||b.length!==32)bad('E_MD_DIGEST','摘要回执错误');
     return Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');
   }
-  async function readGithub(source,{fetcher=global.fetch,digest}={}){
+  async function readGithub(source,{fetcher,digest}={}){
     const url=githubRaw(source);
-    if(typeof fetcher!=='function')bad('E_MD_FETCH','当前入口没有公开 GitHub 读取通道');
-    let r;try{r=await fetcher(url,{method:'GET',credentials:'omit',redirect:'error',cache:'no-store'});}
-    catch{bad('E_MD_FETCH','远程读取失败，可能是网络或沙箱 CSP 阻止；绝不回退内置样例');}
+    if(typeof fetcher!=='function')bad('E_MD_FETCH','缺少已授权的网络读取接口；隔离页面禁止直接 fetch');
+    let r;try{r=await fetcher(url);}
+    catch(error){
+      if(['E_NETWORK_NOT_SUBMITTED','E_CHROME_PERMISSION_REQUIRED','E_PERMISSION'].includes(error?.code))
+        bad('E_MD_PERMISSION','网络权限未确认，请使用原宿主授权入口');
+      if(error?.code==='E_HTTP'&&/HTTP (?:401|403)\b/u.test(error.message||''))
+        bad('E_MD_AUTH','仓库可能是私有文件，需使用已有授权读取通道');
+      if(error?.code==='E_HTTP'&&/HTTP 404\b/u.test(error.message||''))
+        bad('E_MD_FETCH','GitHub 返回 HTTP 404：文件不存在或当前无权访问');
+      if(error?.code==='E_LIMIT')bad('E_MD_SIZE','GitHub 文件超出宿主网络读取预算');
+      bad('E_MD_FETCH','经授权的 GitHub 读取失败（'+String(error?.code||'E_NETWORK')+'）；不使用内嵌样例');
+    }
     if(r?.status===401||r?.status===403)bad('E_MD_AUTH','私有仓库需要单独授权通道');
     if(!r?.ok||typeof r.text!=='function')bad('E_MD_FETCH','文件读取失败 HTTP '+(r?.status??'?')+'，可能不存在或无权访问');
-    const content=await r.text(),workflow=parse(content),version=await sha(content,digest);
+    const content=await r.text();
+    if(typeof content!=='string')bad('E_MD_FETCH','HTTP 结果不是文本');
+    const workflow=parse(content),version=await sha(content,digest);
     return deepFreeze({source,url,content,version,workflow});
   }
   function spec(w){
