@@ -1,5 +1,7 @@
 ## Markdown 两任务 Demo 当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
 
+**已推送 main 的源码提交：** [`0137685b4ccf3e593bd67235560b383fc3df37bb`](https://github.com/shopable-ai/opendesk-browser/commit/0137685b4ccf3e593bd67235560b383fc3df37bb)，基于当时最新 HEAD `78bf7e51f86296dfca179735ac1d9c0b200cf75c`，仅提交本执行卡列出的 9 个文件，已逐一从 GitHub main 读回。后来补做 JS 静态解析：新 Node 用例与现有 UI fixture 的源码在隔离 V8 中语法解析通过；**真实 `node --test` 仍 NOT_TESTED**，真实 Chrome 与正式打包器同源验证也仍 NOT_TESTED。当前提交并未启用真实跨聊天执行。
+
 **目标/下一条用户操作：** 在 WebFlow → 概览 → Markdown 两任务中输入仓库 MD 链接、点击“读取 / 刷新”，看到 T01/T02、来源和版本；最终由用户点击开始，产生两条不同的真实 ChatGPT 会话、独立验收和读回交接。目前只是源码阶段，**运行按钮仍禁用**，不得将预览或离线计算写成跨聊天已成功。
 
 **基线/并行边界：** 开始时 GitHub main 为 `492608f548552e9d67f74d9559d859144a3c4bca`，并核对根及项目 AGENTS、原 README、产品合同、执行计划；后续写入须再次核对 HEAD。现有 `src/queue/state.js` / `repository.js` 是离线两步 Codex 队列，`src/chat-handoff-contract.js` 是 ChatGPT→ChatGPT 数据合同，计算接力示例与文件桥接各有自身 owner。新聊天 Task、独立 V2 批准和可信跨聊运行接线在所读 main 未完成；本次不改它们、不伪造能力或继承其他并行成果。
