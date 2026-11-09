@@ -143,6 +143,7 @@
 #workbench-develop .developer-management-section:not([hidden]){display:grid;gap:var(--space-2);min-width:0}
 #workbench-develop .developer-management-section>:not([hidden]){margin-block:0}
 #workbench-develop .developer-editor :is(input,select,textarea).od-field{line-height:1.5}
+#script-javascript-world-row>label{flex:none}
 #workbench-develop .result-toolbar{margin-bottom:0}
 .developer-page-label{flex:none;font-weight:650}
 #script-current-page-host{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}

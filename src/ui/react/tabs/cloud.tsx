@@ -102,7 +102,7 @@ export function CloudProgramInbox({model={}}){
   const trusted=(event,fn,id)=>{
     if(event.nativeEvent?.isTrusted===true&&typeof fn==='function')fn(id);
   };
-  return <section className="cloud-programs od-surface" aria-label="云端交付的待审核程序">
+  return <section className="cloud-programs od-surface od-surface--padded" aria-label="云端交付的待审核程序">
     <div className="cloud-section-title od-toolbar">
       <strong>待审核程序</strong>
       <button type="button" className="od-button od-button--secondary"
