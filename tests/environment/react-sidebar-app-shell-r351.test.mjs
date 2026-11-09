@@ -8,6 +8,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {transform} from 'esbuild';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createMyWorkbenchView} from '../../src/ui/my-workbench-view.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 
 const read=path=>readFile(path,'utf8');
 
@@ -58,7 +59,11 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   }));
   const $=load(html);
   assert.equal($('.workbench-nav[role=tablist]').length,1);
-  assert.equal($('.workbench-nav button[role=tab]').length,6);
+  // Five normal tabs plus two hidden diagnostics/development entries share one
+  // Side Panel navigation; app.html must not inherit this rail.
+  assert.equal($('.workbench-nav button[role=tab]').length,7);
+  assert.equal($('.workbench-nav button[role=tab]:not([hidden])').length,5);
+  assert.equal($('#tab-app-debug').is('[hidden]'),true);
   for(const key of ['tasks','tools','workflow','develop','cloud']){
     assert.equal($('[data-workbench-tab="'+key+'"]').length,1);
     assert.equal($('[data-workbench-tab="'+key+'"]').attr('aria-controls'),'workbench-'+key);
@@ -93,6 +98,21 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   assert.equal($tasks('#workbench-cloud').is('[hidden]'),true);
   assert.equal($tasks('#tab-debug').attr('hidden'),undefined);
   assert.equal($tasks('#tab-my-tasks').attr('aria-selected'),'true');
+});
+
+test('app.html SSR reuses ToolHost without the Side Panel rail or Extension Center (SOURCE_ONLY)',async()=>{
+  const {SidebarAppShell}=await loadSidebarReact();
+  const html=renderToStaticMarkup(React.createElement(SidebarAppShell,{
+    developerView:createDeveloperView(),myView:createMyWorkbenchView(),
+    toolView:createSidebarToolsView(),pageSurface:'app',activeTab:'tools'
+  }));
+  const $=load(html);
+  assert.equal($('.workbench-nav').length,0);
+  assert.equal($('#workspace-dock').length,0);
+  assert.equal($('#extension-center').length,0);
+  assert.equal($('#workspace-content #workbench-tools #sidebar-tools').length,1);
+  assert.equal($('#sidebar-tool-display').length,1);
+  assert.equal($('#sidebar-tool-back').length,1);
 });
 
 test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY)',async t=>{
