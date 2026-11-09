@@ -38,3 +38,12 @@
 当前 GitHub 连接可读取并创建源码提交，但本机 CodexPro `open_current_workspace` 返回 `UNAVAILABLE`。**本轮改动尚未在本地 Node/Vite 或 Chromium 安装运行，不得把以前 0.3.9 的通过结论沿用到当前源码。** 后续应在不触碰日常 Profile/并行 watcher 的前提下执行 `npm --prefix projects/ai-proxy test`、`npm --prefix projects/ai-proxy run build`，并单独验证两 Surface 的真实快捷操作同步、状态、撤权、ETag 与外观。正式 `ai-proxy.opendesk-tool.json` 本轮保持原样，不构造新工具包。
 
 **开发完成状态**：新代码及测试用例已纳入源码范围；实际运行验证阻断，完成状态须保持 `IMPLEMENTATION_PARTIAL`，不能进入最终 Codex 验收宣称。
+
+## 2026-11-09 开发 CI 实际回执（以源码提交绑定）
+
+- [App CI Run 42630510057](https://github.com/shopable-ai/opendesk-browser/actions/runs/42630510057)；验证源码提交 `0e6c9f139ccde98816bdda9e693941857e0c5ad0`。
+- `npm --prefix projects/ai-proxy run build` 对应 Vite 编译阶段成功，CI 生成 **候选** `artifacts/app-ci/ai-proxy/candidate.opendesk-tool.json`（仅 CI 临时产物），版本 0.3.9，SHA-256 `ec73cabccc47a345504cff20e193333029096fb06366b7b0a47b125e136f4d43`，状态 `BUILT_NOT_TESTED_NOT_RELEASED`；不是已发布安装包。
+- 项目自动收集的全部 Node 回归与四个共享基础用例合计 **302 通过、1 失败**；检查失败项唯一指向 `tests/environment/sidebar-tool-enable-r26.test.mjs` 的 Reading TOC 市场身份断言（`Missing expected rejection.`），**不是本轮 AI Proxy 测试失败**。App CI 整体仍为 FAIL，严禁改写为全绿。
+- App CI 合同自身的独立测试另有 `tests/environment/app-ci.test.mjs` 的普通 App 夹具测试失败，源于其复用共享基础测试；不在本 AI Proxy 文件归属内，未改动公共测试来掩盖。
+- 因共享 Node 门禁失败，声明的内存 Chromium `scripts/trusted-dialog-browser.mjs` 未进入执行，故本轮 Chromium 开发 UI 仍为 NOT_TESTED；最终本地 Codex 与真实安装验收同样未进行。
+- 结论：**`IMPLEMENTATION_PARTIAL`**。本轮已提交业务源码和回归代码，最小 Vite 编译成功；剩余门禁为共享 CI 阻断解除后的完整 App CI、R18/R16 点击/布局同源复验，以及既定的 SDK 能力边界。

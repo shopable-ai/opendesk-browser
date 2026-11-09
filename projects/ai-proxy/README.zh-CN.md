@@ -1,4 +1,4 @@
-**2026-11-09 · R18/R16 正式业务源码接线（开发门禁未全部完成）。** 已按唯一预览完成侧栏选择/应用状态、底部重复入口清理、可配置公共 Header 快捷操作及 PC 通用设置持久化；本次源码尚未在本地 Node/Vite 及 Chromium 验证，不继承下述 0.3.9 历史验收结果。查看 [本轮逐项实现与缺口](IMPLEMENTATION-R18-R16.zh-CN.md)。唯一正式安装包未更新。
+**2026-11-09 · R18/R16 正式业务源码接线（Vite CI 构建成功，开发门禁未全部完成）。** 已按唯一预览完成侧栏选择/应用状态、底部重复入口清理、可配置公共 Header 快捷操作及 PC 通用设置持久化；本次源码尚未在本地 Node/Vite 及 Chromium 验证，不继承下述 0.3.9 历史验收结果。查看 [本轮逐项实现与缺口](IMPLEMENTATION-R18-R16.zh-CN.md)。唯一正式安装包未更新。
 
 **2026-11-09 · 可查看完成情况入口。** 仓库根运行 `node projects/ai-proxy/progress/serve.mjs`，打开 [本地总览](http://127.0.0.1:43264/)，查看已完成/未完成/失败/未验证，并进入原双界面源码 Demo 或 AI Proxy 视觉参考。性质、启动和检查见 [网页说明](progress/README.zh-CN.md)。c1a95457b 的远端 CI 未通过；已定位 AI Proxy 缺显式 app.ci.json，其他 Provider/工具回归另有失败，见 [CI 定位记录](progress/CI.zh-CN.md)。以下核心验收结果仅绑定其冻结 development 候选，不意味着整体发布完成。
 
