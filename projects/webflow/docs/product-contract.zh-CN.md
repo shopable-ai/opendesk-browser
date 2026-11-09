@@ -32,7 +32,7 @@
 
 - V1：`webflow.task.intent.v1`，严格五字段 `protocol/candidateId/taskId/targetUrl/args`。现有解析器、审批、安装身份、精确 URL、回传和防重放保持原状。
 - V2：`webflow.task.intent.v2`，严格四字段 `protocol/candidateId/taskId/args`，**禁止** `targetUrl`、回调 URL、tabId、windowId、runId、安装身份及顶层 `activateTab`；重复字段与额外字段拒绝。
-- V2 只表示任务意图，不携带或继承旧 V1 执行许可。现有 V1 授权仍精确绑定原任务、目标、输入、安装代次、来源；**没有独立 V2 授权合同及可信执行准入之前，V2 只能解析与安全地解析固定目标，不能执行**。
+- V2 只表示任务意图，不携带或继承旧 V1 执行许可。现有 V1 授权仍精确绑定原任务、目标、输入、安装代次、来源；**现已加入独立单候选 V2 审批与可信入口接线（SOURCE 层），并禁止继承 V1 授权；未完成 Node/Chrome 正式验收，不能宣称 V2 真实业务成功**。
 - 真实执行仍使用原 Controller/Authority/Host/Installed Task、Chrome 权限、持久防重放和结果交付。内部请求可以继续有 `targetUrl`；退役的是**AI 候选字段**，不是执行层需要的精确 URL。
 
 ### 目标解析与信任边界
@@ -51,9 +51,11 @@
 
 ### 当前实现等级（截至 2026-11-10）
 
-**SOURCE_PARTIAL：** V2 独立结构解析及拒绝额外字段；内置百度/Google 固定启动入口的冻结版本/源码/Origin 解析模块与 Node 定向测试用例。V1 业务和旧批准没有迁移。**已接入但未实测：** 后台任务在可信侧栏通过当前请求的真实 Run 身份触发单次前台查看；共用原数据库、Host、权限校验和持久防重放记录（`webActivation`）。查看动作只激活同一自有目标 tab/document，不提交 Task、不发送结果，失败或回执未知禁止重复激活。
-**尚未接线：** 独立 V2 批准与运行准入、通用当前/动态目标绑定、可在任务开始前选择并自动激活的前台模式、新 ChatGPT Task、Gemini Task、受控交接引用。Node/包/Chrome/真实业务均待在可执行工作区补证，不能把孤立 smoke test 写成这些 PASS。阶段与下一步只维护在原 [执行计划](execution-plan.zh-CN.md) 中。
+**SOURCE 已接线、Node/Chrome 待验收：** V2 四字段严格解析；ChatGPT 官方完整回答识别；百度/Google 编译固定目标及原安装 Task pin 校验；原 Web Flow 入口、同一账本、可信 Side Panel 独立 V2 单候选批准、同一 Controller 防重放与原 Run/Result 查询/回传准入。V2 候选始终先待审，**不查询或写入 V1 任务范围授权作为 V2 批准**；旧 V1 继续五字段。未经编译认可的当前页/动态目标直接拒绝；不在 UNKNOWN 重试。后台任务原 Run 的可信前台查看及持久防重复激活已接线；现有目标 Tab 默认由 Controller 以 `active:false` 创建，**尚无任务启动前的前台偏好完整接线**。
 
+**局部验证：** 本轮相关 JS 通过隔离 V8 语法检查；以真实 ledger 源码、模拟存储和最小 Browser API 桩验证 V1 不被 V2 继承、V2 明确单次批准、重启持久化及 Controller 只提交一次。新增 Node 测试并纳入 `.github/workflows/chatgpt-baidu-bridge-r20.yml`，本轮无法读取 CI 结果或连接本机 Codex，Node、正式包、Chrome、ChatGPT 新对话业务均标记 **NOT_TESTED**，不是 PASS。
+
+**尚未完成：** `chatgpt.conversation.create` 可安装正式 Task；新会话 B 的实际发送/模型核验/真实 URL/消息回执及来源 A 交接；长提示词受控引用；启动前可选前台模式；Gemini 独立适配；经审阅的当前页和动态目标绑定。数据合同 `src/chat-handoff-contract.js` 已存在但未接真实业务。不要用 V2 搜索已接线替代新聊天完成。下一步以 `chatgpt.conversation.create` 的受控纵向闭环为唯一新功能开发主线，同时先跑本轮 Node 与安装 Chrome 回归。
 ---
 
 # Web Flow · AI Workflow Bridge — 长期产品目标与需求合同
