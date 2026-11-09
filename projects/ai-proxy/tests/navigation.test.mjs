@@ -263,10 +263,10 @@ test('actual copy action copies only an internal route and reports clipboard fai
 
 test('Workspace projects saved Header action order and hides an action without exposing any proxy effect',()=>{
  const f=workspaceFixture();f.render();
- assert.deepEqual(f.snapshots.at(-1).headerActions.map(x=>x.id),['add-proxy','diagnostics','subscriptions','settings']);
+ assert.deepEqual(Array.from(f.snapshots.at(-1).headerActions,x=>x.id),['add-proxy','diagnostics','subscriptions','settings']);
  f.notifyHeaderConfig({headerActions:['settings','add-proxy']});f.render();
  const now=f.snapshots.at(-1);
- assert.deepEqual(now.headerActions.map(x=>x.id),['settings','add-proxy']);
+ assert.deepEqual(Array.from(now.headerActions,x=>x.id),['settings','add-proxy']);
  f.header({action:'header',actionId:'diagnostics',page:now.page});
  assert.equal(f.navigation.getRoute(),'#/rules');
  f.header({action:'header',actionId:'settings',page:now.page});
