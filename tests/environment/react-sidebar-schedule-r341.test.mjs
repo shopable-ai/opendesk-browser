@@ -7,6 +7,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
 import {parseHTML} from 'linkedom';
 import {createMyWorkbenchView} from '../../src/ui/my-workbench-view.js';
 
@@ -19,6 +20,12 @@ const compiled=await build({stdin:{contents:"export {MyTasksPage} from './src/ui
   plugins:[{name:'test-react-instance',setup(builder){
     builder.onResolve({filter:/^react(?:$|\/)/},({path,kind})=>({
       path:kind==='require-call'?require.resolve(path):pathToFileURL(require.resolve(path)).href,external:true}));
+    // Vite uses CSS ?raw as a string, not a stylesheet side effect. Preserve
+    // that contract in this isolated esbuild fixture without a full WXT build.
+    builder.onResolve({filter:/\.css\?raw$/},args=>({
+      path:resolve(args.resolveDir,args.path.slice(0,-4)),namespace:'fixture-raw-css'}));
+    builder.onLoad({filter:/.*/,namespace:'fixture-raw-css'},async args=>({
+      contents:'export default '+JSON.stringify(await readFile(args.path,'utf8'))+';',loader:'js'}));
   }}]});
 const {MyTasksPage,SchedulePlanRows}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const plan={scheduleId:'plan-1',title:'<img src=x onerror=alert(1)>',triggerKind:'daily',
