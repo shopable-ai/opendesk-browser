@@ -1,6 +1,6 @@
 # OpenDesk Browser · 更新提醒统一合同 R1.1（含跨标签提醒与按钮状态机）
 
-状态：**框架方案、跨标签提醒规范与交互预览；正式 Framework/SDK、后台协调器、真实站点消息尚未实施。**  
+状态：**R1.2 核心通知框架已写入隔离功能分支；Node/Chromium/真实 Chrome 及主分支合并尚待证据。原 R1.1 产品方案继续有效。**  
 日期：2026-11-09  
 示范消费者：`projects/prompt-shortcuts/`（Prompt Shortcuts）  
 可点击演示：`projects/prompt-shortcuts/preview/index.html`，增强脚本 `preview/update-notification-demo.js`。  
@@ -238,3 +238,29 @@ UNSEEN / DISMISSED / VIEWED / IGNORED
 定向测试至少覆盖：同版本无提醒；新版可审阅但尚未安装；确认成功/取消/权限扩大/来源替换/回执未知；Browser `onInstalled` 已更新与 `onUpdateAvailable` 待应用；工具停用/卸载；多标签去重；离线、弹窗关闭重开、服务 Worker 休眠；敏感网页/无权限不注入；草稿/IME/未完成任务不打扰；原有 Prompt Shortcuts 提示词保存/插入与页面规则无退化。
 
 **验收口径**：可点击预览和静态语法检查不等于真实 Chrome/正式包/本机工具更新验收。实施完毕按绑定同一候选的定向 Node、Chromium 与真实 Chrome 证据分别声明 PASS/FAIL/NOT_TESTED；不能提前宣称 95 分以上产品验收。
+
+## 4. R1.2 源码增量与真实验收边界（2026-11-10）
+
+本节为现有文档的增量，非第二套设计或安装器。源代码必须经本机 Node 和真实安装 Chrome 验证后才能宣称生产完成。
+
+### 4.1 实现路径
+
+- `src/platform/chrome/update-notice-state.js`：原 Chrome Profile 的统一持久状态、发行 SHA 与版本身份、短租约、可见 ACK 计数、两次上限、24h 稍后、关闭/查看/忽略、全局与工具偏好。
+- `src/platform/chrome/update-notice-service.js`：由 **原 `src/sw.js`** 初始化，使用原 Catalog、Tool Registry、Source/Operation Ledger、Chrome storage 和已使用的 Verified Write / Web Lock。UNKNOWN 不自动重试安装。
+- `src/platform/chrome/update-notice-page.js`：Worker 固定函数的 ISOLATED DOM-only Toast。初期支持 ChatGPT、DeepSeek、Gemini 的确定 Origin，必须同时核验 Chrome 主机权限、真实 documentId、已安装启用工具及工具站点授权，普通页面与 iframe 不获可信通知或安装权限。
+- `src/ui/react/components/update-notice.tsx` 及 CSS：现有 React Shell 统一入口，Side Panel 与 app.html 共用记录、偏好和更新详情，不加一级 Tab。
+- `src/ui/tool-shell.js`：点审阅前重新比对内置发行 id/version/sha256/source，然后委托 **已有** `sidebarTools.openOfficialReview`，继续由原安装器确认来源、能力、权限与回执。点击详情绝不是安装。
+
+### 4.2 状态/失败/当前范围
+
+- `available` / `review_required` 是待审阅，`pending_browser_apply` 属 Chrome 本体待应用；只有原安装事务成功且安装、来源摘要读回一致，或 Chrome 实际 `onInstalled(reason=update)`，才可进入 `applied`。其他为 `unknown`，不宣传安装完成。
+- 每可信候选首次只允许一个网页 Toast，用户显式「稍后」才在 24h 后允许第二次；跨标签 Worker 串行 claim，页面 DOM 可见后才 ACK 计数。刷新、Worker 休眠、浏览器重启不重置计数。
+- 仅使用已有受信任官方 Tool Catalog 作为候选源；未为任意第三方包、Controller Task 或 Page Program 虚构新版本，也不额外新增后台、Registry、安装权限。
+- 任何忽略仅隐藏本版本提醒，不停用或卸载；用户在更新历史仍可手动进入原审阅。工具自身 `ui.notify` 仍限工具内纯文本，不可伪造发行。
+
+### 4.3 待执行验收
+
+- 源码回归：`node --test tests/environment/sidebar-tool-ui-notice.test.mjs tests/environment/update-notice-state.test.mjs` 及现有 Host 相关定向用例。
+- 原仓库构建：`npm run check`、`npm run build`；跨标签、安装/拒权/撤权、浏览器重启、权限变更、IME/焦点的真实 Chrome 证据另行独立记录。
+- 本轮本地 CodexPro 工作区连接 `UNAVAILABLE`；没有真实执行项目一律写 `NOT_TESTED`。六维真实产品评分 `NOT_SCORED`；本节不能用于宣称最终产品已经通过。
+
