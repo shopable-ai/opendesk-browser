@@ -44,10 +44,10 @@ test('activation is a static guide to the installed sidebar, with restrictive he
     const result = await request(`/activate?activation_code=${value}`);
     assert.equal(result.status, 200);
     secure(result);
-    assert.match(result.body, /1\.4\.14/);
+    assert.match(result.body, /原安装器/);
     assert.match(result.body, /侧栏/);
     assert.match(result.body, /活动状态/);
-    assert.match(result.body, /预检激活/);
+    assert.match(result.body, /自动预检/);
     assert.match(result.body, /确认激活/);
     assert.doesNotMatch(result.body, /<script|<form|<iframe|activation_code=/i);
   }

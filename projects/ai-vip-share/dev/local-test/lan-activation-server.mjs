@@ -19,7 +19,7 @@ function approvedConfig(origin) {
   return { rule, url };
 }
 
-const guide = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI VIP Share 激活指引</title><main><header><h1>继续激活 AI VIP Share</h1></header><section aria-labelledby="steps"><h2 id="steps">在已安装的应用中完成</h2><ol><li>打开已安装的 AI VIP Share 侧栏，版本须为 1.4.14 或更高。</li><li>保持此激活链接标签页处于活动状态。</li><li>在侧栏点击「预检激活」，核对权益与接收账号，再点击「确认激活」。</li></ol><p>本页面不会自动打开侧栏或消费激活码。当前为开发入口，安装包需匹配已批准的开发宿主，并连接原本地会员测试服务；此页面不提供会员服务。请勿把激活链接分享给他人。</p></section></main></html>`;
+const guide = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI VIP Share 激活指引</title><main><header><h1>继续激活 AI VIP Share</h1></header><section aria-labelledby="steps"><h2 id="steps">在已安装的应用中完成（开发环境）</h2><ol><li>通过 OpenDesk Browser 原安装器安装并审阅 AI VIP Share；已合法安装则直接打开侧栏，无需重装。</li><li>保持此激活链接标签页处于活动状态，让已授权侧栏读取来源。</li><li>新版侧栏会自动预检（不领取）；核对权益和接收账号，必要时仅点击一次「确认激活」。旧版仍可手动点击「查看激活内容」。</li></ol><p>本页面不会自动打开侧栏或消费激活码。当前为开发入口，安装包需匹配已批准的开发宿主，并连接原本地会员测试服务；此页面不提供会员服务。请勿把激活链接分享给他人。</p></section></main></html>`;
 const headers = {
   'Cache-Control': 'no-store',
   'Referrer-Policy': 'no-referrer',
