@@ -1,5 +1,5 @@
 /* Trusted extension document only. Never injected as a tool stylesheet. */
-.od-update-slot{position:fixed;bottom:14px;right:14px;z-index:1100;max-width:calc(100vw - 28px);font-family:system-ui,-apple-system,sans-serif}
+.od-update-slot{position:fixed;bottom:62px;right:14px;z-index:1100;max-width:calc(100vw - 28px);font-family:system-ui,-apple-system,sans-serif}
 .od-update-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #cbd5e1;color:var(--od-text,#273447);background:var(--od-surface,#fff);box-shadow:0 3px 16px #14213b22;border-radius:999px;padding:7px 11px;font:600 12px/1.35 system-ui;cursor:pointer;max-width:260px}
 .od-update-new{color:#fff;background:#2563eb;border-radius:4px;padding:2px 5px;font-size:10px;letter-spacing:.03em}
 .od-update-panel{position:absolute;bottom:calc(100% + 9px);right:0;width:min(420px,calc(100vw - 28px));max-height:min(74vh,650px);overflow:auto;overscroll-behavior:contain;background:var(--od-surface,#fff);color:var(--od-text,#202e43);border:1px solid var(--od-border,#cbd5e1);border-radius:14px;box-shadow:0 12px 36px #0f172a38;padding:15px;font:13px/1.5 system-ui;outline:none}
@@ -39,3 +39,7 @@
 .od-update-slot.is-app .od-update-panel{width:min(460px,calc(100vw - 28px))}
 @media(max-height:490px){.od-update-panel{max-height:60vh}}
 @media(prefers-reduced-motion:reduce){.od-update-panel,.od-update-trigger{transition:none!important}}
+
+/* A live installer or permission dialog owns focus and all actions. */
+body:has([aria-modal="true"]) .od-update-slot{display:none}
+.od-update-slot.is-app{bottom:14px}
