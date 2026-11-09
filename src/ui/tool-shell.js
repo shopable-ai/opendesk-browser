@@ -217,7 +217,7 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
   // Route verified update rows to the ORIGINAL Installer review; this never commits an install.
   onOpenUpdateReview:async row=>{
     if(shellClosed||!row||row.kind!=='sidebar-tool'||
-       !['available','review_required'].includes(row.status)||row.ignoredAt!==null)
+       !['available','review_required'].includes(row.status))
       return false;
     const {apps}=await loadOfficialCatalog({api:chrome});
     const same=apps.some(release=>release.toolId===row.id&&
