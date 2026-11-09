@@ -110,11 +110,11 @@ test('queue stays directly above the composer without a status footer in every p
     h.state({answerGate:false,phase:phase==='unknown'?'unknown':'waiting',
       reason:'原生草稿非空，等待用户处理',inFlight:phase?{id:'q1',phase}:null});
     h.view.render();
-    assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows']);
+    assert.deepEqual(panel(h).children.map(node=>node.className),['sq-summary','sq-rows']);
   }
   h.state({items:Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:'queued'})),
     phase:'waiting',inFlight:null});h.view.render();
-  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows','sq-more']);
+  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-summary','sq-rows','sq-more']);
 });
 
 test('unknown result stays on its message with an accessible warning and no retry controls',()=>{
@@ -142,7 +142,7 @@ test('collapsed messages cannot hide an unknown-result warning',()=>{
   const items=Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:i===3?'unknown':'queued'}));
   h.state({items,phase:'unknown',reason:'停止结果未知',inFlight:{id:'q3',phase:'unknown'}});
   h.view.render();
-  const more=panel(h).children[1];
+  const more=panel(h).children[2];
   assert.match(more.textContent,/⚠.*展开其余 1 条/);
   assert.match(more.getAttribute('aria-label'),/停止结果未知.*不会自动重试/);
   h.state({expanded:true});h.view.render();
@@ -258,7 +258,7 @@ test('fresh empty queue keeps its decorative cue visible and never rewrites offi
   h.state({items:[{id:'q2',text:'follow-up',state:'queued'}]});
   h.view.render();
   assert.equal(root.className,'sq-panel');
-  assert.equal(root.children[0].children[0].className,'sq-row');
+  assert.equal(root.children[1].children[0].className,'sq-row');
   h.state({items:[]});h.view.render();
   assert.equal(root.children[0].children[0].textContent,'···');
   h.dispose();
@@ -346,4 +346,43 @@ test('one paused row has only its own resume action and cannot send early',()=>{
   assert.ok(first.some(b=>b.dataset.action==='now'&&b.disabled));
   assert.ok(second.some(b=>b.dataset.action==='pause'&&!b.disabled));
   assert.ok(second.some(b=>b.dataset.action==='now'&&!b.disabled));
+});
+
+test('expanded list shows all 20 items and retains scroll position after state changes',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  const items=Array.from({length:20},(_,i)=>({id:'q'+(i+1),text:'message '+i,state:'queued'}));
+  h.state({items,expanded:true});h.view.render();
+  const root=panel(h);
+  assert.equal(root.className,'sq-panel sq-expanded');
+  assert.equal(root.querySelectorAll('[data-id-row]').length,20);
+  root.children[1].scrollTop=186;
+  h.state({items:items.slice(1)});h.view.render();
+  assert.equal(root.children[1].scrollTop,186);
+  h.state({expanded:false});h.view.render();
+  assert.equal(root.querySelectorAll('[data-id-row]').length,3);
+  h.state({expanded:true});h.view.render();
+  assert.equal(root.children[1].scrollTop,186);
+});
+
+test('compact row keeps secondary actions in an accessible toggle',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
+  const first=()=>panel(h).querySelectorAll('[data-id-row]')[0];
+  const buttons=first().querySelectorAll('button');
+  assert.equal(buttons.filter(b=>['pause','menu'].includes(b.dataset.action)).length,2);
+  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,true);
+  const menu=buttons.find(b=>b.dataset.action==='menu');
+  assert.equal(menu.getAttribute('aria-expanded'),'false');
+  click({target:{closest:()=>menu},stopPropagation(){}});
+  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,false);
+  assert.equal(first().querySelectorAll('button').find(b=>b.dataset.action==='menu').getAttribute('aria-expanded'),'true');
+  const close=first().querySelectorAll('button').find(b=>b.dataset.action==='menu');
+  click({target:{closest:()=>close},stopPropagation(){}});
+  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,true);
+});
+
+test('expanded rows have viewport-sized scrolling and keep the old native composer untouched',async()=>{
+  const css=await readFile(new URL('../assets/queue.css',import.meta.url),'utf8');
+  assert.match(css,/\.sq-panel\.sq-expanded \.sq-rows\{max-height:min\(48vh,420px\)\}/);
+  assert.match(css,/overscroll-behavior:contain/);
 });
