@@ -29,30 +29,45 @@ renderTool({surface});
 失败代码 `E_PAGE_TARGET`、`E_USER_GESTURE_REQUIRED`、`E_TOOL_CHANGED`、`E_PAGE_BUSY`、`E_PAGE_UNAVAILABLE`、`E_OUTCOME_UNKNOWN` 不变；dirty/busy、失效实例、旧响应与未知副作用不会自动重放。源码定向测试、构建、隔离 Chromium 和已安装验收必须分层出证据。
 
 
-### 非阻断消息：\`OpenDeskTool.ui.notify\`（2026-11-09 最小源码实现）
+### 非阻断消息：OpenDeskTool.ui.notify（R1.1 扩展示意）
 
-普通已安装 Sidebar Tool 可以在自己的 Side Panel / PC 工具宿主内，使用原有可信 React \`ToolToast\` 显示**纯文本、非阻断、临时**状态反馈（例如“已保存”“导出失败”）。这不是网页注入通知、Chrome 系统通知、更新消息中心，也**不具有任何安装/权限/重载能力**。
+**SOURCE_IMPLEMENTED；真实安装 Chrome 仍须验收。** 已有 `ui.notify({message})` 继续兼容。R1.1 只扩展原本已经存在的**纯文本、非阻断 ToolToast** 展示参数；它仅面向已安装 Sidebar Tool 在自己的 Side Panel / PC `app.html` 宿主内反馈状态，不是 Quasar 运行时、网页注入、系统通知、发行中心或安装/权限 API。
 
-\`\`\`js
-// 在工具自己的 Classic JS 中，由用户操作或已验证的业务结果触发：
-if (typeof OpenDeskTool.ui?.notify === 'function') {
-  const queued = OpenDeskTool.ui.notify({message: '配置已保存'});
-  // queued=true 只表示沙箱已提交展示请求，不保证用户实际看到。
-} else {
-  const status = OpenDeskTool.root.querySelector('[role="status"]');
-  if (status) status.textContent = '配置已保存'; // 旧 Host 兼容降级
-}
-\`\`\`
+```ts
+type NotifyOptions = {
+  message: string;  // 必填，去空白后 1–160 字符
+  type?: 'info' | 'success' | 'warning' | 'error';
+  caption?: string; // 可选，去空白后 1–120 字符
+  position?: 'top-left' | 'top-center' | 'top-right'
+    | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  timeout?: number; // 默认 5000ms；0 为仅手动关闭，或 1000–15000 整数
+  group?: boolean;  // 默认 true：同文案/说明/类型/位置合并，false 独立显示
+};
+OpenDeskTool.ui.notify(options: NotifyOptions): boolean;
+```
 
-**当前输入合同：**必须为\`{message: string}\`一个字段，不接受 \`html\`、\`url\`、\`action\`、\`onClick\`、\`title\`、\`type\` 或额外字段；去除两端空白后长度 1–160 个 JavaScript 字符，不允许控制字符、换行和双向控制字符；非法输入返回 \`false\`。有效请求返回 \`true\` 仅代表已向 Host 投递，**不等于显示或任何业务完成的回执**。不得用它替代真正的保存读回、安装确认或权限审阅。
+```js
+// 简单旧调用不用改。应在真实保存读回成功之后调用，不能仅凭 Toast 认定保存成功。
+OpenDeskTool.ui?.notify({message: '保存成功'});
+// 可选的新样式。没有操作权限或业务副作用。
+OpenDeskTool.ui?.notify({
+  message: '保存成功',caption: '本机数据已更新',
+  type: 'success',position: 'bottom-right',timeout: 3000
+});
+```
 
-- **仅宿主内展示**：宿主复用 \`src/ui/react/tabs/tool-host.tsx\` 的 \`ToolToast\` 及 \`src/ui/sidebar-tools-view.js\` 的 \`showToast\`，当前为 5 秒后自然消失，悬浮/聚焦期间暂停；页面内不会自动安装、打开新标签、展示 URL 或执行回调。
-- **来源和生命期**：仅接受同一活动 iframe 的受信任 \`source\`、opaque origin、实例 ID、工具 ID，并重验当前安装包、启停、撤权代次和宿主可见性；只读开发预览和旧实例无法驱动正式 Toast。
-- **限频**：每个活动工具实例 60 秒最多 3 条消息；超额安全忽略。卸载、关闭或切换工具后旧实例不能再投递。不保证跨侧栏/PC 统一队列；它不是更新公告的 Profile 级持久计数器。
-- **安全**：只是文字，React 以文本渲染；无 HTML 注入、通知图标、操作按钮、系统弹窗或自动执行。页面与业务仍属于工具自己的沙箱，不向工具暴露 \`chrome.*\`。
-- **兼容与验收**：旧 Host 没有 \`ui.notify\` 时必须回退工具内状态栏；本轮只说明源码接线与定向测试入口，尚未确认真实 Chrome / production / 安装包端到端运行：\`NOT_TESTED\`。
+**返回语义**：`true` 仅说明当前沙箱已排队向父宿主投递有效请求；不保证 Host 实际展示（可能因每实例限频、关闭、撤权而丢弃），也不是业务成功回执。`false` 代表输入不符合合同，或 Bridge 失效。旧 Browser Host 没有此方法时，仍需回退工具自己的普通状态文本，不用 `window.alert`。
 
-**更新提醒走独立的可信发布链**：\`docs/architecture/browser-framework/update-notification-r1.zh-CN.md\`。例如“提示词快捷按钮有新版本”只能由宿主依据可信发行与真实安装状态产生；**工具调用 \`ui.notify\` 不能创建框架级 NEW、跨标签 Toast、更新记录，更不能安装新版**。
+**安全与限制**：
+
+- 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。
+- Host 核验原 opaque iframe 的 source、install instance、工具版本、启停、撤权代际和可见性；页面、任务或远程网页不可伪造可信通知和安装授权。
+- 每活动工具实例 60 秒最多 3 次投递；Host 最多同时展示 3 条，默认相同消息合并显示次数。群组计数仍消耗调用额度；`timeout:0` 仍可被用户关闭、Host 卸载/切换时清理。
+- 只有四种内置语义图形/颜色，复用现有 React Tokens；不允许包任意颜色、CSS、图标组件或按钮回调。暂不开放 Spinner、Toast 内的 Undo/确认、跨页面全局通知和程序化 dismiss；需要审批/撤销动作应在真实工具页面提供自己的明确入口。
+- 错误、请求未知、恢复指引应留在工具正文；Toast 不得成为唯一的关键错误提示。
+- 更新中心必须使用独立的 `docs/architecture/browser-framework/update-notification-r1.zh-CN.md` 可信发行状态链。工具自称“更新成功”不能创建 NEW、安装回执或跨标签更新提醒。
+
+**可安装操作示例**：`examples/sidebar-tools/ui-notify-demo/` 的“通知组件实验室”，零额外 capability，调用公开 `OpenDeskTool.ui.notify`，含类型、位置、分组、持久关闭和非法参数按钮。以同目录经过原打包器生成的 `ui-notify-demo.opendesk-tool.json` 为手动导入文件；只读 HTML 预览或 Node 通过不代表真实已安装的 Chrome 验收。
 
 ### 异步确认：OpenDeskTool.ui.confirm
 
