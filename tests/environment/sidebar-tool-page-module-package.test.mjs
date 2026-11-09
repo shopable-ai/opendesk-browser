@@ -188,3 +188,18 @@ test('builder rejects Page config capability and project identity/version mismat
   await writeFile(join(root,'package.json'),JSON.stringify({...program,opendesk:{...program.opendesk,runtimeKind:'controller'}}));
   await assert.rejects(createSidebarToolPackage(root),/Page project must bind/);
 });
+
+test('promotion preserves the release when changed Page source reuses its revision',async t=>{
+  const {root,config,program}=await project(t),candidate=join(root,'candidate.json');
+  await buildSidebarTool(root,{out:candidate});
+  await promoteSidebarToolPackage(root,{from:candidate});
+  const release=join(root,'page-fixture.opendesk-tool.json'),original=await readFile(release);
+  await writeFile(join(root,'tool.config.json'),JSON.stringify({...config,version:'1.1.1'}));
+  await writeFile(join(root,'package.json'),JSON.stringify({...program,version:'1.1.1'}));
+  await buildSidebarTool(root,{out:candidate});
+  await assert.rejects(promoteSidebarToolPackage(root,{from:candidate}),/Page.*revision/);
+  assert.deepEqual(await readFile(release),original,'an invalid upgrade must preserve the approved release');
+  await writeFile(join(root,'tool.config.json'),JSON.stringify({...config,version:'1.1.1',pageModule:{revision:4}}));
+  await buildSidebarTool(root,{out:candidate});
+  assert.equal((await promoteSidebarToolPackage(root,{from:candidate})).status,'PROJECT_PACKAGE_PROMOTED');
+});

@@ -133,9 +133,9 @@ async function appFixture(pageRules={}){
   return f;
 }
 test('app preflight and verify are read-only; import uses Page proof and native authority',async()=>{
-  const f=await appFixture(),before=f.snapshot();
+  const f=await appFixture(),before=f.snapshot(),writes=f.writes.length;
   assert.equal((await f.service.prepareAppPage({tool:f.tool},{})).status,'prepared');
-  assert.deepEqual(f.snapshot(),before);assert.equal(f.native.size,0);
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);assert.equal(f.native.size,0);
   const receipt=await f.installApp();assert.equal(receipt.status,'installed');assert.equal(receipt.ready,true);
   assert.deepEqual(f.appRow().appOwner,f.owner);assert.equal(f.previewCalls,0);assert.equal(f.sourceCalls,0);
   const after=f.snapshot(),calls=f.registerCalls;
@@ -143,6 +143,41 @@ test('app preflight and verify are read-only; import uses Page proof and native 
   assert.deepEqual(f.snapshot(),after);assert.equal(f.registerCalls,calls);
   f.native.clear();await fails(()=>f.service.verifyAppPage(f.owner,{}),'E_PAGE_INSTALLATION');
   assert.equal(f.native.size,0,'verification does not repair missing native state');
+});
+async function seedAppCandidate(f){
+  const pkg=f.tool.pageModule;
+  await f.dependencies.importPageCandidate({programId:pkg.programId,revision:pkg.revision,
+    sourceUtf8:pkg.sourceUtf8,entryFormat:pkg.entryFormat,importSourceUrl:null,lockId:null,pageRules:pkg.pageRules},{});
+}
+async function changedAppPackage(f,change){
+  const {packageHash,...page}=f.tool.pageModule;
+  Object.assign(page,change);
+  page.sourceHash=await digestUtf8(page.sourceUtf8);
+  return {...f.tool,pageModule:{...page,packageHash:await digest(page)}};
+}
+for(const change of ['source','rules'])test('app preflight rejects a frozen revision with changed '+change+' without writing',async()=>{
+  const f=await appFixture();await seedAppCandidate(f);
+  const tool=await changedAppPackage(f,change==='source'
+    ?{sourceUtf8:'// @version 1.1.2\n'+f.tool.pageModule.sourceUtf8}
+    :{pageRules:{...f.tool.pageModule.pageRules,matches:['https://example.com/changed/*']}});
+  const before=f.snapshot(),parent=structuredClone(f.local),writes=f.writes.length;
+  await fails(()=>f.service.prepareAppPage({tool},{}),'E_REQUEST_CONFLICT');
+  assert.deepEqual(f.snapshot(),before);assert.deepEqual(f.local,parent);
+  assert.equal(f.writes.length,writes);assert.equal(f.registerCalls,0);
+});
+test('app preflight accepts an identical frozen revision without writing',async()=>{
+  const f=await appFixture();await seedAppCandidate(f);
+  const before=f.snapshot(),writes=f.writes.length,reads=f.storedCandidateReads;
+  assert.equal((await f.service.prepareAppPage({tool:f.tool},{})).status,'prepared');
+  assert.ok(f.storedCandidateReads>reads,'preflight uses the existing stored candidate reader');
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);assert.equal(f.registerCalls,0);
+});
+test('app preflight accepts changed source at a new revision without importing a candidate',async()=>{
+  const f=await appFixture();await seedAppCandidate(f);
+  const tool=await changedAppPackage(f,{revision:2,sourceUtf8:'// @version 1.1.2\n'+f.tool.pageModule.sourceUtf8});
+  const before=f.snapshot(),writes=f.writes.length;
+  assert.equal((await f.service.prepareAppPage({tool},{})).status,'prepared');
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);assert.equal(f.registerCalls,0);
 });
 for(const kind of ['missing','hash','epoch','disabled'])test('parent '+kind+' fences boot/bridge/requests and synchronizes without reinstall',async()=>{
   const f=await appFixture();await f.installApp();await f.bootApp();

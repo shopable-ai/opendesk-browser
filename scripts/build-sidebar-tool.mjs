@@ -13,6 +13,7 @@ import {createToolLocalization} from '../src/ui/sidebar-tools/localization.js';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
 import {CONTROLLER_SOURCE_LIMIT} from '../src/platform/source-budgets.js';
+import {validatePageInstallPackage} from '../src/scripting/user-scripts/page-install-package.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -252,6 +253,13 @@ export async function promoteSidebarToolPackage(projectPath,{from}={}){
     if(released.id!==pkg.id)fail('previous project package identity differs from current source');
     if(compareToolVersions(pkg.version,released.version)<=0)
       fail('changed release bytes require a newer version than '+released.version+'; bump the version, rebuild and rerun tests');
+    if(pkg.pageModule&&released.pageModule&&
+       pkg.pageModule.programId===released.pageModule.programId&&pkg.pageModule.revision===released.pageModule.revision){
+      const before=await validatePageInstallPackage(released.pageModule),after=await validatePageInstallPackage(pkg.pageModule);
+      if(before.sourceUtf8!==after.sourceUtf8||before.entryFormat!==after.entryFormat||
+         JSON.stringify(before.pageRules)!==JSON.stringify(after.pageRules))
+        fail('changed Page source, entry or rules require a new revision; rebuild and rerun tests');
+    }
   }
   // Check the source again immediately before the atomic replacement. Never
   // clear an existing approved package when source or candidate validation fails.

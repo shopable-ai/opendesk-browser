@@ -318,8 +318,11 @@ async function requestAppLifecycle(pageClient,type,payload,tool=null){
   if(typeof pageClient?.request!=='function')throw error('应用网页安装服务未连接；原安装与数据保留','E_HOST_UNAVAILABLE');
   const result=await pageClient.request(type,payload);
   if(type==='synchronizeAppPages'){
-    if(result?.status!=='synchronized'||!Array.isArray(result.cleanupPending)||result.cleanupPending.length)
+    if(result?.status!=='synchronized'||!Array.isArray(result.cleanupPending))
       throw unknownStorageOutcome(null,'应用网页模块清理');
+    if(result.cleanupPending.length)
+      throw error('安装包已保存，旧网页模块尚未确认清理；请先保存相关网页中的内容并刷新这些网页，再核对安装状态',
+        'E_OUTCOME_UNKNOWN');
   }else if(type==='prepareAppPage'){
     if(result?.status!=='prepared'||result.toolId!==payload.tool.id||
        result.packageHash!==await sidebarToolPackageHash(payload.tool)||
@@ -872,6 +875,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // A successful registry write followed by a metadata/ack failure is
       // neither a rollback nor a second invitation to consume user approval.
       try{await writeOp('outcome-unknown',cause?.code||'write-uncertain');}catch{}
+      if(cause?.code==='E_OUTCOME_UNKNOWN')throw cause;
       throw unknownStorageOutcome(cause,'工具安装');
     }
   }));

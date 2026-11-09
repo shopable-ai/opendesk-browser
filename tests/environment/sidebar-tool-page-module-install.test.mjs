@@ -71,6 +71,19 @@ test('lost or foreign Page receipts cannot turn a committed parent into reported
     assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
   }
 });
+test('pending old Page cleanup names the recovery action without replaying installation',async()=>{
+  const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
+  client.request=async(type,payload)=>type==='synchronizeAppPages'
+    ?{status:'synchronized',retired:[],cleanupPending:[candidate.pageModule.programId]}:request(type,payload);
+  await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client}),error=>{
+    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+    assert.match(error.message,/旧网页模块.*清理/);
+    assert.match(error.message,/保存.*刷新/);
+    return true;
+  });
+  assert.deepEqual(env.values[SIDEBAR_TOOL_STORE],[candidate],'the committed parent is retained');
+  assert.equal(env.events.filter(([type])=>type==='importAppPage').length,0,'cleanup must finish before import');
+});
 test('market recovery reads the companion identity and never repeats an unknown native install',async()=>{
   const env=environment(),candidate=await tool(),operationId=crypto.randomUUID();
   const market={marketId:'opendesk/'+candidate.id,sha256:await sidebarToolPackageHash(candidate),operationId};

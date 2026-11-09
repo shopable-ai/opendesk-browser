@@ -1462,6 +1462,16 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     await nativeAPI();
     invariant(await api.permissions.contains({origins:pageHostPermissionOrigins(pkg.pageRules.matches)}),
       PAGE_PERMISSION_ERROR,'Companion sites require Chrome permission');
+    await scoped(sender,'readonly',async tx=>{
+      if(!await tx.get(PAGE_STORE,key('candidate',namespace,pkg.programId,pkg.revision)))return;
+      const {candidate}=await dependencies.readStoredPageCandidate(namespace,pkg.programId,pkg.revision,tx);
+      const manifest=candidate.manifest;
+      invariant(candidate.sourceUtf8===pkg.sourceUtf8&&manifest.entryFormat===pkg.entryFormat&&
+        equal(manifest.pageRules,pkg.pageRules)&&manifest.sourceProfile.importSourceUrl===null&&
+        manifest.dependencyLockId===null&&!manifest.dependencyScope&&!manifest.compilation&&!candidate.authoring,
+        'E_REQUEST_CONFLICT','网页模块的固定 Revision 已用于其他源码或规则；请使用新 Revision 重新打包，原安装与数据未改变');
+      assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(await loadBuiltin({runtime:api.runtime})));
+    });
     return {status:'prepared',toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),programId:pkg.programId,sourceHash:pkg.sourceHash};
   }
   const appOwnerOf=request=>({toolId:request.toolId,packageHash:request.packageHash,installEpoch:request.installEpoch});
