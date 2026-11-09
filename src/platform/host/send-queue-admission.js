@@ -1,11 +1,11 @@
 // Exact pre-release source-bound admission for one product, not an official publication.
 // A manually imported same-ID package MUST NOT inherit queue control authority.
 export const SEND_QUEUE_PIN=Object.freeze({
-  toolId:'ai-send-queue',toolVersion:'0.1.16',
-  toolPackageSha256:'b1ddcc7245c414e1e8dc94b7c3d671c20ddbf9b77d4155cbeb819b643a014236',
-  pageProgramId:'opendesk.ai-send-queue',pageVersion:'0.1.15',pageRevision:15,
-  pagePackageHash:'e04a32ebe018375c39a0cc375da036cc9ca8db60243e719cbea82842cf24627c',
-  pageSourceHash:'61fdf8665b8ff557d345fed5325be211793abf6610698a85ef6a536daed5e5cb'
+  toolId:'ai-send-queue',toolVersion:'0.1.17',
+  toolPackageSha256:'e74a009fb7f1c4c802e2568b783dec811b033abfc50a05113c978c31ad010463',
+  pageProgramId:'opendesk.ai-send-queue',pageVersion:'0.1.16',pageRevision:16,
+  pagePackageHash:'39a0c82c57975a4cfb7c0015d990ba9c6bc233c237f484e9b6a3cc2ee295c8c8',
+  pageSourceHash:'d14eff3d42aa376a68b7cd3b2facc82eb39605bf5c1c511455c551e52df3a84f'
 });
 export function admitsPinnedQueueTool(tool,sha256){
   return tool?.id===SEND_QUEUE_PIN.toolId&&

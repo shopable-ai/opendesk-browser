@@ -8,7 +8,7 @@ import {createQueueEngine} from '../src/page/engine.js';
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 // Real main/Site/Engine, inert DOM and UI. No browser or website sends.
 async function fixture({busy=false}={}){
-  let now=0,poll,engine,actions,clears=0;
+  let now=0,poll,engine,actions,clears=0,recovery=null;
   const listeners=new Map(),sent=[],users=[],assistants=[],history=[];
   const state={busy,focus:()=>{}};
   class Textarea{
@@ -53,15 +53,22 @@ async function fixture({busy=false}={}){
     createQueueEngine:options=>(engine=createQueueEngine({...options,clock:()=>now})),
     createQueueView:options=>{
       actions=options.actions;
-      return {place:()=>true,render(){},hide(){},hasRecovery:()=>false,toast(){}};
+      return {place:()=>true,render(){},hide(){},hasRecovery:()=>!!recovery,offerRecovery(text,reason){recovery??={text,reason};},toast(){}};
     },
     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),context);
   await context.main();
-  return {editor,state,sent,users,history,get engine(){return engine;},
+  return {editor,state,sent,users,assistants,history,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
     get clears(){return clears;},get actions(){return actions;},
     step(t){now=t;poll();},
+    edit(text,{trusted=true,canceled=false,unchanged=false}={}){
+      const event={target:editor,isTrusted:trusted,defaultPrevented:false};
+      listeners.get('beforeinput')(event);
+      event.defaultPrevented=canceled;
+      if(!canceled&&!unchanged)editor.value=text;
+      listeners.get('input')({target:editor,isTrusted:trusted,defaultPrevented:false});
+    },
     key(patch={}){
       const event={key:'Enter',ctrlKey:true,isTrusted:true,target:editor,
         prevented:false,stopped:false,preventDefault(){this.prevented=true;},
@@ -84,7 +91,7 @@ async function fixture({busy=false}={}){
     finishReply(){if(assistants.length)assistants.at(-1).complete=true;state.busy=false;}
   };
 }
-function queue(h,text){h.editor.value=text;assert.equal(h.key().prevented,true);}
+function queue(h,text){h.edit(text);assert.equal(h.key().prevented,true);h.poll();}
 function rejectBoth(h){
   const before=JSON.stringify(h.engine.view()),draft=h.editor.value,clears=h.clears;
   assert.equal(h.key().prevented,true);h.actions.enqueue();
@@ -188,3 +195,234 @@ test('untrusted keys leave the real native draft and queue untouched',async()=>{
   assert.equal(h.editor.value,'private');assert.equal(h.clears,0);
   assert.equal(h.engine.view().items.length,0);assert.deepEqual(h.sent,[]);
 });
+
+// Deterministic UTF-16 payload: surrogate pairs, blank lines and edge spaces.
+function longBody(length=8192){
+  const unit='中文正文🧪🙂\n\n保留每个字符与空格。\n';
+  const middleLength=length-4;
+  const middle=unit.repeat(Math.floor(middleLength/unit.length))+'文'.repeat(middleLength%unit.length);
+  return '  '+middle+'  ';
+}
+
+
+for(const length of [1000,8191,8192,8193,21000,50000]){
+  test(`Node shortcut and crown preserve the ${length} UTF-16 admission boundary`,async()=>{
+    const h=await fixture({busy:true}),text=longBody(length);
+    assert.equal(text.length,length);
+    queue(h,'已有排队正文🙂');
+    h.edit(text);
+    if(length>8192)rejectBoth(h);
+    else{
+      assert.equal(h.key().prevented,true);
+      assert.equal(h.editor.value,'');h.poll();
+      assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['已有排队正文🙂',text]);
+      h.edit(text);
+      assert.equal(h.actions.enqueue(),true);
+      assert.equal(h.editor.value,'');h.poll();
+      assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['已有排队正文🙂',text,text]);
+    }
+    assert.deepEqual(h.sent,[]);
+  });
+}
+
+test('Node full queue rejects shortcut and crown without clearing a long native draft',async()=>{
+  const h=await fixture({busy:true});
+  const bodies=Array.from({length:20},(_,i)=>longBody(8170)+`第${i}项`);
+  for(const text of bodies)queue(h,text);
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),bodies);
+  h.edit(longBody());
+  rejectBoth(h);
+  assert.deepEqual(h.sent,[]);
+});
+
+test('Node take-back restores the exact long body and cancels only its queue authorization',async()=>{
+  const h=await fixture({busy:true}),text=longBody();
+  queue(h,text);queue(h,'保留下一项🙂');
+  assert.equal(h.actions.edit('q1'),true);
+  assert.equal(h.engine.view().items[0].state,'paused');h.poll();
+  assert.equal(h.editor.value,text);
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['保留下一项🙂']);
+  assert.deepEqual(h.sent,[]);
+});
+
+test('Node long-body FIFO sends and admits exact queued bodies once each',async()=>{
+  const h=await fixture({busy:true});
+  const bodies=[longBody(8191),longBody(8192),'  第三条🙂\n\n'+longBody(8000)+'  '];
+  for(const text of bodies)queue(h,text);
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),bodies);
+  assert.equal(h.editor.value,'');
+  h.finishReply();h.step(100);h.step(1400);h.step(2100);
+  assert.deepEqual(h.sent,bodies.slice(0,1));
+  for(let i=0;i<bodies.length;i++){
+    const t=2200+i*5000;
+    assert.equal(h.editor.value,bodies[i]);
+    h.admit(h.sent.at(-1));h.step(t);
+    assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),bodies.slice(i+1));
+    h.step(t+500);
+    assert.deepEqual(h.sent,bodies.slice(0,i+1),'busy reply must retain FIFO gate');
+    finishAndClickNext(h,t+1000);
+    assert.deepEqual(h.sent,bodies.slice(0,i+2));
+  }
+  h.step(90000);
+  assert.deepEqual(h.sent,bodies);
+  assert.deepEqual(h.users.map(x=>x.innerText),bodies);
+  assert.equal(h.engine.view().items.length,0);
+  assert.equal(h.engine.view().answerGate,null);
+});
+
+
+test('real adapters block microtask clear rollback and preserve FIFO without a second clear',async()=>{
+  const h=await fixture({busy:true});h.editor.value='A';assert.equal(h.actions.enqueue(),true);
+  await Promise.resolve().then(()=>{h.editor.value='A';});
+  rejectBoth(h);h.poll();
+  assert.equal(h.recovery.text,'A');assert.equal(h.clears,1);
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['A']);
+  assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
+});
+
+test('real adapters keep takeback queued until independent readback and recover later rollback',async()=>{
+  const h=await fixture({busy:true});queue(h,'A');queue(h,'B');
+  assert.equal(h.actions.edit('q1'),true);
+  assert.equal(h.engine.view().items.length,2);h.poll();
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['B']);
+  await Promise.resolve().then(()=>{h.editor.value='';});h.poll();
+  assert.equal(h.recovery.text,'A');h.finishReply();h.step(10000);h.step(20000);
+  assert.deepEqual(h.sent,[]);
+});
+
+test('trusted actual edits after clear acknowledgement allow intentional identical drafts',async()=>{
+  const h=await fixture({busy:true});queue(h,'A');queue(h,'A');queue(h,'B');
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['A','A','B']);
+  assert.equal(h.recovery,null);
+});
+
+test('prepared takeback keeps the complete copy when focus schedules microtask clearing',async()=>{
+  const h=await fixture();queue(h,'A');h.step(1400);h.step(7401);
+  assert.equal(h.engine.view().inFlight.phase,'unknown');
+  h.state.focus=()=>{Promise.resolve().then(()=>{h.editor.value='';});};
+  assert.equal(h.actions.edit('q1'),true);await Promise.resolve();h.poll();
+  assert.equal(h.recovery.text,'A');assert.equal(h.engine.view().items.length,1);
+  assert.deepEqual(h.sent,[]);
+});
+
+
+test('exact native admission releases reclaimed backup rather than offering a false recovery',async()=>{
+  const h=await fixture({busy:true});queue(h,'A');assert.equal(h.actions.edit('q1'),true);h.poll();
+  h.admit('A');h.poll();assert.equal(h.recovery,null);assert.deepEqual(h.sent,[]);
+});
+
+test('prepared takeback also retains backup after a successful independent poll',async()=>{
+  const h=await fixture();queue(h,'A');h.step(1400);h.step(7401);
+  assert.equal(h.actions.edit('q1'),true);h.poll();assert.equal(h.engine.view().items.length,0);
+  await Promise.resolve().then(()=>{h.editor.value='';});h.poll();
+  assert.equal(h.recovery.text,'A');assert.deepEqual(h.sent,[]);
+});
+
+
+for(const entrance of ['crown','shortcut']){
+  test(`post-ack long-text restoration blocks duplicate ${entrance} enqueue and FIFO`,async()=>{
+    const h=await fixture({busy:true}),text=longBody();queue(h,text);
+    h.editor.value=text;
+    if(entrance==='crown')h.actions.enqueue();else h.key();
+    h.finishReply();h.step(10000);h.step(20000);h.step(30000);
+    assert.equal(h.editor.value,text);assert.equal(h.clears,1);
+    assert.equal(h.recovery.text,text);
+    assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
+    assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
+  });
+}
+
+for(const acknowledged of [false,true]){
+  test(`native admission before next poll reconciles ${acknowledged?'post-ack':'pending'} enqueue`,async()=>{
+    const h=await fixture({busy:true}),text=longBody();
+    h.edit(text);assert.equal(h.actions.enqueue(),true);
+    if(acknowledged)h.poll();
+    h.editor.value=text;h.admit(text);h.poll();
+    assert.equal(h.engine.view().items.length,0);
+    assert.ok(h.engine.view().answerGate);assert.equal(h.recovery,null);
+    queue(h,'next');h.step(10000);assert.deepEqual(h.sent,[]);
+    finishAndClickNext(h,11000);assert.deepEqual(h.sent,['next']);
+  });
+  test(`ambiguous history during ${acknowledged?'post-ack':'pending'} enqueue retains the unique long copy`,async()=>{
+    const h=await fixture({busy:true}),text=longBody();
+    h.edit(text);h.actions.enqueue();if(acknowledged)h.poll();
+    h.admit(text+' different');h.poll();h.finishReply();h.step(10000);h.step(20000);
+    assert.equal(h.recovery.text,text);assert.equal(h.editor.value,'');
+    assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
+    assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
+  });
+}
+
+for(const edit of [{trusted:false},{canceled:true},{unchanged:true}]){
+  test(`non-authorizing edit cannot excuse restoration: ${JSON.stringify(edit)}`,async()=>{
+    const h=await fixture({busy:true}),text=longBody();queue(h,text);
+    h.edit(text,edit);h.editor.value=text;h.actions.enqueue();h.poll();
+    assert.equal(h.clears,1);assert.equal(h.recovery.text,text);
+    assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
+    assert.deepEqual(h.sent,[]);
+  });
+}
+
+test('trusted identical long messages each send once through normal FIFO',async()=>{
+  const h=await fixture({busy:true}),text=longBody();queue(h,text);queue(h,text);
+  assert.equal(h.recovery,null);assert.equal(h.engine.view().items.length,2);
+  h.finishReply();h.step(100);h.step(1400);h.step(2100);
+  assert.deepEqual(h.sent,[text]);h.admit(text);h.step(2200);
+  finishAndClickNext(h,4000);assert.deepEqual(h.sent,[text,text]);
+  h.admit(text);h.step(7200);finishAndClickNext(h,8000);h.step(20000);
+  assert.equal(h.engine.view().items.length,0);assert.deepEqual(h.sent,[text,text]);
+});
+
+
+for(const acknowledged of [false,true]){
+  test(`existing busy reply may append its assistant during ${acknowledged?'post-ack':'pending'} handoff`,async()=>{
+    const h=await fixture();h.admit('prior native message');
+    const reply=h.assistants.pop();h.history.pop();
+    h.edit('A');assert.equal(h.actions.enqueue(),true);
+    if(acknowledged)h.poll();
+    h.assistants.push(reply);h.history.push(reply);h.poll();
+    assert.equal(h.recovery,null);assert.equal(h.engine.view().items[0].state,'queued');
+    h.step(10000);assert.deepEqual(h.sent,[],'in-progress native reply still blocks send');
+    h.finishReply();h.step(11000);h.step(12400);h.step(13100);
+    assert.equal(h.recovery,null);assert.deepEqual(h.sent,['A']);
+    assert.equal(h.editor.value,'A','engine preparation is not website rollback');
+    h.admit('A');h.step(13200);finishAndClickNext(h,14000);
+    assert.equal(h.engine.view().items.length,0);assert.deepEqual(h.sent,['A']);
+  });
+}
+
+
+test('a newly observed native assistant cannot later be silently replaced',async()=>{
+  const h=await fixture();h.admit('prior native message');
+  const reply=h.assistants.pop();h.history.pop();queue(h,'A');
+  h.assistants.push(reply);h.history.push(reply);h.poll();
+  assert.equal(h.recovery,null);
+  const replacement={...reply};h.assistants[0]=replacement;h.history[1]=replacement;
+  h.poll();h.finishReply();h.step(10000);h.step(20000);
+  assert.equal(h.recovery.text,'A');assert.deepEqual(h.sent,[]);
+  assert.equal(h.engine.view().items[0].state,'unknown');
+});
+
+test('another item dispatch cannot release the latest queued draft provenance',async()=>{
+  const h=await fixture({busy:true});queue(h,'A');queue(h,'B');
+  h.finishReply();h.step(100);h.step(1400);h.step(2100);
+  h.admit('A');h.step(2200);
+  h.editor.value='B';h.actions.enqueue();h.poll();
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['B']);
+  assert.equal(h.engine.view().items[0].state,'unknown');
+  assert.equal(h.editor.value,'B');assert.equal(h.recovery.text,'B');
+  finishAndClickNext(h,4000);h.step(20000);
+  assert.deepEqual(h.sent,['A']);
+});
+
+for(const text of ['A','new native draft']){
+  test(`trusted native draft ${text} preserves the original queued authorization`,async()=>{
+    const h=await fixture();queue(h,'A');h.edit(text);h.admit(text);h.poll();
+    assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['A']);
+    assert.ok(h.engine.view().answerGate);assert.equal(h.recovery,null);
+    h.step(10000);assert.deepEqual(h.sent,[]);
+    finishAndClickNext(h,11000);assert.deepEqual(h.sent,['A']);
+    h.admit('A');h.step(14200);finishAndClickNext(h,15000);
+    assert.equal(h.engine.view().items.length,0);assert.deepEqual(h.sent,['A']);
+  });
+}

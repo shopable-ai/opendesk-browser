@@ -30,7 +30,8 @@ function fixture() {
     getAttribute:name=>name==='aria-label'?'开始语音':null,
     matches:selector=>selector.includes('开始语音')};
   const form={isConnected:true,hasAttribute:()=>!!state.occupied,
-    querySelectorAll:()=>state.voice?[voice]:state.noControl?[]:[send],querySelector:()=>state.rich?{}:null};
+    querySelectorAll:()=>state.voice?[voice]:state.noControl?[]:[send],
+    querySelector:selector=>state.rich||state.pastedAttachment&&selector.includes('[data-composer-attachments][data-visible-attachments]')?{}:null};
   const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
@@ -39,7 +40,51 @@ function fixture() {
     selector.includes('user')&&selector.includes('assistant')?(state.history||[...state.users,...state.assistants]):
     selector.startsWith('[data-message-author-role="user"]')?state.users:state.assistants};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
-  return {site,state,editor,replaceEditor,send,win};
+  return {site,state,editor,replaceEditor,send,win,doc};
+}
+
+function pasteEditorFixture(){
+  const f=fixture(),{editor,win,doc,state}=f;
+  Object.defineProperty(editor,'value',{value:undefined});
+  editor.tagName='DIV';editor.isContentEditable=true;editor.childNodes=[];
+  const setText=text=>{editor.childNodes=text?[{nodeType:3,nodeName:'#text',nodeValue:text}]:[];};
+  win.getSelection=()=>({removeAllRanges(){},addRange(){}});
+  doc.createRange=()=>({selectNodeContents(){}});
+  let commands=0;
+  doc.execCommand=()=>{commands++;return false;};
+  win.DataTransfer=class {
+    data=new Map();setData(type,value){this.data.set(type,value);}
+    getData(type){return this.data.get(type)||'';}
+    get types(){return [...this.data.keys()];}
+  };
+  win.ClipboardEvent=class {constructor(type,options){Object.assign(this,{type},options);}};
+  state.onInput=(_editor,event)=>{setText(event.clipboardData.getData('text/plain'));};
+  return {...f,setText,get commands(){return commands;}};
+}
+
+test('contenteditable writes one exact plaintext paste without touching the clipboard or native blocks',()=>{
+  const f=pasteEditorFixture(),text='  <script>literal</script>🙂\n\n```js\ncode();\n```\n';
+  let event;
+  f.state.onInput=(_editor,e)=>{event=e;f.setText(e.clipboardData.getData('text/plain'));};
+  assert.equal(f.site.restore(text,''),true);
+  assert.equal(f.site.inspect().draft,text);
+  assert.equal(event.type,'paste');assert.equal(event.cancelable,true);
+  assert.deepEqual(event.clipboardData.types,['text/plain'],'no interpreted HTML payload');
+  assert.equal(f.commands,0,'never follows paste with a second native write');
+});
+
+for(const acceptance of ['ignored','partial','asynchronous']){
+  test(`a ${acceptance} native paste keeps the queue source and cannot fall back to another write`,async()=>{
+    const f=pasteEditorFixture(),text=longBody();
+    f.state.onInput=()=>{
+      if(acceptance==='partial')f.setText(text.slice(0,100));
+      if(acceptance==='asynchronous')queueMicrotask(()=>f.setText(text));
+    };
+    const prepared=f.site.prepare(text,f.site.inspect());
+    assert.equal(prepared.ok,false);assert.equal(prepared.mayHaveWritten,true);
+    assert.equal(f.commands,0);assert.equal(f.state.clicks,0);
+    await Promise.resolve();assert.equal(f.state.clicks,0);
+  });
 }
 
 test('native stop clicks once but does not imply that generation has stopped',()=>{
@@ -367,10 +412,32 @@ test('canonical empty contenteditable paragraphs are empty without trimming real
   assert.equal(site.inspect().draft,'');
   editor.childNodes=[p,p];
   assert.equal(site.inspect().draft,'\n','multiple blank paragraphs remain a native draft');
-  editor.childNodes=[p];editor.textContent=' ';editor.innerText=' ';
+  const text=value=>({nodeType:3,nodeName:'#text',nodeValue:value});
+  editor.childNodes=[{...p,childNodes:[text(' ')]}];
   assert.equal(site.inspect().draft,' ');
-  editor.textContent='text';editor.innerText='text\n';
+  editor.childNodes=[{...p,childNodes:[text('text'),br,{
+    ...br,classList:{contains:name=>name==='ProseMirror-trailingBreak'}
+  }]}];
   assert.equal(site.inspect().draft,'text\n');
+});
+
+test('contenteditable block boundaries do not duplicate blank lines from layout',()=>{
+  const {site,editor}=fixture();
+  Object.defineProperty(editor,'value',{value:undefined});editor.isContentEditable=true;
+  const text=value=>({nodeType:3,nodeName:'#text',nodeValue:value});
+  const node=(nodeName,...childNodes)=>({nodeType:1,nodeName,childNodes});
+  for(const block of ['P','DIV']){
+    editor.childNodes=[node(block,text('  开头🙂')),node(block,node('BR')),
+      node(block,text('中间'),node('BR'),text('行尾  ')),node(block,node('BR'))];
+    editor.innerText='deliberately different layout text';
+    assert.equal(site.inspect().draft,'  开头🙂\n\n中间\n行尾  \n');
+  }
+  editor.childNodes=[text('first'),node('DIV',node('BR')),node('DIV',text('last'))];
+  assert.equal(site.inspect().draft,'first\n\nlast');
+  editor.childNodes=[text('last'),node('SPAN',node('BR'))];
+  assert.equal(site.inspect().draft,'last\n','inline line breaks are never empty-block placeholders');
+  editor.childNodes=[node('P',text('first')),node('SPAN'),{nodeType:8,nodeName:'#comment',childNodes:[]},node('P',text('last'))];
+  assert.equal(site.inspect().draft,'first\nlast','empty inline decorations do not create paragraphs');
 });
 
 test('normal clear verifies the currently active editor',()=>{
@@ -702,4 +769,116 @@ test('real adapter can take back a timed-out prepared draft without writing or s
   assert.deepEqual(engine.view().items.map(x=>x.text),['next']);
   assert.equal(f.state.clicks,0,'the preserved draft still vetoes the next queued send');
   assert.equal(writes,1);
+});
+
+// Deterministic UTF-16 payload: surrogate pairs, blank lines and edge spaces.
+function longBody(length=8192){
+  const unit='中文正文🧪🙂\n\n保留每个字符与空格。\n';
+  const middleLength=length-4;
+  const middle=unit.repeat(Math.floor(middleLength/unit.length))+'文'.repeat(middleLength%unit.length);
+  return '  '+middle+'  ';
+}
+
+
+test('Node textarea adapter reads and clears every UTF-16 unit of a long draft',()=>{
+  const {site,editor,state}=fixture(),text=longBody();
+  editor.current=text;
+  const snapshot=site.inspect();
+  assert.equal(snapshot.draft,text);
+  const result=site.clearForQueue(snapshot);
+  assert.equal(result.ok,true);
+  assert.equal(result.text,text);
+  assert.equal(editor.value,'');
+  assert.equal(state.clicks,0);
+});
+
+test('Node textarea adapter restores a long draft without normalizing its text',()=>{
+  const {site,editor,state}=fixture(),text=longBody();
+  assert.equal(site.restore(text,''),true);
+  assert.equal(editor.value,text);
+  assert.equal(site.inspect().draft,text);
+  assert.equal(state.clicks,0);
+});
+
+test('Node textarea adapter takes back a long queued body exactly',()=>{
+  const {site,editor,state}=fixture(),text=longBody();
+  assert.equal(site.reclaimToComposer(text,site.inspect()).ok,true);
+  assert.equal(editor.value,text);
+  assert.equal(site.inspect().draft,text);
+  assert.equal(state.clicks,0);
+});
+
+test('Node textarea adapter prepares the entire long body before one send click',()=>{
+  const {site,editor,state}=fixture(),text=longBody();
+  const prepared=site.prepare(text,site.inspect());
+  assert.equal(prepared.ok,true);
+  assert.equal(editor.value,text);
+  assert.equal(prepared.token.text,text);
+  assert.equal(site.commit(prepared.token).ok,true);
+  assert.equal(state.clicks,1);
+});
+
+test('Node message adapter confirms a long body only when every UTF-16 unit matches',()=>{
+  const {site,state}=fixture(),text=longBody(),before=site.inspect();
+  const message={parentElement:null,querySelector:()=>null,innerText:text};
+  state.users=[message];state.history=[message];
+  assert.equal(site.confirm(before,text,site.inspect()),true);
+  // Same prefix/length is insufficient; neither truncation nor trimming is exact.
+  for(const changed of [text.slice(0,-1),text.trim(),text.slice(0,4096)+'异'+text.slice(4097)]){
+    message.innerText=changed;
+    assert.equal(site.confirm(before,text,site.inspect()),false);
+  }
+});
+
+
+test('Node composer replacement during long-draft clear retains the entire recovery body',()=>{
+  const {site,editor,state,replaceEditor}=fixture(),text=longBody();
+  editor.current=text;
+  state.onInput=()=>replaceEditor('');
+  const result=site.clearForQueue(site.inspect());
+  assert.equal(result.ok,false);
+  assert.equal(result.needsRecovery,true);
+  assert.equal(result.text,text);
+  assert.equal(state.clicks,0);
+});
+
+test('Node composer replacement cannot authorize removal of a long reclaimed body',()=>{
+  const {site,state,replaceEditor}=fixture(),text=longBody();
+  state.onInput=()=>replaceEditor(text.slice(0,4096));
+  const result=site.reclaimToComposer(text,site.inspect());
+  assert.equal(result.ok,false);
+  assert.equal(result.mayHaveWritten,true);
+  assert.equal(site.inspect().draft,text.slice(0,4096));
+  assert.equal(state.clicks,0);
+});
+
+test('restore cannot confirm text left only in a detached editor',()=>{
+  const {site,editor,state,replaceEditor}=fixture(),text=longBody();
+  state.onInput=()=>replaceEditor('');
+  assert.equal(site.restore(text,''),false);
+  assert.equal(editor.value,text,'the old node alone is not a successful restore');
+  assert.equal(site.inspect().draft,'');
+  assert.equal(state.clicks,0);
+});
+
+test('restore rejects route changes and composition begun by the input handler',()=>{
+  for(const changed of ['route','composition']){
+    const {site,state,win}=fixture();
+    state.onInput=()=>{if(changed==='route')win.location.pathname='/c/87654321';else state.composing=true;};
+    assert.equal(site.restore(longBody(),''),false,changed);
+    assert.equal(state.clicks,0);
+  }
+});
+
+test('native pasted-text attachment vetoes every draft write and send',()=>{
+  const {site,editor,state}=fixture();
+  state.pastedAttachment=true;editor.current='保留附件旁的草稿';
+  const snap=site.inspect();
+  assert.equal(snap.rich,true);
+  assert.equal(site.clearForQueue(snap).ok,false);
+  assert.equal(site.restore('替换正文',editor.value),false);
+  assert.equal(editor.value,'保留附件旁的草稿');
+  assert.equal(site.prepare('queued',snap).ok,false);
+  assert.equal(site.reclaimToComposer('queued',snap).ok,false);
+  assert.equal(state.clicks,0);
 });

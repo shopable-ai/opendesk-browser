@@ -36,7 +36,7 @@ class Node {
     ...child.querySelectorAll(selector)]);}
   getBoundingClientRect(){return this.measure?.()||rect(0,0,0,0);}
 }
-function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords}={}){
+function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null}={}){
   const doc={defaultView:{getComputedStyle:node=>node.computed,matchMedia:()=>({matches:coarse})},
     createElement:tag=>new Node(doc,tag),createElementNS:(_ns,tag)=>new Node(doc,tag)};
   doc.body=new Node(doc,'body');
@@ -59,7 +59,8 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
   surface.measure=()=>rect(130,top()+20,560,140);
   wrapper.measure=surface.measure;
   editorShell.measure=()=>rect(146,top()+36,528,60);
-  editor.measure=()=>rect(146,top()+36,528-(shown('button')?(damage==='editor'?60:damage==='inline'?40:0):0),60);
+  editor.measure=()=>rect(146,top()+36-(scrollOffset??0),528-(shown('button')?(damage==='editor'?60:damage==='inline'?40:0):0),scrollOffset===null?60:10000);
+  if(scrollOffset!==null)Object.assign(editorShell.computed,{overflowX:'hidden',overflowY:'auto'});
   toolbar.measure=()=>rect(146,top()+104,528,40);
   native.measure=()=>rect(636,top()+106,shown('button')&&damage==='button'?20:34,34);
   aux.measure=()=>rect(146,top()+106,34,34);
@@ -104,17 +105,49 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
 }
 const panel=h=>h.ui('list').content.children[0];
 
-test('queue stays directly above the composer without a status footer in every phase',()=>{
+for(const scrollOffset of [0,4500,9940]){
+  test(`long scrollable editor keeps queue and crown visible at scroll offset ${scrollOffset}`,()=>{
+    const h=fixture({scrollOffset});
+    const nativeChildren=[...h.editor.children],styles=[...h.editor.style.values];
+    for(let i=0;i<3;i++){
+      assert.equal(h.view.place(h.snap),true);
+      h.view.render();
+      assert.notEqual(h.ui('list').host.style.getPropertyValue('display'),'none');
+      assert.notEqual(h.ui('button').host.style.getPropertyValue('display'),'none');
+      assert.equal(panel(h).querySelectorAll('[data-id-row]').length,1);
+    }
+    assert.deepEqual(h.editor.children,nativeChildren);
+    assert.deepEqual([...h.editor.style.values],styles);
+    assert.deepEqual(h.waits,[]);
+  });
+}
+
+test('editor outside its scroll viewport cannot authorize queue placement',()=>{
+  const h=fixture({scrollOffset:10001});
+  assert.equal(h.view.place(h.snap),false);
+});
+
+for(const overflowY of ['visible','hidden']){
+  test(`zero-height outer wrapper with ${overflowY} overflow respects native visibility`,()=>{
+    const h=fixture(),outer=h.doc.createElement('div');
+    outer.measure=()=>rect(100,400,680,0);
+    Object.assign(outer.computed,{overflowX:'visible',overflowY});
+    h.form.insertBefore(outer,h.surface);outer.append(h.surface);
+    assert.equal(h.view.place(h.snap),overflowY==='visible');
+  });
+}
+
+test('queue stays directly above the composer with only rows and expansion controls in every phase',()=>{
   const h=fixture();assert.equal(h.view.place(h.snap),true);
   for(const phase of [null,'preparing','await-native-ready','await-stop','await-confirm','unknown']){
     h.state({answerGate:false,phase:phase==='unknown'?'unknown':'waiting',
       reason:'原生草稿非空，等待用户处理',inFlight:phase?{id:'q1',phase}:null});
     h.view.render();
-    assert.deepEqual(panel(h).children.map(node=>node.className),['sq-summary','sq-rows']);
+    assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows']);
   }
   h.state({items:Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:'queued'})),
     phase:'waiting',inFlight:null});h.view.render();
-  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-summary','sq-rows','sq-more']);
+  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows','sq-more']);
 });
 
 test('unknown result stays on its message with an accessible warning and no retry controls',()=>{
@@ -142,7 +175,7 @@ test('collapsed messages cannot hide an unknown-result warning',()=>{
   const items=Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:i===3?'unknown':'queued'}));
   h.state({items,phase:'unknown',reason:'停止结果未知',inFlight:{id:'q3',phase:'unknown'}});
   h.view.render();
-  const more=panel(h).children[2];
+  const more=panel(h).children.find(node=>node.dataset.action==='more');
   assert.match(more.textContent,/⚠.*展开其余 1 条/);
   assert.match(more.getAttribute('aria-label'),/停止结果未知.*不会自动重试/);
   h.state({expanded:true});h.view.render();
@@ -258,7 +291,7 @@ test('fresh empty queue keeps its decorative cue visible and never rewrites offi
   h.state({items:[{id:'q2',text:'follow-up',state:'queued'}]});
   h.view.render();
   assert.equal(root.className,'sq-panel');
-  assert.equal(root.children[1].children[0].className,'sq-row');
+  assert.equal(root.children[0].children[0].className,'sq-row');
   h.state({items:[]});h.view.render();
   assert.equal(root.children[0].children[0].textContent,'···');
   h.dispose();
@@ -355,13 +388,13 @@ test('expanded list shows all 20 items and retains scroll position after state c
   const root=panel(h);
   assert.equal(root.className,'sq-panel sq-expanded');
   assert.equal(root.querySelectorAll('[data-id-row]').length,20);
-  root.children[1].scrollTop=186;
+  root.children[0].scrollTop=186;
   h.state({items:items.slice(1)});h.view.render();
-  assert.equal(root.children[1].scrollTop,186);
+  assert.equal(root.children[0].scrollTop,186);
   h.state({expanded:false});h.view.render();
   assert.equal(root.querySelectorAll('[data-id-row]').length,3);
   h.state({expanded:true});h.view.render();
-  assert.equal(root.children[1].scrollTop,186);
+  assert.equal(root.children[0].scrollTop,186);
 });
 
 test('compact row keeps secondary actions in an accessible toggle',()=>{

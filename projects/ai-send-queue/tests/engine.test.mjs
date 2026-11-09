@@ -1127,3 +1127,36 @@ for(const stage of ['never committed','button not ready','before click rejection
     assert.equal(f.state.prepareCount,1,'reclaim is read-only and never rewrites the draft');
   });
 }
+
+// Deterministic UTF-16 payload: surrogate pairs, blank lines and edge spaces.
+function longBody(length=8192){
+  const unit='中文正文🧪🙂\n\n保留每个字符与空格。\n';
+  const middleLength=length-4;
+  const middle=unit.repeat(Math.floor(middleLength/unit.length))+'文'.repeat(middleLength%unit.length);
+  return '  '+middle+'  ';
+}
+
+
+for(const length of [1000,8191,8192,8193,21000,50000]){
+  test(`engine ${length} UTF-16 body admission preserves exact queue state`,()=>{
+    const {engine,state}=fixture(),text=longBody(length);
+    assert.equal(text.length,length);
+    assert.equal(engine.enqueue('已有正文🙂',state.route),true);
+    const before=engine.view(),accepted=length<=8192;
+    assert.equal(engine.checkEnqueue(text,state.route).ok,accepted);
+    assert.deepEqual(engine.view(),before,'preflight is read-only');
+    assert.equal(engine.enqueue(text,state.route),accepted);
+    if(accepted)assert.deepEqual(engine.view().items.map(x=>x.text),['已有正文🙂',text]);
+    else assert.deepEqual(engine.view(),before,'oversized enqueue cannot alter existing items');
+    assert.equal(state.prepareCount,0);assert.equal(state.clicks,0);
+  });
+}
+
+test('engine rejects a twenty-first long body without changing any queued body',()=>{
+  const {engine,state}=fixture();
+  for(let i=0;i<20;i++)assert.equal(engine.enqueue(longBody(8191)+String(i%10),state.route),true);
+  const before=engine.view();
+  assert.equal(engine.enqueue(longBody(),state.route),false);
+  assert.deepEqual(engine.view(),before);
+  assert.equal(state.prepareCount,0);assert.equal(state.clicks,0);
+});

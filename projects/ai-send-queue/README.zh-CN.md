@@ -6,6 +6,20 @@
 
 **网页输入快捷键：** 在已支持的 ChatGPT 原生对话输入框按 `Ctrl + Enter`，等同点击皇冠按钮将当前草稿加入队列，即使队列原本为空也能使用。普通 `Enter` 保留网站正常行为及已有受限回退逻辑，`Shift + Enter` 保留换行。空草稿只给出提示，不允许通过快捷键意外提交网站消息；IME、其他输入框和不可信来源不触发队列动作。
 
+## 本次 JSON 交付（2026-11-10）
+
+按用户要求更新版本并从当前源码编译：网页安装包 [ai-send-queue.opendesk-page.json](ai-send-queue.opendesk-page.json) 从 `0.1.15/r15` 升至 `0.1.16/r16`；侧栏安装包 [ai-send-queue.opendesk-tool.json](ai-send-queue.opendesk-tool.json) 从 `0.1.16` 升至 `0.1.17`。网页包含长文布局、完整正文读取、异步草稿交接保护及 Ctrl + Enter；侧栏保持使用说明。网站范围与能力未扩展。
+
+两份包通过原编译器/打包器生成、候选校验后更新，侧栏通过 `--promote-from` 晋升和 `--check-project` 同源检查。网页 `sourceHash=d14eff3d42aa376a68b7cd3b2facc82eb39605bf5c1c511455c551e52df3a84f`；侧栏原始文件 `SHA-256=e74a009fb7f1c4c802e2568b783dec811b033abfc50a05113c978c31ad010463`。现有 Host pin 与 Page 来源目录已同步，官方 Page 资源准备链核对成功，公开发行保持 `blocked`。
+
+功能、身份与侧栏定向检查 346 项通过；包准入和联合安装管理的 Node 检查 29 项通过。身份测试替身补齐只读 `engine.view()`，不改变产品逻辑。通用打包/沙箱检查 7 项通过；另有通用宿主旧字符串断言仍要求 `deferConfirmation||identical`，而当前实现为 `deferConfirmation||identical&&!repairCompanion`，该断言失败已记录，未修改无关宿主逻辑。临时回执在忽略目录 `artifacts/ai-send-queue-release-20261110/`。
+
+状态为 **PACKAGE_READY_INSTALL_NOT_TESTED**：本次未安装、未刷新原页面、未修改 Browser 构建产物或既有 Goal。源码中的 Host pin 更新不等于当前 Browser 已加载；当前候选的真实长文、IME、FIFO 和 Chrome 安装仍为 **NOT_TESTED**。以下较早的“未更新正式包”记录只描述当时阶段。
+
+## 长文与 DOM 变化（2026-11-10，开发中）
+
+本轮已复现长文滚动导致队列 UI 被布局检测隐藏、原生多段回填迟缓，并补上异步草稿交接的副本保护。顶部保持简洁：只保留消息行和必要操作，移除「发送队列 / 共 N 条」及状态统计，不增加替代信息区。目标、正文规则、关键测试条件及分层证据见 [长文设计与测试条件](LONG-TEXT-DESIGN.zh-CN.md)。源码已编入上述正式 JSON，**当前安装版本仍未核验**；交接前原对话的 Goal 为 active，本对话没有修改其状态，不能将源码诊断与夹具结果当作已安装修复。
+
 ## Ctrl + Enter 本轮验收（2026-11-09）
 
 正式 Page 源码已实现快捷键。本轮补上可信键盘事件检查，并在发送准备或入站尚未确认时让快捷键与皇冠共同保留草稿，避免把队列正在写入的正文再次入队；确认入站后，等待回复期间仍可添加新草稿。没有新增队列实现。

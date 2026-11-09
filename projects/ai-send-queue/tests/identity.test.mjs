@@ -22,7 +22,7 @@ function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
   const context=vm.createContext({window:win,document:doc,
     createPageUI(options){calls.owners++;assert.equal(options.id,ID+'.lifecycle');return owner;},
     createChatGPTSite(){calls.sites++;return site;},
-    createQueueEngine(){calls.engines++;return {tick(){calls.ticks++;}};},
+    createQueueEngine(){calls.engines++;return {view:()=>({inFlight:null,items:[]}),tick(){calls.ticks++;}};},
     createQueueView(options){calls.views++;actions=options.actions;
       return {place(){},render(){},hide(){},hasRecovery(){return false;}};},
     createSendQueueRemote:()=>({changed(){}})});
@@ -38,7 +38,7 @@ test('source manifest uses independent catalog identity without widening Page ru
   const entries=Object.values(catalog).find(value=>Array.isArray(value)&&value.some(x=>x.programId===ID));
   const entry=entries.find(x=>x.programId===ID);
   assert.equal(pkg.opendesk.id,entry.programId);
-  assert.equal(pkg.version,'0.1.15');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,15);
+  assert.equal(pkg.version,'0.1.16');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,16);
   assert.equal(entry.publication,'blocked','native acceptance is pending');
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});

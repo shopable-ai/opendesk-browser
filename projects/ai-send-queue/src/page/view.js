@@ -40,10 +40,34 @@ function visibleRect(node,win){
     rect.width<=0||rect.height<=0)return null;
   return rect;
 }
+function editorViewport(editor,form,win){
+  const rect=visibleRect(editor,win);if(!rect)return null;
+  let {left,right,top,bottom}=rect;
+  // A contenteditable can be thousands of pixels tall inside a small native
+  // scrollport. Measure its visible portion, without resizing or scrolling it.
+  for(let node=editor.parentElement;node;node=node.parentElement){
+    const style=win.getComputedStyle(node);
+    if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||
+      Number(style.opacity)===0)return null;
+    if(style.display!=='contents'){
+      const clipX=/^(auto|scroll|hidden|clip)$/.test(style.overflowX);
+      const clipY=/^(auto|scroll|hidden|clip)$/.test(style.overflowY);
+      // Overflow-visible wrappers may legitimately have no layout height.
+      if(clipX||clipY){
+        const box=node.getBoundingClientRect();
+        const x=box.left+(node.clientLeft||0),y=box.top+(node.clientTop||0);
+        if(clipX){left=Math.max(left,x);right=Math.min(right,x+(node.clientWidth??box.width));}
+        if(clipY){top=Math.max(top,y);bottom=Math.min(bottom,y+(node.clientHeight??box.height));}
+      }
+    }
+    if(node===form)break;
+  }
+  return right>left&&bottom>top?{left,right,top,bottom,width:right-left,height:bottom-top}:null;
+}
 function composerSurface(editor,nativeButton,form,win){
   // site.inspect() exposes editor, not composer. Transparent layout wrappers
   // and rounded editor-only shells are not the shared visible input surface.
-  const input=visibleRect(editor,win),button=visibleRect(nativeButton,win);
+  const input=editorViewport(editor,form,win),button=visibleRect(nativeButton,win);
   if(!input||!button||!form.contains(editor))return null;
   const encloses=(outer,inner)=>inner.left>=outer.left-1&&inner.right<=outer.right+1&&
     inner.top>=outer.top-1&&inner.bottom<=outer.bottom+1;
@@ -254,22 +278,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     const active=list.shadowRoot.activeElement;
     const activeRow=active?.closest?.('[data-id-row]')?.dataset.idRow;
     const activeAction=active?.dataset.action;
-    const paused=items.filter(item=>item.state==='paused').length;
-    const unknown=items.filter(item=>item.state==='unknown').length;
-    const processing=items.filter(item=>item.state==='sending'||item.state==='waiting').length;
-    const queued=items.length-paused-unknown-processing;
-    const status=['待发 '+queued];
-    if(processing)status.push('处理中 '+processing);
-    if(paused)status.push('暂停 '+paused);
-    if(unknown)status.push('待核对 '+unknown);
-    const detail=status.join(' · ');
     root.className='sq-panel'+(state.expanded?' sq-expanded':'');
-    root.setAttribute('aria-label','发送队列，共 '+items.length+' 条，'+detail);
-    const summary=element(doc,'div','sq-summary');
-    summary.append(element(doc,'span','sq-summary-title','发送队列'),
-      element(doc,'span','sq-count','共 '+items.length+' 条'));
-    const statusText=element(doc,'span','sq-summary-detail',detail);
-    statusText.title=detail;summary.append(statusText);
+    root.setAttribute('aria-label','发送队列');
     const rows=element(doc,'div','sq-rows');rows.setAttribute('role','list');
     const shown=state.expanded?items:items.slice(0,3);
     for(const [i,item] of shown.entries()){
@@ -312,7 +322,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       }
       row.append(details);rows.append(row);
     }
-    root.replaceChildren(summary,rows);
+    root.replaceChildren(rows);
     if(items.length>3){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
       if(!state.expanded&&items.slice(3).some(item=>item.state==='unknown'||
@@ -359,12 +369,12 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     const size=win.matchMedia('(pointer:coarse)').matches?42:34;
     const surface=composerSurface(snap.editor,nativeButton,form,win);
     if(!surface)return fail();
-    const input=snap.editor.getBoundingClientRect();
+    const input=editorViewport(snap.editor,form,win);if(!input)return fail();
     const controls=[...form.querySelectorAll('button')].map(node=>[node,visibleRect(node,win)])
       .filter(([,rect])=>rect);
     const overlaps=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
     const safe=()=>{
-      const current=visibleRect(snap.editor,win),own=blue.getBoundingClientRect();
+      const current=editorViewport(snap.editor,form,win),own=blue.getBoundingClientRect();
       return form.getBoundingClientRect().width>=prior.width-1&&current&&
       // Single-line composers share their row with the action controls. The
       // added button may consume its own width and gap, but no more space.

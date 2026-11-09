@@ -6,6 +6,8 @@ const ASSISTANT = '[data-message-author-role="assistant"],[data-message-role="as
 const SEND_LABEL = /^(send message|send prompt|send|发送消息|发送|送出)$/i;
 const STOP_LABEL = /^(stop generating|stop generation|stop responding|stop|停止生成|停止回复|停止)$/i;
 const RICH = 'img,video,canvas,iframe,[data-attachment-id],[data-file-id]';
+// Large native pastes can become a text resource card without a file ID.
+const ATTACHMENTS = '[data-attachment-id],[data-file-id],[data-composer-attachments][data-visible-attachments]';
 
 export const normal = value => String(value ?? '').replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ').trim();
 function visible(el, win) {
@@ -50,14 +52,27 @@ function matchesReplyHistory(before,snapshot) {
 }
 function editorText(editor) {
   if(typeof editor?.value==='string')return editor.value;
-  // Rich editors render their one empty paragraph as a layout newline.
-  // Recognize only that empty document, never trim actual text or blank lines.
-  if(editor?.isContentEditable && editor.textContent===''){
-    const children=[...editor.childNodes||[]];
-    const paragraph=children.length===1&&children[0].nodeName==='P'?children[0]:null;
-    const leaves=paragraph?[...paragraph.childNodes]:children;
-    if((children.length===0 || paragraph) &&
-      (leaves.length===0 || (leaves.length===1&&leaves[0].nodeName==='BR')))return '';
+  if(editor?.isContentEditable && editor.childNodes){
+    // Serialize logical paragraphs, not CSS layout. Chromium innerText can add
+    // an extra newline for an empty DIV/P after native insertText. Each block
+    // boundary is one newline; BR is one newline except an empty-block/caret
+    // placeholder. Preserve every text node, space and intentional final line.
+    const read=node=>{
+      if(node.nodeType===3)return node.nodeValue??node.textContent??'';
+      if(node.nodeName==='BR')return node.classList?.contains('ProseMirror-trailingBreak')?'':'\n';
+      const children=[...node.childNodes];
+      if(children.length===1&&children[0].nodeName==='BR'&&
+        (node===editor||/^(P|DIV|LI|PRE|BLOCKQUOTE)$/.test(node.nodeName)))return '';
+      let text='',previousBlock=false,seen=false;
+      for(let i=0;i<children.length;i++){
+        const child=children[i],block=/^(P|DIV|LI|PRE|BLOCKQUOTE)$/.test(child.nodeName);
+        const part=read(child);if(!block&&part==='')continue;
+        if(seen&&(block||previousBlock))text+='\n';
+        text+=part;previousBlock=block;seen=true;
+      }
+      return text;
+    };
+    return read(editor);
   }
   return editor?.innerText ?? editor?.textContent ?? '';
 }
@@ -135,7 +150,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
       busy,idle:!busy && completed,answerComplete:!!last && completed && !busy,
       draft:editorText(editor),composing:isComposing(),
-      rich:!!editor.querySelector?.(RICH) || !!form.querySelector('[data-attachment-id],[data-file-id]')};
+      rich:!!editor.querySelector?.(RICH) || !!form.querySelector(ATTACHMENTS)};
   }
   function setDraft(editor,text,initial) {
     if (!editor?.isConnected || editor.readOnly || editor.getAttribute('aria-disabled')==='true') return false;
@@ -161,8 +176,16 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       const selection = win.getSelection(), range = doc.createRange();
       range.selectNodeContents(editor);
       selection.removeAllRanges(); selection.addRange(range);
-      const command = text ? 'insertText' : 'delete';
-      if (!doc.execCommand(command,false,text || null)) return false;
+      if(text){
+        // Use the website editor's own plain-text paste handler. insertText
+        // expands long multiline text into many native blocks and can stall
+        // ChatGPT's editor. This event never reads/writes the system clipboard.
+        if(typeof win.DataTransfer!=='function'||typeof win.ClipboardEvent!=='function')return false;
+        const clipboardData=new win.DataTransfer();clipboardData.setData('text/plain',text);
+        editor.dispatchEvent(new win.ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData}));
+        // An ignored/partial/asynchronous paste is ambiguous. Do not follow it
+        // with another write; the caller keeps the full source and stops.
+      }else if(!doc.execCommand('delete',false,null))return false;
     } else return false;
     return editorText(editor) === text;
   }
@@ -186,7 +209,11 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     const snapshot=inspect();
     if (!snapshot.ok || snapshot.rich || (expected!==undefined && snapshot.draft!==expected))
       return false;
-    return setDraft(snapshot.editor,text,snapshot);
+    try{if(!setDraft(snapshot.editor,text,snapshot))return false;}
+    catch{return false;}
+    const after=inspect();
+    return after.ok && after.route===snapshot.route && after.form===snapshot.form &&
+      after.editor===snapshot.editor && !after.rich && !after.composing && after.draft===text;
   }
   // Reclaim a queued message for editing in the actual website composer.
   // The old draft must be EXACTLY empty, including whitespace-only drafts.

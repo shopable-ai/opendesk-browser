@@ -1,0 +1,96 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Send Queue real DOM fixture</title>
+<style>
+  body { margin: 30px; font: 16px/1.5 sans-serif; }
+  #composer-parent { width: min(700px, 100%); margin-top: 240px; }
+  form { margin: 0; }
+  .surface { border-radius: 28px; background: #eee; padding: 16px; }
+  #scrollport { max-height: 150px; overflow: auto; }
+  #prompt-textarea { min-height: 24px; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; }
+  #toolbar { display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; }
+  #native-send { width: 34px; height: 34px; border: 0; border-radius: 50%; }
+</style>
+<p>This local fixture uses the real view, site adapter and engine. Its UI owner, route and paste-accepting editor are test doubles; it is not an installed USER_SCRIPT or ChatGPT acceptance test. Nothing sends a message.</p>
+<div id="composer-parent">
+  <form><div class="surface">
+    <div id="scrollport"><div id="prompt-textarea" contenteditable="true" role="textbox"></div></div>
+    <div id="toolbar"><button id="native-send" type="button" data-testid="send-button" aria-label="Send">↑</button></div>
+  </div></form>
+</div>
+<script type="module">
+  import {createQueueView} from '../../src/page/view.js';
+  import {createChatGPTSite} from '../../src/page/site.js';
+  import {createQueueEngine} from '../../src/page/engine.js';
+
+  const css=await (await fetch('../../assets/queue.css')).text();
+  const bytes=new Uint8Array(await (await fetch('../../assets/crown-premium.webp')).arrayBuffer());
+  const crown='data:image/webp;base64,'+btoa(Array.from(bytes,b=>String.fromCharCode(b)).join(''));
+  const managed=[],disposals=[];
+  function createPageUI({id}){
+    const host=document.createElement('div');host.dataset.fixtureUi=id;document.body.append(host);
+    const shadowRoot=host.attachShadow({mode:'open'}),content=document.createElement('div');shadowRoot.append(content);
+    let active=true;
+    const ui={host,content,shadowRoot,active:()=>active,
+      addStyle(text){const style=document.createElement('style');style.textContent=text;shadowRoot.prepend(style);},
+      on:(node,type,callback)=>node.addEventListener(type,callback),
+      destroy(){active=false;host.remove();}};
+    managed.push(ui);return ui;
+  }
+  const owner={content:{ownerDocument:document},getAsset:path=>path.endsWith('.webp')?crown:css,
+    onDispose:fn=>disposals.push(fn),setTimeout};
+  const win={location:{origin:'https://chatgpt.com',pathname:'/c/fixture-20261110'},
+    getComputedStyle:node=>getComputedStyle(node),getSelection:()=>getSelection(),
+    HTMLTextAreaElement,HTMLInputElement,InputEvent,DataTransfer,ClipboardEvent};win.top=win;
+  // A tiny editor that accepts plaintext paste using native editing/undo. It
+  // intentionally has Chromium's DIV/BR layout rather than ChatGPT's schema.
+  document.querySelector('#prompt-textarea').addEventListener('paste',event=>{
+    event.preventDefault();document.execCommand('insertText',false,event.clipboardData.getData('text/plain'));
+  });
+  const site=createChatGPTSite({doc:document,win});
+  let view;
+  const engine=createQueueEngine({site,change:()=>view?.render()});
+  for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
+  view=createQueueView({owner,createPageUI,assets:[],engine,actions:{enqueue(){}}});
+  let clicks=0;document.querySelector('#native-send').addEventListener('click',()=>clicks++);
+  const frame=()=>new Promise(requestAnimationFrame);
+  const check=(value,message)=>{if(!value)throw Error(message);};
+  const body=length=>{
+    const unit='中文🙂 code()\n\n空行与空格 \n',n=length-4;
+    return '  '+unit.repeat(Math.floor(n/unit.length))+'文'.repeat(n%unit.length)+'  ';
+  };
+  window.runQueueBrowserChecks=async()=>{
+    const results=[],queued=engine.view().items;
+    for(const text of [body(1000),body(8192),'  \u00a0开头🙂\n\n```js\nconst url = "https://example.test/a";\n```\n尾行\n']){
+      const length=text.length;
+      const editor=site.inspect().editor;editor.textContent='';
+      check(site.restore(text,''),'contenteditable restore rejected '+length);
+      await frame();
+      check(site.inspect().draft===text,'contenteditable restore changed text '+length);
+      const scrollport=document.querySelector('#scrollport');
+      for(const width of [700,380]){
+        document.querySelector('#composer-parent').style.width=width+'px';
+        for(const offset of [0,scrollport.scrollHeight/2,scrollport.scrollHeight]){
+          scrollport.scrollTop=offset;await frame();
+          check(view.place(site.inspect()),'queue hidden at '+length+'/'+width+'/'+offset);view.render();
+          check(site.inspect().draft===text,'layout changed draft');
+          check(managed.every(ui=>ui.host.isConnected&&getComputedStyle(ui.host).display!=='none'),'managed UI hidden');
+        }
+      }
+      check(JSON.stringify(engine.view().items)===JSON.stringify(queued),'layout changed queue bodies');
+      const selected=site.clearForQueue(site.inspect());
+      check(selected.ok&&selected.text===text,'clear lost content');await frame();
+      check(site.inspect().draft==='','clear did not survive frame');
+      check(site.reclaimToComposer(text,site.inspect()).ok,'takeback rejected');await frame();
+      check(site.inspect().draft===text,'takeback lost content');
+      results.push({length,exact:true,widths:[700,380],scrollPositions:3});
+    }
+    const editor=site.inspect().editor;editor.textContent='';
+    editor.addEventListener('input',()=>{const replacement=editor.cloneNode();editor.replaceWith(replacement);},{once:true});
+    check(site.restore(body(1000),'')===false,'detached editor incorrectly confirmed restore');
+    check(site.inspect().draft==='','replacement editor must remain empty');
+    check(clicks===0,'fixture unexpectedly clicked send');
+    return {status:'PASS',results,detachedRestoreRejected:true,sendClicks:clicks,evidence:'real DOM fixture, no install'};
+  };
+  window.fixtureReady=true;
+</script>

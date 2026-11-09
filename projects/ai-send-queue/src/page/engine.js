@@ -126,6 +126,14 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.answerGate=newAnswerGate(before,snap);
     idleSince=null;emit();return true;
   }
+  // A newly edited draft sent natively is a separate intention, even when
+  // its text equals a queued item. Observe its reply without consuming a row.
+  function observeNativeAdmission(before,text,snap) {
+    if(state.inFlight||!snap.ok||snap.route!==state.route||
+      !site.confirm(before,text,snap))return false;
+    state.answerGate ||= newAnswerGate(before,snap);
+    state.forceId=null;idleSince=null;emit();return true;
+  }
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
@@ -276,6 +284,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,
+  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,observeNativeAdmission,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }
