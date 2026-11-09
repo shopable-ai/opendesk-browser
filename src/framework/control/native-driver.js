@@ -1,5 +1,5 @@
 import {PageError, requireValue, frozenCopy, encodeValue as controlEncodeValue, decodeValue as controlDecodeValue,
-  httpURL, options, duration, selector, VALUE_LIMITS, newPageRequestId} from './value.js';
+  httpURL, options, duration, selector, VALUE_LIMITS, newPageRequestId, normalizeUploadMetadata} from './value.js';
 import {chromeCall} from '../../platform/chrome/tabs.js';
 import {validateLocatorDescriptor, validateLocatorOperation, validateObservationOptions} from './locator-contract.js';
 import {createCookieService} from '../../platform/chrome/cookies.js';
@@ -437,7 +437,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
   }
   const fetchImpl = globalThis.fetch?.bind(globalThis);
   async function uploadFromURL(state) {
-    const [css, input] = state.args; selector(css); let url = httpURL(input), response;
+    const [css, input, media = {}] = state.args; selector(css); const metadata = normalizeUploadMetadata(media); let url = httpURL(input), response;
     requireValue(typeof fetchImpl === 'function', 'E_CAPABILITY_UNAVAILABLE');
     await verifyTarget(state);
     for (let redirects = 0;; redirects++) {
@@ -479,7 +479,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
         await permission(state, 'pre', {url});
         await packaged(state, 'uploadChunk', [uploadId, offset, total, btoa(binary)]);
       }
-      await permission(state, 'pre', {url}); await packaged(state, 'uploadCommit', [css, uploadId, total]); return true;
+      await permission(state, 'pre', {url}); await packaged(state, 'uploadCommit', [css, uploadId, total, metadata]); return true;
     } finally { bytes.fill(0); }
   }
   async function cleanupCall(envelope, dispatch) {
@@ -645,7 +645,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       requireValue(!args[0].fullPage, 'E_FULL_PAGE_UNSUPPORTED');
       requireValue(['png', 'jpeg'].includes(args[0].format), 'E_OPTION_UNSUPPORTED');
     }
-    if (method === 'uploadFromUrl') { requireValue(args.length === 2, ARG_TYPE_CODE); selector(args[0]); httpURL(args[1]); }
+    if (method === 'uploadFromUrl') { requireValue(args.length === 2 || args.length === 3, ARG_TYPE_CODE); selector(args[0]); httpURL(args[1]); if (args.length === 3) normalizeUploadMetadata(args[2]); }
     const key = ownerKey(envelope.identity); requireValue(!retired.has(key), 'E_CANCELLED');
     let run = runs.get(key);
     if (!run) {
