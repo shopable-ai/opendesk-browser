@@ -1,4 +1,5 @@
 import { endpointFrom, exportShare, localClientFrom, migrateV1, profileFrom, ruleFrom, sourceFrom, validateConfig } from './domain/config';
+import {validateHeaderActions} from './domain/header-actions';
 import { errorCodeOf } from './domain/error-codes';
 import type { ConfigState, RuleTarget, ViewState } from './domain/types';
 import type { Request, Response } from './domain/messages';
@@ -360,6 +361,9 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         await edit(c => { c.rules = c.rules.filter(r => r.id !== message.id); return c; }); break;
       case 'SET_DEFAULT':
         await edit(c => { c.defaultTarget = message.target; return c; }); break;
+      case 'SET_HEADER_ACTIONS':
+        // A CAS-protected display preference. Never applies or stops a native route.
+        await edit(c => { c.headerActions = validateHeaderActions(message.actions); return c; }); break;
       case 'SELECT':
         await edit(c => { c.selection = message.selection; return c; }); break;
       case 'SELECT_AND_APPLY':

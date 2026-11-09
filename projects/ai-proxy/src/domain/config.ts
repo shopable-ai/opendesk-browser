@@ -1,4 +1,5 @@
 import type { ConfigState, ConfigSource, LocalClientInput, Profile, ProxyEndpoint, ProxyScheme, RuleTarget, SiteRule, SubscriptionFormat } from './types';
+import {validateHeaderActions} from './header-actions';
 
 const schemes = new Set(['http', 'https', 'socks4', 'socks5']);
 const modes = new Set(['system', 'direct', 'profile', 'rules']);
@@ -188,7 +189,8 @@ export function validateConfig(raw: unknown): ConfigState {
   const selection = { mode: selected.mode as ConfigState['selection']['mode'],
     ...(selected.profileId === undefined ? {} : { profileId: requiredId(selected.profileId) }) };
   if (selection.profileId && !profiles.some(p => p.id === selection.profileId)) throw new Error('已选配置不存在');
-  return { schemaVersion: 2, sources, endpoints, profiles, rules, defaultTarget, selection, managed: x.managed === true };
+  return { schemaVersion: 2, sources, endpoints, profiles, rules, defaultTarget, selection, managed: x.managed === true,
+    ...(x.headerActions === undefined ? {} : {headerActions:validateHeaderActions(x.headerActions)}) };
 }
 /** 从 R1 单 HTML 无密码备份迁移；只迁移安全数据，不带入旧运行状态。 */
 export function migrateV1(raw: unknown): ConfigState {

@@ -1002,3 +1002,28 @@ for (const observation of ['failed','conflict']) {
   assert.equal(f.stored().managed,false,'Storage-only finalization is preserved');
  });
 }
+
+test('header shortcuts save order and visibility via ETag without applying Chrome proxy', async () => {
+  const f=fixture();
+  const before=await ok(f.service,{type:'GET_STATE'});
+  assert.equal(before.state.config.headerActions,undefined);
+  const saved=await ok(f.service,{type:'SET_HEADER_ACTIONS',
+    actions:['settings','add-proxy'],ifMatch:before.state.configEtag});
+  assert.deepEqual(saved.state.config.headerActions,['settings','add-proxy']);
+  assert.equal(operations(f,'apply').length,0);
+  assert.equal(operations(f,'stop').length,0);
+  const conflict=await f.service.request({type:'SET_HEADER_ACTIONS',
+    actions:['subscriptions'],ifMatch:before.state.configEtag});
+  assert.equal(conflict.errorCode,'E_CONFLICT');
+  for(const actions of [['settings','settings'],['run-script'],['settings',7],null]){
+    const invalid=await f.service.request({type:'SET_HEADER_ACTIONS',actions});
+    assert.equal(invalid.ok,false);
+    assert.deepEqual(f.stored().headerActions,['settings','add-proxy']);
+  }
+  const hidden=await ok(f.service,{type:'SET_HEADER_ACTIONS',actions:[]});
+  assert.deepEqual(hidden.state.config.headerActions,[]);
+  const reopened=fixture({config:f.stored()});
+  assert.deepEqual((await ok(reopened.service,{type:'GET_STATE'})).state.config.headerActions,[]);
+  assert.equal(operations(f,'apply').length,0);
+  assert.equal(operations(f,'stop').length,0);
+});

@@ -11,6 +11,7 @@ async function bundle(path){
   return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
 }
 const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src/ui/optionsRoute.ts');
+const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
@@ -72,7 +73,8 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false}={}){
           }
         }
       })};
-      if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
+      if(name==='./domain/header-actions')return headerActions;
+  if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
       if(name==='./ui/FormField')return {FormField:({id,label,children})=>React.createElement('label',null,label,children({id}))};
       if(name==='./ui/ProxyEntry')return {ClearableInput:({onValueChange,fieldLabel,...props})=>React.createElement('input',{...props,onChange:e=>onValueChange(e.target.value)})};
       if(name==='./ui/OptionsShell')return {OptionsPageHeader:OptionsPageHeader??(({title,actions})=>React.createElement('header',null,React.createElement('h2',null,title),actions))};

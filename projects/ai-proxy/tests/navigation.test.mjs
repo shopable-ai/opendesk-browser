@@ -8,6 +8,9 @@ import { SIDEBAR_TOOL_PROTOCOL } from '../../../src/ui/sidebar-tools/package.js'
 const bundled = await build({ entryPoints: [new URL('../src/ui/navigation.ts', import.meta.url).pathname], bundle: true, write: false, platform: 'node', format: 'esm' });
 const { createNavigation } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
 
+const headerBundle = await build({entryPoints:[new URL('../src/domain/header-actions.ts',import.meta.url).pathname],bundle:true,write:false,platform:'node',format:'esm'});
+const headerActions = await import('data:text/javascript;base64,'+Buffer.from(headerBundle.outputFiles[0].text).toString('base64'));
+
 test('internal transitions, same route, replace and unsubscribe have deterministic state', () => {
   const navigation = createNavigation({ initialRoute: '#/profiles/add' });
   const seen = [];
@@ -79,7 +82,10 @@ function workspaceFixture(preview = false, enhanced = true) {
   const hooks = [], effects = [], events = new EventTarget();
   let cursor = 0, focused = 0;
   const navigation = createNavigation({ initialRoute: '#/rules' });
-  const env = { navigation, events, preview, navigate: navigation.navigate, setConfirmHandler() {}, setState() {},hasDrafts:()=>false,clearDrafts(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));},markDraftFrom(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));} };
+  const serviceListeners=new Set();
+  const env = { navigation, events, preview, navigate: navigation.navigate, setConfirmHandler() {}, setState() {},
+    service:{subscribe(fn){serviceListeners.add(fn);return()=>serviceListeners.delete(fn);}},
+    request:async()=>({ok:true,state:{config:{}}}),hasDrafts:()=>false,clearDrafts(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));},markDraftFrom(){events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:true}));} };
   const snapshots=[],headerListeners=new Set();
   env.toolNavigation={setNavigation(base,headerActions){snapshots.push({...base,...(enhanced?{headerActions}:{})});return enhanced;},
     subscribe(handler){headerListeners.add(handler);return()=>headerListeners.delete(handler);},isLocked:()=>false};
@@ -101,6 +107,7 @@ function workspaceFixture(preview = false, enhanced = true) {
   const module = { exports: {} };
   runInNewContext(appCode, { module, exports: module.exports,
     require(name) {
+      if (name === './domain/header-actions') return headerActions;
       if (name === 'react') return react;
       if (name === './environment') return { getEnvironment: () => env };
       if (name === './i18n/LocaleProvider') return { LocaleProvider: 'locale', useI18n: () => ({ t: key => key }) };
@@ -111,7 +118,9 @@ function workspaceFixture(preview = false, enhanced = true) {
     document: {activeElement:null}
   });
   const Workspace = module.exports.default().props.children[0].type;
-  return { env, navigation, events, snapshots, header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
+  return { env, navigation, events, snapshots,
+    notifyHeaderConfig(config){for(const fn of serviceListeners)fn({config});},
+    header(detail){for(const fn of [...headerListeners])fn(detail);}, unmount() { for (const hook of hooks) hook?.cleanup?.(); }, get focused() { return focused; }, render() {
     cursor = 0;
     const tree = Workspace({surface:'side-panel'});
     const content = routeContent(tree);
@@ -251,6 +260,19 @@ test('actual copy action copies only an internal route and reports clipboard fai
   }
 });
 
+
+test('Workspace projects saved Header action order and hides an action without exposing any proxy effect',()=>{
+ const f=workspaceFixture();f.render();
+ assert.deepEqual(Array.from(f.snapshots.at(-1).headerActions,x=>x.id),['add-proxy','diagnostics','subscriptions','settings']);
+ f.notifyHeaderConfig({headerActions:['settings','add-proxy']});f.render();
+ const now=f.snapshots.at(-1);
+ assert.deepEqual(Array.from(now.headerActions,x=>x.id),['settings','add-proxy']);
+ f.header({action:'header',actionId:'diagnostics',page:now.page});
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ f.header({action:'header',actionId:'settings',page:now.page});
+ assert.equal(f.navigation.getRoute(),'#/profiles');
+ f.unmount();
+});
 
 test('R14 Workspace header opens existing routes only, rejects stale pages and releases listeners',()=>{
  const f=workspaceFixture();f.render();

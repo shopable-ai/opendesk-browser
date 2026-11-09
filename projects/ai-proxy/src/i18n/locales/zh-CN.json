@@ -1,4 +1,12 @@
 {
+  "headerActionsTitle": "顶部快捷操作",
+  "headerActionsHelp": "设置在侧边栏公共页头显示的入口及顺序。修改后保存在本工具的配置中；这里只负责导航，不会启用代理。",
+  "headerActionShown": "显示中 · 点击隐藏",
+  "headerActionHidden": "已隐藏 · 点击显示",
+  "headerActionMoveUp": "上移{name}",
+  "headerActionMoveDown": "下移{name}",
+  "headerActionsRestoreDefaults": "恢复默认快捷操作",
+  "sideChoiceSelect": "选择",
   "manifestName": "AI Proxy",
   "manifestDescription": "免费、无需登录的浏览器代理管理工具。支持第三方代理，不是全设备 VPN。",
   "manifestTitle": "AI Proxy — 浏览器代理管理器",

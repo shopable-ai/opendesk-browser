@@ -57,7 +57,6 @@ export default function App() {
   const [ruleHint,setRuleHint] = useState(false);
   const [ruleTarget,setRuleTarget] = useState<RouteTarget>('endpoint');
   const [ruleEndpoint,setRuleEndpoint] = useState('');
-  const [switchingProfile,setSwitchingProfile] = useState<string | null>(null);
   const [addedAnother,setAddedAnother] = useState(false);
   const [saving,setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -151,7 +150,7 @@ export default function App() {
   const priority = (profile: Profile) => profile.id===config.selection.profileId ? 0
     : profile.id===state?.runtime.activeSelection?.profileId ? 1 : 2;
   const orderedProfiles = [...profiles].sort((a,b)=>priority(a)-priority(b));
-  const visibleProfiles = orderedProfiles.slice(0,3);
+  const visibleProfiles = orderedProfiles.slice(0,4);
 
   function handleProxyPaste(event: React.ClipboardEvent<HTMLInputElement>) {
     const text = event.clipboardData.getData('text').trim();
@@ -266,21 +265,12 @@ export default function App() {
     details.querySelector('summary')?.focus();
   }
   async function useProfile(profile: Profile) {
-    setSavedHint(false);
-    // Selecting a proxy while paused must NEVER reacquire Chrome proxy control.
-    const live=Boolean(state?.runtime.managedIntent ||
-      state?.runtime.control==='controlled_by_this_extension');
-    if (!live) {
-      await act({type:'SELECT',selection:{mode:'profile',profileId:profile.id}});
-      return;
+    // Persist SELECT only; Chrome continues to run its last confirmed route.
+    // The next APPLY remains an explicit separate Host-reviewed operation.
+    if (await act({type:'SELECT',selection:{mode:'profile',profileId:profile.id}})) {
+      setSavedHint(false);
+      setRuleHint(false);
     }
-    setSwitchingProfile(profile.id);
-    try {
-      if (await act({type:'SELECT',selection:{mode:'profile',profileId:profile.id}})) {
-        setSavedHint(false);
-        setRuleHint(false);
-      }
-    } finally { setSwitchingProfile(null); }
   }
   async function useMode(mode: RouteMode) {
     const selection={...config.selection,mode};
@@ -483,11 +473,15 @@ export default function App() {
   const needsNewProxy = needsProxySelection && profiles.length === 0;
   const cannotEnable = needsProxySelection || blocked;
   // Keep the primary action actionable, even on a fresh installation.
-  const primaryAction = state.runtime.stopFinalizationPending ? 'finalize' : managing && state.runtime.canStop ? 'pause' : blocked ? 'details'
+  const canApplyPending = managing && state.runtime.applied && state.runtime.pendingChanges &&
+    state.runtime.control==='controlled_by_this_extension' && !state.runtime.outcomeUnknown &&
+    !state.runtime.statusErrorCode && !state.runtime.proxyError && !needsProxySelection;
+  const primaryAction = state.runtime.stopFinalizationPending ? 'finalize' : blocked ? 'details' :
+    canApplyPending ? 'apply' : managing && state.runtime.canStop ? 'pause'
     : needsProxySelection ? (needsNewProxy ? 'add' : 'choose')
     : state.runtime.proxyError ? 'retry' : 'enable';
   const primaryLabels = {
-    finalize:'apFinishStop', pause: 'r83Pause', details: 'sideProxyViewReason',
+    finalize:'apFinishStop', pause: 'r83Pause', apply:'applySelection', details: 'sideProxyViewReason',
     add: 'sideAddProxyTitle', choose: 'sideProxyChooseAction',
     retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: 'r83Enable'
   } as const;
@@ -499,6 +493,7 @@ export default function App() {
   const appliedSelection = state.runtime.activeSelection;
   function handlePrimaryAction() {
     if (primaryAction === 'pause'||primaryAction === 'finalize') { void act({type:'STOP'}); return; }
+    if (primaryAction === 'apply') { void apply(); return; }
     if (primaryAction === 'add') { beginAdd('server','primary'); return; }
     if (primaryAction === 'choose') { focusProxyChoice(); return; }
     if (primaryAction === 'details') { showControlReason(); return; }
@@ -514,6 +509,19 @@ export default function App() {
   const browserRoute = browserRoutes[state.runtime.browserMode ?? ''] ?? t('unableToVerify');
   return <main className="popup sidepanel r86Panel" data-ui-version="R8.6">
     <div className="r86Scroll" ref={mainScroll}>
+      <section className="r86Section" data-r86-section="modes">
+        <div className="r86Head">
+          <h2>{t('sideChooseRoute')}</h2>
+        </div>
+        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
+          {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
+            className={'modeButton '+(config.selection.mode===m.mode?'selected':'')}
+            aria-label={m.name} aria-pressed={config.selection.mode===m.mode}
+            title={m.description} onClick={()=>void useMode(m.mode)}>
+            <SideIcon name={m.mode}/><span className="sideModeLabel">{m.name}</span>
+          </Button>)}
+        </div>
+      </section>
       <section className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
         <div className="r86Head">
           <h2>{t('browserStatus')}</h2>
@@ -546,24 +554,14 @@ export default function App() {
           {t(state.runtime.applied && !state.runtime.pendingChanges && appliedSelection?.mode==='direct' ? 'sideDirectAppliedHint'
             : managing ? 'sideDirectPendingHint' : 'sideDirectPausedHint')}
         </p>}
-        {managing&&(!state.runtime.applied||state.runtime.pendingChanges)&&!cannotEnable&&<Button type="button"
+        {managing&&(!state.runtime.applied||state.runtime.pendingChanges)&&!cannotEnable&&!canApplyPending&&
+          !state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&<Button type="button"
           ref={applyPendingButton} className="r86ApplyPending" disabled={busy} onClick={()=>void apply()}>
           {t('applySelection')}
         </Button>}
+        {canApplyPending&&state.runtime.canStop&&<Button type="button" className="r86PendingPause"
+          disabled={busy} onClick={()=>void act({type:'STOP'})}>{t('r83Pause')}</Button>}
         {error&&<p className="notice error" role="alert">{error}</p>}
-      </section>
-      <section className="r86Section" data-r86-section="modes">
-        <div className="r86Head">
-          <h2>{t('sideChooseRoute')}</h2>
-        </div>
-        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
-          {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
-            className={'modeButton '+(config.selection.mode===m.mode?'selected':'')}
-            aria-label={m.name} aria-pressed={config.selection.mode===m.mode}
-            title={m.description} onClick={()=>void useMode(m.mode)}>
-            <SideIcon name={m.mode}/><span className="sideModeLabel">{m.name}</span>
-          </Button>)}
-        </div>
       </section>
       {savedHint&&<p className="r86Notice" role="status">{t('sideProxySavedNotApplied')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
@@ -599,9 +597,8 @@ export default function App() {
               </span>
               <span className="sideProfileInfo"><strong>{profile.name}</strong>
                 <small>{ep?ep.scheme.toUpperCase()+' · '+ep.host+':'+ep.port:'PAC'}</small></span>
-              <span className="quickChoice">{switchingProfile===profile.id
-                ?t('r83QuickApplying'):applied?t('r83QuickApplied'):
-                chosen?t('r86Chosen'):t('r83QuickUse')}</span>
+              <span className="quickChoice">{applied?t('r83QuickApplied'):
+                chosen&&managing?t('apPendingSelection'):chosen?t('r86Chosen'):t('sideChoiceSelect')}</span>
             </Button>;
           })}
         </div>}
@@ -624,21 +621,17 @@ export default function App() {
         </dl>
         {site&&config.selection.mode==='rules'&&currentRule&&<p className="r86Help">{t('apMatchedSavedRule',{domain:currentRule.domain})}</p>}
         <details className="quickSiteDetails"><summary>{t('r86Tech')}</summary><p className="r86Help">{t('apSiteRouteHelp')}</p>
-          <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>{t(siteLoading?'apSiteLoading':'apRefreshSite')}</Button>
         </details>
         <div className="r86Actions">
           <Button ref={siteEditorButton} id="quick-site-rule" type="button" onClick={beginSiteRule}>
             {t(currentRule?'apEditMatchedRule':'addRule')}
           </Button>
+          <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>
+            <SideIcon name="refresh"/>{t(siteLoading?'apSiteLoading':'apRefreshSite')}
+          </Button>
         </div>
         {ruleHint&&<p role="status" className="r86Notice">{t('r86Saved')}</p>}
       </section>
-      <nav className="r86Bottom" aria-label={t('openSettings')}>
-        <Button type="button" onClick={()=>void openOptions('subscriptions')}>
-          {t('popupSourceSubscriptions')}</Button>
-        <Button type="button" onClick={()=>void openOptions('diagnostic')}>
-          {t('popupFooterDiagnostics')}</Button>
-      </nav>
       <div className="r86CollectorMount" data-r86-section="collector">
         <RotationEntry/>
       </div>
