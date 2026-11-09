@@ -35,7 +35,7 @@ const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome,
   verifyWebTask:(row,sender)=>webTaskIngress.verifySubmission(row,sender)});
 installGlobalVideoSpeedService({api:chrome});
 // Existing MV3 Worker owns update-notice state and admission; no second background.
-try{installUpdateNoticeService({api:chrome});}
+try{installUpdateNoticeService({api:chrome,development:Boolean(development)});}
 catch(error){console.warn('E_UPDATE_NOTICE_INIT',error?.code||error?.message);}
 // Isolated trusted telemetry sidecar attaches after the single Foundation
 // instance is created. This must never create a second IndexedDB owner.
