@@ -21,7 +21,7 @@ async function main() {
     throw Error('E_CONFIRM_REQUIRED: 演示发布必须明确传入 confirmDemoPublish:true');
   }
 
-  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lmEAAAAASUVORK5CYII=';
+  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==';
   const images = input.images === undefined ?
     [{name:'demo-cover.png', type:'image/png', dataUrl:pixel}] : input.images;
   if (!Array.isArray(images) || images.length < 1 || images.length > 3) {
