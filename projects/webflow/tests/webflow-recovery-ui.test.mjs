@@ -53,6 +53,8 @@ async function mount(t,host=sdk()){
   const runtime={...React,createRoot(node){const root=createRoot(node,{onUncaughtError:e=>errors.push(e)});roots.push(root);return root;}};
   const timers=new Map();let timerId=0;
   const sdkTool={root:document.getElementById('root'),request:host.request.bind(host)};
+  host.editStates=[];
+  sdkTool.setState=value=>{host.editStates.push(structuredClone(value));return true;};
   if(host.withNavigation){
     host.navigation=[];
     sdkTool.navigationFeatures={headerActions:true};
@@ -82,7 +84,7 @@ async function mount(t,host=sdk()){
     async duplicateClick(label){const node=find(label);await React.act(async()=>{
       node.dispatchEvent(new window.Event('click',{bubbles:true}));
       node.dispatchEvent(new window.Event('click',{bubbles:true}));});},
-    async input(value){await React.act(async()=>{const node=document.getElementById('wf-query');
+    async input(value,id='wf-query'){await React.act(async()=>{const node=document.getElementById(id);
       Object.getOwnPropertyDescriptor(Object.getPrototypeOf(node),'value').set.call(node,value);
       node.dispatchEvent(new window.Event('input',{bubbles:true}));});},
     async tick(){await React.act(async()=>{const work=[...timers.values()];timers.clear();for(const fn of work)fn();});},
@@ -237,6 +239,71 @@ test('a fixed task requires a complete installation and refresh invalidates save
 test('compact filter preserves the preview sort affordance',async t=>{
   const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
   assert.equal(f.document.querySelector('select[aria-label="脚本排序方式"]')?.value,'favorite');
+});
+test('view-only search releases the host input marker without clearing an unsaved query',async t=>{
+  const host=sdk(),f=await mount(t,host);await f.click('脚本');
+  const before=host.editStates.length;
+  await f.input('百度','wf-search');
+  assert.ok(host.editStates.length>before,'search must reconcile the host input marker');
+  assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false});
+  await f.input('','wf-search');await f.click('运行',taskCard(f));await f.input('未保存参数');
+  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
+  await f.input('百度','wf-search');
+  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'view controls retain the query draft');
+  await f.click('概览');await f.click('脚本');
+  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'hidden drafts remain protected');
+  await f.input('','wf-search');
+  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'saved preferences cannot clear query edits');
+  assert.equal(starts(host).length,0);
+});
+test('saved parameters release draft protection only after their SDK readback',async t=>{
+  const host=sdk(),f=await mount(t,host),readback=deferred();
+  await f.click('脚本');await f.click('运行',taskCard(f));await f.input('持久参数');
+  host.beforeGet=args=>args.key==='webflow.pending.v1'&&!args.withEtag?readback.promise:undefined;
+  await f.click('保存运行步骤',taskCard(f));
+  assert.ok(host.store.has('webflow.pending.v1'),'write committed before the held readback');
+  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:true});
+  await f.flush(()=>readback.resolve());
+  assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false});
+  assert.equal(f.find('确认手动运行').disabled,false);
+  assert.equal(starts(host).length,0);
+});
+test('unconfirmed parameter writes keep draft protection and never submit a task',async t=>{
+  for(const failure of ['write','readback']){
+    const host=sdk(),f=await mount(t,host);await f.click('脚本');
+    await f.click('运行',taskCard(f));await f.input('不可丢失的参数');
+    host.failSave=failure==='write';
+    if(failure==='readback')host.afterSet=({key,value})=>host.store.set(key,{...value,params:{query:'不同参数',limit:3}});
+    await f.click('保存运行步骤',taskCard(f));
+    assert.match(f.text(),/运行步骤未确认保存/);
+    assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
+    await f.input('百度','wf-search');
+    assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
+    assert.equal(starts(host).length,0);await f.close();
+  }
+});
+test('preference writes stay protected until confirmed, and failures cannot be cleared by search',async t=>{
+  for(const failure of [false,'write','readback']){
+    const host=sdk(),f=await mount(t,host),readback=deferred();await f.click('脚本');
+    host.beforeGet=args=>args.key==='webflow.settings.v1'&&!args.withEtag?readback.promise:undefined;
+    host.failSave=failure==='write';
+    if(failure==='readback')host.afterSet=({key})=>host.store.set(key,{theme:'dark',favorites:[]});
+    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+    if(failure!=='write')assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:true});
+    await f.flush(()=>readback.resolve());
+    assert.deepEqual(host.editStates.at(-1),{dirty:Boolean(failure),busy:false});
+    await f.input('百度','wf-search');
+    assert.deepEqual(host.editStates.at(-1),{dirty:Boolean(failure),busy:false});
+    if(failure)assert.match(f.text(),/偏好未确认保存/);
+    else assert.match(f.text(),/偏好已保存并读回/);
+    if(failure){
+      host.failSave=false;host.afterSet=null;host.beforeGet=null;
+      await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+      assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false},'a confirmed retry releases the failed preference edit');
+    }
+    assert.equal(starts(host).length,0);await f.close();
+  }
 });
 test('storage readback may reorder object fields without losing saved favorites or the original step',async t=>{
   const host=sdk();

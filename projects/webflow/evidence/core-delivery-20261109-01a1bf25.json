@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-09",
+  "threadId": "01a1bf25-da8f-70a0-8b9f-f19b58a656e7",
+  "scope": "Web Flow package/version handoff, same-ID update and installed draft-state repair",
+  "evidenceKind": "Observed native installer and side-panel readback, followed by ordinary installed tool-tab navigation; component tests remain separate evidence",
+  "ownership": {
+    "userReply": "移交正式包与版本收尾（推荐）",
+    "accepted": ["Application draft repair and regression tests", "Version and unique official package", "Retained application height CSS from the handed package", "This delivery record"],
+    "notTransferred": ["Framework host and bridge source", "Other owners' preview, tests, evidence and services"]
+  },
+  "package": {
+    "id": "webflow",
+    "version": "0.3.21",
+    "path": "projects/webflow/webflow.opendesk-tool.json",
+    "candidate": "artifacts/webflow-installed-core-01a1bf25/candidate.opendesk-tool.json",
+    "bytes": 71761,
+    "sha256": "87ab1892ead64582418c7da1ddf5f2da0d3d312f8e06f114dbb877512e4c43ac",
+    "buildAndPromote": "Original scripts/build-sidebar-tool.mjs: candidate, relevant package gates, --promote-from, --check-project",
+    "promotion": "PROJECT_PACKAGE_PROMOTED",
+    "sameSource": "PROJECT_PACKAGE_MATCH",
+    "capabilities": ["storage.local", "currentPage.read", "tasks.open", "tasks.run"],
+    "capabilitiesAndTaskPinsChanged": false,
+    "pins": [
+      {
+        "id": "baidu.search.top3",
+        "version": "1.1.4",
+        "manifestHash": "3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac",
+        "contentHash": "14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269"
+      },
+      {
+        "id": "google.search.top3",
+        "version": "1.0.0",
+        "manifestHash": "c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261",
+        "contentHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad"
+      }
+    ]
+  },
+  "checks": {
+    "reusedApplicationAndRecovery": {
+      "result": "55/55 PASS",
+      "source": "projects/webflow/evidence/installed-core-20261109-01a1bcf7.json",
+      "mainSha256": "411f25e2601cae5703210ddeb674dde6dec427e86a537aff6c14b64db234c49a",
+      "testSha256": "099aa58f808fb12b83ed992be1907a88b60a413eec0b809a6b00014503c32937",
+      "inputsUnchanged": true,
+      "behavior": "View search releases host input markers; hidden query drafts, unconfirmed preferences and writes stay protected; confirmed readback releases protection"
+    },
+    "freshPackageGates": "node --test tests/environment/sidebar-tools.test.mjs: 8/8 PASS"
+  },
+  "browser": {
+    "product": "ego lite",
+    "version": "0.6.2.8",
+    "taskSpaceId": 56,
+    "taskSpaceName": "Web Flow core delivery 01a1bf25",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "Prior confirmed dist/development; not independently reopened in chrome://extensions in this round",
+    "modeAtInstallation": "Existing development host, no build or reload by this thread",
+    "modeAfterParallelUpdate": "Page reports development service connected and build fingerprint 2bbde69c8ae0",
+    "devWriterOwner": "01a1bf2d-5cdc-78c0-8574-592f30819182",
+    "writerStartedByThisThread": false,
+    "sharedDistWrittenByThisThread": false,
+    "forcedExtensionReloads": 0,
+    "taskSpaceFinished": true,
+    "retainedPages": []
+  },
+  "installedUpdate": {
+    "surface": "Real native side panel in the owned ego TaskSpace",
+    "method": "Original extension import, native file chooser, review and explicit Confirm Update",
+    "fromVersion": "0.3.19",
+    "toVersion": "0.3.21",
+    "reviewCandidateSha256": "87ab1892ead64582418c7da1ddf5f2da0d3d312f8e06f114dbb877512e4c43ac",
+    "reviewPriorPackageSha256": "fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd",
+    "reviewPermissions": "权限未变化",
+    "reviewPins": "Both fixed task versions and exact hashes matched the package",
+    "openedVersionReadback": "Web Flow · v0.3.21",
+    "dataPreservation": "PASS: Google favorite saved/read back before update and selected after reopening the updated side panel",
+    "themeAtUpdate": "System; an attempted native theme selection did not change it and is not claimed as a preservation test",
+    "autoRun": "OFF before and after update; never enabled",
+    "tasks": "Both tasks unavailable, Chinese guidance and disabled run controls"
+  },
+  "installedToolTabChecks": {
+    "surface": "Ordinary extension tool tab in the same owned TaskSpace; not a trusted native side panel",
+    "PASS": [
+      "Search google and clear, then Host More opens Help without stale-draft blocking",
+      "Help returns to the prior Scripts tab",
+      "Application Preferences saves dark theme and displays confirmed readback",
+      "After confirmed preference save, More opens Help and returns to Scripts without stale-draft blocking",
+      "Separate trusted tool-settings view opens",
+      "After parallel host update, direct Help and Application Preferences icons are visible; preferences reopen with dark theme",
+      "Restoring system theme and removing the temporary Google favorite display confirmed preference readback"
+    ],
+    "expectedTrustRejection": "Auto-run state cannot be verified or changed from this ordinary tab; no context spoofing or retry was used",
+    "cleanup": "System theme restored and read back; temporary Google favorite removed through UI save/readback; search cleared; overview navigation performed before TaskSpace finish"
+  },
+  "NOT_TESTED": [
+    "Updated host at normal and short native Side Panel window sizes, including scroll reachability",
+    "Full loaded-host source identity and native pairing",
+    "IME, keyboard focus and Escape",
+    "Nonempty real history and real Task execution",
+    "Production, full CI, independent scoring and zoom matrix"
+  ],
+  "sideEffects": {
+    "taskInstallations": 0,
+    "taskAuthorizations": 0,
+    "taskStarts": 0,
+    "chatMessagesSent": 0,
+    "unknownEffectsReplayed": 0
+  }
+}

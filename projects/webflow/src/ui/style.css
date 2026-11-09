@@ -1,8 +1,7 @@
 
-/* The Host measures the space below its own header/runtime controls. Avoid
-   percentage min-height through auto-sized ancestors or iframe resize loops. */
+/* The sandbox supplies the height chain; this only lays out the app itself. */
 html:has(#webflow-app),body:has(#webflow-app){margin:0}
-#webflow-app{height:var(--opendesk-host-available-height,auto);min-height:0;overflow:hidden}
+#webflow-app{height:100%;min-height:0;overflow:hidden}
 #webflow-app>.wf-app{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden}
 .wf-app{--bg:#f4f6fa;--paper:#fff;--ink:#1b2c49;--sub:#5b6e86;--line:#dfe6ef;--tint:#f5f7fb;--brand:#365eda;--on-brand:#fff;--warn:#8a5817;--good:#187f62;--focus:#365eda;background:var(--bg);color:var(--ink);font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;min-height:0;color-scheme:light;overflow-wrap:anywhere}
 .wf-app[data-theme="dark"]{--bg:#121c2c;--paper:#1b2b40;--ink:#f0f5fe;--sub:#b1c1d8;--line:#35485e;--tint:#273950;--brand:#9db8ff;--on-brand:#121c2c;--warn:#ffce91;--good:#7ed4ad;--focus:#b1c4ff;color-scheme:dark}

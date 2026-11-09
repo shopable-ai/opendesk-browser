@@ -99,7 +99,15 @@
     const pageReadEpoch=R.useRef(0);
     const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
     const localCancellation=R.useRef(null);
+    const queryDirty=R.useRef(false),prefsDirty=R.useRef(false);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
+
+    // The bridge conservatively marks trusted inputs as drafts. Reconcile
+    // view-only controls on every render, retaining unconfirmed durable edits.
+    R.useEffect(()=>{
+      tool.setState?.({dirty:prefsDirty.current||Boolean(query.trim())&&queryDirty.current,
+        busy:saving||active?.state==='saving'||active?.state==='cancelling-local'});
+    });
 
     const readTasks=R.useCallback(async()=>{
       const epoch=++seq.current;
@@ -289,9 +297,10 @@
     };
     const savePrefs=async value=>{
       if(saving)return;
+      prefsDirty.current=true;
       setSaving(true);setError('');
-      try{await save('webflow.settings.v1',value);
-        if(alive.current){setSettings(value);setNotice('偏好已保存并读回。');}}
+      try{const confirmed=await save('webflow.settings.v1',value);
+        if(confirmed&&alive.current){prefsDirty.current=false;setSettings(value);setNotice('偏好已保存并读回。');}}
       catch(e){if(alive.current)setError('偏好未确认保存：'+safeError(e));}
       finally{if(alive.current)setSaving(false);}
     };
@@ -369,6 +378,7 @@
       try{
         await save(pendingKey,item,null);
         if(!alive.current)return;
+        queryDirty.current=false;
         pendingRef.current=item;
         // Stop or navigation may have invalidated this preparation during I/O.
         if(activeRef.current!==id||observation.current!==epoch||cancelledRef.current===id)return;
@@ -550,7 +560,7 @@
           h('label',{className:'wf-label',htmlFor:'wf-query'},'搜索关键词',
             h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,
               disabled:Boolean(activeRef.current),placeholder:'输入本次搜索关键词',
-              onChange:e=>setQuery(e.target.value),autoComplete:'off'})),
+              onChange:e=>{queryDirty.current=true;setQuery(e.target.value);},autoComplete:'off'})),
           h('p',{className:'wf-sub'},sameTarget(pin)?
             '目标网站匹配；实际派发仍须通过宿主的权限、安装及任务核验。':
             '当前标签页不是获准网站；请切换页面后重新检查。'),
