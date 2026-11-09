@@ -5,6 +5,7 @@ const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   resume:'<path d="M8 5v14l11-7Z"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
   status:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',
+  menu:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
   remove:'<path d="M18 6 6 18M6 6l12 12"/>'};
 // Crown artwork is a declared, packaged transparent WebP (assets/queue.css).
 function element(doc,tag,cls,text){
@@ -90,6 +91,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
   let lastSignature='',recoveryText=null,recoveryReason='';
+  let openMenuId=null,expandedScrollTop=0;
   function reset(){
     for(const prop of ['margin-left','margin-bottom'])list?.host.style.removeProperty(prop);
     root?.style.removeProperty('--sq-surface-radius');
@@ -111,6 +113,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
           case 'more':engine.toggleExpanded();break;
+          case 'menu':openMenuId=openMenuId===b.dataset.id?null:b.dataset.id;render();break;
           case 'status':{
             const state=engine.view();
             if(state.items.some(item=>item.id===b.dataset.id&&item.state==='unknown')||
@@ -122,6 +125,11 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         e.stopPropagation();
       });
       list.on(root,'keydown',e=>{
+        if(e.key==='Escape'&&openMenuId){
+          e.preventDefault();const id=openMenuId;openMenuId=null;render();
+          [...root.querySelectorAll('button')].find(b=>b.dataset.action==='menu'&&b.dataset.id===id)?.focus?.({preventScroll:true});
+          return;
+        }
         if(!e.altKey||!['ArrowUp','ArrowDown'].includes(e.key))return;
         const row=e.target.closest?.('[data-id-row]');if(!row)return;
         const index=engine.view().items.findIndex(x=>x.id===row.dataset.idRow);
@@ -218,10 +226,15 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
   function render(){
     if(!list?.active()||!button?.active())return;
     const state=engine.view(),items=state.items;
+    const previousRows=[...root.children].find(node=>node.className==='sq-rows');
+    if(root.className==='sq-panel sq-expanded')
+      expandedScrollTop=Math.max(0,Number(previousRows?.scrollTop)||0);
     if(!items.length){
+      openMenuId=null;expandedScrollTop=0;
       if(lastSignature==='empty')return;
       lastSignature='empty';
       root.className='sq-panel sq-empty';
+      root.setAttribute('aria-label','发送队列，暂无待发送消息');
       const rows=element(doc,'div','sq-rows');
       rows.setAttribute('role','list');
       const cue=element(doc,'span','sq-empty-mark','···');
@@ -230,42 +243,76 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       root.replaceChildren(rows);
       return;
     }
-    root.className='sq-panel';
-    const signature=JSON.stringify([state.expanded,state.reason,state.phase,state.inFlight?.phase,!!state.answerGate,
-      items.map(item=>[item.id,item.text,item.state])]);
+    if(openMenuId&&!items.some(item=>item.id===openMenuId))
+      openMenuId=null;
+    if(!state.expanded&&openMenuId&&!items.slice(0,3).some(item=>item.id===openMenuId))
+      openMenuId=null;
+    const signature=JSON.stringify([state.expanded,openMenuId,state.reason,state.phase,
+      state.inFlight?.phase,!!state.answerGate,items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
     lastSignature=signature;
     const active=list.shadowRoot.activeElement;
     const activeRow=active?.closest?.('[data-id-row]')?.dataset.idRow;
     const activeAction=active?.dataset.action;
-    root.replaceChildren();
+    const paused=items.filter(item=>item.state==='paused').length;
+    const unknown=items.filter(item=>item.state==='unknown').length;
+    const processing=items.filter(item=>item.state==='sending'||item.state==='waiting').length;
+    const queued=items.length-paused-unknown-processing;
+    const status=['待发 '+queued];
+    if(processing)status.push('处理中 '+processing);
+    if(paused)status.push('暂停 '+paused);
+    if(unknown)status.push('待核对 '+unknown);
+    const detail=status.join(' · ');
+    root.className='sq-panel'+(state.expanded?' sq-expanded':'');
+    root.setAttribute('aria-label','发送队列，共 '+items.length+' 条，'+detail);
+    const summary=element(doc,'div','sq-summary');
+    summary.append(element(doc,'span','sq-summary-title','发送队列'),
+      element(doc,'span','sq-count','共 '+items.length+' 条'));
+    const statusText=element(doc,'span','sq-summary-detail',detail);
+    statusText.title=detail;summary.append(statusText);
     const rows=element(doc,'div','sq-rows');rows.setAttribute('role','list');
     const shown=state.expanded?items:items.slice(0,3);
     for(const [i,item] of shown.entries()){
-      const unknown=item.state==='unknown'||
+      const uncertain=item.state==='unknown'||
         (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown');
-      const row=element(doc,'div','sq-row'+(unknown?' sq-unknown':'')+(item.state==='paused'?' sq-paused':''));
+      const open=openMenuId===item.id;
+      const row=element(doc,'div','sq-row'+(uncertain?' sq-unknown':'')+
+        (item.state==='paused'?' sq-paused':'')+(open?' sq-open':''));
       row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
-      row.draggable=item.state!=='sending'&&!unknown;
+      row.draggable=item.state!=='sending'&&!uncertain;
       row.title='Alt + 上下方向键调整顺序';
-      // Keep exceptional feedback with the affected message, never as a footer
-      // between the waiting list and the website's composer.
-      if(unknown){
+      if(uncertain){
         const warning=action(doc,'status',unknownMessage(state),item.id);
         warning.className='sq-action sq-index sq-warning';row.append(warning);
       }else row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
-      for(const [key,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
-        ['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
+      const primaryKey=item.state==='paused'?'resume':'pause';
+      const primary=action(doc,primaryKey,item.state==='paused'?'恢复此条':'暂停此条',item.id);
+      if(item.state==='sending'||uncertain||state.inFlight?.id===item.id)primary.disabled=true;
+      ops.append(primary);
+      const more=action(doc,'menu','更多操作',item.id);
+      more.setAttribute('aria-expanded',String(open));
+      more.setAttribute('aria-controls','sq-actions-'+item.id);
+      if(open)more.className+=' sq-menu-open';
+      ops.append(more);row.append(ops);
+      const details=element(doc,'div','sq-details');
+      details.id='sq-actions-'+item.id;
+      details.hidden=!open;
+      details.setAttribute('role','group');
+      details.setAttribute('aria-label','第 '+(i+1)+' 条消息的其他操作');
+      for(const [key,label] of [['now','提前发送'],['edit','取回编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
-        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove'&&!(unknown&&key==='edit'))||
+        b.className+=' sq-detail-action';
+        b.append(element(doc,'span','sq-detail-label',label));
+        if(((item.state==='sending'||uncertain||state.inFlight?.id===item.id)&&
+          key!=='remove'&&!(uncertain&&key==='edit'))||
           (item.state==='paused'&&key==='now'))b.disabled=true;
-        ops.append(b);
+        details.append(b);
       }
-      row.append(ops);rows.append(row);
+      row.append(details);rows.append(row);
     }
-    root.append(rows);
+    root.replaceChildren(summary,rows);
     if(items.length>3){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
       if(!state.expanded&&items.slice(3).some(item=>item.state==='unknown'||
@@ -273,14 +320,18 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         more.setAttribute('aria-label',more.textContent+' · '+unknownMessage(state));
         more.title=unknownMessage(state);more.textContent='⚠ '+more.textContent;
       }
-      more.type='button';more.dataset.action='more';more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
+      more.type='button';more.dataset.action='more';
+      more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
     }
+    if(state.expanded)rows.scrollTop=expandedScrollTop;
     if(activeRow){
       const row=[...root.querySelectorAll('[data-id-row]')]
         .find(node=>node.dataset.idRow===activeRow);
-      const target=activeAction?[...row?.querySelectorAll('[data-action]')||[]]
+      let target=activeAction?[...row?.querySelectorAll('[data-action]')||[]]
         .find(node=>node.dataset.action===activeAction):row;
-      target?.focus?.({preventScroll:true});
+      if(target&&['now','edit','remove'].includes(activeAction)&&openMenuId!==activeRow)
+        target=[...row?.querySelectorAll('[data-action]')||[]].find(node=>node.dataset.action==='menu')||row;
+      (target||row)?.focus?.({preventScroll:true});
     }
   }
   function hide(){
