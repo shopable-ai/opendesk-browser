@@ -56,6 +56,7 @@ test('two SQLite handles cannot double-redeem one business issuance; result surv
   assert.equal(outcomes.filter(row=>row.status==='rejected'&&row.reason.code==='E_ALREADY_REDEEMED').length,1);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM redemptions').get().n,1);
   const third=openDemoLedger(filename);t.after(()=>third.close());
+  assert.equal(third.prepare('PRAGMA user_version').get().user_version,1);
   assert.equal(third.prepare('SELECT COUNT(*) AS n FROM redemptions').get().n,1);
   assert.equal(third.prepare('PRAGMA index_list(redemptions)').all().filter(row=>row.unique===1).length>=3,true);
   assert.equal(statusDemoGrant(third,{operation:'grant',accountId:DEMO_ACCOUNT_ID,
