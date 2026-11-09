@@ -1,16 +1,20 @@
 <main class="toc-panel" aria-label="阅读目录">
-<div class="toc-head"><strong class="toc-title">阅读目录</strong><div class="toc-actions"><div class="toc-modes" role="group" aria-label="目录视图">
+<div class="toc-head"><button id="toc-settings-back" class="toc-refresh" type="button" aria-label="返回目录" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><strong class="toc-title">阅读目录</strong><div class="toc-actions"><div class="toc-modes" role="group" aria-label="目录视图">
 <button type="button" data-toc-mode="top" aria-label="主要章节（内容较少时自动补充子章节）" title="主要章节" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg></button>
 <button type="button" data-toc-mode="focus" aria-label="当前章节" title="当前章节" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg></button>
 <button type="button" data-toc-mode="full" aria-label="完整目录" title="完整目录" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg></button>
-<button type="button" data-toc-mode="ai" aria-label="AI 整理" title="AI 整理" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.55 5.2L19 10l-5.45 1.8L12 17l-1.55-5.2L5 10l5.45-1.8L12 3Z"/><path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17ZM4 15l.62 1.38L6 17l-1.38.62L4 19l-.62-1.38L2 17l1.38-.62L4 15Z"/></svg></button></div><button type="button" id="toc-refresh" class="toc-refresh" aria-label="刷新阅读目录" title="重新读取当前网页章节"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6M20 4v7h-7"/></svg></button></div></div>
-<details id="toc-settings" class="toc-settings" hidden><summary>网站与页面设置 / Site settings</summary>
+<button type="button" data-toc-mode="ai" aria-label="AI 整理" title="AI 整理" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.55 5.2L19 10l-5.45 1.8L12 17l-1.55-5.2L5 10l5.45-1.8L12 3Z"/><path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17ZM4 15l.62 1.38L6 17l-1.38.62L4 19l-.62-1.38L2 17l1.38-.62L4 15Z"/></svg></button></div><button type="button" id="toc-refresh" class="toc-refresh" aria-label="刷新阅读目录" title="重新读取当前网页章节"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6M20 4v7h-7"/></svg></button><button type="button" id="toc-settings-open" class="toc-refresh" aria-label="网站与页面设置" title="网站与页面设置" aria-controls="toc-settings" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-.6 2.3-2 .9-2.2-.7-2 3.5 1.7 1.6v2.8L2.2 15l2 3.5 2.2-.7 2 .9L9 21h4l.6-2.3 2-.9 2.2.7 2-3.5-1.7-1.6v-2.8L19.8 9l-2-3.5-2.2.7-2-.9L13 3Z"/><circle cx="11" cy="12" r="3"/></svg></button></div></div>
+<section id="toc-settings" class="toc-settings" aria-label="网站与页面设置" hidden>
+<fieldset><legend data-settings-group="index">目录索引</legend>
 <label><input type="checkbox" data-toc-setting="blockedOrigins"><span data-setting-label>本站启用目录</span></label>
 <label><input type="checkbox" data-toc-setting="disabledPages"><span data-setting-label>本页启用目录</span></label>
+</fieldset>
+<fieldset><legend data-settings-group="overlay">悬浮目录</legend>
 <label><input type="checkbox" data-toc-setting="hiddenSites"><span data-setting-label>本站显示悬浮目录</span></label>
 <label><input type="checkbox" data-toc-setting="hiddenPages"><span data-setting-label>本页显示悬浮目录</span></label>
+</fieldset>
 <p id="toc-settings-error" class="toc-error" role="status" hidden></p>
-</details>
+</section>
 <section id="toc-ai-view" class="toc-ai-view" aria-label="AI 整理目录" hidden>
   <div id="toc-member-card" class="toc-member-card">
     <div class="toc-member-head"><strong id="toc-member-title" class="toc-member-title">AI 整理</strong><span id="toc-member-tag" class="toc-member-tag">会员专属</span></div>

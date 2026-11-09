@@ -163,24 +163,25 @@ class SidebarNode{
  append(...nodes){this.children.push(...nodes.flatMap(n=>n.tagName==='FRAGMENT'?n.children:[n]));}
  replaceChildren(...nodes){this.children=[];this.append(...nodes);}
  setAttribute(k,v){this.attributes.set(k,String(v));}removeAttribute(k){this.attributes.delete(k);}
+ focus(){this.focused=true;}
  get options(){return this.children.filter(n=>n.tagName==='OPTION');}
  querySelector(selector){return this.children.find(node=>node.tagName===selector.toUpperCase())||null;}
  querySelectorAll(selector){return this.children.flatMap(n=>[n,...n.querySelectorAll(selector)]).filter(n=>
   selector==='button'?n.tagName==='BUTTON':selector==='input'?n.tagName==='INPUT':
   selector==='input[data-toc-setting]'?n.dataset.tocSetting:selector==='[data-setting-label]'?n.settingLabel:false);}
 }
-async function sidebarFixture(){
+async function sidebarFixture({navigation=false,rejectActions=false}={}){
  const fields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
- const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
+ const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error','toc-settings-open','toc-settings-back','toc-free-view'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
  const modes=['top','focus','full','ai'].map(mode=>{const n=new SidebarNode('button');n.dataset.tocMode=mode;return n;});
  const inputs=fields.map(field=>{const n=new SidebarNode('input');n.dataset.tocSetting=field;return n;});
- nodes['toc-settings'].append(new SidebarNode('summary'),...inputs);
- const containers=Object.fromEntries(['.toc-panel','.toc-title','.toc-modes','.toc-scroll'].map(s=>[s,new SidebarNode()]));
- const root={querySelector:s=>s.startsWith('#')?nodes[s.slice(1)]:containers[s],querySelectorAll:()=>modes};
+ nodes['toc-settings'].append(...inputs);
+ const containers=Object.fromEntries(['.toc-panel','.toc-head','.toc-title','.toc-modes','.toc-scroll'].map(s=>[s,new SidebarNode()]));
+ const root=events({querySelector:s=>s.startsWith('#')?nodes[s.slice(1)]:containers[s],querySelectorAll:()=>modes});
  const requests=[],store=storage({preferences:{blockedOrigins:[],disabledPages:[],hiddenSites:[],hiddenPages:[],custom:'preserve'},legacyMigration:{version:1}});
  const data={url:'https://example.org/article?x=1',items:[{id:'h-1',sourceId:'s-1',label:'Article',depth:0,topId:'h-1'}],sources:[{id:'s-1',label:'Article'}],activeId:'h-1'};
  let conflict=false,quota=false,unconfirmed=false,saveGate=null,releaseSave=null,localeChange=null;
- const states=[];
+ const states=[],navigations=[];
  const request=async(name,payload)=>{
   requests.push({name,payload});
   if(name==='page.request')return payload.operation==='toc.snapshot'?data:{ok:true};
@@ -200,10 +201,11 @@ async function sidebarFixture(){
  const sidebarCatalog={sourceLocale:catalog.sourceLocale,messages:Object.fromEntries(Object.entries(catalog.messages).map(([locale,rows])=>[locale,Object.fromEntries(Object.entries(rows).map(([key,value])=>[key,typeof value==='string'?value:value.text]))]))};
  const window=events(),timers=new Map();let serial=0;
  runInNewContext(await readFile(new URL('../src/main.js',import.meta.url),'utf8'),{
-  globalThis:{OpenDeskTool:{root,request,setState(state){states.push({...state});},onLocaleChange(fn){localeChange=fn;},messages:sidebarCatalog,locale:'en'}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
+  globalThis:{OpenDeskTool:{root,request,setState(state){states.push({...state});},onLocaleChange(fn){localeChange=fn;},messages:sidebarCatalog,locale:'en',
+   ...(navigation?{navigationFeatures:{headerActions:true},setNavigation(state){navigations.push(state);return !(rejectActions&&state.headerActions);}}:{})}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
   document,window,URL,Intl,setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id)});
  await tick();await tick();
- return {nodes,inputs,modes,store,requests,window,states,conflict(){conflict=true;},quota(){quota=true;},
+ return {root,containers,navigations,nodes,inputs,modes,store,requests,window,states,conflict(){conflict=true;},quota(){quota=true;},
   unconfirmed(){unconfirmed=true;},holdSave(){saveGate=new Promise(resolve=>{releaseSave=resolve;});},
   releaseSave(){releaseSave();saveGate=null;},changeLocale(next){localeChange(next);}};
 }
@@ -227,6 +229,52 @@ test('sidebar capacity errors preserve settings and do not retry unknown writes'
  assert.equal(f.requests.filter(r=>r.name==='storage.set').length,1);assert.equal(f.inputs[0].checked,true);
  assert.equal(f.nodes['toc-settings-error'].hidden,false);assert.match(f.nodes['toc-settings-error'].textContent,/Full/);
  f.window.fire('pagehide');
+});
+
+test('settings use a header action and subpage while preserving the outline and selected mode',async()=>{
+ const f=await sidebarFixture({navigation:true});
+ assert.equal(f.nodes['toc-settings'].hidden,true);
+ assert.equal(f.nodes['toc-settings-open'].hidden,true);
+ assert.equal(f.navigations.at(-1).headerActions[0].id,'settings');
+ assert.equal(f.containers['.toc-title'].hidden,true);
+ f.modes[2].fire('click');
+ const outline=f.nodes['toc-list'].children;
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'header',page:'home',actionId:'settings'}});
+ assert.equal(f.nodes['toc-settings'].hidden,false);
+ assert.equal(f.nodes['toc-free-view'].hidden,true);
+ assert.equal(f.navigations.at(-1).page,'settings');assert.equal(f.navigations.at(-1).canBack,true);
+ assert.equal(f.navigations.at(-1).headerActions.length,0);
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
+ assert.equal(f.nodes['toc-settings'].hidden,true);assert.equal(f.nodes['toc-free-view'].hidden,false);
+ assert.equal(f.modes[2].attributes.get('aria-pressed'),'true');
+ assert.equal(f.nodes['toc-list'].children,outline);
+ const count=f.navigations.length;f.window.fire('pagehide');
+ f.root.fire('opendesk-tool-navigation',{detail:{action:'header',page:'home',actionId:'settings'}});
+ assert.equal(f.navigations.length,count);
+});
+test('old or declined header actions keep a local gear and safe back navigation',async()=>{
+ for(const options of [{},{navigation:true,rejectActions:true}]){
+  const f=await sidebarFixture(options);
+  assert.equal(f.nodes['toc-settings-open'].hidden,false);
+  f.nodes['toc-settings-open'].fire('click');
+  assert.equal(f.nodes['toc-settings'].hidden,false);
+  assert.equal(f.nodes['toc-settings-back'].hidden,!!options.navigation);
+  if(options.navigation){
+   assert.equal(f.navigations.at(-1).page,'settings');assert.equal(f.navigations.at(-1).headerActions,undefined);
+   f.root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
+  }else f.nodes['toc-settings-back'].fire('click');
+  assert.equal(f.nodes['toc-settings'].hidden,true);f.window.fire('pagehide');
+ }
+});
+test('settings cannot leave a pending or unconfirmed save and opening them never writes preferences',async()=>{
+ const f=await sidebarFixture();f.nodes['toc-settings-open'].fire('click');
+ assert.equal(f.requests.filter(r=>r.name==='storage.set').length,0);
+ f.holdSave();f.unconfirmed();f.inputs[0].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[0]});await tick();
+ f.nodes['toc-settings-back'].fire('click');assert.equal(f.nodes['toc-settings'].hidden,false);
+ f.releaseSave();await tick();await tick();
+ f.nodes['toc-settings-back'].fire('click');assert.equal(f.nodes['toc-settings'].hidden,false);
+ assert.equal(f.nodes['toc-settings-error'].hidden,false);f.window.fire('pagehide');
 });
 
 test('overlay callbacks persist preferences and managed disposal waits for submitted writes',async()=>{
@@ -287,8 +335,8 @@ test('confirmed settings save clears dirty after busy completion; polls never cl
  assert.deepEqual(f.states,[{dirty:true,busy:true},{dirty:false,busy:false}]);
  assert.deepEqual(f.store.values.preferences.hiddenSites,['https://example.org']);
  const count=f.states.length;f.window.fire('focus');await tick();await tick();assert.equal(f.states.length,count);
- assert.equal(f.nodes['toc-settings'].querySelector('summary').textContent,'Site and page settings');
- f.changeLocale('zh-CN');assert.equal(f.nodes['toc-settings'].querySelector('summary').textContent,'网站与页面设置');
+ assert.equal(f.nodes['toc-settings-open'].title,'Site and page settings');
+ f.changeLocale('zh-CN');assert.equal(f.nodes['toc-settings-open'].title,'网站与页面设置');
  // Restoring a saved setting follows the same confirmed-save state transition.
  f.inputs[2].checked=true;f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
  assert.deepEqual(f.states.slice(-2),[{dirty:true,busy:true},{dirty:false,busy:false}]);

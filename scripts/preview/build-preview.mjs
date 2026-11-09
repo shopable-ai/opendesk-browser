@@ -22,7 +22,7 @@ export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze([
   'adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate',
   'adblock.cosmetic.display','adblock.cosmetic.add','adblock.cosmetic.replace'
 ]);
-export const PREVIEW_TOC_OPERATIONS=Object.freeze(['toc.snapshot','toc.navigate']);
+export const PREVIEW_TOC_OPERATIONS=Object.freeze(['page.request','storage.get','storage.set']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
   'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
   'observe.start','observe.read','observe.stop'

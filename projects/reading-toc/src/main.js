@@ -34,8 +34,8 @@ const promotion='recruit'; // reviewed static default; no remote scripts, ad ifr
 function paintAi(){
  if(!aiView||!aiNodes)return;
  const ai=mode==='ai';
- aiView.hidden=!ai;
- if(freeView)freeView.hidden=ai;
+ aiView.hidden=settingsPage||!ai;
+ if(freeView)freeView.hidden=settingsPage||ai;
  if(!ai)return;
  const n=id=>aiNodes[id];
  // Service is not published. Unverified identities are never treated as active members.
@@ -72,7 +72,7 @@ function paintStatus(){
 function paintLanguage(){
  settingsLanguage();
  root.querySelector('.toc-panel').setAttribute('aria-label',t('panelLabel'));
- root.querySelector('.toc-title').textContent=t('contents');
+ paintSettingsNavigation();
  root.querySelector('.toc-modes').setAttribute('aria-label',t('modesLabel'));
  root.querySelector('.toc-scroll').setAttribute('aria-label',t('navigationLabel'));
  source.setAttribute('aria-label',t('sourceLabel'));
@@ -202,16 +202,61 @@ globalThis.OpenDeskTool.onLocaleChange?.(next=>{
 // App-owned site/page controls. Each change merges just one list membership
 // against the latest ETag; capacity/unknown failures preserve all existing data.
 const settings=root.querySelector('#toc-settings'),settingsError=root.querySelector('#toc-settings-error');
-let settingsIdentity=null,settingsBusy=false,settingsToken=0;
+const settingsOpen=root.querySelector('#toc-settings-open'),settingsBack=root.querySelector('#toc-settings-back');
+let settingsIdentity=null,settingsBusy=false,settingsDirty=false,settingsToken=0,settingsPage=false;
 const settingFields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
 const settingsLabels=['本站启用目录','本页启用目录','本站显示悬浮目录','本页显示悬浮目录'];
 function settingsLanguage(){
  const en=String(locale).startsWith('en');
- const summary=settings?.querySelector('summary');
- if(summary)summary.textContent=en?'Site and page settings':'网站与页面设置';
+ const label=en?'Site and page settings':'网站与页面设置';
+ settings?.setAttribute('aria-label',label);
+ if(settingsOpen){settingsOpen.title=label;settingsOpen.setAttribute('aria-label',label);}
+ settingsBack?.setAttribute('aria-label',en?'Back to contents':'返回目录');
+ const index=settings?.querySelector('[data-settings-group="index"]');
+ const overlay=settings?.querySelector('[data-settings-group="overlay"]');
+ if(index)index.textContent=en?'Contents indexing':'目录索引';
+ if(overlay)overlay.textContent=en?'Floating contents':'悬浮目录';
  const labels=en?['Enable on this site','Enable on this page','Show overlay on this site','Show overlay on this page']:settingsLabels;
  settings?.querySelectorAll('[data-setting-label]').forEach((node,i)=>{node.textContent=labels[i];});
 }
+function paintSettingsNavigation(){
+ const tool=globalThis.OpenDeskTool,en=String(locale).startsWith('en');
+ const title=settingsPage?(en?'Settings':'设置'):t('title');
+ const base={page:settingsPage?'settings':'home',title,canBack:settingsPage,primary:null};
+ let accepted=false,projected=false;
+ if(typeof tool.setNavigation==='function'){
+  if(tool.navigationFeatures?.headerActions===true){
+   accepted=tool.setNavigation({...base,headerActions:!settingsPage&&settingsIdentity
+    ?[{id:'settings',label:settingsOpen?.title||title,icon:'settings'}]:[]});
+   projected=accepted===true;
+   if(accepted===false)accepted=tool.setNavigation(base);
+  }else accepted=tool.setNavigation(base);
+ }
+ const heading=root.querySelector('.toc-title');
+ heading.textContent=title;heading.hidden=accepted===true;
+ if(settingsOpen)settingsOpen.hidden=settingsPage||!settingsIdentity||projected;
+ if(settingsBack)settingsBack.hidden=!settingsPage||accepted===true;
+ root.querySelector('.toc-modes').hidden=settingsPage;
+ reload.hidden=settingsPage;
+ if(settings)settings.hidden=!settingsPage;
+ if(freeView)freeView.hidden=settingsPage||mode==='ai';
+ if(aiView)aiView.hidden=settingsPage||mode!=='ai';
+ root.querySelector('.toc-head').hidden=settingsPage&&accepted===true;
+}
+function showSettings(next){
+ if(closed||settingsBusy||settingsDirty||(!settingsIdentity&&next))return;
+ settingsPage=next;paintSettingsNavigation();
+ // The content stays mounted, preserving the selected mode and outline scroll.
+ if(next)settings?.querySelector('input')?.focus?.();
+ else if(settingsOpen&&!settingsOpen.hidden)settingsOpen.focus();
+}
+function onNavigation({detail}){
+ if(detail?.action==='header'&&detail.page==='home'&&detail.actionId==='settings'&&!settingsPage)showSettings(true);
+ else if(detail?.action==='back'&&settingsPage)showSettings(false);
+}
+settingsOpen?.addEventListener('click',()=>showSettings(true));
+settingsBack?.addEventListener('click',()=>showSettings(false));
+root.addEventListener('opendesk-tool-navigation',onNavigation);
 async function loadSettings(snapshot){
  if(!settings||settingsBusy||!snapshot?.url)return;
  const token=++settingsToken;
@@ -220,19 +265,19 @@ async function loadSettings(snapshot){
  try{
   const stored=await request('storage.get',{key:'preferences',withEtag:true});
   if(closed||settingsBusy||token!==settingsToken)return;
-  settingsIdentity=identity;settings.hidden=false;
+  settingsIdentity=identity;paintSettingsNavigation();
   for(const input of settings.querySelectorAll('input[data-toc-setting]')){
    const field=input.dataset.tocSetting;
    input.checked=!(stored.value?.[field]||[]).includes(field.endsWith('Origins')||field==='hiddenSites'?identity.origin:identity.page);
    input.disabled=false;
   }
- }catch{if(token===settingsToken){settingsIdentity=null;settings.hidden=true;}}
+ }catch{if(token===settingsToken){settingsIdentity=null;paintSettingsNavigation();}}
 }
 settings?.addEventListener('change',async event=>{
  const input=event.target,field=input.dataset?.tocSetting;
  if(!settingFields.includes(field)||!settingsIdentity||settingsBusy)return;
  const identity=settingsIdentity,target=field==='blockedOrigins'||field==='hiddenSites'?identity.origin:identity.page;
- const excluded=!input.checked;settingsBusy=true;settingsToken++;
+ const excluded=!input.checked;settingsBusy=true;settingsDirty=true;settingsToken++;
  let saved=false;
  setState({dirty:true,busy:true});
  for(const node of settings.querySelectorAll('input'))node.disabled=true;
@@ -259,7 +304,7 @@ settings?.addEventListener('change',async event=>{
  finally{
   settingsBusy=false;
   try{if(!closed){await loadSettings(data);requestRefresh();}}
-  finally{setState({dirty:!saved,busy:false});}
+  finally{settingsDirty=!saved;setState({dirty:settingsDirty,busy:false});}
  }
 });
 settingsLanguage();
@@ -282,6 +327,6 @@ source.addEventListener('change',()=>{sourceChoice=source.value;render();});
 reload.addEventListener('click',()=>requestRefresh(true));
 window.addEventListener('focus',()=>requestRefresh());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestRefresh();});
-window.addEventListener('pagehide',()=>{closed=true;clearTimeout(timer);},{once:true});
+window.addEventListener('pagehide',()=>{closed=true;clearTimeout(timer);root.removeEventListener('opendesk-tool-navigation',onNavigation);},{once:true});
 requestRefresh();
 })();

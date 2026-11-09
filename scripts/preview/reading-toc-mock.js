@@ -55,12 +55,21 @@
     return scenario==='empty'?{items:[],sources:[],activeId:'',overview:{}}:data;
   };
   const rejected=message=>Promise.reject(Error('[离线模拟] '+message));
+  // Isolated in-memory settings only; no browser storage or grants.
+  let preferences=null,etag=0;
   async function request(operation,payload={}){
+    if(operation==='storage.get'&&payload.key==='preferences')return {value:structuredClone(preferences),etag:String(etag)};
+    if(operation==='storage.set'&&payload.key==='preferences'){
+      if(payload.ifMatch!==String(etag))throw Object.assign(Error('[离线模拟] 设置已变化'),{code:'E_STORAGE_CONFLICT'});
+      preferences=structuredClone(payload.value);etag++;return {saved:true};
+    }
+    if(operation==='page.request'){operation=payload.operation;payload=payload.payload||{};}
+    else return rejected('未授权的模拟操作');
     if(!['toc.snapshot','toc.navigate'].includes(operation))return rejected('未授权的模拟操作');
     if(scenario==='loading')return new Promise((resolve,reject)=>waiting.add(reject));
     if(scenario==='permission-denied'||scenario==='untrusted')return rejected('无网站访问权限');
     if(scenario==='error')return rejected('模拟网页暂时无法读取');
-    if(operation==='toc.snapshot')return sample();
+    if(operation==='toc.snapshot')return {...sample(),url:'https://reading-preview.example/article'};
     const item=sample().items.find(row=>row.id===payload?.id&&row.sourceId===payload?.sourceId);
     if(!item)return rejected('目标章节不存在');
     parent.postMessage({kind:'opendesk-toc-preview-navigation',label:item.label},'*');

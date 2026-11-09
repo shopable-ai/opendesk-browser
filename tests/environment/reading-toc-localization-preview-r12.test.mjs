@@ -33,7 +33,7 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
   assert.equal(preview.manifest.tool,'reading-toc');
   assert.equal(preview.manifest.toolVersion,pkg.version);
   assert.equal(preview.manifest.surface,'side-panel');
-  assert.deepEqual(preview.manifest.operations,['toc.snapshot','toc.navigate']);
+  assert.deepEqual(preview.manifest.operations,['page.request','storage.get','storage.set']);
   assert.equal(preview.manifest.mock,true);
   assert.equal(preview.manifest.installed,false);
   assert.equal(preview.manifest.permissionsGranted,false);
@@ -57,7 +57,7 @@ test('R1.2 source-backed webpage overlay uses actual trusted view+placement and 
   const original=await Promise.all([
     readFile('projects/reading-toc/trusted/view.js','utf8'),
     readFile('projects/reading-toc/trusted/placement.js','utf8'),
-    readFile('src/ui/app-localization.js','utf8'),
+    readFile('projects/reading-toc/src/page/localization.js','utf8'),
     readFile('projects/reading-toc/locales.json','utf8')
   ]);
   const overlay=await readingTocOverlayPreview({scenario:'success'});
@@ -162,7 +162,7 @@ test('R1.4 the single saved preview is byte-reproducible from the current offici
  const sourceFiles=await Promise.all([
   readFile('projects/reading-toc/trusted/view.js','utf8'),
   readFile('projects/reading-toc/trusted/placement.js','utf8'),
-  readFile('src/ui/app-localization.js','utf8'),
+  readFile('projects/reading-toc/src/page/localization.js','utf8'),
   readFile('projects/reading-toc/locales.json','utf8')
  ]);
  const trustedDigest=createHash('sha256').update(JSON.stringify(sourceFiles)).digest('hex');
