@@ -1,6 +1,7 @@
 import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge-trigger-gate.js';
 import {assertWebFlowReplyCandidate} from './workspace-chatgpt.js';
-import {validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+import {validateWebFlowTaskIntent,validateWebFlowTaskIntentV2,WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
+import {webFlowV2ReviewedEntry,resolveWebFlowV2FixedTarget} from './webflow-v2-target.js';
 import {CHATGPT_TASK_PROFILE} from '../page-events/web-task-contract.js';
 import {formatChatGPTInstalledResult} from './chatgpt-fixed-bridge-host.js';
 import {assertInstalledTask,ensureBuiltinTasks} from '../platform/tasks/service.js';
@@ -73,7 +74,16 @@ export function createChatGPTBackgroundAdapter({api,ledger,loadFoundation,captur
       if(invalidCandidateCodes.has(error?.code))error.webTaskInvalid=true;
       throw error;
     }
-    try{return await task(row.scope);}
+    try{
+      const manifest=await task(row.scope);
+      if(row.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL){
+        const intent=validateWebFlowTaskIntentV2(row.candidate.text);
+        const target=resolveWebFlowV2FixedTarget({intent,manifest,installation:manifest.installation});
+        if(row.scope.targetUrl!==target.targetUrl||canonical(row.scope.args)!==canonical(target.args))
+          throw fail('E_WEBFLOW_TARGET_BINDING','原 V2 执行目标或参数在验收期间改变');
+      }
+      return manifest;
+    }
     catch(error){
       if(invalidTaskCodes.has(error?.code))error.webTaskInvalid=true;
       throw error;
@@ -83,13 +93,18 @@ export function createChatGPTBackgroundAdapter({api,ledger,loadFoundation,captur
     const source=await sourceFor(sender);
     if(message.kind==='auto-task'){
       if(message.persistentAuto!==true)throw fail('E_BRIDGE_SCHEMA','持续授权仅接受新固定协议');
-      const intent=validateWebFlowTaskIntent(message.candidateText);
+      const v2=JSON.parse(message.candidateText).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+      const intent=(v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent)(message.candidateText);
       const candidate={candidateId:intent.candidateId,text:message.candidateText,turnKey:message.turnKey,answerKey:message.answerKey};
       await verifyCandidate(api,source,candidate);
-      const manifest=await task(intent);
-      const installation=manifest.installation;
+      // The AI never supplies a V2 URL. A compiled entry is used only for
+      // looking up the actual installed task, then checked again against its pin.
+      const targetUrl=v2?webFlowV2ReviewedEntry(intent.taskId):intent.targetUrl;
+      const manifest=await task({...intent,targetUrl});
+      const bound=v2?resolveWebFlowV2FixedTarget({intent,manifest,installation:manifest.installation}):
+        {taskId:intent.taskId,args:intent.args,targetUrl,installation:manifest.installation};
       const admitted=await ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,candidate,allowPending:true,
-        taskId:intent.taskId,args:intent.args,targetUrl:intent.targetUrl,sourceOrigin:CHATGPT_TASK_PROFILE.origin,installation});
+        ...bound,sourceOrigin:CHATGPT_TASK_PROFILE.origin});
       await verifyCandidate(api,source,candidate);await sourceFor(sender);
       return {...admitted,executionOwner:'background',taskName:manifest.title};
     }
