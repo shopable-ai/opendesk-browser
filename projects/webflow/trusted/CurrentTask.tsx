@@ -78,6 +78,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const {view,error,read}=state;
  const [commandError,setCommandError]=React.useState('');
  const [working,setWorking]=React.useState(''),[draft,setDraft]=React.useState<any>(null);
+ const [viewingRun,setViewingRun]=React.useState('');
  const commandSequence=React.useRef(0),lock=React.useRef(false);
  React.useEffect(()=>{
   commandSequence.current++;lock.current=false;setWorking('');setCommandError('');
@@ -103,7 +104,22 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    if(next&&ticket!==undefined&&ticket===commandSequence.current&&action==='approve-range')onAuthorizationChange?.();
   }finally{if(ticket!==undefined&&ticket===commandSequence.current){setWorking('');lock.current=false;}}
  };
+ const showBackgroundRun=async(row,event)=>{
+  if(event?.isTrusted!==true||!controller?.activateBackgroundRun||!view?.source||viewingRun)return;
+  if(row?.receipt?.execution!=='running'||row.status!=='consumed'||!row.receipt.runId||
+    row.source?.tabId!==view.source.tabId||row.source.documentId!==view.source.documentId||
+    row.source.url!==view.source.url)return;
+  setViewingRun(row.requestId);setCommandError('');
+  try{await controller.activateBackgroundRun({source:view.source,requestId:row.requestId,
+    runId:row.receipt.runId},event);}
+  catch(error){setCommandError(error?.message||'原执行页切换结果未知；不会重试激活。');}
+  finally{setViewingRun('');}
+ };
  const session=view?.session,receipt=view?.receipt;
+ const backgroundRun=view?.history?.find(row=>row.requestId===session?.requestId&&
+  row?.receipt?.execution==='running'&&row.receipt?.runId&&row.status==='consumed'&&
+  row.source?.tabId===view.source?.tabId&&row.source?.documentId===view.source?.documentId&&
+  row.source?.url===view.source?.url);
  const waiting=view?.listener?.state==='ready'&&view?.work?.state==='idle'&&!error;
  const noSessionTitle=view?.work?.state==='running'?'任务执行中，请核对原请求':
   waiting?'等待 ChatGPT 新任务':'任务状态未确认';
@@ -150,6 +166,11 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     </div>
     <p data-webflow-current-status tabIndex={-1} role="status" className={session.error?'od-field-error':'od-body'}
      style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{session.status}</p>
+    {backgroundRun&&controller?.activateBackgroundRun&&<Button variant="secondary"
+     data-webflow-action="activate-background-run" disabled={Boolean(viewingRun)}
+     onClick={event=>void showBackgroundRun(backgroundRun,event.nativeEvent)}>
+     {viewingRun===backgroundRun.requestId?'核对执行页…':'前台显示本次任务页面'}
+    </Button>}
    </div>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
    {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">

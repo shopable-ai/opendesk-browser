@@ -349,3 +349,15 @@ test('revocation while another history row is pending also removes an earlier ro
   const earlier=history.find(item=>item.requestId===first.requestId).receipt;
   assert.notEqual(earlier.persistence,'verified');assert.equal(earlier.value,undefined);
 });
+
+test('foreground activation reservation is a durable one-use marker across worker restart',async()=>{
+  const h=fixture();await h.approve();
+  const row=await h.completed('one-shot-view-source');
+  const requestId=row.requestId,runId='edce411c-487a-41d4-9bea-c86736d44f86';
+  const first=await h.ledger.reserveWebTaskActivation({requestId,source,runId});
+  assert.equal(first.reserved,true);
+  assert.equal(h.values[CHATGPT_BRIDGE_LEDGER_KEY][requestId].webActivation.runId,runId);
+  await assert.rejects(h.ledger.reserveWebTaskActivation({requestId,source,runId}),{code:'E_BRIDGE_REPLAY'});
+  h.restart();
+  await assert.rejects(h.ledger.reserveWebTaskActivation({requestId,source,runId}),{code:'E_BRIDGE_REPLAY'});
+});

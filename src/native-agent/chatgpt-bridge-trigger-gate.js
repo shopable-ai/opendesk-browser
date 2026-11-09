@@ -415,6 +415,30 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       return Object.values(rows??{}).some(row=>row?.site&&['approved','consumed'].includes(row.status)&&
         row.webDelivery!=='delivered'&&clock()<row.approvalExpiresAt);
     },
+    // One durable UI-activation tombstone per original Run. Never resumes or
+    // recreates a task, even if Chrome's tab activation acknowledgement is lost.
+    reserveWebTaskActivation({requestId,source,runId}={}){
+      requireRequestId(requestId);
+      if(!validWebTaskSource(source)||typeof runId!=='string'||!TOKEN.test(runId))
+        throw fail('E_WEB_TASK_VIEW','目标运行或来源身份不合法');
+      return sequence(async()=>{
+        const ticket=revocationRevision,rows=await load(),row=rows[requestId];
+        if(!row?.site||row.site.adapter!=='chatgpt'||!sameSource(row.source,source)||
+          row.status!=='consumed'||row.controllerSubmitted!==true||!row.webHostDocumentId)
+          throw fail('E_WEB_TASK_VIEW','原请求不再具备查看资格');
+        if(row.webActivation)
+          throw fail('E_BRIDGE_REPLAY','已请求过显示此执行页面，包含回执未知；不会重复激活');
+        await checkAuto(row);
+        if(ticket!==revocationRevision||revokeAll||revokedTabs.has(source.tabId)||
+          revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
+          throw fail('E_BRIDGE_REVOKED','查看前原请求已撤销');
+        row.webActivation={runId,at:clock(),state:'dispatched-unknown'};
+        await save(rows);await checkAuto(row);
+        if(ticket!==revocationRevision||revokeAll||revokedTabs.has(source.tabId))
+          throw fail('E_BRIDGE_REVOKED','写入期间撤销；不执行任何标签激活');
+        return {requestId,runId,reserved:true};
+      });
+    },
     inspectWebTask(requestId){
       requireRequestId(requestId);
       return sequence(async()=>{const row=(await load())[requestId];return row?.site?structuredClone(row):null;});

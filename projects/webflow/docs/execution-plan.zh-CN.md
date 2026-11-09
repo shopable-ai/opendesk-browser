@@ -1,3 +1,13 @@
+### 本轮补充 · 后台执行页的可信一次激活（同日）
+
+**本轮增加源码：** `src/native-agent/webflow-execution-view.js` 在原 Run/slot/target/document/permission 身份上进行只读验证并单次 `tabs.update`；`src/page-events/web-task-ingress.js` 新增仅受信 Side Panel 可访问的 `activate-run`；`src/native-agent/chatgpt-bridge-trigger-gate.js` 利用原持久账本预写 `webActivation`，重启、回执未知或重复点击均不重新激活；`src/native-agent/chatgpt-fixed-bridge-host.js` 只从可信侧栏真实用户手势发起；`projects/webflow/trusted/CurrentTask.tsx` 在“当前任务”显示有运行中后台原请求时的“前台显示本次任务页面”按钮。不向百度/Google 业务 args 写入任何 `activateTab` 字段，默认继续后台执行。
+
+**新增测试源码：** `projects/webflow/tests/background-execution-view.test.mjs` 验证唯一执行目标、生命周期变化、撤权与 ACK 丢失；在原 `chatgpt-background-ingress.test.mjs` 增加持久单次栅栏跨 worker 重启用例。隔离 JS 内存替身完成 6 项 smoke assertions（不是 Node runner，不是 Chrome）。**各真实验收仍 NOT_TESTED**。前台选项当前仅支持运行中任务的手动切换，未实现任务开始前设置自动前台；Chrome 多窗口焦点行为也尚未验证。
+
+**下一项 Codex/Chrome 验证：** 先在真实 repo 运行 `node --test projects/webflow/tests/task-intent-v2.test.mjs projects/webflow/tests/background-execution-view.test.mjs projects/webflow/tests/chatgpt-background-ingress.test.mjs projects/webflow/tests/auto-grants.test.mjs`，修复任何失败；浏览器用实际百度/Google Task 对照后台默认、运行中点前台、目标导航中点前台、无权限、撤权、重复点击、切回来源页和关闭标签页等情形，确认没有第二个 Run/Result、没有错 tab 或二次激活。原聊天任何草稿及 UNKNOWN 保留。
+
+---
+
 ## V2 协议 + 新对话 + 执行页可视化当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
 
 **原始用户目标：** 让普通 ChatGPT 消息触发已授权的“创建新聊天→可选模型与推理→草稿或经授权发送→取回真正新 URL/回执”；百度/Google 默认后台运行，用户点击查看时只显示**原请求**真实目标标签页。新增 V2 `protocol/candidateId/taskId/args`，AI 不再传 `targetUrl`，保留 V1 严格五字段。严禁重复 Runner/Authority、自动迁移旧批准或用 completed 代替业务结果。

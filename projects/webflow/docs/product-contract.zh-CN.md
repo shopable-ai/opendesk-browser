@@ -25,7 +25,8 @@
 
 ### 当前实现等级（截至 2026-11-10）
 
-**SOURCE_PARTIAL：** V2 独立结构解析及拒绝额外字段；内置百度/Google 固定启动入口的冻结版本/源码/Origin 解析模块与 Node 定向测试用例。V1 业务和旧批准没有迁移。**尚未接线：** 独立 V2 批准与运行准入、通用当前/动态目标绑定、已运行后台任务前台激活入口、新 ChatGPT Task、Gemini Task、受控交接引用。Node/包/Chrome/真实业务均待在可执行工作区补证，不能把孤立 smoke test 写成这些 PASS。阶段与下一步只维护在原 [执行计划](execution-plan.zh-CN.md) 中。
+**SOURCE_PARTIAL：** V2 独立结构解析及拒绝额外字段；内置百度/Google 固定启动入口的冻结版本/源码/Origin 解析模块与 Node 定向测试用例。V1 业务和旧批准没有迁移。**已接入但未实测：** 后台任务在可信侧栏通过当前请求的真实 Run 身份触发单次前台查看；共用原数据库、Host、权限校验和持久防重放记录（`webActivation`）。查看动作只激活同一自有目标 tab/document，不提交 Task、不发送结果，失败或回执未知禁止重复激活。
+**尚未接线：** 独立 V2 批准与运行准入、通用当前/动态目标绑定、可在任务开始前选择并自动激活的前台模式、新 ChatGPT Task、Gemini Task、受控交接引用。Node/包/Chrome/真实业务均待在可执行工作区补证，不能把孤立 smoke test 写成这些 PASS。阶段与下一步只维护在原 [执行计划](execution-plan.zh-CN.md) 中。
 
 ---
 

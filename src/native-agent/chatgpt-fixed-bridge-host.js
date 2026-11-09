@@ -630,6 +630,27 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       reply?.error?.message||'操作回执未知；请查询原请求，不自动重试');
     return readBridgeState();
   };
+  // Foreground viewing of a BACKGROUND task is a one-shot trusted UI action.
+  // It targets an existing durable Run only; never starts or retries a Task.
+  const activateBackgroundRun=async(value,event)=>{
+    if(!event||event.isTrusted!==true)throw fail('E_WEBFLOW_GESTURE','请在可信侧栏亲自点击查看');
+    trustedSettings(event);
+    if(!validChatGPTBridgeSource(value?.source)||!requireValue(value?.requestId,128)||
+      !requireValue(value?.runId,128)||!sameSource(value.source,bridgeSource))
+      throw fail('E_WEB_TASK_VIEW','原聊天或本次运行身份未确认');
+    const epoch=captureEpoch(true),contextEpoch=bridgeContextEpoch;
+    await assertSource(value.source);
+    if(disposed||contextEpoch!==bridgeContextEpoch||!sameEpoch(epoch)||!sameSource(value.source,bridgeSource))
+      throw fail('E_WEB_TASK_VIEW','用户已切换原聊天或任务上下文');
+    const reply=await api.runtime.sendMessage({protocol:WEB_TASK_PROTOCOL,kind:'activate-run',
+      source:structuredClone(value.source),requestId:value.requestId,runId:value.runId});
+    if(reply?.ok!==true)
+      throw fail(reply?.error?.code||'E_WEB_TASK_VIEW_UNKNOWN',
+        reply?.error?.message||'标签激活结果未知，不能重试原请求');
+    // The intentionally activated tab may have changed the current Side Panel
+    // selection. Do not auto-return focus or rerun the original task.
+    return reply.data;
+  };
   const autoGate=async payload=>{
     const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...payload});
     if(reply?.ok!==true)throw fail(reply?.error?.code||'E_WEBFLOW_AUTO_UNKNOWN',reply?.error?.message||'自动授权状态回执未知，未重试');
@@ -1118,7 +1139,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
   return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,approveConversationTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,
-    readBridgeState,refreshBridge,subscribeBridgeContext(listener){bridgeSubscribers.add(listener);return ()=>bridgeSubscribers.delete(listener);},controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
+    readBridgeState,refreshBridge,activateBackgroundRun,subscribeBridgeContext(listener){bridgeSubscribers.add(listener);return ()=>bridgeSubscribers.delete(listener);},controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
     disposed=true;invalidate();delivery=null;
     bridgeContextChanged();bridgeSubscribers.clear();for(const [event,listener] of contextEvents)event?.removeListener(listener);
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
