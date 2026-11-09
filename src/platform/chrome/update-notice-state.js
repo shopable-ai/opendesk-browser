@@ -154,6 +154,7 @@ export function acknowledgeUpdateToast(previous,{now,token,tabId,documentId}){
   if(rows.some(row=>row.claim.ackedAt!==0))return {state,duplicate:true};
   for(const row of rows){
     row.impressionCount++;
+    if(row.impressionCount===1)row.snoozeUntil=null; // First actual display consumes an earlier inbox-only deferral.
     row.claim.ackedAt=now;
   }
   state.lastToastAt=now;
@@ -175,12 +176,9 @@ export function actOnUpdateToast(previous,{now,action,token,tabId=null,documentI
   }
   for(const row of rows){
     if(action==='snooze'){
-      if(row.impressionCount===0&&row.snoozeUntil===null&&row.ignoredAt===null&&row.viewedAt===null)
+      if(row.impressionCount<NOTICE_MAX_IMPRESSIONS&&row.snoozeUntil===null&&
+         row.ignoredAt===null&&row.viewedAt===null)
         row.snoozeUntil=now+NOTICE_DAY_MS;
-      else if(row.impressionCount===1&&row.snoozeUntil===null&&row.ignoredAt===null&&row.viewedAt===null)
-        row.snoozeUntil=now+NOTICE_DAY_MS;
-      else if(row.impressionCount===1&&row.snoozeUntil<=now&&row.dismissedAt===null)
-        row.dismissedAt=now;
       else row.dismissedAt=now;
     }else if(action==='view')row.viewedAt=now;
     else if(action==='ignore')row.ignoredAt=now;
