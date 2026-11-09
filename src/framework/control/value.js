@@ -11,6 +11,29 @@ export function requireValue(condition, code, message) {
   if (!condition) throw new PageError(code, message);
 }
 export const VALUE_LIMITS = Object.freeze({depth: 12, bytes: 65536, uploadBytes: 1048576, chunkBytes: 49152});
+
+// Preserve the old JPEG default for existing scripts. Explicit metadata lets
+// reviewed Controller Tasks upload other image/video types without pretending
+// every file is a JPEG. The 1 MiB transfer ceiling is intentionally unchanged.
+const UPLOAD_MIME_EXTENSIONS = Object.freeze({
+  'image/jpeg':['jpg','jpeg'], 'image/png':['png'], 'image/webp':['webp'], 'image/gif':['gif'],
+  'video/mp4':['mp4'], 'video/webm':['webm']
+});
+export function normalizeUploadMetadata(input = {}) {
+  options(input, ['name', 'type']);
+  const name = input.name === undefined ? 'filename.jpg' : input.name;
+  const type = input.type === undefined ? 'image/jpeg' : input.type;
+  requireValue(typeof type === 'string' && Object.hasOwn(UPLOAD_MIME_EXTENSIONS, type),
+    'E_UPLOAD_FORMAT', 'Unsupported image or video media type');
+  requireValue(typeof name === 'string' && new TextEncoder().encode(name).byteLength <= 180 &&
+    !name.includes('..') && /^[\p{L}\p{N}][\p{L}\p{N} ._-]*\.[a-zA-Z0-9]+$/u.test(name),
+  'E_UPLOAD_FORMAT', 'Expected a safe media filename');
+  const extension = name.slice(name.lastIndexOf('.') + 1).toLowerCase();
+  requireValue(UPLOAD_MIME_EXTENSIONS[type].includes(extension),
+    'E_UPLOAD_FORMAT', 'Filename extension and media type do not match');
+  return {name, type};
+}
+
 const randomValues = crypto.getRandomValues.bind(crypto);
 export function newPageRequestId() {
   // randomUUID is absent in opaque insecure contexts; getRandomValues is native
