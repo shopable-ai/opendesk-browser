@@ -6,7 +6,7 @@ import {requestedToolId,toolPageHref,validToolId,canonicalToolHostUrl,requestedP
 import {isToolSender,resolveToolSender} from '../../src/environment.js';
 const runtime={getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path};
 test('fixed full-page routes carry an installed ID, not a path or credential',()=>{
-  assert.equal(toolPageHref(runtime,'quick-notes'),'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?toolId=quick-notes');
+  assert.equal(toolPageHref(runtime,'quick-notes'),'chrome-extension://abcdefghijklmnopabcdefghijklmnop/app.html?toolId=quick-notes');
   assert.equal(requestedToolId(toolPageHref(runtime,'quick-notes')),'quick-notes');
   for(const id of ['','../foo','foo/bar','foo?x=1','🔥','a'.repeat(41)]){
     assert.equal(validToolId(id),false);
@@ -67,7 +67,7 @@ test('canonical tool/preview tabs retain original host admission with exact brow
     assert.equal(isToolSender(api,sender),true);assert.equal(await resolveToolSender(api,sender),sender);
     for(const changed of [{tab:undefined},{tab:{id:-1}},{tab:{id:7,incognito:true}},{frameId:1},{documentId:undefined},{documentLifecycle:'cached'},
       {url:url+'&hostInstanceId='+host},{url:url+'&toolId=other'},{url:url+'&unknown=1'},
-      {url:url+'#fragment'},{url:url.replace('chrome-extension:','https:')},{url:url.replace('/sidepanel.html','/ui/marketplace.html')}]){
+      {url:url+'#fragment'},{url:url.replace('chrome-extension:','https:')},{url:url.replace(new URL(url).pathname,'/ui/marketplace.html')}]){
       assert.equal(isToolSender(api,{...sender,...changed}),false,JSON.stringify(changed));
       await assert.rejects(resolveToolSender(api,{...sender,...changed}),{code:'E_OWNER'});
     }
