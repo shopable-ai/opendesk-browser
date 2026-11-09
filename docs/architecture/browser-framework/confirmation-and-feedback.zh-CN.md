@@ -2,7 +2,7 @@
 
 日期：2026-11-09。适用：可信工作台和 Sidebar Tool 的确认与反馈；不新增 Page/Controller 权限或网站注入能力。用户已要求按此方向在后续对话实施框架能力并修复代表扩展。
 
-**状态分开记录**：本文是现行设计与开发规范，不证明能力已经上线。`ui.notify` 已有最小源码实现；`OpenDeskTool.ui.confirm` 已接通 Bridge/Host 与可信 React adapter，具备定向 Node 行为证据；真实安装、Side Panel 与 Chrome 手势仍须对应运行证据。实际调用能力、构建、安装和运行须另验。公开签名、字段及错误语义只在[Sidebar Tool API](../../api/sidebar-tools.zh-CN.md#异步确认opendesktooluiconfirm拟议尚未实现)维护；本合同持有跨工具职责和交互规则，不建立第二套 SDK/Authority。
+**状态分开记录**：本文是现行设计与开发规范，不证明能力已经上线。`ui.notify` 已有原始纯文本实现，R1.1 在原 Bridge/Host/React Toast 上增加受限展示参数；`OpenDeskTool.ui.confirm` 已接通 Bridge/Host 与可信 React adapter，具备定向 Node 行为证据；真实安装、Side Panel 与 Chrome 手势仍须对应运行证据。实际调用能力、构建、安装和运行须另验。公开签名、字段及错误语义只在[Sidebar Tool API](../../api/sidebar-tools.zh-CN.md#异步确认opendesktooluiconfirm拟议尚未实现)维护；本合同持有跨工具职责和交互规则，不建立第二套 SDK/Authority。
 
 目标与顺序见[实施目标](../../framework/shared-confirmation-r1-20261109.md)，行为验收见[关键测试条件](../../framework/shared-confirmation-r1-test-spec-20261109.md)。DESIGN 的对应作用域遵守本文；历史 R50/R51 的同步原生弹窗禁令保留，“所有确认必须行内”已由本合同替代。旧实现仍待迁移，不能把规范变化当作运行通过。
 
@@ -18,6 +18,16 @@
 | 菜单、Tooltip、非阻塞详情 | 合适的原有交互 | 不因统一确认而全部模态化 |
 
 普通状态不使用“确定”阻断；必要决策的异步模态浮层不等于阻塞 JavaScript 线程的 `window.confirm`。继续禁止自有 UI 调用浏览器同步 `alert/confirm/prompt`，不新增沙箱 `allow-modals`，不对第三方网站改写这些全局函数。
+
+### 1.1 普通工具通知 R1.1 增量与 Quasar 的差异
+
+此处延续已有唯一 `ui.notify`，不引入 Quasar Vue 运行时，也不增加第二套 Toast Host。原有 `ui.notify({message})` 继续返回 boolean；新增的 `type`（info/success/warning/error）、`caption`、`position`、`timeout`（0 或 1000–15000ms）、`group` 都只属于纯文本展示，详见 [唯一公开签名](../../api/sidebar-tools.zh-CN.md#非阻断消息opendesktooluinotifyr11-扩展示意)。旧调用无需重新导入或增权。
+
+- 源码归属：原 `src/sidebar-tools/ui-notice.js` 白名单校验、原 `bridge.js` 传输、原 `src/ui/sidebar-tools.js` 同源/安装代际检查和限频、原 `sidebar-tools-view.js` 状态、原 `src/ui/react/tabs/tool-host.tsx` 单 React Root 展示。无另一个更新协调器、Registry 或 Provider。
+- 不携带 JS 回调、原始 HTML、任意行动按钮、链接、用户图标、CSS、更新候选或系统通知权限；`ui.confirm`、真实安装和授权仍各自走原合同。
+- 最多 3 条可见，同内容同类型同位置默认分组；请求仍受每实例 60 秒 3 次限频。聚焦/悬浮期间暂停自动关闭、未读用户状态及业务错误仍保留在源工具正文。
+- 端到端示例：`examples/sidebar-tools/ui-notify-demo/` 由原 `build-sidebar-tool.mjs` 生成单一可安装 JSON；代码只读可预览，Node 包检查、Host 模拟和本机已安装 Chrome 分开记证据。无需重复开发旧 Prompt Shortcuts 的已有 UI。
+- 当前实施分级：`SOURCE_IMPLEMENTED`；本轮独立 CI 和真实浏览器测试各凭实际结果评估，不能因为新增源码便标记 `CHROME_PASS`。
 
 ## 2. 业务与框架的所有权
 
