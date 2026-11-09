@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeToolUiNotice,createToolUiNoticeRateGate,
-  TOOL_UI_NOTICE_MAX_LENGTH} from '../../src/sidebar-tools/ui-notice.js';
+  TOOL_UI_NOTICE_MAX_LENGTH,TOOL_UI_NOTICE_POSITIONS} from '../../src/sidebar-tools/ui-notice.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 
 test('Tool UI notice accepts only bounded plain-text messages',()=>{
   assert.deepEqual(normalizeToolUiNotice({message:'  已保存  '}),{message:'已保存'});
@@ -28,4 +29,58 @@ test('Tool UI notice budget is per live instance and resets only after one minut
   assert.equal(gate.allow('instance-B'),true);
   assert.equal(gate.allow(''),false);
   time=NaN;assert.equal(gate.allow('instance-B'),false);
+});
+
+test('typed toast contract rejects injected actions, unsafe text and abusive timings',()=>{
+  const valid={message:'  完成  ',caption:'  已保存到本机  ',type:'success',
+    position:'bottom-right',timeout:10000,group:false};
+  assert.deepEqual(normalizeToolUiNotice(valid),{
+    message:'完成',caption:'已保存到本机',type:'success',
+    position:'bottom-right',timeout:10000,group:false});
+  assert.deepEqual(normalizeToolUiNotice({message:'用户须手动关闭',timeout:0}),
+    {message:'用户须手动关闭',timeout:0});
+  assert.equal(TOOL_UI_NOTICE_POSITIONS.length,6);
+  for(const invalid of [
+    {message:'ok',type:'danger'}, {message:'ok',type:1},
+    {message:'ok',position:'outside'}, {message:'ok',position:'top'},
+    {message:'ok',timeout:-1}, {message:'ok',timeout:999},
+    {message:'ok',timeout:15001},{message:'ok',timeout:'5000'},
+    {message:'ok',group:'click'}, {message:'ok',group:null},
+    {message:'ok',caption:''},{message:'ok',caption:'\u202e'},
+    {message:'ok',caption:'a'.repeat(121)},
+    {message:'ok',action:'install'}, {message:'ok',html:'<b>unsafe</b>'},
+    {message:'ok',onClick:()=>{}}
+  ])assert.equal(normalizeToolUiNotice(invalid),null,
+    'reject unsupported or privilege-confusable notify shape');
+});
+
+test('existing Host view caps to three toasts, coalesces duplicates and preserves legacy snapshot',()=>{
+  const view=createSidebarToolsView();
+  const first=view.showToast('已保存');
+  assert.equal(first,undefined); // unchanged presentation-only caller contract
+  assert.equal(view.getSnapshot().toast.message,'已保存');
+  assert.equal(view.getSnapshot().toast.type,'info');
+  assert.equal(view.getSnapshot().toast.timeout,5000);
+  view.showToast('已保存');
+  assert.equal(view.getSnapshot().toasts.length,1);
+  assert.equal(view.getSnapshot().toasts[0].count,2);
+  view.showToast('导出失败',{type:'error',caption:'请检查目标文件',position:'bottom-right',timeout:0});
+  const next=view.getSnapshot().toast;
+  assert.equal(next.type,'error');
+  assert.equal(next.position,'bottom-right');
+  assert.equal(next.caption,'请检查目标文件');
+  view.showToast('导出失败',{type:'error',caption:'请检查目标文件',position:'bottom-right',timeout:0,group:false});
+  assert.equal(view.getSnapshot().toasts.length,3);
+  const oldId=view.getSnapshot().toasts[0].id;
+  view.showToast('任务开始',{type:'info'});
+  assert.equal(view.getSnapshot().toasts.length,3);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.id===oldId),false);
+  const endId=view.getSnapshot().toast.id;
+  view.dismissToast(endId);
+  assert.equal(view.getSnapshot().toasts.length,2);
+  view.dismissToast(endId);
+  assert.equal(view.getSnapshot().toasts.length,2);
+  view.dispose();
+  assert.equal(view.getSnapshot().toast,null);
+  assert.deepEqual(view.getSnapshot().toasts,[]);
 });
