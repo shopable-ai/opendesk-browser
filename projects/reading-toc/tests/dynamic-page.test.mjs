@@ -171,7 +171,7 @@ class SidebarNode{
   selector==='button'?n.tagName==='BUTTON':selector==='input'?n.tagName==='INPUT':
   selector==='input[data-toc-setting]'?n.dataset.tocSetting:selector==='[data-setting-label]'?n.settingLabel:false);}
 }
-async function sidebarFixture({navigation=false,rejectActions=false,settingsPage=false,rejectSettings=false,snapshotError=null}={}){
+async function sidebarFixture({navigation=false,rejectActions=false,settingsPage=false,rejectSettings=false,snapshotError=null,snapshotValue}={}){
  const fields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
  const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error','toc-settings-open','toc-settings-back','toc-free-view'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
  const modes=['top','focus','full','ai'].map(mode=>{const n=new SidebarNode('button');n.dataset.tocMode=mode;return n;});
@@ -187,7 +187,7 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
   requests.push({name,payload});
   if(name==='page.request'){
    if(payload.operation==='toc.snapshot'&&snapshotError)throw snapshotError;
-   return payload.operation==='toc.snapshot'?data:{ok:true};
+   return payload.operation==='toc.snapshot'?(snapshotValue===undefined?data:snapshotValue):{ok:true};
   }
   if(name==='storage.get')return store.get(payload);
   if(name==='storage.set'){
@@ -209,7 +209,7 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
    ...(navigation?{navigationFeatures:{headerActions:true,settingsPage},setNavigation(state){navigations.push(state);return !(rejectActions&&state.headerActions)&&!(rejectSettings&&state.settingsPage);}}:{})}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
   document,window,URL,Intl,setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id)});
  await tick();await tick();
- return {root,containers,navigations,nodes,inputs,modes,store,requests,window,document,timers,states,setSnapshotError(error){snapshotError=error;},
+ return {root,containers,navigations,nodes,inputs,modes,store,requests,window,document,timers,states,setSnapshotError(error){snapshotError=error;},setSnapshotValue(value){snapshotValue=value;},
   async runTimers(){const pending=[...timers];for(const [id,{fn}] of pending){timers.delete(id);fn();}await tick();await tick();},
   conflict(){conflict=true;},quota(){quota=true;},
   unconfirmed(){unconfirmed=true;},holdSave(){saveGate=new Promise(resolve=>{releaseSave=resolve;});},
@@ -256,6 +256,46 @@ test('sidebar visibility return retries a repaired companion without polling whi
   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,2);
   assert.equal(f.nodes['toc-error'].hidden,true);assert.equal(f.nodes['toc-list'].children.length,1);
  }finally{f.window.fire('pagehide');}
+});
+test('sidebar incomplete snapshots wait briefly for a valid outline without replaying navigation',async()=>{
+ for(const snapshotValue of [null,{}, {items:[]}]){
+  const f=await sidebarFixture({snapshotValue});
+  try{
+   assert.equal(f.nodes['toc-error'].dataset.state,'loading');
+   assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages.en.loading.text);
+   assert.equal(f.timers.size,1);
+   f.setSnapshotValue(undefined);await f.runTimers();
+   assert.equal(f.nodes['toc-error'].hidden,true);
+   assert.equal(f.nodes['toc-list'].children.length,1);
+   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,2);
+   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.navigate').length,0);
+  }finally{f.window.fire('pagehide');}
+ }
+});
+test('sidebar reports persistently invalid snapshots after a bounded readiness wait',async()=>{
+ const f=await sidebarFixture({snapshotValue:null});
+ try{
+  for(let i=0;i<2;i++){await f.runTimers();assert.equal(f.nodes['toc-error'].dataset.state,'loading');}
+  await f.runTimers();
+  assert.equal(f.nodes['toc-error'].dataset.state,'error');
+  assert.match(f.nodes['toc-error'].textContent,/Invalid table of contents data/);
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,4);
+  f.setSnapshotValue(undefined);await f.runTimers();
+  assert.equal(f.nodes['toc-error'].hidden,true);
+ }finally{f.window.fire('pagehide');}
+});
+test('sidebar waits through document refresh races and cancels the retry on disposal',async()=>{
+ for(const code of ['E_TARGET','E_DOCUMENT_STALE','E_PAGE_AUTHORIZATION','E_APP_PAGE_NOT_READY']){
+  const f=await sidebarFixture({snapshotError:Object.assign(Error('Page is starting'),{code})});
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading',code);
+  f.setSnapshotError(null);await f.runTimers();
+  assert.equal(f.nodes['toc-error'].hidden,true,code);
+  f.setSnapshotValue(null);f.nodes['toc-refresh'].fire('click');await tick();await tick();
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading',code);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,true,code);
+  const count=f.requests.length;f.window.fire('pagehide');await f.runTimers();
+  assert.equal(f.requests.length,count,code);assert.equal(f.timers.size,0,code);
+ }
 });
 test('sidebar transient snapshot errors retain automatic timer retry',async()=>{
  const f=await sidebarFixture({snapshotError:Object.assign(Error('Temporary disconnect'),{code:'E_TEMPORARY'})});

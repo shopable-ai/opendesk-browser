@@ -166,6 +166,7 @@ function requestRefresh(force=false){
 async function refresh(){
  if(closed||reading)return;
  reading=true;
+ let waitingForPage=false;
  const force=wantForce||(hasSnapshot&&missing>0&&missing<3);
  wantForce=false;
  reload.setAttribute('aria-busy','true');
@@ -173,7 +174,8 @@ async function refresh(){
  try{
   const snapshot=await request('page.request',{operation:'toc.snapshot',payload:force?{refresh:true}:{}});
   if(closed)return;
-  if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))throw Error(t('invalidData'));
+  if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))
+   throw Object.assign(Error(t('invalidData')),{code:'E_TOC_SNAPSHOT'});
   data=snapshot;void loadSettings(snapshot);hasSnapshot=true;stale=false;failures=0;installationBlocked=false;
   missing=snapshot.items.length===0?Math.min(3,missing+1):0;
   showStatus('');render();
@@ -184,13 +186,19 @@ async function refresh(){
    render();
    const detail=String(e?.message||t('readFail')).slice(0,150);
    installationBlocked=e?.code==='E_APP_PAGE_OWNER'||e?.code==='E_PAGE_INSTALLATION';
-   showStatus(installationBlocked?'installationRepair':stale?'stale':'retry',{detail},'error');
+   // A reload can briefly have no live document/handler or no usable snapshot.
+   // Retry only this read, with a bounded loading phase; stale links stay disabled.
+   waitingForPage=failures<=3&&['E_TOC_SNAPSHOT','E_TARGET','E_DOCUMENT_STALE',
+    'E_PAGE_AUTHORIZATION','E_APP_PAGE_NOT_READY'].includes(e?.code);
+   showStatus(installationBlocked?'installationRepair':waitingForPage?'loading':stale?'stale':'retry',
+    {detail},waitingForPage?'loading':'error');
   }
  }finally{
   reading=false;reload.removeAttribute('aria-busy');
   if(closed)return;
   if(installationBlocked)return; // Requires explicit installation recovery, not background polling.
   if(wantForce)schedule(80);
+  else if(waitingForPage)schedule(250*Math.pow(2,failures-1));
   else if(failures)schedule(Math.min(8000,500*Math.pow(2,Math.min(failures-1,4))));
   else if(hasSnapshot&&missing>0&&missing<3)schedule(missing===1?600:1600);
   else schedule(4000);
