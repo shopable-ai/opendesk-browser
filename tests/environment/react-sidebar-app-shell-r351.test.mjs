@@ -113,6 +113,14 @@ test('app.html SSR reuses ToolHost without the Side Panel rail or Extension Cent
   assert.equal($('#workspace-content #workbench-tools #sidebar-tools').length,1);
   assert.equal($('#sidebar-tool-display').length,1);
   assert.equal($('#sidebar-tool-back').length,1);
+  assert.equal($('#sidebar-tool-back').is('[hidden]'),true,
+    'standalone app has no Extension Center list to return to');
+  const side=renderToStaticMarkup(React.createElement(SidebarAppShell,{
+    developerView:createDeveloperView(),myView:createMyWorkbenchView(),
+    toolView:createSidebarToolsView(),pageSurface:'sidebar',activeTab:'tools'
+  }));
+  assert.equal(load(side)('#sidebar-tool-back').is('[hidden]'),false,
+    'Side Panel retains its original list Back control');
 });
 
 test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY)',async t=>{

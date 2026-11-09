@@ -231,7 +231,7 @@ function ToolHeaderActions({view,field,available}) {
 
 
 export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
-  trustedControls=null,active=true}) {
+  trustedControls=null,active=true,showListBack=true}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const previewStatus=snapshot.fields['sidebar-tool-readonly-banner'];
   const marketReview = snapshot.market?.review ?? null;
@@ -598,7 +598,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 
 <ToolField as="section" id="sidebar-tool-display" forceHidden={concealed} className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
 <div className="sidebar-tool-view-head od-toolbar od-page-head">
-<ToolField as="button" type="button" id="sidebar-tool-back" forceHidden={debugPreview} className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
+<ToolField as="button" type="button" id="sidebar-tool-back" forceHidden={debugPreview||!showListBack} className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="m14 5-7 7 7 7M7 12h14">
 

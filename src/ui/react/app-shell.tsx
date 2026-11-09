@@ -52,7 +52,7 @@ export function SidebarAppShell({
   if(pageSurface==='app')return <main id="workspace-content" className="opendesk-app-page-content">
     <div id="workbench-tools" className="od-page" data-workbench-page="tools">
       <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
-        {toolView&&<ToolHost view={toolView} active trustedControls={null}/>}
+        {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
   </main>;
