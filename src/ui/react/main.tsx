@@ -22,6 +22,7 @@ import readingTocHostCSS from '../../../projects/reading-toc/trusted/host.css?ra
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
+import updateNoticeCSS from './components/update-notice.css?raw';
 import KnowledgeWorkspace from '../../../projects/ai-knowledge-answers/trusted/Workspace.jsx';
 import knowledgeWorkspaceCSS from '../../../projects/ai-knowledge-answers/trusted/workspace.css?raw';
 import AIProxySurface from '../../../projects/ai-proxy/trusted/Surface.jsx';
@@ -53,6 +54,7 @@ const mountedDocuments=new WeakSet();
 
 export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebug=()=>{},
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
+  onOpenUpdateReview=()=>false,
   providerSettings=null,webflowAuto=null,openNativeSettings=null,nativeConnection=null,localeController=null,previewContents=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
@@ -103,11 +105,12 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
+      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS}</style>
       <SidebarAppShell activeTab={navigationTab} pageSurface={doc.documentElement?.dataset?.opendeskEntry==='app'?'app':'sidebar'} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
-        onNavigate={onNavigate} onStopAppDebug={onStopAppDebug} extensionProps={extensionProps}
+        onNavigate={onNavigate} onStopAppDebug={onStopAppDebug}
+        onOpenUpdateReview={onOpenUpdateReview} extensionProps={extensionProps}
         providerSettings={providerSettings} webflowAuto={webflowAuto} providerSettingsOpen={settingsOpen}
         onOpenNativeSettings={openNativeSettings} nativeConnection={nativeConnection}
         onOpenProviderSettings={openSharedProviderSettings}
