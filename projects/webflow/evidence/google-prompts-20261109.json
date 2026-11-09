@@ -1,0 +1,286 @@
+{
+  "kind": "webflow.two-part-prompts.google-core.development",
+  "observedAt": "2026-11-09T15:01:19.703351+00:00",
+  "status": "GOOGLE_FIRST_MESSAGE_CORE_PASS",
+  "phase": "core development only; production, scoring and full acceptance deferred",
+  "branch": "main",
+  "owner": "01a1bfe7-a8d5-7471-8bef-38c825d2bcc9",
+  "prompts": {
+    "setup": "projects/webflow/prompts/01-capability-setup.prompt.txt",
+    "direct": "projects/webflow/prompts/02-google-direct.prompt.txt",
+    "executionReply": "one human-readable waiting paragraph, then exactly one opendesk-task JSON block with five fields",
+    "directTrailingNewline": false,
+    "setupLive": "Fresh ChatGPT chat acknowledged boundaries and emitted no task block; no execution request was made in this setup test.",
+    "setupChat": "https://chatgpt.com/c/6af1dc59-eec4-83ee-8e88-75bcc79732d7",
+    "settingsSource": "Both generators are committed in d2465192d; current settings-screen wording was not visually rechecked."
+  },
+  "google": {
+    "chatUrl": "https://chatgpt.com/c/6af1d81e-5a04-83ec-b03a-b73024c8aa3d",
+    "candidateId": "wf-3c9e7f12-6a84-4d2b-9f51-8e0c7a36b245",
+    "approval": "Original trusted Side Panel approved only the exact Google query and limit=3 once.",
+    "result": {
+      "protocol": "opendesk.task.result.v1",
+      "taskId": "google.search.top3",
+      "requestId": "d4182040-4a2d-4b2a-a684-a0336fd8ce20",
+      "targetUrl": "https://www.google.com/",
+      "scriptId": "task:google.search.top3:1.0.0",
+      "runId": "88d18c03-cd1e-4291-8031-d9bcb4a354fc",
+      "resultId": "88ef6824-c709-4adc-9d3f-078cf4cf1c84",
+      "revision": 1,
+      "sourceHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad",
+      "status": "completed",
+      "data": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "google.search.top3.result",
+        "observedAt": "2026-11-09T14:35:10.694Z",
+        "query": "Chrome extension Side Panel API",
+        "results": [
+          {
+            "position": 1,
+            "title": "browser.sidePanel | API - Chrome for Developers",
+            "url": "https://www.google.com/goto?url=CAESgQEBxCJF1zIcE5lCmzdFlS4wwzRlwQRl655_9PfAYISGYl4ggUO65IYvU_UrkbysNXxnWIErNXJwosfTFtg-JKQEixydg_RuSfoL0JQG6Qh6oXtiLojJBgWcrITB62n_nhNOE9OrCI8ZYkfMXfECNVhYjtreaGuHIbYJ6SXSSzarQtE"
+          },
+          {
+            "position": 2,
+            "title": "Chrome拡張のサイドパネルを活用してみる",
+            "url": "https://www.google.com/goto?url=CAESdQHEIkXXXaLzL_IBylIJxD_hRyS8yPDdmUMLYQtibbt7k6jph7uLeol-fx8s5Q-e0osFoal5ODGUZqmLA9XC1aaxf1nAzg_olkxOOVPvlw00W47AtEUg1hphZl7JJG3OIkIh9ocDj1DO7ArmuGwjcRdDhHfx0Q"
+          },
+          {
+            "position": 3,
+            "title": "Design a superior user experience with the new Side Panel API",
+            "url": "https://www.google.com/goto?url=CAESegHEIkXXJoJKHijx68mA6fL6kk5sfVNXK-r7FyiGIUxlsYemBVBp3kpkO251yQ6XZMzyER87cUuOc-NhNQhtRLW43TQRHBpu4LJECQ7NT_Z4iJ6c0rnpJP0-bE7bi8hXUIt-SEdPQAw5EmPS1VEK8Er3D1nDQGlq5BaJ"
+          }
+        ],
+        "sourceUrl": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhlhWmTY6vLKmBjdiPOkkZpyv6F2A%3A1794234895100&source=hp&ei=D9rxaoT-A9LurfcP-si48Ac&iflsig=AHSINFcAAAAAavHoHz1omF922hY2ORPpoamX7gEMrVCF&ved=2ahUKEwjEwcHsjfuXAxVSd-sIHXokDn4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUifF1AAWABwAHgAkAEAmAGIAaABiAGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgApEBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAeCArIHAzAuMbgHkQHCBwMyLTHIBwaACAE&sclient=gws-wiz&sei=GNrxaoXVEdi-rfcPxfyPyAI",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T14:34:56.167Z",
+            "documentId": "E7DEF035582862E12B31BB8800C37535",
+            "locator": "textarea[name=q]",
+            "state": "before",
+            "url": "https://www.google.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T14:35:01.181Z",
+            "locator": "textarea[name=q]",
+            "state": "returned",
+            "value": "Chrome extension Side Panel API"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T14:35:02.455Z",
+            "locator": "input[name=btnK] >> nth=0",
+            "state": "started",
+            "url": "https://www.google.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T14:35:06.477Z",
+            "locator": "input[name=btnK] >> nth=0",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-09T14:35:06.702Z",
+            "documentId": "A860D1ED27791FDEBC735718611C8D34",
+            "state": "observed",
+            "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhlhWmTY6vLKmBjdiPOkkZpyv6F2A%3A1794234895100&source=hp&ei=D9rxaoT-A9LurfcP-si48Ac&iflsig=AHSINFcAAAAAavHoHz1omF922hY2ORPpoamX7gEMrVCF&ved=2ahUKEwjEwcHsjfuXAxVSd-sIHXokDn4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUifF1AAWABwAHgAkAEAmAGIAaABiAGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgApEBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAeCArIHAzAuMbgHkQHCBwMyLTHIBwaACAE&sclient=gws-wiz&sei=GNrxaoXVEdi-rfcPxfyPyAI"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-09T14:35:08.689Z",
+            "count": 3,
+            "locator": "#rso a:has(h3)",
+            "state": "read",
+            "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhlhWmTY6vLKmBjdiPOkkZpyv6F2A%3A1794234895100&source=hp&ei=D9rxaoT-A9LurfcP-si48Ac&iflsig=AHSINFcAAAAAavHoHz1omF922hY2ORPpoamX7gEMrVCF&ved=2ahUKEwjEwcHsjfuXAxVSd-sIHXokDn4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUifF1AAWABwAHgAkAEAmAGIAaABiAGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgApEBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAeCArIHAzAuMbgHkQHCBwMyLTHIBwaACAE&sclient=gws-wiz&sei=GNrxaoXVEdi-rfcPxfyPyAI"
+          }
+        ],
+        "version": 1
+      }
+    },
+    "resultMessages": 1,
+    "nativeSameRunReceipt": {
+      "execution": "completed",
+      "durableResult": "verified same Run / Result",
+      "resources": "released",
+      "delivery": "confirmed new original-chat result message",
+      "aiContinuation": "observed complete new reply"
+    },
+    "aiSummary": "Listed the three actual titles and Google jump links; explicitly stated that snippets and final destination URLs were absent. No new candidate after the result.",
+    "limits": "Google 1.0.0 returns titles and jump URLs only; snippets and final destination URLs were not collected or fabricated."
+  },
+  "firstMessage": {
+    "initial": "With file-ending LF, fresh replies were marked historical/unwitnessed and not adopted. No old candidate was manually adopted or replayed.",
+    "observedDifference": "Direct prompt file contained a trailing LF; ChatGPT rendered submitted user text without it. No general historical root cause is asserted.",
+    "minimalChange": "Removed ending LF from direct prompt file; no runtime witness, parser, or permission guard was weakened.",
+    "retestChat": "https://chatgpt.com/c/6af1dbb7-23d0-83e8-8941-1633274d5bef",
+    "retestCandidate": "wf-6d2e8c41-9a73-4f0b-b516-2cae907d84f3",
+    "nativeObservation": "Original listener recognized this first-message candidate; preparing it failed with E_BUILTIN_RESOURCE. Side Panel showed candidate only, no task request, ledger 0.",
+    "fullExecutionRetest": "BLOCKED by missing development resources; not claimed PASS",
+    "replayed": false,
+    "latestFullExecutionRetest": "PASS in a fresh ChatGPT web chat after development resources recovered; earlier blocked candidate remains untouched.",
+    "latestChat": "https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab"
+  },
+  "verification": {
+    "command": "node --test projects/webflow/tests/reply-admission.test.mjs projects/webflow/tests/auto-settings-ui.test.mjs",
+    "result": "113/113 PASS, 0 failures",
+    "coverage": "Human paragraph plus unique task block enters original durable gate once; same candidate replay rejected. Existing prompt UI and scope guards retained.",
+    "testFixtureRepair": "Provide browser crypto to existing VM reader fixture; use Array.from for cross-realm assertion.",
+    "log": "artifacts/webflow/google-prompts-1109/prompt-tests.log"
+  },
+  "runtime": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "installedWebFlowVersion": "0.3.22",
+    "beforeRecovery": "Original dev service had exited; manifest and packaged resources missing. Previously successful Google result predates this environment failure.",
+    "recovery": "Started original npm run dev only after no live writer was found; acquired original output guard and development lock, PID 27587. Build exited safely and released its lock.",
+    "recoveryError": "[opendesk-fixed-tool-shell] Historical/user/vendor code cannot enter a privileged fixed bundle: projects/ai-proxy/src/domain/header-actions.ts",
+    "current": "Existing guarded dev writer PID 33072 was live and dist/development manifest/resources present. Reused it; no second writer started. Fresh first-message Google flow completed.",
+    "recoveryLog": "artifacts/webflow/google-prompts-1109/dev-recovery.log",
+    "sourceLockBypass": false,
+    "parallelSourcesModified": false,
+    "nativePairingChanged": false,
+    "recoveryResolved": "After the earlier failed recovery, the parallel owner source lock admitted header-actions.ts and the original development service was restarted outside this task.",
+    "debugConnectionAndAppliedRevision": "NOT_RECHECKED in native Debug UI; on-disk development revision is not asserted as currently applied."
+  },
+  "safety": {
+    "oldUnknownReplayed": false,
+    "oldResultsResent": false,
+    "ledgerDeleted": false,
+    "manualCandidateAdoption": false,
+    "protocolOrAuthorizationRelaxed": false,
+    "sandboxPackageChanged": false,
+    "commitOrPushPerformedByThisTask": false
+  },
+  "sourceHashes": {
+    "projects/webflow/prompts/01-capability-setup.prompt.txt": "d16d946fd91ad7dc11fbbb28027aa91f7d87f607e5c50f1e1816e01c4cb5b19a",
+    "projects/webflow/prompts/02-google-direct.prompt.txt": "33d6941a2fc0592bb0d4550cf8e1860b60aedd137d65d5adb18baa9ad603b96e",
+    "projects/webflow/trusted/AutoSettings.tsx": "826f17a1276da0dca61acc8e04f2a43c30833c96eaf78bba92b087a76fe8a03e",
+    "projects/webflow/tests/reply-admission.test.mjs": "7342f2ded35d00e64b1fbc1f094eb0b51b1112035ad3aa6271c82f87bdc051f2"
+  },
+  "nextOperation": "Current requested Google core test is complete. Settings wording inspection and formal production acceptance remain deferred; no old candidate replay.",
+  "browser": {
+    "tool": "ego-browser",
+    "taskSpaceId": 22,
+    "lifecycle": "finished via task.finish; retained fresh result chat p6 and existing unsent draft p1",
+    "successfulChatKept": true,
+    "diagnosticPagesAndUnknownDraftPreserved": "Existing draft retained; intermediate agent-created test pages closed at finish.",
+    "nativeUiLease": "not acquired during retest because another owner held it; not released on their behalf",
+    "nativeUiPhase": "completed"
+  },
+  "previousObservation": {
+    "observedAt": "2026-11-09T14:48:22.907473+00:00",
+    "status": "GOOGLE_CORE_PASS_PROMPTS_DELIVERED_RUNTIME_UPDATE_BLOCKED"
+  },
+  "latestRetest": {
+    "url": "https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab",
+    "observedAt": "2026-11-09T14:59:49.830Z",
+    "firstMessage": true,
+    "promptFile": "projects/webflow/prompts/02-google-direct.prompt.txt",
+    "candidateId": "wf-d43b3c4f-dacc-48e4-8bdd-4b185d2db047",
+    "result": {
+      "protocol": "opendesk.task.result.v1",
+      "taskId": "google.search.top3",
+      "requestId": "abdca6be-976a-4925-a41a-fcdf33095e22",
+      "targetUrl": "https://www.google.com/",
+      "scriptId": "task:google.search.top3:1.0.0",
+      "runId": "978f33e9-e179-42d4-8231-6865b2a4c8cb",
+      "resultId": "02cebaa3-2691-4a7b-9f68-30b2aad7b88a",
+      "revision": 1,
+      "sourceHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad",
+      "status": "completed",
+      "data": {
+        "count": 3,
+        "inputMode": "isolated-dom",
+        "kind": "google.search.top3.result",
+        "observedAt": "2026-11-09T14:58:34.485Z",
+        "query": "Chrome extension Side Panel API",
+        "results": [
+          {
+            "position": 1,
+            "title": "browser.sidePanel | API - Chrome for Developers",
+            "url": "https://www.google.com/goto?url=CAESgQEBxCJF17M0QkSoOHJbRyd0N83j7XIRl6cdWDJiuCFbiwmeSHHBVLNCQBpEasNNI-8QY-F15lD77U2SxFJ4JJQfZjILQBM77EFzbZRn_s9GvmPJ-rbwD-Ue1kBy23BMk7FGNBaLpSQriJ7cjz_ta9IdpuymZuSAB6TV7gCgj-UcP7Y"
+          },
+          {
+            "position": 2,
+            "title": "Using Chrome Side Panels in Your Extension with Plasmo",
+            "url": "https://www.google.com/goto?url=CAESaAHEIkXXTRPgRCYnIKG924lugNi5IMwYqQVhv9l6_w6fLZnNAkaRSFRtaKKBrMIjs-2zXM8wxw15_7pQwI_bWGfG0fxHptBEjFi49PfJgUrkDv1mAJ8f_HUTb74NeU3PBGoe2qFc-O_y"
+          },
+          {
+            "position": 3,
+            "title": "20 Understanding Chrome Extensions Side Panel - Medium",
+            "url": "https://www.google.com/goto?url=CAESmgEBxCJF18r89vjCITMayGx7MpMO5i1WjMAt-DtKz_9SxIVDmMJNU6LudyooX2TNZGTGQxVTcxpaYRJ8NI7Qr6Pvfit5GT4VEv6px7-2S_mnmU7dCJgHbXVBnGVErc0OboS_5HhlJk6wzrLvw5od-w43f6j1qHq8CLvo4TjW370xfrnh-5mKywWTeisAv-RomRMb5MFfJloHSLw5"
+          }
+        ],
+        "sourceUrl": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhO4TfOu9MAneYTSlIGmkHS3X2AGA%3A1794236300271&source=hp&ei=jN_xaofoDveZvr0PhJbo8QQ&iflsig=AHSINFcAAAAAavHtnHobj25yDhVKoZ95GRosea_Rj-DD&ved=2ahUKEwiH3saKk_uXAxX3jK8BHQQLOk4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiqF1AAWABwAHgAkAEAmAGKAaABigGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAqMBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHowHCBwMzLTHIBxGACAE&sclient=gws-wiz",
+        "status": "success",
+        "trace": [
+          {
+            "action": "input",
+            "at": "2026-11-09T14:58:21.219Z",
+            "documentId": "1A2ED8CD302417751CD52F62F2098D48",
+            "locator": "textarea[name=q]",
+            "state": "before",
+            "url": "https://www.google.com/",
+            "value": ""
+          },
+          {
+            "action": "input",
+            "at": "2026-11-09T14:58:26.227Z",
+            "locator": "textarea[name=q]",
+            "state": "returned",
+            "value": "Chrome extension Side Panel API"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T14:58:27.485Z",
+            "locator": "input[name=btnK] >> nth=0",
+            "state": "started",
+            "url": "https://www.google.com/"
+          },
+          {
+            "action": "click",
+            "at": "2026-11-09T14:58:30.142Z",
+            "locator": "input[name=btnK] >> nth=0",
+            "state": "returned"
+          },
+          {
+            "action": "navigation",
+            "at": "2026-11-09T14:58:30.427Z",
+            "documentId": "FF33CCDEB67B9EF4A19BED37038A28DD",
+            "state": "observed",
+            "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhO4TfOu9MAneYTSlIGmkHS3X2AGA%3A1794236300271&source=hp&ei=jN_xaofoDveZvr0PhJbo8QQ&iflsig=AHSINFcAAAAAavHtnHobj25yDhVKoZ95GRosea_Rj-DD&ved=2ahUKEwiH3saKk_uXAxX3jK8BHQQLOk4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiqF1AAWABwAHgAkAEAmAGKAaABigGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAqMBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHowHCBwMzLTHIBxGACAE&sclient=gws-wiz"
+          },
+          {
+            "action": "results",
+            "at": "2026-11-09T14:58:32.485Z",
+            "count": 3,
+            "locator": "#rso a:has(h3)",
+            "state": "read",
+            "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDhO4TfOu9MAneYTSlIGmkHS3X2AGA%3A1794236300271&source=hp&ei=jN_xaofoDveZvr0PhJbo8QQ&iflsig=AHSINFcAAAAAavHtnHobj25yDhVKoZ95GRosea_Rj-DD&ved=2ahUKEwiH3saKk_uXAxX3jK8BHQQLOk4Q4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiqF1AAWABwAHgAkAEAmAGKAaABigGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAqMBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHowHCBwMzLTHIBxGACAE&sclient=gws-wiz"
+          }
+        ],
+        "version": 1
+      }
+    },
+    "resultMessages": 1,
+    "automaticExecution": true,
+    "existingExactScopeReused": true,
+    "newApprovalPerformed": false,
+    "newTaskAfterResult": false,
+    "aiContinuation": "Completed Chinese summary of actual three results; clearly stated title-based descriptions are not collected snippets.",
+    "nativeReceipt": "NOT_RECHECKED: shared native UI occupied by another owner. Prior Google run resource-release proof is not transferred to this run.",
+    "artifact": "artifacts/webflow/google-prompts-1109/short-fresh-result-20261109.json"
+  },
+  "repository": {
+    "branch": "main",
+    "promptsAndCodeCommit": "d2465192d8efa89d38d47cd1d2a4762f14ae9c38",
+    "commitObserved": "Already committed by a concurrent repository synchronization before this retest.",
+    "thisRetestDocumentation": "Written locally; not committed or pushed by this task."
+  }
+}

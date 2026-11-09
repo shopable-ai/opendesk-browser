@@ -4,6 +4,8 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**
 
+**两份提示词与 Google 核心测试（2026-11-09）：** [一次接入说明](prompts/01-capability-setup.prompt.txt)、[Google 短提示词](prompts/02-google-direct.prompt.txt)及两处设置生成器已进入提交 `d2465192d`，执行回复为中文说明加唯一协议块。开发服务恢复后，在[最新 ChatGPT 新聊天](https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab)直接发送短提示词作为第一条消息，原链复用已批准精确范围，Google **1.0.0** 自动执行，返回 **3 条真实结果**；原聊天只新增一条结果消息并完成 AI 中文整理，结果后没有新候选。首条全链复测 **PASS**，未重放旧候选。本次仅返回标题和 Google 跳转链接，未采集实际摘要或最终目的 URL；早先的资源故障保留为历史，新设置界面的文案仍未现场核对。相关检查 **113/113 PASS**，源码哈希未变。见[记录](docs/execution-plan.zh-CN.md#两份提示词与-google-核心测试2026-11-09)和[证据](evidence/google-prompts-20261109.json)。
+
 **最新核心复测通过（2026-11-09；历史提示词）：** 在[修复后的新 ChatGPT 聊天](https://chatgpt.com/c/6af1d06c-4000-83ec-95df-a5bf2f7efac6)复制同一历史能力说明，普通发送浙江、陕西两个博物馆的百度搜索需求；连续两轮均返回三条真实结果、各回传一次并完成 AI 中文续答，同次持久结果和资源释放已核对。后台补齐网页拒绝原因及最终核验失败的记录，相关检查 **94/94**，保留 UNKNOWN 与禁止重发。开发更新曾使上一页面监听断开，两条候选未执行；重新进入空聊天后完成上述复测，没有补跑旧候选。原失败具体原因仍不可恢复，不将本次成功写成所有历史故障已查明。见[本轮记录](docs/execution-plan.zh-CN.md#历史提示词回传诊断修复与连续复测2026-11-09)及[证据](evidence/delivery-repair-20261109.json)。
 
 **修复前复现（2026-11-09；历史观察）：** [原失败聊天](https://chatgpt.com/c/6af1af5a-cf4c-83ee-95f8-932b4eb1d6c8)有合法候选和原请求，账本为“已完成 · 回传未知，禁止补发”，没有结果消息或摘要。该轮结束时未取得完整 Run / Result 或具体错误，也未修复；本轮补读结果及证据边界见上方最新记录。原失败现场及[原证据](evidence/historical-prompt-repro-20261109.json)保留，不重放。

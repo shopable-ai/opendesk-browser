@@ -1,3 +1,17 @@
+## 两份提示词与 Google 核心测试（2026-11-09）
+
+用户明确要求的是新的 **ChatGPT 网页聊天**，未创建 Codex 对话。两份文件保存在本扩展 `prompts/`：`01-capability-setup.prompt.txt` 用于一次能力说明，`02-google-direct.prompt.txt` 独立请求 Google 搜索。执行候选分为一段中文等待说明和唯一 `opendesk-task` 五字段 JSON；参数、安装、网站权限和任务授权仍由原链核验。已有设置两处提示词生成器已同步源码，JSON 原样保留。新增真实行为回归证明说明文字不会进入协议、同一候选只进入原 durable gate 一次；相关检查 **113/113 PASS**，未增加纯文案字符串断言。
+
+在[新聊天](https://chatgpt.com/c/6af1d81e-5a04-83ec-b03a-b73024c8aa3d)发送普通 Google 请求后，原监听识别两段回复，原可信侧栏首次批准本次精确 `query=Chrome extension Side Panel API / limit=3`。原已安装 Google **1.0.0** 执行 `completed / data.status=success / count=3`。请求 `d4182040-4a2d-4b2a-a684-a0336fd8ce20`，Run `88d18c03-cd1e-4291-8031-d9bcb4a354fc`，Result `88ef6824-c709-4adc-9d3f-078cf4cf1c84`。原侧栏逐项确认同次持久结果、资源已释放、原聊天新增结果消息和 AI 新回复；正文只出现一条真实结果消息。AI 按三条实际标题／Google 跳转链接续答，并明确没有摘要和最终目的 URL，没有补造。此 Google 核心链通过，不等于 production 或完整验收。
+
+首条短提示词单独核验：初版文件末尾 LF 与官网提交后的正文不同，曾被判为历史／未见证；不声称解释了所有旧故障。去除文件末尾换行后，[另一个新聊天](https://chatgpt.com/c/6af1dbb7-23d0-83e8-8941-1633274d5bef)首条候选 `wf-6d2e8c41-9a73-4f0b-b516-2cae907d84f3` 已由原监听识别，随后准备报 `E_BUILTIN_RESOURCE`，可信侧栏明确“当前候选（尚无任务请求）”、账本 0 条。未手工采用、改身份补跑或放宽 witness。[完整接入说明的新聊天](https://chatgpt.com/c/6af1dc59-eec4-83ee-8e88-75bcc79732d7)只确认协议，没有输出候选或运行任务。
+
+**历史环境阻塞（后续已恢复）：** Google 成功后发现原 dev 服务已退出，原 `dist/development` 缺少 manifest 与资源。确认无存活 writer 后用原 `npm run dev`、原输出锁恢复，取得 PID 27587；构建被并行 `projects/ai-proxy/src/domain/header-actions.ts` 的固定来源门禁拦截，服务正常退出并释放锁。该轮没有修改该 owner 的代码／source-lock，也没有绕过校验、复制旧包、另建加载目录或修改 Native 配对。
+
+**最新首条复测通过：** 后续核对发现原 dev writer PID **33072** 已运行，manifest／资源已恢复，AI Proxy owner 的来源锁已包含该文件；本轮复用现有服务，没有另起 writer。两份提示词、设置源码及回归已进入 `main` 提交 `d2465192d`。恢复原 ego Space **22** 后创建[新的 ChatGPT 网页聊天](https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab)，将仓库短提示词原文（420 字符、末尾无 LF）作为首条发送。候选 `wf-d43b3c4f-dacc-48e4-8bdd-4b185d2db047` 自动复用已有精确范围，未再次审批、手工采用或重放旧任务。请求 `abdca6be-976a-4925-a41a-fcdf33095e22`，Run `978f33e9-e179-42d4-8231-6865b2a4c8cb`，Result `02cebaa3-2691-4a7b-9f68-30b2aad7b88a`；真实回执 `completed / data.status=success / count=3`，正文仅一条结果消息，AI 已完成中文整理且没有新任务候选。三条标题为 Chrome 官方 Side Panel API、Plasmo 使用指南和 Medium Side Panel 文章。仍只有标题、排名和 Google 跳转链接，AI 明确中文说明仅依据标题，未编造实际摘要。
+
+本轮首条 Google 核心流程 **PASS**；新设置界面文案、调试页 applied revision 及本次侧栏资源释放状态未重新现场核对，共享原生 UI 被其他 owner 占用，不把旧轮侧栏证据移作本次证明。113 项检查对应源码哈希未变，未重复运行。Space 22 已 `finish`，仅保留新结果聊天及原未发送草稿，关闭中间测试页；原生 UI 未取得租约，不释放其他 owner 的锁。所有旧 UNKNOWN 和未采用候选继续保全。正式包、production、评分、全量 CI 与跨版本矩阵延期。完整身份、数据、源码哈希和验证边界见[证据](../evidence/google-prompts-20261109.json)，本机原始记录在 `artifacts/webflow/google-prompts-1109/short-fresh-result-20261109.json`。
+
 ## 历史提示词回传诊断修复与连续复测（2026-11-09）
 
 当前完成的是持续开发环境中的普通百度核心链与回传诊断，不扩展 production、Google、评分或完整验收。ego TaskSpace **18** 从空白官网复制历史能力说明（输入文件 SHA256 `f15df16029b1943ff8332ebf5e4f5451e1591b4b0d048befa3c69ca7e08d3fbd`），再以普通中文发送需求；没有手工采用候选、填写身份或直调执行。能力说明本身只获 AI 确认，不触发任务。
