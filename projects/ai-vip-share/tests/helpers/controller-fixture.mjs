@@ -40,9 +40,9 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 }
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,
   sessionTarget:(store.get(PREFERENCE)?.schemaVersion===1?ORIGIN:store.get(PREFERENCE)?.serviceOrigin??NEW_ORIGIN)+'/session/'}),
-  developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
+  developmentProfile=profile,getStatus,network,wireNetwork=false,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
-  developmentControls=false,reviewedService,productionNetwork,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
+  developmentControls=false,shippedDom=false,reviewedService,productionNetwork,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites',
@@ -53,10 +53,10 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id));
   assert(testOnly.every(id=>!ids.has(id)),
     'Development/account allocation diagnostics must not appear in shipped App.jsx');
-  const nodes=new Map([...ids,...testOnly].map(id=>[id,node(id)]));
+  const nodes=new Map([...ids,...(shippedDom?[]:testOnly)].map(id=>[id,node(id)]));
   let rootReady=!developmentControls,createdControls=0,removedControls=0,release;
   if(developmentControls)for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites'])nodes.delete(id);
-  const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
+  const calls=[],wireCalls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
   let page=currentPage??{status:'unavailable'};
   let current={...released,...(developmentProfile?{developmentProfile}: {})};
   const storage=async(operation,payload)=>{
@@ -75,6 +75,15 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     return {saved:true};
   };
   const request=async args=>{
+    wireCalls.push(clone(args));
+    // Legacy in-memory business fixtures model logical GET. Real HTTP integration
+    // uses wireNetwork and observes the unmodified SDK request (no Origin on GET).
+    if(!wireNetwork&&[ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin)&&
+      new URL(args.url).pathname==='/api/member'&&args.method==='POST'&&
+      args.config.headers?.['X-OpenDesk-Local-Test']==='1'){
+      assert.deepEqual(Object.keys(args.data),[]);
+      args={...args,method:'GET'};delete args.data;
+    }
     calls.push(clone(args));
     if(productionNetwork)return productionNetwork(args,fixture);
     if(ordinaryNetwork&&![ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin))return ordinaryNetwork(args);
@@ -122,10 +131,11 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
         status:nodes.get('ai-vip-local-status'),websiteButton:nodes.get('ai-vip-test-sites'),dispose(){removedControls++;}};
     }});
   }
+  release??=window.__OpenDeskVipStart();
   await flush();
   const get=name=>nodes.get('ai-vip-'+name);
   const click=async(name,trusted=true)=>{get(name).listeners.click({isTrusted:trusted});await flush()};
-  return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
+  return {store,fixture,get,click,calls,wireCalls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
     async importFile(text,{size=new TextEncoder().encode(text).length,trusted=true}={}){
       get('cookie-file').files=[{size,text:async()=>text}];
       await get('cookie-file').listeners.change({isTrusted:trusted});await flush();

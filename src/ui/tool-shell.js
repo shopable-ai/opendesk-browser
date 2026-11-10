@@ -351,7 +351,8 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 extensionList.connectWorkflowPage(workflowView);
-const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
+// app.html owns only ToolHost; the Side Panel alone renders the list nodes.
+const extensionCenter=hostUrl.pathname===APP_DOCUMENT_PATHNAME?null:createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
   createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
     consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
   openAIProviderSettings:()=>extensionList?.openProviderSettings?.()});
@@ -390,7 +391,7 @@ taskWorkbench.connectToolsView((visible,destination)=>{
     sidebarTools.isPreviewActive();
   const accepted=sidebarTools.setVisible(visible||keepDeveloperPreview,destination);
   if(visible&&destination==='tools'&&accepted!==false)
-    void extensionCenter.refresh();
+    void extensionCenter?.refresh();
   return accepted;
 });
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget,
@@ -402,7 +403,7 @@ scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
     void taskWorkbench.refresh().then(()=>{if(!shellClosed)taskWorkbench.focusInstalledTask(id);}).catch(console.warn);
   }else{
     taskWorkbench.navigate('tools');
-    void extensionCenter.refresh();
+    void extensionCenter?.refresh();
   }
 }});
 const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>extensionList.renderDevelopmentStatus(value),
@@ -778,7 +779,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   myAgent.dispose();myConversation.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
-  marketPanelIntents?.dispose();panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose();toolLocaleService.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  marketPanelIntents?.dispose();panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose();toolLocaleService.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter?.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

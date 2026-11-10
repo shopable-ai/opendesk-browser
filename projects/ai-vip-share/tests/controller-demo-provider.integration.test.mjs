@@ -4,11 +4,11 @@ import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {openDemoLedger,issueDemoGrant,createDemoProvider,DEMO_ACCOUNT_ID} from '../server/demo-provider.mjs';
-import {runtime,EXTENSION_ORIGIN,RECOVERY} from './helpers/controller-fixture.mjs';
+import {runtime,EXTENSION_ORIGIN,RECOVERY,PREFERENCE} from './helpers/controller-fixture.mjs';
 
 // Real controller + real ESM dependencies. Only the SDK transport redirects its
 // fixed development endpoint to a uniquely allocated loopback HTTP listener.
-async function setup(t){
+async function setup(t,{connectLocal=true}={}){
   const root=await mkdtemp(join(tmpdir(),'vip-controller-sqlite-'));
   const filename=join(root,'receipts.sqlite');
   let db=openDemoLedger(filename),server,origin,clock=Date.now(),fault=null;
@@ -32,8 +32,10 @@ async function setup(t){
     trace.push(row);inFlight++;
     try{
       if(fault==='before'&&url.pathname==='/api/redeem')throw Error('test transport disconnected before dispatch');
+      // Match observed Chrome behavior: cors GET lacks Origin; POST supplies it.
       const response=await fetch(origin+url.pathname,{method:args.method,headers:{
-        ...args.config.headers,Origin:EXTENSION_ORIGIN,'Content-Type':'application/json'},
+        ...args.config.headers,...(args.method==='POST'?{Origin:EXTENSION_ORIGIN}:{}),
+        'Content-Type':'application/json'},
         ...(args.data===undefined?{}:{body:JSON.stringify(args.data)})});
       row.status=response.status;row.response=await response.json();
       if(fault==='after'&&url.pathname==='/api/redeem')throw Error('test transport lost committed receipt');
@@ -49,8 +51,10 @@ async function setup(t){
     }
     assert.fail('SQLite HTTP controller did not settle: '+JSON.stringify(trace));
   };
-  const open=async(options={})=>{const e=await runtime({network,store,...options});await settle(e);return e;};
-  const e=await open();await e.click('local-connect');await settle(e);
+  const open=async(options={})=>{const e=await runtime({network,store,wireNetwork:true,...options});await settle(e);return e;};
+  const e=await open(connectLocal?{}:{shippedDom:true,pollTimers:true,
+    currentPage:{status:'available',url:'https://market.example.com/'}});
+  if(connectLocal){await e.click('local-connect');await settle(e);}
   const count=()=>db.prepare('SELECT count(*) AS n FROM redemptions').get().n;
   const posts=path=>trace.filter(row=>row.method==='POST'&&row.path==='/api/'+path);
   const issue=()=>issueDemoGrant(db,{intentId:'p3-intent',issueId:'p3-issue',quantity:7,
@@ -95,7 +99,7 @@ test('P3 original Controller reviews SQLite HTTP account/quota/scope, cancels, c
   assert.equal(h.posts('redeem').length,1);assert.equal(h.posts('redeem')[0].status,200);
   assert.equal(h.count(),1);assert.equal(e.get('remaining').textContent,'7');assert.equal(h.store.get(RECOVERY),null);
   noEffects(e);await h.restart();
-  const before=h.trace.length,reopened=await h.open();
+  const before=h.trace.length,reopened=await h.open({shippedDom:true});
   assert.deepEqual(h.trace.slice(before).map(row=>row.path),['/api/member']);
   assert.equal(reopened.get('remaining').textContent,'7');assert.equal(h.count(),1);noEffects(reopened);
   assert.deepEqual(h.received,h.trace.map(row=>`${row.method} ${row.path}`));h.evidence('confirmed-once-persisted');
@@ -107,7 +111,7 @@ for(const fault of ['after','before'])test(`P3 ${fault} dispatch failure: restar
   const saved=structuredClone(h.store.get(RECOVERY));assert.ok(saved);
   assert.equal(saved.idempotencyKey,h.posts('redeem')[0].body.idempotencyKey);
   assert.equal(h.count(),fault==='after'?1:0);await h.restart();h.setFault(null);
-  const before=h.trace.length,reopened=await h.open();
+  const before=h.trace.length,reopened=await h.open({shippedDom:true});
   assert.deepEqual(h.trace.slice(before).map(row=>row.path),['/api/member']);
   assert.deepEqual(h.store.get(RECOVERY),saved);
   await reopened.click('recovery-check',false);await h.settle(reopened);assert.equal(h.posts('status').length,0);
@@ -154,13 +158,17 @@ test('P3 approved landing automatically preflights through original Controller a
   const link=issueDemoGrant(h.db(),{intentId:'auto-intent',issueId:'auto-issue',quantity:3,
     expiresAt:Date.now()+600000});
   const currentPage={status:'available',url:link.activationUrl};
-  const linked=await h.open({currentPage});await linked.checkPage();await h.settle(linked);
+  const linked=await h.open({currentPage,shippedDom:true});await linked.checkPage();await h.settle(linked);
   assert.equal(h.posts('preview').length,1);assert.equal(h.posts('redeem').length,0);
+  assert.ok(h.posts('member').length>0);
+  for(const row of h.posts('member'))assert.deepEqual(row.body,{});
   assert.equal(linked.get('redeem-preview').hidden,false);assert.equal(h.count(),0);
   assert(linked.calls.every(row=>new URL(row.url).origin==='http://127.0.0.1:7903'));
   await linked.click('redeem-cancel');await h.settle(linked);
-  const reopened=await h.open({currentPage});await reopened.checkPage();await h.settle(reopened);
-  assert.equal(h.posts('preview').length,1);assert.equal(h.posts('redeem').length,0);assert.equal(h.count(),0);
+  const reopened=await h.open({currentPage,shippedDom:true});await reopened.checkPage();await h.settle(reopened);
+  assert.equal(h.posts('preview').length,1);assert.equal(h.posts('redeem').length,0);
+  assert.ok(h.posts('member').length>0);
+  for(const row of h.posts('member'))assert.deepEqual(row.body,{});assert.equal(h.count(),0);
   assert.match(reopened.get('redeem-status').textContent,/取消自动继续/);noEffects(reopened);
   h.evidence('automatic-preflight-cancel-not-revived');
 });
@@ -196,3 +204,32 @@ for(const [field,value] of [['quantity',21],['scope','third-party-membership'],[
     assert.equal(h.posts('redeem').length,0);assert.equal(h.count(),0);noEffects(h.e);
   });
 }
+
+
+test('control-free installed Controller discovers 7898 after Market navigation, preflights and reopens by read-only wire POST',async t=>{
+  const h=await setup(t,{connectLocal:false}),{e}=h;
+  assert.equal(e.get('local-development'),undefined);
+  assert.equal(e.get('local-connect'),undefined);
+  assert.equal(h.trace.length,0);
+  const link=issueDemoGrant(h.db(),{intentId:'shipped-intent',issueId:'shipped-issue',quantity:5,
+    expiresAt:Date.now()+600000});
+  e.setPage({status:'available',url:link.activationUrl});
+  e.timers.find(row=>row.ms===1200).callback();
+  await h.settle(e,()=>!e.get('redeem-preview').hidden);
+  assert.equal(h.posts('preview').length,1);assert.equal(h.posts('redeem').length,0);
+  assert.ok(h.posts('member').length>0);
+  for(const row of h.posts('member'))assert.deepEqual(row.body,{});
+  assert.equal(h.count(),0);noEffects(e);
+  assert.deepEqual(h.store.get(PREFERENCE),{schemaVersion:2,enabled:true,serviceOrigin:'http://127.0.0.1:7903'});
+  assert.deepEqual(e.storageCalls.filter(row=>row.operation==='storage.set').map(row=>row.key),[PREFERENCE]);
+  assert.ok(!JSON.stringify([...h.store]).includes(link.activationUrl));
+  assert.ok(!JSON.stringify([...h.store]).includes(link.activationUrl.split('=').at(-1)));
+  await e.click('redeem-confirm');await h.settle(e,()=>h.count()===1&&!e.toolStates.at(-1)?.busy);
+  assert.equal(h.posts('redeem').length,1);assert.equal(e.get('remaining').textContent,'5');noEffects(e);
+  const before=h.trace.length;
+  const reopened=await h.open({shippedDom:true,currentPage:{status:'unavailable'}});
+  assert.deepEqual(h.trace.slice(before).map(row=>[row.method,row.path]),[['POST','/api/member']]);
+  assert.deepEqual(h.trace.slice(before).map(row=>row.body),[{}]);
+  assert.equal(reopened.get('remaining').textContent,'5');assert.equal(h.count(),1);noEffects(reopened);
+  h.evidence('control-free-navigation-confirm-once-reopen-read-post');
+});

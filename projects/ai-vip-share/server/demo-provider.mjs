@@ -211,9 +211,13 @@ export function createDemoProvider({db,extensionOrigin,accountId=DEMO_ACCOUNT_ID
         return send(res,403,{error:'E_CLIENT_ORIGIN'});
       if(req.method==='GET'&&req.url==='/api/member')
         return send(res,200,memberOf(db,accountId,now()));
-      if(req.method!=='POST'||!['/api/preview','/api/redeem','/api/status'].includes(req.url))
+      if(req.method!=='POST'||!['/api/member','/api/preview','/api/redeem','/api/status'].includes(req.url))
         return send(res,405,{error:'E_METHOD'});
       const body=await readBody(req);
+      if(req.url==='/api/member'){
+        if(!exact(body,[]))fail(400,'E_MEMBER_FIELDS');
+        return send(res,200,memberOf(db,accountId,now()));
+      }
       if(req.url==='/api/preview'){
         if(!exact(body,['code']))fail(400,'E_PREVIEW_FIELDS');
         return send(res,200,previewDemoGrant(db,body,accountId,now()));

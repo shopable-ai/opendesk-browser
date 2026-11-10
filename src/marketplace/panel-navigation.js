@@ -68,6 +68,14 @@ const sameTarget=(a,b)=>a.source===b.source&&a.action===b.action&&a.toolId===b.t
 export async function verifyMarketPanelNavigationSource(api,request){
   try{
     const builtIn=request.source==='built-in';
+    // Chrome's external MessageSender URL can omit the fragment. It is not
+    // part of document identity or navigation authority; the website owns its
+    // continuation proof. Keep the origin, path and query exact, and never
+    // persist a bearer fragment in the presentation locator.
+    const sourceURL=url=>{
+      if(builtIn)return url;
+      const parsed=new URL(url);parsed.hash='';return parsed.href;
+    };
     if(builtIn&&(!validSourceURL('built-in',request.sourceUrl)||
       new URL(request.sourceUrl).host!==new URL(api.runtime.getURL('ui/marketplace.html')).host))return false;
     // Extension TAB documents are exposed by runtime.getContexts, not
@@ -79,7 +87,7 @@ export async function verifyMarketPanelNavigationSource(api,request){
         api.webNavigation.getFrame({tabId:request.tabId,frameId:0})
     ]);
     if(!(tab?.id===request.tabId&&tab.windowId===request.windowId&&!tab.incognito&&
-      tab.url===request.sourceUrl&&(!tab.pendingUrl||tab.pendingUrl===tab.url)))return false;
+      sourceURL(tab.url)===sourceURL(request.sourceUrl)&&(!tab.pendingUrl||tab.pendingUrl===tab.url)))return false;
     if(builtIn){
       const context=proof?.length===1?proof[0]:null;
       return Boolean(context?.contextType==='TAB'&&context.tabId===request.tabId&&
@@ -87,7 +95,7 @@ export async function verifyMarketPanelNavigationSource(api,request){
         context.documentId===request.sourceDocumentId&&context.documentUrl===request.sourceUrl);
     }
     return Boolean(proof?.documentId===request.sourceDocumentId&&proof.parentFrameId===-1&&
-      proof.documentLifecycle==='active'&&proof.url===request.sourceUrl);
+      proof.documentLifecycle==='active'&&sourceURL(proof.url)===sourceURL(request.sourceUrl));
   }catch{return false;}
 }
 export async function queueMarketPanelNavigation(api,request,{now=Date.now}={}){

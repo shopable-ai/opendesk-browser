@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {runtime,fixtureRequest,deferred,ORIGIN,RECOVERY,EXTENSION_ORIGIN} from './helpers/controller-fixture.mjs';
+import {runtime,fixtureRequest,deferred,ORIGIN,RECOVERY,EXTENSION_ORIGIN,profile} from './helpers/controller-fixture.mjs';
 import {createLocalFixture} from '../dev/local-test/local-fixture-server.mjs';
 
 const SERVICE_URL='https://vip.example.com/';
@@ -254,4 +254,18 @@ test('schema 3 activation lock from another origin cannot be cleared, queried ag
   assert.deepEqual(store.get(RECOVERY),recovery);
   assert.equal(e.fixture.ledger.size,0);
   noBrowserEffects(e);
+});
+
+
+test('control-free trusted Demo discovery waits for saved HTTPS service restoration and never replaces it',async()=>{
+  const gate=deferred(),store=new Map([[CONNECTION,choice]]);
+  const e=await create({developmentProfile:profile,shippedDom:true,store,
+    currentPage:{status:'available',url:'http://127.0.0.1:7898/activate?activation_code=DEMO-VIP-01'},
+    beforeStorageGet:payload=>payload.key===CONNECTION?gate.promise:undefined});
+  await e.checkPage();assert.deepEqual(e.calls,[]);
+  gate.resolve();await settle(e,()=>e.calls.length===1&&!e.toolStates.at(-1)?.busy);
+  await e.checkPage();
+  assert.deepEqual(requests(e),[['GET','/api/member']]);
+  assert.ok(e.calls.every(row=>row.url.startsWith(SERVICE_URL)));
+  assert.deepEqual([...store],[[CONNECTION,choice]]);noBrowserEffects(e);
 });

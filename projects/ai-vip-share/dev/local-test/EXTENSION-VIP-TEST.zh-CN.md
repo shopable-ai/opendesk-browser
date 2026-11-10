@@ -2,13 +2,39 @@
 
 <a id="market-vip-integration-20261110"></a>
 
-## 2026-11-10 本地集成续接：TEST_PASS，完整 Demo 仍受候选与原市场入口阻断
+## 2026-11-10 18:48 本地集成结果：1.4.34 开发实机核心链 DEMO_PASS
 
-**给使用者的当前结论：** 网页详情、原安装/打开接续已通过定向组件检查；本轮实际浏览器验证了当前页面和缺宿主安装帮助。尚不能承诺从本机现有网页完成新 VIP 安装与自动领取：43132仍发旧1.4.2，默认 ego Profile 无安装接收端，1.4.32正式包不含新链接源码。原 Controller 与真实 SQLite HTTP 已完成一次确认取得7次合成额度、重开回读与不重复核销；这是组件级业务证据，未代替真实 Side Panel/app.html。正式公开网站还缺合法 HTTPS channel、正式 Chrome 获取/发行及商业身份与 Provider。
+**当前可用操作：** 原43132市场识别已安装工具，通过原审阅升级到1.4.34后接续7898；原Controller自动读取7903并无消费预检，用户一次「确认激活」取得3次合成额度。原生Side Panel与原「在新标签页打开」的app.html显示相同3次新额度、原7次额度和2条记录；Provider重启、app.html刷新、侧栏重开后仍可回读。SQLite最终只有本领取项1条新收据，总数2，旧收据逐字节未变。
 
-**归属与运行模式：** main 起始 `1de67d7ae1f2aeaa954caee1cbbf3390ad3a251f`；复用原 R5/VIP，不另建 Host、日志、权限或领取 API。日常 `dist/development` 及原 dev writer未改；本轮为独立静态市场预览与显式开发 SQLite，不是 production。工具正式1.4.32/143989 B/SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda` 未晋升，source 中原有1.4.33也不代表已安装。其他对话的Cookie/登录/Profile资源与所有历史 journal 未操作。
+**身份与模式：** 持续开发 `dist/development`，扩展ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；原生「调试→本地开发服务」实际显示已连接，revision `6b5c3d3384b134389e5bebc9b0b2683d887c16e1ec162996a1e24bf686168771`。唯一正式工具JSON为1.4.34 / 157547 B / SHA-256 `6cf868116f59c957efe9858c0372f57fa553f6b998b6f04a843180dd83fd031f`，原打包器候选、检查、同源晋升及 `--check-project` 通过；原安装界面确认1.4.33→1.4.34、七项能力无新增。43132由本轮承接原服务，当前市场buildId `b989ca66786503cb638dea25f226ee7b6b8e1acc57fc21692b3380c4dcd874e0`，18 apps/45 releases。7898/7903继续共用原SQLite，不清账。
 
-### 本轮修复与最小验证的关联
+### 当前修复、实机结果与证据范围
+
+| 当前用户操作 / 具体阻塞 | 最小修复与真实结果 | 原件或定向证明 |
+| --- | --- | --- |
+| 原市场打开带fragment详情，外部sender URL不含fragment | 仅外部导航定位比较剥离fragment；Origin/path/query/document/top-frame仍严格，网站继续在APP_OPENED后核对原fragment。原市场审阅更新后确实返回7898 | `market-navigation-tests.tap` 24 PASS；不把排队/面板打开当领取许可 |
+| app.html不能创建侧栏专属列表；其Browser SDK sender又被拒 | 该Surface仅使用原ToolHost，公共sender解析接受原合法app路由；仍检查UUID、安装版本/摘要/epoch/授权与撤权。实际app.html显示同一会员结果 | `app-surface-tests.tap` 19 PASS；installed app Host 21 PASS；两项HEAD已有预览夹具失败未纳入通过结论 |
+| 无开发连接控件的正式UI不能接入本地Demo；扩展GET不带Origin被原Provider拒绝 | 仅可信开发profile及精确7898页面可自动选择7903，复核状态/CAS并走原预检；开发会员logical GET以wire POST `{}`调用原只读 `/api/member`。Provider严格空对象及原Origin/X-local保护，生产GET不变 | `vip-v1434-tests.log` 86 PASS；缺Origin GET、错来源/标记和非空POST仍拒绝；`proxy-v1434-tests.tap` 5 PASS |
+| 一次明确领取及恢复 | 确认前当前grant零核销；原生按钮点击一次后收据 `b8f339d5-c135-4b58-99a3-a0b23ed4b3dd`，3次额度。重启Provider、刷新app.html、重开侧栏后仍为该收据，总核销2、当前1、原7次不变 | `native-preflight-v1434.json`、`native-confirmation-v1434.json`、`app-success-v1434.png`、`app-reload-v1434.txt`、`native-reopen-v1434.json` |
+| 丢回执/unknown后的安全恢复 | 原Controller与真实HTTP/SQLite定向检查证明只查询原键、不自动重兑；本轮真实页面完成正常刷新/重开与Provider重启 | 实际Chrome ACK丢失、Worker故障注入仍NOT_TESTED；不将组件证据冒充这些实机故障 |
+
+本轮取得 **DEMO_PASS（开发环境真实Chromium扩展核心链）**。完整 `CHROME_PASS` 矩阵、production静态候选、真实故障注入、商业Provider/HTTPS/第三方VIP和Cookie登录验收仍未执行或未具备条件；历史评分保持NOT_SCORED，不自动推进这些延期项。共享Profile并非Cookie/权限隔离；本轮只使用TaskSpace58，结束已finish，未操作其他对话页面或其Web Flow业务。Browser原writer自然退出后才启动唯一 `npm run dev`；首次4GB堆不足退出后以12GB堆恢复同目录，未终止他人writer。当前dev、43132市场及7898/7903原DB Provider留存供继续使用。
+
+原件统一在忽略目录 `artifacts/market-vip-20261110-continuation/`，原SQLite继续位于 `artifacts/market-vip-20261110-evidence/receipts.sqlite`，不提交令牌/数据库。以下保留前轮观察，均以其时间点为界；“候选owner阻断”和“等待43132归属”已由用户本轮授权接管解除。后续生产HTTPS连接跨Surface并发的额外复核列为P2，当前 `REVIEWED_SERVICE=null`，不扩为本轮生产实施。
+
+### 历史观察（同日17:53）：Host 可达，app.html 源码修复待原 watcher 产出
+
+以下为2026-11-10后续任务的新观察；下文56/56、29/29及无接收端结果保留前轮时间边界，不是本轮重跑。续接起始 main `f8edc403c85b9373d842a4296311fb298a8c482d`，使用默认共享 Profile 的独立 ego TaskSpace57，未进入登录 owner 的专用 Profile1。
+
+- **原市场真实操作：** 43132的旧1.4.2页面点击安装，仅产生原审阅 intent `f4a510a9-0b1e-446a-a5d3-2be472b3e2b7`。原 `GET_INSTALL_STATUS` 返回 `installation: review`、`currentInstallation: different-version`、`installedVersion: 1.4.18`、`enabled: true`；`GET_APP_STATUS` 同样返回版本不同。没有批准安装、APP_OPENED、激活跳转或兑换；原审阅未清除、未替换、未冒称取消。
+- **独立应用页真实故障：** 正确的 `app.html?toolId=ai-vip-share` 已建立真实标签页绑定，却在公共 `createExtensionCenter` 抛出 `E_REACT_LIST_OWNERSHIP`，外层统一显示身份拒绝。React app Surface 原本只渲染 ToolHost，不提供侧栏列表节点。`src/ui/tool-shell.js` 现仅让该路由跳过列表控制器及相应 refresh/dispose，继续复用原 ToolHost；侧栏的严格节点所有权、原安装器、标签页绑定及权限均不变。
+- **最小验证：** 新增的真实 ToolShell 初始化回归在修复前抛出同一错误；修复后与侧栏所有权、SSR及关闭围栏共19项定向检查通过。命令为 `node --test --test-skip-pattern='expired preview is projected|a live preview opens' tests/environment/tool-shell-lifecycle-r37.test.mjs tests/environment/react-app-surface-ownership.test.mjs tests/environment/react-sidebar-app-shell-r351.test.mjs`。被排除的两项预览用例已用未修改的HEAD源码及测试复现失败，属于已有夹具/当前预览入口失配，未扩大修复；这不代表整文件或全部测试通过。独立只读审查未发现本次diff退化；模拟侧栏分类不证明Chrome分类通过。
+- **编译与运行分层：** 保留原 watcher PID30103；其日志明确拒绝 `projects/webflow/trusted/CurrentTask.tsx` 来源漂移。未替换writer、重建输出或改pin。页面实际加载的旧 `ui/tool-shell.js` SHA-256为 `65975d413f532604a96c3eb59dd240511db1fa0fe0b293d45d770b2e96079911`，与磁盘旧产物相同，重新加载本任务页面仍报原错误；不能把源码修复当作页面已生效。
+- **合法Demo入口缺口：** 原「开发→本地项目→在侧栏调试」只允许隔离storage及currentPage.info，原Controller需要的 `proxy.managed.getStatus` 与 `browser.network.request` 均不可调用。仅补 `dev/main.jsx` 构建入口无法接通Demo，故未实施；不能扩大预览权限、写storage伪造profile或自行调整固定开发包pin。下一步仍须候选owner通过原安装审阅链提供可接通Demo的同源候选，并协调43132原服务。
+
+本轮原件位于忽略目录 `artifacts/market-vip-20261110-continuation/`，包含原Host回执、app异常、加载摘要、19项检查及source-evidence索引。没有新发测试码、启用代理、Cookie操作、安装升级或生产发布。当前新goal保持active；未取得完整DEMO/Chrome证据，不将受影响分支的资源阻断当作整目标完成。
+
+### 历史组件阶段：修复与最小验证的关联
 
 1. P0 首跑52项48 PASS/4 FAIL：三项旧 VM 把 ESM 当 script，一项误以为单次 event-loop tick足够完成WebCrypto。夹具注入原模块真实 exports、等待实际请求，保留生产ESM和VIP功能；真实浏览器两模块HTTP200。额外 query、Host等待期间改链、丢审阅回执后刷新和来源拒绝新增回归，防止错误接续。
 2. 真实端口失配：CLI原监听7898、Controller新连接默认7903。现在原Provider在两端口共用同一SQLite；任一端口占用就释放自身listener并失败，不杀占用方。本轮独立CLI已实际启动、收到原Controller未经URL重定向的7903请求，并原DB重启回读；第二次启动EADDRINUSE未影响原进程或收据。
@@ -71,7 +97,7 @@ node --check src/market-site/vip-continuation.js
 
 反方逐项结果：重复安装/unknown新安装有原intent恢复组件证据；来源伪造及等待中改链被拒绝，恶意包仍交原provenance/安装器，原生攻击未测；错误主体与预检条款替换由服务端拒绝；取消后刷新不自动复活；跨客户端同发放只核销一次；丢回执不换key；零Cookie/代理调用；没有复制框架。不能以测试中的可信profile或模拟Host回执证明真实权限与包安全。
 
-### 下一条操作与交接边界
+### 历史交接边界（已被本页18:48结果更新）
 
 当前 `CODE_READY`、定向 `TEST_PASS`；完整 `DEMO_PASS`、`CHROME_PASS` 均**未取得**，`PRODUCTION_BLOCKED`。
 
@@ -80,7 +106,7 @@ node --check src/market-site/vip-continuation.js
 3. 同一专用Profile经原Market审阅/打开回执接续7898，再由原Controller预检、一次确认、SQLite发放与原工具回读；补真实Worker/标签切换和双Surface一致性。仅做跨系统必要复核，不重跑另一owner的完整Cookie登录。
 4. 正式HTTPS/channel、Chrome获取/发行与商业身份/Provider另按生产条件交付；开发合成权益不能部署成商业会员服务。
 
-本轮自建Demo Provider和43134预览在收尾后释放，原件SQLite与收据保留；复现须显式复用原DB路径，不能重新发行同业务实例代替恢复。其他服务、浏览器和未提交改动均保留。本轮只本地提交本任务精确路径到main，不推送。
+该历史轮次自建Demo Provider和43134预览在当时收尾后释放，原件SQLite与收据保留；复现须显式复用原DB路径，不能重新发行同业务实例代替恢复。其他服务、浏览器和未提交改动均保留。本轮只本地提交本任务精确路径到main，不推送。
 
 
 ## 2026-11-10：Market × AI VIP Share 开发 Provider 增量（源码/测试入口；未冒充 Chrome 通过）

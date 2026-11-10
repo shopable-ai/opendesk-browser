@@ -121,10 +121,31 @@ test('external source still requires an active top-level webNavigation frame',as
   h.api.runtime.getContexts=async()=>{throw new Error('external pages are not extension contexts');};
   assert.equal(await verifyMarketPanelNavigationSource(h.api,row),true);
   for(const changes of [{documentId:'2'.repeat(32)},{parentFrameId:0},
-    {documentLifecycle:'cached'},{url:url+'#other'}]){
+    {documentLifecycle:'cached'},{url:url+'?other'}]){
     h.api.webNavigation.getFrame=async()=>({...frame,...changes});
     assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
   }
+});
+
+test('external sender without a fragment matches only the same active document and exact path/query',async()=>{
+  const h=fixture(),url='https://market.example/apps/example-app?version=1',
+    row=sample({source:'external',sourceUrl:url});
+  const tab={id:12,windowId:7,url:url+'#vip-ref=local-fixture',incognito:false};
+  const frame={documentId:row.sourceDocumentId,parentFrameId:-1,documentLifecycle:'active',url:tab.url};
+  h.api.tabs.get=async()=>tab;h.api.webNavigation.getFrame=async()=>frame;
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),true);
+  for(const changed of [url+'&other=1','https://market.example/other?version=1',
+    'https://other.example/apps/example-app?version=1']){
+    h.api.tabs.get=async()=>({...tab,url:changed});
+    h.api.webNavigation.getFrame=async()=>({...frame,url:changed});
+    assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false,changed);
+  }
+  h.api.tabs.get=async()=>({...tab,pendingUrl:url+'#changed'});
+  h.api.webNavigation.getFrame=async()=>frame;
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  h.api.tabs.get=async()=>tab;
+  h.api.webNavigation.getFrame=async()=>({...frame,documentId:'2'.repeat(32)});
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
 });
 
 test('identical outstanding click deduplicates instead of replacing pending intent',async()=>{
@@ -237,7 +258,11 @@ test('production single-app entry points do not create tool tabs or bypass confi
   assert.match(center,/sidebarTools\.openOfficialReview\(selected\.release\.toolId\)/);
   assert.match(shell,/actualSidePanel\)\{/);
   assert.match(shell,/extensionCenter\.openInstalledMarketApp/);
-  assert.doesNotMatch(client,/GET_APP_STATUS|OPEN_INSTALLED_APP/);
+  // VIP continuation reuses the original Host route; it has no installer or
+  // activation authority of its own. The executable continuation tests cover
+  // the required APP_OPENED receipt and changed-link rejection.
+  assert.match(client,/action:'OPEN_INSTALLED_APP',subject:entry.subject/);
+  assert.match(client,/result.status!=='APP_OPENED'/);
   assert.match(client,/action:'OPEN_INSTALL_REVIEW'/);
   assert.match(client,/action:'GET_INSTALL_STATUS',intentId:id,subject:entry.subject/);
   assert.match(shell,/openInstalledApp:async identity/);

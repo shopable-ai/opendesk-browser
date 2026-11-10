@@ -155,7 +155,7 @@ Cookie journal 继续使用原存储键、单键 CAS、8192 字节预算与未�
 
 ## 5. 专属链接：自动准备、必要时一次确认、原事务恢复（现行方案，2026-11-10）
 
-**推荐且唯一实施路线：可信来源识别 → 无核销预检 → 根据已有安装/授权/领取状态分流 → 必要时一次业务确认 → 原事务结果与后续授权步骤。** 不使用三秒自动提交倒计时；可信来源和安装许可均不是权益核销许可。此节优先于原 R4 的固定双产品确认和默认 ticket 设想；历史证据不删除。当前正式安装包仍为 1.4.32，主线存在准备中的 1.4.33 源码，未完成本候选安装/实机验证，不能把源码等同正式包。
+**推荐且唯一实施路线：可信来源识别 → 无核销预检 → 根据已有安装/授权/领取状态分流 → 必要时一次业务确认 → 原事务结果与后续授权步骤。** 不使用三秒自动提交倒计时；可信来源和安装许可均不是权益核销许可。此节优先于原 R4 的固定双产品确认和默认 ticket 设想；历史证据不删除。当前1.4.34已同源晋升并经原市场审阅安装，开发实机核心链DEMO_PASS；完整production/Chrome矩阵未执行，证据见第5.5节。
 
 ### 5.1 方案对比和选择
 
@@ -196,7 +196,7 @@ Cookie journal 继续使用原存储键、单键 CAS、8192 字节预算与未�
 | 超时、断网、丢回执或重启 | 原 journal 与 Provider status 查询原笔 | 不换 key 盲目再提交，不以缺历史当终局未执行 |
 | 已领但网站授权/Cookie/导航失败 | 保留领取结果，重新从原网站授权、每批确认或手动打开继续 | 网站步骤单独计数，不自动启用代理、不伪称第三方 VIP |
 
-**默认没有人为等待/三秒自动消失**；网络与安装展示真实进度，已完成和未知结果可持续回读。沿现有安装审阅区域及原激活卡连续展示，不重画 Side Panel 或并行 `app.html`。已确认的两个 Surface 共享 Framework Core/安装身份/SDK/权限/业务状态，各自独立路由、滚动、焦点和草稿；本工具真实双 Surface 运行待验。
+**默认没有人为等待/三秒自动消失**；网络与安装展示真实进度，已完成和未知结果可持续回读。沿现有安装审阅区域及原激活卡连续展示，不重画 Side Panel 或并行 `app.html`。已确认的两个 Surface 共享 Framework Core/安装身份/SDK/权限/业务状态，各自独立路由、滚动、焦点和草稿；本工具1.4.34开发环境真实双Surface同权益及刷新/重开已核对；production待验。
 
 ### 5.4 最终提交、取消、幂等与恢复
 
@@ -234,13 +234,17 @@ node projects/ai-vip-share/server/demo-provider.mjs issue demo-intent-01 demo-is
 node projects/ai-vip-share/server/demo-provider.mjs
 ```
 
-需要另行用实际同一 Chrome Profile 的扩展 ID 配置并构建开发 Market 与 Extension，访问 CLI 返回的 `marketUrl`，手动点击、审阅安装或打开已安装项；原 Controller 的开发服务入口必须匹配本 Provider，后续真实 Chrome 验收不能凭 Node 合成结果替代。1.4.32 正式 JSON 包不受本轮源码变更影响，不可冒充安装了新接续逻辑。正式 Market HTTPS、商业 Provider、受信链接精确发行及 1.4.33 源码的实际候选/Chrome/双 Surface 验证由独立任务承担。Demo 前先确定是否有其他对话占用 7898 或 7903，不可停止、重置或覆盖它。恢复必须重用原 DB 路径，不重跑发行命令创建替代事务。`src/main.jsx` 不导入开发连接控件，测试使用原开发入口等价的专用控件；实际候选须通过原合法开发入口和可信 profile 接通此 Provider，不能写 storage 假装已授权。
+需要另行用实际同一 Chrome Profile 的扩展 ID 配置并构建开发 Market 与 Extension，访问 CLI 返回的 `marketUrl`，手动点击、审阅安装或打开已安装项；原 Controller 的开发服务入口必须匹配本 Provider，后续真实 Chrome 验收不能凭 Node 合成结果替代。当前唯一正式JSON已晋升1.4.34并实际安装，不能用旧1.4.32身份代替它。正式Market HTTPS、商业Provider和完整production验收仍延期。Demo 前先确定是否有其他对话占用 7898 或 7903，不可停止、重置或覆盖它。恢复必须重用原 DB 路径，不重跑发行命令创建替代事务。`src/main.jsx` 不导入开发连接控件，测试使用原开发入口等价的专用控件；实际候选须通过原合法开发入口和可信 profile 接通此 Provider，不能写 storage 假装已授权。
 
-唯一业务源码 owner：`projects/ai-vip-share/`。本轮差量是 `src/activation-links.js` 严格解析及取消范围模型、`src/main.js` 开发链接自动无副作用预检与取消代次、原 LAN 指引和定向 tests；不修改 `src/marketplace/intent.js`、`src/ui/sidebar-tools/installation.js`、共用 SDK 或并行 `app.html`。原 SDK/Host/Authority/权限不复制，HTML/Vue/React 兼容不受影响。
+唯一业务源码 owner：`projects/ai-vip-share/`。本轮差量是 `src/activation-links.js` 严格解析及取消范围模型、`src/main.js` 开发链接自动无副作用预检与取消代次、原 LAN 指引和定向 tests；不修改 `src/marketplace/intent.js` 或 `src/ui/sidebar-tools/installation.js`；后续实机发现的通用app Surface/SDK sender修复由原平台owner在原入口实现，见下方更新。原 SDK/Host/Authority/权限不复制，HTML/Vue/React 兼容不受影响。
 
 生产解除条件依次为：运营方批准 HTTPS 来源及真实发行 channel；原 Provider 提供短期受限引用、完整权益/作用范围、稳定领取意图与跨端原子唯一/原笔查询；完成原严格协议升级和来源/身份/撤权审阅；本地 Codex 运行定向测试、同源打包并晋升新版、Chrome 实际安装及链接/站点验收。**当前 production Provider 和 Market channel 未配置，本候选未完成上述生产条件**；开发 fixture 不证明真实商业领券/网站 VIP。
 
-**2026-11-10 本地续接实测更新：** Market 三文件检查 **56/56 PASS**，Controller/真实 HTTP/SQLite/原链接四文件检查 **29/29 PASS**。独立 CLI 的 7898 落地页 → 原 Controller 请求默认 7903 → 自动预检 → 一次确认 → 7 次合成额度已取得组件级真实 HTTP/SQLite 回执；确认前 0 核销、后 1 条；Provider 进程重启与 Controller 重开只 GET，原收据不变。VM DOM、SDK 与可信 profile 为夹具，**不是完整 DEMO_PASS 或 CHROME_PASS**。实际 ego 浏览器只完成当前静态模块与缺宿主指引验证；原 43132 服务仍是 1.4.2，新市场在独立 43134 预览，不扩充原批准来源。新正式候选与 Side Panel/app.html 验收仍 `BLOCKED_BY_VIP_PACKAGE_OWNER`。具体原件、反方审计和阶段见[唯一验收账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。
+**历史组件阶段（同日，非最新完成状态）：** Market 三文件检查 **56/56 PASS**，Controller/真实 HTTP/SQLite/原链接四文件检查 **29/29 PASS**。独立 CLI 的 7898 落地页 → 原 Controller 请求默认 7903 → 自动预检 → 一次确认 → 7 次合成额度已取得组件级真实 HTTP/SQLite 回执；确认前 0 核销、后 1 条；Provider 进程重启与 Controller 重开只 GET，原收据不变。VM DOM、SDK 与可信 profile 为夹具，**不是完整 DEMO_PASS 或 CHROME_PASS**。实际 ego 浏览器只完成当前静态模块与缺宿主指引验证；原 43132 服务仍是 1.4.2，新市场在独立 43134 预览，不扩充原批准来源。新正式候选与 Side Panel/app.html 验收仍 `BLOCKED_BY_VIP_PACKAGE_OWNER`。具体原件、反方审计和阶段见[唯一验收账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。
+
+**历史17:53实机观察：** 默认共享Profile现可收到Host回执，实际安装1.4.18与旧市场1.4.2不同，原审阅仍未完成。app.html已绑定标签页但公共ToolShell错误创建侧栏列表控制器；源码已最小修复并通过19项定向检查，原watcher因并行Web Flow来源保护拒绝产出，故页面尚未生效。直接调试Host不支持Demo网络/代理，未补无效dev构建或变更权限/pin；须由候选与原服务owner协调后继续真实双Surface。以上不提升为DEMO_PASS/CHROME_PASS，详见同一账本。
+
+**18:48当前开发结果：** 1.4.34唯一包157547 B，SHA-256 `6cf868116f59c957efe9858c0372f57fa553f6b998b6f04a843180dd83fd031f`，原候选构建/检查/同源晋升及实际原审阅更新完成。可信开发profile、精确7898来源与原storage CAS共同约束自动7903发现，保留用户已有选择、暂停、unknown和Cookie恢复围栏，无新增正式UI开发控件。因Chrome扩展GET省略Origin，只有开发会员logical GET改为原 `/api/member` 的只读POST `{}`，Provider仍严格验证真实Origin/X-local/空对象，生产GET不变。原市场APP_OPENED后接续7898，自动无消费预检，原生一次确认取得3次额度；原7次不变，双Surface读到相同2条记录。Provider原DB重启、app刷新与侧栏重开后仍只1条新收据。开发实机核心链DEMO_PASS；86项VIP定向检查及平台相关检查通过。真实ACK丢失/Worker故障、完整CHROME_PASS矩阵、production和商业网站仍未执行。具体原件、实际连接revision和安全边界见[唯一账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。
 
 ## 6. UI 状态与错误处理（现行，替代第 5 节旧状态机的冲突文字）
 
@@ -267,7 +271,7 @@ Framework 仍唯一持有 Market Policy、原安装审阅/操作日志、Install
 
 每一行固定“前置 → 动作 → 原始回执/持久状态 → 禁止副作用 → 证据/状态”。**2026-11-10 GitHub App CI**（提交 `e0d4b43`，运行 [42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891)）完成：本轮链接/取消 **9/9 PASS**，LAN 静态入口 **4/4 PASS**，但整组 **424 项中 342 PASS / 68 FAIL / 14 CANCELLED**；历史测试环境/旧版本断言存在明显漂移，整体 CI **FAIL**。这是受控 Node/fixture 结果，不是 Chrome 已安装、商业 Provider 或真实网站验收。旧 1.4.32 账本证明的登录范围仍独立。
 
-下表保留该 CI 时点的历史覆盖；当前 SQLite/原 Controller 的 29/29 与 Market 的 56/56 本地实测见第 5.5 节和[唯一账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。表中“Provider 未配置/NOT_TESTED”不覆盖后来取得的开发组件证据，商业 Provider 与新候选 Chrome 仍未通过。
+下表保留该 CI 时点的历史覆盖；当前 SQLite/原 Controller 的 29/29 与 Market 的 56/56 本地实测见第 5.5 节和[唯一账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。表中“Provider 未配置/NOT_TESTED”不覆盖后来取得的开发组件证据，商业Provider和完整Chrome矩阵仍未通过；本次开发实机核心链结果见第5.5节。
 
 | 前置 → 动作 | 必须观察的回执或持久事实 | 禁止副作用 | 证据及当前状态 |
 | --- | --- | --- | --- |

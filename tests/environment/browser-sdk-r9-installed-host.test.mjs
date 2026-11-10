@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {validateSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 
@@ -23,7 +24,7 @@ const identity={toolId:cookiePkg.id,toolVersion:cookiePkg.version,
 const sender={id:'cookie-host-test',frameId:0,documentId:'host-doc',documentLifecycle:'active',
   url:'chrome-extension://cookie-host-test/sidepanel.html?hostInstanceId='+uid};
 
-function fixture(){
+function fixture({sender:hostSender=sender}={}){
   const local=new Map([['opendesk.sidebar-tools.installed.v1',[cookiePkg]]]),session=new Map();
   const onStorage=[],native=[],listeners=[];
   const tab={id:10,windowId:3,url,active:true,incognito:false,status:'complete'};
@@ -87,12 +88,12 @@ function fixture(){
   const host=createContextMenuHost({api,lockManager:locks,logger:{warn(){}}});
   const grant=(capability,enabled=true)=>host.handleHost({
     operation:'browser.cookies.userGrant',...identity,cookieCapability:capability,enabled,
-    origin,...(enabled?{document}:{})},sender);
+    origin,...(enabled?{document}:{})},hostSender);
   const confirm=(operation,args)=>host.handleHost({operation:'browser.intent.confirm',
-    ...identity,targetOperation:operation,targetArgs:args},sender);
+    ...identity,targetOperation:operation,targetArgs:args},hostSender);
   const call=(operation,args={},approvalRef,as=identity)=>host.handleTool({
-    ...as,operation,args,...(approvalRef?{approvalRef}:{})},sender);
-  return {api,host,grant,call,confirm,state,native,local,document,sender,identity};
+    ...as,operation,args,...(approvalRef?{approvalRef}:{})},hostSender);
+  return {api,host,grant,call,confirm,state,native,local,document,sender:hostSender,identity};
 }
 
 test('R9 actual Browser Dispatcher refuses a regular installed Cookie read before per-site grant',async()=>{
@@ -257,4 +258,64 @@ test('setMany installed Host rechecks real website permission between native eff
     {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true});
   assert.equal(writes,2);
   assert(!f.state.records.some(row=>row.name==='unattempted'));
+});
+
+
+const appSender=(overrides={})=>({...sender,
+  url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId='+uid,
+  tab:{id:20,windowId:3,incognito:false},...overrides});
+
+test('installed app Host uses the same SDK dispatch and grant path as Side Panel',async()=>{
+  const f=fixture({sender:appSender()});
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_SITE_GRANT_REQUIRED'));
+  await f.grant('read');
+  const rows=await f.call('browser.cookies.getAll',{url});
+  assert.equal(rows.length,1);assert.equal(rows[0].valueRedacted,true);
+  await f.grant('read',false);
+  const before=[...f.native];
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_SITE_GRANT_REQUIRED'));
+  assert.deepEqual(f.native,before);
+});
+
+for(const [label,overrides] of [
+  ['foreign extension',{id:'foreign-extension'}],
+  ['foreign URL',{url:'chrome-extension://foreign-extension/app.html?toolId=cookie-editor&hostInstanceId='+uid}],
+  ['subframe',{frameId:1}],['missing top-frame identity',{frameId:undefined}],
+  ['missing document',{documentId:undefined}],
+  ['inactive document',{documentLifecycle:'cached'}],['missing tab',{tab:undefined}],
+  ['invalid tab',{tab:{id:-1}}],['incognito tab',{tab:{id:20,incognito:true}}],
+  ['unapproved path',{url:'chrome-extension://cookie-host-test/other.html?hostInstanceId='+uid}],
+  ['duplicate host identity',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId='+uid+'&hostInstanceId='+uid}],
+  ['missing app tool locator',{url:'chrome-extension://cookie-host-test/app.html?hostInstanceId='+uid}],
+  ['unexpected query',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId='+uid+'&extra=1'}],
+  ['fragment',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId='+uid+'#extra'}],
+  ['non-UUID host identity',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId='+ '-'.repeat(36)}],
+  ['invalid UUID version',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId=01234567-89ab-adef-8123-456789abcdef'}],
+  ['invalid UUID variant',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId=01234567-89ab-4def-0123-456789abcdef'}],
+  ['different host identity',{url:'chrome-extension://cookie-host-test/app.html?toolId=cookie-editor&hostInstanceId=11234567-89ab-4def-8123-456789abcdef'}]
+])test('installed app Host rejects '+label+' before native access',async()=>{
+  const f=fixture({sender:appSender(overrides)});
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_OWNER'));
+  await assert.rejects(f.grant('read'),reject('E_OWNER'));
+  assert.deepEqual(f.native,[]);
+});
+
+test('installed app Host preserves package version/hash, install epoch and disable revocation',async()=>{
+  const f=fixture({sender:appSender()});await f.grant('read');
+  const before=[...f.native];
+  for(const changed of [{toolVersion:'9.0.0'},{packageHash:'0'.repeat(64)},{installEpoch:'revoked'}])
+    await assert.rejects(f.call('browser.cookies.getAll',{url},undefined,{...identity,...changed}),reject('E_TOOL_CHANGED'));
+  await f.api.storage.local.set({[TOOL_REVOCATION_EPOCHS_STORE]:{[cookiePkg.id]:'new-install-epoch'}});
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_TOOL_CHANGED'));
+  await f.api.storage.local.set({[TOOL_REVOCATION_EPOCHS_STORE]:{}});
+  await f.api.storage.local.set({[SIDEBAR_TOOL_ENABLE_STORE]:{[cookiePkg.id]:false}});
+  await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_TOOL_DISABLED'));
+  assert.deepEqual(f.native,before);
+});
+
+
+test('installed app Host accepts the shared own-page view/section grammar',async()=>{
+  const f=fixture({sender:appSender({url:appSender().url+'&view=settings&section=profiles'})});
+  await f.grant('read');
+  assert.equal((await f.call('browser.cookies.getAll',{url})).length,1);
 });

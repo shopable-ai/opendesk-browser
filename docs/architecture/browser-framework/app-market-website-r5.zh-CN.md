@@ -2,9 +2,9 @@
 
 ## 2026-11-10：VIP-only 网页市场接续与开发 SQLite Provider（增量，非生产发行）
 
-**边界：** 不改 `opendesk.market.intent.v1`、Source Policy、原 Market Host、原安装器、官方 Catalog 安装身份或 `app.html`。网页市场现有静态发布/固定发行继续沿用 `scripts/build-market-site.mjs`；它现在同时输出受控 `vip-continuation.js`。只有 `opendesk/ai-vip-share` 的网站客户端会读取当前已安装状态并尝试复用原 `OPEN_INSTALLED_APP`。同页合法开发 `#vip-ref` 从不交给扩展安装协议；挂起安装只保存原 `intentId` 和参考摘要，安装确认后必须经 Host `APP_OPENED` 才导航到固定的 `127.0.0.1:7898/activate`，然后由工具内原业务 Controller 执行预检和一次确认。取消、过期、未知和面板未打开不自动重复安装或领取。
+**边界：** 不改 `opendesk.market.intent.v1`、Source Policy、原 Market Host、原安装器、官方 Catalog 安装身份；后续实机证明必要的通用app.html修复见第13节。网页市场现有静态发布/固定发行继续沿用 `scripts/build-market-site.mjs`；它现在同时输出受控 `vip-continuation.js`。只有 `opendesk/ai-vip-share` 的网站客户端会读取当前已安装状态并尝试复用原 `OPEN_INSTALLED_APP`。同页合法开发 `#vip-ref` 从不交给扩展安装协议；挂起安装只保存原 `intentId` 和参考摘要，安装确认后必须经 Host `APP_OPENED` 才导航到固定的 `127.0.0.1:7898/activate`，然后由工具内原业务 Controller 执行预检和一次确认。取消、过期、未知和面板未打开不自动重复安装或领取。
 
-**实际未上线原因：** 原发行业务包仍为 1.4.32，VIP 专属链接新 Controller 源码尚未候选晋升；正式 HTTPS Market channel 与 Web Store ID 未配置，商业 Provider 未配置。本轮新增的 `projects/ai-vip-share/server/demo-provider.mjs` 是独立的 *业务 owner* 下本地 SQLite 演示服务，不是通用 Market Server，不处理安装许可、Cookie 或生产权益。只有数据库级约束可作为开发事务基础，不能把演示 Origin/header 当生产认证。固定发行是否允许打开以原 Host 的 descriptor/本机 provenance 校验为准；不因新网页代码而跳过。
+**实际未上线原因：** 1.4.34已同源晋升并经原审阅实际安装，开发实机核心链DEMO_PASS；正式 HTTPS Market channel 与 Web Store ID 未配置，商业 Provider 未配置。本轮新增的 `projects/ai-vip-share/server/demo-provider.mjs` 是独立的 *业务 owner* 下本地 SQLite 演示服务，不是通用 Market Server，不处理安装许可、Cookie 或生产权益。只有数据库级约束可作为开发事务基础，不能把演示 Origin/header 当生产认证。固定发行是否允许打开以原 Host 的 descriptor/本机 provenance 校验为准；不因新网页代码而跳过。
 
 **本轮定向验证入口**：`node --test tests/environment/market-vip-continuation.test.mjs tests/environment/market-site-client-r5.test.mjs projects/ai-vip-share/tests/demo-provider.test.mjs`；`npm run build:market-site`；运行/构建/原生 Chrome 的实际结果见 [原 R5 工作流](../../framework/workstreams/app-market-r5.md) 和 [VIP 唯一验收账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。未取到原始运行回执前一律 `NOT_TESTED`；R5 历史 Chrome 实证只证明其原候选，不是本次接续真实通过。
 
@@ -233,6 +233,10 @@ Worker 的 DevTools target ID 可能跨执行重启保留。观察器先对同�
 
 P0 的 ESM 报错来自旧 `runInNewContext` 把模块当普通脚本；修正夹具以注入真实 ESM exports，保留正式客户端 import。另将 WebCrypto 单次 event-loop 等待改为有截止时间的实际请求等待。三文件检查 56/56 PASS，静态网站构建 PASS，实际 ego 中 client/接续模块/channel 均 HTTP 200，缺宿主明确 `E_NO_RECEIVER`、零新事务，并提供真实开发安装说明；未静默安装 Chrome。
 
-本地原 43132 被其他 owner 的旧快照服务占用，仍发 VIP 1.4.2；没有替换它。独立 43134 预览显示正式 Catalog 的 1.4.32（143989 B，SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda`），但该预览来源不等于安装 Host 批准来源，也不会被 VIP 开发接续规则接受。未放宽来源或 provenance 来得到通过。
+早期观察：本地原43132是其他owner旧快照，仍发VIP1.4.2，当时没有替换。独立 43134 预览显示正式 Catalog 的 1.4.32（143989 B，SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda`），但该预览来源不等于安装 Host 批准来源，也不会被 VIP 开发接续规则接受。未放宽来源或 provenance 来得到通过。
 
-原 Controller + SQLite Provider 的端口、条款、并发和恢复证据见 [VIP 唯一账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)；执行结果见 [原 Market workstream](../../framework/workstreams/app-market-r5.md#market-vip-integration-20261110)。当前是 CODE_READY / 定向 TEST_PASS；新整链 DEMO_PASS、CHROME_PASS 尚未取得，PRODUCTION_BLOCKED。历史 R5 Chrome 结果和旧 1.4.32 登录证据不提升为新候选证据。
+原 Controller + SQLite Provider 的端口、条款、并发和恢复证据见 [VIP 唯一账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)；执行结果见 [原 Market workstream](../../framework/workstreams/app-market-r5.md#market-vip-integration-20261110)。最新1.4.34开发实机核心链DEMO_PASS：原市场审阅升级、APP_OPENED后7898接续、7903自动无消费预检、一次确认3次额度、双Surface同收据，以及Provider重启/页面刷新/侧栏重开均已核对；完整CHROME_PASS矩阵和production仍未执行。历史 R5 Chrome 结果和旧 1.4.32 登录证据不提升为新候选证据。
+
+历史17:53实机观察已纠正此前缺接收端：默认共享Profile现有Host，旧市场1.4.2对实际安装1.4.18返回 `different-version`，原审阅保持review，未取得APP_OPENED。独立app.html复现 `E_REACT_LIST_OWNERSHIP`；公共ToolShell已修复其错误创建侧栏列表控制器的问题，19项定向检查通过，但原watcher被并行Web Flow来源漂移拦住，运行代码仍旧。原本地调试Host不支持Demo所需网络/代理，不能仅补开发构建或放宽预览权限；候选、原43132服务与合法Demo接入仍待对应owner协调。详见同一VIP账本的新续接小节。
+
+**18:48收尾：** 用户明确授权本轮解决候选与服务归属后，43132已由原服务入口提供1.4.34；原writer退出后恢复同一dist/development，原生开发服务连接已核对。只修复外部sender省略fragment的定位比较、app.html侧栏列表所有权及原合法app Browser SDK sender，未改安装协议/授权范围。唯一包157547 B，SHA-256 `6cf868116f59c957efe9858c0372f57fa553f6b998b6f04a843180dd83fd031f`。开发会员只读POST沿用原端点和Origin保护。当前核销1、总数2、旧收据不变，具体原件与未测范围以同一VIP账本为准。

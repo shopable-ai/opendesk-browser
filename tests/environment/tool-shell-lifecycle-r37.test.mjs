@@ -23,7 +23,9 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
   const tools={...disposable(),ready:ready.promise,setVisible:()=>true,isDirty:()=>false,
     openTool:(_id,options)=>{calls.push('openTool');options?.launchGate?.then(()=>calls.push('gate-open'),()=>calls.push('gate-reject'));return 'tool-instance';},
     openReadOnlyPreview:()=>calls.push('preview')};
-  const task={...disposable(),navigate:()=>true,connectToolsView(){},showCatalogPage:()=>calls.push('catalog')};
+  let toolsVisibility;
+  const task={...disposable(),navigate:destination=>{toolsVisibility?.(destination==='tools',destination);return true;},
+    connectToolsView:listener=>{toolsVisibility=listener;},showCatalogPage:()=>calls.push('catalog')};
   const dependencies={};
   for(const names of imports.values())for(const name of names)dependencies[name]=()=>disposable();
   Object.assign(dependencies,{
@@ -33,7 +35,15 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     createSidebarTabMemory:()=>({...disposable(),record(){},restore:async()=>calls.push('restore')}),
     mountSidebarApp:()=>({...disposable(),renderNavigation(){},connectWorkflowPage(){},connectMyAgent(){}}),
     createSidebarTools:()=>tools,isActualSidePanelContext:()=>context.promise,
-    requestedToolId:()=>surface==='tool'?'quick-notes':null,
+    createMarketPanelNavigationReceiver:()=>({...disposable(),start(){}}),
+    createPanelToolIntentReceiver:()=>({...disposable(),start(){}}),
+    requestedToolId:()=>surface==='tool'||surface==='app'?'quick-notes':null,
+    APP_DOCUMENT_PATHNAME:'/app.html',
+    createExtensionCenter:()=>{
+      calls.push('extension-center');
+      if(surface==='app')throw new Error('E_REACT_LIST_OWNERSHIP');
+      return {refresh:()=>calls.push('extension-refresh'),dispose:()=>calls.push('extension-dispose')};
+    },
     requestedPreviewId:()=>surface==='preview'?'preview-r37':null,
     validatePreviewSession:row=>{if(!row)throw new Error('expired preview');return row;},previewStorageKey:()=> 'preview-key',
     BROWSER_MENU_LAUNCH_STORE:'menu-key'
@@ -45,7 +55,8 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     },remove:async()=>calls.push('preview-remove')}}};
   const window=new EventTarget();
   const sandbox={dependencies,window,chrome:api,URL,console,crypto:globalThis.crypto,
-    location:{href:`chrome-extension://r37/sidepanel.html?hostInstanceId=00000000-0000-4000-8000-000000000001${surface==='preview'?'&previewId=preview-r37':''}`},
+    location:{href:`chrome-extension://r37/${surface==='app'?'app':'sidepanel'}.html?hostInstanceId=00000000-0000-4000-8000-000000000001${surface==='preview'?'&previewId=preview-r37':''}`},
+    __opendeskAppPageBound:surface==='app',
     document:{documentElement:{dataset:{}}},__opendeskTrustedHistoryUI:{
       create:()=>{calls.push('history');return disposable();},
       createTaskWorkbench:()=>task,createScheduledTaskWorkbench:()=>({...disposable(),shown:false}),
@@ -54,13 +65,30 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     }};
   vm.createContext(sandbox);vm.runInContext(bundled.outputFiles[0].text,sandbox);
   sandbox.ToolShell.initToolShell();
-  return {tab,context,ready,preview,menu,ack,calls,api,toolView,close:()=>window.dispatchEvent(new Event('pagehide'))};
+  return {tab,context,ready,preview,menu,ack,calls,api,toolView,navigateTools:()=>task.navigate('tools'),
+    close:()=>window.dispatchEvent(new Event('pagehide'))};
 }
+test('bound app.html opens its installed ToolHost without a Side Panel list controller',async()=>{
+  const f=fixture({surface:'app'});f.tab.resolve({id:2});f.context.resolve(false);f.ready.resolve();await tick();
+  assert.equal(f.calls.filter(x=>x==='openTool').length,1);
+  assert.equal(f.calls.includes('extension-center'),false);
+  assert.equal(f.calls.includes('extension-refresh'),false);
+  f.close();
+  assert.equal(f.calls.includes('extension-dispose'),false);
+  assert.equal(f.api.runtime.onMessage.listeners.size,0);
+  assert.equal(f.api.storage.onChanged.listeners.size,0);
+});
+test('Side Panel shell retains the Extension Center controller and disposes it',async()=>{
+  const f=fixture();f.tab.resolve(undefined);f.context.resolve(true);f.ready.resolve();await tick();
+  assert.equal(f.calls.filter(x=>x==='extension-center').length,1);
+  f.navigateTools();assert.equal(f.calls.filter(x=>x==='extension-refresh').length,1);
+  f.close();assert.equal(f.calls.filter(x=>x==='extension-dispose').length,1);
+});
 for(const late of ['tab','context'])test(`closed shell ignores late ${late} classification`,async()=>{
   const f=fixture({late});
   if(late==='context'){f.tab.resolve(undefined);await tick();}
-  const before=[...f.calls];
-  f.close();f.tab.resolve(undefined);f.context.resolve(true);f.ready.resolve();await tick();
+  f.close();const before=[...f.calls];
+  f.tab.resolve(undefined);f.context.resolve(true);f.ready.resolve();await tick();
   assert.deepEqual(f.calls,before,'closed documents cannot start hosts, restore navigation or consume menu tickets');
   assert.equal(f.api.runtime.onMessage.listeners.size,0);
   assert.equal(f.api.storage.onChanged.listeners.size,0);

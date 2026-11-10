@@ -4,7 +4,7 @@
 
 - **既有、不算本次新增：** 静态网页构建/固定发行、官方 VIP Catalog、原 `GET_INSTALL_STATUS/OPEN_INSTALL_REVIEW` 可信合同、Host/安装器/原 journal 和历史 HTTP Chrome 安装成功。
 - **新增源码：** 市场客户端下载专用 VIP 受限开发链接、原 `GET_APP_STATUS/OPEN_INSTALLED_APP` 已安装工具复用、安装终局后对原链接摘要校验并仅在 `APP_OPENED` 回执后导航、网站仅保存摘要不保存 ref、Market 静态产物加 module。非 VIP 应用保持原纯审阅模式。业务 owner 另增固定 loopback SQLite 演示 Provider 的短引用/原业务 HTTP 端点/事务唯一/原笔状态查询。
-- **功能差量的真实状态：** 源码已提交；本次真实 Chrome 完整串联与主扩展/工具候选更新 **NOT_TESTED**；正式 HTTPS channel、Web Store 获取链接、真实商业主体、第三方 VIP **BLOCKED**；不能以旧 R5/1.4.32 原生证据代替。市场不能静默安装 Chrome 自身或绕过原工具审阅。结果未知只查原安装/领取事务。
+- **功能差量的真实状态：** 1.4.34已同源晋升并实际审阅更新，开发实机核心链 **DEMO_PASS**（完整矩阵CHROME_PASS未执行）；正式 HTTPS channel、Web Store 获取链接、真实商业主体、第三方 VIP **BLOCKED**；不能以旧 R5/1.4.32 原生证据代替。市场不能静默安装 Chrome 自身或绕过原工具审阅。结果未知只查原安装/领取事务。
 - **只运行受影响定向检查：** `node --test tests/environment/market-site-client-r5.test.mjs tests/environment/market-vip-continuation.test.mjs projects/ai-vip-share/tests/demo-provider.test.mjs`，`npm run build:market-site`；具体原始 stdout/CI 与状态在唯一 VIP 账本追加，不用新文件覆盖旧证据。原 Market R5 旧 native 运行仍有效但不证明本次新源码。
 
 
@@ -371,4 +371,11 @@ Linux 和 Mac **实际的开发扩展 ID 与编译包 SHA 不同**，不能混�
 
 本地原始 stdout、源码/包 SHA、固定端口收据、SQLite、浏览器资源和截图保存在忽略目录 `artifacts/market-vip-20261110-evidence/`，不是另一份状态报告或公共制品；结果详见 [唯一 VIP 账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。原 GitHub App/Market CI 的整体 FAIL 未被局部 PASS 抵消，本轮未启动全仓修复或完整 CI。
 
-**当前阶段**：CODE_READY、定向 TEST_PASS；完整 DEMO_PASS / CHROME_PASS **NOT_TESTED**，`BLOCKED_BY_VIP_PACKAGE_OWNER`。下一条用户链必须先由原 owner 使43132提供当前市场、由包 owner 交付包含最新 Controller 的同源候选并核对合法开发服务接入，然后在同一专用 Profile 经原审阅走 Market→安装/打开→7898→自动预检→一次确认→原权益回读，并核对 Side Panel/app.html 同状态、真实 Worker 恢复。未重复 Cookie 登录验收。正式 HTTPS/channel、官方 Chrome 获取入口、商业身份/Provider 与安全发行仍 PRODUCTION_BLOCKED。
+**历史组件阶段（已由下方18:48结果更新）**：CODE_READY、定向 TEST_PASS；完整 DEMO_PASS / CHROME_PASS **NOT_TESTED**，`BLOCKED_BY_VIP_PACKAGE_OWNER`。下一条用户链必须先由原 owner 使43132提供当前市场、由包 owner 交付包含最新 Controller 的同源候选并核对合法开发服务接入，然后在同一专用 Profile 经原审阅走 Market→安装/打开→7898→自动预检→一次确认→原权益回读，并核对 Side Panel/app.html 同状态、真实 Worker 恢复。未重复 Cookie 登录验收。正式 HTTPS/channel、官方 Chrome 获取入口、商业身份/Provider 与安全发行仍 PRODUCTION_BLOCKED。
+
+**历史实机观察（同日17:53，起始main f8edc403c）**：ego TaskSpace57/默认共享Profile已收到原Host回执；43132旧1.4.2对实际安装1.4.18返回版本不同，原intent `f4a510a9-0b1e-446a-a5d3-2be472b3e2b7`保持review，未批准安装。正确app.html虽已绑定标签页，仍因错误创建侧栏列表控制器抛出 `E_REACT_LIST_OWNERSHIP`；现仅修复ToolShell按Surface创建/刷新/销毁该控制器，19项定向检查通过，原身份与安装边界不变。另两项已有预览用例在未修改HEAD同样失败，未纳入本次通过结论。原watcher因并行 `projects/webflow/trusted/CurrentTask.tsx` 指纹漂移拒绝产出，实际加载旧脚本SHA为 `65975d413f532604a96c3eb59dd240511db1fa0fe0b293d45d770b2e96079911`，未自行重pin或替换服务。直接调试Host仅有隔离storage/currentPage，不能执行Demo网络/代理，因此未补无效dev构建入口；候选owner仍须提供合法安装态接入。新原件 `artifacts/market-vip-20261110-continuation/`，具体步骤与边界仍在[唯一VIP账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。新goal保持active，完整DEMO/CHROME仍未取得。
+
+
+**18:48当前结果：开发实机核心链DEMO_PASS。** 用户授权解决候选和43132服务归属后，本轮使用唯一正式1.4.34（157547 B，SHA-256 `6cf868116f59c957efe9858c0372f57fa553f6b998b6f04a843180dd83fd031f`），经原市场审阅升级、原Host打开后自动接续7898，Controller在原可信开发profile下自动读取7903并预检；原生一次「确认激活」取得3次合成额度。本领取项SQLite仅1条新收据、总数2；原7次收据不变。原生Side Panel和原app.html均显示相同结果，Provider原DB重启、app刷新、侧栏重开后不重复核销。原writer退出后恢复同一dist/development，实际连接revision `6b5c3d3384b134389e5bebc9b0b2683d887c16e1ec162996a1e24bf686168771`；不占用另一owner的writer、Profile或页面。TaskSpace58已释放，dev/43132/7898/7903服务留存。
+
+本轮必要平台修复仅为app Surface跳过侧栏列表控制器、Browser SDK接受原合法app sender、外部sender省略fragment时仍按精确来源/路径/query/document定位；安装身份、授权和撤权不放宽。开发只读member GET以POST空对象传输以保留Chrome真实Origin，原Provider仍拒错误Origin/标记/body。定向86（VIP）/24（导航与接续）/21（app Host）/19（Surface）/5（开发pin）通过；不是全仓或完整文件PASS。原件、已知基线夹具失败及未测项见[唯一VIP账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。实际ACK丢失/Worker故障、production及商业/第三方VIP仍NOT_TESTED/BLOCKED，不继续旧正式验收和评分。

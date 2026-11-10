@@ -93,6 +93,26 @@ test('real HTTP uses original /api/member /api/preview /api/redeem /api/status o
   assert.equal((await http('/activate?activation_code='+code+'&next=evil')).status,400);
   assert.equal((await http('/api/member','GET',undefined,{Origin:'http://evil.test'})).status,403);
   assert.equal((await http('/api/member','GET',undefined,{'X-OpenDesk-Local-Test':'0'})).status,403);
+  // Chrome's extension GET may omit Origin; never compensate by weakening the guard.
+  assert.equal((await fetch(origin+'/api/member',{
+    headers:{'X-OpenDesk-Local-Test':'1'}})).status,403);
+  const beforeRead=db.prepare('SELECT * FROM grants').all();
+  const postMember=await http('/api/member','POST',{});
+  assert.equal(postMember.status,200);
+  assert.equal((await postMember.json()).account.id,DEMO_ACCOUNT_ID);
+  for(const body of [{extra:true},[],null]){
+    const response=await fetch(origin+'/api/member',{method:'POST',
+      headers:{Origin:ORIGIN,'X-OpenDesk-Local-Test':'1','Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+    assert.equal(response.status,400);
+  }
+  assert.equal((await http('/api/member','POST')).status,400);
+  assert.equal((await http('/api/member','POST',{}, {Origin:'http://evil.test'})).status,403);
+  assert.equal((await http('/api/member','POST',{}, {'X-OpenDesk-Local-Test':'0'})).status,403);
+  assert.equal((await fetch(origin+'/api/member',{method:'POST',body:'{}',
+    headers:{'X-OpenDesk-Local-Test':'1'}})).status,403);
+  assert.deepEqual(db.prepare('SELECT * FROM grants').all(),beforeRead);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM redemptions').get().n,0);
   const member=await (await http('/api/member')).json();
   assert.equal(member.account.id,DEMO_ACCOUNT_ID);
   assert.equal(member.redemptions.length,0);

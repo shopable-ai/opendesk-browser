@@ -89,7 +89,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const connectionStatus=byId('ai-vip-connection-status'),connectionSummary=byId('ai-vip-connection-summary');
   const connectionChange=byId('ai-vip-connection-change'),usageCard=byId('ai-vip-usage-card');
   const SERVICE_KEY='aiVipServiceConnectionR1';
-  let serviceConnected=false,connecting=false,editingConnection=true,connectionNotice='',activationFromLink=false;
+  let serviceConnected=false,serviceChoiceReady=false,connecting=false,editingConnection=true,connectionNotice='',activationFromLink=false;
   const plain=value=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value);
   const safeString=(value,max=100)=>typeof value==='string'&&value.trim()&&
     value.length<=max?value.trim():null;
@@ -113,9 +113,9 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.33';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.34';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28','1.4.29','1.4.30','1.4.31','1.4.32',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13','1.4.14','1.4.15','1.4.16','1.4.17','1.4.18','1.4.19','1.4.20','1.4.21','1.4.22','1.4.23','1.4.24','1.4.25','1.4.26','1.4.27','1.4.28','1.4.29','1.4.30','1.4.31','1.4.32','1.4.33',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -454,12 +454,12 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
           '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
     if(cookieOpen)cookieOpen.hidden=!currentRecord||Boolean(cookiePending)||record?.state!=='success'||!cookieTarget(record.targetUrl);
   }
-  function journalLocked(){
+  function journalLocked(journal=cookieJournal){
     if(!cookieReady)return true;
-    if(cookieJournal?.schemaVersion===1)return ['unknown','partial'].includes(cookieJournal.state);
-    return cookieJournal?.schemaVersion===2&&(
-      Boolean(Journal.legacyCookieBarrier(cookieJournal))||
-      cookieJournal.attempts.some(row=>['unknown','partial'].includes(row.state)));
+    if(journal?.schemaVersion===1)return ['unknown','partial'].includes(journal.state);
+    return journal?.schemaVersion===2&&(
+      Boolean(Journal.legacyCookieBarrier(journal))||
+      journal.attempts.some(row=>['unknown','partial'].includes(row.state)));
   }
   function projectCookieRecord(){
     if(cookieJournal?.schemaVersion!==2){cookieRecord=cookieJournal;return;}
@@ -717,7 +717,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       fail('E_LOCAL_STORAGE','本地开发选择格式无效');
     return result;
   }
-  function changeBusinessMode(development,origin=localChoiceOrigin){
+  function changeBusinessMode(development,origin=localChoiceOrigin,refresh=true){
     if(!LOCAL_ORIGINS.includes(origin))fail('E_LOCAL_ORIGIN','测试服务来源无效');
     if(localMode===development&&(!development||localOrigin===origin))return;
     invalidateShared();sharedNotice='';acquireAfterActivation=false;
@@ -728,12 +728,13 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     snapshot=null;serverSampleAt=null;pending=null;code.value='';busy=false;
     memberVerifiedFresh=false;activationHintCode=null;activationSeen=null;activationHint.hidden=true;
     cookiePending=null;renderCookies();
-    renderBusinessConfiguration();
+    renderBusinessConfiguration(refresh);
     renderLocalDevelopment();
   }
   async function acceptDevelopmentStatus(state){
+    if(disposed)return;
     const read=++developmentRead;
-    developmentProfile=(createDevelopmentControls||localSection)?validatedDevelopmentProfile(state?.developmentProfile):null;
+    developmentProfile=validatedDevelopmentProfile(state?.developmentProfile);
     if(!developmentProfile){
       changeBusinessMode(false);
       renderLocalDevelopment();renderRedeem();return;
@@ -741,12 +742,12 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     if(!localChoiceLoaded){
       try{
         const preference=await readLocalPreference();
-        if(read!==developmentRead)return;
+        if(disposed||read!==developmentRead)return;
         localChoice=preference.value?.enabled===true;
         localChoiceOrigin=preference.value?.serviceOrigin??LEGACY_LOCAL_ORIGIN;localChoiceLoaded=true;
         localNotice='';
       }catch{
-        if(read!==developmentRead)return;
+        if(disposed||read!==developmentRead)return;
         localNotice='本地开发选择无法恢复；连接前将重新核对存储，不会自动激活。';
         renderLocalDevelopment();return;
       }
@@ -1099,8 +1100,11 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       [endpoints.voucherPreview,endpoints.voucherRedeem,endpoints.voucherStatus]:[];
     if(!expected.includes(url)||(development&&(!developmentProfile||!Object.values(localEndpoints(localOrigin)).includes(url))))
       fail('E_PROVIDER_URL','请求不属于当前明确选择的会员服务');
-    const result=await businessSdk.request({method,url,
-      ...(data===undefined?{}:{data}),config:{timeout:10000,responseType:'json',
+    // Chrome may omit Origin on a development GET; the read-only POST retains
+    // the provider's exact Origin guard without changing logical GET semantics.
+    const memberRead=development&&method==='GET'&&url===endpoints.member;
+    const result=await businessSdk.request({method:memberRead?'POST':method,url,
+      ...(memberRead?{data:{}}:data===undefined?{}:{data}),config:{timeout:10000,responseType:'json',
         ...(development?{headers:{'X-OpenDesk-Local-Test':'1'}}:{})}});
     if(revision!==serviceRevision)fail('E_PROVIDER_CHANGED','服务环境已变化，忽略旧回执');
     if(!plain(result)||!Number.isInteger(result.status)||result.status<200||
@@ -1543,7 +1547,49 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       fail('E_ACTIVATION_RECORD','自动激活事务未持久确认；不会提交。');
     return revision===serviceRevision;
   }
+  function canDiscoverDemo(){
+    return !disposed&&!localSection&&!createDevelopmentControls&&developmentProfile&&localChoiceLoaded&&
+      serviceChoiceReady&&!serviceConnected&&!connecting&&!endpoints&&!busy&&!cookieBusy&&!sharedBusy&&
+      !pending&&!cookiePending&&recoveryReady&&!recovery&&!recoveryFault&&
+      cookieReady&&!cookieFault&&!journalLocked()&&!localSwitchBlocked();
+  }
+  async function discoverDemoService(){
+    if(localConnecting||!canDiscoverDemo())return;
+    localConnecting=true;
+    try{
+      const revision=serviceRevision;
+      const info=await storeRequest('currentPage.info');
+      // Automatic selection is narrower than the existing explicit dev flow:
+      // only the canonical 7898 landing, never LAN, Market or a supplied URL.
+      if(!activationCodeFromVerifiedPage(info,[DEVELOPMENT_ACTIVATION_URLS[0]]))return;
+      const before=await readLocalPreference();
+      if(before.value!==null)return; // Includes an explicit, durable opt-out.
+      const latest=await readRecovery();
+      if(latest.record)return;
+      const pauses=await storeRequest('storage.get',{key:AUTO_PREPARATION_PAUSE_KEY,withEtag:true});
+      if(pauses.preview===true||typeof pauses.etag!=='string'||!/^[a-f0-9]{64}$/.test(pauses.etag)||
+        readAutoPreparationPauses(pauses.value).scopes.some(row=>row.serviceOrigin===DEFAULT_LOCAL_ORIGIN))return;
+      await refreshDevelopmentAvailability();
+      const fresh=await storeRequest('currentPage.info');
+      if(!canDiscoverDemo()||revision!==serviceRevision||fresh.url!==info.url||
+        !activationCodeFromVerifiedPage(fresh,[DEVELOPMENT_ACTIVATION_URLS[0]]))return;
+      const value={schemaVersion:2,enabled:true,serviceOrigin:DEFAULT_LOCAL_ORIGIN};
+      try{await storeRequest('storage.set',{key:LOCAL_PREFERENCE_KEY,value,ifMatch:before.etag});}catch{}
+      const after=await readLocalPreference();
+      const recoveryAfter=await readRecovery(),cookieAfter=await readCookieRecord();
+      const current=await storeRequest('currentPage.info');
+      if(!canDiscoverDemo()||recoveryAfter.record||journalLocked(cookieAfter.value)||
+        revision!==serviceRevision||current.url!==info.url||
+        !activationCodeFromVerifiedPage(current,[DEVELOPMENT_ACTIVATION_URLS[0]])||
+        JSON.stringify(after.value)!==JSON.stringify(value))return;
+      localChoice=true;localChoiceOrigin=DEFAULT_LOCAL_ORIGIN;
+      changeBusinessMode(true,DEFAULT_LOCAL_ORIGIN,false);
+      await refreshMember(); // GET only; the original preflight below owns review.
+    }catch{/* Unknown storage, profile or page state cannot select a service. */}
+    finally{localConnecting=false;renderLocalDevelopment();}
+  }
   async function checkActivationPage(){
+    if(!endpoints)await discoverDemoService();
     if(activationFromLink||urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||
       !memberVerifiedFresh||!endpoints||!recoveryReady||recovery||recoveryFault||
       !cookieReady||cookieFault||['unknown','partial'].includes(cookieRecord?.state)||
@@ -1775,7 +1821,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       if(canStop())void stop();else void start();
     });
     paint();
-    void update();
+    return update();
   }
   function renderConnection(){
     if(!connection)return;
@@ -1843,18 +1889,20 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     editingConnection=true;renderConnection();serviceLink.focus?.();
   });
   async function restoreServiceChoice(){
-    if(!service)return;
+    if(!service){serviceChoiceReady=true;return;}
     try{
       const {value}=await readServiceChoice();
-      if(disposed||!value)return;
+      if(disposed)return;
+      if(!value){serviceChoiceReady=true;return;}
       if(value.serviceId!==service.id||value.url!==service.url){
         connectionNotice='保存的服务与当前接入配置不同，请重新核对链接；原恢复记录保留。';renderConnection();return;
       }
       serviceConnected=true;editingConnection=false;
       if(!localMode){endpoints=productionEndpoints;await refreshMember();}
-    }catch{connectionNotice='保存的服务无法核对，请重新连接；原记录保留。';renderConnection();}
+    }catch{connectionNotice='保存的服务无法核对，请重新连接；原记录保留。';renderConnection();return;}
+    serviceChoiceReady=true;
   }
-  function renderBusinessConfiguration(){
+  function renderBusinessConfiguration(refreshNow=true){
     renderConnection();
     if(!endpoints){
     memberCard.setAttribute('data-view','unconfigured');
@@ -1872,7 +1920,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     }else{
     refresh.hidden=false;
     refresh.disabled=false;
-    void refreshMember();
+    if(refreshNow)void refreshMember();
     }
     renderRedeem();
   }
@@ -1885,11 +1933,12 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     commercialTarget:()=>assignedShared()?.targetUrl||null,onChange:renderRedeem,
     blocked:()=>cookieBusy||busy||sharedBusy||journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable)});
   // Recover independently of Provider configuration; never silently drop a journal.
-  void loadRecovery();
-  void loadCookieRecord();
+  const recoveryLoading=loadRecovery(),cookieLoading=loadCookieRecord();
   renderBusinessConfiguration();
-  void restoreServiceChoice();
-  setupManagedProxy();
+  const serviceLoading=restoreServiceChoice(),developmentLoading=setupManagedProxy();
+  void Promise.all([recoveryLoading,cookieLoading,serviceLoading,developmentLoading]).then(()=>{
+    if(!localSection&&!createDevelopmentControls&&developmentProfile)void checkActivationPage();
+  });
   // Only the open installed app observes its current target; no background sandbox.
   const activationTimer=typeof window.setInterval==='function'?
     window.setInterval(()=>{
