@@ -7,11 +7,11 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {renderToStaticMarkup} from 'react-dom/server';
 
-const compiled=await build({stdin:{contents:"export {WebflowCurrentTask} from './projects/webflow/trusted/CurrentTask.tsx';",
+const compiled=await build({stdin:{contents:"export {WebflowCurrentTask,projectTrustedTaskNotice} from './projects/webflow/trusted/CurrentTask.tsx';",
  resolveDir:fileURLToPath(new URL('../../../',import.meta.url)),loader:'tsx'},bundle:true,
  write:false,packages:'external',format:'esm',jsx:'transform'});
 const code=compiled.outputFiles[0].text.replace(/from "([^"]+)"/g,(_,name)=>`from ${JSON.stringify(import.meta.resolve(name))}`);
-const {WebflowCurrentTask}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {WebflowCurrentTask,projectTrustedTaskNotice}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 
 test('current task shows result bytes only from the Host receipt, never an unowned page preview',async()=>{
  const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
@@ -235,4 +235,75 @@ test('an authoritative unstarted receipt never borrows stale page Run or Result 
    persistence:'not-confirmed',delivery:'not-sent'});
  assert.equal(receiptFields(document)['执行资源'],'未创建执行资源');
  assert.ok(!document.body.textContent.includes('STALE_'));
+});
+
+
+test('trusted automatic notices require same original receipt and distinguish execution from delivery',()=>{
+ const view={source:{tabId:4,documentId:'doc-4',url:'https://chatgpt.com/c/current'},
+   session:{requestId:'req-4'},receipt:{requestId:'req-4',runId:'run-4',execution:'running',
+    persistence:'pending',delivery:'not-sent',release:'running'}};
+ assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,requestId:'different'}}),null);
+ assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'not-started',runId:null}}),null);
+ assert.equal(projectTrustedTaskNotice(view).phase,'running');
+ const incomplete={...view,receipt:{...view.receipt,execution:'completed',
+   resultId:'result-4',persistence:'pending',release:'running'}};
+ assert.equal(projectTrustedTaskNotice(incomplete).phase,'unverified');
+ assert.equal(projectTrustedTaskNotice({...incomplete,receipt:{...incomplete.receipt,
+   persistence:'verified',release:'released'}}).phase,'completed');
+ const delivered=projectTrustedTaskNotice({...incomplete,receipt:{...incomplete.receipt,
+   persistence:'verified',release:'released',delivery:'confirmed'}});
+ assert.equal(delivered.phase,'delivered');
+ assert.match(delivered.options.message,/回传已确认/);
+ const failed=projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'failed',
+   error:{code:'<script>',message:'page supplied'}}});
+ assert.equal(failed.phase,'failed');
+ assert.doesNotMatch(JSON.stringify(failed),/script|page supplied/);
+ assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'paused_unknown'}}).phase,'unknown');
+});
+
+test('trusted panel reuses a single owner-bound Toast, dedupes polls, and never revives a dismissed notice',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+ const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
+ const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window,document,HTMLElement:window.HTMLElement,Element:window.Element,IS_REACT_ACT_ENVIRONMENT:true});
+ const rows=new Map(),calls=[];let seq=0;
+ const noticeView={
+  addToolToast(message,options,owner){const id=++seq;rows.set(id,{message,options,owner});
+   calls.push('open');return id;},
+  updateToolToast(id,message,options,owner){if(rows.get(id)?.owner!==owner)return false;
+   rows.set(id,{message,options,owner});calls.push('update');return true;},
+  hasToast(id,owner){return rows.get(id)?.owner===owner;},
+  dismissToast(id){rows.delete(id);calls.push('dismiss');},
+  clearToastsByOwner(owner){for(const [id,row] of rows)if(row.owner===owner)rows.delete(id);
+   calls.push('clear');}
+ };
+ const source={tabId:7,documentId:'doc-7',url:'https://chatgpt.com/c/seven'};
+ const session={requestId:'req-7',url:source.url,fields:{},tasks:[],actions:{}};
+ const build=(execution,rest={})=>({source,session,receipt:{requestId:session.requestId,
+   runId:'run-7',resultId:'result-7',execution,persistence:'pending',release:'running',
+   delivery:'not-sent',...rest}});
+ const bridge=view=>({view,error:'',revision:0,read:async()=>{},execute:async()=>{}});
+ const root=createRoot(document.getElementById('root'));
+ const render=async view=>React.act(async()=>root.render(React.createElement(WebflowCurrentTask,
+   {controller:{},bridge:bridge(view),noticeView})));
+ try{
+  await render(null);
+  const running=build('running');
+  await render(running);assert.deepEqual(calls,['open']);
+  await render({...running});assert.deepEqual(calls,['open'],'polling cannot create or update duplicate notices');
+  await render(build('completed'));assert.equal(calls.at(-1),'update');
+  assert.match([...rows.values()][0].message,/待核验/);
+  await render(build('completed',{persistence:'verified',release:'released'}));
+  assert.match([...rows.values()][0].message,/不等于业务成功/);
+  await render(build('completed',{persistence:'verified',release:'released',delivery:'confirmed'}));
+  assert.match([...rows.values()][0].message,/回传已确认/);
+  rows.clear();
+  await render(build('paused_unknown'));
+  assert.equal(calls.filter(x=>x==='open').length,1,'dismissal must not recreate a notice');
+  assert.equal(rows.size,0);
+ }finally{
+  await React.act(async()=>root.unmount());
+  for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+ assert.ok(calls.includes('clear'),'unmount clears its own transient Host notices');
 });
