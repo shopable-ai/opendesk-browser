@@ -831,3 +831,24 @@ test('P0 R1.2 unavailable degrades to original durable history, not another Task
   assert.match(f.text(),/查询原请求/);
   await f.close();
 });
+
+test('P0 trusted read permission failure downgrades one prior success Toast and never replays Run',async t=>{
+  const host=sdk(),changes=[];
+  host.notify={open(options){changes.push({op:'open',options});
+    return {ready:Promise.resolve({status:'accepted'}),
+      update(next){changes.push({op:'update',options:next});return Promise.resolve({status:'accepted'});},
+      dismiss(){changes.push({op:'dismiss'});return Promise.resolve({status:'accepted'});}};}};
+  host.start=async id=>complete(id);
+  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
+  assert.equal(changes.filter(x=>x.op==='open').length,1);
+  assert.match(changes[0].options.message,/脚本执行完成/);
+  host.read=async()=>{throw problem('E_PERMISSION');};
+  await f.click('查询原请求');
+  assert.equal(changes.filter(x=>x.op==='open').length,1);
+  const warning=changes.filter(x=>x.op==='update').at(-1);
+  assert.equal(warning.options.type,'warning');
+  assert.match(warning.options.message,/结果未确认/);
+  assert.match(f.text(),/E_PERMISSION/);
+  assert.equal(starts(host).length,1,'permission failure never resubmits Task');
+  await f.close();
+});
