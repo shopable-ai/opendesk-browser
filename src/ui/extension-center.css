@@ -3,8 +3,8 @@
  * stays at the canonical 11px minimum and every row reserves its menu target. */
 #sidebar-tool-list-view>.sidebar-tools-head,#sidebar-tool-list-view>#sidebar-tool-my-panel,#sidebar-tool-list-view>#sidebar-tool-discover-panel{display:none!important}
 #extension-center{min-width:0}#extension-center [hidden]{display:none!important}
-/* Match the Web Flow reference's white content surface. */
-:root[data-opendesk-tab="tools"][data-opendesk-tool="list"] #workspace-content{background:var(--od-paper);padding-block:var(--space-3)}
+/* Match the compact reference's vertical inset; the shared theme owns the canvas. */
+:root[data-opendesk-tab="tools"][data-opendesk-tool="list"] #workspace-content{padding-block:var(--space-3)}
 .ec-toolbar{display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:var(--space-2)}
 .ec-search{display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;height:36px;margin:0;padding:0 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .ec-search:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}

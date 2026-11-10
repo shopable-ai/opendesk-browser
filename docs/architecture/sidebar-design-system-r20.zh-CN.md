@@ -241,7 +241,8 @@ Prompt Shortcuts 的 `ps-count` 保留数量计算及 `aria-live`，用视觉隐
 ## 2026-11-09 · Web Flow V0.3.2 浅蓝灰皮肤收敛（Host 层）
 
 - **来源与目标**：以 `projects/webflow/preview/index.html` 的浅蓝灰、连续页头和细分隔为视觉参考；不复制其 CSS 为第二套框架，不将聊天模拟当作安装版视觉验收。正式视觉仍以 `src/ui/design-tokens.css` 与 `src/ui/design-system.css` 为权威。
-- **颜色语义**：浅色次级文字使用 `--od-sub:#5b6e86`，在白底及浅灰底均保留普通小文本 AA 对比度；`--od-line:#dfe6ef`、`--od-bg:#f4f6fa`；保留原 `--od-brand`、`--od-focus`、暗色 Tokens 及危险/成功语义。不要照搬预览中对比度不足的浅灰小字。
+- **颜色语义（2026-11-10 修正）**：浅色次级文字使用 `--od-sub:#5b6e86`，在白底及浅灰底均保留普通小文本 AA 对比度；`--od-line:#dfe6ef`。默认浅色页面画布 `--od-bg:#fff` 与表面 `--od-paper:#fff` 均为白色，五 Tab、详情、工具宿主和独立 Catalog 沿同一 `design-system.css` 的 root/body 消费，不在单个 Tab 追加背景覆盖。Web Flow 预览外围展示画布的 `#f4f6fa` 不用作默认产品页面底色，`#f7f6fd` 也不属于这套产品参考色板。保留原 `--od-muted` 的悬停/只读语义、`--od-brand`、`--od-focus`、暗色 Tokens 及危险/成功语义。不要照搬预览中对比度不足的浅灰小字，也不跨沙箱覆盖工具自身主题。
 - **Header 所有权**：`od-toolbar` 只负责水平排列，`od-page-head` 仍提供公共页头结构与 Ghost 操作视觉。仅 `sidebar-tool-view-head` 负责已安装工具顶部连续白底、单层边线、48px 页头和与 iframe 对齐的唯一 gutter；原 30px 桌面、44px 粗指针命中区不因视觉调整而缩小。五 Tab 从语义色读取文字/选中态，暗色模式保留原高对比度选中提示。
 - **可信状态与独立应用**：Web Flow 的可信自动运行行在 Header 下使用同一画布宽度和底部分隔线，运行授权按钮仍保持 44px 命中区；工具内 `wf-app` 在隔离 iframe 中单独映射浅色语义颜色及暗色文字对比，不注入宿主 CSS。其它工具不必修改业务结构或授权边界。
 - **回归与交付**：公共 CSS 改动按现有 `sidebar-component-contract.test.mjs`、`sidebar-tool-spacing-contract.test.mjs`、`sidebar-tool-header-title-r2.test.mjs` 与相关真实消费者回归。Web Flow 源码变化后由原 `projects/webflow/preview/build-design.mjs` 生成当前源码同源预览并执行 `check-design.mjs`，不可手修生成 HTML/manifest 冒充同源。只有与当前候选绑定的真实 Mac Chrome 截图及 computed style、点击/焦点/主题核验才能报告视觉 ≥95；未测标 `NOT_TESTED`。
+- **本轮关键测试条件（2026-11-10）**：在实际加载的 `dist/development`、原扩展 ID 和已连接 watcher 下逐一进入五个产品 Tab，核实 root/body 的浅色计算背景均为 `rgb(255, 255, 255)`，透明工作区及详情/工具返回继续呈现同一白色画布。当前真实宽度下无页面级水平溢出、菜单遮挡或操作裁切；搜索命中/无结果/清空、类型筛选/恢复、菜单 Escape/焦点及详情返回保持可用。共享浅深色文字、焦点及输入边界对比度作定向检查；截图须与实际 revision 绑定，临时样式不得当作持久生效。尚未执行的主题切换、尺寸/缩放矩阵、安装和 production 验收保留 `NOT_TESTED`，不扩大为本轮前置。

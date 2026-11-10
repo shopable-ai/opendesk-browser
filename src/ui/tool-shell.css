@@ -268,7 +268,6 @@
 #task-package-file{font-size:11px;background:white}
 [data-opendesk-surface=catalog] .workbench-nav,[data-opendesk-surface=catalog] #open-catalog,[data-opendesk-surface=catalog] .workspace-dock{display:none}
 [data-opendesk-surface=catalog] #workspace-content{max-width:1160px;padding:25px 27px}
-[data-opendesk-surface=catalog] body{background:#f5f7fb}
 [data-opendesk-surface=catalog] #workbench-discover{min-height:100%}
 @media(max-width:900px){.catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){
