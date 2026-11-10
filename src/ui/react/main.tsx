@@ -24,6 +24,7 @@ import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
 import updateNoticeCSS from './components/update-notice.css?raw';
+import confirmationCSS from './components/confirmation.css?raw';
 import KnowledgeWorkspace from '../../../projects/ai-knowledge-answers/trusted/Workspace.jsx';
 import knowledgeWorkspaceCSS from '../../../projects/ai-knowledge-answers/trusted/workspace.css?raw';
 import AIProxySurface from '../../../projects/ai-proxy/trusted/Surface.jsx';
@@ -107,7 +108,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS}</style>
+      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS+'\n'+confirmationCSS}</style>
       <SidebarAppShell activeTab={navigationTab} pageSurface={pageSurface} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}

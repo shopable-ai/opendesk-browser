@@ -999,3 +999,162 @@ test('conversation receipt is unavailable to a different original document',asyn
   assert.equal(status.result,undefined);assert.equal(status.resultText,undefined);
   assert.equal(status.resultPacketId,undefined);
 });
+
+// Trusted settings controls use only the existing controller and metadata APIs.
+function trustedFilesHarness(options){
+  const h=setup(options),get=h.api.tabs.get;
+  h.api.tabs.get=async id=>id===owner.tab.id?{...owner.tab,url:owner.url}:get(id);
+  h.api.runtime.getContexts=async({documentIds})=>documentIds.includes(owner.documentId)?
+    [{contextType:'TAB',documentId:owner.documentId,documentUrl:owner.url,tabId:owner.tab.id,frameId:0,incognito:false}]:[];
+  return h;
+}
+const trustedRef=h=>{
+  const s=h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'];
+  return {sourceTabId:s.source.tabId,sourceDocumentId:s.source.documentId,projectId:s.project.id};
+};
+test('trusted Stop fences a cold alarm restore before any further dispatch',{timeout:2000},async()=>{
+  const h=trustedFilesHarness();await projectProposal(h);const ref=trustedRef(h),before=h.counts();h.controller.dispose();
+  const entered=deferred(),release=deferred(),get=h.api.storage.local.get;let blocked=false;
+  h.api.storage.local.get=async key=>{
+    if(key==='opendesk.chatgpt.files.tasks.v1'&&!blocked){blocked=true;entered.resolve();await release.promise;}
+    return get(key);
+  };
+  const controller=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
+  try{
+    const waking=controller.tick();await entered.promise;
+    // A validated Stop must install its fence while restore is still blocked.
+    const admitted=deferred(),tabs=h.api.tabs.get;
+    h.api.tabs.get=async id=>{const tab=await tabs(id);if(id===owner.tab.id)admitted.resolve();return tab;};
+    const stopping=controller.projectStopTrusted(ref,owner);await admitted.promise;
+    await new Promise(resolve=>setImmediate(resolve));release.resolve();
+    await Promise.all([waking,stopping]);
+    assert.deepEqual(h.counts(),before,'cold restore must not dispatch a write after trusted Stop');
+    assert.equal(h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'].paused,true);
+  }finally{release.resolve();controller.dispose();}
+});
+test('trusted Stop fences the persisted task hidden by tentative replacement',{timeout:2000},async()=>{
+  const h=trustedFilesHarness();await projectProposal(h);const ref=trustedRef(h),before=h.counts();
+  const entered=deferred(),release=deferred(),state=h.files.state;let blocked=false;
+  h.files.state=async()=>{if(!blocked){blocked=true;entered.resolve();await release.promise;}return state();};
+  try{
+    const replacement=h.controller.projectTask({task:projectTask},pageSender);
+    const rejected=assert.rejects(replacement,error=>['E_PROJECT_BUSY','E_FILE_PAUSED'].includes(error.code));
+    await entered.promise;
+    const waking=h.controller.tick();
+    const stopping=h.controller.projectStopTrusted(ref,owner);
+    // Attach rejection now so the pre-fix early throw remains an assertion failure.
+    const settled=stopping.then(value=>({value}),error=>({error}));
+    await new Promise(resolve=>setImmediate(resolve));release.resolve();
+    await Promise.all([rejected,waking]);const stopped=await settled;
+    assert.equal(stopped.error,undefined,'persisted exact identity must remain stoppable during replacement');
+    assert.deepEqual(h.counts(),before);
+    assert.equal(h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'].paused,true);
+  }finally{release.resolve();h.controller.dispose();}
+});
+for(const change of ['disconnect','session','lease','workspace-revoked','access','unknown','grant-revoked']){
+  test('trusted projection conceals cached bodies after '+change,async()=>{
+    const h=trustedFilesHarness();await projectProposal(h);await h.controller.tick();
+    const ref=trustedRef(h),before=h.counts(),request=h.files.request,state=h.files.state,methods=[];
+    assert.match((await h.controller.projectStatusTrusted(ref,owner)).resultText,/safe modified/);
+    if(change==='disconnect')h.files.state=()=>({...state(),connected:false});
+    if(change==='session')h.session('replacement-native-session');
+    if(change==='lease')h.epoch('replacement-lease-123456');
+    if(change==='access')h.access('read-only');
+    if(change==='grant-revoked')Object.values(h.ledger['opendesk.chatgpt.files.grants.v1'])[0].revoked=true;
+    h.files.request=async(...args)=>{
+      methods.push(args[0]);assert.ok(['files.status','workspaces.list'].includes(args[0]),'status must never access file bytes');
+      if(change==='unknown')throw {code:'E_FILES_TIMEOUT'};
+      if(change==='workspace-revoked'&&args[0]==='workspaces.list')return {workspaces:[]};
+      return request(...args);
+    };
+    try{
+      for(const action of ['projectStatusTrusted','projectStopTrusted']){
+        const result=await h.controller[action](ref,owner);
+        for(const field of ['resultText','result','comparison','request','promptText'])assert.equal(result[field],undefined,field);
+        assert.doesNotMatch(JSON.stringify(result),/safe original|safe modified/);
+      }
+      assert.deepEqual(h.counts(),before);
+    }finally{h.controller.dispose();}
+  });
+}
+test('trusted Stop rejects wrong tab, document, project and settings identities without fencing the task',async()=>{
+  for(const cold of [false,true])for(const change of [
+    {ref:{sourceTabId:8}},{ref:{sourceDocumentId:'different-document'}},{ref:{projectId:'different-project'}},
+    {sender:{documentId:'different-settings-document'}},{sender:{tab:{id:52,windowId:3}}},{sender:pageSender}
+  ]){
+    const h=trustedFilesHarness();await projectProposal(h);const ref=trustedRef(h);
+    let controller=h.controller;
+    if(cold){controller.dispose();controller=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});}
+    try{
+      await assert.rejects(controller.projectStopTrusted({...ref,...change.ref},{...owner,...change.sender}));
+      await controller.tick();assert.equal(h.counts().writes,1,'invalid Stop cannot fence the exact live task');
+    }finally{controller.dispose();}
+  }
+});
+test('trusted Stop preserves the dispatched write identity and real receipt or UNKNOWN',{timeout:2000},async()=>{
+  for(const unknown of [false,true]){
+    const h=trustedFilesHarness({unknown});await projectProposal(h);const ref=trustedRef(h);
+    const entered=deferred(),release=deferred(),request=h.files.request;let requestId;
+    h.files.request=async(...args)=>{
+      if(args[0]!=='files.write')return request(...args);
+      requestId=args[2].requestId;entered.resolve();await release.promise;return request(...args.slice(0,2),{...args[2],beforeDispatch:undefined});
+    };
+    // Simulate an already sent request: its eventual host receipt does not
+    // re-run the admission guard after Stop. The real service does the same.
+    const waking=h.controller.tick();await entered.promise;
+    const stopping=h.controller.projectStopTrusted(ref,owner);
+    await new Promise(resolve=>setImmediate(resolve));release.resolve();
+    try{
+      await Promise.all([waking,stopping]);
+      const row=h.ledger[writeLedger][requestId];
+      assert.equal(row.requestId,requestId);assert.equal(row.state,unknown?'unknown':'confirmed');
+      const saved=h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'];
+      assert.equal(saved.resultPacket.result.requestId,requestId);
+      assert.equal(saved.resultPacket.result.status,unknown?'unknown':'success');
+      assert.equal(saved.paused,true);assert.equal(h.counts().writes,1);
+      h.controller.dispose();const before=h.counts();
+      const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
+      try{await resumed.tick();assert.deepEqual(h.counts(),before);assert.equal(h.ledger[writeLedger][requestId].state,row.state);}
+      finally{resumed.dispose();}
+    }finally{release.resolve();h.controller.dispose();}
+  }
+});
+test('trusted projection rechecks revocation and connection after its metadata request',async()=>{
+  for(const change of ['disconnect','grant-revoked','disabled']){
+    const h=trustedFilesHarness();await projectProposal(h);const ref=trustedRef(h),before=h.counts(),request=h.files.request;
+    h.files.request=async(...args)=>{
+      assert.equal(args[0],'workspaces.list');const result=await request(...args);
+      if(change==='disconnect')h.files.state=()=>({connected:false});
+      if(change==='grant-revoked')Object.values(h.ledger['opendesk.chatgpt.files.grants.v1'])[0].revoked=true;
+      if(change==='disabled')h.ledger['opendesk.chatgpt.files.preferences.v1']={enabled:false};
+      return result;
+    };
+    try{
+      const result=await h.controller.projectStatusTrusted(ref,owner);
+      assert.equal(result.resultText,undefined);assert.equal(result.result,undefined);assert.equal(result.comparison,undefined);
+      assert.deepEqual(h.counts(),before);
+    }finally{h.controller.dispose();}
+  }
+});
+
+test('trusted projection conceals bodies when Native disconnects during final authority validation',async()=>{
+  const h=trustedFilesHarness();await projectProposal(h);await h.controller.tick();
+  const ref=trustedRef(h),before=h.counts(),request=h.files.request,get=h.api.tabs.get;
+  assert.match((await h.controller.projectStatusTrusted(ref,owner)).resultText,/safe modified/);
+  let metadataChecked=false;
+  h.files.request=async(...args)=>{
+    assert.equal(args[0],'workspaces.list');
+    const result=await request(...args);metadataChecked=true;return result;
+  };
+  h.api.tabs.get=async id=>{
+    const tab=await get(id);
+    if(metadataChecked&&id===7)h.files.state=()=>({connected:false});
+    return tab;
+  };
+  try{
+    const result=await h.controller.projectStatusTrusted(ref,owner);
+    assert.equal(result.resultText,undefined);assert.equal(result.result,undefined);assert.equal(result.comparison,undefined);
+    assert.doesNotMatch(JSON.stringify(result),/safe original|safe modified/);
+    assert.deepEqual(h.counts(),before);
+  }finally{h.controller.dispose();}
+});

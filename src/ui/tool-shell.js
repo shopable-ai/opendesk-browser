@@ -19,7 +19,7 @@ import {scrollConversationPolicy} from '../../projects/ai-scroll-navigation/trus
 import {createTrustedKnowledgeHost} from '../../projects/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
-import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource} from '../marketplace/panel-navigation.js';
+import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource,MARKET_PANEL_NAV_PROTOCOL} from '../marketplace/panel-navigation.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
@@ -221,8 +221,11 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
        !['available','review_required'].includes(row.status))return false;
     if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
       try{
-        const pending=chrome.sidePanel.open({windowId:chrome.windows.WINDOW_ID_CURRENT});
-        return Promise.resolve(pending).then(()=>true,()=>false);
+        const pending=chrome.runtime.sendMessage({protocol:MARKET_PANEL_NAV_PROTOCOL,
+          action:'NAVIGATE',target:'review',toolId:row.id,version:row.version,
+          marketId:row.source,sha256:row.sha256});
+        return Promise.resolve(pending).then(reply=>reply?.ok===true&&
+          reply.protocol===MARKET_PANEL_NAV_PROTOCOL&&reply.status==='REVIEW_REQUEST_ACCEPTED');
       }catch{return false;}
     }
     return (async()=>{
@@ -233,7 +236,8 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
       if(!current||taskWorkbench.navigate('tools')===false)return false;
       await sidebarTools.ready;
       if(!sidebarTools.canPresentMarketReview())return false;
-      return sidebarTools.openOfficialReview(row.id)===true;
+      return sidebarTools.openOfficialReview(row.id,
+        {id:row.source,version:row.version,sha256:row.sha256})===true;
     })();
   },
   onStopAppDebug:()=>void stopPanelDevelopment()});
@@ -621,7 +625,8 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
             if(request.source!=='built-in')return changed('外部市场不能要求安装内置官方发行。');
             if(!sidebarTools.canPresentMarketReview())return blocked('已有草稿或其他安装审阅，请完成后重新发起。');
             if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区拒绝导航，草稿已保留。');
-            return sidebarTools.openOfficialReview(request.toolId)===true
+            return sidebarTools.openOfficialReview(request.toolId,
+              {id:request.marketId,version:request.releaseVersion,sha256:request.sha256})===true
               ?{status:'REVIEW_REQUEST_ACCEPTED',message:'正式安装审阅入口已接收；安装结果请以侧边栏与本机记录为准。'}
               :blocked('安装审阅入口暂不可用，原请求未提交。');
           }

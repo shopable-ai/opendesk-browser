@@ -64,6 +64,7 @@ details[open]>summary{margin-bottom:14px}
 .advanced-content p,.privacy-full-disclosure p{font-size:11.5px;line-height:1.65;color:var(--od-sub)}
 .advanced-content button{justify-self:start}
 .connection-diagnostics{white-space:pre-line;overflow-wrap:anywhere}
+#chatgpt-file-run-receipt{white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto}
 .analytics-privacy{display:grid;gap:12px}
 .analytics-privacy>p{font-size:11.5px;line-height:1.65;color:var(--od-sub)}
 .privacy-details{margin:0;padding:0}

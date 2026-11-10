@@ -137,8 +137,9 @@
         {message:'模拟任务失败',type:'error',caption:business.error,timeout:0,position:position.value};
       const changed=await handle.update(next);
       if(record.closeAttempted||!alive)return;
-      publish(token,settle(record,changed,'更新为'+(business.ok?'成功':'失败'))+
-        (business.ok?' 演示完成。':' 失败原因：'+business.error+'；请手动关闭。'));
+      settle(record,changed,'更新为'+(business.ok?'成功':'失败'));
+      if(!business.ok){record.text+=' 失败原因：'+business.error+'；请手动关闭。';renderHistory();}
+      publish(token,record.text+(business.ok?' 演示完成。':''));
       if(business.ok&&activeHandle===handle){activeHandle=null;activeRecord=null;}
       return;
     }
@@ -147,7 +148,9 @@
         samples[which]();
       publish(token,'提交 '+values.length+' 次创建，逐条结果保留在请求记录。');
       const rows=await Promise.all(values.map(value=>createNotice({...selected(),...value})));
-      publish(token,rows.map(row=>'#'+row.id+' '+row.text).join(' '));return;
+      const accepted=rows.filter(row=>row.accepted).length;
+      publish(token,values.length+' 次请求：Host 接纳 '+accepted+' 条，其余 '+(rows.length-accepted)+
+        ' 条未确认接纳。逐条原因见请求记录；请观察实际通知。');return;
     }
     const factory=Object.hasOwn(samples,which)?samples[which]:null;
     if(!factory)return;
@@ -155,8 +158,9 @@
       for(const value of factory()){
         const record=recordRequest(typeof value==='string'?value:value.message);
         const submitted=notify(typeof value==='string'||which==='invalid'?value:{...selected(),...value});
-        record.text=submitted?'沙箱已提交，无 Host 回执；相同内容默认合并，每次仍占额度。':
-          which==='invalid'?'PASS：非法动作参数已在本地拒绝，未发送。':'本地拒绝，未提交。';
+        record.text=which==='invalid'?(submitted?'FAIL：非法动作参数被本地接受，请停止测试并检查 Browser 版本。':
+          'PASS：非法动作参数已在本地拒绝，未发送。'):
+          submitted?'沙箱已提交，无 Host 回执；相同内容默认合并，每次仍占额度。':'本地拒绝，未提交。';
         renderHistory();publish(token,record.text);
       }
       return;

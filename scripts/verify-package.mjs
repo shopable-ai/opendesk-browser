@@ -101,7 +101,7 @@ const HTML_REFERENCES = Object.freeze({
 // are not executable resource inputs. Keep the admission exact and separate
 // from the script/stylesheet reference list.
 const HTML_NAVIGATION_REFERENCES = Object.freeze({
-  'native-agent/settings.html': ['settings.html#chatgpt-files', '#chatgpt-images']
+  'native-agent/settings.html': ['#chatgpt-images']
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];

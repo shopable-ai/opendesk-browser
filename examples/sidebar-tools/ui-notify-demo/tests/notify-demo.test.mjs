@@ -10,7 +10,7 @@ const root=new URL('../',import.meta.url).pathname;
 test('ui.notify laboratory uses one valid standalone v1 tool and no capabilities',async()=>{
   const pkg=validateSidebarToolPackage(await createSidebarToolPackage(root));
   assert.equal(pkg.id,'ui-notify-demo');
-  assert.equal(pkg.version,'1.2.0');
+  assert.equal(pkg.version,'1.2.2');
   assert.equal(pkg.format,SIDEBAR_TOOL_FORMAT);
   assert.deepEqual(pkg.capabilities,[]);
   assert.match(pkg.html,/通知组件实验室/);
@@ -45,7 +45,7 @@ import {createToolUiNoticeRateGate} from '../../../../src/sidebar-tools/ui-notic
 import {createSidebarToolsView} from '../../../../src/ui/sidebar-tools-view.js';
 const source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 const flush=async()=>{for(let i=0;i<20;i++)await Promise.resolve();};
-function laboratory({legacy=false,deferReady=false}={}){
+function laboratory({legacy=false,deferReady=false,unsafeInvalid=false}={}){
   class Element{
     constructor(){this.textContent='';this.children=[];this.dataset={};}
     append(...nodes){this.children.push(...nodes);}
@@ -67,7 +67,7 @@ function laboratory({legacy=false,deferReady=false}={}){
     return {id,receipt:id?{status:'accepted',reason:'host_state'}:{status:'rejected',reason:'overflow'}};
   }
   const notify=value=>{
-    if(value?.action)return false;
+    if(value?.action)return unsafeInvalid;
     sends++;
     if(gate.allow('laboratory'))view.showToast(typeof value==='string'?value:value.message,{...value,owner:'laboratory'});
     return true;
@@ -124,6 +124,7 @@ test('batch stack stays until close; duplicate legacy uses the original grouping
   const lab=laboratory();lab.click('stack');await flush();
   assert.equal(lab.view.getSnapshot().toasts.length,3);
   assert.ok(lab.view.getSnapshot().toasts.every(row=>row.timeout===0));
+  assert.match(lab.fields.result.textContent,/3 次请求：Host 接纳 3 条/);
   lab.close(1);await flush();assert.equal(lab.view.getSnapshot().toasts.length,2);
   const grouped=laboratory();grouped.click('group');await flush();
   assert.equal(grouped.view.getSnapshot().toasts.length,1);
@@ -155,4 +156,19 @@ test('legacy bridge and invalid input remain honest about missing receipts',asyn
   assert.match(lab.texts()[0],/旧 Bridge 无 Host 回执/);
   lab.click('invalid');await flush();assert.match(lab.texts()[0],/本地拒绝/);
   assert.equal(lab.sends,1);
+  const unsafe=laboratory({unsafeInvalid:true});unsafe.click('invalid');await flush();
+  assert.match(unsafe.texts()[0],/FAIL.*停止测试/);
+});
+
+test('failed business result updates the original notice and keeps its reason after other clicks',async()=>{
+  const lab=laboratory();lab.click('loading-fail');await flush();
+  const id=lab.view.getSnapshot().toasts[0].id;
+  lab.finishTask();await flush();
+  const updated=lab.view.getSnapshot().toasts;
+  assert.equal(updated.length,1);assert.equal(updated[0].id,id);
+  assert.equal(updated[0].type,'error');assert.equal(updated[0].caption,'模拟任务拒绝执行');
+  lab.click('invalid');await flush();
+  assert.ok(lab.texts().some(text=>text.includes('更新为失败')&&text.includes('模拟任务拒绝执行')));
+  lab.click('loading-success');await flush();assert.equal(lab.sends,1,'failed task stays locked until closed');
+  lab.click('handle-close');await flush();assert.equal(lab.view.getSnapshot().toasts.length,0);
 });

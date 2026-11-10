@@ -18,7 +18,7 @@ async function fixture(t) {
   return {root, html, write: value => writeFile(join(root, file), value)};
 }
 
-test('package HTML accepts only the two existing Settings navigation links', async t => {
+test('package HTML accepts only the remaining Settings navigation link', async t => {
   const {root} = await fixture(t);
   await inspectHTML(root, file);
 });
@@ -26,10 +26,10 @@ test('package HTML accepts only the two existing Settings navigation links', asy
 test('Settings navigation rejects external, encoded and arbitrary local targets', async t => {
   const {root, html, write} = await fixture(t);
   for (const target of ['https://evil.invalid/', '//evil.invalid/x', 'javascript:alert(1)',
-    'data:text/html,x', '../sidepanel.html', 'settings.html#other', '#other',
+    'data:text/html,x', '../sidepanel.html', 'settings.html#other', '#other', 'settings.html#chatgpt-files',
     'settings.html?x=1#chatgpt-files', 'settings.html%23chatgpt-files',
     'settings.html&#35;chatgpt-files', 'settings.html\\#chatgpt-files']) {
-    await write(html.replace('settings.html#chatgpt-files', target));
+    await write(html.replace('href="#chatgpt-images"', 'href="' + target + '"'));
     await assert.rejects(inspectHTML(root, file), /Unsafe HTML/);
   }
 });
@@ -38,10 +38,10 @@ test('Settings navigation cannot lose isolation or become a resource consumer', 
   const {root, html, write} = await fixture(t);
   for (const changed of [html.replace('rel="noopener"', 'rel="opener"'),
     html.replace('target="_blank"', 'target="_self"'),
-    html.replace('href="settings.html#chatgpt-files"', 'href=settings.html#chatgpt-files'),
-    html.replace('href="settings.html#chatgpt-files"', 'href="settings.html#chatgpt-files" download'),
-    html.replace('<a href="settings.html#chatgpt-files"', '<link href="settings.html#chatgpt-files"'),
-    html.replace('<a href="settings.html#chatgpt-files"', '<script src="settings.html#chatgpt-files"')]) {
+    html.replace('href="#chatgpt-images"', 'href=#chatgpt-images'),
+    html.replace('href="#chatgpt-images"', 'href="#chatgpt-images" download'),
+    html.replace('<a href="#chatgpt-images"', '<link href="#chatgpt-images"'),
+    html.replace('<a href="#chatgpt-images"', '<script src="#chatgpt-images"')]) {
     await write(changed);
     await assert.rejects(inspectHTML(root, file), /Unsafe HTML/);
   }
@@ -53,7 +53,8 @@ test('Settings links do not admit executable, external stylesheet or inline reso
   const {root, html, write} = await fixture(t);
   for (const changed of [html.replace('src="settings.js"', 'src="https://evil.invalid/x.js"'),
     html.replace('href="settings.css"', 'href="https://evil.invalid/x.css"'),
-    html + '<script>void 0</script>', html + '<button onclick="run()">run</button>']) {
+    html + '<script>void 0</script>', html + '<button onclick="run()">run</button>',
+    html + '<pre style="white-space:pre-wrap">receipt</pre>']) {
     await write(changed);
     await assert.rejects(inspectHTML(root, file), /Unsafe HTML/);
   }

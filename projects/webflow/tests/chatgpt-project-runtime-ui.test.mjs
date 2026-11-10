@@ -27,14 +27,20 @@ function harness(handler){
     node.addEventListener=(kind,fn)=>{listeners.set(kind,fn);add(kind,fn);};
     node.fire=(kind='click',isTrusted=true)=>listeners.get(kind)?.({isTrusted});
   }
-  const events=new Set(),calls=[],api={
-    runtime:{sendMessage:async value=>{calls.push(value);return handler(value);}},
-    storage:{onChanged:{addListener:fn=>events.add(fn),removeListener:fn=>events.delete(fn)}}
+  const events=new Set(),calls=[],stored={},api={
+    runtime:{sendMessage:async value=>{calls.push(value);return handler(value,api);}},
+    storage:{local:{async set(values){
+      const changes={};
+      for(const [key,newValue] of Object.entries(values)){
+        changes[key]={oldValue:stored[key],newValue};stored[key]=newValue;
+      }
+      for(const listener of events)listener(changes,'local');
+    }},onChanged:{addListener:fn=>events.add(fn),removeListener:fn=>events.delete(fn)}}
   };
   const destroy=initChatGPTProjectRuntimeUI({api,document:doc});
   const get=id=>doc.getElementById('chatgpt-file-run-'+id);
   const choose=()=>{const selector=get('choice');selector.value=JSON.stringify([task.sourceTabId,task.sourceDocumentId,task.projectId]);selector.fire('change');};
-  return {doc,calls,destroy,get,choose,change:(changes)=>{for(const listener of events)listener(changes,'local');}};
+  return {doc,api,calls,destroy,get,choose,change:(changes)=>{for(const listener of events)listener(changes,'local');}};
 }
 test('trusted file manager lists persisted tasks and never reads files by selecting',async()=>{
   const h=harness(msg=>msg.action==='project-list'?{ok:true,data:{tasks:[task]}}:
@@ -110,5 +116,115 @@ test('manual review selects only a live original ChatGPT document, never makes a
     assert.equal(h.calls[1].sourceTabId,source.sourceTabId);
     assert.equal(h.calls[1].sourceDocumentId,source.sourceDocumentId);
     assert.match(h.get('status').textContent,/一次性可信审阅页/);
+  }finally{h.destroy();}
+});
+
+for(const order of ['before-response','after-response'])test(`Stop settlement survives its persisted tasks event: ${order}`,async()=>{
+  let h,finishStop;
+  h=harness(msg=>{
+    if(msg.action==='project-list')return {ok:true,data:{tasks:[task]}};
+    if(msg.action==='project-status')return {ok:true,data:{...task,phase:'paused',resultText:'current authorized bytes'}};
+    if(msg.action==='project-stop')return new Promise(resolve=>{finishStop=async()=>{
+      const persist=()=>h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{task:{...task,phase:'paused'}}});
+      if(order==='before-response')await persist();
+      resolve({ok:true,data:{...task,phase:'paused',resultText:'stop snapshot'}});
+      if(order==='after-response')setImmediate(persist);
+    };});
+    throw Error('unexpected action: '+msg.action);
+  });
+  try{
+    await settle();h.choose();h.get('stop').fire();await settle();
+    await finishStop();await settle();await settle();
+    assert.match(h.get('status').textContent,/已停止/);
+    assert.equal(h.get('stop').disabled,false);
+    assert.deepEqual(h.calls.map(x=>x.action),['project-list','project-stop','project-status']);
+    assert.deepEqual(h.calls.at(-1),{protocol:'opendesk.chatgpt.project.v1',action:'project-status',sourceTabId:7,sourceDocumentId:task.sourceDocumentId,projectId:task.projectId});
+    assert.match(h.get('receipt').textContent,/current authorized bytes/);
+  }finally{h.destroy();}
+});
+
+for(const pending of ['project-stop','project-status'])test(`grant revocation masks late ${pending} after Stop persistence`,async()=>{
+  let finish;
+  const h=harness(msg=>{
+    if(msg.action==='project-list')return {ok:true,data:{tasks:[task]}};
+    if(msg.action===pending)return new Promise(resolve=>{finish=resolve;});
+    return {ok:true,data:{...task,phase:'paused',resultText:'cached bytes'}};
+  });
+  try{
+    await settle();h.choose();h.get('stop').fire();await settle();
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});await settle();
+    await h.api.storage.local.set({'opendesk.chatgpt.files.grants.v1':{}});
+    const revokedStatus=h.get('status').textContent;
+    assert.equal(h.get('receipt').hidden,true);assert.equal(h.get('receipt').textContent,'');
+    finish({ok:true,data:{...task,phase:'paused',resultText:'late revoked bytes'}});await settle();
+    assert.equal(h.get('receipt').hidden,true);assert.equal(h.get('receipt').textContent,'');
+    assert.equal(h.get('status').textContent,revokedStatus);
+    assert.equal(h.calls.filter(x=>x.action==='project-stop').length,1);
+    assert.equal(h.calls.filter(x=>x.action==='project-status').length,pending==='project-status'?1:0);
+  }finally{h.destroy();}
+});
+
+for(const invalidation of ['dispose','selection','tasks','grants'])test(`Stop reconciliation drops late status after ${invalidation}`,async()=>{
+  const pending=[];
+  const h=harness(msg=>{
+    if(msg.action==='project-list')return {ok:true,data:{tasks:[task]}};
+    if(msg.action==='project-status')return new Promise(resolve=>pending.push(resolve));
+    return {ok:true,data:{...task,phase:'paused',resultText:'cached bytes'}};
+  });
+  try{
+    await settle();h.choose();h.get('stop').fire();await settle();
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});await settle();
+    assert.equal(h.get('receipt').textContent,'','ledger event immediately masks cached bytes');
+    if(invalidation==='dispose')h.destroy();
+    else if(invalidation==='selection'){h.get('choice').value='';h.get('choice').fire('change');}
+    else await h.api.storage.local.set({['opendesk.chatgpt.files.'+invalidation+'.v1']:{}});
+    const status=h.get('status').textContent;
+    pending[0]({ok:true,data:{...task,phase:'paused',resultText:'stale bytes'}});await settle();
+    assert.equal(h.get('receipt').textContent,'');assert.equal(h.get('receipt').hidden,true);
+    assert.equal(h.get('status').textContent,status);
+    assert.equal(h.calls.filter(x=>x.action==='project-stop').length,1);
+  }finally{h.destroy();}
+});
+
+for(const wrong of ['projectId','sourceTabId','sourceDocumentId'])test(`Stop reconciliation rejects foreign ${wrong} and preserves its error`,async()=>{
+  const h=harness(msg=>{
+    if(msg.action==='project-list')return {ok:true,data:{tasks:[task]}};
+    return {ok:true,data:{...task,phase:'paused',resultText:'private bytes',
+      ...(msg.action==='project-status'?{[wrong]:wrong==='sourceTabId'?8:'foreign'}:{})}};
+  });
+  try{
+    await settle();h.choose();h.get('stop').fire();await settle();
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});await settle();
+    assert.equal(h.get('receipt').textContent,'');assert.match(h.get('status').textContent,/E_PROJECT_SOURCE/);
+    const error=h.get('status').textContent;
+    await h.api.storage.local.set({'opendesk.chatgpt.files.grants.v1':{}});
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});
+    assert.equal(h.get('status').textContent,error);
+  }finally{h.destroy();}
+});
+
+test('external task changes invalidate ordinary status without automatically reissuing it',async()=>{
+  let finish;
+  const h=harness(msg=>msg.action==='project-list'?{ok:true,data:{tasks:[task]}}:
+    new Promise(resolve=>{finish=resolve;}));
+  try{
+    await settle();h.choose();h.get('inspect').fire();await settle();
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});
+    finish({ok:true,data:{...task,phase:'watching',resultText:'stale bytes'}});await settle();
+    assert.equal(h.get('receipt').textContent,'');
+    assert.deepEqual(h.calls.map(x=>x.action),['project-list','project-status']);
+  }finally{h.destroy();}
+});
+
+test('unknown Stop error stays visible through unrelated storage changes without retry',async()=>{
+  const h=harness(msg=>msg.action==='project-list'?{ok:true,data:{tasks:[task]}}:
+    {ok:false,error:{code:'E_UNKNOWN',message:'unknown effect'}});
+  try{
+    await settle();h.choose();h.get('stop').fire();await settle();
+    const error=h.get('status').textContent;assert.match(error,/E_UNKNOWN/);
+    await h.api.storage.local.set({'opendesk.chatgpt.files.tasks.v1':{}});
+    await h.api.storage.local.set({'opendesk.chatgpt.files.grants.v1':{}});
+    assert.equal(h.get('status').textContent,error);
+    assert.deepEqual(h.calls.map(x=>x.action),['project-list','project-stop']);
   }finally{h.destroy();}
 });

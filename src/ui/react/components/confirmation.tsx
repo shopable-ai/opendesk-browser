@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {ModalOverlay,Modal,Dialog,Heading} from 'react-aria-components';
 import {Button} from './ui/button.tsx';
-import './confirmation.css';
 
 // Presentation only. The original Host owns pending requests and execution;
 // ordinary choices never carry a browser event back to an SDK consumer.

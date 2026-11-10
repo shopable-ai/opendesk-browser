@@ -1,6 +1,7 @@
 // Short-lived, source-scoped presentation intent. Never an install, grant or execution RPC.
 import {marketError,validateMarketSubject} from './intent.js';
 import {validToolId} from '../ui/sidebar-tools/navigation.js';
+import {toolDocumentIdentity} from '../tool-document-url.js';
 
 export const MARKET_PANEL_NAV_PROTOCOL='opendesk.market.panel-navigation.v1';
 export const MARKET_PANEL_NAV_PREFIX='opendesk.market.panel-navigation.v1.';
@@ -14,7 +15,8 @@ function validSourceURL(source,url){
     const parsed=new URL(url);
     if(parsed.username||parsed.password)return false;
     return source==='built-in'?
-      parsed.protocol==='chrome-extension:'&&parsed.pathname==='/ui/marketplace.html':
+      parsed.protocol==='chrome-extension:'&&(parsed.pathname==='/ui/marketplace.html'||
+        parsed.pathname==='/app.html'&&Boolean(toolDocumentIdentity(url,url)?.hostInstanceId)):
       ['https:','http:'].includes(parsed.protocol)&&Boolean(parsed.hostname);
   }catch{return false;}
 }
@@ -42,6 +44,8 @@ export function createMarketPanelNavigation({windowId,tabId,source,action,toolId
     if(marketId!=='opendesk/'+toolId||!SHA.test(sha256||''))
       throw marketError('E_NAV_FIELDS','固定发行身份不完整。');
   }
+  if(source==='built-in'&&new URL(sourceUrl).pathname==='/app.html'&&action!=='review')
+    throw marketError('E_NAV_FIELDS','应用更新入口仅允许打开固定候选审阅。');
   return {version:1,windowId,tabId,source,sourceDocumentId,sourceUrl,
     action,toolId,marketId,releaseVersion:version,
     sha256,requestId,issuedAt,status:'NAVIGATION_PENDING'};
@@ -180,7 +184,7 @@ export function createMarketPanelNavigationReceiver({api,onNavigate,now=Date.now
     dispose(){closed=true;if(key)api.storage.onChanged.removeListener?.(changed);key=null;}
   });
 }
-// The extension-owned marketplace page is the only internal producer.
+// Fixed marketplace and installed-app update UI share the same presentation path.
 // Opening must be initiated before any asynchronous document or storage checks.
 export function registerTrustedMarketNavigation(api=globalThis.chrome){
   const listener=(message,sender,sendResponse)=>{
@@ -193,10 +197,13 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
       // Chrome's sender URL can retain the original document URL after a
       // same-document hash route. Bind the intent to the current browser URL.
       target.hash='';current.hash='';
+      const fixedSource=target.pathname===fixed.pathname||
+        target.pathname==='/app.html'&&Boolean(toolDocumentIdentity(url,url)?.hostInstanceId)&&
+        message.target==='review';
       legitimate=sender?.id===api.runtime.id&&sender?.frameId===0&&
         sender?.documentLifecycle==='active'&&typeof sender?.documentId==='string'&&
         id(sender?.tab?.id)&&id(sender?.tab?.windowId)&&!sender.tab.incognito&&
-        target.origin===fixed.origin&&target.pathname===fixed.pathname&&
+        target.protocol===fixed.protocol&&target.host===fixed.host&&fixedSource&&
         !target.username&&!target.password&&target.href===current.href;
     }catch{/* Reject malformed extension-origin requests. */}
     if(!legitimate){sendResponse({ok:false,protocol:MARKET_PANEL_NAV_PROTOCOL,
