@@ -109,6 +109,10 @@ export function projectTrustedTaskNotice(view:any){
    if(!verified)return make('unverified','脚本结束状态待核验，不能认定成功','warning',0);
    if(receipt.delivery==='confirmed')
      return make('delivered','原对话结果回传已确认','success',5000);
+   if(receipt.delivery==='unknown')
+     return make('delivery-unknown','脚本已执行，原对话回传未确认，禁止补发','warning',0);
+   if(receipt.delivery==='submitted')
+     return make('delivery-pending','浏览器脚本已完成，等待回传确认','info',0);
    return make('completed','浏览器脚本执行完成（不等于业务成功）','success',5000);
  }
  if(receipt.execution==='running'&&run)
@@ -128,11 +132,12 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const taskNotice=React.useRef<any>(null);
  if(!taskNotice.current)taskNotice.current={
    owner:'webflow-task-notice:'+(++noticeOwnerSequence),bootstrapped:false,
-   key:null,id:null,signature:'',updates:0,blocked:false
+   key:null,id:null,signature:'',updates:0,blocked:false,createdAt:0,createTimes:[]
  };
  React.useEffect(()=>{
    const current=taskNotice.current;
-   const incoming=projectTrustedTaskNotice(view);
+   let incoming;
+   try{incoming=projectTrustedTaskNotice(view);}catch{return;} // Pure display failure cannot alter Task admission.
    const dismiss=()=>{
      if(current.id!==null)try{noticeView?.dismissToast?.(current.id);}catch{}
      current.id=null;
@@ -156,10 +161,17 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      current.blocked=!['running','admitted'].includes(incoming.phase);
    }
    if(current.blocked||current.signature===incoming.signature)return;
+   const now=Date.now();
+   if(current.id!==null&&current.createdAt&&now-current.createdAt>=30*60*1000){
+     dismiss();current.blocked=true;return;
+   }
    if(current.id===null){
+     current.createTimes=current.createTimes.filter(at=>now-at<60*1000);
+     if(current.createTimes.length>=3){current.blocked=true;return;}
      try{current.id=noticeView.addToolToast(incoming.options.message,incoming.options,current.owner);}
      catch{current.id=null;}
      if(current.id===null){current.blocked=true;return;}
+     current.createTimes.push(now);current.createdAt=now;
    }else{
      if(current.updates>=12||!noticeView.hasToast?.(current.id,current.owner)){
        current.blocked=true;return;
