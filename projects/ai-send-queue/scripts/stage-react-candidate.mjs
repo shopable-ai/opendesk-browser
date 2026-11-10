@@ -8,17 +8,21 @@ import {verifySidebarToolBackground} from '../../../src/ui/sidebar-tools/package
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const out=process.argv[2]||'artifacts/sidebar-tools/ai-send-queue/react-candidate.opendesk-tool.json';
+const [config,program]=await Promise.all(['tool.config.json','package.json'].map(async name=>
+  JSON.parse(await readFile(new URL('../'+name,import.meta.url),'utf8'))));
+assert.equal(config.version,program.version,'Tool config and Page project versions must match');
 const result=await buildSidebarTool(root,{out});
 assert.equal(result.validated,true);
 assert.equal(result.installed,false);
 const tool=await verifySidebarToolBackground(JSON.parse(await readFile(result.output,'utf8')));
 assert.equal(tool.format,'opendesk.sidebar-tool.v2');
 assert.equal(tool.id,'ai-send-queue');
-assert.equal(tool.version,'0.1.18');
+assert.equal(tool.version,config.version);
 assert.deepEqual([...tool.capabilities].sort(),['currentPage.read','page.module']);
 assert.equal(tool.pageModule.programId,'app.'+tool.id);
-assert.equal(tool.pageModule.version,tool.version);
-assert.equal(tool.pageModule.revision,17);
+assert.equal(tool.pageModule.programId,program.opendesk.id);
+assert.equal(tool.pageModule.version,program.version);
+assert.equal(tool.pageModule.revision,config.pageModule.revision);
 console.log(JSON.stringify({status:'SEND_QUEUE_V2_CANDIDATE_ONLY',out:result.output,
   bytes:result.bytes,id:tool.id,version:tool.version,pageProgramId:tool.pageModule.programId,
   pageRevision:tool.pageModule.revision,sourceHash:tool.pageModule.sourceHash,
