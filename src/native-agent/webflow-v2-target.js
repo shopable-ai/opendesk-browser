@@ -14,6 +14,14 @@ const entries=Object.freeze({
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
   Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 
+// Only reviewed defaults may be applied before single-candidate admission.
+// An omitted send is always false; no omitted or malformed field can
+// authorize a send. The installed manifest is checked separately by the Host.
+export function webFlowV2ReviewedArgs(intent){
+  const defaults=intent?.taskId==='chatgpt.conversation.create'?{send:false}:{};
+  return Object.freeze({...defaults,...intent.args});
+}
+
 // Must be called with manifest/installation returned by the EXISTING trusted
 // installed-Task verifier. It cannot grant V2 automatic execution or inherit
 // any V1 approval. Unknown, current-page and dynamic targets fail closed.
@@ -44,9 +52,10 @@ export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
   // Validation against the verified manifest is strict: do not silently fill
   // missing Task defaults. This is still not execution authorization.
   let args;
-  try{args=validateTaskParams(manifest.paramsSchema,intent.args);}
+  const reviewedArgs=webFlowV2ReviewedArgs(intent);
+  try{args=validateTaskParams(manifest.paramsSchema,reviewedArgs);}
   catch{throw fail('E_WEBFLOW_V2_SCHEMA','任务参数不符合可信安装的 Schema');}
-  if(canonical(args)!==canonical(intent.args))
+  if(canonical(args)!==canonical(reviewedArgs))
     throw fail('E_WEBFLOW_V2_SCHEMA','V2 必须提供完整参数，不能隐式补齐');
   return Object.freeze({taskId:pin.taskId,targetUrl:entryUrl,
     args:structuredClone(args),installation:structuredClone(installation)});
