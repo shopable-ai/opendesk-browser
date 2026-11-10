@@ -33,6 +33,8 @@
 
 **当前分级：** SOURCE_IMPLEMENTED=main 已提交；SOURCE_SMOKE=项目 model.js 的直接 V8 验证 PASS；NODE_TESTED=最终代码定向 GitHub CI 待证据；PACKAGE_READY=未通过当前候选同源构建/晋升（正式 webflow.opendesk-tool.json 尚未证明包含新增通知）；CHROME_TESTED=NOT_TESTED；BUSINESS_ACCEPTED=NOT_TESTED。共享 dist/development、watcher、并行未提交工作及原运行记录未触碰。
 
+**2026-11-11 反方审计与最终源码增量：** 严格约束手动终态必须与持久 Result.state 匹配（避免单凭 completed/stop 导致成功或已停止误报）；可信自动回传追加 submitted/unknown/confirmed 三级提示；页面切换后旧终态不重新弹出；读回权限失败时把既有成功 Toast 降为“结果未确认”且不生成 Run；可信 Host Toast 限定每实例每分钟三次创建、十二次更新、三十分钟句柄有效，旧实例销毁即清理。关键后续提交：model `e0fa70ce9f5c`、手动入口 `6bd075c32c3a`、CurrentTask `e53ac9f57f50`、相关回归测试 `d5acc7c398b8`、`3f8ace1fcf17`、`73a4a0b84207`。根据 GitHub 最新读取，完整 Web Flow 包及 App CI 尚无最终同 HEAD PASS；6/6 个项目 task-notice.test 真实逻辑在隔离 V8 中逐条执行通过，**不是 Node/Chrome 通过**。原 63/64 失败已核因并修复旧脚本数量断言，但修复后必须重新获取完整 CI 通过证据。Scheduler 自身的独立 Fire→Run 通知是否进入本 Web Flow 消费者尚未独立核验；不能靠本次手动/自动源码替它做成功声明。
+
 **下一步唯一动作：** 取得最新提交的定向 CI 最终结果并只修确切失败；之后交本地 Codex 对唯一正式包按原 packager 候选→同源验证→用户批准下安装，真实 Chrome 最短验证手动 RUNNING→completed、可信自动同次结果/回传与 UNKNOWN、关闭侧栏/刷新恢复，不改旧权限、不重放任何未知任务。P1/P2 延期。
 
 ---
