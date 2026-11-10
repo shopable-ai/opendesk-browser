@@ -1,3 +1,27 @@
+## 最新执行卡：ChatGPT B 草稿第一纵切（2026-11-10，OD-AI-WORKFLOW-BRIDGE）
+
+**要解决的真实需求：** 在 ChatGPT 对话 A 发起，Web Flow 需在用户授权下创建独立新聊天 B、核验模型/推理、默认准备未发送草稿；收到独立发送许可后只发送一次，再取 B 的真实会话 URL、回复和持久回执回给 A。前台查看只能激活原 Run 页；Google/Baidu 及旧 V1 严禁回归、重复执行或继承旧权限。阶段仍为 P1，不能把协议/Mock/空聊天当整体成功。
+
+| 子功能 | 2026-11-10 当前事实 | 本阶段决策 |
+| --- | --- | --- |
+| V1 五字段、旧搜索脚本、原 Task/Runner/Authority | 复用既有已审阅源码；本轮未重写 | DONE（历史能力，实站回归独立） |
+| V2 四字段、单候选批准、原入口/账本/Controller | SOURCE 存在；同期相关 Node 用例通过，仍缺新版本 Chrome 实证 | VERIFY |
+| 原 Run 的运行中前台查看 | 已有激活同一 tab + 一次持久栅栏；启动前选项未接 | VERIFY / BUILD |
+| 成功执行后用户草稿页保留 | 本轮新增 Manifest 受审 retain-on-success、Controller 验证并移交 owned 标签、释放 slot；Node 测试存在 | VERIFY |
+| ChatGPT 对话 B 草稿准备 | 新 pinned Task 0.1.0，固定 https://chatgpt.com/；send 缺省 false，核验空编辑器、无附件和读回；无真实 /c/ URL 则返回 null | VERIFY（SOURCE 和 NODE；CHROME 未做） |
+| ChatGPT 自动发送、模型/High/Thinking、真实 B URL、A 回填 | send=true 在现阶段明确拒绝，模型要求显式拒绝；真实回填和长文本持久引用未建 | BUILD（P1.2 优先） |
+| 任务启动前 activateTab、独立 Gemini | 尚无正式源码/现场成功 | BUILD（P1 之后） |
+
+**本轮新写入（按最新 main 验证，历史提交不重复计入）：** src/platform/host/controller-target-retention.js、src/platform/host/controller-methods.js、src/platform/tasks/contract.js、src/platform/tasks/builtin-releases.js、src/native-agent/webflow-v2-target.js、src/native-agent/chatgpt-bridge-trigger-gate.js、projects/webflow/src/tasks/chatgpt-conversation-create.js、projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json、projects/webflow/tests/controller-retained-target.test.mjs、projects/webflow/tests/chatgpt-draft-task.test.mjs、相关 V2 Node 测试与 Side Panel 草稿提示、原 Web Flow CI 及本执行卡/产品合同。
+
+**证据等级：** SOURCE = 有正式连接；NODE_TEST = 定向测试已由 GitHub Actions 真实运行：Run 42792447214，159 中 158 项通过，唯一失败为其他项目 AI Proxy 来源锁；新提交需以最后一次对应 HEAD CI 为准。PACKAGE = NOT_TESTED（原 CI 的构建阶段受并行来源锁阻断）；CHROME = NOT_TESTED（本机 CodexPro 连接 UNAVAILABLE）；BUSINESS = NOT_TESTED（尚未真实创建/发送 B 并回填 A）。该任务包默认审阅/审批不等于已经在 Chrome 安装成功。
+
+**反方审计重点：** 不能让 V1 Grant批准 V2；缺省 send 永远 false，send=true 现在双重拒绝；未发送草稿不生成 /c/ 链接；只有成功完成、原 Run/文档身份与 Manifest disposition 均核对才保留 tab；旧 UNKNOWN 不补发。其他 Agent 的 QuickPanel.tsx 文件来源锁失败属并行范围，本任务不能改它以伪造 CI 通过。
+
+**唯一下一步开发事项 P1.2：** 在现有 chatgpt.conversation.create Task 上完成单次用户明确发送授权与原生 click、持久副作用栅栏、消息/新 B URL 的现场观察和 UNKNOWN 按原身份对账；先补 Node 负向回归，再在已授权真实 Chrome 做最短 A→B。P1.2 成功且来源绑定正确后再完成 P1.3 回复核验与 A 回填。不要另起 Runner、队列、任务数据库，不绕开旧的 uncommitted changes，不声称本轮已经全链可用。
+
+---
+
 ## Markdown 两任务 · 本轮安全数据合同增量（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
 
 **原始用户操作与目标：** WebFlow 读取仓库真实 Markdown → 显示 T01/T02 → 用户点击一次「开始」→ 原可信后台原子领取同一个运行 → 两个**不同的真实普通 ChatGPT 聊天**分别执行 T01/T02 → 独立校验完整回复 → 经授权保存、独立读回 T01，才把 T01 完整 JSON 正文传给 T02 → 保存读回 T02 → UI 显示真实会话与成果入口；刷新、重启、暂停、UNKNOWN 必须沿原身份恢复，禁止重发。长期 Project/多站/多账号不在本轮。
