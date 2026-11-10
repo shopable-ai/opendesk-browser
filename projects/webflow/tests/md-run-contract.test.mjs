@@ -44,7 +44,11 @@ async function replied(run,id,index,result){
 }
 async function saved(run,id){
   run=await apply(run,'accept',id);
-  run=await apply(run,'write-intent',id,{operationRef:'write-'+id+'-01',artifactRef:'artifact-'+id+'-01'});
+  run=await apply(run,'write-intent',id,{operationRef:'write-'+id+'-01',artifactRef:'artifact-'+id+'-01',
+    workspaceId:'workspace-001',sourceId:'',leaseEpoch:'lease-workspace-001',
+    sessionId:'native-session-001',path:'artifacts/'+id+'.json',
+    writeMethod:'files.create',baseSha256:null});
+  run=await apply(run,'write-dispatched',id,{operationRef:'write-'+id+'-01'});
   const s=run.steps[id==='T01'?0:1];
   return apply(run,'artifact-saved',id,{operationRef:'write-'+id+'-01',artifactRef:'artifact-'+id+'-01',
     storageVersion:'storage-'+id+'-v1',contentSha256:s.accepted.contentSha256});

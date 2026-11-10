@@ -7,7 +7,7 @@ const ID = /^[A-Za-z0-9._:-]{8,128}$/u;
 // The published 0.2.0 Task creates the permanent /c/ URL ONLY AFTER
 // its one native Send. A pre-send CREATED/READY state would be fictitious.
 const PHASES = ['WAITING','CLAIMED','CREATE_INTENT','AWAIT_REPLY','REPLIED',
-  'ACCEPTED','WRITE_INTENT','SAVED','COMPLETED','UNKNOWN','FAILED'];
+  'ACCEPTED','WRITE_INTENT','WRITE_DISPATCHED','SAVED','COMPLETED','UNKNOWN','FAILED'];
 const SPEC = Object.freeze({
   pause: [], resume: [], claim: ['claimRef'],
   'create-intent': ['operationRef','authorizationRef','installationId','generation',
@@ -15,7 +15,9 @@ const SPEC = Object.freeze({
   'task-admitted': ['operationRef','taskRunId'],
   'reply-complete': ['operationRef','taskRunId','conversationId','conversationUrl',
     'documentRef','accountId','userMessageRef','assistantMessageRef','replyRef','text','contentSha256'],
-  accept: [], 'write-intent': ['operationRef','artifactRef'],
+  accept: [], 'write-intent': ['operationRef','artifactRef','workspaceId',
+    'sourceId','leaseEpoch','sessionId','path','writeMethod','baseSha256'],
+  'write-dispatched': ['operationRef'],
   'artifact-saved': ['operationRef','artifactRef','storageVersion','contentSha256'],
   'artifact-readback': ['artifactRef','storageVersion','contentSha256','text'],
   unknown: ['code'], fail: ['code'],
@@ -103,7 +105,7 @@ export function createMdRunRecord(input){
     steps:['T01','T02'].map(taskId=>({taskId,phase:'WAITING',claimRef:null,
       createOperationRef:null,taskPin:null,taskRunId:null,conversation:null,
       userMessageRef:null,reply:null,accepted:null,
-      writeOperationRef:null,artifactRef:null,storageVersion:null,
+      writeOperationRef:null,writePlan:null,artifactRef:null,storageVersion:null,
       saved:null,readback:null,errorCode:null}))});
 }
 // A state transition must be committed by the original trusted durable ledger.
@@ -184,9 +186,24 @@ export async function applyMdRunEvent(current,event,{digest}={}){
       }
       case 'write-intent':
         state(['ACCEPTED']);step.writeOperationRef=value(event.operationRef);
-        step.artifactRef=value(event.artifactRef);step.phase='WRITE_INTENT';break;
+        step.artifactRef=value(event.artifactRef);
+        value(event.workspaceId);value(event.leaseEpoch);value(event.sessionId);
+        need(typeof event.sourceId==='string'&&event.sourceId.length<=128&&
+          event.path==='artifacts/'+step.taskId+'.json'&&
+          ['files.create','files.write'].includes(event.writeMethod)&&
+          (event.writeMethod==='files.create'?event.baseSha256===null:
+            typeof event.baseSha256==='string'&&HEX.test(event.baseSha256)),
+          'E_MD_ARTIFACT_SCOPE');
+        step.writePlan={workspaceId:event.workspaceId,sourceId:event.sourceId,
+          leaseEpoch:event.leaseEpoch,sessionId:event.sessionId,path:event.path,
+          writeMethod:event.writeMethod,baseSha256:event.baseSha256};
+        step.phase='WRITE_INTENT';break;
+      case 'write-dispatched':
+        state(['WRITE_INTENT']);
+        need(event.operationRef===step.writeOperationRef,'E_MD_IDENTITY');
+        step.phase='WRITE_DISPATCHED';break;
       case 'artifact-saved':
-        state(['WRITE_INTENT']);need(event.operationRef===step.writeOperationRef&&
+        state(['WRITE_DISPATCHED']);need(event.operationRef===step.writeOperationRef&&
           event.artifactRef===step.artifactRef&&
           event.contentSha256===step.accepted.contentSha256,'E_MD_INTEGRITY');
         value(event.storageVersion);sha(event.contentSha256);
@@ -209,7 +226,7 @@ export async function applyMdRunEvent(current,event,{digest}={}){
         need(PHASES.includes(step.phase));value(event.code);
         step.errorCode=event.code;step.phase='UNKNOWN';break;
       case 'fail':
-        state(['WAITING','CLAIMED','REPLIED','ACCEPTED','SAVED']);
+        state(['WAITING','CLAIMED','REPLIED','ACCEPTED','WRITE_INTENT','SAVED']);
         value(event.code);step.errorCode=event.code;step.phase='FAILED';break;
       default:fail('E_MD_RUN_SCHEMA');
     }
@@ -230,7 +247,8 @@ export function nextMdRunAction(run){
   const actions={WAITING:'CLAIM_WITH_TRUSTED_LEDGER',CLAIMED:'RECORD_CREATE_INTENT',
     CREATE_INTENT:'QUERY_ORIGINAL_TASK',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
     REPLIED:'VERIFY_REPLY',ACCEPTED:'RECORD_ARTIFACT_WRITE_INTENT',
-    WRITE_INTENT:'QUERY_ORIGINAL_WRITE',SAVED:'READBACK_ORIGINAL_ARTIFACT'};
+    WRITE_INTENT:'DISPATCH_ORIGINAL_FILE_WRITE_ONCE',WRITE_DISPATCHED:'QUERY_ORIGINAL_WRITE',
+    SAVED:'READBACK_ORIGINAL_ARTIFACT'};
   need(actions[s.phase]);
   return {taskId:s.taskId,action:actions[s.phase]};
 }
