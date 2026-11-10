@@ -209,7 +209,7 @@ export async function applyMdRunEvent(current,event,{digest}={}){
         need(PHASES.includes(step.phase));value(event.code);
         step.errorCode=event.code;step.phase='UNKNOWN';break;
       case 'fail':
-        state(['WAITING','CLAIMED','CREATED','READY','REPLIED','ACCEPTED','SAVED']);
+        state(['WAITING','CLAIMED','REPLIED','ACCEPTED','SAVED']);
         value(event.code);step.errorCode=event.code;step.phase='FAILED';break;
       default:fail('E_MD_RUN_SCHEMA');
     }
