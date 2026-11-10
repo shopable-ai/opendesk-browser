@@ -3,17 +3,20 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {validateWebFlowTaskIntent,validateWebFlowTaskIntentV2} from '../../../src/native-agent/chatgpt-task-request.js';
 import {resolveWebFlowV2FixedTarget} from '../../../src/native-agent/webflow-v2-target.js';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 
 const id='wf-7e98a39d-4751-4755-a7c5-65dc62bb8e07';
 const v2={protocol:'webflow.task.intent.v2',candidateId:id,taskId:'baidu.search.top3',
   args:{query:'Chrome extension Side Panel API',limit:3}};
 const v1={...v2,protocol:'webflow.task.intent.v1',targetUrl:'https://www.baidu.com/'};
-const fixture=async taskId=>{
-  const pkg=JSON.parse(await readFile(new URL(
-    taskId==='chatgpt.conversation.create'?'../tasks/chatgpt.conversation.create.v1.opendesk-task.json':
-      `../../../examples/tasks/${taskId}.v1.opendesk-task.json`,import.meta.url),'utf8'));
-  const pin=BUILTIN_TASK_RELEASES.find(item=>item.taskId===taskId);
+const fixture=async (taskId,version='0.2.0')=>{
+  const packagePath=taskId==='chatgpt.conversation.create'?
+    (version==='0.1.0'?'../tasks/chatgpt.conversation.create.v1.opendesk-task.json':
+      '../tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'):
+    `../../../examples/tasks/${taskId}.v1.opendesk-task.json`;
+  const pkg=JSON.parse(await readFile(new URL(packagePath,import.meta.url),'utf8'));
+  const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(item=>item.taskId===taskId&&item.version===pkg.manifest.version);
+  assert.ok(pin,'Expected exact reviewed release');
   return {manifest:pkg.manifest,installation:{version:pin.version,manifestHash:pin.manifestHash,
     contentHash:pin.sourceHash,scriptId:`task:${taskId}:${pin.version}`,
     revision:pkg.manifest.program.revision,generation:1,installationId:'test-installation-1'}};
@@ -63,17 +66,27 @@ test('wrong Origin, changed install, absent binding and incomplete args fail clo
     {code:'E_WEBFLOW_V2_SCHEMA'});
 });
 
-test('pinned ChatGPT draft refuses send:true and normalizes omitted send to false',async()=>{
+test('ChatGPT 0.2 requires explicit true to send; missing send remains safe draft',async()=>{
   const f=await fixture('chatgpt.conversation.create');
-  for(const args of [{prompt:'Hello',send:true},{prompt:'Hello',send:'false'},
+  for(const args of [{prompt:'Hello',send:'false'},{prompt:'Hello',send:1},
     {prompt:'Hello',send:false,unknownField:'x'}]){
     const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
       taskId:'chatgpt.conversation.create',args}));
     assert.throws(()=>resolveWebFlowV2FixedTarget({intent,...f}),{code:'E_WEBFLOW_V2_SCHEMA'});
   }
-  const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
+  const draft=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
     taskId:'chatgpt.conversation.create',args:{prompt:'Hello B'}}));
-  const resolved=resolveWebFlowV2FixedTarget({intent,...f});
-  assert.equal(resolved.args.send,false);
-  assert.equal(resolved.args.prompt,'Hello B');
+  assert.deepEqual(resolveWebFlowV2FixedTarget({intent:draft,...f}).args,
+    {prompt:'Hello B',send:false});
+  const send=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
+    taskId:'chatgpt.conversation.create',args:{prompt:'Hello B',send:true}}));
+  assert.equal(resolveWebFlowV2FixedTarget({intent:send,...f}).args.send,true);
+});
+test('historical 0.1 draft remains verifiable and strictly refuses send:true',async()=>{
+  const f=await fixture('chatgpt.conversation.create','0.1.0');
+  const intent=args=>validateWebFlowTaskIntentV2(JSON.stringify({...v2,
+    taskId:'chatgpt.conversation.create',args}));
+  assert.throws(()=>resolveWebFlowV2FixedTarget({intent:intent({prompt:'Hello B',send:true}),...f}),
+    {code:'E_WEBFLOW_V2_SCHEMA'});
+  assert.equal(resolveWebFlowV2FixedTarget({intent:intent({prompt:'Hello B'}),...f}).args.send,false);
 });
