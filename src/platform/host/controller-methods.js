@@ -227,7 +227,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   function project(run) {
     if (!run) return null;
-    return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
+    return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
       'targetDisposition','retainedTarget'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));

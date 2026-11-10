@@ -33,11 +33,13 @@ async function fixture(){
     sourceUrl:'https://chatgpt.com/',promptChars:prompt.length,observedAt:new Date().toISOString()};
   const original={run:{tag:'controller-run',runId:'real-controller-run-001',
     resultId:'real-controller-result-001',state:'completed',retirementState:'released',
-    sourceKind:'saved',targetDisposition:'retain-on-success',
+    sourceKind:'saved',targetDisposition:'retain-on-success',requestId:REQ,
     scriptId:'task:chatgpt.conversation.create:0.2.0',contentHash:H,
-    revision:{sourceHash:H},identity:{requestId:REQ},
-    retainedTarget:{mode:'owned',tabId:11,frameId:0,
-      documentId:'document-001',allowedOrigin:'https://chatgpt.com'}},
+    revision:{sourceHash:H},identity:{runId:'real-controller-run-001'},
+    target:{mode:'owned',tabId:11,frameId:0,
+      documentId:'document-001',allowedOrigin:'https://chatgpt.com'},
+    retainedTarget:{tabId:11,documentId:'document-001',origin:'https://chatgpt.com',
+      url:'https://chatgpt.com/c/'+ID,observedAt:12345}},
     results:[{tag:'controller-result',runId:'real-controller-run-001',
       resultId:'real-controller-result-001',state:'completed',sourceKind:'saved',
       revision:{sourceHash:H},outcome:{ok:true,valueWire:encodeValue(value)}}],
@@ -63,20 +65,21 @@ test('only a verified retired original Task result yields the exact reply-comple
 });
 test('lost submission acknowledgement can be reconciled but never resent',async()=>{
   const f=await fixture(),snap=structuredClone(f.original);
-  snap.run.identity.requestId=REQ;
+  snap.run.requestId=REQ;
   const event=await readMdChatGPTReplyEvent({workflowRun:f.intent,taskId:'T01',
     readOriginalRun:async()=>snap,verifyAccount:async()=> 'account-001'});
   assert.equal(event.taskRunId,snap.run.runId);
 });
 test('rejects mismatched run, pin, target, result, ownership and account without re-dispatch',async()=>{
   const cases=[
-    x=>x.run.identity.requestId='some-other-operation',
+    x=>x.run.requestId='some-other-operation',
     x=>x.run.contentHash='b'.repeat(64),
     x=>x.run.state='running',
     x=>x.run.retirementState='retiring',
     x=>x.run.targetDisposition='close',
-    x=>x.run.retainedTarget.documentId='',
-    x=>x.run.retainedTarget.mode='borrowed',
+    x=>x.run.target.documentId='',
+    x=>x.run.target.mode='borrowed',
+    x=>x.run.retainedTarget.url='https://chatgpt.com/',
     x=>x.results[0].resultId='wrong-result-001',
     x=>x.results[0].outcome.ok=false,
     x=>x.results[0].outcome.valueWire=encodeValue({kind:'fake',version:2}),

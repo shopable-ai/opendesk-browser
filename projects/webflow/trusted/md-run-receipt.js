@@ -41,15 +41,17 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
     run.targetDisposition==='retain-on-success'&&
     run.scriptId?.startsWith('task:chatgpt.conversation.create:')&&
     run.contentHash===pin.contentHash&&run.revision?.sourceHash===pin.contentHash&&
-    run.identity?.requestId===step.createOperationRef&&
+    run.requestId===step.createOperationRef&&run.identity?.runId===run.runId&&
     id(run.runId)&&id(run.resultId)&&
     (!step.taskRunId||step.taskRunId===run.runId)&&
     !snapshot.resultDeliveryDenied?.includes(run.runId),
     'E_MD_ORIGINAL');
-  const target=run.retainedTarget??run.target;
+  const target=run.target,transfer=run.retainedTarget;
   requireValue(target?.mode==='owned'&&target.frameId===0&&
     Number.isSafeInteger(target.tabId)&&target.tabId>=0&&
-    id(target.documentId)&&target.allowedOrigin==='https://chatgpt.com',
+    id(target.documentId)&&target.allowedOrigin==='https://chatgpt.com'&&
+    transfer?.tabId===target.tabId&&transfer.documentId===target.documentId&&
+    transfer.origin==='https://chatgpt.com'&&typeof transfer.url==='string',
     'E_MD_TARGET');
   requireValue(Array.isArray(snapshot.results),'E_MD_ORIGINAL');
   const results=snapshot.results.filter(row=>row?.runId===run.runId);
@@ -74,7 +76,8 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
   let url;
   try{url=new URL(value.conversationUrl);}catch{fail('E_MD_IDENTITY');}
   requireValue(url.origin===workflowRun.account.origin&&!url.search&&!url.hash&&
-    url.pathname==='/c/'+value.conversationId&&!url.username&&!url.password,
+    url.pathname==='/c/'+value.conversationId&&!url.username&&!url.password&&
+    transfer.url===url.href,
     'E_MD_IDENTITY');
   // The account may change while the Controller result is being read.
   const after=await verifyAccount({runId:workflowRun.runId,taskId,
