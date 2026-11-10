@@ -104,7 +104,7 @@ test('V2 refuses a changed approved target, stale page identity, and unsupported
   const dynamic={candidateId:'wf-v2-test-dynamic-1',turnKey:'turn-dynamic',answerKey:'answer-dynamic',
     text:JSON.stringify({protocol:'webflow.task.intent.v2',candidateId:'wf-v2-test-dynamic-1',
       taskId:'chatgpt.conversation.create',args:{send:false}})};
-  await assert.rejects(h.ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,
+  assert.throws(()=>h.ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,
     ...scope,taskId:'chatgpt.conversation.create',
     installation:{...scope.installation,scriptId:`task:chatgpt.conversation.create:${pin.version}`},
     candidate:dynamic,allowPending:true}),{
