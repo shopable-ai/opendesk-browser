@@ -1,5 +1,7 @@
 # ChatGPT 本地文件 · 当前入口与历史证据
 
+> **2026-11-11 当前正式入口（Headless）：** ChatGPT 页面不再创建 WebFlow「项目文件／打开／×」悬浮控件。正常发送文件需求仍由原监听器和 Native 服务处理；状态、Stop、回执及可信文件审阅从 OpenDesk WebFlow Side Panel「运行与授权」进入扩展项目文件管理页。下文标记 11 月 8 日及更早的网页浮窗截图、操作步骤是历史运行记录，不能作为新版 UI 指南。新版源码已通过 [Headless 专项 Node 204/204](https://github.com/shopable-ai/opendesk-browser/actions/runs/42872904587)，正式 Chrome/Native 安装仍为 NOT_TESTED。
+
 先读[固定协议组件调用链与浏览器测试](protocol-execution-chain.zh-CN.md)：按“完整提示词 → AI 回显 → 监听 → 解析 → 匹配/分派 → 实际执行 → 回执”说明网页 Task 与文件 Native 两条入口，包含本轮测试条件。
 
 ## 网页文件面板（2026-11-08）

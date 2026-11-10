@@ -33,7 +33,7 @@
     <p>项目：<span id="files-project-name"></span></p>
     <p>接收对话：<span id="files-project-target"></span></p>
     <p>当前对话用途：<span id="files-project-task"></span></p>
-    <p>连接后，扩展可以通过 Native 程序接口读取此项目内任务明确指定的一个已有普通文本文件，并在原 ChatGPT 页面显示真实结果。修改需要的文件上下文会填入原对话草稿，由你发送；任务明确要求修改且 Native 允许写入时，扩展自动校验版本、保存并独立读回，最终回执直接显示在原页面。此连接仅覆盖当前具体对话，不包含敏感文件、创建、删除、重命名或命令执行。可随时停止任务或撤销连接；不自动发送 ChatGPT 消息。</p>
+    <p>连接后，扩展可以通过 Native 程序接口读取此项目内任务明确指定的一个已有普通文本文件，并将真实状态与结果保存在扩展可信任务记录中。修改所需文件上下文可以填入原对话草稿，由你决定是否发送；任务明确要求修改且 Native 允许写入时，扩展仍校验版本、保存并独立读回，最终回执在 OpenDesk 扩展的项目文件管理或本可信审阅页查看，不再向 ChatGPT 网页注入悬浮文件面板。此连接仅覆盖当前具体对话，不包含敏感文件、创建、删除、重命名或命令执行。可随时停止任务或撤销连接；不自动发送 ChatGPT 消息。</p>
     <p id="files-project-message" role="status"></p>
     <div class="connection-actions"><button id="files-connect-project" type="button" disabled>连接此项目</button><button id="files-revoke-project" type="button" class="secondary" disabled>撤销此项目连接</button></div>
   </section>
