@@ -5,7 +5,7 @@
 ## 结论及信任边界
 
 - **`codex://new?prompt=...` 只创建/预填未发送草稿。** 启动 URL 的成功退出码也不能证明 Codex UI 已显示该草稿。
-- **真正执行任务**使用官方 `codex app-server` 的 `initialize` → `initialized` → `thread/start` → `turn/start` → `turn/completed`。本 Demo 默认 `read-only` + 不自动批准权限请求，避免对项目产生未授权修改。
+- **真正执行任务**使用官方 `codex app-server` 的 `initialize` → `initialized` → `thread/start` → `turn/start` → `turn/completed`。本 Demo 默认 `read-only` + 不自动批准权限请求，避免对项目产生未授权修改。真实最终回答优先取 `item/completed` 的 `agentMessage.text`（或 turn 完成快照）；只有 delta 而没有权威消息时标为 `delta-only-unverified`。
 - 本 Demo 的 `demo.mjs mcp` 是**隔离的本地 MCP 测试服务**，不是现有 `opendesk-mcp` 的新增正式工具。`trigger.mjs` 是**模拟可信 WebFlow Host 的本地触发器**，不是已安装 WebFlow Sandbox/App 的直接原生能力。
 - 现有 OpenDesk MCP 没有 `codex.new` 或 `openURL` 工具；现有 WebFlow 的 MCP adapter 是向外暴露已安装 WebFlow Task 的**反方向**。已安装 WebFlow Page JS/Sidebar 沙箱无权直接连接本地 MCP/执行命令。不要把认证凭据塞入网页脚本，也不要把 OpenDesk HTTP 的通用 `POST /executions` 暴露给页面。
 
@@ -32,7 +32,14 @@ OPEN_DESK_DEMO_ALLOW_LIVE=1 node projects/webflow/demos/codex-local-handoff/trig
 OPEN_DESK_DEMO_ALLOW_LIVE=1 node projects/webflow/demos/codex-local-handoff/trigger.mjs run --cwd /absolute/path/to/repo --prompt '只读分析仓库 README，回答项目一句话定位，不修改文件'
 ```
 
-预期回执：`phase:TURN_TERMINAL`, `threadId`, `turnId`, `status:completed`, `threadUrl`。若提示 `E_APPROVAL_REQUIRED`，请切换官方 Codex 客户端由用户交互处理，不自动授权；若 `E_OUTCOME_UNKNOWN`，禁止盲目重试，要先查原 Codex 会话。`TURN_TERMINAL`、`status:completed` 只证明 Codex 本次 turn 完成，不等于具体开发需求已验收。CLI 配置与官方桌面实际共享会话、深链跳转行为需用本机观察确认。
+预期回执：`phase:TURN_TERMINAL`, `threadId`, `turnId`, `status`, `threadUrl`, `answerText`, `answerSource`, `answerAvailable`, `taskVerified:false`。**`businessSuccess:null` 表示业务结果还未独立验收；绝不能把 `status:completed` 直接写成业务成功。**若提示 `E_APPROVAL_REQUIRED`，请切换官方 Codex 客户端由用户交互处理，不自动授权；若 `E_OUTCOME_UNKNOWN`，禁止盲目重试，要先查原 Codex 会话。此类错误尽可能附带原始 `threadId`、`turnId`、`submissionState` 和 `threadUrl`，没有 ID 时明确为 `null`，不能猜测身份。`TURN_TERMINAL`、`status:completed` 只证明 Codex 本次 turn 完成，不等于具体开发需求已验收。CLI 配置与官方桌面实际共享会话、深链跳转行为需用本机观察确认。
+
+## 本轮代码状态与本机下一步（2026-11-11）
+
+- **SOURCE/NODE：** Demo 内 16 项 Node 定向测试通过（隔离环境）；包括最终回答采集、delta-only 警示、失败/权限/超时原 ID 关联。源码已经按当前 `main` 保留已有 MCP 并发保护。
+- **MAC_DRAFT / MAC_TURN / DESKTOP_THREAD：NOT_TESTED。** 需要实际 Mac、官方 Codex 桌面、已登录的 Codex CLI 实测。
+- **BROWSER_NATIVE / WEBFLOW_E2E：NOT_IMPLEMENTED / NOT_TESTED。** 独立 MCP Demo 不等于已安装 WebFlow 脚本获得本地执行权。
+- **验收提示词已写进仓库：** [CODEX-LOCAL-ACCEPTANCE.prompt.md](CODEX-LOCAL-ACCEPTANCE.prompt.md)。由本机 Codex 直接打开仓库文件执行，不需 ZIP。
 
 ## 后续正式接入：WebFlow 的实际执行入口
 
@@ -54,13 +61,14 @@ WebFlow 已授权 Task / 可信按钮
 |---|---|---|
 | URL 编码 | Unicode、特殊字符不丢失，草稿不发送 | Node 自动测试 |
 | MCP 标准调用 | `initialize`、`tools/list`、`tools/call` | Node 自动测试 |
-| Codex app-server | 初始化、线程、turn、完成事件、threadId | 模拟 app-server Node 自动测试 |
-| 安全保护 | 非法参数拒绝、默认预览、不默认批准 | Node 自动测试 |
+| Codex app-server | 初始化、线程、turn、权威最终回答、真实 ID | 模拟 app-server Node 自动测试 |
+| 安全保护 | 非法参数拒绝、默认预览、不默认批准、超时保留身份、完成≠验收 | Node 自动测试 |
 | Mac `codex://` | 官方 Codex 真实弹出草稿 | **NOT_TESTED**，需用户 Mac 实测 |
 | Mac Codex 真正执行 | 真实 `turn/completed`、会话与工作区对得上 | **NOT_TESTED**，需用户 Mac 实测 |
 | WebFlow 已安装入口 → OpenDesk MCP | Chrome Host 认证与权限、原执行状态 | **NOT_IMPLEMENTED**，需新增可信 Broker |
 
 ## 参考（官方）
 
-- Codex Desktop URI: https://learn.chatgpt.com/docs/app/commands
-- Codex App Server JSON-RPC: https://learn.chatgpt.com/docs/app-server
+- [Codex Desktop URI](https://learn.chatgpt.com/docs/app/commands)
+- [Codex App Server JSON-RPC / item 生命周期](https://learn.chatgpt.com/docs/app-server)
+- [OpenAI Codex App Server 说明](https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server)
