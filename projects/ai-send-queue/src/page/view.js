@@ -431,7 +431,16 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
     return true;
   }
   function destroy(){reset();recoveryText=null;list?.destroy();button?.destroy();list=null;button=null;}
+  function isPlaced(snap){
+    if(!snap?.ok||!list?.active()||!button?.active())return false;
+    const native=snap.stopButton||snap.sendButton||snap.anchorButton,win=doc.defaultView;
+    return !!native&&list.host.nextSibling===snap.form&&button.host.nextSibling===native&&
+      list.host.style.getPropertyValue('display')!=='none'&&
+      button.host.style.getPropertyValue('display')!=='none'&&
+      !!visibleRect(list.host,win)&&!!visibleRect(button.host,win)&&
+      !!editorViewport(snap.editor,snap.form,win);
+  }
   owner.onDispose(destroy);
-  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,
+  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,isPlaced,
     recovery:()=>recoveryText===null?null:{text:recoveryText},destroy});
 }

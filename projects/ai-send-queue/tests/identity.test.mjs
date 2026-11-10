@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createQueueCache} from '../src/page/cache.js';
+import {registerPageStatus} from '../src/page/status.js';
 
 const root=new URL('../',import.meta.url);
 const source=await readFile(new URL('src/page/main.js',root),'utf8');
@@ -11,10 +12,10 @@ const legacySelector='[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-send
 const previousSelector='[data-opendesk-ui-owner][data-od-id="opendesk.ai-send-queue.lifecycle"]';
 
 // Execute the actual entry with inert collaborators; no website or messages.
-function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatgpt.com',frame=false}={}){
+function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatgpt.com',frame=false,withBridge=false}={}){
   const calls={owners:0,sites:0,engines:0,views:0,ticks:0,destroy:0,inspect:0};
   const legacyHost={queue:['private legacy queue'],destroy(){throw Error('must not touch legacy');}};
-  let active=true,interval,actions,disposer;
+  let active=true,interval,actions,disposer,statusHandler,unsubscribed=0;
   const owner={host:{style:{setProperty(){}}},on(){},active:()=>active,
     setInterval(fn,ms){if(ms===650)interval=fn;},onDispose(fn){disposer=fn;},
     destroy(){if(active){active=false;calls.destroy++;disposer?.();}}};
@@ -22,7 +23,8 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
   const doc={querySelector(selector){assert.ok([legacySelector,previousSelector].includes(selector));
     return legacy&&selector===legacyMarker?legacyHost:null;}};
   const win={location:{origin}};win.top=frame?{}:win;
-  const context=vm.createContext({window:win,document:doc,
+  const context=vm.createContext({window:win,document:doc,registerPageStatus,
+    ...(withBridge?{OpenDeskAppPage:{onRequest(fn){statusHandler=fn;return ()=>unsubscribed++;}}}:{}),
     createPageUI(options){calls.owners++;assert.equal(options.id,ID+'.lifecycle');return owner;},
     createChatGPTSite(){calls.sites++;return site;},createQueueCache,
     createQueueEngine(){calls.engines++;return {view:()=>({inFlight:null,items:[]}),tick(){calls.ticks++;}};},
@@ -31,6 +33,7 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(source.replace(/^import .*;\n/gm,'').replace('export default async function main','async function main'),context);
   return {calls,legacyHost,run:()=>context.main(),setLegacy(value){legacy=value;},
+    readStatus:()=>statusHandler({operation:'queue.status',payload:{}}),unsubscribed:()=>unsubscribed,
     poll(){interval();},get actions(){return actions;}};
 }
 
@@ -42,6 +45,16 @@ test('source manifest binds the embedded Page to the parent package without wide
   assert.ok(Number.isSafeInteger(tool.pageModule.revision)&&tool.pageModule.revision>0);
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
+});
+
+test('real main registers only companion health and releases it with the original lifecycle',async()=>{
+  const h=harness({withBridge:true});await h.run();
+  const status=h.readStatus();assert.equal(status.status,'composer-unavailable');
+  assert.equal(status.version,JSON.parse(await readFile(new URL('tool.config.json',root))).version);
+  assert.equal(h.calls.ticks,0,'reading health cannot dispatch a queue tick');
+  h.setLegacy(true);h.poll();assert.equal(h.unsubscribed(),1);
+  assert.equal(h.readStatus().status,'stopped');
+  assert.equal(h.calls.ticks,0);
 });
 
 test('old active lifecycle blocks new owner, queue and site before any work',async()=>{

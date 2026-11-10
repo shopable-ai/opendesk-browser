@@ -1,6 +1,44 @@
 # AI 消息发送队列 UI 验证（2026-11-10）
 
-## 0.1.24 新聊天与项目入口
+## 0.1.26 已安装 UI 与核心发送闭环
+
+本轮解决「装好后侧栏只有两段说明，无法判断网页模块是否运行」的问题，补上公开 `page.request` / `OpenDeskAppPage.onRequest` 的只读 `queue.status`。业务仍由唯一 Page 队列执行；没有源码临时挂载、测试 UI owner 或第二个发送器。目标与使用方式见 [README 当前记录](README.zh-CN.md)。
+
+| 最终身份 | 实际值 |
+| --- | --- |
+| 唯一正式文件 | `ai-send-queue.opendesk-tool.json` |
+| Tool / Page 版本、修订 | `0.1.26` / `0.1.26`，revision `25` |
+| Tool / Page ID | `ai-send-queue` / `app.ai-send-queue` |
+| 字节数 | 136624 |
+| 文件 SHA-256 | `bbf37b93aaf10d721436bbb60f3a22543386e227f2f1e0d0568d31aedef8c7a7` |
+| Page sourceHash | `ab795b7ab732faf6e597c2050ad941772413d9f4349377df17c32102e650175b` |
+| 安装与当前运行 | 安装完整对象与正式 JSON 深比较相同；enabled / authorization active / nativeState registered；最终回执 completed / managed lifecycle evaluated，revision/sourceHash 匹配 |
+
+环境为 ego TaskSpace 66，既有扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。使用原实体 Side Panel 的安装、管理及真实沙箱 UI；面板视口为便于操作设为 420×900，未改变产品源码或执行世界。TaskSpace 共用 Profile，不能作为 Cookie 或权限隔离证明。没有启动/重建 Browser，没有替换日常加载目录或 Native 配对，也没有操作其他任务的 watcher。普通队列和项目队列测试均使用本任务新建的测试会话。
+
+| 实际用户操作 | 最终结果与证据边界 |
+| --- | --- |
+| 原安装审阅更新单包 | PASS；`0.1.25 → 0.1.26`、权限未变化。清理未知后先核对旧文档，再使用同包「核对并恢复网页模块」；成功反馈可见，没有直写存储冒充安装 |
+| `/`、`/c/<id>`、项目首页、带项目 slug 的 `/g/g-p-…/c/<id>` | PASS；最终包四类真实入口各只有一个生命周期、皇冠、队列区域；有/无会话的空状态正确 |
+| 首页与项目首页的首条保护 | PASS；最终包分别通过 Ctrl+Enter 和皇冠测试，原草稿逐字保留、零队列项。首条真实原生发送并进入新对话另外在 0.1.25 完成，未将其冒充最终版本的新首条发送 |
+| 项目首页点击本任务对话链接 | PASS；timeOrigin 保持相同，是真实 SPA 切换；新输入框和按钮出现后仍只有一套队列控件 |
+| 皇冠与 Ctrl+Enter | PASS；0.1.25 的普通对话分别真实入队/入站一次；最终包 Ctrl+Enter 首条保护和皇冠双条入队再次验证，快捷键处理未改 |
+| 最终包两条同时排队、暂停/恢复、FIFO | PASS；A26/B26 都先显示为暂停行；恢复后先 A26，再等 A26 回复 complete 后提交 B26。两条用户消息各一次，B26 回复 complete 后无 stop、无草稿、无队列行、无 unknown |
+| 侧栏手动检查与切页后重新检查 | PASS；最终安装 UI 分别显示「当前目标不可用」「当前目标不支持」「请先发送首条消息」「网页队列已就绪」；后两者显示 Page 0.1.26。无自动轮询、无消息正文、无逐条操作 |
+| 主动停用应用 | PASS；原管理菜单反馈已停用；当前页生命周期、皇冠与队列区域均为零，草稿为空；未通过快捷键尝试原生发送 |
+| 恢复应用并进入新文档 | PASS；原管理入口恢复后，新文档单实例重新运行，侧栏返回 ready / 0.1.26，当前执行 completed/evaluated |
+| 恢复后的旧文档即时重挂 | NOT_CONFIRMED；旧页未即时重挂，一次刷新后也未拿到新执行回执；切到另一新文档后正常。未将注册标记直接算作当前页运行成功，未扩大修复框架 |
+| 系统中文 IME、休眠/压力、完整撤权/卸载矩阵、production、评分 | NOT_TESTED；当前开发阶段之外，历史证据不升级为本候选正式验收 |
+
+最终 FIFO trace（UTC，2026-11-10）：A26 入站 `15:44:57.268`，其回复 complete `15:45:00.418`；B26 原文准备 `15:45:02.994`，入站 `15:45:03.762`，回复 complete `15:45:09.351`。采样没有替代网站回执，只记录真实可见 DOM；各精确正文在本轮测试对话计数为 1。最终包没有复现 0.1.21 的末项 unknown；历史精确节点保护保持原样，不能据此声称所有虚拟化情况已解决。
+
+安装阻塞处理：最初发现旧 r20 的 18 个文档中仅空间 53 指定项目首页仍存活；用户明确允许检查、空闲后刷新。检查确认无草稿、队列缓存或正在回复后才刷新并交还控制。0.1.26 更新时只刷新本任务无草稿/缓存/回复的旧测试文档，确认 r24 活文档为零后使用原恢复入口。所有 unknown 都按原栅栏核对，没有自动重试发送或伪造清理凭据。
+
+定向检查：`page-status`、`sidebar-status`、`sidebar-contract`、`view` 共 68 PASS；最终候选 `package` / `identity` 共 10 PASS。此前 main 恢复/快捷键组合的 145 PASS 证据用于未变行为，不累计成新的全测分数。独立复审发现检查异常被误报输入框未就绪，已改成固定 `E_QUEUE_STATUS_INSPECT` / `E_QUEUE_STATUS_LAYOUT` 错误，补了两个不泄露异常正文的回归。React 预编译、语法、diff、候选晋升及正式包 `--check-project` 通过；未运行全仓测试。
+
+本机忽略目录 `artifacts/installed-ui-20261110/` 保留 `final-routes.json`、`final-fifo.json`、`final-sidebar-states.json`、`final-fifo-two.png`、`final-fifo-result.png` 和 `final-sidebar-ready.png`。无 `final-` 前缀的文件包含中间 0.1.25 诊断，不混写为最终候选。原截图可能含账户 UI，不提交。菜单最初被驱动的延迟 scroll 事件收起，先修正驱动滚动后正常操作；未为此修改有效产品行为。
+
+## 0.1.24 新聊天与项目入口（历史）
 
 本轮只修复新聊天区域发现与状态展示，不实现首条自动发送或临时会话队列。目标与关键条件以 [README 对应章节](README.zh-CN.md#新聊天与项目入口2026-11-10) 为准。普通已有对话及项目已有对话继续以 `c/<id>` 绑定；首条前区域可见，皇冠与 Ctrl + Enter 提示先原生发送并保留草稿。
 
@@ -19,7 +57,7 @@
 
 最终单包为 **0.1.24 / 内嵌修订 23**，129564 字节，SHA-256 `400cdfc9648cc31beed5287e6e2d95da8492cc77ec2c68238cd994ec581135c6`，Page sourceHash `de15927a4dc2e29fc1fdd126482feba9b9762d8f9cd2616ed11fc68211e6cd56`。由原打包器从最终源码生成候选，包/身份检查后晋升并完成逐字节 `--check-project`；没有重编 Browser、替换加载目录、变更权限或配对。状态 **PACKAGE_READY_INSTALL_NOT_TESTED**。
 
-以下为 **0.1.21 历史记录**，不作为 0.1.24 的安装、发送或完整闭环证据。
+以下为 **0.1.21 历史记录**，不作为 0.1.24 或 0.1.26 的安装、发送或完整闭环证据。
 
 本轮为开发阶段验证。业务、资源、测试和唯一正式 JSON 继续归本目录；未修改 Browser 固定源码、启动第二个 watcher、全量构建 Browser 或更换 Native 配对。测试使用 ego 既有扩展及 TaskSpace 55，只在本轮新建的 ChatGPT 测试会话操作。
 

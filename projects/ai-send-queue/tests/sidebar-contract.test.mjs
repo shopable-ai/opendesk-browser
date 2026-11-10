@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 const dir=new URL('../',import.meta.url);
 const source=async path=>readFile(new URL(path,dir),'utf8');
-test('Sidebar is informational, never reads the Page queue, and has no parallel sender',async()=>{
+test('Sidebar only diagnoses status, never reads the Page queue, and has no parallel sender',async()=>{
   const [entry,ui,manifest,page,shared]=await Promise.all([
     source('src/sidebar/main.jsx'),source('src/sidebar/App.jsx'),source('tool.config.json'),
     source('src/page/remote.js'),source('src/shared/queue-contract.js')]);
@@ -13,7 +13,10 @@ test('Sidebar is informational, never reads the Page queue, and has no parallel 
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(tool.capabilities,['page.module','currentPage.read']);
   assert.equal(entry.match(/createRoot\(/g)?.length,1);
-  assert.doesNotMatch(entry+ui,/request\(|QUEUE_READ|QUEUE_WRITE|setInterval|opendesk-page-changed/);
+  assert.doesNotMatch(entry+ui,/QUEUE_READ|QUEUE_WRITE|setInterval|setTimeout|opendesk-page-changed|sendQueue\.(?:snapshot|command)/);
+  assert.deepEqual([...ui.matchAll(/request\('([^']+)'/g)].map(match=>match[1]),
+    ['currentPage.info','page.request']);
+  assert.match(ui,/operation:'queue\.status',payload:\{\}/);
   assert.match(ui,/在 ChatGPT 网页中使用/);
   assert.match(page,/import \{QUEUE_COMMANDS,QUEUE_MEMORY_ONLY\} from '\.\.\/shared\/queue-contract\.js'/);
   assert.match(shared,/sendQueue\.snapshot/);

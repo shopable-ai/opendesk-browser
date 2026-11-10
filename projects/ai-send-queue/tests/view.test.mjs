@@ -105,6 +105,16 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
 }
 const panel=h=>h.ui('list').content.children[0];
 
+test('health visibility follows actual mounted controls and composer replacement',()=>{
+  const h=fixture();assert.equal(h.view.isPlaced(h.snap),false);
+  assert.equal(h.view.place(h.snap),true);assert.equal(h.view.isPlaced(h.snap),true);
+  assert.equal(h.view.isPlaced({...h.snap,sendButton:null,anchorButton:h.native}),true);
+  h.view.hide();assert.equal(h.view.isPlaced(h.snap),false);
+  assert.equal(h.view.place(h.snap),true);
+  assert.equal(h.view.isPlaced({...h.snap,form:h.doc.createElement('form')}),false);
+  h.dispose();assert.equal(h.view.isPlaced(h.snap),false);
+});
+
 test('new-chat composer shows one queue region and crown, then updates after native conversation creation',()=>{
   const h=fixture();h.state({items:[],answerGate:false});
   const fresh={...h.snap,route:null,newConversation:true};
