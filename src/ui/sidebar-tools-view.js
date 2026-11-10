@@ -16,7 +16,7 @@ export function createSidebarToolsView() {
   const trustedSettingsActions=Object.create(null);
   let snapshot = {fields: Object.fromEntries(Object.entries(fields).map(([key, state]) => [key, {...state}])),
     market: {pending: [], review: null, error: ''}, toast: null, toasts: [], labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
-  let nextToastId = 0;
+  let nextToastId = 0, nextToastRevision = 0;
   let marketInstallActions = null;
   let disposed = false, queued = false, attachment = null, connection = null;
   const trustedSettings=Object.freeze(Object.fromEntries(Object.keys(snapshot.trustedSettings).map(key=>[key,Object.freeze({
@@ -106,24 +106,65 @@ export function createSidebarToolsView() {
       effects.length = 0;
     }
   }
+
+  // One owner-bound presentation store serves legacy, ordinary tools and
+  // handle-based progress. The sandbox never receives this trusted view object.
+  const priority=row=>({info:0,success:1,warning:2,error:3}[row.type]??0)+
+    (row.timeout===0?0.5:0);
+  function putToast(message,options={},owner=null,existingId=null){
+    if(disposed||typeof message!=='string'||!message.trim())return null;
+    const type=['info','success','warning','error'].includes(options?.type)?options.type:'info';
+    const position=['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right']
+      .includes(options?.position)?options.position:'top-center';
+    const caption=typeof options?.caption==='string'?options.caption:'';
+    const timeout=Number.isSafeInteger(options?.timeout)&&
+      (options.timeout===0||options.timeout>=1000&&options.timeout<=15000)?options.timeout:5000;
+    const groupKey=existingId===null&&options?.group!==false?
+      JSON.stringify([owner,message,caption,type,position]):null;
+    const list=snapshot.toasts||[];
+    const previous=existingId!==null?
+      list.find(row=>row.id===existingId&&row.owner===owner):
+      groupKey?list.find(row=>row.groupKey===groupKey):null;
+    if(existingId!==null&&!previous)return null;
+    let toasts=list.filter(row=>row.id!==previous?.id);
+    const row={id:previous?.id||++nextToastId,message,caption,type,position,timeout,owner,
+      groupKey,count:existingId!==null?1:previous?Math.min(previous.count+1,99):1,
+      revision:++nextToastRevision};
+    if(!previous&&toasts.length>=3){
+      // A normal info/success cannot evict a more important warning/error.
+      // Persistent entries outrank ordinary entries of the same severity.
+      const victims=toasts.map((item,index)=>({item,index}))
+        .filter(({item})=>priority(item)<=priority(row))
+        .sort((a,b)=>priority(a.item)-priority(b.item)||a.index-b.index);
+      if(!victims.length)return null; // drop the incoming notice; no unbounded queue
+      toasts=toasts.filter(item=>item.id!==victims[0].item.id);
+    }
+    toasts.push(row);
+    snapshot={...snapshot,toasts,toast:row};notify();
+    return row.id;
+  }
   return Object.freeze({
     fields, labels, actions, runtime, patch, bind, dispatch, trustedSettings, trustedSettingsActions,
     showToast(message,options={}) {
-      if (disposed || typeof message!=='string' || !message.trim()) return;
-      const type=['info','success','warning','error'].includes(options?.type)?options.type:'info';
-      const position=['top-left','top-center','top-right','bottom-left','bottom-center','bottom-right']
-        .includes(options?.position)?options.position:'top-center';
-      const caption=typeof options?.caption==='string'?options.caption:'';
-      const timeout=Number.isSafeInteger(options?.timeout)&&
-        (options.timeout===0||options.timeout>=1000&&options.timeout<=15000)?options.timeout:5000;
-      // Group by visible content and position, never a caller-controlled command or URL.
-      const groupKey=JSON.stringify([message,caption,type,position]);
+      putToast(message,options); // preserve the legacy undefined return
+    },
+    addToolToast(message,options,owner) {
+      if(typeof owner!=='string'||!owner)return null;
+      return putToast(message,{...options,group:false},owner);
+    },
+    updateToolToast(id,message,options,owner) {
+      if(typeof owner!=='string'||!owner)return false;
+      return putToast(message,{...options,group:false},owner,id)===id;
+    },
+    hasToast(id,owner) {
+      return !disposed&&(snapshot.toasts||[]).some(row=>row.id===id&&row.owner===owner);
+    },
+    clearToastsByOwner(owner) {
+      if(disposed||typeof owner!=='string'||!owner)return;
       const list=snapshot.toasts||[];
-      const old=options?.group!==false?list.find(row=>row.groupKey===groupKey):null;
-      const row={id:old?.id||++nextToastId,message,caption,type,position,timeout,
-        groupKey:options?.group===false?null:groupKey,count:old?Math.min(old.count+1,99):1};
-      const toasts=[...list.filter(item=>item.id!==old?.id),row].slice(-3);
-      snapshot={...snapshot,toasts,toast:row};notify();
+      const toasts=list.filter(row=>row.owner!==owner);
+      if(toasts.length===list.length)return;
+      snapshot={...snapshot,toasts,toast:toasts.at(-1)||null};notify();
     },
     dismissToast(id) {
       if (disposed || !(snapshot.toasts||[]).some(item=>item.id===id)) return;

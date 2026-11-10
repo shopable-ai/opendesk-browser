@@ -29,3 +29,12 @@ node --test tests/environment/sidebar-tool-ui-notice.test.mjs
 ```
 
 不修改项目已晋升的 JSON 来调试。Node/打包验收不等于已安装 Chrome 可见性验收；后者必须记录真实截图或可核对的浏览器观察。
+
+## R1.2 通知句柄实验
+
+新增“模拟执行 → 成功/失败”、“手动关闭当前任务提示”和“四连发 · 限频回执”。演示任务不会真实导出、修改业务数据或进行浏览器安装；只有模拟业务明确完成时才把原消息更新为成功。
+
+- 旧版 `ui.notify` 的 `true` 只表示沙箱已提交，无 Host 回执。
+- 新 `ui.notify.open` 的 `ready` / `update` / `dismiss` 返回 `accepted` / `rejected` / `unknown`。即使是 accepted 也仅说明 Host 已接入通知状态；真实画面仍须目视确认。缺少回执或旧 Host 不支持时保持正文提示，不伪装成功。
+- 每个当前工具实例每 60 秒最多创建 3 次，四连发只是用来观察真实拒绝与 `retryAfterMs`，不会绕过限频。已有句柄最多更新 12 次，30 分钟后宿主强制过期；关闭工具也会清理。
+- 实际交付安装只认同目录唯一 `ui-notify-demo.opendesk-tool.json`，须由仓库原打包器先构建候选、完成测试，再 `--promote-from` 晋升；勿手动改包。

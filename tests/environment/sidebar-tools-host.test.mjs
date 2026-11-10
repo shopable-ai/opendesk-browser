@@ -86,6 +86,112 @@ test('installed ui.notify typed feedback is still sender-bound, bounded and pres
   assert.equal(f.view.getSnapshot().toasts.length,2);
 });
 
+
+test('installed ui.notify handle is instance-bound, replay-safe, update-capped and closable',async t=>{
+  const f=await hostFixture(t),sent=f.frame.contentWindow.sent;
+  let request=0;
+  const send=(command,handleId,revision,payload,options={})=>{
+    const requestId='n'+(++request);
+    const data={protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
+      toolId:sample.id,command,handleId,revision,requestId,
+      ...(command==='dismiss'?{}:{payload})};
+    f.win.emit('message',{origin:options.origin||'null',
+      source:options.source||f.frame.contentWindow,data});
+    return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
+  };
+  const start={message:'任务执行中',type:'info',timeout:0};
+  assert.equal(send('open','n-1',0,start,{source:{}}),undefined);
+  assert.equal(f.view.getSnapshot().toasts.length,0);
+  assert.equal(send('open','n-1',0,start).status,'accepted');
+  const original=f.view.getSnapshot().toast.id;
+  assert.equal(f.view.getSnapshot().toast.timeout,0);
+  assert.equal(send('open','n-1',0,start).reason,'replay');
+  assert.equal(send('update','n-2',1,{message:'跨句柄伪造'}).reason,'not_found');
+  assert.equal(send('update','n-1',1,{message:'禁止 HTML',html:'<b>x</b>'}).reason,'invalid_payload');
+  assert.equal(send('update','n-1',1,{message:'重放已消耗序号'}).reason,'replay');
+  for(let revision=2;revision<=13;revision++){
+    const reply=send('update','n-1',revision,{
+      message:'阶段 '+revision,type:revision===13?'success':'info',timeout:0});
+    assert.equal(reply.status,'accepted');
+    assert.equal(f.view.getSnapshot().toast.id,original);
+  }
+  assert.equal(send('update','n-1',14,{message:'超过次数',type:'error'}).reason,'update_limit');
+  assert.equal(send('update','n-1',14,{message:'重放超限'}).reason,'replay');
+  assert.equal(send('dismiss','n-1',15).status,'accepted');
+  assert.equal(f.view.hasToast(original,f.loaded.instance),false);
+  assert.equal(send('dismiss','n-1',15).reason,'not_found');
+  const old=f.view.getSnapshot().toasts.length;
+  assert.equal(send('open','n-1',0,start).reason,'replay');
+  assert.equal(f.view.getSnapshot().toasts.length,old);
+});
+
+test('installed ui.notify handles share the three-per-minute budget and close with the tool',async t=>{
+  const f=await hostFixture(t),sent=f.frame.contentWindow.sent;
+  const post=(index,change={})=>{
+    const requestId='n'+index;
+    f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+      protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
+      toolId:sample.id,command:'open',handleId:'n-'+index,revision:0,
+      requestId,payload:{message:'任务 '+index,type:'info',timeout:0},...change}});
+    return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
+  };
+  f.view.showToast('可信宿主保留',{type:'info'});
+  for(let i=1;i<=3;i++)assert.equal(post(i).status,'accepted');
+  const fourth=post(4);
+  assert.equal(fourth.status,'rejected');
+  assert.equal(fourth.reason,'rate_limited');
+  assert(fourth.retryAfterMs>0&&fourth.retryAfterMs<=60000);
+  assert.equal(f.view.getSnapshot().toasts.length,3);
+  assert.equal(f.host.closeTool(),true);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.owner===f.loaded.instance),false);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.message==='可信宿主保留'),false,
+    'legacy trusted toast may be overflow-evicted, not tool cleanup');
+  post(5); // late old frame cannot mutate the new/closed instance
+  assert.equal(f.view.getSnapshot().toasts.length,0);
+});
+
+test('installed ui.notify Bridge receives only parent receipt and retains old boolean',async t=>{
+  const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),sent=[];
+  const parent={postMessage(data){
+    sent.push(data);
+    f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data});
+  }};
+  runInNewContext('('+initSidebarToolSandbox.toString()+')()',{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,
+    normalizeToolUiNotice,TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS:2400,
+    window:sandboxWindow,parent,CustomEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:notice-contract',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  const sdk=sandboxWindow.OpenDeskTool;
+  assert.equal(typeof sdk.ui.notify,'function');
+  assert.equal(typeof sdk.ui.notify.open,'function');
+  assert.equal(sdk.ui.notify('旧版消息'),true);
+  const handle=sdk.ui.notify.open({message:'准备处理',timeout:0});
+  assert(handle);
+  const relay=kind=>{
+    const command=sent.filter(row=>row.kind==='ui-notify-handle'&&row.command===kind).at(-1);
+    assert(command,'Bridge must issue the requested command to its original parent');
+    const receipt=f.frame.contentWindow.sent.find(row=>row.kind==='ui-notify-receipt'&&
+      row.requestId===command.requestId);
+    assert(receipt,'Host must produce a matching trusted receipt');
+    sandboxWindow.emit('message',{source:{},data:receipt});
+    sandboxWindow.emit('message',{source:parent,data:receipt});
+    return receipt;
+  };
+  relay('open');
+  assert.equal((await handle.ready).status,'accepted');
+  const pending=handle.update({message:'真实业务结束后才更新',type:'success',timeout:3000});
+  await settle(()=>sent.some(row=>row.command==='update'&&row.kind==='ui-notify-handle'));
+  relay('update');assert.equal((await pending).status,'accepted');
+  const closing=handle.dismiss();
+  await settle(()=>sent.some(row=>row.command==='dismiss'&&row.kind==='ui-notify-handle'));
+  relay('dismiss');assert.equal((await closing).status,'accepted');
+  assert.equal((await handle.update({message:'不能复活'})).reason,'inactive');
+});
 const confirmOptions={title:'删除便签？',message:'删除后无法恢复。',confirmLabel:'删除',tone:'danger'};
 function confirmMessage(f,id='1',extra={}){
   return {protocol:f.loaded.protocol,kind:'request',instance:f.loaded.instance,toolId:sample.id,

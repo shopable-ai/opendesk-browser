@@ -4,8 +4,9 @@
 .notify-demo p{margin:6px 0;color:#64748b}
 .notify-demo-head{padding-bottom:14px;border-bottom:1px solid #dbe2ed}
 .notify-demo code{font-family:ui-monospace,monospace;font-size:11px}
-.notify-demo-control{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0}
-.notify-demo-control select{min-width:132px;max-width:200px;font:inherit;color:#223145;background:#fff;border:1px solid #c3cfe0;border-radius:8px;padding:8px}
+.notify-demo-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px 0}
+.notify-demo-controls label{display:flex;flex-direction:column;gap:5px;font-weight:600}
+.notify-demo-controls select{min-width:132px;max-width:200px;font:inherit;color:#223145;background:#fff;border:1px solid #c3cfe0;border-radius:8px;padding:8px}
 .notify-demo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .notify-demo-grid button{min-height:40px;padding:8px 10px;font:inherit;font-weight:600;border-radius:9px;color:#233854;background:#f5f8fd;border:1px solid #cbd5e1;cursor:pointer}
 .notify-demo-grid button:hover{background:#eaf1fd}
@@ -14,4 +15,6 @@
 .notify-demo-readback{margin-top:16px;padding:11px 12px;border-radius:9px;background:#eef6ff;color:#254672;min-height:40px;overflow-wrap:anywhere}
 .notify-demo-hint{font-size:11px;margin-top:10px}
 @media (max-width:290px){.notify-demo-grid{grid-template-columns:1fr}.notify-demo{padding:10px}}
-@media (prefers-color-scheme:dark){.notify-demo{color:#e2e8f0}.notify-demo-head{border-color:#334155}.notify-demo p{color:#a3b1c4}.notify-demo-control select{background:#1e293b;color:#f8fafc;border-color:#526178}.notify-demo-grid button{background:#1e293b;color:#e2e8f0;border-color:#526178}.notify-demo-grid button:hover{background:#334155}.notify-demo-readback{background:#172e47;color:#bfdbfe}}
+@media (prefers-color-scheme:dark){.notify-demo{color:#e2e8f0}.notify-demo-head{border-color:#334155}.notify-demo p{color:#a3b1c4}.notify-demo-controls select{background:#1e293b;color:#f8fafc;border-color:#526178}.notify-demo-grid button{background:#1e293b;color:#e2e8f0;border-color:#526178}.notify-demo-grid button:hover{background:#334155}.notify-demo-readback{background:#172e47;color:#bfdbfe}}
+
+@media (max-width:350px){.notify-demo-controls{grid-template-columns:1fr}}

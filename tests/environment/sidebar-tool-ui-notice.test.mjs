@@ -89,3 +89,52 @@ test('existing Host view caps to three toasts, coalesces duplicates and preserve
   assert.equal(view.getSnapshot().toast,null);
   assert.deepEqual(view.getSnapshot().toasts,[]);
 });
+
+test('priority overflow protects sticky errors and cannot grow an invisible queue',()=>{
+  const view=createSidebarToolsView();
+  view.showToast('重要错误',{type:'error',timeout:0});
+  view.showToast('需要处理',{type:'warning',timeout:0});
+  view.showToast('普通一条',{type:'info',timeout:0});
+  const original=view.getSnapshot().toasts.map(row=>row.id);
+  view.showToast('普通二条',{type:'info'});
+  assert.deepEqual(view.getSnapshot().toasts.map(row=>row.id),original,
+    'a normal info cannot evict three persistent entries');
+  view.showToast('新严重错误',{type:'error',timeout:0});
+  assert.equal(view.getSnapshot().toasts.length,3);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='重要错误'),true);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='需要处理'),true);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='新严重错误'),true);
+  view.showToast('低优先级',{type:'info'});
+  assert.equal(view.getSnapshot().toasts.length,3);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='低优先级'),false);
+  view.dispose();
+});
+
+test('owner-scoped toast handles update only their own row and retire on switch',()=>{
+  const view=createSidebarToolsView();
+  view.showToast('可信宿主反馈',{type:'info'});
+  const own=view.addToolToast('「A」：处理中',{type:'info',timeout:0},'instance-A');
+  const other=view.addToolToast('「B」：处理中',{type:'info',timeout:0},'instance-B');
+  assert.equal(typeof own,'number');
+  assert.equal(view.updateToolToast(own,'「A」：成功',{type:'success',timeout:3000},'instance-B'),false);
+  assert.equal(view.updateToolToast(own,'「A」：成功',{type:'success',timeout:3000},'instance-A'),true);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.id===own&&row.type==='success'),true);
+  assert.equal(view.hasToast(own,'instance-A'),true);
+  view.clearToastsByOwner('instance-A');
+  assert.equal(view.hasToast(own,'instance-A'),false);
+  assert.equal(view.updateToolToast(own,'「A」：重试',{type:'info'},'instance-A'),false);
+  assert.equal(view.hasToast(other,'instance-B'),true);
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='可信宿主反馈'),true);
+  view.dispose();
+});
+
+test('rate gate supplies a bounded Host retry-after without relaxing legacy budget',()=>{
+  let now=1000;
+  const gate=createToolUiNoticeRateGate({now:()=>now});
+  for(let i=0;i<3;i++)assert.deepEqual(gate.admit('one'),{accepted:true,retryAfterMs:0});
+  assert.deepEqual(gate.admit('one'),{accepted:false,retryAfterMs:60000});
+  now+=54001;
+  assert.deepEqual(gate.admit('one'),{accepted:false,retryAfterMs:5999});
+  now=61000;
+  assert.equal(gate.allow('one'),true);
+});

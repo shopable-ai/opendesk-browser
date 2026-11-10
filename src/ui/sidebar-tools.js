@@ -38,7 +38,8 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref,normalizeOwnPageTarget} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
-import {normalizeToolUiNotice,createToolUiNoticeRateGate} from '../sidebar-tools/ui-notice.js';
+import {normalizeToolUiNotice,createToolUiNoticeRateGate,
+  TOOL_UI_NOTICE_HANDLE_TTL_MS,TOOL_UI_NOTICE_HANDLE_MAX_UPDATES} from '../sidebar-tools/ui-notice.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
@@ -318,6 +319,28 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0,revocationReadError=false;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   const toolUiNoticeRate=createToolUiNoticeRateGate();
+  const noticeHandles=new Map();
+  let noticeHandleSequence=0;
+  function clearToolNoticeHandles(resetSequence=false){
+    for(const record of noticeHandles.values())clearTimeout(record.timer);
+    noticeHandles.clear();
+    if(instance)view.clearToastsByOwner(instance);
+    if(resetSequence)noticeHandleSequence=0;
+  }
+  function pruneToolNoticeHandles(){
+    for(const [id,record] of noticeHandles){
+      if(!view.hasToast(record.toastId,record.instance)){
+        clearTimeout(record.timer);noticeHandles.delete(id);
+      }
+    }
+  }
+  function canPresentToolNotice(){
+    return visible&&!disposed&&!readOnlyPreview&&!toolParked&&!frameRoot.hidden&&
+      !installedReadError&&!enableReadError&&!revocationReadError&&
+      sidebarToolEnabled(enableRecords,active.id)&&
+      frameRevocationEpoch===(revocationEpochs[active.id]??null)&&
+      samePackage(active,toolById(active.id));
+  }
   function refreshMenuStatus(tool,origin){
     const key=JSON.stringify([tool.id,tool.version,revocationEpochs[tool.id]??null,origin,
       menuGrants[tool.id]??null,sidebarToolEnabled(enableRecords,tool.id)]);
@@ -1121,6 +1144,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let sidebarAI=null;
   let localTaskBridge=null;
   function destroyFrame() {
+    clearToolNoticeHandles(true);
     cancelActionReview('invalidated');
     confirmationNavigation=null;cancelledConfirmations.clear();confirmationCancellationOverflow=false;editRevision++;
     setConversationState({visible:false,open:false});
@@ -2246,7 +2270,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!next&&visible&&busy)return false;
     // A returned-to-list sandbox still owns its original pending operations.
     // Hiding the workbench must not dispose/recreate that unresolved owner.
-    if(toolParked){visible=Boolean(next);if(!visible)setImportOpen(false);render();return;}
+    if(toolParked){visible=Boolean(next);if(!visible){clearToolNoticeHandles();setImportOpen(false);}render();return;}
     if(!next&&visible&&!canLeave(()=>{
       suspendTool();
       if(destination&&destination!=='tools')taskWorkbench.navigate?.(destination);
@@ -3837,20 +3861,80 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='ui-notify'){
-      // Tool-local presentation only: no page toast, no update badge, no
-      // trusted install/review action and no arbitrary HTML or callbacks.
-      // The already-checked opaque iframe source and instance are required,
-      // and the active installed package/epoch must remain usable.
-      if(exportPort!==null||Object.keys(message).length!==5||
-         !visible||disposed||readOnlyPreview||toolParked||frameRoot.hidden||
-         installedReadError||enableReadError||revocationReadError||
-         !sidebarToolEnabled(enableRecords,active.id)||
-         frameRevocationEpoch!==(revocationEpochs[active.id]??null)||
-         !samePackage(active,toolById(active.id)))return;
+      // Legacy request: no acknowledgment and no false promise of UI visibility.
+      if(exportPort!==null||!frame||frame.contentWindow!==event.source||
+         Object.keys(message).length!==5||!canPresentToolNotice())return;
       const payload=normalizeToolUiNotice(message.payload);
       if(payload&&toolUiNoticeRate.allow(instance))
-        view.showToast('「'+active.title+'」：'+payload.message,payload);
+        view.showToast('「'+active.title+'」：'+payload.message,
+          {...payload,owner:instance});
       return;
+    }
+    if(message.kind==='ui-notify-handle'){
+      // Only the exact, already-authorized opaque iframe may affect its
+      // own notice. Monotonic handle IDs and revisions prevent replays.
+      if(exportPort!==null||!frame||frame.contentWindow!==event.source||
+         typeof message.requestId!=='string'||
+         !/^n[1-9]\d{0,12}$/.test(message.requestId)||!['open','update','dismiss'].includes(message.command)||
+         !/^n-[1-9]\d{0,8}$/.test(message.handleId)||
+         !Number.isSafeInteger(message.revision)||message.revision<0||
+         Object.keys(message).length!==(message.command==='dismiss'?8:9))return;
+      const reply=(status,reason='',retryAfterMs=0)=>{
+        if(!sameInstance(event.source,message.instance))return;
+        try{event.source.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify-receipt',
+          instance:message.instance,toolId:message.toolId,requestId:message.requestId,
+          status,reason,retryAfterMs},'*');}catch{/* Never retry an unknown UI effect. */}
+      };
+      if(!canPresentToolNotice()){reply('rejected','unavailable');return;}
+      pruneToolNoticeHandles();
+      const index=Number(message.handleId.slice(2));
+      if(message.command==='open'){
+        if(message.revision!==0||index<=noticeHandleSequence){
+          reply('rejected','replay');return;
+        }
+        // Consume even a malformed open attempt before inspecting its payload.
+        noticeHandleSequence=index;
+        const payload=normalizeToolUiNotice(message.payload);
+        if(!payload){reply('rejected','invalid_payload');return;}
+        const admission=toolUiNoticeRate.admit(instance);
+        if(!admission.accepted){
+          reply('rejected','rate_limited',admission.retryAfterMs);return;
+        }
+        const toastId=view.addToolToast('「'+active.title+'」：'+payload.message,payload,instance);
+        if(toastId===null){reply('rejected','overflow');return;}
+        const record={instance,toastId,revision:0,updates:0,timer:null};
+        record.timer=setTimeout(()=>{
+          if(noticeHandles.get(message.handleId)!==record)return;
+          noticeHandles.delete(message.handleId);view.dismissToast(record.toastId);
+        },TOOL_UI_NOTICE_HANDLE_TTL_MS);
+        record.timer?.unref?.(); // Node Host tests must not stay alive for 30 minutes.
+        noticeHandles.set(message.handleId,record);
+        reply('accepted','host_state');return;
+      }
+      const record=noticeHandles.get(message.handleId);
+      if(!record||record.instance!==instance||!view.hasToast(record.toastId,instance)){
+        if(record){clearTimeout(record.timer);noticeHandles.delete(message.handleId);}
+        reply('rejected','not_found');return;
+      }
+      if(message.revision!==record.revision+1){
+        reply('rejected','replay');return;
+      }
+      record.revision=message.revision; // consume before validating content
+      if(message.command==='dismiss'){
+        clearTimeout(record.timer);noticeHandles.delete(message.handleId);
+        view.dismissToast(record.toastId);reply('accepted','dismissed');return;
+      }
+      const payload=normalizeToolUiNotice(message.payload);
+      if(!payload){reply('rejected','invalid_payload');return;}
+      if(record.updates>=TOOL_UI_NOTICE_HANDLE_MAX_UPDATES){
+        reply('rejected','update_limit');return;
+      }
+      const changed=view.updateToolToast(record.toastId,'「'+active.title+'」：'+payload.message,
+        payload,instance);
+      if(!changed){clearTimeout(record.timer);noticeHandles.delete(message.handleId);
+        reply('rejected','not_found');return;}
+      record.updates++;
+      reply('accepted','host_state');return;
     }
     if(message.kind==='request'&&message.operation==='tool.page.open'){
       if(typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId))return;

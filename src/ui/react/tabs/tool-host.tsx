@@ -906,18 +906,23 @@ function ToolToast({view,toast,visible}) {
   const [hovered,setHovered]=React.useState(false),[focused,setFocused]=React.useState(false);
   const priorFocus=React.useRef(null);
   const duration=Number.isSafeInteger(toast.timeout)?toast.timeout:5000;
-  const remaining=React.useRef(duration);
-  React.useEffect(()=>{remaining.current=duration;},[duration,toast.count]);
+  // Revisions reset a changed notice's time once. Hover/focus pause the same
+  // countdown across unrelated React renders without resetting on every repaint.
+  const remaining=React.useRef<{revision:number|null,ms:number}>({revision:null,ms:duration});
   React.useEffect(()=>{
+    const revision=toast.revision??toast.count;
+    if(remaining.current.revision!==revision)
+      remaining.current={revision,ms:duration};
     if(!visible){view.dismissToast(toast.id);return;}
     if(hovered||focused||duration===0)return;
-    const start=Date.now(),delay=Math.max(1,remaining.current);
+    const start=Date.now(),delay=Math.max(1,remaining.current.ms);
     const timer=setTimeout(()=>view.dismissToast(toast.id),delay);
     return ()=>{
-      remaining.current=Math.max(1,remaining.current-(Date.now()-start));
+      if(remaining.current.revision===revision)
+        remaining.current.ms=Math.max(1,remaining.current.ms-(Date.now()-start));
       clearTimeout(timer);
     };
-  },[view,toast.id,toast.count,visible,hovered,focused,duration]);
+  },[view,toast.id,toast.revision,toast.count,visible,hovered,focused,duration]);
   if(!visible)return null;
   const type=Object.hasOwn(TOOL_TOAST_LABELS,toast.type)?toast.type:'info';
   return <div className="sidebar-tool-toast" data-type={type}
