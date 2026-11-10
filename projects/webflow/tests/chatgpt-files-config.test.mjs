@@ -28,7 +28,11 @@ function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initial
     throw Error(method);
   }};
   const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path},storage:{local:storage,session},
-    tabs:{async get(){return {id:7,windowId:3,url:source.url};}},webNavigation:{async getFrame(){return {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
+    tabs:{async get(tabId){return tabId===owner.tab.id?{...owner.tab,url:owner.url}:
+      {id:source.tabId,windowId:source.windowId,url:source.url};}},
+    webNavigation:{async getFrame({tabId}){return tabId===owner.tab.id?
+      {frameId:0,documentId:owner.documentId,url:owner.url,documentLifecycle:'active'}:
+      {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
   const readAnswer=async(_api,_source,_id,options={})=>{if(readError){const error=readError;readError=null;throw error;}return ({url:source.url,turnKey,answerKey,answerComplete:complete,
     resultObserved:observed,...(options.readUserMessage?{userText}:{}),blocks:[answer]});};
   const controller=createChatGPTFilesController({api,files,readAnswer,fillComposer:async()=>{fills++;if(fillError)throw fillError;if(fillUnknown)throw {code:'E_CHAT_FILL_UNKNOWN',outcome:'OUTCOME_UNKNOWN'};return {filled:true,sent:false};}});
