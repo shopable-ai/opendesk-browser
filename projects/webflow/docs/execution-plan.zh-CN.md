@@ -9,11 +9,11 @@
 - `trusted/md-run-ledger.js`：在原后台 `frameworkKV` **同一 IDB 事务存储**上提供 startOrGet / get / append / claimNext，冻结运行来源、账号、授权等输入，读写事务内 CAS 使跨窗口仅一个领取成功；异步 SHA 在事务外计算；UNKNOWN 不重新领取。它复用现有 `src/md-run-contract.js`，没有新数据库或 Runner。**该 trusted adapter 尚未注册进原 Host/SDK，未接浏览器/文件副作用，不等于已完成持久执行引擎**。
 - 原 `src/ui/md-workflow.js`、唯一 `examples/workflows/md-demo.md`、MD 预览/禁用开始按钮、原 V1/V2/Authority/RunHost/Durable Result/网络授权均复用，未重做百度/Google Runner 或第二套 Demo。WebFlow 的 `tool.config.json` 目前仍只委托百度/Google，**没有可调用的两聊天工作流入口**。
 
-**分层证据：** 在同内容但非仓库完整安装的隔离 Node 夹具上，早期原生发送逻辑 5/5 smoke PASS（不视为版本打包/Chrome 实证）。GitHub Actions [42795735904](https://github.com/shopable-ai/opendesk-browser/actions/runs/42795735904) 在远端真实运行 167 项 Node 测试，166 PASS、1 FAIL：并行 AI Proxy `projects/ai-proxy/src/QuickPanel.tsx` 可信来源锁；新 0.2 ChatGPT 定向测试未失败。后续升级专门 Node Gate [42796615465](https://github.com/shopable-ai/opendesk-browser/actions/runs/42796615465) 初次 32/33 PASS，唯一失败为新增内置 Task 后旧测试把任务数固定为 2，已在 `2ba3cefa` 修正；Markdown IDB ledger 与升级回归的**最终同一 HEAD CI 结果须以新 Run 为准**，不可据旧通过判定。正式打包在上述 Gate 失败之后被跳过，Chrome 两会话与文件写读没有实证。其他 Agent 并行修改的 AI Proxy 来源锁不得由 WebFlow 越界修正。
+**分层证据（已核对真实 GitHub Actions 日志）：** 最新相关源码 HEAD `ad36a60780cbcb19e6449387b32eaba1542a5f96` 的 [Run 42797958683](https://github.com/shopable-ai/opendesk-browser/actions/runs/42797958683) 中，JS 语法检查 PASS，**独立专项 Node Gate 52/52 PASS**（旧 ChatGPT 0.1 草稿、新 0.2 单次发送候选、固定入口版本、旧版本显式升级、真实 Markdown 解析与 80/160、81/162 纯数据验算、原合同状态迁移、IDB 模拟事务原子领取/重启/CAS/UNKNOWN）。同一次 Run 的原有综合检查 **166/167 PASS，1 FAIL**：并行 AI Proxy `projects/ai-proxy/src/QuickPanel.tsx` 可信来源锁，WebFlow 不能越界修改来源锁，故 Production build 步骤被跳过，**不是 PACKAGE PASS**。此前失败的升级用例计数已在 `2ba3cefa` 修复。另有隔离 Node 原生脚本逻辑 5/5 smoke，但仅作补充，不替代仓库 CI。真实 Chrome 原生聊天、账号绑定、授权文件写读、正式打包/同源晋升均无实证。
 
 **用户当前实际可做：** 通过已有 WebFlow MD 页面加载/预览公开 GitHub 的 T01/T02（新安装网络授权在 Chrome 中仍需核验）；**不能**在 MD 页面一键运行 T01/T02。`开始` 继续禁用。0.2 Task 包已在源码及内置目录发布，实际已安装版本、原站授权、发送与回复必须由 Chrome 单独核验，不把源码提交当作真实操作结果。
 
-**状态（整个 Markdown→T01→保存读回→T02→保存读回→展示链路）：** `SOURCE_COMPLETE=NO`（Task/ledger 部分源码已写，但原 Host/SDK 编排、文件读写和 UI 未接）；`NODE_TESTED=PARTIAL`（有远端定向证据和历史来源锁失败，最新提交另核验）；`PACKAGE_READY=NO`；`CHROME_TESTED=NO`；`BUSINESS_ACCEPTED=NO`。
+**状态（整个 Markdown→T01→保存读回→T02→保存读回→展示链路）：** `SOURCE_COMPLETE=NO`（Task/ledger 部分源码已写，但原 Host/SDK 编排、文件读写和 UI 未接）；`NODE_TESTED=PARTIAL`（专项 52/52 PASS；全链集成与 Chrome 缺失，旧综合来源锁 166/167）；`PACKAGE_READY=NO`；`CHROME_TESTED=NO`；`BUSINESS_ACCEPTED=NO`。
 
 **唯一下一步：** 在原可信 Host owner 内**接入 md-run-ledger 与已有 0.2 Task 的稳定请求身份和原 Controller/RunHost**，补发送后只读恢复/账号栅栏，向原 Native Workspace 文件许可通道增加精确 artifacts/T01.json、T02.json 写入与独立读回，然后把原 MD 页的「开始/暂停/恢复/结果」接入同一运行；这条源码闭环完成后才做正式打包与真实 Chrome 35→36 变体验收。不得并行另开工作流 Runner、绕过文件/发送审核或先给本地 Codex 最终验收提示词。
 
