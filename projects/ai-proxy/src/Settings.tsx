@@ -627,6 +627,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
+        <p className="managementNavLabel">{t('settingsSections')}</p>
         {tabs.map(item=><Button key={item.id} disabled={busy||navigationBusy}
           className={item.id==='official'?'managementOptional':''} aria-current={tab===item.id?'page':undefined}
           onClick={()=>navigate(item.id)}><OptionsNavIcon section={item.id}/><span>{item.name}</span>
@@ -687,7 +688,9 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           </section>
           <section className="listSection">
             {presentation==='management'&&<div className="sectionHeading"><div><h2>{t('apProxyServers')} <span className="countTag">{endpoints.length}</span></h2><p className="hint">{t('apProxyServersHelp')}</p></div></div>}
-            {endpoints.length===0 ? <p className="hint">{t('sideNoProxiesHelp')}</p> : <div className="records profileRecords">{endpoints.map(p=>{
+            {endpoints.length===0 ? (presentation==='management'
+              ? <div className="managementEmptyState" role="status"><p className="hint">{t('sideNoProxiesHelp')}</p></div>
+              : <p className="hint">{t('sideNoProxiesHelp')}</p>) : <div className="records profileRecords">{endpoints.map(p=>{
               const profile=endpointRefs(p.id)[0];
               const source=config.sources.find(s=>s.id===p.sourceId);
               const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
