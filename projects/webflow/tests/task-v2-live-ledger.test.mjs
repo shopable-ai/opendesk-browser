@@ -112,3 +112,28 @@ test('V2 refuses a changed approved target, stale page identity, and unsupported
     candidate:dynamic,allowPending:true}),{
     code:'E_WEBFLOW_TARGET_UNBOUND'});
 });
+
+test('ChatGPT omitted send is persistently bound as false before one-use V2 approval',async()=>{
+  const release=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
+  assert.ok(release);
+  const draftScope={taskId:'chatgpt.conversation.create',targetUrl:'https://chatgpt.com/',
+    args:{prompt:'Prepare this B draft',send:false},sourceOrigin:'https://chatgpt.com',
+    installation:{version:release.version,manifestHash:release.manifestHash,
+      contentHash:release.sourceHash,scriptId:`task:chatgpt.conversation.create:${release.version}`,
+      revision:1,installationId:'draft-install-v2',generation:1}};
+  const id='wf-v2-draft-aaaaaaaaaaaaaaaaaaaa';
+  const candidate={candidateId:id,turnKey:'source-a-turn',answerKey:'source-a-answer',
+    text:JSON.stringify({protocol:'webflow.task.intent.v2',candidateId:id,
+      taskId:'chatgpt.conversation.create',args:{prompt:'Prepare this B draft'}})};
+  const h=harness();
+  const admitted=await h.ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,
+    ...draftScope,candidate,allowPending:true});
+  assert.equal(admitted.pendingApproval,true);
+  assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][admitted.requestId].scope.args.send,false);
+  const reviewed=await h.ledger.approveV2Pending({source,requestId:admitted.requestId,candidate,
+    scope:draftScope});
+  assert.equal(reviewed.approved,true);
+  h.restart();
+  await assert.rejects(h.ledger.approveV2Pending({source,requestId:admitted.requestId,candidate,
+    scope:draftScope}),{code:'E_WEBFLOW_V2_DENIED'});
+});
