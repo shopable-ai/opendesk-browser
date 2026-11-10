@@ -96,7 +96,9 @@ export function projectTrustedTaskNotice(view:any){
  if(receipt.execution==='failed'){
    const code=receipt.error?.code;
    const safeCode=typeof code==='string'&&/^[A-Z][A-Z0-9_]{1,49}$/.test(code)?code:null;
-   return make('failed','浏览器脚本执行失败','error',0,
+   return make(run?'failed':'needs-attention',
+     run?'浏览器脚本执行失败':'任务未获执行准入或启动失败，请处理',
+     run?'error':'warning',0,
      safeCode?'失败代码：'+safeCode+'；查看原请求记录':'查看原请求记录核对失败原因');
  }
  if(receipt.execution==='stopped')
