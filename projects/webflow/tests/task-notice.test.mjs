@@ -30,13 +30,15 @@ test('only verified Run/Result states produce a presentation event; completed is
   assert.equal(M.taskNotice({...completed,result:{...completed.result,outcome:{ok:false}}},pin).phase,'failed');
   assert.equal(M.taskNotice({...running,state:'unknown',semantic:'UNKNOWN'},pin).phase,'unknown');
   assert.match(M.taskNotice({...running,state:'unknown',semantic:'UNKNOWN'},pin).options.message,/禁止自动重试/);
-  assert.equal(M.taskNotice({...completed,state:'stopped'},pin).phase,'stopped');
+  assert.equal(M.taskNotice({...completed,state:'stopped'},pin).phase,'retirement-pending');
+  assert.equal(M.taskNotice({...completed,state:'stopped',result:{...completed.result,state:'stopped',outcome:{ok:false}}},pin).phase,'stopped');
+  assert.equal(M.taskNotice({...completed,result:{...completed.result,state:'failed',outcome:{ok:true}}},pin).phase,'unverified');
   assert.equal(M.taskNotice({...completed,value:{status:'blocked'}},pin).phase,'reported-issue');
   assert.match(M.taskNotice({...completed,value:{status:'blocked'}},pin).options.message,/脚本报告网站验证阻断/);
 });
 
 test('failed execution includes only bounded structured codes, not arbitrary webpage text',()=>{
-  const bad={...completed,state:'failed',result:{...completed.result,outcome:{ok:false,error:{
+  const bad={...completed,state:'failed',result:{...completed.result,state:'failed',outcome:{ok:false,error:{
     code:'<script>alert(1)</script>',message:'malicious untrusted HTML'}}}};
   const notice=M.taskNotice(bad,pin);
   assert.equal(notice.phase,'failed');
