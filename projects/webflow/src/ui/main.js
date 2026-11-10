@@ -570,7 +570,7 @@
               h(Status,{state:pin.state,text:pin.state==='available'?
                 (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined})),
             h('div',{className:'wf-task-secondary'},
-              h('span',null,'参数 3 项 · 结果固定 3 条'),
+              h('span',null,'参数 3 项 · 最多返回 3 条'),
               h('span',null,'手动 · 双阶段确认'))),
           h('div',{className:'wf-item-buttons'},
             Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,shortcut:true,
@@ -614,8 +614,8 @@
                   [pin.taskId]:{...old[pin.taskId],query:value,dirty:true}}));}})),
             h('div',{className:'wf-param-row'},
               h('div',{className:'wf-param-label'},
-                h('strong',null,'结果数量'),h('small',null,'整数 · 必填 · 固定值')),
-              h('span',{className:'wf-param-fixed','aria-label':'结果数量固定为 3'},'3 条')),
+                h('strong',null,'结果数量'),h('small',null,'整数 · 必填 · 固定上限')),
+              h('span',{className:'wf-param-fixed','aria-label':'最多返回 3 条'},'最多 3 条')),
             h('div',{className:'wf-param-row'},
               h('div',{className:'wf-param-label'},
                 h('strong',null,'显示执行标签页'),h('small',null,'开关 · 可选 · 默认开启')),
@@ -680,6 +680,7 @@
         h('code',{className:'wf-mono'},active.clientRequestId),
         h('p',{className:'wf-sub'},'资源释放：'+(snapshot?.retirementState||'未确认')+'；后续 B：不自动执行'),
         staged&&h('p',null,'已保存参数：'+staged.params.query),
+        staged&&h('p',{className:'wf-sub'},staged.params.showExecutionTab===false?'后台执行：不切到执行标签页':'前台执行：显示执行标签页'),
         staged&&Btn('确认手动运行',()=>run(tasks.find(p=>p.taskId===staged.task.taskId)),{
           primary:true,disabled:tasks.find(p=>p.taskId===staged.task.taskId)?.state!=='available'||
             !sameTarget(PINNED.find(p=>p.taskId===staged.task.taskId))||busy.current}),
