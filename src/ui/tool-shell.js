@@ -215,6 +215,27 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
   nativeConnection,localeController,webflowAuto,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false,
+  // Release identity is rechecked against the official Catalog before original Installer review.
+  onOpenUpdateReview:row=>{
+    if(shellClosed||!row||row.kind!=='sidebar-tool'||
+       !['available','review_required'].includes(row.status))return false;
+    if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
+      try{
+        const pending=chrome.sidePanel.open({windowId:chrome.windows.WINDOW_ID_CURRENT});
+        return Promise.resolve(pending).then(()=>true,()=>false);
+      }catch{return false;}
+    }
+    return (async()=>{
+      const {apps}=await loadOfficialCatalog({api:chrome});
+      const current=apps.some(release=>release.toolId===row.id&&
+        release.version===row.version&&release.sha256===row.sha256&&
+        release.id===row.source);
+      if(!current||taskWorkbench.navigate('tools')===false)return false;
+      await sidebarTools.ready;
+      if(!sidebarTools.canPresentMarketReview())return false;
+      return sidebarTools.openOfficialReview(row.id)===true;
+    })();
+  },
   onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
