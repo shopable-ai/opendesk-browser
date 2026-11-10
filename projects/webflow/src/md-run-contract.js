@@ -221,8 +221,12 @@ export function nextMdRunAction(run){
   if(run.steps.some(s=>s.phase==='UNKNOWN'))return {action:'HOLD_UNKNOWN'};
   if(run.steps.some(s=>s.phase==='FAILED'))return {action:'HOLD_FAILED'};
   if(run.steps.every(s=>s.phase==='COMPLETED'))return {action:'COMPLETED'};
-  if(run.paused)return {action:'PAUSED'};
   const s=run.steps.find(row=>row.phase!=='COMPLETED');
+  // Pausing stops NEW claims / submissions, but an already submitted
+  // Task's read-only reconciliation and necessary file settlement continue.
+  // CREATE_INTENT can only query its ORIGINAL request, never resubmit.
+  if(run.paused&&['WAITING','CLAIMED'].includes(s.phase))
+    return {action:'PAUSED'};
   const actions={WAITING:'CLAIM_WITH_TRUSTED_LEDGER',CLAIMED:'RECORD_CREATE_INTENT',
     CREATE_INTENT:'QUERY_ORIGINAL_TASK',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
     REPLIED:'VERIFY_REPLY',ACCEPTED:'RECORD_ARTIFACT_WRITE_INTENT',

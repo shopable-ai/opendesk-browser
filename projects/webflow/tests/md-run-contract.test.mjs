@@ -168,3 +168,15 @@ test('frozen source and scope cannot be mutated by later Markdown edits',()=>{
   assert.deepEqual(mdTaskInput(snap,'T01').numbers,[17,28,35]);
   assert.equal(run.sourceSha256,H);
 });
+
+test('paused in-flight original request allows read-only reconciliation and settlement only',async()=>{
+  clock=1000;let run=await admitted(initial(),'T01');
+  run=await apply(run,'pause',null);
+  assert.equal(nextMdRunAction(run).action,'QUERY_ORIGINAL_REPLY');
+  run=await replied(run,'T01',0,{sum:80,count:3,marker:MARKER,inputVersion:H});
+  assert.equal(nextMdRunAction(run).action,'VERIFY_REPLY');
+  run=await saved(run,'T01');
+  assert.equal(nextMdRunAction(run).action,'READBACK_ORIGINAL_ARTIFACT');
+  run=await readback(run,'T01');
+  assert.equal(nextMdRunAction(run).action,'PAUSED');
+});
