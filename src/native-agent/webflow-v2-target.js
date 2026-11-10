@@ -7,7 +7,9 @@ import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const entries=Object.freeze({
   'baidu.search.top3':'https://www.baidu.com/',
-  'google.search.top3':'https://www.google.com/'
+  'google.search.top3':'https://www.google.com/',
+  // Only the exact pinned draft-only ChatGPT package is admitted here.
+  'chatgpt.conversation.create':'https://chatgpt.com/'
 });
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
   Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
