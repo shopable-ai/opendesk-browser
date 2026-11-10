@@ -8,6 +8,7 @@
 <script type="module">
 import {createChatGPTSite} from '../../src/page/site.js';
 import {createQueueEngine} from '../../src/page/engine.js';
+import {createQueueCache} from '../../src/page/cache.js';
 
 const status=document.querySelector('#status'),editor=document.querySelector('textarea');
 const history=document.querySelector('#history'),send=document.querySelector('button');
@@ -43,13 +44,13 @@ send.addEventListener('click',()=>{
 // Match the Node entry harness: only the route and UI collaborators are doubles.
 // This test-only Function is never part of the installable source graph.
 const load=new Function('createPageUI','createChatGPTSite','createQueueEngine','createQueueView',
-  'createSendQueueRemote','window','document',source.replace(/^import .*;\n/gm,'')
+  'createSendQueueRemote','createQueueCache','window','document',source.replace(/^import .*;\n/gm,'')
   .replace('export default async function main','async function main')+'\nreturn main;');
 const main=load(()=>owner,options=>{
   const site=createChatGPTSite({...options,doc:document,win});
   return {...site,inspect(){checks++;return site.inspect();}};
 },options=>(engine=createQueueEngine(options)),options=>{actions=options.actions;return ui;},
-()=>({changed(){}}),win,document);
+()=>({changed(){}}),createQueueCache,win,document);
 result=await main();
 editor.value='WATCHDOG_LOCAL_A';
 if(actions.enqueue()!==true)throw Error('fixture enqueue failed');

@@ -47,7 +47,7 @@ export function createSendQueueRemote({owner,site,engine,actions,
           request.index<state.items.length&&engine.move(id,request.index);break;
       case 'remove':
         // Unknown or sending deletion is never performed by remote control.
-        applied=['queued','paused'].includes(item.state)&&!state.inFlight&&engine.remove(id);
+        applied=['queued','paused'].includes(item.state)&&!state.inFlight&&actions.remove(id);
         break;
       case 'edit':
         applied=['queued','paused'].includes(item.state)&&actions.edit(id)===true;break;

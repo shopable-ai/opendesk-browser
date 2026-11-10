@@ -5,3 +5,6 @@ export const CONTROLLER_SOURCE_LIMIT = 2 * 1024 * 1024;
 export const CONTROLLER_AUTHORING_LIMIT = 4 * 1024 * 1024;
 export const TASK_PACKAGE_LIMIT = 4 * 1024 * 1024;
 export const CONTROLLER_DRAFT_LIMIT = 12 * 1024 * 1024;
+
+// Plain Page executable UTF-8 bytes; shared by authoring and the existing executor.
+export const PAGE_SOURCE_LIMIT = 128 * 1024;

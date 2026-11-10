@@ -1,13 +1,14 @@
 import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
+import {PAGE_SOURCE_LIMIT,CONTROLLER_SOURCE_LIMIT} from '../../src/platform/source-budgets.js';
 import assert from 'node:assert/strict';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {digestUtf8} from '../../src/platform/protocol.js';
 import {validateProgramDraft, createProgramSourceView} from '../../src/ui/program-source.js';
 
 test('draft import enforces runtime executable byte limits at their exact boundaries',async()=>{
-  for (const [runtimeKind,limit] of [['controller',65536],['page-userscript',100000]]) {
+  for (const [runtimeKind,limit] of [['controller',CONTROLLER_SOURCE_LIMIT],['page-userscript',PAGE_SOURCE_LIMIT]]) {
     const draft=await programDraft(runtimeKind);
     draft.sourceUtf8='/*'+ 'é'.repeat((limit-4)/2)+'*/';
     draft.build.byteLength=new TextEncoder().encode(draft.sourceUtf8).length;

@@ -1,4 +1,4 @@
-import {CONTROLLER_SOURCE_LIMIT} from '../platform/source-budgets.js';
+import {PAGE_SOURCE_LIMIT,CONTROLLER_SOURCE_LIMIT} from '../platform/source-budgets.js';
 import {patchDeveloperField,developerAction} from './develop-view.js';
 import {createControllerRevisionView} from './controller-revision-view.js';
 import {createRunArtifactDownload} from './run-artifact-download.js';
@@ -320,7 +320,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(frozen){
       // Frozen JSON and fixed frame JavaScript execute their verified bytes;
       // source snapshots remain data and do not select a framework compiler.
-      await validatePageSource(input.source,{plainLimit:100000});check();
+      await validatePageSource(input.source,{plainLimit:PAGE_SOURCE_LIMIT});check();
       const sourceHash=input.sourceHash??await digestUtf8(input.source);check();
       return {sourceUtf8:input.source,sourceHash,entryFormat,framework:input.framework,
         projectId:input.projectId,compilerVersion:'frozen-json',cacheHit:true,prepareMs:0};
@@ -655,15 +655,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)){
       const editorTicket=browserPrepareGeneration,original=programSource.source();
-      inspectPageSource(sourceUtf8,{plainLimit:100000});editingBusy=true;update();
-      return validatePageSource(sourceUtf8,{plainLimit:100000}).then(()=>{
+      inspectPageSource(sourceUtf8,{plainLimit:PAGE_SOURCE_LIMIT});editingBusy=true;update();
+      return validatePageSource(sourceUtf8,{plainLimit:PAGE_SOURCE_LIMIT}).then(()=>{
         if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
         if(editorTicket!==browserPrepareGeneration||original!==programSource.source())
           throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
         applyImported(sourceUtf8);
       }).finally(()=>{editingBusy=false;if(!disposed)update();});
     }
-    const importLimit=!isPageDraft()?CONTROLLER_SOURCE_LIMIT:100000;
+    const importLimit=!isPageDraft()?CONTROLLER_SOURCE_LIMIT:PAGE_SOURCE_LIMIT;
     if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > importLimit)
       throw {code:'E_LIMIT',message:`导入源码必须为非空 JavaScript，且不超过 ${importLimit} 字节`};
     applyImported(sourceUtf8);

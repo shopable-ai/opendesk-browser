@@ -1,4 +1,4 @@
-import {CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../src/platform/source-budgets.js';
+import {PAGE_SOURCE_LIMIT,CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../src/platform/source-budgets.js';
 // OpenDesk multi-file ESM project compiler. Local build adapter only:
 // no install, no Chrome permission, no additional browser execution engine.
 import {readFile,writeFile,mkdir,mkdtemp,rm,realpath} from 'node:fs/promises';
@@ -28,7 +28,7 @@ const runtimeName='__opendeskProjectModule';
 const VERSION='opendesk.build-artifact.v1';
 const DRAFT_VERSION='opendesk.program-draft.v1';
 const MODES=new Set(['production','development']);
-const SOURCE_LIMIT=100000;
+const SOURCE_LIMIT=PAGE_SOURCE_LIMIT;
 const AUTHORING_TOTAL_LIMIT=256000;
 const AUTHORING_FILE_LIMIT=32;
 const ENVELOPE_LIMIT=512000;

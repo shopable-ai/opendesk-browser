@@ -122,3 +122,5 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 只使用已存在的 `src/sw.js` 与 `src/platform/chrome/browser-managed-site-budget.js`、原有 Browser SDK/Installer/Authority。普通应用的 `site-budget.v2` 是经过审核的数据合同，**不是动态 Worker JS**；`browser.siteBudget.getStatus/setPolicy` 通过可信 Host，写策略需 `expectedRev` 和用户明确批准。应用独立升级已支持额度/网站/时段数据，新的可信算法仍属于 Browser 版本升级。
 
 管理员交付闭环：最新 main 定向执行 `node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs`；随后 `npm run check && npm run build && node scripts/verify-package.mjs dist/production`。必须从**真实构建产物**记录 `dist/production/sw.js` SHA-256、manifest/Browser 版本、源码 SHA 和 Chrome 实测 extension ID，四者一起冻结 B0；随后只更新独立应用包 1.0.0→1.0.1，原 Browser 构建指纹不得变化。没有真实浏览器证据不得写 `NODE_PASS/BUILD_PASS/CHROMIUM_NATIVE_PASS/MAC_NATIVE_PASS`。原有 Stay Focus/AdBlock 服务在公共应用原生验收以前不得卸载或抢占所有权。详情参见 `docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md`。
+
+普通 Page 容量修改先核对 [Page 源码预算](../../../docs/api/page-userscript.zh-CN.md#普通-page-源码预算)及唯一 source-budgets 常量；编译、编辑器、准备与执行须一致，保留 UTF-8 临界与超限回归。

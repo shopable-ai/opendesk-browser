@@ -12,6 +12,10 @@
 4. **大型第三方 JS 与真实边界**：按公开项目构建预算、锁定资源许可、世界及生命周期设计评估，不保证几 MB 的 XMind 类 Runtime 能被普通 USER_SCRIPT 直接嵌入。现有 [AI 回复思维导图项目事实](../../projects/ai-reply-mindmap/README.zh-CN.md) 记录 `E_XMIND_RUNTIME_UNAVAILABLE`、资源大小/许可和隔离问题；这是项目证据，不代表全部第三方库均不支持。没有已验证的公共缺口先记 `SDK_GAP_NOT_PROVEN`，无法安全执行的特权请求记 `BLOCKED`，不要要求普通作者改 Host。
 5. **证据**：公开规范支持 ≠ 本候选运行成功；SOURCE_WIRED/Node PASS/Browser Native/正式安装与网站自动运行须独立验证。没有最终安装证据记 `NOT_TESTED`，不能虚构 API 或已批准的权限。
 
+## 普通 Page 源码预算
+
+普通 Page 编译产物、开发草稿导入、静态 ESM/组件准备、执行与安装统一使用 **128 KiB UTF-8 字节**上限，定义在 `src/platform/source-budgets.js`；不打包展开的固定静态 ESM Worker 资源镜像该值，并由原资源清单绑定字节/SHA 和闭合依赖。2026-11-10 修复编译/草稿入口仍限制 100000 字节的不一致：AI Send Queue 的缓存候选约 102.5 KB，现有普通执行和安装格式已可容纳，工具内无法修复编译器拒绝。保持有限上限、哈希、固定范围、权限、身份、撤权及原草稿 envelope/作者源码预算；大型锁定依赖与 Page frame 沿原资源合同，不用其格式绕过普通源码限制。Node 边界与包测试不证明当前 Browser 固定代码已经更新。
+
 ## 普通 main 与项目 main
 
 Page 与 Controller 都可以写零参数 main，但**只有 Page USER_SCRIPT 可直接访问 `document`，没有 Controller `page` / `params` / `axiosx`**。默认 `_`、`dayjs`、`OpenDeskLibs` 来自扩展本地固定资源；可选库通过批准声明按需加载，不会自动进入网站 MAIN。见[零参数预置运行变量与多环境区别](runtime-globals-and-preinstalled-libraries.zh-CN.md)以及 [Page 零参数 ESM Demo](../../examples/programs/page-globals-zero-arg/README.md)。

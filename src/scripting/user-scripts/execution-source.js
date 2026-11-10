@@ -1,3 +1,4 @@
+import {PAGE_SOURCE_LIMIT} from '../../platform/source-budgets.js';
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG,PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
@@ -6,7 +7,7 @@ import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {validatePageSource} from './page-bundle.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
-export const PAGE_SOURCE_LIMIT = 128 * 1024;
+export {PAGE_SOURCE_LIMIT} from '../../platform/source-budgets.js';
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
 // Declaration aliases, versions, worlds and output files have one source.

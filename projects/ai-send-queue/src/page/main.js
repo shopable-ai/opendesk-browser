@@ -3,6 +3,7 @@ import {createChatGPTSite} from './site.js';
 import {createQueueEngine} from './engine.js';
 import {createQueueView} from './view.js';
 import {createSendQueueRemote} from './remote.js';
+import {createQueueCache} from './cache.js';
 
 const ID='app.ai-send-queue';
 const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000;
@@ -34,6 +35,9 @@ export default async function main({assets}={}) {
   // One bounded handoff, acknowledged only by the independent interval poll.
   let pending=null,provenance=null,backup=null,editing=null,writing=false;
   let checking=false,checkFailed=false,needsRender=false,lastProgressKey=null;
+  const cache=createQueueCache();
+  let cacheRoute=null,cacheReady=false,loadingCache=false,cachedDraft=null;
+  const cacheStatus={status:'pending',restored:0};
   const started=Date.now();
   const diagnostics={lastCheckStartedAt:null,lastCheckCompletedAt:null,lastPollAt:started,
     lastProgressAt:started,lastRecoveryAt:null,recoveryReason:'',checks:0,recoveries:0,
@@ -56,7 +60,57 @@ export default async function main({assets}={}) {
   }
   function hasWork(){
     const state=engine.view();
-    return !!(state.items.length||state.inFlight||state.answerGate||pending||provenance||backup||view?.hasRecovery());
+    return !!(state.items.length||state.inFlight||state.answerGate||pending||provenance||backup||cachedDraft||view?.hasRecovery());
+  }
+  function checkpoint(state=engine.view(),removing=null){
+    if(loadingCache)return true;
+    if(!cacheReady||!cacheRoute)return false;
+    const transfer=pending||(provenance?.id!==removing?provenance:null)||backup;
+    const retained=transfer?.id&&state.items.some(item=>item.id===transfer.id&&item.text===transfer.text);
+    const recovery=view?.recovery?.();
+    const text=cachedDraft?.text||recovery?.text||(!retained&&transfer?.text)||null;
+    const ok=cache.write({version:1,route:cacheRoute,
+      items:state.items.map(({id,text,state})=>({id,text,state})),
+      expanded:!!state.expanded,inFlight:state.inFlight?{id:state.inFlight.id}:null,
+      draft:text?{text}:null});
+    cacheStatus.status=ok?'saved':'write-failed';
+    return ok;
+  }
+  function restoreDraft(){
+    if(!cachedDraft)return;
+    const text=cachedDraft.text;
+    if(view.offerRecovery(text,cachedDraft.reason||'刷新前草稿交接尚未确认，已从缓存恢复原文；请复制并核对原对话')!==false||
+      view.recovery?.()?.text===text)cachedDraft=null;
+  }
+  function offerRecovery(text,reason){
+    cachedDraft??={text,reason};checkpoint();
+    attempt(restoreDraft,'recovery-ui');
+  }
+  function ensureCache(snap,retry=false){
+    if(!snap?.ok||!snap.route)return;
+    if(cacheRoute===snap.route&&(cacheReady||!retry))return;
+    // An active queue keeps its original conversation and cache key on SPA navigation.
+    if(cacheRoute&&cacheRoute!==snap.route&&hasWork())return;
+    cacheRoute=snap.route;cacheReady=false;
+    const result=cache.read(cacheRoute);
+    cacheStatus.status=result.status;
+    if(!['empty','ready'].includes(result.status)){
+      view?.toast('队列缓存无法读取，已保留原生草稿；不会覆盖原缓存');return;
+    }
+    cacheReady=true;
+    if(result.status==='ready'){
+      cachedDraft=result.data.draft;
+      loadingCache=true;
+      try{
+        if(!engine.restoreCache(result.data,cacheRoute)){
+          cacheReady=false;cacheStatus.status='invalid';return;
+        }
+        cacheStatus.restored=result.data.items.length;
+        if(!cachedDraft)view.toast('已恢复 '+result.data.items.length+' 条缓存消息；请核对原对话后逐条恢复');
+      }finally{loadingCache=false;}
+      checkpoint();
+    }
+    restoreDraft();
   }
   const sameComposer=(before,snap)=>snap.ok&&snap.route===before.route&&
     snap.form===before.form&&snap.editor===before.editor;
@@ -65,7 +119,8 @@ export default async function main({assets}={}) {
   function write(fn){editing=null;writing=true;try{return fn();}finally{writing=false;}}
   owner.onDispose(()=>{pending=null;provenance=null;backup=null;editing=null;});
   try{
-    engine=createQueueEngine({site,change:()=>{
+    engine=createQueueEngine({site,checkpoint,change:()=>{
+      checkpoint();
       progress();
       attempt(()=>remote?.changed(),'remote-change');
       // A UI observer must not throw between installing a flight and its write/click.
@@ -77,14 +132,17 @@ export default async function main({assets}={}) {
       if(!owner.active()||retireForLegacy())return true;
       if(pending){notify('草稿交接尚未确认，请等待下一轮核对');return true;}
       const snap=site.inspect();
+      ensureCache(snap,true);
+      restoreDraft();
       observeProvenance(snap);
       observeBackup(snap);
       return false;
     }
     function recover(transfer,reason){
+      offerRecovery(transfer.text,reason);
       if(transfer.id)engine.uncertain(transfer.id,reason,transfer.before);
       engine.wait(reason);
-      view.offerRecovery(transfer.text,reason);
+      checkpoint();
     }
     function sameHistory(before,snap){
       const same=(a,b)=>!a&&!b || !!a&&!!b&&a.length===b.length&&a.every((node,i)=>node===b[i]);
@@ -189,11 +247,12 @@ export default async function main({assets}={}) {
       if(intent.provenance&&intent.provenance===provenance){
         provenance.draft=snap.draft;provenance.edited=true;
       }
+      checkpoint();
     },true);
     const actions={
       enqueue(){
         if(blocked())return false;
-        if(view?.hasRecovery()){
+        if(cachedDraft||view?.hasRecovery()){
           notify('请先复制上一条未入队的原草稿，再继续操作');return;
         }
         // A flight can still own the text it placed in the native editor.
@@ -209,14 +268,17 @@ export default async function main({assets}={}) {
         const before=remember(snap);
         const transfer={kind:'enqueue',text:snap.draft,before};
         pending=transfer;
+        if(!checkpoint()){
+          pending=null;notify('队列缓存写入失败，原生草稿已保留；请检查浏览器存储后重试');return false;
+        }
         let selected;
         try{selected=write(()=>site.clearForQueue(snap));}
         catch{recover(transfer,'清空草稿时发生异常，请复制原文核对');pending=null;return false;}
         if(!selected.ok){
           pending=null;
           if(selected.needsRecovery){
+            offerRecovery(selected.text,selected.reason);
             engine.wait('草稿清空结果未确认，请先备份原文');
-            view.offerRecovery(selected.text,selected.reason);
           }else notify(selected.reason);
           return;
         }
@@ -229,8 +291,8 @@ export default async function main({assets}={}) {
           }
           if(!restored){
             pending=null;
+            offerRecovery(selected.text,'未能恢复原生草稿，消息未入队；请复制原文');
             engine.wait('入列失败且原生草稿无法恢复，请先备份原文');
-            view.offerRecovery(selected.text,'未能恢复原生草稿，消息未入队；请复制原文');
           }else{
             pending={kind:'restore',text:selected.text,before};
             backup=null;notify('队列状态变化，等待核对恢复的原生草稿');
@@ -239,6 +301,7 @@ export default async function main({assets}={}) {
         }
         transfer.id=engine.view().items.at(-1)?.id;
         backup=null;
+        checkpoint();
         return true;
       },
       edit(id){
@@ -270,6 +333,9 @@ export default async function main({assets}={}) {
         const transfer={kind:'reclaim',id,text:item.text,before:remember(snap)};
         pending=transfer;
         if(item.state!=='paused'&&!engine.pause(id)){pending=null;return false;}
+        if(!checkpoint()){
+          pending=null;notify('队列缓存写入失败，消息已保留在队列');return false;
+        }
         let result;
         try{result=write(()=>site.reclaimToComposer(item.text,snap));}
         catch{recover(transfer,'取回草稿时发生异常，请复制原文核对');pending=null;return false;}
@@ -283,7 +349,15 @@ export default async function main({assets}={}) {
       remove(id){
         const state=engine.view();
         const unknown=state.inFlight?.id===id&&state.inFlight.phase==='unknown';
+        if(!state.items.some(item=>item.id===id)||(state.inFlight?.id===id&&!unknown))return false;
+        const next={...state,items:state.items.filter(item=>item.id!==id),
+          inFlight:state.inFlight?.id===id?null:state.inFlight};
+        if(!checkpoint(next,id)){
+          notify('删除未保存，消息仍保留在队列；请恢复浏览器存储后重试');return false;
+        }
         const removed=engine.remove(id);
+        if(removed&&provenance?.id===id)provenance=null;
+        if(removed)checkpoint();
         if(removed&&unknown)notify('已从队列删除；发送结果可能已生效，请检查原对话');
         return removed;
       },
@@ -307,9 +381,11 @@ export default async function main({assets}={}) {
         return result.ok;
       }
     };
-    view=createQueueView({owner,createPageUI,assets,engine,
+    view=createQueueView({owner,createPageUI,assets,engine,onRecoveryChange:checkpoint,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
-        [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
+        [name,(...args)=>{if(owner.active()&&!retireForLegacy()){
+          try{return action(...args);}finally{checkpoint();}
+        }}] ))});
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     // One managed capture listener follows native editor replacements.
@@ -345,7 +421,8 @@ export default async function main({assets}={}) {
       if(actions.enqueue())notify('官网当前无法发送，草稿已加入发送队列');
     },true);
     owner.on(window,'beforeunload',event=>{
-      if(!owner.active()||(!pending&&!provenance&&!backup&&!engine.view().items.length&&!view?.hasRecovery()))return;
+      if(!owner.active()||(!pending&&!provenance&&!backup&&!cachedDraft&&!engine.view().items.length&&!view?.hasRecovery()))return;
+      if(checkpoint())return;
       event.preventDefault();event.returnValue='';
     });
     // All schedules share this gate and the original engine; no timeout proves a reply complete.
@@ -357,16 +434,16 @@ export default async function main({assets}={}) {
       if(source==='poll')diagnostics.lastPollAt=Date.now();
       try{
         let snap,placed=false,recovery=true;
-        const reconciled=attempt(()=>{snap=site.inspect();reconcile(snap);},'reconcile');
+        const reconciled=attempt(()=>{snap=site.inspect();ensureCache(snap);restoreDraft();reconcile(snap);},'reconcile');
         if(reconciled)attempt(()=>{
           if(snap.ok){placed=view.place(snap);view.render();}
           else view.hide();
-          recovery=view.hasRecovery();
+          recovery=!!cachedDraft||view.hasRecovery();
         },'layout');
         if(!owner.active()||retireForLegacy())return;
         const flight=engine.view().inFlight;
         // Even a failed UI round must reconcile late admission and existing deadlines.
-        const ticked=attempt(()=>engine.tick({canSubmit:!checkFailed&&placed&&!pending&&!recovery}),'queue-check');
+        const ticked=attempt(()=>engine.tick({canSubmit:!checkFailed&&placed&&!pending&&!recovery&&checkpoint()}),'queue-check');
         if(ticked&&reconciled)attempt(()=>{
           const after=engine.view();
           if(provenance&&after.inFlight?.id===provenance.id)provenance=null;
@@ -378,6 +455,7 @@ export default async function main({assets}={}) {
           }
         },'provenance');
         if(needsRender)attempt(()=>view.render(),'render-change');
+        checkpoint();
         progress();
         if(!checkFailed)diagnostics.lastCheckCompletedAt=Date.now();
       }finally{checking=false;}
@@ -409,10 +487,11 @@ export default async function main({assets}={}) {
     let snap;
     attempt(()=>{
       snap=site.inspect();
+      ensureCache(snap);
       if(snap.ok){view.place(snap);view.render();}
     },'initial-layout');
     progress();
     return {programId:ID,status:'active',runtime:'USER_SCRIPT',
-      persistence:'memory-only',composer:snap?.ok?'detected':'not-detected',diagnostics};
+      persistence:'session-storage',cache:cacheStatus,composer:snap?.ok?'detected':'not-detected',diagnostics};
   }catch(error){owner.destroy();throw error;}
 }

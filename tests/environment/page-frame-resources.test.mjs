@@ -1,3 +1,4 @@
+import {PAGE_SOURCE_LIMIT} from '../../src/platform/source-budgets.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -87,7 +88,7 @@ test('only strict typed framed drafts accept the evidence-based 5 MiB / 6 MiB bo
   const plain=structuredClone(draft);plain.sourceUtf8='/*'+'x'.repeat(600000)+'*/'+body;
   plain.build={...plain.build,sourceHash:sha(plain.sourceUtf8),byteLength:Buffer.byteLength(plain.sourceUtf8)};
   await assert.rejects(validateProgramDraft(plain),{code:'E_LIMIT'});
-  const oversizedBody=structuredClone(draft);oversizedBody.sourceUtf8=await wrapPageFrameSource(body+' '.repeat(100000),[resource()]);
+  const oversizedBody=structuredClone(draft);oversizedBody.sourceUtf8=await wrapPageFrameSource(body+' '.repeat(PAGE_SOURCE_LIMIT),[resource()]);
   oversizedBody.build={...oversizedBody.build,sourceHash:sha(oversizedBody.sourceUtf8),byteLength:Buffer.byteLength(oversizedBody.sourceUtf8)};
   await assert.rejects(validateProgramDraft(oversizedBody),{code:'E_SOURCE'});
   await assert.rejects(wrapPageFrameSource(header([]),[]),frameError);

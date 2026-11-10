@@ -1,8 +1,9 @@
+// Fixed raw Worker resource mirrors source-budgets PAGE_SOURCE_LIMIT without runtime imports.
 // Source-data transformation only. Dependencies are evaluated by the existing
 // Controller / USER_SCRIPT executor after an independent explicit Run.
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const size=value=>new TextEncoder().encode(value).length;
-const MAX_SOURCE=128*1024,MAX_OUTPUT=100000,MAX_MODULES=16;
+const MAX_SOURCE=128*1024,MAX_OUTPUT=128*1024,MAX_MODULES=16;
 function analyze(babel,source,file,{entry=false}={}){
   let ast;
   try{ast=babel.transform(source,{filename:file,code:false,ast:true,babelrc:false,configFile:false,
@@ -105,6 +106,6 @@ export function compileStaticESM({sourceUtf8,entries,sourceFormat,babel}={}){
     '    (function(exports,require){',transform(sourceUtf8+(entry.hasDefault?'':'\nexport default main;'),'opendesk-draft.js'),
     '    })(exports,require);','    return exports;','  })();','  return await (0,__odEntry.default)();','}');
   const output=rows.join('\n');
-  if(size(output)>MAX_OUTPUT)fail('E_STATIC_ESM_LIMIT','编译后的草稿超过 100 KB；请使用本地项目');
+  if(size(output)>MAX_OUTPUT)fail('E_STATIC_ESM_LIMIT','编译后的草稿超过 128 KiB；请缩小源码');
   return {sourceUtf8:output,entryFormat:'async-main',sourceFormat,compilerVersion:babel.version};
 }

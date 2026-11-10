@@ -157,3 +157,5 @@ Clipper 正式 Mac 验收记录的同一候选实际压缩后 `ui/tool-shell.js`
 5. 先定向验证，稳定核心功能后再按范围构建和原生验收；不覆盖 watcher、dist/development 或 Chrome Profile。未测标 NOT_TESTED。
 
 网页版接续入口：[R32.3 GOAL](../framework/prompts/goal-ui-platform-r32.3-document-driven.zh-CN.md)。历史 R19–R31 成功只对各自输入有效，不因本文保存升级为完整平台 UI 95+。
+
+普通 Page 编译、草稿与执行预算的对齐证据及唯一数值见 [Page 源码预算](../api/page-userscript.zh-CN.md#普通-page-源码预算)；不扩充 RPC、权限或存储额度。

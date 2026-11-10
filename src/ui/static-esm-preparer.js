@@ -1,3 +1,4 @@
+import {PAGE_SOURCE_LIMIT} from '../platform/source-budgets.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -43,7 +44,7 @@ export function createStaticESMPreparer({api=globalThis.chrome,WorkerClass=globa
     });
     if(ticket!==sequence||disposed)throw fail('E_STATIC_ESM_STALE','旧编译输出已丢弃');
     if(payload?.entryFormat!=='async-main'||payload.sourceFormat!==sourceFormat||payload.compilerVersion!=='7.29.9'||
-      typeof payload.sourceUtf8!=='string'||size(payload.sourceUtf8)>100000||hasUnbuiltESM(payload.sourceUtf8)||
+      typeof payload.sourceUtf8!=='string'||size(payload.sourceUtf8)>PAGE_SOURCE_LIMIT||hasUnbuiltESM(payload.sourceUtf8)||
       !payload.sourceUtf8.startsWith('async function main(){'))throw fail('E_STATIC_ESM_OUTPUT','编译输出未闭合');
     const sourceHash=await digestUtf8(payload.sourceUtf8);
     if(ticket!==sequence||disposed)throw fail('E_STATIC_ESM_STALE','输出校验期间源码已改变');

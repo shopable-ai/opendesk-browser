@@ -1,3 +1,4 @@
+import {PAGE_SOURCE_LIMIT} from '../../platform/source-budgets.js';
 // A versioned, self-contained linked Page resource. It stays in the existing
 // source revision store, so updates, grants and deletion keep their old identity
 // rules. Nothing in this module evaluates source or fetches a URL.
@@ -11,7 +12,7 @@ const encoder=new TextEncoder(),bytes=text=>encoder.encode(text).length;
 const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).length===keys.length&&keys.every(k=>Object.hasOwn(value,k));
-export function inspectPageSource(sourceUtf8,{plainLimit=128*1024}={}){
+export function inspectPageSource(sourceUtf8,{plainLimit=PAGE_SOURCE_LIMIT}={}){
   invariant(typeof sourceUtf8==='string'&&sourceUtf8.trim(),'E_SOURCE','页面源码必须为非空文本');
   const framed=inspectPageFrameSource(sourceUtf8);
   if(framed){

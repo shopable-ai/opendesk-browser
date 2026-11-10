@@ -4,13 +4,15 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createChatGPTSite} from '../src/page/site.js';
 import {createQueueEngine} from '../src/page/engine.js';
+import {createQueueCache} from '../src/page/cache.js';
+import {memoryStorage} from './helpers/session-storage.mjs';
 
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 // Real main/Site/Engine, inert DOM and UI. No browser or website sends.
-async function fixture({busy=false}={}){
+async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',failRecovery=false}={}){
   let now=0,poll,engine,actions,clears=0,recovery=null;
   const timers=new Map(),listeners=new Map(),sent=[],users=[],assistants=[],history=[];
-  const state={busy,focus:()=>{},render:()=>{}};
+  const state={busy,failRecovery,focus:()=>{},render:()=>{}};
   class Textarea{
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
     get value(){return this.current;}
@@ -32,7 +34,7 @@ async function fixture({busy=false}={}){
   const send=button('send'),stop=button('stop');
   const form={isConnected:true,hasAttribute:()=>false,
     querySelectorAll:()=>[state.busy?stop:send],querySelector:()=>null};
-  const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
+  const win={location:{origin:'https://chatgpt.com',pathname:'/'+route},
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
   win.top=win;
@@ -46,6 +48,7 @@ async function fixture({busy=false}={}){
   const context=vm.createContext({window:win,document:doc,
     Date:class extends Date{static now(){return now;}},
     createPageUI:()=>owner,
+    createQueueCache:()=>createQueueCache({storage:()=>storage}),
     createChatGPTSite:options=>{
       const adapter=createChatGPTSite({...options,doc,win});
       return {...adapter,clearForQueue(s){clears++;return adapter.clearForQueue(s);}};
@@ -53,13 +56,13 @@ async function fixture({busy=false}={}){
     createQueueEngine:options=>(engine=createQueueEngine({...options,clock:()=>now})),
     createQueueView:options=>{
       actions=options.actions;
-      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,offerRecovery(text,reason){recovery??={text,reason};},toast(){}};
+      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,recovery:()=>recovery,offerRecovery(text,reason){if(state.failRecovery)throw Error('recovery UI unavailable');recovery??={text,reason};},toast(){}};
     },
     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),context);
   await context.main();
-  return {editor,state,sent,users,assistants,history,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
+  return {editor,state,sent,users,assistants,history,storage,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
     get clears(){return clears;},get actions(){return actions;},
     step(t){now=t;poll();},
     watchdog(t){now=t;assert.equal(typeof timers.get(5000),'function');timers.get(5000)();},
@@ -93,6 +96,91 @@ async function fixture({busy=false}={}){
   };
 }
 function queue(h,text){h.edit(text);assert.equal(h.key().prevented,true);h.poll();}
+test('refresh restores exact FIFO text and pauses all rows until explicit resume',async()=>{
+  const a=await fixture({busy:true});queue(a,'  A\n原文\n');queue(a,'B');
+  a.actions.pause('q2');a.engine.move('q2',0);
+  const b=await fixture({storage:a.storage});
+  assert.deepEqual(b.engine.view().items.map(x=>[x.id,x.text,x.state]),
+    [['q2','B','paused'],['q1','  A\n原文\n','paused']]);
+  b.step(60000);b.step(120000);assert.deepEqual(b.sent,[]);
+  assert.equal(b.actions.resume('q2'),true);b.step(121000);b.step(122200);b.step(123000);
+  assert.deepEqual(b.sent,['B']);
+});
+for(const phase of ['await-native-ready','await-confirm']){
+  test('refresh never replays an interrupted '+phase+' item',async()=>{
+    const a=await fixture();queue(a,'A');a.step(1400);
+    if(phase==='await-confirm')a.step(2100);
+    assert.equal(a.engine.view().inFlight.phase,phase);
+    const b=await fixture({storage:a.storage});
+    assert.equal(b.engine.view().phase,'unknown');assert.equal(b.engine.view().items[0].text,'A');
+    assert.equal(b.actions.resume('q1'),false);
+    for(const time of [1000,10000,120000])b.step(time);
+    assert.deepEqual(b.sent,[]);assert.equal(b.engine.view().items[0].state,'unknown');
+  });
+}
+test('refresh after exact admission keeps only remaining rows paused, without old DOM receipts',async()=>{
+  const a=await fixture({busy:true});queue(a,'A');queue(a,'B');a.finishReply();
+  a.step(100);a.step(1400);a.step(2100);a.admit('A');a.step(2800);
+  assert.ok(a.engine.view().answerGate);
+  const b=await fixture({storage:a.storage});
+  assert.deepEqual(b.engine.view().items.map(x=>[x.text,x.state]),[['B','paused']]);
+  assert.equal(b.engine.view().answerGate,null);b.step(120000);assert.deepEqual(b.sent,[]);
+});
+test('deleted or fully confirmed messages do not revive on refresh',async()=>{
+  const a=await fixture({busy:true});queue(a,'A');assert.equal(a.actions.remove('q1'),true);
+  const b=await fixture({storage:a.storage});assert.equal(b.engine.view().items.length,0);
+  assert.equal(b.recovery,null);
+  const c=await fixture();queue(c,'C');c.step(1400);c.step(2100);c.admit('C');c.step(2800);
+  const d=await fixture({storage:c.storage});assert.equal(d.engine.view().items.length,0);assert.equal(d.recovery,null);
+});
+test('conversation and tab isolation preserve the original cache',async()=>{
+  const a=await fixture({busy:true});queue(a,'A');
+  const other=await fixture({storage:a.storage,route:'c/87654321'});assert.equal(other.engine.view().items.length,0);
+  const tab=await fixture();assert.equal(tab.engine.view().items.length,0);
+  const again=await fixture({storage:a.storage});assert.equal(again.engine.view().items[0].text,'A');
+});
+test('refresh restores an unfinished draft transfer as a manual copy, never a send',async()=>{
+  const storage=memoryStorage(),cache=createQueueCache({storage:()=>storage});cache.read('c/12345678');
+  cache.write({version:1,route:'c/12345678',items:[],expanded:false,inFlight:null,
+    draft:{text:'  未完成交接\n完整原文\n'}});
+  const b=await fixture({storage});
+  assert.equal(b.recovery.text,'  未完成交接\n完整原文\n');
+  assert.equal(b.engine.view().items.length,0);b.step(120000);assert.deepEqual(b.sent,[]);
+  b.editor.value='new draft';assert.equal(b.actions.enqueue(),undefined);assert.equal(b.clears,0);
+});
+test('a corrupt cache cannot clear a native draft or be silently overwritten',async()=>{
+  const storage=memoryStorage(),key='opendesk.ai-send-queue.session.v1:c/12345678';
+  storage.setItem(key,'{broken');const b=await fixture({storage});b.editor.value='new draft';
+  assert.equal(b.actions.enqueue(),false);assert.equal(b.editor.value,'new draft');
+  assert.equal(b.clears,0);assert.equal(storage.getItem(key),'{broken');assert.deepEqual(b.sent,[]);
+});
+test('recovery UI failure preserves the only cached draft and retries safely',async()=>{
+  const storage=memoryStorage(),cache=createQueueCache({storage:()=>storage}),route='c/12345678';cache.read(route);
+  cache.write({version:1,route,items:[],expanded:false,inFlight:null,draft:{text:'only full original\n'}});
+  const b=await fixture({storage,failRecovery:true});
+  b.step(1000);b.step(60000);
+  assert.equal(cache.read(route).data.draft.text,'only full original\n');assert.deepEqual(b.sent,[]);
+  b.state.failRecovery=false;b.poll();assert.equal(b.recovery.text,'only full original\n');
+  assert.equal(cache.read(route).data.draft.text,'only full original\n');
+});
+test('deletion cannot report success while its cache update fails',async()=>{
+  const a=await fixture({busy:true});queue(a,'A');queue(a,'B');const set=a.storage.setItem;
+  a.storage.setItem=()=>{throw Error('quota');};
+  assert.equal(a.actions.remove('q1'),false);assert.equal(a.engine.view().items.length,2);
+  const b=await fixture({storage:a.storage});assert.equal(b.engine.view().items.length,2);
+  a.storage.setItem=set;assert.equal(a.actions.remove('q1'),true);
+  const c=await fixture({storage:a.storage});assert.deepEqual(c.engine.view().items.map(x=>x.text),['B']);
+});
+test('cache quota failure preserves the native draft and blocks sending until storage recovers',async()=>{
+  const a=await fixture({busy:true}),set=a.storage.setItem;
+  a.storage.setItem=()=>{throw Error('quota');};a.edit('A');
+  assert.equal(a.actions.enqueue(),false);assert.equal(a.editor.value,'A');assert.equal(a.clears,0);
+  assert.equal(a.engine.view().items.length,0);
+  a.storage.setItem=set;assert.equal(a.actions.enqueue(),true);a.poll();
+  a.finishReply();a.storage.setItem=()=>{throw Error('quota');};a.step(100);a.step(1400);a.step(2100);
+  assert.deepEqual(a.sent,[]);assert.equal(a.editor.value,'');
+  a.storage.setItem=set;a.step(3000);a.step(4200);a.step(4900);assert.deepEqual(a.sent,['A']);
+});
 function rejectBoth(h){
   const before=JSON.stringify(h.engine.view()),draft=h.editor.value,clears=h.clears;
   assert.equal(h.key().prevented,true);h.actions.enqueue();

@@ -102,7 +102,7 @@ function composerSurface(editor,nativeButton,form,win){
   }
   return null;
 }
-export function createQueueView({owner,createPageUI,assets,engine,actions}){
+export function createQueueView({owner,createPageUI,assets,engine,actions,onRecoveryChange=()=>{}}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
   // Reference the declared image at runtime so the frozen source contains its
   // data URL once, rather than duplicating it inside both CSS and image assets.
@@ -197,6 +197,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         event.stopPropagation();
         if(target.dataset.recovery==='done'){
           recoveryText=null;recoveryReason='';
+          onRecoveryChange();
           toast('请核对原生草稿；输入框清空且回复结束后队列自动继续');return;
         }
         if(target.dataset.recovery!=='copy')return;
@@ -207,6 +208,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           await clipboard.writeText(original);
           if(recoveryText!==original)return;
           recoveryText=null;recoveryReason='';
+          onRecoveryChange();
           toast('原草稿已复制；输入框清空且回复结束后队列自动继续');
         }catch{
           if(recoveryText!==original)return;
@@ -239,7 +241,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
   function offerRecovery(text,reason){
     if(recoveryText!==null||typeof text!=='string'||!text)return false;
     ensure();recoveryText=text;recoveryReason=reason;
-    showRecovery();return true;
+    onRecoveryChange();showRecovery();return true;
   }
   function toast(message){
     if(!toastNode||recoveryText!==null)return;
@@ -422,5 +424,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
   }
   function destroy(){reset();recoveryText=null;list?.destroy();button?.destroy();list=null;button=null;}
   owner.onDispose(destroy);
-  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,destroy});
+  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,
+    recovery:()=>recoveryText===null?null:{text:recoveryText},destroy});
 }

@@ -63,7 +63,7 @@ export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
   /* @__PURE__ */Object.freeze({id:'static-esm-compiler-worker',source:'src/ui/static-esm-compiler-worker.js',
     output:'ui/static-esm-compiler-worker.js',bytes:738,sha256:'3a85cdb9ab33e6d5d0f594678f88b50cff897c9d8a3cb279bf9768a8c2c45050'}),
   /* @__PURE__ */Object.freeze({id:'static-esm-linker',source:'src/ui/static-esm-linker.mjs',
-    output:'ui/static-esm-linker.mjs',bytes:8210,sha256:'425e7434828f8a2d35cfe16bc5c7e3dd9cc3b5e79182493d54726ca579ee2854'}),
+    output:'ui/static-esm-linker.mjs',bytes:8302,sha256:'3170e4ce22feca0b26e69e3620c75ea2b8fe6cbf20c2c918eafaedc2622135ff'}),
   /* @__PURE__ */Object.freeze({id:'page-compiler-worker',
     source:'src/ui/page-component-compiler-worker.js',
     output:'ui/page-component-compiler-worker.js',

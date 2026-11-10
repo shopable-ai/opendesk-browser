@@ -1,13 +1,16 @@
-// In-memory, single-document queue. Unknown side effects never auto-retry.
+import {normalizeQueueCache} from './cache.js';
+// Single-document queue with guarded refresh-cache recovery. Unknown effects never auto-retry.
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
 const REPLY_WAIT='等待已确认消息及后续原生消息的回复完成（需保持原对话历史可核验）';
 const REPLY_HISTORY_CHANGED='原对话历史节点已变化，已停止自动发送；请核对原对话';
-export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
+const STORAGE_ERROR='队列缓存保存失败，已阻止网页操作；请保留原文并检查存储后重试';
+export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, checkpoint=()=>true}) {
   const items=[];
   const state={items,route:null,reason:'',phase:'waiting',
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
   let sequence=0, idleSince=null;
   const emit=()=>change(view());
+  const saved=()=>{try{return checkpoint()!==false;}catch{return false;}};
   const current=()=>items.find(item=>item.state!=='paused')||null;
   const markUnknown=(why)=>{
     if(state.inFlight) {state.inFlight.item.state='unknown';state.inFlight.phase='unknown';}
@@ -16,6 +19,24 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   };
   function view(){return {...state,items:items.map(item=>({...item})),
     inFlight:state.inFlight?{id:state.inFlight.item.id,phase:state.inFlight.phase}:null};}
+  function restoreCache(record,route) {
+    if(items.length||state.inFlight||state.answerGate||state.route)return false;
+    record=normalizeQueueCache(record,route);
+    if(!record)return false;
+    const restored=record.items.map(row=>({...row,state:'paused'}));
+    const maxId=Math.max(0,...restored.map(row=>Number(row.id.slice(1))));
+    const uncertainItem=restored.find(row=>row.id===record.inFlight?.id);
+    items.push(...restored);sequence=Math.max(sequence,maxId);state.route=items.length?route:null;
+    state.phase='waiting';state.forceId=null;state.lastConfirmed=null;idleSince=null;
+    state.expanded=record.expanded===true;
+    state.reason='刷新后请先核对原对话，再手动恢复排队消息';
+    if(uncertainItem){
+      uncertainItem.state='unknown';state.phase='unknown';
+      state.inFlight={item:uncertainItem,phase:'unknown'};
+      state.reason='刷新前发送结果未知，无法推断是否已发送；请核对原对话，禁止自动重发';
+    }
+    emit();return true;
+  }
   function wait(reason) {
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     idleSince=null;
@@ -144,7 +165,10 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.rich || snap.composing || snap.draft!=='')return {ok:false,reason:'请先处理原生草稿、附件或输入法'};
     // This call is itself the explicit user action; do not require another click.
-    if(snap.busy)return {ok:beginForceStop(item,snap)};
+    if(snap.busy){
+      const ok=beginForceStop(item,snap);
+      return !ok&&state.reason===STORAGE_ERROR?{ok:false,reason:STORAGE_ERROR}:{ok};
+    }
     if(state.answerGate)return {ok:false};
     move(id,0);state.reason='';idleSince=null;emit();return {ok:true};
   }
@@ -159,6 +183,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(state.answerGate && snap.users.at(-1)!==state.answerGate.confirmedUser)return false;
     const flight={item,phase:'await-stop',started:clock(),sawBusy:true};
     state.inFlight=flight;
+    if(!saved()){
+      state.inFlight=null;state.reason=STORAGE_ERROR;idleSince=null;emit();return false;
+    }
     let stopped=false;
     try{stopped=site.stop(snap);}catch{/* A throwing click may already have taken effect. */}
     if(stopped!==true){markUnknown('停止动作结果未知，请核对原对话后删除该条');return false;}
@@ -180,6 +207,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.inFlight={item,phase:'preparing',started:clock(),before:{
       route:snap.route,users:snap.users,assistants:snap.assistants,history:snap.history,assistantCount:snap.assistants.length}};
     emit();
+    if(!saved()){failBeforeClick(item,STORAGE_ERROR);return;}
     let prepared;
     try{prepared=site.prepare(item.text,snap);}
     catch{markUnknown('准备原生消息时出错，可能已填入；请核对原对话和草稿后删除该条');return;}
@@ -239,6 +267,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(state.inFlight?.phase==='await-native-ready') {
       const flight=state.inFlight;
       if(!canSubmit)return;
+      if(!saved()){
+        state.reason=STORAGE_ERROR;emit();return;
+      }
       let result;
       flight.clickAttempted=true;
       try{result=site.commit(flight.token);}
@@ -284,6 +315,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,observeNativeAdmission,
+  return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,observeNativeAdmission,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }

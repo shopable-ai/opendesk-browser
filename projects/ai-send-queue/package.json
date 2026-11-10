@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/ai-send-queue",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "private": true,
   "type": "module",
   "description": "One OpenDesk Sidebar app with an embedded USER_SCRIPT crown and FIFO sender.",

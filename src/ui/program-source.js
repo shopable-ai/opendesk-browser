@@ -1,4 +1,4 @@
-import {CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../platform/source-budgets.js';
+import {PAGE_SOURCE_LIMIT,CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../platform/source-budgets.js';
 import {patchDeveloperField,developerOptions} from './develop-view.js';
 import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../scripting/user-scripts/page-frame-resources.js';
@@ -45,9 +45,9 @@ export async function validateProgramDraft(input) {
   invariant(typeof value.project.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value.project.id) &&
     typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry,component),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
-  const executableLimit = controller ? CONTROLLER_SOURCE_LIMIT : 100000;
+  const executableLimit = controller ? CONTROLLER_SOURCE_LIMIT : PAGE_SOURCE_LIMIT;
   invariant(typeof value.sourceUtf8==='string'&&value.sourceUtf8.trim(),'E_LIMIT','执行产物必须为非空文本');
-  const bundle=v2||framed?await validatePageSource(value.sourceUtf8,{plainLimit:100000}):null;
+  const bundle=v2||framed?await validatePageSource(value.sourceUtf8,{plainLimit:PAGE_SOURCE_LIMIT}):null;
   if(v2){
     invariant(bundle?.descriptor,'E_PROGRAM_DRAFT','Page v2 必须提供有版本的固定执行资源');
     const lock=validateRemoteLock(value.authoring.remoteLock);

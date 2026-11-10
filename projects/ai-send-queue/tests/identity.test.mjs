@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {createQueueCache} from '../src/page/cache.js';
 
 const root=new URL('../',import.meta.url);
 const source=await readFile(new URL('src/page/main.js',root),'utf8');
@@ -23,7 +24,7 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
   const win={location:{origin}};win.top=frame?{}:win;
   const context=vm.createContext({window:win,document:doc,
     createPageUI(options){calls.owners++;assert.equal(options.id,ID+'.lifecycle');return owner;},
-    createChatGPTSite(){calls.sites++;return site;},
+    createChatGPTSite(){calls.sites++;return site;},createQueueCache,
     createQueueEngine(){calls.engines++;return {view:()=>({inFlight:null,items:[]}),tick(){calls.ticks++;}};},
     createQueueView(options){calls.views++;actions=options.actions;
       return {place(){},render(){},hide(){},hasRecovery(){return false;}};},

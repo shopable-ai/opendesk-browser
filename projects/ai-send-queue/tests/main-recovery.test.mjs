@@ -2,11 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {createQueueCache} from '../src/page/cache.js';
+import {memoryStorage} from './helpers/session-storage.mjs';
 
 // Exercise the real entry's action wiring without sending a website message.
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
+  const storage=memoryStorage();
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
     recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0};
   let actions,unload,change,hasRecovery=false,active=true,legacy=false,now=1000;
@@ -32,12 +35,12 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
     busy:true,sendButton:null};
   const state={items:reclaim||queued?[{id:'q1',text:'private draft',state:'queued'}]:[],route:snap.route,phase:'waiting',inFlight:null};
-  const site={inspect(){calls.inspects++;calls.onInspect?.();return snap;},clearForQueue(){calls.clear++;if(clear.ok)snap.draft='';return clear;},
+  const site={inspect(){calls.inspects++;calls.onInspect?.();return snap;},clearForQueue(){calls.clear++;calls.onClear?.();if(clear.ok)snap.draft='';return clear;},
     reclaimToComposer(){if(reclaim?.ok)snap.draft='private draft';calls.onWrite?.();return reclaim;},
     restore(){calls.restores++;if(restore)snap.draft='private draft';return restore;}};
   const engine={view:()=>state,
     checkEnqueue(){calls.preflight++;return preflight;},
-    enqueue(text){calls.enqueued++;if(enqueue)state.items.push({id:'new'+calls.enqueued,text,state:'queued'});return enqueue;},
+    enqueue(text){calls.enqueued++;if(enqueue)state.items.push({id:'q'+(calls.enqueued+1),text,state:'queued'});return enqueue;},
     pause(id){calls.pauses++;const item=state.items.find(x=>x.id===id);if(!item)return false;item.state='paused';return true;},
     reclaim(id){calls.reclaimed=(calls.reclaimed||0)+1;const i=state.items.findIndex(x=>x.id===id);if(i<0)return false;state.items.splice(i,1);return true;},
     wait(){},
@@ -52,19 +55,20 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     onDispose(fn){disposers.push(fn);},setInterval(callback,ms){const timer={callback,ms,next:now+ms,enabled:true};timers.push(timer);return timer;},active:()=>active,destroy(){active=false;timers.forEach(timer=>timer.enabled=false);disposers.forEach(fn=>fn());}};
   const view={place(){calls.onPlace?.();return true;},render(){calls.onRender?.();},hide(){calls.onHide?.();},
     toast(message){calls.toasts.push(message);},
-    offerRecovery(text,reason){if(hasRecovery)return false;hasRecovery=true;
+    offerRecovery(text,reason){calls.onRecovery?.();if(hasRecovery)return false;hasRecovery=true;
       calls.recovery={text,reason};return true;},
-    hasRecovery(){return hasRecovery;}};
+    hasRecovery(){return hasRecovery;},recovery:()=>calls.recovery};
   const win={location:{origin:'https://chatgpt.com'},confirm(){calls.confirms++;return true;}};win.top=win;
   const doc={visibilityState:'visible',querySelector:()=>legacy?{}:null};
   const ctx=vm.createContext({window:win,document:doc,Date:class extends Date {static now(){return now;}},
     createPageUI:()=>owner,createChatGPTSite:()=>site,
+    createQueueCache:()=>createQueueCache({storage:()=>storage}),
     createQueueEngine:options=>{change=options.change;return engine;},
     createQueueView:options=>{actions=options.actions;return view;},
      createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),ctx);
-  return {calls,snap,state,listeners,timers,advance,runTimer,change:()=>change(),
+  return {calls,snap,state,listeners,storage,timers,advance,runTimer,change:()=>change(),
     stopTimer(ms){timers.filter(timer=>timer.ms===ms).forEach(timer=>timer.enabled=false);},
     event(target,type,patch){event(target==='document'?doc:win,type,patch);},
     visibility(value){doc.visibilityState=value;event(doc,'visibilitychange');},
@@ -98,8 +102,8 @@ test('uncertain clear is not enqueued or sent and retains a recoverable copy',as
   assert.equal(h.calls.clear,1,'another click cannot overwrite the recovery buffer');
   h.poll();assert.equal(h.calls.canSubmit,false,'a recovery copy blocks new sends while confirmation polling continues');
   const event=h.unload();
-  assert.equal(h.calls.unloadPrevented,true);
-  assert.equal(event.returnValue,'');
+  assert.equal(h.calls.unloadPrevented,false);
+  assert.equal(event.returnValue,undefined);
 });
 
 test('confirmed exact clear enters the queue once',async()=>{
@@ -107,6 +111,22 @@ test('confirmed exact clear enters the queue once',async()=>{
   await h.run();h.enqueue();
   assert.equal(h.calls.enqueued,1);assert.equal(h.calls.ticks,0);
   assert.equal(h.calls.pauses,0);assert.equal(h.calls.recovery,null);
+});
+test('the full transfer is cached before native clearing and quota failure retains unload protection',async()=>{
+  const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
+  h.calls.onClear=()=>{
+    const cached=createQueueCache({storage:()=>h.storage}).read(h.snap.route);
+    assert.equal(cached.data.draft.text,'private draft');assert.equal(h.snap.draft,'private draft');
+  };
+  assert.equal(h.enqueue(),true);
+  h.storage.setItem=()=>{throw Error('quota');};h.unload();assert.equal(h.calls.unloadPrevented,true);
+});
+test('uncertain clearing cannot lose its only original when recovery UI throws',async()=>{
+  const h=fixture();await h.run();h.calls.onRecovery=()=>{throw Error('UI unavailable');};h.enqueue();
+  h.snap.draft='';h.poll();h.poll();
+  assert.equal(createQueueCache({storage:()=>h.storage}).read(h.snap.route).data.draft.text,'private draft');
+  assert.equal(h.calls.canSubmit,false);h.calls.onRecovery=null;h.poll();
+  assert.equal(h.calls.recovery.text,'private draft');
 });
 
 test('post-clear enqueue rejection with failed restore keeps a manual copy',async()=>{
@@ -330,7 +350,7 @@ test('rejected deletions do not show a success toast or request confirmation',as
     h.state.items[0].state=phase==='unknown'?'unknown':'sending';
     h.state.inFlight={id:'q1',phase};
     assert.equal(h.actions.remove('q1'),false);
-    assert.deepEqual(h.calls.removed,['q1']);assert.equal(h.calls.confirms,0);
+    assert.deepEqual(h.calls.removed,phase==='unknown'?['q1']:[]);assert.equal(h.calls.confirms,0);
     assert.deepEqual(h.calls.toasts,[]);
   }
 });
@@ -365,7 +385,7 @@ test('clear microtask rollback cannot enqueue the same transfer twice',async()=>
   const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
   assert.equal(h.enqueue(),true);
   await Promise.resolve().then(()=>{h.snap.draft='private draft';});
-  assert.equal(h.enqueue(),false);assert.equal(h.actions.sendNow('new1'),false);
+  assert.equal(h.enqueue(),false);assert.equal(h.actions.sendNow('q2'),false);
   h.poll();assert.equal(h.calls.enqueued,1);assert.equal(h.calls.canSubmit,false);
   assert.equal(h.calls.recovery.text,'private draft');
 });
@@ -373,7 +393,7 @@ test('clear microtask rollback cannot enqueue the same transfer twice',async()=>
 test('reclaim waits for independent poll and retains backup through later clearing',async()=>{
   const h=fixture({reclaim:{ok:true}});await h.run();assert.equal(h.edit(),true);
   assert.equal(h.state.items.length,1);assert.equal(h.state.items[0].state,'paused');
-  h.poll();assert.equal(h.state.items.length,0);h.unload();assert.equal(h.calls.unloadPrevented,true);
+  h.poll();assert.equal(h.state.items.length,0);h.unload();assert.equal(h.calls.unloadPrevented,false);
   await Promise.resolve().then(()=>{h.snap.draft='';});h.poll();
   assert.equal(h.calls.recovery.text,'private draft');assert.equal(h.calls.canSubmit,false);
 });
@@ -450,14 +470,14 @@ test('new draft before a second transfer is never overwritten or substituted for
 
 test('successful restore also keeps backup for a later website rollback',async()=>{
   const h=fixture({clear:{ok:true,text:'private draft'},enqueue:false,restore:true});await h.run();
-  h.enqueue();h.unload();assert.equal(h.calls.unloadPrevented,true);h.poll();h.poll();
+  h.enqueue();h.unload();assert.equal(h.calls.unloadPrevented,false);h.poll();h.poll();
   assert.equal(h.calls.recovery,null);h.snap.draft='';h.poll();
   assert.equal(h.calls.recovery.text,'private draft');
 });
 
 test('pending copy protects unload even after direct remote deletion and owner disposal is inert',async()=>{
   const h=fixture({reclaim:{ok:true}});await h.run();h.edit();h.state.items=[];
-  h.unload();assert.equal(h.calls.unloadPrevented,true);h.destroy();h.poll();
+  h.unload();assert.equal(h.calls.unloadPrevented,false);h.destroy();h.poll();
   assert.equal(h.calls.recovery,null);assert.equal(h.calls.ticks,0);
   assert.equal(h.edit(),undefined);assert.equal(h.calls.reclaimed,undefined);
 });
@@ -465,8 +485,8 @@ test('pending copy protects unload even after direct remote deletion and owner d
 
 test('pending enqueue vetoes independent engine submission and protects removed text',async()=>{
   const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();h.enqueue();
-  assert.equal(h.calls.ticks,0);assert.equal(h.edit(),false);assert.equal(h.actions.sendNow('new1'),false);
-  h.state.items=[];h.unload();assert.equal(h.calls.unloadPrevented,true);h.poll();
+  assert.equal(h.calls.ticks,0);assert.equal(h.edit(),false);assert.equal(h.actions.sendNow('q2'),false);
+  h.state.items=[];h.unload();assert.equal(h.calls.unloadPrevented,false);h.poll();
   assert.equal(h.calls.recovery.text,'private draft');assert.equal(h.calls.canSubmit,false);
 });
 
@@ -481,7 +501,7 @@ for(const change of ['restored text','different text','history']){
     h.enqueue();h.poll();
     assert.equal(h.calls.enqueued,1);assert.equal(h.calls.clear,1);
     assert.equal(h.snap.draft,draft);assert.equal(h.calls.recovery.text,'private draft');
-    assert.equal(h.calls.uncertain[0],'new1');assert.equal(h.calls.canSubmit,false);
+    assert.equal(h.calls.uncertain[0],'q2');assert.equal(h.calls.canSubmit,false);
     assert.equal(h.state.items[0].text,'private draft');
   });
 }

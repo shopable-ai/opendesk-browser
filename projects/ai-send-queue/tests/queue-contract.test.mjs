@@ -7,6 +7,6 @@ test('Page and React import one public, readonly contract without granting privi
   assert.ok(Object.isFrozen(QUEUE_COMMANDS));
   assert.equal(QUEUE_READ,'sendQueue.snapshot');
   assert.equal(QUEUE_WRITE,'sendQueue.command');
-  assert.equal(QUEUE_MEMORY_ONLY,true);
+  assert.equal(QUEUE_MEMORY_ONLY,false);
   assert.equal(QUEUE_COMMANDS.includes('script'),false);
 });

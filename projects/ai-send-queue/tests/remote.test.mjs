@@ -16,16 +16,16 @@ function fixture(){
     move:(id,index)=>{const i=rows.findIndex(x=>x.id===id);if(i<0||index<0||index>=rows.length)return false;const [x]=rows.splice(i,1);rows.splice(index,0,x);emit();return true},
     remove:id=>{removeCount++;rows=rows.filter(x=>x.id!==id);emit();return true}
   };
-  const actions={edit:()=>{editCount++;emit();return true},sendNow:()=>{nowCount++;emit();return true}};
+  const actions={remove:id=>engine.remove(id),edit:()=>{editCount++;emit();return true},sendNow:()=>{nowCount++;emit();return true}};
   remote=createSendQueueRemote({owner,site,engine,actions,world,randomId:()=>'test-instance'});
   return {request:world[SEND_QUEUE_REMOTE_GLOBAL],world,remote,setRoute:v=>route=v,setPhase:v=>phase=v,
     counts:()=>({editCount,nowCount,removeCount}),rows:()=>rows,
     destroy:()=>{active=false;destructors.forEach(fn=>fn())}};
 }
-test('snapshot is memory-only and cleanup revokes world handle',()=>{
+test('snapshot reports refresh persistence and cleanup revokes world handle',()=>{
   const x=fixture(),s=x.request({operation:'snapshot'});
   assert.equal(s.status,'ready');assert.equal(s.items.length,2);
-  assert.equal(s.memoryOnly,true);assert.equal(s.revision,0);
+  assert.equal(s.memoryOnly,false);assert.equal(s.revision,0);
   x.destroy();assert.equal(x.world[SEND_QUEUE_REMOTE_GLOBAL],undefined);
 });
 test('pause and resume bump revision, stale requests cannot repeat writes',()=>{

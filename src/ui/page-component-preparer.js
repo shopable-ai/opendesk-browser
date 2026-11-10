@@ -1,9 +1,10 @@
+import {PAGE_SOURCE_LIMIT} from '../platform/source-budgets.js';
 // Trusted extension-side compiler CLIENT. Dedicated Workers transform source
 // data only; every remote byte comes from an explicitly approved fixed graph.
 import {digestUtf8} from '../platform/protocol.js';
 import {PAGE_BROWSER_UI_HELPER,PAGE_BROWSER_PRIVATE_FILES,PAGE_FRAMEWORK_RUNTIMES} from '../libs/page-frameworks/contract.js';
 import {remoteURL,validateRemoteLock,REMOTE_LIMITS} from '../scripting/user-scripts/remote-esm-contract.js';
-const MAX_AUTHORING=128*1024,MAX_PAGE=100000;
+const MAX_AUTHORING=128*1024,MAX_PAGE=PAGE_SOURCE_LIMIT;
 const compilerIdentity=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.id+':'+row.version+':'+row.sha256).join('|');
 const typed=(code,message)=>Object.assign(new Error(message),{code});
 const bytes=s=>new TextEncoder().encode(s).length;

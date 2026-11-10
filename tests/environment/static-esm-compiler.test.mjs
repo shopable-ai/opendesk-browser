@@ -94,6 +94,10 @@ test('rejects UMD, graph imports, missing exports, dynamic import, TLA and incom
 test('every new raw compiler resource is fixed by the package contract',async()=>{
   for(const row of PAGE_BROWSER_PRIVATE_FILES.filter(row=>row.id.startsWith('static-esm'))){
     const original=await readFile(row.source);assert.equal(original.length,row.bytes);assert.equal(hash(original),row.sha256);
+    for(const match of original.toString('utf8').matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)){
+      const target=new URL(match[1],new URL(row.output,'https://extension.invalid/')).pathname.slice(1);
+      assert.ok(PAGE_BROWSER_PRIVATE_FILES.some(file=>file.output===target),'raw Worker import must have a fixed packaged resource: '+target);
+    }
   }
 });
 const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path}};
@@ -119,4 +123,12 @@ test('cancelled worker output cannot revive a stale preparation',async()=>{
   await new Promise(resolve=>setImmediate(resolve));const worker=CompilerWorker.latest;
   preparer.cancel();await assert.rejects(pending,{code:'E_STATIC_ESM_STALE'});assert.equal(worker.terminated,true);
   preparer.dispose();
+});
+
+test('static Page output admits above the old ceiling and rejects above 128 KiB',()=>{
+  const make=n=>'async function main(){return '+JSON.stringify('x'.repeat(n))+';}';
+  const result=compileStaticESM({sourceUtf8:make(105000),entries:[],sourceFormat:'esm-page',babel});
+  assert.ok(Buffer.byteLength(result.sourceUtf8)>100000&&Buffer.byteLength(result.sourceUtf8)<=128*1024);
+  assert.throws(()=>compileStaticESM({sourceUtf8:make(131000),entries:[],sourceFormat:'esm-page',babel}),
+    error=>/^E_STATIC_ESM_/.test(error.code));
 });

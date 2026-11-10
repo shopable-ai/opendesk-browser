@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AI Send Queue refresh cache check</title>
+<style>body{font:16px/1.5 sans-serif;margin:30px}textarea{width:420px;height:100px}li{white-space:pre-wrap}button{margin:5px}pre{white-space:pre-wrap}</style>
+<p>Local source diagnostic: real main, site, engine and sessionStorage; simulated route and UI owner. No installation or website message.</p>
+<form><textarea id="prompt-textarea" data-testid="composer-input"></textarea><button type="button" data-testid="stop-button" aria-label="Stop">Local busy</button></form>
+<button id="enqueue" type="button">加入队列</button><button id="idle" type="button">模拟回复完成</button><ul id="queue"></ul>
+<p id="notice" role="status"></p><pre id="recovery"></pre><button id="done" hidden>已复制原文</button>
+<div id="history"></div><pre id="status">Starting…</pre>
+<script type="module">
+import {createChatGPTSite} from '../../src/page/site.js';
+import {createQueueEngine} from '../../src/page/engine.js';
+import {createQueueCache} from '../../src/page/cache.js';
+const source=await (await fetch('../../src/page/main.js')).text();
+const editor=document.querySelector('textarea'),rows=document.querySelector('#queue');
+const notice=document.querySelector('#notice'),recoveryNode=document.querySelector('#recovery');
+const done=document.querySelector('#done');
+const route=new URL(location.href).searchParams.get('route')||'cache-fixture-a';
+const win={location:{origin:'https://chatgpt.com',pathname:'/c/'+route},
+  getComputedStyle:node=>getComputedStyle(node),HTMLTextAreaElement,InputEvent};win.top=win;
+let active=true,engine,actions,recovery=null,onRecoveryChange=()=>{},receipt,lastRows='';
+const timers=[],listeners=[],disposers=[],clicks=[];
+const owner={host:{style:{setProperty(){}}},active:()=>active,
+  on(target,type,fn,options){const real=target===win?window:target;
+    real.addEventListener(type,fn,options);listeners.push(()=>real.removeEventListener(type,fn,options));},
+  setInterval(fn,ms){const id=setInterval(fn,ms);timers.push(id);return id;},
+  onDispose:fn=>disposers.push(fn),destroy(){if(!active)return;active=false;
+    timers.forEach(clearInterval);listeners.forEach(fn=>fn());disposers.forEach(fn=>fn());}};
+function snapshot(){const s=engine.view();return {route,active,items:s.items,phase:s.phase,
+  inFlight:s.inFlight,answerGate:!!s.answerGate,recovery,clicks:[...clicks],cache:receipt?.cache,
+  evidence:'LOCAL_SOURCE_NOT_INSTALLED'};}
+function render(){
+  const signature=JSON.stringify(engine.view().items);
+  if(signature!==lastRows){lastRows=signature;rows.replaceChildren(...engine.view().items.map(item=>{
+    const li=document.createElement('li');li.dataset.id=item.id;li.textContent=item.text+' ['+item.state+']';
+    for(const [label,action] of [['恢复','resume'],['暂停','pause'],['删除','remove']]){
+      const b=document.createElement('button');b.textContent=label;b.dataset.action=action;
+      b.addEventListener('click',()=>{actions[action](item.id);render();});li.append(b);
+    }return li;
+  }));}
+  recoveryNode.textContent=recovery?.text||'';done.hidden=!recovery;
+  document.querySelector('#status').textContent=JSON.stringify(snapshot(),null,2);
+}
+const load=new Function('createPageUI','createChatGPTSite','createQueueEngine','createQueueView',
+  'createSendQueueRemote','createQueueCache','window','document',source.replace(/^import .*;\n/gm,'')
+  .replace('export default async function main','async function main')+'\nreturn main;');
+const main=load(()=>owner,options=>createChatGPTSite({...options,doc:document,win}),
+  options=>(engine=createQueueEngine(options)),options=>{
+    actions=options.actions;onRecoveryChange=options.onRecoveryChange;
+    return {place:()=>true,render,hide(){},toast:text=>notice.textContent=text,
+      hasRecovery:()=>!!recovery,recovery:()=>recovery,
+      offerRecovery(text,reason){if(recovery)return false;recovery={text,reason};onRecoveryChange();render();return true;}};
+  },()=>({changed(){}}),createQueueCache,win,document);
+const native=document.querySelector('form button');
+native.addEventListener('click',()=>{if(native.dataset.testid==='send-button')clicks.push(editor.value);render();});
+document.querySelector('#idle').addEventListener('click',()=>{
+  native.dataset.testid='send-button';native.setAttribute('aria-label','Send');native.textContent='Send locally';
+});
+document.querySelector('#enqueue').addEventListener('click',()=>{actions.enqueue();render();});
+done.addEventListener('click',()=>{recovery=null;onRecoveryChange();render();});
+receipt=await main();window.cacheFixture={snapshot};render();
+</script>
