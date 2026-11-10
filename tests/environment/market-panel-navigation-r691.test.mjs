@@ -42,6 +42,43 @@ function fixture(){
   };
   return {api,values,events,listeners};
 }
+test('installed app update UI reuses the exact-document panel review path without installing',async()=>{
+  const h=fixture(),requests=[];
+  const url=h.api.runtime.getURL('app.html')+'?hostInstanceId='+randomUUID()+'&toolId=example-app';
+  h.api.tabs.get=async()=>({id:12,windowId:7,url,incognito:false});
+  h.api.runtime.getContexts=async()=>[{contextType:'TAB',documentId:'1'.repeat(32),
+    frameId:0,documentUrl:url,tabId:12,windowId:7,incognito:false}];
+  const receiver=createMarketPanelNavigationReceiver({api:h.api,onNavigate:async row=>{
+    requests.push(row);return {status:'REVIEW_REQUEST_ACCEPTED'};
+  }});
+  receiver.start(7);registerTrustedMarketNavigation(h.api);
+  const message={protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',target:'review',
+    toolId:'example-app',version:'1.2.3',marketId:'opendesk/example-app',sha256:SHA};
+  const pending=new Promise(resolve=>h.api.listener(message,{id:EXT,frameId:0,
+    documentId:'1'.repeat(32),documentLifecycle:'active',url,
+    tab:{id:12,windowId:7,url,incognito:false}},resolve));
+  assert.equal(h.events[0],'panel:7');
+  assert.equal((await pending).status,'REVIEW_REQUEST_ACCEPTED');
+  assert.equal(requests.length,1);assert.equal(requests[0].sha256,SHA);
+  assert.equal(requests[0].releaseVersion,'1.2.3');assert.equal(requests[0].sourceUrl,url);
+  assert.throws(()=>sample({sourceUrl:url,action:'open'}),{code:'E_NAV_FIELDS'});
+  receiver.dispose();
+});
+test('app review rejects sandbox, missing app identity, foreign extension and stale Chrome document',async()=>{
+  const app='chrome-extension://'+EXT+'/app.html?hostInstanceId='+randomUUID()+'&toolId=example-app';
+  for(const [url,frameId,stale] of [[app,1,false],[app.replace('toolId=example-app','previewId='+randomUUID()),0,false],
+    [app.replace(EXT,'b'.repeat(32)),0,false],[app.replace('/app.html','/sidebar-tools/sandbox.html'),0,false],[app,0,true]]){
+    const h=fixture();registerTrustedMarketNavigation(h.api);
+    h.api.tabs.get=async()=>({id:12,windowId:7,url,incognito:false});
+    h.api.runtime.getContexts=async()=>[{contextType:'TAB',documentId:stale?'2'.repeat(32):'1'.repeat(32),
+      frameId:0,documentUrl:url,tabId:12,windowId:7,incognito:false}];
+    const reply=await new Promise(resolve=>h.api.listener({protocol:MARKET_PANEL_NAV_PROTOCOL,
+      action:'NAVIGATE',target:'review',toolId:'example-app',version:'1.2.3',
+      marketId:'opendesk/example-app',sha256:SHA},{id:EXT,frameId,url,
+      documentId:'1'.repeat(32),documentLifecycle:'active',tab:{id:12,windowId:7,url,incognito:false}},resolve));
+    assert.equal(reply.ok,false,url);assert.equal(Object.keys(h.values).length,0);
+  }
+});
 test('R6.9.1 panel locator validates source, fixed version and sha256',()=>{
   const row=sample();
   assert.equal(validMarketPanelNavigation(row,{windowId:7}),true);

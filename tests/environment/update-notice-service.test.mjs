@@ -9,6 +9,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE}
   from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {READING_TOC_SITE_STORE} from '../../projects/reading-toc/trusted/policy.js';
 
 const extensionId='a'.repeat(32);
 const origin='https://chatgpt.com';
@@ -21,10 +22,12 @@ function event(){
   return {addListener(fn){listeners.add(fn);},removeListener(fn){listeners.delete(fn);},
     emit(...args){for(const fn of listeners)fn(...args);}};
 }
-async function fixture({provenance=true,capabilities=[]}={}){
-  // This test checks the update coordinator using an installed page.prompts tool:
+async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts',savedNotice=null}={}){
+  // Use real reviewed legacy page.toc / current page.prompts packages:
   // the package is validated and its ACTUAL installed digest is used as provenance.
-  const bytes=await readFile(new URL('../../projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json',import.meta.url));
+  const packagePath=toolId==='reading-toc'?'../fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json':
+    '../../projects/'+toolId+'/'+toolId+'.opendesk-tool.json';
+  const bytes=await readFile(new URL(packagePath,import.meta.url));
   const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
   const sha256=await sidebarToolPackageHash(tool);
   const newVersion=tool.version.split('.').map((item,index)=>index===2?String(Number(item)+1):item).join('.');
@@ -38,8 +41,9 @@ async function fixture({provenance=true,capabilities=[]}={}){
     [MARKET_OPERATIONS_STORE]:{},
     [SIDEBAR_TOOL_ENABLE_STORE]:{[tool.id]:true}
   };
+  if(savedNotice)store[UPDATE_NOTICE_STORE]=structuredClone(savedNotice);
   const changed=event(),onMessage=event(),onInstalled=event(),onUpdateAvailable=event(),
-    onStartup=event(),onActivated=event(),onUpdated=event();
+    onStartup=event(),onActivated=event(),onUpdated=event(),onRemoved=event();
   let time=100000;
   const views=[],opens=[],hides=[];
   const api={
@@ -65,11 +69,12 @@ async function fixture({provenance=true,capabilities=[]}={}){
       {id:41,url:pageUrl,active:true,incognito:false},
       {id:42,url:pageUrl,active:true,incognito:false},
       {id:43,url:pageUrl,active:true,incognito:false}
-    ];},async sendMessage(tabId,message){hides.push({tabId,message});},async create(args){opens.push(args);}},
+    ];},async get(tabId){return {id:tabId,url:pageUrl,active:true,incognito:false};},
+    async sendMessage(tabId,message,options){hides.push({tabId,message,options});},async create(args){opens.push(args);}},
     scripting:{async executeScript(request){views.push(request);return [{result:true}];}},
     webNavigation:{async getFrame({tabId}){return {documentId:source(tabId).documentId,
       documentLifecycle:'active',url:pageUrl,errorOccurred:false};}},
-    permissions:{async contains({origins}){return origins?.[0]===origin+'/*';}},
+    permissions:{onRemoved,async contains({origins}){return origins?.[0]===origin+'/*';}},
     sidePanel:{open(args){opens.push(args);return Promise.resolve();}}
   };
   let queue=Promise.resolve();
@@ -81,7 +86,7 @@ async function fixture({provenance=true,capabilities=[]}={}){
   async function send(message,sender=source()){
     return new Promise(resolve=>onMessage.emit({protocol:UPDATE_NOTICE_PROTOCOL,...message},sender,resolve));
   }
-  return {api,service,store,views,opens,hides,release,tool,source,send,at(value){time=value;},
+  return {api,service,store,views,opens,hides,release,tool,source,send,lockManager,at(value){time=value;},
     async settled(){await service.reconcile();await queue;}};
 }
 
@@ -93,7 +98,7 @@ test('worker uses original installed/source evidence and one cross-tab claim',as
   assert.equal(list.newCount,1);
   await f.service.checkToast();
   assert.equal(f.views.length,1);
-  assert.equal(f.views[0].target.frameIds[0],0);
+  assert.deepEqual(f.views[0].target,{tabId:41,documentIds:[source().documentId]});
   assert.equal(f.views[0].world,'ISOLATED');
   assert.equal(f.views[0].func.name,'showTrustedUpdateToast');
   const token=f.views[0].args[0].token;
@@ -140,6 +145,10 @@ test('untrusted webpage or sandbox sender cannot spoof update center commands',a
   const rejected=await f.send({kind:'set-mode',mode:'silent'},hostile);
   assert.equal(rejected.ok,false);
   assert.equal(rejected.error.code,'E_UPDATE_SENDER');
+  for(const url of ['file:///app.html','chrome-extension://'+'b'.repeat(32)+'/app.html']){
+    const reply=await f.send({kind:'set-mode',mode:'silent'},{...hostile,url});
+    assert.equal(reply.error.code,'E_UPDATE_SENDER',url);
+  }
   assert.equal((await f.service.replyList()).globalMode,'toast+inbox');
   const badPage=await f.send({kind:'list'},source());
   assert.equal(badPage.ok,false);
@@ -184,4 +193,86 @@ test('page View opens the original side panel on the synchronous click stack, th
   assert.equal(row.viewedAt,100000);
   assert.equal(f.opens.length,1,'do not open another tab after the side panel succeeds');
   assert.equal(f.store[SIDEBAR_TOOL_STORE][0].version,f.tool.version);
+});
+
+test('Chrome permission revocation hides persisted visible claims after Worker restart without replay',async()=>{
+  const original=await fixture();await original.settled();await original.service.checkToast();
+  const token=original.views[0].args[0].token;
+  assert.equal((await original.send({kind:'page-visible',token})).ok,true);
+  const f=await fixture({savedNotice:original.store[UPDATE_NOTICE_STORE]});
+  await f.settled();await f.service.checkToast();
+  assert.equal(f.views.length,0,'restart cannot repeat an acknowledged toast');
+  f.api.permissions.contains=async()=>false;
+  f.api.permissions.onRemoved.emit({origins:[origin+'/*']});
+  const action=await f.send({kind:'page-action',action:'view',token});
+  assert.equal(action.error.code,'E_UPDATE_SITE_REVOKED');
+  await f.service.reconcile();
+  assert.ok(f.hides.some(row=>row.message.token===token&&row.options.documentId===source().documentId));
+  assert.equal(f.opens.length,0);
+  const row=Object.values(f.store[UPDATE_NOTICE_STORE].records)[0];
+  assert.equal(row.impressionCount,1);assert.equal(row.viewedAt,null);
+  f.api.permissions.contains=async()=>true;
+  f.at(100000+NOTICE_DAY_MS*2);await f.service.checkToast();
+  assert.equal(f.views.length,0,'restoring permission alone does not authorize a reminder');
+});
+
+test('site grant removal immediately invalidates live gesture hints and hides the exact document',async()=>{
+  const f=await fixture({toolId:'reading-toc'});await f.settled();await f.service.checkToast();
+  const token=f.views[0].args[0].token;
+  assert.equal((await f.send({kind:'page-visible',token})).ok,true);
+  const saved=structuredClone(f.store[SIDEBAR_TOOL_STORE]);
+  await f.api.storage.local.set({[READING_TOC_SITE_STORE]:{
+    'reading-toc':{mode:'all-except',blockedOrigins:[origin]}}});
+  const pending=f.send({kind:'page-action',action:'view',token});
+  assert.equal(f.opens.length,0,'revocation clears gesture hints before asynchronous checks');
+  assert.equal((await pending).error.code,'E_UPDATE_SITE_REVOKED');
+  await f.service.reconcile();
+  assert.ok(f.hides.some(row=>row.message.token===token&&row.options.documentId===source().documentId));
+  assert.equal(Object.values(f.store[UPDATE_NOTICE_STORE].records)[0].impressionCount,1);
+  assert.deepEqual(f.store[SIDEBAR_TOOL_STORE],saved);
+});
+
+test('a rejected gesture open is consumed even when the subsequent permission check fails',async()=>{
+  const f=await fixture();await f.settled();await f.service.checkToast();
+  const token=f.views[0].args[0].token;
+  assert.equal((await f.send({kind:'page-visible',token})).ok,true);
+  f.api.sidePanel.open=args=>{f.opens.push(args);return Promise.reject(Error('gesture expired'));};
+  f.api.permissions.contains=async()=>false;
+  assert.equal((await f.send({kind:'page-action',action:'view',token})).error.code,'E_UPDATE_SITE_REVOKED');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.opens,[{tabId:41}],'failed permission check cannot open a fallback tab');
+});
+
+test('revocation fences a pending gesture open before its rejection can open a fallback tab',async()=>{
+  const f=await fixture();await f.settled();await f.service.checkToast();
+  const token=f.views[0].args[0].token;
+  assert.equal((await f.send({kind:'page-visible',token})).ok,true);
+  let rejectOpen;
+  f.api.sidePanel.open=args=>{f.opens.push(args);return new Promise((_resolve,reject)=>{rejectOpen=reject;});};
+  assert.equal((await f.send({kind:'page-action',action:'view',token})).ok,true);
+  f.api.permissions.contains=async()=>false;
+  f.api.permissions.onRemoved.emit({origins:[origin+'/*']});
+  rejectOpen(Error('panel failed after revocation'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.opens,[{tabId:41}]);
+});
+
+test('revocation while visible ACK waits for the write lock cannot revive a live claim',async()=>{
+  const f=await fixture();await f.settled();await f.service.checkToast();
+  const token=f.views[0].args[0].token;
+  const request=f.lockManager.request;
+  let release,entered;
+  const blocked=new Promise(resolve=>{release=resolve;});
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  f.lockManager.request=(...args)=>{entered();return blocked.then(()=>request(...args));};
+  const visible=f.send({kind:'page-visible',token});
+  await waiting;
+  f.api.permissions.contains=async()=>false;
+  f.api.permissions.onRemoved.emit({origins:[origin+'/*']});
+  release();
+  assert.equal((await visible).error.code,'E_UPDATE_SITE_REVOKED');
+  assert.equal(Object.values(f.store[UPDATE_NOTICE_STORE].records)[0].impressionCount,0);
+  const action=f.send({kind:'page-action',action:'view',token});
+  assert.equal(f.opens.length,0,'late ACK must not restore the synchronous gesture hint');
+  assert.equal((await action).error.code,'E_UPDATE_SITE_REVOKED');
 });

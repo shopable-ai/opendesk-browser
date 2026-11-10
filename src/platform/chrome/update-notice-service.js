@@ -33,6 +33,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     throw fail('E_UPDATE_HOST');
   let writeUnknown=false,verifiedInventory=false,lastInventoryAt=0,lastError=null;
   let reconciling=null,kicking=null;
+  let authorityRevision=0;
   const liveClaims=new Map();
   const manifest=()=>api.runtime.getManifest();
   const read=async()=>readUpdateNoticeState(
@@ -60,7 +61,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     if(sender.frameId!==undefined&&sender.frameId!==0)return false;
     try{
       const url=new URL(sender.url||sender.documentUrl||'');
-      return url.origin===new URL(api.runtime.getURL('/')).origin&&
+      const expected=new URL(api.runtime.getURL('/'));
+      return url.protocol===expected.protocol&&url.host===expected.host&&
         ['/sidepanel.html','/app.html'].includes(url.pathname)&&
         !url.username&&!url.password;
     }catch{return false;}
@@ -146,6 +148,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     if(reconciling)return reconciling;
     reconciling=(async()=>{
       try{
+        await hideIneligibleClaims();
         const observed=await inventory();
         const expiredToastClaims=new Map();
         await mutate(async state=>{
@@ -207,6 +210,29 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
        frame.errorOccurred||!tab.active)return null;
     return {tabId:tab.id,documentId:frame.documentId,origin};
   }
+  async function hideIneligibleClaims(){
+    // Persisted leases also identify a visible toast after the Worker restarts.
+    // Hiding never resets impressions or retries an ambiguous write.
+    const claims=new Map(Object.values((await read()).records)
+      .filter(row=>row.claim).map(row=>[row.claim.token,row.claim]));
+    for(const [token,claim] of claims){
+      let allowed=false;
+      try{
+        const tab=await api.tabs.get(claim.tabId);
+        allowed=!tab.incognito&&await siteAllowed(new URL(tab.url).origin);
+      }catch{/* Missing tab, permission or grant is not authority to keep UI. */}
+      if(allowed)continue;
+      liveClaims.delete(token);
+      try{await api.tabs.sendMessage(claim.tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
+        kind:'hide',token},{documentId:claim.documentId});}catch{/* Page already gone. */}
+    }
+  }
+  function invalidateSiteClaims(){
+    authorityRevision++;
+    // Remove synchronous gesture hints before any asynchronous permission read.
+    liveClaims.clear();
+    void hideIneligibleClaims().catch(()=>{});
+  }
   async function releaseClaim(token){
     try{await mutate(state=>{
       let dirty=false;
@@ -222,6 +248,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       if(!await ensureInventory()||writeUnknown)return;
       const tabs=await api.tabs.query({active:true}).catch(()=>[]);
       for(const tab of tabs){
+        const revision=authorityRevision;
         const target=await eligibleTab(tab).catch(()=>null);
         if(!target)continue;
         const token='claim-'+crypto.randomUUID();
@@ -238,7 +265,11 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         const message=count===1?rows[0].title+' 有新版本':
           count+' 项扩展有更新';
         try{
-          const injected=await api.scripting.executeScript({target:{tabId:target.tabId,frameIds:[0]},
+          const current=await eligibleTab(await api.tabs.get(target.tabId));
+          if(revision!==authorityRevision||current?.documentId!==target.documentId||
+             current.origin!==target.origin){await releaseClaim(token);return;}
+          const injected=await api.scripting.executeScript({target:{tabId:target.tabId,
+            documentIds:[target.documentId]},
             world:'ISOLATED',func:showTrustedUpdateToast,args:[{
               token,origin:target.origin,message
             }]});
@@ -264,8 +295,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   }
   function openFallbackUpdateTab(){
     // Trusted document only. This cannot approve or install anything.
-    void Promise.resolve(api.tabs.create({url:api.runtime.getURL('sidepanel.html')}))
-      .catch(()=>{});
+    try{void Promise.resolve(api.tabs.create({url:api.runtime.getURL('sidepanel.html')}))
+      .catch(()=>{});}catch{/* No retry when the browser cannot open the page. */}
   }
   async function handle(message,sender,{openedOnGesture=null}={}){
     if(!isPlain(message)||message.protocol!==UPDATE_NOTICE_PROTOCOL)return null;
@@ -315,25 +346,35 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       throw fail('E_UPDATE_OPERATION');
     }
     if(message.kind==='page-visible'||message.kind==='page-action'){
+      const revision=authorityRevision;
+      const requireCurrentAuthority=()=>{
+        if(revision!==authorityRevision)throw fail('E_UPDATE_SITE_REVOKED');
+      };
       if(typeof message.token!=='string')throw fail('E_UPDATE_CLAIM');
       // Check Chrome permission, enabled tools, and current document again
       // before accepting any message from an isolated content-script world.
       const target=await eligibleTab(sender.tab);
       if(!target||target.documentId!==sender.documentId)throw fail('E_UPDATE_SITE_REVOKED');
+      requireCurrentAuthority();
       if(message.kind==='page-visible'){
         const result=await mutate(state=>{
+          requireCurrentAuthority();
           const ack=acknowledgeUpdateToast(state,{now:now(),token:message.token,
             tabId:sender.tab.id,documentId:sender.documentId});
           return ack?.duplicate?null:ack?.state||null;
         });
+        requireCurrentAuthority();
         if(!result)throw fail('E_UPDATE_CLAIM_STALE');
         liveClaims.set(message.token,{token:message.token,tabId:sender.tab.id,
           documentId:sender.documentId});
         return {ok:true};
       }
-      const saved=await mutate(state=>actOnUpdateToast(state,{now:now(),
-        action:message.action,token:message.token,tabId:sender.tab.id,
-        documentId:sender.documentId}));
+      const saved=await mutate(state=>{
+        requireCurrentAuthority();
+        return actOnUpdateToast(state,{now:now(),action:message.action,
+          token:message.token,tabId:sender.tab.id,documentId:sender.documentId});
+      });
+      requireCurrentAuthority();
       if(!saved)throw fail('E_UPDATE_CLAIM_STALE');
       liveClaims.delete(message.token);
       if(message.action==='view'){
@@ -341,7 +382,9 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         // A SW restart may lose that hint; a verified persisted action can still
         // open the existing fixed HTML in a normal tab. No install is performed.
         if(openedOnGesture)
-          void Promise.resolve(openedOnGesture).catch(openFallbackUpdateTab);
+          void openedOnGesture.then(opened=>{
+            if(!opened&&revision===authorityRevision)openFallbackUpdateTab();
+          });
         else openFallbackUpdateTab();
       }
       return {ok:true};
@@ -359,8 +402,10 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
        typeof message.token==='string'&&trustedPage(sender)){
       const claim=liveClaims.get(message.token);
       if(claim?.tabId===sender.tab.id&&claim.documentId===sender.documentId){
-        try{openedOnGesture=api.sidePanel?.open?.({tabId:sender.tab.id})||null;}
-        catch(error){openedOnGesture=Promise.reject(error);}
+        try{
+          const pending=api.sidePanel?.open?.({tabId:sender.tab.id});
+          if(pending)openedOnGesture=Promise.resolve(pending).then(()=>true,()=>false);
+        }catch{openedOnGesture=Promise.resolve(false);}
       }
     }
     Promise.resolve().then(()=>handle(message,sender,{openedOnGesture})).then(data=>
@@ -386,9 +431,12 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     if(area!=='local'||![SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,
       MARKET_OPERATIONS_STORE,SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,PROMPT_SITE_STORE]
       .some(key=>Object.hasOwn(changes,key)))return;
+    if([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,PROMPT_SITE_STORE]
+      .some(key=>Object.hasOwn(changes,key)))invalidateSiteClaims();
     verifiedInventory=false;
     void reconcile().then(ok=>{if(ok)void checkToast();});
   });
+  api.permissions?.onRemoved?.addListener(invalidateSiteClaims);
   api.tabs.onActivated?.addListener(()=>{void checkToast();});
   api.tabs.onUpdated?.addListener((_tabId,change)=>{
     if(change.status==='complete'||change.url)void checkToast();

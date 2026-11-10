@@ -23,7 +23,7 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
   const tools={...disposable(),ready:ready.promise,setVisible:()=>true,isDirty:()=>false,
     openTool:(_id,options)=>{calls.push('openTool');options?.launchGate?.then(()=>calls.push('gate-open'),()=>calls.push('gate-reject'));return 'tool-instance';},
     openReadOnlyPreview:()=>calls.push('preview')};
-  let toolsVisibility;
+  let toolsVisibility,shellOptions;
   const task={...disposable(),navigate:destination=>{toolsVisibility?.(destination==='tools',destination);return true;},
     connectToolsView:listener=>{toolsVisibility=listener;},showCatalogPage:()=>calls.push('catalog')};
   const dependencies={};
@@ -33,7 +33,8 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     createDeveloperView:()=>view,createMyWorkbenchView:()=>view,createSidebarToolsView:()=>toolView,
     createScriptEditor:()=>({...disposable(),host:{},connectLocalProjects(){}}),
     createSidebarTabMemory:()=>({...disposable(),record(){},restore:async()=>calls.push('restore')}),
-    mountSidebarApp:()=>({...disposable(),renderNavigation(){},connectWorkflowPage(){},connectMyAgent(){}}),
+    mountSidebarApp:(_document,options)=>{shellOptions=options;return {...disposable(),renderNavigation(){},connectWorkflowPage(){},connectMyAgent(){}};},
+    MARKET_PANEL_NAV_PROTOCOL:'opendesk.market.panel-navigation.v1',
     createSidebarTools:()=>tools,isActualSidePanelContext:()=>context.promise,
     createMarketPanelNavigationReceiver:()=>({...disposable(),start(){}}),
     createPanelToolIntentReceiver:()=>({...disposable(),start(){}}),
@@ -66,8 +67,25 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
   vm.createContext(sandbox);vm.runInContext(bundled.outputFiles[0].text,sandbox);
   sandbox.ToolShell.initToolShell();
   return {tab,context,ready,preview,menu,ack,calls,api,toolView,navigateTools:()=>task.navigate('tools'),
+    reviewUpdate:row=>shellOptions.onOpenUpdateReview(row),
     close:()=>window.dispatchEvent(new Event('pagehide'))};
 }
+test('PC update review sends the exact candidate and reports success only after review acceptance',async()=>{
+  const f=fixture({surface:'app'}),messages=[];
+  const protocol='opendesk.market.panel-navigation.v1';
+  let status='NAVIGATION_PENDING';
+  f.api.runtime.sendMessage=message=>{messages.push(message);return Promise.resolve({ok:true,protocol,status});};
+  const row={kind:'sidebar-tool',status:'available',id:'quick-notes',version:'1.2.3',
+    source:'opendesk/quick-notes',sha256:'a'.repeat(64)};
+  const pending=f.reviewUpdate(row);
+  assert.equal(messages.length,1,'send from the original click stack');
+  assert.deepEqual(JSON.parse(JSON.stringify(messages[0])),{protocol,action:'NAVIGATE',target:'review',
+    toolId:row.id,version:row.version,marketId:row.source,sha256:row.sha256});
+  assert.equal(await pending,false,'opening a panel is not review acceptance');
+  status='REVIEW_REQUEST_ACCEPTED';assert.equal(await f.reviewUpdate(row),true);
+  status='IDENTITY_CHANGED';assert.equal(await f.reviewUpdate(row),false);
+  f.close();assert.equal(f.reviewUpdate(row),false,'closed owner cannot navigate');
+});
 test('bound app.html opens its installed ToolHost without a Side Panel list controller',async()=>{
   const f=fixture({surface:'app'});f.tab.resolve({id:2});f.context.resolve(false);f.ready.resolve();await tick();
   assert.equal(f.calls.filter(x=>x==='openTool').length,1);

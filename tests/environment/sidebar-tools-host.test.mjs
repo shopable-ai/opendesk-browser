@@ -2779,13 +2779,18 @@ test('local Reading TOC replacement reviews same-version edits and downgrades wi
 
 test('official catalog install rechecks packaged bytes before updating',async t=>{
   const candidate=await officialToolFixture('bookmark-manager');
+  const {catalog}=await officialFixtures();
+  const release=catalog.apps.find(row=>row.toolId===candidate.id);
   const previous={...candidate,version:'0.3.11',js:'void 0;'};
   let tamper=false;
   const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[previous]]]),
     fetcher:async(url,options)=>tamper&&url.endsWith('/bookmark-manager.opendesk-tool.json')
       ?{ok:true,url,arrayBuffer:async()=>new TextEncoder().encode('{}').buffer}
       :officialFixtureFetch(url,options)});
-  assert.equal(f.host.openOfficialReview(candidate.id),true);
+  assert.equal(f.host.openOfficialReview(candidate.id,{...release,sha256:'0'.repeat(64)}),false,
+    'stale notice SHA cannot select another cached release');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
+  assert.equal(f.host.openOfficialReview(candidate.id,release),true);
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   tamper=true;
   f.emit(f.elements['sidebar-tool-install'],'click');

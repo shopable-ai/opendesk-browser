@@ -2141,10 +2141,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active&&!sameLiveCookie&&!canLeave(show))return false;
     show();return true;
   }
-  function openOfficialReview(id){
+  function openOfficialReview(id,expectedRelease=null){
     if(disposed||busy||!visible||active||!officialLoaded||view.getSnapshot().market?.review)return false;
     const release=officialReleases.find(row=>row.toolId===id);
     if(!release)return false;
+    if(expectedRelease&&(release.id!==expectedRelease.id||
+      release.version!==expectedRelease.version||release.sha256!==expectedRelease.sha256))return false;
     void reviewOfficial(release);
     return true;
   }
