@@ -108,7 +108,9 @@ test('original builder accepts and preserves real v2 pins without embedding a ru
   assert.equal(tool.id,'webflow');
   assert.equal(tool.version,config.version);
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
-  assert.equal(tool.scripts.length,1);
+  // The original builder emits one pinned classic script per reviewed dependency.
+  assert.equal(tool.scripts.length,config.files.dependencies.length);
+  assert.deepEqual(tool.scripts.map(asset=>asset.name),config.files.dependencies);
   assert.equal(tool.delegatedTasks.length,2);
   assert.equal(tool.delegatedTasks[0].manifestHash,config.delegatedTasks[0].manifestHash);
   assert.equal(tool.delegatedTasks[1].contentHash,config.delegatedTasks[1].contentHash);
