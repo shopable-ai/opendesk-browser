@@ -1,3 +1,19 @@
+## Markdown 双聊天执行纵切 · 本轮实际源码与未接线边界（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
+
+**唯一产品目标：** WebFlow 读取并冻结真实 GitHub Markdown T01/T02 → 用户一次明确批准 → 原 ChatGPT Task 0.2.0 在两个不同的普通 ChatGPT 新聊天中各发送一次 → 以原 Controller 持久回执、消息身份和完整回复独立验收 → Native Workspace 写入并独立读回 T01/T02，T02 只接收已读回的 T01 完整 JSON → 重启/刷新只恢复原身份，不能重新发送。
+
+**本轮已提交的真实增量：** `src/md-run-contract.js` 修复“发送前必须存在 /c/ URL”的错误状态顺序，增加不可重放的 `TASK_DISPATCHED` 和 `WRITE_DISPATCHED`；`trusted/md-workflow-engine.js` 负责同一 run 的串行 T01/T02 编排与已安装 Task 精确 pin 检查（非新的 Runner/Authority）；`trusted/md-run-receipt.js` 从原 Controller 的定向快照、保留页与已审阅 0.2.0 结果校验身份；`trusted/md-run-ledger.js` 在原 `frameworkKV` CAS 上接入只读回复恢复；`trusted/md-native-artifacts.js` 在既有 Native Files Port 上实现写意图冻结、一次派发、真实 ACK 和完整字节/SHA/版本读回。原 `src/platform/host/controller-methods.js` 只读快照增加 `requestId` 精确选择、安装 pin 的有限投影；并行开发和旧不可变 Task 均未覆盖。定向测试已放入原 Bridge CI，未造第二个 Demo/账本。
+
+**实际证据：** Bridge 定向 Node 在 Run 42876850458 为 **103/103 PASS**（纯代码合同与模拟副作用，不是浏览器）。其后新编排器初次测试出现 Schema fixture 缺失 `title`，已在后续提交修正；此项最新绿灯仍须绑定对应 HEAD 和真实 CI 日志核对。与此无关的百度/GitHub 最新并行来源验证或 V2 Schema 测试失败不能冒称 Markdown 两聊天失败/成功。Mac CodexPro 连接 `UNAVAILABLE`，OpenDesk Desktop MCP 返回 Session terminated；**无真实 ChatGPT 聊天、真实 Native 文件、正式包或整链验收证据。**
+
+**仍然阻塞点击一次开始：** (1) 原可信 Side Panel/Host 尚未针对冻结的来源 SHA、账号、安装身份、文件作用域创建一次性双任务 Authority 审阅，`md-run-ledger.js` 和 `md-workflow-engine.js` 尚未装入真实宿主；(2) 实际登录账号身份验证尚无安全可调用接口（`verifyAccount` 为受信注入要求，不能从模型文字/未验证页面猜测）；(3) 原 Native Files service 仅向可信文件设置页/已验证连接开放，未把经过 workflow grant 的 T01/T02 精确文件作用域委托给本 Host；(4) `src/ui/main.js` 的「开始」仍禁用，未展示运行/两条链接/成果；(5) Package/Chrome/真实 80/160 与 81/162 双运行均 NOT_TESTED。**绝不可借 sandbox.tasks.start 假手势或直接跨信任域调用 files.request。**
+
+**状态：** `SOURCE_COMPLETE=PARTIAL`；`NODE_TESTED=PARTIAL`（最新专项必须按 commit 验证）；`PACKAGE_READY=NO`；`CHROME_TESTED=NO`；`BUSINESS_ACCEPTED=NO`。
+
+**唯一下一步：** 在原可信 Host 与 Native 文件服务完成 workflow 授权入口及真实账号身份栅栏，接入现有 ledger/engine，再启用原 MD 页并执行实际 Chrome T01→文件读回→T02，随后才打包晋升。不要重新编写已完成的 Task、解析器、Native adapter 或独立 Runner。
+
+---
+
 ## 2026-11-11 · Web Flow R2 任务通知 P0 当前执行卡（OD-AI-WORKFLOW-BRIDGE）
 
 **原始问题与目标：** 用户手动/自动/按原批准计划触发浏览器脚本后，希望在 Side Panel/PC 已打开工具宿主清楚看到开始、进行、脚本完成、实际结果回传、失败和 UNKNOWN；同一原请求只更新已有通知，并能通过原任务页面恢复查看 Run/Result。通知只消费可信状态，不授予新权限、不重放任何脚本。不可见宿主的跨窗口通知和网页注入不是 P0。
