@@ -17,8 +17,7 @@ const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const settingsCode=(await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const statusCode=(await transform(await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
-function render(locale,runtime){
- const config={...domain.freshConfig(),selection:{mode:'direct'}};
+function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride}={}){
  const hooks={...React,useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:initial=>({current:initial}),useEffect(){}};
  const i18n={useI18n:()=>({locale,t:(key,params)=>translate(locale,key,params)})};
  const statusModule={exports:{}};
@@ -34,8 +33,8 @@ function render(locale,runtime){
   if(name==='./domain/header-actions')return headerActions;
   if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
   if(name==='./ui/Status')return statusModule.exports;
-  if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>'#/rules'},isDraftDirty:()=>false})};
-  if(name==='./ui/useProxy')return {useProxy:()=>({state:{config,runtime},busy:false,error:'',act:()=>assert.fail('render mutated proxy state')})};
+  if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>route},isDraftDirty:()=>false})};
+  if(name==='./ui/useProxy')return {useProxy:()=>({state:stateOverride===undefined?{config,runtime}:stateOverride,busy:false,error:'',act:()=>assert.fail('render mutated proxy state')})};
   if(name==='@opendesk/ui')return {Button:({children,variant,...props})=>React.createElement('button',props,children)};
   return new Proxy({},{get:()=>()=>null});
  }});
@@ -61,4 +60,40 @@ test('management summary labels saved Direct as a selection independently from c
   assert.equal(bar.find('.controlChip').hasClass('isApplied'),!pending);
   assert.doesNotMatch(bar.text(),/\b(?:IP|exit|reachable|connected)\b/i);
  }
+});
+
+test('the real PC proxy table distinguishes saved choice, browser-applied identity and empty states',()=>{
+ const baseConfig=domain.freshConfig();
+ const endpoint={id:'endpoint-a',name:'Test proxy A',sourceId:'manual',scheme:'http',host:'127.0.0.1',port:7890};
+ const profile={id:'profile-a',name:'Test proxy A',sourceId:'manual',kind:'endpoint',endpointId:'endpoint-a'};
+ const config={...baseConfig,endpoints:[endpoint],profiles:[profile],
+  selection:{mode:'profile',profileId:profile.id}};
+ const stopped={state:'disabled',control:'controllable_by_this_extension',canStop:false,managedIntent:false,
+  applied:false,pendingChanges:true,activeSelection:null,browserMode:'system',proxyError:null};
+ const $=render('zh-CN',stopped,{config,route:'#/profiles'});
+ assert.equal($('.managementNav button').length,7,'keep the existing seven real management routes');
+ assert.equal($('.managementNav button[aria-current="page"]').length,1,'deep linked profiles stays highlighted');
+ const row=$('.profileRecords .proxyRecord');
+ assert.equal(row.length,1);
+ assert.match(row.text(),/Test proxy A/);
+ assert.equal(row.find('.managementProtocolLetter').text(),'H');
+ assert.equal(row.find('.proxySelect[aria-pressed="true"]').length,1);
+ assert.equal(row.find('.managementRecordTag:not(.managementAppliedTag)').length,1);
+ assert.equal(row.find('.managementAppliedTag').length,0,'selected is not applied');
+ const active={...stopped,state:'enabled',control:'controlled_by_this_extension',canStop:true,
+  managedIntent:true,applied:true,pendingChanges:false,activeSelection:{mode:'profile',profileId:profile.id},browserMode:'fixed_servers'};
+ const $active=render('zh-CN',active,{config,route:'#/profiles'});
+ assert.equal($active('.profileRecords .managementAppliedTag').length,1,'confirmed applied is an additional label');
+ assert.equal($active('.profileRecords .managementRecordTag').length,2);
+ const $empty=render('zh-CN',stopped,{config:baseConfig,route:'#/profiles'});
+ assert.equal($empty('.managementEmptyState').length,1);
+ assert.equal($empty('.profileRecords .proxyRecord').length,0);
+});
+
+test('PC initial state retains workbench identity and honest loading/retry instead of a blank page',()=>{
+ const $=render('zh-CN',{}, {route:'#/profiles',stateOverride:null});
+ assert.equal($('.managementIdentity').length,1);
+ assert.equal($('.managementLoadingState[role="status"]').length,1);
+ assert.match($('.managementLoadingState').text(),/读取|正在|状态/);
+ assert.ok($('.managementLoadingState button').length);
 });
