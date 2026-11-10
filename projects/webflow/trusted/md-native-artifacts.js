@@ -65,7 +65,9 @@ export function createMdNativeArtifactAdapter({ledger,files,assertScope,
   };
   async function prepare(workflowId,taskId,workspaceId){
     const {run,step,path}=await inspect({workflowId,taskId});
-    requireValue(step.phase==='ACCEPTED'&&!run.paused,'E_MD_RUN_STATE');
+    requireValue(step.phase==='ACCEPTED','E_MD_RUN_STATE');
+    // A paused run must still settle the reply that was already submitted.
+    // Pause only prevents claiming or sending a NEW ChatGPT task.
     const authority=await authorityFor(workspaceId);
     await scope(run,taskId,authority,path,'prepare-write');
     let baseSha256=null,writeMethod='files.create';
