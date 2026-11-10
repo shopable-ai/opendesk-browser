@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {load} from 'cheerio';
+import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
 import {createSidebarTabMemory,isRestorableSidebarTab,SIDEBAR_LAST_TAB_KEY as KEY}
   from '../../src/ui/sidebar-tab-memory.js';
 
@@ -191,20 +193,39 @@ test('R32 Cloud selection persists and restores through normal Side Panel naviga
   assert.deepEqual(reopened.activations,['cloud']);reopened.memory.dispose();
 });
 
-test('R1.2 Side Panel keeps one development iframe across normal tabs (source contract)',async()=>{
-  const [shell,app,host,tools]=await Promise.all([
+test('R1.2 Side Panel conceals one tool host for preview and locale management without losing its mount',async()=>{
+  const [shell,tools]=await Promise.all([
     readFile('src/ui/tool-shell.js','utf8'),
-    readFile('src/ui/react/app-shell.tsx','utf8'),
-    readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8')
   ]);
   assert.match(shell,/const keepDeveloperPreview=verifiedSidePanel&&Boolean\(panelPreviewId\)&&\s+sidebarTools\.isPreviewActive\(\)/);
   assert.doesNotMatch(shell,/destination==='develop'&&sidebarTools\.isPreviewActive\(\)/);
-  assert.match(app,/concealed=\{activeTab==='tools'&&isPanelPreview\}/);
-  assert.match(app,/应用调试正在运行；打开已安装应用前/);
-  assert.equal((app.match(/<ToolHost\s/g)||[]).length,1,'the trusted shell has one ToolHost');
-  assert.match(host,/id="sidebar-tool-display" forceHidden=\{concealed\}/);
-  assert.doesNotMatch(host,/className="sidebar-tool-host od-stack" hidden=\{concealed\}/);
-  assert.match(host,/forceHidden=\{debugPreview\}/);
+  const {createSidebarToolsView}=await loadSidebarReact();
+  const view=createSidebarToolsView();
+  view.patch('sidebar-tool-display',{hidden:false});
+  try{
+    for(const [activeTab,preview,localeOpen,concealed,listHidden] of [
+      ['tools',false,false,false,true],
+      ['tools',true,false,true,false],
+      ['tools',false,true,true,false],
+      ['tools',true,true,true,false],
+      ['app-debug',true,false,false,true],
+      ['tools',false,false,false,true]
+    ]){
+      view.patch('sidebar-tool-readonly-banner',{hidden:!preview});
+      const $=load(await renderSidebarFixture({activeTab,appDebugEnabled:true,toolView:view,
+        extensionProps:{toolbarModel:{localeManager:localeOpen?{session:'test-locale'}:null}}}));
+      const context=JSON.stringify({activeTab,preview,localeOpen});
+      assert.equal($('.sidebar-tool-host').length,1,'one ToolHost: '+context);
+      assert.equal($('.sidebar-tool-host').is('[hidden]'),false,'host remains mounted: '+context);
+      assert.equal($('#sidebar-tool-display').is('[hidden]'),concealed,'display visibility: '+context);
+      assert.equal($('#sidebar-tool-back').is('[hidden]'),activeTab==='app-debug'&&preview,'debug back action: '+context);
+      assert.equal($('#sidebar-tool-list-view').is('[hidden]'),listHidden,'list visibility: '+context);
+      assert.equal($('#sidebar-tool-display #sidebar-tool-frame').length,1,'sandbox mount remains: '+context);
+      if(activeTab==='tools'&&preview)
+        assert.match($('#sidebar-tool-list-view [role=status]').text(),/应用调试正在运行；打开已安装应用前/);
+    }
+    assert.equal(view.getSnapshot().fields['sidebar-tool-display'].hidden,false,'concealment preserves display state');
+  }finally{view.dispose();}
   assert.match(tools,/if\(readOnlyPreview\)\{notice\('本地应用正在调试/);
 });

@@ -1,13 +1,11 @@
-import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Script} from 'node:vm';
 import {load} from 'cheerio';
 import * as React from 'react';
-import {createRoot} from 'react-dom/client';
-import {parseHTML} from 'linkedom';
-import {workflowFixture,tick} from './workflow-react-fixture.mjs';
+import {tick} from './workflow-react-fixture.mjs';
 import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 import {deriveWorkflowViewState,WORKFLOW_VIEW_STATES} from '../../src/ui/workflow/view-state.js';
 
@@ -176,7 +174,7 @@ test('Workflow has three header actions and exactly one shared Provider modal ow
   assert.equal($('.workflow-sheet-overlay [role="dialog"][aria-modal="true"]').length,1);
   assert.equal($('.od-shared-provider-form').length,1);
   assert.equal($('#workflow-provider-settings').length,0,'no legacy settings overlay beside shared modal');
-  assert.equal($('[name="od-ai-provider-source"]').length,3);
+  assert.equal($('[name="od-ai-provider-source"]').length,2);
   assert.equal($('[id$="-react-host"]').length,0,'no legacy portal anchors');
   assert.match(css,/\.workflow-sheet-content\{min-height:0;min-width:0;overflow-y:auto/);
   assert.match(root,/<SharedProviderSettingsSheet providerSettings=\{providerSettings\}/);
@@ -195,14 +193,10 @@ test('shared Provider selector is minimal and never adds Workflow-specific conse
   const settings=$('.od-shared-provider-form');
   assert.equal(settings.length,1);
   assert.deepEqual(settings.find('input[name="od-ai-provider-source"]').map((_,node)=>$(node).val()).get(),
-    ['local_codex','custom_https','cloud_responses']);
-  // LinkeDOM may drop a controlled radio's live checked property on serialization.
-  // Assert the real three source choices in mounted markup and their React binding.
-  const sharedSheet=await file('src/ui/react/components/provider-settings.tsx');
-  assert.match(sharedSheet,/checked=\{source==='local_codex'\}/);
+    ['local_codex','https']);
   assert.equal($('#workflow-manual-start').length,0);
-  assert.match(settings.text(),/Provider 配置对各 AI 入口共享/);
-  assert.match(settings.text(),/网页摘要授权仍由原业务机制处理/);
+  assert.match(settings.text(),/网页摘要仍需按本轮授权/);
+  assert.match(settings.text(),/切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作/);
   assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送');
   assert.equal($('#workflow-ai-disclosure,[id^="workflow-ai-review-"],#workflow-ai-revoke').length,0);
   assert.doesNotMatch(settings.text(),/模型的数据发送许可|同意并生成/);
@@ -277,10 +271,11 @@ test('shared Provider exposes real Native settings without a fake connection swi
   const settings=$('.od-shared-provider-form');
   assert.equal(settings.length,1);
   assert.equal(settings.find('[role="switch"],[aria-checked]').length,0);
-  assert.equal(settings.find('input[name="od-ai-provider-source"]').length,3);
-  assert.equal(settings.find('.od-shared-provider-fields .od-button--secondary').text(),'本机连接设置 ↗');
-  assert.match(settings.text(),/当前授权/);
-  assert.match(settings.text(),/切换后已有推理会安全失效/);
+  assert.equal(settings.find('input[name="od-ai-provider-source"]').length,2);
+  assert.equal(settings.find('.od-shared-provider-local-actions .od-button--secondary').text(),'高级设置');
+  assert.equal(settings.find('.od-shared-provider-native-status').attr('data-state'),'unknown',
+    'without a Native facade the fixture must not claim a connection');
+  assert.match(settings.text(),/切换 AI 来源不会扩大 Chrome 或本机权限/);
   assert.match(sheet,/onOpenNativeSettings\(\)/);
   assert.match(sheet,/event\.nativeEvent\?\.isTrusted/);
 });
@@ -307,14 +302,21 @@ test('Workflow mounts the shared Provider and releases all modal subscriptions a
   assert.equal(f.document.querySelectorAll('.workflow-sheet-overlay').length,0);
   assert.equal(app.inert,false,'Escape restores app interaction');
   assert.equal(f.keys.has(modalKey),false,'Escape releases modal listener');
-  const example=f.document.querySelector('[data-workflow-example="read"]');
-  await f.clickNode(example);
-  assert.match(f.source.state().controls['workflow-ai-request'].value,/只读提取/);
-  assert.equal(get('workflow-ai-request').value,f.source.state().controls['workflow-ai-request'].value);
-  assert.equal(f.source.starts.length,0,'choosing an example does not execute code');
-  assert.equal(f.source.requests.length,0,'choosing an example does not request Chrome permissions');
+  // Seed through the real controller action: LinkeDOM does not implement
+  // browser text-input tracking for React's onChange. Modal actions below
+  // are dispatched through the mounted UI, not controller substitutes.
+  await React.act(async()=>{
+    f.source.view.actions.chooseExample('read',f.source.event('workflow-ai-request'));
+    await tick();
+  });
+  const draft=f.source.state().controls['workflow-ai-request'].value;
+  assert.match(draft,/只读提取/);
+  assert.equal(get('workflow-ai-request').value,draft);
+  assert.equal(f.source.starts.length,0,'preparing a draft does not execute code');
+  assert.equal(f.source.requests.length,0,'preparing a draft does not request Chrome permissions');
   await f.openSettings();
   assert.equal(app.inert,true);
+  assert.equal(get('workflow-ai-request').value,draft,'opening settings preserves the draft');
   await f.close();
   assert.equal(f.subscriptions(),0,'unmount releases WorkflowView subscription');
   assert.equal(f.keys.has(modalKey),false,'unmount releases the keyboard listener');

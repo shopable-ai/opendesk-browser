@@ -2,6 +2,9 @@ import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fi
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {load} from 'cheerio';
+import {act} from 'react';
+import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 
 // Repository source-level guard. Rendered style equivalence is checked separately
 // by scripts/tests/sidebar-r19-layout-visual.mjs in controlled Chrome.
@@ -45,21 +48,35 @@ function declarations(selector) {
 const classes = tag => (tag.match(/\bclass="([^"]*)"/) || [,''])[1].split(/\s+/);
 const has = (tag, className) => classes(tag).includes(className);
 
-test('Workflow Send action remains icon-sized, accessible and explicitly authorized', () => {
-  const plan = element(html, 'button', 'workflow-ai-plan');
-  assert.ok(has(plan, 'od-icon-button') && has(plan, 'od-icon-button--primary'));
-  assert.match(plan, /\baria-label="发送并执行浏览器任务"/);
-  assert.match(plan, /\btitle="发送并执行"/);
-  assert.match(html, /id="workflow-ai-plan"[^>]*>\s*<svg\b[^>]*aria-hidden="true"/);
+test('Workflow Send action remains icon-sized, accessible and explicitly authorized', async t => {
+  const mounted = await mountWorkflowClient({permission:false});
+  t.after(() => mounted.close());
+  const button = mounted.document.getElementById('workflow-ai-plan');
+  assert.ok(button, 'The shared conversation portal mounts the Send action');
+  const plan = button.outerHTML;
+  assert.ok(has(plan, 'od-icon-button') && has(plan, 'od-conversation-action--primary'));
+  assert.match(plan, /\baria-label="发送"/);
+  assert.match(plan, /\btitle="发送消息"/);
+  assert.ok(button.querySelector('svg[aria-hidden="true"]'));
+  await act(async () => {
+    mounted.source.input('workflow-ai-provider', 'custom_https', 'change');
+    mounted.source.input('workflow-ai-request', '在当前网页填写姓名');
+  });
+  assert.equal(button.disabled, false, 'Send is enabled before checking the untrusted event');
+  const before = mounted.source.state();
+  await mounted.click('workflow-ai-plan', false);
+  assert.strictEqual(mounted.source.state(), before, 'Untrusted Send cannot change workflow state');
+  assert.deepEqual(mounted.source.starts, [], 'Untrusted Send cannot start observation or execution');
+  assert.deepEqual(mounted.source.requests, [], 'Untrusted Send cannot request permissions');
+  assert.equal(mounted.source.scripts.size, 0, 'Untrusted Send cannot persist a Controller revision');
   assert.match(tokens, /--od-icon-size:\s*34px/);
   assert.match(components, /\.od-icon-button\{[^}]*width:var\(--od-icon-size\)[^}]*height:var\(--od-icon-size\)/);
   assert.doesNotMatch(shell, /\.workflow-composer\s+\.workflow-send-button\[data-first-use/);
   assert.doesNotMatch(shell, /\.workflow-send-label\{/);
-  assert.match(workflow, /async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
   // Send expresses intent; website permission and local summary approval are separate gates.
   assert.match(workflow, /consent:\{model:true,workflow:true,observation:true\}/);
   assert.match(workflow, /permission=row\.siteGranted\?Promise\.resolve\(true\):api\.permissions\.request/);
-  assert.match(workflow, /row\.selected==='local_codex'&&!remember&&!validObservationApproval\(row\)/);
+  assert.match(workflow, /if\(!remember&&!validObservationApproval\(row\)\)throw/);
   assert.match(workflow, /permission=api\.permissions\.request/);
 });
 
@@ -96,8 +113,8 @@ test('Developer static controls all use shared roles; important IDs and ARIA lin
 });
 
 test('Shared components own normal visual appearance; business CSS retains only layout', () => {
-  assert.match(html,/<header class="cloud-panel-head od-toolbar">\s*<strong class="od-page-title">云控<\/strong>/,
-    'official cloud header uses the approved compact toolbar instead of a retired heading');
+  assert.match(html,/<header class="cloud-panel-head od-page-head">\s*<strong class="od-page-title">云控<\/strong>/,
+    'official cloud header uses the shared page header');
   assert.doesNotMatch(shell,/\.cloud-panel-head \.od-page-title\{font-size:/,
     'business CSS must leave the shared typography token intact');
   assert.match(shell,/\.workbench-nav button:focus-visible\{outline-offset:-3px\}/);
@@ -135,12 +152,19 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   const dev = section('workbench-develop', 'workbench-debug');
   for (const id of [
     'developer-target-detail', 'manual-project-params-tools', 'developer-results-panel',
-    'developer-run-technical', 'page-preview-tools', 'script-library-tools',
-    'script-advanced', 'tool-diagnostics'
+    'developer-run-technical', 'script-advanced', 'tool-diagnostics'
   ]) {
     const tag = element(dev, 'details', id);
     assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
     assert.ok(!has(tag, 'od-disclosure--flat'), 'First-level section must match Run Result: ' + id);
+  }
+  const $ = load(dev);
+  for (const id of ['page-preview-tools', 'script-library-tools']) {
+    const panel = $('section#' + id);
+    assert.equal(panel.length, 1, 'Management controls remain a section: ' + id);
+    assert.ok(panel.hasClass('developer-management-section'));
+    assert.equal(panel.children('h3').length, 1, 'Section has a visible heading: ' + id);
+    assert.equal(panel.children('summary').length, 0, 'Expanded section has no disclosure header: ' + id);
   }
   for (const id of [
     'page-dependency-panel', 'program-generated', 'script-history-panel',
@@ -216,7 +240,7 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
   assert.match(read('src/ui/react/tabs/workflow.tsx'), /className="od-button--danger"/);
 });
 
-test('All trusted static and dynamically rendered disclosures use one shared header contract', () => {
+test('Trusted static disclosures share headers; Page diagnostics retain their current React owner', async () => {
   for (const [tag] of html.matchAll(/<details\b[^>]*>/g))
     assert.ok(has(tag, 'od-disclosure'), 'Unclassified trusted disclosure: ' + tag);
   // Controllers no longer build disclosure DOM. Check each actual React owner.
@@ -224,10 +248,24 @@ test('All trusted static and dynamically rendered disclosures use one shared hea
     ['src/ui/react/tabs/my-sections.tsx',['task-history-entry','task-history-tech']],
     ['src/ui/react/tabs/task-catalog.tsx',['catalog-source-review']],
     ['src/ui/react/tabs/my-sections.tsx',['schedule-history','schedule-more']],
-    ['src/ui/installed-page-tools.js',['installed-page-tool-technical']],
     ['src/ui/react/tabs/workflow.tsx',['workflow-step']],
     ['src/ui/react/tabs/cloud-settings.tsx',['od-disclosure']]
   ]){const source=read(path);for(const marker of markers)assert.ok(source.includes(marker),path+': '+marker);}
+  // Render the actual Extension Center owner, rather than requiring a retired
+  // controller marker. Its detail card uses the Extension Center's native skin.
+  const diagnosticDOM = load(await renderSidebarFixture({extensionProps:{
+    view:'detail', detailModel:{kind:'page',title:'网页增强',version:'3',
+      installationText:'已安装',actions:[],sites:[],pageInfo:{
+        packageHash:'test-package-hash',error:'<script>unsafe()</script>'}}
+  }}));
+  const diagnostics = diagnosticDOM('details.ec-page-diagnostics');
+  assert.equal(diagnostics.length, 1);
+  assert.equal(diagnostics.children('summary').length, 1);
+  assert.ok(diagnostics.children('summary').text().trim(), 'Diagnostics have a readable native summary');
+  assert.equal(diagnostics.attr('open'), undefined, 'Technical details start collapsed');
+  assert.match(diagnostics.text(), /test-package-hash/);
+  assert.match(diagnostics.find('[role="status"]').text(), /<script>unsafe\(\)<\/script>/);
+  assert.equal(diagnostics.find('script').length, 0, 'Diagnostic errors remain escaped text');
   // AI settings deliberately hide their summary in the existing settings subview.
   const summaryRules = [...shell.matchAll(/(?:^|\n)([^{}\n]*(?:>summary|\s+summary)[^{}\n]*)\{([^{}]*)\}/g)];
   // The installed-task overflow menu owns its native summary marker; it

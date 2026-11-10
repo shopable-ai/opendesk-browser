@@ -1,48 +1,119 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {load} from 'cheerio';
+import * as React from 'react';
+import {createRoot} from 'react-dom/client';
+import {parseHTML} from 'linkedom';
+import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {createScriptEditor} from '../../src/ui/script-editor.js';
+import {encodeValue} from '../../src/platform/page-port/codec.js';
+
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 
 const root=new URL('../../src/ui/',import.meta.url);
-const [html,css,components,editor]=await Promise.all([
-  readFile(new URL('sidepanel.html',root),'utf8'),
+const [html,css,components]=await Promise.all([
+  renderSidebarFixture({activeTab:'develop'}),
   readFile(new URL('tool-shell.css',root),'utf8'),
   readFile(new URL('design-system.css',root),'utf8'),
-  readFile(new URL('script-editor.js',root),'utf8'),
 ]);
 
 test('Develop history retains unique DOM IDs, labels and nested disclosure structure',()=>{
+  const $=load(html);
   const ids=['workbench-develop','developer-results-panel','script-history-panel',
     'script-read','script-history-run','script-history-open','script-history',
     'script-run-id','script-read-run','script-download-result','script-download','script-download-status'];
-  for(const id of ids)
-    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'missing/duplicate '+id);
-  const start=html.indexOf('<details id="script-history-panel"');
-  const end=html.indexOf('\n  </div></details>\n    </div>\n  <details id="developer-run-technical"',start);
-  assert(start>=0&&end>start,'History must remain inside results panel');
-  const markup=html.slice(start,end);
-  assert(markup.includes('<summary>运行记录与技术信息</summary>'));
-  const classGroups=[...markup.matchAll(/class="([^"]*)"/g)].map(match=>match[1].split(/\s+/));
+  for(const id of ids)assert.equal($('#'+id).length,1,'missing/duplicate '+id);
+  const history=$('#developer-results-panel #script-history-panel');
+  assert.equal(history.length,1,'history remains inside results');
+  assert.equal(history.children('summary').text().trim(),'运行记录与技术信息');
   for(const classname of ['developer-history-content','developer-history-field',
-      'developer-history-actions','developer-history-disclosure'])
-    assert(classGroups.some(classes=>classes.includes(classname)),'missing group '+classname);
-  assert(markup.includes('id="script-history-open" type="button" disabled'));
-  assert(markup.includes('aria-describedby="script-history-hint"'));
+    'developer-history-actions','developer-history-disclosure'])
+    assert.ok(history.find('.'+classname).length,'missing group '+classname);
+  assert.equal(history.find('#script-history-open').prop('disabled'),true);
+  assert.equal(history.find('#script-history-run').attr('aria-describedby'),'script-history-hint');
   for(const control of ['script-history-run','script-run-id','script-download-result'])
-    assert(markup.includes('for="'+control+'"'),'missing accessible label '+control);
-  assert.equal((markup.match(/<details\b/g)||[]).length,
-    (markup.match(/<\/details>/g)||[]).length,'malformed nested details');
+    assert.equal(history.find('label[for="'+control+'"]').length,1,'accessible label '+control);
+  assert.equal(history.find('details.developer-history-disclosure').length,2);
+  assert.equal($('#script-status').attr('data-opendesk-react-owner'),'developer-run-status');
+  assert.equal($('#script-result').attr('data-opendesk-react-owner'),'developer-result');
 });
 
-test('Existing history actions stay connected to the same Controller RunHost',()=>{
-  for(const id of ['script-read','script-history-open','script-history-run',
-    'script-read-run','script-download'])
-    assert(editor.includes("'"+id+"'"),'missing history handler '+id);
-  assert(editor.includes("find('script-history-open').disabled = !history.value"),
-    'Refresh should disable View when no run is selected');
-  assert(editor.includes("find('script-history-open').disabled=!find('script-history-run').value"),
-    'Changing selection should update View action');
-  assert(editor.includes("snapshotControllerRun(runId ? {runId} : {})"),
-    'Run history must use the existing Controller host');
+test('React history actions publish button state and query the existing Controller RunHost',async t=>{
+  // Local service fakes only: the production editor, field store and React
+  // controls are real. This supplies no Chrome gesture or Native E2E evidence.
+  const {DeveloperPage}=await loadSidebarReact();
+  const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
+  const previous=new Map(['window','document','IS_REACT_ACT_ENVIRONMENT'].map(key=>
+    [key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  for(const [key,value] of Object.entries({window,document,IS_REACT_ACT_ENVIRONMENT:true}))
+    Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
+  const view=createDeveloperView(),requests=[],effects=[],serviceRequests=[];
+  let runs=[{runId:'history-a',state:'completed',retirementState:'released',
+    revision:{scriptId:'history-script',revision:1,sourceHash:'a'.repeat(64)}}];
+  let denied=[];
+  const host={currentRun:null,start:async()=>{effects.push('run');throw new Error('history must not run');},subscribe:()=>()=>{},dispose(){},controller:{
+    listControllerScripts:async()=>[],
+    snapshotControllerRun:async request=>{
+      requests.push(request);
+      return {slotAvailable:true,runs,run:runs.find(row=>row.runId===request.runId),
+        results:runs.map(row=>({...row,resultId:'result-'+row.runId,
+          outcome:{ok:true,valueWire:encodeValue('history-secret')}})),
+        downloads:[],resultDeliveryDenied:denied};
+    }
+  }};
+  const client={ready:Promise.resolve(),request:async method=>{
+    serviceRequests.push(method);return {programs:[],catalog:[]};
+  }};
+  const event={addListener(){},removeListener(){}};
+  const editor=createScriptEditor({view,document,client,hostFactory:()=>host,
+    api:{runtime:{getURL:path=>'chrome-extension://fixture/'+path},
+      tabs:{onRemoved:event},permissions:{contains:async()=>false,
+        request:async()=>{effects.push('permission');return false;}}}});
+  const mounted=createRoot(document.getElementById('root'));
+  t.after(async()=>{
+    try{await React.act(async()=>{editor.dispose();mounted.unmount();view.dispose();await tick();});}
+    finally{for(const [key,value] of previous){
+      if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];
+    }}
+  });
+  await React.act(async()=>{mounted.render(React.createElement(DeveloperPage,{view}));await tick();});
+  const get=id=>document.getElementById(id);
+  const fire=async(id,type='click')=>React.act(async()=>{
+    get(id).dispatchEvent(new window.Event(type,{bubbles:true}));await tick();
+  });
+  assert.equal(get('script-history-open').disabled,true);
+  assert.equal(get('script-history-run').querySelectorAll('option').length,2,get('script-status').textContent);
+  // LinkeDOM selects have no writable value; setting the real option drives
+  // React's native change handler rather than calling a fabricated DOM facade.
+  get('script-history-run').querySelector('[value="history-a"]').selected=true;
+  await fire('script-history-run','change');
+  assert.equal(view.getSnapshot().fields['script-history-run'].value,'history-a');
+  assert.equal(get('script-history-open').disabled,false,'patchDeveloperField reaches React');
+  await fire('script-history-open');
+  assert.deepEqual(requests.at(-1),{runId:'history-a'});
+  assert.match(get('script-result').textContent,/history-secret/);
+  assert.equal(get('developer-results-panel').hasAttribute('open'),false,'reading history does not run or reveal a draft');
+  denied=['history-a'];
+  await fire('script-read');
+  assert.deepEqual(requests.at(-1),{});
+  assert.doesNotMatch(get('script-result').textContent,/history-secret/);
+  assert.doesNotMatch(get('script-history').textContent,/history-secret/);
+  assert.equal(get('script-download-result').querySelectorAll('option').length,1);
+  assert.equal(get('script-copy-result').disabled,true);
+  runs=[];
+  await fire('script-read');
+  assert.equal(view.getSnapshot().fields['script-history-run'].value,'');
+  assert.equal(get('script-history-open').disabled,true,'refresh clears a removed selection');
+  get('script-run-id').value='history-b';
+  await fire('script-run-id','input');
+  await fire('script-read-run');
+  assert.deepEqual(requests.at(-1),{runId:'history-b'});
+  assert.ok(requests.every(row=>Object.keys(row).every(key=>key==='runId')));
+  assert.deepEqual(effects,[],'history actions cannot run code or request permissions');
+  assert.ok(serviceRequests.every(method=>['listPagePrograms','listTaskCatalog','inspectPageDependencies'].includes(method)),
+    'only read-only catalogs and dependency inspection are allowed');
 });
 
 test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>{
@@ -73,17 +144,20 @@ test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>
 });
 
 test('First-use connection guide uses canonical disclosure and readable action styles',()=>{
-  const guideStart=html.indexOf('<details id="local-project-guide"');
-  const guideEnd=html.indexOf('<details id="local-project-params-tools"',guideStart);
-  assert(guideStart>=0&&guideEnd>guideStart,'local-project guide stays in Dev local mode');
-  const guideMarkup=html.slice(guideStart,guideEnd);
+  const $=load(html);
+  const guide=$('#workbench-develop #local-project-guide');
+  assert.equal(guide.length,1,'local-project guide stays in Dev local mode');
+  const guideMarkup=$.html(guide);
   assert(guideMarkup.includes('class="local-project-guide od-disclosure od-disclosure--info"'),
     'Guide must use the shared disclosure and opt-in information heading');
   assert(guideMarkup.includes('<summary>首次使用：连接方法</summary>'));
-  assert(guideMarkup.includes('id="local-project-guide-open" type="button"'));
+  assert.equal(guide.find('#local-project-guide-open').attr('type'),'button');
   assert(guideMarkup.includes('class="od-button od-button--secondary"'),
     'Guide action must use the same public button as other secondary actions');
-  assert.equal((guideMarkup.match(/<li>/g)||[]).length,3,'three documented onboarding steps stay intact');
+  assert.equal(guide.find('ol > li').length,4,'connection, directory authorization, Run and Sidebar debug guidance');
+  assert.match(guide.text(),/在侧栏调试/);
+  assert.match(guide.text(),/此入口不会运行 npm 或安装工具/);
+  assert.match(guide.text(),/网站权限仍在运行时独立确认/);
   const rule=(source,selector)=>{
     const at=source.indexOf(selector+'{');
     assert(at>=0,'missing CSS rule '+selector);

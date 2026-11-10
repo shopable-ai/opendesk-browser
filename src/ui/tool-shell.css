@@ -359,14 +359,12 @@
 .sidebar-tool-update-impact{color:var(--od-sub)}
 .sidebar-tool-update-warning{margin-top:8px!important;padding:8px 10px;border-left:3px solid #bb8a36;background:var(--od-muted);border-radius:var(--radius-control);color:var(--od-ink);font-weight:650}
 .sidebar-tool-permissions-details{min-width:0;margin:9px 0 6px;padding:9px 10px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
-.sidebar-tool-permissions-details>summary{cursor:pointer;color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.5}
 .sidebar-tool-permission-body{margin-top:8px;padding-top:8px;border-top:1px solid var(--od-line)}
 .sidebar-tool-permission-body p{margin:0 0 5px;color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
 .sidebar-tool-permission-body #sidebar-tool-update-capabilities{color:var(--od-sub);font-size:11px}
 .sidebar-tool-permission-body #sidebar-tool-update-capabilities:empty{display:none}
 .sidebar-tool-preview-source{margin:8px 0 3px;color:var(--od-sub);font-size:11px;line-height:1.5}
 .sidebar-tool-technical-details{min-width:0;margin:0;padding:3px 0;border:0;background:transparent;font-size:11px;color:var(--od-sub)}
-.sidebar-tool-technical-details>summary{cursor:pointer;font-size:11px;line-height:1.5}
 .sidebar-tool-preview-file{margin:8px 0 0;padding:9px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.5;overflow-wrap:anywhere;user-select:text}
 .sidebar-tool-file-error{margin:6px 0 0;font-size:11px;color:var(--od-negative);overflow-wrap:anywhere}
 #sidebar-tool-install{width:auto;display:block;margin-inline-start:auto;min-height:34px;padding:8px 10px;background:#365eda;color:#fff;font-size:12px;font-weight:700}
@@ -1614,7 +1612,6 @@
 .workflow-run-review h3{margin:0 0 6px;font-size:var(--od-body-size);font-weight:650}
 .workflow-result-details{max-width:100%;min-width:0;margin:var(--space-2) 0;
   font-size:var(--od-note-size);color:var(--od-sub)}
-.workflow-result-details>summary{cursor:pointer;padding:5px 0}
 .workflow-result-details pre{max-height:180px;white-space:pre-wrap;overflow-wrap:anywhere;
   overflow:auto;padding:var(--space-2);border:1px solid var(--od-line);
   border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:11px}
