@@ -84,10 +84,10 @@ jobs:
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
       - name: ChatGPT immutable version upgrade and send contracts (Node, not Chrome)
         run: |
-          node --test \\
-            projects/webflow/tests/chatgpt-draft-task.test.mjs \\
-            projects/webflow/tests/chatgpt-send-task.test.mjs \\
-            projects/webflow/tests/task-intent-v2.test.mjs \\
+          node --test \
+            projects/webflow/tests/chatgpt-draft-task.test.mjs \
+            projects/webflow/tests/chatgpt-send-task.test.mjs \
+            projects/webflow/tests/task-intent-v2.test.mjs \
             tests/environment/task-builtin-initialization.test.mjs
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
         run: |
