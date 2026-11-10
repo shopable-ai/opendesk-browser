@@ -269,6 +269,39 @@ test('main settings ChatGPT files controls anchor can configure preferences',asy
 });
 function existingGrant(h){h.ledger['opendesk.chatgpt.files.grants.v1']={existing:{id:'existing',version:1,service:'https://chatgpt.com',
   sourceUrl:source.url,scope:'task-named-existing-text',operations:['read','write'],authority:{workspaceId,sourceId:''}}};}
+test('trusted project status conceals already cached file content after revocation, without a new Native call',async()=>{
+  const h=serviceHarness();
+  existingGrant(h);
+  try{
+    const start=await h.send('start',{task},pageSender);
+    assert.equal(start.ok,true,JSON.stringify(start));
+    const list=await h.send('project-list');
+    assert.equal(list.ok,true,JSON.stringify(list));
+    const ref=list.data.tasks[0];
+    const identity={sourceTabId:ref.sourceTabId,sourceDocumentId:ref.sourceDocumentId,projectId:ref.projectId};
+    const before=h.counts();
+    const permitted=await h.send('project-status',identity);
+    assert.equal(permitted.ok,true,JSON.stringify(permitted));
+    assert.match(permitted.data.resultText,/safe original/,'a live same-project grant permits the trusted result');
+    assert.deepEqual(h.counts(),before,'trusted status is pure readback and performs no new Native operation');
+
+    h.ledger['opendesk.chatgpt.files.grants.v1'].existing.revoked=true;
+    const concealed=await h.send('project-status',identity);
+    assert.equal(concealed.ok,true,JSON.stringify(concealed));
+    assert.equal(concealed.data.resultText,'');
+    assert.equal(concealed.data.result,null);
+    assert.equal(concealed.data.comparison,null);
+    assert.doesNotMatch(JSON.stringify(concealed),/safe original|safe modified/);
+    assert.deepEqual(h.counts(),before,'revoked status never re-reads Native');
+
+    const stopped=await h.send('project-stop',identity);
+    assert.equal(stopped.ok,true,JSON.stringify(stopped));
+    assert.equal(stopped.data.phase,'paused');
+    assert.doesNotMatch(JSON.stringify(stopped),/safe original|safe modified/);
+    assert.deepEqual(h.counts(),before,'Stop after revocation fences old task without new IO');
+  }finally{h.service.dispose();}
+});
+
 test('source-scoped Stop cancels start before session creation and conversation waiting for its user turn',{timeout:2000},async()=>{
   for(const stage of ['source','answer','native']){
     const h=setup();existingGrant(h);await h.call('state');h.controller.dispose();
