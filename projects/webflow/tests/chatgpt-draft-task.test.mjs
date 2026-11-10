@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,assertPackagedTask,REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 
 const path=new URL('../tasks/chatgpt.conversation.create.v1.opendesk-task.json',import.meta.url);
 const sourcePath=new URL('../src/tasks/chatgpt-conversation-create.js',import.meta.url);
@@ -34,10 +34,13 @@ test('ChatGPT reviewed task package and human-readable source share an exact imm
   assert.equal(await digestUtf8(source),pkg.manifest.program.sourceHash);
   assert.deepEqual(await verifyTaskPackage(pkg),pkg);
   assert.equal(pkg.manifest.targetDisposition,'retain-on-success');
-  assert.deepEqual(BUILTIN_TASK_RELEASES.filter(row=>row.taskId===pkg.manifest.taskId),[{
-    taskId:pkg.manifest.taskId,version:pkg.manifest.version,
-    manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash
-  }]);
+  // Version 0.1.0 is still an immutable, verifiable historical release.
+  // Only 0.2.0 is auto-provisioned for new installations.
+  await assertPackagedTask(pkg);
+  assert.equal(BUILTIN_TASK_RELEASES.find(row=>row.taskId===pkg.manifest.taskId)?.version,'0.2.0');
+  assert.ok(REVIEWED_BUILTIN_TASK_RELEASES.some(row=>row.taskId===pkg.manifest.taskId&&
+    row.version==='0.1.0'&&row.manifestHash===pkg.manifestHash&&
+    row.sourceHash===pkg.manifest.program.sourceHash));
   assert.deepEqual(validateTaskParams(pkg.manifest.paramsSchema,{prompt:'Hello B'}),
     {prompt:'Hello B',send:false});
   assert.throws(()=>validateTaskParams(pkg.manifest.paramsSchema,{prompt:'Hello B',send:true}),{code:'E_PARAMS'});
