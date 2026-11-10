@@ -97,7 +97,7 @@ test('one V2 approval enters the original Controller exactly once; UNKNOWN and r
 
 test('V2 refuses a changed approved target, stale page identity, and unsupported dynamic task',async()=>{
   const h=harness(),candidate=candidateFor(5),request=await h.admit(candidate);
-  await assert.rejects(h.ledger.approveV2Pending({source,requestId:request.requestId,candidate,
+  assert.throws(()=>h.ledger.approveV2Pending({source,requestId:request.requestId,candidate,
     scope:{...scope,targetUrl:'https://www.google.com/'}}),{code:'E_WEBFLOW_V2_DENIED'});
   await assert.rejects(h.ledger.approveV2Pending({source:{...source,documentId:'different'},requestId:request.requestId,candidate,
     scope}),{code:'E_WEBFLOW_V2_DENIED'});
