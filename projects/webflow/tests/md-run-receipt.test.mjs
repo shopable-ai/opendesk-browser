@@ -34,6 +34,8 @@ async function fixture(){
   const original={run:{tag:'controller-run',runId:'real-controller-run-001',
     resultId:'real-controller-result-001',state:'completed',retirementState:'released',
     sourceKind:'saved',targetDisposition:'retain-on-success',requestId:REQ,
+    taskInstallation:{taskId:'chatgpt.conversation.create',version:'0.2.0',
+      manifestHash:H,installationId:'installation-002',generation:3},
     scriptId:'task:chatgpt.conversation.create:0.2.0',contentHash:H,
     revision:{sourceHash:H},identity:{runId:'real-controller-run-001'},
     target:{mode:'owned',tabId:11,frameId:0,
@@ -74,6 +76,8 @@ test('rejects mismatched run, pin, target, result, ownership and account without
   const cases=[
     x=>x.run.requestId='some-other-operation',
     x=>x.run.contentHash='b'.repeat(64),
+    x=>x.run.taskInstallation.manifestHash='b'.repeat(64),
+    x=>x.run.taskInstallation.generation=4,
     x=>x.run.state='running',
     x=>x.run.retirementState='retiring',
     x=>x.run.targetDisposition='close',

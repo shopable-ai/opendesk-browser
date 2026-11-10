@@ -227,10 +227,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   function project(run) {
     if (!run) return null;
-    return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
+    // Project only the exact installed Task identity; never its authority token.
+    const installed=run.installedTaskAuthorization;
+    const taskInstallation=installed?{taskId:installed.taskId,version:installed.version,
+      manifestHash:installed.manifestHash,
+      installationId:installed.authorization?.installationId,
+      generation:installed.authorization?.generation}:null;
+    return {...structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
-      'targetDisposition','retainedTarget'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
+      'targetDisposition','retainedTarget'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
+      ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);

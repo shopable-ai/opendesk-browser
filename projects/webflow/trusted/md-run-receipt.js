@@ -3,6 +3,7 @@
 import {decodeValue} from '../../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {MD_RUN_FORMAT,mdTaskPrompt} from '../src/md-run-contract.js';
+import {validateChatGPTCreateResult} from '../src/chatgpt-conversation-result.js';
 
 const fail=(code,message=code)=>{throw Object.assign(new Error(message),{code});};
 const requireValue=(ok,code='E_MD_RECEIPT')=>{if(!ok)fail(code);};
@@ -67,6 +68,11 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
     run.scriptId?.startsWith('task:chatgpt.conversation.create:')&&
     run.contentHash===pin.contentHash&&run.revision?.sourceHash===pin.contentHash&&
     run.requestId===step.createOperationRef&&run.identity?.runId===run.runId&&
+    run.taskInstallation?.taskId==='chatgpt.conversation.create'&&
+    run.taskInstallation.version==='0.2.0'&&
+    run.taskInstallation.manifestHash===pin.manifestHash&&
+    run.taskInstallation.installationId===pin.installationId&&
+    run.taskInstallation.generation===pin.generation&&
     id(run.runId)&&id(run.resultId)&&
     (!step.taskRunId||step.taskRunId===run.runId)&&
     !snapshot.resultDeliveryDenied?.includes(run.runId),
@@ -88,16 +94,10 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
     result.outcome?.ok===true&&result.outcome?.valueWire,'E_MD_ORIGINAL');
   let value;
   try{value=decodeValue(result.outcome.valueWire);}catch{fail('E_MD_RESULT_FORMAT');}
-  requireValue(value?.kind==='chatgpt.conversation.create.result'&&value.version===2&&
-    value.status==='reply-complete'&&value.send===true&&
-    value.messageConfirmed===true&&value.readbackConfirmed===true&&
-    value.sourceUrl==='https://chatgpt.com/'&&value.promptChars===prompt.length&&
-    uuid(value.conversationId)&&typeof value.conversationUrl==='string'&&
-    messageId(value.userMessageRef)&&messageId(value.assistantMessageRef)&&
-    value.userMessageRef!==value.assistantMessageRef&&
-    typeof value.replyText==='string'&&value.replyText.trim().length>0&&
-    new TextEncoder().encode(value.replyText).byteLength<=65536,
-    'E_MD_RESULT_FORMAT');
+  // Reuse the existing 0.2.0 closed result schema, message and timestamp
+  // checks; additionally bind the original durable run, account and tab.
+  try{value=validateChatGPTCreateResult(value,{prompt,send:true});}
+  catch{fail('E_MD_RESULT_FORMAT');}
   let url;
   try{url=new URL(value.conversationUrl);}catch{fail('E_MD_IDENTITY');}
   requireValue(url.origin===workflowRun.account.origin&&!url.search&&!url.hash&&

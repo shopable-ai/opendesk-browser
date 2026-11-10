@@ -123,10 +123,13 @@ test('trusted ledger reads only the original Controller result, then CAS-appends
     messageConfirmed:true,readbackConfirmed:true,sourceUrl:'https://chatgpt.com/',
     promptChars:prompt.length,conversationId:chatId,
     conversationUrl:'https://chatgpt.com/c/'+chatId,userMessageRef:'user-message-t01',
-    assistantMessageRef:'assistant-message-t01',replyText:text};
+    assistantMessageRef:'assistant-message-t01',replyText:text,
+    observedAt:'2026-11-11T00:01:00.000Z'};
   const snapshot={run:{tag:'controller-run',runId,requestId,resultId,state:'completed',
     retirementState:'released',sourceKind:'saved',targetDisposition:'retain-on-success',
     scriptId:'task:chatgpt.conversation.create:0.2.0',
+    taskInstallation:{taskId:'chatgpt.conversation.create',version:'0.2.0',
+      manifestHash,installationId:'installation-001',generation:1},
     contentHash,revision:{sourceHash:contentHash},identity:{runId},
     target:{mode:'owned',frameId:0,tabId:99,documentId:'original-document-t01',
       allowedOrigin:'https://chatgpt.com'},
