@@ -112,7 +112,6 @@ test('priority overflow protects sticky errors and cannot grow an invisible queu
 
 test('owner-scoped toast handles update only their own row and retire on switch',()=>{
   const view=createSidebarToolsView();
-  view.showToast('可信宿主反馈',{type:'info'});
   view.showToast('「A」：旧通知',{type:'info',owner:'instance-A'});
   const own=view.addToolToast('「A」：处理中',{type:'info',timeout:0},'instance-A');
   const other=view.addToolToast('「B」：处理中',{type:'info',timeout:0},'instance-B');
@@ -127,7 +126,10 @@ test('owner-scoped toast handles update only their own row and retire on switch'
   assert.equal(view.hasToast(other,'instance-B'),true);
   assert.equal(view.getSnapshot().toasts.some(row=>row.message==='「A」：旧通知'),false,
     'legacy tool notices must also retire with the owner');
-  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='可信宿主反馈'),true);
+  view.showToast('可信宿主反馈',{type:'info'});
+  view.clearToastsByOwner('instance-B');
+  assert.equal(view.getSnapshot().toasts.some(row=>row.message==='可信宿主反馈'),true,
+    'trusted host notice must not be removed by owner cleanup');
   view.dispose();
 });
 
