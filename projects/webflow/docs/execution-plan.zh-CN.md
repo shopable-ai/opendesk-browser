@@ -2799,7 +2799,7 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **本轮只做的源码差量：**
 - 将 chatgpt-file-intent-page.js 改为 Headless adapter：无网页 DOM/Toast，复用 chatgpt-bridge-page.js 的唯一消息及完整答复发现器。
 - 在原 chatgpt-files-service.js/controller.js 增加可信 project-list / project-status / project-stop / project-review：绑定原 tab/document/project，保留原状态/授权/Native/写入账本，无第二套 Runner。
-- 在原 native-agent/settings.html 加入任务选择、状态/回执、Stop、审阅；Side Panel 只链接已有可信扩展设置页。
+- 在原 native-agent/settings.html 加入任务选择、状态/回执、Stop、审阅，以及无需先创建项目任务的当前窗口 ChatGPT 原文档选择与一次性审阅；Side Panel 只链接已有可信扩展设置页。
 - 原 file-intent-gate.js 复用一次性安全 handoff；旧 diagnosticsVisible 保持兼容但仅属于扩展内折叠诊断。
 - 替换浮窗相关过时断言，保留文件协议、Native SHA、写入回执与跨重启 Stop 栅栏核心回归。其他并行 V2、MD 队列、通用 Toast、安装器 owner 不改。
 

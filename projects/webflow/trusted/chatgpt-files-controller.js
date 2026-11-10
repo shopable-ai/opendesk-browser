@@ -111,6 +111,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     const tab=await api.tabs.get(tabId);
     if(disposed||tab?.id!==tabId||tab.incognito||tab.pendingUrl||tab.url!==sender.url||
       sender.tab&&tab.windowId!==sender.tab.windowId)fail('E_FILE_OWNER','设置文档身份已变化');
+    return tab;
   }
   function preferencesChanged(changes,area){
     if(area!=='local'||!Object.hasOwn(changes,CHATGPT_FILES_CONFIG_KEY))return;
@@ -804,6 +805,30 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     }
     await persist();
   }
+  // An optional manual review source needs no prior project task, but it is
+  // bound to a live same-window official ChatGPT main document. The existing
+  // one-use review gate independently revalidates the selected source.
+  async function activeReviewSources(windowId){
+    if(typeof api.tabs.query!=='function')return [];
+    const rows=await api.tabs.query({windowId,url:'https://chatgpt.com/*'});
+    if(!Array.isArray(rows))fail('E_FILE_SOURCE','无法验证 ChatGPT 页签');
+    const selected=[];
+    for(const tab of rows.slice(0,32)){
+      if(!Number.isSafeInteger(tab?.id)||tab.id<0||tab.incognito||tab.pendingUrl||
+        tab.windowId!==windowId||typeof tab.url!=='string')continue;
+      let parsed;
+      try{parsed=new URL(tab.url);}catch{continue;}
+      if(parsed.origin!=='https://chatgpt.com'||parsed.username||parsed.password||
+        !/^\/(?:g\/g-p-[A-Za-z0-9-]+\/)?c\/[A-Za-z0-9-]+\/?$/.test(parsed.pathname))continue;
+      const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0}).catch(()=>null);
+      if(frame?.url!==tab.url||frame?.documentLifecycle!=='active'||frame.errorOccurred||
+        typeof frame.documentId!=='string'||!frame.documentId||
+        frame.frameId!==undefined&&frame.frameId!==0)continue;
+      selected.push({sourceTabId:tab.id,sourceDocumentId:frame.documentId,
+        sourceUrl:tab.url,sourceWindowId:windowId});
+    }
+    return selected;
+  }
   // Trusted settings is a first-party extension TAB, not a sandbox tool or
   // forged page sender. Its selected identity must match the exact persisted
   // original source document and project ID before any projection or Stop.
@@ -844,10 +869,23 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
   }
   return {claim,
     projectList(sender){return enqueue(async()=>{
-      await settingsSource(sender);await restore();
+      const settingTab=await settingsSource(sender);await restore();
       // A list is metadata only, even after grant revocation. It never emits
       // task prompts, file paths, Native authority or cached file contents.
-      return {tasks:[...sessions.values()].filter(s=>s.project).map(taskRef)};
+      return {tasks:[...sessions.values()].filter(s=>s.project).map(taskRef),
+        sources:await activeReviewSources(settingTab.windowId)};
+    });},
+    reviewManualSource(message,sender){return enqueue(async()=>{
+      const settingTab=await settingsSource(sender);
+      if(!Number.isSafeInteger(message.sourceTabId)||message.sourceTabId<0||
+        typeof message.sourceDocumentId!=='string'||!message.sourceDocumentId)
+        fail('E_FILE_SCHEMA','请从当前可信页面选择有效原对话');
+      const sources=await activeReviewSources(settingTab.windowId);
+      const row=sources.find(row=>row.sourceTabId===message.sourceTabId&&
+        row.sourceDocumentId===message.sourceDocumentId);
+      if(!row)fail('E_FILE_SOURCE','原对话已关闭、切换或不属于当前窗口');
+      return {tabId:row.sourceTabId,documentId:row.sourceDocumentId,
+        url:row.sourceUrl,windowId:row.sourceWindowId};
     });},
     projectStatusTrusted(message,sender){return enqueue(async()=>{
       await settingsSource(sender);await restore();

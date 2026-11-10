@@ -423,7 +423,7 @@ Chrome 官方依据：[Worker 生命周期](https://developer.chrome.com/docs/ex
 
 **唯一运行链：** 原 ChatGPT Bridge 发现轮次 → 无 DOM、无页面 Toast 的 Headless 文件 adapter → 原文件 Service / Controller → 旧 Native 工作区授权、稳定写入账本、SHA 校验、独立读回。未增加第二套 Runner、Host、文件授权或任务数据库。
 
-**控制面：** 可信 WebFlow Side Panel「运行与授权」链接到现有 native-agent/settings.html#chatgpt-files-controls；「原文件任务管理」只读列出任务身份，按 sourceTabId / sourceDocumentId / projectId 查询原状态、停止任务，或在授权审阅时打开一次性绑定的原文件审阅页。Host 校验设置文档 sender、真实原 ChatGPT tab/document、授权和当前项目，普通网页及沙箱不能冒用。文件正文、修改前后对比、完整回执仅在原授权实时有效时披露。
+**控制面：** 可信 WebFlow Side Panel「运行与授权」链接到现有 native-agent/settings.html#chatgpt-files-controls；「原文件任务管理」只读列出任务身份，按 sourceTabId / sourceDocumentId / projectId 查询原状态、停止任务，或在授权审阅时打开一次性绑定的原文件审阅页；未建立项目任务的人工操作也可从可信设置页选择当前窗口的真实官方 ChatGPT 主文档，经过二次文档核验后领取原一次性审阅入口。Host 校验设置文档 sender、真实原 ChatGPT tab/document、授权和当前项目，普通网页及沙箱不能冒用。文件正文、修改前后对比、完整回执仅在原授权实时有效时披露。
 
 **故障边界：** Stop 立即标记同来源待执行操作，已派发副作用以真正回执结算；UNKNOWN 不换 ID 重放。撤权、来源更换或文件处理禁用时，历史正文隐藏。旧 diagnosticsVisible 保留作为向后兼容存储字段，不能重新生成网页悬浮 UI，也不代替 enabled 和文件授权。
 

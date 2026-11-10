@@ -5,12 +5,12 @@ import {initChatGPTProjectRuntimeUI} from '../trusted/chatgpt-project-runtime-ui
 
 const task={sourceTabId:7,sourceDocumentId:'original-document',projectId:'project-1',
   sourceUrl:'https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456',phase:'watching'};
-const ids=['choice','refresh','inspect','stop','review','status','receipt'];
+const ids=['choice','source-choice','source-open','refresh','inspect','stop','review','status','receipt'];
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 
 function harness(handler){
   const html='<html><body>'+ids.map(id=>{
-    if(id==='choice')return '<select id="chatgpt-file-run-choice"></select>';
+    if(id==='choice'||id==='source-choice')return '<select id="chatgpt-file-run-'+id+'"></select>';
     if(id==='receipt')return '<pre id="chatgpt-file-run-receipt" hidden></pre>';
     if(id==='status')return '<p id="chatgpt-file-run-status"></p>';
     return '<button id="chatgpt-file-run-'+id+'"></button>';
@@ -81,4 +81,29 @@ test('closed trusted page does not show late status or retain historical bytes',
   await settle();h.choose();h.get('inspect').fire();await settle();
   h.destroy();settleStatus({ok:true,data:{...task,phase:'completed',resultText:'late private data'}});
   await settle();assert.equal(h.get('receipt').hidden,true);assert.equal(h.get('receipt').textContent,'');
+});
+
+
+test('manual review selects only a live original ChatGPT document, never makes a file request',async()=>{
+  const source={sourceTabId:7,sourceDocumentId:'original-document',sourceUrl:task.sourceUrl,sourceWindowId:3};
+  const h=harness(msg=>{
+    if(msg.action==='project-list')return {ok:true,data:{tasks:[],sources:[source]}};
+    if(msg.action==='review-source')return {ok:true,data:{opened:true}};
+    throw Error('unexpected route: '+msg.action);
+  });
+  try{
+    await settle();
+    assert.equal(h.get('source-open').disabled,true);
+    const picker=h.get('source-choice');
+    picker.value=JSON.stringify([source.sourceTabId,source.sourceDocumentId]);picker.fire('change');
+    assert.equal(h.get('source-open').disabled,false);
+    h.get('source-open').fire(false);await settle();
+    assert.equal(h.calls.length,1,'untrusted synthetic click cannot launch source');
+    h.get('source-open').fire();await settle();
+    assert.deepEqual(h.calls.map(x=>x.action),['project-list','review-source']);
+    assert.deepEqual(Object.keys(h.calls[1]).sort(),['action','protocol','sourceDocumentId','sourceTabId'].sort());
+    assert.equal(h.calls[1].sourceTabId,source.sourceTabId);
+    assert.equal(h.calls[1].sourceDocumentId,source.sourceDocumentId);
+    assert.match(h.get('status').textContent,/一次性可信审阅页/);
+  }finally{h.destroy();}
 });

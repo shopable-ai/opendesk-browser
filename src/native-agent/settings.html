@@ -74,6 +74,13 @@
     <button type="button" id="chatgpt-file-run-review" class="secondary" disabled>打开可信文件审阅页</button>
     <button type="button" id="chatgpt-file-run-stop" class="secondary" disabled>停止所选原任务</button>
    </div>
+   <details class="advanced-card">
+    <summary>人工文件审阅（无需预先创建项目任务）</summary>
+    <p class="settings-note">选择此浏览器窗口里已经打开的官方 ChatGPT 对话。开启的只是一次性、同文档绑定的可信审阅页面，不自动访问或修改任何本机文件。</p>
+    <label for="chatgpt-file-run-source-choice">原始 ChatGPT 对话</label>
+    <select id="chatgpt-file-run-source-choice" disabled><option value="">请先刷新原对话来源</option></select>
+    <button type="button" id="chatgpt-file-run-source-open" class="secondary" disabled>打开所选对话的可信文件审阅</button>
+   </details>
    <p id="chatgpt-file-run-status" role="status" aria-live="polite">等待可信状态…</p>
    <pre id="chatgpt-file-run-receipt" class="connection-diagnostics" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto" hidden></pre>
   </section>

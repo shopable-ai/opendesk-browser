@@ -401,3 +401,40 @@ test('project task list survives service restart without reenacting the file ope
     assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
   }finally{h.service.dispose();}
 });
+
+
+test('trusted manual review uses a live same-window original document and the existing one-time gate',async()=>{
+  const h=serviceHarness();
+  let opens=0;
+  const originalFrame=h.api.webNavigation.getFrame;
+  try{
+    h.api.tabs.query=async({windowId,url})=>{
+      assert.equal(windowId,3);assert.equal(url,'https://chatgpt.com/*');
+      return [{...pageSender.tab,url:source.url}];
+    };
+    h.api.tabs.create=async options=>{
+      opens++;assert.equal(options.openerTabId,source.tabId);
+      assert.equal(options.windowId,source.windowId);
+      return {id:51,windowId:3};
+    };
+    const list=await h.send('project-list');
+    assert.equal(list.ok,true,JSON.stringify(list));
+    assert.equal(list.data.tasks.length,0);
+    assert.deepEqual(list.data.sources,[{sourceTabId:7,sourceDocumentId:source.documentId,
+      sourceUrl:source.url,sourceWindowId:3}]);
+    const identity={sourceTabId:7,sourceDocumentId:source.documentId};
+    assert.equal((await h.send('review-source',identity,pageSender)).ok,false);
+    assert.equal((await h.send('review-source',{...identity,projectId:'forged'})).ok,false);
+    assert.equal((await h.send('review-source',{...identity,sourceDocumentId:'foreign'})).ok,false);
+    assert.equal(opens,0);
+    const opened=await h.send('review-source',identity);
+    assert.equal(opened.ok,true,JSON.stringify(opened));
+    assert.equal(opened.data.opened,true);assert.equal(opens,1);
+    h.api.webNavigation.getFrame=async args=>args.tabId===7?
+      {url:source.url,documentId:'replaced-document',documentLifecycle:'active'}:originalFrame(args);
+    assert.equal((await h.send('review-source',identity)).ok,false,
+      'retired document cannot open another trusted review');
+    assert.equal(opens,1);
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{h.service.dispose();}
+});

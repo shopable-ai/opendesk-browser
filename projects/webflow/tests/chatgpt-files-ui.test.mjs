@@ -6,7 +6,7 @@ import {initChatGPTFilesUI} from '../trusted/chatgpt-files-ui.js';
 // is verified separately by the controller and actual browser tests.
 function fixture({reply,fillReply,externalApi={}}={}){
   const ids=['workspace','path','operation','task','consent','prepare','state','approve','inspect','reconcile','observe',
-    'fill-prompt','fill-result','source','connection','prompt','result','request','proposal','proposal-path','sha',
+    'pause','fill-prompt','fill-result','source','connection','prompt','result','request','proposal','proposal-path','sha',
     'before','after','result-status','delivery','observed','message','error','task-description','generate-task','task-prompt',
     'project-name','project-target','project-task','project-message','connect-project','revoke-project'];
   const element=()=>({value:'',checked:false,hidden:false,disabled:false,handlers:new Map(),
@@ -282,4 +282,14 @@ test('local generation remains independent during a bound state or prepare reque
       assert.equal(h.nodes['task-prompt'].value,prompt,'the late reply must preserve the local draft');
     }finally{release();await h.settle();h.window.emit('pagehide');}
   });
+});
+
+test('trusted advanced file review can Stop an original request without a webpage panel',async()=>{
+  const h=fixture();
+  await h.openConnection();await h.prepare();
+  assert.equal(h.nodes.pause.disabled,false);
+  h.nodes.pause.emit('click');await h.settle();
+  assert.equal(h.calls.at(-1).action,'pause');
+  assert.equal(h.nodes.pause.disabled,true);
+  assert.equal(h.queue.size,0,'paused review must never restart automatic polling');
 });

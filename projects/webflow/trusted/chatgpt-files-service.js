@@ -24,6 +24,12 @@ export function installChatGPTFilesService({api,files,development}){
           return summary(await controller.fixedStatus(message,sender));
         }
         const trustedActions=['project-status','project-stop','project-review'];
+        if(message.action==='review-source'){
+          if(Object.keys(message).some(key=>!['protocol','action','sourceTabId','sourceDocumentId'].includes(key)))
+            throw {code:'E_FILE_SCHEMA',message:'人工审阅只接受已选择的原文档身份'};
+          const source=await controller.reviewManualSource(message,sender);
+          return gate.openTrustedSource(source);
+        }
         const expected=trustedActions.includes(message.action)?['sourceTabId','sourceDocumentId','projectId']:
           ['start','conversation'].includes(message.action)?['task']:
           message.action==='configure'?['preferences']:[];
