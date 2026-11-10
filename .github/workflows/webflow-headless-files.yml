@@ -1,0 +1,70 @@
+name: WebFlow Headless Files - trusted control regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/webflow-headless-files.yml'
+      - 'projects/webflow/trusted/chatgpt-file-intent-page.js'
+      - 'projects/webflow/trusted/chatgpt-files-controller.js'
+      - 'projects/webflow/trusted/chatgpt-files-service.js'
+      - 'projects/webflow/trusted/chatgpt-file-intent-gate.js'
+      - 'projects/webflow/trusted/chatgpt-project-runtime-ui.js'
+      - 'projects/webflow/trusted/chatgpt-files-settings-ui.js'
+      - 'projects/webflow/trusted/AutoSettings.tsx'
+      - 'projects/webflow/tests/chatgpt-file-intent.test.mjs'
+      - 'projects/webflow/tests/chatgpt-files-config.test.mjs'
+      - 'projects/webflow/tests/chatgpt-files-settings-ui.test.mjs'
+      - 'projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs'
+      - 'projects/webflow/tests/chatgpt-files.test.mjs'
+      - 'projects/webflow/tests/chatgpt-files-ui.test.mjs'
+      - 'projects/webflow/tests/chatgpt-file-lifecycle.test.mjs'
+      - 'src/native-agent/settings.html'
+      - 'src/entrypoints/chatgpt-fixed-bridge.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: webflow-headless-files-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  headless-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check the tested HEAD and changed JavaScript
+        run: |
+          git rev-parse HEAD
+          node --check projects/webflow/trusted/chatgpt-file-intent-page.js
+          node --check projects/webflow/trusted/chatgpt-files-controller.js
+          node --check projects/webflow/trusted/chatgpt-files-service.js
+          node --check projects/webflow/trusted/chatgpt-file-intent-gate.js
+          node --check projects/webflow/trusted/chatgpt-project-runtime-ui.js
+          node --check projects/webflow/trusted/chatgpt-files-settings-ui.js
+          node --check projects/webflow/tests/chatgpt-file-intent.test.mjs
+          node --check projects/webflow/tests/chatgpt-files-config.test.mjs
+          node --check projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs
+      - name: WebFlow files headless, controller authority and recovery regression (Node, not native Chrome)
+        run: |
+          node --test --test-concurrency=1 \
+            projects/webflow/tests/chatgpt-file-intent.test.mjs \
+            projects/webflow/tests/chatgpt-files-config.test.mjs \
+            projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs \
+            projects/webflow/tests/chatgpt-files-settings-ui.test.mjs \
+            projects/webflow/tests/chatgpt-files.test.mjs \
+            projects/webflow/tests/chatgpt-files-ui.test.mjs \
+            projects/webflow/tests/chatgpt-file-lifecycle.test.mjs
+      - name: Preserve the honest acceptance boundary
+        run: echo 'NODE_SECURITY_REGRESSION_ONLY; CHROME=NOT_TESTED; NATIVE=NOT_TESTED; PACKAGE=NOT_TESTED'
