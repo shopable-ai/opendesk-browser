@@ -23,6 +23,9 @@ on:
       - 'projects/webflow/src/tasks/chatgpt-conversation-create.js'
       - 'projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-draft-task.test.mjs'
+      - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js'
+      - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
+      - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'src/platform/tasks/builtin-releases.js'
       - 'src/native-agent/chatgpt-background-adapter.js'
       - 'src/native-agent/workspace-chatgpt.js'
@@ -69,6 +72,8 @@ jobs:
           node --check src/platform/host/controller-methods.js
           node --check src/platform/tasks/contract.js
           node --check projects/webflow/src/tasks/chatgpt-conversation-create.js
+          node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js
+          node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check src/native-agent/chatgpt-background-adapter.js
           node --check src/native-agent/workspace-chatgpt.js
           node --check src/page-events/web-task-ingress.js
@@ -91,6 +96,7 @@ jobs:
             projects/webflow/tests/controller-retained-target.test.mjs \
             projects/webflow/tests/chatgpt-background-ingress.test.mjs \
             projects/webflow/tests/auto-grants.test.mjs \
-            projects/webflow/tests/chatgpt-draft-task.test.mjs
+            projects/webflow/tests/chatgpt-draft-task.test.mjs \
+            projects/webflow/tests/chatgpt-send-task.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build
