@@ -146,6 +146,16 @@ function openMenuUninstall(f,key){
   return trigger;
 }
 
+test('extension toolbar shop icon does not open a bundled marketplace before the public URL is configured',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  assert.equal(f.state.toolbarModel.storeWebsiteStatus,'coming_soon');
+  assert.match(f.doc.getElementById('extension-center-market').getAttribute('aria-label'),/尚未上线/);
+  f.state.toolbarModel.onMarket();
+  await tick();
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
+  assert.match(f.state.statusModel.text,/官方扩展商店尚未上线/);
+});
+
 test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
   const f=fixture(t);
   await f.ui.refresh();

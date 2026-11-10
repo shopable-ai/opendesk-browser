@@ -13,6 +13,7 @@ import {uiMessage} from './app-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {LOCALE_PACK_MAX_BYTES} from './sidebar-tools/locale-packs.js';
 import {loadMarketChannel} from '../marketplace/external.js';
+import {OFFICIAL_STORE_WEBSITE,navigateOfficialStore} from '../marketplace/store-website.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
@@ -175,10 +176,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function syncFilters(){
     extensionList.renderToolbar({
-      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,marketDiscoveryAvailable,locale:language(),
+      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,marketDiscoveryAvailable,
+      storeWebsiteStatus:OFFICIAL_STORE_WEBSITE.status,locale:language(),
       language:localeController?.getPreference?.()||language(),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
-      onMarket(){if(!disposed)openMarket();},
+      onMarket(){if(!disposed)openStoreWebsite();},
       onLanguageSettings(event){if(event?.isTrusted===true&&!disposed)openLanguageSettings();},
       onDiscover(event){if(!disposed)void detectPageInstall(event);},
       onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
@@ -545,10 +547,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     renderPageDiscovery();
   }
-  function openMarket(release=null){
-    const route=release?'#/apps/'+release.id+'/versions/'+release.version:'';
-    void api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+route})
-      .catch(error=>message(()=>t('marketOpenFailed')+String(error.message||error),'error'));
+  function openStoreWebsite(){
+    void navigateOfficialStore(api).then(result=>{
+      if(disposed)return;
+      if(result.status==='coming_soon')message(()=>t('storeComingSoon'),'info');
+      else if(result.status==='invalid')message(()=>t('storeConfigInvalid'),'error');
+      else if(result.status==='failed')
+        message(()=>t('storeOpenFailed')+errorText(result.error),'error');
+    });
   }
   // The original trusted review owns installation; selecting never executes tool JS.
   function openReview(key){
@@ -556,7 +562,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.queueReviewRelease)return;
     if(row.cleanupPending){message(()=>t('cleanupBeforeInstall'),'error');return;}
     backIfNeeded();
-    if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
+    if(sidebarTools.openOfficialReview(row.id)!==true)
+      message(()=>t('appReviewUnavailable'),'error');
   }
   function openPageReview(key){
     const row=find(key);

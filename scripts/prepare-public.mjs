@@ -10,6 +10,7 @@ import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
 import {buildOfficialPages} from './build-official-pages.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
+import {OFFICIAL_STORE_WEBSITE} from '../src/marketplace/store-website.js';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from './packaged-task-resources.mjs';
 
@@ -64,6 +65,8 @@ async function assertBytes(path,expectedBytes,sha256){
     throw new Error('Unregistered fixed library source change: '+path);
 }
 export async function preparePublic() {
+  if(OFFICIAL_STORE_WEBSITE.status==='invalid')
+    throw new Error('Invalid official extension store website URL configuration');
   // A hand-added classic JS is copied byte-for-byte. Its hash and metadata
   // must be registered BEFORE a WXT build, not inferred from arbitrary files.
   await assertBytes('src/libs/runtime/bootstrap.js',undefined,BUILTIN_CATALOG.bootstrapSha256);

@@ -443,7 +443,9 @@ export function ExtensionToolbar({model,locale=model?.locale||model?.language||'
         autoComplete="off" value={current.query||''}
         onChange={event=>current.onSearch?.(event.currentTarget.value,event.nativeEvent)}/>
     </label>
-    <IconButton id="extension-center-market" className="ec-icon" label={t('market')}
+    <IconButton id="extension-center-market" className="ec-icon"
+      label={t(current.storeWebsiteStatus==='ready'?'market':
+        current.storeWebsiteStatus==='invalid'?'storeConfigInvalid':'storeComingSoon')}
       onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
     </IconButton>
