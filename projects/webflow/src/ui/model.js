@@ -140,6 +140,10 @@
         return pack('unverified',title+'：已结束，持久结果或资源尚待核验','warning',0);
       if(!project.runtimeOk)
         return pack('failed',title+'：脚本执行未成功','error',0);
+      const reported={'blocked':'网站验证阻断','no_results':'未找到结果',
+        'dom_changed':'网页结构已变化','dom_unavailable':'网页不可读取','stopped':'任务已停止'};
+      if(Object.hasOwn(reported,project.business))
+        return pack('reported-issue',title+'：脚本报告'+reported[project.business],'warning',5000);
       return pack('completed',title+'：脚本执行完成','success',5000);
     }
     return null; // Match, due, saved draft and unsent requests stay silent.
