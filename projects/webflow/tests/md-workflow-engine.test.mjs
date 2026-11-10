@@ -60,8 +60,8 @@ function make(n=35,{lost=false,wrongAccount=false,revoked=false,badReadback=fals
         deadlineMs:120000,siteOrigins:['https://chatgpt.com'],
         targetDisposition:'retain-on-success',paramsSchema:{
           type:'object',required:['prompt'],additionalProperties:false,
-          properties:{prompt:{type:'string',minLength:1,maxLength:3000},
-            send:{type:'boolean',default:false}}}}};
+          properties:{prompt:{type:'string',title:'待发送提示词',minLength:1,maxLength:3000},
+            send:{type:'boolean',title:'是否提交',default:false}}}}};
   }};
   const host={currentRun:null,executionPending:false,completion:Promise.resolve(),
     async start(request){
