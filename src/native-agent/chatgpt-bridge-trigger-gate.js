@@ -277,7 +277,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       scope.targetUrl!==webFlowV2ReviewedEntry(intent.taskId)))
       throw fail('E_WEBFLOW_V2_DENIED','V2 只接受已有 ChatGPT 文档中固定可信目标的待审批候选');
     if(intent.taskId!==scope.taskId||!v2&&intent.targetUrl!==scope.targetUrl||
-      JSON.stringify(v2?webFlowV2ReviewedArgs(intent):intent.args)!==JSON.stringify(scope.args))
+      stableJSON(v2?webFlowV2ReviewedArgs(intent):intent.args)!==stableJSON(scope.args))
       throw fail('E_BRIDGE_CONTEXT','候选与批准范围不同');
     return sequence(async()=>{
       const ticket=autoDenialRevision,settings=await loadAuto();
@@ -357,7 +357,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       requireRequestId(requestId);candidate=candidateSnapshot(candidate);
       const intent=validateWebFlowTaskIntentV2(candidate.text),review=normalizeAutoScope(scope);
       if(review.taskId!==intent.taskId||review.targetUrl!==webFlowV2ReviewedEntry(intent.taskId)||
-        JSON.stringify(review.args)!==JSON.stringify(webFlowV2ReviewedArgs(intent)))
+        stableJSON(review.args)!==stableJSON(webFlowV2ReviewedArgs(intent)))
         throw fail('E_WEBFLOW_V2_DENIED','V2 可信审批目标、参数或安装审核内容不一致');
       return sequence(async()=>{
         const rows=await load(),row=rows[requestId],settings=await loadAuto(),now=clock();
