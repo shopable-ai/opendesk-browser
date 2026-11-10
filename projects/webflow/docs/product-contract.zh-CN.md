@@ -1,3 +1,15 @@
+## 2026-11-10 · ChatGPT 新对话 P1.1 当前交付边界（OD-AI-WORKFLOW-BRIDGE）
+
+**原始产品目标：** 用户在已有对话 A 请求 → Web Flow 校验 V2 候选、安装版本、来源和用户授权 → 在官网新标签 B 验证模型与推理 → 默认准备未发送草稿 → 经单独授权发送一次 → 观察新增消息、真实持久会话 URL 和完整回复 → 正确回填给 A。已有百度/Google 默认后台运行、原 Run 前台查看及未来独立 Gemini 任务继续保留。
+
+**本次新增源码：** 原 Controller 支持由已审核 Task Manifest 哈希覆盖的 targetDisposition=retain-on-success；只对成功完成、worker 已退出且原 owned tab/document 可再次核实的已安装 Task 移交标签并释放 Run 资源，普通任务仍关闭。正式注册 chatgpt.conversation.create 版本 0.1.0、官方固定入口 https://chatgpt.com/、可读任务源码和 SHA-256 锁定包；沿用已有安装、V2 Resolver、唯一候选审批、原 Controller/Run/Result/回传，不另建 Runner。该版本 **只支持 send=false 草稿准备**，缺省 send 由可信层归一化 false；send=true 在 Schema 和脚本双重拒绝。指定 model/effort/thinking 因缺乏实页核验会在编辑前拒绝。网页需要唯一空输入框、无附件与占用、填入后原生读回匹配才报告 draft-prepared，绝不为未发送空聊天制造 conversationId 或 /c/ URL。可信 Side Panel 明示草稿专用。
+
+**实测边界：** SOURCE 已提交 main。2026-11-10 一次相关 GitHub Actions Run 42792447214 中 159 项 Node 检查 158 项通过，唯一失败是并行 AI Proxy 文件来源锁，并非本轮 V2 或草稿测试；完整 CI/生产打包仍失败，不得合称全绿。本机 CodexPro 连接失败，PACKAGE/CHROME/BUSINESS 均未取得正式通过证据，未现场确认 B 的草稿留存。
+
+**尚缺：** P1.2 独立发送批准、一次原生发送、消息与持久 B URL/UNKNOWN 对账；P1.3 完整回复及正确 A 回填；真实模型/推理选项；长提示词 SHA/TTL/所有权引用；可信保留页打开入口；启动前 activateTab 偏好；Gemini 独立适配及 Chrome 实测。下一项是补 P1.2 并做真实 A→B 最短现场验证。旧 Run、UNKNOWN、未发送草稿不得重试、重放或清理。
+
+---
+
 ## 2026-11-10 · Markdown 驱动的两任务接续（OD-AI-WORKFLOW-BRIDGE）
 
 **用户目标：** WebFlow 从真实仓库 MD 读取总目标及顺序任务，用户查看并启动后，依次在两个不同的普通 ChatGPT 聊天中执行、独立验收、保存并读回成果，向 T02 交付 T01 完整内容，提供原会话与成果入口。刷新或中断后恢复原运行；后续支持已授权 Project。**当前属于独立源码/预览能力，不能将其描述成已真实自动完成两聊天。**
