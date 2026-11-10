@@ -27,6 +27,10 @@ on:
       - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'projects/webflow/src/chatgpt-conversation-result.js'
+      - 'projects/webflow/src/github-issue-input.js'
+      - 'projects/webflow/tests/github-issue-input.test.mjs'
+      - 'projects/webflow/src/chat-handoff-contract.js'
+      - 'projects/webflow/tests/chat-handoff-contract.test.mjs'
       - 'projects/webflow/tests/chatgpt-create-result.test.mjs'
       - 'projects/webflow/trusted/md-run-ledger.js'
       - 'projects/webflow/tests/md-run-ledger.test.mjs'
@@ -89,6 +93,7 @@ jobs:
           node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check projects/webflow/src/chatgpt-conversation-result.js
+          node --check projects/webflow/src/github-issue-input.js
           node --check projects/webflow/tests/chatgpt-create-result.test.mjs
           node --check projects/webflow/trusted/md-run-ledger.js
           node --check projects/webflow/tests/md-run-ledger.test.mjs
@@ -108,6 +113,8 @@ jobs:
             projects/webflow/tests/chatgpt-draft-task.test.mjs \
             projects/webflow/tests/chatgpt-send-task.test.mjs \
             projects/webflow/tests/chatgpt-create-result.test.mjs \
+            projects/webflow/tests/chat-handoff-contract.test.mjs \
+            projects/webflow/tests/github-issue-input.test.mjs \
             projects/webflow/tests/task-intent-v2.test.mjs \
             projects/webflow/tests/md-run-ledger.test.mjs \
             projects/webflow/tests/md-run-receipt.test.mjs \
