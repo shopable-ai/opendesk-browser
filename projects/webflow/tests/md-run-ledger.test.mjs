@@ -143,8 +143,8 @@ test('trusted ledger reads only the original Controller result, then CAS-appends
   let reads=0,identities=0;
   const controller={snapshotControllerRun:async query=>{
     reads++;
-    if(query.runId){assert.equal(query.runId,runId);return structuredClone(snapshot);}
-    return {runs:[{runId,requestId,scriptId:snapshot.run.scriptId}]};
+    assert.deepEqual(query,{requestId});
+    return structuredClone(snapshot);
   }};
   const verifier=()=>{identities++;return Promise.resolve(runInput.account.accountId)};
   const real=createMdTrustedRunLedger({storage,namespace:'tool:webflow-01',
@@ -154,7 +154,7 @@ test('trusted ledger reads only the original Controller result, then CAS-appends
   const result=await real.reconcileOriginalReply(runInput.workflowId,'T01');
   assert.equal(result.steps[0].phase,'REPLIED');assert.equal(result.steps[0].reply.text,text);
   assert.equal(result.steps[0].taskRunId,runId);
-  assert.equal(reads,2);assert.equal(identities,2);
+  assert.equal(reads,1);assert.equal(identities,2);
   await assert.rejects(real.reconcileOriginalReply(runInput.workflowId,'T01'),
     {code:'E_MD_ORIGINAL'});
   assert.equal((await real.get(runInput.workflowId)).steps[0].phase,'REPLIED');
