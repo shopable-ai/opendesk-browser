@@ -11,6 +11,31 @@ const messageId=x=>typeof x==='string'&&/^[A-Za-z0-9:_-]{8,160}$/u.test(x);
 const sha=x=>typeof x==='string'&&/^[a-f0-9]{64}$/u.test(x);
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/iu.test(x);
 
+// Inspect the ORIGINAL Controller ledger by frozen requestId, including after
+// admission acknowledgement loss. The method performs reads only; ambiguity
+// is UNKNOWN and must never allocate another request or send a message.
+export async function readMdOriginalController({client,taskRunId,requestId,
+  installationId,generation}={}){
+  requireValue(typeof client?.controller?.snapshotControllerRun==='function'&&
+    id(requestId)&&id(installationId)&&Number.isSafeInteger(generation)&&generation>0,
+    'E_MD_OWNER');
+  const read=client.controller.snapshotControllerRun;
+  let originalRunId=taskRunId;
+  if(!originalRunId){
+    const list=await read({});
+    const matches=list?.runs?.filter(row=>row?.requestId===requestId&&
+      row.scriptId?.startsWith('task:chatgpt.conversation.create:'));
+    requireValue(matches?.length===1,'E_MD_ORIGINAL_UNKNOWN');
+    originalRunId=matches[0].runId;
+  }
+  requireValue(id(originalRunId),'E_MD_ORIGINAL_UNKNOWN');
+  const snapshot=await read({runId:originalRunId});
+  requireValue(snapshot?.run?.runId===originalRunId&&
+    snapshot.run.requestId===requestId,
+    'E_MD_ORIGINAL_UNKNOWN');
+  return snapshot;
+}
+
 // The caller MUST be the first-party trusted Host: its two callbacks access
 // the authenticated original Controller and the live official account identity.
 // A caller-supplied Task result, DOM text or accountId is never accepted.

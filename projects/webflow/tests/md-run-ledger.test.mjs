@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {createMdTrustedRunLedger} from '../trusted/md-run-ledger.js';
-import {nextMdRunAction} from '../src/md-run-contract.js';
+import {nextMdRunAction,mdTaskPrompt} from '../src/md-run-contract.js';
+import {digestUtf8} from '../../../src/platform/protocol.js';
+import {encodeValue} from '../../../src/platform/page-port/codec.js';
 
 // The fake serializes the same readwrite store as IndexedDB. Tests never
 // claim to exercise native Chrome, the real original Host or file permissions.
@@ -101,4 +103,61 @@ test('a different explicit workflow ID starts an independent run without reusing
   assert.equal(second.created,true);
   assert.equal(storage.data.size,2);
   assert.notEqual((await l.get(input('01').workflowId)).runId,second.run.runId);
+});
+
+test('trusted ledger reads only the original Controller result, then CAS-appends ChatGPT reply',async()=>{
+  const storage=storageFixture(),runInput=input('orig');
+  const draftLedger=ledger(storage);
+  const start=await draftLedger.startOrGet(runInput);
+  const claimed=await draftLedger.claimNext(runInput.workflowId);
+  const prompt=mdTaskPrompt(claimed.run,'T01');
+  const manifestHash='b'.repeat(64),contentHash='c'.repeat(64),
+    requestId='request-for-t01-001',runId='controller-run-t01-01',
+    resultId='controller-result-001',chatId='11111111-2222-4333-8444-555555555555';
+  const frozen=await draftLedger.append(runInput.workflowId,{type:'create-intent',taskId:'T01',
+    expectedRevision:claimed.run.revision,at:2001,operationRef:requestId,
+    authorizationRef:runInput.authorizationRef,installationId:'installation-001',
+    generation:1,manifestHash,contentHash,promptSha256:await digestUtf8(prompt)});
+  const text=JSON.stringify({sum:80,count:3,marker:runInput.marker,inputVersion:runInput.sourceSha256});
+  const value={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',send:true,
+    messageConfirmed:true,readbackConfirmed:true,sourceUrl:'https://chatgpt.com/',
+    promptChars:prompt.length,conversationId:chatId,
+    conversationUrl:'https://chatgpt.com/c/'+chatId,userMessageRef:'user-message-t01',
+    assistantMessageRef:'assistant-message-t01',replyText:text};
+  const snapshot={run:{tag:'controller-run',runId,requestId,resultId,state:'completed',
+    retirementState:'released',sourceKind:'saved',targetDisposition:'retain-on-success',
+    scriptId:'task:chatgpt.conversation.create:0.2.0',
+    contentHash,revision:{sourceHash:contentHash},identity:{runId},
+    target:{mode:'owned',frameId:0,tabId:99,documentId:'original-document-t01',
+      allowedOrigin:'https://chatgpt.com'},
+    retainedTarget:{tabId:99,documentId:'original-document-t01',
+      url:'https://chatgpt.com/c/'+chatId,origin:'https://chatgpt.com'}},
+    results:[{tag:'controller-result',runId,resultId,state:'completed',sourceKind:'saved',
+      revision:{sourceHash:contentHash},outcome:{ok:true,valueWire:encodeValue(value)}}],
+    resultDeliveryDenied:[]};
+  let reads=0,identities=0;
+  const controller={snapshotControllerRun:async query=>{
+    reads++;
+    if(query.runId){assert.equal(query.runId,runId);return structuredClone(snapshot);}
+    return {runs:[{runId,requestId,scriptId:snapshot.run.scriptId}]};
+  }};
+  const verifier=()=>{identities++;return Promise.resolve(runInput.account.accountId)};
+  const real=createMdTrustedRunLedger({storage,namespace:'tool:webflow-01',
+    assertOwner:async()=>true,clock:()=>3000,randomUUID:()=>runInput.marker,
+    digest:bytes=>webcrypto.subtle.digest('SHA-256',bytes),
+    client:{controller},verifyAccount:verifier});
+  const result=await real.reconcileOriginalReply(runInput.workflowId,'T01');
+  assert.equal(result.steps[0].phase,'REPLIED');assert.equal(result.steps[0].reply.text,text);
+  assert.equal(result.steps[0].taskRunId,runId);
+  assert.equal(reads,2);assert.equal(identities,2);
+  await assert.rejects(real.reconcileOriginalReply(runInput.workflowId,'T01'),
+    {code:'E_MD_ORIGINAL'});
+  assert.equal((await real.get(runInput.workflowId)).steps[0].phase,'REPLIED');
+  assert.equal(frozen.steps[0].phase,'CREATE_INTENT');
+});
+test('ledger never accepts an unverified account or a sandbox-crafted result',async()=>{
+  const storage=storageFixture(),l=ledger(storage);
+  const data=input('safe');await l.startOrGet(data);
+  await assert.rejects(l.reconcileOriginalReply(data.workflowId,'T01'),{code:'E_MD_OWNER'});
+  assert.equal((await l.get(data.workflowId)).steps[0].phase,'WAITING');
 });
