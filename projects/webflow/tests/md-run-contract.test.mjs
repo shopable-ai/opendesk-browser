@@ -30,6 +30,8 @@ async function claimed(run,id){
 }
 async function admitted(run,id){
   run=await claimed(run,id);
+  assert.equal(nextMdRunAction(run).action,'DISPATCH_ORIGINAL_CHATGPT_ONCE');
+  run=await apply(run,'task-dispatched',id,{operationRef:'original-'+id+'-01'});
   assert.equal(nextMdRunAction(run).action,'QUERY_ORIGINAL_TASK');
   return apply(run,'task-admitted',id,{operationRef:'original-'+id+'-01',taskRunId:'task-run-'+id+'-01'});
 }
@@ -103,6 +105,10 @@ test('duplicate, stale dispatch, lost ACK and UNKNOWN never create another opera
   await assert.rejects(applyMdRunEvent(run,{type:'task-admitted',taskId:'T01',expectedRevision:0,
     at:clock+1,operationRef:'original-T01-01',taskRunId:'task-run-T01-01'},{digest}),
     {code:'E_MD_RUN_STALE'});
+  // The intent alone cannot be acknowledged as a completed chat or cause Send.
+  await assert.rejects(replied(run,'T01',0,{sum:80,count:3,marker:MARKER,inputVersion:H}),
+    {code:'E_MD_RUN_STATE'});
+  run=await apply(run,'task-dispatched','T01',{operationRef:'original-T01-01'});
   // Original durable receipt may be discovered even when the admission ACK never arrived.
   run=await replied(run,'T01',0,{sum:80,count:3,marker:MARKER,inputVersion:H});
   assert.equal(run.steps[0].taskRunId,'task-run-T01-01');
@@ -127,6 +133,7 @@ test('pause prevents new dispatch but permits in-flight reply and file settlemen
 });
 test('rejects forged conversation, account, task-run identity, digest and file readback',async()=>{
   clock=1000;let run=await claimed(initial(),'T01');
+  run=await apply(run,'task-dispatched','T01',{operationRef:'original-T01-01'});
   const data={sum:80,count:3,marker:MARKER,inputVersion:H},text=JSON.stringify(data),hash=await sha(text);
   const e={operationRef:'original-T01-01',taskRunId:'task-run-T01-01',
     conversationId:ids[0],conversationUrl:'https://chatgpt.com/c/'+ids[0],
@@ -183,4 +190,18 @@ test('paused in-flight original request allows read-only reconciliation and sett
   assert.equal(nextMdRunAction(run).action,'READBACK_ORIGINAL_ARTIFACT');
   run=await readback(run,'T01');
   assert.equal(nextMdRunAction(run).action,'PAUSED');
+});
+
+test('pause between intent and dispatch blocks native submission, resumption keeps original ID',async()=>{
+  clock=1000;let run=await claimed(initial(),'T01');
+  run=await apply(run,'pause',null);
+  assert.equal(nextMdRunAction(run).action,'PAUSED');
+  await assert.rejects(apply(run,'task-dispatched','T01',
+    {operationRef:'original-T01-01'}),{code:'E_MD_RUN_PAUSED'});
+  run=await apply(run,'resume',null);
+  assert.equal(nextMdRunAction(run).action,'DISPATCH_ORIGINAL_CHATGPT_ONCE');
+  run=await apply(run,'task-dispatched','T01',{operationRef:'original-T01-01'});
+  assert.equal(nextMdRunAction(run).action,'QUERY_ORIGINAL_TASK');
+  await assert.rejects(apply(run,'task-dispatched','T01',{operationRef:'original-T01-01'}),
+    {code:'E_MD_RUN_STATE'});
 });

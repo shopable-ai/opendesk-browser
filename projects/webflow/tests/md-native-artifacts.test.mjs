@@ -39,6 +39,7 @@ function makeLedger(){
     await send('create-intent',taskId,{operationRef:'operation-'+taskId+'-001',
       authorizationRef:run.authorizationRef,installationId:'chatgpt-install-0001',generation:2,
       manifestHash:HASH,contentHash:HASH,promptSha256:HASH});
+    await send('task-dispatched',taskId,{operationRef:'operation-'+taskId+'-001'});
     await send('task-admitted',taskId,{operationRef:'operation-'+taskId+'-001',
       taskRunId:'chatgpt-run-'+taskId+'-001'});
     const result=taskId==='T01'?{sum:80,count:3,marker:MARKER,inputVersion:HASH}:

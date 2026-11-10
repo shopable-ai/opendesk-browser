@@ -6,12 +6,13 @@ const HEX = /^[0-9a-f]{64}$/u;
 const ID = /^[A-Za-z0-9._:-]{8,128}$/u;
 // The published 0.2.0 Task creates the permanent /c/ URL ONLY AFTER
 // its one native Send. A pre-send CREATED/READY state would be fictitious.
-const PHASES = ['WAITING','CLAIMED','CREATE_INTENT','AWAIT_REPLY','REPLIED',
+const PHASES = ['WAITING','CLAIMED','CREATE_INTENT','TASK_DISPATCHED','AWAIT_REPLY','REPLIED',
   'ACCEPTED','WRITE_INTENT','WRITE_DISPATCHED','SAVED','COMPLETED','UNKNOWN','FAILED'];
 const SPEC = Object.freeze({
   pause: [], resume: [], claim: ['claimRef'],
   'create-intent': ['operationRef','authorizationRef','installationId','generation',
     'manifestHash','contentHash','promptSha256'],
+  'task-dispatched': ['operationRef'],
   'task-admitted': ['operationRef','taskRunId'],
   'reply-complete': ['operationRef','taskRunId','conversationId','conversationUrl',
     'documentRef','accountId','userMessageRef','assistantMessageRef','replyRef','text','contentSha256'],
@@ -145,15 +146,20 @@ export async function applyMdRunEvent(current,event,{digest}={}){
           promptSha256:event.promptSha256};
         step.phase='CREATE_INTENT';break;
       }
+      case 'task-dispatched': {
+        additional();state(['CREATE_INTENT']);
+        need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
+        step.phase='TASK_DISPATCHED';break;
+      }
       case 'task-admitted': {
-        state(['CREATE_INTENT']);
+        state(['TASK_DISPATCHED']);
         need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
         step.taskRunId=value(event.taskRunId);step.phase='AWAIT_REPLY';break;
       }
       case 'reply-complete': {
         // The original Controller may commit a durable result even if its
         // dispatch ACK is lost. Reconcile that same operation, never resubmit.
-        state(['CREATE_INTENT','AWAIT_REPLY']);
+        state(['TASK_DISPATCHED','AWAIT_REPLY']);
         need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
         value(event.taskRunId);
         need(!step.taskRunId||step.taskRunId===event.taskRunId,'E_MD_IDENTITY');
@@ -241,11 +247,12 @@ export function nextMdRunAction(run){
   const s=run.steps.find(row=>row.phase!=='COMPLETED');
   // Pausing stops NEW claims / submissions, but an already submitted
   // Task's read-only reconciliation and necessary file settlement continue.
-  // CREATE_INTENT can only query its ORIGINAL request, never resubmit.
-  if(run.paused&&['WAITING','CLAIMED'].includes(s.phase))
+  // CREATE_INTENT has not crossed the send fence and cannot dispatch while paused.
+  if(run.paused&&['WAITING','CLAIMED','CREATE_INTENT'].includes(s.phase))
     return {action:'PAUSED'};
   const actions={WAITING:'CLAIM_WITH_TRUSTED_LEDGER',CLAIMED:'RECORD_CREATE_INTENT',
-    CREATE_INTENT:'QUERY_ORIGINAL_TASK',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
+    CREATE_INTENT:'DISPATCH_ORIGINAL_CHATGPT_ONCE',
+    TASK_DISPATCHED:'QUERY_ORIGINAL_TASK',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
     REPLIED:'VERIFY_REPLY',ACCEPTED:'RECORD_ARTIFACT_WRITE_INTENT',
     WRITE_INTENT:'DISPATCH_ORIGINAL_FILE_WRITE_ONCE',WRITE_DISPATCHED:'QUERY_ORIGINAL_WRITE',
     SAVED:'READBACK_ORIGINAL_ARTIFACT'};

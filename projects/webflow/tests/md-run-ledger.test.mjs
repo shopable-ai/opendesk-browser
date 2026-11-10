@@ -118,6 +118,8 @@ test('trusted ledger reads only the original Controller result, then CAS-appends
     expectedRevision:claimed.run.revision,at:2001,operationRef:requestId,
     authorizationRef:runInput.authorizationRef,installationId:'installation-001',
     generation:1,manifestHash,contentHash,promptSha256:await digestUtf8(prompt)});
+  const sent=await draftLedger.append(runInput.workflowId,{type:'task-dispatched',taskId:'T01',
+    expectedRevision:frozen.revision,at:2002,operationRef:requestId});
   const text=JSON.stringify({sum:80,count:3,marker:runInput.marker,inputVersion:runInput.sourceSha256});
   const value={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',send:true,
     messageConfirmed:true,readbackConfirmed:true,sourceUrl:'https://chatgpt.com/',
@@ -157,6 +159,7 @@ test('trusted ledger reads only the original Controller result, then CAS-appends
     {code:'E_MD_ORIGINAL'});
   assert.equal((await real.get(runInput.workflowId)).steps[0].phase,'REPLIED');
   assert.equal(frozen.steps[0].phase,'CREATE_INTENT');
+  assert.equal(sent.steps[0].phase,'TASK_DISPATCHED');
 });
 test('ledger never accepts an unverified account or a sandbox-crafted result',async()=>{
   const storage=storageFixture(),l=ledger(storage);

@@ -44,7 +44,7 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
   verifyAccount,clock=()=>Date.now()}={}){
   requireValue(workflowRun?.format===MD_RUN_FORMAT&&['T01','T02'].includes(taskId),'E_MD_RUN_SCHEMA');
   const step=workflowRun.steps[taskId==='T01'?0:1],pin=step?.taskPin;
-  requireValue(['CREATE_INTENT','AWAIT_REPLY'].includes(step?.phase)&&
+  requireValue(['TASK_DISPATCHED','AWAIT_REPLY'].includes(step?.phase)&&
     id(step?.createOperationRef)&&pin&&id(pin.installationId)&&
     Number.isSafeInteger(pin.generation)&&pin.generation>0&&
     sha(pin.manifestHash)&&sha(pin.contentHash)&&sha(pin.promptSha256),

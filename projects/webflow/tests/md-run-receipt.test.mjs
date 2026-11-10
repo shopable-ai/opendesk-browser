@@ -25,6 +25,8 @@ async function fixture(){
     expectedRevision:claimed.revision,at:1002,operationRef:REQ,authorizationRef:'approval-001',
     installationId:'installation-002',generation:3,manifestHash:H,contentHash:H,
     promptSha256:await digestUtf8(prompt)});
+  const sent=await applyMdRunEvent(intent,{type:'task-dispatched',taskId:'T01',
+    expectedRevision:intent.revision,at:1003,operationRef:REQ});
   const reply=JSON.stringify({sum:80,count:3,marker:MARKER,inputVersion:H});
   const value={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',
     send:true,messageConfirmed:true,readbackConfirmed:true,conversationId:ID,
@@ -46,7 +48,7 @@ async function fixture(){
       resultId:'real-controller-result-001',state:'completed',sourceKind:'saved',
       revision:{sourceHash:H},outcome:{ok:true,valueWire:encodeValue(value)}}],
     resultDeliveryDenied:[]};
-  return {intent,original,value,reply};
+  return {intent:sent,original,value,reply};
 }
 test('only a verified retired original Task result yields the exact reply-complete event',async()=>{
   const f=await fixture();let queried=0,accounts=0;
