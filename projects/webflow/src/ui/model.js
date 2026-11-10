@@ -126,6 +126,9 @@
       return pack('admitted',title+'：已获执行准入，正在启动','info',0);
     const project=projectRun(s,task);
     if(s.state==='failed'){
+      if(!s.runId)return pack('admission-failed',title+'：任务准入或启动失败，请核对','warning',0);
+      if(!project.resultPersisted||s.result?.state!=='failed'||project.runtimeOk)
+        return pack('failure-unverified',title+'：失败状态待原结果核验','warning',0);
       const code=s.result?.outcome?.error?.code;
       const hint=typeof code==='string'&&/^[A-Z][A-Z0-9_]{1,49}$/.test(code)?
         '失败代码：'+code+'；可在「记录」核对':'可在「记录」核对失败原因';
@@ -133,10 +136,12 @@
     }
     if(['stopped','interrupted','cancelled','canceled'].includes(s.state)){
       if(!s.runId)return null;
+      if(!released(s)||!['stopped','interrupted','cancelled','canceled'].includes(s.result?.state))
+        return pack('retirement-pending',title+'：收到停止或中断状态，资源尚待核验','warning',0);
       return pack('stopped',title+'：执行已停止或中断','warning',5000);
     }
     if(s.state==='completed'){
-      if(!released(s)||!project.resultPersisted)
+      if(!released(s)||!project.resultPersisted||s.result?.state!=='completed')
         return pack('unverified',title+'：已结束，持久结果或资源尚待核验','warning',0);
       if(!project.runtimeOk)
         return pack('failed',title+'：脚本执行未成功','error',0);
