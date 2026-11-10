@@ -72,10 +72,121 @@ export function useWebflowBridgeState(controller,enabled=true){
   revision:snapshot.revision,read,execute};
 }
 
-export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthorizationChange=null,bridge=null}){
+
+// The automatic/approved-task panel is a trusted consumer of the same Toast
+// store, not a sandbox caller of ui.notify.open. No new execution or authority
+// channel is introduced and no page-supplied value becomes a notice command.
+let noticeOwnerSequence=0;
+export function projectTrustedTaskNotice(view:any){
+ const session=view?.session,source=view?.source,receipt=view?.receipt;
+ if(!session||!source||!receipt||typeof session.requestId!=='string'||!session.requestId||
+   receipt.requestId!==session.requestId||typeof source.documentId!=='string'||!source.documentId)
+   return null;
+ const key=[source.tabId??'',source.documentId,source.url??'',session.requestId].join('|');
+ const run=typeof receipt.runId==='string'&&receipt.runId.length>0;
+ const result=typeof receipt.resultId==='string'&&receipt.resultId.length>0;
+ const verified=run&&result&&receipt.persistence==='verified'&&receipt.release==='released';
+ const caption='详情及原请求记录见「运行与授权 → 当前任务」';
+ const make=(phase:string,message:string,type:'info'|'success'|'warning'|'error',timeout:number,detail=caption)=>{
+   const options={message,type,caption:detail,position:'bottom-right',timeout};
+   return {key,phase,options,signature:JSON.stringify(options)};
+ };
+ if(['unknown','paused_unknown'].includes(receipt.execution))
+   return make('unknown','原任务结果未知，禁止自动重试','warning',0);
+ if(receipt.execution==='failed'){
+   const code=receipt.error?.code;
+   const safeCode=typeof code==='string'&&/^[A-Z][A-Z0-9_]{1,49}$/.test(code)?code:null;
+   return make(run?'failed':'needs-attention',
+     run?'浏览器脚本执行失败':'任务未获执行准入或启动失败，请处理',
+     run?'error':'warning',0,
+     safeCode?'失败代码：'+safeCode+'；查看原请求记录':'查看原请求记录核对失败原因');
+ }
+ if(receipt.execution==='stopped')
+   return !run?null:receipt.release!=='released'?
+     make('retirement-pending','任务停止状态已收到，资源尚待核验','warning',0):
+     make('stopped','浏览器脚本已停止','warning',5000);
+ if(receipt.execution==='completed'){
+   if(!verified)return make('unverified','脚本结束状态待核验，不能认定成功','warning',0);
+   if(receipt.delivery==='confirmed')
+     return make('delivered','原对话结果回传已确认','success',5000);
+   if(receipt.delivery==='unknown')
+     return make('delivery-unknown','脚本已执行，原对话回传未确认，禁止补发','warning',0);
+   if(receipt.delivery==='submitted')
+     return make('delivery-pending','浏览器脚本已完成，等待回传确认','info',0);
+   return make('completed','浏览器脚本执行完成（不等于业务成功）','success',5000);
+ }
+ if(receipt.execution==='running'&&run)
+   return make('running','浏览器脚本正在执行','info',0);
+ if(['preparing','starting','validating'].includes(receipt.execution)&&run)
+   return make('admitted','浏览器任务已获准入，准备执行','info',0);
+ return null; // Match, scheduler due and waiting for approval are silent.
+}
+
+export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthorizationChange=null,bridge=null,noticeView=null}){
  const ownBridge=useWebflowBridgeState(controller,!bridge);
  const state=bridge??ownBridge;
  const {view,error,read}=state;
+
+ // Each mounted Host surface owns only its transient notice. Historical
+ // terminal receipts form a baseline on mount, not a new popup after refresh.
+ const taskNotice=React.useRef<any>(null);
+ if(!taskNotice.current)taskNotice.current={
+   owner:'webflow-task-notice:'+(++noticeOwnerSequence),bootstrapped:false,
+   key:null,id:null,signature:'',updates:0,blocked:false,createdAt:0,createTimes:[]
+ };
+ React.useEffect(()=>{
+   const current=taskNotice.current;
+   let incoming;
+   try{incoming=projectTrustedTaskNotice(view);}catch{return;} // Pure display failure cannot alter Task admission.
+   const dismiss=()=>{
+     if(current.id!==null)try{noticeView?.dismissToast?.(current.id);}catch{}
+     current.id=null;
+   };
+   if(!noticeView?.addToolToast||!noticeView?.updateToolToast)return;
+   if(!current.bootstrapped){
+     if(!view)return;
+     current.bootstrapped=true;
+     if(incoming&&!['running','admitted'].includes(incoming.phase)){
+       current.key=incoming.key;current.signature=incoming.signature;current.blocked=true;
+       return;
+     }
+   }
+   if(!incoming){
+     if(current.key!==null){dismiss();current.key=null;current.signature='';current.blocked=false;current.updates=0;}
+     return;
+   }
+   if(current.key!==incoming.key){
+     dismiss();current.key=incoming.key;current.signature='';current.updates=0;
+     // A new document's already-terminal receipt is historical, not a new completion.
+     current.blocked=!['running','admitted'].includes(incoming.phase);
+   }
+   if(current.blocked||current.signature===incoming.signature)return;
+   const now=Date.now();
+   if(current.id!==null&&current.createdAt&&now-current.createdAt>=30*60*1000){
+     dismiss();current.blocked=true;return;
+   }
+   if(current.id===null){
+     current.createTimes=current.createTimes.filter(at=>now-at<60*1000);
+     if(current.createTimes.length>=3){current.blocked=true;return;}
+     try{current.id=noticeView.addToolToast(incoming.options.message,incoming.options,current.owner);}
+     catch{current.id=null;}
+     if(current.id===null){current.blocked=true;return;}
+     current.createTimes.push(now);current.createdAt=now;
+   }else{
+     if(current.updates>=12||!noticeView.hasToast?.(current.id,current.owner)){
+       current.blocked=true;return;
+     }
+     try{
+       if(noticeView.updateToolToast(current.id,incoming.options.message,incoming.options,current.owner)!==true){
+         current.blocked=true;return;
+       }
+     }catch{current.blocked=true;return;}
+     current.updates++;
+   }
+   current.signature=incoming.signature;
+ },[view,noticeView]);
+ React.useEffect(()=>()=>{try{noticeView?.clearToastsByOwner?.(taskNotice.current.owner);}catch{}},[noticeView]);
+
  const [commandError,setCommandError]=React.useState('');
  const [working,setWorking]=React.useState(''),[draft,setDraft]=React.useState<any>(null);
  const [viewingRun,setViewingRun]=React.useState('');

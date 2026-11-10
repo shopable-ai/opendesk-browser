@@ -21,18 +21,15 @@ export async function readMdOriginalController({client,taskRunId,requestId,
     id(requestId)&&id(installationId)&&Number.isSafeInteger(generation)&&generation>0,
     'E_MD_OWNER');
   const read=client.controller.snapshotControllerRun;
-  let originalRunId=taskRunId;
-  if(!originalRunId){
-    const list=await read({});
-    const matches=list?.runs?.filter(row=>row?.requestId===requestId&&
-      row.scriptId?.startsWith('task:chatgpt.conversation.create:'));
-    requireValue(matches?.length===1,'E_MD_ORIGINAL_UNKNOWN');
-    originalRunId=matches[0].runId;
-  }
-  requireValue(id(originalRunId),'E_MD_ORIGINAL_UNKNOWN');
-  const snapshot=await read({runId:originalRunId});
-  requireValue(snapshot?.run?.runId===originalRunId&&
-    snapshot.run.requestId===requestId,
+  // Exact, authenticated request lookup belongs to the original
+  // Controller. Never download the full run/result history to find one ID.
+  if(taskRunId!==null&&taskRunId!==undefined)
+    requireValue(id(taskRunId),'E_MD_ORIGINAL_UNKNOWN');
+  const snapshot=await read(taskRunId?{runId:taskRunId}:{requestId});
+  requireValue(id(snapshot?.run?.runId)&&
+    (!taskRunId||snapshot.run.runId===taskRunId)&&
+    snapshot.run.requestId===requestId&&
+    snapshot.run.scriptId?.startsWith('task:chatgpt.conversation.create:'),
     'E_MD_ORIGINAL_UNKNOWN');
   return snapshot;
 }
@@ -44,7 +41,7 @@ export async function readMdChatGPTReplyEvent({workflowRun,taskId,readOriginalRu
   verifyAccount,clock=()=>Date.now()}={}){
   requireValue(workflowRun?.format===MD_RUN_FORMAT&&['T01','T02'].includes(taskId),'E_MD_RUN_SCHEMA');
   const step=workflowRun.steps[taskId==='T01'?0:1],pin=step?.taskPin;
-  requireValue(['CREATE_INTENT','AWAIT_REPLY'].includes(step?.phase)&&
+  requireValue(['TASK_DISPATCHED','AWAIT_REPLY'].includes(step?.phase)&&
     id(step?.createOperationRef)&&pin&&id(pin.installationId)&&
     Number.isSafeInteger(pin.generation)&&pin.generation>0&&
     sha(pin.manifestHash)&&sha(pin.contentHash)&&sha(pin.promptSha256),

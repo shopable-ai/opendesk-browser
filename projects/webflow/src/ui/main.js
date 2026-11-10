@@ -105,6 +105,8 @@
     const busy=R.useRef(false), activeRef=R.useRef(null), historyRef=R.useRef([]);
     const observation=R.useRef(0), pendingRef=R.useRef(null), stagedRef=R.useRef(null),cancelledRef=R.useRef(null);
     const recordWrites=R.useRef(Promise.resolve());
+    const taskNotices=R.useRef(null);
+    if(!taskNotices.current)taskNotices.current=M.createTaskNoticePublisher(tool.ui?.notify);
     const pageReadEpoch=R.useRef(0);
     const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
     const localCancellation=R.useRef(null);
@@ -212,7 +214,8 @@
       }
       void load();void readTasks();void readCurrentPage();
       return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;pageReadEpoch.current++;
-        if(timer.current)clearTimeout(timer.current);};
+        if(timer.current)clearTimeout(timer.current);
+        taskNotices.current?.dispose();};
     },[readTasks,readCurrentPage,request]);
 
     R.useEffect(()=>{
@@ -353,10 +356,12 @@
           if(!current(id,epoch))return;
           pendingRef.current=null;
         }
+        taskNotices.current?.publish(id,next,pin);
         activeRef.current=null;
         setNotice('原请求已查询，资源已释放；后续任务仍须手动运行。');
         return;
       }
+      taskNotices.current?.publish(id,next,pin);
       if(next.state==='unknown'||next.semantic==='UNKNOWN'||attempt>=45){
         setNotice('原请求仍未确定。保留同一步骤，只能查询或停止，不能重新运行。');return;
       }
@@ -365,6 +370,9 @@
     const failObservation=(id,pin,epoch,e)=>{
       if(!current(id,epoch))return;
       forgetResult(id);setActive({clientRequestId:id,taskId:pin.taskId,state:'unknown'});
+      // A failed trusted read invalidates the old optimistic toast; it does not prove a failed Run.
+      if(localCancellation.current?.clientRequestId!==id)
+        taskNotices.current?.publish(id,{clientRequestId:id,taskId:pin.taskId,state:'unknown',semantic:'UNKNOWN'},pin);
       setNotice('');
       setError('原请求未确认：'+safeError(e)+'。请查询或停止原步骤，不能新建请求补跑。');
     };

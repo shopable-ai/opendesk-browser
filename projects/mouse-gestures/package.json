@@ -1,0 +1,21 @@
+{
+  "name": "@opendesk-apps/mouse-gestures",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mouse Gestures 最小网页手势模块",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "app.mouse-gestures",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": ["https://example.com/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

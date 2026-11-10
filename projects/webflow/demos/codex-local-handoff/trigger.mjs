@@ -16,7 +16,8 @@ for(let i=3;i<process.argv.length;i+=2){
  flags[key]=process.argv[i+1];
 }
 const name=command==='draft'?'opendesk.codex.open_draft':command==='run'?'opendesk.codex.start_turn':null;
-if(!name||!flags['--prompt']||(command==='run'&&!flags['--cwd'])){
+const allowed=new Set(command==='draft'?['--prompt','--origin-url']:['--prompt','--cwd']);
+if(!name||!flags['--prompt']||(command==='run'&&!flags['--cwd'])||Object.keys(flags).some(k=>!allowed.has(k))){
  console.error('Usage: node trigger.mjs draft --prompt TEXT [--origin-url https://github.com/org/repo]');
  console.error('   or: node trigger.mjs run --cwd /absolute/workspace --prompt TEXT');
  console.error('Set OPEN_DESK_DEMO_ALLOW_LIVE=1 for real macOS launch / real Codex execution.');
@@ -26,7 +27,7 @@ const args=command==='draft'?{prompt:flags['--prompt'],...(flags['--origin-url']
 const srv=spawn(process.execPath,[path.join(path.dirname(fileURLToPath(import.meta.url)),'demo.mjs'),'mcp'],{stdio:['pipe','pipe','inherit'],env:process.env});
 const rl=createInterface({input:srv.stdout});
 let done=false;
-const timeout=setTimeout(()=>{if(!done){console.error('MCP timeout: outcome unknown, do not replay a live operation');srv.kill();process.exitCode=3;}},120000);
+const timeout=setTimeout(()=>end(false,{code:'E_MCP_TIMEOUT',outcome:'OUTCOME_UNKNOWN',message:'Original operation may still be running; never auto-replay'}),120000);
 function send(msg){srv.stdin.write(JSON.stringify(msg)+'\n');}
 function end(ok,value){
  if(done)return;done=true;clearTimeout(timeout);

@@ -4,7 +4,7 @@ import {webcrypto} from 'node:crypto';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {createMdRunRecord,applyMdRunEvent,mdTaskPrompt} from '../src/md-run-contract.js';
-import {readMdChatGPTReplyEvent} from '../trusted/md-run-receipt.js';
+import {readMdChatGPTReplyEvent,readMdOriginalController} from '../trusted/md-run-receipt.js';
 
 const H='a'.repeat(64),MARKER='11111111-2222-4333-8444-555555555555';
 const ID='11111111-2222-4333-8444-555555555555',REQ='original-operation-t01';
@@ -25,6 +25,8 @@ async function fixture(){
     expectedRevision:claimed.revision,at:1002,operationRef:REQ,authorizationRef:'approval-001',
     installationId:'installation-002',generation:3,manifestHash:H,contentHash:H,
     promptSha256:await digestUtf8(prompt)});
+  const sent=await applyMdRunEvent(intent,{type:'task-dispatched',taskId:'T01',
+    expectedRevision:intent.revision,at:1003,operationRef:REQ});
   const reply=JSON.stringify({sum:80,count:3,marker:MARKER,inputVersion:H});
   const value={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',
     send:true,messageConfirmed:true,readbackConfirmed:true,conversationId:ID,
@@ -46,7 +48,7 @@ async function fixture(){
       resultId:'real-controller-result-001',state:'completed',sourceKind:'saved',
       revision:{sourceHash:H},outcome:{ok:true,valueWire:encodeValue(value)}}],
     resultDeliveryDenied:[]};
-  return {intent,original,value,reply};
+  return {intent:sent,original,value,reply};
 }
 test('only a verified retired original Task result yields the exact reply-complete event',async()=>{
   const f=await fixture();let queried=0,accounts=0;
@@ -120,4 +122,27 @@ test('rejects forged Task return values despite a valid original result',async()
       readOriginalRun:async()=>original,verifyAccount:async()=> 'account-001'}),
       {code:/E_MD_(RESULT_FORMAT|IDENTITY)/});
   }
+});
+
+test('original Controller requestId lookup is exact and never scans unrelated Result history',async()=>{
+  const fixtureData=await fixture(),observed=[];
+  const client={controller:{snapshotControllerRun:async query=>{
+    observed.push(query);
+    return structuredClone(fixtureData.original);
+  }}};
+  const args={client,requestId:REQ,installationId:'installation-002',generation:3};
+  const fromLostAck=await readMdOriginalController(args);
+  assert.equal(fromLostAck.run.requestId,REQ);
+  assert.deepEqual(observed,[{requestId:REQ}]);
+  const originalRunId=fromLostAck.run.runId;
+  const second=await readMdOriginalController({...args,taskRunId:originalRunId});
+  assert.equal(second.run.runId,originalRunId);
+  assert.deepEqual(observed.at(-1),{runId:originalRunId});
+  await assert.rejects(readMdOriginalController({...args,taskRunId:'another-run-001'}),
+    {code:'E_MD_ORIGINAL_UNKNOWN'});
+  const invalid={controller:{snapshotControllerRun:async()=>({
+    ...fixtureData.original,run:{...fixtureData.original.run,requestId:'foreign-req-001'}
+  })}};
+  await assert.rejects(readMdOriginalController({...args,client:invalid}),
+    {code:'E_MD_ORIGINAL_UNKNOWN'});
 });

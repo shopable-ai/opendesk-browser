@@ -44,7 +44,9 @@ test('compiled fixed entry is pinned to reviewed builtin version and origin',asy
     ['chatgpt.conversation.create','https://chatgpt.com/']]){
     const f=await fixture(taskId);
     const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,taskId,
-      args:taskId==='chatgpt.conversation.create'?{prompt:'Hello B',send:false}:v2.args}));
+      // Fixed V2 admission never inherits the Task manifest's optional defaults.
+      args:taskId==='chatgpt.conversation.create'?{prompt:'Hello B',send:false}:
+        {...v2.args,showExecutionTab:true}}));
     const target=resolveWebFlowV2FixedTarget({intent,...f});
     assert.equal(target.targetUrl,targetUrl);
     assert.equal(target.installation.contentHash,f.installation.contentHash);

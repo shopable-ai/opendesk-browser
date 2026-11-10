@@ -40,6 +40,8 @@ on:
       - 'projects/webflow/tests/md-run-receipt.test.mjs'
       - 'projects/webflow/trusted/md-native-artifacts.js'
       - 'projects/webflow/tests/md-native-artifacts.test.mjs'
+      - 'projects/webflow/trusted/md-workflow-engine.js'
+      - 'projects/webflow/tests/md-workflow-engine.test.mjs'
       - 'projects/webflow/src/md-run-contract.js'
       - 'projects/webflow/tests/md-run-contract.test.mjs'
       - 'projects/webflow/tests/md-workflow.test.mjs'
@@ -104,6 +106,8 @@ jobs:
           node --check projects/webflow/tests/md-run-receipt.test.mjs
           node --check projects/webflow/trusted/md-native-artifacts.js
           node --check projects/webflow/tests/md-native-artifacts.test.mjs
+          node --check projects/webflow/trusted/md-workflow-engine.js
+          node --check projects/webflow/tests/md-workflow-engine.test.mjs
           node --check projects/webflow/src/md-run-contract.js
           node --check src/native-agent/chatgpt-background-adapter.js
           node --check src/native-agent/workspace-chatgpt.js
@@ -123,6 +127,7 @@ jobs:
             projects/webflow/tests/md-run-ledger.test.mjs \
             projects/webflow/tests/md-run-receipt.test.mjs \
             projects/webflow/tests/md-native-artifacts.test.mjs \
+            projects/webflow/tests/md-workflow-engine.test.mjs \
             projects/webflow/tests/md-run-contract.test.mjs \
             projects/webflow/tests/md-workflow.test.mjs \
             tests/environment/task-builtin-initialization.test.mjs
