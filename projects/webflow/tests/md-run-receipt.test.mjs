@@ -4,7 +4,7 @@ import {webcrypto} from 'node:crypto';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {createMdRunRecord,applyMdRunEvent,mdTaskPrompt} from '../src/md-run-contract.js';
-import {readMdChatGPTReplyEvent} from '../trusted/md-run-receipt.js';
+import {readMdChatGPTReplyEvent,readMdOriginalController} from '../trusted/md-run-receipt.js';
 
 const H='a'.repeat(64),MARKER='11111111-2222-4333-8444-555555555555';
 const ID='11111111-2222-4333-8444-555555555555',REQ='original-operation-t01';
@@ -122,4 +122,27 @@ test('rejects forged Task return values despite a valid original result',async()
       readOriginalRun:async()=>original,verifyAccount:async()=> 'account-001'}),
       {code:/E_MD_(RESULT_FORMAT|IDENTITY)/});
   }
+});
+
+test('original Controller requestId lookup is exact and never scans unrelated Result history',async()=>{
+  const fixtureData=await fixture(),observed=[];
+  const client={controller:{snapshotControllerRun:async query=>{
+    observed.push(query);
+    return structuredClone(fixtureData.original);
+  }}};
+  const args={client,requestId:REQ,installationId:'installation-002',generation:3};
+  const fromLostAck=await readMdOriginalController(args);
+  assert.equal(fromLostAck.run.requestId,REQ);
+  assert.deepEqual(observed,[{requestId:REQ}]);
+  const originalRunId=fromLostAck.run.runId;
+  const second=await readMdOriginalController({...args,taskRunId:originalRunId});
+  assert.equal(second.run.runId,originalRunId);
+  assert.deepEqual(observed.at(-1),{runId:originalRunId});
+  await assert.rejects(readMdOriginalController({...args,taskRunId:'another-run-001'}),
+    {code:'E_MD_ORIGINAL_UNKNOWN'});
+  const invalid={controller:{snapshotControllerRun:async()=>({
+    ...fixtureData.original,run:{...fixtureData.original.run,requestId:'foreign-req-001'}
+  })}};
+  await assert.rejects(readMdOriginalController({...args,client:invalid}),
+    {code:'E_MD_ORIGINAL_UNKNOWN'});
 });
