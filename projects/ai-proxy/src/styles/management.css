@@ -142,6 +142,9 @@
     :scope .options .layout { grid-template-columns:175px minmax(0,1fr); }
     :scope .options .panel.optionsContent { padding:24px 20px; }
   }
+  @media(max-width:840px) {
+    :scope .options .optionsModeGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
   @media(max-width:720px) {
     :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }
     :scope .options { width:calc(100% - 16px); margin:8px auto; }
@@ -156,5 +159,13 @@
     :scope .managementNav button { flex:none; width:auto; white-space:nowrap; }
     :scope .managementNav .managementOptional { margin:0; border-top:0; }
     :scope .managementNav small, :scope .managementNavLabel { display:none; }
+    :scope .options .profileRecords .proxyRecord {
+      grid-template-columns:34px minmax(0,1fr);
+      gap:8px 10px;
+    }
+    :scope .options .profileRecords .proxyRecord .recordActions {
+      grid-column:2;
+      justify-content:flex-start;
+    }
   }
 }
