@@ -27,6 +27,8 @@ on:
       - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'src/platform/tasks/builtin-releases.js'
+      - 'src/platform/tasks/service.js'
+      - 'tests/environment/task-builtin-initialization.test.mjs'
       - 'src/native-agent/chatgpt-background-adapter.js'
       - 'src/native-agent/workspace-chatgpt.js'
       - 'src/page-events/web-task-ingress.js'
@@ -71,6 +73,7 @@ jobs:
           node --check src/platform/host/controller-target-retention.js
           node --check src/platform/host/controller-methods.js
           node --check src/platform/tasks/contract.js
+          node --check src/platform/tasks/service.js
           node --check projects/webflow/src/tasks/chatgpt-conversation-create.js
           node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
@@ -79,6 +82,13 @@ jobs:
           node --check src/page-events/web-task-ingress.js
           node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+      - name: ChatGPT immutable version upgrade and send contracts (Node, not Chrome)
+        run: |
+          node --test \\
+            projects/webflow/tests/chatgpt-draft-task.test.mjs \\
+            projects/webflow/tests/chatgpt-send-task.test.mjs \\
+            projects/webflow/tests/task-intent-v2.test.mjs \\
+            tests/environment/task-builtin-initialization.test.mjs
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
         run: |
           node --test \
