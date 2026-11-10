@@ -35,7 +35,7 @@ function harness({draft='',attachments=0,users=0,send=true,model,
     fill:async value=>{state.fillCalls++;state.draft=value;},
     click:async()=>{state.sendCalls++;state.submitted=true;
       state.url='https://chatgpt.com/c/'+uuid;if(clickError)throw Error('ACK lost');},
-    getAttribute:async name=>key==='[data-message-author-role="user"' + ']'?
+    getAttribute:async name=>key==='[data-message-author-role="user"]'?
       (name==='data-message-id'&&userId?'user-msg-0001':null):
       key==='[data-message-author-role="assistant"]'&&name==='data-message-id'?'assistant-msg-0001':null
   });
