@@ -130,3 +130,30 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 当前核心范围无已知阻断缺陷。若要production发布，另需冻结production候选并在专属Profile核验；公网出口、原生OS语言菜单、完整类型诊断、全部键盘焦点／尺寸和故障时序仍NOT_TESTED。原本未实现的联网订阅／认证／任意PAC／官方服务按产品后续需求处理，不为本轮制造成功。上述项目未自动开展或建立新GOAL。
 
 本机原始日志、截图、完整五角色输出、源／构建绑定和每步原生读回：`docs/framework/evidence/single-app-surfaces-20261109/`（忽略目录，不强制提交生成物）。入口 `native-result.json`、`result.json`、`reviews.json`、`report.zh-CN.md`、`release-overlay.json`；历史失败／旧评分另保留，不覆盖当前事实。提交的本记录给出可分享的关键结果与哈希。
+
+## 10. 2026-11-10 · R16 PC 视觉续接（未完成安装晋升，历史验收不得复用）
+
+**原始目标**：让正式的已安装 AI Proxy `app.html?toolId=ai-proxy&view=settings&section=profiles` 尽量接近 `preview/preview.html` 的 R16 PC 设置工作台，同时保持 R18 侧栏及实际 Host／Service／SDK／配置 CAS／浏览器权限。优先用户可以打开、识别代理、切换栏目、增删改、刷新后读回；预览的模拟联网、诊断或代理切换不可冒充真实成功。
+
+本轮从 `main` 的 `d655c54caa44b15cf8ad6fe2775ab85871d8a6cf` 开始直接检查并修改原正式工程，绝不新建框架、App 或预览。**正式路由仍为 `profiles`**（预览使用 `proxies`），未破坏 Host 初始页面参数或深链接。
+
+| 文件 | 实际已提交的改变 |
+| --- | --- |
+| `src/Settings.tsx` | PC 初始加载、七区导航标题、代理空状态；代理行区分配置已选择与 Chrome 回执已应用；Side Panel 保留原图标与编辑能力 |
+| `src/styles/management.css` | 仅 `.proxy-management` 下的 R16 PC 顶栏／状态栏／导航／标题／模式按钮／列表密度／记录操作和840px／560px响应式 |
+| `src/ui/useProxy.ts` | 前台聚焦和可见性恢复只读 GET_STATE；有未保存草稿或正在写入时不自动读取，且卸载清理监听，绝不自动重放 APPLY／STOP |
+| `tests/settings-management-runtime.test.mjs` | SSR 验证真实七区导航、已选／已应用状态、空列表、初始加载，不通过静态样式字符串冒充截图 |
+| `tests/use-proxy-errors.test.mjs` | 挂载、前台恢复、草稿保护、不执行写请求、卸载清理回归 |
+| `tests/quick-panel-runtime.test.mjs` | 修正历史陈旧断言：明确「Direct 应用」按钮真实标签 `apApplyDirect`，而非旧 `applySelection`；实际原浏览器路由仍保留 |
+
+已提交主分支（按时间顺序）：`ac77b0c`、`e2c2380`、`a0c5e00`、`ade9125`、`560c10b`、`d141b8d`、`4325341`、`9a27319`、`1459ed6`。后续若其他 Agent 更新 main，先重新读取当前 HEAD 与变更文件。
+
+**实际 CI**：`https://github.com/shopable-ai/opendesk-browser/actions/runs/42827857011`，被测源码提交 `1459ed677af7a5b070abd34d7ee5490cef4a14d0`。原 App CI 已执行并成功完成 Vite 编译和未晋升 candidate 打包（版本 0.3.12，971470 bytes，SHA-256 `68ca9613756f1e920305f3aa7e27e3dbfcc3268b6ce00fd56340549b75deefa6`）。合并运行 Node 测试 **364 PASS／1 FAIL**；唯一失败是既存公共 Reading TOC `E_OFFICIAL_FIXTURE_PIN` 与 AI Proxy 本次变更无直接关系。CI 因此未执行其后续 Chromium UI／真实安装步骤，不能标为 Chrome PASS。公共 ci-contract 也因公共门禁报 FAIL，未经本次修复。
+
+**未完成与下一步**：
+
+1. **源码已提交但正式安装包尚未晋升**：原唯一 `ai-proxy.opendesk-tool.json` 仍是旧版本 0.3.12 正式字节，不能宣称已安装的 app.html 已更新。不得手动粘贴 `js`／`css` 覆盖 JSON；按 `AGENTS.md` 和唯一原 packer 的 `--promote-from`／`--check-project` 完成来源逐字节核对后再晋升及原位更新安装。
+2. **视觉／真实交互未验证**：用真正已安装 App 的 PC 1440×900 和 Side Panel 400×800 与预览应用区域同视口截图比较，覆盖标题、七区导航、按钮、代理表格、编辑／删除确认、空／加载／错误、滚动；真实 Chrome 代理状态不等于仅选择配置。未有正式截图和原生回执前标记 `NOT_TESTED`。
+3. **针对性未解决的公共阻断**：Reading TOC 包来源校验应由对应 owner 处理；不可降低安全校验制造 CI 通过。可以运行无关模块排除后的 AI Proxy 定向测试，但必须如实标记公共 CI 仍红。订阅联网／凭证／官方服务如缺少权限或后台，不做模拟成功。
+
+**审计说明**：第 5–7 节的 0.3.9 安装／截图／97.45 历史自评，只是 2026-11-09 的原候选证据，不覆盖本节 0.3.12 和 `1459ed6` 新源码；本节尚无真实 95+ 视觉评分证据，不允许拿历史分数充当本轮验收。
