@@ -1,7 +1,7 @@
 // OD-AI-WORKFLOW-BRIDGE: pure business result validation for the existing
 // reviewed 0.2.0 Task. The Controller/Run/Result and source-A delivery remain
 // owned by their existing trusted consumers. This module grants no authority.
-const fail=(message)=>Object.assign(new Error(message),{code:'E_CHAT_CREATE_RESULT'});
+const fail=(message)=>{throw Object.assign(new Error(message),{code:'E_CHAT_CREATE_RESULT'});};
 const FIELDS_DRAFT=['kind','version','status','send','messageConfirmed',
   'conversationId','conversationUrl','sourceUrl','promptChars',
   'readbackConfirmed','observedAt'];
