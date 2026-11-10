@@ -14,6 +14,12 @@ on:
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
       - 'src/native-agent/webflow-v2-target.js'
+      - 'src/platform/tasks/contract.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/controller-target-retention.js'
+      - 'projects/webflow/tests/controller-retained-target.test.mjs'
+      - 'projects/webflow/tests/chatgpt-background-ingress.test.mjs'
+      - 'projects/webflow/tests/auto-grants.test.mjs'
       - 'src/native-agent/chatgpt-background-adapter.js'
       - 'src/native-agent/workspace-chatgpt.js'
       - 'src/page-events/web-task-ingress.js'
@@ -55,6 +61,9 @@ jobs:
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
           node --check src/native-agent/webflow-v2-target.js
+          node --check src/platform/host/controller-target-retention.js
+          node --check src/platform/host/controller-methods.js
+          node --check src/platform/tasks/contract.js
           node --check src/native-agent/chatgpt-background-adapter.js
           node --check src/native-agent/workspace-chatgpt.js
           node --check src/page-events/web-task-ingress.js
@@ -73,6 +82,9 @@ jobs:
             projects/webflow/tests/chatgpt-legacy-panel.test.mjs \
             projects/webflow/tests/task-intent-v2.test.mjs \
             projects/webflow/tests/task-v2-live-ledger.test.mjs \
-            projects/webflow/tests/background-execution-view.test.mjs
+            projects/webflow/tests/background-execution-view.test.mjs \
+            projects/webflow/tests/controller-retained-target.test.mjs \
+            projects/webflow/tests/chatgpt-background-ingress.test.mjs \
+            projects/webflow/tests/auto-grants.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build
