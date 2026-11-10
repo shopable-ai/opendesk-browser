@@ -50,7 +50,16 @@ jobs:
           [[ "$APP" =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || exit 1
           [[ "$RUN_ID" =~ ^[1-9][0-9]*$ ]] || exit 1
           [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{64}$ ]] || exit 1
-          test -f "examples/sidebar-tools/$APP/tool.config.json"
+          PROJECT="projects/$APP"
+          LEGACY="examples/sidebar-tools/$APP"
+          if test -f "$PROJECT/tool.config.json" && test -f "$LEGACY/tool.config.json"; then
+            echo "::error::ambiguous App source identity"; exit 1
+          fi
+          if test -f "$PROJECT/tool.config.json"; then APP_DIR="$PROJECT"
+          elif test -f "$LEGACY/tool.config.json"; then APP_DIR="$LEGACY"
+          else echo "::error::unknown App source"; exit 1; fi
+          export APP_DIR
+          echo "app_dir=$APP_DIR" >> "$GITHUB_OUTPUT"
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/validated-run.json"
           RUN_RECORD="$RUNNER_TEMP/validated-run.json" node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -82,7 +91,7 @@ jobs:
           passed('discover');
           passed('ci-contract');
           passed('app-validate ('+app+')');
-          const profilePath='examples/sidebar-tools/'+app+'/app.ci.json';
+          const profilePath=process.env.APP_DIR+'/app.ci.json';
           const profile=existsSync(profilePath)?JSON.parse(readFileSync(profilePath,'utf8')):{};
           if(profile.native)passed('native-macos-chrome ('+app+')');
           console.log('REQUIRED_APP_GATES_PASS',app,profile.native?'real-macos-chrome':'standard');
@@ -92,6 +101,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           APP: ${{ inputs.app }}
+          APP_DIR: ${{ steps.gate.outputs.app_dir }}
           RUN_ID: ${{ inputs.validated_run_id }}
           EXPECTED_SHA: ${{ inputs.candidate_sha256 }}
         run: |
@@ -115,14 +125,14 @@ jobs:
           import {readFileSync,existsSync} from 'node:fs';
           import {createHash} from 'node:crypto';
           const read=p=>JSON.parse(readFileSync(p,'utf8'));
-          const {APP,CANDIDATE,RECEIPT,HEAD_SHA,EXPECTED_SHA}=process.env;
+          const {APP,APP_DIR,CANDIDATE,RECEIPT,HEAD_SHA,EXPECTED_SHA}=process.env;
           const candidateBytes=readFileSync(CANDIDATE),candidate=JSON.parse(candidateBytes);
-          const receipt=read(RECEIPT),meta=read('examples/sidebar-tools/'+APP+'/tool.config.json');
+          const receipt=read(RECEIPT),meta=read(APP_DIR+'/tool.config.json');
           const sha=createHash('sha256').update(candidateBytes).digest('hex');
           assert.equal(sha,EXPECTED_SHA);
           assert.equal(receipt.schema,'opendesk.app-ci-candidate.v1');
           assert.equal(receipt.sourceCommit,HEAD_SHA);
-          assert.equal(receipt.project,'examples/sidebar-tools/'+APP);
+          assert.equal(receipt.project,APP_DIR);
           assert.equal(receipt.sha256,sha);
           assert.equal(receipt.bytes,candidateBytes.length);
           assert.equal(receipt.id,candidate.id);
@@ -131,7 +141,7 @@ jobs:
           assert.equal(meta.version,candidate.version,
             'preview-only React candidate cannot be released as a different installed version');
           assert.deepEqual(meta.capabilities||[],candidate.capabilities||[]);
-          const target='examples/sidebar-tools/'+APP+'/'+candidate.id+'.opendesk-tool.json';
+          const target=APP_DIR+'/'+candidate.id+'.opendesk-tool.json';
           if(existsSync(target)){
             const old=readFileSync(target),previous=JSON.parse(old);
             assert.equal(previous.id,candidate.id);
@@ -149,8 +159,12 @@ jobs:
           }
           console.log('APP_RELEASE_VERIFIED',APP,candidate.version,sha);
           NODE
-          DEST="examples/sidebar-tools/$APP/$(node -p "require('./examples/sidebar-tools/$APP/tool.config.json').id").opendesk-tool.json"
-          cp "$CANDIDATE" "$DEST"
+          # The CI artifact contains the exact built dist files. The original
+          # packer verifies source, canonical bytes, and immutable version.
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/build-sidebar-tool.mjs "$APP_DIR" --promote-from "$CANDIDATE"
+          node scripts/build-sidebar-tool.mjs "$APP_DIR" --check-project
+          DEST="$APP_DIR/$(node -p "require('./$APP_DIR/tool.config.json').id").opendesk-tool.json"
           git diff --check -- "$DEST"
           git add -- "$DEST"
           if git diff --cached --quiet; then
