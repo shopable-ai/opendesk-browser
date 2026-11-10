@@ -43,9 +43,9 @@ async function mutation(f,release,name,extra={}){
 }
 async function install(f,r){return send(f,'installTask',{taskId:r.taskId,version:r.version,manifestHash:r.manifestHash,expectedInstalledVersion:null});}
 
-test('first list really installs both fixed releases with revisions and authorization, without invented runs',async()=>{
+test('first list installs each reviewed builtin release with revisions and authorization, without invented runs',async()=>{
   const f=fixture(),result=await catalog(f);
-  assert.equal(result.initialization.status,'ready');assert.equal(result.installed.length,2);
+  assert.equal(result.initialization.status,'ready');assert.equal(result.installed.length,BUILTIN_TASK_RELEASES.length);
   assert.doesNotThrow(()=>canonical(result));
   for(const r of BUILTIN_TASK_RELEASES){
     const row=await f.installed(r.taskId),candidate=await f.candidate(r),resolved=await resolve(f,r.taskId);
@@ -98,7 +98,7 @@ test('uninstall persists tombstone across restart and runtime upgrade; explicit 
 
 test('legacy candidate without install remains recoverable Available and never auto reinstalls',async()=>{
   const f=fixture();await send(f,'importTaskPackage',{package:loadPackagedTask(baidu)});
-  const result=await catalog(f);assert.equal(result.installed.length,1);
+  const result=await catalog(f);assert.equal(result.installed.length,BUILTIN_TASK_RELEASES.length-1);
   assert.equal((await f.candidate(baidu)).stage,'available');
   await f.ensure();await assert.rejects(resolve(f,baidu.taskId),{code:'E_TASK_NOT_INSTALLED'});
   await install(f,baidu);assert.ok(await f.installed(baidu.taskId));
@@ -110,7 +110,7 @@ test('bad second package aborts first install and all revisions, exposes failure
   assert.equal(result.initialization.taskId,google.taskId);assert.equal(result.installed.length,0);
   assert.equal((await f.tx.all('scriptRevisions')).length,0);
   await assert.rejects(resolve(f,google.taskId),{code:'E_TASK_INITIALIZATION'});
-  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,2);
+  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,BUILTIN_TASK_RELEASES.length);
 });
 
 test('aborted commit is retryable without leaking any installation',async()=>{
@@ -216,8 +216,42 @@ test('failed missing Google initialization remains visible while existing Baidu 
   await f.tx.delete('frameworkKV',taskKey(namespace,google.taskId,google.version));
   await f.tx.delete('frameworkKV',builtinTaskStateKey(namespace,google.taskId));
   f.loader(r=>{if(r.taskId===google.taskId)throw new Error('packaged source unavailable');return loadPackagedTask(r);});
-  const result=await catalog(f);assert.equal(result.initialization.status,'failed');assert.equal(result.installed.length,1);
+  const result=await catalog(f);assert.equal(result.initialization.status,'failed');assert.equal(result.installed.length,BUILTIN_TASK_RELEASES.length-1);
   assert.equal((await resolve(f,baidu.taskId)).installationId,old.authorization.installationId);
   assert.deepEqual(await f.installed(baidu.taskId),old);
-  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,2);
+  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,BUILTIN_TASK_RELEASES.length);
+});
+
+test('old ChatGPT draft installation stages 0.2 as available, but never silently grants sending',async()=>{
+  const f=fixture();await f.ensure();
+  const latest=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
+  assert.ok(latest);
+  const oldPkg=loadPackagedTask({taskId:latest.taskId,version:'0.1.0',
+    manifestHash:'9cc34831cf5ea39654534219baef90ef2eccf3c274f5f20ce4c10eb2bb864bec',
+    sourceHash:'6ae168d4039ac2ef12dceb7888125f4a5561a3f44dcb8bfdf78d43836678fd9d'});
+  assert.ok(oldPkg,'historical immutable version remains loadable');
+  const current=await f.installed(latest.taskId),currentCandidate=await f.candidate(latest);
+  await f.tx.put('frameworkKV',{...currentCandidate,version:'0.1.0',package:oldPkg,
+    verification:{...currentCandidate.verification,sourceHash:oldPkg.manifest.program.sourceHash,
+      manifestHash:oldPkg.manifestHash}},taskKey(namespace,latest.taskId,'0.1.0'));
+  await send(f,'installTask',{taskId:latest.taskId,version:'0.1.0',manifestHash:oldPkg.manifestHash,
+    expectedInstalledVersion:latest.version,expectedGeneration:current.authorization.generation,
+    expectedInstallationId:current.authorization.installationId});
+  const old=await f.installed(latest.taskId);
+  await f.tx.delete('frameworkKV',taskKey(namespace,latest.taskId,latest.version));
+  const view=await catalog(f);
+  assert.equal(view.initialization.status,'ready');
+  assert.equal(view.initialization.tasks.find(x=>x.taskId===latest.taskId).updateAvailable,latest.version);
+  assert.deepEqual(await f.installed(latest.taskId),old);
+  const staged=await f.candidate(latest);
+  assert.equal(staged.stage,'available');
+  assert.equal(staged.package.manifestHash,latest.manifestHash);
+  assert.equal(view.catalog.find(x=>x.taskId===latest.taskId&&x.version===latest.version).installed,false);
+  // Only a separate explicit install CAS can replace the immutable old draft.
+  await send(f,'installTask',{taskId:latest.taskId,version:latest.version,manifestHash:latest.manifestHash,
+    expectedInstalledVersion:'0.1.0',expectedGeneration:old.authorization.generation,
+    expectedInstallationId:old.authorization.installationId});
+  const upgraded=await f.installed(latest.taskId);
+  assert.equal(upgraded.version,latest.version);
+  assert.notEqual(upgraded.authorization.generation,old.authorization.generation);
 });

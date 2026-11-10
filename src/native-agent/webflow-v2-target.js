@@ -1,16 +1,26 @@
 // OD-AI-WORKFLOW-BRIDGE: compiled first-party V2 fixed-entry mapping.
 // This is target resolution only, never a permission grant or a Task dispatch.
-import {BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const entries=Object.freeze({
   'baidu.search.top3':'https://www.baidu.com/',
-  'google.search.top3':'https://www.google.com/'
+  'google.search.top3':'https://www.google.com/',
+  // Only the exact pinned draft-only ChatGPT package is admitted here.
+  'chatgpt.conversation.create':'https://chatgpt.com/'
 });
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
   Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+
+// Only reviewed defaults may be applied before single-candidate admission.
+// An omitted send is always false; no omitted or malformed field can
+// authorize a send. The installed manifest is checked separately by the Host.
+export function webFlowV2ReviewedArgs(intent){
+  const defaults=intent?.taskId==='chatgpt.conversation.create'?{send:false}:{};
+  return Object.freeze({...defaults,...intent.args});
+}
 
 // Must be called with manifest/installation returned by the EXISTING trusted
 // installed-Task verifier. It cannot grant V2 automatic execution or inherit
@@ -27,7 +37,7 @@ export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
     typeof intent.taskId!=='string'||!intent.args||typeof intent.args!=='object'||Array.isArray(intent.args))
     throw fail('E_WEBFLOW_V2_SCHEMA','需要严格四字段 V2 意图');
   const entryUrl=webFlowV2ReviewedEntry(intent.taskId);
-  const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId===intent.taskId);
+  const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId===intent.taskId&&row.version===manifest?.version);
   if(!pin||manifest?.taskId!==pin.taskId||manifest.version!==pin.version||
     manifest.program?.sourceHash!==pin.sourceHash||
     !Array.isArray(manifest.siteOrigins)||manifest.siteOrigins.length!==1||
@@ -42,9 +52,10 @@ export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
   // Validation against the verified manifest is strict: do not silently fill
   // missing Task defaults. This is still not execution authorization.
   let args;
-  try{args=validateTaskParams(manifest.paramsSchema,intent.args);}
+  const reviewedArgs=webFlowV2ReviewedArgs(intent);
+  try{args=validateTaskParams(manifest.paramsSchema,reviewedArgs);}
   catch{throw fail('E_WEBFLOW_V2_SCHEMA','任务参数不符合可信安装的 Schema');}
-  if(canonical(args)!==canonical(intent.args))
+  if(canonical(args)!==canonical(reviewedArgs))
     throw fail('E_WEBFLOW_V2_SCHEMA','V2 必须提供完整参数，不能隐式补齐');
   return Object.freeze({taskId:pin.taskId,targetUrl:entryUrl,
     args:structuredClone(args),installation:structuredClone(installation)});

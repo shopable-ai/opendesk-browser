@@ -1,36 +1,54 @@
 <section class="notify-demo" aria-label="OpenDesk 通知组件实验室">
   <header class="notify-demo-head">
     <h2>通知组件实验室</h2>
-    <p>在这里触发真实的 <code>OpenDeskTool.ui.notify</code>。消息由宿主展示，不会注入网页或安装任何内容。</p>
+    <p>点击按钮后由已安装工具通过统一 <code>OpenDeskTool.ui.notify</code> 请求宿主展示，非浏览器系统通知。</p>
   </header>
-  <div class="notify-demo-control">
-    <label for="notify-demo-position">显示位置</label>
-    <select id="notify-demo-position">
-      <option value="top-center">顶部居中</option>
-      <option value="top-left">左上角</option>
-      <option value="top-right">右上角</option>
-      <option value="bottom-center">底部居中</option>
-      <option value="bottom-left">左下角</option>
-      <option value="bottom-right">右下角</option>
-    </select>
+  <div class="notify-demo-controls">
+    <label for="notify-demo-position">显示位置
+      <select id="notify-demo-position">
+        <option value="top-center">顶部居中</option>
+        <option value="top-left">左上角</option>
+        <option value="top-right">右上角</option>
+        <option value="bottom-center">底部居中</option>
+        <option value="bottom-left">左下角</option>
+        <option value="bottom-right">右下角</option>
+      </select>
+    </label>
+    <label for="notify-demo-timeout">显示时长
+      <select id="notify-demo-timeout">
+        <option value="3000">3 秒</option>
+        <option value="5000" selected>5 秒</option>
+        <option value="10000">10 秒</option>
+        <option value="15000">15 秒</option>
+        <option value="0">手动关闭</option>
+      </select>
+    </label>
   </div>
+  <h3>四种状态</h3>
   <div class="notify-demo-grid" role="group" aria-label="消息类型">
     <button data-sample="info" type="button">ⓘ 普通信息</button>
     <button data-sample="success" type="button">✓ 成功</button>
     <button data-sample="warning" type="button">! 警告</button>
     <button data-sample="error" type="button">× 错误</button>
   </div>
-  <h3>交互行为</h3>
+  <h3>分组、长期显示与兼容</h3>
   <div class="notify-demo-grid" role="group" aria-label="高级行为">
     <button data-sample="group" type="button">重复消息 ×2</button>
-    <button data-sample="separate" type="button">两条不合并</button>
-    <button data-sample="persistent" type="button">手动关闭</button>
-    <button data-sample="duration" type="button">延长显示</button>
-    <button data-sample="legacy" type="button">旧版调用</button>
+    <button data-sample="separate" type="button">独立两条</button>
+    <button data-sample="persistent" type="button">长期通知</button>
+    <button data-sample="duration" type="button">自定义时长</button>
+    <button data-sample="legacy" type="button">字符串旧调用</button>
     <button data-sample="invalid" type="button">非法参数拒绝</button>
   </div>
-  <div class="notify-demo-readback" role="status" aria-live="polite" id="notify-demo-result">
-    已就绪：每实例 60 秒最多 3 条；被限频的请求不会执行业务操作。
+  <h3>受限句柄：长任务演示</h3>
+  <div class="notify-demo-grid" role="group" aria-label="长任务和限频">
+    <button data-sample="loading-success" type="button">模拟执行 → 成功</button>
+    <button data-sample="loading-fail" type="button">模拟执行 → 失败</button>
+    <button data-sample="handle-close" type="button">手动关闭当前任务提示</button>
+    <button data-sample="rate-probe" type="button">四连发 · 限频回执</button>
   </div>
-  <p class="notify-demo-hint">“已提交请求”不代表宿主实际显示；错误和持久任务状态仍应保留在工具正文。</p>
+  <div class="notify-demo-readback" role="status" aria-live="polite" id="notify-demo-result">
+    已就绪。每活动实例每 60 秒最多 3 次新通知；更新既有句柄不重复占用创建额度。
+  </div>
+  <p class="notify-demo-hint">“沙箱已提交”≠“宿主已接收”≠“真实界面已看见”。收到宿主接收回执后仍请观察通知；任务成功／失败仅为演示结果，不代表实际导出。限频不绕过。</p>
 </section>

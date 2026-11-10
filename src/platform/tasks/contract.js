@@ -136,7 +136,11 @@ export function checkTaskIntent(intent, schema) {
 export function validateTaskManifest(manifest) {
   const required=['format','taskId','version','title','description','author','source','siteOrigins',
     'permissions','entryFormat','program','paramsSchema'];
-  object(manifest,[...required,'intent','deadlineMs'],required);
+  object(manifest,[...required,'intent','deadlineMs','targetDisposition'],required);
+  // Target retention must be explicitly reviewed in the immutable manifest.
+  // Legacy packages omit the field and continue closing owned tabs.
+  invariant(manifest.targetDisposition===undefined ||
+    manifest.targetDisposition==='retain-on-success','E_SCHEMA','Unreviewed Task target disposition');
   invariant(manifest.format===TASK_MANIFEST_FORMAT && ID.test(manifest.taskId) &&
     VERSION.test(manifest.version) && manifest.version.length<=24,'E_SCHEMA','Unsupported task version');
   for(const key of ['title','author','source']) label(manifest[key],key==='title'?100:160);

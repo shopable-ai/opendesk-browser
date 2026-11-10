@@ -1,4 +1,4 @@
-name: Sidebar UI Notify R1.1 - public API and installable demo
+name: Sidebar UI Notify R1.2 - lifecycle and installable laboratory
 on:
   push:
     branches: [main]
@@ -30,7 +30,10 @@ jobs:
       - name: Source syntax and two Host contracts
         run: |
           node --check src/sidebar-tools/ui-notice.js
+          node --check src/sidebar-tools/bridge.js
           node --check src/ui/sidebar-tools-view.js
+          node --check src/ui/sidebar-tools.js
+          node --check examples/sidebar-tools/ui-notify-demo/src/main.js
           node --test tests/environment/sidebar-tool-ui-notice.test.mjs
           node --test --test-name-pattern="installed.*ui.notify" tests/environment/sidebar-tools-host.test.mjs
       - name: Produce and independently verify installable candidate from source
@@ -38,8 +41,16 @@ jobs:
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --out artifacts/sidebar-tools/ui-notify-demo/candidate.opendesk-tool.json
           node --test examples/sidebar-tools/ui-notify-demo/tests/notify-demo.test.mjs
           if [ -f examples/sidebar-tools/ui-notify-demo/ui-notify-demo.opendesk-tool.json ]; then node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --check-project; fi
+      - name: Build changed React Toast TSX with Vite
+        run: |
+          node --input-type=module -e "import {transformWithEsbuild} from 'vite'; import {readFile} from 'node:fs/promises'; const file='src/ui/react/tabs/tool-host.tsx'; const result=await transformWithEsbuild(await readFile(file,'utf8'),file,{loader:'tsx',jsx:'automatic'}); if(!result.code.includes('sidebar-tool-toast'))throw Error('E_UI_NOTICE_TOAST_BUILD'); console.log('ToolToast TSX compilation PASS');"
       - name: Source contract
         run: npm run check
+      - name: Verify original packer promotion is a no-op on the committed formal package
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --promote-from artifacts/sidebar-tools/ui-notify-demo/candidate.opendesk-tool.json
+          git diff --exit-code -- examples/sidebar-tools/ui-notify-demo/ui-notify-demo.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --check-project
       - name: Share demo candidate for manual installation
         uses: actions/upload-artifact@v4
         with:

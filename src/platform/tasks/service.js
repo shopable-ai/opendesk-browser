@@ -185,9 +185,28 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
         const stateKey=builtinTaskStateKey(ns,taskId);
         const installed=await tx.get(TASK_STORE,installedKey(ns,taskId));
         if(installed){
+          // A newer immutable builtin version must be discoverable for an
+          // explicit reviewed upgrade; never replace an existing installation
+          // or its grant during catalog initialization.
+          if(installed.version!==version){
+            const key=taskKey(ns,taskId,version),pkg=await assertPackagedTask(await loadBuiltinTask(release));
+            const existing=await tx.get(TASK_STORE,key);
+            if(existing){
+              validCandidate(existing,ns);await verifyTaskPackage(existing.package);
+              invariant(existing.taskId===taskId&&existing.version===version&&
+                existing.package.manifestHash===pkg.manifestHash&&existing.package.sourceUtf8===pkg.sourceUtf8,
+                'E_REQUEST_CONFLICT','New builtin version conflicts with existing candidate');
+            }else await tx.put(TASK_STORE,{
+              tag:'task-candidate-v1',namespace:ns,taskId,version,createdAt:clock.now(),
+              package:pkg,builtinIdentity:current,stage:'available',availableAt:clock.now(),
+              verification:{kind:'builtin-release',source:'packaged',sourceHash:pkg.manifest.program.sourceHash,
+                manifestHash:pkg.manifestHash,builtinIdentity:current,builtinAbi:BUILTIN_ABI}
+            },key);
+          }
           if(!await tx.get(TASK_STORE,stateKey))await tx.put(TASK_STORE,
             {tag:'task-builtin-state-v1',namespace:ns,taskId,status:'adopted'},stateKey);
-          states.push({taskId,status:'installed'});continue;
+          states.push({taskId,status:'installed',...(installed.version!==version?{updateAvailable:version}:{})});
+          continue;
         }
         const removed=await tx.get(TASK_STORE,taskRemovalKey(ns,taskId));
         const state=await tx.get(TASK_STORE,stateKey);

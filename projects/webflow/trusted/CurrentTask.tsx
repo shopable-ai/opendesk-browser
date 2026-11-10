@@ -124,6 +124,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const noSessionTitle=view?.work?.state==='running'?'任务执行中，请核对原请求':
   waiting?'等待 ChatGPT 新任务':'任务状态未确认';
  const v2Pending=session?.pendingAuto?.protocol==='webflow.task.intent.v2';
+ const chatgptDraftPending=v2Pending&&session?.pendingAuto?.scope?.taskId==='chatgpt.conversation.create';
  const options=!v2Pending&&session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
  const executionLabel={validating:'核验中',starting:'正在启动',completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
  React.useEffect(()=>{
@@ -181,6 +182,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
      '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
     <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
+    {chatgptDraftPending&&<p className="od-note" role="note">当前仅能保留未发送草稿，send 默认 false。自动发送、模型及推理强度更改、持久会话链接核验尚未完成；空白草稿没有真实 /c/ 地址。</p>}
     {options&&<p className="od-note">{options.description}目标、任务版本或权限变化后仍需审核。</p>}
     <strong className="od-field-label">本次输入</strong>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(session.pendingAuto.scope.args,null,2)}</pre>
@@ -193,7 +195,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     {options?<details className="od-disclosure od-disclosure--flat"><summary>高级：仅允许此关键词</summary>
      <p className="od-note">仅保存这组固定输入，并替换旧授权；下次换关键词仍需批准。</p>
      <Button disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
-    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{v2Pending?'批准本条 V2 候选并执行一次':'批准此精确范围并执行'}</Button>}
+    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{chatgptDraftPending?'批准创建未发送的 ChatGPT 草稿':v2Pending?'批准本条 V2 候选并执行一次':'批准此精确范围并执行'}</Button>}
    </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}

@@ -8,6 +8,10 @@ export const TOOL_UI_NOTICE_WINDOW_MS=60000;
 export const TOOL_UI_NOTICE_DEFAULT_TIMEOUT_MS=5000;
 export const TOOL_UI_NOTICE_MAX_TIMEOUT_MS=15000;
 export const TOOL_UI_NOTICE_MAX_VISIBLE=3;
+// A handle does not extend a tool's authority or the three-per-minute creation budget.
+export const TOOL_UI_NOTICE_HANDLE_TTL_MS=30*60*1000;
+export const TOOL_UI_NOTICE_HANDLE_MAX_UPDATES=12;
+export const TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS=2400;
 export const TOOL_UI_NOTICE_TYPES=Object.freeze([
   'info','success','warning','error','positive','negative'
 ]);
@@ -68,17 +72,18 @@ export function createToolUiNoticeRateGate({
   windowMs=TOOL_UI_NOTICE_WINDOW_MS
 }={}){
   let owner=null,windowStart=0,count=0;
-  return Object.freeze({
-    allow(instance){
-      if(typeof instance!=='string'||!instance)return false;
-      const time=now();
-      if(!Number.isFinite(time))return false;
-      if(owner!==instance||time<windowStart||time-windowStart>=windowMs){
-        owner=instance;windowStart=time;count=0;
-      }
-      if(count>=limit)return false;
-      count++;
-      return true;
+  function admit(instance){
+    if(typeof instance!=='string'||!instance)return {accepted:false,retryAfterMs:0};
+    const time=now();
+    if(!Number.isFinite(time))return {accepted:false,retryAfterMs:0};
+    if(owner!==instance||time<windowStart||time-windowStart>=windowMs){
+      owner=instance;windowStart=time;count=0;
     }
-  });
+    if(count>=limit)return {accepted:false,
+      retryAfterMs:Math.max(1,Math.ceil(windowMs-(time-windowStart)))};
+    count++;
+    return {accepted:true,retryAfterMs:0};
+  }
+  return Object.freeze({admit,allow(instance){return admit(instance).accepted;}});
+
 }

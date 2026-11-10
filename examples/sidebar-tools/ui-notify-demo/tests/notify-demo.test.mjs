@@ -10,14 +10,18 @@ const root=new URL('../',import.meta.url).pathname;
 test('ui.notify laboratory uses one valid standalone v1 tool and no capabilities',async()=>{
   const pkg=validateSidebarToolPackage(await createSidebarToolPackage(root));
   assert.equal(pkg.id,'ui-notify-demo');
-  assert.equal(pkg.version,'1.0.0');
+  assert.equal(pkg.version,'1.1.0');
   assert.equal(pkg.format,SIDEBAR_TOOL_FORMAT);
   assert.deepEqual(pkg.capabilities,[]);
   assert.match(pkg.html,/通知组件实验室/);
   for(const key of ['info','success','warning','error','group','separate',
-    'persistent','duration','legacy','invalid'])
+    'persistent','duration','legacy','invalid','loading-success','loading-fail','handle-close','rate-probe'])
     assert.match(pkg.html,new RegExp('data-sample="'+key+'"'));
   assert.match(pkg.js,/tool\.ui\?\.notify/);
+  assert.match(pkg.js,/notify\.open/);
+  assert.match(pkg.js,/handle\.update/);
+  assert.match(pkg.js,/previous\.dismiss/);
+  assert.match(pkg.js,/retryAfterMs/);
   assert.doesNotMatch(pkg.js,/\bchrome\.(?:tabs|runtime|scripting|storage)\b/);
   assert.equal(typeof pkg.background,'undefined');
   assert.equal(typeof pkg.controller,'undefined');

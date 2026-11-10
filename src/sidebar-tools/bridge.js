@@ -3,7 +3,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sideba
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {normalizeToolNavigation} from './navigation-state.js';
-import {normalizeToolUiNotice} from './ui-notice.js';
+import {normalizeToolUiNotice,TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS} from './ui-notice.js';
 import {normalizeToolUiConfirmOptions,normalizeToolUiConfirmResult,TOOL_UI_CONFIRM_CLIENT_TIMEOUT_MS} from './ui-confirm.js';
 import {normalizeOwnPageTarget} from '../ui/sidebar-tools/navigation.js';
 import {validateToolLocalization} from '../ui/sidebar-tools/localization.js';
@@ -53,11 +53,16 @@ export function initSidebarToolSandbox() {
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false, navigationAllowed=false;
   let currentNavigation=null,navigationRevision=0,headerActionsAllowed=false,settingsPageAllowed=false;
   let navigationDirty=false,navigationBusy=false;
+  // A handle's monotonically increasing index is minted by this original Bridge,
+  // never provided by an installed tool to an API constructor.
+  let noticeHandleSequence=0,noticeRequestSequence=0;
+  const pendingNoticeReceipts=new Map();
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
   const apply=Reflect.apply,NativePromise=Promise,NativeError=Error;
   const promiseThen=NativePromise.prototype.then,promiseResolve=NativePromise.resolve,promiseReject=NativePromise.reject;
   const define=Object.defineProperty,freeze=Object.freeze,create=Object.create,ownKeys=Reflect.ownKeys;
+  const noticeReceipt=(status,reason='',retryAfterMs=0)=>freeze({status,reason,retryAfterMs});
   const finite=Number.isFinite,nativeTimer=setTimeout,nativeClear=clearTimeout,timerReceiver=globalThis;
   const clone=globalThis.structuredClone;
   const clockReceiver=globalThis.performance,clock=clockReceiver?.now;
@@ -458,6 +463,20 @@ export function initSidebarToolSandbox() {
   window.addEventListener('message',event=>{
     if (event.source!==parent || !event.data || event.data.protocol!==SIDEBAR_TOOL_PROTOCOL)return;
     const message=event.data;
+    if(message.kind==='ui-notify-receipt'){
+      if(disposed||message.instance!==instance||message.toolId!==toolId||
+         typeof message.requestId!=='string'||!/^n[1-9]\d{0,12}$/.test(message.requestId)||
+         !['accepted','rejected'].includes(message.status))return;
+      const record=apply(mapGet,pendingNoticeReceipts,[message.requestId]);
+      if(!record)return;
+      apply(mapDelete,pendingNoticeReceipts,[message.requestId]);
+      cancelTimer(record.timeout);
+      const reason=typeof message.reason==='string'?message.reason.slice(0,64):'';
+      const retryAfterMs=Number.isSafeInteger(message.retryAfterMs)&&
+        message.retryAfterMs>=0&&message.retryAfterMs<=60000?message.retryAfterMs:0;
+      record.resolve(noticeReceipt(message.status,reason,retryAfterMs));
+      return;
+    }
     if(message.kind==='conversation-action'){
       if(!disposed&&instance&&message.instance===instance&&message.toolId===toolId&&message.action==='toggle')
         root.dispatchEvent(new CustomEvent('opendesk:conversation-action',{detail:{action:'toggle'}}));
@@ -662,11 +681,70 @@ export function initSidebarToolSandbox() {
       if(disposed||!instance)return false;
       const payload=normalizeToolUiNotice(value);
       if(!payload)return false;
-      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify',
-        instance,toolId,payload},'*');
-      // This only means the sandbox queued a message, not that the Host showed it.
+      try{parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify',
+        instance,toolId,payload},'*');}
+      catch{return false;}
+      // Legacy boolean means transport queued, NOT host acceptance or business success.
       return true;
     };
+    const issueNotice=(command,handleId,revision,payload)=>{
+      if(disposed||!instance||!exportPort||!portPost)return new NativePromise(resolve=>
+        resolve(noticeReceipt('rejected','unavailable')));
+      return new NativePromise(resolve=>{
+        if(pendingNoticeReceipts.size>=16){
+          resolve(noticeReceipt('rejected','busy'));return;
+        }
+        const requestId='n'+(++noticeRequestSequence);
+        const timeout=nativeTimer.call(timerReceiver,()=>{
+          apply(mapDelete,pendingNoticeReceipts,[requestId]);
+          // No receipt is not evidence of rendering or rejection; never replay.
+          resolve(noticeReceipt('unknown','host_no_receipt'));
+        },TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS);
+        apply(mapSet,pendingNoticeReceipts,[requestId,{resolve,timeout}]);
+        try{
+          // The private frame MessagePort is held only by this original Bridge.
+          // Tool scripts cannot mint or replay handle requests via postMessage.
+          apply(portPost,exportPort,[{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify-handle',
+            instance,toolId,command,handleId,revision,requestId,
+            ...(command==='dismiss'?{}:{payload})}]);
+        }catch{
+          cancelTimer(timeout);apply(mapDelete,pendingNoticeReceipts,[requestId]);
+          resolve(noticeReceipt('rejected','transport'));
+        }
+      });
+    };
+    const openNotice=value=>{
+      if(disposed||!instance||!exportPort||!portPost)return null;
+      const payload=normalizeToolUiNotice(value);
+      if(!payload||noticeHandleSequence>=999999999)return null;
+      const handleId='n-'+(++noticeHandleSequence);
+      let usable=false,closed=false,revision=0;
+      const ready=issueNotice('open',handleId,0,payload).then(result=>{
+        usable=result.status==='accepted';return result;
+      });
+      let tail=ready;
+      const update=value=>{
+        const next=normalizeToolUiNotice(value);
+        if(!next)return new NativePromise(resolve=>resolve(noticeReceipt('rejected','invalid_payload')));
+        const result=tail.then(()=>{
+          if(!usable||closed)return noticeReceipt('rejected','inactive');
+          return issueNotice('update',handleId,++revision,next);
+        });
+        tail=result;
+        return result;
+      };
+      const dismiss=()=>{
+        if(closed)return new NativePromise(resolve=>resolve(noticeReceipt('rejected','closed')));
+        closed=true;
+        // Best-effort close even after a missing open receipt (unknown effect).
+        const result=tail.then(()=>issueNotice('dismiss',handleId,++revision));
+        tail=result;
+        return result;
+      };
+      return freeze({id:handleId,ready,update,dismiss});
+    };
+    define(notifyUi,'open',{value:openNotice,enumerable:false,writable:false,configurable:false});
+    freeze(notifyUi);
     const openAISettings=()=>{
       const port=consumeRequestGesture('ai.settings.open');
       if(!port||!instance||disposed)return false;
@@ -779,5 +857,9 @@ export function initSidebarToolSandbox() {
         operation==='ai.generate'?'工具已关闭，AI 结果未知；请查询原请求，勿自动重试':exporting||browserWrite?'工具已关闭，操作结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
     }]);
     apply(mapClear,waiting,[]);
+    apply(mapForEach,pendingNoticeReceipts,[({resolve,timeout})=>{
+      cancelTimer(timeout);resolve(noticeReceipt('rejected','disposed'));
+    }]);
+    apply(mapClear,pendingNoticeReceipts,[]);
   },{once:true});
 }

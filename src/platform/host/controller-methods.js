@@ -23,6 +23,7 @@ import {requireCloudRunnerSender} from './cloud-observer.js';
 import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
 import {isControllerNavigation} from '../../framework/control/locator-contract.js';
 import {withRunAdmissionLock} from './run-admission-lock.js';
+import {controllerMayRetainOwnedTarget} from './controller-target-retention.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
   RUN_WRITE="readwrite",
@@ -228,7 +229,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
-      'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
+      'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
+      'targetDisposition','retainedTarget'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
@@ -880,7 +882,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         ...(frozenSource ? {draftSourceUtf8} : {}),
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
-          authorization:installedTask.installation.authorization}}:{}),
+          authorization:installedTask.installation.authorization},
+          ...(installedTask.candidate.package.manifest.targetDisposition?
+            {targetDisposition:installedTask.candidate.package.manifest.targetDisposition}:{})}:{}),
         ...(request.taskDelegation?{taskDelegation:structuredClone(request.taskDelegation)}:{}),
         ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
@@ -1400,7 +1404,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const previousSession = run.browserSessionIncarnation !== session;
     if (!previousSession&&run.profile!=='app-service') await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     let absence = run.profile==='app-service'?'app-worker-retired':'borrowed-not-closed';
-    let targetQuarantine = null;
+    let targetQuarantine = null, transferEvidence = null;
     if (run.selection.mode === 'owned') {
       const intent = await tx(RUN_READ, transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
       if(['prepared','not-dispatched'].includes(intent?.state)&&intent.submissionCount===0&&intent.tabId===null){
@@ -1420,6 +1424,44 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           tabId: intent.tabId ?? null, documentId: run.target?.documentId ?? null,
           hostDocumentId: run.hostDocumentId, observedSession: session, observedAt: now()};
         absence = 'previous-session-execution-retired';
+      } else if (intent && controllerMayRetainOwnedTarget(run)) {
+        // Immutable installed Task manifest opts into transfer. No page action
+        // occurs here: the worker is retired and the verified tab becomes a
+        // user's ordinary browser tab. It must not be removed at settlement.
+        invariant(intent.runId===run.runId && intent.tabId===run.target.tabId &&
+          intent.browserSessionIncarnation===session && intent.state==='created',
+          CONTROLLER_OWNER_ERROR,'Retained tab does not belong to the original Controller creation');
+        const transferKey=`controller-retirement:${run.retirementId}`;
+        let transfer=await tx(RUN_READ,transaction=>transaction.get(COMMAND_JOURNAL,transferKey),[COMMAND_JOURNAL]);
+        if(!transfer){
+          const observed=await verifyControllerTarget({api,target:run.target});
+          const tab=await api.tabs.get(intent.tabId);
+          invariant(tab?.id===intent.tabId && !tab.incognito && !tab.pendingUrl &&
+            tab.url===observed.url && observed.allowedOrigin===run.target.allowedOrigin &&
+            observed.documentId===run.target.documentId,
+            'E_DOCUMENT_REPLACED','Retained browser tab changed before transfer');
+          transfer=await tx(RUN_WRITE,async transaction=>{
+            const current=await transaction.get(RUN_STORE,run.runId);
+            invariant(current?.retirementId===run.retirementId && current.state==='completed' &&
+              current.workerRetired && current.browserSessionIncarnation===session &&
+              current.target?.tabId===intent.tabId && current.target?.documentId===observed.documentId,
+              CONTROLLER_OWNER_ERROR,'Transfer is no longer bound to the completed run');
+            const existing=await transaction.get(COMMAND_JOURNAL,transferKey);
+            if(existing)return existing;
+            const proof={tag:'controller-retirement',state:'retained-observed',runId:run.runId,
+              retirementId:run.retirementId,tabId:intent.tabId,documentId:observed.documentId,
+              url:observed.url,origin:observed.allowedOrigin,observedAt:now()};
+            await transaction.put(COMMAND_JOURNAL,proof,transferKey);
+            return proof;
+          });
+        }
+        invariant(transfer?.state==='retained-observed' && transfer.runId===run.runId &&
+          transfer.retirementId===run.retirementId && transfer.tabId===intent.tabId &&
+          transfer.documentId===run.target.documentId && transfer.origin===run.target.allowedOrigin,
+          CONTROLLER_OWNER_ERROR,'Retained tab proof is missing or ambiguous');
+        absence='owned-transferred-to-user';
+        transferEvidence={tabId:transfer.tabId,documentId:transfer.documentId,
+          url:transfer.url,origin:transfer.origin,observedAt:transfer.observedAt};
       } else if (intent && !Number.isSafeInteger(intent.tabId))
         return {state: 'pending', releaseCount: 0, reason: 'creation-unknown'};
       else if (intent) {
@@ -1449,6 +1491,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (current.retirementState === 'released') return {state: 'released', releaseCount: 1};
       invariant(current.workerRetired && current.retirementId === run.retirementId && slot?.currentRunId === run.runId &&
         slot.retirementId === run.retirementId && slot.releaseCount === 0, CONTROLLER_OWNER_ERROR);
+      if (transferEvidence) current.retainedTarget=structuredClone(transferEvidence);
       if (targetQuarantine) {
         invariant(current.cancelSeq > 0 && current.browserSessionIncarnation === targetQuarantine.browserSessionIncarnation &&
           current.browserSessionIncarnation !== session && current.hostDocumentId === targetQuarantine.hostDocumentId,

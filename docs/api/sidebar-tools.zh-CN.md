@@ -29,9 +29,9 @@ renderTool({surface});
 失败代码 `E_PAGE_TARGET`、`E_USER_GESTURE_REQUIRED`、`E_TOOL_CHANGED`、`E_PAGE_BUSY`、`E_PAGE_UNAVAILABLE`、`E_OUTCOME_UNKNOWN` 不变；dirty/busy、失效实例、旧响应与未知副作用不会自动重放。源码定向测试、构建、隔离 Chromium 和已安装验收必须分层出证据。
 
 
-### 非阻断消息：OpenDeskTool.ui.notify（R1.1 扩展示意）
+### 非阻断消息：OpenDeskTool.ui.notify（R1.2 生命周期与可安装实验室）
 
-**SOURCE_IMPLEMENTED；真实安装 Chrome 仍须验收。** 已有 `ui.notify({message})` 继续兼容。R1.1 只扩展原本已经存在的**纯文本、非阻断 ToolToast** 展示参数；它仅面向已安装 Sidebar Tool 在自己的 Side Panel / PC `app.html` 宿主内反馈状态，不是 Quasar 运行时、网页注入、系统通知、发行中心或安装/权限 API。
+**SOURCE_IMPLEMENTED；R1.2 新增能力须以最新 CI 与真实 Chrome 另行验收。** 原有 `ui.notify({message})` 和字符串简写及 boolean 返回完全保留。R1.2 在原沙箱 Bridge、Host、唯一 React Toast 上增加同一条消息的受限更新／关闭句柄。它仅属于已安装 Sidebar Tool 自己的 Side Panel / PC `app.html` 宿主，不是 Quasar 运行时、网页注入、系统通知或可信更新／安装 API。
 
 ```ts
 type NotifyOptions = {
@@ -58,18 +58,60 @@ OpenDeskTool.ui?.notify({
 
 Quasar 常用别名 `positive` / `negative` 分别统一映射为 `success` / `error`；可简写 `OpenDeskTool.ui.notify('保存成功')`。但不支持 Quasar 的 HTML、JS 回调或自定义组件注入。
 
+**R1.2 受限通知句柄（可选）**：
+
+```ts
+type NotifyReceipt = {
+  status: 'accepted' | 'rejected' | 'unknown';
+  reason: string;          // 如 host_state / rate_limited / unavailable / replay
+  retryAfterMs: number;    // 仅限 Host 明确限频时有可靠等待值
+};
+type NotifyHandle = {
+  readonly id: string;     // 由原 Bridge 为当前沙箱实例单调生成；非权限令牌
+  readonly ready: Promise<NotifyReceipt>;
+  update(next: NotifyOptions | string): Promise<NotifyReceipt>;
+  dismiss(): Promise<NotifyReceipt>;
+};
+// 仅在支持 R1.2 的 Bridge 中存在；无效输入返回 null。
+OpenDeskTool.ui.notify.open(options: NotifyOptions | string): NotifyHandle | null;
+```
+
+```js
+const notify=OpenDeskTool.ui?.notify;
+const handle=notify?.open?.({message:'正在导出…',type:'info',timeout:0});
+if(handle){
+  const initial=await handle.ready;
+  if(initial.status==='accepted'){
+    try {
+      const receipt=await exportAndReadback(); // 业务自己完成并验证的真实回执
+      if(receipt.ok===true) await handle.update({
+        message:'导出成功',type:'success',timeout:3000
+      });
+      else await handle.update({message:'导出失败',type:'error',timeout:0});
+    } catch(error) {
+      await handle.update({message:'导出结果未知，请核对文件',type:'warning',timeout:0});
+    }
+  }
+  // 用户取消或业务结束不需要再展示时，可以 await handle.dismiss()。
+}
+// 旧 Host/旧 Bridge 或没有宿主回执时，将进度留在工具正文；不要重放未知写入。
+```
+
+新 `ready`、`update`、`dismiss` 返回 `accepted` 仅表示当前有效 Host 已接受并写入通知视图状态，不是 React 已在用户屏幕真实可见的像素证据，也不能证明业务完成。无回执按 `unknown` 处理；该状态不能自动重试有副作用的业务操作。演示实验室允许用户在界面目视核对 Toast；正式 Chrome 验收另记。
+
 **返回语义**：`true` 仅说明当前沙箱已排队向父宿主投递有效请求；不保证 Host 实际展示（可能因每实例限频、关闭、撤权而丢弃），也不是业务成功回执。`false` 代表输入不符合合同，或 Bridge 失效。旧 Browser Host 没有此方法时，仍需回退工具自己的普通状态文本，不用 `window.alert`。
 
 **安全与限制**：
 
-- 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。
+- 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。新句柄的 create/update/dismiss 只接受原 Bridge 私有 MessagePort 请求，当前沙箱自己伪造的普通 `parent.postMessage` 不具备句柄操作权。
 - Host 核验原 opaque iframe 的 source、install instance、工具版本、启停、撤权代际和可见性；页面、任务或远程网页不可伪造可信通知和安装授权。
-- 每活动工具实例 60 秒最多 3 次投递；Host 最多同时展示 3 条，默认相同消息合并显示次数。群组计数仍消耗调用额度；`timeout:0` 仍可被用户关闭、Host 卸载/切换时清理。
-- 只有四种内置语义图形/颜色，复用现有 React Tokens；不允许包任意颜色、CSS、图标组件或按钮回调。暂不开放 Spinner、Toast 内的 Undo/确认、跨页面全局通知和程序化 dismiss；需要审批/撤销动作应在真实工具页面提供自己的明确入口。
+- 每活动实例每 60 秒最多创建 3 条（旧 `notify` 与新 `notify.open` 共用原 Host 额度）。超限的句柄创建返回 `rate_limited` 和真实剩余 `retryAfterMs`；普通 boolean 通知不承诺回执。更新原句柄不占新的创建额度，但每句柄最多更新 12 次，序号严格递增，30 分钟到期并关闭；手动关闭及实例销毁、卸载／切换／撤权均清理，迟到请求不再复活。
+- 同消息默认按所属实例、文案／caption／type／位置合并计数，最多保留 3 条，不使用无界队列。满额时按语义优先级（error > warning > success > info；长期通知在同级优先保护）淘汰优先级最低的最旧通知；较弱的新消息无法覆盖三条更重要的旧消息时直接丢弃。
+- 只有四种内置语义图形/颜色，复用现有 React Tokens；不允许包任意颜色、CSS、图标组件或按钮回调。仅当前实例原 Bridge 创建的句柄可以 update/dismiss 自己的通知；普通旧 `notify` 不返回句柄。仍不开放任意 Spinner、Toast 内的 Undo／确认、跨页面全局通知；审批及副作用应由工具的明确业务入口完成。
 - 错误、请求未知、恢复指引应留在工具正文；Toast 不得成为唯一的关键错误提示。
 - 更新中心必须使用独立的 `docs/architecture/browser-framework/update-notification-r1.zh-CN.md` 可信发行状态链。工具自称“更新成功”不能创建 NEW、安装回执或跨标签更新提醒。
 
-**可安装操作示例**：`examples/sidebar-tools/ui-notify-demo/` 的“通知组件实验室”，零额外 capability，调用公开 `OpenDeskTool.ui.notify`，含类型、位置、分组、持久关闭和非法参数按钮。以同目录经过原打包器生成的 `ui-notify-demo.opendesk-tool.json` 为手动导入文件；只读 HTML 预览或 Node 通过不代表真实已安装的 Chrome 验收。
+**可安装操作示例**：`examples/sidebar-tools/ui-notify-demo/` 的“通知组件实验室”保持 `ui-notify-demo` 身份（R1.2 v1.1.0），零额外 capability。可点击四状态／六位置、用户选择超时、分组／多条、Loading→模拟成功／失败、关闭原句柄、非法参数及四连发限频回执。正式安装文件是同目录经原打包器核对的唯一 `ui-notify-demo.opendesk-tool.json`；源码包检查或 Node PASS 绝不冒充真实 Chrome 已安装。
 
 ### 异步确认：OpenDeskTool.ui.confirm
 

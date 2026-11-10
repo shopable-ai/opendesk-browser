@@ -1,0 +1,66 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "chatgpt.conversation.create",
+    "version": "0.1.0",
+    "title": "ChatGPT 新对话：安全准备草稿（暂不发送）",
+    "description": "在用户逐条授权后，于新的 ChatGPT 页面准备提示词并校验原生输入草稿，暂不自动发送；明确请求模型、推理设置或发送时先拒绝。成功后保留已核对的原任务标签页。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://chatgpt.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "6ae168d4039ac2ef12dceb7888125f4a5561a3f44dcb8bfdf78d43836678fd9d"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "title": "待发送提示词",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "send": {
+          "type": "boolean",
+          "title": "是否发送",
+          "enum": [
+            false
+          ],
+          "default": false
+        },
+        "model": {
+          "type": "string",
+          "title": "模型",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "effort": {
+          "type": "string",
+          "title": "推理强度",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "thinking": {
+          "type": "boolean",
+          "title": "启用思考"
+        }
+      },
+      "required": [
+        "prompt"
+      ],
+      "additionalProperties": false
+    },
+    "deadlineMs": 60000,
+    "targetDisposition": "retain-on-success"
+  },
+  "manifestHash": "9cc34831cf5ea39654534219baef90ef2eccf3c274f5f20ce4c10eb2bb864bec",
+  "sourceUtf8": "// OD-AI-WORKFLOW-BRIDGE: first vertical slice for ChatGPT B (draft only).\n// Executed by the original reviewed Controller Task. There is no external\n// chrome.* permission, run dispatcher, network bridge, or self-authorization.\nasync function main() {\n  const fail=(code,message)=>{const error=new Error(message);error.code=code;throw error;};\n  const cfg=params??{};\n  const allowed=['prompt','send','model','effort','thinking'];\n  if(!cfg||typeof cfg!=='object'||Object.keys(cfg).some(key=>!allowed.includes(key))||\n    typeof cfg.prompt!=='string'||cfg.prompt.length<1||cfg.prompt.length>3000||\n    !cfg.prompt.trim()||cfg.send!==false)\n    fail('E_CHAT_CREATE_PARAMS','Draft preparation requires a prompt and send:false');\n  // Exact model/effort/thinking selection must be proven on the real account\n  // BEFORE editing. Unsupported, ambiguous, or unobserved options fail closed.\n  if(Object.hasOwn(cfg,'model')||Object.hasOwn(cfg,'effort')||Object.hasOwn(cfg,'thinking'))\n    fail('E_CHAT_SETTINGS_UNVERIFIED','Requested model/thinking settings have not been verified');\n  const initial=new URL(await page.url());\n  if(initial.origin!=='https://chatgpt.com'||initial.pathname!=='/'||\n    initial.search||initial.hash||initial.username||initial.password)\n    fail('E_CHAT_CREATE_TARGET','Expected a fresh official ChatGPT tab');\n  const editor=page.locator('#prompt-textarea');\n  if(await editor.count()!==1||!await editor.isVisible())\n    fail('E_CHAT_CREATE_EDITOR','Official native composer not found exactly once');\n  const attachment=page.locator('form [data-attachment-id],form [data-file-id],form [data-upload-id],form [data-testid*=\"attachment-preview\"],form [data-testid*=\"file-preview\"]');\n  if(await attachment.count()!==0)\n    fail('E_CHAT_CREATE_DRAFT','An attachment or pending upload is already present');\n  const users=page.locator('[data-message-author-role=\"user\"]');\n  if(await users.count()!==0)\n    fail('E_CHAT_CREATE_CONTEXT','The target is not an empty new conversation');\n  const stop=page.locator('form [data-testid=\"stop-button\"],form [data-testid=\"composer-stop-button\"]');\n  if(await stop.count())\n    fail('E_CHAT_CREATE_BUSY','Another sender is already generating a response');\n  const original=await editor.innerText();\n  if(original!=='')\n    fail('E_CHAT_CREATE_DRAFT','The native editor contains a user draft');\n  // The original Controller journals this DOM operation; never issue a second\n  // fill if the first call has an unknown outcome.\n  await editor.fill(cfg.prompt,{timeout:12000});\n  const observed=await editor.innerText();\n  if(observed!==cfg.prompt)\n    fail('E_CHAT_CREATE_READBACK','Native prompt readback differs; do not send');\n  const after=new URL(await page.url());\n  if(after.href!==initial.href||await users.count()!==0||await attachment.count()!==0)\n    fail('E_CHAT_CREATE_CONTEXT','Page context changed while preparing the draft');\n  // A blank unsent conversation has no guaranteed persistent /c/ identity.\n  // The reviewed manifest retains the actual owned tab for manual inspection.\n  return {kind:'chatgpt.conversation.create.result',version:1,\n    status:'draft-prepared',send:false,messageConfirmed:false,\n    conversationId:null,conversationUrl:null,sourceUrl:after.href,\n    promptChars:cfg.prompt.length,readbackConfirmed:true,\n    observedAt:new Date().toISOString()};\n}\n"
+}

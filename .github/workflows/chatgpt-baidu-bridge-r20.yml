@@ -14,6 +14,26 @@ on:
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
       - 'src/native-agent/webflow-v2-target.js'
+      - 'src/platform/tasks/contract.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/controller-target-retention.js'
+      - 'projects/webflow/tests/controller-retained-target.test.mjs'
+      - 'projects/webflow/tests/chatgpt-background-ingress.test.mjs'
+      - 'projects/webflow/tests/auto-grants.test.mjs'
+      - 'projects/webflow/src/tasks/chatgpt-conversation-create.js'
+      - 'projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json'
+      - 'projects/webflow/tests/chatgpt-draft-task.test.mjs'
+      - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js'
+      - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
+      - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
+      - 'projects/webflow/trusted/md-run-ledger.js'
+      - 'projects/webflow/tests/md-run-ledger.test.mjs'
+      - 'projects/webflow/src/md-run-contract.js'
+      - 'projects/webflow/tests/md-run-contract.test.mjs'
+      - 'projects/webflow/tests/md-workflow.test.mjs'
+      - 'src/platform/tasks/builtin-releases.js'
+      - 'src/platform/tasks/service.js'
+      - 'tests/environment/task-builtin-initialization.test.mjs'
       - 'src/native-agent/chatgpt-background-adapter.js'
       - 'src/native-agent/workspace-chatgpt.js'
       - 'src/page-events/web-task-ingress.js'
@@ -55,11 +75,33 @@ jobs:
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
           node --check src/native-agent/webflow-v2-target.js
+          node --check src/platform/host/controller-target-retention.js
+          node --check src/platform/host/controller-methods.js
+          node --check src/platform/tasks/contract.js
+          node --check src/platform/tasks/service.js
+          node --check projects/webflow/src/tasks/chatgpt-conversation-create.js
+          node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js
+          node --check projects/webflow/tests/chatgpt-send-task.test.mjs
+          node --check projects/webflow/trusted/md-run-ledger.js
+          node --check projects/webflow/tests/md-run-ledger.test.mjs
+          node --check projects/webflow/src/md-run-contract.js
           node --check src/native-agent/chatgpt-background-adapter.js
           node --check src/native-agent/workspace-chatgpt.js
           node --check src/page-events/web-task-ingress.js
           node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+      - name: ChatGPT immutable version upgrade and send contracts (Node, not Chrome)
+        run: |
+          node --test \
+            projects/webflow/tests/chatgpt-draft-task.test.mjs \
+            projects/webflow/tests/chatgpt-send-task.test.mjs \
+            projects/webflow/tests/task-intent-v2.test.mjs \
+            projects/webflow/tests/md-run-ledger.test.mjs \
+            projects/webflow/tests/md-run-contract.test.mjs \
+            projects/webflow/tests/md-workflow.test.mjs \
+            tests/environment/task-builtin-initialization.test.mjs
+            # MD ledger uses only the original transaction API, no Chrome mocks in production.
+
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
         run: |
           node --test \
@@ -73,6 +115,11 @@ jobs:
             projects/webflow/tests/chatgpt-legacy-panel.test.mjs \
             projects/webflow/tests/task-intent-v2.test.mjs \
             projects/webflow/tests/task-v2-live-ledger.test.mjs \
-            projects/webflow/tests/background-execution-view.test.mjs
+            projects/webflow/tests/background-execution-view.test.mjs \
+            projects/webflow/tests/controller-retained-target.test.mjs \
+            projects/webflow/tests/chatgpt-background-ingress.test.mjs \
+            projects/webflow/tests/auto-grants.test.mjs \
+            projects/webflow/tests/chatgpt-draft-task.test.mjs \
+            projects/webflow/tests/chatgpt-send-task.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build
