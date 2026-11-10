@@ -48,7 +48,9 @@ test('a new ordinary App needs no YAML, Host hardcoding or catalog registration'
     await mkdir(join(x.project,'tests'));
     const local=join(x.project,'tests','automatic.test.mjs');
     await writeFile(local,"import test from 'node:test'; test('auto',()=>{});");
-    assert.equal(cli(['node',x.name]).status,0,'ordinary App and new owned test must pass');
+    const ownedRun=cli(['node',x.name]);
+    assert.equal(ownedRun.status,0,
+      'ordinary App and new owned test must pass\\n'+ownedRun.stdout+'\\n'+ownedRun.stderr);
     await writeFile(local,"import test from 'node:test'; test('fail-fast',()=>{throw Error('CI_DISCOVERY_PROOF');});");
     const caught=cli(['node',x.name]);
     assert.notEqual(caught.status,0,'a newly failing owned test must block publication');

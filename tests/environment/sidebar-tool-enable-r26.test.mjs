@@ -55,10 +55,17 @@ test('R26 legacy absence enables installed tools; damaged records fail closed wi
 test('new reviewed official Reading TOC installs from its pinned market identity without second approval',async()=>{
   const official=await officialToolFixture('reading-toc'),pin=OFFICIAL_READING_TOC_RELEASE;
   const f=fixture(official);f.values[SIDEBAR_TOOL_STORE]=[];
+  // Local files may reuse IDs after an explicit review; they cannot claim
+  // official market provenance, and a missing review never becomes approval.
   await assert.rejects(installReviewedSidebarTool({
-    ...f,candidate:tool,baseline:null,reviewApproved:true
+    ...f,candidate:tool,baseline:null,reviewApproved:false
+  }),{code:'E_REVIEW_REQUIRED'});
+  await assert.rejects(installReviewedSidebarTool({
+    ...f,candidate:tool,baseline:null,reviewApproved:true,
+    market:{marketId:pin.marketId,sha256:'0'.repeat(64),
+      operationId:'123e4567-e89b-42d3-a456-426614174001'}
   }),{code:'E_OFFICIAL_ID_RESERVED'});
-  assert.equal(f.writes.length,0,'an untrusted import must not modify official records');
+  assert.equal(f.writes.length,0,'unreviewed or forged-market imports must not modify records');
   const result=await installReviewedSidebarTool({
     ...f,candidate:official,baseline:null,reviewApproved:true,
     market:{marketId:pin.marketId,sha256:pin.sha256,operationId:'123e4567-e89b-42d3-a456-426614174000'}
@@ -68,7 +75,10 @@ test('new reviewed official Reading TOC installs from its pinned market identity
   assert.equal(sidebarToolEnabled(f.values[SIDEBAR_TOOL_ENABLE_STORE],official.id),true);
   assert.equal(f.values[READING_TOC_SITE_STORE],undefined,'installation must not create a positive site grant');
   const verified=await verifyOfficialReadingToc(f.values[SIDEBAR_TOOL_STORE],f.values[MARKET_PROVENANCE_STORE]);
-  assert.equal(verified,true,'only the byte-pinned marketplace release receives default site access');
+  assert.equal(verified,true,'the reviewed legacy Reading TOC remains admitted');
+  assert.equal(await verifyOfficialReadingToc(
+    f.values[SIDEBAR_TOOL_STORE],f.values[MARKET_PROVENANCE_STORE],true),true,
+    'strict official identity still matches the archived release SHA and provenance');
   assert.equal(tocGrantAllowed(f.values[SIDEBAR_TOOL_STORE],f.values[READING_TOC_SITE_STORE],
     official.id,'https://example.com/article',f.values[SIDEBAR_TOOL_ENABLE_STORE],verified),true);
   assert.equal(f.writes.some(row=>Object.hasOwn(row,SIDEBAR_TOOL_ENABLE_STORE)),false);
