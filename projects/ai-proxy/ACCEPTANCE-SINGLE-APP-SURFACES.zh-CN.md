@@ -173,3 +173,11 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 **下一条操作**：由 Reading TOC 对应 owner 独立校正或恢复经审阅来源，安全校验不得降低；在最新 `main` 上重新执行受影响的 App CI，确认 `discover`、`ci-contract`、`app-validate (ai-proxy)` 真正 PASS，取当前 HEAD 绑定的候选 SHA；通过原 `app-release.yml` 的可信审阅触发发行，核对原 `--promote-from` 与 `--check-project`、GitHub 同源提交、唯一安装包；之后在独立 Chrome Profile 更新 Browser+AI Proxy，实测 PC 1440×900 与 Side Panel 400×800，以及刷新、CRUD、ETag、跨 Surface、已应用状态。**本段文档追加会推进 HEAD，c61 CI 候选不可当作新 HEAD 的已批准候选直接晋升**。
 
 **当前结论：`RELEASE_BLOCKED`，不得宣称可安装的 0.3.13 已交付，也不得给出没有最新已安装截图支撑的 95+ 专家分。**
+
+## 12. 2026-11-11 · App CI 双失败同源排查与最小夹具修复（待验证）
+
+**业务目标仍为 R16/R18 真实安装交付，未提前宣称发行成功。** 截至修改前，`main` 为 `b3a25bc94a7946f5bd1a876291bfac33c44af982`；App CI [#42836394482](https://github.com/shopable-ai/opendesk-browser/actions/runs/42836394482) 的 `app-validate (ai-proxy)` 中 364 PASS／1 FAIL，失败精确为 `tests/environment/sidebar-tool-enable-r26.test.mjs` 调用 `officialToolFixture('reading-toc')` 抛出 `E_OFFICIAL_FIXTURE_PIN`。同时 `ci-contract` 的普通 App 夹具在 `node` 子命令断言失败；它复用相同 R26 BASE_TESTS，是否同源仍待新 CI 独立证实。原 AI Proxy Chromium 内存界面测试 PASS，非原生安装。
+
+**根因与安全边界**：测试帮助函数原本把当前 `projects/reading-toc/reading-toc.opendesk-tool.json` 当作旧官方 pin 的包：当前文件为 `1.1.5`／`page.module`，旧安全 pin `src/sidebar-tools/official-reading-toc.js` 则为 `1.0.15`／`page.toc`，哈希 `b0a745af3c1741752e1c71a2f18076492cb3757a92e215f8a61bd11dd2f7b7f3`。从不可变历史提交 [`7c16570799a9`](https://github.com/shopable-ai/opendesk-browser/commit/7c16570799a9293e5aa2f05191df2b058fa6f2cb) 提取旧正式 JSON 并验证其原始 UTF-8 SHA-256 **恰好等于旧 pin**；新增 `tests/fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json` 作为只读历史夹具，`tests/helpers/official-tools.mjs` 仅读取此测试文件，仍执行原 `validateSidebarToolPackage`、版本、能力和 `sidebarToolPackageHash` 精确校验。生产 pin、Reading TOC 当前包、安装器、安全断言、CI 成功标准均未修改。保留历史包不表示将旧包作为新正式发布。
+
+**下一道真相门禁**：必须读取本变更提交 SHA 对应的 GitHub App CI 实际运行结果，确保 `discover`、`ci-contract`、`app-validate (ai-proxy)` 全部 PASS；失败则继续只修复新发现的准确原因，绝不晋升包。独立 App Release 必须核对同 HEAD 来源与候选 SHA 才能将 AI Proxy `0.3.13` 通过原 packer 晋升。完成后仍需真实 Chrome Host+Tool 原位更新、R16/R18 两视口截图、PC/Side Panel 持久化与 Chrome 实际状态验收。**此处只记修复，不声称 CI／安装／截图已经通过。**
