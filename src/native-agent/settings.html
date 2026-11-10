@@ -52,16 +52,31 @@
   </label>
   </div>
   <p id="chatgpt-files-processing-note" class="settings-note">默认开启，复用合法安装，无需第二次启用。在原 ChatGPT 输入框提出需求；关闭后停止接收新任务，已派发写入请查看真实回执。打开此开关不授予文件权限。</p>
+  <details class="advanced-card"><summary>开发诊断（可选）</summary>
   <div class="connection-heading">
   <label class="connection-switch">
-   <span>显示网页文件工具入口</span>
+   <span>旧版开发诊断开关（不影响网页 UI）</span>
    <input id="chatgpt-files-diagnostics" type="checkbox" role="switch" aria-describedby="chatgpt-files-diagnostics-note" disabled>
    <span class="switch-track" aria-hidden="true"></span>
   </label>
   </div>
-  <p id="chatgpt-files-diagnostics-note" class="settings-note">默认隐藏。开启后只显示一个紧凑入口，点击后可打开更多文件操作；隐藏不影响文件处理或授权。网页上的关闭按钮只关闭展示，不会取消任务。</p>
+  <p id="chatgpt-files-diagnostics-note" class="settings-note">兼容既有 diagnosticsVisible 设置；新版不再注入网页文件悬浮控件，开发诊断留在可信扩展界面。</p>
+  </details>
   <p id="chatgpt-files-settings-status" class="settings-note" role="status" aria-live="polite" aria-atomic="true">正在读取设置…</p>
-  <a href="settings.html#chatgpt-files" target="_blank" rel="noopener">可信连接与文件审阅</a>
+  <section class="connection-card" aria-labelledby="chatgpt-file-run-heading">
+   <h3 id="chatgpt-file-run-heading">原文件任务管理</h3>
+   <p class="settings-note">ChatGPT 页面不再显示项目文件悬浮框。仅查询已有任务；关闭此页不会停止后台任务。查询不创建新任务，也不进行 Native 读写。</p>
+   <label for="chatgpt-file-run-choice">原始 ChatGPT 对话及任务</label>
+   <select id="chatgpt-file-run-choice" disabled><option value="">正在读取原任务…</option></select>
+   <div class="connection-actions">
+    <button type="button" id="chatgpt-file-run-refresh" class="secondary">刷新任务列表</button>
+    <button type="button" id="chatgpt-file-run-inspect" class="secondary" disabled>查询状态与回执</button>
+    <button type="button" id="chatgpt-file-run-review" class="secondary" disabled>打开可信文件审阅页</button>
+    <button type="button" id="chatgpt-file-run-stop" class="secondary" disabled>停止所选原任务</button>
+   </div>
+   <p id="chatgpt-file-run-status" role="status" aria-live="polite">等待可信状态…</p>
+   <pre id="chatgpt-file-run-receipt" class="connection-diagnostics" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto" hidden></pre>
+  </section>
  </section>
  <section class="settings-card"><h2>ChatGPT 生成图片</h2><p>选择完整生成图片，在批准目录另存并独立解码核验。</p><a href="#chatgpt-images" target="_blank" rel="noopener">保存 ChatGPT 生成图片</a></section>
  <section class="settings-card"><h2>本地 HTTP 转发</h2><p>让已审阅的任务通过本机 Node.js 服务发送请求。</p><button id="http-relay-open" type="button">配置本地 HTTP 转发</button></section>

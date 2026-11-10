@@ -1,4 +1,5 @@
 import {recoverControlFocus} from '../../../src/native-agent/control-focus.js';
+import {initChatGPTProjectRuntimeUI} from './chatgpt-project-runtime-ui.js';
 
 const PROTOCOL='opendesk.chatgpt.project.v1';
 const PREFERENCES_KEY='opendesk.chatgpt.files.preferences.v1';
@@ -9,6 +10,7 @@ export function initChatGPTFilesSettingsUI({api=globalThis.chrome,document:doc=g
   const diagnostics=doc.getElementById('chatgpt-files-diagnostics');
   const status=doc.getElementById('chatgpt-files-settings-status');
   if(!enabled||!diagnostics||!status)return ()=>{};
+  const disposeProjectRuntime=initChatGPTProjectRuntimeUI({api,document:doc});
   const fields=[[enabled,'enabled'],[diagnostics,'diagnosticsVisible']];
   let state=null,busy=false,disposed=false,refreshAgain=false,focusRecovery;
   const removers=[];
@@ -74,6 +76,7 @@ export function initChatGPTFilesSettingsUI({api=globalThis.chrome,document:doc=g
   function destroy(){
     if(disposed)return;
     disposed=true;refreshAgain=false;
+    disposeProjectRuntime();
     for(const remove of removers)remove();
     api.storage?.onChanged?.removeListener(changed);
     focusRecovery?.restore(false);

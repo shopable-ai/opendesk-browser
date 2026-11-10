@@ -90,6 +90,30 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now(),ta
         pending.delete(workspaceTabId);
     }
   };
+  // Internal-only trusted settings handoff. No runtime message accepts a
+  // caller-supplied source: the service checks the live extension sender first.
+  // The one-use claim and exact original document checks remain unchanged.
+  const openTrustedSource=async (original,hint='')=>{
+    if(disposed)throw fail('E_FILE_CLOSED','入口已关闭');
+    const source=await currentSource(original.tabId,original.documentId);
+    if(source.url!==original.url||source.windowId!==original.windowId)
+      throw fail('E_FILE_SOURCE','原任务来源已变化');
+    if(openings.size>=4||pending.size>=16)throw fail('E_FILE_LIMIT','请先完成已有文件入口');
+    const generation=epoch(source.tabId);
+    const opening=(async()=>{
+      const tab=await api.tabs.create({url:api.runtime.getURL(targetPage),
+        windowId:source.windowId,openerTabId:source.tabId,active:true});
+      if(!Number.isSafeInteger(tab?.id)||tab.windowId!==source.windowId)
+        throw fail('E_FILE_OPEN','未能打开可信文件审阅页');
+      const fresh=await currentSource(source.tabId,source.documentId);
+      if(disposed||generation!==epoch(source.tabId)||fresh.url!==source.url)
+        throw fail('E_FILE_SOURCE','打开期间原对话发生变化');
+      pending.set(tab.id,{source,pathHint:hint,createdAt:clock()});
+      return {opened:true};
+    })();
+    openings.add(opening);
+    try{return await opening;}finally{openings.delete(opening);}
+  };
   const onMessage=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_FILE_INTENT_PROTOCOL||
       !['open','claim'].includes(message.kind))return false;
@@ -99,21 +123,8 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now(),ta
         if(Object.keys(message).some(key=>!['protocol','kind','pathHint'].includes(key)))
           throw fail('E_FILE_SCHEMA','网页入口不能提交任何授权或绑定字段');
         const hint=normalizeChatGPTFileHint(message.pathHint);
-        const source=await pageSender(sender),generation=epoch(source.tabId);
-        if(openings.size>=4||pending.size>=16)throw fail('E_FILE_LIMIT','请先完成已有文件入口');
-        const opening=(async()=>{
-          const tab=await api.tabs.create({url:api.runtime.getURL(targetPage),
-            windowId:source.windowId,openerTabId:source.tabId,active:true});
-          if(!Number.isSafeInteger(tab?.id)||tab.windowId!==source.windowId)
-            throw fail('E_FILE_OPEN','未能打开可信文件工作区');
-          const fresh=await currentSource(source.tabId,source.documentId);
-          if(disposed||generation!==epoch(source.tabId)||fresh.url!==source.url)
-            throw fail('E_FILE_SOURCE','打开工作区期间原会话发生变化');
-          pending.set(tab.id,{source,pathHint:hint,createdAt:clock()});
-          return {opened:true}; // No credential or Native RPC to the page.
-        })();
-        openings.add(opening);
-        try{return await opening;}finally{openings.delete(opening);}
+        const source=await pageSender(sender);
+        return openTrustedSource(source,normalizeChatGPTFileHint(message.pathHint));
       }
       if(Object.keys(message).some(key=>!['protocol','kind'].includes(key)))
         throw fail('E_FILE_SCHEMA','领取请求不接受网页或文件权限参数');
@@ -145,7 +156,7 @@ export function installChatGPTFileIntentGate({api=chrome,clock=()=>Date.now(),ta
   api.webNavigation.onCommitted.addListener(onCommitted);
   api.webNavigation.onHistoryStateUpdated?.addListener(onHistory);
   api.tabs.onRemoved.addListener(onRemoved);
-  return Object.freeze({dispose(){
+  return Object.freeze({openTrustedSource,dispose(){
     if(disposed)return;disposed=true;pending.clear();sourceEpochs.clear();
     api.runtime.onMessage.removeListener(onMessage);
     api.webNavigation.onCommitted.removeListener(onCommitted);

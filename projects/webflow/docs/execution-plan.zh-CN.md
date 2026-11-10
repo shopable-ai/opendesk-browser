@@ -2789,3 +2789,20 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **证据分级**：`SOURCE_IMPLEMENTED=YES`（纯 v2 合同和测试已提交），`COMPONENT_TESTED=10/10`（独立 Node 22，Git blob 一致），`INTEGRATION=NOT_IMPLEMENTED`，`CHROME_NATIVE_VERIFIED=NOT_TESTED`，`PRODUCT_DONE=NOT_TESTED`，`ENGINEERING_SCORE=NOT_SCORED`。不能把数据解析测试当多对话已跑通。
 
 **下一条最小执行动作**：只读核查并行中的 `chatgpt.conversation.create` 是否已有正式可信入口和单次创建回执；若已合入，新增最小 ChatGPT site adapter 并接现有 Bridge/Authority/RunHost 做 A→B→A（一轮 B）实测；若仍未合入，先完成不执行真实网页的 v2 交接 Receipt 与读写对账测试，**不要重复开发新对话按钮/Runner**。测试时必须隔离原 Send Queue 的草稿、IME、附件与 unknown；真实结果基于 conversationId/turnId/Run/Result/唯一交付回执验证。GitHub 初期只读，写入评论须另行明确授权。
+
+---
+
+## 2026-11-11 · 文件任务网页浮窗退役／可信扩展接管（OD-AI-WORKFLOW-BRIDGE）
+
+**用户问题：** ChatGPT 上的「项目文件／打开／×」浮窗污染正常聊天，原浮窗又承担文件任务 Stop、回执和诊断；必须退役页面 UI，不删除其自动监听和文件业务。
+
+**本轮只做的源码差量：**
+- 将 chatgpt-file-intent-page.js 改为 Headless adapter：无网页 DOM/Toast，复用 chatgpt-bridge-page.js 的唯一消息及完整答复发现器。
+- 在原 chatgpt-files-service.js/controller.js 增加可信 project-list / project-status / project-stop / project-review：绑定原 tab/document/project，保留原状态/授权/Native/写入账本，无第二套 Runner。
+- 在原 native-agent/settings.html 加入任务选择、状态/回执、Stop、审阅；Side Panel 只链接已有可信扩展设置页。
+- 原 file-intent-gate.js 复用一次性安全 handoff；旧 diagnosticsVisible 保持兼容但仅属于扩展内折叠诊断。
+- 替换浮窗相关过时断言，保留文件协议、Native SHA、写入回执与跨重启 Stop 栅栏核心回归。其他并行 V2、MD 队列、通用 Toast、安装器 owner 不改。
+
+**分层：** SOURCE = 最新 GitHub 提交待核对；SYNTAX = 源码 V8 解析；NODE_TEST = 只按与提交 SHA 匹配的实际 CI 日志判定；PACKAGE / CHROME / Native / BUSINESS = NOT_TESTED，直到本地真机证据取得。
+
+**Codex 下一步唯一任务：** 基于最新 main 核对增量已落地，执行 WebFlow 文件专属 Node 回归/构建，再在真实 Chrome 用隔离授权项目验收：网页全状态无浮窗、官网自然发送、文件授权/读取/审阅/写入读回、设置页面原任务状态/Stop/撤权/UNKNOWN、关闭与重开侧栏、原网页 Task 回归。任何实测缺陷只修本轮责任范围，不重做其他 owner 工作。

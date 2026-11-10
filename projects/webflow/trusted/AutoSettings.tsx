@@ -623,7 +623,11 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   session?summary:'';
  const listener=<ListenerStatus controller={webflowAuto} bridge={bridge} summary={summary} compact={compact} enabled={snapshot?.enabled}
   onRecords={()=>openTask(bridge.view?.work?.state==='running'||session?.actions?.cancel?'current':'records')} onStop={()=>openTask('stop')}/>;
- if(!compact)return <>{listener}{content}</>;
+ // First-party trusted UI links to its own real Options page; no sandbox bridge.
+ const fileManagerUrl=globalThis.chrome?.runtime?.getURL?.('native-agent/settings.html#chatgpt-files-controls');
+ const fileManagerLink=fileManagerUrl?<a href={fileManagerUrl} target="_blank" rel="noopener noreferrer"
+   id="webflow-file-manager-entry" className="od-note">项目文件：查看原任务、停止或审阅</a>:null;
+ if(!compact)return <>{listener}{fileManagerLink}{content}</>;
 
  const needsAttention=Boolean(session?.pendingAuto||session?.error||receipt?.execution==='unknown'||
   receipt?.delivery==='unknown'||bridge.view?.work?.state==='running');
@@ -662,6 +666,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
       {session?.pendingAuto?'审阅授权':'查看详情'}</Button>}
    </div>}
    {!panelOpen&&feedback}
+   {fileManagerLink}
   </section>
   <WebflowRuntimePanel open={panelOpen} onClose={closePanel}>{content}</WebflowRuntimePanel>
  </>;
