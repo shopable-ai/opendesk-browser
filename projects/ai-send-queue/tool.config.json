@@ -1,6 +1,6 @@
 {
   "id": "ai-send-queue",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "title": "AI 消息发送队列",
   "description": "在 ChatGPT 网页输入框管理发送队列；侧栏检查网页状态并提供使用提示。",
   "capabilities": [
@@ -21,6 +21,6 @@
     "contextMenus": []
   },
   "pageModule": {
-    "revision": 25
+    "revision": 26
   }
 }

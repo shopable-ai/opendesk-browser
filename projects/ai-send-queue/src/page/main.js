@@ -390,7 +390,7 @@ export default async function main({assets}={}) {
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     if(globalThis.OpenDeskAppPage)
-      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.26'});
+      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.27'});
     // One managed capture listener follows native editor replacements.
     // Ctrl+Enter reuses the crown button's guarded enqueue action; plain Enter
     // only falls back to the queue when native sending is unavailable.
