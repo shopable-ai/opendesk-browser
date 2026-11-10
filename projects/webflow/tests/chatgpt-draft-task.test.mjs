@@ -16,7 +16,7 @@ function harness({url='https://chatgpt.com/',draft='',attachments=0,users=0,stop
   const state={url,content:draft,fillCalls:0,selectors:[],params:null};
   const editor={
     count:async()=>inputCount,isVisible:async()=>visible,
-    innerText:async()=>readback===undefined?state.content:readback,
+    innerText:async()=>readback===undefined||state.fillCalls===0?state.content:readback,
     fill:async value=>{state.fillCalls++;state.content=value;}
   };
   const page={url:async()=>state.url,locator(selector){
