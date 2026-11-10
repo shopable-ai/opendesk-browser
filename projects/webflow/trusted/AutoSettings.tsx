@@ -34,10 +34,10 @@ export type WebflowAutoController={
 // Fixed shell composition only. Display facts come from the installed-tool
 // controller, not from the sandbox or its navigation messages. This exposes
 // no authority to the package, including a package reusing the Web Flow ID.
-export function WebflowAutoControls({webflowAuto,display,visible=true}){
+export function WebflowAutoControls({webflowAuto,display,visible=true,noticeView=null}){
  if(!visible||display?.hidden!==false||display.data?.toolId!=='webflow'||
   display.data.enabled!==true||display.data.preview!==false||display.data.settingsOpen!==false||!webflowAuto)return null;
- return <WebflowAutoSettings compact webflowAuto={webflowAuto}/>;
+ return <WebflowAutoSettings compact webflowAuto={webflowAuto} noticeView={noticeView}/>;
 }
 
 function initialValue(schema:ParamsSchema={},depth=0):unknown{
@@ -276,7 +276,7 @@ function ListenerStatus({controller,bridge,onRecords,onStop,enabled,summary='',c
  </section>;
 }
 
-export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAuto?:WebflowAutoController|null;compact?:boolean}){
+export function WebflowAutoSettings({webflowAuto=null,compact=false,noticeView=null}:{webflowAuto?:WebflowAutoController|null;compact?:boolean;noticeView?:any}){
  const bridge=useWebflowBridgeState(webflowAuto);
  const [panelOpen,setPanelOpen]=React.useState(false);
  const [taskFocus,setTaskFocus]=React.useState<string|null>(null);
@@ -499,7 +499,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   {(compact||panelOpen)&&<div ref={taskPanel} id="webflow-runtime-task" role={compact?'tabpanel':undefined} aria-labelledby={compact?'webflow-runtime-tab-task':undefined}
    hidden={compact&&tab!=='task'} tabIndex={0}>
    {webflowAuto?.readBridgeState?
-    <WebflowCurrentTask bridge={bridge} controller={webflowAuto} tasks={snapshot?.tasks} onSummary={setSummary} onAuthorizationChange={refresh}/>:
+    <WebflowCurrentTask bridge={bridge} controller={webflowAuto} tasks={snapshot?.tasks} onSummary={setSummary} onAuthorizationChange={refresh} noticeView={noticeView}/>:
     <p role="status" className="od-note">当前任务状态暂不可用，请在原聊天查看。</p>}
    {compact&&<ListenerStatus controller={webflowAuto} bridge={bridge} summary={summary} compact enabled={snapshot?.enabled}
     onRecords={()=>openTask(bridge.view?.work?.state==='running'||bridge.view?.session?.actions?.cancel?'current':'records')}
