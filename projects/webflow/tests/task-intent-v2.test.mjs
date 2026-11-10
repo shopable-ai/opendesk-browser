@@ -63,12 +63,17 @@ test('wrong Origin, changed install, absent binding and incomplete args fail clo
     {code:'E_WEBFLOW_V2_SCHEMA'});
 });
 
-test('pinned ChatGPT draft refuses send:true and implicit default at V2 binding',async()=>{
+test('pinned ChatGPT draft refuses send:true and normalizes omitted send to false',async()=>{
   const f=await fixture('chatgpt.conversation.create');
   for(const args of [{prompt:'Hello',send:true},{prompt:'Hello',send:'false'},
-    {prompt:'Hello',send:false,unknownField:'x'},{prompt:'Hello'}]){
+    {prompt:'Hello',send:false,unknownField:'x'}]){
     const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
       taskId:'chatgpt.conversation.create',args}));
     assert.throws(()=>resolveWebFlowV2FixedTarget({intent,...f}),{code:'E_WEBFLOW_V2_SCHEMA'});
   }
+  const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
+    taskId:'chatgpt.conversation.create',args:{prompt:'Hello B'}}));
+  const resolved=resolveWebFlowV2FixedTarget({intent,...f});
+  assert.equal(resolved.args.send,false);
+  assert.equal(resolved.args.prompt,'Hello B');
 });
