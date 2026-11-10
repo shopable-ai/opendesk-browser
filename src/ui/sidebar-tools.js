@@ -415,9 +415,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let noticeProjection=null;
   const notice=(message,problem=false,project=null)=>{
     if(disposed)return;
+    const changed=message!==status.textContent||status.attributes['data-state']!=='error';
     noticeProjection=typeof project==='function'?project:null;
     patchToolField(view, status, {textContent: message});setToolFieldAttribute(view, status, 'data-state', problem?'error':'info');
     patchToolField(view, status, {hidden: !message});
+    // Keep the actionable record, and make a new error visible without making
+    // the user scroll to the end of the extension list to discover it.
+    if(message&&problem&&changed&&visible)view.showToast(message,{type:'error',position:'bottom-center'});
+  };
+  const successNotice=(message,caption='')=>{
+    if(disposed||!visible)return;
+    // A success for one operation cannot erase an unrelated persistent error.
+    if(status.attributes['data-state']!=='error')notice('');
+    view.showToast(message,{type:'success',caption,position:'bottom-center'});
   };
   const refreshNoticeLanguage=()=>{
     if(!disposed&&noticeProjection)patchToolField(view,status,{textContent:noticeProjection()});
@@ -4795,14 +4805,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw Object.assign(new Error('两份安装之间网页身份已变化，请核对部分状态'),{code:'E_QUEUE_PARTIAL'});
         showPageInstallReceipt(pkg,finalPage);
         setImportOpen(false);
-        notice('联合安装记录已读回：侧栏 v'+product.tool.version+'；网页 v'+pkg.version+'（r'+pkg.revision+'）。'+
-          (finalPage.enabled?'打开或刷新 ChatGPT 后核对网页队列。':'网页原有停用状态已保留，可在产品详情恢复。'));
+        successNotice('已安装「'+product.tool.title+'」',
+          '联合安装记录已读回：侧栏 v'+product.tool.version+'；网页 v'+pkg.version+'（r'+pkg.revision+'）。'+
+          (finalPage.enabled?'打开或刷新目标网页即可使用。':'网页原有停用状态已保留，可在产品详情恢复。'));
         return;
       }
       showPageInstallReceipt(pkg,recorded);
       setImportOpen(false,{returnToCaller:true});
-      notice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version+
-        (recorded.enabled?'；打开或刷新目标网页即可使用。':'；原有停用状态已保留。'));
+      successNotice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version,
+        recorded.enabled?'打开或刷新目标网页即可使用。':'原有停用状态已保留。');
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       patchToolField(view, installButton, {disabled:true});
@@ -4908,10 +4919,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   async function install({keepReview=false,permission=null}={}) {
     if(!canCommitReview({withinProduct:keepReview})||(!keepReview&&installButton.disabled))return;
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
-    let accepted=null,officialTocInstalled=false;
+    let accepted=null,officialTocInstalled=false,updating=false;
     try{
       if(permission)await permission;
       const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
+      updating=Boolean(baseline);
       await assertSidebarToolRuntime(api);
       requireToolRuntime(candidate); // Revalidate before committing reviewed bytes.
       const release=pendingRelease,operationId=pendingOperationId;
@@ -4984,9 +4996,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!accepted||disposed)return;
     if(keepReview)return accepted;
     setImportOpen(false);render();focusToolInList(accepted.id);
-    notice(officialTocInstalled?
-      '阅读目录已安装。符合条件的网页自动显示目录，无需再启用或逐站授权；“打开”仅查看侧边栏目录。':
-      '已安装「'+accepted.title+'」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。');
+    successNotice((updating?'已更新':'已安装')+'「'+accepted.title+'」',
+      !sidebarToolEnabled(enableRecords,accepted.id)?'原有停用状态已保留，可在应用设置中恢复。':
+      officialTocInstalled?'符合条件的网页会自动显示目录。':'可直接打开使用。');
   }
   async function remove(id=active?.id,{confirmed=false,externalBaseline=null}={}) {
     if(pendingAction)return false;
@@ -5035,7 +5047,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Only this tool ID, only while no installed package owns the ID.
         // If cleanup fails, the recovery marker is intentionally retained.
         await cleanupUninstalledToolLocked(api,item.id,{pageClient:foundationClient});
-        notice('已卸载「'+item.title+'」，本地数据已清理。');
+        successNotice('已卸载「'+item.title+'」','本地数据已清理。');
 
       }));
     }finally{
@@ -5063,7 +5075,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     busy=true;render();
     try{
       const result=await retryUninstalledToolCleanup({api,lockManager,id,pageClient:foundationClient});
-      if(result.state==='cleaned')notice('卸载清理已确认完成；重新安装仍需审阅。');
+      if(result.state==='cleaned')successNotice('卸载清理已完成','重新安装仍需审阅。');
       else notice('卸载恢复状态：'+result.state,true);
       return result;
     }finally{busy=false;render();}
@@ -5485,7 +5497,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
         }
         await Promise.all([loadEnableRecords(),loadInstalled()]);
-        notice(enabled?(id===READING_TOC_TOOL_ID?
+        successNotice(enabled?(id===READING_TOC_TOOL_ID?
           '阅读目录已恢复；符合条件的网页会自动显示目录。':
           '应用已恢复使用；可按需打开界面。'):'已停用；数据和授权保留');
         return true;
@@ -5539,11 +5551,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
   listen(actionContinue,'click',event=>{void applyActionReview(event).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));});
-  listen(actionCancel,'click',event=>{cancelActionReview(event?.reason==='escape'?'escape':'user');view.showToast('已取消，原内容仍保留。');});
+  listen(actionCancel,'click',event=>{cancelActionReview(event?.reason==='escape'?'escape':'user');view.showToast('已取消，原内容仍保留。',{position:'bottom-center'});});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{
-    cancelRemovalReview();view.showToast('已取消卸载。');
+    cancelRemovalReview();view.showToast('已取消卸载。',{position:'bottom-center'});
     requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));

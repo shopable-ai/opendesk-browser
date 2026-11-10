@@ -115,7 +115,15 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
   catch(error){setCommandError(error?.message||'原执行页切换结果未知；不会重试激活。');}
   finally{setViewingRun('');}
  };
- const session=view?.session,receipt=view?.receipt;
+ const session=view?.session;
+ // The Host receipt is correlated to this request; the page session can lag
+ // behind a durable Run. Neither an allocated ID nor completion proves a Result.
+ const receipt=view?.receipt&&(!view.receipt.requestId||view.receipt.requestId===session?.requestId)?view.receipt:null;
+ const runId=(receipt?receipt.runId:session?.runId)??null;
+ const resultId=(receipt?receipt.resultId:session?.resultId)??null;
+ const unstarted=receipt?.execution==='not-started'&&!runId&&!resultId&&receipt?.release==='not-started';
+ const execution=receipt?.execution==='not-started'&&!unstarted?'unknown':receipt?.execution;
+ const pendingReview=session?.pendingAuto&&(!receipt||unstarted);
  const backgroundRun=view?.history?.find(row=>row.requestId===session?.requestId&&
   row?.receipt?.execution==='running'&&row.receipt?.runId&&row.status==='consumed'&&
   row.source?.tabId===view.source?.tabId&&row.source?.documentId===view.source?.documentId&&
@@ -126,11 +134,12 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const v2Pending=session?.pendingAuto?.protocol==='webflow.task.intent.v2';
  const chatgptDraftPending=v2Pending&&session?.pendingAuto?.scope?.taskId==='chatgpt.conversation.create';
  const options=!v2Pending&&session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
- const executionLabel={validating:'核验中',starting:'正在启动',completed:'已完成',running:'执行中',failed:'执行失败',stopped:'已停止',unknown:'结果未知'};
+ const executionLabel={'not-started':'尚未执行',validating:'核验中',preparing:'准备中',starting:'正在启动',completed:'已完成',running:'执行中',stopping:'正在停止',failed:'执行失败',stopped:'已停止',paused_unknown:'已暂停，结果未知（UNKNOWN），请核对原请求',unknown:'结果未知（UNKNOWN），请核对原请求'};
+ const currentStatus=receipt&&!unstarted?(executionLabel[execution]||'任务状态未知（UNKNOWN），请核对原请求'):session?.status;
  React.useEffect(()=>{
   onSummary?.(error?'任务状态未确认，请打开运行与授权查看':
-   session?.status||(!view?'正在读取任务状态…':noSessionTitle));
- },[session?.status,session?.error,session?.requestId,Boolean(view),error,noSessionTitle,onSummary]);
+   currentStatus||(!view?'正在读取任务状态…':noSessionTitle));
+ },[currentStatus,session?.error,session?.requestId,Boolean(view),error,noSessionTitle,onSummary]);
  const labels={'prepare':'建立请求','approve-once':'批准本次自动执行','run':'执行本次任务',
   'cancel':'停止/取消原请求','adopt':'采用对话任务','view':'查看执行页面','preapprove':'预批准一次 · 5 分钟'};
  const action=name=><Button key={name} data-webflow-action={name} variant={name==='cancel'?'danger':name==='run'?'primary':'secondary'}
@@ -152,8 +161,8 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    <p className="od-note">状态未知时可先关闭自动运行或撤销该任务批准，再核对原 Run / Result 与目标网站的实际结果；不要重复发送旧指令。</p>
    {view.history.map(row=><div key={row.requestId} className="od-stack">
     <p className="od-note">{row.scope.taskId} · {new Date(row.createdAt).toLocaleString()} ·
-     {executionLabel[row.receipt.execution]||'结果未知，请核对原记录'} ·
-     {row.receipt.delivery==='confirmed'?'原聊天交付已确认':row.receipt.delivery==='unknown'?'回传未知，禁止补发':'尚未确认交付'}</p>
+     {row.pendingAuto&&row.status==='prepared'&&row.receipt.execution==='not-started'?'未批准 · 尚未执行':executionLabel[row.receipt.execution]||'结果未知，请核对原记录'} ·
+     {row.receipt.delivery==='confirmed'?'原聊天交付已确认':row.receipt.delivery==='unknown'?'回传未知，禁止补发':row.receipt.delivery==='not-sent'?'尚未发送':'尚未确认交付'}</p>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(row,null,2)}</pre>
    </div>)}
   </details>}
@@ -167,7 +176,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      <p className="od-note" style={{overflowWrap:'anywhere',margin:0}}>{session.url}</p>
     </div>
     <p data-webflow-current-status tabIndex={-1} role="status" className={session.error?'od-field-error':'od-body'}
-     style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{session.status}</p>
+     style={{whiteSpace:'pre-wrap',margin:0,lineHeight:1.65}}>{currentStatus}</p>
     {backgroundRun&&controller?.activateBackgroundRun&&<Button variant="secondary"
      data-webflow-action="activate-background-run" disabled={Boolean(viewingRun)}
      onClick={event=>void showBackgroundRun(backgroundRun,event.nativeEvent)}>
@@ -175,7 +184,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     </Button>}
    </div>
    {session.selection&&<p className="od-body" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{session.selection}</p>}
-   {session.pendingAuto&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">
+   {pendingReview&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">
     <strong>待批准 · 尚未执行</strong>
     <p className="od-note">{v2Pending?
      'V2 每条候选必须在可信侧栏独立批准一次，绝不沿用 V1 任务授权，也不会保存长期通配许可。':
@@ -202,10 +211,12 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    {session.viewStatus&&<p role="status" className="od-note">{session.viewStatus}</p>}
    {receipt&&<div className="od-stack" aria-label="同次运行回执">
     <dl className="od-body" style={{display:'grid',gridTemplateColumns:'auto minmax(0,1fr)',gap:'var(--space-2)',margin:0,overflowWrap:'anywhere'}}>
-     <dt>脚本执行</dt><dd>{executionLabel[receipt.execution]||'状态待核查'}</dd>
+     <dt>脚本执行</dt><dd>{executionLabel[execution]||'状态待核查'}</dd>
+     <dt>执行资源</dt><dd>{runId?'已创建 Run':unstarted?'未创建执行资源':'创建状态未知，请查询原请求'}</dd>
+     <dt>结果 ID</dt><dd>{resultId?`${receipt.persistence==='verified'?'已核实':'预留，尚未核实持久 Result'}：${resultId}`:'尚未确认'}</dd>
      <dt>持久结果</dt><dd>{receipt.persistence==='verified'?'已核实同一 Run / Result':'尚未核实'}</dd>
-     <dt>资源释放</dt><dd>{receipt.release==='released'?'已释放':receipt.release==='unknown'?'未知，请查询原请求':'尚未确认'}</dd>
-     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知，请查询原请求':receipt.delivery==='submitted'?'已提交，等待原聊天确认':'尚未发送'}</dd>
+     <dt>资源释放</dt><dd>{receipt.release==='released'?'已释放':unstarted?'未创建执行资源':['unknown','not-started'].includes(receipt.release)?'未知，请查询原请求':'尚未确认'}</dd>
+     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知，请查询原请求':receipt.delivery==='submitted'?'已提交，等待原聊天确认':receipt.delivery==='not-sent'?'尚未发送':'交付状态未知，请查询原请求'}</dd>
      <dt>AI 续答</dt><dd>{receipt.aiReplyObserved===true?'已观察到新回复':receipt.aiReplyObserved===false?'尚未观察到新回复':'尚未确认'}</dd>
     </dl>
     {receipt.error&&<p role="alert" className="od-field-error">{receipt.error.code}：{receipt.error.message}</p>}
@@ -213,8 +224,8 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxHeight:300,overflow:'auto'}}>{JSON.stringify(receipt.value,null,2)}</pre></details>}
    </div>}
    {session.requestId&&<details className="od-disclosure od-disclosure--flat"><summary>本次身份</summary>
-    <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify({candidateId:session.candidateId,
-     requestId:session.requestId,runId:session.runId,resultId:session.resultId},null,2)}</pre></details>}
+    <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify({candidateId:receipt?.candidateId??session.candidateId,
+     requestId:session.requestId,runId,resultId},null,2)}</pre></details>}
    <details className="od-disclosure od-disclosure--flat"><summary>手动与一次批准</summary>
     <div className="od-stack">
      <p className="od-field-help">已批准的自动任务无需操作本区。建立请求只填入空草稿，仍需在 ChatGPT 亲自发送；未知结果仅查询或停止原请求。</p>

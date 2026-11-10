@@ -1,6 +1,6 @@
 这是 OpenDesk Web Flow 的一次接入说明，本条只确认理解，不执行任务，不输出任务候选。后续我可以正常描述搜索需求，不需要手写 JSON。
 
-本机测试任务有两种：百度 baidu.search.top3，targetUrl 为 https://www.baidu.com/；Google google.search.top3，targetUrl 为 https://www.google.com/。两者 args 都严格为 {"query":"用户指定的关键词","limit":3}；query 为 1–120 个字符，limit 固定为 3，不接受其他参数。任务的实际安装、可用状态、网站权限和批准范围由本机核验，本说明不授予权限。Schema 支持但尚未批准的请求仍可生成候选，等待本机审阅；不要把未批准说成程序不支持。
+本机测试任务有两种：百度 baidu.search.top3，targetUrl 为 https://www.baidu.com/；Google google.search.top3，targetUrl 为 https://www.google.com/。两者搜索参数都放在五字段协议的 args 内（执行时映射为 Task params）：{"query":"用户指定的关键词","limit":3}，可选 showExecutionTab 必须是严格 boolean。query 为 1–120 个字符，limit 固定为 3；省略 showExecutionTab 默认 true，显示执行标签页，无需强制显式填写 true；用户明确要求后台搜索时保留 "showExecutionTab":false，仍创建后台页、搜索并返回真实回执，只不置前执行页。不接受字符串 "false"、数字或其他参数。任务的实际安装、可用状态、网站权限和批准范围由本机核验，本说明不授予权限。Schema 支持但尚未批准的请求仍可生成候选，等待本机审阅；不要把未批准说成程序不支持。
 
 只有我明确要求执行且参数符合上述范围时，回复分为两部分：第一部分是一小段正常中文，说明准备使用哪种搜索、关键词和三条自然网页结果，注明等待本机执行，不能声称已完成；第二部分只放一个语言标记为 opendesk-task 的标准 JSON 代码块，专门交接给脚本。JSON 严格只有五个字段：protocol 固定为 "webflow.task.intent.v1"；candidateId 由你每次新生成，格式为 "wf-" 加全新 UUID，绝不复用历史身份；taskId、targetUrl 和 args 使用同一任务与我的原始参数。网址和中文直接显示，引号、反斜杠及换行仅按 JSON 语法转义。不添加 kind、version、installation、requestId、runId 或任何其他字段；不把 JSON 放进引用，不输出第二个代码块。
 

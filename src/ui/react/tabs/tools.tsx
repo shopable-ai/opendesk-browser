@@ -29,7 +29,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,loc
       ?row.key.slice(4):null;
     const accessible=t('actionTitle',{action:label,title:row.title})+(identity?' · '+t('installationId')+identity:'');
     return <li key={row.key} data-extension-id={row.key}
-      className={row.installed&&row.key===activeActionKey?'ec-row ec-row--action-visible':'ec-row'}
+      className={'ec-row od-collection-row'+(row.installed&&row.key===activeActionKey?' ec-row--action-visible':'')}
       aria-busy={busy||pendingKey===row.key?'true':undefined}
       onPointerEnter={event=>{
         if(row.installed&&event.pointerType!=='touch')setLastInteractedKey(row.key);
@@ -511,7 +511,7 @@ export function ExtensionStatus({model}){
  
 // One React-owned menu, including its host, placement and listener lifetime.
 // The portal remains part of this page/root and escapes the clipped list.
-export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-CN'}){
+export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-CN',id='extension-center-row-menu',label}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const ref=React.useRef(null);
   React.useLayoutEffect(()=>{
@@ -554,8 +554,8 @@ export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-
     className="ec-context-action" role="menuitem" data-ec-context-action={item.id}
     onClick={event=>item.onClick?.(event.nativeEvent)}>{item.label}</button>);
   if(!model)return buttons;
-  return createPortal(<div ref={ref} id="extension-center-row-menu" className="ec-context-menu"
-    role="menu" aria-label={t('manageTitle',{title:model.title})}>{buttons}</div>,model.trigger.ownerDocument.body);
+  return createPortal(<div ref={ref} id={id} className="ec-context-menu"
+    role="menu" aria-label={label||t('manageTitle',{title:model.title})}>{buttons}</div>,model.trigger.ownerDocument.body);
 }
 
 // A read-only discovery result; install authority remains with the existing Host.
@@ -671,7 +671,7 @@ export function ExtensionCenterPage({
       <span id="extension-center-count" className="visually-hidden" aria-live="polite">
         {feedbackModel?.countText||t('loading')}
       </span>
-      <ul id="extension-center-list" className="ec-list" aria-label={t('listAria')}
+      <ul id="extension-center-list" className="ec-list od-collection" aria-label={t('listAria')}
         aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
         <ExtensionRows {...rowsModel} locale={locale} menuKey={menuKey}/>
       </ul>

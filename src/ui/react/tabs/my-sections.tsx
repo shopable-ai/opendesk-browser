@@ -1,24 +1,53 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
+import {Button} from '../components/ui/button.tsx';
 import {presentSchedulePlan,formatScheduleTime,scheduleFireLabel} from '../../schedule-plan-presentation.js';
 import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 
 export function MyTaskParams({view}){
   return (view.data.taskParams||[]).map(({name,rule,required})=>{
     const id='task-param-'+name,help=rule.description?id+'-help':undefined;
-    return <React.Fragment key={name}>
-      <label htmlFor={id}>{rule.title||name}{required?' *':''}</label>
+    const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
+    const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
+    const multiline=rule.type==='string'&&(rule.maxLength??1024)>160;
+    const error=field.error,describedBy=[help,toggle?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
+    const clearError=()=>{
+      const field=view.field(id),status=view.field('task-status');
+      field.omitted=false;
+      if(field.error){
+        // Clear only the summary belonging to this corrected field. Other
+        // validation errors and permission/run receipts keep their owners.
+        if(status.text&&field.error.endsWith(status.text))status.text='';
+        field.error='';view.publish();
+      }
+    };
+    return <div key={name} className="od-form-field task-param-field">
+      <div className={'od-input-group task-param-control'+(toggle?' task-param-control--check':'')}>
+      <label className="od-field-label" htmlFor={id}>{rule.title||name}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>
       {rule.enum?<MyControl view={view} as="select" id={id} className="od-field"
-        data-task-param={name} data-task-type={rule.type} aria-describedby={help}>
+        name={name} data-task-param={name} data-task-type={rule.type} aria-required={required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
+        onChange={clearError}>
         {!required&&rule.default===undefined&&<option value="">（不填写）</option>}
         {rule.enum.map(value=><option key={String(value)} value={String(value)}>{String(value)}</option>)}
-      </MyControl>:<MyControl view={view} as="input" id={id} className="od-field"
-        data-task-param={name} data-task-type={rule.type} aria-describedby={help}
+      </MyControl>:toggle?<span className="task-param-toggle">
+        <span id={id+'-state'} className="task-param-toggle-state">{field.omitted?'未填写':field.checked?'是':'否'}</span>
+        <MyControl view={view} as="input" controlBase="switch" id={id} name={name} type="checkbox"
+          data-task-param={name} data-task-type="boolean" aria-label={rule.title||name}
+          aria-required={required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
+          onChange={()=>{clearError();view.actions.taskParamsFormChange?.();}}/>
+        {optionalToggle&&!field.omitted&&<Button variant="quiet" disabled={field.disabled}
+          className="task-param-clear" aria-label={'不填写'+(rule.title||name)} onClick={()=>{
+            clearError();field.omitted=true;field.checked=false;view.publish();view.actions.taskParamsFormChange?.();
+          }}>清除</Button>}
+      </span>:<MyControl view={view} controlBase="aria" as={multiline?'textarea':'input'} id={id} name={name} className="od-field"
+        data-task-param={name} data-task-type={rule.type} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
-        min={rule.minimum} max={rule.maximum} required={rule.type==='boolean'?undefined:required}/>}
-      {help&&<p id={help} className="hint">{rule.description}</p>}
-    </React.Fragment>;
+        min={rule.minimum} max={rule.maximum} rows={multiline?3:undefined} required={required}/>}
+      </div>
+      {help&&<p id={help} className="od-field-help">{rule.description}</p>}
+      {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}
+    </div>;
   });
 }
 

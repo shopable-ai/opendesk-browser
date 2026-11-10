@@ -1,6 +1,7 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {load} from 'cheerio';
 import {composeExtensionEntries,filterExtensionEntries} from '../../src/ui/extension-center-model.js';
 const tool={id:'shared',title:'阅读目录',description:'目录',version:'1.0.0'};
 const page={programId:'shared',manifestHash:'verified',installed:{programId:'shared',manifestHash:'verified',
@@ -122,7 +123,7 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
     readFile('src/ui/extension-center.js','utf8'),
     readFile('src/ui/tool-shell.js','utf8')
   ]);
-  assert.match(html,/id="extension-center-list" class="ec-list"/);
+  assert.ok(load(html)('#extension-center-list').hasClass('ec-list'));
   assert.match(html,/id="extension-center-menu"/);
   assert.match(html,/id="extension-center-import-host"/);
   assert.match(html,/id="task-search-panel" class="task-search-panel" hidden/);
@@ -138,8 +139,8 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
   assert.match(center,/detailFocusAction=inDetail\?'toggle':null/,'Page switch can restore focus after async authority update');
   assert.match(css,/@media\(max-width:240px\)/,'200 percent zoom retains wrapped controls');
   assert.match(css,/\.ec-name-line\{flex-wrap:wrap/);
-  assert.match(css,/@media\(max-width:240px\)\{[\s\S]*?\.ec-row-actions\{top:auto;right:6px;bottom:6px;transform:none\}/,
-    'narrow index moves floating actions below the copy instead of reserving a column');
+  assert.match(css,/@media\(max-width:240px\)\{[\s\S]*?\.ec-toolbar\{flex-wrap:wrap\}/,
+    'narrow index wraps toolbar controls instead of overflowing the page');
 });
 
 test('R4 webpage enable path delegates to original user-gesture permission and installed Page authority',async()=>{

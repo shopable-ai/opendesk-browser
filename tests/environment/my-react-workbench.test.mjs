@@ -25,9 +25,20 @@ test.before(async()=>{
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
-async function fixture({twoTasks=false}={}){
+async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   const {document:doc,window}=parseHTML('<html><body><nav class="workbench-nav"></nav><div id="outside"></div><div id="mount"></div></body></html>');
+  // Advertise the input events used by this fixture so React does not select
+  // its legacy IE key-event value tracker (not implemented by linkedom).
+  doc.oninput=null;
+  // linkedom has no native dialog lifecycle. Simulate open/close only, not
+  // Chromium's top layer, focus restoration or inert background.
+  const dialogPrototype=Object.getPrototypeOf(doc.createElement('dialog'));
+  Object.defineProperty(dialogPrototype,'open',{configurable:true,
+    get(){return this.hasAttribute('open');},set(value){this.toggleAttribute('open',Boolean(value));}});
+  dialogPrototype.showModal=function(){this.open=true;};
+  dialogPrototype.close=function(){if(!this.open)return;this.open=false;this.dispatchEvent(new window.Event('close'));};
   globalThis.window=window;globalThis.document=doc;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  globalThis.HTMLElement=window.HTMLElement;globalThis.SVGElement=window.SVGElement;
   globalThis.Option=function(label,value){const option=doc.createElement('option');option.textContent=label;option.value=value;return option;};
   const outside=doc.getElementById('outside');
   for(const file of ['src/ui/task-workbench.js','src/ui/scheduled-task-workbench.js']){
@@ -45,15 +56,15 @@ async function fixture({twoTasks=false}={}){
   const manifestHash='a'.repeat(64),sourceHash='b'.repeat(64);
   const manifest={taskId:'test.task',version:'1.0.0',title:'已验证任务',description:'用于参数和停止验证',author:'OpenDesk',source:'local',
     siteOrigins:['https://example.com'],permissions:['page.automation'],program:{sourceHash},
-    paramsSchema:{type:'object',properties:{name:{type:'string',title:'名称',default:'Alice',minLength:1,maxLength:40},
+    paramsSchema:paramsSchema??{type:'object',properties:{name:{type:'string',title:'名称',default:'Alice',minLength:1,maxLength:40},
       count:{type:'integer',title:'次数',default:2},accept:{type:'boolean',title:'确认',default:true},
       mode:{type:'string',title:'模式',enum:['a','b'],default:'a'}},required:['name'],additionalProperties:false}};
   const installed={taskId:manifest.taskId,version:manifest.version,scriptId:'task:test.task:1.0.0',enabled:true,manifestHash,
     installationId:'11111111-1111-4111-8111-111111111111',generation:1};
   const candidate={...installed,manifest,stage:'available',installed:true};
   const state={catalog:[candidate],installed:[installed],plans:[],runs:[],results:[],calls:[],starts:[],stops:[],
-    changeResolved:false,failHistory:false,unknownSave:false,pendingPermission:null};
-  if(twoTasks){state.catalog.push({...candidate,taskId:'other.task',manifest:{...manifest,taskId:'other.task',title:'第二任务'}});
+    changeResolved:false,failHistory:false,unknownSave:false,pendingPermission:null,permissionCalls:[]};
+  if(twoTasks){state.catalog.push({...candidate,taskId:'other.task',manifest:{...manifest,taskId:'other.task',title:'第二任务',paramsSchema:otherParamsSchema??manifest.paramsSchema}});
     state.installed.push({...installed,taskId:'other.task',scriptId:'task:other.task:1.0.0',installationId:'22222222-2222-4222-8222-222222222222'});}
   const runSubscribers=new Set(),pageSubscribers=new Set(),installedSubscribers=new Set(),connectionSubscribers=new Set();
   let runId=null,resolveCompletion;
@@ -103,7 +114,8 @@ async function fixture({twoTasks=false}={}){
   const currentPageTarget={snapshot,ready:Promise.resolve(),capture:()=>({...snapshot}),revalidate:async()=>{},
     subscribe(fn){pageSubscribers.add(fn);return ()=>pageSubscribers.delete(fn);}};
   const permissionAdded=new Set(),permissionRemoved=new Set();
-  const api={permissions:{contains:async()=>state.pendingPermission?await state.pendingPermission:true,request:async()=>true,
+  const api={permissions:{contains:async input=>{state.permissionCalls.push({action:'contains',input});return state.pendingPermission?await state.pendingPermission:true;},
+    request:async input=>{state.permissionCalls.push({action:'request',input});return true;},
     onAdded:{addListener:fn=>permissionAdded.add(fn),removeListener:fn=>permissionAdded.delete(fn)},
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
     runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
@@ -120,7 +132,13 @@ async function fixture({twoTasks=false}={}){
     await React.act(async()=>root.render(React.createElement(MyTasksPage,{view})));
     return root;
   };
-  return {state,host,view,workbench,scheduler,doc,dispatch,input,mount,
+  const fire=async(node,type,properties={})=>{
+    const event=new window.Event(type,{bubbles:true,cancelable:true});
+    Object.defineProperties(event,Object.fromEntries(Object.entries({isTrusted:false,...properties}).map(([key,value])=>[key,{value}])));
+    await React.act(async()=>{node.dispatchEvent(event);await tick();});
+    return event;
+  };
+  return {state,host,view,workbench,scheduler,doc,dispatch,input,mount,fire,
     counts:()=>[runSubscribers.size,pageSubscribers.size,installedSubscribers.size,connectionSubscribers.size,permissionAdded.size,permissionRemoved.size],
     dispose(){scheduler.dispose();workbench.dispose();}};
 }
@@ -131,6 +149,389 @@ async function fillPlan(f,title='每天任务'){
   await f.input('schedule-target','https://example.com/form');await f.input('schedule-kind','daily','change');
   await f.input('schedule-clock','09:00','change');
 }
+
+test('row parameter action selects its own task, opens the one Sheet and retains other drafts without running',async()=>{
+  const f=await fixture({twoTasks:true});let root;
+  try{
+    root=await f.mount();
+    const rows=[...f.doc.querySelectorAll('.task-card-group')];
+    assert.equal(rows.filter(row=>row.classList.contains('task-card-group--action-visible')).length,1);
+    assert.equal(rows[0].querySelector('.task-card-manage').getAttribute('aria-haspopup'),'menu');
+    await f.fire(rows[0].querySelector('.task-card-run'),'click');
+    assert.equal(f.doc.getElementById('task-param-name').getAttribute('data-slot'),'input');
+    assert.equal(f.doc.getElementById('task-params-json').getAttribute('data-slot'),'textarea');
+    await f.input('task-param-name','任务一草稿');
+    await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
+    await f.fire(rows[1].querySelector('.task-card-run'),'click');
+    assert.equal(f.view.data.taskRows.selectedId,'other.task');
+    assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
+    assert.equal(f.doc.getElementById('task-param-name').value,'Alice');
+    await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
+    await f.fire(rows[0].querySelector('.task-card-run'),'click');
+    assert.equal(f.doc.getElementById('task-param-name').value,'任务一草稿');
+    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
+  const f=await fixture({twoTasks:true});let root;
+  try{
+    root=await f.mount();
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    const json=f.doc.getElementById('task-params-json');
+    assert.deepEqual(JSON.parse(json.value),{name:'Alice',count:2,accept:true,mode:'a'});
+    await f.input('task-params-json','{"name":"JSON 草稿","count":4,"accept":false,"mode":"b"}');
+    await React.act(async()=>f.view.data.taskRows.onSelect('other.task'));
+    assert.equal(f.view.data.taskParamsMode,'form');
+    await React.act(async()=>f.view.data.taskRows.onSelect('test.task'));
+    assert.equal(f.view.data.taskParamsMode,'json');
+    assert.equal(f.doc.getElementById('task-params-json'),json);
+    assert.equal(JSON.parse(json.value).name,'JSON 草稿');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(f.doc.getElementById('task-param-count').value,'4');
+    assert.equal(f.view.field('task-param-accept').checked,false);
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),true);await tick();});
+    assert.deepEqual(f.state.starts[0].params,{name:'JSON 草稿',count:4,accept:false,mode:'b'});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const invalid of ['{','[]','{"name":"ok","count":1.5}','{"name":"ok","unknown":true}']){
+  test(`invalid JSON parameters cannot request permission or start: ${invalid}`,async()=>{
+    const f=await fixture();let root;
+    try{
+      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+      await f.input('task-params-json',invalid);
+      await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
+      assert.equal(f.doc.getElementById('task-params-json').getAttribute('aria-invalid'),'true');
+      assert.ok(f.doc.getElementById('task-params-json-error').textContent.trim());
+      await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+      assert.equal(f.view.data.taskParamsMode,'json','invalid JSON draft is retained, never replaced by older form data');
+      assert.equal(f.view.field('task-params-json').value,invalid);
+      assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
+      assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
+    }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+}
+
+test('JSON omission remains omitted on switching to form until that field is edited',async()=>{
+  const f=await fixture({paramsSchema:{type:'object',properties:{name:{type:'string',title:'名称'},accept:{type:'boolean',title:'确认'}},required:['name'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();await f.input('task-param-name','可运行');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    await f.input('task-params-json','{"name":"只提供名称"}');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    await React.act(async()=>{f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
+    assert.deepEqual(f.state.starts[0].params,{name:'只提供名称'});
+    await React.act(async()=>{f.host.finish();await tick();});
+    const accept=f.doc.getElementById('task-param-accept');accept.checked=true;await f.fire(accept,'click');
+    await React.act(async()=>{f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
+    assert.deepEqual(f.state.starts[1].params,{name:'只提供名称',accept:true});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('Switch preserves initial omission, explicit false, required false and clearing without changing other fields',async()=>{
+  const f=await fixture({paramsSchema:{type:'object',properties:{
+    optional:{type:'boolean',title:'可选开关'},required:{type:'boolean',title:'必填开关'},
+    off:{type:'boolean',title:'默认关闭',default:false}},required:['required'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();
+    const control=f.doc.getElementById('task-param-optional');
+    assert.equal(control.getAttribute('role'),'switch');assert.equal(control.name,'optional');
+    assert.equal(f.doc.querySelector('label[for="task-param-optional"]').textContent,'可选开关');
+    assert.equal(f.view.field('task-param-optional').omitted,true);
+    assert.equal(f.doc.getElementById('task-param-required').hasAttribute('required'),false,'required boolean does not require true');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{required:false,off:false});
+    await f.input('task-params-json','{"optional":false,"required":false}');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(f.doc.getElementById('task-param-optional-state').textContent,'否');
+    await f.fire(f.doc.querySelector('button[aria-label="不填写可选开关"]'),'click');
+    assert.equal(f.doc.getElementById('task-param-optional-state').textContent,'未填写');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{required:false,off:false});
+    assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('boolean enums keep select values and typed drafts across representation and task changes',async()=>{
+  const f=await fixture({twoTasks:true,paramsSchema:{type:'object',properties:{
+    choice:{type:'boolean',title:'布尔枚举',enum:[false,true],default:false},
+    optional:{type:'boolean',title:'可选布尔枚举',enum:[true,false]}},required:[],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();const choice=f.doc.getElementById('task-param-choice');
+    assert.equal(choice.tagName,'SELECT');assert.equal(choice.value,'false');
+    await f.input('task-param-choice','true');await f.dispatch('task-params-form','change');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{choice:true});
+    await React.act(async()=>f.view.data.taskRows.onSelect('other.task'));
+    await React.act(async()=>f.view.data.taskRows.onSelect('test.task'));
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(choice.value,'true');
+    f.doc.getElementById('task-param-optional').value='false';await f.fire(f.doc.getElementById('task-param-optional'),'change');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{choice:true,optional:false});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+const realTaskFiles=['baidu.search.top3.v1','google.search.top3.v1','form-fill.v1','modern-search.v1','page.read.fixed.v1','visible-search-navigation'];
+for(const file of realTaskFiles)test(`real task schema dynamically renders and round-trips: ${file}`,async()=>{
+  const {manifest}=JSON.parse(await readFile(new URL('../../examples/tasks/'+file+'.opendesk-task.json',import.meta.url),'utf8'));
+  const other=JSON.parse(await readFile(new URL('../../tests/fixtures/tasks/ui-readonly/ui-readonly.opendesk-task.json',import.meta.url),'utf8')).manifest.paramsSchema;
+  const f=await fixture({twoTasks:true,paramsSchema:manifest.paramsSchema,otherParamsSchema:other});let root;
+  try{
+    root=await f.mount();const expected={};
+    assert.equal(f.doc.querySelectorAll('[data-task-param]').length,Object.keys(manifest.paramsSchema.properties).length);
+    for(const [name,rule]of Object.entries(manifest.paramsSchema.properties)){
+      if(rule.enum)assert.equal(f.doc.getElementById('task-param-'+name).tagName,'SELECT');
+      if(Object.hasOwn(rule,'default'))expected[name]=rule.default;
+      else if(manifest.paramsSchema.required.includes(name)){
+        expected[name]=rule.enum?.[0]??'用户输入';await f.input('task-param-'+name,String(expected[name]));
+      }
+    }
+    await f.dispatch('task-params-form','input');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),expected);
+    await React.act(async()=>f.view.data.taskRows.onSelect('other.task'));
+    assert.deepEqual(f.view.data.taskParams.map(x=>x.name),['query','holdMs','mode','caseSensitive']);
+    assert.equal(f.doc.getElementById('task-param-holdMs').getAttribute('min'),'0');
+    await React.act(async()=>f.view.data.taskRows.onSelect('test.task'));
+    assert.equal(f.doc.getElementById('task-param-holdMs'),null);
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),expected);
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(f.view.data.taskParamsMode,'form');assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('numeric boundaries, unbounded long strings and invalid values retain the original schema validator',async()=>{
+  const f=await fixture({paramsSchema:{type:'object',properties:{
+    whole:{type:'integer',title:'整数',minimum:0,maximum:2,default:0},
+    decimal:{type:'number',title:'小数',minimum:-1,maximum:1,default:0},
+    notes:{type:'string',title:'长说明'}},required:['whole'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();assert.equal(f.doc.getElementById('task-param-notes').tagName,'TEXTAREA');
+    assert.equal(f.doc.getElementById('task-param-whole').getAttribute('step'),'1');
+    assert.equal(f.doc.getElementById('task-param-decimal').getAttribute('step'),'any');
+    for(const [whole,decimal]of [['0','-1'],['2','1']]){
+      await f.input('task-param-whole',whole);await f.input('task-param-decimal',decimal);
+      await f.input('task-param-notes','第一行\n第二行');
+      await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+      assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{whole:Number(whole),decimal:Number(decimal),notes:'第一行\n第二行'});
+      await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    }
+    for(const [name,value]of [['whole','1.5'],['whole','3'],['decimal','1.1']]){
+      await f.input('task-param-whole','0');await f.input('task-param-decimal','0');await f.input('task-param-'+name,value);
+      await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+      assert.equal(f.view.data.taskParamsMode,'form');assert.ok(f.view.field('task-param-'+name).error);
+    }
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const dismissal of ['cancel button','close button','native cancel','native close']){
+  test(`parameter Sheet retains the same input and draft after ${dismissal} and reopening without starting`,async()=>{
+    const f=await fixture();let root;
+    try{
+      root=await f.mount();
+      const sheet=f.doc.getElementById('task-parameters-sheet'),form=f.doc.getElementById('task-params-form');
+      const name=f.doc.getElementById('task-param-name');
+      assert.equal(sheet.open,false);assert.ok(sheet.contains(form));
+      await f.fire(f.doc.getElementById('task-parameters-open'),'click');assert.equal(sheet.open,true);
+      name.value='保留草稿';await f.fire(name,'input');
+      const permissions=f.state.permissionCalls.length;
+      if(dismissal==='native close')await React.act(async()=>{sheet.close();await tick();});
+      else if(dismissal==='native cancel')await f.fire(sheet,'cancel');
+      else await f.fire(dismissal==='close button'?sheet.querySelector('[aria-label="关闭任务参数"]'):
+        [...sheet.querySelectorAll('button')].find(node=>node.textContent==='取消'),'click');
+      assert.equal(sheet.open,false);
+      await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      assert.equal(sheet.open,true);assert.equal(f.doc.getElementById('task-params-form'),form);
+      assert.equal(f.doc.getElementById('task-param-name'),name);assert.equal(name.value,'保留草稿');
+      assert.equal(f.view.field('task-param-name').value,'保留草稿');
+      assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+    }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+}
+
+test('hiding the task page closes the parameter Sheet without reopening it on return',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const sheet=f.doc.getElementById('task-parameters-sheet');assert.equal(sheet.open,true);
+    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:true})));
+    assert.equal(sheet.open,false);
+    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:false})));
+    assert.equal(sheet.open,false);assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const key of ['Enter','Escape']){
+  test(`composing ${key} is prevented and cannot run or close the parameter Sheet`,async()=>{
+    const f=await fixture();let root;
+    try{
+      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      const sheet=f.doc.getElementById('task-parameters-sheet'),name=f.doc.getElementById('task-param-name');
+      const permissions=f.state.permissionCalls.length;
+      const event=await f.fire(name,'keydown',{key,isComposing:true});
+      assert.equal(event.defaultPrevented,true);assert.equal(sheet.open,true);
+      assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+    }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+}
+
+test('an untrusted React Run click leaves the parameter Sheet open without starting',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const permissions=f.state.permissionCalls.length;
+    await f.fire(f.doc.getElementById('task-run'),'click');
+    assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
+    assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('schema-invalid parameters reject trusted Run before permission and leave the Sheet open',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const name=f.doc.getElementById('task-param-name');name.value='';await f.fire(name,'input');
+    const permissions=f.state.permissionCalls.length;let accepted;
+    await React.act(async()=>{accepted=f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
+    assert.equal(accepted,false);assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
+    assert.match(f.doc.getElementById('task-status').textContent,/name|名称|参数/);
+    assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('field validation errors are associated with their inputs and editing clears only that field error',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const name=f.doc.getElementById('task-param-name'),count=f.doc.getElementById('task-param-count');
+    name.value='';await f.fire(name,'input');count.value='1.5';await f.fire(count,'input');
+    await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
+    for(const node of [name,count]){
+      assert.equal(node.getAttribute('aria-invalid'),'true');
+      const errorId=node.id+'-error',error=f.doc.getElementById(errorId);
+      assert.ok(node.getAttribute('aria-describedby').split(/\s+/).includes(errorId));
+      assert.ok(error.textContent.trim());assert.equal(error.getAttribute('role'),'alert');
+    }
+    const sheetStatus=f.doc.querySelector('#task-parameters-sheet .task-params-sheet-status');
+    assert.match(f.doc.getElementById('task-status').textContent,/E_PARAMS/);
+    assert.doesNotMatch(sheetStatus.textContent,/E_PARAMS/);
+    await React.act(async()=>{f.view.setText('task-status','权限失效');});
+    assert.match(sheetStatus.textContent,/权限失效/);
+    assert.equal(name.getAttribute('aria-invalid'),'true');
+    const countError=f.doc.getElementById(count.id+'-error').textContent;
+    name.value='修正名称';await f.fire(name,'input');
+    assert.equal(name.getAttribute('aria-invalid'),null);
+    assert.equal(f.doc.getElementById(name.id+'-error'),null);
+    assert.ok(!(name.getAttribute('aria-describedby')||'').split(/\s+/).includes(name.id+'-error'));
+    assert.equal(count.getAttribute('aria-invalid'),'true');
+    assert.equal(f.doc.getElementById(count.id+'-error').textContent,countError);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('correcting a parameter clears its obsolete summary without clearing other field or runtime errors',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const name=f.doc.getElementById('task-param-name'),count=f.doc.getElementById('task-param-count');
+    name.value='';await f.fire(name,'input');count.value='1.5';await f.fire(count,'input');
+    await React.act(async()=>{f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
+    assert.match(f.view.field('task-status').text,/Invalid string/);
+    name.value='修正名称';await f.fire(name,'input');
+    assert.equal(f.view.field('task-status').text,'');
+    assert.equal(f.doc.getElementById('task-param-name-error'),null);
+    assert.equal(count.getAttribute('aria-invalid'),'true');
+    await React.act(async()=>{f.view.setText('task-status','权限失效');});
+    count.value='2';await f.fire(count,'input');
+    assert.equal(f.view.field('task-status').text,'权限失效');
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('disabled task shows its disabled reason despite matching the current site',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();assert.equal(f.view.data.taskRunBlockedReason,'');
+    await f.dispatch('task-toggle');
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    assert.equal(f.state.installed[0].enabled,false);
+    assert.equal(f.view.field('task-current-site').dataset.state,'matched');
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.match(f.view.data.taskRunBlockedReason,/已停用/);
+    assert.ok(f.doc.querySelector('#task-parameters-sheet [role="status"]').textContent.includes(f.view.data.taskRunBlockedReason));
+    await f.dispatch('task-toggle');
+    assert.equal(f.doc.getElementById('task-run').disabled,false);
+    assert.equal(f.view.data.taskRunBlockedReason,'');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('a busy host shows the running reason and clears it when the host finishes',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    assert.equal(f.view.data.taskRunBlockedReason,'');
+    await React.act(async()=>{f.host.forceRun('other-owner-run');await tick();});
+    assert.equal(f.view.field('task-current-site').dataset.state,'matched');
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.match(f.view.data.taskRunBlockedReason,/已有任务正在运行/);
+    assert.ok(f.doc.querySelector('#task-parameters-sheet [role="status"]').textContent.includes(f.view.data.taskRunBlockedReason));
+    const permissions=f.state.permissionCalls.length;
+    await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
+    assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+    await React.act(async()=>{f.host.finish();await tick();});
+    assert.equal(f.doc.getElementById('task-run').disabled,false);
+    assert.equal(f.view.data.taskRunBlockedReason,'');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const [key,value]of Object.entries({taskId:'other.task',version:'2.0.0',manifestHash:'c'.repeat(64),generation:2,
+  installationId:'22222222-2222-4222-8222-222222222222'})){
+  test(`trusted Run rejects stale captured ${key} before permission or host start`,async()=>{
+    const f=await fixture();try{
+      const captured={...f.view.data.taskRows.identity,[key]:value};
+      const permissions=f.state.permissionCalls.length;let accepted;
+      await React.act(async()=>{accepted=f.view.actions.taskRunClick(native(),captured);await tick();});
+      assert.equal(accepted,false);assert.match(f.view.field('task-status').text,/固定版本或安装授权已变化/);
+      assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
+    }finally{f.dispose();}
+  });
+}
+
+test('trusted explicit Run accepts the current captured identity and starts with its draft',async()=>{
+  const f=await fixture();try{
+    await f.input('task-param-name','明确运行');
+    const captured={...f.view.data.taskRows.identity};let accepted;
+    assert.deepEqual(Object.keys(captured).sort(),['generation','installationId','manifestHash','taskId','version']);
+    await React.act(async()=>{accepted=f.view.actions.taskRunClick(native(),captured);await tick();});
+    assert.equal(accepted,true);assert.equal(f.state.starts.length,1);
+    assert.equal(f.state.starts[0].params.name,'明确运行');
+    assert.equal(f.state.starts[0].expectedTaskGeneration,captured.generation);
+    assert.equal(f.state.starts[0].expectedTaskInstallationId,captured.installationId);
+  }finally{f.dispose();}
+});
+
+test('trusted snapshot Run accepts required empty string and empty enum values allowed by the schema',async()=>{
+  const f=await fixture({paramsSchema:{type:'object',properties:{
+    name:{type:'string',title:'名称',default:'',minLength:0},
+    mode:{type:'string',title:'模式',default:'',enum:['','other']}
+  },required:['name','mode'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    assert.equal(f.doc.getElementById('task-param-name').value,'');
+    assert.equal(f.doc.getElementById('task-param-mode').value,'');
+    let accepted;
+    await React.act(async()=>{accepted=f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
+    assert.equal(accepted,true);assert.equal(f.state.starts.length,1);
+    assert.deepEqual(f.state.starts[0].params,{name:'',mode:''});
+    assert.equal(f.doc.querySelector('#task-params-form [aria-invalid="true"]'),null);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 test('React owns the full page, reflects errors, keeps edits across tab hiding and cleans its subscription',async()=>{
   const f=await fixture();let root;

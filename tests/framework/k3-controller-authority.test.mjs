@@ -19,7 +19,7 @@ import {createRunHost} from '../../src/run-host.js';
 import {createRunContext} from '../../src/framework/context.js';
 import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest, digestUtf8} from '../../src/platform/protocol.js';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
-import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
+import {encodeValue as controlEncode, decodeValue as controlDecode} from '../../src/framework/control/value.js';
 import {createTaskPackage,TASK_MANIFEST_FORMAT,installedKey} from '../../src/platform/tasks/contract.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {readAppServiceInstallation} from '../../src/platform/tasks/app-service-installation.js';
@@ -2822,4 +2822,56 @@ test('installed Task admission enforces reviewed deadline before slot writes whi
     paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:time+120000},f.sender);
   assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).deadlineAt,time+120000);
   await close(run);
+});
+
+test('installed Controller foreground uses original Authority, exact target, durable receipts and replay fence',async()=>{
+  const f=await installedTaskFixture(),native=[];
+  const get=f.api.tabs.get;
+  f.api.tabs.get=(id,cb)=>{const result=get(id);if(cb)result.then(tab=>cb({...tab,windowId:8,
+    active:native.some(row=>row[0]==='tab'&&row[1]===id)}));return result;};
+  f.api.tabs.update=(id,options,cb)=>{native.push(['tab',id,options]);cb({id,windowId:8,active:true});};
+  f.api.windows={update:(id,options,cb)=>{native.push(['window',id,options]);cb({id,focused:false});},
+    get:(id,cb)=>cb({id,focused:true})};
+  const run=await f.startTask(),envelope=f.operation(run,'browser','bringToFront');
+  const reply=await f.authority.controllerOperation({envelope},f.sender);
+  assert.equal(controlDecode(reply.value),undefined);
+  assert.deepEqual(native,[['tab',run.target.tabId,{active:true}],['window',8,{focused:true}]]);
+  assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),reply);
+  assert.equal(native.length,2,'duplicate operation returns its durable receipt without refocusing');
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+  assert.equal(op.state,'durable');assert.equal(op.submissionCount,1);
+  assert.ok(op.nativeReceipts.some(row=>row.stage==='tabs.update'));
+  assert.ok(op.nativeReceipts.some(row=>row.stage==='windows.update'));
+  f.setAllowed(false);
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'browser','bringToFront')},f.sender),code('E_PERMISSION'));
+  assert.equal(native.length,2);
+});
+
+test('unconfirmed foreground remains fenced in Authority and Stop releases the original run once',async()=>{
+  const f=await installedTaskFixture(),native=[];
+  const get=f.api.tabs.get;
+  f.api.tabs.get=(id,cb)=>{const result=get(id);if(cb)result.then(tab=>cb({...tab,windowId:8,active:true}));return result;};
+  f.api.tabs.update=(id,options,cb)=>{native.push(['tab',id,options]);cb({id,windowId:8,active:true});};
+  let time=Date.now();f.clock.now=()=>time;
+  f.api.windows={update:(id,options,cb)=>{native.push(['window',id,options]);cb({id,focused:false});},
+    get:(id,cb)=>{time+=1001;cb({id,focused:false});}};
+  const run=await f.startTask(),envelope=f.operation(run,'browser','bringToFront');
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_WINDOW_FOCUS_UNCONFIRMED'));
+  const operation=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
+  assert.equal(operation.failure.code,'E_WINDOW_FOCUS_UNCONFIRMED');
+  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,'paused_unknown');
+  assert.equal((await f.rows('results')).filter(row=>row.runId===run.runId).length,0,
+    'reserved result identity is not a persisted result');
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.equal(native.length,2,'unknown foreground operation is never dispatched twice');
+  await f.authority.stopControllerRun({runId:run.runId,requestId:crypto.randomUUID()},f.sender);
+  await f.finish(run,'stopped');
+  assert.equal((await f.authority.retireControllerTarget({runId:run.runId},f.sender)).releaseCount,1);
+  assert.equal((await f.authority.retireControllerTarget({runId:run.runId},f.sender)).releaseCount,1);
+  const stopped=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(stopped.state,'stopped');assert.equal(stopped.workerRetired,true);
+  assert.equal(stopped.retirementState,'released');
+  assert.equal((await f.rows('results')).filter(row=>row.runId===run.runId).length,1);
+  assert.equal((await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId).state,'effect_unknown');
 });

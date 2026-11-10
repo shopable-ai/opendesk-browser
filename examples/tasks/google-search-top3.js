@@ -3,7 +3,8 @@
 async function main() {
   const query=params?.query;
   if(typeof query!=='string'||!query.trim()||query.length>120||params?.limit!==3||
-      Object.keys(params).some(key=>!['query','limit'].includes(key)))
+      (Object.hasOwn(params,'showExecutionTab')&&typeof params.showExecutionTab!=='boolean')||
+      Object.keys(params).some(key=>!['query','limit','showExecutionTab'].includes(key)))
     throw Object.assign(new Error('Expected a nonempty query and limit=3'),{code:'E_TASK_PARAMS'});
   let url=new URL(await page.url());
   const homepage=url.pathname==='/'&&!url.search;
@@ -19,6 +20,7 @@ async function main() {
   const result=(status,results=[],error=null)=>({kind:'google.search.top3.result',version:1,query,sourceUrl:url.href,
     status,count:results.length,results,inputMode:'isolated-dom',trace,...(error?{error}:{}),observedAt:new Date().toISOString()});
   try {
+    if (params.showExecutionTab !== false) await page.bringToFront();
     if(blocked(await body()))return result('blocked');
     if(homepage){
       const field=page.locator('textarea[name=q]');
@@ -29,13 +31,19 @@ async function main() {
       record('input','returned',{locator:'textarea[name=q]',value:entered});
       if(entered!==query)throw Object.assign(new Error('Search input did not match'),{code:'E_INPUT_VALUE'});
       await pause(1000);
-      // Suggestions repaint the buttons after filling. Resolve the visible button now.
+      // Late suggestions can cover the homepage button after its visibility read.
+      // A neutral logo-container click dismisses them without submitting the query.
+      record('suggestions','dismiss-started');
+      await page.locator('div:has(> [role="img"][aria-label="Google"]),div:has(> img[alt="Google"])').click({timeout:5000});
+      if(await field.getAttribute('aria-expanded')==='true')
+        throw Object.assign(new Error('Search suggestions did not close'),{code:'E_SEARCH_SUGGESTIONS'});
+      record('suggestions','dismiss-returned');
       const buttons=page.locator('input[name=btnK]');let index=-1;
       for(let i=0;i<await buttons.count();i++)if(await buttons.nth(i).isVisible()){index=i;break;}
       if(index<0)throw Object.assign(new Error('No visible search button'),{code:'E_SELECTOR_NOT_FOUND'});
       const locator='input[name=btnK] >> nth='+index;
       record('click','started',{locator,url:await page.url()});
-      await buttons.nth(index).click({waitUntil:'load',timeout:15000});
+      await buttons.nth(index).click({waitUntil:'domcontentloaded',timeout:15000});
       record('click','returned',{locator});
       url=new URL(await page.url());
       record('navigation','observed',{url:url.href,documentId:await documentId()});

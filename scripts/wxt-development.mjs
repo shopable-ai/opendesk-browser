@@ -14,6 +14,7 @@ import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs'
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
+import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources,verifyPackagedTaskResources} from './packaged-task-resources.mjs';
 
 const marker='development-update.json';
 const sessions=new WeakMap();
@@ -76,6 +77,7 @@ export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosin
   server[restartKey]=control;return control;
 }
 export async function publishDevelopment(wxt,output) {
+  await verifyPackagedTaskResources(wxt.config.outDir,{root:wxt.config.root});
   // WXT can prerender during restart before custom hooks are registered.
   // Reapply the source policy before publishing a consumable revision.
   const source=JSON.parse(await readFile(resolve(wxt.config.root,'manifest.json'),'utf8'));
@@ -161,12 +163,13 @@ export function configureDevelopment(wxt,server) {
   const sync=(event,file)=>{
     if(!accepting||!['add','change','unlink'].includes(event))return;
     const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
+    const task=PACKAGED_TASK_RESOURCES.find(row=>input===resolve(wxt.config.root,row.sourcePath));
     // Generated AdBlock files are a consequence, never a watcher trigger.
     if(input.startsWith(resolve(toolRoot,'adblock/dist')+'/')||
       input.startsWith(resolve(toolRoot,'stay-focus/dist')+'/')||
       input.startsWith(resolve(projectRoot,'cookie-editor/dist')+'/'))return;
-    const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
-      input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/');
+    const official=!task&&(input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
+      input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/'));
     const page=input===resolve(wxt.config.root,OFFICIAL_PAGE_SOURCE_PATH)||
       input.endsWith('.opendesk-page.json')&&[toolRoot,projectRoot,programRoot].some(root=>input.startsWith(root+'/'));
     if(!dest&&!style&&!official&&!page)return;
@@ -295,7 +298,8 @@ export function configureDevelopment(wxt,server) {
         failureKey=input;
         const target=resolve(wxt.config.publicDir,dest);
         await mkdir(dirname(target),{recursive:true});
-        if(dest==='ui/tool-shell.css')await writeFile(target,trustedToolShellStyle(wxt.config.root));
+        if(task)await preparePackagedTaskResources(wxt.config.publicDir,{root:wxt.config.root});
+        else if(dest==='ui/tool-shell.css')await writeFile(target,trustedToolShellStyle(wxt.config.root));
         else await cp(file,target);
         wxt.logger.info('[OpenDesk dev] Static source changed: '+relative(wxt.config.root,file));
       }

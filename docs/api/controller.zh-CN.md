@@ -51,6 +51,7 @@ export default async function main() {
 | API | 返回 / 用法 |
 | --- | --- |
 | `page.title()` / `page.url()` | Promise，读取标题 / URL |
+| `page.bringToFront()` | Promise<void>；激活当前获准顶层目标标签页并聚焦其所属窗口，无参数，不选择其他页面，也不授予网站权限 |
 | `page.locator(selector)` | 构造绑定目标文档的 Locator，构造时不读取网页 |
 | `page.getByRole(role,{name,exact})` | 按角色和可访问名称定位 |
 | `page.getByLabel(text,{exact})` / `getByText` / `getByTestId` | 按对应语义定位，可在容器 Locator 中继续定位 |
@@ -60,6 +61,10 @@ export default async function main() {
 | `waitFor({state,timeout})` | attached/detached/visible/hidden；默认 visible |
 
 多匹配违反严格模式；现代 click 是 DOM click，fill 使用原生 setter 和变更事件，不能描述成真实系统鼠标/键盘输入或完整 Playwright 兼容。完整参数、观察和错误参考[现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)。
+
+`bringToFront()` 复用 Controller 原 Authority、目标文档与原生效果日志；撤权、目标替换、Stop 或未知回执会拒绝，不自动重试。新建 owned 页仍默认在后台，只有脚本明确调用才显示；建议在参数及目标校验后、业务动作前调用一次，不在每次点击时重复抢焦点。旧宿主尚未提供此方法时须先更新 Browser 固定代码，任务 JSON 本身不能提供原生切页能力。
+
+标签激活后，窗口焦点在有界只读核对中仍未确认时返回 `E_WINDOW_FOCUS_UNCONFIRMED`；这不是回执格式错误，也不证明窗口已显示。原效果未知栅栏保留，调用方不能继续业务动作或自动重发置前。
 
 ## 运行与源码身份
 
@@ -102,7 +107,7 @@ run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾�
 
 ## 已安装 Task 的存储与调用
 
-随 Browser 固定发行的百度 1.1.4 与 Google 1.0.0 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
+随 Browser 固定发行的百度 1.1.5 与 Google 1.0.1 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
 
 Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。
 

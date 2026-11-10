@@ -1,0 +1,1709 @@
+{
+  "goalThread": "01a1c483-5d0b-7c93-b620-c2748574b4fd",
+  "goalStatus": "active",
+  "space": 54,
+  "mode": "continuous-development",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "webflow": {
+    "version": "0.3.24",
+    "packageSha256": "263dfe2c73a0c3ae4952069e460527098275955846cfa98d2a092b680e666a09",
+    "installedThroughOriginalReview": true,
+    "observedAppliedRevision": "c438193d404ceb47cad71fca98dc4da93677618ba4c52ff08488eea8d625385d"
+  },
+  "readingToc": {
+    "version": "1.1.7",
+    "pageRevision": 7,
+    "packageSha256": "159692524b86a27fcc1f7c6f03f986818d60924bfa8b7a7926cf7783522444dc",
+    "sourceFix": "Retain clamped top at 721–1100px",
+    "parentInstalled": true,
+    "pageModuleComplete": false,
+    "temporaryStyleRestored": true
+  },
+  "observedAt": "2026-11-10T09:47:29.076Z",
+  "baiduRunBaseline": [
+    "02eca2db-4a45-4d46-a841-58597fa00a0e",
+    "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+    "736b872e-e3fc-4dae-a686-c2d4d4933494",
+    "cec040b8-278a-41f5-8c05-7031bd498e1d"
+  ],
+  "ownedRuns": [
+    {
+      "runId": "02eca2db-4a45-4d46-a841-58597fa00a0e",
+      "requestId": "167f74cf-77e1-42a3-9b72-4b2a30840ed1",
+      "resultId": "6016654b-657b-4775-8c69-7ce0ea8f4d0e",
+      "params": {
+        "limit": 3,
+        "query": "JavaScript MDN",
+        "showExecutionTab": true
+      },
+      "state": "completed",
+      "retirementState": "released",
+      "workerRetired": true,
+      "sourceHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+      },
+      "terminalReason": null,
+      "result": [
+        {
+          "runId": "02eca2db-4a45-4d46-a841-58597fa00a0e",
+          "resultId": "6016654b-657b-4775-8c69-7ce0ea8f4d0e",
+          "state": "completed",
+          "ok": true,
+          "value": {
+            "count": 0,
+            "error": {
+              "code": "E_TIMEOUT",
+              "message": "E_TIMEOUT"
+            },
+            "inputMode": "isolated-dom",
+            "kind": "baidu.search.top3.result",
+            "observedAt": "2026-11-10T08:50:39.971Z",
+            "query": "JavaScript MDN",
+            "results": [],
+            "sourceUrl": "https://www.baidu.com/",
+            "status": "stopped",
+            "trace": [
+              {
+                "action": "input",
+                "at": "2026-11-10T08:50:25.904Z",
+                "documentId": "13FD30B6972DB454A94A393C69C7A1B5",
+                "locator": "#chat-textarea",
+                "state": "before",
+                "url": "https://www.baidu.com/",
+                "value": ""
+              },
+              {
+                "action": "input",
+                "at": "2026-11-10T08:50:25.904Z",
+                "locator": "#chat-textarea",
+                "state": "started"
+              },
+              {
+                "action": "input",
+                "at": "2026-11-10T08:50:26.227Z",
+                "locator": "#chat-textarea",
+                "state": "returned",
+                "value": "JavaScript MDN"
+              },
+              {
+                "action": "click",
+                "at": "2026-11-10T08:50:29.612Z",
+                "locator": "#chat-submit-button",
+                "state": "started",
+                "url": "https://www.baidu.com/"
+              },
+              {
+                "action": "operation",
+                "at": "2026-11-10T08:50:39.970Z",
+                "code": "E_TIMEOUT",
+                "message": "E_TIMEOUT",
+                "state": "stopped"
+              }
+            ],
+            "version": 2
+          }
+        }
+      ],
+      "operations": [
+        {
+          "requestId": "1204b9fbed901c04146d78c967e6314e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "2a1d1926af82a34c39a8b09dfa5e61ed",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "30e1ed10dd04ba084015bb2f3c33f134",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "45110998df9fd4c38173b6a643e2c1c7",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "51c99730e4fa10fa7869ff4ceb8c39d4",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "55c0979a9bc0405fca2cd39a63710be5",
+          "method": "bringToFront",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": [
+            {
+              "stage": "windows.update",
+              "focused": true
+            },
+            {
+              "stage": "windows.get",
+              "focused": true
+            }
+          ]
+        },
+        {
+          "requestId": "5e28005784856031f089cba5db1b332a",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "60fca73a6c3ed2961c604a42c66eb607",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "6acc4187efdaaea985c8fc37d097cc69",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "71409f068773a1e3f338454ef7143e32",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "7e535293322de3eac009be6c8a548532",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "failure": {
+            "code": "E_TIMEOUT",
+            "name": "PageError",
+            "message": "E_TIMEOUT"
+          },
+          "windowReceipts": []
+        },
+        {
+          "requestId": "e06576a07e5d0d46b1632ceb87d2e2d3",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "f091a3045a15f1e04b307611d19fbc3a",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        }
+      ]
+    },
+    {
+      "runId": "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+      "requestId": "05ac2a84-8450-4c39-9fe6-e2b57041f329",
+      "resultId": "a27aeb3f-278d-4ebc-8c77-8669818fb8e6",
+      "params": {
+        "limit": 3,
+        "query": "JavaScript MDN",
+        "showExecutionTab": true
+      },
+      "state": "stopped",
+      "retirementState": "released",
+      "workerRetired": true,
+      "sourceHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+      },
+      "terminalReason": {
+        "code": "E_TIMEOUT",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "result": [
+        {
+          "runId": "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+          "resultId": "a27aeb3f-278d-4ebc-8c77-8669818fb8e6",
+          "state": "stopped",
+          "ok": false,
+          "error": {
+            "code": "E_TIMEOUT",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      ],
+      "operations": [
+        {
+          "requestId": "1927c85f42716a9545f6c0b99d7ba5ac",
+          "method": "bringToFront",
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "failure": {
+            "code": "E_WINDOW_FOCUS_UNCONFIRMED",
+            "name": "PageError",
+            "message": "Target tab activated, but its window focus was not confirmed; foreground effects will not be retried"
+          },
+          "windowReceipts": [
+            {
+              "stage": "windows.update",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "focused": false
+            }
+          ]
+        },
+        {
+          "requestId": "a09b2fac2dda551496e64983d2b95b16",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        }
+      ]
+    },
+    {
+      "runId": "736b872e-e3fc-4dae-a686-c2d4d4933494",
+      "requestId": "190c2d3b-221b-44d6-939f-446609a60fcf",
+      "resultId": "4d95bcd7-76cd-4a61-ba52-8b3c626f4d07",
+      "params": {
+        "limit": 3,
+        "query": "JavaScript MDN",
+        "showExecutionTab": false
+      },
+      "state": "completed",
+      "retirementState": "released",
+      "workerRetired": true,
+      "sourceHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+      },
+      "terminalReason": null,
+      "result": [
+        {
+          "runId": "736b872e-e3fc-4dae-a686-c2d4d4933494",
+          "resultId": "4d95bcd7-76cd-4a61-ba52-8b3c626f4d07",
+          "state": "completed",
+          "ok": true,
+          "value": {
+            "count": 3,
+            "inputMode": "isolated-dom",
+            "kind": "baidu.search.top3.result",
+            "observedAt": "2026-11-10T09:35:02.907Z",
+            "query": "JavaScript MDN",
+            "results": [
+              {
+                "directUrl": "https://developer.cdn.mozilla.net/zh-CN/docs/Web/JavaScript",
+                "evidence": {
+                  "slot": "1",
+                  "tpl": "www_index"
+                },
+                "position": 1,
+                "summary": "2026年5月26日JavaScript 标准是 ECMAScript 语言规范 (ECMA-262)和 ECMAScript 国际化 API 规范 (ECMA-402)。只要某个浏览器实现了某个特性,我们就会尝试详细记录这个特性。这意味着,当某个 ECMAScript 新特性的提案 在浏览器中实现时,文档和 MDN 文章中的示例可能会使用这些新特性。大多数时候发生在 阶段 3 和阶段 4 之间,",
+                "title": "JavaScript | MDN",
+                "url": "http://www.baidu.com/link?url=RoF1J_qsWSiSBLYNg-Wy1NO4kcCZpAopBeMfmXTUx0jnl4hUlkNkc0-x2lQ0p1YNqY3Lc069RWo2Hv-u-kuwWLzizfRhJgxwIkpHbcr71bG"
+              },
+              {
+                "directUrl": "https://mdn.io/",
+                "evidence": {
+                  "slot": "4",
+                  "tpl": "www_index"
+                },
+                "position": 2,
+                "summary": "JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language with first-class functions. While it is most well-known as the scripting language for Web pages, many non-b",
+                "title": "JavaScript | MDN",
+                "url": "http://www.baidu.com/link?url=RJBs_8UiPLCkmJFlI1WZo5e2_N-4rxlyRvUmobev2qa"
+              },
+              {
+                "directUrl": "https://developer.mozilla.org.cach3.com/de/docs/Web/JavaScript/Reference/Statements/funktion",
+                "evidence": {
+                  "slot": "5",
+                  "tpl": "www_index"
+                },
+                "position": 3,
+                "summary": "Funktionsdeklarationen in Javascript ziehen die Funktionsdefinition hoch. Du kannst die Funktion benutzen noch bevor sie deklariert wurde: hochgezogen(); // loggt \"foo\" function hochgezogen() { consol",
+                "title": "Funktion - JavaScript | MDN",
+                "url": "http://www.baidu.com/link?url=Lw9K-dZSNa-kyuYLkPw6aUA--WVwinZ21y2HC0HFiLTkVeEgfHl5NrGmDEC9PFZC9GDLKYkMdH_XnFJUM6xt-YkpYeBS7VhBePVWckGMuaJXyyvhidye6f77vWypwu9vU8lRT3wLPLz4C-bGUbnQA_"
+              }
+            ],
+            "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0x8e288b2100c3b148&rsv_t=3a73qEMBiJP53sD%2FwBUs7a9Xs9kTF%2FrLoCt6wsyg2MWaW0LtbD7nYQovP1ax&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i",
+            "status": "success",
+            "trace": [
+              {
+                "action": "input",
+                "at": "2026-11-10T09:34:43.096Z",
+                "documentId": "AEB56D21F559E5C5B77DABE04A5109D8",
+                "locator": "#chat-textarea",
+                "state": "before",
+                "url": "https://www.baidu.com/",
+                "value": ""
+              },
+              {
+                "action": "input",
+                "at": "2026-11-10T09:34:43.096Z",
+                "locator": "#chat-textarea",
+                "state": "started"
+              },
+              {
+                "action": "input",
+                "at": "2026-11-10T09:34:43.422Z",
+                "locator": "#chat-textarea",
+                "state": "returned",
+                "value": "JavaScript MDN"
+              },
+              {
+                "action": "click",
+                "at": "2026-11-10T09:34:46.551Z",
+                "locator": "#chat-submit-button",
+                "state": "started",
+                "url": "https://www.baidu.com/"
+              },
+              {
+                "action": "click",
+                "at": "2026-11-10T09:34:46.997Z",
+                "locator": "#chat-submit-button",
+                "state": "returned"
+              },
+              {
+                "action": "navigation",
+                "at": "2026-11-10T09:34:47.440Z",
+                "documentId": "AEB56D21F559E5C5B77DABE04A5109D8",
+                "state": "observed",
+                "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0x8e288b2100c3b148&rsv_t=3a73qEMBiJP53sD%2FwBUs7a9Xs9kTF%2FrLoCt6wsyg2MWaW0LtbD7nYQovP1ax&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+              },
+              {
+                "action": "results",
+                "at": "2026-11-10T09:34:59.902Z",
+                "count": 3,
+                "state": "read",
+                "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0x8e288b2100c3b148&rsv_t=3a73qEMBiJP53sD%2FwBUs7a9Xs9kTF%2FrLoCt6wsyg2MWaW0LtbD7nYQovP1ax&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i"
+              }
+            ],
+            "version": 2
+          }
+        }
+      ],
+      "operations": [
+        {
+          "requestId": "05479438f8a3e513bd9360b50f0ce298",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "08eba9f5c439befc60fdf807deaa9f0b",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "0dbd5776455c8ecb846569404ce5e720",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "0f20282b96c2e75666133bd0743d8868",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "2b61e7e3fb1561c7ad4a220c7796ca63",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "2b95b9f5c95c25c30b68c93b57a64dab",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "2d58af0781f43f6f27dae4ffa4f4a6cb",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "2fd4eea7c03b89577c9e7679512c28c8",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "34ce70702e7f05378ba4814b5eec4ca1",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "3898e01123080c0b0e5e5ddc058f6bc7",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "3a699995e1d7eb8d54834a62cbe3e9d1",
+          "method": "locatorWait",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "3c6c25da6d35a66619883b625a9b3151",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "40399cf269e5c50846ae5acc9119b715",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "465abaf56b59abff2aca74ea7a4463f2",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "46a1a42c94aa0db333750b6a058693cd",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "4a0b95551b34e30075c642934d948bc5",
+          "method": "url",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "59236620081c279a97d315796d29c3ea",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "5bd4390e3788cc81ed0b4b2949cc1702",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "5cc38cf467a9078d21799054b4088003",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "5cd32d7dc0a27da200a2c23d001ecede",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "5d9396bc192c4577097725b2c08e865a",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "5e5e557d8e9c2d6dd157babf6f89135d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "6069af85a25d9f416f670268c93ee59f",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "638e6e2efec8a3626244dcd4d84702bf",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "6760fedfd32eb0a438e1759eefb15ef5",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "6c78add599648e154cb04fb95d77297d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "6db68176c60dccf998ce10e9a9c71dc2",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "70640ee5cc66855584a87fd40878b428",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "70eb7a8d5c615d3fa14b07f9bc467e0e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "733b5be4322709167535580e17098b19",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "794952a261e73a832f8bcfb651c0c4b8",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "7da7b1beea73e9b6f99228616e56fca0",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "7eaaf9992bf12c3ae3ac838b8eee4b0a",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "8158ed88ed3d3540cfbe13d8800736be",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "827a6b5dea841d0396bc579433859502",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "87c9aa15feb9e987babcd4a8a065a25d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "8b576c7a50fc4bcc13018b08cee07e31",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "96bc0c1941f37e096683b38620e32b5a",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "a22adc8f188bc890e5c93b4b6486ad75",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "a2e7a06c7653aa718ac8ecc1a7574865",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "aa829c0c1d121d819871c94cd3b6d596",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "acc4f803b557ae4a7643527bb4b561c2",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "b070cdb729d59130f9c2fc6373302e38",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "b1757a57464bffa66561658d799de768",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "b1dfc8ebab09b8c29c14f660085eaf81",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "b53b685b99950add8f971787b80f91a4",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "c4304dea8a761a5fcb15b23717072b6e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "c460df3f52840683e3de9f472a4913d9",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "c68af9b225a343644b626b43d3922e8c",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "d59f8bf8f8db6caffe4b768878dbabad",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "d5b56dd45723b3d14c650d4597829c4f",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "d5c95bb750c07920a5dd429d5ad86306",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "da0b56b1e5ed859d2101414b785f077d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "da8bf52543bf2c6b37d58fd8c4f39573",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "dd98d76c144a185f799cf1ee4c349d30",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "e2e039b6c1afbbe4e05456d2c7985b43",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "e60f19e53356f96b0bcd178b0e1ea0da",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "ea02357359df7bd5f768824f91242730",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "ec1145e6791e399b57997e9973806577",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "eeb9e666dd6313a67bf4bda4bdca6b77",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "f01b65f077ad71568d7e6c9274b44678",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        },
+        {
+          "requestId": "fcd2f8f050f228c8b77fd00e13b668d8",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "windowReceipts": []
+        }
+      ]
+    }
+  ],
+  "manualRequestRows": [],
+  "tocCleanup": {
+    "state": "unknown",
+    "liveNonretiredDocuments": 3,
+    "otherOwnerDocuments": true,
+    "noOtherPageRefreshed": true
+  },
+  "criticalConditions": {
+    "K1": "PARTIAL",
+    "K2": "PARTIAL",
+    "K3": "PASS",
+    "K4": "FAIL_SHARED_SLOT_BEFORE_RUN",
+    "K5": "NOT_TESTED",
+    "K6": "PARTIAL"
+  },
+  "continuation": {
+    "threadId": "01a1c4e4-4b2d-7cc0-8a0b-df2743bb37b5",
+    "sourceGoalStatus": "paused per explicit handoff; not re-read in this chat",
+    "sourceSnapshotNote": "Top-level goalStatus and manualRequestRows are historical capture fields. Current manual delegation rows are below, read from commandJournal.",
+    "goalStatus": "complete",
+    "mode": "continuous-development",
+    "space": 54,
+    "observation": {
+      "observedAt": "2026-11-10T10:06:25.933Z",
+      "hostUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=d34de960-42fa-4257-8e3b-e0d4cb6ca24d&toolId=webflow",
+      "hostInstanceId": "d34de960-42fa-4257-8e3b-e0d4cb6ca24d",
+      "appliedRevision": "ec9b173723ee32cf255bd66ef25e071c333aa8e49360f40b88cfe16f7efafb90",
+      "resourceReads": [
+        {
+          "path": "libs/manifest.json",
+          "error": "TypeError: Failed to fetch"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "error": "TypeError: Failed to fetch"
+        },
+        {
+          "path": "development-update.json",
+          "error": "TypeError: Failed to fetch"
+        }
+      ],
+      "slot": {
+        "tag": "slot",
+        "currentRunId": null,
+        "state": "available",
+        "releaseCount": 1,
+        "fencedEpoch": 2,
+        "retirementId": "84e87a7c-9c0b-42aa-af9e-ac4bb563823e"
+      },
+      "baiduRunIds": [
+        "02eca2db-4a45-4d46-a841-58597fa00a0e",
+        "1b38d5c5-1684-4117-8608-ecf7afe34e85",
+        "1edc061a-953c-4cb9-8f0c-b1123c9cb4fb",
+        "216b0c6a-3013-4c24-af82-53873c0562d5",
+        "2e6a63ac-0650-4de1-8eab-b174a7881ec0",
+        "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+        "64ab9694-99f8-474c-ba94-73305db53d57",
+        "736b872e-e3fc-4dae-a686-c2d4d4933494",
+        "8aecb1f7-98bc-4b5e-b12c-f3c589af74ef",
+        "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+        "cec040b8-278a-41f5-8c05-7031bd498e1d",
+        "f2468976-eea0-4bb2-ac7b-0d301b2953e0"
+      ],
+      "cancelledRequest": {
+        "clientRequestId": "webflow:7a3cad80-f353-4af9-8524-50114a63a0aa",
+        "state": "cancelled",
+        "cancelled": true,
+        "admissionCount": 0,
+        "maxAdmissions": 1,
+        "runId": null,
+        "resultId": null,
+        "task": {
+          "taskId": "baidu.search.top3",
+          "version": "1.1.5",
+          "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+          "generation": 3
+        }
+      },
+      "priorDeveloperSuccess": {
+        "runId": "736b872e-e3fc-4dae-a686-c2d4d4933494",
+        "resultId": "4d95bcd7-76cd-4a61-ba52-8b3c626f4d07",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released",
+        "result": null
+      },
+      "manualRequestRows": [
+        {
+          "clientRequestId": "webflow:7a3cad80-f353-4af9-8524-50114a63a0aa",
+          "state": "cancelled",
+          "cancelled": true,
+          "admissionCount": 0,
+          "runId": null,
+          "resultId": null
+        }
+      ]
+    },
+    "ui": {
+      "scriptReadError": "E_BUILTIN_RESOURCE",
+      "runDisabled": true,
+      "noNewRequestSubmitted": true,
+      "successThenRefreshReopen": "NOT_TESTED",
+      "nativeSidePanelState": "CUA inventory timed out; no SIDE_PANEL context observed",
+      "catalogInstalledTask": "baidu.search.top3@1.1.5 local available / installed before resource failure"
+    },
+    "blocker": {
+      "kind": "shared-development-output-incomplete",
+      "watcherPid": 30103,
+      "watcherLog": "artifacts/ui-skin-20261110/followup-dev-recovered.log",
+      "message": "Failed to build chatgpt-fixed-bridge: Historical/user/vendor code cannot enter a privileged fixed bundle: examples/tasks/baidu.search.top3.v1.opendesk-task.json",
+      "protectedParallelFiles": [
+        "scripts/bundle-provenance.mjs",
+        "src/native-agent/chatgpt-fixed-bridge-host.js",
+        "src/platform/tasks/builtin-releases.js",
+        "examples/tasks/baidu.search.top3.v1.opendesk-task.json"
+      ],
+      "serviceStopped": false,
+      "secondWriterStarted": false,
+      "sourceValidationBypassed": false
+    },
+    "criticalConditions": {
+      "K1": "PARTIAL_RESOURCE_UNAVAILABLE",
+      "K2": "PASS_PRIOR_INVALIDATION_UI; CURRENT_READ_BLOCKED_E_BUILTIN_RESOURCE",
+      "K3": "PASS_PRIOR_SAME_SOURCE_RECOVERY",
+      "K4": "NOT_TESTED_CURRENT_ENVIRONMENT_BLOCKER",
+      "K5": "NOT_TESTED_NO_WEBFLOW_SUCCESS_YET",
+      "K6": "PARTIAL_CANCELLED_ROW_CONFIRMED_NO_REPLAY"
+    },
+    "resources": {
+      "nativeUiLease": "released; native_ui_owner=null",
+      "taskSpace": 54,
+      "taskSpaceFinished": false,
+      "reason": "Runtime build failed; retain the same TaskSpace for continuation, do not call finish on an error",
+      "managedPages": [
+        "p2 own Baidu page",
+        "p4 own WebFlow tool tab"
+      ],
+      "otherOwnerPageClosed": false,
+      "watcherStopped": false,
+      "gitCommitOrPush": false
+    },
+    "followupChecks": [
+      {
+        "observedAt": "2026-11-10T10:10:25.716473+00:00",
+        "turnClassification": "verified wait: PID 30103 observed live; latest compile attempt failed",
+        "watcherPid": 30103,
+        "missingResources": [
+          "libs/manifest.json",
+          "scripting/sandbox/worker-runtime.js",
+          "development-update.json"
+        ],
+        "latestBuildError": "Trusted Web Flow source changed; review and re-pin before fixed build: projects/webflow/trusted/chatgpt-bridge-page.js",
+        "expectedGitBlob": "2d164d73d8315e974746eb243f2e155baf2375fd",
+        "actualGitBlob": "325eabdec2a0d01312be399cbc4e47a1f7881d6a",
+        "sourceMatchesCurrentHEAD": true,
+        "reviewScope": "Difference adds V2 candidate handling; V2 is explicitly deferred for this goal. Do not re-pin without the original source review.",
+        "sameBlockingCondition": "shared development output incomplete due fixed-bundle provenance gate",
+        "newTaskRequestSubmitted": false,
+        "sourceOrPinChanged": false
+      }
+    ],
+    "blockedAudit": {
+      "observedAt": "2026-11-10T10:11:32.865504+00:00",
+      "nativeGoalStatus": "blocked",
+      "consecutiveGoalTurnsWithSameBlocker": 3,
+      "blocker": "Shared dist/development is incomplete after fixed-bundle provenance failures; the latest requires V2 source review for chatgpt-bridge-page.js.",
+      "lastObservedLiveProcess": 30103,
+      "missingResources": [
+        "development-update.json",
+        "libs/manifest.json",
+        "scripting/sandbox/worker-runtime.js"
+      ],
+      "remainingRequirements": [
+        "One newly confirmed successful Baidu request from real WebFlow UI with Run/Result and released receipts",
+        "Read the successful result after refresh/reopen and prove the same Baidu Run ID set"
+      ],
+      "noNewRequestOrReplay": true,
+      "unblockCondition": "Original owner reviews the changed fixed source and the existing writer restores complete development output; resume the original WebFlow UI operation.",
+      "broaderScopeUndertaken": false
+    },
+    "resumedCompletion": {
+      "observedAt": "2026-11-10T10:56:27.408Z",
+      "goalStatus": "complete",
+      "criteriaSatisfied": true,
+      "scope": "New explicitly confirmed WebFlow manual request, exact-query result-page read-only branch; not a homepage navigation-chain PASS",
+      "nativeSurface": {
+        "space": 54,
+        "windowId": 1114138827,
+        "baiduTabId": 1114138845,
+        "method": "ego documented CDP escape hatch; native Side Panel and its owned sandbox frame; Input mouse/key events",
+        "cua": "inventory timed out",
+        "desktopConnector": "429 unavailable; no permission rejection"
+      },
+      "currentWebflow": {
+        "version": "0.3.25",
+        "packageSha256": "68c1b9944256fb6c0b02acc88d22e6b65554c91e3bb29d0fbbf8b167024e350b",
+        "proof": "Live delegation packageHash equals the sole current formal JSON bytes; update was performed by a parallel owner, not this chat"
+      },
+      "runtime": {
+        "mode": "continuous-development",
+        "configuredOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "observedAt": "2026-11-10T10:57:30.571Z",
+        "resourceReads": [
+          {
+            "path": "development-update.json",
+            "status": 200,
+            "bytes": 14117
+          },
+          {
+            "path": "libs/manifest.json",
+            "status": 200,
+            "bytes": 4895
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "status": 200,
+            "bytes": 125601
+          }
+        ],
+        "fetchedDevelopmentRevision": "6b5c3d3384b134389e5bebc9b0b2683d887c16e1ec162996a1e24bf686168771",
+        "note": "HTTP resource revision, not a claim that every live document applied that revision; Run builtin identities are preserved separately; actual loaded disk path not newly read from Chrome internals"
+      },
+      "invalidationUi": {
+        "status": "待重新验证",
+        "runDisabled": true,
+        "message": "浏览器运行时已更新，此脚本的原验证已失效。请打开任务管理，对同一固定任务包重新验证并确认安装，再刷新脚本状态。",
+        "originalTaskManagementEntryUsed": true
+      },
+      "recovery": {
+        "developerRun": {
+          "runId": "301e642d-92f4-4325-a065-2ed29f89b796",
+          "resultId": "693a3729-366e-4e09-b582-9010d4b3321e",
+          "state": "completed",
+          "scriptId": "draft:301e642d-92f4-4325-a065-2ed29f89b796",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "825b9d1e8b2520bc2e7bf58f8d5566dee602f16eb191aba5a35199a07e72cb90"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "terminalReason": null,
+          "selection": {
+            "mode": "borrowed",
+            "tabId": 1114138845,
+            "frameId": 0,
+            "documentId": "83541D71E022E913960F49D88F2F11D4",
+            "expectedUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow",
+            "expectedWindowId": 1114138827
+          },
+          "outcome": {
+            "ok": true,
+            "value": {
+              "count": 3,
+              "inputMode": "isolated-dom",
+              "kind": "baidu.search.top3.result",
+              "observedAt": "2026-11-10T10:43:56.979Z",
+              "query": "JavaScript MDN",
+              "results": [
+                {
+                  "directUrl": "https://developer.cdn.mozilla.net/zh-CN/docs/Web/JavaScript",
+                  "evidence": {
+                    "slot": "1",
+                    "tpl": "www_index"
+                  },
+                  "position": 1,
+                  "summary": "2026年5月26日JavaScript 标准是 ECMAScript 语言规范 (ECMA-262)和 ECMAScript 国际化 API 规范 (ECMA-402)。只要某个浏览器实现了某个特性,我们就会尝试详细记录这个特性。这意味着,当某个 ECMAScript 新特性的提案 在浏览器中实现时,文档和 MDN 文章中的示例可能会使用这些新特性。大多数时候发生在 阶段 3 和阶段 4 之间,",
+                  "title": "JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=uHmb_kMkTo8QZV_qyn3wyCmMwtM179dqTUYmmWF3Mgb6pWU6lCGwRkeVAtDLlkEWc8o_Hzp9KY2DCwAGPG5gZt5VQaYmWpSZTQSvzuFYCuC"
+                },
+                {
+                  "directUrl": "https://mdn.io/",
+                  "evidence": {
+                    "slot": "4",
+                    "tpl": "www_index"
+                  },
+                  "position": 2,
+                  "summary": "JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language with first-class functions. While it is most well-known as the scripting language for Web pages, many non-b",
+                  "title": "JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=dOadVo8tdm7LGiv4ojtVWPW-N-x7_HKj9T9zGfAw8V7"
+                },
+                {
+                  "directUrl": "https://developer.mozilla.org.cach3.com/de/docs/Web/JavaScript/Reference/Statements/funktion",
+                  "evidence": {
+                    "slot": "5",
+                    "tpl": "www_index"
+                  },
+                  "position": 3,
+                  "summary": "Funktionsdeklarationen in Javascript ziehen die Funktionsdefinition hoch. Du kannst die Funktion benutzen noch bevor sie deklariert wurde: hochgezogen(); // loggt \"foo\" function hochgezogen() { consol",
+                  "title": "Funktion - JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=BtFAc0DeT7GBDmDvJiG98PfMxkdBz580P9hTtbc6JGNaZTkTY0SCURyHQO4dVVOnTyTLAMx3S2Fvj-Btq_gD5ABW1kgPEdm2rSWLO3X1lM1rKzO03K-hX61PF4zn6yVHt29g8HEMb7eAK5kE9bqZeK"
+                }
+              ],
+              "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow",
+              "status": "success",
+              "trace": [
+                {
+                  "action": "results",
+                  "at": "2026-11-10T10:43:53.977Z",
+                  "count": 3,
+                  "state": "read",
+                  "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow"
+                }
+              ],
+              "version": 2
+            }
+          }
+        },
+        "actions": [
+          "original native Developer run on exact result document",
+          "original catalog verify real Run",
+          "set locally available",
+          "confirm runtime installation update"
+        ],
+        "taskInstallationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+        "generation": 4
+      },
+      "failedAttemptsPreserved": [
+        {
+          "kind": "developer homepage navigation",
+          "run": {
+            "runId": "5f5024d3-1bef-420b-aa89-86ff13aa560d",
+            "resultId": "289977b8-51c4-41cf-9fc7-10fff0ae8504",
+            "state": "stopped",
+            "scriptId": "draft:5f5024d3-1bef-420b-aa89-86ff13aa560d",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+              "bundleSha256": "825b9d1e8b2520bc2e7bf58f8d5566dee602f16eb191aba5a35199a07e72cb90"
+            },
+            "workerRetired": true,
+            "retirementState": "released",
+            "terminalReason": {
+              "code": "E_DOCUMENT_REPLACED",
+              "name": "FoundationError",
+              "message": "Controller fenced"
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 1114138845,
+              "frameId": 0,
+              "documentId": "AB8331EA187D68D8359C95C7B0B87957",
+              "expectedUrl": "https://www.baidu.com/",
+              "expectedWindowId": 1114138827
+            },
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_DOCUMENT_REPLACED",
+                "name": "FoundationError",
+                "message": "Controller fenced"
+              }
+            }
+          },
+          "action": "Search reached result document; cross-document navigation safely fenced. No second click or replay of that Run."
+        },
+        {
+          "kind": "new manual keyword mismatched current result document",
+          "request": {
+            "clientRequestId": "webflow:38aabfce-dcdd-4d2a-8772-a9e4ac8494dd",
+            "state": "submitted",
+            "cancelled": false,
+            "admissionCount": 1,
+            "maxAdmissions": 1,
+            "runId": "d16944f9-0033-4d4b-8add-9df9f9319f50",
+            "resultId": "cdc76a74-a04f-4911-9e92-c40d691b762e",
+            "packageHash": "68c1b9944256fb6c0b02acc88d22e6b65554c91e3bb29d0fbbf8b167024e350b",
+            "task": {
+              "taskId": "baidu.search.top3",
+              "version": "1.1.5",
+              "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+              "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+              "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+              "generation": 4
+            }
+          },
+          "run": {
+            "runId": "d16944f9-0033-4d4b-8add-9df9f9319f50",
+            "resultId": "cdc76a74-a04f-4911-9e92-c40d691b762e",
+            "state": "failed",
+            "scriptId": "task:baidu.search.top3:1.1.5",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+              "bundleSha256": "825b9d1e8b2520bc2e7bf58f8d5566dee602f16eb191aba5a35199a07e72cb90"
+            },
+            "workerRetired": true,
+            "retirementState": "released",
+            "terminalReason": {
+              "code": "E_TARGET",
+              "name": "Error",
+              "message": "Expected the approved Baidu homepage or exact query",
+              "stack": "Error: Expected the approved Baidu homepage or exact query\n    at main (eval at <anonymous> (blob:null/a7a405a9-22db-4b4c-b627-0799abc3e0c3:36:123097), <anonymous>:16:25)\n    at async Object.eval (eval at <anonymous> (blob:null/a7a405a9-22db-4b4c-b627-0799abc3e0c3:36:123097), <anonymous>:182:125)"
+            },
+            "selection": {
+              "mode": "borrowed",
+              "tabId": 1114138845,
+              "frameId": 0,
+              "documentId": "83541D71E022E913960F49D88F2F11D4",
+              "expectedUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow",
+              "expectedWindowId": 1114138827
+            },
+            "outcome": {
+              "ok": false,
+              "error": {
+                "code": "E_TARGET",
+                "name": "Error",
+                "message": "Expected the approved Baidu homepage or exact query",
+                "stack": "Error: Expected the approved Baidu homepage or exact query\n    at main (eval at <anonymous> (blob:null/a7a405a9-22db-4b4c-b627-0799abc3e0c3:36:123097), <anonymous>:16:25)\n    at async Object.eval (eval at <anonymous> (blob:null/a7a405a9-22db-4b4c-b627-0799abc3e0c3:36:123097), <anonymous>:182:125)"
+              }
+            }
+          },
+          "action": "E_TARGET before search; terminal/released; not replayed"
+        }
+      ],
+      "successfulManualRequest": {
+        "request": {
+          "clientRequestId": "webflow:e217bd20-4c4c-4ebf-a77d-4037c9db69bb",
+          "state": "submitted",
+          "cancelled": false,
+          "admissionCount": 1,
+          "maxAdmissions": 1,
+          "runId": "9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8",
+          "resultId": "9e226e27-2eaa-4331-8cc7-54b106c69eed",
+          "packageHash": "68c1b9944256fb6c0b02acc88d22e6b65554c91e3bb29d0fbbf8b167024e350b",
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+            "generation": 4
+          }
+        },
+        "run": {
+          "runId": "9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8",
+          "resultId": "9e226e27-2eaa-4331-8cc7-54b106c69eed",
+          "state": "completed",
+          "scriptId": "task:baidu.search.top3:1.1.5",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "825b9d1e8b2520bc2e7bf58f8d5566dee602f16eb191aba5a35199a07e72cb90"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "terminalReason": null,
+          "selection": {
+            "mode": "borrowed",
+            "tabId": 1114138845,
+            "frameId": 0,
+            "documentId": "83541D71E022E913960F49D88F2F11D4",
+            "expectedUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow",
+            "expectedWindowId": 1114138827
+          },
+          "outcome": {
+            "ok": true,
+            "value": {
+              "count": 3,
+              "inputMode": "isolated-dom",
+              "kind": "baidu.search.top3.result",
+              "observedAt": "2026-11-10T10:50:44.037Z",
+              "query": "JavaScript MDN",
+              "results": [
+                {
+                  "directUrl": "https://developer.cdn.mozilla.net/zh-CN/docs/Web/JavaScript",
+                  "evidence": {
+                    "slot": "1",
+                    "tpl": "www_index"
+                  },
+                  "position": 1,
+                  "summary": "2026年5月26日JavaScript 标准是 ECMAScript 语言规范 (ECMA-262)和 ECMAScript 国际化 API 规范 (ECMA-402)。只要某个浏览器实现了某个特性,我们就会尝试详细记录这个特性。这意味着,当某个 ECMAScript 新特性的提案 在浏览器中实现时,文档和 MDN 文章中的示例可能会使用这些新特性。大多数时候发生在 阶段 3 和阶段 4 之间,",
+                  "title": "JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=uHmb_kMkTo8QZV_qyn3wyCmMwtM179dqTUYmmWF3Mgb6pWU6lCGwRkeVAtDLlkEWc8o_Hzp9KY2DCwAGPG5gZt5VQaYmWpSZTQSvzuFYCuC"
+                },
+                {
+                  "directUrl": "https://mdn.io/",
+                  "evidence": {
+                    "slot": "4",
+                    "tpl": "www_index"
+                  },
+                  "position": 2,
+                  "summary": "JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language with first-class functions. While it is most well-known as the scripting language for Web pages, many non-b",
+                  "title": "JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=dOadVo8tdm7LGiv4ojtVWPW-N-x7_HKj9T9zGfAw8V7"
+                },
+                {
+                  "directUrl": "https://developer.mozilla.org.cach3.com/de/docs/Web/JavaScript/Reference/Statements/funktion",
+                  "evidence": {
+                    "slot": "5",
+                    "tpl": "www_index"
+                  },
+                  "position": 3,
+                  "summary": "Funktionsdeklarationen in Javascript ziehen die Funktionsdefinition hoch. Du kannst die Funktion benutzen noch bevor sie deklariert wurde: hochgezogen(); // loggt \"foo\" function hochgezogen() { consol",
+                  "title": "Funktion - JavaScript | MDN",
+                  "url": "http://www.baidu.com/link?url=BtFAc0DeT7GBDmDvJiG98PfMxkdBz580P9hTtbc6JGNaZTkTY0SCURyHQO4dVVOnTyTLAMx3S2Fvj-Btq_gD5ABW1kgPEdm2rSWLO3X1lM1rKzO03K-hX61PF4zn6yVHt29g8HEMb7eAK5kE9bqZeK"
+                }
+              ],
+              "sourceUrl": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow",
+              "status": "success",
+              "trace": [
+                {
+                  "action": "results",
+                  "at": "2026-11-10T10:50:41.032Z",
+                  "count": 3,
+                  "state": "read",
+                  "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow"
+                }
+              ],
+              "version": 2
+            }
+          }
+        },
+        "query": "JavaScript MDN",
+        "explicitConfirmationCount": 1,
+        "behavior": "Fixed 1.1.5 read-only compatibility on current exact-query Baidu result document; no homepage submission in this successful Run"
+      },
+      "preservationChecks": [
+        {
+          "phase": "success-before-refresh",
+          "observedAt": "2026-11-10T10:53:26.494Z",
+          "baiduRunIds": [
+            "02eca2db-4a45-4d46-a841-58597fa00a0e",
+            "1b38d5c5-1684-4117-8608-ecf7afe34e85",
+            "1edc061a-953c-4cb9-8f0c-b1123c9cb4fb",
+            "216b0c6a-3013-4c24-af82-53873c0562d5",
+            "2e6a63ac-0650-4de1-8eab-b174a7881ec0",
+            "301e642d-92f4-4325-a065-2ed29f89b796",
+            "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+            "5f5024d3-1bef-420b-aa89-86ff13aa560d",
+            "64ab9694-99f8-474c-ba94-73305db53d57",
+            "736b872e-e3fc-4dae-a686-c2d4d4933494",
+            "8aecb1f7-98bc-4b5e-b12c-f3c589af74ef",
+            "9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8",
+            "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+            "cec040b8-278a-41f5-8c05-7031bd498e1d",
+            "d16944f9-0033-4d4b-8add-9df9f9319f50",
+            "f2468976-eea0-4bb2-ac7b-0d301b2953e0"
+          ],
+          "sameRunIdSet": true,
+          "uiShowsSameSuccessfulRunAndResult": true,
+          "uiShowsReleased": true
+        },
+        {
+          "phase": "after-installation-status-refresh",
+          "observedAt": "2026-11-10T10:53:41.533Z",
+          "baiduRunIds": [
+            "02eca2db-4a45-4d46-a841-58597fa00a0e",
+            "1b38d5c5-1684-4117-8608-ecf7afe34e85",
+            "1edc061a-953c-4cb9-8f0c-b1123c9cb4fb",
+            "216b0c6a-3013-4c24-af82-53873c0562d5",
+            "2e6a63ac-0650-4de1-8eab-b174a7881ec0",
+            "301e642d-92f4-4325-a065-2ed29f89b796",
+            "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+            "5f5024d3-1bef-420b-aa89-86ff13aa560d",
+            "64ab9694-99f8-474c-ba94-73305db53d57",
+            "736b872e-e3fc-4dae-a686-c2d4d4933494",
+            "8aecb1f7-98bc-4b5e-b12c-f3c589af74ef",
+            "9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8",
+            "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+            "cec040b8-278a-41f5-8c05-7031bd498e1d",
+            "d16944f9-0033-4d4b-8add-9df9f9319f50",
+            "f2468976-eea0-4bb2-ac7b-0d301b2953e0"
+          ],
+          "sameRunIdSet": true,
+          "uiShowsSameSuccessfulRunAndResult": true,
+          "uiShowsReleased": true
+        },
+        {
+          "phase": "after-exit-reopen-and-history-read-only-query",
+          "observedAt": "2026-11-10T10:56:27.408Z",
+          "baiduRunIds": [
+            "02eca2db-4a45-4d46-a841-58597fa00a0e",
+            "1b38d5c5-1684-4117-8608-ecf7afe34e85",
+            "1edc061a-953c-4cb9-8f0c-b1123c9cb4fb",
+            "216b0c6a-3013-4c24-af82-53873c0562d5",
+            "2e6a63ac-0650-4de1-8eab-b174a7881ec0",
+            "301e642d-92f4-4325-a065-2ed29f89b796",
+            "5c71b55a-3860-4fe0-ac49-27a0f1ccccc0",
+            "5f5024d3-1bef-420b-aa89-86ff13aa560d",
+            "64ab9694-99f8-474c-ba94-73305db53d57",
+            "736b872e-e3fc-4dae-a686-c2d4d4933494",
+            "8aecb1f7-98bc-4b5e-b12c-f3c589af74ef",
+            "9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8",
+            "a9773eed-cc2c-4e08-8b6e-2080514a8df0",
+            "cec040b8-278a-41f5-8c05-7031bd498e1d",
+            "d16944f9-0033-4d4b-8add-9df9f9319f50",
+            "f2468976-eea0-4bb2-ac7b-0d301b2953e0"
+          ],
+          "sameRunIdSet": true,
+          "uiShowsSameSuccessfulRunAndResult": true,
+          "uiShowsReleased": true
+        }
+      ],
+      "reopenOperation": "Native back to extension list; reopen Web Flow; Records > expand latest completed record > query original request (read-only)",
+      "reopenedUiText": "概览\n脚本\n记录\n\n原请求已查询，资源已释放；后续任务仍须手动运行。\n\n知道了\n\n仅展示手动原请求摘要；自动任务在“运行与授权 → 当前任务”核对。\n\n原步骤\n阶段：执行完成\n百度搜索 · 前三条自然结果 · v1.1.5\n\n目标网站：https://www.baidu.com\n\nwebflow:e217bd20-4c4c-4ebf-a77d-4037c9db69bb\n\n资源释放：released；后续 B：不自动执行\n\n查询原请求\n停止原请求\n\n原 Controller 持久结果 · 执行成功\n\nrunId: 9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8 · resultId: 9e226e27-2eaa-4331-8cc7-54b106c69eed\n\n{\n  \"count\": 3,\n  \"inputMode\": \"isolated-dom\",\n  \"kind\": \"baidu.search.top3.result\",\n  \"observedAt\": \"2026-11-10T10:50:44.037Z\",\n  \"query\": \"JavaScript MDN\",\n  \"results\": [\n    {\n      \"directUrl\": \"https://developer.cdn.mozilla.net/zh-CN/docs/Web/JavaScript\",\n      \"evidence\": {\n        \"slot\": \"1\",\n        \"tpl\": \"www_index\"\n      },\n      \"position\": 1,\n      \"summary\": \"2026年5月26日JavaScript 标准是 ECMAScript 语言规范 (ECMA-262)和 ECMAScript 国际化 API 规范 (ECMA-402)。只要某个浏览器实现了某个特性,我们就会尝试详细记录这个特性。这意味着,当某个 ECMAScript 新特性的提案 在浏览器中实现时,文档和 MDN 文章中的示例可能会使用这些新特性。大多数时候发生在 阶段 3 和阶段 4 之间,\",\n      \"title\": \"JavaScript | MDN\",\n      \"url\": \"http://www.baidu.com/link?url=uHmb_kMkTo8QZV_qyn3wyCmMwtM179dqTUYmmWF3Mgb6pWU6lCGwRkeVAtDLlkEWc8o_Hzp9KY2DCwAGPG5gZt5VQaYmWpSZTQSvzuFYCuC\"\n    },\n    {\n      \"directUrl\": \"https://mdn.io/\",\n      \"evidence\": {\n        \"slot\": \"4\",\n        \"tpl\": \"www_index\"\n      },\n      \"position\": 2,\n      \"summary\": \"JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language with first-class functions. While it is most well-known as the scripting language for Web pages, many non-b\",\n      \"title\": \"JavaScript | MDN\",\n      \"url\": \"http://www.baidu.com/link?url=dOadVo8tdm7LGiv4ojtVWPW-N-x7_HKj9T9zGfAw8V7\"\n    },\n    {\n      \"directUrl\": \"https://developer.mozilla.org.cach3.com/de/docs/Web/JavaScript/Reference/Statements/funktion\",\n      \"evidence\": {\n        \"slot\": \"5\",\n        \"tpl\": \"www_index\"\n      },\n      \"position\": 3,\n      \"summary\": \"Funktionsdeklarationen in Javascript ziehen die Funktionsdefinition hoch. Du kannst die Funktion benutzen noch bevor sie deklariert wurde: hochgezogen(); // loggt \\\"foo\\\" function hochgezogen() { consol\",\n      \"title\": \"Funktion - JavaScript | MDN\",\n      \"url\": \"http://www.baidu.com/link?url=BtFAc0DeT7GBDmDvJiG98PfMxkdBz580P9hTtbc6JGNaZTkTY0SCURyHQO4dVVOnTyTLAMx3S2Fvj-Btq_gD5ABW1kgPEdm2rSWLO3X1lM1rKzO03K-hX61PF4zn6yVHt29g8HEMb7eAK5kE9bqZeK\"\n    }\n  ],\n  \"sourceUrl\": \"https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow\",\n  \"status\": \"success\",\n  \"trace\": [\n    {\n      \"action\": \"results\",\n      \"at\": \"2026-11-10T10:50:41.032Z\",\n      \"count\": 3,\n      \"state\": \"read\",\n      \"url\": \"https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=JavaScript%20MDN&fenlei=256&rsv_pq=0xd42ed5510000fa6d&rsv_t=9a82ri1BLMgM996V6phF8Rr5w0p7zivQCzIBnpXrjEjq1QiNxkAcmSXKHZdp&rqlang=en&rsv_dl=tb_click&rsv_enter=1&rsv_sug3=1&rsv_btype=i&rsv_jmp=slow\"\n    }\n  ],\n  \"version\": 2\n}\n\n查询不创建执行。UNKNOWN、缺失记录或资源未释放时，保留原步骤，只能查询或停止。\n\n百度搜索 · 前三条自然结果\n11/10 18:56 · 手动运行\n执行完成\n\n以下为保存时摘要，不是当前结果：任务返回 success（仍须核查网页事实） · 3 条。\n\nclientRequestId\nwebflow:e217bd20-4c4c-4ebf-a77d-4037c9db69bb\nrunId\n9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8\nresultId\n9e226e27-2eaa-4331-8cc7-54b106c69eed\n持久结果\n保存时原快照匹配\n运行结果\nController outcome.ok=true（不等于网页业务成功）\n资源释放\nreleased\n网页业务\n任务返回 success（仍须核查网页事实）\n原聊天交付\n未观察\nAI 续答\n未观察\n百度搜索 · 前三条自然结果\n11/10 18:49 · 手动运行\n执行失败\n百度搜索 · 前三条自然结果\n11/10 17:44 · 手动运行\n已取消",
+      "oldCancelledRequest": {
+        "clientRequestId": "webflow:7a3cad80-f353-4af9-8524-50114a63a0aa",
+        "state": "cancelled",
+        "cancelled": true,
+        "admissionCount": 0,
+        "maxAdmissions": 1,
+        "runId": null,
+        "resultId": null,
+        "packageHash": "263dfe2c73a0c3ae4952069e460527098275955846cfa98d2a092b680e666a09",
+        "task": {
+          "taskId": "baidu.search.top3",
+          "version": "1.1.5",
+          "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+          "generation": 3
+        }
+      },
+      "limitations": [
+        "Homepage cross-document navigation remains safely stopped; not fixed or marked PASS",
+        "Production, scoring, ChatGPT/V2/Google and broad regression deferred",
+        "No product-source edits or repeated existing Node/package tests in this resumed phase"
+      ],
+      "resources": {
+        "nativeUiLease": "released; native_ui_owner=null",
+        "taskSpaceFinished": true,
+        "watcherStopped": false,
+        "secondWriterStarted": false,
+        "otherOwnerRunStopped": false,
+        "otherOwnerPageClosed": false,
+        "gitCommitOrPush": false,
+        "keptPage": "p2 exact-query results/native WebFlow result for user viewing; space now user-owned",
+        "transportPageClosed": true,
+        "ownCdpSessionsDetached": 2,
+        "testingGlobalsRemoved": true
+      },
+      "nativeGoalClosure": {
+        "status": "complete",
+        "updatedAt": 1794308434,
+        "tokensUsed": 409435,
+        "timeUsedSeconds": 2873,
+        "tokenBudget": null
+      }
+    },
+    "latestEvidence": "homepageCoreAttempt",
+    "historicalFieldsNote": "Earlier observation/ui/blocker/followupChecks/blockedAudit and resumedCompletion are historical scoped evidence. homepageCoreAttempt is the latest homepage attempt and does not inherit exact-result-page PASS.",
+    "homepageCoreAttempt": {
+      "threadId": "01a1c556-defe-70d2-b555-331633a5515c",
+      "observedAt": "2026-11-10T12:10:42.580925+00:00",
+      "mode": "core development; homepage normal operation; not production acceptance",
+      "status": "CAPTCHA_AND_USER_CONTROL; homepage core incomplete",
+      "space": {
+        "id": 61,
+        "name": "WebFlow Baidu homepage core 20261110 continuation",
+        "homepagePage": "p1",
+        "lastOwnership": "user-control; ego commands paused"
+      },
+      "environment": {
+        "branch": "main",
+        "expectedExistingDevelopmentPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "loadedPathReverifiedViaBrowserInternalPage": false,
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "writer": {
+          "pid": 1475,
+          "port": 43119,
+          "observedListening": true,
+          "changedByThisThread": false
+        },
+        "actualDebugUi": {
+          "connected": true,
+          "buildRevision": "4fbac865a7b7d5ad4419f3436de5dc5e55e31e75bab596a04cf899e535c9d006",
+          "controllerSlotBeforeConfirmation": "idle"
+        },
+        "webflow": {
+          "installedUiVersion": "0.3.26",
+          "diskPackageSha256": "baaabebd6321e5b888775a094d3f57a2c8e0dc39c1aaf588c7da5a68292446b8",
+          "delegationPackageHashReadFromJournal": null
+        },
+        "baidu": {
+          "version": "1.1.5",
+          "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "installationId": "7d9454ed-a979-40ef-ad6e-1e18a45c2654",
+          "generation": 4,
+          "installedIdentityReadInActualWebflowUi": true
+        }
+      },
+      "request": {
+        "clientRequestId": "webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa",
+        "query": "MDN Web API MutationObserver",
+        "limit": 3,
+        "startingUrl": "https://www.baidu.com/",
+        "explicitConfirmationCount": 1,
+        "admissionCount": null,
+        "maxAdmissions": null,
+        "runId": null,
+        "resultId": null,
+        "nullIdentityNote": "not read; null does not establish that no Run/Result exists"
+      },
+      "actualOperations": [
+        "Opened own Baidu homepage; initial goto committed and became interactive although load wait timed out; observed existing document without navigating again",
+        "Native toolbar > OpenDesk > Debug: actual dev connection/revision, idle Controller slot",
+        "Extensions > actual installed Web Flow 0.3.26 > Scripts > Prepare Baidu: exact 1.1.5 identity and generation 4",
+        "Entered new keyword, saved step, observed saved/read-back notice and fresh clientRequestId",
+        "Clicked Confirm manual run once; actual UI transitioned to submitting",
+        "Observed own p1 at Baidu captcha URL; backurl contains /s and exact new query; no retry",
+        "Observed native Baidu security verification page and actual WebFlow unresolved original request",
+        "Ego subsequently rejected taskSpace(61) with explicit user-control hard stop before the attempted new control Page was created; no alternate browser operation followed"
+      ],
+      "navigationObservation": {
+        "observedAt": "2026-11-10T12:08:45.780Z",
+        "origin": "https://wappass.baidu.com",
+        "pathname": "/static/captcha/tuxing_v2.html",
+        "backurlOrigin": "https://www.baidu.com",
+        "backurlPath": "/s",
+        "backurlQuery": "MDN Web API MutationObserver",
+        "captchaSessionParametersOmitted": true,
+        "nativePageText": [
+          "百度安全验证",
+          "请完成下方验证后继续操作"
+        ],
+        "searchEffectObserved": true,
+        "rawSubmitCount": null,
+        "inputValueReadbackFromTaskTrace": null,
+        "naturalResultsVerified": false
+      },
+      "lastActualWebflowUi": {
+        "notice": "原请求仍未确定。保留同一步骤，只能查询或停止，不能重新运行。",
+        "stage": "执行中",
+        "resourceDisplay": "not-started",
+        "displayInterpretation": "UI projection only; not proof of no execution or released Controller resources",
+        "queryOriginalRequestVisible": true,
+        "stopOriginalRequestVisible": true
+      },
+      "verification": {
+        "homepageCore": "NOT_COMPLETE",
+        "businessSuccessAndCount3": "NOT_TESTED",
+        "durableRunResult": "NOT_READ",
+        "workerRetired": "NOT_VERIFIED",
+        "retirementStateReleased": "NOT_VERIFIED",
+        "singleAdmission": "NOT_VERIFIED; one explicit UI confirmation observed",
+        "refreshReopenPreservesSuccessfulHomepageResult": "NOT_TESTED",
+        "productSourceChanged": false,
+        "testsBuildPackageRun": false,
+        "reason": "external captcha and explicit user-control hard stop; no product edit requiring tests"
+      },
+      "classification": {
+        "currentBlocker": "site CAPTCHA at different Origin plus user control",
+        "historicalDocumentReplacement": "still unresolved; not reproduced as a readable terminal Run in this attempt",
+        "existingPublicNavigationApi": "docs/framework/modern-page-api.zh-CN.md: explicit Locator.click waitUntil registers Authority navigation intent and hands off only actual same-Origin commit/load",
+        "runtimeGap": "NOT_PROVEN; no global documentId/Origin bypass justified"
+      },
+      "resources": {
+        "nativeUiLease": "released; native_ui_owner=null",
+        "taskSpaceFinished": false,
+        "taskSpaceFinishReason": "ego says user controls this space; guide prohibits finish/takeover in this state",
+        "browserControlStopped": true,
+        "controlPageCreated": false,
+        "ownAttachedCdpSessions": 0,
+        "otherOwnerPageOperated": false,
+        "writerStoppedOrSecondWriterStarted": false,
+        "productPackageOrPinChanged": false,
+        "gitCommitOrPush": false,
+        "databaseMutation": false
+      },
+      "nextAction": "After user handles captcha and explicitly says continue, resume same Space and query original clientRequestId read-only; reconcile matching Run/Result, observed effects and actual release. Do not repeat confirmation or search. A later independent request requires original terminal/released proof.",
+      "deferred": [
+        "production",
+        "scoring",
+        "full regression/fault/stress matrix",
+        "ChatGPT/V2/Markdown",
+        "Google",
+        "independent Reading TOC cleanup"
+      ]
+    }
+  }
+}

@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {webcrypto} from 'node:crypto';
 import {load} from 'cheerio';
 import {inspectChatGPTEditsOnPage} from '../../src/native-agent/workspace-chatgpt.js';
 import {createChatGPTFixedBridgeHost,verifyChatGPTTaskDurableResult,formatChatGPTInstalledResult}
@@ -253,7 +254,7 @@ function domFixture(){
       querySelectorAll:selector=>$(node).find(selector).toArray().map(wrap)};
     nodes.set(node,value);return value;
   };
-  const sandbox=vm.createContext({location:new URL(source.url),
+  const sandbox=vm.createContext({location:new URL(source.url),crypto:webcrypto,
     document:{querySelectorAll:selector=>$(selector).toArray().map(wrap)},
     getComputedStyle:node=>({display:node.getAttribute?.('data-hidden')==='true'?'none':'block'})});
   const read=(options={})=>vm.runInContext('('+inspectChatGPTEditsOnPage.toString()+')('+JSON.stringify({

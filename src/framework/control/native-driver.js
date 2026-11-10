@@ -15,7 +15,7 @@ const methods = Object.freeze({
   packaged: new Set(['title', 'content', 'contentOpen', 'contentRead', 'contentClose', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
     'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
     'locatorRead', 'locatorWait', 'locatorAction', 'locatorObserve']),
-  browser: new Set(['goto', 'reload', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),
+  browser: new Set(['goto', 'reload', 'bringToFront', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),
   'user-script': new Set(['evaluate', '$eval', '$$eval', 'evaluateExpression', 'eval', 'waitForFunction'])
 });
 // These operations only observe page state or manage framework-owned read buffers.
@@ -308,6 +308,39 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       await native(state, api.tabs, method === 'goto' ? 'update' : 'reload', method === 'goto' ? [from.tabId, {url}] : [from.tabId], {url}, {kind: 'browser', method, url});
     }
     await wait(state, completed, {url}); await verifyTarget(state); return outcome;
+  }
+  async function bringToFront(state) {
+    const {tabId} = state.envelope.target;
+    const tab = await native(state, api.tabs, 'get', [tabId]);
+    requireValue(tab?.id === tabId && Number.isSafeInteger(tab.windowId) && tab.windowId >= 0 && !tab.incognito, 'E_TARGET');
+    await verifyTarget(state);
+    const activated = await native(state, api.tabs, 'update', [tabId, {active: true}], {},
+      {kind: 'browser', method: 'bringToFront', tabId});
+    requireValue(activated?.id === tabId && activated.windowId === tab.windowId && activated.active === true, RESULT_FORMAT_CODE);
+    await verifyTarget(state);
+    const assertActivatedTarget = async () => {
+      const current = await native(state, api.tabs, 'get', [tabId]);
+      requireValue(current?.id === tabId && current.windowId === tab.windowId && current.active === true && !current.incognito, 'E_TARGET');
+    };
+    await assertActivatedTarget();
+    const focused = await native(state, api.windows, 'update', [tab.windowId, {focused: true}], {},
+      {kind: 'browser', method: 'bringToFront', windowId: tab.windowId});
+    requireValue(focused?.id === tab.windowId, RESULT_FORMAT_CODE);
+    // The update callback can describe the window before the OS applies focus.
+    // Confirm the resulting state without submitting another focus effect.
+    const focusDeadline = clock.now() + 1000;
+    for (;;) {
+      await verifyTarget(state);
+      await assertActivatedTarget();
+      const window = await native(state, api.windows, 'get', [tab.windowId]);
+      requireValue(window?.id === tab.windowId, RESULT_FORMAT_CODE);
+      if (window.focused === true) break;
+      requireValue(clock.now() < focusDeadline, 'E_WINDOW_FOCUS_UNCONFIRMED',
+        'Target tab activated, but its window focus was not confirmed; foreground effects will not be retried');
+      await wait(state, new Promise(resolve => setTimeout(resolve, 25)));
+    }
+    await verifyTarget(state);
+    await assertActivatedTarget();
   }
   async function screenshot(state) {
     let changed = false, windowId;
@@ -630,6 +663,10 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     }
     if (kind === 'user-script') descriptor = buildPageEvaluation(method, args,
       {operationId: envelope.requestId, runId: ownerKey(envelope.identity)});
+    if (method === 'bringToFront') {
+      requireValue(envelope.target.frameId === 0, 'E_TOP_FRAME_REQUIRED');
+      requireValue(args.length === 0, ARG_TYPE_CODE);
+    }
     if (kind === 'browser' && ['goto', 'reload'].includes(method)) {
       requireValue(envelope.target.frameId === 0, 'E_TOP_FRAME_REQUIRED');
       requireValue(args.length === (method === 'goto' ? 2 : 1), ARG_TYPE_CODE);
@@ -679,6 +716,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
           await locatorStages(state) : await packaged(state);
       else if (kind === 'user-script') result = await userScript(state);
       else if (['goto', 'reload'].includes(method)) result = await navigate(state);
+      else if (method === 'bringToFront') result = await bringToFront(state);
       else if (method === 'screenshot') result = await screenshot(state);
       else if (method === 'uploadFromUrl') result = await uploadFromURL(state);
       else result = await cookieOperation(state);

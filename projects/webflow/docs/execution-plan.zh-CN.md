@@ -1,3 +1,82 @@
+## 百度固定脚本核心 UI 目标与关键条件（2026-11-10）
+
+**最新阶段（20:10）：首页真实手动请求遇到验证码，核心链未完成。** 当前对话 01a1c556 在自有 ego TaskSpace **61** 从百度首页进入真实 WebFlow **0.3.26**，核对百度 **1.1.5 / generation 4** 及原双 hash 后保存 `MDN Web API MutationObserver`；请求 **webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa** 明确确认一次。实际页面跳到 `https://wappass.baidu.com/static/captcha/tuxing_v2.html`，回跳参数为本次关键词结果页；原生页面显示“百度安全验证／请完成下方验证后继续操作”。未取得三条结果，未重试、解验证或重放。WebFlow 显示“原请求仍未确定”、阶段“执行中”、资源释放 `not-started`，**不能据此认定底层未执行或已释放**；Run/Result、输入读回、实际准入次数和持久终态均待只读核对。
+
+开发环境仍为原 `dist/development`，writer **PID 1475 / 43119** 在本轮只读核对时存活；真实调试页显示服务已连接、extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、applied revision **4fbac865a7b7d5ad4419f3436de5dc5e55e31e75bab596a04cf899e535c9d006**，执行前槽空闲。磁盘加载目录没有访问内部页重验。随后 ego 明确报告 Space 已交给用户控制，本轮立即停止浏览器操作，未创建控制页／CDP 会话，也未调用 finish 或再次接管；原 UI 租约已释放。只更新百度文档与原证据，未改产品源码、包或 pin，不继承其他候选的原生成功。
+
+**唯一接续动作：** 用户完成页面验证并明确继续后，恢复同一 Space，先只读查询上述原请求和匹配 Run/Result、已发生效果及真实释放状态。旧 UNKNOWN、ACK 缺失和未释放记录不补跑。此前首页 `E_DOCUMENT_REPLACED` 仍是历史待修；公开 Controller 的 `click({waitUntil:'load'|'domcontentloaded'})` 已声明同 Origin 整页导航交接，但本轮验证码跳到不同 Origin，不能用放宽文档／Origin 保护修复，也不能在验证码阻塞下宣称该 API 修复已验证。首页成功后才核对成功结果的刷新／退出重开不重跑；ChatGPT、V2、Google、production、评分与全量矩阵继续延期。原证据新增 `continuation.homepageCoreAttempt`，历史字段保留。
+
+**以下是 18:56 历史范围：限定手动请求条件已实测，不代表首页搜索全链或正式验收。** 源对话 01a1c483 的目标维持原暂停交接说明；接收对话 01a1c4e4 的窄目标仅包含失效状态与原链恢复、新手动请求三条结果、刷新和退出重开不重复。用户恢复目标后，继续沿原入口完成；原 18:11 blocked 是历史状态。成功 Run 走固定脚本已声明的“精确关键词结果页只读”分支，首页跨文档替换仍会安全停止，不以结果页 PASS 替代该分支。
+
+| 条件 | 实际操作与通过标准 | 最新证据状态 |
+| --- | --- | --- |
+| K1 · 安装与真实入口 | 原生 Side Panel、原工具及任务身份，不冒用标签页授权。 | ego TaskSpace 54 的原生侧栏及其自有 sandbox 通过 CDP Input 操作。并行 owner 已更新 WebFlow **0.3.25**，实际委托 packageHash 与正式 JSON SHA **68c1b9944256fb6c0b02acc88d22e6b65554c91e3bb29d0fbbf8b167024e350b** 相符；extension ID ccfcjegpkdlgbclopjmadlcjedelidmf。固定 dist/development 三项运行资源真实 fetch 均 200；加载磁盘路径本轮未从 Chrome 内部页重新读取。 |
+| K2 · 失效状态 | 原因可理解、禁用运行、保留诊断与原恢复入口。 | **PASS**：当前运行时更新再次呈现“待重新验证”，明确原验证失效及重新验证/安装步骤；运行禁用，原任务管理入口实际使用。 |
+| K3 · 原链恢复 | 同源码开发成功 Run、真实释放、核对证据、可用及原安装审阅。 | **PASS（本轮新证据）**：Run **301e642d-92f4-4325-a065-2ed29f89b796** / Result **693a3729-366e-4e09-b582-9010d4b3321e**，JavaScript MDN 精确结果页只读，success/count=3/workerRetired/released。原目录接受真实证据并确认安装，保留安装 ID 7d9454ed-a979-40ef-ad6e-1e18a45c2654，generation **4**，WebFlow 恢复可手动运行。 |
+| K4 · 新手动请求 | 真实 WebFlow 保存步骤、明确确认一次，三条自然结果及 Run/Result、释放。 | **PASS（精确结果页只读）**：新请求 **webflow:e217bd20-4c4c-4ebf-a77d-4037c9db69bb**，JavaScript MDN；admissionCount=1/maxAdmissions=1，Run **9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8** / Result **9e226e27-2eaa-4331-8cc7-54b106c69eed**，completed/success/count=3/workerRetired/released。原 Controller 持久结果已在真实 WebFlow 读回。 |
+| K5 · 刷新与重开不重复 | 刷新安装状态、退出重开后，原结果可读且 Run ID 集合相同。 | **PASS**：18:53:26 成功基线 → 18:53:41 刷新安装状态 → 18:56:27 原生返回扩展列表、重开 WebFlow、“记录 → 展开完成项 → 查询原请求（只读）”。同一成功 Run/Result 与 released 可读；**16 个百度相关 Run ID 集合逐项相同**。 |
+| K6 · 安全与边界 | 不重放取消/UNKNOWN，不清账本、不停他人 Run/页面/服务。 | **PASS（本轮范围）**：旧 webflow:7a3cad80… 仍 cancelled=true/admissionCount=0/runId=null；本轮失败 Run 均保留。没有产品源码/来源 pin 修改、第二 writer、他人停止、混合提交或推送。既有 59/59、7/7 与同源检查不重复，也不声称全量回归通过。 |
+
+**本轮失败与成功必须分开：** 同源码首页开发 Run 5f5024d3-1bef-420b-aa89-86ff13aa560d 已把页面推进到结果页，但文档替换触发 **E_DOCUMENT_REPLACED**，随后 workerRetired/released；未重复点击。新手动请求 webflow:38aabfce-dcdd-4d2a-8772-a9e4ac8494dd 的关键词 MDN JavaScript Promise 与当前 JavaScript MDN 结果页不同，Run d16944f9-0033-4d4b-8add-9df9f9319f50 因 **E_TARGET** 终止并释放，未重放。之后另建、另行确认匹配当前精确结果页的新请求才取得上述成功。首页跨文档搜索链仍未修复，不算本次已通过；不放宽文档、Origin 或 UNKNOWN 栅栏。
+
+**重开方式与 UI 状态：** 已完成请求在重开后的“记录”可见；展开并点击“查询原请求（只读）”后显示完整持久结果，不能把历史摘要当当前结果。只读查询曾因自动化控制页被置前而返回 E_DOCUMENT_STALE；切回本任务原百度页后，同一请求查询成功，没有新执行。真实侧栏使用 ego 已公布的 CDP 入口操作，原 CUA 枚举超时、桌面连接 429 是接口不可用，不是缺权限；没有绕过浏览器权限提示。
+
+**开发环境与历史阻塞：** 旧 PID 30103 的固定来源校验失败和三个资源缺失保留在证据 continuation，18:11 曾连续三轮后标 blocked；恢复后原服务已由其他 owner 重启，本轮未停止或替换 writer。18:57 的真实 HTTP 资源读取 revision **6b5c3d3384b134389e5bebc9b0b2683d887c16e1ec162996a1e24bf686168771**，只代表读取的输出，不冒称每个活文档已应用该 revision。成功 Run 的 builtinIdentity 独立保存在证据。并行热更新关闭过本任务工具标签页和旧 UI，均只在 TaskSpace 54 恢复自身入口，未重装浏览器或接管他人页面。
+
+**范围及交付：** 本续跑仅更新本执行卡、README 百度段落及[原证据的 resumedCompletion](../evidence/baidu-core-ui-20261110.json)，保留 Google owner 后续正文。阅读目录独立事项维持旧记录，不参与本目标。保留源码/构建/实际安装/运行的证据边界；不提交或推送，不进入 production、评分、全量 CI 或其他业务。
+
+## Google 默认焦点失败修复当前卡（2026-11-10；01a1c495）
+
+**本次接续核心三轮已完成；源对话 01a1c495 目标最后实读 paused，未改其生命周期。** 用户最新明确“ego 浏览器应该支持taskspace 并行，你继续”，因此复用 TaskSpace **53** 的绑定 Page API 并行操作；原生 UI 租约不再作为全局阻塞，不操作全局键盘、剪贴板或其他 Space。目标仍为新 ChatGPT 聊天的默认、严格 `showExecutionTab:false` 独立审阅、另一新聊天默认三条完整链：同次首页填词/点击/三条真实结果、持久 Result、原聊天仅一次回传、AI 续答完成、无草稿和资源释放。production、全量 CI、V2、评分、百度/TOC 留各自范围。
+
+**旧失败已收尾：** 原 request `9be410ea-9ec5-4916-baa0-c7a695dc7480` / Run `daa466e4-d9ac-43da-ac63-13f862a5fbe0` 已 stopped / workerRetired / released；停止 Result `8d799fda-38ef-4e2f-966f-1b32507ff9d7` 不代表搜索成功。旧焦点操作仍 effect_unknown/fenced/submissionCount=1，不补跑。
+
+**本次实际入口与结果：** 新聊天首轮候选 `wf-53fa0b71-a662-4ce1-8c4b-26d08f92bf5a` 未准入，无 Run；核实源网页旧扩展 context 已失效后，在空闲/无草稿时安全刷新，不重放旧候选。随后从[另一新聊天](https://chatgpt.com/c/6af2e50a-94e0-83ee-aa99-b0b8f93f1063)正常发送默认提示词，原 epoch 9 精确批准复用，request `28054670-229f-4a7f-b8d4-3b7326d9a768` / Run `c2e6707d-b2df-4562-bd9b-78aebde14437` / reserved Result `4d707b6d-1eec-4aa8-b863-d22125190616`。**置前 PASS**：一次 tabs.update active:true、一次 windows.update，读回 focused:true 后才填词；关键词读回正确，真实按钮只点击一次，已到 Google search 地址，但等待 load 超时，paused_unknown，未读结果/未交付。通过原 source 文档 background-stop 收到原 Run 停止 ACK，已核对 stopped/cancelSeq2/workerRetired/released、全局槽空。焦点成功不提升为整链 PASS。
+
+**第一条默认全链已 PASS：** [新聊天](https://chatgpt.com/c/6af2ea4f-7060-83e8-89ef-370801b47892)，candidate `wf-2ae73b13-b0f7-457a-9442-b4cc39b7846c` / request `77e9b98c-3d94-4b97-9ac3-ee40b2347089` / Run `e7b01a0c-6f3f-443b-a176-4c102266b84c` / Result `8e3dc181-7c78-4dea-98a9-bcf09618ef28`。首页填词读回、一次真实按钮点击、三条 Google 结果、持久验证、原聊天一次回传、AI 续答完成、无草稿及 worker released 均取得同 Run 证据。此次 load 正常完成；DOM 早约 10 秒就绪不构成必须修改 Task 的证据，未改任务源码、安装或批准。
+
+**当前接续（01a1c502）：** 1.0.2 将 load 等待改为 domcontentloaded，草稿成功并安装，但新聊天 `wf-201beede-417b-4314-8c7d-477dd5ee84a0` 暴露另一故障：延迟建议覆盖按钮，点击前超时，无 search-click commitIntent，不重放。已以真实页面验证的中性 Google 标志容器点击关闭建议，核对 aria-expanded 后再定位唯一搜索按钮，冻结 **1.0.3**。相关 Node **72/72**、消费者 **2/2**、打包晋升 **4/4**；同源码真实 Run **63e9429b-68b2-48f4-8038-917f8423ca12** / Result **e8bf73c7-2084-4637-92cd-905a90e9aba4** success / count=3 / released，并经原目录核对→本地可用→安装至 generation 5。Web Flow **0.3.26** 已经真实侧栏原更新审阅；权限未变化。新默认聊天 `wf-e326bb02-1dd7-4ee4-96d4-ddc68f845a8f` / Run **be93fa5f-7565-4462-8c45-5ae188dc0eb1** 完整 PASS，含 focused:true、同次持久结果/单次交付/AI 完成/空草稿/释放。独立 false 与最后新默认链现已完整通过，三条均为新候选、同次三条结果、一次回传、AI 完成、空草稿与释放。后台 Run **8e077ff8-5396-4e58-ab87-e4cdf1932d31** 对应 102 次 target active:false 采样，原生日志无 bringToFront；诊断页自身激活造成的 source-active 读数不用于证明聊天持续在前台。最后默认 Run **3434c9c2-7092-432b-a67a-e54fe007d6f9** / Result **352920c9-b03c-4c47-8c30-f5c41418e4d3** 再次取得 focused:true。实际“当前任务”只读查询显示同一条已完成、结果已核实、资源已释放、交付已确认、AI 已观察，监听就绪/空闲。最终保留 epoch 13 默认精确批准（无可变参数），所有本次 owned target 已关闭。
+
+**已修源码与最小证据：** 原 native driver 以 E_WINDOW_FOCUS_UNCONFIRMED 区分持续 false 与损坏回执，一次聚焦、不继续业务或重试；原 ingress 保留 paused_unknown、真实 Run 身份和读取保护；CurrentTask 分开显示 Run、预留 Result、持久结果、交付与释放。原 58 项定向检查通过。收到并行扩展 UI owner 的具体来源锁请求后，重新核对该组件 SHA256 `31a0a3f2844ab235f95bf2a11f9a6eb92361dc931aab258813c243f6308d3436`，组件 12/12 通过，按原审阅流程仅将其 pin 更新为 Git blob `510ae9479c34a3488bccab429b8e8b2a888b0344`；仅 ui/tool-shell.js 准入、源码漂移及软链接拒绝均 PASS。未放宽门禁、不修改并行样式。
+
+**当前环境与交付：** 持续开发 `dist/development`、扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf`、Web Flow **0.3.26**、Google **1.0.3**。原 watcher 94167 OOM 后由其他 owner 恢复为 **PID 1475**；本任务未停止活动服务、未重装或更改 Native 配对，第二 writer 尝试被原守卫拒绝。固定来源重新审核后，通过原配置恢复入口重读 hooks；磁盘与 session applied revision 均为 `2b1233d0b3a42bf3a814cacdd4a1301a2e54cd6e7e5c2f4cc14c5fdb2c9a8914`。Google 正式 Task JSON、Web Flow 唯一正式 JSON、源码、定向测试与本记录留在现有 main，**未提交、推送或发布**。TaskSpace 53 收尾时仅保留最后成功聊天给用户。production、全量 CI、V2 与评分仍 NOT_TESTED。脱敏 Run/Result/权限/采样及工具影响边界见[本轮记录](../evidence/google-focus-repair-20261110.json)。
+
+## 固定脚本读取失败诊断（2026-11-10）
+
+本轮下一条用户操作是打开 Web Flow 的“脚本”并读取百度状态。ego TaskSpace 50 内从原已安装工具页展开诊断，复现百度 1.1.5 的 `E_BUILTIN_VERSION_UNAVAILABLE`；真实 Side Panel AX 也读到同一错误。目录将百度标为“运行时已更新，待重新验证”，Google 1.0.1 仍本地可用。因此这是运行时验证失配，不能靠刷新或伪造运行库身份恢复，也没有证据表明百度源码、安装包双 hash 发生变化。
+
+修改范围仅 Web Flow：`src/ui/model.js` 将此错误归为待验证，`src/ui/main.js` 显示准确原因及原 `tasks.open` 管理入口，`src/ui/style.css` 复用需处理的提示色；原运行按钮继续禁用，新增实际 React 恢复测试覆盖需处理筛选、只读刷新、原任务管理目标及零执行。未改 Authority、运行时身份门禁、Task 源码或安装/自动运行授权。配置及唯一 JSON 从 0.3.23 升为 0.3.24，原并行百度/Google pins 保留。
+
+语法及应用/恢复定向检查 59/59，通过现有打包器候选和相关包门禁 7/7 后显式晋升，再由 `--check-project` 核对完全同源。正式 JSON SHA-256 为 `263dfe2c73a0c3ae4952069e460527098275955846cfa98d2a092b680e666a09`。较宽 `sidebar-tools.test.mjs` 的第 8 项仍因匹配旧 `deferConfirmation||identical` 源码字符串失败，现 Host 已有 `identical&&!repairCompanion`；该断言与本轮改动无关，未修改宿主或测试来制造 PASS。`app:update` 的自动升版也因配置内多处任务 `version` 字段拒绝；随后只修改应用顶层版本，沿现有原路径打包/验证/晋升链完成，没有另建打包器。
+
+**首次诊断时的历史状态（已由顶部执行卡更新）：** 当时本机安装版本为 0.3.23；新 JSON 未安装，百度同源程序的运行时真实重验、安装审阅与恢复可运行尚未完成。原生 UI 租约实际属于其他 owner `01a1c1a3-1152-7e02-808d-4869a8df42b0`，真实侧栏同时显示另一个 Google 原请求结果未知；未抢占前台，也未更新共享安装代次以打断它。恢复时先重新核对该资源和原请求，再由原开发 Run → 持久结果及原生回执验证 → Available → 同身份安装审阅链重验百度，随后通过原工具审阅更新 Web Flow 并刷新。禁止重放旧 UNKNOWN 或放宽运行时校验。共享源码及包还包含此前未提交的 pins 变更，本轮未混合提交或推送；production、完整矩阵与评分继续延期。
+
+## 用户指定聊天的触发诊断与修复（2026-11-10；最新核心开发结果）
+
+用户提供的[失败聊天](https://chatgpt.com/c/6af21357-75d8-83ee-8b45-9128babe9ae8)实际已被监听识别。原请求 `c2186a14-0c6c-4608-a0e2-3093fd2ee63a` 为 prepared / pendingAuto，尚未消费、未提交 Controller、没有 Run。此前仅批准了 `showExecutionTab:false` 的精确范围，而该请求省略此参数、默认 true，因此仍需原范围审核；不能把它认作“监听未触发”。历史投影却将没有 Run 的未开始请求显示为执行／释放 UNKNOWN，这是本次实际修复的缺陷。
+
+最小修改在原 `web-task-ingress.js` 与 `CurrentTask.tsx`：只有无消费、宿主占有、Controller 提交、交付及执行观察证据的请求，才投影为 not-started；界面显示“未批准 · 尚未执行／未创建执行资源／尚未发送”。失去 claim 或 ACK 的记录继续 UNKNOWN，不迁移授权，不补跑历史请求。真实新候选的可信侧栏与历史区均已观察到这些标签。核心定向检查 **83/83**、两个现有纯展示 route 的精确来源门禁 **3/3**、展示 route 合同 **5/5** 通过；较宽 provenance 文件另有 7 项无关 Bookmark／Reading TOC 历史断言失败，未扩展修复或宣称全 CI 通过。
+
+现有 dev writer 先成功发布本次源码；随后共享原 writer 退出，另一 owner 在同一锁与路径启动 PID **7891**。本轮复用该 writer，没有另起或停止服务；资源复制期间的 `E_BUILTIN_RESOURCE` 待原资源恢复后解除。Google 1.0.1 的同源码真实 Run `c2564d24-304d-452c-856e-81bcb6a86b1f` 经原核对证据、设为本地可用与可信安装更新链恢复，安装 generation 为 **3**。源码及 manifest 双 hash 不变，未伪造验证记录。共享构建所需的两个既有纯展示 route 仅补精确 blob pin 与原 tool-shell 目标限制，没有调整路由行为或权限。
+
+在[本轮双模式聊天](https://chatgpt.com/c/6af21ec2-a774-83e8-b92d-ec6d7b8922fe)先后通过新请求审核 false 与默认精确范围：后台 Run `9f5d126a-3a7c-4806-801f-eff23b30b1f4`、默认 Run `0cb3ad18-ae8c-4abb-bb09-d076b132f0b4` 均为 owned 页，从首页填词、点击一次、导航并返回 **3 条结果**，completed / success / released，原聊天各收到一次结果并完成 AI 续答。后台创建一次、零 bringToFront，45 次采样见原聊天始终活动，目标出现的 13 次均 inactive；默认只有一次 durable bringToFront，原生回执 active:true / focused:true，并在 8 次被动采样中见执行结果页活动。采样不是连续 OS 焦点事件，执行页关闭后选中了诊断页，不声称自动返回原聊天。
+
+最终再从[全新空白聊天](https://chatgpt.com/c/6af220b4-3884-83e8-b2e4-500d5f731648)发送仓库默认提示词作为首条消息，自动复用默认批准、无再次审批：请求 `ed5334fa-f684-47fb-a231-8f010a243b1b`、Run `e2ffa5e2-1fe1-4d0b-aa91-f747f50b22ab`、Result `f8bfe0aa-cd78-4b12-9ea9-171e57a4e5af`，同样返回 3 条结果并完成单次交付／AI 续答。最终保留省略 showExecutionTab 的精确批准，后台 false 仍需独立审核；原用户失败请求保持未消费。可信调试 UI 实读原扩展 ID 与服务已连接，applied revision `cd7dacf8cc300d7f1d2989c53f80f43f97d7e5826860817e30f2a89c8de4d7eb`。TaskSpace 45 已结束，仅保留最新成功聊天，原生 UI 租约已释放；没有提交或推送。
+
+详细分层证据追加在[原证据的 triggerFailureRepair](../evidence/search-execution-tab-20261110.json)，保留此前成功和 UNKNOWN。百度当前遮挡及其并行 owner、V2 工作、production、完整矩阵与评分继续按各自范围处理，不因本次 Google 核心链通过而恢复为前置。以下保留同日更早观察及其他工作流记录。
+
+## showExecutionTab 当前核心验证（2026-11-10）
+
+当前仍为核心开发验证，复用原 `dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 与既有 dev writer；可信调试页实读服务已连接，revision `ab6320387728a66e836ddf16d09a0342250109726df39a1630f679ddcbd5dfff`。已安装 Google **1.0.1**、百度 **1.1.5**、Web Flow **0.3.23**。本次续接没有修改产品源码、包、来源锁或 Native 配对，没有另起构建，也未提交／推送。
+
+在[原 ChatGPT 聊天](https://chatgpt.com/c/6af2034a-f0fc-83ec-a2b2-f2742be39da4)以全新候选完成 Google 两条真实自动链：省略 `showExecutionTab` 的 Run `10e435a5-d006-4aa8-a62c-6e0606584d78`，以及严格 `false` 的 Run `2c03dcf5-80e8-45e0-b43b-bbe4593b1b97`。两次均为新 owned 页，从首页填写、点击一次、导航并返回 **3 条真实结果**，持久状态 completed／success／released，原聊天收到对应单次结果消息并完成 AI 中文续答。默认链在业务输入前只有一次 durable `bringToFront`，实际回执为目标 active:true、窗口 focused:true；后台链在原可信设置单独审核 false 精确范围，创建一次、零 `bringToFront`，目标关闭且释放一次。55 次采样均见原聊天活动且可见，后台目标在首页和结果页均为 inactive；采样中有 18.489 秒间隔，不把它写成连续焦点事件证明。当前保留的是 false 精确批准；默认／true 后续需原入口重新审核。
+
+续接最初 Run `66395600-cf94-4fbc-8150-8efb691e6ecd` 在 ego Space 总览状态下窗口 focused:false，已通过原 Stop 收尾并释放，保留 effect_unknown，不重放。进入本任务 Space 后才使用不同的新候选取得上述默认成功；未为该环境状态修改源码。更早 UNKNOWN 和历史证据全部保留。
+
+**百度当前阻塞仍存在：** 新建自有百度页填词后，`#chat-submit-button` 中心命中 `[data-opendesk-toc-root]`，其 fixed / z-index 2147483000 / pointer-events:auto，位置与前次一致。本次没有改样式、点击被挡按钮或改用 Enter；Reading TOC 属并行 owner，待其修复后再从原授权链验证百度 1.1.5。旧安装的百度批准已失效，实际运行前还需原入口审阅。完整链未通过，不能复用百度 1.1.4 的历史成功。
+
+分层回执、焦点采样边界及当前失败见[本轮证据](../evidence/search-execution-tab-20261110.json)。原[能力说明](../prompts/01-capability-setup.prompt.txt)、[默认 Google 请求](../prompts/02-google-direct.prompt.txt)保留，新增[后台 Google 请求](../prompts/03-google-background.prompt.txt)为本次实际发送的原文。既有定向检查未因本次无产品改动而重复运行；只核对新文档、JSON 和提示词。production、完整 CI、独立评分继续延期。
+
 ## 本轮增量：ChatGPT 单次发送任务版本 + Markdown 原子运行存储（2026-11-10，OD-AI-WORKFLOW-BRIDGE）
 
 **原始用户操作与产品目标（始终优先）：** 在 WebFlow 读取真实 `md-demo.md` → 一次「开始」批准 T01/T02 → 第一个**真实普通 ChatGPT 聊天**发送 T01 并取得完整回答 → 独立验收和授权文件保存/独立读回 → 把读回的 T01 **完整 JSON 正文**交给第二个不同的真实普通 ChatGPT 聊天 → 验收/保存/读回 T02 → WebFlow 显示两条链接、两份成果和状态。双击、刷新、重启、暂停和 UNKNOWN 不能造成第二次发送。此处仍在**正式源码开发阶段，不是用户已能一键执行的产品**。
@@ -141,6 +220,8 @@
 **最新首条复测通过：** 后续核对发现原 dev writer PID **33072** 已运行，manifest／资源已恢复，AI Proxy owner 的来源锁已包含该文件；本轮复用现有服务，没有另起 writer。两份提示词、设置源码及回归已进入 `main` 提交 `d2465192d`。恢复原 ego Space **22** 后创建[新的 ChatGPT 网页聊天](https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab)，将仓库短提示词原文（420 字符、末尾无 LF）作为首条发送。候选 `wf-d43b3c4f-dacc-48e4-8bdd-4b185d2db047` 自动复用已有精确范围，未再次审批、手工采用或重放旧任务。请求 `abdca6be-976a-4925-a41a-fcdf33095e22`，Run `978f33e9-e179-42d4-8231-6865b2a4c8cb`，Result `02cebaa3-2691-4a7b-9f68-30b2aad7b88a`；真实回执 `completed / data.status=success / count=3`，正文仅一条结果消息，AI 已完成中文整理且没有新任务候选。三条标题为 Chrome 官方 Side Panel API、Plasmo 使用指南和 Medium Side Panel 文章。仍只有标题、排名和 Google 跳转链接，AI 明确中文说明仅依据标题，未编造实际摘要。
 
 本轮首条 Google 核心流程 **PASS**；新设置界面文案、调试页 applied revision 及本次侧栏资源释放状态未重新现场核对，共享原生 UI 被其他 owner 占用，不把旧轮侧栏证据移作本次证明。113 项检查对应源码哈希未变，未重复运行。Space 22 已 `finish`，仅保留新结果聊天及原未发送草稿，关闭中间测试页；原生 UI 未取得租约，不释放其他 owner 的锁。所有旧 UNKNOWN 和未采用候选继续保全。正式包、production、评分、全量 CI 与跨版本矩阵延期。完整身份、数据、源码哈希和验证边界见[证据](../evidence/google-prompts-20261109.json)，本机原始记录在 `artifacts/webflow/google-prompts-1109/short-fresh-result-20261109.json`。
+
+**用户可见窗口再次复测：** 用户明确当前 ego 窗口手动复制后未正常运行。本轮将原 Space 22 置前，发现其[新聊天](https://chatgpt.com/c/6af1e0bd-d420-83ec-b602-9fbb7ae213f9)已含请求 `ce9ad5d5-a839-476c-96e2-301538ab03ea` 的真实成功回执和 AI 整理，原侧栏五项均成功。保留该现场后，通过普通输入框发送一条全新 Google 请求，生成新候选并自动运行；请求 `1ecd4807-e8b3-4d7b-a60c-3bf5e2694fe3`、Run `d4f97309-4b82-44f6-894e-111046823114`、Result `f783f66e-9a9f-435a-ba57-7cae3ee6b872`，`completed / success / count=3`。原侧栏账本增至 2，同次持久结果、资源释放、单次回传和完整 AI 续答全部核实。页面滚动到结果，Space 再次 finish 并保留该页及未知来源草稿，原生 UI 租约已释放。开始时 serve PID 33072 已停止，使用已加载 development 产物完成，没有重建或重启；不能据此声称 serve 已连接。用户报告的失败未复现、原因未知，未改源码或放宽任何保护。
 
 ## 历史提示词回传诊断修复与连续复测（2026-11-09）
 

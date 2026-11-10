@@ -224,11 +224,17 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     return {requestId:message.requestId,state:'completed',runId:durable.runId,resultId:durable.resultId};
   }
   function receiptFor(row,run){
+    // Absence of a Run is only proof of no execution before any durable
+    // ownership/submission/observation evidence. A lost claim or ACK stays unknown.
+    const notStarted=!run&&['prepared','approved','revoked'].includes(row.status)&&
+      !Object.hasOwn(row,'consumedAt')&&!row.controllerSubmitted&&!row.webHostDocumentId&&
+      !row.webDelivery&&!row.webObservation;
     return {...row.webObservation,execution:run?.state==='completed'?'completed':
-      ['preparing','running','stopping','failed','stopped'].includes(run?.state)?run.state:'unknown',
-    persistence:row.webObservation?.persistence??'not-confirmed',release:run?.retirementState??'unknown',
+      ['preparing','running','stopping','paused_unknown','failed','stopped','interrupted'].includes(run?.state)?run.state:notStarted?'not-started':'unknown',
+    persistence:row.webObservation?.persistence??'not-confirmed',release:run?.retirementState??(notStarted?'not-started':'unknown'),
     delivery:row.webDelivery==='delivered'?'confirmed':row.webDelivery==='dispatching'?'unknown':
-      row.webObservation?.delivery??'not-sent',runId:run?.runId??null,resultId:run?.resultId??null};
+      row.webObservation?.delivery??'not-sent',runId:run?run.runId??null:row.webObservation?.runId??null,
+    resultId:run?run.resultId??null:row.webObservation?.resultId??null};
   }
   // Failure diagnostics are a read projection only. The Host validator remains
   // the sole success/value validator and failed/stopped never enter delivery.
@@ -306,7 +312,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
         }
       }
       return {requestId:row.requestId,source:row.source,scope:row.scope,candidate:row.candidate,status:row.status,
-        createdAt:row.createdAt,receipt};
+        createdAt:row.createdAt,pendingAuto:row.pendingAuto===true,receipt};
     }));
     // One row can finish before another awaits. Recheck every disclosure at
     // the batch return boundary so a later revocation removes earlier bytes.

@@ -99,6 +99,10 @@ export class ChromePage {
     }
   }
   url() { return dispatch(this, 'url', []); }
+  async bringToFront() {
+    requireValue(arguments.length === 0, 'E_OPTION_UNSUPPORTED');
+    await dispatch(this, 'bringToFront', [], {kind: 'browser'});
+  }
   locator(css) { return createLocator(state(this), 'css', css); }
   getByRole(role, opts = {}) { return createLocator(state(this), 'role', role, opts); }
   getByLabel(text, opts = {}) { return createLocator(state(this), 'label', text, opts); }

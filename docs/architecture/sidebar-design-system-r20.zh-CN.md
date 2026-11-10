@@ -1,20 +1,21 @@
 # OpenDesk Browser Sidebar R20 设计系统和布局契约
 
-日期：2026-10-10，R26 布局补充：2026-10-12；现行范围：Side Panel 五个正式页签「我的／扩展／工作流／开发／云控」，以及共用 `tool.html` 的任务目录、独立应用标签页。下文 R20/R26/R30 旧「工具」布局为历史参考，最新产品导航以 [R4 规格](../product/sidebar-ui-spec.zh-CN.md) 为准。
+日期：2026-10-10，R26 布局补充：2026-10-12；集合与五 Tab 映射补充：2026-11-10。现行范围：Side Panel 五个正式页签「我的／扩展／工作流／开发／云控」，以及共用可信 React 应用的任务目录、独立应用标签页。源码宿主为 `src/ui/sidepanel.html`，构建入口为 `sidepanel.html`；独立应用适配入口为 `src/ui/app.html`。`tool.html` 已退役。下文 R20/R26/R30 旧「工具」布局为历史参考，最新产品导航以 [R4 规格](../product/sidebar-ui-spec.zh-CN.md) 为准。
 
 本文件描述 Side Panel 的具体实现规则。**跨页面统一的尺寸、Tailwind 映射、Workspace/Settings/应用市场/沙箱分层及独立评分标准**以 [OpenDesk UI 布局与样式规范 R27](ui-layout-conventions-r27.zh-CN.md) 为准；两者共享 `src/ui/design-tokens.css`，不建立第二套 token 表。
 
-## 为什么本轮不引入 Tailwind
+## 历史技术选择与现行 React 边界
 
-本项目实际使用 Chrome MV3、原生 HTML/JavaScript 和 WXT 固定输出，`tool-shell.css` 先前将全局 reset、按钮、输入框、视图布局混在一份约 50KB 的文件里。Tailwind 的主要作用是提供 utility classes 和编译时样式生成；不建立统一语义组件、不规范使用方式，照样可以出现五个页面五套间距。仓库已经为 Native Agent Workspace 引入 Tailwind 构建依赖，但 Side Panel 继续使用审核通过的静态 CSS 和语义 token；沙箱中禁止 CSS 运行时 import/外部 URL。无需再把 Side Panel 或 Vue/React 工具全部迁到 Tailwind/Quasar，避免打乱既有打包和权限边界。
+R20 最初从原生 HTML/JavaScript 与 WXT 固定输出中拆出公共 CSS。Tailwind 的主要作用是提供 utility classes 和编译时样式生成；它本身不决定组件层级与间距所有权。现行五 Tab 已由 `src/ui/react/app-shell.tsx` 组合，唯一可信 React 根为 `src/ui/react/`；React 方向、可选共享组件与自定义 HTML/Vue 零退化以 [R33 合同](react-ui-shared-components-r33.zh-CN.md) 为准。本文件不再把原生页面或“不引入 Tailwind”当作长期产品架构。
 
-**选定：一个本地、静态、零新依赖的 Design System + 各视图专属 CSS**。以后独立 Vue/React 工具可按同样变量映射使用 Tailwind，但不得加载浏览器 CDN 或在受控页面执行外部样式运行时。
+继续复用唯一 Tokens、现有公共 CSS 与真实 React 组件；各视图持有自身布局。Native Workspace 的离线 Tailwind 产物不进入 Side Panel，普通 HTML/Vue/React 工具不因统一可信工作台而迁移框架或新增依赖；不得加载浏览器 CDN 或在受控页面执行外部样式运行时。
 
 ## 源码位置与责任边界
 
-- `src/ui/design-tokens.css`：唯一可信宿主 `:root` 设计变量，语义色、4/8/12/16px 间距、8px 控件圆角、12px 卡片圆角、34px 图标按钮、11px 宿主页面水平 gutter。
+- `src/ui/design-tokens.css`：唯一可信宿主 `:root` 设计变量，语义色、4/8/12/16px 间距、8px 控件圆角、12px 卡片圆角、34px 图标按钮、12px 宿主页面水平 gutter。
 - `src/ui/design-system.css`：读取上述 token，负责基础原生控件、通用布局原语和可访问性焦点；不得再定义另一套 `:root` 调色板。
 - `src/ui/tool-shell.css`：仅保存五页签和完整目录的特殊布局/响应式/运行反馈；不再声明全局 `:root` 或基础控件 reset。
+- `src/ui/react/app-shell.tsx` / `tabs/`：五 Tab、子视图、Dock 与 ToolHost 的真实 DOM 组合；`components/ui/` 的现有封装及组件 CSS 保留各自职责。CSS 类存在不代表有同名 React 导出；Markdown 描述选择、关系与证据，CSS 提供可执行视觉规则，两者共同构成交付。
 - 通用类规范：`od-page` 页签、`od-toolbar` 头部/工具栏、`od-stack` 纵向列表、`od-surface` 卡片、`od-button`/次按钮 `od-button--secondary`、`od-icon-button`、`od-field`、`od-segmented`。
 - 新 UI 先选通用原语，只有真实交互或布局差异才添加 `developer-*`、`workflow-*` 等视图选择器。严格保留所有旧 DOM IDs、真实 Role/ARIA、RunHost/Stop 所有权和信任边界。
 - 工具沙箱运行用户 HTML，不能自动加载这套高权限 UI 样式；需要独立、安全的工具主题合同才允许后续复用。
@@ -25,36 +26,87 @@
 
 R30 原从旧「工具」索引页顶部及打开应用后的可信详情头部提炼视觉基准；新产品统一「扩展」列表继续借鉴其版面规则，不重建旧「我的工具／发现工具」导航。其他 Tab 的新增/调整部分遵循同一契约；当时先落实开发页，不代表全部历史 Tab 已完成迁移。
 
-- **顶部**：从首行标题/动作开始，沿用 workspace-content 的单一 gutter；不额外加顶部卡片或 padding。复用 `od-page-head`，普通最小高度 `--od-icon-size`，标题用 `od-page-title`（12px、600、1.5 行高）。相关短状态可同行，长文字可换行；详情标题需要单行时保留可访问的完整名称。
+- **顶部**：普通列表/表单由 `#workspace-content` 提供一层 `--space-3` 顶部留白，首行不再叠加页面 padding。可见 ToolHost 的通栏标题负责自身顶部留白，工作区仅在该状态取消顶部 padding；完整规则见下方留白所有权。复用 `od-page-head`，普通最小高度 `--od-icon-size`，标题用 `od-page-title`（12px、600、1.5 行高）。相关短状态可同行，长文字可换行；详情标题需要单行时保留可访问的完整名称。
 - **垂直节奏**：标题栏到所属内容、同区域相邻控件/折叠项统一 8px；说明与所属内容 4px；真正独立章节 16px；卡片内部仍为 12px。由父容器 gap 负责，不叠加子元素 margin。12px 卡片 padding 不等于所有行都应隔 12px。
-- **头部动作区**：`od-page-actions` 靠右，动作间隔 8px。添加/导入/刷新/复制/设置等短、熟悉的操作用 `od-icon-button`：34×34px、8px 圆角、18px 图标；普通按钮为 paper 背景、line 边框、sub 图标，hover 为 muted，展开状态使用 focus 边框与 accent ink。每个动作有 title、aria-label 和可见焦点，保留 hidden/disabled。
-- **背景类型**：常规头部操作使用上述浅底带边框型；主要执行用现有 primary；危险动作用现有 danger，保留确认；工具详情的返回使用 muted 背景，低频设置可保持 quiet 类型。颜色只引用 tokens，不按页面重建。不能把普通刷新/复制涂成主要执行按钮。
+- **头部动作区**：`od-page-actions` 靠右，当前公共 CSS 间隔 8px。添加/导入/刷新/复制/设置等短、熟悉的操作用 `od-icon-button`，基类保留常规命中尺寸。现行 `od-page-head` 内使用 Ghost 外观；R40 历史记录的 4px 不是当前公共动作组的默认 gap，已安装 ToolHost 的更紧凑例外见 R4.2。不沿用历史页头的浅底带边框要求。每个动作有 title、aria-label 和可见焦点，保留 hidden/disabled。
+- **背景类型**：普通页头采用现行 Ghost；页头外图标按公共基类/quiet 变体选择。主要执行用现有 primary；危险动作用现有 danger，保留确认；Hover、Focus 和展开态读取公共 tokens，不按页面重建。不能把普通刷新/复制涂成主要执行按钮。
 - **详情动作归属**：返回在标题左侧；作用于整个详情的打开独立页、设置、显示/隐藏、卸载放右侧头部。只作用于结果、历史或项目集合的复制/刷新放所属区域头部，不散落正文或放进 summary 内成为第二个交互控件。运行/停止、安装确认、权限批准等保留明确文字及原决策/授权链，展示按[统一确认与反馈合同](browser-framework/confirmation-and-feedback.zh-CN.md)选择，不固定要求正文内确认区。
 - **开发页映射（历史 R30，由现行 R31 补充）**：来源/本地项目开关是第一行；只读源码的「新建」在该行右侧。当前网页虽然是轻量上下文信息，但**属于一级独立的有边框 `od-disclosure`**，不是 `--flat`；动态网页 host 与状态仍保持原始语义。技术详情才使用 `--flat`。来源行与网页、状态与结果分别同组 8px，独立章节 16px，卡片内部 12px，编辑器至少 216px；本地项目刷新、结果复制、历史刷新留在所属区域。
 - **窄宽度**：不得缩小 icon；≤240px 可让动作组换行，粗指针实际命中区域至少 44px。验收分别记录静态 CSS 布局、实际浏览器 zoom 和已安装扩展证据，不能互相提升。
 
 共享头部/按钮外观由 `design-system.css` 维护；`tool-shell.css` 只负责业务排版和状态差异。参考实现为 `sidebar-tool-list-view`、`sidebar-tool-display`、`developer-source-switch`。
 
-### 间距与圆角规格（统一 4px 基础网格）
+### 间距与圆角的使用入口
 
-| Token | 值 | 使用位置 |
-| --- | ---: | --- |
-| `--space-1` | 4px | 标签与数量、辅助说明与内容之间的紧密间隔 |
-| `--space-2` | 8px | 工具栏按钮间、表单标签与输入框、同行元素 |
-| `--space-3` | 12px | 卡片内边距、工具自身的页面留白、编辑内容区 |
-| `--space-4` | 16px | 不同功能章节或列表分组之间 |
-| `--radius-control` | 8px | 输入框、按钮和标签 chip |
-| `--radius-surface` | 12px | 卡片、区块表面 |
-| `--od-icon-size` | 34px | Side Panel 常规 icon 按钮；不得因为窄屏随机改变规格 |
-| `--od-page-gutter` | 11px（≤340px 时 9px） | 可信宿主 `#workspace-content` 外层内容边距 |
+取值只在 [`design-tokens.css`](../../src/ui/design-tokens.css) 维护；本文件不再复制 Token 数值表。跨界面的场景映射与页面/区域/卡片/列表/控件所有权见 [R27 第 2、3 节](ui-layout-conventions-r27.zh-CN.md#2-尺寸间距字体色彩)。下文保留 Side Panel 的具体组合理由与例外。
 
-### 留白所有权和使用原则
+### 留白所有权和使用原则（2026-11-10 修订）
 
-- **已安装工具列表**：`#workspace-content` 负责一层 gutter；工具卡片内部仅使用自己的 12px 内边距。列表条目统一以标题为主，说明最多一行，升级状态跟随标题，而不是平铺数个操作按钮。
-- **工具详情**：`#workbench-tools` 作为完整内容画布宽度，重新加一层内部 gutter 来对齐上方可信按钮/标题；`#sidebar-tool-frame` 横向抵消该内部 gutter，iframe 不绘制第二层边框和 padding。这既避免重复左右缩进，也保证框架**不超过工具面板本身的滚动宽度**。各个沙箱工具自行用 `.notes-app` 等顶层容器设置 12px 内容留白，工具内容与上方宿主标题保持约 1px 以内的视觉对齐。
+- **普通页与扩展列表**：`#workspace-content` 负责上下 12px、左右 `--od-page-gutter` 的唯一页面留白；背景变白不改变此规则。搜索栏、列表外缘、详情信息卡外缘共用水平对齐线；卡片和控件内部保留自身留白。扩展中心不再覆写整个工作区的 padding。列表条目统一以标题为主，说明最多一行，升级状态跟随标题，而不是平铺数个操作按钮。
+- **应用运行页**：可见 ToolHost 头部通栏，工作区顶部为 0，由头部自身 `--space-2` padding 与最小高度提供呼吸空间；隐藏的调试预览 Host 不触发这个例外。`#workbench-tools` 作为完整内容画布宽度，重新加一层内部 gutter 来对齐可信按钮/标题；`#sidebar-tool-frame` 横向抵消该内部 gutter，iframe 不绘制第二层边框和 padding。这既避免重复左右缩进，也保证框架**不超过工具面板本身的滚动宽度**。沙箱继续自行决定内部留白，原工具不必修改。
+- **扩展信息详情**：沿用普通页外边距，首行标题和返回控件不再分别叠加顶部 8px；详情标题下的 12px 与信息卡内部留白属于内容节奏。
+- **独立画布**：工作流沿用已有会话滚动与零上下 padding；完整目录、独立应用标签页保留各自 surface 合同，不将普通页规则强加给全屏画布。
 - **区域内布局**：一行控件以 `gap:var(--space-2)` 为主；控件组垂直间隔用 8px、独立章节用 16px；卡片内部 pad 12px；辅助文案与正文用 4px。不要为了修视觉问题多次覆写同一处 `padding`，不要叠加父级和子级两个“页面 gutter”。
 - **窄屏与长文本**：所有弹性子项 `min-width:0`，标题/URL 按需换行；标签列表可局部横向滚动，但 `#workspace-content` 不得因 iframe 额外产生横向滚动。输入框正文的 8px 内边距属于控件自身，并不计入页面的第二层 gutter。
 - **显示状态与低频技术信息**：空列表一句话说明下一步；技术摘要（如源代码 SHA）放在“技术信息”折叠区域；从详情返回工具列表后不保留“已隐藏悬浮目录”等过期操作反馈。
+
+### 集合列表与独立参数区（2026-11-10）
+
+**共同设计决定：**同类对象使用单一集合外框、内部行分隔，降低重复圆角和选中描边的视觉重量。公共 `od-collection` / `od-collection-row` 已由「我的」任务选择与扩展中心共同消费，沿原共享 CSS 实施。这是 CSS 组合，不是 React Collection API；其他 Tab 按真实内容选择布局；本轮已在独立默认 360px 原生 Side Panel 核对实际加载，完整发布验收仍未执行。
+
+- **集合边界**：外框读取 `--od-line`、表面读取 `--od-paper`、外圆角读取 `--radius-surface`；首尾行服从集合轮廓，行内不再绘制完整卡片外框或各自圆角。相邻行仅一条内部细分隔，无行间卡片 gutter。集合外层不额外加一圈内容 padding；已有外卡片时先确定哪一层真正拥有边界。
+- **行内节奏**：四周 `--space-3`（12px）padding，扩展图文 `--space-2`（8px）gap；任务的完整图标与两行名称使用 `--space-3`（12px），名称与次信息 `--space-1`（4px）。行高由文字、换行和命中区域共同决定；禁止用固定高度裁切名称、状态或动作。普通描述可一行省略，但错误、权限范围与恢复入口不适用。
+- **选择与焦点**：选中只改变行内轻背景、强调文字或克制的标记，并保留真实 `aria-pressed` / `aria-selected` 语义；不以外框加粗、双重阴影或重复整圈品牌描边表示选择。键盘 `focus-visible` 单独使用 `--od-focus`，必须可见且不被集合圆角裁掉；Hover 不伪装成选中，选中不表示已经运行或授权。
+- **集合到工作区**：任务选择集合与独立操作/结果区之间由共同父容器提供 `--space-4`（16px）。操作 workspace 沿用集合底边与 16px 留白分隔，不再重复横线；水平沿用页面对齐线，不增加第二重水平 padding。参数字段不常驻列表下方：从行内运行图标或菜单打开当前面板的模态 Sheet；标题说明任务，底部保留取消和明确 Run，长表单内部滚动。无参数任务在同一 Sheet 中说明无需参数，不保留空表单区。选择和打开均不执行或授权。
+- **唯一工作区**：切换选择、筛选、展开/收起继续复用原 `task-selected-workspace` 实例，保留 IME、输入、焦点与业务生命周期。参数 Sheet 关闭保留同一表单节点和草稿；原生 dialog 提供背景 inert、键盘与焦点返回，组合输入中 Enter/Escape 不执行或关闭。Schema 是唯一有效性判断，错误关联字段并在 React 提交后聚焦；Run 重新校验打开时的任务/版本/hash/安装身份。布局拆出集合不授权重建表单、不重复 ID、不自动执行任务；选择行与管理按钮是独立控件，不能嵌套按钮或让子动作触发行选择。
+- **公共与业务所有权**：集合外框、表面、内部分隔归 `design-system.css`；行内节奏遵循共同 token，具体交互主体、悬浮动作及选择/焦点由原组件和布局 CSS 组合。任务状态、描述、选择/展开行为和参数数据归原业务 owner；父布局 gap 与显隐归对应页面。不要在 `tool-shell.css` 重做任务专用集合外框或逐行卡片皮肤。
+
+**2026-11-11 最新调整：**任务参数/运行入口移到行内悬浮层，不再在集合下显示独立按钮；任务与扩展列表均不为菜单预留独立列或右侧 padding。默认展示一个菜单入口，跟随最后悬停/聚焦行；重要停用状态留在文字区，不被浮层覆盖。Sheet 默认紧凑动态表单，标签置于控件容器左侧，布尔控件靠右；长字符串按现有约束使用多行输入，另可切换 JSON。JSON 与表单沿用原校验和每个固定版本的草稿，不扩充 Schema 或执行权限。当前证据为定向 Node 与 ego 源码预览；原 watcher 被并行 AI Proxy 来源锁阻塞，尚未宣称新原生候选生效。下方 96.1 分属于上一轮 `63879a1c…`，不自动覆盖本次调整。
+
+本次视觉完善实际复用 `components/ui/button.tsx` 的 Button/IconButton、`input.tsx` 的 React Aria Input/Textarea 以及原 `od-input-group`；不是完整 shadcn 主题迁移。标题 600 字重与描述 400 区分，悬浮动作沿当前行底色渐隐；布尔为完整左标签加右控件，不受短标签列宽限制。Sheet 的身份标题、参数工具栏、字段和固定底栏分别分组。源码绑定预览已核对实际 360px、320px、JSON 错误、菜单键盘与焦点返回，Node 行为 125 项、布局边界 12 项通过；[本轮证据](../../artifacts/task-row-redesign-20261111/README.md)说明源码、预览与未生效的运行态边界。
+
+**基线与实现：**真侧栏曾观察到任务逐条圆角卡片贴合、选中整框偏重、参数区与末行相连；开发本地连接断开时表单等距堆叠。现有 `MyTaskRows` 以 `task-browser` 父容器直接组合集合与唯一 workspace，使 16px gap 作用于实际边界；选中按钮持有轻背景与内侧标记，焦点独立显示。源码预览和默认宽度真实加载已检查；本地项目 Native 连接恢复仍未验证。
+
+### 字阶、密度与对齐（2026-11-10）
+
+- **字阶表达角色**：`od-page-title` 为紧凑页首的 12px/600/1.5；对象名称或区域标题使用正文层级 `od-title`（默认 13px/650/1.5）；正文使用 `od-body`（13px/400/1.55），描述/帮助使用 `od-note`（12px/400/1.55）。11px 的 `od-technical` 只承载次要技术值，主要状态、失败原因与权限不能降为技术小字。这些是当前默认组件的用法，显式主题下仍消费同一语义 token，不在业务中硬编码锁死。
+- **密度从组合获得**：先减少重复页头、逐条卡片和无必要框线，再安排主次信息与低频折叠；不靠缩字号、缩点击区域、隐藏主要动作获得紧凑。列表名称优先可读，辅助说明降低字重与颜色，不整页加粗。
+- **水平对齐**：页首、搜索、集合外缘和独立参数区共用工作区对齐线；行正文按行内 padding 向内对齐，不反向增加页面 gutter。图标固定占位，正文 `min-width:0` 可伸展，动作区靠尾端；多行名称/描述按顶部对齐，单行工具栏按中心对齐。
+- **字段与操作对齐**：同一表单标签、字段、帮助/错误共用起始线，`od-form-field` 内为 4px；相邻独立字段组通常 12px，工具栏标签到选项组 8px。主要执行与取消/停止按所属区域分组，长标签先换行，不为凑同排牺牲名称和焦点。
+- **本地项目具体分组**：项目选择与刷新构成同一 toolbar；工具关联的标签、选择器和说明/错误构成字段组；源码关联/侧栏调试等按钮组成 8px toolbar。字段组间 12px、独立连接恢复/安装审阅/参数区域间 16px，组内继续用 `od-form-field` 的 4px；不让每个 label、select、说明、按钮、诊断块在同一父容器中等距排列。断开时保留真实状态与原连接恢复入口，分组不能伪装在线。
+- **页头与正文职责**：宿主拥有唯一返回、可见工具/子页路径和当前对象动作，正文只展示业务。现行规则见[导航合同](sidebar-tool-navigation-contract-r1.zh-CN.md#同一宿主页头的可见路径与唯一返回现行)，不恢复“只显示设置/详情短标题、路径只放 title”的旧规则。
+
+### 五 Tab 真实布局映射（2026-11-10 源码观察）
+
+统一组合入口为 [`SidebarAppShell`](../../src/ui/react/app-shell.tsx)；以下是当前源码定位和共同规范的应用目标，不是五 Tab 本轮运行验收结果。保留各业务现有 DOM ID 与唯一 owner，不按历史 ID 名称重建产品导航。
+
+| 产品 Tab | 真实组件与布局区域 | 应用规范与待核对点 |
+| --- | --- | --- |
+| 我的 | [`MyTasksPage`](../../src/ui/react/tabs/my-page.tsx)：`#workbench-tasks`、任务页首/搜索、`#task-installed-cards`、`#task-selected-workspace`；[`MyTaskRows`](../../src/ui/react/tabs/tasks.tsx)；计划 Index/Form/Detail/管理仍在原 `#scheduled-panel` | 任务选择采用单一集合；独立操作区在外并间隔 16px，参数移入常驻表单的模态 Sheet。结果/历史按自身区域处理；不得因行重排丢输入、Stop 或返回焦点。计划详情已有真实组件，不能按旧文档推定尚无 Detail |
+| 扩展 | [`ExtensionCenterPage`](../../src/ui/react/tabs/tools.tsx)：搜索/筛选、`#extension-center-list`、信息详情和语言子页；[`ToolHost`](../../src/ui/react/tabs/tool-host.tsx) 为运行页独立 owner | 普通对象列表使用连续行与轻操作；信息详情沿普通 gutter，运行页沿通栏头部/iframe 例外。应用与网页增强类型、安装状态和返回上下文保留，不能因同列显示合并安装 Authority |
+| 工作流 | [`WorkflowPage`](../../src/ui/react/tabs/workflow.tsx)：页首、历史视图、`.workflow-scroll` 会话/步骤/参数、底部 `.workflow-composer` | 会话保留自身滚动与输入区，工作区零上下 padding 是已有例外；消息不是逐条对象卡片。步骤编辑、权限审阅、参数仍由业务组合，不自动套集合；本轮无实测缺陷则仅验证，局部 gap 差异不自动触发改版 |
+| 开发 | [`DeveloperPage`](../../src/ui/react/tabs/develop.tsx) 依次组合 ContextHeader、LocalProject、SourceEditor、Execution、Advanced、Diagnostics；[`develop-editor.tsx`](../../src/ui/react/tabs/develop-editor.tsx)、[`develop-local.tsx`](../../src/ui/react/tabs/develop-local.tsx)、[`develop-execution.tsx`](../../src/ui/react/tabs/develop-execution.tsx) 持有对应区域，底部为 DeveloperDock | 来源+当前网页、运行状态+结果分别 8px 关联组；独立章节父布局 16px。当前网页为一级 `od-disclosure`，技术信息用 flat。已按上方规则组合本地项目字段、关联说明及操作组；同源预览检查了长内容与草稿保留，默认宽度真实页面已核对，不把视觉调整当 Native 连接恢复 |
+| 云控 | [`CloudConnectionPage`](../../src/ui/react/tabs/cloud.tsx)：页首、连接概览、首次连接、待审核程序、任务授权、请求记录、客户端凭据及配对设置 | 保留连接、授权、审阅与请求记录的真实分区，不默认每区加卡片。当前 `.cloud-panel` 为 12px 的源码观察不单独构成产品故障；本轮无实测缺陷则仅验证。授权清单保留完整范围、固定版本及真实确认，不能为密度隐藏风险 |
+
+### 状态、响应式与例外（2026-11-10）
+
+| 状态 | 可见反馈与布局要求 |
+| --- | --- |
+| Loading / busy | 在所属区域说明等待；已有内容可保留，限制确实不可并发的动作。更新不得重建正在输入的控件或使按钮位置来回跳动 |
+| Empty / 无搜索结果 | 区分未安装、无匹配、未选对象；给出合法下一步/清除筛选，不保留空卡片或参数占位 |
+| Selected / expanded / running | 分别绑定选择、展开与真实运行状态，不互相推定；标记与文字可读，焦点独立可见 |
+| Disabled / readonly / paused / 未授权 | 保留值、作用范围、原因及恢复入口；禁用是真实状态，不能只降低透明度而仍响应动作 |
+| Success | 实际成功后复用共享 Toast/notify 或一直可见的就近状态；保存/复制/安装回执不能只追加到滚动正文末尾 |
+| Error / offline / unknown / revoked | 就近持久显示原因与恢复动作，关联字段用 `aria-describedby`；保留 `role=alert/status`。未知结果禁止自动重放，无关成功不清错误 |
+| Dirty / 返回 / 取消 | 业务保留草稿、目标 revision 与返回上下文；需要确认时沿[公共合同](browser-framework/confirmation-and-feedback.zh-CN.md)使用异步统一浮层，退出恢复焦点，不增加同步原生弹窗 |
+
+响应式先使文案/按钮换行，弹性区域 `min-width:0`，Grid 使用可收缩列；长 URL/技术值局部换行或局部滚动。页面不横向滚动，固定 Dock 不遮住最后一个字段/错误/动作；常规控件保持自身尺寸，粗指针提供 44px 命中区。键盘 Tab/Shift+Tab、Enter/Space、返回/关闭后的焦点与真实状态保持，降低动效遵循 `prefers-reduced-motion`。
+
+**例外边界：**ToolHost 通栏/iframe、工作流会话滚动、独立 Catalog/应用页、代码编辑器最小高度/等宽字体、R4.2 已安装工具紧凑头部及显式官方主题均保留各自 owner。例外仅覆盖所需尺寸/滚动/主题，不改变普通页 gutter、业务草稿或信任边界；不要把 ToolHost 的 30px 或局部主题的 32px 控件推广到默认五 Tab。新增例外按 R27 记录消费者、理由、范围和验证缺口。
+
+**本轮证据与运行边界：**共享集合、本地项目分组和任务参数 Sheet 已实施。离线及上一轮真实记录保留在 `artifacts/five-tab-layout-20261110/`、`artifacts/five-tab-task-params-20261110/`；最终证据归 `artifacts/five-tab-core-ui-20261111/`。ego 原生面板被并行任务占用，已释放本任务 TaskSpace，临时独立 CFT 155 Profile 加载日常 `dist/development`，复用原 watcher，不更改日常扩展或 Native 配对。只读测试任务经原验证/安装链后，在最新候选完成真实成功 Run、可见结果与 Stop，持久回执均 released；参数修正仅清除所属过期摘要，不清其他字段或权限/运行错误。历史百度文档围栏未重放；实体 OS IME、本地项目 Native 连接、主题/缩放矩阵和 production 仍为 `NOT_TESTED`。
+
+**独立复评（2026-11-11）：**最终候选 `63879a1c65e8c698dcc451817f1151cd9b4bcb873ec1979083a5017bd3d4da13` 的默认 360×819 CSS px、DPR 2 原生布局与参数 Sheet 获 `PASS_SCOPED`，综合 96.1/100、八维最低 95，无阻断项；[评分及补充](../../artifacts/five-tab-core-ui-20261111/review.json)、[运行身份与哈希](../../artifacts/five-tab-core-ui-20261111/candidate-binding.json)、[操作证据](../../artifacts/five-tab-core-ui-20261111/README.md)共同限定此结论。上一轮 95 分保留为历史；临时 Profile 的网页增强预装权限缺口不因布局及只读任务评分而视为通过。
 
 ### CSS 与工具隔离边界
 
@@ -87,7 +139,7 @@ R30 原从旧「工具」索引页顶部及打开应用后的可信详情头部�
 
 ## 安全与构建闭环
 
-`src/ui/tool.html` 顺序链接 `design-tokens.css`、`design-system.css`、`tool-shell.css`，随后原有 JS。通过 `scripts/prepare-public.mjs` 的静态资源白名单发布宿主 CSS；`scripts/verify-package.mjs` 核查对应的 CSS，逐份拒绝 `@import`、`url(` 和 `expression(`，不改变 Chrome 权限/CSP、不增加运行时脚本，也不提高单个 JS 构建体积上限。既有开发源文件 watcher 派生自相同的静态映射，新 CSS 也会被监测并安全发布。
+`src/ui/sidepanel.html` 顺序链接 `design-tokens.css`、`design-system.css`、`tool-shell.css` 及相关业务样式，保留空的 React 挂载节点与既有脚本；五 Tab DOM 由 React shell 持有。静态资源映射与校验继续由 `scripts/prepare-public.mjs`、`scripts/verify-package.mjs` 维护，不改变 Chrome 权限/CSP，不增加运行时远程样式或第二套 Root。文档修订不触发 watcher、构建或重装。
 
 R19 的真实 HTML/CSS 静态 Chrome 检查扩展为加载两份本地样式后再执行 300／360／420／520px 的 28 个组合、测量控件/间距和截图。测试只切换显示与示例内容，`STATIC_MARKUP_CHROME` 不代表原生扩展/授权回执。
 
@@ -110,7 +162,7 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 
 ## R28：一个 Tab 中的多功能区、索引和子视图
 
-新增统一规范：[Side Panel 多功能区 Tab 布局契约 R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。以 R28 制定时原「工具」Tab 的已安装工具 / 已安装网页工具 / 高级功能 / 导入 / 详情返回为历史结构案例（现行列表以 R4 为准），形成 **Tab Root → Index/Section → Detail/Form/Management → Inline Review** 的组合规范。仅抽取信息架构、优先级、视图切换与可访问性，不复制工具 Tab 历史 CSS 或业务授权。R27 继续是尺寸与 Tokens 唯一来源，本文件继续是 Side Panel 视觉原语与 gutter 约定。
+新增统一规范：[Side Panel 多功能区 Tab 布局契约 R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。以 R28 制定时原「工具」Tab 的已安装工具 / 已安装网页工具 / 高级功能 / 导入 / 详情返回为历史结构案例（现行列表以 R4 为准），形成 **Tab Root → Index/Section → Detail/Form/Management → Review** 的组合规范；确认展示按现行公共合同选择，不限定行内。仅抽取信息架构、优先级、视图切换与可访问性，不复制工具 Tab 历史 CSS 或业务授权。R27 维护跨界面使用约定，Token 取值唯一来源仍为 `design-tokens.css`；本文件维护 Side Panel 视觉原语与 gutter 约定。
 
 新增「我的 → 定时计划」与未来在现有 Tab 内嵌多个功能区时，必须遵守 R28：标题只出现一次，二级返回在左，主次区域按真实任务优先，技术信息按需折叠，主要操作和危险操作分层；在原 Trusted Host 内复用 `od-*`、不得新开一级 Tab 或跨用户工具 sandbox 借权限。具体首批应用范围、测试及原生证据见 [Scheduled Tasks R2.4 UI GOAL](../framework/prompts/goal-scheduled-tasks-r2.4-ui-multi-section-final-20261013.zh-CN.md)。
 
@@ -221,6 +273,8 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 - 可信界面上的开始/恢复/暂停应在同一区域完成；首次来源与网站权限在原位可信 DOM 完成。已存在有效权限时避免二次确认，只有扩大范围、Chrome 缺失权限或不可逆清理才要求必要审核。320/360/400/600px、200% 缩放与真实键盘顺序以同候选 Chrome 证据为准，不能把静态 UI 评审当原生 95+ PASS。
 
 ## R40：工具标题栏次级操作与紧凑 Ghost 图标（2026-10-23）
+
+以下保留 R40 的历史设计及消费者记录。现行公共 `od-page-actions` 的源码 gap 为 8px，Ghost 外观不意味着自动使用 4px；ToolHost 的尺寸与布局继续按其真实 owner 及 R4.2 例外核对。
 
 - 正式宿主拥有唯一标题栏，标准尺寸 `--od-icon-size`（当前 34px）；顶部操作组以 `--space-1`（4px）排布。`od-page-head` 内图标按钮默认透明背景、透明边框，Hover/展开使用 `--od-muted`，保留可见 Focus、文字 `aria-label` / `title`。不要通过取消按钮点击区域来节省宽度；动作过多时低频操作应合并进更多菜单。
 - 已验证的官方 Sidebar Tool 可通过既有 `OpenDeskTool.setNavigation({page,title,canBack,primary,secondary,secondaryExpanded})` 声明一个可选**展示级**次级入口；当前 `secondary` 枚举 `transfer` 或 `more`，宿主仅渲染图标、状态并将 `secondary` 点击回送给原沙箱，不读取菜单内容或代替执行。非官方/未验证工具仍保留自己的工具内导航，不能用此显示契约提升权限。

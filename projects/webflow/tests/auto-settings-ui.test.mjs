@@ -7,6 +7,7 @@ import * as React from 'react';
 import {createChatGPTFixedBridgeHost} from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {createChatGPTBridgeTriggerLedger} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-request.js';
+import {assertAutoGrant} from '../src/auto-grants.js';
 import {assertBuiltinIdentity} from '../../../src/libs/identity.js';
 
 // React detects input event support once at import. Supply a DOM before loading
@@ -120,6 +121,42 @@ test('defaults come from the catalog schema, preparation displays exact scope an
  assert.equal(f.find('webflow-auto-review'),null);
  assert.match(f.find('webflow-auto-grants').textContent,/搜索任务/);
  assert.equal(String(f.find('webflow-auto-enabled').checked),'false','approval does not enable auto mode');
+});
+
+for(const entry of [false,true])test(`automatic control keeps its slot through initial loading (${entry?'tool':'settings'})`,async t=>{
+ const host=controller(),pending=deferred();
+ host.api.readAutoSettings=()=>{host.calls.push(['read']);return pending.promise;};
+ const f=await fixture(t,{host,entry});
+ const slot=f.find('webflow-auto-control');
+ assert.ok(slot,'reserve the control position before the first read completes');
+ assert.equal(slot.querySelector('[role="switch"]'),null,'unknown must not appear off');
+ assert.equal(f.find('webflow-auto-enabled').getAttribute('role'),'status');
+ const emergency=f.find('webflow-auto-disable');
+ assert.ok(emergency.closest('details'),'the emergency action has one stable management entry');
+ if(entry)assert.equal(f.document.querySelector('[aria-label="Web Flow 运行状态"] #webflow-auto-disable'),null);
+ await React.act(async()=>pending.resolve({...host.snapshot,enabled:true}));
+ assert.equal(f.find('webflow-auto-control'),slot,'loading cannot move the control');
+ assert.equal(f.find('webflow-auto-disable'),emergency,'successful reads cannot remove the recovery action');
+ assert.equal(String(f.find('webflow-auto-enabled').checked),'true');
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'opening never changes automatic authority');
+});
+
+test('saving and refreshing keep the same switch and emergency entry without adding a home action',async t=>{
+ const host=controller(),f=await fixture(t,{entry:true,host}),pending=deferred();
+ const input=f.find('webflow-auto-enabled'),slot=f.find('webflow-auto-control'),emergency=f.find('webflow-auto-disable');
+ host.api.setAutoEnabled=(value,event)=>{host.calls.push(['enabled',value,event]);return pending.promise;};
+ await f.click('webflow-auto-enabled',true);
+ assert.equal(f.find('webflow-auto-enabled'),input);
+ assert.equal(f.document.querySelector('[aria-label="Web Flow 运行状态"] #webflow-auto-disable'),null);
+ await React.act(async()=>pending.resolve({...host.snapshot,enabled:true}));
+ const reading=deferred();host.api.readAutoSettings=()=>reading.promise;
+ await f.click('webflow-runtime-open');await f.click('webflow-runtime-tab-scope');
+ await f.click('webflow-auto-refresh');
+ assert.equal(f.find('webflow-auto-control'),slot);
+ assert.equal(f.find('webflow-auto-enabled'),input);
+ assert.equal(f.find('webflow-auto-disable'),emergency);
+ await React.act(async()=>reading.resolve({...host.snapshot,enabled:true}));
+ assert.equal(f.find('webflow-auto-enabled'),input);
 });
 
 test('every edited scope invalidates a review, including an in-flight preparation and edit-then-restore',async t=>{
@@ -334,6 +371,21 @@ test('approved task generates a fresh strict five-field ChatGPT instruction with
  assert.equal(field(),null,'refresh discards the old instruction');
 });
 
+for(const showExecutionTab of [undefined,false,true])test(`generated instruction preserves search visibility ${showExecutionTab??'default'} inside args`,async t=>{
+ const host=controller(),args={query:'OpenDesk',limit:3,...(showExecutionTab===undefined?{}:{showExecutionTab})};
+ host.snapshot={...host.snapshot,grants:[{taskId:'search',grantId:'visibility',state:'active',approvedAt:0,scope:{...scope,args}}]};
+ const f=await fixture(t,{host});
+ const button=[...f.find('webflow-auto-grants').querySelectorAll('button')].find(b=>b.textContent.includes('生成'));
+ await React.act(async()=>button.dispatchEvent(new f.window.Event('click',{bubbles:true})));
+ const prompt=f.find('webflow-auto-grants').querySelector('textarea').value;
+ const intent=validateWebFlowTaskIntent(prompt.slice(prompt.indexOf('{')));
+ assert.deepEqual(Object.keys(intent).sort(),['args','candidateId','protocol','targetUrl','taskId']);
+ assert.deepEqual(intent.args,args);
+ assert.equal(prompt.endsWith('\n'),false);
+ assert.match(prompt,/两部分/);assert.match(prompt,/只放一个/);
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read']);
+});
+
 test('unknown, unverified or revoked approval never offers a generated automatic instruction',async t=>{
  const host=controller();host.snapshot={...host.snapshot,catalogVerified:false,
   grants:[{taskId:'search',grantId:'one',state:'active',approvedAt:0,scope}]};
@@ -425,15 +477,19 @@ test('refreshing unchanged approval preserves the generated draft; changed scope
  assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'view changes never enable, approve or execute');
 });
 
-test('real Host projection reaches the settings UI; task revoke persists and denies the next automatic candidate',async t=>{
+for(const taskId of ['search','google.search.top3'])test(`real Host ${taskId} exact Schema approval reaches UI and retains revocation fences`,async t=>{
+ const selectedInstallation={...installation,scriptId:'task:'+taskId+':'+installation.version};
+ const selectedTask={...task,taskId,installation:selectedInstallation};
+ const selectedScope={...scope,taskId,installation:selectedInstallation};
  let data={},catalogReadFailure=false;
  const storage={get:async key=>({[key]:structuredClone(data[key])}),set:async value=>Object.assign(data,structuredClone(value))};
  const ledger=createChatGPTBridgeTriggerLedger({storage});
- const manifest={taskId:task.taskId,version:task.version,title:task.name,siteOrigins:task.siteOrigins,
+ const manifest={taskId:selectedTask.taskId,version:selectedTask.version,title:selectedTask.name,siteOrigins:selectedTask.siteOrigins,
   paramsSchema:{type:'object',additionalProperties:false,required:['query','limit'],properties:{
-   query:{type:'string',title:'关键词',default:'OpenDesk'},limit:{type:'integer',title:'数量',default:3}}},
-  program:{revision:installation.revision,sourceHash:installation.contentHash}};
- const installed={taskId:task.taskId,...installation,enabled:true};
+   query:{type:'string',title:'关键词',default:'OpenDesk'},limit:{type:'integer',title:'数量',default:3},
+   showExecutionTab:{type:'boolean',title:'显示执行页',default:true}}},
+  program:{revision:selectedInstallation.revision,sourceHash:selectedInstallation.contentHash}};
+ const installed={taskId:selectedTask.taskId,...selectedInstallation,enabled:true};
  const bridge=createChatGPTFixedBridgeHost({isVerifiedSidePanel:()=>true,
   api:{runtime:{async sendMessage(message){
    try{
@@ -443,26 +499,32 @@ test('real Host projection reaches the settings UI; task revoke persists and den
    }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
   }},permissions:{contains:async()=>true}},
   client:{request:async method=>{if(method==='listTaskCatalog'&&catalogReadFailure)throw Error('catalog read failed');
-   return method==='listTaskCatalog'?{installed:[installed],catalog:[{taskId:task.taskId,
-   version:task.version,manifestHash:installation.manifestHash,stage:'available',manifest}]}:{...installed,manifest};},
+   return method==='listTaskCatalog'?{installed:[installed],catalog:[{taskId:selectedTask.taskId,
+   version:selectedTask.version,manifestHash:selectedInstallation.manifestHash,stage:'available',manifest}]}:{...installed,manifest};},
    controller:{snapshotControllerRun:async()=>{throw Error('no run expected');}}},host:{start:async()=>{throw Error('no run expected');}}});
  t.after(()=>bridge.dispose());
  const f=await fixture(t,{host:{api:bridge}});
  await f.click('webflow-auto-prepare');await f.click('webflow-auto-approve',true);
  assert.match(f.find('webflow-auto-grants').textContent,/授权有效/);
- assert.equal((await bridge.readAutoSettings()).grants[0].taskId,'search');
+ assert.equal((await bridge.readAutoSettings()).grants[0].taskId,taskId);
+ assert.deepEqual((await bridge.readAutoSettings()).grants[0].parameterPolicy.variableKeys,[]);
+ assert.match(f.find('webflow-auto-grants').textContent,/可选参数省略/);
+ assert.doesNotMatch(f.find('webflow-auto-grants').textContent,/关键词不固定/);
  await f.click('webflow-auto-enabled',true);
+ const settings=await ledger.readAutoSettings(),sourceUrl='https://chatgpt.com/c/ui-test-12345678';
+ assert.ok(assertAutoGrant(settings,selectedScope,{sourceUrl}));
+ assert.throws(()=>assertAutoGrant(settings,{...selectedScope,args:{...selectedScope.args,showExecutionTab:false}},{sourceUrl}));
  installed.generation=2;catalogReadFailure=true;
  await f.click('webflow-auto-refresh');await f.click('webflow-auto-disable',true);
  assert.match(f.find('webflow-auto-grants').textContent,/安装状态待核验/);
  assert.doesNotMatch(f.find('webflow-auto-grants').textContent,/授权有效/);
- const revoke=f.document.querySelector('[aria-label="撤销 search 的自动准入"]');assert.ok(revoke);
+ const revoke=f.document.querySelector('[aria-label="撤销 '+taskId+' 的自动准入"]');assert.ok(revoke);
  const event=new f.window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:true});
  await React.act(async()=>revoke.dispatchEvent(event));
- assert.equal((await ledger.readAutoSettings()).grants.search.state,'revoked');
+ assert.equal((await ledger.readAutoSettings()).grants[taskId].state,'revoked');
  const candidateId='wf-real-ui-revoked',candidate={candidateId,turnKey:'new-turn',answerKey:'new-answer',text:JSON.stringify({
-  protocol:'webflow.task.intent.v1',candidateId,taskId:'search',args:scope.args,targetUrl:scope.targetUrl})};
- await assert.rejects(ledger.admitAuto({source:{tabId:9,documentId:'doc',url:'https://chatgpt.com/c/ui-test-12345678'},...scope,candidate}),
+  protocol:'webflow.task.intent.v1',candidateId,taskId,args:selectedScope.args,targetUrl:selectedScope.targetUrl})};
+ await assert.rejects(ledger.admitAuto({source:{tabId:9,documentId:'doc',url:'https://chatgpt.com/c/ui-test-12345678'},...selectedScope,candidate}),
   {code:'E_WEBFLOW_AUTO_DENIED'});
  await assert.rejects(bridge.revokeAutoTask(undefined,{isTrusted:true}),{code:'E_BRIDGE_SCHEMA'});
 });
@@ -629,6 +691,9 @@ test('one-time ChatGPT instructions distinguish installed Schema capabilities fr
  const scopes=instructions.value.slice(instructions.value.lastIndexOf('[{'),instructions.value.lastIndexOf('}]')+2);
  assert.equal(JSON.parse(scopes)[0].targetUrl,scope.targetUrl);
  assert.deepEqual(JSON.parse(scopes)[0].args,scope.args);
+ assert.match(instructions.value,/本条首次接入只确认理解，不执行任务，不输出任务候选/);
+ assert.match(instructions.value,/省略默认 true/);assert.match(instructions.value,/严格 boolean/);
+ assert.match(instructions.value,/仍创建后台页、搜索并返回真实回执/);
  assert.ok(instructions.value.includes('尚未批准'));assert.ok(instructions.value.includes('等待本机可信审阅'));
  assert.ok(instructions.value.includes('OpenDesk'));assert.ok(instructions.value.includes('每次'));
  assert.ok(!instructions.value.includes(installation.installationId));

@@ -47,7 +47,7 @@ test('R27 each trusted page uses only its appropriate stylesheet and sandbox sta
   const [sidebar,workspace,settings,market,sandbox,notes]=await Promise.all([
     renderSidebarFixture(),read('src/native-agent/workspace.html'),
     read('src/native-agent/settings.html'),read('src/marketplace/marketplace.html'),
-    read('src/sidebar-tools/sandbox.html'),read('examples/sidebar-tools/quick-notes/src/style.css')
+    read('src/sidebar-tools/sandbox.html'),read('projects/quick-notes/src/style.css')
   ]);
   assert.match(sidebar,/href="ui\/design-tokens\.css"><link rel="stylesheet" href="ui\/design-system\.css"/);
   assert.match(workspace,/href="workspace\.css"/);
@@ -59,7 +59,7 @@ test('R27 each trusted page uses only its appropriate stylesheet and sandbox sta
   assert.match(notes,/^\/\* @opendesk-shared-design \*\//);
   assert.doesNotMatch(notes,/:root\s*\{|--space-1\s*:/,
     'sandbox sources must not duplicate the shared palette/spacing tokens');
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/quick-notes');
+  const tool=await createSidebarToolPackage('projects/quick-notes');
   const official=await read('src/ui/design-tokens.css');
   assert.ok(tool.css.includes(official),'the isolated sandbox package embeds canonical token bytes');
   assert.match(tool.css,/\.od-icon-button\{/,'public visuals were compiled into sandbox CSS');

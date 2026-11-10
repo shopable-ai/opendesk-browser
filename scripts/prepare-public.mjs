@@ -11,12 +11,14 @@ import {buildOfficialTools} from './build-official-tools.mjs';
 import {buildOfficialPages} from './build-official-pages.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
+import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from './packaged-task-resources.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const edition=resolveBrowserEdition();
 const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
+  ...Object.fromEntries(PACKAGED_TASK_RESOURCES.map(row=>[row.sourcePath,row.path])),
   'src/native-agent/http-relay.html':'native-agent/http-relay.html',
   'src/platform/chrome/network-request.html':'network-request.html',
   ['src/ui/'+SIDEPANEL_DOCUMENT_PATH]:SIDEPANEL_DOCUMENT_PATH,
@@ -92,11 +94,13 @@ export async function preparePublic() {
   await mkdir(dirname(resolve(publicRoot,MARKET_CHANNEL_PATH)),{recursive:true});
   await writeFile(resolve(publicRoot,MARKET_CHANNEL_PATH),JSON.stringify(marketChannel,null,2)+'\n');
   for(const [src,dest] of Object.entries(STATIC_RESOURCES)){
+    if(PACKAGED_TASK_RESOURCES.some(row=>row.sourcePath===src))continue;
     const target=resolve(publicRoot,dest);
     if(!target.startsWith(publicRoot+'/'))throw Error('Unsafe public asset output: '+dest);
     await mkdir(dirname(target),{recursive:true});
     await cp(src,target);
   }
+  await preparePackagedTaskResources(publicRoot);
   // Keep the unchanged, .bm-* scoped trusted styles in the existing fixed CSS
   // asset instead of carrying another stylesheet string in the shell's JS.
   await writeFile(resolve(publicRoot,'ui/tool-shell.css'),trustedToolShellStyle());

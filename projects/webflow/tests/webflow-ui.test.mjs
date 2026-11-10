@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
+import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 import {createSidebarToolPackage} from '../../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 
@@ -113,4 +114,19 @@ test('original builder accepts and preserves real v2 pins without embedding a ru
   assert.equal(tool.delegatedTasks[1].contentHash,config.delegatedTasks[1].contentHash);
   assert.ok(tool.js.includes('tasks.start'));
   assert.ok(tool.css.includes('.wf-app'));
+});
+
+test('current delegated consumers match verified search packages and their strict optional visibility Schema',async()=>{
+ for(const pin of config.delegatedTasks){
+  const pkg=await verifyTaskPackage(JSON.parse(readFileSync(resolve(project,'../../examples/tasks',pin.taskId+'.v1.opendesk-task.json'),'utf8')));
+  assert.equal(pin.version,pkg.manifest.version);
+  assert.equal(pin.manifestHash,pkg.manifestHash);
+  assert.equal(pin.contentHash,pkg.manifest.program.sourceHash);
+  assert.ok(uiCode.includes(pin.manifestHash));
+  const args={query:'OpenDesk',limit:3},schema=pkg.manifest.paramsSchema;
+  assert.equal(validateTaskParams(schema,args).showExecutionTab,true);
+  for(const visibility of [true,false])assert.deepEqual(validateTaskParams(schema,{...args,showExecutionTab:visibility}),{...args,showExecutionTab:visibility});
+  for(const visibility of ['false',0,1,null])assert.throws(()=>validateTaskParams(schema,{...args,showExecutionTab:visibility}),{code:'E_PARAMS'});
+  assert.throws(()=>validateTaskParams(schema,{...args,unknown:true}),{code:'E_SCHEMA'});
+ }
 });

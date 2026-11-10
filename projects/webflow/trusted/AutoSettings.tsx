@@ -61,13 +61,13 @@ function initialDraft(task?:AutoTask){
   argsText:JSON.stringify(task?initialValue(task.paramsSchema):{},null,2)};
 }
 function ScopeSummary({scope,parameterPolicy=scope.parameterPolicy}:{scope:WebflowAutoScope;parameterPolicy?:ParameterPolicy}){
- const policyOptions=parameterPolicy&&autoParameterOptions({taskId:scope.taskId,paramsSchema:parameterPolicy.paramsSchema});
+ const policyOptions=Boolean(parameterPolicy?.variableKeys?.length)&&autoParameterOptions({taskId:scope.taskId,paramsSchema:parameterPolicy.paramsSchema});
  return <div className="od-stack">
   <div className="od-form-field">
    <strong className="od-field-label">允许触发的网站</strong>
    <p className="od-body" style={{overflowWrap:'anywhere'}}>{scope.sourceOrigin??'https://chatgpt.com'}</p>
   </div>
-  <p className="od-note">{policyOptions?policyOptions.description:'仅允许下列固定参数；换关键词等参数变化仍需批准。'}</p>
+  <p className="od-note">{policyOptions?policyOptions.description:parameterPolicy?'仅允许下列固定参数；可选参数省略时按本次已安装 Schema 的默认值比较，其他值或关键词变化仍需批准。':'仅允许下列固定参数；换关键词等参数变化仍需批准。'}</p>
   <div className="od-form-field" style={{gridTemplateColumns:'auto minmax(0,1fr)',alignItems:'start',columnGap:'var(--space-2)'}}>
    <strong className="od-field-label">精确地址</strong>
    <p className="od-body" style={{overflowWrap:'anywhere',margin:0}}>{scope.targetUrl}</p>
@@ -112,7 +112,7 @@ function ApprovedTaskPrompt({scope,enabled,disabled=false}:{scope:WebflowAutoSco
    // Display and clipboard share readable JSON; the original parser handles
    // required JSON escaping internally without rewriting URLs or punctuation.
    const json=JSON.stringify(intent);
-   setPrompt('请通过本机 OpenDesk Web Flow 执行下面的任务。回复分为两部分：第一部分用一小段中文说明准备执行的任务与参数，注明等待本机结果，不声称已完成；第二部分只放一个语言标记为 opendesk-task 的 JSON 代码块，完整保留下面 JSON 的五个字段及其值，不添加引用、Markdown 链接或其他代码块。网址和中文直接显示，不做额外转义。本机仍需核验安装、授权及网站权限；收到本轮真实结果后再用中文总结，不自行搜索、编造结果或再次输出任务候选。将以下 JSON 原样放入该代码块：'+json);
+   setPrompt('请通过本机 OpenDesk Web Flow 执行下面的任务。回复分为两部分：第一部分用一小段中文说明准备执行的任务与参数，注明等待本机结果，不声称已完成；第二部分只放一个语言标记为 opendesk-task 的 JSON 代码块，完整保留下面 JSON 的五个字段及其值，不添加引用、Markdown 链接或其他代码块。网址和中文直接显示，不做额外转义。搜索参数只在 args 内（执行时映射为 Task params）；若当前安装 Schema 支持 showExecutionTab，省略默认 true，显示执行页，无需补写 true；明确 false 仍创建后台页、搜索并回执，只不置前。必须保留下面 JSON 中的原始参数，不能擅自增删或把 boolean 转成字符串。本机仍需核验安装、授权及网站权限；收到本轮真实结果后再用中文总结，不自行搜索、编造结果或再次输出任务候选。将以下 JSON 原样放入该代码块：'+json);
   }catch{setPrompt('');setNotice('本次指令未生成，请重新打开应用后重试。');}
  };
  const copy=async()=>{
@@ -147,12 +147,13 @@ function ChatGPTConnection({tasks,scopes,disabled}:{tasks:AutoTask[];scopes:unkn
  const field=React.useRef<HTMLTextAreaElement>(null);
  // Visible, copy-only context for the official AI. No send or permission.
  const text=tasks.length?[
-  'OpenDesk Web Flow：本项目的浏览器任务能力说明。',
+  'OpenDesk Web Flow：本项目的浏览器任务能力说明。本条首次接入只确认理解，不执行任务，不输出任务候选。',
   '这是本机扩展的受限 DOM 桥接说明，不是 ChatGPT 原生工具或 MCP。用户以后正常表达需求，不需要提供 JSON、Task ID 或候选身份。',
   '只有用户明确要求执行下列已安装任务且完整参数符合该任务 Schema 时，才输出一个语言标记为 opendesk-task 的 JSON 代码块。程序支持范围与已批准范围不同：Schema 支持的新参数也应生成候选，等待本机可信审阅；不能因为尚未批准就说程序不支持。',
   '代码块严格只有五个字段：protocol 固定为 webflow.task.intent.v1；candidateId 每次由你新生成，使用 wf- 加至少 24 位随机英文数字（可用 UUID），绝不复用历史或结果里的身份；taskId、targetUrl、args 必须来自下列同一任务。',
   '执行请求的回复分为两部分：第一部分用一小段中文说明准备执行的任务、关键词和结果数量，并注明等待本机结果，不声称已执行；第二部分是唯一的 opendesk-task JSON 代码块，专门交给本机脚本，说明文字不写进 JSON。',
   '使用可读的标准 JSON：网址、中文和普通标点直接显示，不做额外转义；引号、反斜杠和换行仅按 JSON 语法处理，编码与解码由程序内部负责，用户无需手工转码。',
+  '百度 baidu.search.top3 与 Google google.search.top3 的搜索参数放在 args 内，执行时映射为 Task params，不增加外层字段。以当前已安装 Schema 为准：支持 showExecutionTab 时它是可选严格 boolean，省略默认 true，显示执行标签页，无需强制显式 true；用户明确要求后台搜索时使用 false，仍创建后台页、搜索并返回真实回执，只不置前。不能使用字符串或数字。安装或固定参数变化不继承旧批准；明确 false 可以直接请求，由本机核验或审阅，不要求先测试显式 true。',
   '当前已核验的已安装任务能力：'+JSON.stringify(tasks.map(task=>({taskId:task.taskId,name:task.name,
    description:task.description,targetUrl:task.siteOrigins[0].replace(/\/$/,'')+'/',paramsSchema:task.paramsSchema}))),
   '当前已批准范围（仅用于说明自动执行资格，不限制程序 Schema 能力；parameterPolicy 指定可在已批准 Schema 内变化的参数，其余参数固定）：'+JSON.stringify(scopes),
@@ -424,16 +425,31 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
   </p>
   <p className="od-field-help">{compact?'开关和授权即时保存。':'批准、开关和撤销即时保存，不受「保存 AI 设置」或「取消」影响。'}</p>
  </>;
- const switchControl=snapshot?<Switch id="webflow-auto-enabled" aria-label="Web Flow 自动运行"
+ // Reserve the same space before the first authoritative read. Unknown is a
+ // neutral placeholder, never an unchecked switch or a temporary stop button.
+ const switchControl=<div id="webflow-auto-control" aria-busy={busy}
+  style={{display:'flex',alignItems:'center',justifyContent:'center',flex:'none',width:44,height:44}}>
+  {snapshot?<Switch id="webflow-auto-enabled" aria-label="Web Flow 自动运行"
    isSelected={snapshot.enabled} isDisabled={busy||!webflowAuto?.setAutoEnabled}
    aria-describedby="webflow-auto-risk"
    // Forward the original pointer/keyboard gesture synchronously. toggle/run
    // prevent the label and native input click from writing twice.
-   onClickCapture={event=>toggle(event.nativeEvent)}/>:<span id="webflow-auto-enabled" role="status">
-    {work==='read'?'正在读取…':'状态未确认'}</span>;
+   onClickCapture={event=>toggle(event.nativeEvent)}/>:<span id="webflow-auto-enabled" role="status"
+    aria-label={work==='read'?'正在读取自动运行状态':'自动运行状态未确认'}
+    style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:36,height:22,
+     borderRadius:'var(--radius-pill)',background:'var(--od-input-border)',color:'var(--od-muted)'}}>
+     <span aria-hidden="true">—</span>
+   </span>}
+ </div>;
+ const emergency=<details className="od-disclosure od-disclosure--flat">
+  <summary>应急关闭自动运行</summary>
+  <div className="od-stack">
+   <p className="od-field-help">状态读取失败或长时间未完成时，可直接关闭新任务准入。已经开始的任务请在“当前任务”中停止。</p>
+   <Button id="webflow-auto-disable" variant="danger" disabled={!webflowAuto?.setAutoEnabled}
+    onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>
+  </div>
+ </details>;
  const feedback=<>
-  {(!snapshot||error||busy)&&<Button id="webflow-auto-disable" variant="danger"
-   disabled={!webflowAuto?.setAutoEnabled} onClick={event=>disable(event.nativeEvent)}>关闭未来自动准入</Button>}
   {notice&&<p role="status" className="od-note">{notice}</p>}
   {error&&<p id="webflow-auto-error" role="alert" className="od-field-error">{error}</p>}
  </>;
@@ -456,6 +472,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    {compact?'按已批准来源及参数规则自动运行；允许变化的关键词无需重复批准。关闭开关只阻止新任务。ChatGPT 标签页需保持打开，侧栏可关闭。':
     '开启后，已批准来源网站的标准事件或 ChatGPT 新消息后的完整回复若包含已批准范围的任务协议，将自动运行已安装脚本。允许变化的关键词无需重复批准；ChatGPT 标签页需保持打开；侧栏关闭后仍接收新任务，由后台执行。'}
   </p>
+  {emergency}
   {(!compact||panelOpen)&&feedback}
   </div>
   {compact&&<div className="od-toolbar" role="tablist" aria-label="运行管理"
@@ -516,7 +533,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
     <strong>{grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)?.name||grant.taskId}（{grant.taskId}）</strong>
     <p className="od-note">{grantLabel(grant)}</p>
     <ScopeSummary scope={grant.scope} parameterPolicy={grant.parameterPolicy}/>
-    {!grant.parameterPolicy&&grantUsable(grant)&&autoParameterOptions(grantSnapshot.tasks.find(row=>row.taskId===grant.taskId))&&
+    {!grant.parameterPolicy?.variableKeys?.length&&grantUsable(grant)&&autoParameterOptions(grantSnapshot.tasks.find(row=>row.taskId===grant.taskId))&&
      <Button disabled={busy} onClick={()=>{
       invalidate();setDraft({...initialDraft(grantSnapshot.tasks.find(row=>row.taskId===grant.taskId)),
        sourceOrigin:grant.scope.sourceOrigin??'https://chatgpt.com',targetUrl:grant.scope.targetUrl,argsText:JSON.stringify(grant.scope.args,null,2)});
@@ -612,7 +629,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
  // The complete explanation stays in the disclosure and the original task view.
  const homeNotice=session?.pendingAuto?'待批准 · 尚未执行':
   receipt&&(receipt.execution==='unknown'||receipt.delivery==='unknown')?
-   (session?.error?'结果未知 · '+summary:'结果未知 · 请核对原请求'):
+   (session?.error?'结果未知 · '+(session.status||summary):'结果未知 · 请核对原请求'):
   session?.error?summary:
   session?.messageStage==='no-candidate'?'本条未执行 · 未生成任务候选':
   session?.messageStage==='cancelled'?'本条未执行 · 回复已停止':
@@ -632,10 +649,10 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false}:{webflowAut
    <div className="od-toolbar" style={{flexWrap:'nowrap',gap:'var(--space-2)',minWidth:0}}>
     <div style={{flex:'1 1 0',minWidth:0,overflowWrap:'anywhere'}}>
      <strong className="od-field-label" role="status" aria-live="polite">
-      {snapshot?(snapshot.enabled?'自动触发已开启':'自动触发已暂停'):'自动运行状态待核验'}
+      {snapshot?(snapshot.enabled?'自动触发已开启':'自动触发已暂停'):work==='read'?'正在读取自动运行状态':'自动运行状态待核验'}
      </strong>
      <p id="webflow-auto-risk" className="od-note" style={{margin:0,fontSize:'var(--od-note-size)'}}>
-      {snapshot?(snapshot.enabled?'仅对已批准的新任务生效':'暂不接收新的自动任务'):'可在运行与授权中检查状态'}
+      {work==='read'?'正在核对最新状态，暂不可操作':snapshot?(snapshot.enabled?'仅对已批准的新任务生效':'暂不接收新的自动任务'):'可在运行与授权中检查或应急关闭'}
      </p>
     </div>
     {switchControl}

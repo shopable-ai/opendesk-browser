@@ -3,7 +3,8 @@
 async function main() {
   const query = params?.query;
   if (typeof query !== 'string' || !query.trim() || query.length > 120 || params?.limit !== 3 ||
-      Object.keys(params).some(key => !['query','limit'].includes(key))) {
+      (Object.hasOwn(params,'showExecutionTab') && typeof params.showExecutionTab !== 'boolean') ||
+      Object.keys(params).some(key => !['query','limit','showExecutionTab'].includes(key))) {
     throw Object.assign(new Error('Expected a nonempty query and limit=3'), {code:'E_TASK_PARAMS'});
   }
   let url = new URL(await page.url());
@@ -73,6 +74,7 @@ async function main() {
     return selected;
   };
   try {
+    if (params.showExecutionTab !== false) await page.bringToFront();
     if (blocked(await readBody())) return result('blocked');
     if (homepage) {
       // Both IDs were observed in the real homepage; the legacy field is hidden on the new UI.

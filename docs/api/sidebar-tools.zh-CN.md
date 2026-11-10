@@ -101,6 +101,8 @@ if(handle){
 
 **返回语义**：`true` 仅说明当前沙箱已排队向父宿主投递有效请求；不保证 Host 实际展示（可能因每实例限频、关闭、撤权而丢弃），也不是业务成功回执。`false` 代表输入不符合合同，或 Bridge 失效。旧 Browser Host 没有此方法时，仍需回退工具自己的普通状态文本，不用 `window.alert`。
 
+短完成回执应在当前视口可见；旧 Host 的状态文本回退应紧邻当前操作，不能只追加到滚动正文底部。字段错误、结果未知及恢复入口继续持久保留。可信工作台共用通知视口不赋予工具跨工具或跨页面通知权；交互选择见[操作回执的可见性](../architecture/browser-framework/confirmation-and-feedback.zh-CN.md#10-操作回执的可见性2026-11-10)。
+
 **安全与限制**：
 
 - 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。新句柄的 create/update/dismiss 只接受原 Bridge 私有 MessagePort 请求，当前沙箱自己伪造的普通 `parent.postMessage` 不具备句柄操作权。

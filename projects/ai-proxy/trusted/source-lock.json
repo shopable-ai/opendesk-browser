@@ -1,7 +1,7 @@
 {
   "projects/ai-proxy/src/App.jsx": "00e54b057e79405f7574b0c8bad2d588e13a3721",
-  "projects/ai-proxy/src/QuickPanel.tsx": "d634dfd38f196cb472c01a6d8b5ef2c752dad01a",
-  "projects/ai-proxy/src/Settings.tsx": "b78a019896c3dcdc29bf4421df70938fcaecb67f",
+  "projects/ai-proxy/src/QuickPanel.tsx": "5ed9e192ba5358d6b5f2a2413d64b6d7ee723f58",
+  "projects/ai-proxy/src/Settings.tsx": "fab0e0fcbe294ff165ff0ce4ceab1fa6a465ce96",
   "projects/ai-proxy/src/adapter.js": "2b837f6cb983055889073333494780f5e5371e99",
   "projects/ai-proxy/src/collector/rotation-plan.ts": "b589bf2a8869fd7f269f3b735af4d37976c99ad6",
   "projects/ai-proxy/src/config/product-links.defaults.json": "2e23db6f565a7dde6732cd0330185d65e2fcf39d",
@@ -21,14 +21,14 @@
   "projects/ai-proxy/src/domain/proxy-entry.ts": "35b36b5b56af4ffeb194722d63dce46ec8843e8e",
   "projects/ai-proxy/src/environment.ts": "a8974e2cabca289ad179b6ae118002bdc056c9a8",
   "projects/ai-proxy/src/i18n/LocaleProvider.tsx": "f60fc23240354382534fb46d4d81cd9a87ac2127",
-  "projects/ai-proxy/src/i18n/errors.ts": "e071a195da9dac0dca71824159cb5297876ba082",
+  "projects/ai-proxy/src/i18n/errors.ts": "5bd55461ee679d869260c3b34e08c32415101e0d",
   "projects/ai-proxy/src/i18n/locale.ts": "2f5391ea8b381753fd7eb6f2e4c0364e5856b058",
-  "projects/ai-proxy/src/i18n/locales/en.json": "2b23ddf0af8c902e5bf62e6faa074360f9b0dc1c",
-  "projects/ai-proxy/src/i18n/locales/zh-CN.json": "d5c4de3a69050401c5435b1fceafa834d6720b68",
-  "projects/ai-proxy/src/i18n/locales/zh-TW.json": "71a4d908fca10afcbdcd1e52b8e755870e4a6695",
+  "projects/ai-proxy/src/i18n/locales/en.json": "1c907d512f115d2acb0f908fe19df6aa6e045870",
+  "projects/ai-proxy/src/i18n/locales/zh-CN.json": "f3daa6ed078b513c9ecdf1babead1c25c52bf902",
+  "projects/ai-proxy/src/i18n/locales/zh-TW.json": "d9807353aabab504161ddcbe38f2139b92ac9677",
   "projects/ai-proxy/src/model.js": "21f7ce6d733ebfc7bf53a4fecdcec6cb46fc20bb",
   "projects/ai-proxy/src/official/messages.ts": "641f9e021f7956d6c8fd39bc1dd91b78d86be60e",
-  "projects/ai-proxy/src/service.ts": "a7c979213d5a787f0113f9cb3906f8279356260a",
+  "projects/ai-proxy/src/service.ts": "2c49b2f3dcdc8956faf0a7bd858837854e792fb8",
   "projects/ai-proxy/src/style.css": "4398698e188510e615990d4b14c1dd4bde46d97c",
   "projects/ai-proxy/src/styles/management.css": "80845a67bf54261bb856f5c831a8f434f7c780a8",
   "projects/ai-proxy/src/styles/options.css": "762c2ba764624df824bbda5c859d4e9b30ce296f",
@@ -60,5 +60,6 @@
   "projects/ai-proxy/src/usage/ranking.ts": "19a04f545c68e444f9bcfd7512e4c95f6e434fc7",
   "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": "1eca38b5174fdd4b43612cd5e639dca5b06299d9",
   "projects/ai-proxy/trusted/Surface.jsx": "6ccfec0ff567a7797525dd86e5eefe0d574384fa",
-  "projects/ai-proxy/trusted/admission.js": "031477094a6aa39720a6cc5b59aaf76f1bab15b0"
+  "projects/ai-proxy/trusted/admission.js": "031477094a6aa39720a6cc5b59aaf76f1bab15b0",
+  "projects/ai-proxy/trusted/app-page-routes.js": "36f1d80fb21f6b91831479c429d96396cd750dd2"
 }

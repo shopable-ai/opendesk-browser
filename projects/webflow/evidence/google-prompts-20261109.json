@@ -1,6 +1,6 @@
 {
   "kind": "webflow.two-part-prompts.google-core.development",
-  "observedAt": "2026-11-09T15:01:19.703351+00:00",
+  "observedAt": "2026-11-09T15:48:33.004Z",
   "status": "GOOGLE_FIRST_MESSAGE_CORE_PASS",
   "phase": "core development only; production, scoring and full acceptance deferred",
   "branch": "main",
@@ -140,7 +140,7 @@
     "beforeRecovery": "Original dev service had exited; manifest and packaged resources missing. Previously successful Google result predates this environment failure.",
     "recovery": "Started original npm run dev only after no live writer was found; acquired original output guard and development lock, PID 27587. Build exited safely and released its lock.",
     "recoveryError": "[opendesk-fixed-tool-shell] Historical/user/vendor code cannot enter a privileged fixed bundle: projects/ai-proxy/src/domain/header-actions.ts",
-    "current": "Existing guarded dev writer PID 33072 was live and dist/development manifest/resources present. Reused it; no second writer started. Fresh first-message Google flow completed.",
+    "current": "At visible retest start, earlier serve PID 33072 had stopped and development manifest remained. Existing loaded development code completed one new Google request; no build, reload, or service restart was required or performed.",
     "recoveryLog": "artifacts/webflow/google-prompts-1109/dev-recovery.log",
     "sourceLockBypass": false,
     "parallelSourcesModified": false,
@@ -163,15 +163,15 @@
     "projects/webflow/trusted/AutoSettings.tsx": "826f17a1276da0dca61acc8e04f2a43c30833c96eaf78bba92b087a76fe8a03e",
     "projects/webflow/tests/reply-admission.test.mjs": "7342f2ded35d00e64b1fbc1f094eb0b51b1112035ad3aa6271c82f87bdc051f2"
   },
-  "nextOperation": "Current requested Google core test is complete. Settings wording inspection and formal production acceptance remain deferred; no old candidate replay.",
+  "nextOperation": "Visible Google retest is complete. The user-reported failure was not reproduced; do not infer its cause or replay old candidates. Result window retained for user review.",
   "browser": {
     "tool": "ego-browser",
     "taskSpaceId": 22,
-    "lifecycle": "finished via task.finish; retained fresh result chat p6 and existing unsent draft p1",
+    "lifecycle": "finished again after explicit user continuation; retained current result page and protected unknown-origin draft",
     "successfulChatKept": true,
     "diagnosticPagesAndUnknownDraftPreserved": "Existing draft retained; intermediate agent-created test pages closed at finish.",
-    "nativeUiLease": "not acquired during retest because another owner held it; not released on their behalf",
-    "nativeUiPhase": "completed"
+    "nativeUiLease": "acquired for visible retest, then released",
+    "nativeUiPhase": "completed; original Side Panel showed ledger 2 and all five receipt stages successful"
   },
   "previousObservation": {
     "observedAt": "2026-11-09T14:48:22.907473+00:00",
@@ -282,5 +282,193 @@
     "promptsAndCodeCommit": "d2465192d8efa89d38d47cd1d2a4762f14ae9c38",
     "commitObserved": "Already committed by a concurrent repository synchronization before this retest.",
     "thisRetestDocumentation": "Written locally; not committed or pushed by this task."
+  },
+  "visibleWindowRetest": {
+    "observedAt": "2026-11-09T15:48:33.004Z",
+    "chatUrl": "https://chatgpt.com/c/6af1e0bd-d420-83ec-b602-9fbb7ae213f9",
+    "results": [
+      {
+        "protocol": "opendesk.task.result.v1",
+        "taskId": "google.search.top3",
+        "requestId": "ce9ad5d5-a839-476c-96e2-301538ab03ea",
+        "targetUrl": "https://www.google.com/",
+        "scriptId": "task:google.search.top3:1.0.0",
+        "runId": "a40d52a8-430d-4f89-b4cb-b441a69d818d",
+        "resultId": "64072169-a36b-4f4b-ba7c-974ea978e8f7",
+        "revision": 1,
+        "sourceHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad",
+        "status": "completed",
+        "data": {
+          "count": 3,
+          "inputMode": "isolated-dom",
+          "kind": "google.search.top3.result",
+          "observedAt": "2026-11-09T15:03:53.179Z",
+          "query": "Chrome extension Side Panel API",
+          "results": [
+            {
+              "position": 1,
+              "title": "browser.sidePanel | API - Chrome for Developers",
+              "url": "https://www.google.com/goto?url=CAESgQEBxCJF1wJaMhGdRu1KpBhYT5bWi9uPv_Ki0uMPwaTs4omZHiH4X-mhQXJcyt8ilUxsIdDn2XlxpGRwif2Mak3r3-fRJsok64FOTsBf3aQzyxY5sFq_KCWebuOqekKN9ZOhkH-FkpDcUFmoZwy1cgGn8VgB8TSzqeaAV3CzkLtdbLo"
+            },
+            {
+              "position": 2,
+              "title": "Using Chrome Side Panels in Your Extension with Plasmo",
+              "url": "https://www.google.com/goto?url=CAESaAHEIkXXk6mqItvpeZ2XPMuS2AzwFYiykuEwtIvpy1U9HwZD9JCTGFwvcQRfv95DnWw1EPKg-hdQdfnRqhrYVhzlOR8scKoQt2ACexaodmqYCj8zEV-jUEMfMsOCI5WCisoD8CALNv7u"
+            },
+            {
+              "position": 3,
+              "title": "20 Understanding Chrome Extensions Side Panel - Medium",
+              "url": "https://www.google.com/goto?url=CAESmgEBxCJF1_f9nEGBLRkUKy2yieTISmHiBFRoKVRtevXRApuwKAjxv1rVrc_E0Q0JN91w73NSIfFTy-wtl-Hgzio_KAqZS5F6rz_WZW_5u1xYpQE1HKuurtazJc18fCyF3OpG_6Ek3p7gaqdk0gCF6jR0ZevwRLKAuAGtQ_mPBegyyxHbMbR-3_73HLpufqtvrUtLFzb5WkU1fcR6"
+            }
+          ],
+          "sourceUrl": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDi_RVFVZqdKJiCySkAUD6K4vqtFfg%3A1794236618554&source=hp&ei=yuDxatnaH6DS2roP1aPgiQ0&iflsig=AHSINFcAAAAAavHu2pPVCrtJ4JzB2QngSGC6AdSK6UGk&ved=2ahUKEwjZ56iilPuXAxUgqVYBHdURONEQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUivF1AAWABwAHgAkAEAmAGGAaABhgGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAo8BmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHjwHCBwMyLTHIBwWACAE&sclient=gws-wiz",
+          "status": "success",
+          "trace": [
+            {
+              "action": "input",
+              "at": "2026-11-09T15:03:39.258Z",
+              "documentId": "9BA9D9EA8C31367EA6EE24631C341F4A",
+              "locator": "textarea[name=q]",
+              "state": "before",
+              "url": "https://www.google.com/",
+              "value": ""
+            },
+            {
+              "action": "input",
+              "at": "2026-11-09T15:03:44.185Z",
+              "locator": "textarea[name=q]",
+              "state": "returned",
+              "value": "Chrome extension Side Panel API"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-09T15:03:45.472Z",
+              "locator": "input[name=btnK] >> nth=0",
+              "state": "started",
+              "url": "https://www.google.com/"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-09T15:03:49.011Z",
+              "locator": "input[name=btnK] >> nth=0",
+              "state": "returned"
+            },
+            {
+              "action": "navigation",
+              "at": "2026-11-09T15:03:49.331Z",
+              "documentId": "6AC86DB48C5C5DBE9D7A27C7D0CEDC4D",
+              "state": "observed",
+              "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDi_RVFVZqdKJiCySkAUD6K4vqtFfg%3A1794236618554&source=hp&ei=yuDxatnaH6DS2roP1aPgiQ0&iflsig=AHSINFcAAAAAavHu2pPVCrtJ4JzB2QngSGC6AdSK6UGk&ved=2ahUKEwjZ56iilPuXAxUgqVYBHdURONEQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUivF1AAWABwAHgAkAEAmAGGAaABhgGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAo8BmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHjwHCBwMyLTHIBwWACAE&sclient=gws-wiz"
+            },
+            {
+              "action": "results",
+              "at": "2026-11-09T15:03:51.174Z",
+              "count": 3,
+              "locator": "#rso a:has(h3)",
+              "state": "read",
+              "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=dfe2b0fb5aadc6a7&sxsrf=AKL5yDi_RVFVZqdKJiCySkAUD6K4vqtFfg%3A1794236618554&source=hp&ei=yuDxatnaH6DS2roP1aPgiQ0&iflsig=AHSINFcAAAAAavHu2pPVCrtJ4JzB2QngSGC6AdSK6UGk&ved=2ahUKEwjZ56iilPuXAxUgqVYBHdURONEQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUivF1AAWABwAHgAkAEAmAGGAaABhgGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAo8BmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHjwHCBwMyLTHIBwWACAE&sclient=gws-wiz"
+            }
+          ],
+          "version": 1
+        }
+      },
+      {
+        "protocol": "opendesk.task.result.v1",
+        "taskId": "google.search.top3",
+        "requestId": "1ecd4807-e8b3-4d7b-a60c-3bf5e2694fe3",
+        "targetUrl": "https://www.google.com/",
+        "scriptId": "task:google.search.top3:1.0.0",
+        "runId": "d4f97309-4b82-44f6-894e-111046823114",
+        "resultId": "f783f66e-9a9f-435a-ba57-7cae3ee6b872",
+        "revision": 1,
+        "sourceHash": "f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad",
+        "status": "completed",
+        "data": {
+          "count": 3,
+          "inputMode": "isolated-dom",
+          "kind": "google.search.top3.result",
+          "observedAt": "2026-11-09T15:47:38.141Z",
+          "query": "Chrome extension Side Panel API",
+          "results": [
+            {
+              "position": 1,
+              "title": "browser.sidePanel | API - Chrome for Developers",
+              "url": "https://www.google.com/goto?url=CAESgQEBxCJF1xD8J9Bp9NKobCz1fHcSy0oVJlt-Xs3YAiWj93vhoBHmT1aJpPsnRl5PMsnFy2VEmRcv6hT70ZzakGMRxBcEz-wYoICh8_Wnz0kCGUZDyZEGk_VgUprtn_TuIVeEC0Hvl_wYWCbWA3B51hXqylU68T7zsv-Y-apD_PcsZn4"
+            },
+            {
+              "position": 2,
+              "title": "Using Chrome Side Panels in Your Extension with Plasmo",
+              "url": "https://www.google.com/goto?url=CAESaAHEIkXXKspAmgRwKImlc-ksfYfXDV0VTS8nuRPDo6KNbmprblowYpurBOFEHLxlLs57j0REJeYCcBz2yYzb9eW1l39MujOMKcGuU9WwuupQ7g4qZytwgXzwzE-gmPn_vP6RY01F0LEX"
+            },
+            {
+              "position": 3,
+              "title": "20 Understanding Chrome Extensions Side Panel - Medium",
+              "url": "https://www.google.com/goto?url=CAESmgEBxCJF1w3Ql3OQ8a2CkDLCTO8uF6sB-cQ6TD9MVMg4aXw_zfEz27eQwxeWjksgBIO_qo6wsV_bF67zuW2ukiSDNAwACVXgdn_nywTcUXxXK6pGpXtGv7BzyTr5rMdIpg0k4pAPG3vAiH6uTZEVQ3ezeqsz9fZ4cTY4poltq9PYIq3TQ0xJSIs18PouBR7vcIMvd0VXOdPgfFKI"
+            }
+          ],
+          "sourceUrl": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=98bdd051a2fad891&sxsrf=AKL5yDjnLzQQgrItaXf_AMrKm1pryLjjrw%3A1794239244976&source=hp&ei=DOvxatOvOprBvr0P8ZLNoQc&iflsig=AHSINFcAAAAAavH5HGYM4ra5nj6AWv5ZcWspO16DtdAv&ved=2ahUKEwjT5dmGnvuXAxWaoK8BHXFJM3QQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiQF1AAWABwAHgAkAEAmAHPA6ABzwOqAQM0LTGwAQC4AQzIAQD4AQGYAgGgAuMDmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDNC0xoAeCArIHAzQtMbgH4wPCBwMzLTHIBw6ACAE&sclient=gws-wiz",
+          "status": "success",
+          "trace": [
+            {
+              "action": "input",
+              "at": "2026-11-09T15:47:25.619Z",
+              "documentId": "9F7BF6DA4F9825EE5BA728527EE00383",
+              "locator": "textarea[name=q]",
+              "state": "before",
+              "url": "https://www.google.com/",
+              "value": ""
+            },
+            {
+              "action": "input",
+              "at": "2026-11-09T15:47:30.304Z",
+              "locator": "textarea[name=q]",
+              "state": "returned",
+              "value": "Chrome extension Side Panel API"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-09T15:47:31.584Z",
+              "locator": "input[name=btnK] >> nth=0",
+              "state": "started",
+              "url": "https://www.google.com/"
+            },
+            {
+              "action": "click",
+              "at": "2026-11-09T15:47:34.227Z",
+              "locator": "input[name=btnK] >> nth=0",
+              "state": "returned"
+            },
+            {
+              "action": "navigation",
+              "at": "2026-11-09T15:47:34.450Z",
+              "documentId": "CCFB9B59339EF4397D2ADFEEDD092313",
+              "state": "observed",
+              "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=98bdd051a2fad891&sxsrf=AKL5yDjnLzQQgrItaXf_AMrKm1pryLjjrw%3A1794239244976&source=hp&ei=DOvxatOvOprBvr0P8ZLNoQc&iflsig=AHSINFcAAAAAavH5HGYM4ra5nj6AWv5ZcWspO16DtdAv&ved=2ahUKEwjT5dmGnvuXAxWaoK8BHXFJM3QQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiQF1AAWABwAHgAkAEAmAHPA6ABzwOqAQM0LTGwAQC4AQzIAQD4AQGYAgGgAuMDmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDNC0xoAeCArIHAzQtMbgH4wPCBwMzLTHIBw6ACAE&sclient=gws-wiz"
+            },
+            {
+              "action": "results",
+              "at": "2026-11-09T15:47:36.139Z",
+              "count": 3,
+              "locator": "#rso a:has(h3)",
+              "state": "read",
+              "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=98bdd051a2fad891&sxsrf=AKL5yDjnLzQQgrItaXf_AMrKm1pryLjjrw%3A1794239244976&source=hp&ei=DOvxatOvOprBvr0P8ZLNoQc&iflsig=AHSINFcAAAAAavH5HGYM4ra5nj6AWv5ZcWspO16DtdAv&ved=2ahUKEwjT5dmGnvuXAxWaoK8BHXFJM3QQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUiQF1AAWABwAHgAkAEAmAHPA6ABzwOqAQM0LTGwAQC4AQzIAQD4AQGYAgGgAuMDmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDNC0xoAeCArIHAzQtMbgH4wPCBwMzLTHIBw6ACAE&sclient=gws-wiz"
+            }
+          ],
+          "version": 1
+        }
+      }
+    ],
+    "resultMessages": 2,
+    "nativeSameRunReceipt": {
+      "ledgerCount": 2,
+      "execution": "completed",
+      "durableResult": "verified same Run / Result",
+      "resources": "released",
+      "delivery": "confirmed new original-chat result message",
+      "aiContinuation": "observed complete new reply"
+    },
+    "finding": "Current reported ego chat already contained one successful Google run; one new explicit request completed the second run. The reported intermittent failure was not reproduced and its cause is unknown.",
+    "artifact": "artifacts/webflow/google-prompts-1109/manual-window-visible-20261109.json",
+    "userConfirmed": "User confirmed the reported window was the current ego chat."
   }
 }

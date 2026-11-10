@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {load} from 'cheerio';
+import postcss from 'postcss';
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import {composeExtensionEntries,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from '../../src/ui/extension-center-model.js';
 
 test('R4.2 enabled installed app launches its installed package; missing app opens detail',()=>{
@@ -38,24 +41,24 @@ test('R4.7 main action is genuinely optional for disabled/unknown/Page/candidate
 });
 
 test('R5.11 full row launches or opens detail; uninstall lives only in overflow',async()=>{
-  const [center,react,css]=await Promise.all([
+  const [center,react]=await Promise.all([
     readFile('src/ui/extension-center.js','utf8'),
-    readFile('src/ui/react/tabs/tools.tsx','utf8'),
-    readFile('src/ui/extension-center.css','utf8')
+    readFile('src/ui/react/tabs/tools.tsx','utf8')
   ]);
   assert.match(center,/if\(resolveExtensionRowIntent\(row\)==='detail'\)\{openDetail\(key,'main'\);return;\}/);
   assert.match(center,/if\(resolveExtensionPrimaryAction\(row\)\?\.id==='open'\)/);
   assert.match(center,/sidebarTools\.openTool\(row\.id\)/);
-  assert.match(center,/add\('卸载…',event=>openListUninstallReview\(row\.key,event\),'uninstall'\)/);
+  assert.match(center,/add\(t\('uninstallAction'\),event=>openListUninstallReview\(row\.key,event\),'uninstall'\)/);
   assert.match(react,/className="ec-row-main" data-extension-key=\{row\.key\}/);
   assert.match(react,/data-extension-action="more"/);
   assert.doesNotMatch(react,/data-extension-action="primary"/);
   assert.doesNotMatch(react,/data-extension-action="uninstall"/);
-  assert.match(css,/\.ec-row-main\{[^}]*padding:9px 10px;/);
 });
 test('R5.11 hover and keyboard reveal one overlay; touch retains one 44px menu',async()=>{
   const css=await readFile('src/ui/extension-center.css','utf8');
-  assert.match(css,/\.ec-row\{position:relative;min-height:72px\}/);
+  const row=postcss.parse(css).nodes.find(node=>node.selector==='.ec-row');
+  assert.ok(parseFloat(row.nodes.find(node=>node.prop==='min-height').value)>=44,
+    'the complete row remains a usable click target without imposing a fixed density');
   assert.match(css,/\.ec-row-actions\{position:absolute;[^}]*opacity:0;pointer-events:none/);
   assert.match(css,/\.ec-row--action-visible \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
   assert.match(css,/@media\(hover:none\),\(pointer:coarse\)\{/);
@@ -75,12 +78,24 @@ test('R5.13 last-hovered installed row retains the only desktop More affordance'
   assert.match(react,/const activeActionKey=rows\.some\(row=>row\.installed&&row\.key===lastInteractedKey\)/);
   assert.match(react,/event\.pointerType!=='touch'\)setLastInteractedKey\(row\.key\)/);
   assert.match(react,/onFocusCapture=\{\(\)=>\{/);
-  assert.match(react,/row\.installed&&row\.key===activeActionKey\?'ec-row ec-row--action-visible':'ec-row'/);
+  const rows=[
+    {key:'app:first',title:'第一项',kind:'app',installed:true},
+    {key:'app:second',title:'第二项',kind:'app',installed:true},
+    {key:'catalog:third',title:'未安装',kind:'app',installed:false}
+  ];
+  const $=load(await renderSidebarFixture({activeTab:'tools',extensionProps:{rowsModel:{rows}}}));
+  assert.equal($('#extension-center-list .ec-row--action-visible').length,1);
+  assert.equal($('#extension-center-list .ec-row--action-visible').attr('data-extension-id'),'app:first');
   assert.match(css,/\.ec-row--action-visible \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
-  assert.match(css,/\.ec-row--action-visible \.ec-row-main\{padding-right:52px\}/);
+  const rules=postcss.parse(css).nodes;
+  const main=rules.find(node=>node.selector==='.ec-row-main');
+  assert.equal(main.nodes.find(node=>node.prop==='padding').value,'var(--space-3)',
+    'row content uses the normal gutter without reserving a menu column');
+  assert.equal(rules.some(node=>node.selector==='.ec-row--action-visible .ec-row-main'),false,
+    'revealing More does not change content geometry');
   assert.doesNotMatch(css,/\.ec-row:hover \.ec-row-actions|\.ec-row:focus-within \.ec-row-actions/);
   assert.match(css,/@media\(hover:none\),\(pointer:coarse\)\{/);
-  assert.match(css,/\.ec-row-main,\.ec-row--action-visible \.ec-row-main\{padding-right:54px\}/);
+  assert.doesNotMatch(css,/padding-right:(48|54)px/);
   assert.doesNotMatch(react,/data-extension-action="uninstall"|data-extension-action="primary"/);
 });
 

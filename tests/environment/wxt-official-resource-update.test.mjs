@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {EventEmitter} from 'node:events';
 import {writeFileSync} from 'node:fs';
 import {createHooks} from 'hookable';
-import {mkdtemp,mkdir,readFile,writeFile,rm,stat,symlink,rename} from 'node:fs/promises';
+import {mkdtemp,mkdir,readFile,writeFile,rm,stat,symlink,rename,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -19,12 +19,16 @@ import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {BROWSER_EDITION_RECORD,editionRecordText} from '../../scripts/browser-editions-r245.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
 import config from '../../wxt.config.mjs';
+import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from '../../scripts/packaged-task-resources.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function fixture(t,{starting=false,buildError,pages=false}={}){
   const root=await mkdtemp(join(tmpdir(),'opendesk-official-update-'));
   const publicDir=join(root,'public'),outDir=join(root,'output');
   const write=async(path,bytes)=>{await mkdir(dirname(join(root,path)),{recursive:true});await writeFile(join(root,path),bytes);};
+  for(const row of PACKAGED_TASK_RESOURCES)await write(row.sourcePath,await readFile(new URL('../../'+row.sourcePath,import.meta.url)));
+  await preparePackagedTaskResources(publicDir,{root});
+  await preparePackagedTaskResources(outDir,{root});
   const source=JSON.parse(await readFile(new URL('../../manifest.json',import.meta.url),'utf8'));
   const manifest={...source,action:{...source.action,default_title:'打开 '+source.name}};
   const external=marketExternalConnectable(resolveMarketChannel({mode:'development'}));
@@ -56,7 +60,7 @@ async function fixture(t,{starting=false,buildError,pages=false}={}){
   // Include unrelated resources under the same prefix: only generator-owned
   // catalog/package paths may be replaced, and WXT metadata must survive.
   const sandbox='sidebar-tools/sandbox.html';
-  const staticPaths=['manifest.json',sandbox,'official-tools/diagnostic.txt',...paths];
+  const staticPaths=['manifest.json',sandbox,'official-tools/diagnostic.txt',...paths,...PACKAGED_TASK_RESOURCES.map(row=>row.path)];
   await write('output/'+sandbox,'<html>shared sandbox sentinel</html>');
   await write('output/official-tools/diagnostic.txt','unrelated');
   const staticAssets=staticPaths.map(fileName=>({type:'asset',fileName,customMetadata:{retain:true}}));
@@ -98,6 +102,28 @@ async function fixture(t,{starting=false,buildError,pages=false}={}){
   };
   return {root,outDir,publicDir,write,catalog,saveCatalog,change,flush,marker,errors,output,server,wxt,generated,assertIntact,assertPublished,watched};
 }
+
+test('private Task data uses the same static queue and blocks stale or invalid publication',async t=>{
+  const f=await fixture(t),before=await f.marker();
+  const row=PACKAGED_TASK_RESOURCES.find(row=>row.sourcePath.startsWith('projects/'));
+  const original=await readFile(join(f.root,row.sourcePath),'utf8'),changed=original+'\n';
+  await f.write(row.sourcePath,changed);f.change(row.sourcePath);await f.flush();
+  assert.equal(await readFile(join(f.publicDir,row.path),'utf8'),changed,
+    'project Task bytes must not disappear into the official-tool branch');
+  assert.equal((await f.marker()).revision,before.revision,'wait for the original WXT public copy');
+  assert.ok(f.errors.some(error=>error.includes('Task resource differs')));
+  // Complete the WXT-owned public copy, then publish its resulting revision.
+  await copyFile(join(f.publicDir,row.path),join(f.outDir,row.path));f.errors.length=0;
+  await f.flush();const ready=await f.marker();
+  assert.notEqual(ready.revision,before.revision);
+  assert.equal(ready.files[row.path],digest(changed));
+  await f.write(row.sourcePath,original.replace('async function main','async function changed'));
+  f.change(row.sourcePath);await f.flush();
+  assert.equal((await f.marker()).revision,ready.revision);
+  assert.equal(await readFile(join(f.publicDir,row.path),'utf8'),changed);
+  await f.write(row.sourcePath,changed);f.change(row.sourcePath);f.errors.length=0;
+  await f.flush();await f.assertIntact();assert.deepEqual(f.errors,[]);
+});
 
 test('official catalog data and declared source edits publish without restarting or touching sandbox',async t=>{
   const f=await fixture(t),before=await f.marker();

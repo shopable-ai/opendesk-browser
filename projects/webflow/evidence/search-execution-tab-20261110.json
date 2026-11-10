@@ -1,0 +1,1162 @@
+{
+  "scope": "showExecutionTab strict boolean, default true; existing Google/Baidu Controller tasks and original Web Flow approval path",
+  "recordedAt": "2026-11-09T18:23:32.184Z",
+  "environment": {
+    "mode": "continuous development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "service": "http://localhost:43119",
+    "observedRevision": "ab6320387728a66e836ddf16d09a0342250109726df39a1630f679ddcbd5dfff",
+    "connectionObservedInTrustedDebugUI": true
+  },
+  "installedVersions": {
+    "google": "1.0.1",
+    "baidu": "1.1.5",
+    "webflow": "0.3.23"
+  },
+  "implementation": {
+    "focus": "tabs.update(active:true) and windows.update(focused:true) once; read-only windows.get polling for up to 1000ms; document, active tab, window, authorization and cancellation rechecked",
+    "false": "existing background owned-tab creation remains active:false; task does not call bringToFront"
+  },
+  "currentNativeRuns": [
+    {
+      "runId": "15d219dc-1ea5-4d76-8599-315c2d5088af",
+      "resultId": "805a410f-1e05-42a5-b574-9bed0c39fbd2",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API",
+        "showExecutionTab": true
+      },
+      "selectionMode": "borrowed",
+      "targetTabId": 1114138742,
+      "targetWindowId": 1114138731,
+      "state": "completed",
+      "retirementState": "released",
+      "status": "success",
+      "count": 3,
+      "bringToFront": [
+        {
+          "state": "durable",
+          "submissionCount": 1,
+          "receipts": [
+            {
+              "stage": "tabs.update",
+              "id": 1114138742,
+              "windowId": 1114138731,
+              "active": true
+            },
+            {
+              "stage": "windows.update",
+              "id": 1114138731,
+              "focused": true
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138731,
+              "focused": true
+            }
+          ]
+        }
+      ],
+      "note": "Explicit true on existing result page; read three results after one durable focus operation."
+    },
+    {
+      "runId": "02a9ddaf-30ad-4069-a03a-4875c0de154d",
+      "resultId": "d61573df-b88d-41fb-8c70-1169fd710da1",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API",
+        "showExecutionTab": false
+      },
+      "selectionMode": "borrowed",
+      "targetTabId": 1114138742,
+      "targetWindowId": 1114138731,
+      "state": "completed",
+      "retirementState": "released",
+      "status": "success",
+      "count": 3,
+      "bringToFront": [],
+      "note": "Explicit false from Google homepage; actually typed and submitted search, returned three results; zero bringToFront operations. Borrowed target, not proof of background owned-tab behavior."
+    },
+    {
+      "runId": "3babc610-6738-4d4b-a1fb-c55a5ae857d6",
+      "resultId": "a839a2f7-96ab-4996-9af3-746681e20d93",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API"
+      },
+      "selectionMode": "owned",
+      "targetTabId": 1114138735,
+      "state": "stopped",
+      "retirementState": "released",
+      "status": null,
+      "count": null,
+      "bringToFront": [
+        {
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "receipts": [
+            {
+              "stage": "tabs.update",
+              "id": 1114138735,
+              "windowId": 1114138614,
+              "active": true
+            },
+            {
+              "stage": "windows.update",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            }
+          ]
+        }
+      ],
+      "note": "Fresh automatic candidate before readback polling fix failed at focus confirmation; stopped through trusted UI, released; not replayed."
+    },
+    {
+      "candidateId": "wf-d6837a4b-2f91-4e6d-a803-c1b5729f0e46",
+      "requestId": "18414d9d-fd61-442b-8e15-56a984fa63b6",
+      "runId": "10e435a5-d006-4aa8-a62c-6e0606584d78",
+      "resultId": "bbd6de54-75f5-4dbc-b77e-9a289bdb9477",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API"
+      },
+      "selectionMode": "owned",
+      "targetTabId": 1114138753,
+      "targetWindowId": 1114138747,
+      "state": "completed",
+      "retirementState": "released",
+      "status": "success",
+      "count": 3,
+      "bringToFront": [
+        {
+          "state": "durable",
+          "submissionCount": 1,
+          "receipts": [
+            {
+              "stage": "tabs.update",
+              "id": 1114138753,
+              "windowId": 1114138747,
+              "active": true
+            },
+            {
+              "stage": "windows.update",
+              "id": 1114138747,
+              "focused": true
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138747,
+              "focused": true
+            }
+          ]
+        }
+      ],
+      "targetCreation": {
+        "creationId": "c6e8d2f4-fad5-450b-9585-4c2a0e18ac3e",
+        "state": "created",
+        "submissionCount": 1,
+        "tabId": 1114138753
+      },
+      "targetRetirement": {
+        "releaseCount": 1,
+        "absence": "owned-tabs.get-not-found",
+        "releasedAt": 1794248018433
+      },
+      "observedAt": "2026-11-09T18:13:38.100Z",
+      "trace": [
+        {
+          "action": "input",
+          "at": "2026-11-09T18:13:25.451Z",
+          "documentId": "D474A6BDDFF1600AB58C00FA21338340",
+          "locator": "textarea[name=q]",
+          "state": "before",
+          "url": "https://www.google.com/",
+          "value": ""
+        },
+        {
+          "action": "input",
+          "at": "2026-11-09T18:13:28.936Z",
+          "locator": "textarea[name=q]",
+          "state": "returned",
+          "value": "Chrome extension Side Panel API"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T18:13:30.833Z",
+          "locator": "input[name=btnK] >> nth=0",
+          "state": "started",
+          "url": "https://www.google.com/"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T18:13:32.564Z",
+          "locator": "input[name=btnK] >> nth=0",
+          "state": "returned"
+        },
+        {
+          "action": "navigation",
+          "at": "2026-11-09T18:13:32.937Z",
+          "documentId": "53D7970595B489F2A25748459501D424",
+          "state": "observed",
+          "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=7bf38a0372aa5c6e&sxsrf=AKL5yDhhK32kVIma7wXy6xW03AkvWdf_jQ%3A1794248004417&source=hp&ei=RA3yar6kGIbN1e8Pn7C-4AU&iflsig=AHSINFcAAAAAavIbVKUmInxp9LjWioF9NDcr7bbcm_zm&ved=2ahUKEwi-1sPXvvuXAxWGZvUHHR-YD1wQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUjNEVAAWABwAHgAkAEAmAGDAaABgwGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAocBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHhwHCBwMwLjHIBwKACAE&sclient=gws-wiz"
+        },
+        {
+          "action": "results",
+          "at": "2026-11-09T18:13:36.095Z",
+          "count": 3,
+          "locator": "#rso a:has(h3)",
+          "state": "read",
+          "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=7bf38a0372aa5c6e&sxsrf=AKL5yDhhK32kVIma7wXy6xW03AkvWdf_jQ%3A1794248004417&source=hp&ei=RA3yar6kGIbN1e8Pn7C-4AU&iflsig=AHSINFcAAAAAavIbVKUmInxp9LjWioF9NDcr7bbcm_zm&ved=2ahUKEwi-1sPXvvuXAxWGZvUHHR-YD1wQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUjNEVAAWABwAHgAkAEAmAGDAaABgwGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgAocBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHhwHCBwMwLjHIBwKACAE&sclient=gws-wiz"
+        }
+      ],
+      "resultTitles": [
+        "browser.sidePanel | API - Chrome for Developers",
+        "Using Chrome Side Panels in Your Extension with Plasmo",
+        "20 Understanding Chrome Extensions Side Panel - Medium"
+      ],
+      "delivery": {
+        "sourceConversation": "https://chatgpt.com/c/6af2034a-f0fc-83ec-a2b2-f2742be39da4",
+        "sameRunResultMessageObserved": true,
+        "modelReplyObserved": true
+      },
+      "note": "Fresh automatic candidate omitted showExecutionTab. Original true approval matched installed default; one durable focus operation preceded real input/click/navigation and three results. Actual tabs.update active:true and windows.get focused:true receipts recorded."
+    },
+    {
+      "candidateId": "wf-cb6e9d20-4f78-42b1-9a35-8ed017c6f493",
+      "requestId": "9dcd43f0-8238-4a58-9e9c-fad766fa43f2",
+      "runId": "2c03dcf5-80e8-45e0-b43b-bbe4593b1b97",
+      "resultId": "86d59340-9c84-40bb-90d6-765415d3212e",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API",
+        "showExecutionTab": false
+      },
+      "selectionMode": "owned",
+      "targetTabId": 1114138760,
+      "state": "completed",
+      "retirementState": "released",
+      "status": "success",
+      "count": 3,
+      "bringToFront": [],
+      "targetCreation": {
+        "creationId": "fc1bddfd-3570-40bd-8f0c-b9e594f96f95",
+        "state": "created",
+        "submissionCount": 1,
+        "tabId": 1114138760
+      },
+      "targetRetirement": {
+        "releaseCount": 1,
+        "absence": "owned-tabs.get-not-found",
+        "releasedAt": 1794248312477
+      },
+      "observedAt": "2026-11-09T18:18:32.214Z",
+      "trace": [
+        {
+          "action": "input",
+          "at": "2026-11-09T18:18:12.154Z",
+          "documentId": "36673D892B73BA25AE7E3E7F665F3D13",
+          "locator": "textarea[name=q]",
+          "state": "before",
+          "url": "https://www.google.com/",
+          "value": ""
+        },
+        {
+          "action": "input",
+          "at": "2026-11-09T18:18:18.076Z",
+          "locator": "textarea[name=q]",
+          "state": "returned",
+          "value": "Chrome extension Side Panel API"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T18:18:20.775Z",
+          "locator": "input[name=btnK] >> nth=0",
+          "state": "started",
+          "url": "https://www.google.com/"
+        },
+        {
+          "action": "click",
+          "at": "2026-11-09T18:18:24.001Z",
+          "locator": "input[name=btnK] >> nth=0",
+          "state": "returned"
+        },
+        {
+          "action": "navigation",
+          "at": "2026-11-09T18:18:25.519Z",
+          "documentId": "7C15D9F3728A3B82316DA9D35CA930CF",
+          "state": "observed",
+          "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=7bf38a0372aa5c6e&sxsrf=AKL5yDgrCvi-fm2T-oaqkdKDrGwT8Wop2Q%3A1794248290726&source=hp&ei=Yg7yasiHK6ev2roPtuqjyQU&iflsig=AHSINFcAAAAAavIccgdVqUQe_VL-YtQDhXcfjzLbg0AT&ved=2ahUKEwjIwIbgv_uXAxWnl1YBHTb1KFkQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUjbJlAAWABwAHgAkAEAmAGHAaABhwGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgApUBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHlQHCBwMzLTHIBwqACAE&sclient=gws-wiz"
+        },
+        {
+          "action": "results",
+          "at": "2026-11-09T18:18:30.209Z",
+          "count": 3,
+          "locator": "#rso a:has(h3)",
+          "state": "read",
+          "url": "https://www.google.com/search?q=Chrome+extension+Side+Panel+API&sca_esv=7bf38a0372aa5c6e&sxsrf=AKL5yDgrCvi-fm2T-oaqkdKDrGwT8Wop2Q%3A1794248290726&source=hp&ei=Yg7yasiHK6ev2roPtuqjyQU&iflsig=AHSINFcAAAAAavIccgdVqUQe_VL-YtQDhXcfjzLbg0AT&ved=2ahUKEwjIwIbgv_uXAxWnl1YBHTb1KFkQ4dUDegQIABAd&oq=Chrome+extension+Side+Panel+API&gs_lp=Egdnd3Mtd2l6Ih9DaHJvbWUgZXh0ZW5zaW9uIFNpZGUgUGFuZWwgQVBJMgQQABgeMgUQABjvBTIFEAAY7wUyCBAAGIAEGKIEMgUQABjvBUjbJlAAWABwAHgAkAEAmAGHAaABhwGqAQMwLjGwAQC4AQzIAQD4AQGYAgGgApUBmAMA4gMEGAAgXeIDBBgAIF7iAwQYACBf4gMEGAAgYOIDBBgAIGHiAwQYACBikgcDMC4xoAf8AbIHAzAuMbgHlQHCBwMzLTHIBwqACAE&sclient=gws-wiz"
+        }
+      ],
+      "resultTitles": [
+        "browser.sidePanel | API - Chrome for Developers",
+        "Using Chrome Side Panels in Your Extension with Plasmo",
+        "20 Understanding Chrome Extensions Side Panel - Medium"
+      ],
+      "delivery": {
+        "sourceConversation": "https://chatgpt.com/c/6af2034a-f0fc-83ec-a2b2-f2742be39da4",
+        "sameRunResultMessageObserved": true,
+        "modelReplyObserved": true
+      },
+      "approval": "Exact false range reviewed and saved through original trusted Web Flow settings; prior true range was not silently widened.",
+      "backgroundObservation": {
+        "sampleCount": 55,
+        "from": "2026-11-09T18:17:44.963Z",
+        "to": "2026-11-09T18:18:56.914Z",
+        "sourceActiveInEverySample": true,
+        "sourceVisibleInEverySample": true,
+        "targetObservedInactiveOnHomeAndResults": true,
+        "samplingGap": {
+          "from": "2026-11-09T18:18:12.173Z",
+          "to": "2026-11-09T18:18:30.662Z",
+          "milliseconds": 18489
+        },
+        "continuousFocusEventTrace": false,
+        "rawFile": "artifacts/webflow/search-execution-tab-20261110/google-background-observations.json"
+      },
+      "note": "Fresh automatic owned background search from homepage, typed and clicked once, returned three results and retired. Sampling supports retained chat focus; sampling gap is not continuous event proof."
+    },
+    {
+      "candidateId": "wf-52c9f04e-8b36-4d71-a209-6e83bf147d5c",
+      "requestId": "e3fd7869-50fc-44e4-9db7-8e182a0d972c",
+      "runId": "66395600-cf94-4fbc-8150-8efb691e6ecd",
+      "resultId": "6d939a86-99ba-40ab-9827-d2dcd8c1ed84",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API"
+      },
+      "selectionMode": "owned",
+      "targetTabId": 1114138749,
+      "targetWindowId": 1114138614,
+      "state": "stopped",
+      "retirementState": "released",
+      "status": null,
+      "count": null,
+      "bringToFront": [
+        {
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "receipts": [
+            {
+              "stage": "tabs.update",
+              "id": 1114138749,
+              "windowId": 1114138614,
+              "active": true
+            },
+            {
+              "stage": "windows.update",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138614,
+              "focused": false
+            }
+          ]
+        }
+      ],
+      "targetCreation": {
+        "creationId": "20cab20b-b753-4fae-8041-c925d2230f39",
+        "state": "created",
+        "submissionCount": 1,
+        "tabId": 1114138749
+      },
+      "targetRetirement": {
+        "releaseCount": 1,
+        "absence": "owned-tabs.get-not-found",
+        "releasedAt": 1794247865987
+      },
+      "note": "Ego was displaying the Space overview; windows focus readback remained false. Original Stop path retired this run; unknown effect history retained, no replay. Entered task Space before a different fresh candidate succeeded; no source patch for this environment state."
+    }
+  ],
+  "priorEvidence": {
+    "file": "projects/webflow/evidence/google-prompts-20261109.json",
+    "googleDraft": {
+      "runId": "a9306f51-dc9a-46d0-ae3a-0e4df3c71f26",
+      "resultId": "a3508cb6-5c8b-483b-923d-027c1e5222a2",
+      "status": "success",
+      "count": 3,
+      "retirementState": "released",
+      "note": "Prior observed evidence, not rerun against polling change."
+    }
+  },
+  "baiduCurrentBlocker": {
+    "status": "REPRODUCED",
+    "action": "Fill #chat-textarea then click #chat-submit-button",
+    "obstruction": "[data-opendesk-toc-root]",
+    "rootRect": {
+      "x": 803,
+      "y": 8,
+      "width": 220,
+      "height": 91.3984375
+    },
+    "rootStyle": {
+      "position": "fixed",
+      "zIndex": "2147483000",
+      "pointerEvents": "auto"
+    },
+    "buttonRect": {
+      "x": 774,
+      "y": 19,
+      "width": 104,
+      "height": 38
+    },
+    "buttonCenterHit": "[data-opendesk-toc-root]",
+    "temporaryDiagnosis": "Setting only root.style.pointerEvents=\"none\" changed center hit to the search button. One normal click navigated to https://www.baidu.com/s with exact wd query.",
+    "persistentFix": false,
+    "note": "Diagnostic was only on an agent-created page; no Reading TOC source/package changes. Full Controller Baidu chain remains unverified.",
+    "latestRecheck": {
+      "at": "2026-11-09T18:19:51.806Z",
+      "url": "https://www.baidu.com/",
+      "viewport": {
+        "width": 1031,
+        "height": 703
+      },
+      "value": "Chrome extension Side Panel API",
+      "buttonRect": {
+        "x": 774,
+        "y": 19,
+        "width": 104,
+        "height": 38
+      },
+      "rootRect": {
+        "x": 803,
+        "y": 8,
+        "width": 220,
+        "height": 91.3984375
+      },
+      "rootStyle": {
+        "position": "fixed",
+        "zIndex": "2147483000",
+        "pointerEvents": "auto"
+      },
+      "hitIsButton": false,
+      "hit": "<div data-opendesk-toc-root=\"\" data-toc-edge=\"right\" style=\"--toc-scroll-limit: 620px;\"></div>"
+    },
+    "parallelOwnership": "Reading TOC has another active owner. No Reading TOC source, package or live style mutation in this continuation; did not submit an obstructed click or bypass it with Enter.",
+    "installedBaiduApproval": "Installed 1.1.5; existing previous-install grant shown stale and needs original review before running."
+  },
+  "checks": {
+    "node --test tests/environment/controller-bring-to-front.test.mjs": {
+      "passed": 8,
+      "failed": 0
+    },
+    "node --check src/framework/control/native-driver.js": "PASS",
+    "git diff --check": "PASS"
+  },
+  "notTested": [
+    "Complete Baidu 1.1.5 Controller result chain: current real button center still intercepted by Reading TOC, pending its owner.",
+    "Continuous OS/native focus event trace and visual screen recording for default/background modes; durable native receipts and bounded page samples are the current evidence.",
+    "Production acceptance and independent rating."
+  ],
+  "resources": {
+    "newestRunsReleased": true,
+    "unknownAutomaticRunStoppedAndReleased": true,
+    "otherTasksDraftsAndServicesPreserved": true,
+    "commitOrPush": false,
+    "taskSpace": {
+      "id": 42,
+      "finished": true,
+      "keptPages": [
+        "p1"
+      ],
+      "note": "Only result conversation retained for user; diagnostic pages closed, framework owned targets already retired."
+    }
+  },
+  "continuation": {
+    "phase": "core development verification",
+    "sourceOrPackageChanges": false,
+    "reusedDevWriterPid": 49775,
+    "browserTaskSpace": 42,
+    "rawFile": "artifacts/webflow/search-execution-tab-20261110/continuation-native-records.json",
+    "trustedCurrentTaskReceipt": {
+      "state": "completed",
+      "sameRunResultVerified": true,
+      "resourcesReleased": true,
+      "originalChatDeliveryConfirmed": true,
+      "hostAIReplyIndicator": "not yet observed",
+      "actualChatAIReplyObserved": true
+    },
+    "activeGoogleApprovalAtEnd": {
+      "targetUrl": "https://www.google.com/",
+      "args": {
+        "query": "Chrome extension Side Panel API",
+        "limit": 3,
+        "showExecutionTab": false
+      },
+      "note": "Exact false replaces the former per-task true grant; later default/true requests require original review again."
+    },
+    "finalChatObservation": {
+      "at": "2026-11-09T18:23:16.842Z",
+      "url": "https://chatgpt.com/c/6af2034a-f0fc-83ec-a2b2-f2742be39da4",
+      "busy": false,
+      "composerEmpty": true,
+      "defaultResultOccurrences": 1,
+      "backgroundResultOccurrences": 1
+    }
+  },
+  "checksEvidenceNote": "Existing targeted checks from preceding implementation turn retained; no product inputs changed in continuation, so no test or build repeat. Only evidence/prompt/document checks run now.",
+  "triggerFailureRepair": {
+    "observedAt": "2026-11-09T19:12:00.055730+00:00",
+    "reportedChat": "https://chatgpt.com/c/6af21357-75d8-83ee-8b45-9128babe9ae8",
+    "originalRequestId": "c2186a14-0c6c-4608-a0e2-3093fd2ee63a",
+    "candidateId": "wf-ae7d92c1-4f60-4bc8-9d25-1e83b0a746cf",
+    "observation": {
+      "status": "prepared",
+      "pendingAuto": true,
+      "webReady": false,
+      "consumedAtPresent": false,
+      "controllerSubmittedPresent": false,
+      "runCreated": false
+    },
+    "reason": "Existing Google grant fixed showExecutionTab:false; reported candidate omits the optional parameter (default true), so original exact-range review is required.",
+    "defect": "History projected a never-consumed request with no Run as unknown execution and release. CurrentTask also lacked the not-started label.",
+    "fix": "Read-only not-started projection requires no consumption, ownership, submission, delivery or observation evidence. UI distinguishes unapproved/unstarted. No grant migration or historical replay.",
+    "sourceSha256": {
+      "src/page-events/web-task-ingress.js": "b68e1bcfa691cf9f2b798cd3a955edc041e42ac56b4b6cf614fd5be2285b479f",
+      "projects/webflow/trusted/CurrentTask.tsx": "e170cf05663736ec4f366a3c9198651234360d2b1b8a8710899a903fa3ca2ca6"
+    },
+    "verification": {
+      "coreTargetedTests": {
+        "passed": 83,
+        "failed": 0
+      },
+      "reviewedDisplayRoutesAndAIProxyPinGuards": {
+        "passed": 3,
+        "failed": 0
+      },
+      "displayRouteContracts": {
+        "passed": 5,
+        "failed": 0
+      },
+      "broaderProvenanceFile": {
+        "passed": 29,
+        "failed": 7,
+        "unrelatedFailures": "Bookmark and Reading TOC historical pin/target expectations; no business or pin changes made for these failures."
+      }
+    },
+    "developmentPrerequisiteRepair": "Reviewed existing pure app display-route predicates and added their exact blob pins. Web Flow route permitted only in ui/tool-shell.js; AI Proxy uses its original source-lock and target gate. No route behavior, SDK, installation or permission change.",
+    "runtime": {
+      "mode": "continuous development",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": "cd7dacf8cc300d7f1d2989c53f80f43f97d7e5826860817e30f2a89c8de4d7eb",
+      "trustedDebugUIServiceConnected": true,
+      "trustedDebugUIAppliedRevision": "cd7dacf8cc300d7f1d2989c53f80f43f97d7e5826860817e30f2a89c8de4d7eb",
+      "existingWriterPidAtFinal": 7891,
+      "previousWriterPid": 49775,
+      "writerNote": "Original shared dev writer exited; another owner started PID 7891 on the same output lock at 2026-11-09T19:24:49.589Z. Reused it without starting or stopping a writer. Temporary E_BUILTIN_RESOURCE occurred while resources were being published; original verifier succeeded after resources returned.",
+      "swSha256": "fb61f44e2e08ffa900149adbb67fca4f6d5edb7209588539e6ad40f0ef966943",
+      "toolShellSha256": "e27603257f83d2f03b7b1e93f7cd1b703547f33b67a1ae325397a6d392fa7972"
+    },
+    "rawEvidence": "artifacts/webflow/search-trigger-repair-20261110/",
+    "installedRuntimeRecovery": {
+      "taskId": "google.search.top3",
+      "version": "1.0.1",
+      "sameSourceRunId": "c2564d24-304d-452c-856e-81bcb6a86b1f",
+      "resultId": "974c6dd2-6070-4b6f-bdac-308a0f6c67e7",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "method": "Original Developer source import, explicit Run, original task verifier, local availability, trusted runtime-install update; no direct storage mutation.",
+      "installationGeneration": 3,
+      "mistakenHistoricalRunInput": "An expanded history showed an older Baidu Run; the verifier rejected it. Read-only durable lookup identified the actual current Google Run before successful verification.",
+      "driverInputFailure": "Own first manual draft run received old value:0 params after native focus failed; failed E_TASK_PARAMS and released. Correct parameters were then entered via native setValue for a new Run."
+    },
+    "nativeRunsAfterRepair": [
+      {
+        "runId": "0cb3ad18-ae8c-4abb-bb09-d076b132f0b4",
+        "resultId": "ac8938af-f51c-4e30-94c7-ae43026015cf",
+        "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+        },
+        "params": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API"
+        },
+        "selectionMode": "owned",
+        "targetTabId": 1114138789,
+        "state": "completed",
+        "retirementState": "released",
+        "status": "success",
+        "count": 3,
+        "results": [
+          {
+            "position": 1,
+            "title": "browser.sidePanel | API - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/reference/api/sidePanel"
+          },
+          {
+            "position": 2,
+            "title": "Chrome拡張のサイドパネルを活用してみる",
+            "url": "https://qiita.com/ydclab_0007/items/b974a24b7e9b822bc33a"
+          },
+          {
+            "position": 3,
+            "title": "Create a side panel - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/develop/ui/create-a-side-panel"
+          }
+        ],
+        "bringToFront": [
+          {
+            "state": "durable",
+            "submissionCount": 1,
+            "receipts": [
+              {
+                "stage": "tabs.update",
+                "id": 1114138789,
+                "active": true
+              },
+              {
+                "stage": "windows.update",
+                "id": 1114138770,
+                "focused": true
+              },
+              {
+                "stage": "windows.get",
+                "id": 1114138770,
+                "focused": true
+              }
+            ]
+          }
+        ],
+        "targetCreation": [
+          {
+            "state": "created",
+            "submissionCount": 1,
+            "tabId": 1114138789
+          }
+        ],
+        "resourceRelease": [
+          {
+            "releaseCount": 1,
+            "absence": "owned-tabs.get-not-found"
+          }
+        ]
+      },
+      {
+        "runId": "9f5d126a-3a7c-4806-801f-eff23b30b1f4",
+        "resultId": "7eb3a7d1-5cc0-4947-9e1a-cfdfa049af0f",
+        "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+        },
+        "params": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API",
+          "showExecutionTab": false
+        },
+        "selectionMode": "owned",
+        "targetTabId": 1114138787,
+        "state": "completed",
+        "retirementState": "released",
+        "status": "success",
+        "count": 3,
+        "results": [
+          {
+            "position": 1,
+            "title": "browser.sidePanel | API - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/reference/api/sidePanel"
+          },
+          {
+            "position": 2,
+            "title": "Chrome拡張のサイドパネルを活用してみる",
+            "url": "https://qiita.com/ydclab_0007/items/b974a24b7e9b822bc33a"
+          },
+          {
+            "position": 3,
+            "title": "Create a side panel - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/develop/ui/create-a-side-panel"
+          }
+        ],
+        "bringToFront": [],
+        "targetCreation": [
+          {
+            "state": "created",
+            "submissionCount": 1,
+            "tabId": 1114138787
+          }
+        ],
+        "resourceRelease": [
+          {
+            "releaseCount": 1,
+            "absence": "owned-tabs.get-not-found"
+          }
+        ]
+      },
+      {
+        "runId": "c2564d24-304d-452c-856e-81bcb6a86b1f",
+        "resultId": "974c6dd2-6070-4b6f-bdac-308a0f6c67e7",
+        "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "97392f8d27c32130580f7e7042d240aa3fb20a32e2a469c1237bbf92a2ab7e5e"
+        },
+        "params": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API"
+        },
+        "selectionMode": "borrowed",
+        "targetTabId": 1114138784,
+        "targetWindowId": 1114138770,
+        "state": "completed",
+        "retirementState": "released",
+        "status": "success",
+        "count": 3,
+        "results": [
+          {
+            "position": 1,
+            "title": "browser.sidePanel | API - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/reference/api/sidePanel"
+          },
+          {
+            "position": 2,
+            "title": "Chrome拡張のサイドパネルを活用してみる",
+            "url": "https://qiita.com/ydclab_0007/items/b974a24b7e9b822bc33a"
+          },
+          {
+            "position": 3,
+            "title": "Create a side panel - Chrome for Developers",
+            "url": "https://developer.chrome.com/docs/extensions/develop/ui/create-a-side-panel"
+          }
+        ],
+        "bringToFront": [
+          {
+            "state": "durable",
+            "submissionCount": 1,
+            "receipts": [
+              {
+                "stage": "tabs.update",
+                "id": 1114138784,
+                "active": true
+              },
+              {
+                "stage": "windows.update",
+                "id": 1114138770,
+                "focused": true
+              },
+              {
+                "stage": "windows.get",
+                "id": 1114138770,
+                "focused": true
+              }
+            ]
+          }
+        ],
+        "targetCreation": [],
+        "resourceRelease": [
+          {
+            "releaseCount": 1,
+            "absence": "borrowed-not-closed"
+          }
+        ]
+      }
+    ],
+    "currentRequests": [
+      {
+        "requestId": "04f19d00-19ea-488d-b345-ed1a208a165d",
+        "candidateId": "wf-e63cbe18-d3df-4f56-aee7-612797c50d35",
+        "status": "consumed",
+        "args": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API",
+          "showExecutionTab": false
+        },
+        "receipt": {
+          "aiReplyObserved": true,
+          "delivery": "confirmed",
+          "execution": "completed",
+          "persistence": "verified",
+          "release": "released",
+          "resultId": "7eb3a7d1-5cc0-4947-9e1a-cfdfa049af0f",
+          "runId": "9f5d126a-3a7c-4806-801f-eff23b30b1f4"
+        },
+        "webDelivery": "delivered"
+      },
+      {
+        "requestId": "3dec47d5-e57b-414d-acf6-a852c4ea1760",
+        "candidateId": "wf-72e19c4b-0af3-45db-9c62-a92e57d84f10",
+        "status": "consumed",
+        "args": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API"
+        },
+        "receipt": {
+          "aiReplyObserved": true,
+          "delivery": "confirmed",
+          "execution": "completed",
+          "persistence": "verified",
+          "release": "released",
+          "resultId": "ac8938af-f51c-4e30-94c7-ae43026015cf",
+          "runId": "0cb3ad18-ae8c-4abb-bb09-d076b132f0b4"
+        },
+        "webDelivery": "delivered"
+      },
+      {
+        "requestId": "c2186a14-0c6c-4608-a0e2-3093fd2ee63a",
+        "candidateId": "wf-ae7d92c1-4f60-4bc8-9d25-1e83b0a746cf",
+        "status": "prepared",
+        "args": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API"
+        },
+        "receipt": null,
+        "webDelivery": null
+      }
+    ],
+    "finalGoogleApproval": {
+      "approvedAt": 1794252733664,
+      "grantId": "72f72687-e614-4970-936e-001313855a52",
+      "parameterPolicy": {
+        "mode": "schema",
+        "paramsSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "limit": {
+              "default": 3,
+              "enum": [
+                3
+              ],
+              "title": "结果数量",
+              "type": "integer"
+            },
+            "query": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "搜索关键词",
+              "type": "string"
+            },
+            "showExecutionTab": {
+              "default": true,
+              "title": "显示执行标签页",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "query",
+            "limit"
+          ],
+          "type": "object"
+        },
+        "variableKeys": []
+      },
+      "scope": {
+        "args": {
+          "limit": 3,
+          "query": "Chrome extension Side Panel API"
+        },
+        "installation": {
+          "contentHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+          "generation": 3,
+          "installationId": "afdfa5b6-e07b-4ec6-82ce-b92d42a2c7a3",
+          "manifestHash": "12f9680c9d446b3d2c2215865ed394a874c44dcdd417761e86bb0778d3dbb779",
+          "revision": 1,
+          "scriptId": "task:google.search.top3:1.0.1",
+          "version": "1.0.1"
+        },
+        "sourceOrigin": "https://chatgpt.com",
+        "targetUrl": "https://www.google.com/",
+        "taskId": "google.search.top3"
+      },
+      "state": "active",
+      "note": "Exact omitted showExecutionTab (default true) restored through original trusted review; false requires separate review. No old request replay."
+    },
+    "chatVerification": {
+      "url": "https://chatgpt.com/c/6af21ec2-a774-83e8-b92d-ec6d7b8922fe",
+      "at": "2026-11-09T19:33:52.879Z",
+      "composer": "",
+      "visibleBusy": false,
+      "backgroundResultOccurrences": 1,
+      "defaultResultOccurrences": 1
+    },
+    "nativeUIVerification": {
+      "pendingReviewHistory": "未批准 · 尚未执行",
+      "unstartedExecution": "尚未执行",
+      "unstartedResources": "未创建执行资源",
+      "backgroundAndDefaultFinalReceipts": [
+        "已完成",
+        "已核实同一 Run / Result",
+        "已释放",
+        "已确认新增结果消息",
+        "已观察到新回复"
+      ]
+    },
+    "focusSampling": {
+      "background": {
+        "samples": 45,
+        "googlePresentSamples": 13,
+        "googleActiveSamples": 0,
+        "originalChatActiveSamples": 45,
+        "maximumGapMs": 778,
+        "note": "Samples began after approval and during result navigation; not a continuous OS focus trace. Original chat DOM was also read during sampling."
+      },
+      "default": {
+        "samples": 36,
+        "googlePresentAndActiveSamples": 8,
+        "maximumGapMs": 706,
+        "note": "Passive TaskSpace tab sampling observed the real owned execution results page active; closure then selected the diagnostic tab. No claim that the browser returned focus to the original chat."
+      }
+    },
+    "interruptedCandidates": [
+      {
+        "chat": "https://chatgpt.com/c/6af21b2d-c8f8-83ee-98cb-8aab013497d0",
+        "candidateId": "wf-cd7c503a-8e27-4505-8b48-b4e94e3f2bc8",
+        "observation": "Development update disconnected listener; no ledger request created; not adopted or replayed."
+      },
+      {
+        "chat": "https://chatgpt.com/c/6af21bca-2824-83ec-a526-d8103d6f0085",
+        "candidateId": "wf-62b9d1fe-8a43-4ed7-9c05-21af34d9b680",
+        "observation": "Fresh listener recognized candidate but prepare failed E_BUILTIN_VERSION_UNAVAILABLE; zero requests; not replayed."
+      }
+    ],
+    "currentStage": "Core repair and real Google default/background delivery verified; production, broader CI, rating and blocked Baidu remain deferred.",
+    "freshBlankDefault": {
+      "url": "https://chatgpt.com/c/6af220b4-3884-83e8-b2e4-500d5f731648",
+      "at": "2026-11-09T19:38:20.062Z",
+      "composerEmpty": true,
+      "visibleBusy": false,
+      "resultMessages": 1,
+      "requestId": "ed5334fa-f684-47fb-a231-8f010a243b1b",
+      "candidateId": "wf-5ea08c6d-42f9-4d71-9e3a-67b1c204d8fa",
+      "runId": "e2ffa5e2-1fe1-4d0b-aa91-f747f50b22ab",
+      "resultId": "f8bfe0aa-cd78-4b12-9ea9-171e57a4e5af",
+      "sourceHash": "e7feae53d2dcdd97d5f4bd23a86dd9989ebd35bd818aae9e40b4bc0e318b529b",
+      "selectionMode": "owned",
+      "state": "completed",
+      "retirementState": "released",
+      "params": {
+        "limit": 3,
+        "query": "Chrome extension Side Panel API"
+      },
+      "status": "success",
+      "count": 3,
+      "results": [
+        {
+          "position": 1,
+          "title": "browser.sidePanel | API - Chrome for Developers",
+          "url": "https://developer.chrome.com/docs/extensions/reference/api/sidePanel"
+        },
+        {
+          "position": 2,
+          "title": "Chrome拡張のサイドパネルを活用してみる",
+          "url": "https://qiita.com/ydclab_0007/items/b974a24b7e9b822bc33a"
+        },
+        {
+          "position": 3,
+          "title": "Create a side panel - Chrome for Developers",
+          "url": "https://developer.chrome.com/docs/extensions/develop/ui/create-a-side-panel"
+        }
+      ],
+      "receipt": {
+        "aiReplyObserved": true,
+        "delivery": "confirmed",
+        "execution": "completed",
+        "persistence": "verified",
+        "release": "released",
+        "resultId": "f8bfe0aa-cd78-4b12-9ea9-171e57a4e5af",
+        "runId": "e2ffa5e2-1fe1-4d0b-aa91-f747f50b22ab"
+      },
+      "autoGrantId": "72f72687-e614-4970-936e-001313855a52",
+      "reusedFinalGrant": true,
+      "approvalInteraction": false,
+      "bringToFront": [
+        {
+          "state": "durable",
+          "submissionCount": 1,
+          "receipts": [
+            {
+              "stage": "tabs.update",
+              "id": 1114138791,
+              "active": true
+            },
+            {
+              "stage": "windows.update",
+              "id": 1114138770,
+              "focused": true
+            },
+            {
+              "stage": "windows.get",
+              "id": 1114138770,
+              "focused": true
+            }
+          ]
+        }
+      ],
+      "targetCreation": [
+        {
+          "state": "created",
+          "submissionCount": 1,
+          "tabId": 1114138791
+        }
+      ],
+      "resourceRelease": [
+        {
+          "releaseCount": 1,
+          "absence": "owned-tabs.get-not-found"
+        }
+      ],
+      "nativeUIReceiptChecked": false,
+      "note": "Fresh blank first-message automatic chain verified by original chat and durable records; trusted UI five-field final check applies to the preceding two-mode chat, not this final fresh request."
+    },
+    "resources": {
+      "taskSpaceId": 45,
+      "finished": true,
+      "keptPage": "p6",
+      "keptURL": "https://chatgpt.com/c/6af220b4-3884-83e8-b2e4-500d5f731648",
+      "nativeUILeaseReleased": true,
+      "unknownsReplayed": false,
+      "commitOrPush": false
+    },
+    "completedAt": "2026-11-09T19:38:20.062Z"
+  }
+}

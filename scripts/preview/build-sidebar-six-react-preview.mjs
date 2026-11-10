@@ -17,8 +17,14 @@ const stylePaths=[
   'src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css',
   'src/ui/cloud-hosting.css','src/ui/extension-center.css'
 ];
+const taskParamPreviewPaths=[
+  'examples/tasks/baidu.search.top3.v1.opendesk-task.json',
+  'examples/tasks/page.read.fixed.v1.opendesk-task.json',
+  'examples/tasks/form-fill.v1.opendesk-task.json',
+  'tests/fixtures/tasks/ui-readonly/ui-readonly.opendesk-task.json'
+];
 const inputs=[
-  'src/ui/sidepanel.html',...stylePaths,
+  'src/ui/sidepanel.html',...stylePaths,...taskParamPreviewPaths,
   'src/ui/react/main.tsx','src/ui/react/app-shell.tsx',
   'src/ui/react/preview/extension-ui-showcase.tsx','src/ui/react/preview/extension-ui-showcase.css',
   'src/ui/react/tabs/navigation.tsx','src/ui/react/tabs/browser-history.tsx',
@@ -54,6 +60,7 @@ import {createExtensionUiShowcase} from ${JSON.stringify(join(root,'src/ui/react
 import {mountSidebarApp} from ${JSON.stringify(join(root,'src/ui/react/main.tsx'))};
 import {createDeveloperPreviewView} from ${JSON.stringify(join(root,'src/ui/react/preview/developer-preview.js'))};
 import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbench-view.js'))};
+import {validateTaskParams} from ${JSON.stringify(join(root,'src/platform/tasks/contract.js'))};
 import {createSidebarToolsView} from ${JSON.stringify(join(root,'src/ui/sidebar-tools-view.js'))};
 import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/preview/clipper-preview.js'))};
 import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/workflow-ui-state.js'))};
@@ -106,17 +113,81 @@ myView.actions.taskSearchToggleClick=()=>{
   myView.field('task-search-panel').hidden=!myView.field('task-search-panel').hidden;myView.publish();
 };
 // Optional offline states live only in the existing six-tab React preview.
-// ?tab=tasks&task=selected and ?tab=tasks&task=running never invoke a Host.
+// Selected/running/layout scenes never invoke a Host or persist an installation.
 const taskScene=new URLSearchParams(location.search).get('task');
 myView.project('runDock',{taskHidden:true,developHidden:true,hidden:true,stopOnly:true});
-if(taskScene==='selected'||taskScene==='running'){
+if(['selected','running','layout'].includes(taskScene)){
   myView.project('taskRows',{rows:[{taskId:'preview-task',title:'演示任务',
     description:'仅预览选中任务详情，不访问当前网页',enabled:true}],
-    selectedId:'preview-task',emptyText:'',onSelect:()=>{}});
+    selectedId:'preview-task',identity:{taskId:'preview-task',version:'0.0.0',generation:0,installationId:'preview-only'},emptyText:'',onSelect:()=>{}});
   myView.setText('task-installed-count','1 个演示任务 · 未安装');
   myView.setText('task-current-site','当前网页适用 · 仅预览');
   myView.field('task-run').disabled=taskScene==='running';
   myView.actions.taskRunClick=()=>myView.setText('task-status','仅预览 · 没有实际运行任务');
+  if(taskScene==='layout'){
+    const realExamples=TASK_PARAM_PREVIEW_MANIFESTS;
+    const useReal=previewParams.get('params')==='real';
+    const rows=useReal?realExamples.map(m=>({taskId:m.taskId,title:m.title,description:m.description,enabled:true})):[
+      {taskId:'preview-task',title:'百度搜索前三条｜用于核对长任务名称的换行与行内留白',description:'填写关键词后获取结果；仅离线布局演示',enabled:true},
+      {taskId:'preview-chat',title:'ChatGPT 新对话',description:'多行名称不挤压旁边的操作；无真实网页动作',enabled:true},
+      {taskId:'preview-google',title:'Google 搜索前三条',description:'仅预览停用状态',enabled:false}
+    ];
+    const layoutFields={
+      keyword:{type:'string',title:'搜索关键词',description:'输入要搜索的关键词。',maxLength:120,default:'OpenDesk Browser'},
+      count:{type:'integer',title:'结果数量',minimum:1,maximum:3,default:3},
+      replace:{type:'boolean',title:'允许替换当前搜索内容'}
+    };
+    if(previewParams.get('params')==='extended')Object.assign(layoutFields,{
+      format:{type:'string',title:'输出格式',enum:['简洁列表','详细摘要'],default:'简洁列表'},
+      notes:{type:'string',title:'附加说明',default:'优先查看官方文档。'}
+    });
+    const schemas=new Map(useReal?realExamples.map(m=>[m.taskId,m.paramsSchema]):rows.map(row=>[row.taskId,
+      {type:'object',properties:layoutFields,required:['keyword','count'],additionalProperties:false}]));
+    // Offline fixtures only: the production TaskWorkbench is tested separately.
+    const drafts=new Map();let selectedFixture;
+    const selectFixture=id=>{
+      if(selectedFixture)drafts.set(selectedFixture,{fields:Object.fromEntries(myView.data.taskParams.map(({name})=>
+        [name,{...myView.field('task-param-'+name)}])),mode:myView.data.taskParamsMode,json:myView.field('task-params-json').value});
+      selectedFixture=id;const schema=schemas.get(id),prior=drafts.get(id);
+      myView.data.taskRows.selectedId=id;
+      myView.data.taskRows.identity={taskId:id,version:'0.0.0',generation:0,installationId:'preview-only'};
+      myView.project('taskParams',Object.entries(schema.properties).map(([name,rule])=>{
+        const field=myView.field('task-param-'+name),saved=prior?.fields[name];
+        field.error='';field.checked=saved?.checked??rule.default===true;
+        field.value=saved?.value??(Object.hasOwn(rule,'default')?String(rule.default):
+          rule.enum&&schema.required.includes(name)?String(rule.enum[0]):'');
+        field.omitted=saved?saved.omitted===true:
+          rule.type==='boolean'&&!rule.enum&&!schema.required.includes(name)&&!Object.hasOwn(rule,'default');
+        return {name,rule,required:schema.required.includes(name)};
+      }));
+      myView.data.taskParamsMode=prior?.mode||'form';
+      myView.field('task-params-json').value=prior?.json||'';myView.field('task-params-json').error='';
+    };
+    myView.project('taskRows',{rows,selectedId:'',identity:null,emptyText:'',onSelect:myView.action(selectFixture)});
+    selectFixture(rows[0].taskId);
+    myView.setText('task-installed-count',rows.length+' 个'+(useReal?'真实任务 Schema':'演示任务')+' · 仅预览');
+    myView.actions.taskParamsModeChange=myView.action(mode=>{
+      try{
+        const schema=schemas.get(selectedFixture),form={};
+        for(const {name,rule,required}of myView.data.taskParams){
+          const field=myView.field('task-param-'+name);
+          if(field.omitted)continue;
+          if(rule.type==='boolean'&&!rule.enum)form[name]=Boolean(field.checked);
+          else if(field.value===''&&!required&&!Object.hasOwn(rule,'default'))continue;
+          else if(rule.enum)form[name]=rule.enum.find(value=>String(value)===field.value);
+          else form[name]=['number','integer'].includes(rule.type)?(field.value===''?NaN:Number(field.value)):field.value;
+        }
+        const params=validateTaskParams(schema,mode==='json'?form:JSON.parse(myView.field('task-params-json').value));
+        if(mode==='json')myView.field('task-params-json').value=JSON.stringify(params,null,2);
+        else for(const {name,rule}of myView.data.taskParams){
+          const field=myView.field('task-param-'+name);field.omitted=!Object.hasOwn(params,name);
+          if(rule.type==='boolean'&&!rule.enum)field.checked=params[name]===true;
+          else field.value=field.omitted?'':String(params[name]);
+        }
+        myView.field('task-params-json').error='';myView.data.taskParamsMode=mode;
+      }catch{myView.field('task-params-json').error='请检查 JSON 格式与参数类型。';}
+    });
+  }
   if(taskScene==='running'){
     myView.project('runDock',{taskHidden:false,developHidden:true,hidden:false,stopOnly:true});
     myView.field('task-dock').hidden=false;
@@ -164,6 +235,9 @@ const workflowActions={
 let app;
 const onNavigate=tab=>{
   document.documentElement.dataset.opendeskTab=tab;
+  const taskHidden=myView.data.runDock.taskHidden;
+  myView.project('runDock',{taskHidden,developHidden:tab!=='develop',
+    hidden:tab!=='develop'&&taskHidden,stopOnly:tab!=='develop'});
   app.renderNavigation(tab);return true;
 };
 app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings,
@@ -559,10 +633,12 @@ export async function generateSidebarSixReactPreview(){
   const clipperStage=generateClipperStage(sources,{compiledCss:await compileSharedToolCss(sources.get(clipperStagePaths[1]).toString())});
   try{
     const clipperVersion=JSON.parse(await readFile(join(root,'projects/web-markdown-clipper/tool.config.json'),'utf8')).version;
-    const localeTool=await createSidebarToolPackage(join(root,'examples/sidebar-tools/reading-toc'));
+    const localeTool=await createSidebarToolPackage(join(root,'projects/reading-toc'));
     await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion)
-      .replace('LOCALE_PREVIEW_TOOL',JSON.stringify(localeTool)));
+      .replace('LOCALE_PREVIEW_TOOL',JSON.stringify(localeTool))
+      .replace('TASK_PARAM_PREVIEW_MANIFESTS',JSON.stringify(taskParamPreviewPaths.map(path=>JSON.parse(sources.get(path)).manifest))));
     await build({root,configFile:false,logLevel:'error',
+      resolve:{alias:{'@opendesk/ui':join(root,'src/ui/react/components/ui/button.tsx')}},
       plugins:[{name:'opendesk-offline-app-inputs',enforce:'pre',
         async load(id){
           const path=id.split('?')[0];

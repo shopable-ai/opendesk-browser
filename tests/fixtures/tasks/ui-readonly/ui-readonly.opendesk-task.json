@@ -1,0 +1,61 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "test.ui.readonly",
+    "version": "1.0.0",
+    "title": "UI 验证：只读本地页面",
+    "description": "纯测试 fixture；仅在 http://127.0.0.1:43111/demo-form.html 读取标题与 H1，校验文本仅用于返回匹配结果。可等待最多 20 秒验证 Stop；不点击、填写、提交、请求网络、访问存储或导航。",
+    "author": "OpenDesk Browser UI Tests",
+    "source": "test-fixture",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "496a021b49deac5a0736169d71a01fbfb56f6ad0989a03d923a761defc85c2b3"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "校验文本",
+          "minLength": 1,
+          "maxLength": 80,
+          "default": "UI test"
+        },
+        "holdMs": {
+          "type": "integer",
+          "title": "等待毫秒数",
+          "minimum": 0,
+          "maximum": 20000,
+          "default": 0
+        },
+        "mode": {
+          "type": "string",
+          "title": "匹配模式",
+          "enum": [
+            "contains",
+            "exact"
+          ],
+          "default": "contains"
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "title": "区分大小写",
+          "default": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "deadlineMs": 30000
+  },
+  "manifestHash": "b0050ce41d8de31a4b2e30af5556f0dbb18dec707dab6faec374842688f06d26",
+  "sourceUtf8": "// Test-owned Controller fixture; params and page are Worker lexical bindings.\nasync function main() {\n  const targetUrl = 'http://127.0.0.1:43111/demo-form.html';\n  const checkTarget = async () => {\n    if (await page.url() !== targetUrl) {\n      throw Object.assign(new Error('Expected the fixed UI test page'), {code: 'E_TARGET'});\n    }\n  };\n  await checkTarget();\n  if (params.holdMs > 0) {\n    await new Promise(resolve => setTimeout(resolve, params.holdMs));\n  }\n  await checkTarget();\n  const title = String(await page.title() ?? '');\n  const heading = String(await page.locator('h1').textContent() ?? '');\n  if (!title.trim() || !heading.trim()) {\n    throw Object.assign(new Error('UI test page title or H1 unavailable'), {code: 'E_PAGE_CONTENT'});\n  }\n  const normalize = value => params.caseSensitive ? value : value.toLowerCase();\n  const query = normalize(params.query);\n  const matches = value => params.mode === 'exact'\n    ? normalize(value) === query : normalize(value).includes(query);\n  return {kind: 'test.ui.readonly.result', version: 1, sourceUrl: targetUrl,\n    title, heading, query: params.query, holdMs: params.holdMs,\n    mode: params.mode, caseSensitive: params.caseSensitive,\n    matched: matches(title) || matches(heading)};\n}\n"
+}

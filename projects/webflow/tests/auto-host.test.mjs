@@ -138,6 +138,45 @@ test('Host derives variable keywords from the installed Schema and never accepts
  await assert.rejects(h.bridge.admitAutoTask(h.next('wf-host-variable-limit',{args:{query:'时间清单',limit:5}}),h.sender));
  assert.equal(h.events.starts.length,2);
 });
+for(const variableKeywords of [false,true])test(`approve-range preserves witnessed optional-default omission (${variableKeywords?'keyword':'exact'} approval)`,async()=>{
+ const h=harness();
+ h.resolved.manifest.paramsSchema.properties.showExecutionTab={type:'boolean',title:'显示执行页',default:true};
+ await h.approve();
+ const args={query:'省略可选默认值',limit:3};
+ const candidateId='wf-host-optional-default-'+variableKeywords;
+ const message=h.next(candidateId,{args});
+ // The current background ingress stores the witnessed, unnormalized candidate.
+ const admitted=await h.ledger.admitAuto({source:h.source,...h.scope,args,allowPending:true,
+  candidate:{candidateId,text:message.candidateText,turnKey:message.turnKey,answerKey:message.answerKey}});
+ assert.equal(admitted.pendingApproval,true);
+ assert.deepEqual(admitted.args,args);
+ assert.equal(admitted.candidate.text,message.candidateText);
+ h.projectRequest(admitted.requestId);await h.bridge.readBridgeState();
+ const pendingAuto={scope:{...h.scope,args},candidate:admitted.candidate};
+ const command={source:h.source,requestId:admitted.requestId,action:'approve-range',pendingAuto,
+  ...(variableKeywords?{parameterPolicy:{mode:'schema',variableKeys:['query']}}:{})};
+ const grantsBefore=h.events.gates.filter(row=>row.kind==='auto-grant').length;
+ await assert.rejects(h.bridge.controlBridge({...command,pendingAuto:{...pendingAuto,
+  scope:{...pendingAuto.scope,args:{...args,showExecutionTab:false}}}},{isTrusted:true}),{code:'E_BRIDGE_CONTEXT'});
+ assert.equal(h.events.gates.filter(row=>row.kind==='auto-grant').length,grantsBefore);
+ await h.bridge.controlBridge(command,{isTrusted:true});
+ const approved=h.events.gates.filter(row=>row.kind==='auto-grant').at(-1);
+ assert.deepEqual(approved.scope.args,args);
+ assert.equal(approved.pendingRequest.candidate.text,message.candidateText);
+ const grant=(await h.ledger.readAutoSettings()).grants[h.scope.taskId];
+ assert.deepEqual(grant.scope.args,args);
+ assert.deepEqual(grant.parameterPolicy.paramsSchema,h.resolved.manifest.paramsSchema);
+ assert.deepEqual(grant.parameterPolicy.variableKeys,variableKeywords?['query']:[]);
+ assert.equal(h.events.starts.length,0);
+ assert.equal(h.events.controls.length,1,'only the original request receives the execute control');
+ assert.equal(h.events.controls[0].requestId,admitted.requestId);
+ await assert.rejects(h.bridge.controlBridge(command,{isTrusted:true}));
+ assert.equal(h.events.gates.filter(row=>row.kind==='auto-grant').length,grantsBefore+2,
+  'a repeated approval reaches the original ledger but cannot approve the consumed pending range again');
+ assert.equal(h.events.controls.length,1,'failed repeated approval cannot dispatch another control');
+ assert.equal(h.events.starts.length,0,'range approval alone cannot submit a Controller run');
+});
+
 test('native pending review upgrades one exact grant and executes the same candidate before later keyword changes',async()=>{
  const h=harness();await h.approve();const args={query:'时间清单',limit:3};
  const message=h.next('wf-host-upgrade-original',{args}),admitted=await h.bridge.admitAutoTask(message,h.sender);

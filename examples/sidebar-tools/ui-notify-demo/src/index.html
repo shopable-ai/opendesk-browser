@@ -24,6 +24,21 @@
       </select>
     </label>
   </div>
+  <div class="notify-demo-feedback">
+    <div role="status" aria-live="polite" id="notify-demo-result">已就绪。先连续点击“添加一条”，观察不同编号的通知。</div>
+    <p id="notify-demo-budget" aria-live="off">每实例 60 秒内最多创建 3 次；关闭不返还额度。尚无 Host 限频回执。</p>
+  </div>
+  <h3>多条通知 · 从这里开始</h3>
+  <div class="notify-demo-grid" role="group" aria-label="添加多条通知">
+    <button data-sample="add" type="button">＋ 添加一条独立消息</button>
+    <button data-sample="stack" type="button">三条堆叠 · 手动关闭</button>
+  </div>
+  <p>连续点击会产生不同编号；所有位置合计最多可见 3 条。这是可见堆叠，没有等待队列；限频拒绝后不会自动补发。三条演示需当前窗口尚未用过额度。</p>
+  <details class="notify-demo-history" open>
+    <summary>最近 12 条请求与回执</summary>
+    <p>记录不是当前可见数量。Host 接纳后可能已到期、被关闭或替换；请同时观察通知。关闭按钮只操作该记录自己的句柄。</p>
+    <ol id="notify-demo-history"><li>还没有请求。</li></ol>
+  </details>
   <h3>四种状态</h3>
   <div class="notify-demo-grid" role="group" aria-label="消息类型">
     <button data-sample="info" type="button">ⓘ 普通信息</button>
@@ -46,9 +61,6 @@
     <button data-sample="loading-fail" type="button">模拟执行 → 失败</button>
     <button data-sample="handle-close" type="button">手动关闭当前任务提示</button>
     <button data-sample="rate-probe" type="button">四连发 · 限频回执</button>
-  </div>
-  <div class="notify-demo-readback" role="status" aria-live="polite" id="notify-demo-result">
-    已就绪。每活动实例每 60 秒最多 3 次新通知；更新既有句柄不重复占用创建额度。
   </div>
   <p class="notify-demo-hint">“沙箱已提交”≠“宿主已接收”≠“真实界面已看见”。收到宿主接收回执后仍请观察通知；任务成功／失败仅为演示结果，不代表实际导出。限频不绕过。</p>
 </section>

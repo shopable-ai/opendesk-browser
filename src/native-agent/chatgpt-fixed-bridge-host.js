@@ -717,7 +717,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(sourceOrigin!==LEGACY_AUTO_SOURCE_ORIGIN)await readProfilesFor(sourceOrigin);
     trustedSettings();if(!sameEpoch(epoch,request.taskId))throw fail('E_BRIDGE_REVOKED','审阅期间安装或批准已改变');
     const parameterPolicy=prepareAutoParameterPolicy(value.parameterPolicy,scope,normalized.installed.manifest.paramsSchema);
-    const review=freezeReview({taskId:request.taskId,args:structuredClone(normalized.request.args),...selectionScope(normalized.request),
+    // Schema validation above must not rewrite the witnessed pending candidate.
+    const review=freezeReview({taskId:request.taskId,args:structuredClone(scope.args),...selectionScope(normalized.request),
       sourceOrigin,taskName:normalized.installed.manifest.title,...(parameterPolicy?{parameterPolicy}:{})});
     preparedAutoReviews.set(review,JSON.stringify(review));
     return review;
@@ -1034,10 +1035,11 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const admittedEpoch=active.epoch;
       const installed=request.installation?(await normalizeSelection(request)).installed:await resolve(request.taskId);
       if(request.installation){
-        const normalized=validateTaskParams(installed.manifest.paramsSchema,request.args);
-        const canonicalRequest=validateChatGPTTaskRequest(JSON.stringify({...request,candidate:undefined,args:normalized}));
-        if(JSON.stringify(canonicalRequest.args)!==JSON.stringify(request.args))
-          throw fail('E_BRIDGE_CONTEXT','任务参数未绑定完整默认值，请重新建立请求');
+        // Optional defaults are resolved only for execution. Keep the original
+        // candidate bytes bound to its witness, reservation and approved scope.
+        validateTaskParams(installed.manifest.paramsSchema,request.args);
+        if(installed.manifest.paramsSchema.required.some(key=>!Object.hasOwn(request.args,key)))
+          throw fail('E_BRIDGE_CONTEXT','任务缺少必填参数，请重新建立请求');
       }
       Object.assign(active,{request,installed,epoch:admittedEpoch});
       progress('validating',installed);

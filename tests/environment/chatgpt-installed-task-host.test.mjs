@@ -74,6 +74,15 @@ test('generic task uses the original RunHost with selected params, target and si
   const result=JSON.parse(h.events.deliveries[0].text.slice(h.events.deliveries[0].text.indexOf('{')));
   assert.deepEqual(result.data,{title:'Article',excerpt:'Real page data'});
 });
+test('optional defaulted parameters execute without rewriting the witnessed candidate or reservation',async()=>{
+  const h=harness();
+  h.candidate.manifest.paramsSchema.properties.showExecutionTab={type:'boolean',title:'显示执行标签页',default:true};
+  const receipt=await h.bridge.handle(h.message,h.sender);
+  assert.equal(receipt.sent,true);
+  assert.equal(h.events.starts.length,1);
+  for(const gate of h.events.gates)assert.deepEqual(gate.args,{maxChars:200});
+  assert.deepEqual(h.events.starts[0].params,{maxChars:200});
+});
 test('an unrelated obsolete builtin installation is explained without hiding a runnable script',async()=>{
   const h=harness(),request=h.client.request;
   const stale={...h.installed,taskId:'obsolete.task'};

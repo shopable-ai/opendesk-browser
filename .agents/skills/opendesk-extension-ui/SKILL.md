@@ -17,6 +17,8 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 按[唯一确认、反馈与异步合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)分类，必要的短决策在当前宿主统一浮层，不再以顶部 sticky 确认挤正文；普通消息非阻断、错误就近持久、复杂表单保留原 owner。复用 `src/ui/react/`、原 React Aria/Tokens 和 Portal；默认安全焦点、Escape、IME、背景 inert、滚动/iframe 焦点恢复与单待决 owner 必须一致。
 
+安装/更新/卸载、保存/复制等短完成回执不能仅追加到滚动正文底部或折叠区。复用原 `sidebar-tools-view.showToast` 与 `components/notifications.tsx`，工作台 Root 和独立 ToolHost 按宿主只挂一处；当前视口可见、不抢焦点、不撑正文。可信工作台短回执采用固定 `bottom-center` 避开顶部导航，工具仍走公开 `ui.notify`，不另建 Toast Store/Provider。模态审阅遮挡期间暂停倒计时，恢复后保留阅读时间。错误/未知/字段校验保留原持久原因与恢复入口，必要时附短通知；不能批量删除 `role=alert/status`，也不能让无关成功清除错误。验证真实成功后才通知、取消/失败不报成功、隐藏 Tab 不吞消息和通知关闭后错误仍在；同类核查记录见合同的“操作回执的可见性”。
+
 原编辑器关闭确认要保留实例并让出/恢复模态锁，不能简单 busy 拒绝导致无法退出。业务执行与权限仍归原 owner；涉及 SDK/取消协议时交 Runtime，可信业务 adapter 交对应项目。公共 `ui.confirm` 已接原 Bridge/Host 与统一 React 展示，状态与签名只看原 API。异步 UI 清理不得留下悬挂 Promise、旧 resolver 或清除新实例状态；只验证本次受影响流程。
 
 ## 新扩展 UI Reference · 设计系统优先（2026-10-27）

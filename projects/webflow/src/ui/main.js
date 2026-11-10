@@ -11,13 +11,13 @@
   }
   const h=(name,props,...children)=>R.createElement(name,props,...children);
   const PINNED=Object.freeze([
-    Object.freeze({taskId:'baidu.search.top3',version:'1.1.4',
-      manifestHash:'3d86dfa83de51535fef2f7a5d7ac81ec0d6905273191d1785e68881a28212bac',
-      contentHash:'14b8dd8d53484dfc527cbb710b0df27c9bc11db2c3d78f8225eedd9a46264269',
+    Object.freeze({taskId:'baidu.search.top3',version:'1.1.5',
+      manifestHash:'f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38',
+      contentHash:'2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181',
       title:'百度搜索 · 前三条自然结果',site:'https://www.baidu.com',icon:'百'}),
-    Object.freeze({taskId:'google.search.top3',version:'1.0.0',
-      manifestHash:'c66250e9e7002f0968a9f38935bcbe565fe37f9109cfa04e6005ff3058c04261',
-      contentHash:'f3d3e21b8d9467366708745b6207a9d70d2b6fc7a401d71798bbb2ef823fd7ad',
+    Object.freeze({taskId:'google.search.top3',version:'1.0.3',
+      manifestHash:'e1d6b92ac83fc3eb9b21a9b7b420e808e69326f4764fdb8c6d4ee88bef7271b3',
+      contentHash:'241575bb72dccd1106132fc5561c7322fcb11b927e1940e30eda66bec38a09ee',
       title:'Google 搜索 · 前三条自然结果',site:'https://www.google.com',icon:'G'})
   ]);
   // Local presentation glyphs; neither these icons nor the preview grant abilities.
@@ -39,7 +39,7 @@
   };
   const labels={checking:'正在核验',available:'可手动运行',unavailable:'任务不可用',
     missing:'尚未安装',removed:'已卸载',disabled:'已停用',initialization:'初始化失败',
-    changed:'固定版本不匹配',error:'读取失败',unknown:'结果未知',running:'执行中'};
+    changed:'固定版本不匹配',runtime:'待重新验证',error:'读取失败',unknown:'结果未知',running:'执行中'};
   const operation=tool.request.bind(tool);
   const Btn=(label,click,opts={})=>h('button',{
     key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
@@ -558,9 +558,9 @@
                 pin.state==='available'&&h('button',{type:'button',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
-        ['missing','removed','initialization','disabled','changed'].includes(pin.state)&&
+        ['missing','removed','initialization','disabled','changed','runtime'].includes(pin.state)&&
           h('div',{className:'wf-actions'},
-            Btn(pin.state==='disabled'?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
+            Btn(['disabled','runtime'].includes(pin.state)?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
             pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading})),
         expanded&&h('div',{className:'wf-task-detail wf-stack'},
           pin.diagnostic&&h('details',{className:'wf-help'},h('summary',null,'诊断信息'),

@@ -16,6 +16,7 @@ import {readOfficialSources,createOfficialToolResources} from './build-official-
 import {createOfficialPageResources} from './build-official-pages.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
 import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';
+import {PACKAGED_TASK_RESOURCES,verifyPackagedTaskResources} from './packaged-task-resources.mjs';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 // Only React/ReactDOM 19.2.0's npm-locked implementation can inherit the
@@ -119,6 +120,7 @@ function editionFiles(edition){
   const browserCompilerESM=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
   const expectedJS=[...generatedJS,...vendorJS,...frameworkJS,...browserCompilerJS].sort();
   const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
+    ...PACKAGED_TASK_RESOURCES.map(row=>row.path),
     'licenses/shared-ui-third-party-notices.txt',
     ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
     ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
@@ -601,6 +603,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const allowed = [...required, ...generatedJS.map(path => `${path}.map`)];
   const unexpectedFiles = files.filter(path => !allowed.includes(path));
   if (unexpectedFiles.length) throw new Error('Unexpected packaged asset: ' + unexpectedFiles.join(', '));
+  await verifyPackagedTaskResources(root);
   const mapFiles = files.filter(path => path.endsWith('.map'));
   if (mapFiles.length && mapFiles.length !== generatedJS.length) throw new Error('Incomplete source map asset set');
   const mode=mapFiles.length?'development':'production';

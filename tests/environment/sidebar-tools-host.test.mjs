@@ -1144,9 +1144,12 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.match(elements['sidebar-tool-preview-capabilities'].textContent,/读取当前网页/);
     assert.equal(elements['sidebar-tool-install'].disabled,false);
     emit(elements['sidebar-tool-install'],'click');
-    await pause();await pause();
+    await settle(()=>elements['sidebar-tool-import'].hidden&&store.get(SIDEBAR_TOOL_STORE)?.length===1);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
     assert.equal(elements['sidebar-tool-import'].hidden,true,'successful install closes the import form');
+    assert.equal(view.getSnapshot().toast?.type,'success','confirmed installation uses the shared transient notification');
+    assert.match(view.getSnapshot().toast.message,/已安装「网页笔记」/);
+    assert.equal(elements['sidebar-tool-status'].hidden,true,'success does not append feedback below the extension list');
     assert.equal(elements['sidebar-tool-display'].hidden,true,'install must not start untrusted code');
     assert.equal(elements['sidebar-tool-frame'].children.length,0,'install never mounts a sandbox');
     host.openTool(sample.id);
@@ -1203,6 +1206,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     await pause();await pause();
     assert.equal(store.has(sidebarToolStorageKey(sample.id)),false);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0);
+    assert.match(view.getSnapshot().toast.message,/已卸载「网页笔记」/);
+    assert.equal(view.getSnapshot().toast.type,'success');
   }finally{host?.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;}
 });
 
@@ -5603,23 +5608,38 @@ test('R1.8 corrupt installed notification retires executable frame but retains d
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
 });
 
-test('R1.8 extension-center toggles retain current Host success receipts',async t=>{
+test('extension-center toggles show transient Host success receipts',async t=>{
   const f=await hostFixture(t,{startTool:false});
   for(const enabled of [false,true]){
     assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
     assert.equal(f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],enabled);
-    assert.match(f.elements['sidebar-tool-status'].textContent,enabled?/应用已恢复使用/:/已停用/);
-    assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+    assert.equal(f.view.getSnapshot().toast.type,'success');
+    assert.match(f.view.getSnapshot().toast.message,enabled?/应用已恢复使用/:/已停用/);
+    assert.equal(f.elements['sidebar-tool-status'].hidden,true);
   }
 });
 
-test('R1.8 Host own enable button retains stop and restore feedback',async t=>{
+test('Host enable button shares transient stop and restore feedback',async t=>{
   const f=await hostFixture(t);
   const event={isTrusted:true,target:{id:'sidebar-tool-enable'}};
   assert.equal(await f.host.toggleEnabled(sample.id,event),true);
-  assert.match(f.elements['sidebar-tool-status'].textContent,/已停用/);
+  assert.match(f.view.getSnapshot().toast.message,/已停用/);
   assert.equal(await f.host.toggleEnabled(sample.id,event),true);
-  assert.match(f.elements['sidebar-tool-status'].textContent,/应用已恢复使用/);
+  assert.match(f.view.getSnapshot().toast.message,/应用已恢复使用/);
+});
+
+test('visible Host errors have a transient alert and retain their recovery record after a different success',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  f.host.openTool('missing-tool');
+  const error=f.view.getSnapshot().toast;
+  assert.equal(error.type,'error');
+  assert.match(error.message,/找不到已安装的工具/);
+  f.view.dismissToast(error.id);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,false,'dismissing a Toast does not dismiss an actionable error');
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+  assert.equal(f.view.getSnapshot().toast.type,'success');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/找不到已安装的工具/);
+  assert.equal(f.elements['sidebar-tool-status'].attributes['data-state'],'error');
 });
 
 for(const destination of ['detail','list','settings'])test('R1.8 previous install notice clears on '+destination+' navigation while errors remain',async t=>{
@@ -5900,7 +5920,9 @@ test('queue joint review: one synchronous confirmation installs Page then Tool a
   assert.equal(f.calls.includes('page-import'),false);
   f.click();f.click();
   await settle(()=>f.elements['sidebar-tool-import'].hidden||f.status.attributes['data-state']==='pending-review');
-  assert.match(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+  assert.equal(f.view.getSnapshot().toast.type,'success');
+  assert.match(f.view.getSnapshot().toast.caption,/联合安装记录已读回/);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true);
   assert.equal(f.host.hasInstallReview(),false);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
   assert.equal(f.calls.filter(c=>c==='permission').length,1);
@@ -5916,7 +5938,9 @@ test('queue joint review: one synchronous confirmation installs Page then Tool a
 test('queue joint review: identical installed Tool is read without rewriting it',async t=>{
   const f=await queueReviewFixture(t,{existingTool:true});await f.review();f.click();
   await settle(()=>!f.host.hasInstallReview());
-  assert.match(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+  assert.equal(f.view.getSnapshot().toast.type,'success');
+  assert.match(f.view.getSnapshot().toast.caption,/联合安装记录已读回/);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
   assert.equal(f.calls.includes('tool-write'),false);
   assert.equal(f.calls.filter(c=>c==='page-import').length,1);
@@ -5937,6 +5961,7 @@ for(const mode of ['page-unknown','page-missing','page-cleanup-unknown','page-bl
       'final-page-cleanup-unknown':'E_PAGE_INSTALL_PENDING'};
     assert.ok(f.status.textContent.includes(codes[mode]),f.status.textContent);
     assert.doesNotMatch(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+    assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
     if(mode.startsWith('page-'))assert.equal(f.calls.includes('tool-write'),false);
     const imports=f.calls.filter(c=>c==='page-import').length,writes=f.calls.filter(c=>c==='tool-write').length;
     f.click();await pause();await pause();

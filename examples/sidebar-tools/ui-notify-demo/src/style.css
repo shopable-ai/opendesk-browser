@@ -12,9 +12,17 @@
 .notify-demo-grid button:hover{background:#eaf1fd}
 .notify-demo-grid button:focus-visible,.notify-demo select:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .notify-demo-grid button:disabled{opacity:.5;cursor:default}
-.notify-demo-readback{margin-top:16px;padding:11px 12px;border-radius:9px;background:#eef6ff;color:#254672;min-height:40px;overflow-wrap:anywhere}
+.notify-demo-feedback{position:sticky;top:0;z-index:1;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#eef6ff;color:#254672;overflow-wrap:anywhere}
+.notify-demo-feedback p{font-size:11px;margin-bottom:0}
+.notify-demo-history{margin-top:12px;border:1px solid #cbd5e1;border-radius:9px;padding:9px 12px}
+.notify-demo-history summary{cursor:pointer;font-weight:600}
+.notify-demo-history p{font-size:11px}
+.notify-demo-history ol{padding-left:20px;max-height:220px;overflow:auto;margin:8px 0}
+.notify-demo-history li{padding:5px 0;overflow-wrap:anywhere}
+.notify-demo-history button{margin-left:6px;padding:4px 8px;font:inherit;background:transparent;color:inherit;border:1px solid #94a3b8;border-radius:6px;cursor:pointer}
+.notify-demo-history button:focus-visible,.notify-demo-history summary:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .notify-demo-hint{font-size:11px;margin-top:10px}
 @media (max-width:290px){.notify-demo-grid{grid-template-columns:1fr}.notify-demo{padding:10px}}
-@media (prefers-color-scheme:dark){.notify-demo{color:#e2e8f0}.notify-demo-head{border-color:#334155}.notify-demo p{color:#a3b1c4}.notify-demo-controls select{background:#1e293b;color:#f8fafc;border-color:#526178}.notify-demo-grid button{background:#1e293b;color:#e2e8f0;border-color:#526178}.notify-demo-grid button:hover{background:#334155}.notify-demo-readback{background:#172e47;color:#bfdbfe}}
+@media (prefers-color-scheme:dark){.notify-demo{color:#e2e8f0}.notify-demo-head{border-color:#334155}.notify-demo p{color:#a3b1c4}.notify-demo-controls select{background:#1e293b;color:#f8fafc;border-color:#526178}.notify-demo-grid button{background:#1e293b;color:#e2e8f0;border-color:#526178}.notify-demo-grid button:hover{background:#334155}.notify-demo-feedback{background:#172e47;color:#bfdbfe}}
 
 @media (max-width:350px){.notify-demo-controls{grid-template-columns:1fr}}

@@ -11,6 +11,16 @@ import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
 
+test('reviewed app display routes enter only the fixed tool shell',()=>{
+ const routes=['projects/ai-proxy/trusted/app-page-routes.js','projects/webflow/src/ui/app-page-routes.js'];
+ const modules=Object.fromEntries(routes.map(path=>[resolve(path),{renderedLength:1,originalLength:1}]));
+ const accepted=describeBundle({chunk:{fileName:'ui/tool-shell.js',modules},lock:{packages:{}}});
+ assert.equal(accepted.modules.length,2);
+ assert.ok(accepted.modules.every(row=>/^[0-9a-f]{40}$/.test(row.reviewedFirstPartyBlob)));
+ for(const path of routes)assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',
+  modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}}),/cannot enter a privileged fixed bundle/);
+});
+
 test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.modules',async t=>{
  const project=await realpath(await mkdtemp(join(tmpdir(),'ai-proxy-inputs-')));
  t.after(()=>rm(project,{recursive:true,force:true}));

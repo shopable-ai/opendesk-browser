@@ -4,7 +4,7 @@ import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url
 import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
   FIXED_PAGE_TASK_ID,validateChatGPTTaskIntent,validateWebFlowTaskIntent,
   validateWebFlowTaskIntentV2,WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
-import {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-target.js';
+import {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-entry.js';
 import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,normalizeAutoParameterPolicy,assertAutoGrant}
   from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';

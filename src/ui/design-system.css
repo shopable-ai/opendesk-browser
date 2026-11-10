@@ -43,6 +43,10 @@ details>section{margin-top:var(--space-3)}
 /* Public component contract: semantic appearance lives only here; pages own layout. */
 .od-surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
 .od-surface--padded{padding:var(--space-3)}
+/* One frame per collection; rows keep their own actions and selection semantics. */
+.od-collection{min-width:0;margin:0;padding:0;list-style:none;overflow:hidden;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.od-collection-row{position:relative;min-width:0}
+.od-collection-row+.od-collection-row{border-top:1px solid var(--od-line)}
 .od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);max-width:100%;min-height:36px;padding:var(--space-2) var(--space-3);font:inherit;font-weight:650;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);text-align:center}
 .od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
 .od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}

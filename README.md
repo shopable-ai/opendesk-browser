@@ -17,6 +17,7 @@
 - npm：按 [锁定 npm Page 示例](examples/programs/page-npm-lodash/README.md) 在**项目目录** `npm ci` 后使用 `build:program` 冻结产物。
 - HTTPS ESM：按 [R10 构建期网络导入规范](docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md) 首次明确 `--lock-remote`，保存锁与缓存；后续离线构建，导入生成的草稿包。**当前 MCP/Sidebar 本地 Resolver 仍拒绝 npm/HTTPS 原始 import**，不要用浏览器运行时远程脚本绕过。
 - Codex 的可复用开发规则在 [opendesk-program-publish Skill](.agents/skills/opendesk-program-publish/SKILL.md)。该 Skill 是指导，不会自动提供权限或使未实现能力生效。
+- 本机 key、token 与凭证统一放根目录 [`.local/credentials/`](docs/framework/local-credentials.zh-CN.md)，按服务、账号与资源分层；该目录整体忽略，不放入 `projects/` 产品源码。
 
 上述“源码已合入 / CI 通过”均不自动表示用户自己的 Mac Chrome 与全部框架 F3/ZIP 已验收。
 

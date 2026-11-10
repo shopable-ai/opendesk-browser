@@ -219,6 +219,7 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
+  notify:(message,options)=>toolView.showToast(message,{position:'bottom-center',...options}),
   debugEnabled,isAppDebugAllowed:()=>verifiedSidePanel&&Boolean(panelPreviewId),
   onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options),

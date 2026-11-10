@@ -1,5 +1,15 @@
 # Web Flow
 
+**百度首页最新核心测试（2026-11-10，20:10）：** 在自有 ego TaskSpace **61** 的百度首页，经真实「扩展 → Web Flow 0.3.26 → 脚本」保存新关键词 `MDN Web API MutationObserver`，新请求 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa` 仅点击一次「确认手动运行」。页面随后跳转到 **wappass.baidu.com 的百度安全验证**，回跳地址携带本次关键词；没有取得三条结果。WebFlow 仍显示“原请求仍未确定”、阶段“执行中”、资源释放 `not-started`；这不是底层已释放证明，Run/Result、输入读回和准入次数尚未读回。ego 已将 Space 交由用户控制，按合同停止浏览器操作；未重放、解验证码或修改产品源码。开发服务实读已连接，revision `4fbac865a7b7d5ad4419f3436de5dc5e55e31e75bab596a04cf899e535c9d006`，原 UI 租约已释放。**首页核心链仍未完成**；用户处理验证并明确继续后，先只读核对同一请求及真实资源状态，再决定下一条独立操作。详见[原证据的 homepageCoreAttempt](evidence/baidu-core-ui-20261110.json)和下方历史范围。
+
+**百度固定脚本核心 UI 目标（2026-11-10，18:56 实测）：** 失效状态、原链重新验证/安装、真实 WebFlow 新手动请求及刷新/重开保留均已有证据。新请求 `webflow:e217bd20-4c4c-4ebf-a77d-4037c9db69bb` 明确确认一次，Run `9d983fd5-5a7c-4a0b-b98a-f6f6e57050c8` / Result `9e226e27-2eaa-4331-8cc7-54b106c69eed` 返回 **success / count=3 / workerRetired / released**；刷新安装状态和退出重开后，从“记录 → 查询原请求（只读）”读回同一结果，16 个百度相关 Run ID 集合不变。**本次成功限于精确关键词结果页的只读分支，不代表首页跨文档搜索链通过。** 详见[当前执行卡](docs/execution-plan.zh-CN.md#百度固定脚本核心-ui-目标与关键条件2026-11-10)。
+
+**固定脚本状态与恢复：** 真实 WebFlow 显示“待重新验证”、禁用运行并保留原任务管理入口；当前运行时以同源码开发 Run `301e642d-92f4-4325-a065-2ed29f89b796` 验证三条结果、释放资源后，沿原目录核对、设为可用及确认安装，百度 **1.1.5 / generation 4** 恢复“可手动运行”。并行 owner 更新后的实际 WebFlow 包为 **0.3.25**，真实委托 packageHash 与正式 JSON SHA `68c1b9944256fb6c0b02acc88d22e6b65554c91e3bb29d0fbbf8b167024e350b` 相符。旧取消请求仍为 admissionCount=0，无重放。当前三项运行资源均返回 200，旧 E_BUILTIN_RESOURCE 阻塞已解除；首页试运行的 E_DOCUMENT_REPLACED 和关键词不匹配请求的 E_TARGET 均保留真实停止/释放记录。该续跑未改产品源码、重打包或重复既有 Node 检查，不扩大到 production、评分及其他业务。[完整证据](evidence/baidu-core-ui-20261110.json)保留原快照与 resumedCompletion。
+
+**搜索执行页参数与 Google 核心修复（2026-11-10）：** 当前正式可导入包为 Web Flow **0.3.26**，真实消费者同步百度 **1.1.5**、Google **1.0.3**。Google 修复无关资源拖延 load 以及延迟搜索建议遮挡按钮：收起建议后只提交一次搜索，按 domcontentloaded 交接，UNKNOWN 不重放。Google 1.0.3 已经同源码原生验证、原目录核对及安装至 generation 5；Web Flow 0.3.26 已沿真实侧栏原审阅链更新，权限未变化。`showExecutionTab` 是可选严格 boolean：省略默认 true，显示执行页；false 仍新建后台页、搜索和回执，只不置前。可直接用[Google 短提示词](prompts/02-google-direct.prompt.txt)或[后台提示词](prompts/03-google-background.prompt.txt)，候选严格五字段，参数在 args 内，由原 Host 映射为 Task params。参数或安装身份变化仍独立审阅，Google 不开放可变关键词授权；最后保留默认精确批准。相关 Node 72/72、消费者 2/2、候选晋升 4/4；三条新聊天及原生证据以[当前执行卡](docs/execution-plan.zh-CN.md#google-默认焦点失败修复当前卡2026-11-1001a1c495)和[脱敏记录](evidence/google-focus-repair-20261110.json)为准。production、全量 CI、V2 和评分未执行，未提交推送或发布。
+
+**精确授权的可选默认值（2026-11-10）：** 新审阅的精确授权沿原 `parameterPolicy` 存储可信 Host 从已安装任务取出的固定 Schema，`variableKeys: []` 表示无参数可变，只按该 Schema 比较可选默认值。因此 Google 的显式默认 `true` 批准也匹配省略该选项的请求，`false`、关键词及其他固定值变化仍待批准；required 参数必须显式存在。此规则不按任务或参数名硬编码，不给 Google 增加可变关键词许可。历史无 Schema 授权继续精确匹配，需重新审阅才能采用默认值语义；不改候选原文或发送见证。本次只改固定编译授权与可信展示，不重打无变化的应用 JSON。
+
 > **Markdown 两任务 Demo（2026-11-10；源码阶段）：** [真实仓库任务样例](examples/workflows/md-demo.md) → Web Flow「概览 → Markdown 两任务」，可解析两任务、独立验证 T01/T02 的计算与读回交接规则；公开 GitHub 将借原 Browser Network SDK 读取，首次需审阅 `network` 能力及目标站点权限；实际浏览器读取、真实新聊天、跨聊执行/恢复和安装包晋升均 **NOT_TESTED / 待接线**。权威规范与进度仍只见 [产品合同](docs/product-contract.zh-CN.md) / [执行计划](docs/execution-plan.zh-CN.md)。
 
 
@@ -13,6 +23,8 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 **唯一项目根：`projects/webflow/`。固定检索词：`OD-AI-WORKFLOW-BRIDGE`。**
 
 **两份提示词与 Google 核心测试（2026-11-09）：** [一次接入说明](prompts/01-capability-setup.prompt.txt)、[Google 短提示词](prompts/02-google-direct.prompt.txt)及两处设置生成器已进入提交 `d2465192d`，执行回复为中文说明加唯一协议块。开发服务恢复后，在[最新 ChatGPT 新聊天](https://chatgpt.com/c/6af1df79-ab04-83e8-8e06-db19beebafab)直接发送短提示词作为第一条消息，原链复用已批准精确范围，Google **1.0.0** 自动执行，返回 **3 条真实结果**；原聊天只新增一条结果消息并完成 AI 中文整理，结果后没有新候选。首条全链复测 **PASS**，未重放旧候选。本次仅返回标题和 Google 跳转链接，未采集实际摘要或最终目的 URL；早先的资源故障保留为历史，新设置界面的文案仍未现场核对。相关检查 **113/113 PASS**，源码哈希未变。见[记录](docs/execution-plan.zh-CN.md#两份提示词与-google-核心测试2026-11-09)和[证据](evidence/google-prompts-20261109.json)。
+
+**用户可见窗口复测（2026-11-09）：** 按用户要求将原 ego 窗口置前，核对[当前聊天](https://chatgpt.com/c/6af1e0bd-d420-83ec-b602-9fbb7ae213f9)已有一条 Google 成功回执，再发送一条全新明确请求；两条结果均为 `completed / success / count=3`。原侧栏账本由 1 增至 2，并确认新一轮同次持久结果、资源释放、单次回传及 AI 续答。窗口和结果已保留供手动查看。用户报告的失败本次未复现，原因未知；没有为制造修复修改源码或重放旧候选，详见[证据](evidence/google-prompts-20261109.json)。
 
 **最新核心复测通过（2026-11-09；历史提示词）：** 在[修复后的新 ChatGPT 聊天](https://chatgpt.com/c/6af1d06c-4000-83ec-95df-a5bf2f7efac6)复制同一历史能力说明，普通发送浙江、陕西两个博物馆的百度搜索需求；连续两轮均返回三条真实结果、各回传一次并完成 AI 中文续答，同次持久结果和资源释放已核对。后台补齐网页拒绝原因及最终核验失败的记录，相关检查 **94/94**，保留 UNKNOWN 与禁止重发。开发更新曾使上一页面监听断开，两条候选未执行；重新进入空聊天后完成上述复测，没有补跑旧候选。原失败具体原因仍不可恢复，不将本次成功写成所有历史故障已查明。见[本轮记录](docs/execution-plan.zh-CN.md#历史提示词回传诊断修复与连续复测2026-11-09)及[证据](evidence/delivery-repair-20261109.json)。
 

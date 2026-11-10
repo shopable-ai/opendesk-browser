@@ -10,6 +10,7 @@ import {MyAgentDock} from './tabs/my-agent.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
+import {NotificationViewport} from './components/notifications.tsx';
 import {WebflowAutoControls} from '../../../projects/webflow/trusted/AutoSettings.tsx';
 import {DebugPage} from './tabs/debug.tsx';
 
@@ -57,6 +58,7 @@ export function SidebarAppShell({
     </div>
   </main>;
   return <>
+    {toolView&&<NotificationViewport view={toolView} snapshot={toolSnapshot}/>}
     <nav className="workbench-nav" role="tablist" aria-label={translateSidebarNavigation('sidebar.navigation',uiLocale)}
       aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}
       data-debug-enabled={debugEnabled?'true':undefined}>
@@ -87,7 +89,7 @@ export function SidebarAppShell({
               <ExtensionCenterPage {...extensionProps}/>
             </section>
           </div>
-          {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
+          {toolView&&<ToolHost view={toolView} renderNotifications={false} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
             trustedControls={<WebflowAutoControls webflowAuto={webflowAuto}
               display={toolSnapshot.fields['sidebar-tool-display']}
               visible={activeTab==='tools'&&!isPanelPreview&&!localeOpen&&!providerSettingsOpen}/>}

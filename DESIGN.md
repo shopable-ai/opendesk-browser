@@ -2,9 +2,26 @@
 
 ## 作用域与本轮入口（2026-11-01）
 
+- 五 Tab 共同布局规范（2026-11-10）：本轮设计依据与实施边界见[共同布局决定](#五-tab-共同布局决定2026-11-10独立作用域)、[R27 语义与间距所有权](docs/architecture/ui-layout-conventions-r27.zh-CN.md#token-语义与使用决策2026-11-10)、[R20 集合与真实映射](docs/architecture/sidebar-design-system-r20.zh-CN.md#集合列表与独立参数区2026-11-10)。规则已在共享 CSS、任务/扩展集合及本地项目表单中实施；源码预览与实际安装态分别记录。
+- Side Panel 页面留白修复（2026-11-10）：规则归 [R20 留白所有权](docs/architecture/sidebar-design-system-r20.zh-CN.md#留白所有权和使用原则2026-11-10-修订)，变量归 `src/ui/design-tokens.css`。普通页由 shell 提供页面边距；通栏 ToolHost 头部负责自身顶部留白，避免全局清零与多层叠加。已在 Ego Lite 实际 development 侧栏检查扩展列表、网页笔记运行页、扩展信息详情及返回；production、窄屏/缩放矩阵与正式评分未执行。此状态只属于本次留白修复。
 - 统一确认与反馈目标（2026-11-09）：见[本轮独立设计作用域](#统一确认与反馈2026-11-09独立作用域)、[唯一交互与异步合同](docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)、[实施目标](docs/framework/shared-confirmation-r1-20261109.md)及[关键测试条件](docs/framework/shared-confirmation-r1-test-spec-20261109.md)。原对话已完成规范同步，用户要求新对话实施；公开确认 API 与运行验收仍未完成。
 - 本轮官方风格试点：[独立状态入口](#当前获批官方风格试点2026-11-01) → [官方来源与组件合同](docs/api/sidebar-preview-kit.zh-CN.md#官方风格试点合同2026-11-01) → [工具接入指南](docs/api/sidebar-tool-development.zh-CN.md#获批官方风格试点2026-11-01)。实施方向已获批；最新v7按用户反馈采用浅灰按钮与配置库；交付与评分见当前试点入口，用户视觉终验不由离线评分代替。
 - 下方原 `Source of truth` 及其阅读目录章节保留 reading-toc 多语言历史作用域；其批准、评分与证据不构成本轮试点或全局 UI 的批准。AI Proxy、Fingerprint 及其他独立章节各自保持原作用域。
+
+## 五 Tab 共同布局决定（2026-11-10，独立作用域）
+
+- **任务 UI 视觉完善（2026-11-11，当前方向）**：最新用户反馈优先于下方历史评分。任务集合采用安静的选择底色、统一任务图标、两行以内标题与一行摘要；行内悬浮动作使用共享 IconButton 和同色渐隐底层，不占右栏。参数抽屉保留原生 dialog 的焦点/身份合同，按标题、参数工具栏、紧凑字段、固定操作底栏分层。字段复用已有 React Aria Input/Textarea 与 `od-input-group`，枚举保留原 select，布尔为整行标签加右侧复选框。默认表单，JSON 切换继续走原校验/草稿 owner；不建立第二套主题、执行逻辑或弹层。先保存现状截图并检查视觉缺陷，再实现；完成后检查 360px、受影响窄宽度、键盘与草稿行为。当前原生 UI 连接超时，源码预览和真实运行须分开报告；不恢复独立评分或 production 验收。 结果：源码绑定预览 `06b87c33…` 已完成 360px/320px、菜单键盘、焦点返回、中文/JSON 草稿、错误与短视口内部滚动核对；行为检查 125/125、布局边界 12/12 通过。证据归 `artifacts/task-row-redesign-20261111/`。原 watcher 的 AI Proxy 来源锁错误仍在，新原生候选及真实 Run→结果→Stop 均为 NOT_TESTED；本轮未提交推送。
+- **最新交互调整（2026-11-11）**：根据用户本轮反馈，取消列表下独立的「填写参数并运行」按钮，参数/运行与菜单覆盖在任务行上；默认保留一个菜单，跟随最后悬停/焦点行，触屏保留可见入口。任务与扩展的按钮都不占右侧独立列或额外 padding。参数 Sheet 默认使用左侧内置标签的紧凑动态表单，并提供 JSON 切换；两者复用原 Schema、草稿与固定安装身份，非法 JSON 不运行，JSON 不扩大支持的参数类型。源码及原 owner 定向检查已完成，证据归 `artifacts/task-row-compact-params-20261111/`。原 watcher 当前被并行 AI Proxy 来源锁不匹配阻塞；本轮 ego 源码预览不冒充原生已更新，下方 96.1 分及 Run/Stop 仅属于上一轮 `63879a1c…` 候选。
+- **用户最新纠偏与续接重点**：只优先考虑正常 Side Panel 的实际默认宽度与核心使用，不继续把缩放、极窄宽度或完整矩阵作为本阶段前置。「我的」列表下的搜索关键词/结果数量属于选中脚本参数，当前常驻展开容易被误认成页面搜索；本轮在同一 Side Panel 以参数抽屉/Sheet 承载填写、校验与运行，并验证真实任务操作。参数已移入同面板原生模态 Sheet，列表外只保留所选任务、网站状态、操作与结果。表单始终挂载，关闭保留草稿；打开固定安装身份，明确 Run 才进入原权限与执行链。Schema 校验展示具名字段错误并定位输入，不能用 HTML required 加强原 Schema 的空字符串语义。本轮完成条件为当前核心 UI 与最小验证；独立评分、production 与完整矩阵不属于当前阶段，历史评分仅对原候选有效。
+- **目标与依据**：让维护者从 Markdown 理解 Token 的角色、间距由谁负责、何时使用集合/卡片及如何映射真实五 Tab。已读当前 AGENTS.md、extension-ui Skill、唯一 token/公共 CSS 和 React 布局组件；`sidepanel.html` 是构建入口，源码宿主为 `src/ui/sidepanel.html`，五 Tab 由 `src/ui/react/app-shell.tsx` 组合，不沿用退役 `tool.html` 或旧短标题导航规则。
+- **实测基线**：实际 development 侧栏「我的」任务独立圆角框彼此贴合、选中整框过重、参数区与末行相连；「开发」本地连接断开时，字段和说明呈等距堆叠。布局改进不证明本地连接恢复。
+- **实施决定**：公共 `od-collection` / `od-collection-row` 由扩展与我的共同消费，使用单外框、内部行分隔；普通行 padding 12px、扩展图文 gap 8px、任务图文 gap 12px、名称到次信息 gap 4px。任务集合到独立操作 workspace 为 16px，沿用集合底边分隔，不重复加横线或水平 padding；参数字段由 workspace 内常驻的原生 dialog Sheet 按需展示，头部与操作底栏固定、长表单内部滚动。选中标记在按钮层，Hover 不遮盖，键盘焦点独立可见。
+- **开发页分组**：保留 `od-form-field` 内 gap 4px，字段组间 12px、独立区域间 16px、按钮 toolbar 8px；本地项目将标签、字段、说明/错误组成真实关联组。来源/网页与状态/结果保留自身关联关系。运行、Stop、草稿、安装和 Native 连接业务不因排版调整改变。
+- **统一与例外**：不预设每个 Tab 都使用卡片。工作流保留会话/输入区，云控保留连接与授权分区；现状无缺陷仅检查，不机械改版。ToolHost 通栏、iframe、局部官方主题、独立页面及编辑器例外按原 owner 保留，不迁移旧 HTML/Vue 工具、不建立第二套 Tokens/React Root。
+- **规范分工**：[R27](docs/architecture/ui-layout-conventions-r27.zh-CN.md) 维护跨界面 Token 语义与间距所有权；[R20](docs/architecture/sidebar-design-system-r20.zh-CN.md) 维护 Side Panel 字阶、密度、集合/参数组合、状态/响应式及五 Tab 真实组件映射；本节维护本轮决定和状态。可执行值仍只归 `design-tokens.css`，公共视觉归 `design-system.css`。
+- **证据与缺口**：离线预览和上一轮真实记录分别保留在 `artifacts/five-tab-layout-20261110/`、`artifacts/five-tab-task-params-20261110/`；本轮最终证据归 `artifacts/five-tab-core-ui-20261111/`。ego 原生面板仍被并行任务占用，因此释放本任务 TaskSpace，使用独立临时 CFT 155 Profile 加载同一 `dist/development`，复用原 dev watcher。经原导入→真实验证→本地可用→安装链的只读 Controller fixture，已在最新候选完成 Sheet 填参、成功 Run、可见结果及真实 Stop；持久回执均为 released。修正字段后仅清除该字段所属的过期错误摘要，保留其他字段及权限/运行错误，定向 Node 检查 112/112 通过。历史百度验证页与 `E_DOCUMENT_REPLACED` 未重放，不计为任务成功。OS 实体 IME、Native 本地项目连接、主题/缩放矩阵和 production 均为 `NOT_TESTED`。
+- **独立复评（2026-11-11）**：最终候选 `63879a1c65e8c698dcc451817f1151cd9b4bcb873ec1979083a5017bd3d4da13` 在真实原生 Side Panel 默认 360×819 CSS px、DPR 2 下获 `PASS_SCOPED`，综合 96.1/100、八维最低 95，无阻断项；详见[评分及补充](artifacts/five-tab-core-ui-20261111/review.json)、[运行身份与哈希](artifacts/five-tab-core-ui-20261111/candidate-binding.json)和[操作证据](artifacts/five-tab-core-ui-20261111/README.md)。上一轮 `3746be42b794` 的 95 分属于历史记录。临时 Profile 的 `E_USER_SCRIPTS_UNAVAILABLE`/官方网页增强预装未完成仍为环境缺口，不把本轮布局和只读任务验证扩大为全部安装或发布验收。
+- **范围与交付**：只在现有 `main` 修订三份规范及对应共享 CSS/React 组合，测试 fixture 归 `tests/fixtures/tasks/ui-readonly/`；复用已有预览入口和 dev watcher，保留其他 dirty，无提交推送。截图、失败分类、候选绑定与回执保留在上述 artifacts。源码、发布产物与原生运行证据分别报告，不以其他作用域评分代替本轮验证。
 
 ## 统一确认与反馈（2026-11-09，独立作用域）
 

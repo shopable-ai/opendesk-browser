@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
+import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
+import {assertPackagedTask} from '../../../src/platform/tasks/builtin-releases.js';
 
 async function run(file, options = {}) {
-  const calls = [], pauses = [], observations = [], clickOptions = [];
+  const calls = options.calls ?? [], pauses = [], observations = [], clickOptions = [];
   let url = options.url ?? 'https://www.baidu.com/';
   let value = options.initialValue ?? '';
   let now = Date.parse('2026-11-01T00:00:00Z');
@@ -13,6 +15,10 @@ async function run(file, options = {}) {
     static now() { return now; }
   }
   const page = {
+    bringToFront:async (...args)=>{
+      assert.deepEqual(args,[]);calls.push('bringToFront');
+      if(options.foregroundError)throw options.foregroundError;
+    },
     observe:async opts=>{
       observations.push(JSON.parse(JSON.stringify(opts)));
       const id=options.documents === null ? undefined : calls.includes('click') ? 'observed-after' : 'observed-before';
@@ -25,6 +31,7 @@ async function run(file, options = {}) {
     locator(selector) {
       const field = selector === '#chat-textarea' || selector === '#kw';
       return {
+        nth(){return this;},
         count:async()=>field ? 1 : selector.includes('.result.c-container') ? 0 : 1,
         isVisible:async()=>selector === '#chat-textarea' ? options.modern !== false : true,
         inputValue:async()=>value,
@@ -55,7 +62,7 @@ async function run(file, options = {}) {
 
 test('Baidu homepage fills and commits one search, with actual readback and navigation trace',async()=>{
   const {result,calls,pauses,clickOptions}=await run('baidu-search-top3.js');
-  assert.deepEqual(calls,['fill','click','results.wait']);
+  assert.deepEqual(calls,['bringToFront','fill','click','results.wait']);
   assert.deepEqual(pauses,[3000,3000]);
   assert.deepEqual(clickOptions,[{timeout:10000}]);
   assert.equal(result.trace.find(x=>x.action==='input'&&x.state==='returned').value,'OpenDesk Browser');
@@ -67,7 +74,7 @@ test('Baidu homepage fills and commits one search, with actual readback and navi
 
 test('Baidu challenge stops before input or search submission',async()=>{
   const {result,calls}=await run('baidu-search-top3.js',{blocked:true});
-  assert.deepEqual(calls,[]);
+  assert.deepEqual(calls,['bringToFront',]);
   assert.equal(result.status,'blocked');
 });
 
@@ -75,15 +82,15 @@ test('Baidu unknown click is recorded and never retried or followed by result re
   const {result,calls}=await run('baidu-search-top3.js',{
     clickError:Object.assign(new Error('ack lost'),{code:'E_EFFECT_UNKNOWN'}),
   });
-  assert.deepEqual(calls,['fill','click']);
+  assert.deepEqual(calls,['bringToFront','fill','click']);
   assert.equal(result.status,'stopped');
   assert.equal(result.trace.at(-1).code,'E_EFFECT_UNKNOWN');
   assert.equal(result.trace.some(x=>x.action==='click'&&x.state==='returned'),false);
 });
 
-test('existing Baidu result-page entry stays read-only',async()=>{
+test('existing Baidu result-page entry never resubmits search',async()=>{
   const {calls}=await run('baidu-search-top3.js',{url:'https://www.baidu.com/s?wd=OpenDesk%20Browser'});
-  assert.deepEqual(calls,['results.wait']);
+  assert.deepEqual(calls,['bringToFront','results.wait']);
 });
 
 test('Baidu rejects a different target origin before any search action',async()=>{
@@ -92,7 +99,7 @@ test('Baidu rejects a different target origin before any search action',async()=
 
 test('legacy Baidu homepage uses the visible legacy field and one submit',async()=>{
   const {result,calls}=await run('baidu-search-top3.js',{modern:false});
-  assert.deepEqual(calls,['fill','click','results.wait']);
+  assert.deepEqual(calls,['bringToFront','fill','click','results.wait']);
   assert.equal(result.trace.find(x=>x.action==='input'&&x.state==='returned').locator,'#kw');
   assert.equal(result.trace.find(x=>x.action==='click'&&x.state==='started').locator,'#su');
 });
@@ -103,7 +110,7 @@ test('unknown fill and mismatched readback stop before any search submission',as
     {entered:'different value'},
   ]){
     const {result,calls}=await run('baidu-search-top3.js',options);
-    assert.deepEqual(calls,['fill']);
+    assert.deepEqual(calls,['bringToFront','fill']);
     assert.equal(result.status,'stopped');
     assert.equal(result.trace.some(x=>x.action==='click'),false);
   }
@@ -112,7 +119,7 @@ test('unknown fill and mismatched readback stop before any search submission',as
 test('navigation trace never claims an unobserved or different query',async()=>{
   for(const options of [{noNavigation:true},{nextUrl:'https://www.baidu.com/s?wd=other'}]){
     const {result,calls}=await run('baidu-search-top3.js',options);
-    assert.deepEqual(calls,['fill','click']);
+    assert.deepEqual(calls,['bringToFront','fill','click']);
     assert.equal(result.status,'stopped');
     assert.equal(result.error.code,'E_SEARCH_NAVIGATION');
     assert.equal(result.trace.some(x=>x.action==='navigation'&&x.state==='observed'),false);
@@ -124,7 +131,7 @@ test('document replacement and permission loss after a click never cause a secon
     const {result,calls}=await run('baidu-search-top3.js',{
       urlErrorAfterClick:Object.assign(new Error('page binding lost'),{code}),
     });
-    assert.deepEqual(calls,['fill','click']);
+    assert.deepEqual(calls,['bringToFront','fill','click']);
     assert.equal(result.status,'stopped');
     assert.equal(result.error.code,code);
     assert.equal(result.trace.some(x=>x.action==='navigation'&&x.state==='observed'),false);
@@ -174,4 +181,70 @@ test('bounds old input samples and omits oversized source URLs without inventing
   assert.equal(Object.hasOwn(longUrl.result,'sourceUrl'),false);
   assert.equal(longUrl.result.sourceUrlOmitted,true);
   assert.ok(Buffer.byteLength(JSON.stringify(longUrl.result),'utf8')<=6144);
+});
+
+
+test('baidu showExecutionTab defaults true, accepts true, and false searches without foregrounding',async()=>{
+  for(const extra of [{},{showExecutionTab:true},{showExecutionTab:false}]){
+    const options={params:{query:'OpenDesk Browser',limit:3,...extra}};
+    const {calls,result}=await run('baidu-search-top3.js',options);
+    const expected=['fill','click','results.wait'];
+    if(extra.showExecutionTab!==false)expected.unshift('bringToFront');
+    assert.deepEqual(calls,expected);
+    assert.notEqual(result.status,'stopped');
+  }
+});
+
+test('baidu invalid parameters reject before foregrounding or searching',async()=>{
+  const invalid=[
+    ...[undefined,null,'true','false',0,1,{},[],()=>true].map(showExecutionTab=>({query:'OpenDesk Browser',limit:3,showExecutionTab})),
+    {query:'OpenDesk Browser',limit:3,unknown:true},
+    {query:'OpenDesk Browser',limit:3,showExecutionTab:false,unknown:true},
+    ...['', ' ', 'a'.repeat(121), null, 3].map(query=>({query,limit:3})),
+    ...[undefined,null,2,'3'].map(limit=>({query:'OpenDesk Browser',limit})),
+  ];
+  for(const params of invalid){
+    const calls=[],options={params,calls};
+    await assert.rejects(run('baidu-search-top3.js',options),{code:'E_TASK_PARAMS'});
+    assert.deepEqual(calls,[]);
+  }
+});
+
+test('baidu target validation precedes foregrounding, including when explicitly disabled',async()=>{
+  for(const url of ['https://example.com/','https://www.baidu.com/s?wd=other']){
+    for(const showExecutionTab of [true,false]){
+      const calls=[],options={url,calls,params:{query:'OpenDesk Browser',limit:3,showExecutionTab}};
+      await assert.rejects(run('baidu-search-top3.js',options),{code:'E_TARGET'});
+      assert.deepEqual(calls,[]);
+    }
+  }
+});
+
+test('baidu foreground failures stop without any search or replay',async()=>{
+  for(const code of ['E_EFFECT_UNKNOWN','E_PERMISSION','E_DOCUMENT_REPLACED','E_TAB_CLOSED']){
+    const options={foregroundError:Object.assign(new Error('foreground failed'),{code})};
+    const {calls,result}=await run('baidu-search-top3.js',options);
+    assert.deepEqual(calls,['bringToFront']);
+    assert.equal(result.status,'stopped');
+    assert.equal(result.error.code,code);
+    assert.equal(result.count,0);
+  }
+});
+
+
+test('Baidu package matches source, version, schema defaults, and builtin release pins',async()=>{
+  const pkg=JSON.parse(await readFile(new URL('../baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  await verifyTaskPackage(pkg);
+  await assertPackagedTask(pkg);
+  assert.equal(pkg.sourceUtf8,await readFile(new URL('../baidu-search-top3.js',import.meta.url),'utf8'));
+  assert.equal(pkg.manifest.version,'1.1.5');
+  assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
+  assert.deepEqual(pkg.manifest.permissions,['page.automation']);
+  assert.equal(pkg.manifest.paramsSchema.required.includes('showExecutionTab'),false);
+  for(const extra of [{},{showExecutionTab:true},{showExecutionTab:false}]){
+    assert.equal(validateTaskParams(pkg.manifest.paramsSchema,{query:'OpenDesk Browser',limit:3,...extra}).showExecutionTab,extra.showExecutionTab!==false);
+  }
+  for(const value of [undefined,null,'true',0,{},[]]){
+    assert.throws(()=>validateTaskParams(pkg.manifest.paramsSchema,{query:'OpenDesk Browser',limit:3,showExecutionTab:value}));
+  }
 });

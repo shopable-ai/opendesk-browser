@@ -59,7 +59,7 @@ async function fixture(t){
 test('a complete new candidate verifies its installed Task regardless of parameter key order',async t=>{
   const f=await fixture(t);
   assert.deepEqual(Object.keys(f.scope.args),['limit','query']);
-  assert.deepEqual(Object.keys(f.manifest.paramsSchema.properties),['query','limit']);
+  assert.deepEqual(Object.keys(f.manifest.paramsSchema.properties),['query','limit','showExecutionTab']);
   const checked=await f.verify();
   assert.deepEqual(checked.paramsSchema,f.manifest.paramsSchema);
   assert.equal(checked.installation.installationId,f.installed.authorization.installationId);
@@ -70,6 +70,18 @@ test('a complete new candidate verifies its installed Task regardless of paramet
 test('an omitted defaulted parameter is rejected as incomplete without a misleading storage error',async t=>{
   const f=await fixture(t);
   await assert.rejects(f.verify({...f.scope,args:{query:'OpenDesk Browser'}}),{code:'E_BRIDGE_CONTEXT'});
+});
+
+test('optional execution visibility defaults preserve original candidate arguments and reject non-booleans',async t=>{
+  const f=await fixture(t);
+  for(const args of [f.scope.args,{...f.scope.args,showExecutionTab:true},{...f.scope.args,showExecutionTab:false}]) {
+    const original=structuredClone(args);
+    const task=await f.verify({...f.scope,args});
+    assert.equal(task.paramsSchema.properties.showExecutionTab.default,true);
+    assert.deepEqual(args,original,'verification cannot rewrite witnessed candidate bytes');
+  }
+  for(const showExecutionTab of ['false',0,1,null])
+    await assert.rejects(f.verify({...f.scope,args:{...f.scope.args,showExecutionTab}}),{code:'E_PARAMS'});
 });
 
 test('a changed installation pin is still rejected with its original review error',async t=>{

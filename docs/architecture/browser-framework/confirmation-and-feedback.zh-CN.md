@@ -10,7 +10,7 @@
 
 | 场景 | 应用方式 | 结果要求 |
 | --- | --- | --- |
-| 保存/复制成功、短状态 | 已有非阻断 notify 或就近 status | 真实业务回执后提示；不抢焦点，温和播报 |
+| 安装/更新/卸载、保存/复制成功、短操作回执 | 已有共享非阻断 notify；紧邻操作且一直可见时可用就近 status | 真实业务回执后提示；不抢焦点，温和播报；不能只追加到滚动正文底部 |
 | 字段错误、长错误、结果未知 | 字段或业务区持久状态与原查询入口 | 保留草稿和可读原因；Toast 不能成为唯一恢复入口 |
 | 丢弃草稿、普通删除/覆盖 | 当前宿主内统一简短确认浮层 | 正文不重排；明确对象、后果与动作；默认保留/取消 |
 | 敏感数据、新权限、安装/来源替换 | 原可信审阅内容和 Authority；可复用展示原语 | 同一意图不先加普通确认；真实 Chrome 提示另计且不绕过 |
@@ -19,11 +19,21 @@
 
 普通状态不使用“确定”阻断；必要决策的异步模态浮层不等于阻塞 JavaScript 线程的 `window.confirm`。继续禁止自有 UI 调用浏览器同步 `alert/confirm/prompt`，不新增沙箱 `allow-modals`，不对第三方网站改写这些全局函数。
 
+### 1.0 操作回执的可见性（2026-11-10）
+
+- **瞬时反馈不能只写入正文末尾或折叠区**。安装成功等操作结束后，用户无须滚动寻找结果，也无须再点击“确定”。文案优先“已安装「名称」”，必要下一步放简短 caption；不在每条成功消息中重复整段权限政策。安装后的停用状态仍如实保留，不能提示所有旧安装均已恢复。
+- **共享展示属于整个可信工作台**。`src/ui/react/components/notifications.tsx` 从原 `sidebar-tools-view.js` 快照展示，沿唯一 React Root Portal 到当前文档，脱离 Tab 的隐藏、滚动和裁切容器；五 Tab 共用一处展示，独立 App 页面由原 ToolHost 使用同一组件，不能同时渲染两份。复用原有限堆叠、优先级、去重、关闭及悬停/键盘暂停；模态审阅遮挡通知时暂停倒计时，关闭后继续剩余阅读时间，不能让迟到回执在遮挡期间过期。不新增 Store、Provider 或 Bridge。
+- **宿主与工具的权限保持分开**。可信控制器通过原 `view.showToast` 接入；普通工具仍通过公开 `tool.ui.notify`，不获取工作台内部对象、DOM 或跨工具通知权。可信工作台完成/取消回执默认使用 `bottom-center`，避免遮住顶部导航；这是视口固定浮层，不是正文底部插入。工具显式位置和原公开默认保持原语义。
+- **错误可双通道，恢复信息必须持久**。新的宿主错误可同时给短通知吸引注意，原业务区仍保存原因/恢复入口；关闭 Toast 不清错误，其他操作成功也不能清除无关错误。字段错误、忙态、长期进度、未保存草稿、撤权与结果未知不整体迁成短消息。`role=alert/status` 只是可访问性语义，不等于阻断。
+- **没有通知能力的旧工具回退须看得见**。使用紧邻当前操作的普通状态；不能恢复同步原生弹框，也不能仅因 `notify()` 返回 true 就清除草稿或宣称持久化成功。限频和未知展示回执不是重试业务写入的理由。
+
+检查现有入口时先沿真实用户操作追踪结果来源与展示位置，记录“已证实误用 / 可改善但未证实不可见 / 应保留的持久状态”，不把每个 alert/status 容器当作缺陷。代表性发现、本轮迁移及未测范围见[本轮目标与核查](../../framework/feedback-visibility-r1-20261110.md)。
+
 ### 1.1 普通工具通知 R1.2：生命周期与 Quasar 的差异
 
 延续唯一 `ui.notify`，不引入 Quasar，也不增加第二套 Toast Host。旧 `ui.notify(options|string): boolean` 保持不变；R1.2 仅增加可选的 `ui.notify.open`，当前 Bridge 生成单调句柄，Host 用原来源/实例/安装/撤权检查绑定更新与关闭，使用严格 requestId/更新序号及有限期回执。所有可展示内容仍使用原 `type`、`caption`、`position`、`timeout`、`group` 纯文本白名单，详见 [唯一公开签名](../../api/sidebar-tools.zh-CN.md#非阻断消息opendesktooluinotifyr12-生命周期与可安装实验室)。
 
-- 源码归属：原 `src/sidebar-tools/ui-notice.js` 白名单校验、原 `bridge.js` 传输、原 `src/ui/sidebar-tools.js` 同源/安装代际检查和限频、原 `sidebar-tools-view.js` 状态、原 `src/ui/react/tabs/tool-host.tsx` 单 React Root 展示。无另一个更新协调器、Registry 或 Provider。
+- 源码归属：原 `src/sidebar-tools/ui-notice.js` 白名单校验、原 `bridge.js` 传输、原 `src/ui/sidebar-tools.js` 同源/安装代际检查和限频、原 `sidebar-tools-view.js` 状态、原 React Root 内的 `components/notifications.tsx` 共享展示。`app-shell.tsx` 和独立页面 `tabs/tool-host.tsx` 按宿主选择唯一挂载。无另一个更新协调器、Registry 或 Provider。
 - 不携带 JS 回调、原始 HTML、任意行动按钮、链接、用户图标、CSS、更新候选或系统通知权限；`ui.confirm`、真实安装和授权仍各自走原合同。
 - 单条长任务支持 Loading → 业务真实结果驱动的成功／错误 → 自动到期或原句柄手动关闭，永远不由通知框架猜测业务成功。原宿主每实例每分钟三次创建不变，更新每句柄限 12 次，句柄最多存活 30 分钟；旧实例迟到、卸载、隐藏及撤权清理旧提示。
 - 堆叠最多三条，默认去重计数；第四条到来时按 error > warning > success > info，且相同级别持久消息优先保留，丢弃低优先级新消息而不创建无界等待队列。React 悬浮／键盘焦点暂停计时，内容更新重置对应版本倒计时，不因其他 React 重渲染重新计时。

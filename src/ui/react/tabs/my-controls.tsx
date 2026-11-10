@@ -1,9 +1,11 @@
 import * as React from 'react';
 import {Button,IconButton} from '../components/ui/button.tsx';
+import {Input,Textarea} from '../components/ui/input.tsx';
+import {Switch} from '../components/ui/switch.tsx';
 
 // A controlled React field. Callbacks are explicitly supplied by each page;
 // there is no event registry or simulated DOM attached to the view model.
-export function MyControl({view,as:Tag='div',id,children,onInput,onChange,onToggle,...props}){
+export function MyControl({view,as:Tag='div',id,children,onInput,onChange,onToggle,controlBase='native',...props}){
   const field=view.field(id),isField=['input','textarea','select'].includes(Tag);
   const update=event=>{
     if(!isField)return;
@@ -45,5 +47,12 @@ export function MyControl({view,as:Tag='div',id,children,onInput,onChange,onTogg
       ?<IconButton {...attributes} label={attributes['aria-label']||attributes.title}>{content}</IconButton>
       :<Button {...attributes} variant="plain">{content}</Button>;
   }
+  if(controlBase==='switch'){
+    const {checked,disabled,type,onInput:input,onChange:change,...switchProps}=attributes;
+    return <Switch {...switchProps} isSelected={Boolean(field.checked)} isDisabled={Boolean(disabled)}
+      onChange={selected=>{field.checked=selected;onChange?.();view.publish();}}/>;
+  }
+  if(controlBase==='aria'&&Tag==='input')return <Input {...attributes}/>;
+  if(controlBase==='aria'&&Tag==='textarea')return <Textarea {...attributes}/>;
   return <Tag {...attributes}>{Tag==='input'||Tag==='textarea'?undefined:content}</Tag>;
 }

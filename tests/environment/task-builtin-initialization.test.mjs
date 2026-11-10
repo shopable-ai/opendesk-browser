@@ -1,14 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {builtinIdentity} from '../../src/libs/identity.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
 import {ensureBuiltinTasks,taskMethods,assertInstalledTask,assertRunTaskAuthorization} from '../../src/platform/tasks/service.js';
-import {BUILTIN_TASK_RELEASES,loadPackagedTask,taskRemovalKey,builtinTaskStateKey} from '../../src/platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,PACKAGED_TASK_RESOURCES,loadPackagedTask as loadTaskResource,taskRemovalKey,builtinTaskStateKey} from '../../src/platform/tasks/builtin-releases.js';
 import {taskKey,installedKey,scriptStorageKey,createTaskPackage} from '../../src/platform/tasks/contract.js';
 import {canonical,digestUtf8} from '../../src/platform/protocol.js';
 
 const environment=builtinIdentity(fakeBuiltinSource),namespace='tool:builtin-test';
 const [baidu,google]=BUILTIN_TASK_RELEASES;
+// Node fixtures provide package data through the original injection point;
+// production reads the same frozen packages as private extension resources.
+const loadPackagedTask=release=>{
+  const row=PACKAGED_TASK_RESOURCES.find(row=>row.taskId===release.taskId&&row.version===release.version&&
+    row.manifestHash===release.manifestHash&&row.sourceHash===release.sourceHash);
+  return row?JSON.parse(readFileSync(new URL('../../'+row.sourcePath,import.meta.url),'utf8')):null;
+};
 function fixture(){
   const data=new Map();let pending=Promise.resolve(),abort=false,loader=loadPackagedTask;
   const store=name=>{if(!data.has(name))data.set(name,new Map());return data.get(name);};
@@ -69,8 +77,20 @@ test('direct resolve and background export initialize without first visiting cat
 
 test('concurrent service and background initialization is idempotent across reopened service',async()=>{
   const f=fixture();await Promise.all([f.ensure(),catalog(f),resolve(f,google.taskId),f.ensure()]);
-  const before=f.snapshot();await ensureBuiltinTasks({storage:f.storage,namespace,environment});
+  const before=f.snapshot();await ensureBuiltinTasks({storage:f.storage,namespace,environment,loadBuiltinTask:loadPackagedTask});
   assert.deepEqual(f.snapshot(),before);
+});
+
+test('asynchronous private package reads preserve atomic initialization and original grants',async()=>{
+  const f=fixture(),runtime={id:'task-test',getURL:path=>'chrome-extension://task-test/'+path};
+  f.loader(release=>loadTaskResource(release,{runtime,fetchImpl:async url=>{
+    await new Promise(resolve=>setTimeout(resolve,1));
+    const row=PACKAGED_TASK_RESOURCES.find(row=>runtime.getURL(row.path)===url);
+    return {ok:true,redirected:false,url,text:async()=>JSON.stringify(loadPackagedTask(row))};
+  }}));
+  assert.equal((await f.ensure()).status,'ready');
+  const before=f.snapshot();await f.ensure();assert.deepEqual(f.snapshot(),before);
+  assert.deepEqual(await f.tx.all('runs'),[]);
 });
 
 test('existing Baidu identity, authorization and disabled state survive while absent Google is installed',async()=>{

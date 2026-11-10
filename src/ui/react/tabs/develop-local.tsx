@@ -5,11 +5,13 @@ import {DevelopField} from './develop-controls.tsx';
 export function DevelopLocalProject(){
   return (
         <DevelopField as="section" id="local-project-tools" className="local-project-tools" aria-label="本地项目连接">
+          <div className="od-stack">
           <p id="local-project-intro" className="local-project-intro od-note">选择已连接的目录，打开文件或实时预览修改。</p>
-          <div className="local-project-controls od-toolbar">
-            <label htmlFor="local-project-select" className="visually-hidden">
+          <div className="od-form-field">
+            <label htmlFor="local-project-select" className="od-field-label">
               {"已授权本地项目"}
             </label>
+          <div className="local-project-controls od-toolbar">
             <DevelopField as="select" id="local-project-select" className="od-field"/>
             <DevelopField as="button" id="local-project-refresh" type="button" className="od-icon-button" title="刷新已授权本地项目" aria-label="刷新已授权本地项目">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -18,33 +20,45 @@ export function DevelopLocalProject(){
               </svg>
             </DevelopField>
           </div>
+          </div>
+          </div>
+          <div className="local-project-binding od-stack">
+          <div className="od-form-field">
           <label htmlFor="local-project-tool" className="od-field-label">关联已安装工具（可选）</label>
           <DevelopField as="select" id="local-project-tool" className="od-field" aria-describedby="local-project-tool-pointer"/>
+          <DevelopField as="p" id="local-project-tool-pointer" className="od-field-help" role="status" aria-live="polite"/>
+          <p className="od-field-help">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
+          </div>
           <div className="od-toolbar">
             <DevelopField as="button" id="local-project-tool-bind" type="button" className="od-button od-button--secondary">保存源码关联</DevelopField>
             <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
           </div>
-          <DevelopField as="p" id="local-project-tool-pointer" className="hint" role="status" aria-live="polite"/>
-          <p className="hint">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
+          </div>
+          <div className="od-stack">
           <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
           </DevelopField>
           <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
             {"检查并保存本地项目"}
           </DevelopField>
+          </div>
           <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
             <strong>
               {"安装与管理"}
             </strong>
             <DevelopField as="p" id="local-install-summary" className="hint" role="status">
             </DevelopField>
+            <div className="od-form-field">
             <label htmlFor="local-install-title" className="od-field-label">
               {"名称"}
             </label>
                 <DevelopField as="input" id="local-install-title" type="text" maxLength="100" autoComplete="off" className="od-field"/>
+            </div>
+            <div className="od-form-field">
             <label htmlFor="local-install-version" className="od-field-label">
               {"版本"}
             </label>
             <DevelopField as="input" id="local-install-version" type="text" maxLength="24" autoComplete="off" className="od-field"/>
+            </div>
             <DevelopField as="p" id="local-install-warning" className="hint">
             </DevelopField>
             <div className="row">

@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {ExtensionRowMenu} from './tools.tsx';
+import {Button,IconButton} from '../components/ui/button.tsx';
+export function TaskGlyph(){
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m9 9 6 3-6 3Z"/></svg>;
+}
 // Trusted presentation; TaskWorkbench alone owns task identities, drafts,
 // permissions, installation, params, execution, RunHost and results.
 export function MyTaskCount({value=''}) {return <>{String(value)}</>;}
@@ -14,8 +19,20 @@ export function MyTaskDetail({value=''}) {
   </div>;
 }
 export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
-  manageMode=false,onManage,renderWorkspace,workspace=null}) {
+  manageMode=false,onManage,renderWorkspace,workspace=null,visible=true}) {
   const [expandedTaskId,setExpandedTaskId]=React.useState(selectedId);
+  const [lastInteractedId,setLastInteractedId]=React.useState(null),[menu,setMenu]=React.useState(null);
+  const [parameterRequest,setParameterRequest]=React.useState(null);
+  const activeActionId=rows.some(row=>row.taskId===lastInteractedId)?lastInteractedId:rows[0]?.taskId;
+  const menuModel=React.useMemo(()=>menu?{...menu,onClose:restore=>{
+    if(restore)menu.trigger?.focus({preventScroll:true});setMenu(null);
+  }}:null,[menu]);
+  React.useEffect(()=>{if(!visible||!rows.some(row=>row.taskId===menu?.taskId))setMenu(null);},[visible,rows,menu?.taskId]);
+  const openParameters=(row,trigger)=>{
+    setMenu(null);setExpandedTaskId(row.taskId);
+    if(row.taskId!==selectedId)onSelect?.(row.taskId);
+    setParameterRequest({taskId:row.taskId,trigger});
+  };
   const previousSelection=React.useRef(selectedId);
   const rowsRef=React.useRef(null),returnFocus=React.useRef(null);
   React.useLayoutEffect(()=>{
@@ -33,12 +50,14 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
       returnFocus.current=null;
     }
   },[expanded,selectedId]);
-  return <div ref={rowsRef}>
+  return <div ref={rowsRef} className="task-browser">
     {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
+    <div className="od-collection" hidden={rows.length===0}>
     {rows.map(row=><div key={row.taskId}
-      className={'task-card-group'+(row.taskId===selectedId?' selected':'')}
-      data-management={manageMode?'true':undefined}>
-      <button type="button" className="task-card" data-task-id={row.taskId}
+      className={'task-card-group od-collection-row'+(row.taskId===selectedId?' selected':'')+(row.taskId===activeActionId?' task-card-group--action-visible':'')}
+      onPointerEnter={event=>{if(event.pointerType!=='touch')setLastInteractedId(row.taskId);}}
+      onFocusCapture={()=>setLastInteractedId(row.taskId)}>
+      <Button variant="quiet" className="task-card" data-task-id={row.taskId} title={row.title}
         aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===selectedId&&expanded}
         aria-controls="task-selected-workspace"
         onClick={event=>{
@@ -46,22 +65,35 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
           if(row.taskId===selectedId)setExpandedTaskId(current=>current===row.taskId?'':row.taskId);
           else {setExpandedTaskId(row.taskId);onSelect?.(row.taskId);}
         }}>
-        <span className="task-card-icon" aria-hidden="true">{String(row.title||row.taskId).slice(0,1).toUpperCase()}</span>
-        <span className="task-card-copy"><strong>{row.title}</strong><small>{row.description}</small></span>
-        <span className={'task-card-state'+(row.enabled?'':' off')}>{row.enabled?'':'已停用'}</span>
-      </button>
-      {manageMode&&<button type="button" className="task-card-manage od-icon-button"
-        aria-label={'管理「'+row.title+'」'} title={'管理「'+row.title+'」'}
+        <span className="task-card-icon"><TaskGlyph/></span>
+        <span className="task-card-copy"><strong>{row.title}</strong><small>{!row.enabled&&<span className="task-card-state off">已停用 · </span>}{row.description}</small></span>
+      </Button>
+      <span className="task-card-actions">
+      <IconButton id={row.taskId===selectedId?'task-parameters-open':undefined} className="task-card-run od-icon-button--quiet"
+        label={'参数与运行「'+row.title+'」'} title="参数与运行" aria-haspopup="dialog" aria-controls="task-parameters-sheet"
+        onClick={event=>openParameters(row,event.currentTarget)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>
+      </IconButton>
+      <IconButton className="task-card-manage od-icon-button--quiet"
+        label={'管理「'+row.title+'」'} title="任务菜单" aria-haspopup="menu"
+        aria-expanded={menu?.taskId===row.taskId} aria-controls="task-row-menu"
         onClick={event=>{
-          if(!event.nativeEvent?.isTrusted)return;
-          setExpandedTaskId(row.taskId);onManage?.(row.taskId);
+          const trigger=event.currentTarget;
+          setMenu(menu?.taskId===row.taskId?null:{taskId:row.taskId,title:row.title,trigger,items:[
+            {id:'run',label:'参数与运行',onClick:()=>openParameters(row,trigger)},
+            {id:'manage',label:'管理任务',onClick:native=>{
+              if(!native?.isTrusted)return;
+              setExpandedTaskId(row.taskId);onManage?.(row.taskId);setMenu(null);
+            }}]});
         }}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
-          <circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/></svg>
-      </button>}
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5h.01M12 12h.01M12 19h.01" strokeWidth="3.5"/></svg>
+      </IconButton>
+      </span>
     </div>)}
-    <div hidden={!expanded} onFocusCapture={event=>{returnFocus.current=event.target;}}>
-      {renderWorkspace?.()||(React.isValidElement(workspace)?workspace:null)}
     </div>
+    <div hidden={!expanded} onFocusCapture={event=>{returnFocus.current=event.target;}}>
+      {renderWorkspace?.({expanded,parameterRequest})||(React.isValidElement(workspace)?workspace:null)}
+    </div>
+    {visible&&menuModel&&<ExtensionRowMenu id="task-row-menu" label={'任务菜单「'+menu.title+'」'} model={menuModel}/>}
   </div>;
 }

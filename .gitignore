@@ -112,6 +112,7 @@ docs/framework/workstreams/evidence/**
 /tests/**/downloads/
 
 # Local credentials
+/.local/credentials/
 .env
 .env.*
 !.env.example

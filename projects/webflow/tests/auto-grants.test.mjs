@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
-import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope,assertAutoGrant,validateAutoSettings} from '../src/auto-grants.js';
+import {WEBFLOW_AUTO_GRANTS_KEY,normalizeAutoScope,assertAutoGrant,validateAutoSettings,prepareAutoParameterPolicy} from '../src/auto-grants.js';
 
 const source={tabId:9,documentId:'auto-document',url:'https://chatgpt.com/c/webflow-test-12345678'};
 const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
@@ -88,7 +88,7 @@ test('legacy exact grants stay exact and malformed keyword policies cannot becom
  const args={query:'时间清单',limit:3},candidate=h.candidate('wf-legacy-stays-exact');
  candidate.text=JSON.stringify({...JSON.parse(candidate.text),args});
  assert.equal((await h.ledger.admitAuto({source,...scope,args,candidate,allowPending:true})).pendingApproval,true);
- for(const parameterPolicy of [null,{}, {...searchPolicy,variableKeys:[]},
+ for(const parameterPolicy of [null,{},
   {...searchPolicy,variableKeys:['missing']},{...searchPolicy,variableKeys:['query','query']},
   {...searchPolicy,paramsSchema:{...searchPolicy.paramsSchema,additionalProperties:true}}]){
   await assert.rejects(async()=>h.ledger.approveAuto({...scope,parameterPolicy}));
@@ -263,4 +263,75 @@ test('ChatGPT admission rechecks actual origin even when a scope claims a differ
   await h.ledger.approveAuto({...scope,sourceOrigin:'https://gemini.google.com'});
   await h.ledger.setAutoEnabled(true);
   await assert.rejects(h.admit('wf-source-bound-1',{sourceOrigin:'https://gemini.google.com'}),{code:'E_WEBFLOW_AUTO_DENIED'});
+});
+
+// A visibility choice is a fixed input, never an implicit expansion of a keyword grant.
+test('search visibility remains fixed across omission, true and false in keyword approval',async()=>{
+ const policy=structuredClone(searchPolicy);
+ policy.paramsSchema.properties.showExecutionTab={type:'boolean',title:'显示执行标签页',default:true};
+ for(const visibility of [undefined,true,false]){
+  const args={...scope.args,...(visibility===undefined?{}:{showExecutionTab:visibility})};
+  const h=harness();await h.ledger.approveAuto({...scope,args,parameterPolicy:policy});await h.ledger.setAutoEnabled(true);
+  let index=0;
+  for(const requested of [undefined,true,false,'false',0]){
+   const nextArgs={query:'另一个关键词',limit:3,...(requested===undefined?{}:{showExecutionTab:requested})};
+   const candidate=h.candidate('wf-visibility-fence-'+(++index));
+   candidate.text=JSON.stringify({...JSON.parse(candidate.text),args:nextArgs});
+   const admitted=await h.ledger.admitAuto({source,...scope,args:nextArgs,candidate,allowPending:true});
+   assert.equal(admitted.pendingApproval,(requested??true)!==(visibility??true));
+  }
+ }
+});
+
+test('Google exact approval persists the installed Schema and compares optional defaults without keyword permission',async()=>{
+ const schema={type:'object',additionalProperties:false,required:['query','limit'],properties:{
+  query:{type:'string',title:'关键词',minLength:1,maxLength:120},
+  limit:{type:'integer',title:'数量',default:3,enum:[3]},
+  showExecutionTab:{type:'boolean',title:'显示执行页',default:true},
+  language:{type:'string',title:'语言',default:'zh'}}};
+ const approved={...scope,taskId:'google.search.top3',targetUrl:'https://www.google.com/',
+  installation:{...installation,scriptId:'task:google.search.top3:1.1.1'},
+  args:{...scope.args,showExecutionTab:true,language:'zh'}};
+ const policy=prepareAutoParameterPolicy(undefined,approved,schema);
+ assert.deepEqual(policy.variableKeys,[]);
+ assert.notEqual(policy.paramsSchema,schema);
+ const h=harness();await h.ledger.approveAuto({...approved,parameterPolicy:policy});await h.ledger.setAutoEnabled(true);h.restart();
+ const stored=(await h.ledger.readAutoSettings()).grants[approved.taskId];
+ assert.deepEqual(stored.parameterPolicy.paramsSchema,schema);
+ let index=0;
+ for(const [args,pending] of [[{...scope.args},false],[approved.args,false],
+  [{...scope.args,showExecutionTab:false},true],[{...scope.args,query:'另一个关键词'},true],
+  [{...scope.args,language:'en'},true],[{query:scope.args.query},true],
+  [{...scope.args,showExecutionTab:'true'},true],[{...scope.args,extra:true},true]]){
+  const candidate=h.candidate('wf-google-exact-default-'+(++index));
+  candidate.text=JSON.stringify({...JSON.parse(candidate.text),taskId:approved.taskId,targetUrl:approved.targetUrl,args});
+  const bytes=candidate.text;
+  const admitted=await h.ledger.admitAuto({source,...approved,args,candidate,allowPending:true});
+  assert.equal(admitted.pendingApproval,pending);
+  assert.deepEqual(admitted.args,args);
+  assert.equal(admitted.candidate.text,bytes);
+ }
+ const settings=await h.ledger.readAutoSettings();
+ assert.throws(()=>assertAutoGrant(settings,{...approved,installation:{...installation,generation:2}}, {sourceUrl:source.url}));
+ const falseScope={...approved,args:{...scope.args,showExecutionTab:false}};
+ await h.ledger.approveAuto({...falseScope,parameterPolicy:prepareAutoParameterPolicy(undefined,falseScope,schema)});
+ const falseSettings=await h.ledger.readAutoSettings();
+ assert.equal(assertAutoGrant(falseSettings,falseScope,{sourceUrl:source.url}).scope.args.showExecutionTab,false);
+ assert.throws(()=>assertAutoGrant(falseSettings,{...approved,args:scope.args},{sourceUrl:source.url}));
+ await h.ledger.revokeAuto(approved.taskId);
+ const revoked=await h.ledger.readAutoSettings();
+ assert.throws(()=>assertAutoGrant(revoked,falseScope,{sourceUrl:source.url}));
+});
+
+test('exact policy comes only from trusted installed Schema and legacy grants stay byte-exact',()=>{
+ const schema={type:'object',additionalProperties:false,required:['query','limit'],properties:{
+  query:{type:'string',title:'关键词'},limit:{type:'integer',title:'数量',default:3},
+  optionalFlag:{type:'boolean',title:'可选行为',default:true}}};
+ const exact={...scope,taskId:'generic.fixed',installation:{...installation,scriptId:'task:generic.fixed:1.1.1'},args:{...scope.args,optionalFlag:true}};
+ assert.throws(()=>prepareAutoParameterPolicy({mode:'schema',variableKeys:[],paramsSchema:{...schema,required:[]}},exact,schema));
+ assert.throws(()=>prepareAutoParameterPolicy(undefined,{...exact,args:{query:'x'}},schema));
+ assert.throws(()=>prepareAutoParameterPolicy({mode:'schema',variableKeys:['query']},exact,schema));
+ const settings={version:1,enabled:true,epoch:1,grants:{[exact.taskId]:{scope:exact,grantId:'legacy-exact',state:'active',approvedAt:1}}};
+ assert.throws(()=>assertAutoGrant(settings,{...exact,args:scope.args},{sourceUrl:source.url}));
+ assert.equal(assertAutoGrant(settings,exact,{sourceUrl:source.url}).grantId,'legacy-exact');
 });

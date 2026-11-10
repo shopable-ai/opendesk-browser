@@ -24,7 +24,7 @@ const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,
-  isAppDebugAllowed=()=>false,onNavigate,onTabSelected,onTaskInstalled,
+  isAppDebugAllowed=()=>false,onNavigate,onTabSelected,onTaskInstalled,notify,
   reactNavigation=null,developerView=null,myView=createMyWorkbenchView({document:doc})}) {
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id);
   // A React Side Panel has no standalone catalog controls. Its installed
@@ -64,8 +64,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const prior={};
     for(const {name,rule} of myView.data.taskParams||[]){
       const control=ui('task-param-'+name);
-      prior[name]=rule.type==='boolean'?{checked:control.checked}:{value:control.value};
+      prior[name]={...(rule.type==='boolean'&&!rule.enum?{checked:control.checked}:{value:control.value}),omitted:control.omitted===true};
     }
+    prior.$editor={mode:myView.data.taskParamsMode||'form',value:ui('task-params-json').value};
     parameterDrafts.set(renderKey,prior);
   }
   function persistParams() {
@@ -120,6 +121,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(catalogList)ui('task-catalog-status').text=message;
     myView.publish();
   };
+  function success(message,options={}) {
+    if(disposed)return;
+    if(notify)notify(message,{...options,type:'success'});
+    else ui('task-status').text=message;
+  }
   function navigate(name,{initial=false}={}) {
     // Previous Discover URLs now open the local task search in My.
     if(name==='discover')name='tasks';
@@ -263,20 +269,34 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const schema=row.manifest.paramsSchema,prior=parameterDrafts.get(key)||{};
     const fields=Object.entries(schema.properties).map(([name,rule])=>{
       const control=ui('task-param-'+name),saved=prior[name];
-      if(rule.type==='boolean')control.checked=saved?.checked??(rule.default===true);
+      control.error='';
+      control.omitted=saved?saved.omitted===true:
+        rule.type==='boolean'&&!rule.enum&&!schema.required.includes(name)&&!Object.hasOwn(rule,'default');
+      if(rule.type==='boolean'&&!rule.enum)control.checked=saved?.checked??(rule.default===true);
       else control.value=saved?.value??(Object.hasOwn(rule,'default')?String(rule.default):
         rule.enum&&schema.required.includes(name)?String(rule.enum[0]):'');
       return {name,rule,required:schema.required.includes(name)};
     });
+    myView.data.taskParamsMode=prior.$editor?.mode==='json'?'json':'form';
+    ui('task-params-json').value=typeof prior.$editor?.value==='string'?prior.$editor.value:'';
+    ui('task-params-json').error='';
     myView.project('taskParams',fields);
   }
   function paramsFromForm(schema) {
+    if(myView.data.taskParamsMode==='json'){
+      try{return validateTaskParams(schema,JSON.parse(ui('task-params-json').value));}
+      catch(error){
+        const failure=error instanceof SyntaxError?{code:'E_PARAMS',message:'参数 JSON 格式无效，请检查括号、引号和逗号'}:error;
+        ui('task-params-json').error=formatTaskError(failure);throw failure;
+      }
+    }
     const result={};
     for(const [name,rule] of Object.entries(schema.properties)) {
       const control=ui('task-param-'+name);
       if(!control)throw {code:'E_PARAMS',message:`缺少参数输入：${name}`};
+      if(control.omitted===true)continue;
       let value;
-      if(rule.type==='boolean')value=control.checked;
+      if(rule.type==='boolean'&&!rule.enum)value=control.checked;
       else if(rule.enum&&control.value===''&&!schema.required.includes(name)&&!Object.hasOwn(rule,'default'))continue;
       else if(control.value===''&&!schema.required.includes(name)&&!Object.hasOwn(rule,'default'))continue;
       else if(rule.type==='integer'||rule.type==='number')value=control.value===''?NaN:Number(control.value);
@@ -288,7 +308,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
       result[name]=value;
     }
-    return validateTaskParams(schema,result);
+    try{return validateTaskParams(schema,result);}
+    catch(error){
+      // Use the same authoritative validator to locate the offending field;
+      // presentation must not invent a second interpretation of the schema.
+      for(const [name,rule]of Object.entries(schema.properties)){
+        try{validateTaskParams({...schema,properties:{[name]:rule},required:schema.required.includes(name)?[name]:[]},
+          Object.hasOwn(result,name)?{[name]:result[name]}:{});}
+        catch(fieldError){ui('task-param-'+name).error=`${rule.title}：${formatTaskError(fieldError)}`;}
+      }
+      throw error;
+    }
   }
   // Filtering never changes the selected Task, but a hidden selection must not be runnable.
   function taskMatchesView(row,info,origin) {
@@ -315,6 +345,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-current-site').title=origin || '';
     ui('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable||
       !taskMatchesView(row,info,origin);
+    myView.data.taskRunBlockedReason=working?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行，请先停止或等待完成':
+      !row?'请先选择任务':!row.enabled?'此任务已停用，请在「更多操作」中启用':
+      !available?'此固定版本当前不可运行，请在任务目录核查状态':!siteAvailable?siteMessage:
+      !taskMatchesView(row,info,origin)?'此任务不在当前筛选结果中，请重新选择':'';
     ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     ui('task-fork-draft').disabled=!row||working;
     const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
@@ -339,6 +373,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const taskSearchReturnFocus=()=>focus('task-manage-toggle',{preventScroll:true});
   function renderInstalledCards() {
     const selected=ui('task-installed-list').value;
+    const selectedTask=installed.find(row=>row.taskId===selected);
     let origin=null;
     if(currentPage?.status==='available'){
       try{origin=new URL(currentPage.url).origin;}catch{/* No stale URL fallback. */}
@@ -354,7 +389,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const info=candidateFor(row);
       return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
         title:info?.manifest.title||row.taskId,description:info?.manifest.description||'已安装任务'};
-    }),selectedId:selected,emptyText,manageMode:taskManagementMode,onManage:openTaskManagement,
+    }),selectedId:selected,identity:selectedTask?Object.fromEntries(
+      ['taskId','version','manifestHash','generation','installationId'].map(key=>[key,selectedTask[key]])):null,
+      emptyText,manageMode:taskManagementMode,onManage:openTaskManagement,
       onSelect:taskId=>{
         if(disposed||!installed.some(row=>row.taskId===taskId))return;
         ui('task-installed-list').value=taskId;renderInstalledSelection();
@@ -630,19 +667,21 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       toolId:'opendesk',channel:'extension',toolIdentity:taskId,
       ...(runId?{runId}:{})}).catch(()=>{});
   };
-  function run(event,agentIntent=null) {
+  function run(event,agentIntent=null,expectedIdentity=null) {
     if(!event?.isTrusted||disposed||running||working||host.currentRun||
       (agentIntent===null&&ui('task-run').disabled)){
       if(agentIntent) return Promise.reject(Object.assign(new Error('运行宿主繁忙、已关闭或缺少用户确认'),{code:'E_TASK_BUSY'}));
-      return;
+      return expectedIdentity?false:undefined;
     }
     let chosen,params,site,permission,captured;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
+      if(!agentIntent)for(const {name}of myView.data.taskParams||[])ui('task-param-'+name).error='';
       if(chosen?.enabled)reportTaskUsage('event.manual_attempt',chosen.taskId);
-      if(agentIntent?.expected&&(!chosen||
+      const expected=agentIntent?.expected||expectedIdentity;
+      if(expected&&(!chosen||(expectedIdentity&&chosen.taskId!==expectedIdentity.taskId)||
         ['version','manifestHash','generation','installationId'].some(key=>
-          chosen[key]!==agentIntent.expected[key])))
+          chosen[key]!==expected[key])))
         throw {code:'E_REVISION',message:'确认期间任务固定版本或安装授权已变化，请重新核查'};
       const info=candidateFor(chosen);
       if(chosen?.runtimeCurrent===false||info?.runtimeCurrent===false)throw {code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'运行时已更新，请对同一固定任务重新验证并确认安装'};
@@ -654,7 +693,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
-    }catch(error){fail(error);return agentIntent?Promise.reject(error):undefined;}
+    }catch(error){fail(error);return agentIntent?Promise.reject(error):(expectedIdentity?false:undefined);}
     running=true;activeRunId=null;agentStopRequested=false;agentStartSubmitted=false;
     runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     ui('task-result-panel').hidden=true;update();
@@ -722,7 +761,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }catch(error){fail(error);}
       renderTaskStatus();update();
     });
-    return agentIntent?pendingRun:undefined;
+    return agentIntent?pendingRun:(expectedIdentity?true:undefined);
   }
   async function verify() {
     const row=candidate();
@@ -746,9 +785,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const installedTask=await client.request('installTask',{taskId:row.taskId,version:row.version,
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null,
       expectedGeneration:previous?.generation??null,expectedInstallationId:previous?.installationId??null});
-    await refresh(identity(row));announce();
-    onTaskInstalled?.(installedTask.taskId);
-    ui('task-status').text=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
+    if(disposed)return;
+    await refresh(identity(row));
+    if(disposed)return;
+    announce();onTaskInstalled?.(installedTask.taskId);
+    success(`已安装 ${installedTask.taskId} · v${installedTask.version}`,{
+      caption:'返回目标网页，在 Sidebar「我的」填写参数并运行。'});
     const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
     ui('task-catalog-status').text=installedMessage;
     ui('task-install-feedback').text=installedMessage;
@@ -762,13 +804,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)throw {code:'E_HOST_CLOSED',message:'任务面板已关闭'};
     await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,enabled:!row.enabled,
       expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
-    await refresh();announce();ui('task-status').text=row.enabled?'任务已停用':'任务已重新启用';
+    if(disposed)return;
+    await refresh();
+    if(disposed)return;
+    announce();success(row.enabled?'任务已停用':'任务已重新启用');
   }
   async function uninstall() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
     await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
       expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
-    await refresh();announce();ui('task-status').text='已卸载确定版本；历史结果仍可保留';
+    if(disposed)return;
+    await refresh();
+    if(disposed)return;
+    announce();success('已卸载确定版本；历史结果仍可保留');
   }
   async function fork() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
@@ -864,6 +912,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskParamsFormSubmit',event=>event.preventDefault());
   registerAction('taskParamsFormInput',persistParams);
   registerAction('taskParamsFormChange',persistParams);
+  registerAction('taskParamsModeChange',mode=>{
+    if(!['form','json'].includes(mode)||(myView.data.taskParamsMode||'form')===mode)return;
+    const row=installedRow(),schema=candidateFor(row)?.manifest.paramsSchema;
+    if(!schema)return;
+    try{
+      const params=paramsFromForm(schema);
+      if(mode==='json')ui('task-params-json').value=JSON.stringify(params,null,2);
+      else for(const [name,rule]of Object.entries(schema.properties)){
+        const control=ui('task-param-'+name);
+        control.omitted=!Object.hasOwn(params,name);control.error='';
+        if(rule.type==='boolean'&&!rule.enum)control.checked=params[name]===true;
+        else control.value=control.omitted?'':String(params[name]);
+      }
+      ui('task-params-json').error='';myView.data.taskParamsMode=mode;
+      persistParams();myView.publish();
+    }catch(error){fail(error);}
+  });
   registerAction('taskInstalledListChange',renderInstalledSelection);
   registerAction('taskResultRevealClick',()=>{
     const entry=latestResultDisplay,row=installedRow();
@@ -874,7 +939,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     button.text=showing?'查看完整原值':'隐藏完整原值';
   });
   registerAction('taskCatalogListChange',()=>selectCandidate(catalogList.value));
-  registerAction('taskRunClick',run);
+  registerAction('taskRunClick',(event,expected)=>run(event,null,expected));
   registerAction('taskStopClick',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
   registerAction('taskRefreshClick',asyncAction(()=>refresh()));

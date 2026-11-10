@@ -86,6 +86,53 @@ test('fresh complete ChatGPT reply is owned by existing background queue without
   assert(h.replyChecks>=2);assert(h.taskChecks>=2);
   assert.equal(await h.handle('claim'),null);
 });
+test('a pending range review is not an unknown execution and history cannot start it',async()=>{
+  const h=fixture();await h.ledger.setAutoEnabled(true);const row=await h.admit();
+  assert.equal(h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId].pendingAuto,true);
+  h.restart();
+  const history=await h.handle('history',{source},h.panel);
+  assert.equal(history[0].status,'prepared');assert.equal(history[0].pendingAuto,true);
+  assert.deepEqual(history[0].receipt,{execution:'not-started',release:'not-started',
+    persistence:'not-confirmed',delivery:'not-sent',runId:null,resultId:null});
+  assert.equal(await h.handle('claim'),null);
+  assert.equal(h.state.ensures,0);assert.equal(h.runs.length,0);assert.equal(h.sent.length,0);
+});
+for(const patch of [{consumedAt:0},{controllerSubmitted:true},{webHostDocumentId:'lost-owner'},
+  {webDelivery:'dispatching'},{webObservation:{execution:'running'}}])
+test(`missing Run with ${Object.keys(patch)[0]} remains unknown`,async()=>{
+  const h=fixture();await h.ledger.setAutoEnabled(true);const row=await h.admit();
+  Object.assign(h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId],patch);
+  h.restart();const history=await h.handle('history',{source},h.panel);
+  assert.equal(history[0].receipt.execution,'unknown');
+  assert.equal(history[0].receipt.release,'unknown');
+  assert.equal(h.runs.length,0);assert.equal(h.sent.length,0);
+});
+test('paused owned execution keeps its durable identity without inventing a persistent Result or retrying',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.runs[0].state='paused_unknown';h.runs[0].retirementState='not-started';h.results.splice(0);
+  await h.ledger.recordWebTaskObservation(row.requestId,{runId:'stale-observation',resultId:'stale-result'});
+  h.restart();const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.equal(receipt.execution,'paused_unknown');assert.equal(receipt.runId,h.runs[0].runId);
+  assert.equal(receipt.resultId,h.runs[0].resultId);assert.equal(receipt.release,'not-started');
+  assert.equal(receipt.persistence,'not-confirmed');assert.equal(receipt.value,undefined);
+  assert.equal(await h.handle('claim'),null);assert.equal(h.sent.length,0);
+  delete h.runs[0].resultId;
+  assert.equal((await h.handle('history',{source},h.panel))[0].receipt.resultId,null,
+    'a current Run must not borrow a Result identity from another observation');
+});
+
+test('lost Run lookup preserves observed IDs as unverified metadata and never discloses cached Result bytes',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  await h.ledger.recordWebTaskObservation(row.requestId,{runId:h.runs[0].runId,resultId:h.runs[0].resultId,
+    persistence:'verified',value:'PRIVATE_CACHED_RESULT',error:{code:'CACHED_ERROR',message:'PRIVATE'}});
+  h.runs.splice(0);h.results.splice(0);h.restart();
+  const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.equal(receipt.execution,'unknown');assert.equal(receipt.runId,'run-one');assert.equal(receipt.resultId,'result-one');
+  assert.equal(receipt.persistence,'not-confirmed');assert.equal(receipt.release,'unknown');
+  assert.equal(receipt.value,undefined);assert.equal(receipt.error,undefined);
+  assert.equal(await h.handle('claim'),null);assert.equal(h.sent.length,0);
+});
+
 test('changed complete reply or revoked authorization cannot submit',async()=>{
   const h=fixture();await h.approve();const row=await h.admit();await h.ready(row);h.state.replyValid=false;
   assert.equal(await h.handle('claim'),null);

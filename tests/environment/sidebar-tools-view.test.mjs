@@ -14,13 +14,18 @@ import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {createMyWorkbenchView} from '../../src/ui/my-workbench-view.js';
 
 // Compile the real import graph; hand-replaced data: imports drift when shared
 // controls acquire dependencies. Keep React/DOM identical to the test renderer.
 const require=createRequire(import.meta.url);
 let compiled;
 try {
-  compiled=await build({entryPoints:[new URL('../../src/ui/react/tabs/tool-host.tsx',import.meta.url).pathname],
+  compiled=await build({stdin:{contents:`
+    export {ToolHost} from './src/ui/react/tabs/tool-host.tsx';
+    export {SidebarAppShell} from './src/ui/react/app-shell.tsx';`,
+    resolveDir:new URL('../../',import.meta.url).pathname},
     bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
     plugins:[{name:'tool-host-test-imports',setup(builder){
       builder.onResolve({filter:/^react(?:-dom)?(?:$|\/)/},({path})=>({
@@ -29,7 +34,7 @@ try {
         contents:'export default '+JSON.stringify(await readFile(path,'utf8')),loader:'js'}));
     }}]});
 } finally {stop();}
-const {ToolHost}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const {ToolHost,SidebarAppShell}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const nextTick = () => new Promise(resolve => setImmediate(resolve));
 
 test('transient tool feedback expires, replaces safely and leaves the live tool intact',async t=>{
@@ -86,6 +91,63 @@ test('transient tool feedback expires, replaces safely and leaves the live tool 
   await React.act(async()=>root.render(React.createElement(ToolHost,{view})));
   assert.equal(toast(),null,'returning cannot revive old feedback');
   assert.equal(view.runtime.frameRoot.firstChild,frame,'feedback never remounts or replaces the tool');
+});
+
+test('one workbench notification viewport stays outside hidden Tabs and scrolling content',async t=>{
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  const {createRoot}=await import('react-dom/client');
+  const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
+  const developerView=createDeveloperView(),myView=createMyWorkbenchView();
+  t.after(async()=>{
+    await React.act(async()=>root.unmount());view.dispose();developerView.dispose();
+    globalThis.window=prior.window;globalThis.document=prior.document;globalThis.IS_REACT_ACT_ENVIRONMENT=prior.act;
+  });
+  for(const activeTab of ['tools','tasks','workflow','develop','cloud']){
+    await React.act(async()=>{
+      root.render(React.createElement(SidebarAppShell,{activeTab,toolView:view,developerView,myView}));
+      view.showToast('已完成 '+activeTab,{type:'success'});
+    });
+    const toast=document.querySelector('.sidebar-tool-toast');
+    assert.ok(toast,activeTab+' feedback remains visible while ToolHost is hidden');
+    assert.equal(toast.closest('#workspace-content,[hidden],[inert]'),null,
+      'feedback is portalled outside Tab scroll/clipping/visibility ancestors');
+    assert.equal(document.querySelectorAll('.sidebar-tool-toast-stack').length,1,'no duplicate ToolHost viewport');
+    assert.match(toast.textContent,new RegExp('已完成 '+activeTab));
+    await React.act(async()=>view.dismissToast(view.getSnapshot().toast.id));
+  }
+});
+
+test('modal reviews pause both existing and late success receipts until they can be read',async t=>{
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  const {createRoot}=await import('react-dom/client');
+  const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
+  const developerView=createDeveloperView(),myView=createMyWorkbenchView();
+  t.after(async()=>{
+    await React.act(async()=>root.unmount());view.dispose();developerView.dispose();
+    globalThis.window=prior.window;globalThis.document=prior.document;globalThis.IS_REACT_ACT_ENVIRONMENT=prior.act;
+  });
+  t.mock.timers.enable({apis:['setTimeout','Date']});
+  await React.act(async()=>{
+    root.render(React.createElement(SidebarAppShell,{activeTab:'tasks',toolView:view,developerView,myView}));
+    view.showToast('已停用任务',{type:'success'});
+  });
+  await React.act(async()=>t.mock.timers.tick(2000));
+  const dialog=document.createElement('div');dialog.setAttribute('aria-modal','true');
+  await React.act(async()=>{document.body.append(dialog);await nextTick();});
+  await React.act(async()=>view.showToast('已卸载任务',{type:'success'}));
+  await React.act(async()=>t.mock.timers.tick(10000));
+  assert.equal(view.getSnapshot().toasts.length,2,'the modal cannot consume unread completion receipts');
+  await React.act(async()=>{dialog.remove();await nextTick();});
+  await React.act(async()=>t.mock.timers.tick(2999));
+  assert.equal(view.getSnapshot().toasts.length,2,'the interrupted notice retains its remaining reading time');
+  await React.act(async()=>t.mock.timers.tick(1));
+  assert.deepEqual(view.getSnapshot().toasts.map(row=>row.message),['已卸载任务']);
+  await React.act(async()=>t.mock.timers.tick(2000));
+  assert.equal(view.getSnapshot().toasts.length,0,'late receipts get a full visible interval after the review closes');
 });
 
 test('a missing React view cannot initialize a second DOM owner', () => {

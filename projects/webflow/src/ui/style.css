@@ -40,7 +40,7 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-badge{display:inline-flex;align-items:center;gap:5px;color:var(--sub);font-size:11px;white-space:nowrap}
 .wf-badge::before{content:"";width:7px;height:7px;display:inline-block;background:#95a4b8;border-radius:50%}
 .wf-badge[data-state="available"]::before{background:var(--good)}
-.wf-badge[data-state="changed"]::before,.wf-badge[data-state="unavailable"]::before,.wf-badge[data-state="error"]::before{background:#cf9750}
+.wf-badge[data-state="changed"]::before,.wf-badge[data-state="runtime"]::before,.wf-badge[data-state="unavailable"]::before,.wf-badge[data-state="error"]::before{background:#cf9750}
 .wf-badge[data-state="running"]::before{background:#638ce0}
 .wf-task{display:grid;gap:8px}
 .wf-task-title{display:flex;align-items:center;gap:8px;min-width:0}

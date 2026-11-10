@@ -3,34 +3,16 @@
 import {REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
+import {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-entry.js';
+export {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-entry.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
-const entries=Object.freeze({
-  'baidu.search.top3':'https://www.baidu.com/',
-  'google.search.top3':'https://www.google.com/',
-  // Only the exact pinned draft-only ChatGPT package is admitted here.
-  'chatgpt.conversation.create':'https://chatgpt.com/'
-});
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
   Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
-
-// Only reviewed defaults may be applied before single-candidate admission.
-// An omitted send is always false; no omitted or malformed field can
-// authorize a send. The installed manifest is checked separately by the Host.
-export function webFlowV2ReviewedArgs(intent){
-  const defaults=intent?.taskId==='chatgpt.conversation.create'?{send:false}:{};
-  return Object.freeze({...defaults,...intent.args});
-}
 
 // Must be called with manifest/installation returned by the EXISTING trusted
 // installed-Task verifier. It cannot grant V2 automatic execution or inherit
 // any V1 approval. Unknown, current-page and dynamic targets fail closed.
-export function webFlowV2ReviewedEntry(taskId){
-  if(typeof taskId!=='string'||!Object.hasOwn(entries,taskId))
-    throw fail('E_WEBFLOW_TARGET_UNBOUND','该任务没有已审核的 V2 固定入口');
-  return entries[taskId];
-}
-
 export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
   if(!intent||Object.keys(intent).sort().join(',')!=='args,candidateId,protocol,taskId'||
     intent.protocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||

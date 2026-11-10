@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
+import {renderToStaticMarkup} from 'react-dom/server';
 
 const compiled=await build({stdin:{contents:"export {WebflowCurrentTask} from './projects/webflow/trusted/CurrentTask.tsx';",
  resolveDir:fileURLToPath(new URL('../../../',import.meta.url)),loader:'tsx'},bundle:true,
@@ -83,6 +84,21 @@ test('a historical unknown stays separate from the current page and exposes no r
  }
 });
 
+test('an unstarted pending review displays no unknown execution or allocated resources',()=>{
+ const receipt={execution:'not-started',release:'not-started',delivery:'not-sent',persistence:'not-confirmed'};
+ const bridge={view:{source:{documentId:'current'},session:{requestId:'pending',status:'待批准',
+  fields:{},tasks:[],actions:{}},receipt,history:[{requestId:'pending',pendingAuto:true,status:'prepared',
+   scope:{taskId:'google.search.top3'},createdAt:1,receipt}]},error:'',revision:0,read:async()=>{}};
+ const {document}=parseHTML(renderToStaticMarkup(React.createElement(WebflowCurrentTask,{controller:{},bridge})));
+  const history=document.querySelector('[data-webflow-original-records]');
+  assert.ok(history.textContent.includes('未批准 · 尚未执行'));
+  const current=document.querySelector('[aria-label="同次运行回执"]');
+  assert.ok(current.textContent.includes('尚未执行'));
+  assert.ok(current.textContent.includes('未创建执行资源'));
+  assert.ok(!current.textContent.includes('未知'));
+  assert.ok([...document.querySelectorAll('[data-webflow-action]')].every(button=>button.disabled));
+});
+
 test('a supplied bridge owns task reads and unknown original records stay independent of listener readiness',async()=>{
  const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
  const keys=['window','document','HTMLElement','Element','IS_REACT_ACT_ENVIRONMENT'];
@@ -131,4 +147,92 @@ test('an authoritative empty history query is visible but an unread or failed qu
   await React.act(async()=>root.unmount());
   for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
  }
+});
+
+function currentTaskMarkup(session,receipt){
+ const bridge={view:{source:{documentId:'current'},session:{requestId:'request',status:'待批准 · 未创建执行资源',
+  runId:null,resultId:null,fields:{},tasks:[],actions:{},...session},receipt},error:'',revision:0,read:async()=>{}};
+ return parseHTML(renderToStaticMarkup(React.createElement(WebflowCurrentTask,{controller:{},bridge}))).document;
+}
+function receiptFields(document){
+ const receipt=document.querySelector('[aria-label="同次运行回执"]');
+ return Object.fromEntries([...receipt.querySelectorAll('dt')].map(dt=>[dt.textContent,dt.nextElementSibling.textContent]));
+}
+
+test('a paused UNKNOWN run overrides the stale page status and exposes reserved identity without claiming a Result',()=>{
+ const requestId='9be410ea-9ec5-4916-baa0-c7a695dc7480',runId='daa466e4-d9ac-43da-ac63-13f862a5fbe0',
+  resultId='8d799fda-38ef-4e2f-966f-1b32507ff9d7';
+ const document=currentTaskMarkup({requestId,pendingAuto:{scope:{targetUrl:'https://www.google.com/',args:{}}}},
+  {requestId,runId,resultId,execution:'paused_unknown',persistence:'not-confirmed',release:'not-started',delivery:'unknown'});
+ const fields=receiptFields(document);
+ assert.match(document.querySelector('[data-webflow-current-status]').textContent,/暂停.*UNKNOWN/);
+ assert.match(fields['执行资源'],/已创建 Run/);
+ assert.match(fields['脚本执行'],/暂停.*UNKNOWN/);
+ assert.match(fields['持久结果'],/尚未核实/);
+ assert.match(fields['结果 ID'],/预留/);
+ assert.match(fields['资源释放'],/未知/);
+ assert.match(fields['原聊天交付'],/未知/);
+ assert.equal(document.querySelector('[aria-label="任务范围审核"]'),null);
+ const identity=[...document.querySelectorAll('details')].find(node=>node.querySelector('summary')?.textContent==='本次身份');
+ const ids=JSON.parse(identity.querySelector('pre').textContent);
+ assert.equal(ids.runId,runId);assert.equal(ids.resultId,resultId);
+ assert.ok(!document.body.textContent.includes('未创建执行资源'));
+});
+
+test('allocated resources, persistence, delivery and retirement remain independent',()=>{
+ for(const [execution,persistence,release,delivery] of [
+  ['running','not-confirmed','not-confirmed','not-sent'],
+  ['unknown','not-available','unknown','unknown'],
+  ['completed','verified','not-confirmed','submitted'],
+  ['failed','verified','released','not-sent'],
+  ['completed','verified','released','confirmed']]){
+  const document=currentTaskMarkup({}, {requestId:'request',runId:'host-run',resultId:'reserved-result',
+   execution,persistence,release,delivery});
+  const fields=receiptFields(document);
+  assert.match(fields['执行资源'],/已创建 Run/);
+  assert.equal(fields['持久结果'].includes('已核实'),persistence==='verified');
+  assert.equal(fields['结果 ID'].includes('预留'),persistence!=='verified');
+  assert.equal(fields['资源释放']==='已释放',release==='released');
+  assert.equal(fields['原聊天交付']==='已确认新增结果消息',delivery==='confirmed');
+ }
+});
+
+test('unknown without a Run is not proof that resources were never created',()=>{
+ const document=currentTaskMarkup({}, {execution:'unknown',release:'unknown',delivery:'unknown',persistence:'not-confirmed'});
+ assert.match(receiptFields(document)['执行资源'],/未知/);
+ assert.ok(!document.body.textContent.includes('未创建执行资源'));
+});
+
+test('a different request receipt cannot supply current identity or result bytes',()=>{
+ const document=currentTaskMarkup({}, {requestId:'another-request',runId:'OTHER_RUN',resultId:'OTHER_RESULT',
+  execution:'completed',persistence:'verified',release:'released',delivery:'confirmed',value:'OTHER_BYTES'});
+ assert.equal(document.querySelector('[aria-label="同次运行回执"]'),null);
+ assert.ok(!document.body.textContent.includes('OTHER_'));
+});
+
+test('the stopped original Run shows a durable stop Result, release and the concrete focus error without search success',()=>{
+ const requestId='9be410ea-9ec5-4916-baa0-c7a695dc7480',runId='daa466e4-d9ac-43da-ac63-13f862a5fbe0',
+  resultId='8d799fda-38ef-4e2f-966f-1b32507ff9d7';
+ const message='执行窗口聚焦读回超时，状态未确认；UNKNOWN 不会自动重试。';
+ const document=currentTaskMarkup({requestId}, {requestId,runId,resultId,execution:'stopped',
+  persistence:'verified',release:'released',delivery:'not-sent',error:{code:'E_WINDOW_FOCUS_UNCONFIRMED',message}});
+ const fields=receiptFields(document);
+ assert.equal(fields['脚本执行'],'已停止');
+ assert.equal(document.querySelector('[data-webflow-current-status]').textContent,'已停止');
+ assert.equal(fields['持久结果'],'已核实同一 Run / Result');
+ assert.equal(fields['资源释放'],'已释放');
+ assert.equal(fields['原聊天交付'],'尚未发送');
+ assert.ok(!fields['结果 ID'].includes('预留'));
+ assert.equal(document.querySelector('[aria-label="同次运行回执"] [role="alert"]').textContent,
+  `E_WINDOW_FOCUS_UNCONFIRMED：${message}`);
+ assert.ok(!document.body.textContent.includes('已完成'));
+ assert.equal(document.querySelector('[aria-label="同次运行回执"] details'),null);
+});
+
+test('an authoritative unstarted receipt never borrows stale page Run or Result identities',()=>{
+ const document=currentTaskMarkup({runId:'STALE_RUN',resultId:'STALE_RESULT'},
+  {requestId:'request',runId:null,resultId:null,execution:'not-started',release:'not-started',
+   persistence:'not-confirmed',delivery:'not-sent'});
+ assert.equal(receiptFields(document)['执行资源'],'未创建执行资源');
+ assert.ok(!document.body.textContent.includes('STALE_'));
 });

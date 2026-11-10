@@ -16,6 +16,7 @@ import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
 import {sidebarToolPackageHash} from './src/ui/sidebar-tools/package.js';
 import {buildOfficialTools} from './scripts/build-official-tools.mjs';
 import {buildOfficialPages} from './scripts/build-official-pages.mjs';
+import {preparePackagedTaskResources} from './scripts/packaged-task-resources.mjs';
 
 const browserEdition=resolveBrowserEdition();
 const aiLocalTest=process.env.OPENDESK_BUILD_MODE==='development'&&process.env.OPENDESK_AI_LOCAL_TEST==='1';
@@ -49,6 +50,8 @@ export default defineConfig({
     // recovery; it does not reuse a stale public catalog from process startup.
     async 'build:before'(wxt){
       if(wxt.config.command!=='serve')return;
+      // Task source is private package data, never a privileged Rollup input.
+      await preparePackagedTaskResources(wxt.config.publicDir,{root:wxt.config.root});
       await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
       await buildOfficialPages(wxt.config.publicDir,{root:wxt.config.root});
     },

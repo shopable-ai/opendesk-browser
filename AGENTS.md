@@ -60,6 +60,8 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 `OpenDeskTool.ui.confirm` 当前已具 **Bridge/Host/可信 adapter 源码实现与定向 Node 证据**，签名/输入/错误只在[原公开 API](docs/api/sidebar-tools.zh-CN.md#异步确认opendesktooluiconfirm拟议尚未实现)维护；不能在工具中假定可调用或复制另一套 SDK。旧 HTML/Vue 无须迁移 React，旧 Host 只有明确不支持且无待决 UI 才安全回退；busy、超时、取消和撤权不再次弹框。普通选择不授权，原敏感审阅和 Chrome 真实手势保留。
 
+**操作回执可见性（2026-11-10）：** 安装/更新/卸载、保存/复制等普通成功消息，使用原共享非阻断 Toast/notify 或一直可见的就近状态，不得只追加到可滚动正文末尾/折叠区。可信工作台复用原通知 Store 与唯一 React Root，普通工具仍走公开 `ui.notify`；不另建通知系统。错误、字段校验、长任务及未知结果保留持久原因与恢复入口，不能批量移除 `role=alert/status`；其他成功不得清除无关错误。具体展示、回执、生命周期与定向验证只按上述唯一合同维护。
+
 修改确认调用时同时核对 Promise/then：同步 boolean guard 不能机械改 async，结果对象显式判断 action，return/await 后续操作，捕获拒绝，所有 pending 恰好一次结算；卸载/取消/超时清理，finally 不覆盖结果或清新实例状态，确认后再核对原目标/版本。允许正确的 then 和 async/await，不开展无关全仓语法重写。公共测试归框架，CRUD/dirty/编辑器测试归原业务；规范更新不构成产品 PASS。
 
 ## 框架共享 AI Chat 与扩展插槽（2026-11-02）

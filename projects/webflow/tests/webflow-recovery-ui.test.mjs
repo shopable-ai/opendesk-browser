@@ -186,7 +186,8 @@ test('Authority installation states expose recovery without pretending to run or
     ['E_TASK_REMOVED','已卸载','打开安装审阅'],
     ['E_TASK_NOT_INSTALLED','尚未安装','打开安装审阅'],
     ['E_TASK_DISABLED','已停用','打开任务管理'],
-    ['E_TASK_INITIALIZATION','初始化失败','打开安装审阅']
+    ['E_TASK_INITIALIZATION','初始化失败','打开安装审阅'],
+    ['E_BUILTIN_VERSION_UNAVAILABLE','待重新验证','打开任务管理']
   ]){
     const host=sdk();host.taskRead=async id=>{
       if(id==='baidu.search.top3')throw Object.assign(Error('exact storage diagnostic'),{code});
@@ -203,6 +204,28 @@ test('Authority installation states expose recovery without pretending to run or
     await f.click('概览');assert.match(f.text(),/有固定脚本需要处理/);
     await f.close();
   }
+});
+test('runtime mismatch explains recovery, stays in attention and only becomes runnable after an authoritative refresh',async t=>{
+  const host=sdk();let stale=true;
+  host.taskRead=async id=>{
+    if(id==='baidu.search.top3'&&stale)throw Object.assign(Error('stale runtime identity'),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
+    return {task:host.pins.find(pin=>pin.taskId===id)};
+  };
+  const f=await mount(t,host);await f.click('脚本');
+  assert.match(taskCard(f).textContent,/运行时已更新.*同一固定任务包重新验证并确认安装/);
+  assert.doesNotMatch(taskCard(f).textContent,/读取失败|任务状态读取失败/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.click('筛选脚本');await f.click('需处理');
+  assert.equal(f.document.querySelectorAll('article').length,1);
+  await f.click('打开任务管理',taskCard(f));
+  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
+  await f.click('刷新');assert.match(taskCard(f).textContent,/待重新验证/);
+  stale=false;await f.click('刷新');
+  assert.match(f.text(),/没有匹配的固定任务/);
+  await f.click('清除筛选');
+  assert.match(taskCard(f).textContent,/可手动运行/);
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.equal(starts(host).length,0,'opening recovery and refreshing never submits or replays a task');
 });
 test('retrying failed initialization re-reads Authority and never submits a task',async t=>{
   const host=sdk();let unavailable=true;

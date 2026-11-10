@@ -17,24 +17,29 @@ function sourceOriginOf(value){
     return url.origin;
   }catch{throw fail();}
 }
+// Defaults affect semantic comparison only; required inputs remain explicit.
+function policyArgs(schema,args){
+ if(schema?.required?.some(key=>!Object.hasOwn(args,key)))throw fail();
+ return validateTaskParams(schema,args);
+}
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
   Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 export function normalizeAutoParameterPolicy(value,scope){
  if(value===undefined)return undefined; // Historical grants remain exact.
  if(!value||value.mode!=='schema'||Object.keys(value).some(key=>!['mode','variableKeys','paramsSchema'].includes(key))||
-  !Array.isArray(value.variableKeys)||!value.variableKeys.length||new Set(value.variableKeys).size!==value.variableKeys.length)
+  !Array.isArray(value.variableKeys)||new Set(value.variableKeys).size!==value.variableKeys.length)
   throw fail();
  const options=autoParameterOptions({taskId:scope.taskId,paramsSchema:value.paramsSchema});
- if(!options||value.variableKeys.some(key=>!options.variableKeys.includes(key)||!Object.hasOwn(scope.args,key)))throw fail();
+ if((value.variableKeys.length&&!options)||value.variableKeys.some(key=>!options.variableKeys.includes(key)||!Object.hasOwn(scope.args,key)))throw fail();
  try{
-  const checked=validateTaskParams(value.paramsSchema,scope.args);
-  if(canonical(checked)!==canonical(scope.args))throw fail();
+  policyArgs(value.paramsSchema,scope.args);
  }catch{throw fail();}
  return {mode:'schema',variableKeys:[...value.variableKeys].sort(),paramsSchema:structuredClone(value.paramsSchema)};
 }
 // Called with the resolved immutable installation, never an AI supplied schema.
 export function prepareAutoParameterPolicy(value,scope,paramsSchema){
- if(value===undefined)return undefined;
+ // The trusted Host supplies the resolved installed Schema for exact grants too.
+ if(value===undefined)value={mode:'schema',variableKeys:[]};
  if(!value||value.paramsSchema!==undefined&&canonical(value.paramsSchema)!==canonical(paramsSchema))throw fail();
  return normalizeAutoParameterPolicy({...value,paramsSchema},scope);
 }
@@ -72,9 +77,13 @@ function matchesAutoScope(grant,scope){
  const approved=normalizeAutoScope(grant.scope),policy=normalizeAutoParameterPolicy(grant.parameterPolicy,approved);
  if(canonical({...approved,args:{}})!==canonical({...scope,args:{}}))return false;
  if(!policy)return canonical(approved.args)===canonical(scope.args);
+ let approvedArgs,requestedArgs;
  try{
-  if(canonical(validateTaskParams(policy.paramsSchema,scope.args))!==canonical(scope.args))return false;
+  approvedArgs=policyArgs(policy.paramsSchema,approved.args);
+  requestedArgs=policyArgs(policy.paramsSchema,scope.args);
  }catch{return false;}
+ // Compare fixed values with the installed Schema's defaults, without rewriting
+ // candidate bytes or treating a different visibility choice as approved.
  const fixed=args=>Object.fromEntries(Object.entries(args).filter(([key])=>!policy.variableKeys.includes(key)));
- return policy.variableKeys.every(key=>Object.hasOwn(scope.args,key))&&canonical(fixed(approved.args))===canonical(fixed(scope.args));
+ return policy.variableKeys.every(key=>Object.hasOwn(scope.args,key))&&canonical(fixed(approvedArgs))===canonical(fixed(requestedArgs));
 }

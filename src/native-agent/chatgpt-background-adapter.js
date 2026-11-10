@@ -9,7 +9,7 @@ import {BUILTIN_TASK_RELEASES,taskRemovalKey} from '../platform/tasks/builtin-re
 import {installedKey,taskKey,validateTaskParams} from '../platform/tasks/contract.js';
 import {loadBuiltinWorkerSource} from '../libs/loader.js';
 import {builtinIdentity} from '../libs/identity.js';
-import {canonical,FoundationError} from '../platform/protocol.js';
+import {FoundationError} from '../platform/protocol.js';
 
 const fail=(code,message)=>new FoundationError(code,message);
 const pinKeys=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
@@ -50,7 +50,8 @@ export async function verifyChatGPTBackgroundTask({api,broker,scope}){
       installationId:installed.authorization?.installationId,generation:installed.authorization?.generation};
     if(scope.installation&&pinKeys.some(key=>scope.installation[key]!==installation[key]))
       throw fail('E_BRIDGE_REVISION','任务版本或安装授权已改变，请重新审阅');
-    if(canonical(validateTaskParams(manifest.paramsSchema,scope.args))!==canonical(scope.args))
+    validateTaskParams(manifest.paramsSchema,scope.args);
+    if(manifest.paramsSchema.required.some(key=>!Object.hasOwn(scope.args,key)))
       throw fail('E_BRIDGE_CONTEXT','自动候选必须包含完整参数');
     return {...manifest,installation};
   });

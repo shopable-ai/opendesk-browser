@@ -7,7 +7,8 @@
   const pinsEqual=(a,b)=>fields.every(k=>a&&b&&a[k]===b[k]);
   const terminal=new Set(['completed','failed','stopped','interrupted','cancelled','canceled','unknown']);
   const taskStates={E_TASK_NOT_INSTALLED:'missing',E_TASK_REMOVED:'removed',
-    E_TASK_DISABLED:'disabled',E_TASK_INITIALIZATION:'initialization'};
+    E_TASK_DISABLED:'disabled',E_TASK_INITIALIZATION:'initialization',
+    E_BUILTIN_VERSION_UNAVAILABLE:'runtime'};
   const errorState=error=>taskStates[error?.code]|| (error&&error.code==='E_REVISION'?'changed':
     error&&['E_PERMISSION','E_TOOL_DISABLED','E_OWNER'].includes(error.code)?'unavailable':'error');
   // Installation state comes from the Task Authority, never from display seeds.
@@ -21,6 +22,7 @@
       E_TASK_REMOVED:'你已卸载此脚本，不会自动装回。需要使用时可打开安装审阅重新安装。',
       E_TASK_DISABLED:'此脚本已停用。打开任务管理可恢复，刷新或升级不会自动启用。',
       E_TASK_INITIALIZATION:'内置脚本初始化失败。请重试初始化；仍失败时展开诊断或打开安装审阅。',
+      E_BUILTIN_VERSION_UNAVAILABLE:'浏览器运行时已更新，此脚本的原验证已失效。请打开任务管理，对同一固定任务包重新验证并确认安装，再刷新脚本状态。',
       E_REVISION:'任务安装版本或验证状态已变化。请到“我的”核对固定版本与验证状态，再刷新脚本状态。',
       E_TOOL_DISABLED:'Web Flow 已停用。请到“扩展”恢复应用后重新打开。',
       E_OWNER:'当前应用无权读取此任务。请到“扩展”核对 Web Flow 的任务授权后重新打开。'

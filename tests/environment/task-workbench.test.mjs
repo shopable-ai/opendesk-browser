@@ -2,6 +2,7 @@ import {taskConversationPolicy} from '../../src/ui/conversation/my-task-instruct
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {load} from 'cheerio';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
@@ -25,7 +26,7 @@ after(()=>{
     activeHandles:process._getActiveHandles?.().map(handle=>handle.constructor?.name)??[]
   }));
 });
-const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs,notify}={})=>{
   const nodes=new Map();
   const doc={documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
   const get=id=>{
@@ -102,7 +103,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   // Mirror the real React Side Panel: Task Workbench receives the shared
   // Developer view rather than a legacy DOM-only candidate control.
   const developerView=createDeveloperView();
-  const workbench=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,developerView,
+  const workbench=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,developerView,notify,
     importDraft:source=>importedDrafts.push(source)});
   const ui={...workbench,dispose(){workbench.dispose();developerView.dispose();}};
   // Business tests invoke exactly the actions wired to the production React
@@ -127,6 +128,84 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   };
   return {ui,developerView,myView:workbench.myView,field,action,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,click};
 };
+
+const managementCases=[
+  {name:'install',method:'installTask',action:'taskInstallClick',message:/已安装/,caption:/填写参数并运行/},
+  {name:'disable',method:'setInstalledTaskEnabled',action:'taskToggleClick',message:/已停用/},
+  {name:'enable',method:'setInstalledTaskEnabled',action:'taskToggleClick',message:/已重新启用/},
+  {name:'uninstall',method:'uninstallTask',action:'taskUninstallYesClick',message:/已卸载/}
+];
+async function managementFixture(t,operation,notify){
+  const f=make({installedInitially:operation.name!=='install',notify});
+  t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();await tick();
+  if(operation.name==='install'){
+    f.ui.showCatalogPage();await tick();await tick();
+    f.action('taskCatalogSelect','demo.form@1.0.0');await tick();await tick();
+  }
+  if(operation.name==='enable'){
+    f.catalogState.installed[0].enabled=false;await f.ui.refresh();
+  }
+  const request=f.client.request.bind(f.client);
+  f.client.request=async(method,input)=>{
+    if(method==='setInstalledTaskEnabled'){
+      f.catalogState.installed[0].enabled=input.enabled;
+      return structuredClone(f.catalogState.installed[0]);
+    }
+    if(method==='uninstallTask'){
+      f.catalogState.installed=[];f.catalogState.catalog[0].installed=false;return {uninstalled:true};
+    }
+    return request(method,input);
+  };
+  if(operation.name==='uninstall')f.action('taskUninstallClick');
+  return f;
+}
+for(const operation of managementCases){
+  test('management success notification: '+operation.name,async t=>{
+    const notices=[];
+    const f=await managementFixture(t,operation,(message,options)=>notices.push({message,options}));
+    const request=f.client.request.bind(f.client);
+    let release;
+    f.client.request=async(method,input)=>{
+      if(method===operation.method)await new Promise(resolve=>{release=resolve;});
+      return request(method,input);
+    };
+    const pending=f.action(operation.action);await tick();
+    assert.equal(typeof release,'function');assert.deepEqual(notices,[],'no success before actual receipt');
+    release();await pending;
+    assert.equal(notices.length,1);assert.match(notices[0].message,operation.message);
+    assert.equal(notices[0].options.type,'success');
+    if(operation.caption)assert.match(notices[0].options.caption,operation.caption);
+    assert.doesNotMatch(f.field('task-status').text,operation.message,'ordinary success is not footer status');
+  });
+  test('management success notification preserves legacy fallback: '+operation.name,async t=>{
+    const f=await managementFixture(t,operation);
+    await f.action(operation.action);
+    assert.match(f.field('task-status').text,operation.message);
+  });
+  test('management success notification keeps unknown failure persistent: '+operation.name,async t=>{
+    const notices=[],f=await managementFixture(t,operation,(...args)=>notices.push(args));
+    const request=f.client.request.bind(f.client);
+    f.client.request=async(method,input)=>{
+      if(method===operation.method)throw {code:'E_OUTCOME_UNKNOWN',message:'结果未知，请勿重放'};
+      return request(method,input);
+    };
+    await f.action(operation.action);
+    assert.deepEqual(notices,[]);assert.match(f.field('task-status').text,/E_OUTCOME_UNKNOWN.*结果未知/);
+  });
+  for(const phase of ['receipt','refresh'])test('management success notification ignores disposed '+phase+': '+operation.name,async t=>{
+    const notices=[],f=await managementFixture(t,operation,(...args)=>notices.push(args));
+    const request=f.client.request.bind(f.client);
+    let release;
+    f.client.request=async(method,input)=>{
+      if(method===(phase==='receipt'?operation.method:'listTaskCatalog'))
+        await new Promise(resolve=>{release=resolve;});
+      return request(method,input);
+    };
+    const pending=f.action(operation.action);await tick();
+    assert.equal(typeof release,'function');f.ui.dispose();release();await pending;
+    assert.deepEqual(notices,[]);
+  });
+}
 
 test('manual installed Run uses the reviewed duration and keeps the legacy 30 second default',async t=>{
   for(const deadlineMs of [undefined,120000]){
@@ -425,7 +504,11 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   // SSR is generated from the production React component tree, not hand-coded DOM.
   const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
   const html=await renderSidebarReact({myView:f.myView});
-  assert.match(html,/<button[^>]*class="task-card"[^>]*data-task-id="demo.form"[^>]*aria-pressed="true"[^>]*aria-expanded="true"[^>]*aria-controls="task-selected-workspace"/);
+  const row=load(html)('button.task-card[data-task-id="demo.form"]');
+  assert.equal(row.length,1);
+  assert.equal(row.attr('aria-pressed'),'true');
+  assert.equal(row.attr('aria-expanded'),'true');
+  assert.equal(row.attr('aria-controls'),'task-selected-workspace');
   assert.match(html,/task-card-copy[^>]*><strong>表单任务<\/strong><small>输入表单<\/small>/);
   assert.equal((html.match(/id="task-selected-workspace"/g)||[]).length,1,
     'React owns exactly one shared task workspace, not a duplicated form');
@@ -554,7 +637,8 @@ test('R4 idle Extensions has no fixed footer and My task search import still ope
   await f.click('tab-tools');
   assert.equal(f.myView.data.runDock.hidden,true,'idle Extensions have no manual run dock');
   await f.click('tab-my-tasks');
-  assert.equal(f.myView.data.runDock.taskHidden,false,'My shows the legitimate Task Run dock');
+  assert.equal(f.myView.data.runDock.taskHidden,true,'idle My keeps the stop-only dock hidden');
+  assert.equal(f.field('task-run').disabled,false,'manual Run remains in the selected task workspace');
   await f.click('task-open-catalog');
   assert.equal(f.field('task-add-menu').hidden,false);
   assert.equal(f.catalogOpens.length,0,'Add is compact before selecting catalog');
@@ -1034,9 +1118,10 @@ test('tool editor navigation veto retains visible panel, selected tab and keyboa
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
 });
 
-test('Scheduled Tasks hides idle manual Run dock and never borrows scheduled Run as Developer Stop',async t=>{
+test('Scheduled Tasks preserves the idle stop-only dock and never borrows scheduled Run as Developer Stop',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.myView.data.runDock.taskHidden,false,'ordinary My retains manual Task Run');
+  assert.equal(f.myView.data.runDock.taskHidden,true,'idle My has no Stop action');
+  assert.equal(f.field('task-run').disabled,false,'ordinary My retains its workspace Run');
   f.ui.setScheduledSurfaceActive(true);
   assert.equal(f.myView.data.runDock.taskHidden,true);
   assert.equal(f.myView.data.runDock.hidden,true,'scheduled form hides unrelated manual Run');
@@ -1049,7 +1134,8 @@ test('Scheduled Tasks hides idle manual Run dock and never borrows scheduled Run
   f.host.complete(true);await f.host.completion;
   f.ui.setScheduledRunOwner(null);f.ui.setScheduledSurfaceActive(false);
   f.ui.navigate('tasks');
-  assert.equal(f.myView.data.runDock.taskHidden,false,'ordinary Task Run returns');
+  assert.equal(f.myView.data.runDock.taskHidden,true,'idle dock stays hidden after scheduled Run');
+  assert.equal(f.field('task-run').disabled,false,'ordinary workspace Run returns');
 });
 
 test('Workflow Task one-shot review handoff preselects exact candidate and runId but never verifies or installs',async t=>{

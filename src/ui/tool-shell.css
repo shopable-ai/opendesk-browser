@@ -22,14 +22,17 @@
 .workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active);background:transparent;font-weight:700}
 /* The horizontally scrolling tablist clips outward outlines vertically. */
 .workbench-nav button:focus-visible{outline-offset:-3px}
-#workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
+/* One page inset for ordinary lists/forms. A visible ToolHost owns its header
+ * inset; a concealed debug preview must not remove the list's breathing room. */
+#workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:var(--space-3);max-width:980px;width:100%;padding:var(--space-3) var(--od-page-gutter);margin:0 auto}
+#workspace-content:has(> #workbench-tools:not([hidden]) > #sidebar-tools > .sidebar-tool-host:not([hidden]) > #sidebar-tool-display:not([hidden])){padding-top:0}
 #workspace-content>div[hidden]{display:none!important}
 /* The Tools panel is itself full-canvas; its inner inset matches trusted headers.
  * This keeps the outdented sandbox within the panel's measured scroll bounds. */
 #workbench-tools{width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter));padding-inline:var(--od-page-gutter)}
 #workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}
 #workspace-content .tasks-surface,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
-.workspace-dock{flex:none;background:var(--od-paper);border-top:1px solid var(--line);padding:8px 11px 10px}
+.workspace-dock{flex:none;background:var(--od-paper);border-top:1px solid var(--line);padding:var(--space-2) var(--od-page-gutter) var(--space-3)}
 .dock-actions[hidden]{display:none!important}
 .dock-buttons{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
 .dock-buttons button{min-height:34px;padding:var(--space-1) var(--space-3);border-radius:var(--radius-control);font-size:12px;font-weight:700}
@@ -42,29 +45,49 @@
 #task-stop,#script-stop,#script-save,#workflow-save,#workflow-stop{flex:none;background:var(--od-action-bg);color:var(--od-action-ink);border:1px solid var(--od-action-border)}
 #task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled{display:none}
 
-/* Installed tasks: one compact list, detail/params inside the selected row. */
-.task-card-list{display:grid;gap:8px;margin:0}
-.task-card-group{min-width:0;background:var(--od-paper);border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}
-.task-card-group.selected{border-color:var(--od-focus);box-shadow:0 0 0 1px var(--od-focus)}
-.task-card{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-width:0;min-height:64px;padding:10px 12px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}
-.task-card:hover{background:var(--od-muted)!important}
+/* Installed tasks share the collection frame; the one mounted workspace is a separate group. */
+.task-card-list{min-width:0;margin:0}
+.task-browser{display:grid;gap:var(--space-4);min-width:0}
+.task-card-group{position:relative;--task-row-surface:var(--od-paper);background:var(--task-row-surface)}
+.task-card-group.selected{--task-row-surface:color-mix(in srgb,var(--od-focus) 4%,var(--od-paper))}
+.task-card-group:is(:hover,:focus-within){--task-row-surface:var(--od-muted)}
+.task-card-group.selected>.task-card{box-shadow:inset 2px 0 var(--od-focus)}
+.task-card.od-button{display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:var(--space-3);width:100%;min-width:0;min-height:68px;padding:var(--space-3);font-weight:400;color:var(--od-ink);background:transparent;border:0;border-radius:0}
+.task-card.od-button:hover{background:transparent;filter:none}
 .task-card:focus-visible{outline-offset:-3px}
-.task-card-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-accent-ink);font-size:14px;font-weight:600}
-.task-card-copy{flex:1;min-width:0}
-.task-card-copy strong{display:block;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
-.task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:var(--od-sub);font-size:11px;line-height:1.45;margin-top:3px}
-.task-card-state{flex:none;color:var(--od-warning);background:var(--od-muted);border-radius:var(--radius-pill);padding:3px 7px;font-size:11px;white-space:nowrap}
-.task-card-state:empty{display:none}
-.task-card-state.off{color:var(--od-sub)}
-.task-card-state:not(.off):not(:empty){background:var(--od-muted);color:var(--od-positive)}
-.task-selected-workspace{min-width:0;border-top:1px solid var(--od-line);padding:11px 12px 12px;background:var(--od-paper)}
-#task-current-site{margin:0 0 5px;font:11px/1.4 system-ui,sans-serif;font-weight:650;color:var(--od-positive)}
+.task-card-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
+.task-card-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.task-card-copy{display:grid;gap:var(--space-1);flex:1;min-width:0}
+.task-card-copy strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--od-body-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
+.task-card-state{color:var(--od-sub);white-space:nowrap}
+.task-selected-workspace{display:grid;gap:var(--space-3);min-width:0;padding:0}
+.task-selected-workspace>:not([hidden]){margin-block:0}
+#task-current-site{margin:0;font:650 var(--od-note-size)/1.5 system-ui,sans-serif;color:var(--od-positive)}
 #task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:var(--od-negative)}
-#task-params-form{min-width:0;margin:4px 0 7px}
+#task-params-form{display:grid;gap:var(--space-3);min-width:0;margin:0}
 #task-params-form:empty{display:none}
-#task-params-form label{font-weight:650;font-size:12px;margin:7px 0 4px}
-#task-params-form .hint{font-size:11px;font-weight:400;margin:3px 0}
-#task-params-form input[type=checkbox]{width:auto;min-height:0}
+.task-param-fields{display:grid;gap:var(--space-2);min-width:0}
+.task-param-control{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);align-items:center;min-width:0;min-height:40px}
+.task-param-control:has([aria-invalid=true]){border-color:var(--od-negative)}
+.task-param-control>label{padding:var(--space-2) var(--space-3);margin:0;font-size:var(--od-note-size);font-weight:500;color:var(--od-sub);overflow-wrap:anywhere}
+.task-param-required{color:var(--od-sub)}
+#task-params-form .task-param-control>.od-field:not([type=checkbox]){min-width:0;width:100%;margin:0;border:0;border-radius:0;box-shadow:none;background:transparent;outline:0}
+.task-param-control--check{grid-template-columns:minmax(0,1fr) auto}
+.task-param-toggle{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
+.task-param-toggle-state{font-size:var(--od-note-size);color:var(--od-sub)}
+.task-param-clear.od-button{min-height:24px;padding:0 var(--space-1);font-size:var(--od-note-size)}
+#task-params-form .task-param-control>textarea{resize:vertical;font-family:inherit;line-height:1.5}
+.task-param-control:has(textarea){align-items:start}
+.task-params-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.task-params-section-label{font-size:var(--od-note-size);font-weight:600}
+.task-params-section-label>span{margin-left:var(--space-1);font-weight:400;color:var(--od-sub)}
+.task-params-mode.od-segmented{flex:none;margin:0;padding:2px;border:0;gap:0;border-radius:var(--radius-control)}
+.task-params-mode>.od-button{min-height:28px;padding:var(--space-1) var(--space-3);font-size:var(--od-note-size);font-weight:500;border:0;border-radius:calc(var(--radius-control) - 2px);color:var(--od-sub)}
+.task-params-mode [aria-pressed=true]{background:var(--od-paper);color:var(--od-ink);box-shadow:0 1px 3px color-mix(in srgb,var(--od-ink) 10%,transparent)}
+.task-param-json{display:grid;gap:var(--space-1);min-width:0}
+.task-param-fields[hidden],.task-param-json[hidden]{display:none}
+#task-params-json{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;min-height:180px;margin:0;line-height:1.7;tab-size:2}
 #task-params-form select{width:100%}
 #task-status{font-size:12px;line-height:1.45;color:var(--od-sub);background:var(--od-muted);border-radius:var(--radius-control);padding:7px 8px;margin:5px 0}
 #task-status:empty{display:none}
@@ -78,7 +101,6 @@
 .result-toolbar .hint{margin:0;color:var(--od-sub);font-size:11px}
 .result-toolbar button:disabled{opacity:.5}
 #task-result{margin:0;max-height:160px;border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink)}
-.task-selected-workspace>.od-disclosure{margin-top:var(--space-2)}
 
 #task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;color:var(--od-sub)}
 .task-history-entries{display:grid;gap:6px;margin:8px 0}
@@ -103,14 +125,26 @@
 .task-detail-fact{display:grid;grid-template-columns:minmax(64px,.32fr) minmax(0,1fr);gap:var(--space-2);min-width:0;align-items:start}
 .task-detail-fact span{color:var(--od-sub);font-size:11px}
 .task-detail-fact strong{font-size:11px;color:var(--od-ink);font-weight:500;overflow-wrap:anywhere}
-.task-card-group[data-management="true"]{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
-.task-card-group[data-management="true"]>.task-card{min-width:0}
-.task-card-group[data-management="true"]>.task-selected-workspace{grid-column:1/-1}
-.task-card-manage{margin-inline-end:var(--space-2);width:34px;height:34px;min-width:34px;min-height:34px}
-.task-card-manage svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.task-card-actions{position:absolute;right:var(--space-2);top:50%;transform:translateY(-50%);z-index:1;display:flex;align-items:center;gap:var(--space-1);opacity:0;pointer-events:none;border-radius:var(--radius-control);background:var(--task-row-surface)}
+.task-card-actions::before{content:"";position:absolute;right:100%;top:0;bottom:0;width:var(--space-4);background:linear-gradient(to right,transparent,var(--task-row-surface));pointer-events:none}
+.task-card-group--action-visible .task-card-actions,.task-card-group:is(:hover,:focus-within) .task-card-actions,.task-card-group:has([aria-expanded=true].task-card-manage) .task-card-actions{opacity:1;pointer-events:auto}
+.task-card-manage,.task-card-run{margin:0;width:34px;height:34px;min-width:34px;min-height:34px;border-color:transparent;background:transparent}
+.task-card-run{display:none}
+.task-card-group:is(:hover,:focus-within) .task-card-run{display:grid}
+.task-card-manage svg,.task-card-run svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(hover:none),(pointer:coarse){
+  /* The always-visible menu uses the existing glyph slot, so long text has no
+     overlaid actions or reserved right column. Run remains in this menu. */
+  .task-card-actions{left:var(--space-2);right:auto;opacity:1;pointer-events:auto}
+  .task-card-actions::before{display:none}
+  .task-card-actions>.task-card-run{display:none}
+  .task-card-group .task-card-icon{visibility:hidden}
+  .task-card-manage{width:44px;height:44px;min-width:44px;min-height:44px}
+  .task-param-toggle{min-height:44px}
+  .task-param-clear.od-button{min-height:44px}
+}
 #task-manage-toggle[aria-pressed="true"]{background:var(--od-muted);border-color:transparent;color:var(--od-accent-ink)}
 #task-installed-count:empty{display:none}
-@media(max-width:340px){#task-tools>.task-operation-strip{gap:6px}#task-tools .task-operation-strip .od-icon-button{width:32px;height:32px;min-width:32px;min-height:32px}}
 .task-card-list>.hint{background:var(--od-paper);border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}
 
 /* Find/filter stays inside installed Task management, never as a top-level action. */
@@ -132,7 +166,7 @@
 #workbench-develop .developer-context .developer-target>details,
 #workbench-develop .developer-run-area>:not([hidden]){margin-block:0}
 #workbench-develop .developer-editor>:not([hidden]){margin-block:0}
-#workbench-develop #manual-source-editor{display:grid;gap:var(--space-2);min-width:0}
+#workbench-develop #manual-source-editor{display:grid;gap:var(--space-3);min-width:0}
 #workbench-develop #manual-source-editor>:not([hidden]){margin-block:0}
 #workbench-develop .local-project-tools>:not([hidden]){margin-block:0}
 /* Dev layout only: component text, colors, borders and inner spacing are shared. */
@@ -180,7 +214,8 @@
 @media(pointer:coarse){#page-component-framework .page-component-choices label{min-height:44px}}
 @media(forced-colors:active){#page-component-framework .page-component-choices label:has(input:checked)>span{border-color:Highlight;color:Highlight}#page-component-framework .page-component-choices label:has(input:focus-visible)>span{outline-color:Highlight}}
 
-.local-project-tools{display:grid;gap:var(--space-3);margin:0}
+.local-project-tools{display:grid;gap:var(--space-4);margin:0}
+.local-project-binding>.od-toolbar{flex-wrap:wrap}
 .local-project-intro{margin:0}
 .local-project-connect{width:100%;text-align:center}
 .local-project-recovery{display:grid;gap:var(--space-2)}
@@ -271,9 +306,7 @@
 [data-opendesk-surface=catalog] #workbench-discover{min-height:100%}
 @media(max-width:900px){.catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){
-#workspace-content{padding:10px var(--od-page-gutter)}
 #workspace-content .catalog-section{padding:12px}
-.workspace-dock{padding:9px 12px 12px}
 .catalog-card-grid{grid-template-columns:1fr}
 .catalog-open{padding:8px 9px}
 [data-opendesk-surface=catalog] #workspace-content{padding:17px 13px}
@@ -305,10 +338,8 @@
 #workbench-discover .catalog-reader-facts strong{color:#233b5a}
 #workbench-discover .catalog-card{min-height:150px}
 @media(max-width:340px){
-  #workspace-content{--od-page-gutter:9px;padding:8px var(--od-page-gutter)}
-  .workspace-dock{padding:8px 9px}
+  .workspace-dock{padding:var(--space-2) var(--od-page-gutter)}
   .workbench-nav{padding:0 8px}
-  .task-selected-workspace{padding:8px 9px}
   .local-discovery-filters button{padding:6px 9px}
   .dock-buttons{flex-wrap:wrap}
   .dock-buttons button{flex:1 1 calc(50% - 6px)}
@@ -778,6 +809,20 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .workflow-sheet-content .workflow-provider{max-height:none;overflow:visible;padding-right:0;margin:0}
 .workflow-sheet-content .workflow-connection-line{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
 .workflow-sheet-content .workflow-provider-info,.workflow-sheet-content .workflow-provider-diagnostics{margin-top:var(--space-3)}
+.task-params-sheet{inset:auto 0 0;box-sizing:border-box;margin:0;padding:0;width:100%;max-width:none;max-height:calc(100dvh - var(--space-4));color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-bottom:0;border-radius:var(--radius-surface) var(--radius-surface) 0 0;box-shadow:0 -10px 32px color-mix(in srgb,var(--od-ink) 16%,transparent);overflow:hidden}
+.task-params-sheet[open]{display:flex;flex-direction:column}
+.task-params-sheet::backdrop{background:color-mix(in srgb,var(--od-ink) 40%,transparent)}
+.task-params-sheet-heading{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);border-bottom:1px solid var(--od-line);flex:none}
+.task-params-sheet-heading>div{min-width:0;flex:1}
+.task-params-sheet-heading>.od-icon-button{align-self:flex-start}
+.task-params-sheet-kicker{margin:0 0 var(--space-1);font-size:var(--od-note-size);color:var(--od-sub)}
+.task-params-sheet-heading h2{margin:0;font-size:var(--od-body-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.task-params-sheet-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:var(--space-4)}
+.task-params-sheet-content>.hint:first-child{margin-top:0}
+.task-params-sheet-content #task-params-form{margin-top:var(--space-3)}
+.task-params-sheet-status:empty{display:none}
+.task-param-error{color:var(--od-negative)}
+.task-params-sheet-actions{display:flex;justify-content:flex-end;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-top:1px solid var(--od-line);background:var(--od-paper);flex:none}
 @media(max-width:360px){.workflow-sheet-panel{max-height:min(78dvh,520px)}.workflow-sheet-content{padding:var(--space-3)}}
 @media(prefers-reduced-motion:reduce){.workflow-sheet-panel,.workflow-sheet-overlay{animation:none!important;transition:none!important}}
 

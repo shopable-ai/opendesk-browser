@@ -27,7 +27,7 @@
 6. 观察独立目标网页、任务状态和原对话。固定页读取 `https://httpbingo.org/html`；百度只读取搜索页的自然结果，不打开结果链接。只有观察到真实结果在原对话出现一次及其后的中文 AI 回复，才算完成整条链路。百度可能如实返回验证码、访问受阻、搜索区域不可用、结构变化或无结果；程序「已完成」不等于搜索成功。
 7. 需要取消时点击本请求的「停止/取消」。停止已登记不代表资源已经释放。若显示 `UNKNOWN` 或回执不确定，保留请求/运行身份，按原记录只读查询，不重复执行或补发。不要在等待期间切换对话、重新生成回复或改动本轮任务；旧批准不随页面迁移。回传时输入框有草稿、附件或正在使用输入法，系统应拒绝覆盖。
 
-本目录百度任务当前包为 `1.1.4`（revision 1，最长 120 秒），首页入口为 `https://www.baidu.com/`：通过公开 Locator 填写关键词、读回确认后点击一次搜索，再读取匹配关键词的结果页；保留填写后及结果展示各 3 秒的观看时间。已有精确 `/s?wd=<query>` 入口保持只读，不再次提交搜索。操作使用受控 DOM，不代表物理键鼠输入；文档接管、权限或动作回执不确定时停止，不自动重试。每个安装版本拥有独立脚本 ID 和 revision 1；`1.1.1` 修正了开发候选 `1.1.0` 将该 revision 写为 2 的清单错误，源码字节相同，升级仍需原安装审阅。JSON 的源码和哈希一致不代表真实 Chrome 运行、导航接管或安装验收已通过。
+本目录百度任务当前包为 `1.1.5`（revision 1，最长 120 秒），首页入口为 `https://www.baidu.com/`：通过公开 Locator 填写关键词、读回确认后点击一次搜索，再读取匹配关键词的结果页；保留填写后及结果展示各 3 秒的观看时间。已有精确 `/s?wd=<query>` 入口保持只读，不再次提交搜索。操作使用受控 DOM，不代表物理键鼠输入；文档接管、权限或动作回执不确定时停止，不自动重试。每个安装版本拥有独立脚本 ID 和 revision 1；`1.1.1` 修正了开发候选 `1.1.0` 将该 revision 写为 2 的清单错误，源码字节相同，升级仍需原安装审阅。JSON 的源码和哈希一致不代表真实 Chrome 运行、导航接管或安装验收已通过。
 
 2026-11-04 的 1.1.4 只调整 manifest 期限：同窗口正确路由的原 1.1.3 Run `9c700548…` 在 60 秒被围栏停止；源码 `14b8dd8d…` 未变化。原“开发”入口选择 120 秒的新 Run `56321c09-4c89-46aa-b95d-145e7247ab1c` 已返回 `success/count3`、Worker 退休且 released。1.1.4 包已导入本地目录，但核对证据、设为可用和安装尚未完成；当前安装及双关键词最终证据以 [WebFlow 断点](../../projects/webflow/README.md#当前状态)为准，不能继承旧安装或旧 Run 的证据。
 
@@ -37,8 +37,10 @@
 
 | 任务包 | 包内版本 | 目标网址 | 参数 |
 | --- | --- | --- | --- |
-| [百度](baidu.search.top3.v1.opendesk-task.json) | `baidu.search.top3@1.1.4` | `https://www.baidu.com/` | `{"query":"OpenDesk Browser","limit":3}` |
-| [Google](google.search.top3.v1.opendesk-task.json) | `google.search.top3@1.0.0` | `https://www.google.com/` | `{"query":"OpenDesk Browser","limit":3}` |
+| [百度](baidu.search.top3.v1.opendesk-task.json) | `baidu.search.top3@1.1.5` | `https://www.baidu.com/` | `{"query":"OpenDesk Browser","limit":3}` |
+| [Google](google.search.top3.v1.opendesk-task.json) | `google.search.top3@1.0.3` | `https://www.google.com/` | `{"query":"OpenDesk Browser","limit":3}` |
+
+两个搜索任务的可选参数 `showExecutionTab` 省略时默认为 `true`：严格校验参数及目标 Origin/关键词后，通过公开 `page.bringToFront()` 显示执行标签页，每次运行最多调用一次；显式 `false` 跳过显示，仍正常搜索。参数存在时必须为 boolean（包括显式 `undefined` 在内的其他类型均拒绝），未知参数仍拒绝，`limit` 固定为 3。显示失败或回执未知即停止，不继续填写、提交或重放。
 
 先按上文完成固定版本的验证、安装。推荐直接发送下方命令，识别后点击「允许本聊天」执行当前命令，后续同脚本、同网址且参数合法的新命令直接执行。也可先从已安装脚本中选择对应任务、核对网址，再允许本聊天；无需先填本次搜索词。每轮仍更换 `candidateId`，Google 使用表中的对应 ID/网址。手动模式不批准本聊天，等待“尚未运行”后点一次「执行」。需要精确的一次预批准时，仍可展开「更多请求方式」使用原 5 分钟入口。
 

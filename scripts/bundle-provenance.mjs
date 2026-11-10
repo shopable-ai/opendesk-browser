@@ -22,8 +22,8 @@ const compiledTimeReviewInputs=Object.freeze({
 // Their sourceUtf8 stays frozen data; only Controller may execute it after
 // installation and run authorization. Never admit their JS source modules.
 const packagedTaskInputs=Object.freeze({
-  'examples/tasks/baidu.search.top3.v1.opendesk-task.json':'a6de803966dc852bfda005d0d572ebee593e01fe',
-  'examples/tasks/google.search.top3.v1.opendesk-task.json':'9ef0c0f53c92729bb15db262f4c274c113d036cf'
+  'examples/tasks/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
+  'examples/tasks/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
 });
 function reviewedPackagedTask(target,path,root){
   if(target!=='sw.js'||!Object.hasOwn(packagedTaskInputs,path))return null;
@@ -36,20 +36,26 @@ function reviewedPackagedTask(target,path,root){
 // Web Flow's trigger policy is pure data validation; only its compiled settings
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
-  'projects/webflow/src/auto-grants.js':'a365dafbe226978e163f4db67c2b9b7e5eb65ac8',
+  'projects/webflow/src/auto-grants.js':'ef783837abb1ff87f963a7343d34b796db6a58c6',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
   // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'2d164d73d8315e974746eb243f2e155baf2375fd',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'325eabdec2a0d01312be399cbc4e47a1f7881d6a',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
   // 2026-11-09 reviewed prompt-only follow-up: readable intent then one JSON
-  // candidate; schema, local approval, permissions and execution are unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'f179641bf4890258fecaa1c54272ade3d4cac45f',
-  // Reviewed read-only background history, UNKNOWN guidance and distinct AI acknowledgement.
-  'projects/webflow/trusted/CurrentTask.tsx':'263cb461d970571b43aa5cbc0f265096892e327a',
+  // candidate. 2026-11-10: installed Schema optional-default comparison; exact
+  // identity, required inputs, fixed values and original candidate bytes remain fenced.
+  // 2026-11-11: stable loading/control slot and persistent emergency management;
+  // original native gestures, authority and unknown-result fences are unchanged.
+  'projects/webflow/trusted/AutoSettings.tsx':'483a1f303b2350c6e5c6c5a8022f40753b504297',
+  // Reviewed read-only projection: correlate the same request, prefer its Run,
+  // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
+  'projects/webflow/trusted/CurrentTask.tsx':'29cf57434ef25f320699c53a4bb1387913df1b26',
+  // Reviewed display-only scripts route, consumed by the same fixed tool shell.
+  'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
 });
 function reviewedCompiledWebFlow(target,path,root){
@@ -57,7 +63,7 @@ function reviewedCompiledWebFlow(target,path,root){
   const siteAdapter=path==='projects/webflow/trusted/chatgpt-bridge-page.js'||
     path==='projects/webflow/trusted/legacy-chatgpt-panel.js';
   const allowed=siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
-    path.startsWith('projects/webflow/trusted/')?target==='ui/tool-shell.js':
+    path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
   if(!allowed)return null;
   const file=resolve(root,path);
