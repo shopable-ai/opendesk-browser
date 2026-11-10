@@ -28,6 +28,9 @@ on:
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'projects/webflow/trusted/md-run-ledger.js'
       - 'projects/webflow/tests/md-run-ledger.test.mjs'
+      - 'projects/webflow/src/md-run-contract.js'
+      - 'projects/webflow/tests/md-run-contract.test.mjs'
+      - 'projects/webflow/tests/md-workflow.test.mjs'
       - 'src/platform/tasks/builtin-releases.js'
       - 'src/platform/tasks/service.js'
       - 'tests/environment/task-builtin-initialization.test.mjs'
@@ -81,6 +84,7 @@ jobs:
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check projects/webflow/trusted/md-run-ledger.js
           node --check projects/webflow/tests/md-run-ledger.test.mjs
+          node --check projects/webflow/src/md-run-contract.js
           node --check src/native-agent/chatgpt-background-adapter.js
           node --check src/native-agent/workspace-chatgpt.js
           node --check src/page-events/web-task-ingress.js
@@ -93,6 +97,8 @@ jobs:
             projects/webflow/tests/chatgpt-send-task.test.mjs \
             projects/webflow/tests/task-intent-v2.test.mjs \
             projects/webflow/tests/md-run-ledger.test.mjs \
+            projects/webflow/tests/md-run-contract.test.mjs \
+            projects/webflow/tests/md-workflow.test.mjs \
             tests/environment/task-builtin-initialization.test.mjs
             # MD ledger uses only the original transaction API, no Chrome mocks in production.
 
