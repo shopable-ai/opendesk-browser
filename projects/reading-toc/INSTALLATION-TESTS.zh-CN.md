@@ -14,9 +14,21 @@
 
 唯一正式包已按原候选→验证→晋升→`PROJECT_PACKAGE_MATCH` 交付：**1.1.10 / Page revision 10**，137712 bytes，SHA-256 `0eaa56ed91a3d243803db3170b59c36938cbccc672033ff1aa03c0fc6f0e10dc`，Page sourceHash `f1a9886cd532e9436749f03eb811823f0e331f4b05a07de96e3f5e2e390d8dd2`。保留既有 1.1.7 顶部避让补丁，未改变工具身份、能力、站点范围或偏好结构。
 
-真实安装：系统 Chrome 原「扩展→导入扩展」审阅 1.1.9→1.1.10，明确权限未变化。首次回执为父包已保存、旧模块清理未知，未自动重试或改写记录；只读 Authority 和真实文档确认 revision 9 的三个存活文档。两个空草稿页普通刷新；另一页「Unknown error」草稿有原逐字备份，刷新后输入框仍为同一草稿，未发送、清队列或中断生成。同一正式包再次通过「核对并恢复网页模块」，原界面显示「已更新阅读目录，可直接打开使用」。尚待最后读回模块绑定及新版的刷新、切换、重开和定位；安装成功不能代替这些运行证据。
+真实安装：系统 Chrome 原「扩展→导入扩展」审阅 1.1.9→1.1.10，明确权限未变化。首次回执为父包已保存、旧模块清理未知，未自动重试或改写记录；只读 Authority 和真实文档确认 revision 9 的三个存活文档。两个空草稿页普通刷新；另一页「Unknown error」草稿有原逐字备份，刷新后输入框仍为同一草稿，未发送、清队列或中断生成。同一正式包再次通过「核对并恢复网页模块」，原界面显示「已更新阅读目录，可直接打开使用」。用户随后明确允许短暂独占窗口，本轮完成下列新版运行检查。
 
-环境：持续开发，沿用系统 Chrome、`dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，未重装 Browser 或启动第二 writer。前轮 PID 1455 已退出，本轮使用的现有 dev 服务观察为 PID 71911；调试入口曾读回连接成功并应用 `b3a9d86f8be42fd0cd21cbeaddf1a3ab8039b4bb098fb38048edb502fe841d3a`。这是当时观察，后续并行 watcher 更新不据此冒充最终运行候选。未申请 Profile/TaskSpace，production、原生撤权/卸载、完整站点矩阵、压力和评分均 `NOT_TESTED`。
+| 1.1.10 核心操作 | 系统 Chrome 实测 |
+| --- | --- |
+| 指定文档读取 | 正文恢复后，网页内与侧栏自动显示最新回复的 17 个章节，没有点击目录刷新；完整视图读取整段对话的 23 个章节 |
+| 普通网页刷新 | 加载期间显示「正在读取当前网页目录…」，旧章节按钮禁用；正文恢复后两处目录自动恢复，未再出现原唯一实例错误。按可访问性快照采样，不据此宣称加载全程零闪烁 |
+| 标签切换 | 切到既有 ChatGPT 首页，旧章节先禁用，随后显示「当前网页暂无可识别的章节，将自动检查更新。」；切回指定文档自动恢复，并可打开完整 23 章节视图 |
+| 关闭并重开侧栏 | 从 Chrome 原按钮关闭，再由原 OpenDesk 工具栏入口重开并打开阅读目录；新 hostInstanceId `b8b5c51e-c9d8-470d-a890-195854e7d910` 自动读取章节，无需修复安装或手动刷新 |
+| 网页内章节定位 | 点击「一、当前完成了什么，还差什么？」后，只读 DOM 诊断读回真实标题 y=115–143，视口高 865 |
+| 侧栏章节定位 | 完整目录点击「四、这份新提示词专家评分多少？」后，同文档标题 y=72–100，视口高 865 |
+| 安装与运行身份 | 父包唯一一份 1.1.10 / r10，能力仍为 `page.module`、`storage.local`、`currentPage.read`；Authority 的 packageHash/sourceHash 与上述正式包一致，enabled、nativeState=`registered`；Chrome 注册项为 USER_SCRIPT / document_idle |
+
+精确运行读回：目标 tab `560070810`，主文档 `9AACDB8F2A626FEDB395C7E3F5AD7DC5` 恰一条 revision 10、当前会话 `41f4e69a-598f-450d-a879-d90767f5d247` 的 evaluated 实例，worldId `opendesk-preview-d1-b424c62041bc4ef385a9087d1367e266`；父包 installEpoch `0168240c-f1d0-4d42-8a82-8c026011e39b`。查询只读 IndexedDB、Chrome 注册/文档信息及标题坐标，没有改写安装、执行或清理记录，也没有派发诊断导航。UI 操作与读回使用原生 CUA；本轮截图工具返回 `native_hook_stdin_oversized`，因此上述证据为可访问性状态和只读运行/DOM 读数，不冒称截图验收。
+
+环境：持续开发，沿用系统 Chrome、`dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，未重装 Browser 或启动第二 writer。前轮 PID 1455 已退出，本轮使用的现有 dev 服务观察为 PID 71911；本次「调试→本地开发服务」读回已连接，构建 revision `856fdc2f8c1f660bf3a1319b159d740c6749f4056866b0b784f065dc9b8b26fa`。并行 watcher 可继续发布，运行读回与磁盘源码分别记录，不将此开发证据提升为冻结 production 候选。实现与唯一正式包已提交 `b13342e1682ccd595f2303824bf23a5b410b5135`；其后并行发送队列提交没有改变本工具受测输入，本次续验只补文档。诊断窗口已关闭、原页保留可用的完整目录、原生 UI 锁已释放。未申请 Profile/TaskSpace；production、原生撤权/卸载、完整站点矩阵和压力均 `NOT_TESTED`，独立评分 `NOT_SCORED`。
 
 ## 历史 · 系统 Chrome 网页实例恢复（2026-11-10）
 
