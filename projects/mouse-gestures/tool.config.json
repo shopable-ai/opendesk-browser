@@ -1,0 +1,17 @@
+{
+  "id": "mouse-gestures",
+  "version": "0.1.0",
+  "title": "鼠标手势（技术试点）",
+  "description": "在获批普通网页上右键向左拖动后退；仅验证最小手势链。",
+  "format": "opendesk.sidebar-tool.v2",
+  "capabilities": ["page.module"],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": [],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "pageModule": {"revision": 1}
+}
