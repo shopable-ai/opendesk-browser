@@ -11,7 +11,7 @@ const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8'
 // Real main/Site/Engine, inert DOM and UI. No browser or website sends.
 async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',failRecovery=false}={}){
   let now=0,poll,engine,actions,clears=0,recovery=null;
-  const timers=new Map(),listeners=new Map(),sent=[],users=[],assistants=[],history=[];
+  const timers=new Map(),listeners=new Map(),sent=[],users=[],assistants=[],history=[],toasts=[];
   const state={busy,failRecovery,focus:()=>{},render:()=>{}};
   class Textarea{
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
@@ -56,13 +56,13 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
     createQueueEngine:options=>(engine=createQueueEngine({...options,clock:()=>now})),
     createQueueView:options=>{
       actions=options.actions;
-      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,recovery:()=>recovery,offerRecovery(text,reason){if(state.failRecovery)throw Error('recovery UI unavailable');recovery??={text,reason};},toast(){}};
+      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,recovery:()=>recovery,offerRecovery(text,reason){if(state.failRecovery)throw Error('recovery UI unavailable');recovery??={text,reason};},toast(message){toasts.push(message);}};
     },
     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),context);
   await context.main();
-  return {editor,state,sent,users,assistants,history,storage,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
+  return {editor,state,sent,users,assistants,history,storage,win,toasts,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
     get clears(){return clears;},get actions(){return actions;},
     step(t){now=t;poll();},
     watchdog(t){now=t;assert.equal(typeof timers.get(5000),'function');timers.get(5000)();},
@@ -558,3 +558,60 @@ test('a change render failure cannot strand a prepared flight or discard its com
   assert.deepEqual(h.sent,[text]);
   assert.equal(h.engine.view().inFlight.phase,'await-confirm');
 });
+
+
+for(const route of ['', 'g/g-p-12345678-my-project-slug/project']){
+  for(const entrance of ['shortcut','crown']){
+    test(`new conversation /${route} asks for native first send through ${entrance} without taking the draft`,async()=>{
+      const h=await fixture({route}),text='  首条原生草稿🙂\n保留末行\n';
+      h.edit(text);
+      if(entrance==='shortcut'){
+        const event=h.key();assert.equal(event.prevented,true);assert.equal(event.stopped,true);
+      }else h.actions.enqueue();
+      assert.match(h.toasts.at(-1),/请先在 ChatGPT 发送首条消息/);
+      for(const t of [1000,10000,30000])h.step(t);
+      assert.equal(h.editor.value,text);
+      assert.equal(h.clears,0);
+      assert.equal(h.engine.view().items.length,0);
+      assert.equal(h.engine.view().route,null);
+      assert.equal(h.engine.view().inFlight,null);
+      assert.equal(h.storage.entries.size,0);
+      assert.deepEqual(h.sent,[]);
+    });
+  }
+
+  test(`native first send from /${route} enables queueing in the same main instance`,async()=>{
+    const h=await fixture({route}),engine=h.engine;
+    h.edit('first native message');h.key();
+    assert.equal(h.storage.entries.size,0);
+    // Model the website's native send receipt and SPA URL update, not an engine send.
+    h.admit('first native message');
+    h.win.location.pathname=route?'/g/g-p-12345678-my-project-slug/c/87654321':'/c/87654321';
+    h.poll();queue(h,'next queued message');
+    assert.equal(h.engine,engine);
+    assert.equal(h.engine.view().route,'c/87654321');
+    assert.deepEqual(h.engine.view().items.map(item=>item.text),['next queued message']);
+    assert.equal(h.editor.value,'');assert.equal(h.clears,1);
+    const cached=JSON.parse(h.storage.getItem('opendesk.ai-send-queue.session.v1:c/87654321'));
+    assert.deepEqual(cached.items.map(item=>item.text),['next queued message']);
+    assert.deepEqual(h.sent,[]);
+  });
+
+  test(`navigation to /${route} never dispatches the previous conversation queue`,async()=>{
+    const h=await fixture({busy:true});queue(h,'belongs to old conversation');
+    const key='opendesk.ai-send-queue.session.v1:c/12345678';
+    h.win.location.pathname='/'+route;
+    h.finishReply();
+    for(const t of [1000,10000,30000])h.step(t);
+    assert.deepEqual(h.sent,[]);
+    assert.equal(h.editor.value,'');
+    assert.equal(h.clears,1);
+    assert.equal(h.engine.view().route,'c/12345678');
+    assert.deepEqual(h.engine.view().items.map(item=>item.text),['belongs to old conversation']);
+    assert.notEqual(h.engine.view().phase,'sending');
+    const cached=JSON.parse(h.storage.getItem(key));
+    assert.equal(cached.route,'c/12345678');
+    assert.deepEqual(cached.items.map(item=>item.text),['belongs to old conversation']);
+    assert.deepEqual([...h.storage.entries.keys()],[key]);
+  });
+}

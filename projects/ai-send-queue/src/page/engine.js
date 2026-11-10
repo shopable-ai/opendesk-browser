@@ -66,10 +66,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
   }
   // Read-only preflight before any destructive website draft operation.
   function checkEnqueue(text,route) {
+    if(!route)return {ok:false,reason:'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列'};
     if(typeof text!=='string'||!site.normal(text))return {ok:false,reason:'原生草稿为空'};
     if(text.length>MAX_TEXT)return {ok:false,reason:'文字超过队列上限'};
     if(items.length>=MAX_ITEMS)return {ok:false,reason:'发送队列已满'};
-    if(!route || (state.route && route!==state.route))
+    if(state.route && route!==state.route)
       return {ok:false,reason:'会话不一致，队列未修改'};
     return {ok:true};
   }

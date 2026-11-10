@@ -114,6 +114,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
     throw new Error('Packaged Send Queue crown image is missing or invalid');
   const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
+  let awaitingConversation=false;
   let lastSignature='',recoveryText=null,recoveryReason='';
   let openMenuId=null,expandedScrollTop=0;
   function reset(){
@@ -251,16 +252,20 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
   }
   function render(){
     if(!list?.active()||!button?.active())return;
-    const state=engine.view(),items=state.items;
+    // Home/project composers have no queue identity. Keep the old bound queue
+    // in memory/cache, without exposing its rows or destructive controls here.
+    const state=engine.view(),items=awaitingConversation?[]:state.items;
     const previousRows=[...root.children].find(node=>node.className==='sq-rows');
     if(root.className==='sq-panel sq-expanded')
       expandedScrollTop=Math.max(0,Number(previousRows?.scrollTop)||0);
     if(!items.length){
       openMenuId=null;expandedScrollTop=0;
-      if(lastSignature==='empty')return;
-      lastSignature='empty';
+      const signature='empty:'+awaitingConversation;
+      if(lastSignature===signature)return;
+      lastSignature=signature;
       root.className='sq-panel sq-empty';
-      root.setAttribute('aria-label','发送队列，暂无待发送消息');
+      root.setAttribute('aria-label',awaitingConversation?
+        '发送队列，请先在 ChatGPT 发送首条消息，建立对话后即可加入队列':'发送队列，暂无待发送消息');
       const rows=element(doc,'div','sq-rows');
       rows.setAttribute('role','list');
       const cue=element(doc,'span','sq-empty-mark','···');
@@ -389,6 +394,9 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       });
     };
     ensure();
+    awaitingConversation=snap.newConversation===true;
+    blue.title=awaitingConversation?'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列':
+      'OpenDesk 队列 · 点击或 Ctrl + Enter 加入发送队列 · 皇冠仅为装饰';
     inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
     blue.hidden=false;toastNode.style.removeProperty('bottom');
     button.host.style.setProperty('display','inline-flex','important');

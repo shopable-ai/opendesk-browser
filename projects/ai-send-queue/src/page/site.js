@@ -79,7 +79,13 @@ function editorText(editor) {
 function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
   const match = win.location.pathname.match(/(?:^|\/)c\/([a-z0-9-]{8,})(?:\/|$)/i);
-  return match ? 'c/' + match[1].toLowerCase() : null;
+  if(match)return {route:'c/' + match[1].toLowerCase()};
+  // Discover the composer before the first native send creates a conversation.
+  // A home/project URL is never a queue identity or a refresh-cache key.
+  if(/^\/$/.test(win.location.pathname)||
+    /^\/g\/g-p-[a-z0-9-]+\/project\/?$/i.test(win.location.pathname))
+    return {route:null};
+  return null;
 }
 function messageText(root) {
   const content = root.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap') || root;
@@ -105,8 +111,9 @@ function explicitStreaming(root) {
 export function createChatGPTSite({doc = document, win = window, isComposing = () => false} = {}) {
   let interrupted=null;
   function inspect() {
-    const route = routeFor(win);
-    if (!route || win !== win.top) return {ok:false,reason:'只支持已打开的 ChatGPT 对话'};
+    const context = routeFor(win);
+    if (!context || win !== win.top) return {ok:false,reason:'只支持 ChatGPT 新聊天、项目或已有对话'};
+    const {route}=context;
     const candidates = [...new Set([...doc.querySelectorAll(EDITOR)].filter(el =>
       (el.isContentEditable || typeof el.value === 'string') && visible(el,win) &&
       !el.closest('[data-opendesk-ui-owner]')))];
@@ -147,7 +154,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       matchesConversationTail(interrupted,{history},0);
     const busy = !!stopButton || (!stopped && streaming(last));
     const completed = !last || stopped || assistantCompleted(last);
-    return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
+    return {ok:true,route,newConversation:route===null,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
       busy,idle:!busy && completed,answerComplete:!!last && completed && !busy,
       draft:editorText(editor),composing:isComposing(),
       rich:!!editor.querySelector?.(RICH) || !!form.querySelector(ATTACHMENTS)};
@@ -157,7 +164,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     if (editor.querySelector?.(RICH)) return false;
     const unchanged=()=>{
       const fresh=inspect();
-      return initial?.ok && fresh.ok && fresh.route===initial.route &&
+      return initial?.ok && !!initial.route && fresh.ok && fresh.route===initial.route &&
         fresh.form===initial.form && fresh.editor===editor &&
         fresh.draft===initial.draft && !fresh.rich && !fresh.composing;
     };
@@ -190,6 +197,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     return editorText(editor) === text;
   }
   function clearForQueue(snapshot) {
+    if(!snapshot.route)return {ok:false,reason:'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列'};
     if (!snapshot.ok || snapshot.rich || snapshot.composing || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空、包含附件或输入法尚未完成'};
     const text=snapshot.draft;
     // Website input handlers can replace the composer after the old element
@@ -242,7 +250,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   }
   function prepare(text,initial) {
     const fresh=inspect();
-    if(!initial?.ok || !fresh.ok || fresh.route!==initial.route ||
+    if(!initial?.ok || !initial.route || !fresh.ok || fresh.route!==initial.route ||
       fresh.form!==initial.form || fresh.editor!==initial.editor ||
       !fresh.idle || fresh.rich || fresh.draft!=='')
       return {ok:false,mayHaveWritten:false,reason:'会话、输入框或原生草稿已改变'};
@@ -268,7 +276,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     // native button. A changed editor, draft, route, or prior user messages is
     // a hard failure before any send; it is never repaired with a second click.
     const fresh=inspect();
-    if(!fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
+    if(!token.route || !fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
       fresh.editor!==token.editor || fresh.rich || fresh.composing ||
       fresh.draft!==token.text ||
       !matchesHistoryTail(token.before.users,fresh.users) ||
@@ -286,14 +294,14 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   }
   function canReclaimPrepared(token) {
     const fresh=inspect();
-    return !!token && fresh.ok && fresh.route===token.route &&
+    return !!token?.route && fresh.ok && fresh.route===token.route &&
       fresh.form===token.form && fresh.editor===token.editor &&
       !fresh.rich && !fresh.composing && !fresh.busy && fresh.draft===token.text &&
       matchesHistoryTail(token.before.users,fresh.users) &&
       matchesConversationTail(token.before,fresh,0);
   }
   function confirmationIssue(before,text,snapshot) {
-    if (!snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
+    if (!before.route || !snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
     if (!matchesHistoryTail(before.users,snapshot.users,1))
       return snapshot.users.length!==before.users.length+1?
         '用户消息数量与发送前记录不符':'历史用户消息节点已变化';
@@ -341,7 +349,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   }
   function stop(snapshot) {
     const fresh=inspect();
-    if (!fresh.ok || fresh.route!==snapshot.route || fresh.form!==snapshot.form ||
+    if (!snapshot.route || !fresh.ok || fresh.route!==snapshot.route || fresh.form!==snapshot.form ||
       fresh.editor!==snapshot.editor || fresh.rich || fresh.composing ||
       snapshot.draft!=='' || fresh.draft!=='' ||
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton ||

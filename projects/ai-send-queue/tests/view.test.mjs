@@ -105,6 +105,39 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
 }
 const panel=h=>h.ui('list').content.children[0];
 
+test('new-chat composer shows one queue region and crown, then updates after native conversation creation',()=>{
+  const h=fixture();h.state({items:[],answerGate:false});
+  const fresh={...h.snap,route:null,newConversation:true};
+  for(let i=0;i<3;i++){
+    assert.equal(h.view.place(fresh),true);h.view.render();
+  }
+  assert.equal(h.managed.length,2,'polling reuses the same list and crown');
+  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
+  assert.equal(h.ui('button').host.style.getPropertyValue('display'),'inline-flex');
+  assert.match(panel(h).getAttribute('aria-label'),/首条消息/);
+  assert.match(h.ui('button').content.children[0].title,/首条消息/);
+  assert.equal(h.view.place({...h.snap,route:'c/12345678',newConversation:false}),true);
+  h.view.render();
+  assert.equal(h.managed.length,2);
+  assert.equal(panel(h).getAttribute('aria-label'),'发送队列，暂无待发送消息');
+  assert.match(h.ui('button').content.children[0].title,/Ctrl \+ Enter/);
+  h.dispose();assert.ok(h.managed.every(ui=>!ui.host.isConnected));
+});
+
+test('navigating a nonempty queue to a new composer hides old rows without mutating them, and returning restores them',()=>{
+  const h=fixture();
+  assert.equal(h.view.place(h.snap),true);h.view.render();
+  assert.equal(panel(h).querySelectorAll('[data-id-row]').length,1);
+  assert.equal(h.view.place({...h.snap,route:null,newConversation:true}),true);h.view.render();
+  assert.equal(panel(h).className,'sq-panel sq-empty');
+  assert.equal(panel(h).querySelectorAll('[data-id-row]').length,0);
+  assert.equal(panel(h).querySelectorAll('button').length,0,'no old queue operations on the new page');
+  assert.equal(h.view.place(h.snap),true);h.view.render();
+  assert.equal(panel(h).querySelectorAll('[data-id-row]').length,1);
+  assert.equal(panel(h).querySelectorAll('[data-id-row]')[0].children.find(node=>node.className==='sq-text').textContent,'queued text');
+  assert.equal(h.managed.length,2);
+});
+
 for(const scrollOffset of [0,4500,9940]){
   test(`long scrollable editor keeps queue and crown visible at scroll offset ${scrollOffset}`,()=>{
     const h=fixture({scrollOffset});

@@ -36,7 +36,7 @@ function fixture() {
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
   win.top=win;
-  const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[activeEditor]:
+  const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?(state.editors||[activeEditor]):
     selector.includes('user')&&selector.includes('assistant')?(state.history||[...state.users,...state.assistants]):
     selector.startsWith('[data-message-author-role="user"]')?state.users:state.assistants};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
@@ -881,4 +881,70 @@ test('native pasted-text attachment vetoes every draft write and send',()=>{
   assert.equal(site.prepare('queued',snap).ok,false);
   assert.equal(site.reclaimToComposer('queued',snap).ok,false);
   assert.equal(state.clicks,0);
+});
+
+
+for(const [pathname,route] of [
+  ['/',null],
+  ['/g/g-p-12345678/project',null],
+  ['/g/g-p-12345678-my-project-slug/project',null],
+  ['/c/12345678','c/12345678'],
+  ['/g/g-p-12345678/c/87654321','c/87654321'],
+  ['/g/g-p-12345678-my-project-slug/c/87654321','c/87654321']
+]){
+  test(`inspect discovers the unique native composer at ${pathname}`,()=>{
+    const f=fixture();f.win.location.pathname=pathname;
+    const snap=f.site.inspect();
+    assert.equal(snap.ok,true);
+    assert.equal(snap.route,route);
+    assert.equal(snap.newConversation,route===null);
+    assert.equal(snap.editor,f.editor);
+    assert.equal(snap.form,f.editor.closest('form'));
+  });
+}
+
+for(const pathname of ['/','/g/g-p-12345678-my-project-slug/project']){
+  for(const count of [0,2]){
+    test(`inspect rejects ${count} visible composers on new conversation ${pathname}`,()=>{
+      const f=fixture();f.win.location.pathname=pathname;
+      f.state.editors=count?[f.editor,new f.editor.constructor()]:[];
+      const snap=f.site.inspect();
+      assert.equal(snap.ok,false);
+      assert.match(snap.reason,/输入框不存在或不唯一/);
+      assert.equal(f.state.clicks,0);
+    });
+  }
+}
+
+for(const [name,change] of [
+  ['wrong origin',f=>{f.win.location.origin='https://example.com';}],
+  ['child frame',f=>{f.win.top={};}],
+  ['settings route',f=>{f.win.location.pathname='/settings';}],
+  ['project listing',f=>{f.win.location.pathname='/g/g-p-12345678';}],
+  ['custom GPT home',f=>{f.win.location.pathname='/g/g-12345678';}]
+]){
+  test(`inspect rejects ${name} without native interaction`,()=>{
+    const f=fixture();change(f);
+    assert.equal(f.site.inspect().ok,false);
+    assert.equal(f.state.clicks,0);
+  });
+}
+
+test('new-chat discovery never authorizes draft writes, send, stop or admission with a null identity',()=>{
+  const f=fixture();f.win.location.pathname='/';
+  const empty=f.site.inspect();
+  assert.equal(f.site.restore('must not write',''),false);
+  assert.equal(f.site.prepare('must not write',empty).mayHaveWritten,false);
+  f.editor.current='original native draft';
+  const snap=f.site.inspect();
+  assert.equal(f.site.clearForQueue(snap).ok,false);
+  assert.equal(f.site.reclaimToComposer('queued',snap).ok,false);
+  const token={route:null,form:snap.form,editor:snap.editor,text:snap.draft,before:empty};
+  assert.equal(f.site.commit(token).ok,false);
+  assert.equal(f.site.canReclaimPrepared(token),false);
+  f.state.stopping=true;
+  assert.equal(f.site.stop(f.site.inspect()),false);
+  assert.equal(f.site.confirm({route:null,users:[],history:[]},'original native draft',snap),false);
+  assert.equal(f.editor.current,'original native draft');
+  assert.equal(f.state.clicks,0);
 });
