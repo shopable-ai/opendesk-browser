@@ -18,9 +18,9 @@ export function resolveStoreWebsiteConfig(config=source){
   if(target.protocol!=='https:'||target.username||target.password||
     target.search||target.hash||target.port||!host.includes('.')||
     host.startsWith('.')||host.endsWith('.')||host.includes(':')||
-    !/^[a-z0-9.-]+$/.test(host)||/^[\\d.]+$/.test(host)||
-    /(^|\\.)(localhost|local|test|invalid|example|internal)$/.test(host)||
-    /(^|\\.)example\\.(com|net|org)$/.test(host))
+    !/^[a-z0-9.-]+$/.test(host)||/^[\d.]+$/.test(host)||
+    /(^|\.)(localhost|local|test|invalid|example|internal)$/.test(host)||
+    /(^|\.)example\.(com|net|org)$/.test(host))
     return invalid();
   return {status:'ready',url:target.href};
 }
