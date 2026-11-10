@@ -1,3 +1,19 @@
+## A→B 单次回填 · 源码补缺接续（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
+
+**原始目标：** 用户在 ChatGPT 对话 A 发出指令，Web Flow 用原 V2 单候选审批与原 Controller 在新标签 B 准备草稿（默认 send:false），只有明确批准 send:true 才单次原生发送。仅当 B 出现匹配的用户消息、完整助手回复与真实持久 /c/ 链接后，原受控 delivery 才把可点击 B 链接、Run/Result 和必要状态回填给来源 A；ACK 不明时按原身份查询，严禁补发。GPT-6/High 指定值不可核验时必须停止。
+
+**已有成果（不计本轮新增）：** 0.2.0 固定包和审阅保护、V2 固定解析/来源/独立批准、原 Controller owned-tab retention、原 Run/Result 读取、原来源 tab/document 定向交付与 UNKNOWN 围栏。0.2.0 对 model/effort/thinking 显式要求仍是安全拒绝；`src/chat-handoff-contract.js` 仍只含纯数据合同。
+
+**本轮差量源码：** `src/chatgpt-conversation-result.js` 为原 0.2.0 结果提供严格校验和有界回填：未发送草稿不得有 /c/ 身份；已发送结果须匹配审批 prompt 长度、固定来源、原生消息引用、完整回复和确切 `https://chatgpt.com/c/UUID`。原完整回复留在同一个原 Controller Durable Result（可至 64 KiB）；送 A 的文本含真实可点击 URL、原 Run/Result 身份和明确标为预览的短摘录，仍遵守 8192 字节回传上限。接入 `chatgpt-fixed-bridge-host.js` 的原 durable 验证/formatter，不新建 Runner、Host、Ledger 或安装器。新 `chatgpt-create-result.test.mjs` 已接入原 Bridge CI，测试仅代表 Node 层，不能证明 Chrome 发送。
+
+**验收状态：** SOURCE = 已形成最小源码接线（以本轮 GitHub 提交 SHA 为准）；NODE_TEST = 本轮 CI 待确认；PACKAGE = NOT_TESTED；CHROME = NOT_TESTED；BUSINESS = NOT_TESTED。GitHub 只可查已提交分支，不可查本机未提交工作树。未经 Chrome 现场核验不得向用户宣称 A→B 已经可用。
+
+**依然未完成：** GPT-6/High/Thinking 真实选择与读回；账号一致性；发送中断后不重发的只读续查；长提示词 SHA-256/owner/TTL 安全引用；真正 Chrome B 回复完整与 A 一次回填/草稿保护。启动前 activateTab 属独立 P3，不阻碍本轮回填修复，但尚未核验。
+
+**唯一下一步：** 先核本轮精准 Node CI；之后在真实已安装 Chrome 以安全测试聊天实证来源 A → B 单次发送 → 原生 URL/回复 → A 单次链接回填。仅按真实失败修复，不清理任何历史 UNKNOWN 或并行项目。
+
+---
+
 ## 2026-11-11 · 增量修正：Markdown ChatGPT 0.2 实际发送生命周期（OD-AI-WORKFLOW-BRIDGE）
 
 **真实用户目标保持不变：** 点击一次开始，T01 使用第一个新 ChatGPT 聊天取得完整回复并授权写文件、读回，T02 在第二个不同聊天中只读取 T01 完整 JSON 正文并再次保存读回；中断不重复发信。

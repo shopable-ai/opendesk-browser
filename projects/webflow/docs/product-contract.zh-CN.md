@@ -1,3 +1,13 @@
+## 2026-11-11 · ChatGPT A→B 结果回填最小业务合同（OD-AI-WORKFLOW-BRIDGE）
+
+**用户最终要做的事：** 在原 ChatGPT 聊天 A 要求 Web Flow 创建独立新聊天 B，指定选项时核验真实模型/推理，默认保留草稿；独立批准 send:true 后只点击一次发送；验证 B 的真实持久 URL、用户消息和完整助手回复，最后在来源 A 得到可点击链接和可信执行状态。
+
+**本轮增量的精确边界：** 复用 0.2.0 pinned Task、旧授权/Runner/Controller、Run/Result 持久化和来源 A tab/document 有界回填。将 `chatgpt.conversation.create` 0.2.0 结果严格识别为草稿或真实回复：无发送即无 B 链接；已发送必须验证确切新会话 URL 与消息身份。回复原文保存在原持久结果中，A 只得到可识别的有限预览、原持久身份和真实可点击链接，不因通用 7 KB 返回格式上限丢弃较长的已存回复。不增加 V2 字段、不提升 AI 文本权限，也不重写 chat-handoff 数据合同。
+
+**绝不能把源码当业务 PASS：** GPT-6/High/Thinking 真实网页能力与账号身份、UNKNOWN 只读对账、长 prompt 受控 SHA/owner/TTL 引用及原生 Chrome A→B→A 尚未验收。新 Node/CI 测试和 Task completed 不替代真实安装或 B 回访。实际断点、证据和下一项操作以[执行计划](execution-plan.zh-CN.md)为准。
+
+---
+
 ## 2026-11-10 · ChatGPT 新对话 P1.1 当前交付边界（OD-AI-WORKFLOW-BRIDGE）
 
 **原始产品目标：** 用户在已有对话 A 请求 → Web Flow 校验 V2 候选、安装版本、来源和用户授权 → 在官网新标签 B 验证模型与推理 → 默认准备未发送草稿 → 经单独授权发送一次 → 观察新增消息、真实持久会话 URL 和完整回复 → 正确回填给 A。已有百度/Google 默认后台运行、原 Run 前台查看及未来独立 Gemini 任务继续保留。
