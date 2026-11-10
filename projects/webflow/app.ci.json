@@ -4,6 +4,7 @@
   "node": [
     "projects/webflow/tests/webflow-ui.test.mjs",
     "projects/webflow/tests/webflow-recovery-ui.test.mjs",
+    "projects/webflow/tests/task-notice.test.mjs",
     "projects/webflow/tests/chatgpt-file-intent.test.mjs",
     "projects/webflow/tests/chatgpt-files-config.test.mjs",
     "projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs",
