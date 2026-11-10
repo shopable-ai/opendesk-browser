@@ -1,3 +1,25 @@
+## 2026-11-11 · Web Flow R2 任务通知 P0 当前执行卡（OD-AI-WORKFLOW-BRIDGE）
+
+**原始问题与目标：** 用户手动/自动/按原批准计划触发浏览器脚本后，希望在 Side Panel/PC 已打开工具宿主清楚看到开始、进行、脚本完成、实际结果回传、失败和 UNKNOWN；同一原请求只更新已有通知，并能通过原任务页面恢复查看 Run/Result。通知只消费可信状态，不授予新权限、不重放任何脚本。不可见宿主的跨窗口通知和网页注入不是 P0。
+
+| 任务 | 已实现源码/证据 | 未完成与验收边界 |
+| --- | --- | --- |
+| T01 事实与边界 | 复核 AGENTS/README/合同/计划、R1.2 唯一 API 与 Toast Store、Bridge/Host、手动 tasks.start/read 及可信 CurrentTask 的原 receipt；确认无现有 Web Flow 任务 Toast 接线。 | 不重建 Controller/Scheduler/Authority 或其它并行 A→B、MD 链。 |
+| T02 权威文档 | 本卡只记开发/测试进度；product-contract 保存业务语义与阶段；框架 confirmation-and-feedback 只保存跨工具边界；公共 API 签名保持 docs/api/sidebar-tools 不变。 | 不建平行合同。 |
+| T03 手动任务通知 | src/ui/model.js 新增 taskNotice/createTaskNoticePublisher；src/ui/main.js 在原已读取 Run/Result 后调用 notify.open/update，按同一 clientRequestId 去重、最多 12 次更新、卸载 dismiss；UNKNOWN 不重放、completed 不等于业务成功，block/no_results 等报告警告；拒绝与接口缺失保持原记录。 | 只针对已打开手动沙箱宿主。 |
+| T03 可信自动任务通知 | trusted/CurrentTask.tsx 从同一原 receipt 核验 requestId、persistence、release、delivery，采用已有 view.addToolToast/updateToolToast，处理完成/失败/UNKNOWN 与单条更新；trusted/AutoSettings.tsx 和 src/ui/react/app-shell.tsx 仅传递原可信 Host Toast Store。 | 依附原可信「当前任务」及可见宿主，非跨窗口分发；不改变网页侧或调度。 |
+| T04 最小交互 | Toast 纯文本；原手动「记录 → 查询原请求」、自动「运行与授权 → 当前任务」保持详情入口。关闭通知不删 Run/Result；只有 delivery=confirmed 说回传确认。 | 不新增公开 notify 回调/URL。 |
+| T05 定向测试 | tests/task-notice.test.mjs、tests/current-task.test.mjs、tests/webflow-recovery-ui.test.mjs 增加投影、同句柄更新、旧 Host、UNKNOWN、恢复、不执行重放检查；app.ci.json 登记纯状态测试；独立 V8 对项目 model.js 真实加载并执行 8 个烟雾断言通过。 | GitHub Node 完整定向 CI 还须以最终 HEAD 运行结果确认；Chrome 安装/目视/原网站 Task 未验证。 |
+
+**源码变更提交（main，按文件）：** model 22a2a5b24fe8 / 9f80e6f621cd；手动 main a2a3f508ec2f；自动 CurrentTask 1b2cdc4b3694 / d0eea683e177；AutoSettings 3b707abd68d7；app-shell e83ef2cc113e；测试 task-notice 66ab37ff5b3a / 58411eaf4ce5、current-task e3688a9cb9ca、recovery b94c90f3cde6、app.ci ec9a170609d9；修复旧包测试依赖计数断言 26bb940509ad。以上都是源码提交，非安装验证。
+
+**首次 CI 阻塞及处理：** Web Flow 包工作流 [42877403405](https://github.com/shopable-ai/opendesk-browser/actions/runs/42877403405) 的实际 Node 步骤 **63/64**，一项是原 tests/webflow-ui.test.mjs 中固定断言 `scripts.length===1` 与现行构建器从两个已声明依赖产生两项 Script 的事实不符；与通知运行行为无关。已最小改为与正式 tool.config.json 的固定依赖数量及路径逐项比对（26bb940509ad），需等新一轮同源 CI 核对，不能提前写 PASS。
+
+**当前分级：** SOURCE_IMPLEMENTED=main 已提交；SOURCE_SMOKE=项目 model.js 的直接 V8 验证 PASS；NODE_TESTED=最终代码定向 GitHub CI 待证据；PACKAGE_READY=未通过当前候选同源构建/晋升（正式 webflow.opendesk-tool.json 尚未证明包含新增通知）；CHROME_TESTED=NOT_TESTED；BUSINESS_ACCEPTED=NOT_TESTED。共享 dist/development、watcher、并行未提交工作及原运行记录未触碰。
+
+**下一步唯一动作：** 取得最新提交的定向 CI 最终结果并只修确切失败；之后交本地 Codex 对唯一正式包按原 packager 候选→同源验证→用户批准下安装，真实 Chrome 最短验证手动 RUNNING→completed、可信自动同次结果/回传与 UNKNOWN、关闭侧栏/刷新恢复，不改旧权限、不重放任何未知任务。P1/P2 延期。
+
+---
 ## A→B 单次回填 · 源码补缺接续（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
 
 **原始目标：** 用户在 ChatGPT 对话 A 发出指令，Web Flow 用原 V2 单候选审批与原 Controller 在新标签 B 准备草稿（默认 send:false），只有明确批准 send:true 才单次原生发送。仅当 B 出现匹配的用户消息、完整助手回复与真实持久 /c/ 链接后，原受控 delivery 才把可点击 B 链接、Run/Result 和必要状态回填给来源 A；ACK 不明时按原身份查询，严禁补发。GPT-6/High 指定值不可核验时必须停止。
