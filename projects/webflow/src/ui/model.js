@@ -174,7 +174,8 @@
     return Object.freeze({
       publish(id,s,task){
         if(disposed||id!==s?.clientRequestId)return;
-        const projection=taskNotice(s,task);
+        let projection;
+        try{projection=taskNotice(s,task);}catch{return;} // Notification must not break original Task recovery.
         if(!projection)return;
         if(record&&record.id!==id){retire(record);record=null;}
         if(record){
