@@ -219,7 +219,7 @@ test('failed missing Google initialization remains visible while existing Baidu 
   const result=await catalog(f);assert.equal(result.initialization.status,'failed');assert.equal(result.installed.length,BUILTIN_TASK_RELEASES.length-1);
   assert.equal((await resolve(f,baidu.taskId)).installationId,old.authorization.installationId);
   assert.deepEqual(await f.installed(baidu.taskId),old);
-  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,2);
+  f.loader(loadPackagedTask);assert.equal((await catalog(f)).installed.length,BUILTIN_TASK_RELEASES.length);
 });
 
 test('old ChatGPT draft installation stages 0.2 as available, but never silently grants sending',async()=>{
