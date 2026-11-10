@@ -8,14 +8,31 @@ const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8'
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
-    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[]};
-  let actions,unload,poll,hasRecovery=false,active=true,legacy=false,now=1000;
+    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0};
+  let actions,unload,change,hasRecovery=false,active=true,legacy=false,now=1000;
   const listeners=new Map(),editor={contains:()=>false};
-  const disposers=[];
+  const disposers=[],timers=[],events=[];
+  function runTimer(ms){
+    const selected=timers.filter(timer=>timer.ms===ms);
+    assert.ok(selected.length,`missing managed ${ms}ms timer`);
+    for(const timer of selected)timer.callback();
+  }
+  function advance(elapsed){
+    const end=now+elapsed;
+    for(;;){
+      const next=timers.filter(timer=>timer.enabled).sort((a,b)=>a.next-b.next)[0];
+      if(!next||next.next>end)break;
+      now=next.next;next.next+=next.ms;next.callback();
+    }
+    now=end;
+  }
+  function event(target,type,patch={}){
+    for(const listener of events.filter(item=>item.target===target&&item.type===type))listener.callback(patch);
+  }
   const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
     busy:true,sendButton:null};
   const state={items:reclaim||queued?[{id:'q1',text:'private draft',state:'queued'}]:[],route:snap.route,phase:'waiting',inFlight:null};
-  const site={inspect:()=>snap,clearForQueue(){calls.clear++;if(clear.ok)snap.draft='';return clear;},
+  const site={inspect(){calls.inspects++;calls.onInspect?.();return snap;},clearForQueue(){calls.clear++;if(clear.ok)snap.draft='';return clear;},
     reclaimToComposer(){if(reclaim?.ok)snap.draft='private draft';calls.onWrite?.();return reclaim;},
     restore(){calls.restores++;if(restore)snap.draft='private draft';return restore;}};
   const engine={view:()=>state,
@@ -24,34 +41,39 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     pause(id){calls.pauses++;const item=state.items.find(x=>x.id===id);if(!item)return false;item.state='paused';return true;},
     reclaim(id){calls.reclaimed=(calls.reclaimed||0)+1;const i=state.items.findIndex(x=>x.id===id);if(i<0)return false;state.items.splice(i,1);return true;},
     wait(){},
+    resume(){calls.resumes++;return true;},
     reclaimPrepared(){calls.reclaimPrepared=(calls.reclaimPrepared||0)+1;return reclaimPrepared;},
     uncertain(...args){calls.uncertain=args;},
     remove(id){calls.removed.push(id);return removeResult;},
     requestNow(){calls.now++;return {ok:true};},
-    tick(options){calls.ticks++;calls.canSubmit=options?.canSubmit;}};
+    tick(options){calls.ticks++;calls.canSubmit=options?.canSubmit;calls.tickOptions.push({...options});calls.onTick?.();}};
   const owner={host:{style:{setProperty(){}},hidden:false},
-    on(target,type,callback,options){listeners.set(type,{callback,options});if(type==='beforeunload')unload=callback;},
-    onDispose(fn){disposers.push(fn);},setInterval(fn){poll=fn;},active:()=>active,destroy(){active=false;disposers.forEach(fn=>fn());}};
-  const view={place(){return true;},render(){},hide(){},
+    on(target,type,callback,options){listeners.set(type,{callback,options});events.push({target,type,callback});if(type==='beforeunload')unload=callback;},
+    onDispose(fn){disposers.push(fn);},setInterval(callback,ms){const timer={callback,ms,next:now+ms,enabled:true};timers.push(timer);return timer;},active:()=>active,destroy(){active=false;timers.forEach(timer=>timer.enabled=false);disposers.forEach(fn=>fn());}};
+  const view={place(){calls.onPlace?.();return true;},render(){calls.onRender?.();},hide(){calls.onHide?.();},
     toast(message){calls.toasts.push(message);},
     offerRecovery(text,reason){if(hasRecovery)return false;hasRecovery=true;
       calls.recovery={text,reason};return true;},
     hasRecovery(){return hasRecovery;}};
   const win={location:{origin:'https://chatgpt.com'},confirm(){calls.confirms++;return true;}};win.top=win;
-  const doc={querySelector:()=>legacy?{}:null};
+  const doc={visibilityState:'visible',querySelector:()=>legacy?{}:null};
   const ctx=vm.createContext({window:win,document:doc,Date:class extends Date {static now(){return now;}},
     createPageUI:()=>owner,createChatGPTSite:()=>site,
-    createQueueEngine:()=>engine,
+    createQueueEngine:options=>{change=options.change;return engine;},
     createQueueView:options=>{actions=options.actions;return view;},
-     createSendQueueRemote:()=>({changed(){}})});
+     createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),ctx);
-  return {calls,snap,state,listeners,setNow(value){now=value;},setLegacy(value){legacy=value;},retire(){active=false;},
+  return {calls,snap,state,listeners,timers,advance,runTimer,change:()=>change(),
+    stopTimer(ms){timers.filter(timer=>timer.ms===ms).forEach(timer=>timer.enabled=false);},
+    event(target,type,patch){event(target==='document'?doc:win,type,patch);},
+    visibility(value){doc.visibilityState=value;event(doc,'visibilitychange');},
+    setNow(value){now=value;},setLegacy(value){legacy=value;},retire(){active=false;},
     key(patch={}){const event={key:'Enter',isTrusted:true,target:editor,prevented:false,stopped:false,
       preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...patch};
       listeners.get('keydown').callback(event);return event;},
     composition(type){listeners.get(type).callback();},
-    run:()=>ctx.main(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>poll(),destroy:()=>owner.destroy(),
+    run:()=>ctx.main(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
     beforeinput(patch={}){const event={target:snap.editor,isTrusted:true,defaultPrevented:false,...patch};listeners.get('beforeinput').callback(event);return event;},
     input(patch={}){listeners.get('input')?.callback({target:snap.editor,isTrusted:true,...patch});},get actions(){return actions;},unload:()=>{
     const event={preventDefault(){calls.unloadPrevented=true;}};
@@ -478,3 +500,151 @@ for(const outcome of ['trusted edit','canceled','unchanged','untrusted input']){
     assert.equal(h.calls.recovery?.text,outcome==='trusted edit'?undefined:'private draft');
   });
 }
+
+// These checks enter through registered owner timers/events, never engine.tick.
+test('stall watchdog rechecks by 35s when the 650ms poll stops',async()=>{
+  const h=fixture({queued:true});await h.run();h.stopTimer(650);
+  assert.equal(h.timers.filter(timer=>timer.ms===650).length,1);
+  assert.equal(h.timers.filter(timer=>timer.ms===5000).length,1);
+  h.advance(29999);assert.equal(h.calls.ticks,0,'no premature watchdog scan');
+  h.advance(5001);assert.ok(h.calls.ticks>=1,'a registered watchdog must recover scheduling');
+  assert.equal(h.calls.clear,0);assert.equal(h.calls.now,0);
+});
+
+test('stall watchdog diagnoses unchanged work despite successful normal polls',async()=>{
+  const h=fixture({queued:true});await h.run();
+  h.advance(29999);
+  const before=h.calls.ticks;
+  assert.ok(before>0,'normal 650ms polling remains active');
+  // Only watchdog callbacks run from here: repeated successful reads must not
+  // erase the separate business-progress deadline.
+  h.stopTimer(650);h.advance(5001);
+  assert.ok(h.calls.ticks>before,'unchanged waiting work needs a watchdog recheck');
+});
+
+for(const method of ['Place','Render','Hide']){
+  for(const persistent of [false,true]){
+    test(`stall ${method.toLowerCase()} ${persistent?'persistent':'one-shot'} error preserves read-only checks`,async()=>{
+      const h=fixture({queued:true});await h.run();
+      if(method==='Hide')h.snap.ok=false;
+      let failures=0;
+      h.calls['on'+method]=()=>{if(persistent||failures++===0)throw new Error('injected UI failure');};
+      assert.doesNotThrow(()=>h.advance(650));
+      assert.equal(h.calls.ticks,1,'UI failure cannot skip admission/deadline reconciliation');
+      assert.equal(h.calls.canSubmit,false,'failed UI round cannot authorize a new submission');
+      assert.doesNotThrow(()=>h.advance(650));
+      assert.equal(h.calls.ticks,2);
+      assert.equal(h.calls.canSubmit,!persistent&&method!=='Hide');
+      assert.equal(h.calls.clear,0);assert.equal(h.calls.restores,0);
+    });
+  }
+}
+
+for(const callback of ['Changed','Render']){
+  test(`stall engine change ${callback.toLowerCase()} errors cannot escape or authorize the failed round`,async()=>{
+    const h=fixture({queued:true});await h.run();
+    h.calls['on'+callback]=()=>{throw new Error('injected change observer failure');};
+    h.calls.onPlace=()=>h.change();
+    assert.doesNotThrow(()=>h.advance(650));
+    assert.equal(h.calls.ticks,1);assert.equal(h.calls.canSubmit,false);
+    h.calls.onPlace=null;h.calls['on'+callback]=null;
+    h.advance(650);assert.equal(h.calls.ticks,2);assert.equal(h.calls.canSubmit,true);
+    // A change emitted inside tick must not interrupt the state machine either.
+    h.calls['on'+callback]=()=>{throw new Error('observer during engine transition');};
+    let completed=false;
+    h.calls.onTick=()=>{h.change();completed=true;};
+    assert.doesNotThrow(()=>h.advance(650));assert.equal(completed,true);
+  });
+}
+
+for(const source of ['poll','events']){
+  test(`stall synchronous ${source} reentry shares one checking gate`,async()=>{
+    const h=fixture({queued:true});await h.run();
+    let injected=false;
+    h.calls.onPlace=()=>{
+      if(injected)return;injected=true;
+      if(source==='poll')h.poll();
+      else {h.visibility('visible');h.event('window','pageshow');}
+    };
+    h.advance(650);
+    assert.equal(injected,true);assert.equal(h.calls.ticks,1,'nested check cannot tick twice');
+    h.calls.onPlace=null;h.advance(650);
+    assert.equal(h.calls.ticks,2,'the guard must release for later checks');
+    if(source==='events'){
+      h.event('window','pageshow');
+      assert.equal(h.calls.ticks,3,'recovery event is registered and usable after reentry');
+    }
+  });
+}
+
+test('stall visible and pageshow recheck on their original event targets',async()=>{
+  const h=fixture({queued:true});await h.run();h.stopTimer(650);
+  h.visibility('hidden');assert.equal(h.calls.ticks,0);
+  h.event('document','pageshow');h.event('window','visibilitychange');
+  assert.equal(h.calls.ticks,0,'unrelated targets do not trigger recovery');
+  h.visibility('visible');assert.equal(h.calls.ticks,1);
+  h.event('window','pageshow');assert.equal(h.calls.ticks,2);
+});
+
+for(const retirement of ['destroy','legacy']){
+  test(`stall ${retirement} owner stays inert under stale timers and recovery events`,async()=>{
+    const h=fixture({queued:true});await h.run();
+    assert.equal(h.timers.filter(timer=>timer.ms===5000).length,1);
+    if(retirement==='destroy')h.destroy();else {h.setLegacy(true);h.poll();h.setLegacy(false);}
+    const ticks=h.calls.ticks,inspects=h.calls.inspects;
+    h.setNow(100000);h.runTimer(650);h.runTimer(5000);
+    h.visibility('visible');h.event('window','pageshow');
+    assert.equal(h.calls.ticks,ticks);assert.equal(h.calls.inspects,inspects);
+    assert.equal(h.calls.clear,0);assert.equal(h.calls.now,0);
+    assert.ok(h.timers.every(timer=>!timer.enabled),'owner disposal clears both schedules');
+  });
+}
+
+test('stall idle watchdog does not scan but an empty queue answerGate still needs checking',async()=>{
+  const idle=fixture();await idle.run();idle.stopTimer(650);
+  const before=idle.calls.inspects;
+  idle.advance(60000);
+  assert.equal(idle.calls.inspects,before);assert.equal(idle.calls.ticks,0);
+  const gated=fixture();gated.state.answerGate={id:'confirmed-q1'};
+  await gated.run();gated.stopTimer(650);gated.advance(35000);
+  assert.ok(gated.calls.ticks>=1,'reply gate remains work after items are removed');
+  assert.deepEqual(gated.state.answerGate,{id:'confirmed-q1'});
+});
+
+for(const protection of ['unknown','paused']){
+  test(`stall watchdog preserves ${protection} state and never requests forced recovery`,async()=>{
+    const h=fixture({queued:true});h.state.items[0].state=protection;
+    h.state.phase=protection;
+    if(protection==='unknown')h.state.inFlight={id:'q1',phase:'unknown'};
+    const original=JSON.stringify(h.state),draft=h.snap.draft;
+    await h.run();h.stopTimer(650);h.advance(35000);
+    assert.ok(h.calls.ticks>=1,'protected work is still checked');
+    assert.equal(JSON.stringify(h.state),original);assert.equal(h.snap.draft,draft);
+    assert.equal(h.calls.resumes,0);assert.equal(h.calls.now,0);
+    assert.equal(h.calls.clear,0);assert.equal(h.calls.restores,0);
+    assert.ok(h.calls.tickOptions.every(options=>typeof options.canSubmit==='boolean'),
+      'watchdog retains the ordinary submission safety input');
+  });
+}
+
+test('stall failed inspection is read-only and the next successful check recovers',async()=>{
+  const h=fixture({queued:true}),result=await h.run();
+  h.calls.onInspect=()=>{throw Error('private draft must not enter diagnostics');};
+  assert.doesNotThrow(()=>h.advance(650));
+  assert.equal(h.calls.ticks,1);assert.equal(h.calls.canSubmit,false);
+  assert.equal(result.diagnostics.lastCheckCompletedAt,null);
+  assert.equal(result.diagnostics.lastError.stage,'reconcile');
+  assert.ok(!JSON.stringify(result.diagnostics).includes('private draft'));
+  h.calls.onInspect=null;h.advance(650);
+  assert.equal(h.calls.canSubmit,true);
+  assert.equal(result.diagnostics.lastCheckCompletedAt,2300);
+});
+
+test('stall startup render error leaves managed schedules available for recovery',async()=>{
+  const h=fixture({queued:true});h.calls.onRender=()=>{throw Error('startup UI failure');};
+  const result=await h.run();
+  assert.equal(result.status,'active');
+  assert.equal(result.diagnostics.lastError.stage,'initial-layout');
+  h.calls.onRender=null;h.advance(650);
+  assert.equal(h.calls.ticks,1);assert.equal(h.calls.canSubmit,true);
+});

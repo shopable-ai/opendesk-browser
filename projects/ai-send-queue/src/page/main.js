@@ -5,6 +5,7 @@ import {createQueueView} from './view.js';
 import {createSendQueueRemote} from './remote.js';
 
 const ID='app.ai-send-queue';
+const POLL_MS=650, WATCHDOG_MS=5000, STALL_MS=30000;
 // A separate installation must never take over the legacy in-memory queue.
 const LEGACY_LIFECYCLES=['opendesk.chatgpt-send-queue','opendesk.ai-send-queue']
   .map(id=>'[data-opendesk-ui-owner][data-od-id="'+id+'.lifecycle"]');
@@ -32,6 +33,31 @@ export default async function main({assets}={}) {
   let view=null,engine,remote=null;
   // One bounded handoff, acknowledged only by the independent interval poll.
   let pending=null,provenance=null,backup=null,editing=null,writing=false;
+  let checking=false,checkFailed=false,needsRender=false,lastProgressKey=null;
+  const started=Date.now();
+  const diagnostics={lastCheckStartedAt:null,lastCheckCompletedAt:null,lastPollAt:started,
+    lastProgressAt:started,lastRecoveryAt:null,recoveryReason:'',checks:0,recoveries:0,
+    coalesced:0,lastError:null};
+  function attempt(fn,stage){
+    try{fn();return true;}
+    catch(error){
+      checkFailed=true;
+      // Record no page text, draft, exception message or stack.
+      diagnostics.lastError={stage,type:error?.name==='TypeError'?'TypeError':'Error'};
+      return false;
+    }
+  }
+  function progress(state=engine.view()){
+    // Repeated waiting reasons, UI renders and unrelated DOM mutations are not progress.
+    const key=JSON.stringify([state.items.map(item=>[item.id,item.state]),state.phase,
+      state.inFlight?.id,state.inFlight?.phase,Boolean(state.answerGate),state.lastConfirmed,
+      pending?.kind,pending?.id,Boolean(provenance),Boolean(backup)]);
+    if(key!==lastProgressKey){lastProgressKey=key;diagnostics.lastProgressAt=Date.now();}
+  }
+  function hasWork(){
+    const state=engine.view();
+    return !!(state.items.length||state.inFlight||state.answerGate||pending||provenance||backup||view?.hasRecovery());
+  }
   const sameComposer=(before,snap)=>snap.ok&&snap.route===before.route&&
     snap.form===before.form&&snap.editor===before.editor;
   const remember=snap=>({...snap,users:[...snap.users],assistants:[...snap.assistants],
@@ -39,8 +65,14 @@ export default async function main({assets}={}) {
   function write(fn){editing=null;writing=true;try{return fn();}finally{writing=false;}}
   owner.onDispose(()=>{pending=null;provenance=null;backup=null;editing=null;});
   try{
-    engine=createQueueEngine({site,change:()=>{remote?.changed();view?.render();}});
-    const notify=message=>view?.toast(message);
+    engine=createQueueEngine({site,change:()=>{
+      progress();
+      attempt(()=>remote?.changed(),'remote-change');
+      // A UI observer must not throw between installing a flight and its write/click.
+      if(checking)needsRender=true;
+      else attempt(()=>view?.render(),'render-change');
+    }});
+    const notify=message=>attempt(()=>view?.toast(message),'toast');
     function blocked(){
       if(!owner.active()||retireForLegacy())return true;
       if(pending){notify('草稿交接尚未确认，请等待下一轮核对');return true;}
@@ -316,31 +348,71 @@ export default async function main({assets}={}) {
       if(!owner.active()||(!pending&&!provenance&&!backup&&!engine.view().items.length&&!view?.hasRecovery()))return;
       event.preventDefault();event.returnValue='';
     });
-    // Reconcile only every 650ms; no timer infers completion from idle text.
-    function poll(){
+    // All schedules share this gate and the original engine; no timeout proves a reply complete.
+    function poll(source='poll'){
+      if(checking){diagnostics.coalesced++;return;}
       if(!owner.active()||retireForLegacy())return;
-      const snap=site.inspect();
-      reconcile(snap);
-      let placed=false;
-      if(snap.ok){placed=view.place(snap);view.render();}
-      else view.hide();
-      // Layout/recovery can veto new writes; confirmation and deadlines still run.
-      const flight=engine.view().inFlight;
-      engine.tick({canSubmit:placed&&!pending&&!view.hasRecovery()});
-      const after=engine.view();
-      if(provenance&&after.inFlight?.id===provenance.id)provenance=null;
-      else if(provenance&&flight&&after.lastConfirmed===flight.id&&!after.inFlight){
-        // Advance only the history proved by another item's exact admission;
-        // retain the original composer identity and expected user draft.
-        provenance.before={...provenance.before,users:[...snap.users],
-          assistants:[...snap.assistants],history:snap.history?.slice(),busy:snap.busy};
-        observeProvenance(snap);
-      }
+      checking=true;checkFailed=false;needsRender=false;
+      diagnostics.lastCheckStartedAt=Date.now();diagnostics.checks++;
+      if(source==='poll')diagnostics.lastPollAt=Date.now();
+      try{
+        let snap,placed=false,recovery=true;
+        const reconciled=attempt(()=>{snap=site.inspect();reconcile(snap);},'reconcile');
+        if(reconciled)attempt(()=>{
+          if(snap.ok){placed=view.place(snap);view.render();}
+          else view.hide();
+          recovery=view.hasRecovery();
+        },'layout');
+        if(!owner.active()||retireForLegacy())return;
+        const flight=engine.view().inFlight;
+        // Even a failed UI round must reconcile late admission and existing deadlines.
+        const ticked=attempt(()=>engine.tick({canSubmit:!checkFailed&&placed&&!pending&&!recovery}),'queue-check');
+        if(ticked&&reconciled)attempt(()=>{
+          const after=engine.view();
+          if(provenance&&after.inFlight?.id===provenance.id)provenance=null;
+          else if(provenance&&flight&&after.lastConfirmed===flight.id&&!after.inFlight){
+            // Advance only history proved by this item's exact admission.
+            provenance.before={...provenance.before,users:[...snap.users],
+              assistants:[...snap.assistants],history:snap.history?.slice(),busy:snap.busy};
+            observeProvenance(snap);
+          }
+        },'provenance');
+        if(needsRender)attempt(()=>view.render(),'render-change');
+        progress();
+        if(!checkFailed)diagnostics.lastCheckCompletedAt=Date.now();
+      }finally{checking=false;}
     }
-    owner.setInterval(poll,650);
-    const snap=site.inspect();
-    if(snap.ok){view.place(snap);view.render();}
+    function recoverPolling(source){
+      if(checking){diagnostics.coalesced++;return;}
+      if(!owner.active()||retireForLegacy())return;
+      attempt(()=>{
+        if(!hasWork())return;
+        progress();
+        const now=Date.now();
+        // Keep fallback checks alive while the normal schedule is absent, even
+        // after fallback progress: a prepared draft still has its original 6s deadline.
+        const missed=now-diagnostics.lastPollAt>=STALL_MS;
+        const failed=now-(diagnostics.lastCheckCompletedAt??started)>=STALL_MS;
+        const stalled=now-diagnostics.lastProgressAt>=STALL_MS;
+        if(source==='watchdog'&&!missed&&!failed&&!stalled)return;
+        diagnostics.lastRecoveryAt=now;diagnostics.recoveries++;
+        diagnostics.recoveryReason=source==='watchdog'?(missed||failed?'check-stalled':'progress-stalled'):source;
+        poll(source);
+      },'recovery-check');
+    }
+    owner.setInterval(poll,POLL_MS);
+    owner.setInterval(()=>recoverPolling('watchdog'),WATCHDOG_MS);
+    owner.on(document,'visibilitychange',()=>{
+      if(document.visibilityState==='visible')recoverPolling('visible');
+    });
+    owner.on(window,'pageshow',()=>recoverPolling('pageshow'));
+    let snap;
+    attempt(()=>{
+      snap=site.inspect();
+      if(snap.ok){view.place(snap);view.render();}
+    },'initial-layout');
+    progress();
     return {programId:ID,status:'active',runtime:'USER_SCRIPT',
-      persistence:'memory-only',composer:snap.ok?'detected':'not-detected'};
+      persistence:'memory-only',composer:snap?.ok?'detected':'not-detected',diagnostics};
   }catch(error){owner.destroy();throw error;}
 }

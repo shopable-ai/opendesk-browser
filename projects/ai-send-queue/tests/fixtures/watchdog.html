@@ -1,0 +1,73 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AI Send Queue watchdog browser check</title>
+<style>body{font:16px/1.5 sans-serif;margin:30px}textarea{width:400px;height:90px}pre{white-space:pre-wrap}</style>
+<p>Local source diagnostic: real main, site and engine; simulated route, UI owner and reply. No installation or website message.</p>
+<form><textarea id="prompt-textarea" data-testid="composer-input"></textarea><button type="button" data-testid="send-button" aria-label="Send">Send locally</button></form>
+<div id="history"></div><pre id="status">Preparing fixture…</pre>
+<script type="module">
+import {createChatGPTSite} from '../../src/page/site.js';
+import {createQueueEngine} from '../../src/page/engine.js';
+
+const status=document.querySelector('#status'),editor=document.querySelector('textarea');
+const history=document.querySelector('#history'),send=document.querySelector('button');
+const source=await (await fetch('../../src/page/main.js')).text();
+const disposers=[],timers=[],listeners=[];
+let active=true,engine,actions,result,renderFails=false,renderFailures=0,checks=0;
+const started=performance.now(),clicks=[];
+const win={location:{origin:'https://chatgpt.com',pathname:'/c/watchdog-fixture'},
+  getComputedStyle:node=>getComputedStyle(node),HTMLTextAreaElement,HTMLInputElement,InputEvent};win.top=win;
+const owner={host:{style:{setProperty(){}}},active:()=>active,
+  on(target,type,callback,options){
+    const real=target===win?window:target;
+    real.addEventListener(type,callback,options);listeners.push(()=>real.removeEventListener(type,callback,options));
+  },
+  setInterval(callback,ms){
+    // Fault injection: the normal schedule never fires. The 5s watchdog is a
+    // genuine Chromium interval; no fake clock and no direct tick calls.
+    const timer={callback,ms,id:ms===650?null:setInterval(callback,ms)};
+    timers.push(timer);return timer.id;
+  },
+  onDispose(fn){disposers.push(fn);},
+  destroy(){if(!active)return;active=false;timers.forEach(t=>clearInterval(t.id));listeners.forEach(fn=>fn());disposers.forEach(fn=>fn());}
+};
+const ui={place:()=>true,render(){if(renderFails){renderFailures++;throw Error('injected render failure');}},
+  hide(){},hasRecovery:()=>false,toast(){},offerRecovery(){throw Error('unexpected recovery copy');}};
+send.addEventListener('click',()=>{
+  const text=editor.value;clicks.push({text,elapsed:Math.round(performance.now()-started)});
+  const user=document.createElement('div');user.dataset.messageAuthorRole='user';user.textContent=text;
+  const reply=document.createElement('div');reply.dataset.messageAuthorRole='assistant';
+  reply.dataset.talvtTurnState='complete';reply.textContent='Local response complete';
+  history.append(user,reply);editor.value='';
+});
+// Match the Node entry harness: only the route and UI collaborators are doubles.
+// This test-only Function is never part of the installable source graph.
+const load=new Function('createPageUI','createChatGPTSite','createQueueEngine','createQueueView',
+  'createSendQueueRemote','window','document',source.replace(/^import .*;\n/gm,'')
+  .replace('export default async function main','async function main')+'\nreturn main;');
+const main=load(()=>owner,options=>{
+  const site=createChatGPTSite({...options,doc:document,win});
+  return {...site,inspect(){checks++;return site.inspect();}};
+},options=>(engine=createQueueEngine(options)),options=>{actions=options.actions;return ui;},
+()=>({changed(){}}),win,document);
+result=await main();
+editor.value='WATCHDOG_LOCAL_A';
+if(actions.enqueue()!==true)throw Error('fixture enqueue failed');
+const initialChecks=checks;
+function snapshot(){return {elapsed:Math.round(performance.now()-started),active,checks,initialChecks,
+  renderFailures,clicks:clicks.map(x=>({...x})),queue:engine.view().items.map(x=>({id:x.id,state:x.state,text:x.text})),
+  phase:engine.view().phase,answerGate:!!engine.view().answerGate,diagnostics:{...result.diagnostics},
+  primaryIntervalSuppressed:timers.some(t=>t.ms===650&&t.id===null),evidence:'LOCAL_SOURCE_NOT_INSTALLED'};}
+window.watchdogFixture={snapshot,
+  failRender(value){renderFails=value;},
+  recover(){window.dispatchEvent(new Event('pageshow'));},
+  finish(){
+    owner.destroy();const before=checks;
+    for(const t of timers)t.callback();window.dispatchEvent(new Event('pageshow'));
+    if(checks!==before||clicks.length!==1)throw Error('retired callbacks ran or duplicate local click');
+    const final=snapshot();status.textContent=JSON.stringify(final,null,2);return final;
+  }
+};
+status.textContent='Native 5s watchdog armed; primary 650ms timer suppressed. Waiting 30s for recovery.';
+window.fixtureReady=true;
+</script>

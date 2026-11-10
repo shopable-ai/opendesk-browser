@@ -9,8 +9,8 @@ const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8'
 // Real main/Site/Engine, inert DOM and UI. No browser or website sends.
 async function fixture({busy=false}={}){
   let now=0,poll,engine,actions,clears=0,recovery=null;
-  const listeners=new Map(),sent=[],users=[],assistants=[],history=[];
-  const state={busy,focus:()=>{}};
+  const timers=new Map(),listeners=new Map(),sent=[],users=[],assistants=[],history=[];
+  const state={busy,focus:()=>{},render:()=>{}};
   class Textarea{
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
     get value(){return this.current;}
@@ -42,7 +42,7 @@ async function fixture({busy=false}={}){
     selector.startsWith('[data-message-author-role="user"]')?users:assistants};
   const owner={host:{style:{setProperty(){}}},active:()=>true,
     on(_target,type,callback){listeners.set(type,callback);},onDispose(){},destroy(){},
-    setInterval(callback){poll=callback;}};
+    setInterval(callback,ms){timers.set(ms,callback);if(ms===650)poll=callback;}};
   const context=vm.createContext({window:win,document:doc,
     Date:class extends Date{static now(){return now;}},
     createPageUI:()=>owner,
@@ -53,7 +53,7 @@ async function fixture({busy=false}={}){
     createQueueEngine:options=>(engine=createQueueEngine({...options,clock:()=>now})),
     createQueueView:options=>{
       actions=options.actions;
-      return {place:()=>true,render(){},hide(){},hasRecovery:()=>!!recovery,offerRecovery(text,reason){recovery??={text,reason};},toast(){}};
+      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,offerRecovery(text,reason){recovery??={text,reason};},toast(){}};
     },
     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
@@ -62,6 +62,7 @@ async function fixture({busy=false}={}){
   return {editor,state,sent,users,assistants,history,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
     get clears(){return clears;},get actions(){return actions;},
     step(t){now=t;poll();},
+    watchdog(t){now=t;assert.equal(typeof timers.get(5000),'function');timers.get(5000)();},
     edit(text,{trusted=true,canceled=false,unchanged=false}={}){
       const event={target:editor,isTrusted:trusted,defaultPrevented:false};
       listeners.get('beforeinput')(event);
@@ -426,3 +427,46 @@ for(const text of ['A','new native draft']){
     assert.equal(h.engine.view().items.length,0);assert.deepEqual(h.sent,['A']);
   });
 }
+
+test('watchdog recovers missed polls without DOM events and preserves exact FIFO admission',async()=>{
+  const h=await fixture({busy:true});queue(h,'A');queue(h,'B');h.finishReply();
+  h.watchdog(29999);assert.deepEqual(h.sent,[]);
+  h.watchdog(30000);h.watchdog(35000);h.watchdog(40000);
+  assert.deepEqual(h.sent,['A']);
+  h.admit('A');h.watchdog(45000);
+  h.watchdog(75000);h.watchdog(80000);
+  assert.deepEqual(h.sent,['A'],'a long reply cannot be timed out into sending B');
+  h.finishReply();
+  for(const t of [85000,90000,95000,100000,105000])h.watchdog(t);
+  assert.deepEqual(h.sent,['A','B']);
+  h.admit('B');h.step(105100);finishAndClickNext(h,106000);
+  assert.equal(h.engine.view().items.length,0);
+});
+
+test('render failures cannot stop late admission reconciliation or replay its click',async()=>{
+  const h=await fixture();queue(h,'A');queue(h,'B');h.step(1400);h.step(2100);
+  assert.deepEqual(h.sent,['A']);
+  h.state.render=()=>{throw Error('UI unavailable');};
+  assert.doesNotThrow(()=>h.step(18000));
+  assert.equal(h.engine.view().phase,'unknown');
+  h.admit('A');assert.doesNotThrow(()=>h.step(19000));
+  assert.equal(h.engine.view().lastConfirmed,'q1');
+  assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['B']);
+  h.finishReply();h.step(20000);h.step(22000);h.step(24000);
+  assert.deepEqual(h.sent,['A'],'UI failure prohibits new writes while permitting read-only acknowledgement');
+  h.state.render=()=>{};finishAndClickNext(h,25000);
+  assert.deepEqual(h.sent,['A','B']);
+});
+
+test('a change render failure cannot strand a prepared flight or discard its complete text',async()=>{
+  const h=await fixture(),text='  完整🙂\n\n原文\u00a0 ';
+  h.edit(text);h.state.render=()=>{throw Error('render during enqueue');};
+  assert.doesNotThrow(()=>assert.equal(h.actions.enqueue(),true));
+  assert.equal(h.engine.view().items[0].text,text);
+  assert.doesNotThrow(()=>h.poll());assert.deepEqual(h.sent,[]);
+  h.state.render=()=>{};
+  h.state.focus=()=>{h.poll();};
+  h.step(100);h.step(1400);h.step(2100);
+  assert.deepEqual(h.sent,[text]);
+  assert.equal(h.engine.view().inFlight.phase,'await-confirm');
+});

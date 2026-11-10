@@ -19,7 +19,8 @@ test('one reviewed Sidebar package contains the complete crown and FIFO Page mod
   assert.equal(pkg.uiRuntime,'opendesk.react-ui.v1');
   assert.equal(pkg.pageModule.programId,'app.ai-send-queue');
   assert.equal(pkg.pageModule.version,pkg.version);
-  assert.equal(pkg.pageModule.revision,17);
+  const config=JSON.parse(await readFile(resolve(root,'tool.config.json'),'utf8'));
+  assert.equal(pkg.pageModule.revision,config.pageModule.revision);
   assert.equal(pkg.pageModule.sourceHash,sha(Buffer.from(pkg.pageModule.sourceUtf8)));
   assert.deepEqual(pkg.pageModule.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});

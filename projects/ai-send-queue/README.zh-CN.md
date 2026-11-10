@@ -6,7 +6,24 @@
 
 **网页输入快捷键：** 在已支持的 ChatGPT 原生对话输入框按 `Ctrl + Enter`，等同点击皇冠按钮将当前草稿加入队列，即使队列原本为空也能使用。普通 `Enter` 保留网站正常行为及已有受限回退逻辑，`Shift + Enter` 保留换行。空草稿只给出提示，不允许通过快捷键意外提交网站消息；IME、其他输入框和不可信来源不触发队列动作。
 
+## 停滞容错交付（2026-11-10）
+
+**源码与安装包已实现，当前网页安装生效未验证。** 正式版本由 `0.1.18` 升至 **`0.1.19`**，内嵌网页模块由 r17 升至 **r18**；唯一正式文件仍为 [ai-send-queue.opendesk-tool.json](ai-send-queue.opendesk-tool.json)，权限、站点范围和唯一 Page 发送器不变。
+
+- 保留 650ms 正常轮询，增加受管 5s 兜底检查。有待处理工作且正常检查失联、持续失败或业务连续 30s 没有推进时，复用同一入口重新核对；不依赖 DOM 事件，无关动画和重复等待提示不刷新进度时间。正常轮询缺失时，兜底继续驱动原阶段，不因一次进展又等待 30s。
+- 返回可见页面、pageshow 也复用同一防重入入口。UI 渲染/布局异常禁止本轮新提交，但不阻止精确入站与原期限核对；引擎变更通知中的 UI 异常不再打断准备或确认阶段。重新满足原有安全条件后自动继续。
+- 长回复、草稿、IME、附件、暂停、交接、恢复副本、会话和历史身份继续保护；unknown 只核对迟到回执，不重试发送。后台冻结期间不承诺墙钟时限，恢复后不补跑累积发送。停用/销毁/legacy 避让后旧回调不复活；完全无待处理状态时不增加兜底扫描。
+- 内存诊断区分最近检查开始、成功检查、业务推进与恢复来源，不保存正文、完整 DOM、异常消息或堆栈；初始运行回执的诊断字段不代表后续实时采样，也未增加侧栏数据接口或状态汇总区。
+
+关键回归在 `tests/main-recovery.test.mjs` 和 `tests/shortcut-integration.test.mjs`：受控 timer 实际调度、30s 边界、检查/渲染异常、防重入、恢复事件、空队列回复门禁、退休回调及真实 main/site/engine 的 FIFO 和迟到入站。新增 21 项核心回归先在旧实现失败；另补检查异常和启动 UI 异常两项。连同受影响的 engine/site/identity/remote/package 检查，本候选 **332 项通过**；语法和 diff 检查通过。独立代码审查未发现有依据的 P1/P2 回归。
+
+本地 Chromium 源码诊断 [tests/fixtures/watchdog.html](tests/fixtures/watchdog.html) 使用真实 main/site/engine、模拟路由和受管 UI，故意禁用正常 650ms timer：真实 5s timer 在 30s 后恢复检查，约 40s 仅提交本地 A 一次；渲染失败时仍确认入站，回复门禁完成后队列清空，销毁后的旧回调无效。**未向 ChatGPT 发送消息，不是安装/权限验收**；原始绑定记录在本机忽略目录 `artifacts/watchdog-20261110/browser.json`。
+
+正式包 SHA-256：`0ec6584d2607d54280673e69eba3f4f7f8ddc15cfe11e89a7dd7bb94f360e8bd`；网页 sourceHash：`cc6e286578f2fa6c0bb6d5cfcf6b82f658a1a99702896cecb9692c3d816c772d`。已用原打包器完成候选验证、同源晋升和正式包核对。状态为 **PACKAGE_READY_INSTALL_NOT_TESTED**：没有安装、刷新用户原页、修改 Browser 固定代码或覆盖 `dist/development`；真实网站 FIFO、系统休眠/冻结和撤权的本候选原生证据仍为 **NOT_TESTED**。旧 unknown 清理、production、全量验收与评分继续延期。
+
 ## 本次 JSON 交付（2026-11-10）
+
+以下为上次 `0.1.18` 单包迁移记录；当前正式包已由上节升级至 `0.1.19`。
 
 唯一正式安装包为 [ai-send-queue.opendesk-tool.json](ai-send-queue.opendesk-tool.json)，版本由 `0.1.17` 升至 **`0.1.18`**。采用既有 `opendesk.sidebar-tool.v2` 的 `pageModule`，内含同版本的 `app.ai-send-queue` **r17** 网页模块：皇冠、FIFO、Ctrl + Enter、长文布局与草稿保护均来自原 Page 源码；侧栏继续显示使用说明。
 

@@ -15,7 +15,7 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
   const legacyHost={queue:['private legacy queue'],destroy(){throw Error('must not touch legacy');}};
   let active=true,interval,actions,disposer;
   const owner={host:{style:{setProperty(){}}},on(){},active:()=>active,
-    setInterval(fn){interval=fn;},onDispose(fn){disposer=fn;},
+    setInterval(fn,ms){if(ms===650)interval=fn;},onDispose(fn){disposer=fn;},
     destroy(){if(active){active=false;calls.destroy++;disposer?.();}}};
   const site={inspect(){calls.inspect++;return {ok:false};}};
   const doc={querySelector(selector){assert.ok([legacySelector,previousSelector].includes(selector));
@@ -37,8 +37,8 @@ test('source manifest binds the embedded Page to the parent package without wide
   const pkg=JSON.parse(await readFile(new URL('package.json',root)));
   const tool=JSON.parse(await readFile(new URL('tool.config.json',root)));
   assert.equal(pkg.opendesk.id,'app.'+tool.id);
-  assert.equal(pkg.version,'0.1.18');assert.equal(tool.version,pkg.version);
-  assert.equal(tool.pageModule.revision,17);
+  assert.equal(tool.version,pkg.version);
+  assert.ok(Number.isSafeInteger(tool.pageModule.revision)&&tool.pageModule.revision>0);
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 });
