@@ -41,6 +41,9 @@ jobs:
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --out artifacts/sidebar-tools/ui-notify-demo/candidate.opendesk-tool.json
           node --test examples/sidebar-tools/ui-notify-demo/tests/notify-demo.test.mjs
           if [ -f examples/sidebar-tools/ui-notify-demo/ui-notify-demo.opendesk-tool.json ]; then node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --check-project; fi
+      - name: Build changed React Toast TSX with Vite
+        run: |
+          node --input-type=module -e "import {transformWithEsbuild} from 'vite'; import {readFile} from 'node:fs/promises'; const file='src/ui/react/tabs/tool-host.tsx'; const result=await transformWithEsbuild(await readFile(file,'utf8'),file,{loader:'tsx',jsx:'automatic'}); if(!result.code.includes('sidebar-tool-toast'))throw Error('E_UI_NOTICE_TOAST_BUILD'); console.log('ToolToast TSX compilation PASS');"
       - name: Source contract
         run: npm run check
       - name: Verify original packer promotion is a no-op on the committed formal package
