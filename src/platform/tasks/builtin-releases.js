@@ -25,6 +25,7 @@ const historicalReleases=[
 // Exactly one latest release per taskId is auto-provisioned; historical bytes
 // remain verifiable for existing authorized installations and explicit restore.
 export const BUILTIN_TASK_RELEASES=Object.freeze(releases.map(({package:pkg,...pin})=>Object.freeze(pin)));
+export const REVIEWED_BUILTIN_TASK_RELEASES=Object.freeze([...releases,...historicalReleases].map(({package:pkg,...pin})=>Object.freeze(pin)));
 export function loadPackagedTask(release) {
   const row=[...releases,...historicalReleases].find(row=>row.taskId===release.taskId&&
     row.version===release.version&&row.sourceHash===release.sourceHash&&row.manifestHash===release.manifestHash);
