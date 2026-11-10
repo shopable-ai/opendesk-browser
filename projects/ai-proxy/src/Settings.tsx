@@ -301,9 +301,17 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     setDefaultAction(state.config.defaultTarget.action);
     setDefaultEndpointId(state.config.defaultTarget.endpointId ?? '');
   }, [state?.config.defaultTarget.action, state?.config.defaultTarget.endpointId]);
-  if (!state) return <main className="options"><h1>AI Proxy</h1>
-    <p>{t('readingBrowserState')}</p>{error && <p role="alert" className="notice error">{error}</p>}
-    <Button onClick={() => void refresh()}>{t('retry')}</Button></main>;
+  if (!state) return <main className={'options' + (presentation==='management'?' optionsLoading':'')}>
+    {presentation==='management'&&<header className="optionsHead"><div className="managementIdentity">
+      <span className="managementAppIcon" aria-hidden="true">AI</span>
+      <div className="managementBrandCopy"><h1 className="managementTitle">AI Proxy</h1><p>{t('apManageSettings')}</p></div>
+    </div></header>}
+    <section className={presentation==='management'?'managementLoadingState':'optionsLoadingState'} role="status">
+      {presentation!=='management'&&<h1>AI Proxy</h1>}
+      <p>{t('readingBrowserState')}</p>
+      {error&&<p role="alert" className="notice error">{error}</p>}
+      <Button type="button" onClick={() => void refresh()}>{t('retry')}</Button>
+    </section></main>;
   const config = state.config;
   const endpoints = config.endpoints;
   const profiles = config.profiles;
@@ -688,12 +696,16 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 <Button className="proxyIconButton proxySelect" disabled={busy||!profile}
                   title={chosen?t('selected'):t('selectNamedProxy',{name:p.name})}
                   aria-label={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen}
-                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}><ProxyIcon name={chosen?'selected':'circle'}/></Button>
+                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}>{presentation==='management'
+                     ? <span className="managementProtocolLetter" aria-hidden="true">{p.scheme.startsWith('socks')?'S':'H'}</span>
+                     : <ProxyIcon name={chosen?'selected':'circle'}/>}</Button>
                 <div className="proxyRecordMain">
                   <div className="proxyRecordText"><div className="proxyRecordTitle"><strong title={p.name}>{p.name}</strong>
                     {source?.kind==='local-client'&&<span role="img" aria-label={t('localClientPortNotTested')} title={t('localClientPortNotTested')}><ProxyIcon name="system"/></span>}
                     {p.credentialRef&&<span role="img" aria-label={t('sessionAuthenticationRequired')} title={t('sessionAuthenticationRequired')}><ProxyIcon name="lock"/></span>}
                     {applied&&<span className="proxyApplied" role="img" aria-label={t('appliedToChrome2')} title={t('appliedToChrome2')}><ProxyIcon name="play"/></span>}
+                    {presentation==='management'&&chosen&&<span className="managementRecordTag">{t('selected')}</span>}
+                    {presentation==='management'&&applied&&<span className="managementRecordTag managementAppliedTag">{t('appliedToChrome2')}</span>}
                   </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
                 </div>
                 <div className="recordActions">
