@@ -270,36 +270,36 @@ test('main settings ChatGPT files controls anchor can configure preferences',asy
 function existingGrant(h){h.ledger['opendesk.chatgpt.files.grants.v1']={existing:{id:'existing',version:1,service:'https://chatgpt.com',
   sourceUrl:source.url,scope:'task-named-existing-text',operations:['read','write'],authority:{workspaceId,sourceId:''}}};}
 test('trusted project status conceals already cached file content after revocation, without a new Native call',async()=>{
-  const h=serviceHarness();
+  // Exercise the real trusted controller with an independently injected DOM
+  // reader: no fake Chrome scripting privilege is needed in this Node fixture.
+  const h=setup({claim:false});
+  h.api.tabs.query=async()=>[];
   existingGrant(h);
   try{
-    const start=await h.send('start',{task},pageSender);
-    assert.equal(start.ok,true,JSON.stringify(start));
-    const list=await h.send('project-list');
-    assert.equal(list.ok,true,JSON.stringify(list));
-    const ref=list.data.tasks[0];
+    const started=await h.controller.projectTask({task},pageSender);
+    assert.equal(started.needsConnection,false);
+    const list=await h.controller.projectList(owner);
+    assert.equal(list.tasks.length,1);
+    const ref=list.tasks[0];
     const identity={sourceTabId:ref.sourceTabId,sourceDocumentId:ref.sourceDocumentId,projectId:ref.projectId};
     const before=h.counts();
-    const permitted=await h.send('project-status',identity);
-    assert.equal(permitted.ok,true,JSON.stringify(permitted));
-    assert.match(permitted.data.resultText,/safe original/,'a live same-project grant permits the trusted result');
-    assert.deepEqual(h.counts(),before,'trusted status is pure readback and performs no new Native operation');
+    const permitted=await h.controller.projectStatusTrusted(identity,owner);
+    assert.match(permitted.resultText,/safe original/,'the original live grant authorizes this trusted result');
+    assert.deepEqual(h.counts(),before,'trusted status performs no new Native operation');
 
     h.ledger['opendesk.chatgpt.files.grants.v1'].existing.revoked=true;
-    const concealed=await h.send('project-status',identity);
-    assert.equal(concealed.ok,true,JSON.stringify(concealed));
-    assert.equal(concealed.data.resultText,'');
-    assert.equal(concealed.data.result,null);
-    assert.equal(concealed.data.comparison,null);
+    const concealed=await h.controller.projectStatusTrusted(identity,owner);
+    assert.equal(concealed.resultText,undefined);
+    assert.equal(concealed.result,undefined);
+    assert.equal(concealed.comparison,undefined);
     assert.doesNotMatch(JSON.stringify(concealed),/safe original|safe modified/);
     assert.deepEqual(h.counts(),before,'revoked status never re-reads Native');
 
-    const stopped=await h.send('project-stop',identity);
-    assert.equal(stopped.ok,true,JSON.stringify(stopped));
-    assert.equal(stopped.data.phase,'paused');
+    const stopped=await h.controller.projectStopTrusted(identity,owner);
+    assert.equal(stopped.automation.phase,'paused');
     assert.doesNotMatch(JSON.stringify(stopped),/safe original|safe modified/);
-    assert.deepEqual(h.counts(),before,'Stop after revocation fences old task without new IO');
-  }finally{h.service.dispose();}
+    assert.deepEqual(h.counts(),before,'Stop after revocation fences the task without further IO');
+  }finally{h.controller.dispose();}
 });
 
 test('source-scoped Stop cancels start before session creation and conversation waiting for its user turn',{timeout:2000},async()=>{
