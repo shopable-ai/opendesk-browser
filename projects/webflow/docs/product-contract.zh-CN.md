@@ -4,6 +4,8 @@
 
 **本轮增量的精确边界：** 复用 0.2.0 pinned Task、旧授权/Runner/Controller、Run/Result 持久化和来源 A tab/document 有界回填。将 `chatgpt.conversation.create` 0.2.0 结果严格识别为草稿或真实回复：无发送即无 B 链接；已发送必须验证确切新会话 URL 与消息身份。回复原文保存在原持久结果中，A 只得到可识别的有限预览、原持久身份和真实可点击链接，不因通用 7 KB 返回格式上限丢弃较长的已存回复。不增加 V2 字段、不提升 AI 文本权限，也不重写 chat-handoff 数据合同。
 
+**本轮 CI 已证实的范围：** main `f9ee003e` 的 [Actions Run 42862131792](https://github.com/shopable-ai/opendesk-browser/actions/runs/42862131792) 专项 Node 61/61 PASS，综合 166/167（非本任务的 AI Proxy `QuickPanel.tsx` 来源锁），Production Build 被跳过；PACKAGE/CHROME/BUSINESS 均 NOT_TESTED。
+
 **绝不能把源码当业务 PASS：** GPT-6/High/Thinking 真实网页能力与账号身份、UNKNOWN 只读对账、长 prompt 受控 SHA/owner/TTL 引用及原生 Chrome A→B→A 尚未验收。新 Node/CI 测试和 Task completed 不替代真实安装或 B 回访。实际断点、证据和下一项操作以[执行计划](execution-plan.zh-CN.md)为准。
 
 ---
