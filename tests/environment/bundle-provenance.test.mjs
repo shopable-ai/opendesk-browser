@@ -468,6 +468,25 @@ test('R1.3 Reading TOC model, overview, placement, page and view require audited
   }
 });
 
+test('Reading TOC generated locale keeps exact source, target and symlink fences',async ctx=>{
+  const path='projects/reading-toc/trusted/locales.generated.js';
+  const make=(target,root=process.cwd())=>describeBundle({root,lock:{packages:{}},chunk:{
+    fileName:target,modules:{[resolve(root,path)]:{originalLength:100,renderedLength:20}}
+  }});
+  const pin='e494a458a006adeb90697aca8dd8957bc90e2ef3';
+  assert.equal(make('sw.js').modules[0].reviewedFirstPartyBlob,pin);
+  assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
+  const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-locale-pin-')));
+  ctx.after(()=>rm(tmp,{recursive:true,force:true}));
+  const file=resolve(tmp,path),bytes=await readFile(path);
+  await mkdir(resolve(file,'..'),{recursive:true});await writeFile(file,bytes);
+  assert.equal(make('sw.js',tmp).modules[0].reviewedFirstPartyBlob,pin);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift\n')]));
+  assert.throws(()=>make('sw.js',tmp),/Trusted .* source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>make('sw.js',tmp),/must not be a symlink/);
+});
+
 test('relocated trusted policies and tab repair keep exact source, target and symlink fences',async ctx=>{
   const cases=[
     ['projects/reading-toc/trusted/policy.js','sw.js','2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'],

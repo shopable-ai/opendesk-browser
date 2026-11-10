@@ -81,7 +81,7 @@ const CSS=[
 '.ai-member-copy,.ai-member-status{color:#abb8d0}',
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
-'@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
+'@media(max-width:1100px){:host{right:8px;top:clamp(90px,15vh,190px);width:220px;opacity:.95;--toc-edge-gap:8px}.heading{font-size:11px}}',
 '@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.mode{width:24px}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');

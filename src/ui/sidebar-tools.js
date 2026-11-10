@@ -3462,6 +3462,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw new Error('应用网页服务未连接');
       // Page handlers may await their own storage.set, which takes this same
       // tool lock. Authorize without holding it across the native dispatch.
+      assertSession(source,token);
+      await assertSidebarToolEnabled(api,tool.id);
+      await assertInstalledTool(tool,revocationEpoch,'应用网页请求期间安装或授权已变化');
+      // Browser loading events can settle after the bounded target observer.
+      // Re-observe quietly, as currentPage.info does; never replay a dispatch.
+      await currentPageTarget.refresh?.({quiet:true,preserveRetry:true});
+      assertSession(source,token);
       const target=currentPageTarget.capture();
       const authorize=async()=>{
         assertSession(source,token);

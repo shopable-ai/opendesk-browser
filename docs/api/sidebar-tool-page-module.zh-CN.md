@@ -51,6 +51,8 @@ await OpenDeskTool.request('page.request', {
 
 需要已安装的 `page.module`。宿主从真实当前网页捕获文档身份，再验证父包、安装代际、原生注册与该文档的唯一执行实例；动态应用不能自选其他应用、标签页、world 或注入任意代码。应用仍负责快照修订、领域参数及业务取消语义。
 
+当前文档仅有旧浏览器会话的执行记录时，`page.request` 返回 `E_APP_PAGE_RELOAD_REQUIRED`。应用应停止无效轮询并提示保存草稿、等待当前操作结束后正常刷新网页；不能复用旧桥或在原文档自动重放模块。刷新后的请求重新捕获新文档并验证当前实例。该错误不代表需要重新安装或扩大权限；其他缺失、重复实例和未知执行结果仍保留原拒绝保护。
+
 同文档 hash / `history` 变化后，Page 桥每次用真实 frame/document 的当前 URL 重新校验范围，并要求 sender 同源；保留同一文档不等于放宽网站规则。Sidebar 已捕获的目标仍要求精确 URL，请求前后地址、文档或安装变化会拒绝旧回包。新请求应重新捕获当前目标。
 
 本合同不授权任意网络、Native、Controller 或后台业务。不提供第二套 Host、Registry、安装器或动态可信代码入口。真实 Browser 固定基线下的应用独立更新证据见[阅读目录试点记录](../../projects/reading-toc/DYNAMIC-PILOT.zh-CN.md)。

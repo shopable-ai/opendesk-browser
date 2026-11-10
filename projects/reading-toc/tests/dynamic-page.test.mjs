@@ -203,14 +203,14 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
  };
  const document=events({createElement:tag=>new SidebarNode(tag),createDocumentFragment:()=>new SidebarNode('fragment'),hidden:false});
  const sidebarCatalog={sourceLocale:appCatalog.sourceLocale,messages:Object.fromEntries(Object.entries(appCatalog.messages).map(([locale,rows])=>[locale,Object.fromEntries(Object.entries(rows).map(([key,value])=>[key,typeof value==='string'?value:value.text]))]))};
- const window=events(),timers=new Map();let serial=0;
+ const window=events(),timers=new Map();let serial=0,now=0;
  runInNewContext(await readFile(new URL('../src/main.js',import.meta.url),'utf8'),{
   globalThis:{OpenDeskTool:{root,request,setState(state){states.push({...state});},onLocaleChange(fn){localeChange=fn;},messages:sidebarCatalog,locale:'en',
    ...(navigation?{navigationFeatures:{headerActions:true,settingsPage},setNavigation(state){navigations.push(state);return !(rejectActions&&state.headerActions)&&!(rejectSettings&&state.settingsPage);}}:{})}},__OPENDESK_TOOL_MESSAGES__:sidebarCatalog,
-  document,window,URL,Intl,setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id)});
+  document,window,URL,Intl,Date:{now:()=>now},setTimeout(fn,ms){timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id)});
  await tick();await tick();
  return {root,containers,navigations,nodes,inputs,modes,store,requests,window,document,timers,states,setSnapshotError(error){snapshotError=error;},setSnapshotValue(value){snapshotValue=value;},
-  async runTimers(){const pending=[...timers];for(const [id,{fn}] of pending){timers.delete(id);fn();}await tick();await tick();},
+  async runTimers(){const pending=[...timers];for(const [id,{fn,ms}] of pending){timers.delete(id);now+=ms;fn();}await tick();await tick();},
   conflict(){conflict=true;},quota(){quota=true;},
   unconfirmed(){unconfirmed=true;},holdSave(){saveGate=new Promise(resolve=>{releaseSave=resolve;});},
   releaseSave(){releaseSave();saveGate=null;},changeLocale(next){localeChange(next);}};
@@ -235,6 +235,92 @@ for(const code of ['E_APP_PAGE_OWNER','E_PAGE_INSTALLATION']){
   }finally{f.window.fire('pagehide');}
  });
 }
+test('sidebar old-session recovery pauses polling and stale navigation until the page is ready',async()=>{
+ const f=await sidebarFixture();
+ try{
+  f.setSnapshotError(Object.assign(Error('Page belongs to an earlier browser session'),{code:'E_APP_PAGE_RELOAD_REQUIRED'}));
+  await f.runTimers();
+  assert.equal(f.nodes['toc-error'].dataset.state,'error');
+  assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages.en.pageReloadRequired.text);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,true);
+  assert.equal(f.timers.size,0);
+  f.changeLocale('zh-CN');
+  assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages['zh-CN'].pageReloadRequired);
+  const count=f.requests.length;await f.runTimers();assert.equal(f.requests.length,count);
+  f.setSnapshotError(null);f.root.fire('opendesk-page-changed');await tick();await tick();
+  assert.equal(f.nodes['toc-error'].hidden,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,false);
+  assert.equal(f.timers.size,1);
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.navigate').length,0);
+  assert.equal(f.store.writes.length,0);
+ }finally{f.window.fire('pagehide');}
+ const count=f.requests.length;
+ f.root.fire('opendesk-page-changed');await tick();await f.runTimers();
+ assert.equal(f.requests.length,count);assert.equal(f.timers.size,0);
+});
+test('sidebar retains a page-change read while an old-session request is still pending',async()=>{
+ const f=await sidebarFixture();
+ try{
+  let rejectRead;
+  f.setSnapshotValue(new Promise((_,reject)=>{rejectRead=reject;}));
+  await f.runTimers();
+  const count=f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length;
+  f.root.fire('opendesk-page-changed');
+  rejectRead(Object.assign(Error('Previous document belongs to an earlier browser session'),{code:'E_APP_PAGE_RELOAD_REQUIRED'}));
+  f.setSnapshotValue(undefined);await tick();await tick();
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading');
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,count);
+  assert.equal(f.timers.size,1);
+  await f.runTimers();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,count+1);
+  assert.equal(f.nodes['toc-error'].hidden,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,false);
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.navigate').length,0);
+  assert.equal(f.store.writes.length,0);
+ }finally{f.window.fire('pagehide');}
+});
+test('sidebar page changes immediately pause old links and discard a late successful snapshot',async()=>{
+ const f=await sidebarFixture();
+ try{
+  let resolveRead;
+  f.setSnapshotValue(new Promise(resolve=>{resolveRead=resolve;}));await f.runTimers();
+  f.root.fire('opendesk-page-changed');
+  const oldLink=f.nodes['toc-list'].children[0].children[0];
+  assert.equal(oldLink.disabled,true);
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading');
+  assert.equal(f.inputs.every(input=>input.disabled),true);
+  f.nodes['toc-settings'].fire('change',{target:f.inputs[0]});await tick();
+  assert.equal(f.store.writes.length,0);
+  oldLink.fire('click');await tick();
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.navigate').length,0);
+  resolveRead({url:'https://old.org/',items:[{id:'old',sourceId:'old',label:'Wrong document',depth:0}],sources:[{id:'old',label:'Old'}]});
+  f.setSnapshotValue(undefined);await tick();await tick();
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading');
+  assert.equal(oldLink.disabled,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].dataset.id,'h-1');
+  await f.runTimers();
+  assert.equal(f.nodes['toc-error'].hidden,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,false);
+  assert.equal(f.store.writes.length,0);
+ }finally{f.window.fire('pagehide');}
+});
+test('sidebar actual host loading code stays neutral then explains persistent failure and recovers',async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('当前网页尚未完成加载，请等待页面稳定'),{code:'E_DOCUMENT_UNRESOLVED'})});
+ try{
+  assert.equal(f.nodes['toc-error'].dataset.state,'loading');
+  // Normal loads may outlast the old three immediate retries (1.75 seconds).
+  for(let i=0;i<4;i++){await f.runTimers();assert.equal(f.nodes['toc-error'].dataset.state,'loading');}
+  for(let i=0;i<4&&f.nodes['toc-error'].dataset.state==='loading';i++)await f.runTimers();
+  assert.equal(f.nodes['toc-error'].dataset.state,'error');
+  assert.match(f.nodes['toc-error'].textContent,/当前网页尚未完成加载/);
+  assert.match(f.nodes['toc-error'].textContent,/reload|refresh/i);
+  f.setSnapshotError(null);await f.runTimers();
+  assert.equal(f.nodes['toc-error'].hidden,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,false);
+  assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.navigate').length,0);
+  assert.equal(f.store.writes.length,0);
+ }finally{f.window.fire('pagehide');}
+});
 test('sidebar manual refresh restores the outline and polling after companion repair',async()=>{
  const f=await sidebarFixture({snapshotError:Object.assign(Error('Companion installation missing or changed'),{code:'E_PAGE_INSTALLATION'})});
  try{
@@ -300,7 +386,8 @@ test('sidebar waits through document refresh races and cancels the retry on disp
 test('sidebar transient snapshot errors retain automatic timer retry',async()=>{
  const f=await sidebarFixture({snapshotError:Object.assign(Error('Temporary disconnect'),{code:'E_TEMPORARY'})});
  try{
-  assert.match(f.nodes['toc-error'].textContent,/Retrying automatically: Temporary disconnect/);
+  assert.match(f.nodes['toc-error'].textContent,/Temporary disconnect/);
+  assert.match(f.nodes['toc-error'].textContent,/Retrying automatically/);
   assert.equal(f.timers.size,1);f.setSnapshotError(null);await f.runTimers();
   assert.equal(f.requests.filter(r=>r.payload?.operation==='toc.snapshot').length,2);
   assert.equal(f.nodes['toc-error'].hidden,true);

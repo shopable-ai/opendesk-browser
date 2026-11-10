@@ -330,6 +330,34 @@ test('stale browser session cannot use old companion bridge',async()=>{
     {...execution,browserSessionIncarnation:'old-session'},execution.executionKey));
   await fails(()=>f.bridge('authorize'),'E_PAGE_AUTHORIZATION');
 });
+test('sidebar identifies an old-session companion without dispatch and recovers on a new document',async()=>{
+  const f=await appFixture();await f.installApp();await f.bootApp();
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',
+    {...execution,browserSessionIncarnation:'old-session'},execution.executionKey));
+  const calls=f.executeCalls,sources=f.sourceCalls,before=f.snapshot();
+  for(let i=0;i<2;i++)await fails(()=>f.service.requestAppPage(
+    {...f.owner,target:f.target,operation:'toc.read',payload:{}},{}),'E_APP_PAGE_RELOAD_REQUIRED');
+  assert.equal(f.executeCalls,calls);assert.equal(f.sourceCalls,sources);
+  assert.deepEqual(f.snapshot(),before,'diagnosis does not rewrite old-session authorization');
+  f.navigate('refreshed-document');await f.bootApp();
+  assert.deepEqual(await f.service.requestAppPage(
+    {...f.owner,target:f.target,operation:'toc.read',payload:{}},{}),{operation:'toc.read',payload:{}});
+});
+test('old-session diagnostics never replace unique-current or duplicate-instance authorization',async()=>{
+  const f=await appFixture();await f.installApp();await f.bootApp();
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');
+  const historical={...execution,executionKey:execution.executionKey+':historical',browserSessionIncarnation:'old-session'};
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',historical,historical.executionKey));
+  assert.deepEqual(await f.service.requestAppPage(
+    {...f.owner,target:f.target,operation:'toc.read',payload:{}},{}),{operation:'toc.read',payload:{}});
+  const duplicate={...execution,executionKey:execution.executionKey+':duplicate'};
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',duplicate,duplicate.executionKey));
+  const calls=f.executeCalls,before=f.snapshot();
+  await fails(()=>f.service.requestAppPage(
+    {...f.owner,target:f.target,operation:'toc.read',payload:{}},{}),'E_PAGE_AUTHORIZATION');
+  assert.equal(f.executeCalls,calls);assert.deepEqual(f.snapshot(),before);
+});
 test('synchronization retires the actual managed bridge and retains uncertain cleanup',async()=>{
   const f=await appFixture();f.retireHook=f.previewExecutor.retireInstalled;
   await f.installApp();await f.bootApp();

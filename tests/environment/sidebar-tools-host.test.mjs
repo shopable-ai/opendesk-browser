@@ -3298,6 +3298,37 @@ test('R18.1 conditional writes atomically reject a stale full-array replacement'
   assert.equal(f.store.get(sidebarToolStorageKey(sample.id)).notes[0].text,'甲');
 });
 
+test('page.request quietly recovers an exhausted loading snapshot before exact-document dispatch',async t=>{
+  const {digest,digestUtf8}=await import('../../src/platform/protocol.js');
+  const sourceUtf8='void 0;',page={format:'opendesk.page-install.v1',programId:'app.target-fixture',
+    version:'1.0.0',title:'Target fixture',revision:1,entryFormat:'classic-userscript',sourceUtf8,
+    sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:['https://article.example/*'],
+      excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  const tool={format:'opendesk.sidebar-tool.v2',id:'target-fixture',version:'1.0.0',title:'Target fixture',
+    description:'Page target recovery',capabilities:['page.module'],html:'<p>Fixture</p>',css:'',js:'void 0;',
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...page,packageHash:await digest(page)}};
+  const tab={id:7,windowId:1,active:true,status:'loading',url:'https://article.example/read'};
+  let queries=0;const dispatches=[];
+  const target=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
+    tabs:{query:async()=>{queries++;return [{...tab}];}},
+    webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:'new-document',documentLifecycle:'active',url:tab.url}]}}});
+  t.after(()=>target.dispose());await target.ready;
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),target,
+    foundationClient:{async request(type,payload){dispatches.push({type,payload});return {items:[],sources:[]};}}});
+  const read=async id=>{f.ask('page.request',{operation:'toc.snapshot',payload:{}},id);
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);};
+  assert.equal((await read('loading-page')).ok,false);assert.equal(dispatches.length,0);
+  tab.status='complete'; // No completion event: the bounded navigation observer has already stopped.
+  assert.equal((await read('ready-page')).ok,true);
+  assert.equal(dispatches.length,1);assert.equal(dispatches[0].type,'requestAppPage');
+  assert.equal(dispatches[0].payload.target.documentId,'new-document');
+  const before=queries;f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false});
+  assert.equal((await read('disabled-page')).ok,false);
+  assert.equal(queries,before,'disabled apps cannot re-observe the current page');
+  assert.equal(dispatches.length,1,'recovery never replays a previous dispatch');
+});
+
 test('currentPage.info quietly resolves a stale loading snapshot on every authorized read',async t=>{
   const tab={id:7,windowId:1,active:true,status:'loading',title:'Ready',url:'https://article.example/read'};
   let documentId='document-a',queries=0;

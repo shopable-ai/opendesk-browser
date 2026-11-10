@@ -63,7 +63,8 @@ function paintAi(){
  }
 }
 let mode='focus',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='';
-let reading=false,closed=false,hasSnapshot=false,stale=false,failures=0,missing=0,timer=0,wantForce=false,installationBlocked=false;
+let reading=false,closed=false,hasSnapshot=false,stale=false,failures=0,missing=0,timer=0,wantForce=false,recoveryBlocked=false;
+let pageGeneration=0,readinessSince=null;
 let statusKey='',statusValues={},statusState='',moreCount=0;
 function paintStatus(){
  error.textContent=statusKey?t(statusKey,statusValues):'';
@@ -131,11 +132,13 @@ function render(){
    const span=document.createElement('span');span.textContent=item.label;button.append(span);
    button.addEventListener('click',async()=>{
     if(stale)return;
+    const generation=pageGeneration;
     showStatus('');
     try{const result=await request('page.request',{operation:'toc.navigate',payload:{id:item.id,sourceId:item.sourceId}});
+     if(closed||generation!==pageGeneration)return;
      if(!result?.ok)throw Error(t('navigateChanged'));
      data.activeId=item.id;render();
-    }catch(e){showStatus('navigateChanged',{},'error');}
+    }catch(e){if(!closed&&generation===pageGeneration)showStatus('navigateChanged',{},'error');}
    });li.append(button);fragment.append(li);
   });list.replaceChildren(fragment);lastKey=key;
  }
@@ -159,13 +162,14 @@ function schedule(delay){
 function requestRefresh(force=false){
  if(closed)return;
  if(force)wantForce=true;
- if(reading)return; // Manual reload is replayed after the in-flight read.
+ if(reading)return; // Explicit refreshes are retained until the in-flight read settles.
  clearTimeout(timer);timer=0;
  void refresh();
 }
 async function refresh(){
  if(closed||reading)return;
  reading=true;
+ const generation=pageGeneration;
  let waitingForPage=false;
  const force=wantForce||(hasSnapshot&&missing>0&&missing<3);
  wantForce=false;
@@ -173,32 +177,39 @@ async function refresh(){
  if(!hasSnapshot)showStatus('loading',{},'loading');
  try{
   const snapshot=await request('page.request',{operation:'toc.snapshot',payload:force?{refresh:true}:{}});
-  if(closed)return;
+  if(closed||generation!==pageGeneration)return;
   if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.sources))
    throw Object.assign(Error(t('invalidData')),{code:'E_TOC_SNAPSHOT'});
-  data=snapshot;void loadSettings(snapshot);hasSnapshot=true;stale=false;failures=0;installationBlocked=false;
+  data=snapshot;hasSnapshot=true;stale=false;failures=0;recoveryBlocked=false;readinessSince=null;void loadSettings(snapshot);
   missing=snapshot.items.length===0?Math.min(3,missing+1):0;
   showStatus('');render();
  }catch(e){
-  if(!closed){
+  if(!closed&&generation===pageGeneration){
    failures=Math.min(8,failures+1);
    stale=hasSnapshot&&data.items.length>0;
    render();
    const detail=String(e?.message||t('readFail')).slice(0,150);
-   installationBlocked=e?.code==='E_APP_PAGE_OWNER'||e?.code==='E_PAGE_INSTALLATION';
+   const installationBlocked=e?.code==='E_APP_PAGE_OWNER'||e?.code==='E_PAGE_INSTALLATION';
+   const pageReloadRequired=e?.code==='E_APP_PAGE_RELOAD_REQUIRED';
+   recoveryBlocked=installationBlocked||pageReloadRequired;
    // A reload can briefly have no live document/handler or no usable snapshot.
    // Retry only this read, with a bounded loading phase; stale links stay disabled.
-   waitingForPage=failures<=3&&['E_TOC_SNAPSHOT','E_TARGET','E_DOCUMENT_STALE',
-    'E_PAGE_AUTHORIZATION','E_APP_PAGE_NOT_READY'].includes(e?.code);
-   showStatus(installationBlocked?'installationRepair':waitingForPage?'loading':stale?'stale':'retry',
+   // Current Page Target reports navigation/loading as E_DOCUMENT_UNRESOLVED.
+   // Its real readiness transition, not three fast reads, ends this loading phase.
+   // A bounded elapsed window still exposes a sustained failure with recovery steps.
+   if(readinessSince===null)readinessSince=Date.now();
+   waitingForPage=e?.code==='E_DOCUMENT_UNRESOLVED'?Date.now()-readinessSince<10000:
+    failures<=3&&['E_TOC_SNAPSHOT','E_TARGET','E_DOCUMENT_STALE',
+     'E_PAGE_AUTHORIZATION','E_APP_PAGE_NOT_READY'].includes(e?.code);
+   showStatus(installationBlocked?'installationRepair':pageReloadRequired?'pageReloadRequired':waitingForPage?'loading':stale?'stale':'retry',
     {detail},waitingForPage?'loading':'error');
   }
  }finally{
   reading=false;reload.removeAttribute('aria-busy');
   if(closed)return;
-  if(installationBlocked)return; // Requires explicit installation recovery, not background polling.
-  if(wantForce)schedule(80);
-  else if(waitingForPage)schedule(250*Math.pow(2,failures-1));
+  if(wantForce)schedule(80); // Do not lose a new-document event to the old request's error.
+  else if(recoveryBlocked)return; // Requires page/installation recovery, not background polling.
+  else if(waitingForPage)schedule(Math.min(4000,250*Math.pow(2,failures-1)));
   else if(failures)schedule(Math.min(8000,500*Math.pow(2,Math.min(failures-1,4))));
   else if(hasSnapshot&&missing>0&&missing<3)schedule(missing===1?600:1600);
   else schedule(4000);
@@ -273,7 +284,7 @@ settingsOpen?.addEventListener('click',()=>showSettings(true));
 settingsBack?.addEventListener('click',()=>showSettings(false));
 root.addEventListener('opendesk-tool-navigation',onNavigation);
 async function loadSettings(snapshot){
- if(!settings||settingsBusy||!snapshot?.url)return;
+ if(!settings||settingsBusy||stale||!snapshot?.url)return;
  const token=++settingsToken;
  const url=new URL(snapshot.url);url.hash='';
  const identity={origin:url.origin,page:url.origin+url.pathname};
@@ -340,8 +351,17 @@ if(aiNodes)aiNodes['toc-promo-action'].addEventListener('click',()=>{
 more.addEventListener('click',()=>{mode='full';render();});
 source.addEventListener('change',()=>{sourceChoice=source.value;render();});
 reload.addEventListener('click',()=>requestRefresh(true));
+const onPageChanged=()=>{
+ if(closed)return;
+ pageGeneration++;failures=0;missing=0;readinessSince=null;recoveryBlocked=false;
+ settingsToken++;settingsIdentity=null;paintSettingsNavigation();
+ for(const input of settings?.querySelectorAll('input')||[])input.disabled=true;
+ stale=hasSnapshot;showStatus('loading',{},'loading');render();
+ requestRefresh(true);
+};
+root.addEventListener('opendesk-page-changed',onPageChanged);
 window.addEventListener('focus',()=>requestRefresh());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestRefresh();});
-window.addEventListener('pagehide',()=>{closed=true;clearTimeout(timer);root.removeEventListener('opendesk-tool-navigation',onNavigation);},{once:true});
+window.addEventListener('pagehide',()=>{closed=true;clearTimeout(timer);root.removeEventListener('opendesk-tool-navigation',onNavigation);root.removeEventListener('opendesk-page-changed',onPageChanged);},{once:true});
 requestRefresh();
 })();

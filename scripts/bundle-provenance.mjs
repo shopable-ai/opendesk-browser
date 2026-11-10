@@ -643,7 +643,7 @@ const compiledReadingTocInputs=Object.freeze({
   // Legacy metadata/admission only. Webpage algorithms and view styles are
   // delivered by the reviewed application Page module, never fixed bundles.
   'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
-  'projects/reading-toc/trusted/locales.generated.js':'397bd2c9ea29fe24b69f894e8c257e4bd99a8f23'
+  'projects/reading-toc/trusted/locales.generated.js':'e494a458a006adeb90697aca8dd8957bc90e2ef3'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;

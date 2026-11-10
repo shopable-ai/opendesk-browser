@@ -27,8 +27,8 @@
       "invalidData": "目录数据无效",
       "navigateChanged": "章节已变化，请重新选择",
       "readFail": "目录读取失败",
-      "retry": "目录读取失败，正在自动重试：{detail}",
-      "stale": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
+      "retry": "暂未读到目录：{detail}。将自动重试；若页面已加载，保存内容后刷新网页。",
+      "stale": "上次目录仅供查看，跳转已暂停：{detail}。将自动重试；若仍未恢复，保存内容后刷新网页。",
       "dragTitle": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
       "dragAria": "拖动阅读目录；方向键移动，Home 归位",
       "resetTitle": "归位：恢复网页目录默认位置",
@@ -57,7 +57,8 @@
       "externalKind": "广告 · 待审核",
       "externalTitle": "广告展示位",
       "externalDescription": "尚无经过审核的广告素材；当前不加载外部广告。",
-      "installationRepair": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。"
+      "installationRepair": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
+      "pageReloadRequired": "网页仍使用上一次浏览器会话的目录模块，已暂停自动重试。请先保存草稿、等待当前操作结束，再刷新网页，目录会重新连接。"
     },
     "en": {
       "title": {
@@ -161,12 +162,12 @@
         "text": "Failed to read table of contents"
       },
       "retry": {
-        "source": "目录读取失败，正在自动重试：{detail}",
-        "text": "Unable to read headings. Retrying automatically: {detail}"
+        "source": "暂未读到目录：{detail}。将自动重试；若页面已加载，保存内容后刷新网页。",
+        "text": "Headings are not available: {detail}. Retrying automatically; if the page has loaded, save your work and reload the webpage."
       },
       "stale": {
-        "source": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
-        "text": "Update unavailable. Showing the last contents (navigation paused): {detail}"
+        "source": "上次目录仅供查看，跳转已暂停：{detail}。将自动重试；若仍未恢复，保存内容后刷新网页。",
+        "text": "Previous headings are for reference; navigation is paused: {detail}. Retrying automatically; if this persists, save your work and reload the webpage."
       },
       "dragTitle": {
         "source": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
@@ -283,6 +284,10 @@
       "installationRepair": {
         "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
         "text": "The companion page module is missing or has changed. Return to Extensions, import the Reading TOC package and choose “Verify and restore page module”, then refresh the outline."
+      },
+      "pageReloadRequired": {
+        "source": "网页仍使用上一次浏览器会话的目录模块，已暂停自动重试。请先保存草稿、等待当前操作结束，再刷新网页，目录会重新连接。",
+        "text": "This page still uses a contents module from an earlier browser session. Automatic retries are paused. Save drafts and wait for ongoing actions to finish, then reload the webpage to reconnect."
       }
     },
     "ja": {
@@ -387,12 +392,12 @@
         "text": "目次を読み込めませんでした"
       },
       "retry": {
-        "source": "目录读取失败，正在自动重试：{detail}",
-        "text": "目次を読み込めません。自動再試行中：{detail}"
+        "source": "暂未读到目录：{detail}。将自动重试；若页面已加载，保存内容后刷新网页。",
+        "text": "目次を読み取れません：{detail}。自動再試行します。ページの読み込みが完了している場合は、作業を保存してページを再読み込みしてください。"
       },
       "stale": {
-        "source": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
-        "text": "更新できません。前回の目次を表示しています（移動は一時停止中）：{detail}"
+        "source": "上次目录仅供查看，跳转已暂停：{detail}。将自动重试；若仍未恢复，保存内容后刷新网页。",
+        "text": "前回の目次を表示しています。移動は一時停止中：{detail}。自動再試行します。復旧しない場合は、作業を保存してページを再読み込みしてください。"
       },
       "dragTitle": {
         "source": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
@@ -509,6 +514,10 @@
       "installationRepair": {
         "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
         "text": "連携するページモジュールが未完了、または変更されています。拡張機能に戻り、目次パッケージを再度読み込んで「ページモジュールを確認して復元」を選択し、完了後に目次を更新してください。"
+      },
+      "pageReloadRequired": {
+        "source": "网页仍使用上一次浏览器会话的目录模块，已暂停自动重试。请先保存草稿、等待当前操作结束，再刷新网页，目录会重新连接。",
+        "text": "このページには前のブラウザーセッションの目次モジュールが残っています。自動再試行を停止しました。下書きを保存し、実行中の操作が終わってからページを再読み込みしてください。"
       }
     }
   }

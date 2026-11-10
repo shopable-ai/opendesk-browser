@@ -20,7 +20,8 @@ test('R1.2 trusted locale resource is an exact, audited generated snapshot',asyn
   const output=await readFile('projects/reading-toc/trusted/locales.generated.js','utf8');
   assert.equal(output,renderReadingTocTrustedLocales(input));
   assert.match(output,/do not edit/);
-  assert(!output.includes('import '));
+  // Translated copy can contain “import”; only an executable import is forbidden.
+  assert(!/^\s*import\b/m.test(output));
   assert.throws(()=>renderReadingTocTrustedLocales(input.replace(
     '刷新阅读目录','重新刷新阅读目录')),/E_TOOL_LOCALE_STALE_OR_UNSAFE/,
     'editing source invalidates reviewed translations before trusted generation');

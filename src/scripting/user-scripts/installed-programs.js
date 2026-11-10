@@ -1611,9 +1611,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(new TextEncoder().encode(canonical(request.payload)).byteLength<=32768,'E_LIMIT','Companion request too large');
     const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,'app.'+request.toolId)));
     const executions=await read(tx=>tx.all(PAGE_STORE));
-    const matches=executions.filter(value=>value?.tag==='page-execution-v1'&&value.programId===row.programId&&
+    const documentExecutions=executions.filter(value=>value?.tag==='page-execution-v1'&&value.programId===row.programId&&
       value.installationToken===row.token&&value.documentId===request.target.documentId&&value.tabId===request.target.tabId&&
-      ['dispatched','completed'].includes(value.state)&&value.browserSessionIncarnation===session);
+      ['dispatched','completed'].includes(value.state));
+    const matches=documentExecutions.filter(value=>value.browserSessionIncarnation===session);
+    // A surviving page may retain a previous browser session's bridge. Never
+    // reauthorize or re-execute it: a normal page reload establishes a new document.
+    invariant(matches.length!==0||documentExecutions.length===0,'E_APP_PAGE_RELOAD_REQUIRED',
+      'Page module belongs to an earlier browser session. Save your work, wait for ongoing actions to finish, then reload the webpage.');
     invariant(matches.length===1,'E_PAGE_AUTHORIZATION','No unique live companion execution');
     const execution=matches[0];
     await appExecution(row,execution.executionKey,execution.receiptNonce,request.target);
