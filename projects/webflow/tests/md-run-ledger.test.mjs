@@ -82,7 +82,9 @@ test('UNKNOWN and revocation retain the old persisted identity without a new cla
   const a=ledger(storage,async()=>allowed);await a.startOrGet(input());
   const claimed=await a.claimNext(input().workflowId);
   await a.append(input().workflowId,{type:'create-intent',taskId:'T01',
-    expectedRevision:claimed.run.revision,at:2001,operationRef:'create-op-0001'});
+    expectedRevision:claimed.run.revision,at:2001,operationRef:'create-op-0001',
+    authorizationRef:'auth-review-0001',installationId:'install-chatgpt-020',generation:2,
+    manifestHash:HASH,contentHash:HASH,promptSha256:HASH});
   await a.append(input().workflowId,{type:'unknown',taskId:'T01',
     expectedRevision:claimed.run.revision+1,at:2002,code:'E_EFFECT_UNKNOWN'});
   const before=await a.get(input().workflowId);
