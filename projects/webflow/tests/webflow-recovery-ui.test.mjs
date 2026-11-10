@@ -54,6 +54,7 @@ async function mount(t,host=sdk()){
   const runtime={...React,createRoot(node){const root=createRoot(node,{onUncaughtError:e=>errors.push(e)});roots.push(root);return root;}};
   const timers=new Map();let timerId=0;
   const sdkTool={root:document.getElementById('root'),request:host.request.bind(host)};
+  if(host.notify)sdkTool.ui={notify:host.notify};
   host.editStates=[];
   sdkTool.setState=value=>{host.editStates.push(structuredClone(value));return true;};
   if(host.withNavigation){
@@ -784,4 +785,49 @@ test('a recovered query merges against current stored history after a temporary 
   host.read=async()=>complete(id);const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
   assert.ok(host.store.get('webflow.recent.v1').some(row=>row.clientRequestId===older.clientRequestId));
   assert.equal(starts(host).length,0);assert.ok(f.document.querySelector('pre'));
+});
+
+
+test('P0 manual admitted Run updates the same R1.2 notification only after original Result readback',async t=>{
+  const host=sdk(),events=[],handles=[];
+  host.notify={open(options){
+    events.push({action:'open',options});
+    const handle={ready:Promise.resolve({status:'accepted'}),
+      update(next){events.push({action:'update',options:next});return Promise.resolve({status:'accepted'});},
+      dismiss(){events.push({action:'dismiss'});return Promise.resolve({status:'accepted'});}};
+    handles.push(handle);return handle;
+  }};
+  host.start=async id=>({clientRequestId:id,taskId:host.pins[0].taskId,
+    runId:'run-original',state:'running',retirementState:'running'});
+  host.read=async id=>complete(id);
+  const f=await mount(t,host);await prepare(f);
+  assert.equal(events.length,0,'preparation/installation metadata must not notify a Run');
+  await f.click('确认手动运行');
+  assert.equal(starts(host).length,1);
+  assert.equal(events.filter(e=>e.action==='open').length,1);
+  assert.match(events[0].options.message,/正在执行/);
+  await f.tick();
+  await f.flush();
+  assert.equal(events.filter(e=>e.action==='open').length,1,'same original request reuses one handle');
+  assert.equal(events.filter(e=>e.action==='update').length,1);
+  assert.match(events.find(e=>e.action==='update').options.message,/仅脚本执行/);
+  assert.equal(host.calls.filter(c=>c.name==='tasks.start').length,1);
+  await f.click('记录');
+  assert.match(f.text(),/run-original/);
+  assert.match(f.text(),/result-original/);
+  await f.close();
+  assert.equal(events.filter(e=>e.action==='dismiss').length,1,'unmount does not leave an old handle alive');
+});
+
+test('P0 R1.2 unavailable degrades to original durable history, not another Task execution',async t=>{
+  const host=sdk();let notifications=0;
+  host.notify={open(){notifications++;throw Error('Host unavailable');}};
+  host.start=async id=>complete(id);
+  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
+  assert.equal(notifications,1,'no retry on failed notification Host');
+  assert.equal(starts(host).length,1);
+  assert.match(f.text(),/run-original/);
+  await f.click('记录');
+  assert.match(f.text(),/查询原请求/);
+  await f.close();
 });
