@@ -1,6 +1,6 @@
 # OpenDesk Browser · 更新提醒统一合同 R1.1（含跨标签提醒与按钮状态机）
 
-状态：**框架方案、跨标签提醒规范与交互预览；正式 Framework/SDK、后台协调器、真实站点消息尚未实施。**  
+状态：**更新通知中心代码已选择性写入 main；定向 CI、正式生产构建与真实 Chrome 安装验收按最新提交核验，当前不可视为正式发行。**  
 日期：2026-11-09  
 示范消费者：`projects/prompt-shortcuts/`（Prompt Shortcuts）  
 可点击演示：`projects/prompt-shortcuts/preview/index.html`，增强脚本 `preview/update-notification-demo.js`。  
@@ -238,3 +238,7 @@ UNSEEN / DISMISSED / VIEWED / IGNORED
 定向测试至少覆盖：同版本无提醒；新版可审阅但尚未安装；确认成功/取消/权限扩大/来源替换/回执未知；Browser `onInstalled` 已更新与 `onUpdateAvailable` 待应用；工具停用/卸载；多标签去重；离线、弹窗关闭重开、服务 Worker 休眠；敏感网页/无权限不注入；草稿/IME/未完成任务不打扰；原有 Prompt Shortcuts 提示词保存/插入与页面规则无退化。
 
 **验收口径**：可点击预览和静态语法检查不等于真实 Chrome/正式包/本机工具更新验收。实施完毕按绑定同一候选的定向 Node、Chromium 与真实 Chrome 证据分别声明 PASS/FAIL/NOT_TESTED；不能提前宣称 95 分以上产品验收。
+
+## 5. 2026-11-11 主分支差量整合说明
+
+PR #78 中未进入 `main` 的更新候选状态、Web Toast、原 MV3 Worker 连接、React Side Panel/PC 页面入口及定向测试已进行选择性整合；`src/ui/react/extension-center-ownership.js` 原已在 `main` 且与分支 Git Blob 相同，不做重复替换。持续复用原官方目录/Installer/`ui.notify` 合同，不放宽 AI Proxy 可信来源锁、签名、SHA、权限或浏览器 CSP。当前完成的是源码整合而非真实 Chrome 安装验收；CI 实际结果必须绑定相应 main HEAD。

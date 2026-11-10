@@ -1,0 +1,42 @@
+name: Update Notice R1 - trusted state, Host and production build
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/update-notice-r1.yml'
+      - 'src/platform/chrome/update-notice-*.js'
+      - 'src/sw.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/react/**'
+      - 'tests/environment/update-notice-*.test.mjs'
+      - 'docs/architecture/browser-framework/update-notification-r1.zh-CN.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  update-notice-node-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Existing ui.notify and new update reducer/Worker regression
+        run: |
+          node --test tests/environment/sidebar-tool-ui-notice.test.mjs tests/environment/update-notice-state.test.mjs tests/environment/update-notice-service.test.mjs
+          node --test --test-name-pattern="installed tool ui.notify" tests/environment/sidebar-tools-host.test.mjs
+      - name: Source invariants
+        run: npm run check
+      - name: Production bundle (trusted source pins remain blocking)
+        run: npm run build
+      - name: Explicit acceptance boundary
+        if: always()
+        run: |
+          echo "SOURCE_NODE_RUN=consult step result"
+          echo "PRODUCTION_BUNDLE=consult step result"
+          echo "INSTALLED_CHROME_MAC_NATIVE=NOT_TESTED"
+          echo "THREE_REAL_TABS_IME_PERMISSION_REVOKE=NOT_TESTED"
