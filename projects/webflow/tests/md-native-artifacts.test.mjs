@@ -29,8 +29,11 @@ function makeLedger(){
     run=await applyMdRunEvent(run,event,{digest});
     return run;
   };
-  const send=(type,taskId,fields={})=>append(run.workflowId,{
-    type,taskId,expectedRevision:run.revision,at:++tick,...fields});
+  const send=(type,taskId,fields={})=>{
+    tick=Math.max(tick+1,run.updatedAt);
+    return append(run.workflowId,{
+      type,taskId,expectedRevision:run.revision,at:tick,...fields});
+  };
   const prepareAnswer=async(taskId)=>{
     await send('claim',taskId,{claimRef:'claim-'+taskId+'-001'});
     await send('create-intent',taskId,{operationRef:'operation-'+taskId+'-001',
