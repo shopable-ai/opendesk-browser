@@ -6,7 +6,7 @@
 
 **本轮差量源码：** `src/chatgpt-conversation-result.js` 为原 0.2.0 结果提供严格校验和有界回填：未发送草稿不得有 /c/ 身份；已发送结果须匹配审批 prompt 长度、固定来源、原生消息引用、完整回复和确切 `https://chatgpt.com/c/UUID`。原完整回复留在同一个原 Controller Durable Result（可至 64 KiB）；送 A 的文本含真实可点击 URL、原 Run/Result 身份和明确标为预览的短摘录，仍遵守 8192 字节回传上限。接入 `chatgpt-fixed-bridge-host.js` 的原 durable 验证/formatter，不新建 Runner、Host、Ledger 或安装器。新 `chatgpt-create-result.test.mjs` 已接入原 Bridge CI，测试仅代表 Node 层，不能证明 Chrome 发送。
 
-**验收状态：** SOURCE = 已形成最小源码接线（以本轮 GitHub 提交 SHA 为准）；NODE_TEST = 本轮 CI 待确认；PACKAGE = NOT_TESTED；CHROME = NOT_TESTED；BUSINESS = NOT_TESTED。GitHub 只可查已提交分支，不可查本机未提交工作树。未经 Chrome 现场核验不得向用户宣称 A→B 已经可用。
+**验收状态（本轮实读 CI）：** SOURCE = main 已提交（`c431b256` 与安全修复 `f9ee003e`）；NODE_TEST = [GitHub Actions Run 42862131792](https://github.com/shopable-ai/opendesk-browser/actions/runs/42862131792) 语法通过，专项 Node **61/61 PASS**，综合 **166/167**（唯一失败为并行 AI Proxy `projects/ai-proxy/src/QuickPanel.tsx` 固定来源锁）；PACKAGE = NOT_TESTED（该 CI 构建步骤因综合检查失败跳过）；CHROME = NOT_TESTED；BUSINESS = NOT_TESTED。不能继承专项通过到整体构建或实站。GitHub 只可查已提交分支，不可查本机未提交工作树。未经 Chrome 现场核验不得向用户宣称 A→B 已经可用。
 
 **依然未完成：** GPT-6/High/Thinking 真实选择与读回；账号一致性；发送中断后不重发的只读续查；长提示词 SHA-256/owner/TTL 安全引用；真正 Chrome B 回复完整与 A 一次回填/草稿保护。启动前 activateTab 属独立 P3，不阻碍本轮回填修复，但尚未核验。
 
