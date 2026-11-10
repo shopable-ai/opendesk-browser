@@ -62,6 +62,30 @@ test('installed tool ui.notify is bounded, tool-scoped and cannot forge a new up
   assert.equal(f.view.getSnapshot().toast.id,third.id);
 });
 
+test('installed ui.notify typed feedback is still sender-bound, bounded and presentation-only',async t=>{
+  const f=await hostFixture(t);
+  const deliver=payload=>f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'ui-notify',instance:f.loaded.instance,toolId:sample.id,payload}});
+  deliver({message:'成功',type:'success',caption:'本地已保存',position:'bottom-right',timeout:10000});
+  let toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'success');
+  assert.equal(toast.caption,'本地已保存');
+  assert.equal(toast.position,'bottom-right');
+  assert.equal(toast.timeout,10000);
+  deliver({message:'成功',type:'success',caption:'本地已保存',position:'bottom-right',timeout:10000});
+  assert.equal(f.view.getSnapshot().toasts.length,1);
+  assert.equal(f.view.getSnapshot().toast.count,2);
+  deliver({message:'伪造可信更新',type:'error',action:'install'});
+  assert.equal(f.view.getSnapshot().toast.count,2);
+  deliver({message:'出错',type:'error',timeout:0});
+  toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'error');
+  assert.equal(toast.timeout,0);
+  assert.equal(f.view.getSnapshot().toasts.length,2);
+  deliver({message:'超限的消息'});
+  assert.equal(f.view.getSnapshot().toasts.length,2);
+});
+
 const confirmOptions={title:'删除便签？',message:'删除后无法恢复。',confirmLabel:'删除',tone:'danger'};
 function confirmMessage(f,id='1',extra={}){
   return {protocol:f.loaded.protocol,kind:'request',instance:f.loaded.instance,toolId:sample.id,

@@ -1,4 +1,5 @@
 // Public website: discovery, external review requests and original transaction receipts.
+import {vipActivationLanding,vipResumeProof} from './vip-continuation.js';
 // Confirmation and installation belong to the trusted extension review.
 const $=selector=>document.querySelector(selector);
 const protocol='opendesk.market.intent.v1';
@@ -26,14 +27,16 @@ function send(message,target=channel){
       if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','OpenDesk 安装协议不兼容，请更新扩展。'));
       if(response.ok!==true)return reject(problem(response.error?.code||'E_HANDOFF',String(response.error?.message||'无法完成交接。').slice(0,400)));
       const expected={OPEN_INSTALL_REVIEW:'REVIEW_OPENED',
-        GET_INSTALL_STATUS:'INSTALL_STATUS'}[message.action];
+        GET_INSTALL_STATUS:'INSTALL_STATUS',GET_APP_STATUS:'APP_STATUS'}[message.action];
       const panelRequired=message.action==='OPEN_INSTALL_REVIEW'&&message.subject.kind==='app'&&
         ['PANEL_REQUIRED','REVIEW_PENDING'].includes(response.status);
-      if((response.status!==expected&&!panelRequired)||!expected||
+      const openedApp=message.action==='OPEN_INSTALLED_APP'&&
+        ['APP_OPENED','NAVIGATION_PENDING','PANEL_REQUIRED','NAVIGATION_BLOCKED','IDENTITY_CHANGED'].includes(response.status);
+      if((response.status!==expected&&!panelRequired&&!openedApp)||(!expected&&!openedApp)||
         (message.action==='GET_INSTALL_STATUS'&&response.intentId!==message.intentId)||
         (message.action==='OPEN_INSTALL_REVIEW'&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(response.intentId)))
         return reject(problem('E_RESPONSE','无法核对交接回执，请查看已有审阅页。'));
-      if(message.action==='GET_INSTALL_STATUS'&&message.subject.kind==='app'&&
+      if(['GET_INSTALL_STATUS','GET_APP_STATUS'].includes(message.action)&&message.subject.kind==='app'&&
         (!['not-installed','installed','update-available','different-version'].includes(response.currentInstallation)||
          !(response.installedVersion===null||typeof response.installedVersion==='string'&&response.installedVersion.length>0)||
          !(response.enabled===null||typeof response.enabled==='boolean')))
@@ -87,7 +90,10 @@ const entries=reviewButtons.map(button=>{
     const saved=JSON.parse(sessionStorage.getItem(entry.key));
     if(saved&&['installed','cancelled','failed'].includes(saved.installation))sessionStorage.removeItem(entry.key);
     else if(saved&&(saved.subject===undefined||JSON.stringify(saved.subject)===JSON.stringify(entry.subject))&&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved.id))entry.intent={id:saved.id,subject:entry.subject,installation:'unknown'};
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved.id))
+      entry.intent={id:saved.id,subject:entry.subject,installation:'unknown',
+        ...(typeof saved.resumeProof==='string'&&/^[a-f0-9]{64}$/.test(saved.resumeProof)?
+          {resumeProof:saved.resumeProof}:{})};
   }catch{/* Storage is optional; a live page still retains its request. */}
   return entry;
 });
@@ -102,6 +108,33 @@ function render(entry){
 }
 function feedback(entry,text,state='pending'){
   if(entry.localStatus){entry.localStatus.hidden=false;entry.localStatus.textContent=text;entry.localStatus.dataset.state=state;}
+}
+function vipContinuation(entry){
+  if(entry.subject.kind!=='app'||entry.subject.marketId!=='opendesk/ai-vip-share')return null;
+  return vipActivationLanding(location,channel);
+}
+async function openInstalled(entry,resume=null){
+  // A verified installed package can open only through the original Market Host.
+  // A click never grants Cookie/activation permission; the tool uses its own checks.
+  const result=await send({protocol,action:'OPEN_INSTALLED_APP',subject:entry.subject});
+  if(result.status!=='APP_OPENED'){
+    feedback(entry,result.status==='PANEL_REQUIRED'||result.status==='NAVIGATION_PENDING'?
+      '应用打开请求已保留，请在 OpenDesk 工具栏继续；原领取链接仍在当前页面，不会自动领取。':
+      '应用未能确认打开，请在原 Side Panel 手动继续；不会重装或重新领取。','pending');
+    return false;
+  }
+  feedback(entry,resume?'应用已打开。正在返回原专属链接，继续无消费预检…':'已打开已安装的应用。','success');
+  if(resume){
+    const proof=await vipResumeProof(location.hash);
+    if(!proof||proof!==resume.proof){
+      feedback(entry,'链接已变化，自动继续已停止；请核对原领取入口。','error');
+      return true;
+    }
+    // This is the original, exact development landing (not an arbitrary callback).
+    // All business effects remain in the tool's manual trusted confirmation flow.
+    location.assign(resume.activationUrl);
+  }
+  return true;
 }
 function appReviewFeedback(handoff){
   return handoff==='panel-required'?
@@ -135,8 +168,18 @@ async function checkInstallation(entry){
     (entry.subject.kind==='app'&&result.installation==='unknown'&&result.handoff?' '+appReviewFeedback(result.handoff):'')+
     (entry.subject.kind==='collection'&&result.progress?' '+result.progress:''),
     result.installation==='installed'?'success':result.installation==='failed'?'error':'pending');
+  const continuationProof=entry.intent?.resumeProof;
   if(['installed','cancelled','failed'].includes(result.installation)||result.handoffClosed===true)entry.intent=null;
   saveIntent(entry);render(entry);
+  if(result.installation==='installed'&&continuationProof){
+    const landing=vipContinuation(entry);
+    const proof=landing&&await vipResumeProof(location.hash);
+    if(proof&&proof===continuationProof){
+      // Installation is authoritative; the read does not create new consent to redeem.
+      try{await openInstalled(entry,{...landing,proof});}
+      catch(error){showError(error,entry.localStatus);}
+    }
+  }
 }
 async function refreshStatuses(){
   if(active||!entries.some(entry=>unresolved(entry)&&!entry.busy))return;
@@ -154,6 +197,21 @@ async function refreshStatuses(){
     }
   }finally{active=false;}
 }
+async function refreshCurrentVipState(){
+  if(active)return;
+  const vip=entries.filter(entry=>entry.subject.kind==='app'&&entry.subject.marketId==='opendesk/ai-vip-share'&&
+    !entry.busy&&!unresolved(entry));
+  if(!vip.length||!allowAutomaticRead())return;
+  try{
+    await configuration();
+    for(const entry of vip){
+      const state=await send({protocol,action:'GET_APP_STATUS',subject:entry.subject});
+      entry.baseLabel=state.currentInstallation==='installed'&&state.enabled===true?
+        (vipContinuation(entry)?'打开应用并继续领取':'打开已安装应用'):'安装到浏览器';
+      render(entry);
+    }
+  }catch{/* A discovery page must remain browsable when no receiver is installed. */}
+}
 async function perform(entry,operation){
   if(entry.busy)return;
   entry.busy=true;
@@ -161,8 +219,24 @@ async function perform(entry,operation){
   try{
     await configuration(true);
     if(operation==='primary'&&unresolved(entry)){await checkInstallation(entry);return;}
+    if(operation==='primary'&&entry.subject.kind==='app'&&entry.subject.marketId==='opendesk/ai-vip-share'){
+      const state=await send({protocol,action:'GET_APP_STATUS',subject:entry.subject});
+      if(state.currentInstallation==='installed'&&state.enabled===true){
+        const landing=vipContinuation(entry);
+        const proof=landing&&await vipResumeProof(location.hash);
+        await openInstalled(entry,landing&&proof?{...landing,proof}:null);
+        return;
+      }
+      if(state.currentInstallation==='installed'&&state.enabled!==true){
+        feedback(entry,'应用已安装但未启用，请在 OpenDesk 中手动启用；网站不会代为授权。','error');
+        return;
+      }
+    }
     if(!entry.intent||!unresolved(entry)){
-      entry.intent={id:crypto.randomUUID(),subject:entry.subject,installation:'unknown'};
+      const landing=vipContinuation(entry);
+      const proof=landing&&await vipResumeProof(location.hash);
+      entry.intent={id:crypto.randomUUID(),subject:entry.subject,installation:'unknown',
+        ...(proof?{resumeProof:proof}:{})};
       saveIntent(entry);
     }
     // Persist before sending: timeout or navigation must never replay the action.
@@ -192,7 +266,12 @@ for(const event of ['focus','pageshow'])globalThis.addEventListener?.(event,()=>
     entry.localStatus.hidden=true;entry.localStatus.textContent='';delete entry.localStatus.dataset.state;
   }
   void refreshStatuses();
+  void refreshCurrentVipState();
 });
+globalThis.addEventListener?.('visibilitychange',()=>{if(!document.hidden){void refreshStatuses();void refreshCurrentVipState();}});
+// Passive receipt reads never start new installs or redemptions. At most one
+// checked receipt per 15 seconds, capped by the shared budget.
+globalThis.setInterval?.(()=>{if(entries.some(entry=>unresolved(entry)))void refreshStatuses();},3000);
 const search=$('#app-search'),cards=[...document.querySelectorAll('.app-card')];let selected='全部';
 function filter(){
   const query=search.value.trim().toLocaleLowerCase('zh-CN');let count=0;
@@ -204,3 +283,4 @@ for(const button of document.querySelectorAll('[data-filter]'))button.addEventLi
   selected=button.dataset.filter;for(const peer of document.querySelectorAll('[data-filter]'))peer.setAttribute('aria-pressed',String(peer===button));filter();
 });
 void refreshStatuses();
+void refreshCurrentVipState();

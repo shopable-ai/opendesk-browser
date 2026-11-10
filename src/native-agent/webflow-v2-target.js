@@ -15,13 +15,18 @@ const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='ob
 // Must be called with manifest/installation returned by the EXISTING trusted
 // installed-Task verifier. It cannot grant V2 automatic execution or inherit
 // any V1 approval. Unknown, current-page and dynamic targets fail closed.
+export function webFlowV2ReviewedEntry(taskId){
+  if(typeof taskId!=='string'||!Object.hasOwn(entries,taskId))
+    throw fail('E_WEBFLOW_TARGET_UNBOUND','该任务没有已审核的 V2 固定入口');
+  return entries[taskId];
+}
+
 export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
   if(!intent||Object.keys(intent).sort().join(',')!=='args,candidateId,protocol,taskId'||
     intent.protocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
     typeof intent.taskId!=='string'||!intent.args||typeof intent.args!=='object'||Array.isArray(intent.args))
     throw fail('E_WEBFLOW_V2_SCHEMA','需要严格四字段 V2 意图');
-  const entryUrl=Object.hasOwn(entries,intent.taskId)?entries[intent.taskId]:null;
-  if(!entryUrl)throw fail('E_WEBFLOW_TARGET_UNBOUND','没有经过审阅的固定启动入口，不能使用任意激活页面');
+  const entryUrl=webFlowV2ReviewedEntry(intent.taskId);
   const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId===intent.taskId);
   if(!pin||manifest?.taskId!==pin.taskId||manifest.version!==pin.version||
     manifest.program?.sourceHash!==pin.sourceHash||

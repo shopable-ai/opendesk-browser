@@ -1,5 +1,14 @@
 # OpenDesk 应用市场网站与可信安装交接 · R5
 
+## 2026-11-10：VIP-only 网页市场接续与开发 SQLite Provider（增量，非生产发行）
+
+**边界：** 不改 `opendesk.market.intent.v1`、Source Policy、原 Market Host、原安装器、官方 Catalog 安装身份或 `app.html`。网页市场现有静态发布/固定发行继续沿用 `scripts/build-market-site.mjs`；它现在同时输出受控 `vip-continuation.js`。只有 `opendesk/ai-vip-share` 的网站客户端会读取当前已安装状态并尝试复用原 `OPEN_INSTALLED_APP`。同页合法开发 `#vip-ref` 从不交给扩展安装协议；挂起安装只保存原 `intentId` 和参考摘要，安装确认后必须经 Host `APP_OPENED` 才导航到固定的 `127.0.0.1:7898/activate`，然后由工具内原业务 Controller 执行预检和一次确认。取消、过期、未知和面板未打开不自动重复安装或领取。
+
+**实际未上线原因：** 原发行业务包仍为 1.4.32，VIP 专属链接新 Controller 源码尚未候选晋升；正式 HTTPS Market channel 与 Web Store ID 未配置，商业 Provider 未配置。本轮新增的 `projects/ai-vip-share/server/demo-provider.mjs` 是独立的 *业务 owner* 下本地 SQLite 演示服务，不是通用 Market Server，不处理安装许可、Cookie 或生产权益。只有数据库级约束可作为开发事务基础，不能把演示 Origin/header 当生产认证。固定发行是否允许打开以原 Host 的 descriptor/本机 provenance 校验为准；不因新网页代码而跳过。
+
+**本轮定向验证入口**：`node --test tests/environment/market-vip-continuation.test.mjs tests/environment/market-site-client-r5.test.mjs projects/ai-vip-share/tests/demo-provider.test.mjs`；`npm run build:market-site`；运行/构建/原生 Chrome 的实际结果见 [原 R5 工作流](../../framework/workstreams/app-market-r5.md) 和 [VIP 唯一验收账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。未取到原始运行回执前一律 `NOT_TESTED`；R5 历史 Chrome 实证只证明其原候选，不是本次接续真实通过。
+
+
 日期：2026-10-12。实现入口及逐项结果见 [R5 工作流](../../framework/workstreams/app-market-r5.md)。本文描述已写入源码的合同；源码、组件、真实 Chrome、本机 Mac 与正式 HTTPS 的完成状态分别记录，不能互相替代。
 
 ## 2026-10-31：网页市场独立运行与浏览器内安装

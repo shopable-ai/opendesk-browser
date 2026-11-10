@@ -1,4 +1,5 @@
-import {WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+import {WEBFLOW_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_V2_PROTOCOL,
+  validateWebFlowTaskIntent,validateWebFlowTaskIntentV2} from './chatgpt-task-request.js';
 import {assertChatGPTTaskRoute} from '../../projects/webflow/trusted/chatgpt-conversation-route.js';
 
 export function isChatGPTURL(value){
@@ -17,10 +18,10 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
   // Keep these literals inside the serialized function: Chrome does not carry
   // module bindings into ISOLATED. Existing callers still select the old intent.
-  const knownIntentProtocols=['opendesk.task.intent.v1','webflow.task.intent.v1'];
+  const knownIntentProtocols=['opendesk.task.intent.v1','webflow.task.intent.v1','webflow.task.intent.v2'];
   const intentProtocols=protocols.filter(protocol=>knownIntentProtocols.includes(protocol));
   if(!intentProtocols.length)intentProtocols.push('opendesk.task.intent.v1');
-  const webFlow=taskIntent&&intentProtocols.includes('webflow.task.intent.v1');
+  const webFlow=taskIntent&&intentProtocols.some(protocol=>protocol.startsWith('webflow.task.intent.'));
   if(eventText&&(!identityOnly||taskIntent))return error('E_SCHEMA','固定事件原文仅供文件身份快照使用。');
   const strictReply=webFlow||fileRequest||eventText;
   const url=location.href;
@@ -122,7 +123,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   // authorizes a Task; mixed/malformed/quoted Task text cannot cause fallback
   // file I/O after the Task path refuses it.
   const taskIdentity=identityOnly&&(readUserMessage||eventText)?{taskIntentPresent:answer.some(node=>{
-    const text=node.textContent||'',pattern=/(?:opendesk\.task\.(?:intent|request)|webflow\.task\.intent)\.v1/;
+    const text=node.textContent||'',pattern=/(?:opendesk\.task\.(?:intent|request)\.v1|webflow\.task\.intent\.v[12])/;
     return text.length>400*1024||pattern.test(text)||pattern.test(text.replace(/\\u([a-f0-9]{4})/gi,
       (_escape,unit)=>String.fromCharCode(parseInt(unit,16))));
   })}:{};
@@ -181,7 +182,10 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     if(!intentProtocols.includes(value?.protocol))return error('E_CHAT_FORMAT','任务意图不属于本次选择的协议。');
     if(value.protocol==='webflow.task.intent.v1'&&
       (Object.keys(value).length!==5||!['protocol','candidateId','taskId','targetUrl','args'].every(key=>Object.hasOwn(value,key))))
-      return error('E_CHAT_FORMAT','Web Flow 任务必须严格包含五个意图字段。');
+      return error('E_CHAT_FORMAT','Web Flow V1 任务必须严格包含五个意图字段。');
+    if(value.protocol==='webflow.task.intent.v2'&&
+      (Object.keys(value).length!==4||!['protocol','candidateId','taskId','args'].every(key=>Object.hasOwn(value,key))))
+      return error('E_CHAT_FORMAT','Web Flow V2 任务必须严格包含四个意图字段，不包含 targetUrl。');
   }
   if(!taskIntent&&!ids.some(id=>id&&blocks[0].includes(id)))return error('E_REQUEST_CONTEXT','回答的请求身份已过期，未执行。');
   return {ok:true,url,turnKey,answerKey,blocks,...userIdentity,assistantFragments:answer.length,resultObserved:!!resultId&&userText.includes(resultId)};
@@ -323,8 +327,14 @@ export async function readChatGPTEdit(api,target,requestId,{identityOnly=false,.
   await assertChatGPTTarget(api,target);
   if(!identityOnly&&(!Array.isArray(result.blocks)||result.blocks.length!==1||typeof result.blocks[0]!=='string'))
     throw {code:'E_CHAT_FORMAT',message:'回答格式不完整，未处理。'};
-  if(!identityOnly&&options.taskIntent&&options.protocols?.includes(WEBFLOW_TASK_INTENT_PROTOCOL))
-    validateWebFlowTaskIntent(result.blocks[0]);
+  if(!identityOnly&&options.taskIntent){
+    if(options.protocols?.includes(WEBFLOW_TASK_INTENT_PROTOCOL)&&
+      JSON.parse(result.blocks[0]).protocol===WEBFLOW_TASK_INTENT_PROTOCOL)
+      validateWebFlowTaskIntent(result.blocks[0]);
+    if(options.protocols?.includes(WEBFLOW_TASK_INTENT_V2_PROTOCOL)&&
+      JSON.parse(result.blocks[0]).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL)
+      validateWebFlowTaskIntentV2(result.blocks[0]);
+  }
   return result;
 }
 
@@ -338,9 +348,11 @@ export async function assertWebFlowReplyCandidate(api,target,candidate){
     typeof candidate.answerKey!=='string'||!candidate.answerKey||candidate.answerKey.length>2048)
     throw mismatch();
   const {candidateId,text,turnKey,answerKey}=candidate;
-  if(validateWebFlowTaskIntent(text).candidateId!==candidateId)throw mismatch();
+  const v2=JSON.parse(text).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+  const parser=v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent;
+  if(parser(text).candidateId!==candidateId)throw mismatch();
   const current=await readChatGPTEdit(api,target,undefined,{taskIntent:true,requireComplete:true,
-    protocols:[WEBFLOW_TASK_INTENT_PROTOCOL],readUserMessage:true});
+    protocols:[v2?WEBFLOW_TASK_INTENT_V2_PROTOCOL:WEBFLOW_TASK_INTENT_PROTOCOL],readUserMessage:true});
   assertChatGPTTaskRoute({userText:current.userText,answerText:text});
   if(current.turnKey!==turnKey||current.answerKey!==answerKey||current.blocks[0]!==text)
     throw mismatch();

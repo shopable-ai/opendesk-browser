@@ -2,7 +2,9 @@ import {chatGPTConversationId,assertWebFlowReplyCandidate} from './workspace-cha
 import {resolveToolSender} from '../environment.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
-  FIXED_PAGE_TASK_ID,validateChatGPTTaskIntent,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+  FIXED_PAGE_TASK_ID,validateChatGPTTaskIntent,validateWebFlowTaskIntent,
+  validateWebFlowTaskIntentV2,WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
+import {webFlowV2ReviewedEntry} from './webflow-v2-target.js';
 import {WEBFLOW_AUTO_GRANTS_KEY,validateAutoSettings,normalizeAutoScope,normalizeAutoParameterPolicy,assertAutoGrant}
   from '../../projects/webflow/src/auto-grants.js';
 import {decodeValue} from '../platform/page-port/codec.js';
@@ -43,7 +45,8 @@ function candidateSnapshot(value){
   if(!plain(value)||Object.keys(value).sort().join(',')!=='answerKey,candidateId,text,turnKey'||
     typeof value.turnKey!=='string'||!value.turnKey||value.turnKey.length>128||
     typeof value.answerKey!=='string'||!value.answerKey||value.answerKey.length>2048||
-    (JSON.parse(value.text).protocol==='webflow.task.intent.v1'?validateWebFlowTaskIntent(value.text):
+    (JSON.parse(value.text).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL?validateWebFlowTaskIntentV2(value.text):
+      JSON.parse(value.text).protocol==='webflow.task.intent.v1'?validateWebFlowTaskIntent(value.text):
       validateChatGPTTaskIntent(value.text)).candidateId!==value.candidateId)
     throw fail('E_BRIDGE_CONTEXT','候选身份或回答上下文不合法');
   return {candidateId:value.candidateId,text:value.text,turnKey:value.turnKey,answerKey:value.answerKey};
@@ -160,6 +163,18 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
   const checkAuto=async row=>{
     if(!row.autoGrantId)return;
     const ticket=autoDenialRevision;
+    if(row.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL){
+      const settings=await loadAuto(),grant=row.v2Authorization;
+      if(!grant||grant.grantId!==row.autoGrantId||grant.epoch!==row.autoEpoch||
+        settings.epoch!==grant.epoch||
+        !['approved','consumed'].includes(row.status)||row.mode!=='auto'||
+        !Number.isSafeInteger(grant.approvedAt)||grant.approvedAt>clock()||
+        !Number.isSafeInteger(row.approvalExpiresAt)||
+        (row.status==='approved'&&clock()>=row.approvalExpiresAt)||
+        autoDenied||ticket!==autoDenialRevision)
+        throw fail('E_WEBFLOW_V2_DENIED','V2 本候选的独立批准已过期、撤销或身份不匹配');
+      return;
+    }
     const settings=await loadAuto(); // Storage/schema uncertainty must remain an explicit failure.
     try{
       assertAutoGrant(settings,row.scope,{grantId:row.autoGrantId,epoch:row.autoEpoch,sourceUrl:row.source?.url});
@@ -255,15 +270,22 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
   };
   const admitPersistentAuto=({source,candidate,allowPending=false,...value},site)=>{
     candidate=candidateSnapshot(candidate);
-    const intent=validateWebFlowTaskIntent(candidate.text),scope=normalizeAutoScope(value);
-    if(intent.taskId!==scope.taskId||intent.targetUrl!==scope.targetUrl||
+    const v2=JSON.parse(candidate.text).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+    const intent=(v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent)(candidate.text);
+    const scope=normalizeAutoScope(value);
+    if(v2&&(!site||site.adapter!=='chatgpt'||allowPending!==true||
+      scope.targetUrl!==webFlowV2ReviewedEntry(intent.taskId)))
+      throw fail('E_WEBFLOW_V2_DENIED','V2 只接受已有 ChatGPT 文档中固定可信目标的待审批候选');
+    if(intent.taskId!==scope.taskId||!v2&&intent.targetUrl!==scope.targetUrl||
       JSON.stringify(intent.args)!==JSON.stringify(scope.args))throw fail('E_BRIDGE_CONTEXT','候选与批准范围不同');
     return sequence(async()=>{
       const ticket=autoDenialRevision,settings=await loadAuto();
       let grant;
-      try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
+      if(!v2)try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
         if((site&&site.adapter!=='chatgpt')||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
       }
+      // A V2 candidate may be discovered with legacy V1 auto-run disabled.
+      // It is NEVER approved or executed until a separate native user click.
       const rows=await load(),now=clock();prune(rows,now);
       if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
         throw fail('E_BRIDGE_REPLAY','候选已准入或结果未知，禁止重放');
@@ -272,6 +294,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       const requestId=generateId();requireRequestId(requestId);
       if(rows[requestId]||requestId===candidate.candidateId)throw fail('E_BRIDGE_REPLAY','请求身份冲突');
       const row=rows[requestId]={source:structuredClone(source),scope,candidate,createdAt:now,
+        ...(v2?{intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL}:{}),
         ...(site?{site:structuredClone(site)}:{}),
         ...(site?.adapter==='chatgpt'?{webReady:false}:{}),
         expiresAt:now+600000,...(grant?{approvalExpiresAt:now+600000,approvedAt:now,status:'approved',mode:'auto',
@@ -326,6 +349,49 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       });
     },
     readAutoSettings(){return sequence(loadAuto);},
+    // V2 approval is one immutable candidate in this ORIGINAL durable ledger,
+    // not a task-wide V1 grant. ACK loss leaves the same candidate fenced.
+    approveV2Pending({source,requestId,candidate,scope}={}){
+      if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','V2 原聊天身份不合法');
+      requireRequestId(requestId);candidate=candidateSnapshot(candidate);
+      const intent=validateWebFlowTaskIntentV2(candidate.text),review=normalizeAutoScope(scope);
+      if(review.taskId!==intent.taskId||review.targetUrl!==webFlowV2ReviewedEntry(intent.taskId)||
+        JSON.stringify(review.args)!==JSON.stringify(intent.args))
+        throw fail('E_WEBFLOW_V2_DENIED','V2 可信审批目标、参数或安装审核内容不一致');
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId],settings=await loadAuto(),now=clock();
+        if(!row||row.intentProtocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
+          row.site?.adapter!=='chatgpt'||!row.pendingAuto||row.status!=='prepared'||
+          row.v2Authorization||row.autoGrantId||row.controllerSubmitted||
+          !sameSource(row.source,source)||!sameCandidate(row,candidate)||
+          stableJSON(row.scope)!==stableJSON(review)||
+          now>=row.expiresAt||autoDenied||revokeAll||revokedTabs.has(source.tabId)||
+          revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
+          throw fail('E_WEBFLOW_V2_DENIED','V2 候选已处理、状态未知或来源和授权不匹配');
+        const id=generateId();requireRequestId(id);
+        row.v2Authorization={grantId:id,epoch:settings.epoch,approvedAt:now};
+        row.autoGrantId=id;row.autoEpoch=settings.epoch;
+        row.status='approved';row.pendingAuto=false;row.mode='auto';row.approvedAt=now;
+        row.approvalExpiresAt=Math.min(row.expiresAt,now+120000);
+        await save(rows);await checkAuto(row);
+        return {requestId,approved:true,protocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL,expiresAt:row.approvalExpiresAt};
+      });
+    },
+    assertV2WebTaskGrant({requestId,source,scope,grantId,epoch}={}){
+      requireRequestId(requestId);
+      if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','V2 查询来源不合法');
+      return sequence(async()=>{
+        const row=(await load())[requestId];
+        if(row?.intentProtocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
+          !sameSource(row.source,source)||!['approved','consumed'].includes(row.status)||
+          row.autoGrantId!==grantId||row.autoEpoch!==epoch||
+          stableJSON(row.scope)!==stableJSON(scope)||revokeAll||revokedTabs.has(source.tabId)||
+          revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
+          throw fail('E_WEBFLOW_V2_DENIED','V2 原候选的审批与来源不匹配');
+        await checkAuto(row);
+        return {allowed:true};
+      });
+    },
     captureAutoDenialEpoch(){return autoDenialRevision;},
     // Outside-queue read/delivery verification must notice replacement grants
     // as well as synchronous denials while its browser observations await.
@@ -368,7 +434,8 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         if(pendingRequest){
           requireSource(pendingRequest.source);requireRequestId(pendingRequest.requestId);
           rows=await load();row=rows[pendingRequest.requestId];
-          if(!state.enabled||!sameSource(row?.source,pendingRequest.source)||!row.pendingAuto||
+          if(!state.enabled||row?.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL||
+            !sameSource(row?.source,pendingRequest.source)||!row.pendingAuto||
             row.status!=='prepared'||clock()>=row.expiresAt)
             throw fail('E_BRIDGE_APPROVAL','待批准候选已取消、失效或已处理，未执行');
           if(!sameCandidate(row,pendingRequest.candidate)||
@@ -821,11 +888,11 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||
       !['prepare','authorize','revoke-request','reserve','check-consumed','preapprove-next','bind-preapproved',
-        'auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit',
+        'auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit','v2-approve-pending',
         'approve-conversation','authorize-conversation'].includes(message.kind))return false;
     const receivedAutoEpoch=ledger.captureAutoDenialEpoch();
     const process=async()=>{
-      if(['auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit'].includes(message.kind)){
+      if(['auto-settings','auto-enable','auto-grant','auto-revoke','auto-admit','v2-approve-pending'].includes(message.kind)){
         const panel=await actualSidepanel(sender);
         if(message.kind==='auto-settings')return ledger.readAutoSettings();
         if(message.kind==='auto-enable')return ledger.setAutoEnabled(message.enabled,{expectedDenialRevision:receivedAutoEpoch});
@@ -837,6 +904,23 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}
           return ledger.approveAuto(message.scope,{expectedDenialRevision:receivedAutoEpoch,pendingRequest:message.pendingRequest});
         }
         if(message.kind==='auto-revoke')return ledger.revokeAuto(message.taskId);
+        if(message.kind==='v2-approve-pending'){
+          const pending=message.pendingRequest;
+          if(!pending||!validWebTaskSource(pending.source))
+            throw fail('E_WEBFLOW_V2_DENIED','缺少本轮 V2 原对话的独立审批身份');
+          const permissions=permissionEpoch,source=pending.source;
+          await assertSource(source);
+          await assertWebFlowReplyCandidate(api,source,pending.candidate);
+          if(JSON.parse(pending.candidate.text).protocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL)
+            throw fail('E_WEBFLOW_V2_DENIED','本次并非四字段 V2 待审批候选');
+          await actualSidepanel(panel);
+          if(permissions!==permissionEpoch)throw fail('E_BRIDGE_REVOKED','网站权限已改变');
+          const approved=await ledger.approveV2Pending({...pending,scope:message.scope});
+          await assertSource(source);await actualSidepanel(panel);
+          if(permissions!==permissionEpoch)
+            throw fail('E_BRIDGE_REVOKED','V2 审批期间网站权限已改变，拒绝下发执行');
+          return approved;
+        }
         const permissions=permissionEpoch,tabId=message.source?.tabId;
         if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
         const epoch=sourceEpochs.get(tabId);

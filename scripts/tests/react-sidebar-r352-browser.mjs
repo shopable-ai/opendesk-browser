@@ -134,7 +134,10 @@ const profile=await mkdtemp(join(tmpdir(),'od-r352-chrome-'));
 const cacheDir=await mkdtemp(join(tmpdir(),'od-r352-vite-'));
 const vite=await createServer({
   root:process.cwd(),configFile:false,appType:'custom',cacheDir,
-  resolve:{dedupe:['react','react-dom']},logLevel:'error',
+  resolve:{dedupe:['react','react-dom'],
+    // Match the existing audited WXT alias, not a test-only UI implementation.
+    alias:{'@opendesk/ui':join(process.cwd(),'src/ui/react/components/ui/button.tsx')}},
+  logLevel:'error',
   optimizeDeps:{noDiscovery:true,entries:[],
     include:['react','react/jsx-runtime','react-dom','react-dom/client']},
   // Source transforms only: no shared HMR port or development watcher.

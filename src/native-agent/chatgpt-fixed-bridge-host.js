@@ -3,7 +3,8 @@ import {assertChatGPTTaskRoute} from '../../projects/webflow/trusted/chatgpt-con
 import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge-trigger-gate.js';
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
   FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent,
-  WEBFLOW_TASK_INTENT_PROTOCOL,validateWebFlowTaskIntent} from './chatgpt-task-request.js';
+  WEBFLOW_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_V2_PROTOCOL,
+  validateWebFlowTaskIntent,validateWebFlowTaskIntentV2} from './chatgpt-task-request.js';
 import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope,prepareAutoParameterPolicy} from '../../projects/webflow/src/auto-grants.js';
 import {WEB_TASK_PROTOCOL} from '../page-events/web-task-contract.js';
 import {registeredSiteRegistry} from '../page-events/site-catalog.js';
@@ -298,12 +299,13 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   };
   const assertIntent=async(source,message)=>{
     const persistent=message.persistentAuto===true;
-    const observed=await readReply(api,source,null,{protocols:[persistent?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true,readUserMessage:true});
+    const v2=persistent&&JSON.parse(message.candidateText).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+    const observed=await readReply(api,source,null,{protocols:[persistent?(v2?WEBFLOW_TASK_INTENT_V2_PROTOCOL:WEBFLOW_TASK_INTENT_PROTOCOL):CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true,readUserMessage:true});
     assertChatGPTTaskRoute({userText:observed.userText,answerText:message.candidateText});
     if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
       observed.blocks?.length!==1||observed.blocks[0]!==message.candidateText)
       throw fail('E_BRIDGE_ANSWER','最新完整回答的候选字节或轮次已改变');
-    const intent=(persistent?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(observed.blocks[0]);
+    const intent=(persistent?(v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent):validateChatGPTTaskIntent)(observed.blocks[0]);
     return {intent,candidate:{candidateId:intent.candidateId,text:observed.blocks[0],
       turnKey:observed.turnKey,answerKey:observed.answerKey}};
   };
@@ -608,15 +610,18 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         turnKey:pending.candidate.turnKey,answerKey:pending.candidate.answerKey};
       const {intent,candidate}=await assertIntent(source,message);
       checked();
+      const v2=JSON.parse(pending.candidate.text).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+      if(v2&&value.parameterPolicy!==undefined)
+        throw fail('E_WEBFLOW_V2_DENIED','V2 仅允许本次明确审批，不能授予持续关键词授权');
       const review=await prepareAutoGrant({...pending.scope,...(value.parameterPolicy!==undefined?{parameterPolicy:value.parameterPolicy}:{})});
       checked();
       if(JSON.stringify(normalizeAutoScope(review))!==JSON.stringify(normalizeAutoScope(pending.scope))||
-        intent.taskId!==review.taskId||intent.targetUrl!==review.targetUrl||
+        intent.taskId!==review.taskId||(!v2&&intent.targetUrl!==review.targetUrl)||
         JSON.stringify(intent.args)!==JSON.stringify(review.args))
         throw fail('E_BRIDGE_CONTEXT','当前候选与审阅参数或安装身份不符');
       await assertSource(source);checked();
       await assertIntent(source,message);checked();
-      await autoGate({kind:'auto-grant',scope:review,
+      await autoGate({kind:v2?'v2-approve-pending':'auto-grant',scope:review,
         pendingRequest:{source,requestId:value.requestId,candidate}});
       checked();
       await assertSource(source);checked();

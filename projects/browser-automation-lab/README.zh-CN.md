@@ -46,7 +46,7 @@ AI、Node.js、Playwright、Puppeteer 等工具启动 Chrome 时，开发者需�
 ## 2. 产品类型与责任划分
 
 - **业务类型**：OpenDesk Browser 内的独立 React Sidebar Tool。由现有宿主承载，不创建第二套 Chrome MV3 Side Panel、Service Worker、授权/安装器或可信 Host。
-- **现成能力**：`browser.page.getContext`、`browser.page.readEnvironment` 和 `browser.fingerprint.apply/readback/restore` 已在当前 `examples/sidebar-tools/browser-fingerprint/` 产品及可信宿主接线中存在。复用前须按最新 SDK/版本/权限做实际能力查询，不能凭产品 README 宣称所有环境都已生效。
+- **现成能力**：`browser.page.getContext`、`browser.page.readEnvironment` 和 `browser.fingerprint.apply/readback/restore` 已在当前 `projects/browser-fingerprint/` 产品及可信宿主接线中存在。复用前须按最新 SDK/版本/权限做实际能力查询，不能凭产品 README 宣称所有环境都已生效。
 - **旧产品关系**：Browser Fingerprint 继续拥有 UA/UA-CH、语言、时区、视口的配置、执行、独立读回和恢复。Automation Lab 只新增“自动化专项检测、来源标记、诊断、跨层关联、测试报告”；需要修改字段时调用现有受控 SDK，不复制 CDP 原生命令或替代旧产品。
 - **可选 Node/AI 浏览器启动信息**：只能由受信任的启动器主动上报浏览器渠道、执行模式、启动参数的安全摘要、独立 Profile ID 等。当前尚未证实统一公开 SDK 能取得这些字段，标为 `SDK_GAP_NOT_PROVEN`；不得让页面推断出可靠的 Chrome for Testing 进程身份，更不得让扩展偷偷修改其他进程启动参数。
 - **独立网页**：建议 `projects/browser-automation-lab/diagnostics/` 未来提供可本地托管及可部署到自有 HTTPS 域名的只读检测页，独立执行网页 JS/可控测试服务端回显。对比与保存由用户显式操作；网页默认不上传完整 UA、IP、指纹或 Cookie 到第三方。

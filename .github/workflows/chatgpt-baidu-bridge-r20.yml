@@ -13,6 +13,14 @@ on:
       - 'projects/webflow/tests/chatgpt-legacy-panel.test.mjs'
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
+      - 'src/native-agent/webflow-v2-target.js'
+      - 'src/native-agent/chatgpt-background-adapter.js'
+      - 'src/native-agent/workspace-chatgpt.js'
+      - 'src/page-events/web-task-ingress.js'
+      - 'projects/webflow/trusted/CurrentTask.tsx'
+      - 'projects/webflow/tests/task-intent-v2.test.mjs'
+      - 'projects/webflow/tests/task-v2-live-ledger.test.mjs'
+      - 'projects/webflow/tests/background-execution-view.test.mjs'
       - 'examples/tasks/baidu-search-top3.js'
       - 'examples/tasks/baidu.search.top3.v1.opendesk-task.json'
       - 'examples/tasks/page.read.fixed.v1.opendesk-task.json'
@@ -46,6 +54,11 @@ jobs:
           node --check projects/webflow/trusted/chatgpt-bridge-page.js
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
+          node --check src/native-agent/webflow-v2-target.js
+          node --check src/native-agent/chatgpt-background-adapter.js
+          node --check src/native-agent/workspace-chatgpt.js
+          node --check src/page-events/web-task-ingress.js
+          node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
         run: |
@@ -57,6 +70,9 @@ jobs:
             tests/environment/chatgpt-fixed-bridge-r13.test.mjs \
             tests/environment/chatgpt-baidu-bridge-r20.test.mjs \
             tests/environment/webflow-fixed-source.test.mjs \
-            projects/webflow/tests/chatgpt-legacy-panel.test.mjs
+            projects/webflow/tests/chatgpt-legacy-panel.test.mjs \
+            projects/webflow/tests/task-intent-v2.test.mjs \
+            projects/webflow/tests/task-v2-live-ledger.test.mjs \
+            projects/webflow/tests/background-execution-view.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build

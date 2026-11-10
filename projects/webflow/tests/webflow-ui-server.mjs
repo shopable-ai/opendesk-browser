@@ -6,7 +6,7 @@ import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
 const project=new URL('../',import.meta.url);
 const config=JSON.parse(await readFile(new URL('tool.config.json',project),'utf8'));
-const files={'/model.js':'model.js','/main.js':'main.js','/style.css':'style.css'};
+const files={'/model.js':'model.js','/md-workflow.js':'md-workflow.js','/main.js':'main.js','/style.css':'style.css'};
 const sources=new Map(await Promise.all(Object.entries(files).map(async([route,file])=>
  [route,await readFile(new URL('src/ui/'+file,project))])));
 const inputs=Object.fromEntries([...sources].map(([route,bytes])=>[files[route],createHash('sha256').update(bytes).digest('hex')]));
@@ -27,7 +27,7 @@ const html=`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Web F
 <button id="task-unavailable">模拟任务未安装或已停用</button>
 <button id="task-restored">模拟恢复任务安装</button></aside><div id="fixture-root"><div id="webflow-app"></div></div>
 <script src="/runtime.js"></script><script src="/fixture.js"></script>
-<script src="/model.js"></script><script src="/main.js"></script></body></html>`;
+<script src="/model.js"></script><script src="/md-workflow.js"></script><script src="/main.js"></script></body></html>`;
 const fixture=`window.OpenDeskTool={root:document.getElementById('fixture-root'),async request(name,args){
  const response=await fetch('/sdk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,args})});
  const value=await response.json();if(!response.ok)throw Object.assign(Error(value.message||value.code),{code:value.code});return value;}};

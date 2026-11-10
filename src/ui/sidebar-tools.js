@@ -165,6 +165,12 @@ export function createSidebarTools(options={}) {
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
   currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,openAIProviderSettings=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,headerActionsEnabled=true,displaySurface='sidebar',validateOwnPageTarget=()=>true,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
+  // The exact native surface is classified asynchronously after ToolHost
+  // construction; read the host-owned presentation value at mount/request time.
+  const getDisplaySurface=()=>{
+    const value=typeof displaySurface==='function'?displaySurface():displaySurface;
+    return value==='sidebar'?'sidebar':'page';
+  };
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
     try{
@@ -1741,8 +1747,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                 return Promise.reject(Object.assign(new Error('请从当前用户操作发起确认'),{code:'E_GESTURE'}));
               return requestToolConfirmation(tool,token,epoch,options,client);
             }}),
-            displaySurface:displaySurface==='page'?'page':'sidebar',
-            initialPage:displaySurface==='page'?initialPage:null,
+            displaySurface:getDisplaySurface()==='page'?'page':'sidebar',
+            initialPage:getDisplaySurface()==='page'?initialPage:null,
             openOwnPage:target=>openOwnToolPage({tool,token,epoch,target,trusted:true}),
             request:(operation,payload)=>requestTrustedAIProxy(tool,token,epoch,operation,payload),
             locale:toolLocaleContext(tool).locale,
@@ -2019,8 +2025,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         headerActionsAllowed:approvedNavigation&&headerActionsEnabled===true,
         settingsPageAllowed:approvedNavigation,
         ...(!readOnly&&transferred.length?{uiConfirm:{version:1}}:{}),
-        displaySurface:displaySurface==='page'?'page':'sidebar',
-        initialPage:displaySurface==='page'?initialPage:null,
+        displaySurface:getDisplaySurface()==='page'?'page':'sidebar',
+        initialPage:getDisplaySurface()==='page'?initialPage:null,
         ...toolLocaleContext(tool)},'*',transferred);
       // A pre-load hint may have arrived before the sandbox bound its instance.
       lastHostHeight=null;
@@ -2205,7 +2211,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const fail=(code,message)=>Object.assign(new Error(message),{code});
     if(!page||validateOwnPageTarget(tool.id,page)!==true)
       throw fail('E_PAGE_TARGET','当前应用不支持请求的 PC 页面或栏目');
-    const current=()=>!disposed&&!busy&&visible&&displaySurface==='sidebar'&&
+    const current=()=>!disposed&&!busy&&visible&&getDisplaySurface()==='sidebar'&&
       !readOnlyPreview&&!tocSettingsOpen&&!toolSaving&&!toolDirty&&!isDirty()&&
       !installedReadError&&!enableReadError&&!revocationReadError&&
       active===tool&&instance===token&&frameRevocationEpoch===epoch&&
@@ -3843,7 +3849,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          !samePackage(active,toolById(active.id)))return;
       const payload=normalizeToolUiNotice(message.payload);
       if(payload&&toolUiNoticeRate.allow(instance))
-        view.showToast('「'+active.title+'」：'+payload.message);
+        view.showToast('「'+active.title+'」：'+payload.message,payload);
       return;
     }
     if(message.kind==='request'&&message.operation==='tool.page.open'){

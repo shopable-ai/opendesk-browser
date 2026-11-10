@@ -35,6 +35,7 @@ import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
 import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,requestedAppPageLocator,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {resolveAppPageTarget} from './app-page-routes.js';
+import {initialToolSurface,verifiedToolSurface} from './tool-surface.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {panelPreviewStorageKey,validatePanelPreviewPointer,validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -269,7 +270,9 @@ const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
 chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
-const sidebarTools=createSidebarTools({displaySurface:(requestedToolId(hostUrl.href)||requestedPreviewId(hostUrl.href))?'page':'sidebar',
+const hasToolLocator=Boolean(requestedToolId(hostUrl.href)||requestedPreviewId(hostUrl.href));
+let currentToolSurface=initialToolSurface(hostUrl.pathname,hasToolLocator);
+const sidebarTools=createSidebarTools({displaySurface:()=>currentToolSurface,
   validateOwnPageTarget:(id,target)=>resolveAppPageTarget(id,target)!==null,providerRuntime,openAIProviderSettings:()=>extensionList?.openProviderSettings?.(),api:chrome,currentPageTarget,taskWorkbench,foundationClient,runHost:sharedRunHost,localeController,toolLocaleService,view:toolView,
   trustedAIProxyPilot:{enabled:true,version:TRUSTED_AI_PROXY_VERSION,mount:args=>extensionList.mountAIProxyPilot(args)},
   trustedKnowledgePilot:{enabled:true,mount:args=>{
@@ -526,6 +529,9 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   // catalog-only layout from hiding them after an asynchronous reclassification.
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
   if(shellClosed)return;
+  // Only the native Side Panel context can reinterpret a saved toolId
+  // locator as a compact panel; legacy tab links stay PC presentation.
+  currentToolSurface=verifiedToolSurface(hostUrl.pathname,hasToolLocator,actualSidePanel);
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
     if(actualSidePanel){

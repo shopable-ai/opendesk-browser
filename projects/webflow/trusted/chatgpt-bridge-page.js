@@ -2,7 +2,8 @@ import {createChatGPTBridgeSite} from '../../../src/native-agent/chatgpt-bridge-
 import {createChatGPTTaskDiscovery} from '../../../src/native-agent/chatgpt-task-discovery.js';
 import {chatGPTConversationId,inspectChatGPTEditsOnPage} from '../../../src/native-agent/workspace-chatgpt.js';
 import {validateChatGPTTaskIntent,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,FIXED_PAGE_URL,baiduSearchTarget} from '../../../src/native-agent/chatgpt-task-request.js';
-import {validateWebFlowTaskIntent,WEBFLOW_TASK_INTENT_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
+import {validateWebFlowTaskIntent,validateWebFlowTaskIntentV2,WEBFLOW_TASK_INTENT_PROTOCOL,
+  WEBFLOW_TASK_INTENT_V2_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {createLegacyChatGPTTaskPanel} from './legacy-chatgpt-panel.js';
 import {chatGPTConversationRoute} from './chatgpt-conversation-route.js';
@@ -403,12 +404,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     validatePage();
     if(!state)throw fail('E_BRIDGE_REQUEST','尚未建立当前请求');
     if(state.candidate){
-      const page=readPage({expectedUrl:state.url,protocols:[state.persistentAuto?WEBFLOW_TASK_INTENT_PROTOCOL:CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+      const page=readPage({expectedUrl:state.url,protocols:[state.persistentAuto?
+        (state.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL?WEBFLOW_TASK_INTENT_V2_PROTOCOL:WEBFLOW_TASK_INTENT_PROTOCOL):
+        CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
       if(!page.ok)throw fail(page.error.code,page.error.message);
       if(page.blocks?.length!==1||page.blocks[0]!==state.candidate.text||
         page.turnKey!==state.candidate.turnKey||page.answerKey!==state.candidate.answerKey)
         throw fail('E_BRIDGE_CONTEXT','采用的对话任务、轮次或回答已改变');
-      (state.persistentAuto?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(page.blocks[0]);
+      (state.persistentAuto?(state.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL?
+        validateWebFlowTaskIntentV2:validateWebFlowTaskIntent):validateChatGPTTaskIntent)(page.blocks[0]);
       return {page,request:state.adoptedRequest};
     }
     const page=readPage({expectedUrl:state.url,requestId:state.requestId,
@@ -506,7 +510,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(automatic&&!matchesDiscovery(discovered,snap))
         throw fail('E_BRIDGE_CONTEXT','发现的完整命令或聊天已改变，未采用');
       const page=readPage({expectedUrl:url,protocols:automatic&&!grant?
-        [CHATGPT_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_PROTOCOL]:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+        [CHATGPT_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_V2_PROTOCOL]:
+        [CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
       if(!page.ok){
         // Ordinary replies, including the AI continuation after our result,
         // are not task proposals and must not replace an execution receipt.
@@ -520,8 +525,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(chatGPTConversationRoute({userText:content?.innerText??content?.textContent??'',
         answerText:(snap.assistants?.at(-1)?.textContent||'')+'\n'+page.blocks[0]})==='conflict')
         throw fail('E_CHAT_ROUTE','文件需求和网页 Task 候选不能在同一轮执行');
-      const persistentAuto=JSON.parse(page.blocks[0]).protocol===WEBFLOW_TASK_INTENT_PROTOCOL;
-      const intent=(persistentAuto?validateWebFlowTaskIntent:validateChatGPTTaskIntent)(page.blocks[0]);
+      const intentProtocol=JSON.parse(page.blocks[0]).protocol;
+      const v2=intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
+      const persistentAuto=v2||intentProtocol===WEBFLOW_TASK_INTENT_PROTOCOL;
+      const intent=(v2?validateWebFlowTaskIntentV2:persistentAuto?validateWebFlowTaskIntent:
+        validateChatGPTTaskIntent)(page.blocks[0]);
       if(grant){
         assertActive(grant);
         if(!grant.future||grant.bindingAttempted||Date.now()>=grant.expiresAt||
@@ -532,7 +540,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       activeGrant=!persistentAuto&&automatic&&discovered&&!grant&&!approvalUnknown&&conversationGrant&&conversationGrant.url===url&&Date.now()<conversationGrant.expiresAt&&
         conversationGrant.remainingRuns>0&&conversationGrant.taskId===intent.taskId&&conversationGrant.targetUrl===intent.targetUrl?conversationGrant:null;
       grantSubmitted=!!activeGrant;
-      if(!grant){state=null;proposal={...intent,url};clearReceipt();selection.textContent='待核验候选：'+intent.candidateId+'\n脚本：'+intent.taskId+'\n目标：'+intent.targetUrl+'\n参数：'+JSON.stringify(intent.args);}
+      if(!grant){state=null;proposal={...intent,url};clearReceipt();selection.textContent='待核验候选：'+intent.candidateId+'\n脚本：'+intent.taskId+'\n目标：'+(v2?'由可信层绑定固定入口':intent.targetUrl)+'\n参数：'+JSON.stringify(intent.args);}
       const prepared=await send({kind:persistentAuto?'auto-task':grant?'bind-preapproved-task':'adopt-task',persistentAuto,
         ...(grant?{requestId:grant.requestId}:{}),...(activeGrant?{conversationGrantId:activeGrant.grantId}:{}),candidateText:page.blocks[0],turnKey:page.turnKey,answerKey:page.answerKey});
       adoptAck=true;
@@ -550,7 +558,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const adoptedRequest=validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
         kind:'opendesk.task.request',version:1,requestId:prepared.requestId,taskId:prepared.taskId,
         args:prepared.args,targetUrl:prepared.targetUrl,installation:prepared.installation}));
-      if(adoptedRequest.taskId!==intent.taskId||adoptedRequest.targetUrl!==intent.targetUrl)
+      if(adoptedRequest.taskId!==intent.taskId||(!v2&&adoptedRequest.targetUrl!==intent.targetUrl))
         throw fail('E_BRIDGE_CONTEXT','采用回执与对话任务不匹配');
       if(activeGrant){
         if(conversationGrant!==activeGrant||prepared.mode!=='auto'||prepared.conversationGrantId!==activeGrant.grantId||
@@ -562,7 +570,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       state={...adoptedRequest,url,source:prepared.source,expiresAt:prepared.expiresAt,candidate:prepared.candidate,
         bridgeHostId:prepared.executionOwner==='background'?undefined:prepared.bridgeHostId,
         adoptedRequest,attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,
-        persistentAuto,pendingAuto:prepared.pendingApproval===true,backgroundOwner:prepared.executionOwner==='background',
+        persistentAuto,intentProtocol,pendingAuto:prepared.pendingApproval===true,backgroundOwner:prepared.executionOwner==='background',
         mode:prepared.pendingApproval?null:persistentAuto||grant||activeGrant?'auto':null,
         approvedTurnKey:page.turnKey,taskName:prepared.taskName||grant?.taskName};
       clearReceipt();
@@ -587,7 +595,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         await send({kind:'background-ready',requestId:state.requestId});
         assertActive(state);
       }
-      observe();note(state.pendingAuto?'待批准：本轮输入、目标或安装不在现有任务授权内；尚未执行。请在可信侧栏审阅任务范围；允许变化的关键词以后无需重复批准。':state.backgroundOwner?'已交给框架后台；关闭侧栏仍会执行并向此聊天回传一次。':persistentAuto?'已匹配可信侧栏中的任务授权规则，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
+      observe();note(state.pendingAuto?(v2?
+        'V2 待独立批准：已绑定安装任务与固定入口；历史 V1 授权不适用。请在可信侧栏审阅并批准本候选一次。':
+        '待批准：本轮输入、目标或安装不在现有任务授权内；尚未执行。请在可信侧栏审阅任务范围；允许变化的关键词以后无需重复批准。'):state.backgroundOwner?'已交给框架后台；关闭侧栏仍会执行并向此聊天回传一次。':persistentAuto?'已匹配可信侧栏中的任务授权规则，将自动执行新候选。':grant||activeGrant?'已匹配授权的新任务，将自动执行一次。':automatic?
         '已自动识别待执行任务。请核对脚本、网址和参数，只需点击一次“执行”。':
         '已采用对话任务，尚未执行。请核对脚本、网址和参数，点击“执行”或批准本次自动执行。');
     }catch(error){
@@ -1064,7 +1074,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         requestId:state?.requestId??null,runId:state?.runId??null,resultId:state?.resultId??null,
         pendingAuto:state?.pendingAuto&&!state.cancelled&&!state.attempted?{
           scope:{taskId:state.taskId,args:state.args,targetUrl:state.targetUrl,installation:state.installation},
-          candidate:state.candidate}:null,
+          protocol:state.intentProtocol,candidate:state.candidate}:null,
         candidateId:state?.candidate?.candidateId??(proposal?.url===win.location.href?proposal.candidateId:null),
         observation:discovery.status(),pending:pending||cancelPending||deliveryPending,
         actions:Object.fromEntries([...actions].map(([name,{button}])=>[name,!button.disabled])),

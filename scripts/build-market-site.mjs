@@ -156,7 +156,7 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
     routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section,installSubject,clientRevision}));
   };
   try{
-    for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
+    for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/market-site/vip-continuation.js','vip-continuation.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
     await write('channel.json',JSON.stringify(channel,null,2)+'\n');
     const downloads=[];
     for(const row of archived.releases){

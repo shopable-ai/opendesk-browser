@@ -1,0 +1,48 @@
+name: Sidebar UI Notify R1.1 - public API and installable demo
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sidebar-ui-notify-r11.yml'
+      - 'src/sidebar-tools/ui-notice.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'src/ui/sidebar-tools-view.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/react/tabs/tool-host.tsx'
+      - 'src/ui/tool-shell.css'
+      - 'examples/sidebar-tools/ui-notify-demo/**'
+      - 'tests/environment/sidebar-tool-ui-notice.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-and-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source syntax and two Host contracts
+        run: |
+          node --check src/sidebar-tools/ui-notice.js
+          node --check src/ui/sidebar-tools-view.js
+          node --test tests/environment/sidebar-tool-ui-notice.test.mjs
+          node --test --test-name-pattern="installed.*ui.notify" tests/environment/sidebar-tools-host.test.mjs
+      - name: Produce and independently verify installable candidate from source
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --out artifacts/sidebar-tools/ui-notify-demo/candidate.opendesk-tool.json
+          node --test examples/sidebar-tools/ui-notify-demo/tests/notify-demo.test.mjs
+          if [ -f examples/sidebar-tools/ui-notify-demo/ui-notify-demo.opendesk-tool.json ]; then node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ui-notify-demo --check-project; fi
+      - name: Source contract
+        run: npm run check
+      - name: Share demo candidate for manual installation
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-notify-demo-installable
+          path: artifacts/sidebar-tools/ui-notify-demo/candidate.opendesk-tool.json
+          if-no-files-found: error

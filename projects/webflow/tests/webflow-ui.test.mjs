@@ -22,7 +22,8 @@ test('app declares one isolated v2 package, reviewed pins and original SDK only'
   assert.equal(config.format,'opendesk.sidebar-tool.v2');
   assert.equal(config.id,'webflow');
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
-  assert.deepEqual(config.capabilities,['storage.local','currentPage.read','tasks.open','tasks.run']);
+  assert.deepEqual(config.capabilities,['storage.local','currentPage.read','tasks.open','tasks.run','network']);
+  assert.ok(uiCode.includes("request('browser.network.request'"));
   assert.equal(config.delegatedTasks.length,2);
   assert.equal(new Set(config.delegatedTasks.map(x=>x.taskId)).size,2);
   for(const item of config.delegatedTasks){

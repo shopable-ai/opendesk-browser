@@ -1,5 +1,13 @@
 # OpenDesk 应用市场 R5 实施与证据
 
+## 2026-11-10：Market × AI VIP Share 差量记录（不替代历史 R5 native 证据）
+
+- **既有、不算本次新增：** 静态网页构建/固定发行、官方 VIP Catalog、原 `GET_INSTALL_STATUS/OPEN_INSTALL_REVIEW` 可信合同、Host/安装器/原 journal 和历史 HTTP Chrome 安装成功。
+- **新增源码：** 市场客户端下载专用 VIP 受限开发链接、原 `GET_APP_STATUS/OPEN_INSTALLED_APP` 已安装工具复用、安装终局后对原链接摘要校验并仅在 `APP_OPENED` 回执后导航、网站仅保存摘要不保存 ref、Market 静态产物加 module。非 VIP 应用保持原纯审阅模式。业务 owner 另增固定 loopback SQLite 演示 Provider 的短引用/原业务 HTTP 端点/事务唯一/原笔状态查询。
+- **功能差量的真实状态：** 源码已提交；本次真实 Chrome 完整串联与主扩展/工具候选更新 **NOT_TESTED**；正式 HTTPS channel、Web Store 获取链接、真实商业主体、第三方 VIP **BLOCKED**；不能以旧 R5/1.4.32 原生证据代替。市场不能静默安装 Chrome 自身或绕过原工具审阅。结果未知只查原安装/领取事务。
+- **只运行受影响定向检查：** `node --test tests/environment/market-site-client-r5.test.mjs tests/environment/market-vip-continuation.test.mjs projects/ai-vip-share/tests/demo-provider.test.mjs`，`npm run build:market-site`；具体原始 stdout/CI 与状态在唯一 VIP 账本追加，不用新文件覆盖旧证据。原 Market R5 旧 native 运行仍有效但不证明本次新源码。
+
+
 日期：2026-10-12。集成者：本轮 `/root`；分支：`main`。
 
 ## R5 双平台真实 Chrome 验收与最新 main 影响核对（2026-10-12）

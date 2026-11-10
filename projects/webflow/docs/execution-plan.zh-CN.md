@@ -1,3 +1,40 @@
+## Web Flow V2 接线执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
+
+**原始业务目标：** 用户在来源 ChatGPT A 发起新会话任务，Web Flow 以已安装/审阅 Task 创建 ChatGPT B，可选模型/推理，默认草稿不发送；获得独立发信授权后确认真实消息、真实会话 URL 并把可信结果送回 A。百度/Google 默认后台执行；用户前台查看必须激活原 Run 的原标签，不能新开、重跑、重复通知。V2 AI 候选固定四字段，原 V1 五字段保持兼容。
+
+**本轮已直接提交 main 的源码增量：** `src/native-agent/webflow-v2-target.js`、`workspace-chatgpt.js`、`chatgpt-background-adapter.js`、`chatgpt-bridge-trigger-gate.js`、`chatgpt-fixed-bridge-host.js`、`src/page-events/web-task-ingress.js`、`projects/webflow/trusted/chatgpt-bridge-page.js`、`CurrentTask.tsx`。关键提交包含 `3e6a373`（独立授权账本）、`2894232`（可信侧栏单次批准）、`713c876`（Host 审阅）、`dc58cfa`（网页 V2 识别）、`8c90095`（查询/回传/原 Run 授权）、`3cd2db1`（不依赖 V1 开关）、`0ecf642`（UI）、`d6bffa9`（目标绑定失败栅栏）；此前 `6891965`、`94c1742`、`91446af` 负责目标解析与执行入口。**每个修改均使用现有文件 SHA 的条件写入；并行更新触发 409 时重读最新版本后合并，未强推。**
+
+**安全性质：** V2 仅支持编译确认的百度/Google 首页和有效内置 Task 版本、安装/Origin/参数，未知/动态/current-page 目标失败关闭；官网正式回答与原来源文档、轮次/文本再验证，原任务账本新建 `v2Authorization` 一次性候选批准，旧 `grants[]` 不变。使用同一 `webTaskIngress`、Authority/Controller、原 Run/Result 和 UNKNOWN 防重放。独立批准经可信 Side Panel 操作；审批记录落盘后的 ACK 不确定不创建第二次批准。原 `activate-run` 保留且复用，Controller 创建新 owned tab 默认 `active:false`；**启动前前台偏好尚未接线**。
+
+**本轮验证分层：**
+- SOURCE：相关 8 个 JS 文件通过隔离 V8 语法检查；真实 ledger 源码+模拟存储/浏览器回调的隔离行为验证完成 V1 禁止继承、V2 单次授权、重启续读及原 Controller 单次提交。模拟不可视为真实安装或 Chrome。
+- NODE_TEST：新增 `projects/webflow/tests/task-v2-live-ledger.test.mjs`（四组单元测试），并把既有 `task-intent-v2.test.mjs`、`background-execution-view.test.mjs` 和 V1 桥接测试加入 `.github/workflows/chatgpt-baidu-bridge-r20.yml` 的 main 检查；**执行结果 NOT_VERIFIED**，不能标记 Node PASS。
+- PACKAGE：**NOT_TESTED**；CHROME：**NOT_TESTED**；BUSINESS（A→B 真实新对话/模型/发送/网址/回传）：**NOT_TESTED**。
+
+**尚缺的唯一业务主线：** 通过原 Task/Authority 与已存在 `src/chat-handoff-contract.js`（只含数据合同）实现并测试 `chatgpt.conversation.create`。必须先验证 `send:false`、原来源草稿/IME/附件保护和 B 空会话不冒充 URL，再在真正的可信授权下完成一次 `send:true` 的 B 消息/会话 ID/URL/结果 A 回填；模型设置指定不可用时拒绝。通过后才做 Gemini，当前页/动态目标、前台启动偏好按独立审阅接续。**不能将本轮 P0 源码视为整条业务完成，不得重放既有 UNKNOWN。**
+
+---
+
+## Markdown 两任务 Demo 当前执行卡（2026-11-10；OD-AI-WORKFLOW-BRIDGE）
+
+**最新安全接线修复：** main 源码提交 [`06e50a676f78e433b3619baa4b21518ec2a30089`](https://github.com/shopable-ai/opendesk-browser/commit/06e50a676f78e433b3619baa4b21518ec2a30089)，共 8 个本业务文件；针对已确认的 sandbox CSP `connect-src 'none'`，取消不可能工作的沙箱直接 `fetch`，改走原受控 `browser.network.request`，新增安装需审阅的 `network` capability；不修改通用 Host/Driver/CSP。真实 MD 文本、解析、80/160、81/162、错误权限/私有文件、SDK 接口/语法等在隔离 V8 共 12/12 条 **smoke 通过**（使用模拟网络回包，不是 Node runner/真实 Chrome）；实际 `node --test`、网络/安装/双会话仍 **NOT_TESTED**。此前提交 `0137685b` 是第一阶段预览，必须以此次修复后的源码为后续候选，不把旧直接 fetch 当成可用功能。
+
+**已推送 main 的源码提交：** [`0137685b4ccf3e593bd67235560b383fc3df37bb`](https://github.com/shopable-ai/opendesk-browser/commit/0137685b4ccf3e593bd67235560b383fc3df37bb)，基于当时最新 HEAD `78bf7e51f86296dfca179735ac1d9c0b200cf75c`，仅提交本执行卡列出的 9 个文件，已逐一从 GitHub main 读回。后来补做 JS 静态解析：新 Node 用例与现有 UI fixture 的源码在隔离 V8 中语法解析通过；**真实 `node --test` 仍 NOT_TESTED**，真实 Chrome 与正式打包器同源验证也仍 NOT_TESTED。当前提交并未启用真实跨聊天执行。
+
+**目标/下一条用户操作：** 在 WebFlow → 概览 → Markdown 两任务中输入仓库 MD 链接、点击“读取 / 刷新”，看到 T01/T02、来源和版本；最终由用户点击开始，产生两条不同的真实 ChatGPT 会话、独立验收和读回交接。目前只是源码阶段，**运行按钮仍禁用**，不得将预览或离线计算写成跨聊天已成功。
+
+**基线/并行边界：** 开始时 GitHub main 为 `492608f548552e9d67f74d9559d859144a3c4bca`，并核对根及项目 AGENTS、原 README、产品合同、执行计划；后续写入须再次核对 HEAD。现有 `src/queue/state.js` / `repository.js` 是离线两步 Codex 队列，`src/chat-handoff-contract.js` 是 ChatGPT→ChatGPT 数据合同，计算接力示例与文件桥接各有自身 owner。新聊天 Task、独立 V2 批准和可信跨聊运行接线在所读 main 未完成；本次不改它们、不伪造能力或继承其他并行成果。
+
+**本次源码与文档写入（只限此范围）：** `projects/webflow/src/ui/md-workflow.js`（严格解析、经现有受控 Network SDK 读取真实公共 GitHub 文本、输入 SHA-256、T01/T02 可信验算/提示词边界），`src/ui/main.js`（MD 预览入口及明确待接线状态），`tool.config.json`（新增固定 Classic 依赖与受审 `network` capability），`tests/webflow-ui-server.mjs`（同源 UI 模拟夹具引用），`tests/md-workflow.test.mjs`（针对性用例）、`tests/webflow-ui.test.mjs`（网络能力与原 UI 合同断言），`examples/workflows/md-demo.md`、`README.md` 入口及此执行计划和原产品合同。不触碰通用 Host/Runner/Authority、其他项目、历史包或并行 owner 的文件。
+
+**当前实际证据：** 新解析+验算源码在隔离 V8 工具运行环境以真实示例文本完成 7 项 smoke：T01 80、T02 160、35→36 变 81/162、JSON 内容交接、重复 ID 和围栏伪任务；修改后 `src/ui/main.js` 通过 JS `new Function` 语法解析。此 V8 检查不是仓库 Node test runner。Node 测试源码已添加，`node --test projects/webflow/tests/md-workflow.test.mjs projects/webflow/tests/webflow-ui.test.mjs` **NOT_TESTED**；实际安装应用经 Host Network SDK 读取 GitHub **NOT_TESTED**；跨标签刷新/重复开始/冻结/失败停止/恢复/UNKNOWN、两聊天和实际 artifact 持久保存读回 **NOT_TESTED**；打包器晋升与安装 **NOT_TESTED**。已连接 CodexPro 本地工作区报 `UNAVAILABLE: Connection failed`，不把远端 GitHub 连接权限视为本机文件/Chrome 授权。
+
+**明确阻塞与本次修复：** 已实读 `src/sidebar-tools/sandbox.html`：`connect-src 'none'`，工具沙箱直接 `fetch` **确定不可用**。查明原 Browser SDK 已有 `browser.network.request`，其 Host 会在必要时审阅目标网站权限，底层禁用凭据与自动重定向；现已将只读公共 GitHub 来源改由该**已有**接口获取，并在 `tool.config.json` 声明 `network`，不是自建网络桥。此新安装能力及原站点许可尚未 Chrome 实测。仍缺 GitHub 私有/本地授权读取、真实新聊天创建与发送、完整回复核验、受控成果写入及跨 host 原子 claim。不能把 `storage.get/set` 当全局锁，也不能假设并行 V2/新聊天已发布。原 `webflow.opendesk-tool.json` 仍是旧包，未通过原打包器同源晋升，因此**新增 UI 未在正式安装中生效**。
+
+**唯一下一步开发动作：** 在本地已连接的最新 main 核查新聊天 Task owner 是否已交付真实 `createOnce/submitOnce/readReply` 和原 Host 的原子 claim/受控 artifact API；按具体缺口补最小可信桥接，随后把此页面禁用的“开始”接到同一个 Durable Run（冻结、T01 真会话→验收/写读→T02 真会话→验收/写读→展示链接），保持失败、暂停、恢复和 UNKNOWN 栅栏。完成后先运行 `node --test projects/webflow/tests/md-workflow.test.mjs projects/webflow/tests/queue-recovery.test.mjs projects/webflow/tests/chat-handoff-contract.test.mjs`，再原打包器候选/晋升；最后系统 Chrome 原生两对话验收与 35→36 变体。不要重复全仓历史搜索测试或将 mock 通过报为真实完成。
+
+---
+
 ### 本轮补充 · 后台执行页的可信一次激活（同日）
 
 **本轮增加源码：** `src/native-agent/webflow-execution-view.js` 在原 Run/slot/target/document/permission 身份上进行只读验证并单次 `tabs.update`；`src/page-events/web-task-ingress.js` 新增仅受信 Side Panel 可访问的 `activate-run`；`src/native-agent/chatgpt-bridge-trigger-gate.js` 利用原持久账本预写 `webActivation`，重启、回执未知或重复点击均不重新激活；`src/native-agent/chatgpt-fixed-bridge-host.js` 只从可信侧栏真实用户手势发起；`projects/webflow/trusted/CurrentTask.tsx` 在“当前任务”显示有运行中后台原请求时的“前台显示本次任务页面”按钮。不向百度/Google 业务 args 写入任何 `activateTab` 字段，默认继续后台执行。

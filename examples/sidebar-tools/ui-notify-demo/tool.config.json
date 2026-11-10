@@ -1,0 +1,12 @@
+{
+  "id": "ui-notify-demo",
+  "version": "1.0.0",
+  "title": "通知组件实验室",
+  "description": "零额外权限的 OpenDesk ui.notify 可点击演示：状态、说明、位置、时间与去重。",
+  "capabilities": [],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  }
+}

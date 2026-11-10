@@ -78,9 +78,9 @@
 
 在本地最新 main 运行 npm ci --ignore-scripts --no-audit --no-fund，然后分别运行：
 
-    npm --prefix examples/sidebar-tools/browser-fingerprint test
-    npm --prefix examples/sidebar-tools/browser-fingerprint run build
-    npm --prefix examples/sidebar-tools/browser-fingerprint run stage:candidate
+    npm --prefix projects/browser-fingerprint test
+    npm --prefix projects/browser-fingerprint run build
+    npm --prefix projects/browser-fingerprint run stage:candidate
 
 候选包审阅通过后，在 Mac Chrome 正式安装，分别核验美国环境 apply → 网页读回 → stop → 基线读回；德国环境、拒绝授权、切 Tab、导航、DevTools 接管及撤权。各级证据分开标注 NODE、REACT BUILD、CHROMIUM MOCK、CHROME NATIVE、MAC CHROME INSTALLED，缺证据项为 NOT_TESTED。
 
@@ -131,10 +131,10 @@
 ## 本地增量核验命令
 
 ```sh
-npm --prefix examples/sidebar-tools/browser-fingerprint test
-npm --prefix examples/sidebar-tools/browser-fingerprint run build
-npm --prefix examples/sidebar-tools/browser-fingerprint run preview:build
-npm --prefix examples/sidebar-tools/browser-fingerprint run preview:check
+npm --prefix projects/browser-fingerprint test
+npm --prefix projects/browser-fingerprint run build
+npm --prefix projects/browser-fingerprint run preview:build
+npm --prefix projects/browser-fingerprint run preview:check
 ```
 
 **不要虚报：** Mac Chrome 安装/权限/真实环境修改/恢复依然 NOT_TESTED，P1 Chrome Native 环境修改 BLOCKED。开发测试（Node/BUILD/Chromium）也必须按本轮实际运行记录另行给出，旧 R1.8 PASS 不等于 R2.1 PASS。
@@ -168,23 +168,23 @@ npm --prefix examples/sidebar-tools/browser-fingerprint run preview:check
 `src/ReadOnlyDiagnostics.jsx` 为只读诊断 React UI，`src/adapter.js` 只调用公开 SDK；`src/model.js` 严格校验实时 v2 回执，并禁止其静默进入旧 v1 历史。`preview/react/sdk-preview.js` 仅为显式离线演示替身，不产生真实网页证据。
 
 ```sh
-node --test tests/environment/browser-page-environment.test.mjs tests/environment/browser-page-environment-host.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs examples/sidebar-tools/browser-fingerprint/tests/environment.test.mjs
-npm --prefix examples/sidebar-tools/browser-fingerprint run build
-npm --prefix examples/sidebar-tools/browser-fingerprint run preview:build
-npm --prefix examples/sidebar-tools/browser-fingerprint run preview:check
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/browser-fingerprint --check-project
+node --test tests/environment/browser-page-environment.test.mjs tests/environment/browser-page-environment-host.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs projects/browser-fingerprint/tests/environment.test.mjs
+npm --prefix projects/browser-fingerprint run build
+npm --prefix projects/browser-fingerprint run preview:build
+npm --prefix projects/browser-fingerprint run preview:check
+node scripts/build-sidebar-tool.mjs projects/browser-fingerprint --check-project
 ```
 
 真实核心脚本复用仓库原 launcher/transport，需要既有 CFT 154、开发扩展及标准演示页面服务；使用独立临时 Profile，不操作个人 Chrome 数据。默认无界面，完成后清理浏览器：
 
 ```sh
-node examples/sidebar-tools/browser-fingerprint/tests/native-core.mjs
+node projects/browser-fingerprint/tests/native-core.mjs
 ```
 
 需要用户实际查看和操作时，在保留 stdin 的终端运行：
 
 ```sh
-node examples/sidebar-tools/browser-fingerprint/tests/native-core.mjs --headed --keep-open
+node projects/browser-fingerprint/tests/native-core.mjs --headed --keep-open
 ```
 
 `--headed` 通过 Chrome 自身 UI 开启该临时 Profile 的开发者模式，加载固定 `dist/development`；安装与网站授权仍走原产品审阅 UI。`--keep-open` 必须与 `--headed` 一起使用，结束后保留成功结果（失败时保留现场），不会自动关闭窗口。证据目录的 `session.json` 记录本任务进程与 Profile。终端输入 `close` 或向记录的 `driverPid` 发送 `SIGTERM`，由原 launcher 关闭所属浏览器并清理临时 Profile；保留期间不要手动删除该 Profile。
