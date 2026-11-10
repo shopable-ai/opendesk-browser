@@ -102,7 +102,9 @@ export function projectTrustedTaskNotice(view:any){
      safeCode?'失败代码：'+safeCode+'；查看原请求记录':'查看原请求记录核对失败原因');
  }
  if(receipt.execution==='stopped')
-   return run?make('stopped','浏览器脚本已停止','warning',5000):null;
+   return !run?null:receipt.release!=='released'?
+     make('retirement-pending','任务停止状态已收到，资源尚待核验','warning',0):
+     make('stopped','浏览器脚本已停止','warning',5000);
  if(receipt.execution==='completed'){
    if(!verified)return make('unverified','脚本结束状态待核验，不能认定成功','warning',0);
    if(receipt.delivery==='confirmed')
@@ -149,7 +151,9 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      return;
    }
    if(current.key!==incoming.key){
-     dismiss();current.key=incoming.key;current.signature='';current.updates=0;current.blocked=false;
+     dismiss();current.key=incoming.key;current.signature='';current.updates=0;
+     // A new document's already-terminal receipt is historical, not a new completion.
+     current.blocked=!['running','admitted'].includes(incoming.phase);
    }
    if(current.blocked||current.signature===incoming.signature)return;
    if(current.id===null){
