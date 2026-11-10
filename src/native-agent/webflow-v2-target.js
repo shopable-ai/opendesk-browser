@@ -1,6 +1,6 @@
 // OD-AI-WORKFLOW-BRIDGE: compiled first-party V2 fixed-entry mapping.
 // This is target resolution only, never a permission grant or a Task dispatch.
-import {BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
 
@@ -37,7 +37,7 @@ export function resolveWebFlowV2FixedTarget({intent,manifest,installation}={}){
     typeof intent.taskId!=='string'||!intent.args||typeof intent.args!=='object'||Array.isArray(intent.args))
     throw fail('E_WEBFLOW_V2_SCHEMA','需要严格四字段 V2 意图');
   const entryUrl=webFlowV2ReviewedEntry(intent.taskId);
-  const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId===intent.taskId);
+  const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId===intent.taskId&&row.version===manifest?.version);
   if(!pin||manifest?.taskId!==pin.taskId||manifest.version!==pin.version||
     manifest.program?.sourceHash!==pin.sourceHash||
     !Array.isArray(manifest.siteOrigins)||manifest.siteOrigins.length!==1||
