@@ -165,6 +165,12 @@ jobs:
           # The CI artifact contains the exact built dist files. The original
           # packer verifies source, canonical bytes, and immutable version.
           npm ci --ignore-scripts --no-audit --no-fund
+          # Rebuild from the exact reviewed source using the same pinned App CI
+          # compiler. No CI-generated JS/CSS is copied into the source tree.
+          node scripts/app-ci.mjs build "$APP"
+          cmp "artifacts/app-ci/$APP/candidate.opendesk-tool.json" "$CANDIDATE" || {
+            echo "::error::release rebuild differs from reviewed CI candidate"; exit 1;
+          }
           node scripts/build-sidebar-tool.mjs "$APP_DIR" --promote-from "$CANDIDATE"
           node scripts/build-sidebar-tool.mjs "$APP_DIR" --check-project
           DEST="$APP_DIR/$(node -p "require('./$APP_DIR/tool.config.json').id").opendesk-tool.json"

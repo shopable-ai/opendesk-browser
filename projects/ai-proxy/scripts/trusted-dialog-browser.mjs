@@ -89,6 +89,7 @@ try{
  report.frame=bounds;assert.ok(bounds.height>200&&bounds.bottom<=bounds.viewport+1,'trusted frame must fill remaining Host height inside its viewport');
  await page.locator('button','＋ 添加代理').click();
  const dialog=page.locator('.proxyEditorDialog');await dialog.waitFor({state:'visible'});
+ await page.waitForFunction(()=>document.activeElement===document.querySelector('#ep-host'));
  assert.equal(await page.locator('#ep-host').evaluate(el=>el===document.activeElement),true);
  await page.locator('.proxyAuthDetails summary').click();
  const geometry=await dialog.evaluate(el=>{const d=el.getBoundingClientRect(),footer=el.querySelector('.editorActions').getBoundingClientRect(),fields=el.querySelector('.proxyEditorFields');return {top:d.top,bottom:d.bottom,footerTop:footer.top,footerBottom:footer.bottom,viewport:innerHeight,scrolls:fields.scrollHeight>fields.clientHeight};});
@@ -105,6 +106,8 @@ try{
  assert.equal(await page.locator('#ep-host').inputValue(),'proxy.example.net');
  await page.locator('#ep-host').press('Escape');await page.locator('#proxy-confirm-accept').click();
  await dialog.waitFor({state:'hidden'});
+ // The native close event restores trigger focus asynchronously after the modal hides.
+ await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(el=>el.textContent.trim()==='＋ 添加代理'&&el===document.activeElement));
  assert.equal(await page.locator('button','＋ 添加代理').evaluate(el=>el===document.activeElement),true);
  await page.locator('button','＋ 添加代理').click();
  await page.locator('#ep-host').fill('proxy.example.net');await page.locator('#ep-port').fill('8080');
@@ -113,11 +116,13 @@ try{
  await dialog.waitFor({state:'hidden'});
  await page.locator('*','Memory dialog check').waitFor();
  assert.equal(await page.locator('.proxyApplied').count(),0);
+ await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(el=>el.textContent.trim()==='＋ 添加代理'&&el===document.activeElement));
  assert.equal(await page.locator('button','＋ 添加代理').evaluate(el=>el===document.activeElement),true);
  await page.locator('button','＋ 添加代理').click();
  await page.locator('#ep-host').fill('another.example.net');await page.locator('#ep-port').fill('8081');
  await dialog.locator('[data-add-another="true"]').click();
  await page.waitForFunction(()=>document.querySelector('#ep-host')?.value==='');
+ await page.waitForFunction(()=>document.activeElement===document.querySelector('#ep-host'));
  assert.equal(await page.locator('#ep-host').evaluate(el=>el===document.activeElement),true);
  await page.locator('#ep-host').press('Escape');await dialog.waitFor({state:'hidden'});
  const sections=await page.locator('#settings-section option').evaluateAll(options=>options.map(o=>o.value));
