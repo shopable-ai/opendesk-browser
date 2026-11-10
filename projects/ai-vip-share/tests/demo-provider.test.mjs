@@ -111,3 +111,18 @@ test('real HTTP uses original /api/member /api/preview /api/redeem /api/status o
   assert.equal(after.redemptions.length,1);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM redemptions').get().n,1);
 });
+
+test('additive term snapshot denies old unsnapshotted reviews while preserving receipts',async t=>{
+  const {db}=await database(t);
+  const first=issued(db),preview=voucher(db,first.activationUrl.split('=').at(-1));
+  const key=randomUUID(),receipt=redeem(db,preview,key);
+  const second=issued(db,{intentId:'intent-002',issueId:'issue-002'});
+  const old=voucher(db,second.activationUrl.split('=').at(-1));
+  // Equivalent to a retained preview row created before preview_terms existed.
+  db.prepare('DELETE FROM preview_terms WHERE preview_id=?').run(old.previewId);
+  assert.throws(()=>redeem(db,old),{code:'E_PREVIEW_CHANGED'});
+  assert.equal(db.prepare('SELECT count(*) AS n FROM redemptions').get().n,1);
+  assert.deepEqual(statusDemoGrant(db,{accountId:DEMO_ACCOUNT_ID,idempotencyKey:key}),receipt);
+  const fresh=voucher(db,second.activationUrl.split('=').at(-1));
+  assert.equal(redeem(db,fresh).status,'redeemed');
+});

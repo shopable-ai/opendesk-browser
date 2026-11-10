@@ -126,7 +126,7 @@ async function openInstalled(entry,resume=null){
   feedback(entry,resume?'应用已打开。正在返回原专属链接，继续无消费预检…':'已打开已安装的应用。','success');
   if(resume){
     const proof=await vipResumeProof(location.hash);
-    if(!proof||proof!==resume.proof){
+    if(!proof||proof!==resume.proof||vipContinuation(entry)?.activationUrl!==resume.activationUrl){
       feedback(entry,'链接已变化，自动继续已停止；请核对原领取入口。','error');
       return true;
     }

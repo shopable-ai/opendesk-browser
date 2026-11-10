@@ -7,6 +7,12 @@ import {randomUUID} from 'node:crypto';
 import {validateDeclaredMarketInstall,discoverCurrentPageMarketInstall,
   captureDeclaredMarketLinks,OPENDESK_INSTALL_REL} from '../../src/marketplace/discovery.js';
 import {layout,home,helpPage} from '../../src/market-site/templates.mjs';
+import {vipActivationLanding,vipResumeProof} from '../../src/market-site/vip-continuation.js';
+
+// This component fixture uses a script VM; resolve the client's real ESM
+// dependency in Node, then pass those exports into the fixture's context.
+const clientScript=(await readFile('src/market-site/client.js','utf8')).replace(
+  "import {vipActivationLanding,vipResumeProof} from './vip-continuation.js';",'');
 
 const origin='http://127.0.0.1:43132';
 const channel={enabled:true,origin,mode:'development'};
@@ -200,7 +206,6 @@ test('R6.2 website discovery is available-only and absent from the global extens
 
 
 function marketListingClient(){
-  const clientScript=null;
   const nodes=new Map(),sent=[],storage=new Map(),buttons=[],timers=new Map();
   let timerId=0,clock=Date.now(),fetchCount=0;
   let configuredChannel={schema:'opendesk.market.channel.v1',protocol:'opendesk.market.intent.v1',
@@ -228,6 +233,7 @@ function marketListingClient(){
       currentInstallation:'not-installed',installedVersion:null,enabled:null}));
   }}};
   const context={
+    vipActivationLanding,vipResumeProof,
     document:{querySelector:sel=>nodes.get(sel)||null,
       querySelectorAll:sel=>sel==='[data-open-review]'?buttons:[]},
     chrome,fetch:async()=>{fetchCount++;return {ok:true,json:async()=>({...configuredChannel})};},
@@ -241,7 +247,7 @@ function marketListingClient(){
 }
 
 test('a result check refreshes the configured browser receiver without replaying installation',async()=>{
-  const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
+  const script=clientScript,h=marketListingClient();
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
   assert.equal(h.sent.length,0,'browsing has no connection prerequisite');
@@ -265,7 +271,7 @@ test('a result check refreshes the configured browser receiver without replaying
 });
 
 test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver for installation',async()=>{
-  const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
+  const script=clientScript,h=marketListingClient();
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
   h.setChannel({enabled:false});
@@ -286,7 +292,7 @@ test('R6.2 installation help starts on HTTP and explains the automatic trusted c
 });
 
 test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{
-  const script=await readFile('src/market-site/client.js','utf8');
+  const script=clientScript;
   const h=marketListingClient();
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});
   const tick=()=>new Promise(resolve=>setImmediate(resolve));

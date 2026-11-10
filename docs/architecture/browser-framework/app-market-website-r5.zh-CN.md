@@ -226,3 +226,13 @@ Worker 的 DevTools target ID 可能跨执行重启保留。观察器先对同�
 - [MV3 要求与远程代码边界](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)
 - [Chrome userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts)
 - [VS Code 扩展市场](https://code.visualstudio.com/docs/configure/extensions/extension-marketplace)
+
+## 13. 2026-11-10 VIP 接续修正与实际边界
+
+复用现有 R5 网页、固定发行和原 Host。VIP 使用原 `GET_APP_STATUS` / `OPEN_INSTALLED_APP`，缺工具走原 `OPEN_INSTALL_REVIEW` / `GET_INSTALL_STATUS`；严格 subject/intent 消息字段未增加 URL、激活码、Cookie 或命令。普通应用行为不变。开发专属入口只接受 `http://127.0.0.1:43132/apps/opendesk/ai-vip-share/#vip-ref=…`；新增拒绝任何 query，并在 `APP_OPENED` 后再次核对精确入口及 fragment 摘要，阻止等待期间改链接后继续。只有合法打开回执才导航原批准 7898 激活页；导航成功不代表原 Controller 已预检。
+
+P0 的 ESM 报错来自旧 `runInNewContext` 把模块当普通脚本；修正夹具以注入真实 ESM exports，保留正式客户端 import。另将 WebCrypto 单次 event-loop 等待改为有截止时间的实际请求等待。三文件检查 56/56 PASS，静态网站构建 PASS，实际 ego 中 client/接续模块/channel 均 HTTP 200，缺宿主明确 `E_NO_RECEIVER`、零新事务，并提供真实开发安装说明；未静默安装 Chrome。
+
+本地原 43132 被其他 owner 的旧快照服务占用，仍发 VIP 1.4.2；没有替换它。独立 43134 预览显示正式 Catalog 的 1.4.32（143989 B，SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda`），但该预览来源不等于安装 Host 批准来源，也不会被 VIP 开发接续规则接受。未放宽来源或 provenance 来得到通过。
+
+原 Controller + SQLite Provider 的端口、条款、并发和恢复证据见 [VIP 唯一账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)；执行结果见 [原 Market workstream](../../framework/workstreams/app-market-r5.md#market-vip-integration-20261110)。当前是 CODE_READY / 定向 TEST_PASS；新整链 DEMO_PASS、CHROME_PASS 尚未取得，PRODUCTION_BLOCKED。历史 R5 Chrome 结果和旧 1.4.32 登录证据不提升为新候选证据。

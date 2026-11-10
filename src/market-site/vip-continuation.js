@@ -9,7 +9,7 @@ const REFERENCE=/^[A-Za-z0-9_-]{32,64}$/;
 export function vipActivationLanding(page,channel){
   if(channel?.enabled!==true||channel.mode!=='development'||
     channel.origin!==MARKET_ORIGIN||page?.origin!==MARKET_ORIGIN||
-    page.pathname!=='/apps/opendesk/ai-vip-share/'||
+    page.pathname!=='/apps/opendesk/ai-vip-share/'||page.search||
     typeof page.hash!=='string'||!page.hash.startsWith(PREFIX))return null;
   const ref=page.hash.slice(PREFIX.length);
   if(!REFERENCE.test(ref))return null;

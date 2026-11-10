@@ -1,5 +1,88 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="market-vip-integration-20261110"></a>
+
+## 2026-11-10 本地集成续接：TEST_PASS，完整 Demo 仍受候选与原市场入口阻断
+
+**给使用者的当前结论：** 网页详情、原安装/打开接续已通过定向组件检查；本轮实际浏览器验证了当前页面和缺宿主安装帮助。尚不能承诺从本机现有网页完成新 VIP 安装与自动领取：43132仍发旧1.4.2，默认 ego Profile 无安装接收端，1.4.32正式包不含新链接源码。原 Controller 与真实 SQLite HTTP 已完成一次确认取得7次合成额度、重开回读与不重复核销；这是组件级业务证据，未代替真实 Side Panel/app.html。正式公开网站还缺合法 HTTPS channel、正式 Chrome 获取/发行及商业身份与 Provider。
+
+**归属与运行模式：** main 起始 `1de67d7ae1f2aeaa954caee1cbbf3390ad3a251f`；复用原 R5/VIP，不另建 Host、日志、权限或领取 API。日常 `dist/development` 及原 dev writer未改；本轮为独立静态市场预览与显式开发 SQLite，不是 production。工具正式1.4.32/143989 B/SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda` 未晋升，source 中原有1.4.33也不代表已安装。其他对话的Cookie/登录/Profile资源与所有历史 journal 未操作。
+
+### 本轮修复与最小验证的关联
+
+1. P0 首跑52项48 PASS/4 FAIL：三项旧 VM 把 ESM 当 script，一项误以为单次 event-loop tick足够完成WebCrypto。夹具注入原模块真实 exports、等待实际请求，保留生产ESM和VIP功能；真实浏览器两模块HTTP200。额外 query、Host等待期间改链、丢审阅回执后刷新和来源拒绝新增回归，防止错误接续。
+2. 真实端口失配：CLI原监听7898、Controller新连接默认7903。现在原Provider在两端口共用同一SQLite；任一端口占用就释放自身listener并失败，不杀占用方。本轮独立CLI已实际启动、收到原Controller未经URL重定向的7903请求，并原DB重启回读；第二次启动EADDRINUSE未影响原进程或收据。
+3. 预检条款缺结构：原preview增加开发专用 `demoGrant`，Controller验证SKU、数量、起效、期限和使用范围后显示完整中文说明；原四HTTP路由与redeem三字段不变。Provider新增增量 `preview_terms`，与预检同事务存摘要，确认时锁内重查主体/商品/数量/范围/有效期等原条款；改变则409 `E_PREVIEW_CHANGED`。旧无摘要预检要求重新审阅，旧收据仍可查，不删数据。
+4. 新Controller测试使用真实源码和ESM、真实HTTP与SQLite；DOM、SDK传输、可信开发profile和开发连接控件是测试夹具。`src/main.jsx`不导入开发连接控件，实机新候选如何通过原合法入口接通Demo仍须核对；不得写storage模拟批准、把夹具点击当真实可信手势，或以Node结果冒充Chrome。
+
+### 用户步骤与原始事实
+
+| 前置条件 | 用户动作 | 原始回执 | 持久状态 | 禁止副作用 | 结果及证据 |
+| --- | --- | --- | --- | --- | --- |
+| 当前静态市场43134，正式Catalog1.4.32，无宿主receiver | 实际ego点击安装、打开安装帮助 | `E_NO_RECEIVER`，client/接续模块/channel均200；帮助明确正式获取地址未配置与现有开发目录/ID | sessionStorage新安装事务0 | 不静默装Chrome、不声称已装 | 浏览器页面分支PASS；`browser-current.json`、`install-help.json`、`no-host.png` |
+| 模拟已安装同固定发行 | 点击打开应用并继续 | 原GET_APP_STATUS→OPEN_INSTALLED_APP，APP_OPENED之后才导航原7898 | 无新安装intent | 不重复安装、不在网站调用兑换 | 组件PASS；`market-p0.tap`；真实Host打开NOT_TESTED |
+| 模拟未装、合法原fragment | 点击安装并返回 | 原OPEN_INSTALL_REVIEW→GET_INSTALL_STATUS已装→APP_OPENED | 同intent、仅SHA-256接续摘要；不存原引用 | 不给协议加激活码/URL，不自动重装 | 组件PASS；真实安装及换标签未验证 |
+| 安装回执未知，刷新同页 | 核对安装结果 | 原GET_INSTALL_STATUS使用同intent，未知保留；确认已装后原打开操作 | 同session原事务 | 不创建第二安装 | 组件PASS；`lost review receipt…`；真实Worker停止NOT_TESTED |
+| 审阅取消、fragment/query被改或Host拒绝provenance | 返回、等待APP_OPENED | 取消/拒绝后零跳转；等待中改链接也停止 | 原取消/事务状态 | 不自动复活、不越过来源校验 | 组件PASS；真实恶意安装包由原安装器保护，本轮原生未测 |
+| 独立CLI同SQLite、已批准开发夹具 | 进入7898原链接、Controller自动预检 | landing200，原Controller请求7903 `/api/member`、`/api/preview`；账号l***@fixture.test、demo-quota、7次、确认生效、额度不设到期、领取截止、仅合成用途 | previews/条款摘要；redemptions=0 | 不消费、不写Cookie/开代理 | `controller-fixed-ports.json`；HTTP+SQLite PASS，真实Controller页面NOT_TESTED |
+| 原预检有效 | 明确确认一次；重复点击 | 原redeem POST1次、200及原receipt；UI显示7 | SQLite同发放实例1条，恢复记录结清 | 不重复发放、Cookie/代理/开标签均0 | HTTP+SQLite PASS；同原件与`receipts.sqlite` |
+| 两个独立Controller客户端同券 | 分别预检、同时确认 | 两个独立幂等键，200/409 E_ALREADY_REDEEMED | SQLite核销仍1条 | 不靠本地锁冒充唯一 | HTTP+SQLite PASS；`vip-p3.tap`；不同物理设备未测 |
+| 已领取、Provider进程重启 | 重开Controller、查原键 | 重开只有7903 member GET；原status同redemptionId `8bb65f54-85b5-4f09-beb5-f1f84d6ea72a` | 原7次额度和1条收据保留 | 不新发券、不重新POST | 固定端口实测PASS；`restart.json` |
+| POST已提交但丢回执 / 派发前断线未知 | 重启Provider/Controller、显式核对原交易 | 只POST原status与同key；已提交查同receipt，unknown保持锁定 | 原journal保留至可核验终态 | 不换key重兑、不覆盖unknown | HTTP+SQLite PASS；`vip-p3.tap`，实际网络故障/Worker仍未测 |
+| 自动预检后取消 | 原账户同服务刷新 | 不再自动preview/redeem | 原持久暂停范围 | 不因重开或换票据复活 | Controller+SQLite及原LAN回归PASS；真实双Surface未测 |
+| 预检后账号/SKU/数量/范围/截止被改、预检过期 | 确认 | Provider409 E_PREVIEW_CHANGED；或Controller到期前拒发POST | 零核销，未知记录保留 | 不把旧审阅套到新条款 | HTTP+SQLite PASS；非法结构数量/范围/日期亦零POST |
+| 无新版正式候选、旧43132来源占用 | 完整网页→安装→预检→确认→回读 | 本轮尚无对应原生收据 | 正式1.4.32与原服务保留 | 不抢包晋升、不换来源或清账制造成功 | `BLOCKED_BY_VIP_PACKAGE_OWNER`；完整DEMO/Chrome NOT_TESTED |
+
+原始文件统一在本机忽略目录 [`artifacts/market-vip-20261110-evidence/`](../../../../artifacts/market-vip-20261110-evidence/)，含合成领取引用和只用于本实验的SQLite，不是可部署网站、正式包或另一状态报告；本条随代码保存，原件不作为公共制品提交。`source-evidence.json`记录源码、正式包与原件摘要。测试夹具临时DB与正式/历史服务账本分离。
+
+### 已执行命令与边界
+
+```sh
+node --test tests/environment/market-site-client-r5.test.mjs tests/environment/market-page-discovery-r61.test.mjs tests/environment/market-vip-continuation.test.mjs
+# 56/56 PASS；原件 market-p0.tap
+node --test projects/ai-vip-share/tests/controller-demo-provider.integration.test.mjs projects/ai-vip-share/tests/demo-provider.test.mjs projects/ai-vip-share/tests/activation-links.test.mjs projects/ai-vip-share/tests/controller-lan-activation.test.mjs
+# 29/29 PASS；原件 vip-p3.tap
+npm run build:market-site
+# PASS；build-market.log
+node --check projects/ai-vip-share/src/main.js
+node --check projects/ai-vip-share/server/demo-provider.mjs
+node --check src/market-site/client.js
+node --check src/market-site/vip-continuation.js
+# PASS；任务文件 git diff --check PASS
+```
+
+本轮只有相关定向检查，没有重跑整体App/Market CI，历史整体FAIL仍有效，其他68项失败未全量归因或修复。原网站构建 `dist/app-market-public` buildId `f793dedd07c6a19be99548026483d1ce850a2154fa0a867d6a3f546abbef9365`，22 apps/53 releases；独立43134预览 buildId `9ae27c0dae623ab9b3e75c9f17a2d404c84b2391539049ee9b6c4580c65ad829`，18 apps/45 releases；目录的历史发行集合不同，VIP固定包身份相同。构建包括并行Catalog输入，不证明其他工具通过本任务。一次预览重建因本任务截图误放受控产物目录失败，移到独立原件目录后成功；未绕过产物完整性校验。
+
+实际 ego TaskSpace56、Chrome UA156，本轮页面资源与缺宿主分支通过，TaskSpace已finish释放；未选择/占用另一对话专用Profile、未触发安装或Cookie授权。43132/PID81835的旧Python快照仍显示VIP1.4.2；保留原dev watcher PID30103/43119/43120，不以端口监听替代原生serve连接/加载路径验证。完整新包安装、真实标签切换/Worker重启、权限/撤权、Side Panel/app.html一致性为NOT_TESTED；另一owner的完整Cookie登录验收未重跑。
+
+### 五角色评分与反方审计
+
+以下是**单执行者模拟评审，不是独立专家**。曾分派有界executor，因429中止，未取得独立审核报告，部分源码由主执行者接管验证。每角色按所列顺序五项、每项满分20；分数是审阅判断，不是实测性能指标。提示词、可执行方案与实际实现分别评分；缺实机证据的实现项目标NOT_SCORED，不能按余项补满。
+
+| 角色、五项标准（顺序对应分数） | 提示词五项 / 总分 | 方案五项 / 总分 | 实际实现五项 / 总分 |
+| --- | --- | --- | --- |
+| 产品体验：完整路径、预检、取消、恢复、可读性 | 20/20/20/20/19 =99 | 19/19/19/18/19 =94 | NOT_SCORED/19/19/19/18；总NOT_SCORED |
+| 平台架构：唯一owner、严格协议、原权限、双Surface、兼容 | 20/20/20/19/20 =99 | 20/20/19/16/19 =94 | 20/20/NOT_SCORED/NOT_SCORED/19；总NOT_SCORED |
+| 安全事务：主体、条款与提交、取消持久、原子唯一、真实权限 | 20/20/20/20/20 =100 | 20/19/19/19/18 =95 | 19/19/19/19/NOT_SCORED；总NOT_SCORED |
+| 实现验收：核心代码、定向测试、同源新包、Chrome、Provider | 20/20/19/20/19 =98 | 20/20/17/16/18 =91 | 20/20/NOT_SCORED/NOT_SCORED/19；总NOT_SCORED |
+| 指令交付：原目标、理由、执行条件、禁止项、证据边界 | 20/20/20/20/20 =100 | 20/20/20/20/19 =99 | 20/19/20/20/19 =98 |
+
+提示词综合 **99.2**；方案综合 **94.6**；实际实现综合 **NOT_SCORED**（不能把98或部分组件分数当五角平均）。尚未达到完整实现≥95的验收目标；已验证安全项通过，真实候选权限/撤权等硬条件尚未取得本轮证据，整体不判通过。
+
+反方逐项结果：重复安装/unknown新安装有原intent恢复组件证据；来源伪造及等待中改链被拒绝，恶意包仍交原provenance/安装器，原生攻击未测；错误主体与预检条款替换由服务端拒绝；取消后刷新不自动复活；跨客户端同发放只核销一次；丢回执不换key；零Cookie/代理调用；没有复制框架。不能以测试中的可信profile或模拟Host回执证明真实权限与包安全。
+
+### 下一条操作与交接边界
+
+当前 `CODE_READY`、定向 `TEST_PASS`；完整 `DEMO_PASS`、`CHROME_PASS` 均**未取得**，`PRODUCTION_BLOCKED`。
+
+1. 包owner把本次原Controller结构化预检差量纳入最新源码候选，经原打包/晋升/安装审阅；核对实际候选与合法开发服务入口，不能将1.4.32冒称新代码。仍记 `BLOCKED_BY_VIP_PACKAGE_OWNER`，本轮不改正式JSON、版本或来源pin。
+2. 由现有43132服务owner协调切换当前市场产物；不能占用或替换旧服务，也不能用43134替代已批准来源来做验收。
+3. 同一专用Profile经原Market审阅/打开回执接续7898，再由原Controller预检、一次确认、SQLite发放与原工具回读；补真实Worker/标签切换和双Surface一致性。仅做跨系统必要复核，不重跑另一owner的完整Cookie登录。
+4. 正式HTTPS/channel、Chrome获取/发行与商业身份/Provider另按生产条件交付；开发合成权益不能部署成商业会员服务。
+
+本轮自建Demo Provider和43134预览在收尾后释放，原件SQLite与收据保留；复现须显式复用原DB路径，不能重新发行同业务实例代替恢复。其他服务、浏览器和未提交改动均保留。本轮只本地提交本任务精确路径到main，不推送。
+
+
 ## 2026-11-10：Market × AI VIP Share 开发 Provider 增量（源码/测试入口；未冒充 Chrome 通过）
 
 **源码 owner 及变更：** 新增 `projects/ai-vip-share/server/demo-provider.mjs`（Node 22 `node:sqlite`，仅 loopback + 显式开发 env + SQLite 原子一次领取）；新增 `tests/demo-provider.test.mjs`；Market 网站 `src/market-site/client.js` 仅对 VIP 使用原已安装状态/打开操作，`src/market-site/vip-continuation.js` 校验精确开发链接和不含原票据的接续摘要，`scripts/build-market-site.mjs` 输出模块，`tests/environment/market-vip-continuation.test.mjs` 是组件闭环；原旧 Market 测试仅替换 VM 的静态 ESM import stub，未更换安装协议或原业务校验。现存 1.4.32 包和本机运行资源不触碰。

@@ -1199,8 +1199,25 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       dateMs(data.expiresAt)===null||now===null||
       data.expiresAt<=now||data.expiresAt-now>PREVIEW_MAX_LIFETIME_MS)
       fail('E_PREVIEW','兑换预检与当前账号不符、超出安全时限或已失效');
+    let summary=data.grantSummary;
+    // The SQLite demo extends the original preview, never its redeem payload.
+    // Render reviewed terms from validated data rather than trusting prose to
+    // establish a quantity, lifetime or third-party permission.
+    if(data.demoGrant!==undefined){
+      const grant=data.demoGrant;
+      if(!localMode||!plain(grant)||grant.skuId!=='demo-quota'||
+        !Number.isSafeInteger(grant.quantity)||grant.quantity<1||grant.quantity>20||
+        grant.unit!=='次'||grant.starts!=='on-confirmation'||
+        grant.entitlementExpiresAt!==null||grant.scope!=='opendesk-fixture-only'||
+        !Number.isSafeInteger(grant.claimExpiresAt)||dateMs(grant.claimExpiresAt)===null||grant.claimExpiresAt<data.expiresAt||
+        grant.claimExpiresAt-now>24*60*60*1000)
+        fail('E_PREVIEW','开发权益的数量、有效期或使用范围无法核验');
+      summary='发放 '+grant.quantity+' 次本地演示额度；确认后生效，额度不设到期。'+
+        '仅限 OpenDesk 合成额度，不含第三方会员、Cookie 或代理；领取链接截止 '+
+        dateLabel(grant.claimExpiresAt)+'。';
+    }
     return {id:data.previewId,accountId:data.accountId,title:data.skuTitle,
-      summary:data.grantSummary,masked:data.voucherPreviewMasked,expiresAt:data.expiresAt};
+      summary,masked:data.voucherPreviewMasked,expiresAt:data.expiresAt};
   }
   function validateReceipt(data,key){
     if(!plain(data)||data.status!=='redeemed'||data.idempotencyKey!==key||

@@ -33,7 +33,7 @@ function browser({hash=HASH,mode='development',storage=new Map()}={}){
   primary.textContent='安装到浏览器';
   primary.parentElement={querySelector:selector=>({'[data-handoff-state]':status,'[data-return-review]':back})[selector]};
   const internals={'#open-review':primary,'#handoff-state':status,'#handoff-details':node(),'#handoff-code':node()};
-  const page={origin:MARKET,pathname:'/apps/opendesk/ai-vip-share/',hash,
+  const page={origin:MARKET,pathname:'/apps/opendesk/ai-vip-share/',search:'',hash,
     assign(url){navigations.push(url);}};
   const chrome={runtime:{sendMessage(id,message,callback){
     assert.equal(id,channel.extensionId);
@@ -59,7 +59,16 @@ function browser({hash=HASH,mode='development',storage=new Map()}={}){
     assert.ok(found,'missing '+action+', pending: '+pending().map(x=>x.message.action).join(','));
     found.done=true;found.callback(receipt(found.message,extra));return found;
   };
+  // WebCrypto settles on a separate thread; one setImmediate is not a digest
+  // completion signal. Wait for the observable request, with a bounded deadline.
+  const answerWhenSent=async(action,extra={})=>{
+    const deadline=Date.now()+2000;
+    while(!pending().some(row=>row.message.action===action)&&Date.now()<deadline)
+      await new Promise(resolve=>setTimeout(resolve,1));
+    return answer(action,extra);
+  };
   return {page,primary,status,back,messages,navigations,answer,pending,storage,
+    answerWhenSent,
     click:()=>primary.listeners.click(),focus:()=>listeners.get('focus')?.()};
 }
 async function settleReads(h){
@@ -78,6 +87,7 @@ test('only exact development origin, VIP detail route and canonical fragment can
     [{...input,hash:HASH.replace('vip-ref','activation_code')},channel],
     [{...input,hash:HASH+'#junk'},channel],
     [{...input,pathname:'/'},channel],
+    [{...input,search:'?redirect=https://evil.test'},channel],
     [{...input,origin:'http://127.0.0.1:43133'},channel],
     [input,{...channel,mode:'production'}],
     [input,{...channel,enabled:false}]]){
@@ -93,16 +103,15 @@ test('installed VIP click opens exact pinned package and continues only after AP
   assert.match(h.primary.textContent,/打开应用并继续领取/);
   const clicking=h.click();await tick();
   h.answer('GET_APP_STATUS',{currentInstallation:'installed',installedVersion:app.version,enabled:true});
-  await tick();assert.equal(h.navigations.length,0);
-  assert.deepEqual(h.pending().map(x=>x.message.action),['OPEN_INSTALLED_APP']);
-  h.answer('OPEN_INSTALLED_APP');await clicking;
+  assert.equal(h.navigations.length,0);
+  await h.answerWhenSent('OPEN_INSTALLED_APP');await clicking;
   assert.deepEqual(h.navigations,['http://127.0.0.1:7898/activate?activation_code='+REF]);
   assert.equal(h.messages.filter(x=>x.message.action==='OPEN_INSTALL_REVIEW').length,0);
 });
 test('first install preserves only digest, resumes original link after trusted journal receipt',async()=>{
   const h=browser();await tick();h.answer('GET_APP_STATUS');await tick();
   const promise=h.click();await tick();h.answer('GET_APP_STATUS');await tick();
-  const review=h.answer('OPEN_INSTALL_REVIEW');await promise;
+  const review=await h.answerWhenSent('OPEN_INSTALL_REVIEW');await promise;
   assert.ok(review.message.intentId);
   const saved=JSON.parse([...h.storage.values()][0]);
   assert.equal(saved.resumeProof,await vipResumeProof(HASH));
@@ -111,7 +120,7 @@ test('first install preserves only digest, resumes original link after trusted j
   h.answer('GET_INSTALL_STATUS',{installation:'installed',currentInstallation:'installed',
     installedVersion:app.version,enabled:true});await tick();
   assert.equal(h.navigations.length,0);
-  h.answer('OPEN_INSTALLED_APP');await checking;
+  await h.answerWhenSent('OPEN_INSTALLED_APP');await checking;
   assert.deepEqual(h.navigations,['http://127.0.0.1:7898/activate?activation_code='+REF]);
   assert.equal(h.storage.size,0);
 });
@@ -119,7 +128,7 @@ test('cancel or changed source never reopens installed tool or consumes link',as
   for(const alter of ['cancelled','changed']){
     const h=browser();await tick();h.answer('GET_APP_STATUS');await tick();
     const clicking=h.click();await tick();h.answer('GET_APP_STATUS');await tick();
-    h.answer('OPEN_INSTALL_REVIEW');await clicking;
+    await h.answerWhenSent('OPEN_INSTALL_REVIEW');await clicking;
     if(alter==='changed')h.page.hash='#vip-ref='+ 'b'.repeat(32);
     const checking=h.click();await tick();
     h.answer('GET_INSTALL_STATUS',alter==='changed'?
@@ -132,7 +141,46 @@ test('cancel or changed source never reopens installed tool or consumes link',as
 test('pending panel navigation does not trigger a link redirect',async()=>{
   const h=browser();await tick();h.answer('GET_APP_STATUS');await tick();
   const click=h.click();await tick();h.answer('GET_APP_STATUS',{currentInstallation:'installed',installedVersion:app.version,enabled:true});
-  await tick();h.answer('OPEN_INSTALLED_APP',{status:'PANEL_REQUIRED'});await click;
+  await h.answerWhenSent('OPEN_INSTALLED_APP',{status:'PANEL_REQUIRED'});await click;
   assert.equal(h.navigations.length,0);
   assert.match(h.status.textContent,/工具栏/);
+});
+
+test('lost review receipt and page reload query the original intent without a second install',async()=>{
+  const first=browser();await tick();first.answer('GET_APP_STATUS');await tick();
+  const clicking=first.click();await tick();first.answer('GET_APP_STATUS');
+  const sent=await first.answerWhenSent('OPEN_INSTALL_REVIEW',{
+    ok:false,error:{code:'E_CONNECT_TIMEOUT',message:'receipt lost'}});await clicking;
+  const id=sent.message.intentId;
+  const restored=browser({storage:first.storage});
+  const query=await restored.answerWhenSent('GET_INSTALL_STATUS',{installation:'unknown'});
+  assert.equal(query.message.intentId,id);await tick();
+  assert.equal(restored.messages.some(row=>row.message.action==='OPEN_INSTALL_REVIEW'),false);
+  const checking=restored.click();
+  const again=await restored.answerWhenSent('GET_INSTALL_STATUS',{
+    installation:'installed',currentInstallation:'installed',installedVersion:app.version,enabled:true});
+  assert.equal(again.message.intentId,id);
+  await restored.answerWhenSent('OPEN_INSTALLED_APP');await checking;
+  assert.equal(restored.navigations.length,1);assert.equal(restored.storage.size,0);
+});
+
+for(const change of ['hash','search'])test(`link ${change} changing during Host open cannot continue`,async()=>{
+  const h=browser();await tick();h.answer('GET_APP_STATUS');await tick();
+  const clicking=h.click();await tick();
+  h.answer('GET_APP_STATUS',{currentInstallation:'installed',installedVersion:app.version,enabled:true});
+  const deadline=Date.now()+2000;
+  while(!h.pending().some(row=>row.message.action==='OPEN_INSTALLED_APP')&&Date.now()<deadline)await tick();
+  h.page[change]=change==='hash'?'#vip-ref='+ 'b'.repeat(32):'?next=evil';
+  h.answer('OPEN_INSTALLED_APP');await clicking;
+  assert.equal(h.navigations.length,0);assert.match(h.status.textContent,/链接已变化/);
+});
+
+test('Host provenance rejection cannot navigate, install again or redeem',async()=>{
+  const h=browser();await tick();h.answer('GET_APP_STATUS');await tick();
+  const clicking=h.click();await tick();
+  h.answer('GET_APP_STATUS',{currentInstallation:'installed',installedVersion:app.version,enabled:true});
+  await h.answerWhenSent('OPEN_INSTALLED_APP',{ok:false,error:{code:'E_PROVENANCE',message:'identity rejected'}});
+  await clicking;assert.equal(h.navigations.length,0);
+  assert.equal(h.messages.some(row=>row.message.action==='OPEN_INSTALL_REVIEW'),false);
+  assert.equal(h.storage.size,0);assert.match(h.status.textContent,/identity rejected/);
 });

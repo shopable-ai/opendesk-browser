@@ -37,6 +37,10 @@ export function openDemoLedger(filename){
     'CREATE TABLE IF NOT EXISTS previews (',
     ' preview_id TEXT PRIMARY KEY, grant_id TEXT NOT NULL REFERENCES grants(grant_id),',
     ' account_id TEXT NOT NULL, expires_at INTEGER NOT NULL);',
+    // Additive: old receipts/journals stay intact; old unsnapshotted previews
+    // require a new review, never silently bind to the current grant terms.
+    'CREATE TABLE IF NOT EXISTS preview_terms (',
+    ' preview_id TEXT PRIMARY KEY REFERENCES previews(preview_id), terms_hash TEXT NOT NULL);',
     'CREATE TABLE IF NOT EXISTS redemptions (',
     ' redemption_id TEXT PRIMARY KEY, grant_id TEXT NOT NULL UNIQUE REFERENCES grants(grant_id),',
     ' intent_id TEXT NOT NULL, issue_id TEXT NOT NULL, account_id TEXT NOT NULL, sku_id TEXT NOT NULL,',
@@ -59,6 +63,10 @@ function grantForToken(db,code){
   return grant;
 }
 function receiptOf(row){return JSON.parse(row.receipt_json);}
+function grantTerms(grant){
+  return hash(JSON.stringify([grant.grant_id,grant.intent_id,grant.issue_id,
+    grant.account_id,grant.sku_id,grant.quantity,grant.scope,grant.expires_at,grant.issued_at]));
+}
 function memberOf(db,accountId,now){
   const rows=db.prepare('SELECT receipt_json FROM redemptions WHERE account_id=? ORDER BY redeemed_at DESC LIMIT 32')
     .all(accountId).map(receiptOf);
@@ -91,17 +99,24 @@ export function issueDemoGrant(db,{intentId,issueId,accountId=DEMO_ACCOUNT_ID,
     activationUrl:'http://127.0.0.1:7898/activate?activation_code='+code};
 }
 export function previewDemoGrant(db,{code},accountId=DEMO_ACCOUNT_ID,now=Date.now()){
-  const grant=grantForToken(db,code);
-  if(grant.account_id!==accountId)fail(403,'E_WRONG_ACCOUNT');
-  if(grant.expires_at<=now)fail(410,'E_LINK_EXPIRED');
-  if(db.prepare('SELECT 1 FROM redemptions WHERE grant_id=?').get(grant.grant_id))
-    fail(409,'E_ALREADY_REDEEMED');
-  const previewId=randomUUID(),expiresAt=Math.min(now+120000,grant.expires_at);
-  db.prepare('INSERT INTO previews(preview_id,grant_id,account_id,expires_at) VALUES(?,?,?,?)')
-    .run(previewId,grant.grant_id,accountId,expiresAt);
-  return {previewId,accountId,skuTitle:'本地演示额度',
-    grantSummary:'发放 '+grant.quantity+' 次本地演示额度；'+SCOPE,
-    voucherPreviewMasked:'****-'+code.slice(-4),expiresAt};
+  return transaction(db,()=>{
+    const grant=grantForToken(db,code);
+    if(grant.account_id!==accountId)fail(403,'E_WRONG_ACCOUNT');
+    if(grant.expires_at<=now)fail(410,'E_LINK_EXPIRED');
+    if(db.prepare('SELECT 1 FROM redemptions WHERE grant_id=?').get(grant.grant_id))
+      fail(409,'E_ALREADY_REDEEMED');
+    const previewId=randomUUID(),expiresAt=Math.min(now+120000,grant.expires_at);
+    db.prepare('INSERT INTO previews(preview_id,grant_id,account_id,expires_at) VALUES(?,?,?,?)')
+      .run(previewId,grant.grant_id,accountId,expiresAt);
+    db.prepare('INSERT INTO preview_terms(preview_id,terms_hash) VALUES(?,?)')
+      .run(previewId,grantTerms(grant));
+    return {previewId,accountId,skuTitle:'本地演示额度',
+      demoGrant:{skuId:grant.sku_id,quantity:grant.quantity,unit:'次',
+        starts:'on-confirmation',entitlementExpiresAt:null,
+        claimExpiresAt:grant.expires_at,scope:'opendesk-fixture-only'},
+      grantSummary:'发放 '+grant.quantity+' 次本地演示额度；确认后生效，演示额度不设到期；'+SCOPE,
+      voucherPreviewMasked:'****-'+code.slice(-4),expiresAt};
+  });
 }
 /** One BEGIN IMMEDIATE and unique business/issuance/idempotency indexes gate all effects. */
 export function redeemDemoGrant(db,{previewId,accountId,idempotencyKey},expectedAccount=DEMO_ACCOUNT_ID,now=Date.now()){
@@ -118,6 +133,9 @@ export function redeemDemoGrant(db,{previewId,accountId,idempotencyKey},expected
       .get(previewId,accountId);
     if(!grant||grant.preview_expires_at<=now||grant.expires_at<=now)
       fail(409,'E_PREVIEW_EXPIRED');
+    const terms=db.prepare('SELECT terms_hash FROM preview_terms WHERE preview_id=?').get(previewId);
+    if(grant.account_id!==accountId||!terms||terms.terms_hash!==grantTerms(grant))
+      fail(409,'E_PREVIEW_CHANGED');
     if(db.prepare('SELECT 1 FROM redemptions WHERE grant_id=? OR (intent_id=? AND issue_id=? AND account_id=? AND sku_id=?)')
       .get(grant.grant_id,grant.intent_id,grant.issue_id,accountId,grant.sku_id))
       fail(409,'E_ALREADY_REDEEMED');
@@ -232,8 +250,23 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
         console.log(JSON.stringify(issueDemoGrant(db,{intentId,issueId,quantity,expiresAt:Date.now()+30*60*1000}),null,2));
         db.close();
       }else if(process.argv.length===2){
-        const server=createDemoProvider({db,extensionOrigin:process.env.OPENDESK_VIP_DEMO_EXTENSION_ORIGIN});
-        server.listen(()=>console.log('AI VIP Share SQLite DEVELOPMENT provider listening on http://127.0.0.1:7898'));
+        // The approved landing/legacy preference uses 7898; a new Controller
+        // connection uses 7903. Both original endpoints own the SAME ledger.
+        const servers=[7898,7903].map(port=>createDemoProvider({db,port,
+          extensionOrigin:process.env.OPENDESK_VIP_DEMO_EXTENSION_ORIGIN}));
+        const close=async()=>{
+          await Promise.all(servers.map(server=>new Promise(resolve=>server.close(resolve))));
+          db.close();
+        };
+        const starts=await Promise.allSettled(servers.map(server=>new Promise((resolve,reject)=>{
+          server.once('error',reject);server.listen(resolve);
+        })));
+        const failed=starts.find(row=>row.status==='rejected');
+        if(failed){await close();db=null;throw failed.reason;}
+        let stopping=false;
+        const stop=()=>{if(!stopping){stopping=true;void close();}};
+        process.once('SIGINT',stop);process.once('SIGTERM',stop);
+        console.log('AI VIP Share SQLite DEVELOPMENT provider: landing/legacy http://127.0.0.1:7898; Controller http://127.0.0.1:7903; shared ledger');
       }else throw Error('Usage: node demo-provider.mjs [issue INTENT_ID ISSUE_ID QUANTITY]');
     }catch(error){try{db?.close();}catch{}console.error(error.code||error.message);process.exitCode=1;}
   }

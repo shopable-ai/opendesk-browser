@@ -356,3 +356,19 @@ Linux 和 Mac **实际的开发扩展 ID 与编译包 SHA 不同**，不能混�
 本次 CI 修复已提交的文件仅为原 R5 workflow 路径、相关测试和工作流记录；现有 Marketplace/Authority/Broker/RunHost/安装注册表未更改。后续 `main` 新提交须按 [测试证据复用指南](../testing-guide.md) 对比具体产品源码与构建输入；无关文件改变不自动失效此次候选的 PASS，修改依赖的包或 SDK 运行链路则标记 `AFFECTED_INPUTS` 另行补测。GitHub Artifact 有过期窗口，机器索引保存原 SHA 与可追溯 CI URL，不能宣称原 ZIP 永久可下载。
 
 
+
+<a id="market-vip-integration-20261110"></a>
+
+## 2026-11-10 Market × VIP：修复 P0，接通原 Controller 的 SQLite HTTP
+
+开始与提交前核对 main；本轮起始 HEAD `1de67d7ae1f2aeaa954caee1cbbf3390ad3a251f`，复用 d2657e342 增量。源码 owner 为现有 `src/market-site/` 与 `projects/ai-vip-share/`，未新增 Host、安装器、领取 API 或依赖，未触碰另一对话的正式 JSON/版本晋升。其他 main 并行改动保留，未新建分支/worktree/PR、未推送。
+
+- **实际失配**：原三个 discovery VM 用普通脚本执行 ESM，另一个 VIP 用例把一轮 setImmediate 当作 WebCrypto 完成信号；P0 初跑 52 项 48 PASS / 4 FAIL。修正真实依赖注入和请求等待后，加上 query/等待期间改链、回执未知后恢复、Host 来源拒绝检查，当前 **56/56 PASS**。正式网站仍使用 ESM，浏览器资源均 200。
+- **业务缺口**：CLI 原只监听7898，但原 Controller 新连接默认7903。现由同一 Provider 在原两端口共用 SQLite，端口冲突失败后释放自身 listener，不停占用方。原 preview 增加可验证开发条款，确认时重查原条款摘要；原四 API/兑换 payload 不变。
+- **实际 HTTP/SQLite**：原 Controller VM（真实源码/ESM，SDK 与 DOM 夹具）访问真实 Provider。一次确认前 0、后 1 核销和 7 次额度；双客户端只有一次核销，丢回执仅查原键，未知保持锁定，进程重启/重开保留同收据。四文件 **29/29 PASS**。独立 CLI 也以原固定7898/7903实测，不只是端口重定向。
+- **静态网站**：`npm run build:market-site` PASS，`dist/app-market-public` buildId `f793dedd07c6a19be99548026483d1ce850a2154fa0a867d6a3f546abbef9365`，22 apps / 53 releases（含并行目录输入）；不等于部署。独立43134预览 buildId `9ae27c0dae623ab9b3e75c9f17a2d404c84b2391539049ee9b6c4580c65ad829`，实际 ego Chrome/156 只证明页面、ESM 与缺宿主指引，没有 extension receiver，零安装事务。一次预览重建曾因本任务截图误放受控输出而被完整性检查拒绝，已将截图移到独立原件目录，未修改门禁。
+- **原入口阻断**：43132/PID81835 仍为旧快照 Python 服务，VIP1.4.2；本轮保留。日常 Browser 原 watcher PID30103 的43119/43120保留，未重建或重载 `dist/development`；未在本轮原生核对 serve 客户端连接或已安装指纹，不把监听器存活当作连接通过。
+
+本地原始 stdout、源码/包 SHA、固定端口收据、SQLite、浏览器资源和截图保存在忽略目录 `artifacts/market-vip-20261110-evidence/`，不是另一份状态报告或公共制品；结果详见 [唯一 VIP 账本](../../../projects/ai-vip-share/dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#market-vip-integration-20261110)。原 GitHub App/Market CI 的整体 FAIL 未被局部 PASS 抵消，本轮未启动全仓修复或完整 CI。
+
+**当前阶段**：CODE_READY、定向 TEST_PASS；完整 DEMO_PASS / CHROME_PASS **NOT_TESTED**，`BLOCKED_BY_VIP_PACKAGE_OWNER`。下一条用户链必须先由原 owner 使43132提供当前市场、由包 owner 交付包含最新 Controller 的同源候选并核对合法开发服务接入，然后在同一专用 Profile 经原审阅走 Market→安装/打开→7898→自动预检→一次确认→原权益回读，并核对 Side Panel/app.html 同状态、真实 Worker 恢复。未重复 Cookie 登录验收。正式 HTTPS/channel、官方 Chrome 获取入口、商业身份/Provider 与安全发行仍 PRODUCTION_BLOCKED。
