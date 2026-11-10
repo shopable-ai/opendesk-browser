@@ -140,15 +140,15 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 | 文件 | 实际已提交的改变 |
 | --- | --- |
 | `src/Settings.tsx` | PC 初始加载、七区导航标题、代理空状态；代理行区分配置已选择与 Chrome 回执已应用；Side Panel 保留原图标与编辑能力 |
-| `src/styles/management.css` | 仅 `.proxy-management` 下的 R16 PC 顶栏／状态栏／导航／标题／模式按钮／列表密度／记录操作和840px／560px响应式 |
+| `src/styles/management.css` | 仅 `.proxy-management` 下复用现有 token 的 R16 PC 色板，以及顶栏／状态栏／导航／标题／模式按钮／列表密度／记录操作和840px／560px响应式 |
 | `src/ui/useProxy.ts` | 前台聚焦和可见性恢复只读 GET_STATE；有未保存草稿或正在写入时不自动读取，且卸载清理监听，绝不自动重放 APPLY／STOP |
 | `tests/settings-management-runtime.test.mjs` | SSR 验证真实七区导航、已选／已应用状态、空列表、初始加载，不通过静态样式字符串冒充截图 |
 | `tests/use-proxy-errors.test.mjs` | 挂载、前台恢复、草稿保护、不执行写请求、卸载清理回归 |
 | `tests/quick-panel-runtime.test.mjs` | 修正历史陈旧断言：明确「Direct 应用」按钮真实标签 `apApplyDirect`，而非旧 `applySelection`；实际原浏览器路由仍保留 |
 
-已提交主分支（按时间顺序）：`ac77b0c`、`e2c2380`、`a0c5e00`、`ade9125`、`560c10b`、`d141b8d`、`4325341`、`9a27319`、`1459ed6`。后续若其他 Agent 更新 main，先重新读取当前 HEAD 与变更文件。
+已提交主分支（按时间顺序）：`ac77b0c`、`e2c2380`、`a0c5e00`、`ade9125`、`560c10b`、`d141b8d`、`4325341`、`9a27319`、`1459ed6`、`567c3e5`。后续若其他 Agent 更新 main，先重新读取当前 HEAD 与变更文件。
 
-**实际 CI**：`https://github.com/shopable-ai/opendesk-browser/actions/runs/42827857011`，被测源码提交 `1459ed677af7a5b070abd34d7ee5490cef4a14d0`。原 App CI 已执行并成功完成 Vite 编译和未晋升 candidate 打包（版本 0.3.12，971470 bytes，SHA-256 `68ca9613756f1e920305f3aa7e27e3dbfcc3268b6ce00fd56340549b75deefa6`）。合并运行 Node 测试 **364 PASS／1 FAIL**；唯一失败是既存公共 Reading TOC `E_OFFICIAL_FIXTURE_PIN` 与 AI Proxy 本次变更无直接关系。CI 因此未执行其后续 Chromium UI／真实安装步骤，不能标为 Chrome PASS。公共 ci-contract 也因公共门禁报 FAIL，未经本次修复。
+**实际 CI**（截至 1459ed6，567c3e5 的 PC token 微调需要另行回归）：`https://github.com/shopable-ai/opendesk-browser/actions/runs/42827857011`，被测源码提交 `1459ed677af7a5b070abd34d7ee5490cef4a14d0`。原 App CI 已执行并成功完成 Vite 编译和未晋升 candidate 打包（版本 0.3.12，971470 bytes，SHA-256 `68ca9613756f1e920305f3aa7e27e3dbfcc3268b6ce00fd56340549b75deefa6`）。合并运行 Node 测试 **364 PASS／1 FAIL**；唯一失败是既存公共 Reading TOC `E_OFFICIAL_FIXTURE_PIN` 与 AI Proxy 本次变更无直接关系。CI 因此未执行其后续 Chromium UI／真实安装步骤，不能标为 Chrome PASS。公共 ci-contract 也因公共门禁报 FAIL，未经本次修复。
 
 **未完成与下一步**：
 
