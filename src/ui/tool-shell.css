@@ -18,8 +18,8 @@
 /* Six official tabs and development Debug share one trusted RunHost; only the tablist scrolls. */
 /* A quiet, preview-aligned Host strip; visual semantics stay in canonical tokens. */
 .workbench-nav{--od-nav-active:var(--od-brand);flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:color-mix(in srgb,var(--od-paper) 60%,var(--od-muted))}
-.workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:var(--od-sub);border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
-.workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active);background:transparent}
+.workbench-nav button{flex:1 0 0;min-width:max-content;min-height:40px;padding:10px 6px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:var(--od-sub);border:0;border-bottom:2px solid transparent;border-radius:0;font-size:var(--od-meta-size);font-weight:500}
+.workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active);background:transparent;font-weight:700}
 /* The horizontally scrolling tablist clips outward outlines vertically. */
 .workbench-nav button:focus-visible{outline-offset:-3px}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
@@ -415,7 +415,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
 /* Only the trusted tool header owns this full-width surface; od-toolbar remains layout-only. */
-.sidebar-tool-view-head{position:relative;z-index:3;display:flex;align-items:center;gap:2px;min-width:0;min-height:48px;margin:0 calc(0px - var(--od-page-gutter));padding:0 var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
+.sidebar-tool-view-head{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0;min-height:53px;margin:0 calc(0px - var(--od-page-gutter));padding:var(--space-2) var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
 #sidebar-tool-back{color:var(--od-ink);border-color:transparent;background:transparent}
 #sidebar-tool-remove{border-color:transparent;color:var(--od-sub);background:transparent}
 
@@ -448,8 +448,8 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
 .sidebar-tool-header-menu-slot>.sidebar-tool-icon-action,
 .sidebar-tool-header-actions>.sidebar-tool-icon-action{
-  box-sizing:border-box;flex:0 0 30px;width:30px;min-width:30px;max-width:30px;
-  height:30px;min-height:30px;max-height:30px;padding:0;
+  box-sizing:border-box;flex:0 0 var(--od-icon-size);width:var(--od-icon-size);min-width:var(--od-icon-size);max-width:var(--od-icon-size);
+  height:var(--od-icon-size);min-height:var(--od-icon-size);max-height:var(--od-icon-size);padding:0;
   border:1px solid transparent;background:transparent;color:var(--od-sub)
 }
 .sidebar-tool-view-head .sidebar-tool-icon-action svg{width:17px;height:17px}
@@ -1508,7 +1508,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 #workbench-cloud .cloud-task-choice label{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
 #workbench-cloud .cloud-task-choice label>span{min-width:0;flex:1;overflow-wrap:anywhere}
 #workbench-cloud .cloud-task-choice input{flex:0 0 auto;margin-top:3px}
-#workbench-cloud .cloud-task-description{display:block;flex:0 0 100%;margin-left:24px;font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-description{display:block;flex:0 0 100%;padding-left:24px;font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
 #workbench-cloud .cloud-task-scope,#workbench-cloud .cloud-task-params{font-size:12px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
 #workbench-cloud .cloud-task-needs-review{font-size:12px;line-height:1.55;margin:0;
   overflow-wrap:anywhere;color:var(--od-ink);font-weight:600}
@@ -1635,7 +1635,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 
 /* Workbench navigation and tool lifecycle actions follow the OS theme. */
 @media(prefers-color-scheme:dark){
-  .workbench-nav{--od-nav-active:#9dc1ff}
+  .workbench-nav{--od-nav-active:var(--od-accent-ink)}
   :root .workbench-nav{background:var(--od-paper)}
   :root .workbench-nav button{color:var(--od-sub)}
   :root .workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active)}
@@ -1644,12 +1644,10 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
   :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
 }
 
-/* Optional display actions keep their own bounded slot; fixed controls retain size. */
-.sidebar-tool-view-head:has(.sidebar-tool-header-menu-slot){flex-wrap:wrap}
-/* Reserve readable title space before controls wrap, including coarse 320px.
+/* Reserve readable title space before controls wrap, with or without optional slots.
    Keep the existing <=240px Back/title first-row calculation untouched. */
 @media(min-width:241px){
-  .sidebar-tool-view-head:has(.sidebar-tool-header-menu-slot)>#sidebar-tool-title{
+  .sidebar-tool-view-head>#sidebar-tool-title{
     flex-basis:10ch;min-width:min(10ch,100%)
   }
 }
@@ -1680,7 +1678,10 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
   .sidebar-tool-view-head{flex-wrap:wrap}
   .sidebar-tool-header-actions{flex-wrap:wrap;max-width:100%}
 }
-@media(pointer:coarse){.sidebar-tool-header-menu [role="menuitem"]{min-height:44px}}
+@media(pointer:coarse){
+  .workbench-nav button{flex-basis:max-content;min-width:44px;min-height:44px}
+  .sidebar-tool-header-menu [role="menuitem"]{min-height:44px}
+}
 
 /* Dedicated app.html layout; same Design Tokens and existing ToolHost. */
 :root[data-opendesk-entry="app"] body{min-width:320px;background:var(--od-paper)}

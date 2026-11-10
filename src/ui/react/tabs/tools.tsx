@@ -41,7 +41,16 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,loc
         data-extension-action="main" disabled={busy}
         aria-label={accessible} title={accessible}
         onClick={event=>onOpenRow(row.key,event.nativeEvent)}>
-        <span className="ec-glyph" aria-hidden="true">{row.kind==='page'?'◇':'▦'}</span>
+        <span className="ec-glyph" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            {row.kind==='page'?<><rect x="3" y="4" width="18" height="16" rx="2"/>
+              <path d="M3 9h18M7 6.5h.01M10 6.5h.01m-2 8 2 2 5-5"/></>:
+              <><rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/></>}
+          </svg>
+        </span>
         <span className="ec-copy">
           <span className="ec-name-line">
             <span className="ec-name" title={row.title}>

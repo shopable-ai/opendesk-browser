@@ -5,6 +5,8 @@
 [hidden]{display:none!important}
 html,body{height:100%;overflow:hidden;min-width:0}
 body{display:flex;flex-direction:column;margin:0;background:var(--od-bg)}
+/* Chrome's extension stylesheet sets body to 75%; keep the trusted workbench at its semantic baseline. */
+:root body{font-family:inherit;font-size:var(--od-body-size);line-height:1.5}
 h1,h2,h3{margin:0;letter-spacing:-.015em}
 p{margin:var(--space-2) 0;overflow-wrap:anywhere}
 /* Emphasis inside a paragraph changes weight, never its size or semantic ink. */

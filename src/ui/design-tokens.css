@@ -40,7 +40,7 @@
   --od-warning-ink:var(--od-light-warning-ink);
   --od-negative-bg:#fff0f1;
   /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
-  --od-page-gutter:11px;
+  --od-page-gutter:12px;
   /* Dark-mode palette is registered here; shared primitives only reference tokens. */
   --od-dark-ink:#e9eef7;
   --od-dark-sub:#b3c1d3;
