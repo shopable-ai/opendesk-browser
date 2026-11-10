@@ -31,6 +31,8 @@ test('only verified Run/Result states produce a presentation event; completed is
   assert.equal(M.taskNotice({...running,state:'unknown',semantic:'UNKNOWN'},pin).phase,'unknown');
   assert.match(M.taskNotice({...running,state:'unknown',semantic:'UNKNOWN'},pin).options.message,/禁止自动重试/);
   assert.equal(M.taskNotice({...completed,state:'stopped'},pin).phase,'stopped');
+  assert.equal(M.taskNotice({...completed,value:{status:'blocked'}},pin).phase,'reported-issue');
+  assert.match(M.taskNotice({...completed,value:{status:'blocked'}},pin).options.message,/脚本报告网站验证阻断/);
 });
 
 test('failed execution includes only bounded structured codes, not arbitrary webpage text',()=>{
