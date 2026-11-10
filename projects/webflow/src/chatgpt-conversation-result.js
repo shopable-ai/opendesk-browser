@@ -43,7 +43,8 @@ export function validateChatGPTCreateResult(value,args){
     if(value.status!=='reply-complete'||value.messageConfirmed!==true||
       typeof value.conversationId!=='string'||!UUID.test(value.conversationId)||
       value.conversationUrl!=='https://chatgpt.com/c/'+value.conversationId||
-      !MESSAGE.test(value.userMessageRef)||!MESSAGE.test(value.assistantMessageRef)||
+      typeof value.userMessageRef!=='string'||!MESSAGE.test(value.userMessageRef)||
+      typeof value.assistantMessageRef!=='string'||!MESSAGE.test(value.assistantMessageRef)||
       value.userMessageRef===value.assistantMessageRef||
       typeof value.replyText!=='string'||!value.replyText.trim()||
       utf8(value.replyText)>65536)
@@ -59,8 +60,9 @@ export function formatChatGPTCreateDelivery(request,durable){
   const value=validateChatGPTCreateResult(durable?.value,request?.args);
   if(request?.taskId!=='chatgpt.conversation.create'||
     request?.installation?.version!=='0.2.0'||
-    !RECEIPT.test(request.requestId)||!RECEIPT.test(durable.runId)||
-    !RECEIPT.test(durable.resultId))
+    typeof request.requestId!=='string'||!RECEIPT.test(request.requestId)||
+    typeof durable.runId!=='string'||!RECEIPT.test(durable.runId)||
+    typeof durable.resultId!=='string'||!RECEIPT.test(durable.resultId))
     fail('Durable request identity is missing');
   const preview=value.send?value.replyText.slice(0,500):null;
   const payload={

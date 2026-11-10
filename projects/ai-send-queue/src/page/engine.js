@@ -8,7 +8,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
   const items=[];
   const state={items,route:null,reason:'',phase:'waiting',
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
-  let sequence=0, idleSince=null;
+  let sequence=0, idleSince=null,nativeAttemptChanged=false;
   const emit=()=>change(view());
   const saved=()=>{try{return checkpoint()!==false;}catch{return false;}};
   const current=()=>items.find(item=>item.state!=='paused')||null;
@@ -137,6 +137,37 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(!items.length&&!state.answerGate)state.route=null;
     emit();return true;
   }
+  // A trusted native button/key attempt owns the send from now on. It need
+  // not have a visible receipt yet, and cannot authorize a second click.
+  function observeNativeAttempt(snap) {
+    const flight=state.inFlight,token=flight?.token;
+    if(!token||flight.clickAttempted||!['await-native-ready','unknown'].includes(flight.phase)||
+      !snap?.ok||snap.route!==state.route||snap.form!==token.form||snap.editor!==token.editor)return false;
+    flight.clickAttempted=true;
+    if(flight.phase==='await-native-ready')
+      state.inFlight={item:flight.item,phase:'await-confirm',started:clock(),before:token.before,clickAttempted:true};
+    // The website has not handled its native event yet. The existing poll
+    // publishes this state without rendering inside the capture listener.
+    nativeAttemptChanged=true;return true;
+  }
+  // Called only after main observes a paired trusted beforeinput/input change.
+  // Editing the draft we placed takes it back; a clicked/foreign draft cannot
+  // cancel an uncertain send. No changed text is authorized for automatic send.
+  function reclaimEditedPrepared(id,before,after) {
+    const flight=state.inFlight;
+    if(!flight||flight.item.id!==id||!['await-native-ready','unknown'].includes(flight.phase)||
+      !flight.token||flight.clickAttempted||!before?.ok||!after?.ok||before.draft===after.draft||
+      site.canReclaimPrepared?.(flight.token,{snapshot:before,allowComposing:true})!==true||
+      site.canReclaimPrepared?.({...flight.token,text:after.draft},{allowComposing:true})!==true)return false;
+    const next={...view(),items:items.filter(item=>item!==flight.item),inFlight:null};
+    let stored=false;
+    try{stored=checkpoint(next)!==false;}catch{/* Keep the original authorization blocked. */}
+    if(!stored){markUnknown('编辑接管未能保存，已保留原队列；请核对草稿和原对话');return false;}
+    state.inFlight=null;state.phase='waiting';state.reason='';state.forceId=null;idleSince=null;
+    items.splice(items.indexOf(flight.item),1);
+    if(!items.length&&!state.answerGate)state.route=null;
+    emit();return true;
+  }
   function confirmFlight(snap) {
     const flight=state.inFlight,before=flight?.before||flight?.token?.before;
     if(!before || !snap.ok || snap.route!==state.route ||
@@ -221,7 +252,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     state.inFlight={item,phase:'await-native-ready',started:clock(),token:prepared.token};
     emit();
   }
-  function tick({canSubmit=true}={}) {
+  function tick({canSubmit=true,submitBlockReason='队列安全检查尚未就绪'}={}) {
+    if(nativeAttemptChanged){nativeAttemptChanged=false;emit();}
     if(!items.length && !state.answerGate)return;
     const snap=site.inspect();
     // Keep read-only reconciliation alive even after a network/layout timeout.
@@ -230,6 +262,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       confirmFlight(snap))return;
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     const t=clock();
+    if(state.inFlight?.phase==='await-native-ready'){
+      const blocked=!snap.ok?(snap.reason||'原生控件暂不可用'):
+        snap.route!==state.route?'等待返回原对话':!canSubmit?submitBlockReason:null;
+      if(blocked)state.inFlight.readinessReason='原生就绪检查被阻止：'+blocked;
+    }
     // These deadlines survive blocked submission, navigation and composer loss.
     // Once prepared, the user may have sent the draft outside this engine.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
@@ -269,7 +306,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       const flight=state.inFlight;
       if(!canSubmit)return;
       if(!saved()){
-        state.reason=STORAGE_ERROR;emit();return;
+        flight.readinessReason=STORAGE_ERROR;state.reason=STORAGE_ERROR;emit();return;
       }
       let result;
       flight.clickAttempted=true;
@@ -316,6 +353,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,move,observeNativeAdmission,
+  return Object.freeze({view,restoreCache,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,reclaimPrepared,reclaimEditedPrepared,move,observeNativeAttempt,observeNativeAdmission,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }

@@ -69,7 +69,7 @@ export default async function main({assets}={}) {
     const transfer=pending||(provenance?.id!==removing?provenance:null)||backup;
     const retained=transfer?.id&&state.items.some(item=>item.id===transfer.id&&item.text===transfer.text);
     const recovery=view?.recovery?.();
-    const text=cachedDraft?.text||recovery?.text||(!retained&&transfer?.text)||null;
+    const text=cachedDraft?.text||recovery?.text||backup?.text||(!retained&&transfer?.text)||null;
     const ok=cache.write({version:1,route:cacheRoute,
       items:state.items.map(({id,text,state})=>({id,text,state})),
       expanded:!!state.expanded,inFlight:state.inFlight?{id:state.inFlight.id}:null,
@@ -145,20 +145,6 @@ export default async function main({assets}={}) {
       engine.wait(reason);
       checkpoint();
     }
-    function sameHistory(before,snap){
-      const same=(a,b)=>!a&&!b || !!a&&!!b&&a.length===b.length&&a.every((node,i)=>node===b[i]);
-      if(!same(before.users,snap.users))return false;
-      if(same(before.assistants,snap.assistants)&&same(before.history,snap.history))return true;
-      // A reply already in progress may mount its assistant node after enqueue.
-      // Allow only that append after the existing latest user, never replacement,
-      // reordered history or a new user turn (which needs exact admission proof).
-      const user=before.users.at(-1),reply=snap.assistants.at(-1);
-      return !!before.busy&&!!user&&!!reply&&before.history?.at(-1)===user&&
-        snap.assistants.length===before.assistants.length+1&&
-        before.assistants.every((node,i)=>node===snap.assistants[i])&&
-        snap.history?.length===before.history.length+1&&snap.history.at(-1)===reply&&
-        before.history.every((node,i)=>node===snap.history[i]);
-    }
     function observeProvenance(snap){
       if(!provenance)return;
       const transfer=provenance;
@@ -182,7 +168,7 @@ export default async function main({assets}={}) {
         // tick reconciles the exact admission and installs the normal reply gate.
         return;
       }
-      if(!sameComposer(transfer.before,snap)||!sameHistory(transfer.before,snap)||
+      if(!sameComposer(transfer.before,snap)||!site.sameHistory(transfer.before,snap)||
         (snap.rich||snap.draft!==transfer.draft)){
         recover(transfer,'入队后原生草稿或历史发生未确认变化，已保留原文；请核对输入框与队列');
         provenance=null;
@@ -200,7 +186,7 @@ export default async function main({assets}={}) {
           pending=null;return;
         }
         if(!present||transfer.veto||!sameComposer(transfer.before,snap)||snap.rich||snap.composing||snap.draft!==expected||
-          transfer.kind==='enqueue'&&!sameHistory(transfer.before,snap)){
+          transfer.kind==='enqueue'&&!site.sameHistory(transfer.before,snap)){
           recover(transfer,'草稿交接结果未确认，已保留原文；请核对输入框与队列');
           pending=null;return;
         }
@@ -220,7 +206,10 @@ export default async function main({assets}={}) {
     }
     function observeBackup(snap){
       if(!backup)return;
-      if(site.confirm?.(backup.before,backup.text,snap)===true){backup=null;return;}
+      if(site.confirm?.(backup.before,backup.text,snap)===true){
+        if(backup.nativeAdmission)engine.observeNativeAdmission(backup.before,backup.text,snap);
+        backup=null;return;
+      }
       if(!sameComposer(backup.before,snap)||snap.draft!==backup.text){
         recover(backup,'官网草稿在交接后发生变化，已保留完整原文；请复制核对');
         backup=null;
@@ -235,7 +224,7 @@ export default async function main({assets}={}) {
       observeProvenance(snap);
       observeBackup(snap);
       editing=event.isTrusted===true?{event,backup,provenance,draft:snap.draft,
-        before:remember(snap)}:null;
+        flight:engine.view().inFlight,before:remember(snap)}:null;
     },true);
     owner.on(document,'input',event=>{
       if(!owner.active()||writing)return;
@@ -244,9 +233,17 @@ export default async function main({assets}={}) {
       const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
       if(!sameComposer(intent.before,snap)||snap.draft===intent.draft||
         (target!==snap.editor&&!snap.editor.contains?.(target)))return;
-      if(intent.backup&&intent.backup===backup)backup=null;
+      if(intent.backup&&intent.backup===backup)
+        backup=backup.nativeAdmission&&snap.draft?{text:snap.draft,before:remember(snap),nativeAdmission:true}:null;
       if(intent.provenance&&intent.provenance===provenance){
         provenance.draft=snap.draft;provenance.edited=true;
+      }
+      if(intent.flight&&['await-native-ready','unknown'].includes(intent.flight.phase)){
+        // Persist the actual user draft alongside the cancellation. This copy
+        // never authorizes replay, including when cache storage rejects it.
+        backup=snap.draft?{text:snap.draft,before:remember(snap),nativeAdmission:true}:null;
+        if(engine.reclaimEditedPrepared?.(intent.flight.id,intent.before,snap))
+          notify('已接管输入框编辑，取消此条自动排队');
       }
       checkpoint();
     },true);
@@ -390,12 +387,20 @@ export default async function main({assets}={}) {
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     if(globalThis.OpenDeskAppPage)
-      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.27'});
+      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.28'});
+    // A native attempt may precede its DOM receipt. Subsequent editing cannot
+    // prove that an externally initiated send was cancelled.
+    owner.on(document,'click',event=>{
+      if(event.isTrusted!==true||!owner.active()||!engine.view().inFlight)return;
+      const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
+      if(snap.ok&&snap.sendButton&&(target===snap.sendButton||snap.sendButton.contains?.(target)))
+        engine.observeNativeAttempt(snap);
+    },true);
     // One managed capture listener follows native editor replacements.
     // Ctrl+Enter reuses the crown button's guarded enqueue action; plain Enter
     // only falls back to the queue when native sending is unavailable.
     owner.on(document,'keydown',event=>{
-      if(event.isTrusted!==true||event.key!=='Enter'||event.shiftKey||event.altKey||event.metaKey||
+      if(event.isTrusted!==true||event.key!=='Enter'||
         event.defaultPrevented||event.isComposing||event.keyCode===229||composing||
         Date.now()-compositionEndedAt<100||!owner.active()||retireForLegacy())return;
       const queueShortcut=event.ctrlKey===true;
@@ -405,6 +410,10 @@ export default async function main({assets}={}) {
       if(!snap.ok||(!queueShortcut&&snap.route!==state.route)||!snap.editor||
         (target!==snap.editor&&!snap.editor.contains?.(target))||
         (!queueShortcut&&!snap.draft))return;
+      if(event.shiftKey||event.altKey||event.metaKey){
+        if(!event.shiftKey&&state.inFlight)engine.observeNativeAttempt(snap);
+        return;
+      }
       if(queueShortcut){
         // Consume the key before enqueuing so ChatGPT cannot also submit it.
         event.preventDefault();event.stopImmediatePropagation();
@@ -415,7 +424,10 @@ export default async function main({assets}={}) {
       const disabled=!!send&&(send.disabled||send.getAttribute('aria-disabled')==='true');
       // An enabled official send always keeps its normal keyboard behavior,
       // including sites that permit native sending during a response.
-      if((send&&!disabled)||(!snap.busy&&!disabled))return;
+      if((send&&!disabled)||(!snap.busy&&!disabled)){
+        if(state.inFlight)engine.observeNativeAttempt(snap);
+        return;
+      }
       event.preventDefault();event.stopImmediatePropagation();
       if(event.repeat)return;
       if(state.phase==='unknown'||state.inFlight||state.items.some(item=>item.state==='unknown')){
@@ -446,7 +458,12 @@ export default async function main({assets}={}) {
         if(!owner.active()||retireForLegacy())return;
         const flight=engine.view().inFlight;
         // Even a failed UI round must reconcile late admission and existing deadlines.
-        const ticked=attempt(()=>engine.tick({canSubmit:!checkFailed&&placed&&!pending&&!recovery&&checkpoint()}),'queue-check');
+        const ticked=attempt(()=>{
+          const canSubmit=!checkFailed&&placed&&!pending&&!recovery&&checkpoint();
+          const submitBlockReason=checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
+            pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':'队列缓存未保存';
+          engine.tick({canSubmit,submitBlockReason});
+        },'queue-check');
         if(ticked&&reconciled)attempt(()=>{
           const after=engine.view();
           if(provenance&&after.inFlight?.id===provenance.id)provenance=null;

@@ -1,0 +1,10 @@
+{
+  "kind": "RESTORED_OLD_HOST_NOT_FINAL",
+  "profile": "/private/tmp/ai-proxy-r18-ui-z5Kt20",
+  "extensionPath": "/private/tmp/ai-proxy-r18-build-9tm5xsxg/dist/development",
+  "extensionId": "adhcbimagiihfpoghoedffengcackkpl",
+  "version": "0.3.12",
+  "route": "app.html?toolId=ai-proxy&view=settings&section=profiles",
+  "outcome": "ERR_BLOCKED_BY_CLIENT",
+  "proxyWrites": false
+}

@@ -1,0 +1,14 @@
+{
+  "storageSha256": "e8775b4a9c8fb04e0cf1f13fe69ffe56f4aff2cc46a3dae3d05d3c6d6fd85fbe",
+  "dataSha256": "d724bfc963d860c1235b867f8fc64b9b717d3b4c000bfcc8f713fdd9f20df45f",
+  "installed": [
+    {
+      "id": "ai-proxy",
+      "version": "0.3.12"
+    }
+  ],
+  "native": {
+    "mode": "system",
+    "level": "controllable_by_this_extension"
+  }
+}

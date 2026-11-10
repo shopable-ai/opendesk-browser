@@ -79,6 +79,20 @@ test('wrong site, conversation ID, query, unstable message or extra field fail c
   ])assert.throws(()=>validateChatGPTCreateResult({...base(),...bad},args),
     {code:'E_CHAT_CREATE_RESULT'});
 });
+for(const field of ['userMessageRef','assistantMessageRef']){
+  test(`${field} must be a present string without coercion`,()=>{
+    const missing=base();
+    delete missing[field];
+    assert.throws(()=>validateChatGPTCreateResult(missing,args),
+      {code:'E_CHAT_CREATE_RESULT'});
+    for(const invalid of [undefined,null,12345678,{},
+      {toString:()=> 'message-0001'},
+      {toString:()=>{throw new Error('Must not coerce message reference');}}]){
+      assert.throws(()=>validateChatGPTCreateResult({...base(),[field]:invalid},args),
+        {code:'E_CHAT_CREATE_RESULT'});
+    }
+  });
+}
 test('unverified explicit model/effort and send mismatch cannot be reported as business success',()=>{
   for(const a of [
     {...args,model:'GPT-6'},{...args,effort:'High'},
@@ -104,3 +118,17 @@ test('delivery formatter refuses data with no verified original request identity
     {runId:'run-0001',resultId:'result-0001',value:base()}),
   {code:'E_CHAT_CREATE_RESULT'});
 });
+for(const field of ['requestId','runId','resultId']){
+  test(`delivery ${field} must be a present string without coercion`,()=>{
+    const r=request(),d={runId:'run-0001',resultId:'result-0001',value:base()};
+    const owner=field==='requestId'?r:d;
+    delete owner[field];
+    assert.throws(()=>formatChatGPTCreateDelivery(r,d),{code:'E_CHAT_CREATE_RESULT'});
+    for(const invalid of [undefined,null,12345678,{},
+      {toString:()=> 'receipt-0001'},
+      {toString:()=>{throw new Error('Must not coerce receipt identity');}}]){
+      owner[field]=invalid;
+      assert.throws(()=>formatChatGPTCreateDelivery(r,d),{code:'E_CHAT_CREATE_RESULT'});
+    }
+  });
+}

@@ -10,9 +10,9 @@ import {memoryStorage} from './helpers/session-storage.mjs';
 const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 // Real main/Site/Engine, inert DOM and UI. No browser or website sends.
 async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',failRecovery=false}={}){
-  let now=0,poll,engine,actions,clears=0,recovery=null;
+  let now=0,poll,engine,actions,clears=0,recovery=null,renders=0,remoteChanges=0;
   const timers=new Map(),listeners=new Map(),sent=[],users=[],assistants=[],history=[],toasts=[];
-  const state={busy,failRecovery,focus:()=>{},render:()=>{}};
+  const state={busy,failRecovery,focus:()=>{},render:()=>{},place:()=>true};
   class Textarea{
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
     get value(){return this.current;}
@@ -56,19 +56,22 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
     createQueueEngine:options=>(engine=createQueueEngine({...options,clock:()=>now})),
     createQueueView:options=>{
       actions=options.actions;
-      return {place:()=>true,render(){state.render();},hide(){},hasRecovery:()=>!!recovery,recovery:()=>recovery,offerRecovery(text,reason){if(state.failRecovery)throw Error('recovery UI unavailable');recovery??={text,reason};},toast(message){toasts.push(message);}};
+      return {place:()=>state.place(),render(){renders++;state.render();},hide(){},hasRecovery:()=>!!recovery,recovery:()=>recovery,offerRecovery(text,reason){if(state.failRecovery)throw Error('recovery UI unavailable');recovery??={text,reason};},toast(message){toasts.push(message);}};
     },
-    createSendQueueRemote:()=>({changed(){}})});
+    createSendQueueRemote:()=>({changed(){remoteChanges++;}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),context);
   await context.main();
   return {editor,state,sent,users,assistants,history,storage,win,toasts,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
-    get clears(){return clears;},get actions(){return actions;},
+    get clears(){return clears;},get actions(){return actions;},get renders(){return renders;},get remoteChanges(){return remoteChanges;},
     step(t){now=t;poll();},
     watchdog(t){now=t;assert.equal(typeof timers.get(5000),'function');timers.get(5000)();},
-    edit(text,{trusted=true,canceled=false,unchanged=false}={}){
+    composition(type){listeners.get(type)();},
+    nativeClick({trusted=true,target=send}={}){listeners.get('click')({target,isTrusted:trusted});},
+    edit(text,{trusted=true,canceled=false,unchanged=false,during=()=>{}}={}){
       const event={target:editor,isTrusted:trusted,defaultPrevented:false};
       listeners.get('beforeinput')(event);
+      during();
       event.defaultPrevented=canceled;
       if(!canceled&&!unchanged)editor.value=text;
       listeners.get('input')({target:editor,isTrusted:trusted,defaultPrevented:false});
@@ -96,6 +99,125 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
   };
 }
 function queue(h,text){h.edit(text);assert.equal(h.key().prevented,true);h.poll();}
+for(const timedOut of [false,true]){
+  test(`trusted editing takes back an unclicked prepared draft${timedOut?' after timeout':''}`,async()=>{
+    const h=await fixture({busy:true});queue(h,'原文');queue(h,'next');h.finishReply();
+    h.step(100);h.step(1400);
+    assert.equal(h.engine.view().inFlight.phase,'await-native-ready');
+    h.state.place=()=>false;
+    if(timedOut)h.step(7401);
+    h.edit('原文\n怎样继续？');
+    assert.deepEqual(h.engine.view().items.map(x=>x.text),['next']);
+    assert.equal(h.engine.view().inFlight,null);
+    assert.equal(h.editor.value,'原文\n怎样继续？');
+    assert.equal(createQueueCache({storage:()=>h.storage}).read('c/12345678').data.draft.text,'原文\n怎样继续？');
+    h.admit('原文\n怎样继续？');h.poll();
+    assert.ok(h.engine.view().answerGate,'native admission must still guard the following item');
+    assert.equal(h.recovery,null);assert.deepEqual(h.sent,[]);
+    h.step(15000);assert.deepEqual(h.sent,[]);
+    h.state.place=()=>true;finishAndClickNext(h,16000);
+    assert.deepEqual(h.sent,['next']);
+  });
+}
+for(const edit of [{trusted:false},{canceled:true},{unchanged:true}]){
+  test(`prepared takeover rejects ${JSON.stringify(edit)}`,async()=>{
+    const h=await fixture();queue(h,'原文');h.step(1400);
+    h.edit('原文\n怎样继续？',edit);
+    assert.equal(h.engine.view().items[0].text,'原文');
+    assert.equal(h.engine.view().inFlight.phase,'await-native-ready');
+    assert.deepEqual(h.sent,[]);
+  });
+}
+test('trusted edits after the send click cannot reclaim or replay its unknown outcome',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);h.step(2100);
+  h.edit('new draft');h.step(20000);h.step(40000);
+  assert.equal(h.engine.view().items[0].text,'原文');
+  assert.equal(h.engine.view().inFlight.phase,'unknown');
+  assert.deepEqual(h.sent,['原文']);assert.equal(h.editor.value,'new draft');
+});
+test('IME editing can take back an unclicked prepared draft without sending composition text',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);
+  h.composition('compositionstart');h.edit('原文怎样继续');
+  assert.equal(h.engine.view().items.length,0);h.step(10000);
+  assert.deepEqual(h.sent,[]);assert.equal(h.editor.value,'原文怎样继续');
+  h.composition('compositionend');
+});
+test('continued trusted editing keeps the complete takeover draft in the cache',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);
+  h.edit('原文\n怎');h.edit('原文\n怎样继续？');
+  assert.equal(h.engine.view().items.length,0);
+  assert.equal(createQueueCache({storage:()=>h.storage}).read('c/12345678').data.draft.text,'原文\n怎样继续？');
+  h.step(20000);assert.equal(h.recovery,null);assert.deepEqual(h.sent,[]);
+});
+test('a trusted deletion takes back only the prepared row',async()=>{
+  const h=await fixture({busy:true});queue(h,'原文');queue(h,'next');h.finishReply();
+  h.step(100);h.step(1400);h.edit('');
+  assert.deepEqual(h.engine.view().items.map(x=>x.text),['next']);
+  assert.equal(h.editor.value,'');assert.equal(h.engine.view().inFlight,null);assert.deepEqual(h.sent,[]);
+});
+test('a new native turn between beforeinput and input cannot cancel a prepared row',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);
+  h.edit('changed',{during:()=>h.admit('unrelated message')});h.step(20000);
+  assert.equal(h.engine.view().items[0].text,'原文');assert.equal(h.engine.view().phase,'unknown');
+  assert.equal(h.editor.value,'changed');assert.deepEqual(h.sent,[]);
+});
+for(const attempt of ['click','Enter','Meta+Enter']){
+  test(`editing after native ${attempt} keeps the original uncertain send`,async()=>{
+    const h=await fixture();queue(h,'原文');h.step(1400);
+    if(attempt==='click')h.nativeClick();
+    else assert.equal(h.key({ctrlKey:false,metaKey:attempt==='Meta+Enter'}).prevented,false);
+    h.edit('原文\n怎样继续？');h.step(7401);h.step(20000);
+    assert.equal(h.engine.view().items[0].text,'原文');
+    assert.equal(h.engine.view().inFlight.phase,'unknown');
+    assert.equal(h.editor.value,'原文\n怎样继续？');assert.deepEqual(h.sent,[]);
+  });
+}
+for(const attempt of ['click','Enter']){
+  test(`native ${attempt} cannot be followed by a second automatic click before a receipt`,async()=>{
+    const h=await fixture();queue(h,'原文');h.step(1400);
+    const renders=h.renders,remoteChanges=h.remoteChanges;
+    if(attempt==='click')h.nativeClick();else h.key({ctrlKey:false});
+    assert.equal(h.engine.view().inFlight.phase,'await-confirm');
+    assert.equal(h.renders,renders,'native capture must not render before the website handles sending');
+    assert.equal(h.remoteChanges,remoteChanges,'native capture must not notify observers synchronously');
+    for(const t of [2100,8000,20000,40000])h.step(t);
+    assert.ok(h.renders>renders);assert.ok(h.remoteChanges>remoteChanges);
+    assert.equal(h.engine.view().phase,'unknown');assert.equal(h.editor.value,'原文');
+    assert.deepEqual(h.sent,[]);assert.equal(h.engine.reclaimPrepared('q1'),false);
+  });
+}
+test('a native attempt can reconcile exact admission and guard the following FIFO row',async()=>{
+  const h=await fixture({busy:true});queue(h,'原文');queue(h,'next');h.finishReply();
+  h.step(100);h.step(1400);h.nativeClick();h.admit('原文');h.step(2100);
+  assert.deepEqual(h.engine.view().items.map(x=>x.text),['next']);
+  assert.ok(h.engine.view().answerGate);h.step(10000);assert.deepEqual(h.sent,[]);
+  finishAndClickNext(h,11000);assert.deepEqual(h.sent,['next']);
+});
+for(const event of [{trusted:false},{target:{}}]){
+  test(`a foreign native click cannot take over dispatch ${JSON.stringify(event)}`,async()=>{
+    const h=await fixture();queue(h,'原文');h.step(1400);h.nativeClick(event);h.step(2100);
+    assert.deepEqual(h.sent,['原文']);
+  });
+}
+test('failed persistence cannot cancel a prepared item when its native draft is edited',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);
+  h.storage.setItem=()=>{throw Error('quota');};h.edit('原文\n怎样继续？');
+  assert.equal(h.engine.view().items[0].text,'原文');
+  assert.equal(h.engine.view().inFlight.phase,'unknown');
+  assert.match(h.engine.view().reason,/编辑接管未能保存/);
+  h.step(20000);assert.deepEqual(h.sent,[]);assert.equal(h.editor.value,'原文\n怎样继续？');
+});
+test('prepared readiness timeout identifies a blocked queue layout',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);h.state.place=()=>false;
+  h.step(2100);h.step(7401);
+  assert.equal(h.engine.view().inFlight.phase,'unknown');
+  assert.match(h.engine.view().reason,/队列控件尚未安全显示/);assert.deepEqual(h.sent,[]);
+});
+test('a missed readiness round remains distinct from a layout veto',async()=>{
+  const h=await fixture();queue(h,'原文');h.step(1400);h.step(7401);
+  assert.equal(h.engine.view().inFlight.phase,'unknown');
+  assert.match(h.engine.view().reason,/未取得下一轮原生就绪检查/);assert.deepEqual(h.sent,[]);
+});
 test('refresh restores exact FIFO text and pauses all rows until explicit resume',async()=>{
   const a=await fixture({busy:true});queue(a,'  A\n原文\n');queue(a,'B');
   a.actions.pause('q2');a.engine.move('q2',0);
@@ -422,6 +544,22 @@ for(const entrance of ['crown','shortcut']){
 }
 
 for(const acknowledged of [false,true]){
+  test(`detached oldest turns during ${acknowledged?'post-ack':'pending'} handoff preserve the queued draft`,async()=>{
+    const h=await fixture();h.admit('old turn');h.finishReply();
+    h.admit('current turn');
+    h.edit('A');assert.equal(h.actions.enqueue(),true);
+    if(acknowledged)h.poll();
+    const oldUser=h.users.shift(),oldReply=h.assistants.shift();
+    h.history.splice(0,2);oldUser.isConnected=false;oldReply.isConnected=false;
+    h.poll();
+    assert.equal(h.recovery,null);
+    assert.equal(h.engine.view().items[0].state,'queued');
+    h.finishReply();h.step(100);h.step(1400);h.step(2100);
+    assert.deepEqual(h.sent,['A']);
+    h.admit('A');h.step(2200);finishAndClickNext(h,4000);
+    assert.equal(h.engine.view().items.length,0);
+    assert.deepEqual(h.sent,['A']);
+  });
   test(`native admission before next poll reconciles ${acknowledged?'post-ack':'pending'} enqueue`,async()=>{
     const h=await fixture({busy:true}),text=longBody();
     h.edit(text);assert.equal(h.actions.enqueue(),true);

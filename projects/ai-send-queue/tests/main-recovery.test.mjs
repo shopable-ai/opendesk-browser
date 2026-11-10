@@ -36,6 +36,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     busy:true,sendButton:null};
   const state={items:reclaim||queued?[{id:'q1',text:'private draft',state:'queued'}]:[],route:snap.route,phase:'waiting',inFlight:null};
   const site={inspect(){calls.inspects++;calls.onInspect?.();return snap;},clearForQueue(){calls.clear++;calls.onClear?.();if(clear.ok)snap.draft='';return clear;},
+    sameHistory(before,after){return before.users.length===after.users.length&&before.users.every((node,i)=>node===after.users[i]);},
     reclaimToComposer(){if(reclaim?.ok)snap.draft='private draft';calls.onWrite?.();return reclaim;},
     restore(){calls.restores++;if(restore)snap.draft='private draft';return restore;}};
   const engine={view:()=>state,

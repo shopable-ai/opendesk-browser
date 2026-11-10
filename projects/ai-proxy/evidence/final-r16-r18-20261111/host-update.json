@@ -1,0 +1,11 @@
+{
+  "mode": "STATIC_SNAPSHOT_OF_EXISTING_DEVELOPMENT_WATCHER",
+  "sourceOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "sourceRevision": "a2962b36f1ec2d0ba70e08bfc6388f37281649b85a3f7f2bfe9acdf1a7a4edd1",
+  "matchedFiles": 141,
+  "installedPath": "/private/tmp/ai-proxy-r18-build-9tm5xsxg/dist/development",
+  "backup": "/private/tmp/ai-proxy-r18-build-9tm5xsxg/dist/development.before-ai-proxy-20261111",
+  "profileUnchanged": true,
+  "appRoutePresent": true,
+  "serveConnection": "NOT_YET_READ"
+}

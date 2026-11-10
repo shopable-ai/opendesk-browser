@@ -596,6 +596,25 @@ test('real prepare preflight failure waits and automatically retries after the c
 
 // The live page unmounts only the oldest turns as a conversation grows.
 // Detached prefixes may disappear; the retained tail still uses exact nodes.
+test('handoff history accepts only detached prefixes and the existing native reply append',()=>{
+  const f=followUpFixture();
+  f.history([f.u0,f.a0,f.u1]);f.state.stopping=true;
+  const before=f.site.inspect(),reply=f.node('assistant');
+  f.u0.isConnected=false;f.a0.isConnected=false;
+  f.history([f.u1,reply]);
+  assert.equal(f.site.sameHistory(before,f.site.inspect()),true);
+  assert.equal(f.site.sameHistory({...before,busy:false},f.site.inspect()),false);
+  for(const nodes of [
+    [f.u1,f.node('user'),reply], [f.u1,reply,f.node('assistant')],
+    [f.node('user'),reply], [reply,f.u1], [reply]
+  ]){
+    f.history(nodes);
+    assert.equal(f.site.sameHistory(before,f.site.inspect()),false);
+  }
+  f.history([f.u1,reply]);f.a0.isConnected=true;
+  assert.equal(f.site.sameHistory(before,f.site.inspect()),false,'a mounted omission is not eviction');
+});
+
 test('confirmation accepts detached oldest turns while retaining the exact history tail',()=>{
   const {site,state}=fixture();
   const evicted={isConnected:false},anchor={isConnected:true,parentElement:null};

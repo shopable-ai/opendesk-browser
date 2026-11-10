@@ -1,3 +1,13 @@
+## 自动运行控件稳定性（2026-11-11；核心 UI 修复）
+
+**当前操作与原因：** 打开 Web Flow 时，`AutoSettings.tsx` 在首轮异步读取及写入期间临时插入“关闭未来自动准入”，完成后又移除；未知状态文字还会被开关替换。真实组件的 ego 慢读取复现中，首页控制区从 102.5px 缩为 61px。该控制归本项目固定编译的可信 UI，不在应用 JSON 内。
+
+**设计与实现：** 复用原共享 Switch、原控制器和唯一 React 根；固定 44px 控制槽，读取期间以中性占位和明确状态表示未知，不冒充关闭，不自动修改授权。正常开关在原位更新且等待 Host 回执；“运行与授权 → 应急关闭自动运行”始终保留原 deny-only 操作，不随读取/保存插入首页。失败原因持续显示，UNKNOWN 同时显示原具体错误。已开始的任务继续由“当前任务”停止，不回滚或重放。
+
+**写入与验证：** 本次只改 `trusted/AutoSettings.tsx`、原 `tests/auto-settings-ui.test.mjs` 和该组件在 `scripts/bundle-provenance.mjs` 的精确审阅 pin，以及本段和产品合同。新增首读/保存/刷新稳定性回归；现有手势、撤销、迟到回包及反馈等定向检查 56/56 PASS。ego TaskSpace 72 的真实组件/模拟数据复测中，首读前后控制区恒为 61px，首页关闭按钮出现帧数为 0；这不是实际 Chrome 安装通过。并行 main 同步保留本修复并增加独立文件管理入口后，当前源码再次通过 56/56。未改应用包、版本、权限或用户自动运行状态。
+
+**当前生效边界：** 复用已有 `dist/development` writer PID 76922，未停止/重启它或覆写输出。现有固定工作台构建被并行 AI Proxy 来源 pin 失配（当前检查 `projects/ai-proxy/src/Settings.tsx`）阻断；旧 watcher hooks 也曾报告本组件旧 pin。当前组件 pin 与源码一致，但新固定产物及已安装 Side Panel 生效仍 **NOT_TESTED**；不得以工具 JSON 更新替代。下一步仅在相关 owner 恢复来源审阅/原配置 hooks 后，由原 watcher 编译，沿安全刷新入口核对打开 Web Flow 的实际控件。保留其他任务、草稿和 UNKNOWN，不重复真实 Task、不进入 production/全量验收。证据见 [control-stability-20261111.json](../evidence/control-stability-20261111.json)。
+
 ## A→B 单次回填 · 源码补缺接续（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
 
 **原始目标：** 用户在 ChatGPT 对话 A 发出指令，Web Flow 用原 V2 单候选审批与原 Controller 在新标签 B 准备草稿（默认 send:false），只有明确批准 send:true 才单次原生发送。仅当 B 出现匹配的用户消息、完整助手回复与真实持久 /c/ 链接后，原受控 delivery 才把可点击 B 链接、Run/Result 和必要状态回填给来源 A；ACK 不明时按原身份查询，严禁补发。GPT-6/High 指定值不可核验时必须停止。

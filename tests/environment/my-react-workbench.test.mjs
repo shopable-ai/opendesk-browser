@@ -270,7 +270,8 @@ test('boolean enums keep select values and typed drafts across representation an
     await React.act(async()=>f.view.data.taskRows.onSelect('test.task'));
     await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
     assert.equal(choice.value,'true');
-    f.doc.getElementById('task-param-optional').value='false';await f.fire(f.doc.getElementById('task-param-optional'),'change');
+    const optional=f.doc.getElementById('task-param-optional');
+    optional.querySelector('option[value="false"]').selected=true;await f.fire(optional,'change');
     await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
     assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{choice:true,optional:false});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}

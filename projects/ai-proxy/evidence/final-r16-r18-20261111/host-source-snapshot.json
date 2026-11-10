@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "6d88d0d3fac346a24d8418d2f493a7aa65418a6c",
+  "snapshot": "/private/tmp/ai-proxy-final-host-20261111-139lj727",
+  "notGitWorktree": true,
+  "uncommittedInputs": [
+    {
+      "path": "projects/ai-proxy/trusted/source-lock.json",
+      "sha256": "23e814a5748027ec026380a93e3cee48cf84ba2c488989063eaad4b7dba176b6",
+      "preexisting": true,
+      "allEntriesMatchFrozenSource": true
+    }
+  ],
+  "otherDirtyInputsIncluded": false,
+  "purpose": "source-bound static development Host for installed app.html visual and interaction verification; GitHub/release deferred by user",
+  "nodeModules": "copy-on-write local snapshot, no external symlink"
+}

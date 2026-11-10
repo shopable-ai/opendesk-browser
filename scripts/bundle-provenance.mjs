@@ -103,7 +103,10 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
   'projects/webflow/trusted/chatgpt-files.html':'b8a723d99b97130a9f3fb7f75f2a9e29b34977e8',
   'projects/webflow/trusted/chatgpt-project-runtime-ui.js':'b775438992847dabc2f43ff5f42531d7a207389d',
-  'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87'
+  'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
+  // Reviewed pure result validation/formatting, including strict string IDs.
+  // Its existing Host consumers alone may compile it; no Content/Native entry.
+  'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270'
 });
 const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-service.js':['native-agent/transport.js'],
@@ -116,7 +119,8 @@ const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-config.js':['native-agent/transport.js','agents/chatgpt-fixed-bridge.js'],
   'chatgpt-files.html':['native-agent/settings.js'],
   'chatgpt-project-runtime-ui.js':['native-agent/settings.js'],
-  'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js']
+  'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-conversation-result.js':['sw.js','ui/tool-shell.js']
 });
 function reviewedCompiledChatGPTFiles(target,path,root){
   if(!Object.hasOwn(compiledChatGPTFilesInputs,path)||

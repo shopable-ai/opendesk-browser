@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-11",
+  "scope": "automatic-run control stability; trusted UI only",
+  "baseline": {
+    "level": "COMPONENT_BROWSER_MOCK_DATA",
+    "readDelayMs": 800,
+    "headerHeightsPx": [102.5, 61],
+    "temporaryEmergencyButton": true
+  },
+  "candidate": {
+    "level": "COMPONENT_BROWSER_MOCK_DATA",
+    "componentBlob": "483a1f303b2350c6e5c6c5a8022f40753b504297",
+    "headerHeightsPx": [61],
+    "temporaryEmergencyButtonFrames": 0,
+    "unknownIsUncheckedSwitch": false,
+    "emergencyEntry": "运行与授权 → 应急关闭自动运行",
+    "finalIntegratedComponentBlob": "52b36315216cef2765c05c54aa4e432c26ff4c18",
+    "integrationDifference": "Concurrent main synchronization added the independent project-file management link; the control changes were retained."
+  },
+  "node": {
+    "command": "node --test projects/webflow/tests/auto-settings-ui.test.mjs",
+    "passed": 56,
+    "failed": 0,
+    "coverage": ["initial loading", "saving", "refreshing", "unknown state", "deny-only shutdown", "late read fencing", "native gesture forwarding", "revocation", "concrete unknown-result errors"]
+  },
+  "browserLimitations": [
+    "Native installed Side Panel candidate NOT_TESTED",
+    "Additional mock scenario controls did not trigger the expected refresh; slow initial read and management disclosure were observed. Failure/shutdown behavior is supported by Node evidence."
+  ],
+  "development": {
+    "path": "dist/development",
+    "existingWriterPid": 76922,
+    "writerPreserved": true,
+    "newFixedBuild": "BLOCKED_BY_SHARED_SOURCE_REVIEW",
+    "currentDiagnostic": "Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/Settings.tsx",
+    "installedCandidateApplied": "NOT_TESTED",
+    "toolJsonChanged": false,
+    "userAuthorityChanged": false
+  }
+}

@@ -27,9 +27,9 @@ function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
 // ChatGPT can unmount the oldest turns. Accept only a detached prefix,
 // followed by the exact original tail and exactly `appended` new nodes.
 // Never substitute text/IDs for node identity or proceed without an old anchor.
-function matchesHistoryTail(before,current,appended=0) {
+function matchesHistoryTail(before,current,appended=0,requireAnchor=true) {
   const retained=current.length-appended, dropped=before.length-retained;
-  if(retained<0 || dropped<0 || (before.length>0&&retained===0))return false;
+  if(retained<0 || dropped<0 || (requireAnchor&&before.length>0&&retained===0))return false;
   if(before.slice(0,dropped).some(node=>node.isConnected!==false))return false;
   return current.slice(0,retained).every((node,i)=>node===before[dropped+i]) &&
     current.slice(retained).every(node=>!before.includes(node));
@@ -292,11 +292,10 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}
     return {ok:true,before:token.before};
   }
-  function canReclaimPrepared(token) {
-    const fresh=inspect();
+  function canReclaimPrepared(token,{snapshot: fresh=inspect(),allowComposing=false}={}) {
     return !!token?.route && fresh.ok && fresh.route===token.route &&
       fresh.form===token.form && fresh.editor===token.editor &&
-      !fresh.rich && !fresh.composing && !fresh.busy && fresh.draft===token.text &&
+      !fresh.rich && (allowComposing||!fresh.composing) && !fresh.busy && fresh.draft===token.text &&
       matchesHistoryTail(token.before.users,fresh.users) &&
       matchesConversationTail(token.before,fresh,0);
   }
@@ -310,6 +309,20 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     if(before.users.includes(newMessage))return '未找到唯一新增用户消息';
     if(messageText(newMessage)!==text)return '新增用户消息正文与队列不完全一致';
     return null;
+  }
+  function sameHistory(before,snapshot) {
+    // The combined timeline must retain an old anchor; each role separately
+    // may lose all its older nodes when eviction cuts between user and reply.
+    if(!matchesHistoryTail(before.users,snapshot.users,0,false))return false;
+    if(matchesHistoryTail(before.assistants,snapshot.assistants,0,false) &&
+      matchesConversationTail(before,snapshot,0))return true;
+    // A native reply may mount after enqueue; it can only append after the
+    // retained latest user. Prefix eviction still needs the original tail.
+    const user=before.users.at(-1),reply=snapshot.assistants.at(-1);
+    return !!before.busy&&!!user&&!!reply&&before.history?.at(-1)===user&&
+      snapshot.history?.at(-2)===user&&snapshot.history.at(-1)===reply&&
+      matchesHistoryTail(before.assistants,snapshot.assistants,1,false)&&
+      matchesConversationTail(before,snapshot,1);
   }
   function confirm(before,text,snapshot) {
     return confirmationIssue(before,text,snapshot)===null;
@@ -356,5 +369,5 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       fresh.stopButton.disabled || fresh.stopButton.getAttribute('aria-disabled')==='true') return false;
     try { fresh.stopButton.click(); interrupted=fresh; return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,canReclaimPrepared,confirm,confirmationIssue,replyComplete,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,canReclaimPrepared,confirm,confirmationIssue,sameHistory,replyComplete,stop,normal});
 }
