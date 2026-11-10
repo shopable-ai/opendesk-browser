@@ -11,7 +11,8 @@ const v2={protocol:'webflow.task.intent.v2',candidateId:id,taskId:'baidu.search.
 const v1={...v2,protocol:'webflow.task.intent.v1',targetUrl:'https://www.baidu.com/'};
 const fixture=async taskId=>{
   const pkg=JSON.parse(await readFile(new URL(
-    `../../../examples/tasks/${taskId}.v1.opendesk-task.json`,import.meta.url),'utf8'));
+    taskId==='chatgpt.conversation.create'?'../tasks/chatgpt.conversation.create.v1.opendesk-task.json':
+      `../../../examples/tasks/${taskId}.v1.opendesk-task.json`,import.meta.url),'utf8'));
   const pin=BUILTIN_TASK_RELEASES.find(item=>item.taskId===taskId);
   return {manifest:pkg.manifest,installation:{version:pin.version,manifestHash:pin.manifestHash,
     contentHash:pin.sourceHash,scriptId:`task:${taskId}:${pin.version}`,
@@ -36,9 +37,11 @@ test('V2 refuses targetUrl, callback, activation and internal runtime identifier
 });
 test('compiled fixed entry is pinned to reviewed builtin version and origin',async()=>{
   for(const [taskId,targetUrl] of [['baidu.search.top3','https://www.baidu.com/'],
-    ['google.search.top3','https://www.google.com/']]){
+    ['google.search.top3','https://www.google.com/'],
+    ['chatgpt.conversation.create','https://chatgpt.com/']]){
     const f=await fixture(taskId);
-    const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,taskId}));
+    const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,taskId,
+      args:taskId==='chatgpt.conversation.create'?{prompt:'Hello B',send:false}:v2.args}));
     const target=resolveWebFlowV2FixedTarget({intent,...f});
     assert.equal(target.targetUrl,targetUrl);
     assert.equal(target.installation.contentHash,f.installation.contentHash);
@@ -54,8 +57,18 @@ test('wrong Origin, changed install, absent binding and incomplete args fail clo
     assert.throws(()=>resolveWebFlowV2FixedTarget({intent,manifest:f.manifest,installation}),
       {code:'E_WEBFLOW_TARGET_BINDING'});
   }
-  assert.throws(()=>resolveWebFlowV2FixedTarget({intent:{...intent,taskId:'chatgpt.conversation.create'},...f}),
+  assert.throws(()=>resolveWebFlowV2FixedTarget({intent:{...intent,taskId:'gemini.conversation.create'},...f}),
     {code:'E_WEBFLOW_TARGET_UNBOUND'});
   assert.throws(()=>resolveWebFlowV2FixedTarget({intent:{...intent,args:{query:'missing limit'}},...f}),
     {code:'E_WEBFLOW_V2_SCHEMA'});
+});
+
+test('pinned ChatGPT draft refuses send:true and implicit default at V2 binding',async()=>{
+  const f=await fixture('chatgpt.conversation.create');
+  for(const args of [{prompt:'Hello',send:true},{prompt:'Hello',send:'false'},
+    {prompt:'Hello',send:false,unknownField:'x'},{prompt:'Hello'}]){
+    const intent=validateWebFlowTaskIntentV2(JSON.stringify({...v2,
+      taskId:'chatgpt.conversation.create',args}));
+    assert.throws(()=>resolveWebFlowV2FixedTarget({intent,...f}),{code:'E_WEBFLOW_V2_SCHEMA'});
+  }
 });
