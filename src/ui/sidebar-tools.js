@@ -2030,10 +2030,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!readOnly&&typeof MessageChannel==='function'){
         const channel=new MessageChannel(),port=channel.port1;
         frameExportPort=port;
-        let lastRequest=0;
+        let lastRequest=0,lastNoticeRequest=0;
         port.onmessage=event=>{
           if(frameExportPort!==port||!sameInstance(source,token))return;
-          const message=event.data,id=Number(message?.requestId);
+          const message=event.data;
+          if(message?.kind==='ui-notify-handle'){
+            if(typeof message.requestId!=='string'||!/^n[1-9]\d{0,12}$/.test(message.requestId))return;
+            const id=Number(message.requestId.slice(1));
+            if(!Number.isSafeInteger(id)||id<=lastNoticeRequest)return;
+            lastNoticeRequest=id;
+            onMessage({source,origin:'null',data:message},port);
+            return;
+          }
+          const id=Number(message?.requestId);
           if(!(message?.kind==='open-ai-settings'&&Object.keys(message).length===5||
              message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open','ui.confirm'].includes(message.operation))||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
@@ -3873,7 +3882,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(message.kind==='ui-notify-handle'){
       // Only the exact, already-authorized opaque iframe may affect its
       // own notice. Monotonic handle IDs and revisions prevent replays.
-      if(exportPort!==null||!frame||frame.contentWindow!==event.source||
+      if(!exportPort||exportPort!==frameExportPort||
+         !frame||frame.contentWindow!==event.source||
          typeof message.requestId!=='string'||
          !/^n[1-9]\d{0,12}$/.test(message.requestId)||!['open','update','dismiss'].includes(message.command)||
          !/^n-[1-9]\d{0,8}$/.test(message.handleId)||

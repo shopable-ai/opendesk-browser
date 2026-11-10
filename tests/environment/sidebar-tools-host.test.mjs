@@ -95,12 +95,16 @@ test('installed ui.notify handle is instance-bound, replay-safe, update-capped a
     const data={protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
       toolId:sample.id,command,handleId,revision,requestId,
       ...(command==='dismiss'?{}:{payload})};
-    f.win.emit('message',{origin:options.origin||'null',
-      source:options.source||f.frame.contentWindow,data});
+    if(options.source||options.origin)
+      f.win.emit('message',{origin:options.origin||'null',
+        source:options.source||f.frame.contentWindow,data});
+    else f.frame.contentWindow.ports[0].postMessage(data);
     return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
   };
   const start={message:'任务执行中',type:'info',timeout:0};
   assert.equal(send('open','n-1',0,start,{source:{}}),undefined);
+  assert.equal(send('open','n-1',0,start,{source:f.frame.contentWindow}),undefined,
+    'tool-owned window postMessage must not impersonate the private Bridge port');
   assert.equal(f.view.getSnapshot().toasts.length,0);
   assert.equal(send('open','n-1',0,start).status,'accepted');
   const original=f.view.getSnapshot().toast.id;
@@ -129,10 +133,10 @@ test('installed ui.notify handles share the three-per-minute budget and close wi
   const f=await hostFixture(t),sent=f.frame.contentWindow.sent;
   const post=(index,change={})=>{
     const requestId='n'+index;
-    f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    f.frame.contentWindow.ports[0].postMessage({
       protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
       toolId:sample.id,command:'open',handleId:'n-'+index,revision:0,
-      requestId,payload:{message:'任务 '+index,type:'info',timeout:0},...change}});
+      requestId,payload:{message:'任务 '+index,type:'info',timeout:0},...change});
     return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
   };
   f.view.showToast('可信宿主保留',{type:'info'});
@@ -146,7 +150,10 @@ test('installed ui.notify handles share the three-per-minute budget and close wi
   assert.equal(f.view.getSnapshot().toasts.some(row=>row.owner===f.loaded.instance),false);
   assert.equal(f.view.getSnapshot().toasts.some(row=>row.message==='可信宿主保留'),false,
     'legacy trusted toast may be overflow-evicted, not tool cleanup');
-  post(5); // late old frame cannot mutate the new/closed instance
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
+    toolId:sample.id,command:'open',handleId:'n-5',revision:0,
+    requestId:'n5',payload:{message:'stale'}}});
   assert.equal(f.view.getSnapshot().toasts.length,0);
 });
 
@@ -156,16 +163,28 @@ test('installed ui.notify Bridge receives only parent receipt and retains old bo
     sent.push(data);
     f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data});
   }};
+  class BridgeEvent {
+    constructor(type){this.type=type;}
+    get currentTarget(){return null;}
+    get isTrusted(){return false;}
+    stopImmediatePropagation(){}
+  }
+  class BridgePort {
+    postMessage(data){sent.push(data);f.frame.contentWindow.ports[0].postMessage(data);}
+    close(){}
+  }
+  const bridgePort=new BridgePort();
   runInNewContext('('+initSidebarToolSandbox.toString()+')()',{
     SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,
     normalizeToolUiNotice,TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS:2400,
-    window:sandboxWindow,parent,CustomEvent,
+    window:sandboxWindow,parent,CustomEvent,Event:BridgeEvent,MessagePort:BridgePort,
     document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
       head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:notice-contract',revokeObjectURL(){}},
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
   });
-  sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  sandboxWindow.emit('message',{source:parent,data:f.loaded,
+    ports:[bridgePort],stopImmediatePropagation(){}});
   const sdk=sandboxWindow.OpenDeskTool;
   assert.equal(typeof sdk.ui.notify,'function');
   assert.equal(typeof sdk.ui.notify.open,'function');

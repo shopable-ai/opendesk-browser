@@ -103,7 +103,7 @@ if(handle){
 
 **安全与限制**：
 
-- 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。
+- 所有选项都是白名单纯数据；含 `html`、`action`、`onClick`、`url`、`icon`、`attrs` 等额外字段一律无效；message/caption 不允许控制字符、换行和双向控制字符，不执行字符串、不解析 HTML。新句柄的 create/update/dismiss 只接受原 Bridge 私有 MessagePort 请求，当前沙箱自己伪造的普通 `parent.postMessage` 不具备句柄操作权。
 - Host 核验原 opaque iframe 的 source、install instance、工具版本、启停、撤权代际和可见性；页面、任务或远程网页不可伪造可信通知和安装授权。
 - 每活动实例每 60 秒最多创建 3 条（旧 `notify` 与新 `notify.open` 共用原 Host 额度）。超限的句柄创建返回 `rate_limited` 和真实剩余 `retryAfterMs`；普通 boolean 通知不承诺回执。更新原句柄不占新的创建额度，但每句柄最多更新 12 次，序号严格递增，30 分钟到期并关闭；手动关闭及实例销毁、卸载／切换／撤权均清理，迟到请求不再复活。
 - 同消息默认按所属实例、文案／caption／type／位置合并计数，最多保留 3 条，不使用无界队列。满额时按语义优先级（error > warning > success > info；长期通知在同级优先保护）淘汰优先级最低的最旧通知；较弱的新消息无法覆盖三条更重要的旧消息时直接丢弃。

@@ -146,7 +146,9 @@ export function createSidebarToolsView() {
   return Object.freeze({
     fields, labels, actions, runtime, patch, bind, dispatch, trustedSettings, trustedSettingsActions,
     showToast(message,options={}) {
-      putToast(message,options); // preserve the legacy undefined return
+      putToast(message,options,
+        typeof options?.owner==='string'&&options.owner?options.owner:null);
+      // Preserve the legacy undefined return, including Host-local callers.
     },
     addToolToast(message,options,owner) {
       if(typeof owner!=='string'||!owner)return null;

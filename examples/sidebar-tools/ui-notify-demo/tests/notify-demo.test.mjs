@@ -20,7 +20,7 @@ test('ui.notify laboratory uses one valid standalone v1 tool and no capabilities
   assert.match(pkg.js,/tool\.ui\?\.notify/);
   assert.match(pkg.js,/notify\.open/);
   assert.match(pkg.js,/handle\.update/);
-  assert.match(pkg.js,/handle\.dismiss/);
+  assert.match(pkg.js,/previous\.dismiss/);
   assert.match(pkg.js,/retryAfterMs/);
   assert.doesNotMatch(pkg.js,/\bchrome\.(?:tabs|runtime|scripting|storage)\b/);
   assert.equal(typeof pkg.background,'undefined');

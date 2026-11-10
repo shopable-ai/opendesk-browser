@@ -688,8 +688,8 @@ export function initSidebarToolSandbox() {
       return true;
     };
     const issueNotice=(command,handleId,revision,payload)=>{
-      if(disposed||!instance)return new NativePromise(resolve=>
-        resolve(noticeReceipt('rejected','disposed')));
+      if(disposed||!instance||!exportPort||!portPost)return new NativePromise(resolve=>
+        resolve(noticeReceipt('rejected','unavailable')));
       return new NativePromise(resolve=>{
         if(pendingNoticeReceipts.size>=16){
           resolve(noticeReceipt('rejected','busy'));return;
@@ -702,9 +702,11 @@ export function initSidebarToolSandbox() {
         },TOOL_UI_NOTICE_HANDLE_REPLY_TIMEOUT_MS);
         apply(mapSet,pendingNoticeReceipts,[requestId,{resolve,timeout}]);
         try{
-          parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify-handle',
+          // The private frame MessagePort is held only by this original Bridge.
+          // Tool scripts cannot mint or replay handle requests via postMessage.
+          apply(portPost,exportPort,[{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ui-notify-handle',
             instance,toolId,command,handleId,revision,requestId,
-            ...(command==='dismiss'?{}:{payload})},'*');
+            ...(command==='dismiss'?{}:{payload})}]);
         }catch{
           cancelTimer(timeout);apply(mapDelete,pendingNoticeReceipts,[requestId]);
           resolve(noticeReceipt('rejected','transport'));
@@ -712,7 +714,7 @@ export function initSidebarToolSandbox() {
       });
     };
     const openNotice=value=>{
-      if(disposed||!instance)return null;
+      if(disposed||!instance||!exportPort||!portPost)return null;
       const payload=normalizeToolUiNotice(value);
       if(!payload||noticeHandleSequence>=999999999)return null;
       const handleId='n-'+(++noticeHandleSequence);
