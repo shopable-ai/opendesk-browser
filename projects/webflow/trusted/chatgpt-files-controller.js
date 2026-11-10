@@ -832,11 +832,10 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
   // Trusted settings is a first-party extension TAB, not a sandbox tool or
   // forged page sender. Its selected identity must match the exact persisted
   // original source document and project ID before any projection or Stop.
-  function selectedProject(message){
+  function selectedProject(message,s=sessions.get(projectKey({tabId:message?.sourceTabId}))){
     if(!Number.isSafeInteger(message?.sourceTabId)||message.sourceTabId<0||
       typeof message.sourceDocumentId!=='string'||!message.sourceDocumentId||
       typeof message.projectId!=='string'||!message.projectId)fail('E_FILE_SCHEMA','请选择已列出的原文件任务');
-    const s=sessions.get(projectKey({tabId:message.sourceTabId}));
     if(!s?.project||s.project.id!==message.projectId||
       s.source.documentId!==message.sourceDocumentId||
       s.source.tabId!==message.sourceTabId)fail('E_PROJECT_SOURCE','原文件任务身份已改变，重新读取任务列表');
@@ -856,6 +855,19 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       const current=await readChatGPTFilesPreferences(api);
       if(!current.enabled||!s.project.grantId)return concealed(s);
       await projectAuthority(s);
+      // Native authority is metadata, not a file read or a wake. A stable
+      // disclosure grant alone cannot authorize cached bytes after reconnect.
+      const state=await files.state();
+      if(!state.connected||state.devLeaseEpoch!==1||state.sessionId!==s.authority?.sessionId)return concealed(s);
+      const data=await files.request('workspaces.list',{},expected(state));
+      const matches=Array.isArray(data?.workspaces)?data.workspaces.filter(row=>
+        sameWorkspaceAuthority(s.authority,{...row,sourceId:row.sourceId||'',leaseEpoch:row.leaseEpoch||'',sessionId:state.sessionId})):[];
+      if(matches.length!==1)return concealed(s);
+      await enabled();await projectAuthority(s);
+      // Source/grant validation also awaits Chrome. Native can disconnect in
+      // that window, so its final observation must follow those checks.
+      const currentState=await files.state();
+      if(!currentState.connected||currentState.sessionId!==state.sessionId||currentState.devLeaseEpoch!==1)return concealed(s);
       return snapshot(s);
     }catch{return concealed(s);}
   }
@@ -903,8 +915,18 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
         await settingsSource(sender);
         // Fence an already live request before waiting behind its queued
         // write/read; the sent task identity can never select another tab.
-        const present=sessions.get(projectKey({tabId:message.sourceTabId}));
-        if(present){selectedProject(message);stopProjectSource(present);}
+        const key=projectKey({tabId:message?.sourceTabId});
+        let present=sessions.get(key);
+        if(present?.project){selectedProject(message,present);stopProjectSource(present);}
+        else{
+          // Restore and tentative start can hide the old task from sessions.
+          // Validate its exact durable identity before installing any fence.
+          const previous=selectedProject(message,(await stored(PROJECT_TASKS))[key]);
+          await settingsSource(sender);
+          present=sessions.get(key);
+          if(present?.project){selectedProject(message,present);stopProjectSource(present);}
+          else stopProjectSource(previous);
+        }
         return enqueue(async()=>{
           await restore();
           const s=selectedProject(message);

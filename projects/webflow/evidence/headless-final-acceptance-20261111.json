@@ -1,0 +1,321 @@
+{
+  "date": "2026-11-11",
+  "searchKey": "OD-AI-WORKFLOW-BRIDGE",
+  "goal": "ChatGPT 网页不创建项目文件浮窗，保留原自动化与 Native 文件能力，原任务由可信扩展页面管理。",
+  "verdict": "NOT_ACCEPTED",
+  "scope": "最终 Chrome/Native 验收及实际复现缺陷的最小修复；没有重建 Runner、Host、文件数据库或授权系统。",
+  "source": {
+    "branch": "main",
+    "initialHead": "b52e5f2cc2354423c2c0c6b00deb7d64b7aebb69",
+    "laterObservedHead": "c73123583b098d25b50aee0c107719614bb466e0",
+    "laterHeadNote": "其他 Agent 提交了九个无关文件；本轮未覆盖、回退或重新提交这些文件。",
+    "originMainFetched": true,
+    "initialAheadBehind": {
+      "ahead": 2,
+      "behind": 0
+    },
+    "requiredCommitsAlreadyIncluded": [
+      "d5a5c7a",
+      "da0f781",
+      "f89fe47",
+      "80447bb",
+      "257f69a"
+    ],
+    "controllerBlob": "ca202ad9d2b8e4586bd4582b9a78ac07d9e379b7",
+    "runtimeUiBlob": "b775438992847dabc2f43ff5f42531d7a207389d",
+    "controllerTestBlob": "5912324596f49d09ee847164acaf239c77ce4b0c",
+    "runtimeUiTestBlob": "663c692ed13c6a6cbb9a855ab36a72b05d403064"
+  },
+  "fixedDefects": [
+    {
+      "defect": "冷恢复和临时替换隐藏原任务时，可信 Stop 未及早围栏，可能额外派发写入。",
+      "fix": "核验可信设置页和精确持久任务身份后立即围栏；排队结算仍绑定原任务，保留在途 requestId、真实回执和 UNKNOWN。"
+    },
+    {
+      "defect": "项目 grant 尚存但 Native 断连、工作区撤权或租约失效时，可信投影仍可能披露缓存正文。",
+      "fix": "只查询 Native/工作区授权元数据，复核 session、租约和访问权限；最后一组异步源文档校验之后再做 Native 终检，未知即隐藏正文。",
+      "additionalReproduction": "独立复审发现终检后的等待窗口；新增单项测试修前 0 PASS / 1 FAIL，修后纳入 230 PASS。"
+    },
+    {
+      "defect": "Stop 自身写入 tasks 时，storage 事件覆盖可信 UI 停止回执。",
+      "fix": "独立结算一次 Stop，仅通过原 project-status 重核同一任务；撤权立即遮蔽，丢弃晚到响应并保留持久错误，不重发 Stop。"
+    },
+    {
+      "defect": "现有 Headless 源码尚未同步精确构建来源锁，新可信管理 UI 无准入。",
+      "fix": "独立源码复审后仅更新本轮 exact blobs；新增 runtime UI 仅进入 settings，收窄 files-ui 和 intent-gate 的静态消费者。没有修改其他 owner 的准入决定。"
+    }
+  ],
+  "checks": [
+    {
+      "id": "T01-files",
+      "command": "node --test --test-concurrency=1 projects/webflow/tests/chatgpt-file-intent.test.mjs projects/webflow/tests/chatgpt-files-config.test.mjs projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs projects/webflow/tests/chatgpt-files-settings-ui.test.mjs projects/webflow/tests/chatgpt-files.test.mjs projects/webflow/tests/chatgpt-files-ui.test.mjs projects/webflow/tests/chatgpt-file-lifecycle.test.mjs",
+      "pass": 230,
+      "fail": 0,
+      "skipped": 0,
+      "evidenceLevel": "NODE_PASS",
+      "log": "artifacts/webflow-headless-final-20261111/files-final-20261111.log"
+    },
+    {
+      "id": "T01-provenance",
+      "command": "node --test tests/environment/chatgpt-files-provenance.test.mjs",
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0,
+      "evidenceLevel": "NODE_PASS",
+      "scope": "当前工作区及独立集成快照均通过；包含对应 owner 后续更新的 AI Proxy source-lock，不属于本轮编辑或提交。",
+      "log": "artifacts/webflow-headless-final-20261111/provenance-after-owner.log",
+      "snapshotLog": "artifacts/webflow-headless-final-20261111/provenance-snapshot.log"
+    },
+    {
+      "id": "T01-provenance-before-owner-fix",
+      "command": "node --test tests/environment/chatgpt-files-provenance.test.mjs",
+      "pass": 3,
+      "fail": 1,
+      "skipped": 0,
+      "error": "Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/Settings.tsx",
+      "classification": "其他 owner 的来源锁阻断；未放宽校验，未将该失败计作通过。",
+      "log": "artifacts/webflow-headless-final-20261111/provenance-final.log",
+      "status": "HISTORICAL_FAILURE_RESOLVED_IN_INTEGRATION_INPUTS"
+    },
+    {
+      "id": "T01-production-baseline",
+      "cwd": "/tmp/od-webflow-headless-20261111.iF8Q9j",
+      "command": "OPENDESK_OUTPUT_GUARD_PORT=44321 OPENDESK_BUILD_EVIDENCE_DIR=/tmp/webflow-headless-evidence-20261111/build node scripts/build.mjs production",
+      "sourceSelection": "git archive b52e5f2cc2354423c2c0c6b00deb7d64b7aebb69 加本轮修复；并行未提交源码及其准入改动一起排除，没有创建 Git 分支或 worktree。",
+      "status": "BUILD_BLOCKED",
+      "exitCode": 1,
+      "error": "[opendesk-fixed-sw] Historical/user/vendor code cannot enter a privileged fixed bundle: projects/webflow/src/chatgpt-conversation-result.js",
+      "classification": "另一 WebFlow Task 模块的来源准入阻断。该 owner 后续工作区改动未混入此冻结候选，也未由本轮提交。",
+      "packageVerification": "NOT_TESTED: 构建未完成，没有可核验的新 production 包。",
+      "log": "artifacts/webflow-headless-final-20261111/production.log",
+      "sourceManifest": "artifacts/webflow-headless-final-20261111/frozen-source.json",
+      "historical": true,
+      "note": "原冻结候选的真实失败；随后 owner 修改了阻断来源输入，故另作集成候选验证。"
+    },
+    {
+      "id": "T01-production-integration",
+      "cwd": "/tmp/od-webflow-headless-20261111.iF8Q9j",
+      "command": "OPENDESK_OUTPUT_GUARD_PORT=44321 OPENDESK_BUILD_EVIDENCE_DIR=/tmp/webflow-headless-evidence-20261111/integration-build-verified node scripts/build.mjs production",
+      "baselineHead": "c73123583b098d25b50aee0c107719614bb466e0",
+      "sourceSelection": "当前 main 加本轮源码，只读纳入其他 owner 的 conversation-result 源码及其 pin、AI Proxy source-lock。构建前核实冻结清单八文件 SHA-256 全部匹配；未提交其他 owner 变更。",
+      "status": "PACKAGE_CHECK_FAILED",
+      "wxtCompilation": "COMPLETED",
+      "exitCode": 1,
+      "error": "Unexpected packaged asset: tool-shell.css",
+      "assetBytes": 537,
+      "classification": "共享确认 UI 的 src/ui/react/components/confirmation.tsx 静态引入 confirmation.css，生成根目录 CSS；不在本轮业务 owner 范围。未删除 CSS、加入宽泛豁免或修改该 owner。",
+      "packageVerdict": "NOT_PASSED",
+      "log": "artifacts/webflow-headless-final-20261111/production-integration-verified.log",
+      "sourceManifest": "artifacts/webflow-headless-final-20261111/integration-source.json",
+      "invalidEarlyAttempt": "另一次构建误在 archive/overlay 完成前启动，使用旧 pin，结果作废；日志单独保留 invalid-incomplete-copy-build.log，未当作当前候选阻断。"
+    },
+    {
+      "id": "T01-development",
+      "status": "OUTPUT_READY_PACKAGE_CHECK_FAILED",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "writerPid": 76922,
+      "writerPreserved": true,
+      "readyMarker": "dist/development/development-update.json present",
+      "lastError": "Earlier conversation-result source admission failure was cleared after owner input changes.",
+      "sourceLog": "artifacts/five-tab-task-params-20261110/dev-recovery.log",
+      "note": "未启动第二个 dev/build writer，未重装或强制重载日常扩展。",
+      "revision": "6d4481e95de135bde3d00d591456dce19bed748eb313822cc6084950419181e8",
+      "command": "node scripts/verify-package.mjs dist/development development",
+      "verificationExitCode": 1,
+      "verificationError": "Unexpected packaged asset: development-update.json, tool-shell.css",
+      "classification": "development-update.json 是持续 serve 元数据，静态包校验器不适合将其当产品缺陷；tool-shell.css 与 production 同一共享确认组件打包阻断。未删除 live 元数据或修改产物制造通过。",
+      "artifactEvidence": "新版固定 bridge 已不含旧文件入口字符串；settings bundle 包含 project-list。仅磁盘产物证据，未声称浏览器已应用。",
+      "observedFileHashes": {
+        "agents/chatgpt-fixed-bridge.js": "ace6601be28a0d8518af83d1476cbc966f61a90726322a40a85e7a3a98f13608",
+        "native-agent/settings.js": "26eaa00bf2be031d5de4b50fb8d5b7f1d8a8c0e47c942ea77516850711130781",
+        "native-agent/transport.js": "0bb7b18cb7d65d74b1cfd64f505ddcb29000856f91e6463a50a0f78b965a6c2a",
+        "sw.js": "0367198de27926084b208d690f9a84db7bef5b62f303a5694d73109e7a64d411"
+      },
+      "verificationLog": "artifacts/webflow-headless-final-20261111/development-verify.log"
+    },
+    {
+      "id": "T05-node",
+      "command": "node --test tests/environment/chatgpt-fixed-bridge-r13.test.mjs tests/environment/chatgpt-independent-task-intent.test.mjs",
+      "pass": 60,
+      "fail": 0,
+      "skipped": 0,
+      "evidenceLevel": "NODE_PASS",
+      "log": "artifacts/webflow-headless-final-20261111/old-task-20261111.log",
+      "nativeVerdict": "NOT_TESTED: 未自动重发任何旧消息或重复安装测试任务。"
+    },
+    {
+      "id": "syntax-and-diff",
+      "commands": [
+        "node --check projects/webflow/trusted/chatgpt-files-controller.js",
+        "node --check projects/webflow/trusted/chatgpt-project-runtime-ui.js",
+        "node --check projects/webflow/tests/chatgpt-files.test.mjs",
+        "node --check projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs",
+        "git diff --check -- projects/webflow/trusted/chatgpt-files-controller.js projects/webflow/trusted/chatgpt-project-runtime-ui.js projects/webflow/tests/chatgpt-files.test.mjs projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs scripts/bundle-provenance.mjs tests/environment/chatgpt-files-provenance.test.mjs"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "installedBrowserObservation": {
+    "browser": "ego(lite), shared profile, reported Chrome/156.0.0.0; not a dedicated production CFT profile",
+    "taskSpace": 75,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "unpackedSource": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "initialConnectedRevision": "ed1fa520c71d6e4139151acb894dd5797369ac458c8db86ab6c7df4fbc43403e",
+    "candidateIdentity": "STALE_PRE_HEADLESS: 不能作为本轮修复已安装或已运行的证据。",
+    "headlessManagerPresent": false,
+    "url": "https://chatgpt.com/",
+    "oldFilesEntryCount": 1,
+    "oldFilesEntryDisplay": "none",
+    "oldFilesEntrySize": [
+      0,
+      0
+    ],
+    "visibilityConclusion": "截图没有可见文件浮窗，但旧节点仍存在，不满足用户要求的节点不存在条件。普通提示词快捷按钮属于其他扩展功能。",
+    "messagesSentByThisTask": 0,
+    "nativeStatus": {
+      "enabled": true,
+      "nativeConnected": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "bridgeVersion": 1
+    },
+    "pairingMetadata": {
+      "chromeManifest": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "chromeHostLauncher": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+      "allowedOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/",
+      "note": "只读核对已有路径、ID、allowed_origins 和当前扩展在线状态；未修改配对，也不把在线状态当作文件读写成功。"
+    },
+    "profilePool": "三个已登记的持久 Chrome 测试 slot 均由其他对话持有；未回收、扩容或借用。",
+    "cleanup": "space 75 正常 finish，仅关闭本轮创建的 p1-p4，保留其他页面、浏览器、Profile、任务与服务。",
+    "logs": [
+      "artifacts/webflow-headless-final-20261111/before.json",
+      "artifacts/webflow-headless-final-20261111/browser-final.json",
+      "artifacts/webflow-headless-final-20261111/stale-overlay-dom.json"
+    ],
+    "screenshots": [
+      "artifacts/webflow-headless-final-20261111/extension-source-before.png",
+      "artifacts/webflow-headless-final-20261111/stale-overlay.png"
+    ],
+    "profilePoolRule": {
+      "skill": "/Users/shopme/.codex/skills/chatgpt-test-profiles/SKILL.md",
+      "quote": "都已占用则报告忙碌，不触发扩容。",
+      "application": "三 slot 最新只读复核仍属其他 owner，即使无 running PID 也不自动抢占；未改变 registry。"
+    }
+  },
+  "acceptance": [
+    {
+      "id": "T02",
+      "status": "NOT_TESTED_CURRENT_CANDIDATE",
+      "missing": "新版空闲/运行/成功/失败/UNKNOWN 无节点，旧 diagnosticsVisible=true 不恢复 UI，新轮次只派发一次，流式/完整回复、导航/停止/历史不重放，草稿/附件/IME 不退化。"
+    },
+    {
+      "id": "T03",
+      "status": "NOT_TESTED_CURRENT_CANDIDATE",
+      "missing": "真实 Side Panel 入口、原任务状态/Stop、关闭再打开、Service Worker 重启、一次性审阅绑定及跨 tab/document/project 拒绝。Node 证据不能替代。"
+    },
+    {
+      "id": "T04",
+      "status": "NOT_TESTED_CURRENT_CANDIDATE",
+      "missing": "合法隔离目录的真实读内容/SHA、原提案写入一次与磁盘读回、撤权遮蔽、Stop 无新增派发、UNKNOWN 同 ID 只读对账、冷 Stop 与排队读写竞态。未注入故障或写真实用户文件。"
+    },
+    {
+      "id": "T05-native",
+      "status": "NOT_TESTED_CURRENT_CANDIDATE",
+      "missing": "原合法安装 Task 与文件协议的同轮互斥和真实发送队列。"
+    }
+  ],
+  "review": {
+    "kind": "原生独立子 agent 的角色模拟代码审计；不是外部人类专家，也不是已完成的 Chrome/Native 验收评分。",
+    "reviewer": "Gibbs / code-reviewer",
+    "approval": "批准本轮 controller/runtime UI exact blobs 及其限定静态目标；源码复审未发现剩余阻断，运行证据仍不足。",
+    "scores": [
+      {
+        "dimension": "产品体验与原始需求保真",
+        "score": 82,
+        "basis": "保留原流程和可信管理入口；未重新实现业务。",
+        "risk": "新版真实无浮窗及草稿/IME 仍未验证。"
+      },
+      {
+        "dimension": "Headless 与 Chrome Extension 架构",
+        "score": 88,
+        "basis": "沿用唯一 service/controller/Host，精确来源与目标准入。",
+        "risk": "WXT 编译后包校验仍失败，同候选安装未完成。"
+      },
+      {
+        "dimension": "身份、授权及文件安全",
+        "score": 88,
+        "basis": "精确身份负例、Native/工作区失效遮蔽与最终等待窗口修复。",
+        "risk": "真实撤权、Native 读写与跨页面攻击未验。"
+      },
+      {
+        "dimension": "持久化、Stop、UNKNOWN 与故障恢复",
+        "score": 90,
+        "basis": "冷恢复/临时替换围栏，保留原 requestId、在途回执和 UNKNOWN，不重放。",
+        "risk": "真实 SW 重启和 Native 竞态/丢包仍未验。"
+      },
+      {
+        "dimension": "复用、并行协作与可维护性",
+        "score": 90,
+        "basis": "局部修复、限定来源锁、外部源码快照，保护其他 owner 和原 writer。",
+        "risk": "共享确认 CSS 的打包合同仍阻断集成包。"
+      },
+      {
+        "dimension": "测试覆盖、真实证据及交付质量",
+        "score": 60,
+        "basis": "230 文件专项、60 旧 Task 和 4 来源检查通过；保留历史失败、新包错误和旧安装身份。",
+        "risk": "共享确认 CSS 包校验失败，真实 Chrome/Native 闭环未完成。"
+      }
+    ],
+    "arithmeticMean": 83,
+    "target": 95,
+    "targetReached": false,
+    "adversarial": [
+      {
+        "attack": "伪造网页、错误 tab/document/project 或设置页身份",
+        "sourceNode": "身份负例及精确原任务绑定通过；未见新绕过。",
+        "native": "NOT_TESTED"
+      },
+      {
+        "attack": "撤权、断连、租约变化与最终异步窗口泄露缓存正文",
+        "sourceNode": "已复现并修复，当前专项通过。",
+        "native": "NOT_TESTED"
+      },
+      {
+        "attack": "冷 Stop、临时替换及排队读写竞争",
+        "sourceNode": "精确持久身份围栏及无新增派发回归通过。",
+        "native": "NOT_TESTED"
+      },
+      {
+        "attack": "UNKNOWN 换 ID 重写或 Stop 后再次填稿",
+        "sourceNode": "原 ID 和在途结果保留，恢复不重派回归通过。",
+        "native": "NOT_TESTED"
+      },
+      {
+        "attack": "旧 diagnosticsVisible 恢复页面 UI",
+        "sourceNode": "原 Headless 测试通过；未重复开发旧改造。",
+        "native": "NOT_TESTED_CURRENT_CANDIDATE；实际浏览器是旧代码且有隐藏旧节点。"
+      },
+      {
+        "attack": "覆盖并行文件、来源锁或 watcher 输出",
+        "sourceNode": "仅本轮代码和审阅 pin hunk 进入提交；原 dev writer 与他人源码/准入均保留。",
+        "native": "未重载、重装、修改授权或删除持久账本。"
+      }
+    ]
+  },
+  "remainingBlockers": [
+    "由共享确认 UI/构建 owner 修正根目录 tool-shell.css 的来源与打包合同；本轮未修改无关 owner 或放宽包校验。",
+    "取得同来源通过校验的产物，以及本任务可用的合法专用 Chrome Profile，再完成 T02-T05 真实验收。三个已登记 slot 仍属其他 owner。",
+    "保留集成快照包含的其他 owner 源码及来源锁归属；这些工作区更新未由本轮提交，也未被冒充为已交付的 main 包。"
+  ],
+  "ci": {
+    "priorRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/42872904587",
+    "priorPass": 204,
+    "newRun": "NOT_RUN",
+    "note": "保留 da0f781 的七文件专项 CI 隔离范围；来源检查单独执行，历史 1 FAIL 与 owner 更新后 4 PASS 分别记录，未冒称新 CI 运行通过。"
+  },
+  "nodeFinalSummary": {
+    "pass": 294,
+    "fail": 0,
+    "skipped": 0,
+    "note": "230 文件专项 + 60 原 Task 回归 + 4 来源检查；来源检查包含其他 owner 更新后的集成输入，不把历史复现失败重复计入最终通过数，也不代表 CI/Chrome/Native。"
+  }
+}
