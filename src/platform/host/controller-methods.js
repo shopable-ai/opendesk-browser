@@ -240,7 +240,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
-    fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
+    fields(request, ['runId','requestId']);
+    invariant(!(request.runId!==undefined&&request.requestId!==undefined),
+      CONTROLLER_SCHEMA_ERROR,'Select one original Run or request ID');
+    if(request.runId!==undefined)id(request.runId);
+    if(request.requestId!==undefined)id(request.requestId);
     const permissionEpoch = permissionRemovals.length;
     const host = await assertHost(sender);
     const snapshot = await tx(RUN_READ, async transaction => {
@@ -248,8 +252,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const slot = await transaction.get(RUN_STORE, '@slot');
       const runs = (await transaction.all(RUN_STORE)).filter(run=>run.tag===CONTROLLER_RUN_TAG && !run.tombstoned && run.namespace===namespace(host))
         .sort((a,b)=>(a.createdAt || 0)-(b.createdAt || 0) || a.runId.localeCompare(b.runId));
-      const run = request.runId ? runs.find(run=>run.runId===request.runId) : null;
-      if (request.runId) invariant(run,CONTROLLER_OWNER_ERROR);
+      const matches=request.requestId===undefined?[]:
+        runs.filter(row=>row.requestId===request.requestId);
+      invariant(matches.length<=1,CONTROLLER_OWNER_ERROR,'Original request ID is ambiguous');
+      const run=request.runId?runs.find(row=>row.runId===request.runId):
+        request.requestId?matches[0]??null:null;
+      if(request.runId||request.requestId)invariant(run,CONTROLLER_OWNER_ERROR);
       const results = (await transaction.all('results')).filter(value=>value.tag==='controller-result' &&
         value.namespace===namespace(host) && (!run || value.runId===run.runId));
       const ids = new Set((run ? [run] : runs).map(row=>row.runId));
@@ -280,7 +288,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       // historical document/Worker epochs or hiding results after navigation.
       for (const run of deliveryRuns)
         if (permissionRemovals.slice(permissionEpoch).some(patterns => removedRunGrant(run, patterns))) denied.add(run.runId);
-      return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
+      // Exact request lookups must not return unrelated historical Runs or
+      // full Result histories to the trusted Markdown reconciliation caller.
+      const returnedRuns=request.requestId?snapshot.runs.filter(row=>row.runId===snapshot.run?.runId):
+        snapshot.runs;
+      return {...snapshot,run:project(snapshot.run),runs:returnedRuns.map(project),
         results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
     });
   }
