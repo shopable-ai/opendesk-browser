@@ -1,6 +1,13 @@
 /* Full-page presentation of the same Settings components. Sidebar form and
  * record styling stays shared; only this surface owns its desktop geometry. */
 @scope (.proxy-management) {
+  /* Reuse the existing app tokens with R16's PC palette. The Side Panel's
+   * tokens and all Framework/Host surfaces remain untouched. */
+  :scope {
+    --bg:#f2f5fa; --soft:#f6f8fb; --ink:#1e293b;
+    --muted:#64748b; --line:#e2e8f0;
+    --accent:#365dd5; --accentFill:#edf2ff; --primaryFill:#365dd5;
+  }
   :scope .options { max-width:1280px; margin:0 auto; }
   :scope .options .optionsHead { min-height:64px; padding:12px 24px; justify-content:space-between; }
   :scope .managementTitle { margin:0; font-size:16px; line-height:1.5; }
