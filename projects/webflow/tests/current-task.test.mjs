@@ -259,6 +259,8 @@ test('trusted automatic notices require same original receipt and distinguish ex
  assert.equal(failed.phase,'failed');
  assert.doesNotMatch(JSON.stringify(failed),/script|page supplied/);
  assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'paused_unknown'}}).phase,'unknown');
+ assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'stopped'}}).phase,'retirement-pending');
+ assert.equal(projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'stopped',release:'released'}}).phase,'stopped');
 });
 
 test('trusted panel reuses a single owner-bound Toast, dedupes polls, and never revives a dismissed notice',async()=>{
@@ -297,6 +299,11 @@ test('trusted panel reuses a single owner-bound Toast, dedupes polls, and never 
   assert.match([...rows.values()][0].message,/不等于业务成功/);
   await render(build('completed',{persistence:'verified',release:'released',delivery:'confirmed'}));
   assert.match([...rows.values()][0].message,/回传已确认/);
+  const historic=build('completed',{persistence:'verified',release:'released'});
+  await render({...historic,source:{...source,documentId:'different-doc'},
+    session:{...session,requestId:'different-request'},
+    receipt:{...historic.receipt,requestId:'different-request'}});
+  assert.equal(calls.filter(x=>x==='open').length,1,'new historical terminal Run must not cause a popup');
   rows.clear();
   await render(build('paused_unknown'));
   assert.equal(calls.filter(x=>x==='open').length,1,'dismissal must not recreate a notice');
