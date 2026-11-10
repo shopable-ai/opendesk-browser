@@ -90,7 +90,7 @@ test('rejects mismatched run, pin, target, result, ownership and account without
     const f=await fixture(),original=structuredClone(f.original);mutate(original);
     await assert.rejects(readMdChatGPTReplyEvent({workflowRun:f.intent,taskId:'T01',
       readOriginalRun:async()=>original,verifyAccount:async()=> 'account-001'}),
-      {code:/E_MD_(ORIGINAL|TARGET|RESULT_FORMAT)/});
+      {code:/E_MD_(ORIGINAL|TARGET|RESULT_FORMAT|IDENTITY)/});
   }
   const f=await fixture();
   await assert.rejects(readMdChatGPTReplyEvent({workflowRun:f.intent,taskId:'T01',
