@@ -42,6 +42,12 @@
 - 端到端示例仍只使用 `examples/sidebar-tools/ui-notify-demo/`，包含长任务与限频演示；唯一正式可安装 JSON 通过原 `build-sidebar-tool.mjs` 的候选、测试、promote/check 顺序核对。Node、Host 和 Chrome 原生证据分别记录，不重复开发旧 Prompt Shortcuts UI。
 - 当前实施分级：`SOURCE_IMPLEMENTED`；本轮独立 CI 和真实浏览器测试各凭实际结果评估，不能因为新增源码便标记 `CHROME_PASS`。
 
+### 1.2 Web Flow 的任务状态通知消费者（2026-11-11，P0）
+
+这是现有 R1.2 通知的一个业务消费者，不是第二套公共通知、安装/更新提醒或新的调度权：Web Flow 手动沙箱仅通过公开 ui.notify.open/update/dismiss 展示同一个原始 Run 的状态；已有可信「当前任务」组件在唯一 React Root 通过原 Host Toast Store 更新状态。两种调用都必须取自原 Authority/Run/Result 的只读核验，不能因 Toast 提示、更新或失败启动、重试、停止、批准或交付任何任务。原 SDK 签名/返回值仅在 [公开接口文档](../../api/sidebar-tools.zh-CN.md#非阻断消息opendesktooluinotifyr12-生命周期与可安装实验室)维护。
+
+原执行结果 completed 只是脚本终态，业务成功与原对话交付必须分别核验；UNKNOWN、撤权、旧 Host/实例销毁不能升级成功或自动重放。Toast 按原 owner/实例受限且可关闭，恢复定位依赖业务原持久记录，**句柄不能持久化为任务身份**。当前 P0 只覆盖已打开的 Side Panel/PC 工具宿主；关闭宿主、跨窗口恢复属于后续 P1；授权网页右下角 Toast 和 Chrome 系统通知属于 P2，均不得通过普通沙箱请求越权实现。
+
 ## 2. 业务与框架的所有权
 
 - **业务 owner**：决定确认必要性、具体对象/后果/文案、draft revision、执行与持久回执；确认后复核原 ID/ETag/实例，按原服务做条件写。业务文案/数据策略不写进通用 Host。
