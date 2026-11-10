@@ -78,60 +78,120 @@ export function startTurn(args, {live=false,spawnFn=spawn,bin='codex',argv=['app
     let child;
     try { child=spawnFn(bin,argv,{shell:false,stdio:['pipe','pipe','pipe'],cwd:args.cwd}); }
     catch { reject(fail('E_SPAWN','Could not start Codex app-server')); return; }
-    let settled=false, threadId=null, turnId=null, completion=null;
-    let phase='initialize', nextId=1, buffered=0;
+    let settled=false, threadId=null, turnId=null, completion=null, timer;
+    let phase='initialize', nextId=1, buffered=0, turnStartSent=false, turnAcknowledged=false;
+    const answers=new Map(), deltas=new Map();
     const rl=createInterface({input:child.stdout,crlfDelay:Infinity});
-    child.stderr?.resume(); // Drain diagnostics without leaking local paths or prompts.
+    child.stderr?.resume(); // Drain diagnostics without exposing paths, tokens or prompts.
+    const receiptError=(code,message)=>{
+      const error=fail(code,message);
+      error.phase=phase;
+      error.threadId=threadId;
+      error.turnId=turnId;
+      error.threadUrl=threadId?threadUrl(threadId):null;
+      error.submissionState=turnAcknowledged?'ADMITTED':(turnStartSent?'OUTCOME_UNKNOWN':'NOT_DISPATCHED');
+      error.outcome=turnStartSent?'OUTCOME_UNKNOWN':'NOT_DISPATCHED';
+      return error;
+    };
     const finish=(error,value)=>{
-      if(settled) return;
+      if(settled)return;
       settled=true;
-      clearTimeout(timer); rl.close();
-      if(child.exitCode===null) child.kill('SIGTERM');
-      if(error) reject(error); else resolve(value);
+      clearTimeout(timer);
+      rl.close();
+      // The Demo owns this app-server process, but killing it does not undo a dispatched turn.
+      if(child.exitCode===null&&!child.killed)child.kill('SIGTERM');
+      if(error)reject(error);else resolve(value);
     };
+    const abort=(code,message)=>finish(receiptError(code,message));
     const send=(message)=>{
-      if(settled) return;
-      try { child.stdin.write(JSON.stringify(message)+'\n'); }
-      catch { finish(fail('E_IO_UNKNOWN','Codex request may have been sent; do not replay')); }
+      if(settled)return;
+      try{child.stdin.write(JSON.stringify(message)+'\n');}
+      catch{abort('E_IO_UNKNOWN','Codex transport may have accepted the request; do not replay');}
     };
-    const request=(method,params)=>send({id:nextId++,method,params});
+    const request=(method,params)=>{
+      if(method==='turn/start')turnStartSent=true; // A write attempt is NOT an acceptance ACK.
+      send({id:nextId++,method,params});
+    };
+    const matchingTurn=(event)=>isObj(event)&&
+      (event.threadId===undefined||event.threadId===threadId)&&
+      (event.turnId===undefined||!turnId||event.turnId===turnId);
+    const recordAnswer=(item)=>{
+      if(!isObj(item)||item.type!=='agentMessage'||typeof item.text!=='string'||!item.text.trim())return;
+      if(Buffer.byteLength(item.text,'utf8')>65536){abort('E_RESULT_TOO_LARGE','Codex answer exceeds the 64 KiB response budget');return;}
+      const key=typeof item.id==='string'?item.id:'final-'+answers.size;
+      answers.set(key,item.text);
+    };
     const maybeFinish=()=>{
-      if(!completion||!turnId||completion.threadId!==threadId||completion.turn?.id!==turnId) return;
-      finish(null,{phase:'TURN_TERMINAL',submitted:true,threadId,turnId,
-        status:completion.turn.status,threadUrl:threadUrl(threadId),
-        businessSuccess:completion.turn.status==='completed'});
+      if(!completion||!turnId||completion.threadId!==threadId||completion.turn?.id!==turnId)return;
+      const status=completion.turn.status;
+      if(!['completed','failed','interrupted'].includes(status)){
+        abort('E_PROTOCOL','Codex turn terminal status is not recognized');return;
+      }
+      const fromTurnSnapshot=!answers.size&&Array.isArray(completion.turn.items);
+      if(fromTurnSnapshot){
+        for(const item of completion.turn.items)recordAnswer(item);
+      }
+      if(settled)return;
+      let answerText=answers.size?[...answers.values()].at(-1):null;
+      let answerSource=answerText?(fromTurnSnapshot?'turn/completed':'item/completed'):null;
+      if(!answerText&&deltas.size){
+        answerText=[...deltas.values()].at(-1)||null;
+        answerSource=answerText?'delta-only-unverified':null;
+      }
+      finish(null,{phase:'TURN_TERMINAL',submitted:true,submissionState:'ADMITTED',threadId,turnId,
+        status,threadUrl:threadUrl(threadId),answerText,answerSource,
+        answerAvailable:answerSource==='item/completed'||answerSource==='turn/completed',
+        businessSuccess:null,taskVerified:false});
     };
-    const timer=setTimeout(()=>finish(fail('E_OUTCOME_UNKNOWN','Codex may still be running; inspect the returned conversation manually, never auto-retry')),timeoutMs);
-    child.on('error',()=>finish(fail('E_SPAWN','Codex executable could not be started')));
-    child.on('exit',()=>{if(!settled)finish(fail('E_OUTCOME_UNKNOWN','Codex app-server exited without a verified terminal event'));});
+    timer=setTimeout(()=>abort('E_OUTCOME_UNKNOWN','Codex may still be running; inspect the original thread, never auto-retry'),timeoutMs);
+    child.on('error',()=>abort('E_SPAWN','Codex executable could not be started'));
+    child.on('exit',()=>{if(!settled)abort('E_OUTCOME_UNKNOWN','Codex app-server exited without a verified terminal event');});
+    child.stdin?.on('error',()=>abort('E_IO_UNKNOWN','Codex stdin failed; outcome unknown if a turn was sent'));
+    rl.on('error',()=>abort('E_IO_UNKNOWN','Codex output stream failed'));
     rl.on('line',line=>{
       if(settled)return;
       buffered+=Buffer.byteLength(line);
-      if(buffered>4_000_000||Buffer.byteLength(line)>1_000_000) {finish(fail('E_PROTOCOL','Codex response budget exceeded'));return;}
-      let m;try{m=JSON.parse(line);}catch{finish(fail('E_PROTOCOL','Invalid JSONL received'));return;}
+      if(buffered>4_000_000||Buffer.byteLength(line)>1_000_000){abort('E_PROTOCOL','Codex response budget exceeded');return;}
+      let m;try{m=JSON.parse(line);}catch{abort('E_PROTOCOL','Invalid JSONL received');return;}
       if(!isObj(m))return;
       if(own(m,'method')&&own(m,'id')){
-        // Approvals and dynamic tool requests must not become implicit grants.
-        finish(fail('E_APPROVAL_REQUIRED',`Codex requested interactive input (${String(m.method).slice(0,80)}); open an interactive Codex client`));return;
+        // Never reply allow, approve or success to server-initiated requests.
+        abort('E_APPROVAL_REQUIRED','Codex requires an interactive decision; inspect the original thread');return;
       }
-      if(m.method==='turn/completed') { completion=m.params;maybeFinish();return; }
+      if(m.method==='item/agentMessage/delta'&&matchingTurn(m.params)){
+        const {itemId,delta}=m.params;
+        if(typeof itemId==='string'&&typeof delta==='string'){
+          const value=(deltas.get(itemId)||'')+delta;
+          if(Buffer.byteLength(value,'utf8')>65536){abort('E_RESULT_TOO_LARGE','Codex answer stream exceeds 64 KiB');return;}
+          deltas.set(itemId,value);
+        }
+        return;
+      }
+      if(m.method==='item/completed'&&matchingTurn(m.params)){
+        recordAnswer(m.params.item);return;
+      }
+      if(m.method==='turn/completed'){
+        if(matchingTurn(m.params)){completion=m.params;maybeFinish();}
+        return;
+      }
       if(!own(m,'id'))return;
-      if(m.error){finish(fail('E_CODEX_RPC',`Codex rejected ${phase}`));return;}
+      if(m.error){abort('E_CODEX_RPC',`Codex rejected ${phase}`);return;}
       if(m.id===1&&phase==='initialize'){
         phase='thread/start';send({method:'initialized',params:{}});
         request('thread/start',{cwd:args.cwd,approvalPolicy:'never',sandbox:'read-only'});return;
       }
       if(m.id===2&&phase==='thread/start'){
         threadId=m.result?.thread?.id;
-        if(typeof threadId!=='string'){finish(fail('E_PROTOCOL','thread/start response has no thread.id'));return;}
-        try{threadUrl(threadId);}catch(e){finish(e);return;}
+        if(typeof threadId!=='string'){abort('E_PROTOCOL','thread/start response has no thread.id');return;}
+        try{threadUrl(threadId);}catch{abort('E_PROTOCOL','thread/start returned invalid thread.id');return;}
         phase='turn/start';
         request('turn/start',{threadId,input:[{type:'text',text:args.prompt}],cwd:args.cwd,
           approvalPolicy:'never',sandboxPolicy:{type:'readOnly'}});return;
       }
       if(m.id===3&&phase==='turn/start'){
         turnId=m.result?.turn?.id;
-        if(typeof turnId!=='string'||!turnId){finish(fail('E_PROTOCOL','turn/start response has no turn.id'));return;}
+        if(typeof turnId!=='string'||!turnId){abort('E_PROTOCOL','turn/start response has no turn.id');return;}
+        turnAcknowledged=true;
         phase='turn-running';maybeFinish();
       }
     });
@@ -172,7 +232,11 @@ export function mcpServer({input=process.stdin,output=process.stdout,dispatcher=
       const result=await dispatcher(name,args);
       respond({jsonrpc:'2.0',id:q.id,result:{content:[{type:'text',text:JSON.stringify(result)}],isError:false}});
     }catch(error){
-      respond({jsonrpc:'2.0',id:q.id,result:{content:[{type:'text',text:JSON.stringify({code:error?.code||'E_INTERNAL',message:error?.message||'Operation failed'})}],isError:true}});
+      const reason={code:error?.code||'E_INTERNAL',message:error?.message||'Operation failed'};
+      for(const field of ['phase','threadId','turnId','threadUrl','submissionState','outcome']){
+        if(own(error,field))reason[field]=error[field];
+      }
+      respond({jsonrpc:'2.0',id:q.id,result:{content:[{type:'text',text:JSON.stringify(reason)}],isError:true}});
     }finally{busy=false;}
   });
   return rl;
