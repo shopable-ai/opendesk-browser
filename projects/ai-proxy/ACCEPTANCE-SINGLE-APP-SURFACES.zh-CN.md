@@ -157,3 +157,19 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 3. **针对性未解决的公共阻断**：Reading TOC 包来源校验应由对应 owner 处理；不可降低安全校验制造 CI 通过。可以运行无关模块排除后的 AI Proxy 定向测试，但必须如实标记公共 CI 仍红。订阅联网／凭证／官方服务如缺少权限或后台，不做模拟成功。
 
 **审计说明**：第 5–7 节的 0.3.9 安装／截图／97.45 历史自评，只是 2026-11-09 的原候选证据，不覆盖本节 0.3.12 和 `1459ed6` 新源码；本节尚无真实 95+ 视觉评分证据，不允许拿历史分数充当本轮验收。
+
+## 11. 2026-11-10 · R16/R18 正式包交付续接（0.3.13，尚未晋升）
+
+**原始目标不变**：用户打开已安装 AI Proxy 的 PC `app.html?toolId=ai-proxy&view=settings&section=profiles` 应看到接近唯一 `preview/preview.html` 的 R16 七栏目；真实增删改、配置刷新恢复、与 R18 Side Panel 共用持久化状态，选择／保存／Chrome 已应用严格分离。禁止演示 UI、模拟联网及绕过权限。
+
+**当前增量**：原 R16/R18 业务源码和定向测试已由第 10 节提交，不再重做。2026-11-10 的 `c61b7f7c0eba8453d95cd3a02a8afe361f0f1f3b` 仅同步 `tool.config.json`／`package.json` 的 `0.3.13` 版本，并修复现有 App release 工作流对 `projects/ai-proxy/` 的识别及原 packer 的 `--promote-from`／`--check-project` 调用；App CI 在 AI Proxy 编译成功但公共 Node 门禁失败时继续执行 Chromium，整体 FAIL 保留。本节追加同一正式验收记录，并将 release 所用 Node 固定为 22，符合根 `engines >=22.12.0`。
+
+**实际运行证据**：[App CI #42834234621](https://github.com/shopable-ai/opendesk-browser/actions/runs/42834234621) 构建 `c61b7f7` 源码；0.3.13 候选 `971610` 字节，SHA-256 `a10a2bb413a0db6bf397e938232a1f8146a01219ad27dc8be121d7369911e453`，回执仍为 `BUILT_NOT_TESTED_NOT_RELEASED`。本次与 c61 的 0.3.12 源码同源候选的 `js`／`css` 逐值相同，仅包版本字段不同，未手工替换任何产物。Node 为 **364 PASS／1 FAIL**，失败在公共 `tests/environment/sidebar-tool-enable-r26.test.mjs` 的 Reading TOC `E_OFFICIAL_FIXTURE_PIN`；未修或绕过无关发行 pin。Chrome 155 测试步骤 PASS，报告 `trusted Surface/Host DOM; memory service; no install or real proxy`，涵盖七栏目、弹窗滚动／焦点、草稿保留及内存保存等八项。截屏仅为弹窗，**不是** 1440×900 PC／400×800 Side Panel 全页预览对照；Linux CJK 字形也不足以作为视觉评分证据。
+
+**当前明确未完成**：唯一正式 `ai-proxy.opendesk-tool.json` 仍为先前 0.3.12 发行字节，未执行新版候选晋升／`--check-project`；`app-release.yml` 必须等待同一当前 HEAD 的独立 App CI 必需门禁全部成功，公共 Reading TOC 错误尚阻断发行，不能靠改失败为 PASS。当前 GitHub 连接只支持查验与源码写入，无法直接 workflow_dispatch 或在该仓库 runner 上启动晋升命令。原生真实安装、R16/R18 两视口截图、PC 与 Side Panel 双向持久化及真实代理应用回执，对 0.3.13 仍为 `NOT_TESTED`。
+
+**不可漏的宿主生效边界**：可信 AI Proxy React Surface 是 Browser 预编译代码，`trusted/admission.js` 明确不执行已安装包 HTML／CSS／JS；仅更新工具 JSON 不等于更新浏览器宿主的固定 React UI。正式交付必须核对宿主构建和版本、原位安装身份及已保存配置，不得拿 sandbox／memory Chrome 测试代替已安装页面。
+
+**下一条操作**：由 Reading TOC 对应 owner 独立校正或恢复经审阅来源，安全校验不得降低；在最新 `main` 上重新执行受影响的 App CI，确认 `discover`、`ci-contract`、`app-validate (ai-proxy)` 真正 PASS，取当前 HEAD 绑定的候选 SHA；通过原 `app-release.yml` 的可信审阅触发发行，核对原 `--promote-from` 与 `--check-project`、GitHub 同源提交、唯一安装包；之后在独立 Chrome Profile 更新 Browser+AI Proxy，实测 PC 1440×900 与 Side Panel 400×800，以及刷新、CRUD、ETag、跨 Surface、已应用状态。**本段文档追加会推进 HEAD，c61 CI 候选不可当作新 HEAD 的已批准候选直接晋升**。
+
+**当前结论：`RELEASE_BLOCKED`，不得宣称可安装的 0.3.13 已交付，也不得给出没有最新已安装截图支撑的 95+ 专家分。**

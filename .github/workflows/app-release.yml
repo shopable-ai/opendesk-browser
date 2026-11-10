@@ -37,6 +37,9 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Accept only successful independent App CI from the current main
         id: gate
         shell: bash
