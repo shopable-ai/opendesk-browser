@@ -29,7 +29,13 @@ function render({pendingChanges,activeMode='rules',desiredMode='direct'}){
 }
 test('pending direct selection keeps an explicit Apply entry and never claims Direct is already active',()=>{
  const html=render({pendingChanges:true});
- assert.match(html,/applySelection/);assert.match(html,/sideDirectPendingHint/);
+ // Direct's explicit primary action was renamed to a more specific label.
+ // The saved pending selection still requires the user to click Apply; STOP
+ // remains a distinct action and the runtime continues to show the old route.
+ assert.match(html,/data-testid="side-proxy-toggle"[^>]*title="apApplyDirect"/);
+ assert.match(html,/sideDirectPendingHint/);
+ assert.match(html,/data-testid="side-current-route"[^>]*>popupModeRules</);
+ assert.doesNotMatch(html,/sideDirectAppliedHint/);
  assert.doesNotMatch(html,/sideDirectAppliedHint/);
 });
 test('confirmed unchanged Direct removes the pending Apply entry and shows its confirmed hint',()=>{
