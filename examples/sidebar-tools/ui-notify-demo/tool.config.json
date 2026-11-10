@@ -1,6 +1,6 @@
 {
   "id": "ui-notify-demo",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "title": "通知组件实验室",
   "description": "零额外权限的通知组件实验室：连续添加、三条堆叠、逐条回执、限频倒计时及 Loading 生命周期。",
   "capabilities": [],
