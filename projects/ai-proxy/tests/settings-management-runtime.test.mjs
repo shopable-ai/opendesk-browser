@@ -68,7 +68,7 @@ test('the real PC proxy table distinguishes saved choice, browser-applied identi
  const profile={id:'profile-a',name:'Test proxy A',sourceId:'manual',kind:'endpoint',endpointId:'endpoint-a'};
  const config={...baseConfig,endpoints:[endpoint],profiles:[profile],
   selection:{mode:'profile',profileId:profile.id}};
- const stopped={state:'disabled',control:'controllable_by_this_extension',canStop:false,managedIntent:false,
+ const stopped={state:'disabled',control:'controllable_by_this_extension',canStop:false,desired:config.selection,managedIntent:false,
   applied:false,pendingChanges:true,activeSelection:null,browserMode:'system',proxyError:null};
  const $=render('zh-CN',stopped,{config,route:'#/profiles'});
  assert.equal($('.managementNav button').length,7,'keep the existing seven real management routes');
