@@ -254,6 +254,10 @@ test('trusted automatic notices require same original receipt and distinguish ex
    persistence:'verified',release:'released',delivery:'confirmed'}});
  assert.equal(delivered.phase,'delivered');
  assert.match(delivered.options.message,/回传已确认/);
+ assert.equal(projectTrustedTaskNotice({...incomplete,receipt:{...incomplete.receipt,
+   persistence:'verified',release:'released',delivery:'submitted'}}).phase,'delivery-pending');
+ assert.equal(projectTrustedTaskNotice({...incomplete,receipt:{...incomplete.receipt,
+   persistence:'verified',release:'released',delivery:'unknown'}}).phase,'delivery-unknown');
  const failed=projectTrustedTaskNotice({...view,receipt:{...view.receipt,execution:'failed',
    error:{code:'<script>',message:'page supplied'}}});
  assert.equal(failed.phase,'failed');
