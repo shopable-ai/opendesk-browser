@@ -129,7 +129,7 @@ test('installed ui.notify handle is instance-bound, replay-safe, update-capped a
   assert.equal(f.view.hasToast(original,f.loaded.instance),false);
   assert.equal((await send('dismiss','n-1',15)).reason,'not_found');
   const old=f.view.getSnapshot().toasts.length;
-  assert.equal(send('open','n-1',0,start).reason,'replay');
+  assert.equal((await send('open','n-1',0,start)).reason,'replay');
   assert.equal(f.view.getSnapshot().toasts.length,old);
 });
 

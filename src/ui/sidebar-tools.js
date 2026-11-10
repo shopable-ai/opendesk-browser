@@ -5175,7 +5175,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         retireUntrustedTool();
         notice('当前工具实例已撤销；已保留可复制草稿，请核对后重新打开。',true);return;
       }
-      toolParked=true;render();
+      // The busy sandbox remains mounted, but a parked tool no longer owns
+      // visible notifications. Its business result remains in its own body.
+      clearToolNoticeHandles();toolParked=true;render();
       notice('已返回扩展列表，原工具和未完成操作仍保留。重新打开「'+active.title+'」可继续查看；原操作结束前不能替换或更新。');
       focusToolInList(id);return;
     }
