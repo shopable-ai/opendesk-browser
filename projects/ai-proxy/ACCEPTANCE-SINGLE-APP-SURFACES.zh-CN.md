@@ -130,3 +130,56 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 当前核心范围无已知阻断缺陷。若要production发布，另需冻结production候选并在专属Profile核验；公网出口、原生OS语言菜单、完整类型诊断、全部键盘焦点／尺寸和故障时序仍NOT_TESTED。原本未实现的联网订阅／认证／任意PAC／官方服务按产品后续需求处理，不为本轮制造成功。上述项目未自动开展或建立新GOAL。
 
 本机原始日志、截图、完整五角色输出、源／构建绑定和每步原生读回：`docs/framework/evidence/single-app-surfaces-20261109/`（忽略目录，不强制提交生成物）。入口 `native-result.json`、`result.json`、`reviews.json`、`report.zh-CN.md`、`release-overlay.json`；历史失败／旧评分另保留，不覆盖当前事实。提交的本记录给出可分享的关键结果与哈希。
+
+## 10. 2026-11-10 · R16 PC 视觉续接（未完成安装晋升，历史验收不得复用）
+
+**原始目标**：让正式的已安装 AI Proxy `app.html?toolId=ai-proxy&view=settings&section=profiles` 尽量接近 `preview/preview.html` 的 R16 PC 设置工作台，同时保持 R18 侧栏及实际 Host／Service／SDK／配置 CAS／浏览器权限。优先用户可以打开、识别代理、切换栏目、增删改、刷新后读回；预览的模拟联网、诊断或代理切换不可冒充真实成功。
+
+本轮从 `main` 的 `d655c54caa44b15cf8ad6fe2775ab85871d8a6cf` 开始直接检查并修改原正式工程，绝不新建框架、App 或预览。**正式路由仍为 `profiles`**（预览使用 `proxies`），未破坏 Host 初始页面参数或深链接。
+
+| 文件 | 实际已提交的改变 |
+| --- | --- |
+| `src/Settings.tsx` | PC 初始加载、七区导航标题、代理空状态；代理行区分配置已选择与 Chrome 回执已应用；Side Panel 保留原图标与编辑能力 |
+| `src/styles/management.css` | 仅 `.proxy-management` 下复用现有 token 的 R16 PC 色板，以及顶栏／状态栏／导航／标题／模式按钮／列表密度／记录操作和840px／560px响应式 |
+| `src/ui/useProxy.ts` | 前台聚焦和可见性恢复只读 GET_STATE；有未保存草稿或正在写入时不自动读取，且卸载清理监听，绝不自动重放 APPLY／STOP |
+| `tests/settings-management-runtime.test.mjs` | SSR 验证真实七区导航、已选／已应用状态、空列表、初始加载，不通过静态样式字符串冒充截图 |
+| `tests/use-proxy-errors.test.mjs` | 挂载、前台恢复、草稿保护、不执行写请求、卸载清理回归 |
+| `tests/quick-panel-runtime.test.mjs` | 修正历史陈旧断言：明确「Direct 应用」按钮真实标签 `apApplyDirect`，而非旧 `applySelection`；实际原浏览器路由仍保留 |
+
+已提交主分支（按时间顺序）：`ac77b0c`、`e2c2380`、`a0c5e00`、`ade9125`、`560c10b`、`d141b8d`、`4325341`、`9a27319`、`1459ed6`、`567c3e5`。后续若其他 Agent 更新 main，先重新读取当前 HEAD 与变更文件。
+
+**实际 CI**（截至 1459ed6，567c3e5 的 PC token 微调需要另行回归）：`https://github.com/shopable-ai/opendesk-browser/actions/runs/42827857011`，被测源码提交 `1459ed677af7a5b070abd34d7ee5490cef4a14d0`。原 App CI 已执行并成功完成 Vite 编译和未晋升 candidate 打包（版本 0.3.12，971470 bytes，SHA-256 `68ca9613756f1e920305f3aa7e27e3dbfcc3268b6ce00fd56340549b75deefa6`）。合并运行 Node 测试 **364 PASS／1 FAIL**；唯一失败是既存公共 Reading TOC `E_OFFICIAL_FIXTURE_PIN` 与 AI Proxy 本次变更无直接关系。CI 因此未执行其后续 Chromium UI／真实安装步骤，不能标为 Chrome PASS。公共 ci-contract 也因公共门禁报 FAIL，未经本次修复。
+
+**未完成与下一步**：
+
+1. **源码已提交但正式安装包尚未晋升**：原唯一 `ai-proxy.opendesk-tool.json` 仍是旧版本 0.3.12 正式字节，不能宣称已安装的 app.html 已更新。不得手动粘贴 `js`／`css` 覆盖 JSON；按 `AGENTS.md` 和唯一原 packer 的 `--promote-from`／`--check-project` 完成来源逐字节核对后再晋升及原位更新安装。
+2. **视觉／真实交互未验证**：用真正已安装 App 的 PC 1440×900 和 Side Panel 400×800 与预览应用区域同视口截图比较，覆盖标题、七区导航、按钮、代理表格、编辑／删除确认、空／加载／错误、滚动；真实 Chrome 代理状态不等于仅选择配置。未有正式截图和原生回执前标记 `NOT_TESTED`。
+3. **针对性未解决的公共阻断**：Reading TOC 包来源校验应由对应 owner 处理；不可降低安全校验制造 CI 通过。可以运行无关模块排除后的 AI Proxy 定向测试，但必须如实标记公共 CI 仍红。订阅联网／凭证／官方服务如缺少权限或后台，不做模拟成功。
+
+**审计说明**：第 5–7 节的 0.3.9 安装／截图／97.45 历史自评，只是 2026-11-09 的原候选证据，不覆盖本节 0.3.12 和 `1459ed6` 新源码；本节尚无真实 95+ 视觉评分证据，不允许拿历史分数充当本轮验收。
+
+## 11. 2026-11-10 · R16/R18 正式包交付续接（0.3.13，尚未晋升）
+
+**原始目标不变**：用户打开已安装 AI Proxy 的 PC `app.html?toolId=ai-proxy&view=settings&section=profiles` 应看到接近唯一 `preview/preview.html` 的 R16 七栏目；真实增删改、配置刷新恢复、与 R18 Side Panel 共用持久化状态，选择／保存／Chrome 已应用严格分离。禁止演示 UI、模拟联网及绕过权限。
+
+**当前增量**：原 R16/R18 业务源码和定向测试已由第 10 节提交，不再重做。2026-11-10 的 `c61b7f7c0eba8453d95cd3a02a8afe361f0f1f3b` 仅同步 `tool.config.json`／`package.json` 的 `0.3.13` 版本，并修复现有 App release 工作流对 `projects/ai-proxy/` 的识别及原 packer 的 `--promote-from`／`--check-project` 调用；App CI 在 AI Proxy 编译成功但公共 Node 门禁失败时继续执行 Chromium，整体 FAIL 保留。本节追加同一正式验收记录，并将 release 所用 Node 固定为 22，符合根 `engines >=22.12.0`。
+
+**实际运行证据**：[App CI #42834234621](https://github.com/shopable-ai/opendesk-browser/actions/runs/42834234621) 构建 `c61b7f7` 源码；0.3.13 候选 `971610` 字节，SHA-256 `a10a2bb413a0db6bf397e938232a1f8146a01219ad27dc8be121d7369911e453`，回执仍为 `BUILT_NOT_TESTED_NOT_RELEASED`。本次与 c61 的 0.3.12 源码同源候选的 `js`／`css` 逐值相同，仅包版本字段不同，未手工替换任何产物。Node 为 **364 PASS／1 FAIL**，失败在公共 `tests/environment/sidebar-tool-enable-r26.test.mjs` 的 Reading TOC `E_OFFICIAL_FIXTURE_PIN`；未修或绕过无关发行 pin。Chrome 155 测试步骤 PASS，报告 `trusted Surface/Host DOM; memory service; no install or real proxy`，涵盖七栏目、弹窗滚动／焦点、草稿保留及内存保存等八项。截屏仅为弹窗，**不是** 1440×900 PC／400×800 Side Panel 全页预览对照；Linux CJK 字形也不足以作为视觉评分证据。
+
+**当前明确未完成**：唯一正式 `ai-proxy.opendesk-tool.json` 仍为先前 0.3.12 发行字节，未执行新版候选晋升／`--check-project`；`app-release.yml` 必须等待同一当前 HEAD 的独立 App CI 必需门禁全部成功，公共 Reading TOC 错误尚阻断发行，不能靠改失败为 PASS。当前 GitHub 连接只支持查验与源码写入，无法直接 workflow_dispatch 或在该仓库 runner 上启动晋升命令。原生真实安装、R16/R18 两视口截图、PC 与 Side Panel 双向持久化及真实代理应用回执，对 0.3.13 仍为 `NOT_TESTED`。
+
+**不可漏的宿主生效边界**：可信 AI Proxy React Surface 是 Browser 预编译代码，`trusted/admission.js` 明确不执行已安装包 HTML／CSS／JS；仅更新工具 JSON 不等于更新浏览器宿主的固定 React UI。正式交付必须核对宿主构建和版本、原位安装身份及已保存配置，不得拿 sandbox／memory Chrome 测试代替已安装页面。
+
+**下一条操作**：由 Reading TOC 对应 owner 独立校正或恢复经审阅来源，安全校验不得降低；在最新 `main` 上重新执行受影响的 App CI，确认 `discover`、`ci-contract`、`app-validate (ai-proxy)` 真正 PASS，取当前 HEAD 绑定的候选 SHA；通过原 `app-release.yml` 的可信审阅触发发行，核对原 `--promote-from` 与 `--check-project`、GitHub 同源提交、唯一安装包；之后在独立 Chrome Profile 更新 Browser+AI Proxy，实测 PC 1440×900 与 Side Panel 400×800，以及刷新、CRUD、ETag、跨 Surface、已应用状态。**本段文档追加会推进 HEAD，c61 CI 候选不可当作新 HEAD 的已批准候选直接晋升**。
+
+**当前结论：`RELEASE_BLOCKED`，不得宣称可安装的 0.3.13 已交付，也不得给出没有最新已安装截图支撑的 95+ 专家分。**
+
+## 12. 2026-11-11 · App CI 双失败同源排查与最小夹具修复（待验证）
+
+**业务目标仍为 R16/R18 真实安装交付，未提前宣称发行成功。** 截至修改前，`main` 为 `b3a25bc94a7946f5bd1a876291bfac33c44af982`；App CI [#42836394482](https://github.com/shopable-ai/opendesk-browser/actions/runs/42836394482) 的 `app-validate (ai-proxy)` 中 364 PASS／1 FAIL，失败精确为 `tests/environment/sidebar-tool-enable-r26.test.mjs` 调用 `officialToolFixture('reading-toc')` 抛出 `E_OFFICIAL_FIXTURE_PIN`。同时 `ci-contract` 的普通 App 夹具在 `node` 子命令断言失败；它复用相同 R26 BASE_TESTS，是否同源仍待新 CI 独立证实。原 AI Proxy Chromium 内存界面测试 PASS，非原生安装。
+
+**根因与安全边界**：测试帮助函数原本把当前 `projects/reading-toc/reading-toc.opendesk-tool.json` 当作旧官方 pin 的包：当前文件为 `1.1.5`／`page.module`，旧安全 pin `src/sidebar-tools/official-reading-toc.js` 则为 `1.0.15`／`page.toc`，哈希 `b0a745af3c1741752e1c71a2f18076492cb3757a92e215f8a61bd11dd2f7b7f3`。从不可变历史提交 [`7c16570799a9`](https://github.com/shopable-ai/opendesk-browser/commit/7c16570799a9293e5aa2f05191df2b058fa6f2cb) 提取旧正式 JSON 并验证其原始 UTF-8 SHA-256 **恰好等于旧 pin**；新增 `tests/fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json` 作为只读历史夹具，`tests/helpers/official-tools.mjs` 仅读取此测试文件，仍执行原 `validateSidebarToolPackage`、版本、能力和 `sidebarToolPackageHash` 精确校验。生产 pin、Reading TOC 当前包、安装器、安全断言、CI 成功标准均未修改。保留历史包不表示将旧包作为新正式发布。
+
+**下一道真相门禁**：必须读取本变更提交 SHA 对应的 GitHub App CI 实际运行结果，确保 `discover`、`ci-contract`、`app-validate (ai-proxy)` 全部 PASS；失败则继续只修复新发现的准确原因，绝不晋升包。独立 App Release 必须核对同 HEAD 来源与候选 SHA 才能将 AI Proxy `0.3.13` 通过原 packer 晋升。完成后仍需真实 Chrome Host+Tool 原位更新、R16/R18 两视口截图、PC/Side Panel 持久化与 Chrome 实际状态验收。**此处只记修复，不声称 CI／安装／截图已经通过。**
+
+**首轮修复后的真实 CI 反馈与第二层纠偏**：[#42853577453](https://github.com/shopable-ai/opendesk-browser/actions/runs/42853577453) 的 `app-validate (ai-proxy)` 不再出现 `E_OFFICIAL_FIXTURE_PIN`，改为 R26 旧断言 `Missing expected rejection`：当前安装器已允许**明确审阅后的本地导入**复用工具 ID，但无审阅仍应 `E_REVIEW_REQUIRED`，伪造官方市场来源仍必须 `E_OFFICIAL_ID_RESERVED`。因此只更新 `tests/environment/sidebar-tool-enable-r26.test.mjs` 中这两条真实拒绝边界，继续对正确的历史正式包执行严格 SHA 与 provenance 校验；没有改安装器、安全 pin、默认权限、测试通过判定。公共 `ci-contract` 的子进程原仅显示退出码，本次将其原断言的失败信息补充为真实 stdout／stderr，失败仍严格非零。**这只是下一次 CI 的待检验修复，不是通过声明。**

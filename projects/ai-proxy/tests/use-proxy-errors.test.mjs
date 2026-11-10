@@ -17,6 +17,21 @@ async function fixture() {
   const slots = [], effects = [], calls = [];
   let cursor = 0, locale = 'zh-CN', listener, unmounted = false, lateWrites = 0, unsubscribed = 0;
   let request = async () => success({ revision: 1 });
+  let dirty = false;
+  const eventTarget = () => {
+    const listeners = new Map();
+    return {
+      addEventListener(type, fn) {
+        if (!listeners.has(type)) listeners.set(type,new Set());
+        listeners.get(type).add(fn);
+      },
+      removeEventListener(type, fn) { listeners.get(type)?.delete(fn); },
+      dispatch(type) { for(const fn of [...(listeners.get(type)??[])]) fn(); },
+      listenerCount(type) { return listeners.get(type)?.size??0; }
+    };
+  };
+  const testWindow = eventTarget();
+  const testDocument = {...eventTarget(),visibilityState:'visible'};
   const react = {
     useState(initial) {
       const index = cursor++;
@@ -32,11 +47,12 @@ async function fixture() {
   };
   const env = {
     request(message) { calls.push(message.type); return request(message); },
-    service: { subscribe(fn) { listener = fn; return () => { listener = null; unsubscribed++; }; } }
+    service: { subscribe(fn) { listener = fn; return () => { listener = null; unsubscribed++; }; } },
+    hasDrafts() { return dirty; }
   };
   const module = { exports: {} };
   runInNewContext(bundle.outputFiles[0].text, {
-    exports: module.exports, module, Error,
+    exports: module.exports, module, Error, window:testWindow, document:testDocument,
     require(name) {
       if (name === 'react') return react;
       if (name === '../environment') return { getEnvironment: () => env };
@@ -50,6 +66,10 @@ async function fixture() {
   await tick();
   return {
     render, calls, setLocale(value) { locale = value; },
+    setDraft(value) { dirty = value; },
+    focus() { testWindow.dispatch('focus'); return tick(); },
+    visibility(value) { testDocument.visibilityState=value;testDocument.dispatch('visibilitychange');return tick(); },
+    get resumeListeners() { return testWindow.listenerCount('focus')+testDocument.listenerCount('visibilitychange'); },
     respond(fn) { request = fn; },
     async notify() { listener?.(); await tick(); },
     unmount() { unmounted = true; cleanups.forEach(cleanup => cleanup?.()); },
@@ -217,4 +237,31 @@ test('editing a resolved local validation clears only that key, retaining backen
   f.render().clearErrorKey('apRuleAlreadyExists');
   assert.equal(f.render().error, backend);
   f.unmount();
+});
+
+test('a reopened Side Panel or PC page refreshes shared saved configuration without replaying proxy effects or overwriting drafts',async()=>{
+  const f=await fixture();
+  assert.equal(f.render().state.revision,1);
+  assert.equal(f.resumeListeners,2);
+  f.respond(async message=>{
+    assert.equal(message.type,'GET_STATE','resume is read-only; no APPLY/STOP or save');
+    return success({revision:2});
+  });
+  await f.focus();
+  assert.equal(f.render().state.revision,2);
+  const readCount=f.calls.length;
+  f.setDraft(true);
+  await f.focus();
+  await f.visibility('visible');
+  assert.equal(f.calls.length,readCount,'an unsaved draft cannot be silently rebased');
+  f.setDraft(false);
+  await f.visibility('hidden');
+  assert.equal(f.calls.length,readCount,'hidden surfaces do not launch refresh');
+  await f.visibility('visible');
+  assert.equal(f.render().state.revision,2);
+  assert.equal(f.calls.length,readCount+1);
+  f.unmount();
+  assert.equal(f.resumeListeners,0,'visibility and focus listeners clean up with the surface');
+  await f.focus();
+  assert.equal(f.calls.length,readCount+1);
 });

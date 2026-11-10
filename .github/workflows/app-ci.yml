@@ -134,16 +134,19 @@ jobs:
           node scripts/build-cookie-editor-react.mjs
           npm --prefix projects/ai-vip-share run build
       - name: Compile App and build a source-identical, unpromoted candidate
+        id: compile
         run: node scripts/app-ci.mjs build "${{ matrix.app }}"
       - name: Existing shared install/update/disable/uninstall and App-owned tests
         run: node scripts/app-ci.mjs node "${{ matrix.app }}"
       - uses: browser-actions/setup-chrome@v2
-        if: steps.profile.outputs.chrome == 'true'
+        # AI Proxy still collects Chromium evidence when an unrelated shared
+        # Node gate fails; the job remains failed and cannot be released.
+        if: steps.profile.outputs.chrome == 'true' && steps.compile.outcome == 'success' && (success() || (failure() && matrix.app == 'ai-proxy'))
         id: chrome
         with:
           chrome-version: '155.0.8059.39'
       - name: Real Chromium UI and page behavior; not native Chrome DNR approval
-        if: steps.profile.outputs.chrome == 'true'
+        if: steps.profile.outputs.chrome == 'true' && steps.compile.outcome == 'success' && steps.chrome.outcome == 'success' && (success() || (failure() && matrix.app == 'ai-proxy'))
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: xvfb-run -a node scripts/app-ci.mjs browser "${{ matrix.app }}"

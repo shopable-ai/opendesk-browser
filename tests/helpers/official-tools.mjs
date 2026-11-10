@@ -8,9 +8,11 @@ let fixture;
 export const officialFixtures=()=>fixture||(fixture=createOfficialToolResources());
 export async function officialToolFixture(id){
   if(id==='reading-toc'){
-    // Use the committed official package and its production digest gate.
-    // Other tools' unbuilt dist must not affect Reading TOC evidence checks.
-    const bytes=await readFile(new URL('../../projects/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
+    // Exercise the exact reviewed legacy page.toc release, not the current
+    // page.module build (1.1.x). Never re-pin a different capability model.
+    // The historical bytes were taken from immutable commit 7c16570799a9293e5aa2f05191df2b058fa6f2cb
+    // and are still checked against the unchanged production SHA-256 pin.
+    const bytes=await readFile(new URL('../fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json',import.meta.url));
     const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
     const pin=OFFICIAL_READING_TOC_RELEASE;
     if(tool.id!==pin.id||tool.version!==pin.version||await sidebarToolPackageHash(tool)!==pin.sha256)

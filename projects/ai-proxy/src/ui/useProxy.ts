@@ -34,7 +34,26 @@ export function useProxy(){
    if(alive.current)setErrorState(previous=>previous?.source==='backend'&&previous.operation?previous:{source:'backend',message,code:errorCodeOf(message)});
   }
  },[env]);
- useEffect(()=>{alive.current=true;void refresh();const off=env.service.subscribe(()=>void refresh());return()=>{alive.current=false;off?.();};},[refresh]);
+ // Both installed surfaces read the same CAS-protected configuration. Resume a
+ // backgrounded surface with a fresh GET_STATE, without rebasing unsaved drafts
+ // or replaying APPLY/STOP (those require an explicit trusted user gesture).
+ useEffect(()=>{
+  alive.current=true;
+  void refresh();
+  const off=env.service.subscribe(()=>void refresh());
+  const resume=()=>{
+   if(typeof document!=='undefined'&&document.visibilityState==='hidden')return;
+   if(lock.current||env.hasDrafts?.())return;
+   void refresh();
+  };
+  if(typeof window!=='undefined')window.addEventListener('focus',resume);
+  if(typeof document!=='undefined')document.addEventListener('visibilitychange',resume);
+  return()=>{
+   alive.current=false;off?.();
+   if(typeof window!=='undefined')window.removeEventListener('focus',resume);
+   if(typeof document!=='undefined')document.removeEventListener('visibilitychange',resume);
+  };
+ },[env,refresh]);
  const act=useCallback(async(message:any)=>{
   if(lock.current)return null;
   lock.current=true;setBusy(true);
