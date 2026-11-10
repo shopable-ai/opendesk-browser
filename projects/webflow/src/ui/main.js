@@ -370,6 +370,9 @@
     const failObservation=(id,pin,epoch,e)=>{
       if(!current(id,epoch))return;
       forgetResult(id);setActive({clientRequestId:id,taskId:pin.taskId,state:'unknown'});
+      // A failed trusted read invalidates the old optimistic toast; it does not prove a failed Run.
+      if(localCancellation.current?.clientRequestId!==id)
+        taskNotices.current?.publish(id,{clientRequestId:id,taskId:pin.taskId,state:'unknown',semantic:'UNKNOWN'},pin);
       setNotice('');
       setError('原请求未确认：'+safeError(e)+'。请查询或停止原步骤，不能新建请求补跑。');
     };
