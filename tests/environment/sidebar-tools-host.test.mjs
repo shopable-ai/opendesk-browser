@@ -90,40 +90,44 @@ test('installed ui.notify typed feedback is still sender-bound, bounded and pres
 test('installed ui.notify handle is instance-bound, replay-safe, update-capped and closable',async t=>{
   const f=await hostFixture(t),sent=f.frame.contentWindow.sent;
   let request=0;
-  const send=(command,handleId,revision,payload,options={})=>{
+  const send=async(command,handleId,revision,payload,options={})=>{
     const requestId='n'+(++request);
     const data={protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
       toolId:sample.id,command,handleId,revision,requestId,
       ...(command==='dismiss'?{}:{payload})};
-    if(options.source||options.origin)
+    if(options.source||options.origin){
       f.win.emit('message',{origin:options.origin||'null',
         source:options.source||f.frame.contentWindow,data});
-    else f.frame.contentWindow.ports[0].postMessage(data);
+      // A same-frame window message must never create an acknowledged handle.
+      return undefined;
+    }
+    f.frame.contentWindow.ports[0].postMessage(data);
+    await settle(()=>sent.some(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId));
     return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
   };
   const start={message:'任务执行中',type:'info',timeout:0};
-  assert.equal(send('open','n-1',0,start,{source:{}}),undefined);
-  assert.equal(send('open','n-1',0,start,{source:f.frame.contentWindow}),undefined,
+  assert.equal(await send('open','n-1',0,start,{source:{}}),undefined);
+  assert.equal(await send('open','n-1',0,start,{source:f.frame.contentWindow}),undefined,
     'tool-owned window postMessage must not impersonate the private Bridge port');
   assert.equal(f.view.getSnapshot().toasts.length,0);
-  assert.equal(send('open','n-1',0,start).status,'accepted');
+  assert.equal((await send('open','n-1',0,start)).status,'accepted');
   const original=f.view.getSnapshot().toast.id;
   assert.equal(f.view.getSnapshot().toast.timeout,0);
-  assert.equal(send('open','n-1',0,start).reason,'replay');
-  assert.equal(send('update','n-2',1,{message:'跨句柄伪造'}).reason,'not_found');
-  assert.equal(send('update','n-1',1,{message:'禁止 HTML',html:'<b>x</b>'}).reason,'invalid_payload');
-  assert.equal(send('update','n-1',1,{message:'重放已消耗序号'}).reason,'replay');
+  assert.equal((await send('open','n-1',0,start)).reason,'replay');
+  assert.equal((await send('update','n-2',1,{message:'跨句柄伪造'})).reason,'not_found');
+  assert.equal((await send('update','n-1',1,{message:'禁止 HTML',html:'<b>x</b>'})).reason,'invalid_payload');
+  assert.equal((await send('update','n-1',1,{message:'重放已消耗序号'})).reason,'replay');
   for(let revision=2;revision<=13;revision++){
-    const reply=send('update','n-1',revision,{
+    const reply=await send('update','n-1',revision,{
       message:'阶段 '+revision,type:revision===13?'success':'info',timeout:0});
     assert.equal(reply.status,'accepted');
     assert.equal(f.view.getSnapshot().toast.id,original);
   }
-  assert.equal(send('update','n-1',14,{message:'超过次数',type:'error'}).reason,'update_limit');
-  assert.equal(send('update','n-1',14,{message:'重放超限'}).reason,'replay');
-  assert.equal(send('dismiss','n-1',15).status,'accepted');
+  assert.equal((await send('update','n-1',14,{message:'超过次数',type:'error'})).reason,'update_limit');
+  assert.equal((await send('update','n-1',14,{message:'重放超限'})).reason,'replay');
+  assert.equal((await send('dismiss','n-1',15)).status,'accepted');
   assert.equal(f.view.hasToast(original,f.loaded.instance),false);
-  assert.equal(send('dismiss','n-1',15).reason,'not_found');
+  assert.equal((await send('dismiss','n-1',15)).reason,'not_found');
   const old=f.view.getSnapshot().toasts.length;
   assert.equal(send('open','n-1',0,start).reason,'replay');
   assert.equal(f.view.getSnapshot().toasts.length,old);
@@ -131,17 +135,18 @@ test('installed ui.notify handle is instance-bound, replay-safe, update-capped a
 
 test('installed ui.notify handles share the three-per-minute budget and close with the tool',async t=>{
   const f=await hostFixture(t),sent=f.frame.contentWindow.sent;
-  const post=(index,change={})=>{
+  const post=async(index,change={})=>{
     const requestId='n'+index;
     f.frame.contentWindow.ports[0].postMessage({
       protocol:f.loaded.protocol,kind:'ui-notify-handle',instance:f.loaded.instance,
       toolId:sample.id,command:'open',handleId:'n-'+index,revision:0,
       requestId,payload:{message:'任务 '+index,type:'info',timeout:0},...change});
+    await settle(()=>sent.some(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId));
     return sent.find(row=>row.kind==='ui-notify-receipt'&&row.requestId===requestId);
   };
   f.view.showToast('可信宿主保留',{type:'info'});
-  for(let i=1;i<=3;i++)assert.equal(post(i).status,'accepted');
-  const fourth=post(4);
+  for(let i=1;i<=3;i++)assert.equal((await post(i)).status,'accepted');
+  const fourth=await post(4);
   assert.equal(fourth.status,'rejected');
   assert.equal(fourth.reason,'rate_limited');
   assert(fourth.retryAfterMs>0&&fourth.retryAfterMs<=60000);
@@ -191,9 +196,12 @@ test('installed ui.notify Bridge receives only parent receipt and retains old bo
   assert.equal(sdk.ui.notify('旧版消息'),true);
   const handle=sdk.ui.notify.open({message:'准备处理',timeout:0});
   assert(handle);
-  const relay=kind=>{
+  const relay=async kind=>{
+    await settle(()=>sent.some(row=>row.kind==='ui-notify-handle'&&row.command===kind));
     const command=sent.filter(row=>row.kind==='ui-notify-handle'&&row.command===kind).at(-1);
-    assert(command,'Bridge must issue the requested command to its original parent');
+    assert(command,'Bridge must issue the requested command to its original private port');
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='ui-notify-receipt'&&
+      row.requestId===command.requestId));
     const receipt=f.frame.contentWindow.sent.find(row=>row.kind==='ui-notify-receipt'&&
       row.requestId===command.requestId);
     assert(receipt,'Host must produce a matching trusted receipt');
@@ -201,14 +209,14 @@ test('installed ui.notify Bridge receives only parent receipt and retains old bo
     sandboxWindow.emit('message',{source:parent,data:receipt});
     return receipt;
   };
-  relay('open');
+  await relay('open');
   assert.equal((await handle.ready).status,'accepted');
   const pending=handle.update({message:'真实业务结束后才更新',type:'success',timeout:3000});
   await settle(()=>sent.some(row=>row.command==='update'&&row.kind==='ui-notify-handle'));
-  relay('update');assert.equal((await pending).status,'accepted');
+  await relay('update');assert.equal((await pending).status,'accepted');
   const closing=handle.dismiss();
   await settle(()=>sent.some(row=>row.command==='dismiss'&&row.kind==='ui-notify-handle'));
-  relay('dismiss');assert.equal((await closing).status,'accepted');
+  await relay('dismiss');assert.equal((await closing).status,'accepted');
   assert.equal((await handle.update({message:'不能复活'})).reason,'inactive');
 });
 const confirmOptions={title:'删除便签？',message:'删除后无法恢复。',confirmLabel:'删除',tone:'danger'};
