@@ -4,16 +4,17 @@
 export const MD_RUN_FORMAT = 'opendesk.webflow.md-run.v1';
 const HEX = /^[0-9a-f]{64}$/u;
 const ID = /^[A-Za-z0-9._:-]{8,128}$/u;
-const PHASES = ['WAITING','CLAIMED','CREATE_INTENT','CREATED','READY','SEND_INTENT',
-  'AWAIT_REPLY','REPLIED','ACCEPTED','WRITE_INTENT','SAVED','COMPLETED','UNKNOWN','FAILED'];
+// The published 0.2.0 Task creates the permanent /c/ URL ONLY AFTER
+// its one native Send. A pre-send CREATED/READY state would be fictitious.
+const PHASES = ['WAITING','CLAIMED','CREATE_INTENT','AWAIT_REPLY','REPLIED',
+  'ACCEPTED','WRITE_INTENT','SAVED','COMPLETED','UNKNOWN','FAILED'];
 const SPEC = Object.freeze({
   pause: [], resume: [], claim: ['claimRef'],
-  'create-intent': ['operationRef'],
-  'conversation-created': ['operationRef','conversationId','conversationUrl','documentRef','accountId'],
-  'listener-ready': ['conversationId','documentRef','accountId'],
-  'send-intent': ['operationRef','authorizationRef'],
-  'message-sent': ['operationRef','conversationId','userMessageRef'],
-  'reply-complete': ['conversationId','userMessageRef','assistantMessageRef','replyRef','text','contentSha256'],
+  'create-intent': ['operationRef','authorizationRef','installationId','generation',
+    'manifestHash','contentHash','promptSha256'],
+  'task-admitted': ['operationRef','taskRunId'],
+  'reply-complete': ['operationRef','taskRunId','conversationId','conversationUrl',
+    'documentRef','accountId','userMessageRef','assistantMessageRef','replyRef','text','contentSha256'],
   accept: [], 'write-intent': ['operationRef','artifactRef'],
   'artifact-saved': ['operationRef','artifactRef','storageVersion','contentSha256'],
   'artifact-readback': ['artifactRef','storageVersion','contentSha256','text'],
@@ -100,15 +101,10 @@ export function createMdRunRecord(input){
     artifactScopeRef:input.artifactScopeRef,marker:input.marker,
     createdAt:input.createdAt,updatedAt:input.createdAt,revision:0,paused:false,
     steps:['T01','T02'].map(taskId=>({taskId,phase:'WAITING',claimRef:null,
-      createOperationRef:null,conversation:null,listenerReady:false,
-      sendOperationRef:null,userMessageRef:null,reply:null,accepted:null,
+      createOperationRef:null,taskPin:null,taskRunId:null,conversation:null,
+      userMessageRef:null,reply:null,accepted:null,
       writeOperationRef:null,artifactRef:null,storageVersion:null,
       saved:null,readback:null,errorCode:null}))});
-}
-function checkConversation(run,step,conversationId,documentRef,accountId){
-  identifier(conversationId);identifier(documentRef);identifier(accountId);
-  need(accountId===run.account.accountId&&step.conversation?.conversationId===conversationId&&
-    step.conversation?.documentRef===documentRef,'E_MD_IDENTITY');
 }
 // A state transition must be committed by the original trusted durable ledger.
 // A revision check is NOT a cross-tab atomic lock or an execution permit.
@@ -135,36 +131,47 @@ export async function applyMdRunEvent(current,event,{digest}={}){
         additional();state(['WAITING']);value(event.claimRef);
         need(index===0||run.steps[0].phase==='COMPLETED','E_MD_DEPENDENCY');
         step.claimRef=event.claimRef;step.phase='CLAIMED';break;
-      case 'create-intent':
-        additional();state(['CLAIMED']);step.createOperationRef=value(event.operationRef);
+      case 'create-intent': {
+        additional();state(['CLAIMED']);
+        value(event.operationRef);value(event.authorizationRef);value(event.installationId);
+        need(event.authorizationRef===run.authorizationRef,'E_MD_AUTH');
+        need(Number.isSafeInteger(event.generation)&&event.generation>0,'E_MD_RUN_SCHEMA');
+        sha(event.manifestHash);sha(event.contentHash);sha(event.promptSha256);
+        step.createOperationRef=event.operationRef;
+        step.taskPin={installationId:event.installationId,generation:event.generation,
+          manifestHash:event.manifestHash,contentHash:event.contentHash,
+          promptSha256:event.promptSha256};
         step.phase='CREATE_INTENT';break;
-      case 'conversation-created':{
-        state(['CREATE_INTENT']);need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
+      }
+      case 'task-admitted': {
+        state(['CREATE_INTENT']);
+        need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
+        step.taskRunId=value(event.taskRunId);step.phase='AWAIT_REPLY';break;
+      }
+      case 'reply-complete': {
+        // The original Controller may commit a durable result even if its
+        // dispatch ACK is lost. Reconcile that same operation, never resubmit.
+        state(['CREATE_INTENT','AWAIT_REPLY']);
+        need(event.operationRef===step.createOperationRef,'E_MD_IDENTITY');
+        value(event.taskRunId);
+        need(!step.taskRunId||step.taskRunId===event.taskRunId,'E_MD_IDENTITY');
         value(event.conversationId);value(event.documentRef);value(event.accountId);
+        value(event.userMessageRef);value(event.assistantMessageRef);value(event.replyRef);
+        need(event.userMessageRef!==event.assistantMessageRef,'E_MD_IDENTITY');
         need(event.accountId===run.account.accountId,'E_MD_IDENTITY');
         let url;try{url=new URL(event.conversationUrl);}catch{fail('E_MD_IDENTITY');}
-        need(url.origin===run.account.origin&&!url.search&&!url.hash&&
-          url.pathname==='/c/'+event.conversationId,'E_MD_IDENTITY');
-        need(!run.steps.some(s=>s.conversation?.conversationId===event.conversationId),'E_MD_IDENTITY');
-        step.conversation={conversationId:event.conversationId,conversationUrl:url.href,
-          documentRef:event.documentRef,accountId:event.accountId};step.phase='CREATED';break;
-      }
-      case 'listener-ready':
-        state(['CREATED']);checkConversation(run,step,event.conversationId,event.documentRef,event.accountId);
-        step.listenerReady=true;step.phase='READY';break;
-      case 'send-intent':
-        additional();state(['READY']);value(event.operationRef);
-        need(step.listenerReady&&event.authorizationRef===run.authorizationRef,'E_MD_AUTH');
-        step.sendOperationRef=event.operationRef;step.phase='SEND_INTENT';break;
-      case 'message-sent':
-        state(['SEND_INTENT']);need(event.operationRef===step.sendOperationRef&&
-          event.conversationId===step.conversation.conversationId,'E_MD_IDENTITY');
-        step.userMessageRef=value(event.userMessageRef);step.phase='AWAIT_REPLY';break;
-      case 'reply-complete':{
-        state(['AWAIT_REPLY']);need(event.conversationId===step.conversation.conversationId&&
-          event.userMessageRef===step.userMessageRef,'E_MD_IDENTITY');
-        value(event.assistantMessageRef);value(event.replyRef);sha(event.contentSha256);
+        need(url.origin===run.account.origin&&!url.search&&!url.hash&&!url.username&&!url.password&&
+          url.pathname==='/c/'+event.conversationId&&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(event.conversationId),
+          'E_MD_IDENTITY');
+        need(!run.steps.some(s=>s.conversation?.conversationId===event.conversationId),
+          'E_MD_IDENTITY');
+        sha(event.contentSha256);
         need(await digestText(event.text,digest)===event.contentSha256,'E_MD_INTEGRITY');
+        step.taskRunId=event.taskRunId;
+        step.conversation={conversationId:event.conversationId,conversationUrl:url.href,
+          documentRef:event.documentRef,accountId:event.accountId};
+        step.userMessageRef=event.userMessageRef;
         step.reply={assistantMessageRef:event.assistantMessageRef,replyRef:event.replyRef,
           text:event.text,contentSha256:event.contentSha256};step.phase='REPLIED';break;
       }
@@ -217,8 +224,7 @@ export function nextMdRunAction(run){
   if(run.paused)return {action:'PAUSED'};
   const s=run.steps.find(row=>row.phase!=='COMPLETED');
   const actions={WAITING:'CLAIM_WITH_TRUSTED_LEDGER',CLAIMED:'RECORD_CREATE_INTENT',
-    CREATE_INTENT:'QUERY_ORIGINAL_CREATE',CREATED:'VERIFY_LISTENER',READY:'RECORD_SEND_INTENT',
-    SEND_INTENT:'QUERY_ORIGINAL_SEND',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
+    CREATE_INTENT:'QUERY_ORIGINAL_TASK',AWAIT_REPLY:'QUERY_ORIGINAL_REPLY',
     REPLIED:'VERIFY_REPLY',ACCEPTED:'RECORD_ARTIFACT_WRITE_INTENT',
     WRITE_INTENT:'QUERY_ORIGINAL_WRITE',SAVED:'READBACK_ORIGINAL_ARTIFACT'};
   need(actions[s.phase]);
@@ -234,4 +240,20 @@ export function mdTaskInput(run,taskId){
     first.readback.text===first.saved.text,'E_MD_DEPENDENCY');
   return freeze({...context,upstreamArtifactJson:first.readback.text,
     multiplier:spec(run.workflow).multiplier});
+}
+
+// The trusted Host hashes this EXACT prompt before recording create-intent.
+// No expected sum/doubled answer is ever injected into either model prompt.
+export function mdTaskPrompt(run,taskId){
+  const data=mdTaskInput(run,taskId);
+  const rows=['总目标：'+data.goal,'任务 '+taskId+'：'+data.task];
+  if(taskId==='T01')rows.push('输入：'+JSON.stringify(data.numbers));
+  else rows.push('已保存且独立读回的 T01 完整 JSON 正文：',data.upstreamArtifactJson,
+    'multiplier='+data.multiplier);
+  rows.push('marker='+data.marker,'inputVersion='+data.inputVersion,
+    taskId==='T01'?'只输出 JSON {sum,count,marker,inputVersion}。':
+      '只输出 JSON {doubled,marker,inputVersion}。');
+  const prompt=rows.join('\n');
+  need(new TextEncoder().encode(prompt).length<=3000,'E_MD_PROMPT_SIZE');
+  return prompt;
 }
