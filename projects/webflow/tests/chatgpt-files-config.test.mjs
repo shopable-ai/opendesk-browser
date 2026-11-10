@@ -337,3 +337,104 @@ test('busy replacement rollback does not transfer a new document Stop to the pre
   assert.notEqual(h.ledger['opendesk.chatgpt.files.tasks.v1']['project:7'].paused,true);
   assert.equal(h.counts().writes,0);h.controller.dispose();
 });
+
+
+test('trusted project management lists original identities, denies forged senders and stops the exact task',async()=>{
+  const h=serviceHarness();
+  try{
+    const created=await h.send('start',{task},pageSender);
+    assert.equal(created.ok,true,JSON.stringify(created));
+    const list=await h.send('project-list');
+    assert.equal(list.ok,true,JSON.stringify(list));
+    assert.equal(list.data.tasks.length,1);
+    const reference=list.data.tasks[0];
+    assert.equal(reference.sourceTabId,source.tabId);
+    assert.equal(reference.sourceDocumentId,source.documentId);
+    assert.equal(reference.sourceUrl,source.url);
+    const identity={sourceTabId:reference.sourceTabId,sourceDocumentId:reference.sourceDocumentId,projectId:reference.projectId};
+    const status=await h.send('project-status',identity);
+    assert.equal(status.ok,true,JSON.stringify(status));
+    assert.equal(status.data.resultText,'');
+    assert.equal(status.data.result,null);
+    assert.equal(status.data.comparison,null);
+    assert.equal((await h.send('project-list',{},pageSender)).ok,false,'page sender must not read trusted list');
+    assert.equal((await h.send('project-stop',identity,pageSender)).ok,false,'page sender must not forge a trusted Stop');
+    for(const changed of [{sourceTabId:8},{sourceDocumentId:'another'},{projectId:'forged'}]){
+      const bad={...identity,...changed};
+      assert.equal((await h.send('project-status',bad)).ok,false);
+      assert.equal((await h.send('project-stop',bad)).ok,false);
+    }
+    const stop=await h.send('project-stop',identity);
+    assert.equal(stop.ok,true,JSON.stringify(stop));
+    assert.equal(stop.data.phase,'paused');
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+    const again=await h.send('project-status',identity);
+    assert.equal(again.ok,true);assert.equal(again.data.phase,'paused');
+    assert.equal(again.data.resultText,'');
+    assert.equal((await h.send('project-status',{...identity,unexpected:true})).ok,false);
+    assert.equal((await h.send('project-status',identity,{...owner,documentId:'retired'})).ok,false);
+    assert.equal((await h.send('project-review',identity,{...owner,url:source.url})).ok,false);
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{h.service.dispose();}
+});
+
+test('project task list survives service restart without reenacting the file operation',async()=>{
+  const ledger={};let h=serviceHarness(ledger);
+  let reference;
+  try{
+    const start=await h.send('start',{task},pageSender);
+    assert.equal(start.ok,true,JSON.stringify(start));
+    const list=await h.send('project-list');
+    reference=list.data.tasks[0];
+    assert.ok(reference?.projectId);
+    const first=h.counts();assert.deepEqual(first,{reads:0,writes:0,fills:0});
+  }finally{h.service.dispose();}
+  h=serviceHarness(ledger);
+  try{
+    const listed=await h.send('project-list');
+    assert.equal(listed.ok,true,JSON.stringify(listed));
+    assert.equal(listed.data.tasks.length,1);
+    assert.equal(listed.data.tasks[0].projectId,reference.projectId);
+    const status=await h.send('project-status',{sourceTabId:reference.sourceTabId,
+      sourceDocumentId:reference.sourceDocumentId,projectId:reference.projectId});
+    assert.equal(status.ok,true);
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{h.service.dispose();}
+});
+
+
+test('trusted manual review uses a live same-window original document and the existing one-time gate',async()=>{
+  const h=serviceHarness();
+  let opens=0;
+  const originalFrame=h.api.webNavigation.getFrame;
+  try{
+    h.api.tabs.query=async({windowId,url})=>{
+      assert.equal(windowId,3);assert.equal(url,'https://chatgpt.com/*');
+      return [{...pageSender.tab,url:source.url}];
+    };
+    h.api.tabs.create=async options=>{
+      opens++;assert.equal(options.openerTabId,source.tabId);
+      assert.equal(options.windowId,source.windowId);
+      return {id:51,windowId:3};
+    };
+    const list=await h.send('project-list');
+    assert.equal(list.ok,true,JSON.stringify(list));
+    assert.equal(list.data.tasks.length,0);
+    assert.deepEqual(list.data.sources,[{sourceTabId:7,sourceDocumentId:source.documentId,
+      sourceUrl:source.url,sourceWindowId:3}]);
+    const identity={sourceTabId:7,sourceDocumentId:source.documentId};
+    assert.equal((await h.send('review-source',identity,pageSender)).ok,false);
+    assert.equal((await h.send('review-source',{...identity,projectId:'forged'})).ok,false);
+    assert.equal((await h.send('review-source',{...identity,sourceDocumentId:'foreign'})).ok,false);
+    assert.equal(opens,0);
+    const opened=await h.send('review-source',identity);
+    assert.equal(opened.ok,true,JSON.stringify(opened));
+    assert.equal(opened.data.opened,true);assert.equal(opens,1);
+    h.api.webNavigation.getFrame=async args=>args.tabId===7?
+      {url:source.url,documentId:'replaced-document',documentLifecycle:'active'}:originalFrame(args);
+    assert.equal((await h.send('review-source',identity)).ok,false,
+      'retired document cannot open another trusted review');
+    assert.equal(opens,1);
+    assert.deepEqual(h.counts(),{reads:0,writes:0,fills:0});
+  }finally{h.service.dispose();}
+});

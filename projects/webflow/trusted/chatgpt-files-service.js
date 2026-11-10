@@ -23,8 +23,27 @@ export function installChatGPTFilesService({api,files,development}){
           }
           return summary(await controller.fixedStatus(message,sender));
         }
-        if(Object.keys(message).some(key=>!['protocol','action',...(['start','conversation'].includes(message.action)?['task']:message.action==='configure'?['preferences']:[])].includes(key)))
-          throw {code:'E_FILE_SCHEMA',message:'网页任务不接受项目权限或文件参数'};
+        const trustedActions=['project-status','project-stop','project-review'];
+        if(message.action==='review-source'){
+          if(Object.keys(message).some(key=>!['protocol','action','sourceTabId','sourceDocumentId'].includes(key)))
+            throw {code:'E_FILE_SCHEMA',message:'人工审阅只接受已选择的原文档身份'};
+          const source=await controller.reviewManualSource(message,sender);
+          return gate.openTrustedSource(source);
+        }
+        const expected=trustedActions.includes(message.action)?['sourceTabId','sourceDocumentId','projectId']:
+          ['start','conversation'].includes(message.action)?['task']:
+          message.action==='configure'?['preferences']:[];
+        if(Object.keys(message).some(key=>!['protocol','action',...expected].includes(key)))
+          throw {code:'E_FILE_SCHEMA',message:'请求含有未审阅的文件任务字段'};
+        if(message.action==='project-list')return controller.projectList(sender);
+        if(message.action==='project-status')return {...summary(await controller.projectStatusTrusted(message,sender)),
+          sourceTabId:message.sourceTabId,sourceDocumentId:message.sourceDocumentId,projectId:message.projectId};
+        if(message.action==='project-stop')return {...summary(await controller.projectStopTrusted(message,sender)),
+          sourceTabId:message.sourceTabId,sourceDocumentId:message.sourceDocumentId,projectId:message.projectId};
+        if(message.action==='project-review'){
+          const source=await controller.projectReviewTrusted(message,sender);
+          return gate.openTrustedSource(source);
+        }
         if(message.action==='settings')return controller.settings(sender);
         if(message.action==='configure')return controller.configure(message.preferences,sender);
         if(message.action==='conversation')return summary(await controller.conversationTask({task:message.task},sender));

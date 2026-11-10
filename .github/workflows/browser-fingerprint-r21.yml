@@ -14,6 +14,12 @@ on:
       - 'src/ui/sidebar-tools/package.js'
       - 'manifest.json'
       - '.github/workflows/browser-fingerprint-r21.yml'
+  pull_request:
+    paths:
+      - 'projects/browser-fingerprint/**'
+      - 'src/platform/chrome/browser-fingerprint.js'
+      - 'src/platform/chrome/permission-gate.js'
+      - '.github/workflows/browser-fingerprint-r21.yml'
   workflow_dispatch:
 
 permissions:

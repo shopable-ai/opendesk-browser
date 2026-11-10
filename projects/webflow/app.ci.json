@@ -3,7 +3,12 @@
   "kind": "ui",
   "node": [
     "projects/webflow/tests/webflow-ui.test.mjs",
-    "projects/webflow/tests/webflow-recovery-ui.test.mjs"
+    "projects/webflow/tests/webflow-recovery-ui.test.mjs",
+    "projects/webflow/tests/chatgpt-file-intent.test.mjs",
+    "projects/webflow/tests/chatgpt-files-config.test.mjs",
+    "projects/webflow/tests/chatgpt-project-runtime-ui.test.mjs",
+    "projects/webflow/tests/chatgpt-files.test.mjs",
+    "projects/webflow/tests/chatgpt-files-ui.test.mjs"
   ],
   "browser": [
     "projects/webflow/tests/webflow-compact-browser.mjs"

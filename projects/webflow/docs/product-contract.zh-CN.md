@@ -1,3 +1,15 @@
+## 2026-11-11 · ChatGPT A→B 结果回填最小业务合同（OD-AI-WORKFLOW-BRIDGE）
+
+**用户最终要做的事：** 在原 ChatGPT 聊天 A 要求 Web Flow 创建独立新聊天 B，指定选项时核验真实模型/推理，默认保留草稿；独立批准 send:true 后只点击一次发送；验证 B 的真实持久 URL、用户消息和完整助手回复，最后在来源 A 得到可点击链接和可信执行状态。
+
+**本轮增量的精确边界：** 复用 0.2.0 pinned Task、旧授权/Runner/Controller、Run/Result 持久化和来源 A tab/document 有界回填。将 `chatgpt.conversation.create` 0.2.0 结果严格识别为草稿或真实回复：无发送即无 B 链接；已发送必须验证确切新会话 URL 与消息身份。回复原文保存在原持久结果中，A 只得到可识别的有限预览、原持久身份和真实可点击链接，不因通用 7 KB 返回格式上限丢弃较长的已存回复。不增加 V2 字段、不提升 AI 文本权限，也不重写 chat-handoff 数据合同。
+
+**本轮 CI 已证实的范围：** main `f9ee003e` 的 [Actions Run 42862131792](https://github.com/shopable-ai/opendesk-browser/actions/runs/42862131792) 专项 Node 61/61 PASS，综合 166/167（非本任务的 AI Proxy `QuickPanel.tsx` 来源锁），Production Build 被跳过；PACKAGE/CHROME/BUSINESS 均 NOT_TESTED。
+
+**绝不能把源码当业务 PASS：** GPT-6/High/Thinking 真实网页能力与账号身份、UNKNOWN 只读对账、长 prompt 受控 SHA/owner/TTL 引用及原生 Chrome A→B→A 尚未验收。新 Node/CI 测试和 Task completed 不替代真实安装或 B 回访。实际断点、证据和下一项操作以[执行计划](execution-plan.zh-CN.md)为准。
+
+---
+
 ## 2026-11-10 · ChatGPT 新对话 P1.1 当前交付边界（OD-AI-WORKFLOW-BRIDGE）
 
 **原始产品目标：** 用户在已有对话 A 请求 → Web Flow 校验 V2 候选、安装版本、来源和用户授权 → 在官网新标签 B 验证模型与推理 → 默认准备未发送草稿 → 经单独授权发送一次 → 观察新增消息、真实持久会话 URL 和完整回复 → 正确回填给 A。已有百度/Google 默认后台运行、原 Run 前台查看及未来独立 Gemini 任务继续保留。
@@ -402,3 +414,17 @@ Chrome 官方依据：[Worker 生命周期](https://developer.chrome.com/docs/ex
 **注册、批准及恢复规则：** 可信 Side Panel 读取并校验配置，用预期旧配置比较后保存，避免覆盖另一窗口的新登记；普通站批准动作在真实手势中申请来源和目标网站权限，再核对原 Task 安装快照，最后保存原持续批准。单独写 Profile 不授权执行，权限拒绝不保存批准。停用/删除、权限撤销或版本变化时对账动态注册；已载入文档仍经后台逐次核验。新文档不能领取旧文档私有结果，已消费请求不能转交新 Host。结果交付先持久记录发送意图；丢失回执保留 UNKNOWN，不自动重发。Worker/浏览器恢复只沿原 Run/Result 对账，不能恢复任意 JS 栈或盲目再次执行。
 
 `SOURCE_IMPLEMENTED`、`COMPONENT_TESTED`、`CHROME_NATIVE_VERIFIED`、`PRODUCT_DONE`、`BLOCKED`、`NOT_TESTED` 分开记录。Node、内存编译和临时组件扩展均不能证明真实产品 Chrome 全链通过；第二 AI 网站没有真实完成/回传证据时保留未完成。
+
+---
+
+## 2026-11-11 · ChatGPT 项目文件 Headless Runtime 产品合同（OD-AI-WORKFLOW-BRIDGE）
+
+**目标：** 正常使用 ChatGPT，不出现 WebFlow「项目文件／打开／×」悬浮调试 UI；原官网消息见证、完整回答、文件路由、已许可读取/修改不退化。任务状态、停止、错误与修改审阅由 OpenDesk 可信扩展界面完成，侧栏关闭不自动停止文件任务。
+
+**唯一运行链：** 原 ChatGPT Bridge 发现轮次 → 无 DOM、无页面 Toast 的 Headless 文件 adapter → 原文件 Service / Controller → 旧 Native 工作区授权、稳定写入账本、SHA 校验、独立读回。未增加第二套 Runner、Host、文件授权或任务数据库。
+
+**控制面：** 可信 WebFlow Side Panel「运行与授权」链接到现有 native-agent/settings.html#chatgpt-files-controls；「原文件任务管理」只读列出任务身份，按 sourceTabId / sourceDocumentId / projectId 查询原状态、停止任务，或在授权审阅时打开一次性绑定的原文件审阅页；未建立项目任务的人工操作也可从可信设置页选择当前窗口的真实官方 ChatGPT 主文档，经过二次文档核验后领取原一次性审阅入口。Host 校验设置文档 sender、真实原 ChatGPT tab/document、授权和当前项目，普通网页及沙箱不能冒用。文件正文、修改前后对比、完整回执仅在原授权实时有效时披露。
+
+**故障边界：** Stop 立即标记同来源待执行操作，已派发副作用以真正回执结算；UNKNOWN 不换 ID 重放。撤权、来源更换或文件处理禁用时，历史正文隐藏。旧 diagnosticsVisible 保留作为向后兼容存储字段，不能重新生成网页悬浮 UI，也不代替 enabled 和文件授权。
+
+**验收：** 网页源码与定向测试需证实无浮窗 DOM、单次发现、Stop 身份及撤权遮蔽；Node CI 与 Chrome/Native 分层记录。真实 Chrome、安装、Native 和用户对话未执行时均为 NOT_TESTED。

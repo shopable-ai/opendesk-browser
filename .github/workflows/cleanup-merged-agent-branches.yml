@@ -28,6 +28,12 @@ jobs:
           script: |
             const {owner, repo} = context.repo;
             const candidates = [
+              // One-time selective-integration closeouts: exact PR head + main replacement commit.
+              // PR #77 and #78 are CLOSED, NOT merged; both source changes were adapted on main.
+              // The existing supersededCommit ancestor check and SHA guard are mandatory.
+              {name:'chore/migrate-queue-fingerprint-to-projects-20261102',pr:77,sha:'6f69654bf0045b3eb2c8a81fb3ebc108d7f4169a',supersededCommit:'e33dd74177b063dfe1c2030e73fe12c17749dfb4'},
+              {name:'feature/update-notification-r1-20261110',pr:78,sha:'1842aa7610434e0ed801105d9cae5c1818a62e34',supersededCommit:'b6e207f5445fc050fd20f76878af12f88a656145'},
+
               {name:'agent/sidebar-ui-r2-20261008-review',pr:8,sha:'e05bcd37017ff1b30620d798f4dc534399424c3f'},
               {name:'agent/sidebar-ui-r5-20261008',pr:9,sha:'d62d7c8ff35650c0d508f1180f43ea9a799eaf0a'},
               {name:'agent/sidebar-r41-sync-20261008-x8ttm7ta',pr:10,sha:'a3bb8a9a82e043d165107f239c0e2e1ba8f826ec'},

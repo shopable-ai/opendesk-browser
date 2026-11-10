@@ -72,6 +72,7 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
     el('task-description').disabled=false;
     el('generate-task').disabled=false;
     el('state').disabled=busy;
+    el('pause').disabled=busy||!claimed||!snapshot.request||['paused','completed'].includes(snapshot.automation?.phase);
     const project=snapshot.projectConnection;
     text('project-name',project?.name||'尚无已定位项目');
     text('project-target',snapshot.source?.url||'尚未核验原始对话');
@@ -132,6 +133,7 @@ export function initChatGPTFilesUI({api=globalThis.chrome,document:doc=globalThi
   el('state').addEventListener('click',event=>{
     if(event.isTrusted&&!busy)void (claimed?run('state'):bootstrap());
   });
+  click('pause',()=>run('pause'));
   click('connect-project',()=>run('connect-project',{workspaceId:snapshot.projectConnection.workspaceId}));
   click('revoke-project',()=>run('revoke-project',{grantId:snapshot.projectConnection.grantId}));
   click('prepare',()=>run('prepare',{workspaceId,path:el('path').value,

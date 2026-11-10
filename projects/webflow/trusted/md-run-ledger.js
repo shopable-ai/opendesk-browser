@@ -3,6 +3,7 @@
 // a tab, sends a message, or writes a workspace file. Only an authenticated
 // original Host may construct this adapter with a validated namespace/owner.
 import {createMdRunRecord,applyMdRunEvent,nextMdRunAction} from '../src/md-run-contract.js';
+import {readMdChatGPTReplyEvent,readMdOriginalController} from './md-run-receipt.js';
 
 const STORE='frameworkKV',PREFIX='opendesk.webflow.md-run.v1:';
 const fail=(code,message=code)=>{throw Object.assign(new Error(message),{code});};
@@ -25,7 +26,7 @@ function sameFrozenInput(previous,next){
 // SHA-256 and other non-IDB async work happen BEFORE taking that transaction:
 // awaiting crypto inside an IDB write transaction can close it prematurely.
 export function createMdTrustedRunLedger({storage,namespace,assertOwner,clock=()=>Date.now(),
-  randomUUID=()=>crypto.randomUUID(),digest}={}){
+  randomUUID=()=>crypto.randomUUID(),digest,client,verifyAccount}={}){
   if(typeof storage?.transaction!=='function'||!id(namespace)||
     typeof assertOwner!=='function'||typeof clock!=='function'||
     typeof randomUUID!=='function')fail('E_MD_OWNER','A trusted namespace, store and owner check are required');
@@ -95,5 +96,20 @@ export function createMdTrustedRunLedger({storage,namespace,assertOwner,clock=()
       return frozen({claimed:false,action:nextMdRunAction(latest).action,run:latest});
     }
   }
-  return frozen({get,startOrGet,append,claimNext});
+  async function reconcileOriginalReply(workflowId,taskId){
+    // Only the authenticated original Host supplies these two capabilities;
+    // a sandbox Task result/claimed account cannot be injected here.
+    if(typeof client?.controller?.snapshotControllerRun!=='function'||
+      typeof verifyAccount!=='function')
+      fail('E_MD_OWNER','Original Controller and live account check are required');
+    const current=await get(workflowId);
+    if(!current)fail('E_MD_RUN_MISSING');
+    const event=await readMdChatGPTReplyEvent({workflowRun:current,taskId,
+      readOriginalRun:args=>readMdOriginalController({client,...args}),
+      verifyAccount,clock});
+    // CAS protects against another window committing first. A conflict only
+    // permits re-reading this original run; never resubmitting a Task.
+    return append(workflowId,event);
+  }
+  return frozen({get,startOrGet,append,claimNext,reconcileOriginalReply});
 }

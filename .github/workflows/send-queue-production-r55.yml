@@ -23,6 +23,17 @@ on:
       - 'src/ui/sidebar-tools/package.js'
       - 'src/scripting/user-scripts/page-install-package.js'
       - '.github/workflows/send-queue-production-r55.yml'
+  pull_request:
+    paths:
+      - 'projects/ai-send-queue/**'
+      - 'official-pages/sources.json'
+      - 'official-tools/catalog.json'
+      - 'src/sidebar-tools/official-catalog.js'
+      - 'src/scripting/user-scripts/official-page-catalog.js'
+      - 'tests/environment/official-page-catalog-r124.test.mjs'
+      - 'tests/environment/official-tools-catalog-r45.test.mjs'
+      - 'tests/environment/send-queue-product-installation.test.mjs'
+      - '.github/workflows/send-queue-production-r55.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -51,6 +62,34 @@ jobs:
           done
           node scripts/validate-program-project.mjs projects/ai-send-queue
           node projects/ai-send-queue/scripts/sync-crown-preview.mjs --check
+      - name: Audit tracked legacy paths without rewriting historical sources
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/migration
+          {
+            for id in ai-send-queue browser-fingerprint; do
+              git grep -n -F "examples/sidebar-tools/$id" -- . || true
+            done
+          } | sort -u > artifacts/migration/legacy-path-references.txt
+          echo "Historical reference inventory (not evidence of an active path):"
+          wc -l < artifacts/migration/legacy-path-references.txt
+          for id in ai-send-queue browser-fingerprint; do
+            if git grep -n -F "examples/sidebar-tools/$id" -- src scripts official-pages official-tools .github/workflows; then
+              echo "::error::E_MIGRATION_ACTIVE_OLD_PATH for $id"
+              exit 1
+            fi
+          done
+          echo MIGRATION_ACTIVE_RUNTIME_PATHS_PASS
+      - name: Retain tracked legacy-path audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-project-migration-path-audit
+          path: artifacts/migration/legacy-path-references.txt
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Verify official catalogs and app-update lookup after migration
+        run: node --test tests/environment/official-page-catalog-r124.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/app-update-workflow.test.mjs
       - name: Build one v2 Tool with embedded Page module
         run: |
           npm run --prefix projects/ai-send-queue build

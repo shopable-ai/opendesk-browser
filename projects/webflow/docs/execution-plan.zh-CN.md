@@ -1,3 +1,29 @@
+## A→B 单次回填 · 源码补缺接续（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
+
+**原始目标：** 用户在 ChatGPT 对话 A 发出指令，Web Flow 用原 V2 单候选审批与原 Controller 在新标签 B 准备草稿（默认 send:false），只有明确批准 send:true 才单次原生发送。仅当 B 出现匹配的用户消息、完整助手回复与真实持久 /c/ 链接后，原受控 delivery 才把可点击 B 链接、Run/Result 和必要状态回填给来源 A；ACK 不明时按原身份查询，严禁补发。GPT-6/High 指定值不可核验时必须停止。
+
+**已有成果（不计本轮新增）：** 0.2.0 固定包和审阅保护、V2 固定解析/来源/独立批准、原 Controller owned-tab retention、原 Run/Result 读取、原来源 tab/document 定向交付与 UNKNOWN 围栏。0.2.0 对 model/effort/thinking 显式要求仍是安全拒绝；`src/chat-handoff-contract.js` 仍只含纯数据合同。
+
+**本轮差量源码：** `src/chatgpt-conversation-result.js` 为原 0.2.0 结果提供严格校验和有界回填：未发送草稿不得有 /c/ 身份；已发送结果须匹配审批 prompt 长度、固定来源、原生消息引用、完整回复和确切 `https://chatgpt.com/c/UUID`。原完整回复留在同一个原 Controller Durable Result（可至 64 KiB）；送 A 的文本含真实可点击 URL、原 Run/Result 身份和明确标为预览的短摘录，仍遵守 8192 字节回传上限。接入 `chatgpt-fixed-bridge-host.js` 的原 durable 验证/formatter，不新建 Runner、Host、Ledger 或安装器。新 `chatgpt-create-result.test.mjs` 已接入原 Bridge CI，测试仅代表 Node 层，不能证明 Chrome 发送。
+
+**验收状态（本轮实读 CI）：** SOURCE = main 已提交（`c431b256` 与安全修复 `f9ee003e`）；NODE_TEST = [GitHub Actions Run 42862131792](https://github.com/shopable-ai/opendesk-browser/actions/runs/42862131792) 语法通过，专项 Node **61/61 PASS**，综合 **166/167**（唯一失败为并行 AI Proxy `projects/ai-proxy/src/QuickPanel.tsx` 固定来源锁）；PACKAGE = NOT_TESTED（该 CI 构建步骤因综合检查失败跳过）；CHROME = NOT_TESTED；BUSINESS = NOT_TESTED。不能继承专项通过到整体构建或实站。GitHub 只可查已提交分支，不可查本机未提交工作树。未经 Chrome 现场核验不得向用户宣称 A→B 已经可用。
+
+**依然未完成：** GPT-6/High/Thinking 真实选择与读回；账号一致性；发送中断后不重发的只读续查；长提示词 SHA-256/owner/TTL 安全引用；真正 Chrome B 回复完整与 A 一次回填/草稿保护。启动前 activateTab 属独立 P3，不阻碍本轮回填修复，但尚未核验。
+
+**唯一下一步：** 先核本轮精准 Node CI；之后在真实已安装 Chrome 以安全测试聊天实证来源 A → B 单次发送 → 原生 URL/回复 → A 单次链接回填。仅按真实失败修复，不清理任何历史 UNKNOWN 或并行项目。
+
+---
+
+## 2026-11-11 · 增量修正：Markdown ChatGPT 0.2 实际发送生命周期（OD-AI-WORKFLOW-BRIDGE）
+
+**真实用户目标保持不变：** 点击一次开始，T01 使用第一个新 ChatGPT 聊天取得完整回复并授权写文件、读回，T02 在第二个不同聊天中只读取 T01 完整 JSON 正文并再次保存读回；中断不重复发信。
+
+**本次源码增量（不能视为业务整链完成）：** 纠正 `src/md-run-contract.js` 与不可变的 0.2 ChatGPT Task 的逻辑冲突：新 Task 是**一次受审的原生提交，之后取得真实 /c/ URL**，不能预先假设已创建持久聊天。现在合同先冻结安装 pin、授权、提示词 SHA 和原请求身份，再允许记录原 Controller Run 身份；在原请求的可信持久结果真正读到后才一次性记录聊天、文档、账号、用户消息、助手消息及完整回复。ACK 丢失可对原请求只读对账并结算，UNKNOWN 不生成新请求；暂停后的已发结果和文件读回可结算。新增唯一确定性 T01/T02 提示词生成器，T02 使用 `steps[0].readback.text` 完整正文，提示词不注入计算期望值。对应定向 Node 测试改为真实 0.2 事件顺序并覆盖 35→36、未知/暂停/身份伪造。此处修改的是**数据合同**，没有修改已发行 Task 0.2.0 的固定源码。
+
+**尚未完成且绝不冒充：** 原可信 Host 尚未把 `trusted/md-run-ledger.js` 接入实际用户授权及 Controller Task 调度，账号身份核验、原持久 Run 只读恢复、Native Workspace 的真实写入/独立读回、沙箱 MD UI 启动/状态展示、正式包同源晋升及 Chrome 两聊天业务验收均未完成。**MD 页面“开始”保持禁用。** 后续首要工作仍是可信 Host 执行纵切，不应回头开发已有的解析器、账本、0.2 Task 或另建 runner。
+
+---
+
 ## 百度固定脚本核心 UI 目标与关键条件（2026-11-10）
 
 **最新阶段（20:10）：首页真实手动请求遇到验证码，核心链未完成。** 当前对话 01a1c556 在自有 ego TaskSpace **61** 从百度首页进入真实 WebFlow **0.3.26**，核对百度 **1.1.5 / generation 4** 及原双 hash 后保存 `MDN Web API MutationObserver`；请求 **webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa** 明确确认一次。实际页面跳到 `https://wappass.baidu.com/static/captcha/tuxing_v2.html`，回跳参数为本次关键词结果页；原生页面显示“百度安全验证／请完成下方验证后继续操作”。未取得三条结果，未重试、解验证或重放。WebFlow 显示“原请求仍未确定”、阶段“执行中”、资源释放 `not-started`，**不能据此认定底层未执行或已释放**；Run/Result、输入读回、实际准入次数和持久终态均待只读核对。
@@ -2844,3 +2870,20 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **证据分级**：`SOURCE_IMPLEMENTED=YES`（纯 v2 合同和测试已提交），`COMPONENT_TESTED=10/10`（独立 Node 22，Git blob 一致），`INTEGRATION=NOT_IMPLEMENTED`，`CHROME_NATIVE_VERIFIED=NOT_TESTED`，`PRODUCT_DONE=NOT_TESTED`，`ENGINEERING_SCORE=NOT_SCORED`。不能把数据解析测试当多对话已跑通。
 
 **下一条最小执行动作**：只读核查并行中的 `chatgpt.conversation.create` 是否已有正式可信入口和单次创建回执；若已合入，新增最小 ChatGPT site adapter 并接现有 Bridge/Authority/RunHost 做 A→B→A（一轮 B）实测；若仍未合入，先完成不执行真实网页的 v2 交接 Receipt 与读写对账测试，**不要重复开发新对话按钮/Runner**。测试时必须隔离原 Send Queue 的草稿、IME、附件与 unknown；真实结果基于 conversationId/turnId/Run/Result/唯一交付回执验证。GitHub 初期只读，写入评论须另行明确授权。
+
+---
+
+## 2026-11-11 · 文件任务网页浮窗退役／可信扩展接管（OD-AI-WORKFLOW-BRIDGE）
+
+**用户问题：** ChatGPT 上的「项目文件／打开／×」浮窗污染正常聊天，原浮窗又承担文件任务 Stop、回执和诊断；必须退役页面 UI，不删除其自动监听和文件业务。
+
+**本轮只做的源码差量：**
+- 将 chatgpt-file-intent-page.js 改为 Headless adapter：无网页 DOM/Toast，复用 chatgpt-bridge-page.js 的唯一消息及完整答复发现器。
+- 在原 chatgpt-files-service.js/controller.js 增加可信 project-list / project-status / project-stop / project-review：绑定原 tab/document/project，保留原状态/授权/Native/写入账本，无第二套 Runner。
+- 在原 native-agent/settings.html 加入任务选择、状态/回执、Stop、审阅，以及无需先创建项目任务的当前窗口 ChatGPT 原文档选择与一次性审阅；Side Panel 只链接已有可信扩展设置页。
+- 原 file-intent-gate.js 复用一次性安全 handoff；旧 diagnosticsVisible 保持兼容但仅属于扩展内折叠诊断。
+- 替换浮窗相关过时断言，保留文件协议、Native SHA、写入回执与跨重启 Stop 栅栏核心回归。其他并行 V2、MD 队列、通用 Toast、安装器 owner 不改。
+
+**分层：** SOURCE = 最新 GitHub 提交待核对；SYNTAX = 源码 V8 解析；NODE_TEST = 只按与提交 SHA 匹配的实际 CI 日志判定；PACKAGE / CHROME / Native / BUSINESS = NOT_TESTED，直到本地真机证据取得。
+
+**Codex 下一步唯一任务：** 基于最新 main 核对增量已落地，执行 WebFlow 文件专属 Node 回归/构建，再在真实 Chrome 用隔离授权项目验收：网页全状态无浮窗、官网自然发送、文件授权/读取/审阅/写入读回、设置页面原任务状态/Stop/撤权/UNKNOWN、关闭与重开侧栏、原网页 Task 回归。任何实测缺陷只修本轮责任范围，不重做其他 owner 工作。

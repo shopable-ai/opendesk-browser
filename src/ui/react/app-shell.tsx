@@ -11,6 +11,7 @@ import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
 import {NotificationViewport} from './components/notifications.tsx';
+import {UpdateNoticeSlot} from './components/update-notice.tsx';
 import {WebflowAutoControls} from '../../../projects/webflow/trusted/AutoSettings.tsx';
 import {DebugPage} from './tabs/debug.tsx';
 
@@ -21,7 +22,7 @@ const defaultUiLocale=()=> 'zh-CN';
 
 export function SidebarAppShell({
   activeTab='tasks',pageSurface='sidebar',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
-  onStopAppDebug=()=>{},
+  onStopAppDebug=()=>{},onOpenUpdateReview=()=>false,
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,webflowAuto=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
@@ -56,6 +57,7 @@ export function SidebarAppShell({
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
+    <UpdateNoticeSlot surface="app" activeTab="tools" onOpenReview={onOpenUpdateReview}/>
   </main>;
   return <>
     {toolView&&<NotificationViewport view={toolView} snapshot={toolSnapshot}/>}
@@ -118,5 +120,7 @@ export function SidebarAppShell({
       <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
       <DeveloperDock view={developerView} hidden={runDock.developHidden&&!developerCanStop}/>
     </footer>
+    <UpdateNoticeSlot activeTab={activeTab} onOpenTools={()=>onNavigate('tools')}
+      onOpenReview={onOpenUpdateReview}/>
   </>;
 }
