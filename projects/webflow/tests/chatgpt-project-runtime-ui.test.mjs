@@ -15,7 +15,12 @@ function harness(handler){
     if(id==='status')return '<p id="chatgpt-file-run-status"></p>';
     return '<button id="chatgpt-file-run-'+id+'"></button>';
   }).join('')+'</body></html>';
-  const {document:doc}=parseHTML(html);
+  const {document:doc,window}=parseHTML(html);
+  // linkedom exposes a getter-only SELECT.value; browser SELECT.value is
+  // writable. Mirror the browser's selected-value contract in this fixture.
+  Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,
+    get(){return this._value??this.querySelector('option')?.value??'';},
+    set(value){this._value=String(value);}});
   for(const id of ids){
     const node=doc.getElementById('chatgpt-file-run-'+id),listeners=new Map(),add=node.addEventListener.bind(node);
     node.handlers=listeners;

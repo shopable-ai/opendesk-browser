@@ -2887,3 +2887,5 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **分层：** SOURCE = 最新 GitHub 提交待核对；SYNTAX = 源码 V8 解析；NODE_TEST = 只按与提交 SHA 匹配的实际 CI 日志判定；PACKAGE / CHROME / Native / BUSINESS = NOT_TESTED，直到本地真机证据取得。
 
 **Codex 下一步唯一任务：** 基于最新 main 核对增量已落地，执行 WebFlow 文件专属 Node 回归/构建，再在真实 Chrome 用隔离授权项目验收：网页全状态无浮窗、官网自然发送、文件授权/读取/审阅/写入读回、设置页面原任务状态/Stop/撤权/UNKNOWN、关闭与重开侧栏、原网页 Task 回归。任何实测缺陷只修本轮责任范围，不重做其他 owner 工作。
+
+**本轮最新实际 CI 证据（2026-11-11）：** `main` 上最终测试代码提交 [80447bb](https://github.com/shopable-ai/opendesk-browser/commit/80447bbcd5fb795fa38646d28ca4f4f26663ebcf)；[专项 Actions 42872904587](https://github.com/shopable-ai/opendesk-browser/actions/runs/42872904587) 的 `headless-contract` 真正执行 Node 22 + `node --check` + 7 组文件安全回归，**204 PASS / 0 FAIL / 0 skipped**。这仅验证本轮固定模块/可信控制器/测试夹具，不代表完整 WebFlow/App CI 或 WXT 生产包通过；后者当时受到并行 Task 版本、Provenance 固定源等其他 owner 问题影响，不能掩盖。PACKAGE/CHROME/Native/BUSINESS 仍 **NOT_TESTED**。

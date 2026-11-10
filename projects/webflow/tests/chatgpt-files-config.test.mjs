@@ -7,9 +7,15 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 const workspaceId='workspace-11111111-1111-1111-1111-111111111111';
 const source={tabId:7,documentId:'source-doc',url:'https://chatgpt.com/c/abc12345-1234-1234-1234-abcdef123456',windowId:3};
 const owner={id:'extension',url:'chrome-extension://extension/native-agent/settings.html#chatgpt-files',frameId:0,documentId:'owner-doc',tab:{id:51,windowId:3}};
-function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initialContent='safe original\n'}={}){
+function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initialContent='safe original\n',claim=true}={}){
   let userText='',content=initialContent,answer,reads=0,writes=0,fills=0,epoch='',access='read-write',sessionId='native-session-123456',turnKey='turn-1',answerKey='answer-1',complete=true,observed=false,readError,afterReadError;
   const storage={async get(key){return {[key]:ledger[key]};},async set(value){Object.assign(ledger,structuredClone(value));}};
+  // Emulate Chrome storage.session only inside Node fixture. Production
+  // requires a trusted context boundary; tests must not weaken that gate.
+  const sessionRows={};
+  const session={async setAccessLevel({accessLevel}){assert.equal(accessLevel,'TRUSTED_CONTEXTS');},
+    async get(key){return {[key]:structuredClone(sessionRows[key])};},
+    async set(values){Object.assign(sessionRows,structuredClone(values));}};
   const files={state:()=>({connected:true,sessionId,devLeaseEpoch:1}),async request(method,params,expected){
     assert.equal(expected.sessionId,sessionId);
     if(method==='workspaces.list')return {workspaces:[{workspaceId,name:'isolated-test',access,sourceId:'',leaseEpoch:epoch}]};
@@ -21,12 +27,16 @@ function setup({ledger={},unknown=false,fillUnknown=false,fillError=null,initial
     if(method==='files.list')return {workspaceId,path:params.path,entries:[],truncated:false};
     throw Error(method);
   }};
-  const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path},storage:{local:storage},
-    tabs:{async get(){return {id:7,windowId:3,url:source.url};}},webNavigation:{async getFrame(){return {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
+  const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path},storage:{local:storage,session},
+    tabs:{async get(tabId){return tabId===owner.tab.id?{...owner.tab,url:owner.url}:
+      {id:source.tabId,windowId:source.windowId,url:source.url};}},
+    webNavigation:{async getFrame({tabId}){return tabId===owner.tab.id?
+      {frameId:0,documentId:owner.documentId,url:owner.url,documentLifecycle:'active'}:
+      {frameId:0,documentId:source.documentId,url:source.url,documentLifecycle:'active'};}}};
   const readAnswer=async(_api,_source,_id,options={})=>{if(readError){const error=readError;readError=null;throw error;}return ({url:source.url,turnKey,answerKey,answerComplete:complete,
     resultObserved:observed,...(options.readUserMessage?{userText}:{}),blocks:[answer]});};
   const controller=createChatGPTFilesController({api,files,readAnswer,fillComposer:async()=>{fills++;if(fillError)throw fillError;if(fillUnknown)throw {code:'E_CHAT_FILL_UNKNOWN',outcome:'OUTCOME_UNKNOWN'};return {filled:true,sent:false};}});
-  controller.claim({source,workspaceTab:owner.tab},owner);
+  if(claim)void controller.claim({source,workspaceTab:owner.tab},owner);
   let last;
   const call=async(action,extra={},sender=owner)=>{
     const bound=action==='approve'?{reviewId:last?.proposal?.reviewId}:action==='fill'?{packetId:last?.[extra.packet==='prompt'?'promptPacketId':'resultPacketId']}:{};
@@ -48,7 +58,7 @@ const task='读取 isolated-test 项目的 demo.txt，只读取，不修改任�
 const writeTask='修改 isolated-test 项目的 demo.txt，把 original 替换为 modified';
 const event=()=>{const listeners=new Set();return {listeners,addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)}};
 function serviceHarness(ledger={}){
-  const h=setup({ledger});h.controller.dispose();
+  const h=setup({ledger,claim:false});h.controller.dispose();
   const changed=event(),messages=event();h.api.storage.onChanged=changed;h.api.runtime.onMessage=messages;
   h.api.tabs.onRemoved=event();h.api.webNavigation.onCommitted=event();h.api.webNavigation.onHistoryStateUpdated=event();
   h.api.tabs.get=async id=>id===51?{...owner.tab,url:owner.url}: {id:7,windowId:3,url:source.url};
@@ -259,6 +269,39 @@ test('main settings ChatGPT files controls anchor can configure preferences',asy
 });
 function existingGrant(h){h.ledger['opendesk.chatgpt.files.grants.v1']={existing:{id:'existing',version:1,service:'https://chatgpt.com',
   sourceUrl:source.url,scope:'task-named-existing-text',operations:['read','write'],authority:{workspaceId,sourceId:''}}};}
+test('trusted project status conceals already cached file content after revocation, without a new Native call',async()=>{
+  // Exercise the real trusted controller with an independently injected DOM
+  // reader: no fake Chrome scripting privilege is needed in this Node fixture.
+  const h=setup({claim:false});
+  h.api.tabs.query=async()=>[];
+  existingGrant(h);
+  try{
+    const started=await h.controller.projectTask({task},pageSender);
+    assert.equal(started.needsConnection,false);
+    const list=await h.controller.projectList(owner);
+    assert.equal(list.tasks.length,1);
+    const ref=list.tasks[0];
+    const identity={sourceTabId:ref.sourceTabId,sourceDocumentId:ref.sourceDocumentId,projectId:ref.projectId};
+    const before=h.counts();
+    const permitted=await h.controller.projectStatusTrusted(identity,owner);
+    assert.match(permitted.resultText,/safe original/,'the original live grant authorizes this trusted result');
+    assert.deepEqual(h.counts(),before,'trusted status performs no new Native operation');
+
+    h.ledger['opendesk.chatgpt.files.grants.v1'].existing.revoked=true;
+    const concealed=await h.controller.projectStatusTrusted(identity,owner);
+    assert.equal(concealed.resultText,undefined);
+    assert.equal(concealed.result,undefined);
+    assert.equal(concealed.comparison,undefined);
+    assert.doesNotMatch(JSON.stringify(concealed),/safe original|safe modified/);
+    assert.deepEqual(h.counts(),before,'revoked status never re-reads Native');
+
+    const stopped=await h.controller.projectStopTrusted(identity,owner);
+    assert.equal(stopped.automation.phase,'paused');
+    assert.doesNotMatch(JSON.stringify(stopped),/safe original|safe modified/);
+    assert.deepEqual(h.counts(),before,'Stop after revocation fences the task without further IO');
+  }finally{h.controller.dispose();}
+});
+
 test('source-scoped Stop cancels start before session creation and conversation waiting for its user turn',{timeout:2000},async()=>{
   for(const stage of ['source','answer','native']){
     const h=setup();existingGrant(h);await h.call('state');h.controller.dispose();
